@@ -17,7 +17,6 @@ function jp(s, obj) {
 
 function jsonPrint(obj) {
   if ((obj) || (obj === 0)) {
-    // var jsonString = JSON.stringify(obj, null, 2);
     return JSON.stringify(obj, null, 2);
   } else {
     return "UNDEFINED";
@@ -25,8 +24,6 @@ function jsonPrint(obj) {
 }
 
 var randomIntFromInterval = function(min, max) {
-  // var random = Math.random();
-  // var randomInt = Math.floor((Math.random() * (max - min + 1)) + min);
   return (Math.floor((Math.random() * (max - min + 1)) + min));
 };
 

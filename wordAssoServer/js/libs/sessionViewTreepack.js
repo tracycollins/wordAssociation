@@ -1128,23 +1128,9 @@ function ViewTreepack() {
       })
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
-      .style("visibility", function (d) {
+      .style("visibility", function (d) { 
         if (!d.isValid) { return "hidden"; }
-        if (mouseMovingFlag) { return "visible"; }
-        if (d.rate > MIN_RATE) { return "visible"; }
-        if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
-        if (d.mentions > MIN_FOLLOWERS) { return "visible"; }
-        if (d.category) { return "visible"; }
-        if (d.nodeType === "hashtag") { 
-          if (d.text.toLowerCase().includes("trump")) { return "visible"; }
-          return "hidden";
-        }
-        if (d.nodeType === "user") { 
-          if (d.screenName.toLowerCase().includes("trump")) { return "visible"; }
-          if (d.name && d.name.toLowerCase().includes("trump")) { return "visible"; }
-          return "hidden";
-        }
-        return "hidden";
+        return "visible"; 
       })
       .style("opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
       .style("fill", function (d) { 
@@ -1175,7 +1161,8 @@ function ViewTreepack() {
     nodeCircles
       .exit()
       .attr("r", 1e-6)
-      .style("opacity", 1e-6);
+      .attr("visibility", "hidden");
+      // .style("opacity", 1e-6);
       // .remove()
 
     callback();

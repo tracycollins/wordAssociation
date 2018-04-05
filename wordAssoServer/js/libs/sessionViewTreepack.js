@@ -799,7 +799,7 @@ function ViewTreepack() {
         ageRate = 1e-6;
       }
 
-      if ((node.nodeType === "user") && (node.followersCount > MIN_FOLLOWERS)){
+      if ((node.nodeType === "user") && node.followersCount && (node.followersCount > MIN_FOLLOWERS)){
         age = node.age + (ageRate * MIN_FOLLOWERS_AGE_RATE_RATIO * (currentTime - node.ageUpdated));
       }
       else {
@@ -808,18 +808,21 @@ function ViewTreepack() {
 
       ageMaxRatio = age/nodeMaxAge ;
 
-      if ((!node.isDead && node.isValid) && (removeDeadNodesFlag && (age >= nodeMaxAge))) {
+      // if ((!node.isDead && node.isValid) && (removeDeadNodesFlag && (age >= nodeMaxAge))) {
+      if (removeDeadNodesFlag && (age >= nodeMaxAge)) {
 
-        node.isValid = false;
         node.isDead = true;
-        // node.ageUpdated = currentTime;
-        // node.age = Math.max(age, 1e-6);
-        // node.ageMaxRatio = Math.max(ageMaxRatio, 1e-6);
+        node.ageUpdated = moment().valueOf();
+        node.age = age;
+        node.ageMaxRatio = ageMaxRatio;
 
         nodeIdHashMap.remove(node.nodeId);
         localNodeHashMap.set(nPoolId, node);
 
-        nodePool.recycle(node);        
+        if (node.isValid) {
+          node.isValid = false;
+          nodePool.recycle(node);        
+        }
 
       } 
       else {

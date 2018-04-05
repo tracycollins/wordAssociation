@@ -812,9 +812,9 @@ function ViewTreepack() {
 
         node.isValid = false;
         node.isDead = true;
-        node.ageUpdated = currentTime;
-        node.age = age;
-        node.ageMaxRatio = ageMaxRatio;
+        // node.ageUpdated = currentTime;
+        // node.age = Math.max(age, 1e-6);
+        // node.ageMaxRatio = Math.max(ageMaxRatio, 1e-6);
 
         nodeIdHashMap.remove(node.nodeId);
         localNodeHashMap.set(nPoolId, node);
@@ -826,8 +826,8 @@ function ViewTreepack() {
         node.isValid = true;
         node.isDead = false;
         node.ageUpdated = currentTime;
-        node.age = age;
-        node.ageMaxRatio = ageMaxRatio;
+        node.age = Math.max(age, 1e-6);
+        node.ageMaxRatio = Math.max(ageMaxRatio, 1e-6);
 
         if (ageMaxRatio < NEW_NODE_AGE_RATIO) { node.newFlag = true; }
         else { node.newFlag = false;   }

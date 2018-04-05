@@ -309,7 +309,7 @@ function ControlPanel() {
       updateCategoryRadioButtons(node.category, function(){
         twitterHashtagSearch(node, function(err, el){
           var nsi =document.getElementById("nodeSearchInput");
-          nsi.value = "#" + node.text;
+          nsi.value = "#" + node.nodeId;
         });
       });
     }

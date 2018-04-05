@@ -66,10 +66,16 @@ function ViewTreepack() {
     "yellowgreen": "#738A05"
   };
 
-  var MIN_RATE = 2.5;
-  var MIN_FOLLOWERS = 50000;
-  var MIN_MENTIONS = 10000;
-  var MIN_FOLLOWERS_AGE_RATE_RATIO = 0.9;  // age users with many followers at a slower rate
+  var DEFAULT_MIN_RATE = 2.5;
+  var minRate = DEFAULT_MIN_RATE;
+
+  var DEFAULT_MIN_FOLLOWERS = 15000;
+  var minFollowers = DEFAULT_MIN_FOLLOWERS;
+
+  var DEFAULT_MIN_MENTIONS = 1000;
+  var minMentions = DEFAULT_MIN_MENTIONS;
+
+  var DEFAULT_MIN_FOLLOWERS_AGE_RATE_RATIO = 0.9;  // age users with many followers at a slower rate
 
   var mouseMovingFlag = false;
 
@@ -799,7 +805,7 @@ function ViewTreepack() {
         ageRate = 1e-6;
       }
 
-      if ((node.nodeType === "user") && node.followersCount && (node.followersCount > MIN_FOLLOWERS)){
+      if ((node.nodeType === "user") && node.followersCount && (node.followersCount > minFollowers)){
         age = node.age + (ageRate * MIN_FOLLOWERS_AGE_RATE_RATIO * (currentTime - node.ageUpdated));
       }
       else {
@@ -1184,19 +1190,22 @@ function ViewTreepack() {
       .style("opacity", function (d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
       .style("visibility", function (d) {
         if (!d.isValid) { return "hidden"; }
-        if (mouseMovingFlag) { return "visible"; }
-        if (d.rate > MIN_RATE) { return "visible"; }
-        if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
-        if (d.mentions > MIN_FOLLOWERS) { return "visible"; }
         if (d.category) { return "visible"; }
-        if (d.nodeType === "hashtag") { 
-          if (d.text.toLowerCase().includes("trump")) { return "visible"; }
-          return "hidden";
+        if (mouseMovingFlag) { return "visible"; }
+        if (d.rate > minRate) { return "visible"; }
+        if ((d.nodeType === "user") 
+          && (
+            (d.followersCount > minFollowers) 
+            || (d.mentions > minMentions) 
+            || (d.screenName.toLowerCase().includes("trump"))
+            || (d.name && d.name.toLowerCase().includes("trump"))
+            )
+        ) { 
+          return "visible"; 
         }
-        if (d.nodeType === "user") { 
-          if (d.screenName.toLowerCase().includes("trump")) { return "visible"; }
-          if (d.name && d.name.toLowerCase().includes("trump")) { return "visible"; }
-          return "hidden";
+        if ((d.nodeType === "hashtag") && ((d.mentions > mentions) || (d.text.toLowerCase().includes("trump"))))
+        { 
+          return "visible"; 
         }
         return "hidden";
       })
@@ -1217,30 +1226,51 @@ function ViewTreepack() {
       .attr("y", function (d) { return d.y; })
       .text(labelText)
       .style("font-weight", function (d) {
-        if (d.followersCount > MIN_FOLLOWERS) { return "bold"; }
+        if (d.followersCount > minFollowers) { return "bold"; }
         return "normal";
       })
+      // .style("visibility", function (d) {
+      //   if (!d.isValid) { return "hidden"; }
+      //   if (mouseMovingFlag) { return "visible"; }
+      //   if (d.rate > minRate) { return "visible"; }
+      //   if (d.followersCount > minFollowers) { return "visible"; }
+      //   if (d.mentions > minMentions) { return "visible"; }
+      //   if (d.category) { return "visible"; }
+      //   if (d.nodeType === "hashtag") { 
+      //     if (d.text.toLowerCase().includes("trump")) { return "visible"; }
+      //     return "hidden";
+      //   }
+      //   if (d.nodeType === "user") { 
+      //     if (d.screenName.toLowerCase().includes("trump")) { return "visible"; }
+      //     if (d.name && d.name.toLowerCase().includes("trump")) { return "visible"; }
+      //     return "hidden";
+      //   }
+      //   return "hidden";
+      // })
       .style("visibility", function (d) {
         if (!d.isValid) { return "hidden"; }
-        if (mouseMovingFlag) { return "visible"; }
-        if (d.rate > MIN_RATE) { return "visible"; }
-        if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
-        if (d.mentions > MIN_FOLLOWERS) { return "visible"; }
         if (d.category) { return "visible"; }
-        if (d.nodeType === "hashtag") { 
-          if (d.text.toLowerCase().includes("trump")) { return "visible"; }
-          return "hidden";
+        if (mouseMovingFlag) { return "visible"; }
+        if (d.rate > minRate) { return "visible"; }
+        if ((d.nodeType === "user") 
+          && (
+            (d.followersCount > minFollowers) 
+            || (d.mentions > minMentions) 
+            || (d.screenName.toLowerCase().includes("trump"))
+            || (d.name && d.name.toLowerCase().includes("trump"))
+            )
+        ) { 
+          return "visible"; 
         }
-        if (d.nodeType === "user") { 
-          if (d.screenName.toLowerCase().includes("trump")) { return "visible"; }
-          if (d.name && d.name.toLowerCase().includes("trump")) { return "visible"; }
-          return "hidden";
+        if ((d.nodeType === "hashtag") && ((d.mentions > mentions) || (d.text.toLowerCase().includes("trump"))))
+        { 
+          return "visible"; 
         }
         return "hidden";
       })
       .style("text-decoration", function (d) { 
-        if (d.isTopTerm && (d.followersCount > MIN_FOLLOWERS)) { return "overline underline"; }
-        if (!d.isTopTerm && (d.followersCount > MIN_FOLLOWERS)) { return "underline"; }
+        if (d.isTopTerm && (d.followersCount > minFollowers)) { return "overline underline"; }
+        if (!d.isTopTerm && (d.followersCount > minFollowers)) { return "underline"; }
         if (d.isTopTerm) { return "overline"; }
         return "none"; 
       })

@@ -1026,10 +1026,7 @@ function ViewTreepack() {
 
     nodeTopTermLabels
       .exit()
-      // .attr("x", xposition)
-      .style("visibility", "hidden")
-      .style("opacity", 1e-6);
-      // .remove();
+      .remove();
 
     nodeTopTermLabels
       .attr("x", xposition)

@@ -1592,11 +1592,11 @@ function ViewTreepack() {
     return (hashtagTopMargin + ((d.rank % maxHashtagRows) * rowSpacing)) + "%";
   }
 
-  // var colNum;
+  var colNum;
   function xposition(d){
-    // colNum = parseInt(d.rank / maxHashtagRows);        
-    // var value = hashtagLeftMargin + ((parseInt(d.rank / maxHashtagRows)) * colSpacing);
-    return (hashtagLeftMargin + ((parseInt(d.rank / maxHashtagRows)) * colSpacing)) + "%" ;
+    colNum = parseInt(d.rank / maxHashtagRows);        
+    var value = hashtagLeftMargin + ((parseInt(d.rank / maxHashtagRows)) * colSpacing);
+    return value + "%" ;
   }
 
   this.setChargeSliderValue = function(value){

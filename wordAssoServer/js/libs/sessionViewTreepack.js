@@ -1585,18 +1585,17 @@ function ViewTreepack() {
   }
 
   // var rowNum;
-
   function yposition(d){
     // rowNum = d.rank % maxHashtagRows;
     // var value = hashtagTopMargin + (rowNum * rowSpacing);
     return (hashtagTopMargin + ((d.rank % maxHashtagRows) * rowSpacing)) + "%";
   }
 
-  var colNum;
+  // var colNum;
   function xposition(d){
-    colNum = parseInt(d.rank / maxHashtagRows);        
-    var value = hashtagLeftMargin + ((parseInt(d.rank / maxHashtagRows)) * colSpacing);
-    return value + "%" ;
+    // colNum = parseInt(d.rank / maxHashtagRows);        
+    // var value = hashtagLeftMargin + (colNum * colSpacing);
+    return (hashtagLeftMargin + ((parseInt(d.rank / maxHashtagRows)) * colSpacing)) + "%" ;
   }
 
   this.setChargeSliderValue = function(value){

@@ -1411,8 +1411,6 @@ function ViewTreepack() {
         currentNode.isValid = true;
         currentNode.mouseHoverFlag = false;
         currentNode.newFlag = true;
-        currentNode.x = 0.5*width;
-        currentNode.y = 0.5*height;
 
 
         currentNode.rate = newNode.rate;

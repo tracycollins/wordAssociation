@@ -97,9 +97,9 @@ statsObj.dbConnection = false;
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 const tinyDateTimeFormat = "YYYYMMDDHHmmss";
 
-const MIN_METRIC_VALUE = 5.0;
-const MIN_MENTIONS_VALUE = 1000;
-const MIN_FOLLOWERS = 25000;
+const MIN_METRIC_VALUE = process.env.WA_MIN_METRIC_VALUE || 5.0;
+const MIN_MENTIONS_VALUE = process.env.WA_MIN_MENTIONS_VALUE || 1000;
+const MIN_FOLLOWERS = process.env.WA_MIN_FOLLOWERS || 15000;
 
 const RATE_QUEUE_INTERVAL = 1000; // 1 second
 const RATE_QUEUE_INTERVAL_MODULO = 60; // modulo RATE_QUEUE_INTERVAL

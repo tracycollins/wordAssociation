@@ -1384,7 +1384,6 @@ function ViewTreepack() {
   };
 
   var newNode = {};
-  var nodesModifiedFlag = false;
   var nodeAddQReady = true;
   var currentNode;
   var nodePoolId;
@@ -1398,8 +1397,6 @@ function ViewTreepack() {
 
       newNode = nodeAddQ.shift();
 
-      nodesModifiedFlag = false;
-
       if (nodeIdHashMap.has(newNode.nodeId)){
 
         nodePoolId = nodeIdHashMap.get(newNode.nodeId);
@@ -1407,9 +1404,17 @@ function ViewTreepack() {
         currentNode = localNodeHashMap.get(nodePoolId);
 
         currentNode.age = 1e-6;
-        currentNode.isDead = false;
         currentNode.ageMaxRatio = 1e-6;
         currentNode.ageUpdated = moment().valueOf();
+        currentNode.isDead = false;
+        currentNode.isMaxNode = false;
+        currentNode.isValid = true;
+        currentNode.mouseHoverFlag = false;
+        currentNode.newFlag = true;
+        currentNode.x = 0.5*width;
+        currentNode.y = 0.5*height;
+
+
         currentNode.rate = newNode.rate;
         // currentNode.rank = newNode.rank;
         currentNode.mentions = newNode.mentions;
@@ -1429,16 +1434,25 @@ function ViewTreepack() {
 
         nodeAddQReady = true;
 
-        callback(null, nodesModifiedFlag);
+        callback(null);
       }
       else {
-        nodesModifiedFlag = true;
 
         currentNode = nodePool.use();
 
         nodeIdHashMap.set(newNode.nodeId, currentNode.nodePoolId);
 
         currentNode.isValid = true;
+        currentNode.age = 1e-6;
+        currentNode.ageMaxRatio = 1e-6;
+        currentNode.ageUpdated = moment().valueOf();
+        currentNode.isDead = false;
+        currentNode.isMaxNode = false;
+        currentNode.mouseHoverFlag = false;
+        currentNode.newFlag = true;
+        currentNode.x = 0.5*width;
+        currentNode.y = 0.5*height;
+
 
         currentNode.nodeId = newNode.nodeId;
         currentNode.userId = newNode.userId;
@@ -1465,16 +1479,6 @@ function ViewTreepack() {
           currentNode.followersCount = newNode.followersCount || 0;
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
         }
-
-        currentNode.age = 1e-6;
-        currentNode.ageMaxRatio = 1e-6;
-        currentNode.ageUpdated = moment().valueOf();
-        currentNode.isDead = false;
-        currentNode.isMaxNode = false;
-        currentNode.mouseHoverFlag = false;
-        currentNode.newFlag = true;
-        currentNode.x = 0.5*width;
-        currentNode.y = 0.5*height;
 
         currentNode.displaytext = createDisplayText(currentNode);
 
@@ -1510,7 +1514,7 @@ function ViewTreepack() {
 
         nodeAddQReady = true;
 
-        callback(null, nodesModifiedFlag);
+        callback(null);
       }
 
       if (nodeIdHashMap.size > maxNumberNodes) { maxNumberNodes = nodeIdHashMap.size; }
@@ -1518,7 +1522,7 @@ function ViewTreepack() {
     }
     else {
       if (nodeIdHashMap.size > maxNumberNodes) { maxNumberNodes = nodeIdHashMap.size; }
-      callback(null, nodesModifiedFlag);
+      callback(null);
     }
   };
 
@@ -1595,6 +1599,9 @@ function ViewTreepack() {
 
     self.setEnableAgeNodes(true);
 
+    newNode.age = 1e-6;
+    newNode.ageUpdated = moment().valueOf();
+    newNode.ageMaxRatio = 1e-6;
     newNode.rank = -1;
     newNode.newFlag = true;
     newNode.followersCount = (newNode.followersCount) ? newNode.followersCount : 0;

@@ -1586,6 +1586,7 @@ function ViewTreepack() {
 
   // var rowNum;
   function yposition(d){
+    if (d.rank < 0) { return height; }
     // rowNum = d.rank % maxHashtagRows;
     // var value = hashtagTopMargin + (rowNum * rowSpacing);
     return (hashtagTopMargin + ((d.rank % maxHashtagRows) * rowSpacing)) + "%";
@@ -1593,6 +1594,7 @@ function ViewTreepack() {
 
   // var colNum;
   function xposition(d){
+    if (d.rank < 0) { return hashtagLeftMargin; }
     // colNum = parseInt(d.rank / maxHashtagRows);        
     // var value = hashtagLeftMargin + (colNum * colSpacing);
     return (hashtagLeftMargin + ((parseInt(d.rank / maxHashtagRows)) * colSpacing)) + "%" ;

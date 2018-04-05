@@ -814,11 +814,14 @@ function ViewTreepack() {
 
       if ((!node.isDead && node.isValid) && (removeDeadNodesFlag && (age >= nodeMaxAge))) {
 
+        node.isValid = false;
         node.isDead = true;
+        node.ageUpdated = currentTime;
+        node.age = age;
+        node.ageMaxRatio = ageMaxRatio;
+
         nodeIdHashMap.remove(node.nodeId);
         localNodeHashMap.set(nodePoolId, node);
-
-        // resetNode(node);
 
         nodePool.recycle(node);
 
@@ -865,11 +868,6 @@ function ViewTreepack() {
     if (metricMode === "mentions") { maxRateMentions.nodeId = "MNTN | MAX" ;  }
 
     maxRateMentionsText.text(maxRateMentions.displaytext);
-
-    // rankHashMapByValue(nodesTopTermHashMap, metricMode, function rankHashMapByValueFunc(){
-    //   nodesTopTerm = nodesTopTermHashMap.values();
-    //   callback(null);
-    // });
 
     rankArrayByValue(nodesTopTerm, metricMode, function rankArrayByValueFunc(){
       nodeArray = tempNodeArray;
@@ -1134,6 +1132,24 @@ function ViewTreepack() {
       })
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
+      .style("visibility", function (d) {
+        if (!d.isValid) { return "hidden"; }
+        if (mouseMovingFlag) { return "visible"; }
+        if (d.rate > MIN_RATE) { return "visible"; }
+        if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
+        if (d.mentions > MIN_FOLLOWERS) { return "visible"; }
+        if (d.category) { return "visible"; }
+        if (d.nodeType === "hashtag") { 
+          if (d.text.toLowerCase().includes("trump")) { return "visible"; }
+          return "hidden";
+        }
+        if (d.nodeType === "user") { 
+          if (d.screenName.toLowerCase().includes("trump")) { return "visible"; }
+          if (d.name && d.name.toLowerCase().includes("trump")) { return "visible"; }
+          return "hidden";
+        }
+        return "hidden";
+      })
       .style("opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
       .style("fill", function (d) { 
         if (!d.category && !d.categoryAuto) { return palette.black; }
@@ -1179,9 +1195,7 @@ function ViewTreepack() {
       .text(labelText)
       .attr("x", function (d) { return d.x; })
       .attr("y", function (d) { return d.y; })
-      .style("opacity", function (d) { 
-        return nodeLabelOpacityScale(d.ageMaxRatio); 
-      })
+      .style("opacity", function (d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
       .style("visibility", function (d) {
         if (!d.isValid) { return "hidden"; }
         if (mouseMovingFlag) { return "visible"; }

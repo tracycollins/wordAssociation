@@ -293,7 +293,7 @@ function ViewTreepack() {
   var DEFAULT_AGE_RATE = 1.0;
   var MAX_RX_QUEUE = 100;
 
-  var nodesTopTermHashMap = new HashMap();
+  // var nodesTopTermHashMap = new HashMap();
   var localNodeHashMap = new HashMap();
   var nodeIdHashMap = new HashMap();
 
@@ -1032,7 +1032,10 @@ function ViewTreepack() {
 
     nodeTopTermLabels
       .exit()
-      .remove();
+      // .attr("x", xposition)
+      .style("visibility", "hidden")
+      .style("opacity", 1e-6);
+      // .remove();
 
     nodeTopTermLabels
       .attr("x", xposition)
@@ -1044,11 +1047,13 @@ function ViewTreepack() {
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
       .transition()
-        .duration(1.5*transitionDuration)
+        .duration(transitionDuration)
         .attr("y", yposition);
 
     nodeTopTermLabels
       .enter().append("text")
+      .attr("id", function (d) { return d.nodePoolId; })
+      .attr("nodeId", function (d) { return d.nodeId; })
       .style("text-anchor", "right")
       .style("alignment-baseline", "bottom")
       .on("mouseover", nodeMouseOver)
@@ -1871,7 +1876,7 @@ function ViewTreepack() {
     localNodeHashMap.clear();
     nodeIdHashMap.clear();
     nodeArray = [];
-    nodesTopTermHashMap.clear();
+    // nodesTopTermHashMap.clear();
     self.toolTipVisibility(false);
     self.resize();
     self.resetDefaultForce();

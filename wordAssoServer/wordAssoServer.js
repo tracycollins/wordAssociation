@@ -1903,6 +1903,23 @@ function initSocketHandler(socketObj) {
         }
         else {
           console.log(chalkTwitter("TWITTER_SEARCH_NODE HASHTAG NOT FOUND: #" + searchNodeHashtag.nodeId));
+          console.log(chalkTwitter("+++ CREATE NEW HASHTAG: #" + searchNodeHashtag.nodeId));
+          new Hashtag({
+            nodeId: searchNodeHashtag.nodeId.toLowerCase(), 
+            text: searchNodeHashtag.nodeId.toLowerCase()})
+          .save(function(err, newHt){
+            if (err) {
+              console.log(chalkError("ERROR:  SAVE NEW HASHTAG"
+                + " | #" + searchNodeHashtag.nodeId.toLowerCase()
+                + " | ERROR: " + err
+              ));
+              return;
+            }
+            console.log(chalkAlert("+++ SAVED NEW HASHTAG"
+              + " | #" + newHt.nodeId
+            ));
+            socket.emit("SET_TWITTER_HASHTAG", newHt);
+          });
         }
     
       });
@@ -1974,7 +1991,40 @@ function initSocketHandler(socketObj) {
         }
         else {
           console.log(chalkTwitter("--- TWITTER_SEARCH_NODE USER *NOT* FOUND\n" + jsonPrint(searchNodeUser)));
-          socket.emit("SET_TWITTER_USER", {notFound: 1, nodeId: 0, screenName: searchNodeUser.screenName});
+          twit.get("users/show", {screen_name: searchNodeUser.screenName, include_entities: true}, function usersShow (err, rawUser, response){
+            if (err) {
+              console.log(chalkError("ERROR users/show rawUser" + err));
+              socket.emit("SET_TWITTER_USER", user);
+            }
+            else if (rawUser) {
+
+              userServer.convertRawUser({user:rawUser}, function(err, cUser){
+
+                console.log(chalkTwitter("FOUND users/show rawUser"
+                  + " | " + printUser({user:cUser})
+                ));
+
+                userServer.findOneUser(cUser, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
+
+                  if (err) {
+                    console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
+                    socket.emit("SET_TWITTER_USER", cUser);
+                  }
+                  else {
+                    console.log(chalkTwitter("UPDATED updatedUser"
+                      + " | " + printUser({user:updatedUser})
+                    ));
+                    socket.emit("SET_TWITTER_USER", updatedUser);
+                  }
+                });
+              });
+            }
+            else {
+              console.log(chalkTwitter("NOT FOUND users/show data"));
+              socket.emit("SET_TWITTER_USER", searchNodeUser);
+            }
+          });
+          // socket.emit("SET_TWITTER_USER", {notFound: 1, nodeId: 0, screenName: searchNodeUser.screenName});
         }
       });
     }

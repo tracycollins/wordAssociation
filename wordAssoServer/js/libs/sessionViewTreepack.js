@@ -1427,7 +1427,7 @@ function ViewTreepack() {
         currentNode.ageMaxRatio = 1e-6;
         currentNode.ageUpdated = moment().valueOf();
         currentNode.rate = newNode.rate;
-        currentNode.rank = newNode.rank;
+        // currentNode.rank = newNode.rank;
         currentNode.mentions = newNode.mentions;
         currentNode.isTopTerm = newNode.isTopTerm;
         currentNode.isTrendingTopic = newNode.isTrendingTopic;
@@ -1610,6 +1610,7 @@ function ViewTreepack() {
 
     self.setEnableAgeNodes(true);
 
+    newNode.rank = -1;
     newNode.newFlag = true;
     newNode.followersCount = (newNode.followersCount) ? newNode.followersCount : 0;
     newNode.mentions = (newNode.mentions) ? newNode.mentions : 0;

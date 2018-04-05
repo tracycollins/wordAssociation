@@ -1203,7 +1203,7 @@ function ViewTreepack() {
         ) { 
           return "visible"; 
         }
-        if ((d.nodeType === "hashtag") && ((d.mentions > mentions) || (d.text.toLowerCase().includes("trump"))))
+        if ((d.nodeType === "hashtag") && ((d.mentions > minMentions) || (d.text.toLowerCase().includes("trump"))))
         { 
           return "visible"; 
         }
@@ -1262,7 +1262,7 @@ function ViewTreepack() {
         ) { 
           return "visible"; 
         }
-        if ((d.nodeType === "hashtag") && ((d.mentions > mentions) || (d.text.toLowerCase().includes("trump"))))
+        if ((d.nodeType === "hashtag") && ((d.mentions > minMentions) || (d.text.toLowerCase().includes("trump"))))
         { 
           return "visible"; 
         }

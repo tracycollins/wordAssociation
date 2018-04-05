@@ -7,6 +7,9 @@
     "restart_delay": 30000,
     "node_args"   : "--max-old-space-size=6144",
     "env": {
+      "WA_MIN_FOLLOWERS": 15000,
+      "WA_MIN_MENTIONS_VALUE": 500,
+      "WA_MIN_METRIC_VALUE": 5.0,
       "NODE_ENV": "production",
       "HEAPDUMP_ENABLED": false,
       "HEAPDUMP_MODULO": 10,

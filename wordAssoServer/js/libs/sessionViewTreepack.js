@@ -216,15 +216,11 @@ function ViewTreepack() {
 
   var nodePool = deePool.create(function makeNode(){
 
-    // var nodePoolId = "nodePoolId_" + nodePoolIndex;
-
     nodePoolIndex += 1;
 
-    // var n = new Node(nodePoolId);
-
     return (new Node("nodePoolId_" + nodePoolIndex));
-
   });
+
 
   var autoCategoryFlag = config.autoCategoryFlag;
 
@@ -293,7 +289,6 @@ function ViewTreepack() {
   var DEFAULT_AGE_RATE = 1.0;
   var MAX_RX_QUEUE = 100;
 
-  // var nodesTopTermHashMap = new HashMap();
   var localNodeHashMap = new HashMap();
   var nodeIdHashMap = new HashMap();
 
@@ -765,6 +760,7 @@ function ViewTreepack() {
   var ageMaxRatio = 1e-6;
   var ageNodesLength = 0;
   var node;
+  var nPoolId;
   var prevNode;
   var currentTime = moment().valueOf();
   var nodeIdArray = [];
@@ -792,8 +788,8 @@ function ViewTreepack() {
 
     nodeIdArray.forEach(function(nodeId){
 
-      var nodePoolId = nodeIdHashMap.get(nodeId);
-      node = localNodeHashMap.get(nodePoolId);
+      nPoolId = nodeIdHashMap.get(nodeId);
+      node = localNodeHashMap.get(nPoolId);
 
       if (!node.isValid || node.isDead) {
         return;
@@ -821,9 +817,9 @@ function ViewTreepack() {
         node.ageMaxRatio = ageMaxRatio;
 
         nodeIdHashMap.remove(node.nodeId);
-        localNodeHashMap.set(nodePoolId, node);
+        localNodeHashMap.set(nPoolId, node);
 
-        nodePool.recycle(node);
+        nodePool.recycle(node);        
 
       } 
       else {
@@ -836,14 +832,12 @@ function ViewTreepack() {
         if (ageMaxRatio < NEW_NODE_AGE_RATIO) { node.newFlag = true; }
         else { node.newFlag = false;   }
 
-        localNodeHashMap.set(nodePoolId, node);
-        nodeIdHashMap.set(node.nodeId, nodePoolId);
+        localNodeHashMap.set(nPoolId, node);
+        nodeIdHashMap.set(node.nodeId, nPoolId);
 
         tempNodeArray.push(node);
 
-        if (node.isTopTerm){ 
-          tempNodesTopTerm.push(node);
-        }
+        if (node.isTopTerm){ tempNodesTopTerm.push(node); }
       }
     });
 
@@ -869,7 +863,7 @@ function ViewTreepack() {
 
     maxRateMentionsText.text(maxRateMentions.displaytext);
 
-    rankArrayByValue(nodesTopTerm, metricMode, function rankArrayByValueFunc(){
+    rankArrayByValue(tempNodesTopTerm, metricMode, function rankArrayByValueFunc(){
       nodeArray = tempNodeArray;
       nodesTopTerm = tempNodesTopTerm;
       callback(null);
@@ -1052,7 +1046,7 @@ function ViewTreepack() {
 
     nodeTopTermLabels
       .enter().append("text")
-      .attr("id", function (d) { return d.nodePoolId; })
+      .attr("id", function (d) { return d.nodeTopTermPoolId; })
       .attr("nodeId", function (d) { return d.nodeId; })
       .style("text-anchor", "right")
       .style("alignment-baseline", "bottom")
@@ -1409,6 +1403,7 @@ function ViewTreepack() {
   var nodesModifiedFlag = false;
   var nodeAddQReady = true;
   var currentNode;
+  var nodePoolId;
   var nodePoolIdcircle;
 
   var processNodeAddQ = function(callback) {
@@ -1423,7 +1418,7 @@ function ViewTreepack() {
 
       if (nodeIdHashMap.has(newNode.nodeId)){
 
-        var nodePoolId = nodeIdHashMap.get(newNode.nodeId);
+        nodePoolId = nodeIdHashMap.get(newNode.nodeId);
 
         currentNode = localNodeHashMap.get(nodePoolId);
 

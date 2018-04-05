@@ -1611,7 +1611,7 @@ function ViewTreepack() {
 
     self.setEnableAgeNodes(true);
 
-    newNode.rank = 100;
+    newNode.rank = -1;
     newNode.newFlag = true;
     newNode.followersCount = (newNode.followersCount) ? newNode.followersCount : 0;
     newNode.mentions = (newNode.mentions) ? newNode.mentions : 0;

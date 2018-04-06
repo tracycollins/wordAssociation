@@ -66,6 +66,7 @@ let defaultTwitterUser = twitterUserThreecee;
 let metricsRate = "1MinuteRate";
 
 const exp = require("express");
+
 const bodyParser = require("body-parser");
 const methodOverride = require("method-override");
 const deepcopy = require("deep-copy");
@@ -73,8 +74,8 @@ const sizeof = require("object-sizeof");
 const writeJsonFile = require("write-json-file");
 
 const session = require("express-session");
-// const MongoDBStore = require("express-session-mongo");
-const MongoDBStore = require("connect-mongostore")(session);
+const MongoDBStore = require("express-session-mongo");
+// const MongoDBStore = require("connect-mongostore")(session);
 
 const slackOAuthAccessToken = "xoxp-3708084981-3708084993-206468961315-ec62db5792cd55071a51c544acf0da55";
 const slackChannel = "#was";
@@ -302,6 +303,8 @@ const debugCache = require("debug")("cache");
 const debugCategory = require("debug")("kw");
 
 const express = require("./config/express");
+const app = express();
+
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 require("isomorphic-fetch");
 const Dropbox = require("dropbox").Dropbox;
@@ -683,7 +686,7 @@ if (process.env.NODE_METER_ENABLED !== undefined) {
 
 let internetCheckInterval;
 
-const app = express();
+// const app = express();
 
 const http = require("http");
 const httpServer = http.createServer(app);
@@ -2724,19 +2727,19 @@ function initAppRouting(callback) {
 
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use(methodOverride());
-  app.use(session({
-    secret: "my_precious",
-    resave: false,
-    // store: new MongoDBStore({ mongooseConnection: dbConnection }),
-    store: new MongoDBStore({ "db": "sessions" }),
-    saveUninitialized: true,
-    cookie: { 
-      secure: false,
-      maxAge: MAX_SESSION_AGE
-     }
-  }));
-  app.use(passport.initialize());
-  app.use(passport.session());
+  // app.use(session({
+  //   secret: "my_precious",
+  //   resave: false,
+  //   store: new MongoDBStore({ mongooseConnection: dbConnection }),
+  //   // store: new MongoDBStore({ "db": "sessions" }),
+  //   saveUninitialized: true,
+  //   cookie: { 
+  //     secure: false,
+  //     maxAge: MAX_SESSION_AGE
+  //    }
+  // }));
+  // app.use(passport.initialize());
+  // app.use(passport.session());
   app.use(exp.static(__dirname + "/public"));
 
   app.use(function requestLog(req, res, next) {

@@ -68,11 +68,13 @@ let metricsRate = "1MinuteRate";
 const exp = require("express");
 const bodyParser = require("body-parser");
 const methodOverride = require("method-override");
-const session = require("express-session");
 const deepcopy = require("deep-copy");
 const sizeof = require("object-sizeof");
 const writeJsonFile = require("write-json-file");
-const MongoDBStore = require("express-session-mongo");
+
+const session = require("express-session");
+// const MongoDBStore = require("express-session-mongo");
+const MongoDBStore = require("connect-mongostore")(session);
 
 const slackOAuthAccessToken = "xoxp-3708084981-3708084993-206468961315-ec62db5792cd55071a51c544acf0da55";
 const slackChannel = "#was";
@@ -2725,7 +2727,8 @@ function initAppRouting(callback) {
   app.use(session({
     secret: "my_precious",
     resave: false,
-    store: new MongoDBStore({ mongooseConnection: dbConnection }),
+    // store: new MongoDBStore({ mongooseConnection: dbConnection }),
+    store: new MongoDBStore({ "db": "sessions" }),
     saveUninitialized: true,
     cookie: { 
       secure: false,

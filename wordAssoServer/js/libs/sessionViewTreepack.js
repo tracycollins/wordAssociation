@@ -1169,8 +1169,8 @@ function ViewTreepack() {
 
     nodeCircles
       .exit()
-      .attr("r", 1e-6)
-      .attr("visibility", "hidden");
+      // .attr("r", 1e-6)
+      // .attr("visibility", "hidden");
       // .style("opacity", 1e-6);
       // .remove()
 
@@ -1290,8 +1290,8 @@ function ViewTreepack() {
 
     nodeLabels
       .exit()
-      .style("font-size", 1e-6)
-      .style("opacity", 1e-6)
+      // .style("font-size", 1e-6)
+      // .style("opacity", 1e-6)
       // .remove();
 
     if (callback !== undefined) { callback(); }

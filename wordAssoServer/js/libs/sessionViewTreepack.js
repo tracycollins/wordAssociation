@@ -747,19 +747,46 @@ function ViewTreepack() {
   }
 
   var tempNodeCirle;
+  var tempNodeLabel;
 
-  function resetNode(n){
-    n.isDead = true;
-    n.isValid = false;
+  function resetNode(n, callback){
     n.age = 1e-6;
     n.ageMaxRatio = 1e-6;
+    n.ageUpdated = moment().valueOf();
+    n.category = false;
+    n.categoryAuto = false;
+    n.categoryColor = palette.white;
+    n.categoryMatch = false;
+    n.categoryMismatch = false;
+    n.displaytext = "";
+    n.followersCount = 0;
+    n.followersMentions = 0;
+    n.isCategory = false;
+    n.isDead = true;
+    n.isMaxNode = false;
     n.isTopTerm = false;
-    n.newFlag = false;
+    n.isTrendingTopic = false;
+    n.isValid = false;
+    n.mentions = 0;
+    n.mouseHoverFlag = false;
+    n.name = "";
+    n.newFlag = true;
+    n.nodeId = "";
+    n.nodeType = "user";
+    n.rank = -1;
+    n.rate = 1e-6;
+    n.screenName = "";
+    n.text = "";
 
     tempNodeCirle = document.getElementById(n.nodePoolId);
     tempNodeCirle.setAttribute("r", 1e-6);
     tempNodeCirle.setAttribute("visibility", "hidden");
     tempNodeCirle.setAttribute("opacity", 1e-6);
+
+    tempNodeLabel = document.getElementById(n.nodePoolId + "_label");
+    tempNodeLabel.setAttribute("visibility", "hidden");
+    tempNodeLabel.setAttribute("opacity", 1e-6);
+    callback(n);
   }
 
   var age;
@@ -827,7 +854,9 @@ function ViewTreepack() {
 
         if (node.isValid) {
           node.isValid = false;
-          nodePool.recycle(node);        
+          resetNode(node, function(n){
+            nodePool.recycle(n);        
+          });
         }
 
       } 
@@ -966,12 +995,9 @@ function ViewTreepack() {
       if (d.isTopTerm) { return topTermLabelOpacityScale(d.ageMaxRatio); }
       return nodeLabelOpacityScale(d.ageMaxRatio);
     });
-    // d3.select("#" + d.nodePoolId + "_label").style("opacity", 1);
-    // d3.select("#" + d.nodePoolId + "_label").style("visibility", "hidden");
     d3.select("#" + d.nodePoolId + "_label").style("visibility", function(){
       if (!d.isValid) { return "hidden"; }
       if (d.category) { return "visible"; }
-      // if (mouseMovingFlag) { return "visible"; }
       if (d.rate > minRate) { return "visible"; }
       if ((d.nodeType === "user") 
         && (

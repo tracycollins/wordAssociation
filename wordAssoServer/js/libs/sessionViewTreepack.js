@@ -1194,6 +1194,7 @@ function ViewTreepack() {
       })
       .style("visibility", function (d) {
         if (!d.isValid) { return "hidden"; }
+        if (d.mouseHoverFlag) { return "visible"; }
         if (d.category) { return "visible"; }
         // if (mouseMovingFlag) { return "visible"; }
         if (d.rate > minRate) { return "visible"; }

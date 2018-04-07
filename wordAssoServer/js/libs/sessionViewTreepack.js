@@ -896,6 +896,8 @@ function ViewTreepack() {
 
     d3.select(this).style("opacity", 1);
     d3.select(this).style("visibility", "visible");
+    d3.select("#" + d.nodePoolId + "_label").style("opacity", 1);
+    d3.select("#" + d.nodePoolId + "_label").style("visibility", "visible");
 
     switch (d.nodeType) {
 

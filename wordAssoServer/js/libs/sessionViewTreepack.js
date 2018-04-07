@@ -963,11 +963,32 @@ function ViewTreepack() {
     d.mouseHoverFlag = false;
     self.toolTipVisibility(false);
     d3.select(this).style("opacity", function(){
-        if (d.isTopTerm) { return topTermLabelOpacityScale(d.ageMaxRatio); }
-        return nodeLabelOpacityScale(d.ageMaxRatio);
-      });
+      if (d.isTopTerm) { return topTermLabelOpacityScale(d.ageMaxRatio); }
+      return nodeLabelOpacityScale(d.ageMaxRatio);
+    });
     // d3.select("#" + d.nodePoolId + "_label").style("opacity", 1);
-    d3.select("#" + d.nodePoolId + "_label").style("visibility", "hidden");
+    // d3.select("#" + d.nodePoolId + "_label").style("visibility", "hidden");
+    d3.select("#" + d.nodePoolId + "_label").style("visibility", function(){
+      if (!d.isValid) { return "hidden"; }
+      if (d.category) { return "visible"; }
+      // if (mouseMovingFlag) { return "visible"; }
+      if (d.rate > minRate) { return "visible"; }
+      if ((d.nodeType === "user") 
+        && (
+          (d.followersCount > minFollowers) 
+          || (d.mentions > minMentions) 
+          || (d.screenName.toLowerCase().includes("trump"))
+          || (d.name && d.name.toLowerCase().includes("trump"))
+          )
+      ) { 
+        return "visible"; 
+      }
+      if ((d.nodeType === "hashtag") && ((d.mentions > minMentions) || (d.text.toLowerCase().includes("trump"))))
+      { 
+        return "visible"; 
+      }
+      return "hidden";
+    });
   }
 
   function labelText(d) {

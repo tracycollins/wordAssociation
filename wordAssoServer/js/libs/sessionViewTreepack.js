@@ -896,7 +896,6 @@ function ViewTreepack() {
 
     d3.select(this).style("opacity", 1);
 
-
     switch (d.nodeType) {
 
       case "user":
@@ -1187,7 +1186,11 @@ function ViewTreepack() {
       .text(labelText)
       .attr("x", function (d) { return d.x; })
       .attr("y", function (d) { return d.y; })
-      .style("opacity", function (d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
+      // .style("opacity", function (d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
+      .style("opacity", function updateTopTermOpacity(d) { 
+        if (d.mouseHoverFlag) { return 1.0; }
+        return topTermLabelOpacityScale(d.ageMaxRatio); 
+      })
       .style("visibility", function (d) {
         if (!d.isValid) { return "hidden"; }
         if (d.category) { return "visible"; }

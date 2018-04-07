@@ -966,6 +966,8 @@ function ViewTreepack() {
         if (d.isTopTerm) { return topTermLabelOpacityScale(d.ageMaxRatio); }
         return nodeLabelOpacityScale(d.ageMaxRatio);
       });
+    // d3.select("#" + d.nodePoolId + "_label").style("opacity", 1);
+    d3.select("#" + d.nodePoolId + "_label").style("visibility", "hidden");
   }
 
   function labelText(d) {

@@ -1019,16 +1019,19 @@ function ViewTreepack() {
 
   function labelText(d) {
     if (d.nodeType === "hashtag") { 
+      if (d.category || d.categoryAuto) { return "#" + d.text.toUpperCase(); }
       if (d.mentions >= minMentions) { return "#" + d.text.toUpperCase(); }
       return "#" + d.text.toLowerCase(); 
     }
     if (d.nodeType === "user") { 
       if (d.screenName) { 
+        if (d.category || d.categoryAuto) { return "@" + d.screenName.toUpperCase(); }
         if (d.followersCount >= minFollowers) { return "@" + d.screenName.toUpperCase(); }
         if (d.mentions >= minMentions) { return "@" + d.screenName.toUpperCase(); }
         return "@" + d.screenName.toLowerCase(); 
       }
       else if (d.name){ 
+        if (d.category || d.categoryAuto) { return "@" + d.name.toUpperCase(); }
         if (d.followersCount >= minFollowers) { return "@" + d.name.toUpperCase(); }
         if (d.mentions >= minMentions) { return "@" + d.name.toUpperCase(); }
         return "@" + d.name.toLowerCase(); 

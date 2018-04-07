@@ -895,6 +895,7 @@ function ViewTreepack() {
     }
 
     d3.select(this).style("opacity", 1);
+    d3.select(this).style("visibility", "visible");
 
     switch (d.nodeType) {
 
@@ -1186,7 +1187,7 @@ function ViewTreepack() {
       .text(labelText)
       .attr("x", function (d) { return d.x; })
       .attr("y", function (d) { return d.y; })
-      // .style("opacity", function (d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
+      .on("mouseover", nodeMouseOver)
       .style("opacity", function updateTopTermOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
@@ -1219,6 +1220,7 @@ function ViewTreepack() {
 
     nodeLabels
       .enter().append("text")
+      .attr("id", function (d) { return d.nodePoolId + "_label"; })
       .attr("nodeId", function (d) { return d.nodeId; })
       .style("text-anchor", "middle")
       .style("alignment-baseline", "middle")
@@ -1232,24 +1234,6 @@ function ViewTreepack() {
         if (d.followersCount > minFollowers) { return "bold"; }
         return "normal";
       })
-      // .style("visibility", function (d) {
-      //   if (!d.isValid) { return "hidden"; }
-      //   if (mouseMovingFlag) { return "visible"; }
-      //   if (d.rate > minRate) { return "visible"; }
-      //   if (d.followersCount > minFollowers) { return "visible"; }
-      //   if (d.mentions > minMentions) { return "visible"; }
-      //   if (d.category) { return "visible"; }
-      //   if (d.nodeType === "hashtag") { 
-      //     if (d.text.toLowerCase().includes("trump")) { return "visible"; }
-      //     return "hidden";
-      //   }
-      //   if (d.nodeType === "user") { 
-      //     if (d.screenName.toLowerCase().includes("trump")) { return "visible"; }
-      //     if (d.name && d.name.toLowerCase().includes("trump")) { return "visible"; }
-      //     return "hidden";
-      //   }
-      //   return "hidden";
-      // })
       .style("visibility", function (d) {
         if (!d.isValid) { return "hidden"; }
         if (d.category) { return "visible"; }
@@ -1448,9 +1432,7 @@ function ViewTreepack() {
         currentNode.mouseHoverFlag = false;
         currentNode.newFlag = true;
 
-
         currentNode.rate = newNode.rate;
-        // currentNode.rank = newNode.rank;
         currentNode.mentions = newNode.mentions;
         currentNode.isTopTerm = newNode.isTopTerm;
         currentNode.isTrendingTopic = newNode.isTrendingTopic;

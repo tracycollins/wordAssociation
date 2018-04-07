@@ -1018,10 +1018,21 @@ function ViewTreepack() {
   }
 
   function labelText(d) {
-    if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
+    if (d.nodeType === "hashtag") { 
+      if (d.mentions >= minMentions) { return "#" + d.text.toUpperCase(); }
+      return "#" + d.text.toLowerCase(); 
+    }
     if (d.nodeType === "user") { 
-      if (d.screenName) { return "@" + d.screenName.toUpperCase(); }
-      else if (d.name){ return "@" + d.name.toUpperCase(); }
+      if (d.screenName) { 
+        if (d.followersCount >= minFollowers) { return "@" + d.screenName.toUpperCase(); }
+        if (d.mentions >= minMentions) { return "@" + d.screenName.toUpperCase(); }
+        return "@" + d.screenName.toLowerCase(); 
+      }
+      else if (d.name){ 
+        if (d.followersCount >= minFollowers) { return "@" + d.name.toUpperCase(); }
+        if (d.mentions >= minMentions) { return "@" + d.name.toUpperCase(); }
+        return "@" + d.name.toLowerCase(); 
+      }
       else { return "@UNKNOWN?"; }
     }
     if (d.nodeType === "place") {  return d.fullName.toUpperCase(); }

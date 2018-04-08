@@ -1156,6 +1156,7 @@ function ViewTreepack() {
         return d.displaytext;
       })
       .style("font-family", "monospace")
+      .style("visibility", "visible")
       .style("opacity", function updateTopTermOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 

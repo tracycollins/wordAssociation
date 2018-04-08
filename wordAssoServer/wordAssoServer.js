@@ -22,11 +22,9 @@ const fieldsExclude = {
   friends: 0
 };
 
-let bestRuntimeNetworkId = false;
 let bestNetworkObj = {};
 let maxInputHashMap = {};
 let normalization = {};
-let maxInputHashMapReady = false;
 
 let tweetParserReady = false;
 let previousBestNetworkId = "";
@@ -100,19 +98,15 @@ statsObj.dbConnection = false;
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 const tinyDateTimeFormat = "YYYYMMDDHHmmss";
 
-const MIN_METRIC_VALUE = process.env.WA_MIN_METRIC_VALUE || 5.0;
-const MIN_MENTIONS_VALUE = process.env.WA_MIN_MENTIONS_VALUE || 1000;
-const MIN_FOLLOWERS = process.env.WA_MIN_FOLLOWERS || 15000;
-
 const RATE_QUEUE_INTERVAL = 1000; // 1 second
 const RATE_QUEUE_INTERVAL_MODULO = 60; // modulo RATE_QUEUE_INTERVAL
-const CATEGORY_UPDATE_INTERVAL = 30000;
 const TWEET_PARSER_INTERVAL = 5;
 const TWITTER_RX_QUEUE_INTERVAL = 5;
 const TRANSMIT_NODE_QUEUE_INTERVAL = 5;
 const TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = 5;
 const UPDATE_TRENDS_INTERVAL = 15*ONE_MINUTE;
 const STATS_UPDATE_INTERVAL = 60000;
+const CATEGORY_UPDATE_INTERVAL = 5*ONE_MINUTE;
 const HASHTAG_LOOKUP_QUEUE_INTERVAL = 10;
 
 const DEFAULT_INTERVAL = 5;
@@ -284,11 +278,8 @@ const ignoreWordsArray = [
   "–"
 ];
 
-const CUSTOM_GOOGLE_APIS_PREFIX = "custom.googleapis.com";
-
 const util = require("util");
 const Measured = require("measured");
-const defaults = require("object.defaults");
 const omit = require("object.omit");
 const pick = require("object.pick");
 const moment = require("moment");
@@ -308,7 +299,6 @@ const app = express();
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 require("isomorphic-fetch");
 const Dropbox = require("dropbox").Dropbox;
-// const Dropbox = require("./js/libs/dropbox").Dropbox;
 
 const Monitoring = require("@google-cloud/monitoring");
 
@@ -336,7 +326,7 @@ hostname = hostname.replace(/word0-instance-1/g, "google");
 
 const chalk = require("chalk");
 // const chalkAdmin = chalk.bold.black;
-const chalkWarn = chalk.red;
+// const chalkWarn = chalk.red;
 const chalkTwitter = chalk.blue;
 const chalkConnect = chalk.black;
 const chalkSession = chalk.black;
@@ -375,6 +365,7 @@ let tweetRxQueue = [];
 let hashtagLookupQueueInterval;
 let hashtagLookupQueue = [];
 
+let categoryHashmapsInterval;
 let statsInterval;
 
 let GOOGLE_METRICS_ENABLED = false;
@@ -649,9 +640,9 @@ const nodesPerMinuteTopTermCache = new NodeCache({
   checkperiod: TOPTERMS_CACHE_CHECK_PERIOD
 });
 
-function wordCacheExpired(word, wordRate) {
-  debugCache(chalkInfo("XXX $ WPM TOPTERM | " + wordRate.toFixed(3) + " | " + word));
-}
+// function wordCacheExpired(word, wordRate) {
+//   debugCache(chalkInfo("XXX $ WPM TOPTERM | " + wordRate.toFixed(3) + " | " + word));
+// }
 
 // nodesPerMinuteTopTermCache.on("expired", wordCacheExpired);
 
@@ -700,11 +691,11 @@ let sorterMessageRxQueue = [];
 
 const ignoreWordHashMap = new HashMap();
 
-const categorizedManualUserHashMap = new HashMap();
-const categorizedAutoUserHashMap = new HashMap();
+// const categorizedManualUserHashMap = new HashMap();
+// const categorizedAutoUserHashMap = new HashMap();
 
-const categorizedManualHashtagHashMap = new HashMap();
-const categorizedAutoHashtagHashMap = new HashMap();
+// const categorizedManualHashtagHashMap = new HashMap();
+// const categorizedAutoHashtagHashMap = new HashMap();
 
 const localHostHashMap = new HashMap();
 
@@ -920,6 +911,35 @@ function dropboxFolderGetLastestCursor(folder, callback) {
     console.log(err);
     callback(err, folder);
   });
+}
+
+function showStats(options){
+
+  statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
+  statsObj.timeStamp = moment().format(compactDateTimeFormat);
+  statsObj.twitter.tweetsPerMin = parseInt(tweetMeter.toJSON()[metricsRate]);
+
+  if (statsObj.twitter.tweetsPerMin > statsObj.twitter.maxTweetsPerMin){
+    statsObj.twitter.maxTweetsPerMin = statsObj.twitter.tweetsPerMin;
+    statsObj.twitter.maxTweetsPerMinTime = moment().valueOf();
+  }
+
+  if (options) {
+    console.log(chalkLog("STATS\n" + jsonPrint(statsObj)));
+  }
+
+  console.log(chalkLog("S"
+    + " | " + moment().format(compactDateTimeFormat)
+    + " | E: " + statsObj.elapsed
+    + " | S: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
+    + " | AD: " + statsObj.entity.admin.connected
+    + " | UT: " + statsObj.entity.util.connected
+    + " | VW: " + statsObj.entity.viewer.connected
+    + " | TwRxPM: " + statsObj.twitter.tweetsPerMin
+    + " | MaxTwRxPM: " + statsObj.twitter.maxTweetsPerMin
+    + " | TwRXQ: " + tweetRxQueue.length
+    + " | TwPRQ: " + tweetParserQueue.length
+  ));
 }
 
 function loadFile(path, file, callback) {
@@ -1384,35 +1404,6 @@ function saveStats(statsFile, statsObj, callback) {
     });
 
   }
-}
-
-function showStats(options){
-
-  statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
-  statsObj.timeStamp = moment().format(compactDateTimeFormat);
-  statsObj.twitter.tweetsPerMin = parseInt(tweetMeter.toJSON()[metricsRate]);
-
-  if (statsObj.twitter.tweetsPerMin > statsObj.twitter.maxTweetsPerMin){
-    statsObj.twitter.maxTweetsPerMin = statsObj.twitter.tweetsPerMin;
-    statsObj.twitter.maxTweetsPerMinTime = moment().valueOf();
-  }
-
-  if (options) {
-    console.log(chalkLog("STATS\n" + jsonPrint(statsObj)));
-  }
-
-  console.log(chalkLog("S"
-    + " | " + moment().format(compactDateTimeFormat)
-    + " | E: " + statsObj.elapsed
-    + " | S: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
-    + " | AD: " + statsObj.entity.admin.connected
-    + " | UT: " + statsObj.entity.util.connected
-    + " | VW: " + statsObj.entity.viewer.connected
-    + " | TwRxPM: " + statsObj.twitter.tweetsPerMin
-    + " | MaxTwRxPM: " + statsObj.twitter.maxTweetsPerMin
-    + " | TwRXQ: " + tweetRxQueue.length
-    + " | TwPRQ: " + tweetParserQueue.length
-  ));
 }
 
 function initDeletedMetricsHashmap(callback){
@@ -2333,15 +2324,6 @@ function initUpdateTrendsInterval(interval){
 
 function updateNodeMeter(nodeObj, callback){
 
-  // if (!configuration.metrics.nodeMeterEnabled
-  //   || (nodeObj.nodeType === "media") 
-  //   || (nodeObj.nodeType === "url")
-  //   || (nodeObj.nodeType === "keepalive")
-  //   ) {
-  //   callback(null, nodeObj);
-  //   return;
-  // }
-
   if (!configuration.metrics.nodeMeterEnabled
     || ((nodeObj.nodeType !== "user") && (nodeObj.nodeType !== "hashtag") && (nodeObj.nodeType !== "place"))) {
     callback(null, nodeObj);
@@ -2559,9 +2541,9 @@ function transmitNodes(tw, callback){
   callback();
 }
 
-let metricsDataPointQueue = [];
-let metricsDataPointQueueReady = true;
-let metricsDataPointQueueInterval;
+// let metricsDataPointQueue = [];
+// let metricsDataPointQueueReady = true;
+// let metricsDataPointQueueInterval;
 
 
 let heartbeatsSent = 0;
@@ -3720,87 +3702,12 @@ function initCategoryHashmaps(callback){
   }, function(err){
     if (err) {
       console.log(chalkError("ERROR: initCategoryHashmaps: " + err));
-      callback(err);
+      if (callback !== undefined) { callback(err); }
     }
     else {
       console.log(chalkAlert("LOAD COMPLETE: initCategoryHashmaps"));
-      callback();
+      if (callback !== undefined) { callback(); }
     }
-
-    // loadFile(categorizedFolder, categorizedUsersFile, function(err, categoriedUserObj){
-    //   if (err){
-    //     if (err.status === 409){
-    //       console.log(chalkError("FILE NOT FOUND: " + categorizedFolder + "/" + categorizedUsersFile));
-    //     }
-    //     else {
-    //       console.log(chalkError("ERROR: " + err));
-    //       return(callback(err));
-    //     }
-    //   }
-
-    //   let cObj = {};
-    //   cObj.manual = false;
-    //   cObj.auto = false;
-
-    //   if (categoriedUserObj) {
-    //     Object.keys(categoriedUserObj).forEach(function(nodeId){
-
-    //       cObj = categoriedUserObj[nodeId];
-
-    //       // value = { manual: hashtag.category, auto: hashtag.categoryAuto };
-    //       if (categorizedUserHashMap.has(nodeId)){
-    //         cObj.auto = categorizedUserHashMap.get(nodeId).auto || false;
-    //       }
-
-    //       categorizedUserHashMap.set(nodeId, cObj);
-
-    //       console.log(chalkInfo("CL USR"
-    //         + " | CM: " + printCat(cObj.manual)
-    //         + " | CA: " + printCat(cObj.auto)
-    //         + " | " + nodeId
-    //       ));
-    //     });
-
-    //     console.log(chalkAlert("LOADED " + Object.keys(categoriedUserManualObj).length + " CATEGORIZED USERS"
-    //       + " | " + categorizedFolder + "/" + categorizedUsersFile
-    //     ));
-    //   }
-
-    //   console.log(chalkAlert(categorizedUserHashMap.count() + " CATEGORIZED USERS IN HASHMAP"
-    //   ));
-
-    //   categorizedUserHashMap.forEach(function(catObj, nodeId){
-
-    //     User.findOneAndUpdate({nodeId: nodeId}, { $set: { category: catObj.manual }}, {}, function(err, updatedUser){
-    //       if (err) { 
-    //         console.log(chalkError("ERROR: SAVE: categorizedUserHashMap: USER FINDEONE AND UPDATE: " + err));
-    //       }
-    //       if (updatedUser) {
-
-    //         console.log("UPDATED DB"
-    //           + " | CM: " + printCat(updatedUser.category)
-    //           + " | CA: " + printCat(updatedUser.categoryAuto)
-    //           + " | @" + updatedUser.screenName
-    //           + " | " + updatedUser.nodeId
-    //         );
-    //         if (typeof updatedUser.category === "object") {
-    //           console.log(chalkAlert("??? CATEGORY IS OBJECT ... SETTING TO false"
-    //             + " | @" + updatedUser.screenName
-    //             + " | " + updatedUser.nodeId
-    //             + "\n" + jsonPrint(updatedUser.category)
-    //           ));
-    //         }
-    //       }
-    //       else {
-    //         console.log("--- MISS UPDATE DB"
-    //           + " | " + nodeId
-    //           + " | CM: " + printCat(catObj.manual)
-    //         );
-    //       }
-    //     });
-    //   });
-    //   callback();
-    // });
 
   });
 }
@@ -3846,7 +3753,6 @@ function initialize(cnf, callback) {
       console.log(chalkInfo("LOADED MAX INPUT HASHMAP + NORMALIZATION"));
       console.log(chalkInfo("MAX INPUT HASHMAP INPUT TYPES: " + Object.keys(maxInputHashMap)));
       console.log(chalkInfo("NORMALIZATION INPUT TYPES: " + Object.keys(normalization)));
-      maxInputHashMapReady = true;
     }
   });
 
@@ -4020,6 +3926,20 @@ function initStatsInterval(interval){
   }, interval);
 }
 
+function initCategoryHashmapsInterval(interval){
+
+  console.log(chalkInfo("INIT CATEGORY HASHMAP INTERVAL"
+    + " | " + interval + " MS"
+  ));
+
+  clearInterval(categoryHashmapsInterval);
+
+  categoryHashmapsInterval = setInterval(function updateMemStats() {
+    initCategoryHashmaps();
+  }, interval);
+
+}
+
 initStats(function setCacheObjKeys(){
   cacheObjKeys = Object.keys(statsObj.caches);
 });
@@ -4051,6 +3971,7 @@ initialize(configuration, function initializeComplete(err) {
 
     initTransmitNodeQueueInterval(TRANSMIT_NODE_QUEUE_INTERVAL);
     initStatsInterval(STATS_UPDATE_INTERVAL);
+    initCategoryHashmapsInterval(CATEGORY_UPDATE_INTERVAL);
     initIgnoreWordsHashMap();
     initUpdateTrendsInterval(UPDATE_TRENDS_INTERVAL);
     initRateQinterval(RATE_QUEUE_INTERVAL);

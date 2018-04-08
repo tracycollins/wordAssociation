@@ -352,7 +352,7 @@ function ViewTreepack() {
     .style("visibility", "hidden");
 
   var topTermsDiv = d3.select("#topTermsDiv");
-  var topTermsDivVisible = false;
+  // var topTermsDivVisible = false;
 
   var topTermsCheckBox = topTermsDiv.append("input")
     .attr("id", "topTermsCheckBox")
@@ -361,11 +361,11 @@ function ViewTreepack() {
     .on("change", function topTermsCheckBoxFunc(){
       if (topTermsCheckBox.property("checked") === false) { 
         topTermsDiv.style("visibility", "hidden"); 
-        topTermsDivVisible = false;
+        // topTermsDivVisible = false;
       }
       else { 
         topTermsDiv.style("visibility", "visible"); 
-        topTermsDivVisible = true;
+        // topTermsDivVisible = true;
       }
     });
 
@@ -375,11 +375,11 @@ function ViewTreepack() {
 
     if (topTermsCheckBox.property("checked") === false) { 
       topTermsDiv.style("visibility", "hidden"); 
-      topTermsDivVisible = false;
+      // topTermsDivVisible = false;
     }
     else { 
       topTermsDiv.style("visibility", "visible"); 
-      topTermsDivVisible = true;
+      // topTermsDivVisible = true;
     }
   };
 
@@ -389,7 +389,7 @@ function ViewTreepack() {
   document.addEventListener("mousemove", function mousemoveFunc() {
 
     topTermsDiv.style("visibility", "visible");
-    topTermsDivVisible = true;
+    // topTermsDivVisible = true;
 
     if (mouseHoverFlag) { d3.select("body").style("cursor", "pointer"); } 
     else { d3.select("body").style("cursor", "default"); }
@@ -1030,9 +1030,9 @@ function ViewTreepack() {
       return nodeLabelOpacityScale(d.ageMaxRatio);
     });
     
-    d3.select("#" + d.nodePoolId + "_labelTopTerm").style("opacity", function(){
-      return topTermLabelOpacityScale(d.ageMaxRatio);
-    });
+    // d3.select("#" + d.nodePoolId + "_labelTopTerm").style("opacity", function(){
+    //   return topTermLabelOpacityScale(d.ageMaxRatio);
+    // });
         
     d3.select("#" + d.nodePoolId + "_label").style("visibility", function(){
       if (!d.isValid) { return "hidden"; }

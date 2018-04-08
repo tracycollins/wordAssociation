@@ -1011,6 +1011,8 @@ function ViewTreepack() {
       return topTermLabelOpacityScale(d.ageMaxRatio);
     });
     
+    d3.select("#" + d.nodePoolId + "_labelTopTerm").style("visibility", "hidden");
+    
     d3.select("#" + d.nodePoolId + "_label").style("visibility", function(){
       if (!d.isValid) { return "hidden"; }
       if (d.category) { return "visible"; }

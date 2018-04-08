@@ -926,10 +926,6 @@ function ViewTreepack() {
     d3.select(this).style("opacity", 1);
 
     d3.select(this).style("visibility", "visible");
-    // d3.select(this).style("visibility", function(){
-    //   if (d.isTopTerm) { return null; }
-    //   return "visible";
-    // });
     d3.select("#" + d.nodePoolId + "_label").style("opacity", 1);
     d3.select("#" + d.nodePoolId + "_label").style("visibility", "visible");
 
@@ -1125,7 +1121,8 @@ function ViewTreepack() {
 
     nodeTopTermLabels
       .enter().append("text")
-      .attr("id", function (d) { return d.nodeTopTermPoolId; })
+      // .attr("id", function (d) { return d.nodeTopTermPoolId; })
+      .attr("id", function (d) { return d.nodePoolId + "_labelTopTerm"; })
       .attr("nodeId", function (d) { return d.nodeId; })
       .style("text-anchor", "right")
       .style("alignment-baseline", "bottom")

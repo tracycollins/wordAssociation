@@ -1270,7 +1270,6 @@ function ViewTreepack() {
         if (d.mouseHoverFlag) { return "visible"; }
         if (d.category) { return "visible"; }
         if (d.categoryAuto) { return "visible"; }
-        // if (mouseMovingFlag) { return "visible"; }
         if (d.rate > minRate) { return "visible"; }
         if ((d.nodeType === "user") 
           && (
@@ -1545,7 +1544,6 @@ function ViewTreepack() {
         currentNode.x = 0.5*width;
         currentNode.y = 0.5*height;
 
-
         currentNode.nodeId = newNode.nodeId;
         currentNode.userId = newNode.userId;
         currentNode.hashtagId = newNode.hashtagId;
@@ -1628,8 +1626,8 @@ function ViewTreepack() {
 
     async.series([
       function updateNodeCirclesSeries (cb){ updateNodeCircles(cb); },
-      // function updateNodeLabelsSeries (cb){ updateNodeLabels(cb); },
-      // function updateTopTermSeries (cb){ updateTopTerm(cb); }
+      function updateNodeLabelsSeries (cb){ updateNodeLabels(cb); },
+      function updateTopTermSeries (cb){ updateTopTerm(cb); }
     ], function drawSimulationCallback (err, results) {
       if (newCurrentMaxMetricFlag && (Math.abs(currentMaxMetric - previousMaxMetric)/currentMaxMetric) > 0.05) {
 
@@ -1664,19 +1662,13 @@ function ViewTreepack() {
     );
   }
 
-  // var rowNum;
   function yposition(d){
     if (d.rank < 0) { return height; }
-    // rowNum = d.rank % maxHashtagRows;
-    // var value = hashtagTopMargin + (rowNum * rowSpacing);
     return (hashtagTopMargin + ((d.rank % maxHashtagRows) * rowSpacing)) + "%";
   }
 
-  // var colNum;
   function xposition(d){
     if (d.rank < 0) { return hashtagLeftMargin; }
-    // colNum = parseInt(d.rank / maxHashtagRows);        
-    // var value = hashtagLeftMargin + (colNum * colSpacing);
     return (hashtagLeftMargin + ((parseInt(d.rank / maxHashtagRows)) * colSpacing)) + "%" ;
   }
 

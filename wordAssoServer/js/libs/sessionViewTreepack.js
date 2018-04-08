@@ -802,8 +802,8 @@ function ViewTreepack() {
 
   var ageNodes = function (callback) {
 
-    tempNodeArray = [];
-    tempNodesTopTerm = [];
+    // tempNodeArray = [];
+    // tempNodesTopTerm = [];
 
     nodeIdArray = nodeIdHashMap.keys();
     ageMaxRatio = 1e-6;
@@ -873,7 +873,7 @@ function ViewTreepack() {
         localNodeHashMap.set(nPoolId, node);
         nodeIdHashMap.set(node.nodeId, nPoolId);
 
-        tempNodeArray.push(node);
+        // tempNodeArray.push(node);
 
         // if (node.isTopTerm){ tempNodesTopTerm.push(node); }
       }
@@ -902,8 +902,11 @@ function ViewTreepack() {
     maxRateMentionsText.text(maxRateMentions.displaytext);
 
     rankArrayByValue(tempNodesTopTerm, metricMode, function rankArrayByValueFunc(){
-      nodeArray = tempNodeArray;
+      // nodeArray = tempNodeArray;
       // nodesTopTerm = tempNodesTopTerm;
+      nodeIdHashMap.forEach(function(nPoolId, nodeId){
+        nodeArray.push(localNodeHashMap.get(nPoolId));
+      });
       callback(null);
     });
   };

@@ -352,22 +352,35 @@ function ViewTreepack() {
     .style("visibility", "hidden");
 
   var topTermsDiv = d3.select("#topTermsDiv");
+  var topTermsDivVisible = false;
 
   var topTermsCheckBox = topTermsDiv.append("input")
     .attr("id", "topTermsCheckBox")
     .attr("type", "checkbox")
     .style("pointer-events", "auto")
     .on("change", function topTermsCheckBoxFunc(){
-      if (topTermsCheckBox.property("checked") === false) { topTermsDiv.style("visibility", "hidden"); }
-      else { topTermsDiv.style("visibility", "visible"); }
+      if (topTermsCheckBox.property("checked") === false) { 
+        topTermsDiv.style("visibility", "hidden"); 
+        topTermsDivVisible = false;
+      }
+      else { 
+        topTermsDiv.style("visibility", "visible"); 
+        topTermsDivVisible = true;
+      }
     });
 
   var mouseMoveTimeoutEventHandler = function(e) {
 
     d3.selectAll("iframe").style("visibility", "hidden");
 
-    if (topTermsCheckBox.property("checked") === false) { topTermsDiv.style("visibility", "hidden"); }
-    else { topTermsDiv.style("visibility", "visible"); }
+    if (topTermsCheckBox.property("checked") === false) { 
+      topTermsDiv.style("visibility", "hidden"); 
+      topTermsDivVisible = false;
+    }
+    else { 
+      topTermsDiv.style("visibility", "visible"); 
+      topTermsDivVisible = true;
+    }
   };
 
 
@@ -376,6 +389,7 @@ function ViewTreepack() {
   document.addEventListener("mousemove", function mousemoveFunc() {
 
     topTermsDiv.style("visibility", "visible");
+    topTermsDivVisible = true;
 
     if (mouseHoverFlag) { d3.select("body").style("cursor", "pointer"); } 
     else { d3.select("body").style("cursor", "default"); }
@@ -1137,7 +1151,7 @@ function ViewTreepack() {
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
       .style("visibility", function (d) {
-        if (d.isValid && (topTermsDiv.style.getPropertyValue("visibility") === "visible")) { return "visible"; }
+        if (d.isValid && topTermsDivVisible) { return "visible"; }
         return "hidden"; 
       })
       .transition()
@@ -1161,7 +1175,7 @@ function ViewTreepack() {
       })
       .style("font-family", "monospace")
       .style("visibility", function (d) {
-        if (d.isValid && (topTermsDiv.getAttribute("visibility") === "visible")) { return "visible"; }
+        if (d.isValid && topTermsDivVisible) { return "visible"; }
         return "hidden"; 
       })
       .style("opacity", function updateTopTermOpacity(d) { 

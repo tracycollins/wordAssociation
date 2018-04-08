@@ -1136,6 +1136,10 @@ function ViewTreepack() {
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
+      .style("visibility", function (d) { 
+        if (!d.isValid) { return "hidden"; }
+        return "visible"; 
+      })
       .transition()
         .duration(transitionDuration)
         .attr("y", yposition);

@@ -924,8 +924,8 @@ function ViewTreepack() {
     }
 
     d3.select(this).style("opacity", 1);
-
     d3.select(this).style("visibility", "visible");
+    d3.select("#" + d.nodePoolId).style("opacity", 1);
     d3.select("#" + d.nodePoolId + "_label").style("opacity", 1);
     d3.select("#" + d.nodePoolId + "_label").style("visibility", "visible");
 
@@ -996,7 +996,6 @@ function ViewTreepack() {
     self.toolTipVisibility(false);
 
     d3.select(this).style("opacity", function(){
-      // if (d.isTopTerm) { return topTermLabelOpacityScale(d.ageMaxRatio); }
       return nodeLabelOpacityScale(d.ageMaxRatio);
     });
 

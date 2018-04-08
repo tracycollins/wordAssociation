@@ -1137,8 +1137,8 @@ function ViewTreepack() {
       .data(nodesTopTerm, function updateTopTermData(d) { return d.nodeId; });
 
     nodeTopTermLabels
-      .exit();
-      // .style("visibility", "hidden");
+      .exit()
+      .style("opacity", 1e-6);
       // .remove();
 
     nodeTopTermLabels

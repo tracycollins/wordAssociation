@@ -1237,15 +1237,12 @@ function ViewTreepack() {
         if (d.categoryAuto === "positive") { return categoryAutoStrokeWidth; }
         if (d.categoryAuto ==="negative") { return categoryAutoStrokeWidth; }
         return "2.0"; 
-      })
-      .on("click", nodeClick);
+      });
+      // .on("click", nodeClick);
 
     nodeCircles
       .exit()
       .attr("r", 1e-6);
-      // .attr("visibility", "hidden");
-      // .style("opacity", 1e-6);
-      // .remove()
 
     callback();
   };
@@ -1260,7 +1257,7 @@ function ViewTreepack() {
       .text(labelText)
       .attr("x", function (d) { return d.x; })
       .attr("y", function (d) { return d.y; })
-      .on("mouseover", nodeMouseOver)
+      // .on("mouseover", nodeMouseOver)
       .style("opacity", function updateTopTermOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 

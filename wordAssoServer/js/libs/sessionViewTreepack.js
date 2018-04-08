@@ -1137,7 +1137,7 @@ function ViewTreepack() {
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
       .style("visibility", function (d) { 
-        if (!d.isValid) { return "hidden"; }
+        if (!d.isValid || !topTermsCheckBox.property("checked")) { return "hidden"; }
         return "visible"; 
       })
       .transition()

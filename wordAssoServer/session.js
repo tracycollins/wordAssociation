@@ -1073,9 +1073,6 @@ function controlPanelComm(event) {
       console.info("R< CONTROL PANEL LOOPBACK? | INIT ... IGNORING ...");
       break;
     case "CATEGORIZE":
-
-    // parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: category}, DEFAULT_SOURCE);
-
       if (statsObj.isAuthenticated) {
 
         if (event.data.node.nodeType === "user"){
@@ -1101,18 +1098,17 @@ function controlPanelComm(event) {
             node: event.data.node}
           );
         }
-
       }
       else {
         window.open(config.authenticationUrl, "_blank");
       }
-      break;
+    break;
     case "SET_TWITTER_USER":
       console.info("R< CONTROL PANEL LOOPBACK? | SET_TWITTER_USER ... IGNORING ...");
-      break;
+    break;
     case "SET_TWITTER_HASHTAG":
       console.info("R< CONTROL PANEL LOOPBACK? | SET_TWITTER_HASHTAG ... IGNORING ...");
-      break;
+    break;
     default :
       if (event.data["twttr.button"] !== undefined){
         console.log("R< CONTROL PANEL TWITTER" 

@@ -789,8 +789,10 @@ function ViewTreepack() {
     tempNodeLabel.setAttribute("opacity", 1e-6);
 
     tempNodeTopTermLabel = document.getElementById(n.nodePoolId + "_labelTopTerm");
-    tempNodeTopTermLabel.setAttribute("visibility", "hidden");
-    tempNodeTopTermLabel.setAttribute("opacity", 1e-6);
+    if (tempNodeTopTermLabel) {
+      tempNodeTopTermLabel.setAttribute("visibility", "hidden");
+      tempNodeTopTermLabel.setAttribute("opacity", 1e-6);
+    }
     callback(n);
   }
 

@@ -1154,6 +1154,7 @@ function ViewTreepack() {
       //   if (d.isValid && topTermsDivVisible) { return "visible"; }
       //   return "hidden"; 
       // })
+      .style("visibility", null)
       .transition()
         .duration(transitionDuration)
         .attr("y", yposition);
@@ -1178,6 +1179,7 @@ function ViewTreepack() {
       //   if (d.isValid && topTermsDivVisible) { return "visible"; }
       //   return "hidden"; 
       // })
+      .style("visibility", null)
       .style("opacity", function updateTopTermOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 

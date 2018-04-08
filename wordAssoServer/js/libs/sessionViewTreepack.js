@@ -925,11 +925,11 @@ function ViewTreepack() {
 
     d3.select(this).style("opacity", 1);
 
-    // d3.select(this).style("visibility", "visible");
-    d3.select(this).style("visibility", function(){
-      if (d.isTopTerm) { return null; }
-      return "visible";
-    });
+    d3.select(this).style("visibility", "visible");
+    // d3.select(this).style("visibility", function(){
+    //   if (d.isTopTerm) { return null; }
+    //   return "visible";
+    // });
     d3.select("#" + d.nodePoolId + "_label").style("opacity", 1);
     d3.select("#" + d.nodePoolId + "_label").style("visibility", "visible");
 
@@ -1238,7 +1238,6 @@ function ViewTreepack() {
         if (d.categoryAuto ==="negative") { return categoryAutoStrokeWidth; }
         return "2.0"; 
       });
-      // .on("click", nodeClick);
 
     nodeCircles
       .exit()
@@ -1257,7 +1256,6 @@ function ViewTreepack() {
       .text(labelText)
       .attr("x", function (d) { return d.x; })
       .attr("y", function (d) { return d.y; })
-      // .on("mouseover", nodeMouseOver)
       .style("opacity", function updateTopTermOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 

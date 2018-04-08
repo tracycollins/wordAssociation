@@ -924,7 +924,12 @@ function ViewTreepack() {
     }
 
     d3.select(this).style("opacity", 1);
-    d3.select(this).style("visibility", "visible");
+
+    // d3.select(this).style("visibility", "visible");
+    d3.select(this).style("visibility", function(){
+      if (d.isTopTerm) { return null; }
+      return "visible";
+    });
     d3.select("#" + d.nodePoolId + "_label").style("opacity", 1);
     d3.select("#" + d.nodePoolId + "_label").style("visibility", "visible");
 
@@ -989,12 +994,16 @@ function ViewTreepack() {
   };
 
   function nodeMouseOut(d) {
+
     d.mouseHoverFlag = false;
+
     self.toolTipVisibility(false);
+
     d3.select(this).style("opacity", function(){
       if (d.isTopTerm) { return topTermLabelOpacityScale(d.ageMaxRatio); }
       return nodeLabelOpacityScale(d.ageMaxRatio);
     });
+
     d3.select("#" + d.nodePoolId + "_label").style("visibility", function(){
       if (!d.isValid) { return "hidden"; }
       if (d.category) { return "visible"; }
@@ -1009,8 +1018,7 @@ function ViewTreepack() {
       ) { 
         return "visible"; 
       }
-      if ((d.nodeType === "hashtag") && ((d.mentions > minMentions) || (d.text.toLowerCase().includes("trump"))))
-      { 
+      if ((d.nodeType === "hashtag") && ((d.mentions > minMentions) || (d.text.toLowerCase().includes("trump")))){ 
         return "visible"; 
       }
       return "hidden";

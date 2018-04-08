@@ -1628,7 +1628,7 @@ function ViewTreepack() {
 
     async.series([
       function updateNodeCirclesSeries (cb){ updateNodeCircles(cb); },
-      function updateNodeLabelsSeries (cb){ updateNodeLabels(cb); },
+      // function updateNodeLabelsSeries (cb){ updateNodeLabels(cb); },
       // function updateTopTermSeries (cb){ updateTopTerm(cb); }
     ], function drawSimulationCallback (err, results) {
       if (newCurrentMaxMetricFlag && (Math.abs(currentMaxMetric - previousMaxMetric)/currentMaxMetric) > 0.05) {

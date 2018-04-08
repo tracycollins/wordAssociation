@@ -1265,9 +1265,9 @@ function ViewTreepack() {
       .text(labelText)
       .attr("x", function (d) { return d.x; })
       .attr("y", function (d) { return d.y; })
-      .style("opacity", function updateTopTermOpacity(d) { 
+      .style("opacity", function updateNodeLabelOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
-        return topTermLabelOpacityScale(d.ageMaxRatio); 
+        return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .style("visibility", function (d) {
         if (!d.isValid) { return "hidden"; }

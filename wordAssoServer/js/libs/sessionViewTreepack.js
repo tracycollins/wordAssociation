@@ -1160,7 +1160,10 @@ function ViewTreepack() {
         return d.displaytext;
       })
       .style("font-family", "monospace")
-      .style("visibility", "visible")
+      .style("visibility", function (d) { 
+        if (!d.isValid || !topTermsCheckBox.property("checked")) { return "hidden"; }
+        return "visible"; 
+      })
       .style("opacity", function updateTopTermOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 

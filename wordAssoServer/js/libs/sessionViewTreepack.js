@@ -996,10 +996,18 @@ function ViewTreepack() {
     self.toolTipVisibility(false);
 
     d3.select(this).style("opacity", function(){
-      if (d.isTopTerm) { return topTermLabelOpacityScale(d.ageMaxRatio); }
+      // if (d.isTopTerm) { return topTermLabelOpacityScale(d.ageMaxRatio); }
       return nodeLabelOpacityScale(d.ageMaxRatio);
     });
 
+    d3.select("#" + d.nodePoolId + "_label").style("opacity", function(){
+      return nodeLabelOpacityScale(d.ageMaxRatio);
+    });
+    
+    d3.select("#" + d.nodePoolId + "_labelTopTerm").style("opacity", function(){
+      return topTermLabelOpacityScale(d.ageMaxRatio);
+    });
+    
     d3.select("#" + d.nodePoolId + "_label").style("visibility", function(){
       if (!d.isValid) { return "hidden"; }
       if (d.category) { return "visible"; }

@@ -730,7 +730,6 @@ function ControlPanel() {
     var tr = parentTable.insertRow();
     var tdTextColor = options.textColor;
     var tdBgColor = options.backgroundColor || "white";
-    // var tdBorder = options.border || "1px solid blue";
 
     if (options.trClass) {
       tr.className = options.trClass;
@@ -753,7 +752,8 @@ function ControlPanel() {
           td.style.color = tdTextColor;
           td.style.backgroundColor = tdBgColor;
 
-        } else if (content.type === "TEXT") {
+        } 
+        else if (content.type === "TEXT") {
 
           td.className = content.class;
           td.setAttribute("id", content.id);
@@ -764,7 +764,8 @@ function ControlPanel() {
           td.innerHTML = content.text;
           td.style.border = options.border || "none";
 
-        } else if (content.type === "BUTTON") {
+        } 
+        else if (content.type === "BUTTON") {
 
           var buttonElement = document.createElement("BUTTON");
           buttonElement.className = content.class;
@@ -775,7 +776,8 @@ function ControlPanel() {
           td.appendChild(buttonElement);
           controlIdHash[content.id] = content;
 
-        } else if (content.type === "SLIDER") {
+        } 
+        else if (content.type === "SLIDER") {
 
           var step = 1/content.multiplier;
           var sliderElement = document.createElement("INPUT");

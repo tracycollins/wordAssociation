@@ -748,6 +748,7 @@ function ViewTreepack() {
 
   var tempNodeCirle;
   var tempNodeLabel;
+  var tempNodeTopTermLabel;
 
   function resetNode(n, callback){
     n.age = 1e-6;
@@ -786,6 +787,10 @@ function ViewTreepack() {
     tempNodeLabel = document.getElementById(n.nodePoolId + "_label");
     tempNodeLabel.setAttribute("visibility", "hidden");
     tempNodeLabel.setAttribute("opacity", 1e-6);
+
+    tempNodeTopTermLabel = document.getElementById(n.nodePoolId + "_labelTopTerm");
+    tempNodeTopTermLabel.setAttribute("visibility", "hidden");
+    tempNodeTopTermLabel.setAttribute("opacity", 1e-6);
     callback(n);
   }
 
@@ -875,7 +880,9 @@ function ViewTreepack() {
 
         tempNodeArray.push(node);
 
-        if (node.isTopTerm){ tempNodesTopTerm.push(node); }
+        if (node.isTopTerm){ 
+          tempNodesTopTerm.push(node);
+        }
       }
     });
 
@@ -1010,9 +1017,7 @@ function ViewTreepack() {
     d3.select("#" + d.nodePoolId + "_labelTopTerm").style("opacity", function(){
       return topTermLabelOpacityScale(d.ageMaxRatio);
     });
-    
-    d3.select("#" + d.nodePoolId + "_labelTopTerm").style("visibility", "hidden");
-    
+        
     d3.select("#" + d.nodePoolId + "_label").style("visibility", function(){
       if (!d.isValid) { return "hidden"; }
       if (d.category) { return "visible"; }
@@ -1117,7 +1122,8 @@ function ViewTreepack() {
 
     nodeTopTermLabels
       .exit()
-      .remove();
+      .style("visibility", "hidden");
+      // .remove();
 
     nodeTopTermLabels
       .attr("x", xposition)
@@ -1358,7 +1364,7 @@ function ViewTreepack() {
     nodeLabels
       .exit()
       // .style("font-size", 1e-6)
-      .style("visibility", "hidden")
+      .style("visibility", "hidden");
       // .remove();
 
     if (callback !== undefined) { callback(); }

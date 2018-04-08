@@ -762,7 +762,7 @@ function ViewTreepack() {
 
   var tempNodeCirle;
   var tempNodeLabel;
-  // var tempNodeTopTermLabel;
+  var tempNodeTopTermLabel;
 
   function resetNode(n, callback){
     n.age = 1e-6;
@@ -802,11 +802,11 @@ function ViewTreepack() {
     tempNodeLabel.setAttribute("visibility", "hidden");
     tempNodeLabel.setAttribute("opacity", 1e-6);
 
-    // tempNodeTopTermLabel = document.getElementById(n.nodePoolId + "_labelTopTerm");
-    // if (tempNodeTopTermLabel) {
-    //   tempNodeTopTermLabel.setAttribute("visibility", "hidden");
-    //   tempNodeTopTermLabel.setAttribute("opacity", 1e-6);
-    // }
+    tempNodeTopTermLabel = document.getElementById(n.nodePoolId + "_labelTopTerm");
+    if (tempNodeTopTermLabel) {
+      // tempNodeTopTermLabel.setAttribute("visibility", "hidden");
+      tempNodeTopTermLabel.setAttribute("opacity", 1e-6);
+    }
     callback(n);
   }
 

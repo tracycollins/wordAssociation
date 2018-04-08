@@ -1000,6 +1000,10 @@ function ViewTreepack() {
       return nodeLabelOpacityScale(d.ageMaxRatio);
     });
 
+    d3.select("#" + d.nodePoolId).style("opacity", function(){
+      return nodeLabelOpacityScale(d.ageMaxRatio);
+    });
+    
     d3.select("#" + d.nodePoolId + "_label").style("opacity", function(){
       return nodeLabelOpacityScale(d.ageMaxRatio);
     });

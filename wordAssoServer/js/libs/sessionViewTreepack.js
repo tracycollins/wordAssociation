@@ -762,7 +762,7 @@ function ViewTreepack() {
 
   var tempNodeCirle;
   var tempNodeLabel;
-  var tempNodeTopTermLabel;
+  // var tempNodeTopTermLabel;
 
   function resetNode(n, callback){
     n.age = 1e-6;
@@ -802,11 +802,11 @@ function ViewTreepack() {
     tempNodeLabel.setAttribute("visibility", "hidden");
     tempNodeLabel.setAttribute("opacity", 1e-6);
 
-    tempNodeTopTermLabel = document.getElementById(n.nodePoolId + "_labelTopTerm");
-    if (tempNodeTopTermLabel) {
-      tempNodeTopTermLabel.setAttribute("visibility", "hidden");
-      tempNodeTopTermLabel.setAttribute("opacity", 1e-6);
-    }
+    // tempNodeTopTermLabel = document.getElementById(n.nodePoolId + "_labelTopTerm");
+    // if (tempNodeTopTermLabel) {
+    //   tempNodeTopTermLabel.setAttribute("visibility", "hidden");
+    //   tempNodeTopTermLabel.setAttribute("opacity", 1e-6);
+    // }
     callback(n);
   }
 
@@ -1137,8 +1137,8 @@ function ViewTreepack() {
       .data(nodesTopTerm, function updateTopTermData(d) { return d.nodeId; });
 
     nodeTopTermLabels
-      .exit()
-      .style("visibility", "hidden");
+      .exit();
+      // .style("visibility", "hidden");
       // .remove();
 
     nodeTopTermLabels
@@ -1150,10 +1150,10 @@ function ViewTreepack() {
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
-      .style("visibility", function (d) {
-        if (d.isValid && topTermsDivVisible) { return "visible"; }
-        return "hidden"; 
-      })
+      // .style("visibility", function (d) {
+      //   if (d.isValid && topTermsDivVisible) { return "visible"; }
+      //   return "hidden"; 
+      // })
       .transition()
         .duration(transitionDuration)
         .attr("y", yposition);
@@ -1174,10 +1174,10 @@ function ViewTreepack() {
         return d.displaytext;
       })
       .style("font-family", "monospace")
-      .style("visibility", function (d) {
-        if (d.isValid && topTermsDivVisible) { return "visible"; }
-        return "hidden"; 
-      })
+      // .style("visibility", function (d) {
+      //   if (d.isValid && topTermsDivVisible) { return "visible"; }
+      //   return "hidden"; 
+      // })
       .style("opacity", function updateTopTermOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 

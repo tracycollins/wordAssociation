@@ -1238,18 +1238,6 @@ socket.on("VIEWER_READY_ACK", function(vSesKey) {
   console.debug("STORE CONFIG ON VIEWER_READY_ACK\n" + jsonPrint(config));
   saveConfig();
 
-  // if (sessionMode) {
-  //   console.debug("SESSION MODE" + " | SID: " + sessionId + " | NSP: " + namespace);
-  //   // var tempSessionId = "/" + namespace + "#" + sessionId;
-  //   currentSession.sessionId = "/" + namespace + "#" + sessionId;
-  //   console.debug("TX GET_SESSION | " + currentSession.sessionId);
-  //   socket.emit("GET_SESSION", currentSession.sessionId);
-  // } 
-  // else {
-  //   console.debug("TX REQ_USER_SESSION\nVIEWER OBJ\n" + jsonPrint(viewerObj));
-  //   socket.emit("REQ_USER_SESSION", viewerObj);
-  // }
-
   if (!config.pauseFlag) {
     currentSessionView.simulationControl("RESUME");
   }
@@ -1923,15 +1911,17 @@ socket.on("TWITTER_TOPTERM_1MIN", function(top10obj) {
 let rxNodeQueueReady = false;
 let rxNodeQueue = [];
 
+var rxNode = function(node){
+  if ((rxNodeQueue.length < RX_NODE_QUEUE_MAX)
+    &&((node.nodeType === "user") || (node.nodeType === "hashtag") || (node.nodeType === "place"))
+  ){
+    rxNodeQueue.push(node);
+  }
+};
+
 function initSocketSessionUpdateRx(){
 
-  socket.on("node", function(nNode) {
-    if ((rxNodeQueue.length < RX_NODE_QUEUE_MAX)
-      &&((nNode.nodeType === "user") || (nNode.nodeType === "hashtag") || (nNode.nodeType === "place"))
-    ){
-      rxNodeQueue.push(nNode);
-    }
-  });
+  socket.on("node", rxNode);
 
   rxNodeQueueReady = true;
 
@@ -1953,10 +1943,13 @@ function initSocketSessionUpdateRx(){
         category = newNode.category;
       }
 
-      getCategoryColor(category, function(color){
-        newNode.categoryColor = color;
-      });
-
+      if (category === undefined) { 
+        newNode.categoryColor = palette.white; 
+      }
+      else {
+        newNode.categoryColor = categoryColorHashMap.get(category);
+      }
+ 
       newNode.age = 1e-6;
       newNode.ageMaxRatio = 1e-6;
       newNode.mouseHoverFlag = false;
@@ -2041,9 +2034,16 @@ function initSocketNodeRx(){
       newNodeCategory = nNode.category;
     }
 
-    getCategoryColor(newNodeCategory, function(color){
-      nNode.categoryColor = color;
-    });
+    // getCategoryColor(newNodeCategory, function(color){
+    //   nNode.categoryColor = color;
+    // });
+
+    if (newNodeCategory === undefined) { 
+      nNode.categoryColor = palette.white; 
+    }
+    else {
+      nNode.categoryColor = categoryColorHashMap.get(newNodeCategory);
+    }
 
     nNode.age = 1e-6;
     nNode.ageMaxRatio = 1e-6;

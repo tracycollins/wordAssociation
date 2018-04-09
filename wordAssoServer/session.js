@@ -1,6 +1,5 @@
-/*ver 0.47*/
-/*jslint node: true */
 "use strict";
+/*ver 0.47*/
 
 // var DEFAULT_SOURCE = "http://localhost:9997";
 var DEFAULT_SOURCE = "http://word.threeceelabs.com";
@@ -10,6 +9,20 @@ const RX_NODE_QUEUE_INTERVAL = 10;
 const RX_NODE_QUEUE_MAX = 100;
 
 const STATS_UPDATE_INTERVAL = 1000;
+
+let statsServerTimeElement;
+let statsServerUpTimeElement;
+let statsServerStartTimeElement;
+let statsServerRunTimeElement;
+let statsServerTweetsPerMinElement;
+let statsServerMaxTweetsPerMinElement;
+let statsClientNumberNodesElement;
+let statsClientNumberMaxNodesElement;
+let statsClientAddNodeQElement;
+let statsClientMaxAddNodeQElement;
+let statsClientAgeRateElement;
+let statsClientMaxAgeRateElement;
+let statsClientSessionIdElement;
 
 function jp(s, obj) {
   console.warn(s + "\n" + jsonPrint(obj));
@@ -65,7 +78,6 @@ var twitterUserThreecee = {
     url : "http://threeCeeMedia.com",
     name : "Tracy Collins",
     screenName : "threecee",
-    nodeId : "14607119",
     nodeType : "user",
     following : null,
     description : "photography + animation + design",
@@ -87,7 +99,6 @@ var DEFAULT_SESSION_VIEW = "treepack";
 var useStoredConfig = false;
 var globalStoredConfigName = "config_" + DEFAULT_SESSION_VIEW;
 
-
 var enableUserNodes = true;
 
 var d3;
@@ -97,9 +108,7 @@ var controlPanelFlag = false;
 
 var statsTableFlag = false;
 
-// requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.8.0/d3.min.js"], function(d3Loaded) {
 requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
-// requirejs(["https://d3js.org/d3.v4.js"], function(d3Loaded) {
     console.log("d3 LOADED");
     d3 = d3Loaded;
     initialize(function(){
@@ -148,18 +157,18 @@ var defaultTimePeriodFormat = "HH:mm:ss";
 
 var pageLoadedTimeIntervalFlag = true;
 
-var DEFAULT_BLAH_MODE = true;
+// var DEFAULT_BLAH_MODE = true;
 var MAX_RX_QUEUE = 250;
-var MAX_WORDCHAIN_LENGTH = 100;
+// var MAX_WORDCHAIN_LENGTH = 100;
 
 var DEFAULT_METRIC_MODE = "rate";
 var DEFAULT_MAX_AGE = 60000;
-var FLOW_MAX_AGE = 20000;
-var FORCE_MAX_AGE = 60000;
-var HISTOGRAM_MAX_AGE = 60000;
+// var FLOW_MAX_AGE = 20000;
+// var FORCE_MAX_AGE = 60000;
+// var HISTOGRAM_MAX_AGE = 60000;
 var TREEMAP_MAX_AGE = 15000;
 var TREEPACK_MAX_AGE = 15000;
-var MEDIA_MAX_AGE = 60000;
+// var MEDIA_MAX_AGE = 60000;
 
 var DEFAULT_AGE_RATE = 1.0;
 
@@ -185,38 +194,6 @@ var DEFAULT_FONT_SIZE_TOPTERM_RATIO = 0.0225;
 
 var DEFAULT_NODE_RADIUS = 20.0;
 
-var TREEMAPVIEW_DEFAULT = {};
-TREEMAPVIEW_DEFAULT.MAX_AGE = TREEMAP_MAX_AGE;
-
-var HISTOGRAMVIEW_DEFAULT = {};
-HISTOGRAMVIEW_DEFAULT.MAX_AGE = HISTOGRAM_MAX_AGE;
-
-var FLOW_DEFAULT = {};
-FLOW_DEFAULT.MAX_AGE = FLOW_MAX_AGE;
-FLOW_DEFAULT.CHARGE = -10.0;
-FLOW_DEFAULT.GRAVITY = 0.01;
-FLOW_DEFAULT.FORCEX_MULTIPLIER = 0.5;
-FLOW_DEFAULT.FORCEX_SESSION_MULTIPLIER = 5;
-FLOW_DEFAULT.FORCEY_MULTIPLIER = 0.5;
-FLOW_DEFAULT.VELOCITY_DECAY = 0.85;
-FLOW_DEFAULT.COLLISION_RADIUS_MULTIPLIER = 0.4;
-FLOW_DEFAULT.COLLISION_ITERATIONS = 1;
-FLOW_DEFAULT.FONT_SIZE_MIN = 16;
-FLOW_DEFAULT.FONT_SIZE_MAX = 60;
-FLOW_DEFAULT.NODE_RADIUS_MIN_RATIO = 0.0075;
-
-var FORCEVIEW_DEFAULT = {};
-FORCEVIEW_DEFAULT.MAX_AGE = FORCE_MAX_AGE;
-FORCEVIEW_DEFAULT.CHARGE = -400;
-FORCEVIEW_DEFAULT.GRAVITY = 0.1;
-FORCEVIEW_DEFAULT.FORCEY_MULTIPLIER = 1.0;
-FORCEVIEW_DEFAULT.VELOCITY_DECAY = 0.75;
-FORCEVIEW_DEFAULT.LINK_DISTANCE = 5;
-FORCEVIEW_DEFAULT.LINK_STRENGTH = 0.95;
-FORCEVIEW_DEFAULT.COLLISION_RADIUS_MULTIPLIER = 2.50;
-FORCEVIEW_DEFAULT.COLLISION_ITERATIONS = 1;
-FORCEVIEW_DEFAULT.NODE_RADIUS_MIN_RATIO = 0.0075;
-
 var TREEPACK_DEFAULT = {};
 TREEPACK_DEFAULT.TRANSITION_DURATION = 50;
 TREEPACK_DEFAULT.MAX_AGE = TREEPACK_MAX_AGE;
@@ -230,19 +207,6 @@ TREEPACK_DEFAULT.COLLISION_ITERATIONS = 1;
 TREEPACK_DEFAULT.FONT_SIZE_MIN_RATIO = 0.01;
 TREEPACK_DEFAULT.FONT_SIZE_MAX_RATIO = 0.025;
 TREEPACK_DEFAULT.NODE_RADIUS_MIN_RATIO = 0.0075;
-
-var MEDIAVIEW_DEFAULT = {};
-MEDIAVIEW_DEFAULT.MAX_AGE = MEDIA_MAX_AGE;
-MEDIAVIEW_DEFAULT.CHARGE = -400;
-MEDIAVIEW_DEFAULT.GRAVITY = 0.1;
-MEDIAVIEW_DEFAULT.FORCEY_MULTIPLIER = 1.0;
-MEDIAVIEW_DEFAULT.VELOCITY_DECAY = 0.75;
-MEDIAVIEW_DEFAULT.LINK_DISTANCE = 5;
-MEDIAVIEW_DEFAULT.LINK_STRENGTH = 0.95;
-MEDIAVIEW_DEFAULT.COLLISION_RADIUS_MULTIPLIER = 2.50;
-MEDIAVIEW_DEFAULT.COLLISION_ITERATIONS = 1;
-MEDIAVIEW_DEFAULT.NODE_RADIUS_MIN_RATIO = 0.0075;
-MEDIAVIEW_DEFAULT.NODE_RADIUS_MAX_RATIO = 0.1000;
 
 var config = {};
 
@@ -279,8 +243,8 @@ else {
   config.fullscreenMode = false;
   config.pauseOnMouseMove = true;
   config.showStatsFlag = false;
-  config.blahMode = DEFAULT_BLAH_MODE;
-  config.antonymFlag = false;
+  // config.blahMode = DEFAULT_BLAH_MODE;
+  // config.antonymFlag = false;
   config.pauseFlag = false;
   config.sessionViewType = DEFAULT_SESSION_VIEW; // options: force, histogram ??
   config.maxWords = 100;
@@ -291,7 +255,7 @@ else {
   config.defaultMaxAge = DEFAULT_MAX_AGE;
   config.defaultMultiplier = 1000.0;
   config.defaultMetricMode = DEFAULT_METRIC_MODE;
-  config.defaultBlahMode = DEFAULT_BLAH_MODE;
+  // config.defaultBlahMode = DEFAULT_BLAH_MODE;
   config.defaultCharge = DEFAULT_CHARGE;
   config.defaultGravity = DEFAULT_GRAVITY;
   config.defaultForceXmultiplier = DEFAULT_FORCEX_MULTIPLIER;
@@ -523,14 +487,14 @@ var ignoreWordsArray = [
 ignoreWordsArray.push("'");
 ignoreWordsArray.push("`");
 
-var groupHashMap = new HashMap();
-var groupDeleteHashMap = new HashMap();
+// var groupHashMap = new HashMap();
+// var groupDeleteHashMap = new HashMap();
 
-var sessionHashMap = new HashMap();
-var sessionDeleteHashMap = new HashMap();
+// var sessionHashMap = new HashMap();
+// var sessionDeleteHashMap = new HashMap();
 
-var linkHashMap = new HashMap();
-var nodeHashMap = new HashMap();
+// var linkHashMap = new HashMap();
+// var nodeHashMap = new HashMap();
 
 var ignoreWordHashMap = new HashMap();
 
@@ -546,18 +510,18 @@ categoryColorHashMap.set("right", palette.yellow);
 var rxSessionUpdateQueue = [];
 var rxSessionDeleteQueue = [];
 
-var groupCreateQueue = [];
-var groupsCreated = 0;
+// var groupCreateQueue = [];
+// var groupsCreated = 0;
 
-var sessionCreateQueue = [];
-var sessionsCreated = 0;
+// var sessionCreateQueue = [];
+// var sessionsCreated = 0;
 
 var nodeCreateQueue = [];
-var linkCreateQueue = [];
+// var linkCreateQueue = [];
 
-var groupDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
-var nodeDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
-var linkDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
+// var groupDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
+// var nodeDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
+// var linkDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
 
 var urlRoot = DEFAULT_SOURCE + "/session?session=";
 
@@ -566,43 +530,43 @@ var namespace;
 var sessionMode = false;
 var monitorMode = false;
 
-var maxHashtagRows = 25;
-var maxPlaceRows = 25;
-var maxHashtagBarRows = 100;
+// var maxHashtagRows = 25;
+// var maxPlaceRows = 25;
+// var maxHashtagBarRows = 100;
 
-var tweetNodeQueue = [];
-var tweetNodeQueueMaxInQ = 0;
-var tweetNodeQueueMaxLength = 500 ;
+// var tweetNodeQueue = [];
+// var tweetNodeQueueMaxInQ = 0;
+// var tweetNodeQueueMaxLength = 500 ;
 
-var hashtagNodeQueue = [];
-var hashtagNodeQueueMaxInQ = 0;
-var hashtagNodeQueueMaxLength = 500 ;
-var hashtagHashMap = nodeHashMap.hashtag;
-var maxRecentHashtags = maxHashtagRows ;
-var hashtagArray = [] ;
-var recentHashtagArray = [] ;
-var hashtagMentionsArray = [] ;
-var recentHashtagMentionsArray = [] ;
+// var hashtagNodeQueue = [];
+// var hashtagNodeQueueMaxInQ = 0;
+// var hashtagNodeQueueMaxLength = 500 ;
+// var hashtagHashMap = nodeHashMap.hashtag;
+// var maxRecentHashtags = maxHashtagRows ;
+// var hashtagArray = [] ;
+// var recentHashtagArray = [] ;
+// var hashtagMentionsArray = [] ;
+// var recentHashtagMentionsArray = [] ;
 
-var placeNodeQueue = [];
-var placeNodeQueueMaxInQ = 0;
-var placeNodeQueueMaxLength = 500 ;
-var placeHashMap = nodeHashMap.place;
-var maxRecentPlaces = maxPlaceRows ;
-var placeArray = [] ;
-var recentPlaceArray = [] ;
-var placeMentionsArray = [] ;
-var recentPlaceMentionsArray = [] ;
+// var placeNodeQueue = [];
+// var placeNodeQueueMaxInQ = 0;
+// var placeNodeQueueMaxLength = 500 ;
+// var placeHashMap = nodeHashMap.place;
+// var maxRecentPlaces = maxPlaceRows ;
+// var placeArray = [] ;
+// var recentPlaceArray = [] ;
+// var placeMentionsArray = [] ;
+// var recentPlaceMentionsArray = [] ;
 
-var mediaNodeQueue = [];
-var mediaNodeQueueMaxInQ = 0;
-var mediaNodeQueueMaxLength = 500 ;
-var mediaHashMap = nodeHashMap.media;
-var mediaArray = [] ;
-var recentMediaArray = [] ;
-var latestMediaArray = [] ; // 1-element array
-var mediaMentionsArray = [] ;
-var recentMediaMentionsArray = [] ;
+// var mediaNodeQueue = [];
+// var mediaNodeQueueMaxInQ = 0;
+// var mediaNodeQueueMaxLength = 500 ;
+// var mediaHashMap = nodeHashMap.media;
+// var mediaArray = [] ;
+// var recentMediaArray = [] ;
+// var latestMediaArray = [] ; // 1-element array
+// var mediaMentionsArray = [] ;
+// var recentMediaMentionsArray = [] ;
 
 var viewerSessionKey;
 var socket = io("/view");
@@ -714,25 +678,25 @@ function resetServerActiveTimer() {
 
 var dragEndPosition = { "id": "ID", "x": 47, "y": 147};
 
-document.addEventListener("dragEnd", function(e) {
-  console.log("DRAG END: " + jsonPrint(dragEndPosition));
-  if (sessionHashMap.has(dragEndPosition.id)){
-    var dragSession = sessionHashMap.get(dragEndPosition.id);
-    dragSession.initialPosition.x = dragEndPosition.x;
-    dragSession.initialPosition.y = dragEndPosition.y;
-    dragSession.node.px = dragEndPosition.x;
-    dragSession.node.py = dragEndPosition.y;
-    sessionHashMap.set(dragSession.nodeId, dragSession);
-    nodeHashMap.set(dragSession.node.nodeId, dragSession.node);
-    // console.error("dragSession\n" + jsonPrint(dragSession));
-  }
-});
+// document.addEventListener("dragEnd", function(e) {
+//   console.log("DRAG END: " + jsonPrint(dragEndPosition));
+//   if (sessionHashMap.has(dragEndPosition.id)){
+//     var dragSession = sessionHashMap.get(dragEndPosition.id);
+//     dragSession.initialPosition.x = dragEndPosition.x;
+//     dragSession.initialPosition.y = dragEndPosition.y;
+//     dragSession.node.px = dragEndPosition.x;
+//     dragSession.node.py = dragEndPosition.y;
+//     sessionHashMap.set(dragSession.nodeId, dragSession);
+//     nodeHashMap.set(dragSession.node.nodeId, dragSession.node);
+//     // console.error("dragSession\n" + jsonPrint(dragSession));
+//   }
+// });
 
-var sessionDragEndEvent = new CustomEvent(
-  "dragEnd", { 
-    "detail": dragEndPosition
-  } 
-);
+// var sessionDragEndEvent = new CustomEvent(
+//   "dragEnd", { 
+//     "detail": dragEndPosition
+//   } 
+// );
 
 window.onbeforeunload = function() {
   if (controlPanelFlag) { controlPanelWindow.close(); }
@@ -807,8 +771,6 @@ function addCategoryButton(){
   controlDivElement.appendChild(categoryButton);
 }
 
-// var categoryButtonElement = document.getElementById("categoryButton");
-
 function updateCategoryButton(){
   document.getElementById("categoryButton").innerHTML = config.autoCategoryFlag ? "AUTO CATEGORY" : "MANUAL CATEGORY";
 }
@@ -840,19 +802,6 @@ function addMetricButton(){
   metricButton.setAttribute("onclick", "toggleMetric()");
   metricButton.innerHTML = config.metricMode.toUpperCase() + " RADIUS";
   controlDivElement.appendChild(metricButton);
-}
-
-function updateBlahButton(){
-  document.getElementById("blahButton").innerHTML = config.blahMode ? "HIDE BLAH" : "SHOW BLAH";
-}
-
-function addBlahButton(){
-  var blahButton = document.createElement("BUTTON");
-  blahButton.className = "button";
-  blahButton.setAttribute("id", "blahButton");
-  blahButton.setAttribute("onclick", "toggleBlah()");
-  blahButton.innerHTML = config.blahMode ? "HIDE BLAH" : "SHOW BLAH";
-  controlDivElement.appendChild(blahButton);
 }
 
 function updateLoginButton(){
@@ -955,10 +904,10 @@ function controlPanelComm(event) {
           toggleMetric();
           resetConfigUpdateTimeOut();
         break;
-        case "blahToggleButton" :
-          toggleBlah();
-          resetConfigUpdateTimeOut();
-        break;
+        // case "blahToggleButton" :
+        //   toggleBlah();
+        //   resetConfigUpdateTimeOut();
+        // break;
         case "fullscreenToggleButton" :
           toggleFullScreen();
           resetConfigUpdateTimeOut();
@@ -974,17 +923,17 @@ function controlPanelComm(event) {
           toggleTestMode();
           resetConfigUpdateTimeOut();
         break;
-        case "disableLinksToggleButton" :
-          toggleDisableLinks();
-          resetConfigUpdateTimeOut();
-        break;
-        case "nodeCreateButton" :
-          // createTextNode;
-        break;
-        case "antonymToggleButton" :
-          toggleAntonym();
-          resetConfigUpdateTimeOut();
-        break;
+        // case "disableLinksToggleButton" :
+        //   toggleDisableLinks();
+        //   resetConfigUpdateTimeOut();
+        // break;
+        // case "nodeCreateButton" :
+        //   // createTextNode;
+        // break;
+        // case "antonymToggleButton" :
+        //   toggleAntonym();
+        //   resetConfigUpdateTimeOut();
+        // break;
         case "removeDeadNodeToogleButton" :
           toggleRemoveDeadNode();
           resetConfigUpdateTimeOut();
@@ -1001,14 +950,14 @@ function controlPanelComm(event) {
           config.defaultTransitionDuration = event.data.value;
           resetConfigUpdateTimeOut();
         break;
-        case "linkStrengthSlider" :
-          currentSessionView.updateLinkStrength(event.data.value);
-          resetConfigUpdateTimeOut();
-        break;
-        case "linkDistanceSlider" :
-          currentSessionView.updateLinkDistance(event.data.value);
-          resetConfigUpdateTimeOut();
-        break;
+        // case "linkStrengthSlider" :
+        //   currentSessionView.updateLinkStrength(event.data.value);
+        //   resetConfigUpdateTimeOut();
+        // break;
+        // case "linkDistanceSlider" :
+        //   currentSessionView.updateLinkDistance(event.data.value);
+        //   resetConfigUpdateTimeOut();
+        // break;
         case "velocityDecaySlider" :
           currentSessionView.updateVelocityDecay(event.data.value);
           resetConfigUpdateTimeOut();
@@ -1091,9 +1040,9 @@ function controlPanelComm(event) {
           + " | " + event.data["twttr.button"].method
         );
       }
-      else if (event.data["settings"] !== undefined){
+      else if (event.data.settings !== undefined){
         console.log("R< CONTROL PANEL SETTINGS" 
-          + "\n" + jsonPrint(event.data["settings"])
+          + "\n" + jsonPrint(event.data.settings)
         );
       }
       else {
@@ -1140,23 +1089,6 @@ function toggleMetric() {
   saveConfig();
 }
 
-function toggleBlah() {
-  config.blahMode = !config.blahMode;
-  currentSessionView.setBlah(config.blahMode);
-  console.warn("TOGGLE BLAH: " + config.blahMode);
-  updateBlahButton();
-  if (controlPanelFlag) { controlPanel.updateControlPanel(config); }
-  saveConfig();
-}
-
-function toggleAntonym() {
-  config.antonymFlag = !config.antonymFlag;
-  currentSessionView.setAntonym(config.antonymFlag);
-  console.warn("TOGGLE ANT: " + config.antonymFlag);
-  controlPanel.updateControlPanel(config);
-  saveConfig();
-}
-
 function togglePause() {
   config.pauseFlag = !config.pauseFlag;
   currentSessionView.setPause(config.pauseFlag);
@@ -1169,15 +1101,6 @@ function toggleRemoveDeadNode() {
   config.removeDeadNodesFlag = !config.removeDeadNodesFlag;
   currentSessionView.setRemoveDeadNodesFlag(config.removeDeadNodesFlag);
   console.warn("TOGGLE REMOVE DEAD NODES: " + config.removeDeadNodesFlag);
-  controlPanel.updateControlPanel(config);
-  saveConfig();
-}
-
-function toggleDisableLinks() {
-  config.disableLinks = !config.disableLinks;
-  currentSessionView.disableLinks = config.disableLinks;
-  if (config.disableLinks) { linkHashMap.clear(); }
-  console.warn("TOGGLE DISABLE LINKS: " + config.disableLinks);
   controlPanel.updateControlPanel(config);
   saveConfig();
 }
@@ -1212,7 +1135,7 @@ function toggleTestMode() {
   saveConfig();
 }
 
-var initialPosition
+var initialPosition;
 function computeInitialPosition(index) {
   initialPosition = {
     x: randomIntFromInterval(0.95 * currentSessionView.getWidth(), 1.0 * currentSessionView.getWidth()),
@@ -1315,17 +1238,17 @@ socket.on("VIEWER_READY_ACK", function(vSesKey) {
   console.debug("STORE CONFIG ON VIEWER_READY_ACK\n" + jsonPrint(config));
   saveConfig();
 
-  if (sessionMode) {
-    console.debug("SESSION MODE" + " | SID: " + sessionId + " | NSP: " + namespace);
-    // var tempSessionId = "/" + namespace + "#" + sessionId;
-    currentSession.sessionId = "/" + namespace + "#" + sessionId;
-    console.debug("TX GET_SESSION | " + currentSession.sessionId);
-    socket.emit("GET_SESSION", currentSession.sessionId);
-  } 
-  else {
-    console.debug("TX REQ_USER_SESSION\nVIEWER OBJ\n" + jsonPrint(viewerObj));
-    socket.emit("REQ_USER_SESSION", viewerObj);
-  }
+  // if (sessionMode) {
+  //   console.debug("SESSION MODE" + " | SID: " + sessionId + " | NSP: " + namespace);
+  //   // var tempSessionId = "/" + namespace + "#" + sessionId;
+  //   currentSession.sessionId = "/" + namespace + "#" + sessionId;
+  //   console.debug("TX GET_SESSION | " + currentSession.sessionId);
+  //   socket.emit("GET_SESSION", currentSession.sessionId);
+  // } 
+  // else {
+  //   console.debug("TX REQ_USER_SESSION\nVIEWER OBJ\n" + jsonPrint(viewerObj));
+  //   socket.emit("REQ_USER_SESSION", viewerObj);
+  // }
 
   if (!config.pauseFlag) {
     currentSessionView.simulationControl("RESUME");
@@ -1342,13 +1265,6 @@ socket.on("reconnect", function() {
 
   socket.emit("authentication", viewerObj);
 
-  if (sessionMode) {
-    console.log("SESSION MODE" + " | SID: " + sessionId + " | NSP: " + namespace);
-    // var tempSessionId = "/" + namespace + "#" + sessionId;
-    currentSession.sessionId = "/" + namespace + "#" + sessionId;
-    controlPanel.document.getElementById("statusSessionId").innerHTML = "SOCKET: " + statsObj.socketId;
-    socket.emit("GET_SESSION", currentSession.sessionId);
-  } 
 });
 
 socket.on("connect", function() {
@@ -1366,65 +1282,37 @@ socket.on("disconnect", function() {
   statsObj.socketId = null;
   if (currentSessionView !== undefined) { currentSessionView.setEnableAgeNodes(false); }
   console.log("*** DISCONNECTED FROM HOST ... DELETING ALL SESSIONS ...");
-  deleteAllSessions(function() {
-    console.log("DELETED ALL SESSIONS");
-    sessionCreateQueue = [];
-    groupHashMap.clear();
-    sessionDeleteHashMap.clear();
-    currentSessionView.resize();
-    updateSessionsReady = true;
-  });
+  if (currentSessionView !== undefined) { currentSessionView.resize(); }
 });
 
 socket.on("error", function(error) {
   socket.disconnect();
   statsObj.serverConnected = false;
   statsObj.socketId = null;
-  statsObj.socketErrors++;
+  statsObj.socketErrors += 1;
   console.log("*** SOCKET ERROR ... DELETING ALL SESSIONS ...");
   console.error("*** SOCKET ERROR\n" + error);
-  deleteAllSessions(function() {
-    console.log("DELETED ALL SESSIONS");
-    sessionCreateQueue = [];
-    groupHashMap.clear();
-    sessionDeleteHashMap.clear();
-    currentSessionView.resize();
-    updateSessionsReady = true;
-  });
+  if (currentSessionView !== undefined) { currentSessionView.resize(); }
 });
 
 socket.on("connect_error", function(error) {
   socket.disconnect();
   statsObj.serverConnected = false;
   statsObj.socketId = null;
-  statsObj.socketErrors++;
+  statsObj.socketErrors += 1;
   console.log("*** SOCKET CONNECT ERROR ... DELETING ALL SESSIONS ...");
   console.error("*** SOCKET CONNECT ERROR\n" + error);
-  deleteAllSessions(function() {
-    console.log("DELETED ALL SESSIONS");
-    sessionCreateQueue = [];
-    groupHashMap.clear();
-    sessionDeleteHashMap.clear();
-    if (currentSessionView !== undefined) { currentSessionView.resize(); }
-    updateSessionsReady = true;
-  });
+  if (currentSessionView !== undefined) { currentSessionView.resize(); }
 });
 
 socket.on("reconnect_error", function(error) {
   socket.disconnect();
   statsObj.serverConnected = false;
   statsObj.socketId = null;
-  statsObj.socketErrors++;
+  statsObj.socketErrors += 1;
   console.log("*** SOCKET RECONNECT ERROR ... DELETING ALL SESSIONS ...");
   console.error("*** SOCKET RECONNECT ERROR\n" + error);
-  deleteAllSessions(function() {
-    console.log("DELETED ALL SESSIONS");
-    sessionCreateQueue = [];
-    groupHashMap.clear();
-    sessionDeleteHashMap.clear();
-    currentSessionView.resize();
-    updateSessionsReady = true;
-  });
+  if (currentSessionView !== undefined) { currentSessionView.resize(); }
 });
 
 
@@ -1437,22 +1325,12 @@ var hidden = hiddenProperty(prefix);
 var visibilityEvent = getVisibilityEvent(prefix);
 
 function reset(){
-  currentSessionView.simulationControl("RESET");
   windowVisible = true;
-  deleteAllSessions(function() {
-    console.log("DELETED ALL SESSIONS ON WINDOW HIDDEN");
-    sessionCreateQueue = [];
-    sessionDeleteHashMap.clear();
-    if ((config.sessionViewType == "force") 
-      || (config.sessionViewType == "ticker")
-      || (config.sessionViewType == "flow")
-      || (config.sessionViewType == "media")
-    ) {
-      currentSessionView.resetDefaultForce();
-    }
+  if (currentSessionView !== undefined) { 
+    currentSessionView.simulationControl("RESET");
+    currentSessionView.resetDefaultForce();
     currentSessionView.simulationControl("START");
-    updateSessionsReady = true;
-  });  
+  }
 }
 
 window.addEventListener("resize", function() { currentSessionView.resize(); });
@@ -1563,19 +1441,10 @@ function getUrlVariables(callbackMain) {
   });
 }
 
-function launchSessionView(sessionId) {
-  var namespacePattern = new RegExp(/^\/(\S*)#(\S*)$/);
-  var sessionIdParts = namespacePattern.exec(sessionId);
-  console.log("sessionId: " + sessionId + " | nsp: " + sessionIdParts[1] + " | id: " + sessionIdParts[2]);
-  var url = urlRoot + sessionIdParts[2] + "&nsp=" + sessionIdParts[1];
-  console.log("launchSessionView: " + sessionId + " | " + url);
-  window.open(url, "SESSION VIEW", "_new");
-}
-
 var globalLinkIndex = 0;
 
 function generateLinkId(callback) {
-  globalLinkIndex++;
+  globalLinkIndex += 1;
   return "LNK" + globalLinkIndex;
 }
 
@@ -1613,14 +1482,14 @@ function tableCreateRow(parentTable, options, cells) {
         tableCell.style.color = tdTextColor;
         tableCell.style.backgroundColor = tdBgColor;
       } 
-      else if (content.type == "TEXT") {
+      else if (content.type === "TEXT") {
         tableCell.className = content.class;
         tableCell.setAttribute("id", content.id);
         tableCell.style.color = tdTextColor;
         tableCell.style.backgroundColor = tdBgColor;
         tableCell.innerHTML = content.text;
       } 
-      else if (content.type == "BUTTON") {
+      else if (content.type === "BUTTON") {
         tableButton = document.createElement("BUTTON");
         tableButton.className = content.class;
         tableButton.setAttribute("id", content.id);
@@ -1630,7 +1499,7 @@ function tableCreateRow(parentTable, options, cells) {
         tableCell.appendChild(tableButton);
         controlIdHash[content.id] = content;
       } 
-      else if (content.type == "SLIDER") {
+      else if (content.type === "SLIDER") {
         tableSlider = document.createElement("INPUT");
         tableSlider.type = "range";
         tableSlider.className = content.class;
@@ -1865,30 +1734,18 @@ function createStatsTable(callback) {
     text: "---"
   };
 
-
-  switch (config.sessionViewType) {
-
-    case "media":
-    case "force":
-    case "flow":
-    case "ticker":
-    case "histogram":
-    case "treemap":
-    case "treepack":
-      tableCreateRow(statsTableServer, optionsHead, ["SERVER"]);
-      tableCreateRow(statsTableServer, optionsBody, [statsServerTimeLabel, statsServerTime]);
-      tableCreateRow(statsTableServer, optionsBody, [statsServerUpTimeLabel, statsServerUpTime]);
-      tableCreateRow(statsTableServer, optionsBody, [statsServerStartTimeLabel, statsServerStartTime]);
-      tableCreateRow(statsTableServer, optionsBody, [statsServerRunTimeLabel, statsServerRunTime]);
-      tableCreateRow(statsTableServer, optionsBody, [statsServerTweetsPerMinLabel, statsServerTweetsPerMin, statsServerMaxTweetsPerMinLabel, statsServerMaxTweetsPerMin]);
-      tableCreateRow(statsTableClient, optionsHead, ["CLIENT"]);
-      tableCreateRow(statsTableClient, optionsBody, [statsClientSessionIdLabel, statsClientSessionId]);
-      tableCreateRow(statsTableClient, optionsBody, [statsClientNumberNodesLabel, statsClientNumberNodes, statsClientNumberMaxNodesLabel, statsClientNumberMaxNodes]);
-      tableCreateRow(statsTableClient, optionsBody, [statsClientAgeRateLabel, statsClientAgeRate, statsClientMaxAgeRateLabel, statsClientMaxAgeRate]);
-      tableCreateRow(statsTableClient, optionsBody, [statsClientAddNodeQLabel, statsClientAddNodeQ, statsClientMaxAddNodeQLabel, statsClientMaxAddNodeQ]);
-      break;
-  }
-
+  tableCreateRow(statsTableServer, optionsHead, ["SERVER"]);
+  tableCreateRow(statsTableServer, optionsBody, [statsServerTimeLabel, statsServerTime]);
+  tableCreateRow(statsTableServer, optionsBody, [statsServerUpTimeLabel, statsServerUpTime]);
+  tableCreateRow(statsTableServer, optionsBody, [statsServerStartTimeLabel, statsServerStartTime]);
+  tableCreateRow(statsTableServer, optionsBody, [statsServerRunTimeLabel, statsServerRunTime]);
+  tableCreateRow(statsTableServer, optionsBody, [statsServerTweetsPerMinLabel, statsServerTweetsPerMin, statsServerMaxTweetsPerMinLabel, statsServerMaxTweetsPerMin]);
+  tableCreateRow(statsTableClient, optionsHead, ["CLIENT"]);
+  tableCreateRow(statsTableClient, optionsBody, [statsClientSessionIdLabel, statsClientSessionId]);
+  tableCreateRow(statsTableClient, optionsBody, [statsClientNumberNodesLabel, statsClientNumberNodes, statsClientNumberMaxNodesLabel, statsClientNumberMaxNodes]);
+  tableCreateRow(statsTableClient, optionsBody, [statsClientAgeRateLabel, statsClientAgeRate, statsClientMaxAgeRateLabel, statsClientMaxAgeRate]);
+  tableCreateRow(statsTableClient, optionsBody, [statsClientAddNodeQLabel, statsClientAddNodeQ, statsClientMaxAddNodeQLabel, statsClientMaxAddNodeQ]);
+  
   statsServerTimeElement = document.getElementById("statsServerTime");
   statsServerUpTimeElement = document.getElementById("statsServerUpTime");
   statsServerStartTimeElement = document.getElementById("statsServerStartTime");
@@ -1949,65 +1806,6 @@ setInterval(function() {
   }
 }, serverCheckInterval);
 
-function deleteSession(nodeId, callback) {
-
-  if (!sessionHashMap.has(nodeId)) {
-    return (callback(nodeId));
-  }
-  var deletedSession = sessionHashMap.get(nodeId);
-  var groupLinkId = deletedSession.groupId + "_" + deletedSession.node.nodeId;
-  var sessionLinks = deletedSession.linkHashMap.keys();
-
-  async.each(sessionLinks, function(sessionLinkId, cb) {
-      linkHashMap.remove(sessionLinkId);
-      cb();
-    },
-    function(err) {
-
-      linkHashMap.remove(groupLinkId);
-      sessionHashMap.remove(nodeId);
-      nodeHashMap.remove(deletedSession.node.nodeId);
-      sessionDeleteHashMap.set(sessionId, 1);
-
-      currentSessionView.deleteSessionLinks(sessionId);
-      currentSessionView.deleteNode(deletedSession.node.nodeId);
-
-      return (callback(sessionId));
-    }
-  );
-}
-
-function deleteAllSessions(callback) {
-
-  var nodeIds = sessionHashMap.keys();
-
-  async.each(nodeIds, function(nodeId, cb) {
-      deleteSession(nodeId, function(nId) {
-        // console.log("X SES " + nId);
-        cb();
-      });
-    },
-    function(err) {
-      sessionDeleteHashMap.clear();
-      callback();
-    }
-  );
-}
-
-let statsServerTimeElement;
-let statsServerUpTimeElement;
-let statsServerStartTimeElement;
-let statsServerRunTimeElement;
-let statsServerTweetsPerMinElement;
-let statsServerMaxTweetsPerMinElement;
-let statsClientNumberNodesElement;
-let statsClientNumberMaxNodesElement;
-let statsClientAddNodeQElement;
-let statsClientMaxAddNodeQElement;
-let statsClientAgeRateElement;
-let statsClientMaxAgeRateElement;
-let statsClientSessionIdElement;
-
 function updateStatsTable(statsObj){
   statsServerTimeElement.innerHTML = moment(statsObj.heartbeat.timeStamp).format(defaultDateTimeFormat);
   statsServerUpTimeElement.innerHTML = msToTime(statsObj.heartbeat.upTime);
@@ -2036,14 +1834,12 @@ socket.on("HEARTBEAT", function(heartbeat) {
 
   resetServerActiveTimer();
 
-  // var nodesLength = ( currentSessionView === undefined) ? 0 : currentSessionView.getNodesLength();
   statsObj.maxNodes = ( currentSessionView === undefined) ? 0 : currentSessionView.getMaxNodes();
-  // var nodeAddQLength = ( currentSessionView === undefined) ? 0 : currentSessionView.getNodeAddQlength();
   statsObj.maxNodeAddQ = ( currentSessionView === undefined) ? 0 : currentSessionView.getMaxNodeAddQ();
 
   statsObj.heartbeat = heartbeat;
 
-  heartBeatsReceived++;
+  heartBeatsReceived += 1;
   statsObj.serverConnected = true;
   lastHeartbeatReceived = moment().valueOf();
 });
@@ -2075,56 +1871,6 @@ socket.on("CONFIG_CHANGE", function(rxConfig) {
     currentSessionView.setMaxAge(rxConfig.nodeMaxAge);
     previousConfig.nodeMaxAge = config.nodeMaxAge;
   }
-});
-
-socket.on("SESSION_ABORT", function(rxSessionObject) {
-  console.error("RX SESSION_ABORT" 
-    + " | " + rxSessionObject.sessionId 
-    + " | " + rxSessionObject.sessionEvent);
-  if (rxSessionObject.sessionId == socket.id) {
-    console.error("SESSION_ABORT" 
-      + " | " + rxSessionObject.sessionId 
-      + " | " + rxSessionObject.sessionEvent);
-    statsObj.serverConnected = false;
-    statsObj.socketId = "ABORTED";
-    socket.disconnect();
-  }
-});
-
-socket.on("SESSION_DELETE", function(rxSessionObject) {
-
-  if (( rxSessionObject.session !== undefined) && ( rxSessionObject.session.tags !== undefined)){
-
-    rxSessionObject.session.nodeId = (config.forceViewMode == "web") 
-      ? rxSessionObject.session.tags.entity.toLowerCase() 
-      : rxSessionObject.session.tags.entity.toLowerCase() + "_" + rxSessionObject.session.tags.channel.toLowerCase();
-
-    if (sessionHashMap.has(rxSessionObject.session.nodeId)) {
-
-      var session = sessionHashMap.get(rxSessionObject.session.nodeId);
-      sessionDeleteHashMap.set(rxSessionObject.session.nodeId, 1);
-      session.sessionEvent = "SESSION_DELETE";
-      rxSessionDeleteQueue.push(session);
-
-      console.log("SESSION_DELETE" 
-        + " | " + rxSessionObject.session.nodeId
-        // + " | " + rxSessionObject.sessionId 
-        + " | " + rxSessionObject.sessionEvent
-        // + "\n" + jsonPrint(rxSessionObject)
-      );
-
-    }
-
-  }
-});
-
-socket.on("USER_SESSION", function(rxSessionObject) {
-  console.debug("USER_SESSION" 
-    + " | SID: " + rxSessionObject.sessionId 
-    + " | UID: " + rxSessionObject.userId 
-    + " | NSP: " + rxSessionObject.namespace 
-    + " | WCI: " + rxSessionObject.wordChainIndex 
-    + " | CONN: " + rxSessionObject.connected);
 });
 
 socket.on("SET_TWITTER_USER", function(twitterUser) {
@@ -2368,130 +2114,6 @@ function initSocketNodeRx(){
 // GET NODES FROM QUEUE
 //================================
 
-var nodeIndex = 0;
-var tempMentions;
-
-var numberSessionsUpdated = 0;
-
-function addToHashMap(hm, key, value, callback) {
-  if ( key === undefined) {
-    console.error("*** ERROR addToHashMap KEY UNDEFINED ***\nVALUE\n" + jsonPrint(value));
-    console.trace();
-  }
-  hm.set(key, value);
-  var v = hm.get(key);
-  callback(v);
-}
-
-function removeFromHashMap(hm, key, callback) {
-  if (hm.has(key)){
-    var value = hm.get(key);
-    hm.remove(key);
-
-    if (callback !== undefined) { callback(value); }
-  }
-  else{
-    if (callback !== undefined) { callback(false); }
-  }
-}
-
-var processSessionQueues = function(callback) {
-
-  if (rxSessionDeleteQueue.length > 0) {
-    var deleteSessUpdate = rxSessionDeleteQueue.shift();
-    // console.log("DELETE SESSION: " + deleteSessUpdate.sessionId);
-    sessionDeleteHashMap.set(deleteSessUpdate.sessionId, 1);
-    deleteSession(deleteSessUpdate.sessionId, function(sessionId) {
-      return (callback(null, null));
-    });
-  } 
-  else if (rxSessionUpdateQueue.length == 0) {
-    return (callback(null, null));
-  } 
-  else {
-    var session = rxSessionUpdateQueue.shift();
-
-    if ((config.sessionViewType === "treemap") 
-      || (config.sessionViewType === "treepack") 
-      || (config.sessionViewType === "histogram") 
-      || (config.forceViewMode === "web")) {
-      session.tags.entity = session.tags.entity.toLowerCase();
-      session.tags.channel = session.tags.channel.toLowerCase();
-    }
-    else {
-      session.nodeId = session.tags.entity.toLowerCase() + "_delete+ session.tags.channel.toLowerCase()"; // KLUDGE???
-      session.tags.entity = session.tags.entity.toLowerCase();
-      session.tags.channel = session.tags.channel.toLowerCase();
-    }
-
-    switch (session.tags.channel){
-      case "twitter":
-        session.tags.url = "https://twitter.com/" + session.tags.entity.toLowerCase();
-        if ( session.tags.group.url !== undefined) {
-          session.tags.group.url = "https://twitter.com/" + session.tags.entity.toLowerCase();
-        }
-      break;
-      case "livestream":
-        if (session.tags.entity == "cspan"){
-          if ( session.tags.group.url !== undefined) {
-            session.tags.group.url = "https://www.c-span.org/networks/"; 
-          }         
-        }
-      break;
-    }
-
-    if ( session.tags.group.groupId !== undefined) {
-      groupCreateQueue.push(session);
-    }
-    else if (session.tags.group.entityId){
-
-      if (!groupHashMap.has(session.tags.group.entityId)) {
-        session.tags.group.groupId = session.tags.group.entityId;
-        groupCreateQueue.push(session);
-      }
-      else {
-        session.tags.group.groupId = groupHashMap.get(session.tags.group.entityId);
-      }
-    }
-    else {
-      console.error("??? GROUP & ENTITY IDs UNDEFINED ... SKIPPING"
-        + " | " + session.nodeId
-        + "\nTAGS\n" + jsonPrint(session.tags)
-      );
-    }
-
-    return (callback(null, session.sessionId));
-  }
-};
-
-var processNodeDeleteQueue = function(callback) {
-  
-  async.each(nodeDeleteQueue, function(deletedNodeId, cb) {
-
-    removeFromHashMap(nodeHashMap, deletedNodeId);
-    removeFromHashMap(sessionHashMap, deletedNodeId);
-    removeFromHashMap(groupHashMap, deletedNodeId);
-    cb();
-
-  }, function(){
-    nodeDeleteQueue.length = 0;
-    return (callback(null, "processNodeDeleteQueue"));
-  });
-};
-
-var processLinkDeleteQueue = function(callback) {
-
-  async.each(linkDeleteQueue, function(deletedLinkId, cb) {
-
-    removeFromHashMap(linkHashMap, deletedLinkId);
-    cb();
-
-  }, function(){
-    linkDeleteQueue.length = 0;
-    return (callback(null, "processLinkDeleteQueue"));
-  });
-};
-
 function sum( obj ) {
 
   var s = 0;
@@ -2510,1046 +2132,6 @@ function sum( obj ) {
 }
 
 var randomNumber360 = 180;
-
-var createGroup = function(callback) {
-
-  if (groupCreateQueue.length == 0) {
-    callback(null, null);
-  } 
-  else {
-
-    var dateNow = moment().valueOf();
-    var sessUpdate = groupCreateQueue.shift();
-
-    var groupId = sessUpdate.tags.group.groupId;
-    var groupName = sessUpdate.tags.group.name;
-    var groupUrl = sessUpdate.tags.group.url;
-
-    if (groupDeleteHashMap.has(groupId)) {
-      console.warn("createGroup: " 
-        + groupId + " | " + groupName + " | "
-        + " GROUP IN DELETE HASH MAP ... SKIPPING"
-      );
-      callback(null, null);
-    } 
-    else if (groupHashMap.has(groupId)) {
-
-      currentGroup = {};
-      currentSession = {};
-
-      currentGroup = groupHashMap.get(groupId);
-
-      if (nodeHashMap.has(currentGroup.node.nodeId)) {
-        currentGroup.node = nodeHashMap.get(currentGroup.node.nodeId);
-      }
-
-      currentGroup.url = groupUrl;
-      currentGroup.mentions++;
-      currentGroup.age = 1e-6;
-      currentGroup.ageMaxRatio = 1e-6;
-      currentGroup.lastSeen = Date.now;
-      currentGroup.text = groupName;
-      currentGroup.wordChainIndex = sessUpdate.wordChainIndex;
-
-      // GROUP NODE
-      currentGroup.node.nodeType = "group";
-      currentGroup.node.text = groupName;
-      currentGroup.node.url = groupUrl;
-
-      currentGroup.node.age = 1e-6;
-      currentGroup.node.ageMaxRatio = 1e-6;
-      currentGroup.node.ageUpdated = dateNow;
-      currentGroup.node.lastSeen = Date.now;
-      currentGroup.node.isDead = false;
-
-      currentGroup.node.mentions++;
-
-      currentGroup.node.wordChainIndex = sessUpdate.wordChainIndex;
-      currentGroup.node.sessionWordChainIndex[sessUpdate.nodeId] = sessUpdate.wordChainIndex; 
-      currentGroup.node.totalWordChainIndex = sum(currentGroup.node.sessionWordChainIndex);
-
-      // update group totalWordChainIndex
-      currentGroup.totalWordChainIndex = currentGroup.node.totalWordChainIndex;
-
-      if (sessionHashMap.has(sessUpdate.nodeId)) {
-        currentSession = sessionHashMap.get(sessUpdate.nodeId);
-        var groupLinkId = currentGroup.node.nodeId + "_" + currentSession.node.nodeId;
-        currentGroup.node.links = {};
-        currentGroup.node.links[groupLinkId] = 1;
-      }
-
-      addToHashMap(nodeHashMap, currentGroup.node.nodeId, currentGroup.node, function(grpNode) {
-
-        addToHashMap(groupHashMap, currentGroup.groupId, currentGroup, function(cGroup) {
-          sessionCreateQueue.push(sessUpdate);
-          return (callback(null, cGroup.groupId));
-        });
-      });
-
-    } 
-    else {
-
-      groupsCreated += 1;
-
-      var currentInitialPosition = computeInitialPosition(randomIntFromInterval(0,359));
-
-      randomNumber360 = (randomNumber360 + randomIntFromInterval(61, 117))%360;
-
-      var groupStartColor = "hsl(" + randomNumber360 + ",0%,10%)";
-      var groupEndColor = "hsl(" + randomNumber360 + ",0%,0%)";
-
-      var sessionStartColor = "hsl(" + randomNumber360 + ",0%,10%)";
-      var sessionEndColor = "hsl(" + randomNumber360 + ",0%,0%)";
-
-      var nodeStartColor = "hsl(" + randomNumber360 + ",0%,0%)";
-      var nodeEndColor = "hsl(" + randomNumber360 + ",0%,100%)";
-
-      currentGroup = {};
-      currentSession = {};
-
-      currentGroup.groupId = groupId;
-      currentGroup.url = groupUrl;
-      currentGroup.name = groupName;
-      currentGroup.nodeId = groupId;
-      currentGroup.age = 1e-6;
-      currentGroup.ageUpdated = dateNow;
-      currentGroup.ageMaxRatio = 1e-6;
-      currentGroup.lastSeen = Date.now;
-      currentGroup.nodeType = "group";
-      currentGroup.isGroup = true;
-      currentGroup.isSession = false;
-      currentGroup.mentions = 1;
-      currentGroup.wordChainIndex = sessUpdate.wordChainIndex;
-      currentGroup.totalWordChainIndex = sessUpdate.wordChainIndex;
-      currentGroup.tags = {};
-      currentGroup.tags = sessUpdate.tags;
-      currentGroup.text = groupName;
-      currentGroup.source = sessUpdate.source;
-      currentGroup.source.lastSeen = Date.now;
-      currentGroup.target = sessUpdate.target;
-      if (currentGroup.target) { currentGroup.target.lastSeen = Date.now; }
-
-      currentGroup.node = {};
-      currentGroup.linkHashMap = new HashMap();
-      currentGroup.initialPosition = currentInitialPosition;
-      currentGroup.x = currentInitialPosition.x;
-      currentGroup.y = currentInitialPosition.y;
-
-      currentGroup.groupColors = {};
-      currentGroup.groupColors = {"startColor": groupStartColor, "endColor": groupEndColor};
-      currentGroup.sessionColors = {};
-      currentGroup.sessionColors = {"startColor": sessionStartColor, "endColor": sessionEndColor};
-      currentGroup.nodeColors = {};
-      currentGroup.nodeColors = {"startColor": nodeStartColor, "endColor": nodeEndColor};
-
-      var interpolateGroupColor = d3.interpolateHsl(groupStartColor, groupEndColor);
-      currentGroup.interpolateGroupColor = interpolateGroupColor;
-
-      var interpolateSessionColor = d3.interpolateHsl(sessionStartColor, sessionEndColor);
-      currentGroup.interpolateSessionColor = interpolateSessionColor;
-
-      var interpolateNodeColor = d3.interpolateHsl(nodeStartColor, nodeEndColor);
-      currentGroup.interpolateNodeColor = interpolateNodeColor;
-
-      currentGroup.interpolateColor = interpolateNodeColor;
-
-      // CREATE GROUP NODE
-
-      currentGroup.node.nodeType = "group"; // KLUDGE
-      currentGroup.node.isGroupNode = true;
-      currentGroup.node.isSessionNode = false;
-      currentGroup.node.groupId = groupId;
-      currentGroup.node.nodeId = groupId;
-      currentGroup.node.url = groupUrl;
-      currentGroup.node.age = 1e-6;
-      currentGroup.node.ageMaxRatio = 1e-6;
-      currentGroup.node.isDead = false;
-      currentGroup.node.ageUpdated = dateNow;
-      currentGroup.node.lastSeen = Date.now;
-
-      currentGroup.node.wordChainIndex = sessUpdate.wordChainIndex;
-      currentGroup.node.sessionWordChainIndex = {};  // per session wci
-      currentGroup.node.sessionWordChainIndex[sessUpdate.nodeId] = sessUpdate.wordChainIndex; 
-      currentGroup.node.totalWordChainIndex = sum(currentGroup.node.sessionWordChainIndex);  
-
-      currentGroup.node.mentions = 1;
-      currentGroup.node.text = groupName;
-      currentGroup.node.r = config.defaultNodeRadius;
-      currentGroup.node.x = currentInitialPosition.x;
-      currentGroup.node.y = currentInitialPosition.y;
-      currentGroup.node.fixed = false;
-
-      currentGroup.node.groupColors = {};
-      currentGroup.node.groupColors = currentGroup.groupColors;
-      currentGroup.node.interpolateGroupColor = interpolateGroupColor;
-
-      currentGroup.interpolateColor = interpolateGroupColor;
-
-      currentGroup.node.links = {};
-
-      if (sessionHashMap.has(sessUpdate.nodeId)) {
-        currentSession = sessionHashMap.get(sessUpdate.nodeId);
-        groupLinkId = currentGroup.node.nodeId + "_" + currentSession.node.nodeId;
-        currentGroup.node.links[groupLinkId] = 1;
-      }
-
-      addToHashMap(nodeHashMap, currentGroup.node.nodeId, currentGroup.node, function(grpNode) {
-
-        // console.info("+ G" 
-        //   + " | " + grpNode.nodeId
-        //   + " | " + grpNode.groupId
-        //   // + " | " + grpNode.url
-        //   + " | isGroupNode: " + grpNode.isGroupNode
-        //   + " | isSessionNode: " + grpNode.isSessionNode
-        // );
-
-        addToHashMap(groupHashMap, currentGroup.groupId, currentGroup, function(cGroup) {
-          // console.log("+ G " + cGroup.groupId 
-          //   + " | GNID: " + cGroup.node.nodeId
-          // );
-          sessionCreateQueue.push(sessUpdate);
-          currentSessionView.addGroup(cGroup);
-          return (callback(null, cGroup.groupId));
-        });
-      });
-    }
-  }
-};
-
-var createSession = function(callback) {
-
-  if (sessionCreateQueue.length == 0) {
-    callback(null, null);
-  } 
-  else {
-
-    var dateNow = moment().valueOf();
-    var sessUpdate = sessionCreateQueue.shift();
-    currentGroup = {};
-
-    var currentSessionNodeId = sessUpdate.tags.entity.toLowerCase() + "_" + sessUpdate.tags.channel.toLowerCase();
-
-    // console.warn("sessUpdate\n" + jsonPrint(sessUpdate));
-
-    if (groupHashMap.has(sessUpdate.tags.group.groupId)) {
-      currentGroup = groupHashMap.get(sessUpdate.tags.group.groupId);
-    }
-    else {
-      console.error("currentGroup\n" + jsonPrint(currentGroup)); 
-    }
-
-    if (sessionDeleteHashMap.has(sessUpdate.sessionId)) {
-      // console.log("createSession: " 
-      //   + sessUpdate.userId 
-      //   + " | " + sessUpdate.tags.entity 
-      //   + " SESSION IN DELETE HASH MAP ... SKIPPING"
-      // );
-      callback(null, null);
-    } 
-    // else if (sessionHashMap.has(sessUpdate.nodeId)) {
-    else if (sessionHashMap.has(currentSessionNodeId)) {
-
-      currentSession = sessionHashMap.get(currentSessionNodeId);
-
-      if (currentSession.wordChainIndex === undefined){
-        console.error("*** currentSession.wordChainIndex UNDEFINED");
-      }
-
-      if (currentSession.tags === undefined) { currentSession.tags = {}; }
-      currentSession.tags = sessUpdate.tags;
-
-      currentSession.colors = currentGroup.sessionColors;
-
-      if (nodeHashMap.has(currentSession.node.nodeId)) {
-        currentSession.node = nodeHashMap.get(currentSession.node.nodeId);
-      }
-      if (nodeHashMap.has(sessUpdate.tags.group.groupId)) {
-        currentGroup.node = nodeHashMap.get(sessUpdate.tags.group.groupId);
-      }
-
-      currentSession.groupId = currentGroup.groupId;
-      currentSession.age = 1e-6;
-      currentSession.ageUpdated = dateNow;
-      currentSession.ageMaxRatio = 1e-6;
-      currentSession.mentions++;
-      currentSession.lastSeen = Date.now;
-      currentSession.userId = sessUpdate.userId;
-      currentSession.url = sessUpdate.url;
-      currentSession.text = sessUpdate.tags.entity + " | " + sessUpdate.tags.channel;
-      currentSession.wordChainIndex = sessUpdate.wordChainIndex;
-      currentSession.source = sessUpdate.source;
-      currentSession.source.lastSeen = Date.now;
-      if (sessUpdate.target) {currentSession.target = sessUpdate.target;}
-      if (sessUpdate.target) {currentSession.target.lastSeen = Date.now;}
-      currentSession.interpolateSessionColor = currentGroup.interpolateSessionColor;
-      currentSession.interpolateColor = currentGroup.interpolateSessionColor;
-
-      currentSession.node.url = sessUpdate.url;
-      currentSession.node.entity = sessUpdate.tags.entity;
-      currentSession.node.text = sessUpdate.tags.entity + "|" + sessUpdate.tags.channel;
-      currentSession.node.age = 1e-6;
-      currentSession.node.ageMaxRatio = 1e-6;
-      currentSession.node.isGroupNode = false;
-      currentSession.node.isSessionNode = true;
-      currentSession.node.nodeType = "session"; // KLUDGE
-      currentSession.node.isDead = false;
-      currentSession.node.ageUpdated = dateNow;
-      currentSession.node.lastSeen = Date.now;
-      currentSession.node.wordChainIndex = sessUpdate.wordChainIndex;
-      currentSession.node.mentions = sessUpdate.wordChainIndex;
-
-      currentSession.node.groupColors = {};
-      currentSession.node.groupColors = currentGroup.groupColors;
-      currentSession.node.interpolateGroupColor = currentGroup.interpolateGroupColor;
-      currentSession.node.interpolateColor = currentGroup.interpolateGroupColor;
-      
-      currentSession.node.sessionColors = {};
-      currentSession.node.sessionColors = currentGroup.sessionColors;
-      currentSession.node.interpolateSessionColor = currentGroup.interpolateSessionColor;
-      
-      currentSession.node.nodeColors = {};
-      currentSession.node.nodeColors = currentGroup.nodeColors;
-      currentSession.node.interpolateNodeColor = currentGroup.interpolateNodeColor;
-      
-      var sessionLinkId = (config.forceViewMode == "web") ? currentSession.node.nodeId : currentSession.node.nodeId + "_" + sessUpdate.source.nodeId;
-      
-      currentSession.node.links = {};
-      currentSession.node.links[sessionLinkId] = 1;
-
-      addToHashMap(nodeHashMap, currentSession.node.nodeId, currentSession.node, function(sesNode) {
-        addToHashMap(sessionHashMap, currentSession.nodeId, currentSession, function(cSession) {
-          nodeCreateQueue.push(cSession);
-          return (callback(null, cSession.nodeId));
-        });
-      });      
-    } 
-    else {
-
-      sessionsCreated += 1;
-
-      var tarNodId = "<null>";
-
-      if (sessUpdate.target) {tarNodId = sessUpdate.target.nodeId;}
-
-      console.log("+ SES" 
-        + " [" + sessUpdate.wordChainIndex + "]" 
-        + " U: " + sessUpdate.userId 
-        // + " P: " + sessUpdate.profileImageUrl 
-        + " E: " + sessUpdate.tags.entity 
-        + " C: " + sessUpdate.tags.channel 
-        // + " URL: " + sessUpdate.url 
-        + " " + sessUpdate.source.nodeId 
-        + " > " + tarNodId
-      );
-
-      currentSession = {};
-
-      currentSession.tags = {};
-
-      currentSession.groupColors = {};
-      currentSession.sessionColors = {};
-      currentSession.nodeColors = {};
-
-      currentSession.groupId = currentGroup.groupId;
-      currentSession.url = sessUpdate.url;
-      currentSession.age = 1e-6;
-      currentSession.ageMaxRatio = 1e-6;
-      currentSession.mentions = 1;
-      currentSession.lastSeen = Date.now;
-      currentSession.rank = -1;
-      currentSession.isSession = true;
-      currentSession.nodeId = (config.forceViewMode == "web") ? sessUpdate.tags.entity : sessUpdate.tags.entity + "_" + sessUpdate.tags.channel;
-      currentSession.sessionId = sessUpdate.sessionId;
-      currentSession.tags = sessUpdate.tags;
-      currentSession.userId = sessUpdate.userId;
-      currentSession.wordChainIndex = sessUpdate.wordChainIndex;
-      currentSession.text = sessUpdate.tags.entity + "[" + sessUpdate.tags.channel + "]";
-      currentSession.source = sessUpdate.source;
-      currentSession.target = sessUpdate.target;
-      currentSession.linkHashMap = new HashMap();
-      currentSession.initialPosition = currentGroup.initialPosition;
-      currentSession.x = currentGroup.initialPosition.x;
-      currentSession.y = currentGroup.initialPosition.y;
-
-      currentSession.sessionColors = currentGroup.sessionColors;
-      currentSession.interpolateSessionColor = currentGroup.interpolateSessionColor;
-      currentSession.interpolateColor = currentGroup.interpolateSessionColor;
-
-      currentSession.groupColors = currentGroup.groupColors;
-      currentSession.interpolateGroupColor = currentGroup.interpolateGroupColor;
-
-      currentSession.nodeColors = currentGroup.nodeColors;
-      currentSession.interpolateNodeColor = currentGroup.interpolateNodeColor;
-
-      // CREATE SESSION NODE
-
-      currentSession.node = {};
-      currentSession.node.sessionColors = {};
-      currentSession.node.groupColors = {};
-      currentSession.node.nodeColors = {};
-      currentSession.node.links = {};
-      currentSession.node.nodeType = "session";
-      currentSession.node.isSessionNode = true;
-      currentSession.node.isGroupNode = false;
-      currentSession.node.isDead = false;
-      // currentSession.node.nodeId = sessUpdate.tags.entity + "_" + sessUpdate.tags.channel;
-      currentSession.node.nodeId = currentSessionNodeId;
-
-      currentSession.node.entity = sessUpdate.tags.entity;
-      currentSession.node.channel = sessUpdate.tags.channel;
-      currentSession.node.userId = sessUpdate.userId;
-      currentSession.node.sessionId = sessUpdate.sessionId;
-      currentSession.node.url = sessUpdate.url;
-      currentSession.node.imageUrl = sessUpdate.imageUrl;
-      currentSession.node.profileImageUrl = sessUpdate.profileImageUrl;
-      currentSession.node.age = 1e-6;
-      currentSession.node.ageMaxRatio = 1e-6;
-      currentSession.node.ageUpdated = dateNow;
-      currentSession.node.lastSeen = Date.now;
-      currentSession.node.wordChainIndex = sessUpdate.wordChainIndex;
-      currentSession.node.mentions = sessUpdate.wordChainIndex;
-      currentSession.node.text = sessUpdate.tags.entity + "|" + sessUpdate.tags.channel;
-      currentSession.node.r = config.defaultNodeRadius;
-      currentSession.node.x = currentGroup.initialPosition.x;
-      currentSession.node.y = currentGroup.initialPosition.y;
-
-      currentSession.node.sessionColors = currentGroup.sessionColors;
-      currentSession.node.interpolateSessionColor = currentGroup.interpolateSessionColor;
-      currentSession.node.interpolateColor = currentGroup.interpolateSessionColor;
-
-      currentSession.node.groupColors = currentGroup.groupColors;
-      currentSession.node.interpolateGroupColor = currentGroup.interpolateGroupColor;
-
-      currentSession.node.nodeColors = currentGroup.nodeColors;
-      currentSession.node.interpolateNodeColor = currentGroup.interpolateNodeColor;
-
-
-      currentSession.source.lastSeen = Date.now;
-      if (currentSession.target) {
-        currentSession.target.lastSeen = Date.now;
-      }
-
-      addToHashMap(nodeHashMap, currentSession.node.nodeId, currentSession.node, function(sesNode) {
- 
-        currentSessionView.addNode(sesNode);
-
-        addToHashMap(sessionHashMap, currentSession.nodeId, currentSession, function(cSession) {
-          currentSessionView.addSession(cSession);
-          nodeCreateQueue.push(cSession);
-          return (callback(null, cSession.nodeId));
-        });
-      });
-    }
-  }
-};
-
-var createNode = function(callback) {
-
-  if (nodeCreateQueue.length > 0) {
-
-    var dateNow = moment().valueOf();
-
-    var session = nodeCreateQueue.shift();
-
-    if (nodeHashMap.has(session.node.nodeId)) {
-
-      var sessionNode = nodeHashMap.get(session.node.nodeId);
-      sessionNode.isTopTerm = session.node.isTopTerm;
-      sessionNode.age = 1e-6;
-      sessionNode.ageMaxRatio = 1e-6;
-      sessionNode.isDead = false;
-      sessionNode.wordChainIndex = session.wordChainIndex;
-      sessionNode.mentions = session.wordChainIndex;
-
-      session.node = sessionNode;
-
-      addToHashMap(nodeHashMap, session.node.nodeId, sessionNode, function(sNode) {
-        // currentSessionView.addNode(sNode);
-      });
-
-    } 
-    else {
-
-      console.info("+ SES" 
-        + " | " + session.node.nodeId
-        + " | Ms: " + session.node.mentions
-      );
-
-      session.node.bboxWidth = 1e-6;
-      session.node.nodeType = "session";
-      session.node.isSessionNode = true;
-      session.node.isGroupNode = false;
-      // session.node.nodeId = session.tags.entity + "_" + session.tags.channel;
-      session.node.nodeId = (config.forceViewMode == "web") ? session.tags.entity : session.tags.entity + "_" + session.tags.channel;
-      session.node.entity = session.tags.entity;
-      session.node.channel = session.tags.channel;
-      session.node.url = session.url;
-      session.node.text = session.tags.entity + "|" + session.tags.channel;
-      session.node.userId = session.userId;
-      session.node.sessionId = session.sessionId;
-      session.node.age = 1e-6;
-      session.node.ageMaxRatio = 1e-6;
-      session.node.isDead = false;
-      session.node.wordChainIndex = session.wordChainIndex;
-      session.node.mentions = session.wordChainIndex+1;
-      session.node.r = config.defaultNodeRadius;
-      session.node.x = session.initialPosition.x;
-      session.node.y = session.initialPosition.y;
-
-      session.node.groupColors = session.groupColors;
-      session.node.sessionColors = session.sessionColors;
-      session.node.nodeColors = session.nodeColors;
-      session.node.interpolateGroupColor = session.interpolateGroupColor;
-      session.node.interpolateNodeColor = session.interpolateNodeColor;
-      session.node.interpolateSessionColor = session.interpolateSessionColor;
-      session.node.interpolateColor = session.interpolateSessionColor;
-
-      addToHashMap(nodeHashMap, session.node.nodeId, session.node, function(sNode) {
-        currentSessionView.addNode(sNode);
-      });
-    }
-
-    var sourceNodeId;
-    var targetNodeId;
-
-    if (config.sessionViewType == "force") {
-      sourceNodeId = session.source.nodeId;
-      if (session.target) {
-        targetNodeId = session.target.nodeId;
-      }
-    }
-    else if (config.sessionViewType === "treemap"){
-      sourceNodeId = session.source.nodeId;
-    }
-    else if (config.sessionViewType === "treepack"){
-      sourceNodeId = session.source.nodeId;
-    }
-    else if (config.sessionViewType === "histogram"){
-      sourceNodeId = session.source.nodeId;
-    }
-    else if ((config.sessionViewType === "ticker") 
-      || (config.sessionViewType === "flow")
-      ){
-      sourceNodeId = session.source.nodeId + "_" + moment().valueOf();
-      if (session.target) {
-        targetNodeId = session.target.nodeId + "_" + moment().valueOf();
-      }
-    }
-    else {
-      sourceNodeId = session.source.nodeId;
-      targetNodeId = session.target.nodeId;
-    }
-
-    var sourceText = session.source.nodeId;
-    var targetText = session.target ? session.target.nodeId : null;
-
-    var targetNode = {};
-    var sourceNode = {};
-
-    async.parallel({
-        source: function(cb) {
-          if ((config.sessionViewType !== "ticker") 
-            && (config.sessionViewType !== "treemap") 
-            && (config.sessionViewType !== "treepack") 
-            && (config.sessionViewType !== "histogram") 
-            && (config.sessionViewType !== "flow") 
-            && (config.sessionViewType !== "force") 
-            && (config.sessionViewType !== "media") 
-            && session.source.isIgnored) {
-            cb(null, {
-              node: sourceNodeId,
-              isIgnored: true,
-              isNew: false
-            });
-          } 
-          else if (nodeHashMap.has(sourceNodeId)) {
-            sourceNode = nodeHashMap.get(sourceNodeId);
-            sourceNode.sessionNodeId = session.node.nodeId;
-            sourceNode.isTopTerm = session.source.isTopTerm;
-            sourceNode.isTrendingTopic = session.source.isTrendingTopic;
-
-            sourceNode.category = session.source.category;
-            sourceNode.categoryAuto = session.source.categoryAuto;
-
-            var category;
-            if (config.autoCategoryFlag && session.source.categoryAuto){
-              category = session.source.categoryAuto;
-            }
-            else {
-              category = session.source.category;
-            }
-
-            getCategoryColor(category, function(color){
-              sourceNode.categoryColor = color;
-            });
-
-            sourceNode.latestNode = true;
-            sourceNode.newFlag = false;
-            sourceNode.userId = session.userId;
-            sourceNode.sessionId = session.sessionId;
-            sourceNode.groupId = session.groupId;
-            sourceNode.channel = session.tags.channel;
-            sourceNode.entity = session.tags.entity;
-            sourceNode.url = session.url;
-            sourceNode.age = 1e-6;
-            sourceNode.ageMaxRatio = 1e-6;
-            sourceNode.isDead = false;
-            sourceNode.ageUpdated = dateNow;
-            sourceNode.lastSeen = Date.now;
-
-            if (ignoreWordHashMap.has(sourceText)) {
-              sourceNode.isIgnored = true;
-            }
-
-            sourceNode.groupColors = session.groupColors;
-            sourceNode.sessionColors = session.sessionColors;
-            sourceNode.nodeColors = session.nodeColors;
-            sourceNode.interpolateGroupColor = session.interpolateGroupColor;
-            sourceNode.interpolateNodeColor = session.interpolateNodeColor;
-            sourceNode.interpolateSessionColor = session.interpolateSessionColor;
-            sourceNode.interpolateColor = session.interpolateSessionColor;
-
-            if (sourceNode.isSessionNode){
-              sourceNode.nodeType = "session";
-              sourceNode.text = session.tags.entity + "|" + session.tags.channel;
-              sourceNode.wordChainIndex = session.source.wordChainIndex;
-              sourceNode.mentions = session.source.wordChainIndex;
-            }
-            else {
-              sourceNode.nodeType = "word"; // KLUDGE. really not hashtag
-              sourceNode.text = sourceText;
-              sourceNode.mentions = session.source.mentions;
-            }
-
-            addToHashMap(nodeHashMap, sourceNodeId, sourceNode, function(sNode) {
-              cb(null, {
-                node: sNode,
-                isIgnored: false,
-                isNew: false
-              });
-            });
-          } 
-          else {
-            sourceNode = session.source;
-            sourceNode.nodeId = sourceNodeId;
-            sourceNode.sessionNodeId = session.node.nodeId;
-            sourceNode.bboxWidth = 1e-6;
-            sourceNode.isIgnored = session.source.isIgnored;
-            if (ignoreWordHashMap.has(sourceText)) {
-              sourceNode.isIgnored = true;
-            }
-            sourceNode.isTopTerm = session.source.isTopTerm;
-
-            var category;
-            if (config.autoCategoryFlag && session.source.categoryAuto){
-              category = session.source.categoryAuto;
-            }
-            else {
-              category = session.source.category;
-            }
-
-            if (category) {
-              getCategoryColor(category, function(color){
-                sourceNode.categoryColor = color;
-              });
-            }
-            else {
-              console.error("KEWORDS UNDEFINED");
-              sourceNode.categoryColor = palette.black;
-            }
-
-            sourceNode.isTrendingTopic = session.source.isTrendingTopic;
-            sourceNode.newFlag = true;
-            sourceNode.latestNode = true;
-            sourceNode.nodeType = "word"; // KLUDGE
-            sourceNode.isSessionNode = false;
-            sourceNode.isGroupNode = false;
-            sourceNode.userId = session.userId;
-            sourceNode.groupId = session.groupId;
-            sourceNode.channel = session.tags.channel;
-            sourceNode.entity = session.tags.entity;
-            sourceNode.sessionId = session.sessionId;
-            sourceNode.url = session.url;
-            sourceNode.links = {};
-            sourceNode.rank = -1;
-            sourceNode.age = 1e-6;
-            sourceNode.ageMaxRatio = 1e-6;
-            sourceNode.isDead = false;
-            sourceNode.lastSeen = Date.now;
-            sourceNode.ageUpdated = dateNow;
-
-            sourceNode.groupColors = session.groupColors;
-            sourceNode.sessionColors = session.sessionColors;
-            sourceNode.nodeColors = session.nodeColors;
-
-            sourceNode.interpolateGroupColor = session.interpolateGroupColor;
-            sourceNode.interpolateNodeColor = session.interpolateNodeColor;
-            sourceNode.interpolateSessionColor = session.interpolateSessionColor;
-            sourceNode.interpolateColor = session.interpolateSessionColor;
-
-            sourceNode.r = config.defaultNodeRadius;
-            sourceNode.x = session.node.x+randomIntFromInterval(-20,-30);
-            sourceNode.y = session.node.y+randomIntFromInterval(-10,10);
-
-            sourceNode.text = sourceText;
-            sourceNode.mentions = session.source.mentions;
-
-            addToHashMap(nodeHashMap, sourceNodeId, sourceNode, function(sNode) {
-              cb(null, {
-                node: sNode,
-                isIgnored: false,
-                isNew: true
-              });
-            });
-          }
-
-        },
-
-        target: function(cb) {
-
-          if (targetNodeId === undefined 
-            || (config.sessionViewType === "media") 
-            || (config.sessionViewType === "flow") 
-            || (config.sessionViewType === "treemap") 
-            || (config.sessionViewType === "treepack") 
-            || (config.sessionViewType === "histogram") 
-            || (config.sessionViewType === "ticker")) {
-            cb("TARGET UNDEFINED", null);
-          } 
-          else if (session.target.isIgnored) {
-            cb(null, {
-              node: targetNodeId,
-              isIgnored: true,
-              isNew: false
-            });
-          } 
-          else if (nodeHashMap.has(targetNodeId)) {
-            targetNode = nodeHashMap.get(targetNodeId);
-            targetNode.sessionNodeId = session.node.nodeId;
-            targetNode.newFlag = false;
-            if (ignoreWordHashMap.has(targetText)) {
-              targetNode.isIgnored = true;
-            }
-            targetNode.nodeType = "word"; // KLUDGE
-            targetNode.isTrendingTopic = session.target.isTrendingTopic;
-            targetNode.isTopTerm = session.target.isTopTerm;
-            targetNode.userId = session.userId;
-            targetNode.sessionId = session.sessionId;
-            targetNode.groupId = session.groupId;
-            targetNode.channel = session.tags.channel;
-            targetNode.entity = session.tags.entity;
-            targetNode.url = session.url;
-            targetNode.age = 1e-6;
-            targetNode.ageMaxRatio = 1e-6;
-            targetNode.isDead = false;
-            targetNode.ageUpdated = dateNow;
-            targetNode.lastSeen = Date.now;
-
-            targetNode.groupColors = session.groupColors;
-            targetNode.sessionColors = session.sessionColors;
-            targetNode.nodeColors = session.nodeColors;
-            targetNode.interpolateGroupColor = session.interpolateGroupColor;
-            targetNode.interpolateNodeColor = session.interpolateNodeColor;
-            targetNode.interpolateSessionColor = session.interpolateSessionColor;
-            targetNode.interpolateColor = session.interpolateSessionColor;
-
-            targetNode.latestNode = false;
-
-            if (targetNode.isSessionNode){
-              targetNode.nodeType = "session"; // KLUDGE
-              targetNode.text = session.tags.entity + "|" + session.tags.channel;
-              targetNode.wordChainIndex = session.target.wordChainIndex;
-              targetNode.mentions = session.target.wordChainIndex;
-              targetNode.r = config.defaultNodeRadius;
-              targetNode.x = session.node.x;
-              targetNode.y = session.node.y;
-            }
-            else {
-              targetNode.text = targetText;
-              if (session.target.mentions !== undefined) {
-                console.info("--- TARGET MENTIONS: " + session.target.mentions);
-                targetNode.mentions = session.target.mentions;
-              }
-              else {
-                console.debug("??? TARGET MENTIONS UNDEFINED\n" + jsonPrint(session.target));
-                targetNode.mentions = 1;
-              } 
-            }
-
-            addToHashMap(nodeHashMap, targetNodeId, targetNode, function(tNode) {
-              cb(null, {
-                node: tNode,
-                isIgnored: false,
-                isNew: false
-              });
-            });
-          } 
-          else {
-            targetNode = session.target;
-            targetNode.nodeId = targetNodeId;
-            targetNode.sessionNodeId = session.node.nodeId;
-            targetNode.bboxWidth = 1e-6;
-            targetNode.newFlag = true;
-            targetNode.nodeType = "word"; // KLUDGE
-            targetNode.isSessionNode = false;
-            targetNode.isGroupNode = false;
-            if (ignoreWordHashMap.has(targetText)) {
-              targetNode.isIgnored = true;
-            }
-            targetNode.isTrendingTopic = session.target.isTrendingTopic;
-            targetNode.isTopTerm = session.target.isTopTerm;
-
-            var category;
-            if (config.autoCategoryFlag && session.target.categoryAuto){
-              category = session.target.categoryAuto;
-            }
-            else {
-              category = session.target.category;
-            }
-
-            if (category) {
-              getCategoryColor(category, function(color){
-                targetNode.categoryColor = color;
-              });
-            }
-            else {
-              console.error("KEWORDS UNDEFINED");
-              targetNode.categoryColor = palette.black;
-            }
-
-            targetNode.userId = session.userId;
-            targetNode.groupId = session.groupId;
-            targetNode.channel = session.tags.channel;
-            targetNode.entity = session.tags.entity;
-            targetNode.url = session.url;
-            targetNode.sessionId = session.sessionId;
-            targetNode.links = {};
-            targetNode.rank = -1;
-            targetNode.age = 1e-6;
-            targetNode.ageMaxRatio = 1e-6;
-            targetNode.isDead = false;
-            targetNode.lastSeen = Date.now;
-            targetNode.ageUpdated = dateNow;
-
-            targetNode.groupColors = session.groupColors;
-            targetNode.sessionColors = session.sessionColors;
-            targetNode.nodeColors = session.nodeColors;
-            targetNode.interpolateGroupColor = session.interpolateGroupColor;
-            targetNode.interpolateNodeColor = session.interpolateNodeColor;
-            targetNode.interpolateSessionColor = session.interpolateSessionColor;
-            targetNode.interpolateColor = session.interpolateSessionColor;
-
-            targetNode.latestNode = false;
-            
-            targetNode.text = targetText;
-            if (session.target.mentions === undefined) {console.error("session.target.mentions UNDEFINED");}
-            targetNode.mentions = session.target.mentions;
-            targetNode.r = config.defaultNodeRadius;
-            targetNode.x = session.node.x - (100 * Math.random());
-            targetNode.y = session.node.y - (20 - 20 * Math.random());
-
-            addToHashMap(nodeHashMap, targetNodeId, targetNode, function(tNode) {
-              cb(null, {
-                node: tNode,
-                isIgnored: false,
-                isNew: true
-              });
-            });
-          }
-        }
-      },
-      function(err, results) {
-
-        // console.debug("createNode\n" + jsonPrint(results));
-        if (results.source.isIgnored) {
-          console.debug("createNode IGNORE SOURCE: " + results.source.node.nodeId);
-        }
-
-        if (results.target && results.target.isIgnored) {
-          console.debug("createNode IGNORE TARGET: " + results.target.node.nodeId);
-        }
-
-
-        if (!results.source.isIgnored) {
-          session.source = results.source.node;
-          session.source.isNew = results.source.isNew;
-          if (results.source.isNew) {
-            if (results.source.node.mentions === undefined) {
-              console.error("source MENTIONS UNDEFINED\n" + jsonPrint(results.source.node));
-            }
-            currentSessionView.addNode(results.source.node);
-          }
-        }
-
-        if (results.target && !results.target.isIgnored) {
-          session.target = results.target.node;
-          session.target.isNew = results.target.isNew;
-          if (results.target.isNew) {
-            if (results.target.node.mentions === undefined) {
-              console.error("target MENTIONS UNDEFINED\n" + jsonPrint(results.target.node));
-            }
-            currentSessionView.addNode(results.target.node);
-          }
-        }
-
-        addToHashMap(sessionHashMap, session.nodeId, session, function(cSession) {
-          if (!results.source.isIgnored 
-            && (config.sessionViewType !== "media") 
-            && (config.sessionViewType !== "ticker") 
-            && (config.sessionViewType !== "treemap") 
-            && (config.sessionViewType !== "treepack") 
-            && (config.sessionViewType !== "histogram") 
-            && (config.sessionViewType !== "flow")) {
-            linkCreateQueue.push(cSession);
-          }
-        });
-      });
-  }
-  return (callback(null, sessionId));
-};
-
-var prevSessionLinkIdHash = {};
-
-var createLink = function(callback) {
-
-  if ((config.sessionViewType !== "ticker") 
-    && (config.sessionViewType !== "flow") 
-    && (config.sessionViewType !== "treemap") 
-    && (config.sessionViewType !== "treepack") 
-    && (config.sessionViewType !== "histogram") 
-    && (config.sessionViewType !== "media") 
-    && !config.disableLinks 
-    && (linkCreateQueue.length > 0)) {
-
-    var session = linkCreateQueue.shift();
-
-    currentGroup = groupHashMap.get(session.tags.group.groupId);
-
-    var groupLinkId;
-    var sessionLinkId;
-
-    if (config.sessionViewType == "force") {
-
-      sessionLinkId = session.node.nodeId + "_" + session.source.nodeId;
-
-      console.info("sessionLinkId: " + sessionLinkId);
-
-      session.node.links[sessionLinkId] = 1;
-      session.source.links[sessionLinkId] = 1;
-
-      if (!linkHashMap.has(sessionLinkId)){
-
-        var newSessionLink = {
-          linkId: sessionLinkId,
-          sessionId: session.node.nodeId,
-          age: 0,
-          isDead: false,
-          source: session.node,
-          target: session.source,
-          isGroupLink: false,
-          isSessionLink: true
-        };
-
-        addToHashMap(linkHashMap, sessionLinkId, newSessionLink, function(sesLink) {
-          currentSessionView.addLink(sesLink);
-          prevSessionLinkIdHash[session.node.nodeId] = sessionLinkId;
-        });
-      }
-      else {
-        var sessionLink = linkHashMap.get(sessionLinkId);
-        sessionLink.age = 0;
-        sessionLink.isDead = false;
-
-        addToHashMap(linkHashMap, sessionLinkId, sessionLink, function(sesLink) {
-          currentSessionView.addLink(sesLink);
-          prevSessionLinkIdHash[session.node.nodeId] = sessionLinkId;
-        });
-      }
-
-      if (session.target){
-
-        // console.debug("TARGET: " + session.target.nodeId);
-
-        var sourceTargetLinkId = session.source.nodeId + "_" + session.target.nodeId;
-
-        if (session.target.links === undefined) {session.target.links = {};}
-
-        session.source.links[sourceTargetLinkId] = 1;
-        session.target.links[sourceTargetLinkId] = 1;
-
-        if (!linkHashMap.has(sourceTargetLinkId)){
-
-          var newSourceTargetLink = {
-            linkId: sourceTargetLinkId,
-            sessionId: session.node.nodeId,
-            age: 0,
-            isDead: false,
-            source: session.source,
-            target: session.target,
-            isGroupLink: false,
-            isSessionLink: false
-          };
-
-          addToHashMap(linkHashMap, sourceTargetLinkId, newSourceTargetLink, function(srcTgtLink) {
-            currentSessionView.addLink(srcTgtLink);
-          });
-        }
-        else {
-          var sourceTargetLink = linkHashMap.get(sourceTargetLinkId);
-          sourceTargetLink.age = 0;
-          sourceTargetLink.isDead = false;
-
-          addToHashMap(linkHashMap, sourceTargetLinkId, sourceTargetLink, function(srcTgtLink) {
-            currentSessionView.addLink(srcTgtLink);
-          });
-        }
-      }
-    }
-    else if (currentGroup === undefined){
-      console.warn("currentGroup UNDEFINED");
-    }
-    else {
-      console.warn("SOURCE == TARGET ?"
-        + " | " + currentGroup.node.nodeId
-        + " | " + session.node.nodeId
-      );
-    }
-
-    addToHashMap(sessionHashMap, session.nodeId, session, function(sess) {});
-  }
-  return (callback(null, sessionId));
-};
-
-var updateSessionsReady = true;
-
-function updateSessions() {
-
-  updateSessionsReady = false;
-
-  if (config.forceViewMode === "web") {
-  }
-  else {
-    async.series(
-      [
-        processLinkDeleteQueue,
-        processNodeDeleteQueue,
-        processSessionQueues,
-        createGroup,
-        createSession,
-        createNode,
-        createLink
-      ],
-
-      function(err, result) {
-        if (err) {
-          console.error("*** ERROR: updateSessions *** \nERROR: " + err);
-        }
-        updateSessionsReady = true;
-
-      }
-    );
-  }
-}
 
 function toggleFullScreen() {
 
@@ -3581,23 +2163,6 @@ function toggleFullScreen() {
       document.webkitExitFullscreen();
     }
   }
-}
-
-var updateSessionsInterval;
-
-function clearUpdateSessionsInterval() {
-  clearInterval(updateSessionsInterval);
-}
-
-function initUpdateSessionsInterval(interval) {
-
-  console.debug("initUpdateSessionsInterval: " + interval);
-
-  clearInterval(updateSessionsInterval);
-
-  updateSessionsInterval = setInterval(function() {
-    if (updateSessionsReady) {updateSessions();}
-  }, interval);
 }
 
 requirejs.onError = function(err) {
@@ -3632,164 +2197,33 @@ function loadViewType(svt, callback) {
     });
   }
 
-  switch (svt) {
-    case "ticker":
-      config.sessionViewType = "ticker";
-      config.forceViewMode = "flow";
-      requirejs(["js/libs/sessionViewTicker"], function() {
-        console.debug("sessionViewTicker LOADED");
+  config.sessionViewType = "treepack";
+  requirejs(["js/libs/sessionViewTreepack"], function() {
+    console.debug("sessionViewTreepack LOADED");
+    DEFAULT_TRANSITION_DURATION = TREEPACK_DEFAULT.TRANSITION_DURATION;
+    DEFAULT_MAX_AGE = TREEPACK_DEFAULT.MAX_AGE;
+    DEFAULT_COLLISION_RADIUS_MULTIPLIER = TREEPACK_DEFAULT.COLLISION_RADIUS_MULTIPLIER;
+    DEFAULT_COLLISION_ITERATIONS = TREEPACK_DEFAULT.COLLISION_ITERATIONS;
+    DEFAULT_CHARGE = TREEPACK_DEFAULT.CHARGE;
+    DEFAULT_GRAVITY = TREEPACK_DEFAULT.GRAVITY;
+    DEFAULT_NODE_RADIUS_MIN_RATIO = TREEPACK_DEFAULT.NODE_RADIUS_MIN_RATIO;
+    DEFAULT_NODE_RADIUS_MAX_RATIO = TREEPACK_DEFAULT.NODE_RADIUS_MAX_RATIO;
+    DEFAULT_VELOCITY_DECAY = TREEPACK_DEFAULT.VELOCITY_DECAY;
+    DEFAULT_FORCEX_MULTIPLIER = TREEPACK_DEFAULT.FORCEX_MULTIPLIER;
+    DEFAULT_FORCEY_MULTIPLIER = TREEPACK_DEFAULT.FORCEY_MULTIPLIER;
+    DEFAULT_FONT_SIZE_MIN_RATIO = TREEPACK_DEFAULT.FONT_SIZE_MIN_RATIO;
+    DEFAULT_FONT_SIZE_MAX_RATIO = TREEPACK_DEFAULT.FONT_SIZE_MAX_RATIO;
 
-        currentSessionView = new ViewTicker();
-        initSocketSessionUpdateRx();
+    currentSessionView = new ViewTreepack();
+    initSocketSessionUpdateRx();
 
-        callback();
-      });
-      break;
-    case "media":
-      config.sessionViewType = "media";
-      requirejs(["js/libs/sessionViewMedia"], function() {
-        console.debug("sessionViewMedia LOADED");
-        DEFAULT_COLLISION_RADIUS_MULTIPLIER = MEDIAVIEW_DEFAULT.COLLISION_RADIUS_MULTIPLIER;
-        DEFAULT_COLLISION_ITERATIONS = MEDIAVIEW_DEFAULT.COLLISION_ITERATIONS;
-        DEFAULT_MAX_AGE = MEDIAVIEW_DEFAULT.MAX_AGE;
-        DEFAULT_CHARGE = MEDIAVIEW_DEFAULT.CHARGE;
-        DEFAULT_GRAVITY = MEDIAVIEW_DEFAULT.GRAVITY;
-        DEFAULT_NODE_RADIUS_MIN_RATIO = MEDIAVIEW_DEFAULT.NODE_RADIUS_MIN_RATIO;
-        DEFAULT_NODE_RADIUS_MAX_RATIO = MEDIAVIEW_DEFAULT.NODE_RADIUS_MAX_RATIO;
-        DEFAULT_VELOCITY_DECAY = MEDIAVIEW_DEFAULT.VELOCITY_DECAY;
-        DEFAULT_LINK_DISTANCE= MEDIAVIEW_DEFAULT.LINK_DISTANCE;
-        DEFAULT_LINK_STRENGTH = MEDIAVIEW_DEFAULT.LINK_STRENGTH;
-        DEFAULT_FORCEY_MULTIPLIER = MEDIAVIEW_DEFAULT.FORCEY_MULTIPLIER;
-
-        currentSessionView = new ViewMedia();
-        initSocketNodeRx();
-        initSocketSessionUpdateRx();
-
-        callback();
-      });
-      break;
-    case "flow":
-      config.sessionViewType = "flow";
-      config.forceViewMode = "flow";
-      requirejs(["js/libs/sessionViewFlow"], function() {
-        console.debug("sessionViewFlow LOADED");
-
-        DEFAULT_COLLISION_RADIUS_MULTIPLIER = FLOW_DEFAULT.COLLISION_RADIUS_MULTIPLIER;
-        DEFAULT_COLLISION_ITERATIONS = FLOW_DEFAULT.COLLISION_ITERATIONS;
-        DEFAULT_MAX_AGE = FLOW_DEFAULT.MAX_AGE;
-        DEFAULT_CHARGE = FLOW_DEFAULT.CHARGE;
-        DEFAULT_GRAVITY = FLOW_DEFAULT.GRAVITY;
-        DEFAULT_NODE_RADIUS_MIN_RATIO = MEDIAVIEW_DEFAULT.NODE_RADIUS_MIN_RATIO;
-        DEFAULT_NODE_RADIUS_MAX_RATIO = MEDIAVIEW_DEFAULT.NODE_RADIUS_MAX_RATIO;
-        DEFAULT_VELOCITY_DECAY = FLOW_DEFAULT.VELOCITY_DECAY;
-        DEFAULT_FORCEX_MULTIPLIER = FLOW_DEFAULT.FORCEX_MULTIPLIER;
-        DEFAULT_FORCEX_SESSION_MULTIPLIER = FLOW_DEFAULT.FORCEX_SESSION_MULTIPLIER;
-        DEFAULT_FORCEY_MULTIPLIER = FLOW_DEFAULT.FORCEY_MULTIPLIER;
-        DEFAULT_FONT_SIZE_MIN_RATIO = FLOW_DEFAULT.FONT_SIZE_MIN_RATIO;
-        DEFAULT_FONT_SIZE_MAX_RATIO = FLOW_DEFAULT.FONT_SIZE_MAX_RATIO;
-
-        currentSessionView = new ViewFlow();
-        initSocketSessionUpdateRx();
-
-        callback();
-      });
-      break;
-    case "treepack":
-      config.sessionViewType = "treepack";
-      config.forceViewMode = "flow";
-      requirejs(["js/libs/sessionViewTreepack"], function() {
-        console.debug("sessionViewTreepack LOADED");
-        DEFAULT_TRANSITION_DURATION = TREEPACK_DEFAULT.TRANSITION_DURATION;
-        DEFAULT_MAX_AGE = TREEPACK_DEFAULT.MAX_AGE;
-        DEFAULT_COLLISION_RADIUS_MULTIPLIER = TREEPACK_DEFAULT.COLLISION_RADIUS_MULTIPLIER;
-        DEFAULT_COLLISION_ITERATIONS = TREEPACK_DEFAULT.COLLISION_ITERATIONS;
-        DEFAULT_CHARGE = TREEPACK_DEFAULT.CHARGE;
-        DEFAULT_GRAVITY = TREEPACK_DEFAULT.GRAVITY;
-        DEFAULT_NODE_RADIUS_MIN_RATIO = MEDIAVIEW_DEFAULT.NODE_RADIUS_MIN_RATIO;
-        DEFAULT_NODE_RADIUS_MAX_RATIO = MEDIAVIEW_DEFAULT.NODE_RADIUS_MAX_RATIO;
-        DEFAULT_VELOCITY_DECAY = TREEPACK_DEFAULT.VELOCITY_DECAY;
-        DEFAULT_FORCEX_MULTIPLIER = TREEPACK_DEFAULT.FORCEX_MULTIPLIER;
-        DEFAULT_FORCEY_MULTIPLIER = TREEPACK_DEFAULT.FORCEY_MULTIPLIER;
-        DEFAULT_FONT_SIZE_MIN_RATIO = TREEPACK_DEFAULT.FONT_SIZE_MIN_RATIO;
-        DEFAULT_FONT_SIZE_MAX_RATIO = TREEPACK_DEFAULT.FONT_SIZE_MAX_RATIO;
-
-        currentSessionView = new ViewTreepack();
-        initSocketSessionUpdateRx();
-
-        callback();
-      });
-      break;
-    case "treemap":
-      config.sessionViewType = "treemap";
-      config.forceViewMode = "flow";
-      requirejs(["js/libs/sessionViewTreemap"], function() {
-        console.debug("sessionViewTreemap LOADED");
-        DEFAULT_MAX_AGE = TREEMAPVIEW_DEFAULT.MAX_AGE;
-
-        currentSessionView = new ViewTreemap();
-        initSocketNodeRx();
-        initSocketSessionUpdateRx();
-
-        callback();
-      });
-      break;
-    case "histogram":
-      config.sessionViewType = "histogram";
-      config.forceViewMode = "flow";
-      requirejs(["js/libs/sessionViewHistogram"], function() {
-        console.debug("sessionViewHistogram LOADED");
-        DEFAULT_MAX_AGE = HISTOGRAMVIEW_DEFAULT.MAX_AGE;
-        DEFAULT_FONT_SIZE_MIN_RATIO = HISTOGRAMVIEW_DEFAULT.FONT_SIZE_MIN_RATIO;
-        DEFAULT_FONT_SIZE_MAX_RATIO = HISTOGRAMVIEW_DEFAULT.FONT_SIZE_MAX_RATIO;
-
-        currentSessionView = new ViewHistogram();
-        initSocketNodeRx();
-        initSocketSessionUpdateRx();
-
-        callback();
-      });
-      break;
-    default:
-      config.sessionViewType = "force";
-      config.forceViewMode = "web";
-      requirejs(["js/libs/sessionViewForce"], function() {
-        console.debug("sessionViewForce LOADED");
-        DEFAULT_COLLISION_RADIUS_MULTIPLIER = FORCEVIEW_DEFAULT.COLLISION_RADIUS_MULTIPLIER;
-        DEFAULT_COLLISION_ITERATIONS = FORCEVIEW_DEFAULT.COLLISION_ITERATIONS;
-        DEFAULT_MAX_AGE = FORCEVIEW_DEFAULT.MAX_AGE;
-        DEFAULT_CHARGE = FORCEVIEW_DEFAULT.CHARGE;
-        DEFAULT_GRAVITY = FORCEVIEW_DEFAULT.GRAVITY;
-        DEFAULT_NODE_RADIUS_MIN_RATIO = MEDIAVIEW_DEFAULT.NODE_RADIUS_MIN_RATIO;
-        DEFAULT_NODE_RADIUS_MAX_RATIO = MEDIAVIEW_DEFAULT.NODE_RADIUS_MAX_RATIO;
-        DEFAULT_VELOCITY_DECAY = FORCEVIEW_DEFAULT.VELOCITY_DECAY;
-        DEFAULT_LINK_DISTANCE= FORCEVIEW_DEFAULT.LINK_DISTANCE;
-        DEFAULT_LINK_STRENGTH = FORCEVIEW_DEFAULT.LINK_STRENGTH;
-        DEFAULT_FORCEY_MULTIPLIER = FORCEVIEW_DEFAULT.FORCEY_MULTIPLIER;
-        DEFAULT_FONT_SIZE_MIN_RATIO = FORCEVIEW_DEFAULT.FONT_SIZE_MIN_RATIO;
-        DEFAULT_FONT_SIZE_MAX_RATIO = FORCEVIEW_DEFAULT.FONT_SIZE_MAX_RATIO;
-
-        currentSessionView = new ViewForce();
-        initSocketNodeRx();
-        initSocketSessionUpdateRx();
-
-        callback();
-      });
-  }
-}
-
-function initIgnoreWordsHashMap(callback) {
-  async.each(ignoreWordsArray, function(ignoreWord, cb) {
-    addToHashMap(ignoreWordHashMap, ignoreWord, true, function() {
-      cb();
-    });
-  }, function(err) {
     callback();
   });
 }
 
 function onFullScreenChange() {
   var fullscreenElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement;
-  // if in fullscreen mode fullscreenElement won"t be null
+  // if in fullscreen mode fullscreenElement wont be null
   currentSessionView.resize();
   config.fullscreenMode = (fullscreenElement) ? true : false;
   console.log("FULLSCREEN: " + config.fullscreenMode);
@@ -3811,7 +2245,7 @@ function initialize(callback) {
 
   getUrlVariables(function(err, urlVariablesObj) {
 
-    document.dispatchEvent(sessionDragEndEvent);
+    // document.dispatchEvent(sessionDragEndEvent);
 
     console.log("URL VARS\n" + jsonPrint(urlVariablesObj));
 
@@ -3880,57 +2314,16 @@ function initialize(callback) {
               config = storedConfig;
               config.authenticationUrl = DEFAULT_AUTH_URL;
 
-              if (config.sessionViewType === "ticker") {
-                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-              }
-              if (config.sessionViewType === "flow") {
-                initUpdateSessionsInterval(50);
-                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-              }
-              if (config.sessionViewType === "treemap") {
-                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-              }
               if (config.sessionViewType === "treepack") {
-                initUpdateSessionsInterval(50);
-                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-              }
-              if (config.sessionViewType === "histogram") {
-                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-              }
-              if (config.sessionViewType === "force") {
-                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-                initUpdateSessionsInterval(50);
-              }
-              if (config.sessionViewType === "media") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
               }
             }
             else {
               console.debug("STORED CONFIG NOT FOUND: " + storedConfigName);
 
-              if (config.sessionViewType === "ticker") {
-                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-              }
-              if (config.sessionViewType === "flow") {
-                initUpdateSessionsInterval(50);
-                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-              }
-              if (config.sessionViewType === "treemap") {
-                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-              }
               if (config.sessionViewType === "treepack") {
                 initUpdateSessionsInterval(50);
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-              }
-              if (config.sessionViewType === "histogram") {
-                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-              }
-              if (config.sessionViewType === "force") {
-                currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
-                initUpdateSessionsInterval(50);
-              }
-              if (config.sessionViewType === "media") {
-                currentSessionView.setNodeMaxAge(MEDIA_MAX_AGE);
               }
             }
 
@@ -3947,7 +2340,6 @@ function initialize(callback) {
               console.log("END PAGE LOAD TIMEOUT");
               pageLoadedTimeIntervalFlag = false;
               if (!config.showStatsFlag) { displayStats(false, palette.white); }
-              // if (!config.showStatsFlag) { displayControl(false); }
             }, PAGE_LOAD_TIMEOUT);
 
             callback();
@@ -3974,87 +2366,10 @@ function initialize(callback) {
 
               config = storedConfig;
               config.authenticationUrl = DEFAULT_AUTH_URL;
-
-              if (config.sessionViewType === "force") {
-                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                  initUpdateSessionsInterval(50);
-                });
-              }
-              if (config.sessionViewType === "ticker") {
-                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
-              if (config.sessionViewType === "flow") {
-                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-                initUpdateSessionsInterval(50);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
-              if (config.sessionViewType === "treemap") {
-                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
-              if (config.sessionViewType === "treepack") {
-                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-                initUpdateSessionsInterval(50);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
-              if (config.sessionViewType === "histogram") {
-                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
+              currentSessionView.setNodeMaxAge(config.defaultMaxAge);
             }
             else {
-              if (config.sessionViewType === "force") {
-                currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                  initUpdateSessionsInterval(50);
-                });
-              }
-              if (config.sessionViewType === "ticker") {
-                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
-              if (config.sessionViewType === "flow") {
-                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-                initUpdateSessionsInterval(50);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
-              if (config.sessionViewType === "treemap") {
-                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
-              if (config.sessionViewType === "treepack") {
-                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-                initUpdateSessionsInterval(50);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
-              if (config.sessionViewType == "histogram") {
-                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
+              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
             }
 
             currentSessionView.simulationControl("START");
@@ -4071,7 +2386,6 @@ function initialize(callback) {
               console.log("END PAGE LOAD TIMEOUT");
               pageLoadedTimeIntervalFlag = false;
               if (!config.showStatsFlag) {displayStats(false, palette.white);}
-              // if (!config.showStatsFlag) {displayControl(false);}
             }, PAGE_LOAD_TIMEOUT);
 
             callback();
@@ -4101,84 +2415,10 @@ function initialize(callback) {
               config = storedConfig;
               config.authenticationUrl = DEFAULT_AUTH_URL;
 
-              if (config.sessionViewType === "force") {
-                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-                initUpdateSessionsInterval(50);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
-              if (config.sessionViewType === "ticker") {
-                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
-              if (config.sessionViewType === "flow") {
-                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
-              if (config.sessionViewType === "treemap") {
-                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
-              if (config.sessionViewType === "treepack") {
-                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-                initUpdateSessionsInterval(50);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
-              if (config.sessionViewType === "histogram") {
-                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
+              currentSessionView.setNodeMaxAge(config.defaultMaxAge);
             }
             else {
-              if (config.sessionViewType === "force") {
-                currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
-                initUpdateSessionsInterval(50);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
-              if (config.sessionViewType === "ticker") {
-                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
-              if (config.sessionViewType === "flow") {
-                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
-              if (config.sessionViewType === "treemap") {
-                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
-              if (config.sessionViewType === "treepack") {
-                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-                initUpdateSessionsInterval(50);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
-              if (config.sessionViewType === "histogram") {
-                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
+              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
             }
 
           currentSessionView.initD3timer();
@@ -4195,7 +2435,6 @@ function initialize(callback) {
             console.error("END PAGE LOAD TIMEOUT");
             pageLoadedTimeIntervalFlag = false;
             if (!config.showStatsFlag) { displayStats(false, palette.white); }
-            // if (!config.showStatsFlag) { displayControl(false); }
           }, PAGE_LOAD_TIMEOUT);
         });
 

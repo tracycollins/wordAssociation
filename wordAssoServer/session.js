@@ -134,7 +134,6 @@ requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
   },
   function(error) {
     console.log("REQUIREJS ERROR handler", error);
-    // var failedId = error.requireModules && error.requireModules[0];
     console.log(error.requireModules && error.requireModules[0]);
     console.log(error.message);
   }
@@ -670,6 +669,7 @@ function resetMouseMoveTimer() {
   mouseMoveTimeout = setTimeout(function() {
 
     mouseMovingFlag = false;
+    displayControl(false);
 
     d3.select("body").style("cursor", "none");
 
@@ -682,7 +682,6 @@ function resetMouseMoveTimer() {
 
     if (!config.showStatsFlag && !pageLoadedTimeIntervalFlag) {
       displayStats(false, palette.white);
-      displayControl(false);
     }
 
     document.dispatchEvent(mouseMoveTimeoutEventObj);
@@ -830,7 +829,6 @@ function updateStatsButton(){
 }
 
 function updateMetricButton(){
-  // var bButton = document.getElementById("metricButton");
   document.getElementById("metricButton").innerHTML = config.metricMode.toUpperCase() + " RADIUS";
 }
 
@@ -845,12 +843,10 @@ function addMetricButton(){
 }
 
 function updateBlahButton(){
-  // var bButton = document.getElementById("blahButton");
   document.getElementById("blahButton").innerHTML = config.blahMode ? "HIDE BLAH" : "SHOW BLAH";
 }
 
 function addBlahButton(){
-  // var controlDiv = document.getElementById("controlDiv");
   var blahButton = document.createElement("BUTTON");
   blahButton.className = "button";
   blahButton.setAttribute("id", "blahButton");
@@ -860,37 +856,26 @@ function addBlahButton(){
 }
 
 function updateLoginButton(){
-  // var lButton = document.getElementById("loginButton");
   document.getElementById("loginButton").innerHTML = statsObj.isAuthenticated ? "LOG OUT" : "LOG IN";
 }
 
 socket.on("unauthorized", function(response) {
-
   statsObj.isAuthenticated = false;
   console.log("UNAUTHORIZED | " + socket.id + " | " + jsonPrint(response));
-
 });
 
 socket.on("authenticated", function() {
-
   console.log("AUTHENTICATED | " + socket.id);
-
   statsObj.isAuthenticated = true;
-
   console.log( "CONNECTED TO HOST" 
     + " | ID: " + socket.id 
   );
-
 });
 
 function login() {
   console.warn("LOGIN: AUTH: " + statsObj.isAuthenticated + " | URL: " + config.authenticationUrl);
   window.open(config.authenticationUrl, "LOGIN", "_new");
-  // socket.emit("authentication", viewerObj);
   socket.emit("login", viewerObj);
-  // updateLoginButton();
-  // if (controlPanelFlag) {controlPanel.updateControlPanel(config);}
-  // saveConfig();
 }
 
 function addLoginButton(){
@@ -903,7 +888,6 @@ function addLoginButton(){
 }
 
 function updateFullscreenButton(){
-  // var bButton = document.getElementById("fullscreenButton");
   document.getElementById("fullscreenButton").innerHTML = config.fullscreenMode ? "EXIT FULLSCREEN" : "FULLSCREEN";
 }
 
@@ -919,7 +903,6 @@ function addFullscreenButton(){
 var configUpdateTimeOut;
 var configUpdateTimeOutInverval = 3000;
 
-
 function resetConfigUpdateTimeOut() {
 
   storedConfigName = "config_" + config.sessionViewType;
@@ -930,7 +913,6 @@ function resetConfigUpdateTimeOut() {
 
     console.debug("STORE CONFIG\n" + jsonPrint(config));
     saveConfig();
-    // store.set(storedConfigName, config);
 
   }, configUpdateTimeOutInverval);
 }
@@ -939,16 +921,10 @@ function controlPanelComm(event) {
 
   console.debug("CONTROL PANEL: " + event.origin); // prints: { message: "Hello world!"} 
 
-  // var data = event.data;
-
   if (event.data === "DisableHTML5Autoplay_Initialize") {
     console.info("RX> CONTROL PANEL | DisableHTML5Autoplay_Initialize ... IGNORING ...");
     return;
   }
-
-  // Do we trust the sender of this message?
-  // if (event.origin !== "http://example.com:8080")
-  //   return;
 
   switch (event.data.op) {
     case "READY" :
@@ -3971,7 +3947,7 @@ function initialize(callback) {
               console.log("END PAGE LOAD TIMEOUT");
               pageLoadedTimeIntervalFlag = false;
               if (!config.showStatsFlag) { displayStats(false, palette.white); }
-              if (!config.showStatsFlag) { displayControl(false); }
+              // if (!config.showStatsFlag) { displayControl(false); }
             }, PAGE_LOAD_TIMEOUT);
 
             callback();
@@ -4095,7 +4071,7 @@ function initialize(callback) {
               console.log("END PAGE LOAD TIMEOUT");
               pageLoadedTimeIntervalFlag = false;
               if (!config.showStatsFlag) {displayStats(false, palette.white);}
-              if (!config.showStatsFlag) {displayControl(false);}
+              // if (!config.showStatsFlag) {displayControl(false);}
             }, PAGE_LOAD_TIMEOUT);
 
             callback();
@@ -4219,7 +4195,7 @@ function initialize(callback) {
             console.error("END PAGE LOAD TIMEOUT");
             pageLoadedTimeIntervalFlag = false;
             if (!config.showStatsFlag) { displayStats(false, palette.white); }
-            if (!config.showStatsFlag) { displayControl(false); }
+            // if (!config.showStatsFlag) { displayControl(false); }
           }, PAGE_LOAD_TIMEOUT);
         });
 

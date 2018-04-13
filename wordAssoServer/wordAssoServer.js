@@ -2496,7 +2496,7 @@ function initTransmitNodeQueueInterval(interval){
                     n.followersCount = rawUser.followers_count;
                     n.status = rawUser.status;
 
-                    userServer.findOneUser(n, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
+                    userServer.findOneUser(n, {noInc: false, fields: fieldsExclude}, function(err, updatedUser){
                       if (err) {
                         console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
                       }
@@ -2504,10 +2504,17 @@ function initTransmitNodeQueueInterval(interval){
                   }
                 });
               }
+              else if (twitUserShowReady && (n.nodeType === "user") && n.category){
+                userServer.findOneUser(n, {noInc: false, fields: fieldsExclude}, function(err, updatedUser){
+                  if (err) {
+                    console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
+                  }
+                });
+              }
 
               if ((n.nodeType === "hashtag") && n.category){
 
-                hashtagServer.findOneHashtag(n, {noInc: true}, function(err, updatedHashtag){
+                hashtagServer.findOneHashtag(n, {noInc: false}, function(err, updatedHashtag){
                   if (err) {
                     console.log(chalkError("updatedHashtag ERROR" + jsonPrint(err)));
                   }

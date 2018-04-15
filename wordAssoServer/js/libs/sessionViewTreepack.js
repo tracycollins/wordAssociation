@@ -921,8 +921,14 @@ function ViewTreepack() {
     maxRateMentions.isTrendingTopic = true;
     maxRateMentions.displaytext = createDisplayText(maxRateMentions);
 
-    if (metricMode === "rate") { maxRateMentions.nodeId = "RATE | MAX" ; }
-    if (metricMode === "mentions") { maxRateMentions.nodeId = "MNTN | MAX" ;  }
+    if (metricMode === "rate") { 
+      maxRateMentions.nodeId = "RATE | MAX" ; 
+      maxRateMentions.mentions = currentMax.rate.mentions ; 
+    }
+    if (metricMode === "mentions") { 
+      maxRateMentions.nodeId = "MNTN | MAX" ;
+      maxRateMentions.rate = currentMax.mentions.rate ; 
+    }
 
     maxRateMentionsText.text(maxRateMentions.displaytext);
 
@@ -1739,6 +1745,7 @@ function ViewTreepack() {
       newCurrentMaxMetricFlag = true;
 
       currentMax.mentions.value = newNode.mentions; 
+      currentMax.mentions.rate = newNode.rate;
       currentMax.mentions.nodeId = newNode.screenName.toLowerCase(); 
       currentMax.mentions.timeStamp = moment().valueOf(); 
 

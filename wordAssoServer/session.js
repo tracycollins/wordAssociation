@@ -487,15 +487,6 @@ var ignoreWordsArray = [
 ignoreWordsArray.push("'");
 ignoreWordsArray.push("`");
 
-// var groupHashMap = new HashMap();
-// var groupDeleteHashMap = new HashMap();
-
-// var sessionHashMap = new HashMap();
-// var sessionDeleteHashMap = new HashMap();
-
-// var linkHashMap = new HashMap();
-// var nodeHashMap = new HashMap();
-
 var ignoreWordHashMap = new HashMap();
 
 var categoryColorHashMap = new HashMap();
@@ -509,19 +500,7 @@ categoryColorHashMap.set("right", palette.yellow);
 
 var rxSessionUpdateQueue = [];
 var rxSessionDeleteQueue = [];
-
-// var groupCreateQueue = [];
-// var groupsCreated = 0;
-
-// var sessionCreateQueue = [];
-// var sessionsCreated = 0;
-
 var nodeCreateQueue = [];
-// var linkCreateQueue = [];
-
-// var groupDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
-// var nodeDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
-// var linkDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
 
 var urlRoot = DEFAULT_SOURCE + "/session?session=";
 
@@ -529,44 +508,6 @@ var sessionId;
 var namespace;
 var sessionMode = false;
 var monitorMode = false;
-
-// var maxHashtagRows = 25;
-// var maxPlaceRows = 25;
-// var maxHashtagBarRows = 100;
-
-// var tweetNodeQueue = [];
-// var tweetNodeQueueMaxInQ = 0;
-// var tweetNodeQueueMaxLength = 500 ;
-
-// var hashtagNodeQueue = [];
-// var hashtagNodeQueueMaxInQ = 0;
-// var hashtagNodeQueueMaxLength = 500 ;
-// var hashtagHashMap = nodeHashMap.hashtag;
-// var maxRecentHashtags = maxHashtagRows ;
-// var hashtagArray = [] ;
-// var recentHashtagArray = [] ;
-// var hashtagMentionsArray = [] ;
-// var recentHashtagMentionsArray = [] ;
-
-// var placeNodeQueue = [];
-// var placeNodeQueueMaxInQ = 0;
-// var placeNodeQueueMaxLength = 500 ;
-// var placeHashMap = nodeHashMap.place;
-// var maxRecentPlaces = maxPlaceRows ;
-// var placeArray = [] ;
-// var recentPlaceArray = [] ;
-// var placeMentionsArray = [] ;
-// var recentPlaceMentionsArray = [] ;
-
-// var mediaNodeQueue = [];
-// var mediaNodeQueueMaxInQ = 0;
-// var mediaNodeQueueMaxLength = 500 ;
-// var mediaHashMap = nodeHashMap.media;
-// var mediaArray = [] ;
-// var recentMediaArray = [] ;
-// var latestMediaArray = [] ; // 1-element array
-// var mediaMentionsArray = [] ;
-// var recentMediaMentionsArray = [] ;
 
 var viewerSessionKey;
 var socket = io("/view");
@@ -592,15 +533,9 @@ function msToTime(duration) {
   return days + ":" + hours + ":" + minutes + ":" + seconds;
 }
 
-function getCategoryColor(c, callback){
-  if (c === undefined) { return(callback(palette.white)); }
-  callback(categoryColorHashMap.get(c));
-}
-
 function saveConfig(){
   storedConfigName = "config_" + config.sessionViewType;
   store.set(storedConfigName, config);
-  // var sc = store.get(storedConfigName);
   console.debug("STORED CONFIG"
     + " | " + storedConfigName
     + "\n" + jsonPrint(store.get(storedConfigName))
@@ -2033,10 +1968,6 @@ function initSocketNodeRx(){
     else {
       newNodeCategory = nNode.category;
     }
-
-    // getCategoryColor(newNodeCategory, function(color){
-    //   nNode.categoryColor = color;
-    // });
 
     if (newNodeCategory === undefined) { 
       nNode.categoryColor = palette.white; 

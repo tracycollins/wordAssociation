@@ -1456,7 +1456,7 @@ function ViewTreepack() {
 
     mentionPadSpaces = mentionsNumChars - mentionsInt.toString().length;
     ratePadSpaces = rateNumChars - rateString.length;
-    
+
     displaytext = "";
 
     if (node.isMaxNode) {
@@ -1741,20 +1741,20 @@ function ViewTreepack() {
       newNode.followersMentions = newNode.mentions + newNode.followersCount;
     }
 
-    if ((newNode.nodeType === "user") && (newNode.mentions > currentMax.mentions.value)) { 
+    // if ((newNode.nodeType === "user") && (newNode.mentions > currentMax.mentions.value)) { 
 
-      newCurrentMaxMetricFlag = true;
+    //   newCurrentMaxMetricFlag = true;
 
-      currentMax.mentions.value = newNode.mentions; 
-      currentMax.mentions.rate = newNode.rate;
-      currentMax.mentions.nodeId = newNode.screenName.toLowerCase(); 
-      currentMax.mentions.timeStamp = moment().valueOf(); 
+    //   currentMax.mentions.value = newNode.mentions; 
+    //   currentMax.mentions.rate = newNode.rate;
+    //   currentMax.mentions.nodeId = newNode.screenName.toLowerCase(); 
+    //   currentMax.mentions.timeStamp = moment().valueOf(); 
 
-      if (metricMode === "mentions") {
-        currentMaxMetric = newNode.mentions; 
-      }
-    }
-    else if (newNode.mentions > currentMax.mentions.value) { 
+    //   if (metricMode === "mentions") {
+    //     currentMaxMetric = newNode.mentions; 
+    //   }
+    // }
+    if (newNode.mentions > currentMax.mentions.value) { 
 
       newCurrentMaxMetricFlag = true;
 

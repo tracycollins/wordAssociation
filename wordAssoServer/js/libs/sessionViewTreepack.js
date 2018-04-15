@@ -401,12 +401,12 @@ function ViewTreepack() {
   }, true);
 
   var defaultRadiusScale = d3.scaleLinear()
-    .domain([0, Math.sqrt(currentMaxMetric)])
+    .domain([0, Math.sqrt(currentMaxRateMetric)])
     .range([nodeRadiusMin, nodeRadiusMax])
     .clamp(true);
 
   var nodeLabelSizeScale = d3.scaleLinear()
-    .domain([1, currentMaxMetric])
+    .domain([1, currentMaxRateMetric])
     .range([fontSizeMin, fontSizeMax])
     .clamp(true);
     
@@ -558,22 +558,24 @@ function ViewTreepack() {
   this.setMetricMode = function(mode) {
 
     config.defaultMetricMode = mode;
-    metricMode = mode;
+    // metricMode = mode;
 
-    if (mode === "rate") { currentMaxMetric = currentMax.rate.value;  }
-    else if (mode === "mentions") { currentMaxMetric = currentMax.mentions.value;  }
+    // const currentMaxMetric = currentMax[mode].value;
+
+    // if (mode === "rate") { currentMaxMetric = currentMax.rate.value;  }
+    // else if (mode === "mentions") { currentMaxMetric = currentMax.mentions.value;  }
 
     nodeLabelSizeScale = d3.scaleLinear()
-      .domain([1, currentMaxMetric])
+      .domain([1, currentMax[mode].value])
       .range([fontSizeMin, fontSizeMax])
       .clamp(true);
 
     defaultRadiusScale = d3.scaleLinear()
-      .domain([0, Math.sqrt(currentMaxMetric)])
+      .domain([0, Math.sqrt(currentMax[mode].value)])
       .range([nodeRadiusMin, nodeRadiusMax])
       .clamp(true);
 
-    console.debug("SET METRIC MODE: " + metricMode);
+    console.debug("SET METRIC MODE: " + mode);
   };
 
   this.setBlah = function(flag) {
@@ -1806,7 +1808,7 @@ function ViewTreepack() {
       // }
 
       if (metricMode === "mentions") {
-        currentMaxMetric = newNode.mentions; 
+        currentMaxMentionsMetric = newNode.mentions; 
       }
     }
 
@@ -1828,7 +1830,7 @@ function ViewTreepack() {
       // else if (newNode.nodeType === "place") { currentMax.rate.nodeId = newNode.name; }
       // else { currentMax.rate.nodeId = newNode.nodeId; }
 
-      if (metricMode === "rate") { currentMaxMetric = newNode.rate; }
+      if (metricMode === "rate") { currentMaxRateMetric = newNode.rate; }
     }
 
     if (nodeAddQ.length < MAX_RX_QUEUE) { nodeAddQ.push(newNode); }
@@ -1916,6 +1918,8 @@ function ViewTreepack() {
 
     width = getWindowDimensions().width;
     height = getWindowDimensions().height;
+
+    const currentMaxMetric = (metricMode === "rate") ? currentMaxRateMetric : currentMaxMentionsMetric ;
 
     foci = {
       left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 

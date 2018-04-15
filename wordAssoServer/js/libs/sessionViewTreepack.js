@@ -175,12 +175,14 @@ function ViewTreepack() {
   currentMax.rate.nodeId = "what";
   currentMax.rate.nodeType = "hashtag";
   currentMax.rate.value = 0.1;
+  currentMax.rate.mentions = 0.1;
   currentMax.rate.timeStamp = moment().valueOf();
 
   currentMax.mentions = {};
   currentMax.mentions.nodeId = "what";
   currentMax.mentions.nodeType = "hashtag";
   currentMax.mentions.value = 0.1;
+  currentMax.mentions.rate = 0.1;
   currentMax.mentions.timeStamp = moment().valueOf();
 
   var deadNodesHash = {};
@@ -1452,6 +1454,7 @@ function ViewTreepack() {
 
     if (node.isMaxNode) {
       if (metricMode === "rate") {
+        mentionsInt = parseInt(node.rate.mentions);
         nodeIdString = node.rateNodeId.toUpperCase();
         if (node.rateNodeType === "user") { nodeIdString = "@" + nodeIdString; }
         if (node.rateNodeType === "hashtag") { nodeIdString = "#" + nodeIdString; }
@@ -1461,6 +1464,7 @@ function ViewTreepack() {
         + " | RATE MAX " + moment(parseInt(node.rateTimeStamp)).format(compactDateTimeFormat);
       }
       else {
+        rateString = node.mentions.rate.toFixed(2).toString() ;
         nodeIdString = node.mentionsNodeId.toUpperCase();
         if (node.mentionsNodeType === "user") { nodeIdString = "@" + node.screenName; }
         if (node.rateNodeType === "hashtag") { nodeIdString = "#" + nodeIdString; }
@@ -1748,6 +1752,7 @@ function ViewTreepack() {
 
       currentMax.mentions.nodeType = newNode.nodeType;
       currentMax.mentions.value = newNode.mentions; 
+      currentMax.mentions.rate = newNode.rate;
       currentMax.mentions.timeStamp = moment().valueOf(); 
 
       if (newNode.nodeType === "user") {
@@ -1782,6 +1787,7 @@ function ViewTreepack() {
 
       currentMax.rate.nodeType = newNode.nodeType;
       currentMax.rate.value = newNode.rate;
+      currentMax.rate.mentions = newNode.mentions;
 
       if (newNode.nodeType === "user") {
         if (newNode.screenName !== undefined) { currentMax.rate.nodeId = newNode.screenName.toLowerCase(); }

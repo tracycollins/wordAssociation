@@ -88,7 +88,8 @@ function ViewTreepack() {
   var simulation;
 
   var enableAgeNodes = true;
-  var newCurrentMaxMetricFlag = true;
+  var newCurrentMaxMentionsMetricFlag = true;
+  var newCurrentMaxRateMetricFlag = true;
 
   var resumeTimeStamp = 0;
   var compactDateTimeFormat = "YYYYMMDD HHmmss";
@@ -167,7 +168,8 @@ function ViewTreepack() {
   var nodeArray = [];
   var nodesTopTerm = [];
 
-  var currentMaxMetric = 2;
+  var currentMaxMentionsMetric = 2;
+  var currentMaxRateMetric = 2;
 
   var currentMax = {};
 
@@ -1666,7 +1668,8 @@ function ViewTreepack() {
     drawSimulation(function drawSimulationCallback() { updateSimulation(); });
   }
 
-  var previousMaxMetric = 0;
+  var previousMaxRateMetric = 0;
+  var previousMaxMentionsMetric = 0;
 
   function drawSimulation(callback){
 
@@ -1675,18 +1678,34 @@ function ViewTreepack() {
       function updateNodeLabelsSeries (cb){ updateNodeLabels(cb); },
       function updateTopTermSeries (cb){ updateTopTerm(cb); }
     ], function drawSimulationCallback (err, results) {
-      if (newCurrentMaxMetricFlag && (Math.abs(currentMaxMetric - previousMaxMetric)/currentMaxMetric) > 0.05) {
+      if (newCurrentMaxRateMetricFlag && (Math.abs(currentMaxRateMetric - previousMaxRateMetric)/currentMaxRateMetric) > 0.05) {
 
-        newCurrentMaxMetricFlag = false;
-        previousMaxMetric = currentMaxMetric;
+        newCurrentMaxRateMetricFlag = false;
+        previousMaxRateMetric = currentMaxRateMetric;
 
         nodeLabelSizeScale = d3.scaleLinear()
-          .domain([1, currentMaxMetric])
+          .domain([1, currentMaxRateMetric])
           .range([fontSizeMin, fontSizeMax])
           .clamp(true);
 
         defaultRadiusScale = d3.scaleLinear()
-          .domain([0, Math.sqrt(currentMaxMetric)])
+          .domain([0, Math.sqrt(currentMaxRateMetric)])
+          .range([nodeRadiusMin, nodeRadiusMax])
+          .clamp(true);
+
+      }
+      else if (newCurrentMaxMentionsMetricFlag && (Math.abs(currentMaxMentionsMetric - previousMaxMentionsMetric)/currentMaxMentionsMetric) > 0.05) {
+
+        newCurrentMaxMentionsMetricFlag = false;
+        previousMaxMentionsMetric = currentMaxMentionsMetric;
+
+        nodeLabelSizeScale = d3.scaleLinear()
+          .domain([1, currentMaxMentionsMetric])
+          .range([fontSizeMin, fontSizeMax])
+          .clamp(true);
+
+        defaultRadiusScale = d3.scaleLinear()
+          .domain([0, Math.sqrt(currentMaxMentionsMetric)])
           .range([nodeRadiusMin, nodeRadiusMax])
           .clamp(true);
 
@@ -1756,33 +1775,35 @@ function ViewTreepack() {
     // }
     if (newNode.mentions > currentMax.mentions.value) { 
 
-      newCurrentMaxMetricFlag = true;
+      newCurrentMaxMentionsMetricFlag = true;
 
       currentMax.mentions.nodeType = newNode.nodeType;
+      currentMax.mentions.nodeId = newNode.nodeId; 
       currentMax.mentions.value = newNode.mentions; 
       currentMax.mentions.rate = newNode.rate;
       currentMax.mentions.timeStamp = moment().valueOf(); 
+      currentMax.mentions.nodeId = newNode.nodeId; 
 
-      if (newNode.nodeType === "user") {
-        if (newNode.screenName !== undefined) {
-          currentMax.mentions.nodeId = newNode.screenName.toLowerCase(); 
-        }
-        else if (newNode.name !== undefined) {
-          currentMax.mentions.nodeId = newNode.screenName.toLowerCase(); 
-        }
-        else {
-          currentMax.mentions.nodeId = newNode.nodeId; 
-        }
-      }
-      else if (newNode.name && (newNode.nodeType === "place")) {
-        currentMax.mentions.nodeId = newNode.name.toLowerCase(); 
-      }
-      else if (newNode.nodeId === undefined) {
-        console.error("*** NODE ID UNDEFINED\n" + jsonPrint(newNode));
-      }
-      else  {
-        currentMax.mentions.nodeId = newNode.nodeId; 
-      }
+      // if (newNode.nodeType === "user") {
+      //   if (newNode.screenName !== undefined) {
+      //     currentMax.mentions.nodeId = newNode.screenName.toLowerCase(); 
+      //   }
+      //   else if (newNode.name !== undefined) {
+      //     currentMax.mentions.nodeId = newNode.name.toLowerCase(); 
+      //   }
+      //   else {
+      //     currentMax.mentions.nodeId = newNode.nodeId; 
+      //   }
+      // }
+      // else if (newNode.name && (newNode.nodeType === "place")) {
+      //   currentMax.mentions.nodeId = newNode.name.toLowerCase(); 
+      // }
+      // else if (newNode.nodeId === undefined) {
+      //   console.error("*** NODE ID UNDEFINED\n" + jsonPrint(newNode));
+      // }
+      // else  {
+      //   currentMax.mentions.nodeId = newNode.nodeId; 
+      // }
 
       if (metricMode === "mentions") {
         currentMaxMetric = newNode.mentions; 
@@ -1791,20 +1812,21 @@ function ViewTreepack() {
 
     if (newNode.rate > currentMax.rate.value) { 
 
-      newCurrentMaxMetricFlag = true;
+      newCurrentMaxRateMetricFlag = true;
 
       currentMax.rate.nodeType = newNode.nodeType;
+      currentMax.rate.nodeId = newNode.nodeId;
       currentMax.rate.value = newNode.rate;
       currentMax.rate.mentions = newNode.mentions;
-
-      if (newNode.nodeType === "user") {
-        if (newNode.screenName !== undefined) { currentMax.rate.nodeId = newNode.screenName.toLowerCase(); }
-        else if (newNode.name !== undefined) { currentMax.rate.nodeId = newNode.screenName.toLowerCase(); }
-        else { currentMax.rate.nodeId = newNode.nodeId; }
-      }
-      else if (newNode.nodeType === "place") { currentMax.rate.nodeId = newNode.name; }
-      else { currentMax.rate.nodeId = newNode.nodeId; }
       currentMax.rate.timeStamp = moment().valueOf(); 
+
+      // if (newNode.nodeType === "user") {
+      //   if (newNode.screenName !== undefined) { currentMax.rate.nodeId = newNode.screenName.toLowerCase(); }
+      //   else if (newNode.name !== undefined) { currentMax.rate.nodeId = newNode.name.toLowerCase(); }
+      //   else { currentMax.rate.nodeId = newNode.nodeId; }
+      // }
+      // else if (newNode.nodeType === "place") { currentMax.rate.nodeId = newNode.name; }
+      // else { currentMax.rate.nodeId = newNode.nodeId; }
 
       if (metricMode === "rate") { currentMaxMetric = newNode.rate; }
     }

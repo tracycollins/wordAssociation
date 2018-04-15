@@ -919,7 +919,6 @@ function ViewTreepack() {
     maxRateMentions.mentionsTimeStamp = currentMax.mentions.timeStamp;
 
     maxRateMentions.isTrendingTopic = true;
-    maxRateMentions.displaytext = createDisplayText(maxRateMentions);
 
     if (metricMode === "rate") { 
       maxRateMentions.nodeId = "RATE | MAX" ; 
@@ -930,6 +929,7 @@ function ViewTreepack() {
       maxRateMentions.rate = currentMax.mentions.rate ; 
     }
 
+    maxRateMentions.displaytext = createDisplayText(maxRateMentions);
     maxRateMentionsText.text(maxRateMentions.displaytext);
 
     rankArrayByValue(tempNodesTopTerm, metricMode, function rankArrayByValueFunc(){

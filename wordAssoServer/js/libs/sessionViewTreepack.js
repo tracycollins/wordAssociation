@@ -1146,14 +1146,17 @@ function ViewTreepack() {
       .text(function updateTopTermText(d) {
         return d.displaytext;
       })
+      .style("fill", function updateTopTermFill(d) { 
+        if (d.mouseHoverFlag) { return palette.blue; }
+        if (d.category || d.categoryAuto) { return d.categoryColor; }
+        if (d.isTrendingTopic || d.isNumber || d.isCurrency) { return palette.white; }
+        if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
+        return palette.darkgray; 
+      })
       .style("opacity", function updateTopTermOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
-      // .style("visibility", function (d) {
-      //   if (d.isValid && topTermsDivVisible) { return "visible"; }
-      //   return "hidden"; 
-      // })
       .style("visibility", null)
       .transition()
         .duration(transitionDuration)
@@ -1161,7 +1164,6 @@ function ViewTreepack() {
 
     nodeTopTermLabels
       .enter().append("text")
-      // .attr("id", function (d) { return d.nodeTopTermPoolId; })
       .attr("id", function (d) { return d.nodePoolId + "_labelTopTerm"; })
       .attr("nodeId", function (d) { return d.nodeId; })
       .style("text-anchor", "right")
@@ -1175,10 +1177,6 @@ function ViewTreepack() {
         return d.displaytext;
       })
       .style("font-family", "monospace")
-      // .style("visibility", function (d) {
-      //   if (d.isValid && topTermsDivVisible) { return "visible"; }
-      //   return "hidden"; 
-      // })
       .style("visibility", null)
       .style("opacity", function updateTopTermOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }

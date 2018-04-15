@@ -1452,15 +1452,16 @@ function ViewTreepack() {
   var createDisplayText = function(node) {
 
     mentionsInt = parseInt(node.mentions);
-
     rateString = node.rate.toFixed(2).toString() ;
+
     mentionPadSpaces = mentionsNumChars - mentionsInt.toString().length;
     ratePadSpaces = rateNumChars - rateString.length;
+    
     displaytext = "";
 
     if (node.isMaxNode) {
       if (metricMode === "rate") {
-        mentionsInt = parseInt(node.rate.mentions);
+        // mentionsInt = parseInt(node.mentions);
         nodeIdString = node.rateNodeId.toUpperCase();
         if (node.rateNodeType === "user") { nodeIdString = "@" + nodeIdString; }
         if (node.rateNodeType === "hashtag") { nodeIdString = "#" + nodeIdString; }
@@ -1470,7 +1471,7 @@ function ViewTreepack() {
         + " | RATE MAX " + moment(parseInt(node.rateTimeStamp)).format(compactDateTimeFormat);
       }
       else {
-        rateString = node.mentions.rate.toFixed(2).toString() ;
+        // rateString = node.mentions.rate.toFixed(2).toString() ;
         nodeIdString = node.mentionsNodeId.toUpperCase();
         if (node.mentionsNodeType === "user") { nodeIdString = "@" + node.screenName; }
         if (node.rateNodeType === "hashtag") { nodeIdString = "#" + nodeIdString; }

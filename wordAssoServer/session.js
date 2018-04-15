@@ -1029,10 +1029,10 @@ function controlPanelComm(event) {
       }
     break;
     case "SET_TWITTER_USER":
-      console.info("R< CONTROL PANEL LOOPBACK? | SET_TWITTER_USER ... IGNORING ...");
+      // console.info("R< CONTROL PANEL LOOPBACK? | SET_TWITTER_USER ... IGNORING ...");
     break;
     case "SET_TWITTER_HASHTAG":
-      console.info("R< CONTROL PANEL LOOPBACK? | SET_TWITTER_HASHTAG ... IGNORING ...");
+      // console.info("R< CONTROL PANEL LOOPBACK? | SET_TWITTER_HASHTAG ... IGNORING ...");
     break;
     default :
       if (event.data["twttr.button"] !== undefined){

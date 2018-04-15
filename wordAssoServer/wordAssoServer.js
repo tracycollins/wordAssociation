@@ -2020,7 +2020,6 @@ function initSocketHandler(socketObj) {
               socket.emit("SET_TWITTER_USER", searchNodeUser);
             }
           });
-          // socket.emit("SET_TWITTER_USER", {notFound: 1, nodeId: 0, screenName: searchNodeUser.screenName});
         }
       });
     }
@@ -2463,10 +2462,6 @@ function initTransmitNodeQueueInterval(interval){
               viewNameSpace.volatile.emit("node", node);
             }
             else {
-
-              viewNameSpace.volatile.emit("node", n);
-
-              // if (twitUserShowReady && (n.nodeType === "user") && n.following && (n.followersCount === 0)){
               if (twitUserShowReady && (n.nodeType === "user") && n.category && (n.followersCount === 0)){
 
                 twit.get("users/show", {user_id: n.nodeId, include_entities: true}, function usersShow (err, rawUser, response){
@@ -2475,6 +2470,7 @@ function initTransmitNodeQueueInterval(interval){
                     twitUserShowReady = false;
                     startTwitUserShowRateLimitTimeout();
                     console.log(chalkError("ERROR users/show rawUser" + err));
+                    viewNameSpace.volatile.emit("node", n);
                   }
                   else if (rawUser) {
                     debug(chalkTwitter("FOUND users/show rawUser" + jsonPrint(rawUser)));
@@ -2499,8 +2495,15 @@ function initTransmitNodeQueueInterval(interval){
                     userServer.findOneUser(n, {noInc: false, fields: fieldsExclude}, function(err, updatedUser){
                       if (err) {
                         console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
+                        viewNameSpace.volatile.emit("node", n);
+                      }
+                      else {
+                        viewNameSpace.volatile.emit("node", updatedUser);
                       }
                     });
+                  }
+                  else{
+                    viewNameSpace.volatile.emit("node", n);
                   }
                 });
               }
@@ -2508,8 +2511,15 @@ function initTransmitNodeQueueInterval(interval){
                 userServer.findOneUser(n, {noInc: false, fields: fieldsExclude}, function(err, updatedUser){
                   if (err) {
                     console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
+                    viewNameSpace.volatile.emit("node", n);
+                  }
+                  else {
+                    viewNameSpace.volatile.emit("node", updatedUser);
                   }
                 });
+              }
+              else {
+                viewNameSpace.volatile.emit("node", n);
               }
 
               if ((n.nodeType === "hashtag") && n.category){
@@ -2517,6 +2527,13 @@ function initTransmitNodeQueueInterval(interval){
                 hashtagServer.findOneHashtag(n, {noInc: false}, function(err, updatedHashtag){
                   if (err) {
                     console.log(chalkError("updatedHashtag ERROR" + jsonPrint(err)));
+                    viewNameSpace.volatile.emit("node", n);
+                  }
+                  else if (updatedHashtag) {
+                    viewNameSpace.volatile.emit("node", updatedHashtag);
+                  }
+                  else {
+                    viewNameSpace.volatile.emit("node", n);
                   }
                 });
               }
@@ -2547,10 +2564,6 @@ function transmitNodes(tw, callback){
 
   callback();
 }
-
-// let metricsDataPointQueue = [];
-// let metricsDataPointQueueReady = true;
-// let metricsDataPointQueueInterval;
 
 
 let heartbeatsSent = 0;

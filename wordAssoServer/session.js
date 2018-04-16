@@ -2253,7 +2253,7 @@ function initialize(callback) {
               console.debug("STORED CONFIG NOT FOUND: " + storedConfigName);
 
               if (config.sessionViewType === "treepack") {
-                initUpdateSessionsInterval(50);
+                // initUpdateSessionsInterval(50);
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
               }
             }

@@ -1002,8 +1002,8 @@ function ControlPanel() {
       type: "SLIDER",
       id: "chargeSlider",
       class: "slider",
-      min: -200,
-      max: 200,
+      min: -400,
+      max: 400,
       value: config.defaultCharge,
       multiplier: 1.0
     };
@@ -1019,12 +1019,12 @@ function ControlPanel() {
       type: "SLIDER",
       id: "gravitySlider",
       class: "slider",
-      min: 0.0,
+      min: -10.0,
       max: 10.0,
-      value: config.defaultGravity * config.defaultMultiplier,
-      // value: config.defaultGravity,
-      // multiplier: 100.0
-      multiplier: config.defaultMultiplier
+      // value: config.defaultGravity * config.defaultMultiplier,
+      value: config.defaultGravity,
+      multiplier: 1.0
+      // multiplier: config.defaultMultiplier
     };
 
     var gravitySliderText = {

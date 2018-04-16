@@ -1892,7 +1892,7 @@ function initSocketHandler(socketObj) {
             htCatObj.manual = hashtag.category;
             htCatObj.auto = false;
             if (categorizedHashtagHashMap.has(hashtag.nodeId.toLowerCase())) {
-              htCatObj.auto = categorizedHashtagHashMap.get(hashtag.nodeId.toLowerCase());
+              htCatObj.auto = categorizedHashtagHashMap.get(hashtag.nodeId.toLowerCase()).auto || false ;
             }
             categorizedHashtagHashMap.set(hashtag.nodeId.toLowerCase(), htCatObj);
           }
@@ -2526,7 +2526,7 @@ function initTransmitNodeQueueInterval(interval){
 
                 hashtagServer.findOneHashtag(n, {noInc: false}, function(err, updatedHashtag){
                   if (err) {
-                    console.log(chalkError("updatedHashtag ERROR" + jsonPrint(err)));
+                    console.log(chalkError("updatedHashtag ERROR\n" + jsonPrint(err)));
                     viewNameSpace.volatile.emit("node", n);
                   }
                   else if (updatedHashtag) {

@@ -1019,7 +1019,7 @@ function ControlPanel() {
       type: "SLIDER",
       id: "gravitySlider",
       class: "slider",
-      min: -10.0,
+      min: 0.0,
       max: 10.0,
       // value: config.defaultGravity * config.defaultMultiplier,
       value: config.defaultGravity,

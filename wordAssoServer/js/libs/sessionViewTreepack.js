@@ -483,7 +483,7 @@ function ViewTreepack() {
     .text("MAX MENTIONS: 0")
     .style("font-family", "monospace")
     .style("font-size", fontTopTerm)
-    .style("fill", palette.white)
+    .style("fill", palette.lightgray)
     // .style("stroke", palette.white)
     .style("opacity", 1.0)
     .style("text-anchor", "right")
@@ -561,6 +561,7 @@ function ViewTreepack() {
 
   this.setMetricMode = function(mode) {
 
+    metricMode = mode;
     config.defaultMetricMode = mode;
 
     nodeLabelSizeScale = d3.scaleLinear()
@@ -1435,33 +1436,29 @@ function ViewTreepack() {
     mentionPadSpaces = mentionsNumChars - mentionsInt.toString().length;
     ratePadSpaces = rateNumChars - rateString.length;
 
+    if (node.nodeType === "user") { 
+      nodeIdString = node.screenName.toUpperCase();
+      nodeIdString = "@" + nodeIdString; 
+    }
+    if (node.nodeType === "hashtag") { 
+      nodeIdString = node.nodeId.toUpperCase();
+      nodeIdString = "#" + nodeIdString; 
+    }
+
     displaytext = "";
 
     if (node.isMaxNode) {
       if (metricMode === "rate") {
-        // mentionsInt = parseInt(node.mentions);
-        if (node.rateNodeType === "user") { 
-          nodeIdString = node.screenName.toUpperCase();
-          nodeIdString = "@" + nodeIdString; 
-        }
-        if (node.rateNodeType === "hashtag") { 
-          nodeIdString = node.nodeId.toUpperCase();
-          nodeIdString = "#" + nodeIdString; 
-        }
         displaytext = new Array(ratePadSpaces).join("\xa0") + rateString
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt 
         + " | " + nodeIdString
-        + " | RATE MAX " + moment(parseInt(node.rateTimeStamp)).format(compactDateTimeFormat);
+        + " | RATE MAX " + moment(parseInt(node.timeStamp)).format(compactDateTimeFormat);
       }
       else {
-        // rateString = node.mentions.rate.toFixed(2).toString() ;
-        nodeIdString = node.mentionsNodeId.toUpperCase();
-        if (node.mentionsNodeType === "user") { nodeIdString = "@" + node.screenName; }
-        if (node.rateNodeType === "hashtag") { nodeIdString = "#" + nodeIdString; }
         displaytext = new Array(ratePadSpaces).join("\xa0") + rateString 
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt
         + " | " + nodeIdString
-        + " | MENTION MAX " + moment(parseInt(node.mentionsTimeStamp)).format(compactDateTimeFormat);
+        + " | MENTION MAX " + moment(parseInt(node.timeStamp)).format(compactDateTimeFormat);
       }
     }
     else {
@@ -1659,7 +1656,7 @@ function ViewTreepack() {
       function updateNodeLabelsSeries (cb){ updateNodeLabels(cb); },
       function updateTopTermSeries (cb){ updateTopTerm(cb); }
     ], function drawSimulationCallback (err, results) {
-      if (newCurrentMaxRateMetricFlag && (Math.abs(currentMaxRateMetric - previousMaxRateMetric)/currentMaxRateMetric) > 0.05) {
+      if ((metricMode === "rate") && newCurrentMaxRateMetricFlag && (Math.abs(currentMaxRateMetric - previousMaxRateMetric)/currentMaxRateMetric) > 0.05) {
 
         newCurrentMaxRateMetricFlag = false;
         previousMaxRateMetric = currentMaxRateMetric;
@@ -1675,7 +1672,7 @@ function ViewTreepack() {
           .clamp(true);
 
       }
-      else if (newCurrentMaxMentionsMetricFlag && (Math.abs(currentMaxMentionsMetric - previousMaxMentionsMetric)/currentMaxMentionsMetric) > 0.05) {
+      else if ((metricMode === "mentions") && newCurrentMaxMentionsMetricFlag) {
 
         newCurrentMaxMentionsMetricFlag = false;
         previousMaxMentionsMetric = currentMaxMentionsMetric;
@@ -1734,8 +1731,8 @@ function ViewTreepack() {
     newNode.ageMaxRatio = 1e-6;
     newNode.rank = -1;
     newNode.newFlag = true;
-    newNode.followersCount = (newNode.followersCount) ? newNode.followersCount : 0;
-    newNode.mentions = (newNode.mentions) ? newNode.mentions : 0;
+    newNode.followersCount = (newNode.followersCount) ? parseInt(newNode.followersCount) : 0;
+    newNode.mentions = (newNode.mentions) ? parseInt(newNode.mentions) : 0;
 
     if (newNode.nodeType === "user") {
       newNode.followersMentions = newNode.mentions + newNode.followersCount;

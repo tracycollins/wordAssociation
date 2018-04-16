@@ -2197,36 +2197,36 @@ function initialize(callback) {
 
           console.log("ON LOAD getUrlVariables: sessionViewType:" + config.sessionViewType);
 
-          if (config.sessionViewType === "force") {
-            initIgnoreWordsHashMap(function() {
-              console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-            });
-          }
-          if (config.sessionViewType === "ticker") {
-            initIgnoreWordsHashMap(function() {
-              console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-            });
-          }
-          if (config.sessionViewType === "flow") {
-            initIgnoreWordsHashMap(function() {
-              console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-            });
-          }
-          if (config.sessionViewType === "treemap") {
-            initIgnoreWordsHashMap(function() {
-              console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-            });
-          }
-          if (config.sessionViewType === "treepack") {
-            initIgnoreWordsHashMap(function() {
-              console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-            });
-          }
-          if (config.sessionViewType === "histogram") {
-            initIgnoreWordsHashMap(function() {
-              console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-            });
-          }
+          // if (config.sessionViewType === "force") {
+          //   initIgnoreWordsHashMap(function() {
+          //     console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+          //   });
+          // }
+          // if (config.sessionViewType === "ticker") {
+          //   initIgnoreWordsHashMap(function() {
+          //     console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+          //   });
+          // }
+          // if (config.sessionViewType === "flow") {
+          //   initIgnoreWordsHashMap(function() {
+          //     console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+          //   });
+          // }
+          // if (config.sessionViewType === "treemap") {
+          //   initIgnoreWordsHashMap(function() {
+          //     console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+          //   });
+          // }
+          // if (config.sessionViewType === "treepack") {
+          //   initIgnoreWordsHashMap(function() {
+          //     console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+          //   });
+          // }
+          // if (config.sessionViewType === "histogram") {
+          //   initIgnoreWordsHashMap(function() {
+          //     console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+          //   });
+          // }
 
           loadViewType(config.sessionViewType, function() {
 

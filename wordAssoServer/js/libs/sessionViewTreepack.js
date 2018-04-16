@@ -405,12 +405,12 @@ function ViewTreepack() {
   }, true);
 
   var defaultRadiusScale = d3.scaleLinear()
-    .domain([0, Math.sqrt(currentMaxRateMetric)])
+    .domain([0, Math.sqrt(currentMax[metricMode][metricMode])])
     .range([nodeRadiusMin, nodeRadiusMax])
     .clamp(true);
 
   var nodeLabelSizeScale = d3.scaleLinear()
-    .domain([1, currentMaxRateMetric])
+    .domain([1, currentMax[metricMode][metricMode]])
     .range([fontSizeMin, fontSizeMax])
     .clamp(true);
     
@@ -673,7 +673,7 @@ function ViewTreepack() {
     nodeRadiusMinRatio = value;
     nodeRadiusMin = value * width;
     defaultRadiusScale = d3.scaleLinear()
-      .domain([0, Math.sqrt(currentMaxMetric)])
+      .domain([0, Math.sqrt(currentMax[metricMode][metricMode])])
       .range([nodeRadiusMin, nodeRadiusMax])
       .clamp(true);
   };
@@ -684,7 +684,7 @@ function ViewTreepack() {
     nodeRadiusMaxRatio = value;
     nodeRadiusMax = value * width;
     defaultRadiusScale = d3.scaleLinear()
-      .domain([0, Math.sqrt(currentMaxMetric)])
+      .domain([0, Math.sqrt(currentMax[metricMode][metricMode])])
       .range([nodeRadiusMin, nodeRadiusMax])
       .clamp(true);
   };
@@ -695,7 +695,7 @@ function ViewTreepack() {
     fontSizeMinRatio = value;
     fontSizeMin = value * height;
     nodeLabelSizeScale = d3.scaleLinear()
-      .domain([1, currentMaxMetric])
+      .domain([1, currentMax[metricMode][metricMode]])
       .range([fontSizeMin, fontSizeMax])
       .clamp(true);
   };
@@ -706,7 +706,7 @@ function ViewTreepack() {
     fontSizeMaxRatio = value;
     fontSizeMax = value * height;
     nodeLabelSizeScale = d3.scaleLinear()
-      .domain([1, currentMaxMetric])
+      .domain([1, currentMax[metricMode][metricMode]])
       .range([fontSizeMin, fontSizeMax])
       .clamp(true);
   };
@@ -1656,38 +1656,51 @@ function ViewTreepack() {
       function updateNodeLabelsSeries (cb){ updateNodeLabels(cb); },
       function updateTopTermSeries (cb){ updateTopTerm(cb); }
     ], function drawSimulationCallback (err, results) {
-      if ((metricMode === "rate") && newCurrentMaxRateMetricFlag && (Math.abs(currentMaxRateMetric - previousMaxRateMetric)/currentMaxRateMetric) > 0.05) {
 
-        newCurrentMaxRateMetricFlag = false;
-        previousMaxRateMetric = currentMaxRateMetric;
+      if (
+        ((metricMode === "rate") && newCurrentMaxRateMetricFlag && (Math.abs(currentMaxRateMetric - previousMaxRateMetric)/currentMaxRateMetric) > 0.05)
+        || ((metricMode === "mentions") && newCurrentMaxMentionsMetricFlag)
+        ) {
+
+        if (metricMode === "rate") { 
+          newCurrentMaxRateMetricFlag = false;
+          previousMaxRateMetric = currentMax.rate.rate;
+        }
+        if (metricMode === "mentions") { 
+          newCurrentMaxMentionsMetricFlag = false;
+          previousMaxMentionsMetric = currentMax.mentions.mentions;
+        }
+        // newCurrentMaxRateMetricFlag = false;
 
         nodeLabelSizeScale = d3.scaleLinear()
-          .domain([1, currentMaxRateMetric])
+          .domain([1, currentMax[metricMode][metricMode]])
           .range([fontSizeMin, fontSizeMax])
           .clamp(true);
 
         defaultRadiusScale = d3.scaleLinear()
-          .domain([0, Math.sqrt(currentMaxRateMetric)])
+          .domain([0, Math.sqrt(currentMax[metricMode][metricMode])])
           .range([nodeRadiusMin, nodeRadiusMax])
           .clamp(true);
 
       }
-      else if ((metricMode === "mentions") && newCurrentMaxMentionsMetricFlag) {
+      // else if ((metricMode === "mentions") && newCurrentMaxMentionsMetricFlag) {
 
-        newCurrentMaxMentionsMetricFlag = false;
-        previousMaxMentionsMetric = currentMaxMentionsMetric;
+      //   newCurrentMaxMentionsMetricFlag = false;
+      //   previousMaxMentionsMetric = currentMaxMentionsMetric;
 
-        nodeLabelSizeScale = d3.scaleLinear()
-          .domain([1, currentMaxMentionsMetric])
-          .range([fontSizeMin, fontSizeMax])
-          .clamp(true);
+      //   nodeLabelSizeScale = d3.scaleLinear()
+      //     .domain([1, currentMaxMentionsMetric])
+      //     .range([fontSizeMin, fontSizeMax])
+      //     .clamp(true);
 
-        defaultRadiusScale = d3.scaleLinear()
-          .domain([0, Math.sqrt(currentMaxMentionsMetric)])
-          .range([nodeRadiusMin, nodeRadiusMax])
-          .clamp(true);
+      //   defaultRadiusScale = d3.scaleLinear()
+      //     .domain([0, Math.sqrt(currentMaxMentionsMetric)])
+      //     .range([nodeRadiusMin, nodeRadiusMax])
+      //     .clamp(true);
 
-      }
+      // }
+
+
       callback();
     });
   }
@@ -1854,7 +1867,7 @@ function ViewTreepack() {
     width = getWindowDimensions().width;
     height = getWindowDimensions().height;
 
-    const currentMaxMetric = (metricMode === "rate") ? currentMaxRateMetric : currentMaxMentionsMetric ;
+    // const currentMaxMetric = (metricMode === "rate") ? currentMaxRateMetric : currentMaxMentionsMetric ;
 
     foci = {
       left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 
@@ -1869,7 +1882,7 @@ function ViewTreepack() {
     nodeRadiusMax = nodeRadiusMaxRatio * width;
 
     defaultRadiusScale = d3.scaleLinear()
-    .domain([0, Math.sqrt(currentMaxMetric)])
+    .domain([0, Math.sqrt(currentMax[metricMode][metricMode])])
     .range([nodeRadiusMin, nodeRadiusMax])
     .clamp(true);
 
@@ -1877,7 +1890,7 @@ function ViewTreepack() {
     fontSizeMax = fontSizeMaxRatio * height;
 
     nodeLabelSizeScale = d3.scaleLinear()
-      .domain([1, currentMaxMetric])
+      .domain([1, currentMax[metricMode][metricMode]])
       .range([fontSizeMin, fontSizeMax])
       .clamp(true);
 

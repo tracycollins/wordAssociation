@@ -173,7 +173,6 @@ function ViewTreepack() {
 
   var currentMax = {};
 
-
   currentMax.rate = {};
   currentMax.rate.isMaxNode = true;
   currentMax.rate.nodeId = "14607119";
@@ -188,8 +187,8 @@ function ViewTreepack() {
   currentMax.mentions.nodeId = "what";
   currentMax.mentions.nodeType = "hashtag";
   currentMax.mentions.screenName = "whatever";
-  currentMax.mentions.mentions = 0.1;
   currentMax.mentions.rate = 0.1;
+  currentMax.mentions.mentions = 0.1;
   currentMax.mentions.timeStamp = moment().valueOf();
 
   var deadNodesHash = {};
@@ -565,12 +564,12 @@ function ViewTreepack() {
     config.defaultMetricMode = mode;
 
     nodeLabelSizeScale = d3.scaleLinear()
-      .domain([1, currentMax[mode].value])
+      .domain([1, currentMax[mode][mode]])
       .range([fontSizeMin, fontSizeMax])
       .clamp(true);
 
     defaultRadiusScale = d3.scaleLinear()
-      .domain([0, Math.sqrt(currentMax[mode].value)])
+      .domain([0, Math.sqrt(currentMax[mode][mode])])
       .range([nodeRadiusMin, nodeRadiusMax])
       .clamp(true);
 

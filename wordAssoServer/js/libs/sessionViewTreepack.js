@@ -179,7 +179,7 @@ function ViewTreepack() {
   currentMax.rate.nodeId = "14607119";
   currentMax.rate.nodeType = "user";
   currentMax.rate.screenName = "threecee";
-  currentMax.rate.value = 0.1;
+  currentMax.rate.rate = 0.1;
   currentMax.rate.mentions = 0.1;
   currentMax.rate.timeStamp = moment().valueOf();
 
@@ -188,7 +188,7 @@ function ViewTreepack() {
   currentMax.mentions.nodeId = "what";
   currentMax.mentions.nodeType = "hashtag";
   currentMax.mentions.screenName = "whatever";
-  currentMax.mentions.value = 0.1;
+  currentMax.mentions.mentions = 0.1;
   currentMax.mentions.rate = 0.1;
   currentMax.mentions.timeStamp = moment().valueOf();
 
@@ -1742,14 +1742,14 @@ function ViewTreepack() {
       newNode.followersMentions = newNode.mentions + newNode.followersCount;
     }
 
-    if (newNode.mentions > currentMax.mentions.value) { 
+    if (newNode.mentions > currentMax.mentions.mentions) { 
 
       newCurrentMaxMentionsMetricFlag = true;
 
       currentMax.mentions.nodeType = newNode.nodeType;
       currentMax.mentions.nodeId = newNode.nodeId; 
       currentMax.mentions.screenName = newNode.screenName; 
-      currentMax.mentions.value = newNode.mentions; 
+      currentMax.mentions.mentions = newNode.mentions; 
       currentMax.mentions.rate = newNode.rate;
       currentMax.mentions.timeStamp = moment().valueOf(); 
 
@@ -1758,14 +1758,14 @@ function ViewTreepack() {
       }
     }
 
-    if (newNode.rate > currentMax.rate.value) { 
+    if (newNode.rate > currentMax.rate.rate) { 
 
       newCurrentMaxRateMetricFlag = true;
 
       currentMax.rate.nodeType = newNode.nodeType;
       currentMax.rate.nodeId = newNode.nodeId;
       currentMax.rate.screenName = newNode.screenName; 
-      currentMax.rate.value = newNode.rate;
+      currentMax.rate.rate = newNode.rate;
       currentMax.rate.mentions = newNode.mentions;
       currentMax.rate.timeStamp = moment().valueOf(); 
 

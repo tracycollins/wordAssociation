@@ -506,7 +506,7 @@ function ControlPanel() {
     console.log("setGravitySliderValue: " + value);
     // document.getElementById("gravitySlider").value = value;
     document.getElementById("gravitySlider").value = (value* document.getElementById("gravitySlider").getAttribute("multiplier"));
-    document.getElementById("gravitySliderText").innerHTML = value.toFixed(6);
+    document.getElementById("gravitySliderText").innerHTML = value.toFixed(5);
     // document.getElementById("gravitySliderText").innerHTML = value;
   };
 
@@ -702,8 +702,7 @@ function ControlPanel() {
       break;
       case "gravitySlider":
         v = currentSlider.value/currentSlider.multiplier;
-        // document.getElementById(currentSliderTextId).innerHTML = v.toFixed(5);
-        document.getElementById(currentSliderTextId).innerHTML = v.toFixed(6);
+        document.getElementById(currentSliderTextId).innerHTML = v.toFixed(5);
         console.log("gravitySlider: " + v);
       break;
       default:
@@ -1003,8 +1002,8 @@ function ControlPanel() {
       type: "SLIDER",
       id: "chargeSlider",
       class: "slider",
-      min: -400,
-      max: 400,
+      min: -500,
+      max: 500,
       value: config.defaultCharge,
       multiplier: 1.0
     };
@@ -1021,7 +1020,7 @@ function ControlPanel() {
       id: "gravitySlider",
       class: "slider",
       min: 0.0,
-      max: 10.0,
+      max: 20.0,
       value: config.defaultGravity * config.defaultMultiplier,
       // value: config.defaultGravity,
       // multiplier: 100.0

@@ -173,16 +173,21 @@ function ViewTreepack() {
 
   var currentMax = {};
 
+
   currentMax.rate = {};
-  currentMax.rate.nodeId = "what";
-  currentMax.rate.nodeType = "hashtag";
+  currentMax.rate.isMaxNode = true;
+  currentMax.rate.nodeId = "14607119";
+  currentMax.rate.nodeType = "user";
+  currentMax.rate.screenName = "threecee";
   currentMax.rate.value = 0.1;
   currentMax.rate.mentions = 0.1;
   currentMax.rate.timeStamp = moment().valueOf();
 
   currentMax.mentions = {};
+  currentMax.mentions.isMaxNode = true;
   currentMax.mentions.nodeId = "what";
   currentMax.mentions.nodeType = "hashtag";
+  currentMax.mentions.screenName = "whatever";
   currentMax.mentions.value = 0.1;
   currentMax.mentions.rate = 0.1;
   currentMax.mentions.timeStamp = moment().valueOf();
@@ -558,12 +563,6 @@ function ViewTreepack() {
   this.setMetricMode = function(mode) {
 
     config.defaultMetricMode = mode;
-    // metricMode = mode;
-
-    // const currentMaxMetric = currentMax[mode].value;
-
-    // if (mode === "rate") { currentMaxMetric = currentMax.rate.value;  }
-    // else if (mode === "mentions") { currentMaxMetric = currentMax.mentions.value;  }
 
     nodeLabelSizeScale = d3.scaleLinear()
       .domain([1, currentMax[mode].value])
@@ -910,31 +909,7 @@ function ViewTreepack() {
 
     resumeTimeStamp = 0;
 
-    maxRateMentions.metricMode = metricMode;
-    
-    maxRateMentions.rateNodeType = currentMax.rate.nodeType;
-    maxRateMentions.rate = currentMax.rate.value;
-    maxRateMentions.rateNodeId = currentMax.rate.nodeId;
-    maxRateMentions.rateTimeStamp = currentMax.rate.timeStamp;
-
-    maxRateMentions.mentionsNodeType = currentMax.mentions.nodeType;
-    maxRateMentions.mentions = currentMax.mentions.value;
-    maxRateMentions.mentionsNodeId = currentMax.mentions.nodeId;
-    maxRateMentions.mentionsTimeStamp = currentMax.mentions.timeStamp;
-
-    maxRateMentions.isTrendingTopic = true;
-
-    if (metricMode === "rate") { 
-      maxRateMentions.nodeId = "RATE | MAX" ; 
-      maxRateMentions.mentions = currentMax.rate.mentions ; 
-    }
-    if (metricMode === "mentions") { 
-      maxRateMentions.nodeId = "MNTN | MAX" ;
-      maxRateMentions.rate = currentMax.mentions.rate ; 
-    }
-
-    maxRateMentions.displaytext = createDisplayText(maxRateMentions);
-    maxRateMentionsText.text(maxRateMentions.displaytext);
+    maxRateMentionsText.text(createDisplayText(currentMax[metricMode]));
 
     rankArrayByValue(tempNodesTopTerm, metricMode, function rankArrayByValueFunc(){
       nodeArray = tempNodeArray;
@@ -1466,9 +1441,14 @@ function ViewTreepack() {
     if (node.isMaxNode) {
       if (metricMode === "rate") {
         // mentionsInt = parseInt(node.mentions);
-        nodeIdString = node.rateNodeId.toUpperCase();
-        if (node.rateNodeType === "user") { nodeIdString = "@" + nodeIdString; }
-        if (node.rateNodeType === "hashtag") { nodeIdString = "#" + nodeIdString; }
+        if (node.rateNodeType === "user") { 
+          nodeIdString = node.screenName.toUpperCase();
+          nodeIdString = "@" + nodeIdString; 
+        }
+        if (node.rateNodeType === "hashtag") { 
+          nodeIdString = node.nodeId.toUpperCase();
+          nodeIdString = "#" + nodeIdString; 
+        }
         displaytext = new Array(ratePadSpaces).join("\xa0") + rateString
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt 
         + " | " + nodeIdString
@@ -1762,50 +1742,16 @@ function ViewTreepack() {
       newNode.followersMentions = newNode.mentions + newNode.followersCount;
     }
 
-    // if ((newNode.nodeType === "user") && (newNode.mentions > currentMax.mentions.value)) { 
-
-    //   newCurrentMaxMetricFlag = true;
-
-    //   currentMax.mentions.value = newNode.mentions; 
-    //   currentMax.mentions.rate = newNode.rate;
-    //   currentMax.mentions.nodeId = newNode.screenName.toLowerCase(); 
-    //   currentMax.mentions.timeStamp = moment().valueOf(); 
-
-    //   if (metricMode === "mentions") {
-    //     currentMaxMetric = newNode.mentions; 
-    //   }
-    // }
     if (newNode.mentions > currentMax.mentions.value) { 
 
       newCurrentMaxMentionsMetricFlag = true;
 
       currentMax.mentions.nodeType = newNode.nodeType;
       currentMax.mentions.nodeId = newNode.nodeId; 
+      currentMax.mentions.screenName = newNode.screenName; 
       currentMax.mentions.value = newNode.mentions; 
       currentMax.mentions.rate = newNode.rate;
       currentMax.mentions.timeStamp = moment().valueOf(); 
-      currentMax.mentions.nodeId = newNode.nodeId; 
-
-      // if (newNode.nodeType === "user") {
-      //   if (newNode.screenName !== undefined) {
-      //     currentMax.mentions.nodeId = newNode.screenName.toLowerCase(); 
-      //   }
-      //   else if (newNode.name !== undefined) {
-      //     currentMax.mentions.nodeId = newNode.name.toLowerCase(); 
-      //   }
-      //   else {
-      //     currentMax.mentions.nodeId = newNode.nodeId; 
-      //   }
-      // }
-      // else if (newNode.name && (newNode.nodeType === "place")) {
-      //   currentMax.mentions.nodeId = newNode.name.toLowerCase(); 
-      // }
-      // else if (newNode.nodeId === undefined) {
-      //   console.error("*** NODE ID UNDEFINED\n" + jsonPrint(newNode));
-      // }
-      // else  {
-      //   currentMax.mentions.nodeId = newNode.nodeId; 
-      // }
 
       if (metricMode === "mentions") {
         currentMaxMentionsMetric = newNode.mentions; 
@@ -1818,17 +1764,10 @@ function ViewTreepack() {
 
       currentMax.rate.nodeType = newNode.nodeType;
       currentMax.rate.nodeId = newNode.nodeId;
+      currentMax.rate.screenName = newNode.screenName; 
       currentMax.rate.value = newNode.rate;
       currentMax.rate.mentions = newNode.mentions;
       currentMax.rate.timeStamp = moment().valueOf(); 
-
-      // if (newNode.nodeType === "user") {
-      //   if (newNode.screenName !== undefined) { currentMax.rate.nodeId = newNode.screenName.toLowerCase(); }
-      //   else if (newNode.name !== undefined) { currentMax.rate.nodeId = newNode.name.toLowerCase(); }
-      //   else { currentMax.rate.nodeId = newNode.nodeId; }
-      // }
-      // else if (newNode.nodeType === "place") { currentMax.rate.nodeId = newNode.name; }
-      // else { currentMax.rate.nodeId = newNode.nodeId; }
 
       if (metricMode === "rate") { currentMaxRateMetric = newNode.rate; }
     }

@@ -504,7 +504,8 @@ function ControlPanel() {
   this.setGravitySliderValue = function (value) {
     if (!document.getElementById("gravitySlider")) { return; }
     console.log("setGravitySliderValue: " + value);
-    document.getElementById("gravitySlider").value = value;
+    // document.getElementById("gravitySlider").value = value;
+    document.getElementById("gravitySlider").value = (value* document.getElementById("gravitySlider").getAttribute("multiplier"));
     document.getElementById("gravitySliderText").innerHTML = value.toFixed(6);
     // document.getElementById("gravitySliderText").innerHTML = value;
   };
@@ -1021,10 +1022,10 @@ function ControlPanel() {
       class: "slider",
       min: 0.0,
       max: 10.0,
-      // value: config.defaultGravity * config.defaultMultiplier,
-      value: config.defaultGravity,
-      multiplier: 1.0
-      // multiplier: config.defaultMultiplier
+      value: config.defaultGravity * config.defaultMultiplier,
+      // value: config.defaultGravity,
+      // multiplier: 100.0
+      multiplier: config.defaultMultiplier
     };
 
     var gravitySliderText = {

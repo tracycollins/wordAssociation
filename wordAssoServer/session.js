@@ -1640,7 +1640,7 @@ function createStatsTable(callback) {
     type: "TEXT",
     id: "statsServerTweetsPerMin",
     class: "statsTableText",
-    text: statsObj.heartbeat.tweetsPerMin.toFixed(0)
+    text: "0.00"
   };
 
   var statsServerMaxTweetsPerMinLabel = {

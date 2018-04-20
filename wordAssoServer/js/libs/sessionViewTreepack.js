@@ -6,6 +6,8 @@ function ViewTreepack() {
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
+  var DEFAULT_ZOOM_FACTOR = 0.5;
+
   var getWindowDimensions = function (){
 
     var w;
@@ -454,7 +456,7 @@ function ViewTreepack() {
     .attr("y", 1e-6);
 
 
-  var zoomFactor = 0.75;
+  var zoomFactor = DEFAULT_ZOOM_FACTOR;
   var panzoomElement = document.getElementById("svgTreemapLayoutArea");
   var panzoomObject = panzoom(panzoomElement, { 
     zoomSpeed: 0.090,

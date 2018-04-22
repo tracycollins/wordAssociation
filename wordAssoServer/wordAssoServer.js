@@ -2062,7 +2062,7 @@ function initSocketHandler(socketObj) {
             + " | FRNDs: " + updatedNodeObj.friendsCount
             + " | Ms: " + updatedNodeObj.mentions
             + " | Ts: " + updatedNodeObj.statusesCount
-            + " | CAT: M: " + updatedNodeObj.category + " | A: " updatedNodeObj.categoryAuto
+            + " | CAT: M: " + updatedNodeObj.category + " | A: " + updatedNodeObj.categoryAuto
           ));
         }
         if (updatedNodeObj.nodeType === "hashtag") {
@@ -2072,7 +2072,7 @@ function initSocketHandler(socketObj) {
             + " | SID: " + socket.id
             + " | #" + updatedNodeObj.nodeId
             + " | Ms: " + updatedNodeObj.mentions
-            + " | CAT: M: " + updatedNodeObj.category + " | A: " updatedNodeObj.categoryAuto
+            + " | CAT: M: " + updatedNodeObj.category + " | A: " + updatedNodeObj.categoryAuto
           ));
         }
       }

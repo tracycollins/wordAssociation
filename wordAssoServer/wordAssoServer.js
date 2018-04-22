@@ -2052,9 +2052,28 @@ function initSocketHandler(socketObj) {
       else if (updatedNodeObj) {
         if (updatedNodeObj.nodeType === "user") {
           socket.emit("SET_TWITTER_USER", updatedNodeObj);
+          console.log(chalkSocket("TX> SET_TWITTER_USER"
+            + " | " + getTimeStamp()
+            + " | SID: " + socket.id
+            + " | NID" + updatedNodeObj.nodeId
+            + " | UID" + updatedNodeObj.userId
+            + " | @" + updatedNodeObj.screenName
+            + " | FLWRs: " + updatedNodeObj.followersCount
+            + " | FRNDs: " + updatedNodeObj.friendsCount
+            + " | Ms: " + updatedNodeObj.mentions
+            + " | Ts: " + updatedNodeObj.statusesCount
+            + " | CAT: M: " + updatedNodeObj.category + " | A: " updatedNodeObj.categoryAuto
+          ));
         }
         if (updatedNodeObj.nodeType === "hashtag") {
           socket.emit("SET_TWITTER_HASHTAG", updatedNodeObj);
+          console.log(chalkSocket("TX> SET_TWITTER_HASHTAG"
+            + " | " + getTimeStamp()
+            + " | SID: " + socket.id
+            + " | #" + updatedNodeObj.nodeId
+            + " | Ms: " + updatedNodeObj.mentions
+            + " | CAT: M: " + updatedNodeObj.category + " | A: " updatedNodeObj.categoryAuto
+          ));
         }
       }
     });

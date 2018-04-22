@@ -550,7 +550,9 @@ function ViewTreepack() {
     if (user.notFound !== undefined) { console.log("setTwitterUser | NOT FOUND: @"  + user.screenName); }
     else { console.log("setTwitterUser | "  + user.userId + " | @" + user.screenName); }
 
-    if (controlPanelReadyFlag){ controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: user}, DEFAULT_SOURCE); }
+    if (controlPanelReadyFlag){ 
+      controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: user}, DEFAULT_SOURCE);
+    }
   };
 
   this.setTwitterHashtag = function(hashtag) {

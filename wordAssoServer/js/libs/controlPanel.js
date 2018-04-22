@@ -716,11 +716,11 @@ function ControlPanel() {
 
   window.addEventListener("input", function (e) {
     // console.log("keyup event detected! coming from this element:", e.target);
-    switch (e.target.id) {
-      case "nodeSearchInput":
+    switch (e.target.className) {
+      case "slider":
+        sliderHandler(e);
       break;
       default:
-        sliderHandler(e);
     }
   }, false);
 

@@ -1563,7 +1563,7 @@ function categorizeNode(categorizeObj, callback) {
         cObj.auto = categorizedUserHashMap.get(categorizeObj.node.nodeId.toLowerCase()).auto || false;
       }
 
-      categorizedUserHashMap.set(categorizeObj.node.nodeId.toLowerCase(), cObj);
+      // categorizedUserHashMap.set(categorizeObj.node.nodeId.toLowerCase(), cObj);
 
       saveFileQueue.push(
         {
@@ -2055,9 +2055,10 @@ function initSocketHandler(socketObj) {
           console.log(chalkSocket("TX> SET_TWITTER_USER"
             + " | " + getTimeStamp()
             + " | SID: " + socket.id
-            + " | NID" + updatedNodeObj.nodeId
-            + " | UID" + updatedNodeObj.userId
+            + " | NID: " + updatedNodeObj.nodeId
+            + " | UID: " + updatedNodeObj.userId
             + " | @" + updatedNodeObj.screenName
+            + " | NAME: " + updatedNodeObj.name
             + " | FLWRs: " + updatedNodeObj.followersCount
             + " | FRNDs: " + updatedNodeObj.friendsCount
             + " | Ms: " + updatedNodeObj.mentions

@@ -5,6 +5,8 @@
 var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 // var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
 
+var config = {};
+
 const RX_NODE_QUEUE_INTERVAL = 10;
 const RX_NODE_QUEUE_MAX = 100;
 
@@ -207,8 +209,8 @@ TREEPACK_DEFAULT.COLLISION_ITERATIONS = 1;
 TREEPACK_DEFAULT.FONT_SIZE_MIN_RATIO = 0.01;
 TREEPACK_DEFAULT.FONT_SIZE_MAX_RATIO = 0.025;
 TREEPACK_DEFAULT.NODE_RADIUS_MIN_RATIO = 0.0075;
+TREEPACK_DEFAULT.NODE_RADIUS_MAX_RATIO = 0.1000;
 
-var config = {};
 
 config.twitterUser = {};
 config.twitterUser.userId = "";
@@ -229,6 +231,12 @@ if (useStoredConfig) {
   if (config.twitterUser === undefined) {
     config.twitterUser = {};
     config.twitterUser.userId = "";
+  }
+  if (config.defaultNodeRadiusMinRatio === undefined) {
+    config.defaultNodeRadiusMinRatio = DEFAULT_NODE_RADIUS_MIN_RATIO;
+  }
+  if (config.defaultNodeRadiusMaxRatio === undefined) {
+    config.defaultNodeRadiusMaxRatio = DEFAULT_NODE_RADIUS_MAX_RATIO;
   }
 }
 else {
@@ -2237,12 +2245,22 @@ function initialize(callback) {
             storedConfig = store.get(storedConfigName);
 
             if (storedConfig) {
+
               console.debug("STORED CONFIG"
                 + " | " + storedConfigName
                 + "\nCURRENT CONFIG\n" + jsonPrint(config)
                 + "\n" + jsonPrint(storedConfig)
               );
-              config = storedConfig;
+
+              var storedConfigArgs = Object.keys(storedConfig);
+
+              storedConfigArgs.forEach(function(arg){
+                config[arg] = storedConfig[arg];
+                if (arg === "VIEWER_OBJ") {
+                }
+                console.log("--> STORED CONFIG | " + arg + ": ", config[arg]);
+              });
+
               config.authenticationUrl = DEFAULT_AUTH_URL;
 
               if (config.sessionViewType === "treepack") {
@@ -2295,7 +2313,15 @@ function initialize(callback) {
                 + "\n" + jsonPrint(storedConfig)
               );
 
-              config = storedConfig;
+              var storedConfigArgs = Object.keys(storedConfig);
+
+              storedConfigArgs.forEach(function(arg){
+                config[arg] = storedConfig[arg];
+                if (arg === "VIEWER_OBJ") {
+                }
+                console.log("--> STORED CONFIG | " + arg + ": ", config[arg]);
+              });
+
               config.authenticationUrl = DEFAULT_AUTH_URL;
               currentSessionView.setNodeMaxAge(config.defaultMaxAge);
             }
@@ -2343,7 +2369,15 @@ function initialize(callback) {
                 + "\n" + jsonPrint(storedConfig)
               );
 
-              config = storedConfig;
+              var storedConfigArgs = Object.keys(storedConfig);
+
+              storedConfigArgs.forEach(function(arg){
+                config[arg] = storedConfig[arg];
+                if (arg === "VIEWER_OBJ") {
+                }
+                console.log("--> STORED CONFIG | " + arg + ": ", config[arg]);
+              });
+
               config.authenticationUrl = DEFAULT_AUTH_URL;
 
               currentSessionView.setNodeMaxAge(config.defaultMaxAge);

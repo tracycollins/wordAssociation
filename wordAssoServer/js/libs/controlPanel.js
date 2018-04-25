@@ -662,8 +662,8 @@ function ControlPanel() {
         self.setTransitionDurationSliderValue(parentWindow.DEFAULT_TRANSITION_DURATION);
         self.setGravitySliderValue(parentWindow.DEFAULT_GRAVITY);
         self.setChargeSliderValue(parentWindow.DEFAULT_CHARGE);
-        self.setNodeRadiusMinRatioSliderValue(parentWindow.DEFAULT_NODE_RADIUS_MIN);
-        self.setNodeRadiusMaxRatioSliderValue(parentWindow.DEFAULT_NODE_RADIUS_MAX);
+        self.setNodeRadiusMinRatioSliderValue(parentWindow.DEFAULT_NODE_RADIUS_MIN_RATIO);
+        self.setNodeRadiusMaxRatioSliderValue(parentWindow.DEFAULT_NODE_RADIUS_MAX_RATIO);
         self.setVelocityDecaySliderValue(parentWindow.DEFAULT_VELOCITY_DECAY);
         self.setMaxAgeSliderValue(parentWindow.DEFAULT_MAX_AGE);
         self.setFontSizeMinRatioSliderValue(parentWindow.DEFAULT_FONT_SIZE_MIN_RATIO);

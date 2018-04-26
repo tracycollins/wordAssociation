@@ -1,6 +1,9 @@
 /*jslint node: true */
 function ControlPanel() {
 "use strict";
+
+  var twttr;
+
   // var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
   // var DEFAULT_SOURCE = "http://localhost:9997";
   var DEFAULT_SOURCE = "http://word.threeceelabs.com";
@@ -238,23 +241,28 @@ function ControlPanel() {
       statsObj.user.threeceeFollowing = node.threeceeFollowing;
       statsObj.user.mentions = node.mentions;
 
-      twttr.widgets.createFollowButton(
-        screenName,
-        timelineDiv
-      );
+      if (twttr) {
+        twttr.widgets.createFollowButton(
+          screenName,
+          timelineDiv
+        );
 
-      twttr.widgets.createTimeline(
-        { sourceType: "profile", screenName: screenName},
-        timelineDiv,
-        { width: "400", height: "600"}
-      )
-      .then(function (el) {
-        callback(null, el);
-      })
-      .catch(function(err){
-        console.error("TWITTER WIDGET ERROR: " + err);
-        callback(err, null);
-      });
+        twttr.widgets.createTimeline(
+          { sourceType: "profile", screenName: screenName},
+          timelineDiv,
+          { width: "400", height: "600"}
+        )
+        .then(function (el) {
+          callback(null, el);
+        })
+        .catch(function(err){
+          console.error("TWITTER WIDGET ERROR: " + err);
+          callback(err, null);
+        });
+      }
+      else {
+        callback(null, null);
+      }
     }
   }
 
@@ -299,10 +307,12 @@ function ControlPanel() {
 
     if (node.nodeType === "user"){
       updateCategoryRadioButtons(node.category, function(){
+
         twitterWidgetsCreateTimeline(node, function(err, el){
           var nsi =document.getElementById("nodeSearchInput");
           nsi.value = "@" + node.screenName;
         });
+
       });
     }
     else if (node.nodeType === "hashtag"){
@@ -610,7 +620,14 @@ function ControlPanel() {
           + " | CA: " + currentTwitterNode.categoryAuto
           // + jsonPrint(currentTwitterNode)
         );
-        loadTwitterFeed(currentTwitterNode);
+        if (twttr) {
+          loadTwitterFeed(currentTwitterNode);
+        }
+        else {
+          setTimeout(function(){
+            loadTwitterFeed(currentTwitterNode);
+          }, 1000)
+        }
       break;
 
       case "SET_TWITTER_HASHTAG":

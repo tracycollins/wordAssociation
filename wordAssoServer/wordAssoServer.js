@@ -13,7 +13,8 @@ let dropboxConfigDefaultTrainingSetsFolder = dropboxConfigDefaultFolder + "/trai
 let maxInputHashMapFile = "maxInputHashMap.json";
 
 let nodeSearchType = false;
-let previousUserUncategorizedId = false;
+let previousUserUncategorizedId = "1";
+let previousUserMismatchedId = "1";
 
 const categorizedFolder = dropboxConfigDefaultFolder + "/categorized";
 const categorizedUsersFile = "categorizedUsers.json";
@@ -1927,13 +1928,12 @@ function initSocketHandler(socketObj) {
         if (searchNodeUser.screenName === "?") {
           console.log(chalkInfo("SEARCH FOR UNCATEGORIZED USER"));
           nodeSearchType = "USER_UNCATEGORIZED";
-          if (previousUserUncategorizedId) {
-            searchNodeUser = { nodeId: { "$gt": previousUserUncategorizedId} };
-          }
+          searchNodeUser = { nodeId: previousUserUncategorizedId };
         }
         else if (searchNodeUser.screenName === "?mm") {
           console.log(chalkInfo("SEARCH FOR MISMATCHED USER"));
           nodeSearchType = "USER_MISMATCHED";
+          searchNodeUser = { nodeId: previousUserMismatchedId };
         }
         else {
           console.log(chalkInfo("SEARCH FOR SPECIFIC USER"));
@@ -1946,7 +1946,7 @@ function initSocketHandler(socketObj) {
         nodeSearchType = "USER_SPECIFIC";
       }
 
-      userServer.findOne({user: searchNodeUser, fields: fieldsExclude}, function(err, user){
+      userServer.findOne({nodeSearchType: nodeSearchType, user: searchNodeUser, fields: fieldsExclude}, function(err, user){
         if (err) {
           console.log(chalkError("TWITTER_SEARCH_NODE USER ERROR\n" + jsonPrint(err)));
         }
@@ -1966,6 +1966,10 @@ function initSocketHandler(socketObj) {
 
               if (nodeSearchType === "USER_UNCATEGORIZED") {
                 previousUserUncategorizedId = rawUser.id_str;
+              }
+
+              if (nodeSearchType === "USER_MISMATCHED") {
+                previousUserMismatchedId = rawUser.id_str;
               }
 
               userServer.convertRawUser({user:rawUser}, function(err, cUser){

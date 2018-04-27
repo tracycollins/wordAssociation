@@ -2,8 +2,6 @@
 function ControlPanel() {
 "use strict";
 
-  var twttr;
-
   // var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
   // var DEFAULT_SOURCE = "http://localhost:9997";
   var DEFAULT_SOURCE = "http://word.threeceelabs.com";
@@ -623,14 +621,14 @@ function ControlPanel() {
           + " | CA: " + currentTwitterNode.categoryAuto
           // + jsonPrint(currentTwitterNode)
         );
-        if (twttr) {
+        // if (twttr) {
           loadTwitterFeed(currentTwitterNode);
-        }
-        else {
-          setTimeout(function(){
-            loadTwitterFeed(currentTwitterNode);
-          }, 1000)
-        }
+        // }
+        // else {
+        //   setTimeout(function(){
+        //     loadTwitterFeed(currentTwitterNode);
+        //   }, 1000)
+        // }
       break;
 
       case "SET_TWITTER_HASHTAG":

@@ -640,7 +640,8 @@ function ControlPanel() {
 
   window.addEventListener("load", function() {
     console.warn("WINDOW LOAD");
-  }, false);
+    parentWindow.postMessage({op: "NODE_SEARCH", input: "@threecee"}, DEFAULT_SOURCE);
+}, false);
 
   window.addEventListener("message", receiveMessage, false);
 

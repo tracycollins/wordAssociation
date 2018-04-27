@@ -1180,6 +1180,13 @@ function ControlPanel() {
     userDescriptionText.class = "userStatusText";
     userDescriptionText.text = statsObj.user.description;
 
+    var userDescriptionLabel = {};
+    userDescriptionLabel.type = "TEXT";
+    userDescriptionLabel.id = "userDescriptionLabel";
+    userDescriptionLabel.class = "userStatusText";
+    userDescriptionLabel.text = "DESCRIPTION";
+
+
     var userFollowersCountText = {};
     userFollowersCountText.type = "TEXT";
     userFollowersCountText.id = "userFollowersCountText";

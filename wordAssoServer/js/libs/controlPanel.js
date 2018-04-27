@@ -1298,7 +1298,7 @@ function ControlPanel() {
       case "treepack":
         self.tableCreateRow(controlTable, optionsBody, [resetButton, pauseButton, statsButton, fullscreenButton]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userScreenNameText, userNameText]);
-        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userDescriptionText]);
+        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userDescriptionLabel, userDescriptionText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userCategoryLabel, userCategoryText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userFollowersCountLabel, userFollowersCountText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userFriendsCountLabel, userFriendsCountText]);

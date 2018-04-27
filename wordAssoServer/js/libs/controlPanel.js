@@ -1199,6 +1199,7 @@ function ControlPanel() {
     userFollowersCountLabel.class = "userStatusText";
     userFollowersCountLabel.text = "FOLLOWERS";
 
+
     var userFriendsCountText = {
       type: "TEXT",
       id: "userFriendsCountText",

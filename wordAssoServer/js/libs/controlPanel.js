@@ -609,6 +609,9 @@ function ControlPanel() {
         self.setMaxAgeSliderValue(cnf.defaultMaxAge);
         self.setFontSizeMinRatioSliderValue(cnf.defaultFontSizeMinRatio);
         self.setFontSizeMaxRatioSliderValue(cnf.defaultFontSizeMaxRatio);
+
+        parentWindow.postMessage({op: "NODE_SEARCH", input: "@threecee"}, DEFAULT_SOURCE);
+
       break;
 
       case "SET_TWITTER_USER":
@@ -640,7 +643,6 @@ function ControlPanel() {
 
   window.addEventListener("load", function() {
     console.warn("WINDOW LOAD");
-    parentWindow.postMessage({op: "NODE_SEARCH", input: "@threecee"}, DEFAULT_SOURCE);
 }, false);
 
   window.addEventListener("message", receiveMessage, false);

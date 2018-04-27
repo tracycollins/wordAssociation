@@ -1960,6 +1960,8 @@ function initSocketHandler(socketObj) {
           twit.get("users/show", {user_id: user.nodeId, include_entities: true}, function usersShow (err, rawUser, response){
             if (err) {
               console.log(chalkError("ERROR users/show rawUser | @" + user.screenName + " | " + err));
+              if (nodeSearchType === "USER_UNCATEGORIZED") { previousUserUncategorizedId = user.nodeId; }
+              if (nodeSearchType === "USER_MISMATCHED") { previousUserMismatchedId = user.nodeId; }
               socket.emit("SET_TWITTER_USER", user);
             }
             else if (rawUser) {

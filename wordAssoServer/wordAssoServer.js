@@ -3705,6 +3705,7 @@ function initCategoryHashmaps(callback){
   console.log(chalkTwitter("INIT CATEGORIZED USER + HASHTAG HASHMAPS FROM DB"));
 
   async.parallel({
+
     hashtag: function(cb){
 
     // results.obj[nodeId] = { manual: hashtag.category, auto: hashtag.categoryAuto };
@@ -3733,7 +3734,9 @@ function initCategoryHashmaps(callback){
       });
     },
     user: function(cb){
+
       userServer.findCategorizedUsersCursor({}, function(err, results){
+        
         if (err) {
           console.error(chalkError("ERROR: initCategoryHashmaps: findCategorizedUsersCursor:"
             + " " + err

@@ -227,7 +227,7 @@ function ControlPanel() {
       document.getElementById("userStatusesCountText").innerHTML = node.statusesCount;
       document.getElementById("userMentionsText").innerHTML = node.mentions;
       document.getElementById("user3cFollowingText").innerHTML = node.threeceeFollowing;
-
+      document.getElementById("userDescriptionText").innerHTML = node.description;
 
       statsObj.user.name = name;
       statsObj.user.screenName = node.screenName;
@@ -238,6 +238,7 @@ function ControlPanel() {
       statsObj.user.statusesCount = node.statusesCount;
       statsObj.user.threeceeFollowing = node.threeceeFollowing;
       statsObj.user.mentions = node.mentions;
+      statsObj.user.description = node.description;
 
       if (twttr) {
         twttr.widgets.createFollowButton(
@@ -293,17 +294,24 @@ function ControlPanel() {
     var category = "-";
     var categoryAuto = "-";
 
-    console.debug("loadTwitterFeed"
-      + " | " + node.nodeType
-      + " | " + node.nodeId
-      + " | " + node.category
-      + " | " + node.categoryAuto
-    );
-
     hashtagDiv.removeAll();
     timelineDiv.removeAll();
 
     if (node.nodeType === "user"){
+
+      console.debug("loadTwitterFeed"
+        + " | TYPE: " + node.nodeType
+        + " | NID: " + node.nodeId
+        + " | @" + node.screenName
+        + " | " + node.name
+        + " | CAT M: " + node.category
+        + " | CAT A: " + node.categoryAuto
+        + " | Ms: " + node.mentions
+        + " | Ts: " + node.statusesCount
+        + " | FRNDs: " + node.friendsCount
+        + " | FLWRs: " + node.followersCount
+      );
+
       updateCategoryRadioButtons(node.category, function(){
 
         twitterWidgetsCreateTimeline(node, function(err, el){
@@ -314,6 +322,14 @@ function ControlPanel() {
       });
     }
     else if (node.nodeType === "hashtag"){
+
+      console.debug("loadTwitterFeed"
+        + " | TYPE: " + node.nodeType
+        + " | #: " + node.nodeId
+        + " | CAT M: " + node.category
+        + " | Ms: " + node.mentions
+      );
+
       updateCategoryRadioButtons(node.category, function(){
         twitterHashtagSearch(node, function(err, el){
           var nsi =document.getElementById("nodeSearchInput");
@@ -1158,6 +1174,12 @@ function ControlPanel() {
       text: statsObj.user.name
     };
 
+    var userDescriptionText = {};
+    userDescriptionText.type = "TEXT";
+    userDescriptionText.id = "userDescriptionText";
+    userDescriptionText.class = "userStatusText";
+    userDescriptionText.text = statsObj.user.description;
+
     var userFollowersCountText = {};
     userFollowersCountText.type = "TEXT";
     userFollowersCountText.id = "userFollowersCountText";
@@ -1269,6 +1291,7 @@ function ControlPanel() {
       case "treepack":
         self.tableCreateRow(controlTable, optionsBody, [resetButton, pauseButton, statsButton, fullscreenButton]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userScreenNameText, userNameText]);
+        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userDescriptionText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userCategoryLabel, userCategoryText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userFollowersCountLabel, userFollowersCountText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userFriendsCountLabel, userFriendsCountText]);

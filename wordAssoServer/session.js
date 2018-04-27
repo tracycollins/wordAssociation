@@ -6,25 +6,26 @@ var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 // var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
 
 var config = {};
+var previousConfig = {};
 
 const RX_NODE_QUEUE_INTERVAL = 10;
 const RX_NODE_QUEUE_MAX = 100;
 
 const STATS_UPDATE_INTERVAL = 1000;
 
-let statsServerTimeElement;
-let statsServerUpTimeElement;
-let statsServerStartTimeElement;
-let statsServerRunTimeElement;
-let statsServerTweetsPerMinElement;
-let statsServerMaxTweetsPerMinElement;
-let statsClientNumberNodesElement;
-let statsClientNumberMaxNodesElement;
-let statsClientAddNodeQElement;
-let statsClientMaxAddNodeQElement;
-let statsClientAgeRateElement;
-let statsClientMaxAgeRateElement;
-let statsClientSessionIdElement;
+var statsServerTimeElement;
+var statsServerUpTimeElement;
+var statsServerStartTimeElement;
+var statsServerRunTimeElement;
+var statsServerTweetsPerMinElement;
+var statsServerMaxTweetsPerMinElement;
+var statsClientNumberNodesElement;
+var statsClientNumberMaxNodesElement;
+var statsClientAddNodeQElement;
+var statsClientMaxAddNodeQElement;
+var statsClientAgeRateElement;
+var statsClientMaxAgeRateElement;
+var statsClientSessionIdElement;
 
 function jp(s, obj) {
   console.warn(s + "\n" + jsonPrint(obj));
@@ -1428,7 +1429,7 @@ function tableCreateRow(parentTable, options, cells) {
         tableButton.addEventListener("click", function(e){ buttonHandler(e); }, false);
         tableButton.innerHTML = content.text;
         tableCell.appendChild(tableButton);
-        controlIdHash[content.id] = content;
+        // controlIdHash[content.id] = content;
       } 
       else if (content.type === "SLIDER") {
         tableSlider = document.createElement("INPUT");
@@ -1441,7 +1442,7 @@ function tableCreateRow(parentTable, options, cells) {
         tableSlider.setAttribute("oninput", content.oninput);
         tableSlider.value = content.value;
         tableCell.appendChild(tableSlider);
-        controlIdHash[content.id] = content;
+        // controlIdHash[content.id] = content;
       }
     });
   }
@@ -1798,7 +1799,7 @@ socket.on("CONFIG_CHANGE", function(rxConfig) {
     config.nodeMaxAge = rxConfig.nodeMaxAge;
     console.log("\n*** ENV CHANGE: NODE_MAX_AGE: WAS: " 
       + previousConfig.nodeMaxAge + " | NOW: " + config.nodeMaxAge + "\n");
-    nodeMaxAge = config.nodeMaxAge;
+    // nodeMaxAge = config.nodeMaxAge;
     currentSessionView.setMaxAge(rxConfig.nodeMaxAge);
     previousConfig.nodeMaxAge = config.nodeMaxAge;
   }
@@ -1807,7 +1808,7 @@ socket.on("CONFIG_CHANGE", function(rxConfig) {
 socket.on("SET_TWITTER_USER", function(twitterUser) {
 
   if (!twitterUser) { return; }
-  else if (!twitterUser || (twitterUser.notFound !== undefined)) {
+  if (!twitterUser || (twitterUser.notFound !== undefined)) {
 
     console.log("SET_TWITTER_USER | NOT FOUND" 
       + " | @" + twitterUser.screenName 
@@ -1851,8 +1852,8 @@ socket.on("TWITTER_TOPTERM_1MIN", function(top10obj) {
   console.debug("TWITTER_TOPTERM_1MIN\n" + jsonPrint(top10obj));
 });
 
-let rxNodeQueueReady = false;
-let rxNodeQueue = [];
+var rxNodeQueueReady = false;
+var rxNodeQueue = [];
 
 var rxNode = function(node){
   if ((rxNodeQueue.length < RX_NODE_QUEUE_MAX)
@@ -1868,7 +1869,7 @@ function initSocketSessionUpdateRx(){
 
   rxNodeQueueReady = true;
 
-  let newNode = {};
+  var newNode = {};
 
   setInterval(function(){
 
@@ -1958,96 +1959,96 @@ function initSocketSessionUpdateRx(){
   });
 }
 
-var newNodeCategory
-function initSocketNodeRx(){
+var newNodeCategory;
+// function initSocketNodeRx(){
 
-  socket.on("node", function(nNode) {
+//   socket.on("node", function(nNode) {
 
-    if ((nNode.nodeType !== "user") 
-      && (nNode.nodeType !== "hashtag") 
-      && (nNode.nodeType !== "place") 
-      ) {
-      return;
-    }
+//     if ((nNode.nodeType !== "user") 
+//       && (nNode.nodeType !== "hashtag") 
+//       && (nNode.nodeType !== "place") 
+//       ) {
+//       return;
+//     }
 
-    if (config.autoCategoryFlag && nNode.categoryAuto){
-      newNodeCategory = nNode.categoryAuto;
-    }
-    else {
-      newNodeCategory = nNode.category;
-    }
+//     if (config.autoCategoryFlag && nNode.categoryAuto){
+//       newNodeCategory = nNode.categoryAuto;
+//     }
+//     else {
+//       newNodeCategory = nNode.category;
+//     }
 
-    if (newNodeCategory === undefined) { 
-      nNode.categoryColor = palette.white; 
-    }
-    else {
-      nNode.categoryColor = categoryColorHashMap.get(newNodeCategory);
-    }
+//     if (newNodeCategory === undefined) { 
+//       nNode.categoryColor = palette.white; 
+//     }
+//     else {
+//       nNode.categoryColor = categoryColorHashMap.get(newNodeCategory);
+//     }
 
-    nNode.age = 1e-6;
-    nNode.ageMaxRatio = 1e-6;
-    nNode.mouseHoverFlag = false;
-    nNode.isDead = false;
-    nNode.r = 0;
-    nNode.rank = -1;
-    nNode.links = [];
-    nNode.rate = (nNode.rate) ? nNode.rate : 0;
-    nNode.mentions = (nNode.mentions) ? nNode.mentions : 1;
-    nNode.followersCount = (nNode.followersCount) ? nNode.followersCount : 0;
+//     nNode.age = 1e-6;
+//     nNode.ageMaxRatio = 1e-6;
+//     nNode.mouseHoverFlag = false;
+//     nNode.isDead = false;
+//     nNode.r = 0;
+//     nNode.rank = -1;
+//     nNode.links = [];
+//     nNode.rate = (nNode.rate) ? nNode.rate : 0;
+//     nNode.mentions = (nNode.mentions) ? nNode.mentions : 1;
+//     nNode.followersCount = (nNode.followersCount) ? nNode.followersCount : 0;
 
-    if (nNode.nodeType === "user"){
-      newNode.nodeId = nNode.screenName.toLowerCase();
-      newNode.text = nNode.screenName.toLowerCase();
-      newNode.screenName = nNode.screenName.toLowerCase();
-    }
-    if (nNode.nodeType === "hashtag"){
-      newNode.nodeId = nNode.text;
-    }
+//     if (nNode.nodeType === "user"){
+//       newNode.nodeId = nNode.screenName.toLowerCase();
+//       newNode.text = nNode.screenName.toLowerCase();
+//       newNode.screenName = nNode.screenName.toLowerCase();
+//     }
+//     if (nNode.nodeType === "hashtag"){
+//       newNode.nodeId = nNode.text;
+//     }
 
-    newNode.categoryMismatch = nNode.category && nNode.categoryAuto && (nNode.category !== nNode.categoryAuto);
-    newNode.categoryMatch = nNode.category && nNode.categoryAuto && (nNode.category === nNode.categoryAuto);
+//     newNode.categoryMismatch = nNode.category && nNode.categoryAuto && (nNode.category !== nNode.categoryAuto);
+//     newNode.categoryMatch = nNode.category && nNode.categoryAuto && (nNode.category === nNode.categoryAuto);
 
-    if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
-      && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
-      currentSessionView.addNode(newNode);
-    }
-    else if ((config.sessionViewType === "histogram")
-      && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
-      currentSessionView.addNode(newNode);
-    }
-    else if ((config.sessionViewType !== "treemap") 
-      && (config.sessionViewType !== "treepack") 
-      && (config.sessionViewType !== "histogram")) {
-      currentSessionView.addNode(newNode);
-    }
+//     if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
+//       && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
+//       currentSessionView.addNode(newNode);
+//     }
+//     else if ((config.sessionViewType === "histogram")
+//       && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
+//       currentSessionView.addNode(newNode);
+//     }
+//     else if ((config.sessionViewType !== "treemap") 
+//       && (config.sessionViewType !== "treepack") 
+//       && (config.sessionViewType !== "histogram")) {
+//       currentSessionView.addNode(newNode);
+//     }
 
-  });
+//   });
 
-  socket.on("STATS_HASHTAG", function(htStatsObj){
-      console.log(">>> RX STATS_HASHTAG");
+//   socket.on("STATS_HASHTAG", function(htStatsObj){
+//       console.log(">>> RX STATS_HASHTAG");
 
-      var htObjArray = [];
+//       var htObjArray = [];
 
-      Object.keys(htStatsObj).forEach(function(key) {
-        if (htStatsObj.hasOwnProperty(key)) {
+//       Object.keys(htStatsObj).forEach(function(key) {
+//         if (htStatsObj.hasOwnProperty(key)) {
 
-          var htObj = htStatsObj[key];
-          var mntns = htObj.mentions.toString() ;
-          var numPadSpaces = 10 - mntns.length;
-          htObj.displaytext = new Array(numPadSpaces).join("xa0") + mntns + " " + key ;
-          htObj.barlabel = key ;
+//           var htObj = htStatsObj[key];
+//           var mntns = htObj.mentions.toString() ;
+//           var numPadSpaces = 10 - mntns.length;
+//           htObj.displaytext = new Array(numPadSpaces).join("xa0") + mntns + " " + key ;
+//           htObj.barlabel = key ;
 
-          getTimeNow(function(t){
-            htObj.seen = t ;
-            htObj.topHashtag = true ;
-            htObj.newFlag = false ;
-            htObjArray.push(htObj);
-            hashtagHashMap.set(key, htObj);
-          });
-        }
-      });
-  });
-}
+//           getTimeNow(function(t){
+//             htObj.seen = t ;
+//             htObj.topHashtag = true ;
+//             htObj.newFlag = false ;
+//             htObjArray.push(htObj);
+//             hashtagHashMap.set(key, htObj);
+//           });
+//         }
+//       });
+//   });
+// }
 
 //================================
 // GET NODES FROM QUEUE

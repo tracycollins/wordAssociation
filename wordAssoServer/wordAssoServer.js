@@ -2008,6 +2008,16 @@ function initSocketHandler(socketObj) {
         else {
           console.log(chalkTwitter("--- TWITTER_SEARCH_NODE USER *NOT* FOUND\n" + jsonPrint(searchNodeUser)));
 
+
+          if (nodeSearchType === "USER_UNCATEGORIZED") {
+            previousUserUncategorizedId = "1";
+          }
+
+          if (nodeSearchType === "USER_MISMATCHED") {
+            previousUserMismatchedId = "1";
+          }
+
+
           let twitQuery;
 
           if (searchNodeUser.nodeId) {
@@ -2024,13 +2034,13 @@ function initSocketHandler(socketObj) {
             }
             else if (rawUser) {
 
-              if (nodeSearchType === "USER_UNCATEGORIZED") {
-                previousUserUncategorizedId = rawUser.id_str;
-              }
+              // if (nodeSearchType === "USER_UNCATEGORIZED") {
+              //   previousUserUncategorizedId = rawUser.id_str;
+              // }
 
-              if (nodeSearchType === "USER_MISMATCHED") {
-                previousUserMismatchedId = rawUser.id_str;
-              }
+              // if (nodeSearchType === "USER_MISMATCHED") {
+              //   previousUserMismatchedId = rawUser.id_str;
+              // }
 
               userServer.convertRawUser({user:rawUser}, function(err, cUser){
 

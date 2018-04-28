@@ -221,6 +221,7 @@ function ControlPanel() {
 
       document.getElementById("userScreenNameText").innerHTML = "<h4>@" + node.screenName + "</h4>";
       document.getElementById("userNameText").innerHTML = "<h4>" + name + "</h4>";
+      document.getElementById("userIdText").innerHTML = node.nodeId;
       document.getElementById("userCategoryText").innerHTML = "M: " + shortCategory(category) + " | A: " + shortCategory(categoryAuto);
       document.getElementById("userFollowersCountText").innerHTML = node.followersCount;
       document.getElementById("userFriendsCountText").innerHTML = node.friendsCount;
@@ -229,6 +230,7 @@ function ControlPanel() {
       document.getElementById("user3cFollowingText").innerHTML = node.threeceeFollowing;
       document.getElementById("userDescriptionText").innerHTML = node.description;
 
+      statsObj.user.nodeId = node.nodeId;
       statsObj.user.name = name;
       statsObj.user.screenName = node.screenName;
       statsObj.user.category = category;
@@ -1174,6 +1176,18 @@ function ControlPanel() {
       text: statsObj.user.name
     };
 
+    var userIdText = {};
+    userIdText.type = "TEXT";
+    userIdText.id = "userIdText";
+    userIdText.class = "userStatusText";
+    userIdText.text = statsObj.user.nodeId;
+
+    var userIdLabel = {};
+    userIdLabel.type = "TEXT";
+    userIdLabel.id = "userIdLabel";
+    userIdLabel.class = "userStatusText";
+    userIdLabel.text = "ID";
+
     var userDescriptionText = {};
     userDescriptionText.type = "TEXT";
     userDescriptionText.id = "userDescriptionText";
@@ -1185,7 +1199,6 @@ function ControlPanel() {
     userDescriptionLabel.id = "userDescriptionLabel";
     userDescriptionLabel.class = "userStatusText";
     userDescriptionLabel.text = "DESCRIPTION";
-
 
     var userFollowersCountText = {};
     userFollowersCountText.type = "TEXT";
@@ -1212,7 +1225,6 @@ function ControlPanel() {
     userFriendsCountLabel.id = "userFriendsCountLabel";
     userFriendsCountLabel.class = "userStatusText";
     userFriendsCountLabel.text = "FRIENDS";
-
 
     var userMentionsText = {
       type: "TEXT",
@@ -1299,6 +1311,7 @@ function ControlPanel() {
       case "treepack":
         self.tableCreateRow(controlTable, optionsBody, [resetButton, pauseButton, statsButton, fullscreenButton]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userScreenNameText, userNameText]);
+        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userIdLabel, userIdText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userDescriptionLabel, userDescriptionText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userCategoryLabel, userCategoryText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userFollowersCountLabel, userFollowersCountText]);

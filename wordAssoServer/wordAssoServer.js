@@ -2007,12 +2007,30 @@ function initSocketHandler(socketObj) {
         }
         else {
           console.log(chalkTwitter("--- TWITTER_SEARCH_NODE USER *NOT* FOUND\n" + jsonPrint(searchNodeUser)));
-          twit.get("users/show", {screen_name: searchNodeUser.screenName, include_entities: true}, function usersShow (err, rawUser, response){
+
+          let twitQuery;
+
+          if (searchNodeUser.nodeId) {
+            twitQuery = {user_id: searchNodeUser.nodeId, include_entities: true};
+          }
+          else if (searchNodeUser.screenName){
+            twitQuery = {screen_name: searchNodeUser.screenName, include_entities: true};
+          }
+
+          twit.get("users/show", twitQuery, function usersShow (err, rawUser, response){
             if (err) {
               console.log(chalkError("ERROR users/show rawUser" + err));
-              socket.emit("SET_TWITTER_USER", user);
+              console.log(chalkError("ERROR users/show searchNodeUser:\n" + jsonPrint(searchNodeUser)));
             }
             else if (rawUser) {
+
+              if (nodeSearchType === "USER_UNCATEGORIZED") {
+                previousUserUncategorizedId = rawUser.id_str;
+              }
+
+              if (nodeSearchType === "USER_MISMATCHED") {
+                previousUserMismatchedId = rawUser.id_str;
+              }
 
               userServer.convertRawUser({user:rawUser}, function(err, cUser){
 
@@ -2036,8 +2054,14 @@ function initSocketHandler(socketObj) {
               });
             }
             else {
-              console.log(chalkTwitter("NOT FOUND users/show data"));
-              socket.emit("SET_TWITTER_USER", searchNodeUser);
+              console.log(chalkTwitter("NOT FOUND users/show data"
+                + " | nodeSearchType: " + nodeSearchType
+                + " | previousUserUncategorizedId: " + previousUserUncategorizedId
+                + " | previousUserMismatchedId: " + previousUserMismatchedId
+                + " | searchNode: " + searchNode
+                + "\nsearchNodeUser\n" + jsonPrint(searchNodeUser)
+              ));
+              // socket.emit("SET_TWITTER_USER", searchNodeUser);
             }
           });
         }

@@ -638,6 +638,9 @@ function ControlPanel() {
           // + jsonPrint(currentTwitterNode)
         );
         if (event.data.nodeSearch) {
+          console.debug("NODE_SEARCH on SET_TWITTER_USER USER" 
+            + " | @" + currentTwitterNode.screenName
+          );
           parentWindow.postMessage({op: "NODE_SEARCH", input: "@" + currentTwitterNode.screenName}, DEFAULT_SOURCE);
         }
         loadTwitterFeed(currentTwitterNode);

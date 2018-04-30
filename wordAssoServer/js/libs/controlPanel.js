@@ -567,8 +567,6 @@ function ControlPanel() {
   };
 
   function receiveMessage(event){
-
-
     // Do we trust the sender of this message?
     if (event.origin !== DEFAULT_SOURCE){
       if (event.origin === "https://platform.twitter.com") {
@@ -639,14 +637,10 @@ function ControlPanel() {
           + " | CA: " + currentTwitterNode.categoryAuto
           // + jsonPrint(currentTwitterNode)
         );
-        // if (twttr) {
-          loadTwitterFeed(currentTwitterNode);
-        // }
-        // else {
-        //   setTimeout(function(){
-        //     loadTwitterFeed(currentTwitterNode);
-        //   }, 1000)
-        // }
+        if (event.data.nodeSearch) {
+          parentWindow.postMessage({op: "NODE_SEARCH", input: "@" + currentTwitterNode.screenName}, DEFAULT_SOURCE);
+        }
+        loadTwitterFeed(currentTwitterNode);
       break;
 
       case "SET_TWITTER_HASHTAG":

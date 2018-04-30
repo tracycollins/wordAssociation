@@ -971,7 +971,7 @@ function ViewTreepack() {
         currentTwitterHashtag = d;
 
         if (mouseMovingFlag && controlPanelReadyFlag && (!previousTwitterHashtag || (previousTwitterHashtag !== d.nodeId))){
-          controlPanelWindow.postMessage({op: "SET_TWITTER_HASHTAG", hashtag: currentTwitterHashtag}, DEFAULT_SOURCE);
+          // controlPanelWindow.postMessage({op: "SET_TWITTER_HASHTAG", hashtag: currentTwitterHashtag}, DEFAULT_SOURCE);
           previousTwitterHashtag = currentTwitterHashtag.nodeId;
         }
 

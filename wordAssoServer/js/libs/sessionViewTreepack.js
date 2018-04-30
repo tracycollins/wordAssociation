@@ -1081,7 +1081,7 @@ function ViewTreepack() {
         currentTwitterUser = d;
         
         if (mouseMovingFlag && controlPanelReadyFlag && (!previousTwitterUserId || (previousTwitterUserId !== d.userId))){
-          controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: currentTwitterUser}, DEFAULT_SOURCE);
+          controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: currentTwitterUser, nodeSearch:true}, DEFAULT_SOURCE);
           previousTwitterUserId = currentTwitterUser.userId;
         }
 
@@ -1096,8 +1096,6 @@ function ViewTreepack() {
           window.open("https://twitter.com/" + d.screenName, "_blank");
         }
 
-        // console.debug("LOADING TWITTER USER: " + nodeUrl);
-        // window.open(nodeUrl, "_blank");
       break;
 
       case "hashtag" :
@@ -1109,12 +1107,10 @@ function ViewTreepack() {
           previousTwitterHashtag = currentTwitterHashtag.nodeId;
         }
 
-        // nodeUrl = "https://twitter.com/search?f=tweets&q=%23" + d.text ;
         window.open("https://twitter.com/search?f=tweets&q=%23"+d.text, "_blank");
       break;
 
       case "place" :
-        // nodeUrl = "http://twitter.com/search?q=place%3A" + d.placeId ;
         window.open("http://twitter.com/search?q=place%3A" + d.placeId, "_blank");
       break;
     }

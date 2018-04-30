@@ -947,8 +947,8 @@ function controlPanelComm(event) {
         if (event.data.node.nodeType === "user"){
           console.info("R< CONTROL PANEL CATEGORIZE"
             + " | " + event.data.node.nodeId
-            + " | " + event.data.node.screenName
-            + " | " + event.data.category
+            + " | @" + event.data.node.screenName
+            + " | C: " + event.data.category
           );
           socket.emit("TWITTER_CATEGORIZE_NODE", 
             { twitterUser: config.twitterUser,
@@ -958,8 +958,8 @@ function controlPanelComm(event) {
         }
         else if (event.data.node.nodeType === "hashtag"){
           console.info("R< CONTROL PANEL CATEGORIZE"
-            + " | " + event.data.node.nodeId
-            + " | " + event.data.category
+            + " | #" + event.data.node.nodeId
+            + " | C: " + event.data.category
           );
           socket.emit("TWITTER_CATEGORIZE_NODE", 
             { twitterUser: config.twitterUser,

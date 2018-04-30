@@ -1548,9 +1548,9 @@ function categorizeNode(categorizeObj, callback) {
     case "user":
 
       debug(chalkSocket("categorizeNode USER"
-        + " | " + categorizeObj.node.nodeId
-        + " | " + categorizeObj.node.screenName
-        + " | " + categorizeObj.category
+        + " | NID: " + categorizeObj.node.nodeId
+        + " | @" + categorizeObj.node.screenName
+        + " | C: " + categorizeObj.category
       ));
 
       cObj.manual = categorizeObj.category;

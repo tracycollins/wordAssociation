@@ -950,7 +950,7 @@ function ViewTreepack() {
         currentTwitterUser = d;
 
         if (mouseMovingFlag && controlPanelReadyFlag && (!previousTwitterUserId || (previousTwitterUserId !== d.userId))){
-          controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: currentTwitterUser}, DEFAULT_SOURCE);
+          // controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: currentTwitterUser}, DEFAULT_SOURCE);
           previousTwitterUserId = currentTwitterUser.userId;
         }
 

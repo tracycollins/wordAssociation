@@ -31,10 +31,6 @@ function ControlPanel() {
 
 
   function nodeSearchHandler(e) {
-    // console.log("NODE SEARCH"
-    //   + " | KEY: " + e.keyCode
-    //   + " | INPUT: " + nodeSearchInput.value
-    // );
     if (e.keyCode === 13) { // 'ENTER' key
       parentWindow.postMessage({op: "NODE_SEARCH", input: nodeSearchInput.value}, DEFAULT_SOURCE);
     }

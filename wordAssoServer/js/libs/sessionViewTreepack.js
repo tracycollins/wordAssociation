@@ -203,6 +203,7 @@ function ViewTreepack() {
     this.screenName = "";
     this.followersCount = 0;
     this.followersMentions = 0;
+    this.lastTweetId = false;
     this.text = "";
     this.name = "";
     this.isDead = true;
@@ -801,6 +802,7 @@ function ViewTreepack() {
     n.rate = 1e-6;
     n.screenName = "";
     n.text = "";
+    n.lastTweetId = false;
 
     tempNodeCirle = document.getElementById(n.nodePoolId);
     tempNodeCirle.setAttribute("r", 1e-6);
@@ -1543,6 +1545,7 @@ function ViewTreepack() {
         currentNode.isTrendingTopic = newNode.isTrendingTopic;
         currentNode.category = newNode.category;
         currentNode.categoryAuto = newNode.categoryAuto;
+        currentNode.lastTweetId = newNode.lastTweetId;
 
         if (newNode.nodeType === "user"){
           currentNode.followersCount = newNode.followersCount || 0;
@@ -1594,6 +1597,7 @@ function ViewTreepack() {
         currentNode.mentions = newNode.mentions;
         currentNode.statusesCount = newNode.statusesCount;
         currentNode.friendsCount = newNode.friendsCount;
+        currentNode.lastTweetId = newNode.lastTweetId;
 
         if (newNode.nodeType === "user"){
           currentNode.followersCount = newNode.followersCount || 0;

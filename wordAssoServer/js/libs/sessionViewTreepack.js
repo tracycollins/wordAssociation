@@ -950,7 +950,6 @@ function ViewTreepack() {
         currentTwitterUser = d;
 
         if (mouseMovingFlag && controlPanelReadyFlag && (!previousTwitterUserId || (previousTwitterUserId !== d.userId))){
-          // controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: currentTwitterUser}, DEFAULT_SOURCE);
           previousTwitterUserId = currentTwitterUser.userId;
         }
 
@@ -971,7 +970,6 @@ function ViewTreepack() {
         currentTwitterHashtag = d;
 
         if (mouseMovingFlag && controlPanelReadyFlag && (!previousTwitterHashtag || (previousTwitterHashtag !== d.nodeId))){
-          // controlPanelWindow.postMessage({op: "SET_TWITTER_HASHTAG", hashtag: currentTwitterHashtag}, DEFAULT_SOURCE);
           previousTwitterHashtag = currentTwitterHashtag.nodeId;
         }
 
@@ -1080,7 +1078,9 @@ function ViewTreepack() {
 
         currentTwitterUser = d;
         
-        controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: currentTwitterUser, nodeSearch:true}, DEFAULT_SOURCE);
+        if (controlPanelReadyFlag) {
+          controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: currentTwitterUser, nodeSearch:true}, DEFAULT_SOURCE);
+        }
 
         if (mouseMovingFlag && controlPanelReadyFlag && (!previousTwitterUserId || (previousTwitterUserId !== d.userId))){
           previousTwitterUserId = currentTwitterUser.userId;
@@ -1103,8 +1103,11 @@ function ViewTreepack() {
 
         currentTwitterHashtag = d;
 
-        if (mouseMovingFlag && controlPanelReadyFlag && (!previousTwitterHashtag || (previousTwitterHashtag !== d.nodeId))){
+        if (controlPanelReadyFlag) {
           controlPanelWindow.postMessage({op: "SET_TWITTER_HASHTAG", hashtag: currentTwitterHashtag}, DEFAULT_SOURCE);
+        }
+
+        if (mouseMovingFlag && controlPanelReadyFlag && (!previousTwitterHashtag || (previousTwitterHashtag !== d.nodeId))){
           previousTwitterHashtag = currentTwitterHashtag.nodeId;
         }
 

@@ -35,24 +35,34 @@ const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.serv
 const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
 const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
 
-const wordAssoDb = require("@threeceelabs/mongoose-twitter");
-const dbConnection = wordAssoDb();
-
 let Word;
 let User;
 let Hashtag;
+let hashtagServer;
+let userServer;
+let wordServer;
 
-dbConnection.on("error", console.error.bind(console, "connection error:"));
-dbConnection.once("open", function() {
-  console.log("CONNECT: wordAssoServer UPDATER Mongo DB default connection open");
-  Word = mongoose.model("Word", wordModel.WordSchema);
-  User = mongoose.model("User", userModel.UserSchema);
-  Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
+const wordAssoDb = require("@threeceelabs/mongoose-twitter");
+
+wordAssoDb(function(err, dbConnection){
+  if (err) {
+    console.log(chalkError("TWP | *** MONGO DB CONNECTION ERROR: " + err));
+    quit("MONGO DB CONNECTION ERROR");
+  }
+  else {
+    dbConnection.on("error", console.error.bind(console, "TWP | *** MONGO DB CONNECTION ERROR ***\n"));
+    console.log("WORD UPDATER | MONGOOSE DEFAULT CONNECTION OPEN");
+    Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
+    User = mongoose.model("User", userModel.UserSchema);
+    Word = mongoose.model("Word", wordModel.WordSchema);
+    hashtagServer = require("@threeceelabs/hashtag-server-controller");
+    userServer = require("@threeceelabs/user-server-controller");
+    wordServer = require("@threeceelabs/word-server-controller");
+  }
+
 });
 
-const hashtagServer = require("@threeceelabs/hashtag-server-controller");
-const userServer = require("@threeceelabs/user-server-controller");
-const wordServer = require("@threeceelabs/word-server-controller");
+
 
 let hostname = os.hostname();
 hostname = hostname.replace(/.local/g, "");

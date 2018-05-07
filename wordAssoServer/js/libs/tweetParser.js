@@ -10,8 +10,16 @@ const os = require("os");
 const debug = require("debug")("twp");
 const moment = require("moment");
 const async = require("async");
+
+const chalk = require("chalk");
+const chalkInfo = chalk.gray;
+const chalkAlert = chalk.red;
+const chalkError = chalk.bold.red;
+const chalkNetwork = chalk.blue;
+
 const mongoose = require("mongoose");
 mongoose.Promise = global.Promise;
+
 
 const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
 const mediaModel = require("@threeceelabs/mongoose-twitter/models/media.server.model");
@@ -28,6 +36,7 @@ let Tweet;
 let Url;
 let User;
 let Word;
+let tweetServer;
 
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
@@ -38,7 +47,7 @@ wordAssoDb(function(err, dbConnection){
   }
   else {
     dbConnection.on("error", console.error.bind(console, "TWP | *** MONGO DB CONNECTION ERROR ***\n"));
-    console.log("TWP | CONNECT: wordAssoServer Mongo DB default connection open to " + config.wordAssoDb);
+    console.log("TWEET SERVER CONTROLLER | MONGOOSE DEFAULT CONNECTION OPEN");
     Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
     Media = mongoose.model("Media", mediaModel.MediaSchema);
     Place = mongoose.model("Place", placeModel.PlaceSchema);
@@ -46,20 +55,15 @@ wordAssoDb(function(err, dbConnection){
     Url = mongoose.model("Url", urlModel.UrlSchema);
     User = mongoose.model("User", userModel.UserSchema);
     Word = mongoose.model("Word", wordModel.WordSchema);
+    tweetServer = require("@threeceelabs/tweet-server-controller");
   }
 
 });
 
-const tweetServer = require("@threeceelabs/tweet-server-controller");
 // const tweetServer = require("../../../../tweetServerController");
 
 const tweetParserQueue = [];
 
-const chalk = require("chalk");
-const chalkInfo = chalk.gray;
-const chalkAlert = chalk.red;
-const chalkError = chalk.bold.red;
-const chalkNetwork = chalk.blue;
 
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 

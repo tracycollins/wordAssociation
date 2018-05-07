@@ -445,17 +445,15 @@ wordAssoDb(function(err, dbConnection){
   }
   else {
     dbConnection.on("error", console.error.bind(console, "*** MONGO DB CONNECTION ERROR ***\n"));
-    dbConnection.once("open", function() {
-      console.log("CONNECT: wordAssoServer Mongo DB default connection open to " + config.wordAssoDb);
-      Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
-      Media = mongoose.model("Media", mediaModel.MediaSchema);
-      Place = mongoose.model("Place", placeModel.PlaceSchema);
-      Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
-      Url = mongoose.model("Url", urlModel.UrlSchema);
-      User = mongoose.model("User", userModel.UserSchema);
-      Word = mongoose.model("Word", wordModel.WordSchema);
-      statsObj.dbConnection = true;
-    });
+    console.log("CONNECT: wordAssoServer Mongo DB default connection open to " + config.wordAssoDb);
+    Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
+    Media = mongoose.model("Media", mediaModel.MediaSchema);
+    Place = mongoose.model("Place", placeModel.PlaceSchema);
+    Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
+    Url = mongoose.model("Url", urlModel.UrlSchema);
+    User = mongoose.model("User", userModel.UserSchema);
+    Word = mongoose.model("Word", wordModel.WordSchema);
+    statsObj.dbConnection = true;
   }
 
 });

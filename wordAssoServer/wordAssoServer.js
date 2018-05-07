@@ -435,8 +435,8 @@ const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.mod
 const mongoose = require("mongoose");
 mongoose.Promise = global.Promise;
 
-const wordAssoDb = require("@threeceelabs/mongoose-twitter");
-// let dbConnection;
+// const wordAssoDb = require("@threeceelabs/mongoose-twitter");
+const wordAssoDb = require("../../mongooseTwitter");
 
 wordAssoDb(function(err, dbConnection){
   if (err) {
@@ -445,7 +445,7 @@ wordAssoDb(function(err, dbConnection){
   }
   else {
     dbConnection.on("error", console.error.bind(console, "*** MONGO DB CONNECTION ERROR ***\n"));
-    console.log("CONNECT: wordAssoServer Mongo DB default connection open to " + config.wordAssoDb);
+    console.log(chalkAlert("WORD ASSO SERVER | MONGOOSE DEFAULT CONNECTION OPEN"));
     Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
     Media = mongoose.model("Media", mediaModel.MediaSchema);
     Place = mongoose.model("Place", placeModel.PlaceSchema);

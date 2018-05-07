@@ -441,7 +441,7 @@ const hashtagServer = require("@threeceelabs/hashtag-server-controller");
 const userServer = require("@threeceelabs/user-server-controller");
 // const userServer = require("../../userServerController");
 
-dbConnection.on("error", console.error.bind(console, "connection error:"));
+dbConnection.on("error", console.error.bind(console, "*** MONGO DB CONNECTION ERROR ***\n"));
 dbConnection.once("open", function() {
   console.log("CONNECT: wordAssoServer Mongo DB default connection open to " + config.wordAssoDb);
   Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);

@@ -30,18 +30,26 @@ let User;
 let Word;
 
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
-const dbConnection = wordAssoDb();
 
-dbConnection.on("error", console.error.bind(console, "connection error:"));
-dbConnection.once("open", function() {
-  console.log("CONNECT: TWEET PARSER MONGOOSE default connection open");
-  Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
-  Media = mongoose.model("Media", mediaModel.MediaSchema);
-  Place = mongoose.model("Place", placeModel.PlaceSchema);
-  Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
-  Url = mongoose.model("Url", urlModel.UrlSchema);
-  User = mongoose.model("User", userModel.UserSchema);
-  Word = mongoose.model("Word", wordModel.WordSchema);
+wordAssoDb(function(err, dbConnection){
+  if (err) {
+    console.log(chalkError("TWP | *** MONGO DB CONNECTION ERROR: " + err));
+    quit("MONGO DB CONNECTION ERROR");
+  }
+  else {
+    dbConnection.on("error", console.error.bind(console, "TWP | *** MONGO DB CONNECTION ERROR ***\n"));
+    dbConnection.once("open", function() {
+      console.log("TWP | CONNECT: wordAssoServer Mongo DB default connection open to " + config.wordAssoDb);
+      Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
+      Media = mongoose.model("Media", mediaModel.MediaSchema);
+      Place = mongoose.model("Place", placeModel.PlaceSchema);
+      Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
+      Url = mongoose.model("Url", urlModel.UrlSchema);
+      User = mongoose.model("User", userModel.UserSchema);
+      Word = mongoose.model("Word", wordModel.WordSchema);
+    });
+  }
+
 });
 
 const tweetServer = require("@threeceelabs/tweet-server-controller");
@@ -81,7 +89,7 @@ function quit(message) {
     exitCode = 1;
   }
 
-  console.error(process.argv[1]
+  console.error("TWP | " + process.argv[1]
     + " | " + moment().format(compactDateTimeFormat)
     + " | TWEET PARSER: **** QUITTING"
     + " | CAUSE: " + msg
@@ -101,7 +109,7 @@ process.on("SIGINT", function processSigInt() {
 
 process.title = "node_tweetParser";
 console.log(
-  "\n\n====================================================================================================\n" 
+  "\n\nTWP | ====================================================================================================\n" 
   + "========================================= ***START*** ==============================================\n" 
   + "====================================================================================================\n" 
   + process.argv[1] 
@@ -123,7 +131,7 @@ configEvents.on("newListener", function configEventsNewListener(data) {
 });
 
 if (debug.enabled) {
-  console.log("UPDATER: \n%%%%%%%%%%%%%%\n%%%%%%% DEBUG ENABLED %%%%%%%\n%%%%%%%%%%%%%%\n");
+  console.log("*** TWP\n%%%%%%%%%%%%%%\n%%%%%%% DEBUG ENABLED %%%%%%%\n%%%%%%%%%%%%%%\n");
 }
 
 let cnf = {};
@@ -137,7 +145,7 @@ let tweetParserQueueInterval;
 
 function initTweetParserQueueInterval(cnf){
 
-  console.log(chalkInfo("initTweetParserQueueInterval | " + cnf.updateInterval + " MS"));
+  console.log(chalkInfo("TWP | initTweetParserQueueInterval | " + cnf.updateInterval + " MS"));
 
   clearInterval(tweetParserQueueInterval);
 
@@ -182,7 +190,7 @@ function initTweetParserQueueInterval(cnf){
           tweetParserQueueReady = true;
 
           if (err.code !== 11000) {
-            console.log(chalkError("CREATE STREAM TWEET ERROR\n" + jsonPrint(err)));
+            console.log(chalkError("TWP | CREATE STREAM TWEET ERROR\n" + jsonPrint(err)));
           }
         }
         else if (cnf.globalTestMode){
@@ -190,14 +198,14 @@ function initTweetParserQueueInterval(cnf){
           tweetParserQueueReady = true;
 
           if (cnf.verbose){
-            console.log(chalkAlert("t< GLOBAL TEST MODE"
+            console.log(chalkAlert("TWP | t< GLOBAL TEST MODE"
               + " | " + tweetObj.tweetId
               + " | @" + tweetObj.user.screenName
             ));
           }
         }
         else {
-          debug(chalkInfo("TW PARSER [" + tweetParserQueue.length + "]"
+          debug(chalkInfo("TWP | TW PARSER [" + tweetParserQueue.length + "]"
             + " createStreamTweet DONE" 
             + " | " + tweetObj.tweetId
           ));

@@ -372,6 +372,17 @@ let hashtagLookupQueue = [];
 let categoryHashmapsInterval;
 let statsInterval;
 
+
+function quit(message) {
+  debug("\n... QUITTING ...");
+  let msg = "";
+  if (message) {msg = message;}
+  debug("QUIT MESSAGE: " + msg);
+  process.exit();
+}
+
+
+
 let GOOGLE_METRICS_ENABLED = false;
 
 if (process.env.GOOGLE_METRICS_ENABLED !== undefined) {
@@ -421,8 +432,33 @@ const urlModel = require("@threeceelabs/mongoose-twitter/models/url.server.model
 const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
 const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
 
+const mongoose = require("mongoose");
+mongoose.Promise = global.Promise;
+
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
-const dbConnection = wordAssoDb();
+// let dbConnection;
+
+wordAssoDb(function(err, dbConnection){
+  if (err) {
+    console.log(chalkError("*** MONGO DB CONNECTION ERROR: " + err));
+    quit("MONGO DB CONNECTION ERROR");
+  }
+  else {
+    dbConnection.on("error", console.error.bind(console, "*** MONGO DB CONNECTION ERROR ***\n"));
+    dbConnection.once("open", function() {
+      console.log("CONNECT: wordAssoServer Mongo DB default connection open to " + config.wordAssoDb);
+      Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
+      Media = mongoose.model("Media", mediaModel.MediaSchema);
+      Place = mongoose.model("Place", placeModel.PlaceSchema);
+      Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
+      Url = mongoose.model("Url", urlModel.UrlSchema);
+      User = mongoose.model("User", userModel.UserSchema);
+      Word = mongoose.model("Word", wordModel.WordSchema);
+      statsObj.dbConnection = true;
+    });
+  }
+
+});
 
 let Hashtag;
 let Media;
@@ -432,28 +468,12 @@ let Url;
 let User;
 let Word;
 
-const mongoose = require("mongoose");
-mongoose.Promise = global.Promise;
 
 const hashtagServer = require("@threeceelabs/hashtag-server-controller");
 // const hashtagServer = require("../../hashtagServerController");
 
 const userServer = require("@threeceelabs/user-server-controller");
 // const userServer = require("../../userServerController");
-
-dbConnection.on("error", console.error.bind(console, "*** MONGO DB CONNECTION ERROR ***\n"));
-dbConnection.once("open", function() {
-  console.log("CONNECT: wordAssoServer Mongo DB default connection open to " + config.wordAssoDb);
-  Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
-  Media = mongoose.model("Media", mediaModel.MediaSchema);
-  Place = mongoose.model("Place", placeModel.PlaceSchema);
-  Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
-  Url = mongoose.model("Url", urlModel.UrlSchema);
-  User = mongoose.model("User", userModel.UserSchema);
-  Word = mongoose.model("Word", wordModel.WordSchema);
-  statsObj.dbConnection = true;
-});
-
 
 function toMegabytes(sizeInBytes) {
   return sizeInBytes/ONE_MEGABYTE;
@@ -820,15 +840,6 @@ function initStats(callback){
   statsObj.utilities = {};
 
   callback();
-}
-
-function quit(message) {
-  // clearInterval(updaterPingInterval);
-  debug("\n... QUITTING ...");
-  let msg = "";
-  if (message) {msg = message;}
-  debug("QUIT MESSAGE: " + msg);
-  process.exit();
 }
 
 function getTimeStamp(inputTime) {

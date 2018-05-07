@@ -438,7 +438,18 @@ mongoose.Promise = global.Promise;
 // const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 const wordAssoDb = require("../../mongooseTwitter");
 
-wordAssoDb(function(err, dbConnection){
+let Hashtag;
+let Media;
+let Place;
+let Tweet;
+let Url;
+let User;
+let Word;
+
+let hashtagServer;
+let userServer;
+
+wordAssoDb.connect(function(err, dbConnection){
   if (err) {
     console.log(chalkError("*** MONGO DB CONNECTION ERROR: " + err));
     quit("MONGO DB CONNECTION ERROR");
@@ -453,24 +464,18 @@ wordAssoDb(function(err, dbConnection){
     Url = mongoose.model("Url", urlModel.UrlSchema);
     User = mongoose.model("User", userModel.UserSchema);
     Word = mongoose.model("Word", wordModel.WordSchema);
+
+    hashtagServer = require("@threeceelabs/hashtag-server-controller");
+    userServer = require("@threeceelabs/user-server-controller");
+
     statsObj.dbConnection = true;
   }
 
 });
 
-let Hashtag;
-let Media;
-let Place;
-let Tweet;
-let Url;
-let User;
-let Word;
 
 
-const hashtagServer = require("@threeceelabs/hashtag-server-controller");
 // const hashtagServer = require("../../hashtagServerController");
-
-const userServer = require("@threeceelabs/user-server-controller");
 // const userServer = require("../../userServerController");
 
 function toMegabytes(sizeInBytes) {

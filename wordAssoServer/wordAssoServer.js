@@ -435,8 +435,8 @@ const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.mod
 const mongoose = require("mongoose");
 mongoose.Promise = global.Promise;
 
-// const wordAssoDb = require("@threeceelabs/mongoose-twitter");
-const wordAssoDb = require("../../mongooseTwitter");
+const wordAssoDb = require("@threeceelabs/mongoose-twitter");
+// const wordAssoDb = require("../../mongooseTwitter");
 
 let Hashtag;
 let Media;
@@ -472,11 +472,6 @@ wordAssoDb.connect(function(err, dbConnection){
   }
 
 });
-
-
-
-// const hashtagServer = require("../../hashtagServerController");
-// const userServer = require("../../userServerController");
 
 function toMegabytes(sizeInBytes) {
   return sizeInBytes/ONE_MEGABYTE;

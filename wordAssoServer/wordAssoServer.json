@@ -7,6 +7,7 @@
     "restart_delay": 30000,
     "node_args"   : "--max-old-space-size=6144",
     "env": {
+      "FORCE_COLOR": 1,
       "WA_MIN_FOLLOWERS": 15000,
       "WA_MIN_MENTIONS_VALUE": 500,
       "WA_MIN_METRIC_VALUE": 5.0,

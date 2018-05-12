@@ -2199,11 +2199,11 @@ function initSocketHandler(socketObj) {
           console.log(chalkSocket("TX> SET_TWITTER_USER"
             + " | " + getTimeStamp()
             + " | SID: " + socket.id
-            + " | NID: " + updatedNodeObj.nodeId
+            + "\nNID: " + updatedNodeObj.nodeId
             + " | UID: " + updatedNodeObj.userId
             + " | @" + updatedNodeObj.screenName
             + " | NAME: " + updatedNodeObj.name
-            + " | FLWRs: " + updatedNodeObj.followersCount
+            + "\nFLWRs: " + updatedNodeObj.followersCount
             + " | FRNDs: " + updatedNodeObj.friendsCount
             + " | Ms: " + updatedNodeObj.mentions
             + " | Ts: " + updatedNodeObj.statusesCount

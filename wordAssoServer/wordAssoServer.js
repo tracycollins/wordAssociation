@@ -1863,7 +1863,7 @@ function initSocketHandler(socketObj) {
 
       if (tfeServers[socket.id] === undefined) { 
         tfeServers[socket.id] = {};
-        console.error(chalkSession("+++ ADDED TFE SERVER" 
+        console.log(chalkAlert("+++ ADDED TFE SERVER" 
           + " | " + moment().format(compactDateTimeFormat)
           + " | " + userObj.userId
           + " | " + socket.id
@@ -1879,7 +1879,7 @@ function initSocketHandler(socketObj) {
 
       if (tmsServers[socket.id] === undefined) { 
         tmsServers[socket.id] = {};
-        console.error(chalkSession("+++ ADDED TMS SERVER" 
+        console.log(chalkAlert("+++ ADDED TMS SERVER" 
           + " | " + moment().format(compactDateTimeFormat)
           + " | " + userObj.userId
           + " | " + socket.id
@@ -1895,7 +1895,7 @@ function initSocketHandler(socketObj) {
 
       if (tssServers[socket.id] === undefined) {
         tssServers[socket.id] = {};
-        console.error(chalkSession("+++ ADDED TSS SERVER" 
+        console.log(chalkAlert("+++ ADDED TSS SERVER" 
           + " | " + moment().format(compactDateTimeFormat)
           + " | " + userObj.userId
           + " | " + socket.id
@@ -1912,7 +1912,7 @@ function initSocketHandler(socketObj) {
 
       if (tusServers[socket.id] === undefined) {
         tusServers[socket.id] = {};
-        console.error(chalkSession("+++ ADDED TUS SERVER" 
+        console.log(chalkAlert("+++ ADDED TUS SERVER" 
           + " | " + moment().format(compactDateTimeFormat)
           + " | " + userObj.userId
           + " | " + socket.id

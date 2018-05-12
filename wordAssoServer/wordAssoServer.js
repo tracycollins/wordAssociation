@@ -349,6 +349,7 @@ let languageServer = {};
 let tfeServers = {};
 let tmsServers = {};
 let tssServers = {};
+let tusServers = {};
 
 let currentTssServer = {};
 currentTssServer.connected = false;
@@ -704,6 +705,11 @@ let internetCheckInterval;
 
 const http = require("http");
 const httpServer = http.createServer(app);
+const ioConfig = {
+  pingInterval: 40000,
+  pingTimeout: 25000,
+  reconnection: true
+};
 
 let io;
 const net = require("net");
@@ -1818,6 +1824,14 @@ function initSocketHandler(socketObj) {
       delete tssServers[socket.id];
       currentTssServer.connected = false;
     }
+    if (tusServers[socket.id] !== undefined) { 
+      console.error(chalkSession("XXX DELETED TUS SERVER" 
+        + " | " + moment().format(compactDateTimeFormat)
+        + " | " + tusServers[socket.id].user.nodeId
+        + " | " + socket.id
+      ));
+      delete tusServers[socket.id];
+    }
   });
 
   socket.on("SESSION_KEEPALIVE", function sessionKeepalive(userObj) {
@@ -1830,7 +1844,7 @@ function initSocketHandler(socketObj) {
 
     if (userObj.stats) {statsObj.utilities[userObj.nodeId] = userObj.stats;}
 
-    if (userObj.nodeId.match(/LA_/g)){
+    if (userObj.nodeId.match(/la_/gi)){
       userObj.isServer = true;
 
       languageServer.connected = true;
@@ -1844,7 +1858,7 @@ function initSocketHandler(socketObj) {
       ));
     }
  
-    if (userObj.nodeId.match(/TFE_/g)){
+    if (userObj.nodeId.match(/^tfe_/gi)){
       userObj.isServer = true;
 
       if (tfeServers[socket.id] === undefined) { 
@@ -1860,7 +1874,7 @@ function initSocketHandler(socketObj) {
       tfeServers[socket.id].user = userObj;
     }
  
-    if (userObj.nodeId.match(/TMS_/g)){
+    if (userObj.nodeId.match(/^tms_/gi)){
       userObj.isServer = true;
 
       if (tmsServers[socket.id] === undefined) { 
@@ -1876,7 +1890,7 @@ function initSocketHandler(socketObj) {
       tmsServers[socket.id].user = userObj;
     }
  
-    if (userObj.nodeId.match(/TSS_/g)){
+    if (userObj.nodeId.match(/^tss_/gi)){
       userObj.isServer = true;
 
       if (tssServers[socket.id] === undefined) {
@@ -1891,6 +1905,22 @@ function initSocketHandler(socketObj) {
       tssServers[socket.id].connected = true;
       tssServers[socket.id].user = userObj;
       currentTssServer = tssServers[socket.id];
+    }
+
+    if (userObj.nodeId.match(/^tus_/gi)){
+      userObj.isServer = true;
+
+      if (tusServers[socket.id] === undefined) {
+        tusServers[socket.id] = {};
+        console.error(chalkSession("+++ ADDED TUS SERVER" 
+          + " | " + moment().format(compactDateTimeFormat)
+          + " | " + userObj.nodeId
+          + " | " + socket.id
+        ));
+      }
+
+      tusServers[socket.id].connected = true;
+      tusServers[socket.id].user = userObj;
     }
   });
 
@@ -3890,7 +3920,7 @@ function initialize(cnf, callback) {
   initLoadBestNetworkInterval(ONE_MINUTE+1);
   initInternetCheckInterval(10000);
 
-  io = require("socket.io")(httpServer, { reconnection: true });
+  io = require("socket.io")(httpServer, ioConfig);
 
   function postAuthenticate(socket, data) {
     console.log(chalkAlert("postAuthenticate\n" + jsonPrint(data)));

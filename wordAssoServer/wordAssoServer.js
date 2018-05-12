@@ -346,6 +346,7 @@ const tweetMeter = new Measured.Meter({rateUnit: 60000});
 
 let languageServer = {};
 
+let tfeServers = {};
 let tmsServers = {};
 let tssServers = {};
 
@@ -1792,6 +1793,14 @@ function initSocketHandler(socketObj) {
       + " | SOCKET DISCONNECT: " + socket.id + "\nstatus\n" + jsonPrint(status)
     ));
 
+    if (tfeServers[socket.id] !== undefined) { 
+      console.error(chalkSession("XXX DELETED TFE SERVER" 
+        + " | " + moment().format(compactDateTimeFormat)
+        + " | " + tfeServers[socket.id].user.nodeId
+        + " | " + socket.id
+      ));
+      delete tfeServers[socket.id];
+    }
     if (tmsServers[socket.id] !== undefined) { 
       console.error(chalkSession("XXX DELETED TMS SERVER" 
         + " | " + moment().format(compactDateTimeFormat)
@@ -1833,6 +1842,22 @@ function initSocketHandler(socketObj) {
         + " | " + moment().format(compactDateTimeFormat)
         // + "\n" + jsonPrint(userObj)
       ));
+    }
+ 
+    if (userObj.nodeId.match(/TFE_/g)){
+      userObj.isServer = true;
+
+      if (tfeServers[socket.id] === undefined) { 
+        tfeServers[socket.id] = {};
+        console.error(chalkSession("+++ ADDED TFE SERVER" 
+          + " | " + moment().format(compactDateTimeFormat)
+          + " | " + userObj.nodeId
+          + " | " + socket.id
+        ));
+      }
+
+      tfeServers[socket.id].connected = true;
+      tfeServers[socket.id].user = userObj;
     }
  
     if (userObj.nodeId.match(/TMS_/g)){

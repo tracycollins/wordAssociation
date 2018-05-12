@@ -348,6 +348,7 @@ let languageServer = {};
 
 let tfeServers = {};
 let tmsServers = {};
+let tnnServers = {};
 let tssServers = {};
 let tusServers = {};
 
@@ -1815,6 +1816,14 @@ function initSocketHandler(socketObj) {
       ));
       delete tmsServers[socket.id];
     }
+    if (tnnServers[socket.id] !== undefined) { 
+      console.error(chalkSession("XXX DELETED TNN SERVER" 
+        + " | " + moment().format(compactDateTimeFormat)
+        + " | " + tnnServers[socket.id].user.nodeId
+        + " | " + socket.id
+      ));
+      delete tnnServers[socket.id];
+    }
     if (tssServers[socket.id] !== undefined) { 
       console.error(chalkSession("XXX DELETED TSS SERVER" 
         + " | " + moment().format(compactDateTimeFormat)
@@ -1890,6 +1899,23 @@ function initSocketHandler(socketObj) {
       tmsServers[socket.id].user = userObj;
     }
  
+    if (userObj.userId.match(/^tnn_/gi)){
+      userObj.isServer = true;
+
+      if (tnnServers[socket.id] === undefined) {
+        tnnServers[socket.id] = {};
+        console.log(chalkAlert("+++ ADDED TNN SERVER" 
+          + " | " + moment().format(compactDateTimeFormat)
+          + " | " + userObj.userId
+          + " | " + socket.id
+        ));
+      }
+
+      tnnServers[socket.id].connected = true;
+      tnnServers[socket.id].user = userObj;
+      currentTssServer = tnnServers[socket.id];
+    }
+
     if (userObj.userId.match(/^tss_/gi)){
       userObj.isServer = true;
 

@@ -16,9 +16,10 @@ let dropboxConfigDefaultTrainingSetsFolder = dropboxConfigDefaultFolder + "/trai
 let maxInputHashMapFile = "maxInputHashMap.json";
 
 let nodeSearchType = false;
-let nodeSearchBy = "createdAt";
+let nodeSearchBy = "lastSeen";
 let previousUserUncategorizedId = "1";
 let previousUserUncategorizedCreated = moment();
+let previousUserUncategorizedLastSeen = moment();
 let previousUserMismatchedId = "1";
 
 const categorizedFolder = dropboxConfigDefaultFolder + "/categorized";
@@ -1606,7 +1607,9 @@ function categorizeNode(categorizeObj, callback) {
           obj: categorizedUserHashMap.entries()
         });
 
-      userServer.updateCategory({user: categorizeObj.node, category: categorizeObj.category}, function(err, updatedUser){
+      userServer.updateCategory(
+        {user: categorizeObj.node, category: categorizeObj.category}, 
+        function(err, updatedUser){
 
         if (err) {
           console.log(chalkError("*** USER UPDATE CATEGORY ERROR: " + jsonPrint(err)));
@@ -2041,15 +2044,15 @@ function initSocketHandler(socketObj) {
 
         searchNodeUser = { screenName: searchNode.substring(1) };
 
-        if (searchNodeUser.screenName === "?") {
-          console.log(chalkInfo("SEARCH FOR UNCATEGORIZED USER"));
+        if ((searchNodeUser.screenName === "?") && (nodeSearchBy === "createdAt")) {
+          console.log(chalkInfo("SEARCH FOR UNCATEGORIZED USER | CREATED AT"));
           nodeSearchType = "USER_UNCATEGORIZED";
-          nodeSearchBy = "createdAt";
-          // searchNodeUser = { nodeId: previousUserUncategorizedId };
-          searchNodeUser = {
-            // nodeSearchBy: nodeSearchBy,
-            createdAt: previousUserUncategorizedCreated
-          };
+          searchNodeUser = { createdAt: previousUserUncategorizedCreated };
+        }
+        else if ((searchNodeUser.screenName === "?") && (nodeSearchBy === "lastSeen")) {
+          console.log(chalkInfo("SEARCH FOR UNCATEGORIZED USER | LAST SEEN"));
+          nodeSearchType = "USER_UNCATEGORIZED";
+          searchNodeUser = { lastSeen: previousUserUncategorizedLastSeen };
         }
         else if (searchNodeUser.screenName === "?mm") {
           console.log(chalkInfo("SEARCH FOR MISMATCHED USER"));
@@ -2093,6 +2096,9 @@ function initSocketHandler(socketObj) {
                   if ((nodeSearchBy !== undefined) && (nodeSearchBy === "createdAt")) {
                     previousUserUncategorizedCreated = moment(user.createdAt);
                   }
+                  else if ((nodeSearchBy !== undefined) && (nodeSearchBy === "lastSeen")) {
+                    previousUserUncategorizedLastSeen = moment(user.lastSeen);
+                  }
                   else {
                     previousUserUncategorizedId = user.nodeId;
                   }
@@ -2129,7 +2135,10 @@ function initSocketHandler(socketObj) {
 
                       if (nodeSearchType === "USER_UNCATEGORIZED") {
                         if ((nodeSearchBy !== undefined) && (nodeSearchBy === "createdAt")) {
-                          previousUserUncategorizedCreated = moment(updatedUser.createdAt);
+                          // previousUserUncategorizedCreated = moment(updatedUser.createdAt);
+                        }
+                        else if ((nodeSearchBy !== undefined) && (nodeSearchBy === "lastSeen")) {
+                          previousUserUncategorizedLastSeen = moment(updatedUser.lastSeen);
                         }
                         else {
                           previousUserUncategorizedId = updatedUser.userId;
@@ -2152,21 +2161,23 @@ function initSocketHandler(socketObj) {
             });
           }
           else {
-            console.log(chalkTwitter("--- TWITTER_SEARCH_NODE USER *NOT* FOUND\n" + jsonPrint(searchNodeUser)));
+            console.log(chalkTwitter("--- TWITTER_SEARCH_NODE USER *NOT* FOUND"
+              + "\n" + jsonPrint(searchNodeUser)
+            ));
 
             if (nodeSearchType === "USER_UNCATEGORIZED") {
               if ((nodeSearchBy !== undefined) && (nodeSearchBy === "createdAt")) {
                 previousUserUncategorizedCreated = moment();
                 return;
               }
+              else if ((nodeSearchBy !== undefined) && (nodeSearchBy === "lastSeen")) {
+                previousUserUncategorizedLastSeen = moment();
+                return;
+              }
               else {
                 previousUserUncategorizedId = "1";
               }
             }
-
-            // if (nodeSearchType === "USER_MISMATCHED") {
-            //   previousUserMismatchedId = "1";
-            // }
 
             let twitQuery;
 

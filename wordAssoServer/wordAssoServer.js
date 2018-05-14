@@ -2,6 +2,7 @@
 "use strict";
 
 const DROPBOX_LIST_FOLDER_LIMIT = 50;
+const MIN_FOLLOWERS_AUTO = 10000;
 
 let dropboxConfigDefaultFolder = "/config/utility/default";
 
@@ -345,6 +346,8 @@ const chalkLog = chalk.gray;
 const tweetMeter = new Measured.Meter({rateUnit: 60000});
 
 let languageServer = {};
+
+let tfeServerHashmap = new HashMap();
 
 let tfeServers = {};
 let tmsServers = {};
@@ -838,9 +841,13 @@ function initStats(callback){
 
   statsObj.socket = {};
   statsObj.socket.connects = 0;
-  statsObj.socket.disconnects = 0;
-  statsObj.socket.errors = 0;
   statsObj.socket.reconnects = 0;
+  statsObj.socket.disconnects = 0;
+  statsObj.socket.errors = {};
+  statsObj.socket.errors.reconnect_errors = 0;
+  statsObj.socket.errors.connect_errors = 0;
+  statsObj.socket.errors.reconnect_fails = 0;
+  statsObj.socket.errors.connect_timeouts = 0;
   statsObj.socket.wordsReceived = 0;
 
   statsObj.utilities = {};
@@ -1121,17 +1128,26 @@ function saveFile (params, callback){
     const objSizeMBytes = options.file_size/ONE_MEGABYTE;
 
     showStats();
-    console.log(chalkAlert("WAS | ... SAVING LOCALLY | " + objSizeMBytes.toFixed(2) + " MB | " + fullPath));
+    console.log(chalkAlert("WAS | ... SAVING LOCALLY"
+      + " | " + objSizeMBytes.toFixed(2) + " MB | " + fullPath
+    ));
 
     writeJsonFile(fullPath, params.obj)
     .then(function() {
 
-      console.log(chalkAlert("WAS | SAVED LOCALLY | " + objSizeMBytes.toFixed(2) + " MB | " + fullPath));
-      console.log(chalkAlert("WAS | ... PAUSE 5 SEC TO FINISH FILE SAVE | " + objSizeMBytes.toFixed(2) + " MB | " + fullPath));
+      console.log(chalkAlert("WAS | SAVED LOCALLY"
+        + " | " + objSizeMBytes.toFixed(2) + " MB | " + fullPath
+      ));
+      console.log(chalkAlert("WAS | ... PAUSE 5 SEC TO FINISH FILE SAVE"
+        + " | " + objSizeMBytes.toFixed(2) + " MB | " + fullPath
+        ));
 
       setTimeout(function(){
 
-        console.log(chalkAlert("WAS | ... DROPBOX UPLOADING | " + objSizeMBytes.toFixed(2) + " MB | " + fullPath + " > " + options.destination));
+        console.log(chalkAlert("WAS | ... DROPBOX UPLOADING"
+          + " | " + objSizeMBytes.toFixed(2) + " MB | " 
+          + fullPath + " > " + options.destination
+        ));
 
         // const source = fs.createReadStream(fullPath);
 
@@ -1633,7 +1649,9 @@ function categorizeNode(categorizeObj, callback) {
           obj: categorizedHashtagHashMap.entries()
         });
 
-      hashtagServer.updateCategory({hashtag: categorizeObj.node, category: categorizeObj.category}, function(err, updatedHashtag){
+      hashtagServer.updateCategory(
+        {hashtag: categorizeObj.node, category: categorizeObj.category}, 
+        function(err, updatedHashtag){
         if (err) {
           console.log(chalkError("*** HASHTAG UPDATE CATEGORY ERROR: " + jsonPrint(err)));
           if (callback !== undefined) {
@@ -1642,7 +1660,9 @@ function categorizeNode(categorizeObj, callback) {
         }
         else {
 
-          categorizedHashtagHashMap.set(updatedHashtag.nodeId, {manual: updatedHashtag.category, auto: updatedHashtag.categoryAuto});
+          categorizedHashtagHashMap.set(
+            updatedHashtag.nodeId, 
+            {manual: updatedHashtag.category, auto: updatedHashtag.categoryAuto});
 
           const text = "CATEGORIZE"
             + "\n#" + categorizeObj.node.nodeId.toLowerCase() + ": " + categorizeObj.category;
@@ -1757,31 +1777,31 @@ function initSocketHandler(socketObj) {
   slackPostMessage(slackChannel, socketConnectText);
 
   socket.on("reconnect_error", function reconnectError(errorObj) {
-    statsObj.socket.reconnect_errors += 1;
+    statsObj.socket.errors.reconnect_errors += 1;
     debug(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET RECONNECT ERROR: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on("reconnect_failed", function reconnectFailed(errorObj) {
-    statsObj.socket.reconnect_fails += 1;
+    statsObj.socket.errors.reconnect_fails += 1;
     debug(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET RECONNECT FAILED: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on("connect_error", function connectError(errorObj) {
-    statsObj.socket.connect_errors += 1;
+    statsObj.socket.errors.connect_errors += 1;
     debug(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET CONNECT ERROR: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on("connect_timeout", function connectTimeout(errorObj) {
-    statsObj.socket.connect_timeouts += 1;
+    statsObj.socket.errors.connect_timeouts += 1;
     debug(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET CONNECT TIMEOUT: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on("error", function socketError(error) {
-    statsObj.socket.errors += 1;
+    statsObj.socket.errors.errors += 1;
     console.log(chalkError(moment().format(compactDateTimeFormat) 
       + " | *** SOCKET ERROR" + " | " + socket.id + " | " + error));
   });
@@ -1794,22 +1814,25 @@ function initSocketHandler(socketObj) {
   socket.on("disconnect", function socketDisconnect(status) {
     statsObj.socket.disconnects += 1;
 
-    console.log(chalkAlert("SOCKET DISCONNECT " + socket.id));
+    console.log(chalkAlert("SOCKET DISCONNECT"
+      + " | " + moment().format(compactDateTimeFormat)
+      + " | " + socket.id
+    ));
 
     debug(chalkDisconnect(moment().format(compactDateTimeFormat) 
       + " | SOCKET DISCONNECT: " + socket.id + "\nstatus\n" + jsonPrint(status)
     ));
 
-    if (tfeServers[socket.id] !== undefined) { 
-      console.error(chalkSession("XXX DELETED TFE SERVER" 
+    if (tfeServerHashmap.has(socket.id)) { 
+      console.error(chalkAlert("XXX DELETED TFE SERVER" 
         + " | " + moment().format(compactDateTimeFormat)
-        + " | " + tfeServers[socket.id].user.nodeId
+        + " | " + tfeServerHashmap.get(socket.id).user.nodeId
         + " | " + socket.id
       ));
-      delete tfeServers[socket.id];
+      tfeServerHashmap.delete(socket.id);
     }
     if (tmsServers[socket.id] !== undefined) { 
-      console.error(chalkSession("XXX DELETED TMS SERVER" 
+      console.error(chalkAlert("XXX DELETED TMS SERVER" 
         + " | " + moment().format(compactDateTimeFormat)
         + " | " + tmsServers[socket.id].user.nodeId
         + " | " + socket.id
@@ -1817,7 +1840,7 @@ function initSocketHandler(socketObj) {
       delete tmsServers[socket.id];
     }
     if (tnnServers[socket.id] !== undefined) { 
-      console.error(chalkSession("XXX DELETED TNN SERVER" 
+      console.error(chalkAlert("XXX DELETED TNN SERVER" 
         + " | " + moment().format(compactDateTimeFormat)
         + " | " + tnnServers[socket.id].user.nodeId
         + " | " + socket.id
@@ -1825,7 +1848,7 @@ function initSocketHandler(socketObj) {
       delete tnnServers[socket.id];
     }
     if (tssServers[socket.id] !== undefined) { 
-      console.error(chalkSession("XXX DELETED TSS SERVER" 
+      console.error(chalkAlert("XXX DELETED TSS SERVER" 
         + " | " + moment().format(compactDateTimeFormat)
         + " | " + tssServers[socket.id].user.nodeId
         + " | " + socket.id
@@ -1834,7 +1857,7 @@ function initSocketHandler(socketObj) {
       currentTssServer.connected = false;
     }
     if (tusServers[socket.id] !== undefined) { 
-      console.error(chalkSession("XXX DELETED TUS SERVER" 
+      console.error(chalkAlert("XXX DELETED TUS SERVER" 
         + " | " + moment().format(compactDateTimeFormat)
         + " | " + tusServers[socket.id].user.nodeId
         + " | " + socket.id
@@ -1870,8 +1893,7 @@ function initSocketHandler(socketObj) {
     if (userObj.userId.match(/^tfe_/gi)){
       userObj.isServer = true;
 
-      if (tfeServers[socket.id] === undefined) { 
-        tfeServers[socket.id] = {};
+      if (!tfeServerHashmap.has(socket.id)) { 
         console.log(chalkAlert("+++ ADDED TFE SERVER" 
           + " | " + moment().format(compactDateTimeFormat)
           + " | " + userObj.userId
@@ -1879,8 +1901,7 @@ function initSocketHandler(socketObj) {
         ));
       }
 
-      tfeServers[socket.id].connected = true;
-      tfeServers[socket.id].user = userObj;
+      tfeServerHashmap.set(socket.id, {socketId: socket.id, connected: true, user: userObj});
     }
  
     if (userObj.userId.match(/^tms_/gi)){
@@ -2036,7 +2057,8 @@ function initSocketHandler(socketObj) {
         nodeSearchType = "USER_SPECIFIC";
       }
 
-      userServer.findOne({nodeSearchType: nodeSearchType, user: searchNodeUser, fields: fieldsExclude}, function(err, user){
+      userServer.findOne(
+        {nodeSearchType: nodeSearchType, user: searchNodeUser, fields: fieldsExclude}, function(err, user){
         if (err) {
           console.log(chalkError("TWITTER_SEARCH_NODE USER ERROR\n" + jsonPrint(err)));
         }
@@ -2047,7 +2069,8 @@ function initSocketHandler(socketObj) {
             + " | " + printUser({user:user})
           ));
           
-          twit.get("users/show", {user_id: user.nodeId, include_entities: true}, function usersShow (err, rawUser, response){
+          twit.get("users/show", 
+            {user_id: user.nodeId, include_entities: true}, function usersShow (err, rawUser, response){
             if (err) {
               console.log(chalkError("ERROR users/show rawUser | @" + user.screenName + " | " + err));
               if (nodeSearchType === "USER_UNCATEGORIZED") { previousUserUncategorizedId = user.nodeId; }
@@ -2124,14 +2147,6 @@ function initSocketHandler(socketObj) {
             }
             else if (rawUser) {
 
-              // if (nodeSearchType === "USER_UNCATEGORIZED") {
-              //   previousUserUncategorizedId = rawUser.id_str;
-              // }
-
-              // if (nodeSearchType === "USER_MISMATCHED") {
-              //   previousUserMismatchedId = rawUser.id_str;
-              // }
-
               userServer.convertRawUser({user:rawUser}, function(err, cUser){
 
                 console.log(chalkTwitter("FOUND users/show rawUser"
@@ -2161,7 +2176,6 @@ function initSocketHandler(socketObj) {
                 + " | searchNode: " + searchNode
                 + "\nsearchNodeUser\n" + jsonPrint(searchNodeUser)
               ));
-              // socket.emit("SET_TWITTER_USER", searchNodeUser);
             }
           });
         }
@@ -2582,6 +2596,46 @@ function startTwitUserShowRateLimitTimeout(){
   }, 60000);
 }
 
+function follow(params, callback) {
+  console.log(chalkAlert("+++ FOLLOW | " + params.userId));
+  if (tfeServerHashmap.count() > 0) {
+    const tfeServerSocketIds = tfeServerHashmap.keys();
+    utilNameSpace.emit("FOLLOW", {user: params.user});
+    callback(null, true);
+  }
+  else{
+    callback(null, false);
+  }
+}
+
+function autoFollowUser(params, callback){
+
+  if (!params.user.following
+    // && (params.user.categoryAutoConfidence >= MIN_CATEGORY_AUTO_CONFIDENCE)
+    && (params.user.screenName.match(/trump/gi))
+    && (params.user.followersCount >= MIN_FOLLOWERS_AUTO)
+    ){
+
+
+    follow({userId: params.user.userId}, function(err, results){
+      if (err) {
+        return(callback(err, params));
+      }
+
+      console.log(chalkAlert("+++ AUTO FOLLOW"
+        + " | UID: " + params.user.userId
+        + " | @" + params.user.screenName
+        + " | FOLLOWING: " + params.user.following
+        + " | 3C FOLLOW: " + params.user.threeceeFollowing
+        + " | FLWRs: " + params.user.followersCount
+      ));
+
+      callback(null, results);
+    });
+  }
+
+}
+
 function initTransmitNodeQueueInterval(interval){
 
   console.log(chalkLog("INIT TRANSMIT NODE QUEUE INTERVAL: " + interval + " MS"));
@@ -2626,9 +2680,13 @@ function initTransmitNodeQueueInterval(interval){
               viewNameSpace.volatile.emit("node", node);
             }
             else {
-              if (twitUserShowReady && (n.nodeType === "user") && n.category && (n.followersCount === 0)){
+              if (twitUserShowReady 
+                && (n.nodeType === "user") 
+                && n.category && (n.followersCount === 0)){
 
-                twit.get("users/show", {user_id: n.nodeId, include_entities: true}, function usersShow (err, rawUser, response){
+                twit.get("users/show", 
+                  {user_id: n.nodeId, include_entities: true}, 
+                  function usersShow (err, rawUser, response){
 
                   if (err) {
                     twitUserShowReady = false;
@@ -2663,6 +2721,9 @@ function initTransmitNodeQueueInterval(interval){
                       }
                       else {
                         viewNameSpace.volatile.emit("node", updatedUser);
+                        autoFollowUser({threeceeUser: "altthreecee02", user: updatedUser}, function(err, results){
+
+                        });
                       }
                     });
                   }
@@ -2778,7 +2839,7 @@ configEvents.on("SERVER_READY", function serverReady() {
   });
 
   httpServer.on("error", function serverError(err) {
-    statsObj.socket.errors += 1;
+    statsObj.socket.errors.httpServer_errors += 1;
     internetReady = false;
     debug(chalkError("??? HTTP ERROR | " + moment().format(compactDateTimeFormat) + "\n" + err));
     if (err.code === "EADDRINUSE") {
@@ -3158,6 +3219,9 @@ function initInternetCheckInterval(interval){
   let callbackInterval;
   let testClient;
 
+  statsObj.socket.testClient = {};
+  statsObj.socket.testClient.errors = 0;
+
   clearInterval(internetCheckInterval);
 
   internetCheckInterval = setInterval(function internetCheck(){
@@ -3180,7 +3244,7 @@ function initInternetCheckInterval(interval){
         debug(chalkError("testClient ERROR " + err));
       }
       internetReady = false;
-      statsObj.socket.errors += 1;
+      statsObj.socket.testClient.errors += 1;
       debug(chalkError(moment().format(compactDateTimeFormat) + " | **** GOOGLE CONNECT ERROR ****\n" + err));
       debug(chalkError(moment().format(compactDateTimeFormat) + " | **** SERVER_NOT_READY ****"));
       testClient.destroy();

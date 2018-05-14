@@ -111,7 +111,7 @@ var controlPanelFlag = false;
 
 var statsTableFlag = false;
 
-requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
+requirejs(["https://d3js.org/d3.v5.min.js"], function(d3Loaded) {
     console.log("d3 LOADED");
     d3 = d3Loaded;
     initialize(function(){
@@ -1821,6 +1821,7 @@ socket.on("SET_TWITTER_USER", function(twitterUser) {
   console.log("SET_TWITTER_USER" 
     + " | " + twitterUser.nodeId 
     + " | @" + twitterUser.screenName 
+    + " | CR: " + twitterUser.createdAt 
     + " | FLWRs: " + twitterUser.followersCount 
     + " | FRNDs: " + twitterUser.friendsCount 
     + " | Ts: " + twitterUser.statusesCount 

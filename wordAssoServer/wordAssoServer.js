@@ -1,6 +1,8 @@
 /*jslint node: true */
 "use strict";
 
+const moment = require("moment");
+
 const DROPBOX_LIST_FOLDER_LIMIT = 50;
 const MIN_FOLLOWERS_AUTO = 10000;
 
@@ -16,7 +18,7 @@ let maxInputHashMapFile = "maxInputHashMap.json";
 let nodeSearchType = false;
 let nodeSearchBy = "createdAt";
 let previousUserUncategorizedId = "1";
-let previousUserUncategorizedCreated = Date();
+let previousUserUncategorizedCreated = moment();
 let previousUserMismatchedId = "1";
 
 const categorizedFolder = dropboxConfigDefaultFolder + "/categorized";
@@ -289,7 +291,6 @@ const util = require("util");
 const Measured = require("measured");
 const omit = require("object.omit");
 const pick = require("object.pick");
-const moment = require("moment");
 const config = require("./config/config");
 const os = require("os");
 const fs = require("fs");
@@ -474,8 +475,8 @@ wordAssoDb.connect(function(err, dbConnection){
     Word = mongoose.model("Word", wordModel.WordSchema);
 
     hashtagServer = require("@threeceelabs/hashtag-server-controller");
-    userServer = require("@threeceelabs/user-server-controller");
-    // userServer = require("../../userServerController");
+    // userServer = require("@threeceelabs/user-server-controller");
+    userServer = require("../../userServerController");
 
     statsObj.dbConnection = true;
   }
@@ -2046,7 +2047,7 @@ function initSocketHandler(socketObj) {
           nodeSearchBy = "createdAt";
           // searchNodeUser = { nodeId: previousUserUncategorizedId };
           searchNodeUser = {
-            nodeSearchBy: nodeSearchBy,
+            // nodeSearchBy: nodeSearchBy,
             createdAt: previousUserUncategorizedCreated
           };
         }
@@ -2090,7 +2091,7 @@ function initSocketHandler(socketObj) {
                 console.log(chalkError("ERROR users/show rawUser | @" + user.screenName + " | " + err));
                 if (nodeSearchType === "USER_UNCATEGORIZED") { 
                   if ((nodeSearchBy !== undefined) && (nodeSearchBy === "createdAt")) {
-                    previousUserUncategorizedCreated = user.createdAt;
+                    previousUserUncategorizedCreated = moment(user.createdAt);
                   }
                   else {
                     previousUserUncategorizedId = user.nodeId;
@@ -2110,6 +2111,7 @@ function initSocketHandler(socketObj) {
                   user.followersCount = cUser.followersCount;
                   user.friendsCount = cUser.friendsCount;
                   user.statusesCount = cUser.statusesCount;
+                  user.createdAt = cUser.createdAt;
 
                   userServer.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
 
@@ -2120,14 +2122,14 @@ function initSocketHandler(socketObj) {
                     else {
 
                       console.log(chalkAlert("UPDATED updatedUser"
-                        + " | PREV CR: " + previousUserUncategorizedCreated
-                        + " | USER CR: " + updatedUser.createdAt
+                        + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
+                        + " | USER CR: " + moment(updatedUser.createdAt).format(compactDateTimeFormat)
                         + "\n" + printUser({user:updatedUser})
                       ));
 
                       if (nodeSearchType === "USER_UNCATEGORIZED") {
                         if ((nodeSearchBy !== undefined) && (nodeSearchBy === "createdAt")) {
-                          previousUserUncategorizedCreated = updatedUser.createdAt;
+                          previousUserUncategorizedCreated = moment(updatedUser.createdAt);
                         }
                         else {
                           previousUserUncategorizedId = updatedUser.userId;
@@ -2154,6 +2156,7 @@ function initSocketHandler(socketObj) {
 
             if (nodeSearchType === "USER_UNCATEGORIZED") {
               if ((nodeSearchBy !== undefined) && (nodeSearchBy === "createdAt")) {
+                previousUserUncategorizedCreated = moment();
                 return;
               }
               else {
@@ -2735,6 +2738,7 @@ function initTransmitNodeQueueInterval(interval){
 
                     n.isTwitterUser = true;
                     n.name = rawUser.name;
+                    n.createdAt = rawUser.created_at;
                     n.screenName = rawUser.screen_name.toLowerCase();
                     n.screenNameLower = rawUser.screen_name.toLowerCase();
                     n.url = rawUser.url;

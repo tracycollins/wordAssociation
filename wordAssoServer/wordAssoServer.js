@@ -475,8 +475,8 @@ wordAssoDb.connect(function(err, dbConnection){
     Word = mongoose.model("Word", wordModel.WordSchema);
 
     hashtagServer = require("@threeceelabs/hashtag-server-controller");
-    // userServer = require("@threeceelabs/user-server-controller");
-    userServer = require("../../userServerController");
+    userServer = require("@threeceelabs/user-server-controller");
+    // userServer = require("../../userServerController");
 
     statsObj.dbConnection = true;
   }

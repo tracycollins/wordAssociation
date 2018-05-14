@@ -2,6 +2,7 @@
 function ControlPanel() {
 "use strict";
 
+
   // var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
   // var DEFAULT_SOURCE = "http://localhost:9997";
   var DEFAULT_SOURCE = "http://word.threeceelabs.com";
@@ -9,6 +10,8 @@ function ControlPanel() {
   var parentWindow = window.opener;
   console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);
   var self = this;
+
+  var compactDateTimeFormat = "YYYYMMDD HHmmss";
 
   function jsonPrint(obj) {
     if ((obj) || (obj === 0)) {
@@ -218,6 +221,7 @@ function ControlPanel() {
       document.getElementById("userScreenNameText").innerHTML = "<h4>@" + node.screenName + "</h4>";
       document.getElementById("userNameText").innerHTML = "<h4>" + name + "</h4>";
       document.getElementById("userIdText").innerHTML = node.nodeId;
+      document.getElementById("userCreatedAtText").innerHTML = moment(node.createdAt).format(compactDateTimeFormat);
       document.getElementById("userCategoryText").innerHTML = "M: " + shortCategory(category) + " | A: " + shortCategory(categoryAuto);
       document.getElementById("userFollowersCountText").innerHTML = node.followersCount;
       document.getElementById("userFriendsCountText").innerHTML = node.friendsCount;
@@ -302,6 +306,7 @@ function ControlPanel() {
         + " | NID: " + node.nodeId
         + " | @" + node.screenName
         + " | " + node.name
+        + " | CR: " + node.createdAt
         + " | CAT M: " + node.category
         + " | CAT A: " + node.categoryAuto
         + " | Ms: " + node.mentions
@@ -629,6 +634,7 @@ function ControlPanel() {
         console.debug("SET TWITTER USER" 
           + " | " + currentTwitterNode.nodeId
           + " | @" + currentTwitterNode.screenName
+          + " | CR: " + currentTwitterNode.createdAt
           + " | C: " + currentTwitterNode.category
           + " | CA: " + currentTwitterNode.categoryAuto
           // + jsonPrint(currentTwitterNode)
@@ -1169,6 +1175,18 @@ function ControlPanel() {
       text: statsObj.user.name
     };
 
+    var userCreatedAtText = {};
+    userCreatedAtText.type = "TEXT";
+    userCreatedAtText.id = "userCreatedAtText";
+    userCreatedAtText.class = "userStatusText";
+    userCreatedAtText.text = statsObj.user.createdAt;
+
+    var userCreatedAtLabel = {};
+    userCreatedAtLabel.type = "TEXT";
+    userCreatedAtLabel.id = "userCreatedAtLabel";
+    userCreatedAtLabel.class = "userStatusText";
+    userCreatedAtLabel.text = "CREATED";
+
     var userIdText = {};
     userIdText.type = "TEXT";
     userIdText.id = "userIdText";
@@ -1305,6 +1323,7 @@ function ControlPanel() {
         self.tableCreateRow(controlTable, optionsBody, [resetButton, pauseButton, statsButton, fullscreenButton]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userScreenNameText, userNameText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userIdLabel, userIdText]);
+        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userCreatedAtLabel, userCreatedAtText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userDescriptionLabel, userDescriptionText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userCategoryLabel, userCategoryText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userFollowersCountLabel, userFollowersCountText]);

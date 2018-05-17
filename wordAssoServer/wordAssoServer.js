@@ -87,6 +87,7 @@ const MongoDBStore = require("express-session-mongo");
 
 const slackOAuthAccessToken = "xoxp-3708084981-3708084993-206468961315-ec62db5792cd55071a51c544acf0da55";
 const slackChannel = "#was";
+const slackErrorChannel = "#wasError";
 const Slack = require("slack-node");
 
 const slack = new Slack(slackOAuthAccessToken);
@@ -835,7 +836,6 @@ function initStats(callback){
   statsObj.queues.tweetParserMessageRxQueue = 0;
   statsObj.queues.tweetParserQueue = 0;
   statsObj.queues.tweetRxQueue = 0;
-  // statsObj.queues.updaterMessageQueue = 0;
 
   statsObj.session = {};
   statsObj.session.errors = 0;
@@ -1482,7 +1482,6 @@ process.on("message", function processMessageRx(msg) {
     debug("... SAVING STATS");
 
     clearInterval(internetCheckInterval);
-    // clearInterval(updaterPingInterval);
 
     saveStats(statsFile, statsObj, function processMessageSaveStats(status) {
       if (status !=="OK") {
@@ -3563,6 +3562,7 @@ function initSorter(callback){
       console.error(chalkError("*** SORTER SEND ERROR"
         + " | " + err
       ));
+      configEvents.emit("CHILD_ERROR", { name: "sorter", err: "SORTER SEND ERROR" });
     }
   });
 
@@ -3571,7 +3571,7 @@ function initSorter(callback){
       + " | *** SORTER ERROR ***"
       + " \n" + jsonPrint(err)
     ));
-    configEvents.emit("CHILD_ERROR", { name: "sorter" });
+    configEvents.emit("CHILD_ERROR", { name: "sorter", err: err });
   });
 
   s.on("exit", function sorterExit(code){
@@ -3581,7 +3581,7 @@ function initSorter(callback){
       + " | EXIT CODE: " + code
     ));
 
-    if (code > 0) { configEvents.emit("CHILD_ERROR", { name: "sorter" }); }
+    if (code > 0) { configEvents.emit("CHILD_ERROR", { name: "sorter", err: "SORTER EXIT" }); }
   });
 
   s.on("close", function sorterClose(code){
@@ -3590,6 +3590,7 @@ function initSorter(callback){
       + " | PID: " + s.pid
       + " | EXIT CODE: " + code
     ));
+    if (code > 0) { configEvents.emit("CHILD_ERROR", { name: "sorter", err: "SORTER CLOSE" }); }
   });
 
   sorter = s;
@@ -4113,6 +4114,12 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
 
   console.error(chalkError("CHILD_ERROR"
     + " | " + childObj.name
+    + " | ERROR: " + jsonPrint(childObj.err)
+  ));
+
+  console.log(chalkError("CHILD_ERROR"
+    + " | " + childObj.name
+    + " | ERROR: " + jsonPrint(childObj.err)
   ));
 
   if (statsObj.children[childObj.name] === undefined){
@@ -4122,7 +4129,7 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
 
   statsObj.children[childObj.name].errors += 1;
 
-  slackPostMessage(slackChannel, "\n*CHILD ERROR*\n" + childObj.name + "\n");
+  slackPostMessage(slackErrorChannel, "\n*CHILD ERROR*\n" + childObj.name + "\n" + childObj.err);
 
   switch(childObj.name){
     case "tweetParser":

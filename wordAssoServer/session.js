@@ -1824,6 +1824,7 @@ socket.on("SET_TWITTER_USER", function(twitterUser) {
     + " | FLWRs: " + twitterUser.followersCount 
     + " | FRNDs: " + twitterUser.friendsCount 
     + " | Ts: " + twitterUser.statusesCount 
+    + " | Ms: " + twitterUser.mentions 
     + " | C: " + twitterUser.category
     + " | CA: " + twitterUser.categoryAuto
   );

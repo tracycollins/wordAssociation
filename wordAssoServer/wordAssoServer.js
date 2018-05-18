@@ -2135,6 +2135,13 @@ function initSocketHandler(socketObj) {
                   user.statusesCount = cUser.statusesCount;
                   user.createdAt = cUser.createdAt;
 
+                  let nCacheObj = nodeCache.get(user.nodeId);
+
+                  if (nCacheObj) {
+                    user.mentions = Math.max(user.mentions, nCacheObj.mentions);
+                    user.setMentions = true;
+                  }
+
                   userServer.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
 
                     if (err) {
@@ -2217,6 +2224,13 @@ function initSocketHandler(socketObj) {
                   console.log(chalkTwitter("FOUND users/show rawUser"
                     + "\n" + printUser({user:cUser})
                   ));
+
+                  let nCacheObj = nodeCache.get(cUser.nodeId);
+
+                  if (nCacheObj) {
+                    cUser.mentions = Math.max(cUser.mentions, nCacheObj.mentions);
+                    cUser.setMentions = true;
+                  }
 
                   userServer.findOneUser(cUser, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
 
@@ -2781,6 +2795,13 @@ function initTransmitNodeQueueInterval(interval){
                     n.followersCount = rawUser.followers_count;
                     n.status = rawUser.status;
 
+                    let nCacheObj = nodeCache.get(n.nodeId);
+
+                    if (nCacheObj) {
+                      n.mentions = Math.max(n.mentions, nCacheObj.mentions);
+                      n.setMentions = true;
+                    }
+
                     userServer.findOneUser(n, {noInc: false, fields: fieldsExclude}, function(err, updatedUser){
                       if (err) {
                         console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
@@ -2800,6 +2821,14 @@ function initTransmitNodeQueueInterval(interval){
                 });
               }
               else if (twitUserShowReady && (n.nodeType === "user") && n.category){
+
+                let nCacheObj = nodeCache.get(n.nodeId);
+
+                if (nCacheObj) {
+                  n.mentions = Math.max(n.mentions, nCacheObj.mentions);
+                  n.setMentions = true;
+                }
+
                 userServer.findOneUser(n, {noInc: false, fields: fieldsExclude}, function(err, updatedUser){
                   if (err) {
                     console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));

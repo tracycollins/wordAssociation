@@ -1582,6 +1582,8 @@ function categorizeNode(categorizeObj, callback) {
   cObj.manual = false;
   cObj.auto = false;
 
+  let nCacheObj;
+
   switch (categorizeObj.node.nodeType){
     case "user":
 
@@ -1597,14 +1599,15 @@ function categorizeNode(categorizeObj, callback) {
         cObj.auto = categorizedUserHashMap.get(categorizeObj.node.nodeId.toLowerCase()).auto || false;
       }
 
+      categorizedHashtagHashMap.set(categorizeObj.node.nodeId.toLowerCase(), cObj);
 
-      saveFileQueue.push(
-        {
-          localFlag: false, 
-          folder: categorizedFolder, 
-          file: categorizedUsersFile, 
-          obj: categorizedUserHashMap.entries()
-        });
+
+      nCacheObj = nodeCache.get(categorizeObj.node.nodeId.toLowerCase());
+
+      if (nCacheObj) {
+        categorizeObj.node.mentions = Math.max(categorizeObj.node.mentions, nCacheObj.mentions);
+      }
+
 
       userServer.updateCategory(
         {user: categorizeObj.node, category: categorizeObj.category}, 
@@ -1619,6 +1622,14 @@ function categorizeNode(categorizeObj, callback) {
         else {
 
           categorizedUserHashMap.set(updatedUser.nodeId, {manual: updatedUser.category, auto: updatedUser.categoryAuto});
+
+          saveFileQueue.push(
+            {
+              localFlag: false, 
+              folder: categorizedFolder, 
+              file: categorizedUsersFile, 
+              obj: categorizedUserHashMap.entries()
+            });
 
           const text = "CATEGORIZE"
             + "\n@" + categorizeObj.node.screenName 
@@ -1647,6 +1658,12 @@ function categorizeNode(categorizeObj, callback) {
       }
 
       categorizedHashtagHashMap.set(categorizeObj.node.nodeId.toLowerCase(), cObj);
+
+      nCacheObj = nodeCache.get(categorizeObj.node.nodeId.toLowerCase());
+
+      if (nCacheObj) {
+        categorizeObj.node.mentions = Math.max(categorizeObj.node.mentions, nCacheObj.mentions);
+      }
 
       saveFileQueue.push(
         {

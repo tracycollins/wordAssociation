@@ -71,7 +71,7 @@ function ViewTreepack() {
   var DEFAULT_MIN_RATE = 2.5;
   var minRate = DEFAULT_MIN_RATE;
 
-  var DEFAULT_MIN_FOLLOWERS = 15000;
+  var DEFAULT_MIN_FOLLOWERS = 5000;
   var minFollowers = DEFAULT_MIN_FOLLOWERS;
 
   var DEFAULT_MIN_MENTIONS = 1000;

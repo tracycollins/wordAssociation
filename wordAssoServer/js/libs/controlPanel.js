@@ -2,14 +2,17 @@
 function ControlPanel() {
 "use strict";
 
-  // var DEFAULT_SOURCE = "http://localhost:9997";
-  var DEFAULT_SOURCE = "http://word.threeceelabs.com";
+  var DEFAULT_SOURCE = "http://localhost:9997";
+  // var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 
   var parentWindow = window.opener;
   console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);
   var self = this;
 
   var compactDateTimeFormat = "YYYYMMDD HHmmss";
+
+  var twitterFeedUser;
+  var twitterFeedHashtag;
 
   function jsonPrint(obj) {
     if ((obj) || (obj === 0)) {
@@ -90,6 +93,8 @@ function ControlPanel() {
 
   var hashtagDiv =document.getElementById("hashtagDiv");
 
+  //--------------
+
   function nextMismatchedButtonHandler(e){
 
     console.warn("NEXT MISMATCHED BUTTON"
@@ -112,6 +117,8 @@ function ControlPanel() {
 
   twitterCategorySearchDiv.appendChild(nextMismatchedButton);
 
+  //--------------
+
   function nextUncategorizedButtonHandler(e){
 
     console.warn("NEXT UNCATEGORIZED BUTTON"
@@ -132,6 +139,27 @@ function ControlPanel() {
   );
 
   twitterCategorySearchDiv.appendChild(nextUncategorizedButton);
+
+  //--------------
+
+  function followButtonHandler(e){
+    console.warn("FOLLOW BUTTON | ID: " + e.target.id + " | USER: @" + twitterFeedUser.screenName);
+    parentWindow.postMessage({op: "FOLLOW", user: twitterFeedUser}, DEFAULT_SOURCE);
+  }
+
+  var followButton = document.createElement("button");
+  followButton.setAttribute("class", "button");
+  followButton.setAttribute("id", "followButton");
+  followButton.innerHTML = "FOLLOW";
+  followButton.addEventListener(
+    "click", 
+    function(e){ followButtonHandler(e); }, 
+    false
+  );
+
+  twitterCategorySearchDiv.appendChild(followButton);
+
+  //--------------
 
   function updateCategoryRadioButtons(category, callback){
 
@@ -300,6 +328,8 @@ function ControlPanel() {
 
     if (node.nodeType === "user"){
 
+      twitterFeedUser = node;
+
       console.debug("loadTwitterFeed"
         + " | TYPE: " + node.nodeType
         + " | NID: " + node.nodeId
@@ -325,6 +355,8 @@ function ControlPanel() {
       });
     }
     else if (node.nodeType === "hashtag"){
+
+      twitterFeedHashtag = node;
 
       console.debug("loadTwitterFeed"
         + " | TYPE: " + node.nodeType

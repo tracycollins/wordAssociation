@@ -4054,6 +4054,9 @@ function initLoadBestNetworkInterval(interval){
             if (nnObj) { 
               nnObj.matchRate = (nnObj.matchRate !== undefined) ? nnObj.matchRate : 0;
               bestNetworkObj = deepcopy(nnObj); 
+              if (tweetParser === undefined) {
+                initTweetParser();
+              }
             }
 
             if (bestNetworkObj && (tweetParser !== undefined) && (previousBestNetworkId !== bestNetworkObj.networkId)) {

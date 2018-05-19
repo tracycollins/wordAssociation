@@ -4421,20 +4421,20 @@ initialize(configuration, function initializeComplete(err) {
     initSorterMessageRxQueueInterval(DEFAULT_INTERVAL);
     initSaveFileQueue(configuration);
 
-    initTweetParser(function initTweetParserComplete(err, twp){
-      if (err) {
-        console.error(chalkError("INIT TWEET PARSER ERROR: " + err));
-        if (twp !== undefined) { 
-          twp.kill("SIGKILL"); 
-        }
-        if (tweetParser !== undefined) { 
-          tweetParser.kill("SIGKILL"); 
-        }
-      }
-      else {
-        tweetParser = twp;
-      }
-    });
+    // initTweetParser(function initTweetParserComplete(err, twp){
+    //   if (err) {
+    //     console.error(chalkError("INIT TWEET PARSER ERROR: " + err));
+    //     if (twp !== undefined) { 
+    //       twp.kill("SIGKILL"); 
+    //     }
+    //     if (tweetParser !== undefined) { 
+    //       tweetParser.kill("SIGKILL"); 
+    //     }
+    //   }
+    //   else {
+    //     tweetParser = twp;
+    //   }
+    // });
 
     initSorter(function initSorterComplete(err, srtr){
       if (err) {

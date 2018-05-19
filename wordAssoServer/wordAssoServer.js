@@ -675,12 +675,6 @@ const nodesPerMinuteTopTermCache = new NodeCache({
   checkperiod: TOPTERMS_CACHE_CHECK_PERIOD
 });
 
-// function wordCacheExpired(word, wordRate) {
-//   debugCache(chalkInfo("XXX $ WPM TOPTERM | " + wordRate.toFixed(3) + " | " + word));
-// }
-
-// nodesPerMinuteTopTermCache.on("expired", wordCacheExpired);
-
 let updateMetricsInterval;
 
 
@@ -711,8 +705,6 @@ if (process.env.NODE_METER_ENABLED !== undefined) {
 }
 
 let internetCheckInterval;
-
-// const app = express();
 
 const http = require("http");
 const httpServer = http.createServer(app);
@@ -2604,7 +2596,10 @@ function initUpdateTrendsInterval(interval){
 function updateNodeMeter(nodeObj, callback){
 
   if (!configuration.metrics.nodeMeterEnabled
-    || ((nodeObj.nodeType !== "user") && (nodeObj.nodeType !== "hashtag") && (nodeObj.nodeType !== "place"))) {
+    || ((nodeObj.nodeType !== "user") 
+      && (nodeObj.nodeType !== "hashtag") 
+      && (nodeObj.nodeType !== "place"))) 
+  {
     callback(null, nodeObj);
     return;
   }

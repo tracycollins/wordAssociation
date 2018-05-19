@@ -1712,15 +1712,15 @@ function socketRxTweet(tw) {
     + " | " + tw.user.name
   ));
 
-  // if (tweetRxQueue.size() > MAX_Q){
   if (tweetRxQueue.length > MAX_Q){
 
     statsObj.errors.twitter.maxRxQueue += 1;
 
     if (statsObj.errors.twitter.maxRxQueue % 100 === 0) {
-      // console.log(chalkError("*** TWEET RX MAX QUEUE [" + tweetRxQueue.size() + "]"
       console.log(chalkError("*** TWEET RX MAX QUEUE [" + tweetRxQueue.length + "]"
         + " | " + getTimeStamp()
+        + " | TWP READY: " + tweetParserReady
+        + " | TWP SEND READY: " + tweetParserSendReady
         + " | MAX Q EVENTS: " + statsObj.errors.twitter.maxRxQueue
         + " | " + tw.id_str
         + " | " + tw.user.screen_name

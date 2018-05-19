@@ -437,6 +437,7 @@ const dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN 
 const configFolder = "/config/utility/" + hostname;
 const deletedMetricsFile = "deletedMetrics.json";
 
+const neuralNetworkModel = require("@threeceelabs/mongoose-twitter/models/neuralNetwork.server.model");
 const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
 const mediaModel = require("@threeceelabs/mongoose-twitter/models/media.server.model");
 const placeModel = require("@threeceelabs/mongoose-twitter/models/place.server.model");
@@ -451,6 +452,7 @@ mongoose.Promise = global.Promise;
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 // const wordAssoDb = require("../../mongooseTwitter");
 
+let NeuralNetwork;
 let Hashtag;
 let Media;
 let Place;
@@ -470,6 +472,7 @@ wordAssoDb.connect(function(err, dbConnection){
   else {
     dbConnection.on("error", console.error.bind(console, "*** MONGO DB CONNECTION ERROR ***\n"));
     console.log(chalkAlert("WORD ASSO SERVER | MONGOOSE DEFAULT CONNECTION OPEN"));
+    NeuralNetwork = mongoose.model("NeuralNetwork", neuralNetworkModel.NeuralNetworkSchema);
     Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
     Media = mongoose.model("Media", mediaModel.MediaSchema);
     Place = mongoose.model("Place", placeModel.PlaceSchema);
@@ -1047,9 +1050,8 @@ function loadFile(path, file, callback) {
       }
     })
     .catch(function(error) {
-      // console.log(chalkError("WAS | DROPBOX loadFile ERROR: " + fullPath + "\n" + jsonPrint(error)));
+
       console.log(chalkError("WAS | !!! DROPBOX READ " + fullPath + " ERROR"));
-      // console.log(chalkError("WAS | " + jsonPrint(error.error)));
 
       if (error.status === 404) {
         console.error(chalkError("WAS | !!! DROPBOX READ FILE " + fullPath + " NOT FOUND"
@@ -4044,12 +4046,7 @@ function initLoadBestNetworkInterval(interval){
               + " | ERROR" + err
             ));
           }
-          // else if (nnObj) {
           else {
-
-            // if (tweetParser === undefined) {
-            //   initTweetParser();
-            // }
 
             if (nnObj) { 
               nnObj.matchRate = (nnObj.matchRate !== undefined) ? nnObj.matchRate : 0;
@@ -4057,6 +4054,27 @@ function initLoadBestNetworkInterval(interval){
               if (tweetParser === undefined) {
                 initTweetParser();
               }
+            }
+            else {
+              NeuralNetwork.find({}).sort({'matchRate': -1}).limit(1).exec(function(err, nnArray){
+                if (err){
+                  console.log(chalkError("*** NEURAL NETWORK FIND ERROR: " + err));
+                }
+                else if (nnArray === 0){
+                  console.log(chalkError("*** NEURAL NETWORK NOT FOUND"));
+                }
+                else {
+                  bestNetworkObj = nnArray[0];
+                  if (bestNetworkObj.matchRate === undefined) { bestNetworkObj.matchRate = 0; }
+                  if (bestNetworkObj.overallMatchRate === undefined) { bestNetworkObj.overallMatchRate = 0; }
+                  console.log(chalkAlert("+++ BEST NEURAL NETWORK LOADED FROM DB"
+                    + " | " + bestNetworkObj.networkId
+                    + " | SR: " + bestNetworkObj.successRate.toFixed(2) + "%"
+                    + " | MR: " + bestNetworkObj.matchRate.toFixed(2) + "%"
+                    + " | OAMR: " + bestNetworkObj.overallMatchRate.toFixed(2) + "%"
+                  ));
+                }
+              });
             }
 
             if (bestNetworkObj && (tweetParser !== undefined) && (previousBestNetworkId !== bestNetworkObj.networkId)) {

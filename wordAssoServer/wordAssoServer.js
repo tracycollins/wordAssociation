@@ -38,6 +38,7 @@ let maxInputHashMap = {};
 let normalization = {};
 
 let tweetParserReady = false;
+let tweetParserSendReady = false;
 let previousBestNetworkId = "";
 
 const ONE_KILOBYTE = 1024;
@@ -3387,7 +3388,7 @@ function initInternetCheckInterval(interval){
 
 function initTwitterRxQueueInterval(interval){
 
-  let tweetParserSendReady = true;
+  tweetParserSendReady = true;
 
   console.log(chalkLog("INIT TWITTER RX QUEUE INTERVAL | " + interval + " MS"));
 
@@ -3396,8 +3397,6 @@ function initTwitterRxQueueInterval(interval){
   tweetRxQueueInterval = setInterval(function tweetRxQueueDequeue() {
 
     if ((tweetRxQueue.length > 0) && tweetParserReady && tweetParserSendReady) {
-
-      // tweetParserSendReady = false;
 
       const tweet = tweetRxQueue.shift();
 
@@ -3413,15 +3412,19 @@ function initTwitterRxQueueInterval(interval){
 
       tweetParser.send({ op: "tweet", tweetStatus: tweet }, function sendTweetParser(err){
 
-        // tweetParserSendReady = true;
-
         if (err) {
           console.error(chalkError("*** TWEET PARSER SEND ERROR"
             + " | " + err
           ));
+
           if (quitOnError) {
             quit("TWEET PARSER SEND ERROR");
           }
+
+          tweetParserSendReady = false;
+        }
+        else {
+          tweetParserSendReady = true;
         }
       });
 
@@ -3733,6 +3736,8 @@ function initTweetParser(callback){
 
   if (tweetParser !== undefined) {
     console.error("KILLING PREVIOUS TWEET PARSER | " + tweetParser.pid);
+    tweetParserSendReady = false;
+    tweetParserReady = false;
     tweetParser.kill("SIGINT");
   }
 
@@ -3746,7 +3751,6 @@ function initTweetParser(callback){
   twp.on("message", function tweetParserMessageRx(m){
     debug(chalkLog("TWEET PARSER RX MESSAGE"
       + " | OP: " + m.op
-      // + "\n" + jsonPrint(m)
     ));
     if (tweetParserMessageRxQueue.length < MAX_Q){
       tweetParserMessageRxQueue.push(m);
@@ -3764,6 +3768,8 @@ function initTweetParser(callback){
       console.error(chalkError("*** TWEET PARSER SEND ERROR"
         + " | " + err
       ));
+      tweetParserSendReady = true;
+      tweetParserReady = true;
     }
   });
 
@@ -3772,6 +3778,8 @@ function initTweetParser(callback){
       + " | *** TWEET PARSER ERROR ***"
       + " \n" + jsonPrint(err)
     ));
+    tweetParserSendReady = false;
+    tweetParserReady = false;
   });
 
   twp.on("exit", function tweetParserExit(code){
@@ -3779,6 +3787,8 @@ function initTweetParser(callback){
       + " | *** TWEET PARSER EXIT ***"
       + " | EXIT CODE: " + code
     ));
+    tweetParserSendReady = false;
+    tweetParserReady = false;
   });
 
   twp.on("close", function tweetParserClose(code){
@@ -3786,6 +3796,8 @@ function initTweetParser(callback){
       + " | *** TWEET PARSER CLOSE ***"
       + " | EXIT CODE: " + code
     ));
+    tweetParserSendReady = false;
+    tweetParserReady = false;
   });
 
   tweetParser = twp;

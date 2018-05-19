@@ -4044,19 +4044,21 @@ function initLoadBestNetworkInterval(interval){
               + " | ERROR" + err
             ));
           }
-          else if (nnObj) {
+          // else if (nnObj) {
+          else {
 
-            bestNetworkObj = deepcopy(nnObj);
+            // if (tweetParser === undefined) {
+            //   initTweetParser();
+            // }
 
-            if (tweetParser === undefined) {
-              initTweetParser();
+            if (nnObj) { 
+              nnObj.matchRate = (nnObj.matchRate !== undefined) ? nnObj.matchRate : 0;
+              bestNetworkObj = deepcopy(nnObj); 
             }
 
-            if ((tweetParser !== undefined) && (previousBestNetworkId !== bestNetworkObj.networkId)) {
+            if (bestNetworkObj && (tweetParser !== undefined) && (previousBestNetworkId !== bestNetworkObj.networkId)) {
 
-              previousBestNetworkId = bestNetworkObj.networkId;
-
-              nnObj.matchRate = (nnObj.matchRate !== undefined) ? nnObj.matchRate : 0;
+              if (bestNetworkObj) { previousBestNetworkId = bestNetworkObj.networkId; }
 
               console.log(chalkAlert("NEW BEST NETWORK"
                 + " | " + nnObj.networkId
@@ -4415,7 +4417,22 @@ initialize(configuration, function initializeComplete(err) {
     debug(chalkLog("INITIALIZE COMPLETE"));
     initSorterMessageRxQueueInterval(DEFAULT_INTERVAL);
     initSaveFileQueue(configuration);
-    
+
+    initTweetParser(function initTweetParserComplete(err, twp){
+      if (err) {
+        console.error(chalkError("INIT TWEET PARSER ERROR: " + err));
+        if (twp !== undefined) { 
+          twp.kill("SIGKILL"); 
+        }
+        if (tweetParser !== undefined) { 
+          tweetParser.kill("SIGKILL"); 
+        }
+      }
+      else {
+        tweetParser = twp;
+      }
+    });
+
     initSorter(function initSorterComplete(err, srtr){
       if (err) {
         console.error(chalkError("INIT SORTER ERROR: " + err));

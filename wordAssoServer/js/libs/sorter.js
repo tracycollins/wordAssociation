@@ -32,28 +32,33 @@ console.log(
 );
 
 const quit = function (message) {
-  let msg = "";
-  if (message) {msg = message;}
+  let msg;
+  if (message) {msg = 1;}
 
   console.error(process.argv[1]
     + " | " + moment().format(compactDateTimeFormat)
     + " | SORTER: **** QUITTING"
-    + " | CAUSE: " + msg
+    + " | CAUSE: " + message
     + " | PID: " + process.pid
     
   );
-  process.exit();
+  // process.exit(1);
+  process.exitCode = 1;
+  // process.close(1);
 };
 
 process.on("SIGUSR2", function() {
+  console.log(chalkError("SORTER EXIT SIGUSR2"));
   quit("SIGUSR2");
 });
 
 process.on("SIGHUP", function() {
+  console.log(chalkError("SORTER EXIT SIGHUP"));
   quit("SIGHUP");
 });
 
 process.on("SIGINT", function() {
+  console.log(chalkError("SORTER EXIT SIGINT"));
   quit("SIGINT");
 });
 
@@ -81,6 +86,7 @@ const sortedObjectValues = function(params) {
       resolve({sortKey: params.sortKey, sortedKeys: sortedKeys.slice(0,params.max)});
     }
     else {
+      quit("SORTER sortedObjectValues ERR");
       reject(new Error("ERROR"));
     }
 
@@ -95,6 +101,7 @@ const sendSorted = function(params) {
       if (err) {
         console.log(chalkError("!!! SORTER SEND ERR: " + err));
         reject(new Error("SEND KEYWORDS ERROR: " + err));
+        quit("SORTER END KEYWORDS ERR: " + err);
       }
       else {
         resolve(params.sortedKeys.length);
@@ -116,8 +123,20 @@ process.on("message", function(m) {
   switch (m.op) {
 
     case "INIT":
-      console.log(chalkLog("SORTER INIT"
+      console.log(chalkLog("SORTER INIT"));
+    break;
+
+    case "PING":
+      debug(chalkLog("SORTER | PING"
+        + " | PING ID: " + moment(m.pingId).format(compactDateTimeFormat)
       ));
+
+      process.send({ op: "PONG", pongId: m.pingId }, function(err){
+        if (err) {
+          console.log(chalkError("!!! SORTER PONG SEND ERR: " + err));
+          quit("SORTER PONG SEND ERR");
+        }
+      });
     break;
 
     case "SORT":
@@ -134,6 +153,7 @@ process.on("message", function(m) {
         debug(chalkError("SORTER KEYS SENT: " + response));
       }, function(err){
         console.log(chalkError("SORTER ERROR: " + err));
+        quit("SORTER ERROR: " + err);
       });
 
     break;
@@ -145,7 +165,7 @@ process.on("message", function(m) {
       process.send({ error: "ERROR", message: "UNKNOWN SORTER OP" + m.op }, function(err){
         if (err) {
           console.log(chalkError("!!! SORTER SEND ERR: " + err));
-          // quit(err);
+          quit("SORTER SEND ERR");
         }
       });
   }

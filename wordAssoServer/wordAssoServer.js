@@ -3,6 +3,7 @@
 
 const moment = require("moment");
 
+const DEFAULT_PING_INTERVAL = 5000;
 const DROPBOX_LIST_FOLDER_LIMIT = 50;
 const MIN_FOLLOWERS_AUTO = 10000;
 
@@ -111,16 +112,16 @@ const tinyDateTimeFormat = "YYYYMMDDHHmmss";
 
 const RATE_QUEUE_INTERVAL = 1000; // 1 second
 const RATE_QUEUE_INTERVAL_MODULO = 60; // modulo RATE_QUEUE_INTERVAL
-const TWEET_PARSER_INTERVAL = 5;
-const TWITTER_RX_QUEUE_INTERVAL = 5;
-const TRANSMIT_NODE_QUEUE_INTERVAL = 5;
-const TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = 5;
+const TWEET_PARSER_INTERVAL = 1;
+const TWITTER_RX_QUEUE_INTERVAL = 1;
+const TRANSMIT_NODE_QUEUE_INTERVAL = 1;
+const TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = 1;
 const UPDATE_TRENDS_INTERVAL = 15*ONE_MINUTE;
 const STATS_UPDATE_INTERVAL = 60000;
 const CATEGORY_UPDATE_INTERVAL = 5*ONE_MINUTE;
-const HASHTAG_LOOKUP_QUEUE_INTERVAL = 10;
+const HASHTAG_LOOKUP_QUEUE_INTERVAL = 1;
 
-const DEFAULT_INTERVAL = 5;
+const DEFAULT_INTERVAL = 1;
 
 const AUTH_USER_CACHE_DEFAULT_TTL = MAX_SESSION_AGE;
 const AUTH_USER_CACHE_CHECK_PERIOD = ONE_HOUR/1000; // seconds
@@ -3600,6 +3601,49 @@ function initSorterMessageRxQueueInterval(interval){
   }, interval);
 }
 
+let sorterPingInterval;
+let sorterPongReceived = false;
+let pingId = false;
+
+function initSorterPingInterval(interval){
+
+  clearInterval(sorterPingInterval);
+  sorterPongReceived = false;
+
+  pingId = moment().valueOf();
+  sorter.send({op: "PING", pingId: pingId}, function(err){
+    if (err) {
+      console.log(chalkError("*** SORTER SEND PING ERROR: " + err));
+    }
+    console.log(chalkInfo(">PING | SORTER | PING ID: " + pingId));
+  });
+
+  if (sorter !== undefined && sorter) {
+
+    sorterPingInterval = setInterval(function(){
+      if (sorterPongReceived) {
+        pingId = moment().valueOf();
+        sorterPongReceived = false;
+        sorter.send({op: "PING", pingId: pingId}, function(err){
+          if (err) {
+            console.log(chalkError("*** SORTER SEND PING ERROR: " + err));
+          }
+          debug(chalkInfo(">PING | SORTER | PING ID: " + moment(pingId).format(compactDateTimeFormat)));
+        });
+      }
+      else {
+        console.log(chalkAlert("*** PONG TIMEOUT | SORTER | PING ID: " + pingId));
+        slackPostMessage(slackErrorChannel, "\n*CHILD ERROR*\nSORTER\nPONG TIMEOUT");
+        clearInterval(sorterPingInterval);
+        setTimeout(function(){
+          initSorter();
+        }, 5000);
+      }
+    }, interval);
+
+  }
+}
+
 function initSorter(callback){
 
   if (statsObj.children.sorter === undefined){
@@ -3615,10 +3659,22 @@ function initSorter(callback){
   const s = cp.fork(`${__dirname}/js/libs/sorter.js`);
 
   s.on("message", function sorterMessageRx(m){
+
     debug(chalkLog("SORTER RX"
       + " | " + m.op
     ));
+
+    if (m.op === "ERROR"){
+      console.log(chalkError("*** SORTER ERROR: " + m.message));
+    }
+    else if (m.op === "PONG"){
+      sorterPongReceived = m.pongId;
+      debug(chalkInfo("<PONG | SORTER | PONG ID: " + moment(m.pongId).format(compactDateTimeFormat)))
+    }
+    else {
       sorterMessageRxQueue.push(m);
+    }
+
   });
 
   s.send({
@@ -3641,26 +3697,30 @@ function initSorter(callback){
     configEvents.emit("CHILD_ERROR", { name: "sorter", err: err });
   });
 
-  s.on("exit", function sorterExit(code){
+  s.on("exit", function sorterExit(code, signal){
     console.error(chalkError(moment().format(compactDateTimeFormat)
       + " | *** SORTER EXIT ***"
       + " | PID: " + s.pid
       + " | EXIT CODE: " + code
+      + " | EXIT SIGNAL: " + signal
     ));
 
     if (code > 0) { configEvents.emit("CHILD_ERROR", { name: "sorter", err: "SORTER EXIT" }); }
   });
 
-  s.on("close", function sorterClose(code){
+  s.on("close", function sorterClose(code, signal){
     console.error(chalkError(moment().format(compactDateTimeFormat)
       + " | *** SORTER CLOSE ***"
       + " | PID: " + s.pid
       + " | EXIT CODE: " + code
+      + " | EXIT SIGNAL: " + signal
     ));
     if (code > 0) { configEvents.emit("CHILD_ERROR", { name: "sorter", err: "SORTER CLOSE" }); }
   });
 
   sorter = s;
+
+  initSorterPingInterval(DEFAULT_PING_INTERVAL);
 
   if (callback !== undefined) { callback(null, sorter); }
 }

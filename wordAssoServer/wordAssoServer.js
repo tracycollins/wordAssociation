@@ -1,7 +1,14 @@
 /*jslint node: true */
 "use strict";
 
-const moment = require("moment");
+
+const ONE_KILOBYTE = 1024;
+const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
+
+const ONE_SECOND = 1000;
+const ONE_MINUTE = 60 * ONE_SECOND;
+const ONE_HOUR = 60 * ONE_MINUTE;
+const ONE_DAY = 24 * ONE_HOUR;
 
 const DEFAULT_INTERVAL = 5;
 const DEFAULT_PING_INTERVAL = 5000;
@@ -17,6 +24,8 @@ const UPDATE_TRENDS_INTERVAL = 15*ONE_MINUTE;
 const STATS_UPDATE_INTERVAL = 60000;
 const CATEGORY_UPDATE_INTERVAL = 5*ONE_MINUTE;
 const HASHTAG_LOOKUP_QUEUE_INTERVAL = 1;
+
+const moment = require("moment");
 
 let dropboxConfigDefaultFolder = "/config/utility/default";
 
@@ -51,14 +60,6 @@ let normalization = {};
 let tweetParserReady = false;
 let tweetParserSendReady = false;
 let previousBestNetworkId = "";
-
-const ONE_KILOBYTE = 1024;
-const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
-
-const ONE_SECOND = 1000;
-const ONE_MINUTE = 60 * ONE_SECOND;
-const ONE_HOUR = 60 * ONE_MINUTE;
-const ONE_DAY = 24 * ONE_HOUR;
 
 const MAX_SESSION_AGE = ONE_DAY/1000;
 const MAX_Q = 200;

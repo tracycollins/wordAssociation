@@ -3484,6 +3484,7 @@ function initHashtagLookupQueueInterval(interval){
 
 let tweetParserMessageRxQueueReady = true;
 let tweetParserMessageRxQueueInterval;
+
 function initTweetParserMessageRxQueueInterval(interval){
 
   console.log(chalkLog("INIT TWEET PARSER MESSAGE RX QUEUE INTERVAL | " + interval + " MS"));
@@ -3768,6 +3769,10 @@ function initTweetParser(callback){
       console.error(chalkError("*** TWEET PARSER SEND ERROR"
         + " | " + err
       ));
+      tweetParserSendReady = false;
+      tweetParserReady = false;
+    }
+    else {
       tweetParserSendReady = true;
       tweetParserReady = true;
     }
@@ -4273,16 +4278,19 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
   slackPostMessage(slackErrorChannel, "\n*CHILD ERROR*\n" + childObj.name + "\n" + childObj.err);
 
   switch(childObj.name){
+
     case "tweetParser":
       console.error("KILL TWEET PARSER");
       if (tweetParser !== undefined) { tweetParser.kill("SIGINT"); }
       initTweetParser();
     break;
+
     case "sorter":
       console.error("KILL SORTER");
       if (sorter !== undefined) { sorter.kill("SIGINT"); }
       initSorter();
     break;
+
   }
 });
 

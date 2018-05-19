@@ -2842,7 +2842,7 @@ function initTransmitNodeQueueInterval(interval){
                   }
                 });
               }
-              else if (twitUserShowReady && (n.nodeType === "user") && n.category){
+              else if ((n.nodeType === "user") && n.category){
 
                 let nCacheObj = nodeCache.get(n.nodeId);
 

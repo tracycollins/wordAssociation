@@ -508,6 +508,7 @@ function printUser(params) {
       + " | @" + params.user.screenName 
       + " | N: " + params.user.name 
       + " | CR: " + params.user.createdAt 
+      + " | LS: " + params.user.createdAt 
       + "\nFLWg: " + params.user.following 
       + " | 3C: " + params.user.threeceeFollowing 
       + "\nTs: " + params.user.statusesCount 

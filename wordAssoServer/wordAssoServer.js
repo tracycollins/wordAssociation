@@ -2665,7 +2665,6 @@ function updateNodeMeter(nodeObj, callback){
     }
     else {
 
-
       nodeMeter[meterNodeId].mark();
 
       nodeObj.rate = parseFloat(nodeMeter[meterNodeId].toJSON()[metricsRate]);
@@ -2758,6 +2757,8 @@ function initTransmitNodeQueueInterval(interval){
         transmitNodeQueueReady = true;
       }
       else {
+
+        nodeObj.updateLastSeen = true;
 
         if (!nodeObj.category || (nodeObj.category === undefined)) { nodeObj.category = false; }
         if (!nodeObj.categoryAuto || (nodeObj.categoryAuto === undefined)) { nodeObj.categoryAuto = false; }

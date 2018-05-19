@@ -2861,7 +2861,7 @@ function initTransmitNodeQueueInterval(interval){
                   }
                 });
               }
-              else {
+              else if (n.nodeType === "user") {
                 viewNameSpace.volatile.emit("node", n);
               }
 
@@ -2880,7 +2880,9 @@ function initTransmitNodeQueueInterval(interval){
                   }
                 });
               }
-
+              else if (n.nodeType === "hashtag") {
+                viewNameSpace.volatile.emit("node", n);
+              }
             }
 
           });

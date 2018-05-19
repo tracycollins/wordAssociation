@@ -1,8 +1,8 @@
 "use strict";
 /*ver 0.47*/
 
-// var DEFAULT_SOURCE = "http://localhost:9997";
-var DEFAULT_SOURCE = "http://word.threeceelabs.com";
+var DEFAULT_SOURCE = "http://localhost:9997";
+// var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 
 var config = {};
 var previousConfig = {};
@@ -823,6 +823,13 @@ function controlPanelComm(event) {
       console.warn("R< CONTROL PANEL READY");
       controlPanelReadyFlag = true;
     break;
+    case "FOLLOW" :
+      console.warn("R< CONTROL FOLLOW"
+        + " | UID: " + event.data.user.userId
+        + " | @" + event.data.user.screenName
+      );
+      socket.emit("TWITTER_FOLLOW", event.data.user);
+    break;
     case "NODE_SEARCH" :
       console.warn("R< CONTROL NODE_SEARCH\n" + jsonPrint(event.data.input));
       socket.emit("TWITTER_SEARCH_NODE", event.data.input);
@@ -893,14 +900,6 @@ function controlPanelComm(event) {
           config.defaultTransitionDuration = event.data.value;
           resetConfigUpdateTimeOut();
         break;
-        // case "linkStrengthSlider" :
-        //   currentSessionView.updateLinkStrength(event.data.value);
-        //   resetConfigUpdateTimeOut();
-        // break;
-        // case "linkDistanceSlider" :
-        //   currentSessionView.updateLinkDistance(event.data.value);
-        //   resetConfigUpdateTimeOut();
-        // break;
         case "velocityDecaySlider" :
           currentSessionView.updateVelocityDecay(event.data.value);
           resetConfigUpdateTimeOut();

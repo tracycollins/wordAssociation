@@ -1995,6 +1995,29 @@ function initSocketHandler(socketObj) {
     }
   });
 
+  socket.on("TWITTER_FOLLOW", function twitterFollow(u) {
+
+    console.log(chalkSocket("TWITTER_FOLLOW"
+      + " | " + getTimeStamp()
+      + " | SID: " + socket.id
+      + " | UID: " + u.userId
+      + " | @" + u.screenName
+    ));
+
+    follow({user: u}, function(err, results){
+      if (err) {
+        console.log(chalkAlert("TWITTER_FOLLOW ERROR: " + err));
+        return;
+      }
+      else {
+        console.log(chalkAlert("+++ TWITTER_FOLLOW"
+          + " | @" + u.screenName
+        ));
+      }
+    });
+
+  });
+
   socket.on("TWITTER_SEARCH_NODE", function twitterSearchNode(sn) {
 
     const searchNode = sn.toLowerCase();
@@ -2261,7 +2284,6 @@ function initSocketHandler(socketObj) {
         }
       );
     }
-
   });
 
   socket.on("TWITTER_CATEGORIZE_NODE", function twitterCategorizeNode(dataObj) {
@@ -2677,13 +2699,16 @@ function startTwitUserShowRateLimitTimeout(){
 }
 
 function follow(params, callback) {
-  console.log(chalkAlert("+++ FOLLOW | " + params.userId));
+
+  console.log(chalkAlert("+++ FOLLOW | @" + params.user.screenName));
+
   if (tfeServerHashmap.count() > 0) {
     const tfeServerSocketIds = tfeServerHashmap.keys();
-    utilNameSpace.emit("FOLLOW", {user: params.user});
+    console.log(chalkAlert("FOLLOW > TFE SERVER: " + tfeServerSocketIds[0]))
+    utilNameSpace.emit("FOLLOW", params.user);
     callback(null, true);
   }
-  else{
+  else {
     callback(null, false);
   }
 }
@@ -2691,13 +2716,11 @@ function follow(params, callback) {
 function autoFollowUser(params, callback){
 
   if (!params.user.following
-    // && (params.user.categoryAutoConfidence >= MIN_CATEGORY_AUTO_CONFIDENCE)
     && (params.user.screenName.match(/trump/gi))
     && (params.user.followersCount >= MIN_FOLLOWERS_AUTO)
     ){
 
-
-    follow({userId: params.user.userId}, function(err, results){
+    follow({user: params.user}, function(err, results){
       if (err) {
         return(callback(err, params));
       }

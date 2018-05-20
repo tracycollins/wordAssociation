@@ -20,7 +20,6 @@ const chalkNetwork = chalk.blue;
 const mongoose = require("mongoose");
 mongoose.Promise = global.Promise;
 
-
 const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
 const mediaModel = require("@threeceelabs/mongoose-twitter/models/media.server.model");
 const placeModel = require("@threeceelabs/mongoose-twitter/models/place.server.model");
@@ -57,14 +56,12 @@ wordAssoDb.connect(function(err, dbConnection){
     User = mongoose.model("User", userModel.UserSchema);
     Word = mongoose.model("Word", wordModel.WordSchema);
     tweetServer = require("@threeceelabs/tweet-server-controller");
+    // tweetServer = require("../../../../tweetServerController");
   }
 
 });
 
-// const tweetServer = require("../../../../tweetServerController");
-
 const tweetParserQueue = [];
-
 
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 

@@ -13,7 +13,7 @@ const ONE_DAY = 24 * ONE_HOUR;
 const DEFAULT_INTERVAL = 5;
 const DEFAULT_PING_INTERVAL = 5000;
 const DROPBOX_LIST_FOLDER_LIMIT = 50;
-const MIN_FOLLOWERS_AUTO = 10000;
+const DEFAULT_MIN_FOLLOWERS_AUTO = 5000;
 const RATE_QUEUE_INTERVAL = 1000; // 1 second
 const RATE_QUEUE_INTERVAL_MODULO = 60; // modulo RATE_QUEUE_INTERVAL
 const TWEET_PARSER_INTERVAL = 2;
@@ -698,6 +698,11 @@ configuration.quitOnError = false;
 configuration.maxTopTerms = process.env.WA_MAX_TOP_TERMS || 100;
 configuration.metrics = {};
 configuration.metrics.nodeMeterEnabled = true;
+configuration.minFollowersAuto = DEFAULT_MIN_FOLLOWERS_AUTO;
+
+if (process.env.MIN_FOLLOWERS_AUTO !== undefined) {
+  configuration.minFollowersAuto = process.env.MIN_FOLLOWERS_AUTO;
+}
 
 if (process.env.NODE_METER_ENABLED !== undefined) {
   if (process.env.NODE_METER_ENABLED === "true") {
@@ -2717,7 +2722,7 @@ function autoFollowUser(params, callback){
 
   if (!params.user.following
     && (params.user.screenName.match(/trump/gi))
-    && (params.user.followersCount >= MIN_FOLLOWERS_AUTO)
+    && (params.user.followersCount >= configuration.minFollowersAuto)
     ){
 
     follow({user: params.user}, function(err, results){
@@ -2732,6 +2737,14 @@ function autoFollowUser(params, callback){
         + " | 3C FOLLOW: " + params.user.threeceeFollowing
         + " | FLWRs: " + params.user.followersCount
       ));
+
+      const text = "*WAS | AUTO FOLLOW*"
+        + "\n@" + params.user.screenName
+        + "\nID: " + params.user.userId
+        + "\nFLWRs: " + params.user.followersCount
+        + "\n3C @" + params.user.threeceeFollowing;
+
+      slackPostMessage(slackChannel, text);
 
       callback(null, results);
     });

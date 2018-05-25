@@ -8,9 +8,6 @@
     "node_args"   : "--max-old-space-size=6144",
     "env": {
       "FORCE_COLOR": 1,
-      "WA_MIN_FOLLOWERS": 15000,
-      "WA_MIN_MENTIONS_VALUE": 500,
-      "WA_MIN_METRIC_VALUE": 5.0,
       "NODE_ENV": "production",
       "HEAPDUMP_ENABLED": false,
       "HEAPDUMP_MODULO": 10,
@@ -18,6 +15,7 @@
       "SOCKET_IDLE_TIMEOUT" : 300,
       "NODE_CACHE_DEFAULT_TTL": 60,
       "NODE_CACHE_CHECK_PERIOD": 5,
+      "MIN_FOLLOWERS_AUTO": 10000,
       "TOPTERMS_CACHE_DEFAULT_TTL": 300,
       "TOPTERMS_CACHE_CHECK_PERIOD": 60,
       "TRENDING_CACHE_DEFAULT_TTL": 300,

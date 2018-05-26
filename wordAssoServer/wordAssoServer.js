@@ -3,8 +3,8 @@
 
 const shell = require("shelljs");
 
-const DEFAULT_SORTER_CHILD_ID = "wa_node_sorter";
-const DEFAULT_TWEET_PARSER_CHILD_ID = "wa_node_tweetParser";
+const DEFAULT_SORTER_CHILD_ID = "wa_node_SRTR";
+const DEFAULT_TWEET_PARSER_CHILD_ID = "wa_node_TWTPRSR";
 
 const ONE_KILOBYTE = 1024;
 const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;

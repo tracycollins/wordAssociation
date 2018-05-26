@@ -1651,10 +1651,25 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     utilsBar.path.setAttribute('stroke', startColor);
   }
 
-  if (heartBeat.entity) {
-    utilsBarText.innerHTML = (heartBeat.entity.util.connected) + ' UTILS | ' 
-    + (heartBeat.entity.util.connectedMax) + ' MAX | ' 
-    + moment(heartBeat.entity.util.connectedMaxTime).format(defaultDateTimeFormat);
+  if (heartBeat.servers) {
+
+    const totalServers = 0;
+
+    Object.keys(heartBeat.servers).forEach(function(serverType){
+      Object.keys(heartBeat.servers[serverType]).forEach(function(serverSocketId){
+        if (serverHashMap[serverType] === undefined) { serverHashMap[serverType] = {}; }
+
+        serverHashMap[serverType][serverSocketId] = heartBeat.servers[serverType][serverSocketId];
+
+        totalServers += 1;
+
+        utilsBarText.innerHTML = totalServers + ' UTILS | ' 
+        + totalServers + ' MAX | ' 
+        + moment().format(defaultDateTimeFormat);
+
+      });
+
+    });
   }
 
 

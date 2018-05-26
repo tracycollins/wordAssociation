@@ -290,7 +290,7 @@ var heartBeat = {};
 var lastTimeoutHeartBeat = null;
 
 var hbIndex = 0;
-var tweetsPerMinServer;
+// var tweetsPerMinServer;
 var tweetsPerMin = 0;
 var tweetsPerMinMax = 1;
 var tweetsPerMinMaxTime = 0;
@@ -723,13 +723,13 @@ setInterval(function(){
       && utilSessionObj.connected 
       && utilSessionObj.userId.match(/TSS_/g)) {
       console.info("UTIL SERVER CONNECTED: " + utilSessionObj.userId);
-      tweetsPerMinServer = utilSessionObj.userId;
+      // tweetsPerMinServer = utilSessionObj.userId;
     } 
     else if (utilSessionObj.userId
       && !utilSessionObj.connected 
       && utilSessionObj.userId.match(/TSS_/g)) {
       console.info("UTIL SERVER DISCONNECTED: " + utilSessionObj.userId);
-      tweetsPerMinServer = false;
+      // tweetsPerMinServer = false;
       tweetsPerMin = 0;
     }
 

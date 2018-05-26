@@ -3560,6 +3560,11 @@ function getChildProcesses(params, callback){
                 + " | " + childId
                 + " | STATUS: " + childrenHashMap[childId].status
               ));
+
+              killChild({pid: pid}, function(err, numKilled){
+                console.log(chalkAlert("NNT | XXX ZOMBIE CHILD KILLED | PID: " + pid + " | CH ID: " + childId));
+              });
+
             }
             else {
               console.log(chalkInfo("NNT | CHILD"
@@ -4577,6 +4582,7 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
   if (childrenHashMap[childObj.childId] === undefined){
     childrenHashMap[childObj.childId] = {};
     childrenHashMap[childObj.childId].errors = 0;
+    childrenHashMap[childObj.childId].status = "UNKNOWN";
   }
 
   childrenHashMap[childObj.childId].errors += 1;

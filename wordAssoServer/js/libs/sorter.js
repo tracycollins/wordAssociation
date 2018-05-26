@@ -18,7 +18,8 @@ hostname = hostname.replace(/.local/g, "");
 hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 
-process.title = "node_sorter";
+process.title = "wa_node_sorter";
+
 console.log(
   "\n\n====================================================================================================\n" 
   + "========================================= ***START*** ==============================================\n" 
@@ -123,7 +124,8 @@ process.on("message", function(m) {
   switch (m.op) {
 
     case "INIT":
-      console.log(chalkLog("SORTER INIT"));
+      console.log(chalkLog("SORTER INIT | " + m.childId));
+      process.title = m.childId;
     break;
 
     case "PING":

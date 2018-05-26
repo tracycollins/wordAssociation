@@ -1,6 +1,10 @@
 /*jslint node: true */
 "use strict";
 
+const shell = require("shelljs");
+
+const DEFAULT_SORTER_CHILD_ID = "wa_node_sorter";
+const DEFAULT_TWEET_PARSER_CHILD_ID = "wa_node_tweetParser";
 
 const ONE_KILOBYTE = 1024;
 const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
@@ -52,6 +56,8 @@ const fieldsExclude = {
   countHistory: 0,
   friends: 0
 };
+
+let childrenHashMap = {};
 
 let bestNetworkObj = {};
 let maxInputHashMap = {};
@@ -758,7 +764,7 @@ function initStats(callback){
   statsObj.nodeMeterEntriesMax = 0;
   statsObj.nodeMeterEntriesMaxTime = moment().valueOf();
 
-  statsObj.children = {};
+  childrenHashMap = {};
 
   statsObj.twitter = {};
   statsObj.twitter.tweetsReceived = 0;
@@ -1473,8 +1479,7 @@ function initDeletedMetricsHashmap(callback){
 }
 
 process.on("exit", function processExit() {
-  if (tweetParser !== undefined) { tweetParser.kill("SIGINT"); }
-  if (sorter !== undefined) { sorter.kill("SIGINT"); }
+  killAll();
 });
 
 process.on("message", function processMessageRx(msg) {
@@ -3425,7 +3430,7 @@ function initTwitterRxQueueInterval(interval){
         + " | " + tweet.user.name
       ));
 
-      tweetParser.send({ op: "tweet", tweetStatus: tweet }, function sendTweetParser(err){
+      childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({ op: "tweet", tweetStatus: tweet }, function sendTweetParser(err){
 
         if (err) {
           console.error(chalkError("*** TWEET PARSER SEND ERROR"
@@ -3497,6 +3502,216 @@ function initHashtagLookupQueueInterval(interval){
   }, interval);
 }
 
+
+function getChildProcesses(params, callback){
+
+  let command;
+
+  if ((params.searchTerm === undefined) || (params.searchTerm === "ALL")){
+    command = "pgrep " + "wa_";
+  }
+  else {
+    command = "pgrep " + params.searchTerm;
+  }
+
+  debug(chalkAlert("getChildProcesses | command: " + command));
+
+  let numChildren = 0;
+  let childPidArray = [];
+
+  shell.exec(command, {silent: true}, function(code, stdout, stderr){
+
+    if (code === 0) {
+
+      let soArray = stdout.trim();
+
+      let stdoutArray = soArray.split("\n");
+
+      async.eachSeries(stdoutArray, function(pidRaw, cb){
+
+        const pid = pidRaw.trim();
+
+        if (parseInt(pid) > 0) {
+
+          const c = "ps -o comm= -p " + pid;
+
+          shell.exec(c, {silent: true}, function(code, stdout, stderr){
+
+            const childId = stdout.trim();
+
+            numChildren += 1;
+
+            console.log(chalkAlert("NNT | FOUND CHILD PROCESS"
+              + " | NUM: " + numChildren
+              + " | PID: " + pid
+              + " | " + childId
+            ));
+
+            if (childrenHashMap[childId] === undefined) {
+
+              childrenHashMap[childId] = {};
+              childrenHashMap[childId].status = "ZOMBIE";
+
+              console.log(chalkError("NNT | ??? CHILD ZOMBIE ???"
+                + " | NUM: " + numChildren
+                + " | PID: " + pid
+                + " | " + childId
+                + " | STATUS: " + childrenHashMap[childId].status
+              ));
+            }
+            else {
+              console.log(chalkInfo("NNT | CHILD"
+                + " | PID: " + pid
+                + " | " + childId
+                + " | STATUS: " + childrenHashMap[childId].status
+              ));
+            }
+
+            childPidArray.push({ pid: pid, childId: childId});
+
+            cb();
+          });
+        }
+        else {
+          cb();
+        }
+
+      }, function(err){
+
+        if (callback !== undefined) { callback(null, childPidArray); }
+
+      });
+
+    }
+
+    if (code === 1) {
+      console.log(chalkInfo("NNT | NO NN CHILD PROCESSES FOUND"));
+        if (callback !== undefined) { callback(null, []); }
+    }
+
+    if (code > 1) {
+      console.log(chalkAlert("SHELL : NNT | ERROR *** KILL CHILD"
+        + "\nSHELL :: NNT | COMMAND: " + command
+        + "\nSHELL :: NNT | EXIT CODE: " + code
+        + "\nSHELL :: NNT | STDOUT\n" + stdout
+        + "\nSHELL :: NNT | STDERR\n" + stderr
+      ));
+      if (callback !== undefined) { callback(stderr, command); }
+    }
+
+  });
+}
+
+function findChildByPid(pid, callback){
+
+  let foundChildId = false;
+
+  async.each(Object.keys(childrenHashMap), function(childId, cb){
+
+    if (pid && (childrenHashMap[childId].pid === pid)){
+
+      foundChildId = childId;
+
+      cb(foundChildId);
+
+    }
+    else {
+      cb();
+    }
+
+  }, function(result){
+    callback(null, foundChildId);
+  });
+}
+
+function killChild(params, callback){
+
+  let pid = false;
+
+  if (params.childId !== undefined) {
+    if (childrenHashMap[params.childId] === undefined) {
+      if (callback !== undefined) { return callback("ERROR: CHILD NOT IN HM: " + params.childId, null); }
+    }
+    else {
+      pid = childrenHashMap[params.childId].pid;
+    }
+  }
+
+  if (params.pid !== undefined) {
+    pid = params.pid;
+  }
+
+  const command = "kill -9 " + pid;
+
+  shell.exec(command, function(code, stdout, stderr){
+
+    getChildProcesses(function(err, childArray){
+
+      if (code === 0) {
+        console.log(chalkAlert("NNT | *** KILL CHILD"
+          + " | XXX NN CHILD PROCESSES: " + command
+        ));
+
+        if (params.childId === undefined) {
+          findChildByPid(pid, function(err, childId){
+            if (childrenHashMap[childId] === undefined) { childrenHashMap[childId] = {}; }
+            childrenHashMap[childId].status = "DEAD";
+            if (callback !== undefined) { return callback(null, 1); }
+          });
+        }
+        else {
+          if (childrenHashMap[params.childId] === undefined) { childrenHashMap[params.childId] = {}; }
+          childrenHashMap[params.childId].status = "DEAD";
+          if (callback !== undefined) { return callback(null, 1); }
+        }
+      }
+      if (code === 1) {
+        console.log(chalkInfo("NNT | KILL CHILD | NO NN CHILD PROCESSES: " + command));
+        if (callback !== undefined) { return callback(null, 0); }
+      }
+      if (code > 1) {
+        console.log(chalkAlert("SHELL : NNT | ERROR *** KILL CHILD"
+          + "\nSHELL :: NNT | COMMAND: " + command
+          + "\nSHELL :: NNT | EXIT CODE: " + code
+          + "\nSHELL :: NNT | STDOUT\n" + stdout
+          + "\nSHELL :: NNT | STDERR\n" + stderr
+        ));
+        if (callback !== undefined) { return callback(stderr, params); }
+      }
+    });
+
+  });
+}
+
+function killAll(callback){
+
+  getChildProcesses({searchTerm: "ALL"}, function(err, childPidArray){
+
+    debug(chalkAlert("getChildProcesses childPidArray\n" + jsonPrint(childPidArray)));
+
+    if (childPidArray && (childPidArray.length > 0)) {
+
+      async.eachSeries(childPidArray, function(childObj, cb){
+
+        killChild({pid: childObj.pid}, function(err, numKilled){
+          console.log(chalkAlert("NNT | KILL ALL | KILLED | PID: " + childObj.pid + " | CH ID: " + childObj.childId));
+          cb();
+        });
+
+      }, function(err){
+
+        if (callback !== undefined) { callback(err, childPidArray); }
+
+      });
+    }
+    else {
+
+      console.log(chalkAlert("NNT | KILL ALL | NO CHILDREN"));
+
+      if (callback !== undefined) { callback(err, childPidArray); }
+    }
+  });
+}
 let tweetParserMessageRxQueueReady = true;
 let tweetParserMessageRxQueueInterval;
 
@@ -3565,6 +3780,7 @@ function initTweetParserMessageRxQueueInterval(interval){
 
 let sorterMessageRxReady = true; 
 let sorterMessageRxQueueInterval;
+
 function initSorterMessageRxQueueInterval(interval){
 
   console.log(chalkLog("INIT SORTER RX MESSAGE QUEUE INTERVAL | " + interval + " MS"));
@@ -3632,32 +3848,51 @@ function initSorterPingInterval(interval){
   sorterPongReceived = false;
 
   pingId = moment().valueOf();
-  sorter.send({op: "PING", pingId: pingId}, function(err){
-    if (err) {
-      console.log(chalkError("*** SORTER SEND PING ERROR: " + err));
-    }
-    console.log(chalkInfo(">PING | SORTER | PING ID: " + pingId));
-  });
 
-  if (sorter !== undefined && sorter) {
+  if ((childrenHashMap[DEFAULT_SORTER_CHILD_ID] !== undefined) && childrenHashMap[DEFAULT_SORTER_CHILD_ID].child) {
+
+    childrenHashMap[DEFAULT_SORTER_CHILD_ID].child.send({op: "PING", pingId: pingId}, function(err){
+      if (err) {
+        console.log(chalkError("*** SORTER SEND PING ERROR: " + err));
+        killChild({childId: DEFAULT_SORTER_CHILD_ID}, function(err, numKilled){
+          initSorter({childId: DEFAULT_SORTER_CHILD_ID});
+        });
+      }
+      console.log(chalkInfo(">PING | SORTER | PING ID: " + pingId));
+    });
 
     sorterPingInterval = setInterval(function(){
+
       if (sorterPongReceived) {
+
         pingId = moment().valueOf();
+
         sorterPongReceived = false;
-        sorter.send({op: "PING", pingId: pingId}, function(err){
+
+        childrenHashMap[DEFAULT_SORTER_CHILD_ID].child.send({op: "PING", pingId: pingId}, function(err){
           if (err) {
             console.log(chalkError("*** SORTER SEND PING ERROR: " + err));
+            killChild({childId: DEFAULT_SORTER_CHILD_ID}, function(err, numKilled){
+              initSorter({childId: DEFAULT_SORTER_CHILD_ID});
+            });
           }
           debug(chalkInfo(">PING | SORTER | PING ID: " + moment(pingId).format(compactDateTimeFormat)));
         });
+
       }
       else {
         console.log(chalkAlert("*** PONG TIMEOUT | SORTER | PING ID: " + pingId));
+
         slackPostMessage(slackErrorChannel, "\n*CHILD ERROR*\nSORTER\nPONG TIMEOUT");
+
         clearInterval(sorterPingInterval);
+
         setTimeout(function(){
-          initSorter();
+
+          killChild({childId: childObj.childId}, function(err, numKilled){
+            initSorter({childId: DEFAULT_SORTER_CHILD_ID});
+          });
+
         }, 5000);
       }
     }, interval);
@@ -3665,19 +3900,21 @@ function initSorterPingInterval(interval){
   }
 }
 
-function initSorter(callback){
+function initSorter(params, callback){
 
-  if (statsObj.children.sorter === undefined){
-    statsObj.children.sorter = {};
-    statsObj.children.sorter.errors = 0;
-  }
-
-  if (sorter !== undefined) {
-    console.error("KILLING PREVIOUS SORTER | " + sorter.pid);
-    sorter.kill("SIGINT");
+  if (childrenHashMap[params.childId] === undefined){
+    childrenHashMap[params.childId] = {};
+    childrenHashMap[params.childId].pid = false;
+    childrenHashMap[params.childId].childId = params.childId;
+    childrenHashMap[params.childId].status = "NEW";
+    childrenHashMap[params.childId].errors = 0;
   }
 
   const s = cp.fork(`${__dirname}/js/libs/sorter.js`);
+
+  childrenHashMap[params.childId] = {};  
+  childrenHashMap[params.childId].status = "NEW";  
+  childrenHashMap[params.childId].child = {};  
 
   s.on("message", function sorterMessageRx(m){
 
@@ -3687,9 +3924,11 @@ function initSorter(callback){
 
     if (m.op === "ERROR"){
       console.log(chalkError("*** SORTER ERROR: " + m.message));
+      childrenHashMap[params.childId].status = "ERROR";
     }
     else if (m.op === "PONG"){
       sorterPongReceived = m.pongId;
+      childrenHashMap[params.childId].status = "RUNNING";
       debug(chalkInfo("<PONG | SORTER | PONG ID: " + moment(m.pongId).format(compactDateTimeFormat)))
     }
     else {
@@ -3700,14 +3939,20 @@ function initSorter(callback){
 
   s.send({
     op: "INIT",
+    childId: params.childId,
     interval: DEFAULT_INTERVAL
   }, function sorterMessageRxError(err){
     if (err) {
       console.error(chalkError("*** SORTER SEND ERROR"
         + " | " + err
       ));
-      configEvents.emit("CHILD_ERROR", { name: "sorter", err: "SORTER SEND ERROR" });
+      childrenHashMap[params.childId].status = "ERROR";
+      configEvents.emit("CHILD_ERROR", { childId: params.childId, err: "SORTER SEND ERROR" });
     }
+    else {
+      childrenHashMap[params.childId].status = "INIT";
+    }
+
   });
 
   s.on("error", function sorterError(err){
@@ -3715,7 +3960,8 @@ function initSorter(callback){
       + " | *** SORTER ERROR ***"
       + " \n" + jsonPrint(err)
     ));
-    configEvents.emit("CHILD_ERROR", { name: "sorter", err: err });
+    childrenHashMap[params.childId].status = "ERROR";
+    configEvents.emit("CHILD_ERROR", { childId: params.childId, err: err });
   });
 
   s.on("exit", function sorterExit(code, signal){
@@ -3725,8 +3971,9 @@ function initSorter(callback){
       + " | EXIT CODE: " + code
       + " | EXIT SIGNAL: " + signal
     ));
+    childrenHashMap[params.childId].status = "EXIT";
 
-    if (code > 0) { configEvents.emit("CHILD_ERROR", { name: "sorter", err: "SORTER EXIT" }); }
+    if (code > 0) { configEvents.emit("CHILD_ERROR", { childId: params.childId, err: "SORTER EXIT" }); }
   });
 
   s.on("close", function sorterClose(code, signal){
@@ -3736,35 +3983,42 @@ function initSorter(callback){
       + " | EXIT CODE: " + code
       + " | EXIT SIGNAL: " + signal
     ));
-    if (code > 0) { configEvents.emit("CHILD_ERROR", { name: "sorter", err: "SORTER CLOSE" }); }
+
+    childrenHashMap[params.childId].status = "CLOSE";
+
+    if (code > 0) { configEvents.emit("CHILD_ERROR", { childId: params.childId, err: "SORTER CLOSE" }); }
   });
 
-  sorter = s;
+  childrenHashMap[params.childId].child = s;
 
   initSorterPingInterval(DEFAULT_PING_INTERVAL);
 
-  if (callback !== undefined) { callback(null, sorter); }
+  if (callback !== undefined) { callback(null, s); }
 }
 
-function initTweetParser(callback){
+function initTweetParser(params, callback){
 
   tweetParserReady = false;
 
-  if (tweetParser !== undefined) {
-    console.error("KILLING PREVIOUS TWEET PARSER | " + tweetParser.pid);
-    tweetParserSendReady = false;
-    tweetParserReady = false;
-    tweetParser.kill("SIGINT");
-  }
-
-  if (statsObj.children.tweetParser === undefined){
-    statsObj.children.tweetParser = {};
-    statsObj.children.tweetParser.errors = 0;
+  if (childrenHashMap[params.childId] === undefined){
+    childrenHashMap[params.childId] = {};
+    childrenHashMap[params.childId].pid = false;
+    childrenHashMap[params.childId].childId = params.childId;
+    childrenHashMap[params.childId].status = "NEW";
+    childrenHashMap[params.childId].errors = 0;
   }
 
   const twp = cp.fork(`${__dirname}/js/libs/tweetParser.js`);
 
+  childrenHashMap[params.childId] = {};  
+  childrenHashMap[params.childId].status = "NEW";  
+  childrenHashMap[params.childId].child = {};  
+
+
   twp.on("message", function tweetParserMessageRx(m){
+
+    childrenHashMap[params.childId].status = "RUNNING";  
+
     debug(chalkLog("TWEET PARSER RX MESSAGE"
       + " | OP: " + m.op
     ));
@@ -3786,11 +4040,14 @@ function initTweetParser(callback){
       ));
       tweetParserSendReady = false;
       tweetParserReady = false;
+      childrenHashMap[params.childId].status = "ERROR";
     }
     else {
       tweetParserSendReady = true;
       tweetParserReady = true;
+      childrenHashMap[params.childId].status = "INIT";
     }
+
   });
 
   twp.on("error", function tweetParserError(err){
@@ -3800,6 +4057,7 @@ function initTweetParser(callback){
     ));
     tweetParserSendReady = false;
     tweetParserReady = false;
+    childrenHashMap[params.childId].status = "ERROR";
   });
 
   twp.on("exit", function tweetParserExit(code){
@@ -3809,6 +4067,7 @@ function initTweetParser(callback){
     ));
     tweetParserSendReady = false;
     tweetParserReady = false;
+    childrenHashMap[params.childId].status = "EXIT";
   });
 
   twp.on("close", function tweetParserClose(code){
@@ -3818,9 +4077,10 @@ function initTweetParser(callback){
     ));
     tweetParserSendReady = false;
     tweetParserReady = false;
+    childrenHashMap[params.childId].status = "CLOSE";
   });
 
-  tweetParser = twp;
+  childrenHashMap[params.childId].child = twp;
 
   tweetParserReady = true;
 
@@ -4003,12 +4263,17 @@ function initRateQinterval(interval){
           console.error(chalkError("ERROR RATE QUEUE INTERVAL\n" + err ));
         }
 
-        if (sorter !== undefined) {
-          sorter.send(paramsSorter, function sendSorterError(err){
+        if (childrenHashMap[DEFAULT_SORTER_CHILD_ID].child !== undefined) {
+
+          childrenHashMap[DEFAULT_SORTER_CHILD_ID].child.send(paramsSorter, function sendSorterError(err){
             if (err) {
               console.error(chalkError("SORTER SEND ERROR"
                 + " | " + err
               ));
+              childrenHashMap[DEFAULT_SORTER_CHILD_ID].status = "ERROR";
+            }
+            else {
+              childrenHashMap[DEFAULT_SORTER_CHILD_ID].status = "RUNNING";
             }
           });
         }
@@ -4063,9 +4328,12 @@ function initLoadBestNetworkInterval(interval){
 
             if (nnObj) { 
               nnObj.matchRate = (nnObj.matchRate !== undefined) ? nnObj.matchRate : 0;
-              bestNetworkObj = deepcopy(nnObj); 
-              if (tweetParser === undefined) {
-                initTweetParser();
+              bestNetworkObj = deepcopy(nnObj);
+
+              if (childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID] === undefined){
+                killChild({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, numKilled){
+                  initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
+                });
               }
             }
             else {
@@ -4105,7 +4373,7 @@ function initLoadBestNetworkInterval(interval){
               statsObj.bestNetwork.successRate = nnObj.successRate;
               statsObj.bestNetwork.matchRate = nnObj.matchRate;
 
-              tweetParser.send({ op: "NETWORK", networkObj: bestNetworkObj }, function twpNetwork(err){
+              childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({ op: "NETWORK", networkObj: bestNetworkObj }, function twpNetwork(err){
                 if (err) {
                   console.error(chalkError("*** TWEET PARSER SEND NETWORK ERROR"
                     + " | " + err
@@ -4295,36 +4563,43 @@ function initialize(cnf, callback) {
 configEvents.on("CHILD_ERROR", function childError(childObj){
 
   console.error(chalkError("CHILD_ERROR"
-    + " | " + childObj.name
+    + " | " + childObj.childId
     + " | ERROR: " + jsonPrint(childObj.err)
   ));
 
   console.log(chalkError("CHILD_ERROR"
-    + " | " + childObj.name
+    + " | " + childObj.childId
     + " | ERROR: " + jsonPrint(childObj.err)
   ));
 
-  if (statsObj.children[childObj.name] === undefined){
-    statsObj.children[childObj.name] = {};
-    statsObj.children[childObj.name].errors = 0;
+  if (childrenHashMap[childObj.childId] === undefined){
+    childrenHashMap[childObj.childId] = {};
+    childrenHashMap[childObj.childId].errors = 0;
   }
 
-  statsObj.children[childObj.name].errors += 1;
+  childrenHashMap[childObj.childId].errors += 1;
 
-  slackPostMessage(slackErrorChannel, "\n*CHILD ERROR*\n" + childObj.name + "\n" + childObj.err);
+  slackPostMessage(slackErrorChannel, "\n*CHILD ERROR*\n" + childObj.childId + "\n" + childObj.err);
 
-  switch(childObj.name){
+  switch(childObj.childId){
 
     case "tweetParser":
+
       console.error("KILL TWEET PARSER");
-      if (tweetParser !== undefined) { tweetParser.kill("SIGINT"); }
-      initTweetParser();
+
+      killChild({childId: childObj.childId}, function(err, numKilled){
+        initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
+      });
+
     break;
 
     case "sorter":
-      console.error("KILL SORTER");
-      if (sorter !== undefined) { sorter.kill("SIGINT"); }
-      initSorter();
+      console.log(chalkError("KILL SORTER"));
+
+      killChild({childId: childObj.childId}, function(err, numKilled){
+        initSorter({childId: DEFAULT_SORTER_CHILD_ID});
+      });
+
     break;
 
   }
@@ -4371,6 +4646,15 @@ function initStatsInterval(interval){
   }, 15000);
 
   statsInterval = setInterval(function updateStats() {
+
+    getChildProcesses({searchTerm: "ALL"}, function(err, childArray){
+
+      console.log(chalkLog("WA | FOUND " + childArray.length + " CHILDREN"));
+      childArray.forEach(function(childObj){
+        console.log(chalkLog("WA | CHILD | PID: " + childObj.pid + " | " + childObj.childId + " | " + childrenHashMap[childObj.childId].status));
+      })
+
+    });
 
     statsObj.serverTime = moment().valueOf();
     statsObj.timeStamp = moment().format(compactDateTimeFormat);
@@ -4449,38 +4733,29 @@ initialize(configuration, function initializeComplete(err) {
   } 
   else {
     debug(chalkLog("INITIALIZE COMPLETE"));
+
     initSorterMessageRxQueueInterval(DEFAULT_INTERVAL);
+
     initSaveFileQueue(configuration);
 
-    // initTweetParser(function initTweetParserComplete(err, twp){
+    killAll(function(err, numKilled){
+      initSorter({childId: DEFAULT_SORTER_CHILD_ID});
+    });
+
+    // initSorter(function initSorterComplete(err, srtr){
     //   if (err) {
-    //     console.error(chalkError("INIT TWEET PARSER ERROR: " + err));
-    //     if (twp !== undefined) { 
-    //       twp.kill("SIGKILL"); 
+    //     console.error(chalkError("INIT SORTER ERROR: " + err));
+    //     if (srtr !== undefined) { 
+    //       srtr.kill("SIGKILL"); 
     //     }
-    //     if (tweetParser !== undefined) { 
-    //       tweetParser.kill("SIGKILL"); 
+    //     if (sorter !== undefined) { 
+    //       sorter.kill("SIGKILL"); 
     //     }
     //   }
     //   else {
-    //     tweetParser = twp;
+    //     sorter = srtr;
     //   }
     // });
-
-    initSorter(function initSorterComplete(err, srtr){
-      if (err) {
-        console.error(chalkError("INIT SORTER ERROR: " + err));
-        if (srtr !== undefined) { 
-          srtr.kill("SIGKILL"); 
-        }
-        if (sorter !== undefined) { 
-          sorter.kill("SIGKILL"); 
-        }
-      }
-      else {
-        sorter = srtr;
-      }
-    });
 
     initTransmitNodeQueueInterval(TRANSMIT_NODE_QUEUE_INTERVAL);
     initStatsInterval(STATS_UPDATE_INTERVAL);

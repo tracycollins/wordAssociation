@@ -3440,11 +3440,13 @@ function initTwitterRxQueueInterval(interval){
           if (quitOnError) {
             quit("TWEET PARSER SEND ERROR");
           }
-
           tweetParserSendReady = false;
+
+          childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].status = "ERROR";
         }
         else {
           tweetParserSendReady = true;
+          childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].status = "RUNNING";
         }
       });
 

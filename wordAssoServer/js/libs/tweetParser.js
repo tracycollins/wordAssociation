@@ -107,7 +107,7 @@ process.on("SIGINT", function processSigInt() {
   quit("SIGINT");
 });
 
-process.title = "node_tweetParser";
+process.title = "wa_node_tweetParser";
 console.log(
   "\n\nTWP | ====================================================================================================\n" 
   + "========================================= ***START*** ==============================================\n" 

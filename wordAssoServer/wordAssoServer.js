@@ -2998,6 +2998,16 @@ configEvents.on("SERVER_READY", function serverReady() {
   memoryAvailablePercent = (statsObj.memory.memoryAvailable/statsObj.memory.memoryTotal);
 
   let hearbeatObj = {};
+
+  hearbeatObj.servers = {};
+  hearbeatObj.servers.tmsServers = {};
+  hearbeatObj.servers.tusServers = {};
+  hearbeatObj.servers.tfeServers = {};
+  hearbeatObj.servers.tssServers = {};
+  hearbeatObj.servers.tnnServers = {};
+  hearbeatObj.children = {};
+  hearbeatObj.children.childrenHashMap = {};
+
   hearbeatObj.twitter = {};
   hearbeatObj.memory = {};
 
@@ -3011,6 +3021,12 @@ configEvents.on("SERVER_READY", function serverReady() {
     statsObj.memory.memoryTotal = os.totalmem();
     statsObj.memory.memoryAvailable = os.freemem();
     statsObj.memory.memoryUsage = process.memoryUsage();
+
+    hearbeatObj.servers.tfeServers = tfeServers;
+    hearbeatObj.servers.tmsServers = tmsServers;
+    hearbeatObj.servers.tnnServers = tnnServers;
+    hearbeatObj.servers.tssServers = tssServers;
+    hearbeatObj.servers.tusServers = tusServers;
 
     statsObj.twitter.tweetsPerMin = parseInt(tweetMeter.toJSON()[metricsRate]);
 

@@ -3535,7 +3535,7 @@ function getChildProcesses(params, callback){
 
         if (parseInt(pid) > 0) {
 
-          const c = "ps -o comm= -p " + pid;
+          const c = "ps -o command= -p " + pid;
 
           shell.exec(c, {silent: true}, function(code, stdout, stderr){
 

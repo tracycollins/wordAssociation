@@ -773,7 +773,7 @@ setInterval(function(){
     heartBeatTimeoutFlag = false;
     hbIndex++;
 
-    if (tweetsPerMinServer && heartBeat.twitter) {
+    if (heartBeat.twitter) {
       // tweetsPerMin = heartBeat.twitter.tweetsPerMinute;
       tweetsPerMin = heartBeat.twitter.tweetsPerMin;
       tweetsPerMinMax = heartBeat.twitter.maxTweetsPerMin;
@@ -1752,7 +1752,9 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   // }
 
   // tableCreateRow(heatbeatTable, false, ['TOTAL SESSIONS', heartBeat.db.totalSessions]);
-  tableCreateRow(heatbeatTable, false, ['TOTAL WORDS', heartBeat.db.totalWords]);
+  // if (heartBeat.db) { 
+  //   if (heartBeat.db.totalWords) { tableCreateRow(heatbeatTable, false, ['TOTAL WORDS', heartBeat.db.totalWords]); }
+  // }
   // tableCreateRow(heatbeatTable, false, ['TOTAL WORD UPDATES', heartBeat.db.wordsUpdated]);
 
   // tableCreateRow(heatbeatTable, false, ['QUEUES',
@@ -1763,10 +1765,10 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   //   + ' | V: ' + heartBeat.queues.updateSessionViewQueue
   // ]);
 
-  tableCreateRow(heatbeatTable, false, ['TOTAL ADMINS', heartBeat.db.totalAdmins]);
-  tableCreateRow(heatbeatTable, false, ['TOTAL USERS', heartBeat.db.totalUsers]);
+  // tableCreateRow(heatbeatTable, false, ['TOTAL ADMINS', heartBeat.db.totalAdmins]);
+  // tableCreateRow(heatbeatTable, false, ['TOTAL USERS', heartBeat.db.totalUsers]);
   // tableCreateRow(heatbeatTable, false, ['TOTAL ENTITIES', heartBeat.db.totalEntities]);
-  tableCreateRow(heatbeatTable, false, ['TOTAL VIEWERS', heartBeat.db.totalViewers]);
+  // tableCreateRow(heatbeatTable, false, ['TOTAL VIEWERS', heartBeat.db.totalViewers]);
 
   serverHeartbeatElement = document.getElementById("server_admins");
 

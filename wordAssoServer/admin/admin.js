@@ -773,14 +773,15 @@ setInterval(function(){
     heartBeatTimeoutFlag = false;
     hbIndex++;
 
-    if (tweetsPerMinServer && heartBeat.utilities[tweetsPerMinServer]) {
-      tweetsPerMin = heartBeat.utilities[tweetsPerMinServer].tweetsPerMinute;
-      tweetsPerMinMax = heartBeat.utilities[tweetsPerMinServer].maxTweetsPerMin;
-      tweetsPerMinMaxTime = heartBeat.utilities[tweetsPerMinServer].maxTweetsPerMinTime;
+    if (tweetsPerMinServer && heartBeat.twitter) {
+      // tweetsPerMin = heartBeat.twitter.tweetsPerMinute;
+      tweetsPerMin = heartBeat.twitter.tweetsPerMin;
+      tweetsPerMinMax = heartBeat.twitter.maxTweetsPerMin;
+      tweetsPerMinMaxTime = heartBeat.twitter.maxTweetsPerMinTime;
 
-      twitterLimit = heartBeat.utilities[tweetsPerMinServer].twitterLimit;
-      twitterLimitMax = heartBeat.utilities[tweetsPerMinServer].twitterLimitMax;
-      twitterLimitMaxTime = heartBeat.utilities[tweetsPerMinServer].twitterLimitMaxTime;
+      twitterLimit = heartBeat.twitter.twitterLimit;
+      twitterLimitMax = heartBeat.twitter.twitterLimitMax;
+      twitterLimitMaxTime = heartBeat.twitter.twitterLimitMaxTime;
     }
 
     if (heartBeat.deltaResponsesReceived > deltaResponsesMax) {deltaResponsesMax = heartBeat.deltaResponsesReceived;}

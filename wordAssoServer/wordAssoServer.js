@@ -2971,7 +2971,7 @@ function transmitNodes(tw, callback){
   });
 
   tw.words.forEach(function wordsTxNodeQueue(word){
-    if (word && !ignoreWordHashMap.has(word.text)) { transmitNodeQueue.push(word); }
+    if (word && !ignoreWordHashMap.has(word.nodeId)) { transmitNodeQueue.push(word); }
   });
 
 

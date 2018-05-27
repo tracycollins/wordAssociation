@@ -1048,9 +1048,9 @@ function ViewTreepack() {
 
   function labelText(d) {
     if (d.nodeType === "emoji") { 
-      if (d.category || d.categoryAuto) { return "#" + d.text.toUpperCase(); }
-      if (d.mentions >= minMentions) { return "#" + d.text.toUpperCase(); }
-      return "#" + d.text.toLowerCase(); 
+      if (d.category || d.categoryAuto) { return d.text.toUpperCase(); }
+      if (d.mentions >= minMentions) { return d.text.toUpperCase(); }
+      return d.text.toLowerCase(); 
     }
     if (d.nodeType === "hashtag") { 
       if (d.category || d.categoryAuto) { return "#" + d.text.toUpperCase(); }

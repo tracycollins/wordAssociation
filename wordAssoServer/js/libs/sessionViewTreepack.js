@@ -1067,7 +1067,9 @@ function ViewTreepack() {
       }
       else { return "@UNKNOWN?"; }
     }
-    if (d.nodeType === "place") {  return d.fullName.toUpperCase(); }
+    if (d.nodeType === "place") {  
+      if (d.fullName) { return d.fullName.toUpperCase(); }
+    }
     return d.nodeId; 
   }
 
@@ -1580,6 +1582,10 @@ function ViewTreepack() {
         currentNode.nodeId = newNode.nodeId;
         currentNode.userId = newNode.userId;
         currentNode.hashtagId = newNode.hashtagId;
+        currentNode.emojiId = newNode.emojiId;
+        currentNode.placeId = newNode.placeId;
+        currentNode.wordId = newNode.wordId;
+        currentNode.fullName = newNode.fullName;
         currentNode.nodeType = newNode.nodeType;
         currentNode.screenName = newNode.screenName;
         currentNode.name = newNode.name;

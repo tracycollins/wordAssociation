@@ -1047,6 +1047,11 @@ function ViewTreepack() {
   }
 
   function labelText(d) {
+    if (d.nodeType === "emoji") { 
+      if (d.category || d.categoryAuto) { return "#" + d.text.toUpperCase(); }
+      if (d.mentions >= minMentions) { return "#" + d.text.toUpperCase(); }
+      return "#" + d.text.toLowerCase(); 
+    }
     if (d.nodeType === "hashtag") { 
       if (d.category || d.categoryAuto) { return "#" + d.text.toUpperCase(); }
       if (d.mentions >= minMentions) { return "#" + d.text.toUpperCase(); }
@@ -1684,7 +1689,6 @@ function ViewTreepack() {
           newCurrentMaxMentionsMetricFlag = false;
           previousMaxMentionsMetric = currentMax.mentions.mentions;
         }
-        // newCurrentMaxRateMetricFlag = false;
 
         nodeLabelSizeScale = d3.scaleLinear()
           .domain([1, currentMax[metricMode][metricMode]])
@@ -1697,23 +1701,6 @@ function ViewTreepack() {
           .clamp(true);
 
       }
-      // else if ((metricMode === "mentions") && newCurrentMaxMentionsMetricFlag) {
-
-      //   newCurrentMaxMentionsMetricFlag = false;
-      //   previousMaxMentionsMetric = currentMaxMentionsMetric;
-
-      //   nodeLabelSizeScale = d3.scaleLinear()
-      //     .domain([1, currentMaxMentionsMetric])
-      //     .range([fontSizeMin, fontSizeMax])
-      //     .clamp(true);
-
-      //   defaultRadiusScale = d3.scaleLinear()
-      //     .domain([0, Math.sqrt(currentMaxMentionsMetric)])
-      //     .range([nodeRadiusMin, nodeRadiusMax])
-      //     .clamp(true);
-
-      // }
-
 
       callback();
     });

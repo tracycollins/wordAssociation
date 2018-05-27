@@ -238,7 +238,7 @@ const ignoreWordsArray = [
   "no",
   "nos",
   "not",
-  "null"
+  "null",
   "of",
   "old",
   "on",

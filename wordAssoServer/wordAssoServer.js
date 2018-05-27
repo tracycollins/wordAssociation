@@ -2048,7 +2048,9 @@ function initSocketHandler(socketObj) {
         }
         else if (hashtag) { 
           console.log(chalkTwitter("TWITTER_SEARCH_NODE HASHTAG FOUND\n" + jsonPrint(hashtag)));
+
           socket.emit("SET_TWITTER_HASHTAG", hashtag);
+
           if (hashtag.category) { 
             let htCatObj = {};
             htCatObj.manual = hashtag.category;
@@ -2062,6 +2064,7 @@ function initSocketHandler(socketObj) {
         else {
           console.log(chalkTwitter("TWITTER_SEARCH_NODE HASHTAG NOT FOUND: #" + searchNodeHashtag.nodeId));
           console.log(chalkTwitter("+++ CREATE NEW HASHTAG: #" + searchNodeHashtag.nodeId));
+
           new Hashtag({
             nodeId: searchNodeHashtag.nodeId.toLowerCase(), 
             text: searchNodeHashtag.nodeId.toLowerCase()})
@@ -2073,9 +2076,11 @@ function initSocketHandler(socketObj) {
               ));
               return;
             }
+
             console.log(chalkAlert("+++ SAVED NEW HASHTAG"
               + " | #" + newHt.nodeId
             ));
+
             socket.emit("SET_TWITTER_HASHTAG", newHt);
           });
         }
@@ -2464,6 +2469,7 @@ function checkCategory(nodeObj, callback) {
   switch (nodeObj.nodeType) {
 
     case "tweet":
+    case "emoji":
     case "media":
     case "url":
     case "place":
@@ -2612,9 +2618,15 @@ function initUpdateTrendsInterval(interval){
 function updateNodeMeter(nodeObj, callback){
 
   if (!configuration.metrics.nodeMeterEnabled
-    || ((nodeObj.nodeType !== "user") 
+    || (
+      (nodeObj.nodeType !== "user") 
       && (nodeObj.nodeType !== "hashtag") 
-      && (nodeObj.nodeType !== "place"))) 
+      && (nodeObj.nodeType !== "emoji") 
+      && (nodeObj.nodeType !== "word") 
+      && (nodeObj.nodeType !== "url") 
+      && (nodeObj.nodeType !== "media") 
+      && (nodeObj.nodeType !== "place"))
+    ) 
   {
     callback(null, nodeObj);
     return;
@@ -2803,6 +2815,7 @@ function initTransmitNodeQueueInterval(interval){
               viewNameSpace.volatile.emit("node", node);
             }
             else {
+
               if (twitUserShowReady 
                 && (n.nodeType === "user") 
                 && n.category && (n.followersCount === 0)){
@@ -2904,6 +2917,22 @@ function initTransmitNodeQueueInterval(interval){
               else if (n.nodeType === "hashtag") {
                 viewNameSpace.volatile.emit("node", n);
               }
+
+              if (n.nodeType === "emoji"){
+                viewNameSpace.volatile.emit("node", n);
+              }
+
+              if (n.nodeType === "media"){
+                viewNameSpace.volatile.emit("node", n);
+              }
+
+              if (n.nodeType === "place"){
+                viewNameSpace.volatile.emit("node", n);
+              }
+
+              if (n.nodeType === "word"){
+                viewNameSpace.volatile.emit("node", n);
+              }
             }
 
           });
@@ -2917,6 +2946,9 @@ function initTransmitNodeQueueInterval(interval){
 function transmitNodes(tw, callback){
   debug("TX NODES");
 
+  if (tw.user) {transmitNodeQueue.push(tw.user);}
+  if (tw.place) {transmitNodeQueue.push(tw.place);}
+
   tw.userMentions.forEach(function userMentionsTxNodeQueue(user){
     if (user) {transmitNodeQueue.push(user);}
   });
@@ -2925,8 +2957,22 @@ function transmitNodes(tw, callback){
     if (hashtag) {transmitNodeQueue.push(hashtag);}
   });
 
-  if (tw.place) {transmitNodeQueue.push(tw.place);}
-  if (tw.user) {transmitNodeQueue.push(tw.user);}
+  tw.media.forEach(function mediaTxNodeQueue(media){
+    if (media) {transmitNodeQueue.push(media);}
+  });
+
+  tw.emoji.forEach(function emojiTxNodeQueue(emoji){
+    if (emoji) {transmitNodeQueue.push(emoji);}
+  });
+
+  tw.urls.forEach(function urlTxNodeQueue(url){
+    if (url) {transmitNodeQueue.push(url);}
+  });
+
+  tw.words.forEach(function wordsTxNodeQueue(word){
+    if (word) {transmitNodeQueue.push(word);}
+  });
+
 
   callback();
 }
@@ -3775,15 +3821,19 @@ function initTweetParserMessageRxQueueInterval(interval){
             + " | USR: " + tweetObj.user.screenName
             + " | Hs: " + tweetObj.hashtags.length
             + " | UMs: " + tweetObj.userMentions.length
+            + " | EJs: " + tweetObj.emoji.length
+            + " | WDs: " + tweetObj.words.length
           ));
 
           if (transmitNodeQueue.length < MAX_Q) {
+
             transmitNodes(tweetObj, function transmitNode(err){
               if (err) {
                 console.error(chalkError("TRANSMIT NODES ERROR\n" + err));
               }
               tweetParserMessageRxQueueReady = true;
             });
+
           }
           else {
             tweetParserMessageRxQueueReady = true;

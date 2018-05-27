@@ -9,6 +9,7 @@ var memoryAvailable = 0;
 var memoryUsed = 0;
 var memoryUsage = {};
 
+var serverHashMap = {};
 var serverConnected = false;
 var sentAdminReady = false;
 var initializeComplete = false;
@@ -1637,9 +1638,9 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   var utilRatio = 0;
 
-  if (heartBeat.entity) {
-    utilRatio = heartBeat.entity.util.connected / heartBeat.entity.util.connectedMax;
-  }
+  // if (heartBeat.entity) {
+    // utilRatio = heartBeat.entity.util.connected / heartBeat.entity.util.connectedMax;
+  // }
 
   utilsBar.animate(utilRatio);
 
@@ -1662,6 +1663,8 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
         serverHashMap[serverType][serverSocketId] = heartBeat.servers[serverType][serverSocketId];
 
         totalServers += 1;
+
+        utilRatio = totalServers / 6;
 
         utilsBarText.innerHTML = totalServers + ' UTILS | ' 
         + totalServers + ' MAX | ' 

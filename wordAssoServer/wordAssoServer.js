@@ -3904,15 +3904,16 @@ function initSorterPingInterval(interval){
 
       }
       else {
-        console.log(chalkAlert("*** PONG TIMEOUT | SORTER | PING ID: " + pingId));
 
+        console.log(chalkAlert("*** PONG TIMEOUT | SORTER | PING ID: " + pingId));
+        
         slackPostMessage(slackErrorChannel, "\n*CHILD ERROR*\nSORTER\nPONG TIMEOUT");
 
         clearInterval(sorterPingInterval);
 
         setTimeout(function(){
 
-          killChild({childId: childObj.childId}, function(err, numKilled){
+          killChild({childId: DEFAULT_SORTER_CHILD_ID}, function(err, numKilled){
             initSorter({childId: DEFAULT_SORTER_CHILD_ID});
           });
 

@@ -327,6 +327,7 @@ const HashMap = require("hashmap").HashMap;
 const NodeCache = require("node-cache");
 
 const categorizedUserHashMap = new HashMap();
+const categorizedWordHashMap = new HashMap();
 const categorizedHashtagHashMap = new HashMap();
 const metricsHashmap = new HashMap();
 const deletedMetricsHashmap = new HashMap();
@@ -470,6 +471,7 @@ let Word;
 
 let hashtagServer;
 let userServer;
+let wordServer;
 
 wordAssoDb.connect(function(err, dbConnection){
   if (err) {
@@ -490,6 +492,7 @@ wordAssoDb.connect(function(err, dbConnection){
 
     hashtagServer = require("@threeceelabs/hashtag-server-controller");
     userServer = require("@threeceelabs/user-server-controller");
+    wordServer = require("@threeceelabs/word-server-controller");
     // userServer = require("../../userServerController");
 
     statsObj.dbConnection = true;
@@ -1708,7 +1711,6 @@ function categorizeNode(categorizeObj, callback) {
           }
         }
       });
-
     break;
   }
 }
@@ -2474,8 +2476,40 @@ function checkCategory(nodeObj, callback) {
     case "media":
     case "url":
     case "place":
-    case "word":
       callback(nodeObj);
+    break;
+
+    case "word":
+
+      if (categorizedWordHashMap.has(nodeObj.nodeId)) {
+
+        nodeObj.category = categorizedWordHashMap.get(nodeObj.nodeId).manual;
+        nodeObj.categoryAuto = categorizedWordHashMap.get(nodeObj.nodeId).auto;
+
+        debugCategory(chalkAlert("KW HIT WORD NODEID"
+          + " | " + nodeObj.nodeId
+          + " | CAT: " + nodeObj.category
+          + " | CATA: " + nodeObj.categoryAuto
+        ));
+
+        nodesPerMinuteTopTermCache.get(nodeObj.nodeId,
+          function topTermNodeId(err, nodeId) {
+          if (err){
+            console.log(chalkError("nodesPerMinuteTopTermCache GET ERR: " + err));
+          }
+          if (nodeId !== undefined) {
+            debugCategory(chalkLog("TOP TERM WORD NODEID: " + nodeId));
+            nodeObj.isTopTerm = true;
+          }
+          else {
+            nodeObj.isTopTerm = false;
+          }
+          callback(nodeObj);
+        });
+      }
+      else {
+        callback(nodeObj);
+      }
     break;
 
     case "user":
@@ -4475,8 +4509,6 @@ function initCategoryHashmaps(callback){
 
     hashtag: function(cb){
 
-    // results.obj[nodeId] = { manual: hashtag.category, auto: hashtag.categoryAuto };
-
       hashtagServer.findCategorizedHashtagsCursor({}, function(err, results){
         if (err) {
           console.error(chalkError("ERROR: initCategoryHashmaps: findCategorizedHashtagsCursor:"
@@ -4526,7 +4558,34 @@ function initCategoryHashmaps(callback){
           cb();
         }
       });
+    },
+    word: function(cb){
+
+      wordServer.findCategorizedWordsCursor({}, function(err, results){
+        
+        if (err) {
+          console.error(chalkError("ERROR: initCategoryHashmaps: findCategorizedWordsCursor:"
+            + " " + err
+          ));
+          cb(err);
+        }
+        else {
+          console.log(chalkTwitter("LOADED CATEGORIZED WORDS FROM DB"
+            + " | " + results.count + " CATEGORIZED"
+            + " | " + results.manual + " MAN"
+            + " | " + results.auto + " AUTO"
+            + " | " + results.matchRate.toFixed(2) + "% MR"
+          ));
+
+          Object.keys(results.obj).forEach(function(nodeId){
+            categorizedWordHashMap.set(nodeId, results.obj[nodeId]);
+          });
+
+          cb();
+        }
+      });
     }
+
   }, function(err){
     if (err) {
       console.log(chalkError("ERROR: initCategoryHashmaps: " + err));
@@ -4793,7 +4852,9 @@ function initCategoryHashmapsInterval(interval){
   clearInterval(categoryHashmapsInterval);
 
   categoryHashmapsInterval = setInterval(function updateMemStats() {
+
     initCategoryHashmaps();
+
   }, interval);
 
 }
@@ -4817,21 +4878,6 @@ initialize(configuration, function initializeComplete(err) {
     killAll(function(err, numKilled){
       initSorter({childId: DEFAULT_SORTER_CHILD_ID});
     });
-
-    // initSorter(function initSorterComplete(err, srtr){
-    //   if (err) {
-    //     console.error(chalkError("INIT SORTER ERROR: " + err));
-    //     if (srtr !== undefined) { 
-    //       srtr.kill("SIGKILL"); 
-    //     }
-    //     if (sorter !== undefined) { 
-    //       sorter.kill("SIGKILL"); 
-    //     }
-    //   }
-    //   else {
-    //     sorter = srtr;
-    //   }
-    // });
 
     initIgnoreWordsHashMap();
     initTransmitNodeQueueInterval(TRANSMIT_NODE_QUEUE_INTERVAL);

@@ -238,6 +238,7 @@ const ignoreWordsArray = [
   "no",
   "nos",
   "not",
+  "null"
   "of",
   "old",
   "on",
@@ -2970,7 +2971,7 @@ function transmitNodes(tw, callback){
   });
 
   tw.words.forEach(function wordsTxNodeQueue(word){
-    if (word) {transmitNodeQueue.push(word);}
+    if (word && !ignoreWordHashMap.has(word.text)) { transmitNodeQueue.push(word); }
   });
 
 
@@ -4832,10 +4833,10 @@ initialize(configuration, function initializeComplete(err) {
     //   }
     // });
 
+    initIgnoreWordsHashMap();
     initTransmitNodeQueueInterval(TRANSMIT_NODE_QUEUE_INTERVAL);
     initStatsInterval(STATS_UPDATE_INTERVAL);
     initCategoryHashmapsInterval(CATEGORY_UPDATE_INTERVAL);
-    initIgnoreWordsHashMap();
     initUpdateTrendsInterval(UPDATE_TRENDS_INTERVAL);
     initRateQinterval(RATE_QUEUE_INTERVAL);
     initTwitterRxQueueInterval(TWITTER_RX_QUEUE_INTERVAL);

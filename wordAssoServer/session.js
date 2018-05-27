@@ -1,8 +1,8 @@
 "use strict";
 /*ver 0.47*/
 
-// var DEFAULT_SOURCE = "http://localhost:9997";
-var DEFAULT_SOURCE = "http://word.threeceelabs.com";
+var DEFAULT_SOURCE = "http://localhost:9997";
+// var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 
 var config = {};
 var previousConfig = {};
@@ -1857,7 +1857,7 @@ var rxNodeQueue = [];
 
 var rxNode = function(node){
   if ((rxNodeQueue.length < RX_NODE_QUEUE_MAX)
-    &&((node.nodeType === "user") || (node.nodeType === "hashtag") || (node.nodeType === "place"))
+    // &&((node.nodeType === "user") || (node.nodeType === "hashtag") || (node.nodeType === "place"))
   ){
     rxNodeQueue.push(node);
   }

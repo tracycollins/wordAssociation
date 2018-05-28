@@ -1873,7 +1873,7 @@ function initSocketHandler(socketObj) {
         + " | " + serverHashMap.get(socket.id).user.nodeId
         + " | " + socket.id
       ));
-      
+
       adminNameSpace.emit("SERVER_DELETE", {socketId: socket.id, nodeId: serverHashMap.get(socket.id).user.nodeId});
       serverHashMap.delete(socket.id);
     }
@@ -3074,11 +3074,6 @@ configEvents.on("SERVER_READY", function serverReady() {
   let hearbeatObj = {};
 
   hearbeatObj.servers = [];
-  // hearbeatObj.servers.tmsServers = {};
-  // hearbeatObj.servers.tusServers = {};
-  // hearbeatObj.servers.tfeServers = {};
-  // hearbeatObj.servers.tssServers = {};
-  // hearbeatObj.servers.tnnServers = {};
   hearbeatObj.children = {};
   hearbeatObj.children.childrenHashMap = {};
 
@@ -3097,14 +3092,10 @@ configEvents.on("SERVER_READY", function serverReady() {
     statsObj.memory.memoryUsage = process.memoryUsage();
 
     hearbeatObj.servers = [];
+    
     serverHashMap.forEach(function(serverObj, serverSocketId){
       hearbeatObj.servers.push([serverSocketId, serverObj]);
     });
-    // hearbeatObj.servers.tfeServers = tfeServers;
-    // hearbeatObj.servers.tmsServers = tmsServers;
-    // hearbeatObj.servers.tnnServers = tnnServers;
-    // hearbeatObj.servers.tssServers = tssServers;
-    // hearbeatObj.servers.tusServers = tusServers;
 
     statsObj.twitter.tweetsPerMin = parseInt(tweetMeter.toJSON()[metricsRate]);
 

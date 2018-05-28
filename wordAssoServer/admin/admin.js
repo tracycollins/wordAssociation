@@ -581,7 +581,10 @@ socket.on('SERVER_ADD', function(serverObj) {
 socket.on('KEEPALIVE', function(serverObj) {
   console.debug("KEEPALIVE | " + serverObj.type + " | " + serverObj.user.nodeId);
 
-  if (serverSocketHashMap.has(serverObj.socketId)){
+  if (serverObj.socketId === socket.id){
+    console.warn("KEEPALIVE LOOPBACK "  + serverObj.socketId + " | " + serverObj.user.nodeId);
+  }
+  else if (serverSocketHashMap.has(serverObj.socketId)){
     serverObj.connected = true;
     serverSocketHashMap.set(serverObj.socketId, serverObj);
   }

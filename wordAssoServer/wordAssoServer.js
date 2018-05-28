@@ -3091,7 +3091,8 @@ configEvents.on("SERVER_READY", function serverReady() {
     statsObj.memory.memoryAvailable = os.freemem();
     statsObj.memory.memoryUsage = process.memoryUsage();
 
-    hearbeatObj.servers = serverHashMap.entries();
+    const tempArray = serverHashMap.entries();
+    hearbeatObj.servers = tempArray;
 
     // serverHashMap.forEach(function(serverObj, serverSocketId){
     //   hearbeatObj.servers.push([serverSocketId, serverObj]);

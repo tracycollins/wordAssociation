@@ -772,7 +772,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       const serverSocketId = serverSocketEntry[0];
       const currentServer = serverSocketEntry[1];
 
-      serverTypeHashMap.set(currentServer.user.type, currentServer);
+      serverTypeHashMap.set(currentServer.type, currentServer);
       serverSocketHashMap.set(serverSocketId, currentServer);
 
       tableCreateRow(
@@ -780,7 +780,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
         false, 
         [
           currentServer.user.nodeId, 
-          currentServer.user.type, 
+          currentServer.type, 
           serverSocketId, 
           moment(currentServer.timeStamp).format(defaultDateTimeFormat), 
           msToTime(moment().diff(moment(currentServer.timeStamp)))

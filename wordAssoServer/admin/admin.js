@@ -22,7 +22,7 @@ var midColor = '#F9CD2B';
 var endColor = '#CC0000';
 
 var WARN_LIMIT_PERCENT = 80;
-var ALERT_LIMIT_PERCENT = 95
+var ALERT_LIMIT_PERCENT = 95;
 
 var ONE_MB = 1024 * 1024;
 var ONE_GB = ONE_MB * 1024;
@@ -59,10 +59,10 @@ var adminIpHashMap = new HashMap();
 var adminSocketIdHashMap = new HashMap();
 var userIpHashMap = new HashMap();
 var userSessionHashMap = new HashMap();
-var utilIpHashMap = new HashMap();
-var utilSessionHashMap = new HashMap();
+var serverIpHashMap = new HashMap();
+var serverSessionHashMap = new HashMap();
 
-var utilIpHashMapKeys = [];
+var serverIpHashMapKeys = [];
 var userIpHashMapKeys = [];
 var userSessionHashMapKeys = [];
 var adminIpHashMapKeys = [];
@@ -70,7 +70,7 @@ var adminSocketIdHashMapKeys = [];
 
 var randomIntFromInterval = function(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
-}
+};
 
 function getTimeNow() {
   var d = new Date();
@@ -94,6 +94,7 @@ var mainAdminObj = {
   mode: "control",
   tags: {}
 };
+
 mainAdminObj.tags.mode = "control";
 mainAdminObj.tags.type = "admin";
 mainAdminObj.tags.entity = USER_ID;
@@ -139,12 +140,11 @@ var numberUserIpAddresses = userIpHashMap.count();
 var userConnectedColor = "#00aa00";
 var userDisconnectedColor = "#aa0000";
 var showConnectedViewers = true;
-var showDisconnectedViewers = false;
 var showIpViewers = true;
 var showBotViewers = true;
 
-var numberUtilSessions = 0;
-var numberUtilIpAddresses = 0;
+var numberServerSessions = 0;
+var numberServerIpAddresses = 0;
 
 var viewerIpHashMapKeys = [];
 var viewerSessionHashMapKeys = [];
@@ -154,7 +154,6 @@ var numberViewerIpAddresses = viewerIpHashMap.count();
 
 var viewerConnectedColor = "#00aa00";
 var viewerDisconnectedColor = "#aa0000";
-var showConnectedViewers = true;
 var showDisconnectedViewers = false;
 var viewerIpTableBody;
 var viewerSessionTableBody;
@@ -163,18 +162,18 @@ var viewerSessionTableHead;
 var userIpTableHead;
 var userSessionTableHead;
 
-var utilConnectedColor = "#00aa00";
-var utilDisconnectedColor = "#aa0000";
-var showConnectedUtils = true;
-var showDisconnectedUtils = false;
-var showIpUtils = true;
+var serverConnectedColor = "#00aa00";
+var serverDisconnectedColor = "#aa0000";
+var showConnectedServers = true;
+var showDisconnectedServers = false;
+var showIpServers = true;
 
 var deltaTweetsMax = 1;
 
-var utilSessionTableHead;
-var utilIpTableHead;
-var utilIpTableBody;
-var utilSessionTableBody;
+var serverSessionTableHead;
+var serverIpTableHead;
+var serverIpTableBody;
+var serverSessionTableBody;
 
 var viewerIpTableHead;
 
@@ -194,9 +193,9 @@ var usersBar;
 var usersBarDiv;
 var usersBarText;
 
-var utilsBar;
-var utilsBarDiv;
-var utilsBarText;
+var serversBar;
+var serversBarDiv;
+var serversBarText;
 
 var viewersBar;
 var viewersBarDiv;
@@ -240,21 +239,21 @@ function initBars(callback){
   viewersBar.animate(0);
   viewersBarText = document.getElementById('viewers-bar-text');
 
-  // UTILS ===============================
+  // SERVER ===============================
 
-  numberUtilSessions = 0;
-  numberUtilIpAddresses = utilIpHashMap.count();
+  numberServerSessions = 0;
+  numberServerIpAddresses = serverIpHashMap.count();
 
-  utilSessionTableHead = document.getElementById('util_session_table_head');
-  utilSessionTableBody = document.getElementById('util_session_table_body');
+  serverSessionTableHead = document.getElementById('server_session_table_head');
+  serverSessionTableBody = document.getElementById('server_session_table_body');
 
-  utilIpTableHead = document.getElementById('util_ip_table_head');
-  utilIpTableBody = document.getElementById('util_ip_table_body');
+  serverIpTableHead = document.getElementById('server_ip_table_head');
+  serverIpTableBody = document.getElementById('server_ip_table_body');
 
-  utilsBarDiv = document.getElementById('utils-bar');
-  utilsBar = new ProgressBar.Line(utilsBarDiv, { duration: 100 });
-  utilsBar.animate(0);
-  utilsBarText = document.getElementById('utils-bar-text');
+  serversBarDiv = document.getElementById('servers-bar');
+  serversBar = new ProgressBar.Line(serversBarDiv, { duration: 100 });
+  serversBar.animate(0);
+  serversBarText = document.getElementById('servers-bar-text');
 
   memoryBarDiv = document.getElementById('memory-bar');
   memoryBarText = document.getElementById('memory-bar-text');
@@ -281,8 +280,8 @@ function initBars(callback){
   tableCreateRow(userSessionTableHead, options, ['SESSIONS', 'IP', 'DOMAIN', 'USER', 'SESSION', 'CONNECT', 'DISCONNECT', 'TIME CONNECTED']); // 2nd arg is headerFlag
   tableCreateRow(viewerIpTableHead, options, ['VIEWERS', 'IP', 'DOMAIN', 'LAST SEEN', 'AGO', 'SESSIONS']); // 2nd arg is headerFlag
   tableCreateRow(viewerSessionTableHead, options, ['SESSIONS', 'IP', 'DOMAIN', 'USER', 'SESSION', 'CONNECT', 'DISCONNECT', 'TIME CONNECTED']); // 2nd arg is headerFlag
-  tableCreateRow(utilIpTableHead, options, ['UTILS', 'IP', 'DOMAIN', 'LAST SEEN', 'AGO', 'SESSIONS']); // 2nd arg is headerFlag
-  tableCreateRow(utilSessionTableHead, options, ['SESSIONS', 'IP', 'DOMAIN', 'USER', 'SESSION', 'CONNECT', 'DISCONNECT', 'TIME CONNECTED']); // 2nd arg is headerFlag
+  tableCreateRow(serverIpTableHead, options, ['SERVERS', 'IP', 'DOMAIN', 'LAST SEEN', 'AGO', 'SESSIONS']); // 2nd arg is headerFlag
+  tableCreateRow(serverSessionTableHead, options, ['SESSIONS', 'IP', 'DOMAIN', 'USER', 'SESSION', 'CONNECT', 'DISCONNECT', 'TIME CONNECTED']); // 2nd arg is headerFlag
 
   callback();
 }
@@ -310,20 +309,30 @@ var jsonPrint = function(obj, options) {
 
   if (options) {
     if (options.ignore) {
-      // console.debug("ignore: " + options.ignore);
+
       var tempObj = obj;
-      var i = 0;
-      var ignoreWord;
-      for (i = 0; i < options.ignore.length; i++) {
-        ignoreWord = options.ignore[i];
+      // var i = 0;
+      // var ignoreWord;
+
+      async.each(options.ignore.length, function(ignoreWord, cb){
         if (tempObj.hasOwnProperty(ignoreWord)) {
-          // console.error("delete: " + ignoreWord);
           tempObj[ignoreWord] = [];
         }
-      }
-      // options.ignore.forEach(function(ignoreWord) {
-      // });
-      if (i == options.ignore.length) return JSON.stringify(tempObj, null, 3);
+        cb();
+      }, function(){
+        return JSON.stringify(tempObj, null, 3);
+      });
+      // for (i = 0; i < options.ignore.length; i += 1) {
+
+      //   ignoreWord = options.ignore[i];
+
+      //   if (tempObj.hasOwnProperty(ignoreWord)) {
+      //     tempObj[ignoreWord] = [];
+      //   }
+
+      // }
+
+      // if (i == options.ignore.length) { return JSON.stringify(tempObj, null, 3); }
     }
   }
   else {
@@ -451,8 +460,8 @@ function requestSessions(reqSessionsOptions) {
   console.log("TX REQ VIEWER SESSION\n" + JSON.stringify(reqSessionsOptions, null, 3));
   socket.emit('REQ_VIEWER_SESSION', reqSessionsOptions);
 
-  console.log("TX REQ UTIL SESSION\n" + JSON.stringify(reqSessionsOptions, null, 3));
-  socket.emit('REQ_UTIL_SESSION', reqSessionsOptions);
+  console.log("TX REQ SERVER SESSION\n" + JSON.stringify(reqSessionsOptions, null, 3));
+  socket.emit('REQ_SERVER_SESSION', reqSessionsOptions);
 }
 
 var MAX_SESSION_AGE = 60000;
@@ -493,7 +502,7 @@ function ageHashMapEntries(hm, callback){
 setInterval(function() {
   currentTime = getTimeNow();
   if (serverConnected && initializeComplete) {
-    ageHashMapEntries(utilSessionHashMap, function(){
+    ageHashMapEntries(serverSessionHashMap, function(){
       updateAdminConnect();
       updateUserConnect();
     })
@@ -606,13 +615,13 @@ socket.on('VIEWER IP', function(rxIpObj) {
   viewerIpHashMapKeys.sort();
 });
 
-socket.on('UTIL IP', function(rxIpObj) {
+socket.on('SERVER IP', function(rxIpObj) {
   var ipObj = JSON.parse(rxIpObj);
-  console.log("RXCD UTIL IP  " + ipObj.ip + " | " + ipObj.domain);
-  utilIpHashMap.set(ipObj.ip, ipObj);
-  numberUtilIpAddresses = utilIpHashMap.count();
-  utilIpHashMapKeys = utilIpHashMap.keys();
-  utilIpHashMapKeys.sort();
+  console.log("RXCD SERVER IP  " + ipObj.ip + " | " + ipObj.domain);
+  serverIpHashMap.set(ipObj.ip, ipObj);
+  numberServerIpAddresses = serverIpHashMap.count();
+  serverIpHashMapKeys = serverIpHashMap.keys();
+  serverIpHashMapKeys.sort();
 });
 
 socket.on('ADMIN_ACK', function(adminSessionKey) {
@@ -697,45 +706,45 @@ socket.on('VIEWER_SESSION', function(viewerSessionObj) {
   if (serverConnected && initializeComplete) { updateViewerConnect(viewerSessionObj, null) };
 });
 
-var utilSessionQueue = [];
-socket.on('UTIL_SESSION', function(rxSession) {
-  utilSessionQueue.push(rxSession);
+var serverSessionQueue = [];
+socket.on('SERVER_SESSION', function(rxSession) {
+  serverSessionQueue.push(rxSession);
 });
 
-var utilSessionQueueReady = true;
+var serverSessionQueueReady = true;
 setInterval(function(){
 
-  if (utilSessionQueueReady && (utilSessionQueue.length > 0)){
+  if (serverSessionQueueReady && (serverSessionQueue.length > 0)){
 
-    var utilSessionObj = utilSessionQueue.shift();
+    var serverSessionObj = serverSessionQueue.shift();
 
-    utilIpHashMap.set(utilSessionObj.ip, utilSessionObj);
-    numberUtilIpAddresses = utilIpHashMapKeys.length;
-    utilSessionHashMap.set(utilSessionObj.sessionId, utilSessionObj);
-    numberUtilSessions = utilSessionHashMap.keys().length;
+    serverIpHashMap.set(serverSessionObj.ip, serverSessionObj);
+    numberServerIpAddresses = serverIpHashMapKeys.length;
+    serverSessionHashMap.set(serverSessionObj.sessionId, serverSessionObj);
+    numberServerSessions = serverSessionHashMap.keys().length;
 
-    console.log("RX UTIL SESSION[" + utilSessionHashMap.keys().length + "]: " + utilSessionObj.sessionId 
-      + " | C: " + utilSessionObj.connected
-      + " | UID: " + utilSessionObj.userId
+    console.log("RX SERVER SESSION[" + serverSessionHashMap.keys().length + "]: " + serverSessionObj.sessionId 
+      + " | C: " + serverSessionObj.connected
+      + " | UID: " + serverSessionObj.userId
       );
 
 
-    if (utilSessionObj.userId
-      && utilSessionObj.connected 
-      && utilSessionObj.userId.match(/TSS_/g)) {
-      console.info("UTIL SERVER CONNECTED: " + utilSessionObj.userId);
-      // tweetsPerMinServer = utilSessionObj.userId;
+    if (serverSessionObj.userId
+      && serverSessionObj.connected 
+      && serverSessionObj.userId.match(/TSS_/g)) {
+      console.info("SERVER SERVER CONNECTED: " + serverSessionObj.userId);
+      // tweetsPerMinServer = serverSessionObj.userId;
     } 
-    else if (utilSessionObj.userId
-      && !utilSessionObj.connected 
-      && utilSessionObj.userId.match(/TSS_/g)) {
-      console.info("UTIL SERVER DISCONNECTED: " + utilSessionObj.userId);
+    else if (serverSessionObj.userId
+      && !serverSessionObj.connected 
+      && serverSessionObj.userId.match(/TSS_/g)) {
+      console.info("SERVER SERVER DISCONNECTED: " + serverSessionObj.userId);
       // tweetsPerMinServer = false;
       tweetsPerMin = 0;
     }
 
-    updateUtilConnect(utilSessionObj, function(){
-      utilSessionQueueReady = true;
+    updateServerConnect(serverSessionObj, function(){
+      serverSessionQueueReady = true;
     });
   }
 
@@ -745,8 +754,8 @@ setInterval(function(){
 socket.on("SESSION_DELETE", function(sessionId) {
   // console.log("sessionObject\" + jsonPrint(sessionObject));
   console.debug("> RX DEL SESS | " + sessionId);
-  if (utilSessionHashMap.has(sessionId)){
-    console.info("* UTIL HM HIT " + sessionId);
+  if (serverSessionHashMap.has(sessionId)){
+    console.info("* SERVER HM HIT " + sessionId);
   } 
   if (userSessionHashMap.has(sessionId)){
     console.info("* USER HM HIT " + sessionId);
@@ -796,7 +805,7 @@ setInterval(function(){
       heartBeatQueueReady = true;
     });
     updateViewerConnect(null, null);
-    updateUtilConnect(null, null);
+    updateServerConnect(null, null);
   }
 }, 1000);
 
@@ -804,7 +813,7 @@ var serverCheckTimeout = setInterval(function() {
   numberAdminIpAddresses = adminIpHashMap.count();
   numberUserIpAddresses = userIpHashMap.count();
   numberViewerIpAddresses = viewerIpHashMap.count();
-  numberUtilIpAddresses = utilIpHashMap.count();
+  numberServerIpAddresses = serverIpHashMap.count();
 
   if (Date.now() > (heartBeat.timeStamp + maxServerHeartBeatWait)) {
     heartBeatTimeoutFlag = true;
@@ -928,16 +937,16 @@ function toggleHideBotViewers() {
   updateViewerConnect({ showBotViewers: "toggle" }, null);
 }
 
-function toggleIpUtils() {
-  updateUtilConnect({ showIp: "toggle" }, null);
+function toggleIpServers() {
+  updateServerConnect({ showIp: "toggle" }, null);
 }
 
-function toggleConnectedUtils() {
-  updateUtilConnect({ showConnected: "toggle"}, null);
+function toggleConnectedServers() {
+  updateServerConnect({ showConnected: "toggle"}, null);
 }
 
-function toggleDisconnectedUtils() {
-  updateUtilConnect({ showDisconnected: "toggle" }, null);
+function toggleDisconnectedServers() {
+  updateServerConnect({ showDisconnected: "toggle" }, null);
 }
 
 function updateAdminConnect(req) {
@@ -1060,7 +1069,7 @@ function updateUserConnect(req, callback) {
 
     var ipHmKeys = userIpHashMap.keys();
 
-    for (var i = 0; i < ipHmKeys.length; i++) {
+    for (var i = 0; i < ipHmKeys.length; i += 1) {
 
       key = ipHmKeys[i];
       value = userIpHashMap.get(ipHmKeys[i]);
@@ -1232,7 +1241,7 @@ function updateViewerConnect(req, callback) {
     var key;
     var value = {};
 
-    for (var i = 0; i < viewerIpHashMapKeys.length; i++) {
+    for (var i = 0; i < viewerIpHashMapKeys.length; i += 1) {
 
       key = viewerIpHashMapKeys[i];
       value = viewerIpHashMap.get(viewerIpHashMapKeys[i]);
@@ -1355,62 +1364,62 @@ function updateViewerConnect(req, callback) {
   if (callback) { callback(); }
 }
 
-function updateUtilConnect(req, callback) {
+function updateServerConnect(req, callback) {
 
   if (!initializeComplete) return;
 
-  var keys = utilSessionHashMap.keys();
+  var keys = serverSessionHashMap.keys();
 
-  var utilIpTableBodyOptions = {
+  var serverIpTableBodyOptions = {
     headerFlag: false,
     textColor: '#BBBBBB',
     backgroundColor: 'black'
   };
 
-  var utilSessionTableBodyOptions = {
+  var serverSessionTableBodyOptions = {
     headerFlag: false,
     textColor: '#BBBBBB',
     backgroundColor: 'black'
   };
 
-  while (utilIpTableBody && (utilIpTableBody.childNodes.length > 1)) {
-    utilIpTableBody.removeChild(utilIpTableBody.lastChild);
+  while (serverIpTableBody && (serverIpTableBody.childNodes.length > 1)) {
+    serverIpTableBody.removeChild(serverIpTableBody.lastChild);
   }
 
-  while (utilSessionTableBody && (utilSessionTableBody.childNodes.length > 1)) {
-    utilSessionTableBody.removeChild(utilSessionTableBody.lastChild);
+  while (serverSessionTableBody && (serverSessionTableBody.childNodes.length > 1)) {
+    serverSessionTableBody.removeChild(serverSessionTableBody.lastChild);
   }
 
   if (req) {
     if (req.showConnected == 'toggle') {
-      showConnectedUtils = !showConnectedUtils;
-      console.log("showConnectedUtils: " + showConnectedUtils);
+      showConnectedServers = !showConnectedServers;
+      console.log("showConnectedServers: " + showConnectedServers);
     }
     if (req.showDisconnected == 'toggle') {
-      showDisconnectedUtils = !showDisconnectedUtils;
-      console.log("showDisconnectedUtils: " + showDisconnectedUtils);
+      showDisconnectedServers = !showDisconnectedServers;
+      console.log("showDisconnectedServers: " + showDisconnectedServers);
     }
     if (req.showIp == 'toggle') {
-      showIpUtils = !showIpUtils;
-      console.log("showIpUtils " + showIpUtils);
+      showIpServers = !showIpServers;
+      console.log("showIpServers " + showIpServers);
     }
   }
 
-  if (showIpUtils) {
+  if (showIpServers) {
 
-    var numberUniqueUtils = 0;
+    var numberUniqueServers = 0;
     var elapsedSinceLastSeen = 0;
     var key;
     var value = {};
 
-    for (var i = 0; i < utilIpHashMapKeys.length; i++) {
+    for (var i = 0; i < serverIpHashMapKeys.length; i += 1) {
 
-      key = utilIpHashMapKeys[i];
-      value = utilIpHashMap.get(utilIpHashMapKeys[i]);
+      key = serverIpHashMapKeys[i];
+      value = serverIpHashMap.get(serverIpHashMapKeys[i]);
 
-      utilIpTableBodyOptions.textColor = utilConnectedColor;
+      serverIpTableBodyOptions.textColor = serverConnectedColor;
 
-      numberUniqueUtils++;
+      numberUniqueServers++;
 
       if (value.connected == true) {
         elapsedSinceLastSeen = 0;
@@ -1420,8 +1429,8 @@ function updateUtilConnect(req, callback) {
         elapsedSinceLastSeen = heartBeat.timeStamp - value.lastSeen;
       }
 
-      tableCreateRow(utilIpTableBody, utilIpTableBodyOptions, [
-        numberUniqueUtils,
+      tableCreateRow(serverIpTableBody, serverIpTableBodyOptions, [
+        numberUniqueServers,
         key,
         value.domain,
         getTimeStamp(value.lastSeen),
@@ -1431,9 +1440,9 @@ function updateUtilConnect(req, callback) {
     }
   }
 
-  if (showConnectedUtils) {
+  if (showConnectedServers) {
 
-    utilSessionTableBodyOptions.textColor = utilConnectedColor;
+    serverSessionTableBodyOptions.textColor = serverConnectedColor;
 
     var numberConnected = 0;
     var connectTime = 0;
@@ -1443,7 +1452,7 @@ function updateUtilConnect(req, callback) {
     for (var j = 0; j < keys.length; j++) {
 
       sessionId = keys[j];
-      sessionObj = utilSessionHashMap.get(sessionId);
+      sessionObj = serverSessionHashMap.get(sessionId);
 
       if (sessionObj.referer === undefined) {
         sessionObj.referer = '';
@@ -1454,13 +1463,13 @@ function updateUtilConnect(req, callback) {
 
         numberConnected++;
 
-        utilSessionTableBodyOptions.textColor = utilConnectedColor;
+        serverSessionTableBodyOptions.textColor = serverConnectedColor;
 
         // console.log("sessionId: " + sessionId + "\n" + jsonPrint(sessionObj));
         // console.log("heartBeat.timeStamp: " + heartBeat.timeStamp + " | " + sessionObj.connectTime);
         connectTime = heartBeat.timeStamp - sessionObj.connectTime;
 
-        tableCreateRow(utilSessionTableBody, utilSessionTableBodyOptions, [
+        tableCreateRow(serverSessionTableBody, serverSessionTableBodyOptions, [
           numberConnected,
           sessionObj.ip,
           sessionObj.domain,
@@ -1471,14 +1480,14 @@ function updateUtilConnect(req, callback) {
           msToTime(connectTime)
         ]);
       } else {
-        delete heartBeat.utilities[sessionObj.userId];
+        delete heartBeat.serverities[sessionObj.userId];
       }
     }
   }
 
-  if (showDisconnectedUtils) {
+  if (showDisconnectedServers) {
 
-    utilSessionTableBodyOptions.textColor = utilDisconnectedColor;
+    serverSessionTableBodyOptions.textColor = serverDisconnectedColor;
 
     var numberDisconnected = 0;
     var connectedTime = 0;
@@ -1486,7 +1495,7 @@ function updateUtilConnect(req, callback) {
     for (var k = 0; k < keys.length; k++) {
 
       var key = keys[k];
-      var value = utilSessionHashMap.get(key);
+      var value = serverSessionHashMap.get(key);
 
       if (value.connected == false) {
 
@@ -1494,7 +1503,7 @@ function updateUtilConnect(req, callback) {
 
         connectedTime = value.disconnectTime - value.connectTime;
 
-        tableCreateRow(utilSessionTableBody, utilSessionTableBodyOptions, [
+        tableCreateRow(serverSessionTableBody, serverSessionTableBodyOptions, [
           numberDisconnected,
           value.ip,
           value.domain,
@@ -1634,22 +1643,22 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     + moment(heartBeat.entity.user.connectedMaxTime).format(defaultDateTimeFormat);
   }
 
-  // UTILS=========================
+  // SERVERS =========================
 
-  var utilRatio = 0;
+  var serverRatio = 0;
 
   // if (heartBeat.entity) {
-    // utilRatio = heartBeat.entity.util.connected / heartBeat.entity.util.connectedMax;
+    // serverRatio = heartBeat.entity.server.connected / heartBeat.entity.server.connectedMax;
   // }
 
-  utilsBar.animate(utilRatio);
+  serversBar.animate(serverRatio);
 
-  if (100 * utilRatio >= ALERT_LIMIT_PERCENT) {
-    utilsBar.path.setAttribute('stroke', endColor);
-  } else if (100 * utilRatio >= WARN_LIMIT_PERCENT) {
-    utilsBar.path.setAttribute('stroke', midColor);
+  if (100 * serverRatio >= ALERT_LIMIT_PERCENT) {
+    serversBar.path.setAttribute('stroke', endColor);
+  } else if (100 * serverRatio >= WARN_LIMIT_PERCENT) {
+    serversBar.path.setAttribute('stroke', midColor);
   } else {
-    utilsBar.path.setAttribute('stroke', startColor);
+    serversBar.path.setAttribute('stroke', startColor);
   }
 
   if (heartBeat.servers) {
@@ -1664,9 +1673,9 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
         totalServers += 1;
 
-        utilRatio = totalServers / 6;
+        serverRatio = totalServers / 6;
 
-        utilsBarText.innerHTML = totalServers + ' UTILS | ' 
+        serversBarText.innerHTML = totalServers + ' SERVER | ' 
         + totalServers + ' MAX | ' 
         + moment().format(defaultDateTimeFormat);
 

@@ -3091,11 +3091,11 @@ configEvents.on("SERVER_READY", function serverReady() {
     statsObj.memory.memoryAvailable = os.freemem();
     statsObj.memory.memoryUsage = process.memoryUsage();
 
-    hearbeatObj.servers = [];
-    
-    serverHashMap.forEach(function(serverObj, serverSocketId){
-      hearbeatObj.servers.push([serverSocketId, serverObj]);
-    });
+    hearbeatObj.servers = serverHashMap.entries();
+
+    // serverHashMap.forEach(function(serverObj, serverSocketId){
+    //   hearbeatObj.servers.push([serverSocketId, serverObj]);
+    // });
 
     statsObj.twitter.tweetsPerMin = parseInt(tweetMeter.toJSON()[metricsRate]);
 

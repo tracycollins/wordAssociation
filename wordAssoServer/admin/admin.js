@@ -9,7 +9,6 @@ var memoryAvailable = 0;
 var memoryUsed = 0;
 var memoryUsage = {};
 
-var serverHashMap = {};
 var serverConnected = false;
 var sentAdminReady = false;
 var initializeComplete = false;
@@ -36,7 +35,8 @@ var trpmData =[];
 var tLimitData = [];
 
 
-requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
+requirejs(["https://d3js.org/d3.v5.min.js"], function(d3Loaded) {
+// requirejs([], function(d3Loaded) {
     console.debug("d3 LOADED");
     initialize(function(){
       initializeComplete = true;
@@ -51,20 +51,16 @@ requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
   }
 );
 
-var serverHeartbeatElement;
+var heartbeatElement;
+
+var serverTypeHashMap = new HashMap();
+var serverSocketHashMap = new HashMap();
 
 var viewerIpHashMap = new HashMap();
 var viewerSessionHashMap = new HashMap();
 var adminIpHashMap = new HashMap();
 var adminSocketIdHashMap = new HashMap();
-var userIpHashMap = new HashMap();
-var userSessionHashMap = new HashMap();
-var serverIpHashMap = new HashMap();
-var serverSessionHashMap = new HashMap();
 
-var serverIpHashMapKeys = [];
-var userIpHashMapKeys = [];
-var userSessionHashMapKeys = [];
 var adminIpHashMapKeys = [];
 var adminSocketIdHashMapKeys = [];
 
@@ -121,12 +117,6 @@ var searchByDateTimeContinueEnable = false;
 var googleOauthUrl = 0;
 
 var deltaResponsesMax = 1;
-var userIpTableBody;
-var userSessionTableBody;
-var showConnectedUsers = true;
-var showDisconnectedUsers = false;
-var showIpUsers = true;
-var showBotUsers = true;
 
 var numberAdminIpAddresses = adminIpHashMap.count();
 var numberAdminsConnected = 0;
@@ -134,17 +124,10 @@ var numberAdminsConnected = 0;
 var showConnectedAdmins = true;
 var showDisconnectedAdmins = false;
 var showIpAdmins = true;
-var numberUserSessions = 0;
-var numberUserIpAddresses = userIpHashMap.count();
 
-var userConnectedColor = "#00aa00";
-var userDisconnectedColor = "#aa0000";
 var showConnectedViewers = true;
 var showIpViewers = true;
 var showBotViewers = true;
-
-var numberServerSessions = 0;
-var numberServerIpAddresses = 0;
 
 var viewerIpHashMapKeys = [];
 var viewerSessionHashMapKeys = [];
@@ -159,21 +142,10 @@ var viewerIpTableBody;
 var viewerSessionTableBody;
 var viewerSessionTableHead;
 
-var userIpTableHead;
-var userSessionTableHead;
-
-var serverConnectedColor = "#00aa00";
-var serverDisconnectedColor = "#aa0000";
-var showConnectedServers = true;
-var showDisconnectedServers = false;
-var showIpServers = true;
-
 var deltaTweetsMax = 1;
 
-var serverSessionTableHead;
-var serverIpTableHead;
-var serverIpTableBody;
-var serverSessionTableBody;
+var serverTableHead;
+var serverTableBody;
 
 var viewerIpTableHead;
 
@@ -188,10 +160,6 @@ var tweetsPerMinBarText;
 var twitterLimitBar;
 var twitterLimitBarDiv;
 var twitterLimitBarText;
-
-var usersBar;
-var usersBarDiv;
-var usersBarText;
 
 var serversBar;
 var serversBarDiv;
@@ -213,19 +181,6 @@ function initBars(callback){
  
   console.debug("INIT BARS ...");
 
-  // USERS ===============================
-
-  userSessionTableHead = document.getElementById('user_session_table_head');
-  userSessionTableBody = document.getElementById('user_session_table_body');
-
-  userIpTableHead = document.getElementById('user_ip_table_head');
-  userIpTableBody = document.getElementById('user_ip_table_body');
-
-  usersBarDiv = document.getElementById('users-bar');
-  usersBar = new ProgressBar.Line(usersBarDiv, { duration: 100 });
-  usersBar.animate(0);
-  usersBarText = document.getElementById('users-bar-text');
-
   // VIEWERS ===============================
 
   viewerSessionTableHead = document.getElementById('viewer_session_table_head');
@@ -241,19 +196,15 @@ function initBars(callback){
 
   // SERVER ===============================
 
-  numberServerSessions = 0;
-  numberServerIpAddresses = serverIpHashMap.count();
-
-  serverSessionTableHead = document.getElementById('server_session_table_head');
-  serverSessionTableBody = document.getElementById('server_session_table_body');
-
-  serverIpTableHead = document.getElementById('server_ip_table_head');
-  serverIpTableBody = document.getElementById('server_ip_table_body');
+  serverTableHead = document.getElementById('server_table_head');
+  serverTableBody = document.getElementById('server_table_body');
 
   serversBarDiv = document.getElementById('servers-bar');
   serversBar = new ProgressBar.Line(serversBarDiv, { duration: 100 });
   serversBar.animate(0);
   serversBarText = document.getElementById('servers-bar-text');
+
+  // MEMORY ===============================
 
   memoryBarDiv = document.getElementById('memory-bar');
   memoryBarText = document.getElementById('memory-bar-text');
@@ -276,12 +227,9 @@ function initBars(callback){
     backgroundColor: '#222222'
   };
 
-  tableCreateRow(userIpTableHead, options, ['USERS', 'IP', 'DOMAIN', 'LAST SEEN', 'AGO', 'SESSIONS']); // 2nd arg is headerFlag
-  tableCreateRow(userSessionTableHead, options, ['SESSIONS', 'IP', 'DOMAIN', 'USER', 'SESSION', 'CONNECT', 'DISCONNECT', 'TIME CONNECTED']); // 2nd arg is headerFlag
   tableCreateRow(viewerIpTableHead, options, ['VIEWERS', 'IP', 'DOMAIN', 'LAST SEEN', 'AGO', 'SESSIONS']); // 2nd arg is headerFlag
   tableCreateRow(viewerSessionTableHead, options, ['SESSIONS', 'IP', 'DOMAIN', 'USER', 'SESSION', 'CONNECT', 'DISCONNECT', 'TIME CONNECTED']); // 2nd arg is headerFlag
-  tableCreateRow(serverIpTableHead, options, ['SERVERS', 'IP', 'DOMAIN', 'LAST SEEN', 'AGO', 'SESSIONS']); // 2nd arg is headerFlag
-  tableCreateRow(serverSessionTableHead, options, ['SESSIONS', 'IP', 'DOMAIN', 'USER', 'SESSION', 'CONNECT', 'DISCONNECT', 'TIME CONNECTED']); // 2nd arg is headerFlag
+  tableCreateRow(serverTableHead, options, ['SERVER ID', 'TYPE', 'SOCKET', 'LAST SEEN', 'AGO']); // 2nd arg is headerFlag
 
   callback();
 }
@@ -290,7 +238,6 @@ var heartBeat = {};
 var lastTimeoutHeartBeat = null;
 
 var hbIndex = 0;
-// var tweetsPerMinServer;
 var tweetsPerMin = 0;
 var tweetsPerMinMax = 1;
 var tweetsPerMinMaxTime = 0;
@@ -392,8 +339,8 @@ function serverClear() {
   adminIpHashMap.clear();
   adminSocketIdHashMap.clear();
 
-  userIpHashMap.clear();
-  userSessionHashMap.clear();
+  serverTypeHashMap.clear();
+  serverSocketHashMap.clear();
 
   viewerIpHashMap.clear();
   viewerSessionHashMap.clear();
@@ -450,62 +397,11 @@ function tableCreateRow(parentTable, options, cells) {
   }
 }
 
-function requestSessions(reqSessionsOptions) {
-  console.log("TX REQ ADMIN SESSION\n" + JSON.stringify(reqSessionsOptions, null, 3));
-  socket.emit('REQ_ADMIN_SESSION', reqSessionsOptions);
-
-  console.log("TX REQ USER SESSION\n" + JSON.stringify(reqSessionsOptions, null, 3));
-  socket.emit('REQ_USER_SESSION', reqSessionsOptions);
-
-  console.log("TX REQ VIEWER SESSION\n" + JSON.stringify(reqSessionsOptions, null, 3));
-  socket.emit('REQ_VIEWER_SESSION', reqSessionsOptions);
-
-  console.log("TX REQ SERVER SESSION\n" + JSON.stringify(reqSessionsOptions, null, 3));
-  socket.emit('REQ_SERVER_SESSION', reqSessionsOptions);
-}
-
-var MAX_SESSION_AGE = 60000;
 var dateNow = moment().valueOf();
-
-function ageHashMapEntries(hm, callback){
-
-  dateNow = moment().valueOf();
-
-  var keys = hm.keys();
-
-  async.each(keys, function(sessionId, cb) {
-
-    var sessionObj = hm.get(sessionId);
-
-    if (sessionObj.seen === undefined){
-      sessionObj.seen = dateNow;
-      console.debug("NEW SESSION | " + sessionId
-        + " | " + sessionObj.userId
-      );
-      hm.set(sessionId, sessionObj);
-    }
-    else if ((dateNow - sessionObj.seen) > MAX_SESSION_AGE){
-      console.debug("XXX SESSION | " + sessionId
-        + " | " + sessionObj.userId
-      );
-      hm.remove(sessionId);
-    }
-
-    cb();
-
-  }, function(err) {
-    callback();
-  });
-  
-}
 
 setInterval(function() {
   currentTime = getTimeNow();
   if (serverConnected && initializeComplete) {
-    ageHashMapEntries(serverSessionHashMap, function(){
-      updateAdminConnect();
-      updateUserConnect();
-    })
   }
   if (initializeComplete && !sentAdminReady) {
     socket.emit("ADMIN_READY", mainAdminObj);
@@ -518,7 +414,6 @@ setInterval(function() {
 setInterval(function() {
   if (serverConnected && sentAdminReady) {
     socket.emit("SESSION_KEEPALIVE", mainAdminObj);
-    // console.debug("SESSION_KEEPALIVE");
   }
 }, 10000);
 
@@ -526,12 +421,7 @@ setInterval(function() {
 socket.on('connect', function() {
   serverConnected = true;
   console.log("\n===== ADMIN SERVER CONNECTED =====\n" + getTimeStamp());
-  // if (initializeComplete && !sentAdminReady) {
-  //   serverClear();
-  //   socket.emit("ADMIN_READY", mainAdminObj);
-  //   console.log("TX ADMIN_READY\n" + jsonPrint(mainAdminObj));
-  //   sentAdminReady = true;
-  // }
+
 });
 
 socket.on('reconnect', function() {
@@ -597,15 +487,6 @@ socket.on('ADMIN IP', function(rxIpObj) {
   adminSocketIdHashMapKeys.sort();
 });
 
-socket.on('USER IP', function(rxIpObj) {
-  var ipObj = JSON.parse(rxIpObj);
-  console.log("RXCD USER IP  " + ipObj.ip + " | " + ipObj.domain);
-  userIpHashMap.set(ipObj.ip, ipObj);
-  numberUserIpAddresses = userIpHashMap.count();
-  userIpHashMapKeys = userIpHashMap.keys();
-  userIpHashMapKeys.sort();
-});
-
 socket.on('VIEWER IP', function(rxIpObj) {
   var ipObj = JSON.parse(rxIpObj);
   console.debug("RXCD VIEWER IP  " + ipObj.ip + " | " + ipObj.domain);
@@ -615,14 +496,6 @@ socket.on('VIEWER IP', function(rxIpObj) {
   viewerIpHashMapKeys.sort();
 });
 
-socket.on('SERVER IP', function(rxIpObj) {
-  var ipObj = JSON.parse(rxIpObj);
-  console.log("RXCD SERVER IP  " + ipObj.ip + " | " + ipObj.domain);
-  serverIpHashMap.set(ipObj.ip, ipObj);
-  numberServerIpAddresses = serverIpHashMap.count();
-  serverIpHashMapKeys = serverIpHashMap.keys();
-  serverIpHashMapKeys.sort();
-});
 
 socket.on('ADMIN_ACK', function(adminSessionKey) {
 
@@ -664,27 +537,6 @@ socket.on('ADMIN_SESSION', function(adminSessionObj) {
   updateAdminConnect(adminSessionObj);
 });
 
-socket.on('USER_SESSION', function(userSessionObj) {
-
-  // console.log("userSessionObj\n" + jsonPrint(userSessionObj, {
-  //     ignore: ['wordChain', 'sessions']
-  // }));
-
-  console.log("RX USER SESSION: " + userSessionObj.sessionId + " | UID: " + userSessionObj.userId);
-
-  userIpHashMap.set(userSessionObj.ip, userSessionObj);
-  userIpHashMapKeys = userIpHashMap.keys();
-  userIpHashMapKeys.sort();
-  numberUserIpAddresses = userIpHashMapKeys.length;
-
-  userSessionHashMap.set(userSessionObj.sessionId, userSessionObj);
-  userSessionHashMapKeys = userSessionHashMap.keys();
-  userSessionHashMapKeys.sort();
-  numberUserSessions = userSessionHashMapKeys.length;
-
-  updateUserConnect(userSessionObj, null);
-});
-
 socket.on('VIEWER_SESSION', function(viewerSessionObj) {
 
   console.log("viewerSessionObj\n" + jsonPrint(viewerSessionObj, {
@@ -711,60 +563,34 @@ socket.on('SERVER_SESSION', function(rxSession) {
   serverSessionQueue.push(rxSession);
 });
 
-var serverSessionQueueReady = true;
-setInterval(function(){
-
-  if (serverSessionQueueReady && (serverSessionQueue.length > 0)){
-
-    var serverSessionObj = serverSessionQueue.shift();
-
-    serverIpHashMap.set(serverSessionObj.ip, serverSessionObj);
-    numberServerIpAddresses = serverIpHashMapKeys.length;
-    serverSessionHashMap.set(serverSessionObj.sessionId, serverSessionObj);
-    numberServerSessions = serverSessionHashMap.keys().length;
-
-    console.log("RX SERVER SESSION[" + serverSessionHashMap.keys().length + "]: " + serverSessionObj.sessionId 
-      + " | C: " + serverSessionObj.connected
-      + " | UID: " + serverSessionObj.userId
-      );
-
-
-    if (serverSessionObj.userId
-      && serverSessionObj.connected 
-      && serverSessionObj.userId.match(/TSS_/g)) {
-      console.info("SERVER SERVER CONNECTED: " + serverSessionObj.userId);
-      // tweetsPerMinServer = serverSessionObj.userId;
-    } 
-    else if (serverSessionObj.userId
-      && !serverSessionObj.connected 
-      && serverSessionObj.userId.match(/TSS_/g)) {
-      console.info("SERVER SERVER DISCONNECTED: " + serverSessionObj.userId);
-      // tweetsPerMinServer = false;
-      tweetsPerMin = 0;
-    }
-
-    updateServerConnect(serverSessionObj, function(){
-      serverSessionQueueReady = true;
-    });
-  }
-
-}, 100);
-
-
-socket.on("SESSION_DELETE", function(sessionId) {
-  // console.log("sessionObject\" + jsonPrint(sessionObject));
-  console.debug("> RX DEL SESS | " + sessionId);
-  if (serverSessionHashMap.has(sessionId)){
-    console.info("* SERVER HM HIT " + sessionId);
-  } 
-  if (userSessionHashMap.has(sessionId)){
-    console.info("* USER HM HIT " + sessionId);
-  } 
-});
 
 socket.on('TWITTER_TOPTERM_1MIN', function(top10array) {
   console.debug("TWITTER_TOPTERM_1MIN\n" + jsonPrint(top10array));
 });
+
+
+socket.on('SERVER_DELETE', function(serverObj) {
+  console.debug("SERVER_DELETE\n" + jsonPrint(serverObj));
+  serverSocketHashMap.delete(serverObj.socketId);
+});
+
+socket.on('SERVER_ADD', function(serverObj) {
+  console.debug("SERVER_ADD\n" + jsonPrint(serverObj));
+  serverSocketHashMap.set(serverObj.socketId, serverObj);
+});
+
+socket.on('KEEPALIVE', function(serverObj) {
+  console.debug("KEEPALIVE | " + serverObj.type + " | " + serverObj.user.nodeId);
+
+  if (serverSocketHashMap.has(serverObj.socketId)){
+    serverObj.connected = true;
+    serverSocketHashMap.set(serverObj.socketId, serverObj);
+  }
+  else {
+    console.warn("KEEPALIVE SERVER NOT IN HASHMAP\n" + jsonPrint(serverObj));
+  }
+});
+
 
 
 var heartBeatQueue = [];
@@ -784,14 +610,13 @@ setInterval(function(){
     hbIndex++;
 
     if (heartBeat.twitter) {
-      // tweetsPerMin = heartBeat.twitter.tweetsPerMinute;
       tweetsPerMin = heartBeat.twitter.tweetsPerMin;
       tweetsPerMinMax = heartBeat.twitter.maxTweetsPerMin;
       tweetsPerMinMaxTime = heartBeat.twitter.maxTweetsPerMinTime;
 
-      twitterLimit = heartBeat.twitter.twitterLimit;
-      twitterLimitMax = heartBeat.twitter.twitterLimitMax;
-      twitterLimitMaxTime = heartBeat.twitter.twitterLimitMaxTime;
+      // twitterLimit = heartBeat.twitter.twitterLimit;
+      // twitterLimitMax = heartBeat.twitter.twitterLimitMax;
+      // twitterLimitMaxTime = heartBeat.twitter.twitterLimitMaxTime;
     }
 
     if (heartBeat.deltaResponsesReceived > deltaResponsesMax) {deltaResponsesMax = heartBeat.deltaResponsesReceived;}
@@ -801,19 +626,12 @@ setInterval(function(){
     heartBeatTimeoutFlag = false;
 
     updateRawText(jsonPrint(heartBeat));
-    updateUserConnect(null, function(){
-      heartBeatQueueReady = true;
-    });
-    updateViewerConnect(null, null);
-    updateServerConnect(null, null);
   }
 }, 1000);
 
 var serverCheckTimeout = setInterval(function() {
   numberAdminIpAddresses = adminIpHashMap.count();
-  numberUserIpAddresses = userIpHashMap.count();
   numberViewerIpAddresses = viewerIpHashMap.count();
-  numberServerIpAddresses = serverIpHashMap.count();
 
   if (Date.now() > (heartBeat.timeStamp + maxServerHeartBeatWait)) {
     heartBeatTimeoutFlag = true;
@@ -873,651 +691,15 @@ function sendServerConfig(e) {
   }
 }
 
-// function setWordCacheTtl() {
-//   var newWordCacheTtl = document.getElementById("setWordCacheTtl").value;
-//   console.log("SET WORD CACHE TTL: " + newWordCacheTtl);
-//   socket.emit("SET_WORD_CACHE_TTL", newWordCacheTtl);
-// }
-
 function toggleTestMode() {
   testMode = !testMode;
   console.log("SOCKET_TEST_MODE: " + testMode);
   socket.emit("SOCKET_TEST_MODE", testMode);
 }
 
-function toggleIpAdmins() {
-  updateAdminConnect({
-    showIp: "toggle"
-  });
-}
 
-function toggleConnectedAdmins() {
-  updateAdminConnect({
-    showConnected: "toggle"
-  });
-}
-
-function toggleDisconnectedAdmins() {
-  updateAdminConnect({
-    showDisconnected: "toggle"
-  });
-}
-
-function toggleIpUsers() {
-  updateUserConnect({showIp: "toggle"}, null);
-}
-
-function toggleConnectedUsers() {
-  updateUserConnect({ showConnected: "toggle" }, null);
-}
-
-function toggleDisconnectedUsers() {
-  updateUserConnect({ showDisconnected: "toggle" }, null);
-}
-
-function toggleHideBotUsers() {
-  updateUserConnect({ showBotUsers: "toggle" }, null);
-}
-
-function toggleIpViewers() {
-  updateViewerConnect({ showIp: "toggle" },  null);
-}
-
-function toggleConnectedViewers() {
-  updateViewerConnect({ showConnected: "toggle" });
-}
-
-function toggleDisconnectedViewers() {
-  updateViewerConnect({
-    showDisconnected: "toggle"
-  });
-}
-
-function toggleHideBotViewers() {
-  updateViewerConnect({ showBotViewers: "toggle" }, null);
-}
-
-function toggleIpServers() {
-  updateServerConnect({ showIp: "toggle" }, null);
-}
-
-function toggleConnectedServers() {
-  updateServerConnect({ showConnected: "toggle"}, null);
-}
-
-function toggleDisconnectedServers() {
-  updateServerConnect({ showDisconnected: "toggle" }, null);
-}
-
-function updateAdminConnect(req) {
-
-  numberAdminsConnected = 0;
-
-  if (req === undefined) {} else {
-    if (req.showConnected == 'toggle') {
-      showConnectedAdmins = !showConnectedAdmins;
-    }
-    if (req.showDisconnected == 'toggle') {
-      showDisconnectedAdmins = !showDisconnectedAdmins;
-    }
-    if (req.showIp == 'toggle') {
-      showIpAdmins = !showIpAdmins;
-    }
-  }
-
-  var adminIpListElement = document.getElementById("admin_ip_list");
-  var adminSessionListElement = document.getElementById("admin_session_list");
-
-  while (adminIpListElement.childNodes.length >= 1) {
-    adminIpListElement.removeChild(adminIpListElement.firstChild);
-  }
-
-  while (adminSessionListElement.childNodes.length >= 1) {
-    adminSessionListElement.removeChild(adminSessionListElement.firstChild);
-  }
-
-  if (showIpAdmins) {
-    adminIpHashMap.forEach(function(value, key) {
-      var adminIpListItem = document.createElement('li');
-      adminIpListItem.style.color = userConnectedColor;
-
-      adminIpListElement.appendChild(adminIpListItem);
-      adminIpListItem.innerHTML = adminIpListItem.innerHTML + (
-        key + ' | ' + value.domain + ' | LAST SEEN: ' + getTimeStamp(value.lastSeen) + ' | CONNECTIONS: ' + Object.keys(value.sessions).length
-      );
-    });
-  }
-
-  if (showConnectedAdmins) {
-    adminSocketIdHashMap.forEach(function(value, key) {
-
-      // console.log("showConnectedAdmins\n" + JSON.stringify(value));
-
-      if (value.connected == true) {
-
-        var adminSessionListItem = document.createElement('li');
-        adminSessionListItem.style.color = userConnectedColor;
-        adminSessionListElement.appendChild(adminSessionListItem);
-        adminSessionListItem.innerHTML = adminSessionListItem.innerHTML + (value.ip + ' | ' + value.domain + ' | ' + key + ' | CONNECT: ' + getTimeStamp(value.connectTime) + ' | DISCONNECT: ' + getTimeStamp(value.disconnectTime) + ' | CONNECT TIME: ' + msToTime(heartBeat.timeStamp - value.connectTime));
-      }
-    });
-  }
-
-  if (showDisconnectedAdmins) {
-    adminSocketIdHashMap.forEach(function(value, key) {
-      if (value.connected == false) {
-
-        var adminSessionListItem = document.createElement('li');
-        adminSessionListItem.style.color = userDisconnectedColor;
-        var timeConnected = value.disconnectTime - value.connectTime;
-        adminSessionListElement.appendChild(adminSessionListItem);
-        adminSessionListItem.innerHTML = adminSessionListItem.innerHTML + (value.ip + ' | ' + value.domain + ' | ' + key + ' | CONNECT: ' + getTimeStamp(value.connectTime) + ' | DISCONNECT: ' + getTimeStamp(value.disconnectTime) + ' | CONNECT TIME: ' + msToTime(value.disconnectTime - value.connectTime));
-      }
-    });
-  }
-}
-
-function updateUserConnect(req, callback) {
-
-  if (!initializeComplete) return;
-
-  var userIpTableBodyOptions = {
-    headerFlag: false,
-    tdTextColor: '#BBBBBB',
-    backgroundColor: 'black'
-  };
-
-  var userSessionTableBodyOptions = {
-    headerFlag: false,
-    tdTextColor: '#BBBBBB',
-    backgroundColor: 'black'
-  };
-
-  while (userIpTableBody && (userIpTableBody.childNodes.length > 1)) {
-    userIpTableBody.removeChild(userIpTableBody.lastChild);
-  }
-
-  while (userSessionTableBody && (userSessionTableBody.childNodes.length > 1)) {
-    userSessionTableBody.removeChild(userSessionTableBody.lastChild);
-  }
-
-  if (req) {
-    if (req.showConnected == 'toggle') {
-      showConnectedUsers = !showConnectedUsers;
-      console.log("showConnectedUsers: " + showConnectedUsers);
-    }
-    if (req.showDisconnected == 'toggle') {
-      showDisconnectedUsers = !showDisconnectedUsers;
-      console.log("showDisconnectedUsers: " + showDisconnectedUsers);
-    }
-    if (req.showIp == 'toggle') {
-      showIpUsers = !showIpUsers;
-      console.log("showIpUsers " + showIpUsers);
-    }
-    if (req.showBotUsers == 'toggle') {
-      showBotUsers = !showBotUsers;
-      console.log("showBotUsers " + showBotUsers);
-    }
-  }
-
-  if (showIpUsers) {
-
-    var numberUniqueUsers = 0;
-    var elapsedSinceLastSeen = 0;
-    var key;
-    var value = {};
-
-    var ipHmKeys = userIpHashMap.keys();
-
-    for (var i = 0; i < ipHmKeys.length; i += 1) {
-
-      key = ipHmKeys[i];
-      value = userIpHashMap.get(ipHmKeys[i]);
-
-      if (!showBotUsers && ((value.domain.indexOf("googlebot") >= 0))) {
-
-      } 
-      else {
-
-        userIpTableBodyOptions.tdTextColor = userConnectedColor;
-
-        numberUniqueUsers++;
-
-        if (value.connected == true) {
-          elapsedSinceLastSeen = 0;
-        } else if (value.lastSeen > currentTime) {
-          elapsedSinceLastSeen = 0;
-        } else {
-          elapsedSinceLastSeen = heartBeat.timeStamp - value.lastSeen;
-        }
-
-        tableCreateRow(userIpTableBody, userIpTableBodyOptions, [
-          numberUniqueUsers,
-          key,
-          value.domain,
-          getTimeStamp(value.lastSeen),
-          msToTime(elapsedSinceLastSeen),
-          // value.sessions.length
-        ]);
-      }
-    }
-  }
-
-  if (showConnectedUsers) {
-
-    userSessionTableBodyOptions.tdTextColor = userConnectedColor;
-
-    var numberConnected = 0;
-    var connectTime = 0;
-    var sessionId;
-    var sessionObj = {};
-
-    var hmKeys = userSessionHashMap.keys();
-
-    for (var j = 0; j < hmKeys.length; j++) {
-
-      sessionId = hmKeys[j];
-      sessionObj = userSessionHashMap.get(sessionId);
-
-      if (sessionObj.referer === undefined) {
-        sessionObj.referer = '';
-      }
-
-
-      if (!showBotUsers && ((sessionObj.domain.indexOf("googlebot") >= 0))) {
-
-      } 
-      else {
-        if (sessionObj.connected == true) {
-
-          numberConnected++;
-
-          if (sessionObj.domain.indexOf("googlebot") >= 0) {
-            userSessionTableBodyOptions.tdTextColor = testUserConnectedColor;
-          } else if (sessionObj.domain.indexOf("googleusercontent") >= 0) {
-            userSessionTableBodyOptions.tdTextColor = testUserConnectedColor;
-          } else {
-            userSessionTableBodyOptions.tdTextColor = userConnectedColor;
-          }
-
-          connectTime = heartBeat.timeStamp - sessionObj.connectTime;
-
-          tableCreateRow(userSessionTableBody, userSessionTableBodyOptions, [
-            numberConnected,
-            sessionObj.ip,
-            sessionObj.domain,
-            sessionObj.userId,
-            sessionId,
-            getTimeStamp(sessionObj.connectTime),
-            '',
-            msToTime(connectTime)
-          ]);
-        }
-      }
-    }
-  }
-
-  if (showDisconnectedUsers) {
-
-    userSessionTableBodyOptions.textColor = userDisconnectedColor;
-
-    var numberDisconnected = 0;
-    var connectedTime = 0;
-
-    for (var k = 0; k < userSessionHashMapKeys.length; k++) {
-
-      var key = userSessionHashMapKeys[k];
-      var value = userSessionHashMap.get(userSessionHashMapKeys[k]);
-
-      if (value.connected == false) {
-
-        numberDisconnected++;
-
-        connectedTime = value.disconnectTime - value.connectTime;
-
-        tableCreateRow(userSessionTableBody, userSessionTableBodyOptions, [
-          numberDisconnected,
-          value.ip,
-          value.domain,
-          value.userId,
-          key,
-          getTimeStamp(value.connectTime),
-          getTimeStamp(value.disconnectTime),
-          msToTime(connectedTime)
-        ]);
-
-      }
-    }
-  }
-
-  if (callback) { callback(); }
-}
-
-function updateViewerConnect(req, callback) {
-
-  var viewerIpTableBodyOptions = {
-    headerFlag: false,
-    textColor: '#BBBBBB',
-    backgroundColor: 'black'
-  };
-
-  var viewerSessionTableBodyOptions = {
-    headerFlag: false,
-    textColor: '#BBBBBB',
-    backgroundColor: 'black'
-  };
-
-  while (viewerIpTableBody && (viewerIpTableBody.childNodes.length > 1)) {
-    viewerIpTableBody.removeChild(viewerIpTableBody.lastChild);
-  }
-
-  while (viewerSessionTableBody && (viewerSessionTableBody.childNodes.length > 1)) {
-    viewerSessionTableBody.removeChild(viewerSessionTableBody.lastChild);
-  }
-
-  if (req) {
-    if (req.showConnected == 'toggle') {
-      showConnectedViewers = !showConnectedViewers;
-      console.log("showConnectedViewers: " + showConnectedViewers);
-    }
-    if (req.showDisconnected == 'toggle') {
-      showDisconnectedViewers = !showDisconnectedViewers;
-      console.log("showDisconnectedViewers: " + showDisconnectedViewers);
-    }
-    if (req.showIp == 'toggle') {
-      showIpViewers = !showIpViewers;
-      console.log("showIpViewers " + showIpViewers);
-    }
-    if (req.showBotViewers == 'toggle') {
-      showBotViewers = !showBotViewers;
-      console.log("showBotViewers " + showBotViewers);
-    }
-  }
-
-  if (showIpViewers) {
-
-    var numberUniqueViewers = 0;
-    var elapsedSinceLastSeen = 0;
-    var key;
-    var value = {};
-
-    for (var i = 0; i < viewerIpHashMapKeys.length; i += 1) {
-
-      key = viewerIpHashMapKeys[i];
-      value = viewerIpHashMap.get(viewerIpHashMapKeys[i]);
-
-      if (!showBotViewers && ((value.domain.indexOf("googlebot") >= 0))) {
-      } 
-      else {
-
-        viewerIpTableBodyOptions.textColor = viewerConnectedColor;
-
-        numberUniqueViewers++;
-
-        if (value.connected == true) {
-          elapsedSinceLastSeen = 0;
-        } 
-        else if (value.lastSeen > currentTime) {
-          elapsedSinceLastSeen = 0;
-        } 
-        else {
-          elapsedSinceLastSeen = heartBeat.timeStamp - value.lastSeen;
-        }
-
-        tableCreateRow(viewerIpTableBody, viewerIpTableBodyOptions, [
-          numberUniqueViewers,
-          key,
-          value.domain,
-          getTimeStamp(value.lastSeen),
-          msToTime(elapsedSinceLastSeen),
-          // value.sessions.length
-        ]);
-      }
-    }
-  }
-
-  if (showConnectedViewers) {
-
-    viewerSessionTableBodyOptions.tdTextColor = viewerConnectedColor;
-
-    var numberConnected = 0;
-    var connectTime = 0;
-    var sessionId;
-    var sessionObj = {};
-
-
-    for (var j = 0; j < viewerSessionHashMapKeys.length; j++) {
-
-      sessionId = viewerSessionHashMapKeys[j];
-      sessionObj = viewerSessionHashMap.get(viewerSessionHashMapKeys[j]);
-
-      if (sessionObj.referer === undefined) {
-        sessionObj.referer = '';
-      }
-
-
-      if (!showBotViewers && ((sessionObj.domain.indexOf("googlebot") >= 0))) {
-
-      } 
-      else {
-        if (sessionObj.connected == true) {
-
-          numberConnected++;
-
-          if (sessionObj.domain.indexOf("googlebot") >= 0) {
-            viewerSessionTableBodyOptions.textColor = testViewerConnectedColor;
-          } else if (sessionObj.domain.indexOf("googleviewercontent") >= 0) {
-            viewerSessionTableBodyOptions.textColor = testViewerConnectedColor;
-          } else {
-            viewerSessionTableBodyOptions.textColor = viewerConnectedColor;
-          }
-
-          connectTime = heartBeat.timeStamp - sessionObj.connectTime;
-
-          tableCreateRow(viewerSessionTableBody, viewerSessionTableBodyOptions, [
-            numberConnected,
-            sessionObj.ip,
-            sessionObj.domain,
-            (sessionObj.viewerId || sessionObj.userId),
-            sessionId,
-            getTimeStamp(sessionObj.connectTime),
-            '',
-            msToTime(connectTime)
-          ]);
-        }
-      }
-    }
-  }
-
-  if (showDisconnectedViewers) {
-
-    viewerSessionTableBodyOptions.tdTextColor = viewerDisconnectedColor;
-
-    var numberDisconnected = 0;
-    var connectedTime = 0;
-
-    for (var k = 0; k < viewerSessionHashMapKeys.length; k++) {
-
-      var key = viewerSessionHashMapKeys[k];
-      var value = viewerSessionHashMap.get(viewerSessionHashMapKeys[k]);
-
-      if (value.connected == false) {
-
-        numberDisconnected++;
-
-        connectedTime = value.disconnectTime - value.connectTime;
-
-        tableCreateRow(viewerSessionTableBody, viewerSessionTableBodyOptions, [
-          numberDisconnected,
-          value.ip,
-          value.domain,
-          value.userId,
-          key,
-          getTimeStamp(value.connectTime),
-          getTimeStamp(value.disconnectTime),
-          msToTime(connectedTime)
-        ]);
-
-      }
-    }
-  }
-  if (callback) { callback(); }
-}
-
-function updateServerConnect(req, callback) {
-
-  if (!initializeComplete) return;
-
-  var keys = serverSessionHashMap.keys();
-
-  var serverIpTableBodyOptions = {
-    headerFlag: false,
-    textColor: '#BBBBBB',
-    backgroundColor: 'black'
-  };
-
-  var serverSessionTableBodyOptions = {
-    headerFlag: false,
-    textColor: '#BBBBBB',
-    backgroundColor: 'black'
-  };
-
-  while (serverIpTableBody && (serverIpTableBody.childNodes.length > 1)) {
-    serverIpTableBody.removeChild(serverIpTableBody.lastChild);
-  }
-
-  while (serverSessionTableBody && (serverSessionTableBody.childNodes.length > 1)) {
-    serverSessionTableBody.removeChild(serverSessionTableBody.lastChild);
-  }
-
-  if (req) {
-    if (req.showConnected == 'toggle') {
-      showConnectedServers = !showConnectedServers;
-      console.log("showConnectedServers: " + showConnectedServers);
-    }
-    if (req.showDisconnected == 'toggle') {
-      showDisconnectedServers = !showDisconnectedServers;
-      console.log("showDisconnectedServers: " + showDisconnectedServers);
-    }
-    if (req.showIp == 'toggle') {
-      showIpServers = !showIpServers;
-      console.log("showIpServers " + showIpServers);
-    }
-  }
-
-  if (showIpServers) {
-
-    var numberUniqueServers = 0;
-    var elapsedSinceLastSeen = 0;
-    var key;
-    var value = {};
-
-    for (var i = 0; i < serverIpHashMapKeys.length; i += 1) {
-
-      key = serverIpHashMapKeys[i];
-      value = serverIpHashMap.get(serverIpHashMapKeys[i]);
-
-      serverIpTableBodyOptions.textColor = serverConnectedColor;
-
-      numberUniqueServers++;
-
-      if (value.connected == true) {
-        elapsedSinceLastSeen = 0;
-      } else if (value.lastSeen > currentTime) {
-        elapsedSinceLastSeen = 0;
-      } else {
-        elapsedSinceLastSeen = heartBeat.timeStamp - value.lastSeen;
-      }
-
-      tableCreateRow(serverIpTableBody, serverIpTableBodyOptions, [
-        numberUniqueServers,
-        key,
-        value.domain,
-        getTimeStamp(value.lastSeen),
-        msToTime(elapsedSinceLastSeen),
-        // value.sessions.length
-      ]);
-    }
-  }
-
-  if (showConnectedServers) {
-
-    serverSessionTableBodyOptions.textColor = serverConnectedColor;
-
-    var numberConnected = 0;
-    var connectTime = 0;
-    var sessionId;
-    var sessionObj = {};
-
-    for (var j = 0; j < keys.length; j++) {
-
-      sessionId = keys[j];
-      sessionObj = serverSessionHashMap.get(sessionId);
-
-      if (sessionObj.referer === undefined) {
-        sessionObj.referer = '';
-      }
-
-
-      if (sessionObj.connected == true) {
-
-        numberConnected++;
-
-        serverSessionTableBodyOptions.textColor = serverConnectedColor;
-
-        // console.log("sessionId: " + sessionId + "\n" + jsonPrint(sessionObj));
-        // console.log("heartBeat.timeStamp: " + heartBeat.timeStamp + " | " + sessionObj.connectTime);
-        connectTime = heartBeat.timeStamp - sessionObj.connectTime;
-
-        tableCreateRow(serverSessionTableBody, serverSessionTableBodyOptions, [
-          numberConnected,
-          sessionObj.ip,
-          sessionObj.domain,
-          sessionObj.userId,
-          sessionId,
-          getTimeStamp(sessionObj.connectTime),
-          '',
-          msToTime(connectTime)
-        ]);
-      } else {
-        delete heartBeat.serverities[sessionObj.userId];
-      }
-    }
-  }
-
-  if (showDisconnectedServers) {
-
-    serverSessionTableBodyOptions.textColor = serverDisconnectedColor;
-
-    var numberDisconnected = 0;
-    var connectedTime = 0;
-
-    for (var k = 0; k < keys.length; k++) {
-
-      var key = keys[k];
-      var value = serverSessionHashMap.get(key);
-
-      if (value.connected == false) {
-
-        numberDisconnected++;
-
-        connectedTime = value.disconnectTime - value.connectTime;
-
-        tableCreateRow(serverSessionTableBody, serverSessionTableBodyOptions, [
-          numberDisconnected,
-          value.ip,
-          value.domain,
-          value.userId,
-          key,
-          getTimeStamp(value.connectTime),
-          getTimeStamp(value.disconnectTime),
-          msToTime(connectedTime)
-        ]);
-      }
-    }
-  }
-  if (callback) { callback(); }
-}
+let serverRatio = 0;
+let totalServers = 0;
 
 function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
@@ -1544,56 +726,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     memoryBar.path.setAttribute('stroke', startColor);
   }
 
-
-  // SESSION CACHE ==========================
-
- //  var sessionCacheKeysRatio = 0;
-  
- //  if (heartBeat.caches) {
- //    sessionCacheKeysRatio = heartBeat.caches.sessionCache.stats.keys / heartBeat.caches.sessionCache.stats.keysMax;
- //  }
-
- //  sessionCacheBar.animate(sessionCacheKeysRatio);
-
- //  if (100 * sessionCacheKeysRatio >= ALERT_LIMIT_PERCENT) {
- //    sessionCacheBar.path.setAttribute('stroke', endColor);
- //  } else if (100 * sessionCacheKeysRatio >= WARN_LIMIT_PERCENT) {
- //    sessionCacheBar.path.setAttribute('stroke', midColor);
- //  } else {
- //    sessionCacheBar.path.setAttribute('stroke', startColor);
- //  }
-
- //  if (heartBeat.caches) {
- // sessionCacheBarText.innerHTML = (heartBeat.caches.sessionCache.stats.keys) + ' SESSIONS | ' 
- //  + heartBeat.caches.sessionCache.stats.keysMax + ' MAX | ' 
- //  + moment(heartBeat.caches.sessionCache.stats.keysMaxTime).format(defaultDateTimeFormat);
- //  }
- 
-
-  // WORD CACHE ==========================
-
-  // var wordCacheKeysRatio = 0;
-
-  // if (heartBeat.caches) {
-  //   wordCacheKeysRatio = heartBeat.caches.wordCache.stats.keys / heartBeat.caches.wordCache.stats.keysMax;
-  // }
-
-  // wordCacheBar.animate(wordCacheKeysRatio);
-
-  // if (100 * wordCacheKeysRatio >= ALERT_LIMIT_PERCENT) {
-  //   wordCacheBar.path.setAttribute('stroke', endColor);
-  // } else if (100 * wordCacheKeysRatio >= WARN_LIMIT_PERCENT) {
-  //   wordCacheBar.path.setAttribute('stroke', midColor);
-  // } else {
-  //   wordCacheBar.path.setAttribute('stroke', startColor);
-  // }
-
-  // if (heartBeat.caches) {
-  //   wordCacheBarText.innerHTML = (heartBeat.caches.wordCache.stats.keys) + ' WORDS | ' 
-  //   + heartBeat.caches.wordCache.stats.keysMax + ' MAX | ' 
-  //   + moment(heartBeat.caches.wordCache.stats.keysMaxTime).format(defaultDateTimeFormat);
-  // }
-
   // VIEWERS ==========================
 
   var viewerRatio = 0;
@@ -1618,38 +750,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     + moment(heartBeat.entity.viewer.connectedMaxTime).format(defaultDateTimeFormat);
   }
 
-
-  // USERS ==========================
-
-  var userRatio = 0;
-
-  if (heartBeat.entity) {
-    userRatio = heartBeat.entity.user.connected / heartBeat.entity.user.connectedMax;
-  }
-
-  usersBar.animate(userRatio);
-
-  if (100 * userRatio >= ALERT_LIMIT_PERCENT) {
-    usersBar.path.setAttribute('stroke', endColor);
-  } else if (100 * userRatio >= WARN_LIMIT_PERCENT) {
-    usersBar.path.setAttribute('stroke', midColor);
-  } else {
-    usersBar.path.setAttribute('stroke', startColor);
-  }
-
-  if (heartBeat.entity) {
-    usersBarText.innerHTML = (heartBeat.entity.user.connected) + ' USERS | ' 
-    + (heartBeat.entity.user.connectedMax) + ' MAX | ' 
-    + moment(heartBeat.entity.user.connectedMaxTime).format(defaultDateTimeFormat);
-  }
-
   // SERVERS =========================
-
-  var serverRatio = 0;
-
-  // if (heartBeat.entity) {
-    // serverRatio = heartBeat.entity.server.connected / heartBeat.entity.server.connectedMax;
-  // }
 
   serversBar.animate(serverRatio);
 
@@ -1661,47 +762,47 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     serversBar.path.setAttribute('stroke', startColor);
   }
 
-  if (heartBeat.servers) {
+  if (heartBeat.servers && serverTableBody) {
 
-    const totalServers = 0;
+    while (serverTableBody.childNodes.length >= 1) {
+      serverTableBody.removeChild(serverTableBody.firstChild);
+    }
 
-    Object.keys(heartBeat.servers).forEach(function(serverType){
-      Object.keys(heartBeat.servers[serverType]).forEach(function(serverSocketId){
-        if (serverHashMap[serverType] === undefined) { serverHashMap[serverType] = {}; }
+    async.forEach(heartBeat.servers, function(serverSocketEntry, cb){
 
-        serverHashMap[serverType][serverSocketId] = heartBeat.servers[serverType][serverSocketId];
+      const serverSocketId = serverSocketEntry[0];
+      const currentServer = serverSocketEntry[1];
 
-        totalServers += 1;
+      serverTypeHashMap.set(currentServer.user.type, currentServer);
+      serverSocketHashMap.set(serverSocketId, currentServer);
 
-        serverRatio = totalServers / 6;
+      tableCreateRow(
+        serverTableBody, 
+        false, 
+        [
+          currentServer.user.nodeId, 
+          currentServer.user.type, 
+          serverSocketId, 
+          moment(currentServer.timeStamp).format(defaultDateTimeFormat), 
+          msToTime(moment().diff(moment(currentServer.timeStamp)))
+        ]
+      ); // 2nd arg is headerFlag
 
-        serversBarText.innerHTML = totalServers + ' SERVER | ' 
-        + totalServers + ' MAX | ' 
-        + moment().format(defaultDateTimeFormat);
+      cb();
 
-      });
+    }, function(err){
+
+
+      totalServers = serverSocketHashMap.size;
+
+      serverRatio = totalServers / 6;
+
+      serversBarText.innerHTML = totalServers + ' SERVERS | 6 MAX | ' 
+      + moment().format(defaultDateTimeFormat);
 
     });
+
   }
-
-
-  // // WORDS =========================
-  // wordsPerMinBar.animate(heartBeat.wordsPerMinute / heartBeat.maxWordsPerMin);
-
-  // if (heartBeat.wordsPerMinute >=  0.01*ALERT_LIMIT_PERCENT * heartBeat.maxWordsPerMin) {
-  //   wordsPerMinBar.path.setAttribute('stroke', endColor);
-  // } 
-  // else if (heartBeat.wordsPerMinute >= 0.01*WARN_LIMIT_PERCENT * heartBeat.maxWordsPerMin) {
-  //   wordsPerMinBar.path.setAttribute('stroke', midColor);
-  // } 
-  // else {
-  //   wordsPerMinBar.path.setAttribute('stroke', startColor);
-  // }
-
-  // wordsPerMinBarText.innerHTML = parseInt(heartBeat.wordsPerMinute) + ' WPM | ' 
-  // + parseInt(heartBeat.maxWordsPerMin) + ' MAX' 
-  // + ' | ' + moment(heartBeat.maxWordsPerMinTime).format(defaultDateTimeFormat);
-
 
 
   // WORDS =========================
@@ -1720,20 +821,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   tweetsPerMinBarText.innerHTML = parseInt(tweetsPerMin) + ' TPM | ' 
   + parseInt(tweetsPerMinMax) + ' MAX' + ' | ' 
   + moment(tweetsPerMinMaxTime).format(defaultDateTimeFormat);
-
-
-  twitterLimitBar.animate(twitterLimit / twitterLimitMax);
-
-  if (twitterLimit >= 0.01*ALERT_LIMIT_PERCENT * twitterLimitMax) {
-    twitterLimitBar.path.setAttribute('stroke', endColor);
-  } else if (twitterLimit >= 0.01*WARN_LIMIT_PERCENT * twitterLimitMax) {
-    twitterLimitBar.path.setAttribute('stroke', midColor);
-  } else {
-    twitterLimitBar.path.setAttribute('stroke', startColor);
-  }
-
-  twitterLimitBarText.innerHTML = parseInt(twitterLimit) + ' LIMIT | ' + parseInt(twitterLimitMax) + ' MAX' + ' | ' + moment(twitterLimitMaxTime).format(defaultDateTimeFormat);
-
 
   var heatbeatTable = document.getElementById('heartbeat_table');
 
@@ -1768,62 +855,21 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   tableCreateRow(heatbeatTable, false, ['APP START TIME', getTimeStamp(heartBeat.startTime)]);
   tableCreateRow(heatbeatTable, false, ['APP RUNTIME', msToTime(heartBeat.runTime)]);
 
-  // if (heartBeat.wordCacheStats !== undefined) {
+  heartbeatElement = document.getElementById("admins_ip_list");
 
-  //   var hmr = (heartBeat.wordCacheStats.hits / (1 + heartBeat.wordCacheStats.misses));
-
-  //   tableCreateRow(heatbeatTable, false, ['WORD CACHE',
-  //     'TTL: ' + heartBeat.wordCacheTtl + ' | K: ' + heartBeat.wordCacheStats.keys + ' | H: ' + heartBeat.wordCacheStats.hits + ' | M: ' + heartBeat.wordCacheStats.misses + ' | HMR: ' + hmr.toFixed(2)
-  //   ]);
-
-  // }
-
-  // tableCreateRow(heatbeatTable, false, ['TOTAL SESSIONS', heartBeat.db.totalSessions]);
-  // if (heartBeat.db) { 
-  //   if (heartBeat.db.totalWords) { tableCreateRow(heatbeatTable, false, ['TOTAL WORDS', heartBeat.db.totalWords]); }
-  // }
-  // tableCreateRow(heatbeatTable, false, ['TOTAL WORD UPDATES', heartBeat.db.wordsUpdated]);
-
-  // tableCreateRow(heatbeatTable, false, ['QUEUES',
-  //   'RX: ' + heartBeat.queues.rxWordQueue 
-  //   + ' | S: ' + heartBeat.queues.sessionQueue
-  //   + ' | DBW: ' + heartBeat.queues.dbUpdateWordQueue
-  //   + ' | DBE: ' + heartBeat.queues.dbUpdateEntityQueue 
-  //   + ' | V: ' + heartBeat.queues.updateSessionViewQueue
-  // ]);
-
-  // tableCreateRow(heatbeatTable, false, ['TOTAL ADMINS', heartBeat.db.totalAdmins]);
-  // tableCreateRow(heatbeatTable, false, ['TOTAL USERS', heartBeat.db.totalUsers]);
-  // tableCreateRow(heatbeatTable, false, ['TOTAL ENTITIES', heartBeat.db.totalEntities]);
-  // tableCreateRow(heatbeatTable, false, ['TOTAL VIEWERS', heartBeat.db.totalViewers]);
-
-  serverHeartbeatElement = document.getElementById("server_admins");
-
-  while (serverHeartbeatElement.childNodes.length >= 1) {
-    serverHeartbeatElement.removeChild(serverHeartbeatElement.firstChild);
+  while (heartbeatElement.childNodes.length >= 1) {
+    heartbeatElement.removeChild(heartbeatElement.firstChild);
   }
 
-  serverHeartbeatElement.appendChild(serverHeartbeatElement.ownerDocument
+  heartbeatElement.appendChild(heartbeatElement.ownerDocument
     .createTextNode(numberAdminIpAddresses + " ADMINS UNIQUE IP " + " | " + heartBeat.numberAdmins + " CONNECTED")
   );
 
-
-  serverHeartbeatElement = document.getElementById("server_users");
-
-  while (serverHeartbeatElement.childNodes.length >= 1) {
-    serverHeartbeatElement.removeChild(serverHeartbeatElement.firstChild);
+  heartbeatElement = document.getElementById("viewers_ip_list");
+  while (heartbeatElement.childNodes.length >= 1) {
+    heartbeatElement.removeChild(heartbeatElement.firstChild);
   }
-  serverHeartbeatElement.appendChild(serverHeartbeatElement.ownerDocument
-    .createTextNode(numberUserIpAddresses + " USER UNIQUE IP " + " | " + heartBeat.entity.user.connected + " USERS")
-  );
-
-
-  serverHeartbeatElement = document.getElementById("server_viewers");
-
-  while (serverHeartbeatElement.childNodes.length >= 1) {
-    serverHeartbeatElement.removeChild(serverHeartbeatElement.firstChild);
-  }
-  serverHeartbeatElement.appendChild(serverHeartbeatElement.ownerDocument
+  heartbeatElement.appendChild(heartbeatElement.ownerDocument
     .createTextNode(numberViewerIpAddresses + " VIEWER UNIQUE IP " + " | " + heartBeat.numberViewers + " VIEWERS")
   );
 }
@@ -1831,6 +877,8 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 function initialize(callback){
 
   console.debug("INITIALIZE...");
+
+  serverCheckTimeout;
 
   // initTimelineData(MAX_TIMELINE, function(){
     initBars(function(){

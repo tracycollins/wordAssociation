@@ -596,14 +596,22 @@ socket.on('KEEPALIVE', function(serverObj) {
 
 
 var heartBeatQueue = [];
+
 socket.on('HEARTBEAT', function(rxHeartbeat) {
+
   heartBeatQueue.push(rxHeartbeat);
+
+  while (heartBeatQueue.length > 60) {
+    heartBeatQueue.shift();
+  }
+
 });
 
 var heartBeatQueueReady = true;
+
 setInterval(function(){
 
-  if (heartBeatQueueReady && (heartBeatQueue.length > 0)){
+  if (heartBeatQueue.length > 0){
 
     heartBeat = heartBeatQueue.shift();
 
@@ -615,10 +623,6 @@ setInterval(function(){
       tweetsPerMin = heartBeat.twitter.tweetsPerMin;
       tweetsPerMinMax = heartBeat.twitter.maxTweetsPerMin;
       tweetsPerMinMaxTime = heartBeat.twitter.maxTweetsPerMinTime;
-
-      // twitterLimit = heartBeat.twitter.twitterLimit;
-      // twitterLimitMax = heartBeat.twitter.twitterLimitMax;
-      // twitterLimitMaxTime = heartBeat.twitter.twitterLimitMaxTime;
     }
 
     if (heartBeat.deltaResponsesReceived > deltaResponsesMax) {deltaResponsesMax = heartBeat.deltaResponsesReceived;}
@@ -770,7 +774,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       serverTableBody.removeChild(serverTableBody.firstChild);
     }
 
-    async.forEach(heartBeat.servers, function(serverSocketEntry, cb){
+    async.eachSeries(heartBeat.servers, function(serverSocketEntry, cb){
 
       const serverSocketId = serverSocketEntry[0];
       const currentServer = serverSocketEntry[1];
@@ -790,7 +794,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
         ]
       ); // 2nd arg is headerFlag
 
-      cb();
+      async.setImmediate(function() { cb(); });
 
     }, function(err){
 

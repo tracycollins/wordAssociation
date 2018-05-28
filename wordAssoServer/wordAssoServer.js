@@ -362,23 +362,26 @@ const tweetMeter = new Measured.Meter({rateUnit: 60000});
 
 let languageServer = {};
 
-let tfeServerHashmap = new HashMap();
+// let tfeServerHashmap = new HashMap();
 
-let tfeServers = {};
-let tmsServers = {};
-let tnnServers = {};
-let tssServers = {};
-let tusServers = {};
+let adminHashMap = new HashMap();
+let serverHashMap = new HashMap();
 
-let currentTssServer = {};
-currentTssServer.connected = false;
-currentTssServer.user = {};
-currentTssServer.socket = {};
+// let tfeServers = {};
+// let tmsServers = {};
+// let tnnServers = {};
+// let tssServers = {};
+// let tusServers = {};
 
-let tmsServer = {};
-tmsServer.connected = false;
-tmsServer.user = {};
-tmsServer.socket = {};
+// let currentTssServer = {};
+// currentTssServer.connected = false;
+// currentTssServer.user = {};
+// currentTssServer.socket = {};
+
+// let tmsServer = {};
+// tmsServer.connected = false;
+// tmsServer.user = {};
+// tmsServer.socket = {};
 
 let nodeMeter = {};
 
@@ -810,15 +813,10 @@ function initStats(callback){
 
   statsObj.entity = {};
 
-  statsObj.entity.admin = {};
-  statsObj.entity.admin.connected = 0;
-  statsObj.entity.admin.connectedMax = 0.1;
-  statsObj.entity.admin.connectedMaxTime = moment().valueOf();
-
-  statsObj.entity.user = {};
-  statsObj.entity.user.connected = 0;
-  statsObj.entity.user.connectedMax = 0.1;
-  statsObj.entity.user.connectedMaxTime = moment().valueOf();
+  statsObj.admin = {};
+  statsObj.admin.connected = 0;
+  statsObj.admin.connectedMax = 0.1;
+  statsObj.admin.connectedMaxTime = moment().valueOf();
 
   statsObj.entity.util = {};
   statsObj.entity.util.connected = 0;
@@ -973,7 +971,7 @@ function showStats(options){
     + " | " + moment().format(compactDateTimeFormat)
     + " | E: " + statsObj.elapsed
     + " | S: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
-    + " | AD: " + statsObj.entity.admin.connected
+    + " | AD: " + statsObj.admin.connected
     + " | UT: " + statsObj.entity.util.connected
     + " | VW: " + statsObj.entity.viewer.connected
     + " | TwRxPM: " + statsObj.twitter.tweetsPerMin
@@ -1794,18 +1792,16 @@ function initSocketHandler(socketObj) {
     + "\n" + hostname
     + " | " + socketObj.namespace
     + " | " + ipAddress
-    + "\nAD: " + statsObj.entity.admin.connected
+    + "\nAD: " + statsObj.admin.connected
     + " | UT: " + statsObj.entity.util.connected
-    + " | US: " + statsObj.entity.user.connected
     + " | VW: " + statsObj.entity.viewer.connected;
 
   console.log(chalkAlert("SOCKET CONNECT"
     + " | " + ipAddress
     + " | " + socketObj.namespace
     + " | " + socket.id
-    + " | AD: " + statsObj.entity.admin.connected
+    + " | AD: " + statsObj.admin.connected
     + " | UT: " + statsObj.entity.util.connected
-    + " | US: " + statsObj.entity.user.connected
     + " | VW: " + statsObj.entity.viewer.connected
   ));
 
@@ -1858,47 +1854,31 @@ function initSocketHandler(socketObj) {
       + " | SOCKET DISCONNECT: " + socket.id + "\nstatus\n" + jsonPrint(status)
     ));
 
-    if (tfeServerHashmap.has(socket.id)) { 
-      console.error(chalkAlert("XXX DELETED TFE SERVER" 
+    if (adminHashMap.has(socket.id)) { 
+      console.error(chalkAlert("XXX DELETED ADMIN" 
         + " | " + moment().format(compactDateTimeFormat)
-        + " | " + tfeServerHashmap.get(socket.id).user.nodeId
+        + " | " + adminHashMap.get(socket.id).user.type.toUpperCase()
+        + " | " + adminHashMap.get(socket.id).user.nodeId
         + " | " + socket.id
       ));
-      tfeServerHashmap.delete(socket.id);
+      adminNameSpace.emit("ADMIN_DELETE", {socketId: socket.id, nodeId: adminHashMap.get(socket.id).user.nodeId});
+      adminHashMap.delete(socket.id);
     }
-    if (tmsServers[socket.id] !== undefined) { 
-      console.error(chalkAlert("XXX DELETED TMS SERVER" 
+
+    if (serverHashMap.has(socket.id)) { 
+
+      console.error(chalkAlert("XXX DELETED SERVER" 
         + " | " + moment().format(compactDateTimeFormat)
-        + " | " + tmsServers[socket.id].user.nodeId
+        + " | " + serverHashMap.get(socket.id).user.type.toUpperCase()
+        + " | " + serverHashMap.get(socket.id).user.nodeId
         + " | " + socket.id
       ));
-      delete tmsServers[socket.id];
+      
+      adminNameSpace.emit("SERVER_DELETE", {socketId: socket.id, nodeId: serverHashMap.get(socket.id).user.nodeId});
+      serverHashMap.delete(socket.id);
     }
-    if (tnnServers[socket.id] !== undefined) { 
-      console.error(chalkAlert("XXX DELETED TNN SERVER" 
-        + " | " + moment().format(compactDateTimeFormat)
-        + " | " + tnnServers[socket.id].user.nodeId
-        + " | " + socket.id
-      ));
-      delete tnnServers[socket.id];
-    }
-    if (tssServers[socket.id] !== undefined) { 
-      console.error(chalkAlert("XXX DELETED TSS SERVER" 
-        + " | " + moment().format(compactDateTimeFormat)
-        + " | " + tssServers[socket.id].user.nodeId
-        + " | " + socket.id
-      ));
-      delete tssServers[socket.id];
-      currentTssServer.connected = false;
-    }
-    if (tusServers[socket.id] !== undefined) { 
-      console.error(chalkAlert("XXX DELETED TUS SERVER" 
-        + " | " + moment().format(compactDateTimeFormat)
-        + " | " + tusServers[socket.id].user.nodeId
-        + " | " + socket.id
-      ));
-      delete tusServers[socket.id];
-    }
+
+
   });
 
   socket.on("SESSION_KEEPALIVE", function sessionKeepalive(userObj) {
@@ -1924,86 +1904,97 @@ function initSocketHandler(socketObj) {
         // + "\n" + jsonPrint(userObj)
       ));
     }
- 
-    if (userObj.userId.match(/^tfe_/gi)){
-      userObj.isServer = true;
 
-      if (!tfeServerHashmap.has(socket.id)) { 
-        console.log(chalkAlert("+++ ADDED TFE SERVER" 
+    const serverRegex = /^(.+)_/i;
+
+    const currentSessionType = serverRegex.exec(userObj.userId) ? serverRegex.exec(userObj.userId)[1].toUpperCase() : "NULL";
+
+    let serverObj = {};
+
+    serverObj.socketId = socket.id;
+    serverObj.type = currentSessionType;
+    serverObj.connected = true;
+    serverObj.timeStamp = moment().valueOf();
+    serverObj.user = userObj;
+    serverObj.isAdmin = false;
+    serverObj.isServer = false;
+
+    switch (currentSessionType) {
+
+      case "ADMIN" :
+
+        serverObj.isAdmin = true;
+
+        console.log(chalkAlert(currentSessionType 
+          + " | " + moment().format(compactDateTimeFormat)
+          + " | TYPE: " + userObj.type
+          + " | ID: " + userObj.userId
+          + " | @" + userObj.screenName
+          + " | " + socket.id
+        ));
+
+        if (!adminHashMap.has(socket.id)) { 
+
+          console.log(chalkAlert("+++ ADD " + currentSessionType 
+            + " | " + moment().format(compactDateTimeFormat)
+            + " | " + userObj.userId
+            + " | " + socket.id
+          ));
+
+          adminNameSpace.emit("ADMIN_ADD", serverObj);
+        }
+        else {
+          adminNameSpace.emit("KEEPALIVE", serverObj);
+        }
+
+        adminHashMap.set(socket.id, serverObj);
+
+      break;
+
+      case "TFE" :
+      case "TNN" :
+      case "TSS" :
+      case "TUS" :
+      case "LA" :
+
+        serverObj.isServer = true;
+
+        debug(chalkLog(currentSessionType + " SERVER" 
           + " | " + moment().format(compactDateTimeFormat)
           + " | " + userObj.userId
           + " | " + socket.id
         ));
-      }
 
-      tfeServerHashmap.set(socket.id, {socketId: socket.id, connected: true, user: userObj});
+        serverObj.socketId = socket.id;
+        serverObj.type = currentSessionType;
+        serverObj.connected = true;
+        serverObj.timeStamp = moment().valueOf();
+        serverObj.user = userObj;
+
+
+        if (!serverHashMap.has(socket.id)) { 
+          console.log(chalkAlert("+++ ADD " + currentSessionType + " SERVER" 
+            + " | " + moment().format(compactDateTimeFormat)
+            + " | " + userObj.userId
+            + " | " + socket.id
+          ));
+          adminNameSpace.emit("SERVER_ADD", serverObj);
+        }
+        else {
+          adminNameSpace.emit("KEEPALIVE", serverObj);
+        }
+
+        serverHashMap.set(socket.id, serverObj);
+
+      break;
+      default:
+        userObj.isServer = false;
+        console.log(chalkAlert("**** NOT SERVER ****" 
+          + "\n" + jsonPrint(userObj)
+        ));
     }
  
-    if (userObj.userId.match(/^tms_/gi)){
-      userObj.isServer = true;
 
-      if (tmsServers[socket.id] === undefined) { 
-        tmsServers[socket.id] = {};
-        console.log(chalkAlert("+++ ADDED TMS SERVER" 
-          + " | " + moment().format(compactDateTimeFormat)
-          + " | " + userObj.userId
-          + " | " + socket.id
-        ));
-      }
-
-      tmsServers[socket.id].connected = true;
-      tmsServers[socket.id].user = userObj;
-    }
- 
-    if (userObj.userId.match(/^tnn_/gi)){
-      userObj.isServer = true;
-
-      if (tnnServers[socket.id] === undefined) {
-        tnnServers[socket.id] = {};
-        console.log(chalkAlert("+++ ADDED TNN SERVER" 
-          + " | " + moment().format(compactDateTimeFormat)
-          + " | " + userObj.userId
-          + " | " + socket.id
-        ));
-      }
-
-      tnnServers[socket.id].connected = true;
-      tnnServers[socket.id].user = userObj;
-      currentTssServer = tnnServers[socket.id];
-    }
-
-    if (userObj.userId.match(/^tss_/gi)){
-      userObj.isServer = true;
-
-      if (tssServers[socket.id] === undefined) {
-        tssServers[socket.id] = {};
-        console.log(chalkAlert("+++ ADDED TSS SERVER" 
-          + " | " + moment().format(compactDateTimeFormat)
-          + " | " + userObj.userId
-          + " | " + socket.id
-        ));
-      }
-
-      tssServers[socket.id].connected = true;
-      tssServers[socket.id].user = userObj;
-      currentTssServer = tssServers[socket.id];
-    }
-
-    if (userObj.userId.match(/^tus_/gi)){
-      userObj.isServer = true;
-
-      if (tusServers[socket.id] === undefined) {
-        tusServers[socket.id] = {};
-        console.log(chalkAlert("+++ ADDED TUS SERVER" 
-          + " | " + moment().format(compactDateTimeFormat)
-          + " | " + userObj.userId
-          + " | " + socket.id
-        ));
-      }
-
-      tusServers[socket.id].connected = true;
-      tusServers[socket.id].user = userObj;
-    }
   });
 
   socket.on("TWITTER_FOLLOW", function twitterFollow(u) {
@@ -2423,7 +2414,7 @@ function initSocketNamespaces(callback){
 
   adminNameSpace.on("connect", function adminConnect(socket) {
     console.log(chalkAlert("ADMIN CONNECT " + socket.id));
-    statsObj.entity.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
+    statsObj.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
     initSocketHandler({namespace: "admin", socket: socket});
   });
 
@@ -2435,7 +2426,6 @@ function initSocketNamespaces(callback){
 
   userNameSpace.on("connect", function userConnect(socket) {
     console.log(chalkAlert("USER CONNECT " + socket.id));
-    statsObj.entity.user.connected = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
     initSocketHandler({namespace: "user", socket: socket});
   });
 
@@ -2759,15 +2749,18 @@ function follow(params, callback) {
 
   console.log(chalkAlert("+++ FOLLOW | @" + params.user.screenName));
 
-  if (tfeServerHashmap.count() > 0) {
-    const tfeServerSocketIds = tfeServerHashmap.keys();
-    console.log(chalkAlert("FOLLOW > TFE SERVER: " + tfeServerSocketIds[0]))
-    utilNameSpace.emit("FOLLOW", params.user);
-    callback(null, true);
-  }
-  else {
-    callback(null, false);
-  }
+  adminNameSpace.emit("FOLLOW", params.user);
+  utilNameSpace.emit("FOLLOW", params.user);
+
+  // if (tfeServerHashmap.count() > 0) {
+  //   const tfeServerSocketIds = tfeServerHashmap.keys();
+  //   console.log(chalkAlert("FOLLOW > TFE SERVER: " + tfeServerSocketIds[0]))
+  //   utilNameSpace.emit("FOLLOW", params.user);
+  //   callback(null, true);
+  // }
+  // else {
+  //   callback(null, false);
+  // }
 }
 
 function autoFollowUser(params, callback){
@@ -3080,12 +3073,12 @@ configEvents.on("SERVER_READY", function serverReady() {
 
   let hearbeatObj = {};
 
-  hearbeatObj.servers = {};
-  hearbeatObj.servers.tmsServers = {};
-  hearbeatObj.servers.tusServers = {};
-  hearbeatObj.servers.tfeServers = {};
-  hearbeatObj.servers.tssServers = {};
-  hearbeatObj.servers.tnnServers = {};
+  hearbeatObj.servers = [];
+  // hearbeatObj.servers.tmsServers = {};
+  // hearbeatObj.servers.tusServers = {};
+  // hearbeatObj.servers.tfeServers = {};
+  // hearbeatObj.servers.tssServers = {};
+  // hearbeatObj.servers.tnnServers = {};
   hearbeatObj.children = {};
   hearbeatObj.children.childrenHashMap = {};
 
@@ -3103,11 +3096,15 @@ configEvents.on("SERVER_READY", function serverReady() {
     statsObj.memory.memoryAvailable = os.freemem();
     statsObj.memory.memoryUsage = process.memoryUsage();
 
-    hearbeatObj.servers.tfeServers = tfeServers;
-    hearbeatObj.servers.tmsServers = tmsServers;
-    hearbeatObj.servers.tnnServers = tnnServers;
-    hearbeatObj.servers.tssServers = tssServers;
-    hearbeatObj.servers.tusServers = tusServers;
+    hearbeatObj.servers = [];
+    serverHashMap.forEach(function(serverObj, serverSocketId){
+      hearbeatObj.servers.push([serverSocketId, serverObj]);
+    });
+    // hearbeatObj.servers.tfeServers = tfeServers;
+    // hearbeatObj.servers.tmsServers = tmsServers;
+    // hearbeatObj.servers.tnnServers = tnnServers;
+    // hearbeatObj.servers.tssServers = tssServers;
+    // hearbeatObj.servers.tusServers = tusServers;
 
     statsObj.twitter.tweetsPerMin = parseInt(tweetMeter.toJSON()[metricsRate]);
 
@@ -3135,7 +3132,7 @@ configEvents.on("SERVER_READY", function serverReady() {
       hearbeatObj.twitter.maxTweetsPerMinTime = statsObj.twitter.maxTweetsPerMinTime;
 
       utilNameSpace.volatile.emit("HEARTBEAT", hearbeatObj);
-      adminNameSpace.volatile.emit("HEARTBEAT", hearbeatObj);
+      adminNameSpace.emit("HEARTBEAT", hearbeatObj);
       userNameSpace.volatile.emit("HEARTBEAT", hearbeatObj);
       viewNameSpace.volatile.emit("HEARTBEAT", hearbeatObj);
 
@@ -4289,12 +4286,12 @@ function initRateQinterval(interval){
   });
 
   if (adminNameSpace) {
-    statsObj.entity.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
-    if (statsObj.entity.admin.connected > statsObj.entity.admin.connectedMax) {
-      statsObj.entity.admin.connectedMaxTime = moment().valueOf();
-      statsObj.entity.admin.connectedMax = statsObj.entity.admin.connected;
+    statsObj.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
+    if (statsObj.admin.connected > statsObj.admin.connectedMax) {
+      statsObj.admin.connectedMaxTime = moment().valueOf();
+      statsObj.admin.connectedMax = statsObj.admin.connected;
       console.log(chalkInfo("MAX ADMINS"
-       + " | " + statsObj.entity.admin.connected
+       + " | " + statsObj.admin.connected
        + " | " + moment().format(compactDateTimeFormat)
       ));
     }
@@ -4312,15 +4309,6 @@ function initRateQinterval(interval){
     }
   }
   if (userNameSpace) {
-    statsObj.entity.user.connected = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
-    if (statsObj.entity.user.connected > statsObj.entity.user.connectedMax) {
-      statsObj.entity.user.connectedMaxTime = moment().valueOf();
-      statsObj.entity.user.connectedMax = statsObj.entity.user.connected;
-      console.log(chalkInfo("MAX USERS"
-       + " | " + statsObj.entity.user.connected
-       + " | " + moment().format(compactDateTimeFormat)
-      ));
-    }
   }
   if (adminNameSpace) {
     statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
@@ -4827,9 +4815,8 @@ function initStatsInterval(interval){
     statsObj.memory.memoryTotal = os.totalmem();
     statsObj.memory.memoryUsage = process.memoryUsage();
 
-    statsObj.entity.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
+    statsObj.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
     statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
-    statsObj.entity.user.connected = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
     statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
 
     saveStats(statsFile, statsObj, function saveStatsComplete(status){

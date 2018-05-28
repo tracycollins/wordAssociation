@@ -130,7 +130,7 @@
   </style>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
-  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <!-- <script src="https://d3js.org/d3.v5.min.js"></script> -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/progressbar.js/1.0.1/progressbar.min.js"></script>
   <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js'></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/async/2.6.1/async.min.js"></script>
@@ -161,8 +161,8 @@
     <div class="bar-text" id="viewers-bar-text"></div>
     <div class="bar" id="viewers-bar"></div>
     <br>
-    <div class="bar-text" id="utils-bar-text"></div>
-    <div class="bar" id="utils-bar"></div>
+    <div class="bar-text" id="servers-bar-text"></div>
+    <div class="bar" id="servers-bar"></div>
     <br>
     <div class="bar-text" id="delta-tweet-bar-text"></div>
     <div class="bar" id="delta-tweet-bar"></div>
@@ -179,6 +179,7 @@
     <br>
     <hr>
     <br>
+
     <div id='admin_panel'>
       <br/>
       <h2>ADMINS</h2>
@@ -190,47 +191,23 @@
       <br/>
       <div id='server_admins'></div>
     </div>
+
     <div id='admins'>
-      <ul id='admin_ip_list'></ul>
+      <ul id='admins_ip_list'></ul>
     </div>
+
     <hr>
+
     <div id='admins'>
-      <ul id='admin_session_list'></ul>
+      <ul id='admins_session_list'></ul>
     </div>
+
     <br>
     <hr>
     <hr>
-    <div id='user_panel'>
-      <br/>
-      <h2>USERS</h2>
-      <br/>
-      <button id="showHideButton" class="showHideButton" onclick="toggleIpUsers()">show/hide user ip</button>
-      <button id="showHideButton" class="showHideButton" onclick="toggleConnectedUsers()">show/hide connected</button>
-      <button id="showHideButton" class="showHideButton" onclick="toggleDisconnectedUsers()">show/hide disconnected</button>
-      <button id="showHideButton" class="showHideButton" onclick="toggleHideTestUsers()">show/hide test users</button>
-      <button id="showHideButton" class="showHideButton" onclick="toggleHideBotUsers()">show/hide bot users</button>
-      <br/>
-      <br/>
-      <div id='server_users'></div>
-    </div>
-    <div id='users'>
-      <table id='user_ip_table' class 'userIpTable'>
-        <thead id='user_ip_table_head'>
-        </thead>
-        <tbody id='user_ip_table_body'>
-        </tbody>
-      </table>
-      <br/>
-      <br/>
-      <br/>
-      <table id='user_session_table' class 'userSessionTable'>
-        <thead id='user_session_table_head'>
-        </thead>
-        <tbody id='user_session_table_body'>
-        </tbody>
-      </table>
-    </div>
+
     <hr>
+
     <div id='viewer_panel'>
       <br/>
       <h2>VIEWERS</h2>
@@ -242,9 +219,10 @@
       <button id="showHideButton" class="showHideButton" onclick="toggleHideBotViewers()">show/hide bot viewers</button>
       <br/>
       <br/>
-      <div id='server_viewers'></div>
     </div>
+
     <div id='viewers'>
+      <ul id='viewers_ip_list'></ul>
       <table id='viewer_ip_table' class 'viewerIpTable'>
         <thead id='viewer_ip_table_head'>
         </thead>
@@ -261,34 +239,27 @@
         </tbody>
       </table>
     </div>
+
     <hr>
-    <div id='util_panel'>
+
+    <div id='server_panel'>
       <br/>
-      <h2>UTILS</h2>
+      <h2>SERVERS</h2>
       <br/>
-      <button id="showHideButton" class="showHideButton" onclick="toggleIpUtils()">show/hide util ip</button>
-      <button id="showHideButton" class="showHideButton" onclick="toggleConnectedUtils()">show/hide connected</button>
-      <button id="showHideButton" class="showHideButton" onclick="toggleDisconnectedUtils()">show/hide disconnected</button>
+      <button id="showHideButton" class="showHideButton" onclick="toggleServers()">show/hide servers</button>
       <br/>
       <br/>
-      <div id='server_utils'></div>
     </div>
-    <div id='utils'>
-      <table id='util_ip_table' class 'utilIpTable'>
-        <thead id='util_ip_table_head'>
+    <div id='servers'>
+      <table id='server_table' class 'utilIpTable'>
+        <thead id='server_table_head'>
         </thead>
-        <tbody id='util_ip_table_body'>
+        <tbody id='server_table_body'>
         </tbody>
       </table>
       <br/>
       <br/>
       <br/>
-      <table id='util_session_table' class 'utilSessionTable'>
-        <thead id='util_session_table_head'>
-        </thead>
-        <tbody id='util_session_table_body'>
-        </tbody>
-      </table>
     </div>
     <hr>
     <div id="rawDiv">

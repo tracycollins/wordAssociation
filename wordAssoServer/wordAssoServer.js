@@ -345,8 +345,6 @@ hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 
 const chalk = require("chalk");
-// const chalkAdmin = chalk.bold.black;
-// const chalkWarn = chalk.red;
 const chalkTwitter = chalk.blue;
 const chalkConnect = chalk.black;
 const chalkSession = chalk.black;
@@ -356,32 +354,14 @@ const chalkInfo = chalk.gray;
 const chalkAlert = chalk.red;
 const chalkError = chalk.bold.red;
 const chalkLog = chalk.gray;
-// const chalkNetwork = chalk.blue;
 
 const tweetMeter = new Measured.Meter({rateUnit: 60000});
 
 let languageServer = {};
 
-// let tfeServerHashmap = new HashMap();
 
 let adminHashMap = new HashMap();
 let serverHashMap = new HashMap();
-
-// let tfeServers = {};
-// let tmsServers = {};
-// let tnnServers = {};
-// let tssServers = {};
-// let tusServers = {};
-
-// let currentTssServer = {};
-// currentTssServer.connected = false;
-// currentTssServer.user = {};
-// currentTssServer.socket = {};
-
-// let tmsServer = {};
-// tmsServer.connected = false;
-// tmsServer.user = {};
-// tmsServer.socket = {};
 
 let nodeMeter = {};
 
@@ -1832,9 +1812,31 @@ function initSocketHandler(socketObj) {
   });
 
   socket.on("error", function socketError(error) {
+
     statsObj.socket.errors.errors += 1;
+
     console.log(chalkError(moment().format(compactDateTimeFormat) 
       + " | *** SOCKET ERROR" + " | " + socket.id + " | " + error));
+
+    if (serverHashMap.has(socket.id)) { 
+
+      let currentServer = serverHashMap.get(socket.id);
+      currentServer.timeStamp = moment().valueOf();
+      currentServer.status = "ERROR";
+
+      console.error(chalkAlert("SERVER ERROR" 
+        + " | " + moment(currentServer.timeStamp).format(compactDateTimeFormat)
+        + " | " + currentServer.user.type.toUpperCase()
+        + " | " + currentServer.user.nodeId
+        + " | " + currentServer.status
+        + " | " + socket.id
+      ));
+
+      serverHashMap.set(socket.id, currentServer);
+
+      adminNameSpace.emit("SERVER_ERROR", currentServer);
+      // serverHashMap.delete(socket.id);
+    }
   });
 
   socket.on("reconnect", function socketReconnect() {
@@ -1867,18 +1869,20 @@ function initSocketHandler(socketObj) {
 
     if (serverHashMap.has(socket.id)) { 
 
-      console.error(chalkAlert("XXX DELETED SERVER" 
+      let currentServer = serverHashMap.get(socket.id);
+      currentServer.status = "DISCONNECTED";
+
+      console.error(chalkAlert("SERVER DISCONNECTED" 
         + " | " + moment().format(compactDateTimeFormat)
-        + " | " + serverHashMap.get(socket.id).user.type.toUpperCase()
-        + " | " + serverHashMap.get(socket.id).user.nodeId
+        + " | " + currentServer.user.type.toUpperCase()
+        + " | " + currentServer.user.nodeId
         + " | " + socket.id
       ));
+ 
+      adminNameSpace.emit("SERVER_DISCONNECT", currentServer);
+      serverHashMap.set(socket.id, currentServer);
 
-      adminNameSpace.emit("SERVER_DELETE", {socketId: socket.id, nodeId: serverHashMap.get(socket.id).user.nodeId});
-      serverHashMap.delete(socket.id);
     }
-
-
   });
 
   socket.on("SESSION_KEEPALIVE", function sessionKeepalive(userObj) {
@@ -1891,20 +1895,6 @@ function initSocketHandler(socketObj) {
 
     if (userObj.stats) {statsObj.utilities[userObj.userId] = userObj.stats;}
 
-    if (userObj.userId.match(/la_/gi)){
-      userObj.isServer = true;
-
-      languageServer.connected = true;
-      languageServer.user = userObj;
-
-      debug(chalkSession("K-LA" 
-        + " | " + userObj.userId
-        + " | " + socket.id
-        + " | " + moment().format(compactDateTimeFormat)
-        // + "\n" + jsonPrint(userObj)
-      ));
-    }
-
     const serverRegex = /^(.+)_/i;
 
     const currentSessionType = serverRegex.exec(userObj.userId) ? serverRegex.exec(userObj.userId)[1].toUpperCase() : "NULL";
@@ -1913,7 +1903,7 @@ function initSocketHandler(socketObj) {
 
     serverObj.socketId = socket.id;
     serverObj.type = currentSessionType;
-    serverObj.connected = true;
+    serverObj.status = "KEEPALIVE";
     serverObj.timeStamp = moment().valueOf();
     serverObj.user = userObj;
     serverObj.isAdmin = false;
@@ -1948,7 +1938,6 @@ function initSocketHandler(socketObj) {
         }
 
         adminHashMap.set(socket.id, serverObj);
-
       break;
 
       case "TFE" :
@@ -1967,10 +1956,8 @@ function initSocketHandler(socketObj) {
 
         serverObj.socketId = socket.id;
         serverObj.type = currentSessionType;
-        serverObj.connected = true;
         serverObj.timeStamp = moment().valueOf();
         serverObj.user = userObj;
-
 
         if (!serverHashMap.has(socket.id)) { 
           console.log(chalkAlert("+++ ADD " + currentSessionType + " SERVER" 
@@ -1985,16 +1972,15 @@ function initSocketHandler(socketObj) {
         }
 
         serverHashMap.set(socket.id, serverObj);
-
       break;
+
       default:
+
         userObj.isServer = false;
         console.log(chalkAlert("**** NOT SERVER ****" 
           + "\n" + jsonPrint(userObj)
         ));
     }
- 
-
   });
 
   socket.on("TWITTER_FOLLOW", function twitterFollow(u) {
@@ -2017,7 +2003,6 @@ function initSocketHandler(socketObj) {
         ));
       }
     });
-
   });
 
   socket.on("TWITTER_SEARCH_NODE", function twitterSearchNode(sn) {

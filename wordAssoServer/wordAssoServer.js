@@ -2978,12 +2978,13 @@ function transmitNodes(tw, callback){
     if (emoji) {transmitNodeQueue.push(emoji);}
   });
 
-  tw.urls.forEach(function urlTxNodeQueue(url){
-    if (url) {transmitNodeQueue.push(url);}
-  });
+  // tw.urls.forEach(function urlTxNodeQueue(url){
+  //   if (url) {transmitNodeQueue.push(url);}
+  // });
 
   tw.words.forEach(function wordsTxNodeQueue(word){
-    if (word && !ignoreWordHashMap.has(word.nodeId)) { transmitNodeQueue.push(word); }
+    // if (word && !ignoreWordHashMap.has(word.nodeId)) { transmitNodeQueue.push(word); }
+    if (word && categorizedWordHashMap.has(word.nodeId)) { transmitNodeQueue.push(word); }
   });
 
 

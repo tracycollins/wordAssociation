@@ -3,6 +3,10 @@
 /*jslint node: true */
 "use strict";
 
+const DEFAULT_TABLE_TEXT_COLOR = "#CCCCCC";
+const DEFAULT_TABLE_BG_COLOR = "#222222";
+const DEFAULT_TABLE_FONT_SIZE = "1.5em";
+
 var socket = io('/admin');
 
 var memoryAvailable = 0;
@@ -63,9 +67,9 @@ var adminSocketIdHashMap = new HashMap();
 var adminIpHashMapKeys = [];
 var adminSocketIdHashMapKeys = [];
 
-var randomIntFromInterval = function(min, max) {
-  return Math.floor(Math.random() * (max - min + 1) + min);
-};
+function isObject(obj) {
+  return obj === Object(obj);
+}
 
 function getTimeNow() {
   var d = new Date();
@@ -221,14 +225,14 @@ function initBars(callback){
   twitterLimitBar.animate(0);
 
   var options = {
-    headerFlag: true,
-    thTextColor: '#CCCCCC',
-    backgroundColor: '#222222'
+    isHeaderRow: true,
+    textColor: '#CCCCCC',
+    bgColor: '#222222'
   };
 
   tableCreateRow(viewerIpTableHead, options, ['VIEWERS', 'IP', 'DOMAIN', 'LAST SEEN', 'AGO', 'SESSIONS']); // 2nd arg is headerFlag
   tableCreateRow(viewerSessionTableHead, options, ['SESSIONS', 'IP', 'DOMAIN', 'USER', 'SESSION', 'CONNECT', 'DISCONNECT', 'TIME CONNECTED']); // 2nd arg is headerFlag
-  tableCreateRow(serverTableHead, options, ['SERVER ID', 'TYPE', 'SOCKET', 'LAST SEEN', 'AGO']); // 2nd arg is headerFlag
+  tableCreateRow(serverTableHead, options, ['SERVER ID', 'TYPE', 'SOCKET', 'STATUS', 'LAST SEEN', 'AGO']); // 2nd arg is headerFlag
 
   callback();
 }
@@ -360,40 +364,47 @@ function updateAdminConfig(config) {
   }
 }
 
-function tableCreateRow(parentTable, options, cells) {
+
+function tableCreateRow(parentTable, options, cellContentArray) {
 
   var tr = parentTable.insertRow();
-  var thTextColor = options.thTextColor;
-  var tdTextColor = options.tdTextColor;
 
-  if (options.textColor) {
-    thTextColor = options.textColor;
-    tdTextColor = options.textColor;
-  }
-  var tdBgColor = options.backgroundColor || '#222222';
+  var isHeaderRow = options.isHeaderRow || false;
 
-  if (options.trClass) {
-    tr.setAttribute("class", options.trClass);
+  var textColor = options.textColor || DEFAULT_TABLE_TEXT_COLOR;
+  var bgColor = options.bgColor || DEFAULT_TABLE_BG_COLOR;
+  var fontSize = options.fontSize || DEFAULT_TABLE_FONT_SIZE;
+  
+  if (options.class) {
+    tr.setAttribute("class", options.class);
   }
 
-  if (options.headerFlag) {
-    cells.forEach(function(content) {
-      var th = tr.insertCell();
-      th.appendChild(document.createTextNode(content));
-      th.style.fontSize = "1em";
-      th.style.color = thTextColor;
-      th.style.backgroundColor = tdBgColor;
-    });
-  } else {
-    cells.forEach(function(content) {
-      var td = tr.insertCell();
-      // var td2 = td.insertCell();
-      td.appendChild(document.createTextNode(content));
-      td.style.fontSize = "1em";
-      td.style.color = tdTextColor;
-      td.style.backgroundColor = tdBgColor;
-    });
+  if (options.id) {
+    tr.setAttribute("id", options.id);
   }
+
+
+  cellContentArray.forEach(function(content) {
+
+    var cell = tr.insertCell();
+
+    if (isObject(content)) {
+      if (content.id) {
+        cell.setAttribute("id", content.id);
+      }
+      cell.appendChild(document.createTextNode(content.text));
+      cell.style.fontSize = content.fontSize || fontSize;
+      cell.style.color = content.thTextColor || textColor;
+      cell.style.backgroundColor = content.tdBgColor || bgColor;
+    }
+    else {
+      cell.appendChild(document.createTextNode(content));
+      cell.style.fontSize = fontSize;
+      cell.style.color = textColor;
+      cell.style.backgroundColor = bgColor;
+    }
+  });
+
 }
 
 var dateNow = moment().valueOf();
@@ -568,9 +579,106 @@ socket.on('TWITTER_TOPTERM_1MIN', function(top10array) {
 });
 
 
+socket.on('SERVER_ERROR', function(serverObj) {
+
+  console.debug("SERVER_ERROR\n" + jsonPrint(serverObj));
+
+  if (!serverSocketHashMap.has(serverObj.socketId)) {
+    console.debug("SERVER_ERROR | SERVER NOT FOUND IN HM\n" + jsonPrint(serverObj));
+    return;
+  }
+
+  var sObj = serverSocketHashMap.get(serverObj.socketId);
+
+  sObj.status = "ERROR";
+  sObj.type = serverObj.type;
+  sObj.user = serverObj.user;
+  sObj.timeStamp = serverObj.timeStamp;
+
+  serverSocketHashMap.set(sObj.socketId, sObj);
+
+  let currentServerTableRow = document.getElementById(serverObj.socketId);
+
+  if (currentServerTableRow) {
+
+    console.debug("UPDATE TABLE ROW: " + currentServerTableRow.id);
+
+    document.getElementById(serverObj.socketId + "_nodeId").innerHTML = sObj.user.nodeId;
+    document.getElementById(serverObj.socketId + "_type").innerHTML = sObj.type;
+    document.getElementById(serverObj.socketId + "_socketId").innerHTML = sObj.socketId;
+    document.getElementById(serverObj.socketId + "_status").innerHTML = "DELETED";
+    document.getElementById(serverObj.socketId + "_timeStamp").innerHTML = moment(sObj.timeStamp).format(defaultDateTimeFormat);
+    document.getElementById(serverObj.socketId + "_ago").innerHTML = msToTime(moment().diff(moment(sObj.timeStamp)));
+  }
+
+});
+
+socket.on('SERVER_DISCONNECT', function(serverObj) {
+
+  console.debug("SERVER_DISCONNECT\n" + jsonPrint(serverObj));
+
+  if (!serverSocketHashMap.has(serverObj.socketId)) {
+    console.debug("SERVER_DISCONNECT | SERVER NOT FOUND IN HM\n" + jsonPrint(serverObj));
+    return;
+  }
+
+  var sObj = serverSocketHashMap.get(serverObj.socketId);
+
+  sObj.status = "DISCONECTED";
+  sObj.timeStamp = serverObj.timeStamp;
+  sObj.type = serverObj.type;
+  sObj.user = serverObj.user;
+
+  serverSocketHashMap.set(sObj.socketId, sObj);
+
+  let currentServerTableRow = document.getElementById(serverObj.socketId);
+
+  if (currentServerTableRow) {
+
+    console.debug("UPDATE TABLE ROW: " + currentServerTableRow.id);
+
+    document.getElementById(serverObj.socketId + "_nodeId").innerHTML = sObj.user.nodeId;
+    document.getElementById(serverObj.socketId + "_type").innerHTML = sObj.type;
+    document.getElementById(serverObj.socketId + "_socketId").innerHTML = serverObj.socketId;
+    document.getElementById(serverObj.socketId + "_status").innerHTML = sObj.status;
+    document.getElementById(serverObj.socketId + "_timeStamp").innerHTML = moment(sObj.timeStamp).format(defaultDateTimeFormat);
+    document.getElementById(serverObj.socketId + "_ago").innerHTML = msToTime(moment().diff(moment(sObj.timeStamp)));
+  }
+
+});
+
 socket.on('SERVER_DELETE', function(serverObj) {
+
   console.debug("SERVER_DELETE\n" + jsonPrint(serverObj));
-  serverSocketHashMap.delete(serverObj.socketId);
+
+  if (!serverSocketHashMap.has(serverObj.socketId)) {
+    console.debug("SERVER_DELETE | SERVER NOT FOUND IN HM\n" + jsonPrint(serverObj));
+    return;
+  }
+
+  var sObj = serverSocketHashMap.get(serverObj.socketId);
+
+  sObj.status = "DELETED";
+  sObj.timeStamp = serverObj.timeStamp;
+  sObj.type = serverObj.type;
+  sObj.user = serverObj.user;
+
+  serverSocketHashMap.set(sObj.socketId, sObj);
+
+  let currentServerTableRow = document.getElementById(serverObj.socketId);
+
+  if (currentServerTableRow) {
+
+    console.debug("UPDATE TABLE ROW: " + currentServerTableRow.id);
+
+    document.getElementById(serverObj.socketId + "_nodeId").innerHTML = sObj.user.nodeId;
+    document.getElementById(serverObj.socketId + "_type").innerHTML = sObj.type;
+    document.getElementById(serverObj.socketId + "_socketId").innerHTML = sObj.socketId;
+    document.getElementById(serverObj.socketId + "_status").innerHTML = sObj.status;
+    document.getElementById(serverObj.socketId + "_timeStamp").innerHTML = moment(sObj.timeStamp).format(defaultDateTimeFormat);
+    document.getElementById(serverObj.socketId + "_ago").innerHTML = msToTime(moment().diff(moment(sObj.timeStamp)));
+  }
+
 });
 
 socket.on('SERVER_ADD', function(serverObj) {
@@ -585,8 +693,14 @@ socket.on('KEEPALIVE', function(serverObj) {
     console.warn("KEEPALIVE LOOPBACK "  + serverObj.socketId + " | " + serverObj.user.nodeId);
   }
   else if (serverSocketHashMap.has(serverObj.socketId)){
-    serverObj.connected = true;
-    serverSocketHashMap.set(serverObj.socketId, serverObj);
+
+    let sObj = serverSocketHashMap.get(serverObj.socketId);
+    sObj.status = serverObj.status;
+    sObj.timeStamp = serverObj.timeStamp;
+    sObj.type = serverObj.type;
+    sObj.user = serverObj.user;
+
+    serverSocketHashMap.set(serverObj.socketId, sObj);
   }
   else {
     console.warn("KEEPALIVE SERVER NOT IN HASHMAP\n" + jsonPrint(serverObj));
@@ -770,32 +884,54 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   if (heartBeat.servers && serverTableBody) {
 
-    while (serverTableBody.childNodes.length >= 1) {
-      serverTableBody.removeChild(serverTableBody.firstChild);
+    if (heartBeat.servers.length === 0){
+      serverSocketHashMap.forEach(function(serverObj, serverSocketId){
+        serverObj.status = "UNKNOWN";
+        serverObj.connected = false;
+        serverObj.deleted = true;
+        serverSocketHashMap.set(serverSocketId, serverObj);
+      });
     }
+
+    // while (serverTableBody.childNodes.length >= 1) {
+    //   serverTableBody.removeChild(serverTableBody.firstChild);
+    // }
 
     async.eachSeries(heartBeat.servers, function(serverSocketEntry, cb){
 
       const serverSocketId = serverSocketEntry[0];
       const currentServer = serverSocketEntry[1];
 
+      let currentServerTableRow = document.getElementById(serverSocketId);
+
+      if (currentServerTableRow) {
+        document.getElementById(serverSocketId + "_nodeId").innerHTML = currentServer.user.nodeId;
+        document.getElementById(serverSocketId + "_type").innerHTML = currentServer.type;
+        document.getElementById(serverSocketId + "_socketId").innerHTML = serverSocketId;
+        document.getElementById(serverSocketId + "_status").innerHTML = currentServer.status.toUpperCase();
+        document.getElementById(serverSocketId + "_timeStamp").innerHTML = moment(currentServer.timeStamp).format(defaultDateTimeFormat);
+        document.getElementById(serverSocketId + "_ago").innerHTML = msToTime(moment().diff(moment(currentServer.timeStamp)));
+      }
+      else {
+        tableCreateRow(
+          serverTableBody, 
+          {id: serverSocketId}, 
+          [
+            { id: serverSocketId + "_nodeId", text: currentServer.user.nodeId }, 
+            { id: serverSocketId + "_type", text: currentServer.type }, 
+            { id: serverSocketId + "_socketId", text: serverSocketId }, 
+            { id: serverSocketId + "_status", text: currentServer.status.toUpperCase() }, 
+            { id: serverSocketId + "_timeStamp", text: moment(currentServer.timeStamp).format(defaultDateTimeFormat) }, 
+            { id: serverSocketId + "_ago", text: msToTime(moment().diff(moment(currentServer.timeStamp))) }
+          ]
+        );
+      }
+
       serverTypeHashMap.set(currentServer.type, currentServer);
       serverSocketHashMap.set(serverSocketId, currentServer);
 
-      tableCreateRow(
-        serverTableBody, 
-        false, 
-        [
-          currentServer.user.nodeId, 
-          currentServer.type, 
-          serverSocketId, 
-          moment(currentServer.timeStamp).format(defaultDateTimeFormat), 
-          msToTime(moment().diff(moment(currentServer.timeStamp)))
-        ]
-      ); // 2nd arg is headerFlag
 
       async.setImmediate(function() { cb(); });
-
     }, function(err){
 
 
@@ -805,7 +941,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
       serversBarText.innerHTML = totalServers + ' SERVERS | 6 MAX | ' 
       + moment().format(defaultDateTimeFormat);
-
     });
 
   }

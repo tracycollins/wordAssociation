@@ -7,6 +7,7 @@ function ViewTreepack() {
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
   var DEFAULT_ZOOM_FACTOR = 0.5;
+  var emojiFontMulipier = 2.0;
 
   var getWindowDimensions = function (){
 
@@ -412,6 +413,11 @@ function ViewTreepack() {
     .range([nodeRadiusMin, nodeRadiusMax])
     .clamp(true);
 
+  var emojiLabelSizeScale = d3.scaleLinear()
+    .domain([1, currentMax[metricMode][metricMode]])
+    .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
+    .clamp(true);
+
   var nodeLabelSizeScale = d3.scaleLinear()
     .domain([1, currentMax[metricMode][metricMode]])
     .range([fontSizeMin, fontSizeMax])
@@ -569,6 +575,11 @@ function ViewTreepack() {
     metricMode = mode;
     config.defaultMetricMode = mode;
 
+    emojiLabelSizeScale = d3.scaleLinear()
+      .domain([1, currentMax[metricMode][metricMode]])
+      .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
+      .clamp(true);
+
     nodeLabelSizeScale = d3.scaleLinear()
       .domain([1, currentMax[mode][mode]])
       .range([fontSizeMin, fontSizeMax])
@@ -697,8 +708,15 @@ function ViewTreepack() {
   self.updateFontSizeMinRatio = function(value) {
     console.debug("UPDATE FONT MIN SIZE: " + value);
     config.defaultFontSizeMinRatio = value;
+
     fontSizeMinRatio = value;
     fontSizeMin = value * height;
+
+    emojiLabelSizeScale = d3.scaleLinear()
+      .domain([1, currentMax[metricMode][metricMode]])
+      .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
+      .clamp(true);
+
     nodeLabelSizeScale = d3.scaleLinear()
       .domain([1, currentMax[metricMode][metricMode]])
       .range([fontSizeMin, fontSizeMax])
@@ -708,8 +726,15 @@ function ViewTreepack() {
   self.updateFontSizeMaxRatio = function(value) {
     console.debug("UPDATE FONT MAX SIZE: " + value);
     config.defaultFontSizeMaxRatio = value;
+
     fontSizeMaxRatio = value;
     fontSizeMax = value * height;
+
+    emojiLabelSizeScale = d3.scaleLinear()
+      .domain([1, currentMax[metricMode][metricMode]])
+      .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
+      .clamp(true);
+
     nodeLabelSizeScale = d3.scaleLinear()
       .domain([1, currentMax[metricMode][metricMode]])
       .range([fontSizeMin, fontSizeMax])
@@ -1323,8 +1348,14 @@ function ViewTreepack() {
         return "hidden";
       })
       .style("font-size", function (d) {
-        if (metricMode === "rate") { return nodeLabelSizeScale(d.rate); }
-        if (metricMode === "mentions") { return nodeLabelSizeScale(d.mentions); }
+        if (metricMode === "rate") {
+          if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.rate); }
+          return nodeLabelSizeScale(d.rate);
+        }
+        if (metricMode === "mentions") { 
+          if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.mentions); }
+          return nodeLabelSizeScale(d.mentions);
+        }
       });
 
     nodeLabels
@@ -1381,8 +1412,14 @@ function ViewTreepack() {
         return "1.2"; 
       })
       .style("font-size", function (d) {
-        if (metricMode === "rate") { return nodeLabelSizeScale(d.rate); }
-        if (metricMode === "mentions") { return nodeLabelSizeScale(d.mentions); }
+        if (metricMode === "rate") {
+          if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.rate); }
+          return nodeLabelSizeScale(d.rate);
+        }
+        if (metricMode === "mentions") { 
+          if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.mentions); }
+          return nodeLabelSizeScale(d.mentions);
+        }
       });
 
     nodeLabels
@@ -1695,6 +1732,11 @@ function ViewTreepack() {
           .range([fontSizeMin, fontSizeMax])
           .clamp(true);
 
+        emojiLabelSizeScale = d3.scaleLinear()
+          .domain([1, currentMax[metricMode][metricMode]])
+          .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
+          .clamp(true);
+
         defaultRadiusScale = d3.scaleLinear()
           .domain([0, Math.sqrt(currentMax[metricMode][metricMode])])
           .range([nodeRadiusMin, nodeRadiusMax])
@@ -1889,6 +1931,11 @@ function ViewTreepack() {
 
     fontSizeMin = fontSizeMinRatio * height;
     fontSizeMax = fontSizeMaxRatio * height;
+
+    emojiLabelSizeScale = d3.scaleLinear()
+      .domain([1, currentMax[metricMode][metricMode]])
+      .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
+      .clamp(true);
 
     nodeLabelSizeScale = d3.scaleLinear()
       .domain([1, currentMax[metricMode][metricMode]])

@@ -233,7 +233,11 @@ function initBars(callback){
 
   // tableCreateRow(viewerIpTableHead, options, ['VIEWERS', 'IP', 'DOMAIN', 'LAST SEEN', 'AGO', 'SESSIONS']); // 2nd arg is headerFlag
   // tableCreateRow(viewerSessionTableHead, options, ['SESSIONS', 'IP', 'DOMAIN', 'USER', 'SESSION', 'CONNECT', 'DISCONNECT', 'TIME CONNECTED']); // 2nd arg is headerFlag
-  tableCreateRow(serverTableHead, options, ['SERVER ID', 'TYPE', 'SOCKET', 'STATUS', 'LAST SEEN', 'AGO']); // 2nd arg is headerFlag
+  tableCreateRow(
+    serverTableHead, 
+    options, 
+    ['SERVER ID', 'TYPE', 'SOCKET', 'STATUS', 'LAST SEEN', 'AGO', 'UPTIME']
+  ); // 2nd arg is headerFlag
 
   callback();
 }
@@ -949,6 +953,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
             { id: serverSocketId + "_status", text: currentServer.status.toUpperCase() }, 
             { id: serverSocketId + "_timeStamp", text: moment(currentServer.timeStamp).format(defaultDateTimeFormat) }, 
             { id: serverSocketId + "_ago", text: msToTime(moment().diff(moment(currentServer.timeStamp))) }
+            { id: serverSocketId + "_", text: msToTime(moment().diff(moment(currentServer.timeStamp))) }
           ]
         );
       }

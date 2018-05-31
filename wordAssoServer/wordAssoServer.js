@@ -438,7 +438,7 @@ const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.mod
 const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
 
 const mongoose = require("mongoose");
-mongoose.Promise = global.Promise;
+// mongoose.Promise = global.Promise;
 
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 // const wordAssoDb = require("../../mongooseTwitter");
@@ -1460,6 +1460,203 @@ function initDeletedMetricsHashmap(callback){
    });
 }
 
+
+function killChild(params, callback){
+
+  let pid = false;
+
+  if (params.childId !== undefined) {
+    if (childrenHashMap[params.childId] === undefined) {
+      if (callback !== undefined) { return callback("ERROR: CHILD NOT IN HM: " + params.childId, null); }
+    }
+    else {
+      pid = childrenHashMap[params.childId].pid;
+    }
+  }
+
+  if (params.pid !== undefined) {
+    pid = params.pid;
+  }
+
+  const command = "kill -9 " + pid;
+
+  shell.exec(command, function(code, stdout, stderr){
+
+    getChildProcesses(function(err, childArray){
+
+      if (code === 0) {
+        console.log(chalkAlert("NNT | *** KILL CHILD"
+          + " | XXX NN CHILD PROCESSES: " + command
+        ));
+
+        if (params.childId === undefined) {
+          findChildByPid(pid, function(err, childId){
+            if (childrenHashMap[childId] === undefined) { childrenHashMap[childId] = {}; }
+            childrenHashMap[childId].status = "DEAD";
+            if (callback !== undefined) { return callback(null, 1); }
+          });
+        }
+        else {
+          if (childrenHashMap[params.childId] === undefined) { childrenHashMap[params.childId] = {}; }
+          childrenHashMap[params.childId].status = "DEAD";
+          if (callback !== undefined) { return callback(null, 1); }
+        }
+      }
+      if (code === 1) {
+        console.log(chalkInfo("NNT | KILL CHILD | NO NN CHILD PROCESSES: " + command));
+        if (callback !== undefined) { return callback(null, 0); }
+      }
+      if (code > 1) {
+        console.log(chalkAlert("SHELL : NNT | ERROR *** KILL CHILD"
+          + "\nSHELL :: NNT | COMMAND: " + command
+          + "\nSHELL :: NNT | EXIT CODE: " + code
+          + "\nSHELL :: NNT | STDOUT\n" + stdout
+          + "\nSHELL :: NNT | STDERR\n" + stderr
+        ));
+        if (callback !== undefined) { return callback(stderr, params); }
+      }
+    });
+
+  });
+}
+
+
+function getChildProcesses(params, callback){
+
+  let command;
+
+  if ((params.searchTerm === undefined) || (params.searchTerm === "ALL")){
+    command = "pgrep " + "wa_";
+  }
+  else {
+    command = "pgrep " + params.searchTerm;
+  }
+
+  debug(chalkAlert("getChildProcesses | command: " + command));
+
+  let numChildren = 0;
+  let childPidArray = [];
+
+  shell.exec(command, {silent: true}, function(code, stdout, stderr){
+
+    if (code === 0) {
+
+      let soArray = stdout.trim();
+
+      let stdoutArray = soArray.split("\n");
+
+      async.eachSeries(stdoutArray, function(pidRaw, cb){
+
+        const pid = pidRaw.trim();
+
+        if (parseInt(pid) > 0) {
+
+          const c = "ps -o command= -p " + pid;
+
+          shell.exec(c, {silent: true}, function(code, stdout, stderr){
+
+            const childId = stdout.trim();
+
+            numChildren += 1;
+
+            console.log(chalkAlert("NNT | FOUND CHILD PROCESS"
+              + " | NUM: " + numChildren
+              + " | PID: " + pid
+              + " | " + childId
+            ));
+
+            if (childrenHashMap[childId] === undefined) {
+
+              childrenHashMap[childId] = {};
+              childrenHashMap[childId].status = "ZOMBIE";
+
+              console.log(chalkError("NNT | ??? CHILD ZOMBIE ???"
+                + " | NUM: " + numChildren
+                + " | PID: " + pid
+                + " | " + childId
+                + " | STATUS: " + childrenHashMap[childId].status
+              ));
+
+              killChild({pid: pid}, function(err, numKilled){
+                console.log(chalkAlert("NNT | XXX ZOMBIE CHILD KILLED | PID: " + pid + " | CH ID: " + childId));
+              });
+
+            }
+            else {
+              console.log(chalkInfo("NNT | CHILD"
+                + " | PID: " + pid
+                + " | " + childId
+                + " | STATUS: " + childrenHashMap[childId].status
+              ));
+            }
+
+            childPidArray.push({ pid: pid, childId: childId});
+
+            cb();
+          });
+        }
+        else {
+          cb();
+        }
+
+      }, function(err){
+
+        if (callback !== undefined) { callback(null, childPidArray); }
+
+      });
+
+    }
+
+    if (code === 1) {
+      console.log(chalkInfo("NNT | NO NN CHILD PROCESSES FOUND"));
+        if (callback !== undefined) { callback(null, []); }
+    }
+
+    if (code > 1) {
+      console.log(chalkAlert("SHELL : NNT | ERROR *** KILL CHILD"
+        + "\nSHELL :: NNT | COMMAND: " + command
+        + "\nSHELL :: NNT | EXIT CODE: " + code
+        + "\nSHELL :: NNT | STDOUT\n" + stdout
+        + "\nSHELL :: NNT | STDERR\n" + stderr
+      ));
+      if (callback !== undefined) { callback(stderr, command); }
+    }
+
+  });
+}
+
+
+function killAll(callback){
+
+  getChildProcesses({searchTerm: "ALL"}, function(err, childPidArray){
+
+    debug(chalkAlert("getChildProcesses childPidArray\n" + jsonPrint(childPidArray)));
+
+    if (childPidArray && (childPidArray.length > 0)) {
+
+      async.eachSeries(childPidArray, function(childObj, cb){
+
+        killChild({pid: childObj.pid}, function(err, numKilled){
+          console.log(chalkAlert("NNT | KILL ALL | KILLED | PID: " + childObj.pid + " | CH ID: " + childObj.childId));
+          cb();
+        });
+
+      }, function(err){
+
+        if (callback !== undefined) { callback(err, childPidArray); }
+
+      });
+    }
+    else {
+
+      console.log(chalkAlert("NNT | KILL ALL | NO CHILDREN"));
+
+      if (callback !== undefined) { callback(err, childPidArray); }
+    }
+  });
+}
+
+
 process.on("exit", function processExit() {
   killAll();
 });
@@ -1761,6 +1958,15 @@ function socketRxTweet(tw) {
   }
 }
 
+function follow(params, callback) {
+
+  console.log(chalkAlert("+++ FOLLOW | @" + params.user.screenName));
+
+  adminNameSpace.emit("FOLLOW", params.user);
+  utilNameSpace.emit("FOLLOW", params.user);
+}
+
+
 function initSocketHandler(socketObj) {
 
   const socket = socketObj.socket;
@@ -1821,6 +2027,7 @@ function initSocketHandler(socketObj) {
     if (serverHashMap.has(socket.id)) { 
 
       let currentServer = serverHashMap.get(socket.id);
+
       currentServer.timeStamp = moment().valueOf();
       currentServer.status = "ERROR";
 
@@ -1835,7 +2042,6 @@ function initSocketHandler(socketObj) {
       serverHashMap.set(socket.id, currentServer);
 
       adminNameSpace.emit("SERVER_ERROR", currentServer);
-      // serverHashMap.delete(socket.id);
     }
   });
 
@@ -1870,6 +2076,7 @@ function initSocketHandler(socketObj) {
     if (serverHashMap.has(socket.id)) { 
 
       let currentServer = serverHashMap.get(socket.id);
+
       currentServer.status = "DISCONNECTED";
 
       console.error(chalkAlert("SERVER DISCONNECTED" 
@@ -1880,6 +2087,7 @@ function initSocketHandler(socketObj) {
       ));
  
       adminNameSpace.emit("SERVER_DISCONNECT", currentServer);
+
       serverHashMap.set(socket.id, currentServer);
 
     }
@@ -1997,11 +2205,11 @@ function initSocketHandler(socketObj) {
         console.log(chalkAlert("TWITTER_FOLLOW ERROR: " + err));
         return;
       }
-      else {
-        console.log(chalkAlert("+++ TWITTER_FOLLOW"
-          + " | @" + u.screenName
-        ));
-      }
+
+      console.log(chalkAlert("+++ TWITTER_FOLLOW"
+        + " | @" + u.screenName
+      ));
+
     });
   });
 
@@ -2204,17 +2412,18 @@ function initSocketHandler(socketObj) {
             ));
 
             if (nodeSearchType === "USER_UNCATEGORIZED") {
+
               if ((nodeSearchBy !== undefined) && (nodeSearchBy === "createdAt")) {
                 previousUserUncategorizedCreated = moment();
                 return;
               }
-              else if ((nodeSearchBy !== undefined) && (nodeSearchBy === "lastSeen")) {
+              
+              if ((nodeSearchBy !== undefined) && (nodeSearchBy === "lastSeen")) {
                 previousUserUncategorizedLastSeen = moment();
                 return;
               }
-              else {
-                previousUserUncategorizedId = "1";
-              }
+
+              previousUserUncategorizedId = "1";
             }
 
             let twitQuery;
@@ -2728,24 +2937,6 @@ function startTwitUserShowRateLimitTimeout(){
     console.log(chalkAlert("TWITTER USER SHOW TIMEOUT"));
     twitUserShowReady = true;
   }, 60000);
-}
-
-function follow(params, callback) {
-
-  console.log(chalkAlert("+++ FOLLOW | @" + params.user.screenName));
-
-  adminNameSpace.emit("FOLLOW", params.user);
-  utilNameSpace.emit("FOLLOW", params.user);
-
-  // if (tfeServerHashmap.count() > 0) {
-  //   const tfeServerSocketIds = tfeServerHashmap.keys();
-  //   console.log(chalkAlert("FOLLOW > TFE SERVER: " + tfeServerSocketIds[0]))
-  //   utilNameSpace.emit("FOLLOW", params.user);
-  //   callback(null, true);
-  // }
-  // else {
-  //   callback(null, false);
-  // }
 }
 
 function autoFollowUser(params, callback){
@@ -3577,110 +3768,6 @@ function initHashtagLookupQueueInterval(interval){
 }
 
 
-function getChildProcesses(params, callback){
-
-  let command;
-
-  if ((params.searchTerm === undefined) || (params.searchTerm === "ALL")){
-    command = "pgrep " + "wa_";
-  }
-  else {
-    command = "pgrep " + params.searchTerm;
-  }
-
-  debug(chalkAlert("getChildProcesses | command: " + command));
-
-  let numChildren = 0;
-  let childPidArray = [];
-
-  shell.exec(command, {silent: true}, function(code, stdout, stderr){
-
-    if (code === 0) {
-
-      let soArray = stdout.trim();
-
-      let stdoutArray = soArray.split("\n");
-
-      async.eachSeries(stdoutArray, function(pidRaw, cb){
-
-        const pid = pidRaw.trim();
-
-        if (parseInt(pid) > 0) {
-
-          const c = "ps -o command= -p " + pid;
-
-          shell.exec(c, {silent: true}, function(code, stdout, stderr){
-
-            const childId = stdout.trim();
-
-            numChildren += 1;
-
-            console.log(chalkAlert("NNT | FOUND CHILD PROCESS"
-              + " | NUM: " + numChildren
-              + " | PID: " + pid
-              + " | " + childId
-            ));
-
-            if (childrenHashMap[childId] === undefined) {
-
-              childrenHashMap[childId] = {};
-              childrenHashMap[childId].status = "ZOMBIE";
-
-              console.log(chalkError("NNT | ??? CHILD ZOMBIE ???"
-                + " | NUM: " + numChildren
-                + " | PID: " + pid
-                + " | " + childId
-                + " | STATUS: " + childrenHashMap[childId].status
-              ));
-
-              killChild({pid: pid}, function(err, numKilled){
-                console.log(chalkAlert("NNT | XXX ZOMBIE CHILD KILLED | PID: " + pid + " | CH ID: " + childId));
-              });
-
-            }
-            else {
-              console.log(chalkInfo("NNT | CHILD"
-                + " | PID: " + pid
-                + " | " + childId
-                + " | STATUS: " + childrenHashMap[childId].status
-              ));
-            }
-
-            childPidArray.push({ pid: pid, childId: childId});
-
-            cb();
-          });
-        }
-        else {
-          cb();
-        }
-
-      }, function(err){
-
-        if (callback !== undefined) { callback(null, childPidArray); }
-
-      });
-
-    }
-
-    if (code === 1) {
-      console.log(chalkInfo("NNT | NO NN CHILD PROCESSES FOUND"));
-        if (callback !== undefined) { callback(null, []); }
-    }
-
-    if (code > 1) {
-      console.log(chalkAlert("SHELL : NNT | ERROR *** KILL CHILD"
-        + "\nSHELL :: NNT | COMMAND: " + command
-        + "\nSHELL :: NNT | EXIT CODE: " + code
-        + "\nSHELL :: NNT | STDOUT\n" + stdout
-        + "\nSHELL :: NNT | STDERR\n" + stderr
-      ));
-      if (callback !== undefined) { callback(stderr, command); }
-    }
-
-  });
-}
-
 function findChildByPid(pid, callback){
 
   let foundChildId = false;
@@ -3703,94 +3790,6 @@ function findChildByPid(pid, callback){
   });
 }
 
-function killChild(params, callback){
-
-  let pid = false;
-
-  if (params.childId !== undefined) {
-    if (childrenHashMap[params.childId] === undefined) {
-      if (callback !== undefined) { return callback("ERROR: CHILD NOT IN HM: " + params.childId, null); }
-    }
-    else {
-      pid = childrenHashMap[params.childId].pid;
-    }
-  }
-
-  if (params.pid !== undefined) {
-    pid = params.pid;
-  }
-
-  const command = "kill -9 " + pid;
-
-  shell.exec(command, function(code, stdout, stderr){
-
-    getChildProcesses(function(err, childArray){
-
-      if (code === 0) {
-        console.log(chalkAlert("NNT | *** KILL CHILD"
-          + " | XXX NN CHILD PROCESSES: " + command
-        ));
-
-        if (params.childId === undefined) {
-          findChildByPid(pid, function(err, childId){
-            if (childrenHashMap[childId] === undefined) { childrenHashMap[childId] = {}; }
-            childrenHashMap[childId].status = "DEAD";
-            if (callback !== undefined) { return callback(null, 1); }
-          });
-        }
-        else {
-          if (childrenHashMap[params.childId] === undefined) { childrenHashMap[params.childId] = {}; }
-          childrenHashMap[params.childId].status = "DEAD";
-          if (callback !== undefined) { return callback(null, 1); }
-        }
-      }
-      if (code === 1) {
-        console.log(chalkInfo("NNT | KILL CHILD | NO NN CHILD PROCESSES: " + command));
-        if (callback !== undefined) { return callback(null, 0); }
-      }
-      if (code > 1) {
-        console.log(chalkAlert("SHELL : NNT | ERROR *** KILL CHILD"
-          + "\nSHELL :: NNT | COMMAND: " + command
-          + "\nSHELL :: NNT | EXIT CODE: " + code
-          + "\nSHELL :: NNT | STDOUT\n" + stdout
-          + "\nSHELL :: NNT | STDERR\n" + stderr
-        ));
-        if (callback !== undefined) { return callback(stderr, params); }
-      }
-    });
-
-  });
-}
-
-function killAll(callback){
-
-  getChildProcesses({searchTerm: "ALL"}, function(err, childPidArray){
-
-    debug(chalkAlert("getChildProcesses childPidArray\n" + jsonPrint(childPidArray)));
-
-    if (childPidArray && (childPidArray.length > 0)) {
-
-      async.eachSeries(childPidArray, function(childObj, cb){
-
-        killChild({pid: childObj.pid}, function(err, numKilled){
-          console.log(chalkAlert("NNT | KILL ALL | KILLED | PID: " + childObj.pid + " | CH ID: " + childObj.childId));
-          cb();
-        });
-
-      }, function(err){
-
-        if (callback !== undefined) { callback(err, childPidArray); }
-
-      });
-    }
-    else {
-
-      console.log(chalkAlert("NNT | KILL ALL | NO CHILDREN"));
-
-      if (callback !== undefined) { callback(err, childPidArray); }
-    }
-  });
-}
 let tweetParserMessageRxQueueReady = true;
 let tweetParserMessageRxQueueInterval;
 
@@ -3921,10 +3920,6 @@ function initSorterMessageRxQueueInterval(interval){
   }, interval);
 }
 
-let sorterPingInterval;
-let sorterPongReceived = false;
-let pingId = false;
-
 function initSorterPingInterval(interval){
 
   clearInterval(sorterPingInterval);
@@ -4013,7 +4008,7 @@ function initSorter(params, callback){
     else if (m.op === "PONG"){
       sorterPongReceived = m.pongId;
       childrenHashMap[params.childId].status = "RUNNING";
-      debug(chalkInfo("<PONG | SORTER | PONG ID: " + moment(m.pongId).format(compactDateTimeFormat)))
+      debug(chalkInfo("<PONG | SORTER | PONG ID: " + moment(m.pongId).format(compactDateTimeFormat)));
     }
     else {
       sorterMessageRxQueue.push(m);
@@ -4079,6 +4074,13 @@ function initSorter(params, callback){
 
   if (callback !== undefined) { callback(null, s); }
 }
+
+
+
+let sorterPingInterval;
+let sorterPongReceived = false;
+let pingId = false;
+
 
 function initTweetParser(params, callback){
 
@@ -4412,7 +4414,7 @@ function initLoadBestNetworkInterval(interval){
               }
             }
             else {
-              NeuralNetwork.find({}).sort({'matchRate': -1}).limit(1).exec(function(err, nnArray){
+              NeuralNetwork.find({}).sort({"matchRate": -1}).limit(1).exec(function(err, nnArray){
                 if (err){
                   console.log(chalkError("*** NEURAL NETWORK FIND ERROR: " + err));
                 }
@@ -4751,9 +4753,10 @@ function initStatsInterval(interval){
     getChildProcesses({searchTerm: "ALL"}, function(err, childArray){
 
       console.log(chalkLog("WA | FOUND " + childArray.length + " CHILDREN"));
+      
       childArray.forEach(function(childObj){
         console.log(chalkLog("WA | CHILD | PID: " + childObj.pid + " | " + childObj.childId + " | " + childrenHashMap[childObj.childId].status));
-      })
+      });
 
     });
 

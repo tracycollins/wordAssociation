@@ -952,8 +952,8 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
             { id: serverSocketId + "_socketId", text: serverSocketId }, 
             { id: serverSocketId + "_status", text: currentServer.status.toUpperCase() }, 
             { id: serverSocketId + "_timeStamp", text: moment(currentServer.timeStamp).format(defaultDateTimeFormat) }, 
-            { id: serverSocketId + "_ago", text: msToTime(moment().diff(moment(currentServer.timeStamp))) }
-            { id: serverSocketId + "_", text: msToTime(moment().diff(moment(currentServer.timeStamp))) }
+            { id: serverSocketId + "_ago", text: msToTime(moment().diff(moment(currentServer.timeStamp))) },
+            { id: serverSocketId + "_elapsed", text: msToTime(moment().diff(moment(currentServer.elapsed))) }
           ]
         );
       }

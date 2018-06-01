@@ -3248,14 +3248,14 @@ configEvents.on("SERVER_READY", function serverReady() {
   memoryTotalMB = (statsObj.memory.memoryTotal/(1024*1024));
   memoryAvailablePercent = (statsObj.memory.memoryAvailable/statsObj.memory.memoryTotal);
 
-  let hearbeatObj = {};
+  let heartbeatObj = {};
 
-  hearbeatObj.servers = [];
-  hearbeatObj.children = {};
-  hearbeatObj.children.childrenHashMap = {};
+  heartbeatObj.servers = [];
+  heartbeatObj.children = {};
+  heartbeatObj.children.childrenHashMap = {};
 
-  hearbeatObj.twitter = {};
-  hearbeatObj.memory = {};
+  heartbeatObj.twitter = {};
+  heartbeatObj.memory = {};
 
   setInterval(function hearbeatInterval() {
 
@@ -3269,10 +3269,10 @@ configEvents.on("SERVER_READY", function serverReady() {
     statsObj.memory.memoryUsage = process.memoryUsage();
 
     const tempArray = serverHashMap.entries();
-    hearbeatObj.servers = tempArray;
+    heartbeatObj.servers = tempArray;
 
     // serverHashMap.forEach(function(serverObj, serverSocketId){
-    //   hearbeatObj.servers.push([serverSocketId, serverObj]);
+    //   heartbeatObj.servers.push([serverSocketId, serverObj]);
     // });
 
     statsObj.twitter.tweetsPerMin = parseInt(tweetMeter.toJSON()[metricsRate]);
@@ -3285,25 +3285,25 @@ configEvents.on("SERVER_READY", function serverReady() {
     if (internetReady && ioReady) {
       statsObj.configuration = configuration;
 
-      hearbeatObj.serverTime = statsObj.serverTime;
-      hearbeatObj.startTime = statsObj.startTime;
-      hearbeatObj.runTime = statsObj.runTime;
-      hearbeatObj.upTime = statsObj.upTime;
-      hearbeatObj.elapsed = statsObj.elapsed;
+      heartbeatObj.serverTime = statsObj.serverTime;
+      heartbeatObj.startTime = statsObj.startTime;
+      heartbeatObj.runTime = statsObj.runTime;
+      heartbeatObj.upTime = statsObj.upTime;
+      heartbeatObj.elapsed = statsObj.elapsed;
 
-      hearbeatObj.memory = statsObj.memory;
+      heartbeatObj.memory = statsObj.memory;
 
-      hearbeatObj.nodesPerMin = statsObj.nodesPerMin;
-      hearbeatObj.maxNodesPerMin = statsObj.maxNodesPerMin;
+      heartbeatObj.nodesPerMin = statsObj.nodesPerMin;
+      heartbeatObj.maxNodesPerMin = statsObj.maxNodesPerMin;
 
-      hearbeatObj.twitter.tweetsPerMin = statsObj.twitter.tweetsPerMin;
-      hearbeatObj.twitter.maxTweetsPerMin = statsObj.twitter.maxTweetsPerMin;
-      hearbeatObj.twitter.maxTweetsPerMinTime = statsObj.twitter.maxTweetsPerMinTime;
+      heartbeatObj.twitter.tweetsPerMin = statsObj.twitter.tweetsPerMin;
+      heartbeatObj.twitter.maxTweetsPerMin = statsObj.twitter.maxTweetsPerMin;
+      heartbeatObj.twitter.maxTweetsPerMinTime = statsObj.twitter.maxTweetsPerMinTime;
 
-      utilNameSpace.volatile.emit("HEARTBEAT", hearbeatObj);
-      adminNameSpace.emit("HEARTBEAT", hearbeatObj);
-      userNameSpace.volatile.emit("HEARTBEAT", hearbeatObj);
-      viewNameSpace.volatile.emit("HEARTBEAT", hearbeatObj);
+      utilNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
+      adminNameSpace.emit("HEARTBEAT", heartbeatObj);
+      userNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
+      viewNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
 
       heartbeatsSent += 1;
       if (heartbeatsSent % 60 === 0) { logHeartbeat(); }

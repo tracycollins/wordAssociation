@@ -938,6 +938,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
         document.getElementById(serverSocketId + "_status").innerHTML = currentServer.status.toUpperCase();
         document.getElementById(serverSocketId + "_timeStamp").innerHTML = moment(currentServer.timeStamp).format(defaultDateTimeFormat);
         document.getElementById(serverSocketId + "_ago").innerHTML = msToTime(moment().diff(moment(currentServer.timeStamp)));
+        document.getElementById(serverSocketId + "_elapsed").innerHTML = msToTime(moment().diff(moment(currentServer.user.stats.elapsed)));
       }
       else if (!adminConfig.hideDisconnectedServers || (currentServer.status.toUpperCase() !== "DISCONNECTED")) {
 
@@ -953,7 +954,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
             { id: serverSocketId + "_status", text: currentServer.status.toUpperCase() }, 
             { id: serverSocketId + "_timeStamp", text: moment(currentServer.timeStamp).format(defaultDateTimeFormat) }, 
             { id: serverSocketId + "_ago", text: msToTime(moment().diff(moment(currentServer.timeStamp))) },
-            { id: serverSocketId + "_elapsed", text: msToTime(moment().diff(moment(currentServer.elapsed))) }
+            { id: serverSocketId + "_elapsed", text: msToTime(moment().diff(moment(currentServer.user.stats.elapsed))) }
           ]
         );
       }

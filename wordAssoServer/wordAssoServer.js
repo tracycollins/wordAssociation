@@ -362,6 +362,7 @@ let languageServer = {};
 
 let adminHashMap = new HashMap();
 let serverHashMap = new HashMap();
+let viewerHashMap = new HashMap();
 
 let nodeMeter = {};
 
@@ -2045,6 +2046,26 @@ function initSocketHandler(socketObj) {
 
       adminNameSpace.emit("SERVER_ERROR", currentServer);
     }
+
+    if (viewerHashMap.has(socket.id)) { 
+
+      let currentViewer = viewerHashMap.get(socket.id);
+
+      currentViewer.timeStamp = moment().valueOf();
+      currentViewer.status = "ERROR";
+
+      console.error(chalkAlert("VIEWER ERROR" 
+        + " | " + moment(currentViewer.timeStamp).format(compactDateTimeFormat)
+        + " | " + currentViewer.user.type.toUpperCase()
+        + " | " + currentViewer.user.nodeId
+        + " | " + currentViewer.status
+        + " | " + socket.id
+      ));
+
+      viewerHashMap.set(socket.id, currentViewer);
+
+      adminNameSpace.emit("VIEWER_ERROR", currentViewer);
+    }
   });
 
   socket.on("reconnect", function socketReconnect() {
@@ -2093,6 +2114,25 @@ function initSocketHandler(socketObj) {
       serverHashMap.set(socket.id, currentServer);
 
     }
+
+    if (viewerHashMap.has(socket.id)) { 
+
+      let currentViewer = viewerHashMap.get(socket.id);
+
+      currentViewer.status = "DISCONNECTED";
+
+      console.error(chalkAlert("VIEWER DISCONNECTED" 
+        + " | " + moment(currentViewer.timeStamp).format(compactDateTimeFormat)
+        + " | " + currentViewer.user.type.toUpperCase()
+        + " | " + currentViewer.user.nodeId
+        + " | " + socket.id
+      ));
+
+      viewerHashMap.set(socket.id, currentViewer);
+
+      adminNameSpace.emit("VIEWER_DISCONNECT", currentViewer);
+    }
+
   });
 
   socket.on("SESSION_KEEPALIVE", function sessionKeepalive(userObj) {
@@ -2118,6 +2158,8 @@ function initSocketHandler(socketObj) {
     serverObj.user = userObj;
     serverObj.isAdmin = false;
     serverObj.isServer = false;
+    serverObj.isViewer = false;
+
 
     switch (currentSessionType) {
 
@@ -2182,6 +2224,36 @@ function initSocketHandler(socketObj) {
         }
 
         serverHashMap.set(socket.id, serverObj);
+      break;
+
+      case "VIEWER" :
+        serverObj.isViewer = true;
+
+        debug(chalkLog(currentSessionType 
+          + " | " + moment().format(compactDateTimeFormat)
+          + " | " + userObj.userId
+          + " | " + socket.id
+        ));
+
+        serverObj.socketId = socket.id;
+        serverObj.type = currentSessionType;
+        serverObj.timeStamp = moment().valueOf();
+        serverObj.user = userObj;
+
+        if (!viewerHashMap.has(socket.id)) { 
+          console.log(chalkAlert("+++ ADD " + currentSessionType + " SERVER" 
+            + " | " + moment().format(compactDateTimeFormat)
+            + " | " + userObj.userId
+            + " | " + socket.id
+          ));
+          adminNameSpace.emit("VIEWER_ADD", serverObj);
+        }
+        else {
+          adminNameSpace.emit("KEEPALIVE", serverObj);
+        }
+
+        viewerHashMap.set(socket.id, serverObj);
+
       break;
 
       default:
@@ -3253,6 +3325,7 @@ configEvents.on("SERVER_READY", function serverReady() {
   let heartbeatObj = {};
 
   heartbeatObj.servers = [];
+  heartbeatObj.viewers = [];
   heartbeatObj.children = {};
   heartbeatObj.children.childrenHashMap = {};
 
@@ -3273,9 +3346,8 @@ configEvents.on("SERVER_READY", function serverReady() {
     const tempArray = serverHashMap.entries();
     heartbeatObj.servers = tempArray;
 
-    // serverHashMap.forEach(function(serverObj, serverSocketId){
-    //   heartbeatObj.servers.push([serverSocketId, serverObj]);
-    // });
+    const tempViewerArray = viewerHashMap.entries();
+    heartbeatObj.viewers = tempViewerArray;
 
     statsObj.twitter.tweetsPerMin = parseInt(tweetMeter.toJSON()[metricsRate]);
 

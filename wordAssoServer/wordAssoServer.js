@@ -2034,6 +2034,7 @@ function initSocketHandler(socketObj) {
       let currentServer = serverHashMap.get(socket.id);
 
       currentServer.timeStamp = moment().valueOf();
+      currentServer.ip = ipAddress;
       currentServer.status = "ERROR";
 
       console.error(chalkAlert("SERVER ERROR" 
@@ -2215,6 +2216,7 @@ function initSocketHandler(socketObj) {
         ));
 
         sessionObj.socketId = socket.id;
+        sessionObj.ip = ipAddress;
         sessionObj.type = currentSessionType;
         sessionObj.timeStamp = moment().valueOf();
         sessionObj.user = userObj;
@@ -2223,6 +2225,7 @@ function initSocketHandler(socketObj) {
           console.log(chalkAlert("+++ ADD " + currentSessionType + " SERVER" 
             + " | " + moment().format(compactDateTimeFormat)
             + " | " + userObj.userId
+            + " | " + sessionObj.ip
             + " | " + socket.id
           ));
           adminNameSpace.emit("SERVER_ADD", sessionObj);

@@ -194,7 +194,7 @@ function initBars(callback){
   tableCreateRow(
     viewerTableHead, 
     options, 
-    ['SERVER ID', 'TYPE', 'SOCKET', 'IP', 'STATUS', 'LAST SEEN', 'AGO']
+    ['VIEWER ID', 'TYPE', 'SOCKET', 'IP', 'STATUS', 'LAST SEEN', 'AGO']
   ); // 2nd arg is headerFlag
 
   callback();

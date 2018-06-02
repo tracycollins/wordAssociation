@@ -963,9 +963,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 function initialize(callback){
 
   console.debug("INITIALIZE...");
-
-  serverCheckTimeout();
-
+  
   initBars(function(){
     callback();
   });

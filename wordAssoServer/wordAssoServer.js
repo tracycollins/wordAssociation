@@ -2180,7 +2180,7 @@ function initSocketHandler(socketObj) {
           + " | TYPE: " + userObj.type
           + " | ID: " + userObj.userId
           + " | @" + userObj.screenName
-          + " | " + socket.ip
+          + " | " + sessionObj.ip
           + " | " + socket.id
         ));
 
@@ -2189,6 +2189,7 @@ function initSocketHandler(socketObj) {
           console.log(chalkAlert("+++ ADD " + currentSessionType 
             + " | " + moment().format(compactDateTimeFormat)
             + " | " + userObj.userId
+            + " | " + sessionObj.ip
             + " | " + socket.id
           ));
 

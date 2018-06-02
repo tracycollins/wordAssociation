@@ -429,6 +429,7 @@ const configFolder = "/config/utility/" + hostname;
 const deletedMetricsFile = "deletedMetrics.json";
 
 const neuralNetworkModel = require("@threeceelabs/mongoose-twitter/models/neuralNetwork.server.model");
+const emojiModel = require("@threeceelabs/mongoose-twitter/models/emoji.server.model");
 const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
 const mediaModel = require("@threeceelabs/mongoose-twitter/models/media.server.model");
 const placeModel = require("@threeceelabs/mongoose-twitter/models/place.server.model");
@@ -444,6 +445,7 @@ const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 // const wordAssoDb = require("../../mongooseTwitter");
 
 let NeuralNetwork;
+let Emoji;
 let Hashtag;
 let Media;
 let Place;
@@ -465,6 +467,7 @@ wordAssoDb.connect(function(err, dbConnection){
     dbConnection.on("error", console.error.bind(console, "*** MONGO DB CONNECTION ERROR ***\n"));
     console.log(chalkAlert("WORD ASSO SERVER | MONGOOSE DEFAULT CONNECTION OPEN"));
     NeuralNetwork = mongoose.model("NeuralNetwork", neuralNetworkModel.NeuralNetworkSchema);
+    Emoji = mongoose.model("Emoji", emojiModel.EmojiSchema);
     Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
     Media = mongoose.model("Media", mediaModel.MediaSchema);
     Place = mongoose.model("Place", placeModel.PlaceSchema);
@@ -1787,7 +1790,6 @@ function categorizeNode(categorizeObj, callback) {
       }
 
       categorizedHashtagHashMap.set(categorizeObj.node.nodeId.toLowerCase(), cObj);
-
 
       nCacheObj = nodeCache.get(categorizeObj.node.nodeId.toLowerCase());
 

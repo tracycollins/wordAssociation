@@ -1186,7 +1186,7 @@ socket.on("VIEWER_READY_ACK", function(vSesKey) {
 });
 
 socket.on("reconnect", function() {
-  viewerObj.userId = socket.id;
+  viewerObj.socketId = socket.id;
   statsObj.socketId = socket.id;
   statsObj.serverConnected = true;
   console.log("RECONNECTED TO HOST | SOCKET ID: " + socket.id);
@@ -1198,7 +1198,7 @@ socket.on("reconnect", function() {
 });
 
 socket.on("connect", function() {
-  viewerObj.userId = socket.id;
+  viewerObj.socketId = socket.id;
 
   socket.emit("authentication", viewerObj);
   statsObj.socketId = socket.id;

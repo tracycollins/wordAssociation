@@ -767,7 +767,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
         document.getElementById(viewerSocketId + "_status").innerHTML = currentViewer.status.toUpperCase();
         document.getElementById(viewerSocketId + "_timeStamp").innerHTML = moment(currentViewer.timeStamp).format(defaultDateTimeFormat);
         document.getElementById(viewerSocketId + "_ago").innerHTML = msToTime(moment().diff(moment(currentViewer.timeStamp)));
-        document.getElementById(viewerSocketId + "_elapsed").innerHTML = msToTime(currentViewer.user.stats.elapsed);
+        // document.getElementById(viewerSocketId + "_elapsed").innerHTML = msToTime(currentViewer.user.stats.elapsed);
       }
       else if (!adminConfig.hideDisconnectedViewers || (currentViewer.status.toUpperCase() !== "DISCONNECTED")) {
 
@@ -783,7 +783,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
             { id: viewerSocketId + "_status", text: currentViewer.status.toUpperCase() }, 
             { id: viewerSocketId + "_timeStamp", text: moment(currentViewer.timeStamp).format(defaultDateTimeFormat) }, 
             { id: viewerSocketId + "_ago", text: msToTime(moment().diff(moment(currentViewer.timeStamp))) },
-            { id: viewerSocketId + "_elapsed", text: msToTime(currentViewer.user.stats.elapsed) }
+            // { id: viewerSocketId + "_elapsed", text: msToTime(currentViewer.user.stats.elapsed) }
           ]
         );
       }

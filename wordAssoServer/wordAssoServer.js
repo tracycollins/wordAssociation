@@ -1974,7 +1974,7 @@ function initSocketHandler(socketObj) {
 
   const socket = socketObj.socket;
 
-  const ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+  let ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
   const socketConnectText = "\nSOCKET CONNECT"
     // + " | " + socket.id
@@ -2022,6 +2022,8 @@ function initSocketHandler(socketObj) {
 
   socket.on("error", function socketError(error) {
 
+    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
     statsObj.socket.errors.errors += 1;
 
     console.log(chalkError(moment().format(compactDateTimeFormat) 
@@ -2039,6 +2041,7 @@ function initSocketHandler(socketObj) {
         + " | " + currentServer.user.type.toUpperCase()
         + " | " + currentServer.user.nodeId
         + " | " + currentServer.status
+        + " | " + currentServer.ip
         + " | " + socket.id
       ));
 
@@ -2052,6 +2055,7 @@ function initSocketHandler(socketObj) {
       let currentViewer = viewerHashMap.get(socket.id);
 
       currentViewer.timeStamp = moment().valueOf();
+      currentViewer.ip = ipAddress;
       currentViewer.status = "ERROR";
 
       console.error(chalkAlert("VIEWER ERROR" 
@@ -2059,6 +2063,7 @@ function initSocketHandler(socketObj) {
         + " | " + currentViewer.user.type.toUpperCase()
         + " | " + currentViewer.user.nodeId
         + " | " + currentViewer.status
+        + " | " + currentViewer.ip
         + " | " + socket.id
       ));
 
@@ -2125,6 +2130,7 @@ function initSocketHandler(socketObj) {
         + " | " + moment(currentViewer.timeStamp).format(compactDateTimeFormat)
         + " | " + currentViewer.user.type.toUpperCase()
         + " | " + currentViewer.user.nodeId
+        + " | " + currentViewer.ip
         + " | " + socket.id
       ));
 
@@ -2132,10 +2138,11 @@ function initSocketHandler(socketObj) {
 
       adminNameSpace.emit("VIEWER_DISCONNECT", currentViewer);
     }
-
   });
 
   socket.on("SESSION_KEEPALIVE", function sessionKeepalive(userObj) {
+
+    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
     if (statsObj.utilities[userObj.userId] === undefined) {
       statsObj.utilities[userObj.userId] = {};
@@ -2151,6 +2158,7 @@ function initSocketHandler(socketObj) {
 
     let sessionObj = {};
 
+    sessionObj.ip = ipAddress;
     sessionObj.socketId = socket.id;
     sessionObj.type = currentSessionType;
     sessionObj.status = "KEEPALIVE";
@@ -2159,7 +2167,6 @@ function initSocketHandler(socketObj) {
     sessionObj.isAdmin = false;
     sessionObj.isServer = false;
     sessionObj.isViewer = false;
-
 
     switch (currentSessionType) {
 
@@ -2172,6 +2179,7 @@ function initSocketHandler(socketObj) {
           + " | TYPE: " + userObj.type
           + " | ID: " + userObj.userId
           + " | @" + userObj.screenName
+          + " | " + socket.ip
           + " | " + socket.id
         ));
 
@@ -2236,6 +2244,7 @@ function initSocketHandler(socketObj) {
         ));
 
         sessionObj.socketId = socket.id;
+        sessionObj.ip = ipAddress;
         sessionObj.type = currentSessionType;
         sessionObj.timeStamp = moment().valueOf();
         sessionObj.user = userObj;
@@ -2244,6 +2253,7 @@ function initSocketHandler(socketObj) {
           console.log(chalkAlert("+++ ADD " + currentSessionType + " SESSION" 
             + " | " + moment().format(compactDateTimeFormat)
             + " | " + userObj.userId
+            + " | " + sessionObj.ip
             + " | " + socket.id
           ));
           adminNameSpace.emit("VIEWER_ADD", sessionObj);

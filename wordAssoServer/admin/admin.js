@@ -184,10 +184,17 @@ function initBars(callback){
     textColor: '#CCCCCC',
     bgColor: '#222222'
   };
+
   tableCreateRow(
     serverTableHead, 
     options, 
-    ['SERVER ID', 'TYPE', 'SOCKET', 'STATUS', 'LAST SEEN', 'AGO', 'UPTIME']
+    ['SERVER ID', 'TYPE', 'SOCKET', 'IP', 'STATUS', 'LAST SEEN', 'AGO', 'UPTIME']
+  ); // 2nd arg is headerFlag
+
+  tableCreateRow(
+    viewerTableHead, 
+    options, 
+    ['SERVER ID', 'TYPE', 'SOCKET', 'IP', 'STATUS', 'LAST SEEN', 'AGO']
   ); // 2nd arg is headerFlag
 
   callback();
@@ -764,6 +771,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
         document.getElementById(viewerSocketId + "_nodeId").innerHTML = currentViewer.user.nodeId;
         document.getElementById(viewerSocketId + "_type").innerHTML = currentViewer.type;
         document.getElementById(viewerSocketId + "_socketId").innerHTML = viewerSocketId;
+        document.getElementById(viewerSocketId + "_ip").innerHTML = currentViewer.ip;
         document.getElementById(viewerSocketId + "_status").innerHTML = currentViewer.status.toUpperCase();
         document.getElementById(viewerSocketId + "_timeStamp").innerHTML = moment(currentViewer.timeStamp).format(defaultDateTimeFormat);
         document.getElementById(viewerSocketId + "_ago").innerHTML = msToTime(moment().diff(moment(currentViewer.timeStamp)));
@@ -780,6 +788,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
             { id: viewerSocketId + "_nodeId", text: currentViewer.user.nodeId }, 
             { id: viewerSocketId + "_type", text: currentViewer.type }, 
             { id: viewerSocketId + "_socketId", text: viewerSocketId }, 
+            { id: viewerSocketId + "_ip", text: currentViewer.ip }, 
             { id: viewerSocketId + "_status", text: currentViewer.status.toUpperCase() }, 
             { id: viewerSocketId + "_timeStamp", text: moment(currentViewer.timeStamp).format(defaultDateTimeFormat) }, 
             { id: viewerSocketId + "_ago", text: msToTime(moment().diff(moment(currentViewer.timeStamp))) },
@@ -787,8 +796,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
           ]
         );
       }
-
-
 
       async.setImmediate(function() { cb(); });
 
@@ -856,6 +863,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
         document.getElementById(serverSocketId + "_nodeId").innerHTML = currentServer.user.nodeId;
         document.getElementById(serverSocketId + "_type").innerHTML = currentServer.type;
         document.getElementById(serverSocketId + "_socketId").innerHTML = serverSocketId;
+        document.getElementById(serverSocketId + "_ip").innerHTML = currentServer.ip;
         document.getElementById(serverSocketId + "_status").innerHTML = currentServer.status.toUpperCase();
         document.getElementById(serverSocketId + "_timeStamp").innerHTML = moment(currentServer.timeStamp).format(defaultDateTimeFormat);
         document.getElementById(serverSocketId + "_ago").innerHTML = msToTime(moment().diff(moment(currentServer.timeStamp)));
@@ -872,6 +880,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
             { id: serverSocketId + "_nodeId", text: currentServer.user.nodeId }, 
             { id: serverSocketId + "_type", text: currentServer.type }, 
             { id: serverSocketId + "_socketId", text: serverSocketId }, 
+            { id: serverSocketId + "_ip", text: currentServer.ip }, 
             { id: serverSocketId + "_status", text: currentServer.status.toUpperCase() }, 
             { id: serverSocketId + "_timeStamp", text: moment(currentServer.timeStamp).format(defaultDateTimeFormat) }, 
             { id: serverSocketId + "_ago", text: msToTime(moment().diff(moment(currentServer.timeStamp))) },
@@ -963,7 +972,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 function initialize(callback){
 
   console.debug("INITIALIZE...");
-  
+
   initBars(function(){
     callback();
   });

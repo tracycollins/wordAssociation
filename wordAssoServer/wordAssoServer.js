@@ -2241,7 +2241,7 @@ function initSocketHandler(socketObj) {
         sessionObj.user = userObj;
 
         if (!viewerHashMap.has(socket.id)) { 
-          console.log(chalkAlert("+++ ADD " + currentSessionType + " SERVER" 
+          console.log(chalkAlert("+++ ADD " + currentSessionType + " SESSION" 
             + " | " + moment().format(compactDateTimeFormat)
             + " | " + userObj.userId
             + " | " + socket.id

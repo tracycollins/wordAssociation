@@ -639,8 +639,8 @@ function ControlPanel() {
     // Do we trust the sender of this message?
     if (event.origin !== DEFAULT_SOURCE){
       if (event.origin === "https://platform.twitter.com") {
-        if (event.data.twttr.button 
-          && (event.data.twttr.button.method === "twttr.private.resizeButton")){
+        if (event.data["twttr.button"] 
+          && (event.data["twttr.button"]["method"] === "twttr.private.resizeButton")){
           return;
         }
         // console.log("TWITTER SOURCE: " + event.origin);

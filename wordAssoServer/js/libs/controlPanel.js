@@ -391,7 +391,7 @@ function ControlPanel() {
     }
   }
 
-  var displayNodeTypeDiv = document.getElementById("displayNodeTypeDiv");
+  var displayNodeTypeButtonsDiv = document.getElementById("displayNodeTypeButtonsDiv");
 
 
   function createDisplayNodeTypeButton(params, callback){
@@ -409,6 +409,10 @@ function ControlPanel() {
     displayNodeType.setAttribute("checked", false);
     displayNodeType.addEventListener("click", function(e){ displayNodeTypeButtonHandler(e); }, false);
     displayNodeTypeLabel.appendChild(displayNodeType);
+
+    displayNodeTypeButtonsDiv.appendChild(displayNodeTypeLabel);
+    
+    if (callback !== undefined) { callback(); }
   }
 
   createDisplayNodeTypeButton({type: "emoji"});

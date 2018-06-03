@@ -468,6 +468,7 @@ function ControlPanel() {
 
   createDisplayNodeTypeButton({nodeType: "emoji"});
   createDisplayNodeTypeButton({nodeType: "hashtag"});
+  createDisplayNodeTypeButton({nodeType: "media"});
   createDisplayNodeTypeButton({nodeType: "place"});
   createDisplayNodeTypeButton({nodeType: "url"});
   createDisplayNodeTypeButton({nodeType: "user"});

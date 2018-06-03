@@ -1006,6 +1006,15 @@ function ViewTreepack() {
           + "<br>C: " + d.category
           + "<br>CA: " + d.categoryAuto;
       break;
+
+      case "media":
+        tooltipString = "ID: " + d.nodeId
+          + "<br>Ms: " + d.mentions
+          + "<br>" + d.rate.toFixed(2) + " WPM"
+          + "<br>URL: " + d.url
+          + "<br>MEDIA URL: " + d.mediaUrl;
+      break;
+
       case "word":
         tooltipString = d.nodeId
           + "<br>Ms: " + d.mentions
@@ -1013,6 +1022,7 @@ function ViewTreepack() {
           + "<br>C: " + d.category
           + "<br>CA: " + d.categoryAuto;
       break;
+
       case "place":
         tooltipString = d.fullName
           + "<br>Ms: " + d.mentions
@@ -1264,6 +1274,14 @@ function ViewTreepack() {
         return "2.0"; 
       })
       .style("opacity", function (d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
+      .append("svg:image")
+      .attr("xlink:href", function(d) { 
+        if (d.nodeType === "media") {
+          return d.mediaUrl;
+        }
+        // if (d.nodeType == "user") return d.profileImageUrl;
+        return null; 
+      })
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick);

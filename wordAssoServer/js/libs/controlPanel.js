@@ -393,6 +393,55 @@ function ControlPanel() {
 
   var displayNodeTypeButtonsDiv = document.getElementById("displayNodeTypeButtonsDiv");
 
+  function toggleButtonHandler(e){
+
+    var currentButton = document.getElementById(e.target.id);
+
+    currentButton.value = !currentButton.value;
+
+    console.warn("DISPLAY NODE TYPE BUTTON"
+     + " | ID: " + e.target.id
+     + "\n" + jsonPrint(e.target)
+    );
+
+    switch (e.target.id){
+      case "emoji":
+        console.log("EMOJI | DISPLAY ENABLED: " + );
+        config.displayEnabled[type] = true;
+      break;
+      case "categoryRight":
+        console.log("RIGHT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        category = "right";
+      break;
+      case "categoryNeutral":
+        console.log("NEUTRAL | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        category = "neutral";
+      break;
+      case "categoryPositive":
+        console.log("POSITIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        category = "positive";
+      break;
+      case "categoryNegative":
+        console.log("NEGATIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        category = "negative";
+      break;
+      case "categoryNone":
+        console.log("NONE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        category = false;
+      break;
+    }
+
+    const catNode = {
+      nodeId: currentTwitterNode.nodeId,
+      nodeType: currentTwitterNode.nodeType,
+      screenName: currentTwitterNode.screenName,
+      category: currentTwitterNode.category,
+      categoryAuto: currentTwitterNode.categoryAuto,
+    };
+
+    parentWindow.postMessage({op: "CATEGORIZE", node: catNode, category: category}, DEFAULT_SOURCE);
+  }
+
 
   function createDisplayNodeTypeButton(params, callback){
 
@@ -402,16 +451,15 @@ function ControlPanel() {
 
     var displayNodeType = document.createElement("INPUT");
     displayNodeType.setAttribute("class", "categoryButton");
-    displayNodeType.setAttribute("type", "radio");
+    displayNodeType.setAttribute("type", "button");
     displayNodeType.setAttribute("name", "displayNodeType");
     displayNodeType.setAttribute("id", params.id || "displayNodeType_" + params.type.toLowerCase());
-    displayNodeType.setAttribute("value", params.type.toLowerCase());
-    displayNodeType.setAttribute("checked", false);
-    displayNodeType.addEventListener("click", function(e){ displayNodeTypeButtonHandler(e); }, false);
+    displayNodeType.setAttribute("value", params.value || false;
+    displayNodeType.addEventListener("click", function(e){ toggleButtonHandler(e); }, false);
     displayNodeTypeLabel.appendChild(displayNodeType);
 
     displayNodeTypeButtonsDiv.appendChild(displayNodeTypeLabel);
-    
+
     if (callback !== undefined) { callback(); }
   }
 

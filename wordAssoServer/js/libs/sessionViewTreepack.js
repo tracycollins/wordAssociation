@@ -1280,7 +1280,7 @@ function ViewTreepack() {
 
     nodeMedia
       .exit()
-      .attr("width", 0); 
+      .attr("width", 0)
       .attr("height", 0);
 
     callback();

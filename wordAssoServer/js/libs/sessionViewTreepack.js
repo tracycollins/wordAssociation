@@ -1233,6 +1233,59 @@ function ViewTreepack() {
     callback(null, null);
   };
 
+  var nodeMedia;
+  var updateNodeMedia = function(callback) {
+
+    nodeMedia = nodeSvgGroup.selectAll("media")
+      .data(nodeArray, function (d){ return d.nodeId; });
+
+    nodeMedia
+      .enter()
+      .filter(function(d){ return d.nodeType == "media"; }).append("svg:image")
+      .attr("id", function (d) { return d.nodePoolId; })
+      .attr("nodeId", function (d) { return d.nodeId; })
+      .attr("xlink:href", d.mediaUrl)
+      .attr("class", "nodeImage")
+      .attr("x", function(d) { return d.x - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); })
+      .attr("y", function(d) { return d.y - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); })
+      .style("visibility", function (d) { 
+        if (!d.isValid) { return "hidden"; }
+        return "visible"; 
+      })
+      .attr("width", function(d){ 
+        return imageSizeScale(parseInt(d.mentions) + 1.0); 
+      })
+      .attr("height", function(d){ 
+        return imageSizeScale(parseInt(d.mentions) + 1.0); 
+      })
+      .style("opacity", function (d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
+      .on("mouseover", nodeMouseOver)
+      .on("mouseout", nodeMouseOut)
+      .on("click", nodeClick);
+
+    nodeMedia
+      .attr("x", function(d) { return d.x - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); })
+      .attr("y", function(d) { return d.y - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); })
+      .attr("width", function(d){ 
+        return imageSizeScale(parseInt(d.mentions) + 1.0); 
+      })
+      .attr("height", function(d){ 
+        return imageSizeScale(parseInt(d.mentions) + 1.0); 
+      })
+      .style("visibility", function (d) { 
+        if (!d.isValid) { return "hidden"; }
+        return "visible"; 
+      })
+      .style("opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); });
+
+    nodeMedia
+      .exit()
+      .attr("width", 0); 
+      .attr("height", 0);
+
+    callback();
+  };
+
   var nodeCircles;
   var updateNodeCircles = function(callback) {
 
@@ -1240,7 +1293,9 @@ function ViewTreepack() {
       .data(nodeArray, function (d){ return d.nodeId; });
 
     nodeCircles
-      .enter().append("circle")
+      // .enter().append("circle")
+      .enter()
+      .filter(function(d){ return d.nodeType !== "media"; }).append("circle")
       .attr("id", function (d) { return d.nodePoolId; })
       .attr("nodeId", function (d) { return d.nodeId; })
       .style("visibility", function (d) { 
@@ -1274,14 +1329,6 @@ function ViewTreepack() {
         return "2.0"; 
       })
       .style("opacity", function (d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
-      .append("svg:image")
-      .attr("xlink:href", function(d) { 
-        if (d.nodeType === "media") {
-          return d.mediaUrl;
-        }
-        // if (d.nodeType == "user") return d.profileImageUrl;
-        return null; 
-      })
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick);
@@ -1738,6 +1785,7 @@ function ViewTreepack() {
   function drawSimulation(callback){
 
     async.series([
+      function updateNodeMediaSeries (cb){ updateNodeMedia(cb); },
       function updateNodeCirclesSeries (cb){ updateNodeCircles(cb); },
       function updateNodeLabelsSeries (cb){ updateNodeLabels(cb); },
       function updateTopTermSeries (cb){ updateTopTerm(cb); }

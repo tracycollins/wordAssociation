@@ -1242,11 +1242,11 @@ function ViewTreepack() {
   var updateNodeMedia = function(callback) {
 
     nodeMedia = nodeSvgGroup.selectAll("image")
-      .data(nodeArray, function (d){ return d.nodeId; });
+      .data(nodeArray.filter(function(d){ return d.nodeType === "media"; }), function (d){ return d.nodeId; });
 
     nodeMedia
-      .enter()
-      .filter(function(d){ return d.nodeType === "media"; }).append("svg:image")
+      .enter().append("svg:image")
+      // .filter(function(d){ return d.nodeType === "media"; }).append("svg:image")
       .attr("id", function (d) { return d.nodePoolId; })
       .attr("nodeId", function (d) { return d.nodeId; })
       .attr("xlink:href", function (d) { return d.mediaUrl; })
@@ -1295,12 +1295,13 @@ function ViewTreepack() {
   var updateNodeCircles = function(callback) {
 
     nodeCircles = nodeSvgGroup.selectAll("circle")
-      .data(nodeArray, function (d){ return d.nodeId; });
+      // .data(nodeArray, function (d){ return d.nodeId; });
+      .data(nodeArray.filter(function(d){ return d.nodeType !== "media"; }), function (d){ return d.nodeId; });
 
     nodeCircles
-      // .enter().append("circle")
-      .enter()
-      .filter(function(d){ return d.nodeType !== "media"; }).append("circle")
+      .enter().append("circle")
+      // .enter()
+      // .filter(function(d){ return d.nodeType !== "media"; }).append("circle")
       .attr("id", function (d) { return d.nodePoolId; })
       .attr("nodeId", function (d) { return d.nodeId; })
       .style("visibility", function (d) { 

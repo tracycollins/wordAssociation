@@ -503,7 +503,7 @@ var hashtagHashMap = new HashMap();
 
 var displayNodeHashMap = {};
 
-displayNodeHashMap..emoji = "show";
+displayNodeHashMap.emoji = "show";
 displayNodeHashMap.hashtag = "hide";
 displayNodeHashMap.place = "show";
 displayNodeHashMap.url = "hide";

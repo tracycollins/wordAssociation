@@ -415,7 +415,7 @@ function ViewTreepack() {
 
   var imageSizeScale = d3.scaleLinear()
     .domain([0, Math.sqrt(currentMax[metricMode][metricMode])])
-    .range([nodeRadiusMin, nodeRadiusMax])
+    .range([2.0*nodeRadiusMin, 2.0*nodeRadiusMax])
     .clamp(true);
 
   var emojiLabelSizeScale = d3.scaleLinear()
@@ -595,6 +595,11 @@ function ViewTreepack() {
       .range([nodeRadiusMin, nodeRadiusMax])
       .clamp(true);
 
+    imageSizeScale = d3.scaleLinear()
+      .domain([0, Math.sqrt(currentMax[metricMode][metricMode])])
+      .range([2.0*nodeRadiusMin, 2.0*nodeRadiusMax])
+      .clamp(true);
+
     console.debug("SET METRIC MODE: " + mode);
   };
 
@@ -697,6 +702,10 @@ function ViewTreepack() {
       .domain([0, Math.sqrt(currentMax[metricMode][metricMode])])
       .range([nodeRadiusMin, nodeRadiusMax])
       .clamp(true);
+    imageSizeScale = d3.scaleLinear()
+      .domain([0, Math.sqrt(currentMax[metricMode][metricMode])])
+      .range([2.0*nodeRadiusMin, 2.0*nodeRadiusMax])
+      .clamp(true);
   };
 
   self.updateNodeRadiusMaxRatio = function(value) {
@@ -707,6 +716,10 @@ function ViewTreepack() {
     defaultRadiusScale = d3.scaleLinear()
       .domain([0, Math.sqrt(currentMax[metricMode][metricMode])])
       .range([nodeRadiusMin, nodeRadiusMax])
+      .clamp(true);
+    imageSizeScale = d3.scaleLinear()
+      .domain([0, Math.sqrt(currentMax[metricMode][metricMode])])
+      .range([2.0*nodeRadiusMin, 2.0*nodeRadiusMax])
       .clamp(true);
   };
 
@@ -1148,7 +1161,6 @@ function ViewTreepack() {
       break;
 
       case "media" :
-
         console.debug("LOADING MEDIA: " + d.url);
         window.open(d.url, "_blank");
       break;
@@ -1251,13 +1263,18 @@ function ViewTreepack() {
 
     nodeMedia
       .enter().append("svg:image")
-      // .filter(function(d){ return d.nodeType === "media"; }).append("svg:image")
       .attr("id", function (d) { return d.nodePoolId; })
       .attr("nodeId", function (d) { return d.nodeId; })
       .attr("xlink:href", function (d) { return d.mediaUrl; })
       .attr("class", "nodeImage")
-      .attr("x", function(d) { return d.x - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); })
-      .attr("y", function(d) { return d.y - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); })
+      .attr("x", function(d) {
+        if (metricMode === "rate") {return d.x - 0.5*(imageSizeScale(parseInt(d.rate) + 1.0));}
+        if (metricMode === "mentions") {return return d.x - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0));}
+      })
+      .attr("y", function(d) { 
+        if (metricMode === "rate") {return d.y - 0.5*(imageSizeScale(parseInt(d.rate) + 1.0));}
+        if (metricMode === "mentions") {return return d.y - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0));}
+      })
       .style("visibility", function (d) { 
         if (!d.isValid) { return "hidden"; }
         return "visible"; 
@@ -1274,8 +1291,14 @@ function ViewTreepack() {
       .on("click", nodeClick);
 
     nodeMedia
-      .attr("x", function(d) { return d.x - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); })
-      .attr("y", function(d) { return d.y - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); })
+      .attr("x", function(d) {
+        if (metricMode === "rate") {return d.x - 0.5*(imageSizeScale(parseInt(d.rate) + 1.0));}
+        if (metricMode === "mentions") {return return d.x - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0));}
+      })
+      .attr("y", function(d) { 
+        if (metricMode === "rate") {return d.y - 0.5*(imageSizeScale(parseInt(d.rate) + 1.0));}
+        if (metricMode === "mentions") {return return d.y - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0));}
+      })
       .attr("width", function(d){ 
         return imageSizeScale(parseInt(d.mentions) + 1.0); 
       })
@@ -1398,11 +1421,13 @@ function ViewTreepack() {
       .attr("x", function (d) { return d.x; })
       .attr("y", function (d) { return d.y; })
       .style("opacity", function updateNodeLabelOpacity(d) { 
+        if (d.nodeType === "media") { return 1e-6; }
         if (d.mouseHoverFlag) { return 1.0; }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .style("visibility", function (d) {
         if (!d.isValid) { return "hidden"; }
+        if (d.nodeType === "media") { return "hidden"; }
         if (d.mouseHoverFlag) { return "visible"; }
         if (d.category) { return "visible"; }
         if (d.categoryAuto) { return "visible"; }
@@ -1452,6 +1477,7 @@ function ViewTreepack() {
       })
       .style("visibility", function (d) {
         if (!d.isValid) { return "hidden"; }
+        if (d.nodeType === "media") { return "hidden"; }
         if (d.category) { return "visible"; }
         if (d.categoryAuto) { return "visible"; }
         if (mouseMovingFlag) { return "visible"; }
@@ -1478,7 +1504,10 @@ function ViewTreepack() {
         if (d.isTopTerm) { return "overline"; }
         return "none"; 
       })
-      .style("opacity", function (d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
+      .style("opacity", function (d) { 
+        if (d.nodeType === "media") { return 1e-6; }
+        return nodeLabelOpacityScale(d.ageMaxRatio);
+      })
       .style("fill", palette.white)
       .style("stroke-width", function (d) { 
         if (d.categoryMatch) { return categoryMatchStrokeWidth; }

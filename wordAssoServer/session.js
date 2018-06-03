@@ -1879,7 +1879,7 @@ var rxNodeQueue = [];
 var rxNode = function(node){
   if ((rxNodeQueue.length < RX_NODE_QUEUE_MAX)
   ){
-    if (displayNodeHashMap[node.nodeType] !== undefined) {
+    if (displayNodeHashMap[node.nodeType] === "show") {
       rxNodeQueue.push(node);
     }
   }

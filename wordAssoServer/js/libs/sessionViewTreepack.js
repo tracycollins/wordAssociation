@@ -413,6 +413,11 @@ function ViewTreepack() {
     .range([nodeRadiusMin, nodeRadiusMax])
     .clamp(true);
 
+  var imageSizeScale = d3.scaleLinear()
+    .domain([0, Math.sqrt(currentMax[metricMode][metricMode])])
+    .range([nodeRadiusMin, nodeRadiusMax])
+    .clamp(true);
+
   var emojiLabelSizeScale = d3.scaleLinear()
     .domain([1, currentMax[metricMode][metricMode]])
     .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])

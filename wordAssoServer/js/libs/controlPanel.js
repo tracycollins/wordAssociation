@@ -2,10 +2,10 @@
 
 
 /* jshint undef: true, unused: true */
-/* globals document, io, requirejs, moment, HashMap, async, ProgressBar */
+/* globals store, $, window, twttr, Element, document, moment */
 
 function ControlPanel() {
-"use strict";
+  "use strict";
 
   // var DEFAULT_SOURCE = "http://localhost:9997";
   var DEFAULT_SOURCE = "http://word.threeceelabs.com";
@@ -28,7 +28,7 @@ function ControlPanel() {
     }
   }
 
-  var twitterCategoryDiv = document.getElementById("twitterCategoryDiv");
+  // var twitterCategoryDiv = document.getElementById("twitterCategoryDiv");
   var twitterCategorySearchDiv = document.getElementById("twitterCategorySearchDiv");
 
   var nodeSearchInput = document.createElement("input");
@@ -60,8 +60,6 @@ function ControlPanel() {
 
   var config = {};
   var currentTwitterNode;
-  var currentTwitterUser;
-  var currentTwitterHashtag;
 
   config = window.opener.config;
   delete config.twitterUser.histograms;
@@ -93,7 +91,7 @@ function ControlPanel() {
   var controlTableBody;
   var controlSliderTable;
 
-  var twitterFeedDiv = d3.select("#twitterFeedDiv");
+  // var twitterFeedDiv = d3.select("#twitterFeedDiv");
   var timelineDiv = document.getElementById("timelineDiv");
 
   var hashtagDiv =document.getElementById("hashtagDiv");
@@ -166,22 +164,22 @@ function ControlPanel() {
 
   //--------------
 
-  function updateDisplayNodeTypeButtons(params, callback){
+  // function updateDisplayNodeTypeButtons(params, callback){
 
-    console.log("updateDisplayNodeTypeButtons\n" + jsonPrint(params));
+  //   console.log("updateDisplayNodeTypeButtons\n" + jsonPrint(params));
 
-    var displayNodeTypeButton = document.getElementById("typeButton_" + params.type.toLowerCase());
+  //   var displayNodeTypeButton = document.getElementById("typeButton_" + params.type.toLowerCase());
 
-    if (displayNodeTypeButton === undefined) {
-      console.error("DISPLAY NODE TYPE BUTTON UNDEFINED: " + params.type.toLowerCase());
-      return callback("DISPLAY NODE TYPE BUTTON UNDEFINED: " + params.type.toLowerCase(), params);
-    }
+  //   if (displayNodeTypeButton === undefined) {
+  //     console.error("DISPLAY NODE TYPE BUTTON UNDEFINED: " + params.type.toLowerCase());
+  //     return callback("DISPLAY NODE TYPE BUTTON UNDEFINED: " + params.type.toLowerCase(), params);
+  //   }
 
-    displayNodeTypeButton.setAttribute("checked", params.displayEnabled);
+  //   displayNodeTypeButton.setAttribute("checked", params.displayEnabled);
 
-    callback(null, true);
+  //   callback(null, true);
 
-  }
+  // }
 
   function updateCategoryRadioButtons(category, callback){
 
@@ -261,7 +259,7 @@ function ControlPanel() {
 
       var screenName = node.screenName;
       var name = (node.name !== undefined) ? node.name : "---";
-      var followersMentions = node.followersCount + node.mentions;
+      // var followersMentions = node.followersCount + node.mentions;
 
       var category = node.category || "none";
       var categoryAuto = node.categoryAuto || "none";
@@ -342,9 +340,6 @@ function ControlPanel() {
 
   function loadTwitterFeed(node) {
 
-    var category = "-";
-    var categoryAuto = "-";
-
     hashtagDiv.removeAll();
     timelineDiv.removeAll();
 
@@ -369,7 +364,7 @@ function ControlPanel() {
 
       updateCategoryRadioButtons(node.category, function(){
 
-        twitterWidgetsCreateTimeline(node, function(err, el){
+        twitterWidgetsCreateTimeline(node, function(){
           var nsi =document.getElementById("nodeSearchInput");
           nsi.value = "@" + node.screenName;
         });
@@ -388,7 +383,7 @@ function ControlPanel() {
       );
 
       updateCategoryRadioButtons(node.category, function(){
-        twitterHashtagSearch(node, function(err, el){
+        twitterHashtagSearch(node, function(){
           var nsi =document.getElementById("nodeSearchInput");
           nsi.value = "#" + node.nodeId;
         });
@@ -433,7 +428,6 @@ function ControlPanel() {
     );
   }
 
-
   function createDisplayNodeTypeButton(params, callback){
 
     var displayNodeTypeLabel = document.createElement("label");
@@ -459,9 +453,25 @@ function ControlPanel() {
     if (callback !== undefined) { callback(); }
   }
 
+  this.setDisplayNodeType = function(params, callback){
+
+    const id = params.id || "displayNodeType_" + params.nodeType.toLowerCase();
+    const value = params.value || "hide";
+
+    console.log("SET DISPLAY NODE TYPE | " + params.nodeType + " | " + value);
+
+    var displayNodeType = document.getElementById(id);
+    displayNodeType.setAttribute("value", value);
+
+    if (callback !== undefined) { callback(); }
+  };
+
   createDisplayNodeTypeButton({nodeType: "emoji"});
   createDisplayNodeTypeButton({nodeType: "hashtag"});
+  createDisplayNodeTypeButton({nodeType: "place"});
+  createDisplayNodeTypeButton({nodeType: "url"});
   createDisplayNodeTypeButton({nodeType: "user"});
+  createDisplayNodeTypeButton({nodeType: "word"});
 
   var twitterCategoryButtonsDiv = document.getElementById("twitterCategoryButtonsDiv");
 
@@ -651,10 +661,8 @@ function ControlPanel() {
   this.setGravitySliderValue = function (value) {
     if (!document.getElementById("gravitySlider")) { return; }
     console.log("setGravitySliderValue: " + value);
-    // document.getElementById("gravitySlider").value = value;
     document.getElementById("gravitySlider").value = (value* document.getElementById("gravitySlider").getAttribute("multiplier"));
     document.getElementById("gravitySliderText").innerHTML = value.toFixed(5);
-    // document.getElementById("gravitySliderText").innerHTML = value;
   };
 
   this.setChargeSliderValue = function (value) {
@@ -745,6 +753,12 @@ function ControlPanel() {
         self.setFontSizeMinRatioSliderValue(cnf.defaultFontSizeMinRatio);
         self.setFontSizeMaxRatioSliderValue(cnf.defaultFontSizeMaxRatio);
 
+        if (cnf.displayNodeHashMap !== undefined) {
+          Object.keys(cnf.displayNodeHashMap).forEach(function(nodeType){
+            self.setDisplayNodeType({nodeType: nodeType, value: cnf.displayNodeHashMap[nodeType]});
+          });
+        }
+
         parentWindow.postMessage({op: "NODE_SEARCH", input: "@threecee"}, DEFAULT_SOURCE);
 
       break;
@@ -779,7 +793,7 @@ function ControlPanel() {
 
   window.addEventListener("load", function() {
     console.warn("WINDOW LOAD");
-}, false);
+  }, false);
 
   window.addEventListener("message", receiveMessage, false);
 
@@ -879,7 +893,6 @@ function ControlPanel() {
       default:
     }
   }, false);
-
 
   this.tableCreateRow = function (parentTable, options, cells) {
 
@@ -985,11 +998,11 @@ function ControlPanel() {
     controlTableBody = document.getElementById("controlTableBody");
     controlSliderTable = document.getElementById("controlSliderTable");
 
-    var optionsHead = {
-      headerFlag: true,
-      textColor: "black",
-      backgroundColor: "white"
-    };
+    // var optionsHead = {
+    //   headerFlag: true,
+    //   textColor: "black",
+    //   backgroundColor: "white"
+    // };
 
     var optionsBody = {
       headerFlag: false,
@@ -1585,7 +1598,7 @@ function ControlPanel() {
     console.log( "CONTROL PANEL DOCUMENT READY" );
     console.log( "CONTROL PANEL CONFIG\n" + jsonPrint(config) );
 
-    self.createControlPanel(function(dashboard){
+    self.createControlPanel(function(){
 
       setTimeout(function() {  // KLUDGE to insure table is created before update
         self.updateControlPanel(config, function(){

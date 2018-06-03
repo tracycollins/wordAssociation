@@ -161,6 +161,23 @@ function ControlPanel() {
 
   //--------------
 
+  function updateDisplayNodeTypeButtons(params, callback){
+
+    console.log("updateDisplayNodeTypeButtons\n" + jsonPrint(params));
+
+    var displayNodeTypeButton = document.getElementById("typeButton_" + params.type.toLowerCase());
+
+    if (displayNodeTypeButton === undefined) {
+      console.error("DISPLAY NODE TYPE BUTTON UNDEFINED: " + params.type.toLowerCase());
+      return callback("DISPLAY NODE TYPE BUTTON UNDEFINED: " + params.type.toLowerCase(), params);
+    }
+
+    displayNodeTypeButton.setAttribute("checked", params.displayEnabled);
+
+    callback(null, true);
+
+  }
+
   function updateCategoryRadioButtons(category, callback){
 
     console.log("updateCategoryRadioButtons | " + category);
@@ -221,11 +238,11 @@ function ControlPanel() {
 
   function shortCategory(c) {
     switch (c) {
-      case "left": return "L"; break;
-      case "right": return "R"; break;
-      case "neutral": return "N"; break;
-      case "positive": return "+"; break;
-      case "negative": return "-"; break;
+      case "left": return "L"; 
+      case "right": return "R"; 
+      case "neutral": return "N"; 
+      case "positive": return "+"; 
+      case "negative": return "-";
       default: return "0";
     }
   }
@@ -376,6 +393,26 @@ function ControlPanel() {
 
   var twitterCategoryButtonsDiv = document.getElementById("twitterCategoryButtonsDiv");
 
+
+  function createDisplayNodeTypeButton(params, callback){
+
+    var displayNodeTypeLabel = document.createElement("label");
+    displayNodeTypeLabel.setAttribute("class", "displayNodeTypeLabel");
+    displayNodeTypeLabel.innerHTML = params.label || params.type.toUpperCase();
+
+    var displayNodeType = document.createElement("INPUT");
+    displayNodeType.setAttribute("class", "categoryButton");
+    displayNodeType.setAttribute("type", "radio");
+    displayNodeType.setAttribute("name", "displayNodeType");
+    displayNodeType.setAttribute("id", params.id || "displayNodeType_" + params.type.toLowerCase());
+    displayNodeType.setAttribute("value", params.type.toLowerCase());
+    displayNodeType.setAttribute("checked", false);
+    displayNodeType.addEventListener("click", function(e){ displayNodeTypeButtonHandler(e); }, false);
+    displayNodeTypeLabel.appendChild(displayNodeType);
+  }
+
+  createDisplayNodeTypeButton({type: "emoji"});
+
   function categoryButtonHandler(e){
 
     var currentButton = document.getElementById(e.target.id);
@@ -417,7 +454,6 @@ function ControlPanel() {
     const catNode = {
       nodeId: currentTwitterNode.nodeId,
       nodeType: currentTwitterNode.nodeType,
-      nodeId: currentTwitterNode.nodeId,
       screenName: currentTwitterNode.screenName,
       category: currentTwitterNode.category,
       categoryAuto: currentTwitterNode.categoryAuto,
@@ -603,8 +639,8 @@ function ControlPanel() {
     // Do we trust the sender of this message?
     if (event.origin !== DEFAULT_SOURCE){
       if (event.origin === "https://platform.twitter.com") {
-        if (event.data["twttr.button"] 
-          && (event.data["twttr.button"]["method"] === "twttr.private.resizeButton")){
+        if (event.data.twttr.button 
+          && (event.data.twttr.button.method === "twttr.private.resizeButton")){
           return;
         }
         // console.log("TWITTER SOURCE: " + event.origin);

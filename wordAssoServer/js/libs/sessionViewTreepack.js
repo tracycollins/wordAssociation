@@ -1145,7 +1145,12 @@ function ViewTreepack() {
           console.debug("LOADING TWITTER USER: " + "https://twitter.com/" + d.screenName);
           window.open("https://twitter.com/" + d.screenName, "_blank");
         }
+      break;
 
+      case "media" :
+
+        console.debug("LOADING MEDIA: " + d.url);
+        window.open(d.url, "_blank");
       break;
 
       case "hashtag" :

@@ -406,55 +406,38 @@ function ControlPanel() {
 
     switch (e.target.id){
       case "emoji":
-        console.log("EMOJI | DISPLAY ENABLED: " + );
-        config.displayEnabled[type] = true;
-      break;
-      case "categoryRight":
-        console.log("RIGHT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
-        category = "right";
-      break;
-      case "categoryNeutral":
-        console.log("NEUTRAL | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
-        category = "neutral";
-      break;
-      case "categoryPositive":
-        console.log("POSITIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
-        category = "positive";
-      break;
-      case "categoryNegative":
-        console.log("NEGATIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
-        category = "negative";
-      break;
-      case "categoryNone":
-        console.log("NONE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
-        category = false;
+        console.log("EMOJI | DISPLAY ENABLED: " + currentButton.value);
+        config.displayEnabled[currentButton.type] = true;
       break;
     }
 
-    const catNode = {
-      nodeId: currentTwitterNode.nodeId,
-      nodeType: currentTwitterNode.nodeType,
-      screenName: currentTwitterNode.screenName,
-      category: currentTwitterNode.category,
-      categoryAuto: currentTwitterNode.categoryAuto,
-    };
-
-    parentWindow.postMessage({op: "CATEGORIZE", node: catNode, category: category}, DEFAULT_SOURCE);
+    parentWindow.postMessage(
+      {
+        op: "DISPLAY_NODE_TYPE", 
+        nodeType: currentButton.nodeType, 
+        value: currentButton.value
+      }, 
+      DEFAULT_SOURCE
+    );
   }
 
 
   function createDisplayNodeTypeButton(params, callback){
 
     var displayNodeTypeLabel = document.createElement("label");
+
     displayNodeTypeLabel.setAttribute("class", "displayNodeTypeLabel");
-    displayNodeTypeLabel.innerHTML = params.label || params.type.toUpperCase();
+    displayNodeTypeLabel.innerHTML = params.label || params.nodeType.toUpperCase();
+
+    const id = params.id || "displayNodeType_" + params.nodeType.toLowerCase();
+    const value = params.value || false;
 
     var displayNodeType = document.createElement("INPUT");
     displayNodeType.setAttribute("class", "categoryButton");
     displayNodeType.setAttribute("type", "button");
-    displayNodeType.setAttribute("name", "displayNodeType");
-    displayNodeType.setAttribute("id", params.id || "displayNodeType_" + params.type.toLowerCase());
-    displayNodeType.setAttribute("value", params.value || false;
+    displayNodeType.setAttribute("nodeType", params.nodeType.toLowerCase());
+    displayNodeType.setAttribute("id", id);
+    displayNodeType.setAttribute("value", value);
     displayNodeType.addEventListener("click", function(e){ toggleButtonHandler(e); }, false);
     displayNodeTypeLabel.appendChild(displayNodeType);
 
@@ -463,7 +446,7 @@ function ControlPanel() {
     if (callback !== undefined) { callback(); }
   }
 
-  createDisplayNodeTypeButton({type: "emoji"});
+  createDisplayNodeTypeButton({nodeType: "emoji"});
 
   var twitterCategoryButtonsDiv = document.getElementById("twitterCategoryButtonsDiv");
 

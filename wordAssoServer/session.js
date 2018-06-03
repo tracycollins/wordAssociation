@@ -11,6 +11,14 @@ var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 var config = {};
 var previousConfig = {};
 
+config.displayNodeHashMap = {};
+config.displayNodeHashMap.emoji = "show";
+config.displayNodeHashMap.hashtag = "show";
+config.displayNodeHashMap.place = "show";
+config.displayNodeHashMap.url = "hide";
+config.displayNodeHashMap.user = "show";
+config.displayNodeHashMap.word = "hide";
+
 const RX_NODE_QUEUE_INTERVAL = 10;
 const RX_NODE_QUEUE_MAX = 100;
 
@@ -228,7 +236,6 @@ if (useStoredConfig) {
   config.pauseOnMouseMove = true;
   if (config.authenticationUrl === undefined) {
     config.authenticationUrl = DEFAULT_AUTH_URL;
-    // config.authenticationUrl = "http://localhost:9997/auth/twitter";
     config.twitterUser = {};
     config.twitterUser.userId = "";
   }
@@ -255,8 +262,6 @@ else {
   config.fullscreenMode = false;
   config.pauseOnMouseMove = true;
   config.showStatsFlag = false;
-  // config.blahMode = DEFAULT_BLAH_MODE;
-  // config.antonymFlag = false;
   config.pauseFlag = false;
   config.sessionViewType = DEFAULT_SESSION_VIEW; // options: force, histogram ??
   config.maxWords = 100;
@@ -267,7 +272,6 @@ else {
   config.defaultMaxAge = DEFAULT_MAX_AGE;
   config.defaultMultiplier = 1000.0;
   config.defaultMetricMode = DEFAULT_METRIC_MODE;
-  // config.defaultBlahMode = DEFAULT_BLAH_MODE;
   config.defaultCharge = DEFAULT_CHARGE;
   config.defaultGravity = DEFAULT_GRAVITY;
   config.defaultForceXmultiplier = DEFAULT_FORCEX_MULTIPLIER;
@@ -501,14 +505,6 @@ ignoreWordsArray.push("`");
 
 var hashtagHashMap = new HashMap();
 
-var displayNodeHashMap = {};
-
-displayNodeHashMap.emoji = "show";
-displayNodeHashMap.hashtag = "hide";
-displayNodeHashMap.place = "show";
-displayNodeHashMap.url = "hide";
-displayNodeHashMap.user = "show";
-displayNodeHashMap.word = "hide";
 
 
 var ignoreWordHashMap = new HashMap();
@@ -992,9 +988,9 @@ function controlPanelComm(event) {
     break;
 
     case "DISPLAY_NODE_TYPE":
-      displayNodeHashMap[event.data.nodeType] = event.data.value;
+      config.displayNodeHashMap[event.data.nodeType] = event.data.value;
       console.warn("R<DISPLAY_NODE_TYPE | " + event.data.nodeType + " | " + event.data.value);
-      console.warn("displayNodeHashMap\n" + jsonPrint(displayNodeHashMap));
+      console.warn("config.displayNodeHashMap\n" + jsonPrint(config.displayNodeHashMap));
     break;
 
     default :
@@ -1879,7 +1875,7 @@ var rxNodeQueue = [];
 var rxNode = function(node){
   if ((rxNodeQueue.length < RX_NODE_QUEUE_MAX)
   ){
-    if (displayNodeHashMap[node.nodeType] === "show") {
+    if (config.displayNodeHashMap[node.nodeType] === "show") {
       rxNodeQueue.push(node);
     }
   }

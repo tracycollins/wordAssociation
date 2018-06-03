@@ -503,6 +503,14 @@ var hashtagHashMap = new HashMap();
 
 var displayNodeHashMap = new HashMap();
 
+displayNodeHashMap.set("emoji", "show");
+displayNodeHashMap.set("hashtag", "show");
+displayNodeHashMap.set("place", "show");
+displayNodeHashMap.set("url", "hide");
+displayNodeHashMap.set("user", "show");
+displayNodeHashMap.set("word", "hide");
+
+
 var ignoreWordHashMap = new HashMap();
 
 var categoryColorHashMap = new HashMap();
@@ -1870,7 +1878,6 @@ var rxNodeQueue = [];
 
 var rxNode = function(node){
   if ((rxNodeQueue.length < RX_NODE_QUEUE_MAX)
-    // &&((node.nodeType === "user") || (node.nodeType === "hashtag") || (node.nodeType === "place"))
   ){
     if (displayNodeHashMap.get(node.nodeType).value === "show") {
       rxNodeQueue.push(node);

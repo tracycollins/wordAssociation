@@ -1244,7 +1244,7 @@ function ViewTreepack() {
       .filter(function(d){ return d.nodeType == "media"; }).append("svg:image")
       .attr("id", function (d) { return d.nodePoolId; })
       .attr("nodeId", function (d) { return d.nodeId; })
-      .attr("xlink:href", d.mediaUrl)
+      .attr("xlink:href", function (d) { return d.mediaUrl; })
       .attr("class", "nodeImage")
       .attr("x", function(d) { return d.x - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); })
       .attr("y", function(d) { return d.y - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); })

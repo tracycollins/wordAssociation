@@ -1,9 +1,14 @@
 /*jslint node: true */
+
+
+/* jshint undef: true, unused: true */
+/* globals document, io, requirejs, moment, HashMap, async, ProgressBar */
+
 function ControlPanel() {
 "use strict";
 
-  var DEFAULT_SOURCE = "http://localhost:9997";
-  // var DEFAULT_SOURCE = "http://word.threeceelabs.com";
+  // var DEFAULT_SOURCE = "http://localhost:9997";
+  var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 
   var parentWindow = window.opener;
   console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);
@@ -397,26 +402,28 @@ function ControlPanel() {
 
     var currentButton = document.getElementById(e.target.id);
 
-    currentButton.value = !currentButton.value;
+    const newValue = (currentButton.getAttribute("value") === "hide") ? "show" : "hide";
+
+    currentButton.setAttribute("value", newValue);
 
     console.warn("DISPLAY NODE TYPE BUTTON"
      + " | ID: " + e.target.id
-     + " | NODE TYPE: " + e.target.nodeType
-     + "\n" + jsonPrint(e.target)
+     + " | NODE TYPE: " + currentButton.getAttribute("nodeType")
+     + " | VALUE: " + currentButton.value
     );
 
     switch (e.target.id){
       case "emoji":
-        console.log("EMOJI | DISPLAY ENABLED: " + currentButton.value);
-        config.displayEnabled[currentButton.type] = true;
+        console.log("EMOJI: " + newValue);
+        config.displayEnabled[currentButton.getAttribute("nodeType")] = newValue;
       break;
     }
 
     parentWindow.postMessage(
       {
         op: "DISPLAY_NODE_TYPE", 
-        nodeType: currentButton.nodeType, 
-        value: currentButton.value
+        nodeType: currentButton.getAttribute("nodeType"), 
+        value: currentButton.getAttribute("value")
       }, 
       DEFAULT_SOURCE
     );
@@ -431,12 +438,13 @@ function ControlPanel() {
     displayNodeTypeLabel.innerHTML = params.label || params.nodeType.toUpperCase();
 
     const id = params.id || "displayNodeType_" + params.nodeType.toLowerCase();
-    const value = params.value || false;
+    const nodeType = params.nodeType.toLowerCase();
+    const value = params.value || "hide";
 
     var displayNodeType = document.createElement("INPUT");
     displayNodeType.setAttribute("class", "categoryButton");
     displayNodeType.setAttribute("type", "button");
-    displayNodeType.setAttribute("nodeType", params.nodeType.toLowerCase());
+    displayNodeType.setAttribute("nodeType", nodeType);
     displayNodeType.setAttribute("id", id);
     displayNodeType.setAttribute("value", value);
     displayNodeType.addEventListener("click", function(e){ toggleButtonHandler(e); }, false);

@@ -391,7 +391,7 @@ function ControlPanel() {
     }
   }
 
-  var twitterCategoryButtonsDiv = document.getElementById("twitterCategoryButtonsDiv");
+  var displayNodeTypeDiv = document.getElementById("displayNodeTypeDiv");
 
 
   function createDisplayNodeTypeButton(params, callback){
@@ -412,6 +412,8 @@ function ControlPanel() {
   }
 
   createDisplayNodeTypeButton({type: "emoji"});
+
+  var twitterCategoryButtonsDiv = document.getElementById("twitterCategoryButtonsDiv");
 
   function categoryButtonHandler(e){
 

@@ -501,14 +501,14 @@ ignoreWordsArray.push("`");
 
 var hashtagHashMap = new HashMap();
 
-var displayNodeHashMap = new HashMap();
+var displayNodeHashMap = {};
 
-displayNodeHashMap.set("emoji", "show");
-displayNodeHashMap.set("hashtag", "show");
-displayNodeHashMap.set("place", "show");
-displayNodeHashMap.set("url", "hide");
-displayNodeHashMap.set("user", "show");
-displayNodeHashMap.set("word", "hide");
+displayNodeHashMap..emoji = "show";
+displayNodeHashMap.hashtag = "hide";
+displayNodeHashMap.place = "show";
+displayNodeHashMap.url = "hide";
+displayNodeHashMap.user = "show";
+displayNodeHashMap.word = "hide";
 
 
 var ignoreWordHashMap = new HashMap();
@@ -992,9 +992,9 @@ function controlPanelComm(event) {
     break;
 
     case "DISPLAY_NODE_TYPE":
-      displayNodeHashMap.set(event.data.nodeType,  event.data.value);
+      displayNodeHashMap[event.data.nodeType] = event.data.value;
       console.warn("R<DISPLAY_NODE_TYPE | " + event.data.nodeType + " | " + event.data.value);
-      console.warn("displayNodeHashMap\n" + displayNodeHashMap.entries());
+      console.warn("displayNodeHashMap\n" + jsonPrint(displayNodeHashMap));
     break;
 
     default :
@@ -1879,7 +1879,7 @@ var rxNodeQueue = [];
 var rxNode = function(node){
   if ((rxNodeQueue.length < RX_NODE_QUEUE_MAX)
   ){
-    if (displayNodeHashMap.get(node.nodeType).value === "show") {
+    if (displayNodeHashMap[node.nodeType] !== undefined) {
       rxNodeQueue.push(node);
     }
   }

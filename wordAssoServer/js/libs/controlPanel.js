@@ -417,6 +417,10 @@ function ControlPanel() {
         console.log("EMOJI: " + newValue);
         config.displayEnabled[currentButton.getAttribute("nodeType")] = newValue;
       break;
+      case "user":
+        console.log("USER: " + newValue);
+        config.displayEnabled[currentButton.getAttribute("nodeType")] = newValue;
+      break;
     }
 
     parentWindow.postMessage(
@@ -456,6 +460,7 @@ function ControlPanel() {
   }
 
   createDisplayNodeTypeButton({nodeType: "emoji"});
+  createDisplayNodeTypeButton({nodeType: "user"});
 
   var twitterCategoryButtonsDiv = document.getElementById("twitterCategoryButtonsDiv");
 

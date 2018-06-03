@@ -1268,12 +1268,12 @@ function ViewTreepack() {
       .attr("xlink:href", function (d) { return d.mediaUrl; })
       .attr("class", "nodeImage")
       .attr("x", function(d) {
-        if (metricMode === "rate") {return d.x - 0.5*(imageSizeScale(parseInt(d.rate) + 1.0));}
-        if (metricMode === "mentions") {return return d.x - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0));}
+        if (metricMode === "rate") { return d.x - 0.5*(imageSizeScale(parseInt(d.rate) + 1.0)); }
+        if (metricMode === "mentions") { return d.x - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); }
       })
       .attr("y", function(d) { 
-        if (metricMode === "rate") {return d.y - 0.5*(imageSizeScale(parseInt(d.rate) + 1.0));}
-        if (metricMode === "mentions") {return return d.y - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0));}
+        if (metricMode === "rate") { return d.y - 0.5*(imageSizeScale(parseInt(d.rate) + 1.0)); }
+        if (metricMode === "mentions") { return d.y - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); }
       })
       .style("visibility", function (d) { 
         if (!d.isValid) { return "hidden"; }

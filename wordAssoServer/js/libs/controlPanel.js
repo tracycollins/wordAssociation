@@ -460,6 +460,7 @@ function ControlPanel() {
   }
 
   createDisplayNodeTypeButton({nodeType: "emoji"});
+  createDisplayNodeTypeButton({nodeType: "hashtag"});
   createDisplayNodeTypeButton({nodeType: "user"});
 
   var twitterCategoryButtonsDiv = document.getElementById("twitterCategoryButtonsDiv");

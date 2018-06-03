@@ -1241,12 +1241,12 @@ function ViewTreepack() {
   var nodeMedia;
   var updateNodeMedia = function(callback) {
 
-    nodeMedia = nodeSvgGroup.selectAll("media")
+    nodeMedia = nodeSvgGroup.selectAll("image")
       .data(nodeArray, function (d){ return d.nodeId; });
 
     nodeMedia
       .enter()
-      .filter(function(d){ return d.nodeType == "media"; }).append("svg:image")
+      .filter(function(d){ return d.nodeType === "media"; }).append("svg:image")
       .attr("id", function (d) { return d.nodePoolId; })
       .attr("nodeId", function (d) { return d.nodeId; })
       .attr("xlink:href", function (d) { return d.mediaUrl; })

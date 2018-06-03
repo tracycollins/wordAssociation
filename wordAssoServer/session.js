@@ -1,8 +1,12 @@
-"use strict";
 /*ver 0.47*/
 
-var DEFAULT_SOURCE = "http://localhost:9997";
-// var DEFAULT_SOURCE = "http://word.threeceelabs.com";
+/* jshint undef: true, unused: true */
+/* globals ViewTreepack, clearTimeout, setTimeout, setInterval, window, document, console, store, io, requirejs, moment, HashMap, async, ProgressBar */
+
+"use strict";
+
+// var DEFAULT_SOURCE = "http://localhost:9997";
+var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 
 var config = {};
 var previousConfig = {};
@@ -495,6 +499,10 @@ var ignoreWordsArray = [
 ignoreWordsArray.push("'");
 ignoreWordsArray.push("`");
 
+var hashtagHashMap = new HashMap();
+
+var displayNodeHashMap = new HashMap();
+
 var ignoreWordHashMap = new HashMap();
 
 var categoryColorHashMap = new HashMap();
@@ -505,6 +513,8 @@ categoryColorHashMap.set("neutral", palette.lightgray);
 
 categoryColorHashMap.set("left", palette.blue);
 categoryColorHashMap.set("right", palette.yellow);
+
+
 
 var rxSessionUpdateQueue = [];
 var rxSessionDeleteQueue = [];
@@ -517,7 +527,6 @@ var namespace;
 var sessionMode = false;
 var monitorMode = false;
 
-var viewerSessionKey;
 var socket = io("/view");
 
 var milliseconds;
@@ -618,9 +627,6 @@ function resetServerActiveTimer() {
   }, serverActiveTimeoutInterval);
 }
 
-
-var dragEndPosition = { "id": "ID", "x": 47, "y": 147};
-
 // document.addEventListener("dragEnd", function(e) {
 //   console.log("DRAG END: " + jsonPrint(dragEndPosition));
 //   if (sessionHashMap.has(dragEndPosition.id)){
@@ -663,7 +669,7 @@ function toggleControlPanel(){
 
     var controlPanelInitWaitInterval;
 
-    createPopUpControlPanel(config, function(cpw){
+    createPopUpControlPanel(config, function(){
 
       console.warn("createPopUpControlPanel toggleControlPanel: " + controlPanelFlag);
 
@@ -976,6 +982,13 @@ function controlPanelComm(event) {
     case "SET_TWITTER_HASHTAG":
       // console.info("R< CONTROL PANEL LOOPBACK? | SET_TWITTER_HASHTAG ... IGNORING ...");
     break;
+
+    case "DISPLAY_NODE_TYPE":
+      displayNodeHashMap.set(event.data.nodeType,  event.data.value);
+      console.warn("R<DISPLAY_NODE_TYPE | " + event.data.nodeType + " | " + event.data.value);
+      console.warn("displayNodeHashMap\n" + displayNodeHashMap.entries());
+    break;
+
     default :
       if (event.data["twttr.button"] !== undefined){
         console.log("R< CONTROL PANEL TWITTER" 
@@ -1078,7 +1091,7 @@ function toggleTestMode() {
 }
 
 var initialPosition;
-function computeInitialPosition(index) {
+function computeInitialPosition() {
   initialPosition = {
     x: randomIntFromInterval(0.95 * currentSessionView.getWidth(), 1.0 * currentSessionView.getWidth()),
     y: randomIntFromInterval(0.3 * currentSessionView.getHeight(), 0.7 * currentSessionView.getHeight())
@@ -1294,7 +1307,7 @@ function getUrlVariables(callbackMain) {
 
   variableArray.forEach(
 
-    function(variable, callback) {
+    function(variable) {
 
       asyncTasks.push(function(callback2) {
 
@@ -1373,7 +1386,7 @@ function getUrlVariables(callbackMain) {
 
 var globalLinkIndex = 0;
 
-function generateLinkId(callback) {
+function generateLinkId() {
   globalLinkIndex += 1;
   return "LNK" + globalLinkIndex;
 }
@@ -1859,7 +1872,9 @@ var rxNode = function(node){
   if ((rxNodeQueue.length < RX_NODE_QUEUE_MAX)
     // &&((node.nodeType === "user") || (node.nodeType === "hashtag") || (node.nodeType === "place"))
   ){
-    rxNodeQueue.push(node);
+    if (displayNodeHashMap.get(node.nodeType).value === "show") {
+      rxNodeQueue.push(node);
+    }
   }
 };
 
@@ -1933,30 +1948,30 @@ function initSocketSessionUpdateRx(){
     }
   }, RX_NODE_QUEUE_INTERVAL);
 
-  socket.on("STATS_HASHTAG", function(htStatsObj){
-      console.log(">>> RX STATS_HASHTAG");
+  // socket.on("STATS_HASHTAG", function(htStatsObj){
+  //     console.log(">>> RX STATS_HASHTAG");
 
-      var htObjArray = [];
+  //     var htObjArray = [];
 
-      Object.keys(htStatsObj).forEach(function(key) {
-        if (htStatsObj.hasOwnProperty(key)) {
+  //     Object.keys(htStatsObj).forEach(function(key) {
+  //       if (htStatsObj.hasOwnProperty(key)) {
 
-          var htObj = htStatsObj[key];
-          var mntns = htObj.mentions.toString() ;
-          var numPadSpaces = 10 - mntns.length;
-          htObj.displaytext = new Array(numPadSpaces).join("xa0") + mntns + " " + key ;
-          htObj.barlabel = key ;
+  //         var htObj = htStatsObj[key];
+  //         var mntns = htObj.mentions.toString() ;
+  //         var numPadSpaces = 10 - mntns.length;
+  //         htObj.displaytext = new Array(numPadSpaces).join("xa0") + mntns + " " + key ;
+  //         htObj.barlabel = key ;
 
-          getTimeNow(function(t){
-            htObj.seen = t ;
-            htObj.topHashtag = true ;
-            htObj.newFlag = false ;
-            htObjArray.push(htObj);
-            hashtagHashMap.set(key, htObj);
-          });
-        }
-      });
-  });
+  //         getTimeNow(function(t){
+  //           htObj.seen = t ;
+  //           htObj.topHashtag = true ;
+  //           htObj.newFlag = false ;
+  //           htObjArray.push(htObj);
+  //           hashtagHashMap.set(key, htObj);
+  //         });
+  //       }
+  //     });
+  // });
 }
 
 //================================

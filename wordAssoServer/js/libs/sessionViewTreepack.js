@@ -1614,6 +1614,11 @@ function ViewTreepack() {
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
         }
 
+        if (newNode.nodeType === "media"){
+          currentNode.url = newNode.url;
+          currentNode.mediaUrl = newNode.mediaUrl;
+        }
+
         currentNode.displaytext = createDisplayText(currentNode);
 
         localNodeHashMap.set(currentNode.nodePoolId, currentNode);
@@ -1668,6 +1673,13 @@ function ViewTreepack() {
         if (newNode.nodeType === "user"){
           currentNode.followersCount = newNode.followersCount || 0;
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
+        }
+
+        if (newNode.nodeType === "media"){
+          currentNode.url = newNode.url;
+          currentNode.mediaUrl = newNode.mediaUrl;
+          currentNode.width = 100;
+          currentNode.height = 100;
         }
 
         currentNode.displaytext = createDisplayText(currentNode);

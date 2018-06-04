@@ -862,45 +862,26 @@ function controlPanelComm(event) {
       switch (event.data.id) {
         case "metricToggleButton" :
           toggleMetric();
-          resetConfigUpdateTimeOut();
         break;
-        // case "blahToggleButton" :
-        //   toggleBlah();
-        //   resetConfigUpdateTimeOut();
-        // break;
         case "fullscreenToggleButton" :
           toggleFullScreen();
-          resetConfigUpdateTimeOut();
         break;
         case "pauseToggleButton" :
           togglePause();
-          resetConfigUpdateTimeOut();
         break;
         case "statsToggleButton" :
           toggleStats();
         break;
         case "testModeToggleButton" :
           toggleTestMode();
-          resetConfigUpdateTimeOut();
         break;
-        // case "disableLinksToggleButton" :
-        //   toggleDisableLinks();
-        //   resetConfigUpdateTimeOut();
-        // break;
-        // case "nodeCreateButton" :
-        //   // createTextNode;
-        // break;
-        // case "antonymToggleButton" :
-        //   toggleAntonym();
-        //   resetConfigUpdateTimeOut();
-        // break;
         case "removeDeadNodeToogleButton" :
           toggleRemoveDeadNode();
-          resetConfigUpdateTimeOut();
         break;
         default:
           console.error("CONTROL PANEL UNKNOWN TOGGLE BUTTON");
       }
+      resetConfigUpdateTimeOut();
     break;
     case "UPDATE" :
       console.warn("R< CONTROL PANEL UPDATE");
@@ -908,43 +889,35 @@ function controlPanelComm(event) {
         case "transitionDurationSlider" :
           currentSessionView.updateTransitionDuration(event.data.value);
           config.defaultTransitionDuration = event.data.value;
-          resetConfigUpdateTimeOut();
         break;
         case "velocityDecaySlider" :
           currentSessionView.updateVelocityDecay(event.data.value);
-          resetConfigUpdateTimeOut();
         break;
         case "gravitySlider" :
           currentSessionView.updateGravity(event.data.value);
-          resetConfigUpdateTimeOut();
         break;
         case "chargeSlider" :
           currentSessionView.updateCharge(event.data.value);
-          resetConfigUpdateTimeOut();
         break;
         case "maxAgeSlider" :
           currentSessionView.setNodeMaxAge(event.data.value);
-          resetConfigUpdateTimeOut();
         break;
         case "fontSizeMinRatioSlider" :
           currentSessionView.updateFontSizeMinRatio(event.data.value);
-          resetConfigUpdateTimeOut();
         break;
         case "fontSizeMaxRatioSlider" :
           currentSessionView.updateFontSizeMaxRatio(event.data.value);
-          resetConfigUpdateTimeOut();
         break;
         case "nodeRadiusMinRatioSlider" :
           currentSessionView.updateNodeRadiusMinRatio(event.data.value);
-          resetConfigUpdateTimeOut();
         break;
         case "nodeRadiusMaxRatioSlider" :
           currentSessionView.updateNodeRadiusMaxRatio(event.data.value);
-          resetConfigUpdateTimeOut();
         break;
         default:
           console.error("UNKNOWN CONTROL PANEL ID: " + event.data.id + "\n" + jsonPrint(event.data));
       }
+      resetConfigUpdateTimeOut();
     break;
     case "INIT":
       console.info("R< CONTROL PANEL LOOPBACK? | INIT ... IGNORING ...");
@@ -991,6 +964,7 @@ function controlPanelComm(event) {
       config.displayNodeHashMap[event.data.nodeType] = event.data.value;
       console.warn("R<DISPLAY_NODE_TYPE | " + event.data.nodeType + " | " + event.data.value);
       console.warn("config.displayNodeHashMap\n" + jsonPrint(config.displayNodeHashMap));
+      resetConfigUpdateTimeOut();
     break;
 
     default :
@@ -1045,7 +1019,6 @@ function toggleMetric() {
   console.warn("SET RADIUS MODE: " + config.metricMode);
   updateMetricButton();
   if (controlPanelFlag) { controlPanel.updateControlPanel(config); }
-  saveConfig();
 }
 
 function togglePause() {
@@ -1053,7 +1026,6 @@ function togglePause() {
   currentSessionView.setPause(config.pauseFlag);
   console.warn("TOGGLE PAUSE: " + config.pauseFlag);
   controlPanel.updateControlPanel(config);
-  saveConfig();
 }
 
 function toggleRemoveDeadNode() {
@@ -1061,7 +1033,6 @@ function toggleRemoveDeadNode() {
   currentSessionView.setRemoveDeadNodesFlag(config.removeDeadNodesFlag);
   console.warn("TOGGLE REMOVE DEAD NODES: " + config.removeDeadNodesFlag);
   controlPanel.updateControlPanel(config);
-  saveConfig();
 }
 
 function toggleCategory() {
@@ -1071,7 +1042,6 @@ function toggleCategory() {
 
   updateCategoryButton();
   if (controlPanelFlag) { controlPanel.updateControlPanel(config); }
-  saveConfig();
 }
 
 function toggleStats() {
@@ -1091,7 +1061,6 @@ function toggleTestMode() {
   console.warn("TEST MODE: " + config.testModeEnabled);
   currentSessionView.setTestMode(config.testModeEnabled);
   controlPanel.updateControlPanel(config);
-  saveConfig();
 }
 
 var initialPosition;

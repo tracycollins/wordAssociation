@@ -415,7 +415,7 @@ function ViewTreepack() {
 
   var imageSizeScale = d3.scaleLinear()
     .domain([0, Math.sqrt(currentMax[metricMode][metricMode])])
-    .range([2.0*nodeRadiusMin, 2.0*nodeRadiusMax])
+    .range([nodeRadiusMin, nodeRadiusMax])
     .clamp(true);
 
   var emojiLabelSizeScale = d3.scaleLinear()
@@ -597,7 +597,7 @@ function ViewTreepack() {
 
     imageSizeScale = d3.scaleLinear()
       .domain([0, Math.sqrt(currentMax[metricMode][metricMode])])
-      .range([2.0*nodeRadiusMin, 2.0*nodeRadiusMax])
+      .range([nodeRadiusMin, nodeRadiusMax])
       .clamp(true);
 
     console.debug("SET METRIC MODE: " + mode);
@@ -704,7 +704,7 @@ function ViewTreepack() {
       .clamp(true);
     imageSizeScale = d3.scaleLinear()
       .domain([0, Math.sqrt(currentMax[metricMode][metricMode])])
-      .range([2.0*nodeRadiusMin, 2.0*nodeRadiusMax])
+      .range([nodeRadiusMin, nodeRadiusMax])
       .clamp(true);
   };
 
@@ -719,7 +719,7 @@ function ViewTreepack() {
       .clamp(true);
     imageSizeScale = d3.scaleLinear()
       .domain([0, Math.sqrt(currentMax[metricMode][metricMode])])
-      .range([2.0*nodeRadiusMin, 2.0*nodeRadiusMax])
+      .range([nodeRadiusMin, nodeRadiusMax])
       .clamp(true);
   };
 
@@ -1280,10 +1280,12 @@ function ViewTreepack() {
         return "visible"; 
       })
       .attr("width", function(d){ 
-        return imageSizeScale(parseInt(d.mentions) + 1.0); 
+        if (metricMode === "rate") {return imageSizeScale(parseInt(d.rate + 1.0));}
+        if (metricMode === "mentions") {return imageSizeScale(parseInt(d.mentions + 1.0));}
       })
       .attr("height", function(d){ 
-        return imageSizeScale(parseInt(d.mentions) + 1.0); 
+        if (metricMode === "rate") {return imageSizeScale(parseInt(d.rate + 1.0));}
+        if (metricMode === "mentions") {return imageSizeScale(parseInt(d.mentions + 1.0));}
       })
       .style("opacity", function (d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
       .on("mouseover", nodeMouseOver)
@@ -1300,10 +1302,12 @@ function ViewTreepack() {
         if (metricMode === "mentions") {return d.y - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0));}
       })
       .attr("width", function(d){ 
-        return imageSizeScale(parseInt(d.mentions) + 1.0); 
+        if (metricMode === "rate") {return imageSizeScale(parseInt(d.rate + 1.0));}
+        if (metricMode === "mentions") {return imageSizeScale(parseInt(d.mentions + 1.0));}
       })
       .attr("height", function(d){ 
-        return imageSizeScale(parseInt(d.mentions) + 1.0); 
+        if (metricMode === "rate") {return imageSizeScale(parseInt(d.rate + 1.0));}
+        if (metricMode === "mentions") {return imageSizeScale(parseInt(d.mentions + 1.0));}
       })
       .style("visibility", function (d) { 
         if (!d.isValid) { return "hidden"; }

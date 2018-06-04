@@ -84,7 +84,7 @@ const sortedObjectValues = function(params) {
     });
 
     if (keys.length !== undefined) {
-      resolve({sortKey: params.sortKey, sortedKeys: sortedKeys.slice(0,params.max)});
+      resolve({nodeType: params.nodeType, sortKey: params.sortKey, sortedKeys: sortedKeys.slice(0,params.max)});
     }
     else {
       quit("SORTER sortedObjectValues ERR");
@@ -98,7 +98,7 @@ const sendSorted = function(params) {
 
   return new Promise(function(resolve, reject) {
 
-    process.send({ op: "SORTED", sortKey: params.sortKey, sortedKeys: params.sortedKeys}, function(err){
+    process.send({ op: "SORTED", nodeType: params.nodeType, sortKey: params.sortKey, sortedKeys: params.sortedKeys}, function(err){
       if (err) {
         console.log(chalkError("!!! SORTER SEND ERR: " + err));
         reject(new Error("SEND KEYWORDS ERROR: " + err));
@@ -143,6 +143,7 @@ process.on("message", function(m) {
 
     case "SORT":
 
+      params.nodeType = m.nodeType;
       params.sortKey = m.sortKey;
       params.obj = m.obj;
       params.max = m.max;

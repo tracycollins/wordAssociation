@@ -2860,7 +2860,7 @@ function checkCategory(nodeObj, callback) {
     case "media":
     case "url":
     case "place":
-      callback(nodeObj);
+      callback(null, nodeObj);
     break;
 
     case "hashtag":

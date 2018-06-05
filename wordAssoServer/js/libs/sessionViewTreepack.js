@@ -1267,6 +1267,7 @@ function ViewTreepack() {
       .attr("nodeId", function (d) { return d.nodeId; })
       .attr("xlink:href", function (d) { return d.mediaUrl; })
       .attr("class", "nodeImage")
+      .attr("r", 1e-6) 
       .attr("x", function(d) {
         if (metricMode === "rate") { return d.x - 0.5*(imageSizeScale(parseInt(d.rate) + 1.0)); }
         if (metricMode === "mentions") { return d.x - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); }
@@ -1293,6 +1294,10 @@ function ViewTreepack() {
       .on("click", nodeClick);
 
     nodeMedia
+      .attr("r", function(d) {
+        if (metricMode === "rate") { return imageSizeScale(Math.sqrt(d.rate));}
+        if (metricMode === "mentions") {return imageSizeScale(Math.sqrt(d.mentions));}
+      })
       .attr("x", function(d) {
         if (metricMode === "rate") {return d.x - 0.5*(imageSizeScale(parseInt(d.rate) + 1.0));}
         if (metricMode === "mentions") {return d.x - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0));}
@@ -1317,8 +1322,9 @@ function ViewTreepack() {
 
     nodeMedia
       .exit()
-      .attr("width", 0)
-      .attr("height", 0);
+      .attr("r", 1e-6)
+      .attr("width", 1e-6)
+      .attr("height", 1e-6);
 
     callback();
   };

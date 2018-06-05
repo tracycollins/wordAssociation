@@ -473,7 +473,7 @@ wordAssoDb.connect(function(err, dbConnection){
   }
   else {
     dbConnection.on("error", console.error.bind(console, "*** MONGO DB CONNECTION ERROR ***\n"));
-    console.log(chalkAlert("WORD ASSO SERVER | MONGOOSE DEFAULT CONNECTION OPEN"));
+    console.log(chalk.blue("WORD ASSO SERVER | MONGOOSE DEFAULT CONNECTION OPEN"));
     NeuralNetwork = mongoose.model("NeuralNetwork", neuralNetworkModel.NeuralNetworkSchema);
     Emoji = mongoose.model("Emoji", emojiModel.EmojiSchema);
     Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
@@ -767,7 +767,7 @@ const localHostHashMap = new HashMap();
 let tweetParser;
 
 function initStats(callback){
-  console.log(chalkAlert("INIT STATS"));
+  console.log(chalk.blue("INIT STATS"));
   statsObj = {};
 
   statsObj.bestNetwork = {};
@@ -1169,23 +1169,23 @@ function saveFile (params, callback){
     const objSizeMBytes = options.file_size/ONE_MEGABYTE;
 
     showStats();
-    console.log(chalkAlert("WAS | ... SAVING LOCALLY"
+    console.log(chalk.blue("WAS | ... SAVING LOCALLY"
       + " | " + objSizeMBytes.toFixed(2) + " MB | " + fullPath
     ));
 
     writeJsonFile(fullPath, params.obj)
     .then(function() {
 
-      console.log(chalkAlert("WAS | SAVED LOCALLY"
+      console.log(chalk.blue("WAS | SAVED LOCALLY"
         + " | " + objSizeMBytes.toFixed(2) + " MB | " + fullPath
       ));
-      console.log(chalkAlert("WAS | ... PAUSE 5 SEC TO FINISH FILE SAVE"
+      console.log(chalk.blue("WAS | ... PAUSE 5 SEC TO FINISH FILE SAVE"
         + " | " + objSizeMBytes.toFixed(2) + " MB | " + fullPath
         ));
 
       setTimeout(function(){
 
-        console.log(chalkAlert("WAS | ... DROPBOX UPLOADING"
+        console.log(chalk.blue("WAS | ... DROPBOX UPLOADING"
           + " | " + objSizeMBytes.toFixed(2) + " MB | " 
           + fullPath + " > " + options.destination
         ));
@@ -1366,11 +1366,11 @@ function saveFile (params, callback){
             return;
           }
           if (fileExits) {
-            console.log(chalkAlert("WAS | ... DROPBOX FILE EXISTS ... SKIP SAVE | " + fullPath));
+            console.log(chalk.blue("WAS | ... DROPBOX FILE EXISTS ... SKIP SAVE | " + fullPath));
             if (callback !== undefined) { callback(err, null); }
           }
           else {
-            console.log(chalkAlert("WAS | ... DROPBOX DOES NOT FILE EXIST ... SAVING | " + fullPath));
+            console.log(chalk.blue("WAS | ... DROPBOX DOES NOT FILE EXIST ... SAVING | " + fullPath));
             dbFileUpload();
           }
         });
@@ -1603,7 +1603,7 @@ function getChildProcesses(params, callback){
 
             numChildren += 1;
 
-            console.log(chalkAlert("NNT | FOUND CHILD PROCESS"
+            console.log(chalk.blue("NNT | FOUND CHILD PROCESS"
               + " | NUM: " + numChildren
               + " | PID: " + pid
               + " | " + childId
@@ -2003,7 +2003,7 @@ function socketRxTweet(tw) {
 
 function follow(params, callback) {
 
-  console.log(chalkAlert("+++ FOLLOW | @" + params.user.screenName));
+  console.log(chalk.blue("+++ FOLLOW | @" + params.user.screenName));
 
   adminNameSpace.emit("FOLLOW", params.user);
   utilNameSpace.emit("FOLLOW", params.user);
@@ -2025,7 +2025,7 @@ function initSocketHandler(socketObj) {
     + " | UT: " + statsObj.entity.util.connected
     + " | VW: " + statsObj.entity.viewer.connected;
 
-  console.log(chalkAlert("SOCKET CONNECT"
+  console.log(chalk.blue("SOCKET CONNECT"
     + " | " + ipAddress
     + " | " + socketObj.namespace
     + " | " + socket.id
@@ -2122,7 +2122,7 @@ function initSocketHandler(socketObj) {
   socket.on("disconnect", function socketDisconnect(status) {
     statsObj.socket.disconnects += 1;
 
-    console.log(chalkAlert("SOCKET DISCONNECT"
+    console.log(chalk.blue("SOCKET DISCONNECT"
       + " | " + moment().format(compactDateTimeFormat)
       + " | " + socket.id
     ));
@@ -2148,7 +2148,7 @@ function initSocketHandler(socketObj) {
 
       currentServer.status = "DISCONNECTED";
 
-      console.error(chalkAlert("SERVER DISCONNECTED" 
+      console.error(chalk.blue("SERVER DISCONNECTED" 
         + " | " + moment().format(compactDateTimeFormat)
         + " | " + currentServer.user.type.toUpperCase()
         + " | " + currentServer.user.nodeId
@@ -2167,7 +2167,7 @@ function initSocketHandler(socketObj) {
 
       currentViewer.status = "DISCONNECTED";
 
-      console.error(chalkAlert("VIEWER DISCONNECTED" 
+      console.error(chalk.blue("VIEWER DISCONNECTED" 
         + " | " + moment(currentViewer.timeStamp).format(compactDateTimeFormat)
         + " | " + currentViewer.user.type.toUpperCase()
         + " | " + currentViewer.user.nodeId
@@ -2333,7 +2333,7 @@ function initSocketHandler(socketObj) {
         return;
       }
 
-      console.log(chalkAlert("+++ TWITTER_FOLLOW"
+      console.log(chalk.blue("+++ TWITTER_FOLLOW"
         + " | @" + u.screenName
       ));
 
@@ -2391,7 +2391,7 @@ function initSocketHandler(socketObj) {
               return;
             }
 
-            console.log(chalkAlert("+++ SAVED NEW HASHTAG"
+            console.log(chalk.blue("+++ SAVED NEW HASHTAG"
               + " | #" + newHt.nodeId
             ));
 
@@ -2500,7 +2500,7 @@ function initSocketHandler(socketObj) {
                     }
                     else {
 
-                      console.log(chalkAlert("UPDATED updatedUser"
+                      console.log(chalk.blue("UPDATED updatedUser"
                         + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
                         + " | USER CR: " + moment(updatedUser.createdAt).format(compactDateTimeFormat)
                         + "\n" + printUser({user:updatedUser})
@@ -2734,24 +2734,24 @@ function initSocketNamespaces(callback){
   viewNameSpace = io.of("/view");
 
   adminNameSpace.on("connect", function adminConnect(socket) {
-    console.log(chalkAlert("ADMIN CONNECT " + socket.id));
+    console.log(chalk.blue("ADMIN CONNECT " + socket.id));
     statsObj.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
     initSocketHandler({namespace: "admin", socket: socket});
   });
 
   utilNameSpace.on("connect", function utilConnect(socket) {
-    console.log(chalkAlert("UTIL CONNECT " + socket.id));
+    console.log(chalk.blue("UTIL CONNECT " + socket.id));
     statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
     initSocketHandler({namespace: "util", socket: socket});
   });
 
   userNameSpace.on("connect", function userConnect(socket) {
-    console.log(chalkAlert("USER CONNECT " + socket.id));
+    console.log(chalk.blue("USER CONNECT " + socket.id));
     initSocketHandler({namespace: "user", socket: socket});
   });
 
   viewNameSpace.on("connect", function viewConnect(socket) {
-    console.log(chalkAlert("VIEWER CONNECT " + socket.id));
+    console.log(chalk.blue("VIEWER CONNECT " + socket.id));
     statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
     initSocketHandler({namespace: "view", socket: socket});
   });
@@ -2794,7 +2794,7 @@ function processCheckCategory(nodeObj, callback){
     nodeObj.category = categorizedNodeHashMap.get(nodeObj.nodeId).manual;
     nodeObj.categoryAuto = categorizedNodeHashMap.get(nodeObj.nodeId).auto;
 
-    debugCategory(chalkAlert("KW HIT WORD NODEID"
+    debugCategory(chalk.blue("KW HIT WORD NODEID"
       + " | " + nodeObj.nodeId
       + " | CAT: " + nodeObj.category
       + " | CATA: " + nodeObj.categoryAuto
@@ -2875,7 +2875,7 @@ function checkCategory(nodeObj, callback) {
     break;
 
     default:
-      console.log(chalkAlert("DEFAULT | checkCategory\n" + jsonPrint(nodeObj)));
+      console.log(chalk.blue("DEFAULT | checkCategory\n" + jsonPrint(nodeObj)));
       callback(null, nodeObj);
   }
 }
@@ -3523,7 +3523,7 @@ function initAppRouting(callback) {
 
   app.use(function requestLog(req, res, next) {
 
-    console.log(chalkAlert("R>"
+    console.log(chalkLog("R>"
       + " | " + moment().format(compactDateTimeFormat)
       + " | IP: " + req.ip
       + " | HOST: " + req.hostname
@@ -3551,13 +3551,13 @@ function initAppRouting(callback) {
           utilNameSpace.emit("DROPBOX_CHANGE", response);
           adminNameSpace.emit("DROPBOX_CHANGE", response);
 
-          console.log(chalkAlert(">>> DROPBOX CHANGE"
+          console.log(chalkLog(">>> DROPBOX CHANGE"
             + " | " + getTimeStamp()
             + " | FOLDER: " + bestNetworkFolder
           ));
           
           response.entries.forEach(function(entry){
-            console.log(chalkAlert(">>> DROPBOX CHANGE | ENTRY"
+            console.log(chalkLog(">>> DROPBOX CHANGE | ENTRY"
               + " | TYPE: " + entry[".tag"]
               + " | PATH: " + entry.path_lower
               + " | NAME: " + entry.name
@@ -3586,11 +3586,11 @@ function initAppRouting(callback) {
       });
     }
     else if (req.path === "/") {
-      console.log(chalkAlert("R> REDIRECT /session")); 
+      console.log(chalkLog("R> REDIRECT /session")); 
       res.redirect("/session");
     }
     else if (req.path === "/categorize"){
-      console.log(chalkAlert("R> CATEGORIZE"
+      console.log(chalkLog("R> CATEGORIZE"
         + " | req.query: " + jsonPrint(req.query)
         + " | req.params: " + jsonPrint(req.params)
       ));
@@ -3654,7 +3654,7 @@ function initAppRouting(callback) {
 
   app.get("/admin", function requestAdmin(req, res) {
     debug(chalkInfo("get req\n" + req));
-    console.log(chalkAlert("LOADING PAGE"
+    console.log(chalkLog("LOADING PAGE"
       + " | REQ: " + req.url
       + " | RES: " + adminHtml
     ));
@@ -3677,7 +3677,7 @@ function initAppRouting(callback) {
 
   app.get("/session", function requestSession(req, res, next) {
     debug(chalkInfo("get next\n" + next));
-    console.log(chalkAlert("LOADING PAGE"
+    console.log(chalkLog("LOADING PAGE"
       + " | REQ: " + req.url
       + " | RES: " + sessionHtml
     ));
@@ -4649,7 +4649,7 @@ function initLoadBestNetworkInterval(interval){
                   bestNetworkObj = nnArray[0];
                   if (bestNetworkObj.matchRate === undefined) { bestNetworkObj.matchRate = 0; }
                   if (bestNetworkObj.overallMatchRate === undefined) { bestNetworkObj.overallMatchRate = 0; }
-                  console.log(chalkAlert("+++ BEST NEURAL NETWORK LOADED FROM DB"
+                  console.log(chalk.blue("+++ BEST NEURAL NETWORK LOADED FROM DB"
                     + " | " + bestNetworkObj.networkId
                     + " | SR: " + bestNetworkObj.successRate.toFixed(2) + "%"
                     + " | MR: " + bestNetworkObj.matchRate.toFixed(2) + "%"
@@ -4663,7 +4663,7 @@ function initLoadBestNetworkInterval(interval){
 
               if (bestNetworkObj) { previousBestNetworkId = bestNetworkObj.networkId; }
 
-              console.log(chalkAlert("NEW BEST NETWORK"
+              console.log(chalk.blue("NEW BEST NETWORK"
                 + " | " + nnObj.networkId
                 + " | " + nnObj.successRate.toFixed(2)
                 + " | " + nnObj.matchRate.toFixed(2)
@@ -4784,7 +4784,7 @@ function initCategoryHashmaps(callback){
       if (callback !== undefined) { callback(err); }
     }
     else {
-      console.log(chalkAlert("LOAD COMPLETE: initCategoryHashmaps"));
+      console.log(chalk.blue("LOAD COMPLETE: initCategoryHashmaps"));
       if (callback !== undefined) { callback(); }
     }
 
@@ -5083,7 +5083,7 @@ initialize(configuration, function initializeComplete(err) {
 
     console.log(chalkInfo("NODE CACHE TTL: " + nodeCacheTtl + " SECONDS"));
 
-    console.log(chalkAlert("CONFIGURATION\n" + jsonPrint(configuration)));
+    console.log(chalk.blue("CONFIGURATION\n" + jsonPrint(configuration)));
 
     if (!configuration.metrics.nodeMeterEnabled) {
       console.log(chalkAlert("*** WORD RATE METER DISABLED ***"));

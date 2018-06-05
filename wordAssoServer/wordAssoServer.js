@@ -1951,7 +1951,7 @@ function socketRxTweet(tw) {
     statsObj.errors.twitter.maxRxQueue += 1;
 
     if (statsObj.errors.twitter.maxRxQueue % 100 === 0) {
-      console.log(chalkError("*** TWEET RX MAX QUEUE [" + tweetRxQueue.length + "]"
+      console.log(chalkAlert("*** TWEET RX MAX QUEUE [" + tweetRxQueue.length + "]"
         + " | " + getTimeStamp()
         + " | TWP READY: " + tweetParserReady
         + " | TWP SEND READY: " + tweetParserSendReady
@@ -2215,7 +2215,7 @@ function initSocketHandler(socketObj) {
 
         sessionObj.isAdmin = true;
 
-        console.log(chalkAlert(currentSessionType 
+        console.log(chalk.blue(currentSessionType 
           + " | " + moment().format(compactDateTimeFormat)
           + " | TYPE: " + userObj.type
           + " | ID: " + userObj.userId

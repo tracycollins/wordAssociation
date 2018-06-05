@@ -1982,7 +1982,8 @@ function ViewTreepack() {
       .force("collide", d3.forceCollide().radius(function forceCollideFunc(d) { 
         if (metricMode === "rate") { return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate));}
         if (metricMode === "mentions") { return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions)); }
-      }).iterations(collisionIterations).strength(1.0))
+      })
+      .iterations(collisionIterations).strength(1.0))
       .velocityDecay(velocityDecay)
       .on("tick", ticked);
   };
@@ -2129,7 +2130,8 @@ function ViewTreepack() {
           if (metricMode === "mentions") {
             return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions));
           }
-        }).iterations(collisionIterations))
+        })
+        .iterations(collisionIterations))
         .velocityDecay(velocityDecay);
     }
   };

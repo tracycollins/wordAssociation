@@ -6,7 +6,7 @@
 "use strict";
 
 // var DEFAULT_SOURCE = "http://localhost:9997";
-var DEFAULT_SOURCE = "http://word.threeceelabs.com";
+var DEFAULT_SOURCE = "https://word.threeceelabs.com";
 
 var config = {};
 var previousConfig = {};

@@ -4114,6 +4114,11 @@ function initSorterMessageRxQueueInterval(interval){
   }, interval);
 }
 
+
+let sorterPingInterval;
+let sorterPongReceived = false;
+let pingId = false;
+
 function initSorterPingInterval(interval){
 
   clearInterval(sorterPingInterval);
@@ -4270,11 +4275,6 @@ function initSorter(params, callback){
   if (callback !== undefined) { callback(null, s); }
 }
 
-
-
-let sorterPingInterval;
-let sorterPongReceived = false;
-let pingId = false;
 
 
 function initTweetParser(params, callback){

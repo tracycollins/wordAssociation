@@ -1812,7 +1812,7 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
 
   switch(childObj.childId){
 
-    case "tweetParser":
+    case DEFAULT_TWEET_PARSER_CHILD_ID:
 
       console.error("KILL TWEET PARSER");
 
@@ -1822,7 +1822,7 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
 
     break;
 
-    case "sorter":
+    case DEFAULT_SORTER_CHILD_ID:
       console.log(chalkError("KILL SORTER"));
 
       killChild({childId: childObj.childId}, function(err, numKilled){

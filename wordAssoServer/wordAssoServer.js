@@ -1778,6 +1778,53 @@ configEvents.on("newListener", function configEventsNewListener(data) {
   debug("*** NEW CONFIG EVENT LISTENER: " + data);
 });
 
+configEvents.on("CHILD_ERROR", function childError(childObj){
+
+  console.error(chalkError("CHILD_ERROR"
+    + " | " + childObj.childId
+    + " | ERROR: " + jsonPrint(childObj.err)
+  ));
+
+  console.log(chalkError("CHILD_ERROR"
+    + " | " + childObj.childId
+    + " | ERROR: " + jsonPrint(childObj.err)
+  ));
+
+  if (childrenHashMap[childObj.childId] === undefined){
+    childrenHashMap[childObj.childId] = {};
+    childrenHashMap[childObj.childId].errors = 0;
+    childrenHashMap[childObj.childId].status = "UNKNOWN";
+  }
+
+  childrenHashMap[childObj.childId].errors += 1;
+
+  slackPostMessage(slackErrorChannel, "\n*CHILD ERROR*\n" + childObj.childId + "\n" + childObj.err);
+
+  switch(childObj.childId){
+
+    case "tweetParser":
+
+      console.error("KILL TWEET PARSER");
+
+      killChild({childId: childObj.childId}, function(err, numKilled){
+        initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
+      });
+
+    break;
+
+    case "sorter":
+      console.log(chalkError("KILL SORTER"));
+
+      killChild({childId: childObj.childId}, function(err, numKilled){
+        initSorter({childId: DEFAULT_SORTER_CHILD_ID});
+      });
+
+    break;
+
+  }
+});
+
+
 let adminNameSpace;
 let utilNameSpace;
 let userNameSpace;
@@ -4114,7 +4161,6 @@ function initSorterMessageRxQueueInterval(interval){
   }, interval);
 }
 
-
 let sorterPingInterval;
 let sorterPongReceived = false;
 let pingId = false;
@@ -4922,52 +4968,6 @@ function initialize(cnf, callback) {
     });
   });
 }
-
-configEvents.on("CHILD_ERROR", function childError(childObj){
-
-  console.error(chalkError("CHILD_ERROR"
-    + " | " + childObj.childId
-    + " | ERROR: " + jsonPrint(childObj.err)
-  ));
-
-  console.log(chalkError("CHILD_ERROR"
-    + " | " + childObj.childId
-    + " | ERROR: " + jsonPrint(childObj.err)
-  ));
-
-  if (childrenHashMap[childObj.childId] === undefined){
-    childrenHashMap[childObj.childId] = {};
-    childrenHashMap[childObj.childId].errors = 0;
-    childrenHashMap[childObj.childId].status = "UNKNOWN";
-  }
-
-  childrenHashMap[childObj.childId].errors += 1;
-
-  slackPostMessage(slackErrorChannel, "\n*CHILD ERROR*\n" + childObj.childId + "\n" + childObj.err);
-
-  switch(childObj.childId){
-
-    case "tweetParser":
-
-      console.error("KILL TWEET PARSER");
-
-      killChild({childId: childObj.childId}, function(err, numKilled){
-        initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
-      });
-
-    break;
-
-    case "sorter":
-      console.log(chalkError("KILL SORTER"));
-
-      killChild({childId: childObj.childId}, function(err, numKilled){
-        initSorter({childId: DEFAULT_SORTER_CHILD_ID});
-      });
-
-    break;
-
-  }
-});
 
 function initIgnoreWordsHashMap(callback) {
   async.each(ignoreWordsArray, function ignoreWordHashMapSet(ignoreWord, cb) {

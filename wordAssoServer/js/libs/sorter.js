@@ -124,8 +124,8 @@ process.on("message", function(m) {
   switch (m.op) {
 
     case "INIT":
-      console.log(chalkLog("SORTER INIT | " + m.childId));
-      process.title = m.childId;
+      console.log(chalkLog("SORTER INIT | " + m.childId + " | TITLE: " + m.title));
+      process.title = m.title;
     break;
 
     case "PING":

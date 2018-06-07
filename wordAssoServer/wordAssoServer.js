@@ -1537,17 +1537,44 @@ function killChild(params, callback){
           findChildByPid(pid, function(err, childId){
             if (childrenHashMap[childId] === undefined) { childrenHashMap[childId] = {}; }
             childrenHashMap[childId].status = "DEAD";
+
+            slackPostMessage(
+              slackErrorChannel, 
+              "\n*KILL CHILD*"
+              + "\nCODE: " + code
+              + "\nPID: " + pid
+              + "\nCHILD ID: " + childId
+            );
+
             if (callback !== undefined) { return callback(null, 1); }
           });
         }
         else {
           if (childrenHashMap[params.childId] === undefined) { childrenHashMap[params.childId] = {}; }
           childrenHashMap[params.childId].status = "DEAD";
+
+          slackPostMessage(
+            slackErrorChannel, 
+            "\n*KILL CHILD*"
+            + "\nCODE: " + code
+            + "\nPID: " + pid
+            + "\nCHILD ID: " + params.childId
+          );
+
           if (callback !== undefined) { return callback(null, 1); }
         }
       }
       if (code === 1) {
         console.log(chalkInfo("NNT | KILL CHILD | NO NN CHILD PROCESSES: " + command));
+
+        slackPostMessage(
+          slackErrorChannel, 
+          "\n*KILL CHILD - NO CHILD PROCESSES*"
+          + "\nCODE: " + code
+          + "\nPID: " + pid
+          + "\nCHILD ID: " + params.childId
+        );
+
         if (callback !== undefined) { return callback(null, 0); }
       }
       if (code > 1) {
@@ -1557,6 +1584,16 @@ function killChild(params, callback){
           + "\nSHELL :: NNT | STDOUT\n" + stdout
           + "\nSHELL :: NNT | STDERR\n" + stderr
         ));
+
+        slackPostMessage(
+          slackErrorChannel, 
+          "\n*KILL CHILD ERROR*"
+          + "\nCODE: " + code
+          + "\nSTDOUT: " + stdout
+          + "\nSTDERR: " + stderr
+          + "\nPARAMS: " + jsonPrint(params)
+        );
+
         if (callback !== undefined) { return callback(stderr, params); }
       }
     });

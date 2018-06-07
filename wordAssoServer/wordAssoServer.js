@@ -1508,23 +1508,35 @@ function initDeletedMetricsHashmap(callback){
 function killChild(params, callback){
 
   let pid = false;
+  let command;
 
   if (params.childId !== undefined) {
     if (childrenHashMap[params.childId] === undefined) {
-      if (callback !== undefined) { return callback("ERROR: CHILD NOT IN HM: " + params.childId, null); }
+      console.log(chalkError("KILL CHILD ERROR: CHILD NOT IN HM: " + params.childId));
+      if (callback !== undefined) { 
+        return callback("ERROR: CHILD NOT IN HM: " + params.childId, null);
+      }
+      else {
+        return;
+      }
     }
     else {
       pid = childrenHashMap[params.childId].pid;
+      command = "kill -9 " + pid;
     }
   }
-
-  if (params.pid !== undefined) {
+  else if (params.pid !== undefined) {
     pid = params.pid;
+    command = "kill -9 " + pid;
+  }
+  else if (params.title !== undefined) {
+    command = "pkill -f " + params.title;
   }
 
-  const command = "kill -9 " + pid;
 
   shell.exec(command, function(code, stdout, stderr){
+
+    if (stderr) { console.log(chalkError("KILL CHILD STDERR: " + stderr)); }
 
     getChildProcesses(function(err, childArray){
 
@@ -1544,6 +1556,7 @@ function killChild(params, callback){
               + "\nCODE: " + code
               + "\nPID: " + pid
               + "\nCHILD ID: " + childId
+              + "\nCHILD TITLE: " + childrenHashMap[childId].title
             );
 
             if (callback !== undefined) { return callback(null, 1); }
@@ -1559,6 +1572,7 @@ function killChild(params, callback){
             + "\nCODE: " + code
             + "\nPID: " + pid
             + "\nCHILD ID: " + params.childId
+            + "\nCHILD TITLE: " + childrenHashMap[params.childId].title
           );
 
           if (callback !== undefined) { return callback(null, 1); }
@@ -1573,6 +1587,7 @@ function killChild(params, callback){
           + "\nCODE: " + code
           + "\nPID: " + pid
           + "\nCHILD ID: " + params.childId
+          + "\nCHILD TITLE: " + childrenHashMap[params.childId].title
         );
 
         if (callback !== undefined) { return callback(null, 0); }
@@ -1781,11 +1796,6 @@ configEvents.on("newListener", function configEventsNewListener(data) {
 configEvents.on("CHILD_ERROR", function childError(childObj){
 
   console.error(chalkError("CHILD_ERROR"
-    + " | " + childObj.childId
-    + " | ERROR: " + jsonPrint(childObj.err)
-  ));
-
-  console.log(chalkError("CHILD_ERROR"
     + " | " + childObj.childId
     + " | ERROR: " + jsonPrint(childObj.err)
   ));
@@ -4227,19 +4237,15 @@ function initSorterPingInterval(interval){
 
 function initSorter(params, callback){
 
-  if (childrenHashMap[params.childId] === undefined){
-    childrenHashMap[params.childId] = {};
-    childrenHashMap[params.childId].pid = false;
-    childrenHashMap[params.childId].childId = params.childId;
-    childrenHashMap[params.childId].status = "NEW";
-    childrenHashMap[params.childId].errors = 0;
-  }
-
   const s = cp.fork(`${__dirname}/js/libs/sorter.js`);
 
-  childrenHashMap[params.childId] = {};  
-  childrenHashMap[params.childId].status = "NEW";  
-  childrenHashMap[params.childId].child = {};  
+  childrenHashMap[params.childId] = {};
+  childrenHashMap[params.childId].pid = s.pid;
+  childrenHashMap[params.childId].childId = params.childId;
+  childrenHashMap[params.childId].title = "wa_node_sorter";
+  childrenHashMap[params.childId].status = "NEW";
+  childrenHashMap[params.childId].errors = 0;
+
 
   s.on("message", function sorterMessageRx(m){
 
@@ -4265,6 +4271,7 @@ function initSorter(params, callback){
   s.send({
     op: "INIT",
     childId: params.childId,
+    title: "wa_node_sorter",
     interval: DEFAULT_INTERVAL
   }, function sorterMessageRxError(err){
     if (err) {
@@ -4316,7 +4323,9 @@ function initSorter(params, callback){
 
   childrenHashMap[params.childId].child = s;
 
-  initSorterPingInterval(DEFAULT_PING_INTERVAL);
+  setTimeout(function(){
+    initSorterPingInterval(DEFAULT_PING_INTERVAL);
+  }, 1000);
 
   if (callback !== undefined) { callback(null, s); }
 }
@@ -4327,20 +4336,14 @@ function initTweetParser(params, callback){
 
   tweetParserReady = false;
 
-  if (childrenHashMap[params.childId] === undefined){
-    childrenHashMap[params.childId] = {};
-    childrenHashMap[params.childId].pid = false;
-    childrenHashMap[params.childId].childId = params.childId;
-    childrenHashMap[params.childId].status = "NEW";
-    childrenHashMap[params.childId].errors = 0;
-  }
-
   const twp = cp.fork(`${__dirname}/js/libs/tweetParser.js`);
 
-  childrenHashMap[params.childId] = {};  
-  childrenHashMap[params.childId].status = "NEW";  
-  childrenHashMap[params.childId].child = {};  
-
+  childrenHashMap[params.childId] = {};
+  childrenHashMap[params.childId].pid = twp.pid;
+  childrenHashMap[params.childId].childId = params.childId;
+  childrenHashMap[params.childId].title = "wa_node_tweetParser";
+  childrenHashMap[params.childId].status = "NEW";
+  childrenHashMap[params.childId].errors = 0;
 
   twp.on("message", function tweetParserMessageRx(m){
 
@@ -4352,29 +4355,6 @@ function initTweetParser(params, callback){
     if (tweetParserMessageRxQueue.length < MAX_Q){
       tweetParserMessageRxQueue.push(m);
     }
-  });
-
-  twp.send({
-    op: "INIT",
-    networkObj: bestNetworkObj,
-    maxInputHashMap: maxInputHashMap,
-    normalization: normalization,
-    interval: TWEET_PARSER_INTERVAL
-  }, function tweetParserMessageRxError(err){
-    if (err) {
-      console.error(chalkError("*** TWEET PARSER SEND ERROR"
-        + " | " + err
-      ));
-      tweetParserSendReady = false;
-      tweetParserReady = false;
-      childrenHashMap[params.childId].status = "ERROR";
-    }
-    else {
-      tweetParserSendReady = true;
-      tweetParserReady = true;
-      childrenHashMap[params.childId].status = "INIT";
-    }
-
   });
 
   twp.on("error", function tweetParserError(err){
@@ -4410,6 +4390,29 @@ function initTweetParser(params, callback){
   childrenHashMap[params.childId].child = twp;
 
   tweetParserReady = true;
+
+  twp.send({
+    op: "INIT",
+    title: "wa_node_tweetParser",
+    networkObj: bestNetworkObj,
+    maxInputHashMap: maxInputHashMap,
+    normalization: normalization,
+    interval: TWEET_PARSER_INTERVAL
+  }, function tweetParserMessageRxError(err){
+    if (err) {
+      console.error(chalkError("*** TWEET PARSER SEND ERROR"
+        + " | " + err
+      ));
+      tweetParserSendReady = false;
+      tweetParserReady = false;
+      childrenHashMap[params.childId].status = "ERROR";
+    }
+    else {
+      tweetParserSendReady = true;
+      tweetParserReady = true;
+      childrenHashMap[params.childId].status = "INIT";
+    }
+  });
 
   if (callback !== undefined) { callback(null, twp); }
 }
@@ -4615,6 +4618,7 @@ function initRateQinterval(interval){
                   + " | " + err
                 ));
                 childrenHashMap[DEFAULT_SORTER_CHILD_ID].status = "ERROR";
+                configEvents.emit("CHILD_ERROR", { childId: DEFAULT_SORTER_CHILD_ID, err: "SORTER SEND ERROR" });
               }
               else {
                 childrenHashMap[DEFAULT_SORTER_CHILD_ID].status = "RUNNING";
@@ -4656,6 +4660,7 @@ function initRateQinterval(interval){
                 + " | " + err
               ));
               childrenHashMap[DEFAULT_SORTER_CHILD_ID].status = "ERROR";
+              configEvents.emit("CHILD_ERROR", { childId: DEFAULT_SORTER_CHILD_ID, err: "SORTER SEND ERROR" });
             }
             else {
               childrenHashMap[DEFAULT_SORTER_CHILD_ID].status = "RUNNING";
@@ -4670,108 +4675,210 @@ function initRateQinterval(interval){
 
 let loadBestNetworkInterval;
 
+function loadBestRuntimeNetwork(){
+  loadFile(bestNetworkFolder, bestRuntimeNetworkFileName, function(err, bRtNnObj){
+
+    if (err) {
+      console.trace(chalkError("LOAD BEST NETWORK ERROR"
+        + " | PATH: " + bestNetworkFolder + "/" + bestRuntimeNetworkFileName 
+        + " | ERROR: " + err
+      ));
+    }
+    else if (bRtNnObj) {
+
+      bRtNnObj.matchRate = (bRtNnObj.matchRate !== undefined) ? bRtNnObj.matchRate : 0;
+
+      console.log(chalkInfo("LOAD BEST NETWORK RUNTIME ID"
+        + " | " + bRtNnObj.networkId
+        + " | SUCCESS: " + bRtNnObj.successRate.toFixed(2) + "%"
+        + " | MATCH: " + bRtNnObj.matchRate.toFixed(2) + "%"
+      ));
+
+      statsObj.bestNetwork.networkId = bRtNnObj.networkId;
+      statsObj.bestNetwork.successRate = bRtNnObj.successRate;
+      statsObj.bestNetwork.matchRate = bRtNnObj.matchRate;
+
+      let file = bRtNnObj.networkId + ".json";
+
+      loadFile(bestNetworkFolder, file, function(err, nnObj){
+
+        if (err) {
+          console.trace(chalkError("LOAD BEST NETWORK ERROR"
+            + " | PATH: " + bestNetworkFolder + "/" + file 
+            + " | ERROR" + err
+          ));
+        }
+        else {
+
+          if (nnObj) { 
+            nnObj.matchRate = (nnObj.matchRate !== undefined) ? nnObj.matchRate : 0;
+            bestNetworkObj = deepcopy(nnObj);
+
+            // if (childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID] === undefined){
+            //   killChild({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, numKilled){
+            //     initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
+            //   });
+            // }
+          }
+          else {
+            NeuralNetwork.find({}).sort({"matchRate": -1}).limit(1).exec(function(err, nnArray){
+              if (err){
+                console.log(chalkError("*** NEURAL NETWORK FIND ERROR: " + err));
+              }
+              else if (nnArray === 0){
+                console.log(chalkError("*** NEURAL NETWORK NOT FOUND"));
+              }
+              else {
+                bestNetworkObj = nnArray[0];
+                if (bestNetworkObj.matchRate === undefined) { bestNetworkObj.matchRate = 0; }
+                if (bestNetworkObj.overallMatchRate === undefined) { bestNetworkObj.overallMatchRate = 0; }
+                console.log(chalk.blue("+++ BEST NEURAL NETWORK LOADED FROM DB"
+                  + " | " + bestNetworkObj.networkId
+                  + " | SR: " + bestNetworkObj.successRate.toFixed(2) + "%"
+                  + " | MR: " + bestNetworkObj.matchRate.toFixed(2) + "%"
+                  + " | OAMR: " + bestNetworkObj.overallMatchRate.toFixed(2) + "%"
+                ));
+              }
+            });
+          }
+
+          if (bestNetworkObj && (tweetParser !== undefined) && (previousBestNetworkId !== bestNetworkObj.networkId)) {
+
+            if (bestNetworkObj) { previousBestNetworkId = bestNetworkObj.networkId; }
+
+            console.log(chalk.blue("NEW BEST NETWORK"
+              + " | " + nnObj.networkId
+              + " | " + nnObj.successRate.toFixed(2)
+              + " | " + nnObj.matchRate.toFixed(2)
+              // + "\n" + jsonPrint(nnObj)
+            ));
+
+            statsObj.bestNetwork.networkId = nnObj.networkId;
+            statsObj.bestNetwork.successRate = nnObj.successRate;
+            statsObj.bestNetwork.matchRate = nnObj.matchRate;
+
+            childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({ op: "NETWORK", networkObj: bestNetworkObj }, function twpNetwork(err){
+              if (err) {
+                console.error(chalkError("*** TWEET PARSER SEND NETWORK ERROR"
+                  + " | " + err
+                ));
+              }
+            });
+          }
+
+        }
+
+      });
+    }
+  });
+}
+
 function initLoadBestNetworkInterval(interval){
 
   clearInterval(loadBestNetworkInterval);
 
+  loadBestRuntimeNetwork();
+
   loadBestNetworkInterval = setInterval(function(){
 
-    loadFile(bestNetworkFolder, bestRuntimeNetworkFileName, function(err, bRtNnObj){
+    loadBestRuntimeNetwork();
 
-      if (err) {
-        console.trace(chalkError("LOAD BEST NETWORK ERROR"
-          + " | PATH: " + bestNetworkFolder + "/" + bestRuntimeNetworkFileName 
-          + " | ERROR: " + err
-        ));
-      }
-      else if (bRtNnObj) {
+    // loadFile(bestNetworkFolder, bestRuntimeNetworkFileName, function(err, bRtNnObj){
 
-        bRtNnObj.matchRate = (bRtNnObj.matchRate !== undefined) ? bRtNnObj.matchRate : 0;
+    //   if (err) {
+    //     console.trace(chalkError("LOAD BEST NETWORK ERROR"
+    //       + " | PATH: " + bestNetworkFolder + "/" + bestRuntimeNetworkFileName 
+    //       + " | ERROR: " + err
+    //     ));
+    //   }
+    //   else if (bRtNnObj) {
 
-        console.log(chalkInfo("LOAD BEST NETWORK RUNTIME ID"
-          + " | " + bRtNnObj.networkId
-          + " | SUCCESS: " + bRtNnObj.successRate.toFixed(2) + "%"
-          + " | MATCH: " + bRtNnObj.matchRate.toFixed(2) + "%"
-        ));
+    //     bRtNnObj.matchRate = (bRtNnObj.matchRate !== undefined) ? bRtNnObj.matchRate : 0;
 
-        statsObj.bestNetwork.networkId = bRtNnObj.networkId;
-        statsObj.bestNetwork.successRate = bRtNnObj.successRate;
-        statsObj.bestNetwork.matchRate = bRtNnObj.matchRate;
+    //     console.log(chalkInfo("LOAD BEST NETWORK RUNTIME ID"
+    //       + " | " + bRtNnObj.networkId
+    //       + " | SUCCESS: " + bRtNnObj.successRate.toFixed(2) + "%"
+    //       + " | MATCH: " + bRtNnObj.matchRate.toFixed(2) + "%"
+    //     ));
 
-        let file = bRtNnObj.networkId + ".json";
+    //     statsObj.bestNetwork.networkId = bRtNnObj.networkId;
+    //     statsObj.bestNetwork.successRate = bRtNnObj.successRate;
+    //     statsObj.bestNetwork.matchRate = bRtNnObj.matchRate;
 
-        loadFile(bestNetworkFolder, file, function(err, nnObj){
+    //     let file = bRtNnObj.networkId + ".json";
 
-          if (err) {
-            console.trace(chalkError("LOAD BEST NETWORK ERROR"
-              + " | PATH: " + bestNetworkFolder + "/" + file 
-              + " | ERROR" + err
-            ));
-          }
-          else {
+    //     loadFile(bestNetworkFolder, file, function(err, nnObj){
 
-            if (nnObj) { 
-              nnObj.matchRate = (nnObj.matchRate !== undefined) ? nnObj.matchRate : 0;
-              bestNetworkObj = deepcopy(nnObj);
+    //       if (err) {
+    //         console.trace(chalkError("LOAD BEST NETWORK ERROR"
+    //           + " | PATH: " + bestNetworkFolder + "/" + file 
+    //           + " | ERROR" + err
+    //         ));
+    //       }
+    //       else {
 
-              if (childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID] === undefined){
-                killChild({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, numKilled){
-                  initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
-                });
-              }
-            }
-            else {
-              NeuralNetwork.find({}).sort({"matchRate": -1}).limit(1).exec(function(err, nnArray){
-                if (err){
-                  console.log(chalkError("*** NEURAL NETWORK FIND ERROR: " + err));
-                }
-                else if (nnArray === 0){
-                  console.log(chalkError("*** NEURAL NETWORK NOT FOUND"));
-                }
-                else {
-                  bestNetworkObj = nnArray[0];
-                  if (bestNetworkObj.matchRate === undefined) { bestNetworkObj.matchRate = 0; }
-                  if (bestNetworkObj.overallMatchRate === undefined) { bestNetworkObj.overallMatchRate = 0; }
-                  console.log(chalk.blue("+++ BEST NEURAL NETWORK LOADED FROM DB"
-                    + " | " + bestNetworkObj.networkId
-                    + " | SR: " + bestNetworkObj.successRate.toFixed(2) + "%"
-                    + " | MR: " + bestNetworkObj.matchRate.toFixed(2) + "%"
-                    + " | OAMR: " + bestNetworkObj.overallMatchRate.toFixed(2) + "%"
-                  ));
-                }
-              });
-            }
+    //         if (nnObj) { 
+    //           nnObj.matchRate = (nnObj.matchRate !== undefined) ? nnObj.matchRate : 0;
+    //           bestNetworkObj = deepcopy(nnObj);
 
-            if (bestNetworkObj && (tweetParser !== undefined) && (previousBestNetworkId !== bestNetworkObj.networkId)) {
+    //           if (childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID] === undefined){
+    //             killChild({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, numKilled){
+    //               initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
+    //             });
+    //           }
+    //         }
+    //         else {
+    //           NeuralNetwork.find({}).sort({"matchRate": -1}).limit(1).exec(function(err, nnArray){
+    //             if (err){
+    //               console.log(chalkError("*** NEURAL NETWORK FIND ERROR: " + err));
+    //             }
+    //             else if (nnArray === 0){
+    //               console.log(chalkError("*** NEURAL NETWORK NOT FOUND"));
+    //             }
+    //             else {
+    //               bestNetworkObj = nnArray[0];
+    //               if (bestNetworkObj.matchRate === undefined) { bestNetworkObj.matchRate = 0; }
+    //               if (bestNetworkObj.overallMatchRate === undefined) { bestNetworkObj.overallMatchRate = 0; }
+    //               console.log(chalk.blue("+++ BEST NEURAL NETWORK LOADED FROM DB"
+    //                 + " | " + bestNetworkObj.networkId
+    //                 + " | SR: " + bestNetworkObj.successRate.toFixed(2) + "%"
+    //                 + " | MR: " + bestNetworkObj.matchRate.toFixed(2) + "%"
+    //                 + " | OAMR: " + bestNetworkObj.overallMatchRate.toFixed(2) + "%"
+    //               ));
+    //             }
+    //           });
+    //         }
 
-              if (bestNetworkObj) { previousBestNetworkId = bestNetworkObj.networkId; }
+    //         if (bestNetworkObj && (tweetParser !== undefined) && (previousBestNetworkId !== bestNetworkObj.networkId)) {
 
-              console.log(chalk.blue("NEW BEST NETWORK"
-                + " | " + nnObj.networkId
-                + " | " + nnObj.successRate.toFixed(2)
-                + " | " + nnObj.matchRate.toFixed(2)
-                // + "\n" + jsonPrint(nnObj)
-              ));
+    //           if (bestNetworkObj) { previousBestNetworkId = bestNetworkObj.networkId; }
 
-              statsObj.bestNetwork.networkId = nnObj.networkId;
-              statsObj.bestNetwork.successRate = nnObj.successRate;
-              statsObj.bestNetwork.matchRate = nnObj.matchRate;
+    //           console.log(chalk.blue("NEW BEST NETWORK"
+    //             + " | " + nnObj.networkId
+    //             + " | " + nnObj.successRate.toFixed(2)
+    //             + " | " + nnObj.matchRate.toFixed(2)
+    //             // + "\n" + jsonPrint(nnObj)
+    //           ));
 
-              childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({ op: "NETWORK", networkObj: bestNetworkObj }, function twpNetwork(err){
-                if (err) {
-                  console.error(chalkError("*** TWEET PARSER SEND NETWORK ERROR"
-                    + " | " + err
-                  ));
-                }
-              });
-            }
+    //           statsObj.bestNetwork.networkId = nnObj.networkId;
+    //           statsObj.bestNetwork.successRate = nnObj.successRate;
+    //           statsObj.bestNetwork.matchRate = nnObj.matchRate;
 
-          }
+    //           childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({ op: "NETWORK", networkObj: bestNetworkObj }, function twpNetwork(err){
+    //             if (err) {
+    //               console.error(chalkError("*** TWEET PARSER SEND NETWORK ERROR"
+    //                 + " | " + err
+    //               ));
+    //             }
+    //           });
+    //         }
 
-        });
+    //       }
 
-      }
-    });
+    //     });
+    //   }
+
+    // });
   
   }, interval);
 }
@@ -4878,6 +4985,8 @@ function initialize(cnf, callback) {
 
   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | INITIALIZE"));
 
+  killAll();
+
   let configArgs = Object.keys(cnf);
   configArgs.forEach(function finalConfigs(arg){
     debug("FINAL CONFIG | " + arg + ": " + cnf[arg]);
@@ -4905,7 +5014,6 @@ function initialize(cnf, callback) {
       updateTrends();
     }
   });
-
 
   loadMaxInputHashMap({folder: dropboxConfigDefaultTrainingSetsFolder, file: maxInputHashMapFile}, function(err){
     if (err) {
@@ -5085,7 +5193,6 @@ function initCategoryHashmapsInterval(interval){
     initCategoryHashmaps();
 
   }, interval);
-
 }
 
 initStats(function setCacheObjKeys(){
@@ -5101,13 +5208,7 @@ initialize(configuration, function initializeComplete(err) {
     debug(chalkLog("INITIALIZE COMPLETE"));
 
     initSorterMessageRxQueueInterval(DEFAULT_INTERVAL);
-
     initSaveFileQueue(configuration);
-
-    killAll(function(err, numKilled){
-      initSorter({childId: DEFAULT_SORTER_CHILD_ID});
-    });
-
     initIgnoreWordsHashMap();
     initTransmitNodeQueueInterval(TRANSMIT_NODE_QUEUE_INTERVAL);
     initStatsInterval(STATS_UPDATE_INTERVAL);
@@ -5135,9 +5236,10 @@ initialize(configuration, function initializeComplete(err) {
       else {
         console.log(chalkInfo("LOADED CATEGORY HASHMAPS"));
       }
+      initSorter({childId: DEFAULT_SORTER_CHILD_ID});
+      initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
+      slackPostMessage(slackChannel, "\n*INIT* | " + hostname + "\n");
     });
-
-    slackPostMessage(slackChannel, "\n*INIT* | " + hostname + "\n");
 
   }
 });

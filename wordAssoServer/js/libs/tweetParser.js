@@ -229,7 +229,6 @@ function initTweetParserQueueInterval(cnf){
             
           });
         }
-        
       });
 
     }
@@ -245,6 +244,7 @@ process.on("message", function(m) {
   switch (m.op) {
 
     case "INIT":
+      process.title = m.title;
       cnf.updateInterval = m.interval;
       cnf.networkObj = {};
       cnf.networkObj = m.networkObj;
@@ -255,6 +255,7 @@ process.on("message", function(m) {
       cnf.inputArrays = {};
 
       console.log(chalkInfo("TWEET PARSER INIT"
+        + " | TITLE: " + m.title
         + " | INTERVAL: " + m.interval
         + " | NN: " + m.networkObj.networkId
         + " | MAX IN HM INPUT TYPES: " + Object.keys(cnf.maxInputHashMap)

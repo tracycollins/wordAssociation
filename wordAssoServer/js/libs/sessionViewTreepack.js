@@ -84,6 +84,7 @@ function ViewTreepack() {
 
   var currentTwitterUser = twitterUserThreecee;
   var currentTwitterHashtag = "resist";
+  var currentTwitterEmoji = "";
 
   var defaultProfileImageUrl = "favicon.png";
 
@@ -364,7 +365,6 @@ function ViewTreepack() {
     .style("visibility", "hidden");
 
   var topTermsDiv = d3.select("#topTermsDiv");
-  // var topTermsDivVisible = false;
 
   var topTermsCheckBox = topTermsDiv.append("input")
     .attr("id", "topTermsCheckBox")
@@ -373,11 +373,9 @@ function ViewTreepack() {
     .on("change", function topTermsCheckBoxFunc(){
       if (topTermsCheckBox.property("checked") === false) { 
         topTermsDiv.style("visibility", "hidden"); 
-        // topTermsDivVisible = false;
       }
       else { 
         topTermsDiv.style("visibility", "visible"); 
-        // topTermsDivVisible = true;
       }
     });
 
@@ -387,11 +385,9 @@ function ViewTreepack() {
 
     if (topTermsCheckBox.property("checked") === false) { 
       topTermsDiv.style("visibility", "hidden"); 
-      // topTermsDivVisible = false;
     }
     else { 
       topTermsDiv.style("visibility", "visible"); 
-      // topTermsDivVisible = true;
     }
   };
 
@@ -401,7 +397,6 @@ function ViewTreepack() {
   document.addEventListener("mousemove", function mousemoveFunc() {
 
     topTermsDiv.style("visibility", "visible");
-    // topTermsDivVisible = true;
 
     if (mouseHoverFlag) { d3.select("body").style("cursor", "pointer"); } 
     else { d3.select("body").style("cursor", "default"); }
@@ -968,6 +963,7 @@ function ViewTreepack() {
   };
 
   var previousTwitterUserId;
+  var previousTwitterEmoji;
   var previousTwitterHashtag;
   var tooltipString;
 
@@ -989,6 +985,19 @@ function ViewTreepack() {
     d3.select("#" + d.nodePoolId + "_label").style("visibility", "visible");
 
     switch (d.nodeType) {
+
+      case "emoji":
+
+        currentTwitterEmoji = d;
+
+        if (mouseMovingFlag && controlPanelReadyFlag && (!previousTwitterEmoji || (previousTwitterEmoji !== d.nodeId))){
+          previousTwitterEmoji = currentTwitterEmoji.nodeId;
+        }
+
+        tooltipString = d.nodeId
+          + "<br>Ms: " + d.mentions
+          + "<br>" + d.rate.toFixed(2) + " MPM"
+      break;
 
       case "user":
 
@@ -1020,7 +1029,7 @@ function ViewTreepack() {
 
         tooltipString = "#" + d.nodeId
           + "<br>Ms: " + d.mentions
-          + "<br>" + d.rate.toFixed(2) + " WPM"
+          + "<br>" + d.rate.toFixed(2) + " MPM"
           + "<br>C: " + d.category
           + "<br>CA: " + d.categoryAuto;
       break;

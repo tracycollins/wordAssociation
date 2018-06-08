@@ -1800,13 +1800,17 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
     + " | ERROR: " + jsonPrint(childObj.err)
   ));
 
-  if (childrenHashMap[childObj.childId] === undefined){
-    childrenHashMap[childObj.childId] = {};
-    childrenHashMap[childObj.childId].errors = 0;
+  // if (childrenHashMap[childObj.childId] === undefined){
+  //   childrenHashMap[childObj.childId] = {};
+  //   childrenHashMap[childObj.childId].errors = 0;
+  //   childrenHashMap[childObj.childId].status = "UNKNOWN";
+  // }
+
+  if (childrenHashMap[childObj.childId] !== undefined){
+    childrenHashMap[childObj.childId].errors += 1;
     childrenHashMap[childObj.childId].status = "UNKNOWN";
   }
 
-  childrenHashMap[childObj.childId].errors += 1;
 
   slackPostMessage(slackErrorChannel, "\n*CHILD ERROR*\n" + childObj.childId + "\n" + childObj.err);
 
@@ -1816,7 +1820,7 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
 
       console.error("KILL TWEET PARSER");
 
-      killChild({childId: childObj.childId}, function(err, numKilled){
+      killChild({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, numKilled){
         initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
       });
 
@@ -1825,7 +1829,7 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
     case DEFAULT_SORTER_CHILD_ID:
       console.log(chalkError("KILL SORTER"));
 
-      killChild({childId: childObj.childId}, function(err, numKilled){
+      killChild({childId: DEFAULT_SORTER_CHILD_ID}, function(err, numKilled){
         initSorter({childId: DEFAULT_SORTER_CHILD_ID});
       });
 

@@ -1510,7 +1510,14 @@ function killChild(params, callback){
   let pid = false;
   let command;
 
-  if (params.childId !== undefined) {
+  if (params.title !== undefined) {
+    command = "pkill -f " + params.title;
+  }
+  else if (params.pid !== undefined) {
+    pid = params.pid;
+    command = "kill -9 " + pid;
+  }
+  else if (params.childId !== undefined) {
     if (childrenHashMap[params.childId] === undefined) {
       console.log(chalkError("KILL CHILD ERROR: CHILD NOT IN HM: " + params.childId));
       if (callback !== undefined) { 
@@ -1525,93 +1532,94 @@ function killChild(params, callback){
       command = "kill -9 " + pid;
     }
   }
-  else if (params.pid !== undefined) {
-    pid = params.pid;
-    command = "kill -9 " + pid;
-  }
-  else if (params.title !== undefined) {
-    command = "pkill -f " + params.title;
-  }
 
 
   shell.exec(command, function(code, stdout, stderr){
 
-    if (stderr) { console.log(chalkError("KILL CHILD STDERR: " + stderr)); }
+    if (stderr) { 
+      console.log(chalkError("KILL CHILD"
+        + " | STDERR: " + stderr
+        + " | CODE: " + code
+        + " | STDOUT: " + stdout
+      )); 
+    }
 
-    getChildProcesses(function(err, childArray){
+    if (callback !== undefined) { return callback(stderr, { code: code, stdout: stdout }); }
 
-      if (code === 0) {
-        console.log(chalkAlert("NNT | *** KILL CHILD"
-          + " | XXX NN CHILD PROCESSES: " + command
-        ));
+    // getChildProcesses(function(err, childArray){
 
-        if (params.childId === undefined) {
-          findChildByPid(pid, function(err, childId){
-            if (childrenHashMap[childId] === undefined) { childrenHashMap[childId] = {}; }
-            childrenHashMap[childId].status = "DEAD";
+    //   if (code === 0) {
+    //     console.log(chalkAlert("NNT | *** KILL CHILD"
+    //       + " | XXX NN CHILD PROCESSES: " + command
+    //     ));
 
-            slackPostMessage(
-              slackErrorChannel, 
-              "\n*KILL CHILD*"
-              + "\nCODE: " + code
-              + "\nPID: " + pid
-              + "\nCHILD ID: " + childId
-              + "\nCHILD TITLE: " + childrenHashMap[childId].title
-            );
+    //     if (params.childId === undefined) {
+    //       findChildByPid(pid, function(err, childId){
+    //         if (childrenHashMap[childId] === undefined) { childrenHashMap[childId] = {}; }
+    //         childrenHashMap[childId].status = "DEAD";
 
-            if (callback !== undefined) { return callback(null, 1); }
-          });
-        }
-        else {
-          if (childrenHashMap[params.childId] === undefined) { childrenHashMap[params.childId] = {}; }
-          childrenHashMap[params.childId].status = "DEAD";
+    //         slackPostMessage(
+    //           slackErrorChannel, 
+    //           "\n*KILL CHILD*"
+    //           + "\nCODE: " + code
+    //           + "\nPID: " + pid
+    //           + "\nCHILD ID: " + childId
+    //           + "\nCHILD TITLE: " + childrenHashMap[childId].title
+    //         );
 
-          slackPostMessage(
-            slackErrorChannel, 
-            "\n*KILL CHILD*"
-            + "\nCODE: " + code
-            + "\nPID: " + pid
-            + "\nCHILD ID: " + params.childId
-            + "\nCHILD TITLE: " + childrenHashMap[params.childId].title
-          );
+    //         if (callback !== undefined) { return callback(null, 1); }
+    //       });
+    //     }
+    //     else {
+    //       if (childrenHashMap[params.childId] === undefined) { childrenHashMap[params.childId] = {}; }
+    //       childrenHashMap[params.childId].status = "DEAD";
 
-          if (callback !== undefined) { return callback(null, 1); }
-        }
-      }
-      if (code === 1) {
-        console.log(chalkInfo("NNT | KILL CHILD | NO NN CHILD PROCESSES: " + command));
+    //       slackPostMessage(
+    //         slackErrorChannel, 
+    //         "\n*KILL CHILD*"
+    //         + "\nCODE: " + code
+    //         + "\nPID: " + pid
+    //         + "\nCHILD ID: " + params.childId
+    //         + "\nCHILD TITLE: " + childrenHashMap[params.childId].title
+    //       );
 
-        slackPostMessage(
-          slackErrorChannel, 
-          "\n*KILL CHILD - NO CHILD PROCESSES*"
-          + "\nCODE: " + code
-          + "\nPID: " + pid
-          + "\nCHILD ID: " + params.childId
-          + "\nCHILD TITLE: " + childrenHashMap[params.childId].title
-        );
+    //       if (callback !== undefined) { return callback(null, 1); }
+    //     }
+    //   }
+    //   if (code === 1) {
+    //     console.log(chalkInfo("NNT | KILL CHILD | NO NN CHILD PROCESSES: " + command));
 
-        if (callback !== undefined) { return callback(null, 0); }
-      }
-      if (code > 1) {
-        console.log(chalkAlert("SHELL : NNT | ERROR *** KILL CHILD"
-          + "\nSHELL :: NNT | COMMAND: " + command
-          + "\nSHELL :: NNT | EXIT CODE: " + code
-          + "\nSHELL :: NNT | STDOUT\n" + stdout
-          + "\nSHELL :: NNT | STDERR\n" + stderr
-        ));
+    //     slackPostMessage(
+    //       slackErrorChannel, 
+    //       "\n*KILL CHILD - NO CHILD PROCESSES*"
+    //       + "\nCODE: " + code
+    //       + "\nPID: " + pid
+    //       + "\nCHILD ID: " + params.childId
+    //       + "\nCHILD TITLE: " + childrenHashMap[params.childId].title
+    //     );
 
-        slackPostMessage(
-          slackErrorChannel, 
-          "\n*KILL CHILD ERROR*"
-          + "\nCODE: " + code
-          + "\nSTDOUT: " + stdout
-          + "\nSTDERR: " + stderr
-          + "\nPARAMS: " + jsonPrint(params)
-        );
+    //     if (callback !== undefined) { return callback(null, 0); }
+    //   }
+    //   if (code > 1) {
+    //     console.log(chalkAlert("SHELL : NNT | ERROR *** KILL CHILD"
+    //       + "\nSHELL :: NNT | COMMAND: " + command
+    //       + "\nSHELL :: NNT | EXIT CODE: " + code
+    //       + "\nSHELL :: NNT | STDOUT\n" + stdout
+    //       + "\nSHELL :: NNT | STDERR\n" + stderr
+    //     ));
 
-        if (callback !== undefined) { return callback(stderr, params); }
-      }
-    });
+    //     slackPostMessage(
+    //       slackErrorChannel, 
+    //       "\n*KILL CHILD ERROR*"
+    //       + "\nCODE: " + code
+    //       + "\nSTDOUT: " + stdout
+    //       + "\nSTDERR: " + stderr
+    //       + "\nPARAMS: " + jsonPrint(params)
+    //     );
+
+    //     if (callback !== undefined) { return callback(stderr, params); }
+    //   }
+    // });
 
   });
 }

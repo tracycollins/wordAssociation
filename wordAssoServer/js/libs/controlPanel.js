@@ -10,8 +10,8 @@ function ControlPanel() {
   // var DEFAULT_SOURCE = "http://localhost:9997";
   var DEFAULT_SOURCE = "https://word.threeceelabs.com";
 
-  var MIN_CHARGE = -1000;
-  var MAX_CHARGE = 1000;
+  var MIN_CHARGE = -500;
+  var MAX_CHARGE = 500;
 
   var parentWindow = window.opener;
   console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);

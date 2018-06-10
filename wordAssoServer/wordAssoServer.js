@@ -720,6 +720,15 @@ let saveFileQueue = [];
 
 
 let configuration = {};
+
+configuration.enableTransmitUser = true;
+configuration.enableTransmitWord = false;
+configuration.enableTransmitPlace = false;
+configuration.enableTransmitHashtag = true;
+configuration.enableTransmitEmoji = false;
+configuration.enableTransmitUrl = false;
+configuration.enableTransmitMedia = false;
+
 configuration.saveFileQueueInterval = ONE_SECOND;
 configuration.socketIoAuthTimeout = 30*ONE_SECOND;
 configuration.quitOnError = false;
@@ -3405,31 +3414,33 @@ function transmitNodes(tw, callback){
   debug("TX NODES");
 
   if (tw.user) {transmitNodeQueue.push(tw.user);}
-  if (tw.place) {transmitNodeQueue.push(tw.place);}
+  if (tw.place && configuration.enableTransmitPlace) {transmitNodeQueue.push(tw.place);}
 
   tw.userMentions.forEach(function userMentionsTxNodeQueue(user){
-    if (user) {transmitNodeQueue.push(user);}
+    if (user && configuration.enableTransmitUser) {transmitNodeQueue.push(user);}
   });
 
   tw.hashtags.forEach(function hashtagsTxNodeQueue(hashtag){
-    if (hashtag) {transmitNodeQueue.push(hashtag);}
+    if (hashtag && configuration.enableTransmitHashtag) {transmitNodeQueue.push(hashtag);}
   });
 
   tw.media.forEach(function mediaTxNodeQueue(media){
-    if (media) {transmitNodeQueue.push(media);}
+    if (media && configuration.enableTransmitMedia) {transmitNodeQueue.push(media);}
   });
 
   tw.emoji.forEach(function emojiTxNodeQueue(emoji){
-    if (emoji) {transmitNodeQueue.push(emoji);}
+    if (emoji && configuration.enableTransmitEmoji) {transmitNodeQueue.push(emoji);}
   });
 
   tw.urls.forEach(function urlTxNodeQueue(url){
-    if (url) {transmitNodeQueue.push(url);}
+    if (url && configuration.enableTransmitUrl) {transmitNodeQueue.push(url);}
   });
 
   tw.words.forEach(function wordsTxNodeQueue(word){
     // if (word && !ignoreWordHashMap.has(word.nodeId)) { transmitNodeQueue.push(word); }
-    if (word && categorizedWordHashMap.has(word.nodeId)) { transmitNodeQueue.push(word); }
+    if (word && configuration.enableTransmitWord && categorizedWordHashMap.has(word.nodeId)) { 
+      transmitNodeQueue.push(word); 
+    }
   });
 
 

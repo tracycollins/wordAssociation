@@ -10,6 +10,9 @@ function ControlPanel() {
   // var DEFAULT_SOURCE = "http://localhost:9997";
   var DEFAULT_SOURCE = "https://word.threeceelabs.com";
 
+  var MIN_CHARGE = -1000;
+  var MAX_CHARGE = 1000;
+
   var parentWindow = window.opener;
   console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);
   var self = this;
@@ -1172,8 +1175,8 @@ function ControlPanel() {
       type: "SLIDER",
       id: "chargeSlider",
       class: "slider",
-      min: -500,
-      max: 500,
+      min: -MIN_CHARGE,
+      max: MAX_CHARGE,
       value: config.defaultCharge,
       multiplier: 1.0
     };

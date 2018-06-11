@@ -403,6 +403,7 @@ function ViewTreepack() {
   document.addEventListener("mousemove", function mousemoveFunc() {
 
     topTermsDiv.style("visibility", "visible");
+    topTermsDivVisible = true;
 
     if (mouseHoverFlag) { d3.select("body").style("cursor", "pointer"); } 
     else { d3.select("body").style("cursor", "default"); }

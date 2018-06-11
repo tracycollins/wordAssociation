@@ -1243,11 +1243,7 @@ function ViewTreepack() {
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
-      .style("visibility", function (d) { 
-        if (topTermsDivVisible && d.isValid) { return "visible"; }
-        if (mouseMovingFlag && d.isValid) { return "visible"; }
-        return "hidden"; 
-      })
+      .style("visibility", null)
       .transition()
         .duration(transitionDuration)
         .attr("y", yposition);
@@ -1267,11 +1263,7 @@ function ViewTreepack() {
         return d.displaytext;
       })
       .style("font-family", "monospace")
-      .style("visibility", function (d) { 
-        if (topTermsDivVisible && d.isValid) { return "visible"; }
-        if (mouseMovingFlag && d.isValid) { return "visible"; }
-        return "hidden"; 
-      })
+      .style("visibility", null)
       .style("opacity", function updateTopTermOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 

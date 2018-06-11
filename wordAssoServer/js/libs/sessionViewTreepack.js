@@ -330,7 +330,13 @@ function ViewTreepack() {
       mouseMovingFlag = isMoving;
       updateNodeLabels();
     }
-    else { mouseMovingFlag = isMoving; }
+    else { 
+      mouseMovingFlag = isMoving;
+    }
+
+    if (isMoving) {
+      topTermsDivVisible = true;
+    }
   };
 
   self.getWidth = function() { return width; };
@@ -997,7 +1003,9 @@ function ViewTreepack() {
 
         currentTwitterEmoji = d;
 
-        if (mouseMovingFlag && controlPanelReadyFlag && (!previousTwitterEmoji || (previousTwitterEmoji !== d.nodeId))){
+        if (mouseMovingFlag 
+          && controlPanelReadyFlag 
+          && (!previousTwitterEmoji || (previousTwitterEmoji !== d.nodeId))){
           previousTwitterEmoji = currentTwitterEmoji.nodeId;
         }
 
@@ -1010,7 +1018,9 @@ function ViewTreepack() {
 
         currentTwitterUser = d;
 
-        if (mouseMovingFlag && controlPanelReadyFlag && (!previousTwitterUserId || (previousTwitterUserId !== d.userId))){
+        if (mouseMovingFlag 
+          && controlPanelReadyFlag 
+          && (!previousTwitterUserId || (previousTwitterUserId !== d.userId))){
           previousTwitterUserId = currentTwitterUser.userId;
         }
 
@@ -1030,7 +1040,9 @@ function ViewTreepack() {
 
         currentTwitterHashtag = d;
 
-        if (mouseMovingFlag && controlPanelReadyFlag && (!previousTwitterHashtag || (previousTwitterHashtag !== d.nodeId))){
+        if (mouseMovingFlag 
+          && controlPanelReadyFlag 
+          && (!previousTwitterHashtag || (previousTwitterHashtag !== d.nodeId))){
           previousTwitterHashtag = currentTwitterHashtag.nodeId;
         }
 
@@ -1156,7 +1168,9 @@ function ViewTreepack() {
           controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: currentTwitterUser, nodeSearch:true}, DEFAULT_SOURCE);
         }
 
-        if (mouseMovingFlag && controlPanelReadyFlag && (!previousTwitterUserId || (previousTwitterUserId !== d.userId))){
+        if (mouseMovingFlag 
+          && controlPanelReadyFlag 
+          && (!previousTwitterUserId || (previousTwitterUserId !== d.userId))){
           previousTwitterUserId = currentTwitterUser.userId;
         }
 
@@ -1185,7 +1199,9 @@ function ViewTreepack() {
           controlPanelWindow.postMessage({op: "SET_TWITTER_HASHTAG", hashtag: currentTwitterHashtag}, DEFAULT_SOURCE);
         }
 
-        if (mouseMovingFlag && controlPanelReadyFlag && (!previousTwitterHashtag || (previousTwitterHashtag !== d.nodeId))){
+        if (mouseMovingFlag 
+          && controlPanelReadyFlag 
+          && (!previousTwitterHashtag || (previousTwitterHashtag !== d.nodeId))){
           previousTwitterHashtag = currentTwitterHashtag.nodeId;
         }
 
@@ -1228,8 +1244,8 @@ function ViewTreepack() {
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
       .style("visibility", function (d) { 
-        if (!topTermsDivVisible) { return "hidden"; }
-        if (d.isValid) { return "visible"; }
+        if (topTermsDivVisible && d.isValid) { return "visible"; }
+        if (mouseMovingFlag && d.isValid) { return "visible"; }
         return "hidden"; 
       })
       .transition()
@@ -1252,8 +1268,8 @@ function ViewTreepack() {
       })
       .style("font-family", "monospace")
       .style("visibility", function (d) { 
-        if (!topTermsDivVisible) { return "hidden"; }
-        if (d.isValid) { return "visible"; }
+        if (topTermsDivVisible && d.isValid) { return "visible"; }
+        if (mouseMovingFlag && d.isValid) { return "visible"; }
         return "hidden"; 
       })
       .style("opacity", function updateTopTermOpacity(d) { 

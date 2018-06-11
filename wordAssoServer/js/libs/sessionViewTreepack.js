@@ -1082,11 +1082,7 @@ function ViewTreepack() {
     d3.select("#" + d.nodePoolId + "_label").style("opacity", function(){
       return nodeLabelOpacityScale(d.ageMaxRatio);
     });
-    
-    // d3.select("#" + d.nodePoolId + "_labelTopTerm").style("opacity", function(){
-    //   return topTermLabelOpacityScale(d.ageMaxRatio);
-    // });
-        
+            
     d3.select("#" + d.nodePoolId + "_label").style("visibility", function(){
       if (!d.isValid) { return "hidden"; }
       if (d.category) { return "visible"; }
@@ -1223,7 +1219,10 @@ function ViewTreepack() {
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
-      .style("visibility", null)
+      .style("visibility", function (d) { 
+        if (!d.isValid) { return "hidden"; }
+        return "visible"; 
+      })
       .transition()
         .duration(transitionDuration)
         .attr("y", yposition);
@@ -1243,7 +1242,10 @@ function ViewTreepack() {
         return d.displaytext;
       })
       .style("font-family", "monospace")
-      .style("visibility", null)
+      .style("visibility", function (d) { 
+        if (!d.isValid) { return "hidden"; }
+        return "visible"; 
+      })
       .style("opacity", function updateTopTermOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 

@@ -1220,6 +1220,7 @@ function ViewTreepack() {
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
       .style("visibility", function (d) { 
+        if (topTermsCheckBox.property("checked") === false) { return "hidden"; }
         if (!d.isValid) { return "hidden"; }
         return "visible"; 
       })
@@ -1243,6 +1244,7 @@ function ViewTreepack() {
       })
       .style("font-family", "monospace")
       .style("visibility", function (d) { 
+        if (topTermsCheckBox.property("checked") === false) { return "hidden"; }
         if (!d.isValid) { return "hidden"; }
         return "visible"; 
       })

@@ -9,6 +9,8 @@ function ViewTreepack() {
   var DEFAULT_ZOOM_FACTOR = 0.5;
   var emojiFontMulipier = 2.0;
 
+  var topTermsDivVisible = false;
+
   var getWindowDimensions = function (){
 
     var w;
@@ -372,10 +374,12 @@ function ViewTreepack() {
     .style("pointer-events", "auto")
     .on("change", function topTermsCheckBoxFunc(){
       if (topTermsCheckBox.property("checked") === false) { 
-        topTermsDiv.style("visibility", "hidden"); 
+        topTermsDiv.style("visibility", "hidden");
+        topTermsDivVisible = false;
       }
       else { 
         topTermsDiv.style("visibility", "visible"); 
+        topTermsDivVisible = true;
       }
     });
 
@@ -385,9 +389,11 @@ function ViewTreepack() {
 
     if (topTermsCheckBox.property("checked") === false) { 
       topTermsDiv.style("visibility", "hidden"); 
+      topTermsDivVisible = false;
     }
     else { 
       topTermsDiv.style("visibility", "visible"); 
+      topTermsDivVisible = true;
     }
   };
 
@@ -1200,6 +1206,7 @@ function ViewTreepack() {
 
     nodeTopTermLabels
       .exit()
+      .style("visibility", "hidden")
       .style("opacity", 1e-6);
       // .remove();
 
@@ -1220,9 +1227,9 @@ function ViewTreepack() {
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
       .style("visibility", function (d) { 
-        if (topTermsCheckBox.property("checked") === false) { return "hidden"; }
-        if (!d.isValid) { return "hidden"; }
-        return "visible"; 
+        if (!topTermsDivVisible) { return "hidden"; }
+        if (d.isValid) { return "visible"; }
+        return "hidden"; 
       })
       .transition()
         .duration(transitionDuration)
@@ -1244,9 +1251,9 @@ function ViewTreepack() {
       })
       .style("font-family", "monospace")
       .style("visibility", function (d) { 
-        if (topTermsCheckBox.property("checked") === false) { return "hidden"; }
-        if (!d.isValid) { return "hidden"; }
-        return "visible"; 
+        if (!topTermsDivVisible) { return "hidden"; }
+        if (d.isValid) { return "visible"; }
+        return "hidden"; 
       })
       .style("opacity", function updateTopTermOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }

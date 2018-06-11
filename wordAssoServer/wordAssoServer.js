@@ -4263,6 +4263,7 @@ function initSorter(params, callback){
   const s = cp.fork(`${__dirname}/js/libs/sorter.js`);
 
   childrenHashMap[params.childId] = {};
+  childrenHashMap[params.childId].child = s;
   childrenHashMap[params.childId].pid = s.pid;
   childrenHashMap[params.childId].childId = params.childId;
   childrenHashMap[params.childId].title = "wa_node_sorter";
@@ -4270,7 +4271,7 @@ function initSorter(params, callback){
   childrenHashMap[params.childId].errors = 0;
 
 
-  s.on("message", function sorterMessageRx(m){
+  childrenHashMap[params.childId].child.on("message", function sorterMessageRx(m){
 
     debug(chalkLog("SORTER RX"
       + " | " + m.op
@@ -4291,7 +4292,7 @@ function initSorter(params, callback){
 
   });
 
-  s.send({
+  childrenHashMap[params.childId].child.send({
     op: "INIT",
     childId: params.childId,
     title: "wa_node_sorter",
@@ -4310,7 +4311,7 @@ function initSorter(params, callback){
 
   });
 
-  s.on("error", function sorterError(err){
+  childrenHashMap[params.childId].child.on("error", function sorterError(err){
     console.error(chalkError(moment().format(compactDateTimeFormat)
       + " | *** SORTER ERROR ***"
       + " \n" + jsonPrint(err)
@@ -4319,10 +4320,10 @@ function initSorter(params, callback){
     configEvents.emit("CHILD_ERROR", { childId: params.childId, err: err });
   });
 
-  s.on("exit", function sorterExit(code, signal){
+  childrenHashMap[params.childId].child.on("exit", function sorterExit(code, signal){
     console.error(chalkError(moment().format(compactDateTimeFormat)
       + " | *** SORTER EXIT ***"
-      + " | PID: " + s.pid
+      + " | PID: " + childrenHashMap[params.childId].child.pid
       + " | EXIT CODE: " + code
       + " | EXIT SIGNAL: " + signal
     ));
@@ -4331,10 +4332,10 @@ function initSorter(params, callback){
     if (code > 0) { configEvents.emit("CHILD_ERROR", { childId: params.childId, err: "SORTER EXIT" }); }
   });
 
-  s.on("close", function sorterClose(code, signal){
+  childrenHashMap[params.childId].child.on("close", function sorterClose(code, signal){
     console.error(chalkError(moment().format(compactDateTimeFormat)
       + " | *** SORTER CLOSE ***"
-      + " | PID: " + s.pid
+      + " | PID: " + childrenHashMap[params.childId].child.pid
       + " | EXIT CODE: " + code
       + " | EXIT SIGNAL: " + signal
     ));
@@ -4344,7 +4345,6 @@ function initSorter(params, callback){
     if (code > 0) { configEvents.emit("CHILD_ERROR", { childId: params.childId, err: "SORTER CLOSE" }); }
   });
 
-  childrenHashMap[params.childId].child = s;
 
   setTimeout(function(){
     initSorterPingInterval(DEFAULT_PING_INTERVAL);

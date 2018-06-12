@@ -1545,13 +1545,13 @@ function killChild(params, callback){
 
   shell.exec(command, function(code, stdout, stderr){
 
-    if (stderr) { 
-      console.log(chalkError("KILL CHILD"
-        + " | STDERR: " + stderr
-        + " | CODE: " + code
-        + " | STDOUT: " + stdout
-      )); 
-    }
+    console.log(chalkAlert("KILL CHILD"
+      + "\nPARAMS\n " + jsonPrint(params)
+      + "\nCOMMAND: " + command
+      + "\nCODE:    " + code
+      + "\nSTDOUT:  " + stdout
+      + "\nSTDERR:  " + stderr
+    )); 
 
     if (callback !== undefined) { return callback(stderr, { code: code, stdout: stdout }); }
 

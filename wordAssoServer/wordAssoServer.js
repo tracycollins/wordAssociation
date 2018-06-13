@@ -3134,6 +3134,11 @@ function startTwitUserShowRateLimitTimeout(){
 }
 
 let userFollowable = function(user){
+
+  if (user.description === undefined) { user.description = ""; }
+  if (user.screenName === undefined) { user.screenName = ""; }
+  if (user.name === undefined) { user.name = ""; }
+  
   return (user.description.match(/trump/gi)) 
       || (user.description.match(/maga/gi))
       || (user.description.match(/kag/gi))

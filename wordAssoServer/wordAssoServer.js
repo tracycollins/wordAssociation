@@ -3133,20 +3133,22 @@ function startTwitUserShowRateLimitTimeout(){
   }, 60000);
 }
 
+let userFollowable = function(user){
+  return (user.description.match(/trump/gi)) 
+      || (user.description.match(/maga/gi))
+      || (user.description.match(/kag/gi))
+      || (user.screenName.match(/trump/gi))
+      || (user.screenName.match(/maga/gi))
+      || (user.screenName.match(/kag/gi))
+      || (user.name.match(/trump/gi))
+      || (user.name.match(/maga/gi))
+      || (user.name.match(/kag/gi));
+};
+
 function autoFollowUser(params, callback){
 
   if (!params.user.following
-    && (
-        (params.user.description.match(/trump/gi)) 
-      || (params.user.description.match(/maga/gi))
-      || (params.user.description.match(/kag/gi))
-      || (params.user.screenName.match(/trump/gi))
-      || (params.user.screenName.match(/maga/gi))
-      || (params.user.screenName.match(/kag/gi))
-      || (params.user.name.match(/trump/gi))
-      || (params.user.name.match(/maga/gi))
-      || (params.user.name.match(/kag/gi))
-    )
+    && userFollowable()
     && (params.user.followersCount >= configuration.minFollowersAuto)
     ){
 
@@ -3235,7 +3237,9 @@ function initTransmitNodeQueueInterval(interval){
 
               if (twitUserShowReady 
                 && (n.nodeType === "user") 
-                && n.category && (n.followersCount === 0)){
+                && userFollowable(n)
+                && (n.followersCount === 0)
+                ){
 
                 twit.get("users/show", 
                   {user_id: n.nodeId, include_entities: true}, 

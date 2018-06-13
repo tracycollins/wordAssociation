@@ -109,6 +109,7 @@ const MongoDBStore = require("express-session-mongo");
 
 const slackOAuthAccessToken = "xoxp-3708084981-3708084993-206468961315-ec62db5792cd55071a51c544acf0da55";
 const slackChannel = "#was";
+const slackChannelAutoFollow = "#wasAuto";
 const slackErrorChannel = "#wasError";
 const Slack = require("slack-node");
 
@@ -3135,7 +3136,11 @@ function startTwitUserShowRateLimitTimeout(){
 function autoFollowUser(params, callback){
 
   if (!params.user.following
-    && (params.user.screenName.match(/trump/gi))
+    && (
+        (params.user.description.match(/trump/gi)) 
+      || (params.user.screenName.match(/trump/gi))
+      || (params.user.name.match(/trump/gi))
+    )
     && (params.user.followersCount >= configuration.minFollowersAuto)
     ){
 
@@ -3147,18 +3152,22 @@ function autoFollowUser(params, callback){
       console.log(chalkAlert("+++ AUTO FOLLOW"
         + " | UID: " + params.user.userId
         + " | @" + params.user.screenName
+        + " | NAME: " + params.user.name
         + " | FOLLOWING: " + params.user.following
         + " | 3C FOLLOW: " + params.user.threeceeFollowing
         + " | FLWRs: " + params.user.followersCount
+        + "\nDESCRIPTION: " + params.user.description
       ));
 
       const text = "*WAS | AUTO FOLLOW*"
         + "\n@" + params.user.screenName
+        + "\nNAME: " + params.user.name
         + "\nID: " + params.user.userId
         + "\nFLWRs: " + params.user.followersCount
-        + "\n3C @" + params.user.threeceeFollowing;
+        + "\n3C @" + params.user.threeceeFollowing
+        + "\nDESC: " + params.user.description;
 
-      slackPostMessage(slackChannel, text);
+      slackPostMessage(slackChannelAutoFollow, text);
 
       callback(null, results);
     });

@@ -1553,82 +1553,17 @@ function killChild(params, callback){
       + "\nSTDERR:  " + stderr
     )); 
 
+    slackPostMessage(
+      slackErrorChannel, 
+      "\n*KILL CHILD*"
+      + "\nPARAMS\n " + jsonPrint(params)
+      + "\nCOMMAND: " + command
+      + "\nCODE:    " + code
+      + "\nSTDOUT:  " + stdout
+      + "\nSTDERR:  " + stderr
+    );
+
     if (callback !== undefined) { return callback(stderr, { code: code, stdout: stdout }); }
-
-    // getChildProcesses(function(err, childArray){
-
-    //   if (code === 0) {
-    //     console.log(chalkAlert("NNT | *** KILL CHILD"
-    //       + " | XXX NN CHILD PROCESSES: " + command
-    //     ));
-
-    //     if (params.childId === undefined) {
-    //       findChildByPid(pid, function(err, childId){
-    //         if (childrenHashMap[childId] === undefined) { childrenHashMap[childId] = {}; }
-    //         childrenHashMap[childId].status = "DEAD";
-
-    //         slackPostMessage(
-    //           slackErrorChannel, 
-    //           "\n*KILL CHILD*"
-    //           + "\nCODE: " + code
-    //           + "\nPID: " + pid
-    //           + "\nCHILD ID: " + childId
-    //           + "\nCHILD TITLE: " + childrenHashMap[childId].title
-    //         );
-
-    //         if (callback !== undefined) { return callback(null, 1); }
-    //       });
-    //     }
-    //     else {
-    //       if (childrenHashMap[params.childId] === undefined) { childrenHashMap[params.childId] = {}; }
-    //       childrenHashMap[params.childId].status = "DEAD";
-
-    //       slackPostMessage(
-    //         slackErrorChannel, 
-    //         "\n*KILL CHILD*"
-    //         + "\nCODE: " + code
-    //         + "\nPID: " + pid
-    //         + "\nCHILD ID: " + params.childId
-    //         + "\nCHILD TITLE: " + childrenHashMap[params.childId].title
-    //       );
-
-    //       if (callback !== undefined) { return callback(null, 1); }
-    //     }
-    //   }
-    //   if (code === 1) {
-    //     console.log(chalkInfo("NNT | KILL CHILD | NO NN CHILD PROCESSES: " + command));
-
-    //     slackPostMessage(
-    //       slackErrorChannel, 
-    //       "\n*KILL CHILD - NO CHILD PROCESSES*"
-    //       + "\nCODE: " + code
-    //       + "\nPID: " + pid
-    //       + "\nCHILD ID: " + params.childId
-    //       + "\nCHILD TITLE: " + childrenHashMap[params.childId].title
-    //     );
-
-    //     if (callback !== undefined) { return callback(null, 0); }
-    //   }
-    //   if (code > 1) {
-    //     console.log(chalkAlert("SHELL : NNT | ERROR *** KILL CHILD"
-    //       + "\nSHELL :: NNT | COMMAND: " + command
-    //       + "\nSHELL :: NNT | EXIT CODE: " + code
-    //       + "\nSHELL :: NNT | STDOUT\n" + stdout
-    //       + "\nSHELL :: NNT | STDERR\n" + stderr
-    //     ));
-
-    //     slackPostMessage(
-    //       slackErrorChannel, 
-    //       "\n*KILL CHILD ERROR*"
-    //       + "\nCODE: " + code
-    //       + "\nSTDOUT: " + stdout
-    //       + "\nSTDERR: " + stderr
-    //       + "\nPARAMS: " + jsonPrint(params)
-    //     );
-
-    //     if (callback !== undefined) { return callback(stderr, params); }
-    //   }
-    // });
 
   });
 }

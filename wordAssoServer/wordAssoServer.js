@@ -3138,8 +3138,14 @@ function autoFollowUser(params, callback){
   if (!params.user.following
     && (
         (params.user.description.match(/trump/gi)) 
+      || (params.user.description.match(/maga/gi))
+      || (params.user.description.match(/kag/gi))
       || (params.user.screenName.match(/trump/gi))
+      || (params.user.screenName.match(/maga/gi))
+      || (params.user.screenName.match(/kag/gi))
       || (params.user.name.match(/trump/gi))
+      || (params.user.name.match(/maga/gi))
+      || (params.user.name.match(/kag/gi))
     )
     && (params.user.followersCount >= configuration.minFollowersAuto)
     ){

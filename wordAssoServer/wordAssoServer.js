@@ -1524,7 +1524,7 @@ function killChild(params, callback){
   }
   else if (params.pid !== undefined) {
     pid = params.pid;
-    command = "kill -9 " + pid;
+    command = "kill " + pid;
   }
   else if (params.childId !== undefined) {
     if (childrenHashMap[params.childId] === undefined) {
@@ -1538,7 +1538,7 @@ function killChild(params, callback){
     }
     else {
       pid = childrenHashMap[params.childId].pid;
-      command = "kill -9 " + pid;
+      command = "kill " + pid;
     }
   }
 

@@ -382,6 +382,13 @@ let tweetRxQueue = [];
 let hashtagLookupQueueInterval;
 let hashtagLookupQueue = [];
 
+let keySortQueue = [];
+
+let sorterPingInterval;
+let sorterPongReceived = false;
+let pingId = false;
+
+
 let categoryHashmapsInterval;
 let statsInterval;
 
@@ -721,6 +728,8 @@ let saveFileQueue = [];
 
 
 let configuration = {};
+
+configuration.keySortInterval = DEFAULT_INTERVAL;
 
 configuration.enableTransmitUser = true;
 configuration.enableTransmitWord = false;
@@ -4087,6 +4096,30 @@ function initTweetParserMessageRxQueueInterval(interval){
 let sorterMessageRxReady = true; 
 let sorterMessageRxQueueInterval;
 
+const sortedObjectValues = function(params) {
+
+  return new Promise(function(resolve, reject) {
+
+    const keys = Object.keys(params.obj);
+
+    const sortedKeys = keys.sort(function(a,b){
+      const objA = params.obj[a];
+      const objB = params.obj[b];
+      return objB[params.sortKey] - objA[params.sortKey];
+    });
+
+    if (keys.length !== undefined) {
+      resolve({nodeType: params.nodeType, sortKey: params.sortKey, sortedKeys: sortedKeys.slice(0,params.max)});
+    }
+    else {
+      reject(new Error("ERROR: sortedObjectValues | params:\n" + jsonPrint(params)));
+    }
+
+  });
+};
+
+
+
 function initSorterMessageRxQueueInterval(interval){
 
   console.log(chalkLog("INIT SORTER RX MESSAGE QUEUE INTERVAL | " + interval + " MS"));
@@ -4153,9 +4186,64 @@ function initSorterMessageRxQueueInterval(interval){
   }, interval);
 }
 
-let sorterPingInterval;
-let sorterPongReceived = false;
-let pingId = false;
+function keySort(params, callback){
+
+  debug(chalkLog("KEY SORT"
+    + " | KEYS: " + Object.keys(params.obj).length
+  ));
+
+  sortedObjectValues(params)
+  .then(function(results){
+    callback(null, results);
+  })
+  .catch(function(err){
+    callback(err, params);
+  });
+
+}
+
+let keySortInterval;
+let keySortReady = true;
+
+function initKeySortInterval(interval){
+
+  clearInterval(keySortInterval);
+
+  keySortReady = true;
+
+  keySortInterval = setInterval(function(){
+
+    if (keySortQueue.length > 0) {
+
+      keySortReady = false;
+
+      const keySortParams = keySortQueue.shift();
+
+      keySort(keySortParams, function(err, results){
+
+        keySortReady = true;
+
+        if (err) {
+          console.log(chalkError("KEY SORT ERROR: " + err));
+        }
+        else {
+
+          sorterMessageRxQueue.push(
+            { op: "SORTED", 
+              nodeType: results.nodeType, 
+              sortKey: results.sortKey, 
+              sortedKeys: results.sortedKeys
+            }
+          );
+        }
+
+      });
+    }
+
+
+  }, interval);
+
+}
 
 function initSorterPingInterval(interval){
 
@@ -4216,6 +4304,7 @@ function initSorterPingInterval(interval){
 
   }
 }
+
 
 function initSorter(params, callback){
 
@@ -4591,22 +4680,25 @@ function initRateQinterval(interval){
             console.error(chalkError("ERROR RATE QUEUE INTERVAL\n" + err ));
           }
 
-          if ((childrenHashMap[DEFAULT_SORTER_CHILD_ID] !== undefined) 
-            && (childrenHashMap[DEFAULT_SORTER_CHILD_ID].child !== undefined)) {
+          keySortQueue.push(paramsSorter);
 
-            childrenHashMap[DEFAULT_SORTER_CHILD_ID].child.send(paramsSorter, function sendSorterError(err){
-              if (err) {
-                console.error(chalkError("SORTER SEND ERROR"
-                  + " | " + err
-                ));
-                childrenHashMap[DEFAULT_SORTER_CHILD_ID].status = "ERROR";
-                configEvents.emit("CHILD_ERROR", { childId: DEFAULT_SORTER_CHILD_ID, err: "SORTER SEND ERROR" });
-              }
-              else {
-                childrenHashMap[DEFAULT_SORTER_CHILD_ID].status = "RUNNING";
-              }
-            });
-          }
+          // if ((childrenHashMap[DEFAULT_SORTER_CHILD_ID] !== undefined) 
+          //   && (childrenHashMap[DEFAULT_SORTER_CHILD_ID].child !== undefined)) {
+
+          //   childrenHashMap[DEFAULT_SORTER_CHILD_ID].child.send(paramsSorter, function sendSorterError(err){
+          //     if (err) {
+          //       console.error(chalkError("SORTER SEND ERROR"
+          //         + " | " + err
+          //       ));
+          //       childrenHashMap[DEFAULT_SORTER_CHILD_ID].status = "ERROR";
+          //       configEvents.emit("CHILD_ERROR", { childId: DEFAULT_SORTER_CHILD_ID, err: "SORTER SEND ERROR" });
+          //     }
+          //     else {
+          //       childrenHashMap[DEFAULT_SORTER_CHILD_ID].status = "RUNNING";
+          //     }
+          //   });
+          // }
+
         });
       });
 
@@ -4633,22 +4725,25 @@ function initRateQinterval(interval){
           console.error(chalkError("ERROR RATE QUEUE INTERVAL\n" + err ));
         }
 
-        if ((childrenHashMap[DEFAULT_SORTER_CHILD_ID] !== undefined) 
-          && childrenHashMap[DEFAULT_SORTER_CHILD_ID].child) {
+        keySortQueue.push(paramsSorterOverall);
 
-          childrenHashMap[DEFAULT_SORTER_CHILD_ID].child.send(paramsSorterOverall, function sendSorterError(err){
-            if (err) {
-              console.error(chalkError("SORTER SEND ERROR"
-                + " | " + err
-              ));
-              childrenHashMap[DEFAULT_SORTER_CHILD_ID].status = "ERROR";
-              configEvents.emit("CHILD_ERROR", { childId: DEFAULT_SORTER_CHILD_ID, err: "SORTER SEND ERROR" });
-            }
-            else {
-              childrenHashMap[DEFAULT_SORTER_CHILD_ID].status = "RUNNING";
-            }
-          });
-        }
+        // if ((childrenHashMap[DEFAULT_SORTER_CHILD_ID] !== undefined) 
+        //   && childrenHashMap[DEFAULT_SORTER_CHILD_ID].child) {
+
+        //   childrenHashMap[DEFAULT_SORTER_CHILD_ID].child.send(paramsSorterOverall, function sendSorterError(err){
+        //     if (err) {
+        //       console.error(chalkError("SORTER SEND ERROR"
+        //         + " | " + err
+        //       ));
+        //       childrenHashMap[DEFAULT_SORTER_CHILD_ID].status = "ERROR";
+        //       configEvents.emit("CHILD_ERROR", { childId: DEFAULT_SORTER_CHILD_ID, err: "SORTER SEND ERROR" });
+        //     }
+        //     else {
+        //       childrenHashMap[DEFAULT_SORTER_CHILD_ID].status = "RUNNING";
+        //     }
+        //   });
+        // }
+
       });
     }
 
@@ -5218,7 +5313,8 @@ initialize(configuration, function initializeComplete(err) {
       else {
         console.log(chalkInfo("LOADED CATEGORY HASHMAPS"));
       }
-      initSorter({childId: DEFAULT_SORTER_CHILD_ID});
+      // initSorter({childId: DEFAULT_SORTER_CHILD_ID});
+      initKeySortInterval(configuration.keySortInterval);
       initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
       slackPostMessage(slackChannel, "\n*INIT* | " + hostname + "\n");
     });

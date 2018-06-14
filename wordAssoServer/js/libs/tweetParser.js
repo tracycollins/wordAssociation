@@ -158,13 +158,19 @@ function initTweetParserQueueInterval(cnf){
     twitterEvents: configEvents
   };
 
-  tweetServer.loadNeuralNetwork({networkObj: cnf.networkObj}, function(){});
-  tweetServer.loadMaxInputHashMap(cnf.maxInputHashMap, function(){});
-  tweetServer.loadNormalization(cnf.normalization, function(){});
+  if (tweetServer) { 
+    tweetServer.loadNeuralNetwork({networkObj: cnf.networkObj}, function(){});
+    tweetServer.loadMaxInputHashMap(cnf.maxInputHashMap, function(){});
+    tweetServer.loadNormalization(cnf.normalization, function(){});
+  }
 
   tweetParserQueueInterval = setInterval(function(){
 
-    if (tweetServer.ready() && (tweetParserQueue.length > 0) && tweetParserQueueReady && networkReady){
+    if (tweetServer 
+      && tweetServer.ready() 
+      && (tweetParserQueue.length > 0) 
+      && tweetParserQueueReady && networkReady)
+    {
 
       tweetParserQueueReady = false;
 
@@ -230,8 +236,8 @@ function initTweetParserQueueInterval(cnf){
           });
         }
       });
-
     }
+
   }, cnf.updateInterval);
 }
 

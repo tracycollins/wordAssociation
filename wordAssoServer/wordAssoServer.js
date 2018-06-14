@@ -3144,9 +3144,9 @@ function startTwitUserShowRateLimitTimeout(){
 
 let userFollowable = function(user){
 
-  if (!user.description) { user.description = ""; }
-  if (!user.screenName) { user.screenName = ""; }
-  if (!user.name) { user.name = ""; }
+  if ((user.description === undefined) || !user.description) { user.description = ""; }
+  if ((user.screenName === undefined) || !user.screenName) { user.screenName = ""; }
+  if ((user.name === undefined) || !user.name) { user.name = ""; }
 
   return (user.description.match(/trump/gi)) 
       || (user.description.match(/maga/gi))
@@ -3162,7 +3162,7 @@ let userFollowable = function(user){
 function autoFollowUser(params, callback){
 
   if (!params.user.following
-    && userFollowable()
+    && userFollowable(params.user)
     && (params.user.followersCount >= configuration.minFollowersAuto)
     ){
 

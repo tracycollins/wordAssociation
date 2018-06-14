@@ -4160,20 +4160,20 @@ function initSorterMessageRxQueueInterval(interval){
               if (nodeMeter[nodeId]) {
                 nodeRate = parseFloat(nodeMeter[nodeId].toJSON()[metricsRate]);
                 nodesPerMinuteTopTermCache.set(nodeId, nodeRate);
-                next();
               }
             }
             else {
               if (nodeMeterType[nodeType][nodeId]) {
                 nodeRate = parseFloat(nodeMeterType[nodeType][nodeId].toJSON()[metricsRate]);
                 nodesPerMinuteTopTermNodeTypeCache[nodeType].set(nodeId, nodeRate);
-                next();
               }
-
             }
+            next();
 
           }, function(){
+
             sorterMessageRxReady = true; 
+            
           });
 
         break;
@@ -4569,7 +4569,9 @@ function initRateQinterval(interval){
 
   statsObj.queues.transmitNodeQueue = transmitNodeQueue.length;
   statsObj.queues.tweetRxQueue = tweetRxQueue.length;
-  statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.length;
+  statsObj.queues.sorterMessageRxQueue = {};
+  statsObj.queues.sorterMessageRxQueue.ready = sorterMessageRxReady;
+  statsObj.queues.sorterMessageRxQueue.length = sorterMessageRxQueue.length;
   statsObj.queues.tweetParserMessageRxQueue = tweetParserMessageRxQueue.length;
 
   cacheObjKeys.forEach(function statsCachesUpdate(cacheName){

@@ -164,23 +164,6 @@ function ControlPanel() {
 
   //--------------
 
-  // function updateDisplayNodeTypeButtons(params, callback){
-
-  //   console.log("updateDisplayNodeTypeButtons\n" + jsonPrint(params));
-
-  //   var displayNodeTypeButton = document.getElementById("typeButton_" + params.type.toLowerCase());
-
-  //   if (displayNodeTypeButton === undefined) {
-  //     console.error("DISPLAY NODE TYPE BUTTON UNDEFINED: " + params.type.toLowerCase());
-  //     return callback("DISPLAY NODE TYPE BUTTON UNDEFINED: " + params.type.toLowerCase(), params);
-  //   }
-
-  //   displayNodeTypeButton.setAttribute("checked", params.displayEnabled);
-
-  //   callback(null, true);
-
-  // }
-
   function updateCategoryRadioButtons(category, callback){
 
     console.log("updateCategoryRadioButtons | " + category);

@@ -860,6 +860,27 @@ function controlPanelComm(event) {
     case "TOGGLE" :
       console.warn("R< CONTROL PANEL TOGGLE");
       switch (event.data.id) {
+        case "showEmojiButton" :
+          toggleShowEmoji();
+        break;
+        case "showHashtagsButton" :
+          toggleShowHashtags();
+        break;
+        case "showMediaButton" :
+          toggleShowMedia();
+        break;
+        case "showPlacesButton" :
+          toggleShowPlaces();
+        break;
+        case "showUrlsButton" :
+          toggleShowUrls();
+        break;
+        case "showUsersButton" :
+          toggleShowUsers();
+        break;
+        case "showWordsButton" :
+          toggleShowWords();
+        break;
         case "metricToggleButton" :
           toggleMetric();
         break;
@@ -879,7 +900,7 @@ function controlPanelComm(event) {
           toggleRemoveDeadNode();
         break;
         default:
-          console.error("CONTROL PANEL UNKNOWN TOGGLE BUTTON");
+          console.error("CONTROL PANEL UNKNOWN TOGGLE BUTTON | ID: " + event.data.id);
       }
       resetConfigUpdateTimeOut();
     break;

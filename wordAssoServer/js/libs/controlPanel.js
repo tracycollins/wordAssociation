@@ -406,7 +406,7 @@ function ControlPanel() {
      + " | VALUE: " + currentButton.value
     );
 
-    config.displayEnabled[currentButton.getAttribute("displayNodeType")] = newValue;
+    config.displayNodeHashMap[currentButton.getAttribute("displayNodeType")] = newValue;
 
     parentWindow.postMessage(
       {

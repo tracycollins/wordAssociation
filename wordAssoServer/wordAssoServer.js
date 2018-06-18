@@ -115,6 +115,8 @@ const Slack = require("slack-node");
 
 const slack = new Slack(slackOAuthAccessToken);
 
+let unfollowableUserSet = new Set();
+
 process.title = "node_wordAssoServer";
 console.log("\n\n============== START ==============\n\n");
 
@@ -748,7 +750,7 @@ configuration.metrics.nodeMeterEnabled = true;
 configuration.minFollowersAuto = DEFAULT_MIN_FOLLOWERS_AUTO;
 
 if (process.env.MIN_FOLLOWERS_AUTO !== undefined) {
-  configuration.minFollowersAuto = process.env.MIN_FOLLOWERS_AUTO;
+  configuration.minFollowersAuto = parseInt(process.env.MIN_FOLLOWERS_AUTO);
 }
 
 if (process.env.NODE_METER_ENABLED !== undefined) {
@@ -2067,6 +2069,8 @@ function follow(params, callback) {
 
   adminNameSpace.emit("FOLLOW", params.user);
   utilNameSpace.emit("FOLLOW", params.user);
+
+  if (callback !== undefined) { callback(); }
 }
 
 
@@ -3142,62 +3146,53 @@ function startTwitUserShowRateLimitTimeout(){
   }, 60000);
 }
 
+const followableRegEx = new RegExp(/trump|maga|kag|obama|hillary|clinton|pence|bluewave|#resist|dems|liberal|conservative/gi);
+
 let userFollowable = function(user){
 
   if (user.nodeType !== "user") { return false; }
   if (user.following !== undefined && user.following) { return false; }
+  if (user.category !== undefined && user.category) { return false; }
+  if (unfollowableUserSet.has(user.nodeId)) { return false; }
 
   if ((user.description === undefined) || !user.description) { user.description = ""; }
   if ((user.screenName === undefined) || !user.screenName) { user.screenName = ""; }
   if ((user.name === undefined) || !user.name) { user.name = ""; }
 
-  return (user.description.match(/trump/gi)) 
-      || (user.description.match(/maga/gi))
-      || (user.description.match(/kag/gi))
-      || (user.screenName.match(/trump/gi))
-      || (user.screenName.match(/maga/gi))
-      || (user.screenName.match(/kag/gi))
-      || (user.name.match(/trump/gi))
-      || (user.name.match(/maga/gi))
-      || (user.name.match(/kag/gi));
+  return followableRegEx.test(user.description)
+    || followableRegEx.test(user.screenName) 
+    || followableRegEx.test(user.name);
 };
 
 function autoFollowUser(params, callback){
+  follow({user: params.user}, function(err, results){
+    if (err) {
+      if (callback !== undefined) { return callback(err, params); }
+      return;
+    }
 
-  if (!params.user.following
-    // && userFollowable(params.user)
-    && (params.user.followersCount >= configuration.minFollowersAuto)
-    ){
+    console.log(chalkAlert("+++ AUTO FOLLOW"
+      + " | UID: " + params.user.userId
+      + " | @" + params.user.screenName
+      + " | NAME: " + params.user.name
+      + " | FOLLOWING: " + params.user.following
+      + " | 3C FOLLOW: " + params.user.threeceeFollowing
+      + " | FLWRs: " + params.user.followersCount
+      + "\nDESCRIPTION: " + params.user.description
+    ));
 
-    follow({user: params.user}, function(err, results){
-      if (err) {
-        return(callback(err, params));
-      }
+    const text = "*WAS | AUTO FOLLOW*"
+      + "\n@" + params.user.screenName
+      + "\nNAME: " + params.user.name
+      + "\nID: " + params.user.userId
+      + "\nFLWRs: " + params.user.followersCount
+      + "\n3C @" + params.user.threeceeFollowing
+      + "\nDESC: " + params.user.description;
 
-      console.log(chalkAlert("+++ AUTO FOLLOW"
-        + " | UID: " + params.user.userId
-        + " | @" + params.user.screenName
-        + " | NAME: " + params.user.name
-        + " | FOLLOWING: " + params.user.following
-        + " | 3C FOLLOW: " + params.user.threeceeFollowing
-        + " | FLWRs: " + params.user.followersCount
-        + "\nDESCRIPTION: " + params.user.description
-      ));
+    slackPostMessage(slackChannelAutoFollow, text);
 
-      const text = "*WAS | AUTO FOLLOW*"
-        + "\n@" + params.user.screenName
-        + "\nNAME: " + params.user.name
-        + "\nID: " + params.user.userId
-        + "\nFLWRs: " + params.user.followersCount
-        + "\n3C @" + params.user.threeceeFollowing
-        + "\nDESC: " + params.user.description;
-
-      slackPostMessage(slackChannelAutoFollow, text);
-
-      callback(null, results);
-    });
-  }
-
+    if (callback !== undefined) { return callback(null, results); }
+  });
 }
 
 function initTransmitNodeQueueInterval(interval){
@@ -3254,11 +3249,9 @@ function initTransmitNodeQueueInterval(interval){
 
               const followable = userFollowable(n);
 
-              if (twitUserShowReady 
-                && (n.nodeType === "user") 
-                && followable
-                && (n.followersCount === 0)
-                ){
+              unfollowableUserSet.add(n.nodeId);
+
+              if (twitUserShowReady && followable){
 
                 twit.get("users/show", 
                   {user_id: n.nodeId, include_entities: true}, 
@@ -3270,7 +3263,9 @@ function initTransmitNodeQueueInterval(interval){
                     console.log(chalkError("ERROR users/show rawUser" + err));
                     viewNameSpace.volatile.emit("node", n);
                   }
-                  else if (rawUser) {
+                  else if (rawUser && (rawUser.followers_count >= configuration.minFollowersAuto)) {
+
+
                     debug(chalkTwitter("FOUND users/show rawUser" + jsonPrint(rawUser)));
 
                     n.isTwitterUser = true;
@@ -3283,7 +3278,8 @@ function initTransmitNodeQueueInterval(interval){
                     n.profileImageUrl = rawUser.profile_image_url;
                     n.bannerImageUrl = rawUser.profile_banner_url;
                     n.verified = rawUser.verified;
-                    n.following = rawUser.following;
+                    n.following = true;
+                    n.threeceeFollowing = "altthreecee02";
                     n.description = rawUser.description;
                     n.lastTweetId = (rawUser.status !== undefined) ? rawUser.status.id_str : null;
                     n.statusesCount = rawUser.statuses_count;
@@ -3305,13 +3301,11 @@ function initTransmitNodeQueueInterval(interval){
                       }
                       else {
                         viewNameSpace.volatile.emit("node", updatedUser);
-                        autoFollowUser({threeceeUser: "altthreecee02", user: updatedUser}, function(err, results){
-
-                        });
+                        autoFollowUser({threeceeUser: "altthreecee02", user: updatedUser});
                       }
                     });
                   }
-                  else{
+                  else {
                     viewNameSpace.volatile.emit("node", n);
                   }
                 });

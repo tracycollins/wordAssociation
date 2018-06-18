@@ -447,7 +447,7 @@ function ControlPanel() {
 
     if (!nodeTypesSet.has(params.nodeType)) {
       console.error("UNKNOWN NODE TYPE: " + params.nodeType);
-      return(callback("UNKNOWN NODE TYPE: " + params.nodeType);)
+      return callback("UNKNOWN NODE TYPE: " + params.nodeType);
     }
 
     const id = params.id || "displayNodeType_" + params.nodeType.toLowerCase();

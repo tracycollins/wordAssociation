@@ -28,7 +28,6 @@ function ControlPanel() {
     }
   }
 
-  // var twitterCategoryDiv = document.getElementById("twitterCategoryDiv");
   var twitterCategorySearchDiv = document.getElementById("twitterCategorySearchDiv");
 
   var nodeSearchInput = document.createElement("input");
@@ -37,7 +36,6 @@ function ControlPanel() {
 
   nodeSearchLabel.setAttribute("id", "nodeSearchLabel");
   nodeSearchLabel.innerHTML = "NODE SEARCH";
-
 
   function nodeSearchHandler(e) {
     if (e.keyCode === 13) { // 'ENTER' key
@@ -429,9 +427,9 @@ function ControlPanel() {
     displayNodeType.setAttribute("id", id);
     displayNodeType.setAttribute("value", value);
     displayNodeType.addEventListener("click", function(e){ toggleButtonHandler(e); }, false);
-    displayNodeTypeLabel.appendChild(displayNodeType);
+    displayNodeType.appendChild(displayNodeTypeLabel);
 
-    displayNodeTypeButtonsDiv.appendChild(displayNodeTypeLabel);
+    displayNodeTypeButtonsDiv.appendChild(displayNodeType);
 
     if (callback !== undefined) { callback(); }
   }

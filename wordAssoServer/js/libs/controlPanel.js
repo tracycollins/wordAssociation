@@ -926,6 +926,7 @@ function ControlPanel() {
           var buttonElement = document.createElement("BUTTON");
           buttonElement.className = content.class;
           buttonElement.setAttribute("id", content.id);
+          if (content.nodeType !== undefined) { buttonElement.setAttribute("nodeType", content.nodeType); }
           buttonElement.setAttribute("mode", content.mode);
           buttonElement.addEventListener("click", function(e){ bHandler(e); }, false);
           buttonElement.innerHTML = content.text;

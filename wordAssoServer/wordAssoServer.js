@@ -3144,6 +3144,9 @@ function startTwitUserShowRateLimitTimeout(){
 
 let userFollowable = function(user){
 
+  if (user.nodeType !== "user") { return false; }
+  if (user.following !== undefined && user.following) { return false; }
+
   if ((user.description === undefined) || !user.description) { user.description = ""; }
   if ((user.screenName === undefined) || !user.screenName) { user.screenName = ""; }
   if ((user.name === undefined) || !user.name) { user.name = ""; }
@@ -3162,7 +3165,7 @@ let userFollowable = function(user){
 function autoFollowUser(params, callback){
 
   if (!params.user.following
-    && userFollowable(params.user)
+    // && userFollowable(params.user)
     && (params.user.followersCount >= configuration.minFollowersAuto)
     ){
 
@@ -3249,9 +3252,11 @@ function initTransmitNodeQueueInterval(interval){
             }
             else {
 
+              const followable = userFollowable(n);
+
               if (twitUserShowReady 
                 && (n.nodeType === "user") 
-                && userFollowable(n)
+                && followable
                 && (n.followersCount === 0)
                 ){
 

@@ -860,25 +860,25 @@ function controlPanelComm(event) {
     case "TOGGLE" :
       console.warn("R< CONTROL PANEL TOGGLE");
       switch (event.data.id) {
-        case "showEmojiButton" :
+        case "displayNodeType_emoji" :
           toggleShowEmoji();
         break;
-        case "showHashtagsButton" :
+        case "displayNodeType_hashtag" :
           toggleShowHashtags();
         break;
-        case "showMediaButton" :
+        case "displayNodeType_media" :
           toggleShowMedia();
         break;
-        case "showPlacesButton" :
+        case "displayNodeType_place" :
           toggleShowPlaces();
         break;
-        case "showUrlsButton" :
+        case "displayNodeType_url" :
           toggleShowUrls();
         break;
-        case "showUsersButton" :
+        case "displayNodeType_user" :
           toggleShowUsers();
         break;
-        case "showWordsButton" :
+        case "displayNodeType_word" :
           toggleShowWords();
         break;
         case "metricToggleButton" :

@@ -1033,6 +1033,15 @@ function createPopUpControlPanel (cnf, callback) {
   }, false);
 }
 
+function toggleShowNodeType(nodeType) {
+  if (config.displayNodeHashMap[nodeType] === "show") { config.displayNodeHashMap[nodeType] = "hide"; }
+  else { config.displayNodeHashMap[nodeType] = "show"; }
+  currentSessionView.setMetricMode(config.metricMode);
+  console.warn("SET RADIUS MODE: " + config.metricMode);
+  updateMetricButton();
+  if (controlPanelFlag) { controlPanel.updateControlPanel(config); }
+}
+
 function toggleMetric() {
   if (config.metricMode === "rate") { config.metricMode = "mentions"; }
   else { config.metricMode = "rate"; }

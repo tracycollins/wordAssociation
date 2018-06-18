@@ -16,6 +16,15 @@ function ControlPanel() {
 
   var compactDateTimeFormat = "YYYYMMDD HHmmss";
 
+  var nodeTypesSet = new Set();
+  nodeTypesSet.add("emoji");
+  nodeTypesSet.add("hashtag");
+  nodeTypesSet.add("place");
+  nodeTypesSet.add("media");
+  nodeTypesSet.add("url");
+  nodeTypesSet.add("user");
+  nodeTypesSet.add("word");
+
   var twitterFeedUser;
   var twitterFeedHashtag;
 
@@ -436,6 +445,11 @@ function ControlPanel() {
 
   this.setDisplayNodeType = function(params, callback){
 
+    if (!nodeTypesSet.has(params.nodeType)) {
+      console.error("UNKNOWN NODE TYPE: " + params.nodeType);
+      return(callback("UNKNOWN NODE TYPE: " + params.nodeType);)
+    }
+
     const id = params.id || "displayNodeType_" + params.nodeType.toLowerCase();
     const value = params.value || "hide";
 
@@ -737,7 +751,11 @@ function ControlPanel() {
 
         if (cnf.displayNodeHashMap !== undefined) {
           Object.keys(cnf.displayNodeHashMap).forEach(function(nodeType){
-            self.setDisplayNodeType({nodeType: nodeType, value: cnf.displayNodeHashMap[nodeType]});
+            self.setDisplayNodeType({nodeType: nodeType, value: cnf.displayNodeHashMap[nodeType]}, function(err){
+              if (err) {
+                delete cnf.displayNodeHashMap[nodeType];
+              }
+            });
           });
         }
 

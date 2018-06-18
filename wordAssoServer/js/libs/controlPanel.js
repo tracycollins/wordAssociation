@@ -487,34 +487,34 @@ function ControlPanel() {
 
     switch (e.target.id){
       case "categoryLeft":
-        console.log("LEFT | " + currentTwitterNode.displayNodeType + " | " + currentTwitterNode.nodeId);
+        console.log("LEFT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
         category = "left";
       break;
       case "categoryRight":
-        console.log("RIGHT | " + currentTwitterNode.displayNodeType + " | " + currentTwitterNode.nodeId);
+        console.log("RIGHT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
         category = "right";
       break;
       case "categoryNeutral":
-        console.log("NEUTRAL | " + currentTwitterNode.displayNodeType + " | " + currentTwitterNode.nodeId);
+        console.log("NEUTRAL | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
         category = "neutral";
       break;
       case "categoryPositive":
-        console.log("POSITIVE | " + currentTwitterNode.displayNodeType + " | " + currentTwitterNode.nodeId);
+        console.log("POSITIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
         category = "positive";
       break;
       case "categoryNegative":
-        console.log("NEGATIVE | " + currentTwitterNode.displayNodeType + " | " + currentTwitterNode.nodeId);
+        console.log("NEGATIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
         category = "negative";
       break;
       case "categoryNone":
-        console.log("NONE | " + currentTwitterNode.displayNodeType + " | " + currentTwitterNode.nodeId);
+        console.log("NONE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
         category = false;
       break;
     }
 
     const catNode = {
       nodeId: currentTwitterNode.nodeId,
-      displayNodeType: currentTwitterNode.displayNodeType,
+      nodeType: currentTwitterNode.nodeType,
       screenName: currentTwitterNode.screenName,
       category: currentTwitterNode.category,
       categoryAuto: currentTwitterNode.categoryAuto,

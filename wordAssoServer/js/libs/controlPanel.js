@@ -427,9 +427,9 @@ function ControlPanel() {
     displayNodeType.setAttribute("id", id);
     displayNodeType.setAttribute("value", value);
     displayNodeType.addEventListener("click", function(e){ toggleButtonHandler(e); }, false);
-    displayNodeType.appendChild(displayNodeTypeLabel);
+    displayNodeTypeLabel.appendChild(displayNodeType);
 
-    displayNodeTypeButtonsDiv.appendChild(displayNodeType);
+    displayNodeTypeButtonsDiv.appendChild(displayNodeTypeLabel);
 
     if (callback !== undefined) { callback(); }
   }
@@ -893,7 +893,8 @@ function ControlPanel() {
         th.style.color = tdTextColor;
         th.style.backgroundColor = tdBgColor;
       });
-    } else {
+    }
+    else {
       cells.forEach(function(content) {
 
         var td = tr.insertCell();
@@ -1077,6 +1078,62 @@ function ControlPanel() {
       id: "nodeCreateButton",
       class: "button",
       text: "NODE"
+    };
+
+    var showEmojiButton = {
+      type: "BUTTON",
+      mode: "TOGGLE",
+      id: "showEmojiButton",
+      class: "button",
+      text: "EMOJI"
+    };
+
+    var showHashtagsButton = {
+      type: "BUTTON",
+      mode: "TOGGLE",
+      id: "showHashtagsButton",
+      class: "button",
+      text: "HASHTAGS"
+    };
+
+    var showMediaButton = {
+      type: "BUTTON",
+      mode: "TOGGLE",
+      id: "showMediaButton",
+      class: "button",
+      text: "MEDIA"
+    };
+
+    var showPlacesButton = {
+      type: "BUTTON",
+      mode: "TOGGLE",
+      id: "showPlacesButton",
+      class: "button",
+      text: "PLACES"
+    };
+
+    var showUsersButton = {
+      type: "BUTTON",
+      mode: "TOGGLE",
+      id: "showUsersButton",
+      class: "button",
+      text: "USERS"
+    };
+
+    var showUrlsButton = {
+      type: "BUTTON",
+      mode: "TOGGLE",
+      id: "showUrlsButton",
+      class: "button",
+      text: "URLS"
+    };
+
+    var showWordsButton = {
+      type: "BUTTON",
+      mode: "TOGGLE",
+      id: "showWordsButton",
+      class: "button",
+      text: "WORDS"
     };
 
     var maxAgeSlider = {
@@ -1449,6 +1506,17 @@ function ControlPanel() {
         break;
       case "treepack":
         self.tableCreateRow(controlTable, optionsBody, [resetButton, pauseButton, statsButton, fullscreenButton]);
+        self.tableCreateRow(controlTable, optionsBody, 
+          [
+            showEmojiButton,
+            showHashtagsButton,
+            showMediaButton,
+            showPlacesButton,
+            showUrlsButton,
+            showUsersButton,
+            showWordsButton
+          ]
+        );
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userScreenNameText, userNameText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userIdLabel, userIdText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userCreatedAtLabel, userCreatedAtText]);

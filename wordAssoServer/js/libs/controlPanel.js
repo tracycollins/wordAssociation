@@ -374,7 +374,7 @@ function ControlPanel() {
 
   var displayNodeTypeButtonsDiv = document.getElementById("displayNodeTypeButtonsDiv");
 
-  function toggleButtonHandler(e){
+  var toggleDisplayNodeTypeButtonHandler = function (e){
 
     var currentButton = document.getElementById(e.target.id);
 
@@ -407,7 +407,7 @@ function ControlPanel() {
       }, 
       DEFAULT_SOURCE
     );
-  }
+  };
 
   function createDisplayNodeTypeButton(params, callback){
 
@@ -426,7 +426,7 @@ function ControlPanel() {
     displayNodeType.setAttribute("nodeType", nodeType);
     displayNodeType.setAttribute("id", id);
     displayNodeType.setAttribute("value", value);
-    displayNodeType.addEventListener("click", function(e){ toggleButtonHandler(e); }, false);
+    displayNodeType.addEventListener("click", function(e){ toggleDisplayNodeTypeButtonHandler(e); }, false);
     displayNodeTypeLabel.appendChild(displayNodeType);
 
     displayNodeTypeButtonsDiv.appendChild(displayNodeTypeLabel);
@@ -882,6 +882,8 @@ function ControlPanel() {
     var tdTextColor = options.textColor;
     var tdBgColor = options.backgroundColor || "white";
 
+    var bHandler = buttonHandler;
+
     if (options.trClass) {
       tr.className = options.trClass;
     }
@@ -919,11 +921,13 @@ function ControlPanel() {
         } 
         else if (content.type === "BUTTON") {
 
+          if (content.buttonHandler !== undefined) { bHandler = content.buttonHandler; }
+
           var buttonElement = document.createElement("BUTTON");
           buttonElement.className = content.class;
           buttonElement.setAttribute("id", content.id);
           buttonElement.setAttribute("mode", content.mode);
-          buttonElement.addEventListener("click", function(e){ buttonHandler(e); }, false);
+          buttonElement.addEventListener("click", function(e){ bHandler(e); }, false);
           buttonElement.innerHTML = content.text;
           td.appendChild(buttonElement);
           controlIdHash[content.id] = content;
@@ -1085,7 +1089,8 @@ function ControlPanel() {
       mode: "TOGGLE",
       id: "showEmojiButton",
       class: "button",
-      text: "EMOJI"
+      text: "EMOJI",
+      buttonHandler: toggleDisplayNodeTypeButtonHandler
     };
 
     var showHashtagsButton = {
@@ -1093,7 +1098,8 @@ function ControlPanel() {
       mode: "TOGGLE",
       id: "showHashtagsButton",
       class: "button",
-      text: "HASHTAGS"
+      text: "HASHTAGS",
+      buttonHandler: toggleDisplayNodeTypeButtonHandler
     };
 
     var showMediaButton = {
@@ -1101,7 +1107,8 @@ function ControlPanel() {
       mode: "TOGGLE",
       id: "showMediaButton",
       class: "button",
-      text: "MEDIA"
+      text: "MEDIA",
+      buttonHandler: toggleDisplayNodeTypeButtonHandler
     };
 
     var showPlacesButton = {
@@ -1109,7 +1116,8 @@ function ControlPanel() {
       mode: "TOGGLE",
       id: "showPlacesButton",
       class: "button",
-      text: "PLACES"
+      text: "PLACES",
+      buttonHandler: toggleDisplayNodeTypeButtonHandler
     };
 
     var showUsersButton = {
@@ -1117,7 +1125,8 @@ function ControlPanel() {
       mode: "TOGGLE",
       id: "showUsersButton",
       class: "button",
-      text: "USERS"
+      text: "USERS",
+      buttonHandler: toggleDisplayNodeTypeButtonHandler
     };
 
     var showUrlsButton = {
@@ -1125,7 +1134,8 @@ function ControlPanel() {
       mode: "TOGGLE",
       id: "showUrlsButton",
       class: "button",
-      text: "URLS"
+      text: "URLS",
+      buttonHandler: toggleDisplayNodeTypeButtonHandler
     };
 
     var showWordsButton = {
@@ -1133,7 +1143,8 @@ function ControlPanel() {
       mode: "TOGGLE",
       id: "showWordsButton",
       class: "button",
-      text: "WORDS"
+      text: "WORDS",
+      buttonHandler: toggleDisplayNodeTypeButtonHandler
     };
 
     var maxAgeSlider = {

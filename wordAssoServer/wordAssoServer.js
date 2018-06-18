@@ -3271,6 +3271,7 @@ function initTransmitNodeQueueInterval(interval){
 
                   if (err) {
                     twitUserShowReady = false;
+                    unfollowableUserSet.delete(n.nodeId);
                     startTwitUserShowRateLimitTimeout();
                     startTwitUserShowRateLimitTimeoutDuration *= 1.5;
                     console.log(chalkError("ERROR users/show rawUser" + err));

@@ -408,17 +408,6 @@ function ControlPanel() {
 
     config.displayEnabled[currentButton.getAttribute("displayNodeType")] = newValue;
 
-    // switch (e.target.id){
-    //   case "emoji":
-    //     console.log("EMOJI: " + newValue);
-    //     config.displayEnabled[currentButton.getAttribute("displayNodeType")] = newValue;
-    //   break;
-    //   case "user":
-    //     console.log("USER: " + newValue);
-    //     config.displayEnabled[currentButton.getAttribute("displayNodeType")] = newValue;
-    //   break;
-    // }
-
     parentWindow.postMessage(
       {
         op: "DISPLAY_NODE_TYPE", 
@@ -1117,7 +1106,7 @@ function ControlPanel() {
     var showEmojiButton = {
       type: "BUTTON",
       mode: "TOGGLE",
-      id: "showEmojiButton",
+      id: "displayNodeType_emoji",
       displayNodeType: "emoji",
       class: "button",
       text: "EMOJI",
@@ -1127,7 +1116,7 @@ function ControlPanel() {
     var showHashtagsButton = {
       type: "BUTTON",
       mode: "TOGGLE",
-      id: "showHashtagsButton",
+      id: "displayNodeType_hashtag",
       displayNodeType: "hashtag",
       class: "button",
       text: "HASHTAGS",
@@ -1137,7 +1126,7 @@ function ControlPanel() {
     var showMediaButton = {
       type: "BUTTON",
       mode: "TOGGLE",
-      id: "showMediaButton",
+      id: "displayNodeType_media",
       displayNodeType: "media",
       class: "button",
       text: "MEDIA",
@@ -1147,7 +1136,7 @@ function ControlPanel() {
     var showPlacesButton = {
       type: "BUTTON",
       mode: "TOGGLE",
-      id: "showPlacesButton",
+      id: "displayNodeType_place",
       displayNodeType: "place",
       class: "button",
       text: "PLACES",
@@ -1157,7 +1146,7 @@ function ControlPanel() {
     var showUsersButton = {
       type: "BUTTON",
       mode: "TOGGLE",
-      id: "showUsersButton",
+      id: "displayNodeType_user",
       displayNodeType: "user",
       class: "button",
       text: "USERS",
@@ -1167,7 +1156,7 @@ function ControlPanel() {
     var showUrlsButton = {
       type: "BUTTON",
       mode: "TOGGLE",
-      id: "showUrlsButton",
+      id: "displayNodeType_url",
       displayNodeType: "url",
       class: "button",
       text: "URLS",
@@ -1177,7 +1166,7 @@ function ControlPanel() {
     var showWordsButton = {
       type: "BUTTON",
       mode: "TOGGLE",
-      id: "showWordsButton",
+      id: "displayNodeType_word",
       displayNodeType: "word",
       class: "button",
       text: "WORDS",

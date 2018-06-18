@@ -98,7 +98,7 @@ function ControlPanel() {
 
   //--------------
 
-  function nextMismatchedButtonHandler(e){
+  function nextMismatchedButtonHandler(e, callback){
 
     console.warn("NEXT MISMATCHED BUTTON"
      + " | ID: " + e.target.id
@@ -106,6 +106,8 @@ function ControlPanel() {
     );
 
     parentWindow.postMessage({op: "NODE_SEARCH", input: "@?MM"}, DEFAULT_SOURCE);
+
+    callback();
   }
 
   var nextMismatchedButton = document.createElement("button");
@@ -116,7 +118,9 @@ function ControlPanel() {
     "click", 
     function(e){ 
       nextMismatchedButton.style.backgroundColor = "red";
-      nextMismatchedButtonHandler(e);
+      nextMismatchedButtonHandler(e, function(){
+        nextMismatchedButton.style.backgroundColor = "black";
+      });
     }, 
     false
   );

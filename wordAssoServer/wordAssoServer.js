@@ -5,6 +5,34 @@ const shell = require("shelljs");
 
 var DEFAULT_NODE_TYPES = ["emoji", "hashtag", "media", "place", "url", "user", "word"];
 
+
+let followableSearchTermSet = new Set();
+
+followableSearchTermSet.add("trump");
+followableSearchTermSet.add("obama");
+followableSearchTermSet.add("clinton");
+followableSearchTermSet.add("reagan");
+followableSearchTermSet.add("maga");
+followableSearchTermSet.add("kag");
+followableSearchTermSet.add("nra");
+followableSearchTermSet.add("pence");
+followableSearchTermSet.add("ivanka");
+followableSearchTermSet.add("mueller");
+followableSearchTermSet.add("bluewave");
+followableSearchTermSet.add("resist");
+followableSearchTermSet.add("dem");
+followableSearchTermSet.add("liberal");
+followableSearchTermSet.add("conservative");
+followableSearchTermSet.add("imwithher");
+followableSearchTermSet.add("metoo");
+followableSearchTermSet.add("blm");
+followableSearchTermSet.add("livesmatter");
+followableSearchTermSet.add("hanity");
+
+let followableSearchTermString = "";
+
+let followableRegEx;
+
 const DEFAULT_SORTER_CHILD_ID = "wa_node_sorter";
 const DEFAULT_TWEET_PARSER_CHILD_ID = "wa_node_tweetParser";
 
@@ -3173,7 +3201,12 @@ function startTwitUserShowRateLimitTimeout(){
 
 }
 
-const followableRegEx = new RegExp(/trump|maga|kag|obama|hillary|clinton|pence|bluewave|#resist|dems|liberal|conservative/gi);
+function initFollowableSearchTerms(){
+  const termsArray = Array.from(followableSearchTermSet);
+  followableSearchTermString = termsArray.join("|");
+  followableRegEx = new RegExp(followableSearchTermString, "gi");
+  console.log(chalkAlert("followableRegEx: " + followableRegEx));
+}
 
 let userFollowable = function(user){
 
@@ -5092,6 +5125,7 @@ function initCategoryHashmaps(callback){
   });
 }
 
+
 function initialize(cnf, callback) {
 
   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | INITIALIZE"));
@@ -5146,6 +5180,9 @@ function initialize(cnf, callback) {
 
   initLoadBestNetworkInterval(ONE_MINUTE+1);
   initInternetCheckInterval(10000);
+
+  initFollowableSearchTerms();
+
 
   io = require("socket.io")(httpServer, ioConfig);
 

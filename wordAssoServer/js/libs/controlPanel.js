@@ -1088,6 +1088,7 @@ function ControlPanel() {
       type: "BUTTON",
       mode: "TOGGLE",
       id: "showEmojiButton",
+      nodeType: "emoji",
       class: "button",
       text: "EMOJI",
       buttonHandler: toggleDisplayNodeTypeButtonHandler
@@ -1097,6 +1098,7 @@ function ControlPanel() {
       type: "BUTTON",
       mode: "TOGGLE",
       id: "showHashtagsButton",
+      nodeType: "hashtag",
       class: "button",
       text: "HASHTAGS",
       buttonHandler: toggleDisplayNodeTypeButtonHandler
@@ -1106,6 +1108,7 @@ function ControlPanel() {
       type: "BUTTON",
       mode: "TOGGLE",
       id: "showMediaButton",
+      nodeType: "media",
       class: "button",
       text: "MEDIA",
       buttonHandler: toggleDisplayNodeTypeButtonHandler
@@ -1115,6 +1118,7 @@ function ControlPanel() {
       type: "BUTTON",
       mode: "TOGGLE",
       id: "showPlacesButton",
+      nodeType: "place",
       class: "button",
       text: "PLACES",
       buttonHandler: toggleDisplayNodeTypeButtonHandler
@@ -1124,6 +1128,7 @@ function ControlPanel() {
       type: "BUTTON",
       mode: "TOGGLE",
       id: "showUsersButton",
+      nodeType: "user",
       class: "button",
       text: "USERS",
       buttonHandler: toggleDisplayNodeTypeButtonHandler
@@ -1133,6 +1138,7 @@ function ControlPanel() {
       type: "BUTTON",
       mode: "TOGGLE",
       id: "showUrlsButton",
+      nodeType: "url",
       class: "button",
       text: "URLS",
       buttonHandler: toggleDisplayNodeTypeButtonHandler
@@ -1142,6 +1148,7 @@ function ControlPanel() {
       type: "BUTTON",
       mode: "TOGGLE",
       id: "showWordsButton",
+      nodeType: "word",
       class: "button",
       text: "WORDS",
       buttonHandler: toggleDisplayNodeTypeButtonHandler

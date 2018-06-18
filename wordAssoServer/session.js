@@ -982,8 +982,8 @@ function controlPanelComm(event) {
     break;
 
     case "DISPLAY_NODE_TYPE":
-      config.displayNodeHashMap[event.data.nodeType] = event.data.value;
-      console.warn("R<DISPLAY_NODE_TYPE | " + event.data.nodeType + " | " + event.data.value);
+      config.displayNodeHashMap[event.data.displayNodeType] = event.data.value;
+      console.warn("R<DISPLAY_NODE_TYPE | " + event.data.displayNodeType + " | " + event.data.value);
       console.warn("config.displayNodeHashMap\n" + jsonPrint(config.displayNodeHashMap));
       resetConfigUpdateTimeOut();
     break;
@@ -1033,9 +1033,9 @@ function createPopUpControlPanel (cnf, callback) {
   }, false);
 }
 
-function toggleShowNodeType(nodeType) {
-  if (config.displayNodeHashMap[nodeType] === "show") { config.displayNodeHashMap[nodeType] = "hide"; }
-  else { config.displayNodeHashMap[nodeType] = "show"; }
+function toggleShowNodeType(displayNodeType) {
+  if (config.displayNodeHashMap[displayNodeType] === "show") { config.displayNodeHashMap[displayNodeType] = "hide"; }
+  else { config.displayNodeHashMap[displayNodeType] = "show"; }
   currentSessionView.setMetricMode(config.metricMode);
   console.warn("SET RADIUS MODE: " + config.metricMode);
   updateMetricButton();

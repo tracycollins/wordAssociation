@@ -940,9 +940,11 @@ function controlPanelComm(event) {
       }
       resetConfigUpdateTimeOut();
     break;
+    
     case "INIT":
       console.info("R< CONTROL PANEL LOOPBACK? | INIT ... IGNORING ...");
-      break;
+    break;
+    
     case "CATEGORIZE":
       if (statsObj.isAuthenticated) {
 

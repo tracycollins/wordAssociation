@@ -362,14 +362,14 @@ function ViewTreepack() {
   var ageRate = DEFAULT_TREEMAP_CONFIG.ageRate;
   var maxAgeRate = 1e-6;
 
-  var defaultStrokeWidth = "2.0px";
-  var topTermStrokeWidth = "4.0px";
-  var newFlagStrokeWidth = "4.0px";
+  var defaultStrokeWidth = "3.0px";
+  var topTermStrokeWidth = "6.0px";
+  var newFlagStrokeWidth = "6.0px";
 
   var categoryMatchColor = palette.green;
-  var categoryMatchStrokeWidth = "6.0px";
-  var categoryMismatchStrokeWidth = "6.0px";
-  var categoryAutoStrokeWidth = "4.0px";
+  var categoryMatchStrokeWidth = "8.0px";
+  var categoryMismatchStrokeWidth = "10.0px";
+  var categoryAutoStrokeWidth = "8.0px";
 
   var divTooltip = d3.select("body").append("div")
     .attr("id", "divTooltip")

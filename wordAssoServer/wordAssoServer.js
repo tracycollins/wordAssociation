@@ -3289,6 +3289,9 @@ function initTransmitNodeQueueInterval(interval){
                     unfollowableUserSet.delete(n.nodeId);
                     startTwitUserShowRateLimitTimeout();
                     startTwitUserShowRateLimitTimeoutDuration *= 1.5;
+                    if (startTwitUserShowRateLimitTimeoutDuration > 15*ONE_MINUTE) {
+                      startTwitUserShowRateLimitTimeoutDuration = 15*ONE_MINUTE;
+                    }
                     console.log(chalkError("ERROR users/show rawUser: " + err));
                     viewNameSpace.volatile.emit("node", n);
                   }

@@ -391,22 +391,33 @@ function ControlPanel() {
 
     currentButton.setAttribute("value", newValue);
 
+    if (newValue === "show") { 
+      currentButton.style.color = "green";
+      currentButton.style.border = "2px solid green";
+    }
+    else {
+      currentButton.style.color = "#888888";
+      currentButton.style.border = "1px solid white";
+    }
+
     console.warn("DISPLAY NODE TYPE BUTTON"
      + " | ID: " + e.target.id
      + " | NODE TYPE: " + currentButton.getAttribute("nodeType")
      + " | VALUE: " + currentButton.value
     );
 
-    switch (e.target.id){
-      case "emoji":
-        console.log("EMOJI: " + newValue);
-        config.displayEnabled[currentButton.getAttribute("nodeType")] = newValue;
-      break;
-      case "user":
-        console.log("USER: " + newValue);
-        config.displayEnabled[currentButton.getAttribute("nodeType")] = newValue;
-      break;
-    }
+    config.displayEnabled[currentButton.getAttribute("nodeType")] = newValue;
+
+    // switch (e.target.id){
+    //   case "emoji":
+    //     console.log("EMOJI: " + newValue);
+    //     config.displayEnabled[currentButton.getAttribute("nodeType")] = newValue;
+    //   break;
+    //   case "user":
+    //     console.log("USER: " + newValue);
+    //     config.displayEnabled[currentButton.getAttribute("nodeType")] = newValue;
+    //   break;
+    // }
 
     parentWindow.postMessage(
       {
@@ -418,30 +429,30 @@ function ControlPanel() {
     );
   };
 
-  function createDisplayNodeTypeButton(params, callback){
+  // function createDisplayNodeTypeButton(params, callback){
 
-    var displayNodeTypeLabel = document.createElement("label");
+  //   var displayNodeTypeLabel = document.createElement("label");
 
-    displayNodeTypeLabel.setAttribute("class", "displayNodeTypeLabel");
-    displayNodeTypeLabel.innerHTML = params.label || params.nodeType.toUpperCase();
+  //   displayNodeTypeLabel.setAttribute("class", "displayNodeTypeLabel");
+  //   displayNodeTypeLabel.innerHTML = params.label || params.nodeType.toUpperCase();
 
-    const id = params.id || "displayNodeType_" + params.nodeType.toLowerCase();
-    const nodeType = params.nodeType.toLowerCase();
-    const value = params.value || "hide";
+  //   const id = params.id || "displayNodeType_" + params.nodeType.toLowerCase();
+  //   const nodeType = params.nodeType.toLowerCase();
+  //   const value = params.value || "hide";
 
-    var displayNodeType = document.createElement("INPUT");
-    displayNodeType.setAttribute("class", "button");
-    displayNodeType.setAttribute("type", "button");
-    displayNodeType.setAttribute("nodeType", nodeType);
-    displayNodeType.setAttribute("id", id);
-    displayNodeType.setAttribute("value", value);
-    displayNodeType.addEventListener("click", function(e){ toggleDisplayNodeTypeButtonHandler(e); }, false);
-    displayNodeTypeLabel.appendChild(displayNodeType);
+  //   var displayNodeType = document.createElement("INPUT");
+  //   displayNodeType.setAttribute("class", "button");
+  //   displayNodeType.setAttribute("type", "button");
+  //   displayNodeType.setAttribute("nodeType", nodeType);
+  //   displayNodeType.setAttribute("id", id);
+  //   displayNodeType.setAttribute("value", value);
+  //   displayNodeType.addEventListener("click", function(e){ toggleDisplayNodeTypeButtonHandler(e); }, false);
+  //   displayNodeTypeLabel.appendChild(displayNodeType);
 
-    displayNodeTypeButtonsDiv.appendChild(displayNodeTypeLabel);
+  //   displayNodeTypeButtonsDiv.appendChild(displayNodeTypeLabel);
 
-    if (callback !== undefined) { callback(); }
-  }
+  //   if (callback !== undefined) { callback(); }
+  // }
 
   this.setDisplayNodeType = function(params, callback){
 
@@ -461,13 +472,13 @@ function ControlPanel() {
     if (callback !== undefined) { callback(); }
   };
 
-  createDisplayNodeTypeButton({nodeType: "emoji"});
-  createDisplayNodeTypeButton({nodeType: "hashtag"});
-  createDisplayNodeTypeButton({nodeType: "media"});
-  createDisplayNodeTypeButton({nodeType: "place"});
-  createDisplayNodeTypeButton({nodeType: "url"});
-  createDisplayNodeTypeButton({nodeType: "user"});
-  createDisplayNodeTypeButton({nodeType: "word"});
+  // createDisplayNodeTypeButton({nodeType: "emoji"});
+  // createDisplayNodeTypeButton({nodeType: "hashtag"});
+  // createDisplayNodeTypeButton({nodeType: "media"});
+  // createDisplayNodeTypeButton({nodeType: "place"});
+  // createDisplayNodeTypeButton({nodeType: "url"});
+  // createDisplayNodeTypeButton({nodeType: "user"});
+  // createDisplayNodeTypeButton({nodeType: "word"});
 
   var twitterCategoryButtonsDiv = document.getElementById("twitterCategoryButtonsDiv");
 

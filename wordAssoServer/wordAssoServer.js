@@ -19,7 +19,7 @@ const ONE_DAY = 24 * ONE_HOUR;
 const DEFAULT_INTERVAL = 5;
 const DEFAULT_PING_INTERVAL = 5000;
 const DROPBOX_LIST_FOLDER_LIMIT = 50;
-const DEFAULT_MIN_FOLLOWERS_AUTO = 10000;
+const DEFAULT_MIN_FOLLOWERS_AUTO = 20000;
 const RATE_QUEUE_INTERVAL = 1000; // 1 second
 const RATE_QUEUE_INTERVAL_MODULO = 60; // modulo RATE_QUEUE_INTERVAL
 const TWEET_PARSER_INTERVAL = 2;
@@ -3139,11 +3139,23 @@ let transmitNodeQueue = [];
 
 let twitUserShowReady = true;
 
+let startTwitUserShowRateLimitTimeoutDuration = ONE_MINUTE;
+
 function startTwitUserShowRateLimitTimeout(){
+
+  console.log(chalkAlert("TWITTER USER SHOW TIMEOUT START"
+    + " | INTERVAL: " + msToTime(startTwitUserShowRateLimitTimeoutDuration)
+    + " | " + getTimeStamp()
+  ));
+
   setTimeout(function(){
-    console.log(chalkAlert("TWITTER USER SHOW TIMEOUT"));
+    console.log(chalkAlert("TWITTER USER SHOW TIMEOUT END"
+      + " | INTERVAL: " + msToTime(startTwitUserShowRateLimitTimeoutDuration)
+      + " | " + getTimeStamp()
+    ));
     twitUserShowReady = true;
-  }, 60000);
+  }, startTwitUserShowRateLimitTimeoutDuration);
+
 }
 
 const followableRegEx = new RegExp(/trump|maga|kag|obama|hillary|clinton|pence|bluewave|#resist|dems|liberal|conservative/gi);
@@ -3249,9 +3261,9 @@ function initTransmitNodeQueueInterval(interval){
 
               const followable = userFollowable(n);
 
-              unfollowableUserSet.add(n.nodeId);
-
               if (twitUserShowReady && followable){
+
+                unfollowableUserSet.add(n.nodeId);
 
                 twit.get("users/show", 
                   {user_id: n.nodeId, include_entities: true}, 
@@ -3260,11 +3272,13 @@ function initTransmitNodeQueueInterval(interval){
                   if (err) {
                     twitUserShowReady = false;
                     startTwitUserShowRateLimitTimeout();
+                    startTwitUserShowRateLimitTimeoutDuration *= 1.5;
                     console.log(chalkError("ERROR users/show rawUser" + err));
                     viewNameSpace.volatile.emit("node", n);
                   }
                   else if (rawUser && (rawUser.followers_count >= configuration.minFollowersAuto)) {
 
+                    startTwitUserShowRateLimitTimeoutDuration = ONE_MINUTE;
 
                     debug(chalkTwitter("FOUND users/show rawUser" + jsonPrint(rawUser)));
 

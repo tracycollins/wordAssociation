@@ -34,6 +34,21 @@ const HASHTAG_LOOKUP_QUEUE_INTERVAL = 2;
 const moment = require("moment");
 
 let dropboxConfigDefaultFolder = "/config/utility/default";
+let dropboxConfigTwitterFolder = "/config/twitter";
+
+const DEFAULT_TWITTER_CONFIG_FILE = "ninjathreecee.json";
+const DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE = "threeceeinfo.json";
+
+let defaultTwitterConfigFile = DEFAULT_TWITTER_CONFIG_FILE;
+let twitterAutoFollowConfigFile = DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE;
+
+if (process.env.DEFAULT_TWITTER_CONFIG_FILE !== undefined) {
+  defaultTwitterConfigFile = process.env.DEFAULT_TWITTER_CONFIG_FILE;
+}
+
+if (process.env.DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE !== undefined) {
+  twitterAutoFollowConfigFile = process.env.DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE;
+}
 
 const bestNetworkFolder = "/config/utility/best/neuralNetworks";
 const bestRuntimeNetworkFileName = "bestRuntimeNetwork.json";
@@ -339,7 +354,7 @@ const deletedMetricsHashmap = new HashMap();
 
 const Twit = require("twit");
 let twit;
-let twitterYamlConfigFile = process.env.DEFAULT_TWITTER_CONFIG;
+let twitAutoFollow;
 
 let hostname = os.hostname();
 hostname = hostname.replace(/.local/g, "");
@@ -3265,7 +3280,7 @@ function initTransmitNodeQueueInterval(interval){
 
                 unfollowableUserSet.add(n.nodeId);
 
-                twit.get("users/show", 
+                twitAutoFollow.get("users/show", 
                   {user_id: n.nodeId, include_entities: true}, 
                   function usersShow (err, rawUser, response){
 
@@ -3274,7 +3289,7 @@ function initTransmitNodeQueueInterval(interval){
                     unfollowableUserSet.delete(n.nodeId);
                     startTwitUserShowRateLimitTimeout();
                     startTwitUserShowRateLimitTimeoutDuration *= 1.5;
-                    console.log(chalkError("ERROR users/show rawUser" + err));
+                    console.log(chalkError("ERROR users/show rawUser: " + err));
                     viewNameSpace.volatile.emit("node", n);
                   }
                   else if (rawUser && (rawUser.followers_count >= configuration.minFollowersAuto)) {
@@ -5089,22 +5104,29 @@ function initialize(cnf, callback) {
     debug(chalkAlert("===== QUIT ON ERROR SET ====="));
   }
 
-  loadYamlConfig(twitterYamlConfigFile, function initTwit(err, twitterConfig){
+  loadFile(dropboxConfigTwitterFolder, defaultTwitterConfigFile, function initTwit(err, twitterConfig){
     if (err) {
-      console.log(chalkError("*** LOADED TWITTER YAML CONFIG ERROR: FILE:  " + twitterYamlConfigFile));
-      console.log(chalkError("*** LOADED TWITTER YAML CONFIG ERROR: ERROR: " + err));
+      console.log(chalkError("*** LOADED DEFAULT TWITTER CONFIG ERROR: FILE:  " + defaultTwitterConfigFile));
+      console.log(chalkError("*** LOADED DEFAULTTWITTER CONFIG ERROR: ERROR: " + err));
     }
     else {
-      console.log(chalkTwitter("LOADED TWITTER YAML CONFIG\n" + jsonPrint(twitterConfig)));
+      console.log(chalkTwitter("LOADED TWITTER AUTO FOLLOW CONFIG\n" + jsonPrint(defaultTwitterConfigFile)));
 
-      twit = new Twit({
-        consumer_key: twitterConfig.CONSUMER_KEY,
-        consumer_secret: twitterConfig.CONSUMER_SECRET,
-        access_token: twitterConfig.TOKEN,
-        access_token_secret: twitterConfig.TOKEN_SECRET
-      });
+      twit = new Twit(twitterConfig);
 
       updateTrends();
+    }
+  });
+
+  loadFile(dropboxConfigTwitterFolder, twitterAutoFollowConfigFile, function initTwit(err, twitterConfig){
+    if (err) {
+      console.log(chalkError("*** LOADED TWITTER AUTO FOLLOW CONFIG ERROR: FILE:  " + twitterAutoFollowConfigFile));
+      console.log(chalkError("*** LOADED TWITTER AUTO FOLLOW CONFIG ERROR: ERROR: " + err));
+    }
+    else {
+      console.log(chalkTwitter("LOADED TWITTER AUTO FOLLOW CONFIG\n" + jsonPrint(twitterAutoFollowConfigFile)));
+
+      twitAutoFollow = new Twit(twitterConfig);
     }
   });
 

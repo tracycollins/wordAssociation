@@ -1396,6 +1396,7 @@ function ViewTreepack() {
         return palette.white; 
       })
       .style("stroke-width", function (d) { 
+        if (d.categoryMismatch) { return categoryMismatchStrokeWidth; }
         if (d.categoryMatch) { return categoryMatchStrokeWidth; }
         if (d.isTopTerm) { return topTermStrokeWidth; }
         if (d.newFlag) { return newFlagStrokeWidth; }
@@ -1436,6 +1437,7 @@ function ViewTreepack() {
         return palette.white; 
       })
       .style("stroke-width", function (d) { 
+        if (d.categoryMismatch) { return categoryMismatchStrokeWidth; }
         if (d.categoryMatch) { return categoryMatchStrokeWidth; }
         if (d.isTopTerm) { return topTermStrokeWidth; }
         if (d.newFlag) { return newFlagStrokeWidth; }

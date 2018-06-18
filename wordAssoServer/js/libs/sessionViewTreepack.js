@@ -362,10 +362,14 @@ function ViewTreepack() {
   var ageRate = DEFAULT_TREEMAP_CONFIG.ageRate;
   var maxAgeRate = 1e-6;
 
+  var defaultStrokeWidth = "2.0px";
+  var topTermStrokeWidth = "4.0px";
+  var newFlagStrokeWidth = "4.0px";
+
   var categoryMatchColor = palette.green;
-  var categoryMatchStrokeWidth = "4.0px";
-  var categoryMismatchStrokeWidth = "4.0px";
-  var categoryAutoStrokeWidth = "3.0px";
+  var categoryMatchStrokeWidth = "6.0px";
+  var categoryMismatchStrokeWidth = "6.0px";
+  var categoryAutoStrokeWidth = "4.0px";
 
   var divTooltip = d3.select("body").append("div")
     .attr("id", "divTooltip")
@@ -1393,13 +1397,13 @@ function ViewTreepack() {
       })
       .style("stroke-width", function (d) { 
         if (d.categoryMatch) { return categoryMatchStrokeWidth; }
-        if (d.isTopTerm) { return "3.0px"; }
-        if (d.newFlag) { return "3.0px"; }
+        if (d.isTopTerm) { return topTermStrokeWidth; }
+        if (d.newFlag) { return newFlagStrokeWidth; }
         // if (d.categoryAuto === "right") { return categoryAutoStrokeWidth; }
         // if (d.categoryAuto === "left") { return categoryAutoStrokeWidth; }
         // if (d.categoryAuto === "positive") { return categoryAutoStrokeWidth; }
         // if (d.categoryAuto ==="negative") { return categoryAutoStrokeWidth; }
-        return "2.0px"; 
+        return defaultStrokeWidth; 
       })
       .style("opacity", function (d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
       .on("mouseover", nodeMouseOver)
@@ -1433,13 +1437,13 @@ function ViewTreepack() {
       })
       .style("stroke-width", function (d) { 
         if (d.categoryMatch) { return categoryMatchStrokeWidth; }
-        if (d.isTopTerm) { return "3.0px"; }
-        if (d.newFlag) { return "3.0px"; }
+        if (d.isTopTerm) { return topTermStrokeWidth; }
+        if (d.newFlag) { return newFlagStrokeWidth; }
         // if (d.categoryAuto === "right") { return categoryAutoStrokeWidth; }
         // if (d.categoryAuto === "left") { return categoryAutoStrokeWidth; }
         // if (d.categoryAuto === "positive") { return categoryAutoStrokeWidth; }
         // if (d.categoryAuto ==="negative") { return categoryAutoStrokeWidth; }
-        return "2.0px"; 
+        return defaultStrokeWidth; 
       });
 
     nodeCircles
@@ -1550,10 +1554,10 @@ function ViewTreepack() {
       .style("fill", palette.white)
       .style("stroke-width", function (d) { 
         if (d.categoryMatch) { return categoryMatchStrokeWidth; }
-        if (d.categoryMismatch) { return "4.0px"; }
-        if (d.isTopTerm) { return "3.0px"; }
-        if (d.newFlag) { return "2.0px"; }
-        return "1.2px"; 
+        if (d.categoryMismatch) { return categoryMismatchStrokeWidth; }
+        if (d.isTopTerm) { return topTermStrokeWidth; }
+        if (d.newFlag) { return newFlagStrokeWidth; }
+        return defaultStrokeWidth; 
       })
       .style("font-size", function (d) {
         if (metricMode === "rate") {

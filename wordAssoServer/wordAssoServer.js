@@ -339,7 +339,7 @@ const deletedMetricsHashmap = new HashMap();
 
 const Twit = require("twit");
 let twit;
-let twitterYamlConfigFile = process.env.ALTTHREECEE00_TWITTER_CONFIG;
+let twitterYamlConfigFile = process.env.DEFAULT_TWITTER_CONFIG;
 
 let hostname = os.hostname();
 hostname = hostname.replace(/.local/g, "");

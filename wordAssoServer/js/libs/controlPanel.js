@@ -402,27 +402,27 @@ function ControlPanel() {
 
     console.warn("DISPLAY NODE TYPE BUTTON"
      + " | ID: " + e.target.id
-     + " | NODE TYPE: " + currentButton.getAttribute("nodeType")
+     + " | NODE TYPE: " + currentButton.getAttribute("displayNodeType")
      + " | VALUE: " + currentButton.value
     );
 
-    config.displayEnabled[currentButton.getAttribute("nodeType")] = newValue;
+    config.displayEnabled[currentButton.getAttribute("displayNodeType")] = newValue;
 
     // switch (e.target.id){
     //   case "emoji":
     //     console.log("EMOJI: " + newValue);
-    //     config.displayEnabled[currentButton.getAttribute("nodeType")] = newValue;
+    //     config.displayEnabled[currentButton.getAttribute("displayNodeType")] = newValue;
     //   break;
     //   case "user":
     //     console.log("USER: " + newValue);
-    //     config.displayEnabled[currentButton.getAttribute("nodeType")] = newValue;
+    //     config.displayEnabled[currentButton.getAttribute("displayNodeType")] = newValue;
     //   break;
     // }
 
     parentWindow.postMessage(
       {
         op: "DISPLAY_NODE_TYPE", 
-        nodeType: currentButton.getAttribute("nodeType"), 
+        displayNodeType: currentButton.getAttribute("displayNodeType"), 
         value: currentButton.getAttribute("value")
       }, 
       DEFAULT_SOURCE
@@ -434,16 +434,16 @@ function ControlPanel() {
   //   var displayNodeTypeLabel = document.createElement("label");
 
   //   displayNodeTypeLabel.setAttribute("class", "displayNodeTypeLabel");
-  //   displayNodeTypeLabel.innerHTML = params.label || params.nodeType.toUpperCase();
+  //   displayNodeTypeLabel.innerHTML = params.label || params.displayNodeType.toUpperCase();
 
-  //   const id = params.id || "displayNodeType_" + params.nodeType.toLowerCase();
-  //   const nodeType = params.nodeType.toLowerCase();
+  //   const id = params.id || "displayNodeType_" + params.displayNodeType.toLowerCase();
+  //   const displayNodeType = params.displayNodeType.toLowerCase();
   //   const value = params.value || "hide";
 
   //   var displayNodeType = document.createElement("INPUT");
   //   displayNodeType.setAttribute("class", "button");
   //   displayNodeType.setAttribute("type", "button");
-  //   displayNodeType.setAttribute("nodeType", nodeType);
+  //   displayNodeType.setAttribute("displayNodeType", displayNodeType);
   //   displayNodeType.setAttribute("id", id);
   //   displayNodeType.setAttribute("value", value);
   //   displayNodeType.addEventListener("click", function(e){ toggleDisplayNodeTypeButtonHandler(e); }, false);
@@ -456,15 +456,15 @@ function ControlPanel() {
 
   this.setDisplayNodeType = function(params, callback){
 
-    if (!nodeTypesSet.has(params.nodeType)) {
-      console.error("UNKNOWN NODE TYPE: " + params.nodeType);
-      return callback("UNKNOWN NODE TYPE: " + params.nodeType);
+    if (!nodeTypesSet.has(params.displayNodeType)) {
+      console.error("UNKNOWN NODE TYPE: " + params.displayNodeType);
+      return callback("UNKNOWN NODE TYPE: " + params.displayNodeType);
     }
 
-    const id = params.id || "displayNodeType_" + params.nodeType.toLowerCase();
+    const id = params.id || "displayNodeType_" + params.displayNodeType.toLowerCase();
     const value = params.value || "hide";
 
-    console.log("SET DISPLAY NODE TYPE | " + params.nodeType + " | " + value);
+    console.log("SET DISPLAY NODE TYPE | " + params.displayNodeType + " | " + value);
 
     var displayNodeType = document.getElementById(id);
     displayNodeType.setAttribute("value", value);
@@ -472,13 +472,13 @@ function ControlPanel() {
     if (callback !== undefined) { callback(); }
   };
 
-  // createDisplayNodeTypeButton({nodeType: "emoji"});
-  // createDisplayNodeTypeButton({nodeType: "hashtag"});
-  // createDisplayNodeTypeButton({nodeType: "media"});
-  // createDisplayNodeTypeButton({nodeType: "place"});
-  // createDisplayNodeTypeButton({nodeType: "url"});
-  // createDisplayNodeTypeButton({nodeType: "user"});
-  // createDisplayNodeTypeButton({nodeType: "word"});
+  // createDisplayNodeTypeButton({displayNodeType: "emoji"});
+  // createDisplayNodeTypeButton({displayNodeType: "hashtag"});
+  // createDisplayNodeTypeButton({displayNodeType: "media"});
+  // createDisplayNodeTypeButton({displayNodeType: "place"});
+  // createDisplayNodeTypeButton({displayNodeType: "url"});
+  // createDisplayNodeTypeButton({displayNodeType: "user"});
+  // createDisplayNodeTypeButton({displayNodeType: "word"});
 
   var twitterCategoryButtonsDiv = document.getElementById("twitterCategoryButtonsDiv");
 
@@ -495,34 +495,34 @@ function ControlPanel() {
 
     switch (e.target.id){
       case "categoryLeft":
-        console.log("LEFT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        console.log("LEFT | " + currentTwitterNode.displayNodeType + " | " + currentTwitterNode.nodeId);
         category = "left";
       break;
       case "categoryRight":
-        console.log("RIGHT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        console.log("RIGHT | " + currentTwitterNode.displayNodeType + " | " + currentTwitterNode.nodeId);
         category = "right";
       break;
       case "categoryNeutral":
-        console.log("NEUTRAL | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        console.log("NEUTRAL | " + currentTwitterNode.displayNodeType + " | " + currentTwitterNode.nodeId);
         category = "neutral";
       break;
       case "categoryPositive":
-        console.log("POSITIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        console.log("POSITIVE | " + currentTwitterNode.displayNodeType + " | " + currentTwitterNode.nodeId);
         category = "positive";
       break;
       case "categoryNegative":
-        console.log("NEGATIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        console.log("NEGATIVE | " + currentTwitterNode.displayNodeType + " | " + currentTwitterNode.nodeId);
         category = "negative";
       break;
       case "categoryNone":
-        console.log("NONE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        console.log("NONE | " + currentTwitterNode.displayNodeType + " | " + currentTwitterNode.nodeId);
         category = false;
       break;
     }
 
     const catNode = {
       nodeId: currentTwitterNode.nodeId,
-      nodeType: currentTwitterNode.nodeType,
+      displayNodeType: currentTwitterNode.displayNodeType,
       screenName: currentTwitterNode.screenName,
       category: currentTwitterNode.category,
       categoryAuto: currentTwitterNode.categoryAuto,
@@ -761,10 +761,10 @@ function ControlPanel() {
         self.setFontSizeMaxRatioSliderValue(cnf.defaultFontSizeMaxRatio);
 
         if (cnf.displayNodeHashMap !== undefined) {
-          Object.keys(cnf.displayNodeHashMap).forEach(function(nodeType){
-            self.setDisplayNodeType({nodeType: nodeType, value: cnf.displayNodeHashMap[nodeType]}, function(err){
+          Object.keys(cnf.displayNodeHashMap).forEach(function(displayNodeType){
+            self.setDisplayNodeType({displayNodeType: displayNodeType, value: cnf.displayNodeHashMap[displayNodeType]}, function(err){
               if (err) {
-                delete cnf.displayNodeHashMap[nodeType];
+                delete cnf.displayNodeHashMap[displayNodeType];
               }
             });
           });
@@ -955,7 +955,7 @@ function ControlPanel() {
           var buttonElement = document.createElement("BUTTON");
           buttonElement.className = content.class;
           buttonElement.setAttribute("id", content.id);
-          if (content.nodeType !== undefined) { buttonElement.setAttribute("nodeType", content.nodeType); }
+          if (content.displayNodeType !== undefined) { buttonElement.setAttribute("displayNodeType", content.displayNodeType); }
           buttonElement.setAttribute("mode", content.mode);
           buttonElement.addEventListener("click", function(e){ bHandler(e); }, false);
           buttonElement.innerHTML = content.text;
@@ -1118,7 +1118,7 @@ function ControlPanel() {
       type: "BUTTON",
       mode: "TOGGLE",
       id: "showEmojiButton",
-      nodeType: "emoji",
+      displayNodeType: "emoji",
       class: "button",
       text: "EMOJI",
       buttonHandler: toggleDisplayNodeTypeButtonHandler
@@ -1128,7 +1128,7 @@ function ControlPanel() {
       type: "BUTTON",
       mode: "TOGGLE",
       id: "showHashtagsButton",
-      nodeType: "hashtag",
+      displayNodeType: "hashtag",
       class: "button",
       text: "HASHTAGS",
       buttonHandler: toggleDisplayNodeTypeButtonHandler
@@ -1138,7 +1138,7 @@ function ControlPanel() {
       type: "BUTTON",
       mode: "TOGGLE",
       id: "showMediaButton",
-      nodeType: "media",
+      displayNodeType: "media",
       class: "button",
       text: "MEDIA",
       buttonHandler: toggleDisplayNodeTypeButtonHandler
@@ -1148,7 +1148,7 @@ function ControlPanel() {
       type: "BUTTON",
       mode: "TOGGLE",
       id: "showPlacesButton",
-      nodeType: "place",
+      displayNodeType: "place",
       class: "button",
       text: "PLACES",
       buttonHandler: toggleDisplayNodeTypeButtonHandler
@@ -1158,7 +1158,7 @@ function ControlPanel() {
       type: "BUTTON",
       mode: "TOGGLE",
       id: "showUsersButton",
-      nodeType: "user",
+      displayNodeType: "user",
       class: "button",
       text: "USERS",
       buttonHandler: toggleDisplayNodeTypeButtonHandler
@@ -1168,7 +1168,7 @@ function ControlPanel() {
       type: "BUTTON",
       mode: "TOGGLE",
       id: "showUrlsButton",
-      nodeType: "url",
+      displayNodeType: "url",
       class: "button",
       text: "URLS",
       buttonHandler: toggleDisplayNodeTypeButtonHandler
@@ -1178,7 +1178,7 @@ function ControlPanel() {
       type: "BUTTON",
       mode: "TOGGLE",
       id: "showWordsButton",
-      nodeType: "word",
+      displayNodeType: "word",
       class: "button",
       text: "WORDS",
       buttonHandler: toggleDisplayNodeTypeButtonHandler

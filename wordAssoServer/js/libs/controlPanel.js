@@ -96,6 +96,9 @@ function ControlPanel() {
   var controlTable;
   var controlTableHead;
   var controlTableBody;
+
+  var displayControlTable;
+
   var controlSliderTable;
 
   // var twitterFeedDiv = d3.select("#twitterFeedDiv");
@@ -1000,6 +1003,7 @@ function ControlPanel() {
     infoTable = document.getElementById("infoTable");
     userStatsTable = document.getElementById("userStatsTable");
     controlTable = document.getElementById("controlTable");
+    displayControlTable = document.getElementById("displayControlTable");
     controlTableHead = document.getElementById("controlTableHead");
     controlTableBody = document.getElementById("controlTableBody");
     controlSliderTable = document.getElementById("controlSliderTable");
@@ -1543,7 +1547,7 @@ function ControlPanel() {
         break;
       case "treepack":
         self.tableCreateRow(controlTable, optionsBody, [resetButton, pauseButton, statsButton, fullscreenButton]);
-        self.tableCreateRow(controlTable, optionsBody, 
+        self.tableCreateRow(displayControlTable, optionsBody, 
           [
             showEmojiButton,
             showHashtagsButton,

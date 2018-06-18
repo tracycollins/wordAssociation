@@ -423,7 +423,7 @@ function ControlPanel() {
     const value = params.value || "hide";
 
     var displayNodeType = document.createElement("INPUT");
-    displayNodeType.setAttribute("class", "categoryButton");
+    displayNodeType.setAttribute("class", "button");
     displayNodeType.setAttribute("type", "button");
     displayNodeType.setAttribute("nodeType", nodeType);
     displayNodeType.setAttribute("id", id);
@@ -513,7 +513,7 @@ function ControlPanel() {
   categoryLeftLabel.innerHTML = "LEFT";
 
   var categoryLeft = document.createElement("INPUT");
-  categoryLeft.setAttribute("class", "categoryButton");
+  categoryLeft.setAttribute("class", "button");
   categoryLeft.setAttribute("type", "radio");
   categoryLeft.setAttribute("name", "category");
   categoryLeft.setAttribute("id", "categoryLeft");
@@ -527,7 +527,7 @@ function ControlPanel() {
   categoryNeutralLabel.innerHTML = "NEUTRAL";
 
   var categoryNeutral = document.createElement("INPUT");
-  categoryNeutral.setAttribute("class", "categoryButton");
+  categoryNeutral.setAttribute("class", "button");
   categoryNeutral.setAttribute("type", "radio");
   categoryNeutral.setAttribute("name", "category");
   categoryNeutral.setAttribute("id", "categoryNeutral");
@@ -541,7 +541,7 @@ function ControlPanel() {
   categoryRightLabel.innerHTML = "RIGHT";
 
   var categoryRight = document.createElement("INPUT");
-  categoryRight.setAttribute("class", "categoryButton");
+  categoryRight.setAttribute("class", "button`");
   categoryRight.setAttribute("type", "radio");
   categoryRight.setAttribute("name", "category");
   categoryRight.setAttribute("id", "categoryRight");
@@ -555,7 +555,7 @@ function ControlPanel() {
   categoryPositiveLabel.innerHTML = "POSITIVE";
 
   var categoryPositive = document.createElement("INPUT");
-  categoryPositive.setAttribute("class", "categoryButton");
+  categoryPositive.setAttribute("class", "button");
   categoryPositive.setAttribute("type", "radio");
   categoryPositive.setAttribute("name", "category");
   categoryPositive.setAttribute("id", "categoryPositive");
@@ -569,7 +569,7 @@ function ControlPanel() {
   categoryNegativeLabel.innerHTML = "NEGATIVE";
 
   var categoryNegative = document.createElement("INPUT");
-  categoryNegative.setAttribute("class", "categoryButton");
+  categoryNegative.setAttribute("class", "button");
   categoryNegative.setAttribute("type", "radio");
   categoryNegative.setAttribute("name", "category");
   categoryNegative.setAttribute("id", "categoryNegative");
@@ -583,7 +583,7 @@ function ControlPanel() {
   categoryNoneLabel.innerHTML = "NONE";
 
   var categoryNone = document.createElement("INPUT");
-  categoryNone.setAttribute("class", "categoryButton");
+  categoryNone.setAttribute("class", "button");
   categoryNone.setAttribute("type", "radio");
   categoryNone.setAttribute("name", "category");
   categoryNone.setAttribute("id", "categoryNone");

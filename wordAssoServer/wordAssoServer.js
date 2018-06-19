@@ -3231,7 +3231,7 @@ function autoFollowUser(params, callback){
       return;
     }
 
-    console.log(chalkAlert("+++ AUTO FOLLOW"
+    console.log(chalk.blue("+++ AUTO FOLLOW"
       + " | UID: " + params.user.userId
       + " | @" + params.user.screenName
       + " | NAME: " + params.user.name

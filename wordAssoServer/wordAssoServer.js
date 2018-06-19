@@ -2055,7 +2055,7 @@ function socketRxTweet(tw) {
 
     statsObj.errors.twitter.maxRxQueue += 1;
 
-    if (statsObj.errors.twitter.maxRxQueue % 100 === 0) {
+    if (statsObj.errors.twitter.maxRxQueue % 1000 === 0) {
       console.log(chalkAlert("*** TWEET RX MAX QUEUE [" + tweetRxQueue.length + "]"
         + " | " + getTimeStamp()
         + " | TWP READY: " + tweetParserReady

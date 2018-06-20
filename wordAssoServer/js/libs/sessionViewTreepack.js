@@ -1400,7 +1400,7 @@ function ViewTreepack() {
         if (d.categoryMatch) { return categoryMatchStrokeWidth; }
         if (d.isTopTerm) { return topTermStrokeWidth; }
         if (d.newFlag) { return newFlagStrokeWidth; }
-        // if (d.categoryAuto === "right") { return categoryAutoStrokeWidth; }
+        if (d.categoryAuto) { return categoryAutoStrokeWidth; }
         // if (d.categoryAuto === "left") { return categoryAutoStrokeWidth; }
         // if (d.categoryAuto === "positive") { return categoryAutoStrokeWidth; }
         // if (d.categoryAuto ==="negative") { return categoryAutoStrokeWidth; }
@@ -1441,6 +1441,7 @@ function ViewTreepack() {
         if (d.categoryMatch) { return categoryMatchStrokeWidth; }
         if (d.isTopTerm) { return topTermStrokeWidth; }
         if (d.newFlag) { return newFlagStrokeWidth; }
+        if (d.categoryAuto) { return categoryAutoStrokeWidth; }
         // if (d.categoryAuto === "right") { return categoryAutoStrokeWidth; }
         // if (d.categoryAuto === "left") { return categoryAutoStrokeWidth; }
         // if (d.categoryAuto === "positive") { return categoryAutoStrokeWidth; }

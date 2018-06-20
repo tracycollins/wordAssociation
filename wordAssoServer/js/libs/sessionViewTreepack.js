@@ -369,7 +369,7 @@ function ViewTreepack() {
   var categoryMatchColor = palette.green;
   var categoryMatchStrokeWidth = "8.0px";
   var categoryMismatchStrokeWidth = "10.0px";
-  var categoryAutoStrokeWidth = "8.0px";
+  var categoryAutoStrokeWidth = "16.0px";
 
   var divTooltip = d3.select("body").append("div")
     .attr("id", "divTooltip")

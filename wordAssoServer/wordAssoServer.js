@@ -2271,7 +2271,6 @@ function initSocketHandler(socketObj) {
     if (viewerHashMap.has(socket.id)) { 
 
       let currentViewer = viewerHashMap.get(socket.id);
-
       currentViewer.status = "DISCONNECTED";
 
       console.error(chalk.blue("VIEWER DISCONNECTED" 

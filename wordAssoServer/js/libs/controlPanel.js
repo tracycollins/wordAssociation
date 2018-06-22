@@ -174,6 +174,25 @@ function ControlPanel() {
 
   //--------------
 
+  function unfollowButtonHandler(e){
+    console.warn("UNFOLLOW BUTTON | ID: " + e.target.id + " | USER: @" + twitterFeedUser.screenName);
+    parentWindow.postMessage({op: "UNFOLLOW", user: twitterFeedUser}, DEFAULT_SOURCE);
+  }
+
+  var unfollowButton = document.createElement("button");
+  unfollowButton.setAttribute("class", "button");
+  unfollowButton.setAttribute("id", "unfollowButton");
+  unfollowButton.innerHTML = "UNFOLLOW";
+  unfollowButton.addEventListener(
+    "click", 
+    function(e){ unfollowButtonHandler(e); }, 
+    false
+  );
+
+  twitterCategorySearchDiv.appendChild(unfollowButton);
+
+  //--------------
+
   function updateCategoryRadioButtons(category, callback){
 
     console.log("updateCategoryRadioButtons | " + category);

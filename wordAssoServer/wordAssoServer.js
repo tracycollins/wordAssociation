@@ -14,20 +14,21 @@ followableSearchTermSet.add("trump");
 followableSearchTermSet.add("obama");
 followableSearchTermSet.add("clinton");
 followableSearchTermSet.add("reagan");
-followableSearchTermSet.add("maga");
-followableSearchTermSet.add("kag");
-followableSearchTermSet.add("nra");
+followableSearchTermSet.add("#maga");
+followableSearchTermSet.add("#kag");
+followableSearchTermSet.add("#nra");
+followableSearchTermSet.add("@nra");
 followableSearchTermSet.add("pence");
 followableSearchTermSet.add("ivanka");
 followableSearchTermSet.add("mueller");
 followableSearchTermSet.add("bluewave");
-followableSearchTermSet.add("resist");
-followableSearchTermSet.add("dem");
+followableSearchTermSet.add("#resist");
+followableSearchTermSet.add("#dem");
 followableSearchTermSet.add("liberal");
 followableSearchTermSet.add("conservative");
-followableSearchTermSet.add("imwithher");
-followableSearchTermSet.add("metoo");
-followableSearchTermSet.add("blm");
+followableSearchTermSet.add("#imwithher");
+followableSearchTermSet.add("#metoo");
+followableSearchTermSet.add("#blm");
 followableSearchTermSet.add("livesmatter");
 followableSearchTermSet.add("hanity");
 
@@ -2158,6 +2159,16 @@ function follow(params, callback) {
   if (callback !== undefined) { callback(); }
 }
 
+function unfollow(params, callback) {
+
+  console.log(chalk.blue("+++ UNFOLLOW | @" + params.user.screenName));
+
+  adminNameSpace.emit("UNFOLLOW", params.user);
+  utilNameSpace.emit("UNFOLLOW", params.user);
+
+  if (callback !== undefined) { callback(); }
+}
+
 
 function initSocketHandler(socketObj) {
 
@@ -2482,6 +2493,28 @@ function initSocketHandler(socketObj) {
       }
 
       console.log(chalk.blue("+++ TWITTER_FOLLOW"
+        + " | @" + u.screenName
+      ));
+
+    });
+  });
+
+  socket.on("TWITTER_UNFOLLOW", function twitterUnfollow(u) {
+
+    console.log(chalkSocket("TWITTER_UNFOLLOW"
+      + " | " + getTimeStamp()
+      + " | SID: " + socket.id
+      + " | UID: " + u.userId
+      + " | @" + u.screenName
+    ));
+
+    unfollow({user: u}, function(err, results){
+      if (err) {
+        console.log(chalkAlert("TWITTER_UNFOLLOW ERROR: " + err));
+        return;
+      }
+
+      console.log(chalk.blue("+++ TWITTER_UNFOLLOW"
         + " | @" + u.screenName
       ));
 

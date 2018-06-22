@@ -5,6 +5,8 @@ const shell = require("shelljs");
 
 var DEFAULT_NODE_TYPES = ["emoji", "hashtag", "media", "place", "url", "user", "word"];
 
+let dbConnected = false;
+let statsObj = {};
 
 let followableSearchTermSet = new Set();
 
@@ -169,10 +171,9 @@ console.log("PROCESS TITLE: " + process.title);
 let quitOnError = true;
 
 // ==================================================================
-// GLOBAL letIABLES
+// GLOBAL VARIABLES
 // ==================================================================
-let statsObj = {};
-statsObj.dbConnection = false;
+
 
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 const tinyDateTimeFormat = "YYYYMMDDHHmmss";
@@ -500,7 +501,6 @@ const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.mod
 const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
 
 const mongoose = require("mongoose");
-// mongoose.Promise = global.Promise;
 
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 // const wordAssoDb = require("../../mongooseTwitter");
@@ -542,7 +542,8 @@ wordAssoDb.connect(function(err, dbConnection){
     wordServer = require("@threeceelabs/word-server-controller");
     // userServer = require("../../userServerController");
 
-    statsObj.dbConnection = true;
+    dbConnected = true;
+    
   }
 
 });
@@ -830,9 +831,50 @@ const localHostHashMap = new HashMap();
 
 let tweetParser;
 
+// function updateDbStats(callback){
+//   if (dbConnected) {
+
+//     async.each({}, function(){
+
+//       User
+//       .find({"category": { $nin: [ 'left', 'right', 'neutral', 'positive', 'negative' ] } })
+//       .count()
+//       .exec(function(err, numUncatUsers){
+//         if (!err) { 
+//           statsObj.nodes.user.uncategorized = numUncatUsers;
+//           console.log("USER NODES"
+//             + " | UNCATEGORIZED: " + statsObj.nodes.user.uncategorized
+//           );
+//         }
+//       });
+      
+//       User
+//       .find({"category": { $in: [ 'left', 'right', 'neutral', 'positive', 'negative' ] } })
+//       .count()
+//       .exec(function(err, numCatUsers){
+//         if (!err) { 
+//           statsObj.nodes.user.categorized = numCatUsers;
+//           console.log("USER NODES"
+//             + " | CATEGORIZED: " + statsObj.nodes.user.categorized
+//           );
+//         }
+//       });
+//     }, function(){
+
+//     });
+//   }
+// }
+
 function initStats(callback){
   console.log(chalk.blue("INIT STATS"));
   statsObj = {};
+
+  statsObj.dbConnection = dbConnected;
+  statsObj.nodes = {};
+  statsObj.nodes.user = {};
+  statsObj.nodes.user.total = 0;
+  statsObj.nodes.user.categorized = 0;
+  statsObj.nodes.user.uncategorized = 0;
 
   statsObj.bestNetwork = {};
 
@@ -2535,7 +2577,6 @@ function initSocketHandler(socketObj) {
           console.log(chalkInfo("SEARCH FOR SPECIFIC USER"));
           nodeSearchType = "USER_SPECIFIC";
         }
-
       }
       else {
         searchNodeUser = { screenName: searchNode };

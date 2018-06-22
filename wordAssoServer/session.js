@@ -829,10 +829,12 @@ function controlPanelComm(event) {
   }
 
   switch (event.data.op) {
+
     case "READY" :
       console.warn("R< CONTROL PANEL READY");
       controlPanelReadyFlag = true;
     break;
+
     case "FOLLOW" :
       console.warn("R< CONTROL FOLLOW"
         + " | UID: " + event.data.user.userId
@@ -840,13 +842,24 @@ function controlPanelComm(event) {
       );
       socket.emit("TWITTER_FOLLOW", event.data.user);
     break;
+
+    case "UNFOLLOW" :
+      console.warn("R< CONTROL UNFOLLOW"
+        + " | UID: " + event.data.user.userId
+        + " | @" + event.data.user.screenName
+      );
+      socket.emit("TWITTER_UNFOLLOW", event.data.user);
+    break;
+
     case "NODE_SEARCH" :
       console.warn("R< CONTROL NODE_SEARCH\n" + jsonPrint(event.data.input));
       socket.emit("TWITTER_SEARCH_NODE", event.data.input);
     break;
+
     case "CLOSE" :
       console.warn("R< CONTROL PANEL CLOSING...");
     break;
+
     case "MOMENT" :
       console.warn("R< CONTROL PANEL MOMENT...");
       switch (event.data.id) {
@@ -857,6 +870,7 @@ function controlPanelComm(event) {
           console.error("CONTROL PANEL UNKNOWN MOMENT BUTTON");
       }
     break;
+
     case "TOGGLE" :
       console.warn("R< CONTROL PANEL TOGGLE");
       switch (event.data.id) {
@@ -904,6 +918,7 @@ function controlPanelComm(event) {
       }
       resetConfigUpdateTimeOut();
     break;
+
     case "UPDATE" :
       console.warn("R< CONTROL PANEL UPDATE");
       switch (event.data.id) {

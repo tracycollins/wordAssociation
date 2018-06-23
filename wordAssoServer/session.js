@@ -874,6 +874,9 @@ function controlPanelComm(event) {
     case "TOGGLE" :
       console.warn("R< CONTROL PANEL TOGGLE");
       switch (event.data.id) {
+        case "categoryLeftButton" :
+          toggleCategory();
+        break;
         case "displayNodeType_emoji" :
           toggleShowEmoji();
         break;
@@ -1082,7 +1085,7 @@ function toggleRemoveDeadNode() {
   controlPanel.updateControlPanel(config);
 }
 
-function toggleCategory() {
+function toggleAutoCategory() {
   config.autoCategoryFlag = !config.autoCategoryFlag;
   currentSessionView.setAutoCategoryFlag(config.autoCategoryFlag);
   console.warn("AUTO CATEGORY: " + config.autoCategoryFlag);

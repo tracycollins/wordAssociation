@@ -7,14 +7,18 @@
 function ControlPanel() {
   "use strict";
 
-  // var DEFAULT_SOURCE = "http://localhost:9997";
-  var DEFAULT_SOURCE = "https://word.threeceelabs.com";
+  var DEFAULT_SOURCE = "http://localhost:9997";
+  // var DEFAULT_SOURCE = "https://word.threeceelabs.com";
 
   var parentWindow = window.opener;
   console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);
   var self = this;
 
   var compactDateTimeFormat = "YYYYMMDD HHmmss";
+
+  var timelineDiv = document.getElementById("timelineDiv");
+  var hashtagDiv =document.getElementById("hashtagDiv");
+
 
   var nodeTypesSet = new Set();
   nodeTypesSet.add("emoji");
@@ -38,6 +42,7 @@ function ControlPanel() {
   }
 
   var twitterCategorySearchDiv = document.getElementById("twitterCategorySearchDiv");
+  var twitterUserButtonsDiv = document.getElementById("twitterUserButtonsDiv");
 
   var nodeSearchInput = document.createElement("input");
   var nodeSearchLabel = document.createElement("label");
@@ -93,6 +98,9 @@ function ControlPanel() {
   var dashboardMain;
   var infoTable;
   var userStatsTable;
+
+  var categoryTable;
+
   var controlTable;
   var controlTableHead;
   var controlTableBody;
@@ -100,11 +108,6 @@ function ControlPanel() {
   var displayControlTable;
 
   var controlSliderTable;
-
-  // var twitterFeedDiv = d3.select("#twitterFeedDiv");
-  var timelineDiv = document.getElementById("timelineDiv");
-
-  var hashtagDiv =document.getElementById("hashtagDiv");
 
   //--------------
 
@@ -128,7 +131,7 @@ function ControlPanel() {
     false
   );
 
-  twitterCategorySearchDiv.appendChild(nextMismatchedButton);
+  twitterUserButtonsDiv.appendChild(nextMismatchedButton);
 
   //--------------
 
@@ -151,7 +154,7 @@ function ControlPanel() {
     false
   );
 
-  twitterCategorySearchDiv.appendChild(nextUncategorizedButton);
+  twitterUserButtonsDiv.appendChild(nextUncategorizedButton);
 
   //--------------
 
@@ -170,7 +173,7 @@ function ControlPanel() {
     false
   );
 
-  twitterCategorySearchDiv.appendChild(followButton);
+  twitterUserButtonsDiv.appendChild(followButton);
 
   //--------------
 
@@ -189,7 +192,7 @@ function ControlPanel() {
     false
   );
 
-  twitterCategorySearchDiv.appendChild(unfollowButton);
+  twitterUserButtonsDiv.appendChild(unfollowButton);
 
   //--------------
 
@@ -330,6 +333,7 @@ function ControlPanel() {
 
     var text = node.nodeId.toLowerCase();
     var hashtagText = document.createElement("TEXT");
+
     hashtagText.setAttribute("id", "hashtagText");
     hashtagText.setAttribute("class", "hashtagText");
     hashtagText.innerHTML = "<br><br>" 
@@ -351,6 +355,8 @@ function ControlPanel() {
   };
 
   function loadTwitterFeed(node) {
+
+    if (!timelineDiv || !hashtagDiv) { return; }
 
     hashtagDiv.removeAll();
     timelineDiv.removeAll();
@@ -403,7 +409,7 @@ function ControlPanel() {
     }
   }
 
-  var displayNodeTypeButtonsDiv = document.getElementById("displayNodeTypeButtonsDiv");
+  // var displayNodeTypeButtonsDiv = document.getElementById("displayNodeTypeButtonsDiv");
 
   var toggleDisplayNodeTypeButtonHandler = function (e){
 
@@ -483,14 +489,6 @@ function ControlPanel() {
     if (callback !== undefined) { callback(); }
   };
 
-  // createDisplayNodeTypeButton({displayNodeType: "emoji"});
-  // createDisplayNodeTypeButton({displayNodeType: "hashtag"});
-  // createDisplayNodeTypeButton({displayNodeType: "media"});
-  // createDisplayNodeTypeButton({displayNodeType: "place"});
-  // createDisplayNodeTypeButton({displayNodeType: "url"});
-  // createDisplayNodeTypeButton({displayNodeType: "user"});
-  // createDisplayNodeTypeButton({displayNodeType: "word"});
-
   var twitterCategoryButtonsDiv = document.getElementById("twitterCategoryButtonsDiv");
 
   function categoryButtonHandler(e){
@@ -546,8 +544,8 @@ function ControlPanel() {
   categoryLeftLabel.setAttribute("class", "categoryButtonLabel");
   categoryLeftLabel.innerHTML = "LEFT";
 
-  var categoryLeft = document.createElement("INPUT");
-  categoryLeft.setAttribute("class", "categoryButton");
+  var categoryLeft = document.createElement("button");
+  categoryLeft.setAttribute("class", "button");
   categoryLeft.setAttribute("type", "radio");
   categoryLeft.setAttribute("name", "category");
   categoryLeft.setAttribute("id", "categoryLeft");
@@ -560,8 +558,8 @@ function ControlPanel() {
   categoryNeutralLabel.setAttribute("class", "categoryButtonLabel");
   categoryNeutralLabel.innerHTML = "NEUTRAL";
 
-  var categoryNeutral = document.createElement("INPUT");
-  categoryNeutral.setAttribute("class", "categoryButton");
+  var categoryNeutral = document.createElement("button");
+  categoryNeutral.setAttribute("class", "button");
   categoryNeutral.setAttribute("type", "radio");
   categoryNeutral.setAttribute("name", "category");
   categoryNeutral.setAttribute("id", "categoryNeutral");
@@ -574,8 +572,8 @@ function ControlPanel() {
   categoryRightLabel.setAttribute("class", "categoryButtonLabel");
   categoryRightLabel.innerHTML = "RIGHT";
 
-  var categoryRight = document.createElement("INPUT");
-  categoryRight.setAttribute("class", "categoryButton");
+  var categoryRight = document.createElement("button");
+  categoryRight.setAttribute("class", "button");
   categoryRight.setAttribute("type", "radio");
   categoryRight.setAttribute("name", "category");
   categoryRight.setAttribute("id", "categoryRight");
@@ -588,8 +586,8 @@ function ControlPanel() {
   categoryPositiveLabel.setAttribute("class", "categoryButtonLabel");
   categoryPositiveLabel.innerHTML = "POSITIVE";
 
-  var categoryPositive = document.createElement("INPUT");
-  categoryPositive.setAttribute("class", "categoryButton");
+  var categoryPositive = document.createElement("button");
+  categoryPositive.setAttribute("class", "button");
   categoryPositive.setAttribute("type", "radio");
   categoryPositive.setAttribute("name", "category");
   categoryPositive.setAttribute("id", "categoryPositive");
@@ -602,8 +600,8 @@ function ControlPanel() {
   categoryNegativeLabel.setAttribute("class", "categoryButtonLabel");
   categoryNegativeLabel.innerHTML = "NEGATIVE";
 
-  var categoryNegative = document.createElement("INPUT");
-  categoryNegative.setAttribute("class", "categoryButton");
+  var categoryNegative = document.createElement("button");
+  categoryNegative.setAttribute("class", "button");
   categoryNegative.setAttribute("type", "radio");
   categoryNegative.setAttribute("name", "category");
   categoryNegative.setAttribute("id", "categoryNegative");
@@ -616,8 +614,8 @@ function ControlPanel() {
   categoryNoneLabel.setAttribute("class", "categoryButtonLabel");
   categoryNoneLabel.innerHTML = "NONE";
 
-  var categoryNone = document.createElement("INPUT");
-  categoryNone.setAttribute("class", "categoryButton");
+  var categoryNone = document.createElement("button");
+  categoryNone.setAttribute("class", "button");
   categoryNone.setAttribute("type", "radio");
   categoryNone.setAttribute("name", "category");
   categoryNone.setAttribute("id", "categoryNone");
@@ -1022,16 +1020,11 @@ function ControlPanel() {
     infoTable = document.getElementById("infoTable");
     userStatsTable = document.getElementById("userStatsTable");
     controlTable = document.getElementById("controlTable");
+    categoryTable = document.getElementById("categoryTable");
     displayControlTable = document.getElementById("displayControlTable");
     controlTableHead = document.getElementById("controlTableHead");
     controlTableBody = document.getElementById("controlTableBody");
     controlSliderTable = document.getElementById("controlSliderTable");
-
-    // var optionsHead = {
-    //   headerFlag: true,
-    //   textColor: "black",
-    //   backgroundColor: "white"
-    // };
 
     var optionsBody = {
       headerFlag: false,
@@ -1046,6 +1039,57 @@ function ControlPanel() {
       border: "1x solid #aaaaaa"
     };
 
+//==============================
+
+    var categoryLeftButton = {
+      type: "BUTTON",
+      mode: "TOGGLE",
+      id: "categoryLeftButton",
+      class: "button",
+      text: "LEFT"
+    };
+
+    var categoryRightButton = {
+      type: "BUTTON",
+      mode: "TOGGLE",
+      id: "categoryRightButton",
+      class: "button",
+      text: "RIGHT"
+    };
+
+    var categoryNeutralButton = {
+      type: "BUTTON",
+      mode: "TOGGLE",
+      id: "categoryNeutralButton",
+      class: "button",
+      text: "NEUTRAL"
+    };
+
+    var categoryPositiveButton = {
+      type: "BUTTON",
+      mode: "TOGGLE",
+      id: "categoryPositiveButton",
+      class: "button",
+      text: "POSITIVE"
+    };
+
+    var categoryNegativeButton = {
+      type: "BUTTON",
+      mode: "TOGGLE",
+      id: "categoryNegativeButton",
+      class: "button",
+      text: "NEGATIVE"
+    };
+
+    var categoryNoneButton = {
+      type: "BUTTON",
+      mode: "TOGGLE",
+      id: "categoryNoneButton",
+      class: "button",
+      text: "NODE"
+    };
+
+//==============================
     var resetButton = {
       type: "BUTTON",
       mode: "MOMENT",
@@ -1566,6 +1610,19 @@ function ControlPanel() {
         break;
       case "treepack":
         self.tableCreateRow(controlTable, optionsBody, [resetButton, pauseButton, statsButton, fullscreenButton]);
+        self.tableCreateRow(
+          categoryTable, 
+          optionsBody, 
+          [
+            categoryLeftButton, 
+            categoryNeutralButton, 
+            categoryRightButton, 
+            categoryPositiveButton, 
+            categoryNeutralButton,
+            categoryNegativeButton,
+            categoryNoneButton
+          ]
+        );
         self.tableCreateRow(displayControlTable, optionsBody, 
           [
             showEmojiButton,

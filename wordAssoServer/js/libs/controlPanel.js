@@ -215,8 +215,9 @@ function ControlPanel() {
 
     switch(category) {
       case "left":
-        element = document.getElementById("categoryLeft");
-        element.checked = true;
+        // element = document.getElementById("categoryLeft");
+        // element.checked = true;
+        document.getElementById("categoryLeft").setAttribute("checked", true);
         callback();
       break;
       case "right":
@@ -489,7 +490,7 @@ function ControlPanel() {
     if (callback !== undefined) { callback(); }
   };
 
-  var twitterCategoryButtonsDiv = document.getElementById("twitterCategoryButtonsDiv");
+  // var twitterCategoryButtonsDiv = document.getElementById("twitterCategoryButtonsDiv");
 
   function categoryButtonHandler(e){
 
@@ -540,96 +541,96 @@ function ControlPanel() {
     parentWindow.postMessage({op: "CATEGORIZE", node: catNode, category: category}, DEFAULT_SOURCE);
   }
 
-  var categoryLeftLabel = document.createElement("label");
-  categoryLeftLabel.setAttribute("class", "categoryButtonLabel");
-  categoryLeftLabel.innerHTML = "LEFT";
+  // var categoryLeftLabel = document.createElement("label");
+  // categoryLeftLabel.setAttribute("class", "categoryButtonLabel");
+  // categoryLeftLabel.innerHTML = "LEFT";
 
-  var categoryLeft = document.createElement("button");
-  categoryLeft.setAttribute("class", "button");
-  categoryLeft.setAttribute("type", "radio");
-  categoryLeft.setAttribute("name", "category");
-  categoryLeft.setAttribute("id", "categoryLeft");
-  categoryLeft.setAttribute("value", "left");
-  categoryLeft.setAttribute("checked", false);
-  categoryLeft.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
-  categoryLeftLabel.appendChild(categoryLeft);
+  // var categoryLeft = document.createElement("button");
+  // categoryLeft.setAttribute("class", "button");
+  // categoryLeft.setAttribute("type", "radio");
+  // categoryLeft.setAttribute("name", "category");
+  // categoryLeft.setAttribute("id", "categoryLeft");
+  // categoryLeft.setAttribute("value", "left");
+  // categoryLeft.setAttribute("checked", false);
+  // categoryLeft.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
+  // categoryLeftLabel.appendChild(categoryLeft);
 
-  var categoryNeutralLabel = document.createElement("label");
-  categoryNeutralLabel.setAttribute("class", "categoryButtonLabel");
-  categoryNeutralLabel.innerHTML = "NEUTRAL";
+  // var categoryNeutralLabel = document.createElement("label");
+  // categoryNeutralLabel.setAttribute("class", "categoryButtonLabel");
+  // categoryNeutralLabel.innerHTML = "NEUTRAL";
 
-  var categoryNeutral = document.createElement("button");
-  categoryNeutral.setAttribute("class", "button");
-  categoryNeutral.setAttribute("type", "radio");
-  categoryNeutral.setAttribute("name", "category");
-  categoryNeutral.setAttribute("id", "categoryNeutral");
-  categoryNeutral.setAttribute("value", "neutral");
-  categoryNeutral.setAttribute("checked", false);
-  categoryNeutral.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
-  categoryNeutralLabel.appendChild(categoryNeutral);
+  // var categoryNeutral = document.createElement("button");
+  // categoryNeutral.setAttribute("class", "button");
+  // categoryNeutral.setAttribute("type", "radio");
+  // categoryNeutral.setAttribute("name", "category");
+  // categoryNeutral.setAttribute("id", "categoryNeutral");
+  // categoryNeutral.setAttribute("value", "neutral");
+  // categoryNeutral.setAttribute("checked", false);
+  // categoryNeutral.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
+  // categoryNeutralLabel.appendChild(categoryNeutral);
 
-  var categoryRightLabel = document.createElement("label");
-  categoryRightLabel.setAttribute("class", "categoryButtonLabel");
-  categoryRightLabel.innerHTML = "RIGHT";
+  // var categoryRightLabel = document.createElement("label");
+  // categoryRightLabel.setAttribute("class", "categoryButtonLabel");
+  // categoryRightLabel.innerHTML = "RIGHT";
 
-  var categoryRight = document.createElement("button");
-  categoryRight.setAttribute("class", "button");
-  categoryRight.setAttribute("type", "radio");
-  categoryRight.setAttribute("name", "category");
-  categoryRight.setAttribute("id", "categoryRight");
-  categoryRight.setAttribute("value", "right");
-  categoryRight.setAttribute("checked", false);
-  categoryRight.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
-  categoryRightLabel.appendChild(categoryRight);
+  // var categoryRight = document.createElement("button");
+  // categoryRight.setAttribute("class", "button");
+  // categoryRight.setAttribute("type", "radio");
+  // categoryRight.setAttribute("name", "category");
+  // categoryRight.setAttribute("id", "categoryRight");
+  // categoryRight.setAttribute("value", "right");
+  // categoryRight.setAttribute("checked", false);
+  // categoryRight.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
+  // categoryRightLabel.appendChild(categoryRight);
 
-  var categoryPositiveLabel = document.createElement("label");
-  categoryPositiveLabel.setAttribute("class", "categoryButtonLabel");
-  categoryPositiveLabel.innerHTML = "POSITIVE";
+  // var categoryPositiveLabel = document.createElement("label");
+  // categoryPositiveLabel.setAttribute("class", "categoryButtonLabel");
+  // categoryPositiveLabel.innerHTML = "POSITIVE";
 
-  var categoryPositive = document.createElement("button");
-  categoryPositive.setAttribute("class", "button");
-  categoryPositive.setAttribute("type", "radio");
-  categoryPositive.setAttribute("name", "category");
-  categoryPositive.setAttribute("id", "categoryPositive");
-  categoryPositive.setAttribute("value", "positive");
-  categoryPositive.setAttribute("checked", false);
-  categoryPositive.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
-  categoryPositiveLabel.appendChild(categoryPositive);
+  // var categoryPositive = document.createElement("button");
+  // categoryPositive.setAttribute("class", "button");
+  // categoryPositive.setAttribute("type", "radio");
+  // categoryPositive.setAttribute("name", "category");
+  // categoryPositive.setAttribute("id", "categoryPositive");
+  // categoryPositive.setAttribute("value", "positive");
+  // categoryPositive.setAttribute("checked", false);
+  // categoryPositive.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
+  // categoryPositiveLabel.appendChild(categoryPositive);
 
-  var categoryNegativeLabel = document.createElement("label");
-  categoryNegativeLabel.setAttribute("class", "categoryButtonLabel");
-  categoryNegativeLabel.innerHTML = "NEGATIVE";
+  // var categoryNegativeLabel = document.createElement("label");
+  // categoryNegativeLabel.setAttribute("class", "categoryButtonLabel");
+  // categoryNegativeLabel.innerHTML = "NEGATIVE";
 
-  var categoryNegative = document.createElement("button");
-  categoryNegative.setAttribute("class", "button");
-  categoryNegative.setAttribute("type", "radio");
-  categoryNegative.setAttribute("name", "category");
-  categoryNegative.setAttribute("id", "categoryNegative");
-  categoryNegative.setAttribute("value", "negative");
-  categoryNegative.setAttribute("checked", false);
-  categoryNegative.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
-  categoryNegativeLabel.appendChild(categoryNegative);
+  // var categoryNegative = document.createElement("button");
+  // categoryNegative.setAttribute("class", "button");
+  // categoryNegative.setAttribute("type", "radio");
+  // categoryNegative.setAttribute("name", "category");
+  // categoryNegative.setAttribute("id", "categoryNegative");
+  // categoryNegative.setAttribute("value", "negative");
+  // categoryNegative.setAttribute("checked", false);
+  // categoryNegative.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
+  // categoryNegativeLabel.appendChild(categoryNegative);
 
-  var categoryNoneLabel = document.createElement("label");
-  categoryNoneLabel.setAttribute("class", "categoryButtonLabel");
-  categoryNoneLabel.innerHTML = "NONE";
+  // var categoryNoneLabel = document.createElement("label");
+  // categoryNoneLabel.setAttribute("class", "categoryButtonLabel");
+  // categoryNoneLabel.innerHTML = "NONE";
 
-  var categoryNone = document.createElement("button");
-  categoryNone.setAttribute("class", "button");
-  categoryNone.setAttribute("type", "radio");
-  categoryNone.setAttribute("name", "category");
-  categoryNone.setAttribute("id", "categoryNone");
-  categoryNone.setAttribute("value", false);
-  categoryNone.setAttribute("checked", false);
-  categoryNone.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
-  categoryNoneLabel.appendChild(categoryNone);
+  // var categoryNone = document.createElement("button");
+  // categoryNone.setAttribute("class", "button");
+  // categoryNone.setAttribute("type", "radio");
+  // categoryNone.setAttribute("name", "category");
+  // categoryNone.setAttribute("id", "categoryNone");
+  // categoryNone.setAttribute("value", false);
+  // categoryNone.setAttribute("checked", false);
+  // categoryNone.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
+  // categoryNoneLabel.appendChild(categoryNone);
 
-  twitterCategoryButtonsDiv.appendChild(categoryLeftLabel);
-  twitterCategoryButtonsDiv.appendChild(categoryNeutralLabel);
-  twitterCategoryButtonsDiv.appendChild(categoryRightLabel);
-  twitterCategoryButtonsDiv.appendChild(categoryPositiveLabel);
-  twitterCategoryButtonsDiv.appendChild(categoryNegativeLabel);
-  twitterCategoryButtonsDiv.appendChild(categoryNoneLabel);
+  // twitterCategoryButtonsDiv.appendChild(categoryLeftLabel);
+  // twitterCategoryButtonsDiv.appendChild(categoryNeutralLabel);
+  // twitterCategoryButtonsDiv.appendChild(categoryRightLabel);
+  // twitterCategoryButtonsDiv.appendChild(categoryPositiveLabel);
+  // twitterCategoryButtonsDiv.appendChild(categoryNegativeLabel);
+  // twitterCategoryButtonsDiv.appendChild(categoryNoneLabel);
 
 
   this.setNodeRadiusMaxRatioSliderValue = function (value) {
@@ -938,12 +939,12 @@ function ControlPanel() {
       cells.forEach(function(content) {
 
         var td = tr.insertCell();
+
         if (content.type === undefined) {
 
           td.appendChild(document.createTextNode(content));
           td.style.color = tdTextColor;
           td.style.backgroundColor = tdBgColor;
-
         } 
         else if (content.type === "TEXT") {
 
@@ -955,7 +956,6 @@ function ControlPanel() {
           td.style.backgroundColor = tdBgColor;
           td.innerHTML = content.text;
           td.style.border = options.border || "none";
-
         } 
         else if (content.type === "BUTTON") {
 
@@ -970,7 +970,24 @@ function ControlPanel() {
           buttonElement.innerHTML = content.text;
           td.appendChild(buttonElement);
           controlIdHash[content.id] = content;
+        } 
+        else if (content.type === "RADIO") {
 
+          if (content.buttonHandler !== undefined) { bHandler = content.buttonHandler; }
+
+          var radioButtonElement = document.createElement("BUTTON");
+          radioButtonElement.className = content.class;
+          radioButtonElement.type = "radio";
+          radioButtonElement.setAttribute("name", content.name);
+          radioButtonElement.setAttribute("id", content.id);
+          radioButtonElement.setAttribute("value", content.value);
+          radioButtonElement.setAttribute("checked", content.checked);
+          radioButtonElement.addEventListener("click", function(e){ bHandler(e); }, false);
+          radioButtonElement.innerHTML = content.text;
+
+          td.appendChild(radioButtonElement);
+
+          controlIdHash[content.id] = content;
         } 
         else if (content.type === "SLIDER") {
 
@@ -986,7 +1003,6 @@ function ControlPanel() {
           sliderElement.value = content.value;
           td.appendChild(sliderElement);
           controlIdHash[content.id] = content;
-
         }
       });
     }
@@ -1041,52 +1057,81 @@ function ControlPanel() {
 
 //==============================
 
+          // radioButtonElement.setAttribute("name", content.name);
+          // radioButtonElement.setAttribute("id", content.id);
+          // radioButtonElement.setAttribute("value", content.value);
+          // radioButtonElement.setAttribute("checked", content.checked);
+
     var categoryLeftButton = {
-      type: "BUTTON",
-      mode: "TOGGLE",
-      id: "categoryLeftButton",
+      type: "RADIO",
+      mode: "RADIO",
+      name: "categoryRadio",
+      id: "categoryLeft",
       class: "button",
+      buttonHandler: categoryButtonHandler,
+      value: "left",
+      checked: false,
       text: "LEFT"
     };
 
     var categoryRightButton = {
-      type: "BUTTON",
-      mode: "TOGGLE",
-      id: "categoryRightButton",
+      type: "RADIO",
+      mode: "RADIO",
+      name: "categoryRadio",
+      id: "categoryRight",
       class: "button",
+      buttonHandler: categoryButtonHandler,
+      value: "right",
+      checked: false,
       text: "RIGHT"
     };
 
     var categoryNeutralButton = {
-      type: "BUTTON",
-      mode: "TOGGLE",
-      id: "categoryNeutralButton",
+      type: "RADIO",
+      mode: "RADIO",
+      name: "categoryRadio",
+      id: "categoryNeutral",
       class: "button",
+      buttonHandler: categoryButtonHandler,
+      value: "neutral",
+      checked: false,
       text: "NEUTRAL"
     };
 
     var categoryPositiveButton = {
-      type: "BUTTON",
-      mode: "TOGGLE",
-      id: "categoryPositiveButton",
+      type: "RADIO",
+      mode: "RADIO",
+      name: "categoryRadio",
+      id: "categoryPositive",
       class: "button",
+      buttonHandler: categoryButtonHandler,
+      value: "positive",
+      checked: false,
       text: "POSITIVE"
     };
 
     var categoryNegativeButton = {
-      type: "BUTTON",
-      mode: "TOGGLE",
-      id: "categoryNegativeButton",
+      type: "RADIO",
+      mode: "RADIO",
+      name: "categoryRadio",
+      id: "categoryNegative",
       class: "button",
+      buttonHandler: categoryButtonHandler,
+      value: "negative",
+      checked: false,
       text: "NEGATIVE"
     };
 
     var categoryNoneButton = {
-      type: "BUTTON",
-      mode: "TOGGLE",
-      id: "categoryNoneButton",
+      type: "RADIO",
+      mode: "RADIO",
+      name: "categoryRadio",
+      id: "categoryNone",
       class: "button",
-      text: "NODE"
+      buttonHandler: categoryButtonHandler,
+      value: "none",
+      checked: false,
+      text: "NONE"
     };
 
 //==============================

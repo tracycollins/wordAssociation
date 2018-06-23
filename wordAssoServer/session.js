@@ -5,8 +5,8 @@
 
 "use strict";
 
-// var DEFAULT_SOURCE = "http://localhost:9997";
-var DEFAULT_SOURCE = "https://word.threeceelabs.com";
+var DEFAULT_SOURCE = "http://localhost:9997";
+// var DEFAULT_SOURCE = "https://word.threeceelabs.com";
 
 var config = {};
 var previousConfig = {};
@@ -1031,7 +1031,7 @@ function createPopUpControlPanel (cnf, callback) {
   controlPanelWindow = window.open(
     "controlPanel.html", 
     "CONTROL",
-    "width=800,height=600"
+    "width=1200,height=640"
   );
 
   controlPanelWindow.addEventListener("message", controlPanelComm, false);

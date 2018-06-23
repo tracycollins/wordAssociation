@@ -83,9 +83,9 @@
       input[type="text"]{
         margin: none;
         /*padding: 0.5em;*/
-        background:white;
-        background-color:black;
-        color: yellow;
+        /*background:white;*/
+        /*background-color:black;*/
+        /*color: yellow;*/
         font-family: "Lucida Console", Monaco, monospace;
         font-size: 1em;
         line-height: 1em;
@@ -155,7 +155,23 @@
       .sliderTable {
         margin: 1em;
       }
-            
+
+
+      input[type="radio"]{
+        display: inline-block;
+        margin: 0.5em;
+        padding: 8px 12px;
+        font-size: 0.3em;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        outline: none;
+        /*color: #fff;*/
+        background-color: lightgray;
+        border: none;
+        border-radius: 4px;
+      }
+
       .button {
         display: inline-block;
         margin: 0.5em;
@@ -166,7 +182,7 @@
         text-decoration: none;
         outline: none;
         /*color: #fff;*/
-        background-color: blue;
+        background-color: lightgray;
         border: none;
         border-radius: 4px;
       }
@@ -177,6 +193,10 @@
       }
 
       .button:active {
+        background-color: #3e8e41;
+      }
+
+      .button:checked {
         background-color: #3e8e41;
       }
 

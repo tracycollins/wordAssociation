@@ -206,48 +206,42 @@ function ControlPanel() {
 
     var element;
 
-    document.getElementById("categoryLeft").setAttribute("checked", false);
-    document.getElementById("categoryRight").setAttribute("checked", false);
-    document.getElementById("categoryNeutral").setAttribute("checked", false);
-    document.getElementById("categoryPositive").setAttribute("checked", false);
-    document.getElementById("categoryNegative").setAttribute("checked", false);
-    document.getElementById("categoryNone").setAttribute("checked", true);
+    document.getElementById("categoryLeft").setAttribute("class", "radioUnchecked");
+    document.getElementById("categoryRight").setAttribute("class", "radioUnchecked");
+    document.getElementById("categoryNeutral").setAttribute("class", "radioUnchecked");
+    document.getElementById("categoryPositive").setAttribute("class", "radioUnchecked");
+    document.getElementById("categoryNegative").setAttribute("class", "radioUnchecked");
+    document.getElementById("categoryNone").setAttribute("class", "radioUnchecked");
 
     switch(category) {
       case "left":
-        // element = document.getElementById("categoryLeft");
-        // element.checked = true;
-        document.getElementById("categoryLeft").setAttribute("checked", true);
+        element = document.getElementById("categoryLeft");
+        element.className = "radioChecked";
         callback();
       break;
       case "right":
         element = document.getElementById("categoryRight");
-        element.checked = true;
+        element.className = "radioChecked";
         callback();
       break;
       case "neutral":
         element = document.getElementById("categoryNeutral");
-        element.checked = true;
+        element.className = "radioChecked";
         callback();
       break;
       case "positive":
         element = document.getElementById("categoryPositive");
-        element.checked = true;
+        element.className = "radioChecked";
         callback();
       break;
       case "negative":
         element = document.getElementById("categoryNegative");
-        element.checked = true;
-        callback();
-      break;
-      case "-":
-        element = document.getElementById("categoryNone");
-        element.checked = true;
+        element.className = "radioChecked";
         callback();
       break;
       case "none":
         element = document.getElementById("categoryNone");
-        element.checked = true;
+        element.className = "radioChecked";
         callback();
       break;
       default:

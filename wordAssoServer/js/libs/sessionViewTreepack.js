@@ -483,10 +483,10 @@ function ViewTreepack() {
   var zoomFactor = DEFAULT_ZOOM_FACTOR;
   var panzoomElement = document.getElementById("svgTreemapLayoutArea");
   var panzoomObject = panzoom(panzoomElement, { 
-    zoomSpeed: 0.090,
+    zoomSpeed: 0.050,
     autocenter: true
   });
-  panzoomObject.zoomAbs(0.5*width, 0.5*height, zoomFactor);
+  // panzoomObject.zoomAbs(0.5*width, 0.5*height, zoomFactor);
 
   var svgTopTerms = topTermsDiv.append("svg:svg")
     .attr("id", "svgTopTerms")

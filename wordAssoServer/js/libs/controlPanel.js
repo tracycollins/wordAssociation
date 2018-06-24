@@ -1048,6 +1048,11 @@ function ControlPanel() {
       });
     }
 
+    if (!config.twitterUser || !config.twitterUser.screenName) {
+      config.twitterUser = {};
+      config.twitterUser.screenName = "threecee";
+    }
+
     console.log("CREATE CONTROL PANEL" 
       + " | " + config.twitterUser.screenName
       + " | " + config.twitterUser.threeceeFollowing

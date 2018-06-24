@@ -1834,10 +1834,11 @@ function ControlPanel() {
       setTimeout(function() {  // KLUDGE to insure table is created before update
         self.updateControlPanel(config, function(){
           if (parentWindow !== undefined) {
+            window.addEventListener("message", receiveMessage, false);
+
             setTimeout(function(){
               console.log("TX PARENT READY " + DEFAULT_SOURCE);
               parentWindow.postMessage({op:"READY"}, DEFAULT_SOURCE);
-              window.addEventListener("message", receiveMessage, false);
               twttr.widgets.load();              
             }, 1000);
 

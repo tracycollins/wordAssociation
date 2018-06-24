@@ -2,7 +2,7 @@
 
 
 /* jshint undef: true, unused: true */
-/* globals store, $, window, twttr, Element, document, moment */
+/* globals store, $, window, twttr, Element, document, async, moment */
 
 function ControlPanel() {
   "use strict";
@@ -810,7 +810,7 @@ function ControlPanel() {
           if (err) {
             setTimeout(function(){
               loadTwitterFeed(currentTwitterNode, function(err2){
-                console.error("loadTwitterFeed SET_TWITTER_USER FAIL");
+                if (err2) { console.error("loadTwitterFeed SET_TWITTER_USER FAIL"); }
               });
             }, 1000);
           }
@@ -824,7 +824,7 @@ function ControlPanel() {
           if (err) {
             setTimeout(function(){
               loadTwitterFeed(currentTwitterNode, function(err2){
-                console.error("loadTwitterFeed SET_TWITTER_HASHTAG FAIL");
+                if (err2) { console.error("loadTwitterFeed SET_TWITTER_HASHTAG FAIL"); }
               });
             }, 1000);
           }
@@ -1029,34 +1029,57 @@ function ControlPanel() {
     }
   };
 
-  this.createControlPanel = function(callback) {
+  this.loadStoredConfig = function(callback) {
 
     var storedConfigName = "config_" + parentWindow.config.sessionViewType;
 
     console.debug("STORED CONFIG: " + storedConfigName);
+
     var storedConfig = store.get(storedConfigName);
-    delete storedConfig.twitterUser.histograms;
-    delete storedConfig.twitterUser.countHistory;
-    delete storedConfig.twitterUser.status;
 
     if (storedConfig !== undefined) {
       var storedConfigArgs = Object.keys(storedConfig);
 
-      storedConfigArgs.forEach(function(arg){
+      async.each(storedConfigArgs, function(arg, cb){
+
         config[arg] = storedConfig[arg];
+
         console.log("--> STORED CONFIG | " + arg + ": " + config[arg]);
+
+        cb();
+
+      }, function(){
+
+        if (!config.twitterUser || !config.twitterUser.screenName) {
+          console.warn("UNDEFINED config.twitterUser: " + jsonPrint(config.twitterUser));
+          config.twitterUser = {};
+          config.twitterUser.screenName = "threecee";
+        }
+
+        delete storedConfig.twitterUser.histograms;
+        delete storedConfig.twitterUser.countHistory;
+        delete storedConfig.twitterUser.status;
+
+        console.log("CREATE CONTROL PANEL" 
+          + " | " + config.twitterUser.screenName
+          + " | " + config.twitterUser.threeceeFollowing
+        );
+
+        callback();
+
       });
     }
+    else {
 
-    if (!config.twitterUser || !config.twitterUser.screenName) {
-      config.twitterUser = {};
-      config.twitterUser.screenName = "threecee";
+      console.warn("NO STORED CONFIGURATION");
+
+      callback();
     }
 
-    console.log("CREATE CONTROL PANEL" 
-      + " | " + config.twitterUser.screenName
-      + " | " + config.twitterUser.threeceeFollowing
-    );
+  };
+
+  this.createControlPanel = function(callback) {
+
 
     dashboardMain = document.getElementById("dashboardMain");
     infoTable = document.getElementById("infoTable");
@@ -1080,13 +1103,6 @@ function ControlPanel() {
       backgroundColor: "white",
       border: "1x solid #aaaaaa"
     };
-
-   //==============================
-
-          // radioButtonElement.setAttribute("name", content.name);
-          // radioButtonElement.setAttribute("id", content.id);
-          // radioButtonElement.setAttribute("value", content.value);
-          // radioButtonElement.setAttribute("checked", content.checked);
 
     var categoryLeftButton = {
       type: "RADIO",
@@ -1327,9 +1343,7 @@ function ControlPanel() {
       text: maxAgeSlider.value + " ms"
     };
 
-    // console.log("config\n" + jsonPrint(config));
-
-     var fontSizeMinRatioSlider = {
+    var fontSizeMinRatioSlider = {
       type: "SLIDER",
       id: "fontSizeMinRatioSlider",
       class: "slider",

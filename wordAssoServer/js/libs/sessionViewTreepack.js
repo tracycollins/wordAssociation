@@ -483,7 +483,7 @@ function ViewTreepack() {
   var zoomFactor = DEFAULT_ZOOM_FACTOR;
   var panzoomElement = document.getElementById("svgTreemapLayoutArea");
   var panzoomObject = panzoom(panzoomElement, { 
-    zoomSpeed: 0.010,
+    zoomSpeed: 0.025,
     autocenter: true
   });
   panzoomObject.zoomAbs(0.5*width, 0.5*height, zoomFactor);

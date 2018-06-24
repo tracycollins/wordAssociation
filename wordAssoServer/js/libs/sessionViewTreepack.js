@@ -465,14 +465,14 @@ function ViewTreepack() {
     .attr("x", 1e-6)
     .attr("y", 1e-6);
 
-  var svgTreemapLayoutArea = svgMain.append("g")
+  var svgTreemapLayoutArea = svgMain.append("svg:g")
     .attr("id", "svgTreemapLayoutArea")
     .attr("width", width)
     .attr("height", height)
     .attr("x", 1e-6)
     .attr("y", 1e-6);
 
-  var svgTopTermLayoutArea = svgMain.append("g")
+  var svgTopTermLayoutArea = svgMain.append("svg:g")
     .attr("id", "svgTopTermLayoutArea")
     .attr("width", width)
     .attr("height", height)
@@ -507,7 +507,7 @@ function ViewTreepack() {
     .style("zIndex", 100)
     .style("opacity", 1.0);
 
-  var maxRateMentionsText = maxRateMentionsSvgGroup.append("text")
+  var maxRateMentionsText = maxRateMentionsSvgGroup.append("svg:text")
     .attr("id", "maxRateMentionsText")
     .attr("x", maxRateMentionsLeftMargin + "%")
     .attr("y", maxRateMentionsTopMargin + "%")

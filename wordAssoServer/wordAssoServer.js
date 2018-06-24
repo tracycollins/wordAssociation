@@ -5,7 +5,8 @@ const shell = require("shelljs");
 
 var DEFAULT_NODE_TYPES = ["emoji", "hashtag", "media", "place", "url", "user", "word"];
 
-let dbConnected = false;
+let dbConnection;
+let dbConnectionReady = false;
 let statsObj = {};
 
 let followableSearchTermSet = new Set();
@@ -520,13 +521,31 @@ let hashtagServer;
 let userServer;
 let wordServer;
 
-wordAssoDb.connect(function(err, dbConnection){
+wordAssoDb.connect(process.title, function(err, dbCon){
   if (err) {
     console.log(chalkError("*** MONGO DB CONNECTION ERROR: " + err));
     quit("MONGO DB CONNECTION ERROR");
   }
   else {
-    dbConnection.on("error", console.error.bind(console, "*** MONGO DB CONNECTION ERROR ***\n"));
+
+    dbConnection = dbCon;
+
+    dbConnectionReady = true;
+
+    dbConnection.on("error", function(){
+      console.error.bind(console, "*** TFE | MONGO DB CONNECTION ERROR ***\n");
+      console.log(chalkError("*** TFE | MONGO DB CONNECTION ERROR ***\n"));
+      dbConnectionReady = false;
+      dbConnectionReady = false;
+    });
+
+    dbConnection.on("disconnected", function(){
+      console.error.bind(console, "*** TFE | MONGO DB CONNECTION DISCONNECTED ***\n");
+      console.log(chalkAlert("*** TFE | MONGO DB CONNECTION DISCONNECTED ***\n"));
+      dbConnectionReady = false;
+      dbConnectionReady = false;
+    });
+
     console.log(chalk.blue("WORD ASSO SERVER | MONGOOSE DEFAULT CONNECTION OPEN"));
     NeuralNetwork = mongoose.model("NeuralNetwork", neuralNetworkModel.NeuralNetworkSchema);
     Emoji = mongoose.model("Emoji", emojiModel.EmojiSchema);
@@ -542,9 +561,6 @@ wordAssoDb.connect(function(err, dbConnection){
     userServer = require("@threeceelabs/user-server-controller");
     wordServer = require("@threeceelabs/word-server-controller");
     // userServer = require("../../userServerController");
-
-    dbConnected = true;
-    
   }
 
 });
@@ -833,7 +849,7 @@ const localHostHashMap = new HashMap();
 let tweetParser;
 
 // function updateDbStats(callback){
-//   if (dbConnected) {
+//   if (dbConnectionReady) {
 
 //     async.each({}, function(){
 
@@ -870,7 +886,7 @@ function initStats(callback){
   console.log(chalk.blue("INIT STATS"));
   statsObj = {};
 
-  statsObj.dbConnection = dbConnected;
+  statsObj.dbConnection = dbConnectionReady;
   statsObj.nodes = {};
   statsObj.nodes.user = {};
   statsObj.nodes.user.total = 0;

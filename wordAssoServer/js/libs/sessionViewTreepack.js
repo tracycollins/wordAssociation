@@ -6,7 +6,7 @@ function ViewTreepack() {
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
-  var DEFAULT_ZOOM_FACTOR = 0.5;
+  var DEFAULT_ZOOM_FACTOR = 0.75;
   var emojiFontMulipier = 2.0;
 
   var topTermsDivVisible = false;
@@ -483,10 +483,10 @@ function ViewTreepack() {
   var zoomFactor = DEFAULT_ZOOM_FACTOR;
   var panzoomElement = document.getElementById("svgTreemapLayoutArea");
   var panzoomObject = panzoom(panzoomElement, { 
-    zoomSpeed: 0.050,
+    zoomSpeed: 0.010,
     autocenter: true
   });
-  // panzoomObject.zoomAbs(0.5*width, 0.5*height, zoomFactor);
+  panzoomObject.zoomAbs(0.5*width, 0.5*height, zoomFactor);
 
   var svgTopTerms = topTermsDiv.append("svg:svg")
     .attr("id", "svgTopTerms")

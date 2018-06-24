@@ -19,7 +19,6 @@ function ControlPanel() {
   var timelineDiv = document.getElementById("timelineDiv");
   var hashtagDiv =document.getElementById("hashtagDiv");
 
-
   var nodeTypesSet = new Set();
   nodeTypesSet.add("emoji");
   nodeTypesSet.add("hashtag");
@@ -159,6 +158,10 @@ function ControlPanel() {
   //--------------
 
   function followButtonHandler(e){
+    if (!twitterFeedUser) { 
+      console.error("followButtonHandler: twitterFeedUser UNDEFINED");
+      return;
+    }
     console.warn("FOLLOW BUTTON | ID: " + e.target.id + " | USER: @" + twitterFeedUser.screenName);
     parentWindow.postMessage({op: "FOLLOW", user: twitterFeedUser}, DEFAULT_SOURCE);
   }
@@ -349,9 +352,12 @@ function ControlPanel() {
     return this;
   };
 
-  function loadTwitterFeed(node) {
+  function loadTwitterFeed(node, callback) {
 
-    if (!timelineDiv || !hashtagDiv) { return; }
+    if (!timelineDiv || !hashtagDiv || (twttr === undefined)) { 
+      console.error("loadTwitterFeed: timelineDiv OR hashtagDiv OR twttr UNDEFINED");
+      return callback("loadTwitterFeed: timelineDiv OR hashtagDiv OR twttr UNDEFINED");
+    }
 
     hashtagDiv.removeAll();
     timelineDiv.removeAll();
@@ -380,6 +386,7 @@ function ControlPanel() {
         twitterWidgetsCreateTimeline(node, function(){
           var nsi =document.getElementById("nodeSearchInput");
           nsi.value = "@" + node.screenName;
+          callback(null);
         });
 
       });
@@ -399,8 +406,12 @@ function ControlPanel() {
         twitterHashtagSearch(node, function(){
           var nsi =document.getElementById("nodeSearchInput");
           nsi.value = "#" + node.nodeId;
+          callback(null);
         });
       });
+    }
+    else {
+      callback("ILLEGAL NODE TYPE: " + node.nodeType);
     }
   }
 
@@ -795,13 +806,29 @@ function ControlPanel() {
           );
           parentWindow.postMessage({op: "NODE_SEARCH", input: "@" + currentTwitterNode.screenName}, DEFAULT_SOURCE);
         }
-        loadTwitterFeed(currentTwitterNode);
+        loadTwitterFeed(currentTwitterNode, function(err){
+          if (err) {
+            setTimeout(function(){
+              loadTwitterFeed(currentTwitterNode, function(err2){
+                console.error("loadTwitterFeed SET_TWITTER_USER FAIL");
+              });
+            }, 1000);
+          }
+        });
       break;
 
       case "SET_TWITTER_HASHTAG":
         currentTwitterNode = event.data.hashtag;
         console.debug("SET TWITTER HASHTAG\n" + jsonPrint(currentTwitterNode));
-        loadTwitterFeed(currentTwitterNode);
+        loadTwitterFeed(currentTwitterNode, function(err){
+          if (err) {
+            setTimeout(function(){
+              loadTwitterFeed(currentTwitterNode, function(err2){
+                console.error("loadTwitterFeed SET_TWITTER_HASHTAG FAIL");
+              });
+            }, 1000);
+          }
+        });
       break;
     }
   }
@@ -810,7 +837,7 @@ function ControlPanel() {
     console.warn("WINDOW LOAD");
   }, false);
 
-  window.addEventListener("message", receiveMessage, false);
+  // window.addEventListener("message", receiveMessage, false);
 
   window.onbeforeunload = function() {
     parentWindow.postMessage({op:"CLOSE"}, DEFAULT_SOURCE);
@@ -1049,7 +1076,7 @@ function ControlPanel() {
       border: "1x solid #aaaaaa"
     };
 
-//==============================
+   //==============================
 
           // radioButtonElement.setAttribute("name", content.name);
           // radioButtonElement.setAttribute("id", content.id);
@@ -1128,7 +1155,6 @@ function ControlPanel() {
       text: "NONE"
     };
 
-//==============================
     var resetButton = {
       type: "BUTTON",
       mode: "MOMENT",
@@ -1657,7 +1683,6 @@ function ControlPanel() {
             categoryNeutralButton, 
             categoryRightButton, 
             categoryPositiveButton, 
-            categoryNeutralButton,
             categoryNegativeButton,
             categoryNoneButton
           ]
@@ -1812,7 +1837,10 @@ function ControlPanel() {
             setTimeout(function(){
               console.log("TX PARENT READY " + DEFAULT_SOURCE);
               parentWindow.postMessage({op:"READY"}, DEFAULT_SOURCE);
+              window.addEventListener("message", receiveMessage, false);
+              twttr.widgets.load();              
             }, 1000);
+
           }
           else {
             console.error("PARENT WINDOW UNDEFINED??");

@@ -9,6 +9,8 @@ let dbConnection;
 let dbConnectionReady = false;
 let statsObj = {};
 
+let unfollowableUserFile = "unfollowableUser.json";
+
 let followableSearchTermSet = new Set();
 
 followableSearchTermSet.add("trump");
@@ -2173,9 +2175,34 @@ function follow(params, callback) {
   if (callback !== undefined) { callback(); }
 }
 
+function initUnfollowableUserSet(){
+  loadFile(dropboxConfigDefaultFolder, unfollowableUserFile, function(err, unfollowableUserSetArray){
+    if (err) {
+      console.log(chalkAlert("ERROR  INIT UNFOLLOWABLE USERS | " + err));
+    }
+    else if (unfollowableUserSetArray) {
+      unfollowableUserSet = new Set(unfollowableUserSetArray);
+      console.log(chalkAlert("INIT UNFOLLOWABLE USERS | " + unfollowableUserSet.size + " USERS"));
+    }
+  });
+}
+
 function unfollow(params, callback) {
 
   console.log(chalk.blue("+++ UNFOLLOW | @" + params.user.screenName));
+
+  if (params.user.nodeId !== undefined){
+
+    unfollowableUserSet.add(params.user.nodeId);
+
+    saveFileQueue.push({
+      localFlag: false, 
+      folder: dropboxConfigDefaultFolder, 
+      file: unfollowableUserFile, 
+      obj: [...unfollowableUserSet]
+    });
+
+  } 
 
   adminNameSpace.emit("UNFOLLOW", params.user);
   utilNameSpace.emit("UNFOLLOW", params.user);
@@ -5486,6 +5513,7 @@ initialize(configuration, function initializeComplete(err) {
   else {
     debug(chalkLog("INITIALIZE COMPLETE"));
 
+    initUnfollowableUserSet();
     initSorterMessageRxQueueInterval(DEFAULT_INTERVAL);
     initSaveFileQueue(configuration);
     initIgnoreWordsHashMap();

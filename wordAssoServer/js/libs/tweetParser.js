@@ -44,7 +44,7 @@ const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
 console.log("TWEET SERVER CONTROLLER | MONGOOSE DEFAULT CONNECT...");
 
-wordAssoDb.connect("TWP_" + process.name, function(err, dbConnection) {
+wordAssoDb.connect("TWP_" + process.pid, function(err, dbConnection) {
   if (err) {
     console.log(chalkError("*** TWP | MONGO DB CONNECTION ERROR: " + err));
     quit("MONGO DB CONNECTION ERROR");

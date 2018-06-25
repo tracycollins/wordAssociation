@@ -7,7 +7,7 @@
 function ControlPanel() {
   "use strict";
 
-  // var DEFAULT_SOURCE = "http://localhost:9997";
+  // var DEFAULT_SOURCE = "https://localhost:9997";
   var DEFAULT_SOURCE = "https://word.threeceelabs.com";
 
   var parentWindow = window.opener;
@@ -1859,7 +1859,7 @@ function ControlPanel() {
               console.log("TX PARENT READY " + DEFAULT_SOURCE);
               parentWindow.postMessage({op:"READY"}, DEFAULT_SOURCE);
               twttr.widgets.load();              
-            }, 1000);
+            }, 3000);
 
           }
           else {

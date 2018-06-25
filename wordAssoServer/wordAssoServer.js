@@ -2686,6 +2686,11 @@ function initSocketHandler(socketObj) {
 
                 userServerController.convertRawUser({user:rawUser}, function(err, cUser){
 
+                  if (err) {
+                    console.log(chalkError("*** TWITTER_SEARCH_NODE | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
+                    return;
+                  }
+
                   console.log(chalkTwitter("FOUND users/show rawUser"
                     + "\n" + printUser({user:cUser})
                   ));
@@ -2783,6 +2788,11 @@ function initSocketHandler(socketObj) {
               else if (rawUser) {
 
                 userServerController.convertRawUser({user:rawUser}, function(err, cUser){
+
+                  if (err) {
+                    console.log(chalkError("*** TWITTER_SEARCH_NODE | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
+                    return;
+                  }
 
                   console.log(chalkTwitter("FOUND users/show rawUser"
                     + "\n" + printUser({user:cUser})

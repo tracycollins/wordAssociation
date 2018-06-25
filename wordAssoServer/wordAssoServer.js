@@ -517,9 +517,9 @@ let Url;
 let User;
 let Word;
 
-let hashtagServer;
-let userServer;
-let wordServer;
+let hashtagServerController;
+let userServerController;
+let wordServerController;
 
 wordAssoDb.connect(process.title, function(err, dbCon){
   if (err) {
@@ -555,10 +555,10 @@ wordAssoDb.connect(process.title, function(err, dbCon){
     User = mongoose.model("User", userModel.UserSchema);
     Word = mongoose.model("Word", wordModel.WordSchema);
 
-    hashtagServer = require("@threeceelabs/hashtag-server-controller");
-    userServer = require("@threeceelabs/user-server-controller");
-    wordServer = require("@threeceelabs/word-server-controller");
-    // userServer = require("../../userServerController");
+    hashtagServerController = require("@threeceelabs/hashtag-server-controller");
+    userServerController = require("@threeceelabs/user-server-controller");
+    wordServerController = require("@threeceelabs/word-server-controller");
+    // userServerController = require("../../userServerController");
   }
 
 });
@@ -2001,7 +2001,7 @@ function categorizeNode(categorizeObj, callback) {
       }
 
 
-      userServer.updateCategory(
+      userServerController.updateCategory(
         {user: categorizeObj.node, category: categorizeObj.category}, 
         function(err, updatedUser){
 
@@ -2065,7 +2065,7 @@ function categorizeNode(categorizeObj, callback) {
           obj: categorizedHashtagHashMap.entries()
         });
 
-      hashtagServer.updateCategory(
+      hashtagServerController.updateCategory(
         {hashtag: categorizeObj.node, category: categorizeObj.category}, 
         function(err, updatedHashtag){
         if (err) {
@@ -2551,7 +2551,7 @@ function initSocketHandler(socketObj) {
 
       let searchNodeHashtag = { nodeId: searchNode.substring(1) };
 
-      hashtagServer.findOne({hashtag: searchNodeHashtag}, function(err, hashtag){
+      hashtagServerController.findOne({hashtag: searchNodeHashtag}, function(err, hashtag){
         if (err) {
           console.log(chalkError("TWITTER_SEARCH_NODE HASHTAG ERROR\n" + jsonPrint(err)));
         }
@@ -2630,7 +2630,7 @@ function initSocketHandler(socketObj) {
         nodeSearchType = "USER_SPECIFIC";
       }
 
-      userServer.findOne(
+      userServerController.findOne(
         {
           nodeSearchType: nodeSearchType,
           nodeSearchBy: nodeSearchBy,
@@ -2668,7 +2668,7 @@ function initSocketHandler(socketObj) {
               }
               else if (rawUser) {
 
-                userServer.convertRawUser({user:rawUser}, function(err, cUser){
+                userServerController.convertRawUser({user:rawUser}, function(err, cUser){
 
                   console.log(chalkTwitter("FOUND users/show rawUser"
                     + "\n" + printUser({user:cUser})
@@ -2678,6 +2678,7 @@ function initSocketHandler(socketObj) {
                   user.friendsCount = cUser.friendsCount;
                   user.statusesCount = cUser.statusesCount;
                   user.createdAt = cUser.createdAt;
+                  user.updateLastSeen = false;
 
                   let nCacheObj = nodeCache.get(user.nodeId);
 
@@ -2686,7 +2687,7 @@ function initSocketHandler(socketObj) {
                     user.setMentions = true;
                   }
 
-                  userServer.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
+                  userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
 
                     if (err) {
                       console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
@@ -2764,7 +2765,7 @@ function initSocketHandler(socketObj) {
               }
               else if (rawUser) {
 
-                userServer.convertRawUser({user:rawUser}, function(err, cUser){
+                userServerController.convertRawUser({user:rawUser}, function(err, cUser){
 
                   console.log(chalkTwitter("FOUND users/show rawUser"
                     + "\n" + printUser({user:cUser})
@@ -2775,9 +2776,18 @@ function initSocketHandler(socketObj) {
                   if (nCacheObj) {
                     cUser.mentions = Math.max(cUser.mentions, nCacheObj.mentions);
                     cUser.setMentions = true;
+                    cUser.lastSeen = nCacheObj.lastSeen;
+                    cUser.updateLastSeen = true;
+                  }
+                  else if ((cUser.status !== undefined) && cUser.status) {
+                    cUser.lastSeen = cUser.status.created_at;
+                    cUser.updateLastSeen = true;
+                  }
+                  else {
+                    cUser.updateLastSeen = false;
                   }
 
-                  userServer.findOneUser(cUser, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
+                  userServerController.findOneUser(cUser, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
 
                     if (err) {
                       console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
@@ -2885,7 +2895,7 @@ function initSocketHandler(socketObj) {
     ));
 
 
-    userServer.findOne({user: defaultTwitterUser}, function(err, user){
+    userServerController.findOne({user: defaultTwitterUser}, function(err, user){
       if (err) {
         socket.emit("SET_TWITTER_USER", defaultTwitterUser);
       }
@@ -3439,6 +3449,8 @@ function initTransmitNodeQueueInterval(interval){
                     n.friendsCount = rawUser.friends_count;
                     n.followersCount = rawUser.followers_count;
                     n.status = rawUser.status;
+                    n.lastSeen = rawUser.status.created_at;
+                    n.updateLastSeen = true;
 
                     let nCacheObj = nodeCache.get(n.nodeId);
 
@@ -3447,7 +3459,7 @@ function initTransmitNodeQueueInterval(interval){
                       n.setMentions = true;
                     }
 
-                    userServer.findOneUser(n, {noInc: false, fields: fieldsExclude}, function(err, updatedUser){
+                    userServerController.findOneUser(n, {noInc: false, fields: fieldsExclude}, function(err, updatedUser){
                       if (err) {
                         console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
                         viewNameSpace.volatile.emit("node", n);
@@ -3472,7 +3484,9 @@ function initTransmitNodeQueueInterval(interval){
                   n.setMentions = true;
                 }
 
-                userServer.findOneUser(n, {noInc: false, fields: fieldsExclude}, function(err, updatedUser){
+                n.updateLastSeen = true;
+
+                userServerController.findOneUser(n, {noInc: false, fields: fieldsExclude}, function(err, updatedUser){
                   if (err) {
                     console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
                     viewNameSpace.volatile.emit("node", n);
@@ -3488,7 +3502,9 @@ function initTransmitNodeQueueInterval(interval){
 
               if ((n.nodeType === "hashtag") && n.category){
 
-                hashtagServer.findOneHashtag(n, {noInc: false}, function(err, updatedHashtag){
+                n.updateLastSeen = true;
+
+                hashtagServerController.findOneHashtag(n, {noInc: false}, function(err, updatedHashtag){
                   if (err) {
                     console.log(chalkError("updatedHashtag ERROR\n" + jsonPrint(err)));
                     viewNameSpace.volatile.emit("node", n);
@@ -3867,7 +3883,7 @@ function initAppRouting(callback) {
 
     debug(chalkAlert("DESERIALIZE USER: @" + userObj.screenName));
 
-    userServer.findOne({ user: userObj}, function(err, user){
+    userServerController.findOne({ user: userObj}, function(err, user){
 
       debug(chalkInfo("DESERIALIZED USER: @" + user.screenName));
 
@@ -3954,7 +3970,7 @@ function initAppRouting(callback) {
 
     slackPostMessage(slackChannel, "PASSPORT TWITTER AUTH USER: @" + req.session.passport.user.screenName);
 
-    userServer.findOne({ user: req.session.passport.user}, function(err, user) {
+    userServerController.findOne({ user: req.session.passport.user}, function(err, user) {
       if(err) {
         console.log(chalkError("*** ERROR TWITTER AUTHENTICATION: " + jsonPrint(err)));  // handle errors
         res.redirect("/504.html");
@@ -4120,7 +4136,7 @@ function initHashtagLookupQueueInterval(interval){
 
       let categoryObj = {};
 
-      hashtagServer.findOne({hashtag: htObj}, function(err, hashtag){
+      hashtagServerController.findOne({hashtag: htObj}, function(err, hashtag){
         if (err) {
           console.log(chalkError("HASHTAG FIND ONE ERROR\n" + jsonPrint(err)));
         }
@@ -5122,7 +5138,7 @@ function initCategoryHashmaps(callback){
 
     hashtag: function(cb){
 
-      hashtagServer.findCategorizedHashtagsCursor({}, function(err, results){
+      hashtagServerController.findCategorizedHashtagsCursor({}, function(err, results){
         if (err) {
           console.error(chalkError("ERROR: initCategoryHashmaps: findCategorizedHashtagsCursor:"
             + " " + err
@@ -5147,7 +5163,7 @@ function initCategoryHashmaps(callback){
     },
     user: function(cb){
 
-      userServer.findCategorizedUsersCursor({}, function(err, results){
+      userServerController.findCategorizedUsersCursor({}, function(err, results){
         
         if (err) {
           console.error(chalkError("ERROR: initCategoryHashmaps: findCategorizedUsersCursor:"
@@ -5174,7 +5190,7 @@ function initCategoryHashmaps(callback){
     },
     word: function(cb){
 
-      wordServer.findCategorizedWordsCursor({}, function(err, results){
+      wordServerController.findCategorizedWordsCursor({}, function(err, results){
         
         if (err) {
           console.error(chalkError("ERROR: initCategoryHashmaps: findCategorizedWordsCursor:"

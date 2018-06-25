@@ -2180,7 +2180,23 @@ function unfollow(params, callback) {
   adminNameSpace.emit("UNFOLLOW", params.user);
   utilNameSpace.emit("UNFOLLOW", params.user);
 
-  if (callback !== undefined) { callback(); }
+  let user = new User(params.user);
+
+  user.following = false;
+  user.threeceeFollowing = false;
+  user.updateLastSeen = false;
+
+  userServerController.findOneUser(user, {}, function(err, u){
+    if (err) {
+      console.log(chalkError("UNFOLLOW ERROR: " + err));
+    }
+    else {
+      console.log(chalkAlert("UNFOLLOW USER: @" + user.screenName));
+    }
+
+    if (callback !== undefined) { callback(); }
+  });
+
 }
 
 

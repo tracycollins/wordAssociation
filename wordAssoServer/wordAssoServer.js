@@ -2651,17 +2651,17 @@ function initSocketHandler(socketObj) {
         if ((searchNodeUser.screenName === "?") && (nodeSearchBy === "createdAt")) {
           console.log(chalkInfo("SEARCH FOR UNCATEGORIZED USER | CREATED AT"));
           nodeSearchType = "USER_UNCATEGORIZED";
-          searchNodeUser = { createdAt: previousUserUncategorizedCreated };
+          searchNodeUser = { createdAt: previousUserUncategorizedCreated, following: true };
         }
         else if ((searchNodeUser.screenName === "?") && (nodeSearchBy === "lastSeen")) {
           console.log(chalkInfo("SEARCH FOR UNCATEGORIZED USER | LAST SEEN"));
           nodeSearchType = "USER_UNCATEGORIZED";
-          searchNodeUser = { lastSeen: previousUserUncategorizedLastSeen };
+          searchNodeUser = { lastSeen: previousUserUncategorizedLastSeen, following: true };
         }
         else if (searchNodeUser.screenName === "?mm") {
           console.log(chalkInfo("SEARCH FOR MISMATCHED USER"));
           nodeSearchType = "USER_MISMATCHED";
-          searchNodeUser = { nodeId: previousUserMismatchedId };
+          searchNodeUser = { nodeId: previousUserMismatchedId, following: true };
         }
         else {
           console.log(chalkInfo("SEARCH FOR SPECIFIC USER"));

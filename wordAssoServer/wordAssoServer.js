@@ -521,7 +521,7 @@ let hashtagServerController;
 let userServerController;
 let wordServerController;
 
-wordAssoDb.connect(process.title, function(err, dbCon){
+wordAssoDb.connect("WAS_" + process.pid, function(err, dbCon){
   if (err) {
     console.log(chalkError("*** MONGO DB CONNECTION ERROR: " + err));
     quit("MONGO DB CONNECTION ERROR");

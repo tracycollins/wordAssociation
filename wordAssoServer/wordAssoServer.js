@@ -536,13 +536,11 @@ wordAssoDb.connect(process.title, function(err, dbCon){
       console.error.bind(console, "*** TFE | MONGO DB CONNECTION ERROR ***\n");
       console.log(chalkError("*** TFE | MONGO DB CONNECTION ERROR ***\n"));
       dbConnectionReady = false;
-      dbConnectionReady = false;
     });
 
     dbConnection.on("disconnected", function(){
       console.error.bind(console, "*** TFE | MONGO DB CONNECTION DISCONNECTED ***\n");
       console.log(chalkAlert("*** TFE | MONGO DB CONNECTION DISCONNECTED ***\n"));
-      dbConnectionReady = false;
       dbConnectionReady = false;
     });
 

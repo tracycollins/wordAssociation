@@ -2678,7 +2678,8 @@ function initSocketHandler(socketObj) {
                   user.friendsCount = cUser.friendsCount;
                   user.statusesCount = cUser.statusesCount;
                   user.createdAt = cUser.createdAt;
-                  user.updateLastSeen = false;
+                  user.updateLastSeen = true;
+                  user.lastSeen = cUser.status.created_at;
 
                   let nCacheObj = nodeCache.get(user.nodeId);
 
@@ -2771,20 +2772,14 @@ function initSocketHandler(socketObj) {
                     + "\n" + printUser({user:cUser})
                   ));
 
+                  user.updateLastSeen = true;
+                  user.lastSeen = cUser.status.created_at;
+
                   let nCacheObj = nodeCache.get(cUser.nodeId);
 
                   if (nCacheObj) {
                     cUser.mentions = Math.max(cUser.mentions, nCacheObj.mentions);
                     cUser.setMentions = true;
-                    cUser.lastSeen = nCacheObj.lastSeen;
-                    cUser.updateLastSeen = true;
-                  }
-                  else if ((cUser.status !== undefined) && cUser.status) {
-                    cUser.lastSeen = cUser.status.created_at;
-                    cUser.updateLastSeen = true;
-                  }
-                  else {
-                    cUser.updateLastSeen = false;
                   }
 
                   userServerController.findOneUser(cUser, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){

@@ -1,6 +1,8 @@
 /*jslint node: true */
 "use strict";
 
+process.title = "wa_node_tweetParser";
+
 let networkReady = false;
 
 const MAX_Q = 500;
@@ -12,7 +14,8 @@ const moment = require("moment");
 const async = require("async");
 
 const chalk = require("chalk");
-const chalkInfo = chalk.gray;
+const chalkLog = chalk.gray;
+const chalkInfo = chalk.black;
 const chalkAlert = chalk.red;
 const chalkError = chalk.bold.red;
 const chalkNetwork = chalk.blue;
@@ -61,6 +64,36 @@ wordAssoDb.connect(function(err, dbConnection){
 
 });
 
+wordAssoDb.connect(process.title, function(err, dbConnection) {
+  if (err) {
+    console.log(chalkError("*** TWP | MONGO DB CONNECTION ERROR: " + err));
+    quit("MONGO DB CONNECTION ERROR");
+  }
+  else {
+
+    dbConnection.on("error", function(){
+      console.error.bind(console, "*** TWP | MONGO DB CONNECTION ERROR ***\n");
+      console.log(chalkError("*** TWP | MONGO DB CONNECTION ERROR ***\n"));
+    });
+
+    dbConnection.on("disconnected", function(){
+      console.error.bind(console, "*** TWP | MONGO DB CONNECTION DISCONNECTED ***\n");
+      console.log(chalkAlert("*** TWP | MONGO DB CONNECTION DISCONNECTED ***\n"));
+    });
+
+    console.log(chalkLog("TWP | MONGOOSE DEFAULT CONNECTION OPEN"));
+
+    Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
+    Media = mongoose.model("Media", mediaModel.MediaSchema);
+    Place = mongoose.model("Place", placeModel.PlaceSchema);
+    Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
+    Url = mongoose.model("Url", urlModel.UrlSchema);
+    User = mongoose.model("User", userModel.UserSchema);
+    Word = mongoose.model("Word", wordModel.WordSchema);
+    tweetServer = require("@threeceelabs/tweet-server-controller");
+  }
+});
+
 const tweetParserQueue = [];
 
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
@@ -107,7 +140,6 @@ process.on("SIGINT", function processSigInt() {
   quit("SIGINT");
 });
 
-process.title = "wa_node_tweetParser";
 console.log(
   "\n\nTWP | ====================================================================================================\n" 
   + "========================================= ***START*** ==============================================\n" 

@@ -2832,6 +2832,20 @@ function initSocketHandler(socketObj) {
 
                   if (err) {
                     console.log(chalkError("*** TWITTER_SEARCH_NODE | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
+
+                    if (nodeSearchType === "USER_UNCATEGORIZED") { 
+                      if ((nodeSearchBy !== undefined) && (nodeSearchBy === "createdAt")) {
+                        previousUserUncategorizedCreated = moment(user.createdAt);
+                      }
+                      else if ((nodeSearchBy !== undefined) && (nodeSearchBy === "lastSeen")) {
+                        previousUserUncategorizedLastSeen = moment(user.lastSeen);
+                      }
+                      else {
+                        previousUserUncategorizedId = user.nodeId;
+                      }
+                    }
+                    if (nodeSearchType === "USER_MISMATCHED") { previousUserMismatchedId = user.nodeId; }
+
                     return;
                   }
 

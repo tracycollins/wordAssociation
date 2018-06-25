@@ -44,26 +44,6 @@ const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
 console.log("TWEET SERVER CONTROLLER | MONGOOSE DEFAULT CONNECT...");
 
-wordAssoDb.connect(function(err, dbConnection){
-  if (err) {
-    console.log(chalkError("TWP | *** MONGO DB CONNECTION ERROR: " + err));
-  }
-  else {
-    dbConnection.on("error", console.error.bind(console, "TWP | *** MONGO DB CONNECTION ERROR ***\n"));
-    console.log("TWEET SERVER CONTROLLER | MONGOOSE DEFAULT CONNECTION OPEN");
-    Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
-    Media = mongoose.model("Media", mediaModel.MediaSchema);
-    Place = mongoose.model("Place", placeModel.PlaceSchema);
-    Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
-    Url = mongoose.model("Url", urlModel.UrlSchema);
-    User = mongoose.model("User", userModel.UserSchema);
-    Word = mongoose.model("Word", wordModel.WordSchema);
-    tweetServer = require("@threeceelabs/tweet-server-controller");
-    // tweetServer = require("../../../../tweetServerController");
-  }
-
-});
-
 wordAssoDb.connect(process.title, function(err, dbConnection) {
   if (err) {
     console.log(chalkError("*** TWP | MONGO DB CONNECTION ERROR: " + err));

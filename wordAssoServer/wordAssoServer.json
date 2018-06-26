@@ -5,7 +5,7 @@
     "cwd"         : "/home/tc/wordAssociation/wordAssoServer",
     "autorestart" : true,
     "restart_delay": 60000,
-    "node_args"   : "--max-old-space-size=6144",
+    "node_args"   : "--max-old-space-size=8192",
     "env": {
       "FORCE_COLOR": 1,
       "NODE_ENV": "production",

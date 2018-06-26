@@ -2520,7 +2520,7 @@ function initSocketHandler(socketObj) {
           serverHashMap.set(socket.id, sessionObj);
 
           adminNameSpace.emit("KEEPALIVE", sessionObj);
-          io.to(socket.id).emit("GET_STATS");
+          socket.to(socket.id).emit("GET_STATS");
         }
 
       break;

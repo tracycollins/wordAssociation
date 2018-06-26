@@ -383,7 +383,7 @@ const categorizedUserHashMap = new HashMap();
 const categorizedWordHashMap = new HashMap();
 const categorizedHashtagHashMap = new HashMap();
 const metricsHashmap = new HashMap();
-const deletedMetricsHashmap = new HashMap();
+// const deletedMetricsHashmap = new HashMap();
 
 const Twit = require("twit");
 let twit;
@@ -453,23 +453,23 @@ function quit(message) {
 
 
 
-let GOOGLE_METRICS_ENABLED = false;
+// let GOOGLE_METRICS_ENABLED = false;
 
-if (process.env.GOOGLE_METRICS_ENABLED !== undefined) {
+// if (process.env.GOOGLE_METRICS_ENABLED !== undefined) {
 
-  console.log(chalkError("DEFINED process.env.GOOGLE_METRICS_ENABLED: " + process.env.GOOGLE_METRICS_ENABLED));
+//   console.log(chalkError("DEFINED process.env.GOOGLE_METRICS_ENABLED: " + process.env.GOOGLE_METRICS_ENABLED));
 
-  if (process.env.GOOGLE_METRICS_ENABLED === "true") {
-    GOOGLE_METRICS_ENABLED = true;
-    console.log(chalkError("TRUE process.env.GOOGLE_METRICS_ENABLED: " + process.env.GOOGLE_METRICS_ENABLED));
-    console.log(chalkError("TRUE GOOGLE_METRICS_ENABLED: " + GOOGLE_METRICS_ENABLED));
-  }
-  else if (process.env.GOOGLE_METRICS_ENABLED === "false") {
-    GOOGLE_METRICS_ENABLED = false;
-    console.log(chalkError("FALSE process.env.GOOGLE_METRICS_ENABLED: " + process.env.GOOGLE_METRICS_ENABLED));
-    console.log(chalkError("FALSE GOOGLE_METRICS_ENABLED: " + GOOGLE_METRICS_ENABLED));
-  }
-}
+//   if (process.env.GOOGLE_METRICS_ENABLED === "true") {
+//     GOOGLE_METRICS_ENABLED = true;
+//     console.log(chalkError("TRUE process.env.GOOGLE_METRICS_ENABLED: " + process.env.GOOGLE_METRICS_ENABLED));
+//     console.log(chalkError("TRUE GOOGLE_METRICS_ENABLED: " + GOOGLE_METRICS_ENABLED));
+//   }
+//   else if (process.env.GOOGLE_METRICS_ENABLED === "false") {
+//     GOOGLE_METRICS_ENABLED = false;
+//     console.log(chalkError("FALSE process.env.GOOGLE_METRICS_ENABLED: " + process.env.GOOGLE_METRICS_ENABLED));
+//     console.log(chalkError("FALSE GOOGLE_METRICS_ENABLED: " + GOOGLE_METRICS_ENABLED));
+//   }
+// }
 
 
 
@@ -1600,32 +1600,32 @@ function saveStats(statsFile, statsObj, callback) {
   }
 }
 
-function initDeletedMetricsHashmap(callback){
-  loadFile(configFolder, deletedMetricsFile, function deleteMetricFileLoad(err, deletedMetricsObj){
-    if (err) {
-      if (err.code !== 404) {
-        console.error("LOAD DELETED METRICS FILE ERROR\n" + err);
-        if (callback !== undefined) { callback(err, null); }
-      }
-      else {
-        if (callback !== undefined) { callback(null, null); }
-      }
-    }
-    else {
-      async.each(Object.keys(deletedMetricsObj), function deleteMetricHashmapEntry(metricName, cb){
-        deletedMetricsHashmap.set(metricName, deletedMetricsObj[metricName]);
-        debug(chalkLog("+ DELETED METRIC | " + metricName ));
-        cb();
-      }, function deleteMetricComplete(err){
-        if (err) {
-          console.error(chalkError("ERROR INIT DELETED METRICS  HASHMAP | " + deletedMetricsFile + "\n" + err ));
-        }
-        debug(chalkLog("LOADED DELETED METRICS | " + deletedMetricsHashmap.count() ));
-        if (callback !== undefined) { callback(null, null); }
-      });
-    }
-   });
-}
+// function initDeletedMetricsHashmap(callback){
+//   loadFile(configFolder, deletedMetricsFile, function deleteMetricFileLoad(err, deletedMetricsObj){
+//     if (err) {
+//       if (err.code !== 404) {
+//         console.error("LOAD DELETED METRICS FILE ERROR\n" + err);
+//         if (callback !== undefined) { callback(err, null); }
+//       }
+//       else {
+//         if (callback !== undefined) { callback(null, null); }
+//       }
+//     }
+//     else {
+//       async.each(Object.keys(deletedMetricsObj), function deleteMetricHashmapEntry(metricName, cb){
+//         deletedMetricsHashmap.set(metricName, deletedMetricsObj[metricName]);
+//         debug(chalkLog("+ DELETED METRIC | " + metricName ));
+//         cb();
+//       }, function deleteMetricComplete(err){
+//         if (err) {
+//           console.error(chalkError("ERROR INIT DELETED METRICS  HASHMAP | " + deletedMetricsFile + "\n" + err ));
+//         }
+//         debug(chalkLog("LOADED DELETED METRICS | " + deletedMetricsHashmap.count() ));
+//         if (callback !== undefined) { callback(null, null); }
+//       });
+//     }
+//    });
+// }
 
 
 function killChild(params, callback){
@@ -1721,7 +1721,7 @@ function getChildProcesses(params, callback){
 
             numChildren += 1;
 
-            console.log(chalk.blue("NNT | FOUND CHILD PROCESS"
+            console.log(chalk.blue("WA | FOUND CHILD PROCESS"
               + " | NUM: " + numChildren
               + " | PID: " + pid
               + " | " + childId
@@ -1732,7 +1732,7 @@ function getChildProcesses(params, callback){
               childrenHashMap[childId] = {};
               childrenHashMap[childId].status = "ZOMBIE";
 
-              console.log(chalkError("NNT | ??? CHILD ZOMBIE ???"
+              console.log(chalkError("WA | ??? CHILD ZOMBIE ???"
                 + " | NUM: " + numChildren
                 + " | PID: " + pid
                 + " | " + childId
@@ -1740,12 +1740,12 @@ function getChildProcesses(params, callback){
               ));
 
               killChild({pid: pid}, function(err, numKilled){
-                console.log(chalkAlert("NNT | XXX ZOMBIE CHILD KILLED | PID: " + pid + " | CH ID: " + childId));
+                console.log(chalkAlert("WA | XXX ZOMBIE CHILD KILLED | PID: " + pid + " | CH ID: " + childId));
               });
 
             }
             else {
-              console.log(chalkInfo("NNT | CHILD"
+              console.log(chalkInfo("WA | CHILD"
                 + " | PID: " + pid
                 + " | " + childId
                 + " | STATUS: " + childrenHashMap[childId].status
@@ -1770,16 +1770,16 @@ function getChildProcesses(params, callback){
     }
 
     if (code === 1) {
-      console.log(chalkInfo("NNT | NO NN CHILD PROCESSES FOUND"));
+      console.log(chalkInfo("WA | NO NN CHILD PROCESSES FOUND"));
         if (callback !== undefined) { callback(null, []); }
     }
 
     if (code > 1) {
-      console.log(chalkAlert("SHELL : NNT | ERROR *** KILL CHILD"
-        + "\nSHELL :: NNT | COMMAND: " + command
-        + "\nSHELL :: NNT | EXIT CODE: " + code
-        + "\nSHELL :: NNT | STDOUT\n" + stdout
-        + "\nSHELL :: NNT | STDERR\n" + stderr
+      console.log(chalkAlert("SHELL : WA | ERROR *** KILL CHILD"
+        + "\nSHELL :: WA | COMMAND: " + command
+        + "\nSHELL :: WA | EXIT CODE: " + code
+        + "\nSHELL :: WA | STDOUT\n" + stdout
+        + "\nSHELL :: WA | STDERR\n" + stderr
       ));
       if (callback !== undefined) { callback(stderr, command); }
     }
@@ -1799,7 +1799,7 @@ function killAll(callback){
       async.eachSeries(childPidArray, function(childObj, cb){
 
         killChild({pid: childObj.pid}, function(err, numKilled){
-          console.log(chalkAlert("NNT | KILL ALL | KILLED | PID: " + childObj.pid + " | CH ID: " + childObj.childId));
+          console.log(chalkAlert("WA | KILL ALL | KILLED | PID: " + childObj.pid + " | CH ID: " + childObj.childId));
           cb();
         });
 
@@ -1811,7 +1811,7 @@ function killAll(callback){
     }
     else {
 
-      console.log(chalkAlert("NNT | KILL ALL | NO CHILDREN"));
+      console.log(chalkAlert("WA | KILL ALL | NO CHILDREN"));
 
       if (callback !== undefined) { callback(err, childPidArray); }
     }
@@ -2115,7 +2115,7 @@ function socketRxTweet(tw) {
     statsObj.errors.twitter.maxRxQueue += 1;
 
     if (statsObj.errors.twitter.maxRxQueue % 1000 === 0) {
-      console.log(chalkAlert("*** TWEET RX MAX QUEUE [" + tweetRxQueue.length + "]"
+      console.log(chalkLog("*** TWEET RX MAX QUEUE [" + tweetRxQueue.length + "]"
         + " | " + getTimeStamp()
         + " | TWP READY: " + tweetParserReady
         + " | TWP SEND READY: " + tweetParserSendReady
@@ -3044,8 +3044,6 @@ function initSocketHandler(socketObj) {
 
   socket.on("STATS", function socketStats(statsObj){
 
-    console.log(chalkSocket("STATS | " + socket.id));
-
     if (serverHashMap.has(socket.id)) {
 
       let sessionObj = serverHashMap.get(socket.id);
@@ -3056,9 +3054,16 @@ function initSocketHandler(socketObj) {
 
       serverHashMap.set(socket.id, sessionObj);
 
-      console.log(chalkSocket("STATS | " + sessionObj.user.userId));
+      if (configuration.verbose) {
+        console.log(chalkSocket("R> STATS | " + sessionObj.user.userId));
+      }
 
       adminNameSpace.emit("SERVER_STATS", sessionObj);
+    }
+    else {
+      if (configuration.verbose) {
+        console.log(chalkSocket("R> STATS | " + socket.id));
+      }
     }
   });
 }
@@ -4803,51 +4808,51 @@ function initTweetParser(params, callback){
   if (callback !== undefined) { callback(null, twp); }
 }
 
-function getCustomMetrics(){
+// function getCustomMetrics(){
 
-  let googleRequest = {
-    name: googleMonitoringClient.projectPath("graphic-tangent-627")
-  };
+//   let googleRequest = {
+//     name: googleMonitoringClient.projectPath("graphic-tangent-627")
+//   };
 
-  googleMonitoringClient.listMetricDescriptors(googleRequest)
+//   googleMonitoringClient.listMetricDescriptors(googleRequest)
 
-    .then(function listMetricDescriptors(results){
+//     .then(function listMetricDescriptors(results){
 
-      const descriptors = results[0];
+//       const descriptors = results[0];
 
-      console.log(chalkLog("TOTAL METRICS: " + descriptors.length ));
+//       console.log(chalkLog("TOTAL METRICS: " + descriptors.length ));
 
-      async.each(descriptors, function metricsHashmapSet(descriptor, cb) {
-        if (descriptor.name.includes("custom.googleapis.com")) {
+//       async.each(descriptors, function metricsHashmapSet(descriptor, cb) {
+//         if (descriptor.name.includes("custom.googleapis.com")) {
 
-          let nameArray = descriptor.name.split("/");
-          let descriptorName = nameArray.pop().toLowerCase();
+//           let nameArray = descriptor.name.split("/");
+//           let descriptorName = nameArray.pop().toLowerCase();
 
-          debug(chalkInfo("METRIC"
-            + " | " + descriptorName
-          ));
+//           debug(chalkInfo("METRIC"
+//             + " | " + descriptorName
+//           ));
 
-          metricsHashmap.set(descriptorName, descriptor.name);
-        }
-        cb();
-      }, function metricsHashmapSetComplete() {
-        console.log(chalkLog("METRICS: "
-          + " | TOTAL: " + descriptors.length
-          + " | CUSTOM: " + metricsHashmap.count()
-        ));
-      });
-    })
-    .catch(function metricsHashmapSetError(err){
-      if (err.code !== 8) {
-        console.log(chalkError("*** ERROR GOOGLE METRICS"
-          + " | ERR CODE: " + err.code
-          + " | META DATA: " + err.metadata
-          + " | META NODE: " + err.note
-        ));
-        console.log(chalkError(err));
-      }
-    });
-}
+//           metricsHashmap.set(descriptorName, descriptor.name);
+//         }
+//         cb();
+//       }, function metricsHashmapSetComplete() {
+//         console.log(chalkLog("METRICS: "
+//           + " | TOTAL: " + descriptors.length
+//           + " | CUSTOM: " + metricsHashmap.count()
+//         ));
+//       });
+//     })
+//     .catch(function metricsHashmapSetError(err){
+//       if (err.code !== 8) {
+//         console.log(chalkError("*** ERROR GOOGLE METRICS"
+//           + " | ERR CODE: " + err.code
+//           + " | META DATA: " + err.metadata
+//           + " | META NODE: " + err.note
+//         ));
+//         console.log(chalkError(err));
+//       }
+//     });
+// }
 
 let cacheObj = {};
 cacheObj.nodeCache = nodeCache;
@@ -4863,14 +4868,14 @@ let cacheObjKeys;
 
 function initRateQinterval(interval){
 
-  if (GOOGLE_METRICS_ENABLED) {
-    googleMonitoringClient = Monitoring.metricServiceClient();
-    getCustomMetrics();
-  }
+  // if (GOOGLE_METRICS_ENABLED) {
+    // googleMonitoringClient = Monitoring.metricServiceClient();
+    // getCustomMetrics();
+  // }
 
   console.log(chalkLog("INIT RATE QUEUE INTERVAL | " + interval + " MS"));
 
-  if (GOOGLE_METRICS_ENABLED) { console.log(chalkAlert("*** GOOGLE METRICS ENABLED ***")); }
+  // if (GOOGLE_METRICS_ENABLED) { console.log(chalkAlert("*** GOOGLE METRICS ENABLED ***")); }
   
   clearInterval(updateMetricsInterval);
 
@@ -5475,10 +5480,10 @@ function initialize(cnf, callback) {
   });
 
   initAppRouting(function initAppRoutingComplete() {
-    initDeletedMetricsHashmap(function initDeletedMetricsHashmapComplete(){
-      initSocketNamespaces();
-      callback();
-    });
+    initSocketNamespaces();
+    callback();
+    // initDeletedMetricsHashmap(function initDeletedMetricsHashmapComplete(){
+    // });
   });
 }
 
@@ -5510,16 +5515,21 @@ function initStatsInterval(interval){
   clearInterval(memStatsInterval);
 
   memStatsInterval = setInterval(function updateMemStats() {
+
     statsObj.memory.rss = process.memoryUsage().rss/(1024*1024);
 
     if (statsObj.memory.rss > statsObj.memory.maxRss) {
+
       statsObj.memory.maxRss = statsObj.memory.rss;
       statsObj.memory.maxRssTime = moment().valueOf();
+
       console.log(chalkInfo("NEW MAX RSS"
         + " | " + moment().format(compactDateTimeFormat)
         + " | " + statsObj.memory.rss.toFixed(1) + " MB"
       ));
+      
     }
+
   }, 15000);
 
   statsInterval = setInterval(function updateStats() {

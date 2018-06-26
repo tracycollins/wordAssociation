@@ -5,7 +5,7 @@ process.title = "wa_node_tweetParser";
 
 let networkReady = false;
 
-const MAX_Q = 500;
+const MAX_Q = 100;
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
 const os = require("os");

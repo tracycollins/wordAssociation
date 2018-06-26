@@ -119,7 +119,7 @@ var adminConfig = {};
 var testMode = false;
 
 adminConfig.testMode = testMode;
-adminConfig.hideDisconnectedServers = true;
+adminConfig.hideDisconnectedServers = false;
 
 var serverTableHead;
 var serverTableBody;
@@ -480,7 +480,7 @@ socket.on('SERVER_STATS', function(serverObj) {
   sObj.timeStamp = serverObj.timeStamp;
 
   serverSocketHashMap.set(sObj.socketId, sObj);
-  
+
 });
 
 socket.on('TWITTER_TOPTERM_1MIN', function(top10array) {

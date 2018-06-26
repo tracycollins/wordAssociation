@@ -2462,8 +2462,6 @@ function initSocketHandler(socketObj) {
 
           adminNameSpace.emit("KEEPALIVE", sessionObj);
         }
-
-        
       break;
 
       case "TFE" :
@@ -2471,8 +2469,6 @@ function initSocketHandler(socketObj) {
       case "TSS" :
       case "TUS" :
       case "LA" :
-
-
 
         debug(chalkLog(currentSessionType + " SERVER" 
           + " | " + moment().format(compactDateTimeFormat)
@@ -2520,7 +2516,7 @@ function initSocketHandler(socketObj) {
           serverHashMap.set(socket.id, sessionObj);
 
           adminNameSpace.emit("KEEPALIVE", sessionObj);
-          socket.to(socket.id).emit("GET_STATS");
+          socket.emit("GET_STATS");
         }
 
       break;
@@ -2567,8 +2563,6 @@ function initSocketHandler(socketObj) {
 
           adminNameSpace.emit("KEEPALIVE", sessionObj);
         }
-
-
       break;
 
       default:

@@ -617,7 +617,7 @@ socket.on('KEEPALIVE', function(serverObj) {
   else if (serverSocketHashMap.has(serverObj.socketId)){
 
     let sObj = serverSocketHashMap.get(serverObj.socketId);
-    sObj.status = serverObj.status;
+    // sObj.status = serverObj.status;
     sObj.timeStamp = serverObj.timeStamp;
     sObj.type = serverObj.type;
     sObj.user = serverObj.user;

@@ -462,9 +462,25 @@ socket.on('ADMIN_SESSION', function(adminSessionObj) {
 
 });
 
-var serverSessionQueue = [];
-socket.on('SERVER_SESSION', function(rxSession) {
-  serverSessionQueue.push(rxSession);
+socket.on('SERVER_STATS', function(serverObj) {
+
+  console.debug("SERVER_STATS\n" + jsonPrint(serverObj));
+
+  if (!serverSocketHashMap.has(serverObj.socketId)) {
+    console.debug("SERVER_STATS | SERVER NOT FOUND IN HM\n" + jsonPrint(serverObj));
+    return;
+  }
+
+  var sObj = serverSocketHashMap.get(serverObj.socketId);
+
+  sObj.status = "STATS";
+  sObj.type = serverObj.type;
+  sObj.user = serverObj.user;
+  sObj.stats = serverObj.stats;
+  sObj.timeStamp = serverObj.timeStamp;
+
+  serverSocketHashMap.set(sObj.socketId, sObj);
+  
 });
 
 socket.on('TWITTER_TOPTERM_1MIN', function(top10array) {

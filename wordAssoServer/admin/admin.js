@@ -481,6 +481,20 @@ socket.on('SERVER_STATS', function(serverObj) {
 
   serverSocketHashMap.set(sObj.socketId, sObj);
 
+  let currentServerTableRow = document.getElementById(serverObj.socketId);
+
+  if (currentServerTableRow) {
+
+    console.debug("UPDATE TABLE ROW: " + currentServerTableRow.id);
+
+    document.getElementById(serverObj.socketId + "_nodeId").innerHTML = sObj.user.nodeId;
+    document.getElementById(serverObj.socketId + "_type").innerHTML = sObj.type;
+    document.getElementById(serverObj.socketId + "_socketId").innerHTML = sObj.socketId;
+    document.getElementById(serverObj.socketId + "_status").innerHTML = sObj.status;
+    document.getElementById(serverObj.socketId + "_timeStamp").innerHTML = moment(sObj.timeStamp).format(defaultDateTimeFormat);
+    document.getElementById(serverObj.socketId + "_ago").innerHTML = msToTime(moment().diff(moment(sObj.timeStamp)));
+  }
+
 });
 
 socket.on('TWITTER_TOPTERM_1MIN', function(top10array) {
@@ -514,7 +528,7 @@ socket.on('SERVER_ERROR', function(serverObj) {
     document.getElementById(serverObj.socketId + "_nodeId").innerHTML = sObj.user.nodeId;
     document.getElementById(serverObj.socketId + "_type").innerHTML = sObj.type;
     document.getElementById(serverObj.socketId + "_socketId").innerHTML = sObj.socketId;
-    document.getElementById(serverObj.socketId + "_status").innerHTML = "DELETED";
+    document.getElementById(serverObj.socketId + "_status").innerHTML = sObj.status;
     document.getElementById(serverObj.socketId + "_timeStamp").innerHTML = moment(sObj.timeStamp).format(defaultDateTimeFormat);
     document.getElementById(serverObj.socketId + "_ago").innerHTML = msToTime(moment().diff(moment(sObj.timeStamp)));
   }

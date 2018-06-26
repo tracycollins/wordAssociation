@@ -624,6 +624,16 @@ socket.on('KEEPALIVE', function(serverObj) {
 
     serverSocketHashMap.set(serverObj.socketId, sObj);
   }
+  else if (viewerSocketHashMap.has(serverObj.socketId)){
+
+    let sObj = viewerSocketHashMap.get(serverObj.socketId);
+    sObj.status = serverObj.status;
+    sObj.timeStamp = serverObj.timeStamp;
+    sObj.type = serverObj.type;
+    sObj.user = serverObj.user;
+
+    viewerSocketHashMap.set(serverObj.socketId, sObj);
+  }
   else {
     console.warn("KEEPALIVE SERVER NOT IN HASHMAP\n" + jsonPrint(serverObj));
   }

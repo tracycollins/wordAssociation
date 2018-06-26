@@ -464,7 +464,8 @@ socket.on('ADMIN_SESSION', function(adminSessionObj) {
 
 socket.on('SERVER_STATS', function(serverObj) {
 
-  console.debug("SERVER_STATS\n" + jsonPrint(serverObj));
+  // console.debug("SERVER_STATS\n" + jsonPrint(serverObj));
+  console.debug("SERVER_STATS | " + serverObj.socketId + " | " + serverObj.user.userId);
 
   if (!serverSocketHashMap.has(serverObj.socketId)) {
     console.debug("SERVER_STATS | SERVER NOT FOUND IN HM\n" + jsonPrint(serverObj));

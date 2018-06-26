@@ -3283,13 +3283,14 @@ function initUpdateTrendsInterval(interval){
   }, interval);
 }
 
-function updateNodeMeter(nodeObj, callback){
+function updateNodeMeter(node, callback){
 
-  const nodeType = nodeObj.nodeType;
+
+  const nodeType = node.nodeType;
 
   if (!configuration.metrics.nodeMeterEnabled
     || (
-      (nodeObj.nodeType !== "user") 
+        (nodeType !== "user") 
       && (nodeType !== "hashtag") 
       && (nodeType !== "emoji") 
       && (nodeType !== "word") 
@@ -3298,16 +3299,21 @@ function updateNodeMeter(nodeObj, callback){
       && (nodeType !== "place"))
     ) 
   {
-    callback(null, nodeObj);
+    callback(null, node);
     return;
   }
 
-  if (nodeObj.nodeId === undefined) {
-    console.log(chalkError("NODE ID UNDEFINED\n" + jsonPrint(nodeObj)));
-    callback("NODE ID UNDEFINED", nodeObj);
+  if (node.nodeId === undefined) {
+    console.log(chalkError("NODE ID UNDEFINED\n" + jsonPrint(node)));
+    callback("NODE ID UNDEFINED", node);
   }
 
+  let nodeObj = {};
+
+  nodeObj = pick(node, ["nodeId", "nodeType", "isServer",  "isIgnored", "rate", "mentions"]);
+
   let meterNodeId;
+
   meterNodeId = nodeObj.nodeId;
 
   if (nodeMeterType[nodeType] === undefined) {
@@ -3325,6 +3331,7 @@ function updateNodeMeter(nodeObj, callback){
     debug(chalkLog("updateNodeMeter IGNORE " + meterNodeId));
 
     nodeObj.isIgnored = true;
+    node.isIgnored = true;
 
     nodeMeter[meterNodeId] = null;
     nodeMeterType[nodeType][meterNodeId] = null;
@@ -3332,12 +3339,12 @@ function updateNodeMeter(nodeObj, callback){
     delete nodeMeter[meterNodeId];
     delete nodeMeterType[nodeType][meterNodeId];
 
-    if (callback !== undefined) { callback(null, nodeObj); }
+    if (callback !== undefined) { callback(null, node); }
   }
   else {
     if (/TSS_/.test(meterNodeId) || nodeObj.isServer){
       debug(chalkLog("updateNodeMeter\n" + jsonPrint(nodeObj)));
-      if (callback !== undefined) { callback(null, nodeObj); }
+      if (callback !== undefined) { callback(null, node); }
     }
     else if (!nodeMeter[meterNodeId] 
       || (Object.keys(nodeMeter[meterNodeId]).length === 0)
@@ -3355,6 +3362,9 @@ function updateNodeMeter(nodeObj, callback){
       nodeObj.rate = parseFloat(newMeter.toJSON()[metricsRate]);
       nodeObj.mentions += 1;
 
+      node.rate = nodeObj.rate;
+      node.mentions = nodeObj.mentions;
+
       nodeMeter[meterNodeId] = newMeter;
       nodeMeterType[nodeType][meterNodeId] = newNodeTypeMeter;
 
@@ -3371,7 +3381,7 @@ function updateNodeMeter(nodeObj, callback){
         ));
       }
 
-      if (callback !== undefined) { callback(null, nodeObj); }
+      if (callback !== undefined) { callback(null, node); }
     }
     else {
 
@@ -3392,6 +3402,7 @@ function updateNodeMeter(nodeObj, callback){
 
 
       nodeObj.rate = parseFloat(nodeMeter[meterNodeId].toJSON()[metricsRate]);
+      node.rate = nodeObj.rate;
 
       let nCacheObj = nodeCache.get(meterNodeId);
 
@@ -3400,10 +3411,11 @@ function updateNodeMeter(nodeObj, callback){
       }
 
       nodeObj.mentions += 1;
+      node.mentions = nodeObj.mentions;
 
       nodeCache.set(meterNodeId, nodeObj);
 
-      if (callback !== undefined) { callback(null, nodeObj); }
+      if (callback !== undefined) { callback(null, node); }
     }
   }
 }

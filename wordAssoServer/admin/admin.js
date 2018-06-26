@@ -774,7 +774,9 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     async.eachSeries(heartBeat.viewers, function(viewerSocketEntry, cb){
 
       const viewerSocketId = viewerSocketEntry[0];
-      const currentViewer = viewerSocketEntry[1];
+      let currentViewer = viewerSocketEntry[1];
+
+      if (currentViewer.status === undefined) { currentViewer.status = "UNKNOWN"; }
 
       viewerTypeHashMap.set(currentViewer.type, currentViewer);
       viewerSocketHashMap.set(viewerSocketId, currentViewer);

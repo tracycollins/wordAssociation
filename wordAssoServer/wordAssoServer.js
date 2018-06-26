@@ -3043,10 +3043,20 @@ function initSocketHandler(socketObj) {
   });
 
   socket.on("STATS", function socketStats(statsObj){
+
+    console.log(chalkSocket("STATS | " + socket.id));
+
     if (serverHashMap.has(socket.id)) {
+
       let sessionObj = serverHashMap.get(socket.id);
+
       sessionObj.stats = statsObj;
+      sessionObj.timeStamp = moment().valueOf();
+
       serverHashMap.set(socket.id, sessionObj);
+
+      console.log(chalkSocket("STATS | " + sessionObj.user.userId));
+
       adminNameSpace.emit("SERVER_STATS", sessionObj);
     }
   });

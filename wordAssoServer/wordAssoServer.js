@@ -3050,6 +3050,7 @@ function initSocketHandler(socketObj) {
 
       let sessionObj = serverHashMap.get(socket.id);
 
+      sessionObj.status = "STATS";
       sessionObj.stats = statsObj;
       sessionObj.timeStamp = moment().valueOf();
 

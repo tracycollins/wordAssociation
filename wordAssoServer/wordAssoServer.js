@@ -2808,7 +2808,7 @@ function initSocketHandler(socketObj) {
                   user.statusesCount = cUser.statusesCount;
                   user.createdAt = cUser.createdAt;
                   user.updateLastSeen = true;
-                  user.lastSeen = cUser.status.created_at;
+                  user.lastSeen = (cUser.status !== undefined) ? cUser.status.created_at : Date.now();
 
                   let nCacheObj = nodeCache.get(user.nodeId);
 

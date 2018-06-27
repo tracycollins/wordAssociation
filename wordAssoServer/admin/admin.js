@@ -723,6 +723,28 @@ function setTestMode(inputTestMode) {
 //   socket.emit("SOCKET_TEST_MODE", testMode);
 // }
 
+function createServerTable(){
+  //create Tabulator on DOM element with id "example-table"
+  $("#servers-test").tabulator({
+      height:200, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
+      // layout:"fitColumns", //fit columns to width of table (optional)
+      columns:[ //Define Table Columns
+          {title:"SERVER ID", field:"serverId", align:"left"},
+          {title:"TYPE", field:"serverType", align:"left"},
+          {title:"SOCKET", field:"socket", align:"left"},
+          {title:"IP", field:"ipAddress", align:"left"},
+          {title:"STATUS", field:"status", align:"left"},
+          {title:"LAST SEEN", field:"lastSeen", align:"left"},
+          {title:"AGO", field:"ago", align:"right"},
+          {title:"UPTIME", field:"upTime", align:"right"}
+      ]
+  });
+
+
+  // $("#servers-test").tabulator("setData", tabledata);
+
+}
+
 
 let serverRatio = 0;
 let totalServers = 0;
@@ -865,6 +887,8 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   totalServers = 0;
 
+  let tabledata = [];
+
   if (heartBeat.servers && serverTableBody) {
 
     if (heartBeat.servers.length === 0){
@@ -883,6 +907,23 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
       serverTypeHashMap.set(currentServer.type, currentServer);
       serverSocketHashMap.set(serverSocketId, currentServer);
+
+
+      serverSocketHashMap.forEach(function(server, socketId){
+        tabledata.push(
+          {
+            id: serverSocketId, 
+            serverId: currentServer.user.nodeId,
+            serverType: currentServer.type,
+            socket: serverSocketId,
+            ipAddress: currentServer.ip,
+            status: currentServer.status,
+            lastSeen: moment(currentServer.timeStamp).format(defaultDateTimeFormat),
+            ago: msToTime(moment().diff(moment(currentServer.timeStamp))),
+            upTime: msToTime(currentServer.user.stats.elapsed)
+          }
+        );
+      });
 
       let currentServerTableRow = document.getElementById(serverSocketId);
 
@@ -931,8 +972,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
           ]
         );
       }
-
-
 
       async.setImmediate(function() { cb(); });
 
@@ -1002,13 +1041,14 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
     tdLastTimeout[2].style.color = "white";
     tdLastTimeout[2].style.backgroundColor = '#880000';
-
   }
 
   tableCreateRow(heatbeatTable, false, ['SERVER TIME', getTimeStamp(heartBeat.serverTime)]);
   tableCreateRow(heatbeatTable, false, ['SERVER UPTIME', msToTime(heartBeat.upTime)]);
   tableCreateRow(heatbeatTable, false, ['APP START TIME', getTimeStamp(heartBeat.startTime)]);
   tableCreateRow(heatbeatTable, false, ['APP RUNTIME', msToTime(heartBeat.runTime)]);
+
+  $("#server-test").tabulator("setData", tabledata);
 
 }
 
@@ -1017,6 +1057,7 @@ function initialize(callback){
   console.debug("INITIALIZE...");
 
   initBars(function(){
+    createServerTable();
     callback();
   });
 

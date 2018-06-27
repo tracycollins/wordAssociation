@@ -1,10 +1,18 @@
 /*jslint node: true */
 "use strict";
 
-const shell = require("shelljs");
+const ONE_KILOBYTE = 1024;
+const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
+
+const ONE_SECOND = 1000;
+const ONE_MINUTE = 60 * ONE_SECOND;
+const ONE_HOUR = 60 * ONE_MINUTE;
+const ONE_DAY = 24 * ONE_HOUR;
 
 const DEFAULT_NODE_TYPES = ["emoji", "hashtag", "media", "place", "url", "user", "word"];
 
+let DEFAULT_IO_PING_INTERVAL = ONE_MINUTE;
+let DEFAULT_IO_PING_TIMEOUT = 3*ONE_MINUTE;
 
 let dbConnection;
 let dbConnectionReady = false;
@@ -42,14 +50,6 @@ let followableRegEx;
 
 const DEFAULT_SORTER_CHILD_ID = "wa_node_sorter";
 const DEFAULT_TWEET_PARSER_CHILD_ID = "wa_node_tweetParser";
-
-const ONE_KILOBYTE = 1024;
-const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
-
-const ONE_SECOND = 1000;
-const ONE_MINUTE = 60 * ONE_SECOND;
-const ONE_HOUR = 60 * ONE_MINUTE;
-const ONE_DAY = 24 * ONE_HOUR;
 
 const DEFAULT_INTERVAL = 10;
 const DEFAULT_PING_INTERVAL = 5000;
@@ -146,6 +146,7 @@ let defaultTwitterUser = twitterUserThreecee;
 let metricsRate = "1MinuteRate";
 
 const exp = require("express");
+const shell = require("shelljs");
 
 const bodyParser = require("body-parser");
 const methodOverride = require("method-override");
@@ -155,7 +156,6 @@ const writeJsonFile = require("write-json-file");
 
 const session = require("express-session");
 const MongoDBStore = require("express-session-mongo");
-// const MongoDBStore = require("connect-mongostore")(session);
 
 const slackOAuthAccessToken = "xoxp-3708084981-3708084993-206468961315-ec62db5792cd55071a51c544acf0da55";
 const slackChannel = "#was";
@@ -481,28 +481,6 @@ function quit(message) {
   process.exit();
 }
 
-
-
-// let GOOGLE_METRICS_ENABLED = false;
-
-// if (process.env.GOOGLE_METRICS_ENABLED !== undefined) {
-
-//   console.log(chalkError("DEFINED process.env.GOOGLE_METRICS_ENABLED: " + process.env.GOOGLE_METRICS_ENABLED));
-
-//   if (process.env.GOOGLE_METRICS_ENABLED === "true") {
-//     GOOGLE_METRICS_ENABLED = true;
-//     console.log(chalkError("TRUE process.env.GOOGLE_METRICS_ENABLED: " + process.env.GOOGLE_METRICS_ENABLED));
-//     console.log(chalkError("TRUE GOOGLE_METRICS_ENABLED: " + GOOGLE_METRICS_ENABLED));
-//   }
-//   else if (process.env.GOOGLE_METRICS_ENABLED === "false") {
-//     GOOGLE_METRICS_ENABLED = false;
-//     console.log(chalkError("FALSE process.env.GOOGLE_METRICS_ENABLED: " + process.env.GOOGLE_METRICS_ENABLED));
-//     console.log(chalkError("FALSE GOOGLE_METRICS_ENABLED: " + GOOGLE_METRICS_ENABLED));
-//   }
-// }
-
-
-
 // ==================================================================
 // DROPBOX
 // ==================================================================
@@ -815,8 +793,8 @@ let internetCheckInterval;
 const http = require("http");
 const httpServer = http.createServer(app);
 const ioConfig = {
-  pingInterval: 40000,
-  pingTimeout: 25000,
+  pingInterval: DEFAULT_IO_PING_INTERVAL,
+  pingTimeout: DEFAULT_IO_PING_TIMEOUT,
   reconnection: true
 };
 
@@ -831,40 +809,6 @@ const ignoreWordHashMap = new HashMap();
 const localHostHashMap = new HashMap();
 
 let tweetParser;
-
-// function updateDbStats(callback){
-//   if (dbConnectionReady) {
-
-//     async.each({}, function(){
-
-//       User
-//       .find({"category": { $nin: [ 'left', 'right', 'neutral', 'positive', 'negative' ] } })
-//       .count()
-//       .exec(function(err, numUncatUsers){
-//         if (!err) { 
-//           statsObj.nodes.user.uncategorized = numUncatUsers;
-//           console.log("USER NODES"
-//             + " | UNCATEGORIZED: " + statsObj.nodes.user.uncategorized
-//           );
-//         }
-//       });
-      
-//       User
-//       .find({"category": { $in: [ 'left', 'right', 'neutral', 'positive', 'negative' ] } })
-//       .count()
-//       .exec(function(err, numCatUsers){
-//         if (!err) { 
-//           statsObj.nodes.user.categorized = numCatUsers;
-//           console.log("USER NODES"
-//             + " | CATEGORIZED: " + statsObj.nodes.user.categorized
-//           );
-//         }
-//       });
-//     }, function(){
-
-//     });
-//   }
-// }
 
 function initStats(callback){
   console.log(chalk.blue("INIT STATS"));
@@ -1584,34 +1528,6 @@ function saveStats(statsFile, statsObj, callback) {
   }
 }
 
-// function initDeletedMetricsHashmap(callback){
-//   loadFile(configFolder, deletedMetricsFile, function deleteMetricFileLoad(err, deletedMetricsObj){
-//     if (err) {
-//       if (err.code !== 404) {
-//         console.error("LOAD DELETED METRICS FILE ERROR\n" + err);
-//         if (callback !== undefined) { callback(err, null); }
-//       }
-//       else {
-//         if (callback !== undefined) { callback(null, null); }
-//       }
-//     }
-//     else {
-//       async.each(Object.keys(deletedMetricsObj), function deleteMetricHashmapEntry(metricName, cb){
-//         deletedMetricsHashmap.set(metricName, deletedMetricsObj[metricName]);
-//         debug(chalkLog("+ DELETED METRIC | " + metricName ));
-//         cb();
-//       }, function deleteMetricComplete(err){
-//         if (err) {
-//           console.error(chalkError("ERROR INIT DELETED METRICS  HASHMAP | " + deletedMetricsFile + "\n" + err ));
-//         }
-//         debug(chalkLog("LOADED DELETED METRICS | " + deletedMetricsHashmap.count() ));
-//         if (callback !== undefined) { callback(null, null); }
-//       });
-//     }
-//    });
-// }
-
-
 function killChild(params, callback){
 
   let pid = false;
@@ -2207,7 +2123,6 @@ function unfollow(params, callback) {
 
     if (callback !== undefined) { callback(); }
   });
-
 }
 
 
@@ -3431,7 +3346,6 @@ function startTwitUserShowRateLimitTimeout(){
     ));
     twitUserShowReady = true;
   }, startTwitUserShowRateLimitTimeoutDuration);
-
 }
 
 function initFollowableSearchTerms(){
@@ -4466,8 +4380,6 @@ const sortedObjectValues = function(params) {
   });
 };
 
-
-
 function initSorterMessageRxQueueInterval(interval){
 
   console.log(chalkLog("INIT SORTER RX MESSAGE QUEUE INTERVAL | " + interval + " MS"));
@@ -4547,7 +4459,6 @@ function keySort(params, callback){
   .catch(function(err){
     callback(err, params);
   });
-
 }
 
 let keySortInterval;
@@ -4590,7 +4501,6 @@ function initKeySortInterval(interval){
 
 
   }, interval);
-
 }
 
 function initSorterPingInterval(interval){
@@ -4652,7 +4562,6 @@ function initSorterPingInterval(interval){
 
   }
 }
-
 
 function initSorter(params, callback){
 
@@ -4749,8 +4658,6 @@ function initSorter(params, callback){
   if (callback !== undefined) { callback(null, s); }
 }
 
-
-
 function initTweetParser(params, callback){
 
   tweetParserReady = false;
@@ -4835,52 +4742,6 @@ function initTweetParser(params, callback){
 
   if (callback !== undefined) { callback(null, twp); }
 }
-
-// function getCustomMetrics(){
-
-//   let googleRequest = {
-//     name: googleMonitoringClient.projectPath("graphic-tangent-627")
-//   };
-
-//   googleMonitoringClient.listMetricDescriptors(googleRequest)
-
-//     .then(function listMetricDescriptors(results){
-
-//       const descriptors = results[0];
-
-//       console.log(chalkLog("TOTAL METRICS: " + descriptors.length ));
-
-//       async.each(descriptors, function metricsHashmapSet(descriptor, cb) {
-//         if (descriptor.name.includes("custom.googleapis.com")) {
-
-//           let nameArray = descriptor.name.split("/");
-//           let descriptorName = nameArray.pop().toLowerCase();
-
-//           debug(chalkInfo("METRIC"
-//             + " | " + descriptorName
-//           ));
-
-//           metricsHashmap.set(descriptorName, descriptor.name);
-//         }
-//         cb();
-//       }, function metricsHashmapSetComplete() {
-//         console.log(chalkLog("METRICS: "
-//           + " | TOTAL: " + descriptors.length
-//           + " | CUSTOM: " + metricsHashmap.count()
-//         ));
-//       });
-//     })
-//     .catch(function metricsHashmapSetError(err){
-//       if (err.code !== 8) {
-//         console.log(chalkError("*** ERROR GOOGLE METRICS"
-//           + " | ERR CODE: " + err.code
-//           + " | META DATA: " + err.metadata
-//           + " | META NODE: " + err.note
-//         ));
-//         console.log(chalkError(err));
-//       }
-//     });
-// }
 
 let cacheObj = {};
 cacheObj.nodeCache = nodeCache;

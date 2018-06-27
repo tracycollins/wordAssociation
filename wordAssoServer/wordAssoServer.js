@@ -2867,7 +2867,7 @@ function initSocketHandler(socketObj) {
                         previousUserUncategorizedId = user.nodeId;
                       }
                     }
-                    if (nodeSearchType === "USER_MISMATCHED") { previousUserMismatchedId = user.nodeId; }
+                    if (nodeSearchType === "USER_MISMATCHED") { previousUserMismatchedId = searchNodeUser.nodeId; }
 
                     return;
                   }
@@ -2876,8 +2876,8 @@ function initSocketHandler(socketObj) {
                     + "\n" + printUser({user:cUser})
                   ));
 
-                  user.updateLastSeen = true;
-                  user.lastSeen = cUser.status.created_at;
+                  cUser.updateLastSeen = true;
+                  cUser.lastSeen = cUser.status.created_at;
 
                   let nCacheObj = nodeCache.get(cUser.nodeId);
 

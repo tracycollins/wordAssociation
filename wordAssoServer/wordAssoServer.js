@@ -549,50 +549,6 @@ let Url;
 let User;
 let Word;
 
-// let hashtagServerController;
-// wordAssoDb.connect("WAS_" + process.pid, function(err, dbCon){
-//   if (err) {
-//     console.log(chalkError("*** MONGO DB CONNECTION ERROR: " + err));
-//     quit("MONGO DB CONNECTION ERROR");
-//   }
-//   else {
-
-//     dbConnection = dbCon;
-
-
-//     dbConnection.on("error", function(){
-//       console.error.bind(console, "*** TFE | MONGO DB CONNECTION ERROR ***\n");
-//       console.log(chalkError("*** TFE | MONGO DB CONNECTION ERROR ***\n"));
-//       dbConnectionReady = false;
-//     });
-
-//     dbConnection.on("disconnected", function(){
-//       console.error.bind(console, "*** TFE | MONGO DB CONNECTION DISCONNECTED ***\n");
-//       console.log(chalkAlert("*** TFE | MONGO DB CONNECTION DISCONNECTED ***\n"));
-//       dbConnectionReady = false;
-//     });
-
-//     console.log(chalk.blue("WORD ASSO SERVER | MONGOOSE DEFAULT CONNECTION OPEN"));
-
-//     NeuralNetwork = mongoose.model("NeuralNetwork", neuralNetworkModel.NeuralNetworkSchema);
-//     Emoji = mongoose.model("Emoji", emojiModel.EmojiSchema);
-//     Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
-//     Media = mongoose.model("Media", mediaModel.MediaSchema);
-//     Place = mongoose.model("Place", placeModel.PlaceSchema);
-//     Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
-//     Url = mongoose.model("Url", urlModel.UrlSchema);
-//     User = mongoose.model("User", userModel.UserSchema);
-//     Word = mongoose.model("Word", wordModel.WordSchema);
-
-//     hashtagServerController = require("@threeceelabs/hashtag-server-controller");
-//     userServerController = require("@threeceelabs/user-server-controller");
-//     wordServerController = require("@threeceelabs/word-server-controller");
-
-//     dbConnectionReady = true;
-//   }
-
-// });
-
 function toMegabytes(sizeInBytes) {
   return sizeInBytes/ONE_MEGABYTE;
 }
@@ -615,8 +571,8 @@ function printUser(params) {
     text = params.user.nodeId 
       + " | @" + params.user.screenName 
       + " | N: " + params.user.name 
-      + " | CR: " + params.user.createdAt 
-      + " | LS: " + params.user.lastSeen 
+      + " | CR: " + moment(params.user.createdAt).format(compactDateTimeFormat)
+      + " | LS: " + moment(params.user.lastSeen).format(compactDateTimeFormat)
       + " | ULS: " + params.user.updateLastSeen 
       + "\nFLWg: " + params.user.following 
       + " | 3C: " + params.user.threeceeFollowing 

@@ -2776,7 +2776,7 @@ function initSocketHandler(socketObj) {
                 if (nodeSearchType === "USER_MISMATCHED") { previousUserMismatchedId = user.nodeId; }
                 socket.emit("SET_TWITTER_USER", user);
               }
-              else if (rawUser) {
+              else if (rawUser && (rawUser !== undefined)) {
 
                 userServerController.convertRawUser({user:rawUser}, function(err, cUser){
 
@@ -2893,7 +2893,7 @@ function initSocketHandler(socketObj) {
                 console.log(chalkError("ERROR users/show rawUser\n" + jsonPrint(err)));
                 console.log(chalkError("ERROR users/show searchNodeUser:\n" + jsonPrint(searchNodeUser)));
               }
-              else if (rawUser) {
+              else if (rawUser && (rawUser !== undefined)) {
 
                 userServerController.convertRawUser({user:rawUser}, function(err, cUser){
 
@@ -5730,7 +5730,7 @@ initialize(configuration, function initializeComplete(err) {
       if (hashtagServerControllerReady && userServerControllerReady && wordServerControllerReady) {
 
         clearInterval(waitServerControllersInterval);
-        
+
         initCategoryHashmaps(function(err){
           if (err) {
             console.log(chalkError("ERROR: LOAD CATEGORY HASHMAPS: " + err));

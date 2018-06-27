@@ -1601,6 +1601,10 @@ function killChild(params, callback){
 function getChildProcesses(params, callback){
 
   let command;
+  let pid;
+  let childId;
+  let numChildren = 0;
+  let childPidArray = [];
 
   if ((params.searchTerm === undefined) || (params.searchTerm === "ALL")){
     command = "pgrep " + "wa_";
@@ -1611,8 +1615,6 @@ function getChildProcesses(params, callback){
 
   debug(chalkAlert("getChildProcesses | command: " + command));
 
-  let numChildren = 0;
-  let childPidArray = [];
 
   shell.exec(command, {silent: true}, function(code, stdout, stderr){
 
@@ -1624,15 +1626,15 @@ function getChildProcesses(params, callback){
 
       async.eachSeries(stdoutArray, function(pidRaw, cb){
 
-        const pid = pidRaw.trim();
+        pid = pidRaw.trim();
 
         if (parseInt(pid) > 0) {
 
-          const c = "ps -o command= -p " + pid;
+          command = "ps -o command= -p " + pid;
 
-          shell.exec(c, {silent: true}, function(code, stdout, stderr){
+          shell.exec(command, {silent: true}, function(code, stdout, stderr){
 
-            const childId = stdout.trim();
+            childId = stdout.trim();
 
             numChildren += 1;
 
@@ -1940,11 +1942,11 @@ function categorizeNode(categorizeObj, callback) {
               obj: categorizedUserHashMap.entries()
             });
 
-          const text = "CATEGORIZE"
-            + "\n@" + categorizeObj.node.screenName 
-            + ": " + categorizeObj.category;
+          // const text = "CATEGORIZE"
+          //   + "\n@" + categorizeObj.node.screenName 
+          //   + ": " + categorizeObj.category;
 
-          slackPostMessage(slackChannel, text);
+          slackPostMessage(slackChannel, "CATEGORIZE" + "\n@" + categorizeObj.node.screenName + ": " + categorizeObj.category );
 
           debug(chalkLog("UPDATE_CATEGORY USER | @" + updatedUser.screenName ));
           if (callback !== undefined) {
@@ -1983,7 +1985,7 @@ function categorizeNode(categorizeObj, callback) {
         });
 
       hashtagServerController.updateCategory(
-        {hashtag: categorizeObj.node, category: categorizeObj.category}, 
+        { hashtag: categorizeObj.node, category: categorizeObj.category }, 
         function(err, updatedHashtag){
         if (err) {
           console.log(chalkError("*** HASHTAG UPDATE CATEGORY ERROR: " + jsonPrint(err)));
@@ -1995,12 +1997,13 @@ function categorizeNode(categorizeObj, callback) {
 
           categorizedHashtagHashMap.set(
             updatedHashtag.nodeId, 
-            {manual: updatedHashtag.category, auto: updatedHashtag.categoryAuto});
+            { manual: updatedHashtag.category, auto: updatedHashtag.categoryAuto });
 
-          const text = "CATEGORIZE"
-            + "\n#" + categorizeObj.node.nodeId.toLowerCase() + ": " + categorizeObj.category;
+          // const text = "CATEGORIZE"
+          //   + "\n#" + categorizeObj.node.nodeId.toLowerCase() + ": " + categorizeObj.category;
 
-          slackPostMessage(slackChannel, text);
+          // slackPostMessage(slackChannel, text);
+          slackPostMessage(slackChannel, "CATEGORIZE" + "\n@" + categorizeObj.node.nodeId.toLowerCase() + ": " + categorizeObj.category );
 
           debug(chalkLog("UPDATE_CATEGORY HASHTAG | #" + updatedHashtag.nodeId ));
           if (callback !== undefined) {
@@ -2141,13 +2144,16 @@ function unfollow(params, callback) {
 }
 
 
+const serverRegex = /^(.+)_/i;
+let socketConnectText = "";
+
 function initSocketHandler(socketObj) {
 
   const socket = socketObj.socket;
 
   let ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
-  const socketConnectText = "\nSOCKET CONNECT"
+  socketConnectText = "\nSOCKET CONNECT"
     // + " | " + socket.id
     + "\n" + hostname
     + " | " + socketObj.namespace
@@ -2323,7 +2329,6 @@ function initSocketHandler(socketObj) {
 
     if (userObj.stats) {statsObj.utilities[userObj.userId] = userObj.stats;}
 
-    const serverRegex = /^(.+)_/i;
 
     const currentSessionType = serverRegex.exec(userObj.userId) ? serverRegex.exec(userObj.userId)[1].toUpperCase() : "NULL";
 
@@ -2531,9 +2536,16 @@ function initSocketHandler(socketObj) {
     });
   });
 
+
+
+  let searchNode;
+  let searchNodeHashtag;
+  let searchNodeUser;
+  let searchQuery = {};
+
   socket.on("TWITTER_SEARCH_NODE", function twitterSearchNode(sn) {
 
-    const searchNode = sn.toLowerCase();
+    searchNode = sn.toLowerCase();
 
     console.log(chalkSocket("TWITTER_SEARCH_NODE"
       + " | " + getTimeStamp()
@@ -2545,7 +2557,7 @@ function initSocketHandler(socketObj) {
 
       nodeSearchType = "HASHTAG_UNCATEGORIZED";
 
-      let searchNodeHashtag = { nodeId: searchNode.substring(1) };
+      searchNodeHashtag = { nodeId: searchNode.substring(1) };
 
       hashtagServerController.findOne({hashtag: searchNodeHashtag}, function(err, hashtag){
         if (err) {
@@ -2593,9 +2605,6 @@ function initSocketHandler(socketObj) {
       });
     }
     else {
-
-      let searchNodeUser;
-      let searchQuery = {};
 
       if (searchNode.startsWith("@")) {
 
@@ -3231,9 +3240,7 @@ function updateNodeMeter(node, callback){
 
   nodeObj = pick(node, ["nodeId", "nodeType", "isServer",  "isIgnored", "rate", "mentions"]);
 
-  let meterNodeId;
-
-  meterNodeId = nodeObj.nodeId;
+  let meterNodeId = nodeObj.nodeId;
 
   if (nodeMeterType[nodeType] === undefined) {
     nodeMeterType[nodeType] = {};
@@ -3424,13 +3431,17 @@ function initTransmitNodeQueueInterval(interval){
 
   clearInterval(transmitNodeQueueInterval);
 
+  let nodeObj;
+  let followable;
+  let nCacheObj;
+
   transmitNodeQueueInterval = setInterval(function txNodeQueue () {
 
     if (transmitNodeQueueReady && (transmitNodeQueue.length > 0)) {
 
       transmitNodeQueueReady = false;
 
-      let nodeObj = transmitNodeQueue.shift();
+      nodeObj = transmitNodeQueue.shift();
 
       if (!nodeObj) {
         console.error(new Error("transmitNodeQueue: NULL NODE OBJ DE-Q"));
@@ -3470,7 +3481,7 @@ function initTransmitNodeQueueInterval(interval){
             }
             else {
 
-              const followable = userFollowable(n);
+              followable = userFollowable(n);
 
               if (twitUserShowReady && followable){
 
@@ -3518,7 +3529,7 @@ function initTransmitNodeQueueInterval(interval){
                     n.lastSeen = rawUser.status.created_at;
                     n.updateLastSeen = true;
 
-                    let nCacheObj = nodeCache.get(n.nodeId);
+                    nCacheObj = nodeCache.get(n.nodeId);
 
                     if (nCacheObj) {
                       n.mentions = Math.max(n.mentions, nCacheObj.mentions);
@@ -3543,7 +3554,7 @@ function initTransmitNodeQueueInterval(interval){
               }
               else if ((n.nodeType === "user") && n.category){
 
-                let nCacheObj = nodeCache.get(n.nodeId);
+                nCacheObj = nodeCache.get(n.nodeId);
 
                 if (nCacheObj) {
                   n.mentions = Math.max(n.mentions, nCacheObj.mentions);
@@ -3698,17 +3709,23 @@ configEvents.on("SERVER_READY", function serverReady() {
   });
 
   httpServer.on("error", function serverError(err) {
+
     statsObj.socket.errors.httpServer_errors += 1;
     internetReady = false;
+
     debug(chalkError("??? HTTP ERROR | " + moment().format(compactDateTimeFormat) + "\n" + err));
+
     if (err.code === "EADDRINUSE") {
+
       debug(chalkError("??? HTTP ADDRESS IN USE: " + config.port + " ... RETRYING..."));
+
       setTimeout(function serverErrorTimeout() {
         httpServer.listen(config.port, function serverErrorListen() {
           debug("LISTENING ON PORT " + config.port);
         });
       }, 5000);
     }
+
   });
 
   memoryAvailableMB = (statsObj.memory.memoryAvailable/(1024*1024));
@@ -3725,6 +3742,9 @@ configEvents.on("SERVER_READY", function serverReady() {
   heartbeatObj.twitter = {};
   heartbeatObj.memory = {};
 
+  let tempArray = [];
+  let tempViewerArray = [];
+
   setInterval(function hearbeatInterval() {
 
     statsObj.serverTime = moment().valueOf();
@@ -3736,10 +3756,10 @@ configEvents.on("SERVER_READY", function serverReady() {
     statsObj.memory.memoryAvailable = os.freemem();
     statsObj.memory.memoryUsage = process.memoryUsage();
 
-    const tempArray = serverHashMap.entries();
+    tempArray = serverHashMap.entries();
     heartbeatObj.servers = tempArray;
 
-    const tempViewerArray = viewerHashMap.entries();
+    tempViewerArray = viewerHashMap.entries();
     heartbeatObj.viewers = tempViewerArray;
 
     statsObj.nodesPerMin = parseInt(globalNodeMeter.toJSON()[metricsRate]);
@@ -4189,6 +4209,8 @@ function initInternetCheckInterval(interval){
 
 function initTwitterRxQueueInterval(interval){
 
+  let tweet = {};
+
   tweetParserSendReady = true;
 
   console.log(chalkLog("INIT TWITTER RX QUEUE INTERVAL | " + interval + " MS"));
@@ -4199,7 +4221,7 @@ function initTwitterRxQueueInterval(interval){
 
     if ((tweetRxQueue.length > 0) && tweetParserReady && tweetParserSendReady) {
 
-      const tweet = tweetRxQueue.shift();
+      tweet = tweetRxQueue.shift();
 
       debug(chalkInfo("TPQ<"
         // + " [" + tweetRxQueue.size() + "]"
@@ -4235,6 +4257,9 @@ function initTwitterRxQueueInterval(interval){
   }, interval);
 }
 
+let htObj = {};
+let categoryObj = {};
+
 function initHashtagLookupQueueInterval(interval){
 
   let hashtagLookupQueueReady = true;
@@ -4249,15 +4274,16 @@ function initHashtagLookupQueueInterval(interval){
 
       hashtagLookupQueueReady = false;
 
-      const htObj = hashtagLookupQueue.shift();
+      htObj = hashtagLookupQueue.shift();
 
-      let categoryObj = {};
 
       hashtagServerController.findOne({hashtag: htObj}, function(err, hashtag){
         if (err) {
           console.log(chalkError("HASHTAG FIND ONE ERROR\n" + jsonPrint(err)));
         }
         else if (hashtag) { 
+
+          categoryObj = {};
 
           categoryObj.manual = hashtag.category || false;
           categoryObj.auto = hashtag.categoryAuto || false;
@@ -4317,13 +4343,16 @@ function initTweetParserMessageRxQueueInterval(interval){
 
   clearInterval(tweetParserMessageRxQueueInterval);
 
+  let tweetParserMessage = {};
+  let tweetObj = {};
+
   tweetParserMessageRxQueueInterval = setInterval(function tweetParserMessageRxQueueDequeue() {
 
     if ((tweetParserMessageRxQueue.length > 0) && tweetParserMessageRxQueueReady) {
 
       tweetParserMessageRxQueueReady = false;
 
-      const tweetParserMessage = tweetParserMessageRxQueue.shift();
+      tweetParserMessage = tweetParserMessageRxQueue.shift();
 
       debug(chalkLog("TWEET PARSER RX MESSAGE"
         + " | OP: " + tweetParserMessage.op
@@ -4332,7 +4361,7 @@ function initTweetParserMessageRxQueueInterval(interval){
 
       if (tweetParserMessage.op === "parsedTweet") {
 
-        const tweetObj = tweetParserMessage.tweetObj;
+        tweetObj = tweetParserMessage.tweetObj;
 
         if (!tweetObj.user) {
           console.log(chalkAlert("parsedTweet -- TW USER UNDEFINED"
@@ -4387,9 +4416,12 @@ const sortedObjectValues = function(params) {
 
     const keys = Object.keys(params.obj);
 
+    let objA = {};
+    let objB = {};
+
     const sortedKeys = keys.sort(function(a,b){
-      const objA = params.obj[a];
-      const objB = params.obj[b];
+      objA = params.obj[a];
+      objB = params.obj[b];
       return objB[params.sortKey] - objA[params.sortKey];
     });
 
@@ -4493,13 +4525,15 @@ function initKeySortInterval(interval){
 
   keySortReady = true;
 
+  let keySortParams;
+
   keySortInterval = setInterval(function(){
 
     if (keySortQueue.length > 0) {
 
       keySortReady = false;
 
-      const keySortParams = keySortQueue.shift();
+      keySortParams = keySortQueue.shift();
 
       keySort(keySortParams, function(err, results){
 
@@ -4793,6 +4827,9 @@ function initRateQinterval(interval){
 
   let updateTimeSeriesCount = 0;
 
+  let paramsSorterOverall = {};
+  let paramsSorter = {};
+
   updateMetricsInterval = setInterval(function updateMetrics () {
 
     statsObj.queues.transmitNodeQueue = transmitNodeQueue.length;
@@ -4882,7 +4919,7 @@ function initRateQinterval(interval){
 
       DEFAULT_NODE_TYPES.forEach(function(nodeType){
 
-        let paramsSorter = {};
+        paramsSorter = {};
         paramsSorter.op = "SORT";
         paramsSorter.nodeType = nodeType;
         paramsSorter.sortKey = metricsRate;
@@ -4910,7 +4947,7 @@ function initRateQinterval(interval){
         });
       });
 
-      let paramsSorterOverall = {};
+      paramsSorterOverall = {};
       paramsSorterOverall.op = "SORT";
       paramsSorterOverall.nodeType = "overall";
       paramsSorterOverall.sortKey = metricsRate;
@@ -4979,12 +5016,6 @@ function loadBestRuntimeNetwork(){
           if (nnObj) { 
             nnObj.matchRate = (nnObj.matchRate !== undefined) ? nnObj.matchRate : 0;
             bestNetworkObj = deepcopy(nnObj);
-
-            // if (childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID] === undefined){
-            //   killChild({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, numKilled){
-            //     initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
-            //   });
-            // }
           }
           else {
             NeuralNetwork.find({}).sort({"matchRate": -1}).limit(1).exec(function(err, nnArray){
@@ -5048,103 +5079,6 @@ function initLoadBestNetworkInterval(interval){
   loadBestNetworkInterval = setInterval(function(){
 
     loadBestRuntimeNetwork();
-
-    // loadFile(bestNetworkFolder, bestRuntimeNetworkFileName, function(err, bRtNnObj){
-
-    //   if (err) {
-    //     console.trace(chalkError("LOAD BEST NETWORK ERROR"
-    //       + " | PATH: " + bestNetworkFolder + "/" + bestRuntimeNetworkFileName 
-    //       + " | ERROR: " + err
-    //     ));
-    //   }
-    //   else if (bRtNnObj) {
-
-    //     bRtNnObj.matchRate = (bRtNnObj.matchRate !== undefined) ? bRtNnObj.matchRate : 0;
-
-    //     console.log(chalkInfo("LOAD BEST NETWORK RUNTIME ID"
-    //       + " | " + bRtNnObj.networkId
-    //       + " | SUCCESS: " + bRtNnObj.successRate.toFixed(2) + "%"
-    //       + " | MATCH: " + bRtNnObj.matchRate.toFixed(2) + "%"
-    //     ));
-
-    //     statsObj.bestNetwork.networkId = bRtNnObj.networkId;
-    //     statsObj.bestNetwork.successRate = bRtNnObj.successRate;
-    //     statsObj.bestNetwork.matchRate = bRtNnObj.matchRate;
-
-    //     let file = bRtNnObj.networkId + ".json";
-
-    //     loadFile(bestNetworkFolder, file, function(err, nnObj){
-
-    //       if (err) {
-    //         console.trace(chalkError("LOAD BEST NETWORK ERROR"
-    //           + " | PATH: " + bestNetworkFolder + "/" + file 
-    //           + " | ERROR" + err
-    //         ));
-    //       }
-    //       else {
-
-    //         if (nnObj) { 
-    //           nnObj.matchRate = (nnObj.matchRate !== undefined) ? nnObj.matchRate : 0;
-    //           bestNetworkObj = deepcopy(nnObj);
-
-    //           if (childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID] === undefined){
-    //             killChild({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, numKilled){
-    //               initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
-    //             });
-    //           }
-    //         }
-    //         else {
-    //           NeuralNetwork.find({}).sort({"matchRate": -1}).limit(1).exec(function(err, nnArray){
-    //             if (err){
-    //               console.log(chalkError("*** NEURAL NETWORK FIND ERROR: " + err));
-    //             }
-    //             else if (nnArray === 0){
-    //               console.log(chalkError("*** NEURAL NETWORK NOT FOUND"));
-    //             }
-    //             else {
-    //               bestNetworkObj = nnArray[0];
-    //               if (bestNetworkObj.matchRate === undefined) { bestNetworkObj.matchRate = 0; }
-    //               if (bestNetworkObj.overallMatchRate === undefined) { bestNetworkObj.overallMatchRate = 0; }
-    //               console.log(chalk.blue("+++ BEST NEURAL NETWORK LOADED FROM DB"
-    //                 + " | " + bestNetworkObj.networkId
-    //                 + " | SR: " + bestNetworkObj.successRate.toFixed(2) + "%"
-    //                 + " | MR: " + bestNetworkObj.matchRate.toFixed(2) + "%"
-    //                 + " | OAMR: " + bestNetworkObj.overallMatchRate.toFixed(2) + "%"
-    //               ));
-    //             }
-    //           });
-    //         }
-
-    //         if (bestNetworkObj && (tweetParser !== undefined) && (previousBestNetworkId !== bestNetworkObj.networkId)) {
-
-    //           if (bestNetworkObj) { previousBestNetworkId = bestNetworkObj.networkId; }
-
-    //           console.log(chalk.blue("NEW BEST NETWORK"
-    //             + " | " + nnObj.networkId
-    //             + " | " + nnObj.successRate.toFixed(2)
-    //             + " | " + nnObj.matchRate.toFixed(2)
-    //             // + "\n" + jsonPrint(nnObj)
-    //           ));
-
-    //           statsObj.bestNetwork.networkId = nnObj.networkId;
-    //           statsObj.bestNetwork.successRate = nnObj.successRate;
-    //           statsObj.bestNetwork.matchRate = nnObj.matchRate;
-
-    //           childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({ op: "NETWORK", networkObj: bestNetworkObj }, function twpNetwork(err){
-    //             if (err) {
-    //               console.error(chalkError("*** TWEET PARSER SEND NETWORK ERROR"
-    //                 + " | " + err
-    //               ));
-    //             }
-    //           });
-    //         }
-
-    //       }
-
-    //     });
-    //   }
-
-    // });
   
   }, interval);
 }

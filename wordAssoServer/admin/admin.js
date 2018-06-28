@@ -726,8 +726,17 @@ function setTestMode(inputTestMode) {
 function createServerTable(){
   //create Tabulator on DOM element with id "example-table"
   $("#servers").tabulator({
-      height:200, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
+      height:240, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
       layout:"fitData", //fit columns to width of table (optional)
+      rowFormatter:function(row){
+          //row - row component
+
+          var data = row.getData();
+
+          if(data.status == "DISCONNECTED"){
+              row.getElement().css({"color":"red"});
+          }
+      },      
       columns:[ //Define Table Columns
         {title:"SERVER ID", field:"serverId", align:"left"},
         {title:"TYPE", field:"serverType", align:"left"},

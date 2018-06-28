@@ -926,53 +926,53 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
         }
       );
 
-      let currentServerTableRow = document.getElementById(serverSocketId);
+      // let currentServerTableRow = document.getElementById(serverSocketId);
 
-      if (currentServerTableRow) {
-        if (currentServer.status.toUpperCase() === "DISCONNECTED") {
-          if (adminConfig.hideDisconnectedServers) {
-            currentServerTableRow.parentNode.removeChild(currentServerTableRow);
-            return cb();
-          }
-          else {
-            currentServerTableRow.style.backgroundColor = "red";
-            document.getElementById(serverSocketId + "_nodeId").style.color = "red";
-            document.getElementById(serverSocketId + "_nodeId").style.backgroundColor = "black";
-            document.getElementById(serverSocketId + "_status").style.color = "red";
-            document.getElementById(serverSocketId + "_status").style.backgroundColor = "black";
-          }
-        }
-        else {
-          totalServers += 1;
-        }
-        document.getElementById(serverSocketId + "_nodeId").innerHTML = currentServer.user.nodeId;
-        document.getElementById(serverSocketId + "_type").innerHTML = currentServer.type;
-        document.getElementById(serverSocketId + "_socketId").innerHTML = serverSocketId;
-        document.getElementById(serverSocketId + "_ip").innerHTML = currentServer.ip;
-        document.getElementById(serverSocketId + "_status").innerHTML = currentServer.status.toUpperCase();
-        document.getElementById(serverSocketId + "_timeStamp").innerHTML = moment(currentServer.timeStamp).format(defaultDateTimeFormat);
-        document.getElementById(serverSocketId + "_ago").innerHTML = msToTime(moment().diff(moment(currentServer.timeStamp)));
-        document.getElementById(serverSocketId + "_elapsed").innerHTML = msToTime(currentServer.user.stats.elapsed);
-      }
-      else if (!adminConfig.hideDisconnectedServers || (currentServer.status.toUpperCase() !== "DISCONNECTED")) {
+      // if (currentServerTableRow) {
+      //   if (currentServer.status.toUpperCase() === "DISCONNECTED") {
+      //     if (adminConfig.hideDisconnectedServers) {
+      //       currentServerTableRow.parentNode.removeChild(currentServerTableRow);
+      //       return cb();
+      //     }
+      //     else {
+      //       currentServerTableRow.style.backgroundColor = "red";
+      //       document.getElementById(serverSocketId + "_nodeId").style.color = "red";
+      //       document.getElementById(serverSocketId + "_nodeId").style.backgroundColor = "black";
+      //       document.getElementById(serverSocketId + "_status").style.color = "red";
+      //       document.getElementById(serverSocketId + "_status").style.backgroundColor = "black";
+      //     }
+      //   }
+      //   else {
+      //     totalServers += 1;
+      //   }
+      //   document.getElementById(serverSocketId + "_nodeId").innerHTML = currentServer.user.nodeId;
+      //   document.getElementById(serverSocketId + "_type").innerHTML = currentServer.type;
+      //   document.getElementById(serverSocketId + "_socketId").innerHTML = serverSocketId;
+      //   document.getElementById(serverSocketId + "_ip").innerHTML = currentServer.ip;
+      //   document.getElementById(serverSocketId + "_status").innerHTML = currentServer.status.toUpperCase();
+      //   document.getElementById(serverSocketId + "_timeStamp").innerHTML = moment(currentServer.timeStamp).format(defaultDateTimeFormat);
+      //   document.getElementById(serverSocketId + "_ago").innerHTML = msToTime(moment().diff(moment(currentServer.timeStamp)));
+      //   document.getElementById(serverSocketId + "_elapsed").innerHTML = msToTime(currentServer.user.stats.elapsed);
+      // }
+      // else if (!adminConfig.hideDisconnectedServers || (currentServer.status.toUpperCase() !== "DISCONNECTED")) {
 
-        totalServers += 1;
+      //   totalServers += 1;
 
-        tableCreateRow(
-          serverTableBody, 
-          {id: serverSocketId}, 
-          [
-            { id: serverSocketId + "_nodeId", text: currentServer.user.nodeId }, 
-            { id: serverSocketId + "_type", text: currentServer.type }, 
-            { id: serverSocketId + "_socketId", text: serverSocketId }, 
-            { id: serverSocketId + "_ip", text: currentServer.ip }, 
-            { id: serverSocketId + "_status", text: currentServer.status.toUpperCase() }, 
-            { id: serverSocketId + "_timeStamp", text: moment(currentServer.timeStamp).format(defaultDateTimeFormat) }, 
-            { id: serverSocketId + "_ago", text: msToTime(moment().diff(moment(currentServer.timeStamp))) },
-            { id: serverSocketId + "_elapsed", text: msToTime(currentServer.user.stats.elapsed) }
-          ]
-        );
-      }
+      //   tableCreateRow(
+      //     serverTableBody, 
+      //     {id: serverSocketId}, 
+      //     [
+      //       { id: serverSocketId + "_nodeId", text: currentServer.user.nodeId }, 
+      //       { id: serverSocketId + "_type", text: currentServer.type }, 
+      //       { id: serverSocketId + "_socketId", text: serverSocketId }, 
+      //       { id: serverSocketId + "_ip", text: currentServer.ip }, 
+      //       { id: serverSocketId + "_status", text: currentServer.status.toUpperCase() }, 
+      //       { id: serverSocketId + "_timeStamp", text: moment(currentServer.timeStamp).format(defaultDateTimeFormat) }, 
+      //       { id: serverSocketId + "_ago", text: msToTime(moment().diff(moment(currentServer.timeStamp))) },
+      //       { id: serverSocketId + "_elapsed", text: msToTime(currentServer.user.stats.elapsed) }
+      //     ]
+      //   );
+      // }
 
       async.setImmediate(function() { cb(); });
 

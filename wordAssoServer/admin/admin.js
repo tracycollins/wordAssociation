@@ -729,13 +729,21 @@ function createServerTable(){
       height:240, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
       layout:"fitData", //fit columns to width of table (optional)
       rowFormatter:function(row){
-          //row - row component
+        var data = row.getData();
 
-          var data = row.getData();
-
-          if(data.status == "DISCONNECTED"){
-              row.getElement().css({"color":"red"});
-          }
+        switch (data.status) {
+          case "DISCONNECTED":
+            row.getElement().css({"color":"red"});
+          break;
+          case "STATUS":
+            row.getElement().css({"color":"green"});
+          break;
+          case "KEEPALIVE":
+            row.getElement().css({"color":"yellow"});
+          break;
+          default:
+            row.getElement().css({"color":"white"});
+        }
       },      
       columns:[ //Define Table Columns
         {title:"SERVER ID", field:"serverId", align:"left"},

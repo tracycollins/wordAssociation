@@ -862,14 +862,14 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       viewerTableData.push(
         {
           id: viewerSocketId, 
-          viewerId: currentViewer.user.nodeId,
+          viewerId: currentViewer.user.userId,
           viewerType: currentViewer.type,
-          socket: viewerSocketId,
+          socket: currentViewer.socketId,
           ipAddress: currentViewer.ip,
           status: currentViewer.status,
           lastSeen: moment(currentViewer.timeStamp).format(defaultDateTimeFormat),
           ago: msToTime(moment().diff(moment(currentViewer.timeStamp))),
-          upTime: msToTime(currentViewer.user.stats.elapsed)
+          // upTime: msToTime(currentViewer.user.stats.elapsed)
         }
       );
 

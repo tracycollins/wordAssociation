@@ -7,10 +7,6 @@
 
 "use strict";
 
-const DEFAULT_TABLE_TEXT_COLOR = "#CCCCCC";
-const DEFAULT_TABLE_BG_COLOR = "#222222";
-const DEFAULT_TABLE_FONT_SIZE = "1.5em";
-
 var socket = io('/admin');
 
 var memoryAvailable = 0;
@@ -24,9 +20,37 @@ var initializeComplete = false;
 var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 // var defaultTimePeriodFormat = "HH:mm:ss";
 
-var startColor = '#008000';
-var midColor = '#F9CD2B';
-var endColor = '#CC0000';
+var palette = {
+  "black": "#000000",
+  "white": "#FFFFFF",
+  "lightgray": "#819090",
+  "gray": "#708284",
+  "mediumgray": "#536870",
+  "darkgray": "#475B62",
+  "darkblue": "#0A2933",
+  "darkerblue": "#042029",
+  "paleryellow": "#FCF4DC",
+  "paleyellow": "#EAE3CB",
+  "yellow": "#A57706",
+  "orange": "#BD3613",
+  "red": "#D11C24",
+  "pink": "#C61C6F",
+  "purple": "#595AB7",
+  "blue": "#4808FF",
+  "green": "#00E540",
+  "darkergreen": "#008200",
+  "lightgreen":  "#35A296",
+  "yellowgreen": "#738A05"
+};
+
+const DEFAULT_TABLE_TEXT_COLOR = palette.lightgray ;
+const DEFAULT_TABLE_BG_COLOR = palette.darkgray;
+const DEFAULT_TABLE_FONT_SIZE = "1.5em";
+
+
+var startColor = palette.green;
+var midColor = palette.yellow;
+var endColor = palette.red;
 
 var WARN_LIMIT_PERCENT = 80;
 var ALERT_LIMIT_PERCENT = 95;
@@ -129,18 +153,12 @@ function initBars(callback){
 
   // VIEWERS ===============================
 
-  // viewerTableHead = document.getElementById('viewer_table_head');
-  // viewerTableBody = document.getElementById('viewer_table_body');
-
   viewersBarDiv = document.getElementById('viewers-bar');
   viewersBar = new ProgressBar.Line(viewersBarDiv, { duration: 100 });
   viewersBar.animate(0);
   viewersBarText = document.getElementById('viewers-bar-text');
 
   // SERVER ===============================
-
-  // serverTableHead = document.getElementById('server_table_head');
-  // serverTableBody = document.getElementById('server_table_body');
 
   serversBarDiv = document.getElementById('servers-bar');
   serversBar = new ProgressBar.Line(serversBarDiv, { duration: 100 });
@@ -158,12 +176,6 @@ function initBars(callback){
   tweetsPerMinBarText = document.getElementById('delta-tweet-bar-text');
   tweetsPerMinBar = new ProgressBar.Line(tweetsPerMinBarDiv, { duration: 100 });
   tweetsPerMinBar.animate(0);
-
-  // var options = {
-  //   isHeaderRow: true,
-  //   textColor: '#CCCCCC',
-  //   bgColor: '#222222'
-  // };
 
   callback();
 }
@@ -680,11 +692,11 @@ function setTestMode(inputTestMode) {
   };
 
   if (testMode) {
-    document.getElementById("testModeButton").style.color = "red";
-    document.getElementById("testModeButton").style.border = "2px solid red";
+    document.getElementById("testModeButton").style.color = palette.red;
+    document.getElementById("testModeButton").style.border = "2px solid " + palette.red;
   } else {
     document.getElementById("testModeButton").style.color = "white";
-    document.getElementById("testModeButton").style.border = "1px solid gray";
+    document.getElementById("testModeButton").style.border = "1px solid " + palette.gray;
   }
 
   if (!serverConfigUpdateFlag) {
@@ -710,16 +722,16 @@ function createServerTable(){
 
         switch (data.status) {
           case "DISCONNECTED":
-            row.getElement().css({"color":"red"});
+            row.getElement().css({"color": palette.red});
           break;
           case "STATS":
-            row.getElement().css({"color":"green"});
+            row.getElement().css({"color": palette.green });
           break;
           case "KEEPALIVE":
-            row.getElement().css({"color":"lightgray"});
+            row.getElement().css({"color": palette.lightgray });
           break;
           default:
-            row.getElement().css({"color":"gray"});
+            row.getElement().css({"color": palette.gray });
         }
       },      
       columns:[ //Define Table Columns
@@ -745,16 +757,16 @@ function createViewerTable(){
 
         switch (data.status) {
           case "DISCONNECTED":
-            row.getElement().css({"color":"red"});
+            row.getElement().css({"color":palette.red });
           break;
           case "STATS":
-            row.getElement().css({"color":"green"});
+            row.getElement().css({"color": palette.green });
           break;
           case "KEEPALIVE":
-            row.getElement().css({"color":"lightgray"});
+            row.getElement().css({"color": palette.lightgray });
           break;
           default:
-            row.getElement().css({"color":"gray"});
+            row.getElement().css({"color": palette.gray });
         }
       },      
       columns:[ //Define Table Columns
@@ -819,23 +831,9 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   totalViewers = 0;
 
-  // if (heartBeat.viewers) {
-
-  //   if (heartBeat.viewers.length === 0){
-  //     viewerSocketHashMap.forEach(function(viewerObj, viewerSocketId){
-  //       viewerObj.status = "UNKNOWN";
-  //       viewerObj.connected = false;
-  //       viewerObj.deleted = true;
-  //       viewerSocketHashMap.set(viewerSocketId, viewerObj);
-  //     });
-  //   }
-  // }
-
   let viewerTableData = [];
 
   if (heartBeat.viewers) {
-
-    // totalViewers = heartBeat.viewers.length;
 
     if (heartBeat.viewers.length === 0){
       viewerSocketHashMap.forEach(function(viewerObj, viewerSocketId){
@@ -998,8 +996,8 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
     var tdTimeout = heatbeatTable.getElementsByTagName("td");
 
-    tdTimeout[2].style.color = "white";
-    tdTimeout[2].style.backgroundColor = "red";
+    tdTimeout[2].style.color = palette.white;
+    tdTimeout[2].style.backgroundColor = palette.red;
 
   } 
   else if (lastTimeoutHeartBeat) {
@@ -1015,8 +1013,8 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
     var tdLastTimeout = heatbeatTable.getElementsByTagName("td");
 
-    tdLastTimeout[2].style.color = "white";
-    tdLastTimeout[2].style.backgroundColor = '#880000';
+    tdLastTimeout[2].style.color = palette.white;
+    tdLastTimeout[2].style.backgroundColor = palette.red;
   }
 
   tableCreateRow(heatbeatTable, false, ['SERVER TIME', getTimeStamp(heartBeat.serverTime)]);

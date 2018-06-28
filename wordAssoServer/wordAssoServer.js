@@ -2536,8 +2536,6 @@ function initSocketHandler(socketObj) {
     });
   });
 
-
-
   let searchNode;
   let searchNodeHashtag;
   let searchNodeUser;

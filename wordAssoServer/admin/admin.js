@@ -729,14 +729,14 @@ function createServerTable(){
       height:200, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
       layout:"fitColumns", //fit columns to width of table (optional)
       columns:[ //Define Table Columns
-        {title:"SERVER ID", field:"serverId", align:"left", width:80},
+        {title:"SERVER ID", field:"serverId", align:"left", width:140},
         {title:"TYPE", field:"serverType", align:"left", width:80},
-        {title:"SOCKET", field:"socket", align:"left", width:180},
-        {title:"IP", field:"ipAddress", align:"left", width:80},
-        {title:"STATUS", field:"status", align:"left", width:80},
-        {title:"LAST SEEN", field:"lastSeen", align:"left"},
-        {title:"AGO", field:"ago", align:"right", width:80},
-        {title:"UPTIME", field:"upTime", align:"right", width:80}
+        {title:"SOCKET", field:"socket", align:"left", width:200},
+        {title:"IP", field:"ipAddress", align:"left", width:200},
+        {title:"STATUS", field:"status", align:"left", width:140},
+        {title:"LAST SEEN", field:"lastSeen", align:"left", width:240},
+        {title:"AGO", field:"ago", align:"right", width:100},
+        {title:"UPTIME", field:"upTime", align:"right", width:120}
       ]
   });
 

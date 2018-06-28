@@ -911,7 +911,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       serverSocketHashMap.set(serverSocketId, currentServer);
 
       i += 1;
-      
+
       tabledata.push(
         {
           id: i, 
@@ -978,7 +978,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
     }, function(){
 
-      $("#server-test").tabulator("setData", tabledata);
+      $("#servers-test").tabulator("setData", tabledata);
 
       maxServers = Math.max(maxServers, totalServers);
       serverRatio = totalServers / maxServers;
@@ -987,7 +987,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     });
   }
 
-  $("#server-test").tabulator("setData");
+  $("#servers-test").tabulator("setData");
 
   // WORDS =========================
   

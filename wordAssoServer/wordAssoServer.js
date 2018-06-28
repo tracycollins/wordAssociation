@@ -2085,12 +2085,24 @@ function socketRxTweet(tw) {
 
 function follow(params, callback) {
 
+  if (unfollowableUserSet.has(params.user.nodeId)) { 
+
+    console.log(chalkAlert("XXX FOLLOW | @" + params.user.screenName + " | IN UNFOLLOWABLE USER SET"));
+
+    if (callback !== undefined) { 
+      return callback("XXX FOLLOW", null);
+    }
+    else {
+      return;
+    }
+  }
+
   console.log(chalk.blue("+++ FOLLOW | @" + params.user.screenName));
 
   adminNameSpace.emit("FOLLOW", params.user);
   utilNameSpace.emit("FOLLOW", params.user);
 
-  if (callback !== undefined) { callback(); }
+  if (callback !== undefined) { callback(null, null); }
 }
 
 function initUnfollowableUserSet(){
@@ -2494,7 +2506,7 @@ function initSocketHandler(socketObj) {
 
   socket.on("TWITTER_FOLLOW", function twitterFollow(u) {
 
-    console.log(chalkSocket("TWITTER_FOLLOW"
+    console.log(chalkSocket("R< TWITTER_FOLLOW"
       + " | " + getTimeStamp()
       + " | SID: " + socket.id
       + " | UID: " + u.userId
@@ -3393,6 +3405,7 @@ let userFollowable = function(user){
 };
 
 function autoFollowUser(params, callback){
+
   follow({user: params.user}, function(err, results){
     if (err) {
       if (callback !== undefined) { return callback(err, params); }
@@ -3540,8 +3553,13 @@ function initTransmitNodeQueueInterval(interval){
                         viewNameSpace.volatile.emit("node", n);
                       }
                       else {
+
                         viewNameSpace.volatile.emit("node", updatedUser);
-                        autoFollowUser({threeceeUser: "altthreecee02", user: updatedUser});
+
+                        if (!unfollowableUserSet.has(updatedUser.nodeId)) { 
+                          autoFollowUser({ threeceeUser: "altthreecee02", user: updatedUser });
+                        }
+
                       }
                     });
                   }

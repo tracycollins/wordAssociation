@@ -733,7 +733,41 @@ function createServerTable(){
         {title:"UPTIME", field:"upTime", align:"right"}
       ]
   });
+}
 
+function createViewerTable(){
+  //create Tabulator on DOM element with id "example-table"
+  $("#viewers").tabulator({
+      height:240, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
+      layout:"fitData", //fit columns to width of table (optional)
+      rowFormatter:function(row){
+        var data = row.getData();
+
+        switch (data.status) {
+          case "DISCONNECTED":
+            row.getElement().css({"color":"red"});
+          break;
+          case "STATS":
+            row.getElement().css({"color":"green"});
+          break;
+          case "KEEPALIVE":
+            row.getElement().css({"color":"lightgray"});
+          break;
+          default:
+            row.getElement().css({"color":"gray"});
+        }
+      },      
+      columns:[ //Define Table Columns
+        {title:"VIEWER ID", field:"viewerId", align:"left"},
+        {title:"TYPE", field:"viewerType", align:"left"},
+        {title:"SOCKET", field:"socket", align:"left"},
+        {title:"IP", field:"ipAddress", align:"left"},
+        {title:"STATUS", field:"status", align:"left"},
+        {title:"LAST SEEN", field:"lastSeen", align:"left"},
+        {title:"AGO", field:"ago", align:"right"},
+        {title:"UPTIME", field:"upTime", align:"right"}
+      ]
+  });
 }
 
 
@@ -999,6 +1033,7 @@ function initialize(callback){
 
   initBars(function(){
     createServerTable();
+    createViewerTable();
     callback();
   });
 

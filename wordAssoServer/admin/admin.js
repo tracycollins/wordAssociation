@@ -121,11 +121,11 @@ var testMode = false;
 adminConfig.testMode = testMode;
 adminConfig.hideDisconnectedServers = false;
 
-var serverTableHead;
-var serverTableBody;
+// var serverTableHead;
+// var serverTableBody;
 
-var viewerTableHead;
-var viewerTableBody;
+// var viewerTableHead;
+// var viewerTableBody;
 
 var memoryBar;
 var memoryBarDiv;
@@ -149,8 +149,8 @@ function initBars(callback){
 
   // VIEWERS ===============================
 
-  viewerTableHead = document.getElementById('viewer_table_head');
-  viewerTableBody = document.getElementById('viewer_table_body');
+  // viewerTableHead = document.getElementById('viewer_table_head');
+  // viewerTableBody = document.getElementById('viewer_table_body');
 
   viewersBarDiv = document.getElementById('viewers-bar');
   viewersBar = new ProgressBar.Line(viewersBarDiv, { duration: 100 });
@@ -159,8 +159,8 @@ function initBars(callback){
 
   // SERVER ===============================
 
-  serverTableHead = document.getElementById('server_table_head');
-  serverTableBody = document.getElementById('server_table_body');
+  // serverTableHead = document.getElementById('server_table_head');
+  // serverTableBody = document.getElementById('server_table_body');
 
   serversBarDiv = document.getElementById('servers-bar');
   serversBar = new ProgressBar.Line(serversBarDiv, { duration: 100 });
@@ -191,11 +191,11 @@ function initBars(callback){
   //   ['SERVER ID', 'TYPE', 'SOCKET', 'IP', 'STATUS', 'LAST SEEN', 'AGO', 'UPTIME']
   // ); // 2nd arg is headerFlag
 
-  tableCreateRow(
-    viewerTableHead, 
-    options, 
-    ['VIEWER ID', 'TYPE', 'SOCKET', 'IP', 'STATUS', 'LAST SEEN', 'AGO']
-  ); // 2nd arg is headerFlag
+  // tableCreateRow(
+  //   viewerTableHead, 
+  //   options, 
+  //   ['VIEWER ID', 'TYPE', 'SOCKET', 'IP', 'STATUS', 'LAST SEEN', 'AGO']
+  // ); // 2nd arg is headerFlag
 
   callback();
 }

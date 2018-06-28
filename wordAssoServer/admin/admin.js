@@ -725,7 +725,7 @@ function setTestMode(inputTestMode) {
 
 function createServerTable(){
   //create Tabulator on DOM element with id "example-table"
-  $("#servers-test").tabulator({
+  $("#servers").tabulator({
       height:200, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
       layout:"fitColumns", //fit columns to width of table (optional)
       columns:[ //Define Table Columns
@@ -739,9 +739,6 @@ function createServerTable(){
         {title:"UPTIME", field:"upTime", align:"right"}
       ]
   });
-
-
-  // $("#servers-test").tabulator("setData", tabledata);
 
 }
 
@@ -978,7 +975,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
     }, function(){
 
-      $("#servers-test").tabulator("setData", tabledata);
+      $("#servers").tabulator("setData", tabledata);
 
       maxServers = Math.max(maxServers, totalServers);
       serverRatio = totalServers / maxServers;
@@ -987,7 +984,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     });
   }
 
-  $("#servers-test").tabulator("setData");
+  $("#servers").tabulator("setData");
 
   // WORDS =========================
   

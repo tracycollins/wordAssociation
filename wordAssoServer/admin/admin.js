@@ -979,13 +979,14 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
       $("#server-test").tabulator("setData", tabledata);
 
-      
       maxServers = Math.max(maxServers, totalServers);
       serverRatio = totalServers / maxServers;
       serversBarText.innerHTML = totalServers + " SERVERS | " + maxServers + " MAX | " 
         + moment().format(defaultDateTimeFormat);
     });
   }
+
+  $("#server-test").tabulator("setData");
 
   // WORDS =========================
   

@@ -727,16 +727,16 @@ function createServerTable(){
   //create Tabulator on DOM element with id "example-table"
   $("#servers-test").tabulator({
       height:200, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
-      // layout:"fitColumns", //fit columns to width of table (optional)
+      layout:"fitColumns", //fit columns to width of table (optional)
       columns:[ //Define Table Columns
-          {title:"SERVER ID", field:"serverId", align:"left"},
-          {title:"TYPE", field:"serverType", align:"left"},
-          {title:"SOCKET", field:"socket", align:"left"},
-          {title:"IP", field:"ipAddress", align:"left"},
-          {title:"STATUS", field:"status", align:"left"},
-          {title:"LAST SEEN", field:"lastSeen", align:"left"},
-          {title:"AGO", field:"ago", align:"right"},
-          {title:"UPTIME", field:"upTime", align:"right"}
+        {title:"SERVER ID", field:"serverId", align:"left"},
+        {title:"TYPE", field:"serverType", align:"left"},
+        {title:"SOCKET", field:"socket", align:"left"},
+        {title:"IP", field:"ipAddress", align:"left"},
+        {title:"STATUS", field:"status", align:"left"},
+        {title:"LAST SEEN", field:"lastSeen", align:"left"},
+        {title:"AGO", field:"ago", align:"right"},
+        {title:"UPTIME", field:"upTime", align:"right"}
       ]
   });
 
@@ -900,6 +900,8 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       });
     }
 
+    let i=0;
+
     async.eachSeries(heartBeat.servers, function(serverSocketEntry, cb){
 
       const serverSocketId = serverSocketEntry[0];
@@ -908,22 +910,21 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       serverTypeHashMap.set(currentServer.type, currentServer);
       serverSocketHashMap.set(serverSocketId, currentServer);
 
-
-      // serverSocketHashMap.forEach(function(server, socketId){
-        tabledata.push(
-          {
-            id: serverSocketId, 
-            serverId: currentServer.user.nodeId,
-            serverType: currentServer.type,
-            socket: serverSocketId,
-            ipAddress: currentServer.ip,
-            status: currentServer.status,
-            lastSeen: moment(currentServer.timeStamp).format(defaultDateTimeFormat),
-            ago: msToTime(moment().diff(moment(currentServer.timeStamp))),
-            upTime: msToTime(currentServer.user.stats.elapsed)
-          }
-        );
-      // });
+      i += 1;
+      
+      tabledata.push(
+        {
+          id: i, 
+          serverId: currentServer.user.nodeId,
+          serverType: currentServer.type,
+          socket: serverSocketId,
+          ipAddress: currentServer.ip,
+          status: currentServer.status,
+          lastSeen: moment(currentServer.timeStamp).format(defaultDateTimeFormat),
+          ago: msToTime(moment().diff(moment(currentServer.timeStamp))),
+          upTime: msToTime(currentServer.user.stats.elapsed)
+        }
+      );
 
       let currentServerTableRow = document.getElementById(serverSocketId);
 

@@ -185,11 +185,11 @@ function initBars(callback){
     bgColor: '#222222'
   };
 
-  tableCreateRow(
-    serverTableHead, 
-    options, 
-    ['SERVER ID', 'TYPE', 'SOCKET', 'IP', 'STATUS', 'LAST SEEN', 'AGO', 'UPTIME']
-  ); // 2nd arg is headerFlag
+  // tableCreateRow(
+  //   serverTableHead, 
+  //   options, 
+  //   ['SERVER ID', 'TYPE', 'SOCKET', 'IP', 'STATUS', 'LAST SEEN', 'AGO', 'UPTIME']
+  // ); // 2nd arg is headerFlag
 
   tableCreateRow(
     viewerTableHead, 
@@ -482,19 +482,19 @@ socket.on('SERVER_STATS', function(serverObj) {
 
   serverSocketHashMap.set(sObj.socketId, sObj);
 
-  let currentServerTableRow = document.getElementById(serverObj.socketId);
+  // let currentServerTableRow = document.getElementById(serverObj.socketId);
 
-  if (currentServerTableRow) {
+  // if (currentServerTableRow) {
 
-    console.debug("UPDATE TABLE ROW: " + currentServerTableRow.id);
+  //   console.debug("UPDATE TABLE ROW: " + currentServerTableRow.id);
 
-    document.getElementById(serverObj.socketId + "_nodeId").innerHTML = sObj.user.nodeId;
-    document.getElementById(serverObj.socketId + "_type").innerHTML = sObj.type;
-    document.getElementById(serverObj.socketId + "_socketId").innerHTML = sObj.socketId;
-    document.getElementById(serverObj.socketId + "_status").innerHTML = sObj.status;
-    document.getElementById(serverObj.socketId + "_timeStamp").innerHTML = moment(sObj.timeStamp).format(defaultDateTimeFormat);
-    document.getElementById(serverObj.socketId + "_ago").innerHTML = msToTime(moment().diff(moment(sObj.timeStamp)));
-  }
+  //   document.getElementById(serverObj.socketId + "_nodeId").innerHTML = sObj.user.nodeId;
+  //   document.getElementById(serverObj.socketId + "_type").innerHTML = sObj.type;
+  //   document.getElementById(serverObj.socketId + "_socketId").innerHTML = sObj.socketId;
+  //   document.getElementById(serverObj.socketId + "_status").innerHTML = sObj.status;
+  //   document.getElementById(serverObj.socketId + "_timeStamp").innerHTML = moment(sObj.timeStamp).format(defaultDateTimeFormat);
+  //   document.getElementById(serverObj.socketId + "_ago").innerHTML = msToTime(moment().diff(moment(sObj.timeStamp)));
+  // }
 
 });
 

@@ -95,8 +95,8 @@ mainAdminObj.tags.channel = "admin";
 var currentTime = getTimeNow();
 
 var heartBeatTimeoutFlag = false;
-var serverCheckInterval = 1000;
-var maxServerHeartBeatWait = 30000;
+// var serverCheckInterval = 1000;
+// var maxServerHeartBeatWait = 30000;
 
 console.log("ADMIN PAGE");
 
@@ -501,7 +501,6 @@ socket.on('SERVER_ERROR', function(serverObj) {
     document.getElementById(serverObj.socketId + "_timeStamp").innerHTML = moment(sObj.timeStamp).format(defaultDateTimeFormat);
     document.getElementById(serverObj.socketId + "_ago").innerHTML = msToTime(moment().diff(moment(sObj.timeStamp)));
   }
-
 });
 
 socket.on('SERVER_DISCONNECT', function(serverObj) {
@@ -522,19 +521,25 @@ socket.on('SERVER_DISCONNECT', function(serverObj) {
 
   serverSocketHashMap.set(sObj.socketId, sObj);
 
-  let currentServerTableRow = document.getElementById(serverObj.socketId);
+});
 
-  if (currentServerTableRow) {
+socket.on('VIEWER_DISCONNECT', function(viewerObj) {
 
-    console.debug("UPDATE TABLE ROW: " + currentServerTableRow.id);
+  console.debug("VIEWER_DISCONNECT\n" + jsonPrint(viewerObj));
 
-    document.getElementById(serverObj.socketId + "_nodeId").innerHTML = sObj.user.nodeId;
-    document.getElementById(serverObj.socketId + "_type").innerHTML = sObj.type;
-    document.getElementById(serverObj.socketId + "_socketId").innerHTML = serverObj.socketId;
-    document.getElementById(serverObj.socketId + "_status").innerHTML = sObj.status;
-    document.getElementById(serverObj.socketId + "_timeStamp").innerHTML = moment(sObj.timeStamp).format(defaultDateTimeFormat);
-    document.getElementById(serverObj.socketId + "_ago").innerHTML = msToTime(moment().diff(moment(sObj.timeStamp)));
+  if (!viewerSocketHashMap.has(viewerObj.socketId)) {
+    console.debug("VIEWER_DISCONNECT | VIEWER NOT FOUND IN HM\n" + jsonPrint(viewerObj));
+    return;
   }
+
+  var sObj = viewerSocketHashMap.get(viewerObj.socketId);
+
+  sObj.status = "DISCONNECTED";
+  sObj.timeStamp = viewerObj.timeStamp;
+  sObj.type = viewerObj.type;
+  sObj.user = viewerObj.user;
+
+  viewerSocketHashMap.set(sObj.socketId, sObj);
 
 });
 
@@ -569,12 +574,16 @@ socket.on('SERVER_DELETE', function(serverObj) {
     document.getElementById(serverObj.socketId + "_timeStamp").innerHTML = moment(sObj.timeStamp).format(defaultDateTimeFormat);
     document.getElementById(serverObj.socketId + "_ago").innerHTML = msToTime(moment().diff(moment(sObj.timeStamp)));
   }
-
 });
 
 socket.on('SERVER_ADD', function(serverObj) {
   console.debug("SERVER_ADD\n" + jsonPrint(serverObj));
   serverSocketHashMap.set(serverObj.socketId, serverObj);
+});
+
+socket.on('VIEWER_ADD', function(viewerObj) {
+  console.debug("VIEWER_ADD\n" + jsonPrint(viewerObj));
+  viewerSocketHashMap.set(viewerObj.socketId, viewerObj);
 });
 
 socket.on('KEEPALIVE', function(serverObj) {

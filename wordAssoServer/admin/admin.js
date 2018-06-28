@@ -735,14 +735,14 @@ function createServerTable(){
           case "DISCONNECTED":
             row.getElement().css({"color":"red"});
           break;
-          case "STATUS":
+          case "STATS":
             row.getElement().css({"color":"green"});
           break;
           case "KEEPALIVE":
-            row.getElement().css({"color":"yellow"});
+            row.getElement().css({"color":"lightgray"});
           break;
           default:
-            row.getElement().css({"color":"white"});
+            row.getElement().css({"color":"gray"});
         }
       },      
       columns:[ //Define Table Columns

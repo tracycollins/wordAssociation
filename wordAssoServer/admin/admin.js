@@ -976,6 +976,10 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       async.setImmediate(function() { cb(); });
 
     }, function(){
+
+      $("#server-test").tabulator("setData", tabledata);
+
+      
       maxServers = Math.max(maxServers, totalServers);
       serverRatio = totalServers / maxServers;
       serversBarText.innerHTML = totalServers + " SERVERS | " + maxServers + " MAX | " 

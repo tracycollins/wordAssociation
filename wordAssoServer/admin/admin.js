@@ -159,11 +159,11 @@ function initBars(callback){
   tweetsPerMinBar = new ProgressBar.Line(tweetsPerMinBarDiv, { duration: 100 });
   tweetsPerMinBar.animate(0);
 
-  var options = {
-    isHeaderRow: true,
-    textColor: '#CCCCCC',
-    bgColor: '#222222'
-  };
+  // var options = {
+  //   isHeaderRow: true,
+  //   textColor: '#CCCCCC',
+  //   bgColor: '#222222'
+  // };
 
   callback();
 }
@@ -643,15 +643,15 @@ setInterval(function(){
   }
 }, 1000);
 
-var serverCheckTimeout = setInterval(function() {
+// var serverCheckTimeout = setInterval(function() {
 
-  if (Date.now() > (heartBeat.timeStamp + maxServerHeartBeatWait)) {
-    heartBeatTimeoutFlag = true;
-    lastTimeoutHeartBeat = heartBeat;
-    console.error("***** SERVER HEARTBEAT TIMEOUT ***** " + getTimeStamp() + " | LAST SEEN: " + getTimeStamp(heartBeat.timeStamp) + msToTime(Date.now() - heartBeat.timeStamp) + " AGO");
-  }
-  if (heartBeat !== undefined) { updateServerHeartbeat(heartBeat, heartBeatTimeoutFlag, lastTimeoutHeartBeat); }
-}, serverCheckInterval);
+//   if (Date.now() > (heartBeat.timeStamp + maxServerHeartBeatWait)) {
+//     heartBeatTimeoutFlag = true;
+//     lastTimeoutHeartBeat = heartBeat;
+//     console.error("***** SERVER HEARTBEAT TIMEOUT ***** " + getTimeStamp() + " | LAST SEEN: " + getTimeStamp(heartBeat.timeStamp) + msToTime(Date.now() - heartBeat.timeStamp) + " AGO");
+//   }
+//   if (heartBeat !== undefined) { updateServerHeartbeat(heartBeat, heartBeatTimeoutFlag, lastTimeoutHeartBeat); }
+// }, serverCheckInterval);
 
 function setTestMode(inputTestMode) {
 
@@ -775,7 +775,23 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   totalViewers = 0;
 
+  // if (heartBeat.viewers) {
+
+  //   if (heartBeat.viewers.length === 0){
+  //     viewerSocketHashMap.forEach(function(viewerObj, viewerSocketId){
+  //       viewerObj.status = "UNKNOWN";
+  //       viewerObj.connected = false;
+  //       viewerObj.deleted = true;
+  //       viewerSocketHashMap.set(viewerSocketId, viewerObj);
+  //     });
+  //   }
+  // }
+
+  let viewerTableData = [];
+
   if (heartBeat.viewers) {
+
+    // totalViewers = heartBeat.viewers.length;
 
     if (heartBeat.viewers.length === 0){
       viewerSocketHashMap.forEach(function(viewerObj, viewerSocketId){
@@ -785,7 +801,48 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
         viewerSocketHashMap.set(viewerSocketId, viewerObj);
       });
     }
+
+    let i=0;
+
+    async.eachSeries(heartBeat.viewers, function(viewerSocketEntry, cb){
+
+      const viewerSocketId = viewerSocketEntry[0];
+      const currentViewer = viewerSocketEntry[1];
+
+      viewerTypeHashMap.set(currentViewer.type, currentViewer);
+      viewerSocketHashMap.set(viewerSocketId, currentViewer);
+
+      totalViewers += 1;
+      i += 1;
+
+      viewerTableData.push(
+        {
+          id: viewerSocketId, 
+          viewerId: currentViewer.user.nodeId,
+          viewerType: currentViewer.type,
+          socket: viewerSocketId,
+          ipAddress: currentViewer.ip,
+          status: currentViewer.status,
+          lastSeen: moment(currentViewer.timeStamp).format(defaultDateTimeFormat),
+          ago: msToTime(moment().diff(moment(currentViewer.timeStamp))),
+          upTime: msToTime(currentViewer.user.stats.elapsed)
+        }
+      );
+
+      async.setImmediate(function() { cb(); });
+
+    }, function(){
+
+      $("#viewers").tabulator("setData", viewerTableData);
+
+      maxViewers = Math.max(maxViewers, totalViewers);
+      viewerRatio = totalViewers / maxViewers;
+      viewersBarText.innerHTML = totalViewers + " VIEWERS | " + maxViewers + " MAX | " 
+        + moment().format(defaultDateTimeFormat);
+    });
   }
+
+  $("#viewers").tabulator("setData");
 
   // SERVERS =========================
 
@@ -805,7 +862,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   if (heartBeat.servers) {
 
-    totalServers = heartBeat.servers.length;
+    // totalServers = heartBeat.servers.length;
 
     if (heartBeat.servers.length === 0){
       serverSocketHashMap.forEach(function(serverObj, serverSocketId){
@@ -826,6 +883,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       serverTypeHashMap.set(currentServer.type, currentServer);
       serverSocketHashMap.set(serverSocketId, currentServer);
 
+      totalServers += 1;
       i += 1;
 
       serverTableData.push(

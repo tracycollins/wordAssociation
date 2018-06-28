@@ -801,72 +801,72 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       });
     }
 
-    async.eachSeries(heartBeat.viewers, function(viewerSocketEntry, cb){
+    // async.eachSeries(heartBeat.viewers, function(viewerSocketEntry, cb){
 
-      const viewerSocketId = viewerSocketEntry[0];
-      let currentViewer = viewerSocketEntry[1];
+    //   const viewerSocketId = viewerSocketEntry[0];
+    //   let currentViewer = viewerSocketEntry[1];
 
-      if (currentViewer.status === undefined) { currentViewer.status = "UNKNOWN"; }
+    //   if (currentViewer.status === undefined) { currentViewer.status = "UNKNOWN"; }
 
-      viewerTypeHashMap.set(currentViewer.type, currentViewer);
-      viewerSocketHashMap.set(viewerSocketId, currentViewer);
+    //   viewerTypeHashMap.set(currentViewer.type, currentViewer);
+    //   viewerSocketHashMap.set(viewerSocketId, currentViewer);
 
-      let currentViewerTableRow = document.getElementById(viewerSocketId);
+    //   let currentViewerTableRow = document.getElementById(viewerSocketId);
 
-      if (currentViewerTableRow) {
-        if (currentViewer.status.toUpperCase() === "DISCONNECTED") {
-          if (adminConfig.hideDisconnectedViewers) {
-            currentViewerTableRow.parentNode.removeChild(currentViewerTableRow);
-            return cb();
-          }
-          else {
-            currentViewerTableRow.style.backgroundColor = "red";
-            document.getElementById(viewerSocketId + "_nodeId").style.color = "red";
-            document.getElementById(viewerSocketId + "_nodeId").style.backgroundColor = "black";
-            document.getElementById(viewerSocketId + "_status").style.color = "red";
-            document.getElementById(viewerSocketId + "_status").style.backgroundColor = "black";
-          }
-        }
-        else {
-          totalViewers += 1;
-        }
-        document.getElementById(viewerSocketId + "_nodeId").innerHTML = currentViewer.user.nodeId;
-        document.getElementById(viewerSocketId + "_type").innerHTML = currentViewer.type;
-        document.getElementById(viewerSocketId + "_socketId").innerHTML = viewerSocketId;
-        document.getElementById(viewerSocketId + "_ip").innerHTML = currentViewer.ip;
-        document.getElementById(viewerSocketId + "_status").innerHTML = currentViewer.status.toUpperCase();
-        document.getElementById(viewerSocketId + "_timeStamp").innerHTML = moment(currentViewer.timeStamp).format(defaultDateTimeFormat);
-        document.getElementById(viewerSocketId + "_ago").innerHTML = msToTime(moment().diff(moment(currentViewer.timeStamp)));
-        // document.getElementById(viewerSocketId + "_elapsed").innerHTML = msToTime(currentViewer.user.stats.elapsed);
-      }
-      else if (!adminConfig.hideDisconnectedViewers || (currentViewer.status.toUpperCase() !== "DISCONNECTED")) {
+    //   if (currentViewerTableRow) {
+    //     if (currentViewer.status.toUpperCase() === "DISCONNECTED") {
+    //       if (adminConfig.hideDisconnectedViewers) {
+    //         currentViewerTableRow.parentNode.removeChild(currentViewerTableRow);
+    //         return cb();
+    //       }
+    //       else {
+    //         currentViewerTableRow.style.backgroundColor = "red";
+    //         document.getElementById(viewerSocketId + "_nodeId").style.color = "red";
+    //         document.getElementById(viewerSocketId + "_nodeId").style.backgroundColor = "black";
+    //         document.getElementById(viewerSocketId + "_status").style.color = "red";
+    //         document.getElementById(viewerSocketId + "_status").style.backgroundColor = "black";
+    //       }
+    //     }
+    //     else {
+    //       totalViewers += 1;
+    //     }
+    //     document.getElementById(viewerSocketId + "_nodeId").innerHTML = currentViewer.user.nodeId;
+    //     document.getElementById(viewerSocketId + "_type").innerHTML = currentViewer.type;
+    //     document.getElementById(viewerSocketId + "_socketId").innerHTML = viewerSocketId;
+    //     document.getElementById(viewerSocketId + "_ip").innerHTML = currentViewer.ip;
+    //     document.getElementById(viewerSocketId + "_status").innerHTML = currentViewer.status.toUpperCase();
+    //     document.getElementById(viewerSocketId + "_timeStamp").innerHTML = moment(currentViewer.timeStamp).format(defaultDateTimeFormat);
+    //     document.getElementById(viewerSocketId + "_ago").innerHTML = msToTime(moment().diff(moment(currentViewer.timeStamp)));
+    //     // document.getElementById(viewerSocketId + "_elapsed").innerHTML = msToTime(currentViewer.user.stats.elapsed);
+    //   }
+    //   else if (!adminConfig.hideDisconnectedViewers || (currentViewer.status.toUpperCase() !== "DISCONNECTED")) {
 
-        totalViewers += 1;
+    //     totalViewers += 1;
 
-        tableCreateRow(
-          viewerTableBody, 
-          {id: viewerSocketId}, 
-          [
-            { id: viewerSocketId + "_nodeId", text: currentViewer.user.nodeId }, 
-            { id: viewerSocketId + "_type", text: currentViewer.type }, 
-            { id: viewerSocketId + "_socketId", text: viewerSocketId }, 
-            { id: viewerSocketId + "_ip", text: currentViewer.ip }, 
-            { id: viewerSocketId + "_status", text: currentViewer.status.toUpperCase() }, 
-            { id: viewerSocketId + "_timeStamp", text: moment(currentViewer.timeStamp).format(defaultDateTimeFormat) }, 
-            { id: viewerSocketId + "_ago", text: msToTime(moment().diff(moment(currentViewer.timeStamp))) },
-            // { id: viewerSocketId + "_elapsed", text: msToTime(currentViewer.user.stats.elapsed) }
-          ]
-        );
-      }
+    //     tableCreateRow(
+    //       viewerTableBody, 
+    //       {id: viewerSocketId}, 
+    //       [
+    //         { id: viewerSocketId + "_nodeId", text: currentViewer.user.nodeId }, 
+    //         { id: viewerSocketId + "_type", text: currentViewer.type }, 
+    //         { id: viewerSocketId + "_socketId", text: viewerSocketId }, 
+    //         { id: viewerSocketId + "_ip", text: currentViewer.ip }, 
+    //         { id: viewerSocketId + "_status", text: currentViewer.status.toUpperCase() }, 
+    //         { id: viewerSocketId + "_timeStamp", text: moment(currentViewer.timeStamp).format(defaultDateTimeFormat) }, 
+    //         { id: viewerSocketId + "_ago", text: msToTime(moment().diff(moment(currentViewer.timeStamp))) },
+    //         // { id: viewerSocketId + "_elapsed", text: msToTime(currentViewer.user.stats.elapsed) }
+    //       ]
+    //     );
+    //   }
 
-      async.setImmediate(function() { cb(); });
+    //   async.setImmediate(function() { cb(); });
 
-    }, function(){
-      maxViewers = Math.max(maxViewers, totalViewers);
-      viewerRatio = totalViewers / maxViewers;
-      viewersBarText.innerHTML = totalViewers + " VIEWERS | " + maxViewers + " MAX | " 
-        + moment().format(defaultDateTimeFormat);
-    });
+    // }, function(){
+    //   maxViewers = Math.max(maxViewers, totalViewers);
+    //   viewerRatio = totalViewers / maxViewers;
+    //   viewersBarText.innerHTML = totalViewers + " VIEWERS | " + maxViewers + " MAX | " 
+    //     + moment().format(defaultDateTimeFormat);
+    // });
   }
 
 

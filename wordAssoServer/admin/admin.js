@@ -909,7 +909,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       serverSocketHashMap.set(serverSocketId, currentServer);
 
 
-      serverSocketHashMap.forEach(function(server, socketId){
+      // serverSocketHashMap.forEach(function(server, socketId){
         tabledata.push(
           {
             id: serverSocketId, 
@@ -923,7 +923,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
             upTime: msToTime(currentServer.user.stats.elapsed)
           }
         );
-      });
+      // });
 
       let currentServerTableRow = document.getElementById(serverSocketId);
 
@@ -1048,7 +1048,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   tableCreateRow(heatbeatTable, false, ['APP START TIME', getTimeStamp(heartBeat.startTime)]);
   tableCreateRow(heatbeatTable, false, ['APP RUNTIME', msToTime(heartBeat.runTime)]);
 
-  $("#server-test").tabulator("setData", tabledata);
 
 }
 

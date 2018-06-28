@@ -1,6 +1,4 @@
 /*jslint node: true */
-
-
 /* jshint undef: true, unused: true */
 /* globals store, $, window, twttr, Element, document, async, moment */
 

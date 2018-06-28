@@ -95,8 +95,8 @@ mainAdminObj.tags.channel = "admin";
 var currentTime = getTimeNow();
 
 var heartBeatTimeoutFlag = false;
-// var serverCheckInterval = 1000;
-// var maxServerHeartBeatWait = 30000;
+var serverCheckInterval = 1000;
+var maxServerHeartBeatWait = 30000;
 
 console.log("ADMIN PAGE");
 
@@ -652,15 +652,15 @@ setInterval(function(){
   }
 }, 1000);
 
-// var serverCheckTimeout = setInterval(function() {
+var serverCheckTimeout = setInterval(function() {
 
-//   if (Date.now() > (heartBeat.timeStamp + maxServerHeartBeatWait)) {
-//     heartBeatTimeoutFlag = true;
-//     lastTimeoutHeartBeat = heartBeat;
-//     console.error("***** SERVER HEARTBEAT TIMEOUT ***** " + getTimeStamp() + " | LAST SEEN: " + getTimeStamp(heartBeat.timeStamp) + msToTime(Date.now() - heartBeat.timeStamp) + " AGO");
-//   }
-//   if (heartBeat !== undefined) { updateServerHeartbeat(heartBeat, heartBeatTimeoutFlag, lastTimeoutHeartBeat); }
-// }, serverCheckInterval);
+  if (Date.now() > (heartBeat.timeStamp + maxServerHeartBeatWait)) {
+    heartBeatTimeoutFlag = true;
+    lastTimeoutHeartBeat = heartBeat;
+    console.error("***** SERVER HEARTBEAT TIMEOUT ***** " + getTimeStamp() + " | LAST SEEN: " + getTimeStamp(heartBeat.timeStamp) + msToTime(Date.now() - heartBeat.timeStamp) + " AGO");
+  }
+  if (heartBeat !== undefined) { updateServerHeartbeat(heartBeat, heartBeatTimeoutFlag, lastTimeoutHeartBeat); }
+}, serverCheckInterval);
 
 function setTestMode(inputTestMode) {
 
@@ -744,6 +744,7 @@ let maxServers = 0;
 let viewerRatio = 0;
 let totalViewers = 0;
 let maxViewers = 0;
+
 
 function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 

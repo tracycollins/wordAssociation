@@ -33,14 +33,6 @@ var ALERT_LIMIT_PERCENT = 95;
 
 var ONE_MB = 1024 * 1024;
 var ONE_GB = ONE_MB * 1024;
-// var TIMELINE_WIDTH = 600;
-// var TIMELINE_HEIGHT = 250;
-// var MAX_TIMELINE = 600;
-
-// var tpmData =[];
-// var wpmData =[];
-// var trpmData =[];
-// var tLimitData = [];
 
 requirejs(
   ["https://d3js.org/d3.v5.min.js"], 
@@ -57,8 +49,6 @@ requirejs(
     console.log(error.message);
   }
 );
-
-// var heartbeatElement;
 
 var serverTypeHashMap = new HashMap();
 var serverSocketHashMap = new HashMap();
@@ -83,10 +73,6 @@ function getTimeNow() {
   return d.getTime();
 }
 
-// function getMillis() {
-//   var d = new Date();
-//   return d.getMilliseconds();
-// }
 
 var USER_ID = 'ADMIN_' + moment().valueOf();
 var SCREEN_NAME = USER_ID;
@@ -120,12 +106,6 @@ var testMode = false;
 
 adminConfig.testMode = testMode;
 adminConfig.hideDisconnectedServers = false;
-
-// var serverTableHead;
-// var serverTableBody;
-
-// var viewerTableHead;
-// var viewerTableBody;
 
 var memoryBar;
 var memoryBarDiv;
@@ -184,18 +164,6 @@ function initBars(callback){
     textColor: '#CCCCCC',
     bgColor: '#222222'
   };
-
-  // tableCreateRow(
-  //   serverTableHead, 
-  //   options, 
-  //   ['SERVER ID', 'TYPE', 'SOCKET', 'IP', 'STATUS', 'LAST SEEN', 'AGO', 'UPTIME']
-  // ); // 2nd arg is headerFlag
-
-  // tableCreateRow(
-  //   viewerTableHead, 
-  //   options, 
-  //   ['VIEWER ID', 'TYPE', 'SOCKET', 'IP', 'STATUS', 'LAST SEEN', 'AGO']
-  // ); // 2nd arg is headerFlag
 
   callback();
 }
@@ -817,75 +785,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
         viewerSocketHashMap.set(viewerSocketId, viewerObj);
       });
     }
-
-    // async.eachSeries(heartBeat.viewers, function(viewerSocketEntry, cb){
-
-    //   const viewerSocketId = viewerSocketEntry[0];
-    //   let currentViewer = viewerSocketEntry[1];
-
-    //   if (currentViewer.status === undefined) { currentViewer.status = "UNKNOWN"; }
-
-    //   viewerTypeHashMap.set(currentViewer.type, currentViewer);
-    //   viewerSocketHashMap.set(viewerSocketId, currentViewer);
-
-    //   let currentViewerTableRow = document.getElementById(viewerSocketId);
-
-    //   if (currentViewerTableRow) {
-    //     if (currentViewer.status.toUpperCase() === "DISCONNECTED") {
-    //       if (adminConfig.hideDisconnectedViewers) {
-    //         currentViewerTableRow.parentNode.removeChild(currentViewerTableRow);
-    //         return cb();
-    //       }
-    //       else {
-    //         currentViewerTableRow.style.backgroundColor = "red";
-    //         document.getElementById(viewerSocketId + "_nodeId").style.color = "red";
-    //         document.getElementById(viewerSocketId + "_nodeId").style.backgroundColor = "black";
-    //         document.getElementById(viewerSocketId + "_status").style.color = "red";
-    //         document.getElementById(viewerSocketId + "_status").style.backgroundColor = "black";
-    //       }
-    //     }
-    //     else {
-    //       totalViewers += 1;
-    //     }
-    //     document.getElementById(viewerSocketId + "_nodeId").innerHTML = currentViewer.user.nodeId;
-    //     document.getElementById(viewerSocketId + "_type").innerHTML = currentViewer.type;
-    //     document.getElementById(viewerSocketId + "_socketId").innerHTML = viewerSocketId;
-    //     document.getElementById(viewerSocketId + "_ip").innerHTML = currentViewer.ip;
-    //     document.getElementById(viewerSocketId + "_status").innerHTML = currentViewer.status.toUpperCase();
-    //     document.getElementById(viewerSocketId + "_timeStamp").innerHTML = moment(currentViewer.timeStamp).format(defaultDateTimeFormat);
-    //     document.getElementById(viewerSocketId + "_ago").innerHTML = msToTime(moment().diff(moment(currentViewer.timeStamp)));
-    //     // document.getElementById(viewerSocketId + "_elapsed").innerHTML = msToTime(currentViewer.user.stats.elapsed);
-    //   }
-    //   else if (!adminConfig.hideDisconnectedViewers || (currentViewer.status.toUpperCase() !== "DISCONNECTED")) {
-
-    //     totalViewers += 1;
-
-    //     tableCreateRow(
-    //       viewerTableBody, 
-    //       {id: viewerSocketId}, 
-    //       [
-    //         { id: viewerSocketId + "_nodeId", text: currentViewer.user.nodeId }, 
-    //         { id: viewerSocketId + "_type", text: currentViewer.type }, 
-    //         { id: viewerSocketId + "_socketId", text: viewerSocketId }, 
-    //         { id: viewerSocketId + "_ip", text: currentViewer.ip }, 
-    //         { id: viewerSocketId + "_status", text: currentViewer.status.toUpperCase() }, 
-    //         { id: viewerSocketId + "_timeStamp", text: moment(currentViewer.timeStamp).format(defaultDateTimeFormat) }, 
-    //         { id: viewerSocketId + "_ago", text: msToTime(moment().diff(moment(currentViewer.timeStamp))) },
-    //         // { id: viewerSocketId + "_elapsed", text: msToTime(currentViewer.user.stats.elapsed) }
-    //       ]
-    //     );
-    //   }
-
-    //   async.setImmediate(function() { cb(); });
-
-    // }, function(){
-    //   maxViewers = Math.max(maxViewers, totalViewers);
-    //   viewerRatio = totalViewers / maxViewers;
-    //   viewersBarText.innerHTML = totalViewers + " VIEWERS | " + maxViewers + " MAX | " 
-    //     + moment().format(defaultDateTimeFormat);
-    // });
   }
-
 
   // SERVERS =========================
 
@@ -901,9 +801,11 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   totalServers = 0;
 
-  let tabledata = [];
+  let serverTableData = [];
 
   if (heartBeat.servers) {
+
+    totalServers = heartBeat.servers.length;
 
     if (heartBeat.servers.length === 0){
       serverSocketHashMap.forEach(function(serverObj, serverSocketId){
@@ -926,7 +828,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
       i += 1;
 
-      tabledata.push(
+      serverTableData.push(
         {
           id: serverSocketId, 
           serverId: currentServer.user.nodeId,
@@ -940,59 +842,11 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
         }
       );
 
-      // let currentServerTableRow = document.getElementById(serverSocketId);
-
-      // if (currentServerTableRow) {
-      //   if (currentServer.status.toUpperCase() === "DISCONNECTED") {
-      //     if (adminConfig.hideDisconnectedServers) {
-      //       currentServerTableRow.parentNode.removeChild(currentServerTableRow);
-      //       return cb();
-      //     }
-      //     else {
-      //       currentServerTableRow.style.backgroundColor = "red";
-      //       document.getElementById(serverSocketId + "_nodeId").style.color = "red";
-      //       document.getElementById(serverSocketId + "_nodeId").style.backgroundColor = "black";
-      //       document.getElementById(serverSocketId + "_status").style.color = "red";
-      //       document.getElementById(serverSocketId + "_status").style.backgroundColor = "black";
-      //     }
-      //   }
-      //   else {
-      //     totalServers += 1;
-      //   }
-      //   document.getElementById(serverSocketId + "_nodeId").innerHTML = currentServer.user.nodeId;
-      //   document.getElementById(serverSocketId + "_type").innerHTML = currentServer.type;
-      //   document.getElementById(serverSocketId + "_socketId").innerHTML = serverSocketId;
-      //   document.getElementById(serverSocketId + "_ip").innerHTML = currentServer.ip;
-      //   document.getElementById(serverSocketId + "_status").innerHTML = currentServer.status.toUpperCase();
-      //   document.getElementById(serverSocketId + "_timeStamp").innerHTML = moment(currentServer.timeStamp).format(defaultDateTimeFormat);
-      //   document.getElementById(serverSocketId + "_ago").innerHTML = msToTime(moment().diff(moment(currentServer.timeStamp)));
-      //   document.getElementById(serverSocketId + "_elapsed").innerHTML = msToTime(currentServer.user.stats.elapsed);
-      // }
-      // else if (!adminConfig.hideDisconnectedServers || (currentServer.status.toUpperCase() !== "DISCONNECTED")) {
-
-      //   totalServers += 1;
-
-      //   tableCreateRow(
-      //     serverTableBody, 
-      //     {id: serverSocketId}, 
-      //     [
-      //       { id: serverSocketId + "_nodeId", text: currentServer.user.nodeId }, 
-      //       { id: serverSocketId + "_type", text: currentServer.type }, 
-      //       { id: serverSocketId + "_socketId", text: serverSocketId }, 
-      //       { id: serverSocketId + "_ip", text: currentServer.ip }, 
-      //       { id: serverSocketId + "_status", text: currentServer.status.toUpperCase() }, 
-      //       { id: serverSocketId + "_timeStamp", text: moment(currentServer.timeStamp).format(defaultDateTimeFormat) }, 
-      //       { id: serverSocketId + "_ago", text: msToTime(moment().diff(moment(currentServer.timeStamp))) },
-      //       { id: serverSocketId + "_elapsed", text: msToTime(currentServer.user.stats.elapsed) }
-      //     ]
-      //   );
-      // }
-
       async.setImmediate(function() { cb(); });
 
     }, function(){
 
-      $("#servers").tabulator("setData", tabledata);
+      $("#servers").tabulator("setData", serverTableData);
 
       maxServers = Math.max(maxServers, totalServers);
       serverRatio = totalServers / maxServers;

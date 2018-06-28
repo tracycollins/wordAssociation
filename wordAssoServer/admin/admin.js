@@ -790,7 +790,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   totalViewers = 0;
 
-  if (heartBeat.viewers && viewerTableBody) {
+  if (heartBeat.viewers) {
 
     if (heartBeat.viewers.length === 0){
       viewerSocketHashMap.forEach(function(viewerObj, viewerSocketId){
@@ -886,7 +886,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   let tabledata = [];
 
-  if (heartBeat.servers && serverTableBody) {
+  if (heartBeat.servers) {
 
     if (heartBeat.servers.length === 0){
       serverSocketHashMap.forEach(function(serverObj, serverSocketId){

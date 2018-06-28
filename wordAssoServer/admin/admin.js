@@ -129,7 +129,8 @@ var adminConfig = {};
 var testMode = false;
 
 adminConfig.testMode = testMode;
-adminConfig.hideDisconnectedServers = false;
+adminConfig.showDisconnectedServers = false;
+adminConfig.showDisconnectedViewers = false;
 
 var memoryBar;
 var memoryBarDiv;
@@ -573,19 +574,6 @@ socket.on('SERVER_DELETE', function(serverObj) {
 
   serverSocketHashMap.set(sObj.socketId, sObj);
 
-  let currentServerTableRow = document.getElementById(serverObj.socketId);
-
-  if (currentServerTableRow) {
-
-    console.debug("UPDATE TABLE ROW: " + currentServerTableRow.id);
-
-    document.getElementById(serverObj.socketId + "_nodeId").innerHTML = sObj.user.nodeId;
-    document.getElementById(serverObj.socketId + "_type").innerHTML = sObj.type;
-    document.getElementById(serverObj.socketId + "_socketId").innerHTML = sObj.socketId;
-    document.getElementById(serverObj.socketId + "_status").innerHTML = sObj.status;
-    document.getElementById(serverObj.socketId + "_timeStamp").innerHTML = moment(sObj.timeStamp).format(defaultDateTimeFormat);
-    document.getElementById(serverObj.socketId + "_ago").innerHTML = msToTime(moment().diff(moment(sObj.timeStamp)));
-  }
 });
 
 socket.on('SERVER_ADD', function(serverObj) {
@@ -607,7 +595,6 @@ socket.on('KEEPALIVE', function(serverObj) {
   else if (serverSocketHashMap.has(serverObj.socketId)){
 
     let sObj = serverSocketHashMap.get(serverObj.socketId);
-    // sObj.status = serverObj.status;
     sObj.timeStamp = serverObj.timeStamp;
     sObj.type = serverObj.type;
     sObj.user = serverObj.user;
@@ -712,73 +699,157 @@ function setTestMode(inputTestMode) {
 //   socket.emit("SOCKET_TEST_MODE", testMode);
 // }
 
+  const toggleButtonEnabledStyle = {
+    border: "2px solid " + palette.green,
+    color: palette.green
+  };
+  
+  const toggleButtonDisabledStyle = {
+    border: "2px solid " + palette.lightgray,
+    color: palette.lightgray
+  };
+  
+  var toggleButtonHandler = function (e){
+
+
+    var currentButton = document.getElementById(e.target.id);
+
+    const state = (currentButton.getAttribute("state") === "disabled") ? "enabled" : "disabled";
+
+    currentButton.setAttribute("state", state);
+
+    if (state === "enabled") { 
+      // currentButton.style.color = "green";
+      // currentButton.style.border = "2px solid green";
+      currentButton.style.color = toggleButtonEnabledStyle.color;
+      currentButton.style.border = toggleButtonEnabledStyle.border;
+    }
+    else {
+      currentButton.style.color = toggleButtonDisabledStyle.color;
+      currentButton.style.border = toggleButtonDisabledStyle.border;
+      // currentButton.style.color = "#888888";
+      // currentButton.style.border = "2px solid white";
+    }
+
+    switch (e.target.id) {
+      case "toggleButtonServerDisconnected":
+        adminConfig.showDisconnectedServers = (state === "enabled") ? true : false;
+      break;
+
+      case "toggleButtonViewerDisconnected":
+        adminConfig.showDisconnectedViewers = (state === "enabled") ? true : false;
+      break;
+
+      default:
+        console.error("toggleButtonHandler: UNKNOWN BUTTON ID: " + e.target.id);
+        return;
+    }
+
+    console.warn("TOGGLE BUTTON"
+     + " | ID: " + e.target.id
+     + " | STATE: " + state
+    );
+
+  };
+
 function createServerTable(){
+
+  var serverPanelButtonsDiv = document.getElementById("server_panel_buttons");
+
+  var buttonElement = document.createElement("BUTTON");
+  buttonElement.className = "button";
+  buttonElement.setAttribute("id", "toggleButtonServerDisconnected");
+  buttonElement.setAttribute("mode", "toggle");
+  buttonElement.setAttribute("state", "disabled");
+  buttonElement.addEventListener("click", function(e){ toggleButtonHandler(e); }, false);
+  buttonElement.innerHTML = "SHOW DISCONNECTED";
+  buttonElement.style.color = toggleButtonDisabledStyle.color;
+  buttonElement.style.border = toggleButtonDisabledStyle.border;
+  serverPanelButtonsDiv.appendChild(buttonElement);
+
+
   //create Tabulator on DOM element with id "example-table"
   $("#servers").tabulator({
-      height:240, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
-      layout:"fitData", //fit columns to width of table (optional)
-      rowFormatter:function(row){
-        var data = row.getData();
+    ajaxURL: false,
+    height: 240, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
+    layout: "fitData", //fit columns to width of table (optional)
+    rowFormatter:function(row){
+      var data = row.getData();
 
-        switch (data.status) {
-          case "DISCONNECTED":
-            row.getElement().css({"color": palette.red});
-          break;
-          case "STATS":
-            row.getElement().css({"color": palette.green });
-          break;
-          case "KEEPALIVE":
-            row.getElement().css({"color": palette.lightgray });
-          break;
-          default:
-            row.getElement().css({"color": palette.gray });
-        }
-      },      
-      columns:[ //Define Table Columns
-        {title:"SERVER ID", field:"serverId", align:"left"},
-        {title:"TYPE", field:"serverType", align:"left"},
-        {title:"SOCKET", field:"socket", align:"left"},
-        {title:"IP", field:"ipAddress", align:"left"},
-        {title:"STATUS", field:"status", align:"left"},
-        {title:"LAST SEEN", field:"lastSeen", align:"left"},
-        {title:"AGO", field:"ago", align:"right"},
-        {title:"UPTIME", field:"upTime", align:"right"}
-      ]
+      switch (data.status) {
+        case "DISCONNECTED":
+          row.getElement().css({"color": palette.red});
+        break;
+        case "STATS":
+          row.getElement().css({"color": palette.green });
+        break;
+        case "KEEPALIVE":
+          row.getElement().css({"color": palette.lightgray });
+        break;
+        default:
+          row.getElement().css({"color": palette.gray });
+      }
+    },      
+    columns:[ //Define Table Columns
+      {title:"SERVER ID", field:"serverId", align:"left"},
+      {title:"TYPE", field:"serverType", align:"left"},
+      {title:"SOCKET", field:"socket", align:"left"},
+      {title:"IP", field:"ipAddress", align:"left"},
+      {title:"STATUS", field:"status", align:"left"},
+      {title:"LAST SEEN", field:"lastSeen", align:"left"},
+      {title:"AGO", field:"ago", align:"right"},
+      {title:"UPTIME", field:"upTime", align:"right"}
+    ]
   });
 }
 
 function createViewerTable(){
+
+  var viewerPanelButtonsDiv = document.getElementById("viewer_panel_buttons");
+
+  var buttonElement = document.createElement("BUTTON");
+  buttonElement.className = "button";
+  buttonElement.setAttribute("id", "toggleButtonViewerDisconnected");
+  buttonElement.setAttribute("mode", "toggle");
+  buttonElement.setAttribute("state", "disabled");
+  buttonElement.addEventListener("click", function(e){ toggleButtonHandler(e); }, false);
+  buttonElement.innerHTML = "SHOW DISCONNECTED";
+  buttonElement.style.color = toggleButtonDisabledStyle.color;
+  buttonElement.style.border = toggleButtonDisabledStyle.border;
+  viewerPanelButtonsDiv.appendChild(buttonElement);
+
   //create Tabulator on DOM element with id "example-table"
   $("#viewers").tabulator({
-      height:240, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
-      layout:"fitData", //fit columns to width of table (optional)
-      rowFormatter:function(row){
-        var data = row.getData();
+    ajaxURL: false,
+    height: 240, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
+    layout: "fitData", //fit columns to width of table (optional)
+    rowFormatter:function(row){
+      var data = row.getData();
 
-        switch (data.status) {
-          case "DISCONNECTED":
-            row.getElement().css({"color":palette.red });
-          break;
-          case "STATS":
-            row.getElement().css({"color": palette.green });
-          break;
-          case "KEEPALIVE":
-            row.getElement().css({"color": palette.lightgray });
-          break;
-          default:
-            row.getElement().css({"color": palette.gray });
-        }
-      },      
-      columns:[ //Define Table Columns
-        {title:"VIEWER ID", field:"viewerId", align:"left"},
-        {title:"TYPE", field:"viewerType", align:"left"},
-        {title:"SOCKET", field:"socket", align:"left"},
-        {title:"IP", field:"ipAddress", align:"left"},
-        {title:"STATUS", field:"status", align:"left"},
-        {title:"LAST SEEN", field:"lastSeen", align:"left"},
-        {title:"AGO", field:"ago", align:"right"},
-        {title:"UPTIME", field:"upTime", align:"right"}
-      ]
+      switch (data.status) {
+        case "DISCONNECTED":
+          row.getElement().css({"color":palette.red });
+        break;
+        case "STATS":
+          row.getElement().css({"color": palette.green });
+        break;
+        case "KEEPALIVE":
+          row.getElement().css({"color": palette.lightgray });
+        break;
+        default:
+          row.getElement().css({"color": palette.gray });
+      }
+    },      
+    columns:[ //Define Table Columns
+      {title:"VIEWER ID", field:"viewerId", align:"left"},
+      {title:"TYPE", field:"viewerType", align:"left"},
+      {title:"SOCKET", field:"socket", align:"left"},
+      {title:"IP", field:"ipAddress", align:"left"},
+      {title:"STATUS", field:"status", align:"left"},
+      {title:"LAST SEEN", field:"lastSeen", align:"left"},
+      {title:"AGO", field:"ago", align:"right"},
+      {title:"UPTIME", field:"upTime", align:"right"}
+    ]
   });
 }
 
@@ -857,6 +928,10 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       totalViewers += 1;
       i += 1;
 
+      if (!adminConfig.showDisconnectedViewers && currentViewer.status === "DISCONNECTED") {
+        return async.setImmediate(function() { cb(); });
+      }
+
       viewerTableData.push(
         {
           id: viewerSocketId, 
@@ -884,7 +959,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     });
   }
 
-  $("#viewers").tabulator("setData");
+  // $("#viewers").tabulator("setData", viewerTableData);
 
   // SERVERS =========================
 
@@ -903,8 +978,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   let serverTableData = [];
 
   if (heartBeat.servers) {
-
-    // totalServers = heartBeat.servers.length;
 
     if (heartBeat.servers.length === 0){
       serverSocketHashMap.forEach(function(serverObj, serverSocketId){
@@ -927,6 +1000,10 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
       totalServers += 1;
       i += 1;
+
+      if (!adminConfig.showDisconnectedServers && currentServer.status === "DISCONNECTED") {
+        return async.setImmediate(function() { cb(); });
+      }
 
       serverTableData.push(
         {
@@ -955,7 +1032,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     });
   }
 
-  $("#servers").tabulator("setData");
+  // $("#servers").tabulator("setData", null);
 
   // WORDS =========================
   

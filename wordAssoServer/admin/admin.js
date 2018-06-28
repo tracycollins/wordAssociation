@@ -914,7 +914,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
       tabledata.push(
         {
-          id: i, 
+          id: serverSocketId, 
           serverId: currentServer.user.nodeId,
           serverType: currentServer.type,
           socket: serverSocketId,

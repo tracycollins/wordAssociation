@@ -83,10 +83,10 @@ var viewerIpHashMap = new HashMap();
 var viewerSessionHashMap = new HashMap();
 
 var adminIpHashMap = new HashMap();
-var adminSocketIdHashMap = new HashMap();
+var adminSocketHashMap = new HashMap();
 
 var adminIpHashMapKeys = [];
-var adminSocketIdHashMapKeys = [];
+var adminSocketHashMapKeys = [];
 
 function isObject(obj) {
   return obj === Object(obj);
@@ -259,7 +259,7 @@ function serverClear() {
   heartBeatTimeoutFlag = false;
 
   adminIpHashMap.clear();
-  adminSocketIdHashMap.clear();
+  adminSocketHashMap.clear();
 
   serverTypeHashMap.clear();
   serverSocketHashMap.clear();
@@ -411,9 +411,9 @@ socket.on("ADMIN IP", function(rxIpObj) {
   adminIpHashMapKeys = adminIpHashMap.keys();
   adminIpHashMapKeys.sort();
 
-  adminSocketIdHashMap.set(adminSessionObj.sessionId, adminIpObj);
-  adminSocketIdHashMapKeys = adminSocketIdHashMap.keys();
-  adminSocketIdHashMapKeys.sort();
+  adminSocketHashMap.set(adminSessionObj.sessionId, adminIpObj);
+  adminSocketHashMapKeys = adminSocketHashMap.keys();
+  adminSocketHashMapKeys.sort();
 });
 
 socket.on("VIEWER IP", function(rxIpObj) {
@@ -442,9 +442,9 @@ socket.on("ADMIN_SESSION", function(adminSessionObj) {
 
   adminIpHashMap.set(adminIpObj.ip, adminIpObj);
 
-  adminSocketIdHashMap.set(adminSessionObj.sessionId, adminIpObj);
-  adminSocketIdHashMapKeys = adminSocketIdHashMap.keys();
-  adminSocketIdHashMapKeys.sort();
+  adminSocketHashMap.set(adminSessionObj.sessionId, adminIpObj);
+  adminSocketHashMapKeys = adminSocketHashMap.keys();
+  adminSocketHashMapKeys.sort();
 
 });
 
@@ -596,6 +596,15 @@ socket.on("KEEPALIVE", function(serverObj) {
 
   if (serverObj.socketId === socket.id){
     console.warn("KEEPALIVE LOOPBACK "  + serverObj.socketId + " | " + serverObj.user.nodeId);
+  }
+  else if (adminSocketHashMap.has(serverObj.socketId)){
+
+    let sObj = adminSocketHashMap.get(serverObj.socketId);
+    sObj.timeStamp = serverObj.timeStamp;
+    sObj.type = serverObj.type;
+    sObj.user = serverObj.user;
+
+    adminSocketHashMap.set(serverObj.socketId, sObj);
   }
   else if (serverSocketHashMap.has(serverObj.socketId)){
 

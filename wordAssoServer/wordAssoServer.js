@@ -3845,11 +3845,22 @@ configEvents.on("SERVER_READY", function serverReady() {
       // const serverSocketId = serverSocketEntry[0];
       // const currentServer = serverSocketEntry[1];
 
-    serverCache.keys().forEach(function(serverCacheKey){
-      tempServerArray.push([serverCacheKey, serverCache.get(serverCacheKey)]);
+    async.each(serverCache.keys(), function(serverCacheKey, cb){
+
+      const serverObj = serverCache.get(serverCacheKey);
+      tempServerArray.push([serverCacheKey, serverObj]);
+      cb();
+      
+    }, function(){
+      heartbeatObj.servers = tempServerArray;
     });
 
-    heartbeatObj.servers = tempServerArray;
+    // serverCache.keys().forEach(function(serverCacheKey){
+    //   const serverObj = serverCache.get(serverCacheKey);
+    //   tempServerArray.push([serverCacheKey, serverObj]);
+    // });
+
+    // heartbeatObj.servers = tempServerArray;
 
     tempViewerArray = viewerHashMap.entries();
     heartbeatObj.viewers = tempViewerArray;

@@ -621,6 +621,7 @@ function serverCacheExpired(serverCacheId, serverObj) {
   console.log(chalkAlert("XXX SERVER CACHE EXPIRED"
     + " | " + serverObj.user.type.toUpperCase()
     + " | " + serverCacheId
+    + " | " + serverObj.user.userId
   ));
 
   adminNameSpace.emit("SERVER_EXPIRED", serverObj);

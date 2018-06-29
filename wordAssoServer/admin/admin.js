@@ -464,12 +464,14 @@ socket.on("SERVER_EXPIRED", function(serverObj) {
   console.log("SERVER_EXPIRED | " + serverObj.socketId + " | " + serverObj.user.userId);
 
   if (!serverSocketHashMap.has(serverObj.socketId)) {
-    console.debug("SERVER_STATS | SERVER NOT FOUND IN HM | " + serverObj.user.userId);
+    console.warn("SERVER_EXPIRED | SERVER NOT FOUND IN HM | " + serverObj.user.userId);
   }
 
-  serverObj.status = "EXPIRED";
+  let sObj = serverSocketHashMap.get(serverObj.socketId);
 
-  serverSocketHashMap.set(serverObj.socketId, serverObj);
+  sObj.status = "EXPIRED";
+
+  serverSocketHashMap.set(sObj.socketId, sObj);
 });
 
 socket.on("SERVER_STATS", function(serverObj) {

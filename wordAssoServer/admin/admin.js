@@ -140,6 +140,10 @@ var tweetsPerMinBar;
 var tweetsPerMinBarDiv;
 var tweetsPerMinBarText;
 
+var adminsBar;
+var adminsBarDiv;
+var adminsBarText;
+
 var serversBar;
 var serversBarDiv;
 var serversBarText;
@@ -158,6 +162,13 @@ function initBars(callback){
   viewersBar = new ProgressBar.Line(viewersBarDiv, { duration: 100 });
   viewersBar.animate(0);
   viewersBarText = document.getElementById("viewers-bar-text");
+
+  // ADMIN ===============================
+
+  adminsBarDiv = document.getElementById("admins-bar");
+  adminsBar = new ProgressBar.Line(adminsBarDiv, { duration: 100 });
+  adminsBar.animate(0);
+  adminsBarText = document.getElementById("admins-bar-text");
 
   // SERVER ===============================
 
@@ -868,6 +879,10 @@ function createViewerTable(){
 }
 
 
+let adminRatio = 0;
+let totalAdmins = 0;
+let maxAdmins = 0;
+
 let serverRatio = 0;
 let totalServers = 0;
 let maxServers = 0;
@@ -904,15 +919,15 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   // // ADMINS ==========================
 
-  // adminsBar.animate(adminRatio);
+  adminsBar.animate(adminRatio);
 
-  // if (100 * adminRatio >= ALERT_LIMIT_PERCENT) {
-  //   adminsBar.path.setAttribute("stroke", endColor);
-  // } else if (100 * adminRatio >= WARN_LIMIT_PERCENT) {
-  //   adminsBar.path.setAttribute("stroke", midColor);
-  // } else {
-  //   adminsBar.path.setAttribute("stroke", startColor);
-  // }
+  if (100 * adminRatio >= ALERT_LIMIT_PERCENT) {
+    adminsBar.path.setAttribute("stroke", endColor);
+  } else if (100 * adminRatio >= WARN_LIMIT_PERCENT) {
+    adminsBar.path.setAttribute("stroke", midColor);
+  } else {
+    adminsBar.path.setAttribute("stroke", startColor);
+  }
 
   totalAdmins = 0;
 
@@ -936,7 +951,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       const adminSocketId = adminSocketEntry[0];
       const currentAdmin = adminSocketEntry[1];
 
-      adminTypeHashMap.set(currentAdmin.type, currentAdmin);
       adminSocketHashMap.set(adminSocketId, currentAdmin);
 
       totalAdmins += 1;

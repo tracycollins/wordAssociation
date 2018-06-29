@@ -1024,10 +1024,18 @@ function dropboxFolderGetLastestCursor(folder, callback) {
           callback(null, response);
         })
         .catch(function(err){
-          console.log(chalkError("dropboxFolderGetLastestCursor filesListFolder *** DROPBOX FILES LIST FOLDER ERROR"
-            + "\nERROR: " + err 
-            + "\nERROR: " + jsonPrint(err)
-          ));
+          if (err.status === 429){
+            console.log(chalkError("dropboxFolderGetLastestCursor filesListFolder *** DROPBOX FILES LIST FOLDER ERROR"
+              + " | TOO MANY REQUESTS" 
+              + " | FOLDER: " + folder 
+            ));
+          }
+          else {
+            console.log(chalkError("dropboxFolderGetLastestCursor filesListFolder *** DROPBOX FILES LIST FOLDER ERROR"
+              + "\nERROR: " + err 
+              + "\nERROR: " + jsonPrint(err)
+            ));
+          }
           callback(err, last_cursor.cursor);
         });
       }

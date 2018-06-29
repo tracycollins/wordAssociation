@@ -183,6 +183,9 @@ let quitOnError = true;
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 const tinyDateTimeFormat = "YYYYMMDDHHmmss";
 
+const SERVER_CACHE_DEFAULT_TTL = ONE_MINUTE;
+const SERVER_CACHE_CHECK_PERIOD = 15*ONE_SECOND;
+
 
 const AUTH_USER_CACHE_DEFAULT_TTL = MAX_SESSION_AGE;
 const AUTH_USER_CACHE_CHECK_PERIOD = ONE_HOUR/1000; // seconds
@@ -415,7 +418,7 @@ let languageServer = {};
 
 
 let adminHashMap = new HashMap();
-let serverHashMap = new HashMap();
+// let serverHashMap = new HashMap();
 let viewerHashMap = new HashMap();
 
 const globalNodeMeter = new Measured.Meter({rateUnit: 60000});
@@ -597,6 +600,33 @@ function slackPostMessage(channel, text, callback){
 }
 
 // ==================================================================
+// SERVER CACHE
+// ==================================================================
+let serverCacheTtl = process.env.SERVER_CACHE_DEFAULT_TTL;
+if (serverCacheTtl === undefined) { serverCacheTtl = SERVER_CACHE_DEFAULT_TTL;}
+console.log("SERVER CACHE TTL: " + serverCacheTtl + " SECONDS");
+
+let serverCacheCheckPeriod = process.env.SERVER_CACHE_CHECK_PERIOD;
+if (serverCacheCheckPeriod === undefined) { serverCacheCheckPeriod = SERVER_CACHE_CHECK_PERIOD;}
+console.log("SERVER CACHE CHECK PERIOD: " + serverCacheCheckPeriod + " SECONDS");
+
+const serverCache = new NodeCache({
+  stdTTL: serverCacheTtl,
+  checkperiod: serverCacheCheckPeriod
+});
+
+function serverCacheExpired(serverCacheId, serverObj) {
+
+  console.log(chalkAlert("XXX $ SERVER"
+    + " | " + serverObj.serverType
+    + " | " + serverCacheId
+  ));
+
+}
+
+serverCache.on("expired", serverCacheExpired);
+
+// ==================================================================
 // AUTH USER CACHE
 // ==================================================================
 let authenticatedUserCacheTtl = process.env.AUTH_USER_CACHE_DEFAULT_TTL;
@@ -611,6 +641,7 @@ const authenticatedUserCache = new NodeCache({
   stdTTL: authenticatedUserCacheTtl,
   checkperiod: authenticatedUserCacheCheckPeriod
 });
+
 
 // ==================================================================
 // AUTH USER CACHE
@@ -2228,9 +2259,12 @@ function initSocketHandler(socketObj) {
     console.log(chalkError(moment().format(compactDateTimeFormat) 
       + " | *** SOCKET ERROR" + " | " + socket.id + " | " + error));
 
-    if (serverHashMap.has(socket.id)) { 
+    let currentServer = serverCache.get(socket.id);
 
-      let currentServer = serverHashMap.get(socket.id);
+    // if (serverHashMap.has(socket.id)) { 
+    if (currentServer) { 
+
+      // let currentServer = serverHashMap.get(socket.id);
 
       currentServer.timeStamp = moment().valueOf();
       currentServer.ip = ipAddress;
@@ -2245,7 +2279,8 @@ function initSocketHandler(socketObj) {
         + " | " + socket.id
       ));
 
-      serverHashMap.set(socket.id, currentServer);
+      // serverHashMap.set(socket.id, currentServer);
+      serverCache.set(socket.id, currentServer);
 
       adminNameSpace.emit("SERVER_ERROR", currentServer);
     }
@@ -2301,9 +2336,12 @@ function initSocketHandler(socketObj) {
       adminHashMap.delete(socket.id);
     }
 
-    if (serverHashMap.has(socket.id)) { 
+    let currentServer = serverCache.get(socket.id);
 
-      let currentServer = serverHashMap.get(socket.id);
+    // if (serverHashMap.has(socket.id)) { 
+    if (currentServer) { 
+
+      // let currentServer = serverHashMap.get(socket.id);
 
       currentServer.status = "DISCONNECTED";
 
@@ -2316,7 +2354,8 @@ function initSocketHandler(socketObj) {
  
       adminNameSpace.emit("SERVER_DISCONNECT", currentServer);
 
-      serverHashMap.set(socket.id, currentServer);
+      // serverHashMap.set(socket.id, currentServer);
+      serverCache.set(socket.id, currentServer);
 
     }
 
@@ -2355,6 +2394,7 @@ function initSocketHandler(socketObj) {
     const currentSessionType = serverRegex.exec(userObj.userId) ? serverRegex.exec(userObj.userId)[1].toUpperCase() : "NULL";
 
     let sessionObj = {};
+    let tempObj;
 
     switch (currentSessionType) {
 
@@ -2423,7 +2463,10 @@ function initSocketHandler(socketObj) {
         sessionObj.timeStamp = moment().valueOf();
         sessionObj.user = userObj;
 
-        if (!serverHashMap.has(socket.id)) { 
+        tempObj = serverCache.get(socket.id);
+
+        // if (!serverHashMap.has(socket.id)) { 
+        if (!tempObj) { 
 
           sessionObj.ip = ipAddress;
           sessionObj.socketId = socket.id;
@@ -2443,18 +2486,23 @@ function initSocketHandler(socketObj) {
             + " | " + socket.id
           ));
 
-          serverHashMap.set(socket.id, sessionObj);
+          // serverHashMap.set(socket.id, sessionObj);
+          serverCache.set(socket.id, sessionObj);
+
           adminNameSpace.emit("SERVER_ADD", sessionObj);
 
         }
         else {
 
-          sessionObj = serverHashMap.get(socket.id);
+          // sessionObj = serverHashMap.get(socket.id);
+          sessionObj = tempObj;
 
           sessionObj.timeStamp = moment().valueOf();
           sessionObj.user = userObj;
 
-          serverHashMap.set(socket.id, sessionObj);
+          // serverHashMap.set(socket.id, sessionObj);
+
+          serverCache.set(socket.id, sessionObj);
 
           adminNameSpace.emit("KEEPALIVE", sessionObj);
           socket.emit("GET_STATS");
@@ -2987,21 +3035,25 @@ function initSocketHandler(socketObj) {
 
   socket.on("STATS", function socketStats(statsObj){
 
-    if (serverHashMap.has(socket.id)) {
+    let serverObj = serverCache.get(socket.id);
 
-      let sessionObj = serverHashMap.get(socket.id);
+    // if (serverHashMap.has(socket.id)) {
+    if (serverObj) {
 
-      sessionObj.status = "STATS";
-      sessionObj.stats = statsObj;
-      sessionObj.timeStamp = moment().valueOf();
+      // let serverObj = serverHashMap.get(socket.id);
 
-      serverHashMap.set(socket.id, sessionObj);
+      serverObj.status = "STATS";
+      serverObj.stats = statsObj;
+      serverObj.timeStamp = moment().valueOf();
+
+      // serverHashMap.set(socket.id, sessionObj);
+      serverCache.set(socket.id, serverObj);
 
       if (configuration.verbose) {
-        console.log(chalkSocket("R> STATS | " + sessionObj.user.userId));
+        console.log(chalkSocket("R> STATS | " + serverObj.user.userId));
       }
 
-      adminNameSpace.emit("SERVER_STATS", sessionObj);
+      adminNameSpace.emit("SERVER_STATS", serverObj);
     }
     else {
       if (configuration.verbose) {
@@ -3787,7 +3839,16 @@ configEvents.on("SERVER_READY", function serverReady() {
     tempAdminArray = adminHashMap.entries();
     heartbeatObj.admins = tempAdminArray;
 
-    tempServerArray = serverHashMap.entries();
+    // tempServerArray = serverHashMap.entries();
+
+      // admin tool expects this
+      // const serverSocketId = serverSocketEntry[0];
+      // const currentServer = serverSocketEntry[1];
+
+    serverCache.keys().forEach(function(serverCacheKey){
+      tempServerArray.push([serverCacheKey, serverCache.get(serverCacheKey)]);
+    });
+
     heartbeatObj.servers = tempServerArray;
 
     tempViewerArray = viewerHashMap.entries();

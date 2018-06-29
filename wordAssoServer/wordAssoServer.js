@@ -991,19 +991,20 @@ function dropboxLongPoll(last_cursor, callback) {
     });
 }
 
+let optionsGetLatestCursor = {
+  path: folder,
+  recursive: true,
+  include_media_info: false,
+  include_deleted: true,
+  include_has_explicit_shared_members: false
+};
+
+
 function dropboxFolderGetLastestCursor(folder, callback) {
 
   let lastCursorTruncated = "";
 
   debug(chalkLog("dropboxFolderGetLastestCursor FOLDER: " + folder));
-
-  let optionsGetLatestCursor = {
-    path: folder,
-    recursive: true,
-    include_media_info: false,
-    include_deleted: true,
-    include_has_explicit_shared_members: false
-  };
 
   dropboxClient.filesListFolderGetLatestCursor(optionsGetLatestCursor)
   .then(function(last_cursor) {

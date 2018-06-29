@@ -4005,6 +4005,8 @@ function slackMessageHandler(messageObj){
   }
 }
 
+let dropboxFolderGetLastestCursorReady = true;
+
 function initAppRouting(callback) {
 
   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | INIT APP ROUTING"));
@@ -4046,30 +4048,47 @@ function initAppRouting(callback) {
 
       res.send(req.query.challenge);
 
-      dropboxFolderGetLastestCursor(bestNetworkFolder, function(err, response){
 
-        if (err) {
-          next();
-        }
-        else if (response && (response.entries.length > 0)) {
+      if (dropboxFolderGetLastestCursorReady) {
 
-          utilNameSpace.emit("DROPBOX_CHANGE", response);
-          adminNameSpace.emit("DROPBOX_CHANGE", response);
+        dropboxFolderGetLastestCursorReady = false;
 
-          console.log(chalkLog(">>> DROPBOX CHANGE"
-            + " | " + getTimeStamp()
-            + " | FOLDER: " + bestNetworkFolder
-          ));
-          
-          response.entries.forEach(function(entry){
-            console.log(chalkLog(">>> DROPBOX CHANGE | ENTRY"
-              + " | TYPE: " + entry[".tag"]
-              + " | PATH: " + entry.path_lower
-              + " | NAME: " + entry.name
-            ));
-          });
-        }
-      });
+        dropboxFolderGetLastestCursor(bestNetworkFolder, function(err, response){
+
+          if (err) {
+            setTimeout(function(){
+              dropboxFolderGetLastestCursorReady = true;
+              next();
+            }, 1000);
+          }
+          else if (response && (response.entries.length > 0)) {
+
+            setTimeout(function(){
+              utilNameSpace.emit("DROPBOX_CHANGE", response);
+              adminNameSpace.emit("DROPBOX_CHANGE", response);
+
+              console.log(chalkLog(">>> DROPBOX CHANGE"
+                + " | " + getTimeStamp()
+                + " | FOLDER: " + bestNetworkFolder
+              ));
+              
+              response.entries.forEach(function(entry){
+                console.log(chalkLog(">>> DROPBOX CHANGE | ENTRY"
+                  + " | TYPE: " + entry[".tag"]
+                  + " | PATH: " + entry.path_lower
+                  + " | NAME: " + entry.name
+                ));
+              });
+
+              dropboxFolderGetLastestCursorReady = true;
+
+            }, 1000);
+
+          }
+        });
+      }
+
+
     }
     else if (req.path === "/googleccd19766bea2dfd2.html") {
       console.log(chalkAlert("R> googleccd19766bea2dfd2.html")); 

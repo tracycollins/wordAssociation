@@ -3845,12 +3845,23 @@ configEvents.on("SERVER_READY", function serverReady() {
       // const serverSocketId = serverSocketEntry[0];
       // const currentServer = serverSocketEntry[1];
 
+    tempServerArray = [];
+    
     async.each(serverCache.keys(), function(serverCacheKey, cb){
 
-      const serverObj = serverCache.get(serverCacheKey);
-      tempServerArray.push([serverCacheKey, serverObj]);
-      cb();
-      
+      serverCache.get(serverCacheKey, function(err, serverObj){
+
+        if (err) {
+          console.log(chalkError("SERVER CACHE ERROR: " + err));
+          return cb(err);
+        }
+
+        tempServerArray.push([serverCacheKey, serverObj]);
+
+        cb();
+
+      });
+
     }, function(){
       heartbeatObj.servers = tempServerArray;
     });

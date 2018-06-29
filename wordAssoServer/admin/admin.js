@@ -7,7 +7,7 @@
 
 "use strict";
 
-var socket = io('/admin');
+var socket = io("/admin");
 
 var memoryAvailable = 0;
 var memoryUsed = 0;
@@ -67,7 +67,7 @@ requirejs(
     });
   },
   function(error) {
-    console.log('REQUIREJS ERROR handler', error);
+    console.log("REQUIREJS ERROR handler", error);
     var failedId = error.requireModules && error.requireModules[0];
     console.log(failedId);
     console.log(error.message);
@@ -98,7 +98,7 @@ function getTimeNow() {
 }
 
 
-var USER_ID = 'ADMIN_' + moment().valueOf();
+var USER_ID = "ADMIN_" + moment().valueOf();
 var SCREEN_NAME = USER_ID;
 
 var mainAdminObj = {
@@ -154,27 +154,27 @@ function initBars(callback){
 
   // VIEWERS ===============================
 
-  viewersBarDiv = document.getElementById('viewers-bar');
+  viewersBarDiv = document.getElementById("viewers-bar");
   viewersBar = new ProgressBar.Line(viewersBarDiv, { duration: 100 });
   viewersBar.animate(0);
-  viewersBarText = document.getElementById('viewers-bar-text');
+  viewersBarText = document.getElementById("viewers-bar-text");
 
   // SERVER ===============================
 
-  serversBarDiv = document.getElementById('servers-bar');
+  serversBarDiv = document.getElementById("servers-bar");
   serversBar = new ProgressBar.Line(serversBarDiv, { duration: 100 });
   serversBar.animate(0);
-  serversBarText = document.getElementById('servers-bar-text');
+  serversBarText = document.getElementById("servers-bar-text");
 
   // MEMORY ===============================
 
-  memoryBarDiv = document.getElementById('memory-bar');
-  memoryBarText = document.getElementById('memory-bar-text');
+  memoryBarDiv = document.getElementById("memory-bar");
+  memoryBarText = document.getElementById("memory-bar-text");
   memoryBar = new ProgressBar.Line(memoryBarDiv, { duration: 100 });
   memoryBar.animate(0);
 
-  tweetsPerMinBarDiv = document.getElementById('delta-tweet-bar');
-  tweetsPerMinBarText = document.getElementById('delta-tweet-bar-text');
+  tweetsPerMinBarDiv = document.getElementById("delta-tweet-bar");
+  tweetsPerMinBarText = document.getElementById("delta-tweet-bar-text");
   tweetsPerMinBar = new ProgressBar.Line(tweetsPerMinBarDiv, { duration: 100 });
   tweetsPerMinBar.animate(0);
 
@@ -225,10 +225,10 @@ function getTimeStamp(inputTime) {
 
   if (inputTime === undefined) {
     cDate = new Date().toDateString("en-US", options);
-    cTime = new Date().toTimeString('en-US', options);
+    cTime = new Date().toTimeString("en-US", options);
   } else {
     cDate = new Date(inputTime).toDateString("en-US", options);
-    cTime = new Date(inputTime).toTimeString('en-US', options);
+    cTime = new Date(inputTime).toTimeString("en-US", options);
   }
   return cDate + " - " + cTime;
 }
@@ -343,13 +343,13 @@ setInterval(function() {
 }, 10000);
 
 
-socket.on('connect', function() {
+socket.on("connect", function() {
   serverConnected = true;
   console.log("\n===== ADMIN SERVER CONNECTED =====\n" + getTimeStamp());
 
 });
 
-socket.on('reconnect', function() {
+socket.on("reconnect", function() {
   serverConnected = true;
   console.log("\n===== ADMIN SERVER RECONNECTED =====\n" + getTimeStamp());
   serverClear();
@@ -358,7 +358,7 @@ socket.on('reconnect', function() {
   sentAdminReady = true;
 });
 
-socket.on('disconnect', function() {
+socket.on("disconnect", function() {
   serverConnected = false;
   console.log("\n***** SERVER DISCONNECTED *****\n" + getTimeStamp());
   serverClear();
@@ -369,6 +369,11 @@ socket.on("ADMIN_CONFIG", function(rxAdminConfig) {
   console.log("\n*** RX ADMIN CONFIG ***\n" + JSON.stringify(rxAdminConfig, null, 3));
   updateAdminConfig(rxAdminConfig);
 });
+
+socket.on("DROPBOX_CHANGE", function(dataObj) {
+  console.log("\n*** RX DROPBOX_CHANGE ***\n" + JSON.stringify(dataObj, null, 3));
+});
+
 
 socket.on("CONFIG_CHANGE", function(rxAdminConfig) {
   var previousProperty;
@@ -388,7 +393,7 @@ socket.on("CONFIG_CHANGE", function(rxAdminConfig) {
   updateAdminConfig(adminConfig);
 });
 
-socket.on('ADMIN IP', function(rxIpObj) {
+socket.on("ADMIN IP", function(rxIpObj) {
 
   var adminSessionObj = JSON.parse(rxIpObj);
 
@@ -411,20 +416,20 @@ socket.on('ADMIN IP', function(rxIpObj) {
   adminSocketIdHashMapKeys.sort();
 });
 
-socket.on('VIEWER IP', function(rxIpObj) {
+socket.on("VIEWER IP", function(rxIpObj) {
   var ipObj = JSON.parse(rxIpObj);
   console.debug("RXCD VIEWER IP  " + ipObj.ip + " | " + ipObj.domain);
   viewerIpHashMap.set(ipObj.ip, ipObj);
 });
 
 
-socket.on('ADMIN_ACK', function(adminSessionKey) {
+socket.on("ADMIN_ACK", function(adminSessionKey) {
 
   console.log("RXCD ADMIN ACK: " + socket.id + " | KEY: " + adminSessionKey);
 
 });
 
-socket.on('ADMIN_SESSION', function(adminSessionObj) {
+socket.on("ADMIN_SESSION", function(adminSessionObj) {
 
   console.log("RX ADMIN SESSION: " + adminSessionObj.sessionId + " | UID: " + adminSessionObj.userId);
 
@@ -443,7 +448,7 @@ socket.on('ADMIN_SESSION', function(adminSessionObj) {
 
 });
 
-socket.on('SERVER_STATS', function(serverObj) {
+socket.on("SERVER_STATS", function(serverObj) {
 
   // console.debug("SERVER_STATS\n" + jsonPrint(serverObj));
   console.debug("SERVER_STATS | " + serverObj.socketId + " | " + serverObj.user.userId);
@@ -479,11 +484,11 @@ socket.on('SERVER_STATS', function(serverObj) {
 
 });
 
-socket.on('TWITTER_TOPTERM_1MIN', function(top10array) {
+socket.on("TWITTER_TOPTERM_1MIN", function(top10array) {
   console.debug("TWITTER_TOPTERM_1MIN\n" + jsonPrint(top10array));
 });
 
-socket.on('SERVER_ERROR', function(serverObj) {
+socket.on("SERVER_ERROR", function(serverObj) {
 
   console.debug("SERVER_ERROR\n" + jsonPrint(serverObj));
 
@@ -516,7 +521,7 @@ socket.on('SERVER_ERROR', function(serverObj) {
   }
 });
 
-socket.on('SERVER_DISCONNECT', function(serverObj) {
+socket.on("SERVER_DISCONNECT", function(serverObj) {
 
   console.debug("SERVER_DISCONNECT\n" + jsonPrint(serverObj));
 
@@ -536,7 +541,7 @@ socket.on('SERVER_DISCONNECT', function(serverObj) {
 
 });
 
-socket.on('VIEWER_DISCONNECT', function(viewerObj) {
+socket.on("VIEWER_DISCONNECT", function(viewerObj) {
 
   console.debug("VIEWER_DISCONNECT\n" + jsonPrint(viewerObj));
 
@@ -556,7 +561,7 @@ socket.on('VIEWER_DISCONNECT', function(viewerObj) {
 
 });
 
-socket.on('SERVER_DELETE', function(serverObj) {
+socket.on("SERVER_DELETE", function(serverObj) {
 
   console.debug("SERVER_DELETE\n" + jsonPrint(serverObj));
 
@@ -576,17 +581,17 @@ socket.on('SERVER_DELETE', function(serverObj) {
 
 });
 
-socket.on('SERVER_ADD', function(serverObj) {
+socket.on("SERVER_ADD", function(serverObj) {
   console.debug("SERVER_ADD\n" + jsonPrint(serverObj));
   serverSocketHashMap.set(serverObj.socketId, serverObj);
 });
 
-socket.on('VIEWER_ADD', function(viewerObj) {
+socket.on("VIEWER_ADD", function(viewerObj) {
   console.debug("VIEWER_ADD\n" + jsonPrint(viewerObj));
   viewerSocketHashMap.set(viewerObj.socketId, viewerObj);
 });
 
-socket.on('KEEPALIVE', function(serverObj) {
+socket.on("KEEPALIVE", function(serverObj) {
   console.debug("KEEPALIVE | " + serverObj.type + " | " + serverObj.user.nodeId);
 
   if (serverObj.socketId === socket.id){
@@ -618,7 +623,7 @@ socket.on('KEEPALIVE', function(serverObj) {
 
 var heartBeatQueue = [];
 
-socket.on('HEARTBEAT', function(rxHeartbeat) {
+socket.on("HEARTBEAT", function(rxHeartbeat) {
 
   heartBeatQueue.push(rxHeartbeat);
 
@@ -872,20 +877,20 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     memoryAvailable = (heartBeat.memory.memoryUsage.rss - heartBeat.memory.memoryUsage.heapUsed) / heartBeat.memory.memoryUsage.rss;
 
     memoryBarText.innerHTML =
-      'HEAP (GB)' 
-        + ' | ' + (heartBeat.memory.memoryUsage.rss / ONE_GB).toFixed(2) + ' TOT' 
-        + ' | ' + (heartBeat.memory.memoryUsage.heapUsed / ONE_GB).toFixed(2) + ' USED' + ' (' + (100 * memoryUsed).toFixed(1) + ' %)' 
-        + ' | ' + ((heartBeat.memory.memoryUsage.rss - heartBeat.memory.memoryUsage.heapUsed) / ONE_GB).toFixed(2) + ' AVAIL' + ' (' + (100 * memoryAvailable).toFixed(2) + ' %)';
+      "HEAP (GB)" 
+        + " | " + (heartBeat.memory.memoryUsage.rss / ONE_GB).toFixed(2) + " TOT" 
+        + " | " + (heartBeat.memory.memoryUsage.heapUsed / ONE_GB).toFixed(2) + " USED" + " (" + (100 * memoryUsed).toFixed(1) + " %)" 
+        + " | " + ((heartBeat.memory.memoryUsage.rss - heartBeat.memory.memoryUsage.heapUsed) / ONE_GB).toFixed(2) + " AVAIL" + " (" + (100 * memoryAvailable).toFixed(2) + " %)";
   }
 
   if (memoryBar) { memoryBar.animate(memoryUsed); }
 
   if (100 * memoryUsed >= ALERT_LIMIT_PERCENT) {
-    memoryBar.path.setAttribute('stroke', endColor);
+    memoryBar.path.setAttribute("stroke", endColor);
   } else if (100 * memoryUsed >= WARN_LIMIT_PERCENT) {
-    memoryBar.path.setAttribute('stroke', midColor);
+    memoryBar.path.setAttribute("stroke", midColor);
   } else {
-    memoryBar.path.setAttribute('stroke', startColor);
+    memoryBar.path.setAttribute("stroke", startColor);
   }
 
   // // VIEWERS ==========================
@@ -893,11 +898,11 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   viewersBar.animate(viewerRatio);
 
   if (100 * viewerRatio >= ALERT_LIMIT_PERCENT) {
-    viewersBar.path.setAttribute('stroke', endColor);
+    viewersBar.path.setAttribute("stroke", endColor);
   } else if (100 * viewerRatio >= WARN_LIMIT_PERCENT) {
-    viewersBar.path.setAttribute('stroke', midColor);
+    viewersBar.path.setAttribute("stroke", midColor);
   } else {
-    viewersBar.path.setAttribute('stroke', startColor);
+    viewersBar.path.setAttribute("stroke", startColor);
   }
 
   totalViewers = 0;
@@ -966,11 +971,11 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   serversBar.animate(serverRatio);
 
   if (100 * serverRatio >= ALERT_LIMIT_PERCENT) {
-    serversBar.path.setAttribute('stroke', endColor);
+    serversBar.path.setAttribute("stroke", endColor);
   } else if (100 * serverRatio >= WARN_LIMIT_PERCENT) {
-    serversBar.path.setAttribute('stroke', midColor);
+    serversBar.path.setAttribute("stroke", midColor);
   } else {
-    serversBar.path.setAttribute('stroke', startColor);
+    serversBar.path.setAttribute("stroke", startColor);
   }
 
   totalServers = 0;
@@ -1039,26 +1044,26 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   tweetsPerMinBar.animate(tweetsPerMin / tweetsPerMinMax);
 
   if (tweetsPerMin >= 0.01*ALERT_LIMIT_PERCENT * tweetsPerMinMax) {
-    tweetsPerMinBar.path.setAttribute('stroke', endColor);
+    tweetsPerMinBar.path.setAttribute("stroke", endColor);
   } 
   else if (tweetsPerMin >= 0.01*WARN_LIMIT_PERCENT * tweetsPerMinMax) {
-    tweetsPerMinBar.path.setAttribute('stroke', midColor);
+    tweetsPerMinBar.path.setAttribute("stroke", midColor);
   } 
   else {
-    tweetsPerMinBar.path.setAttribute('stroke', startColor);
+    tweetsPerMinBar.path.setAttribute("stroke", startColor);
   }
 
-  tweetsPerMinBarText.innerHTML = parseInt(tweetsPerMin) + ' TPM | ' 
-    + parseInt(tweetsPerMinMax) + ' MAX' + ' | ' 
+  tweetsPerMinBarText.innerHTML = parseInt(tweetsPerMin) + " TPM | " 
+    + parseInt(tweetsPerMinMax) + " MAX" + " | " 
     + moment(tweetsPerMinMaxTime).format(defaultDateTimeFormat);
 
-  var heatbeatTable = document.getElementById('heartbeat_table');
+  var heatbeatTable = document.getElementById("heartbeat_table");
 
   while (heatbeatTable.childNodes.length > 0) {
     heatbeatTable.removeChild(heatbeatTable.firstChild);
   }
 
-  tableCreateRow(heatbeatTable, false, ['LOCAL TIME', getTimeStamp()]);
+  tableCreateRow(heatbeatTable, false, ["LOCAL TIME", getTimeStamp()]);
 
   if (timeoutFlag) {
 
@@ -1066,8 +1071,8 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       heatbeatTable, 
       false, 
       [
-        '*** SERVER TIMEOUT ***', 
-        (msToTime(Date.now() - heartBeat.timeStamp)) + ' AGO'
+        "*** SERVER TIMEOUT ***", 
+        (msToTime(Date.now() - heartBeat.timeStamp)) + " AGO"
       ]
     );
 
@@ -1083,9 +1088,9 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       heatbeatTable,
       false, 
       [
-        '* SERVER TIMEOUT *',
+        "* SERVER TIMEOUT *",
         getTimeStamp(lastTimeoutHeartBeat.timeStamp),
-        msToTime(Date.now() - lastTimeoutHeartBeat.timeStamp) + ' AGO'
+        msToTime(Date.now() - lastTimeoutHeartBeat.timeStamp) + " AGO"
       ]);
 
     var tdLastTimeout = heatbeatTable.getElementsByTagName("td");
@@ -1094,10 +1099,10 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     tdLastTimeout[2].style.backgroundColor = palette.red;
   }
 
-  tableCreateRow(heatbeatTable, false, ['SERVER TIME', getTimeStamp(heartBeat.serverTime)]);
-  tableCreateRow(heatbeatTable, false, ['SERVER UPTIME', msToTime(heartBeat.upTime)]);
-  tableCreateRow(heatbeatTable, false, ['APP START TIME', getTimeStamp(heartBeat.startTime)]);
-  tableCreateRow(heatbeatTable, false, ['APP RUNTIME', msToTime(heartBeat.runTime)]);
+  tableCreateRow(heatbeatTable, false, ["SERVER TIME", getTimeStamp(heartBeat.serverTime)]);
+  tableCreateRow(heatbeatTable, false, ["SERVER UPTIME", msToTime(heartBeat.upTime)]);
+  tableCreateRow(heatbeatTable, false, ["APP START TIME", getTimeStamp(heartBeat.startTime)]);
+  tableCreateRow(heatbeatTable, false, ["APP RUNTIME", msToTime(heartBeat.runTime)]);
 
 
 }

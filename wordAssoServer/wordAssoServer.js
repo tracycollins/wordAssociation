@@ -183,7 +183,7 @@ let quitOnError = true;
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 const tinyDateTimeFormat = "YYYYMMDDHHmmss";
 
-const SERVER_CACHE_DEFAULT_TTL = ONE_MINUTE;
+const SERVER_CACHE_DEFAULT_TTL = 2*ONE_MINUTE;
 const SERVER_CACHE_CHECK_PERIOD = 15*ONE_SECOND;
 
 
@@ -617,11 +617,12 @@ const serverCache = new NodeCache({
 
 function serverCacheExpired(serverCacheId, serverObj) {
 
-  console.log(chalkAlert("XXX $ SERVER"
-    + " | " + serverObj.serverType
+  console.log(chalkAlert("XXX SERVER CACHE EXPIRED"
+    + " | " + serverObj.user.type.toUpperCase()
     + " | " + serverCacheId
   ));
 
+  adminNameSpace.emit("SERVER_EXPIRED", serverObj);
 }
 
 serverCache.on("expired", serverCacheExpired);
@@ -3846,7 +3847,7 @@ configEvents.on("SERVER_READY", function serverReady() {
       // const currentServer = serverSocketEntry[1];
 
     tempServerArray = [];
-    
+
     async.each(serverCache.keys(), function(serverCacheKey, cb){
 
       serverCache.get(serverCacheKey, function(err, serverObj){

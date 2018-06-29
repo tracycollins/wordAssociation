@@ -459,6 +459,19 @@ socket.on("ADMIN_SESSION", function(adminSessionObj) {
 
 });
 
+
+socket.on("SERVER_EXPIRED", function(serverObj) {
+  console.log("SERVER_EXPIRED | " + serverObj.socketId + " | " + serverObj.user.userId);
+
+  if (!serverSocketHashMap.has(serverObj.socketId)) {
+    console.debug("SERVER_STATS | SERVER NOT FOUND IN HM | " + serverObj.user.userId);
+  }
+
+  serverObj.status = "EXPIRED";
+
+  serverSocketHashMap.set(sObj.socketId, serverObj);
+});
+
 socket.on("SERVER_STATS", function(serverObj) {
 
   // console.debug("SERVER_STATS\n" + jsonPrint(serverObj));
@@ -478,20 +491,6 @@ socket.on("SERVER_STATS", function(serverObj) {
   sObj.timeStamp = serverObj.timeStamp;
 
   serverSocketHashMap.set(sObj.socketId, sObj);
-
-  // let currentServerTableRow = document.getElementById(serverObj.socketId);
-
-  // if (currentServerTableRow) {
-
-  //   console.debug("UPDATE TABLE ROW: " + currentServerTableRow.id);
-
-  //   document.getElementById(serverObj.socketId + "_nodeId").innerHTML = sObj.user.nodeId;
-  //   document.getElementById(serverObj.socketId + "_type").innerHTML = sObj.type;
-  //   document.getElementById(serverObj.socketId + "_socketId").innerHTML = sObj.socketId;
-  //   document.getElementById(serverObj.socketId + "_status").innerHTML = sObj.status;
-  //   document.getElementById(serverObj.socketId + "_timeStamp").innerHTML = moment(sObj.timeStamp).format(defaultDateTimeFormat);
-  //   document.getElementById(serverObj.socketId + "_ago").innerHTML = msToTime(moment().diff(moment(sObj.timeStamp)));
-  // }
 
 });
 

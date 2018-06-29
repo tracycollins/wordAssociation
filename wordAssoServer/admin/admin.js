@@ -469,7 +469,7 @@ socket.on("SERVER_EXPIRED", function(serverObj) {
 
   serverObj.status = "EXPIRED";
 
-  serverSocketHashMap.set(sObj.socketId, serverObj);
+  serverSocketHashMap.set(serverObj.socketId, serverObj);
 });
 
 socket.on("SERVER_STATS", function(serverObj) {

@@ -595,7 +595,7 @@ socket.on("KEEPALIVE", function(serverObj) {
   console.debug("KEEPALIVE | " + serverObj.type + " | " + serverObj.user.nodeId);
 
   if (serverObj.socketId === socket.id){
-    console.warn("KEEPALIVE LOOPBACK "  + serverObj.socketId + " | " + serverObj.user.nodeId);
+    // console.warn("KEEPALIVE LOOPBACK "  + serverObj.socketId + " | " + serverObj.user.nodeId);
   }
   else if (adminSocketHashMap.has(serverObj.socketId)){
 
@@ -902,6 +902,77 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     memoryBar.path.setAttribute("stroke", startColor);
   }
 
+  // // ADMINS ==========================
+
+  // adminsBar.animate(adminRatio);
+
+  // if (100 * adminRatio >= ALERT_LIMIT_PERCENT) {
+  //   adminsBar.path.setAttribute("stroke", endColor);
+  // } else if (100 * adminRatio >= WARN_LIMIT_PERCENT) {
+  //   adminsBar.path.setAttribute("stroke", midColor);
+  // } else {
+  //   adminsBar.path.setAttribute("stroke", startColor);
+  // }
+
+  totalAdmins = 0;
+
+  let adminTableData = [];
+
+  if (heartBeat.admins) {
+
+    if (heartBeat.admins.length === 0){
+      adminSocketHashMap.forEach(function(adminObj, adminSocketId){
+        adminObj.status = "UNKNOWN";
+        adminObj.connected = false;
+        adminObj.deleted = true;
+        adminSocketHashMap.set(adminSocketId, adminObj);
+      });
+    }
+
+    let i=0;
+
+    async.eachSeries(heartBeat.admins, function(adminSocketEntry, cb){
+
+      const adminSocketId = adminSocketEntry[0];
+      const currentAdmin = adminSocketEntry[1];
+
+      adminTypeHashMap.set(currentAdmin.type, currentAdmin);
+      adminSocketHashMap.set(adminSocketId, currentAdmin);
+
+      totalAdmins += 1;
+      i += 1;
+
+      if (!adminConfig.showDisconnectedAdmins && currentAdmin.status === "DISCONNECTED") {
+        return async.setImmediate(function() { cb(); });
+      }
+
+      adminTableData.push(
+        {
+          id: adminSocketId, 
+          adminId: currentAdmin.user.userId,
+          adminType: currentAdmin.type,
+          socket: currentAdmin.socketId,
+          ipAddress: currentAdmin.ip,
+          status: currentAdmin.status,
+          lastSeen: moment(currentAdmin.timeStamp).format(defaultDateTimeFormat),
+          ago: msToTime(moment().diff(moment(currentAdmin.timeStamp))),
+          // upTime: msToTime(currentAdmin.user.stats.elapsed)
+        }
+      );
+
+      async.setImmediate(function() { cb(); });
+
+    }, function(){
+
+      $("#admins").tabulator("setData", adminTableData);
+
+      maxAdmins = Math.max(maxAdmins, totalAdmins);
+      adminRatio = totalAdmins / maxAdmins;
+      adminsBarText.innerHTML = totalAdmins + " ADMINS | " + maxAdmins + " MAX | " 
+        + moment().format(defaultDateTimeFormat);
+    });
+  }
+
   // // VIEWERS ==========================
 
   viewersBar.animate(viewerRatio);
@@ -972,8 +1043,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
         + moment().format(defaultDateTimeFormat);
     });
   }
-
-  // $("#viewers").tabulator("setData", viewerTableData);
 
   // SERVERS =========================
 
@@ -1046,7 +1115,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     });
   }
 
-  // $("#servers").tabulator("setData", null);
 
   // WORDS =========================
   

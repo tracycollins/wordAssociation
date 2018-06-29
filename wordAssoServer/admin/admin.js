@@ -744,19 +744,19 @@ function setTestMode(inputTestMode) {
     currentButton.setAttribute("state", state);
 
     if (state === "enabled") { 
-      // currentButton.style.color = "green";
-      // currentButton.style.border = "2px solid green";
       currentButton.style.color = toggleButtonEnabledStyle.color;
       currentButton.style.border = toggleButtonEnabledStyle.border;
     }
     else {
       currentButton.style.color = toggleButtonDisabledStyle.color;
       currentButton.style.border = toggleButtonDisabledStyle.border;
-      // currentButton.style.color = "#888888";
-      // currentButton.style.border = "2px solid white";
     }
 
     switch (e.target.id) {
+      case "toggleButtonAdminDisconnected":
+        adminConfig.showDisconnectedAdmins = (state === "enabled") ? true : false;
+      break;
+
       case "toggleButtonServerDisconnected":
         adminConfig.showDisconnectedServers = (state === "enabled") ? true : false;
       break;
@@ -776,6 +776,57 @@ function setTestMode(inputTestMode) {
     );
 
   };
+
+function createAdminTable(){
+
+  var adminPanelButtonsDiv = document.getElementById("admin_panel_buttons");
+
+  var buttonElement = document.createElement("BUTTON");
+  buttonElement.className = "button";
+  buttonElement.setAttribute("id", "toggleButtonAdminDisconnected");
+  buttonElement.setAttribute("mode", "toggle");
+  buttonElement.setAttribute("state", "disabled");
+  buttonElement.addEventListener("click", function(e){ toggleButtonHandler(e); }, false);
+  buttonElement.innerHTML = "SHOW DISCONNECTED";
+  buttonElement.style.color = toggleButtonDisabledStyle.color;
+  buttonElement.style.border = toggleButtonDisabledStyle.border;
+  adminPanelButtonsDiv.appendChild(buttonElement);
+
+
+  //create Tabulator on DOM element with id "example-table"
+  $("#admins").tabulator({
+    ajaxURL: false,
+    height: 240, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
+    layout: "fitData", //fit columns to width of table (optional)
+    rowFormatter:function(row){
+      var data = row.getData();
+
+      switch (data.status) {
+        case "DISCONNECTED":
+          row.getElement().css({"color": palette.red});
+        break;
+        case "STATS":
+          row.getElement().css({"color": palette.green });
+        break;
+        case "KEEPALIVE":
+          row.getElement().css({"color": palette.lightgray });
+        break;
+        default:
+          row.getElement().css({"color": palette.gray });
+      }
+    },      
+    columns:[ //Define Table Columns
+      {title:"ADMIN ID", field:"adminId", align:"left"},
+      {title:"TYPE", field:"adminType", align:"left"},
+      {title:"SOCKET", field:"socket", align:"left"},
+      {title:"IP", field:"ipAddress", align:"left"},
+      {title:"STATUS", field:"status", align:"left"},
+      {title:"LAST SEEN", field:"lastSeen", align:"left"},
+      {title:"AGO", field:"ago", align:"right"},
+      {title:"UPTIME", field:"upTime", align:"right"}
+    ]
+  });
+}
 
 function createServerTable(){
 
@@ -1203,6 +1254,7 @@ function initialize(callback){
   console.debug("INITIALIZE...");
 
   initBars(function(){
+    createAdminTable();
     createServerTable();
     createViewerTable();
     callback();

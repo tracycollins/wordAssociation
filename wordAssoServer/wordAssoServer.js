@@ -183,7 +183,8 @@ let quitOnError = true;
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 const tinyDateTimeFormat = "YYYYMMDDHHmmss";
 
-const SERVER_CACHE_DEFAULT_TTL = 2*ONE_MINUTE;
+const SERVER_CACHE_DEFAULT_TTL = 90; // seconds
+
 const SERVER_CACHE_CHECK_PERIOD = 15*ONE_SECOND;
 
 

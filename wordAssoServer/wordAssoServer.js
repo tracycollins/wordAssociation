@@ -991,18 +991,19 @@ function dropboxLongPoll(last_cursor, callback) {
     });
 }
 
-let optionsGetLatestCursor = {
-  path: folder,
-  recursive: true,
-  include_media_info: false,
-  include_deleted: true,
-  include_has_explicit_shared_members: false
-};
-
 
 function dropboxFolderGetLastestCursor(folder, callback) {
 
   let lastCursorTruncated = "";
+
+  let optionsGetLatestCursor = {
+    path: folder,
+    recursive: true,
+    include_media_info: false,
+    include_deleted: true,
+    include_has_explicit_shared_members: false
+  };
+
 
   debug(chalkLog("dropboxFolderGetLastestCursor FOLDER: " + folder));
 
@@ -3751,6 +3752,7 @@ configEvents.on("SERVER_READY", function serverReady() {
 
   let heartbeatObj = {};
 
+  heartbeatObj.admins = [];
   heartbeatObj.servers = [];
   heartbeatObj.viewers = [];
   heartbeatObj.children = {};
@@ -3759,7 +3761,8 @@ configEvents.on("SERVER_READY", function serverReady() {
   heartbeatObj.twitter = {};
   heartbeatObj.memory = {};
 
-  let tempArray = [];
+  let tempAdminArray = [];
+  let tempServerArray = [];
   let tempViewerArray = [];
 
   setInterval(function hearbeatInterval() {
@@ -3773,8 +3776,11 @@ configEvents.on("SERVER_READY", function serverReady() {
     statsObj.memory.memoryAvailable = os.freemem();
     statsObj.memory.memoryUsage = process.memoryUsage();
 
-    tempArray = serverHashMap.entries();
-    heartbeatObj.servers = tempArray;
+    tempAdminArray = adminHashMap.entries();
+    heartbeatObj.admins = tempAdminArray;
+
+    tempServerArray = serverHashMap.entries();
+    heartbeatObj.servers = tempServerArray;
 
     tempViewerArray = viewerHashMap.entries();
     heartbeatObj.viewers = tempViewerArray;

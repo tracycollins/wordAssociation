@@ -638,7 +638,7 @@ socket.on("KEEPALIVE", function(serverObj) {
     viewerSocketHashMap.set(serverObj.socketId, sObj);
   }
   else {
-    console.warn("KEEPALIVE SERVER NOT IN HASHMAP\n" + jsonPrint(serverObj));
+    console.warn("KEEPALIVE SERVER NOT IN HASHMAP | " + serverObj.socketId + " | " + serverObj.type);
   }
 });
 

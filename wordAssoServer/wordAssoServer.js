@@ -4,6 +4,8 @@
 const ONE_KILOBYTE = 1024;
 const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
 
+const DEFAULT_FIND_CAT_USER_CURSOR_LIMIT = 1000;
+
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
 const ONE_HOUR = 60 * ONE_MINUTE;
@@ -5235,30 +5237,120 @@ function initCategoryHashmaps(callback){
     },
     user: function(cb){
 
-      userServerController.findCategorizedUsersCursor({}, function(err, results){
+      // userServerController.findCategorizedUsersCursor({}, function(err, results){
         
-        if (err) {
-          console.error(chalkError("ERROR: initCategoryHashmaps: findCategorizedUsersCursor:"
-            + " " + err
-          ));
+      //   if (err) {
+      //     console.error(chalkError("ERROR: initCategoryHashmaps: findCategorizedUsersCursor:"
+      //       + " " + err
+      //     ));
+      //     cb(err);
+      //   }
+      //   else {
+      //     console.log(chalkTwitter("LOADED CATEGORIZED USERS FROM DB"
+      //       + " | " + results.count + " CATEGORIZED"
+      //       + " | " + results.manual + " MAN"
+      //       + " | " + results.auto + " AUTO"
+      //       + " | " + results.matchRate.toFixed(2) + "% MR"
+      //     ));
+
+      //     // categorizedUsersObj[user.nodeId.toString()] = { manual: user.category, auto: user.categoryAuto };
+      //     Object.keys(results.obj).forEach(function(nodeId){
+      //       categorizedUserHashMap.set(nodeId, results.obj[nodeId]);
+      //     });
+
+      //     cb();
+      //   }
+      // });
+
+      let p = {};
+
+      p.skip = 0;
+      p.limit = DEFAULT_FIND_CAT_USER_CURSOR_LIMIT;
+
+      let more = true;
+      let totalCount = 0;
+      let totalManual = 0;
+      let totalAuto = 0;
+      let totalMatched = 0;
+      let totalMismatched = 0;
+      let totalMatchRate = 0;
+
+      async.whilst(
+
+        function() {
+          return more;
+        },
+
+        function(cb0){
+
+          userServerController.findCategorizedUsersCursor(p, function(err, results){
+
+            if (err) {
+              console.error(chalkError("NNT | ERROR: initCategorizedUserHashmap: " + err));
+              cb0(err);
+            }
+            else if (results) {
+
+              more = true;
+              totalCount += results.count;
+              totalManual += results.manual;
+              totalAuto += results.auto;
+              totalMatched += results.matched;
+              totalMismatched += results.mismatched;
+
+              totalMatchRate = 100*(totalMatched/(totalMatched+totalMismatched));
+
+              // results.obj[nodeId] = { manual: user.category, auto: user.categoryAuto };
+
+              Object.keys(results.obj).forEach(function(nodeId){
+                categorizedUserHashMap.set(nodeId, results.obj[nodeId]);
+              });
+
+              console.log(chalkInfo("NNT | LOADING CATEGORIZED USERS FROM DB"
+                + " | TOTAL CATEGORIZED: " + totalCount
+                + " | LIMIT: " + p.limit
+                + " | SKIP: " + p.skip
+                + " | " + totalManual + " MAN"
+                + " | " + totalAuto + " AUTO"
+                + " | " + totalMatched + " MATCHED"
+                + " / " + totalMismatched + " MISMATCHED"
+                + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
+              ));
+
+              p.skip += results.count;
+
+              cb0();
+            }
+            else {
+
+              more = false;
+
+              console.log(chalkInfo("NNT | LOADING CATEGORIZED USERS FROM DB"
+                + " | TOTAL CATEGORIZED: " + totalCount
+                + " | LIMIT: " + p.limit
+                + " | SKIP: " + p.skip
+                + " | " + totalManual + " MAN"
+                + " | " + totalAuto + " AUTO"
+                + " | " + totalMatched + " MATCHED"
+                + " / " + totalMismatched + " MISMATCHED"
+                + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
+              ));
+
+              cb0();
+            }
+
+          });
+        },
+
+        function(err){
+          if (err) {
+            console.log(chalkError("NNT | INIT CATEGORIZED USER HASHMAP ERROR: " + err + "\n" + jsonPrint(err)));
+          }
           cb(err);
         }
-        else {
-          console.log(chalkTwitter("LOADED CATEGORIZED USERS FROM DB"
-            + " | " + results.count + " CATEGORIZED"
-            + " | " + results.manual + " MAN"
-            + " | " + results.auto + " AUTO"
-            + " | " + results.matchRate.toFixed(2) + "% MR"
-          ));
+      );
 
-          // categorizedUsersObj[user.nodeId.toString()] = { manual: user.category, auto: user.categoryAuto };
-          Object.keys(results.obj).forEach(function(nodeId){
-            categorizedUserHashMap.set(nodeId, results.obj[nodeId]);
-          });
 
-          cb();
-        }
-      });
     },
     word: function(cb){
 

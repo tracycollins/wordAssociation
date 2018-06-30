@@ -1075,7 +1075,7 @@ function createPopUpControlPanel (cnf, callback) {
   }, false);
 
   controlPanelWindow.addEventListener("load", function(cnf){
-    controlPanel = new cp.ControlPanel(cnf);
+    controlPanel = new controlPanelWindow.ControlPanel(cnf);
     controlPanelFlag = true;
     callback();
   }, false);

@@ -1136,7 +1136,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       const serverSocketId = serverSocketEntry[0];
       let currentServer = serverSocketEntry[1];
 
-      if (currentServer === undefined) {
+      if (!currentServer || (currentServer === undefined)) {
         console.warn("UNDEFINED SERVER: " + serverSocketId);
         currentServer.type = "UNKNOWN";
       }
@@ -1145,24 +1145,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       serverSocketHashMap.set(serverSocketId, currentServer);
 
       totalServers += 1;
-
-      // if (!adminConfig.showDisconnectedServers && currentServer.status === "DISCONNECTED") {
-      //   return async.setImmediate(function() { cb(); });
-      // }
-
-      // serverTableData.push(
-      //   {
-      //     id: serverSocketId, 
-      //     serverId: currentServer.user.nodeId,
-      //     serverType: currentServer.type,
-      //     socket: serverSocketId,
-      //     ipAddress: currentServer.ip,
-      //     status: currentServer.status,
-      //     lastSeen: moment(currentServer.timeStamp).format(defaultDateTimeFormat),
-      //     ago: msToTime(moment().diff(moment(currentServer.timeStamp))),
-      //     upTime: msToTime(currentServer.user.stats.elapsed)
-      //   }
-      // );
 
       async.setImmediate(function() { cb(); });
 

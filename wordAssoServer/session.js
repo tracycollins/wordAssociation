@@ -43,27 +43,27 @@ statsObj.maxNodes = 0;
 statsObj.maxNodeAddQ = 0;
 statsObj.serverConnected = false;
 
-statsObj.heartbeat = {};
-statsObj.heartbeat.tweetsPerMin = 0;
-statsObj.heartbeat.maxTweetsPerMin = 0;
-statsObj.heartbeat.nodesPerMin = 0;
-statsObj.heartbeat.maxNodesPerMin = 0;
-statsObj.heartbeat.serverTime = 0;
-statsObj.heartbeat.startTime = 0;
-statsObj.heartbeat.runTime = 0;
-statsObj.heartbeat.upTime = 0;
-statsObj.heartbeat.elapsed = 0;
+var heartbeat = {};
+heartbeat.tweetsPerMin = 0;
+heartbeat.maxTweetsPerMin = 0;
+heartbeat.nodesPerMin = 0;
+heartbeat.maxNodesPerMin = 0;
+heartbeat.serverTime = 0;
+heartbeat.startTime = 0;
+heartbeat.runTime = 0;
+heartbeat.upTime = 0;
+heartbeat.elapsed = 0;
 
-statsObj.heartbeat.memory = {};
+heartbeat.memory = {};
 
-statsObj.heartbeat.nodesPerMin = 0;
-statsObj.heartbeat.maxNodesPerMin = 0;
-statsObj.heartbeat.maxNodesPerMinTime = 0;
+heartbeat.nodesPerMin = 0;
+heartbeat.maxNodesPerMin = 0;
+heartbeat.maxNodesPerMinTime = 0;
 
-statsObj.heartbeat.twitter = {};
-statsObj.heartbeat.twitter.tweetsPerMin = 0;
-statsObj.heartbeat.twitter.maxTweetsPerMin = 0;
-statsObj.heartbeat.twitter.maxTweetsPerMinTime = 0;
+heartbeat.twitter = {};
+heartbeat.twitter.tweetsPerMin = 0;
+heartbeat.twitter.maxTweetsPerMin = 0;
+heartbeat.twitter.maxTweetsPerMinTime = 0;
 
 statsObj.socket = {};
 
@@ -1690,7 +1690,7 @@ function createStatsTable(callback) {
     type: "TEXT",
     id: "statsServerTime",
     class: "statsTableText",
-    text: moment(parseInt(statsObj.heartbeat.serverTime)).format(defaultDateTimeFormat)
+    text: moment(parseInt(heartbeat.serverTime)).format(defaultDateTimeFormat)
   };
 
   var statsServerUpTimeLabel = {
@@ -1704,7 +1704,7 @@ function createStatsTable(callback) {
     type: "TEXT",
     id: "statsServerUpTime",
     class: "statsTableText",
-    text: moment(parseInt(statsObj.heartbeat.upTime)).format(defaultDateTimeFormat)
+    text: moment(parseInt(heartbeat.upTime)).format(defaultDateTimeFormat)
   };
 
   var statsServerStartTimeLabel = {
@@ -1718,7 +1718,7 @@ function createStatsTable(callback) {
     type: "TEXT",
     id: "statsServerStartTime",
     class: "statsTableText",
-    text: moment(parseInt(statsObj.heartbeat.startTime)).format(defaultDateTimeFormat)
+    text: moment(parseInt(heartbeat.startTime)).format(defaultDateTimeFormat)
   };
 
   var statsServerRunTimeLabel = {
@@ -1732,7 +1732,7 @@ function createStatsTable(callback) {
     type: "TEXT",
     id: "statsServerRunTime",
     class: "statsTableText",
-    text: msToTime(statsObj.heartbeat.runTime)
+    text: msToTime(heartbeat.runTime)
   };
 
   var statsServerTweetsPerMinLabel = {
@@ -1836,12 +1836,12 @@ setInterval(function() {
 }, serverCheckInterval);
 
 function updateStatsTable(statsObj){
-  statsServerTimeElement.innerHTML = moment(statsObj.heartbeat.timeStamp).format(defaultDateTimeFormat);
-  statsServerUpTimeElement.innerHTML = msToTime(statsObj.heartbeat.upTime);
-  statsServerStartTimeElement.innerHTML = moment(statsObj.heartbeat.startTime).format(defaultDateTimeFormat);
-  statsServerRunTimeElement.innerHTML = msToTime(statsObj.heartbeat.runTime);
-  statsServerTweetsPerMinElement.innerHTML = statsObj.heartbeat.twitter.tweetsPerMin.toFixed(0);
-  statsServerMaxTweetsPerMinElement.innerHTML = statsObj.heartbeat.twitter.maxTweetsPerMin.toFixed(0);
+  statsServerTimeElement.innerHTML = moment(heartbeat.timeStamp).format(defaultDateTimeFormat);
+  statsServerUpTimeElement.innerHTML = msToTime(heartbeat.upTime);
+  statsServerStartTimeElement.innerHTML = moment(heartbeat.startTime).format(defaultDateTimeFormat);
+  statsServerRunTimeElement.innerHTML = msToTime(heartbeat.runTime);
+  statsServerTweetsPerMinElement.innerHTML = heartbeat.twitter.tweetsPerMin.toFixed(0);
+  statsServerMaxTweetsPerMinElement.innerHTML = heartbeat.twitter.maxTweetsPerMin.toFixed(0);
   statsClientNumberNodesElement.innerHTML = currentSessionView.getNodesLength();
   statsClientNumberMaxNodesElement.innerHTML = currentSessionView.getMaxNodes();
   statsClientAddNodeQElement.innerHTML = currentSessionView.getNodeAddQlength();
@@ -1859,18 +1859,19 @@ function updateStatsTable(statsObj){
 
 var heartBeatsReceived = 0;
 
-socket.on("HEARTBEAT", function(heartbeat) {
+socket.on("HEARTBEAT", function(hb) {
+
+  heartbeat = hb;
 
   resetServerActiveTimer();
 
   statsObj.maxNodes = ( currentSessionView === undefined) ? 0 : currentSessionView.getMaxNodes();
   statsObj.maxNodeAddQ = ( currentSessionView === undefined) ? 0 : currentSessionView.getMaxNodeAddQ();
 
-  statsObj.heartbeat = heartbeat;
-
   heartBeatsReceived += 1;
   statsObj.serverConnected = true;
   lastHeartbeatReceived = moment().valueOf();
+
 });
 
 socket.on("CONFIG_CHANGE", function(rxConfig) {

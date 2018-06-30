@@ -1134,7 +1134,12 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     async.eachSeries(heartBeat.servers, function(serverSocketEntry, cb){
 
       const serverSocketId = serverSocketEntry[0];
-      const currentServer = serverSocketEntry[1];
+      let currentServer = serverSocketEntry[1];
+
+      if (currentServer === undefined) {
+        console.warn("UNDEFINED SERVER: " + serverSocketId);
+        currentServer.type = "UNKNOWN";
+      }
 
       serverTypeHashMap.set(currentServer.type, currentServer);
       serverSocketHashMap.set(serverSocketId, currentServer);

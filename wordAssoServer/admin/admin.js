@@ -761,6 +761,7 @@ function createAdminTable(){
 
   //create Tabulator on DOM element with id "example-table"
   $("#admins").tabulator({
+    index: "socket",
     ajaxURL: false,
     height: 240, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
     layout: "fitData", //fit columns to width of table (optional)
@@ -812,6 +813,7 @@ function createServerTable(){
 
   //create Tabulator on DOM element with id "example-table"
   $("#servers").tabulator({
+    index: "socket",
     ajaxURL: false,
     height: 240, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
     layout: "fitData", //fit columns to width of table (optional)
@@ -862,6 +864,7 @@ function createViewerTable(){
 
   //create Tabulator on DOM element with id "example-table"
   $("#viewers").tabulator({
+    index: "socket",
     ajaxURL: false,
     height: 240, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
     layout: "fitData", //fit columns to width of table (optional)

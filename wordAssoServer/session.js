@@ -703,6 +703,8 @@ function toggleControlPanel(){
 
     createPopUpControlPanel(config, function(err, cp){
 
+      controlPanelWindow = cp;
+
       console.warn("createPopUpControlPanel toggleControlPanel: " + controlPanelFlag);
 
       controlPanelInitWaitInterval = setInterval(function(){
@@ -710,8 +712,8 @@ function toggleControlPanel(){
           clearInterval(controlPanelInitWaitInterval);
           updateControlButton(controlPanelFlag);
           console.debug("TX> CONTROL PANEL INIT | SOURCE: " + DEFAULT_SOURCE);
-          cp.postMessage({op: "INIT", config: config}, DEFAULT_SOURCE);
-          cp.postMessage({op: "SET_TWITTER_USER", user: twitterUserThreecee}, DEFAULT_SOURCE);
+          controlPanelWindow.postMessage({op: "INIT", config: config}, DEFAULT_SOURCE);
+          controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: twitterUserThreecee}, DEFAULT_SOURCE);
         }
       }, 500);
 
@@ -1077,7 +1079,7 @@ function createPopUpControlPanel (cnf, callback) {
   cp.addEventListener("load", function(cnf){
     controlPanel = new cp.ControlPanel(cnf);
     controlPanelFlag = true;
-    callback(null, controlPanel);
+    callback(null, cp);
   }, false);
 }
 

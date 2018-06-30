@@ -7,7 +7,7 @@
     "@google-cloud/monitoring": "^0.5.0",
     "@threeceelabs/hashtag-server-controller": "^1.0.40",
     "@threeceelabs/mongoose-twitter": "^1.0.127",
-    "@threeceelabs/socketio-auth": "^1.0.7",
+    "@threeceelabs/socketio-auth": "^1.0.8",
     "@threeceelabs/tweet-server-controller": "^1.0.271",
     "@threeceelabs/twitter-image-parser": "^1.0.54",
     "@threeceelabs/user-server-controller": "^1.0.315",

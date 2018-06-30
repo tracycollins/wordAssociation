@@ -1108,6 +1108,8 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
           return async.setImmediate(function() { cb(); });
         }
 
+        const connectTime = _.has(currentViewer, "user.stats.socket.connectMoment") ? moment().diff(moment(currentViewer.user.stats.socket.connectMoment)) : 0;
+
         viewerTableData.push(
           {
             id: viewerSocketId, 
@@ -1118,7 +1120,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
             status: currentViewer.status,
             lastSeen: moment(currentViewer.timeStamp).format(defaultDateTimeFormat),
             ago: msToTime(moment().diff(moment(currentViewer.timeStamp))),
-            connect: msToTime(currentViewer.user.stats.connect)
+            connect: msToTime(connectTime)
           }
         );
 

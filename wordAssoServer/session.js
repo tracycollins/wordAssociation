@@ -744,6 +744,7 @@ function toggleControlPanel(){
 
           console.debug("TX> CONTROL PANEL INIT | SOURCE: " + DEFAULT_SOURCE);
 
+          // doesn't like momment in config.VIEWER_OBJ in postMessage
           let cf = config;
           delete cf.VIEWER_OBJ;
 

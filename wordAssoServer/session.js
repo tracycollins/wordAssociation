@@ -684,6 +684,35 @@ window.onbeforeunload = function() {
   controlPanelFlag = false;
 };
 
+var controlPanelReadyFlag = false;
+
+function createPopUpControlPanel (cnf, callback) {
+
+  console.debug("createPopUpControlPanel\ncnf\n" + jsonPrint(cnf));
+
+  controlPanelWindow = window.open(
+    "controlPanel.html", 
+    "CONTROL",
+    "width=1200,height=1200"
+  );
+
+  controlPanelWindow.addEventListener("message", controlPanelComm, false);
+  window.addEventListener("message", controlPanelComm, false);
+
+  controlPanelWindow.addEventListener("beforeunload", function(){
+    console.log("CONTROL POP UP CLOSING...");
+    controlPanelFlag = false;
+    updateControlButton(controlPanelFlag);
+  }, false);
+
+  controlPanelWindow.addEventListener("load", function(cnf){
+    controlPanel = new controlPanelWindow.ControlPanel(cnf);
+    controlPanelFlag = true;
+    callback();
+  }, false);
+}
+
+
 function toggleControlPanel(){
 
   // var cnf = config;
@@ -706,14 +735,19 @@ function toggleControlPanel(){
       console.warn("createPopUpControlPanel toggleControlPanel: " + controlPanelFlag);
 
       controlPanelInitWaitInterval = setInterval(function(){
+
         if (controlPanelReadyFlag) {
+
           clearInterval(controlPanelInitWaitInterval);
+
           updateControlButton(controlPanelFlag);
+
           console.debug("TX> CONTROL PANEL INIT | SOURCE: " + DEFAULT_SOURCE);
+
           controlPanelWindow.postMessage({op: "INIT", config: config}, DEFAULT_SOURCE);
           controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: twitterUserThreecee}, DEFAULT_SOURCE);
         }
-      }, 500);
+      }, 1000);
 
     });
   }
@@ -1051,34 +1085,6 @@ function controlPanelComm(event) {
         console.warn("R< ??? CONTROL PANEL OP UNDEFINED\n" + jsonPrint(event.data));
       }
   }
-}
-
-var controlPanelReadyFlag = false;
-
-function createPopUpControlPanel (cnf, callback) {
-
-  console.debug("createPopUpControlPanel\ncnf\n" + jsonPrint(cnf));
-
-  controlPanelWindow = window.open(
-    "controlPanel.html", 
-    "CONTROL",
-    "width=1200,height=1200"
-  );
-
-  controlPanelWindow.addEventListener("message", controlPanelComm, false);
-  window.addEventListener("message", controlPanelComm, false);
-
-  controlPanelWindow.addEventListener("beforeunload", function(){
-    console.log("CONTROL POP UP CLOSING...");
-    controlPanelFlag = false;
-    updateControlButton(controlPanelFlag);
-  }, false);
-
-  controlPanelWindow.addEventListener("load", function(cnf){
-    controlPanel = new controlPanelWindow.ControlPanel(cnf);
-    controlPanelFlag = true;
-    callback();
-  }, false);
 }
 
 function toggleShowNodeType(displayNodeType) {

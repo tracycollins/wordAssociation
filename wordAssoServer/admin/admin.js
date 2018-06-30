@@ -996,8 +996,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       });
     }
 
-    let i=0;
-
     async.eachSeries(heartBeat.admins, function(adminSocketEntry, cb){
 
       const adminSocketId = adminSocketEntry[0];
@@ -1006,7 +1004,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       adminSocketHashMap.set(adminSocketId, currentAdmin);
 
       totalAdmins += 1;
-      i += 1;
 
       if (!adminConfig.showDisconnectedAdmins && currentAdmin.status === "DISCONNECTED") {
         return async.setImmediate(function() { cb(); });
@@ -1066,8 +1063,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       });
     }
 
-    let i=0;
-
     async.eachSeries(heartBeat.viewers, function(viewerSocketEntry, cb){
 
       const viewerSocketId = viewerSocketEntry[0];
@@ -1077,7 +1072,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       viewerSocketHashMap.set(viewerSocketId, currentViewer);
 
       totalViewers += 1;
-      i += 1;
 
       if (!adminConfig.showDisconnectedViewers && currentViewer.status === "DISCONNECTED") {
         return async.setImmediate(function() { cb(); });
@@ -1137,8 +1131,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       });
     }
 
-    let i=0;
-
     async.eachSeries(heartBeat.servers, function(serverSocketEntry, cb){
 
       const serverSocketId = serverSocketEntry[0];
@@ -1148,36 +1140,67 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       serverSocketHashMap.set(serverSocketId, currentServer);
 
       totalServers += 1;
-      i += 1;
 
-      if (!adminConfig.showDisconnectedServers && currentServer.status === "DISCONNECTED") {
-        return async.setImmediate(function() { cb(); });
-      }
+      // if (!adminConfig.showDisconnectedServers && currentServer.status === "DISCONNECTED") {
+      //   return async.setImmediate(function() { cb(); });
+      // }
 
-      serverTableData.push(
-        {
-          id: serverSocketId, 
-          serverId: currentServer.user.nodeId,
-          serverType: currentServer.type,
-          socket: serverSocketId,
-          ipAddress: currentServer.ip,
-          status: currentServer.status,
-          lastSeen: moment(currentServer.timeStamp).format(defaultDateTimeFormat),
-          ago: msToTime(moment().diff(moment(currentServer.timeStamp))),
-          upTime: msToTime(currentServer.user.stats.elapsed)
-        }
-      );
+      // serverTableData.push(
+      //   {
+      //     id: serverSocketId, 
+      //     serverId: currentServer.user.nodeId,
+      //     serverType: currentServer.type,
+      //     socket: serverSocketId,
+      //     ipAddress: currentServer.ip,
+      //     status: currentServer.status,
+      //     lastSeen: moment(currentServer.timeStamp).format(defaultDateTimeFormat),
+      //     ago: msToTime(moment().diff(moment(currentServer.timeStamp))),
+      //     upTime: msToTime(currentServer.user.stats.elapsed)
+      //   }
+      // );
 
       async.setImmediate(function() { cb(); });
 
     }, function(){
 
-      $("#servers").tabulator("setData", serverTableData);
+      async.each(serverSocketHashMap.entries(), function(entry, cb){
 
-      maxServers = Math.max(maxServers, totalServers);
-      serverRatio = totalServers / maxServers;
-      serversBarText.innerHTML = totalServers + " SERVERS | " + maxServers + " MAX | " 
-        + moment().format(defaultDateTimeFormat);
+        const serverSocketId = entry[0];
+        const currentServer = entry[1];
+
+        if (!adminConfig.showDisconnectedServers && currentServer.status === "DISCONNECTED") {
+          return async.setImmediate(function() { cb(); });
+        }
+
+        serverTableData.push(
+          {
+            id: serverSocketId, 
+            serverId: currentServer.user.nodeId,
+            serverType: currentServer.type,
+            socket: serverSocketId,
+            ipAddress: currentServer.ip,
+            status: currentServer.status,
+            lastSeen: moment(currentServer.timeStamp).format(defaultDateTimeFormat),
+            ago: msToTime(moment().diff(moment(currentServer.timeStamp))),
+            upTime: msToTime(currentServer.user.stats.elapsed)
+          }
+        );
+
+        cb();
+
+      }, function(){
+
+        $("#servers").tabulator("setData", serverTableData);
+
+        maxServers = Math.max(maxServers, totalServers);
+
+        serverRatio = totalServers / maxServers;
+
+        serversBarText.innerHTML = totalServers + " SERVERS | " + maxServers + " MAX | " + moment().format(defaultDateTimeFormat);
+
+      });
+
+
     });
   }
 

@@ -13,7 +13,6 @@ var memoryAvailable = 0;
 var memoryUsed = 0;
 // var memoryUsage = {};
 
-var serverConnected = false;
 var sentAdminReady = false;
 var initializeComplete = false;
 
@@ -74,6 +73,23 @@ requirejs(
   }
 );
 
+var statsObj = {};
+
+statsObj.socket = {};
+
+statsObj.socket.errors = 0;
+statsObj.socket.error = false;
+statsObj.socket.errorMoment = moment();
+
+statsObj.socket.connected = true;
+statsObj.socket.connects = 0;
+statsObj.socket.connectMoment = moment();
+
+statsObj.socket.reconnectMoment = moment();
+statsObj.socket.reconnects = 0;
+
+statsObj.socket.disconnectMoment = moment();
+
 var serverSocketHashMap = new HashMap();
 
 var viewerSocketHashMap = new HashMap();
@@ -93,22 +109,22 @@ function getTimeNow() {
 var USER_ID = "ADMIN_" + moment().valueOf();
 var SCREEN_NAME = USER_ID;
 
-var mainAdminObj = {
-  adminId: USER_ID,
-  nodeId: USER_ID,
-  userId: USER_ID,
-  screenName: SCREEN_NAME,
-  type: "admin",
-  mode: "control",
-  tags: {}
-};
+var mainAdminObj = {};
 
+mainAdminObj.adminId = USER_ID;
+mainAdminObj.nodeId = USER_ID;
+mainAdminObj.userId = USER_ID;
+mainAdminObj.screenName = SCREEN_NAME;
+mainAdminObj.type = "admin";
+mainAdminObj.mode = "control";
+// mainAdminObj.stats = {};
+mainAdminObj.stats = statsObj;
+
+mainAdminObj.tags = {};
 mainAdminObj.tags.mode = "control";
 mainAdminObj.tags.type = "admin";
 mainAdminObj.tags.entity = USER_ID;
 mainAdminObj.tags.channel = "admin";
-
-var currentTime = getTimeNow();
 
 var heartBeatTimeoutFlag = false;
 var serverCheckInterval = 1000;
@@ -261,7 +277,7 @@ function serverClear() {
 
   heartBeatTimeoutFlag = false;
 
-  if (serverConnected && initializeComplete) {
+  if (statsObj.socket.connected && initializeComplete) {
     updateServerHeartbeat(heartBeat, heartBeatTimeoutFlag, lastTimeoutHeartBeat);
   }
 }
@@ -319,8 +335,10 @@ function tableCreateRow(parentTable, options, cellContentArray) {
 }
 
 setInterval(function() {
-  currentTime = getTimeNow();
-  if (serverConnected && initializeComplete) {
+
+  mainAdminObj.stats = statsObj;
+
+  if (statsObj.socket.connected && initializeComplete) {
   }
   if (initializeComplete && !sentAdminReady) {
     socket.emit("ADMIN_READY", mainAdminObj);
@@ -331,32 +349,49 @@ setInterval(function() {
 
 
 setInterval(function() {
-  if (serverConnected && sentAdminReady) {
+
+  mainAdminObj.stats = statsObj;
+
+  if (statsObj.socket.connected && sentAdminReady) {
     socket.emit("SESSION_KEEPALIVE", mainAdminObj);
   }
 }, 10000);
 
 
-socket.on("connect", function() {
-  serverConnected = true;
-  console.log("\n===== ADMIN SERVER CONNECTED =====\n" + getTimeStamp());
+socket.on("error", function(err) {
 
+  console.log("\n===== ADMIN SERVER SOCKET ERROR =====\n" + getTimeStamp());
+
+  statsObj.socket.errors += 1;
+  statsObj.socket.error = err;
+  statsObj.socket.errorMoment = moment();
+});
+
+socket.on("connect", function() {
+  console.log("\n===== ADMIN SERVER CONNECTED =====\n" + getTimeStamp());
+  statsObj.socket.connected = true;
+  statsObj.socket.connects += 1;
+  statsObj.socket.connectMoment = moment();
 });
 
 socket.on("reconnect", function() {
-  serverConnected = true;
   console.log("\n===== ADMIN SERVER RECONNECTED =====\n" + getTimeStamp());
   serverClear();
   socket.emit("ADMIN_READY", mainAdminObj);
   console.log("TX ADMIN_READY\n" + jsonPrint(mainAdminObj));
   sentAdminReady = true;
+  statsObj.socket.connected = true;
+  statsObj.socket.reconnects += 1;
+  statsObj.socket.reconnectMoment = moment();
 });
 
 socket.on("disconnect", function() {
-  serverConnected = false;
   console.log("\n***** SERVER DISCONNECTED *****\n" + getTimeStamp());
   serverClear();
   sentAdminReady = false;
+
+  statsObj.socket.connected = false;
+  statsObj.socket.disconnectMoment = moment();
 });
 
 socket.on("ADMIN_CONFIG", function(rxAdminConfig) {
@@ -535,7 +570,6 @@ socket.on("VIEWER_DISCONNECT", function(viewerObj) {
   sObj.user = viewerObj.user;
 
   viewerSocketHashMap.set(sObj.socketId, sObj);
-
 });
 
 socket.on("SERVER_DELETE", function(serverObj) {
@@ -790,7 +824,7 @@ function createAdminTable(){
       {title:"STATUS", field:"status", align:"left"},
       {title:"LAST SEEN", field:"lastSeen", align:"left"},
       {title:"AGO", field:"ago", align:"right"},
-      {title:"UPTIME", field:"upTime", align:"right"}
+      {title:"CONNECT", field:"connect", align:"right"}
     ]
   });
 }
@@ -893,7 +927,7 @@ function createViewerTable(){
       {title:"STATUS", field:"status", align:"left"},
       {title:"LAST SEEN", field:"lastSeen", align:"left"},
       {title:"AGO", field:"ago", align:"right"},
-      {title:"UPTIME", field:"upTime", align:"right"}
+      {title:"CONNECT", field:"connect", align:"right"}
     ]
   });
 }
@@ -953,57 +987,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   let adminTableData = [];
 
-  // if (heartBeat.admins) {
-
-  //   if (heartBeat.admins.length === 0){
-  //     adminSocketHashMap.forEach(function(adminObj, adminSocketId){
-  //       adminObj.status = "UNKNOWN";
-  //       adminObj.connected = false;
-  //       adminObj.deleted = true;
-  //       adminSocketHashMap.set(adminSocketId, adminObj);
-  //     });
-  //   }
-
-  //   async.eachSeries(heartBeat.admins, function(adminSocketEntry, cb){
-
-  //     const adminSocketId = adminSocketEntry[0];
-  //     const currentAdmin = adminSocketEntry[1];
-
-  //     adminSocketHashMap.set(adminSocketId, currentAdmin);
-
-  //     totalAdmins += 1;
-
-  //     if (!adminConfig.showDisconnectedAdmins && currentAdmin.status === "DISCONNECTED") {
-  //       return async.setImmediate(function() { cb(); });
-  //     }
-
-  //     adminTableData.push(
-  //       {
-  //         id: adminSocketId, 
-  //         adminId: currentAdmin.user.userId,
-  //         adminType: currentAdmin.type,
-  //         socket: currentAdmin.socketId,
-  //         ipAddress: currentAdmin.ip,
-  //         status: currentAdmin.status,
-  //         lastSeen: moment(currentAdmin.timeStamp).format(defaultDateTimeFormat),
-  //         ago: msToTime(moment().diff(moment(currentAdmin.timeStamp))),
-  //         // upTime: msToTime(currentAdmin.user.stats.elapsed)
-  //       }
-  //     );
-
-  //     async.setImmediate(function() { cb(); });
-
-  //   }, function(){
-
-  //     $("#admins").tabulator("setData", adminTableData);
-
-  //     maxAdmins = Math.max(maxAdmins, totalAdmins);
-  //     adminRatio = totalAdmins / maxAdmins;
-  //     adminsBarText.innerHTML = totalAdmins + " ADMINS | " + maxAdmins + " MAX | " 
-  //       + moment().format(defaultDateTimeFormat);
-  //   });
-  // }
-
   if (heartBeat.admins) {
 
     if (heartBeat.admins.length === 0){
@@ -1041,6 +1024,8 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
           return async.setImmediate(function() { cb(); });
         }
 
+        const connectTime = _.has(currentAdmin, "user.stats.socket.connectMoment") ? moment().diff(moment(currentAdmin.user.stats.socket.connectMoment)) : 0;
+
         adminTableData.push(
           {
             id: adminSocketId, 
@@ -1051,7 +1036,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
             status: currentAdmin.status,
             lastSeen: moment(currentAdmin.timeStamp).format(defaultDateTimeFormat),
             ago: msToTime(moment().diff(moment(currentAdmin.timeStamp))),
-            // upTime: msToTime(currentAdmin.user.stats.elapsed)
+            connect: msToTime(connectTime)
           }
         );
 
@@ -1085,57 +1070,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   totalViewers = 0;
 
   let viewerTableData = [];
-
-  // if (heartBeat.viewers) {
-
-  //   if (heartBeat.viewers.length === 0){
-  //     viewerSocketHashMap.forEach(function(viewerObj, viewerSocketId){
-  //       viewerObj.status = "UNKNOWN";
-  //       viewerObj.connected = false;
-  //       viewerObj.deleted = true;
-  //       viewerSocketHashMap.set(viewerSocketId, viewerObj);
-  //     });
-  //   }
-
-  //   async.eachSeries(heartBeat.viewers, function(viewerSocketEntry, cb){
-
-  //     const viewerSocketId = viewerSocketEntry[0];
-  //     const currentViewer = viewerSocketEntry[1];
-
-  //     viewerSocketHashMap.set(viewerSocketId, currentViewer);
-
-  //     totalViewers += 1;
-
-  //     if (!adminConfig.showDisconnectedViewers && currentViewer.status === "DISCONNECTED") {
-  //       return async.setImmediate(function() { cb(); });
-  //     }
-
-  //     viewerTableData.push(
-  //       {
-  //         id: viewerSocketId, 
-  //         viewerId: currentViewer.user.userId,
-  //         viewerType: currentViewer.type,
-  //         socket: currentViewer.socketId,
-  //         ipAddress: currentViewer.ip,
-  //         status: currentViewer.status,
-  //         lastSeen: moment(currentViewer.timeStamp).format(defaultDateTimeFormat),
-  //         ago: msToTime(moment().diff(moment(currentViewer.timeStamp))),
-  //         // upTime: msToTime(currentViewer.user.stats.elapsed)
-  //       }
-  //     );
-
-  //     async.setImmediate(function() { cb(); });
-
-  //   }, function(){
-
-  //     $("#viewers").tabulator("setData", viewerTableData);
-
-  //     maxViewers = Math.max(maxViewers, totalViewers);
-  //     viewerRatio = totalViewers / maxViewers;
-  //     viewersBarText.innerHTML = totalViewers + " VIEWERS | " + maxViewers + " MAX | " 
-  //       + moment().format(defaultDateTimeFormat);
-  //   });
-  // }
 
   if (heartBeat.viewers) {
 
@@ -1184,7 +1118,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
             status: currentViewer.status,
             lastSeen: moment(currentViewer.timeStamp).format(defaultDateTimeFormat),
             ago: msToTime(moment().diff(moment(currentViewer.timeStamp))),
-            // upTime: msToTime(currentViewer.user.stats.elapsed)
+            connect: msToTime(currentViewer.user.stats.connect)
           }
         );
 

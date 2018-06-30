@@ -3842,12 +3842,6 @@ configEvents.on("SERVER_READY", function serverReady() {
     tempAdminArray = adminHashMap.entries();
     heartbeatObj.admins = tempAdminArray;
 
-    // tempServerArray = serverHashMap.entries();
-
-      // admin tool expects this
-      // const serverSocketId = serverSocketEntry[0];
-      // const currentServer = serverSocketEntry[1];
-
     tempServerArray = [];
 
     async.each(serverCache.keys(), function(serverCacheKey, cb){
@@ -3859,7 +3853,7 @@ configEvents.on("SERVER_READY", function serverReady() {
           return cb(err);
         }
 
-        tempServerArray.push([serverCacheKey, serverObj]);
+        if (serverObj) { tempServerArray.push([serverCacheKey, serverObj]); }
 
         cb();
 
@@ -3868,13 +3862,6 @@ configEvents.on("SERVER_READY", function serverReady() {
     }, function(){
       heartbeatObj.servers = tempServerArray;
     });
-
-    // serverCache.keys().forEach(function(serverCacheKey){
-    //   const serverObj = serverCache.get(serverCacheKey);
-    //   tempServerArray.push([serverCacheKey, serverObj]);
-    // });
-
-    // heartbeatObj.servers = tempServerArray;
 
     tempViewerArray = viewerHashMap.entries();
     heartbeatObj.viewers = tempViewerArray;

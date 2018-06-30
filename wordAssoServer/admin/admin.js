@@ -44,7 +44,7 @@ var palette = {
 };
 
 const DEFAULT_TABLE_TEXT_COLOR = palette.lightgray ;
-const DEFAULT_TABLE_BG_COLOR = palette.darkgray;
+const DEFAULT_TABLE_BG_COLOR = palette.black;
 const DEFAULT_TABLE_FONT_SIZE = "1.5em";
 
 

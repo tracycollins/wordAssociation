@@ -5467,15 +5467,18 @@ function initialize(cnf, callback) {
 
       authenticate: function (socket, data, callback) {
 
-        console.log(chalkAlert("SOCKET IO AUTHENTICATE"
-          + " | " + getTimeStamp()
-          + " | " + socket.id
-          + "\n" + jsonPrint(data)
-        ));
-        //get credentials sent by the client
         const namespace = data.namespace;
         const userId = data.userId.toLowerCase();
         const password = data.password;
+
+        console.log(chalkAlert("SOCKET IO AUTHENTICATE"
+          + " | " + getTimeStamp()
+          + " | " + socket.id
+          + " | NAMESPACE: " + namespace
+          + " | UID: " + userId
+          // + "\n" + jsonPrint(data)
+        ));
+        //get credentials sent by the client
 
         if (namespace === "view") {
           console.log(chalkAlert("VIEWER AUTHENTICATED | " + userId));

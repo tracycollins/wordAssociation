@@ -701,7 +701,7 @@ function toggleControlPanel(){
 
     var controlPanelInitWaitInterval;
 
-    createPopUpControlPanel(config, function(){
+    createPopUpControlPanel(config, function(err, cp){
 
       console.warn("createPopUpControlPanel toggleControlPanel: " + controlPanelFlag);
 
@@ -710,8 +710,8 @@ function toggleControlPanel(){
           clearInterval(controlPanelInitWaitInterval);
           updateControlButton(controlPanelFlag);
           console.debug("TX> CONTROL PANEL INIT | SOURCE: " + DEFAULT_SOURCE);
-          controlPanelWindow.postMessage({op: "INIT", config: config}, DEFAULT_SOURCE);
-          controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: twitterUserThreecee}, DEFAULT_SOURCE);
+          cp.postMessage({op: "INIT", config: config}, DEFAULT_SOURCE);
+          cp.postMessage({op: "SET_TWITTER_USER", user: twitterUserThreecee}, DEFAULT_SOURCE);
         }
       }, 500);
 
@@ -1059,25 +1059,25 @@ function createPopUpControlPanel (cnf, callback) {
 
   console.debug("createPopUpControlPanel\ncnf\n" + jsonPrint(cnf));
 
-  controlPanelWindow = window.open(
+  let cp = window.open(
     "controlPanel.html", 
     "CONTROL",
     "width=1200,height=1200"
   );
 
-  controlPanelWindow.addEventListener("message", controlPanelComm, false);
+  cp.addEventListener("message", controlPanelComm, false);
   window.addEventListener("message", controlPanelComm, false);
 
-  controlPanelWindow.addEventListener("beforeunload", function(){
+  cp.addEventListener("beforeunload", function(){
     console.log("CONTROL POP UP CLOSING...");
     controlPanelFlag = false;
     updateControlButton(controlPanelFlag);
   }, false);
 
-  controlPanelWindow.addEventListener("load", function(cnf){
-    controlPanel = new controlPanelWindow.ControlPanel(cnf);
+  cp.addEventListener("load", function(cnf){
+    controlPanel = new cp.ControlPanel(cnf);
     controlPanelFlag = true;
-    callback(controlPanelWindow);
+    callback(null, controlPanel);
   }, false);
 }
 

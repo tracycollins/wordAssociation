@@ -74,19 +74,15 @@ requirejs(
   }
 );
 
-var serverTypeHashMap = new HashMap();
 var serverSocketHashMap = new HashMap();
 
 var viewerTypeHashMap = new HashMap();
 var viewerSocketHashMap = new HashMap();
-var viewerIpHashMap = new HashMap();
-var viewerSessionHashMap = new HashMap();
-
-var adminIpHashMap = new HashMap();
 var adminSocketHashMap = new HashMap();
 
-var adminIpHashMapKeys = [];
-var adminSocketHashMapKeys = [];
+let adminTableData = [];
+let serverTableData = [];
+let viewerTableData = [];
 
 function isObject(obj) {
   return obj === Object(obj);
@@ -269,14 +265,33 @@ function serverClear() {
 
   heartBeatTimeoutFlag = false;
 
-  adminIpHashMap.clear();
+  memoryAvailable = 0;
+  memoryUsed = 0;
+
+  adminTableData = [];
+  viewerTableData = [];
+  serverTableData = [];
+
   adminSocketHashMap.clear();
-
-  serverTypeHashMap.clear();
   serverSocketHashMap.clear();
+  viewerSocketHashMap.clear();
 
-  viewerIpHashMap.clear();
-  viewerSessionHashMap.clear();
+  maxAdmins = 0;
+  maxServers = 0;
+  maxViewers = 0;
+
+  adminRatio = 0;
+  totalAdmins = 0;
+
+  serverRatio = 0;
+  totalServers = 0;
+
+  viewerRatio = 0;
+  totalViewers = 0;
+  
+  tweetsPerMin = 0;
+  tweetsPerMinMax = 1;
+  tweetsPerMinMaxTime = 0;
 
   if (serverConnected && initializeComplete) {
     updateServerHeartbeat(heartBeat, heartBeatTimeoutFlag, lastTimeoutHeartBeat);
@@ -417,20 +432,7 @@ socket.on("ADMIN IP", function(rxIpObj) {
 
   adminIpObj.sessions[adminSessionObj.sessionId] = adminSessionObj;
 
-  adminIpHashMap.set(adminIpObj.ip, adminIpObj);
-
-  adminIpHashMapKeys = adminIpHashMap.keys();
-  adminIpHashMapKeys.sort();
-
   adminSocketHashMap.set(adminSessionObj.sessionId, adminIpObj);
-  adminSocketHashMapKeys = adminSocketHashMap.keys();
-  adminSocketHashMapKeys.sort();
-});
-
-socket.on("VIEWER IP", function(rxIpObj) {
-  var ipObj = JSON.parse(rxIpObj);
-  console.debug("RXCD VIEWER IP  " + ipObj.ip + " | " + ipObj.domain);
-  viewerIpHashMap.set(ipObj.ip, ipObj);
 });
 
 
@@ -451,11 +453,7 @@ socket.on("ADMIN_SESSION", function(adminSessionObj) {
 
   adminIpObj.sessions[adminSessionObj.sessionId] = adminSessionObj;
 
-  adminIpHashMap.set(adminIpObj.ip, adminIpObj);
-
   adminSocketHashMap.set(adminSessionObj.sessionId, adminIpObj);
-  adminSocketHashMapKeys = adminSocketHashMap.keys();
-  adminSocketHashMapKeys.sort();
 
 });
 
@@ -983,8 +981,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   totalAdmins = 0;
 
-  let adminTableData = [];
-
   if (heartBeat.admins) {
 
     if (heartBeat.admins.length === 0){
@@ -1049,8 +1045,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   }
 
   totalViewers = 0;
-
-  let viewerTableData = [];
 
   if (heartBeat.viewers) {
 
@@ -1118,8 +1112,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   totalServers = 0;
 
-  let serverTableData = [];
-
   if (heartBeat.servers) {
 
     if (heartBeat.servers.length === 0){
@@ -1141,7 +1133,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
         currentServer.type = "UNKNOWN";
       }
 
-      serverTypeHashMap.set(currentServer.type, currentServer);
       serverSocketHashMap.set(serverSocketId, currentServer);
 
       totalServers += 1;

@@ -2448,6 +2448,7 @@ function initSocketHandler(socketObj) {
         }
       break;
 
+      case "GIS" :
       case "TFE" :
       case "TNN" :
       case "TSS" :
@@ -2468,7 +2469,6 @@ function initSocketHandler(socketObj) {
 
         tempObj = serverCache.get(socket.id);
 
-        // if (!serverHashMap.has(socket.id)) { 
         if (!tempObj) { 
 
           sessionObj.ip = ipAddress;
@@ -2489,7 +2489,6 @@ function initSocketHandler(socketObj) {
             + " | " + socket.id
           ));
 
-          // serverHashMap.set(socket.id, sessionObj);
           serverCache.set(socket.id, sessionObj);
 
           adminNameSpace.emit("SERVER_ADD", sessionObj);
@@ -2497,13 +2496,10 @@ function initSocketHandler(socketObj) {
         }
         else {
 
-          // sessionObj = serverHashMap.get(socket.id);
           sessionObj = tempObj;
 
           sessionObj.timeStamp = moment().valueOf();
           sessionObj.user = userObj;
-
-          // serverHashMap.set(socket.id, sessionObj);
 
           serverCache.set(socket.id, sessionObj);
 

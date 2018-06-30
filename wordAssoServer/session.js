@@ -701,9 +701,7 @@ function toggleControlPanel(){
 
     var controlPanelInitWaitInterval;
 
-    createPopUpControlPanel(config, function(err, cp){
-
-      controlPanelWindow = cp;
+    createPopUpControlPanel(config, function(){
 
       console.warn("createPopUpControlPanel toggleControlPanel: " + controlPanelFlag);
 
@@ -1061,25 +1059,25 @@ function createPopUpControlPanel (cnf, callback) {
 
   console.debug("createPopUpControlPanel\ncnf\n" + jsonPrint(cnf));
 
-  let cp = window.open(
+  controlPanelWindow = window.open(
     "controlPanel.html", 
     "CONTROL",
     "width=1200,height=1200"
   );
 
-  cp.addEventListener("message", controlPanelComm, false);
+  controlPanelWindow.addEventListener("message", controlPanelComm, false);
   window.addEventListener("message", controlPanelComm, false);
 
-  cp.addEventListener("beforeunload", function(){
+  controlPanelWindow.addEventListener("beforeunload", function(){
     console.log("CONTROL POP UP CLOSING...");
     controlPanelFlag = false;
     updateControlButton(controlPanelFlag);
   }, false);
 
-  cp.addEventListener("load", function(cnf){
+  controlPanelWindow.addEventListener("load", function(cnf){
     controlPanel = new cp.ControlPanel(cnf);
     controlPanelFlag = true;
-    callback(null, cp);
+    callback();
   }, false);
 }
 

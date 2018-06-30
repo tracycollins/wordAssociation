@@ -744,7 +744,10 @@ function toggleControlPanel(){
 
           console.debug("TX> CONTROL PANEL INIT | SOURCE: " + DEFAULT_SOURCE);
 
-          controlPanelWindow.postMessage({op: "INIT", config: config}, DEFAULT_SOURCE);
+          let cf = config;
+          delete cf.VIEWER_OBJ;
+
+          controlPanelWindow.postMessage({op: "INIT", config: cf}, DEFAULT_SOURCE);
           controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: twitterUserThreecee}, DEFAULT_SOURCE);
         }
       }, 1000);

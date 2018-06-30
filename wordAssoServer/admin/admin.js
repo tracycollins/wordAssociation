@@ -1048,7 +1048,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
             status: currentAdmin.status,
             lastSeen: moment(currentAdmin.timeStamp).format(defaultDateTimeFormat),
             ago: msToTime(moment().diff(moment(currentAdmin.timeStamp))),
-            upTime: msToTime(currentAdmin.user.stats.elapsed)
+            // upTime: msToTime(currentAdmin.user.stats.elapsed)
           }
         );
 

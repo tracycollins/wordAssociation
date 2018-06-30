@@ -1181,7 +1181,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
             status: currentViewer.status,
             lastSeen: moment(currentViewer.timeStamp).format(defaultDateTimeFormat),
             ago: msToTime(moment().diff(moment(currentViewer.timeStamp))),
-            upTime: msToTime(currentViewer.user.stats.elapsed)
+            // upTime: msToTime(currentViewer.user.stats.elapsed)
           }
         );
 

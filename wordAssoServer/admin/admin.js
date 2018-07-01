@@ -132,6 +132,7 @@ var testMode = false;
 
 adminConfig.testMode = testMode;
 adminConfig.showDisconnectedServers = false;
+adminConfig.showDisconnectedAdmins = false;
 adminConfig.showDisconnectedViewers = false;
 
 var memoryBar;
@@ -752,9 +753,9 @@ function setTestMode(inputTestMode) {
     switch (e.target.id) {
       case "toggleButtonAdminDisconnected":
 
-        adminConfig.showDisconnectedViewers = (state === "enabled") ? true : false;
+        adminConfig.showDisconnectedAdmins = (state === "enabled") ? true : false;
 
-        if (!adminConfig.showDisconnectedViewers) {
+        if (!adminConfig.showDisconnectedAdmins) {
           $("#admins").tabulator("setFilter", disconnectedFilter);
         }
         else {
@@ -765,9 +766,9 @@ function setTestMode(inputTestMode) {
 
       case "toggleButtonServerDisconnected":
 
-        adminConfig.showDisconnectedViewers = (state === "enabled") ? true : false;
+        adminConfig.showDisconnectedServers = (state === "enabled") ? true : false;
 
-        if (!adminConfig.showDisconnectedViewers) {
+        if (!adminConfig.showDisconnectedServers) {
           $("#servers").tabulator("setFilter", disconnectedFilter);
         }
         else {
@@ -851,7 +852,7 @@ function createAdminTable(){
     ]
   });
 
-  if (!adminConfig.showDisconnectedViewers) {
+  if (!adminConfig.showDisconnectedAdmins) {
     $("#admins").tabulator("setFilter", disconnectedFilter);
   }
   else {
@@ -910,7 +911,7 @@ function createServerTable(){
     ]
   });
 
-  if (!adminConfig.showDisconnectedViewers) {
+  if (!adminConfig.showDisconnectedServers) {
     $("#servers").tabulator("setFilter", disconnectedFilter);
   }
   else {

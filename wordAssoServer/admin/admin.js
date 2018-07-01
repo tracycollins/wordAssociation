@@ -947,6 +947,7 @@ let maxServers = 0;
 let viewerRatio = 0;
 let totalViewers = 0;
 let maxViewers = 0;
+let viewerTableData = [];
 
 function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
@@ -1113,7 +1114,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
         $("#viewers").tabulator("updateData", [tableEntry]);
       }
       else {
-        $("#viewers").tabulator("setData", [tableEntry]);
+        $("#viewers").tabulator("addData", [tableEntry], true);
       }
 
       viewerSocketHashMap.set(viewerSocketId, currentViewer);

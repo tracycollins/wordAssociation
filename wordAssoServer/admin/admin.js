@@ -1087,6 +1087,8 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
       adminsBarText.innerHTML = totalAdmins + " ADMINS | " + maxAdmins + " MAX | " + moment().format(defaultDateTimeFormat);
 
+      $("#admins").tabulator("redraw");
+
     });
   }
 
@@ -1160,6 +1162,8 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
       viewersBarText.innerHTML = totalViewers + " VIEWERS | " + maxViewers + " MAX | " + moment().format(defaultDateTimeFormat);
 
+      $("#viewers").tabulator("redraw");
+
     });
   }
 
@@ -1230,6 +1234,8 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       serverRatio = totalServers / maxServers;
 
       serversBarText.innerHTML = totalServers + " SERVERS | " + maxServers + " MAX | " + moment().format(defaultDateTimeFormat);
+
+      $("#servers").tabulator("redraw");
 
     });
   }

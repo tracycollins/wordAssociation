@@ -177,6 +177,7 @@ let metricsRate = "1MinuteRate";
 
 const exp = require("express");
 const shell = require("shelljs");
+const JSONParse = require("json-parse-safe");
 
 const bodyParser = require("body-parser");
 const methodOverride = require("method-override");
@@ -1153,6 +1154,111 @@ function showStats(options){
   ));
 }
 
+// function loadFile(path, file, callback) {
+
+//   debug(chalkInfo("LOAD FOLDER " + path));
+//   debug(chalkInfo("LOAD FILE " + file));
+//   debug(chalkInfo("FULL PATH " + path + "/" + file));
+
+//   let fullPath = path + "/" + file;
+
+//   if (OFFLINE_MODE) {
+//     if (hostname === "mbp2") {
+//       fullPath = "/Users/tc/Dropbox/Apps/wordAssociation" + path + "/" + file;
+//       debug(chalkInfo("OFFLINE_MODE: FULL PATH " + fullPath));
+//     }
+//     fs.readFile(fullPath, "utf8", function(err, data) {
+
+//       if (err) {
+//         console.log("WAS"
+//           + " | " + chalkError(getTimeStamp()
+//           + " | *** ERROR LOADING FILE FROM DROPBOX FILE"
+//           + " | " + fullPath
+//         ));
+//         return(callback(err, null));
+//       }
+
+//       debug("WAS"
+//         + " | " + chalkLog(getTimeStamp()
+//         + " | LOADING FILE FROM DROPBOX FILE"
+//         + " | " + fullPath
+//       ));
+
+//       if (file.match(/\.json$/gi)) {
+//         try {
+//           let fileObj = JSON.parse(data);
+//           callback(null, fileObj);
+//         }
+//         catch(e){
+//           console.trace(chalkError("WAS | JSON PARSE ERROR: " + e));
+//           callback(e, null);
+//         }
+//       }
+//       else if (file.match(/\.txt$/gi)) {
+//         callback(null, data);
+//       }
+//       else {
+//         callback(null, null);
+//       }
+//     });
+//    }
+//   else {
+//     dropboxClient.filesDownload({path: fullPath})
+//     .then(function(data) {
+
+//       debug("WAS"
+//         + " | " + chalkLog(getTimeStamp()
+//         + " | LOADING FILE FROM DROPBOX: [" + toMegabytes(data.size).toFixed(3) + " MB] | " + fullPath
+//       ));
+
+//       let payload = data.fileBinary;
+//       debug(payload);
+
+//       if (file.match(/\.json$/gi)) {
+//         try {
+//           let fileObj = JSON.parse(payload);
+//           callback(null, fileObj);
+//         }
+//         catch(e){
+//           console.trace(chalkError("WAS | JSON PARSE ERROR: " + fullPath  + " | ERROR: " + e + "\n" + jsonPrint(e)));
+//           callback(e, null);
+//         }
+//       }
+//       else if (file.match(/\.txt$/gi)) {
+//         callback(null, data);
+//       }
+//       else {
+//         console.log(chalkLog("WAS"
+//           + " | " + getTimeStamp()
+//           + " | ??? LOADING FILE FROM DROPBOX FILE | NOT .json OR .txt: " + fullPath
+//         ));
+//         callback(null, null);
+//       }
+//     })
+//     .catch(function(error) {
+
+//       console.log(chalkError("WAS | !!! DROPBOX READ " + fullPath + " ERROR"));
+
+//       if (error.status === 404) {
+//         console.error(chalkError("WAS | !!! DROPBOX READ FILE " + fullPath + " NOT FOUND"
+//           + " ... SKIPPING ...")
+//         );
+//         return(callback(null, null));
+//       }
+//       if (error.status === 409) {
+//         console.error(chalkError("WAS | !!! DROPBOX READ FILE " + fullPath + " NOT FOUND"));
+//         return(callback(null, null));
+//       }
+//       if (error.status === 0) {
+//         console.error(chalkError("WAS | !!! DROPBOX NO RESPONSE"
+//           + " ... NO INTERNET CONNECTION? ... SKIPPING ..."));
+//         return(callback(null, null));
+//       }
+//       callback(error, null);
+//     });
+//   }
+// }
+
 function loadFile(path, file, callback) {
 
   debug(chalkInfo("LOAD FOLDER " + path));
@@ -1169,91 +1275,81 @@ function loadFile(path, file, callback) {
     fs.readFile(fullPath, "utf8", function(err, data) {
 
       if (err) {
-        console.log("WAS"
-          + " | " + chalkError(getTimeStamp()
-          + " | *** ERROR LOADING FILE FROM DROPBOX FILE"
-          + " | " + fullPath
-        ));
-        return(callback(err, null));
+        console.log(chalkError("fs readFile ERROR: " + err));
       }
 
-      debug("WAS"
-        + " | " + chalkLog(getTimeStamp()
+      debug(chalkLog(getTimeStamp()
         + " | LOADING FILE FROM DROPBOX FILE"
         + " | " + fullPath
       ));
 
       if (file.match(/\.json$/gi)) {
-        try {
-          let fileObj = JSON.parse(data);
-          callback(null, fileObj);
+
+        const fileObj = JSONParse(data);
+
+        if (fileObj.value) {
+          callback(null, fileObj.value);
         }
-        catch(e){
-          console.trace(chalkError("WAS | JSON PARSE ERROR: " + e));
-          callback(e, null);
+        else {
+          callback(fileObj.error, null);
         }
-      }
-      else if (file.match(/\.txt$/gi)) {
-        callback(null, data);
+
       }
       else {
         callback(null, null);
       }
+
     });
    }
   else {
+
     dropboxClient.filesDownload({path: fullPath})
     .then(function(data) {
 
-      debug("WAS"
-        + " | " + chalkLog(getTimeStamp()
-        + " | LOADING FILE FROM DROPBOX: [" + toMegabytes(data.size).toFixed(3) + " MB] | " + fullPath
+      debug(chalkLog(getTimeStamp()
+        + " | LOADING FILE FROM DROPBOX FILE: " + fullPath
       ));
 
-      let payload = data.fileBinary;
-      debug(payload);
-
       if (file.match(/\.json$/gi)) {
-        try {
-          let fileObj = JSON.parse(payload);
-          callback(null, fileObj);
+
+        let payload = data.fileBinary;
+
+        if (!payload || (payload === undefined)) {
+          return callback(new Error("TFE LOAD FILE PAYLOAD UNDEFINED"), null);
         }
-        catch(e){
-          console.trace(chalkError("WAS | JSON PARSE ERROR: " + fullPath  + " | ERROR: " + e + "\n" + jsonPrint(e)));
-          callback(e, null);
+
+        const fileObj = JSONParse(payload);
+
+        if (fileObj.value) {
+          callback(null, fileObj.value);
         }
-      }
-      else if (file.match(/\.txt$/gi)) {
-        callback(null, data);
+        else {
+          callback(fileObj.error, null);
+        }
       }
       else {
-        console.log(chalkLog("WAS"
-          + " | " + getTimeStamp()
-          + " | ??? LOADING FILE FROM DROPBOX FILE | NOT .json OR .txt: " + fullPath
-        ));
         callback(null, null);
       }
     })
     .catch(function(error) {
 
-      console.log(chalkError("WAS | !!! DROPBOX READ " + fullPath + " ERROR"));
-
-      if (error.status === 404) {
-        console.error(chalkError("WAS | !!! DROPBOX READ FILE " + fullPath + " NOT FOUND"
+      console.trace(chalkError("TFE | DROPBOX loadFile ERROR: " + fullPath + "\n" + error));
+      console.log(chalkError("TFE | " + jsonPrint(error.error)));
+      
+      if ((error.status === 409) || (error.status === 404)) {
+        console.log(chalkError("TFE | !!! DROPBOX READ FILE " + fullPath + " NOT FOUND"
           + " ... SKIPPING ...")
         );
-        return(callback(null, null));
+        callback(null, null);
       }
-      if (error.status === 409) {
-        console.error(chalkError("WAS | !!! DROPBOX READ FILE " + fullPath + " NOT FOUND"));
-        return(callback(null, null));
-      }
-      if (error.status === 0) {
-        console.error(chalkError("WAS | !!! DROPBOX NO RESPONSE"
+      else if (error.status === 0) {
+        console.log(chalkError("TFE | !!! DROPBOX NO RESPONSE"
           + " ... NO INTERNET CONNECTION? ... SKIPPING ..."));
-        return(callback(null, null));
+        callback(null, null);
       }
-      callback(error, null);
+      else {
+        callback(error, null);
+      }
     });
   }
 }

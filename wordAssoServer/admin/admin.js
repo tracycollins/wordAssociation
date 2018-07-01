@@ -1110,10 +1110,10 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       };
 
       if (viewerSocketHashMap.has(viewerSocketId)) {
-        $("#viewers").tabulator("updateData", tableEntry);
+        $("#viewers").tabulator("updateData", [tableEntry]);
       }
       else {
-        $("#viewers").tabulator("setData", tableEntry);
+        $("#viewers").tabulator("setData", [tableEntry]);
       }
 
       viewerSocketHashMap.set(viewerSocketId, currentViewer);

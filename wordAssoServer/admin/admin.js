@@ -875,7 +875,6 @@ function createServerTable(){
   buttonElement.style.border = toggleButtonDisabledStyle.border;
   serverPanelButtonsDiv.appendChild(buttonElement);
 
-
   $("#servers").tabulator({
     index: "socket",
     ajaxURL: false,
@@ -920,7 +919,7 @@ function createServerTable(){
 
 }
 
-function createViewerTable(callback){
+function createViewerTable(){
 
   var viewerPanelButtonsDiv = document.getElementById("viewer_panel_buttons");
 
@@ -977,7 +976,6 @@ function createViewerTable(callback){
     $("#viewers").tabulator("removeFilter", disconnectedFilter);
   }
 
-  return callback();
 }
 
 
@@ -1074,6 +1072,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       }
       else {
         $("#admins").tabulator("addData", [tableEntry], true);
+        $("#admins").tabulator("setData");
       }
 
       adminSocketHashMap.set(adminSocketId, currentAdmin);
@@ -1082,48 +1081,13 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
     }, function(){
 
+      $("#admins").tabulator("setData");
+
       maxAdmins = Math.max(maxAdmins, totalAdmins);
 
       adminRatio = totalAdmins / maxAdmins;
 
       adminsBarText.innerHTML = totalAdmins + " ADMINS | " + maxAdmins + " MAX | " + moment().format(defaultDateTimeFormat);
-
-      // async.each(adminSocketHashMap.entries(), function(entry, cb){
-
-      //   const adminSocketId = entry[0];
-      //   const currentAdmin = entry[1];
-
-      //   if (!adminConfig.showDisconnectedAdmins && currentAdmin.status === "DISCONNECTED") {
-      //     return async.setImmediate(function() { cb(); });
-      //   }
-
-      //   const connectTime = _.has(currentAdmin, "user.stats.socket.connectMoment") ? moment().diff(moment(currentAdmin.user.stats.socket.connectMoment)) : 0;
-
-      //   adminTableData.push(
-      //     {
-      //       id: adminSocketId, 
-      //       adminId: currentAdmin.user.nodeId,
-      //       adminType: currentAdmin.type,
-      //       socket: adminSocketId,
-      //       ipAddress: currentAdmin.ip,
-      //       status: currentAdmin.status,
-      //       lastSeen: moment(currentAdmin.timeStamp).format(defaultDateTimeFormat),
-      //       ago: msToTime(moment().diff(moment(currentAdmin.timeStamp))),
-      //       connect: msToTime(connectTime)
-      //     }
-      //   );
-
-      //   cb();
-      // }, function(){
-
-      //   $("#admins").tabulator("setData", adminTableData);
-
-      //   maxAdmins = Math.max(maxAdmins, totalAdmins);
-
-      //   adminRatio = totalAdmins / maxAdmins;
-
-      //   adminsBarText.innerHTML = totalAdmins + " ADMINS | " + maxAdmins + " MAX | " + moment().format(defaultDateTimeFormat);
-      // });
 
     });
   }
@@ -1184,6 +1148,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       }
       else {
         $("#viewers").tabulator("addData", [tableEntry], true);
+        $("#viewers").tabulator("setData");
       }
 
       viewerSocketHashMap.set(viewerSocketId, currentViewer);
@@ -1257,6 +1222,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       }
       else {
         $("#servers").tabulator("addData", [tableEntry], true);
+        $("#servers").tabulator("setData");
       }
 
       serverSocketHashMap.set(serverSocketId, currentServer);
@@ -1348,16 +1314,13 @@ function initialize(callback){
   console.debug("INITIALIZE...");
 
   initBars(function(){
+
     createAdminTable();
+
     createServerTable();
-    createViewerTable(function(){
-      if (!adminConfig.showDisconnectedViewers) {
-        $("#viewers").tabulator("setFilter", disconnectedFilter);
-      }
-      else {
-        $("#viewers").tabulator("removeFilter", disconnectedFilter);
-      }
-    });
+
+    createViewerTable();
+
     callback();
   });
 }

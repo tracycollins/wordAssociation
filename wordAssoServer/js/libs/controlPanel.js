@@ -1733,10 +1733,29 @@ function ControlPanel() {
             window.addEventListener("message", receiveMessage, false);
 
             setTimeout(function(){
+
               console.log("TX PARENT READY " + DEFAULT_SOURCE);
+
               parentWindow.postMessage({op:"READY"}, DEFAULT_SOURCE);
-              twttr.widgets.load();              
-            }, 3000);
+
+              if (!twttr || !twttr.widgets) {
+
+                var waitTwitterWidgetsInterval;
+
+                waitTwitterWidgetsInterval = setInterval(function(){
+
+                  if (twttr && twttr.widgets){
+                    clearInterval(waitTwitterWidgetsInterval);
+                    twttr.widgets.load();              
+                  }
+
+                }, 100);
+
+              }
+              else {
+                twttr.widgets.load();              
+              }
+            }, 1000);
 
           }
           else {

@@ -1074,8 +1074,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
         $("#admins").tabulator("addData", [tableEntry], true);
       }
 
-      $("#admins").tabulator("setData");
-
       adminSocketHashMap.set(adminSocketId, currentAdmin);
 
       async.setImmediate(function() { cb(); });
@@ -1149,8 +1147,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
         $("#viewers").tabulator("addData", [tableEntry], true);
       }
 
-      $("#viewers").tabulator("setData");
-
       viewerSocketHashMap.set(viewerSocketId, currentViewer);
 
       async.setImmediate(function() { cb(); });
@@ -1221,8 +1217,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       else {
         $("#servers").tabulator("addData", [tableEntry], true);
       }
-
-      $("#servers").tabulator("setData");
 
       serverSocketHashMap.set(serverSocketId, currentServer);
 

@@ -3,7 +3,7 @@
 /*jslint node: true */
 
 /* jshint undef: true, unused: true */
-/* globals document, io, requirejs, moment, HashMap, async, ProgressBar */
+/* globals $, _, document, io, requirejs, moment, HashMap, async, ProgressBar */
 
 "use strict";
 
@@ -665,11 +665,10 @@ setInterval(function(){
     }
 
     heartBeatTimeoutFlag = false;
-
   }
 }, 1000);
 
-var serverCheckTimeout = setInterval(function() {
+setInterval(function() {
 
   if (Date.now() > (heartBeat.timeStamp + maxServerHeartBeatWait)) {
     heartBeatTimeoutFlag = true;
@@ -677,6 +676,7 @@ var serverCheckTimeout = setInterval(function() {
     console.error("***** SERVER HEARTBEAT TIMEOUT ***** " + getTimeStamp() + " | LAST SEEN: " + getTimeStamp(heartBeat.timeStamp) + msToTime(Date.now() - heartBeat.timeStamp) + " AGO");
   }
   if (heartBeat !== undefined) { updateServerHeartbeat(heartBeat, heartBeatTimeoutFlag, lastTimeoutHeartBeat); }
+
 }, serverCheckInterval);
 
 function setTestMode(inputTestMode) {
@@ -751,11 +751,29 @@ function setTestMode(inputTestMode) {
 
     switch (e.target.id) {
       case "toggleButtonAdminDisconnected":
-        adminConfig.showDisconnectedAdmins = (state === "enabled") ? true : false;
+
+        adminConfig.showDisconnectedViewers = (state === "enabled") ? true : false;
+
+        if (!adminConfig.showDisconnectedViewers) {
+          $("#admins").tabulator("setFilter", disconnectedFilter);
+        }
+        else {
+          $("#admins").tabulator("removeFilter", disconnectedFilter);
+        }
+
       break;
 
       case "toggleButtonServerDisconnected":
-        adminConfig.showDisconnectedServers = (state === "enabled") ? true : false;
+
+        adminConfig.showDisconnectedViewers = (state === "enabled") ? true : false;
+
+        if (!adminConfig.showDisconnectedViewers) {
+          $("#servers").tabulator("setFilter", disconnectedFilter);
+        }
+        else {
+          $("#servers").tabulator("removeFilter", disconnectedFilter);
+        }
+
       break;
 
       case "toggleButtonViewerDisconnected":
@@ -832,6 +850,14 @@ function createAdminTable(){
       {title:"CONNECT", field:"connect", align:"right"}
     ]
   });
+
+  if (!adminConfig.showDisconnectedViewers) {
+    $("#admins").tabulator("setFilter", disconnectedFilter);
+  }
+  else {
+    $("#admins").tabulator("removeFilter", disconnectedFilter);
+  }
+
 }
 
 function createServerTable(){
@@ -884,6 +910,14 @@ function createServerTable(){
       {title:"UPTIME", field:"upTime", align:"right"}
     ]
   });
+
+  if (!adminConfig.showDisconnectedViewers) {
+    $("#servers").tabulator("setFilter", disconnectedFilter);
+  }
+  else {
+    $("#servers").tabulator("removeFilter", disconnectedFilter);
+  }
+
 }
 
 function createViewerTable(callback){
@@ -906,7 +940,7 @@ function createViewerTable(callback){
     ajaxURL: false,
     height: 240, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
     layout: "fitData", //fit columns to width of table (optional)
-    layoutColumnsOnNewData:true,
+    layoutColumnsOnNewData: true,
     rowFormatter:function(row){
       var data = row.getData();
 
@@ -958,7 +992,6 @@ let maxServers = 0;
 let viewerRatio = 0;
 let totalViewers = 0;
 let maxViewers = 0;
-let viewerTableData = [];
 
 function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
@@ -999,8 +1032,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   totalAdmins = 0;
 
-  let adminTableData = [];
-
   if (heartBeat.admins) {
 
     if (heartBeat.admins.length === 0){
@@ -1012,7 +1043,9 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       });
     }
 
-    async.eachSeries(heartBeat.admins, function(adminSocketEntry, cb){
+    let tableEntry = {};
+
+    async.each(heartBeat.admins, function(adminSocketEntry, cb){
 
       const adminSocketId = adminSocketEntry[0];
       let currentAdmin = adminSocketEntry[1];
@@ -1022,49 +1055,75 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
         currentAdmin.type = "UNKNOWN";
       }
 
+      const connectTime = _.has(currentAdmin, "user.stats.socket.connectMoment") ? moment().diff(moment(currentAdmin.user.stats.socket.connectMoment)) : 0;
+
+      tableEntry = {
+        id: adminSocketId, 
+        adminId: currentAdmin.user.nodeId,
+        adminType: currentAdmin.type,
+        socket: adminSocketId,
+        ipAddress: currentAdmin.ip,
+        status: currentAdmin.status,
+        lastSeen: moment(currentAdmin.timeStamp).format(defaultDateTimeFormat),
+        ago: msToTime(moment().diff(moment(currentAdmin.timeStamp))),
+        connect: msToTime(connectTime)
+      };
+
+      if (adminSocketHashMap.has(adminSocketId)) {
+        $("#admins").tabulator("updateData", [tableEntry]);
+      }
+      else {
+        $("#admins").tabulator("addData", [tableEntry], true);
+      }
+
       adminSocketHashMap.set(adminSocketId, currentAdmin);
 
-      totalAdmins += 1;
-
       async.setImmediate(function() { cb(); });
+
     }, function(){
 
-      async.each(adminSocketHashMap.entries(), function(entry, cb){
+      maxAdmins = Math.max(maxAdmins, totalAdmins);
 
-        const adminSocketId = entry[0];
-        const currentAdmin = entry[1];
+      adminRatio = totalAdmins / maxAdmins;
 
-        if (!adminConfig.showDisconnectedAdmins && currentAdmin.status === "DISCONNECTED") {
-          return async.setImmediate(function() { cb(); });
-        }
+      adminsBarText.innerHTML = totalAdmins + " ADMINS | " + maxAdmins + " MAX | " + moment().format(defaultDateTimeFormat);
 
-        const connectTime = _.has(currentAdmin, "user.stats.socket.connectMoment") ? moment().diff(moment(currentAdmin.user.stats.socket.connectMoment)) : 0;
+      // async.each(adminSocketHashMap.entries(), function(entry, cb){
 
-        adminTableData.push(
-          {
-            id: adminSocketId, 
-            adminId: currentAdmin.user.nodeId,
-            adminType: currentAdmin.type,
-            socket: adminSocketId,
-            ipAddress: currentAdmin.ip,
-            status: currentAdmin.status,
-            lastSeen: moment(currentAdmin.timeStamp).format(defaultDateTimeFormat),
-            ago: msToTime(moment().diff(moment(currentAdmin.timeStamp))),
-            connect: msToTime(connectTime)
-          }
-        );
+      //   const adminSocketId = entry[0];
+      //   const currentAdmin = entry[1];
 
-        cb();
-      }, function(){
+      //   if (!adminConfig.showDisconnectedAdmins && currentAdmin.status === "DISCONNECTED") {
+      //     return async.setImmediate(function() { cb(); });
+      //   }
 
-        $("#admins").tabulator("setData", adminTableData);
+      //   const connectTime = _.has(currentAdmin, "user.stats.socket.connectMoment") ? moment().diff(moment(currentAdmin.user.stats.socket.connectMoment)) : 0;
 
-        maxAdmins = Math.max(maxAdmins, totalAdmins);
+      //   adminTableData.push(
+      //     {
+      //       id: adminSocketId, 
+      //       adminId: currentAdmin.user.nodeId,
+      //       adminType: currentAdmin.type,
+      //       socket: adminSocketId,
+      //       ipAddress: currentAdmin.ip,
+      //       status: currentAdmin.status,
+      //       lastSeen: moment(currentAdmin.timeStamp).format(defaultDateTimeFormat),
+      //       ago: msToTime(moment().diff(moment(currentAdmin.timeStamp))),
+      //       connect: msToTime(connectTime)
+      //     }
+      //   );
 
-        adminRatio = totalAdmins / maxAdmins;
+      //   cb();
+      // }, function(){
 
-        adminsBarText.innerHTML = totalAdmins + " ADMINS | " + maxAdmins + " MAX | " + moment().format(defaultDateTimeFormat);
-      });
+      //   $("#admins").tabulator("setData", adminTableData);
+
+      //   maxAdmins = Math.max(maxAdmins, totalAdmins);
+
+      //   adminRatio = totalAdmins / maxAdmins;
+
+      //   adminsBarText.innerHTML = totalAdmins + " ADMINS | " + maxAdmins + " MAX | " + moment().format(defaultDateTimeFormat);
+      // });
 
     });
   }
@@ -1095,7 +1154,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     }
 
     let tableEntry = {};
-
 
     async.each(heartBeat.viewers, function(viewerSocketEntry, cb){
 
@@ -1130,8 +1188,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
       viewerSocketHashMap.set(viewerSocketId, currentViewer);
 
-      // totalViewers += 1;
-
       async.setImmediate(function() { cb(); });
 
     }, function(){
@@ -1143,42 +1199,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       viewerRatio = totalViewers / maxViewers;
 
       viewersBarText.innerHTML = totalViewers + " VIEWERS | " + maxViewers + " MAX | " + moment().format(defaultDateTimeFormat);
-
-      // async.each(viewerSocketHashMap.entries(), function(entry, cb){
-
-      //   const viewerSocketId = entry[0];
-      //   const currentViewer = entry[1];
-
-      //   if (!adminConfig.showDisconnectedViewers && currentViewer.status === "DISCONNECTED") {
-      //     return async.setImmediate(function() { cb(); });
-      //   }
-
-
-      //   viewerTableData.push(
-      //     {
-      //       id: viewerSocketId, 
-      //       viewerId: currentViewer.user.nodeId,
-      //       viewerType: currentViewer.type,
-      //       socket: viewerSocketId,
-      //       ipAddress: currentViewer.ip,
-      //       status: currentViewer.status,
-      //       lastSeen: moment(currentViewer.timeStamp).format(defaultDateTimeFormat),
-      //       ago: msToTime(moment().diff(moment(currentViewer.timeStamp))),
-      //       connect: msToTime(connectTime)
-      //     }
-      //   );
-
-      //   cb();
-      // }, function(){
-
-      //   $("#viewers").tabulator("setData", viewerTableData);
-
-      //   maxViewers = Math.max(maxViewers, totalViewers);
-
-      //   viewerRatio = totalViewers / maxViewers;
-
-      //   viewersBarText.innerHTML = totalViewers + " VIEWERS | " + maxViewers + " MAX | " + moment().format(defaultDateTimeFormat);
-      // });
 
     });
   }
@@ -1197,8 +1217,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   totalServers = 0;
 
-  let serverTableData = [];
-
   if (heartBeat.servers) {
 
     if (heartBeat.servers.length === 0){
@@ -1210,6 +1228,8 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       });
     }
 
+    let tableEntry = {};
+
     async.each(heartBeat.servers, function(serverSocketEntry, cb){
 
       const serverSocketId = serverSocketEntry[0];
@@ -1220,48 +1240,38 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
         currentServer.type = "UNKNOWN";
       }
 
-      serverSocketHashMap.set(serverSocketId, currentServer);
+      tableEntry = {
+        id: serverSocketId, 
+        serverId: currentServer.user.nodeId,
+        serverType: currentServer.type,
+        socket: serverSocketId,
+        ipAddress: currentServer.ip,
+        status: currentServer.status,
+        lastSeen: moment(currentServer.timeStamp).format(defaultDateTimeFormat),
+        ago: msToTime(moment().diff(moment(currentServer.timeStamp))),
+        upTime: msToTime(currentServer.user.stats.elapsed)
+      };
 
-      totalServers += 1;
+      if (serverSocketHashMap.has(serverSocketId)) {
+        $("#servers").tabulator("updateData", [tableEntry]);
+      }
+      else {
+        $("#servers").tabulator("addData", [tableEntry], true);
+      }
+
+      serverSocketHashMap.set(serverSocketId, currentServer);
 
       async.setImmediate(function() { cb(); });
 
     }, function(){
 
-      async.each(serverSocketHashMap.entries(), function(entry, cb){
+      $("#servers").tabulator("setData");
 
-        const serverSocketId = entry[0];
-        const currentServer = entry[1];
+      maxServers = Math.max(maxServers, totalServers);
 
-        if (!adminConfig.showDisconnectedServers && currentServer.status === "DISCONNECTED") {
-          return async.setImmediate(function() { cb(); });
-        }
+      serverRatio = totalServers / maxServers;
 
-        serverTableData.push(
-          {
-            id: serverSocketId, 
-            serverId: currentServer.user.nodeId,
-            serverType: currentServer.type,
-            socket: serverSocketId,
-            ipAddress: currentServer.ip,
-            status: currentServer.status,
-            lastSeen: moment(currentServer.timeStamp).format(defaultDateTimeFormat),
-            ago: msToTime(moment().diff(moment(currentServer.timeStamp))),
-            upTime: msToTime(currentServer.user.stats.elapsed)
-          }
-        );
-
-        cb();
-      }, function(){
-
-        $("#servers").tabulator("setData", serverTableData);
-
-        maxServers = Math.max(maxServers, totalServers);
-
-        serverRatio = totalServers / maxServers;
-
-        serversBarText.innerHTML = totalServers + " SERVERS | " + maxServers + " MAX | " + moment().format(defaultDateTimeFormat);
-      });
+      serversBarText.innerHTML = totalServers + " SERVERS | " + maxServers + " MAX | " + moment().format(defaultDateTimeFormat);
 
     });
   }

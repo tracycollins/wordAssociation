@@ -1069,7 +1069,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       };
 
       if (adminSocketHashMap.has(adminSocketId)) {
-        $("#admins").tabulator("updateData", [tableEntry]);
+        $("#admins").tabulator("updateOrAddData", [tableEntry]);
       }
       else {
         $("#admins").tabulator("addData", [tableEntry], true);
@@ -1142,7 +1142,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       };
 
       if (viewerSocketHashMap.has(viewerSocketId)) {
-        $("#viewers").tabulator("updateData", [tableEntry]);
+        $("#viewers").tabulator("updateOrAddData", [tableEntry]);
       }
       else {
         $("#viewers").tabulator("addData", [tableEntry], true);
@@ -1213,7 +1213,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       };
 
       if (serverSocketHashMap.has(serverSocketId)) {
-        $("#servers").tabulator("updateData", [tableEntry]);
+        $("#servers").tabulator("updateOrAddData", [tableEntry]);
       }
       else {
         $("#servers").tabulator("addData", [tableEntry], true);

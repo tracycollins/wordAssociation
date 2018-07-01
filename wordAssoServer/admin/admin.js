@@ -936,6 +936,14 @@ function createViewerTable(){
       {title:"CONNECT", field:"connect", align:"right"}
     ]
   });
+
+  if (!adminConfig.showDisconnectedViewers) {
+    $("#viewers").tabulator("setFilter", disconnectedFilter);
+  }
+  else {
+    $("#viewers").tabulator("removeFilter", disconnectedFilter);
+  }
+
 }
 
 

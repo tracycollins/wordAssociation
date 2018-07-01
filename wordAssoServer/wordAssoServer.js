@@ -3927,6 +3927,8 @@ configEvents.on("SERVER_READY", function serverReady() {
       heartbeatObj.servers = tempServerArray;
     });
 
+    tempViewerArray = [];
+
     async.each(viewerCache.keys(), function(viewerCacheKey, cb){
 
       viewerCache.get(viewerCacheKey, function(err, viewerObj){
@@ -3946,8 +3948,6 @@ configEvents.on("SERVER_READY", function serverReady() {
       heartbeatObj.viewers = tempViewerArray;
     });
 
-    // tempViewerArray = viewerHashMap.entries();
-    // heartbeatObj.viewers = tempViewerArray;
 
     statsObj.nodesPerMin = parseInt(globalNodeMeter.toJSON()[metricsRate]);
 

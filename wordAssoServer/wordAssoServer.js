@@ -2442,7 +2442,8 @@ function initSocketHandler(socketObj) {
     const currentSessionType = serverRegex.exec(userObj.userId) ? serverRegex.exec(userObj.userId)[1].toUpperCase() : "NULL";
 
     let sessionObj = {};
-    let tempObj;
+    let tempServerObj;
+    let tempViewerObj;
 
     switch (currentSessionType) {
 
@@ -2512,9 +2513,9 @@ function initSocketHandler(socketObj) {
         sessionObj.timeStamp = moment().valueOf();
         sessionObj.user = userObj;
 
-        tempObj = serverCache.get(socket.id);
+        tempServerObj = serverCache.get(socket.id);
 
-        if (!tempObj) { 
+        if (!tempServerObj) { 
 
           sessionObj.ip = ipAddress;
           sessionObj.socketId = socket.id;
@@ -2541,7 +2542,7 @@ function initSocketHandler(socketObj) {
         }
         else {
 
-          sessionObj = tempObj;
+          sessionObj = tempServerObj;
 
           sessionObj.timeStamp = moment().valueOf();
           sessionObj.user = userObj;
@@ -2568,9 +2569,9 @@ function initSocketHandler(socketObj) {
         sessionObj.timeStamp = moment().valueOf();
         sessionObj.user = userObj;
 
-        tempObj = viewerCache.get(socket.id);
+        tempViewerObj = viewerCache.get(socket.id);
 
-        if (!tempObj) { 
+        if (!tempViewerObj) { 
 
           sessionObj.socketId = socket.id;
           sessionObj.ip = ipAddress;
@@ -2594,7 +2595,7 @@ function initSocketHandler(socketObj) {
         }
         else {
 
-          sessionObj = viewerHashMap.get(socket.id);
+          sessionObj = tempViewerObj;
 
           sessionObj.timeStamp = moment().valueOf();
           sessionObj.user = userObj;

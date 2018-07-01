@@ -11,7 +11,39 @@ const ONE_MINUTE = 60 * ONE_SECOND;
 const ONE_HOUR = 60 * ONE_MINUTE;
 const ONE_DAY = 24 * ONE_HOUR;
 
+const MAX_SESSION_AGE = ONE_DAY/1000;
+const MAX_Q = 200;
+const OFFLINE_MODE = false;
+
 const DEFAULT_NODE_TYPES = ["emoji", "hashtag", "media", "place", "url", "user", "word"];
+
+const compactDateTimeFormat = "YYYYMMDD HHmmss";
+const tinyDateTimeFormat = "YYYYMMDDHHmmss";
+
+const SERVER_CACHE_DEFAULT_TTL = 120; // seconds
+const SERVER_CACHE_CHECK_PERIOD = 15*ONE_SECOND;
+
+const VIEWER_CACHE_DEFAULT_TTL = 120; // seconds
+const VIEWER_CACHE_CHECK_PERIOD = 15*ONE_SECOND;
+
+const ADMIN_CACHE_DEFAULT_TTL = 120; // seconds
+const ADMIN_CACHE_CHECK_PERIOD = 15*ONE_SECOND;
+
+const AUTH_USER_CACHE_DEFAULT_TTL = MAX_SESSION_AGE;
+const AUTH_USER_CACHE_CHECK_PERIOD = ONE_HOUR/1000; // seconds
+
+const AUTH_IN_PROGRESS_CACHE_DEFAULT_TTL = 60000;
+const AUTH_IN_PROGRESS_CACHE_CHECK_PERIOD = 1000;
+
+const TOPTERMS_CACHE_DEFAULT_TTL = 60;
+const TOPTERMS_CACHE_CHECK_PERIOD = 5;
+
+const TRENDING_CACHE_DEFAULT_TTL = 300;
+const TRENDING_CACHE_CHECK_PERIOD = 60;
+
+const NODE_CACHE_DEFAULT_TTL = 60;
+const NODE_CACHE_CHECK_PERIOD = 5;
+
 
 let DEFAULT_IO_PING_INTERVAL = ONE_MINUTE;
 let DEFAULT_IO_PING_TIMEOUT = 3*ONE_MINUTE;
@@ -121,10 +153,6 @@ let tweetParserReady = false;
 let tweetParserSendReady = false;
 let previousBestNetworkId = "";
 
-const MAX_SESSION_AGE = ONE_DAY/1000;
-const MAX_Q = 200;
-const OFFLINE_MODE = false;
-
 const passport = require("passport");
 
 let twitterUserThreecee = {
@@ -181,29 +209,6 @@ let quitOnError = true;
 // GLOBAL VARIABLES
 // ==================================================================
 
-
-const compactDateTimeFormat = "YYYYMMDD HHmmss";
-const tinyDateTimeFormat = "YYYYMMDDHHmmss";
-
-const SERVER_CACHE_DEFAULT_TTL = 120; // seconds
-
-const SERVER_CACHE_CHECK_PERIOD = 15*ONE_SECOND;
-
-
-const AUTH_USER_CACHE_DEFAULT_TTL = MAX_SESSION_AGE;
-const AUTH_USER_CACHE_CHECK_PERIOD = ONE_HOUR/1000; // seconds
-
-const AUTH_IN_PROGRESS_CACHE_DEFAULT_TTL = 60000;
-const AUTH_IN_PROGRESS_CACHE_CHECK_PERIOD = 1000;
-
-const TOPTERMS_CACHE_DEFAULT_TTL = 60;
-const TOPTERMS_CACHE_CHECK_PERIOD = 5;
-
-const TRENDING_CACHE_DEFAULT_TTL = 300;
-const TRENDING_CACHE_CHECK_PERIOD = 60;
-
-const NODE_CACHE_DEFAULT_TTL = 60;
-const NODE_CACHE_CHECK_PERIOD = 5;
 
 var ignoreWordsArray = [
   "r",
@@ -601,6 +606,37 @@ function slackPostMessage(channel, text, callback){
     if (callback !== undefined) { callback(err, response); }
   });
 }
+
+// ==================================================================
+// VIEWER CACHE
+// ==================================================================
+let viewerCacheTtl = process.env.VIEWER_CACHE_DEFAULT_TTL;
+if (viewerCacheTtl === undefined) { viewerCacheTtl = VIEWER_CACHE_DEFAULT_TTL;}
+
+console.log("VIEWER CACHE TTL: " + viewerCacheTtl + " SECONDS");
+
+let viewerCacheCheckPeriod = process.env.VIEWER_CACHE_CHECK_PERIOD;
+if (viewerCacheCheckPeriod === undefined) { viewerCacheCheckPeriod = VIEWER_CACHE_CHECK_PERIOD;}
+
+console.log("VIEWER CACHE CHECK PERIOD: " + viewerCacheCheckPeriod + " SECONDS");
+
+const viewerCache = new NodeCache({
+  stdTTL: viewerCacheTtl,
+  checkperiod: viewerCacheCheckPeriod
+});
+
+function viewerCacheExpired(viewerCacheId, viewerObj) {
+
+  console.log(chalkAlert("XXX VIEWER CACHE EXPIRED"
+    + " | " + viewerObj.user.type.toUpperCase()
+    + " | " + viewerCacheId
+    + " | " + viewerObj.user.userId
+  ));
+
+  adminNameSpace.emit("VIEWER_EXPIRED", viewerObj);
+}
+
+viewerCache.on("expired", viewerCacheExpired);
 
 // ==================================================================
 // SERVER CACHE
@@ -2290,9 +2326,13 @@ function initSocketHandler(socketObj) {
       adminNameSpace.emit("SERVER_ERROR", currentServer);
     }
 
-    if (viewerHashMap.has(socket.id)) { 
 
-      let currentViewer = viewerHashMap.get(socket.id);
+    let currentViewer = viewerCache.get(socket.id);
+
+    // if (viewerHashMap.has(socket.id)) { 
+    if (currentViewer) { 
+
+      // let currentViewer = viewerHashMap.get(socket.id);
 
       currentViewer.timeStamp = moment().valueOf();
       currentViewer.ip = ipAddress;
@@ -2364,9 +2404,11 @@ function initSocketHandler(socketObj) {
 
     }
 
-    if (viewerHashMap.has(socket.id)) { 
+    let currentViewer = viewerCache.get(socket.id);
+    // if (viewerHashMap.has(socket.id)) { 
+    if (currentViewer) { 
 
-      let currentViewer = viewerHashMap.get(socket.id);
+      // let currentViewer = viewerHashMap.get(socket.id);
       currentViewer.status = "DISCONNECTED";
 
       console.error(chalk.blue("VIEWER DISCONNECTED" 
@@ -2377,7 +2419,8 @@ function initSocketHandler(socketObj) {
         + " | " + socket.id
       ));
 
-      viewerHashMap.set(socket.id, currentViewer);
+      // viewerHashMap.set(socket.id, currentViewer);
+      viewerCache.set(socket.id, currentViewer);
 
       adminNameSpace.emit("VIEWER_DISCONNECT", currentViewer);
     }
@@ -2519,8 +2562,15 @@ function initSocketHandler(socketObj) {
           + " | " + socket.id
         ));
 
+        sessionObj.socketId = socket.id;
+        sessionObj.ip = ipAddress;
+        sessionObj.type = currentSessionType;
+        sessionObj.timeStamp = moment().valueOf();
+        sessionObj.user = userObj;
 
-        if (!viewerHashMap.has(socket.id)) { 
+        tempObj = viewerCache.get(socket.id);
+
+        if (!tempObj) { 
 
           sessionObj.socketId = socket.id;
           sessionObj.ip = ipAddress;
@@ -2539,7 +2589,7 @@ function initSocketHandler(socketObj) {
             + " | " + socket.id
           ));
 
-          viewerHashMap.set(socket.id, sessionObj);
+          viewerCache.set(socket.id, sessionObj);
           adminNameSpace.emit("VIEWER_ADD", sessionObj);
         }
         else {
@@ -3037,6 +3087,7 @@ function initSocketHandler(socketObj) {
   socket.on("STATS", function socketStats(statsObj){
 
     let serverObj = serverCache.get(socket.id);
+    let viewerObj = viewerCache.get(socket.id);
 
     // if (serverHashMap.has(socket.id)) {
     if (serverObj) {
@@ -3056,10 +3107,24 @@ function initSocketHandler(socketObj) {
 
       adminNameSpace.emit("SERVER_STATS", serverObj);
     }
-    else {
+
+    if (viewerObj) {
+
+      viewerObj.status = "STATS";
+      viewerObj.stats = statsObj;
+      viewerObj.timeStamp = moment().valueOf();
+
+      viewerCache.set(socket.id, viewerObj);
+
       if (configuration.verbose) {
-        console.log(chalkSocket("R> STATS | " + socket.id));
+        console.log(chalkSocket("R> STATS | " + viewerObj.user.userId));
       }
+
+      adminNameSpace.emit("SERVER_STATS", viewerObj);
+    }
+
+    if (configuration.verbose) {
+      console.log(chalkSocket("R> STATS | " + socket.id));
     }
   });
 }
@@ -3861,8 +3926,27 @@ configEvents.on("SERVER_READY", function serverReady() {
       heartbeatObj.servers = tempServerArray;
     });
 
-    tempViewerArray = viewerHashMap.entries();
-    heartbeatObj.viewers = tempViewerArray;
+    async.each(viewerCache.keys(), function(viewerCacheKey, cb){
+
+      viewerCache.get(viewerCacheKey, function(err, viewerObj){
+
+        if (err) {
+          console.log(chalkError("VIEWER CACHE ERROR: " + err));
+          return cb(err);
+        }
+
+        if (viewerObj) { tempViewerArray.push([viewerCacheKey, viewerObj]); }
+
+        cb();
+
+      });
+
+    }, function(){
+      heartbeatObj.viewers = tempViewerArray;
+    });
+
+    // tempViewerArray = viewerHashMap.entries();
+    // heartbeatObj.viewers = tempViewerArray;
 
     statsObj.nodesPerMin = parseInt(globalNodeMeter.toJSON()[metricsRate]);
 

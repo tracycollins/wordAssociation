@@ -100,12 +100,6 @@ function isObject(obj) {
   return obj === Object(obj);
 }
 
-function getTimeNow() {
-  var d = new Date();
-  return d.getTime();
-}
-
-
 var USER_ID = "ADMIN_" + moment().valueOf();
 var SCREEN_NAME = USER_ID;
 
@@ -733,6 +727,10 @@ function setTestMode(inputTestMode) {
     border: "2px solid " + palette.lightgray,
     color: palette.lightgray
   };
+
+  function disconnectedFilter(data){
+    return data.status !== "DISCONNECTED";
+  }
   
   var toggleButtonHandler = function (e){
 
@@ -762,7 +760,16 @@ function setTestMode(inputTestMode) {
       break;
 
       case "toggleButtonViewerDisconnected":
+
         adminConfig.showDisconnectedViewers = (state === "enabled") ? true : false;
+
+        if (!adminConfig.showDisconnectedViewers) {
+          $("#viewers").tabulator("setFilter", disconnectedFilter);
+        }
+        else {
+          $("#viewers").tabulator("removeFilter", disconnectedFilter);
+        }
+
       break;
 
       default:
@@ -792,8 +799,6 @@ function createAdminTable(){
   buttonElement.style.border = toggleButtonDisabledStyle.border;
   adminPanelButtonsDiv.appendChild(buttonElement);
 
-
-  //create Tabulator on DOM element with id "example-table"
   $("#admins").tabulator({
     index: "socket",
     ajaxURL: false,
@@ -845,7 +850,6 @@ function createServerTable(){
   serverPanelButtonsDiv.appendChild(buttonElement);
 
 
-  //create Tabulator on DOM element with id "example-table"
   $("#servers").tabulator({
     index: "socket",
     ajaxURL: false,
@@ -896,7 +900,6 @@ function createViewerTable(){
   buttonElement.style.border = toggleButtonDisabledStyle.border;
   viewerPanelButtonsDiv.appendChild(buttonElement);
 
-  //create Tabulator on DOM element with id "example-table"
   $("#viewers").tabulator({
     index: "socket",
     ajaxURL: false,
@@ -944,7 +947,6 @@ let maxServers = 0;
 let viewerRatio = 0;
 let totalViewers = 0;
 let maxViewers = 0;
-
 
 function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
@@ -1069,8 +1071,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   totalViewers = 0;
 
-  let viewerTableData = [];
-
   if (heartBeat.viewers) {
 
     if (heartBeat.viewers.length === 0){
@@ -1082,6 +1082,9 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       });
     }
 
+    let tableEntry = {};
+
+
     async.eachSeries(heartBeat.viewers, function(viewerSocketEntry, cb){
 
       const viewerSocketId = viewerSocketEntry[0];
@@ -1092,49 +1095,76 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
         currentViewer.type = "UNKNOWN";
       }
 
+      const connectTime = _.has(currentViewer, "user.stats.socket.connectMoment") ? moment().diff(moment(currentViewer.user.stats.socket.connectMoment)) : 0;
+
+      tableEntry = {
+        id: viewerSocketId, 
+        viewerId: currentViewer.user.nodeId,
+        viewerType: currentViewer.type,
+        socket: viewerSocketId,
+        ipAddress: currentViewer.ip,
+        status: currentViewer.status,
+        lastSeen: moment(currentViewer.timeStamp).format(defaultDateTimeFormat),
+        ago: msToTime(moment().diff(moment(currentViewer.timeStamp))),
+        connect: msToTime(connectTime)
+      };
+
+      if (viewerSocketHashMap.has(viewerSocketId)) {
+        $("#viewers").tabulator("updateData", tableEntry);
+      }
+      else {
+        $("#viewers").tabulator("setData", tableEntry);
+      }
+
       viewerSocketHashMap.set(viewerSocketId, currentViewer);
 
-      totalViewers += 1;
+      // totalViewers += 1;
 
       async.setImmediate(function() { cb(); });
+
     }, function(){
 
-      async.each(viewerSocketHashMap.entries(), function(entry, cb){
+      maxViewers = Math.max(maxViewers, totalViewers);
 
-        const viewerSocketId = entry[0];
-        const currentViewer = entry[1];
+      viewerRatio = totalViewers / maxViewers;
 
-        if (!adminConfig.showDisconnectedViewers && currentViewer.status === "DISCONNECTED") {
-          return async.setImmediate(function() { cb(); });
-        }
+      viewersBarText.innerHTML = totalViewers + " VIEWERS | " + maxViewers + " MAX | " + moment().format(defaultDateTimeFormat);
 
-        const connectTime = _.has(currentViewer, "user.stats.socket.connectMoment") ? moment().diff(moment(currentViewer.user.stats.socket.connectMoment)) : 0;
+      // async.each(viewerSocketHashMap.entries(), function(entry, cb){
 
-        viewerTableData.push(
-          {
-            id: viewerSocketId, 
-            viewerId: currentViewer.user.nodeId,
-            viewerType: currentViewer.type,
-            socket: viewerSocketId,
-            ipAddress: currentViewer.ip,
-            status: currentViewer.status,
-            lastSeen: moment(currentViewer.timeStamp).format(defaultDateTimeFormat),
-            ago: msToTime(moment().diff(moment(currentViewer.timeStamp))),
-            connect: msToTime(connectTime)
-          }
-        );
+      //   const viewerSocketId = entry[0];
+      //   const currentViewer = entry[1];
 
-        cb();
-      }, function(){
+      //   if (!adminConfig.showDisconnectedViewers && currentViewer.status === "DISCONNECTED") {
+      //     return async.setImmediate(function() { cb(); });
+      //   }
 
-        $("#viewers").tabulator("setData", viewerTableData);
 
-        maxViewers = Math.max(maxViewers, totalViewers);
+      //   viewerTableData.push(
+      //     {
+      //       id: viewerSocketId, 
+      //       viewerId: currentViewer.user.nodeId,
+      //       viewerType: currentViewer.type,
+      //       socket: viewerSocketId,
+      //       ipAddress: currentViewer.ip,
+      //       status: currentViewer.status,
+      //       lastSeen: moment(currentViewer.timeStamp).format(defaultDateTimeFormat),
+      //       ago: msToTime(moment().diff(moment(currentViewer.timeStamp))),
+      //       connect: msToTime(connectTime)
+      //     }
+      //   );
 
-        viewerRatio = totalViewers / maxViewers;
+      //   cb();
+      // }, function(){
 
-        viewersBarText.innerHTML = totalViewers + " VIEWERS | " + maxViewers + " MAX | " + moment().format(defaultDateTimeFormat);
-      });
+      //   $("#viewers").tabulator("setData", viewerTableData);
+
+      //   maxViewers = Math.max(maxViewers, totalViewers);
+
+      //   viewerRatio = totalViewers / maxViewers;
+
+      //   viewersBarText.innerHTML = totalViewers + " VIEWERS | " + maxViewers + " MAX | " + moment().format(defaultDateTimeFormat);
+      // });
 
     });
   }

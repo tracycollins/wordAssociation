@@ -1082,8 +1082,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
     }, function(){
 
-      $("#admins").tabulator("setData");
-
       maxAdmins = Math.max(maxAdmins, totalAdmins);
 
       adminRatio = totalAdmins / maxAdmins;
@@ -1159,8 +1157,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
     }, function(){
 
-      $("#viewers").tabulator("setData");
-
       maxViewers = Math.max(maxViewers, totalViewers);
 
       viewerRatio = totalViewers / maxViewers;
@@ -1233,8 +1229,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       async.setImmediate(function() { cb(); });
 
     }, function(){
-
-      $("#servers").tabulator("setData");
 
       maxServers = Math.max(maxServers, totalServers);
 

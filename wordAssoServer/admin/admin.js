@@ -804,6 +804,7 @@ function createAdminTable(){
     ajaxURL: false,
     height: 240, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
     layout: "fitData", //fit columns to width of table (optional)
+    layoutColumnsOnNewData:true,
     rowFormatter:function(row){
       var data = row.getData();
 
@@ -855,6 +856,7 @@ function createServerTable(){
     ajaxURL: false,
     height: 240, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
     layout: "fitData", //fit columns to width of table (optional)
+    layoutColumnsOnNewData:true,
     rowFormatter:function(row){
       var data = row.getData();
 
@@ -905,6 +907,7 @@ function createViewerTable(){
     ajaxURL: false,
     height: 240, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
     layout: "fitData", //fit columns to width of table (optional)
+    layoutColumnsOnNewData:true,
     rowFormatter:function(row){
       var data = row.getData();
 

@@ -1086,7 +1086,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     let tableEntry = {};
 
 
-    async.eachSeries(heartBeat.viewers, function(viewerSocketEntry, cb){
+    async.each(heartBeat.viewers, function(viewerSocketEntry, cb){
 
       const viewerSocketId = viewerSocketEntry[0];
       let currentViewer = viewerSocketEntry[1];
@@ -1124,6 +1124,8 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       async.setImmediate(function() { cb(); });
 
     }, function(){
+
+      $("#viewers").tabulator("setData");
 
       maxViewers = Math.max(maxViewers, totalViewers);
 
@@ -1197,7 +1199,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       });
     }
 
-    async.eachSeries(heartBeat.servers, function(serverSocketEntry, cb){
+    async.each(heartBeat.servers, function(serverSocketEntry, cb){
 
       const serverSocketId = serverSocketEntry[0];
       let currentServer = serverSocketEntry[1];
@@ -1212,6 +1214,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       totalServers += 1;
 
       async.setImmediate(function() { cb(); });
+
     }, function(){
 
       async.each(serverSocketHashMap.entries(), function(entry, cb){

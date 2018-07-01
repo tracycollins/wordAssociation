@@ -57,21 +57,21 @@ var ALERT_LIMIT_PERCENT = 95;
 var ONE_MB = 1024 * 1024;
 var ONE_GB = ONE_MB * 1024;
 
-requirejs(
-  ["https://d3js.org/d3.v5.min.js"], 
-  function() {
-    console.debug("d3 LOADED");
-    initialize(function(){
-      initializeComplete = true;
-    });
-  },
-  function(error) {
-    console.log("REQUIREJS ERROR handler", error);
-    var failedId = error.requireModules && error.requireModules[0];
-    console.log(failedId);
-    console.log(error.message);
-  }
-);
+// requirejs(
+//   ["https://d3js.org/d3.v5.min.js"], 
+//   function() {
+//     console.debug("d3 LOADED");
+//     initialize(function(){
+//       initializeComplete = true;
+//     });
+//   },
+//   function(error) {
+//     console.log("REQUIREJS ERROR handler", error);
+//     var failedId = error.requireModules && error.requireModules[0];
+//     console.log(failedId);
+//     console.log(error.message);
+//   }
+// );
 
 var statsObj = {};
 
@@ -644,7 +644,6 @@ socket.on("HEARTBEAT", function(rxHeartbeat) {
   while (heartBeatQueue.length > 60) {
     heartBeatQueue.shift();
   }
-
 });
 
 var heartBeatQueueReady = true;
@@ -802,7 +801,7 @@ function createAdminTable(){
   $("#admins").tabulator({
     index: "socket",
     ajaxURL: false,
-    height: 240, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
+    height: 120, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
     layout: "fitData", //fit columns to width of table (optional)
     layoutColumnsOnNewData:true,
     rowFormatter:function(row){
@@ -887,7 +886,7 @@ function createServerTable(){
   });
 }
 
-function createViewerTable(){
+function createViewerTable(callback){
 
   var viewerPanelButtonsDiv = document.getElementById("viewer_panel_buttons");
 
@@ -944,6 +943,7 @@ function createViewerTable(){
     $("#viewers").tabulator("removeFilter", disconnectedFilter);
   }
 
+  return callback();
 }
 
 
@@ -1331,8 +1331,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   tableCreateRow(heatbeatTable, false, ["SERVER UPTIME", msToTime(heartBeat.upTime)]);
   tableCreateRow(heatbeatTable, false, ["APP START TIME", getTimeStamp(heartBeat.startTime)]);
   tableCreateRow(heatbeatTable, false, ["APP RUNTIME", msToTime(heartBeat.runTime)]);
-
-
 }
 
 function initialize(callback){
@@ -1342,8 +1340,30 @@ function initialize(callback){
   initBars(function(){
     createAdminTable();
     createServerTable();
-    createViewerTable();
+    createViewerTable(function(){
+      if (!adminConfig.showDisconnectedViewers) {
+        $("#viewers").tabulator("setFilter", disconnectedFilter);
+      }
+      else {
+        $("#viewers").tabulator("removeFilter", disconnectedFilter);
+      }
+    });
     callback();
   });
-
 }
+
+requirejs(
+  ["https://d3js.org/d3.v5.min.js"], 
+  function() {
+    console.debug("d3 LOADED");
+    initialize(function(){
+      initializeComplete = true;
+    });
+  },
+  function(error) {
+    console.log("REQUIREJS ERROR handler", error);
+    var failedId = error.requireModules && error.requireModules[0];
+    console.log(failedId);
+    console.log(error.message);
+  }
+);

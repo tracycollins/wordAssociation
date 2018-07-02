@@ -5339,16 +5339,18 @@ function initCategoryHashmaps(callback){
                 categorizedHashtagHashMap.set(nodeId, results.obj[nodeId]);
               });
 
-              console.log(chalkInfo("WA | LOADING CATEGORIZED HASHTAGS FROM DB"
-                + " | TOTAL CATEGORIZED: " + totalCount
-                + " | LIMIT: " + p.limit
-                + " | SKIP: " + p.skip
-                + " | " + totalManual + " MAN"
-                + " | " + totalAuto + " AUTO"
-                + " | " + totalMatched + " MATCHED"
-                + " / " + totalMismatched + " MISMATCHED"
-                + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
-              ));
+              if (configuration.verbose) {
+                console.log(chalkInfo("WA | LOADING CATEGORIZED HASHTAGS FROM DB"
+                  + " | TOTAL CATEGORIZED: " + totalCount
+                  + " | LIMIT: " + p.limit
+                  + " | SKIP: " + p.skip
+                  + " | " + totalManual + " MAN"
+                  + " | " + totalAuto + " AUTO"
+                  + " | " + totalMatched + " MATCHED"
+                  + " / " + totalMismatched + " MISMATCHED"
+                  + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
+                ));
+              }
 
               p.skip += results.count;
 
@@ -5431,16 +5433,18 @@ function initCategoryHashmaps(callback){
                 categorizedUserHashMap.set(nodeId, results.obj[nodeId]);
               });
 
-              console.log(chalkInfo("WA | LOADING CATEGORIZED USERS FROM DB"
-                + " | TOTAL CATEGORIZED: " + totalCount
-                + " | LIMIT: " + p.limit
-                + " | SKIP: " + p.skip
-                + " | " + totalManual + " MAN"
-                + " | " + totalAuto + " AUTO"
-                + " | " + totalMatched + " MATCHED"
-                + " / " + totalMismatched + " MISMATCHED"
-                + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
-              ));
+              if (configuration.verbose) {
+                console.log(chalkInfo("WA | LOADING CATEGORIZED USERS FROM DB"
+                  + " | TOTAL CATEGORIZED: " + totalCount
+                  + " | LIMIT: " + p.limit
+                  + " | SKIP: " + p.skip
+                  + " | " + totalManual + " MAN"
+                  + " | " + totalAuto + " AUTO"
+                  + " | " + totalMatched + " MATCHED"
+                  + " / " + totalMismatched + " MISMATCHED"
+                  + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
+                ));
+              }
 
               p.skip += results.count;
 
@@ -5520,16 +5524,18 @@ function initCategoryHashmaps(callback){
                 categorizedWordHashMap.set(nodeId, results.obj[nodeId]);
               });
 
-              console.log(chalkInfo("WA | LOADING CATEGORIZED WORDS FROM DB"
-                + " | TOTAL CATEGORIZED: " + totalCount
-                + " | LIMIT: " + p.limit
-                + " | SKIP: " + p.skip
-                + " | " + totalManual + " MAN"
-                + " | " + totalAuto + " AUTO"
-                + " | " + totalMatched + " MATCHED"
-                + " / " + totalMismatched + " MISMATCHED"
-                + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
-              ));
+              if (configuration.verbose) {
+                console.log(chalkInfo("WA | LOADING CATEGORIZED WORDS FROM DB"
+                  + " | TOTAL CATEGORIZED: " + totalCount
+                  + " | LIMIT: " + p.limit
+                  + " | SKIP: " + p.skip
+                  + " | " + totalManual + " MAN"
+                  + " | " + totalAuto + " AUTO"
+                  + " | " + totalMatched + " MATCHED"
+                  + " / " + totalMismatched + " MISMATCHED"
+                  + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
+                ));
+              }
 
               p.skip += results.count;
 

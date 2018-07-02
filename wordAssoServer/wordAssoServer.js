@@ -5284,7 +5284,7 @@ function initCategoryHashmaps(callback){
 
   console.log(chalkTwitter("INIT CATEGORIZED USER + HASHTAG HASHMAPS FROM DB"));
 
-  async.eachSeries({
+  async.series({
 
     hashtag: function(cb){
 
@@ -5400,8 +5400,6 @@ function initCategoryHashmaps(callback){
           cb(err);
         }
       );
-
-
     },
     word: function(cb){
 

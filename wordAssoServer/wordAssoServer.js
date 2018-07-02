@@ -5,6 +5,9 @@ const ONE_KILOBYTE = 1024;
 const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
 
 const DEFAULT_FIND_CAT_USER_CURSOR_LIMIT = 500;
+const DEFAULT_FIND_CAT_WORD_CURSOR_LIMIT = 500;
+const DEFAULT_FIND_CAT_HASHTAG_CURSOR_LIMIT = 500;
+
 const DEFAULT_CURSOR_BATCH_SIZE = process.env.DEFAULT_CURSOR_BATCH_SIZE || 100;
 
 const ONE_SECOND = 1000;
@@ -5281,6 +5284,10 @@ function initLoadBestNetworkInterval(interval){
   }, interval);
 }
 
+
+// kludge
+// probably can write one general purpose function to handle all types of nodes
+
 function initCategoryHashmaps(callback){
 
   console.log(chalkTwitter("INIT CATEGORIZED USER + HASHTAG HASHMAPS FROM DB"));
@@ -5289,29 +5296,94 @@ function initCategoryHashmaps(callback){
 
     hashtag: function(cb){
 
-      hashtagServerController.findCategorizedHashtagsCursor({}, function(err, results){
-        if (err) {
-          console.error(chalkError("ERROR: initCategoryHashmaps: findCategorizedHashtagsCursor:"
-            + " " + err
-          ));
+      let p = {};
+
+      p.skip = 0;
+      p.batch = DEFAULT_CURSOR_BATCH_SIZE;
+      p.limit = DEFAULT_FIND_CAT_HASHTAG_CURSOR_LIMIT;
+
+      let more = true;
+      let totalCount = 0;
+      let totalManual = 0;
+      let totalAuto = 0;
+      let totalMatched = 0;
+      let totalMismatched = 0;
+      let totalMatchRate = 0;
+
+      async.whilst(
+
+        function() {
+          return more;
+        },
+
+        function(cb0){
+
+          hashtagServerController.findCategorizedHashtagsCursor(p, function(err, results){
+
+            if (err) {
+              console.error(chalkError("WA | ERROR: initCategorizedHashtagHashmap: hashtagServerController: findCategorizedHashtagsCursor" + err));
+              cb0(err);
+            }
+            else if (results) {
+
+              more = true;
+              totalCount += results.count;
+              totalManual += results.manual;
+              totalAuto += results.auto;
+              totalMatched += results.matched;
+              totalMismatched += results.mismatched;
+
+              totalMatchRate = 100*(totalMatched/(totalMatched+totalMismatched));
+
+              Object.keys(results.obj).forEach(function(nodeId){
+                categorizedHashtagHashMap.set(nodeId, results.obj[nodeId]);
+              });
+
+              console.log(chalkInfo("WA | LOADING CATEGORIZED HASHTAGS FROM DB"
+                + " | TOTAL CATEGORIZED: " + totalCount
+                + " | LIMIT: " + p.limit
+                + " | SKIP: " + p.skip
+                + " | " + totalManual + " MAN"
+                + " | " + totalAuto + " AUTO"
+                + " | " + totalMatched + " MATCHED"
+                + " / " + totalMismatched + " MISMATCHED"
+                + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
+              ));
+
+              p.skip += results.count;
+
+              cb0();
+            }
+            else {
+
+              more = false;
+
+              console.log(chalkTwitter("LOADED CATEGORIZED HASHTAGS FROM DB"
+                + " | TOTAL CATEGORIZED: " + totalCount
+                + " | LIMIT: " + p.limit
+                + " | SKIP: " + p.skip
+                + " | " + totalManual + " MAN"
+                + " | " + totalAuto + " AUTO"
+                + " | " + totalMatched + " MATCHED"
+                + " / " + totalMismatched + " MISMATCHED"
+                + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
+              ));
+
+              cb0();
+            }
+          });
+        },
+
+        function(err){
+          if (err) {
+            console.log(chalkError("NNT | INIT CATEGORIZED HASHTAG HASHMAP ERROR: " + err + "\n" + jsonPrint(err)));
+          }
           cb(err);
         }
-        else {
-          console.log(chalkTwitter("LOADED CATEGORIZED HASHTAGS FROM DB"
-            + " | " + results.count + " CATEGORIZED"
-            + " | " + results.manual + " MAN"
-            + " | " + results.auto + " AUTO"
-            + " | " + results.matchRate.toFixed(2) + "% MR"
-          ));
+      );
 
-          Object.keys(results.obj).forEach(function(nodeId){
-            categorizedHashtagHashMap.set(nodeId, results.obj[nodeId]);
-          });
-
-          cb();
-        }
-      });
     },
+
     user: function(cb){
 
       let p = {};
@@ -5378,7 +5450,7 @@ function initCategoryHashmaps(callback){
 
               more = false;
 
-              console.log(chalkInfo("WA | LOADING CATEGORIZED USERS FROM DB"
+              console.log(chalkTwitter("LOADED CATEGORIZED USERS FROM DB"
                 + " | TOTAL CATEGORIZED: " + totalCount
                 + " | LIMIT: " + p.limit
                 + " | SKIP: " + p.skip
@@ -5391,7 +5463,6 @@ function initCategoryHashmaps(callback){
 
               cb0();
             }
-
           });
         },
 
@@ -5402,32 +5473,96 @@ function initCategoryHashmaps(callback){
           cb(err);
         }
       );
+
     },
     word: function(cb){
 
-      wordServerController.findCategorizedWordsCursor({}, function(err, results){
-        
-        if (err) {
-          console.error(chalkError("ERROR: initCategoryHashmaps: findCategorizedWordsCursor:"
-            + " " + err
-          ));
+      let p = {};
+
+      p.skip = 0;
+      p.batch = DEFAULT_CURSOR_BATCH_SIZE;
+      p.limit = DEFAULT_FIND_CAT_WORD_CURSOR_LIMIT;
+
+      let more = true;
+      let totalCount = 0;
+      let totalManual = 0;
+      let totalAuto = 0;
+      let totalMatched = 0;
+      let totalMismatched = 0;
+      let totalMatchRate = 0;
+
+      async.whilst(
+
+        function() {
+          return more;
+        },
+
+        function(cb0){
+
+          wordServerController.findCategorizedWordsCursor(p, function(err, results){
+
+            if (err) {
+              console.error(chalkError("WA | ERROR: initCategorizedUserHashmap: wordServerController: findCategorizedWordsCursor" + err));
+              cb0(err);
+            }
+            else if (results) {
+
+              more = true;
+              totalCount += results.count;
+              totalManual += results.manual;
+              totalAuto += results.auto;
+              totalMatched += results.matched;
+              totalMismatched += results.mismatched;
+
+              totalMatchRate = 100*(totalMatched/(totalMatched+totalMismatched));
+
+              Object.keys(results.obj).forEach(function(nodeId){
+                categorizedWordHashMap.set(nodeId, results.obj[nodeId]);
+              });
+
+              console.log(chalkInfo("WA | LOADING CATEGORIZED WORDS FROM DB"
+                + " | TOTAL CATEGORIZED: " + totalCount
+                + " | LIMIT: " + p.limit
+                + " | SKIP: " + p.skip
+                + " | " + totalManual + " MAN"
+                + " | " + totalAuto + " AUTO"
+                + " | " + totalMatched + " MATCHED"
+                + " / " + totalMismatched + " MISMATCHED"
+                + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
+              ));
+
+              p.skip += results.count;
+
+              cb0();
+            }
+            else {
+
+              more = false;
+
+              console.log(chalkTwitter("LOADED CATEGORIZED WORDS FROM DB"
+                + " | TOTAL CATEGORIZED: " + totalCount
+                + " | LIMIT: " + p.limit
+                + " | SKIP: " + p.skip
+                + " | " + totalManual + " MAN"
+                + " | " + totalAuto + " AUTO"
+                + " | " + totalMatched + " MATCHED"
+                + " / " + totalMismatched + " MISMATCHED"
+                + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
+              ));
+
+              cb0();
+            }
+          });
+        },
+
+        function(err){
+          if (err) {
+            console.log(chalkError("NNT | INIT CATEGORIZED WORDS HASHMAP ERROR: " + err + "\n" + jsonPrint(err)));
+          }
           cb(err);
         }
-        else {
-          console.log(chalkTwitter("LOADED CATEGORIZED WORDS FROM DB"
-            + " | " + results.count + " CATEGORIZED"
-            + " | " + results.manual + " MAN"
-            + " | " + results.auto + " AUTO"
-            + " | " + results.matchRate.toFixed(2) + "% MR"
-          ));
+      );
 
-          Object.keys(results.obj).forEach(function(nodeId){
-            categorizedWordHashMap.set(nodeId, results.obj[nodeId]);
-          });
-
-          cb();
-        }
-      });
     }
 
   }, function(err){

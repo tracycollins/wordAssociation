@@ -5,6 +5,7 @@ const ONE_KILOBYTE = 1024;
 const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
 
 const DEFAULT_FIND_CAT_USER_CURSOR_LIMIT = 500;
+const DEFAULT_CURSOR_BATCH_SIZE = process.env.DEFAULT_CURSOR_BATCH_SIZE || 100;
 
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
@@ -5316,6 +5317,7 @@ function initCategoryHashmaps(callback){
       let p = {};
 
       p.skip = 0;
+      p.batch = DEFAULT_CURSOR_BATCH_SIZE;
       p.limit = DEFAULT_FIND_CAT_USER_CURSOR_LIMIT;
 
       let more = true;
@@ -5337,7 +5339,7 @@ function initCategoryHashmaps(callback){
           userServerController.findCategorizedUsersCursor(p, function(err, results){
 
             if (err) {
-              console.error(chalkError("NNT | ERROR: initCategorizedUserHashmap: " + err));
+              console.error(chalkError("WA | ERROR: initCategorizedUserHashmap: userServerController: findCategorizedUsersCursor" + err));
               cb0(err);
             }
             else if (results) {

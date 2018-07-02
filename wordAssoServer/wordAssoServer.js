@@ -2826,7 +2826,7 @@ function initSocketHandler(socketObj) {
                   userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
 
                     if (err) {
-                      console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
+                      console.log(chalkError("findOneUser ERROR: " + err));
                       socket.emit("SET_TWITTER_USER", user);
                     }
                     else {

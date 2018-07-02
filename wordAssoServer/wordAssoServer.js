@@ -5284,7 +5284,7 @@ function initCategoryHashmaps(callback){
 
   console.log(chalkTwitter("INIT CATEGORIZED USER + HASHTAG HASHMAPS FROM DB"));
 
-  async.parallel({
+  async.eachSeries({
 
     hashtag: function(cb){
 
@@ -5312,31 +5312,6 @@ function initCategoryHashmaps(callback){
       });
     },
     user: function(cb){
-
-      // userServerController.findCategorizedUsersCursor({}, function(err, results){
-        
-      //   if (err) {
-      //     console.error(chalkError("ERROR: initCategoryHashmaps: findCategorizedUsersCursor:"
-      //       + " " + err
-      //     ));
-      //     cb(err);
-      //   }
-      //   else {
-      //     console.log(chalkTwitter("LOADED CATEGORIZED USERS FROM DB"
-      //       + " | " + results.count + " CATEGORIZED"
-      //       + " | " + results.manual + " MAN"
-      //       + " | " + results.auto + " AUTO"
-      //       + " | " + results.matchRate.toFixed(2) + "% MR"
-      //     ));
-
-      //     // categorizedUsersObj[user.nodeId.toString()] = { manual: user.category, auto: user.categoryAuto };
-      //     Object.keys(results.obj).forEach(function(nodeId){
-      //       categorizedUserHashMap.set(nodeId, results.obj[nodeId]);
-      //     });
-
-      //     cb();
-      //   }
-      // });
 
       let p = {};
 
@@ -5382,7 +5357,7 @@ function initCategoryHashmaps(callback){
                 categorizedUserHashMap.set(nodeId, results.obj[nodeId]);
               });
 
-              console.log(chalkInfo("NNT | LOADING CATEGORIZED USERS FROM DB"
+              console.log(chalkInfo("WA | LOADING CATEGORIZED USERS FROM DB"
                 + " | TOTAL CATEGORIZED: " + totalCount
                 + " | LIMIT: " + p.limit
                 + " | SKIP: " + p.skip
@@ -5401,7 +5376,7 @@ function initCategoryHashmaps(callback){
 
               more = false;
 
-              console.log(chalkInfo("NNT | LOADING CATEGORIZED USERS FROM DB"
+              console.log(chalkInfo("WA | LOADING CATEGORIZED USERS FROM DB"
                 + " | TOTAL CATEGORIZED: " + totalCount
                 + " | LIMIT: " + p.limit
                 + " | SKIP: " + p.skip

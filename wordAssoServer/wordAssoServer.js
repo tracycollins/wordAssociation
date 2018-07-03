@@ -2405,20 +2405,29 @@ function initSocketHandler(socketObj) {
     }
   });
 
-  socket.on("SESSION_KEEPALIVE", function sessionKeepalive(userObj) {
+    // socket.emit(
+    //   "SESSION_KEEPALIVE", 
+    //   {
+    //     user: userObj, 
+    //     stats: statsObjSmall, 
+    //     results: networkCreateResultsHashmap
+    //   }
+    // );
+
+  socket.on("SESSION_KEEPALIVE", function sessionKeepalive(keepAliveObj) {
 
     ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
-    if (statsObj.utilities[userObj.userId] === undefined) {
-      statsObj.utilities[userObj.userId] = {};
+    if (statsObj.utilities[keepAliveObj.user.userId] === undefined) {
+      statsObj.utilities[keepAliveObj.user.userId] = {};
     }
 
     statsObj.socket.keepalives += 1;
 
-    if (userObj.stats) {statsObj.utilities[userObj.userId] = userObj.stats;}
+    if (keepAliveObj.user.stats) {statsObj.utilities[keepAliveObj.user.userId] = keepAliveObj.user.stats;}
 
 
-    const currentSessionType = serverRegex.exec(userObj.userId) ? serverRegex.exec(userObj.userId)[1].toUpperCase() : "NULL";
+    const currentSessionType = serverRegex.exec(keepAliveObj.user.userId) ? serverRegex.exec(keepAliveObj.user.userId)[1].toUpperCase() : "NULL";
 
     let sessionObj = {};
     let tempServerObj;
@@ -2430,9 +2439,9 @@ function initSocketHandler(socketObj) {
 
         console.log(chalk.blue(currentSessionType 
           + " | " + moment().format(compactDateTimeFormat)
-          + " | TYPE: " + userObj.type
-          + " | ID: " + userObj.userId
-          + " | @" + userObj.screenName
+          + " | TYPE: " + keepAliveObj.user.type
+          + " | ID: " + keepAliveObj.user.userId
+          + " | @" + keepAliveObj.user.screenName
           + " | " + ipAddress
           + " | " + socket.id
         ));
@@ -2444,7 +2453,7 @@ function initSocketHandler(socketObj) {
           sessionObj.type = currentSessionType;
           sessionObj.status = "KEEPALIVE";
           sessionObj.timeStamp = moment().valueOf();
-          sessionObj.user = userObj;
+          sessionObj.user = keepAliveObj.user;
           sessionObj.isAdmin = true;
           sessionObj.isServer = false;
           sessionObj.isViewer = false;
@@ -2452,7 +2461,7 @@ function initSocketHandler(socketObj) {
 
           console.log(chalkAlert("+++ ADD " + currentSessionType 
             + " | " + moment().format(compactDateTimeFormat)
-            + " | " + userObj.userId
+            + " | " + keepAliveObj.user.userId
             + " | " + sessionObj.ip
             + " | " + socket.id
           ));
@@ -2465,7 +2474,7 @@ function initSocketHandler(socketObj) {
           sessionObj = adminHashMap.get(socket.id);
 
           sessionObj.timeStamp = moment().valueOf();
-          sessionObj.user = userObj;
+          sessionObj.user = keepAliveObj.user;
 
           adminHashMap.set(socket.id, sessionObj);
 
@@ -2475,13 +2484,14 @@ function initSocketHandler(socketObj) {
 
       case "GIS" :
       case "TFE" :
+      case "TNN" :
       case "TSS" :
       case "TUS" :
       case "LA" :
 
         debug(chalkLog(currentSessionType + " SERVER" 
           + " | " + moment().format(compactDateTimeFormat)
-          + " | " + userObj.userId
+          + " | " + keepAliveObj.user.userId
           + " | " + socket.id
         ));
 
@@ -2489,7 +2499,7 @@ function initSocketHandler(socketObj) {
         sessionObj.ip = ipAddress;
         sessionObj.type = currentSessionType;
         sessionObj.timeStamp = moment().valueOf();
-        sessionObj.user = userObj;
+        sessionObj.user = keepAliveObj.user;
 
         tempServerObj = serverCache.get(socket.id);
 
@@ -2500,7 +2510,7 @@ function initSocketHandler(socketObj) {
           sessionObj.type = currentSessionType;
           sessionObj.status = "KEEPALIVE";
           sessionObj.timeStamp = moment().valueOf();
-          sessionObj.user = userObj;
+          sessionObj.user = keepAliveObj.user;
           sessionObj.isAdmin = false;
           sessionObj.isServer = true;
           sessionObj.isViewer = false;
@@ -2508,7 +2518,7 @@ function initSocketHandler(socketObj) {
 
           console.log(chalkAlert("+++ ADD " + currentSessionType + " SERVER" 
             + " | " + moment().format(compactDateTimeFormat)
-            + " | " + userObj.userId
+            + " | " + keepAliveObj.user.userId
             + " | " + sessionObj.ip
             + " | " + socket.id
           ));
@@ -2522,62 +2532,7 @@ function initSocketHandler(socketObj) {
           sessionObj = tempServerObj;
 
           sessionObj.timeStamp = moment().valueOf();
-          sessionObj.user = userObj;
-
-          serverCache.set(socket.id, sessionObj);
-
-          adminNameSpace.emit("KEEPALIVE", sessionObj);
-          socket.emit("GET_STATS");
-        }
-
-      break;
-
-      case "TNN" :
-
-        debug(chalkLog(currentSessionType + " SERVER" 
-          + " | " + moment().format(compactDateTimeFormat)
-          + " | " + userObj.userId
-          + " | " + socket.id
-        ));
-
-        sessionObj.socketId = socket.id;
-        sessionObj.ip = ipAddress;
-        sessionObj.type = currentSessionType;
-        sessionObj.timeStamp = moment().valueOf();
-        sessionObj.user = userObj.user;
-
-        tempServerObj = serverCache.get(socket.id);
-
-        if (!tempServerObj) { 
-
-          sessionObj.ip = ipAddress;
-          sessionObj.socketId = socket.id;
-          sessionObj.type = currentSessionType;
-          sessionObj.status = "KEEPALIVE";
-          sessionObj.timeStamp = moment().valueOf();
-          sessionObj.user = userObj.user;
-          sessionObj.isAdmin = false;
-          sessionObj.isServer = true;
-          sessionObj.isViewer = false;
-          sessionObj.stats = {};
-
-          console.log(chalkAlert("+++ ADD " + currentSessionType + " SERVER" 
-            + " | " + moment().format(compactDateTimeFormat)
-            + " | " + userObj.userId
-            + " | " + sessionObj.ip
-            + " | " + socket.id
-          ));
-
-          serverCache.set(socket.id, sessionObj);
-
-          adminNameSpace.emit("SERVER_ADD", sessionObj);
-        }
-        else {
-
-          sessionObj = tempServerObj;
-
-          sessionObj.timeStamp = moment().valueOf();
-          sessionObj.user = userObj;
+          sessionObj.user = keepAliveObj.user;
 
           serverCache.set(socket.id, sessionObj);
 
@@ -2591,7 +2546,7 @@ function initSocketHandler(socketObj) {
 
         debug(chalkLog(currentSessionType 
           + " | " + moment().format(compactDateTimeFormat)
-          + " | " + userObj.userId
+          + " | " + keepAliveObj.user.userId
           + " | " + socket.id
         ));
 
@@ -2599,7 +2554,7 @@ function initSocketHandler(socketObj) {
         sessionObj.ip = ipAddress;
         sessionObj.type = currentSessionType;
         sessionObj.timeStamp = moment().valueOf();
-        sessionObj.user = userObj;
+        sessionObj.user = keepAliveObj.user;
 
         tempViewerObj = viewerCache.get(socket.id);
 
@@ -2609,7 +2564,7 @@ function initSocketHandler(socketObj) {
           sessionObj.ip = ipAddress;
           sessionObj.type = currentSessionType;
           sessionObj.timeStamp = moment().valueOf();
-          sessionObj.user = userObj;
+          sessionObj.user = keepAliveObj.user;
           sessionObj.isAdmin = false;
           sessionObj.isServer = false;
           sessionObj.isViewer = true;
@@ -2617,7 +2572,7 @@ function initSocketHandler(socketObj) {
 
           console.log(chalkAlert("+++ ADD " + currentSessionType + " SESSION" 
             + " | " + moment().format(compactDateTimeFormat)
-            + " | " + userObj.userId
+            + " | " + keepAliveObj.user.userId
             + " | " + sessionObj.ip
             + " | " + socket.id
           ));
@@ -2630,7 +2585,7 @@ function initSocketHandler(socketObj) {
           sessionObj = tempViewerObj;
 
           sessionObj.timeStamp = moment().valueOf();
-          sessionObj.user = userObj;
+          sessionObj.user = keepAliveObj.user;
 
           viewerHashMap.set(socket.id, sessionObj);
 
@@ -2641,7 +2596,7 @@ function initSocketHandler(socketObj) {
       default:
         console.log(chalkAlert("**** NOT SERVER ****"
           + " | SESSION TYPE: " + currentSessionType
-          + "\n" + jsonPrint(userObj)
+          + "\n" + jsonPrint(keepAliveObj.user)
         ));
     }
   });

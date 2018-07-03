@@ -1812,7 +1812,17 @@ function initStatsUpdate(interval){
 //  KEEPALIVE
 setInterval(function() {
   if (statsObj.serverConnected) {
-    socket.emit("SESSION_KEEPALIVE", viewerObj);
+
+    socket.emit(
+      "SESSION_KEEPALIVE", 
+      {
+        user: viewerObj, 
+        stats: {}, 
+        results: {}
+      }
+    );
+
+    // socket.emit("SESSION_KEEPALIVE", viewerObj);
   }
 }, serverKeepaliveInteval);
 

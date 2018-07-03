@@ -2297,10 +2297,7 @@ function initSocketHandler(socketObj) {
 
     let currentServer = serverCache.get(socket.id);
 
-    // if (serverHashMap.has(socket.id)) { 
     if (currentServer) { 
-
-      // let currentServer = serverHashMap.get(socket.id);
 
       currentServer.timeStamp = moment().valueOf();
       currentServer.ip = ipAddress;
@@ -2315,7 +2312,6 @@ function initSocketHandler(socketObj) {
         + " | " + socket.id
       ));
 
-      // serverHashMap.set(socket.id, currentServer);
       serverCache.set(socket.id, currentServer);
 
       adminNameSpace.emit("SERVER_ERROR", currentServer);
@@ -2324,10 +2320,7 @@ function initSocketHandler(socketObj) {
 
     let currentViewer = viewerCache.get(socket.id);
 
-    // if (viewerHashMap.has(socket.id)) { 
     if (currentViewer) { 
-
-      // let currentViewer = viewerHashMap.get(socket.id);
 
       currentViewer.timeStamp = moment().valueOf();
       currentViewer.ip = ipAddress;
@@ -2378,10 +2371,7 @@ function initSocketHandler(socketObj) {
 
     let currentServer = serverCache.get(socket.id);
 
-    // if (serverHashMap.has(socket.id)) { 
     if (currentServer) { 
-
-      // let currentServer = serverHashMap.get(socket.id);
 
       currentServer.status = "DISCONNECTED";
 
@@ -2393,17 +2383,13 @@ function initSocketHandler(socketObj) {
       ));
  
       adminNameSpace.emit("SERVER_DISCONNECT", currentServer);
-
-      // serverHashMap.set(socket.id, currentServer);
       serverCache.set(socket.id, currentServer);
 
     }
 
     let currentViewer = viewerCache.get(socket.id);
-    // if (viewerHashMap.has(socket.id)) { 
     if (currentViewer) { 
 
-      // let currentViewer = viewerHashMap.get(socket.id);
       currentViewer.status = "DISCONNECTED";
 
       console.error(chalk.blue("VIEWER DISCONNECTED" 
@@ -2414,9 +2400,7 @@ function initSocketHandler(socketObj) {
         + " | " + socket.id
       ));
 
-      // viewerHashMap.set(socket.id, currentViewer);
       viewerCache.set(socket.id, currentViewer);
-
       adminNameSpace.emit("VIEWER_DISCONNECT", currentViewer);
     }
   });
@@ -2491,7 +2475,6 @@ function initSocketHandler(socketObj) {
 
       case "GIS" :
       case "TFE" :
-      case "TNN" :
       case "TSS" :
       case "TUS" :
       case "LA" :
@@ -2533,7 +2516,61 @@ function initSocketHandler(socketObj) {
           serverCache.set(socket.id, sessionObj);
 
           adminNameSpace.emit("SERVER_ADD", sessionObj);
+        }
+        else {
 
+          sessionObj = tempServerObj;
+
+          sessionObj.timeStamp = moment().valueOf();
+          sessionObj.user = userObj;
+
+          serverCache.set(socket.id, sessionObj);
+
+          adminNameSpace.emit("KEEPALIVE", sessionObj);
+          socket.emit("GET_STATS");
+        }
+
+      break;
+
+      case "TNN" :
+
+        debug(chalkLog(currentSessionType + " SERVER" 
+          + " | " + moment().format(compactDateTimeFormat)
+          + " | " + userObj.userId
+          + " | " + socket.id
+        ));
+
+        sessionObj.socketId = socket.id;
+        sessionObj.ip = ipAddress;
+        sessionObj.type = currentSessionType;
+        sessionObj.timeStamp = moment().valueOf();
+        sessionObj.user = userObj.user;
+
+        tempServerObj = serverCache.get(socket.id);
+
+        if (!tempServerObj) { 
+
+          sessionObj.ip = ipAddress;
+          sessionObj.socketId = socket.id;
+          sessionObj.type = currentSessionType;
+          sessionObj.status = "KEEPALIVE";
+          sessionObj.timeStamp = moment().valueOf();
+          sessionObj.user = userObj.user;
+          sessionObj.isAdmin = false;
+          sessionObj.isServer = true;
+          sessionObj.isViewer = false;
+          sessionObj.stats = {};
+
+          console.log(chalkAlert("+++ ADD " + currentSessionType + " SERVER" 
+            + " | " + moment().format(compactDateTimeFormat)
+            + " | " + userObj.userId
+            + " | " + sessionObj.ip
+            + " | " + socket.id
+          ));
+
+          serverCache.set(socket.id, sessionObj);
+
+          adminNameSpace.emit("SERVER_ADD", sessionObj);
         }
         else {
 

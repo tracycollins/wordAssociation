@@ -2416,6 +2416,11 @@ function initSocketHandler(socketObj) {
 
   socket.on("SESSION_KEEPALIVE", function sessionKeepalive(keepAliveObj) {
 
+    if (keepAliveObj.user === undefined) {
+      console.log(chalkAlert("SESSION_KEEPALIVE USER UNDEFINED ??\n" + jsonPrint(keepAliveObj)));
+      return;
+    }
+
     ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
     if (statsObj.utilities[keepAliveObj.user.userId] === undefined) {

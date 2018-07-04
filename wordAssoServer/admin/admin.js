@@ -348,7 +348,15 @@ setInterval(function() {
   mainAdminObj.stats = statsObj;
 
   if (statsObj.socket.connected && sentAdminReady) {
-    socket.emit("SESSION_KEEPALIVE", mainAdminObj);
+    // socket.emit("SESSION_KEEPALIVE", mainAdminObj);
+    socket.emit(
+      "SESSION_KEEPALIVE", 
+      {
+        user: mainAdminObj, 
+        stats: {}, 
+        results: {}
+      }
+    );
   }
 }, 10000);
 

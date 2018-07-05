@@ -75,6 +75,8 @@ var ONE_GB = ONE_MB * 1024;
 
 var statsObj = {};
 
+statsObj.isAuthenticated = false;
+
 statsObj.socket = {};
 
 statsObj.socket.errors = 0;
@@ -105,13 +107,14 @@ var SCREEN_NAME = USER_ID;
 
 var mainAdminObj = {};
 
+mainAdminObj.namespace = "admin";
 mainAdminObj.adminId = USER_ID;
 mainAdminObj.nodeId = USER_ID;
 mainAdminObj.userId = USER_ID;
 mainAdminObj.screenName = SCREEN_NAME;
+mainAdminObj.password = "this is a very weak password";
 mainAdminObj.type = "admin";
 mainAdminObj.mode = "control";
-// mainAdminObj.stats = {};
 mainAdminObj.stats = statsObj;
 
 mainAdminObj.tags = {};
@@ -371,21 +374,44 @@ socket.on("error", function(err) {
 });
 
 socket.on("connect", function() {
+
   console.log("\n===== ADMIN SERVER CONNECTED =====\n" + getTimeStamp());
+
   statsObj.socket.connected = true;
   statsObj.socket.connects += 1;
   statsObj.socket.connectMoment = moment();
+
+  socket.emit("authentication", mainAdminObj);
+
 });
 
 socket.on("reconnect", function() {
+
   console.log("\n===== ADMIN SERVER RECONNECTED =====\n" + getTimeStamp());
-  serverClear();
-  socket.emit("ADMIN_READY", mainAdminObj);
-  console.log("TX ADMIN_READY\n" + jsonPrint(mainAdminObj));
-  sentAdminReady = true;
-  statsObj.socket.connected = true;
-  statsObj.socket.reconnects += 1;
+
+  // serverClear();
+  // socket.emit("ADMIN_READY", mainAdminObj);
+
+  // console.log("TX ADMIN_READY\n" + jsonPrint(mainAdminObj));
+
+  // sentAdminReady = true;
+  // statsObj.socket.connected = true;
+  // statsObj.socket.reconnects += 1;
+  // statsObj.socket.reconnectMoment = moment();
+
+  mainAdminObj.socketId = socket.id;
+
+  statsObj.serverConnected = true;
+  console.log("RECONNECTED TO HOST | SOCKET ID: " + socket.id);
+
   statsObj.socket.reconnectMoment = moment();
+  statsObj.socket.reconnects += 1;
+
+  mainAdminObj.timeStamp = moment().valueOf();
+  mainAdminObj.stats = statsObj;
+
+  socket.emit("authentication", mainAdminObj);
+
 });
 
 socket.on("disconnect", function() {
@@ -397,6 +423,19 @@ socket.on("disconnect", function() {
   statsObj.socket.disconnectMoment = moment();
 });
 
+socket.on("unauthorized", function(response) {
+  statsObj.isAuthenticated = false;
+  console.log("UNAUTHORIZED | " + socket.id + " | " + jsonPrint(response));
+});
+
+socket.on("authenticated", function() {
+  console.log("AUTHENTICATED | " + socket.id);
+  statsObj.isAuthenticated = true;
+  console.log( "CONNECTED TO HOST" 
+    + " | ID: " + socket.id 
+  );
+});
+
 socket.on("ADMIN_CONFIG", function(rxAdminConfig) {
   console.log("\n*** RX ADMIN CONFIG ***\n" + JSON.stringify(rxAdminConfig, null, 3));
   updateAdminConfig(rxAdminConfig);
@@ -405,7 +444,6 @@ socket.on("ADMIN_CONFIG", function(rxAdminConfig) {
 socket.on("DROPBOX_CHANGE", function(dataObj) {
   console.log("\n*** RX DROPBOX_CHANGE ***\n" + JSON.stringify(dataObj, null, 3));
 });
-
 
 socket.on("CONFIG_CHANGE", function(rxAdminConfig) {
   var previousProperty;
@@ -444,7 +482,6 @@ socket.on("ADMIN IP", function(rxIpObj) {
 socket.on("ADMIN_ACK", function(adminSessionKey) {
 
   console.log("RXCD ADMIN ACK: " + socket.id + " | KEY: " + adminSessionKey);
-
 });
 
 socket.on("ADMIN_SESSION", function(adminSessionObj) {
@@ -459,9 +496,7 @@ socket.on("ADMIN_SESSION", function(adminSessionObj) {
   adminIpObj.sessions[adminSessionObj.sessionId] = adminSessionObj;
 
   adminSocketHashMap.set(adminSessionObj.sessionId, adminIpObj);
-
 });
-
 
 socket.on("SERVER_EXPIRED", function(serverObj) {
   console.log("SERVER_EXPIRED | " + serverObj.socketId + " | " + serverObj.user.userId);
@@ -496,7 +531,6 @@ socket.on("SERVER_STATS", function(serverObj) {
   sObj.timeStamp = serverObj.timeStamp;
 
   serverSocketHashMap.set(sObj.socketId, sObj);
-
 });
 
 socket.on("TWITTER_TOPTERM_1MIN", function(top10array) {
@@ -553,7 +587,6 @@ socket.on("SERVER_DISCONNECT", function(serverObj) {
   sObj.user = serverObj.user;
 
   serverSocketHashMap.set(sObj.socketId, sObj);
-
 });
 
 socket.on("VIEWER_DISCONNECT", function(viewerObj) {
@@ -592,7 +625,6 @@ socket.on("SERVER_DELETE", function(serverObj) {
   sObj.user = serverObj.user;
 
   serverSocketHashMap.set(sObj.socketId, sObj);
-
 });
 
 socket.on("SERVER_ADD", function(serverObj) {
@@ -866,7 +898,6 @@ function createAdminTable(){
   else {
     $("#admins").tabulator("removeFilter", disconnectedFilter);
   }
-
 }
 
 function createServerTable(){
@@ -925,7 +956,6 @@ function createServerTable(){
   else {
     $("#servers").tabulator("removeFilter", disconnectedFilter);
   }
-
 }
 
 function createViewerTable(){
@@ -984,7 +1014,6 @@ function createViewerTable(){
   else {
     $("#viewers").tabulator("removeFilter", disconnectedFilter);
   }
-
 }
 
 

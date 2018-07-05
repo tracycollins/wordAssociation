@@ -33,6 +33,9 @@ const VIEWER_CACHE_CHECK_PERIOD = 15;
 const ADMIN_CACHE_DEFAULT_TTL = 120; // seconds
 const ADMIN_CACHE_CHECK_PERIOD = 15;
 
+const AUTH_SOCKET_CACHE_DEFAULT_TTL = 120;
+const AUTH_SOCKET_CACHE_CHECK_PERIOD = 10;
+
 const AUTH_USER_CACHE_DEFAULT_TTL = MAX_SESSION_AGE;
 const AUTH_USER_CACHE_CHECK_PERIOD = ONE_HOUR/1000; // seconds
 
@@ -664,10 +667,10 @@ function serverCacheExpired(serverCacheId, serverObj) {
   const ttl = serverCache.getTtl(serverCacheId);
 
   console.log(chalkAlert("XXX SERVER CACHE EXPIRED"
-    + " | " + ttl
-    + " | " + serverObj.user.type.toUpperCase()
+    + " | TTL: " + ttl + " SECS"
+    + " | TYPE: " + serverObj.user.type.toUpperCase()
     + " | " + serverCacheId
-    + " | " + serverObj.user.userId
+    + " | USER ID: " + serverObj.user.userId
   ));
 
   adminNameSpace.emit("SERVER_EXPIRED", serverObj);
@@ -676,47 +679,80 @@ function serverCacheExpired(serverCacheId, serverObj) {
 serverCache.on("expired", serverCacheExpired);
 
 // ==================================================================
-// AUTH USER CACHE
+// AUTH SOCKET CACHE ( for UTILs, ADMINS, VIEWERs )
 // ==================================================================
-let authenticatedUserCacheTtl = process.env.AUTH_USER_CACHE_DEFAULT_TTL;
-if (authenticatedUserCacheTtl === undefined) { authenticatedUserCacheTtl = AUTH_USER_CACHE_DEFAULT_TTL;}
-console.log("AUTHENTICATED USER CACHE TTL: " + authenticatedUserCacheTtl + " SECONDS");
+let authenticatedSocketCacheTtl = process.env.AUTH_SOCKET_CACHE_DEFAULT_TTL;
+if (authenticatedSocketCacheTtl === undefined) { authenticatedSocketCacheTtl = AUTH_SOCKET_CACHE_DEFAULT_TTL;}
+console.log("AUTHENTICATED USER CACHE TTL: " + authenticatedSocketCacheTtl + " SECONDS");
 
-let authenticatedUserCacheCheckPeriod = process.env.AUTH_USER_CACHE_CHECK_PERIOD;
-if (authenticatedUserCacheCheckPeriod === undefined) { authenticatedUserCacheCheckPeriod = AUTH_USER_CACHE_CHECK_PERIOD;}
-console.log("AUTHENTICATED USER CACHE CHECK PERIOD: " + authenticatedUserCacheCheckPeriod + " SECONDS");
+let authenticatedSocketCacheCheckPeriod = process.env.AUTH_SOCKET_CACHE_CHECK_PERIOD;
+if (authenticatedSocketCacheCheckPeriod === undefined) { authenticatedSocketCacheCheckPeriod = AUTH_SOCKET_CACHE_CHECK_PERIOD;}
+console.log("AUTHENTICATED USER CACHE CHECK PERIOD: " + authenticatedSocketCacheCheckPeriod + " SECONDS");
 
-const authenticatedUserCache = new NodeCache({
-  stdTTL: authenticatedUserCacheTtl,
-  checkperiod: authenticatedUserCacheCheckPeriod
+const authenticatedSocketCache = new NodeCache({
+  stdTTL: authenticatedSocketCacheTtl,
+  checkperiod: authenticatedSocketCacheCheckPeriod
+});
+
+function authenticatedSocketCacheExpired(socketId, authSocketObj) {
+
+  const ttl = authenticatedSocketCache.getTtl(socketId);
+
+  console.log(chalkAlert("XXX AUTH SOCKET CACHE EXPIRED"
+    + " | TTL: " + ttl + " SECS"
+    + " | NSP: " + authSocketObj.namespace.toUpperCase()
+    + " | " + socketId
+    + " | USER ID: " + authSocketObj.userId
+  ));
+
+  adminNameSpace.emit("AUTH_SOCKET_EXPIRED", authSocketObj);
+}
+
+authenticatedSocketCache.on("expired", authenticatedSocketCacheExpired);
+
+
+// ==================================================================
+// AUTH TWITTER USER CACHE
+// ==================================================================
+let authenticatedTwitterUserCacheTtl = process.env.AUTH_USER_CACHE_DEFAULT_TTL;
+if (authenticatedTwitterUserCacheTtl === undefined) { authenticatedTwitterUserCacheTtl = AUTH_USER_CACHE_DEFAULT_TTL;}
+console.log("AUTHENTICATED USER CACHE TTL: " + authenticatedTwitterUserCacheTtl + " SECONDS");
+
+let authenticatedTwitterUserCacheCheckPeriod = process.env.AUTH_USER_CACHE_CHECK_PERIOD;
+if (authenticatedTwitterUserCacheCheckPeriod === undefined) { authenticatedTwitterUserCacheCheckPeriod = AUTH_USER_CACHE_CHECK_PERIOD;}
+console.log("AUTHENTICATED USER CACHE CHECK PERIOD: " + authenticatedTwitterUserCacheCheckPeriod + " SECONDS");
+
+const authenticatedTwitterUserCache = new NodeCache({
+  stdTTL: authenticatedTwitterUserCacheTtl,
+  checkperiod: authenticatedTwitterUserCacheCheckPeriod
 });
 
 
 // ==================================================================
-// AUTH USER CACHE
+// AUTH IN PROGRESS CACHE
 // ==================================================================
-let authInProgressCacheTtl = process.env.AUTH_IN_PROGRESS_CACHE_DEFAULT_TTL;
-if (authInProgressCacheTtl === undefined) { authInProgressCacheTtl = AUTH_IN_PROGRESS_CACHE_DEFAULT_TTL;}
-console.log("AUTH IN PROGRESS CACHE TTL: " + authInProgressCacheTtl + " SECONDS");
+let authInProgressTwitterUserCacheTtl = process.env.AUTH_IN_PROGRESS_CACHE_DEFAULT_TTL;
+if (authInProgressTwitterUserCacheTtl === undefined) { authInProgressTwitterUserCacheTtl = AUTH_IN_PROGRESS_CACHE_DEFAULT_TTL;}
+console.log("AUTH IN PROGRESS CACHE TTL: " + authInProgressTwitterUserCacheTtl + " SECONDS");
 
-let authInProgressCacheCheckPeriod = process.env.AUTH_IN_PROGRESS_CACHE_CHECK_PERIOD;
-if (authInProgressCacheCheckPeriod === undefined) { authInProgressCacheCheckPeriod = AUTH_IN_PROGRESS_CACHE_CHECK_PERIOD;}
-console.log("AUTH IN PROGRESS CACHE CHECK PERIOD: " + authInProgressCacheCheckPeriod + " SECONDS");
+let authInProgressTwitterUserCacheCheckPeriod = process.env.AUTH_IN_PROGRESS_CACHE_CHECK_PERIOD;
+if (authInProgressTwitterUserCacheCheckPeriod === undefined) { authInProgressTwitterUserCacheCheckPeriod = AUTH_IN_PROGRESS_CACHE_CHECK_PERIOD;}
+console.log("AUTH IN PROGRESS CACHE CHECK PERIOD: " + authInProgressTwitterUserCacheCheckPeriod + " SECONDS");
 
-const authInProgressCache = new NodeCache({
-  stdTTL: authInProgressCacheTtl,
-  checkperiod: authInProgressCacheCheckPeriod
+const authInProgressTwitterUserCache = new NodeCache({
+  stdTTL: authInProgressTwitterUserCacheTtl,
+  checkperiod: authInProgressTwitterUserCacheCheckPeriod
 });
 
-function authenticatedUserCacheExpired(nodeId, userObj) {
+function authenticatedTwitterUserCacheExpired(nodeId, userObj) {
 
-  console.log(chalkLog("XXX $ AUTH USER"
+  console.log(chalkLog("XXX $ AUTH TWITTER USER"
     + " | " + nodeId
     + " | @" + userObj.screenName
   ));
 }
 
-authenticatedUserCache.on("expired", authenticatedUserCacheExpired);
+authenticatedTwitterUserCache.on("expired", authenticatedTwitterUserCacheExpired);
 
 
 // ==================================================================
@@ -1951,7 +1987,7 @@ function categorizeNode(categorizeObj, callback) {
 
   if (categorizeObj.twitterUser && categorizeObj.twitterUser.nodeId) {
 
-    let user = authenticatedUserCache.get(categorizeObj.twitterUser.nodeId);
+    let user = authenticatedTwitterUserCache.get(categorizeObj.twitterUser.nodeId);
 
     if (!user 
       && (categorizeObj.twitterUser.nodeId !== "14607119") 
@@ -2423,6 +2459,21 @@ function initSocketHandler(socketObj) {
       console.log(chalkAlert("SESSION_KEEPALIVE USER UNDEFINED ??\n" + jsonPrint(keepAliveObj)));
       return;
     }
+
+    authenticatedSocketCache.get(socket.id, function(err, authSocketObj){
+      if (authSocketObj !== undefined) {
+        console.log(chalkLog("... KEEPALIVE AUTHENTICATED SOCKET"
+          + " | NSP: " + authSocketObj.namespace.toUpperCase()
+          + " | USER ID: " + authSocketObj.userId
+        ));
+      }
+      else {
+        console.log(chalkAlert("*** KEEPALIVE UNAUTHENTICATED SOCKET"
+          + " | NSP: " + authSocketObj.namespace.toUpperCase()
+          + " | USER ID: " + authSocketObj.userId
+        ));
+      }
+    });
 
     ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
@@ -3077,7 +3128,7 @@ function initSocketHandler(socketObj) {
       + " | SID: " + socket.id
       + "\n" + jsonPrint(viewerObj)
     ));
-    authInProgressCache.set(viewerObj.nodeId, viewerObj);
+    authInProgressTwitterUserCache.set(viewerObj.nodeId, viewerObj);
   });
 
   socket.on("STATS", function socketStats(statsObj){
@@ -4316,7 +4367,7 @@ function initAppRouting(callback) {
       else {
         console.log(chalkAlert("TWITTER USER AUTHENTICATED: @" + user.screenName));  // handle errors
         slackPostMessage(slackChannel, "USER AUTH: @" + user.screenName);
-        authenticatedUserCache.set(user.nodeId, user);
+        authenticatedTwitterUserCache.set(user.nodeId, user);
         res.redirect("/after-auth.html");
 
       }
@@ -5648,11 +5699,15 @@ function initialize(cnf, callback) {
     });
 
     function postAuthenticate(socket, data) {
-      console.log(chalkAlert("POSTAUTHENTICATE"
+
+      console.log(chalkAlert("SOCKET AUTHENTICATED"
         + " | " + data.namespace.toUpperCase()
-        + " | " + data.namespace.toUpperCase()
+        + " | " + socket.id
         + " | " + data.userId.toUpperCase()
       ));
+
+      authenticatedSocketCache.set(socket.id, data);
+
     }
 
     function disconnect(socket) {
@@ -5670,7 +5725,7 @@ function initialize(cnf, callback) {
         console.log(chalkAlert("SOCKET IO AUTHENTICATE"
           + " | " + getTimeStamp()
           + " | " + socket.id
-          + " | NAMESPACE: " + namespace
+          + " | NSP: " + namespace.toUpperCase()
           + " | UID: " + userId
           // + "\n" + jsonPrint(data)
         ));

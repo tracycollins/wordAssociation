@@ -4194,14 +4194,6 @@ function initAppRouting(callback) {
 
   app.use(function requestLog(req, res, next) {
 
-    console.log(chalkLog("R>"
-      + " | " + moment().format(compactDateTimeFormat)
-      + " | IP: " + req.ip
-      + " | HOST: " + req.hostname
-      + " | METHOD: " + req.method
-      + " | PATH: " + req.path
-    ));
-
     if (req.path === "/dropbox_webhook") {
 
       debug(chalkAlert("R> dropbox_webhook"
@@ -4251,8 +4243,6 @@ function initAppRouting(callback) {
           }
         });
       }
-
-
     }
     else if (req.path === "/googleccd19766bea2dfd2.html") {
       console.log(chalkAlert("R> googleccd19766bea2dfd2.html")); 
@@ -4304,6 +4294,13 @@ function initAppRouting(callback) {
       }
     }
     else {
+      console.log(chalkLog("R>"
+        + " | " + moment().format(compactDateTimeFormat)
+        + " | IP: " + req.ip
+        + " | HOST: " + req.hostname
+        + " | METHOD: " + req.method
+        + " | PATH: " + req.path
+      ));
       next();
     }
   });

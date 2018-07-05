@@ -2480,14 +2480,20 @@ function initSocketHandler(socketObj) {
     }
 
     authenticatedSocketCache.get(socket.id, function(err, authSocketObj){
+
       if (authSocketObj !== undefined) {
-        console.log(chalkLog("... KEEPALIVE AUTHENTICATED SOCKET"
-          + " | " + socket.id
-          + " | NSP: " + authSocketObj.namespace.toUpperCase()
-          + " | USER ID: " + authSocketObj.userId
-        ));
+
+        if (configuration.verbose) {
+          console.log(chalkLog("... KEEPALIVE AUTHENTICATED SOCKET"
+            + " | " + socket.id
+            + " | NSP: " + authSocketObj.namespace.toUpperCase()
+            + " | USER ID: " + authSocketObj.userId
+          ));
+        }
+
         authSocketObj.timeStamp = moment().valueOf();
         authenticatedSocketCache.set(socket.id, authSocketObj);
+
       }
       else {
         console.log(chalkAlert("*** KEEPALIVE UNAUTHENTICATED SOCKET"

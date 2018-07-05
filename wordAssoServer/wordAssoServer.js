@@ -671,7 +671,9 @@ function serverCacheExpired(serverCacheId, serverObj) {
     + " | TYPE: " + serverObj.user.type.toUpperCase()
     + " | " + serverCacheId
     + " | USER ID: " + serverObj.user.userId
-    + " | TIMESTAMP: " + moment(serverObj.timeStamp).format(compactDateTimeFormat)
+    + "\nNOW: " + moment().format(compactDateTimeFormat)
+    + " | TS: " + moment(serverObj.timeStamp).format(compactDateTimeFormat)
+    + " | AGO: " + msToTime(moment().valueOf() - serverObj.timeStamp)
   ));
 
   adminNameSpace.emit("SERVER_EXPIRED", serverObj);
@@ -704,7 +706,9 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
     + " | NSP: " + authSocketObj.namespace.toUpperCase()
     + " | " + socketId
     + " | USER ID: " + authSocketObj.userId
-    + " | TIMESTAMP: " + moment(authSocketObj.timeStamp).format(compactDateTimeFormat)
+    + "\nNOW: " + moment().format(compactDateTimeFormat)
+    + " | TS: " + moment(authSocketObj.timeStamp).format(compactDateTimeFormat)
+    + " | AGO: " + msToTime(moment().valueOf() - authSocketObj.timeStamp)
   ));
 
   adminNameSpace.emit("AUTH_SOCKET_EXPIRED", authSocketObj);
@@ -5724,10 +5728,10 @@ function initialize(cnf, callback) {
 
       data.timeStamp = moment().valueOf();
 
-      console.log(chalkAlert("SOCKET AUTHENTICATED"
+      console.log(chalkAlert("+++ SOCKET AUTHENTICATED"
         + " | " + data.namespace.toUpperCase()
         + " | " + socket.id
-        + " | " + data.userId.toUpperCase()
+        + " | " + data.userId
       ));
 
 
@@ -5747,7 +5751,7 @@ function initialize(cnf, callback) {
         const userId = data.userId.toLowerCase();
         const password = data.password;
 
-        console.log(chalkAlert("SOCKET IO AUTHENTICATE"
+        console.log(chalkAlert("... SOCKET IO AUTHENTICATE"
           + " | " + getTimeStamp()
           + " | " + socket.id
           + " | NSP: " + namespace.toUpperCase()
@@ -5757,12 +5761,12 @@ function initialize(cnf, callback) {
         //get credentials sent by the client
 
         if (namespace === "view") {
-          console.log(chalkAlert("VIEWER AUTHENTICATED | " + userId));
+          console.log(chalkAlert("+++ VIEWER AUTHENTICATED | " + userId));
           return callback(null, true);
         }
 
         if ((namespace === "util") && (password === "0123456789")) {
-          console.log(chalkAlert("UTL AUTHENTICATED | " + userId));
+          console.log(chalkAlert("+++ UTIL AUTHENTICATED | " + userId));
           return callback(null, true);
         }
 

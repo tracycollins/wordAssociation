@@ -834,6 +834,8 @@ socket.on("unauthorized", function(response) {
 
 socket.on("authenticated", function() {
   console.log("AUTHENTICATED | " + socket.id);
+  statsObj.serverConnected = true;
+  statsObj.socket.connected = true;
   statsObj.isAuthenticated = true;
   console.log( "CONNECTED TO HOST" 
     + " | ID: " + socket.id 
@@ -1233,13 +1235,14 @@ function getVisibilityEvent(prefix) {
 }
 
 socket.on("SERVER_READY", function(serverAck) {
+  statsObj.serverConnected = true;
+  statsObj.socket.connected = true;
   console.log("RX SERVER_READY | SERVER ACK: " + jsonPrint(serverAck));
 });
 
 socket.on("VIEWER_READY_ACK", function(vSesKey) {
 
   statsObj.serverConnected = true;
-
   statsObj.socket.connected = true;
 
   console.log("RX VIEWER_READY_ACK | SESSION KEY: " + vSesKey);
@@ -1270,6 +1273,7 @@ socket.on("reconnect", function() {
 
   statsObj.socket.reconnectMoment = moment();
   statsObj.socket.reconnects += 1;
+  statsObj.socket.connected = true;
 
   viewerObj.timeStamp = moment().valueOf();
   viewerObj.stats = statsObj;
@@ -1284,6 +1288,7 @@ socket.on("connect", function() {
 
   statsObj.socketId = socket.id;
   statsObj.serverConnected = true;
+  statsObj.socket.connected = true;
 
   if (currentSessionView !== undefined) { currentSessionView.setEnableAgeNodes(true); }
   console.log("CONNECTED TO HOST | SOCKET ID: " + socket.id);
@@ -1890,11 +1895,15 @@ socket.on("HEARTBEAT", function(hb) {
 
   heartBeatsReceived += 1;
   statsObj.serverConnected = true;
+  statsObj.socket.connected = true;
   lastHeartbeatReceived = moment().valueOf();
 
 });
 
 socket.on("CONFIG_CHANGE", function(rxConfig) {
+
+  statsObj.serverConnected = true;
+  statsObj.socket.connected = true;
 
   console.log("\n-----------------------\nRX CONFIG_CHANGE\n" 
     + JSON.stringify(rxConfig, null, 3) + "\n------------------------\n");
@@ -1924,6 +1933,9 @@ socket.on("CONFIG_CHANGE", function(rxConfig) {
 });
 
 socket.on("SET_TWITTER_USER", function(twitterUser) {
+
+  statsObj.serverConnected = true;
+  statsObj.socket.connected = true;
 
   if (!twitterUser) { return; }
   if (!twitterUser || (twitterUser.notFound !== undefined)) {
@@ -1958,6 +1970,9 @@ socket.on("SET_TWITTER_USER", function(twitterUser) {
 
 socket.on("SET_TWITTER_HASHTAG", function(twitterHashtag) {
 
+  statsObj.serverConnected = true;
+  statsObj.socket.connected = true;
+
   console.log("SET_TWITTER_HASHTAG" 
     + " | " + twitterHashtag.hashtagId 
     + " | #" + twitterHashtag.text 
@@ -1969,6 +1984,8 @@ socket.on("SET_TWITTER_HASHTAG", function(twitterHashtag) {
 });
 
 socket.on("TWITTER_TOPTERM_1MIN", function(top10obj) {
+  statsObj.socket.connected = true;
+  statsObj.serverConnected = true;
   console.debug("TWITTER_TOPTERM_1MIN\n" + jsonPrint(top10obj));
 });
 
@@ -1976,6 +1993,10 @@ var rxNodeQueueReady = false;
 var rxNodeQueue = [];
 
 var rxNode = function(node){
+
+  statsObj.serverConnected = true;
+  statsObj.socket.connected = true;
+
   if ((rxNodeQueue.length < RX_NODE_QUEUE_MAX)
   ){
     if (config.displayNodeHashMap[node.nodeType] === "show") {

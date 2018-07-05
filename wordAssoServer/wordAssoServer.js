@@ -642,6 +642,17 @@ function viewerCacheExpired(viewerCacheId, viewerObj) {
     + " | " + viewerObj.user.userId
   ));
 
+  console.log(chalkAlert("XXX VIEWER CACHE EXPIRED"
+    + " | TTL: " + viewerCacheTtl + " SECS"
+    + " | TYPE: " + viewerObj.user.type.toUpperCase()
+    + " | " + viewerCacheId
+    + " | USER ID: " + viewerObj.user.userId
+    + "\nNOW: " + moment().format(compactDateTimeFormat)
+    + " | TS: " + moment(viewerObj.timeStamp).format(compactDateTimeFormat)
+    + " | AGO: " + msToTime(moment().valueOf() - viewerObj.timeStamp)
+  ));
+
+
   adminNameSpace.emit("VIEWER_EXPIRED", viewerObj);
 }
 
@@ -2676,6 +2687,8 @@ function initSocketHandler(socketObj) {
           sessionObj.user = keepAliveObj.user;
 
           viewerHashMap.set(socket.id, sessionObj);
+
+          viewerCache.set(socket.id, sessionObj);
 
           adminNameSpace.emit("KEEPALIVE", sessionObj);
         }

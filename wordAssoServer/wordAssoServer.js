@@ -661,7 +661,10 @@ const serverCache = new NodeCache({
 
 function serverCacheExpired(serverCacheId, serverObj) {
 
+  const ttl = serverCache.getTtl(serverCacheId);
+
   console.log(chalkAlert("XXX SERVER CACHE EXPIRED"
+    + " | " + ttl
     + " | " + serverObj.user.type.toUpperCase()
     + " | " + serverCacheId
     + " | " + serverObj.user.userId

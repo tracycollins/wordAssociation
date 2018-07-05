@@ -671,6 +671,7 @@ function serverCacheExpired(serverCacheId, serverObj) {
     + " | TYPE: " + serverObj.user.type.toUpperCase()
     + " | " + serverCacheId
     + " | USER ID: " + serverObj.user.userId
+    + " | TIMESTAMP: " + moment(serverObj.timeStamp).format(compactDateTimeFormat)
   ));
 
   adminNameSpace.emit("SERVER_EXPIRED", serverObj);
@@ -703,6 +704,7 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
     + " | NSP: " + authSocketObj.namespace.toUpperCase()
     + " | " + socketId
     + " | USER ID: " + authSocketObj.userId
+    + " | TIMESTAMP: " + moment(authSocketObj.timeStamp).format(compactDateTimeFormat)
   ));
 
   adminNameSpace.emit("AUTH_SOCKET_EXPIRED", authSocketObj);
@@ -731,6 +733,7 @@ function authenticatedTwitterUserCacheExpired(nodeId, userObj) {
 
   console.log(chalkAlert("XXX AUTH TWITTER USER CACHE EXPIRED"
     + " | TTL: " + authenticatedTwitterUserCacheTtl + " SECS"
+    + " | LS: " + userObj.lastSeen
     + " | @" + userObj.screenName
   ));
 
@@ -2479,6 +2482,8 @@ function initSocketHandler(socketObj) {
           + " | NSP: " + authSocketObj.namespace.toUpperCase()
           + " | USER ID: " + authSocketObj.userId
         ));
+        authSocketObj.timeStamp = moment().valueOf();
+        authenticatedSocketCache.set(socket.id, authSocketObj);
       }
       else {
         console.log(chalkAlert("*** KEEPALIVE UNAUTHENTICATED SOCKET"
@@ -3137,10 +3142,14 @@ function initSocketHandler(socketObj) {
 
   // side channel twitter auth in process...
   socket.on("login", function socketLogin(viewerObj){
+
+    viewerObj.timeStamp = moment().valueOf();
+
     console.log(chalkAlert("LOGIN"
       + " | SID: " + socket.id
       + "\n" + jsonPrint(viewerObj)
     ));
+
     authInProgressTwitterUserCache.set(viewerObj.nodeId, viewerObj);
   });
 
@@ -5713,11 +5722,14 @@ function initialize(cnf, callback) {
 
     function postAuthenticate(socket, data) {
 
+      data.timeStamp = moment().valueOf();
+
       console.log(chalkAlert("SOCKET AUTHENTICATED"
         + " | " + data.namespace.toUpperCase()
         + " | " + socket.id
         + " | " + data.userId.toUpperCase()
       ));
+
 
       authenticatedSocketCache.set(socket.id, data);
 

@@ -661,10 +661,10 @@ const serverCache = new NodeCache({
 
 function serverCacheExpired(serverCacheId, serverObj) {
 
-  serverObj.ttl = serverCache.getTtl(serverCacheId);
+  const ttl = serverCache.getTtl(serverCacheId);
 
   console.log(chalkAlert("XXX SERVER CACHE EXPIRED"
-    + " | " + serverObj.ttl
+    + " | " + ttl
     + " | " + serverObj.user.type.toUpperCase()
     + " | " + serverCacheId
     + " | " + serverObj.user.userId
@@ -5648,7 +5648,11 @@ function initialize(cnf, callback) {
     });
 
     function postAuthenticate(socket, data) {
-      console.log(chalkAlert("postAuthenticate\n" + jsonPrint(data)));
+      console.log(chalkAlert("POSTAUTHENTICATE"
+        + " | " + data.namespace.toUpperCase()
+        + " | " + data.namespace.toUpperCase()
+        + " | " + data.userId.toUpperCase()
+      ));
     }
 
     function disconnect(socket) {
@@ -5681,6 +5685,8 @@ function initialize(cnf, callback) {
           console.log(chalkAlert("UTL AUTHENTICATED | " + userId));
           return callback(null, true);
         }
+
+        return callback(null, false);
 
       },
       postAuthenticate: postAuthenticate,

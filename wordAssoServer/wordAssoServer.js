@@ -108,6 +108,7 @@ const CATEGORY_UPDATE_INTERVAL = 5*ONE_MINUTE;
 const HASHTAG_LOOKUP_QUEUE_INTERVAL = 2;
 
 const moment = require("moment");
+const treeify = require("treeify");
 
 let dropboxConfigDefaultFolder = "/config/utility/default";
 let dropboxConfigTwitterFolder = "/config/twitter";
@@ -553,7 +554,8 @@ function toMegabytes(sizeInBytes) {
 
 function jsonPrint(obj) {
   if (obj) {
-    return JSON.stringify(obj, null, 2);
+    // return JSON.stringify(obj, null, 2);
+    return treeify.asTree(obj, true);
   } 
   else {
     return obj;
@@ -3394,7 +3396,7 @@ function checkCategory(nodeObj, callback) {
 function updateTrends(){
   twit.get("trends/place", {id: 1}, function updateTrendsWorldWide (err, data, response){
 
-    debug(chalkInfo("twit trends/place response\n" + jsonPrint(response)));
+    // debug(chalkInfo("twit trends/place response\n" + jsonPrint(response)));
 
     if (err){
       console.log(chalkError("*** TWITTER GET trends/place ID=1 ERROR ***"
@@ -3417,7 +3419,7 @@ function updateTrends(){
   
   twit.get("trends/place", {id: 23424977}, function updateTrendsUs (err, data, response){
 
-    debug(chalkInfo("twit trends/place response\n" + jsonPrint(response)));
+    // debug(chalkInfo("twit trends/place response\n" + jsonPrint(response)));
 
     if (err){
       console.log(chalkError("*** TWITTER GET trends/place ID=23424977 ERROR ***"

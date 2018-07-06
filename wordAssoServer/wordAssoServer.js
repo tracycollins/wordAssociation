@@ -2333,24 +2333,40 @@ function initSocketHandler(socketObj) {
   slackPostMessage(slackChannel, socketConnectText);
 
   socket.on("reconnect_error", function reconnectError(errorObj) {
+
+    serverCache.del(socket.id);
+    viewerCache.del(socket.id);
+
     statsObj.socket.errors.reconnect_errors += 1;
     debug(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET RECONNECT ERROR: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on("reconnect_failed", function reconnectFailed(errorObj) {
+
+    serverCache.del(socket.id);
+    viewerCache.del(socket.id);
+
     statsObj.socket.errors.reconnect_fails += 1;
     debug(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET RECONNECT FAILED: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on("connect_error", function connectError(errorObj) {
+
+    serverCache.del(socket.id);
+    viewerCache.del(socket.id);
+
     statsObj.socket.errors.connect_errors += 1;
     debug(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET CONNECT ERROR: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on("connect_timeout", function connectTimeout(errorObj) {
+
+    serverCache.del(socket.id);
+    viewerCache.del(socket.id);
+
     statsObj.socket.errors.connect_timeouts += 1;
     debug(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET CONNECT TIMEOUT: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
@@ -2453,7 +2469,7 @@ function initSocketHandler(socketObj) {
       ));
  
       adminNameSpace.emit("SERVER_DISCONNECT", currentServer);
-      serverCache.set(socket.id, currentServer);
+      serverCache.del(socket.id);
 
     }
 
@@ -2470,19 +2486,10 @@ function initSocketHandler(socketObj) {
         + " | " + socket.id
       ));
 
-      viewerCache.set(socket.id, currentViewer);
+      viewerCache.del(socket.id);
       adminNameSpace.emit("VIEWER_DISCONNECT", currentViewer);
     }
   });
-
-    // socket.emit(
-    //   "SESSION_KEEPALIVE", 
-    //   {
-    //     user: userObj, 
-    //     stats: statsObjSmall, 
-    //     results: networkCreateResultsHashmap
-    //   }
-    // );
 
   socket.on("SESSION_KEEPALIVE", function sessionKeepalive(keepAliveObj) {
 
@@ -3190,16 +3197,12 @@ function initSocketHandler(socketObj) {
     let serverObj = serverCache.get(socket.id);
     let viewerObj = viewerCache.get(socket.id);
 
-    // if (serverHashMap.has(socket.id)) {
     if (serverObj) {
-
-      // let serverObj = serverHashMap.get(socket.id);
 
       serverObj.status = "STATS";
       serverObj.stats = statsObj;
       serverObj.timeStamp = moment().valueOf();
 
-      // serverHashMap.set(socket.id, sessionObj);
       serverCache.set(socket.id, serverObj);
 
       if (configuration.verbose) {

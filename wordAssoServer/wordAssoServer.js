@@ -113,8 +113,8 @@ const treeify = require("treeify");
 let dropboxConfigDefaultFolder = "/config/utility/default";
 let dropboxConfigTwitterFolder = "/config/twitter";
 
-const DEFAULT_TWITTER_CONFIG_FILE = "ninjathreecee.json";
-const DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE = "threeceeinfo.json";
+const DEFAULT_TWITTER_CONFIG_FILE = "altthreecee02.json";
+const DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE = "altthreecee02.json";
 
 let defaultTwitterConfigFile = DEFAULT_TWITTER_CONFIG_FILE;
 let twitterAutoFollowConfigFile = DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE;

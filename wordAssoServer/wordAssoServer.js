@@ -5418,6 +5418,8 @@ function initCategoryHashmaps(callback){
       let totalMismatched = 0;
       let totalMatchRate = 0;
 
+      console.log(chalkInfo("WA | LOADING CATEGORIZED HASHTAGS FROM DB ..."));
+
       async.whilst(
 
         function() {
@@ -5491,10 +5493,10 @@ function initCategoryHashmaps(callback){
           cb(err);
         }
       );
-
     },
 
     user: function(cb){
+
 
       let p = {};
 
@@ -5509,6 +5511,8 @@ function initCategoryHashmaps(callback){
       let totalMatched = 0;
       let totalMismatched = 0;
       let totalMatchRate = 0;
+
+      console.log(chalkInfo("WA | LOADING CATEGORIZED USERS FROM DB ..."));
 
       async.whilst(
 
@@ -5585,99 +5589,110 @@ function initCategoryHashmaps(callback){
           cb(err);
         }
       );
-
-    },
-    word: function(cb){
-
-      let p = {};
-
-      p.skip = 0;
-      p.batch = DEFAULT_CURSOR_BATCH_SIZE;
-      p.limit = DEFAULT_FIND_CAT_WORD_CURSOR_LIMIT;
-
-      let more = true;
-      let totalCount = 0;
-      let totalManual = 0;
-      let totalAuto = 0;
-      let totalMatched = 0;
-      let totalMismatched = 0;
-      let totalMatchRate = 0;
-
-      async.whilst(
-
-        function() {
-          return more;
-        },
-
-        function(cb0){
-
-          wordServerController.findCategorizedWordsCursor(p, function(err, results){
-
-            if (err) {
-              console.log(chalkError("WA | ERROR: initCategorizedUserHashmap: wordServerController: findCategorizedWordsCursor" + err));
-              cb0(err);
-            }
-            else if (results) {
-
-              more = true;
-              totalCount += results.count;
-              totalManual += results.manual;
-              totalAuto += results.auto;
-              totalMatched += results.matched;
-              totalMismatched += results.mismatched;
-
-              totalMatchRate = 100*(totalMatched/(totalMatched+totalMismatched));
-
-              Object.keys(results.obj).forEach(function(nodeId){
-                categorizedWordHashMap.set(nodeId, results.obj[nodeId]);
-              });
-
-              if (configuration.verbose) {
-                console.log(chalkInfo("WA | LOADING CATEGORIZED WORDS FROM DB"
-                  + " | TOTAL CATEGORIZED: " + totalCount
-                  + " | LIMIT: " + p.limit
-                  + " | SKIP: " + p.skip
-                  + " | " + totalManual + " MAN"
-                  + " | " + totalAuto + " AUTO"
-                  + " | " + totalMatched + " MATCHED"
-                  + " / " + totalMismatched + " MISMATCHED"
-                  + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
-                ));
-              }
-
-              p.skip += results.count;
-
-              cb0();
-            }
-            else {
-
-              more = false;
-
-              console.log(chalkTwitter("LOADED CATEGORIZED WORDS FROM DB"
-                + " | TOTAL CATEGORIZED: " + totalCount
-                + " | LIMIT: " + p.limit
-                + " | SKIP: " + p.skip
-                + " | " + totalManual + " MAN"
-                + " | " + totalAuto + " AUTO"
-                + " | " + totalMatched + " MATCHED"
-                + " / " + totalMismatched + " MISMATCHED"
-                + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
-              ));
-
-              cb0();
-            }
-          });
-        },
-
-        function(err){
-          if (err) {
-            console.log(chalkError("NNT | INIT CATEGORIZED WORDS HASHMAP ERROR: " + err + "\n" + jsonPrint(err)));
-          }
-          cb(err);
-        }
-      );
-
     }
+
+    // word: function(cb){
+
+    //   let p = {};
+
+    //   p.skip = 0;
+    //   p.batch = DEFAULT_CURSOR_BATCH_SIZE;
+    //   p.limit = DEFAULT_FIND_CAT_WORD_CURSOR_LIMIT;
+
+    //   let more = true;
+    //   let totalCount = 0;
+    //   let totalManual = 0;
+    //   let totalAuto = 0;
+    //   let totalMatched = 0;
+    //   let totalMismatched = 0;
+    //   let totalMatchRate = 0;
+
+    //   console.log(chalkInfo("WA | LOADING CATEGORIZED WORDS FROM DB"
+    //     + " | TOTAL CATEGORIZED: " + totalCount
+    //     + " | BATCH: " + p.batch
+    //     + " | LIMIT: " + p.limit
+    //     + " | SKIP: " + p.skip
+    //     + " | " + totalManual + " MAN"
+    //     + " | " + totalAuto + " AUTO"
+    //     + " | " + totalMatched + " MATCHED"
+    //     + " / " + totalMismatched + " MISMATCHED"
+    //     + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
+    //   ));
+
+    //   async.whilst(
+
+    //     function() {
+    //       return more;
+    //     },
+
+    //     function(cb0){
+
+    //       wordServerController.findCategorizedWordsCursor(p, function(err, results){
+
+    //         if (err) {
+    //           console.log(chalkError("WA | ERROR: initCategorizedUserHashmap: wordServerController: findCategorizedWordsCursor" + err));
+    //           cb0(err);
+    //         }
+    //         else if (results) {
+
+    //           more = true;
+    //           totalCount += results.count;
+    //           totalManual += results.manual;
+    //           totalAuto += results.auto;
+    //           totalMatched += results.matched;
+    //           totalMismatched += results.mismatched;
+
+    //           totalMatchRate = 100*(totalMatched/(totalMatched+totalMismatched));
+
+    //           Object.keys(results.obj).forEach(function(nodeId){
+    //             categorizedWordHashMap.set(nodeId, results.obj[nodeId]);
+    //           });
+
+    //           if (configuration.verbose) {
+    //             console.log(chalkInfo("WA | LOADING CATEGORIZED WORDS FROM DB"
+    //               + " | TOTAL CATEGORIZED: " + totalCount
+    //               + " | LIMIT: " + p.limit
+    //               + " | SKIP: " + p.skip
+    //               + " | " + totalManual + " MAN"
+    //               + " | " + totalAuto + " AUTO"
+    //               + " | " + totalMatched + " MATCHED"
+    //               + " / " + totalMismatched + " MISMATCHED"
+    //               + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
+    //             ));
+    //           }
+
+    //           p.skip += results.count;
+
+    //           cb0();
+    //         }
+    //         else {
+
+    //           more = false;
+
+    //           console.log(chalkTwitter("LOADED CATEGORIZED WORDS FROM DB"
+    //             + " | TOTAL CATEGORIZED: " + totalCount
+    //             + " | LIMIT: " + p.limit
+    //             + " | SKIP: " + p.skip
+    //             + " | " + totalManual + " MAN"
+    //             + " | " + totalAuto + " AUTO"
+    //             + " | " + totalMatched + " MATCHED"
+    //             + " / " + totalMismatched + " MISMATCHED"
+    //             + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
+    //           ));
+
+    //           cb0();
+    //         }
+    //       });
+    //     },
+
+    //     function(err){
+    //       if (err) {
+    //         console.log(chalkError("NNT | INIT CATEGORIZED WORDS HASHMAP ERROR: " + err + "\n" + jsonPrint(err)));
+    //       }
+    //       cb(err);
+    //     }
+    //   );
+    // }
 
   }, function(err){
     if (err) {
@@ -5949,6 +5964,8 @@ function initStatsInterval(interval){
   }, interval);
 }
 
+let initCategoryHashmapsReady = true;
+
 function initCategoryHashmapsInterval(interval){
 
   console.log(chalkInfo("INIT CATEGORY HASHMAP INTERVAL"
@@ -5959,7 +5976,22 @@ function initCategoryHashmapsInterval(interval){
 
   categoryHashmapsInterval = setInterval(function updateMemStats() {
 
-    initCategoryHashmaps();
+    if (initCategoryHashmapsReady) {
+
+      initCategoryHashmapsReady = false;
+
+      initCategoryHashmaps(function(err){
+
+        initCategoryHashmapsReady = true;
+
+        if (err) {
+          console.log(chalkError("ERROR: LOAD CATEGORY HASHMAPS: " + err));
+        }
+        else {
+          console.log(chalkInfo("LOADED CATEGORY HASHMAPS"));
+        }
+      });
+    }
 
   }, interval);
 }

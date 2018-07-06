@@ -33,7 +33,7 @@ const VIEWER_CACHE_CHECK_PERIOD = 15;
 const ADMIN_CACHE_DEFAULT_TTL = 300; // seconds
 const ADMIN_CACHE_CHECK_PERIOD = 15;
 
-const AUTH_SOCKET_CACHE_DEFAULT_TTL = 300;
+const AUTH_SOCKET_CACHE_DEFAULT_TTL = 600;
 const AUTH_SOCKET_CACHE_CHECK_PERIOD = 10;
 
 const AUTH_USER_CACHE_DEFAULT_TTL = MAX_SESSION_AGE;
@@ -892,9 +892,14 @@ DEFAULT_NODE_TYPES.forEach(function(nodeType){
 
 let cacheObj = {};
 cacheObj.nodeCache = nodeCache;
+cacheObj.serverCache = serverCache;
+cacheObj.viewerCache = viewerCache;
 cacheObj.nodesPerMinuteTopTermCache = nodesPerMinuteTopTermCache;
 cacheObj.nodesPerMinuteTopTermNodeTypeCache = {};
 cacheObj.trendingCache = trendingCache;
+cacheObj.authenticatedTwitterUserCache = authenticatedTwitterUserCache;
+cacheObj.authInProgressTwitterUserCache = authInProgressTwitterUserCache;
+cacheObj.authenticatedSocketCache = authenticatedSocketCache;
 
 DEFAULT_NODE_TYPES.forEach(function(nodeType){
   cacheObj.nodesPerMinuteTopTermNodeTypeCache[nodeType] = nodesPerMinuteTopTermNodeTypeCache[nodeType];
@@ -2486,8 +2491,15 @@ function initSocketHandler(socketObj) {
 
   socket.on("SESSION_KEEPALIVE", function sessionKeepalive(keepAliveObj) {
 
+    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
     if (keepAliveObj.user === undefined) {
-      console.log(chalkAlert("SESSION_KEEPALIVE USER UNDEFINED ??\n" + jsonPrint(keepAliveObj)));
+      console.log(chalkAlert("SESSION_KEEPALIVE USER UNDEFINED ??"
+        + " | NSP: " + socket.nsp.name.toUpperCase()
+        + " | " + socket.id
+        + " | " + ipAddress
+        + "\n" + jsonPrint(keepAliveObj)
+      ));
       return;
     }
 
@@ -2508,14 +2520,15 @@ function initSocketHandler(socketObj) {
 
       }
       else {
-        console.log(chalkAlert("*** KEEPALIVE UNAUTHENTICATED SOCKET"
+        console.log(chalkAlert("*** KEEPALIVE UNAUTHENTICATED SOCKET | DISCONNECTING..."
           + " | " + socket.id
           + " | NSP: " + socket.nsp.name.toUpperCase()
+          + " | " + keepAliveObj.user.userId
         ));
+        socket.disconnect();
       }
     });
 
-    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
     if (statsObj.utilities[keepAliveObj.user.userId] === undefined) {
       statsObj.utilities[keepAliveObj.user.userId] = {};
@@ -5750,7 +5763,6 @@ function initialize(cnf, callback) {
         + " | " + socket.id
         + " | " + data.userId
       ));
-
 
       authenticatedSocketCache.set(socket.id, data);
 

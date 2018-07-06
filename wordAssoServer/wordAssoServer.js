@@ -5803,17 +5803,17 @@ function initialize(cnf, callback) {
         //get credentials sent by the client
 
         if ((namespace === "admin") && (password === "this is a very weak password")) {
-          console.log(chalk.green("+++ ADMIN AUTHENTICATED | " + userId));
+          debug(chalk.green("+++ ADMIN AUTHENTICATED | " + userId));
           return callback(null, true);
         }
 
         if (namespace === "view") {
-          console.log(chalk.green("+++ VIEWER AUTHENTICATED | " + userId));
+          debug(chalk.green("+++ VIEWER AUTHENTICATED | " + userId));
           return callback(null, true);
         }
 
         if ((namespace === "util") && (password === "0123456789")) {
-          console.log(chalk.green("+++ UTIL AUTHENTICATED | " + userId));
+          debug(chalk.green("+++ UTIL AUTHENTICATED | " + userId));
           return callback(null, true);
         }
 

@@ -554,8 +554,7 @@ function toMegabytes(sizeInBytes) {
 
 function jsonPrint(obj) {
   if (obj) {
-    // return JSON.stringify(obj, null, 2);
-    return treeify.asTree(obj, true);
+    return treeify.asTree(obj, true, true);
   } 
   else {
     return obj;
@@ -2305,6 +2304,7 @@ function unfollow(params, callback) {
 
 const serverRegex = /^(.+)_/i;
 let socketConnectText = "";
+
 
 function initSocketHandler(socketObj) {
 

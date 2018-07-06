@@ -5023,6 +5023,8 @@ function initSorter(params, callback){
 
 function initTweetParser(params, callback){
 
+  console.log(chalkLog("INIT TWEET PARSER\n" + jsonPrint(params)));
+
   tweetParserReady = false;
 
   const twp = cp.fork(`${__dirname}/js/libs/tweetParser.js`);
@@ -6001,9 +6003,21 @@ initialize(configuration, function initializeComplete(err) {
 
     waitServerControllersInterval = setInterval(function(){
 
+      console.log(chalkAlert("WAITING FOR CONTROLLERS READY ..."
+        + " | HSC READY: " + hashtagServerControllerReady
+        + " | USC READY: " + userServerControllerReady
+        + " | WSC READY: " + wordServerControllerReady
+      ));
+
       if (hashtagServerControllerReady && userServerControllerReady && wordServerControllerReady) {
 
         clearInterval(waitServerControllersInterval);
+
+        console.log(chalk.green("ALL CONTROLLERS READY"
+          + " | HSC READY: " + hashtagServerControllerReady
+          + " | USC READY: " + userServerControllerReady
+          + " | WSC READY: " + wordServerControllerReady
+        ));
 
         initCategoryHashmaps(function(err){
           if (err) {

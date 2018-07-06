@@ -608,7 +608,7 @@ function slackPostMessage(channel, text, callback){
     channel: channel
   }, function(err, response){
     if (err){
-      console.error(chalkError("*** SLACK POST MESSAGE ERROR\nTEXT: " + text + "\nERROR: " + err));
+      console.log(chalkError("*** SLACK POST MESSAGE ERROR\nTEXT: " + text + "\nERROR: " + err));
     }
     else {
       debug(response);
@@ -1463,7 +1463,7 @@ function saveFile (params, callback){
         });
 
         localReadStream.on("error", function(err){
-          console.error("WAS | *** LOCAL STREAM READ ERROR | " + err);
+          console.log(chalkError("WAS | *** LOCAL STREAM READ ERROR | " + err));
           if (callback !== undefined) { return callback(err); }
         });
 
@@ -1473,7 +1473,7 @@ function saveFile (params, callback){
         });
 
         remoteWriteStream.on("error", function(err){
-          console.error("WAS | *** REMOTE STREAM WRITE ERROR | DEST: " + options.destination + "\n" + err);
+          console.log(chalkError("WAS | *** REMOTE STREAM WRITE ERROR | DEST: " + options.destination + "\n" + err));
           if (callback !== undefined) { return callback(err); }
         });
 
@@ -1506,7 +1506,7 @@ function saveFile (params, callback){
       })
       .catch(function(error){
         if (error.status === 413){
-          console.error(chalkError("WAS | " + moment().format(compactDateTimeFormat) 
+          console.log(chalkError("WAS | " + moment().format(compactDateTimeFormat) 
             + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
             + " | ERROR: 413"
             // + " ERROR\n" + jsonPrint(error.error)
@@ -1514,7 +1514,7 @@ function saveFile (params, callback){
           if (callback !== undefined) { return callback(error.error_summary); }
         }
         else if (error.status === 429){
-          console.error(chalkError("WAS | " + moment().format(compactDateTimeFormat) 
+          console.log(chalkError("WAS | " + moment().format(compactDateTimeFormat) 
             + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
             + " | ERROR: TOO MANY WRITES"
             // + " ERROR\n" + "jsonPrint"(error.error)
@@ -1522,7 +1522,7 @@ function saveFile (params, callback){
           if (callback !== undefined) { return callback(error.error_summary); }
         }
         else if (error.status === 500){
-          console.error(chalkError("WAS | " + moment().format(compactDateTimeFormat) 
+          console.log(chalkError("WAS | " + moment().format(compactDateTimeFormat) 
             + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
             + " | ERROR: DROPBOX SERVER ERROR"
             // + " ERROR\n" + jsonPrint(error.error)
@@ -1924,7 +1924,7 @@ configEvents.on("newListener", function configEventsNewListener(data) {
 
 configEvents.on("CHILD_ERROR", function childError(childObj){
 
-  console.error(chalkError("CHILD_ERROR"
+  console.log(chalkError("CHILD_ERROR"
     + " | " + childObj.childId
     + " | ERROR: " + jsonPrint(childObj.err)
   ));
@@ -1947,7 +1947,7 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
 
     case DEFAULT_TWEET_PARSER_CHILD_ID:
 
-      console.error("KILL TWEET PARSER");
+      console.log(chalkError("KILL TWEET PARSER"));
 
       killChild({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, numKilled){
         initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
@@ -2478,7 +2478,7 @@ function initSocketHandler(socketObj) {
 
       currentViewer.status = "DISCONNECTED";
 
-      console.error(chalk.blue("VIEWER DISCONNECTED" 
+      console.log(chalk.blue("VIEWER DISCONNECTED" 
         + " | " + moment(currentViewer.timeStamp).format(compactDateTimeFormat)
         + " | " + currentViewer.user.type.toUpperCase()
         + " | " + currentViewer.user.nodeId
@@ -3687,7 +3687,7 @@ function initTransmitNodeQueueInterval(interval){
       nodeObj = transmitNodeQueue.shift();
 
       if (!nodeObj) {
-        console.error(new Error("transmitNodeQueue: NULL NODE OBJ DE-Q"));
+        console.log(chalkError(new Error("transmitNodeQueue: NULL NODE OBJ DE-Q")));
         transmitNodeQueueReady = true;
       }
       else {
@@ -4117,14 +4117,14 @@ function connectDb(callback){
     else {
 
       db.on("error", function(){
-        console.error.bind(console, "*** WA | MONGO DB CONNECTION ERROR ***\n");
+        console.log.bind(console, "*** WA | MONGO DB CONNECTION ERROR ***\n");
         console.log(chalkError("*** WA | MONGO DB CONNECTION ERROR ***\n"));
         db.close();
         dbConnectionReady = false;
       });
 
       db.on("disconnected", function(){
-        console.error.bind(console, "*** WA | MONGO DB DISCONNECTED ***\n");
+        console.log.bind(console, "*** WA | MONGO DB DISCONNECTED ***\n");
         console.log(chalkAlert("*** WA | MONGO DB DISCONNECTED ***\n"));
         dbConnectionReady = false;
       });
@@ -4153,7 +4153,8 @@ function connectDb(callback){
 // INIT APP ROUTING
 //=================================
 function slackMessageHandler(messageObj){
-  console.error(chalk.blue("R> SLACK MSG"
+
+  console.log(chalk.blue("R> SLACK MSG"
     + " | CH: " + messageObj.channel
     + " | USER: " + messageObj.user
     + " | " + messageObj.text
@@ -4262,12 +4263,12 @@ function initAppRouting(callback) {
 
       res.sendFile(googleVerification, function googleVerify(err) {
         if (err) {
-          console.error("GET /googleccd19766bea2dfd2.html ERROR:"
+          console.log(chalkError("GET /googleccd19766bea2dfd2.html ERROR:"
             + " | " + moment().format(compactDateTimeFormat)
             + " | " + req.url
             + " | " + googleVerification
             + " | " + err
-          );
+          ));
         } 
         else {
           console.log(chalkInfo("SENT:", googleVerification));
@@ -4356,12 +4357,12 @@ function initAppRouting(callback) {
     ));
     res.sendFile(adminHtml, function responseAdmin(err) {
       if (err) {
-        console.error("GET /session ERROR:"
+        console.log(chalkError("GET /session ERROR:"
           + " | " + moment().format(compactDateTimeFormat)
           + " | " + req.url
           + " | " + adminHtml
           + " | " + err
-        );
+        ));
       } 
       else {
         debug(chalkInfo("SENT:", adminHtml));
@@ -4379,12 +4380,12 @@ function initAppRouting(callback) {
     ));
     res.sendFile(sessionHtml, function responseSession(err) {
       if (err) {
-        console.error("GET /session ERROR:"
+        console.log(chalkError("GET /session ERROR:"
           + " | " + moment().format(compactDateTimeFormat)
           + " | " + req.url
           + " | " + sessionHtml
           + " | " + err
-        );
+        ));
       } 
       else {
         debug(chalkInfo("SENT:", sessionHtml));
@@ -4542,7 +4543,7 @@ function initTwitterRxQueueInterval(interval){
       childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({ op: "tweet", tweetStatus: tweet }, function sendTweetParser(err){
 
         if (err) {
-          console.error(chalkError("*** TWEET PARSER SEND ERROR"
+          console.log(chalkError("*** TWEET PARSER SEND ERROR"
             + " | " + err
           ));
 
@@ -4691,7 +4692,7 @@ function initTweetParserMessageRxQueueInterval(interval){
 
             transmitNodes(tweetObj, function transmitNode(err){
               if (err) {
-                console.error(chalkError("TRANSMIT NODES ERROR\n" + err));
+                console.log(chalkError("TRANSMIT NODES ERROR\n" + err));
               }
               tweetParserMessageRxQueueReady = true;
             });
@@ -4703,7 +4704,7 @@ function initTweetParserMessageRxQueueInterval(interval){
         }
       }
       else {
-        console.error(chalkError("*** TWEET PARSER UNKNOWN OP"
+        console.log(chalkError("*** TWEET PARSER UNKNOWN OP"
           + " | INTERVAL: " + tweetParserMessage.op
         ));
         tweetParserMessageRxQueueReady = true;
@@ -4967,7 +4968,7 @@ function initSorter(params, callback){
     interval: DEFAULT_INTERVAL
   }, function sorterMessageRxError(err){
     if (err) {
-      console.error(chalkError("*** SORTER SEND ERROR"
+      console.log(chalkError("*** SORTER SEND ERROR"
         + " | " + err
       ));
       childrenHashMap[params.childId].status = "ERROR";
@@ -4980,7 +4981,7 @@ function initSorter(params, callback){
   });
 
   childrenHashMap[params.childId].child.on("error", function sorterError(err){
-    console.error(chalkError(moment().format(compactDateTimeFormat)
+    console.log(chalkError(moment().format(compactDateTimeFormat)
       + " | *** SORTER ERROR ***"
       + " \n" + jsonPrint(err)
     ));
@@ -4989,7 +4990,7 @@ function initSorter(params, callback){
   });
 
   childrenHashMap[params.childId].child.on("exit", function sorterExit(code, signal){
-    console.error(chalkError(moment().format(compactDateTimeFormat)
+    console.log(chalkError(moment().format(compactDateTimeFormat)
       + " | *** SORTER EXIT ***"
       + " | PID: " + childrenHashMap[params.childId].child.pid
       + " | EXIT CODE: " + code
@@ -5001,7 +5002,7 @@ function initSorter(params, callback){
   });
 
   childrenHashMap[params.childId].child.on("close", function sorterClose(code, signal){
-    console.error(chalkError(moment().format(compactDateTimeFormat)
+    console.log(chalkError(moment().format(compactDateTimeFormat)
       + " | *** SORTER CLOSE ***"
       + " | PID: " + childrenHashMap[params.childId].child.pid
       + " | EXIT CODE: " + code
@@ -5049,7 +5050,7 @@ function initTweetParser(params, callback){
   });
 
   twp.on("error", function tweetParserError(err){
-    console.error(chalkError(moment().format(compactDateTimeFormat)
+    console.log(chalkError(moment().format(compactDateTimeFormat)
       + " | *** TWEET PARSER ERROR ***"
       + " \n" + jsonPrint(err)
     ));
@@ -5059,7 +5060,7 @@ function initTweetParser(params, callback){
   });
 
   twp.on("exit", function tweetParserExit(code){
-    console.error(chalkError(moment().format(compactDateTimeFormat)
+    console.log(chalkError(moment().format(compactDateTimeFormat)
       + " | *** TWEET PARSER EXIT ***"
       + " | EXIT CODE: " + code
     ));
@@ -5069,7 +5070,7 @@ function initTweetParser(params, callback){
   });
 
   twp.on("close", function tweetParserClose(code){
-    console.error(chalkError(moment().format(compactDateTimeFormat)
+    console.log(chalkError(moment().format(compactDateTimeFormat)
       + " | *** TWEET PARSER CLOSE ***"
       + " | EXIT CODE: " + code
     ));
@@ -5091,7 +5092,7 @@ function initTweetParser(params, callback){
     interval: TWEET_PARSER_INTERVAL
   }, function tweetParserMessageRxError(err){
     if (err) {
-      console.error(chalkError("*** TWEET PARSER SEND ERROR"
+      console.log(chalkError("*** TWEET PARSER SEND ERROR"
         + " | " + err
       ));
       tweetParserSendReady = false;
@@ -5237,7 +5238,7 @@ function initRateQinterval(interval){
         async.each(Object.keys(nodeMeterType[nodeType]), function sorterParams(meterId, cb){
 
           if (!nodeMeterType[nodeType][meterId]) {
-            console.error(chalkError("*** ERROR NULL nodeMeterType[" + nodeType + "]: " + meterId));
+            console.log(chalkError("*** ERROR NULL nodeMeterType[" + nodeType + "]: " + meterId));
           }
 
           paramsSorter.obj[meterId] = pick(nodeMeterType[nodeType][meterId].toJSON(), paramsSorter.sortKey);
@@ -5247,7 +5248,7 @@ function initRateQinterval(interval){
         }, function(err){
 
           if (err) {
-            console.error(chalkError("ERROR RATE QUEUE INTERVAL\n" + err ));
+            console.log(chalkError("ERROR RATE QUEUE INTERVAL\n" + err ));
           }
 
           keySortQueue.push(paramsSorter);
@@ -5265,7 +5266,7 @@ function initRateQinterval(interval){
       async.each(Object.keys(nodeMeter), function sorterParams(meterId, cb){
 
         if (!nodeMeter[meterId]) {
-          console.error(chalkError("*** ERROR NULL nodeMeter[meterId]: " + meterId));
+          console.log(chalkError("*** ERROR NULL nodeMeter[meterId]: " + meterId));
         }
 
         paramsSorterOverall.obj[meterId] = pick(nodeMeter[meterId].toJSON(), paramsSorterOverall.sortKey);
@@ -5273,7 +5274,7 @@ function initRateQinterval(interval){
         cb();
       }, function(err){
         if (err) {
-          console.error(chalkError("ERROR RATE QUEUE INTERVAL\n" + err ));
+          console.log(chalkError("ERROR RATE QUEUE INTERVAL\n" + err ));
         }
 
         keySortQueue.push(paramsSorterOverall);
@@ -5364,7 +5365,7 @@ function loadBestRuntimeNetwork(){
 
             childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({ op: "NETWORK", networkObj: bestNetworkObj }, function twpNetwork(err){
               if (err) {
-                console.error(chalkError("*** TWEET PARSER SEND NETWORK ERROR"
+                console.log(chalkError("*** TWEET PARSER SEND NETWORK ERROR"
                   + " | " + err
                 ));
               }
@@ -5428,7 +5429,7 @@ function initCategoryHashmaps(callback){
           hashtagServerController.findCategorizedHashtagsCursor(p, function(err, results){
 
             if (err) {
-              console.error(chalkError("WA | ERROR: initCategorizedHashtagHashmap: hashtagServerController: findCategorizedHashtagsCursor" + err));
+              console.log(chalkError("WA | ERROR: initCategorizedHashtagHashmap: hashtagServerController: findCategorizedHashtagsCursor" + err));
               cb0(err);
             }
             else if (results) {
@@ -5520,7 +5521,7 @@ function initCategoryHashmaps(callback){
           userServerController.findCategorizedUsersCursor(p, function(err, results){
 
             if (err) {
-              console.error(chalkError("WA | ERROR: initCategorizedUserHashmap: userServerController: findCategorizedUsersCursor" + err));
+              console.log(chalkError("WA | ERROR: initCategorizedUserHashmap: userServerController: findCategorizedUsersCursor" + err));
               cb0(err);
             }
             else if (results) {
@@ -5613,7 +5614,7 @@ function initCategoryHashmaps(callback){
           wordServerController.findCategorizedWordsCursor(p, function(err, results){
 
             if (err) {
-              console.error(chalkError("WA | ERROR: initCategorizedUserHashmap: wordServerController: findCategorizedWordsCursor" + err));
+              console.log(chalkError("WA | ERROR: initCategorizedUserHashmap: wordServerController: findCategorizedWordsCursor" + err));
               cb0(err);
             }
             else if (results) {
@@ -5971,7 +5972,6 @@ initStats(function setCacheObjKeys(){
 initialize(configuration, function initializeComplete(err) {
   if (err) {
     console.log(chalkError("*** INITIALIZE ERROR ***\n" + jsonPrint(err)));
-    console.error(chalkError("*** INITIALIZE ERROR ***\n" + jsonPrint(err)));
   } 
   else {
     debug(chalkLog("INITIALIZE COMPLETE"));

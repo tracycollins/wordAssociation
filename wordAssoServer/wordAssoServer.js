@@ -4150,7 +4150,7 @@ function connectDb(callback){
 // INIT APP ROUTING
 //=================================
 function slackMessageHandler(messageObj){
-  console.error(challk.blue("R> SLACK MSG"
+  console.error(chalk.blue("R> SLACK MSG"
     + " | CH: " + messageObj.channel
     + " | USER: " + messageObj.user
     + " | " + messageObj.text
@@ -5714,11 +5714,14 @@ function initialize(cnf, callback) {
 
     loadFile(dropboxConfigTwitterFolder, defaultTwitterConfigFile, function initTwit(err, twitterConfig){
       if (err) {
-        console.log(chalkError("*** LOADED DEFAULT TWITTER CONFIG ERROR: FILE:  " + defaultTwitterConfigFile));
+        console.log(chalkError("*** LOADED DEFAULT TWITTER CONFIG ERROR: FILE:  " + dropboxConfigTwitterFolder + "/" + defaultTwitterConfigFile));
         console.log(chalkError("*** LOADED DEFAULTTWITTER CONFIG ERROR: ERROR: " + err));
       }
       else {
-        console.log(chalkTwitter("LOADED TWITTER AUTO FOLLOW CONFIG\n" + jsonPrint(defaultTwitterConfigFile)));
+        console.log(chalkTwitter("LOADED DEFAULT TWITTER CONFIG"
+          + " | " + dropboxConfigTwitterFolder + "/" + defaultTwitterConfigFile
+          + "\n" + jsonPrint(twitterConfig)
+        ));
 
         twit = new Twit(twitterConfig);
 
@@ -5726,15 +5729,18 @@ function initialize(cnf, callback) {
       }
     });
 
-    loadFile(dropboxConfigTwitterFolder, twitterAutoFollowConfigFile, function initTwit(err, twitterConfig){
+    loadFile(dropboxConfigTwitterFolder, twitterAutoFollowConfigFile, function initTwit(err, twitterAutoFollowConfig){
       if (err) {
-        console.log(chalkError("*** LOADED TWITTER AUTO FOLLOW CONFIG ERROR: FILE:  " + twitterAutoFollowConfigFile));
+        console.log(chalkError("*** LOADED TWITTER AUTO FOLLOW CONFIG ERROR: FILE:  " + dropboxConfigTwitterFolder + "/" + twitterAutoFollowConfigFile));
         console.log(chalkError("*** LOADED TWITTER AUTO FOLLOW CONFIG ERROR: ERROR: " + err));
       }
       else {
-        console.log(chalkTwitter("LOADED TWITTER AUTO FOLLOW CONFIG\n" + jsonPrint(twitterAutoFollowConfigFile)));
+        console.log(chalkTwitter("LOADED TWITTER AUTO FOLLOW CONFIG"
+          + " | " + dropboxConfigTwitterFolder + "/" + twitterAutoFollowConfigFile
+          + "\n" + jsonPrint(twitterAutoFollowConfig)
+        ));
 
-        twitAutoFollow = new Twit(twitterConfig);
+        twitAutoFollow = new Twit(twitterAutoFollowConfig);
       }
     });
 

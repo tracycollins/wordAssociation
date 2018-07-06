@@ -482,17 +482,17 @@ let wordServerControllerReady = false;
 
 hashtagServerController.on("ready", function(appname){
   hashtagServerControllerReady = true;
-  console.log(chalkAlert("HSC READY | " + appname));
+  console.log(chalk.green("HSC READY | " + appname));
 });
 
 userServerController.on("ready", function(appname){
   userServerControllerReady = true;
-  console.log(chalkAlert("USC READY | " + appname));
+  console.log(chalk.green("USC READY | " + appname));
 });
 
 wordServerController.on("ready", function(appname){
   wordServerControllerReady = true;
-  console.log(chalkAlert("WSC READY | " + appname));
+  console.log(chalk.green("WSC READY | " + appname));
 });
 
 
@@ -637,12 +637,6 @@ const viewerCache = new NodeCache({
 });
 
 function viewerCacheExpired(viewerCacheId, viewerObj) {
-
-  console.log(chalkAlert("XXX VIEWER CACHE EXPIRED"
-    + " | " + viewerObj.user.type.toUpperCase()
-    + " | " + viewerCacheId
-    + " | " + viewerObj.user.userId
-  ));
 
   console.log(chalkAlert("XXX VIEWER CACHE EXPIRED"
     + " | TTL: " + viewerCacheTtl + " SECS"
@@ -1136,7 +1130,6 @@ function getTimeStamp(inputTime) {
 function dropboxLongPoll(last_cursor, callback) {
   dropboxClient.filesListFolderLongpoll({cursor: last_cursor, timeout: 30})
     .then(function(results){
-      // console.log(chalkAlert("dropboxLongpoll FOLDER: " + lastCursorTruncated + "\n" + jsonPrint(result)));
       callback(null, results);
     })
     .catch(function(err){
@@ -2266,7 +2259,7 @@ function initUnfollowableUserSet(){
     }
     else if (unfollowableUserSetArray) {
       unfollowableUserSet = new Set(unfollowableUserSetArray);
-      console.log(chalkAlert("INIT UNFOLLOWABLE USERS | " + unfollowableUserSet.size + " USERS"));
+      console.log(chalkInfo("INIT UNFOLLOWABLE USERS | " + unfollowableUserSet.size + " USERS"));
     }
   });
 }
@@ -2302,7 +2295,7 @@ function unfollow(params, callback) {
       console.log(chalkError("UNFOLLOW ERROR: " + err));
     }
     else {
-      console.log(chalkAlert("UNFOLLOW USER: @" + user.screenName));
+      console.log(chalkLog("UNFOLLOW USER: @" + user.screenName));
     }
 
     if (callback !== undefined) { callback(); }
@@ -2380,7 +2373,7 @@ function initSocketHandler(socketObj) {
       currentServer.ip = ipAddress;
       currentServer.status = "ERROR";
 
-      console.error(chalkAlert("SERVER ERROR" 
+      console.log(chalkError("SERVER ERROR" 
         + " | " + moment(currentServer.timeStamp).format(compactDateTimeFormat)
         + " | " + currentServer.user.type.toUpperCase()
         + " | " + currentServer.user.nodeId
@@ -2403,7 +2396,7 @@ function initSocketHandler(socketObj) {
       currentViewer.ip = ipAddress;
       currentViewer.status = "ERROR";
 
-      console.error(chalkAlert("VIEWER ERROR" 
+      console.log(chalkError("VIEWER ERROR" 
         + " | " + moment(currentViewer.timeStamp).format(compactDateTimeFormat)
         + " | " + currentViewer.user.type.toUpperCase()
         + " | " + currentViewer.user.nodeId
@@ -2436,7 +2429,7 @@ function initSocketHandler(socketObj) {
     ));
 
     if (adminHashMap.has(socket.id)) { 
-      console.error(chalkAlert("XXX DELETED ADMIN" 
+      console.log(chalkAlert("XXX DELETED ADMIN" 
         + " | " + moment().format(compactDateTimeFormat)
         + " | " + adminHashMap.get(socket.id).user.type.toUpperCase()
         + " | " + adminHashMap.get(socket.id).user.nodeId
@@ -2452,7 +2445,7 @@ function initSocketHandler(socketObj) {
 
       currentServer.status = "DISCONNECTED";
 
-      console.error(chalk.blue("SERVER DISCONNECTED" 
+      console.log(chalk.blue("SERVER DISCONNECTED" 
         + " | " + moment().format(compactDateTimeFormat)
         + " | " + currentServer.user.type.toUpperCase()
         + " | " + currentServer.user.nodeId
@@ -2573,7 +2566,7 @@ function initSocketHandler(socketObj) {
           sessionObj.isViewer = false;
           sessionObj.stats = {};
 
-          console.log(chalkAlert("+++ ADD " + currentSessionType 
+          console.log(chalk.green("+++ ADD " + currentSessionType 
             + " | " + moment().format(compactDateTimeFormat)
             + " | " + keepAliveObj.user.userId
             + " | " + sessionObj.ip
@@ -2630,7 +2623,7 @@ function initSocketHandler(socketObj) {
           sessionObj.isViewer = false;
           sessionObj.stats = {};
 
-          console.log(chalkAlert("+++ ADD " + currentSessionType + " SERVER" 
+          console.log(chalk.green("+++ ADD " + currentSessionType + " SERVER" 
             + " | " + moment().format(compactDateTimeFormat)
             + " | " + keepAliveObj.user.userId
             + " | " + sessionObj.ip
@@ -2684,7 +2677,7 @@ function initSocketHandler(socketObj) {
           sessionObj.isViewer = true;
           sessionObj.stats = {};
 
-          console.log(chalkAlert("+++ ADD " + currentSessionType + " SESSION" 
+          console.log(chalk.green("+++ ADD " + currentSessionType + " SESSION" 
             + " | " + moment().format(compactDateTimeFormat)
             + " | " + keepAliveObj.user.userId
             + " | " + sessionObj.ip
@@ -2728,7 +2721,7 @@ function initSocketHandler(socketObj) {
 
     follow({user: u}, function(err, results){
       if (err) {
-        console.log(chalkAlert("TWITTER_FOLLOW ERROR: " + err));
+        console.log(chalkError("TWITTER_FOLLOW ERROR: " + err));
         return;
       }
 
@@ -2750,7 +2743,7 @@ function initSocketHandler(socketObj) {
 
     unfollow({user: u}, function(err, results){
       if (err) {
-        console.log(chalkAlert("TWITTER_UNFOLLOW ERROR: " + err));
+        console.log(chalkError("TWITTER_UNFOLLOW ERROR: " + err));
         return;
       }
 
@@ -3609,7 +3602,7 @@ function startTwitUserShowRateLimitTimeout(){
   ));
 
   setTimeout(function(){
-    console.log(chalkAlert("TWITTER USER SHOW TIMEOUT END"
+    console.log(chalk.green("TWITTER USER SHOW TIMEOUT END"
       + " | INTERVAL: " + msToTime(startTwitUserShowRateLimitTimeoutDuration)
       + " | " + getTimeStamp()
     ));
@@ -3621,7 +3614,7 @@ function initFollowableSearchTerms(){
   const termsArray = Array.from(followableSearchTermSet);
   followableSearchTermString = termsArray.join("|");
   followableRegEx = new RegExp(followableSearchTermString, "gi");
-  console.log(chalkAlert("followableRegEx: " + followableRegEx));
+  console.log(chalkInfo("followableRegEx: " + followableRegEx));
 }
 
 let userFollowable = function(user){
@@ -4157,7 +4150,7 @@ function connectDb(callback){
 // INIT APP ROUTING
 //=================================
 function slackMessageHandler(messageObj){
-  console.error(chalkAlert("R> SLACK MSG"
+  console.error(challk.blue("R> SLACK MSG"
     + " | CH: " + messageObj.channel
     + " | USER: " + messageObj.user
     + " | " + messageObj.text
@@ -4176,7 +4169,7 @@ function slackMessageHandler(messageObj){
         if (val === "1") { metricsRate = "1MinuteRate"; }
         if (val === "5") { metricsRate = "5MinuteRate"; }
         if (val === "15") { metricsRate = "15MinuteRate"; }
-        console.log(chalkAlert("METRICS RATE: " + metricsRate));
+        console.log(chalkLog("METRICS RATE: " + metricsRate));
       }
     break;
     default:
@@ -4398,7 +4391,7 @@ function initAppRouting(callback) {
 
   function ensureAuthenticated(req, res, next) {
     if (req.isAuthenticated()) { 
-      console.log(chalkAlert("PASSPORT TWITTER AUTHENTICATED"));
+      console.log(chalk.green("PASSPORT TWITTER AUTHENTICATED"));
       slackPostMessage(slackChannel, "PASSPORT TWITTER AUTHENTICATED");
       return next();
     }
@@ -4423,7 +4416,7 @@ function initAppRouting(callback) {
         res.redirect("/504.html");
       } 
       else {
-        console.log(chalkAlert("TWITTER USER AUTHENTICATED: @" + user.screenName));  // handle errors
+        console.log(chalk.green("TWITTER USER AUTHENTICATED: @" + user.screenName));  // handle errors
         slackPostMessage(slackChannel, "USER AUTH: @" + user.screenName);
         authenticatedTwitterUserCache.set(user.nodeId, user);
         res.redirect("/after-auth.html");
@@ -4440,7 +4433,7 @@ function initAppRouting(callback) {
   app.get("/auth/twitter",
     passport.authenticate("twitter"),
     function(req, res){
-      console.log(chalkAlert("PASSPORT AUTH TWITTER"
+      console.log(chalk.green("PASSPORT AUTH TWITTER"
         + " | req.query: " + jsonPrint(req.query)
         + " | req.params: " + jsonPrint(req.params)
       ));
@@ -4449,7 +4442,7 @@ function initAppRouting(callback) {
   app.get("/auth/twitter/callback",
     passport.authenticate("twitter", { successRedirect: "/account", failureRedirect: "/auth/twitter/error" }),
     function(req, res) {
-      console.log(chalkAlert("PASSPORT AUTH TWITTER CALLBACK"));
+      console.log(chalk.green("PASSPORT AUTH TWITTER CALLBACK"));
     });
 
 

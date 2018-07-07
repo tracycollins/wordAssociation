@@ -3134,7 +3134,7 @@ function initSocketHandler(socketObj) {
   });
 
   socket.on("USER_READY", function userReady(userObj) {
-    console.log(chalkSocket("USER READY"
+    console.log(chalkSocket("R< USER READY"
       + " | " + getTimeStamp()
       + " | " + userObj.userId
       + " | SENT " + moment(parseInt(userObj.timeStamp)).format(compactDateTimeFormat)

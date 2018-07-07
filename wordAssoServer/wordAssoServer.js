@@ -3134,18 +3134,21 @@ function initSocketHandler(socketObj) {
   });
 
   socket.on("USER_READY", function userReady(userObj) {
+
     console.log(chalkSocket("R< USER READY"
       + " | " + getTimeStamp()
       + " | " + userObj.userId
       + " | SENT " + moment(parseInt(userObj.timeStamp)).format(compactDateTimeFormat)
     ));
 
-    socket.emit("USER_READY_ACK", 
-      {
-        userId: userObj.userId,
-        timeStamp: moment().valueOf()
+    socket.emit("USER_READY_ACK", { userId: userObj.userId, timeStamp: moment().valueOf() }, function(err){
+      if (err) {
+        console.log(chalkError("*** USER_READY_ACK SEND ERROR | " + userObj.userId));
       }
-    );
+      else {
+        console.log(chalkError("TXD> USER_READY_ACK | " + userObj.userId));
+      }
+    });
   });
 
   socket.on("VIEWER_READY", function viewerReady(viewerObj) {

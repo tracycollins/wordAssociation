@@ -4,6 +4,7 @@
     "script"      : "wordAssoServer.js",
     "cwd"         : "/Volumes/RAID1/projects/wordAssociation/wordAssoServer",
     "autorestart" : false,
+    "node_args"   : "--max-old-space-size=10240",
     "env": {
       "FORCE_COLOR": 1,
       "NODE_ENV": "development",

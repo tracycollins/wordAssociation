@@ -4142,7 +4142,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
         heartbeatObj.twitter.maxTweetsPerMinTime = statsObj.twitter.maxTweetsPerMinTime;
 
         utilNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
-        adminNameSpace.emit("HEARTBEAT", heartbeatObj);
+        adminNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
         userNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
         viewNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
 

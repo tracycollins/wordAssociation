@@ -949,7 +949,8 @@ function ViewTreepack() {
         if (node.isValid) {
           node.isValid = false;
           resetNode(node, function(n){
-            nodePool.recycle(n);        
+            nodePool.recycle(n);
+            console.debug("NODE POOL SIZE: " + nodePool.size());     
           });
         }
 
@@ -1779,6 +1780,7 @@ function ViewTreepack() {
       else {
 
         currentNode = nodePool.use();
+        console.debug("NODE POOL SIZE: " + nodePool.size());     
 
         nodeIdHashMap.set(newNode.nodeId, currentNode.nodePoolId);
 

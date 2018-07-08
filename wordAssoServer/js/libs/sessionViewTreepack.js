@@ -867,7 +867,9 @@ function ViewTreepack() {
     tempNodeCirle = document.getElementById(n.nodePoolId);
     tempNodeCirle.setAttribute("r", 1e-6);
     tempNodeCirle.setAttribute("visibility", "hidden");
-    tempNodeCirle.setAttribute("opacity", 1e-6);
+    // tempNodeCirle.setAttribute("opacity", 1e-6);
+    tempNodeCirle.setAttribute("fill-opacity", 1e-6);
+    tempNodeCirle.setAttribute("stroke-opacity", 1e-6);
 
     tempNodeLabel = document.getElementById(n.nodePoolId + "_label");
     tempNodeLabel.setAttribute("visibility", "hidden");
@@ -1000,9 +1002,12 @@ function ViewTreepack() {
       self.toolTipVisibility(false);
     }
 
-    d3.select(this).style("opacity", 1);
+    // d3.select(this).style("opacity", 1);
+    d3.select(this).style("fill-opacity", 1);
+    d3.select(this).style("stroke-opacity", 1);
     d3.select(this).style("visibility", "visible");
-    d3.select("#" + d.nodePoolId).style("opacity", 1);
+    d3.select("#" + d.nodePoolId).style("fill-opacity", 1);
+    d3.select("#" + d.nodePoolId).style("stroke-opacity", 1);
     d3.select("#" + d.nodePoolId + "_label").style("opacity", 1);
     d3.select("#" + d.nodePoolId + "_label").style("visibility", "visible");
 
@@ -1099,11 +1104,23 @@ function ViewTreepack() {
 
     self.toolTipVisibility(false);
 
-    d3.select(this).style("opacity", function(){
+    // d3.select(this).style("opacity", function(){
+    //   return nodeLabelOpacityScale(d.ageMaxRatio);
+    // });
+
+    d3.select(this).style("fill-opacity", function(){
       return nodeLabelOpacityScale(d.ageMaxRatio);
     });
 
-    d3.select("#" + d.nodePoolId).style("opacity", function(){
+    d3.select(this).style("stroke-opacity", function(){
+      return nodeLabelOpacityScale(d.ageMaxRatio);
+    });
+
+    d3.select("#" + d.nodePoolId).style("fill-opacity", function(){
+      return nodeLabelOpacityScale(d.ageMaxRatio);
+    });
+    
+    d3.select("#" + d.nodePoolId).style("stroke-opacity", function(){
       return nodeLabelOpacityScale(d.ageMaxRatio);
     });
     
@@ -1841,7 +1858,9 @@ function ViewTreepack() {
         if (nodePoolIdcircle) {
           nodePoolIdcircle.setAttribute("r", 1e-6);
           nodePoolIdcircle.setAttribute("visibility", "hidden");
-          nodePoolIdcircle.setAttribute("opacity", 1e-6);
+          // nodePoolIdcircle.setAttribute("opacity", 1e-6);
+          nodePoolIdcircle.setAttribute("fill-opacity", 1e-6);
+          nodePoolIdcircle.setAttribute("stroke-opacity", 1e-6);
         }
 
         localNodeHashMap.set(currentNode.nodePoolId, currentNode);

@@ -6,7 +6,7 @@ function ViewTreepack() {
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
-  var DEFAULT_ZOOM_FACTOR = 0.75;
+  var DEFAULT_ZOOM_FACTOR = 0.5;
   var emojiFontMulipier = 2.0;
 
   var topTermsDivVisible = false;

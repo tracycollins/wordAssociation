@@ -2617,7 +2617,7 @@ function initSocketHandler(socketObj) {
 
           adminHashMap.set(socket.id, sessionObj);
 
-          adminNameSpace.emit("KEEPALIVE", sessionObj);
+          adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
         }
       break;
 
@@ -2675,7 +2675,7 @@ function initSocketHandler(socketObj) {
 
           serverCache.set(socket.id, sessionObj);
 
-          adminNameSpace.emit("KEEPALIVE", sessionObj);
+          adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
           socket.emit("GET_STATS");
         }
 
@@ -2730,7 +2730,7 @@ function initSocketHandler(socketObj) {
 
           viewerCache.set(socket.id, sessionObj);
 
-          adminNameSpace.emit("KEEPALIVE", sessionObj);
+          adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
         }
       break;
 
@@ -3825,7 +3825,7 @@ function initTransmitNodeQueueInterval(interval){
                     n.friendsCount = rawUser.friends_count;
                     n.followersCount = rawUser.followers_count;
                     n.status = rawUser.status;
-                    n.lastSeen = rawUser.status.created_at;
+                    n.lastSeen = (rawUser.status !== undefined) ? rawUser.status.created_at : null;
                     n.updateLastSeen = true;
 
                     nCacheObj = nodeCache.get(n.nodeId);
@@ -4141,7 +4141,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
         heartbeatObj.twitter.maxTweetsPerMin = statsObj.twitter.maxTweetsPerMin;
         heartbeatObj.twitter.maxTweetsPerMinTime = statsObj.twitter.maxTweetsPerMinTime;
 
-        utilNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
+        // utilNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
         adminNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
         // userNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
         // viewNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
@@ -4454,7 +4454,7 @@ function initAppRouting(callback) {
           else if (response && (response.entries.length > 0)) {
 
             setTimeout(function(){
-              utilNameSpace.emit("DROPBOX_CHANGE", response);
+              // utilNameSpace.emit("DROPBOX_CHANGE", response);
               adminNameSpace.emit("DROPBOX_CHANGE", response);
 
               console.log(chalkLog(">>> DROPBOX CHANGE"

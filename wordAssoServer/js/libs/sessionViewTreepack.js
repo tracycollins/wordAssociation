@@ -873,12 +873,12 @@ function ViewTreepack() {
 
     tempNodeLabel = document.getElementById(n.nodePoolId + "_label");
     tempNodeLabel.setAttribute("visibility", "hidden");
-    tempNodeLabel.setAttribute("opacity", 1e-6);
+    tempNodeLabel.setAttribute("fill-opacity", 1e-6);
 
     tempNodeTopTermLabel = document.getElementById(n.nodePoolId + "_labelTopTerm");
     if (tempNodeTopTermLabel) {
       // tempNodeTopTermLabel.setAttribute("visibility", "hidden");
-      tempNodeTopTermLabel.setAttribute("opacity", 1e-6);
+      tempNodeTopTermLabel.setAttribute("fill-opacity", 1e-6);
     }
     callback(n);
   }
@@ -1009,7 +1009,7 @@ function ViewTreepack() {
     d3.select(this).style("visibility", "visible");
     d3.select("#" + d.nodePoolId).style("fill-opacity", 1);
     d3.select("#" + d.nodePoolId).style("stroke-opacity", 1);
-    d3.select("#" + d.nodePoolId + "_label").style("opacity", 1);
+    d3.select("#" + d.nodePoolId + "_label").style("fill-opacity", 1);
     d3.select("#" + d.nodePoolId + "_label").style("visibility", "visible");
 
     switch (d.nodeType) {
@@ -1125,7 +1125,7 @@ function ViewTreepack() {
       return nodeLabelOpacityScale(d.ageMaxRatio);
     });
     
-    d3.select("#" + d.nodePoolId + "_label").style("opacity", function(){
+    d3.select("#" + d.nodePoolId + "_label").style("fill-opacity", function(){
       return nodeLabelOpacityScale(d.ageMaxRatio);
     });
             
@@ -1251,7 +1251,7 @@ function ViewTreepack() {
     nodeTopTermLabels
       .exit()
       .style("visibility", "hidden")
-      .style("opacity", 1e-6);
+      .style("fill-opacity", 1e-6);
       // .remove();
 
     nodeTopTermLabels
@@ -1266,7 +1266,7 @@ function ViewTreepack() {
         if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
         return palette.darkgray; 
       })
-      .style("opacity", function updateTopTermOpacity(d) { 
+      .style("fill-opacity", function updateTopTermOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
@@ -1291,7 +1291,7 @@ function ViewTreepack() {
       })
       .style("font-family", "monospace")
       .style("visibility", null)
-      .style("opacity", function updateTopTermOpacity(d) { 
+      .style("fill-opacity", function updateTopTermOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
@@ -1483,7 +1483,7 @@ function ViewTreepack() {
       .text(labelText)
       .attr("x", function (d) { return d.x; })
       .attr("y", function (d) { return d.y; })
-      .style("opacity", function updateNodeLabelOpacity(d) { 
+      .style("fill-opacity", function updateNodeLabelOpacity(d) { 
         if (d.nodeType === "media") { return 1e-6; }
         if (d.mouseHoverFlag) { return 1.0; }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
@@ -1567,7 +1567,7 @@ function ViewTreepack() {
         if (d.isTopTerm) { return "overline"; }
         return "none"; 
       })
-      .style("opacity", function (d) { 
+      .style("fill-opacity", function (d) { 
         if (d.nodeType === "media") { return 1e-6; }
         return nodeLabelOpacityScale(d.ageMaxRatio);
       })

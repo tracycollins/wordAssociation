@@ -172,9 +172,9 @@ function initTweetParserQueueInterval(cnf){
   };
 
   if (tweetServer) { 
-    tweetServer.loadNeuralNetwork({networkObj: cnf.networkObj}, function(){});
-    tweetServer.loadMaxInputHashMap(cnf.maxInputHashMap, function(){});
-    tweetServer.loadNormalization(cnf.normalization, function(){});
+    if (cnf.networkObj) { tweetServer.loadNeuralNetwork({networkObj: cnf.networkObj}, function(){}); }
+    if (cnf.maxInputHashMap) { tweetServer.loadMaxInputHashMap(cnf.maxInputHashMap, function(){}); }
+    if (cnf.normalization) { tweetServer.loadNormalization(cnf.normalization, function(){}); }
   }
 
   tweetParserQueueInterval = setInterval(function(){
@@ -263,7 +263,9 @@ process.on("message", function(m) {
   switch (m.op) {
 
     case "INIT":
+
       process.title = m.title;
+
       cnf.updateInterval = m.interval;
       cnf.networkObj = {};
       cnf.networkObj = m.networkObj;
@@ -276,28 +278,47 @@ process.on("message", function(m) {
       console.log(chalkInfo("TWEET PARSER INIT"
         + " | TITLE: " + m.title
         + " | INTERVAL: " + m.interval
-        + " | NN: " + m.networkObj.networkId
-        + " | MAX IN HM INPUT TYPES: " + Object.keys(cnf.maxInputHashMap)
-        + " | NORMALIZATION INPUT TYPES: " + Object.keys(cnf.normalization)
       ));
 
-      async.eachSeries(Object.keys(m.networkObj.inputsObj.inputs), function(type, cb){
-
-        console.log(chalkNetwork("NN INPUTS TYPE" 
-          + " | " + type
-          + " | INPUTS: " + m.networkObj.inputsObj.inputs[type].length
+      if (cnf.networkObj) {
+        console.log(chalkInfo("TWEET PARSER INIT"
+          + " | NN: " + m.networkObj.networkId
         ));
 
-        cnf.inputArrays[type] = {};
-        cnf.inputArrays[type] = m.networkObj.inputsObj.inputs[type];
+        async.eachSeries(Object.keys(m.networkObj.inputsObj.inputs), function(type, cb){
 
-        cb();
+          console.log(chalkNetwork("NN INPUTS TYPE" 
+            + " | " + type
+            + " | INPUTS: " + m.networkObj.inputsObj.inputs[type].length
+          ));
 
-      }, function(){
+          cnf.inputArrays[type] = {};
+          cnf.inputArrays[type] = m.networkObj.inputsObj.inputs[type];
+
+          cb();
+        }, function(){
+          initTweetParserQueueInterval(cnf);
+          networkReady = true;
+        });
+
+      }
+      else {
         initTweetParserQueueInterval(cnf);
-        networkReady = true;
-      });
-
+        networkReady = false;
+      }
+      
+      if (cnf.maxInputHashMap) {
+        console.log(chalkInfo("TWEET PARSER INIT"
+          + " | MAX IN HM INPUT TYPES: " + Object.keys(cnf.maxInputHashMap)
+        ));
+      }
+      
+      if (cnf.normalization) {
+        console.log(chalkInfo("TWEET PARSER INIT"
+          + " | NORMALIZATION INPUT TYPES: " + Object.keys(cnf.normalization)
+        ));
+      }
+      
 
     break;
 

@@ -1,6 +1,5 @@
 /* jshint undef: true, unused: true */
 /* globals
-TREEMAP_MAX_AGE,
 CustomEvent,
 ViewTreepack, 
 clearTimeout,
@@ -43,27 +42,27 @@ statsObj.maxNodes = 0;
 statsObj.maxNodeAddQ = 0;
 statsObj.serverConnected = false;
 
-var heartbeat = {};
-heartbeat.tweetsPerMin = 0;
-heartbeat.maxTweetsPerMin = 0;
-heartbeat.nodesPerMin = 0;
-heartbeat.maxNodesPerMin = 0;
-heartbeat.serverTime = 0;
-heartbeat.startTime = 0;
-heartbeat.runTime = 0;
-heartbeat.upTime = 0;
-heartbeat.elapsed = 0;
+// var heartbeat = {};
+// heartbeat.tweetsPerMin = 0;
+// heartbeat.maxTweetsPerMin = 0;
+// heartbeat.nodesPerMin = 0;
+// heartbeat.maxNodesPerMin = 0;
+// heartbeat.serverTime = 0;
+// heartbeat.startTime = 0;
+// heartbeat.runTime = 0;
+// heartbeat.upTime = 0;
+// heartbeat.elapsed = 0;
 
-heartbeat.memory = {};
+// heartbeat.memory = {};
 
-heartbeat.nodesPerMin = 0;
-heartbeat.maxNodesPerMin = 0;
-heartbeat.maxNodesPerMinTime = 0;
+// heartbeat.nodesPerMin = 0;
+// heartbeat.maxNodesPerMin = 0;
+// heartbeat.maxNodesPerMinTime = 0;
 
-heartbeat.twitter = {};
-heartbeat.twitter.tweetsPerMin = 0;
-heartbeat.twitter.maxTweetsPerMin = 0;
-heartbeat.twitter.maxTweetsPerMinTime = 0;
+// heartbeat.twitter = {};
+// heartbeat.twitter.tweetsPerMin = 0;
+// heartbeat.twitter.maxTweetsPerMin = 0;
+// heartbeat.twitter.maxTweetsPerMinTime = 0;
 
 statsObj.socket = {};
 
@@ -86,19 +85,19 @@ const RX_NODE_QUEUE_MAX = 100;
 
 const STATS_UPDATE_INTERVAL = 1000;
 
-var statsServerTimeElement;
-var statsServerUpTimeElement;
-var statsServerStartTimeElement;
-var statsServerRunTimeElement;
-var statsServerTweetsPerMinElement;
-var statsServerMaxTweetsPerMinElement;
-var statsClientNumberNodesElement;
-var statsClientNumberMaxNodesElement;
-var statsClientAddNodeQElement;
-var statsClientMaxAddNodeQElement;
-var statsClientAgeRateElement;
-var statsClientMaxAgeRateElement;
-var statsClientSessionIdElement;
+// var statsServerTimeElement;
+// var statsServerUpTimeElement;
+// var statsServerStartTimeElement;
+// var statsServerRunTimeElement;
+// var statsServerTweetsPerMinElement;
+// var statsServerMaxTweetsPerMinElement;
+// var statsClientNumberNodesElement;
+// var statsClientNumberMaxNodesElement;
+// var statsClientAddNodeQElement;
+// var statsClientMaxAddNodeQElement;
+// var statsClientAgeRateElement;
+// var statsClientMaxAgeRateElement;
+// var statsClientSessionIdElement;
 
 function jsonPrint(obj) {
   if ((obj) || (obj === 0)) {
@@ -178,7 +177,7 @@ var controlPanel;
 var controlPanelWindow; 
 var controlPanelFlag = false;
 
-var statsTableFlag = false;
+// var statsTableFlag = false;
 
 requirejs(["https://d3js.org/d3.v5.min.js"], function(d3Loaded) {
     console.log("d3 LOADED");
@@ -187,14 +186,15 @@ requirejs(["https://d3js.org/d3.v5.min.js"], function(d3Loaded) {
 
       PARENT_ID = config.sessionViewType;
 
-      createStatsTable(function(){
-        statsTableFlag = true;
-      });
+      // createStatsTable(function(){
+      //   statsTableFlag = true;
+      // });
+
       addControlButton();
       addLoginButton();
       addFullscreenButton();
       addMetricButton();
-      addStatsButton();
+      // addStatsButton();
       addCategoryButton();
 
       resetMouseMoveTimer();
@@ -210,7 +210,6 @@ requirejs(["https://d3js.org/d3.v5.min.js"], function(d3Loaded) {
           resetMouseMoveTimer();
         }
       }, true);
-
     });
   },
   function(error) {
@@ -220,26 +219,16 @@ requirejs(["https://d3js.org/d3.v5.min.js"], function(d3Loaded) {
   }
 );
 
-// var currentGroup = {};
-// var currentSession = {};
 var currentSessionView;
 
 var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
-// var defaultTimePeriodFormat = "HH:mm:ss";
 
 var pageLoadedTimeIntervalFlag = true;
 
-// var DEFAULT_BLAH_MODE = true;
-// var MAX_WORDCHAIN_LENGTH = 100;
-
 var DEFAULT_METRIC_MODE = "rate";
 var DEFAULT_MAX_AGE = 60000;
-// var FLOW_MAX_AGE = 20000;
-// var FORCE_MAX_AGE = 60000;
-// var HISTOGRAM_MAX_AGE = 60000;
 var TREEMAP_MAX_AGE = 15000;
 var TREEPACK_MAX_AGE = 15000;
-// var MEDIA_MAX_AGE = 60000;
 
 var DEFAULT_AGE_RATE = 1.0;
 
@@ -772,14 +761,14 @@ function addControlButton(){
   controlDivElement.appendChild(controlPanelButton);
 }
 
-function addStatsText(){
-  var statsText = document.createTextNode("STATS");
-  statsDivElement.appendChild(statsText);
-}
+// function addStatsText(){
+//   var statsText = document.createTextNode("STATS");
+//   statsDivElement.appendChild(statsText);
+// }
 
-function updateStatsText(statsText){
-  statsDivElement.innerHTML = statsText;
-}
+// function updateStatsText(statsText){
+//   statsDivElement.innerHTML = statsText;
+// }
 
 function addCategoryButton(){
   var categoryButton = document.createElement("BUTTON");
@@ -794,20 +783,20 @@ function updateCategoryButton(){
   document.getElementById("categoryButton").innerHTML = config.autoCategoryFlag ? "AUTO CATEGORY" : "MANUAL CATEGORY";
 }
 
-function addStatsButton(){
-  var statsButton = document.createElement("BUTTON");
-  statsButton.className = "button";
-  statsButton.setAttribute("id", "statsButton");
-  statsButton.setAttribute("onclick", "toggleStats()");
-  statsButton.innerHTML = config.showStats ? "HIDE STATS" : "SHOW STATS";
-  controlDivElement.appendChild(statsButton);
-}
+// function addStatsButton(){
+//   var statsButton = document.createElement("BUTTON");
+//   statsButton.className = "button";
+//   statsButton.setAttribute("id", "statsButton");
+//   statsButton.setAttribute("onclick", "toggleStats()");
+//   statsButton.innerHTML = config.showStats ? "HIDE STATS" : "SHOW STATS";
+//   controlDivElement.appendChild(statsButton);
+// }
 
-var statsButtonElement = document.getElementById("statsButton");
+// var statsButtonElement = document.getElementById("statsButton");
 
-function updateStatsButton(){
-  statsButtonElement.innerHTML = config.showStatsFlag ? "HIDE STATS" : "SHOW STATS";
-}
+// function updateStatsButton(){
+//   statsButtonElement.innerHTML = config.showStatsFlag ? "HIDE STATS" : "SHOW STATS";
+// }
 
 function updateMetricButton(){
   document.getElementById("metricButton").innerHTML = config.metricMode.toUpperCase() + " RADIUS";
@@ -975,9 +964,9 @@ function controlPanelComm(event) {
         case "pauseToggleButton" :
           togglePause();
         break;
-        case "statsToggleButton" :
-          toggleStats();
-        break;
+        // case "statsToggleButton" :
+        //   toggleStats();
+        // break;
         case "testModeToggleButton" :
           toggleTestMode();
         break;
@@ -1141,7 +1130,7 @@ function toggleStats() {
   if (config.showStatsFlag) { displayStats(config.showStatsFlag); }
   else { displayStats(false, palette.white); }
 
-  if (statsButtonElement) { updateStatsButton(); }
+  // if (statsButtonElement) { updateStatsButton(); }
   if (controlPanelFlag) { controlPanel.updateControlPanel(config); }
 }
 
@@ -1560,257 +1549,257 @@ function tableCreateRow(parentTable, options, cells) {
   }
 }
 
-function createStatsTable(callback) {
+// function createStatsTable(callback) {
 
-  console.log("CREATE STATS TABLE");
+//   console.log("CREATE STATS TABLE");
 
-  statsDivElement.style.visibility = "hidden";
-  statsDivElement.style.border = "2px solid black ";
-  statsDivElement.style.backgroundColor = palette.white;
-  statsDivElement.style.textColor = palette.black;
-  var statsTableServer = document.createElement("TABLE");
-  var statsTableClient = document.createElement("TABLE");
-  var br = document.createElement("br");
+//   statsDivElement.style.visibility = "hidden";
+//   statsDivElement.style.border = "2px solid black ";
+//   statsDivElement.style.backgroundColor = palette.white;
+//   statsDivElement.style.textColor = palette.black;
+//   var statsTableServer = document.createElement("TABLE");
+//   var statsTableClient = document.createElement("TABLE");
+//   var br = document.createElement("br");
 
-  statsTableServer.className = "table";
-  statsTableServer.setAttribute("id", "statsTableServer");
-  statsTableServer.style.border = "1px solid black ";
+//   statsTableServer.className = "table";
+//   statsTableServer.setAttribute("id", "statsTableServer");
+//   statsTableServer.style.border = "1px solid black ";
 
-  statsDivElement.appendChild(statsTableServer);
-  statsDivElement.appendChild(br);
+//   statsDivElement.appendChild(statsTableServer);
+//   statsDivElement.appendChild(br);
 
-  statsTableClient.className = "table";
-  statsTableClient.setAttribute("id", "statsTableClient");
-  statsDivElement.appendChild(statsTableClient);
+//   statsTableClient.className = "table";
+//   statsTableClient.setAttribute("id", "statsTableClient");
+//   statsDivElement.appendChild(statsTableClient);
 
-  var optionsHead = {
-    headerFlag: true,
-    textColor: palette.black,
-    backgroundColor: palette.white
-  };
+//   var optionsHead = {
+//     headerFlag: true,
+//     textColor: palette.black,
+//     backgroundColor: palette.white
+//   };
 
-  var optionsBody = {
-    headerFlag: false,
-    textColor: palette.black,
-    border: "2px solid red",
-    backgroundColor: palette.white
-  };
+//   var optionsBody = {
+//     headerFlag: false,
+//     textColor: palette.black,
+//     border: "2px solid red",
+//     backgroundColor: palette.white
+//   };
 
-  var statsClientSessionIdLabel = {
-    type: "TEXT",
-    id: "statsClientSessionIdLabel",
-    class: "statsTableText",
-    text: "SESSION"
-  };
+//   // var statsClientSessionIdLabel = {
+//   //   type: "TEXT",
+//   //   id: "statsClientSessionIdLabel",
+//   //   class: "statsTableText",
+//   //   text: "SESSION"
+//   // };
 
-  var statsClientSessionId = {
-    type: "TEXT",
-    id: "statsClientSessionId",
-    class: "statsTableText",
-    text: statsObj.socketId
-  };
+//   // var statsClientSessionId = {
+//   //   type: "TEXT",
+//   //   id: "statsClientSessionId",
+//   //   class: "statsTableText",
+//   //   text: statsObj.socketId
+//   // };
 
-  var statsClientNumberNodesLabel = {
-    type: "TEXT",
-    id: "statsClientNumberNodesLabel",
-    class: "statsTableText",
-    text: "NODES"
-  };
+//   // var statsClientNumberNodesLabel = {
+//   //   type: "TEXT",
+//   //   id: "statsClientNumberNodesLabel",
+//   //   class: "statsTableText",
+//   //   text: "NODES"
+//   // };
 
-  var statsClientNumberNodes = {
-    type: "TEXT",
-    id: "statsClientNumberNodes",
-    class: "statsTableText",
-    text: "---"
-  };
+//   // var statsClientNumberNodes = {
+//   //   type: "TEXT",
+//   //   id: "statsClientNumberNodes",
+//   //   class: "statsTableText",
+//   //   text: "---"
+//   // };
 
-  var statsClientNumberMaxNodesLabel = {
-    type: "TEXT",
-    id: "statsClientNumberMaxNodesLabel",
-    class: "statsTableText",
-    text: "MAX"
-  };
+//   // var statsClientNumberMaxNodesLabel = {
+//   //   type: "TEXT",
+//   //   id: "statsClientNumberMaxNodesLabel",
+//   //   class: "statsTableText",
+//   //   text: "MAX"
+//   // };
 
-  var statsClientNumberMaxNodes = {
-    type: "TEXT",
-    id: "statsClientNumberMaxNodes",
-    class: "statsTableText",
-    text: "---"
-  };
+//   // var statsClientNumberMaxNodes = {
+//   //   type: "TEXT",
+//   //   id: "statsClientNumberMaxNodes",
+//   //   class: "statsTableText",
+//   //   text: "---"
+//   // };
 
-  var statsClientAddNodeQLabel = {
-    type: "TEXT",
-    id: "statsClientAddNodeQLabel",
-    class: "statsTableText",
-    text: "NODE ADD Q"
-  };
+//   // var statsClientAddNodeQLabel = {
+//   //   type: "TEXT",
+//   //   id: "statsClientAddNodeQLabel",
+//   //   class: "statsTableText",
+//   //   text: "NODE ADD Q"
+//   // };
 
-  var statsClientAddNodeQ = {
-    type: "TEXT",
-    id: "statsClientAddNodeQ",
-    class: "statsTableText",
-    text: "---"
-  };
+//   // var statsClientAddNodeQ = {
+//   //   type: "TEXT",
+//   //   id: "statsClientAddNodeQ",
+//   //   class: "statsTableText",
+//   //   text: "---"
+//   // };
 
-  var statsClientAgeRateLabel = {
-    type: "TEXT",
-    id: "statsClientAgeRateLabel",
-    class: "statsTableText",
-    text: "AGE RATE"
-  };
+//   // var statsClientAgeRateLabel = {
+//   //   type: "TEXT",
+//   //   id: "statsClientAgeRateLabel",
+//   //   class: "statsTableText",
+//   //   text: "AGE RATE"
+//   // };
 
-  var statsClientAgeRate = {
-    type: "TEXT",
-    id: "statsClientAgeRate",
-    class: "statsTableText",
-    text: "---"
-  };
+//   // var statsClientAgeRate = {
+//   //   type: "TEXT",
+//   //   id: "statsClientAgeRate",
+//   //   class: "statsTableText",
+//   //   text: "---"
+//   // };
 
-  var statsClientMaxAgeRateLabel = {
-    type: "TEXT",
-    id: "statsClientMaxAgeRateLabel",
-    class: "statsTableText",
-    text: "MAX"
-  };
+//   // var statsClientMaxAgeRateLabel = {
+//   //   type: "TEXT",
+//   //   id: "statsClientMaxAgeRateLabel",
+//   //   class: "statsTableText",
+//   //   text: "MAX"
+//   // };
 
-  var statsClientMaxAgeRate = {
-    type: "TEXT",
-    id: "statsClientMaxAgeRate",
-    class: "statsTableText",
-    text: "---"
-  };
+//   // var statsClientMaxAgeRate = {
+//   //   type: "TEXT",
+//   //   id: "statsClientMaxAgeRate",
+//   //   class: "statsTableText",
+//   //   text: "---"
+//   // };
 
-  var statsClientMaxAddNodeQLabel = {
-    type: "TEXT",
-    id: "statsClientMaxAddNodeQLabel",
-    class: "statsTableText",
-    text: "MAX"
-  };
+//   // var statsClientMaxAddNodeQLabel = {
+//   //   type: "TEXT",
+//   //   id: "statsClientMaxAddNodeQLabel",
+//   //   class: "statsTableText",
+//   //   text: "MAX"
+//   // };
 
-  var statsClientMaxAddNodeQ = {
-    type: "TEXT",
-    id: "statsClientMaxAddNodeQ",
-    class: "statsTableText",
-    text: "---"
-  };
+//   // var statsClientMaxAddNodeQ = {
+//   //   type: "TEXT",
+//   //   id: "statsClientMaxAddNodeQ",
+//   //   class: "statsTableText",
+//   //   text: "---"
+//   // };
 
-  var statsServerTimeLabel = {
-    type: "TEXT",
-    id: "statsServerTimeLabel",
-    class: "statsTableText",
-    text: "TIME"
-  };
+//   // var statsServerTimeLabel = {
+//   //   type: "TEXT",
+//   //   id: "statsServerTimeLabel",
+//   //   class: "statsTableText",
+//   //   text: "TIME"
+//   // };
 
-  var statsServerTime = {
-    type: "TEXT",
-    id: "statsServerTime",
-    class: "statsTableText",
-    text: moment(parseInt(heartbeat.serverTime)).format(defaultDateTimeFormat)
-  };
+//   // var statsServerTime = {
+//   //   type: "TEXT",
+//   //   id: "statsServerTime",
+//   //   class: "statsTableText",
+//   //   text: moment(parseInt(heartbeat.serverTime)).format(defaultDateTimeFormat)
+//   // };
 
-  var statsServerUpTimeLabel = {
-    type: "TEXT",
-    id: "statsServerTimeLabel",
-    class: "statsTableText",
-    text: "UPTIME"
-  };
+//   // var statsServerUpTimeLabel = {
+//   //   type: "TEXT",
+//   //   id: "statsServerTimeLabel",
+//   //   class: "statsTableText",
+//   //   text: "UPTIME"
+//   // };
 
-  var statsServerUpTime = {
-    type: "TEXT",
-    id: "statsServerUpTime",
-    class: "statsTableText",
-    text: moment(parseInt(heartbeat.upTime)).format(defaultDateTimeFormat)
-  };
+//   // var statsServerUpTime = {
+//   //   type: "TEXT",
+//   //   id: "statsServerUpTime",
+//   //   class: "statsTableText",
+//   //   text: moment(parseInt(heartbeat.upTime)).format(defaultDateTimeFormat)
+//   // };
 
-  var statsServerStartTimeLabel = {
-    type: "TEXT",
-    id: "statsServerStartTimeLabel",
-    class: "statsTableText",
-    text: "START"
-  };
+//   // var statsServerStartTimeLabel = {
+//   //   type: "TEXT",
+//   //   id: "statsServerStartTimeLabel",
+//   //   class: "statsTableText",
+//   //   text: "START"
+//   // };
 
-  var statsServerStartTime = {
-    type: "TEXT",
-    id: "statsServerStartTime",
-    class: "statsTableText",
-    text: moment(parseInt(heartbeat.startTime)).format(defaultDateTimeFormat)
-  };
+//   // var statsServerStartTime = {
+//   //   type: "TEXT",
+//   //   id: "statsServerStartTime",
+//   //   class: "statsTableText",
+//   //   text: moment(parseInt(heartbeat.startTime)).format(defaultDateTimeFormat)
+//   // };
 
-  var statsServerRunTimeLabel = {
-    type: "TEXT",
-    id: "statsServerRunTimeLabel",
-    class: "statsTableText",
-    text: "RUN TIME"
-  };
+//   // var statsServerRunTimeLabel = {
+//   //   type: "TEXT",
+//   //   id: "statsServerRunTimeLabel",
+//   //   class: "statsTableText",
+//   //   text: "RUN TIME"
+//   // };
 
-  var statsServerRunTime = {
-    type: "TEXT",
-    id: "statsServerRunTime",
-    class: "statsTableText",
-    text: msToTime(heartbeat.runTime)
-  };
+//   // var statsServerRunTime = {
+//   //   type: "TEXT",
+//   //   id: "statsServerRunTime",
+//   //   class: "statsTableText",
+//   //   text: msToTime(heartbeat.runTime)
+//   // };
 
-  var statsServerTweetsPerMinLabel = {
-    type: "TEXT",
-    id: "statsServerTweetsPerMinLabel",
-    class: "statsTableText",
-    text: "TWEETS/MIN"
-  };
+//   // var statsServerTweetsPerMinLabel = {
+//   //   type: "TEXT",
+//   //   id: "statsServerTweetsPerMinLabel",
+//   //   class: "statsTableText",
+//   //   text: "TWEETS/MIN"
+//   // };
 
-  var statsServerTweetsPerMin = {
-    type: "TEXT",
-    id: "statsServerTweetsPerMin",
-    class: "statsTableText",
-    text: "0.00"
-  };
+//   // var statsServerTweetsPerMin = {
+//   //   type: "TEXT",
+//   //   id: "statsServerTweetsPerMin",
+//   //   class: "statsTableText",
+//   //   text: "0.00"
+//   // };
 
-  var statsServerMaxTweetsPerMinLabel = {
-    type: "TEXT",
-    id: "statsServerMaxTweetsPerMinLabel",
-    class: "statsTableText",
-    text: "MAX"
-  };
+//   // var statsServerMaxTweetsPerMinLabel = {
+//   //   type: "TEXT",
+//   //   id: "statsServerMaxTweetsPerMinLabel",
+//   //   class: "statsTableText",
+//   //   text: "MAX"
+//   // };
 
-  var statsServerMaxTweetsPerMin = {
-    type: "TEXT",
-    id: "statsServerMaxTweetsPerMin",
-    class: "statsTableText",
-    text: "---"
-  };
+//   // var statsServerMaxTweetsPerMin = {
+//   //   type: "TEXT",
+//   //   id: "statsServerMaxTweetsPerMin",
+//   //   class: "statsTableText",
+//   //   text: "---"
+//   // };
 
-  tableCreateRow(statsTableServer, optionsHead, ["SERVER"]);
-  tableCreateRow(statsTableServer, optionsBody, [statsServerTimeLabel, statsServerTime]);
-  tableCreateRow(statsTableServer, optionsBody, [statsServerUpTimeLabel, statsServerUpTime]);
-  tableCreateRow(statsTableServer, optionsBody, [statsServerStartTimeLabel, statsServerStartTime]);
-  tableCreateRow(statsTableServer, optionsBody, [statsServerRunTimeLabel, statsServerRunTime]);
-  tableCreateRow(statsTableServer, optionsBody, [statsServerTweetsPerMinLabel, statsServerTweetsPerMin, statsServerMaxTweetsPerMinLabel, statsServerMaxTweetsPerMin]);
-  tableCreateRow(statsTableClient, optionsHead, ["CLIENT"]);
-  tableCreateRow(statsTableClient, optionsBody, [statsClientSessionIdLabel, statsClientSessionId]);
-  tableCreateRow(statsTableClient, optionsBody, [statsClientNumberNodesLabel, statsClientNumberNodes, statsClientNumberMaxNodesLabel, statsClientNumberMaxNodes]);
-  tableCreateRow(statsTableClient, optionsBody, [statsClientAgeRateLabel, statsClientAgeRate, statsClientMaxAgeRateLabel, statsClientMaxAgeRate]);
-  tableCreateRow(statsTableClient, optionsBody, [statsClientAddNodeQLabel, statsClientAddNodeQ, statsClientMaxAddNodeQLabel, statsClientMaxAddNodeQ]);
+//   // tableCreateRow(statsTableServer, optionsHead, ["SERVER"]);
+//   // tableCreateRow(statsTableServer, optionsBody, [statsServerTimeLabel, statsServerTime]);
+//   // tableCreateRow(statsTableServer, optionsBody, [statsServerUpTimeLabel, statsServerUpTime]);
+//   // tableCreateRow(statsTableServer, optionsBody, [statsServerStartTimeLabel, statsServerStartTime]);
+//   // tableCreateRow(statsTableServer, optionsBody, [statsServerRunTimeLabel, statsServerRunTime]);
+//   // tableCreateRow(statsTableServer, optionsBody, [statsServerTweetsPerMinLabel, statsServerTweetsPerMin, statsServerMaxTweetsPerMinLabel, statsServerMaxTweetsPerMin]);
+//   // tableCreateRow(statsTableClient, optionsHead, ["CLIENT"]);
+//   // tableCreateRow(statsTableClient, optionsBody, [statsClientSessionIdLabel, statsClientSessionId]);
+//   // tableCreateRow(statsTableClient, optionsBody, [statsClientNumberNodesLabel, statsClientNumberNodes, statsClientNumberMaxNodesLabel, statsClientNumberMaxNodes]);
+//   // tableCreateRow(statsTableClient, optionsBody, [statsClientAgeRateLabel, statsClientAgeRate, statsClientMaxAgeRateLabel, statsClientMaxAgeRate]);
+//   // tableCreateRow(statsTableClient, optionsBody, [statsClientAddNodeQLabel, statsClientAddNodeQ, statsClientMaxAddNodeQLabel, statsClientMaxAddNodeQ]);
   
-  statsServerTimeElement = document.getElementById("statsServerTime");
-  statsServerUpTimeElement = document.getElementById("statsServerUpTime");
-  statsServerStartTimeElement = document.getElementById("statsServerStartTime");
-  statsServerRunTimeElement = document.getElementById("statsServerRunTime");
-  statsServerTweetsPerMinElement = document.getElementById("statsServerTweetsPerMin");
-  statsServerMaxTweetsPerMinElement = document.getElementById("statsServerMaxTweetsPerMin");
-  statsClientNumberNodesElement = document.getElementById("statsClientNumberNodes");
-  statsClientNumberMaxNodesElement = document.getElementById("statsClientNumberMaxNodes");
-  statsClientAddNodeQElement = document.getElementById("statsClientAddNodeQ");
-  statsClientMaxAddNodeQElement = document.getElementById("statsClientMaxAddNodeQ");
-  statsClientAgeRateElement = document.getElementById("statsClientAgeRate");
-  statsClientMaxAgeRateElement = document.getElementById("statsClientMaxAgeRate");
-  statsClientSessionIdElement = document.getElementById("statsClientSessionId");
+//   // statsServerTimeElement = document.getElementById("statsServerTime");
+//   // statsServerUpTimeElement = document.getElementById("statsServerUpTime");
+//   // statsServerStartTimeElement = document.getElementById("statsServerStartTime");
+//   // statsServerRunTimeElement = document.getElementById("statsServerRunTime");
+//   // statsServerTweetsPerMinElement = document.getElementById("statsServerTweetsPerMin");
+//   // statsServerMaxTweetsPerMinElement = document.getElementById("statsServerMaxTweetsPerMin");
+//   // statsClientNumberNodesElement = document.getElementById("statsClientNumberNodes");
+//   // statsClientNumberMaxNodesElement = document.getElementById("statsClientNumberMaxNodes");
+//   // statsClientAddNodeQElement = document.getElementById("statsClientAddNodeQ");
+//   // statsClientMaxAddNodeQElement = document.getElementById("statsClientMaxAddNodeQ");
+//   // statsClientAgeRateElement = document.getElementById("statsClientAgeRate");
+//   // statsClientMaxAgeRateElement = document.getElementById("statsClientMaxAgeRate");
+//   // statsClientSessionIdElement = document.getElementById("statsClientSessionId");
 
-  if (callback) { callback(); }
-}
+//   if (callback) { callback(); }
+// }
 
 //  STATS UPDATE
 function initStatsUpdate(interval){
   setInterval(function() {
-    if (statsTableFlag) { updateStatsTable(statsObj); }
+    // if (statsTableFlag) { updateStatsTable(statsObj); }
   }, interval);
 }
 
@@ -1860,33 +1849,33 @@ setInterval(function() {
   }
 }, serverCheckInterval);
 
-function updateStatsTable(statsObj){
-  statsServerTimeElement.innerHTML = moment(heartbeat.timeStamp).format(defaultDateTimeFormat);
-  statsServerUpTimeElement.innerHTML = msToTime(heartbeat.upTime);
-  statsServerStartTimeElement.innerHTML = moment(heartbeat.startTime).format(defaultDateTimeFormat);
-  statsServerRunTimeElement.innerHTML = msToTime(heartbeat.runTime);
-  statsServerTweetsPerMinElement.innerHTML = heartbeat.twitter.tweetsPerMin.toFixed(0);
-  statsServerMaxTweetsPerMinElement.innerHTML = heartbeat.twitter.maxTweetsPerMin.toFixed(0);
-  statsClientNumberNodesElement.innerHTML = currentSessionView.getNodesLength();
-  statsClientNumberMaxNodesElement.innerHTML = currentSessionView.getMaxNodes();
-  statsClientAddNodeQElement.innerHTML = currentSessionView.getNodeAddQlength();
-  statsClientMaxAddNodeQElement.innerHTML = currentSessionView.getMaxNodeAddQ();
-  statsClientAgeRateElement.innerHTML = currentSessionView.getAgeRate().toFixed(2);
-  statsClientMaxAgeRateElement.innerHTML = currentSessionView.getMaxAgeRate().toFixed(2);
+// function updateStatsTable(statsObj){
+//   statsServerTimeElement.innerHTML = moment(heartbeat.timeStamp).format(defaultDateTimeFormat);
+//   statsServerUpTimeElement.innerHTML = msToTime(heartbeat.upTime);
+//   statsServerStartTimeElement.innerHTML = moment(heartbeat.startTime).format(defaultDateTimeFormat);
+//   statsServerRunTimeElement.innerHTML = msToTime(heartbeat.runTime);
+//   statsServerTweetsPerMinElement.innerHTML = heartbeat.twitter.tweetsPerMin.toFixed(0);
+//   statsServerMaxTweetsPerMinElement.innerHTML = heartbeat.twitter.maxTweetsPerMin.toFixed(0);
+//   statsClientNumberNodesElement.innerHTML = currentSessionView.getNodesLength();
+//   statsClientNumberMaxNodesElement.innerHTML = currentSessionView.getMaxNodes();
+//   statsClientAddNodeQElement.innerHTML = currentSessionView.getNodeAddQlength();
+//   statsClientMaxAddNodeQElement.innerHTML = currentSessionView.getMaxNodeAddQ();
+//   statsClientAgeRateElement.innerHTML = currentSessionView.getAgeRate().toFixed(2);
+//   statsClientMaxAgeRateElement.innerHTML = currentSessionView.getMaxAgeRate().toFixed(2);
 
-  if (statsObj.serverConnected) {
-    statsClientSessionIdElement.innerHTML = statsObj.socketId;
-  }
-  else {
-    statsClientSessionIdElement.innerHTML = "*** CANNOT CONNECT TO SERVER ***";
-  }
-}
+//   if (statsObj.serverConnected) {
+//     statsClientSessionIdElement.innerHTML = statsObj.socketId;
+//   }
+//   else {
+//     statsClientSessionIdElement.innerHTML = "*** CANNOT CONNECT TO SERVER ***";
+//   }
+// }
 
 var heartBeatsReceived = 0;
 
-socket.on("HEARTBEAT", function(hb) {
+socket.on("HEARTBEAT", function() {
 
-  heartbeat = hb;
+  // heartbeat = hb;
 
   resetServerActiveTimer();
 

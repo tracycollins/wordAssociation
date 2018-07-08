@@ -970,9 +970,9 @@ function ViewTreepack() {
 
         tempNodeArray.push(node);
 
-        if (node.isTopTerm){ 
-          tempNodesTopTerm.push(node);
-        }
+        // if (node.isTopTerm){ 
+        //   tempNodesTopTerm.push(node);
+        // }
       }
     });
 
@@ -982,7 +982,7 @@ function ViewTreepack() {
 
     rankArrayByValue(tempNodesTopTerm, metricMode, function rankArrayByValueFunc(){
       nodeArray = tempNodeArray;
-      nodesTopTerm = tempNodesTopTerm;
+      // nodesTopTerm = tempNodesTopTerm;
       callback(null);
     });
   };
@@ -1894,7 +1894,7 @@ function ViewTreepack() {
       function updateNodeMediaSeries (cb){ updateNodeMedia(cb); },
       function updateNodeCirclesSeries (cb){ updateNodeCircles(cb); },
       function updateNodeLabelsSeries (cb){ updateNodeLabels(cb); },
-      function updateTopTermSeries (cb){ updateTopTerm(cb); }
+      // function updateTopTermSeries (cb){ updateTopTerm(cb); }
     ], function drawSimulationCallback (err, results) {
 
       if (

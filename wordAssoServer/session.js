@@ -1873,9 +1873,9 @@ setInterval(function() {
 
 var heartBeatsReceived = 0;
 
-socket.on("HEARTBEAT", function() {
+socket.on("HEARTBEAT", function(hb) {
 
-  // heartbeat = hb;
+  console.log("HEARTBEAT\n" + jsonPrint(hb));
 
   resetServerActiveTimer();
 

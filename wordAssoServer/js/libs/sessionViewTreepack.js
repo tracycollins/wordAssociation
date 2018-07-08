@@ -1371,13 +1371,10 @@ function ViewTreepack() {
   var updateNodeCircles = function(callback) {
 
     nodeCircles = nodeSvgGroup.selectAll("circle")
-      // .data(nodeArray, function (d){ return d.nodeId; });
       .data(nodeArray.filter(function(d){ return d.nodeType !== "media"; }), function (d){ return d.nodeId; });
 
     nodeCircles
       .enter().append("circle")
-      // .enter()
-      // .filter(function(d){ return d.nodeType !== "media"; }).append("circle")
       .attr("id", function (d) { return d.nodePoolId; })
       .attr("nodeId", function (d) { return d.nodeId; })
       .style("visibility", function (d) { 
@@ -1406,12 +1403,11 @@ function ViewTreepack() {
         if (d.isTopTerm) { return topTermStrokeWidth; }
         if (d.newFlag) { return newFlagStrokeWidth; }
         if (d.categoryAuto) { return categoryAutoStrokeWidth; }
-        // if (d.categoryAuto === "left") { return categoryAutoStrokeWidth; }
-        // if (d.categoryAuto === "positive") { return categoryAutoStrokeWidth; }
-        // if (d.categoryAuto ==="negative") { return categoryAutoStrokeWidth; }
         return defaultStrokeWidth; 
       })
-      .style("opacity", function (d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
+      // .style("opacity", function (d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
+      .style("fill-opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
+      .style("stroke-opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick);
@@ -1427,7 +1423,9 @@ function ViewTreepack() {
         if (!d.isValid) { return "hidden"; }
         return "visible"; 
       })
-      .style("opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
+      // .style("opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
+      .style("fill-opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
+      .style("stroke-opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
       .style("fill", function (d) { 
         if (!d.category && !d.categoryAuto) { return palette.black; }
         return d.categoryColor; 
@@ -1447,10 +1445,6 @@ function ViewTreepack() {
         if (d.isTopTerm) { return topTermStrokeWidth; }
         if (d.newFlag) { return newFlagStrokeWidth; }
         if (d.categoryAuto) { return categoryAutoStrokeWidth; }
-        // if (d.categoryAuto === "right") { return categoryAutoStrokeWidth; }
-        // if (d.categoryAuto === "left") { return categoryAutoStrokeWidth; }
-        // if (d.categoryAuto === "positive") { return categoryAutoStrokeWidth; }
-        // if (d.categoryAuto ==="negative") { return categoryAutoStrokeWidth; }
         return defaultStrokeWidth; 
       });
 

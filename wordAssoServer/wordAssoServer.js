@@ -4143,8 +4143,8 @@ configEvents.on("INTERNET_READY", function internetReady() {
 
         utilNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
         adminNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
-        userNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
-        viewNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
+        // userNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
+        // viewNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
 
         heartbeatsSent += 1;
         if (heartbeatsSent % 60 === 0) { logHeartbeat(); }

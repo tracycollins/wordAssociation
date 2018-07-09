@@ -470,49 +470,6 @@ let categoryHashmapsInterval;
 let statsInterval;
 
 
-const HashtagServerController = require("@threeceelabs/hashtag-server-controller");
-const UserServerController = require("@threeceelabs/user-server-controller");
-const WordServerController = require("@threeceelabs/word-server-controller");
-
-
-const hashtagServerController = new HashtagServerController("WA_HSC");
-const userServerController = new UserServerController("WA_USC");
-const wordServerController = new WordServerController("WA_WSC");
-
-let hashtagServerControllerReady = false;
-let userServerControllerReady = false;
-let wordServerControllerReady = false;
-
-hashtagServerController.on("ready", function(appname){
-  hashtagServerControllerReady = true;
-  console.log(chalk.green("HSC READY | " + appname));
-});
-
-hashtagServerController.on("error", function(err){
-  hashtagServerControllerReady = false;
-  console.log(chalkError("*** HSC ERROR | " + err));
-});
-
-userServerController.on("ready", function(appname){
-  userServerControllerReady = true;
-  console.log(chalk.green("USC READY | " + appname));
-});
-
-userServerController.on("error", function(err){
-  userServerControllerReady = false;
-  console.log(chalkError("*** USC ERROR | " + err));
-});
-
-wordServerController.on("ready", function(appname){
-  wordServerControllerReady = true;
-  console.log(chalk.green("WSC READY | " + appname));
-});
-
-wordServerController.on("error", function(err){
-  wordServerControllerReady = false;
-  console.log(chalkError("*** WSC ERROR | " + err));
-});
-
 
 function quit(message) {
   debug("\n... QUITTING ...");
@@ -551,11 +508,6 @@ const urlModel = require("@threeceelabs/mongoose-twitter/models/url.server.model
 const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
 const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
 
-const mongoose = require("mongoose");
-
-const wordAssoDb = require("@threeceelabs/mongoose-twitter");
-// const wordAssoDb = require("../../mongooseTwitter");
-
 let NeuralNetwork;
 let Emoji;
 let Hashtag;
@@ -565,6 +517,74 @@ let Tweet;
 let Url;
 let User;
 let Word;
+
+const mongoose = require("mongoose");
+mongoose.Promise = global.Promise;
+
+const wordAssoDb = require("@threeceelabs/mongoose-twitter");
+
+wordAssoDb.connect("WA", function(err, dbConnection) {
+  if (err) {
+    console.log(chalkError("*** TWITTER USER STREAM | MONGO DB CONNECTION ERROR: " + err));
+  }
+  else {
+
+    dbConnection.on("error", function(err){
+      console.error.bind(console, "*** TWITTER USER STREAM | MONGO DB CONNECTION ERROR ***\n");
+      console.log(chalkError("*** TWITTER USER STREAM | MONGO DB CONNECTION ERROR ***\n"));
+    });
+
+    dbConnection.on("disconnected", function(){
+      console.error.bind(console, "*** TWITTER USER STREAM | MONGO DB CONNECTION DISCONNECTED ***\n");
+      console.log(chalkAlert("*** TWITTER USER STREAM | MONGO DB CONNECTION DISCONNECTED ***\n"));
+    });
+
+    Emoji = mongoose.model("Emoji", emojiModel.EmojiSchema);
+    Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
+    Media = mongoose.model("Media", mediaModel.MediaSchema);
+    NeuralNetwork = mongoose.model("NeuralNetwork", neuralNetworkModel.NeuralNetworkSchema);
+    Place = mongoose.model("Place", placeModel.PlaceSchema);
+    Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
+    Url = mongoose.model("Url", urlModel.UrlSchema);
+    User = mongoose.model("User", userModel.UserSchema);
+    Word = mongoose.model("Word", wordModel.WordSchema);
+
+    console.log(chalkLog("TWITTER USER STREAM | MONGOOSE DEFAULT CONNECTION OPEN"));
+  }
+});
+const HashtagServerController = require("@threeceelabs/hashtag-server-controller");
+// const HashtagServerController = require("../../hashtagServerController");
+
+const UserServerController = require("@threeceelabs/user-server-controller");
+// const UserServerController = require("../../userServerController");
+
+const WordServerController = require("@threeceelabs/word-server-controller");
+// const WordServerController = require("../../wordServerController");
+
+
+const hashtagServerController = new HashtagServerController("WA_HSC");
+const userServerController = new UserServerController("WA_USC");
+const wordServerController = new WordServerController("WA_WSC");
+
+let hashtagServerControllerReady = true;
+let userServerControllerReady = true;
+let wordServerControllerReady = true;
+
+hashtagServerController.on("error", function(err){
+  hashtagServerControllerReady = false;
+  console.log(chalkError("*** HSC ERROR | " + err));
+});
+
+userServerController.on("error", function(err){
+  userServerControllerReady = false;
+  console.log(chalkError("*** USC ERROR | " + err));
+});
+
+wordServerController.on("error", function(err){
+  wordServerControllerReady = false;
+  console.log(chalkError("*** WSC ERROR | " + err));
+});
+
 
 function toMegabytes(sizeInBytes) {
   return sizeInBytes/ONE_MEGABYTE;
@@ -4242,6 +4262,79 @@ configEvents.on("INTERNET_READY", function internetReady() {
     }
   });
 
+  if (statsObj.internetReady) {
+    slack = new Slack(slackOAuthAccessToken);
+  }
+
+
+  function postAuthenticate(socket, data) {
+
+    data.timeStamp = moment().valueOf();
+
+    console.log(chalk.green("+++ SOCKET AUTHENTICATED"
+      + " | " + data.namespace.toUpperCase()
+      + " | " + socket.id
+      + " | " + data.userId
+    ));
+
+    authenticatedSocketCache.set(socket.id, data);
+  }
+
+  function disconnect(socket) {
+    authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
+      if (authenticatedSocketObj) {
+        console.log(chalkAlert("POST AUTHENTICATE DISCONNECT"
+          + " | " + authenticatedSocketObj.namespace.toUpperCase()
+          + " | " + socket.id
+          + " | " + authenticatedSocketObj.userId
+        ));
+      }
+      else {
+        console.log(chalkAlert("POST AUTHENTICATE DISCONNECT | " + socket.id));
+      }
+    });
+  }
+
+  const socketIoAuth = require("@threeceelabs/socketio-auth")(io, {
+
+    authenticate: function (socket, data, callback) {
+
+      const namespace = data.namespace;
+      const userId = data.userId.toLowerCase();
+      const password = data.password;
+
+      console.log(chalkLog("... AUTHENTICATING SOCKET"
+        + " | " + getTimeStamp()
+        + " | " + socket.id
+        + " | NSP: " + namespace.toUpperCase()
+        + " | UID: " + userId
+        // + "\n" + jsonPrint(data)
+      ));
+      //get credentials sent by the client
+
+      if ((namespace === "admin") && (password === "this is a very weak password")) {
+        debug(chalk.green("+++ ADMIN AUTHENTICATED | " + userId));
+        return callback(null, true);
+      }
+
+      if (namespace === "view") {
+        debug(chalk.green("+++ VIEWER AUTHENTICATED | " + userId));
+        return callback(null, true);
+      }
+
+      if ((namespace === "util") && (password === "0123456789")) {
+        debug(chalk.green("+++ UTIL AUTHENTICATED | " + userId));
+        return callback(null, true);
+      }
+
+      return callback(null, false);
+
+    },
+    postAuthenticate: postAuthenticate,
+    disconnect: disconnect,
+    timeout: configuration.socketIoAuthTimeout
+  });
+
   initAppRouting(function initAppRoutingComplete() {
     initSocketNamespaces();
     initLoadBestNetworkInterval(ONE_MINUTE+1);
@@ -4250,93 +4343,94 @@ configEvents.on("INTERNET_READY", function internetReady() {
     // callback(null, null);
   });
 
-  connectDb(function(err){
+  // connectDb(function(err, db){
 
-    if (statsObj.internetReady) {
-      slack = new Slack(slackOAuthAccessToken);
-    }
+  //   if (!err) {
+  //     dbConnection = db;
+  //   }
 
-    // if (err) {
-    //   dbConnectionReady = false;
-    //   return;
-    // }
+  //   if (statsObj.internetReady) {
+  //     slack = new Slack(slackOAuthAccessToken);
+  //   }
 
-    // if (dbConnectionReady) {
-    //   return;
-    // }
+  //   // if (err) {
+  //   //   dbConnectionReady = false;
+  //   //   return;
+  //   // }
 
-    function postAuthenticate(socket, data) {
+  //   // if (dbConnectionReady) {
+  //   //   return;
+  //   // }
 
-      data.timeStamp = moment().valueOf();
+  //   function postAuthenticate(socket, data) {
 
-      console.log(chalk.green("+++ SOCKET AUTHENTICATED"
-        + " | " + data.namespace.toUpperCase()
-        + " | " + socket.id
-        + " | " + data.userId
-      ));
+  //     data.timeStamp = moment().valueOf();
 
-      authenticatedSocketCache.set(socket.id, data);
-    }
+  //     console.log(chalk.green("+++ SOCKET AUTHENTICATED"
+  //       + " | " + data.namespace.toUpperCase()
+  //       + " | " + socket.id
+  //       + " | " + data.userId
+  //     ));
 
-    function disconnect(socket) {
-      authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
-        if (authenticatedSocketObj) {
-          console.log(chalkAlert("POST AUTHENTICATE DISCONNECT"
-            + " | " + authenticatedSocketObj.namespace.toUpperCase()
-            + " | " + socket.id
-            + " | " + authenticatedSocketObj.userId
-          ));
-        }
-        else {
-          console.log(chalkAlert("POST AUTHENTICATE DISCONNECT | " + socket.id));
-        }
-      });
-    }
+  //     authenticatedSocketCache.set(socket.id, data);
+  //   }
 
-    const socketIoAuth = require("@threeceelabs/socketio-auth")(io, {
+  //   function disconnect(socket) {
+  //     authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
+  //       if (authenticatedSocketObj) {
+  //         console.log(chalkAlert("POST AUTHENTICATE DISCONNECT"
+  //           + " | " + authenticatedSocketObj.namespace.toUpperCase()
+  //           + " | " + socket.id
+  //           + " | " + authenticatedSocketObj.userId
+  //         ));
+  //       }
+  //       else {
+  //         console.log(chalkAlert("POST AUTHENTICATE DISCONNECT | " + socket.id));
+  //       }
+  //     });
+  //   }
 
-      authenticate: function (socket, data, callback) {
+  //   const socketIoAuth = require("@threeceelabs/socketio-auth")(io, {
 
-        const namespace = data.namespace;
-        const userId = data.userId.toLowerCase();
-        const password = data.password;
+  //     authenticate: function (socket, data, callback) {
 
-        console.log(chalkLog("... AUTHENTICATING SOCKET"
-          + " | " + getTimeStamp()
-          + " | " + socket.id
-          + " | NSP: " + namespace.toUpperCase()
-          + " | UID: " + userId
-          // + "\n" + jsonPrint(data)
-        ));
-        //get credentials sent by the client
+  //       const namespace = data.namespace;
+  //       const userId = data.userId.toLowerCase();
+  //       const password = data.password;
 
-        if ((namespace === "admin") && (password === "this is a very weak password")) {
-          debug(chalk.green("+++ ADMIN AUTHENTICATED | " + userId));
-          return callback(null, true);
-        }
+  //       console.log(chalkLog("... AUTHENTICATING SOCKET"
+  //         + " | " + getTimeStamp()
+  //         + " | " + socket.id
+  //         + " | NSP: " + namespace.toUpperCase()
+  //         + " | UID: " + userId
+  //         // + "\n" + jsonPrint(data)
+  //       ));
+  //       //get credentials sent by the client
 
-        if (namespace === "view") {
-          debug(chalk.green("+++ VIEWER AUTHENTICATED | " + userId));
-          return callback(null, true);
-        }
+  //       if ((namespace === "admin") && (password === "this is a very weak password")) {
+  //         debug(chalk.green("+++ ADMIN AUTHENTICATED | " + userId));
+  //         return callback(null, true);
+  //       }
 
-        if ((namespace === "util") && (password === "0123456789")) {
-          debug(chalk.green("+++ UTIL AUTHENTICATED | " + userId));
-          return callback(null, true);
-        }
+  //       if (namespace === "view") {
+  //         debug(chalk.green("+++ VIEWER AUTHENTICATED | " + userId));
+  //         return callback(null, true);
+  //       }
 
-        return callback(null, false);
+  //       if ((namespace === "util") && (password === "0123456789")) {
+  //         debug(chalk.green("+++ UTIL AUTHENTICATED | " + userId));
+  //         return callback(null, true);
+  //       }
 
-      },
-      postAuthenticate: postAuthenticate,
-      disconnect: disconnect,
-      timeout: configuration.socketIoAuthTimeout
-    });
+  //       return callback(null, false);
 
-  });
+  //     },
+  //     postAuthenticate: postAuthenticate,
+  //     disconnect: disconnect,
+  //     timeout: configuration.socketIoAuthTimeout
+  //   });
 
-
-
+  // });
 });
 
 configEvents.on("INTERNET_NOT_READY", function internetNotReady() {
@@ -4347,52 +4441,52 @@ configEvents.on("INTERNET_NOT_READY", function internetNotReady() {
 });
 
 
-function connectDb(callback){
+// function connectDb(callback){
 
-  console.log(chalkConnect("CONNECT DB"));
+//   console.log(chalkConnect("CONNECT DB"));
 
-  wordAssoDb.connect("WA_" + process.pid, function(err, db){
-    if (err) {
-      dbConnectionReady = false;
-      console.log(chalkError("*** WA | MONGO DB CONNECTION ERROR: " + err));
-      callback(err);
-    }
-    else {
+//   wordAssoDb.connect("WA_" + process.pid, function(err, db){
+//     if (err) {
+//       dbConnectionReady = false;
+//       console.log(chalkError("*** WA | MONGO DB CONNECTION ERROR: " + err));
+//       callback(err, null);
+//     }
+//     else {
 
-      db.on("error", function(){
-        console.log.bind(console, "*** WA | MONGO DB CONNECTION ERROR ***\n");
-        console.log(chalkError("*** WA | MONGO DB CONNECTION ERROR ***\n"));
-        db.close();
-        dbConnectionReady = false;
-      });
+//       db.on("error", function(){
+//         console.log.bind(console, "*** WA | MONGO DB CONNECTION ERROR ***\n");
+//         console.log(chalkError("*** WA | MONGO DB CONNECTION ERROR ***\n"));
+//         db.close();
+//         dbConnectionReady = false;
+//       });
 
-      db.on("disconnected", function(){
-        console.log.bind(console, "*** WA | MONGO DB DISCONNECTED ***\n");
-        console.log(chalkAlert("*** WA | MONGO DB DISCONNECTED ***\n"));
-        dbConnectionReady = false;
-      });
+//       db.on("disconnected", function(){
+//         console.log.bind(console, "*** WA | MONGO DB DISCONNECTED ***\n");
+//         console.log(chalkAlert("*** WA | MONGO DB DISCONNECTED ***\n"));
+//         dbConnectionReady = false;
+//       });
 
 
-      console.log(chalk.green("WA | MONGOOSE DEFAULT CONNECTION OPEN"));
+//       console.log(chalk.green("WA | MONGOOSE DEFAULT CONNECTION OPEN"));
 
-      NeuralNetwork = mongoose.model("NeuralNetwork", neuralNetworkModel.NeuralNetworkSchema);
-      Emoji = mongoose.model("Emoji", emojiModel.EmojiSchema);
-      Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
-      Media = mongoose.model("Media", mediaModel.MediaSchema);
-      Place = mongoose.model("Place", placeModel.PlaceSchema);
-      Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
-      Url = mongoose.model("Url", urlModel.UrlSchema);
-      User = mongoose.model("User", userModel.UserSchema);
-      Word = mongoose.model("Word", wordModel.WordSchema);
+//       NeuralNetwork = mongoose.model("NeuralNetwork", neuralNetworkModel.NeuralNetworkSchema);
+//       Emoji = mongoose.model("Emoji", emojiModel.EmojiSchema);
+//       Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
+//       Media = mongoose.model("Media", mediaModel.MediaSchema);
+//       Place = mongoose.model("Place", placeModel.PlaceSchema);
+//       Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
+//       Url = mongoose.model("Url", urlModel.UrlSchema);
+//       User = mongoose.model("User", userModel.UserSchema);
+//       Word = mongoose.model("Word", wordModel.WordSchema);
 
-      dbConnectionReady = true;
+//       dbConnectionReady = true;
 
-      dbConnection = db;
+//       // dbConnection = db;
 
-      callback(null);
-    }
-  });
-}
+//       callback(null, db);
+//     }
+//   });
+// }
 
 //=================================
 // INIT APP ROUTING
@@ -4689,7 +4783,7 @@ function initAppRouting(callback) {
 
 function testInternetConnection(params, callback) {
 
-  console.log("testInternetConnection | statsObj.internetReady: " + statsObj.internetReady);
+  // console.log("testInternetConnection | statsObj.internetReady: " + statsObj.internetReady);
 
   if (statsObj.internetReady) {
     return callback(null, true);
@@ -6143,7 +6237,7 @@ initialize(configuration, function initializeComplete(err) {
     initIgnoreWordsHashMap();
     initTransmitNodeQueueInterval(TRANSMIT_NODE_QUEUE_INTERVAL);
     // initStatsInterval(STATS_UPDATE_INTERVAL);
-    initCategoryHashmapsInterval(CATEGORY_UPDATE_INTERVAL);
+    // initCategoryHashmapsInterval(CATEGORY_UPDATE_INTERVAL);
     initUpdateTrendsInterval(UPDATE_TRENDS_INTERVAL);
     initRateQinterval(RATE_QUEUE_INTERVAL);
     initTwitterRxQueueInterval(TWITTER_RX_QUEUE_INTERVAL);
@@ -6160,41 +6254,56 @@ initialize(configuration, function initializeComplete(err) {
 
     statsObj.configuration = configuration;
 
-    let waitServerControllersInterval;
-
-    waitServerControllersInterval = setInterval(function(){
-
-      console.log(chalkAlert("WAITING FOR CONTROLLERS READY ..."
-        + " | HSC READY: " + hashtagServerControllerReady
-        + " | USC READY: " + userServerControllerReady
-        + " | WSC READY: " + wordServerControllerReady
-      ));
-
-      if (hashtagServerControllerReady && userServerControllerReady && wordServerControllerReady) {
-
-        clearInterval(waitServerControllersInterval);
-
-        console.log(chalk.green("ALL CONTROLLERS READY"
-          + " | HSC READY: " + hashtagServerControllerReady
-          + " | USC READY: " + userServerControllerReady
-          + " | WSC READY: " + wordServerControllerReady
-        ));
-
-        initCategoryHashmaps(function(err){
-          if (err) {
-            console.log(chalkError("ERROR: LOAD CATEGORY HASHMAPS: " + err));
-          }
-          else {
-            console.log(chalkInfo("LOADED CATEGORY HASHMAPS"));
-          }
-          // initSorter({childId: DEFAULT_SORTER_CHILD_ID});
-          initKeySortInterval(configuration.keySortInterval);
-          initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
-          initStatsInterval(STATS_UPDATE_INTERVAL);
-          slackPostMessage(slackChannel, "\n*INIT* | " + hostname + "\n");
-        });
+    initCategoryHashmaps(function(err){
+      if (err) {
+        console.log(chalkError("ERROR: LOAD CATEGORY HASHMAPS: " + err));
       }
-    }, 1000);
+      else {
+        console.log(chalkInfo("LOADED CATEGORY HASHMAPS"));
+      }
+      // initSorter({childId: DEFAULT_SORTER_CHILD_ID});
+      initKeySortInterval(configuration.keySortInterval);
+      initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
+      initStatsInterval(STATS_UPDATE_INTERVAL);
+      slackPostMessage(slackChannel, "\n*INIT* | " + hostname + "\n");
+    });
+
+
+    // let waitServerControllersInterval;
+
+    // waitServerControllersInterval = setInterval(function(){
+
+    //   console.log(chalkAlert("WAITING FOR CONTROLLERS READY ..."
+    //     + " | HSC READY: " + hashtagServerControllerReady
+    //     + " | USC READY: " + userServerControllerReady
+    //     + " | WSC READY: " + wordServerControllerReady
+    //   ));
+
+    //   if (hashtagServerControllerReady && userServerControllerReady && wordServerControllerReady) {
+
+    //     clearInterval(waitServerControllersInterval);
+
+    //     console.log(chalk.green("ALL CONTROLLERS READY"
+    //       + " | HSC READY: " + hashtagServerControllerReady
+    //       + " | USC READY: " + userServerControllerReady
+    //       + " | WSC READY: " + wordServerControllerReady
+    //     ));
+
+    //     initCategoryHashmaps(function(err){
+    //       if (err) {
+    //         console.log(chalkError("ERROR: LOAD CATEGORY HASHMAPS: " + err));
+    //       }
+    //       else {
+    //         console.log(chalkInfo("LOADED CATEGORY HASHMAPS"));
+    //       }
+    //       // initSorter({childId: DEFAULT_SORTER_CHILD_ID});
+    //       initKeySortInterval(configuration.keySortInterval);
+    //       initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
+    //       initStatsInterval(STATS_UPDATE_INTERVAL);
+    //       slackPostMessage(slackChannel, "\n*INIT* | " + hostname + "\n");
+    //     });
+    //   }
+    // }, 1000);
 
 
   }

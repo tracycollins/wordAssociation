@@ -42,28 +42,6 @@ statsObj.maxNodes = 0;
 statsObj.maxNodeAddQ = 0;
 statsObj.serverConnected = false;
 
-// var heartbeat = {};
-// heartbeat.tweetsPerMin = 0;
-// heartbeat.maxTweetsPerMin = 0;
-// heartbeat.nodesPerMin = 0;
-// heartbeat.maxNodesPerMin = 0;
-// heartbeat.serverTime = 0;
-// heartbeat.startTime = 0;
-// heartbeat.runTime = 0;
-// heartbeat.upTime = 0;
-// heartbeat.elapsed = 0;
-
-// heartbeat.memory = {};
-
-// heartbeat.nodesPerMin = 0;
-// heartbeat.maxNodesPerMin = 0;
-// heartbeat.maxNodesPerMinTime = 0;
-
-// heartbeat.twitter = {};
-// heartbeat.twitter.tweetsPerMin = 0;
-// heartbeat.twitter.maxTweetsPerMin = 0;
-// heartbeat.twitter.maxTweetsPerMinTime = 0;
-
 statsObj.socket = {};
 
 statsObj.socket.errors = 0;
@@ -84,20 +62,6 @@ const RX_NODE_QUEUE_INTERVAL = 10;
 const RX_NODE_QUEUE_MAX = 100;
 
 const STATS_UPDATE_INTERVAL = 1000;
-
-// var statsServerTimeElement;
-// var statsServerUpTimeElement;
-// var statsServerStartTimeElement;
-// var statsServerRunTimeElement;
-// var statsServerTweetsPerMinElement;
-// var statsServerMaxTweetsPerMinElement;
-// var statsClientNumberNodesElement;
-// var statsClientNumberMaxNodesElement;
-// var statsClientAddNodeQElement;
-// var statsClientMaxAddNodeQElement;
-// var statsClientAgeRateElement;
-// var statsClientMaxAgeRateElement;
-// var statsClientSessionIdElement;
 
 function jsonPrint(obj) {
   if ((obj) || (obj === 0)) {

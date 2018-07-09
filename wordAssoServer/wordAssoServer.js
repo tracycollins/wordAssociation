@@ -1513,7 +1513,7 @@ function saveFile (params, callback){
 
     })
     .catch(function(error){
-      console.trace(chalkError("WAS | " + moment().format(compactDateTimeFormat) 
+      console.log(chalkError("WAS | " + moment().format(compactDateTimeFormat) 
         + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
         + " | ERROR: " + error
         + " | ERROR\n" + jsonPrint(error)
@@ -1562,7 +1562,7 @@ function saveFile (params, callback){
           if (callback !== undefined) { return callback(error.error_summary); }
         }
         else {
-          console.trace(chalkError("WAS | " + moment().format(compactDateTimeFormat) 
+          console.log(chalkError("WAS | " + moment().format(compactDateTimeFormat) 
             + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
             + " | ERROR: " + error
             + " | ERROR\n" + jsonPrint(error)

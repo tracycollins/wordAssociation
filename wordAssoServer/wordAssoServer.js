@@ -60,6 +60,45 @@ const NODE_CACHE_CHECK_PERIOD = 5;
 let DEFAULT_IO_PING_INTERVAL = ONE_MINUTE;
 let DEFAULT_IO_PING_TIMEOUT = 3*ONE_MINUTE;
 
+const util = require("util");
+const Measured = require("measured");
+const omit = require("object.omit");
+const pick = require("object.pick");
+const config = require("./config/config");
+const os = require("os");
+const fs = require("fs");
+const path = require("path");
+const async = require("async");
+const yaml = require("yamljs");
+const debug = require("debug")("wa");
+const debugCache = require("debug")("cache");
+const debugCategory = require("debug")("kw");
+
+const express = require("./config/express");
+const app = express();
+
+const EventEmitter2 = require("eventemitter2").EventEmitter2;
+require("isomorphic-fetch");
+const Dropbox = require("dropbox").Dropbox;
+
+const Monitoring = require("@google-cloud/monitoring");
+
+let googleMonitoringClient;
+
+const HashMap = require("hashmap").HashMap;
+const NodeCache = require("node-cache");
+
+let configEvents = new EventEmitter2({
+  wildcard: true,
+  newListener: true,
+  maxListeners: 20
+});
+
+configEvents.on("newListener", function configEventsNewListener(data) {
+  debug("*** NEW CONFIG EVENT LISTENER: " + data);
+});
+
+
 // let dbConnection;
 let dbConnectionReady = false;
 let statsObj = {};
@@ -377,33 +416,6 @@ var ignoreWordsArray = [
   "–"
 ];
 
-const util = require("util");
-const Measured = require("measured");
-const omit = require("object.omit");
-const pick = require("object.pick");
-const config = require("./config/config");
-const os = require("os");
-const fs = require("fs");
-const path = require("path");
-const async = require("async");
-const yaml = require("yamljs");
-const debug = require("debug")("wa");
-const debugCache = require("debug")("cache");
-const debugCategory = require("debug")("kw");
-
-const express = require("./config/express");
-const app = express();
-
-const EventEmitter2 = require("eventemitter2").EventEmitter2;
-require("isomorphic-fetch");
-const Dropbox = require("dropbox").Dropbox;
-
-const Monitoring = require("@google-cloud/monitoring");
-
-let googleMonitoringClient;
-
-const HashMap = require("hashmap").HashMap;
-const NodeCache = require("node-cache");
 
 const categorizedUserHashMap = new HashMap();
 const categorizedWordHashMap = new HashMap();
@@ -1977,16 +1989,6 @@ process.on("message", function processMessageRx(msg) {
       quit(msg);
     }, 300);
   }
-});
-
-let configEvents = new EventEmitter2({
-  wildcard: true,
-  newListener: true,
-  maxListeners: 20
-});
-
-configEvents.on("newListener", function configEventsNewListener(data) {
-  debug("*** NEW CONFIG EVENT LISTENER: " + data);
 });
 
 configEvents.on("CHILD_ERROR", function childError(childObj){

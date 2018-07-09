@@ -483,14 +483,29 @@ hashtagServerController.on("ready", function(appname){
   console.log(chalk.green("HSC READY | " + appname));
 });
 
+hashtagServerController.on("error", function(err){
+  hashtagServerControllerReady = false;
+  console.log(chalkError("*** HSC ERROR | " + err));
+});
+
 userServerController.on("ready", function(appname){
   userServerControllerReady = true;
   console.log(chalk.green("USC READY | " + appname));
 });
 
+userServerController.on("error", function(err){
+  userServerControllerReady = fase;
+  console.log(chalkError("*** USC ERROR | " + err));
+});
+
 wordServerController.on("ready", function(appname){
   wordServerControllerReady = true;
   console.log(chalk.green("WSC READY | " + appname));
+});
+
+wordServerController.on("error", function(err){
+  wordServerControllerReady = false;
+  console.log(chalkError("*** WSC ERROR | " + err));
 });
 
 

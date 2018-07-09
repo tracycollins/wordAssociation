@@ -4249,14 +4249,14 @@ configEvents.on("INTERNET_READY", function internetReady() {
       slack = new Slack(slackOAuthAccessToken);
     }
 
-    if (err) {
-      dbConnectionReady = false;
-      return;
-    }
+    // if (err) {
+    //   dbConnectionReady = false;
+    //   return;
+    // }
 
-    if (dbConnectionReady) {
-      return;
-    }
+    // if (dbConnectionReady) {
+    //   return;
+    // }
 
     function postAuthenticate(socket, data) {
 

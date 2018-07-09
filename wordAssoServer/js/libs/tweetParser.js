@@ -12,6 +12,7 @@ const os = require("os");
 const debug = require("debug")("twp");
 const moment = require("moment");
 const async = require("async");
+const treeify = require("treeify");
 
 const chalk = require("chalk");
 const chalkLog = chalk.gray;
@@ -21,7 +22,6 @@ const chalkError = chalk.bold.red;
 const chalkNetwork = chalk.blue;
 
 const mongoose = require("mongoose");
-mongoose.Promise = global.Promise;
 
 const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
 const mediaModel = require("@threeceelabs/mongoose-twitter/models/media.server.model");
@@ -40,8 +40,6 @@ let User;
 let Word;
 let tweetServer;
 
-console.log("TWEET SERVER CONTROLLER | MONGOOSE DEFAULT CONNECT...");
-
 const tweetParserQueue = [];
 
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
@@ -55,8 +53,9 @@ hostname = hostname.replace(/word/g, "google");
 
 function jsonPrint(obj) {
   if (obj) {
-    return JSON.stringify(obj, null, 2);
-  } else {
+    return treeify.asTree(obj, true, true);
+  } 
+  else {
     return obj;
   }
 }

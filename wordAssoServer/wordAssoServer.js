@@ -4431,19 +4431,6 @@ function initAppRouting(callback) {
 
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use(methodOverride());
-  // app.use(session({
-  //   secret: "my_precious",
-  //   resave: false,
-  //   store: new MongoDBStore({ mongooseConnection: dbConnection }),
-  //   // store: new MongoDBStore({ "db": "sessions" }),
-  //   saveUninitialized: true,
-  //   cookie: { 
-  //     secure: false,
-  //     maxAge: MAX_SESSION_AGE
-  //    }
-  // }));
-  // app.use(passport.initialize());
-  // app.use(passport.session());
   app.use(exp.static(__dirname + "/public"));
 
   app.use(function requestLog(req, res, next) {
@@ -4474,7 +4461,6 @@ function initAppRouting(callback) {
           else if (response && (response.entries.length > 0)) {
 
             setTimeout(function(){
-              // utilNameSpace.emit("DROPBOX_CHANGE", response);
               adminNameSpace.emit("DROPBOX_CHANGE", response);
 
               console.log(chalkLog(">>> DROPBOX CHANGE"
@@ -4671,7 +4657,6 @@ function initAppRouting(callback) {
     });
   });
 
-
   app.get("/auth/twitter/error", function(req, res){
     console.log(chalkAlert("PASSPORT AUTH TWITTER ERROR"));
   });
@@ -4690,7 +4675,6 @@ function initAppRouting(callback) {
     function(req, res) {
       console.log(chalk.green("PASSPORT AUTH TWITTER CALLBACK"));
     });
-
 
   app.get("/logout", function(req, res){
     req.logout();

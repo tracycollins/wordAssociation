@@ -2398,7 +2398,19 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
     console.log(chalkError("*** WSC ERROR | " + err));
   });
 
-  initCategoryHashmaps();
+  initCategoryHashmapsReady = false;
+
+  initCategoryHashmaps(function(err){
+
+    initCategoryHashmapsReady = true;
+
+    if (err) {
+      console.log(chalkError("ERROR: LOAD CATEGORY HASHMAPS: " + err));
+    }
+    else {
+      console.log(chalk.bold.green("+++ LOADED CATEGORY HASHMAPS"));
+    }
+  });
 });
 
 

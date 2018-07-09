@@ -977,7 +977,7 @@ let saveFileQueue = [];
 
 let configuration = {};
 
-configuration.verbose = false;
+configuration.verbose = true;
 
 configuration.testInternetConnectionUrl = DEFAULT_TEST_INTERNET_CONNECTION_URL;
 configuration.offlineMode = OFFLINE_MODE;
@@ -6224,12 +6224,12 @@ function initCategoryHashmaps(callback){
 
     user: function(cb){
 
-
       let p = {};
 
       p.skip = 0;
       p.batch = DEFAULT_CURSOR_BATCH_SIZE;
       p.limit = DEFAULT_FIND_CAT_USER_CURSOR_LIMIT;
+      p.verbose = configuration.verbose;
 
       let more = true;
       let totalCount = 0;

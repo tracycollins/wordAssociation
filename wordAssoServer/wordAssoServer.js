@@ -4701,6 +4701,8 @@ function initAppRouting(callback) {
 
 function testInternetConnection(params, callback) {
 
+  console.log("testInternetConnection | statsObj.internetReady: " + statsObj.internetReady);
+
   if (statsObj.internetReady) {
     return callback(null, true);
   }

@@ -4242,6 +4242,13 @@ configEvents.on("INTERNET_READY", function internetReady() {
     }
   });
 
+  initAppRouting(function initAppRoutingComplete() {
+    initSocketNamespaces();
+    initLoadBestNetworkInterval(ONE_MINUTE+1);
+    // initInternetCheckInterval(10000);
+    initFollowableSearchTerms();
+    // callback(null, null);
+  });
 
   connectDb(function(err){
 
@@ -4305,20 +4312,20 @@ configEvents.on("INTERNET_READY", function internetReady() {
 
         if ((namespace === "admin") && (password === "this is a very weak password")) {
           debug(chalk.green("+++ ADMIN AUTHENTICATED | " + userId));
-          // return callback(null, true);
+          return callback(null, true);
         }
 
         if (namespace === "view") {
           debug(chalk.green("+++ VIEWER AUTHENTICATED | " + userId));
-          // return callback(null, true);
+          return callback(null, true);
         }
 
         if ((namespace === "util") && (password === "0123456789")) {
           debug(chalk.green("+++ UTIL AUTHENTICATED | " + userId));
-          // return callback(null, true);
+          return callback(null, true);
         }
 
-        // return callback(null, false);
+        return callback(null, false);
 
       },
       postAuthenticate: postAuthenticate,
@@ -4326,13 +4333,6 @@ configEvents.on("INTERNET_READY", function internetReady() {
       timeout: configuration.socketIoAuthTimeout
     });
 
-    initAppRouting(function initAppRoutingComplete() {
-      initSocketNamespaces();
-      initLoadBestNetworkInterval(ONE_MINUTE+1);
-      // initInternetCheckInterval(10000);
-      initFollowableSearchTerms();
-      // callback(null, null);
-    });
   });
 
 

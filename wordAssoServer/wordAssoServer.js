@@ -4427,7 +4427,7 @@ let dropboxFolderGetLastestCursorReady = true;
 
 function initAppRouting(callback) {
 
-  debug(chalkInfo(moment().format(compactDateTimeFormat) + " | INIT APP ROUTING"));
+  console.log(chalkInfo(moment().format(compactDateTimeFormat) + " | INIT APP ROUTING"));
 
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use(methodOverride());

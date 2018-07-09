@@ -6478,15 +6478,6 @@ function initCategoryHashmapsInterval(interval){
 
   clearInterval(categoryHashmapsInterval);
 
-  // initCategoryHashmaps(function(err){
-  //   if (err) {
-  //     console.log(chalkError("ERROR: LOAD CATEGORY HASHMAPS: " + err));
-  //   }
-  //   else {
-  //     console.log(chalk.bold.green("+++ LOADED CATEGORY HASHMAPS"));
-  //   }
-  // });
-
   categoryHashmapsInterval = setInterval(function updateMemStats() {
 
     if (statsObj.dbConnectionReady && initCategoryHashmapsReady) {
@@ -6526,7 +6517,6 @@ initialize(configuration, function initializeComplete(err) {
     initSaveFileQueue(configuration);
     initIgnoreWordsHashMap();
     initTransmitNodeQueueInterval(TRANSMIT_NODE_QUEUE_INTERVAL);
-    // initStatsInterval(STATS_UPDATE_INTERVAL);
     initCategoryHashmapsInterval(CATEGORY_UPDATE_INTERVAL);
     initUpdateTrendsInterval(UPDATE_TRENDS_INTERVAL);
     initRateQinterval(RATE_QUEUE_INTERVAL);
@@ -6548,58 +6538,6 @@ initialize(configuration, function initializeComplete(err) {
     initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
     initStatsInterval(STATS_UPDATE_INTERVAL);
     slackPostMessage(slackChannel, "\n*INIT* | " + hostname + "\n");
-
-    // initCategoryHashmaps(function(err){
-    //   if (err) {
-    //     console.log(chalkError("ERROR: LOAD CATEGORY HASHMAPS: " + err));
-    //   }
-    //   else {
-    //     console.log(chalkInfo("LOADED CATEGORY HASHMAPS"));
-    //   }
-    //   // initSorter({childId: DEFAULT_SORTER_CHILD_ID});
-    //   initKeySortInterval(configuration.keySortInterval);
-    //   initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
-    //   initStatsInterval(STATS_UPDATE_INTERVAL);
-    //   slackPostMessage(slackChannel, "\n*INIT* | " + hostname + "\n");
-    // });
-
-
-    // let waitServerControllersInterval;
-
-    // waitServerControllersInterval = setInterval(function(){
-
-    //   console.log(chalkAlert("WAITING FOR CONTROLLERS READY ..."
-    //     + " | HSC READY: " + hashtagServerControllerReady
-    //     + " | USC READY: " + userServerControllerReady
-    //     + " | WSC READY: " + wordServerControllerReady
-    //   ));
-
-    //   if (hashtagServerControllerReady && userServerControllerReady && wordServerControllerReady) {
-
-    //     clearInterval(waitServerControllersInterval);
-
-    //     console.log(chalk.green("ALL CONTROLLERS READY"
-    //       + " | HSC READY: " + hashtagServerControllerReady
-    //       + " | USC READY: " + userServerControllerReady
-    //       + " | WSC READY: " + wordServerControllerReady
-    //     ));
-
-    //     initCategoryHashmaps(function(err){
-    //       if (err) {
-    //         console.log(chalkError("ERROR: LOAD CATEGORY HASHMAPS: " + err));
-    //       }
-    //       else {
-    //         console.log(chalkInfo("LOADED CATEGORY HASHMAPS"));
-    //       }
-    //       // initSorter({childId: DEFAULT_SORTER_CHILD_ID});
-    //       initKeySortInterval(configuration.keySortInterval);
-    //       initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
-    //       initStatsInterval(STATS_UPDATE_INTERVAL);
-    //       slackPostMessage(slackChannel, "\n*INIT* | " + hostname + "\n");
-    //     });
-    //   }
-    // }, 1000);
-
 
   }
 });

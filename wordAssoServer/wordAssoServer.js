@@ -4005,7 +4005,7 @@ function logHeartbeat() {
 
 configEvents.on("INTERNET_READY", function internetReady() {
 
-  debug(chalkInfo(moment().format(compactDateTimeFormat) + " | SERVER_READY EVENT"));
+  console.log(chalkInfo(moment().format(compactDateTimeFormat) + " | SERVER_READY EVENT"));
 
   if (!httpServer.listening) {
 

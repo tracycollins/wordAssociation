@@ -62,6 +62,11 @@ let dbConnection;
 let dbConnectionReady = false;
 let statsObj = {};
 
+let adminNameSpace;
+let utilNameSpace;
+let userNameSpace;
+let viewNameSpace;
+
 let unfollowableUserFile = "unfollowableUser.json";
 
 let followableSearchTermSet = new Set();
@@ -2000,10 +2005,6 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
 });
 
 
-let adminNameSpace;
-let utilNameSpace;
-let userNameSpace;
-let viewNameSpace;
 
 
 // ==================================================================
@@ -6090,9 +6091,9 @@ function initStatsInterval(interval){
     statsObj.memory.memoryTotal = os.totalmem();
     statsObj.memory.memoryUsage = process.memoryUsage();
 
-    statsObj.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
-    statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
-    statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
+    if (adminNameSpace) { statsObj.admin.connected = Object.keys(adminNameSpace.connected).length; }// userNameSpace.sockets.length ;
+    if (utilNameSpace) { statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; } // userNameSpace.sockets.length ;
+    if (viewNameSpace) { statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; } // userNameSpace.sockets.length ;
 
     saveStats(statsFile, statsObj, function saveStatsComplete(status){
       debug(chalkLog("SAVE STATS " + status));
@@ -6154,7 +6155,7 @@ initialize(configuration, function initializeComplete(err) {
     initSaveFileQueue(configuration);
     initIgnoreWordsHashMap();
     initTransmitNodeQueueInterval(TRANSMIT_NODE_QUEUE_INTERVAL);
-    initStatsInterval(STATS_UPDATE_INTERVAL);
+    // initStatsInterval(STATS_UPDATE_INTERVAL);
     initCategoryHashmapsInterval(CATEGORY_UPDATE_INTERVAL);
     initUpdateTrendsInterval(UPDATE_TRENDS_INTERVAL);
     initRateQinterval(RATE_QUEUE_INTERVAL);
@@ -6202,6 +6203,7 @@ initialize(configuration, function initializeComplete(err) {
           // initSorter({childId: DEFAULT_SORTER_CHILD_ID});
           initKeySortInterval(configuration.keySortInterval);
           initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
+          initStatsInterval(STATS_UPDATE_INTERVAL);
           slackPostMessage(slackChannel, "\n*INIT* | " + hostname + "\n");
         });
       }

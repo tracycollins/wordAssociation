@@ -4188,6 +4188,10 @@ configEvents.on("INTERNET_READY", function internetReady() {
       return;
     }
 
+    if (dbConnectionReady) {
+      return;
+    }
+
     dbConnection = db;
 
     loadFile(dropboxConfigTwitterFolder, defaultTwitterConfigFile, function initTwit(err, twitterConfig){

@@ -4178,6 +4178,71 @@ configEvents.on("INTERNET_READY", function internetReady() {
     }, 1000);
   }
 
+  loadFile(dropboxConfigTwitterFolder, defaultTwitterConfigFile, function initTwit(err, twitterConfig){
+    if (err) {
+
+      if (err.code === "ENOTFOUND") {
+        console.log(chalkError("*** LOAD DEFAULT TWITTER CONFIG ERROR: FILE NOT FOUND:  " + dropboxConfigTwitterFolder + "/" + twitterAutoFollowConfigFile));
+      }
+      else {
+        console.log(chalkError("*** LOAD DEFAULT TWITTER CONFIG ERROR: " + err));
+      }
+
+      twit = false;
+    }
+    else {
+      console.log(chalkTwitter("LOADED DEFAULT TWITTER CONFIG"
+        + " | " + dropboxConfigTwitterFolder + "/" + defaultTwitterConfigFile
+        + "\n" + jsonPrint(twitterConfig)
+      ));
+
+      twit = new Twit(twitterConfig);
+
+      updateTrends();
+    }
+  });
+
+  loadFile(dropboxConfigTwitterFolder, twitterAutoFollowConfigFile, function initTwit(err, twitterAutoFollowConfig){
+    if (err) {
+
+      if (err.code === "ENOTFOUND") {
+        console.log(chalkError("*** LOAD TWITTER AUTO FOLLOW CONFIG ERROR: FILE NOT FOUND:  " + dropboxConfigTwitterFolder + "/" + twitterAutoFollowConfigFile));
+      }
+      else {
+        console.log(chalkError("*** LOAD TWITTER AUTO FOLLOW CONFIG ERROR: " + err));
+      }
+
+      twitAutoFollow = false;
+    }
+    else {
+      console.log(chalkTwitter("LOADED TWITTER AUTO FOLLOW CONFIG"
+        + " | " + dropboxConfigTwitterFolder + "/" + twitterAutoFollowConfigFile
+        + "\n" + jsonPrint(twitterAutoFollowConfig)
+      ));
+
+      twitAutoFollow = new Twit(twitterAutoFollowConfig);
+    }
+  });
+
+  loadMaxInputHashMap({folder: dropboxConfigDefaultTrainingSetsFolder, file: maxInputHashMapFile}, function(err){
+    if (err) {
+      if (err.code === "ENOTFOUND") {
+        console.log(chalkError("*** LOAD MAX INPUT ERROR: FILE NOT FOUND"
+          + " | " + dropboxConfigDefaultTrainingSetsFolder + "/" + maxInputHashMapFile
+        ));
+      }
+      else {
+        console.log(chalkError("*** LOAD MAX INPUT ERROR: " + err));
+      }
+    }
+    else {
+      console.log(chalkInfo("LOADED MAX INPUT HASHMAP + NORMALIZATION"));
+      console.log(chalkInfo("MAX INPUT HASHMAP INPUT TYPES: " + Object.keys(maxInputHashMap)));
+      console.log(chalkInfo("NORMALIZATION INPUT TYPES: " + Object.keys(normalization)));
+    }
+  });
+
+
   connectDb(function(err, db){
 
     if (statsObj.internetReady) {
@@ -4194,70 +4259,6 @@ configEvents.on("INTERNET_READY", function internetReady() {
     }
 
     dbConnection = db;
-
-    loadFile(dropboxConfigTwitterFolder, defaultTwitterConfigFile, function initTwit(err, twitterConfig){
-      if (err) {
-
-        if (err.code === "ENOTFOUND") {
-          console.log(chalkError("*** LOAD DEFAULT TWITTER CONFIG ERROR: FILE NOT FOUND:  " + dropboxConfigTwitterFolder + "/" + twitterAutoFollowConfigFile));
-        }
-        else {
-          console.log(chalkError("*** LOAD DEFAULT TWITTER CONFIG ERROR: " + err));
-        }
-
-        twit = false;
-      }
-      else {
-        console.log(chalkTwitter("LOADED DEFAULT TWITTER CONFIG"
-          + " | " + dropboxConfigTwitterFolder + "/" + defaultTwitterConfigFile
-          + "\n" + jsonPrint(twitterConfig)
-        ));
-
-        twit = new Twit(twitterConfig);
-
-        updateTrends();
-      }
-    });
-
-    loadFile(dropboxConfigTwitterFolder, twitterAutoFollowConfigFile, function initTwit(err, twitterAutoFollowConfig){
-      if (err) {
-
-        if (err.code === "ENOTFOUND") {
-          console.log(chalkError("*** LOAD TWITTER AUTO FOLLOW CONFIG ERROR: FILE NOT FOUND:  " + dropboxConfigTwitterFolder + "/" + twitterAutoFollowConfigFile));
-        }
-        else {
-          console.log(chalkError("*** LOAD TWITTER AUTO FOLLOW CONFIG ERROR: " + err));
-        }
-
-        twitAutoFollow = false;
-      }
-      else {
-        console.log(chalkTwitter("LOADED TWITTER AUTO FOLLOW CONFIG"
-          + " | " + dropboxConfigTwitterFolder + "/" + twitterAutoFollowConfigFile
-          + "\n" + jsonPrint(twitterAutoFollowConfig)
-        ));
-
-        twitAutoFollow = new Twit(twitterAutoFollowConfig);
-      }
-    });
-
-    loadMaxInputHashMap({folder: dropboxConfigDefaultTrainingSetsFolder, file: maxInputHashMapFile}, function(err){
-      if (err) {
-        if (err.code === "ENOTFOUND") {
-          console.log(chalkError("*** LOAD MAX INPUT ERROR: FILE NOT FOUND"
-            + " | " + dropboxConfigDefaultTrainingSetsFolder + "/" + maxInputHashMapFile
-          ));
-        }
-        else {
-          console.log(chalkError("*** LOAD MAX INPUT ERROR: " + err));
-        }
-      }
-      else {
-        console.log(chalkInfo("LOADED MAX INPUT HASHMAP + NORMALIZATION"));
-        console.log(chalkInfo("MAX INPUT HASHMAP INPUT TYPES: " + Object.keys(maxInputHashMap)));
-        console.log(chalkInfo("NORMALIZATION INPUT TYPES: " + Object.keys(normalization)));
-      }
-    });
 
     function postAuthenticate(socket, data) {
 
@@ -4350,6 +4351,8 @@ configEvents.on("INTERNET_NOT_READY", function internetNotReady() {
 
 function connectDb(callback){
 
+  console.log(chalkConnect("CONNECT DB"));
+
   wordAssoDb.connect("WA_" + process.pid, function(err, db){
     if (err) {
       console.log(chalkError("*** WA | MONGO DB CONNECTION ERROR: " + err));
@@ -4426,6 +4429,8 @@ function slackMessageHandler(messageObj){
 let dropboxFolderGetLastestCursorReady = true;
 
 function initAppRouting(callback) {
+
+  quit();
 
   console.log(chalkInfo(moment().format(compactDateTimeFormat) + " | INIT APP ROUTING"));
 

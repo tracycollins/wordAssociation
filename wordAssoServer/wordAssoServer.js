@@ -499,7 +499,7 @@ userServerController.on("ready", function(appname){
 });
 
 userServerController.on("error", function(err){
-  userServerControllerReady = fase;
+  userServerControllerReady = false;
   console.log(chalkError("*** USC ERROR | " + err));
 });
 
@@ -4243,7 +4243,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
   });
 
 
-  connectDb(function(err, db){
+  connectDb(function(err){
 
     if (statsObj.internetReady) {
       slack = new Slack(slackOAuthAccessToken);
@@ -4257,8 +4257,6 @@ configEvents.on("INTERNET_READY", function internetReady() {
     if (dbConnectionReady) {
       return;
     }
-
-    dbConnection = db;
 
     function postAuthenticate(socket, data) {
 
@@ -4355,9 +4353,9 @@ function connectDb(callback){
 
   wordAssoDb.connect("WA_" + process.pid, function(err, db){
     if (err) {
-      console.log(chalkError("*** WA | MONGO DB CONNECTION ERROR: " + err));
-      callback(err, null);
       dbConnectionReady = false;
+      console.log(chalkError("*** WA | MONGO DB CONNECTION ERROR: " + err));
+      callback(err);
     }
     else {
 
@@ -4389,7 +4387,9 @@ function connectDb(callback){
 
       dbConnectionReady = true;
 
-      callback(null, db);
+      dbConnection = db;
+
+      callback(null);
     }
   });
 }

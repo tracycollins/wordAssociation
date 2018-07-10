@@ -3217,7 +3217,7 @@ function initSocketHandler(socketObj) {
     viewerCache.del(socket.id);
 
     statsObj.socket.errors.reconnect_fails += 1;
-    debug(chalkError(moment().format(compactDateTimeFormat) 
+    console.log(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET RECONNECT FAILED: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
@@ -3227,7 +3227,7 @@ function initSocketHandler(socketObj) {
     viewerCache.del(socket.id);
 
     statsObj.socket.errors.connect_errors += 1;
-    debug(chalkError(moment().format(compactDateTimeFormat) 
+    console.log(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET CONNECT ERROR: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
@@ -3237,7 +3237,7 @@ function initSocketHandler(socketObj) {
     viewerCache.del(socket.id);
 
     statsObj.socket.errors.connect_timeouts += 1;
-    debug(chalkError(moment().format(compactDateTimeFormat) 
+    console.log(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET CONNECT TIMEOUT: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
@@ -3298,7 +3298,7 @@ function initSocketHandler(socketObj) {
 
   socket.on("reconnect", function socketReconnect() {
     statsObj.socket.reconnects += 1;
-    debug(chalkConnect(moment().format(compactDateTimeFormat) + " | SOCKET RECONNECT: " + socket.id));
+    console.log(chalkConnect(moment().format(compactDateTimeFormat) + " | SOCKET RECONNECT: " + socket.id));
   });
 
   socket.on("disconnect", function socketDisconnect(status) {
@@ -3309,7 +3309,7 @@ function initSocketHandler(socketObj) {
       + " | " + socket.id
     ));
 
-    debug(chalkDisconnect(moment().format(compactDateTimeFormat) 
+    console.log(chalkDisconnect(moment().format(compactDateTimeFormat) 
       + " | SOCKET DISCONNECT: " + socket.id + "\nstatus\n" + jsonPrint(status)
     ));
 
@@ -3472,7 +3472,7 @@ function initSocketHandler(socketObj) {
       case "TUS" :
       case "LA" :
 
-        debug(chalkLog(currentSessionType + " SERVER" 
+        console.log(chalkLog(currentSessionType + " SERVER" 
           + " | " + moment().format(compactDateTimeFormat)
           + " | " + keepAliveObj.user.userId
           + " | " + socket.id
@@ -3527,7 +3527,7 @@ function initSocketHandler(socketObj) {
 
       case "VIEWER" :
 
-        debug(chalkLog(currentSessionType 
+        console.log(chalkLog(currentSessionType 
           + " | " + moment().format(compactDateTimeFormat)
           + " | " + keepAliveObj.user.userId
           + " | " + socket.id
@@ -4596,12 +4596,14 @@ function initTransmitNodeQueueInterval(interval){
         if (!nodeObj.category || (nodeObj.category === undefined)) { nodeObj.category = false; }
         if (!nodeObj.categoryAuto || (nodeObj.categoryAuto === undefined)) { nodeObj.categoryAuto = false; }
 
-        debug(chalkAlert("TX NODE DE-Q"
-          + " | NID: " + nodeObj.nodeId
-          + " | " + nodeObj.nodeType
-          + " | CAT: " + nodeObj.category
-          + " | CATA: " + nodeObj.categoryAuto
-        ));
+        if (configuration.verbose) {
+          console.log(chalkAlert("TX NODE DE-Q"
+            + " | NID: " + nodeObj.nodeId
+            + " | " + nodeObj.nodeType
+            + " | CAT: " + nodeObj.category
+            + " | CATA: " + nodeObj.categoryAuto
+          ));
+        }
 
         checkCategory(nodeObj, function checkCategoryCallback(err, node){
 
@@ -4771,7 +4773,9 @@ function initTransmitNodeQueueInterval(interval){
 }
 
 function transmitNodes(tw, callback){
-  debug("TX NODES");
+  if (configuration.verbose) {
+    console.log("TX NODES | TW ID: " + tw.tweetId + " | @" + tw.user.screenName);
+  }
 
   if (tw.user) {transmitNodeQueue.push(tw.user);}
   if (tw.place && configuration.enableTransmitPlace) {transmitNodeQueue.push(tw.place);}
@@ -5206,15 +5210,17 @@ function initTwitterRxQueueInterval(interval){
 
       tweet = tweetRxQueue.shift();
 
-      debug(chalkInfo("TPQ<"
-        // + " [" + tweetRxQueue.size() + "]"
-        + " [" + tweetRxQueue.length + "]"
-        // + " | " + socket.id
-        + " | " + tweet.id_str
-        + " | " + tweet.user.id_str
-        + " | " + tweet.user.screen_name
-        + " | " + tweet.user.name
-      ));
+      if (configuration.verbose) {
+        console.log(chalkInfo("TPQ<"
+          // + " [" + tweetRxQueue.size() + "]"
+          + " [" + tweetRxQueue.length + "]"
+          // + " | " + socket.id
+          + " | " + tweet.id_str
+          + " | " + tweet.user.id_str
+          + " | " + tweet.user.screen_name
+          + " | " + tweet.user.name
+        ));
+      }
 
       childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({ op: "tweet", tweetStatus: tweet }, function sendTweetParser(err){
 

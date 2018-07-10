@@ -192,6 +192,8 @@ function initTweetParserQueueInterval(cnf){
         }
         else {
           if (cnf.verbose) {
+            console.log.bind(console, "TWP | TW PARSER [" + tweetParserQueue.length + "]"
+              + " | " + tweetObj.tweetId);
             console.log(chalkInfo("TWP | TW PARSER [" + tweetParserQueue.length + "]"
               + " | " + tweetObj.tweetId
             ));

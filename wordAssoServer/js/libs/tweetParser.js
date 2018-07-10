@@ -249,6 +249,7 @@ process.on("message", function(m) {
       console.log(chalkInfo("TWEET PARSER INIT"
         + " | TITLE: " + m.title
         + " | INTERVAL: " + m.interval
+        + "\nMESSAGE " + jsonPrint(m)
       ));
 
       if (cnf.networkObj) {

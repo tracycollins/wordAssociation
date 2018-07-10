@@ -9,6 +9,7 @@
       "WA_VERBOSE_MODE": false,
       "FORCE_COLOR": 1,
       "NODE_ENV": "production",
+      "CATEGORY_HASHMAPS_UPDATE_INTERVAL": 60000,
       "HEAPDUMP_ENABLED": false,
       "HEAPDUMP_MODULO": 10,
       "HEAPDUMP_THRESHOLD": 800,

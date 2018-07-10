@@ -38,7 +38,7 @@ const TRANSMIT_NODE_QUEUE_INTERVAL = 5;
 const TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = 5;
 const UPDATE_TRENDS_INTERVAL = 15*ONE_MINUTE;
 const STATS_UPDATE_INTERVAL = 60000;
-const CATEGORY_UPDATE_INTERVAL = 5*ONE_MINUTE;
+const CATEGORY_HASHMAPS_UPDATE_INTERVAL = process.env.CATEGORY_HASHMAPS_UPDATE_INTERVAL || ONE_MINUTE;
 const HASHTAG_LOOKUP_QUEUE_INTERVAL = 2;
 
 const MAX_SESSION_AGE = ONE_DAY/1000;  // in seconds
@@ -148,6 +148,7 @@ configuration.DROPBOX.DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_AS
 configuration.DROPBOX.DROPBOX_WA_CONFIG_FILE = process.env.DROPBOX_WA_CONFIG_FILE || "wordAssoServerConfig.json";
 configuration.DROPBOX.DROPBOX_WA_STATS_FILE = process.env.DROPBOX_WA_STATS_FILE || "wordAssoServerStats.json";
 
+configuration.categoryHashmapsUpdateInterval = CATEGORY_HASHMAPS_UPDATE_INTERVAL;
 configuration.testInternetConnectionUrl = DEFAULT_TEST_INTERNET_CONNECTION_URL;
 configuration.offlineMode = OFFLINE_MODE;
 configuration.autoOfflineMode = AUTO_OFFLINE_MODE;
@@ -1732,6 +1733,11 @@ function loadConfigFile(params, callback) {
             if (loadedConfigObj.WAS_PROCESS_NAME !== undefined){
               console.log("WA | LOADED WAS_PROCESS_NAME: " + loadedConfigObj.WAS_PROCESS_NAME);
               configuration.processName = loadedConfigObj.WAS_PROCESS_NAME;
+            }
+
+            if (loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL !== undefined){
+              console.log("WA | LOADED CATEGORY_HASHMAPS_UPDATE_INTERVAL: " + loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL);
+              configuration.categoryHashmapsUpdateInterval = loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL;
             }
 
             if (loadedConfigObj.WAS_STATS_UPDATE_INTERVAL !== undefined){
@@ -6273,32 +6279,6 @@ function initCategoryHashmaps(callback){
   });
 }
 
-// function initialize(cnf, callback) {
-
-//   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | INITIALIZE"));
-
-//   killAll();
-
-//   let configArgs = Object.keys(cnf);
-
-//   configArgs.forEach(function finalConfigs(arg){
-//     debug("FINAL CONFIG | " + arg + ": " + cnf[arg]);
-//   });
-
-//   if (cnf.quitOnError) { 
-//     debug(chalkAlert("===== QUIT ON ERROR SET ====="));
-//   }
-
-//   io = require("socket.io")(httpServer, ioConfig);
-
-
-//   if (!statsObj.internetReady) { 
-//     initInternetCheckInterval(10000);
-//   }
-
-//   callback(null);
-// }
-
 function initialize(callback){
 
   statsObj.status = "INITIALIZE";
@@ -6513,7 +6493,7 @@ initialize(function initializeComplete(err) {
     initSaveFileQueue(configuration);
     initIgnoreWordsHashMap();
     initTransmitNodeQueueInterval(TRANSMIT_NODE_QUEUE_INTERVAL);
-    initCategoryHashmapsInterval(CATEGORY_UPDATE_INTERVAL);
+    initCategoryHashmapsInterval(configuration.categoryHashmapsUpdateInterval);
     initUpdateTrendsInterval(UPDATE_TRENDS_INTERVAL);
     initRateQinterval(RATE_QUEUE_INTERVAL);
     initTwitterRxQueueInterval(TWITTER_RX_QUEUE_INTERVAL);

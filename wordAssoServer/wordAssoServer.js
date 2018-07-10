@@ -5748,7 +5748,8 @@ function initTweetParser(params, callback){
     networkObj: bestNetworkObj,
     maxInputHashMap: maxInputHashMap,
     normalization: normalization,
-    interval: TWEET_PARSER_INTERVAL
+    interval: TWEET_PARSER_INTERVAL,
+    verbose: configuration.verbose
   }, function tweetParserMessageRxError(err){
     if (err) {
       console.log(chalkError("*** TWEET PARSER SEND ERROR"

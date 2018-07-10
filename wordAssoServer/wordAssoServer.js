@@ -5210,17 +5210,17 @@ function initTwitterRxQueueInterval(interval){
 
       tweet = tweetRxQueue.shift();
 
-      if (configuration.verbose) {
-        console.log(chalkInfo("TPQ<"
-          // + " [" + tweetRxQueue.size() + "]"
-          + " [" + tweetRxQueue.length + "]"
-          // + " | " + socket.id
-          + " | " + tweet.id_str
-          + " | " + tweet.user.id_str
-          + " | " + tweet.user.screen_name
-          + " | " + tweet.user.name
-        ));
-      }
+      // if (configuration.verbose) {
+      //   console.log(chalkInfo("TPQ<"
+      //     // + " [" + tweetRxQueue.size() + "]"
+      //     + " [" + tweetRxQueue.length + "]"
+      //     // + " | " + socket.id
+      //     + " | " + tweet.id_str
+      //     + " | " + tweet.user.id_str
+      //     + " | " + tweet.user.screen_name
+      //     + " | " + tweet.user.name
+      //   ));
+      // }
 
       childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({ op: "tweet", tweetStatus: tweet }, function sendTweetParser(err){
 
@@ -6141,19 +6141,19 @@ function initCategoryHashmaps(callback){
                 categorizedHashtagHashMap.set(nodeId, results.obj[nodeId]);
               });
 
-              if (configuration.verbose) {
-                console.log(chalkInfo("WA | LOADING CATEGORIZED HASHTAGS FROM DB"
-                  + " | TOTAL CATEGORIZED: " + totalCount
-                  + " | TOTAL CATEGORIZED: " + totalCount
-                  + " | LIMIT: " + p.limit
-                  + " | SKIP: " + p.skip
-                  + " | " + totalManual + " MAN"
-                  + " | " + totalAuto + " AUTO"
-                  + " | " + totalMatched + " MATCHED"
-                  + " / " + totalMismatched + " MISMATCHED"
-                  + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
-                ));
-              }
+              // if (configuration.verbose) {
+              //   console.log(chalkInfo("WA | LOADING CATEGORIZED HASHTAGS FROM DB"
+              //     + " | TOTAL CATEGORIZED: " + totalCount
+              //     + " | TOTAL CATEGORIZED: " + totalCount
+              //     + " | LIMIT: " + p.limit
+              //     + " | SKIP: " + p.skip
+              //     + " | " + totalManual + " MAN"
+              //     + " | " + totalAuto + " AUTO"
+              //     + " | " + totalMatched + " MATCHED"
+              //     + " / " + totalMismatched + " MISMATCHED"
+              //     + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
+              //   ));
+              // }
 
               p.skip += results.count;
 
@@ -6241,19 +6241,19 @@ function initCategoryHashmaps(callback){
                 categorizedUserHashMap.set(nodeId, results.obj[nodeId]);
               });
 
-              if (configuration.verbose) {
-                console.log(chalkInfo("WA | LOADING CATEGORIZED USERS FROM DB"
-                  + " | TOTAL USERS: " + statsObj.db.totalUsers
-                  + " | TOTAL CATEGORIZED: " + totalCount
-                  + " | LIMIT: " + p.limit
-                  + " | SKIP: " + p.skip
-                  + " | " + totalManual + " MAN"
-                  + " | " + totalAuto + " AUTO"
-                  + " | " + totalMatched + " MATCHED"
-                  + " / " + totalMismatched + " MISMATCHED"
-                  + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
-                ));
-              }
+              // if (configuration.verbose) {
+              //   console.log(chalkInfo("WA | LOADING CATEGORIZED USERS FROM DB"
+              //     + " | TOTAL USERS: " + statsObj.db.totalUsers
+              //     + " | TOTAL CATEGORIZED: " + totalCount
+              //     + " | LIMIT: " + p.limit
+              //     + " | SKIP: " + p.skip
+              //     + " | " + totalManual + " MAN"
+              //     + " | " + totalAuto + " AUTO"
+              //     + " | " + totalMatched + " MATCHED"
+              //     + " / " + totalMismatched + " MISMATCHED"
+              //     + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
+              //   ));
+              // }
 
               p.skip += results.count;
 

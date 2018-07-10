@@ -144,7 +144,7 @@ configuration.verbose = false;
 configuration.DROPBOX = {};
 configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN ;
 configuration.DROPBOX.DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY ;
-configuration.DROPBOX.DROPBOX_WORD_ASSO_APP_SECRfindCategorizedHashtagsCursorET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
+configuration.DROPBOX.DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
 configuration.DROPBOX.DROPBOX_WA_CONFIG_FILE = process.env.DROPBOX_WA_CONFIG_FILE || "wordAssoServerConfig.json";
 configuration.DROPBOX.DROPBOX_WA_STATS_FILE = process.env.DROPBOX_WA_STATS_FILE || "wordAssoServerStats.json";
 
@@ -152,7 +152,7 @@ configuration.testInternetConnectionUrl = DEFAULT_TEST_INTERNET_CONNECTION_URL;
 configuration.offlineMode = OFFLINE_MODE;
 configuration.autoOfflineMode = AUTO_OFFLINE_MODE;
 
-configuration.cursorBatchSize = DEFAULT_CURSOR_BATCH_SIZE;
+configuration.batchSize = DEFAULT_CURSOR_BATCH_SIZE;
 
 configuration.keySortInterval = DEFAULT_INTERVAL;
 
@@ -6059,7 +6059,7 @@ function initCategoryHashmaps(callback){
       p.skip = 0;
       p.batchSize = configuration.cursorBatchSize;
       p.limit = DEFAULT_FIND_CAT_HASHTAG_CURSOR_LIMIT;
-      p.verbose = configuration.verbose;
+      p.verbose = false;
 
       let more = true;
       let totalCount = 0;
@@ -6304,7 +6304,7 @@ function initialize(callback){
   }
 
   configuration.processName = process.env.WA_PROCESS_NAME || "node_wordAssoServer";
-  configuration.verbose = process.env.WA_VERBOSE_MODE || false ;
+  configuration.verbose = (process.env.WA_VERBOSE_MODE === "true" || process.env.WA_VERBOSE_MODE === true) || false ;
   configuration.quitOnError = process.env.WA_QUIT_ON_ERROR || false ;
   configuration.enableStdin = process.env.WA_ENABLE_STDIN || true ;
 

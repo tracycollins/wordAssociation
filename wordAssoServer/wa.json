@@ -6,11 +6,12 @@
     "autorestart" : false,
     "node_args"   : "--max-old-space-size=10240",
     "env": {
+      "WA_VERBOSE_MODE": false,
       "FORCE_COLOR": 1,
-      "NODE_ENV": "development",
+      "NODE_ENV": "production",
       "HEAPDUMP_ENABLED": false,
       "HEAPDUMP_MODULO": 10,
-      "HEAPDUMP_THRESHOLD": 750,
+      "HEAPDUMP_THRESHOLD": 800,
       "SOCKET_IDLE_TIMEOUT" : 300,
       "NODE_CACHE_DEFAULT_TTL": 60,
       "NODE_CACHE_CHECK_PERIOD": 5,
@@ -23,10 +24,10 @@
       "DROPBOX_WORD_ASSO_APP_KEY": "qlb9k4dp01t9iqk",
       "DROPBOX_WORD_ASSO_APP_SECRET": "wqslhe2t95zfn19",
       "DEFAULT_TWITTER_CONFIG": "ninjathreecee.json",
-      "DEFAULT_TWITTER_AUTOFOLLOW_CONFIG": "threeceeinfo.json",
+      "DEFAULT_TWITTER_AUTOFOLLOW_CONFIG": "altthreecee02.json",
       "WA_STATS_FILE" : "wordAssoServerStats.json",
       "GOOGLE_PROJECT_ID": "graphic-tangent-627",
-      "ENABLE_GOOGLE_METRICS": false
+      "GOOGLE_METRICS_ENABLED": false
     }
   }]
 }

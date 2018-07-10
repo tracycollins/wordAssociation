@@ -2186,7 +2186,7 @@ function saveStats(statsFile, statsObj, callback) {
     .catch(function dropboxFilesUploadError(err){
       console.log(chalkError(moment().format(compactDateTimeFormat) 
         + " | !!! ERROR DROBOX STATS WRITE | FILE: " + options.path 
-        + " ERROR: " + err
+        + "\nERROR\n" + jsonPrint(err)
       ));
       callback(err);
     });

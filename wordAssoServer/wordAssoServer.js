@@ -212,7 +212,6 @@ const optionDefinitions = [
 
 const commandLineConfig = commandLineArgs(optionDefinitions);
 console.log(chalkInfo("WA | COMMAND LINE CONFIG\nWA | " + jsonPrint(commandLineConfig)));
-console.log("WA | COMMAND LINE OPTIONS\nWA | " + jsonPrint(commandLineConfig));
 
 if (Object.keys(commandLineConfig).includes("help")) {
   console.log("WA |optionDefinitions\n" + jsonPrint(optionDefinitions));
@@ -6051,7 +6050,7 @@ function initCategoryHashmaps(callback){
       let p = {};
 
       p.skip = 0;
-      p.batch = configuration.cursorBatchSize;
+      p.batchSize = configuration.cursorBatchSize;
       p.limit = DEFAULT_FIND_CAT_HASHTAG_CURSOR_LIMIT;
       p.verbose = configuration.verbose;
 
@@ -6149,7 +6148,7 @@ function initCategoryHashmaps(callback){
       let p = {};
 
       p.skip = 0;
-      p.batch = configuration.cursorBatchSize;
+      p.batchSize = configuration.cursorBatchSize;
       p.limit = DEFAULT_FIND_CAT_USER_CURSOR_LIMIT;
       p.verbose = configuration.verbose;
 

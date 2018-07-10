@@ -1654,6 +1654,16 @@ function loadConfigFile(params, callback) {
               configuration.cursorBatchSize = loadedConfigObj.DEFAULT_CURSOR_BATCH_SIZE;
             }
 
+            if (loadedConfigObj.DEFAULT_FIND_CAT_USER_CURSOR_LIMIT !== undefined){
+              console.log("WA | LOADED DEFAULT_FIND_CAT_USER_CURSOR_LIMIT: " + loadedConfigObj.DEFAULT_FIND_CAT_USER_CURSOR_LIMIT);
+              configuration.findCatUserLimit = loadedConfigObj.DEFAULT_FIND_CAT_USER_CURSOR_LIMIT;
+            }
+
+            if (loadedConfigObj.DEFAULT_FIND_CAT_HASHTAG_CURSOR_LIMIT !== undefined){
+              console.log("WA | LOADED DEFAULT_FIND_CAT_HASHTAG_CURSOR_LIMIT: " + loadedConfigObj.DEFAULT_FIND_CAT_HASHTAG_CURSOR_LIMIT);
+              configuration.findCatHashtagLimit = loadedConfigObj.DEFAULT_FIND_CAT_HASHTAG_CURSOR_LIMIT;
+            }
+
             if (loadedConfigObj.HEAPDUMP_ENABLED !== undefined){
               console.log("WA | LOADED HEAPDUMP_ENABLED: " + loadedConfigObj.HEAPDUMP_ENABLED);
               configuration.heapDumpEnabled = loadedConfigObj.HEAPDUMP_ENABLED;
@@ -6058,7 +6068,7 @@ function initCategoryHashmaps(callback){
 
       p.skip = 0;
       p.batchSize = configuration.cursorBatchSize;
-      p.limit = DEFAULT_FIND_CAT_HASHTAG_CURSOR_LIMIT;
+      p.limit = configuration.findCatHashtagLimit;
       p.verbose = false;
 
       let more = true;
@@ -6156,7 +6166,7 @@ function initCategoryHashmaps(callback){
 
       p.skip = 0;
       p.batchSize = configuration.cursorBatchSize;
-      p.limit = DEFAULT_FIND_CAT_USER_CURSOR_LIMIT;
+      p.limit = configuration.findCatUserLimit;
       p.verbose = configuration.verbose;
 
       let more = true;

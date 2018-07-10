@@ -4,6 +4,8 @@
 global.dbConnection = false;
 let dbConnectionReady = false;
 
+process.env.NODE_ENV = process.env.NODE_ENV || "development";
+
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
 const ONE_HOUR = 60 * ONE_MINUTE;
@@ -3006,7 +3008,6 @@ if (debug.enabled) {
   debug("\n%%%%%%%%%%%%%%\n%%%%%%% DEBUG ENABLED %%%%%%%\n%%%%%%%%%%%%%%\n");
 }
 
-process.env.NODE_ENV = process.env.NODE_ENV || "development";
 
 debug("NODE_ENV : " + process.env.NODE_ENV);
 debug("CLIENT HOST + PORT: " + "http://localhost:" + config.port);

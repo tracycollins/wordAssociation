@@ -3,6 +3,7 @@
 
 global.dbConnection = false;
 let dbConnectionReady = false;
+let initCategoryHashmapsReady = true;
 
 process.env.NODE_ENV = process.env.NODE_ENV || "development";
 
@@ -1566,7 +1567,7 @@ function loadFile(path, file, callback) {
         return callback(err, null);
       }
 
-      debug(chalkError("WA | LOAD FILE ERROR\n" + jsonPrint(err)));
+      debug(chalkError("WA | LOAD FILE ERROR: " + err));
       
       callback(err, null);
 
@@ -6294,7 +6295,7 @@ function initCategoryHashmaps(callback){
 
               more = false;
 
-              console.log(chalkTwitter("LOADED CATEGORIZED HASHTAGS FROM DB"
+              console.log(chalk.bold.blue("LOADED CATEGORIZED HASHTAGS FROM DB"
                 + " | TOTAL HASHTAGS: " + statsObj.db.totalHashtags
                 + " | TOTAL CATEGORIZED: " + totalCount
                 + " | LIMIT: " + p.limit
@@ -6394,7 +6395,7 @@ function initCategoryHashmaps(callback){
 
               more = false;
 
-              console.log(chalkTwitter("LOADED CATEGORIZED USERS FROM DB"
+              console.log(chalk.bold.blue("LOADED CATEGORIZED USERS FROM DB"
                 + " | TOTAL USERS: " + statsObj.db.totalUsers
                 + " | TOTAL CATEGORIZED: " + totalCount
                 + " | LIMIT: " + p.limit
@@ -6566,7 +6567,6 @@ function initStatsInterval(interval){
   }, interval);
 }
 
-let initCategoryHashmapsReady = true;
 
 function initCategoryHashmapsInterval(interval){
 
@@ -6579,6 +6579,10 @@ function initCategoryHashmapsInterval(interval){
   categoryHashmapsInterval = setInterval(function updateMemStats() {
 
     if (statsObj.dbConnectionReady && initCategoryHashmapsReady) {
+
+      console.log(chalkAlert("--- IN CATEGORY HASHMAP INTERVAL"
+        + " | " + msToTime(interval)
+      ));
 
       initCategoryHashmapsReady = false;
 

@@ -2167,8 +2167,8 @@ function saveStats(statsFile, statsObj, callback) {
     })
     .catch(function dropboxFilesUploadError(err){
       console.log(chalkError(moment().format(compactDateTimeFormat) 
-        + " | !!! ERROR DROBOX JSON WRITE | FILE: " + options.path 
-        + " ERROR: " + err.error_summary
+        + " | !!! ERROR DROBOX STATS WRITE | FILE: " + options.path 
+        + " ERROR: " + err
       ));
       callback(err);
     });

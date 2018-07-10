@@ -191,10 +191,11 @@ function initTweetParserQueueInterval(cnf){
           }
         }
         else {
-          debug(chalkInfo("TWP | TW PARSER [" + tweetParserQueue.length + "]"
-            + " createStreamTweet DONE" 
-            + " | " + tweetObj.tweetId
-          ));
+          if (cnf.verbose) {
+            console.log(chalkInfo("TWP | TW PARSER [" + tweetParserQueue.length + "]"
+              + " | " + tweetObj.tweetId
+            ));
+          }
 
           process.send({op: "parsedTweet", tweetObj: tweetObj}, function(err){
 
@@ -233,6 +234,7 @@ process.on("message", function(m) {
 
       process.title = m.title;
 
+      cnf.verbose = m.verbose;
       cnf.updateInterval = m.interval;
       cnf.networkObj = {};
       cnf.networkObj = m.networkObj;

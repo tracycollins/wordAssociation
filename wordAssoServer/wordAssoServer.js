@@ -213,6 +213,32 @@ const optionDefinitions = [
   help
 ];
 
+function quit(message) {
+
+  console.log(chalkAlert("\n... QUITTING ..."));
+  let msg = "";
+  if (message) {msg = message;}
+
+  debug("QUIT MESSAGE: " + msg);
+
+  setTimeout(function() {
+
+    global.dbConnection.close(function () {
+
+      console.log(chalkAlert(
+        "\n==========================\n"
+        + "MONGO DB CONNECTION CLOSED"
+        + "\n==========================\n"
+      ));
+
+      process.exit();
+
+    });
+
+  }, 5000);
+}
+
+
 const commandLineConfig = commandLineArgs(optionDefinitions);
 console.log(chalkInfo("WA | COMMAND LINE CONFIG\nWA | " + jsonPrint(commandLineConfig)));
 
@@ -565,14 +591,6 @@ let categoryHashmapsInterval;
 let statsInterval;
 
 
-
-function quit(message) {
-  debug("\n... QUITTING ...");
-  let msg = "";
-  if (message) {msg = message;}
-  debug("QUIT MESSAGE: " + msg);
-  process.exit();
-}
 
 // ==================================================================
 // DROPBOX
@@ -2375,8 +2393,7 @@ process.on("message", function processMessageRx(msg) {
 
   if ((msg === "SIGINT") || (msg === "shutdown")) {
 
-    debug("\n\n!!!!! RECEIVED PM2 SHUTDOWN !!!!!\n\n***** Closing all connections *****\n\n");
-    debug("... SAVING STATS");
+    console.log(chalkAlert("\n=============================\n***** SHUTDOWN OR SIGINT *****\n=============================\n"));
 
     clearInterval(internetCheckInterval);
 
@@ -2391,9 +2408,8 @@ process.on("message", function processMessageRx(msg) {
 
     setTimeout(function quitTimeout() {
       showStats(true);
-      debug("**** Finished closing connections ****\n\n ***** RELOADING blm.js NOW *****\n\n");
       quit(msg);
-    }, 300);
+    }, 1000);
   }
 });
 

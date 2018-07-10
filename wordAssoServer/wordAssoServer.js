@@ -144,7 +144,7 @@ configuration.verbose = false;
 configuration.DROPBOX = {};
 configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN ;
 configuration.DROPBOX.DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY ;
-configuration.DROPBOX.DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
+configuration.DROPBOX.DROPBOX_WORD_ASSO_APP_SECRfindCategorizedHashtagsCursorET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
 configuration.DROPBOX.DROPBOX_WA_CONFIG_FILE = process.env.DROPBOX_WA_CONFIG_FILE || "wordAssoServerConfig.json";
 configuration.DROPBOX.DROPBOX_WA_STATS_FILE = process.env.DROPBOX_WA_STATS_FILE || "wordAssoServerStats.json";
 
@@ -152,7 +152,7 @@ configuration.testInternetConnectionUrl = DEFAULT_TEST_INTERNET_CONNECTION_URL;
 configuration.offlineMode = OFFLINE_MODE;
 configuration.autoOfflineMode = AUTO_OFFLINE_MODE;
 
-configuration.batchSize = DEFAULT_CURSOR_BATCH_SIZE;
+configuration.cursorBatchSize = DEFAULT_CURSOR_BATCH_SIZE;
 
 configuration.keySortInterval = DEFAULT_INTERVAL;
 

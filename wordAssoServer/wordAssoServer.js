@@ -152,6 +152,8 @@ configuration.testInternetConnectionUrl = DEFAULT_TEST_INTERNET_CONNECTION_URL;
 configuration.offlineMode = OFFLINE_MODE;
 configuration.autoOfflineMode = AUTO_OFFLINE_MODE;
 
+configuration.batchSize = DEFAULT_CURSOR_BATCH_SIZE;
+
 configuration.keySortInterval = DEFAULT_INTERVAL;
 
 configuration.enableTransmitUser = true;
@@ -1646,6 +1648,11 @@ function loadConfigFile(params, callback) {
           else {
 
             console.log(chalkInfo("WA | LOADED CONFIG FILE: " + file + "\n" + jsonPrint(loadedConfigObj)));
+
+            if (loadedConfigObj.DEFAULT_CURSOR_BATCH_SIZE !== undefined){
+              console.log("WA | LOADED DEFAULT_CURSOR_BATCH_SIZE: " + loadedConfigObj.DEFAULT_CURSOR_BATCH_SIZE);
+              configuration.cursorBatchSize = loadedConfigObj.DEFAULT_CURSOR_BATCH_SIZE;
+            }
 
             if (loadedConfigObj.HEAPDUMP_ENABLED !== undefined){
               console.log("WA | LOADED HEAPDUMP_ENABLED: " + loadedConfigObj.HEAPDUMP_ENABLED);

@@ -83,6 +83,7 @@ let DEFAULT_IO_PING_INTERVAL = ONE_MINUTE;
 let DEFAULT_IO_PING_TIMEOUT = 3*ONE_MINUTE;
 
 const util = require("util");
+const _ = require("lodash");
 const Measured = require("measured");
 const omit = require("object.omit");
 const pick = require("object.pick");
@@ -123,6 +124,7 @@ const chalkInfo = chalk.black;
 const chalkAlert = chalk.red;
 const chalkError = chalk.bold.red;
 const chalkLog = chalk.gray;
+const chalkBlue = chalk.blue;
 
 
 let configEvents = new EventEmitter2({
@@ -143,8 +145,8 @@ configuration.DROPBOX = {};
 configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN ;
 configuration.DROPBOX.DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY ;
 configuration.DROPBOX.DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
-configuration.DROPBOX.DROPBOX_TNN_CONFIG_FILE = process.env.DROPBOX_WA_CONFIG_FILE || "wordAssoServerConfig.json";
-configuration.DROPBOX.DROPBOX_TNN_STATS_FILE = process.env.DROPBOX_WA_STATS_FILE || "wordAssoServerStats.json";
+configuration.DROPBOX.DROPBOX_WA_CONFIG_FILE = process.env.DROPBOX_WA_CONFIG_FILE || "wordAssoServerConfig.json";
+configuration.DROPBOX.DROPBOX_WA_STATS_FILE = process.env.DROPBOX_WA_STATS_FILE || "wordAssoServerStats.json";
 
 configuration.testInternetConnectionUrl = DEFAULT_TEST_INTERNET_CONNECTION_URL;
 configuration.offlineMode = OFFLINE_MODE;
@@ -168,6 +170,21 @@ configuration.metrics = {};
 configuration.metrics.nodeMeterEnabled = true;
 configuration.minFollowersAuto = DEFAULT_MIN_FOLLOWERS_AUTO;
 
+if (process.env.MIN_FOLLOWERS_AUTO !== undefined) {
+  configuration.minFollowersAuto = parseInt(process.env.MIN_FOLLOWERS_AUTO);
+}
+
+if (process.env.NODE_METER_ENABLED !== undefined) {
+  if (process.env.NODE_METER_ENABLED === "true") {
+    configuration.metrics.nodeMeterEnabled = true;
+  }
+  else if (process.env.NODE_METER_ENABLED === "false") {
+    configuration.metrics.nodeMeterEnabled = false;
+  }
+  else {
+    configuration.metrics.nodeMeterEnabled = true;
+  }
+}
 
 let statsObj = {};
 statsObj.commandLineArgsLoaded = false;
@@ -1124,21 +1141,6 @@ let updateMetricsInterval;
 let saveFileQueue = [];
 
 
-if (process.env.MIN_FOLLOWERS_AUTO !== undefined) {
-  configuration.minFollowersAuto = parseInt(process.env.MIN_FOLLOWERS_AUTO);
-}
-
-if (process.env.NODE_METER_ENABLED !== undefined) {
-  if (process.env.NODE_METER_ENABLED === "true") {
-    configuration.metrics.nodeMeterEnabled = true;
-  }
-  else if (process.env.NODE_METER_ENABLED === "false") {
-    configuration.metrics.nodeMeterEnabled = false;
-  }
-  else {
-    configuration.metrics.nodeMeterEnabled = true;
-  }
-}
 
 let internetCheckInterval;
 
@@ -1469,18 +1471,18 @@ function getFileMetadata(path, file, callback) {
       return callback(null, response);
     })
     .catch(function(error) {
-      console.log(chalkError("NNT | DROPBOX getFileMetadata ERROR: " + fullPath + "\n" + error));
-      console.log(chalkError("NNT | !!! DROPBOX READ " + fullPath + " ERROR"));
-      console.log(chalkError("NNT | " + jsonPrint(error.error)));
+      console.log(chalkError("WA | DROPBOX getFileMetadata ERROR: " + fullPath + "\n" + error));
+      console.log(chalkError("WA | !!! DROPBOX READ " + fullPath + " ERROR"));
+      console.log(chalkError("WA | " + jsonPrint(error.error)));
 
       if ((error.status === 404) || (error.status === 409)) {
-        console.error(chalkError("NNT | !!! DROPBOX READ FILE " + fullPath + " NOT FOUND"
+        console.error(chalkError("WA | !!! DROPBOX READ FILE " + fullPath + " NOT FOUND"
           + " ... SKIPPING ...")
         );
         return callback(null, null);
       }
       if (error.status === 0) {
-        console.error(chalkError("NNT | !!! DROPBOX NO RESPONSE"
+        console.error(chalkError("WA | !!! DROPBOX NO RESPONSE"
           + " ... NO INTERNET CONNECTION? ... SKIPPING ..."));
         return callback(null, null);
       }
@@ -1575,7 +1577,10 @@ function loadFile(path, file, callback) {
   }
 }
 
-function loadConfigFile(folder, file, callback) {
+function loadConfigFile(params, callback) {
+
+  const file = params.file;
+  const folder = params.folder;
 
   if (file === dropboxConfigDefaultFile) {
     prevConfigFileModifiedMoment = moment(prevDefaultConfigFileModifiedMoment);
@@ -1586,7 +1591,7 @@ function loadConfigFile(folder, file, callback) {
 
   if (configuration.offlineMode) {
     loadCommandLineArgs(function(err, commandLineConfig){
-      return callback(null, null);
+      return callback(null);
     });
   }
   else {
@@ -1596,7 +1601,7 @@ function loadConfigFile(folder, file, callback) {
     getFileMetadata(folder, file, function(err, response){
 
       if (err) {
-        return callback(err, null);
+        return callback(err);
       }
 
       const fileModifiedMoment = moment(new Date(response.client_modified));
@@ -1608,7 +1613,7 @@ function loadConfigFile(folder, file, callback) {
           + " | PREV: " + prevConfigFileModifiedMoment.format(compactDateTimeFormat)
           + " | " + fileModifiedMoment.format(compactDateTimeFormat)
         ));
-        callback(null, null);
+        callback(null);
       }
       else {
         console.log(chalkAlert("WA | +++ CONFIG FILE AFTER ... LOADING"
@@ -1632,324 +1637,142 @@ function loadConfigFile(folder, file, callback) {
             console.error(chalkError("WA | ERROR LOAD DROPBOX CONFIG: " + file
               + "\n" + jsonPrint(err)
             ));
-            callback(err, false);
+            callback(err);
           }
           else if ((loadedConfigObj === undefined) || !loadedConfigObj) {
             console.log(chalkError("WA | DROPBOX CONFIG LOAD FILE ERROR | JSON UNDEFINED ??? "));
-            callback("JSON UNDEFINED", null);
+            callback("JSON UNDEFINED");
           }
 
           else {
 
             console.log(chalkInfo("WA | LOADED CONFIG FILE: " + file + "\n" + jsonPrint(loadedConfigObj)));
 
-            let newConfiguration = {};
-            newConfiguration.evolve = {};
-
             if (loadedConfigObj.HEAPDUMP_ENABLED !== undefined){
               console.log("WA | LOADED HEAPDUMP_ENABLED: " + loadedConfigObj.HEAPDUMP_ENABLED);
-              newConfiguration.heapDumpEnabled = loadedConfigObj.HEAPDUMP_ENABLED;
+              configuration.heapDumpEnabled = loadedConfigObj.HEAPDUMP_ENABLED;
             }
 
             if (loadedConfigObj.HEAPDUMP_MODULO !== undefined){
               console.log("WA | LOADED HEAPDUMP_MODULO: " + loadedConfigObj.HEAPDUMP_MODULO);
-              newConfiguration.heapDumpModulo = loadedConfigObj.HEAPDUMP_MODULO;
+              configuration.heapDumpModulo = loadedConfigObj.HEAPDUMP_MODULO;
             }
 
             if (loadedConfigObj.HEAPDUMP_THRESHOLD !== undefined){
               console.log("WA | LOADED HEAPDUMP_THRESHOLD: " + loadedConfigObj.HEAPDUMP_THRESHOLD);
-              newConfiguration.heapDumpThreshold = loadedConfigObj.HEAPDUMP_THRESHOLD;
+              configuration.heapDumpThreshold = loadedConfigObj.HEAPDUMP_THRESHOLD;
             }
 
             if (loadedConfigObj.NODE_CACHE_CHECK_PERIOD !== undefined){
               console.log("WA | LOADED NODE_CACHE_CHECK_PERIOD: " + loadedConfigObj.NODE_CACHE_CHECK_PERIOD);
-              newConfiguration.nodeCacheCheckPeriod = loadedConfigObj.NODE_CACHE_CHECK_PERIOD;
+              configuration.nodeCacheCheckPeriod = loadedConfigObj.NODE_CACHE_CHECK_PERIOD;
             }
 
             if (loadedConfigObj.NODE_CACHE_DEFAULT_TTL !== undefined){
               console.log("WA | LOADED NODE_CACHE_DEFAULT_TTL: " + loadedConfigObj.NODE_CACHE_DEFAULT_TTL);
-              newConfiguration.nodeCacheTtl = loadedConfigObj.NODE_CACHE_DEFAULT_TTL;
+              configuration.nodeCacheTtl = loadedConfigObj.NODE_CACHE_DEFAULT_TTL;
             }
 
             if (loadedConfigObj.SOCKET_IDLE_TIMEOUT !== undefined){
               console.log("WA | LOADED SOCKET_IDLE_TIMEOUT: " + loadedConfigObj.SOCKET_IDLE_TIMEOUT);
-              newConfiguration.socketIdleTimeout = loadedConfigObj.SOCKET_IDLE_TIMEOUT;
+              configuration.socketIdleTimeout = loadedConfigObj.SOCKET_IDLE_TIMEOUT;
             }
 
             if (loadedConfigObj.TOPTERMS_CACHE_CHECK_PERIOD !== undefined){
               console.log("WA | LOADED TOPTERMS_CACHE_CHECK_PERIOD: " + loadedConfigObj.TOPTERMS_CACHE_CHECK_PERIOD);
-              newConfiguration.topTermsCacheCheckPeriod = loadedConfigObj.TOPTERMS_CACHE_CHECK_PERIOD;
+              configuration.topTermsCacheCheckPeriod = loadedConfigObj.TOPTERMS_CACHE_CHECK_PERIOD;
             }
 
             if (loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL !== undefined){
               console.log("WA | LOADED TOPTERMS_CACHE_DEFAULT_TTL: " + loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL);
-              newConfiguration.topTermsCacheTtl = loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL;
+              configuration.topTermsCacheTtl = loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL;
             }
 
             if (loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD !== undefined){
               console.log("WA | LOADED TRENDING_CACHE_CHECK_PERIOD: " + loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD);
-              newConfiguration.trendingCacheCheckPeriod = loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD;
+              configuration.trendingCacheCheckPeriod = loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD;
             }
 
             if (loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL !== undefined){
               console.log("WA | LOADED TRENDING_CACHE_DEFAULT_TTL: " + loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL);
-              newConfiguration.trendingCacheTtl = loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL;
+              configuration.trendingCacheTtl = loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL;
             }
 
             if (loadedConfigObj.WA_MIN_FOLLOWERS !== undefined){
               console.log("WA | LOADED WA_MIN_FOLLOWERS: " + loadedConfigObj.WA_MIN_FOLLOWERS);
-              newConfiguration.minFollowers = loadedConfigObj.WA_MIN_FOLLOWERS;
+              configuration.minFollowers = loadedConfigObj.WA_MIN_FOLLOWERS;
             }
 
             if (loadedConfigObj.MIN_FOLLOWERS_AUTO !== undefined){
               console.log("WA | LOADED MIN_FOLLOWERS_AUTO: " + loadedConfigObj.MIN_FOLLOWERS_AUTO);
-              newConfiguration.minFollowersAuto = loadedConfigObj.MIN_FOLLOWERS_AUTO;
+              configuration.minFollowersAuto = loadedConfigObj.MIN_FOLLOWERS_AUTO;
             }
 
             if (loadedConfigObj.WAS_ENABLE_STDIN !== undefined){
               console.log("WA | LOADED WAS_ENABLE_STDIN: " + loadedConfigObj.WAS_ENABLE_STDIN);
-              newConfiguration.enableStdin = loadedConfigObj.WAS_ENABLE_STDIN;
+              configuration.enableStdin = loadedConfigObj.WAS_ENABLE_STDIN;
             }
 
             if (loadedConfigObj.WAS_PROCESS_NAME !== undefined){
               console.log("WA | LOADED WAS_PROCESS_NAME: " + loadedConfigObj.WAS_PROCESS_NAME);
-              newConfiguration.processName = loadedConfigObj.WAS_PROCESS_NAME;
+              configuration.processName = loadedConfigObj.WAS_PROCESS_NAME;
             }
 
             if (loadedConfigObj.WAS_STATS_UPDATE_INTERVAL !== undefined){
               console.log("WA | LOADED WAS_STATS_UPDATE_INTERVAL: " + loadedConfigObj.WAS_STATS_UPDATE_INTERVAL);
-              newConfiguration.statsUpdateIntervalTime = loadedConfigObj.WAS_STATS_UPDATE_INTERVAL;
+              configuration.statsUpdateIntervalTime = loadedConfigObj.WAS_STATS_UPDATE_INTERVAL;
             }
 
             if (loadedConfigObj.WAS_TWITTER_DEFAULT_USER !== undefined){
               console.log("WA | LOADED WAS_TWITTER_DEFAULT_USER: " + loadedConfigObj.WAS_TWITTER_DEFAULT_USER);
-              newConfiguration.twitterDefaultUser = loadedConfigObj.WAS_TWITTER_DEFAULT_USER;
+              configuration.twitterDefaultUser = loadedConfigObj.WAS_TWITTER_DEFAULT_USER;
             }
 
             if (loadedConfigObj.WAS_TWITTER_USERS !== undefined){
               console.log("WA | LOADED WAS_TWITTER_USERS: " + loadedConfigObj.WAS_TWITTER_USERS);
-              newConfiguration.twitterUsers = loadedConfigObj.WAS_TWITTER_USERS;
+              configuration.twitterUsers = loadedConfigObj.WAS_TWITTER_USERS;
             }
 
             if (loadedConfigObj.WAS_KEEPALIVE_INTERVAL !== undefined){
               console.log("WA | LOADED WAS_KEEPALIVE_INTERVAL: " + loadedConfigObj.WAS_KEEPALIVE_INTERVAL);
-              newConfiguration.keepaliveInterval = loadedConfigObj.WAS_KEEPALIVE_INTERVAL;
-            }
-
-            if (loadedConfigObj.VERBOSE  !== undefined){
-              console.log("WA | LOADED VERBOSE: " + loadedConfigObj.VERBOSE);
-
-              if ((loadedConfigObj.VERBOSE === false) || (loadedConfigObj.VERBOSE === "false")) {
-                newConfiguration.verbose = false;
-              }
-              else if ((loadedConfigObj.VERBOSE === true) || (loadedConfigObj.VERBOSE === "true")) {
-                newConfiguration.verbose = true;
-              }
-              else {
-                newConfiguration.verbose = false;
-              }
-            }
-
-            if (loadedConfigObj.DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE !== undefined){
-              console.log("WA | LOADED DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE: " + loadedConfigObj.DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE);
-              newConfiguration.defaultTwitterAutoFollowConfigFile = loadedConfigObj.DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE;
-            }
-
-            if (loadedConfigObj.DEFAULT_TWITTER_CONFIG_FILE !== undefined){
-              console.log("WA | LOADED DEFAULT_TWITTER_CONFIG_FILE: " + loadedConfigObj.DEFAULT_TWITTER_CONFIG_FILE);
-              newConfiguration.defaultTwitterConfigFile = loadedConfigObj.DEFAULT_TWITTER_CONFIG_FILE;
-            }
-
-            if (loadedConfigObj.DEFAULT_CURSOR_BATCH_SIZE !== undefined){
-              console.log("WA | LOADED DEFAULT_CURSOR_BATCH_SIZE: " + loadedConfigObj.DEFAULT_CURSOR_BATCH_SIZE);
-              newConfiguration.cursorBatchSize = loadedConfigObj.DEFAULT_CURSOR_BATCH_SIZE;
-            }
-
-
-            if (loadedConfigObj.WA_QUIT_ON_COMPLETE !== undefined) {
-              console.log("WA | LOADED WA_QUIT_ON_COMPLETE: " + loadedConfigObj.WA_QUIT_ON_COMPLETE);
-              if (!loadedConfigObj.WA_QUIT_ON_COMPLETE || (loadedConfigObj.WA_QUIT_ON_COMPLETE === "false")) {
-                newConfiguration.quitOnComplete = false ;
-              }
-              else {
-                newConfiguration.quitOnComplete = true ;
-              }
-            }
-
-            if (loadedConfigObj.WA_CREATE_TRAINING_SET  !== undefined){
-              console.log("WA | CREATE TRAINING SET");
-
-              if (!loadedConfigObj.WA_CREATE_TRAINING_SET || (loadedConfigObj.WA_CREATE_TRAINING_SET === "false")) {
-                newConfiguration.createTrainingSet = false;
-              }
-              else {
-                newConfiguration.createTrainingSet = true;
-              }
-            }
-
-            if (loadedConfigObj.WA_CREATE_TRAINING_SET_ONLY  !== undefined){
-              console.log("WA | CREATE TRAINING SET ONLY");
-
-              if (!loadedConfigObj.WA_CREATE_TRAINING_SET_ONLY || (loadedConfigObj.WA_CREATE_TRAINING_SET_ONLY === "false")) {
-                newConfiguration.createTrainingSetOnly = false;
-              }
-              else {
-                newConfiguration.createTrainingSet = true;
-                newConfiguration.createTrainingSetOnly = true;
-              }
-            }
-
-            if (loadedConfigObj.WA_LOAD_TRAINING_SET_FROM_FILE  !== undefined){
-              console.log("WA | LOADED WA_LOAD_TRAINING_SET_FROM_FILE: " + loadedConfigObj.WA_LOAD_TRAINING_SET_FROM_FILE);
-
-              if (!loadedConfigObj.WA_LOAD_TRAINING_SET_FROM_FILE || (loadedConfigObj.WA_LOAD_TRAINING_SET_FROM_FILE === "false")) {
-                newConfiguration.loadTrainingSetFromFile = false;
-              }
-              else if (!newConfiguration.createTrainingSet && !newConfiguration.createTrainingSetOnly) {
-                newConfiguration.loadTrainingSetFromFile = true;
-              }
-            }
-
-            if (loadedConfigObj.WA_USE_LOCAL_TRAINING_SETS  !== undefined){
-              console.log("WA | LOADED WA_USE_LOCAL_TRAINING_SETS: " + loadedConfigObj.WA_USE_LOCAL_TRAINING_SETS);
-
-              if (!loadedConfigObj.WA_USE_LOCAL_TRAINING_SETS || (loadedConfigObj.WA_USE_LOCAL_TRAINING_SETS === "false")) {
-                newConfiguration.useLocalTrainingSets = false;
-              }
-              else {
-                newConfiguration.useLocalTrainingSets = true;
-              }
-            }
-
-            if (loadedConfigObj.WA_LOAD_ALL_INPUTS !== undefined){
-              console.log("WA | LOADED WA_LOAD_ALL_INPUTS: " + loadedConfigObj.WA_LOAD_ALL_INPUTS);
-
-              if ((loadedConfigObj.WA_LOAD_ALL_INPUTS === true) || (loadedConfigObj.WA_LOAD_ALL_INPUTS === "true")) {
-                newConfiguration.loadAllInputs = true;
-              }
-              else {
-                newConfiguration.loadAllInputs = false;
-              }
-            }
-
-            if (loadedConfigObj.WA_DELETE_NOT_IN_INPUTS_ID_ARRAY !== undefined){
-              console.log("WA | LOADED WA_DELETE_NOT_IN_INPUTS_ID_ARRAY: " + loadedConfigObj.WA_DELETE_NOT_IN_INPUTS_ID_ARRAY);
-
-              if ((loadedConfigObj.WA_DELETE_NOT_IN_INPUTS_ID_ARRAY === true) || (loadedConfigObj.WA_DELETE_NOT_IN_INPUTS_ID_ARRAY === "true")) {
-                newConfiguration.deleteNotInInputsIdArray = true;
-              }
-              else {
-                newConfiguration.deleteNotInInputsIdArray = false;
-              }
-
-            }
-
-            if (loadedConfigObj.WA_INPUTS_IDS !== undefined){
-              console.log("WA | LOADED WA_INPUTS_IDS: " + loadedConfigObj.WA_INPUTS_IDS);
-              newConfiguration.inputsIdArray = loadedConfigObj.WA_INPUTS_IDS;
-            }
-
-            if (loadedConfigObj.WA_INPUTS_ID !== undefined){
-              console.log("WA | LOADED WA_INPUTS_ID: " + loadedConfigObj.WA_INPUTS_ID);
-              newConfiguration.inputsId = loadedConfigObj.WA_INPUTS_ID;
-            }
-
-            if (loadedConfigObj.WA_SEED_NETWORK_PROBABILITY !== undefined){
-              console.log("WA | LOADED WA_SEED_NETWORK_PROBABILITY: " + loadedConfigObj.WA_SEED_NETWORK_PROBABILITY);
-              newConfiguration.seedNetworkProbability = loadedConfigObj.WA_SEED_NETWORK_PROBABILITY;
-            }
-
-            if (loadedConfigObj.WA_INIT_MAIN_INTERVAL !== undefined){
-              console.log("WA | LOADED WA_INIT_MAIN_INTERVAL: " + loadedConfigObj.WA_INIT_MAIN_INTERVAL);
-              newConfiguration.initMainIntervalTime = loadedConfigObj.WA_INIT_MAIN_INTERVAL;
-            }
-
-            if (loadedConfigObj.WA_MAX_NEURAL_NETWORK_CHILDREN !== undefined){
-              console.log("WA | LOADED WA_MAX_NEURAL_NETWORK_CHILDREN: " + loadedConfigObj.WA_MAX_NEURAL_NETWORK_CHILDREN);
-              newConfiguration.maxNeuralNetworkChildern = loadedConfigObj.WA_MAX_NEURAL_NETWORK_CHILDREN;
-            }
-
-            if (loadedConfigObj.WA_SEED_RANDOMIZE_OPTIONS !== undefined){
-              console.log("WA | LOADED WA_SEED_RANDOMIZE_OPTIONS: " + loadedConfigObj.WA_SEED_RANDOMIZE_OPTIONS);
-              newConfiguration.randomizeSeedOptions = loadedConfigObj.WA_SEED_RANDOMIZE_OPTIONS;
-            }
-
-            if (loadedConfigObj.WA_EVOLVE_COST_ARRAY !== undefined){
-              console.log("WA | LOADED WA_EVOLVE_COST_ARRAY: " + loadedConfigObj.WA_EVOLVE_COST_ARRAY);
-              newConfiguration.costArray = loadedConfigObj.WA_EVOLVE_COST_ARRAY;
-            }
-
-            if (loadedConfigObj.WA_GLOBAL_MIN_SUCCESS_RATE !== undefined){
-              console.log("WA | LOADED WA_GLOBAL_MIN_SUCCESS_RATE: " + loadedConfigObj.WA_GLOBAL_MIN_SUCCESS_RATE);
-              newConfiguration.globalMinSuccessRate = loadedConfigObj.WA_GLOBAL_MIN_SUCCESS_RATE;
-            }
-
-            if (loadedConfigObj.WA_LOCAL_MIN_SUCCESS_RATE !== undefined){
-              console.log("WA | LOADED WA_LOCAL_MIN_SUCCESS_RATE: " + loadedConfigObj.WA_LOCAL_MIN_SUCCESS_RATE);
-              newConfiguration.localMinSuccessRate = loadedConfigObj.WA_LOCAL_MIN_SUCCESS_RATE;
-            }
-
-            if (loadedConfigObj.WA_LOCAL_PURGE_MIN_SUCCESS_RATE !== undefined){
-              console.log("WA | LOADED WA_LOCAL_PURGE_MIN_SUCCESS_RATE: " + loadedConfigObj.WA_LOCAL_PURGE_MIN_SUCCESS_RATE);
-              newConfiguration.localPurgeMinSuccessRate = loadedConfigObj.WA_LOCAL_PURGE_MIN_SUCCESS_RATE;
-            }
-
-            if (loadedConfigObj.WA_EVOLVE_THREADS !== undefined){
-              console.log("WA | LOADED WA_EVOLVE_THREADS: " + loadedConfigObj.WA_EVOLVE_THREADS);
-              newConfiguration.evolve.threads = loadedConfigObj.WA_EVOLVE_THREADS;
-            }
-
-            if (loadedConfigObj.WA_SEED_NETWORK_ID  !== undefined){
-              console.log("WA | LOADED WA_SEED_NETWORK_ID: " + loadedConfigObj.WA_SEED_NETWORK_ID);
-              newConfiguration.evolve.networkId = loadedConfigObj.WA_SEED_NETWORK_ID;
-            }
-
-            if (loadedConfigObj.WA_TRAIN_BEST_NETWORK  !== undefined){
-              console.log("WA | LOADED WA_TRAIN_BEST_NETWORK: " + loadedConfigObj.WA_TRAIN_BEST_NETWORK);
-              newConfiguration.train.useBestNetwork = loadedConfigObj.WA_TRAIN_BEST_NETWORK;
-            }
-
-            if (loadedConfigObj.WA_EVOLVE_BEST_NETWORK  !== undefined){
-              console.log("WA | LOADED WA_EVOLVE_BEST_NETWORK: " + loadedConfigObj.WA_EVOLVE_BEST_NETWORK);
-              newConfiguration.evolve.useBestNetwork = loadedConfigObj.WA_EVOLVE_BEST_NETWORK;
-            }
-
-            if (loadedConfigObj.WA_EVOLVE_ITERATIONS  !== undefined){
-              console.log("WA | LOADED WA_EVOLVE_ITERATIONS: " + loadedConfigObj.WA_EVOLVE_ITERATIONS);
-              newConfiguration.evolve.iterations = loadedConfigObj.WA_EVOLVE_ITERATIONS;
-            }
-
-            if (loadedConfigObj.WA_TRAIN_ITERATIONS  !== undefined){
-              console.log("WA | LOADED WA_TRAIN_ITERATIONS: " + loadedConfigObj.WA_TRAIN_ITERATIONS);
-              newConfiguration.train.iterations = loadedConfigObj.WA_TRAIN_ITERATIONS;
+              configuration.keepaliveInterval = loadedConfigObj.WAS_KEEPALIVE_INTERVAL;
             }
 
             if (loadedConfigObj.WA_VERBOSE_MODE  !== undefined){
               console.log("WA | LOADED WA_VERBOSE_MODE: " + loadedConfigObj.WA_VERBOSE_MODE);
-              newConfiguration.verbose = loadedConfigObj.WA_VERBOSE_MODE;
+
+              if ((loadedConfigObj.WA_VERBOSE_MODE === false) || (loadedConfigObj.WA_VERBOSE_MODE === "false")) {
+                configuration.verbose = false;
+              }
+              else if ((loadedConfigObj.WA_VERBOSE_MODE === true) || (loadedConfigObj.WA_VERBOSE_MODE === "true")) {
+                configuration.verbose = true;
+              }
+              else {
+                configuration.verbose = false;
+              }
             }
 
             if (loadedConfigObj.WA_TEST_MODE  !== undefined){
               console.log("WA | LOADED WA_TEST_MODE: " + loadedConfigObj.WA_TEST_MODE);
-              newConfiguration.testMode = loadedConfigObj.WA_TEST_MODE;
+              configuration.testMode = loadedConfigObj.WA_TEST_MODE;
             }
 
             if (loadedConfigObj.WA_ENABLE_STDIN  !== undefined){
               console.log("WA | LOADED WA_ENABLE_STDIN: " + loadedConfigObj.WA_ENABLE_STDIN);
-              newConfiguration.enableStdin = loadedConfigObj.WA_ENABLE_STDIN;
+              configuration.enableStdin = loadedConfigObj.WA_ENABLE_STDIN;
             }
 
             if (loadedConfigObj.WA_STATS_UPDATE_INTERVAL  !== undefined) {
               console.log("WA | LOADED WA_STATS_UPDATE_INTERVAL: " + loadedConfigObj.WA_STATS_UPDATE_INTERVAL);
-              newConfiguration.statsUpdateIntervalTime = loadedConfigObj.WA_STATS_UPDATE_INTERVAL;
+              configuration.statsUpdateIntervalTime = loadedConfigObj.WA_STATS_UPDATE_INTERVAL;
             }
 
             if (loadedConfigObj.WA_KEEPALIVE_INTERVAL  !== undefined) {
               console.log("WA | LOADED WA_KEEPALIVE_INTERVAL: " + loadedConfigObj.WA_KEEPALIVE_INTERVAL);
-              newConfiguration.keepaliveInterval = loadedConfigObj.WA_KEEPALIVE_INTERVAL;
+              configuration.keepaliveInterval = loadedConfigObj.WA_KEEPALIVE_INTERVAL;
             }
 
-            callback(null, newConfiguration);
+            callback(null);
 
           }
         });
@@ -6434,30 +6257,87 @@ function initCategoryHashmaps(callback){
   });
 }
 
-function initialize(cnf, callback) {
+// function initialize(cnf, callback) {
 
-  debug(chalkInfo(moment().format(compactDateTimeFormat) + " | INITIALIZE"));
+//   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | INITIALIZE"));
+
+//   killAll();
+
+//   let configArgs = Object.keys(cnf);
+
+//   configArgs.forEach(function finalConfigs(arg){
+//     debug("FINAL CONFIG | " + arg + ": " + cnf[arg]);
+//   });
+
+//   if (cnf.quitOnError) { 
+//     debug(chalkAlert("===== QUIT ON ERROR SET ====="));
+//   }
+
+//   io = require("socket.io")(httpServer, ioConfig);
+
+
+//   if (!statsObj.internetReady) { 
+//     initInternetCheckInterval(10000);
+//   }
+
+//   callback(null);
+// }
+
+function initialize(callback){
+
+  statsObj.status = "INITIALIZE";
 
   killAll();
 
-  let configArgs = Object.keys(cnf);
-
-  configArgs.forEach(function finalConfigs(arg){
-    debug("FINAL CONFIG | " + arg + ": " + cnf[arg]);
-  });
-
-  if (cnf.quitOnError) { 
-    debug(chalkAlert("===== QUIT ON ERROR SET ====="));
-  }
-
   io = require("socket.io")(httpServer, ioConfig);
 
+  debug(chalkBlue("INITIALIZE configuration\n" + jsonPrint(configuration)));
 
-  if (!statsObj.internetReady) { 
-    initInternetCheckInterval(10000);
+  if (debug.enabled || debugCache.enabled){
+    console.log("\nWA | %%%%%%%%%%%%%%\nWA |  DEBUG ENABLED \nWA | %%%%%%%%%%%%%%\n");
   }
 
-  callback(null);
+  configuration.processName = process.env.WA_PROCESS_NAME || "node_wordAssoServer";
+  configuration.verbose = process.env.WA_VERBOSE_MODE || false ;
+  configuration.quitOnError = process.env.WA_QUIT_ON_ERROR || false ;
+  configuration.enableStdin = process.env.WA_ENABLE_STDIN || true ;
+
+  const loadConfigFileParams = {
+    folder: dropboxConfigDefaultFolder,
+    file: dropboxConfigDefaultFile
+  };
+
+  loadConfigFile(loadConfigFileParams, function(err){
+
+    if (err) {
+      console.log(chalkError("*** LOAD CONFIGURATION FILE ERROR: " + err));
+      quit("LOAD CONFIGURATION FILE ERROR");
+      return callback(err);
+    }
+
+    loadCommandLineArgs(function(err, results){
+    
+      const configArgs = Object.keys(configuration);
+
+      configArgs.forEach(function(arg){
+        if (_.isObject(configuration[arg])) {
+          console.log("WA | _FINAL CONFIG | " + arg + ": " + jsonPrint(configuration[arg]));
+        }
+        else {
+          console.log("WA | _FINAL CONFIG | " + arg + ": " + configuration[arg]);
+        }
+      });
+      
+      statsObj.commandLineArgsLoaded = true;
+
+      if (!statsObj.internetReady) { 
+        initInternetCheckInterval(10000);
+      }
+
+      callback(err);
+    });
+
+  });
 }
 
 function initIgnoreWordsHashMap(callback) {
@@ -6567,7 +6447,6 @@ function initStatsInterval(interval){
   }, interval);
 }
 
-
 function initCategoryHashmapsInterval(interval){
 
   console.log(chalk.bold.black("INIT CATEGORY HASHMAP INTERVAL"
@@ -6606,8 +6485,7 @@ initStats(function setCacheObjKeys(){
   cacheObjKeys = Object.keys(statsObj.caches);
 });
 
-
-initialize(configuration, function initializeComplete(err) {
+initialize(function initializeComplete(err) {
   if (err) {
     console.log(chalkError("*** INITIALIZE ERROR ***\n" + jsonPrint(err)));
   } 

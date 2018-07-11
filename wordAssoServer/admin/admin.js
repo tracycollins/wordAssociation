@@ -649,6 +649,7 @@ socket.on("KEEPALIVE", function(serverObj) {
     sObj.timeStamp = serverObj.timeStamp;
     sObj.type = serverObj.type;
     sObj.user = serverObj.user;
+    sObj.status = serverObj.status;
 
     adminSocketHashMap.set(serverObj.socketId, sObj);
   }
@@ -658,6 +659,7 @@ socket.on("KEEPALIVE", function(serverObj) {
     sObj.timeStamp = serverObj.timeStamp;
     sObj.type = serverObj.type;
     sObj.user = serverObj.user;
+    sObj.status = serverObj.status;
 
     serverSocketHashMap.set(serverObj.socketId, sObj);
   }
@@ -668,6 +670,7 @@ socket.on("KEEPALIVE", function(serverObj) {
     sObj.timeStamp = serverObj.timeStamp;
     sObj.type = serverObj.type;
     sObj.user = serverObj.user;
+    sObj.status = serverObj.status;
 
     viewerSocketHashMap.set(serverObj.socketId, sObj);
   }

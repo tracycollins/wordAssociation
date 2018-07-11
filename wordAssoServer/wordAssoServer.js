@@ -373,8 +373,9 @@ let unfollowableUserSet = new Set();
 process.title = "node_wordAssoServer";
 console.log("\n\n============== START ==============\n\n");
 
-console.log("PROCESS PID:   " + process.pid);
-console.log("PROCESS TITLE: " + process.title);
+console.log(chalkAlert("PROCESS PID:   " + process.pid));
+console.log(chalkAlert("PROCESS TITLE: " + process.title));
+console.log(chalkAlert("ENVIRONMENT: " + process.env.NODE_ENV));
 
 // ==================================================================
 // GLOBAL VARIABLES
@@ -2441,7 +2442,10 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
       console.log(chalkError("KILL TWEET PARSER"));
 
       killChild({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, numKilled){
-        initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
+        // initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
+        initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, twp){
+          if (!err) { tweetParser = twp; }
+        });
       });
 
     break;
@@ -4067,6 +4071,7 @@ function initSocketHandler(socketObj) {
   });
 
   socket.on("tweet", function(tweet){
+    if (configuration.verbose) { console.log(chalkInfo("R< TWEET | " + tweet.id_str + " | @" + tweet.user.screen_name)); }
     if (statsObj.tweetParserReady) { socketRxTweet(tweet); }
   });
 
@@ -5771,7 +5776,8 @@ function initTweetParser(params, callback){
     maxInputHashMap: maxInputHashMap,
     normalization: normalization,
     interval: TWEET_PARSER_INTERVAL,
-    verbose: configuration.verbose
+    // verbose: configuration.verbose
+    verbose: false
   }, function tweetParserMessageRxError(err){
     if (err) {
       console.log(chalkError("*** TWEET PARSER SEND ERROR"
@@ -6196,7 +6202,8 @@ function initCategoryHashmaps(callback){
       p.skip = 0;
       p.batchSize = configuration.cursorBatchSize;
       p.limit = configuration.findCatUserLimit;
-      p.verbose = configuration.verbose;
+      // p.verbose = configuration.verbose;
+      p.verbose = false;
 
       let more = true;
       let totalCount = 0;
@@ -6534,7 +6541,9 @@ initialize(function initializeComplete(err) {
     statsObj.configuration = configuration;
 
     initKeySortInterval(configuration.keySortInterval);
-    initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
+    initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, twp){
+      if (!err) { tweetParser = twp; }
+    });
     initStatsInterval(STATS_UPDATE_INTERVAL);
     slackPostMessage(slackChannel, "\n*INIT* | " + hostname + "\n");
 

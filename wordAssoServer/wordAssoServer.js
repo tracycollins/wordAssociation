@@ -3433,12 +3433,13 @@ function initSocketHandler(socketObj) {
           + " | " + socket.id
         ));
 
+        sessionObj.status = keepAliveObj.status || "KEEPALIVE";
+
         if (!adminHashMap.has(socket.id)) { 
 
           sessionObj.ip = ipAddress;
           sessionObj.socketId = socket.id;
           sessionObj.type = currentSessionType;
-          sessionObj.status = "KEEPALIVE";
           sessionObj.timeStamp = moment().valueOf();
           sessionObj.user = keepAliveObj.user;
           sessionObj.isAdmin = true;
@@ -3487,6 +3488,7 @@ function initSocketHandler(socketObj) {
         sessionObj.type = currentSessionType;
         sessionObj.timeStamp = moment().valueOf();
         sessionObj.user = keepAliveObj.user;
+        sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
         tempServerObj = serverCache.get(socket.id);
 
@@ -3495,7 +3497,6 @@ function initSocketHandler(socketObj) {
           sessionObj.ip = ipAddress;
           sessionObj.socketId = socket.id;
           sessionObj.type = currentSessionType;
-          sessionObj.status = "KEEPALIVE";
           sessionObj.timeStamp = moment().valueOf();
           sessionObj.user = keepAliveObj.user;
           sessionObj.isAdmin = false;
@@ -3542,6 +3543,7 @@ function initSocketHandler(socketObj) {
         sessionObj.type = currentSessionType;
         sessionObj.timeStamp = moment().valueOf();
         sessionObj.user = keepAliveObj.user;
+        sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
         tempViewerObj = viewerCache.get(socket.id);
 

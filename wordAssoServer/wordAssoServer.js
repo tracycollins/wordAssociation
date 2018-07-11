@@ -4654,7 +4654,11 @@ function initTransmitNodeQueueInterval(interval){
                     if (startTwitUserShowRateLimitTimeoutDuration > 15*ONE_MINUTE) {
                       startTwitUserShowRateLimitTimeoutDuration = 15*ONE_MINUTE;
                     }
-                    console.log(chalkError("ERROR users/show rawUser: " + err));
+                    console.log(chalkError("ERROR users/show rawUser"
+                      + " | UID: " + node.nodeId
+                      + " | @" + node.screenName
+                      + " | ERROR: " + err
+                    ));
                     viewNameSpace.volatile.emit("node", n);
                   }
                   else if (rawUser && (rawUser.followers_count >= configuration.minFollowersAuto)) {

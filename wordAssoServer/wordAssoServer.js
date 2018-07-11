@@ -3446,6 +3446,7 @@ function initSocketHandler(socketObj) {
           sessionObj.isServer = false;
           sessionObj.isViewer = false;
           sessionObj.stats = {};
+          sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
           console.log(chalk.green("+++ ADD " + currentSessionType 
             + " | " + moment().format(compactDateTimeFormat)
@@ -3463,6 +3464,7 @@ function initSocketHandler(socketObj) {
 
           sessionObj.timeStamp = moment().valueOf();
           sessionObj.user = keepAliveObj.user;
+          sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
           adminHashMap.set(socket.id, sessionObj);
 
@@ -3488,7 +3490,6 @@ function initSocketHandler(socketObj) {
         sessionObj.type = currentSessionType;
         sessionObj.timeStamp = moment().valueOf();
         sessionObj.user = keepAliveObj.user;
-        sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
         tempServerObj = serverCache.get(socket.id);
 
@@ -3503,6 +3504,7 @@ function initSocketHandler(socketObj) {
           sessionObj.isServer = true;
           sessionObj.isViewer = false;
           sessionObj.stats = {};
+          sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
           console.log(chalk.green("+++ ADD " + currentSessionType + " SERVER" 
             + " | " + moment().format(compactDateTimeFormat)
@@ -3521,6 +3523,7 @@ function initSocketHandler(socketObj) {
 
           sessionObj.timeStamp = moment().valueOf();
           sessionObj.user = keepAliveObj.user;
+          sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
           serverCache.set(socket.id, sessionObj);
 
@@ -3543,7 +3546,6 @@ function initSocketHandler(socketObj) {
         sessionObj.type = currentSessionType;
         sessionObj.timeStamp = moment().valueOf();
         sessionObj.user = keepAliveObj.user;
-        sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
         tempViewerObj = viewerCache.get(socket.id);
 
@@ -3558,6 +3560,7 @@ function initSocketHandler(socketObj) {
           sessionObj.isServer = false;
           sessionObj.isViewer = true;
           sessionObj.stats = {};
+          sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
           console.log(chalk.green("+++ ADD " + currentSessionType + " SESSION" 
             + " | " + moment().format(compactDateTimeFormat)
@@ -3575,6 +3578,7 @@ function initSocketHandler(socketObj) {
 
           sessionObj.timeStamp = moment().valueOf();
           sessionObj.user = keepAliveObj.user;
+          sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
           viewerHashMap.set(socket.id, sessionObj);
 

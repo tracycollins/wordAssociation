@@ -1577,17 +1577,17 @@ function ViewTreepack() {
           return "unset"; 
         }
         return "none";
+      })
+      .style("font-size", function (d) {
+        if (metricMode === "rate") {
+          if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.rate); }
+          return nodeLabelSizeScale(d.rate);
+        }
+        if (metricMode === "mentions") { 
+          if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.mentions); }
+          return nodeLabelSizeScale(d.mentions);
+        }
       });
-      // .style("font-size", function (d) {
-      //   if (metricMode === "rate") {
-      //     if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.rate); }
-      //     return nodeLabelSizeScale(d.rate);
-      //   }
-      //   if (metricMode === "mentions") { 
-      //     if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.mentions); }
-      //     return nodeLabelSizeScale(d.mentions);
-      //   }
-      // });
 
     // ENTER
     nodeLabels 

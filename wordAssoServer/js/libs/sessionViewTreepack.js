@@ -1979,7 +1979,7 @@ function ViewTreepack() {
 
   function drawSimulation(callback){
 
-    async.parallel([
+    async.series([
       // function updateNodeMediaSeries (cb){ updateNodeMedia(cb); },
       function updateNodeCirclesSeries (cb){ updateNodeCircles(cb); },
       function updateNodeLabelsSeries (cb){ updateNodeLabels(cb); },
@@ -1987,7 +1987,7 @@ function ViewTreepack() {
     ], function drawSimulationCallback (err, results) {
 
       if (
-        ((metricMode === "rate") && newCurrentMaxRateMetricFlag && (Math.abs(currentMaxRateMetric - previousMaxRateMetric)/currentMaxRateMetric) > 0.05)
+        ((metricMode === "rate") && newCurrentMaxRateMetricFlag && (Math.abs(currentMaxRateMetric - previousMaxRateMetric)/currentMaxRateMetric) > 0.1)
         || ((metricMode === "mentions") && newCurrentMaxMentionsMetricFlag)
         ) {
 

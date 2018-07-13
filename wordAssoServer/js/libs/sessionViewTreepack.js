@@ -2,7 +2,7 @@
 
 function ViewTreepack() {
 
-  "use strict";
+  // "use strict";
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
@@ -391,7 +391,7 @@ function ViewTreepack() {
       }
       else { 
         // topTermsDiv.style("visibility", "visible"); 
-        topTermsDiv.style("display", ""); 
+        topTermsDiv.style("display", "unset"); 
         topTermsDivVisible = true;
       }
     });
@@ -408,7 +408,7 @@ function ViewTreepack() {
     }
     else { 
       // topTermsDiv.style("visibility", "visible"); 
-      topTermsDiv.style("display", ""); 
+      topTermsDiv.style("display", "unset"); 
       topTermsDivVisible = true;
     }
   };
@@ -419,7 +419,7 @@ function ViewTreepack() {
   document.addEventListener("mousemove", function mousemoveFunc() {
 
     // topTermsDiv.style("visibility", "visible");
-    topTermsDiv.style("display", "");
+    topTermsDiv.style("display", "unset");
     topTermsDivVisible = true;
 
     if (mouseHoverFlag) { d3.select("body").style("cursor", "pointer"); } 
@@ -650,7 +650,7 @@ function ViewTreepack() {
   self.toolTipVisibility = function(isVisible){
     // if (isVisible) { divTooltip.style("visibility", "visible"); }
     // else { divTooltip.style("visibility", "hidden"); }
-    if (isVisible) { divTooltip.style("display", ""); }
+    if (isVisible) { divTooltip.style("display", "unset"); }
     else { divTooltip.style("display", "none"); }
   };
 
@@ -1019,12 +1019,12 @@ function ViewTreepack() {
     d3.select(this).style("fill-opacity", 1);
     d3.select(this).style("stroke-opacity", 1);
     // d3.select(this).style("visibility", "visible");
-    d3.select(this).style("display", "");
+    d3.select(this).style("display", "unset");
     d3.select("#" + d.nodePoolId).style("fill-opacity", 1);
     d3.select("#" + d.nodePoolId).style("stroke-opacity", 1);
     d3.select("#" + d.nodePoolId + "_label").style("fill-opacity", 1);
     // d3.select("#" + d.nodePoolId + "_label").style("visibility", "visible");
-    d3.select("#" + d.nodePoolId + "_label").style("display", "");
+    d3.select("#" + d.nodePoolId + "_label").style("display", "unset");
 
     switch (d.nodeType) {
 
@@ -1040,7 +1040,7 @@ function ViewTreepack() {
 
         tooltipString = d.nodeId
           + "<br>Ms: " + d.mentions
-          + "<br>" + d.rate.toFixed(2) + " MPM"
+          + "<br>" + d.rate.toFixed(2) + " MPM";
       break;
 
       case "user":
@@ -1145,8 +1145,8 @@ function ViewTreepack() {
             
     d3.select("#" + d.nodePoolId + "_label").style("display", function(){
       if (!d.isValid) { return "none"; }
-      if (d.category) { return ""; }
-      if (d.rate > minRate) { return ""; }
+      if (d.category) { return "unset"; }
+      if (d.rate > minRate) { return "unset"; }
       if ((d.nodeType === "user") 
         && (
           (d.followersCount > minFollowers) 
@@ -1286,7 +1286,7 @@ function ViewTreepack() {
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
       // .style("visibility", null)
-      .style("display", null)
+      .style("display", "unset")
       .transition()
         .duration(transitionDuration)
         .attr("y", yposition);
@@ -1307,7 +1307,7 @@ function ViewTreepack() {
       })
       .style("font-family", "monospace")
       // .style("visibility", null)
-      .style("display", null)
+      .style("display", "unset")
       .style("fill-opacity", function updateTopTermOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
@@ -1355,7 +1355,7 @@ function ViewTreepack() {
       // })
       .style("display", function (d) { 
         if (!d.isValid) { return "none"; }
-        return null; 
+        return "unset"; 
       })
       .attr("width", function(d){ 
         if (metricMode === "rate") {return imageSizeScale(parseInt(d.rate + 1.0));}
@@ -1397,7 +1397,7 @@ function ViewTreepack() {
       // })
       .style("display", function (d) { 
         if (!d.isValid) { return "none"; }
-        return null; 
+        return "unset"; 
       })
       .style("opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); });
 
@@ -1434,7 +1434,7 @@ function ViewTreepack() {
       // })
       .style("display", function (d) { 
         if (!d.isValid) { return "none"; }
-        return null; 
+        return "unset"; 
       })
       .attr("r", 1e-6) 
       .attr("cx", function (d) { return d.x; })
@@ -1480,7 +1480,7 @@ function ViewTreepack() {
       // })
       .style("display", function (d) { 
         if (!d.isValid) { return "none"; }
-        return ""; 
+        return "unset"; 
       })
       .style("fill-opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
       .style("stroke-opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
@@ -1558,10 +1558,10 @@ function ViewTreepack() {
       .style("display", function (d) {
         if (!d.isValid) { return "none"; }
         if (d.nodeType === "media") { return "none"; }
-        if (d.mouseHoverFlag) { return ""; }
-        if (d.category) { return ""; }
-        if (d.categoryAuto) { return ""; }
-        if (d.rate > minRate) { return ""; }
+        if (d.mouseHoverFlag) { return "unset"; }
+        if (d.category) { return "unset"; }
+        if (d.categoryAuto) { return "unset"; }
+        if (d.rate > minRate) { return "unset"; }
         if ((d.nodeType === "user") 
           && (
             (d.followersCount > minFollowers) 
@@ -1570,11 +1570,11 @@ function ViewTreepack() {
             || (d.name && d.name.toLowerCase().includes("trump"))
             )
         ) { 
-          return null; 
+          return "unset"; 
         }
         if ((d.nodeType === "hashtag") && ((d.mentions > minMentions) || (d.text.toLowerCase().includes("trump"))))
         { 
-          return null; 
+          return "unset"; 
         }
         return "none";
       });
@@ -1609,10 +1609,10 @@ function ViewTreepack() {
       .style("display", function (d) {
         if (!d.isValid) { return "none"; }
         if (d.nodeType === "media") { return "hidden"; }
-        if (d.category) { return ""; }
-        if (d.categoryAuto) { return ""; }
-        if (mouseMovingFlag) { return ""; }
-        if (d.rate > minRate) { return ""; }
+        if (d.category) { return "unset"; }
+        if (d.categoryAuto) { return "unset"; }
+        if (mouseMovingFlag) { return "unset"; }
+        if (d.rate > minRate) { return "unset"; }
         if ((d.nodeType === "user") 
           && (
             (d.followersCount > minFollowers) 
@@ -1621,11 +1621,11 @@ function ViewTreepack() {
             || (d.name && d.name.toLowerCase().includes("trump"))
             )
         ) { 
-          return ""; 
+          return "unset"; 
         }
         if ((d.nodeType === "hashtag") && ((d.mentions > minMentions) || (d.text.toLowerCase().includes("trump"))))
         { 
-          return ""; 
+          return "unset"; 
         }
         return "none";
       })
@@ -1699,31 +1699,26 @@ function ViewTreepack() {
           x: randomIntFromInterval(xMinRatioLeft*width, xMaxRatioLeft*width), 
           y: randomIntFromInterval(yMinRatioLeft*height, yMaxRatioLeft*height)
         });
-      break;
       case "right":
         return({
           x: randomIntFromInterval(xMinRatioRight*width, xMaxRatioRight*width), 
           y: randomIntFromInterval(yMinRatioRight*height, yMaxRatioRight*height)
         });
-      break;
       case "positive":
         return({
           x: randomIntFromInterval(xMinRatioPositive*width, xMaxRatioPositive*width), 
           y: randomIntFromInterval(yMinRatioPositive*height, yMaxRatioPositive*height)
         });
-      break;
       case "negative":
         return({
           x: randomIntFromInterval(xMinRatioNegative*width, xMaxRatioNegative*width), 
           y: randomIntFromInterval(yMinRatioNegative*height, yMaxRatioNegative*height)
         });
-      break;
       case "neutral":
         return({
           x: randomIntFromInterval(xMinRatioNeutral*width, xMaxRatioNeutral*width), 
           y: randomIntFromInterval(yMinRatioNeutral*height, yMaxRatioNeutral*height)
         });
-      break;
       default:
         return({
           x: randomIntFromInterval(xMinRatioNeutral*width, xMaxRatioNeutral*width), 

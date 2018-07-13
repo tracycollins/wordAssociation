@@ -4658,15 +4658,12 @@ function initTransmitNodeQueueInterval(interval){
 
               if (twitAutoFollow && twitUserShowReady && followable){
 
-                unfollowableUserSet.add(n.nodeId);
-
                 twitAutoFollow.get("users/show", 
                   {user_id: n.nodeId, include_entities: true}, 
                   function usersShow (err, rawUser, response){
 
                   if (err) {
                     twitUserShowReady = false;
-                    unfollowableUserSet.delete(n.nodeId);
                     startTwitUserShowRateLimitTimeout();
                     startTwitUserShowRateLimitTimeoutDuration *= 1.5;
                     if (startTwitUserShowRateLimitTimeoutDuration > 15*ONE_MINUTE) {

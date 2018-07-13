@@ -391,7 +391,7 @@ function ViewTreepack() {
       }
       else { 
         // topTermsDiv.style("visibility", "visible"); 
-        topTermsDiv.style("display", null); 
+        topTermsDiv.style("display", ""); 
         topTermsDivVisible = true;
       }
     });
@@ -408,7 +408,7 @@ function ViewTreepack() {
     }
     else { 
       // topTermsDiv.style("visibility", "visible"); 
-      topTermsDiv.style("display", null); 
+      topTermsDiv.style("display", ""); 
       topTermsDivVisible = true;
     }
   };
@@ -419,7 +419,7 @@ function ViewTreepack() {
   document.addEventListener("mousemove", function mousemoveFunc() {
 
     // topTermsDiv.style("visibility", "visible");
-    topTermsDiv.style("display", null);
+    topTermsDiv.style("display", "");
     topTermsDivVisible = true;
 
     if (mouseHoverFlag) { d3.select("body").style("cursor", "pointer"); } 
@@ -650,7 +650,7 @@ function ViewTreepack() {
   self.toolTipVisibility = function(isVisible){
     // if (isVisible) { divTooltip.style("visibility", "visible"); }
     // else { divTooltip.style("visibility", "hidden"); }
-    if (isVisible) { divTooltip.style("display", null); }
+    if (isVisible) { divTooltip.style("display", ""); }
     else { divTooltip.style("display", "none"); }
   };
 
@@ -1019,12 +1019,12 @@ function ViewTreepack() {
     d3.select(this).style("fill-opacity", 1);
     d3.select(this).style("stroke-opacity", 1);
     // d3.select(this).style("visibility", "visible");
-    d3.select(this).style("display", null);
+    d3.select(this).style("display", "");
     d3.select("#" + d.nodePoolId).style("fill-opacity", 1);
     d3.select("#" + d.nodePoolId).style("stroke-opacity", 1);
     d3.select("#" + d.nodePoolId + "_label").style("fill-opacity", 1);
     // d3.select("#" + d.nodePoolId + "_label").style("visibility", "visible");
-    d3.select("#" + d.nodePoolId + "_label").style("display", null);
+    d3.select("#" + d.nodePoolId + "_label").style("display", "");
 
     switch (d.nodeType) {
 
@@ -1480,7 +1480,7 @@ function ViewTreepack() {
       // })
       .style("display", function (d) { 
         if (!d.isValid) { return "none"; }
-        return null; 
+        return ""; 
       })
       .style("fill-opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
       .style("stroke-opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
@@ -1558,10 +1558,10 @@ function ViewTreepack() {
       .style("display", function (d) {
         if (!d.isValid) { return "none"; }
         if (d.nodeType === "media") { return "none"; }
-        if (d.mouseHoverFlag) { return null; }
-        if (d.category) { return null; }
-        if (d.categoryAuto) { return null; }
-        if (d.rate > minRate) { return null; }
+        if (d.mouseHoverFlag) { return ""; }
+        if (d.category) { return ""; }
+        if (d.categoryAuto) { return ""; }
+        if (d.rate > minRate) { return ""; }
         if ((d.nodeType === "user") 
           && (
             (d.followersCount > minFollowers) 
@@ -1609,10 +1609,10 @@ function ViewTreepack() {
       .style("display", function (d) {
         if (!d.isValid) { return "none"; }
         if (d.nodeType === "media") { return "hidden"; }
-        if (d.category) { return null; }
-        if (d.categoryAuto) { return null; }
-        if (mouseMovingFlag) { return null; }
-        if (d.rate > minRate) { return null; }
+        if (d.category) { return ""; }
+        if (d.categoryAuto) { return ""; }
+        if (mouseMovingFlag) { return ""; }
+        if (d.rate > minRate) { return ""; }
         if ((d.nodeType === "user") 
           && (
             (d.followersCount > minFollowers) 
@@ -1621,11 +1621,11 @@ function ViewTreepack() {
             || (d.name && d.name.toLowerCase().includes("trump"))
             )
         ) { 
-          return null; 
+          return ""; 
         }
         if ((d.nodeType === "hashtag") && ((d.mentions > minMentions) || (d.text.toLowerCase().includes("trump"))))
         { 
-          return null; 
+          return ""; 
         }
         return "none";
       })

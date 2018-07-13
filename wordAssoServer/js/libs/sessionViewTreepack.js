@@ -1389,7 +1389,13 @@ function ViewTreepack() {
   var updateNodeCircles = function(callback) {
 
     nodeCircles = nodeSvgGroup.selectAll("circle")
-      .data(nodeArray.filter(function(d){ return d.nodeType !== "media"; }), function (d){ return d.nodeId; });
+      .data(nodeArray.filter(
+        function(d){ 
+          return d.isValid && (d.nodeType !== "media");
+        }), 
+        function (d){ 
+          return d.nodeId;
+        });
 
     // ENTER
     nodeCircles
@@ -1469,7 +1475,8 @@ function ViewTreepack() {
     // EXIT
     nodeCircles
       .exit()
-      .style("visibility", "hidden")
+      // .style("visibility", "hidden")
+      .style("display", "none")
       .attr("r", 1e-6);
 
     callback();

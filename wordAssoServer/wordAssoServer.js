@@ -4572,6 +4572,8 @@ function autoFollowUser(params, callback){
       return;
     }
 
+    unfollowableUserSet.add(params.user.nodeId);
+
     console.log(chalk.blue("+++ AUTO FOLLOW"
       + " | UID: " + params.user.userId
       + " | @" + params.user.screenName

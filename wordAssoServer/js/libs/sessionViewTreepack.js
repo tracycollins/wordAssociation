@@ -1391,6 +1391,7 @@ function ViewTreepack() {
     nodeCircles = nodeSvgGroup.selectAll("circle")
       .data(nodeArray.filter(function(d){ return d.nodeType !== "media"; }), function (d){ return d.nodeId; });
 
+    // ENTER
     nodeCircles
       .enter().append("circle")
       .attr("id", function (d) { return d.nodePoolId; })
@@ -1429,6 +1430,7 @@ function ViewTreepack() {
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick);
 
+    // UPDATE
     nodeCircles
       .attr("r", function(d) {
         if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
@@ -1442,30 +1444,32 @@ function ViewTreepack() {
       })
       .style("fill-opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
       .style("stroke-opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); });
-      // .style("fill", function (d) { 
-      //   if (!d.category && !d.categoryAuto) { return palette.black; }
-      //   return d.categoryColor; 
-      // })
-      // .style("stroke", function (d) {
-      //   if (d.categoryMismatch) { return palette.red; }
-      //   if (d.categoryMatch) { return categoryMatchColor; }
-      //   if (d.categoryAuto === "right") { return palette.yellow; }
-      //   if (d.categoryAuto === "left") { return palette.blue; }
-      //   if (d.categoryAuto === "positive") { return palette.green; }
-      //   if (d.categoryAuto ==="negative") { return palette.red; }
-      //   return palette.white; 
-      // })
-      // .style("stroke-width", function (d) { 
-      //   if (d.categoryMismatch) { return categoryMismatchStrokeWidth; }
-      //   if (d.categoryMatch) { return categoryMatchStrokeWidth; }
-      //   if (d.isTopTerm) { return topTermStrokeWidth; }
-      //   if (d.newFlag) { return newFlagStrokeWidth; }
-      //   if (d.categoryAuto) { return categoryAutoStrokeWidth; }
-      //   return defaultStrokeWidth; 
-      // });
+      .style("fill", function (d) { 
+        if (!d.category && !d.categoryAuto) { return palette.black; }
+        return d.categoryColor; 
+      })
+      .style("stroke", function (d) {
+        if (d.categoryMismatch) { return palette.red; }
+        if (d.categoryMatch) { return categoryMatchColor; }
+        if (d.categoryAuto === "right") { return palette.yellow; }
+        if (d.categoryAuto === "left") { return palette.blue; }
+        if (d.categoryAuto === "positive") { return palette.green; }
+        if (d.categoryAuto ==="negative") { return palette.red; }
+        return palette.white; 
+      })
+      .style("stroke-width", function (d) { 
+        if (d.categoryMismatch) { return categoryMismatchStrokeWidth; }
+        if (d.categoryMatch) { return categoryMatchStrokeWidth; }
+        if (d.isTopTerm) { return topTermStrokeWidth; }
+        if (d.newFlag) { return newFlagStrokeWidth; }
+        if (d.categoryAuto) { return categoryAutoStrokeWidth; }
+        return defaultStrokeWidth; 
+      });
 
+    // EXIT
     nodeCircles
       .exit()
+      .style("visibility", "hidden")
       .attr("r", 1e-6);
 
     callback();
@@ -1477,6 +1481,7 @@ function ViewTreepack() {
     nodeLabels = nodeLabelSvgGroup.selectAll("text")
       .data(nodeArray, function (d) { return d.nodeId; });
 
+    // UPDATE
     nodeLabels
       .text(labelText)
       .attr("x", function (d) { return d.x; })
@@ -1508,19 +1513,20 @@ function ViewTreepack() {
           return "visible"; 
         }
         return "hidden";
-      })
-      .style("font-size", function (d) {
-        if (metricMode === "rate") {
-          if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.rate); }
-          return nodeLabelSizeScale(d.rate);
-        }
-        if (metricMode === "mentions") { 
-          if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.mentions); }
-          return nodeLabelSizeScale(d.mentions);
-        }
       });
+      // .style("font-size", function (d) {
+      //   if (metricMode === "rate") {
+      //     if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.rate); }
+      //     return nodeLabelSizeScale(d.rate);
+      //   }
+      //   if (metricMode === "mentions") { 
+      //     if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.mentions); }
+      //     return nodeLabelSizeScale(d.mentions);
+      //   }
+      // });
 
-    nodeLabels
+    // ENTER
+    nodeLabels 
       .enter().append("text")
       .attr("id", function (d) { return d.nodePoolId + "_label"; })
       .attr("nodeId", function (d) { return d.nodeId; })
@@ -1588,6 +1594,7 @@ function ViewTreepack() {
         }
       });
 
+    // EXIT
     nodeLabels
       .exit()
       // .style("font-size", 1e-6)

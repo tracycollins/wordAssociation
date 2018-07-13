@@ -3875,8 +3875,11 @@ function initSocketHandler(socketObj) {
           }
           else {
             console.log(chalkTwitter("--- TWITTER_SEARCH_NODE USER *NOT* FOUND"
-              + " | SEARCH TYPE: " + nodeSearchType
-              + " | " + searchNodeUser
+              + "\nSEARCH TYPE: " + nodeSearchType
+              + "\nNODE ID: " + searchNodeUser.screenName
+              + "\nSCREEN NAME: " + searchNodeUser.screenName
+              + "\nLAST SEEN: " + searchNodeUser.lastSeen
+              + "\nCREATED: " + searchNodeUser.createdAt
               // + "\n" + jsonPrint(searchNodeUser)
             ));
 

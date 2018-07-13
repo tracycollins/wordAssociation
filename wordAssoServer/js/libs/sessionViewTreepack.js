@@ -1443,7 +1443,7 @@ function ViewTreepack() {
         return "visible"; 
       })
       .style("fill-opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
-      .style("stroke-opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); });
+      .style("stroke-opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
       .style("fill", function (d) { 
         if (!d.category && !d.categoryAuto) { return palette.black; }
         return d.categoryColor; 

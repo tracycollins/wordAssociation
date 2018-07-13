@@ -1979,7 +1979,7 @@ function ViewTreepack() {
 
   function drawSimulation(callback){
 
-    async.series([
+    async.parallel([
       // function updateNodeMediaSeries (cb){ updateNodeMedia(cb); },
       function updateNodeCirclesSeries (cb){ updateNodeCircles(cb); },
       function updateNodeLabelsSeries (cb){ updateNodeLabels(cb); },

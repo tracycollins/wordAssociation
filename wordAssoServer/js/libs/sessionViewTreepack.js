@@ -374,7 +374,8 @@ function ViewTreepack() {
   var divTooltip = d3.select("body").append("div")
     .attr("id", "divTooltip")
     .attr("class", "tooltip")
-    .style("visibility", "hidden");
+    // .style("visibility", "hidden");
+    .style("display", "none");
 
   var topTermsDiv = d3.select("#topTermsDiv");
 
@@ -384,25 +385,30 @@ function ViewTreepack() {
     .style("pointer-events", "auto")
     .on("change", function topTermsCheckBoxFunc(){
       if (topTermsCheckBox.property("checked") === false) { 
-        topTermsDiv.style("visibility", "hidden");
+        // topTermsDiv.style("visibility", "hidden");
+        topTermsDiv.style("display", "none");
         topTermsDivVisible = false;
       }
       else { 
-        topTermsDiv.style("visibility", "visible"); 
+        // topTermsDiv.style("visibility", "visible"); 
+        topTermsDiv.style("display", null); 
         topTermsDivVisible = true;
       }
     });
 
   var mouseMoveTimeoutEventHandler = function(e) {
 
-    d3.selectAll("iframe").style("visibility", "hidden");
+    // d3.selectAll("iframe").style("visibility", "hidden");
+    d3.selectAll("iframe").style("display", "none");
 
     if (topTermsCheckBox.property("checked") === false) { 
-      topTermsDiv.style("visibility", "hidden"); 
+      // topTermsDiv.style("visibility", "hidden"); 
+      topTermsDiv.style("display", "none"); 
       topTermsDivVisible = false;
     }
     else { 
-      topTermsDiv.style("visibility", "visible"); 
+      // topTermsDiv.style("visibility", "visible"); 
+      topTermsDiv.style("display", null); 
       topTermsDivVisible = true;
     }
   };
@@ -412,7 +418,8 @@ function ViewTreepack() {
 
   document.addEventListener("mousemove", function mousemoveFunc() {
 
-    topTermsDiv.style("visibility", "visible");
+    // topTermsDiv.style("visibility", "visible");
+    topTermsDiv.style("display", null);
     topTermsDivVisible = true;
 
     if (mouseHoverFlag) { d3.select("body").style("cursor", "pointer"); } 
@@ -641,8 +648,10 @@ function ViewTreepack() {
   };
 
   self.toolTipVisibility = function(isVisible){
-    if (isVisible) { divTooltip.style("visibility", "visible"); }
-    else { divTooltip.style("visibility", "hidden"); }
+    // if (isVisible) { divTooltip.style("visibility", "visible"); }
+    // else { divTooltip.style("visibility", "hidden"); }
+    if (isVisible) { divTooltip.style("display", null); }
+    else { divTooltip.style("display", "none"); }
   };
 
   self.deleteSessionLinks = function(){ console.debug("DELETE LINKS"); };
@@ -865,20 +874,23 @@ function ViewTreepack() {
     n.lastTweetId = false;
 
     tempNodeCirle = document.getElementById(n.nodePoolId);
-    tempNodeCirle.setAttribute("r", 1e-6);
-    tempNodeCirle.setAttribute("visibility", "hidden");
+    // tempNodeCirle.setAttribute("r", 1e-6);
+    tempNodeCirle.setAttribute("display", "none");
+    // tempNodeCirle.setAttribute("visibility", "hidden");
     // tempNodeCirle.setAttribute("opacity", 1e-6);
-    tempNodeCirle.setAttribute("fill-opacity", 1e-6);
-    tempNodeCirle.setAttribute("stroke-opacity", 1e-6);
+    // tempNodeCirle.setAttribute("fill-opacity", 1e-6);
+    // tempNodeCirle.setAttribute("stroke-opacity", 1e-6);
 
     tempNodeLabel = document.getElementById(n.nodePoolId + "_label");
-    tempNodeLabel.setAttribute("visibility", "hidden");
-    tempNodeLabel.setAttribute("fill-opacity", 1e-6);
+    tempNodeLabel.setAttribute("display", "none");
+    // tempNodeLabel.setAttribute("visibility", "hidden");
+    // tempNodeLabel.setAttribute("fill-opacity", 1e-6);
 
     tempNodeTopTermLabel = document.getElementById(n.nodePoolId + "_labelTopTerm");
     if (tempNodeTopTermLabel) {
       // tempNodeTopTermLabel.setAttribute("visibility", "hidden");
-      tempNodeTopTermLabel.setAttribute("fill-opacity", 1e-6);
+      // tempNodeTopTermLabel.setAttribute("fill-opacity", 1e-6);
+      tempNodeTopTermLabel.setAttribute("display", "none");
     }
     callback(n);
   }
@@ -1006,11 +1018,13 @@ function ViewTreepack() {
     // d3.select(this).style("opacity", 1);
     d3.select(this).style("fill-opacity", 1);
     d3.select(this).style("stroke-opacity", 1);
-    d3.select(this).style("visibility", "visible");
+    // d3.select(this).style("visibility", "visible");
+    d3.select(this).style("display", null);
     d3.select("#" + d.nodePoolId).style("fill-opacity", 1);
     d3.select("#" + d.nodePoolId).style("stroke-opacity", 1);
     d3.select("#" + d.nodePoolId + "_label").style("fill-opacity", 1);
-    d3.select("#" + d.nodePoolId + "_label").style("visibility", "visible");
+    // d3.select("#" + d.nodePoolId + "_label").style("visibility", "visible");
+    d3.select("#" + d.nodePoolId + "_label").style("display", null);
 
     switch (d.nodeType) {
 
@@ -1129,10 +1143,10 @@ function ViewTreepack() {
       return nodeLabelOpacityScale(d.ageMaxRatio);
     });
             
-    d3.select("#" + d.nodePoolId + "_label").style("visibility", function(){
-      if (!d.isValid) { return "hidden"; }
-      if (d.category) { return "visible"; }
-      if (d.rate > minRate) { return "visible"; }
+    d3.select("#" + d.nodePoolId + "_label").style("display", function(){
+      if (!d.isValid) { return "none"; }
+      if (d.category) { return ""; }
+      if (d.rate > minRate) { return ""; }
       if ((d.nodeType === "user") 
         && (
           (d.followersCount > minFollowers) 
@@ -1141,12 +1155,12 @@ function ViewTreepack() {
           || (d.name && d.name.toLowerCase().includes("trump"))
           )
       ) { 
-        return "visible"; 
+        return ""; 
       }
       if ((d.nodeType === "hashtag") && ((d.mentions > minMentions) || (d.text.toLowerCase().includes("trump")))){ 
-        return "visible"; 
+        return ""; 
       }
-      return "hidden";
+      return "none";
     });
   }
 
@@ -1250,7 +1264,8 @@ function ViewTreepack() {
 
     nodeTopTermLabels
       .exit()
-      .style("visibility", "hidden")
+      // .style("visibility", "hidden")
+      .style("display", "none")
       .style("fill-opacity", 1e-6);
       // .remove();
 
@@ -1270,7 +1285,8 @@ function ViewTreepack() {
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
-      .style("visibility", null)
+      // .style("visibility", null)
+      .style("display", null)
       .transition()
         .duration(transitionDuration)
         .attr("y", yposition);
@@ -1290,7 +1306,8 @@ function ViewTreepack() {
         return d.displaytext;
       })
       .style("font-family", "monospace")
-      .style("visibility", null)
+      // .style("visibility", null)
+      .style("display", null)
       .style("fill-opacity", function updateTopTermOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
@@ -1332,9 +1349,13 @@ function ViewTreepack() {
         if (metricMode === "rate") { return d.y - 0.5*(imageSizeScale(parseInt(d.rate) + 1.0)); }
         if (metricMode === "mentions") { return d.y - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); }
       })
-      .style("visibility", function (d) { 
-        if (!d.isValid) { return "hidden"; }
-        return "visible"; 
+      // .style("visibility", function (d) { 
+      //   if (!d.isValid) { return "hidden"; }
+      //   return "visible"; 
+      // })
+      .style("display", function (d) { 
+        if (!d.isValid) { return "none"; }
+        return null; 
       })
       .attr("width", function(d){ 
         if (metricMode === "rate") {return imageSizeScale(parseInt(d.rate + 1.0));}
@@ -1370,17 +1391,22 @@ function ViewTreepack() {
         if (metricMode === "rate") {return imageSizeScale(parseInt(d.rate + 1.0));}
         if (metricMode === "mentions") {return imageSizeScale(parseInt(d.mentions + 1.0));}
       })
-      .style("visibility", function (d) { 
-        if (!d.isValid) { return "hidden"; }
-        return "visible"; 
+      // .style("visibility", function (d) { 
+      //   if (!d.isValid) { return "hidden"; }
+      //   return "visible"; 
+      // })
+      .style("display", function (d) { 
+        if (!d.isValid) { return "none"; }
+        return null; 
       })
       .style("opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); });
 
     nodeMedia
       .exit()
-      .attr("r", 1e-6)
-      .attr("width", 1e-6)
-      .attr("height", 1e-6);
+      .style("display", "none");
+      // .attr("r", 1e-6)
+      // .attr("width", 1e-6)
+      // .attr("height", 1e-6);
 
     callback();
   };
@@ -1402,9 +1428,13 @@ function ViewTreepack() {
       .enter().append("circle")
       .attr("id", function (d) { return d.nodePoolId; })
       .attr("nodeId", function (d) { return d.nodeId; })
-      .style("visibility", function (d) { 
-        if (!d.isValid) { return "hidden"; }
-        return "visible"; 
+      // .style("visibility", function (d) { 
+      //   if (!d.isValid) { return "hidden"; }
+      //   return "visible"; 
+      // })
+      .style("display", function (d) { 
+        if (!d.isValid) { return "none"; }
+        return null; 
       })
       .attr("r", 1e-6) 
       .attr("cx", function (d) { return d.x; })
@@ -1444,9 +1474,13 @@ function ViewTreepack() {
       })
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
-      .style("visibility", function (d) { 
-        if (!d.isValid) { return "hidden"; }
-        return "visible"; 
+      // .style("visibility", function (d) { 
+      //   if (!d.isValid) { return "hidden"; }
+      //   return "visible"; 
+      // })
+      .style("display", function (d) { 
+        if (!d.isValid) { return "none"; }
+        return null; 
       })
       .style("fill-opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
       .style("stroke-opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
@@ -1498,13 +1532,36 @@ function ViewTreepack() {
         if (d.mouseHoverFlag) { return 1.0; }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
-      .style("visibility", function (d) {
-        if (!d.isValid) { return "hidden"; }
-        if (d.nodeType === "media") { return "hidden"; }
-        if (d.mouseHoverFlag) { return "visible"; }
-        if (d.category) { return "visible"; }
-        if (d.categoryAuto) { return "visible"; }
-        if (d.rate > minRate) { return "visible"; }
+      // .style("visibility", function (d) {
+      //   if (!d.isValid) { return "hidden"; }
+      //   if (d.nodeType === "media") { return "hidden"; }
+      //   if (d.mouseHoverFlag) { return "visible"; }
+      //   if (d.category) { return "visible"; }
+      //   if (d.categoryAuto) { return "visible"; }
+      //   if (d.rate > minRate) { return "visible"; }
+      //   if ((d.nodeType === "user") 
+      //     && (
+      //       (d.followersCount > minFollowers) 
+      //       || (d.mentions > minMentions) 
+      //       || (d.screenName.toLowerCase().includes("trump"))
+      //       || (d.name && d.name.toLowerCase().includes("trump"))
+      //       )
+      //   ) { 
+      //     return "visible"; 
+      //   }
+      //   if ((d.nodeType === "hashtag") && ((d.mentions > minMentions) || (d.text.toLowerCase().includes("trump"))))
+      //   { 
+      //     return "visible"; 
+      //   }
+      //   return "hidden";
+      // });
+      .style("display", function (d) {
+        if (!d.isValid) { return "none"; }
+        if (d.nodeType === "media") { return "none"; }
+        if (d.mouseHoverFlag) { return null; }
+        if (d.category) { return null; }
+        if (d.categoryAuto) { return null; }
+        if (d.rate > minRate) { return null; }
         if ((d.nodeType === "user") 
           && (
             (d.followersCount > minFollowers) 
@@ -1513,13 +1570,13 @@ function ViewTreepack() {
             || (d.name && d.name.toLowerCase().includes("trump"))
             )
         ) { 
-          return "visible"; 
+          return null; 
         }
         if ((d.nodeType === "hashtag") && ((d.mentions > minMentions) || (d.text.toLowerCase().includes("trump"))))
         { 
-          return "visible"; 
+          return null; 
         }
-        return "hidden";
+        return "none";
       });
       // .style("font-size", function (d) {
       //   if (metricMode === "rate") {
@@ -1549,13 +1606,13 @@ function ViewTreepack() {
         if (d.followersCount > minFollowers) { return "bold"; }
         return "normal";
       })
-      .style("visibility", function (d) {
-        if (!d.isValid) { return "hidden"; }
+      .style("display", function (d) {
+        if (!d.isValid) { return "none"; }
         if (d.nodeType === "media") { return "hidden"; }
-        if (d.category) { return "visible"; }
-        if (d.categoryAuto) { return "visible"; }
-        if (mouseMovingFlag) { return "visible"; }
-        if (d.rate > minRate) { return "visible"; }
+        if (d.category) { return null; }
+        if (d.categoryAuto) { return null; }
+        if (mouseMovingFlag) { return null; }
+        if (d.rate > minRate) { return null; }
         if ((d.nodeType === "user") 
           && (
             (d.followersCount > minFollowers) 
@@ -1564,14 +1621,37 @@ function ViewTreepack() {
             || (d.name && d.name.toLowerCase().includes("trump"))
             )
         ) { 
-          return "visible"; 
+          return null; 
         }
         if ((d.nodeType === "hashtag") && ((d.mentions > minMentions) || (d.text.toLowerCase().includes("trump"))))
         { 
-          return "visible"; 
+          return null; 
         }
-        return "hidden";
+        return "none";
       })
+      // .style("visibility", function (d) {
+      //   if (!d.isValid) { return "hidden"; }
+      //   if (d.nodeType === "media") { return "hidden"; }
+      //   if (d.category) { return "visible"; }
+      //   if (d.categoryAuto) { return "visible"; }
+      //   if (mouseMovingFlag) { return "visible"; }
+      //   if (d.rate > minRate) { return "visible"; }
+      //   if ((d.nodeType === "user") 
+      //     && (
+      //       (d.followersCount > minFollowers) 
+      //       || (d.mentions > minMentions) 
+      //       || (d.screenName.toLowerCase().includes("trump"))
+      //       || (d.name && d.name.toLowerCase().includes("trump"))
+      //       )
+      //   ) { 
+      //     return "visible"; 
+      //   }
+      //   if ((d.nodeType === "hashtag") && ((d.mentions > minMentions) || (d.text.toLowerCase().includes("trump"))))
+      //   { 
+      //     return "visible"; 
+      //   }
+      //   return "hidden";
+      // })
       .style("text-decoration", function (d) { 
         if (d.isTopTerm && (d.followersCount > minFollowers)) { return "overline underline"; }
         if (!d.isTopTerm && (d.followersCount > minFollowers)) { return "underline"; }
@@ -1605,7 +1685,8 @@ function ViewTreepack() {
     nodeLabels
       .exit()
       // .style("font-size", 1e-6)
-      .style("visibility", "hidden");
+      // .style("visibility", "hidden");
+      .style("display", "none");
       // .remove();
 
     if (callback !== undefined) { callback(); }
@@ -1871,7 +1952,8 @@ function ViewTreepack() {
         nodePoolIdcircle = document.getElementById(currentNode.nodePoolId);
         if (nodePoolIdcircle) {
           nodePoolIdcircle.setAttribute("r", 1e-6);
-          nodePoolIdcircle.setAttribute("visibility", "hidden");
+          // nodePoolIdcircle.setAttribute("visibility", "hidden");
+          nodePoolIdcircle.setAttribute("display", "none");
           // nodePoolIdcircle.setAttribute("opacity", 1e-6);
           nodePoolIdcircle.setAttribute("fill-opacity", 1e-6);
           nodePoolIdcircle.setAttribute("stroke-opacity", 1e-6);

@@ -3875,7 +3875,9 @@ function initSocketHandler(socketObj) {
           }
           else {
             console.log(chalkTwitter("--- TWITTER_SEARCH_NODE USER *NOT* FOUND"
-              + "\n" + jsonPrint(searchNodeUser)
+              + " | SEARCH TYPE: " + nodeSearchType
+              + " | " + searchNodeUser
+              // + "\n" + jsonPrint(searchNodeUser)
             ));
 
             if (nodeSearchType === "USER_UNCATEGORIZED") {
@@ -3973,7 +3975,7 @@ function initSocketHandler(socketObj) {
                     + " | previousUserUncategorizedId: " + previousUserUncategorizedId
                     + " | previousUserMismatchedId: " + previousUserMismatchedId
                     + " | searchNode: " + searchNode
-                    + "\nsearchNodeUser\n" + jsonPrint(searchNodeUser)
+                    // + "\nsearchNodeUser\n" + jsonPrint(searchNodeUser)
                   ));
 
                   socket.emit("TWITTER_SEARCH_NODE_FAIL", sn);

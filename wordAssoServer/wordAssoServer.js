@@ -3120,6 +3120,7 @@ function follow(params, callback) {
 }
 
 function initUnfollowableUserSet(){
+
   loadFile(dropboxConfigDefaultFolder, unfollowableUserFile, function(err, unfollowableUserSetArray){
     if (err) {
       if (err.code === "ENOTFOUND") {

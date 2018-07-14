@@ -8,6 +8,7 @@ function ViewTreepack() {
 
   var DEFAULT_ZOOM_FACTOR = 0.5;
   var emojiFontMulipier = 2.0;
+  var minRateMetricChange = 0.5;
 
   var topTermsDivVisible = false;
 
@@ -648,8 +649,6 @@ function ViewTreepack() {
   };
 
   self.toolTipVisibility = function(isVisible){
-    // if (isVisible) { divTooltip.style("visibility", "visible"); }
-    // else { divTooltip.style("visibility", "hidden"); }
     if (isVisible) { divTooltip.style("display", "unset"); }
     else { divTooltip.style("display", "none"); }
   };
@@ -874,22 +873,13 @@ function ViewTreepack() {
     n.lastTweetId = false;
 
     tempNodeCirle = document.getElementById(n.nodePoolId);
-    // tempNodeCirle.setAttribute("r", 1e-6);
     tempNodeCirle.setAttribute("display", "none");
-    // tempNodeCirle.setAttribute("visibility", "hidden");
-    // tempNodeCirle.setAttribute("opacity", 1e-6);
-    // tempNodeCirle.setAttribute("fill-opacity", 1e-6);
-    // tempNodeCirle.setAttribute("stroke-opacity", 1e-6);
 
     tempNodeLabel = document.getElementById(n.nodePoolId + "_label");
     tempNodeLabel.setAttribute("display", "none");
-    // tempNodeLabel.setAttribute("visibility", "hidden");
-    // tempNodeLabel.setAttribute("fill-opacity", 1e-6);
 
     tempNodeTopTermLabel = document.getElementById(n.nodePoolId + "_labelTopTerm");
     if (tempNodeTopTermLabel) {
-      // tempNodeTopTermLabel.setAttribute("visibility", "hidden");
-      // tempNodeTopTermLabel.setAttribute("fill-opacity", 1e-6);
       tempNodeTopTermLabel.setAttribute("display", "none");
     }
     callback(n);
@@ -947,7 +937,6 @@ function ViewTreepack() {
 
       ageMaxRatio = age/nodeMaxAge ;
 
-      // if ((!node.isDead && node.isValid) && (removeDeadNodesFlag && (age >= nodeMaxAge))) {
       if (removeDeadNodesFlag && (age >= nodeMaxAge)) {
 
         node.isDead = true;
@@ -965,7 +954,6 @@ function ViewTreepack() {
             // console.debug("NODE POOL SIZE: " + nodePool.size());     
           });
         }
-
       } 
       else {
         node.isValid = true;
@@ -974,17 +962,12 @@ function ViewTreepack() {
         node.age = Math.max(age, 1e-6);
         node.ageMaxRatio = Math.max(ageMaxRatio, 1e-6);
 
-        if (ageMaxRatio < NEW_NODE_AGE_RATIO) { node.newFlag = true; }
-        else { node.newFlag = false;   }
+        // node.newFlag = false; // 
 
         localNodeHashMap.set(nPoolId, node);
         nodeIdHashMap.set(node.nodeId, nPoolId);
 
         tempNodeArray.push(node);
-
-        // if (node.isTopTerm){ 
-        //   tempNodesTopTerm.push(node);
-        // }
       }
     });
 
@@ -994,7 +977,6 @@ function ViewTreepack() {
 
     rankArrayByValue(tempNodesTopTerm, metricMode, function rankArrayByValueFunc(){
       nodeArray = tempNodeArray;
-      // nodesTopTerm = tempNodesTopTerm;
       callback(null);
     });
   };
@@ -1015,15 +997,12 @@ function ViewTreepack() {
       self.toolTipVisibility(false);
     }
 
-    // d3.select(this).style("opacity", 1);
     d3.select(this).style("fill-opacity", 1);
     d3.select(this).style("stroke-opacity", 1);
-    // d3.select(this).style("visibility", "visible");
     d3.select(this).style("display", "unset");
     d3.select("#" + d.nodePoolId).style("fill-opacity", 1);
     d3.select("#" + d.nodePoolId).style("stroke-opacity", 1);
     d3.select("#" + d.nodePoolId + "_label").style("fill-opacity", 1);
-    // d3.select("#" + d.nodePoolId + "_label").style("visibility", "visible");
     d3.select("#" + d.nodePoolId + "_label").style("display", "unset");
 
     switch (d.nodeType) {
@@ -1118,10 +1097,6 @@ function ViewTreepack() {
     d.mouseHoverFlag = false;
 
     self.toolTipVisibility(false);
-
-    // d3.select(this).style("opacity", function(){
-    //   return nodeLabelOpacityScale(d.ageMaxRatio);
-    // });
 
     d3.select(this).style("fill-opacity", function(){
       return nodeLabelOpacityScale(d.ageMaxRatio);
@@ -1404,11 +1379,39 @@ function ViewTreepack() {
     nodeMedia
       .exit()
       .style("display", "none");
-      // .attr("r", 1e-6)
-      // .attr("width", 1e-6)
-      // .attr("height", 1e-6);
 
     callback();
+  };
+
+  var updateChangedCircleNodes = function(d){
+
+    if (d.newFlag && d.isValid) {
+
+      d.newFlag = false;
+
+      d3.select(this)
+        .style("display", "unset")
+        .style("fill", function (d) { 
+          if (!d.category && !d.categoryAuto) { return palette.black; }
+          return d.categoryColor; 
+        })
+        .style("stroke", function (d) {
+          if (d.categoryMismatch) { return palette.red; }
+          if (d.categoryMatch) { return categoryMatchColor; }
+          if (d.categoryAuto === "right") { return palette.yellow; }
+          if (d.categoryAuto === "left") { return palette.blue; }
+          if (d.categoryAuto === "positive") { return palette.green; }
+          if (d.categoryAuto ==="negative") { return palette.red; }
+          return palette.white; 
+        })
+        .style("stroke-width", function (d) { 
+          if (d.categoryMismatch) { return categoryMismatchStrokeWidth; }
+          if (d.categoryMatch) { return categoryMatchStrokeWidth; }
+          if (d.isTopTerm) { return topTermStrokeWidth; }
+          if (d.categoryAuto) { return categoryAutoStrokeWidth; }
+          return defaultStrokeWidth; 
+        });
+    }
   };
 
   var nodeCircles;
@@ -1428,10 +1431,6 @@ function ViewTreepack() {
       .enter().append("circle")
       .attr("id", function (d) { return d.nodePoolId; })
       .attr("nodeId", function (d) { return d.nodeId; })
-      // .style("visibility", function (d) { 
-      //   if (!d.isValid) { return "hidden"; }
-      //   return "visible"; 
-      // })
       .style("display", function (d) { 
         if (!d.isValid) { return "none"; }
         return "unset"; 
@@ -1456,7 +1455,6 @@ function ViewTreepack() {
         if (d.categoryMismatch) { return categoryMismatchStrokeWidth; }
         if (d.categoryMatch) { return categoryMatchStrokeWidth; }
         if (d.isTopTerm) { return topTermStrokeWidth; }
-        if (d.newFlag) { return newFlagStrokeWidth; }
         if (d.categoryAuto) { return categoryAutoStrokeWidth; }
         return defaultStrokeWidth; 
       })
@@ -1474,44 +1472,19 @@ function ViewTreepack() {
       })
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
-      // .style("visibility", function (d) { 
-      //   if (!d.isValid) { return "hidden"; }
-      //   return "visible"; 
-      // })
+      .style("fill-opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
+      .style("stroke-opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
       .style("display", function (d) { 
         if (!d.isValid) { return "none"; }
         return "unset"; 
       })
-      .style("fill-opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
-      .style("stroke-opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
-      .style("fill", function (d) { 
-        if (!d.category && !d.categoryAuto) { return palette.black; }
-        return d.categoryColor; 
-      })
-      .style("stroke", function (d) {
-        if (d.categoryMismatch) { return palette.red; }
-        if (d.categoryMatch) { return categoryMatchColor; }
-        if (d.categoryAuto === "right") { return palette.yellow; }
-        if (d.categoryAuto === "left") { return palette.blue; }
-        if (d.categoryAuto === "positive") { return palette.green; }
-        if (d.categoryAuto ==="negative") { return palette.red; }
-        return palette.white; 
-      })
-      .style("stroke-width", function (d) { 
-        if (d.categoryMismatch) { return categoryMismatchStrokeWidth; }
-        if (d.categoryMatch) { return categoryMatchStrokeWidth; }
-        if (d.isTopTerm) { return topTermStrokeWidth; }
-        if (d.newFlag) { return newFlagStrokeWidth; }
-        if (d.categoryAuto) { return categoryAutoStrokeWidth; }
-        return defaultStrokeWidth; 
-      });
+      .each(updateChangedCircleNodes);
 
     // EXIT
     nodeCircles
       .exit()
-      // .style("visibility", "hidden")
-      .style("display", "none")
-      .attr("r", 1e-6);
+      .style("display", "none");
+      // .attr("r", 1e-6);
 
     callback();
   };
@@ -1532,29 +1505,6 @@ function ViewTreepack() {
         if (d.mouseHoverFlag) { return 1.0; }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
-      // .style("visibility", function (d) {
-      //   if (!d.isValid) { return "hidden"; }
-      //   if (d.nodeType === "media") { return "hidden"; }
-      //   if (d.mouseHoverFlag) { return "visible"; }
-      //   if (d.category) { return "visible"; }
-      //   if (d.categoryAuto) { return "visible"; }
-      //   if (d.rate > minRate) { return "visible"; }
-      //   if ((d.nodeType === "user") 
-      //     && (
-      //       (d.followersCount > minFollowers) 
-      //       || (d.mentions > minMentions) 
-      //       || (d.screenName.toLowerCase().includes("trump"))
-      //       || (d.name && d.name.toLowerCase().includes("trump"))
-      //       )
-      //   ) { 
-      //     return "visible"; 
-      //   }
-      //   if ((d.nodeType === "hashtag") && ((d.mentions > minMentions) || (d.text.toLowerCase().includes("trump"))))
-      //   { 
-      //     return "visible"; 
-      //   }
-      //   return "hidden";
-      // });
       .style("display", function (d) {
         if (!d.isValid) { return "none"; }
         if (d.nodeType === "media") { return "none"; }
@@ -1629,29 +1579,6 @@ function ViewTreepack() {
         }
         return "none";
       })
-      // .style("visibility", function (d) {
-      //   if (!d.isValid) { return "hidden"; }
-      //   if (d.nodeType === "media") { return "hidden"; }
-      //   if (d.category) { return "visible"; }
-      //   if (d.categoryAuto) { return "visible"; }
-      //   if (mouseMovingFlag) { return "visible"; }
-      //   if (d.rate > minRate) { return "visible"; }
-      //   if ((d.nodeType === "user") 
-      //     && (
-      //       (d.followersCount > minFollowers) 
-      //       || (d.mentions > minMentions) 
-      //       || (d.screenName.toLowerCase().includes("trump"))
-      //       || (d.name && d.name.toLowerCase().includes("trump"))
-      //       )
-      //   ) { 
-      //     return "visible"; 
-      //   }
-      //   if ((d.nodeType === "hashtag") && ((d.mentions > minMentions) || (d.text.toLowerCase().includes("trump"))))
-      //   { 
-      //     return "visible"; 
-      //   }
-      //   return "hidden";
-      // })
       .style("text-decoration", function (d) { 
         if (d.isTopTerm && (d.followersCount > minFollowers)) { return "overline underline"; }
         if (!d.isTopTerm && (d.followersCount > minFollowers)) { return "underline"; }
@@ -1667,7 +1594,6 @@ function ViewTreepack() {
         if (d.categoryMatch) { return categoryMatchStrokeWidth; }
         if (d.categoryMismatch) { return categoryMismatchStrokeWidth; }
         if (d.isTopTerm) { return topTermStrokeWidth; }
-        if (d.newFlag) { return newFlagStrokeWidth; }
         return defaultStrokeWidth; 
       })
       .style("font-size", function (d) {
@@ -1684,10 +1610,7 @@ function ViewTreepack() {
     // EXIT
     nodeLabels
       .exit()
-      // .style("font-size", 1e-6)
-      // .style("visibility", "hidden");
       .style("display", "none");
-      // .remove();
 
     if (callback !== undefined) { callback(); }
   };
@@ -1868,7 +1791,6 @@ function ViewTreepack() {
       else {
 
         currentNode = nodePool.use();
-        // console.debug("NODE POOL SIZE: " + nodePool.size());     
 
         nodeIdHashMap.set(newNode.nodeId, currentNode.nodePoolId);
 
@@ -1987,8 +1909,13 @@ function ViewTreepack() {
     ], function drawSimulationCallback (err, results) {
 
       if (
-        ((metricMode === "rate") && newCurrentMaxRateMetricFlag && (Math.abs(currentMaxRateMetric - previousMaxRateMetric)/currentMaxRateMetric) > 0.1)
-        || ((metricMode === "mentions") && newCurrentMaxMentionsMetricFlag)
+        ( 
+          (metricMode === "rate") 
+          && newCurrentMaxRateMetricFlag 
+          && (Math.abs(currentMaxRateMetric - previousMaxRateMetric)/currentMaxRateMetric) > minRateMetricChange)
+        || (
+          (metricMode === "mentions") 
+          && newCurrentMaxMentionsMetricFlag)
         ) {
 
         if (metricMode === "rate") { 

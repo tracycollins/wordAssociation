@@ -6450,6 +6450,10 @@ function initialize(callback){
   // });
 
   initConfigInterval(DEFAULT_CONFIG_INIT_INTERVAL);
+  
+  if (!statsObj.internetReady) { 
+    initInternetCheckInterval(10000);
+  }
 
   callback();
 }

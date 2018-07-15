@@ -754,24 +754,33 @@ wordAssoDb.connect(dbAppName, function(err, db) {
       + " | DB APP NAME: " + dbAppName
       + " | ERROR: " + err
     ));
-    configEvents.emit("DB_CONNECT_ERROR");
+    configEvents.emit("DB_ERROR", err);
     return;
   }
 
   db.on("error", function(err){
-    console.error.bind(console, "*** WA | MONGO DB CONNECTION ERROR ***\n");
-    console.log(chalkError("*** WA | MONGO DB CONNECTION ERROR"
+    console.log(chalkError("*** WA | MONGO DB ERROR"
       + " | DB APP NAME: " + dbAppName
       + " | ERROR: " + err
     ));
     dbConnectionReady = false;
     statsObj.dbConnectionReady = false;
-    configEvents.emit("DB_ERROR");
+    configEvents.emit("DB_ERROR", err);
+  });
+
+  db.on("timeout", function(){
+    console.log(chalkError("*** WA | MONGO DB TIMEOUT"
+      + " | " + getTimeStamp()
+      + " | DB APP NAME: " + dbAppName
+    ));
+    dbConnectionReady = false;
+    statsObj.dbConnectionReady = false;
+    configEvents.emit("DB_ERROR", "timeout");
   });
 
   db.on("disconnected", function(){
-    console.error.bind(console, "*** WA | MONGO DB DISCONNECTED ***\n");
     console.log(chalkError("*** WA | MONGO DB DISCONNECTED"
+      + " | " + getTimeStamp()
       + " | DB APP NAME: " + dbAppName
     ));
     dbConnectionReady = false;
@@ -3331,7 +3340,7 @@ function initSocketHandler(socketObj) {
 
     statsObj.socket.disconnects += 1;
 
-    console.log(chalkDisconnect("XXX SOCKET DISCONNECT"
+    console.log(chalkAlert("XXX SOCKET DISCONNECT"
       + " | " + socketId
       + " | REASON: " + reason
     ));
@@ -3353,7 +3362,7 @@ function initSocketHandler(socketObj) {
 
       currentServer.status = "DISCONNECTED";
 
-      console.log(chalk.blue("SERVER DISCONNECTED" 
+      console.log(chalkAlert("XXX SERVER DISCONNECTED" 
         + " | " + moment().format(compactDateTimeFormat)
         + " | " + currentServer.user.type.toUpperCase()
         + " | " + currentServer.user.nodeId
@@ -3379,7 +3388,7 @@ function initSocketHandler(socketObj) {
           ));
         }
 
-        console.log(chalkLog("-X- VIEWER DISCONNECTED" 
+        console.log(chalkAlert("-X- VIEWER DISCONNECTED" 
           + " | " + moment(currentViewer.timeStamp).format(compactDateTimeFormat)
           + " | " + currentViewer.user.type.toUpperCase()
           + " | " + currentViewer.user.nodeId

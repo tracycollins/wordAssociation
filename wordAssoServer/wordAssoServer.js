@@ -1013,14 +1013,20 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
 
         const authSocketObj = authenticatedSocketCache.get(socketId);
 
-        console.log(chalkAlert("AUTH SOCKET CACHE ENTRIES"
-          + " | NSP: " + authSocketObj.namespace.toUpperCase()
-          + " | " + socketId
-          + " | USER ID: " + authSocketObj.userId
-          + "\nNOW: " + getTimeStamp()
-          + " | TS: " + getTimeStamp(authSocketObj.timeStamp)
-          + " | AGO: " + msToTime(moment().valueOf() - authSocketObj.timeStamp)
-        ));
+        if (authSocketObj) {
+
+          console.log(chalkAlert("AUTH SOCKET CACHE ENTRIES"
+            + " | NSP: " + authSocketObj.namespace.toUpperCase()
+            + " | " + socketId
+            + " | USER ID: " + authSocketObj.userId
+            + "\nNOW: " + getTimeStamp()
+            + " | TS: " + getTimeStamp(authSocketObj.timeStamp)
+            + " | AGO: " + msToTime(moment().valueOf() - authSocketObj.timeStamp)
+          ));
+        }
+        else {
+          console.log(chalkAlert("???? AUTH SOCKET CACHE NO ENTRY??? | SOCKET ID: " + socketId));
+        }
 
       });
     }
@@ -4179,7 +4185,7 @@ function initSocketHandler(socketObj) {
       serverCache.set(socket.id, serverObj);
 
       if (configuration.verbose) {
-        console.log(chalkSocket("R> STATS | " + serverObj.user.userId));
+        console.log(chalkSocket("R< STATS | " + serverObj.user.userId));
       }
 
       adminNameSpace.emit("SERVER_STATS", serverObj);
@@ -4194,14 +4200,14 @@ function initSocketHandler(socketObj) {
       viewerCache.set(socket.id, viewerObj);
 
       if (configuration.verbose) {
-        console.log(chalkSocket("R> STATS | " + viewerObj.user.userId));
+        console.log(chalkSocket("R< STATS | " + viewerObj.user.userId));
       }
 
       adminNameSpace.emit("SERVER_STATS", viewerObj);
     }
 
     if (configuration.verbose) {
-      console.log(chalkSocket("R> STATS | " + socket.id));
+      console.log(chalkSocket("R< STATS | " + socket.id));
     }
   });
 }
@@ -4941,7 +4947,7 @@ function logHeartbeat() {
 //=================================
 function slackMessageHandler(messageObj){
 
-  console.log(chalk.blue("R> SLACK MSG"
+  console.log(chalk.blue("R< SLACK MSG"
     + " | CH: " + messageObj.channel
     + " | USER: " + messageObj.user
     + " | " + messageObj.text
@@ -4982,7 +4988,7 @@ function initAppRouting(callback) {
 
     if (req.path === "/dropbox_webhook") {
 
-      debug(chalkAlert("R> dropbox_webhook"
+      debug(chalkAlert("R< dropbox_webhook"
         + "\nreq.query: " + jsonPrint(req.query)
         + "\nreq.params: " + jsonPrint(req.params)
         + "\nreq.body: " + jsonPrint(req.body)
@@ -5030,7 +5036,7 @@ function initAppRouting(callback) {
       }
     }
     else if (req.path === "/googleccd19766bea2dfd2.html") {
-      console.log(chalkAlert("R> googleccd19766bea2dfd2.html")); 
+      console.log(chalkAlert("R< googleccd19766bea2dfd2.html")); 
 
       const googleVerification = __dirname + "/googleccd19766bea2dfd2.html";
 
@@ -5049,11 +5055,11 @@ function initAppRouting(callback) {
       });
     }
     else if (req.path === "/") {
-      console.log(chalkLog("R> REDIRECT /session")); 
+      console.log(chalkLog("R< REDIRECT /session")); 
       res.redirect("/session");
     }
     else if (req.path === "/categorize"){
-      console.log(chalkLog("R> CATEGORIZE"
+      console.log(chalkLog("R< CATEGORIZE"
         + " | req.query: " + jsonPrint(req.query)
         + " | req.params: " + jsonPrint(req.params)
       ));
@@ -5061,7 +5067,7 @@ function initAppRouting(callback) {
     }
     else if (req.path === "/slack_event"){
       if (req.body.type === "url_verification") {
-        console.log(chalkAlert("R> SLACK URL VERIFICATION"
+        console.log(chalkAlert("R< SLACK URL VERIFICATION"
           + " | TOKEN: " + req.body.token
           + " | CHALLENGE: " + req.body.challenge
         ));
@@ -5073,13 +5079,13 @@ function initAppRouting(callback) {
             slackMessageHandler(req.body.event);
           break;
           default:
-          console.log(chalkAlert("R> ??? UNKNOWN SLACK EVENT TYPE\n" + util.inspect(req.body, {showHidden:false, depth:1})));
+          console.log(chalkAlert("R< ??? UNKNOWN SLACK EVENT TYPE\n" + util.inspect(req.body, {showHidden:false, depth:1})));
         }
         res.sendStatus(200);
       }
     }
     else {
-      console.log(chalkLog("R>"
+      console.log(chalkLog("R<"
         + " | " + getTimeStamp()
         + " | IP: " + req.ip
         + " | HOST: " + req.hostname

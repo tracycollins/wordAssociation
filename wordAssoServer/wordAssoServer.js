@@ -3576,7 +3576,8 @@ function initSocketHandler(socketObj) {
 
       case "VIEWER" :
 
-        console.log(chalkLog(currentSessionType 
+        console.log(chalkLog("R< KA"
+          + " | " + "VIEWER"
           + " | " + getTimeStamp()
           + " | " + keepAliveObj.user.userId
           + " | " + socketId

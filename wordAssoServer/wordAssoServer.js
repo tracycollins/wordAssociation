@@ -323,6 +323,24 @@ const fieldsExclude = {
   friends: 0
 };
 
+const fieldsTransmit = {
+  userId: 1,
+  nodeId: 1,
+  nodeType: 1,
+  name: 1,
+  screenName: 1,
+  screenNameLower: 1,
+  lastTweetId: 1,
+  mentions: 1,
+  mentions: 1,
+  rate: 1,
+  isTopTerm: 1,
+  category: 1,
+  categoryAuto: 1
+};
+
+const fieldsTransmitKeys = Object.keys(fieldsTransmit);
+
 let childrenHashMap = {};
 
 let bestNetworkObj = false;
@@ -4653,7 +4671,8 @@ function initTransmitNodeQueueInterval(interval){
                 + " | TYPE: " + node.nodeType
                 + " | NID: " + node.nodeId
               ));
-              viewNameSpace.volatile.emit("node", node);
+              delete node._id;
+              viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
             }
             else {
 
@@ -4677,7 +4696,11 @@ function initTransmitNodeQueueInterval(interval){
                       + " | @" + node.screenName
                       + " | ERROR: " + err
                     ));
-                    viewNameSpace.volatile.emit("node", n);
+                    delete n._id;
+
+                    // const nSmall = pick(n, fieldsTransmitKeys);
+
+                    viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
                   }
                   else if (rawUser && (rawUser.followers_count >= configuration.minFollowersAuto)) {
 
@@ -4713,13 +4736,15 @@ function initTransmitNodeQueueInterval(interval){
                       n.setMentions = true;
                     }
 
-                    userServerController.findOneUser(n, {noInc: false, fields: fieldsExclude}, function(err, updatedUser){
+                    userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit, lean: true}, function(err, updatedUser){
                       if (err) {
                         console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
+                        delete n._id;
                         viewNameSpace.volatile.emit("node", n);
                       }
                       else {
 
+                        delete n._id;
                         viewNameSpace.volatile.emit("node", updatedUser);
 
                         if (!unfollowableUserSet.has(updatedUser.nodeId)) { 
@@ -4730,7 +4755,8 @@ function initTransmitNodeQueueInterval(interval){
                     });
                   }
                   else {
-                    viewNameSpace.volatile.emit("node", n);
+                    delete n._id;
+                    viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
                   }
                 });
               }
@@ -4745,18 +4771,21 @@ function initTransmitNodeQueueInterval(interval){
 
                 n.updateLastSeen = true;
 
-                userServerController.findOneUser(n, {noInc: false, fields: fieldsExclude}, function(err, updatedUser){
+                userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit}, function(err, updatedUser){
                   if (err) {
                     console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
+                    delete n._id;
                     viewNameSpace.volatile.emit("node", n);
                   }
                   else {
+                    delete n._id;
                     viewNameSpace.volatile.emit("node", updatedUser);
                   }
                 });
               }
               else if (n.nodeType === "user") {
-                viewNameSpace.volatile.emit("node", n);
+                delete n._id;
+                viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
               }
 
               if ((n.nodeType === "hashtag") && n.category){
@@ -4766,33 +4795,41 @@ function initTransmitNodeQueueInterval(interval){
                 hashtagServerController.findOneHashtag(n, {noInc: false}, function(err, updatedHashtag){
                   if (err) {
                     console.log(chalkError("updatedHashtag ERROR\n" + jsonPrint(err)));
+                    delete n._id;
                     viewNameSpace.volatile.emit("node", n);
                   }
                   else if (updatedHashtag) {
+                    delete n._id;
                     viewNameSpace.volatile.emit("node", updatedHashtag);
                   }
                   else {
+                    delete n._id;
                     viewNameSpace.volatile.emit("node", n);
                   }
                 });
               }
               else if (n.nodeType === "hashtag") {
+                delete n._id;
                 viewNameSpace.volatile.emit("node", n);
               }
 
               if (n.nodeType === "emoji"){
+                delete n._id;
                 viewNameSpace.volatile.emit("node", n);
               }
 
               if (n.nodeType === "media"){
+                delete n._id;
                 viewNameSpace.volatile.emit("node", n);
               }
 
               if (n.nodeType === "place"){
+                delete n._id;
                 viewNameSpace.volatile.emit("node", n);
               }
 
               if (n.nodeType === "word"){
+                delete n._id;
                 viewNameSpace.volatile.emit("node", n);
               }
             }
@@ -6450,7 +6487,7 @@ function initialize(callback){
   // });
 
   initConfigInterval(DEFAULT_CONFIG_INIT_INTERVAL);
-  
+
   if (!statsObj.internetReady) { 
     initInternetCheckInterval(10000);
   }

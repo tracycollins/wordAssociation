@@ -386,8 +386,6 @@ process.on("message", function(m) {
           + " | NORMALIZATION INPUT TYPES: " + Object.keys(cnf.normalization)
         ));
       }
-      
-
     break;
 
     case "NETWORK":
@@ -421,8 +419,6 @@ process.on("message", function(m) {
       }, function(){
         networkReady = true;
       });
-
-
     break;
 
     case "tweet":

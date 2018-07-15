@@ -335,9 +335,9 @@ function ViewTreepack() {
       mouseMovingFlag = isMoving;
     }
 
-    if (isMoving) {
-      topTermsDivVisible = true;
-    }
+    // if (isMoving) {
+    //   topTermsDivVisible = true;
+    // }
   };
 
   self.getWidth = function() { return width; };
@@ -386,12 +386,10 @@ function ViewTreepack() {
     .style("pointer-events", "auto")
     .on("change", function topTermsCheckBoxFunc(){
       if (topTermsCheckBox.property("checked") === false) { 
-        // topTermsDiv.style("visibility", "hidden");
         topTermsDiv.style("display", "none");
         topTermsDivVisible = false;
       }
       else { 
-        // topTermsDiv.style("visibility", "visible"); 
         topTermsDiv.style("display", "unset"); 
         topTermsDivVisible = true;
       }
@@ -403,12 +401,10 @@ function ViewTreepack() {
     d3.selectAll("iframe").style("display", "none");
 
     if (topTermsCheckBox.property("checked") === false) { 
-      // topTermsDiv.style("visibility", "hidden"); 
       topTermsDiv.style("display", "none"); 
       topTermsDivVisible = false;
     }
     else { 
-      // topTermsDiv.style("visibility", "visible"); 
       topTermsDiv.style("display", "unset"); 
       topTermsDivVisible = true;
     }
@@ -419,7 +415,6 @@ function ViewTreepack() {
 
   document.addEventListener("mousemove", function mousemoveFunc() {
 
-    // topTermsDiv.style("visibility", "visible");
     topTermsDiv.style("display", "unset");
     topTermsDivVisible = true;
 

@@ -1002,7 +1002,7 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
     + " | NSP: " + authSocketObj.namespace.toUpperCase()
     + " | " + socketId
     + " | USER ID: " + authSocketObj.userId
-    + "\nNOW: " + getTimeStamp()
+    + " | NOW: " + getTimeStamp()
     + " | TS: " + getTimeStamp(authSocketObj.timeStamp)
     + " | AGO: " + msToTime(moment().valueOf() - authSocketObj.timeStamp)
   ));
@@ -1019,7 +1019,7 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
             + " | NSP: " + authSocketObj.namespace.toUpperCase()
             + " | " + socketId
             + " | USER ID: " + authSocketObj.userId
-            + "\nNOW: " + getTimeStamp()
+            + " | NOW: " + getTimeStamp()
             + " | TS: " + getTimeStamp(authSocketObj.timeStamp)
             + " | AGO: " + msToTime(moment().valueOf() - authSocketObj.timeStamp)
           ));

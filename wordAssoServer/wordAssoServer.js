@@ -290,7 +290,7 @@ let followableRegEx;
 // let dropboxConfigDefaultFolder = "/config/utility/default";
 let dropboxConfigTwitterFolder = "/config/twitter";
 
-const DEFAULT_TWITTER_CONFIG_FILE = "altthreecee02.json";
+const DEFAULT_TWITTER_CONFIG_FILE = "threeceeinfo.json";
 const DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE = "altthreecee02.json";
 
 let defaultTwitterConfigFile = DEFAULT_TWITTER_CONFIG_FILE;
@@ -1823,14 +1823,27 @@ function loadConfigFile(params, callback) {
               configuration.statsUpdateIntervalTime = loadedConfigObj.WAS_STATS_UPDATE_INTERVAL;
             }
 
-            if (loadedConfigObj.WAS_TWITTER_DEFAULT_USER !== undefined){
-              console.log("WA | LOADED WAS_TWITTER_DEFAULT_USER: " + loadedConfigObj.WAS_TWITTER_DEFAULT_USER);
-              configuration.twitterDefaultUser = loadedConfigObj.WAS_TWITTER_DEFAULT_USER;
+// const DEFAULT_TWITTER_CONFIG_FILE = "threeceeinfo.json";
+// const DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE = "altthreecee02.json";
+
+// let defaultTwitterConfigFile = DEFAULT_TWITTER_CONFIG_FILE;
+// let twitterAutoFollowConfigFile = DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE;
+
+// if (process.env.DEFAULT_TWITTER_CONFIG_FILE !== undefined) {
+//   defaultTwitterConfigFile = process.env.DEFAULT_TWITTER_CONFIG_FILE;
+// }
+
+// if (process.env.DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE !== undefined) {
+//   twitterAutoFollowConfigFile = process.env.DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE;
+
+            if (loadedConfigObj.DEFAULT_TWITTER_CONFIG_FILE !== undefined){
+              console.log("WA | LOADED DEFAULT_TWITTER_CONFIG_FILE: " + loadedConfigObj.DEFAULT_TWITTER_CONFIG_FILE);
+              defaultTwitterConfigFile = loadedConfigObj.DEFAULT_TWITTER_CONFIG_FILE;
             }
 
-            if (loadedConfigObj.WAS_TWITTER_USERS !== undefined){
-              console.log("WA | LOADED WAS_TWITTER_USERS: " + loadedConfigObj.WAS_TWITTER_USERS);
-              configuration.twitterUsers = loadedConfigObj.WAS_TWITTER_USERS;
+            if (loadedConfigObj.DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE !== undefined){
+              console.log("WA | LOADED DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE: " + loadedConfigObj.DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE);
+              twitterAutoFollowConfigFile = loadedConfigObj.DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE;
             }
 
             if (loadedConfigObj.WAS_KEEPALIVE_INTERVAL !== undefined){
@@ -2715,7 +2728,6 @@ configEvents.on("INTERNET_READY", function internetReady() {
     else {
       console.log(chalkTwitter("LOADED DEFAULT TWITTER CONFIG"
         + " | " + dropboxConfigTwitterFolder + "/" + defaultTwitterConfigFile
-        // + "\n" + jsonPrint(twitterConfig)
       ));
 
       twit = new Twit(twitterConfig);
@@ -4397,8 +4409,6 @@ function updateTrends(){
   });
   
   twit.get("trends/place", {id: 23424977}, function updateTrendsUs (err, data, response){
-
-    // debug(chalkInfo("twit trends/place response\n" + jsonPrint(response)));
 
     if (err){
       console.log(chalkError("*** TWITTER GET trends/place ID=23424977 ERROR ***"

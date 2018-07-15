@@ -1634,7 +1634,7 @@ function loadConfigFile(params, callback) {
     
       if (fileModifiedMoment.isSameOrBefore(prevConfigFileModifiedMoment)){
 
-        console.log(chalkInfo("WA | CONFIG FILE BEFORE OR EQUAL"
+        debug(chalkInfo("WA | CONFIG FILE BEFORE OR EQUAL"
           + " | " + fullPath
           + " | PREV: " + prevConfigFileModifiedMoment.format(compactDateTimeFormat)
           + " | " + fileModifiedMoment.format(compactDateTimeFormat)
@@ -6128,7 +6128,7 @@ function initConfigInterval(interval){
       }
 
       if (statsObj.commandLineArgsLoaded) {
-        console.log(chalkLog("... SKIP LOAD COMMAND LINE ARGS | ALREADY LOADED"));
+        debug(chalkLog("... SKIP LOAD COMMAND LINE ARGS | ALREADY LOADED"));
         return;
       }
       

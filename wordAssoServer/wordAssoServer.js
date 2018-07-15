@@ -335,7 +335,12 @@ const fieldsTransmit = {
   rate: 1,
   isTopTerm: 1,
   category: 1,
-  categoryAuto: 1
+  categoryAuto: 1,
+  followersCount: 1,
+  friendsCount: 1,
+  statusesCount: 1,
+  following: 1,
+  threeceeFollowing: 1
 };
 
 const fieldsTransmitKeys = Object.keys(fieldsTransmit);

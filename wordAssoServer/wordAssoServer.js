@@ -849,8 +849,8 @@ function printUser(params) {
     text = params.user.nodeId 
       + " | @" + params.user.screenName 
       + " | N: " + params.user.name 
-      + " | CR: " + moment(params.user.createdAt).format(compactDateTimeFormat)
-      + " | LS: " + moment(params.user.lastSeen).format(compactDateTimeFormat)
+      + " | CR: " + getTimeStamp(params.user.createdAt)
+      + " | LS: " + getTimeStamp(params.user.lastSeen)
       + " | ULS: " + params.user.updateLastSeen 
       + "\nFLWg: " + params.user.following 
       + " | 3C: " + params.user.threeceeFollowing 
@@ -931,8 +931,8 @@ function viewerCacheExpired(viewerCacheId, viewerObj) {
     + " | TYPE: " + viewerObj.user.type.toUpperCase()
     + " | " + viewerCacheId
     + " | USER ID: " + viewerObj.user.userId
-    + "\nNOW: " + moment().format(compactDateTimeFormat)
-    + " | TS: " + moment(viewerObj.timeStamp).format(compactDateTimeFormat)
+    + "\nNOW: " + getTimeStamp()
+    + " | TS: " + getTimeStamp(viewerObj.timeStamp)
     + " | AGO: " + msToTime(moment().valueOf() - viewerObj.timeStamp)
   ));
 
@@ -967,8 +967,8 @@ function serverCacheExpired(serverCacheId, serverObj) {
     + " | TYPE: " + serverObj.user.type.toUpperCase()
     + " | " + serverCacheId
     + " | USER ID: " + serverObj.user.userId
-    + "\nNOW: " + moment().format(compactDateTimeFormat)
-    + " | TS: " + moment(serverObj.timeStamp).format(compactDateTimeFormat)
+    + "\nNOW: " + getTimeStamp()
+    + " | TS: " + getTimeStamp(serverObj.timeStamp)
     + " | AGO: " + msToTime(moment().valueOf() - serverObj.timeStamp)
   ));
 
@@ -1002,8 +1002,8 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
     + " | NSP: " + authSocketObj.namespace.toUpperCase()
     + " | " + socketId
     + " | USER ID: " + authSocketObj.userId
-    + "\nNOW: " + moment().format(compactDateTimeFormat)
-    + " | TS: " + moment(authSocketObj.timeStamp).format(compactDateTimeFormat)
+    + "\nNOW: " + getTimeStamp()
+    + " | TS: " + getTimeStamp(authSocketObj.timeStamp)
     + " | AGO: " + msToTime(moment().valueOf() - authSocketObj.timeStamp)
   ));
 
@@ -1112,7 +1112,7 @@ function nodeCacheExpired(nodeCacheId, nodeObj) {
       statsObj.nodeMeterEntriesMax = statsObj.nodeMeterEntries;
       statsObj.nodeMeterEntriesMaxTime = moment().valueOf();
       debugCache(chalkLog("NEW MAX NODE METER ENTRIES"
-        + " | " + moment().format(compactDateTimeFormat)
+        + " | " + getTimeStamp()
         + " | " + statsObj.nodeMeterEntries.toFixed(0)
       ));
     }
@@ -1267,7 +1267,7 @@ function initStats(callback){
   statsObj.hostname = hostname;
   statsObj.name = "Word Association Server Status";
   statsObj.startTime = moment().valueOf();
-  statsObj.timeStamp = moment().format(compactDateTimeFormat);
+  statsObj.timeStamp = getTimeStamp();
   statsObj.serverTime = moment().valueOf();
   statsObj.upTime = os.uptime() * 1000;
   statsObj.runTime = 0;
@@ -1462,7 +1462,7 @@ function dropboxFolderGetLastestCursor(folder, callback) {
 function showStats(options){
 
   statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
-  statsObj.timeStamp = moment().format(compactDateTimeFormat);
+  statsObj.timeStamp = getTimeStamp();
   statsObj.twitter.tweetsPerMin = parseInt(tweetMeter.toJSON()[metricsRate]);
   statsObj.nodesPerMin = parseInt(globalNodeMeter.toJSON()[metricsRate]);
 
@@ -1476,9 +1476,9 @@ function showStats(options){
   }
 
   console.log(chalkLog("S"
-    + " | " + moment().format(compactDateTimeFormat)
+    + " | " + getTimeStamp()
     + " | E: " + statsObj.elapsed
-    + " | S: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
+    + " | S: " + getTimeStamp(parseInt(statsObj.startTime))
     + " | AD: " + statsObj.admin.connected
     + " | UT: " + statsObj.entity.util.connected
     + " | VW: " + statsObj.entity.viewer.connected
@@ -2018,7 +2018,7 @@ function saveFile (params, callback){
 
     })
     .catch(function(error){
-      console.log(chalkError("WAS | " + moment().format(compactDateTimeFormat) 
+      console.log(chalkError("WAS | " + getTimeStamp() 
         + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
         + " | ERROR: " + error
         + " | ERROR\n" + jsonPrint(error)
@@ -2043,7 +2043,7 @@ function saveFile (params, callback){
       })
       .catch(function(error){
         if (error.status === 413){
-          console.log(chalkError("WAS | " + moment().format(compactDateTimeFormat) 
+          console.log(chalkError("WAS | " + getTimeStamp() 
             + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
             + " | ERROR: 413"
             // + " ERROR\n" + jsonPrint(error.error)
@@ -2051,7 +2051,7 @@ function saveFile (params, callback){
           if (callback !== undefined) { return callback(error.error_summary); }
         }
         else if (error.status === 429){
-          console.log(chalkError("WAS | " + moment().format(compactDateTimeFormat) 
+          console.log(chalkError("WAS | " + getTimeStamp() 
             + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
             + " | ERROR: TOO MANY WRITES"
             // + " ERROR\n" + "jsonPrint"(error.error)
@@ -2059,7 +2059,7 @@ function saveFile (params, callback){
           if (callback !== undefined) { return callback(error.error_summary); }
         }
         else if (error.status === 500){
-          console.log(chalkError("WAS | " + moment().format(compactDateTimeFormat) 
+          console.log(chalkError("WAS | " + getTimeStamp() 
             + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
             + " | ERROR: DROPBOX SERVER ERROR"
             // + " ERROR\n" + jsonPrint(error.error)
@@ -2067,7 +2067,7 @@ function saveFile (params, callback){
           if (callback !== undefined) { return callback(error.error_summary); }
         }
         else {
-          console.log(chalkError("WAS | " + moment().format(compactDateTimeFormat) 
+          console.log(chalkError("WAS | " + getTimeStamp() 
             + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
             + " | ERROR: " + error
             + " | ERROR\n" + jsonPrint(error)
@@ -2096,7 +2096,7 @@ function saveFile (params, callback){
 
           console.log(chalkInfo("WAS | DROPBOX FILE"
             + " | " + params.folder
-            + " | LAST MOD: " + moment(new Date(entry.client_modified)).format(compactDateTimeFormat)
+            + " | LAST MOD: " + getTimeStamp(new Date(entry.client_modified))
             + " | " + entry.name
           ));
 
@@ -2210,13 +2210,13 @@ function saveStats(statsFile, statsObj, callback) {
 
   dropboxClient.filesUpload(options)
     .then(function dropboxFilesUpload(){
-      debug(chalkLog(moment().format(compactDateTimeFormat)
+      debug(chalkLog(getTimeStamp()
         + " | SAVED DROPBOX JSON | " + options.path
       ));
       callback("OK");
     })
     .catch(function dropboxFilesUploadError(err){
-      console.log(chalkError(moment().format(compactDateTimeFormat) 
+      console.log(chalkError(getTimeStamp() 
         + " | !!! ERROR DROBOX STATS WRITE | FILE: " + options.path 
         // + "\nERROR\n" + jsonPrint(err)
       ));
@@ -2499,29 +2499,29 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
 
 configEvents.on("INTERNET_READY", function internetReady() {
 
-  console.log(chalkInfo(moment().format(compactDateTimeFormat) + " | SERVER_READY EVENT"));
+  console.log(chalkInfo(getTimeStamp() + " | SERVER_READY EVENT"));
 
   if (!httpServer.listening) {
 
     httpServer.on("reconnect", function serverReconnect() {
       statsObj.internetReady = true;
-      debug(chalkConnect(moment().format(compactDateTimeFormat) + " | PORT RECONNECT: " + config.port));
+      debug(chalkConnect(getTimeStamp() + " | PORT RECONNECT: " + config.port));
     });
 
     httpServer.on("connect", function serverConnect() {
       statsObj.socket.connects += 1;
       statsObj.internetReady = true;
-      debug(chalkConnect(moment().format(compactDateTimeFormat) + " | PORT CONNECT: " + config.port));
+      debug(chalkConnect(getTimeStamp() + " | PORT CONNECT: " + config.port));
 
       httpServer.on("disconnect", function serverDisconnect() {
         statsObj.internetReady = false;
-        console.log(chalkError("\n***** PORT DISCONNECTED | " + moment().format(compactDateTimeFormat) 
+        console.log(chalkError("\n***** PORT DISCONNECTED | " + getTimeStamp() 
           + " | " + config.port));
       });
     });
 
     httpServer.listen(config.port, function serverListen() {
-      debug(chalkInfo(moment().format(compactDateTimeFormat) + " | LISTENING ON PORT " + config.port));
+      debug(chalkInfo(getTimeStamp() + " | LISTENING ON PORT " + config.port));
     });
 
     httpServer.on("error", function serverError(err) {
@@ -2529,7 +2529,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
       statsObj.socket.errors.httpServer_errors += 1;
       statsObj.internetReady = false;
 
-      debug(chalkError("??? HTTP ERROR | " + moment().format(compactDateTimeFormat) + "\n" + err));
+      debug(chalkError("??? HTTP ERROR | " + getTimeStamp() + "\n" + err));
 
       if (err.code === "EADDRINUSE") {
 
@@ -2567,7 +2567,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
       statsObj.serverTime = moment().valueOf();
       statsObj.runTime = moment().valueOf() - statsObj.startTime;
       statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
-      statsObj.timeStamp = moment().format(compactDateTimeFormat);
+      statsObj.timeStamp = getTimeStamp();
       statsObj.upTime = os.uptime() * 1000;
       statsObj.memory.memoryTotal = os.totalmem();
       statsObj.memory.memoryAvailable = os.freemem();
@@ -2663,7 +2663,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
       else {
         if (moment().seconds() % 10 === 0) {
           debug(chalkError("!!!! INTERNET DOWN?? !!!!! " 
-            + moment().format(compactDateTimeFormat)
+            + getTimeStamp()
             + " | INTERNET READY: " + statsObj.internetReady
             + " | I/O READY: " + statsObj.ioReady
           ));
@@ -3247,7 +3247,7 @@ function initSocketHandler(socketObj) {
     viewerCache.del(socketId);
 
     statsObj.socket.errors.reconnect_errors += 1;
-    debug(chalkError(moment().format(compactDateTimeFormat) 
+    debug(chalkError(getTimeStamp() 
       + " | SOCKET RECONNECT ERROR: " + socketId + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
@@ -3257,7 +3257,7 @@ function initSocketHandler(socketObj) {
     viewerCache.del(socketId);
 
     statsObj.socket.errors.reconnect_fails += 1;
-    console.log(chalkError(moment().format(compactDateTimeFormat) 
+    console.log(chalkError(getTimeStamp() 
       + " | SOCKET RECONNECT FAILED: " + socketId + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
@@ -3267,7 +3267,7 @@ function initSocketHandler(socketObj) {
     viewerCache.del(socketId);
 
     statsObj.socket.errors.connect_errors += 1;
-    console.log(chalkError(moment().format(compactDateTimeFormat) 
+    console.log(chalkError(getTimeStamp() 
       + " | SOCKET CONNECT ERROR: " + socketId + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
@@ -3277,7 +3277,7 @@ function initSocketHandler(socketObj) {
     viewerCache.del(socketId);
 
     statsObj.socket.errors.connect_timeouts += 1;
-    console.log(chalkError(moment().format(compactDateTimeFormat) 
+    console.log(chalkError(getTimeStamp() 
       + " | SOCKET CONNECT TIMEOUT: " + socketId + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
@@ -3287,7 +3287,7 @@ function initSocketHandler(socketObj) {
 
     statsObj.socket.errors.errors += 1;
 
-    console.log(chalkError(moment().format(compactDateTimeFormat) 
+    console.log(chalkError(getTimeStamp() 
       + " | *** SOCKET ERROR" + " | " + socketId + " | " + error));
 
     let currentServer = serverCache.get(socketId);
@@ -3299,7 +3299,7 @@ function initSocketHandler(socketObj) {
       currentServer.status = "ERROR";
 
       console.log(chalkError("SERVER ERROR" 
-        + " | " + moment(currentServer.timeStamp).format(compactDateTimeFormat)
+        + " | " + getTimeStamp(currentServer.timeStamp)
         + " | " + currentServer.user.type.toUpperCase()
         + " | " + currentServer.user.nodeId
         + " | " + currentServer.status
@@ -3322,7 +3322,7 @@ function initSocketHandler(socketObj) {
       currentViewer.status = "ERROR";
 
       console.log(chalkError("VIEWER ERROR" 
-        + " | " + moment(currentViewer.timeStamp).format(compactDateTimeFormat)
+        + " | " + getTimeStamp(currentViewer.timeStamp)
         + " | " + currentViewer.user.type.toUpperCase()
         + " | " + currentViewer.user.nodeId
         + " | " + currentViewer.status
@@ -3338,7 +3338,7 @@ function initSocketHandler(socketObj) {
 
   socket.on("reconnect", function socketReconnect() {
     statsObj.socket.reconnects += 1;
-    console.log(chalkConnect(moment().format(compactDateTimeFormat) + " | SOCKET RECONNECT: " + socketId));
+    console.log(chalkConnect(getTimeStamp() + " | SOCKET RECONNECT: " + socketId));
   });
 
   socket.on("disconnect", function socketDisconnect(reason) {
@@ -3352,7 +3352,7 @@ function initSocketHandler(socketObj) {
 
     if (adminHashMap.has(socketId)) { 
       console.log(chalkAlert("XXX DELETED ADMIN" 
-        + " | " + moment().format(compactDateTimeFormat)
+        + " | " + getTimeStamp()
         + " | " + adminHashMap.get(socketId).user.type.toUpperCase()
         + " | " + adminHashMap.get(socketId).user.nodeId
         + " | " + socketId
@@ -3368,7 +3368,7 @@ function initSocketHandler(socketObj) {
       currentServer.status = "DISCONNECTED";
 
       console.log(chalkAlert("XXX SERVER DISCONNECTED" 
-        + " | " + moment().format(compactDateTimeFormat)
+        + " | " + getTimeStamp()
         + " | " + currentServer.user.type.toUpperCase()
         + " | " + currentServer.user.nodeId
         + " | " + socketId
@@ -3394,7 +3394,7 @@ function initSocketHandler(socketObj) {
         }
 
         console.log(chalkAlert("-X- VIEWER DISCONNECTED" 
-          + " | " + moment(currentViewer.timeStamp).format(compactDateTimeFormat)
+          + " | " + getTimeStamp(currentViewer.timeStamp)
           + " | " + currentViewer.user.type.toUpperCase()
           + " | " + currentViewer.user.nodeId
           + " | " + currentViewer.ip
@@ -3466,12 +3466,10 @@ function initSocketHandler(socketObj) {
 
       case "ADMIN" :
 
-        debug(chalk.blue(currentSessionType 
-          + " | " + moment().format(compactDateTimeFormat)
-          + " | TYPE: " + keepAliveObj.user.type
-          + " | ID: " + keepAliveObj.user.userId
-          + " | @" + keepAliveObj.user.screenName
-          + " | " + ipAddress
+        console.log(chalkLog("R< KA"
+          + " | " + "ADMIN" 
+          + " | " + getTimeStamp()
+          + " | " + keepAliveObj.user.userId
           + " | " + socketId
         ));
 
@@ -3491,7 +3489,7 @@ function initSocketHandler(socketObj) {
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
           console.log(chalk.green("+++ ADD " + currentSessionType 
-            + " | " + moment().format(compactDateTimeFormat)
+            + " | " + getTimeStamp()
             + " | " + keepAliveObj.user.userId
             + " | " + sessionObj.ip
             + " | " + socketId
@@ -3521,8 +3519,9 @@ function initSocketHandler(socketObj) {
       case "TUS" :
       case "LA" :
 
-        console.log(chalkLog(currentSessionType + " SERVER" 
-          + " | " + moment().format(compactDateTimeFormat)
+        console.log(chalkLog("R< KA"
+          + " | " + currentSessionType + " SERVER" 
+          + " | " + getTimeStamp()
           + " | " + keepAliveObj.user.userId
           + " | " + socketId
         ));
@@ -3549,7 +3548,7 @@ function initSocketHandler(socketObj) {
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
           console.log(chalk.green("+++ ADD " + currentSessionType + " SERVER" 
-            + " | " + moment().format(compactDateTimeFormat)
+            + " | " + getTimeStamp()
             + " | " + keepAliveObj.user.userId
             + " | " + sessionObj.ip
             + " | " + socketId
@@ -3578,7 +3577,7 @@ function initSocketHandler(socketObj) {
       case "VIEWER" :
 
         console.log(chalkLog(currentSessionType 
-          + " | " + moment().format(compactDateTimeFormat)
+          + " | " + getTimeStamp()
           + " | " + keepAliveObj.user.userId
           + " | " + socketId
         ));
@@ -3605,7 +3604,7 @@ function initSocketHandler(socketObj) {
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
           console.log(chalk.green("+++ ADD " + currentSessionType + " SESSION" 
-            + " | " + moment().format(compactDateTimeFormat)
+            + " | " + getTimeStamp()
             + " | " + keepAliveObj.user.userId
             + " | " + sessionObj.ip
             + " | " + socketId
@@ -3867,7 +3866,7 @@ function initSocketHandler(socketObj) {
 
                         console.log(chalk.blue("UPDATED updatedUser"
                           + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
-                          + " | USER CR: " + moment(updatedUser.createdAt).format(compactDateTimeFormat)
+                          + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
                           + "\n" + printUser({user:updatedUser})
                         ));
 
@@ -4083,7 +4082,7 @@ function initSocketHandler(socketObj) {
     console.log(chalkSocket("R< USER READY"
       + " | " + getTimeStamp()
       + " | " + userObj.userId
-      + " | SENT " + moment(parseInt(userObj.timeStamp)).format(compactDateTimeFormat)
+      + " | SENT " + getTimeStamp(parseInt(userObj.timeStamp))
     ));
 
     socket.emit("USER_READY_ACK", { userId: userObj.userId, timeStamp: moment().valueOf() }, function(err){
@@ -4100,7 +4099,7 @@ function initSocketHandler(socketObj) {
     console.log(chalkSocket("VIEWER READY"
       + " | " + getTimeStamp()
       + " | " + viewerObj.viewerId
-      + " | SENT AT " + moment(parseInt(viewerObj.timeStamp)).format(compactDateTimeFormat)
+      + " | SENT AT " + getTimeStamp(parseInt(viewerObj.timeStamp))
     ));
 
 
@@ -4186,7 +4185,7 @@ function initSocketHandler(socketObj) {
 
 function initSocketNamespaces(callback){
 
-  console.log(chalkInfo(moment().format(compactDateTimeFormat) + " | INIT SOCKET NAMESPACES"));
+  console.log(chalkInfo(getTimeStamp() + " | INIT SOCKET NAMESPACES"));
 
   adminNameSpace = io.of("/admin");
   utilNameSpace = io.of("/util");
@@ -4502,7 +4501,7 @@ function updateNodeMeter(node, callback){
         statsObj.nodeMeterEntriesMax = statsObj.nodeMeterEntries;
         statsObj.nodeMeterEntriesMaxTime = moment().valueOf();
         debug(chalkLog("NEW MAX NODE METER ENTRIES"
-          + " | " + moment().format(compactDateTimeFormat)
+          + " | " + getTimeStamp()
           + " | " + statsObj.nodeMeterEntries.toFixed(0)
         ));
       }
@@ -4904,8 +4903,8 @@ function logHeartbeat() {
   memoryAvailablePercent = (statsObj.memory.memoryAvailable/statsObj.memory.memoryTotal);
 
   debug(chalkLog("HB " + heartbeatsSent 
-    + " | " + moment().format(compactDateTimeFormat) 
-    + " | ST: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat) 
+    + " | " + getTimeStamp() 
+    + " | ST: " + getTimeStamp(parseInt(statsObj.startTime)) 
     + " | UP: " + msToTime(statsObj.upTime) 
     + " | RN: " + msToTime(statsObj.runTime) 
     + " | MEM: " + memoryAvailableMB.toFixed(0) + " AVAIL"
@@ -4950,7 +4949,7 @@ let dropboxFolderGetLastestCursorReady = true;
 
 function initAppRouting(callback) {
 
-  console.log(chalkInfo(moment().format(compactDateTimeFormat) + " | INIT APP ROUTING"));
+  console.log(chalkInfo(getTimeStamp() + " | INIT APP ROUTING"));
 
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use(methodOverride());
@@ -5015,7 +5014,7 @@ function initAppRouting(callback) {
       res.sendFile(googleVerification, function googleVerify(err) {
         if (err) {
           console.log(chalkError("GET /googleccd19766bea2dfd2.html ERROR:"
-            + " | " + moment().format(compactDateTimeFormat)
+            + " | " + getTimeStamp()
             + " | " + req.url
             + " | " + googleVerification
             + " | " + err
@@ -5058,7 +5057,7 @@ function initAppRouting(callback) {
     }
     else {
       console.log(chalkLog("R>"
-        + " | " + moment().format(compactDateTimeFormat)
+        + " | " + getTimeStamp()
         + " | IP: " + req.ip
         + " | HOST: " + req.hostname
         + " | METHOD: " + req.method
@@ -5109,7 +5108,7 @@ function initAppRouting(callback) {
     res.sendFile(adminHtml, function responseAdmin(err) {
       if (err) {
         console.log(chalkError("GET /session ERROR:"
-          + " | " + moment().format(compactDateTimeFormat)
+          + " | " + getTimeStamp()
           + " | " + req.url
           + " | " + adminHtml
           + " | " + err
@@ -5132,7 +5131,7 @@ function initAppRouting(callback) {
     res.sendFile(sessionHtml, function responseSession(err) {
       if (err) {
         console.log(chalkError("GET /session ERROR:"
-          + " | " + moment().format(compactDateTimeFormat)
+          + " | " + getTimeStamp()
           + " | " + req.url
           + " | " + sessionHtml
           + " | " + err
@@ -5222,8 +5221,8 @@ function testInternetConnection(params, callback) {
     statsObj.internetReady = true;
     statsObj.socket.connects += 1;
 
-    console.log(chalkInfo(moment().format(compactDateTimeFormat) + " | CONNECTED TO " + params.url + ": OK"));
-    console.log(chalkInfo(moment().format(compactDateTimeFormat) + " | SEND INTERNET_READY"));
+    console.log(chalkInfo(getTimeStamp() + " | CONNECTED TO " + params.url + ": OK"));
+    console.log(chalkInfo(getTimeStamp() + " | SEND INTERNET_READY"));
 
     configEvents.emit("INTERNET_READY");
     testClient.destroy();
@@ -5244,7 +5243,7 @@ function testInternetConnection(params, callback) {
     statsObj.internetTestError = err;
     statsObj.socket.testClient.errors += 1;
 
-    console.log(chalkError(moment().format(compactDateTimeFormat)
+    console.log(chalkError(getTimeStamp()
       + " | TEST INTERNET ERROR | CONNECT ERROR: " + params.url + " : " + err.code));
 
     testClient.destroy();
@@ -5256,7 +5255,7 @@ function testInternetConnection(params, callback) {
 
 function initInternetCheckInterval(interval){
 
-  debug(chalkInfo(moment().format(compactDateTimeFormat) 
+  debug(chalkInfo(getTimeStamp() 
     + " | INIT INTERNET CHECK INTERVAL | " + interval + " MS"));
 
   clearInterval(internetCheckInterval);
@@ -5663,7 +5662,7 @@ function initSorterPingInterval(interval){
               initSorter({childId: DEFAULT_SORTER_CHILD_ID});
             });
           }
-          debug(chalkInfo(">PING | SORTER | PING ID: " + moment(pingId).format(compactDateTimeFormat)));
+          debug(chalkInfo(">PING | SORTER | PING ID: " + getTimeStamp(pingId)));
         });
 
       }
@@ -5714,7 +5713,7 @@ function initSorter(params, callback){
     else if (m.op === "PONG"){
       sorterPongReceived = m.pongId;
       childrenHashMap[params.childId].status = "RUNNING";
-      debug(chalkInfo("<PONG | SORTER | PONG ID: " + moment(m.pongId).format(compactDateTimeFormat)));
+      debug(chalkInfo("<PONG | SORTER | PONG ID: " + getTimeStamp(m.pongId)));
     }
     else {
       sorterMessageRxQueue.push(m);
@@ -5742,7 +5741,7 @@ function initSorter(params, callback){
   });
 
   childrenHashMap[params.childId].child.on("error", function sorterError(err){
-    console.log(chalkError(moment().format(compactDateTimeFormat)
+    console.log(chalkError(getTimeStamp()
       + " | *** SORTER ERROR ***"
       + " \n" + jsonPrint(err)
     ));
@@ -5751,7 +5750,7 @@ function initSorter(params, callback){
   });
 
   childrenHashMap[params.childId].child.on("exit", function sorterExit(code, signal){
-    console.log(chalkError(moment().format(compactDateTimeFormat)
+    console.log(chalkError(getTimeStamp()
       + " | *** SORTER EXIT ***"
       + " | PID: " + childrenHashMap[params.childId].child.pid
       + " | EXIT CODE: " + code
@@ -5763,7 +5762,7 @@ function initSorter(params, callback){
   });
 
   childrenHashMap[params.childId].child.on("close", function sorterClose(code, signal){
-    console.log(chalkError(moment().format(compactDateTimeFormat)
+    console.log(chalkError(getTimeStamp()
       + " | *** SORTER CLOSE ***"
       + " | PID: " + childrenHashMap[params.childId].child.pid
       + " | EXIT CODE: " + code
@@ -5811,7 +5810,7 @@ function initTweetParser(params, callback){
   });
 
   twp.on("error", function tweetParserError(err){
-    console.log(chalkError(moment().format(compactDateTimeFormat)
+    console.log(chalkError(getTimeStamp()
       + " | *** TWEET PARSER ERROR ***"
       + " \n" + jsonPrint(err)
     ));
@@ -5821,7 +5820,7 @@ function initTweetParser(params, callback){
   });
 
   twp.on("exit", function tweetParserExit(code){
-    console.log(chalkError(moment().format(compactDateTimeFormat)
+    console.log(chalkError(getTimeStamp()
       + " | *** TWEET PARSER EXIT ***"
       + " | EXIT CODE: " + code
     ));
@@ -5831,7 +5830,7 @@ function initTweetParser(params, callback){
   });
 
   twp.on("close", function tweetParserClose(code){
-    console.log(chalkError(moment().format(compactDateTimeFormat)
+    console.log(chalkError(getTimeStamp()
       + " | *** TWEET PARSER CLOSE ***"
       + " | EXIT CODE: " + code
     ));
@@ -5950,7 +5949,7 @@ function initRateQinterval(interval){
           statsObj.admin.connectedMax = statsObj.admin.connected;
           console.log(chalkInfo("MAX ADMINS"
            + " | " + statsObj.admin.connected
-           + " | " + moment().format(compactDateTimeFormat)
+           + " | " + getTimeStamp()
           ));
         }
       }
@@ -5962,7 +5961,7 @@ function initRateQinterval(interval){
           statsObj.entity.util.connectedMax = statsObj.entity.util.connected;
           console.log(chalkInfo("MAX UTILS"
            + " | " + statsObj.entity.util.connected
-           + " | " + moment().format(compactDateTimeFormat)
+           + " | " + getTimeStamp()
           ));
         }
       }
@@ -5981,7 +5980,7 @@ function initRateQinterval(interval){
 
           console.log(chalkInfo("MAX VIEWERS"
            + " | " + statsObj.entity.viewer.connected
-           + " | " + moment().format(compactDateTimeFormat)
+           + " | " + getTimeStamp()
           ));
 
         }
@@ -6541,7 +6540,7 @@ function initStatsInterval(interval){
       statsObj.memory.maxRssTime = moment().valueOf();
 
       console.log(chalkInfo("NEW MAX RSS"
-        + " | " + moment().format(compactDateTimeFormat)
+        + " | " + getTimeStamp()
         + " | " + statsObj.memory.rss.toFixed(1) + " MB"
       ));
 
@@ -6562,7 +6561,7 @@ function initStatsInterval(interval){
     });
 
     statsObj.serverTime = moment().valueOf();
-    statsObj.timeStamp = moment().format(compactDateTimeFormat);
+    statsObj.timeStamp = getTimeStamp();
     statsObj.runTime = moment().valueOf() - statsObj.startTime;
     statsObj.upTime = os.uptime() * 1000;
 
@@ -6577,7 +6576,7 @@ function initStatsInterval(interval){
       statsObj.nodeMeterEntriesMax = statsObj.nodeMeterEntries;
       statsObj.nodeMeterEntriesMaxTime = moment().valueOf();
       debug(chalkLog("NEW MAX NODE METER ENTRIES"
-        + " | " + moment().format(compactDateTimeFormat)
+        + " | " + getTimeStamp()
         + " | " + statsObj.nodeMeterEntries.toFixed(0)
       ));
     }
@@ -6588,7 +6587,7 @@ function initStatsInterval(interval){
       statsObj.memory.maxHeap = statsObj.memory.heap;
       statsObj.memory.maxHeapTime = moment().valueOf();
       debug(chalkLog("NEW MAX HEAP"
-        + " | " + moment().format(compactDateTimeFormat)
+        + " | " + getTimeStamp()
         + " | " + statsObj.memory.heap.toFixed(0) + " MB"
       ));
     }

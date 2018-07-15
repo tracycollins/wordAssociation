@@ -4638,7 +4638,7 @@ function autoFollowUser(params, callback){
       + " | FOLLOWING: " + params.user.following
       + " | 3C FOLLOW: " + params.user.threeceeFollowing
       + " | FLWRs: " + params.user.followersCount
-      + "\nDESCRIPTION: " + params.user.description
+      // + "\nDESCRIPTION: " + params.user.description
     ));
 
     const text = "*WAS | AUTO FOLLOW*"
@@ -4646,8 +4646,8 @@ function autoFollowUser(params, callback){
       + "\nNAME: " + params.user.name
       + "\nID: " + params.user.userId
       + "\nFLWRs: " + params.user.followersCount
-      + "\n3C @" + params.user.threeceeFollowing
-      + "\nDESC: " + params.user.description;
+      + "\n3C @" + params.user.threeceeFollowing;
+      // + "\nDESC: " + params.user.description;
 
     slackPostMessage(slackChannelAutoFollow, text);
 

@@ -998,7 +998,7 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
   const ttl = authenticatedSocketCache.getTtl(socketId);
 
   console.log(chalkAlert("XXX AUTH SOCKET CACHE EXPIRED"
-    + " | TTL: " + authenticatedSocketCacheTtl + " SECS"
+    + " | TTL: " + msToTime(authenticatedSocketCacheTtl*1000)
     + " | NSP: " + authSocketObj.namespace.toUpperCase()
     + " | " + socketId
     + " | USER ID: " + authSocketObj.userId
@@ -1006,6 +1006,28 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
     + " | TS: " + getTimeStamp(authSocketObj.timeStamp)
     + " | AGO: " + msToTime(moment().valueOf() - authSocketObj.timeStamp)
   ));
+
+  authenticatedSocketCache.keys( function( err, socketIds ){
+    if( !err ){
+      socketIds.forEach(function(socketId){
+
+        const authSocketObj = authenticatedSocketCache.get(socketId);
+
+        console.log(chalkAlert("AUTH SOCKET CACHE ENTRIES"
+          + " | NSP: " + authSocketObj.namespace.toUpperCase()
+          + " | " + socketId
+          + " | USER ID: " + authSocketObj.userId
+          + "\nNOW: " + getTimeStamp()
+          + " | TS: " + getTimeStamp(authSocketObj.timeStamp)
+          + " | AGO: " + msToTime(moment().valueOf() - authSocketObj.timeStamp)
+        ));
+
+      });
+    }
+    else {
+      console.log(chalkError("*** AUTH CACHE GET KEYS ERROR: " + err));
+    }
+  });
 
   adminNameSpace.emit("AUTH_SOCKET_EXPIRED", authSocketObj);
 }

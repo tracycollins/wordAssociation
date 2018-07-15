@@ -7,6 +7,7 @@ let initCategoryHashmapsReady = true;
 
 process.env.NODE_ENV = process.env.NODE_ENV || "development";
 
+
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
 const ONE_HOUR = 60 * ONE_MINUTE;
@@ -14,6 +15,8 @@ const ONE_DAY = 24 * ONE_HOUR;
 
 const ONE_KILOBYTE = 1024;
 const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
+
+const DEFAULT_CONFIG_INIT_INTERVAL = process.env.DEFAULT_CONFIG_INIT_INTERVAL || ONE_MINUTE;
 
 const DEFAULT_TEST_INTERNET_CONNECTION_URL = process.env.DEFAULT_TEST_INTERNET_CONNECTION_URL || "www.google.com";
 
@@ -1188,7 +1191,7 @@ const localHostHashMap = new HashMap();
 let tweetParser;
 
 function initStats(callback){
-  console.log(chalk.blue("INIT STATS"));
+  console.log(chalk.bold.black("INIT STATS"));
   statsObj = {};
 
   statsObj.ioReady = false;
@@ -1603,6 +1606,8 @@ function loadConfigFile(params, callback) {
   const file = params.file;
   const folder = params.folder;
 
+  console.log(chalk.bold.black("LOAD CONFIG FILE | " + folder + "/" + file));
+
   if (file === dropboxConfigDefaultFile) {
     prevConfigFileModifiedMoment = moment(prevDefaultConfigFileModifiedMoment);
   }
@@ -1732,11 +1737,6 @@ function loadConfigFile(params, callback) {
             if (loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL !== undefined){
               console.log("WA | LOADED TRENDING_CACHE_DEFAULT_TTL: " + loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL);
               configuration.trendingCacheTtl = loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL;
-            }
-
-            if (loadedConfigObj.WA_MIN_FOLLOWERS !== undefined){
-              console.log("WA | LOADED WA_MIN_FOLLOWERS: " + loadedConfigObj.WA_MIN_FOLLOWERS);
-              configuration.minFollowers = loadedConfigObj.WA_MIN_FOLLOWERS;
             }
 
             if (loadedConfigObj.MIN_FOLLOWERS_AUTO !== undefined){
@@ -2110,7 +2110,7 @@ let saveFileBusy = false;
 
 function initSaveFileQueue(cnf){
 
-  console.log(chalkInfo("WAS | INIT DROPBOX SAVE FILE INTERVAL | " + cnf.saveFileQueueInterval + " MS"));
+  console.log(chalk.bold.black("INIT DROPBOX SAVE FILE INTERVAL | " + msToTime(cnf.saveFileQueueInterval)));
 
   clearInterval(saveFileQueueInterval);
 
@@ -2292,7 +2292,7 @@ function getChildProcesses(params, callback){
 
             numChildren += 1;
 
-            console.log(chalk.blue("WA | FOUND CHILD PROCESS"
+            debug(chalk.blue("WA | FOUND CHILD PROCESS"
               + " | NUM: " + numChildren
               + " | PID: " + pid
               + " | " + childId
@@ -2316,7 +2316,7 @@ function getChildProcesses(params, callback){
 
             }
             else {
-              console.log(chalkInfo("WA | CHILD"
+              debug(chalkInfo("WA | CHILD"
                 + " | PID: " + pid
                 + " | " + childId
                 + " | STATUS: " + childrenHashMap[childId].status
@@ -4369,7 +4369,7 @@ function updateTrends(){
 
 function initUpdateTrendsInterval(interval){
 
-  console.log(chalkLog("INIT UPDATE TRENDS INTERVAL: " + interval + " MS"));
+  console.log(chalk.bold.black("INIT UPDATE TRENDS INTERVAL: " + msToTime(interval)));
 
   clearInterval(updateTrendsInterval);
 
@@ -4601,7 +4601,7 @@ function autoFollowUser(params, callback){
 
 function initTransmitNodeQueueInterval(interval){
 
-  console.log(chalkLog("INIT TRANSMIT NODE QUEUE INTERVAL: " + interval + " MS"));
+  console.log(chalk.bold.black("INIT TRANSMIT NODE QUEUE INTERVAL: " + msToTime(interval)));
 
   clearInterval(transmitNodeQueueInterval);
 
@@ -5233,7 +5233,7 @@ function initTwitterRxQueueInterval(interval){
 
   statsObj.tweetParserSendReady = true;
 
-  console.log(chalkLog("INIT TWITTER RX QUEUE INTERVAL | " + interval + " MS"));
+  console.log(chalk.bold.black("INIT TWITTER RX QUEUE INTERVAL | " + interval + " MS"));
 
   clearInterval(tweetRxQueueInterval);
 
@@ -5286,7 +5286,7 @@ function initHashtagLookupQueueInterval(interval){
 
   let hashtagLookupQueueReady = true;
 
-  console.log(chalkLog("INIT HASHTAG LOOKUP QUEUE INTERVAL | " + interval + " MS"));
+  console.log(chalk.bold.black("INIT HASHTAG LOOKUP QUEUE INTERVAL | " + msToTime(interval)));
 
   clearInterval(hashtagLookupQueueInterval);
 
@@ -5360,7 +5360,7 @@ let tweetParserMessageRxQueueInterval;
 
 function initTweetParserMessageRxQueueInterval(interval){
 
-  console.log(chalkLog("INIT TWEET PARSER MESSAGE RX QUEUE INTERVAL | " + interval + " MS"));
+  console.log(chalk.bold.black("INIT TWEET PARSER MESSAGE RX QUEUE INTERVAL | " + msToTime(interval)));
 
   clearInterval(tweetParserMessageRxQueueInterval);
 
@@ -5458,7 +5458,7 @@ const sortedObjectValues = function(params) {
 
 function initSorterMessageRxQueueInterval(interval){
 
-  console.log(chalkLog("INIT SORTER RX MESSAGE QUEUE INTERVAL | " + interval + " MS"));
+  console.log(chalk.bold.black("INIT SORTER RX MESSAGE QUEUE INTERVAL | " + msToTime(interval)));
 
   clearInterval(sorterMessageRxQueueInterval);
 
@@ -5738,7 +5738,7 @@ function initSorter(params, callback){
 
 function initTweetParser(params, callback){
 
-  console.log(chalkLog("INIT TWEET PARSER\n" + jsonPrint(params)));
+  console.log(chalk.bold.black("INIT TWEET PARSER\n" + jsonPrint(params)));
 
   statsObj.tweetParserReady = false;
 
@@ -5827,7 +5827,7 @@ function initTweetParser(params, callback){
 
 function initRateQinterval(interval){
 
-  console.log(chalkLog("INIT RATE QUEUE INTERVAL | " + interval + " MS"));
+  console.log(chalk.bold.black("INIT RATE QUEUE INTERVAL | " + msToTime(interval)));
   
   clearInterval(updateMetricsInterval);
 
@@ -6104,6 +6104,63 @@ function loadBestRuntimeNetwork(){
   });
 }
 
+let configInterval;
+
+function initConfigInterval(interval){
+
+  console.log(chalk.bold.black("INIT CONFIG INTERVAL | " + msToTime(interval)));
+
+  clearInterval(configInterval);
+
+  const loadConfigFileParams = {
+    folder: dropboxConfigDefaultFolder,
+    file: dropboxConfigDefaultFile
+  };
+
+  configInterval = setInterval(function(){
+
+    loadConfigFile(loadConfigFileParams, function(err0){
+
+      if (err0) {
+        console.log(chalkError("*** LOAD CONFIGURATION FILE ERROR: " + err0));
+        quit("LOAD CONFIGURATION FILE ERROR");
+        return;
+      }
+
+      if (statsObj.commandLineArgsLoaded) {
+        console.log(chalkLog("... SKIP LOAD COMMAND LINE ARGS | ALREADY LOADED"));
+        return;
+      }
+      
+
+      loadCommandLineArgs(function(err1, results){
+
+        if (err1) {
+          console.log(chalkError("*** LOAD COMMAND LINE ARGS ERROR: " + err1));
+          quit("LOAD COMMAND LINE ARGS ERROR");
+          return;
+        }
+
+        const configArgs = Object.keys(configuration);
+
+        configArgs.forEach(function(arg){
+          if (_.isObject(configuration[arg])) {
+            console.log(chalkLog("WA | _FINAL CONFIG | " + arg + ": " + jsonPrint(configuration[arg])));
+          }
+          else {
+            console.log(chalkLog("WA | _FINAL CONFIG | " + arg + ": " + configuration[arg]));
+          }
+        });
+        
+        statsObj.commandLineArgsLoaded = true;
+
+      });
+
+    });
+
+  }, interval);
+}
+
 function initLoadBestNetworkInterval(interval){
 
   clearInterval(loadBestNetworkInterval);
@@ -6142,7 +6199,7 @@ function initCategoryHashmaps(callback){
       let totalMismatched = 0;
       let totalMatchRate = 0;
 
-      console.log(chalkInfo("WA | LOADING CATEGORIZED HASHTAGS FROM DB ..."));
+      debug(chalkInfo("WA | LOADING CATEGORIZED HASHTAGS FROM DB ..."));
 
       async.whilst(
 
@@ -6241,7 +6298,7 @@ function initCategoryHashmaps(callback){
       let totalMismatched = 0;
       let totalMatchRate = 0;
 
-      console.log(chalkInfo("WA | LOADING CATEGORIZED USERS FROM DB ..."));
+      debug(chalkInfo("WA | LOADING CATEGORIZED USERS FROM DB ..."));
 
       async.whilst(
 
@@ -6330,7 +6387,7 @@ function initCategoryHashmaps(callback){
       if (callback !== undefined) { callback(err); }
     }
     else {
-      console.log(chalk.blue("LOAD COMPLETE: initCategoryHashmaps"));
+      debug(chalk.blue("LOAD COMPLETE: initCategoryHashmaps"));
       if (callback !== undefined) { callback(); }
     }
 
@@ -6356,42 +6413,45 @@ function initialize(callback){
   configuration.quitOnError = process.env.WA_QUIT_ON_ERROR || false ;
   configuration.enableStdin = process.env.WA_ENABLE_STDIN || true ;
 
-  const loadConfigFileParams = {
-    folder: dropboxConfigDefaultFolder,
-    file: dropboxConfigDefaultFile
-  };
+  // const loadConfigFileParams = {
+  //   folder: dropboxConfigDefaultFolder,
+  //   file: dropboxConfigDefaultFile
+  // };
 
-  loadConfigFile(loadConfigFileParams, function(err){
+  // loadConfigFile(loadConfigFileParams, function(err){
 
-    if (err) {
-      console.log(chalkError("*** LOAD CONFIGURATION FILE ERROR: " + err));
-      quit("LOAD CONFIGURATION FILE ERROR");
-      return callback(err);
-    }
+  //   if (err) {
+  //     console.log(chalkError("*** LOAD CONFIGURATION FILE ERROR: " + err));
+  //     quit("LOAD CONFIGURATION FILE ERROR");
+  //     return callback(err);
+  //   }
 
-    loadCommandLineArgs(function(err, results){
+  //   loadCommandLineArgs(function(err, results){
     
-      const configArgs = Object.keys(configuration);
+  //     const configArgs = Object.keys(configuration);
 
-      configArgs.forEach(function(arg){
-        if (_.isObject(configuration[arg])) {
-          console.log("WA | _FINAL CONFIG | " + arg + ": " + jsonPrint(configuration[arg]));
-        }
-        else {
-          console.log("WA | _FINAL CONFIG | " + arg + ": " + configuration[arg]);
-        }
-      });
+  //     configArgs.forEach(function(arg){
+  //       if (_.isObject(configuration[arg])) {
+  //         console.log("WA | _FINAL CONFIG | " + arg + ": " + jsonPrint(configuration[arg]));
+  //       }
+  //       else {
+  //         console.log("WA | _FINAL CONFIG | " + arg + ": " + configuration[arg]);
+  //       }
+  //     });
       
-      statsObj.commandLineArgsLoaded = true;
+  //     statsObj.commandLineArgsLoaded = true;
 
-      if (!statsObj.internetReady) { 
-        initInternetCheckInterval(10000);
-      }
+  //     if (!statsObj.internetReady) { 
+  //       initInternetCheckInterval(10000);
+  //     }
 
-      callback(err);
-    });
+  //     callback(err);
+  //   });
+  // });
 
-  });
+  initConfigInterval(DEFAULT_CONFIG_INIT_INTERVAL);
+
+  callback();
 }
 
 function initIgnoreWordsHashMap(callback) {
@@ -6410,8 +6470,8 @@ function initStatsInterval(interval){
 
   let statsUpdated = 0;
 
-  console.log(chalkInfo("INIT STATS INTERVAL"
-    + " | " + interval + " MS"
+  console.log(chalk.bold.black("INIT STATS INTERVAL"
+    + " | " + msToTime(interval)
     + " | FILE: " + statsFolder + "/" + statsFile
   ));
 
@@ -6513,7 +6573,7 @@ function initCategoryHashmapsInterval(interval){
 
     if (statsObj.dbConnectionReady && initCategoryHashmapsReady) {
 
-      console.log(chalkAlert("--- IN CATEGORY HASHMAP INTERVAL"
+      debug(chalkAlert("--- IN CATEGORY HASHMAP INTERVAL"
         + " | " + msToTime(interval)
       ));
 
@@ -6527,7 +6587,7 @@ function initCategoryHashmapsInterval(interval){
           console.log(chalkError("ERROR: LOAD CATEGORY HASHMAPS: " + err));
         }
         else {
-          console.log(chalk.bold.green("+++ LOADED CATEGORY HASHMAPS"));
+          debug(chalk.bold.green("+++ LOADED CATEGORY HASHMAPS"));
         }
       });
     }

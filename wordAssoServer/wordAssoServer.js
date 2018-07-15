@@ -332,7 +332,6 @@ const fieldsTransmit = {
   screenNameLower: 1,
   lastTweetId: 1,
   mentions: 1,
-  mentions: 1,
   rate: 1,
   isTopTerm: 1,
   category: 1,
@@ -2732,7 +2731,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
 
     data.timeStamp = moment().valueOf();
 
-    console.log(chalk.green("+++ SOCKET AUTHENTICATED"
+    console.log(chalk.bold.green("+++ SOCKET AUTHENTICATED"
       + " | " + data.namespace.toUpperCase()
       + " | " + socket.id
       + " | " + data.userId
@@ -3328,16 +3327,13 @@ function initSocketHandler(socketObj) {
     console.log(chalkConnect(moment().format(compactDateTimeFormat) + " | SOCKET RECONNECT: " + socketId));
   });
 
-  socket.on("disconnect", function socketDisconnect(status) {
+  socket.on("disconnect", function socketDisconnect(reason) {
+
     statsObj.socket.disconnects += 1;
 
-    console.log(chalk.blue("SOCKET DISCONNECT"
-      + " | " + moment().format(compactDateTimeFormat)
+    console.log(chalkDisconnect("XXX SOCKET DISCONNECT"
       + " | " + socketId
-    ));
-
-    console.log(chalkDisconnect(moment().format(compactDateTimeFormat) 
-      + " | SOCKET DISCONNECT: " + socketId + "\nstatus\n" + jsonPrint(status)
+      + " | REASON: " + reason
     ));
 
     if (adminHashMap.has(socketId)) { 

@@ -25,7 +25,7 @@
       "DROPBOX_WORD_ASSO_ACCESS_TOKEN": "nknEWsIkD5UAAAAAAAQouTDFRBKfwsFzuS8PPi2Q_JVYnpotNuaHiddNtmG4mUTi",
       "DROPBOX_WORD_ASSO_APP_KEY": "qlb9k4dp01t9iqk",
       "DROPBOX_WORD_ASSO_APP_SECRET": "wqslhe2t95zfn19",
-      "DEFAULT_TWITTER_CONFIG": "ninjathreecee.json",
+      "DEFAULT_TWITTER_CONFIG_FILE": "threeceeinfo.json",
       "DEFAULT_TWITTER_AUTOFOLLOW_CONFIG": "altthreecee02.json",
       "WA_STATS_FILE" : "wordAssoServerStats.json",
       "GOOGLE_PROJECT_ID": "graphic-tangent-627",

@@ -3233,7 +3233,7 @@ function initSocketHandler(socketObj) {
   console.log(chalk.blue("SOCKET CONNECT"
     + " | " + ipAddress
     + " | " + socketObj.namespace
-    + " | " + socketId
+    + " | " + socket.id
     + " | AD: " + statsObj.admin.connected
     + " | UT: " + statsObj.entity.util.connected
     + " | VW: " + statsObj.entity.viewer.connected
@@ -3338,7 +3338,7 @@ function initSocketHandler(socketObj) {
 
   socket.on("reconnect", function socketReconnect() {
     statsObj.socket.reconnects += 1;
-    console.log(chalkConnect(getTimeStamp() + " | SOCKET RECONNECT: " + socketId));
+    console.log(chalkConnect(getTimeStamp() + " | SOCKET RECONNECT: " + socket.id));
   });
 
   socket.on("disconnect", function socketDisconnect(reason) {
@@ -3413,32 +3413,32 @@ function initSocketHandler(socketObj) {
     if (keepAliveObj.user === undefined) {
       console.log(chalkAlert("SESSION_KEEPALIVE USER UNDEFINED ??"
         + " | NSP: " + socket.nsp.name.toUpperCase()
-        + " | " + socketId
+        + " | " + socket.id
         + " | " + ipAddress
         + "\n" + jsonPrint(keepAliveObj)
       ));
       return;
     }
 
-    authenticatedSocketCache.get(socketId, function(err, authSocketObj){
+    authenticatedSocketCache.get(socket.id, function(err, authSocketObj){
 
       if (authSocketObj !== undefined) {
 
         if (configuration.verbose) {
           console.log(chalkLog("... KEEPALIVE AUTHENTICATED SOCKET"
-            + " | " + socketId
+            + " | " + socket.id
             + " | NSP: " + authSocketObj.namespace.toUpperCase()
             + " | USER ID: " + authSocketObj.userId
           ));
         }
 
         authSocketObj.timeStamp = moment().valueOf();
-        authenticatedSocketCache.set(socketId, authSocketObj);
+        authenticatedSocketCache.set(socket.id, authSocketObj);
 
       }
       else {
         console.log(chalkAlert("*** KEEPALIVE UNAUTHENTICATED SOCKET | DISCONNECTING..."
-          + " | " + socketId
+          + " | " + socket.id
           + " | NSP: " + socket.nsp.name.toUpperCase()
           + " | " + keepAliveObj.user.userId
         ));
@@ -3470,15 +3470,15 @@ function initSocketHandler(socketObj) {
           + " | " + "ADMIN" 
           + " | " + getTimeStamp()
           + " | " + keepAliveObj.user.userId
-          + " | " + socketId
+          + " | " + socket.id
         ));
 
         sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
-        if (!adminHashMap.has(socketId)) { 
+        if (!adminHashMap.has(socket.id)) { 
 
           sessionObj.ip = ipAddress;
-          sessionObj.socketId = socketId;
+          sessionObj.socketId = socket.id;
           sessionObj.type = currentSessionType;
           sessionObj.timeStamp = moment().valueOf();
           sessionObj.user = keepAliveObj.user;
@@ -3492,21 +3492,21 @@ function initSocketHandler(socketObj) {
             + " | " + getTimeStamp()
             + " | " + keepAliveObj.user.userId
             + " | " + sessionObj.ip
-            + " | " + socketId
+            + " | " + socket.id
           ));
 
-          adminHashMap.set(socketId, sessionObj);
+          adminHashMap.set(socket.id, sessionObj);
           adminNameSpace.emit("ADMIN_ADD", sessionObj);
 
         }
         else {
-          sessionObj = adminHashMap.get(socketId);
+          sessionObj = adminHashMap.get(socket.id);
 
           sessionObj.timeStamp = moment().valueOf();
           sessionObj.user = keepAliveObj.user;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
-          adminHashMap.set(socketId, sessionObj);
+          adminHashMap.set(socket.id, sessionObj);
 
           adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
         }
@@ -3523,21 +3523,21 @@ function initSocketHandler(socketObj) {
           + " | " + currentSessionType + " SERVER" 
           + " | " + getTimeStamp()
           + " | " + keepAliveObj.user.userId
-          + " | " + socketId
+          + " | " + socket.id
         ));
 
-        sessionObj.socketId = socketId;
+        sessionObj.socketId = socket.id;
         sessionObj.ip = ipAddress;
         sessionObj.type = currentSessionType;
         sessionObj.timeStamp = moment().valueOf();
         sessionObj.user = keepAliveObj.user;
 
-        tempServerObj = serverCache.get(socketId);
+        tempServerObj = serverCache.get(socket.id);
 
         if (!tempServerObj) { 
 
           sessionObj.ip = ipAddress;
-          sessionObj.socketId = socketId;
+          sessionObj.socketId = socket.id;
           sessionObj.type = currentSessionType;
           sessionObj.timeStamp = moment().valueOf();
           sessionObj.user = keepAliveObj.user;
@@ -3551,10 +3551,10 @@ function initSocketHandler(socketObj) {
             + " | " + getTimeStamp()
             + " | " + keepAliveObj.user.userId
             + " | " + sessionObj.ip
-            + " | " + socketId
+            + " | " + socket.id
           ));
 
-          serverCache.set(socketId, sessionObj);
+          serverCache.set(socket.id, sessionObj);
 
           adminNameSpace.emit("SERVER_ADD", sessionObj);
         }
@@ -3566,7 +3566,7 @@ function initSocketHandler(socketObj) {
           sessionObj.user = keepAliveObj.user;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
-          serverCache.set(socketId, sessionObj);
+          serverCache.set(socket.id, sessionObj);
 
           adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
           socket.emit("GET_STATS");
@@ -3580,20 +3580,20 @@ function initSocketHandler(socketObj) {
           + " | " + "VIEWER"
           + " | " + getTimeStamp()
           + " | " + keepAliveObj.user.userId
-          + " | " + socketId
+          + " | " + socket.id
         ));
 
-        sessionObj.socketId = socketId;
+        sessionObj.socketId = socket.id;
         sessionObj.ip = ipAddress;
         sessionObj.type = currentSessionType;
         sessionObj.timeStamp = moment().valueOf();
         sessionObj.user = keepAliveObj.user;
 
-        tempViewerObj = viewerCache.get(socketId);
+        tempViewerObj = viewerCache.get(socket.id);
 
         if (!tempViewerObj) { 
 
-          sessionObj.socketId = socketId;
+          sessionObj.socketId = socket.id;
           sessionObj.ip = ipAddress;
           sessionObj.type = currentSessionType;
           sessionObj.timeStamp = moment().valueOf();
@@ -3608,10 +3608,10 @@ function initSocketHandler(socketObj) {
             + " | " + getTimeStamp()
             + " | " + keepAliveObj.user.userId
             + " | " + sessionObj.ip
-            + " | " + socketId
+            + " | " + socket.id
           ));
 
-          viewerCache.set(socketId, sessionObj);
+          viewerCache.set(socket.id, sessionObj);
           adminNameSpace.emit("VIEWER_ADD", sessionObj);
         }
         else {
@@ -3622,9 +3622,9 @@ function initSocketHandler(socketObj) {
           sessionObj.user = keepAliveObj.user;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
-          viewerHashMap.set(socketId, sessionObj);
+          viewerHashMap.set(socket.id, sessionObj);
 
-          viewerCache.set(socketId, sessionObj);
+          viewerCache.set(socket.id, sessionObj);
 
           adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
         }
@@ -3642,7 +3642,7 @@ function initSocketHandler(socketObj) {
 
     console.log(chalkSocket("R< TWITTER_FOLLOW"
       + " | " + getTimeStamp()
-      + " | SID: " + socketId
+      + " | SID: " + socket.id
       + " | UID: " + u.userId
       + " | @" + u.screenName
     ));
@@ -3664,7 +3664,7 @@ function initSocketHandler(socketObj) {
 
     console.log(chalkSocket("TWITTER_UNFOLLOW"
       + " | " + getTimeStamp()
-      + " | SID: " + socketId
+      + " | SID: " + socket.id
       + " | UID: " + u.userId
       + " | @" + u.screenName
     ));
@@ -3693,7 +3693,7 @@ function initSocketHandler(socketObj) {
 
     console.log(chalkSocket("TWITTER_SEARCH_NODE"
       + " | " + getTimeStamp()
-      + " | SID: " + socketId
+      + " | SID: " + socket.id
       + " | " + searchNode
     ));
 
@@ -4029,7 +4029,7 @@ function initSocketHandler(socketObj) {
     if (dataObj.node.nodeType === "user") {
       console.log(chalkSocket("TWITTER_CATEGORIZE_NODE"
         + " | " + getTimeStamp()
-        + " | SID: " + socketId
+        + " | SID: " + socket.id
         + " | @" + dataObj.node.screenName
         + " | CAT: " + dataObj.category
       ));
@@ -4037,7 +4037,7 @@ function initSocketHandler(socketObj) {
     if (dataObj.node.nodeType === "hashtag") {
       console.log(chalkSocket("TWITTER_CATEGORIZE_NODE"
         + " | " + getTimeStamp()
-        + " | SID: " + socketId
+        + " | SID: " + socket.id
         + " | #" + dataObj.node.nodeId
         + " | CAT: " + dataObj.category
       ));
@@ -4052,7 +4052,7 @@ function initSocketHandler(socketObj) {
           socket.emit("SET_TWITTER_USER", updatedNodeObj);
           console.log(chalkSocket("TX> SET_TWITTER_USER"
             + " | " + getTimeStamp()
-            + " | SID: " + socketId
+            + " | SID: " + socket.id
             + "\nNID: " + updatedNodeObj.nodeId
             + " | UID: " + updatedNodeObj.userId
             + " | @" + updatedNodeObj.screenName
@@ -4068,7 +4068,7 @@ function initSocketHandler(socketObj) {
           socket.emit("SET_TWITTER_HASHTAG", updatedNodeObj);
           console.log(chalkSocket("TX> SET_TWITTER_HASHTAG"
             + " | " + getTimeStamp()
-            + " | SID: " + socketId
+            + " | SID: " + socket.id
             + " | #" + updatedNodeObj.nodeId
             + " | Ms: " + updatedNodeObj.mentions
             + " | CAT: M: " + updatedNodeObj.category + " | A: " + updatedNodeObj.categoryAuto
@@ -4136,7 +4136,7 @@ function initSocketHandler(socketObj) {
     viewerObj.timeStamp = moment().valueOf();
 
     console.log(chalkAlert("LOGIN"
-      + " | SID: " + socketId
+      + " | SID: " + socket.id
       + "\n" + jsonPrint(viewerObj)
     ));
 
@@ -4145,8 +4145,8 @@ function initSocketHandler(socketObj) {
 
   socket.on("STATS", function socketStats(statsObj){
 
-    let serverObj = serverCache.get(socketId);
-    let viewerObj = viewerCache.get(socketId);
+    let serverObj = serverCache.get(socket.id);
+    let viewerObj = viewerCache.get(socket.id);
 
     if (serverObj) {
 
@@ -4154,7 +4154,7 @@ function initSocketHandler(socketObj) {
       serverObj.stats = statsObj;
       serverObj.timeStamp = moment().valueOf();
 
-      serverCache.set(socketId, serverObj);
+      serverCache.set(socket.id, serverObj);
 
       if (configuration.verbose) {
         console.log(chalkSocket("R> STATS | " + serverObj.user.userId));
@@ -4169,7 +4169,7 @@ function initSocketHandler(socketObj) {
       viewerObj.stats = statsObj;
       viewerObj.timeStamp = moment().valueOf();
 
-      viewerCache.set(socketId, viewerObj);
+      viewerCache.set(socket.id, viewerObj);
 
       if (configuration.verbose) {
         console.log(chalkSocket("R> STATS | " + viewerObj.user.userId));
@@ -4179,7 +4179,7 @@ function initSocketHandler(socketObj) {
     }
 
     if (configuration.verbose) {
-      console.log(chalkSocket("R> STATS | " + socketId));
+      console.log(chalkSocket("R> STATS | " + socket.id));
     }
   });
 }

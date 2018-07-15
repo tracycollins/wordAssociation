@@ -390,8 +390,8 @@ function ViewTreepack() {
         topTermsDivVisible = false;
       }
       else { 
-        topTermsDiv.style("display", "unset"); 
-        topTermsDivVisible = true;
+        // topTermsDiv.style("display", "unset"); 
+        // topTermsDivVisible = true;
       }
     });
 
@@ -405,8 +405,8 @@ function ViewTreepack() {
       topTermsDivVisible = false;
     }
     else { 
-      topTermsDiv.style("display", "unset"); 
-      topTermsDivVisible = true;
+      // topTermsDiv.style("display", "unset"); 
+      // topTermsDivVisible = true;
     }
   };
 
@@ -415,8 +415,8 @@ function ViewTreepack() {
 
   document.addEventListener("mousemove", function mousemoveFunc() {
 
-    topTermsDiv.style("display", "unset");
-    topTermsDivVisible = true;
+    // topTermsDiv.style("display", "unset");
+    // topTermsDivVisible = true;
 
     if (mouseHoverFlag) { d3.select("body").style("cursor", "pointer"); } 
     else { d3.select("body").style("cursor", "default"); }

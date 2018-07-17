@@ -4856,6 +4856,11 @@ function initCheckRateLimitInterval(interval){
 
 function getCurrentThreeceeUser(){
 
+  if (!statsObj.threeceeUsersConfiguredFlag) {
+    console.log(chalkAlert("*** THREECEE_USERS NOT CONFIGURED"));
+    return false;
+  }
+
   if (configuration.threeceeUsers.length === 0){
     console.log(chalkAlert("??? NO THREECEE_USERS ???"));
     statsObj.currentThreeceeUserIndex = 0;
@@ -4962,7 +4967,10 @@ function initTransmitNodeQueueInterval(interval){
 
               const currentThreeceeUser = getCurrentThreeceeUser();
 
-              if (threeceeTwitter[currentThreeceeUser].ready && twitUserShowReady && followable){
+              if (currentThreeceeUser
+                && threeceeTwitter[currentThreeceeUser].ready 
+                && twitUserShowReady 
+                && followable){
 
                 threeceeTwitter[currentThreeceeUser].twit.get("users/show", 
                   {user_id: n.nodeId, include_entities: true}, 
@@ -7019,7 +7027,7 @@ initialize(function initializeComplete(err) {
     initSorterMessageRxQueueInterval(DEFAULT_INTERVAL);
     initSaveFileQueue(configuration);
     initIgnoreWordsHashMap();
-    initTransmitNodeQueueInterval(TRANSMIT_NODE_QUEUE_INTERVAL);
+    // initTransmitNodeQueueInterval(TRANSMIT_NODE_QUEUE_INTERVAL);
     initCategoryHashmapsInterval(configuration.categoryHashmapsUpdateInterval);
     initUpdateTrendsInterval(UPDATE_TRENDS_INTERVAL);
     initRateQinterval(RATE_QUEUE_INTERVAL);

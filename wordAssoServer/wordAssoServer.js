@@ -1280,7 +1280,7 @@ let tweetParser;
 
 function initStats(callback){
   console.log(chalk.bold.black("INIT STATS"));
-  statsObj = {};
+  // statsObj = {};
 
   statsObj.ioReady = false;
   statsObj.internetReady = false;

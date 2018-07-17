@@ -7043,7 +7043,7 @@ initialize(function initializeComplete(err) {
     initSorterMessageRxQueueInterval(DEFAULT_INTERVAL);
     initSaveFileQueue(configuration);
     initIgnoreWordsHashMap();
-    // initTransmitNodeQueueInterval(TRANSMIT_NODE_QUEUE_INTERVAL);
+    initTransmitNodeQueueInterval(TRANSMIT_NODE_QUEUE_INTERVAL);
     initCategoryHashmapsInterval(configuration.categoryHashmapsUpdateInterval);
     initUpdateTrendsInterval(UPDATE_TRENDS_INTERVAL);
     initRateQinterval(RATE_QUEUE_INTERVAL);

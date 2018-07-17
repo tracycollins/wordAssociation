@@ -4760,6 +4760,7 @@ function checkRateLimit(params, callback){
       if (threeceeTwitter[params.user].twitterRateLimitExceptionFlag 
         && threeceeTwitter[params.user].twitterRateLimitResetAt.isBefore(moment())){
 
+        threeceeTwitter[params.user].ready = true;
         threeceeTwitter[params.user].twitterRateLimitExceptionFlag = false;
 
         threeceeTwitter[params.user].twitterRateLimit = data.resources.users["/users/show/:id"].limit;
@@ -4841,7 +4842,7 @@ function initCheckRateLimitInterval(interval){
 
     configuration.threeceeUsers.forEach(function(user){
 
-      if (threeceeTwitter[user].ready && threeceeTwitter[user].twitterRateLimitExceptionFlag) {
+      if (threeceeTwitter[user].twitterRateLimitExceptionFlag) {
         checkRateLimit({user: user}, function(){});
       }
     });
@@ -5003,6 +5004,8 @@ function initTransmitNodeQueueInterval(interval){
                         + " | " + getTimeStamp() 
                         + " | @" + currentThreeceeUser 
                       ));
+
+                      threeceeTwitter[currentThreeceeUser].ready = false;
 
                       threeceeTwitter[currentThreeceeUser].twitterRateLimitException = moment();
                       threeceeTwitter[currentThreeceeUser].twitterRateLimitExceptionFlag = true;
@@ -6478,7 +6481,7 @@ function initConfigInterval(interval){
     threeceeTwitter[user].status = "UNCONFIGURED";
     threeceeTwitter[user].error = false;
     threeceeTwitter[user].twitterRateLimitException = false;
-    threeceeTwitter[user].twitterRateLimitExceptionFlag = true;
+    threeceeTwitter[user].twitterRateLimitExceptionFlag = false;
     threeceeTwitter[user].twitterRateLimitResetAt = false;
 
     debug(chalkTwitter("THREECEE USER @" + user + "\n" + jsonPrint(threeceeTwitter[user])));

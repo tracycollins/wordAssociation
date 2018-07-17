@@ -4861,6 +4861,8 @@ function initCheckRateLimitInterval(interval){
 
 function getCurrentThreeceeUser(){
 
+  console.log(chalkTwitter("3C USERS\s" + jsonPrint(threeceeTwitter)));
+
   if (!statsObj.threeceeUsersConfiguredFlag) {
     console.log(chalkAlert("*** THREECEE_USERS NOT CONFIGURED"));
     return false;
@@ -4890,7 +4892,7 @@ function getCurrentThreeceeUser(){
   let checkedAllUsers = false;
   const startIndex = statsObj.currentThreeceeUserIndex;
 
-    console.log(chalkTwitter("3C USER: @" + statsObj.currentThreeceeUser));
+  console.log(chalkTwitter("3C USER: @" + statsObj.currentThreeceeUser));
 
   while (!checkedAllUsers && !threeceeTwitter[statsObj.currentThreeceeUser].ready) {
 
@@ -6965,6 +6967,7 @@ function initThreeceeTwitterUsers(params, callback){
           console.log(chalkTwitter("LOADED TWITTER CONFIG"
             + " | 3C @" + user
             + " | " + dropboxConfigTwitterFolder + "/" + configFile
+            + "\nCONFIG\n" + jsonPrint(twitterConfig)
           ));
 
           threeceeTwitter[user].twit = new Twit(twitterConfig);

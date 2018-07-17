@@ -215,7 +215,7 @@ statsObj.currentThreeceeUser = configuration.threeceeUsers[statsObj.currentThree
 
 
 const Twit = require("twit");
-let twit = false;
+// let twit = false;
 
 let threeceeTwitter = {};
 
@@ -3904,9 +3904,12 @@ function initSocketHandler(socketObj) {
               + " | NODE SEARCH: " + nodeSearchType
               + "\n" + printUser({user:user})
             ));
-            
-            if (twit) {
-              twit.get("users/show", 
+
+            const currentThreeceeUser = getCurrentThreeceeUser();
+
+
+            if (threeceeTwitter[currentThreeceeUser].ready) {
+              threeceeTwitter[currentThreeceeUser].twit.get("users/show", 
                 {user_id: user.nodeId, include_entities: true}, function usersShow (err, rawUser, response){
                 if (err) {
                   console.log(chalkError("ERROR users/show rawUser | @" + user.screenName + " | " + err));
@@ -4046,8 +4049,10 @@ function initSocketHandler(socketObj) {
               twitQuery = {screen_name: searchNodeUser.screenName, include_entities: true};
             }
 
-            if (twit) {
-              twit.get("users/show", twitQuery, function usersShow (err, rawUser, response){
+            const currentThreeceeUser = getCurrentThreeceeUser();
+
+            if (threeceeTwitter[currentThreeceeUser].ready) {
+              threeceeTwitter[currentThreeceeUser].twit.get("users/show", twitQuery, function usersShow (err, rawUser, response){
                 if (err) {
                   console.log(chalkError("ERROR users/show rawUser" + err));
                   console.log(chalkError("ERROR users/show rawUser\n" + jsonPrint(err)));
@@ -4449,14 +4454,19 @@ function checkCategory(nodeObj, callback) {
 
 function updateTrends(){
 
-  if (!twit) {
-    console.log(chalkError("TWIT\n" + jsonPrint(twit)));
+  const currentThreeceeUser = getCurrentThreeceeUser();
+
+  if (!threeceeTwitter[currentThreeceeUser].ready) {
+    
+    console.log(chalkError("*** updateTrends | TWIT NOT READY"
+      + " | CURRENT 3C USER: @" + currentThreeceeUser
+    ));
+
     return;
   }
 
-  twit.get("trends/place", {id: 1}, function updateTrendsWorldWide (err, data, response){
+  threeceeTwitter[currentThreeceeUser].twit.get("trends/place", {id: 1}, function updateTrendsWorldWide (err, data, response){
 
-    // debug(chalkInfo("twit trends/place response\n" + jsonPrint(response)));
     if (err){
       console.log(chalkError("*** TWITTER GET trends/place ID=1 ERROR ***"
         + " | " + err
@@ -4476,7 +4486,7 @@ function updateTrends(){
     }
   });
   
-  twit.get("trends/place", {id: 23424977}, function updateTrendsUs (err, data, response){
+  threeceeTwitter[currentThreeceeUser].twit.get("trends/place", {id: 23424977}, function updateTrendsUs (err, data, response){
 
     if (err){
       console.log(chalkError("*** TWITTER GET trends/place ID=23424977 ERROR ***"
@@ -4507,11 +4517,13 @@ function initUpdateTrendsInterval(interval){
 
   clearInterval(updateTrendsInterval);
 
-  if (twit) { updateTrends(); }
+  const currentThreeceeUser = getCurrentThreeceeUser();
+
+  if (currentThreeceeUser && threeceeTwitter[currentThreeceeUser] && threeceeTwitter[currentThreeceeUser].ready) { updateTrends(); }
 
   updateTrendsInterval = setInterval(function updateTrendsIntervalCall () {
 
-    if (twit) { updateTrends(); }
+    if (threeceeTwitter[currentThreeceeUser].ready) { updateTrends(); }
 
   }, interval);
 }
@@ -4893,9 +4905,6 @@ function getCurrentThreeceeUser(){
   }
 
   statsObj.currentThreeceeUser = configuration.threeceeUsers[statsObj.currentThreeceeUserIndex];
-
-  // console.log(chalkTwitter("3C USER INDEX: " + statsObj.currentThreeceeUserIndex));
-  // console.log(chalkTwitter("3C USER: @" + statsObj.currentThreeceeUser));
 
   if ((threeceeTwitter[statsObj.currentThreeceeUser] !== undefined)
     && threeceeTwitter[statsObj.currentThreeceeUser].ready){

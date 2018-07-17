@@ -4861,7 +4861,7 @@ function initCheckRateLimitInterval(interval){
 
 function getCurrentThreeceeUser(){
 
-  console.log(chalkTwitter("getCurrentThreeceeUser 3C USERS\s" + jsonPrint(threeceeTwitter)));
+  debug(chalkTwitter("getCurrentThreeceeUser 3C USERS\s" + jsonPrint(threeceeTwitter)));
 
   if (!statsObj.threeceeUsersConfiguredFlag) {
     console.log(chalkAlert("*** THREECEE_USERS NOT CONFIGURED"));
@@ -6469,7 +6469,7 @@ function initConfigInterval(interval){
     file: dropboxConfigDefaultFile
   };
 
-  console.log(chalkTwitter("THREECEE USERS\n" + jsonPrint(configuration.threeceeUsers)));
+  debug(chalkTwitter("THREECEE USERS\n" + jsonPrint(configuration.threeceeUsers)));
 
   configuration.threeceeUsers.forEach(function(user){
     threeceeTwitter[user] = {};
@@ -6481,7 +6481,7 @@ function initConfigInterval(interval){
     threeceeTwitter[user].twitterRateLimitExceptionFlag = true;
     threeceeTwitter[user].twitterRateLimitResetAt = false;
 
-    console.log(chalkTwitter("THREECEE USER @" + user + "\n" + jsonPrint(threeceeTwitter[user])));
+    debug(chalkTwitter("THREECEE USER @" + user + "\n" + jsonPrint(threeceeTwitter[user])));
   });
 
   configInterval = setInterval(function(){

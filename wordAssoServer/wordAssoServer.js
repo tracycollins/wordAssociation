@@ -4519,7 +4519,9 @@ function initUpdateTrendsInterval(interval){
 
   const currentThreeceeUser = getCurrentThreeceeUser();
 
-  if (currentThreeceeUser && threeceeTwitter[currentThreeceeUser] && threeceeTwitter[currentThreeceeUser].ready) { updateTrends(); }
+  if (currentThreeceeUser 
+    && (threeceeTwitter[currentThreeceeUser] !== undefined) 
+    && threeceeTwitter[currentThreeceeUser].ready) { updateTrends(); }
 
   updateTrendsInterval = setInterval(function updateTrendsIntervalCall () {
 

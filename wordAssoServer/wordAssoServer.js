@@ -4864,7 +4864,7 @@ function getCurrentThreeceeUser(){
   debug(chalkTwitter("getCurrentThreeceeUser 3C USERS\s" + jsonPrint(threeceeTwitter)));
 
   if (!statsObj.threeceeUsersConfiguredFlag) {
-    console.log(chalkAlert("*** THREECEE_USERS NOT CONFIGURED"));
+    debug(chalkAlert("*** THREECEE_USERS NOT CONFIGURED"));
     return false;
   }
 
@@ -4878,18 +4878,18 @@ function getCurrentThreeceeUser(){
   if (configuration.threeceeUsers.length === 1){
     statsObj.currentThreeceeUserIndex = 0;
     statsObj.currentThreeceeUser = configuration.threeceeUsers[statsObj.currentThreeceeUserIndex];
-    console.log(chalkTwitter("CURRENT 3C USER: @" + statsObj.currentThreeceeUser));
+    debug(chalkTwitter("CURRENT 3C USER: @" + statsObj.currentThreeceeUser));
     return statsObj.currentThreeceeUser;
   }
 
   statsObj.currentThreeceeUser = configuration.threeceeUsers[statsObj.currentThreeceeUserIndex];
 
-  console.log(chalkTwitter("3C USER INDEX: " + statsObj.currentThreeceeUserIndex));
-  console.log(chalkTwitter("3C USER: @" + statsObj.currentThreeceeUser));
+  // console.log(chalkTwitter("3C USER INDEX: " + statsObj.currentThreeceeUserIndex));
+  // console.log(chalkTwitter("3C USER: @" + statsObj.currentThreeceeUser));
 
   if ((threeceeTwitter[statsObj.currentThreeceeUser] !== undefined)
     && threeceeTwitter[statsObj.currentThreeceeUser].ready){
-    console.log(chalkTwitter("CURRENT 3C USER: @" + statsObj.currentThreeceeUser));
+    debug(chalkTwitter("CURRENT 3C USER: @" + statsObj.currentThreeceeUser));
     return statsObj.currentThreeceeUser;
   }
 
@@ -4911,7 +4911,7 @@ function getCurrentThreeceeUser(){
     if (statsObj.currentThreeceeUserIndex === startIndex) { checkedAllUsers = true; }
   }
 
-  console.log(chalkTwitter("getCurrentThreeceeUser 3C USERS\n" + jsonPrint(threeceeTwitter)));
+  debug(chalkTwitter("getCurrentThreeceeUser 3C USERS\n" + jsonPrint(threeceeTwitter)));
   return statsObj.currentThreeceeUser;
 
 }

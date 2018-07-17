@@ -1767,9 +1767,13 @@ function loadConfigFile(params, callback) {
               console.log("WA | LOADED THREECEE_USERS: " + loadedConfigObj.THREECEE_USERS);
               configuration.threeceeUsers = loadedConfigObj.THREECEE_USERS;
 
-              if (configuration.threeceeUsers !== previousConfiguration.threeceeUsers) {
+              if (!statsObj.threeceeUsersConfiguredFlag 
+                || (configuration.threeceeUsers !== previousConfiguration.threeceeUsers)) {
                 initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
               }
+            }
+            else if (!statsObj.threeceeUsersConfiguredFlag) {
+                initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
             }
 
             if (loadedConfigObj.DEFAULT_CURSOR_BATCH_SIZE !== undefined){

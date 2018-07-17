@@ -10,6 +10,7 @@
       "WA_VERBOSE_MODE": false,
       "FORCE_COLOR": 1,
       "NODE_ENV": "development",
+      "THREECEE_USERS": ["altthreecee00", "altthreecee01", "altthreecee02"],
       "CATEGORY_HASHMAPS_UPDATE_INTERVAL": 60000,
       "HEAPDUMP_ENABLED": false,
       "HEAPDUMP_MODULO": 10,

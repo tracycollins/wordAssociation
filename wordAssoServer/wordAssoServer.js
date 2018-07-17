@@ -4890,6 +4890,8 @@ function getCurrentThreeceeUser(){
   let checkedAllUsers = false;
   const startIndex = statsObj.currentThreeceeUserIndex;
 
+    console.log(chalkTwitter("3C USER: @" + statsObj.currentThreeceeUser));
+
   while (!checkedAllUsers && !threeceeTwitter[statsObj.currentThreeceeUser].ready) {
 
     if (statsObj.currentThreeceeUserIndex < configuration.threeceeUsers.length-1){
@@ -4904,7 +4906,7 @@ function getCurrentThreeceeUser(){
     if (statsObj.currentThreeceeUserIndex === startIndex) { checkedAllUsers = true; }
   }
 
-  console.log(chalkTwitter("CURRENT 3C USER: @" + statsObj.currentThreeceeUser));
+  console.log(chalkTwitter("getCurrentThreeceeUser 3C USERS\n" + jsonPrint(threeceeTwitter)));
   return statsObj.currentThreeceeUser;
 
 }

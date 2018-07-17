@@ -3907,8 +3907,10 @@ function initSocketHandler(socketObj) {
 
             const currentThreeceeUser = getCurrentThreeceeUser();
 
+            if ( currentThreeceeUser
+              && (threeceeTwitter[currentThreeceeUser] !== undefined)
+              && threeceeTwitter[currentThreeceeUser].ready) {
 
-            if (threeceeTwitter[currentThreeceeUser].ready) {
               threeceeTwitter[currentThreeceeUser].twit.get("users/show", 
                 {user_id: user.nodeId, include_entities: true}, function usersShow (err, rawUser, response){
                 if (err) {
@@ -4051,7 +4053,10 @@ function initSocketHandler(socketObj) {
 
             const currentThreeceeUser = getCurrentThreeceeUser();
 
-            if (threeceeTwitter[currentThreeceeUser].ready) {
+            if ( currentThreeceeUser
+              && (threeceeTwitter[currentThreeceeUser] !== undefined)
+              && threeceeTwitter[currentThreeceeUser].ready) 
+            {
               threeceeTwitter[currentThreeceeUser].twit.get("users/show", twitQuery, function usersShow (err, rawUser, response){
                 if (err) {
                   console.log(chalkError("ERROR users/show rawUser" + err));
@@ -4456,7 +4461,10 @@ function updateTrends(){
 
   const currentThreeceeUser = getCurrentThreeceeUser();
 
-  if (!threeceeTwitter[currentThreeceeUser].ready) {
+  if ( !currentThreeceeUser
+    || (threeceeTwitter[currentThreeceeUser] === undefined)
+    || threeceeTwitter[currentThreeceeUser].ready)
+  {
     
     console.log(chalkError("*** updateTrends | TWIT NOT READY"
       + " | CURRENT 3C USER: @" + currentThreeceeUser
@@ -4517,7 +4525,7 @@ function initUpdateTrendsInterval(interval){
 
   clearInterval(updateTrendsInterval);
 
-  const currentThreeceeUser = getCurrentThreeceeUser();
+  let currentThreeceeUser = getCurrentThreeceeUser();
 
   if (currentThreeceeUser 
     && (threeceeTwitter[currentThreeceeUser] !== undefined) 
@@ -4525,7 +4533,11 @@ function initUpdateTrendsInterval(interval){
 
   updateTrendsInterval = setInterval(function updateTrendsIntervalCall () {
 
-    if (threeceeTwitter[currentThreeceeUser].ready) { updateTrends(); }
+    currentThreeceeUser = getCurrentThreeceeUser();
+
+    if (currentThreeceeUser 
+      && (threeceeTwitter[currentThreeceeUser] !== undefined) 
+      && threeceeTwitter[currentThreeceeUser].ready) { updateTrends(); }
 
   }, interval);
 }
@@ -5001,6 +5013,7 @@ function initTransmitNodeQueueInterval(interval){
               const currentThreeceeUser = getCurrentThreeceeUser();
 
               if (currentThreeceeUser
+                && (threeceeTwitter[currentThreeceeUser] !== undefined) 
                 && threeceeTwitter[currentThreeceeUser].ready 
                 && twitUserShowReady 
                 && followable){

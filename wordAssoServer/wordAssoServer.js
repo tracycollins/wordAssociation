@@ -1429,6 +1429,7 @@ function initStats(callback){
 }
 
 function getTimeStamp(inputTime) {
+
   let currentTimeStamp ;
 
   if (inputTime === undefined) {
@@ -1439,9 +1440,17 @@ function getTimeStamp(inputTime) {
     currentTimeStamp = moment(inputTime).format(compactDateTimeFormat);
     return currentTimeStamp;
   }
-  else {
+  else if (moment(new Date(inputTime)).isValid()) {
+    currentTimeStamp = moment(new Date(inputTime)).format(compactDateTimeFormat);
+    return currentTimeStamp;
+  }
+  else if (moment(parseInt(inputTime)).isValid()) {
     currentTimeStamp = moment(parseInt(inputTime)).format(compactDateTimeFormat);
     return currentTimeStamp;
+  }
+  else {
+    console.log(chalkAlert("*** getTimeStamp INVALID DATE: " + inputTime));
+    return null;
   }
 }
 

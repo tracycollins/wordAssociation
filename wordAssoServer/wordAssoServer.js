@@ -169,6 +169,7 @@ let statsObj = {};
 statsObj.commandLineArgsLoaded = false;
 statsObj.currentThreeceeUserIndex = 0;
 statsObj.currentThreeceeUser = "altthreecee00";
+statsObj.threeceeUsersConfiguredFlag = false;
 
 
 let previousConfiguration = {};
@@ -6964,6 +6965,7 @@ function initThreeceeTwitterUsers(params, callback){
           threeceeTwitter[user].ready = true;
           threeceeTwitter[user].status = false;
           threeceeTwitter[user].error = false;
+          statsObj.threeceeUsersConfiguredFlag = true;
 
           cb();
         }
@@ -6971,8 +6973,10 @@ function initThreeceeTwitterUsers(params, callback){
     );
   }, function(){
 
+
     getCurrentThreeceeUser();
     console.log(chalkAlert("CURRENT 3C TWITTER USER: @" + statsObj.currentThreeceeUser));
+
 
     if (callback !== undefined) { callback(); }
 

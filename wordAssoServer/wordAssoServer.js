@@ -6215,7 +6215,11 @@ function initTweetParser(params, callback){
     if (m.op === "PONG"){
       tweetParserPongReceived = m.pongId;
       childrenHashMap[params.childId].status = "RUNNING";
-      debug(chalkInfo("<PONG | TWEET PARSER | PONG ID: " + getTimeStamp(m.pongId)));
+      console.log(chalkLog("<PONG | TWEET PARSER"
+        + " | NOW: " + getTimeStamp()
+        + " | PONG ID: " + getTimeStamp(m.pongId)
+        + " | RESPONSE TIME: " + msToTime((moment().valueOf() - m.pongId))
+      ));
     } 
     else if (tweetParserMessageRxQueue.length < MAX_Q){
       tweetParserMessageRxQueue.push(m);

@@ -6198,6 +6198,9 @@ function initTweetParser(params, callback){
 
   console.log(chalk.bold.black("INIT TWEET PARSER\n" + jsonPrint(params)));
 
+  clearInterval(tweetParserPingInterval);
+  tweetParserPongReceived = false;
+
   statsObj.tweetParserReady = false;
 
   const twp = cp.fork(`${__dirname}/js/libs/tweetParser.js`);

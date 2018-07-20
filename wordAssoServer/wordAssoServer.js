@@ -6018,7 +6018,7 @@ function initTweetParserPingInterval(interval){
         console.log(chalkAlert("*** PONG TIMEOUT | TWEET_PARSER"
           + " | NOW: " + getTimeStamp()
           + " | PING ID: " + getTimeStamp(pingId)
-          + " | ELAPSED: " + msToTime(moment().valueOf - pingId)
+          + " | ELAPSED: " + msToTime(moment().valueOf() - pingId)
         ));
         
         slackPostMessage(slackErrorChannel, "\n*CHILD ERROR*\nTWEET_PARSER\nPONG TIMEOUT");

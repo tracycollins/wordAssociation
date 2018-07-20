@@ -5975,6 +5975,7 @@ function initKeySortInterval(interval){
 function initTweetParserPingInterval(interval){
 
   clearInterval(tweetParserPingInterval);
+
   tweetParserPongReceived = false;
 
   pingId = moment().valueOf();
@@ -6014,7 +6015,11 @@ function initTweetParserPingInterval(interval){
       }
       else {
 
-        console.log(chalkAlert("*** PONG TIMEOUT | TWEET_PARSER | PING ID | " + getTimeStamp(pingId)));
+        console.log(chalkAlert("*** PONG TIMEOUT | TWEET_PARSER"
+          + " | NOW: " + getTimeStamp()
+          + " | PING ID: " + getTimeStamp(pingId)
+          + " | ELAPSED: " + msToTime(moment().valueOf - pingId)
+        ));
         
         slackPostMessage(slackErrorChannel, "\n*CHILD ERROR*\nTWEET_PARSER\nPONG TIMEOUT");
 
@@ -6234,6 +6239,7 @@ function initTweetParser(params, callback){
     ));
     statsObj.tweetParserSendReady = false;
     statsObj.tweetParserReady = false;
+    clearInterval(tweetParserPingInterval);
     childrenHashMap[params.childId].status = "ERROR";
   });
 
@@ -6244,6 +6250,7 @@ function initTweetParser(params, callback){
     ));
     statsObj.tweetParserSendReady = false;
     statsObj.tweetParserReady = false;
+    clearInterval(tweetParserPingInterval);
     childrenHashMap[params.childId].status = "EXIT";
   });
 
@@ -6254,6 +6261,7 @@ function initTweetParser(params, callback){
     ));
     statsObj.tweetParserSendReady = false;
     statsObj.tweetParserReady = false;
+    clearInterval(tweetParserPingInterval);
     childrenHashMap[params.childId].status = "CLOSE";
   });
 
@@ -6277,12 +6285,14 @@ function initTweetParser(params, callback){
       ));
       statsObj.tweetParserSendReady = false;
       statsObj.tweetParserReady = false;
+      clearInterval(tweetParserPingInterval);
       childrenHashMap[params.childId].status = "ERROR";
     }
     else {
       statsObj.tweetParserSendReady = true;
       statsObj.tweetParserReady = true;
       childrenHashMap[params.childId].status = "INIT";
+      clearInterval(tweetParserPingInterval);
       setTimeout(function(){
         initTweetParserPingInterval(DEFAULT_PING_INTERVAL);
       }, 1000);

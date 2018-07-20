@@ -426,12 +426,14 @@ process.on("message", function(m) {
         + " | PING ID: " + moment(m.pingId).format(compactDateTimeFormat)
       ));
 
-      process.send({ op: "PONG", pongId: m.pingId }, function(err){
-        if (err) {
-          console.log(chalkError("TSC | !!! TWEET PARSER PONG SEND ERR: " + err));
-          quit("TWEET PARSER PONG SEND ERR");
-        }
-      });
+      setTimeout(function(){
+        process.send({ op: "PONG", pongId: m.pingId }, function(err){
+          if (err) {
+            console.log(chalkError("TSC | !!! TWEET PARSER PONG SEND ERR: " + err));
+            quit("TWEET PARSER PONG SEND ERR");
+          }
+        });
+      }, 1000);
     break;
 
     case "tweet":

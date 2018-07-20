@@ -237,7 +237,7 @@ function initTweetParserQueueInterval(cnf){
     twitterEvents: configEvents
   };
 
-  if (tweetServerController) { 
+  if (tweetServerControllerReady) { 
     if (cnf.networkObj) { tweetServerController.loadNeuralNetwork({networkObj: cnf.networkObj}, function(){}); }
     if (cnf.maxInputHashMap) { tweetServerController.loadMaxInputHashMap(cnf.maxInputHashMap, function(){}); }
     if (cnf.normalization) { tweetServerController.loadNormalization(cnf.normalization, function(){}); }

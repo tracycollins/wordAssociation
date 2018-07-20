@@ -143,14 +143,6 @@ wordAssoDb.connect(dbAppName, function(err, db) {
   configEvents.emit("DB_CONNECT");
 });
 
-// Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
-// Media = mongoose.model("Media", mediaModel.MediaSchema);
-// Place = mongoose.model("Place", placeModel.PlaceSchema);
-// Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
-// Url = mongoose.model("Url", urlModel.UrlSchema);
-// User = mongoose.model("User", userModel.UserSchema);
-// Word = mongoose.model("Word", wordModel.WordSchema);
-
 const tweetParserQueue = [];
 
 let hostname = os.hostname();
@@ -186,7 +178,18 @@ function quit(message) {
     + " | PID: " + process.pid
     
   );
-  process.exit(exitCode);
+
+  global.dbConnection.close(function () {
+    
+    console.log(chalkAlert(
+      "\n==========================\n"
+      + "TWP | MONGO DB CONNECTION CLOSED"
+      + "\n==========================\n"
+    ));
+
+    process.exit(exitCode);
+  });
+
 }
 
 process.on("SIGHUP", function processSigHup() {

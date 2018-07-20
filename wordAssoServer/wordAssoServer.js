@@ -32,7 +32,7 @@ const DEFAULT_SORTER_CHILD_ID = "wa_node_sorter";
 const DEFAULT_TWEET_PARSER_CHILD_ID = "wa_node_tweetParser";
 
 const DEFAULT_INTERVAL = 10;
-const DEFAULT_PING_INTERVAL = 5000;
+const DEFAULT_PING_INTERVAL = process.env.PING_INTERVAL || 10*ONE_SECOND;
 const DROPBOX_LIST_FOLDER_LIMIT = 50;
 const DEFAULT_MIN_FOLLOWERS_AUTO = 50000;
 const RATE_QUEUE_INTERVAL = 1000; // 1 second
@@ -5989,7 +5989,7 @@ function initTweetParserPingInterval(interval){
           initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
         });
       }
-      console.log(chalkInfo(">PING | TWEET_PARSER | PING ID: " + pingId));
+      console.log(chalkInfo(">PING | TWEET_PARSER | PING | " + getTimeStamp(pingId)));
     });
 
     tweetParserPingInterval = setInterval(function(){
@@ -6004,6 +6004,7 @@ function initTweetParserPingInterval(interval){
           if (err) {
             console.log(chalkError("*** TWEET_PARSER SEND PING ERROR: " + err));
             killChild({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, numKilled){
+              tweetParserPongReceived = false;
               initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
             });
           }
@@ -6013,7 +6014,7 @@ function initTweetParserPingInterval(interval){
       }
       else {
 
-        console.log(chalkAlert("*** PONG TIMEOUT | TWEET_PARSER | PING ID: " + pingId));
+        console.log(chalkAlert("*** PONG TIMEOUT | TWEET_PARSER | PING ID | " + getTimeStamp(pingId)));
         
         slackPostMessage(slackErrorChannel, "\n*CHILD ERROR*\nTWEET_PARSER\nPONG TIMEOUT");
 
@@ -6022,6 +6023,7 @@ function initTweetParserPingInterval(interval){
         setTimeout(function(){
 
           killChild({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, numKilled){
+            tweetParserPongReceived = false;
             initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
           });
 

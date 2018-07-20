@@ -26,7 +26,7 @@
     "deepcopy": "^1.0.0",
     "deepmerge": "^2.1.1",
     "deepool": "^2.2.0",
-    "dropbox": "^4.0.7",
+    "dropbox": "^4.0.9",
     "dropbox-streaming-upload": "^1.0.2",
     "es6-promise": "^4.2.4",
     "eventemitter2": "^5.0.1",

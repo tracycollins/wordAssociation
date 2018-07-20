@@ -345,7 +345,7 @@ process.on("message", function(m) {
       console.log(chalkInfo("TWEET PARSER INIT"
         + " | TITLE: " + m.title
         + " | INTERVAL: " + m.interval
-        + "\nMESSAGE " + jsonPrint(m)
+        // + "\nMESSAGE " + jsonPrint(m)
       ));
 
       if (cnf.networkObj) {
@@ -421,6 +421,19 @@ process.on("message", function(m) {
       });
     break;
 
+    case "PING":
+      debug(chalkLog("TSC | PING"
+        + " | PING ID: " + moment(m.pingId).format(compactDateTimeFormat)
+      ));
+
+      process.send({ op: "PONG", pongId: m.pingId }, function(err){
+        if (err) {
+          console.log(chalkError("TSC | !!! TWEET PARSER PONG SEND ERR: " + err));
+          quit("TWEET PARSER PONG SEND ERR");
+        }
+      });
+    break;
+
     case "tweet":
       if (tweetParserQueue.length < MAX_Q) {
 
@@ -432,12 +445,12 @@ process.on("message", function(m) {
         ));
       }
       else {
-        debug(chalkAlert("*** MAX TWEET PARSE Q SIZE: " + tweetParserQueue.length));
+        debug(chalkAlert("TSC | *** MAX TWEET PARSE Q SIZE: " + tweetParserQueue.length));
       }
     break;
 
     default:
-      console.error(chalkError("*** TWEET PARSER UNKNOWN OP"
+      console.error(chalkError("TSC | *** TWEET PARSER UNKNOWN OP"
         + " | INTERVAL: " + m.op
       ));
   }

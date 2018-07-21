@@ -3903,7 +3903,7 @@ function initSocketHandler(socketObj) {
           }
           else if (user) {
 
-            console.log(chalkTwitter("+++ TWITTER_SEARCH_NODE USER FOUND"
+            console.log(chalkTwitter("... TWITTER_SEARCH_NODE USER FOUND"
               + " | NODE SEARCH: " + nodeSearchType
               + "\n" + printUser({user:user})
             ));
@@ -3913,6 +3913,11 @@ function initSocketHandler(socketObj) {
             if ( currentThreeceeUser
               && (threeceeTwitter[currentThreeceeUser] !== undefined)
               && threeceeTwitter[currentThreeceeUser].ready) {
+
+              console.log(chalkTwitter("+++ TWITTER_SEARCH_NODE USER"
+                + " | GET USER TWITTER DATA"
+                + "\n" + printUser({user:user})
+              ));
 
               threeceeTwitter[currentThreeceeUser].twit.get("users/show", 
                 {user_id: user.nodeId, include_entities: true}, function usersShow (err, rawUser, response){
@@ -4015,6 +4020,10 @@ function initSocketHandler(socketObj) {
               });
             }
             else {
+              console.log(chalkTwitter("XXX TWITTER_SEARCH_NODE USER FAIL"
+                + " | 3C @" + currentThreeceeUser
+                + "\n" + printUser({user:user})
+              ));
               socket.emit("TWITTER_SEARCH_NODE_FAIL", sn);
             }
           }
@@ -4866,16 +4875,6 @@ function initCheckRateLimitInterval(interval){
 
   clearInterval(checkRateLimitInterval);
 
-  // debug(chalkInfo("TFC"
-  //   + " | CH @" + configuration.threeceeUser
-  //   + " | INIT CHECK RATE INTERVAL | " + interval
-  // ));
-
-          // threeceeTwitter[user].error = "CONFIG LOAD ERROR: " + err;
-          // threeceeTwitter[user].ready = false;
-          // threeceeTwitter[user].twit = false;
-          // threeceeTwitter[user].status = false;
-
   checkRateLimitInterval = setInterval(function(){
 
     configuration.threeceeUsers.forEach(function(user){
@@ -4884,16 +4883,6 @@ function initCheckRateLimitInterval(interval){
         checkRateLimit({user: user}, function(){});
       }
     });
-
-    // debug(chalkInfo("CHECK RATE INTERVAL"
-    //   + " | INTERVAL: " + msToTime(interval)
-    //   + " | CURRENT USER: @" + configuration.threeceeUser
-    //   + " | EXCEPTION: " + statsObj.threeceeUser.twitterRateLimitExceptionFlag
-    // ));
-
-    // if (statsObj.threeceeUser.twitterRateLimitExceptionFlag) {
-    //   checkRateLimit(function(){});
-    // }
 
   }, interval);
 }

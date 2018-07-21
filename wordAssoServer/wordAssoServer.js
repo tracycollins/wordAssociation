@@ -4558,58 +4558,52 @@ function getCurrentThreeceeUser(){
 
   if (configuration.threeceeUsers.length === 0){
     console.log(chalkAlert("??? NO THREECEE_USERS ???"));
-    statsObj.currentThreeceeUserIndex = 0;
     statsObj.currentThreeceeUser = false;
     return statsObj.currentThreeceeUser;
   }
 
-  if (configuration.threeceeUsers.length === 1){
-    statsObj.currentThreeceeUserIndex = 0;
-    statsObj.currentThreeceeUser = configuration.threeceeUsers[statsObj.currentThreeceeUserIndex];
-    debug(chalkTwitter("CURRENT 3C USER: @" + statsObj.currentThreeceeUser));
-    return statsObj.currentThreeceeUser;
-  }
+  async.eachSeries(Object.keys(configuration.threeceeUsers), function(threeceeUser, cb){
 
-  statsObj.currentThreeceeUser = configuration.threeceeUsers[statsObj.currentThreeceeUserIndex];
+    if ((threeceeTwitter[threeceeUser] !== undefined) && threeceeTwitter[threeceeUser].ready) {
 
-  if ((threeceeTwitter[statsObj.currentThreeceeUser] !== undefined)
-    && threeceeTwitter[statsObj.currentThreeceeUser].ready){
-    debug(chalkTwitter("CURRENT 3C USER: @" + statsObj.currentThreeceeUser));
-    return statsObj.currentThreeceeUser;
-  }
+      console.log(chalkTwitter("IN getCurrentThreeceeUser 3C USER"
+        + " | @" + threeceeUser + " READY"
+      ));
 
-  let checkedAllUsers = false;
-  const startIndex = statsObj.currentThreeceeUserIndex;
-
-
-  while (!checkedAllUsers && !threeceeTwitter[statsObj.currentThreeceeUser].ready) {
-
-    if (statsObj.currentThreeceeUserIndex < configuration.threeceeUsers.length-1){
-      statsObj.currentThreeceeUserIndex += 1;
+      return cb(threeceeUser);
     }
-    else {
-      statsObj.currentThreeceeUserIndex = 0;
-    }
-
-    statsObj.currentThreeceeUser = configuration.threeceeUsers[statsObj.currentThreeceeUserIndex];
 
     console.log(chalkTwitter("IN getCurrentThreeceeUser 3C USER"
-      + " | START INDEX: " + startIndex
-      + " | INDEX: " + statsObj.currentThreeceeUserIndex
-      + " | @" + statsObj.currentThreeceeUser
+      + " | @" + threeceeUser + " NOT READY"
     ));
 
-    if (statsObj.currentThreeceeUserIndex === startIndex) { checkedAllUsers = true; }
-  }
+    cb();
 
-  console.log(chalkTwitter("getCurrentThreeceeUser 3C USER"
-    + " | START INDEX: " + startIndex
-    + " | INDEX: " + statsObj.currentThreeceeUserIndex
-    + " | 3C USERS: " + Object.keys(configuration.threeceeUsers)
-    + " | @" + statsObj.currentThreeceeUser
-  ));
 
-  return statsObj.currentThreeceeUser;
+  }, function(threeceeUser){
+
+    if (threeceeUser) { 
+      statsObj.currentThreeceeUser = threeceeUser;
+
+      console.log(chalkTwitter("getCurrentThreeceeUser 3C USER"
+        + " | 3C USERS: " + Object.keys(configuration.threeceeUsers)
+        + " | @" + statsObj.currentThreeceeUser
+      ));
+
+    }
+    else {
+      statsObj.currentThreeceeUser = false;
+
+      console.log(chalkTwitter("getCurrentThreeceeUser 3C USER"
+        + " | 3C USERS: " + Object.keys(configuration.threeceeUsers)
+        + " | NONE READY"
+      ));
+
+    }
+
+    return statsObj.currentThreeceeUser;
+
+  });
 
 }
 

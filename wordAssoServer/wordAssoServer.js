@@ -639,8 +639,8 @@ let keySortQueue = [];
 
 let tweetParserPingInterval;
 
+let tweetParserPingSent = false;
 let tweetParserPongReceived = false;
-let sorterPongReceived = false;
 
 let pingId = false;
 
@@ -5976,6 +5976,7 @@ function initTweetParserPingInterval(interval){
 
   clearInterval(tweetParserPingInterval);
 
+  tweetParserPingSent = false;
   tweetParserPongReceived = false;
 
   pingId = moment().valueOf();
@@ -5983,33 +5984,58 @@ function initTweetParserPingInterval(interval){
   if ((childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID] !== undefined) 
     && childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child) {
 
-    childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({op: "PING", pingId: pingId}, function(err){
-      if (err) {
-        console.log(chalkError("*** TWEET_PARSER SEND PING ERROR: " + err));
-        killChild({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, numKilled){
-          initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
-        });
-      }
-      console.log(chalkInfo(">PING | TWEET_PARSER | PING | " + getTimeStamp(pingId)));
-    });
-
     tweetParserPingInterval = setInterval(function(){
 
-      if (tweetParserPongReceived) {
+      if (!tweetParserPingSent) {
 
         pingId = moment().valueOf();
 
-        tweetParserPongReceived = false;
-
         childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({op: "PING", pingId: pingId}, function(err){
+
+          tweetParserPingSent = true; 
+
           if (err) {
+
             console.log(chalkError("*** TWEET_PARSER SEND PING ERROR: " + err));
+
             killChild({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, numKilled){
               tweetParserPongReceived = false;
               initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
             });
+
+            return;
           }
-          debug(chalkInfo(">PING | TWEET_PARSER | PING ID: " + getTimeStamp(pingId)));
+
+          console.log(chalkInfo(">PING | TWEET_PARSER | PING ID: " + getTimeStamp(pingId)));
+
+        });
+
+      }
+      else if (tweetParserPingSent && tweetParserPongReceived) {
+
+        pingId = moment().valueOf();
+
+        tweetParserPingSent = false; 
+        tweetParserPongReceived = false;
+
+        childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({op: "PING", pingId: pingId}, function(err){
+
+          if (err) {
+
+            console.log(chalkError("*** TWEET_PARSER SEND PING ERROR: " + err));
+
+            killChild({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, numKilled){
+              tweetParserPongReceived = false;
+              initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
+            });
+
+            return;
+          }
+
+          console.log(chalkInfo(">PING | TWEET_PARSER | PING ID: " + getTimeStamp(pingId)));
+
+          tweetParserPingSent = true; 
+
         });
 
       }
@@ -6025,10 +6051,12 @@ function initTweetParserPingInterval(interval){
 
         clearInterval(tweetParserPingInterval);
 
+        tweetParserPingSent = false; 
+        tweetParserPongReceived = false;
+
         setTimeout(function(){
 
           killChild({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, numKilled){
-            tweetParserPongReceived = false;
             initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
           });
 
@@ -6038,161 +6066,6 @@ function initTweetParserPingInterval(interval){
 
   }
 }
-
-// function initSorterPingInterval(interval){
-
-//   clearInterval(sorterPingInterval);
-//   sorterPongReceived = false;
-
-//   pingId = moment().valueOf();
-
-//   if ((childrenHashMap[DEFAULT_SORTER_CHILD_ID] !== undefined) 
-//     && childrenHashMap[DEFAULT_SORTER_CHILD_ID].child) {
-
-//     childrenHashMap[DEFAULT_SORTER_CHILD_ID].child.send({op: "PING", pingId: pingId}, function(err){
-//       if (err) {
-//         console.log(chalkError("*** SORTER SEND PING ERROR: " + err));
-//         killChild({childId: DEFAULT_SORTER_CHILD_ID}, function(err, numKilled){
-//           initSorter({childId: DEFAULT_SORTER_CHILD_ID});
-//         });
-//       }
-//       console.log(chalkInfo(">PING | SORTER | PING ID: " + pingId));
-//     });
-
-//     sorterPingInterval = setInterval(function(){
-
-//       if (sorterPongReceived) {
-
-//         pingId = moment().valueOf();
-
-//         sorterPongReceived = false;
-
-//         childrenHashMap[DEFAULT_SORTER_CHILD_ID].child.send({op: "PING", pingId: pingId}, function(err){
-//           if (err) {
-//             console.log(chalkError("*** SORTER SEND PING ERROR: " + err));
-//             killChild({childId: DEFAULT_SORTER_CHILD_ID}, function(err, numKilled){
-//               initSorter({childId: DEFAULT_SORTER_CHILD_ID});
-//             });
-//           }
-//           debug(chalkInfo(">PING | SORTER | PING ID: " + getTimeStamp(pingId)));
-//         });
-
-//       }
-//       else {
-
-//         console.log(chalkAlert("*** PONG TIMEOUT | SORTER | PING ID: " + pingId));
-        
-//         slackPostMessage(slackErrorChannel, "\n*CHILD ERROR*\nSORTER\nPONG TIMEOUT");
-
-//         clearInterval(sorterPingInterval);
-
-//         setTimeout(function(){
-
-//           killChild({childId: DEFAULT_SORTER_CHILD_ID}, function(err, numKilled){
-//             initSorter({childId: DEFAULT_SORTER_CHILD_ID});
-//           });
-
-//         }, 5000);
-//       }
-//     }, interval);
-
-//   }
-// }
-
-// function initSorter(params, callback){
-
-//   const s = cp.fork(`${__dirname}/js/libs/sorter.js`);
-
-//   childrenHashMap[params.childId] = {};
-//   childrenHashMap[params.childId].child = s;
-//   childrenHashMap[params.childId].pid = s.pid;
-//   childrenHashMap[params.childId].childId = params.childId;
-//   childrenHashMap[params.childId].title = "wa_node_sorter";
-//   childrenHashMap[params.childId].status = "NEW";
-//   childrenHashMap[params.childId].errors = 0;
-
-
-//   childrenHashMap[params.childId].child.on("message", function sorterMessageRx(m){
-
-//     debug(chalkLog("SORTER RX"
-//       + " | " + m.op
-//     ));
-
-//     if (m.op === "ERROR"){
-//       console.log(chalkError("*** SORTER ERROR: " + m.message));
-//       childrenHashMap[params.childId].status = "ERROR";
-//     }
-//     else if (m.op === "PONG"){
-//       sorterPongReceived = m.pongId;
-//       childrenHashMap[params.childId].status = "RUNNING";
-//       debug(chalkInfo("<PONG | SORTER | PONG ID: " + getTimeStamp(m.pongId)));
-//     }
-//     else {
-//       sorterMessageRxQueue.push(m);
-//     }
-
-//   });
-
-//   childrenHashMap[params.childId].child.send({
-//     op: "INIT",
-//     childId: params.childId,
-//     title: "wa_node_sorter",
-//     interval: DEFAULT_INTERVAL
-//   }, function sorterMessageRxError(err){
-//     if (err) {
-//       console.log(chalkError("*** SORTER SEND ERROR"
-//         + " | " + err
-//       ));
-//       childrenHashMap[params.childId].status = "ERROR";
-//       configEvents.emit("CHILD_ERROR", { childId: params.childId, err: "SORTER SEND ERROR" });
-//     }
-//     else {
-//       childrenHashMap[params.childId].status = "INIT";
-//     }
-
-//   });
-
-//   childrenHashMap[params.childId].child.on("error", function sorterError(err){
-//     console.log(chalkError(getTimeStamp()
-//       + " | *** SORTER ERROR ***"
-//       + " \n" + jsonPrint(err)
-//     ));
-//     childrenHashMap[params.childId].status = "ERROR";
-//     configEvents.emit("CHILD_ERROR", { childId: params.childId, err: err });
-//   });
-
-//   childrenHashMap[params.childId].child.on("exit", function sorterExit(code, signal){
-//     console.log(chalkError(getTimeStamp()
-//       + " | *** SORTER EXIT ***"
-//       + " | PID: " + childrenHashMap[params.childId].child.pid
-//       + " | EXIT CODE: " + code
-//       + " | EXIT SIGNAL: " + signal
-//     ));
-//     childrenHashMap[params.childId].status = "EXIT";
-
-//     if (code > 0) { configEvents.emit("CHILD_ERROR", { childId: params.childId, err: "SORTER EXIT" }); }
-//   });
-
-//   childrenHashMap[params.childId].child.on("close", function sorterClose(code, signal){
-//     console.log(chalkError(getTimeStamp()
-//       + " | *** SORTER CLOSE ***"
-//       + " | PID: " + childrenHashMap[params.childId].child.pid
-//       + " | EXIT CODE: " + code
-//       + " | EXIT SIGNAL: " + signal
-//     ));
-
-//     childrenHashMap[params.childId].status = "CLOSE";
-
-//     if (code > 0) { configEvents.emit("CHILD_ERROR", { childId: params.childId, err: "SORTER CLOSE" }); }
-//   });
-
-
-//   setTimeout(function(){
-//     initSorterPingInterval(DEFAULT_PING_INTERVAL);
-//   }, 1000);
-
-//   if (callback !== undefined) { callback(null, s); }
-// }
 
 function initTweetParser(params, callback){
 

@@ -4020,10 +4020,22 @@ function initSocketHandler(socketObj) {
               });
             }
             else {
-              console.log(chalkTwitter("XXX TWITTER_SEARCH_NODE USER FAIL"
-                + " | 3C @" + currentThreeceeUser
-                + "\n" + printUser({user:user})
-              ));
+
+              if (threeceeTwitter[currentThreeceeUser] !== undefined) {
+                console.log(chalkTwitter("XXX TWITTER_SEARCH_NODE USER FAIL"
+                  + " | 3C @" + currentThreeceeUser
+                  + " | 3C READY: " + threeceeTwitter[currentThreeceeUser].ready
+                  + "\n" + printUser({user:user})
+                ));
+              }
+              else {
+                console.log(chalkTwitter("XXX TWITTER_SEARCH_NODE USER FAIL"
+                  + " | threeceeTwitter[currentThreeceeUser] UNDEFINED"
+                  + " | 3C @" + currentThreeceeUser
+                  + "\n" + printUser({user:user})
+                ));
+              }
+
               socket.emit("TWITTER_SEARCH_NODE_FAIL", sn);
             }
           }

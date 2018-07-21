@@ -16,6 +16,8 @@ const ONE_DAY = 24 * ONE_HOUR;
 const ONE_KILOBYTE = 1024;
 const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
 
+const TWITTER_SEARCH_NODE_QUEUE_INTERVAL = 1000;
+
 const MAX_TWIITER_SHOW_USER_TIMEOUT = process.env.MAX_TWIITER_SHOW_USER_TIMEOUT || 30*ONE_MINUTE;
 
 const DEFAULT_CONFIG_INIT_INTERVAL = process.env.DEFAULT_CONFIG_INIT_INTERVAL || ONE_MINUTE;
@@ -7139,6 +7141,7 @@ initialize(function initializeComplete(err) {
     initTwitterRxQueueInterval(TWITTER_RX_QUEUE_INTERVAL);
     initTweetParserMessageRxQueueInterval(TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL);
     initHashtagLookupQueueInterval(HASHTAG_LOOKUP_QUEUE_INTERVAL);
+    initTwitterSearchNodeQueue(TWITTER_SEARCH_NODE_QUEUE_INTERVAL);
 
     console.log(chalkInfo("NODE CACHE TTL: " + nodeCacheTtl + " SECONDS"));
 

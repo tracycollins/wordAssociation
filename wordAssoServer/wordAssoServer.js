@@ -4562,7 +4562,7 @@ function getCurrentThreeceeUser(){
     return statsObj.currentThreeceeUser;
   }
 
-  async.eachSeries(Object.keys(configuration.threeceeUsers), function(threeceeUser, cb){
+  async.eachSeries(configuration.threeceeUsers, function(threeceeUser, cb){
 
     if ((threeceeTwitter[threeceeUser] !== undefined) && threeceeTwitter[threeceeUser].ready) {
 
@@ -4586,7 +4586,7 @@ function getCurrentThreeceeUser(){
       statsObj.currentThreeceeUser = threeceeUser;
 
       console.log(chalkTwitter("getCurrentThreeceeUser 3C USER"
-        + " | 3C USERS: " + Object.keys(configuration.threeceeUsers)
+        + " | 3C USERS: " + configuration.threeceeUsers
         + " | @" + statsObj.currentThreeceeUser
       ));
 
@@ -4595,7 +4595,7 @@ function getCurrentThreeceeUser(){
       statsObj.currentThreeceeUser = false;
 
       console.log(chalkTwitter("getCurrentThreeceeUser 3C USER"
-        + " | 3C USERS: " + Object.keys(configuration.threeceeUsers)
+        + " | 3C USERS: " + configuration.threeceeUsers
         + " | NONE READY"
       ));
 

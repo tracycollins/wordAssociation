@@ -3801,6 +3801,7 @@ function initSocketHandler(socketObj) {
     twitterSearchNodeQueue.push({searchNode: sn, socket: socket});
 
     console.log(chalkSocket("R< TWITTER_SEARCH_NODE"
+      + " [ TSNQ: " + twitterSearchNodeQueue.length + "]"
       + " | " + getTimeStamp()
       + " | SID: " + socket.id
       + " | " + sn

@@ -4596,7 +4596,13 @@ function getCurrentThreeceeUser(){
     if (statsObj.currentThreeceeUserIndex === startIndex) { checkedAllUsers = true; }
   }
 
-  debug(chalkTwitter("getCurrentThreeceeUser 3C USERS\n" + jsonPrint(threeceeTwitter)));
+  console.log(chalkTwitter("getCurrentThreeceeUser 3C USER"
+    + " | START INDEX: " + startIndex
+    + " | INDEX: " + statsObj.currentThreeceeUserIndex
+    + " | 3C USERS: " + Object.keys(configuration.threeceeUsers)
+    + " | @" + statsObj.currentThreeceeUser
+  ));
+
   return statsObj.currentThreeceeUser;
 
 }

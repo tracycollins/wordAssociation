@@ -1229,7 +1229,7 @@ socket.on("reconnect", function() {
   statsObj.socket.connected = true;
 
   viewerObj.timeStamp = moment().valueOf();
-  viewerObj.stats = statsObj;
+  // viewerObj.stats = statsObj;
 
   socket.emit("authentication", viewerObj);
 
@@ -1249,7 +1249,7 @@ socket.on("connect", function() {
   statsObj.socket.connectMoment = moment();
   statsObj.socket.connects += 1;
 
-  viewerObj.stats = statsObj;
+  // viewerObj.stats = statsObj;
 
   viewerObj.timeStamp = moment().valueOf();
 
@@ -1264,7 +1264,7 @@ socket.on("disconnect", function() {
   statsObj.socket.connected = false;
   statsObj.socket.disconnectMoment = moment();
 
-  viewerObj.stats = statsObj;
+  // viewerObj.stats = statsObj;
 
   if (currentSessionView !== undefined) { currentSessionView.setEnableAgeNodes(false); }
   console.log("*** DISCONNECTED FROM HOST ... DELETING ALL SESSIONS ...");
@@ -1278,7 +1278,7 @@ socket.on("error", function(error) {
   statsObj.socket.error = error;
   statsObj.socket.errorMoment = moment();
 
-  viewerObj.stats = statsObj;
+  // viewerObj.stats = statsObj;
 
   console.log("*** SOCKET ERROR ... DELETING ALL SESSIONS ...");
   console.error("*** SOCKET ERROR\n" + error);
@@ -1292,7 +1292,7 @@ socket.on("connect_error", function(error) {
   statsObj.socket.error = error;
   statsObj.socket.errorMoment = moment();
 
-  viewerObj.stats = statsObj;
+  // viewerObj.stats = statsObj;
 
   console.log("*** SOCKET CONNECT ERROR ... DELETING ALL SESSIONS ...");
   console.error("*** SOCKET CONNECT ERROR\n" + error);
@@ -1305,7 +1305,7 @@ socket.on("reconnect_error", function(error) {
   statsObj.socket.error = error;
   statsObj.socket.errorMoment = moment();
 
-  viewerObj.stats = statsObj;
+  // viewerObj.stats = statsObj;
 
   console.log("*** SOCKET RECONNECT ERROR ... DELETING ALL SESSIONS ...");
   console.error("*** SOCKET RECONNECT ERROR\n" + error);
@@ -1774,9 +1774,7 @@ setInterval(function() {
     socket.emit(
       "SESSION_KEEPALIVE", 
       {
-        user: viewerObj, 
-        stats: {}, 
-        results: {}
+        user: viewerObj
       }
     );
 

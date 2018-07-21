@@ -313,7 +313,7 @@ else {
 
 var serverHeartbeatTimeout = 30000;
 var serverCheckInterval = 30000;
-var serverKeepaliveInteval = 10000;
+var serverKeepaliveInteval = 30000;
 
 var palette = {
   "black": "#000000",
@@ -1763,7 +1763,6 @@ function tableCreateRow(parentTable, options, cells) {
 //  STATS UPDATE
 function initStatsUpdate(interval){
   setInterval(function() {
-    // if (statsTableFlag) { updateStatsTable(statsObj); }
   }, interval);
 }
 
@@ -1778,7 +1777,6 @@ setInterval(function() {
       }
     );
 
-    // socket.emit("SESSION_KEEPALIVE", viewerObj);
   }
 }, serverKeepaliveInteval);
 

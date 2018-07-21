@@ -4131,63 +4131,65 @@ function checkCategory(nodeObj, callback) {
 
 function updateTrends(){
 
-  const currentThreeceeUser = getCurrentThreeceeUser();
+  getCurrentThreeceeUser(function(currentThreeceeUser){
 
-  if ( !currentThreeceeUser
-    || (threeceeTwitter[currentThreeceeUser] === undefined)
-    || threeceeTwitter[currentThreeceeUser].ready)
-  {
+    if ( !currentThreeceeUser
+      || (threeceeTwitter[currentThreeceeUser] === undefined)
+      || threeceeTwitter[currentThreeceeUser].ready)
+    {
+      
+      console.log(chalkError("*** updateTrends | TWIT NOT READY"
+        + " | CURRENT 3C USER: @" + currentThreeceeUser
+      ));
+
+      return;
+    }
+
+    threeceeTwitter[currentThreeceeUser].twit.get("trends/place", {id: 1}, function updateTrendsWorldWide (err, data, response){
+
+      if (err){
+        console.log(chalkError("*** TWITTER GET trends/place ID=1 ERROR ***"
+          + " | " + err
+        ));
+      }
+      else if (data){
+        debug(chalkInfo("LOAD TWITTER TREND - WORLDWIDE"
+        ));
+        data.forEach(function trendingCacheSetWorldWide(element){
+          element.trends.forEach(function trendElementWorldWide(topic){
+            debug(chalkInfo(
+              topic.name
+            ));
+            trendingCache.set(topic.name, topic);
+          });
+        });
+      }
+    });
     
-    console.log(chalkError("*** updateTrends | TWIT NOT READY"
-      + " | CURRENT 3C USER: @" + currentThreeceeUser
-    ));
+    threeceeTwitter[currentThreeceeUser].twit.get("trends/place", {id: 23424977}, function updateTrendsUs (err, data, response){
 
-    return;
-  }
+      if (err){
+        console.log(chalkError("*** TWITTER GET trends/place ID=23424977 ERROR ***"
+          + " | " + err
+        ));
+      }
+      else if (data){
 
-  threeceeTwitter[currentThreeceeUser].twit.get("trends/place", {id: 1}, function updateTrendsWorldWide (err, data, response){
+        trendingCache.set("america", {name: "america"});
 
-    if (err){
-      console.log(chalkError("*** TWITTER GET trends/place ID=1 ERROR ***"
-        + " | " + err
-      ));
-    }
-    else if (data){
-      debug(chalkInfo("LOAD TWITTER TREND - WORLDWIDE"
-      ));
-      data.forEach(function trendingCacheSetWorldWide(element){
-        element.trends.forEach(function trendElementWorldWide(topic){
-          debug(chalkInfo(
-            topic.name
-          ));
-          trendingCache.set(topic.name, topic);
+        debug(chalkInfo("LOAD TWITTER TREND - US"
+        ));
+        data.forEach(function trendingCacheSetUs(element){
+          element.trends.forEach(function trendElementUs(topic){
+            debug(chalkInfo(
+              topic.name
+            ));
+            trendingCache.set(topic.name, topic);
+          });
         });
-      });
-    }
-  });
-  
-  threeceeTwitter[currentThreeceeUser].twit.get("trends/place", {id: 23424977}, function updateTrendsUs (err, data, response){
+      }
+    });
 
-    if (err){
-      console.log(chalkError("*** TWITTER GET trends/place ID=23424977 ERROR ***"
-        + " | " + err
-      ));
-    }
-    else if (data){
-
-      trendingCache.set("america", {name: "america"});
-
-      debug(chalkInfo("LOAD TWITTER TREND - US"
-      ));
-      data.forEach(function trendingCacheSetUs(element){
-        element.trends.forEach(function trendElementUs(topic){
-          debug(chalkInfo(
-            topic.name
-          ));
-          trendingCache.set(topic.name, topic);
-        });
-      });
-    }
   });
 }
 
@@ -4197,21 +4199,30 @@ function initUpdateTrendsInterval(interval){
 
   clearInterval(updateTrendsInterval);
 
-  let currentThreeceeUser = getCurrentThreeceeUser();
+  getCurrentThreeceeUser(function(currentThreeceeUser){
 
-  if (currentThreeceeUser 
-    && (threeceeTwitter[currentThreeceeUser] !== undefined) 
-    && threeceeTwitter[currentThreeceeUser].ready) { updateTrends(); }
-
-  updateTrendsInterval = setInterval(function updateTrendsIntervalCall () {
-
-    currentThreeceeUser = getCurrentThreeceeUser();
 
     if (currentThreeceeUser 
       && (threeceeTwitter[currentThreeceeUser] !== undefined) 
       && threeceeTwitter[currentThreeceeUser].ready) { updateTrends(); }
 
-  }, interval);
+    updateTrendsInterval = setInterval(function updateTrendsIntervalCall () {
+
+      getCurrentThreeceeUser(function(c3user){
+
+        if (c3user 
+          && (threeceeTwitter[c3user] !== undefined) 
+          && threeceeTwitter[c3user].ready) 
+        { 
+          updateTrends(); 
+        }
+
+      });
+
+    }, interval);
+
+  });
+
 }
 
 function updateNodeMeter(node, callback){
@@ -4547,19 +4558,19 @@ function initCheckRateLimitInterval(interval){
   }, interval);
 }
 
-function getCurrentThreeceeUser(){
+function getCurrentThreeceeUser(callback){
 
   debug(chalkTwitter("getCurrentThreeceeUser 3C USERS\s" + jsonPrint(threeceeTwitter)));
 
   if (!statsObj.threeceeUsersConfiguredFlag) {
     debug(chalkAlert("*** THREECEE_USERS NOT CONFIGURED"));
-    return false;
+    return callback(false);
   }
 
   if (configuration.threeceeUsers.length === 0){
     console.log(chalkAlert("??? NO THREECEE_USERS ???"));
     statsObj.currentThreeceeUser = false;
-    return statsObj.currentThreeceeUser;
+    return callback(statsObj.currentThreeceeUser);
   }
 
   async.eachSeries(configuration.threeceeUsers, function(threeceeUser, cb){
@@ -4583,6 +4594,7 @@ function getCurrentThreeceeUser(){
   }, function(threeceeUser){
 
     if (threeceeUser) { 
+
       statsObj.currentThreeceeUser = threeceeUser;
 
       debug(chalkTwitter("getCurrentThreeceeUser 3C USER"
@@ -4594,14 +4606,14 @@ function getCurrentThreeceeUser(){
     else {
       statsObj.currentThreeceeUser = false;
 
-      debug(chalkTwitter("getCurrentThreeceeUser 3C USER"
+      console.log(chalkAlert("getCurrentThreeceeUser 3C USER"
         + " | 3C USERS: " + configuration.threeceeUsers
         + " | NONE READY"
       ));
 
     }
 
-    return statsObj.currentThreeceeUser;
+    return callback(statsObj.currentThreeceeUser);
 
   });
 
@@ -6823,147 +6835,152 @@ function twitterSearchNode(params, callback) {
             + "\n" + printUser({user:user})
           ));
 
-          const currentThreeceeUser = getCurrentThreeceeUser();
+          getCurrentThreeceeUser(function(currentThreeceeUser){
 
-          if ( currentThreeceeUser
-            && (threeceeTwitter[currentThreeceeUser] !== undefined)
-            && threeceeTwitter[currentThreeceeUser].ready) {
+            if ( currentThreeceeUser
+              && (threeceeTwitter[currentThreeceeUser] !== undefined)
+              && threeceeTwitter[currentThreeceeUser].ready) {
 
-            console.log(chalkTwitter("+++ TWITTER_SEARCH_NODE USER"
-              + " | GET USER TWITTER DATA"
-              + "\n" + printUser({user:user})
-            ));
+              console.log(chalkTwitter("+++ TWITTER_SEARCH_NODE USER"
+                + " | GET USER TWITTER DATA"
+                + "\n" + printUser({user:user})
+              ));
 
-            threeceeTwitter[currentThreeceeUser].twit.get("users/show", 
-              {user_id: user.nodeId, include_entities: true}, function usersShow (err, rawUser, response){
-              if (err) {
-                console.log(chalkError("ERROR users/show rawUser | @" + user.screenName + " | " + err));
-                if (nodeSearchType === "USER_UNCATEGORIZED") { 
-                  if ((nodeSearchBy !== undefined) && (nodeSearchBy === "createdAt")) {
-                    previousUserUncategorizedCreated = moment(user.createdAt);
-                  }
-                  else if ((nodeSearchBy !== undefined) && (nodeSearchBy === "lastSeen")) {
-                    previousUserUncategorizedLastSeen = moment(user.lastSeen);
-                  }
-                  else {
-                    previousUserUncategorizedId = user.nodeId;
-                  }
-                }
-                if (nodeSearchType === "USER_MISMATCHED") { previousUserMismatchedId = user.nodeId; }
-                params.socket.emit("SET_TWITTER_USER", user);
-                callback(err);
-              }
-              else if (rawUser && (rawUser !== undefined)) {
-
-                userServerController.convertRawUser({user:rawUser}, function(err, cUser){
-
-                  if (err) {
-                    console.log(chalkError("*** TWITTER_SEARCH_NODE | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
-
-                    if (nodeSearchType === "USER_UNCATEGORIZED") { 
-                      if ((nodeSearchBy !== undefined) && (nodeSearchBy === "createdAt")) {
-                        previousUserUncategorizedCreated = moment(user.createdAt);
-                      }
-                      else if ((nodeSearchBy !== undefined) && (nodeSearchBy === "lastSeen")) {
-                        previousUserUncategorizedLastSeen = moment(user.lastSeen);
-                      }
-                      else {
-                        previousUserUncategorizedId = user.nodeId;
-                      }
+              threeceeTwitter[currentThreeceeUser].twit.get("users/show", 
+                {user_id: user.nodeId, include_entities: true}, function usersShow (err, rawUser, response){
+                if (err) {
+                  console.log(chalkError("ERROR users/show rawUser | @" + user.screenName + " | " + err));
+                  if (nodeSearchType === "USER_UNCATEGORIZED") { 
+                    if ((nodeSearchBy !== undefined) && (nodeSearchBy === "createdAt")) {
+                      previousUserUncategorizedCreated = moment(user.createdAt);
                     }
-                    if (nodeSearchType === "USER_MISMATCHED") { previousUserMismatchedId = user.nodeId; }
-                    callback(err);
-                    return;
-                  }
-
-                  console.log(chalkTwitter("FOUND users/show rawUser"
-                    + "\n" + printUser({user:cUser})
-                  ));
-
-                  user.followersCount = cUser.followersCount;
-                  user.friendsCount = cUser.friendsCount;
-                  user.statusesCount = cUser.statusesCount;
-                  user.createdAt = cUser.createdAt;
-                  user.updateLastSeen = true;
-                  user.lastSeen = (cUser.status !== undefined) ? cUser.status.created_at : Date.now();
-
-                  let nCacheObj = nodeCache.get(user.nodeId);
-
-                  if (nCacheObj) {
-                    user.mentions = Math.max(user.mentions, nCacheObj.mentions);
-                    user.setMentions = true;
-                  }
-
-                  userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
-
-                    if (err) {
-                      console.log(chalkError("findOneUser ERROR: " + err));
-                      params.socket.emit("SET_TWITTER_USER", user);
-                      callback(err);
+                    else if ((nodeSearchBy !== undefined) && (nodeSearchBy === "lastSeen")) {
+                      previousUserUncategorizedLastSeen = moment(user.lastSeen);
                     }
                     else {
+                      previousUserUncategorizedId = user.nodeId;
+                    }
+                  }
+                  if (nodeSearchType === "USER_MISMATCHED") { previousUserMismatchedId = user.nodeId; }
+                  params.socket.emit("SET_TWITTER_USER", user);
+                  callback(err);
+                }
+                else if (rawUser && (rawUser !== undefined)) {
 
-                      console.log(chalk.blue("UPDATED updatedUser"
-                        + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
-                        + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
-                        + "\n" + printUser({user:updatedUser})
-                      ));
+                  userServerController.convertRawUser({user:rawUser}, function(err, cUser){
 
-                      if (nodeSearchType === "USER_UNCATEGORIZED") {
+                    if (err) {
+                      console.log(chalkError("*** TWITTER_SEARCH_NODE | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
+
+                      if (nodeSearchType === "USER_UNCATEGORIZED") { 
                         if ((nodeSearchBy !== undefined) && (nodeSearchBy === "createdAt")) {
-                          // previousUserUncategorizedCreated = moment(updatedUser.createdAt);
+                          previousUserUncategorizedCreated = moment(user.createdAt);
                         }
                         else if ((nodeSearchBy !== undefined) && (nodeSearchBy === "lastSeen")) {
-                          previousUserUncategorizedLastSeen = moment(updatedUser.lastSeen);
+                          previousUserUncategorizedLastSeen = moment(user.lastSeen);
                         }
                         else {
-                          previousUserUncategorizedId = updatedUser.userId;
+                          previousUserUncategorizedId = user.nodeId;
                         }
                       }
-
-                      if (nodeSearchType === "USER_MISMATCHED") {
-                        previousUserMismatchedId = updatedUser.userId;
-                      }
-
-                      params.socket.emit("SET_TWITTER_USER", updatedUser);
-
+                      if (nodeSearchType === "USER_MISMATCHED") { previousUserMismatchedId = user.nodeId; }
                       callback(err);
-
+                      return;
                     }
+
+                    console.log(chalkTwitter("FOUND users/show rawUser"
+                      + "\n" + printUser({user:cUser})
+                    ));
+
+                    user.followersCount = cUser.followersCount;
+                    user.friendsCount = cUser.friendsCount;
+                    user.statusesCount = cUser.statusesCount;
+                    user.createdAt = cUser.createdAt;
+                    user.updateLastSeen = true;
+                    user.lastSeen = (cUser.status !== undefined) ? cUser.status.created_at : Date.now();
+
+                    let nCacheObj = nodeCache.get(user.nodeId);
+
+                    if (nCacheObj) {
+                      user.mentions = Math.max(user.mentions, nCacheObj.mentions);
+                      user.setMentions = true;
+                    }
+
+                    userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
+
+                      if (err) {
+                        console.log(chalkError("findOneUser ERROR: " + err));
+                        params.socket.emit("SET_TWITTER_USER", user);
+                        callback(err);
+                      }
+                      else {
+
+                        console.log(chalk.blue("UPDATED updatedUser"
+                          + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
+                          + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
+                          + "\n" + printUser({user:updatedUser})
+                        ));
+
+                        if (nodeSearchType === "USER_UNCATEGORIZED") {
+                          if ((nodeSearchBy !== undefined) && (nodeSearchBy === "createdAt")) {
+                            // previousUserUncategorizedCreated = moment(updatedUser.createdAt);
+                          }
+                          else if ((nodeSearchBy !== undefined) && (nodeSearchBy === "lastSeen")) {
+                            previousUserUncategorizedLastSeen = moment(updatedUser.lastSeen);
+                          }
+                          else {
+                            previousUserUncategorizedId = updatedUser.userId;
+                          }
+                        }
+
+                        if (nodeSearchType === "USER_MISMATCHED") {
+                          previousUserMismatchedId = updatedUser.userId;
+                        }
+
+                        params.socket.emit("SET_TWITTER_USER", updatedUser);
+
+                        callback(err);
+
+                      }
+                    });
                   });
-                });
-              }
-              else {
-                console.log(chalkTwitter("NOT FOUND users/show data"));
-                params.socket.emit("SET_TWITTER_USER", user);
-                callback();
-              }
-            });
-          }
-          else {
-
-            getCurrentThreeceeUser();
-
-            if (threeceeTwitter[currentThreeceeUser] !== undefined) {
-              console.log(chalkTwitter("XXX TWITTER_SEARCH_NODE USER FAIL"
-                + " | 3C @" + currentThreeceeUser
-                + " | 3C READY: " + threeceeTwitter[currentThreeceeUser].ready
-                + "\n" + printUser({user:user})
-              ));
-
-
+                }
+                else {
+                  console.log(chalkTwitter("NOT FOUND users/show data"));
+                  params.socket.emit("SET_TWITTER_USER", user);
+                  callback();
+                }
+              });
             }
             else {
-              console.log(chalkTwitter("XXX TWITTER_SEARCH_NODE USER FAIL"
-                + " | threeceeTwitter[currentThreeceeUser] UNDEFINED"
-                + " | 3C @" + currentThreeceeUser
-                + "\n" + printUser({user:user})
-              ));
-            }
 
-            params.socket.emit("TWITTER_SEARCH_NODE_FAIL", searchNode);
-            callback();
-          }
+
+              if (threeceeTwitter[currentThreeceeUser] !== undefined) {
+                console.log(chalkTwitter("XXX TWITTER_SEARCH_NODE USER FAIL"
+                  + " | 3C @" + currentThreeceeUser
+                  + " | 3C READY: " + threeceeTwitter[currentThreeceeUser].ready
+                  + "\n" + printUser({user:user})
+                ));
+
+
+              }
+              else {
+                console.log(chalkTwitter("XXX TWITTER_SEARCH_NODE USER FAIL"
+                  + " | threeceeTwitter[currentThreeceeUser] UNDEFINED"
+                  + " | 3C @" + currentThreeceeUser
+                  + "\n" + printUser({user:user})
+                ));
+              }
+
+              params.socket.emit("TWITTER_SEARCH_NODE_FAIL", searchNode);
+
+              getCurrentThreeceeUser();
+
+              callback();
+            }
+          });
+
+
         }
         else {
           console.log(chalkTwitter("--- TWITTER_SEARCH_NODE USER *NOT* FOUND"
@@ -7004,96 +7021,99 @@ function twitterSearchNode(params, callback) {
             twitQuery = {screen_name: searchNodeUser.screenName, include_entities: true};
           }
 
-          const currentThreeceeUser = getCurrentThreeceeUser();
+          getCurrentThreeceeUser(function(currentThreeceeUser){
 
-          if ( currentThreeceeUser
-            && (threeceeTwitter[currentThreeceeUser] !== undefined)
-            && threeceeTwitter[currentThreeceeUser].ready) 
-          {
-            threeceeTwitter[currentThreeceeUser].twit.get("users/show", twitQuery, function usersShow (err, rawUser, response){
-              if (err) {
-                console.log(chalkError("ERROR users/show rawUser" + err));
-                console.log(chalkError("ERROR users/show rawUser\n" + jsonPrint(err)));
-                console.log(chalkError("ERROR users/show searchNodeUser:\n" + jsonPrint(searchNodeUser)));
+            if ( currentThreeceeUser
+              && (threeceeTwitter[currentThreeceeUser] !== undefined)
+              && threeceeTwitter[currentThreeceeUser].ready) 
+            {
+              threeceeTwitter[currentThreeceeUser].twit.get("users/show", twitQuery, function usersShow (err, rawUser, response){
+                if (err) {
+                  console.log(chalkError("ERROR users/show rawUser" + err));
+                  console.log(chalkError("ERROR users/show rawUser\n" + jsonPrint(err)));
+                  console.log(chalkError("ERROR users/show searchNodeUser:\n" + jsonPrint(searchNodeUser)));
 
-                params.socket.emit("TWITTER_SEARCH_NODE_FAIL", searchNode);
-                callback(err);
-              }
-              else if (rawUser && (rawUser !== undefined)) {
+                  params.socket.emit("TWITTER_SEARCH_NODE_FAIL", searchNode);
+                  callback(err);
+                }
+                else if (rawUser && (rawUser !== undefined)) {
 
-                userServerController.convertRawUser({user:rawUser}, function(err, cUser){
-
-                  if (err) {
-                    console.log(chalkError("*** TWITTER_SEARCH_NODE | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
-
-                    if (nodeSearchType === "USER_UNCATEGORIZED") { 
-                      if ((nodeSearchBy !== undefined) && (nodeSearchBy === "createdAt")) {
-                        previousUserUncategorizedCreated = moment(user.createdAt);
-                      }
-                      else if ((nodeSearchBy !== undefined) && (nodeSearchBy === "lastSeen")) {
-                        previousUserUncategorizedLastSeen = moment(user.lastSeen);
-                      }
-                      else {
-                        previousUserUncategorizedId = user.nodeId;
-                      }
-                    }
-                    if (nodeSearchType === "USER_MISMATCHED") { previousUserMismatchedId = searchNodeUser.nodeId; }
-
-                    params.socket.emit("TWITTER_SEARCH_NODE_FAIL", searchNode);
-                    callback(err);
-                    return;
-                  }
-
-                  console.log(chalkTwitter("FOUND users/show rawUser"
-                    + "\n" + printUser({user:cUser})
-                  ));
-
-                  cUser.updateLastSeen = true;
-                  cUser.lastSeen = cUser.status.created_at;
-
-                  let nCacheObj = nodeCache.get(cUser.nodeId);
-
-                  if (nCacheObj) {
-                    cUser.mentions = Math.max(cUser.mentions, nCacheObj.mentions);
-                    cUser.setMentions = true;
-                  }
-
-                  userServerController.findOneUser(cUser, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
+                  userServerController.convertRawUser({user:rawUser}, function(err, cUser){
 
                     if (err) {
-                      console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
-                      params.socket.emit("SET_TWITTER_USER", cUser);
-                      callback(err);
-                    }
-                    else {
-                      console.log(chalkTwitter("UPDATED updatedUser"
-                        + "\n" + printUser({user:updatedUser})
-                      ));
-                      params.socket.emit("SET_TWITTER_USER", updatedUser);
-                      callback(err);
-                    }
-                  });
-                });
-              }
-              else {
-                console.log(chalkTwitter("NOT FOUND users/show data"
-                  + " | nodeSearchType: " + nodeSearchType
-                  + " | previousUserUncategorizedId: " + previousUserUncategorizedId
-                  + " | previousUserMismatchedId: " + previousUserMismatchedId
-                  + " | searchNode: " + searchNode
-                  // + "\nsearchNodeUser\n" + jsonPrint(searchNodeUser)
-                ));
+                      console.log(chalkError("*** TWITTER_SEARCH_NODE | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
 
-                params.socket.emit("TWITTER_SEARCH_NODE_FAIL", searchNode);
-                callback(err);
-              }
-            });
-          }
-          else {
-            // params.socket.emit("SET_TWITTER_USER", updatedUser);
-            params.socket.emit("TWITTER_SEARCH_NODE_FAIL", searchNode);
-            callback(err);
-          }
+                      if (nodeSearchType === "USER_UNCATEGORIZED") { 
+                        if ((nodeSearchBy !== undefined) && (nodeSearchBy === "createdAt")) {
+                          previousUserUncategorizedCreated = moment(user.createdAt);
+                        }
+                        else if ((nodeSearchBy !== undefined) && (nodeSearchBy === "lastSeen")) {
+                          previousUserUncategorizedLastSeen = moment(user.lastSeen);
+                        }
+                        else {
+                          previousUserUncategorizedId = user.nodeId;
+                        }
+                      }
+                      if (nodeSearchType === "USER_MISMATCHED") { previousUserMismatchedId = searchNodeUser.nodeId; }
+
+                      params.socket.emit("TWITTER_SEARCH_NODE_FAIL", searchNode);
+                      callback(err);
+                      return;
+                    }
+
+                    console.log(chalkTwitter("FOUND users/show rawUser"
+                      + "\n" + printUser({user:cUser})
+                    ));
+
+                    cUser.updateLastSeen = true;
+                    cUser.lastSeen = cUser.status.created_at;
+
+                    let nCacheObj = nodeCache.get(cUser.nodeId);
+
+                    if (nCacheObj) {
+                      cUser.mentions = Math.max(cUser.mentions, nCacheObj.mentions);
+                      cUser.setMentions = true;
+                    }
+
+                    userServerController.findOneUser(cUser, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
+
+                      if (err) {
+                        console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
+                        params.socket.emit("SET_TWITTER_USER", cUser);
+                        callback(err);
+                      }
+                      else {
+                        console.log(chalkTwitter("UPDATED updatedUser"
+                          + "\n" + printUser({user:updatedUser})
+                        ));
+                        params.socket.emit("SET_TWITTER_USER", updatedUser);
+                        callback(err);
+                      }
+                    });
+                  });
+                }
+                else {
+                  console.log(chalkTwitter("NOT FOUND users/show data"
+                    + " | nodeSearchType: " + nodeSearchType
+                    + " | previousUserUncategorizedId: " + previousUserUncategorizedId
+                    + " | previousUserMismatchedId: " + previousUserMismatchedId
+                    + " | searchNode: " + searchNode
+                    // + "\nsearchNodeUser\n" + jsonPrint(searchNodeUser)
+                  ));
+
+                  params.socket.emit("TWITTER_SEARCH_NODE_FAIL", searchNode);
+                  callback(err);
+                }
+              });
+            }
+            else {
+              // params.socket.emit("SET_TWITTER_USER", updatedUser);
+              params.socket.emit("TWITTER_SEARCH_NODE_FAIL", searchNode);
+              callback(err);
+            }
+
+          });
+
         }
       }
     );

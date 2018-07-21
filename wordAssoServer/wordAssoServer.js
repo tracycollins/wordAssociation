@@ -4201,7 +4201,6 @@ function initUpdateTrendsInterval(interval){
 
   getCurrentThreeceeUser(function(currentThreeceeUser){
 
-
     if (currentThreeceeUser 
       && (threeceeTwitter[currentThreeceeUser] !== undefined) 
       && threeceeTwitter[currentThreeceeUser].ready) { updateTrends(); }
@@ -4682,199 +4681,201 @@ function initTransmitNodeQueueInterval(interval){
 
               followable = userFollowable(n);
 
-              const currentThreeceeUser = getCurrentThreeceeUser();
+              getCurrentThreeceeUser(function(currentThreeceeUser){
 
-              if (currentThreeceeUser
-                && (threeceeTwitter[currentThreeceeUser] !== undefined) 
-                && threeceeTwitter[currentThreeceeUser].ready 
-                && twitUserShowReady 
-                && followable){
+                if (currentThreeceeUser
+                  && (threeceeTwitter[currentThreeceeUser] !== undefined) 
+                  && threeceeTwitter[currentThreeceeUser].ready 
+                  && twitUserShowReady 
+                  && followable){
 
-                threeceeTwitter[currentThreeceeUser].twit.get("users/show", 
-                  {user_id: n.nodeId, include_entities: true}, 
-                  function usersShow (err, rawUser, response){
+                  threeceeTwitter[currentThreeceeUser].twit.get("users/show", 
+                    {user_id: n.nodeId, include_entities: true}, 
+                    function usersShow (err, rawUser, response){
 
-                  if (err){
+                    if (err){
 
-                    console.log(chalkError("*** TWITTER SHOW USER ERROR"
-                      + " | @" + currentThreeceeUser 
-                      + " | " + getTimeStamp() 
-                      + " | ERR CODE: " + err.code
-                      + " | " + err.message
-                    ));
-
-                    if (err.code === 88){
-
-                      console.log(chalkAlert("*** TWITTER SHOW USER ERROR | RATE LIMIT EXCEEDED" 
-                        + " | " + getTimeStamp() 
+                      console.log(chalkError("*** TWITTER SHOW USER ERROR"
                         + " | @" + currentThreeceeUser 
+                        + " | " + getTimeStamp() 
+                        + " | ERR CODE: " + err.code
+                        + " | " + err.message
                       ));
 
-                      threeceeTwitter[currentThreeceeUser].ready = false;
+                      if (err.code === 88){
 
-                      threeceeTwitter[currentThreeceeUser].twitterRateLimitException = moment();
-                      threeceeTwitter[currentThreeceeUser].twitterRateLimitExceptionFlag = true;
-                      threeceeTwitter[currentThreeceeUser].twitterRateLimitResetAt = moment(moment().valueOf() + 60000);
+                        console.log(chalkAlert("*** TWITTER SHOW USER ERROR | RATE LIMIT EXCEEDED" 
+                          + " | " + getTimeStamp() 
+                          + " | @" + currentThreeceeUser 
+                        ));
 
-                      checkRateLimit({user: currentThreeceeUser});
+                        threeceeTwitter[currentThreeceeUser].ready = false;
 
-                      delete n._id;
-                      viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
+                        threeceeTwitter[currentThreeceeUser].twitterRateLimitException = moment();
+                        threeceeTwitter[currentThreeceeUser].twitterRateLimitExceptionFlag = true;
+                        threeceeTwitter[currentThreeceeUser].twitterRateLimitResetAt = moment(moment().valueOf() + 60000);
 
-                    }
-
-                    transmitNodeQueueReady = true;
-
-                  }
-
-                  else if (rawUser && (rawUser.followers_count >= configuration.minFollowersAuto)) {
-
-                    startTwitUserShowRateLimitTimeoutDuration = ONE_MINUTE;
-
-                    debug(chalkTwitter("FOUND users/show rawUser" + jsonPrint(rawUser)));
-
-                    n.isTwitterUser = true;
-                    n.name = rawUser.name;
-                    n.createdAt = rawUser.created_at;
-                    n.screenName = rawUser.screen_name.toLowerCase();
-                    n.screenNameLower = rawUser.screen_name.toLowerCase();
-                    n.url = rawUser.url;
-                    n.profileUrl = "http://twitter.com/" + rawUser.screen_name;
-                    n.profileImageUrl = rawUser.profile_image_url;
-                    n.bannerImageUrl = rawUser.profile_banner_url;
-                    n.verified = rawUser.verified;
-                    n.following = true;
-                    n.threeceeFollowing = "altthreecee02";
-                    n.description = rawUser.description;
-                    n.lastTweetId = (rawUser.status !== undefined) ? rawUser.status.id_str : null;
-                    n.statusesCount = rawUser.statuses_count;
-                    n.friendsCount = rawUser.friends_count;
-                    n.followersCount = rawUser.followers_count;
-                    n.status = rawUser.status;
-                    n.lastSeen = (rawUser.status !== undefined) ? rawUser.status.created_at : null;
-                    n.updateLastSeen = true;
-
-                    nCacheObj = nodeCache.get(n.nodeId);
-
-                    if (nCacheObj) {
-                      n.mentions = Math.max(n.mentions, nCacheObj.mentions);
-                      n.setMentions = true;
-                    }
-
-                    userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit, lean: true}, function(err, updatedUser){
-  
-                      if (err) {
-                        console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
-                        delete n._id;
-                        viewNameSpace.volatile.emit("node", n);
-                      }
-                      else {
+                        checkRateLimit({user: currentThreeceeUser});
 
                         delete n._id;
-                        viewNameSpace.volatile.emit("node", updatedUser);
-
-                        if (!unfollowableUserSet.has(updatedUser.nodeId)) { 
-                          autoFollowUser({ threeceeUser: "altthreecee02", user: updatedUser });
-                        }
+                        viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
 
                       }
 
                       transmitNodeQueueReady = true;
-                    });
+
+                    }
+
+                    else if (rawUser && (rawUser.followers_count >= configuration.minFollowersAuto)) {
+
+                      startTwitUserShowRateLimitTimeoutDuration = ONE_MINUTE;
+
+                      debug(chalkTwitter("FOUND users/show rawUser" + jsonPrint(rawUser)));
+
+                      n.isTwitterUser = true;
+                      n.name = rawUser.name;
+                      n.createdAt = rawUser.created_at;
+                      n.screenName = rawUser.screen_name.toLowerCase();
+                      n.screenNameLower = rawUser.screen_name.toLowerCase();
+                      n.url = rawUser.url;
+                      n.profileUrl = "http://twitter.com/" + rawUser.screen_name;
+                      n.profileImageUrl = rawUser.profile_image_url;
+                      n.bannerImageUrl = rawUser.profile_banner_url;
+                      n.verified = rawUser.verified;
+                      n.following = true;
+                      n.threeceeFollowing = "altthreecee02";
+                      n.description = rawUser.description;
+                      n.lastTweetId = (rawUser.status !== undefined) ? rawUser.status.id_str : null;
+                      n.statusesCount = rawUser.statuses_count;
+                      n.friendsCount = rawUser.friends_count;
+                      n.followersCount = rawUser.followers_count;
+                      n.status = rawUser.status;
+                      n.lastSeen = (rawUser.status !== undefined) ? rawUser.status.created_at : null;
+                      n.updateLastSeen = true;
+
+                      nCacheObj = nodeCache.get(n.nodeId);
+
+                      if (nCacheObj) {
+                        n.mentions = Math.max(n.mentions, nCacheObj.mentions);
+                        n.setMentions = true;
+                      }
+
+                      userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit, lean: true}, function(err, updatedUser){
+    
+                        if (err) {
+                          console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
+                          delete n._id;
+                          viewNameSpace.volatile.emit("node", n);
+                        }
+                        else {
+
+                          delete n._id;
+                          viewNameSpace.volatile.emit("node", updatedUser);
+
+                          if (!unfollowableUserSet.has(updatedUser.nodeId)) { 
+                            autoFollowUser({ threeceeUser: "altthreecee02", user: updatedUser });
+                          }
+
+                        }
+
+                        transmitNodeQueueReady = true;
+                      });
+                    }
+                    else {
+                      delete n._id;
+                      viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
+
+                      transmitNodeQueueReady = true;
+                    }
+                  });
+                }
+                else if ((n.nodeType === "user") && n.category){
+
+                  nCacheObj = nodeCache.get(n.nodeId);
+
+                  if (nCacheObj) {
+                    n.mentions = Math.max(n.mentions, nCacheObj.mentions);
+                    n.setMentions = true;
                   }
-                  else {
-                    delete n._id;
-                    viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
+
+                  n.updateLastSeen = true;
+
+                  userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit}, function(err, updatedUser){
+                    if (err) {
+                      console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
+                      delete n._id;
+                      viewNameSpace.volatile.emit("node", n);
+                    }
+                    else {
+                      delete n._id;
+                      viewNameSpace.volatile.emit("node", updatedUser);
+                    }
 
                     transmitNodeQueueReady = true;
-                  }
-                });
-              }
-              else if ((n.nodeType === "user") && n.category){
 
-                nCacheObj = nodeCache.get(n.nodeId);
+                  });
+                }
+                else if (n.nodeType === "user") {
+                  delete n._id;
+                  viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
 
-                if (nCacheObj) {
-                  n.mentions = Math.max(n.mentions, nCacheObj.mentions);
-                  n.setMentions = true;
+                  transmitNodeQueueReady = true;
                 }
 
-                n.updateLastSeen = true;
+                if ((n.nodeType === "hashtag") && n.category){
 
-                userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit}, function(err, updatedUser){
-                  if (err) {
-                    console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
-                    delete n._id;
-                    viewNameSpace.volatile.emit("node", n);
-                  }
-                  else {
-                    delete n._id;
-                    viewNameSpace.volatile.emit("node", updatedUser);
-                  }
+                  n.updateLastSeen = true;
 
+                  hashtagServerController.findOneHashtag(n, {noInc: false}, function(err, updatedHashtag){
+                    if (err) {
+                      console.log(chalkError("updatedHashtag ERROR\n" + jsonPrint(err)));
+                      delete n._id;
+                      viewNameSpace.volatile.emit("node", n);
+                    }
+                    else if (updatedHashtag) {
+                      delete n._id;
+                      viewNameSpace.volatile.emit("node", updatedHashtag);
+                    }
+                    else {
+                      delete n._id;
+                      viewNameSpace.volatile.emit("node", n);
+                    }
+
+                    transmitNodeQueueReady = true;
+
+                  });
+                }
+                else if (n.nodeType === "hashtag") {
+                  delete n._id;
+                  viewNameSpace.volatile.emit("node", n);
                   transmitNodeQueueReady = true;
+                }
 
-                });
-              }
-              else if (n.nodeType === "user") {
-                delete n._id;
-                viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
-
-                transmitNodeQueueReady = true;
-              }
-
-              if ((n.nodeType === "hashtag") && n.category){
-
-                n.updateLastSeen = true;
-
-                hashtagServerController.findOneHashtag(n, {noInc: false}, function(err, updatedHashtag){
-                  if (err) {
-                    console.log(chalkError("updatedHashtag ERROR\n" + jsonPrint(err)));
-                    delete n._id;
-                    viewNameSpace.volatile.emit("node", n);
-                  }
-                  else if (updatedHashtag) {
-                    delete n._id;
-                    viewNameSpace.volatile.emit("node", updatedHashtag);
-                  }
-                  else {
-                    delete n._id;
-                    viewNameSpace.volatile.emit("node", n);
-                  }
-
+                if (n.nodeType === "emoji"){
+                  delete n._id;
+                  viewNameSpace.volatile.emit("node", n);
                   transmitNodeQueueReady = true;
+                }
 
-                });
-              }
-              else if (n.nodeType === "hashtag") {
-                delete n._id;
-                viewNameSpace.volatile.emit("node", n);
-                transmitNodeQueueReady = true;
-              }
+                if (n.nodeType === "media"){
+                  delete n._id;
+                  viewNameSpace.volatile.emit("node", n);
+                  transmitNodeQueueReady = true;
+                }
 
-              if (n.nodeType === "emoji"){
-                delete n._id;
-                viewNameSpace.volatile.emit("node", n);
-                transmitNodeQueueReady = true;
-              }
+                if (n.nodeType === "place"){
+                  delete n._id;
+                  viewNameSpace.volatile.emit("node", n);
+                  transmitNodeQueueReady = true;
+                }
 
-              if (n.nodeType === "media"){
-                delete n._id;
-                viewNameSpace.volatile.emit("node", n);
-                transmitNodeQueueReady = true;
-              }
+                if (n.nodeType === "word"){
+                  delete n._id;
+                  viewNameSpace.volatile.emit("node", n);
+                  transmitNodeQueueReady = true;
+                }
 
-              if (n.nodeType === "place"){
-                delete n._id;
-                viewNameSpace.volatile.emit("node", n);
-                transmitNodeQueueReady = true;
-              }
-
-              if (n.nodeType === "word"){
-                delete n._id;
-                viewNameSpace.volatile.emit("node", n);
-                transmitNodeQueueReady = true;
-              }
+              });
             }
 
           });
@@ -6680,13 +6681,15 @@ function initThreeceeTwitterUsers(params, callback){
   }, function(){
 
 
-    getCurrentThreeceeUser();
-    console.log(chalkAlert("CURRENT 3C TWITTER USER: @" + statsObj.currentThreeceeUser));
+    getCurrentThreeceeUser(function(currentThreeceeUser){
 
+      console.log(chalkAlert("CURRENT 3C TWITTER USER: @" + currentThreeceeUser));
 
-    if (callback !== undefined) { callback(); }
+      if (callback !== undefined) { callback(); }
+    });
 
-  });}
+  });
+}
 
 function initCategoryHashmapsInterval(interval){
 
@@ -6974,9 +6977,10 @@ function twitterSearchNode(params, callback) {
 
               params.socket.emit("TWITTER_SEARCH_NODE_FAIL", searchNode);
 
-              getCurrentThreeceeUser();
+              getCurrentThreeceeUser(function(){
+                callback();
+              });
 
-              callback();
             }
           });
 

@@ -4593,6 +4593,12 @@ function getCurrentThreeceeUser(){
 
     statsObj.currentThreeceeUser = configuration.threeceeUsers[statsObj.currentThreeceeUserIndex];
 
+    console.log(chalkTwitter("IN getCurrentThreeceeUser 3C USER"
+      + " | START INDEX: " + startIndex
+      + " | INDEX: " + statsObj.currentThreeceeUserIndex
+      + " | @" + statsObj.currentThreeceeUser
+    ));
+
     if (statsObj.currentThreeceeUserIndex === startIndex) { checkedAllUsers = true; }
   }
 

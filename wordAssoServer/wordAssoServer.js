@@ -639,6 +639,11 @@ let hashtagLookupQueue = [];
 
 let keySortQueue = [];
 
+let twitterSearchNodeQueue = [];
+let twitterSearchNodeQueueInterval;
+let twitterSearchNodeQueueReady = false;
+
+
 let tweetParserPingInterval;
 
 let tweetParserPingSent = false;
@@ -6699,8 +6704,6 @@ function initCategoryHashmapsInterval(interval){
   }, interval);
 }
 
-let twitterSearchNodeQueue = [];
-
 function twitterSearchNode(params, callback) {
 
   let searchNode = params.searchNode.toLowerCase();
@@ -7095,9 +7098,7 @@ function twitterSearchNode(params, callback) {
 function initTwitterSearchNodeQueue(interval){
 
   let searchNodeParams;
-
-  let twitterSearchNodeQueueInterval;
-  let twitterSearchNodeQueueReady = false;
+  twitterSearchNodeQueueReady = true;
 
   console.log(chalk.bold.black("INIT TWITTER SEARCH NODE QUEUE INTERVAL: " + msToTime(interval)));
 

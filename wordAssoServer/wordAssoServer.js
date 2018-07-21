@@ -4541,18 +4541,49 @@ function checkRateLimit(params, callback){
 
 
 let checkRateLimitInterval;
+let checkRateLimitReady = true;
+
 function initCheckRateLimitInterval(interval){
 
   clearInterval(checkRateLimitInterval);
 
+  checkRateLimitReady = true;
+
   checkRateLimitInterval = setInterval(function(){
 
-    configuration.threeceeUsers.forEach(function(user){
+    if (checkRateLimitReady) {
 
-      if (threeceeTwitter[user].twitterRateLimitExceptionFlag) {
-        checkRateLimit({user: user}, function(){});
-      }
-    });
+      checkRateLimitReady = false;
+
+      async.eachSeries(configuration.threeceeUsers, function(user, cb){
+
+        if (threeceeTwitter[user].twitterRateLimitExceptionFlag) {
+
+          checkRateLimit({user: user}, function(err){
+            cb();
+          });
+
+        }
+        else {
+          cb();
+        }
+
+      }, function(err){
+          checkRateLimitReady = true;
+      });
+
+      // configuration.threeceeUsers.forEach(function(user){
+
+      //   if (threeceeTwitter[user].twitterRateLimitExceptionFlag) {
+
+      //     checkRateLimit({user: user}, function(){
+      //       checkRateLimitReady = true;
+      //     });
+
+      //   }
+      // });
+
+    }
 
   }, interval);
 }
@@ -4608,7 +4639,7 @@ function getCurrentThreeceeUser(callback){
       if (statsObj.currentThreeceeUser) {
 
         statsObj.currentThreeceeUser = false;
-        
+
         console.log(chalkAlert("getCurrentThreeceeUser 3C USER"
           + " | 3C USERS: " + configuration.threeceeUsers
           + " | NONE READY"

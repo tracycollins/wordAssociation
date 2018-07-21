@@ -4566,14 +4566,14 @@ function getCurrentThreeceeUser(){
 
     if ((threeceeTwitter[threeceeUser] !== undefined) && threeceeTwitter[threeceeUser].ready) {
 
-      console.log(chalkTwitter("IN getCurrentThreeceeUser 3C USER"
+      debug(chalkTwitter("IN getCurrentThreeceeUser 3C USER"
         + " | @" + threeceeUser + " READY"
       ));
 
       return cb(threeceeUser);
     }
 
-    console.log(chalkTwitter("IN getCurrentThreeceeUser 3C USER"
+    debug(chalkTwitter("IN getCurrentThreeceeUser 3C USER"
       + " | @" + threeceeUser + " NOT READY"
     ));
 
@@ -4585,7 +4585,7 @@ function getCurrentThreeceeUser(){
     if (threeceeUser) { 
       statsObj.currentThreeceeUser = threeceeUser;
 
-      console.log(chalkTwitter("getCurrentThreeceeUser 3C USER"
+      debug(chalkTwitter("getCurrentThreeceeUser 3C USER"
         + " | 3C USERS: " + configuration.threeceeUsers
         + " | @" + statsObj.currentThreeceeUser
       ));
@@ -4594,7 +4594,7 @@ function getCurrentThreeceeUser(){
     else {
       statsObj.currentThreeceeUser = false;
 
-      console.log(chalkTwitter("getCurrentThreeceeUser 3C USER"
+      debug(chalkTwitter("getCurrentThreeceeUser 3C USER"
         + " | 3C USERS: " + configuration.threeceeUsers
         + " | NONE READY"
       ));

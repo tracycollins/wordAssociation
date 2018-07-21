@@ -4603,12 +4603,17 @@ function getCurrentThreeceeUser(callback){
 
     }
     else {
-      statsObj.currentThreeceeUser = false;
 
-      console.log(chalkAlert("getCurrentThreeceeUser 3C USER"
-        + " | 3C USERS: " + configuration.threeceeUsers
-        + " | NONE READY"
-      ));
+
+      if (statsObj.currentThreeceeUser) {
+
+        statsObj.currentThreeceeUser = false;
+        
+        console.log(chalkAlert("getCurrentThreeceeUser 3C USER"
+          + " | 3C USERS: " + configuration.threeceeUsers
+          + " | NONE READY"
+        ));
+      }
 
     }
 

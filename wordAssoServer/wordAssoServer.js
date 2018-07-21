@@ -5000,7 +5000,7 @@ function initTransmitNodeQueueInterval(interval){
 
           updateNodeMeter(node, function updateNodeMeterCallback(err, n){
 
-            transmitNodeQueueReady = true;
+            // transmitNodeQueueReady = true;
 
             if (err) {
               console.log(chalkError("ERROR updateNodeMeter: " + err
@@ -5009,6 +5009,8 @@ function initTransmitNodeQueueInterval(interval){
               ));
               delete node._id;
               viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
+
+              transmitNodeQueueReady = true;
             }
             else {
 
@@ -5055,6 +5057,8 @@ function initTransmitNodeQueueInterval(interval){
 
                     }
 
+                    transmitNodeQueueReady = true;
+
                   }
 
                   else if (rawUser && (rawUser.followers_count >= configuration.minFollowersAuto)) {
@@ -5092,6 +5096,7 @@ function initTransmitNodeQueueInterval(interval){
                     }
 
                     userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit, lean: true}, function(err, updatedUser){
+  
                       if (err) {
                         console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
                         delete n._id;
@@ -5107,11 +5112,15 @@ function initTransmitNodeQueueInterval(interval){
                         }
 
                       }
+
+                      transmitNodeQueueReady = true;
                     });
                   }
                   else {
                     delete n._id;
                     viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
+
+                    transmitNodeQueueReady = true;
                   }
                 });
               }
@@ -5136,11 +5145,16 @@ function initTransmitNodeQueueInterval(interval){
                     delete n._id;
                     viewNameSpace.volatile.emit("node", updatedUser);
                   }
+
+                  transmitNodeQueueReady = true;
+
                 });
               }
               else if (n.nodeType === "user") {
                 delete n._id;
                 viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
+
+                transmitNodeQueueReady = true;
               }
 
               if ((n.nodeType === "hashtag") && n.category){
@@ -5161,31 +5175,39 @@ function initTransmitNodeQueueInterval(interval){
                     delete n._id;
                     viewNameSpace.volatile.emit("node", n);
                   }
+
+                  transmitNodeQueueReady = true;
+
                 });
               }
               else if (n.nodeType === "hashtag") {
                 delete n._id;
                 viewNameSpace.volatile.emit("node", n);
+                transmitNodeQueueReady = true;
               }
 
               if (n.nodeType === "emoji"){
                 delete n._id;
                 viewNameSpace.volatile.emit("node", n);
+                transmitNodeQueueReady = true;
               }
 
               if (n.nodeType === "media"){
                 delete n._id;
                 viewNameSpace.volatile.emit("node", n);
+                transmitNodeQueueReady = true;
               }
 
               if (n.nodeType === "place"){
                 delete n._id;
                 viewNameSpace.volatile.emit("node", n);
+                transmitNodeQueueReady = true;
               }
 
               if (n.nodeType === "word"){
                 delete n._id;
                 viewNameSpace.volatile.emit("node", n);
+                transmitNodeQueueReady = true;
               }
             }
 

@@ -4500,7 +4500,6 @@ function checkRateLimit(params, callback){
 
         threeceeTwitter[params.user].twitterRateLimit = data.resources.users["/users/show/:id"].limit;
         threeceeTwitter[params.user].twitterRateLimitRemaining = data.resources.users["/users/show/:id"].remaining;
-        // threeceeTwitter[params.user].twitterRateLimitResetAt = moment(1000*data.resources.users["/users/show/:id"].reset);
         threeceeTwitter[params.user].twitterRateLimitResetAt = moment.unix(data.resources.users["/users/show/:id"].reset);
         threeceeTwitter[params.user].twitterRateLimitRemainingTime = threeceeTwitter[params.user].twitterRateLimitResetAt.diff(moment());
 
@@ -4571,17 +4570,6 @@ function initCheckRateLimitInterval(interval){
       }, function(err){
           checkRateLimitReady = true;
       });
-
-      // configuration.threeceeUsers.forEach(function(user){
-
-      //   if (threeceeTwitter[user].twitterRateLimitExceptionFlag) {
-
-      //     checkRateLimit({user: user}, function(){
-      //       checkRateLimitReady = true;
-      //     });
-
-      //   }
-      // });
 
     }
 
@@ -7232,6 +7220,7 @@ initialize(function initializeComplete(err) {
     });
 
     initStatsInterval(STATS_UPDATE_INTERVAL);
+    initCheckRateLimitInterval(60000);
 
     slackPostMessage(slackChannel, "\n*INIT* | " + hostname + "\n");
 

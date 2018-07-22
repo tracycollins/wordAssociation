@@ -4444,8 +4444,6 @@ function autoFollowUser(params, callback){
 function checkRateLimit(params, callback){
 
   threeceeTwitter[params.user].twit.get("application/rate_limit_status", function(err, data, response) {
-
-    // debug("application/rate_limit_status response: " + jsonPrint(response));
     
     if (err){
 
@@ -4475,7 +4473,11 @@ function checkRateLimit(params, callback){
       }
 
       if (threeceeTwitter[params.user].twitterRateLimitExceptionFlag 
-        && threeceeTwitter[params.user].twitterRateLimitResetAt.isBefore(moment())){
+        && (
+          (threeceeTwitter[params.user].twitterRateLimitRemaining > 0) 
+          || threeceeTwitter[params.user].twitterRateLimitResetAt.isBefore(moment()))
+        )
+      {
 
         threeceeTwitter[params.user].ready = true;
         threeceeTwitter[params.user].twitterRateLimitExceptionFlag = false;

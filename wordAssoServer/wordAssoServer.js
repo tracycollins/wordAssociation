@@ -6769,6 +6769,7 @@ function twitterSearchNode(params, callback) {
 
               threeceeTwitter[currentThreeceeUser].twit.get("users/show", 
                 {user_id: user.nodeId, include_entities: true}, function usersShow (err, rawUser, response){
+
                 if (err) {
                   console.log(chalkError("ERROR users/show rawUser | @" + user.screenName + " | " + err));
                   if (nodeSearchType === "USER_UNCATEGORIZED") { 
@@ -6782,10 +6783,12 @@ function twitterSearchNode(params, callback) {
                       previousUserUncategorizedId = user.nodeId;
                     }
                   }
+
                   if (nodeSearchType === "USER_MISMATCHED") { previousUserMismatchedId = user.nodeId; }
                   params.socket.emit("SET_TWITTER_USER", user);
                   callback(err);
                 }
+
                 else if (rawUser && (rawUser !== undefined)) {
 
                   userServerController.convertRawUser({user:rawUser}, function(err, cUser){
@@ -6864,6 +6867,7 @@ function twitterSearchNode(params, callback) {
 
                       }
                     });
+
                   });
                 }
                 else {
@@ -6883,6 +6887,8 @@ function twitterSearchNode(params, callback) {
                   + "\n" + printUser({user:user})
                 ));
 
+                params.socket.emit("TWITTER_SEARCH_NODE_FAIL", searchNode);
+                getCurrentThreeceeUser(function(){ callback();  });
 
               }
               else {
@@ -6891,13 +6897,52 @@ function twitterSearchNode(params, callback) {
                   + " | 3C @" + currentThreeceeUser
                   + "\n" + printUser({user:user})
                 ));
+
+                let nCacheObj = nodeCache.get(user.nodeId);
+
+                if (nCacheObj) {
+                  user.mentions = Math.max(user.mentions, nCacheObj.mentions);
+                  user.setMentions = true;
+                }
+
+                userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
+
+                  if (err) {
+                    console.log(chalkError("findOneUser ERROR: " + err));
+                    params.socket.emit("SET_TWITTER_USER", user);
+                    callback(err);
+                  }
+                  else {
+
+                    console.log(chalk.blue("UPDATED updatedUser"
+                      + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
+                      + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
+                      + "\n" + printUser({user:updatedUser})
+                    ));
+
+                    if (nodeSearchType === "USER_UNCATEGORIZED") {
+                      if ((nodeSearchBy !== undefined) && (nodeSearchBy === "createdAt")) {
+                      }
+                      else if ((nodeSearchBy !== undefined) && (nodeSearchBy === "lastSeen")) {
+                        previousUserUncategorizedLastSeen = moment(updatedUser.lastSeen);
+                      }
+                      else {
+                        previousUserUncategorizedId = updatedUser.userId;
+                      }
+                    }
+
+                    if (nodeSearchType === "USER_MISMATCHED") {
+                      previousUserMismatchedId = updatedUser.userId;
+                    }
+
+                    params.socket.emit("SET_TWITTER_USER", updatedUser);
+
+                    callback();
+
+                  }
+                });
+
               }
-
-              params.socket.emit("TWITTER_SEARCH_NODE_FAIL", searchNode);
-
-              getCurrentThreeceeUser(function(){
-                callback();
-              });
 
             }
           });

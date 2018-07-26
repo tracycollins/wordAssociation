@@ -3237,7 +3237,6 @@ function initUnfollowableUserSet(){
             }
             cb(null, null);
           }
-
         });
 
       }, function(err){
@@ -3272,22 +3271,52 @@ function unfollow(params, callback) {
   adminNameSpace.emit("UNFOLLOW", params.user);
   utilNameSpace.emit("UNFOLLOW", params.user);
 
-  let user = new User(params.user);
+  const query = { nodeId: params.user.nodeId, following: true };
 
-  user.following = false;
-  user.threeceeFollowing = false;
-  user.updateLastSeen = false;
+  let update = {};
+  update["$set"] = { following: false, threeceeFollowing: false };
 
-  userServerController.findOneUser(user, {}, function(err, u){
+  const options = {
+    new: true,
+    upsert: false
+  };
+
+  User.findOneAndUpdate(query, update, options, function(err, userUpdated){
+
     if (err) {
-      console.log(chalkError("UNFOLLOW ERROR: " + err));
+      console.log(chalkError("*** UNFOLLOW | USER FIND ONE ERROR: " + err));
+    }
+    else if (userUpdated){
+      console.log(chalkLog("XXX UNFOLLOW"
+        + " | " + printUser({user: userUpdated})
+      ));
     }
     else {
-      console.log(chalkLog("UNFOLLOW USER: @" + user.screenName));
+      console.log(chalkLog("... ALREADY UNFOLLOWED"
+        + " | ID: " + params.user.nodeId
+      ));
     }
 
-    if (callback !== undefined) { callback(); }
+    if (callback !== undefined) { callback(err, userUpdated); }
+
   });
+
+  // let user = new User(params.user);
+
+  // user.following = false;
+  // user.threeceeFollowing = false;
+  // user.updateLastSeen = false;
+
+  // userServerController.findOneUser(user, {}, function(err, u){
+  //   if (err) {
+  //     console.log(chalkError("UNFOLLOW ERROR: " + err));
+  //   }
+  //   else {
+  //     console.log(chalkLog("UNFOLLOW USER: @" + user.screenName));
+  //   }
+
+  //   if (callback !== undefined) { callback(); }
+  // });
 }
 
 

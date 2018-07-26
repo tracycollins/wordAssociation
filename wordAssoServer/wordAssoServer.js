@@ -3196,10 +3196,12 @@ function initUnfollowableUserSet(){
 
       let query;
       let update;
+      let numUnfollowed = 0;
+      let numAlreadyUnfollowed = 0;
 
       async.eachSeries(unfollowableUserSetArray, function(userId, cb){
 
-        query = { nodeId: userId };
+        query = { nodeId: userId, following: true };
 
         update = {};
         update["$set"] = { following: false, threeceeFollowing: false };
@@ -3217,18 +3219,34 @@ function initUnfollowableUserSet(){
           }
           else if (userUpdated){
 
-            console.log(chalkInfo("XXX UNFOLLOW | " + printUser({user: userUpdated})));
+            numUnfollowed += 1;
+            console.log(chalkLog("XXX UNFOLLOW"
+              + " [" + numUnfollowed + "/" + numAlreadyUnfollowed + "/" + unfollowableUserSetArray.length + "]"
+              + " | " + printUser({user: userUpdated})
+            ));
 
             cb(null, userUpdated);
           }
           else {
+            numAlreadyUnfollowed += 1;
+            if (configuration.verbose){
+              console.log(chalkLog("... ALREADY UNFOLLOWED"
+                + " [" + numUnfollowed + "/" + numAlreadyUnfollowed + "/" + unfollowableUserSetArray.length + "]"
+                + " | ID: " + userId
+              ));
+            }
             cb(null, null);
           }
 
         });
 
       }, function(err){
-        console.log(chalk.bold.black("INIT UNFOLLOWABLE USERS | " + unfollowableUserSet.size + " USERS"));
+        // console.log(chalk.bold.black("INIT UNFOLLOWABLE USERS | " + unfollowableUserSet.size + " USERS"));
+        console.log(chalkBlue("INIT UNFOLLOWABLE USERS"
+          + " | " + numUnfollowed + " NEW UNFOLLOWED"
+          + " | " + numAlreadyUnfollowed + " ALREADY UNFOLLOWED"
+          + " | " + unfollowableUserSetArray.length + " TOTAL USERS"
+        ));
       });
     }
   });

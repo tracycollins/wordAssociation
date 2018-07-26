@@ -3189,11 +3189,47 @@ function initUnfollowableUserSet(){
       else {
         console.log(chalkError("*** LOAD UNFOLLOWABLE USERS ERROR: " + err));
       }
-      // console.log(chalkAlert("*** ERROR INIT UNFOLLOWABLE USERS | " + err));
     }
     else if (unfollowableUserSetArray) {
+
       unfollowableUserSet = new Set(unfollowableUserSetArray);
-      console.log(chalk.bold.black("INIT UNFOLLOWABLE USERS | " + unfollowableUserSet.size + " USERS"));
+
+      let query;
+      let update;
+
+      async.eachSeries(unfollowableUserSetArray, function(userId, cb){
+
+        query = { nodeId: userId };
+
+        update = {};
+        update["$set"] = { following: false, threeceeFollowing: false };
+
+        const options = {
+          new: true,
+          upsert: false
+        };
+
+        User.findOneAndUpdate(query, update, options, function(err, userUpdated){
+
+          if (err) {
+            console.log(chalkError("*** initUnfollowableUserSet | USER FIND ONE ERROR: " + err));
+            return cb(err, userId);
+          }
+          else if (userUpdated){
+
+            console.log(chalkInfo("XXX UNFOLLOW | " + printUser({user: userUpdated})));
+
+            cb(null, userUpdated);
+          }
+          else {
+            cb(null, null);
+          }
+
+        });
+
+      }, function(err){
+        console.log(chalk.bold.black("INIT UNFOLLOWABLE USERS | " + unfollowableUserSet.size + " USERS"));
+      });
     }
   });
 }

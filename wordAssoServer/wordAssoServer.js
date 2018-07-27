@@ -4998,14 +4998,17 @@ function initAppRouting(callback) {
 
     if (req.path === "/dropbox_webhook") {
 
+      console.log(chalkLog("R< DROPBOX WEB HOOK: /dropbox_webhook")); 
+
       debug(chalkAlert("R< dropbox_webhook"
         + "\nreq.query: " + jsonPrint(req.query)
         + "\nreq.params: " + jsonPrint(req.params)
         + "\nreq.body: " + jsonPrint(req.body)
       )); 
 
-      res.send(req.query.challenge);
+      console.log(chalkLog("T> DROPBOX WEB HOOK CHALLENGE: /req.query.challenge: " + req.query.challenge)); 
 
+      res.send(req.query.challenge);
 
       if (dropboxFolderGetLastestCursorReady) {
 
@@ -5050,7 +5053,7 @@ function initAppRouting(callback) {
               next();
 
             }, 1000);
-            
+
           }
         });
       }

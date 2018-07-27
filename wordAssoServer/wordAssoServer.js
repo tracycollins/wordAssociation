@@ -5038,9 +5038,19 @@ function initAppRouting(callback) {
               });
 
               dropboxFolderGetLastestCursorReady = true;
+              next();
 
             }, 1000);
 
+          }
+          else {
+            setTimeout(function(){
+
+              dropboxFolderGetLastestCursorReady = true;
+              next();
+
+            }, 1000);
+            
           }
         });
       }

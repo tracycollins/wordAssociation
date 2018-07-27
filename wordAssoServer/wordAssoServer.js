@@ -6540,7 +6540,7 @@ function initStatsInterval(interval){
 
     getChildProcesses({searchTerm: "ALL"}, function(err, childArray){
 
-      console.log(chalkLog("WA | FOUND " + childArray.length + " CHILDREN"));
+      if (configuration.verbose)  { console.log(chalkLog("WA | FOUND " + childArray.length + " CHILDREN")); }
       
       childArray.forEach(function(childObj){
         console.log(chalkLog("WA | CHILD | PID: " + childObj.pid + " | " + childObj.childId + " | " + childrenHashMap[childObj.childId].status));

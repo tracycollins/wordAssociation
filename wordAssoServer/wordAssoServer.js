@@ -5006,7 +5006,7 @@ function initAppRouting(callback) {
         + "\nreq.body: " + jsonPrint(req.body)
       )); 
 
-      console.log(chalkLog("T> DROPBOX WEB HOOK CHALLENGE: /req.query.challenge: " + req.query.challenge)); 
+      console.log(chalkLog("T> DROPBOX WEB HOOK CHALLENGE: /req.query.challenge: " + jsonPrint(req.query.challenge))); 
 
       res.send(req.query.challenge);
 

@@ -1253,7 +1253,8 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
         status: currentServer.status,
         lastSeen: moment(currentServer.timeStamp).format(defaultDateTimeFormat),
         ago: msToTime(moment().diff(moment(currentServer.timeStamp))),
-        upTime: msToTime(currentServer.user.stats.elapsed)
+        // upTime: msToTime(currentServer.user.stats.elapsed)
+        upTime: msToTime(currentServer.stats.elapsed)
       };
 
       if (serverSocketHashMap.has(serverSocketId)) {

@@ -5010,52 +5010,71 @@ function initAppRouting(callback) {
 
       res.send(req.query.challenge);
 
+      let dropboxCursorFolderArray = [ bestNetworkFolder, dropboxConfigDefaultFolder, dropboxConfigHostFolder ];
+
       if (dropboxFolderGetLastestCursorReady) {
 
         dropboxFolderGetLastestCursorReady = false;
 
-        dropboxFolderGetLastestCursor(bestNetworkFolder, function(err, response){
+        async.eachSeries(dropboxCursorFolderArray, function(folder, cb){
 
-          if (err) {
-            setTimeout(function(){
-              dropboxFolderGetLastestCursorReady = true;
-              next();
-            }, 1000);
-          }
-          else if (response && (response.entries.length > 0)) {
+          dropboxFolderGetLastestCursor(folder, function(err, response){
 
-            setTimeout(function(){
-              adminNameSpace.emit("DROPBOX_CHANGE", response);
+            if (err) {
+              setTimeout(function(){
 
-              console.log(chalkLog(">>> DROPBOX CHANGE"
-                + " | " + getTimeStamp()
-                + " | FOLDER: " + bestNetworkFolder
-              ));
-              
-              response.entries.forEach(function(entry){
-                console.log(chalkLog(">>> DROPBOX CHANGE | ENTRY"
-                  + " | TYPE: " + entry[".tag"]
-                  + " | PATH: " + entry.path_lower
-                  + " | NAME: " + entry.name
+                cb();
+                // dropboxFolderGetLastestCursorReady = true;
+                // next();
+              }, 1000);
+
+            }
+            else if (response && (response.entries.length > 0)) {
+
+              setTimeout(function(){
+                
+                adminNameSpace.emit("DROPBOX_CHANGE", response);
+
+                console.log(chalkLog(">>> DROPBOX CHANGE"
+                  + " | " + getTimeStamp()
+                  + " | FOLDER: " + folder
                 ));
-              });
+                
+                response.entries.forEach(function(entry){
 
-              dropboxFolderGetLastestCursorReady = true;
-              next();
+                  console.log(chalkLog(">>> DROPBOX CHANGE | ENTRY"
+                    + " | TYPE: " + entry[".tag"]
+                    + " | PATH: " + entry.path_lower
+                    + " | NAME: " + entry.name
+                  ));
 
-            }, 1000);
+                });
 
-          }
-          else {
-            setTimeout(function(){
+                cb();
+                // dropboxFolderGetLastestCursorReady = true;
+                // next();
 
-              dropboxFolderGetLastestCursorReady = true;
-              next();
+              }, 1000);
 
-            }, 1000);
+            }
+            else {
+              setTimeout(function(){
 
-          }
+                cb();
+                // dropboxFolderGetLastestCursorReady = true;
+                // next();
+
+              }, 1000);
+
+            }
+          });
+
+
+        }, function(err){
+          dropboxFolderGetLastestCursorReady = true;
+          next();
         });
+
       }
     }
     else if (req.path === "/googleccd19766bea2dfd2.html") {
@@ -6069,6 +6088,7 @@ function initRateQinterval(interval){
 let loadBestNetworkInterval;
 
 function loadBestRuntimeNetwork(){
+
   loadFile(bestNetworkFolder, bestRuntimeNetworkFileName, function(err, bRtNnObj){
 
     if (err) {

@@ -300,30 +300,42 @@ let userNameSpace;
 let viewNameSpace;
 
 let unfollowableUserFile = "unfollowableUser.json";
+let followableSearchTermFile = "followableSearchTerm.json";
 
 let followableSearchTermSet = new Set();
 
+followableSearchTermSet.add("potus");
 followableSearchTermSet.add("trump");
 followableSearchTermSet.add("obama");
 followableSearchTermSet.add("clinton");
-followableSearchTermSet.add("reagan");
-followableSearchTermSet.add("#maga");
-followableSearchTermSet.add("#kag");
-followableSearchTermSet.add("#nra");
-followableSearchTermSet.add("@nra");
 followableSearchTermSet.add("pence");
 followableSearchTermSet.add("ivanka");
 followableSearchTermSet.add("mueller");
-followableSearchTermSet.add("bluewave");
+followableSearchTermSet.add("reagan");
+followableSearchTermSet.add("hanity");
+followableSearchTermSet.add("putin");
+
+followableSearchTermSet.add("#maga");
+followableSearchTermSet.add("#kag");
+followableSearchTermSet.add("#nra");
+followableSearchTermSet.add("#gop");
 followableSearchTermSet.add("#resist");
 followableSearchTermSet.add("#dem");
-followableSearchTermSet.add("liberal");
-followableSearchTermSet.add("conservative");
 followableSearchTermSet.add("#imwithher");
 followableSearchTermSet.add("#metoo");
 followableSearchTermSet.add("#blm");
+followableSearchTermSet.add("#russia");
+
+followableSearchTermSet.add("@nra");
+followableSearchTermSet.add("@gop");
+
+followableSearchTermSet.add("bluewave");
+followableSearchTermSet.add("liberal");
+followableSearchTermSet.add("democrat");
+followableSearchTermSet.add("congress");
+followableSearchTermSet.add("republican");
+followableSearchTermSet.add("conservative");
 followableSearchTermSet.add("livesmatter");
-followableSearchTermSet.add("hanity");
 
 let followableSearchTermString = "";
 
@@ -1474,7 +1486,6 @@ function dropboxFolderGetLastestCursor(folder, callback) {
     include_has_explicit_shared_members: false
   };
 
-
   debug(chalkLog("dropboxFolderGetLastestCursor FOLDER: " + folder));
 
   dropboxClient.filesListFolderGetLatestCursor(optionsGetLatestCursor)
@@ -1482,7 +1493,7 @@ function dropboxFolderGetLastestCursor(folder, callback) {
 
     lastCursorTruncated = last_cursor.cursor.substring(0,20);
 
-    debug(chalkLog("lastCursorTruncated: " + lastCursorTruncated));
+    console.log(chalkLog("lastCursorTruncated: " + lastCursorTruncated));
 
     dropboxLongPoll(last_cursor.cursor, function(err, results){
 
@@ -1490,7 +1501,7 @@ function dropboxFolderGetLastestCursor(folder, callback) {
 
         dropboxClient.filesListFolderContinue({ cursor: last_cursor.cursor})
         .then(function(response){
-          debug(chalkLog("filesListFolderContinue: " + jsonPrint(response)));
+          console.log(chalkLog("filesListFolderContinue: " + jsonPrint(response)));
           callback(null, response);
         })
         .catch(function(err){
@@ -1683,11 +1694,11 @@ function loadFile(path, file, callback) {
 
       if (err.code === "ENOTFOUND") {
         debug(chalkError("WA | LOAD FILE ERROR | FILE NOT FOUND: " + fullPath));
-        return callback(err, null);
+      }
+      else {
+        debug(chalkError("WA | LOAD FILE ERROR: " + err));
       }
 
-      debug(chalkError("WA | LOAD FILE ERROR: " + err));
-      
       callback(err, null);
 
     });
@@ -2837,9 +2848,10 @@ configEvents.on("INTERNET_READY", function internetReady() {
   });
 
   initAppRouting(function initAppRoutingComplete() {
+
     initSocketNamespaces();
     initLoadBestNetworkInterval(ONE_MINUTE+1);
-    initFollowableSearchTerms();
+
   });
 
 });
@@ -3177,7 +3189,56 @@ function follow(params, callback) {
   if (callback !== undefined) { callback(null, null); }
 }
 
+function initFollowableSearchTermSet(){
+
+  console.log(chalkBlue("INIT FOLLOWABLE SEARCH TERM SET"));
+
+  loadFile(dropboxConfigDefaultFolder, followableSearchTermFile, function(err, followableSearchTermSetArray){
+
+    if (err) {
+      if (err.status === 409) {
+        console.log(chalkError("*** LOAD FOLLOWABLE SEARCH TERM ERROR: FILE NOT FOUND:  " 
+          + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
+        ));
+      }
+      else {
+        console.log(chalkError("*** LOAD FOLLOWABLE SEARCH TERM ERROR: STATUS: " + err.status));
+        console.log(err);
+      }
+
+      initFollowableSearchTerms();
+
+    }
+    else if (followableSearchTermSetArray) {
+
+      console.log(chalkLog("LOADED FOLLOWABLE SEARCH TERM FILE"
+        + " | " + followableSearchTermSetArray.length + " SEARCH TERMS"
+        + " | " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
+      ));
+
+      async.each(followableSearchTermSetArray, function(searchTerm, cb){
+
+        followableSearchTermSet.add(searchTerm);
+        cb();
+
+      }, function(err){
+
+        console.log(chalkLog("FOLLOWABLE SEARCH TERM SET"
+          + " | " + followableSearchTermSet.size + " SEARCH TERMS"
+          + " | " + followableSearchTermSetArray.length + " SEARCH TERMS IN FILE"
+          + " | " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
+        ));
+
+        initFollowableSearchTerms();
+      });
+
+    }
+  });
+}
+
 function initUnfollowableUserSet(){
+
+  console.log(chalkLog("INIT UNFOLLOWABLE USER SET"));
 
   loadFile(dropboxConfigDefaultFolder, unfollowableUserFile, function(err, unfollowableUserSetArray){
     if (err) {
@@ -3192,7 +3253,12 @@ function initUnfollowableUserSet(){
     }
     else if (unfollowableUserSetArray) {
 
-      unfollowableUserSet = new Set(unfollowableUserSetArray);
+      console.log(chalkLog("LOADED UNFOLLOWABLE USERS FILE"
+        + " | " + unfollowableUserSetArray.length + " USERS"
+        + " | " + dropboxConfigDefaultFolder + "/" + unfollowableUserFile
+      ));
+
+      // unfollowableUserSet = new Set(unfollowableUserSetArray);
 
       let query;
       let update;
@@ -3200,6 +3266,8 @@ function initUnfollowableUserSet(){
       let numAlreadyUnfollowed = 0;
 
       async.eachSeries(unfollowableUserSetArray, function(userId, cb){
+
+        unfollowableUserSet.add(userId);
 
         query = { nodeId: userId, following: true };
 
@@ -3244,7 +3312,9 @@ function initUnfollowableUserSet(){
         console.log(chalkBlue("INIT UNFOLLOWABLE USERS"
           + " | " + numUnfollowed + " NEW UNFOLLOWED"
           + " | " + numAlreadyUnfollowed + " ALREADY UNFOLLOWED"
-          + " | " + unfollowableUserSetArray.length + " TOTAL USERS"
+          + " | " + unfollowableUserSet.size + " USERS IN SET"
+          + " | " + unfollowableUserSetArray.length + " USERS IN FILE"
+          + " | " + dropboxConfigDefaultFolder + "/" + unfollowableUserFile
         ));
       });
     }
@@ -4380,10 +4450,19 @@ let startTwitUserShowRateLimitTimeoutDuration = ONE_MINUTE;
 // }
 
 function initFollowableSearchTerms(){
+
   const termsArray = Array.from(followableSearchTermSet);
+
   followableSearchTermString = termsArray.join("|");
+
   followableRegEx = new RegExp(followableSearchTermString, "gi");
+
   debug(chalkInfo("followableRegEx: " + followableRegEx));
+
+  console.log(chalkLog("FOLLOWABLE SEARCH TERM REGEX INITIALIZED"
+    + " | " + followableSearchTermSet.size + " SEARCH TERMS"
+  ));
+
 }
 
 let userFollowable = function(user){
@@ -5009,8 +5088,6 @@ function initAppRouting(callback) {
         )); 
       }
 
-      // console.log(chalkLog("T> DROPBOX WEB HOOK CHALLENGE: /req.query\n" + jsonPrint(req.query))); 
-
       res.send(req.query.challenge);
 
       let dropboxCursorFolderArray = [ bestNetworkFolder, dropboxConfigDefaultFolder, dropboxConfigHostFolder ];
@@ -5027,8 +5104,6 @@ function initAppRouting(callback) {
               setTimeout(function(){
 
                 cb();
-                // dropboxFolderGetLastestCursorReady = true;
-                // next();
               }, 1000);
 
             }
@@ -5054,9 +5129,6 @@ function initAppRouting(callback) {
                 });
 
                 cb();
-                // dropboxFolderGetLastestCursorReady = true;
-                // next();
-
               }, 1000);
 
             }
@@ -5064,9 +5136,6 @@ function initAppRouting(callback) {
               setTimeout(function(){
 
                 cb();
-                // dropboxFolderGetLastestCursorReady = true;
-                // next();
-
               }, 1000);
 
             }
@@ -7219,7 +7288,7 @@ initialize(function initializeComplete(err) {
     debug(chalkLog("INITIALIZE COMPLETE"));
 
     initUnfollowableUserSet();
-    // initSorterMessageRxQueueInterval(DEFAULT_INTERVAL);
+    initFollowableSearchTermSet();
     initSaveFileQueue(configuration);
     initIgnoreWordsHashMap();
     initTransmitNodeQueueInterval(TRANSMIT_NODE_QUEUE_INTERVAL);

@@ -5000,8 +5000,8 @@ function initAppRouting(callback) {
 
       console.log(chalkLog("R< DROPBOX WEB HOOK: /dropbox_webhook")); 
 
-      // if (configuration.verbose) {
-      if (true) {
+      if (configuration.verbose) {
+      // if (true) {
         console.log(chalkAlert("R< dropbox_webhook"
           + "\nreq.query\n" + jsonPrint(req.query)
           + "\nreq.params\n" + jsonPrint(req.params)
@@ -5009,7 +5009,7 @@ function initAppRouting(callback) {
         )); 
       }
 
-      console.log(chalkLog("T> DROPBOX WEB HOOK CHALLENGE: /req.query\n" + jsonPrint(req.query))); 
+      // console.log(chalkLog("T> DROPBOX WEB HOOK CHALLENGE: /req.query\n" + jsonPrint(req.query))); 
 
       res.send(req.query.challenge);
 

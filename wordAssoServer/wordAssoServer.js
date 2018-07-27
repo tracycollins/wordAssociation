@@ -6295,20 +6295,6 @@ function initCategoryHashmaps(callback){
                 categorizedHashtagHashMap.set(nodeId, results.obj[nodeId]);
               });
 
-              // if (configuration.verbose) {
-              //   console.log(chalkInfo("WA | LOADING CATEGORIZED HASHTAGS FROM DB"
-              //     + " | TOTAL CATEGORIZED: " + totalCount
-              //     + " | TOTAL CATEGORIZED: " + totalCount
-              //     + " | LIMIT: " + p.limit
-              //     + " | SKIP: " + p.skip
-              //     + " | " + totalManual + " MAN"
-              //     + " | " + totalAuto + " AUTO"
-              //     + " | " + totalMatched + " MATCHED"
-              //     + " / " + totalMismatched + " MISMATCHED"
-              //     + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
-              //   ));
-              // }
-
               p.skip += results.count;
 
               cb0();
@@ -6350,7 +6336,6 @@ function initCategoryHashmaps(callback){
       p.skip = 0;
       p.batchSize = configuration.cursorBatchSize;
       p.limit = configuration.findCatUserLimit;
-      // p.verbose = configuration.verbose;
       p.verbose = false;
 
       let more = true;
@@ -6390,25 +6375,9 @@ function initCategoryHashmaps(callback){
 
               totalMatchRate = 100*(totalMatched/(totalMatched+totalMismatched));
 
-              // results.obj[nodeId] = { manual: user.category, auto: user.categoryAuto };
-
               Object.keys(results.obj).forEach(function(nodeId){
                 categorizedUserHashMap.set(nodeId, results.obj[nodeId]);
               });
-
-              // if (configuration.verbose) {
-              //   console.log(chalkInfo("WA | LOADING CATEGORIZED USERS FROM DB"
-              //     + " | TOTAL USERS: " + statsObj.db.totalUsers
-              //     + " | TOTAL CATEGORIZED: " + totalCount
-              //     + " | LIMIT: " + p.limit
-              //     + " | SKIP: " + p.skip
-              //     + " | " + totalManual + " MAN"
-              //     + " | " + totalAuto + " AUTO"
-              //     + " | " + totalMatched + " MATCHED"
-              //     + " / " + totalMismatched + " MISMATCHED"
-              //     + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
-              //   ));
-              // }
 
               p.skip += results.count;
 

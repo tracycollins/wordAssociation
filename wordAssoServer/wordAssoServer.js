@@ -1493,18 +1493,24 @@ function dropboxFolderGetLastestCursor(folder, callback) {
 
     lastCursorTruncated = last_cursor.cursor.substring(0,20);
 
-    console.log(chalkLog("lastCursorTruncated: " + lastCursorTruncated));
+    // console.log(chalkLog("lastCursorTruncated: " + lastCursorTruncated));
+    console.log(chalkLog("DROPBOX LAST CURSOR\n" + jsonPrint(last_cursor)));
 
     dropboxLongPoll(last_cursor.cursor, function(err, results){
+
+      console.log(chalkLog("DROPBOX LONG POLL RESULTS\n" + jsonPrint(results)));
 
       if (results.changes) {
 
         dropboxClient.filesListFolderContinue({ cursor: last_cursor.cursor})
         .then(function(response){
-          console.log(chalkLog("filesListFolderContinue\n" + jsonPrint(response)));
+
+          console.log(chalkLog("DROPBOX FILE LIST FOLDER CONTINUE\n" + jsonPrint(response)));
           callback(null, response);
+
         })
         .catch(function(err){
+
           if (err.status === 429){
             console.log(chalkError("dropboxFolderGetLastestCursor filesListFolder *** DROPBOX FILES LIST FOLDER ERROR"
               + " | TOO MANY REQUESTS" 
@@ -1518,6 +1524,7 @@ function dropboxFolderGetLastestCursor(folder, callback) {
             ));
           }
           callback(err, last_cursor.cursor);
+          
         });
       }
       else {

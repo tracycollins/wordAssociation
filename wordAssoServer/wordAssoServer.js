@@ -5003,9 +5003,9 @@ function initAppRouting(callback) {
       // if (configuration.verbose) {
       if (true) {
         console.log(chalkAlert("R< dropbox_webhook"
-          + "\nreq.query: " + jsonPrint(req.query)
-          + "\nreq.params: " + jsonPrint(req.params)
-          + "\nreq.body: " + jsonPrint(req.body)
+          + "\nreq.query\n" + jsonPrint(req.query)
+          + "\nreq.params\n" + jsonPrint(req.params)
+          + "\nreq.body\n" + jsonPrint(req.body)
         )); 
       }
 

@@ -7,19 +7,19 @@
 
 "use strict";
 
-var socket = io("/admin");
+const socket = io("/admin");
 
-var memoryAvailable = 0;
-var memoryUsed = 0;
-// var memoryUsage = {};
+let memoryAvailable = 0;
+let memoryUsed = 0;
+// let memoryUsage = {};
 
-var sentAdminReady = false;
-var initializeComplete = false;
+let sentAdminReady = false;
+let initializeComplete = false;
 
-var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
-// var defaultTimePeriodFormat = "HH:mm:ss";
+// const defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
+const compactDateTimeFormat = "YYYYMMDD_HHmmss";
 
-var palette = {
+const palette = {
   "black": "#000000",
   "white": "#FFFFFF",
   "lightgray": "#819090",
@@ -47,15 +47,18 @@ const DEFAULT_TABLE_BG_COLOR = palette.black;
 const DEFAULT_TABLE_FONT_SIZE = "1.5em";
 
 
-var startColor = palette.green;
-var midColor = palette.yellow;
-var endColor = palette.red;
+let startColor = palette.green;
+let midColor = palette.yellow;
+let endColor = palette.red;
 
-var WARN_LIMIT_PERCENT = 80;
-var ALERT_LIMIT_PERCENT = 95;
+let colorKeepalive = palette.gray;
+let colorStats = palette.lightgray;
 
-var ONE_MB = 1024 * 1024;
-var ONE_GB = ONE_MB * 1024;
+const WARN_LIMIT_PERCENT = 80;
+const ALERT_LIMIT_PERCENT = 95;
+
+const ONE_MB = 1024 * 1024;
+const ONE_GB = ONE_MB * 1024;
 
 // requirejs(
 //   ["https://d3js.org/d3.v5.min.js"], 
@@ -67,13 +70,13 @@ var ONE_GB = ONE_MB * 1024;
 //   },
 //   function(error) {
 //     console.log("REQUIREJS ERROR handler", error);
-//     var failedId = error.requireModules && error.requireModules[0];
+//     let failedId = error.requireModules && error.requireModules[0];
 //     console.log(failedId);
 //     console.log(error.message);
 //   }
 // );
 
-var statsObj = {};
+let statsObj = {};
 
 statsObj.isAuthenticated = false;
 
@@ -92,20 +95,20 @@ statsObj.socket.reconnects = 0;
 
 statsObj.socket.disconnectMoment = moment();
 
-var serverSocketHashMap = new HashMap();
+const serverSocketHashMap = new HashMap();
 
-var viewerSocketHashMap = new HashMap();
+const viewerSocketHashMap = new HashMap();
 
-var adminSocketHashMap = new HashMap();
+const adminSocketHashMap = new HashMap();
 
 function isObject(obj) {
   return obj === Object(obj);
 }
 
-var USER_ID = "ADMIN_" + moment().valueOf();
-var SCREEN_NAME = USER_ID;
+let USER_ID = "ADMIN_" + moment().valueOf();
+const SCREEN_NAME = USER_ID;
 
-var mainAdminObj = {};
+let mainAdminObj = {};
 
 mainAdminObj.namespace = "admin";
 mainAdminObj.adminId = USER_ID;
@@ -123,40 +126,40 @@ mainAdminObj.tags.type = "admin";
 mainAdminObj.tags.entity = USER_ID;
 mainAdminObj.tags.channel = "admin";
 
-var heartBeatTimeoutFlag = false;
-var serverCheckInterval = 1000;
-var maxServerHeartBeatWait = 30000;
+let heartBeatTimeoutFlag = false;
+let serverCheckInterval = 1000;
+let maxServerHeartBeatWait = 30000;
 
 console.log("ADMIN PAGE");
 
-var adminConfig = {};
+let adminConfig = {};
 
-var testMode = false;
+let testMode = false;
 
 adminConfig.testMode = testMode;
 adminConfig.showDisconnectedServers = false;
 adminConfig.showDisconnectedAdmins = false;
 adminConfig.showDisconnectedViewers = false;
 
-var memoryBar;
-var memoryBarDiv;
-var memoryBarText;
+let memoryBar;
+let memoryBarDiv;
+let memoryBarText;
 
-var tweetsPerMinBar;
-var tweetsPerMinBarDiv;
-var tweetsPerMinBarText;
+let tweetsPerMinBar;
+let tweetsPerMinBarDiv;
+let tweetsPerMinBarText;
 
-var adminsBar;
-var adminsBarDiv;
-var adminsBarText;
+let adminsBar;
+let adminsBarDiv;
+let adminsBarText;
 
-var serversBar;
-var serversBarDiv;
-var serversBarText;
+let serversBar;
+let serversBarDiv;
+let serversBarText;
 
-var viewersBar;
-var viewersBarDiv;
-var viewersBarText;
+let viewersBar;
+let viewersBarDiv;
+let viewersBarText;
 
 function initBars(callback){
  
@@ -198,20 +201,20 @@ function initBars(callback){
   callback();
 }
 
-var heartBeat = {};
-var lastTimeoutHeartBeat = null;
+let heartBeat = {};
+let lastTimeoutHeartBeat = null;
 
-var hbIndex = 0;
-var tweetsPerMin = 0;
-var tweetsPerMinMax = 1;
-var tweetsPerMinMaxTime = 0;
+let hbIndex = 0;
+let tweetsPerMin = 0;
+let tweetsPerMinMax = 1;
+let tweetsPerMinMaxTime = 0;
 
-var jsonPrint = function(obj, options) {
+const jsonPrint = function(obj, options) {
 
   if (options) {
     if (options.ignore) {
 
-      var tempObj = obj;
+      let tempObj = obj;
 
       async.each(options.ignore.length, function(ignoreWord, cb){
         if (tempObj.hasOwnProperty(ignoreWord)) {
@@ -229,8 +232,8 @@ var jsonPrint = function(obj, options) {
 };
 
 function getTimeStamp(inputTime) {
-  var cDate, cTime;
-  var options = {
+  let cDate, cTime;
+  const options = {
     weekday: "long",
     year: "numeric",
     month: "numeric",
@@ -251,13 +254,13 @@ function getTimeStamp(inputTime) {
 }
 
 function msToTime(duration) {
-  // var milliseconds = parseInt((duration % 1000) / 100);
-  var seconds = parseInt((duration / 1000) % 60);
-  var minutes = parseInt((duration / (1000 * 60)) % 60);
-  var hours = parseInt((duration / (1000 * 60 * 60)) % 24);
-  var days = parseInt(duration / (1000 * 60 * 60 * 24));
+  // let milliseconds = parseInt((duration % 1000) / 100);
+  let seconds = parseInt((duration / 1000) % 60);
+  let minutes = parseInt((duration / (1000 * 60)) % 60);
+  let hours = parseInt((duration / (1000 * 60 * 60)) % 24);
+  let days = parseInt(duration / (1000 * 60 * 60 * 24));
 
-  var daysInt = days;
+  let daysInt = days;
   days = (days < 10) ? "0" + days : days;
   hours = (hours < 10) ? "0" + hours : hours;
   minutes = (minutes < 10) ? "0" + minutes : minutes;
@@ -294,11 +297,11 @@ function updateAdminConfig(config) {
 
 function tableCreateRow(parentTable, options, cellContentArray) {
 
-  var tr = parentTable.insertRow();
+  let tr = parentTable.insertRow();
 
-  var textColor = options.textColor || DEFAULT_TABLE_TEXT_COLOR;
-  var bgColor = options.bgColor || DEFAULT_TABLE_BG_COLOR;
-  var fontSize = options.fontSize || DEFAULT_TABLE_FONT_SIZE;
+  const textColor = options.textColor || DEFAULT_TABLE_TEXT_COLOR;
+  const bgColor = options.bgColor || DEFAULT_TABLE_BG_COLOR;
+  const fontSize = options.fontSize || DEFAULT_TABLE_FONT_SIZE;
   
   if (options.class) {
     tr.setAttribute("class", options.class);
@@ -311,7 +314,7 @@ function tableCreateRow(parentTable, options, cellContentArray) {
 
   cellContentArray.forEach(function(content) {
 
-    var cell = tr.insertCell();
+    let cell = tr.insertCell();
 
     if (isObject(content)) {
       if (content.id) {
@@ -446,12 +449,12 @@ socket.on("DROPBOX_CHANGE", function(dataObj) {
 });
 
 socket.on("CONFIG_CHANGE", function(rxAdminConfig) {
-  var previousProperty;
+  let previousProperty;
 
   console.log("\n*** RX ADMIN CONFIG CHANGE ***\n" + JSON.stringify(rxAdminConfig, null, 3));
 
   console.log("\nPREVIOUS ADMIN CONFIG:\n" + JSON.stringify(adminConfig, null, 3));
-  for (var configPropertyName in rxAdminConfig) {
+  for (const configPropertyName in rxAdminConfig) {
     console.log("configPropertyName: " + configPropertyName + " | " + rxAdminConfig[configPropertyName]);
     if (adminConfig !== undefined) {
       previousProperty = adminConfig[configPropertyName];
@@ -465,11 +468,11 @@ socket.on("CONFIG_CHANGE", function(rxAdminConfig) {
 
 socket.on("ADMIN IP", function(rxIpObj) {
 
-  var adminSessionObj = JSON.parse(rxIpObj);
+  const adminSessionObj = JSON.parse(rxIpObj);
 
   console.log("RXCD ADMIN IP  " + adminSessionObj.ip + " | " + adminSessionObj.domain);
 
-  var adminIpObj = {};
+  let adminIpObj = {};
   adminIpObj.ip = adminSessionObj.ip;
   adminIpObj.domain = adminSessionObj.domain;
   adminIpObj.sessions = {};
@@ -488,7 +491,7 @@ socket.on("ADMIN_SESSION", function(adminSessionObj) {
 
   console.log("RX ADMIN SESSION: " + adminSessionObj.sessionId + " | UID: " + adminSessionObj.userId);
 
-  var adminIpObj = {};
+  let adminIpObj = {};
   adminIpObj.ip = adminSessionObj.ip;
   adminIpObj.domain = adminSessionObj.domain;
   adminIpObj.sessions = {};
@@ -522,7 +525,7 @@ socket.on("SERVER_STATS", function(serverObj) {
     return;
   }
 
-  var sObj = serverSocketHashMap.get(serverObj.socketId);
+  let sObj = serverSocketHashMap.get(serverObj.socketId);
 
   sObj.status = "STATS";
   sObj.type = serverObj.type;
@@ -546,7 +549,7 @@ socket.on("SERVER_ERROR", function(serverObj) {
     return;
   }
 
-  var sObj = serverSocketHashMap.get(serverObj.socketId);
+  let sObj = serverSocketHashMap.get(serverObj.socketId);
 
   sObj.status = "ERROR";
   sObj.type = serverObj.type;
@@ -565,7 +568,7 @@ socket.on("SERVER_ERROR", function(serverObj) {
     document.getElementById(serverObj.socketId + "_type").innerHTML = sObj.type;
     document.getElementById(serverObj.socketId + "_socketId").innerHTML = sObj.socketId;
     document.getElementById(serverObj.socketId + "_status").innerHTML = sObj.status;
-    document.getElementById(serverObj.socketId + "_timeStamp").innerHTML = moment(sObj.timeStamp).format(defaultDateTimeFormat);
+    document.getElementById(serverObj.socketId + "_timeStamp").innerHTML = moment(sObj.timeStamp).format(compactDateTimeFormat);
     document.getElementById(serverObj.socketId + "_ago").innerHTML = msToTime(moment().diff(moment(sObj.timeStamp)));
   }
 });
@@ -579,7 +582,7 @@ socket.on("SERVER_DISCONNECT", function(serverObj) {
     return;
   }
 
-  var sObj = serverSocketHashMap.get(serverObj.socketId);
+  let sObj = serverSocketHashMap.get(serverObj.socketId);
 
   sObj.status = "DISCONNECTED";
   sObj.timeStamp = serverObj.timeStamp;
@@ -598,7 +601,7 @@ socket.on("VIEWER_DISCONNECT", function(viewerObj) {
     return;
   }
 
-  var sObj = viewerSocketHashMap.get(viewerObj.socketId);
+  let sObj = viewerSocketHashMap.get(viewerObj.socketId);
 
   sObj.status = "DISCONNECTED";
   sObj.timeStamp = viewerObj.timeStamp;
@@ -617,7 +620,7 @@ socket.on("SERVER_DELETE", function(serverObj) {
     return;
   }
 
-  var sObj = serverSocketHashMap.get(serverObj.socketId);
+  let sObj = serverSocketHashMap.get(serverObj.socketId);
 
   sObj.status = "DELETED";
   sObj.timeStamp = serverObj.timeStamp;
@@ -679,7 +682,7 @@ socket.on("KEEPALIVE", function(serverObj) {
   }
 });
 
-var heartBeatQueue = [];
+let heartBeatQueue = [];
 
 socket.on("HEARTBEAT", function(rxHeartbeat) {
 
@@ -690,7 +693,7 @@ socket.on("HEARTBEAT", function(rxHeartbeat) {
   }
 });
 
-var heartBeatQueueReady = true;
+let heartBeatQueueReady = true;
 
 setInterval(function(){
 
@@ -725,7 +728,7 @@ setInterval(function() {
 
 function setTestMode(inputTestMode) {
 
-  var serverConfigUpdateFlag = false;
+  let serverConfigUpdateFlag = false;
 
   if (inputTestMode !== undefined) {
     serverConfigUpdateFlag = true;
@@ -736,7 +739,7 @@ function setTestMode(inputTestMode) {
 
   console.log("testMode: " + testMode);
 
-  var config = {
+  const config = {
     testMode: testMode
   };
 
@@ -775,10 +778,10 @@ function setTestMode(inputTestMode) {
     return data.status !== "DISCONNECTED";
   }
   
-  var toggleButtonHandler = function (e){
+  const toggleButtonHandler = function (e){
 
 
-    var currentButton = document.getElementById(e.target.id);
+    const currentButton = document.getElementById(e.target.id);
 
     const state = (currentButton.getAttribute("state") === "disabled") ? "enabled" : "disabled";
 
@@ -847,9 +850,9 @@ function setTestMode(inputTestMode) {
 
 function createAdminTable(){
 
-  var adminPanelButtonsDiv = document.getElementById("admin_panel_buttons");
+  let adminPanelButtonsDiv = document.getElementById("admin_panel_buttons");
 
-  var buttonElement = document.createElement("BUTTON");
+  let buttonElement = document.createElement("BUTTON");
   buttonElement.className = "button";
   buttonElement.setAttribute("id", "toggleButtonAdminDisconnected");
   buttonElement.setAttribute("mode", "toggle");
@@ -867,7 +870,7 @@ function createAdminTable(){
     layout: "fitData", //fit columns to width of table (optional)
     layoutColumnsOnNewData:true,
     rowFormatter:function(row){
-      var data = row.getData();
+      const data = row.getData();
 
       switch (data.status) {
         case "DISCONNECTED":
@@ -877,7 +880,7 @@ function createAdminTable(){
           row.getElement().css({"color": palette.green });
         break;
         case "KEEPALIVE":
-          row.getElement().css({"color": palette.lightgray });
+          row.getElement().css({"color": colorKeepalive });
         break;
         default:
           row.getElement().css({"color": palette.gray });
@@ -905,9 +908,9 @@ function createAdminTable(){
 
 function createServerTable(){
 
-  var serverPanelButtonsDiv = document.getElementById("server_panel_buttons");
+  let serverPanelButtonsDiv = document.getElementById("server_panel_buttons");
 
-  var buttonElement = document.createElement("BUTTON");
+  let buttonElement = document.createElement("BUTTON");
   buttonElement.className = "button";
   buttonElement.setAttribute("id", "toggleButtonServerDisconnected");
   buttonElement.setAttribute("mode", "toggle");
@@ -925,17 +928,17 @@ function createServerTable(){
     layout: "fitData", //fit columns to width of table (optional)
     layoutColumnsOnNewData:true,
     rowFormatter:function(row){
-      var data = row.getData();
+      const data = row.getData();
 
       switch (data.status) {
         case "DISCONNECTED":
           row.getElement().css({"color": palette.red});
         break;
         case "STATS":
-          row.getElement().css({"color": palette.green });
+          row.getElement().css({"color": colorStats });
         break;
         case "KEEPALIVE":
-          row.getElement().css({"color": palette.lightgray });
+          row.getElement().css({"color": colorKeepalive });
         break;
         default:
           row.getElement().css({"color": palette.gray });
@@ -963,9 +966,9 @@ function createServerTable(){
 
 function createViewerTable(){
 
-  var viewerPanelButtonsDiv = document.getElementById("viewer_panel_buttons");
+  let viewerPanelButtonsDiv = document.getElementById("viewer_panel_buttons");
 
-  var buttonElement = document.createElement("BUTTON");
+  let buttonElement = document.createElement("BUTTON");
   buttonElement.className = "button";
   buttonElement.setAttribute("id", "toggleButtonViewerDisconnected");
   buttonElement.setAttribute("mode", "toggle");
@@ -983,17 +986,17 @@ function createViewerTable(){
     layout: "fitData", //fit columns to width of table (optional)
     layoutColumnsOnNewData: true,
     rowFormatter:function(row){
-      var data = row.getData();
+      const data = row.getData();
 
       switch (data.status) {
         case "DISCONNECTED":
-          row.getElement().css({"color":palette.red });
+          row.getElement().css({"color": palette.red });
         break;
         case "STATS":
-          row.getElement().css({"color": palette.green });
+          row.getElement().css({"color": colorStats });
         break;
         case "KEEPALIVE":
-          row.getElement().css({"color": palette.lightgray });
+          row.getElement().css({"color": colorKeepalive });
         break;
         default:
           row.getElement().css({"color": palette.gray });
@@ -1103,7 +1106,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
         socket: adminSocketId,
         ipAddress: currentAdmin.ip,
         status: currentAdmin.status,
-        lastSeen: moment(currentAdmin.timeStamp).format(defaultDateTimeFormat),
+        lastSeen: moment(currentAdmin.timeStamp).format(compactDateTimeFormat),
         ago: msToTime(moment().diff(moment(currentAdmin.timeStamp))),
         connect: msToTime(connectTime)
       };
@@ -1125,7 +1128,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
       adminRatio = totalAdmins / maxAdmins;
 
-      adminsBarText.innerHTML = totalAdmins + " ADMINS | " + maxAdmins + " MAX | " + moment().format(defaultDateTimeFormat);
+      adminsBarText.innerHTML = totalAdmins + " ADMINS | " + maxAdmins + " MAX | " + moment().format(compactDateTimeFormat);
 
       $("#admins").tabulator("redraw");
 
@@ -1178,7 +1181,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
         socket: viewerSocketId,
         ipAddress: currentViewer.ip,
         status: currentViewer.status,
-        lastSeen: moment(currentViewer.timeStamp).format(defaultDateTimeFormat),
+        lastSeen: moment(currentViewer.timeStamp).format(compactDateTimeFormat),
         ago: msToTime(moment().diff(moment(currentViewer.timeStamp))),
         connect: msToTime(connectTime)
       };
@@ -1200,7 +1203,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
       viewerRatio = totalViewers / maxViewers;
 
-      viewersBarText.innerHTML = totalViewers + " VIEWERS | " + maxViewers + " MAX | " + moment().format(defaultDateTimeFormat);
+      viewersBarText.innerHTML = totalViewers + " VIEWERS | " + maxViewers + " MAX | " + moment().format(compactDateTimeFormat);
 
       $("#viewers").tabulator("redraw");
 
@@ -1251,7 +1254,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
         socket: serverSocketId,
         ipAddress: currentServer.ip,
         status: currentServer.status,
-        lastSeen: moment(currentServer.timeStamp).format(defaultDateTimeFormat),
+        lastSeen: moment(currentServer.timeStamp).format(compactDateTimeFormat),
         ago: msToTime(moment().diff(moment(currentServer.timeStamp))),
         // upTime: msToTime(currentServer.user.stats.elapsed)
         upTime: msToTime(currentServer.stats.elapsed)
@@ -1274,7 +1277,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
       serverRatio = totalServers / maxServers;
 
-      serversBarText.innerHTML = totalServers + " SERVERS | " + maxServers + " MAX | " + moment().format(defaultDateTimeFormat);
+      serversBarText.innerHTML = totalServers + " SERVERS | " + maxServers + " MAX | " + moment().format(compactDateTimeFormat);
 
       $("#servers").tabulator("redraw");
 
@@ -1298,9 +1301,9 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   tweetsPerMinBarText.innerHTML = parseInt(tweetsPerMin) + " TPM | " 
     + parseInt(tweetsPerMinMax) + " MAX" + " | " 
-    + moment(tweetsPerMinMaxTime).format(defaultDateTimeFormat);
+    + moment(tweetsPerMinMaxTime).format(compactDateTimeFormat);
 
-  var heatbeatTable = document.getElementById("heartbeat_table");
+  let heatbeatTable = document.getElementById("heartbeat_table");
 
   while (heatbeatTable.childNodes.length > 0) {
     heatbeatTable.removeChild(heatbeatTable.firstChild);
@@ -1319,7 +1322,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
       ]
     );
 
-    var tdTimeout = heatbeatTable.getElementsByTagName("td");
+    let tdTimeout = heatbeatTable.getElementsByTagName("td");
 
     tdTimeout[2].style.color = palette.white;
     tdTimeout[2].style.backgroundColor = palette.red;
@@ -1336,7 +1339,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
         msToTime(Date.now() - lastTimeoutHeartBeat.timeStamp) + " AGO"
       ]);
 
-    var tdLastTimeout = heatbeatTable.getElementsByTagName("td");
+    let tdLastTimeout = heatbeatTable.getElementsByTagName("td");
 
     tdLastTimeout[2].style.color = palette.white;
     tdLastTimeout[2].style.backgroundColor = palette.red;
@@ -1374,7 +1377,7 @@ requirejs(
   },
   function(error) {
     console.log("REQUIREJS ERROR handler", error);
-    var failedId = error.requireModules && error.requireModules[0];
+    const failedId = error.requireModules && error.requireModules[0];
     console.log(failedId);
     console.log(error.message);
   }

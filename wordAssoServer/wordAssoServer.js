@@ -3595,7 +3595,7 @@ function initSocketHandler(socketObj) {
           sessionObj.isAdmin = true;
           sessionObj.isServer = false;
           sessionObj.isViewer = false;
-          sessionObj.stats = {};
+          sessionObj.stats = keepAliveObj.stats;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
           console.log(chalk.green("+++ ADD " + currentSessionType 
@@ -3615,6 +3615,7 @@ function initSocketHandler(socketObj) {
           sessionObj.timeStamp = moment().valueOf();
           sessionObj.user = keepAliveObj.user;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
+          sessionObj.stats = keepAliveObj.stats;
 
           adminHashMap.set(socket.id, sessionObj);
 
@@ -3654,7 +3655,7 @@ function initSocketHandler(socketObj) {
           sessionObj.isAdmin = false;
           sessionObj.isServer = true;
           sessionObj.isViewer = false;
-          sessionObj.stats = {};
+          sessionObj.stats = keepAliveObj.stats;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
           console.log(chalk.green("+++ ADD " + currentSessionType + " SERVER" 
@@ -3675,6 +3676,7 @@ function initSocketHandler(socketObj) {
           sessionObj.timeStamp = moment().valueOf();
           sessionObj.user = keepAliveObj.user;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
+          sessionObj.stats = keepAliveObj.stats;
 
           serverCache.set(socket.id, sessionObj);
 
@@ -3711,7 +3713,7 @@ function initSocketHandler(socketObj) {
           sessionObj.isAdmin = false;
           sessionObj.isServer = false;
           sessionObj.isViewer = true;
-          sessionObj.stats = {};
+          sessionObj.stats = keepAliveObj.stats;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
           console.log(chalk.green("+++ ADD " + currentSessionType + " SESSION" 
@@ -3731,6 +3733,7 @@ function initSocketHandler(socketObj) {
           sessionObj.timeStamp = moment().valueOf();
           sessionObj.user = keepAliveObj.user;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
+          sessionObj.stats = keepAliveObj.stats;
 
           viewerHashMap.set(socket.id, sessionObj);
 

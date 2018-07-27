@@ -1501,7 +1501,7 @@ function dropboxFolderGetLastestCursor(folder, callback) {
 
         dropboxClient.filesListFolderContinue({ cursor: last_cursor.cursor})
         .then(function(response){
-          console.log(chalkLog("filesListFolderContinue: " + jsonPrint(response)));
+          console.log(chalkLog("filesListFolderContinue\n" + jsonPrint(response)));
           callback(null, response);
         })
         .catch(function(err){

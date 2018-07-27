@@ -5697,7 +5697,7 @@ function initTweetParserPingInterval(interval){
             return;
           }
 
-          console.log(chalkInfo(">PING | TWEET_PARSER | PING ID: " + getTimeStamp(pingId)));
+          if (configuration.verbose) { console.log(chalkInfo(">PING | TWEET_PARSER | PING ID: " + getTimeStamp(pingId))); }
 
         });
 
@@ -5723,7 +5723,7 @@ function initTweetParserPingInterval(interval){
             return;
           }
 
-          console.log(chalkInfo(">PING | TWEET_PARSER | PING ID: " + getTimeStamp(pingId)));
+          if (configuration.verbose) { console.log(chalkInfo(">PING | TWEET_PARSER | PING ID: " + getTimeStamp(pingId))); }
 
           tweetParserPingSent = true; 
 
@@ -5790,11 +5790,13 @@ function initTweetParser(params, callback){
 
       childrenHashMap[params.childId].status = "RUNNING";
 
-      console.log(chalkInfo("<PONG | TWEET PARSER"
-        + " | NOW: " + getTimeStamp()
-        + " | PONG ID: " + getTimeStamp(m.pongId)
-        + " | RESPONSE TIME: " + msToTime((moment().valueOf() - m.pongId))
-      ));
+      if (configuration.verbose) {
+        console.log(chalkInfo("<PONG | TWEET PARSER"
+          + " | NOW: " + getTimeStamp()
+          + " | PONG ID: " + getTimeStamp(m.pongId)
+          + " | RESPONSE TIME: " + msToTime((moment().valueOf() - m.pongId))
+        ));
+      }
     } 
 
     else if (tweetParserMessageRxQueue.length < MAX_Q){

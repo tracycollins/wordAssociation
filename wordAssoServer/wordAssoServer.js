@@ -187,7 +187,7 @@ statsObj.commandLineArgsLoaded = false;
 statsObj.currentThreeceeUserIndex = 0;
 statsObj.currentThreeceeUser = "ninjathreecee";
 statsObj.threeceeUsersConfiguredFlag = false;
-
+statsObj.twitNotReadyWarning = false;
 
 let previousConfiguration = {};
 let configuration = {};
@@ -920,7 +920,7 @@ wordAssoDb.connect(dbAppName, function(err, db) {
   User = mongoose.model("User", userModel.UserSchema);
   Word = mongoose.model("Word", wordModel.WordSchema);
 
-  console.log(chalkAlert("WA | DB READY STATE: " + db.readyState));
+  console.log(chalkInfo("WA | DB READY STATE: " + db.readyState));
 
   console.log(chalk.bold.green("WA | MONGOOSE DEFAULT CONNECTION OPEN"));
 
@@ -1043,7 +1043,7 @@ const viewerCache = new NodeCache({
 
 function viewerCacheExpired(viewerCacheId, viewerObj) {
 
-  console.log(chalkAlert("XXX VIEWER CACHE EXPIRED"
+  console.log(chalkInfo("XXX VIEWER CACHE EXPIRED"
     + " | TTL: " + viewerCacheTtl + " SECS"
     + " | TYPE: " + viewerObj.user.type.toUpperCase()
     + " | " + viewerCacheId
@@ -1079,7 +1079,7 @@ function serverCacheExpired(serverCacheId, serverObj) {
 
   const ttl = serverCache.getTtl(serverCacheId);
 
-  console.log(chalkAlert("XXX SERVER CACHE EXPIRED"
+  console.log(chalkInfo("XXX SERVER CACHE EXPIRED"
     + " | TTL: " + serverCacheTtl + " SECS"
     + " | TYPE: " + serverObj.user.type.toUpperCase()
     + " | " + serverCacheId
@@ -1114,7 +1114,7 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
 
   const ttl = authenticatedSocketCache.getTtl(socketId);
 
-  console.log(chalkAlert("XXX AUTH SOCKET CACHE EXPIRED"
+  console.log(chalkInfo("XXX AUTH SOCKET CACHE EXPIRED"
     + " | TTL: " + msToTime(authenticatedSocketCacheTtl*1000)
     + " | NSP: " + authSocketObj.namespace.toUpperCase()
     + " | " + socketId
@@ -1132,7 +1132,7 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
 
         if (authSocketObj) {
 
-          console.log(chalkAlert("AUTH SOCKET CACHE ENTRIES"
+          console.log(chalkInfo("AUTH SOCKET CACHE ENTRIES"
             + " | NSP: " + authSocketObj.namespace.toUpperCase()
             + " | " + socketId
             + " | USER ID: " + authSocketObj.userId
@@ -1176,7 +1176,7 @@ const authenticatedTwitterUserCache = new NodeCache({
 
 function authenticatedTwitterUserCacheExpired(nodeId, userObj) {
 
-  console.log(chalkAlert("XXX AUTH TWITTER USER CACHE EXPIRED"
+  console.log(chalkInfo("XXX AUTH TWITTER USER CACHE EXPIRED"
     + " | TTL: " + authenticatedTwitterUserCacheTtl + " SECS"
     + " | LS: " + userObj.lastSeen
     + " | @" + userObj.screenName
@@ -1203,11 +1203,9 @@ const authInProgressTwitterUserCache = new NodeCache({
   checkperiod: authInProgressTwitterUserCacheCheckPeriod
 });
 
-//    authInProgressTwitterUserCache.set(viewerObj.nodeId, viewerObj);
-
 authInProgressTwitterUserCache.on("expired", function(nodeId, userObj){
 
-  console.log(chalkAlert("XXX AUTH IN PROGRESS TWITTER USER CACHE EXPIRED"
+  console.log(chalkInfo("XXX AUTH IN PROGRESS TWITTER USER CACHE EXPIRED"
     + " | TTL: " + authInProgressTwitterUserCacheTtl + " SECS"
     + " | NODE ID: " + nodeId
     + " | userObj\n" + jsonPrint(userObj)
@@ -1834,7 +1832,7 @@ function loadConfigFile(params, callback) {
         callback(null);
       }
       else {
-        console.log(chalkAlert("WA | +++ CONFIG FILE AFTER ... LOADING"
+        console.log(chalkInfo("WA | +++ CONFIG FILE AFTER ... LOADING"
           + " | " + fullPath
           + " | PREV: " + prevConfigFileModifiedMoment.format(compactDateTimeFormat)
           + " | " + fileModifiedMoment.format(compactDateTimeFormat)
@@ -1900,14 +1898,14 @@ function loadConfigFile(params, callback) {
               console.log("WA | LOADED THREECEE_USERS: " + loadedConfigObj.THREECEE_USERS);
               configuration.threeceeUsers = loadedConfigObj.THREECEE_USERS;
 
-              if (!statsObj.threeceeUsersConfiguredFlag 
-                || (configuration.threeceeUsers !== previousConfiguration.threeceeUsers)) {
-                initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
-              }
+              // if (!statsObj.threeceeUsersConfiguredFlag 
+              //   || (configuration.threeceeUsers !== previousConfiguration.threeceeUsers)) {
+              //   initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
+              // }
             }
-            else if (!statsObj.threeceeUsersConfiguredFlag) {
-                initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
-            }
+            // else if (!statsObj.threeceeUsersConfiguredFlag) {
+            //     initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
+            // }
 
             if (loadedConfigObj.CURSOR_BATCH_SIZE !== undefined){
               console.log("WA | LOADED CURSOR_BATCH_SIZE: " + loadedConfigObj.CURSOR_BATCH_SIZE);
@@ -4322,79 +4320,79 @@ function checkCategory(nodeObj, callback) {
   }
 }
 
-function updateTrends(){
+function updateTrends(currentThreeceeUser){
 
-  getCurrentThreeceeUser(function(currentThreeceeUser){
+  // getCurrentThreeceeUser(function(currentThreeceeUser){
 
-    if ( !currentThreeceeUser
-      || (threeceeTwitter[currentThreeceeUser] === undefined)
-      || threeceeTwitter[currentThreeceeUser].ready)
-    {
-      
-      if (!statsObj.twitNotReadyWarning) {
+  if ( !currentThreeceeUser
+    || (threeceeTwitter[currentThreeceeUser] === undefined)
+    || threeceeTwitter[currentThreeceeUser].ready)
+  {
+    
+    if (!statsObj.twitNotReadyWarning) {
 
-        console.log(chalkError("*** updateTrends | TWIT NOT READY"
-          + " | CURRENT 3C USER: @" + currentThreeceeUser
-        ));
+      console.log(chalkError("*** updateTrends | TWIT NOT READY"
+        + " | CURRENT 3C USER: @" + currentThreeceeUser
+      ));
 
-        statsObj.twitNotReadyWarning = true;
-      }
-
-      return;
+      statsObj.twitNotReadyWarning = true;
     }
 
-    statsObj.twitNotReadyWarning = false;
+    return;
+  }
 
-    console.log(chalkLog("UPDATE TWITTER TRENDS"
-      + " | CURRENT 3C USER: @" + currentThreeceeUser
-    ));
+  statsObj.twitNotReadyWarning = false;
 
-    threeceeTwitter[currentThreeceeUser].twit.get("trends/place", {id: 1}, function updateTrendsWorldWide (err, data, response){
+  console.log(chalkLog("UPDATE TWITTER TRENDS"
+    + " | CURRENT 3C USER: @" + currentThreeceeUser
+  ));
 
-      if (err){
-        console.log(chalkError("*** TWITTER GET trends/place ID=1 ERROR ***"
-          + " | " + err
-        ));
-      }
-      else if (data){
-        debug(chalkInfo("LOAD TWITTER TREND - WORLDWIDE"
-        ));
-        data.forEach(function trendingCacheSetWorldWide(element){
-          element.trends.forEach(function trendElementWorldWide(topic){
-            debug(chalkInfo(
-              topic.name
-            ));
-            trendingCache.set(topic.name, topic);
-          });
+  threeceeTwitter[currentThreeceeUser].twit.get("trends/place", {id: 1}, function updateTrendsWorldWide (err, data, response){
+
+    if (err){
+      console.log(chalkError("*** TWITTER GET trends/place ID=1 ERROR ***"
+        + " | " + err
+      ));
+    }
+    else if (data){
+      debug(chalkInfo("LOAD TWITTER TREND - WORLDWIDE"
+      ));
+      data.forEach(function trendingCacheSetWorldWide(element){
+        element.trends.forEach(function trendElementWorldWide(topic){
+          debug(chalkInfo(
+            topic.name
+          ));
+          trendingCache.set(topic.name, topic);
         });
-      }
-    });
-    
-    threeceeTwitter[currentThreeceeUser].twit.get("trends/place", {id: 23424977}, function updateTrendsUs (err, data, response){
-
-      if (err){
-        console.log(chalkError("*** TWITTER GET trends/place ID=23424977 ERROR ***"
-          + " | " + err
-        ));
-      }
-      else if (data){
-
-        trendingCache.set("america", {name: "america"});
-
-        debug(chalkInfo("LOAD TWITTER TREND - US"
-        ));
-        data.forEach(function trendingCacheSetUs(element){
-          element.trends.forEach(function trendElementUs(topic){
-            debug(chalkInfo(
-              topic.name
-            ));
-            trendingCache.set(topic.name, topic);
-          });
-        });
-      }
-    });
-
+      });
+    }
   });
+  
+  threeceeTwitter[currentThreeceeUser].twit.get("trends/place", {id: 23424977}, function updateTrendsUs (err, data, response){
+
+    if (err){
+      console.log(chalkError("*** TWITTER GET trends/place ID=23424977 ERROR ***"
+        + " | " + err
+      ));
+    }
+    else if (data){
+
+      trendingCache.set("america", {name: "america"});
+
+      debug(chalkInfo("LOAD TWITTER TREND - US"
+      ));
+      data.forEach(function trendingCacheSetUs(element){
+        element.trends.forEach(function trendElementUs(topic){
+          debug(chalkInfo(
+            topic.name
+          ));
+          trendingCache.set(topic.name, topic);
+        });
+      });
+    }
+  });
+
+  // });
 }
 
 function initUpdateTrendsInterval(interval){
@@ -4417,7 +4415,7 @@ function initUpdateTrendsInterval(interval){
           && (threeceeTwitter[c3user] !== undefined) 
           && threeceeTwitter[c3user].ready) 
         { 
-          updateTrends(); 
+          updateTrends(c3user); 
         }
 
       });
@@ -4686,7 +4684,7 @@ function checkTwitterRateLimit(params, callback){
 
           threeceeTwitter[params.user].twitterRateLimitExceptionFlag = false;
           
-          console.log(chalkAlert("XXX RESET TWITTER RATE LIMIT"
+          console.log(chalkInfo("XXX RESET TWITTER RATE LIMIT"
             + " | @" + params.user
             + " | CONTEXT: " + data.rate_limit_context.access_token
             + " | LIM: " + threeceeTwitter[params.user].twitterRateLimit
@@ -4859,7 +4857,7 @@ function initTransmitNodeQueueInterval(interval){
         if (!nodeObj.categoryAuto || (nodeObj.categoryAuto === undefined)) { nodeObj.categoryAuto = false; }
 
         if (configuration.verbose) {
-          console.log(chalkAlert("TX NODE DE-Q"
+          console.log(chalkInfo("TX NODE DE-Q"
             + " | NID: " + nodeObj.nodeId
             + " | " + nodeObj.nodeType
             + " | CAT: " + nodeObj.category
@@ -5206,7 +5204,7 @@ function initAppRouting(callback) {
       console.log(chalkLog("R< DROPBOX WEB HOOK | /dropbox_webhook")); 
 
       if (configuration.verbose) {
-        console.log(chalkAlert("R< dropbox_webhook"
+        console.log(chalkInfo("R< dropbox_webhook"
           + "\nreq.query\n" + jsonPrint(req.query)
           + "\nreq.params\n" + jsonPrint(req.params)
           + "\nreq.body\n" + jsonPrint(req.body)
@@ -5309,7 +5307,7 @@ function initAppRouting(callback) {
     }
     else if (req.path === "/slack_event"){
       if (req.body.type === "url_verification") {
-        console.log(chalkAlert("R< SLACK URL VERIFICATION"
+        console.log(chalkInfo("R< SLACK URL VERIFICATION"
           + " | TOKEN: " + req.body.token
           + " | CHALLENGE: " + req.body.challenge
         ));
@@ -5340,13 +5338,13 @@ function initAppRouting(callback) {
 
   // serialize and deserialize
   passport.serializeUser(function(nodeId, done) {
-    debug(chalkAlert("SERIALIZE USER: " + nodeId));
+    debug(chalkInfo("SERIALIZE USER: " + nodeId));
     done(null, nodeId);
   });
 
   passport.deserializeUser(function(userObj, done) {
 
-    debug(chalkAlert("DESERIALIZE USER: @" + userObj.screenName));
+    debug(chalkInfo("DESERIALIZE USER: @" + userObj.screenName));
 
     userServerController.findOne({ user: userObj}, function(err, user){
 
@@ -6794,6 +6792,8 @@ function initStatsInterval(interval){
 
     showStats();
 
+    if (statsObj.twitNotReadyWarning) { statsObj.twitNotReadyWarning = false; }
+
     statsUpdated += 1;
 
   }, interval);
@@ -6855,7 +6855,7 @@ function initThreeceeTwitterUsers(params, callback){
 
     getCurrentThreeceeUser(function(currentThreeceeUser){
 
-      console.log(chalkAlert("CURRENT 3C TWITTER USER: @" + currentThreeceeUser));
+      console.log(chalkInfo("CURRENT 3C TWITTER USER: @" + currentThreeceeUser));
 
       if (callback !== undefined) { callback(); }
     });
@@ -6875,7 +6875,7 @@ function initCategoryHashmapsInterval(interval){
 
     if (statsObj.dbConnectionReady && initCategoryHashmapsReady) {
 
-      debug(chalkAlert("--- IN CATEGORY HASHMAP INTERVAL"
+      debug(chalkInfo("--- IN CATEGORY HASHMAP INTERVAL"
         + " | " + msToTime(interval)
       ));
 

@@ -858,6 +858,7 @@ function controlPanelComm(event) {
 
     case "FOLLOW" :
       console.warn("R< CONTROL FOLLOW"
+        + " | NID: " + event.data.user.nodeId
         + " | UID: " + event.data.user.userId
         + " | @" + event.data.user.screenName
       );

@@ -625,7 +625,7 @@ if (hostname === "google") {
     pythonPath: pythonPath,
     scriptPath: pythonScriptPath,
     lansync: true,
-    args: ["autostart"]
+    args: ["start"]
   };
 
   const pythonDropboxRunningOptions = {

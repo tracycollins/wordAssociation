@@ -1,4 +1,5 @@
 /*jslint node: true */
+/*jshint sub:true*/
 "use strict";
 
 global.dbConnection = false;
@@ -16,42 +17,59 @@ const ONE_DAY = 24 * ONE_HOUR;
 const ONE_KILOBYTE = 1024;
 const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
 
-const TWITTER_SEARCH_NODE_QUEUE_INTERVAL = 1000;
+const DEFAULT_SAVE_FILE_QUEUE_INTERVAL = ONE_SECOND;
 
-const MAX_TWIITER_SHOW_USER_TIMEOUT = process.env.MAX_TWIITER_SHOW_USER_TIMEOUT || 30*ONE_MINUTE;
+const DEFAULT_TWITTER_SEARCH_NODE_QUEUE_INTERVAL = 1000;
 
-const DEFAULT_CONFIG_INIT_INTERVAL = process.env.DEFAULT_CONFIG_INIT_INTERVAL || ONE_MINUTE;
+const DEFAULT_MAX_TWIITER_SHOW_USER_TIMEOUT = 30*ONE_MINUTE;
 
-const DEFAULT_TEST_INTERNET_CONNECTION_URL = process.env.DEFAULT_TEST_INTERNET_CONNECTION_URL || "www.google.com";
+const DEFAULT_CONFIG_INIT_INTERVAL = ONE_MINUTE;
 
-const DEFAULT_FIND_CAT_USER_CURSOR_LIMIT = process.env.DEFAULT_FIND_CAT_USER_CURSOR_LIMIT || 100;
-const DEFAULT_FIND_CAT_WORD_CURSOR_LIMIT = process.env.DEFAULT_FIND_CAT_WORD_CURSOR_LIMIT || 100;
-const DEFAULT_FIND_CAT_HASHTAG_CURSOR_LIMIT = process.env.DEFAULT_FIND_CAT_HASHTAG_CURSOR_LIMIT || 100;
+const DEFAULT_TEST_INTERNET_CONNECTION_URL = "www.google.com";
 
-const DEFAULT_CURSOR_BATCH_SIZE = process.env.DEFAULT_CURSOR_BATCH_SIZE || 100;
+const DEFAULT_FIND_CAT_USER_CURSOR_LIMIT = 100;
+const DEFAULT_FIND_CAT_WORD_CURSOR_LIMIT = 100;
+const DEFAULT_FIND_CAT_HASHTAG_CURSOR_LIMIT = 100;
+
+const DEFAULT_CURSOR_BATCH_SIZE = 100;
+
+const DEFAULT_THREECEE_USERS = ["ninjathreecee", "threeceeinfo"];
 
 const DEFAULT_SORTER_CHILD_ID = "wa_node_sorter";
 const DEFAULT_TWEET_PARSER_CHILD_ID = "wa_node_tweetParser";
 
-const DEFAULT_INTERVAL = 10;
-const DEFAULT_PING_INTERVAL = process.env.PING_INTERVAL || 10*ONE_SECOND;
-const DROPBOX_LIST_FOLDER_LIMIT = 50;
-const DEFAULT_MIN_FOLLOWERS_AUTO = 25000;
-const RATE_QUEUE_INTERVAL = 1000; // 1 second
-const RATE_QUEUE_INTERVAL_MODULO = 60; // modulo RATE_QUEUE_INTERVAL
-const TWEET_PARSER_INTERVAL = 5;
-const TWITTER_RX_QUEUE_INTERVAL = 5;
-const TRANSMIT_NODE_QUEUE_INTERVAL = 5;
-const TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = 5;
-const UPDATE_TRENDS_INTERVAL = 15*ONE_MINUTE;
-const STATS_UPDATE_INTERVAL = 60000;
-const CATEGORY_HASHMAPS_UPDATE_INTERVAL = process.env.CATEGORY_HASHMAPS_UPDATE_INTERVAL || ONE_MINUTE;
-const HASHTAG_LOOKUP_QUEUE_INTERVAL = 2;
+const DEFAULT_TWITTER_THREECEE_FOLLOW = "altthreecee02";
+const DEFAULT_TWITTER_THREECEE_FOLLOW_FILE = DEFAULT_TWITTER_THREECEE_FOLLOW + ".json";
 
-const MAX_SESSION_AGE = ONE_DAY/1000;  // in seconds
-const MAX_Q = 200;
-const OFFLINE_MODE = process.env.OFFLINE_MODE || false; // if network connection is down, will auto switch to OFFLINE_MODE
-const AUTO_OFFLINE_MODE = process.env.AUTO_OFFLINE_MODE || true; // if network connection is down, will auto switch to OFFLINE_MODE
+const DEFAULT_TWITTER_CONFIG_THREECEE = "threeceeinfo";
+const DEFAULT_TWITTER_CONFIG_THREECEE_FILE = DEFAULT_TWITTER_CONFIG_THREECEE + ".json";
+
+const DEFAULT_INTERVAL = 10;
+const DEFAULT_PING_INTERVAL = 10*ONE_SECOND;
+const DEFAULT_DROPBOX_LIST_FOLDER_LIMIT = 50;
+const DEFAULT_MIN_FOLLOWERS_AUTO = 15000;
+const DEFAULT_RATE_QUEUE_INTERVAL = ONE_SECOND; // 1 second
+const DEFAULT_RATE_QUEUE_INTERVAL_MODULO = 60; // modulo RATE_QUEUE_INTERVAL
+const DEFAULT_TWEET_PARSER_INTERVAL = 10;
+const DEFAULT_TWITTER_RX_QUEUE_INTERVAL = 10;
+const DEFAULT_TRANSMIT_NODE_QUEUE_INTERVAL = 10;
+const DEFAULT_TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = 10;
+const DEFAULT_UPDATE_TRENDS_INTERVAL = 15*ONE_MINUTE;
+const DEFAULT_STATS_UPDATE_INTERVAL = ONE_MINUTE;
+const DEFAULT_CATEGORY_HASHMAPS_UPDATE_INTERVAL = ONE_MINUTE;
+const DEFAULT_HASHTAG_LOOKUP_QUEUE_INTERVAL = 10;
+
+const DEFAULT_SOCKET_AUTH_TIMEOUT = 30*ONE_SECOND;
+const DEFAULT_QUIT_ON_ERROR = false;
+const DEFAULT_MAX_TOP_TERMS = 100;
+const DEFAULT_METRICS_NODE_METER_ENABLED = false;
+
+const DEFAULT_MAX_QUEUE = 200;
+const DEFAULT_OFFLINE_MODE = process.env.OFFLINE_MODE || false; // if network connection is down, will auto switch to OFFLINE_MODE
+const DEFAULT_AUTO_OFFLINE_MODE = true; // if network connection is down, will auto switch to OFFLINE_MODE
+const DEFAULT_IO_PING_INTERVAL = ONE_MINUTE;
+const DEFAULT_IO_PING_TIMEOUT = 3*ONE_MINUTE;
+
 
 const DEFAULT_NODE_TYPES = ["emoji", "hashtag", "media", "place", "url", "user", "word"];
 
@@ -70,7 +88,7 @@ const ADMIN_CACHE_CHECK_PERIOD = 15;
 const AUTH_SOCKET_CACHE_DEFAULT_TTL = 600;
 const AUTH_SOCKET_CACHE_CHECK_PERIOD = 10;
 
-const AUTH_USER_CACHE_DEFAULT_TTL = MAX_SESSION_AGE;
+const AUTH_USER_CACHE_DEFAULT_TTL = ONE_DAY/1000;
 const AUTH_USER_CACHE_CHECK_PERIOD = ONE_HOUR/1000; // seconds
 
 const AUTH_IN_PROGRESS_CACHE_DEFAULT_TTL = 300;
@@ -85,9 +103,6 @@ const TRENDING_CACHE_CHECK_PERIOD = 60;
 const NODE_CACHE_DEFAULT_TTL = 60;
 const NODE_CACHE_CHECK_PERIOD = 5;
 
-
-let DEFAULT_IO_PING_INTERVAL = ONE_MINUTE;
-let DEFAULT_IO_PING_TIMEOUT = 3*ONE_MINUTE;
 
 const util = require("util");
 const _ = require("lodash");
@@ -178,6 +193,13 @@ let previousConfiguration = {};
 let configuration = {};
 
 configuration.verbose = false;
+configuration.maxQueue = DEFAULT_MAX_QUEUE;
+configuration.dropboxListFolderLimit = DEFAULT_DROPBOX_LIST_FOLDER_LIMIT;
+
+configuration.tweetParserInterval = DEFAULT_TWEET_PARSER_INTERVAL;
+configuration.rateQueueInterval = DEFAULT_RATE_QUEUE_INTERVAL;
+configuration.rateQueueIntervalModulo = DEFAULT_RATE_QUEUE_INTERVAL_MODULO;
+configuration.statsUpdateInterval = DEFAULT_STATS_UPDATE_INTERVAL;
 
 configuration.DROPBOX = {};
 configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN ;
@@ -186,10 +208,10 @@ configuration.DROPBOX.DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_AS
 configuration.DROPBOX.DROPBOX_WA_CONFIG_FILE = process.env.DROPBOX_WA_CONFIG_FILE || "wordAssoServerConfig.json";
 configuration.DROPBOX.DROPBOX_WA_STATS_FILE = process.env.DROPBOX_WA_STATS_FILE || "wordAssoServerStats.json";
 
-configuration.categoryHashmapsUpdateInterval = CATEGORY_HASHMAPS_UPDATE_INTERVAL;
+configuration.categoryHashmapsUpdateInterval = DEFAULT_CATEGORY_HASHMAPS_UPDATE_INTERVAL;
 configuration.testInternetConnectionUrl = DEFAULT_TEST_INTERNET_CONNECTION_URL;
-configuration.offlineMode = OFFLINE_MODE;
-configuration.autoOfflineMode = AUTO_OFFLINE_MODE;
+configuration.offlineMode = DEFAULT_OFFLINE_MODE;
+configuration.autoOfflineMode = DEFAULT_AUTO_OFFLINE_MODE;
 
 configuration.batchSize = DEFAULT_CURSOR_BATCH_SIZE;
 
@@ -203,18 +225,17 @@ configuration.enableTransmitEmoji = false;
 configuration.enableTransmitUrl = false;
 configuration.enableTransmitMedia = false;
 
-configuration.saveFileQueueInterval = ONE_SECOND;
-configuration.socketIoAuthTimeout = 30*ONE_SECOND;
-configuration.quitOnError = false;
-configuration.maxTopTerms = process.env.WA_MAX_TOP_TERMS || 100;
+configuration.saveFileQueueInterval = DEFAULT_SAVE_FILE_QUEUE_INTERVAL;
+configuration.socketAuthTimeout = DEFAULT_SOCKET_AUTH_TIMEOUT;
+configuration.quitOnError = DEFAULT_QUIT_ON_ERROR;
+configuration.maxTopTerms = DEFAULT_MAX_TOP_TERMS;
 configuration.metrics = {};
-configuration.metrics.nodeMeterEnabled = true;
+configuration.metrics.nodeMeterEnabled = DEFAULT_METRICS_NODE_METER_ENABLED;
 configuration.minFollowersAuto = DEFAULT_MIN_FOLLOWERS_AUTO;
 
 configuration.threeceeUsers = [];
-// configuration.threeceeUsers = ["altthreecee00", "altthreecee01", "altthreecee02"];
-configuration.threeceeUsers = ["ninjathreecee", "threeceeinfo"];
-statsObj.currentThreeceeUser = configuration.threeceeUsers[statsObj.currentThreeceeUserIndex];
+configuration.threeceeUsers = DEFAULT_THREECEE_USERS;
+statsObj.currentThreeceeUser = configuration.threeceeUsers[0];
 
 
 const Twit = require("twit");
@@ -343,25 +364,17 @@ let followableRegEx;
 
 let dropboxConfigTwitterFolder = "/config/twitter";
 
-const DEFAULT_TWITTER_CONFIG_FILE = "threeceeinfo.json";
-const DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE = "altthreecee02.json";
+let twitterAutoFollowConfigFile = DEFAULT_TWITTER_THREECEE_FOLLOW_FILE;
 
-let defaultTwitterConfigFile = DEFAULT_TWITTER_CONFIG_FILE;
-let twitterAutoFollowConfigFile = DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE;
+const DEFAULT_BEST_NETWORK_FOLDER = "/config/utility/best/neuralNetworks";
+const bestNetworkFolder = DEFAULT_BEST_NETWORK_FOLDER;
 
-if (process.env.DEFAULT_TWITTER_CONFIG_FILE !== undefined) {
-  defaultTwitterConfigFile = process.env.DEFAULT_TWITTER_CONFIG_FILE;
-}
-
-if (process.env.DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE !== undefined) {
-  twitterAutoFollowConfigFile = process.env.DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE;
-}
-
-const bestNetworkFolder = "/config/utility/best/neuralNetworks";
-const bestRuntimeNetworkFileName = "bestRuntimeNetwork.json";
+const DEFAULT_BEST_NETWORK_FILE = "bestRuntimeNetwork.json";
+const bestRuntimeNetworkFileName = DEFAULT_BEST_NETWORK_FILE;
 
 
-let maxInputHashMapFile = "maxInputHashMap.json";
+const DEFAULT_MAX_INPUT_HASHMAP_FILE = "maxInputHashMap.json";
+let maxInputHashMapFile = DEFAULT_MAX_INPUT_HASHMAP_FILE;
 
 let nodeSearchType = false;
 let nodeSearchBy = "lastSeen";
@@ -414,7 +427,6 @@ let twitterUserThreecee = {
     url : "http://threeCeeMedia.com",
     name : "Tracy Collins",
     screenName : "threecee",
-    // nodeId : "14607119",
     nodeType : "user",
     following : null,
     description : "photography + animation + design",
@@ -423,7 +435,6 @@ let twitterUserThreecee = {
 };
 
 let defaultTwitterUser = twitterUserThreecee;
-
 
 let unfollowableUserSet = new Set();
 
@@ -592,13 +603,10 @@ let ignoreWordsArray = [
   "–"
 ];
 
-
 const categorizedUserHashMap = new HashMap();
 const categorizedWordHashMap = new HashMap();
 const categorizedHashtagHashMap = new HashMap();
 const metricsHashmap = new HashMap();
-// const deletedMetricsHashmap = new HashMap();
-
 
 let hostname = os.hostname();
 hostname = hostname.replace(/.local/g, "");
@@ -694,7 +702,6 @@ let languageServer = {};
 
 
 let adminHashMap = new HashMap();
-// let serverHashMap = new HashMap();
 let viewerHashMap = new HashMap();
 
 const globalNodeMeter = new Measured.Meter({rateUnit: 60000});
@@ -720,19 +727,13 @@ let twitterSearchNodeQueue = [];
 let twitterSearchNodeQueueInterval;
 let twitterSearchNodeQueueReady = false;
 
-
 let tweetParserPingInterval;
-
 let tweetParserPingSent = false;
 let tweetParserPongReceived = false;
-
 let pingId = false;
-
 
 let categoryHashmapsInterval;
 let statsInterval;
-
-
 
 // ==================================================================
 // DROPBOX
@@ -1866,6 +1867,35 @@ function loadConfigFile(params, callback) {
 
             console.log(chalkInfo("WA | LOADED CONFIG FILE: " + file + "\n" + jsonPrint(loadedConfigObj)));
 
+            if (loadedConfigObj.WA_VERBOSE_MODE  !== undefined){
+              console.log("WA | LOADED WA_VERBOSE_MODE: " + loadedConfigObj.WA_VERBOSE_MODE);
+
+              if ((loadedConfigObj.WA_VERBOSE_MODE === false) || (loadedConfigObj.WA_VERBOSE_MODE === "false")) {
+                configuration.verbose = false;
+              }
+              else if ((loadedConfigObj.WA_VERBOSE_MODE === true) || (loadedConfigObj.WA_VERBOSE_MODE === "true")) {
+                configuration.verbose = true;
+              }
+              else {
+                configuration.verbose = false;
+              }
+            }
+
+            if (loadedConfigObj.WA_TEST_MODE  !== undefined){
+              console.log("WA | LOADED WA_TEST_MODE: " + loadedConfigObj.WA_TEST_MODE);
+              configuration.testMode = loadedConfigObj.WA_TEST_MODE;
+            }
+
+            if (loadedConfigObj.WAS_ENABLE_STDIN !== undefined){
+              console.log("WA | LOADED WAS_ENABLE_STDIN: " + loadedConfigObj.WAS_ENABLE_STDIN);
+              configuration.enableStdin = loadedConfigObj.WAS_ENABLE_STDIN;
+            }
+
+            if (loadedConfigObj.WAS_PROCESS_NAME !== undefined){
+              console.log("WA | LOADED WAS_PROCESS_NAME: " + loadedConfigObj.WAS_PROCESS_NAME);
+              configuration.processName = loadedConfigObj.WAS_PROCESS_NAME;
+            }
+
             if (loadedConfigObj.THREECEE_USERS !== undefined){
               console.log("WA | LOADED THREECEE_USERS: " + loadedConfigObj.THREECEE_USERS);
               configuration.threeceeUsers = loadedConfigObj.THREECEE_USERS;
@@ -1879,19 +1909,19 @@ function loadConfigFile(params, callback) {
                 initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
             }
 
-            if (loadedConfigObj.DEFAULT_CURSOR_BATCH_SIZE !== undefined){
-              console.log("WA | LOADED DEFAULT_CURSOR_BATCH_SIZE: " + loadedConfigObj.DEFAULT_CURSOR_BATCH_SIZE);
-              configuration.cursorBatchSize = loadedConfigObj.DEFAULT_CURSOR_BATCH_SIZE;
+            if (loadedConfigObj.CURSOR_BATCH_SIZE !== undefined){
+              console.log("WA | LOADED CURSOR_BATCH_SIZE: " + loadedConfigObj.CURSOR_BATCH_SIZE);
+              configuration.cursorBatchSize = loadedConfigObj.CURSOR_BATCH_SIZE;
             }
 
-            if (loadedConfigObj.DEFAULT_FIND_CAT_USER_CURSOR_LIMIT !== undefined){
-              console.log("WA | LOADED DEFAULT_FIND_CAT_USER_CURSOR_LIMIT: " + loadedConfigObj.DEFAULT_FIND_CAT_USER_CURSOR_LIMIT);
-              configuration.findCatUserLimit = loadedConfigObj.DEFAULT_FIND_CAT_USER_CURSOR_LIMIT;
+            if (loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT !== undefined){
+              console.log("WA | LOADED FIND_CAT_USER_CURSOR_LIMIT: " + loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT);
+              configuration.findCatUserLimit = loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT;
             }
 
-            if (loadedConfigObj.DEFAULT_FIND_CAT_HASHTAG_CURSOR_LIMIT !== undefined){
-              console.log("WA | LOADED DEFAULT_FIND_CAT_HASHTAG_CURSOR_LIMIT: " + loadedConfigObj.DEFAULT_FIND_CAT_HASHTAG_CURSOR_LIMIT);
-              configuration.findCatHashtagLimit = loadedConfigObj.DEFAULT_FIND_CAT_HASHTAG_CURSOR_LIMIT;
+            if (loadedConfigObj.FIND_CAT_HASHTAG_CURSOR_LIMIT !== undefined){
+              console.log("WA | LOADED FIND_CAT_HASHTAG_CURSOR_LIMIT: " + loadedConfigObj.FIND_CAT_HASHTAG_CURSOR_LIMIT);
+              configuration.findCatHashtagLimit = loadedConfigObj.FIND_CAT_HASHTAG_CURSOR_LIMIT;
             }
 
             if (loadedConfigObj.HEAPDUMP_ENABLED !== undefined){
@@ -1949,16 +1979,6 @@ function loadConfigFile(params, callback) {
               configuration.minFollowersAuto = loadedConfigObj.MIN_FOLLOWERS_AUTO;
             }
 
-            if (loadedConfigObj.WAS_ENABLE_STDIN !== undefined){
-              console.log("WA | LOADED WAS_ENABLE_STDIN: " + loadedConfigObj.WAS_ENABLE_STDIN);
-              configuration.enableStdin = loadedConfigObj.WAS_ENABLE_STDIN;
-            }
-
-            if (loadedConfigObj.WAS_PROCESS_NAME !== undefined){
-              console.log("WA | LOADED WAS_PROCESS_NAME: " + loadedConfigObj.WAS_PROCESS_NAME);
-              configuration.processName = loadedConfigObj.WAS_PROCESS_NAME;
-            }
-
             if (loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL !== undefined){
               console.log("WA | LOADED CATEGORY_HASHMAPS_UPDATE_INTERVAL: " + loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL);
               configuration.categoryHashmapsUpdateInterval = loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL;
@@ -1966,17 +1986,32 @@ function loadConfigFile(params, callback) {
 
             if (loadedConfigObj.WAS_STATS_UPDATE_INTERVAL !== undefined){
               console.log("WA | LOADED WAS_STATS_UPDATE_INTERVAL: " + loadedConfigObj.WAS_STATS_UPDATE_INTERVAL);
-              configuration.statsUpdateIntervalTime = loadedConfigObj.WAS_STATS_UPDATE_INTERVAL;
+              configuration.statsUpdateInterval = loadedConfigObj.WAS_STATS_UPDATE_INTERVAL;
             }
 
-            if (loadedConfigObj.DEFAULT_TWITTER_CONFIG_FILE !== undefined){
-              console.log("WA | LOADED DEFAULT_TWITTER_CONFIG_FILE: " + loadedConfigObj.DEFAULT_TWITTER_CONFIG_FILE);
-              defaultTwitterConfigFile = loadedConfigObj.DEFAULT_TWITTER_CONFIG_FILE;
+            if (loadedConfigObj.RATE_QUEUE_INTERVAL !== undefined){
+              console.log("WA | LOADED RATE_QUEUE_INTERVAL: " + loadedConfigObj.RATE_QUEUE_INTERVAL);
+              configuration.rateQueueInterval = loadedConfigObj.RATE_QUEUE_INTERVAL;
             }
 
-            if (loadedConfigObj.DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE !== undefined){
-              console.log("WA | LOADED DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE: " + loadedConfigObj.DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE);
-              twitterAutoFollowConfigFile = loadedConfigObj.DEFAULT_TWITTER_AUTO_FOLLOW_CONFIG_FILE;
+            if (loadedConfigObj.RATE_QUEUE_INTERVAL_MODULO !== undefined){
+              console.log("WA | LOADED RATE_QUEUE_INTERVAL_MODULO: " + loadedConfigObj.RATE_QUEUE_INTERVAL_MODULO);
+              configuration.rateQueueIntervalModulo = loadedConfigObj.RATE_QUEUE_INTERVAL_MODULO;
+            }
+
+            if (loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW !== undefined){
+              console.log("WA | LOADED TWITTER_THREECEE_AUTO_FOLLOW: " + loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW);
+              configuration.twitterThreeceeAutoFollowConfigFile = loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW + ".json";
+            }
+
+            if (loadedConfigObj.TWEET_PARSER_INTERVAL !== undefined){
+              console.log("WA | LOADED TWEET_PARSER_INTERVAL: " + loadedConfigObj.TWEET_PARSER_INTERVAL);
+              configuration.tweetParserInterval = loadedConfigObj.TWEET_PARSER_INTERVAL;
+            }
+
+            if (loadedConfigObj.UPDATE_TRENDS_INTERVAL !== undefined){
+              console.log("WA | LOADED UPDATE_TRENDS_INTERVAL: " + loadedConfigObj.UPDATE_TRENDS_INTERVAL);
+              configuration.updateTrendsInterval = loadedConfigObj.UPDATE_TRENDS_INTERVAL;
             }
 
             if (loadedConfigObj.WAS_KEEPALIVE_INTERVAL !== undefined){
@@ -1984,38 +2019,9 @@ function loadConfigFile(params, callback) {
               configuration.keepaliveInterval = loadedConfigObj.WAS_KEEPALIVE_INTERVAL;
             }
 
-            if (loadedConfigObj.WA_VERBOSE_MODE  !== undefined){
-              console.log("WA | LOADED WA_VERBOSE_MODE: " + loadedConfigObj.WA_VERBOSE_MODE);
-
-              if ((loadedConfigObj.WA_VERBOSE_MODE === false) || (loadedConfigObj.WA_VERBOSE_MODE === "false")) {
-                configuration.verbose = false;
-              }
-              else if ((loadedConfigObj.WA_VERBOSE_MODE === true) || (loadedConfigObj.WA_VERBOSE_MODE === "true")) {
-                configuration.verbose = true;
-              }
-              else {
-                configuration.verbose = false;
-              }
-            }
-
-            if (loadedConfigObj.WA_TEST_MODE  !== undefined){
-              console.log("WA | LOADED WA_TEST_MODE: " + loadedConfigObj.WA_TEST_MODE);
-              configuration.testMode = loadedConfigObj.WA_TEST_MODE;
-            }
-
-            if (loadedConfigObj.WA_ENABLE_STDIN  !== undefined){
-              console.log("WA | LOADED WA_ENABLE_STDIN: " + loadedConfigObj.WA_ENABLE_STDIN);
-              configuration.enableStdin = loadedConfigObj.WA_ENABLE_STDIN;
-            }
-
-            if (loadedConfigObj.WA_STATS_UPDATE_INTERVAL  !== undefined) {
-              console.log("WA | LOADED WA_STATS_UPDATE_INTERVAL: " + loadedConfigObj.WA_STATS_UPDATE_INTERVAL);
-              configuration.statsUpdateIntervalTime = loadedConfigObj.WA_STATS_UPDATE_INTERVAL;
-            }
-
-            if (loadedConfigObj.WA_KEEPALIVE_INTERVAL  !== undefined) {
-              console.log("WA | LOADED WA_KEEPALIVE_INTERVAL: " + loadedConfigObj.WA_KEEPALIVE_INTERVAL);
-              configuration.keepaliveInterval = loadedConfigObj.WA_KEEPALIVE_INTERVAL;
+            if (loadedConfigObj.CHECK_RATE_LIMIT_INTERVAL !== undefined){
+              console.log("WA | LOADED CHECK_RATE_LIMIT_INTERVAL: " + loadedConfigObj.CHECK_RATE_LIMIT_INTERVAL);
+              configuration.checkTwitterRateLimitInterval = loadedConfigObj.CHECK_RATE_LIMIT_INTERVAL;
             }
 
             callback(null);
@@ -2222,7 +2228,7 @@ function saveFile (params, callback){
             + " | ERROR: 413"
             // + " ERROR\n" + jsonPrint(error.error)
           ));
-          if (callback !== undefined) { return callback(error.error_summary); }
+          if (callback !== undefined) { return callback(error); }
         }
         else if (error.status === 429){
           console.log(chalkError("WAS | " + getTimeStamp() 
@@ -2230,7 +2236,7 @@ function saveFile (params, callback){
             + " | ERROR: TOO MANY WRITES"
             // + " ERROR\n" + "jsonPrint"(error.error)
           ));
-          if (callback !== undefined) { return callback(error.error_summary); }
+          if (callback !== undefined) { return callback(error); }
         }
         else if (error.status === 500){
           console.log(chalkError("WAS | " + getTimeStamp() 
@@ -2238,7 +2244,7 @@ function saveFile (params, callback){
             + " | ERROR: DROPBOX SERVER ERROR"
             // + " ERROR\n" + jsonPrint(error.error)
           ));
-          if (callback !== undefined) { return callback(error.error_summary); }
+          if (callback !== undefined) { return callback(error); }
         }
         else {
           console.log(chalkError("WAS | " + getTimeStamp() 
@@ -2254,7 +2260,7 @@ function saveFile (params, callback){
 
     if (options.mode === "add") {
 
-      dropboxClient.filesListFolder({path: params.folder, limit: DROPBOX_LIST_FOLDER_LIMIT})
+      dropboxClient.filesListFolder({path: params.folder, limit: configuration.dropboxListFolderLimit})
       .then(function(response){
 
         debug(chalkLog("DROPBOX LIST FOLDER"
@@ -2931,7 +2937,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
     },
     postAuthenticate: postAuthenticate,
     disconnect: disconnect,
-    timeout: configuration.socketIoAuthTimeout
+    timeout: configuration.socketAuthTimeout
   });
 
   initAppRouting(function initAppRoutingComplete() {
@@ -3199,7 +3205,7 @@ function socketRxTweet(tw) {
     + " | " + tw.user.name
   ));
 
-  if (tweetRxQueue.length > MAX_Q){
+  if (tweetRxQueue.length > configuration.maxQueue){
 
     statsObj.errors.twitter.maxRxQueue += 1;
 
@@ -3268,13 +3274,99 @@ function follow(params, callback) {
     }
   }
 
+  const query = { nodeId: params.user.nodeId };
+
+  let update = {};
+  update["$set"] = { 
+    following: true, 
+    threeceeFollowing: DEFAULT_TWITTER_THREECEE_FOLLOW
+  };
+
+  const options = {
+    new: true,
+    upsert: false
+  };
+
+  User.findOneAndUpdate(query, update, options, function(err, userUpdated){
+
+    if (err) {
+      console.log(chalkError("*** UNFOLLOW | USER FIND ONE ERROR: " + err));
+    }
+    else if (userUpdated){
+      console.log(chalkLog("+++ FOLLOW"
+        + " | " + printUser({user: userUpdated})
+      ));
+    }
+    else {
+      console.log(chalkLog("... ALREADY FOLLOWING"
+        + " | NID: " + params.user.nodeId
+        + " | @" + params.user.screenName
+      ));
+    }
+
+    if (callback !== undefined) { callback(err, userUpdated); }
+
+  });
+
   console.log(chalk.blue("+++ FOLLOW | @" + params.user.screenName));
 
-  adminNameSpace.emit("FOLLOW", params.user);
-  utilNameSpace.emit("FOLLOW", params.user);
+  // adminNameSpace.emit("FOLLOW", params.user);
+  // utilNameSpace.emit("FOLLOW", params.user);
 
   if (callback !== undefined) { callback(null, null); }
 }
+
+function unfollow(params, callback) {
+
+  console.log(chalk.blue("+++ UNFOLLOW | @" + params.user.screenName));
+
+  if (params.user.nodeId !== undefined){
+
+    unfollowableUserSet.add(params.user.nodeId);
+
+    saveFileQueue.push({
+      localFlag: false, 
+      folder: dropboxConfigDefaultFolder, 
+      file: unfollowableUserFile, 
+      obj: [...unfollowableUserSet]
+    });
+
+  } 
+
+  // adminNameSpace.emit("UNFOLLOW", params.user);
+  // utilNameSpace.emit("UNFOLLOW", params.user);
+
+  const query = { nodeId: params.user.nodeId, following: true };
+
+  let update = {};
+  update["$set"] = { following: false, threeceeFollowing: false };
+
+  const options = {
+    new: true,
+    upsert: false
+  };
+
+  User.findOneAndUpdate(query, update, options, function(err, userUpdated){
+
+    if (err) {
+      console.log(chalkError("*** UNFOLLOW | USER FIND ONE ERROR: " + err));
+    }
+    else if (userUpdated){
+      console.log(chalkLog("XXX UNFOLLOW"
+        + " | " + printUser({user: userUpdated})
+      ));
+    }
+    else {
+      console.log(chalkLog("... ALREADY UNFOLLOWED"
+        + " | ID: " + params.user.nodeId
+      ));
+    }
+
+    if (callback !== undefined) { callback(err, userUpdated); }
+
+  });
+}
+
 
 function initFollowableSearchTermSet(){
 
@@ -3412,74 +3504,6 @@ function initUnfollowableUserSet(){
       });
     }
   });
-}
-
-function unfollow(params, callback) {
-
-  console.log(chalk.blue("+++ UNFOLLOW | @" + params.user.screenName));
-
-  if (params.user.nodeId !== undefined){
-
-    unfollowableUserSet.add(params.user.nodeId);
-
-    saveFileQueue.push({
-      localFlag: false, 
-      folder: dropboxConfigDefaultFolder, 
-      file: unfollowableUserFile, 
-      obj: [...unfollowableUserSet]
-    });
-
-  } 
-
-  adminNameSpace.emit("UNFOLLOW", params.user);
-  utilNameSpace.emit("UNFOLLOW", params.user);
-
-  const query = { nodeId: params.user.nodeId, following: true };
-
-  let update = {};
-  update["$set"] = { following: false, threeceeFollowing: false };
-
-  const options = {
-    new: true,
-    upsert: false
-  };
-
-  User.findOneAndUpdate(query, update, options, function(err, userUpdated){
-
-    if (err) {
-      console.log(chalkError("*** UNFOLLOW | USER FIND ONE ERROR: " + err));
-    }
-    else if (userUpdated){
-      console.log(chalkLog("XXX UNFOLLOW"
-        + " | " + printUser({user: userUpdated})
-      ));
-    }
-    else {
-      console.log(chalkLog("... ALREADY UNFOLLOWED"
-        + " | ID: " + params.user.nodeId
-      ));
-    }
-
-    if (callback !== undefined) { callback(err, userUpdated); }
-
-  });
-
-  // let user = new User(params.user);
-
-  // user.following = false;
-  // user.threeceeFollowing = false;
-  // user.updateLastSeen = false;
-
-  // userServerController.findOneUser(user, {}, function(err, u){
-  //   if (err) {
-  //     console.log(chalkError("UNFOLLOW ERROR: " + err));
-  //   }
-  //   else {
-  //     console.log(chalkLog("UNFOLLOW USER: @" + user.screenName));
-  //   }
-
-  //   if (callback !== undefined) { callback(); }
-  // });
 }
 
 
@@ -3914,45 +3938,56 @@ function initSocketHandler(socketObj) {
     }
   });
 
-  socket.on("TWITTER_FOLLOW", function twitterFollow(u) {
+  socket.on("TWITTER_FOLLOW", function twitterFollow(user) {
 
     console.log(chalkSocket("R< TWITTER_FOLLOW"
       + " | " + getTimeStamp()
       + " | SID: " + socket.id
-      + " | UID: " + u.userId
-      + " | @" + u.screenName
+      + " | NID: " + user.nodeId
+      + " | UID: " + user.userId
+      + " | @" + user.screenName
     ));
 
-    follow({user: u}, function(err, results){
+    follow({user: user}, function(err, updatedUser){
       if (err) {
         console.log(chalkError("TWITTER_FOLLOW ERROR: " + err));
         return;
       }
 
+      adminNameSpace.emit("FOLLOW", updatedUser);
+      utilNameSpace.emit("FOLLOW", updatedUser);
+
       console.log(chalk.blue("+++ TWITTER_FOLLOW"
-        + " | @" + u.screenName
+        + " | SID: " + socket.id
+        + " | UID" + updatedUser.nodeId
+        + " | @" + updatedUser.screenName
       ));
 
     });
   });
 
-  socket.on("TWITTER_UNFOLLOW", function twitterUnfollow(u) {
+  socket.on("TWITTER_UNFOLLOW", function twitterUnfollow(user) {
 
-    console.log(chalkSocket("TWITTER_UNFOLLOW"
+    console.log(chalkSocket("R< TWITTER_UNFOLLOW"
       + " | " + getTimeStamp()
       + " | SID: " + socket.id
-      + " | UID: " + u.userId
-      + " | @" + u.screenName
+      + " | UID: " + user.userId
+      + " | @" + user.screenName
     ));
 
-    unfollow({user: u}, function(err, results){
+    unfollow({user: user, socketId: socket.id}, function(err, updatedUser){
       if (err) {
         console.log(chalkError("TWITTER_UNFOLLOW ERROR: " + err));
         return;
       }
 
-      console.log(chalk.blue("+++ TWITTER_UNFOLLOW"
-        + " | @" + u.screenName
+      adminNameSpace.emit("UNFOLLOW", updatedUser);
+      utilNameSpace.emit("UNFOLLOW", updatedUser);
+
+      console.log(chalk.blue("XXX TWITTER_UNFOLLOW"
+        + " | SID: " + socket.id
+        + " | UID" + updatedUser.nodeId
+        + " | @" + updatedUser.screenName
       ));
 
     });
@@ -4296,12 +4331,23 @@ function updateTrends(){
       || threeceeTwitter[currentThreeceeUser].ready)
     {
       
-      console.log(chalkError("*** updateTrends | TWIT NOT READY"
-        + " | CURRENT 3C USER: @" + currentThreeceeUser
-      ));
+      if (!statsObj.twitNotReadyWarning) {
+
+        console.log(chalkError("*** updateTrends | TWIT NOT READY"
+          + " | CURRENT 3C USER: @" + currentThreeceeUser
+        ));
+
+        statsObj.twitNotReadyWarning = true;
+      }
 
       return;
     }
+
+    statsObj.twitNotReadyWarning = false;
+
+    console.log(chalkLog("UPDATE TWITTER TRENDS"
+      + " | CURRENT 3C USER: @" + currentThreeceeUser
+    ));
 
     threeceeTwitter[currentThreeceeUser].twit.get("trends/place", {id: 1}, function updateTrendsWorldWide (err, data, response){
 
@@ -4526,22 +4572,6 @@ let twitUserShowReady = true;
 
 let startTwitUserShowRateLimitTimeoutDuration = ONE_MINUTE;
 
-// function startTwitUserShowRateLimitTimeout(){
-
-//   console.log(chalkAlert("TWITTER USER SHOW TIMEOUT START"
-//     + " | INTERVAL: " + msToTime(startTwitUserShowRateLirmitTimeoutDuration)
-//     + " | " + getTimeStamp()
-//   ));
-
-//   setTimeout(function(){
-//     console.log(chalk.green("TWITTER USER SHOW TIMEOUT END"
-//       + " | INTERVAL: " + msToTime(startTwitUserShowRateLimitTimeoutDuration)
-//       + " | " + getTimeStamp()
-//     ));
-//     twitUserShowReady = true;
-//   }, startTwitUserShowRateLimitTimeoutDuration);
-// }
-
 function initFollowableSearchTerms(){
 
   const termsArray = Array.from(followableSearchTermSet);
@@ -4584,6 +4614,9 @@ function autoFollowUser(params, callback){
 
     unfollowableUserSet.add(params.user.nodeId);
 
+    adminNameSpace.emit("FOLLOW", params.user);
+    utilNameSpace.emit("FOLLOW", params.user);
+
     console.log(chalk.blue("+++ AUTO FOLLOW"
       + " | UID: " + params.user.userId
       + " | @" + params.user.screenName
@@ -4608,7 +4641,7 @@ function autoFollowUser(params, callback){
   });
 }
 
-function checkRateLimit(params, callback){
+function checkTwitterRateLimit(params, callback){
 
   threeceeTwitter[params.user].twit.get("application/rate_limit_status", function(err, data, response) {
     
@@ -4693,26 +4726,26 @@ function checkRateLimit(params, callback){
 }
 
 
-let checkRateLimitInterval;
-let checkRateLimitReady = true;
+let checkTwitterRateLimitInterval;
+let checkTwitterRateLimitReady = true;
 
-function initCheckRateLimitInterval(interval){
+function initCheckTwitterRateLimitInterval(interval){
 
-  clearInterval(checkRateLimitInterval);
+  clearInterval(checkTwitterRateLimitInterval);
 
-  checkRateLimitReady = true;
+  checkTwitterRateLimitReady = true;
 
-  checkRateLimitInterval = setInterval(function(){
+  checkTwitterRateLimitInterval = setInterval(function(){
 
-    if (checkRateLimitReady) {
+    if (checkTwitterRateLimitReady) {
 
-      checkRateLimitReady = false;
+      checkTwitterRateLimitReady = false;
 
       async.eachSeries(configuration.threeceeUsers, function(user, cb){
 
         if (threeceeTwitter[user].twitterRateLimitExceptionFlag) {
 
-          checkRateLimit({user: user}, function(err){
+          checkTwitterRateLimit({user: user}, function(err){
             cb();
           });
 
@@ -4722,7 +4755,7 @@ function initCheckRateLimitInterval(interval){
         }
 
       }, function(err){
-          checkRateLimitReady = true;
+          checkTwitterRateLimitReady = true;
       });
 
     }
@@ -4891,7 +4924,7 @@ function initTransmitNodeQueueInterval(interval){
                         threeceeTwitter[currentThreeceeUser].twitterRateLimitExceptionFlag = true;
                         threeceeTwitter[currentThreeceeUser].twitterRateLimitResetAt = moment(moment().valueOf() + 60000);
 
-                        checkRateLimit({user: currentThreeceeUser});
+                        checkTwitterRateLimit({user: currentThreeceeUser});
 
                         delete n._id;
                         viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
@@ -4919,7 +4952,7 @@ function initTransmitNodeQueueInterval(interval){
                       n.bannerImageUrl = rawUser.profile_banner_url;
                       n.verified = rawUser.verified;
                       n.following = true;
-                      n.threeceeFollowing = "altthreecee02";
+                      n.threeceeFollowing = DEFAULT_TWITTER_THREECEE_FOLLOW;
                       n.description = rawUser.description;
                       n.lastTweetId = (rawUser.status !== undefined) ? rawUser.status.id_str : null;
                       n.statusesCount = rawUser.statuses_count;
@@ -4949,7 +4982,7 @@ function initTransmitNodeQueueInterval(interval){
                           viewNameSpace.volatile.emit("node", updatedUser);
 
                           if (!unfollowableUserSet.has(updatedUser.nodeId)) { 
-                            autoFollowUser({ threeceeUser: "altthreecee02", user: updatedUser });
+                            autoFollowUser({ threeceeUser: DEFAULT_TWITTER_THREECEE_FOLLOW, user: updatedUser });
                           }
 
                         }
@@ -5686,7 +5719,7 @@ function initTweetParserMessageRxQueueInterval(interval){
             + " | WDs: " + tweetObj.words.length
           ));
 
-          if (transmitNodeQueue.length < MAX_Q) {
+          if (transmitNodeQueue.length < configuration.maxQueue) {
 
             transmitNodes(tweetObj, function transmitNode(err){
               if (err) {
@@ -6001,7 +6034,7 @@ function initTweetParser(params, callback){
       }
     } 
 
-    else if (tweetParserMessageRxQueue.length < MAX_Q){
+    else if (tweetParserMessageRxQueue.length < configuration.maxQueue){
       tweetParserMessageRxQueue.push(m);
     }
 
@@ -6050,8 +6083,8 @@ function initTweetParser(params, callback){
     networkObj: bestNetworkObj,
     maxInputHashMap: maxInputHashMap,
     normalization: normalization,
-    interval: TWEET_PARSER_INTERVAL,
-    // verbose: configuration.verbose
+    // interval: TWEET_PARSER_INTERVAL,
+    interval: configuration.tweetParserInterval,
     verbose: false
   }, function tweetParserMessageRxError(err){
     if (err) {
@@ -6115,8 +6148,8 @@ function initRateQinterval(interval){
 
     updateTimeSeriesCount += 1;
 
-    if (updateTimeSeriesCount % RATE_QUEUE_INTERVAL_MODULO === 0){
-
+    // if (updateTimeSeriesCount % RATE_QUEUE_INTERVAL_MODULO === 0){
+    if (updateTimeSeriesCount % configuration.rateQueueIntervalModulo === 0){
 
       cacheObjKeys.forEach(function statsCachesUpdate(cacheName){
         if (cacheName === "nodesPerMinuteTopTermNodeTypeCache") {
@@ -6649,42 +6682,6 @@ function initialize(callback){
   configuration.verbose = (process.env.WA_VERBOSE_MODE === "true" || process.env.WA_VERBOSE_MODE === true) || false ;
   configuration.quitOnError = process.env.WA_QUIT_ON_ERROR || false ;
   configuration.enableStdin = process.env.WA_ENABLE_STDIN || true ;
-
-  // const loadConfigFileParams = {
-  //   folder: dropboxConfigDefaultFolder,
-  //   file: dropboxConfigDefaultFile
-  // };
-
-  // loadConfigFile(loadConfigFileParams, function(err){
-
-  //   if (err) {
-  //     console.log(chalkError("*** LOAD CONFIGURATION FILE ERROR: " + err));
-  //     quit("LOAD CONFIGURATION FILE ERROR");
-  //     return callback(err);
-  //   }
-
-  //   loadCommandLineArgs(function(err, results){
-    
-  //     const configArgs = Object.keys(configuration);
-
-  //     configArgs.forEach(function(arg){
-  //       if (_.isObject(configuration[arg])) {
-  //         console.log("WA | _FINAL CONFIG | " + arg + ": " + jsonPrint(configuration[arg]));
-  //       }
-  //       else {
-  //         console.log("WA | _FINAL CONFIG | " + arg + ": " + configuration[arg]);
-  //       }
-  //     });
-      
-  //     statsObj.commandLineArgsLoaded = true;
-
-  //     if (!statsObj.internetReady) { 
-  //       initInternetCheckInterval(10000);
-  //     }
-
-  //     callback(err);
-  //   });
-  // });
 
   initConfigInterval(DEFAULT_CONFIG_INIT_INTERVAL);
 
@@ -7345,7 +7342,7 @@ function twitterSearchNode(params, callback) {
 }
 
 
-function initTwitterSearchNodeQueue(interval){
+function initTwitterSearchNodeQueueInterval(interval){
 
   let searchNodeParams;
   twitterSearchNodeQueueReady = true;
@@ -7387,14 +7384,20 @@ initialize(function initializeComplete(err) {
     initFollowableSearchTermSet();
     initSaveFileQueue(configuration);
     initIgnoreWordsHashMap();
-    initTransmitNodeQueueInterval(TRANSMIT_NODE_QUEUE_INTERVAL);
+
+    initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval);
+
     initCategoryHashmapsInterval(configuration.categoryHashmapsUpdateInterval);
-    initUpdateTrendsInterval(UPDATE_TRENDS_INTERVAL);
-    initRateQinterval(RATE_QUEUE_INTERVAL);
-    initTwitterRxQueueInterval(TWITTER_RX_QUEUE_INTERVAL);
-    initTweetParserMessageRxQueueInterval(TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL);
-    initHashtagLookupQueueInterval(HASHTAG_LOOKUP_QUEUE_INTERVAL);
-    initTwitterSearchNodeQueue(TWITTER_SEARCH_NODE_QUEUE_INTERVAL);
+
+    initRateQinterval(configuration.rateQueueInterval);
+
+    initTwitterRxQueueInterval(configuration.twitterRxQueueInterval);
+
+    initTweetParserMessageRxQueueInterval(configuration.tweetParserMessageRxQueueInterval);
+
+    initHashtagLookupQueueInterval(configuration.hashtagLookupQueueInterval);
+
+    initTwitterSearchNodeQueueInterval(configuration.twitterSearchNodeQueueInterval);
 
     console.log(chalkInfo("NODE CACHE TTL: " + nodeCacheTtl + " SECONDS"));
 
@@ -7416,8 +7419,9 @@ initialize(function initializeComplete(err) {
       }
     });
 
-    initStatsInterval(STATS_UPDATE_INTERVAL);
-    initCheckRateLimitInterval(60000);
+    initStatsInterval(configuration.statsUpdateInterval);
+    initCheckTwitterRateLimitInterval(configuration.checkTwitterRateLimitInterval);
+    initUpdateTrendsInterval(configuration.updateTrendsInterval);
 
     slackPostMessage(slackChannel, "\n*INIT* | " + hostname + "\n");
 

@@ -609,35 +609,41 @@ hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
 
-const CONFIG_PATH = "/home/tc/Dropbox/Apps/wordAssociation/config";
+if (hostname === "google") {
 
-const PythonShell = require("python-shell");
+  console.log(chalkBlue("INIT HEADLESS DROPBOX VIA PYTHON SHELL"));
 
-const pythonPath = "/usr/bin/python";
-const pythonScriptPath = CONFIG_PATH;
-const pythonScript = "dropbox.py";
+  const PythonShell = require("python-shell");
 
-const pythonOptions = {
-  mode: "text",
-  pythonPath: pythonPath,
-  scriptPath: pythonScriptPath,
-  args: ["start"]
-};
+  const CONFIG_PATH = "/home/tc/Dropbox/Apps/wordAssociation/config";
+  const pythonPath = "/usr/bin/python";
+  const pythonScriptPath = CONFIG_PATH;
+  const pythonScript = "dropbox.py";
 
-const pythonShellDropbox = new PythonShell(pythonScript, pythonOptions);
+  const pythonOptions = {
+    mode: "text",
+    pythonPath: pythonPath,
+    scriptPath: pythonScriptPath,
+    args: ["start"]
+  };
 
-pythonShellDropbox.on("message", function (message) {
-  console.log(chalkAlert("DROPBOX PYTHON SHELL MESSAGE"
-    + " | " + message
-  ));
-});
 
-// PythonShell.run(pythonScript, pythonOptions, function (err) {
-//   if (err) throw err;
-//   console.log(chalkAlert("DROPBOX PYTHON START"
-//     + " | " + 
-//   ));
-// });
+  const pythonShellDropbox = new PythonShell(pythonScript, pythonOptions);
+
+  pythonShellDropbox.on("error", function (err) {
+    console.log(chalkError("*** DROPBOX PYTHON SHELL ERROR"
+      + " | " + err
+    ));
+  });
+
+  pythonShellDropbox.on("message", function (message) {
+    console.log(chalkBlue("DROPBOX PYTHON SHELL MESSAGE"
+      + " | " + message
+    ));
+  });
+
+}
+
 
 const tweetMeter = new Measured.Meter({rateUnit: 60000});
 

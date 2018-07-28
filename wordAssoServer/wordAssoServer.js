@@ -4982,6 +4982,11 @@ function initTransmitNodeQueueInterval(interval){
                           if (!unfollowableUserSet.has(updatedUser.nodeId)) { 
                             autoFollowUser({ threeceeUser: DEFAULT_TWITTER_THREECEE_FOLLOW, user: updatedUser });
                           }
+                          else {
+                            console.log(chalkAlert("... NO AUTO FOLLOW | IN UNFOLLOWABLE SET"
+                              + "\n" + printUser( { user: updatedUser} )
+                            ));
+                          }
 
                         }
 

@@ -72,7 +72,7 @@ const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 configEvents.on("DB_CONNECT", function configEventDbConnect(){
 
   TweetServerController = require("@threeceelabs/tweet-server-controller");
-  tweetServerController = new TweetServerController("TWP_TSC");
+  tweetServerController = new TweetServerController("TWP");
   tweetServerControllerReady = true;
 
   tweetServerController.on("ready", function(err){
@@ -87,12 +87,12 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
 });
 
 
-const dbAppName = "TSC_" + process.pid;
+const dbAppName = "TWP_" + process.pid;
 
 wordAssoDb.connect(dbAppName, function(err, db) {
 
   if (err) {
-    console.log(chalkError("*** TSC | MONGO DB CONNECTION ERROR"
+    console.log(chalkError("*** TWP | MONGO DB CONNECTION ERROR"
       + " | DB APP NAME: " + dbAppName
       + " | ERROR: " + err
     ));
@@ -101,8 +101,8 @@ wordAssoDb.connect(dbAppName, function(err, db) {
   }
 
   db.on("error", function(err){
-    console.error.bind(console, "*** TSC | MONGO DB CONNECTION ERROR ***\n");
-    console.log(chalkError("*** TSC | MONGO DB CONNECTION ERROR"
+    console.error.bind(console, "*** TWP | MONGO DB CONNECTION ERROR ***\n");
+    console.log(chalkError("*** TWP | MONGO DB CONNECTION ERROR"
       + " | DB APP NAME: " + dbAppName
       + " | ERROR: " + err
     ));
@@ -112,8 +112,8 @@ wordAssoDb.connect(dbAppName, function(err, db) {
   });
 
   db.on("disconnected", function(){
-    console.error.bind(console, "*** TSC | MONGO DB DISCONNECTED ***\n");
-    console.log(chalkError("*** TSC | MONGO DB DISCONNECTED"
+    console.error.bind(console, "*** TWP | MONGO DB DISCONNECTED ***\n");
+    console.log(chalkError("*** TWP | MONGO DB DISCONNECTED"
       + " | DB APP NAME: " + dbAppName
     ));
     dbConnectionReady = false;
@@ -131,9 +131,9 @@ wordAssoDb.connect(dbAppName, function(err, db) {
   Word = mongoose.model("Word", wordModel.WordSchema);
 
 
-  console.log(chalkAlert("TSC | DB READY STATE: " + db.readyState));
+  console.log(chalkInfo("TWP | DB READY STATE: " + db.readyState));
 
-  console.log(chalk.bold.green("TSC | MONGOOSE DEFAULT CONNECTION OPEN"));
+  console.log(chalk.bold.green("TWP | MONGOOSE DEFAULT CONNECTION OPEN"));
 
 
   global.dbConnection = db;
@@ -425,14 +425,14 @@ process.on("message", function(m) {
     break;
 
     case "PING":
-      debug(chalkLog("TSC | PING"
+      debug(chalkLog("TWP | PING"
         + " | PING ID: " + moment(m.pingId).format(compactDateTimeFormat)
       ));
 
       setTimeout(function(){
         process.send({ op: "PONG", pongId: m.pingId }, function(err){
           if (err) {
-            console.log(chalkError("TSC | !!! TWEET PARSER PONG SEND ERR: " + err));
+            console.log(chalkError("TWP | !!! TWEET PARSER PONG SEND ERR: " + err));
             quit("TWEET PARSER PONG SEND ERR");
           }
         });
@@ -450,12 +450,12 @@ process.on("message", function(m) {
         ));
       }
       else {
-        debug(chalkAlert("TSC | *** MAX TWEET PARSE Q SIZE: " + tweetParserQueue.length));
+        debug(chalkAlert("TWP | *** MAX TWEET PARSE Q SIZE: " + tweetParserQueue.length));
       }
     break;
 
     default:
-      console.error(chalkError("TSC | *** TWEET PARSER UNKNOWN OP"
+      console.error(chalkError("TWP | *** TWEET PARSER UNKNOWN OP"
         + " | INTERVAL: " + m.op
       ));
   }

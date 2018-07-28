@@ -626,6 +626,12 @@ const pythonOptions = {
 
 const pythonShellDropbox = new PythonShell(pythonScript, pythonOptions);
 
+pythonShellDropbox.on("message", function (message) {
+  console.log(chalkAlert("DROPBOX PYTHON SHELL MESSAGE"
+    + " | " + message
+  ));
+});
+
 // PythonShell.run(pythonScript, pythonOptions, function (err) {
 //   if (err) throw err;
 //   console.log(chalkAlert("DROPBOX PYTHON START"

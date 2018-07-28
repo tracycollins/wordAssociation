@@ -609,6 +609,30 @@ hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
 
+const CONFIG_PATH = "/home/tc/Dropbox/Apps/wordAssociation/config";
+
+const PythonShell = require("python-shell");
+
+const pythonPath = "/usr/bin/python";
+const pythonScriptPath = CONFIG_PATH;
+const pythonScript = "dropbox.py";
+
+const pythonOptions = {
+  mode: "text",
+  pythonPath: pythonPath,
+  scriptPath: pythonScriptPath,
+  args: ["start"]
+};
+
+const pythonShellDropbox = new PythonShell(pythonScript, pythonOptions);
+
+// PythonShell.run(pythonScript, pythonOptions, function (err) {
+//   if (err) throw err;
+//   console.log(chalkAlert("DROPBOX PYTHON START"
+//     + " | " + 
+//   ));
+// });
+
 const tweetMeter = new Measured.Meter({rateUnit: 60000});
 
 let languageServer = {};
@@ -3242,6 +3266,12 @@ function initFollowableSearchTermSet(){
 
     }
   });
+}
+
+function initDropboxSync(){
+
+  console.log(chalkLog("INIT DROPBOX SYNC"));
+
 }
 
 function initUnfollowableUserSet(){
@@ -7297,6 +7327,7 @@ initialize(function initializeComplete(err) {
   else {
     debug(chalkLog("INITIALIZE COMPLETE"));
 
+    initDropboxSync();
     initUnfollowableUserSet();
     initFollowableSearchTermSet();
     initSaveFileQueue(configuration);

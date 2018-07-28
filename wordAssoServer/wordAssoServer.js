@@ -624,6 +624,7 @@ if (hostname === "google") {
     mode: "text",
     pythonPath: pythonPath,
     scriptPath: pythonScriptPath,
+    lansync: true,
     args: ["autostart"]
   };
 
@@ -631,6 +632,7 @@ if (hostname === "google") {
     mode: "text",
     pythonPath: pythonPath,
     scriptPath: pythonScriptPath,
+    lansync: true,
     args: ["running"]
   };
 
@@ -638,6 +640,7 @@ if (hostname === "google") {
     mode: "text",
     pythonPath: pythonPath,
     scriptPath: pythonScriptPath,
+    lansync: true,
     args: ["status"]
   };
 

@@ -1494,18 +1494,19 @@ function dropboxFolderGetLastestCursor(folder, callback) {
     lastCursorTruncated = last_cursor.cursor.substring(0,20);
 
     // console.log(chalkLog("lastCursorTruncated: " + lastCursorTruncated));
-    console.log(chalkLog("DROPBOX LAST CURSOR\n" + jsonPrint(last_cursor)));
+    if (configuration.verbose) { console.log(chalkLog("DROPBOX LAST CURSOR\n" + jsonPrint(last_cursor))); }
 
     dropboxLongPoll(last_cursor.cursor, function(err, results){
 
-      console.log(chalkLog("DROPBOX LONG POLL RESULTS\n" + jsonPrint(results)));
+      if (configuration.verbose) { console.log(chalkLog("DROPBOX LONG POLL RESULTS\n" + jsonPrint(results))); }
 
       if (results.changes) {
 
         dropboxClient.filesListFolderContinue({ cursor: last_cursor.cursor})
         .then(function(response){
 
-          console.log(chalkLog("DROPBOX FILE LIST FOLDER CONTINUE\n" + jsonPrint(response)));
+          if (configuration.verbose) { console.log(chalkLog("DROPBOX FILE LIST FOLDER CONTINUE\n" + jsonPrint(response))); }
+
           callback(null, response);
 
         })
@@ -1524,7 +1525,7 @@ function dropboxFolderGetLastestCursor(folder, callback) {
             ));
           }
           callback(err, last_cursor.cursor);
-          
+
         });
       }
       else {
@@ -5084,10 +5085,9 @@ function initAppRouting(callback) {
 
     if (req.path === "/dropbox_webhook") {
 
-      console.log(chalkLog("R< DROPBOX WEB HOOK: /dropbox_webhook")); 
+      console.log(chalkLog("R< DROPBOX WEB HOOK | /dropbox_webhook")); 
 
       if (configuration.verbose) {
-      // if (true) {
         console.log(chalkAlert("R< dropbox_webhook"
           + "\nreq.query\n" + jsonPrint(req.query)
           + "\nreq.params\n" + jsonPrint(req.params)
@@ -5119,18 +5119,21 @@ function initAppRouting(callback) {
               setTimeout(function(){
 
                 adminNameSpace.emit("DROPBOX_CHANGE", response);
+                utilNameSpace.emit("DROPBOX_CHANGE", response);
 
-                console.log(chalkLog(">>> DROPBOX CHANGE"
-                  + " | " + getTimeStamp()
-                  + " | FOLDER: " + folder
-                ));
-                
+                if (configuration.verbose) {
+                  console.log(chalkLog(">>> DROPBOX CHANGE"
+                    + " | " + getTimeStamp()
+                    + " | FOLDER: " + folder
+                  ));
+                }
+
                 response.entries.forEach(function(entry){
 
-                  console.log(chalkLog(">>> DROPBOX CHANGE | ENTRY"
-                    + " | TYPE: " + entry[".tag"]
-                    + " | PATH: " + entry.path_lower
-                    + " | NAME: " + entry.name
+                  console.log(chalkInfo(">>> DROPBOX CHANGE"
+                    // + " | TYPE: " + entry[".tag"]
+                    + " | " + entry.path_lower
+                    // + " | NAME: " + entry.name
                   ));
 
                 });

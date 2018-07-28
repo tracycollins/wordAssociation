@@ -620,24 +620,64 @@ if (hostname === "google") {
   const pythonScriptPath = CONFIG_PATH;
   const pythonScript = "dropbox.py";
 
-  const pythonOptions = {
+  const pythonDropboxStartOptions = {
     mode: "text",
     pythonPath: pythonPath,
     scriptPath: pythonScriptPath,
-    args: ["start"]
+    args: ["autostart"]
+  };
+
+  const pythonDropboxRunningOptions = {
+    mode: "text",
+    pythonPath: pythonPath,
+    scriptPath: pythonScriptPath,
+    args: ["running"]
+  };
+
+  const pythonDropboxStatusOptions = {
+    mode: "text",
+    pythonPath: pythonPath,
+    scriptPath: pythonScriptPath,
+    args: ["status"]
   };
 
 
-  const pythonShellDropbox = new PythonShell(pythonScript, pythonOptions);
+  const pythonDropboxStart = new PythonShell(pythonScript, pythonDropboxStartOptions);
+  const pythonDropboxRunning = new PythonShell(pythonScript, pythonDropboxRunningOptions);
+  const pythonDropboxStatus = new PythonShell(pythonScript, pythonDropboxStatusOptions);
 
-  pythonShellDropbox.on("error", function (err) {
-    console.log(chalkError("*** DROPBOX PYTHON SHELL ERROR"
+  pythonDropboxStart.on("error", function (err) {
+    console.log(chalkError("*** DROPBOX PYTHON SHELL STARTERROR"
       + " | " + err
     ));
   });
 
-  pythonShellDropbox.on("message", function (message) {
-    console.log(chalkBlue("DROPBOX PYTHON SHELL MESSAGE"
+  pythonDropboxStart.on("message", function (message) {
+    console.log(chalkBlue("DROPBOX PYTHON SHELL START MESSAGE"
+      + " | " + message
+    ));
+  });
+
+  pythonDropboxRunning.on("error", function (err) {
+    console.log(chalkError("*** DROPBOX PYTHON SHELL RUNNING ERROR"
+      + " | " + err
+    ));
+  });
+
+  pythonDropboxRunning.on("message", function (message) {
+    console.log(chalkBlue("DROPBOX PYTHON SHELL RUNNING MESSAGE"
+      + " | " + message
+    ));
+  });
+
+  pythonDropboxStatus.on("error", function (err) {
+    console.log(chalkError("*** DROPBOX PYTHON SHELL STATUS ERROR"
+      + " | " + err
+    ));
+  });
+
+  pythonDropboxStatus.on("message", function (message) {
+    console.log(chalkBlue("DROPBOX PYTHON SHELL STATUS MESSAGE"
       + " | " + message
     ));
   });

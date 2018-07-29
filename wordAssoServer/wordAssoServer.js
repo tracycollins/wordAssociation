@@ -18,6 +18,7 @@ const ONE_KILOBYTE = 1024;
 const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
 
 const DEFAULT_SAVE_FILE_QUEUE_INTERVAL = ONE_SECOND;
+const DEFAULT_CHECK_TWITTER_RATE_LIMIT_INTERVAL = ONE_MINUTE;
 
 const DEFAULT_TWITTER_SEARCH_NODE_QUEUE_INTERVAL = 1000;
 
@@ -202,6 +203,7 @@ configuration.tweetParserInterval = DEFAULT_TWEET_PARSER_INTERVAL;
 configuration.rateQueueInterval = DEFAULT_RATE_QUEUE_INTERVAL;
 configuration.rateQueueIntervalModulo = DEFAULT_RATE_QUEUE_INTERVAL_MODULO;
 configuration.statsUpdateInterval = DEFAULT_STATS_UPDATE_INTERVAL;
+configuration.checkTwitterRateLimitInterval = DEFAULT_CHECK_TWITTER_RATE_LIMIT_INTERVAL;
 
 configuration.DROPBOX = {};
 configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN ;
@@ -2123,9 +2125,9 @@ function loadConfigFile(params, callback) {
               configuration.keepaliveInterval = loadedConfigObj.KEEPALIVE_INTERVAL;
             }
 
-            if (loadedConfigObj.CHECK_RATE_LIMIT_INTERVAL !== undefined){
-              console.log("WA | LOADED CHECK_RATE_LIMIT_INTERVAL: " + loadedConfigObj.CHECK_RATE_LIMIT_INTERVAL);
-              configuration.checkTwitterRateLimitInterval = loadedConfigObj.CHECK_RATE_LIMIT_INTERVAL;
+            if (loadedConfigObj.CHECK_TWITTER_RATE_LIMIT_INTERVAL !== undefined){
+              console.log("WA | LOADED CHECK_TWITTER_RATE_LIMIT_INTERVAL: " + loadedConfigObj.CHECK_TWITTER_RATE_LIMIT_INTERVAL);
+              configuration.checkTwitterRateLimitInterval = loadedConfigObj.CHECK_TWITTER_RATE_LIMIT_INTERVAL;
             }
 
             callback(null);

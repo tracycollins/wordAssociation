@@ -4671,6 +4671,11 @@ let userFollowable = function(user){
 
 function autoFollowUser(params, callback){
 
+  console.log(chalkAlert("AUTO FOLLOW USER"
+    + " | MIN: " + configuration.minFollowersAuto
+    + "\n" + printUser({user:params.user})
+  ));
+
   follow({user: params.user}, function(err, results){
     if (err) {
       if (callback !== undefined) { return callback(err, params); }

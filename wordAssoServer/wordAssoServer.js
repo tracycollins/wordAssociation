@@ -964,7 +964,7 @@ wordAssoDb.connect(dbAppName, function(err, db) {
 
   neuralNetworkCollection.countDocuments(function(err, count){
     if (err) { throw Error; }
-    console.log(chalkAlert("NN COUNT: " + count));
+    console.log(chalkAlert("NEURAL NETWORKS IN DB: " + count));
   });
 
   // // a filter describing the things i'm interested in

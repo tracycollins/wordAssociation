@@ -159,6 +159,7 @@ const Slack = require("slack-node");
 let slack = false;
 
 const chalk = require("chalk");
+const chalkUser = chalk.red;
 const chalkNetwork = chalk.red;
 const chalkTwitter = chalk.blue;
 const chalkConnect = chalk.black;
@@ -871,6 +872,30 @@ function printNetworkObj(title, networkObj) {
   ));
 }
 
+const userDefaults = function (user){
+  return user;
+};
+
+function printUserObj(title, user) {
+
+  user = userDefaults(user);
+
+  console.log(chalkUser(title
+    + " | UID: " + user.userId
+    + " | @" + user.screenName
+    + " | N: " + user.name 
+    + " | FLWRs: " + user.followersCount
+    + " | FRNDs: " + user.friendsCount
+    + " | Ts: " + user.statusesCount
+    + " | Ms:  " + user.mentions
+    + " | LS: " + getTimeStamp(user.lastSeen)
+    + " | FLWg: " + user.following 
+    + " | 3C: @" + user.threeceeFollowing 
+    + " | CAT MAN: " + user.category
+    + " | CAT AUTO: " + user.categoryAuto
+  ));
+}
+
 const neuralNetworkModel = require("@threeceelabs/mongoose-twitter/models/neuralNetwork.server.model");
 const emojiModel = require("@threeceelabs/mongoose-twitter/models/emoji.server.model");
 const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
@@ -960,6 +985,42 @@ wordAssoDb.connect(dbAppName, function(err, db) {
   dbConnectionReady = true;
   statsObj.dbConnectionReady = true;
 
+
+
+
+  const userCollection = db.collection("users");
+
+  userCollection.countDocuments(function(err, count){
+    if (err) { throw Error; }
+    console.log(chalkAlert("USERS IN DB: " + count));
+  });
+
+  const filterUser = {
+    $match: {
+      $or: [{ operationType: "insert" },{ operationType: "delete" },{ operationType: "update" },{ operationType: "replace" }]
+    }
+  };
+  const optionsUser = { fullDocument: "updateLookup" };
+
+  const userChangeStream = userCollection.watch([filterUser], optionsUser);
+
+  userChangeStream.on("change", function(change){
+
+    if (change && change.fullDocument) { 
+
+      const user = change.fullDocument; 
+
+      printUserObj("--> USER CHANGE | " +  change.operationType, user);
+
+    }
+    else {
+
+      console.log(chalkAlert("--> USER CHANGE | " +  change.operationType));
+
+    }
+  });
+
+
   const neuralNetworkCollection = db.collection("neuralnetworks");
 
   neuralNetworkCollection.countDocuments(function(err, count){
@@ -967,31 +1028,23 @@ wordAssoDb.connect(dbAppName, function(err, db) {
     console.log(chalkAlert("NEURAL NETWORKS IN DB: " + count));
   });
 
-  // // a filter describing the things i'm interested in
-  const filter = {
+  const filterNetwork = {
     $match: {
       $or: [{ operationType: "insert" },{ operationType: "delete" },{ operationType: "update" },{ operationType: "replace" }]
     }
   };
-  // // the option to return the full document
-  const options = { fullDocument: "updateLookup" };
-  // // creating a change stream definition
-  // var changeStream = coll.watch([filter], options);
+  const optionsNetwork = { fullDocument: "updateLookup" };
 
-  const neuralNetworkChangeStream = neuralNetworkCollection.watch([filter], options);
+  const neuralNetworkChangeStream = neuralNetworkCollection.watch([filterNetwork], optionsNetwork);
 
   neuralNetworkChangeStream.on("change", function(change){
-
-
     if (change && change.fullDocument) { 
       const nn = networkDefaults(change.fullDocument); 
-      printNetworkObj("--> NN CHANGE | " +  change.operationType, nn);
+      printNetworkObj("--> NN   CHANGE | " +  change.operationType, nn);
     }
     else {
-      console.log(chalkAlert("--> NN CHANGE | " +  change.operationType));
+      console.log(chalkAlert("--> NN   CHANGE | " +  change.operationType));
     }
-
-
   });
 
 

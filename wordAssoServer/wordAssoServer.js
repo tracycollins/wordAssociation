@@ -1979,13 +1979,13 @@ function loadConfigFile(params, callback) {
 
             console.log(chalkInfo("WA | LOADED CONFIG FILE: " + file + "\n" + jsonPrint(loadedConfigObj)));
 
-            if (loadedConfigObj.WA_VERBOSE_MODE  !== undefined){
-              console.log("WA | LOADED WA_VERBOSE_MODE: " + loadedConfigObj.WA_VERBOSE_MODE);
+            if (loadedConfigObj.VERBOSE  !== undefined){
+              console.log("WA | LOADED VERBOSE: " + loadedConfigObj.VERBOSE);
 
-              if ((loadedConfigObj.WA_VERBOSE_MODE === false) || (loadedConfigObj.WA_VERBOSE_MODE === "false")) {
+              if ((loadedConfigObj.VERBOSE === false) || (loadedConfigObj.VERBOSE === "false")) {
                 configuration.verbose = false;
               }
-              else if ((loadedConfigObj.WA_VERBOSE_MODE === true) || (loadedConfigObj.WA_VERBOSE_MODE === "true")) {
+              else if ((loadedConfigObj.VERBOSE === true) || (loadedConfigObj.VERBOSE === "true")) {
                 configuration.verbose = true;
               }
               else {
@@ -6810,7 +6810,7 @@ function initialize(callback){
   }
 
   configuration.processName = process.env.WA_PROCESS_NAME || "node_wordAssoServer";
-  configuration.verbose = (process.env.WA_VERBOSE_MODE === "true" || process.env.WA_VERBOSE_MODE === true) || false ;
+  configuration.verbose = (process.env.VERBOSE === "true" || process.env.VERBOSE === true) || false ;
   configuration.quitOnError = process.env.WA_QUIT_ON_ERROR || false ;
   configuration.enableStdin = process.env.WA_ENABLE_STDIN || true ;
 

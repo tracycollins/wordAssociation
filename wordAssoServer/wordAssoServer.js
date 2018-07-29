@@ -967,7 +967,18 @@ wordAssoDb.connect(dbAppName, function(err, db) {
     console.log(chalkAlert("NN COUNT: " + count));
   });
 
-  const neuralNetworkChangeStream = neuralNetworkCollection.watch();
+  // // a filter describing the things i'm interested in
+  const filter = {
+    $match: {
+      $or: [{ operationType: "insert" },{ operationType: "delete" },{ operationType: "update" },{ operationType: "replace" }]
+    }
+  };
+  // // the option to return the full document
+  const options = { fullDocument: "updateLookup" };
+  // // creating a change stream definition
+  // var changeStream = coll.watch([filter], options);
+
+  const neuralNetworkChangeStream = neuralNetworkCollection.watch([filter], options);
 
   neuralNetworkChangeStream.on("change", function(change){
 
@@ -977,7 +988,7 @@ wordAssoDb.connect(dbAppName, function(err, db) {
       printNetworkObj("--> NN CHANGE | " +  change.operationType, nn);
     }
     else {
-      console.log(chalkAlert("--> NN CHANGE\n" + Object.keys(change)));
+      console.log(chalkAlert("--> NN CHANGE | " +  change.operationType));
     }
 
 

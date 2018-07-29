@@ -4212,7 +4212,7 @@ function initSocketHandler(socketObj) {
   });
 
   socket.on("tweet", function(tweet){
-    if (configuration.verbose) { console.log(chalkInfo("R< TWEET | " + tweet.id_str + " | @" + tweet.user.screen_name)); }
+    if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + tweet.id_str + " | @" + tweet.user.screen_name)); }
     if (statsObj.tweetParserReady) { socketRxTweet(tweet); }
   });
 

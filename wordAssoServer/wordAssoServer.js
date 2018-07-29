@@ -971,9 +971,15 @@ wordAssoDb.connect(dbAppName, function(err, db) {
 
   neuralNetworkChangeStream.on("change", function(change){
 
-    const nn = networkDefaults(change.fullDocument);
 
-    printNetworkObj("--> NN CHANGE | " +  change.operationType, nn);
+    if (change && change.fullDocument) { 
+      const nn = networkDefaults(change.fullDocument); 
+      printNetworkObj("--> NN CHANGE | " +  change.operationType, nn);
+    }
+    else {
+      console.log(chalkAlert("--> NN CHANGE\n" + Object.keys(change)));
+    }
+
 
   });
 

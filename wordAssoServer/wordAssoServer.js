@@ -5000,9 +5000,23 @@ function initTransmitNodeQueueInterval(interval){
 
               followable = userFollowable(n);
 
-              if (configuration.verbose) { console.log(chalkAlert("FOLLWABLE | " + n.nodeId + " | @" + n.screenName)); }
+              if (configuration.verbose) { 
+                console.log(chalkAlert("FOLLWABLE: " + followable
+                  + " | " + n.nodeId
+                  + " | @" + n.screenName
+               ));
+             }
 
               getCurrentThreeceeUser(function(currentThreeceeUser){
+
+                if (configuration.verbose) { 
+                  console.log(chalkAlert("getCurrentThreeceeUser: " + currentThreeceeUser));
+                  if (threeceeTwitter[currentThreeceeUser] !== undefined) {
+                    console.log(chalkAlert("threeceeTwitter[currentThreeceeUser].ready: " + threeceeTwitter[currentThreeceeUser].ready));
+                  }
+                  console.log(chalkAlert("twitUserShowReady: " + twitUserShowReady));
+                  console.log(chalkAlert("followable: " + followable));
+                }
 
                 if (currentThreeceeUser
                   && (threeceeTwitter[currentThreeceeUser] !== undefined) 

@@ -985,9 +985,6 @@ wordAssoDb.connect(dbAppName, function(err, db) {
   dbConnectionReady = true;
   statsObj.dbConnectionReady = true;
 
-
-
-
   const userCollection = db.collection("users");
 
   userCollection.countDocuments(function(err, count){
@@ -1004,19 +1001,17 @@ wordAssoDb.connect(dbAppName, function(err, db) {
 
   const userChangeStream = userCollection.watch([filterUser], optionsUser);
 
+  userChangeStream.on("error", function(err){
+    console.log(chalkAlert("USERS CHANGE STREAM ERROR: " + err));
+  });
+
   userChangeStream.on("change", function(change){
-
     if (change && change.fullDocument) { 
-
       const user = change.fullDocument; 
-
       printUserObj("--> USER CHANGE | " +  change.operationType, user);
-
     }
     else {
-
       console.log(chalkAlert("--> USER CHANGE | " +  change.operationType));
-
     }
   });
 

@@ -5051,7 +5051,7 @@ function initTransmitNodeQueueInterval(interval){
                         threeceeTwitter[currentThreeceeUser].twitterRateLimitExceptionFlag = true;
                         threeceeTwitter[currentThreeceeUser].twitterRateLimitResetAt = moment(moment().valueOf() + 60000);
 
-                        checkTwitterRateLimit({user: currentThreeceeUser});
+                        // checkTwitterRateLimit({user: currentThreeceeUser});
 
                         delete n._id;
                         viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));

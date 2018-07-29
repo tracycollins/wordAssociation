@@ -4878,7 +4878,7 @@ function getCurrentThreeceeUser(callback){
   debug(chalkTwitter("getCurrentThreeceeUser 3C USERS\s" + jsonPrint(threeceeTwitter)));
 
   if (!statsObj.threeceeUsersConfiguredFlag) {
-    debug(chalkAlert("*** THREECEE_USERS NOT CONFIGURED"));
+    if (configuration.verbose ){ console.log(chalkAlert("*** THREECEE_USERS NOT CONFIGURED")); }
     return callback(false);
   }
 
@@ -7523,6 +7523,7 @@ initialize(function initializeComplete(err) {
     initFollowableSearchTermSet();
     initSaveFileQueue(configuration);
     initIgnoreWordsHashMap();
+    initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
 
     initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval);
 

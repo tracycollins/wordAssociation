@@ -4766,6 +4766,7 @@ function checkTwitterRateLimit(params, callback){
       ));
 
       threeceeTwitter[params.user].error = err;
+      threeceeTwitter[params.user].ready = false;
 
       if (callback !== undefined) { callback(err, null); }
     }

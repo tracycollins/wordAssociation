@@ -77,12 +77,15 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
 
   tweetServerController.on("ready", function(err){
     tweetServerControllerReady = true;
-    console.log(chalkError("*** HSC ERROR | " + err));
+    console.log(chalk.green("TWP | TSC READY"));
+
+    if (cnf.networkObj) { tweetServerController.loadNeuralNetwork({networkObj: cnf.networkObj}, function(){}); }
+
   });
 
   tweetServerController.on("error", function(err){
     tweetServerControllerReady = false;
-    console.log(chalkError("*** HSC ERROR | " + err));
+    console.log(chalkError("*** TSC ERROR | " + err));
   });
 });
 
@@ -403,7 +406,6 @@ process.on("message", function(m) {
       cnf.networkObj = {};
       cnf.networkObj = m.networkObj;
 
-      tweetServerController.loadNeuralNetwork({networkObj: cnf.networkObj}, function(){});
 
       cnf.inputArrays = {};
 
@@ -420,7 +422,13 @@ process.on("message", function(m) {
         cb();
 
       }, function(){
-        networkReady = true;
+        if (tweetServerController === undefined) {
+          console.log(chalkAlert("TWP | *** TWEET SERVER CONTROLLER UNDEFINED ??? ON NETWORK OP"));
+          return;
+        }
+        tweetServerController.loadNeuralNetwork({networkObj: cnf.networkObj}, function(){
+          networkReady = true;
+        });
       });
     break;
 

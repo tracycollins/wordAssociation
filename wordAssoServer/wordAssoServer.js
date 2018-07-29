@@ -985,35 +985,35 @@ wordAssoDb.connect(dbAppName, function(err, db) {
   dbConnectionReady = true;
   statsObj.dbConnectionReady = true;
 
-  const userCollection = db.collection("users");
+  // const userCollection = db.collection("users");
 
-  userCollection.countDocuments(function(err, count){
-    if (err) { throw Error; }
-    console.log(chalkAlert("USERS IN DB: " + count));
-  });
+  // userCollection.countDocuments(function(err, count){
+  //   if (err) { throw Error; }
+  //   console.log(chalkAlert("USERS IN DB: " + count));
+  // });
 
-  const filterUser = {
-    $match: {
-      $or: [{ operationType: "insert" },{ operationType: "delete" },{ operationType: "update" },{ operationType: "replace" }]
-    }
-  };
-  const optionsUser = { fullDocument: "updateLookup" };
+  // const filterUser = {
+  //   $match: {
+  //     $or: [{ operationType: "insert" },{ operationType: "delete" },{ operationType: "update" },{ operationType: "replace" }]
+  //   }
+  // };
+  // const optionsUser = { fullDocument: "updateLookup" };
 
-  const userChangeStream = userCollection.watch([filterUser], optionsUser);
+  // const userChangeStream = userCollection.watch([filterUser], optionsUser);
 
-  userChangeStream.on("error", function(err){
-    console.log(chalkAlert("USERS CHANGE STREAM ERROR: " + err));
-  });
+  // userChangeStream.on("error", function(err){
+  //   console.log(chalkAlert("USERS CHANGE STREAM ERROR: " + err));
+  // });
 
-  userChangeStream.on("change", function(change){
-    if (change && change.fullDocument) { 
-      const user = change.fullDocument; 
-      printUserObj("--> USER CHANGE | " +  change.operationType, user);
-    }
-    else {
-      console.log(chalkAlert("--> USER CHANGE | " +  change.operationType));
-    }
-  });
+  // userChangeStream.on("change", function(change){
+  //   if (change && change.fullDocument) { 
+  //     const user = change.fullDocument; 
+  //     printUserObj("--> USER CHANGE | " +  change.operationType, user);
+  //   }
+  //   else {
+  //     console.log(chalkAlert("--> USER CHANGE | " +  change.operationType));
+  //   }
+  // });
 
 
   const neuralNetworkCollection = db.collection("neuralnetworks");

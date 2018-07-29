@@ -12,6 +12,7 @@
       "NODE_ENV": "development",
       "THREECEE_USERS": ["ninjathreecee", "threeceeinfo"],
       "CATEGORY_HASHMAPS_UPDATE_INTERVAL": 60000,
+      "CHECK_TWITTER_RATE_LIMIT_INTERVAL": 60000,
       "HEAPDUMP_ENABLED": false,
       "HEAPDUMP_MODULO": 10,
       "HEAPDUMP_THRESHOLD": 800,

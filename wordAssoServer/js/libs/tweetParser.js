@@ -73,7 +73,7 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
 
   TweetServerController = require("@threeceelabs/tweet-server-controller");
   tweetServerController = new TweetServerController("TWP");
-  tweetServerControllerReady = true;
+  // tweetServerControllerReady = true;
 
   tweetServerController.on("ready", function(err){
     tweetServerControllerReady = true;

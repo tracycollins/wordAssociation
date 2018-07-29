@@ -159,6 +159,7 @@ const Slack = require("slack-node");
 let slack = false;
 
 const chalk = require("chalk");
+const chalkNetwork = chalk.red;
 const chalkTwitter = chalk.blue;
 const chalkConnect = chalk.black;
 const chalkSession = chalk.black;
@@ -841,6 +842,35 @@ let dropboxClient = dropboxRemoteClient;
 const configFolder = "/config/utility/" + hostname;
 const deletedMetricsFile = "deletedMetrics.json";
 
+const networkDefaults = function (networkObj){
+
+  if (networkObj.betterChild === undefined) { networkObj.betterChild = false; }
+  if (networkObj.testCycles === undefined) { networkObj.testCycles = 0; }
+  if (networkObj.testCycleHistory === undefined) { networkObj.testCycleHistory = []; }
+  if (networkObj.overallMatchRate === undefined) { networkObj.overallMatchRate = 0; }
+  if (networkObj.matchRate === undefined) { networkObj.matchRate = 0; }
+  if (networkObj.successRate === undefined) { networkObj.successRate = 0; }
+
+  return networkObj;
+};
+
+function printNetworkObj(title, networkObj) {
+
+  networkObj = networkDefaults(networkObj);
+
+  console.log(chalkNetwork(title
+    + " | OAMR: " + networkObj.overallMatchRate.toFixed(2) + "%"
+    + " | MR: " + networkObj.matchRate.toFixed(2) + "%"
+    + " | SR: " + networkObj.successRate.toFixed(2) + "%"
+    + " | CR: " + getTimeStamp(networkObj.createdAt)
+    + " | TC:  " + networkObj.testCycles
+    + " | TCH: " + networkObj.testCycleHistory.length
+    + " | INPUTS: " + networkObj.numInputs
+    + " | IN ID:  " + networkObj.inputsId
+    + " | " + networkObj.networkId
+  ));
+}
+
 const neuralNetworkModel = require("@threeceelabs/mongoose-twitter/models/neuralNetwork.server.model");
 const emojiModel = require("@threeceelabs/mongoose-twitter/models/emoji.server.model");
 const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
@@ -929,6 +959,25 @@ wordAssoDb.connect(dbAppName, function(err, db) {
 
   dbConnectionReady = true;
   statsObj.dbConnectionReady = true;
+
+  const neuralNetworkCollection = db.collection("neuralnetworks");
+
+  neuralNetworkCollection.countDocuments(function(err, count){
+    if (err) { throw Error; }
+    console.log(chalkAlert("NN COUNT: " + count));
+  });
+
+  const neuralNetworkChangeStream = neuralNetworkCollection.watch();
+
+  neuralNetworkChangeStream.on("change", function(change){
+
+    const nn = networkDefaults(change.fullDocument);
+
+    printNetworkObj("--> NN CHANGE | " +  change.operationType, nn);
+
+  });
+
+
   configEvents.emit("DB_CONNECT");
 });
 
@@ -2987,6 +3036,7 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
     wordServerControllerReady = false;
     console.log(chalkError("*** WSC ERROR | " + err));
   });
+
 
   initCategoryHashmapsReady = false;
 

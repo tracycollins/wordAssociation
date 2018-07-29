@@ -4087,6 +4087,9 @@ function initSocketHandler(socketObj) {
         console.log(chalkError("TWITTER_UNFOLLOW ERROR: " + err));
         return;
       }
+      else if (!updatedUser) { // already unfollowed
+        return;
+      }
 
       adminNameSpace.emit("UNFOLLOW", updatedUser);
       utilNameSpace.emit("UNFOLLOW", updatedUser);

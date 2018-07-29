@@ -207,8 +207,8 @@ configuration.DROPBOX = {};
 configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN ;
 configuration.DROPBOX.DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY ;
 configuration.DROPBOX.DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
-configuration.DROPBOX.DROPBOX_WA_CONFIG_FILE = process.env.DROPBOX_WA_CONFIG_FILE || "wordAssoServerConfig.json";
-configuration.DROPBOX.DROPBOX_WA_STATS_FILE = process.env.DROPBOX_WA_STATS_FILE || "wordAssoServerStats.json";
+configuration.DROPBOX.DROPBOX_WA_CONFIG_FILE = process.env.DROPBOX_CONFIG_FILE || "wordAssoServerConfig.json";
+configuration.DROPBOX.DROPBOX_WA_STATS_FILE = process.env.DROPBOX_STATS_FILE || "wordAssoServerStats.json";
 
 configuration.categoryHashmapsUpdateInterval = DEFAULT_CATEGORY_HASHMAPS_UPDATE_INTERVAL;
 configuration.testInternetConnectionUrl = DEFAULT_TEST_INTERNET_CONNECTION_URL;
@@ -2003,23 +2003,15 @@ function loadConfigFile(params, callback) {
               configuration.enableStdin = loadedConfigObj.WAS_ENABLE_STDIN;
             }
 
-            if (loadedConfigObj.WAS_PROCESS_NAME !== undefined){
-              console.log("WA | LOADED WAS_PROCESS_NAME: " + loadedConfigObj.WAS_PROCESS_NAME);
-              configuration.processName = loadedConfigObj.WAS_PROCESS_NAME;
+            if (loadedConfigObj.PROCESS_NAME !== undefined){
+              console.log("WA | LOADED PROCESS_NAME: " + loadedConfigObj.PROCESS_NAME);
+              configuration.processName = loadedConfigObj.PROCESS_NAME;
             }
 
             if (loadedConfigObj.THREECEE_USERS !== undefined){
               console.log("WA | LOADED THREECEE_USERS: " + loadedConfigObj.THREECEE_USERS);
               configuration.threeceeUsers = loadedConfigObj.THREECEE_USERS;
-
-              // if (!statsObj.threeceeUsersConfiguredFlag 
-              //   || (configuration.threeceeUsers !== previousConfiguration.threeceeUsers)) {
-              //   initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
-              // }
             }
-            // else if (!statsObj.threeceeUsersConfiguredFlag) {
-            //     initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
-            // }
 
             if (loadedConfigObj.CURSOR_BATCH_SIZE !== undefined){
               console.log("WA | LOADED CURSOR_BATCH_SIZE: " + loadedConfigObj.CURSOR_BATCH_SIZE);
@@ -2096,9 +2088,9 @@ function loadConfigFile(params, callback) {
               configuration.categoryHashmapsUpdateInterval = loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL;
             }
 
-            if (loadedConfigObj.WAS_STATS_UPDATE_INTERVAL !== undefined){
-              console.log("WA | LOADED WAS_STATS_UPDATE_INTERVAL: " + loadedConfigObj.WAS_STATS_UPDATE_INTERVAL);
-              configuration.statsUpdateInterval = loadedConfigObj.WAS_STATS_UPDATE_INTERVAL;
+            if (loadedConfigObj.STATS_UPDATE_INTERVAL !== undefined){
+              console.log("WA | LOADED STATS_UPDATE_INTERVAL: " + loadedConfigObj.STATS_UPDATE_INTERVAL);
+              configuration.statsUpdateInterval = loadedConfigObj.STATS_UPDATE_INTERVAL;
             }
 
             if (loadedConfigObj.RATE_QUEUE_INTERVAL !== undefined){
@@ -2126,9 +2118,9 @@ function loadConfigFile(params, callback) {
               configuration.updateTrendsInterval = loadedConfigObj.UPDATE_TRENDS_INTERVAL;
             }
 
-            if (loadedConfigObj.WAS_KEEPALIVE_INTERVAL !== undefined){
-              console.log("WA | LOADED WAS_KEEPALIVE_INTERVAL: " + loadedConfigObj.WAS_KEEPALIVE_INTERVAL);
-              configuration.keepaliveInterval = loadedConfigObj.WAS_KEEPALIVE_INTERVAL;
+            if (loadedConfigObj.KEEPALIVE_INTERVAL !== undefined){
+              console.log("WA | LOADED KEEPALIVE_INTERVAL: " + loadedConfigObj.KEEPALIVE_INTERVAL);
+              configuration.keepaliveInterval = loadedConfigObj.KEEPALIVE_INTERVAL;
             }
 
             if (loadedConfigObj.CHECK_RATE_LIMIT_INTERVAL !== undefined){
@@ -6809,10 +6801,10 @@ function initialize(callback){
     console.log("\nWA | %%%%%%%%%%%%%%\nWA |  DEBUG ENABLED \nWA | %%%%%%%%%%%%%%\n");
   }
 
-  configuration.processName = process.env.WA_PROCESS_NAME || "node_wordAssoServer";
-  configuration.verbose = (process.env.VERBOSE === "true" || process.env.VERBOSE === true) || false ;
-  configuration.quitOnError = process.env.WA_QUIT_ON_ERROR || false ;
-  configuration.enableStdin = process.env.WA_ENABLE_STDIN || true ;
+  configuration.processName = process.env.PROCESS_NAME || "node_wordAssoServer";
+  configuration.verbose = process.env.VERBOSE || false ;
+  configuration.quitOnError = process.env.QUIT_ON_ERROR || false ;
+  configuration.enableStdin = process.env.ENABLE_STDIN || true ;
 
   initConfigInterval(DEFAULT_CONFIG_INIT_INTERVAL);
 

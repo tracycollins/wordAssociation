@@ -5001,10 +5001,7 @@ function initTransmitNodeQueueInterval(interval){
               followable = userFollowable(n);
 
               if (configuration.verbose) { 
-                console.log(chalkAlert("FOLLWABLE: " + followable
-                  + " | " + n.nodeId
-                  + " | @" + n.screenName
-               ));
+                printUserObj("FOLLWABLE: " + followable, n);
              }
 
               getCurrentThreeceeUser(function(currentThreeceeUser){
@@ -5030,7 +5027,7 @@ function initTransmitNodeQueueInterval(interval){
 
                     twitUserShowReady = false;
 
-                    if (configuration.verbose) { console.log(chalkAlert("RAW USER\n" + jsonPrint(rawUser))); }
+                    if (configuration.verbose) { debug(chalkAlert("RAW USER\n" + jsonPrint(rawUser))); }
 
                     if (err){
 

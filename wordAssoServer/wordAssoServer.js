@@ -4972,7 +4972,7 @@ function initTransmitNodeQueueInterval(interval){
         if (!nodeObj.categoryAuto || (nodeObj.categoryAuto === undefined)) { nodeObj.categoryAuto = false; }
 
         if (configuration.verbose) {
-          console.log(chalkInfo("TX NODE DE-Q"
+          debug(chalkInfo("TX NODE DE-Q"
             + " | NID: " + nodeObj.nodeId
             + " | " + nodeObj.nodeType
             + " | CAT: " + nodeObj.category

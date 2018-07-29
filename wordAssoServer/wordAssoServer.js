@@ -5008,6 +5008,8 @@ function initTransmitNodeQueueInterval(interval){
 
               followable = userFollowable(n);
 
+              if (configuration.verbose) { console.log(chalkAlert("FOLLWABLE | " + n.nodeId + " | @" + n.screenName)); }
+
               getCurrentThreeceeUser(function(currentThreeceeUser){
 
                 if (currentThreeceeUser
@@ -5019,6 +5021,10 @@ function initTransmitNodeQueueInterval(interval){
                   threeceeTwitter[currentThreeceeUser].twit.get("users/show", 
                     {user_id: n.nodeId, include_entities: true}, 
                     function usersShow (err, rawUser, response){
+
+                    twitUserShowReady = false;
+
+                    if (configuration.verbose) { console.log(chalkAlert("RAW USER\n" + jsonPrint(rawUser))); }
 
                     if (err){
 
@@ -5049,8 +5055,8 @@ function initTransmitNodeQueueInterval(interval){
 
                       }
 
+                      twitUserShowReady = true;
                       transmitNodeQueueReady = true;
-
                     }
 
                     else if (rawUser && (rawUser.followers_count >= configuration.minFollowersAuto)) {
@@ -5110,6 +5116,7 @@ function initTransmitNodeQueueInterval(interval){
 
                         }
 
+                        twitUserShowReady = true;
                         transmitNodeQueueReady = true;
                       });
                     }
@@ -5117,6 +5124,7 @@ function initTransmitNodeQueueInterval(interval){
                       delete n._id;
                       viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
 
+                      twitUserShowReady = true;
                       transmitNodeQueueReady = true;
                     }
                   });

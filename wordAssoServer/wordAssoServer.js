@@ -5060,26 +5060,12 @@ function initTransmitNodeQueueInterval(interval){
                           + " | @" + currentThreeceeUser 
                         ));
 
-                        threeceeTwitter[currentThreeceeUser].ready = false;
+                        // threeceeTwitter[currentThreeceeUser].ready = false;
+                        // threeceeTwitter[currentThreeceeUser].twitterRateLimitException = moment();
+                        // threeceeTwitter[currentThreeceeUser].twitterRateLimitExceptionFlag = true;
 
-                        threeceeTwitter[currentThreeceeUser].twitterRateLimitException = moment();
-                        threeceeTwitter[currentThreeceeUser].twitterRateLimitExceptionFlag = true;
+                        checkTwitterRateLimit({user: currentThreeceeUser});
 
-                        threeceeTwitter[currentThreeceeUser].twitterRateLimit = rawUser.resources.users["/users/show/:id"].limit;
-                        threeceeTwitter[currentThreeceeUser].twitterRateLimitRemaining = rawUser.resources.users["/users/show/:id"].remaining;
-                        threeceeTwitter[currentThreeceeUser].twitterRateLimitResetAt = moment.unix(rawUser.resources.users["/users/show/:id"].reset);
-                        threeceeTwitter[currentThreeceeUser].twitterRateLimitRemainingTime = threeceeTwitter[currentThreeceeUser].twitterRateLimitResetAt.diff(moment());
-
-                        console.log(chalkAlert("XXX TWITTER RATE LIMIT"
-                          + " | @" + currentThreeceeUser
-                          + " | CONTEXT: " + rawUser.rate_limit_context.access_token
-                          + " | LIM: " + threeceeTwitter[currentThreeceeUser].twitterRateLimit
-                          + " | REM: " + threeceeTwitter[currentThreeceeUser].twitterRateLimitRemaining
-                          + " | EXP: " + threeceeTwitter[currentThreeceeUser].twitterRateLimitException.format(compactDateTimeFormat)
-                          + " | RST: " + threeceeTwitter[currentThreeceeUser].twitterRateLimitResetAt.format(compactDateTimeFormat)
-                          + " | NOW: " + moment().format(compactDateTimeFormat)
-                          + " | IN " + msToTime(threeceeTwitter[currentThreeceeUser].twitterRateLimitRemainingTime)
-                        ));
 
                         delete n._id;
                         viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));

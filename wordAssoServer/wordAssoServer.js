@@ -367,8 +367,6 @@ let followableSearchTermString = "";
 
 let followableRegEx;
 
-let dropboxConfigTwitterFolder = "/config/twitter";
-
 let twitterAutoFollowConfigFile = DEFAULT_TWITTER_THREECEE_FOLLOW_FILE;
 
 const DEFAULT_BEST_NETWORK_FOLDER = "/config/utility/best/neuralNetworks";
@@ -5392,7 +5390,7 @@ function initAppRouting(callback) {
                 utilNameSpace.emit("DROPBOX_CHANGE", response);
 
                 if (configuration.verbose) {
-                  console.log(challkWarn(">>> DROPBOX CHANGE"
+                  console.log(chalkWarn(">>> DROPBOX CHANGE"
                     + " | " + getTimeStamp()
                     + " | FOLDER: " + folder
                   ));

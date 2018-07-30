@@ -5053,13 +5053,6 @@ function initTransmitNodeQueueInterval(interval){
 
                     if (err){
 
-                      console.log(chalkError("*** TWITTER SHOW USER ERROR"
-                        + " | @" + currentThreeceeUser 
-                        + " | " + getTimeStamp() 
-                        + " | ERR CODE: " + err.code
-                        + " | " + err.message
-                      ));
-
                       if (err.code === 88){
 
                         console.log(chalkAlert("*** TWITTER SHOW USER ERROR | RATE LIMIT EXCEEDED" 
@@ -5071,13 +5064,34 @@ function initTransmitNodeQueueInterval(interval){
 
                         threeceeTwitter[currentThreeceeUser].twitterRateLimitException = moment();
                         threeceeTwitter[currentThreeceeUser].twitterRateLimitExceptionFlag = true;
-                        threeceeTwitter[currentThreeceeUser].twitterRateLimitResetAt = moment(moment().valueOf() + 60000);
 
-                        // checkTwitterRateLimit({user: currentThreeceeUser});
+                        threeceeTwitter[currentThreeceeUser].twitterRateLimit = rawUser.resources.users["/users/show/:id"].limit;
+                        threeceeTwitter[currentThreeceeUser].twitterRateLimitRemaining = rawUser.resources.users["/users/show/:id"].remaining;
+                        threeceeTwitter[currentThreeceeUser].twitterRateLimitResetAt = moment.unix(rawUser.resources.users["/users/show/:id"].reset);
+                        threeceeTwitter[currentThreeceeUser].twitterRateLimitRemainingTime = threeceeTwitter[currentThreeceeUser].twitterRateLimitResetAt.diff(moment());
+
+                        console.log(chalkAlert("XXX TWITTER RATE LIMIT"
+                          + " | @" + currentThreeceeUser
+                          + " | CONTEXT: " + rawUser.rate_limit_context.access_token
+                          + " | LIM: " + threeceeTwitter[currentThreeceeUser].twitterRateLimit
+                          + " | REM: " + threeceeTwitter[currentThreeceeUser].twitterRateLimitRemaining
+                          + " | EXP: " + threeceeTwitter[currentThreeceeUser].twitterRateLimitException.format(compactDateTimeFormat)
+                          + " | RST: " + threeceeTwitter[currentThreeceeUser].twitterRateLimitResetAt.format(compactDateTimeFormat)
+                          + " | NOW: " + moment().format(compactDateTimeFormat)
+                          + " | IN " + msToTime(threeceeTwitter[currentThreeceeUser].twitterRateLimitRemainingTime)
+                        ));
 
                         delete n._id;
                         viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
 
+                      }
+                      else {
+                        console.log(chalkError("*** TWITTER SHOW USER ERROR"
+                          + " | @" + currentThreeceeUser 
+                          + " | " + getTimeStamp() 
+                          + " | ERR CODE: " + err.code
+                          + " | " + err.message
+                        ));
                       }
 
                       twitUserShowReady = true;

@@ -747,8 +747,11 @@ const DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKE
 const DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY;
 const DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
 
-let dropboxConfigFolder = "/config/utility";
 let dropboxConfigSearchTermsFolder = "/config/searchTerms";
+
+let dropboxConfigTwitterFolder = "/config/twitter";
+
+let dropboxConfigFolder = "/config/utility";
 let dropboxConfigDefaultFolder = "/config/utility/default";
 let dropboxConfigHostFolder = "/config/utility/" + hostname;
 
@@ -764,7 +767,12 @@ let categorizedHashtagsFile = "categorizedHashtags.json";
 let statsFolder = "/stats/" + hostname;
 let statsFile = "wordAssoServerStats_" + moment().format(tinyDateTimeFormat) + ".json";
 
-configuration.dropboxChangeFolderArray = [ bestNetworkFolder, dropboxConfigDefaultFolder, dropboxConfigHostFolder ];
+configuration.dropboxChangeFolderArray = [ 
+  bestNetworkFolder, 
+  dropboxConfigDefaultFolder, 
+  dropboxConfigHostFolder, 
+  dropboxConfigTwitterFolder
+];
 
 console.log("DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN);
 console.log("DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY);

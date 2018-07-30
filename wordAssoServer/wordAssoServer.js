@@ -169,6 +169,7 @@ const chalkDisconnect = chalk.black;
 const chalkSocket = chalk.black;
 const chalkInfo = chalk.black;
 const chalkAlert = chalk.red;
+const chalkWarn = chalk.bold.yellow;
 const chalkError = chalk.bold.red;
 const chalkLog = chalk.gray;
 const chalkBlue = chalk.blue;
@@ -747,6 +748,7 @@ const DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY;
 const DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
 
 let dropboxConfigFolder = "/config/utility";
+let dropboxConfigSearchTermsFolder = "/config/searchTerms";
 let dropboxConfigDefaultFolder = "/config/utility/default";
 let dropboxConfigHostFolder = "/config/utility/" + hostname;
 
@@ -761,6 +763,8 @@ let categorizedHashtagsFile = "categorizedHashtags.json";
 
 let statsFolder = "/stats/" + hostname;
 let statsFile = "wordAssoServerStats_" + moment().format(tinyDateTimeFormat) + ".json";
+
+configuration.dropboxChangeFolderArray = [ bestNetworkFolder, dropboxConfigDefaultFolder, dropboxConfigHostFolder ];
 
 console.log("DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN);
 console.log("DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY);
@@ -5355,7 +5359,7 @@ function initAppRouting(callback) {
 
       res.send(req.query.challenge);
 
-      let dropboxCursorFolderArray = [ bestNetworkFolder, dropboxConfigDefaultFolder, dropboxConfigHostFolder ];
+      let dropboxCursorFolderArray = configuration.dropboxChangeFolderArray;
 
       if (dropboxFolderGetLastestCursorReady) {
 
@@ -5380,7 +5384,7 @@ function initAppRouting(callback) {
                 utilNameSpace.emit("DROPBOX_CHANGE", response);
 
                 if (configuration.verbose) {
-                  console.log(chalkLog(">>> DROPBOX CHANGE"
+                  console.log(challkWarn(">>> DROPBOX CHANGE"
                     + " | " + getTimeStamp()
                     + " | FOLDER: " + folder
                   ));
@@ -5388,7 +5392,7 @@ function initAppRouting(callback) {
 
                 response.entries.forEach(function(entry){
 
-                  console.log(chalkInfo(">>> DROPBOX CHANGE"
+                  console.log(chalkBlue(">>> DROPBOX CHANGE"
                     // + " | TYPE: " + entry[".tag"]
                     + " | " + entry.path_lower
                     // + " | NAME: " + entry.name
@@ -7564,7 +7568,7 @@ initialize(function initializeComplete(err) {
 
     initStatsInterval(configuration.statsUpdateInterval);
     initCheckTwitterRateLimitInterval(configuration.checkTwitterRateLimitInterval);
-    initUpdateTrendsInterval(configuration.updateTrendsInterval);
+    // initUpdateTrendsInterval(configuration.updateTrendsInterval);
 
     slackPostMessage(slackChannel, "\n*INIT* | " + hostname + "\n");
 

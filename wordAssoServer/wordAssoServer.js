@@ -39,8 +39,8 @@ const DEFAULT_THREECEE_USERS = ["ninjathreecee", "threeceeinfo"];
 const DEFAULT_SORTER_CHILD_ID = "wa_node_sorter";
 const DEFAULT_TWEET_PARSER_CHILD_ID = "wa_node_tweetParser";
 
-const DEFAULT_TWITTER_THREECEE_FOLLOW = "altthreecee02";
-const DEFAULT_TWITTER_THREECEE_FOLLOW_FILE = DEFAULT_TWITTER_THREECEE_FOLLOW + ".json";
+const DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER = "altthreecee00";
+const DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER_FILE = DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER + ".json";
 
 const DEFAULT_TWITTER_CONFIG_THREECEE = "threeceeinfo";
 const DEFAULT_TWITTER_CONFIG_THREECEE_FILE = DEFAULT_TWITTER_CONFIG_THREECEE + ".json";
@@ -198,6 +198,9 @@ let configuration = {};
 
 configuration.verbose = false;
 configuration.maxQueue = DEFAULT_MAX_QUEUE;
+
+configuration.twitterThreeceeAutoFollowUser = DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER;
+
 configuration.dropboxListFolderLimit = DEFAULT_DROPBOX_LIST_FOLDER_LIMIT;
 
 configuration.tweetParserInterval = DEFAULT_TWEET_PARSER_INTERVAL;
@@ -366,8 +369,6 @@ followableSearchTermSet.add("livesmatter");
 let followableSearchTermString = "";
 
 let followableRegEx;
-
-let twitterAutoFollowConfigFile = DEFAULT_TWITTER_THREECEE_FOLLOW_FILE;
 
 const DEFAULT_BEST_NETWORK_FOLDER = "/config/utility/best/neuralNetworks";
 const bestNetworkFolder = DEFAULT_BEST_NETWORK_FOLDER;
@@ -2025,6 +2026,11 @@ function loadConfigFile(params, callback) {
               configuration.threeceeUsers = loadedConfigObj.THREECEE_USERS;
             }
 
+            if (loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW_USER !== undefined){
+              console.log("WA | LOADED TWITTER_THREECEE_AUTO_FOLLOW_USER: " + loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW_USER);
+              configuration.twitterThreeceeAutoFollowUser = loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW_USER;
+            }
+
             if (loadedConfigObj.CURSOR_BATCH_SIZE !== undefined){
               console.log("WA | LOADED CURSOR_BATCH_SIZE: " + loadedConfigObj.CURSOR_BATCH_SIZE);
               configuration.cursorBatchSize = loadedConfigObj.CURSOR_BATCH_SIZE;
@@ -3396,7 +3402,7 @@ function follow(params, callback) {
   let update = {};
   update["$set"] = { 
     following: true, 
-    threeceeFollowing: DEFAULT_TWITTER_THREECEE_FOLLOW
+    threeceeFollowing: configuration.twitterThreeceeAutoFollowUser
   };
 
   const options = {
@@ -5095,7 +5101,7 @@ function initTransmitNodeQueueInterval(interval){
                       n.bannerImageUrl = rawUser.profile_banner_url;
                       n.verified = rawUser.verified;
                       n.following = true;
-                      n.threeceeFollowing = DEFAULT_TWITTER_THREECEE_FOLLOW;
+                      n.threeceeFollowing = configuration.twitterThreeceeAutoFollowUser;
                       n.description = rawUser.description;
                       n.lastTweetId = (rawUser.status !== undefined) ? rawUser.status.id_str : null;
                       n.statusesCount = rawUser.statuses_count;
@@ -5125,7 +5131,7 @@ function initTransmitNodeQueueInterval(interval){
                           viewNameSpace.volatile.emit("node", updatedUser);
 
                           if (!unfollowableUserSet.has(updatedUser.nodeId)) { 
-                            autoFollowUser({ threeceeUser: DEFAULT_TWITTER_THREECEE_FOLLOW, user: updatedUser });
+                            autoFollowUser({ threeceeUser: configuration.twitterThreeceeAutoFollowUser, user: updatedUser });
                           }
                           else {
                             console.log(chalkAlert("... NO AUTO FOLLOW | IN UNFOLLOWABLE SET"

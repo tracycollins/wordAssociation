@@ -4063,6 +4063,11 @@ function initSocketHandler(socketObj) {
 
   socket.on("TWITTER_FOLLOW", function twitterFollow(user) {
 
+    if (!user || (user === undefined)) {
+      console.log(chalkError("TWITTER_FOLLOW ERROR: NULL USER"));
+      return;
+    }
+
     console.log(chalkSocket("R< TWITTER_FOLLOW"
       + " | " + getTimeStamp()
       + " | SID: " + socket.id
@@ -4074,6 +4079,11 @@ function initSocketHandler(socketObj) {
     follow({user: user}, function(err, updatedUser){
       if (err) {
         console.log(chalkError("TWITTER_FOLLOW ERROR: " + err));
+        return;
+      }
+
+      if (!updatedUser) {
+        console.log(chalkError("TWITTER_FOLLOW ERROR: NULL UPDATED USER"));
         return;
       }
 

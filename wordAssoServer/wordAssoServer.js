@@ -5060,9 +5060,9 @@ function initTransmitNodeQueueInterval(interval){
                           + " | @" + currentThreeceeUser 
                         ));
 
-                        // threeceeTwitter[currentThreeceeUser].ready = false;
-                        // threeceeTwitter[currentThreeceeUser].twitterRateLimitException = moment();
-                        // threeceeTwitter[currentThreeceeUser].twitterRateLimitExceptionFlag = true;
+                        threeceeTwitter[currentThreeceeUser].ready = false;
+                        threeceeTwitter[currentThreeceeUser].twitterRateLimitException = moment();
+                        threeceeTwitter[currentThreeceeUser].twitterRateLimitExceptionFlag = true;
 
                         checkTwitterRateLimit({user: currentThreeceeUser});
 

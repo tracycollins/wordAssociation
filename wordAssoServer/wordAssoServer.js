@@ -7424,6 +7424,13 @@ function twitterSearchNode(params, callback) {
 
         const uncategorizedUserId = uncategorizedManualUserArray.shift();
 
+        console.log(chalkSocket("TWITTER_SEARCH_NODE"
+          + "[ UC USER ARRAY: " + uncategorizedManualUserArray.length + "]"
+          + " | " + getTimeStamp()
+          + " | SEARCH UNCATEGORIZED USER"
+          + " | UID: " + uncategorizedUserId
+        ));
+
         searchQuery = {nodeId: uncategorizedUserId};
 
         twitterSearchUserNode(searchQuery, function(err, user){

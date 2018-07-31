@@ -3608,6 +3608,7 @@ function unfollow(params, callback) {
   if (params.user.nodeId !== undefined){
 
     unfollowableUserSet.add(params.user.nodeId);
+    uncategorizedManualUserSet.delete(params.user.nodeId);
 
     saveFileQueue.push({
       localFlag: false, 

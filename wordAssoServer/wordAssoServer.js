@@ -7296,7 +7296,7 @@ function twitterSearchNode(params, callback) {
 
       searchNodeUser = { screenName: searchNode.substring(1) };
 
-      if (searchNodeUser.screenName === "?") {
+      if (searchNode === "@?") {
 
         if (uncategorizedManualUserSet.size > 0) {
 
@@ -7623,7 +7623,7 @@ function twitterSearchNode(params, callback) {
       //   searchNodeUser = { lastSeen: previousUserUncategorizedLastSeen, following: true };
       // }
       
-      if (searchNodeUser.screenName === "?mm") {
+      else if (searchNodeUser.screenName === "?mm") {
         console.log(chalkInfo("SEARCH FOR MISMATCHED USER"));
         nodeSearchType = "USER_MISMATCHED";
         searchNodeUser = { nodeId: previousUserMismatchedId, following: true };

@@ -7402,7 +7402,7 @@ function twitterSearchNode(params, callback) {
           params.socket.emit("SET_TWITTER_HASHTAG", newHt);
         });
       }
-      callback(err);
+      callback(err, hashtag);
     });
   }
   else if (searchNode.startsWith("@")) {
@@ -7429,7 +7429,11 @@ function twitterSearchNode(params, callback) {
             params.socket.emit("SET_TWITTER_USER", user);
             uncategorizedManualUserSet.delete(user.nodeId);
           }
+          callback(err, user);
         });
+      }
+      else {
+        callback(null, null);
       }
     }      
     else if (searchNodeUser.screenName === "?mm") {
@@ -7450,15 +7454,24 @@ function twitterSearchNode(params, callback) {
         twitterSearchUserNode(searchQuery, function(err, user){
           if (user) {
             params.socket.emit("SET_TWITTER_USER", user);
-            // uncategorizedManualUserSet.delete(user.nodeId);
           }
+          callback(err, user);
         });
+      }
+      else {
+        callback(null, null);
       }
     }
     else {
-      console.log(chalkInfo("SEARCH FOR SPECIFIC USER"));
+      console.log(chalkInfo("SEARCH FOR SPECIFIC USER | " + jsonPrint(searchNodeUser)));
       nodeSearchType = "USER_SPECIFIC";
 
+      twitterSearchUserNode(searchNodeUser, function(err, user){
+        if (user) {
+          params.socket.emit("SET_TWITTER_USER", user);
+        }
+        callback(err, user);
+      });
 
     }
 

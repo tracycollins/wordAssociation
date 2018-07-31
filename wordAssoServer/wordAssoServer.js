@@ -7308,9 +7308,9 @@ function twitterSearchNode(params, callback) {
 
           uncategorizedManualUserArray = [...uncategorizedManualUserSet];
 
-          const uncategorizedUser = uncategorizedManualUserArray.shift();
+          const uncategorizedUserId = uncategorizedManualUserArray.shift();
 
-          User.findOne({nodeId: uncategorizedUserId.value}, function(err, user){
+          User.findOne({nodeId: uncategorizedUserId}, function(err, user){
 
             if (err) {
               console.log(chalkError("TWITTER_SEARCH_NODE USER ERROR\n" + jsonPrint(err)));

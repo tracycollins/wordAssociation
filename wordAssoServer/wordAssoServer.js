@@ -7253,13 +7253,13 @@ function twitterSearchNode(params, callback) {
 
         console.log(chalkSocket("TWITTER_SEARCH_NODE"
           + " | " + getTimeStamp()
-          + " | SEACH UNCATEGORIZED USER"
+          + " | SEARCH UNCATEGORIZED USER"
           + " | " + searchNode
         ));
 
         if (uncategorizedManualUserArray.size > 0) {
 
-          // uncategorizedManualUserArray = [...uncategorizedManualUserSet];
+          uncategorizedManualUserArray = _.shuffle([...uncategorizedManualUserSet]);
 
           const uncategorizedUserId = uncategorizedManualUserArray.shift();
 

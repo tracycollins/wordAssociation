@@ -7300,7 +7300,9 @@ function twitterSearchNode(params, callback) {
 
         if (uncategorizedManualUserSet.size > 0) {
 
-          const uncategorizedUserId = uncategorizedManualUserSet.entries().next();
+          uncategorizedManualUserArray = uncategorizedManualUserSet.entries();
+
+          const uncategorizedUserId = uncategorizedManualUserArray.shift();
 
           User.findOne({nodeId: uncategorizedUserId}, function(err, user){
 

@@ -1019,7 +1019,8 @@ wordAssoDb.connect(dbAppName, function(err, db) {
   statsObj.user.uncategorizedManual = 0;
   statsObj.user.uncategorizedAuto = 0;
   statsObj.user.mismatched = 0;
-
+  statsObj.user.uncategorizedManualUserArray = 0;
+  
   updateUserSets();
   initUpdateUserSetsInterval(ONE_MINUTE);
 
@@ -5053,6 +5054,7 @@ function updateUserSets(callback){
     uncategorizedManualUserArray = [...uncategorizedManualUserSet];
     mismatchUserArray = mismatchUserSet.keys();
 
+    statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
     statsObj.user.mismatched = mismatchUserSet.size;
 
     console.log(chalkBlue("END FOLLOWING CURSOR | FOLLOWING USER SET"));
@@ -5064,6 +5066,7 @@ function updateUserSets(callback){
     uncategorizedManualUserArray = [...uncategorizedManualUserSet];
     mismatchUserArray = mismatchUserSet.keys();
 
+    statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
     statsObj.user.mismatched = mismatchUserSet.size;
 
     console.error(chalkError("*** ERROR userFollowingCursor: " + err));
@@ -5075,6 +5078,7 @@ function updateUserSets(callback){
     uncategorizedManualUserArray = [...uncategorizedManualUserSet];
     mismatchUserArray = mismatchUserSet.keys();
 
+    statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
     statsObj.user.mismatched = mismatchUserSet.size;
 
     console.log(chalkBlue("CLOSE FOLLOWING CURSOR"));
@@ -6996,6 +7000,7 @@ function initUpdateUserSetsInterval(interval){
   updateUserSetsInterval = setInterval(function() {
 
     uncategorizedManualUserArray = [...uncategorizedManualUserSet];
+    statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
 
     if (updateUserSetsIntervalReady && (uncategorizedManualUserArray.length < 10)) {
 
@@ -7446,6 +7451,7 @@ function twitterSearchNode(params, callback) {
     if (searchNodeUser.screenName === "?") {
 
       uncategorizedManualUserArray = [...uncategorizedManualUserSet];
+      statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
 
       console.log(chalkSocket("TWITTER_SEARCH_NODE"
         + "[ UC USER ARRAY: " + uncategorizedManualUserArray.length + "]"
@@ -7457,6 +7463,7 @@ function twitterSearchNode(params, callback) {
       if (uncategorizedManualUserArray.length > 0) {
 
         const uncategorizedUserId = uncategorizedManualUserArray.shift();
+        statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
 
         console.log(chalkSocket("TWITTER_SEARCH_NODE"
           + "[ UC USER ARRAY: " + uncategorizedManualUserArray.length + "]"

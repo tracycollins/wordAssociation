@@ -160,8 +160,8 @@ const Slack = require("slack-node");
 let slack = false;
 
 const chalk = require("chalk");
-const chalkUser = chalk.red;
-const chalkNetwork = chalk.red;
+const chalkUser = chalk.black;
+const chalkNetwork = chalk.black;
 const chalkTwitter = chalk.blue;
 const chalkConnect = chalk.black;
 const chalkSession = chalk.black;
@@ -929,6 +929,16 @@ let Url;
 let User;
 let Word;
 
+let uncategorizedManualUserSet = new Set();
+let uncategorizedAutoUserSet = new Set();
+
+let uncategorizedManualUserArray = [];
+let uncategorizedAutoUserArray = [];
+
+let mismatchUserSet = new Set();
+let mismatchUserArray = [];
+
+
 const mongoose = require("mongoose");
 mongoose.Promise = global.Promise;
 
@@ -998,35 +1008,184 @@ wordAssoDb.connect(dbAppName, function(err, db) {
   dbConnectionReady = true;
   statsObj.dbConnectionReady = true;
 
-  // const userCollection = db.collection("users");
+  statsObj.user = {};
+  statsObj.user.total = 0;
+  statsObj.user.following = 0;
+  statsObj.user.notFollowing = 0;
+  statsObj.user.categorizedTotal = 0;
+  statsObj.user.categorizedManual = 0;
+  statsObj.user.categorizedAuto = 0;
+  statsObj.user.uncategorizedTotal = 0;
+  statsObj.user.uncategorizedManual = 0;
+  statsObj.user.uncategorizedAuto = 0;
+  statsObj.user.mismatched = 0;
 
-  // userCollection.countDocuments(function(err, count){
-  //   if (err) { throw Error; }
-  //   console.log(chalkAlert("USERS IN DB: " + count));
-  // });
+  const userCollection = db.collection("users");
 
-  // const filterUser = {
-  //   $match: {
-  //     $or: [{ operationType: "insert" },{ operationType: "delete" },{ operationType: "update" },{ operationType: "replace" }]
-  //   }
+  userCollection.countDocuments(function(err, count){
+    if (err) { throw Error; }
+    statsObj.user.total = count;
+    console.log(chalkAlert("GRAND TOTAL USERS IN DB: " + statsObj.user.total));
+  });
+
+  userCollection.countDocuments({"following": true}, function(err, count){
+    if (err) { throw Error; }
+    statsObj.user.following = count;
+    console.log(chalkAlert("TOTAL FOLLOWING USERS IN DB: " + statsObj.user.following));
+  });
+
+  userCollection.countDocuments({"following": false}, function(err, count){
+    if (err) { throw Error; }
+    statsObj.user.notFollowing = count;
+    console.log(chalkAlert("TOTAL NOT FOLLOWING USERS IN DB: " + statsObj.user.notFollowing));
+  });
+
+  userCollection.countDocuments({category: { "$nin": [ false, "false", null ] }}, function(err, count){
+    if (err) { throw Error; }
+    statsObj.user.categorizedManual = count;
+    console.log(chalkAlert("TOTAL CATEGORIZED MANAUL USERS IN DB: " + statsObj.user.categorizedManual));
+  });
+
+  userCollection.countDocuments({category: { "$in": [ false, "false", null ] }}, function(err, count){
+    if (err) { throw Error; }
+    statsObj.user.uncategorizedManual = count;
+    console.log(chalkAlert("TOTAL UNCATEGORIZED MANAUL USERS IN DB: " + statsObj.user.uncategorizedManual));
+  });
+
+  userCollection.countDocuments({categoryAuto: { "$nin": [ false, "false", null ] }}, function(err, count){
+    if (err) { throw Error; }
+    statsObj.user.categorizedAuto = count;
+    console.log(chalkAlert("TOTAL CATEGORIZED AUTO USERS IN DB: " + statsObj.user.categorizedAuto));
+  });
+
+  userCollection.countDocuments({categoryAuto: { "$in": [ false, "false", null ] }}, function(err, count){
+    if (err) { throw Error; }
+    statsObj.user.uncategorizedAuto = count;
+    console.log(chalkAlert("TOTAL UNCATEGORIZED AUTO USERS IN DB: " + statsObj.user.uncategorizedAuto));
+  });
+
+  const followingSearchQuery = {following: true};
+
+  const userFollowingCursor = User.find(followingSearchQuery).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
+
+  userFollowingCursor.on("data", function(user) {
+
+    if (!user.category) { 
+
+      uncategorizedManualUserSet.add(user.nodeId);
+
+      if (uncategorizedManualUserSet.size % 100 === 0) {
+        printUserObj("UNCAT MAN USER  [" + uncategorizedManualUserSet.size + "]", user);
+      }
+
+    }
+
+    if (!user.categoryAuto) { 
+
+      uncategorizedAutoUserSet.add(user.nodeId);
+
+      if (uncategorizedAutoUserSet.size % 100 === 0) {
+        printUserObj("UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", user);
+      }
+
+    }
+    
+    if (user.category && user.categoryAuto && (user.category !== user.categoryAuto)) { 
+
+      mismatchUserSet.add(user.nodeId); 
+
+      if (mismatchUserSet.size % 100 === 0) {
+        printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "]", user);
+      }
+
+    }
+
+
+
+  });
+
+  userFollowingCursor.on("end", function() {
+
+    uncategorizedManualUserArray = uncategorizedManualUserSet.entries();
+    mismatchUserArray = mismatchUserSet.entries();
+
+    statsObj.user.mismatched = mismatchUserSet.size;
+
+    console.log(chalkBlue("END FOLLOWING CURSOR | FOLLOWING USER SET"));
+    console.log(chalkBlue("USER DB STATS\n" + jsonPrint(statsObj.user)));
+
+  });
+
+
+  userFollowingCursor.on("error", function(err) {
+
+    uncategorizedManualUserArray = uncategorizedManualUserSet.entries();
+    mismatchUserArray = mismatchUserSet.entries();
+
+    statsObj.user.mismatched = mismatchUserSet.size;
+
+    console.error(chalkError("*** ERROR userFollowingCursor: " + err));
+    console.log(chalkAlert("USER DB STATS\n" + jsonPrint(statsObj.user)));
+  });
+
+  userFollowingCursor.on("close", function() {
+
+    uncategorizedManualUserArray = uncategorizedManualUserSet.entries();
+    mismatchUserArray = mismatchUserSet.entries();
+
+    statsObj.user.mismatched = mismatchUserSet.size;
+
+    console.log(chalkBlue("CLOSE FOLLOWING CURSOR"));
+    console.log(chalkBlue("USER DB STATS\n" + jsonPrint(statsObj.user)));
+  });
+
+
+  // const mismatchSearchQuery = {
+  //   "$and": [
+  //     { following: true},
+  //     { category: { "$nin": [ false, "false", null ] } },
+  //     { categoryAuto: { "$nin": [ false, "false", null ] } }
+  //   ]
   // };
-  // const optionsUser = { fullDocument: "updateLookup" };
 
-  // const userChangeStream = userCollection.watch([filterUser], optionsUser);
 
-  // userChangeStream.on("error", function(err){
-  //   console.log(chalkAlert("USERS CHANGE STREAM ERROR: " + err));
+  // const userMismatchCursor = User.find(mismatchSearchQuery).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
+
+  // userMismatchCursor.on("data", function(user) {
+
+  //   if (user.category !== user.categoryAuto) { 
+  //     mismatchUserSet.add(user.nodeId);
+
+  //     if (mismatchUserSet.size % 100 === 0) {
+  //       printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "]", user);
+  //     }
+
+  //  }
+
   // });
 
-  // userChangeStream.on("change", function(change){
-  //   if (change && change.fullDocument) { 
-  //     const user = change.fullDocument; 
-  //     printUserObj("--> USER CHANGE | " +  change.operationType, user);
-  //   }
-  //   else {
-  //     console.log(chalkAlert("--> USER CHANGE | " +  change.operationType));
-  //   }
+  // userMismatchCursor.on("end", function() {
+  //   mismatchUserArray = mismatchUserSet.entries();
+  //   statsObj.user.mismatched = mismatchUserSet.size;
+  //   console.log(chalkBlue("END CURSOR | MISMATCHED USER SET: " + mismatchUserSet.size));
+  //   console.log(chalkBlue("USER DB STATS\n" + jsonPrint(statsObj.user)));
   // });
+
+  // userMismatchCursor.on("error", function(err) {
+  //   mismatchUserArray = mismatchUserSet.entries();
+  //   statsObj.user.mismatched = mismatchUserSet.size;
+  //   console.error(chalkError("*** ERROR userMismatchCursor: " + err));
+  //   console.log(chalkAlert("*** ERROR CURSOR | MISMATCHED USER SET: " + mismatchUserSet.size));
+  //   console.log(chalkAlert("USER DB STATS\n" + jsonPrint(statsObj.user)));
+  // });
+
+  // userMismatchCursor.on("close", function() {
+  //   mismatchUserArray = mismatchUserSet.entries();
+  //   statsObj.user.mismatched = mismatchUserSet.size;
+  //   console.log(chalkBlue("CLOSE CURSOR | MISMATCHED USER SET: " + mismatchUserSet.size));
+  //   console.log(chalkBlue("USER DB STATS\n" + jsonPrint(statsObj.user)));
+  // });
+
 
 
   const neuralNetworkCollection = db.collection("neuralnetworks");
@@ -3233,6 +3392,9 @@ function categorizeNode(categorizeObj, callback) {
         else {
 
           categorizedUserHashMap.set(updatedUser.nodeId, {manual: updatedUser.category, auto: updatedUser.categoryAuto});
+
+          if (updatedUser.category) { uncategorizedManualUserSet.delete(updatedUser.nodeId); }
+          if (updatedUser.categoryAuto) { uncategorizedAutoUserSet.delete(updatedUser.nodeId); }
 
           saveFileQueue.push(
             {
@@ -7134,17 +7296,332 @@ function twitterSearchNode(params, callback) {
 
       searchNodeUser = { screenName: searchNode.substring(1) };
 
-      if ((searchNodeUser.screenName === "?") && (nodeSearchBy === "createdAt")) {
-        console.log(chalkInfo("SEARCH FOR UNCATEGORIZED USER | CREATED AT"));
-        nodeSearchType = "USER_UNCATEGORIZED";
-        searchNodeUser = { createdAt: previousUserUncategorizedCreated, following: true };
+      if (searchNodeUser.screenName === "?") {
+
+        if (uncategorizedManualUserSet.size > 0) {
+
+          const uncategorizedUserId = uncategorizedManualUserSet.entries().next();
+
+          User.findOne({nodeId: uncategorizedUserId}, function(err, user){
+
+            if (err) {
+              console.log(chalkError("TWITTER_SEARCH_NODE USER ERROR\n" + jsonPrint(err)));
+              callback(err);
+            }
+            else if (user) {
+
+              printUserObj("DB> UNCATEGORIZED DB USER", user);
+
+              getCurrentThreeceeUser(function(currentThreeceeUser){
+
+                if ( currentThreeceeUser
+                  && (threeceeTwitter[currentThreeceeUser] !== undefined)
+                  && threeceeTwitter[currentThreeceeUser].ready) {
+
+                  printUserObj("+++ UNCATEGORIZED USER | GET USER TWITTER DATA", user);
+
+                  threeceeTwitter[currentThreeceeUser].twit.get("users/show", 
+                    {user_id: user.nodeId, include_entities: true}, function usersShow (err, rawUser, response){
+
+                    if (err) {
+                      console.log(chalkError("ERROR users/show rawUser | @" + user.screenName + " | " + err));
+                      params.socket.emit("SET_TWITTER_USER", user);
+                      callback(err);
+                    }
+
+                    else if (rawUser && (rawUser !== undefined)) {
+
+                      userServerController.convertRawUser({user:rawUser}, function(err, cUser){
+
+                        if (err) {
+                          console.log(chalkError("*** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
+                          callback(err);
+                          return;
+                        }
+
+                        printUserObj("FOUND users/show rawUser", cUser);
+
+                        user.followersCount = cUser.followersCount;
+                        user.friendsCount = cUser.friendsCount;
+                        user.statusesCount = cUser.statusesCount;
+                        user.createdAt = cUser.createdAt;
+                        user.updateLastSeen = true;
+                        user.lastSeen = (cUser.status !== undefined) ? cUser.status.created_at : Date.now();
+
+                        let nCacheObj = nodeCache.get(user.nodeId);
+
+                        if (nCacheObj) {
+                          user.mentions = Math.max(user.mentions, nCacheObj.mentions);
+                          user.setMentions = true;
+                        }
+
+                        userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
+
+                          if (err) {
+                            console.log(chalkError("findOneUser ERROR: " + err));
+                            params.socket.emit("SET_TWITTER_USER", user);
+                            callback(err);
+                          }
+                          else {
+
+                            console.log(chalk.blue("UPDATED updatedUser"
+                              + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
+                              + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
+                              + "\n" + printUser({user:updatedUser})
+                            ));
+
+                            if (nodeSearchType === "USER_UNCATEGORIZED") {
+                              if ((nodeSearchBy !== undefined) && (nodeSearchBy === "createdAt")) {
+                                // previousUserUncategorizedCreated = moment(updatedUser.createdAt);
+                              }
+                              else if ((nodeSearchBy !== undefined) && (nodeSearchBy === "lastSeen")) {
+                                previousUserUncategorizedLastSeen = moment(updatedUser.lastSeen);
+                              }
+                              else {
+                                previousUserUncategorizedId = updatedUser.userId;
+                              }
+                            }
+
+                            if (nodeSearchType === "USER_MISMATCHED") {
+                              previousUserMismatchedId = updatedUser.userId;
+                            }
+
+                            params.socket.emit("SET_TWITTER_USER", updatedUser);
+
+                            callback(err);
+
+                          }
+                        });
+
+                      });
+                    }
+                    else {
+                      console.log(chalkTwitter("NOT FOUND users/show data"));
+                      params.socket.emit("SET_TWITTER_USER", user);
+                      callback();
+                    }
+                  });
+                }
+                else {
+
+
+                  if (threeceeTwitter[currentThreeceeUser] !== undefined) {
+                    console.log(chalkTwitter("XXX TWITTER_SEARCH_NODE USER FAIL"
+                      + " | 3C @" + currentThreeceeUser
+                      + " | 3C READY: " + threeceeTwitter[currentThreeceeUser].ready
+                      + "\n" + printUser({user:user})
+                    ));
+
+                    params.socket.emit("TWITTER_SEARCH_NODE_FAIL", searchNode);
+                    getCurrentThreeceeUser(function(){ callback();  });
+
+                  }
+                  else {
+                    console.log(chalkTwitter("XXX TWITTER_SEARCH_NODE USER FAIL"
+                      + " | threeceeTwitter[currentThreeceeUser] UNDEFINED"
+                      + " | 3C @" + currentThreeceeUser
+                      + "\n" + printUser({user:user})
+                    ));
+
+                    let nCacheObj = nodeCache.get(user.nodeId);
+
+                    if (nCacheObj) {
+                      user.mentions = Math.max(user.mentions, nCacheObj.mentions);
+                      user.setMentions = true;
+                    }
+
+                    userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
+
+                      if (err) {
+                        console.log(chalkError("findOneUser ERROR: " + err));
+                        params.socket.emit("SET_TWITTER_USER", user);
+                        callback(err);
+                      }
+                      else {
+
+                        console.log(chalk.blue("UPDATED updatedUser"
+                          + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
+                          + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
+                          + "\n" + printUser({user:updatedUser})
+                        ));
+
+                        if (nodeSearchType === "USER_UNCATEGORIZED") {
+                          if ((nodeSearchBy !== undefined) && (nodeSearchBy === "createdAt")) {
+                          }
+                          else if ((nodeSearchBy !== undefined) && (nodeSearchBy === "lastSeen")) {
+                            previousUserUncategorizedLastSeen = moment(updatedUser.lastSeen);
+                          }
+                          else {
+                            previousUserUncategorizedId = updatedUser.userId;
+                          }
+                        }
+
+                        if (nodeSearchType === "USER_MISMATCHED") {
+                          previousUserMismatchedId = updatedUser.userId;
+                        }
+
+                        params.socket.emit("SET_TWITTER_USER", updatedUser);
+
+                        callback();
+
+                      }
+                    });
+
+                  }
+
+                }
+              });
+            }
+            else {
+              console.log(chalkTwitter("--- TWITTER_SEARCH_NODE USER *NOT* FOUND"
+                + "\nSEARCH TYPE: " + nodeSearchType
+                + "\nNODE ID: " + searchNodeUser.screenName
+                + "\nSCREEN NAME: " + searchNodeUser.screenName
+                + "\nLAST SEEN: " + searchNodeUser.lastSeen
+                + "\nCREATED: " + searchNodeUser.createdAt
+                // + "\n" + jsonPrint(searchNodeUser)
+              ));
+
+              if (nodeSearchType === "USER_UNCATEGORIZED") {
+
+                params.socket.emit("TWITTER_SEARCH_NODE_FAIL", searchNode);
+
+                if ((nodeSearchBy !== undefined) && (nodeSearchBy === "createdAt")) {
+                  previousUserUncategorizedCreated = moment();
+                  callback();
+                  return;
+                }
+                
+                if ((nodeSearchBy !== undefined) && (nodeSearchBy === "lastSeen")) {
+                  previousUserUncategorizedLastSeen = moment();
+                  callback();
+                  return;
+                }
+
+                previousUserUncategorizedId = "1";
+                callback();
+              }
+
+              let twitQuery;
+
+              if (searchNodeUser.nodeId) {
+                twitQuery = {user_id: searchNodeUser.nodeId, include_entities: true};
+              }
+              else if (searchNodeUser.screenName){
+                twitQuery = {screen_name: searchNodeUser.screenName, include_entities: true};
+              }
+
+              getCurrentThreeceeUser(function(currentThreeceeUser){
+
+                if ( currentThreeceeUser
+                  && (threeceeTwitter[currentThreeceeUser] !== undefined)
+                  && threeceeTwitter[currentThreeceeUser].ready) 
+                {
+                  threeceeTwitter[currentThreeceeUser].twit.get("users/show", twitQuery, function usersShow (err, rawUser, response){
+                    if (err) {
+                      console.log(chalkError("ERROR users/show rawUser" + err));
+                      console.log(chalkError("ERROR users/show rawUser\n" + jsonPrint(err)));
+                      console.log(chalkError("ERROR users/show searchNodeUser:\n" + jsonPrint(searchNodeUser)));
+
+                      params.socket.emit("TWITTER_SEARCH_NODE_FAIL", searchNode);
+                      callback(err);
+                    }
+                    else if (rawUser && (rawUser !== undefined)) {
+
+                      userServerController.convertRawUser({user:rawUser}, function(err, cUser){
+
+                        if (err) {
+                          console.log(chalkError("*** TWITTER_SEARCH_NODE | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
+
+                          if (nodeSearchType === "USER_UNCATEGORIZED") { 
+                            if ((nodeSearchBy !== undefined) && (nodeSearchBy === "createdAt")) {
+                              previousUserUncategorizedCreated = moment(user.createdAt);
+                            }
+                            else if ((nodeSearchBy !== undefined) && (nodeSearchBy === "lastSeen")) {
+                              previousUserUncategorizedLastSeen = moment(user.lastSeen);
+                            }
+                            else {
+                              previousUserUncategorizedId = user.nodeId;
+                            }
+                          }
+                          if (nodeSearchType === "USER_MISMATCHED") { previousUserMismatchedId = searchNodeUser.nodeId; }
+
+                          params.socket.emit("TWITTER_SEARCH_NODE_FAIL", searchNode);
+                          callback(err);
+                          return;
+                        }
+
+                        console.log(chalkTwitter("FOUND users/show rawUser"
+                          + "\n" + printUser({user:cUser})
+                        ));
+
+                        cUser.updateLastSeen = true;
+                        cUser.lastSeen = cUser.status.created_at;
+
+                        let nCacheObj = nodeCache.get(cUser.nodeId);
+
+                        if (nCacheObj) {
+                          cUser.mentions = Math.max(cUser.mentions, nCacheObj.mentions);
+                          cUser.setMentions = true;
+                        }
+
+                        userServerController.findOneUser(cUser, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
+
+                          if (err) {
+                            console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
+                            params.socket.emit("SET_TWITTER_USER", cUser);
+                            callback(err);
+                          }
+                          else {
+                            console.log(chalkTwitter("UPDATED updatedUser"
+                              + "\n" + printUser({user:updatedUser})
+                            ));
+                            params.socket.emit("SET_TWITTER_USER", updatedUser);
+                            callback(err);
+                          }
+                        });
+                      });
+                    }
+                    else {
+                      console.log(chalkTwitter("NOT FOUND users/show data"
+                        + " | nodeSearchType: " + nodeSearchType
+                        + " | previousUserUncategorizedId: " + previousUserUncategorizedId
+                        + " | previousUserMismatchedId: " + previousUserMismatchedId
+                        + " | searchNode: " + searchNode
+                        // + "\nsearchNodeUser\n" + jsonPrint(searchNodeUser)
+                      ));
+
+                      params.socket.emit("TWITTER_SEARCH_NODE_FAIL", searchNode);
+                      callback(err);
+                    }
+                  });
+                }
+                else {
+                  // params.socket.emit("SET_TWITTER_USER", updatedUser);
+                  params.socket.emit("TWITTER_SEARCH_NODE_FAIL", searchNode);
+                  callback(err);
+                }
+
+              });
+            }
+
+
+
+          });
+        }
       }
-      else if ((searchNodeUser.screenName === "?") && (nodeSearchBy === "lastSeen")) {
-        console.log(chalkInfo("SEARCH FOR UNCATEGORIZED USER | LAST SEEN"));
-        nodeSearchType = "USER_UNCATEGORIZED";
-        searchNodeUser = { lastSeen: previousUserUncategorizedLastSeen, following: true };
-      }
-      else if (searchNodeUser.screenName === "?mm") {
+      // if ((searchNodeUser.screenName === "?") && (nodeSearchBy === "createdAt")) {
+      //   console.log(chalkInfo("SEARCH FOR UNCATEGORIZED USER | CREATED AT"));
+      //   nodeSearchType = "USER_UNCATEGORIZED";
+      //   searchNodeUser = { createdAt: previousUserUncategorizedCreated, following: true };
+      // }
+      // else if ((searchNodeUser.screenName === "?") && (nodeSearchBy === "lastSeen")) {
+      //   console.log(chalkInfo("SEARCH FOR UNCATEGORIZED USER | LAST SEEN"));
+      //   nodeSearchType = "USER_UNCATEGORIZED";
+      //   searchNodeUser = { lastSeen: previousUserUncategorizedLastSeen, following: true };
+      // }
+      
+      if (searchNodeUser.screenName === "?mm") {
         console.log(chalkInfo("SEARCH FOR MISMATCHED USER"));
         nodeSearchType = "USER_MISMATCHED";
         searchNodeUser = { nodeId: previousUserMismatchedId, following: true };
@@ -7368,8 +7845,6 @@ function twitterSearchNode(params, callback) {
 
             }
           });
-
-
         }
         else {
           console.log(chalkTwitter("--- TWITTER_SEARCH_NODE USER *NOT* FOUND"
@@ -7502,7 +7977,6 @@ function twitterSearchNode(params, callback) {
             }
 
           });
-
         }
       }
     );

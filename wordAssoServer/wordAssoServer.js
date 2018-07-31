@@ -7420,7 +7420,7 @@ function twitterSearchNode(params, callback) {
       ));
 
 
-      if (uncategorizedManualUserArray.size > 0) {
+      if (uncategorizedManualUserArray.length > 0) {
 
         const uncategorizedUserId = uncategorizedManualUserArray.shift();
 
@@ -7454,7 +7454,7 @@ function twitterSearchNode(params, callback) {
 
       mismatchUserArray = _.shuffle([...mismatchUserSet]);
 
-      if (mismatchUserArray.size > 0) {
+      if (mismatchUserArray.length > 0) {
 
         const mismatchedUserId = mismatchUserArray.shift();
 

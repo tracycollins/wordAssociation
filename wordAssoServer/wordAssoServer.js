@@ -7249,7 +7249,7 @@ function twitterSearchNode(params, callback) {
 
       searchNodeUser = { screenName: searchNode.substring(1) };
 
-      if (searchNode === "@?") {
+      if (searchNode.startsWith("@?")) {
 
         console.log(chalkSocket("TWITTER_SEARCH_NODE"
           + " | " + getTimeStamp()

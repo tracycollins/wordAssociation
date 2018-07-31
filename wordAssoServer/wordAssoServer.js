@@ -7298,13 +7298,19 @@ function twitterSearchNode(params, callback) {
 
       if (searchNode === "@?") {
 
+        console.log(chalkSocket("TWITTER_SEARCH_NODE"
+          + " | " + getTimeStamp()
+          + " | SEACH UNCATEGORIZED USER"
+          + " | " + searchNode
+        ));
+
         if (uncategorizedManualUserSet.size > 0) {
 
-          uncategorizedManualUserArray = uncategorizedManualUserSet.keys();
+          uncategorizedManualUserArray = [...uncategorizedManualUserSet];
 
-          const uncategorizedUserId = uncategorizedManualUserArray.next();
+          const uncategorizedUser = uncategorizedManualUserArray.shift();
 
-          User.findOne({nodeId: uncategorizedUserId}, function(err, user){
+          User.findOne({nodeId: uncategorizedUserId.value}, function(err, user){
 
             if (err) {
               console.log(chalkError("TWITTER_SEARCH_NODE USER ERROR\n" + jsonPrint(err)));

@@ -7257,9 +7257,10 @@ function twitterSearchNode(params, callback) {
           + " | " + searchNode
         ));
 
+        uncategorizedManualUserArray = _.shuffle([...uncategorizedManualUserSet]);
+
         if (uncategorizedManualUserArray.size > 0) {
 
-          uncategorizedManualUserArray = _.shuffle([...uncategorizedManualUserSet]);
 
           const uncategorizedUserId = uncategorizedManualUserArray.shift();
 

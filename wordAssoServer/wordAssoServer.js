@@ -7218,6 +7218,10 @@ function twitterGetUserUpdateDb(user, callback){
 
             printUserObj("FOUND users/show rawUser", cUser);
 
+            user.userId = cUser.userId;
+            user.nodeId = cUser.nodeId;
+            user.name = cUser.name;
+            user.description = cUser.description;
             user.followersCount = cUser.followersCount;
             user.friendsCount = cUser.friendsCount;
             user.statusesCount = cUser.statusesCount;

@@ -7276,11 +7276,14 @@ function twitterGetUserUpdateDb(user, callback){
         + "\n" + printUser({user:user})
       ));
 
-      let nCacheObj = nodeCache.get(user.nodeId);
+      if (user.nodeId){
+        
+        let nCacheObj = nodeCache.get(user.nodeId);
 
-      if (nCacheObj) {
-        user.mentions = Math.max(user.mentions, nCacheObj.mentions);
-        user.setMentions = true;
+        if (nCacheObj) {
+          user.mentions = Math.max(user.mentions, nCacheObj.mentions);
+          user.setMentions = true;
+        }
       }
 
       userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){

@@ -1106,8 +1106,8 @@ wordAssoDb.connect(dbAppName, function(err, db) {
 
   userFollowingCursor.on("end", function() {
 
-    uncategorizedManualUserArray = uncategorizedManualUserSet.entries();
-    mismatchUserArray = mismatchUserSet.entries();
+    uncategorizedManualUserArray = uncategorizedManualUserSet.keys();
+    mismatchUserArray = mismatchUserSet.keys();
 
     statsObj.user.mismatched = mismatchUserSet.size;
 
@@ -1119,8 +1119,8 @@ wordAssoDb.connect(dbAppName, function(err, db) {
 
   userFollowingCursor.on("error", function(err) {
 
-    uncategorizedManualUserArray = uncategorizedManualUserSet.entries();
-    mismatchUserArray = mismatchUserSet.entries();
+    uncategorizedManualUserArray = uncategorizedManualUserSet.keys();
+    mismatchUserArray = mismatchUserSet.keys();
 
     statsObj.user.mismatched = mismatchUserSet.size;
 
@@ -1130,8 +1130,8 @@ wordAssoDb.connect(dbAppName, function(err, db) {
 
   userFollowingCursor.on("close", function() {
 
-    uncategorizedManualUserArray = uncategorizedManualUserSet.entries();
-    mismatchUserArray = mismatchUserSet.entries();
+    uncategorizedManualUserArray = uncategorizedManualUserSet.keys();
+    mismatchUserArray = mismatchUserSet.keys();
 
     statsObj.user.mismatched = mismatchUserSet.size;
 
@@ -1165,14 +1165,14 @@ wordAssoDb.connect(dbAppName, function(err, db) {
   // });
 
   // userMismatchCursor.on("end", function() {
-  //   mismatchUserArray = mismatchUserSet.entries();
+  //   mismatchUserArray = mismatchUserSet.keys();
   //   statsObj.user.mismatched = mismatchUserSet.size;
   //   console.log(chalkBlue("END CURSOR | MISMATCHED USER SET: " + mismatchUserSet.size));
   //   console.log(chalkBlue("USER DB STATS\n" + jsonPrint(statsObj.user)));
   // });
 
   // userMismatchCursor.on("error", function(err) {
-  //   mismatchUserArray = mismatchUserSet.entries();
+  //   mismatchUserArray = mismatchUserSet.keys();
   //   statsObj.user.mismatched = mismatchUserSet.size;
   //   console.error(chalkError("*** ERROR userMismatchCursor: " + err));
   //   console.log(chalkAlert("*** ERROR CURSOR | MISMATCHED USER SET: " + mismatchUserSet.size));
@@ -1180,7 +1180,7 @@ wordAssoDb.connect(dbAppName, function(err, db) {
   // });
 
   // userMismatchCursor.on("close", function() {
-  //   mismatchUserArray = mismatchUserSet.entries();
+  //   mismatchUserArray = mismatchUserSet.keys();
   //   statsObj.user.mismatched = mismatchUserSet.size;
   //   console.log(chalkBlue("CLOSE CURSOR | MISMATCHED USER SET: " + mismatchUserSet.size));
   //   console.log(chalkBlue("USER DB STATS\n" + jsonPrint(statsObj.user)));
@@ -7300,7 +7300,7 @@ function twitterSearchNode(params, callback) {
 
         if (uncategorizedManualUserSet.size > 0) {
 
-          uncategorizedManualUserArray = uncategorizedManualUserSet.entries();
+          uncategorizedManualUserArray = uncategorizedManualUserSet.keys();
 
           const uncategorizedUserId = uncategorizedManualUserArray.shift();
 

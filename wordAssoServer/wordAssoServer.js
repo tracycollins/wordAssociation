@@ -160,7 +160,7 @@ const Slack = require("slack-node");
 let slack = false;
 
 const chalk = require("chalk");
-const chalkUser = chalk.black;
+const chalkUser = chalk.blue;
 const chalkNetwork = chalk.black;
 const chalkTwitter = chalk.blue;
 const chalkConnect = chalk.black;
@@ -4904,7 +4904,7 @@ let userFollowable = function(user){
 
 function autoFollowUser(params, callback){
 
-  console.log(chalkAlert("AUTO FOLLOW USER"
+  console.log(chalkUser("AUTO FOLLOW USER"
     + " | MIN: " + configuration.minFollowersAuto
     + "\n" + printUser({user:params.user})
   ));
@@ -7302,7 +7302,7 @@ function twitterSearchNode(params, callback) {
 
           uncategorizedManualUserArray = uncategorizedManualUserSet.keys();
 
-          const uncategorizedUserId = uncategorizedManualUserArray.shift();
+          const uncategorizedUserId = uncategorizedManualUserArray.next();
 
           User.findOne({nodeId: uncategorizedUserId}, function(err, user){
 

@@ -1106,7 +1106,7 @@ wordAssoDb.connect(dbAppName, function(err, db) {
 
   userFollowingCursor.on("end", function() {
 
-    uncategorizedManualUserArray = uncategorizedManualUserSet.keys();
+    uncategorizedManualUserArray = [...uncategorizedManualUserSet];
     mismatchUserArray = mismatchUserSet.keys();
 
     statsObj.user.mismatched = mismatchUserSet.size;
@@ -1119,7 +1119,7 @@ wordAssoDb.connect(dbAppName, function(err, db) {
 
   userFollowingCursor.on("error", function(err) {
 
-    uncategorizedManualUserArray = uncategorizedManualUserSet.keys();
+    uncategorizedManualUserArray = [...uncategorizedManualUserSet];
     mismatchUserArray = mismatchUserSet.keys();
 
     statsObj.user.mismatched = mismatchUserSet.size;
@@ -1130,7 +1130,7 @@ wordAssoDb.connect(dbAppName, function(err, db) {
 
   userFollowingCursor.on("close", function() {
 
-    uncategorizedManualUserArray = uncategorizedManualUserSet.keys();
+    uncategorizedManualUserArray = [...uncategorizedManualUserSet];
     mismatchUserArray = mismatchUserSet.keys();
 
     statsObj.user.mismatched = mismatchUserSet.size;
@@ -1138,54 +1138,6 @@ wordAssoDb.connect(dbAppName, function(err, db) {
     console.log(chalkBlue("CLOSE FOLLOWING CURSOR"));
     console.log(chalkBlue("USER DB STATS\n" + jsonPrint(statsObj.user)));
   });
-
-
-  // const mismatchSearchQuery = {
-  //   "$and": [
-  //     { following: true},
-  //     { category: { "$nin": [ false, "false", null ] } },
-  //     { categoryAuto: { "$nin": [ false, "false", null ] } }
-  //   ]
-  // };
-
-
-  // const userMismatchCursor = User.find(mismatchSearchQuery).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
-
-  // userMismatchCursor.on("data", function(user) {
-
-  //   if (user.category !== user.categoryAuto) { 
-  //     mismatchUserSet.add(user.nodeId);
-
-  //     if (mismatchUserSet.size % 100 === 0) {
-  //       printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "]", user);
-  //     }
-
-  //  }
-
-  // });
-
-  // userMismatchCursor.on("end", function() {
-  //   mismatchUserArray = mismatchUserSet.keys();
-  //   statsObj.user.mismatched = mismatchUserSet.size;
-  //   console.log(chalkBlue("END CURSOR | MISMATCHED USER SET: " + mismatchUserSet.size));
-  //   console.log(chalkBlue("USER DB STATS\n" + jsonPrint(statsObj.user)));
-  // });
-
-  // userMismatchCursor.on("error", function(err) {
-  //   mismatchUserArray = mismatchUserSet.keys();
-  //   statsObj.user.mismatched = mismatchUserSet.size;
-  //   console.error(chalkError("*** ERROR userMismatchCursor: " + err));
-  //   console.log(chalkAlert("*** ERROR CURSOR | MISMATCHED USER SET: " + mismatchUserSet.size));
-  //   console.log(chalkAlert("USER DB STATS\n" + jsonPrint(statsObj.user)));
-  // });
-
-  // userMismatchCursor.on("close", function() {
-  //   mismatchUserArray = mismatchUserSet.keys();
-  //   statsObj.user.mismatched = mismatchUserSet.size;
-  //   console.log(chalkBlue("CLOSE CURSOR | MISMATCHED USER SET: " + mismatchUserSet.size));
-  //   console.log(chalkBlue("USER DB STATS\n" + jsonPrint(statsObj.user)));
-  // });
-
 
 
   const neuralNetworkCollection = db.collection("neuralnetworks");
@@ -7305,9 +7257,9 @@ function twitterSearchNode(params, callback) {
           + " | " + searchNode
         ));
 
-        if (uncategorizedManualUserSet.size > 0) {
+        if (uncategorizedManualUserArray.size > 0) {
 
-          uncategorizedManualUserArray = [...uncategorizedManualUserSet];
+          // uncategorizedManualUserArray = [...uncategorizedManualUserSet];
 
           const uncategorizedUserId = uncategorizedManualUserArray.shift();
 

@@ -7334,6 +7334,7 @@ function twitterSearchNode(params, callback) {
                     if (err) {
                       console.log(chalkError("ERROR users/show rawUser | @" + user.screenName + " | " + err));
                       params.socket.emit("SET_TWITTER_USER", user);
+                      uncategorizedManualUserSet.delete(user.nodeId);
                       callback(err);
                     }
 
@@ -7405,6 +7406,7 @@ function twitterSearchNode(params, callback) {
                     }
                     else {
                       console.log(chalkTwitter("NOT FOUND users/show data"));
+                      uncategorizedManualUserSet.delete(user.nodeId);
                       params.socket.emit("SET_TWITTER_USER", user);
                       callback();
                     }

@@ -7416,7 +7416,7 @@ function twitterSearchNode(params, callback) {
         + " | SEARCH UNCATEGORIZED USER"
       ));
 
-      uncategorizedManualUserArray = _.shuffle([...uncategorizedManualUserSet]);
+      uncategorizedManualUserArray = [...uncategorizedManualUserSet];
 
       if (uncategorizedManualUserArray.size > 0) {
 

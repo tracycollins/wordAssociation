@@ -7411,12 +7411,14 @@ function twitterSearchNode(params, callback) {
 
     if (searchNodeUser.screenName === "?") {
 
+      uncategorizedManualUserArray = [...uncategorizedManualUserSet];
+
       console.log(chalkSocket("TWITTER_SEARCH_NODE"
+        + "[ UC USER ARRAY: " + uncategorizedManualUserArray.length + "]"
         + " | " + getTimeStamp()
         + " | SEARCH UNCATEGORIZED USER"
       ));
 
-      uncategorizedManualUserArray = [...uncategorizedManualUserSet];
 
       if (uncategorizedManualUserArray.size > 0) {
 

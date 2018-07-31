@@ -1020,125 +1020,8 @@ wordAssoDb.connect(dbAppName, function(err, db) {
   statsObj.user.uncategorizedAuto = 0;
   statsObj.user.mismatched = 0;
 
-  const userCollection = db.collection("users");
-
-  userCollection.countDocuments(function(err, count){
-    if (err) { throw Error; }
-    statsObj.user.total = count;
-    console.log(chalkAlert("GRAND TOTAL USERS IN DB: " + statsObj.user.total));
-  });
-
-  userCollection.countDocuments({"following": true}, function(err, count){
-    if (err) { throw Error; }
-    statsObj.user.following = count;
-    console.log(chalkAlert("TOTAL FOLLOWING USERS IN DB: " + statsObj.user.following));
-  });
-
-  userCollection.countDocuments({"following": false}, function(err, count){
-    if (err) { throw Error; }
-    statsObj.user.notFollowing = count;
-    console.log(chalkAlert("TOTAL NOT FOLLOWING USERS IN DB: " + statsObj.user.notFollowing));
-  });
-
-  userCollection.countDocuments({category: { "$nin": [ false, "false", null ] }}, function(err, count){
-    if (err) { throw Error; }
-    statsObj.user.categorizedManual = count;
-    console.log(chalkAlert("TOTAL CATEGORIZED MANAUL USERS IN DB: " + statsObj.user.categorizedManual));
-  });
-
-  userCollection.countDocuments({category: { "$in": [ false, "false", null ] }}, function(err, count){
-    if (err) { throw Error; }
-    statsObj.user.uncategorizedManual = count;
-    console.log(chalkAlert("TOTAL UNCATEGORIZED MANAUL USERS IN DB: " + statsObj.user.uncategorizedManual));
-  });
-
-  userCollection.countDocuments({categoryAuto: { "$nin": [ false, "false", null ] }}, function(err, count){
-    if (err) { throw Error; }
-    statsObj.user.categorizedAuto = count;
-    console.log(chalkAlert("TOTAL CATEGORIZED AUTO USERS IN DB: " + statsObj.user.categorizedAuto));
-  });
-
-  userCollection.countDocuments({categoryAuto: { "$in": [ false, "false", null ] }}, function(err, count){
-    if (err) { throw Error; }
-    statsObj.user.uncategorizedAuto = count;
-    console.log(chalkAlert("TOTAL UNCATEGORIZED AUTO USERS IN DB: " + statsObj.user.uncategorizedAuto));
-  });
-
-  const followingSearchQuery = {following: true};
-
-  const userFollowingCursor = User.find(followingSearchQuery).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
-
-  userFollowingCursor.on("data", function(user) {
-
-    if (!user.category) { 
-
-      uncategorizedManualUserSet.add(user.nodeId);
-
-      if (uncategorizedManualUserSet.size % 100 === 0) {
-        printUserObj("UNCAT MAN USER  [" + uncategorizedManualUserSet.size + "]", user);
-      }
-
-    }
-
-    if (!user.categoryAuto) { 
-
-      uncategorizedAutoUserSet.add(user.nodeId);
-
-      if (uncategorizedAutoUserSet.size % 100 === 0) {
-        printUserObj("UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", user);
-      }
-
-    }
-    
-    if (user.category && user.categoryAuto && (user.category !== user.categoryAuto)) { 
-
-      mismatchUserSet.add(user.nodeId); 
-
-      if (mismatchUserSet.size % 100 === 0) {
-        printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "]", user);
-      }
-
-    }
-
-
-
-  });
-
-  userFollowingCursor.on("end", function() {
-
-    uncategorizedManualUserArray = [...uncategorizedManualUserSet];
-    mismatchUserArray = mismatchUserSet.keys();
-
-    statsObj.user.mismatched = mismatchUserSet.size;
-
-    console.log(chalkBlue("END FOLLOWING CURSOR | FOLLOWING USER SET"));
-    console.log(chalkBlue("USER DB STATS\n" + jsonPrint(statsObj.user)));
-
-  });
-
-
-  userFollowingCursor.on("error", function(err) {
-
-    uncategorizedManualUserArray = [...uncategorizedManualUserSet];
-    mismatchUserArray = mismatchUserSet.keys();
-
-    statsObj.user.mismatched = mismatchUserSet.size;
-
-    console.error(chalkError("*** ERROR userFollowingCursor: " + err));
-    console.log(chalkAlert("USER DB STATS\n" + jsonPrint(statsObj.user)));
-  });
-
-  userFollowingCursor.on("close", function() {
-
-    uncategorizedManualUserArray = [...uncategorizedManualUserSet];
-    mismatchUserArray = mismatchUserSet.keys();
-
-    statsObj.user.mismatched = mismatchUserSet.size;
-
-    console.log(chalkBlue("CLOSE FOLLOWING CURSOR"));
-    console.log(chalkBlue("USER DB STATS\n" + jsonPrint(statsObj.user)));
-  });
-
+  updateUserSets();
+  initUpdateUserSetsInterval(ONE_MINUTE);
 
   const neuralNetworkCollection = db.collection("neuralnetworks");
 
@@ -4676,7 +4559,6 @@ function initUpdateTrendsInterval(interval){
     }, interval);
 
   });
-
 }
 
 function updateNodeMeter(node, callback){
@@ -4982,7 +4864,6 @@ function checkTwitterRateLimit(params, callback){
   });
 }
 
-
 let checkTwitterRateLimitInterval;
 let checkTwitterRateLimitReady = true;
 
@@ -5083,7 +4964,127 @@ function getCurrentThreeceeUser(callback){
     return callback(statsObj.currentThreeceeUser);
 
   });
+}
 
+function updateUserSets(callback){
+
+  const userCollection = global.dbConnection.collection("users");
+
+  userCollection.countDocuments(function(err, count){
+    if (err) { throw Error; }
+    statsObj.user.total = count;
+    console.log(chalkAlert("GRAND TOTAL USERS IN DB: " + statsObj.user.total));
+  });
+
+  userCollection.countDocuments({"following": true}, function(err, count){
+    if (err) { throw Error; }
+    statsObj.user.following = count;
+    console.log(chalkAlert("TOTAL FOLLOWING USERS IN DB: " + statsObj.user.following));
+  });
+
+  userCollection.countDocuments({"following": false}, function(err, count){
+    if (err) { throw Error; }
+    statsObj.user.notFollowing = count;
+    console.log(chalkAlert("TOTAL NOT FOLLOWING USERS IN DB: " + statsObj.user.notFollowing));
+  });
+
+  userCollection.countDocuments({category: { "$nin": [ false, "false", null ] }}, function(err, count){
+    if (err) { throw Error; }
+    statsObj.user.categorizedManual = count;
+    console.log(chalkAlert("TOTAL CATEGORIZED MANAUL USERS IN DB: " + statsObj.user.categorizedManual));
+  });
+
+  userCollection.countDocuments({category: { "$in": [ false, "false", null ] }}, function(err, count){
+    if (err) { throw Error; }
+    statsObj.user.uncategorizedManual = count;
+    console.log(chalkAlert("TOTAL UNCATEGORIZED MANAUL USERS IN DB: " + statsObj.user.uncategorizedManual));
+  });
+
+  userCollection.countDocuments({categoryAuto: { "$nin": [ false, "false", null ] }}, function(err, count){
+    if (err) { throw Error; }
+    statsObj.user.categorizedAuto = count;
+    console.log(chalkAlert("TOTAL CATEGORIZED AUTO USERS IN DB: " + statsObj.user.categorizedAuto));
+  });
+
+  userCollection.countDocuments({categoryAuto: { "$in": [ false, "false", null ] }}, function(err, count){
+    if (err) { throw Error; }
+    statsObj.user.uncategorizedAuto = count;
+    console.log(chalkAlert("TOTAL UNCATEGORIZED AUTO USERS IN DB: " + statsObj.user.uncategorizedAuto));
+  });
+
+  const followingSearchQuery = {following: true};
+  const userFollowingCursor = User.find(followingSearchQuery).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
+
+  userFollowingCursor.on("data", function(user) {
+
+    if (!user.category) { 
+
+      uncategorizedManualUserSet.add(user.nodeId);
+
+      if (uncategorizedManualUserSet.size % 100 === 0) {
+        printUserObj("UNCAT MAN USER  [" + uncategorizedManualUserSet.size + "]", user);
+      }
+
+    }
+
+    if (!user.categoryAuto) { 
+
+      uncategorizedAutoUserSet.add(user.nodeId);
+
+      if (uncategorizedAutoUserSet.size % 100 === 0) {
+        printUserObj("UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", user);
+      }
+
+    }
+    
+    if (user.category && user.categoryAuto && (user.category !== user.categoryAuto)) { 
+
+      mismatchUserSet.add(user.nodeId); 
+
+      if (mismatchUserSet.size % 100 === 0) {
+        printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "]", user);
+      }
+
+    }
+  });
+
+  userFollowingCursor.on("end", function() {
+
+    uncategorizedManualUserArray = [...uncategorizedManualUserSet];
+    mismatchUserArray = mismatchUserSet.keys();
+
+    statsObj.user.mismatched = mismatchUserSet.size;
+
+    console.log(chalkBlue("END FOLLOWING CURSOR | FOLLOWING USER SET"));
+    console.log(chalkBlue("USER DB STATS\n" + jsonPrint(statsObj.user)));
+  });
+
+  userFollowingCursor.on("error", function(err) {
+
+    uncategorizedManualUserArray = [...uncategorizedManualUserSet];
+    mismatchUserArray = mismatchUserSet.keys();
+
+    statsObj.user.mismatched = mismatchUserSet.size;
+
+    console.error(chalkError("*** ERROR userFollowingCursor: " + err));
+    console.log(chalkAlert("USER DB STATS\n" + jsonPrint(statsObj.user)));
+  });
+
+  userFollowingCursor.on("close", function() {
+
+    uncategorizedManualUserArray = [...uncategorizedManualUserSet];
+    mismatchUserArray = mismatchUserSet.keys();
+
+    statsObj.user.mismatched = mismatchUserSet.size;
+
+    console.log(chalkBlue("CLOSE FOLLOWING CURSOR"));
+    console.log(chalkBlue("USER DB STATS\n" + jsonPrint(statsObj.user)));
+
+    if (callback !== undefined) { callback(); }
+
+  });
+
+  // if (callback !== undefined) { callback(); }
 }
 
 function initTransmitNodeQueueInterval(interval){
@@ -6983,6 +6984,34 @@ function initIgnoreWordsHashMap(callback) {
   });
 }
 
+let updateUserSetsInterval;
+let updateUserSetsIntervalReady = true;
+
+function initUpdateUserSetsInterval(interval){
+
+  console.log(chalk.bold.black("INIT USER SETS INTERVAL"
+    + " | " + msToTime(interval)
+  ));
+
+  updateUserSetsInterval = setInterval(function() {
+
+    uncategorizedManualUserArray = [...uncategorizedManualUserSet];
+
+    if (updateUserSetsIntervalReady && (uncategorizedManualUserArray.length < 10)) {
+
+      updateUserSetsIntervalReady = false;
+
+      updateUserSets(function(){
+
+        updateUserSetsIntervalReady = true;
+
+      });
+
+    }
+
+  }, interval);
+}
+
 let memStatsInterval;
 
 function initStatsInterval(interval){
@@ -7014,7 +7043,6 @@ function initStatsInterval(interval){
       ));
 
     }
-
   }, 15000);
 
   statsInterval = setInterval(function updateStats() {
@@ -7026,7 +7054,6 @@ function initStatsInterval(interval){
       childArray.forEach(function(childObj){
         console.log(chalkLog("WA | CHILD | PID: " + childObj.pid + " | " + childObj.childId + " | " + childrenHashMap[childObj.childId].status));
       });
-
     });
 
     statsObj.serverTime = moment().valueOf();
@@ -7277,7 +7304,7 @@ function twitterGetUserUpdateDb(user, callback){
       ));
 
       if (user.nodeId){
-        
+
         let nCacheObj = nodeCache.get(user.nodeId);
 
         if (nCacheObj) {

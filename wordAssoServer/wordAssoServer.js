@@ -141,10 +141,10 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 const altthreecee00config = {
-  consumer_key: "hzh73NU8fQfldK7PESEvsHFXD",
-  consumer_secret: "W2B66TLUvFqej42YjVkQiCWnv5wKOahVEbB4JQla9LD9jh7CWd",
-  access_token: "899305185767559169-fP540bAAysC1XkuLWR00vKtfONGklJo",
-  access_token_secret: "5XGJax9tkoxRbikgYfAjq86YTl6MtsArCuMkQp27WJxGu"
+  consumer_key: "0g1pAgIqe6f3LN9yjaPBGJcSL",
+  consumer_secret: "op5mSFdo1jenyiTxFyED0yD2W1rmviq35qpVlgSSyIIlFPuBj7",
+  access_token: "848591649575927810-EHQmRALtPJLCYhRJqI8wkAzwfkEpDri",
+  access_token_secret: "ZnUrnTUtH2D2iesTjaHVqNrrEWeDU8Rj13nFQ1UI2aDjl"
 };
 
 
@@ -191,10 +191,10 @@ passport.use(new TwitterStrategy({
   }
 ));
 
-app.get('/auth/twitter', passport.authenticate('twitter'));
-app.get('/auth/twitter/callback',
-  passport.authenticate('twitter', { successRedirect: '/',
-                                     failureRedirect: '/login' }));
+app.get("/auth/twitter", passport.authenticate("twitter"));
+app.get("/auth/twitter/callback",
+  passport.authenticate("twitter", { successRedirect: "/session",
+                                     failureRedirect: "/login" }));
 
 passport.use(new LocalStrategy(
   function(username, password, done) {

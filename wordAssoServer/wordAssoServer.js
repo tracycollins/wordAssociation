@@ -34,7 +34,7 @@ const DEFAULT_FIND_CAT_HASHTAG_CURSOR_LIMIT = 100;
 
 const DEFAULT_CURSOR_BATCH_SIZE = 100;
 
-const DEFAULT_THREECEE_USERS = ["ninjathreecee", "threeceeinfo"];
+const DEFAULT_THREECEE_USERS = ["altthreecee00"];
 
 const DEFAULT_SORTER_CHILD_ID = "wa_node_sorter";
 const DEFAULT_TWEET_PARSER_CHILD_ID = "wa_node_tweetParser";
@@ -42,7 +42,7 @@ const DEFAULT_TWEET_PARSER_CHILD_ID = "wa_node_tweetParser";
 const DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER = "altthreecee00";
 const DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER_FILE = DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER + ".json";
 
-const DEFAULT_TWITTER_CONFIG_THREECEE = "threeceeinfo";
+const DEFAULT_TWITTER_CONFIG_THREECEE = "altthreecee00";
 const DEFAULT_TWITTER_CONFIG_THREECEE_FILE = DEFAULT_TWITTER_CONFIG_THREECEE + ".json";
 
 const DEFAULT_INTERVAL = 10;
@@ -189,7 +189,7 @@ configEvents.on("newListener", function configEventsNewListener(data) {
 let statsObj = {};
 statsObj.commandLineArgsLoaded = false;
 statsObj.currentThreeceeUserIndex = 0;
-statsObj.currentThreeceeUser = "ninjathreecee";
+statsObj.currentThreeceeUser = "altthreecee00";
 statsObj.threeceeUsersConfiguredFlag = false;
 statsObj.twitNotReadyWarning = false;
 

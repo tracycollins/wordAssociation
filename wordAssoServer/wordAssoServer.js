@@ -226,11 +226,11 @@ passport.use(new LocalStrategy(
 ));
 
 passport.serializeUser(function(user, done) {
-  done(null, user.id);
+  done(null, user.nodeId);
 });
 
-passport.deserializeUser(function(id, done) {
-  User.findById(id, function(err, user) {
+passport.deserializeUser(function(nodeId, done) {
+  User.findOne({nodeId: nodeId}, function(err, user) {
     done(err, user);
   });
 });

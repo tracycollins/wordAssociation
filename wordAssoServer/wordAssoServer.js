@@ -2,6 +2,8 @@
 /*jshint sub:true*/
 "use strict";
 
+const TWITTER_AUTH_CALLBACK_URL = "https://word.threeceelabs.com/auth/twitter/callback";
+
 global.dbConnection = false;
 let dbConnectionReady = false;
 let initCategoryHashmapsReady = true;
@@ -122,8 +124,114 @@ const debugCategory = require("debug")("kw");
 const moment = require("moment");
 const treeify = require("treeify");
 
-const express = require("./config/express");
+const express = require("express");
 const app = express();
+// const cookieParser = require("cookie-parser");
+// const bodyParser = require("body-parser");
+// const expressSession = require("express-session");
+const passport = require("passport");
+const LocalStrategy = require("passport-local").Strategy;
+const TwitterStrategy = require("passport-twitter").Strategy;
+
+app.use(require("serve-static")(__dirname + "/public"));
+app.use(require("cookie-parser")());
+app.use(require("body-parser").urlencoded({ extended: true }));
+app.use(require("express-session")({ secret: "keyboard cat", resave: true, saveUninitialized: true }));
+app.use(passport.initialize());
+app.use(passport.session());
+
+const altthreecee00config = {
+  consumer_key: "hzh73NU8fQfldK7PESEvsHFXD",
+  consumer_secret: "W2B66TLUvFqej42YjVkQiCWnv5wKOahVEbB4JQla9LD9jh7CWd",
+  access_token: "899305185767559169-fP540bAAysC1XkuLWR00vKtfONGklJo",
+  access_token_secret: "5XGJax9tkoxRbikgYfAjq86YTl6MtsArCuMkQp27WJxGu"
+};
+
+
+passport.use(new TwitterStrategy({
+    consumerKey: altthreecee00config.consumer_key,
+    consumerSecret: altthreecee00config.consumer_secret,
+    callbackURL: TWITTER_AUTH_CALLBACK_URL
+  },
+  function(token, tokenSecret, profile, callback) {
+
+    console.log(chalkAlert("TWITTER AUTH\nprofile\n" + jsonPrint(profile)));
+
+
+    userServerController.convertRawUser({user:profile}, function(err, user){
+
+      if (err) {
+        console.log(chalkError("*** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nprofile\n" + jsonPrint(profile)));
+        return callback("RAW USER", profile);
+      }
+
+      printUserObj("TWITTER AUTH USER", user);
+
+      userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
+
+        if (err) {
+          console.log(chalkError("findOneUser ERROR: " + err));
+          return callback(err);
+        }
+
+        console.log(chalk.blue("UPDATED updatedUser"
+          + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
+          + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
+          + "\n" + printUser({user:updatedUser})
+        ));
+
+        callback(null, updatedUser);
+      });
+    });
+
+    // userServerController.convertRawUser(..., function(err, user) {
+    //   if (err) { return done(err); }
+    //   done(null, user);
+    // });
+  }
+));
+
+app.get('/auth/twitter', passport.authenticate('twitter'));
+app.get('/auth/twitter/callback',
+  passport.authenticate('twitter', { successRedirect: '/',
+                                     failureRedirect: '/login' }));
+
+passport.use(new LocalStrategy(
+  function(username, password, done) {
+
+    console.log(chalkAlert("*** LOGIN *** | " + username));
+
+    User.findOne({ screenName: username.toLowerCase() }, function (err, user) {
+      if (err) { 
+        console.log(chalkAlert("*** LOGIN USER DB ERROR *** | " + err));
+        return done(err);
+      }
+      if (!user) {
+        console.log(chalkAlert("*** LOGIN FAILED | USER NOT FOUND *** | " + username));
+        return done(null, false, { message: 'Incorrect username.' });
+      }
+      // if (!user.validPassword(password)) {
+      //   console.log(chalkAlert("*** LOGIN FAILED | INVALID PASSWORD *** | " + username));
+      //   return done(null, false, { message: 'Incorrect password.' });
+      // }
+      if ((user.screenName !== "threecee") || (password !== "what")) {
+        console.log(chalkAlert("*** LOGIN FAILED | INVALID PASSWORD *** | " + username));
+        return done(null, false, { message: 'Incorrect password.' });
+      }
+      return done(null, user);
+    });
+  }
+));
+
+passport.serializeUser(function(user, done) {
+  done(null, user.id);
+});
+
+passport.deserializeUser(function(id, done) {
+  User.findById(id, function(err, user) {
+    done(err, user);
+  });
+});
 
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 require("isomorphic-fetch");
@@ -139,7 +247,6 @@ const commandLineArgs = require("command-line-args");
 
 let metricsRate = "1MinuteRate";
 
-const exp = require("express");
 const shell = require("shelljs");
 const JSONParse = require("json-parse-safe");
 
@@ -149,7 +256,7 @@ const deepcopy = require("deep-copy");
 const sizeof = require("object-sizeof");
 const writeJsonFile = require("write-json-file");
 
-const session = require("express-session");
+const expressSession = require("express-session");
 const MongoDBStore = require("express-session-mongo");
 
 const slackOAuthAccessToken = "xoxp-3708084981-3708084993-206468961315-ec62db5792cd55071a51c544acf0da55";
@@ -249,6 +356,7 @@ statsObj.currentThreeceeUser = configuration.threeceeUsers[0];
 const Twit = require("twit");
 
 let threeceeTwitter = {};
+threeceeTwitter.config = {};
 
 if (process.env.MIN_FOLLOWERS_AUTO !== undefined) {
   configuration.minFollowersAuto = parseInt(process.env.MIN_FOLLOWERS_AUTO);
@@ -421,7 +529,6 @@ let bestNetworkObj = false;
 let maxInputHashMap = false;
 let normalization = false;
 
-const passport = require("passport");
 
 let twitterUserThreecee = {
     nodeId : "14607119",
@@ -5481,9 +5588,40 @@ function initAppRouting(callback) {
 
   console.log(chalkInfo(getTimeStamp() + " | INIT APP ROUTING"));
 
-  app.use(bodyParser.urlencoded({ extended: false }));
+  app.post("/login",
+    passport.authenticate("local", { 
+      successRedirect: "/session",
+      failureRedirect: "/login"
+    })
+  );
+  // if (
+  //   (threeceeTwitter.altthreecee00 !== undefined) 
+  //   && threeceeTwitter.altthreecee00.ready)
+  // { 
+  // app.use(express.cookieParser());
+  // app.use(express.bodyParser());
+  // app.use(express.session({ secret: "12345678" }));
+  // //Below two lines are required to initialize passport
+  // app.use(passport.initialize());
+  // app.use(passport.session());//this should come after express-session  
+  //                             //to ensure login session is restored in correct order
+  // passport.use(new TwitterStrategy({
+  //     consumerKey: altthreecee00config.consumer_key,
+  //     consumerSecret: altthreecee00config.consumer_secret,
+  //     callbackURL: TWITTER_AUTH_CALLBACK_URL
+  //   },
+  //   function(token, tokenSecret, profile, cb) {
+  //     User.findOrCreate({ twitterId: profile.id }, function (err, user) {
+  //       return cb(err, user);
+  //     });
+  //   }
+  // ));
+
+  // }
+
+  // app.use(bodyParser.urlencoded({ extended: false }));
   app.use(methodOverride());
-  app.use(exp.static(__dirname + "/public"));
+  // app.use(exp.static(__dirname + "/public"));
 
   app.use(function requestLog(req, res, next) {
 
@@ -5625,34 +5763,34 @@ function initAppRouting(callback) {
   });
 
   // serialize and deserialize
-  passport.serializeUser(function(nodeId, done) {
-    console.log(chalkAlert("SERIALIZE USER: " + nodeId));
-    done(null, nodeId);
-  });
+  // passport.serializeUser(function(nodeId, done) {
+  //   console.log(chalkAlert("SERIALIZE USER: " + nodeId));
+  //   done(null, nodeId);
+  // });
 
-  passport.deserializeUser(function(userObj, done) {
+  // passport.deserializeUser(function(userObj, done) {
 
-    console.log(chalkAlert("DESERIALIZE USER: @" + userObj.screenName));
+  //   console.log(chalkAlert("DESERIALIZE USER: @" + userObj.screenName));
 
-    userServerController.findOne({ user: userObj}, function(err, user){
+  //   userServerController.findOne({ user: userObj}, function(err, user){
 
-      console.log(chalkAlert("DESERIALIZED USER: @" + user.screenName));
+  //     console.log(chalkAlert("DESERIALIZED USER: @" + user.screenName));
 
-      if (!err) {
-        done(null, user);
-      }
-      else {
-        done(err, null);
-      }
+  //     if (!err) {
+  //       done(null, user);
+  //     }
+  //     else {
+  //       done(err, null);
+  //     }
 
-    });
-  });
+  //   });
+  // });
 
-  app.use(exp.static("./"));
-  app.use(exp.static("./js"));
-  app.use(exp.static("./css"));
-  app.use(exp.static("./node_modules"));
-  app.use(exp.static("./public/assets/images"));
+  app.use(express.static("./"));
+  app.use(express.static("./js"));
+  app.use(express.static("./css"));
+  app.use(express.static("./node_modules"));
+  app.use(express.static("./public/assets/images"));
 
   const adminHtml = __dirname + "/admin/admin.html";
 
@@ -5664,7 +5802,7 @@ function initAppRouting(callback) {
     ));
     res.sendFile(adminHtml, function responseAdmin(err) {
       if (err) {
-        console.log(chalkError("GET /session ERROR:"
+        console.log(chalkError("GET /admin ERROR:"
           + " | " + getTimeStamp()
           + " | " + req.url
           + " | " + adminHtml
@@ -5675,6 +5813,33 @@ function initAppRouting(callback) {
         debug(chalkInfo("SENT:", adminHtml));
       }
     });
+  });
+
+  const loginHtml = __dirname + "/login.html";
+
+  app.get("/login", function requestSession(req, res, next) {
+
+    debug(chalkInfo("get next\n" + next));
+
+    console.log(chalkLog("LOADING PAGE"
+      + " | REQ: " + req.url
+      + " | RES: " + loginHtml
+    ));
+
+    res.sendFile(loginHtml, function responseSession(err) {
+      if (err) {
+        console.log(chalkError("GET /login ERROR:"
+          + " | " + getTimeStamp()
+          + " | " + req.url
+          + " | " + loginHtml
+          + " | " + err
+        ));
+      } 
+      else {
+        debug(chalkInfo("SENT:", loginHtml));
+      }
+    });
+
   });
 
   const sessionHtml = __dirname + "/sessionModular.html";
@@ -5740,20 +5905,29 @@ function initAppRouting(callback) {
     console.log(chalkAlert("PASSPORT AUTH TWITTER ERROR"));
   });
 
-  app.get("/auth/twitter",
-    passport.authenticate("twitter"),
-    function(req, res){
-      console.log(chalk.green("PASSPORT AUTH TWITTER"
-        + " | req.query: " + jsonPrint(req.query)
-        + " | req.params: " + jsonPrint(req.params)
-      ));
-    });
+  // app.get("/auth/twitter",
+  //   passport.authenticate("twitter"),
+  //   function(req, res){
+  //     console.log(chalk.green("PASSPORT AUTH TWITTER"
+  //       + " | req.query: " + jsonPrint(req.query)
+  //       + " | req.params: " + jsonPrint(req.params)
+  //     ));
+  //   });
 
-  app.get("/auth/twitter/callback",
-    passport.authenticate("twitter", { successRedirect: "/account", failureRedirect: "/auth/twitter/error" }),
-    function(req, res) {
-      console.log(chalk.green("PASSPORT AUTH TWITTER CALLBACK"));
-    });
+  // app.get("/auth/twitter/callback",
+  //   passport.authenticate("twitter", { successRedirect: "/account", failureRedirect: "/auth/twitter/error" }),
+  //   function(req, res) {
+  //     console.log(chalk.green("PASSPORT AUTH TWITTER CALLBACK"));
+  //   });
+// app.get("/auth/twitter",
+//   passport.authenticate("twitter"));
+
+// app.get("/auth/twitter/callback", 
+//   passport.authenticate("twitter", { failureRedirect: "/login" }),
+//   function(req, res) {
+//     // Successful authentication, redirect home.
+//     res.redirect("/");
+//   });
 
   app.get("/logout", function(req, res){
     req.logout();
@@ -7155,6 +7329,9 @@ function initThreeceeTwitterUsers(params, callback){
             + "\nCONFIG\n" + jsonPrint(twitterConfig)
           ));
 
+          threeceeTwitter[user].config = {};
+          threeceeTwitter[user].config = twitterConfig;
+
           threeceeTwitter[user].twit = new Twit(twitterConfig);
           threeceeTwitter[user].ready = true;
           threeceeTwitter[user].status = false;
@@ -7282,9 +7459,7 @@ function twitterGetUserUpdateDb(user, callback){
               ));
 
               callback(null, updatedUser);
-
             });
-
           });
         }
         else {

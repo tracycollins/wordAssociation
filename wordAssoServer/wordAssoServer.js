@@ -1020,7 +1020,7 @@ wordAssoDb.connect(dbAppName, function(err, db) {
   statsObj.user.uncategorizedAuto = 0;
   statsObj.user.mismatched = 0;
   statsObj.user.uncategorizedManualUserArray = 0;
-  
+
   updateUserSets();
   initUpdateUserSetsInterval(ONE_MINUTE);
 
@@ -4974,43 +4974,43 @@ function updateUserSets(callback){
   userCollection.countDocuments(function(err, count){
     if (err) { throw Error; }
     statsObj.user.total = count;
-    console.log(chalkAlert("GRAND TOTAL USERS IN DB: " + statsObj.user.total));
+    console.log(chalkBlue("GRAND TOTAL USERS IN DB: " + statsObj.user.total));
   });
 
   userCollection.countDocuments({"following": true}, function(err, count){
     if (err) { throw Error; }
     statsObj.user.following = count;
-    console.log(chalkAlert("TOTAL FOLLOWING USERS IN DB: " + statsObj.user.following));
+    console.log(chalkBlue("TOTAL FOLLOWING USERS IN DB: " + statsObj.user.following));
   });
 
   userCollection.countDocuments({"following": false}, function(err, count){
     if (err) { throw Error; }
     statsObj.user.notFollowing = count;
-    console.log(chalkAlert("TOTAL NOT FOLLOWING USERS IN DB: " + statsObj.user.notFollowing));
+    console.log(chalkBlue("TOTAL NOT FOLLOWING USERS IN DB: " + statsObj.user.notFollowing));
   });
 
   userCollection.countDocuments({category: { "$nin": [ false, "false", null ] }}, function(err, count){
     if (err) { throw Error; }
     statsObj.user.categorizedManual = count;
-    console.log(chalkAlert("TOTAL CATEGORIZED MANAUL USERS IN DB: " + statsObj.user.categorizedManual));
+    console.log(chalkBlue("TOTAL CATEGORIZED MANUAL USERS IN DB: " + statsObj.user.categorizedManual));
   });
 
   userCollection.countDocuments({category: { "$in": [ false, "false", null ] }}, function(err, count){
     if (err) { throw Error; }
     statsObj.user.uncategorizedManual = count;
-    console.log(chalkAlert("TOTAL UNCATEGORIZED MANAUL USERS IN DB: " + statsObj.user.uncategorizedManual));
+    console.log(chalkBlue("TOTAL UNCATEGORIZED MANUAL USERS IN DB: " + statsObj.user.uncategorizedManual));
   });
 
   userCollection.countDocuments({categoryAuto: { "$nin": [ false, "false", null ] }}, function(err, count){
     if (err) { throw Error; }
     statsObj.user.categorizedAuto = count;
-    console.log(chalkAlert("TOTAL CATEGORIZED AUTO USERS IN DB: " + statsObj.user.categorizedAuto));
+    console.log(chalkBlue("TOTAL CATEGORIZED AUTO USERS IN DB: " + statsObj.user.categorizedAuto));
   });
 
   userCollection.countDocuments({categoryAuto: { "$in": [ false, "false", null ] }}, function(err, count){
     if (err) { throw Error; }
     statsObj.user.uncategorizedAuto = count;
-    console.log(chalkAlert("TOTAL UNCATEGORIZED AUTO USERS IN DB: " + statsObj.user.uncategorizedAuto));
+    console.log(chalkBlue("TOTAL UNCATEGORIZED AUTO USERS IN DB: " + statsObj.user.uncategorizedAuto));
   });
 
   const followingSearchQuery = {following: true};
@@ -5626,17 +5626,17 @@ function initAppRouting(callback) {
 
   // serialize and deserialize
   passport.serializeUser(function(nodeId, done) {
-    debug(chalkInfo("SERIALIZE USER: " + nodeId));
+    console.log(chalkAlert("SERIALIZE USER: " + nodeId));
     done(null, nodeId);
   });
 
   passport.deserializeUser(function(userObj, done) {
 
-    debug(chalkInfo("DESERIALIZE USER: @" + userObj.screenName));
+    console.log(chalkAlert("DESERIALIZE USER: @" + userObj.screenName));
 
     userServerController.findOne({ user: userObj}, function(err, user){
 
-      debug(chalkInfo("DESERIALIZED USER: @" + user.screenName));
+      console.log(chalkAlert("DESERIALIZED USER: @" + user.screenName));
 
       if (!err) {
         done(null, user);
@@ -5702,7 +5702,7 @@ function initAppRouting(callback) {
 
   function ensureAuthenticated(req, res, next) {
     if (req.isAuthenticated()) { 
-      console.log(chalk.green("PASSPORT TWITTER AUTHENTICATED"));
+      console.log(chalkAlert("PASSPORT TWITTER AUTHENTICATED"));
       slackPostMessage(slackChannel, "PASSPORT TWITTER AUTHENTICATED");
       return next();
     }
@@ -5712,7 +5712,7 @@ function initAppRouting(callback) {
 
   app.get("/account", ensureAuthenticated, function(req, res){
 
-    debug(chalkError("PASSPORT TWITTER AUTH USER\n" + jsonPrint(req.session.passport.user)));  // handle errors
+    console.log(chalkError("PASSPORT TWITTER AUTH USER\n" + jsonPrint(req.session.passport.user)));  // handle errors
     console.log(chalkError("PASSPORT TWITTER AUTH USER"
       // + " | SID: " + util.inspect(req, {showHidden:false, depth:1})
       + " | @" + req.session.passport.user.screenName

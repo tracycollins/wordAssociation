@@ -157,12 +157,14 @@ passport.use(new TwitterStrategy({
 
     console.log(chalkAlert("TWITTER AUTH\nprofile\n" + jsonPrint(profile)));
 
+    const rawUser = profile._json;
 
-    userServerController.convertRawUser({user:profile}, function(err, user){
+
+    userServerController.convertRawUser({user:rawUser}, function(err, user){
 
       if (err) {
-        console.log(chalkError("*** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nprofile\n" + jsonPrint(profile)));
-        return callback("RAW USER", profile);
+        console.log(chalkError("*** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
+        return callback("RAW USER", rawUser);
       }
 
       printUserObj("TWITTER AUTH USER", user);

@@ -212,10 +212,6 @@ passport.use(new LocalStrategy(
         console.log(chalkAlert("*** LOGIN FAILED | USER NOT FOUND *** | " + username));
         return done(null, false, { message: 'Incorrect username.' });
       }
-      // if (!user.validPassword(password)) {
-      //   console.log(chalkAlert("*** LOGIN FAILED | INVALID PASSWORD *** | " + username));
-      //   return done(null, false, { message: 'Incorrect password.' });
-      // }
       if ((user.screenName !== "threecee") || (password !== "what")) {
         console.log(chalkAlert("*** LOGIN FAILED | INVALID PASSWORD *** | " + username));
         return done(null, false, { message: 'Incorrect password.' });
@@ -252,13 +248,11 @@ let metricsRate = "1MinuteRate";
 const shell = require("shelljs");
 const JSONParse = require("json-parse-safe");
 
-// const bodyParser = require("body-parser");
 const methodOverride = require("method-override");
 const deepcopy = require("deep-copy");
 const sizeof = require("object-sizeof");
 const writeJsonFile = require("write-json-file");
 
-// const expressSession = require("express-session");
 const MongoDBStore = require("express-session-mongo");
 
 const slackOAuthAccessToken = "xoxp-3708084981-3708084993-206468961315-ec62db5792cd55071a51c544acf0da55";
@@ -1991,7 +1985,7 @@ function loadFile(path, file, callback) {
         let payload = data.fileBinary;
 
         if (!payload || (payload === undefined)) {
-          return callback(new Error("TFE LOAD FILE PAYLOAD UNDEFINED"), null);
+          return callback(new Error("WA LOAD FILE PAYLOAD UNDEFINED"), null);
         }
 
         const fileObj = JSONParse(payload);
@@ -4047,6 +4041,7 @@ function initSocketHandler(socketObj) {
       case "TSS" :
       case "TUS" :
       case "LA" :
+      case "TMP" :
 
         console.log(chalkLog("R< KA"
           + " | " + currentSessionType + " SERVER" 

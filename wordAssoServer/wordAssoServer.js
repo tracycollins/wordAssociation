@@ -4327,10 +4327,10 @@ function initSocketHandler(socketObj) {
 
 
     userServerController.findOne({user: defaultTwitterUser}, function(err, user){
-      if (err) {
-        socket.emit("SET_TWITTER_USER", defaultTwitterUser);
-      }
-      else {
+      // if (err) {
+      //   socket.emit("SET_TWITTER_USER", defaultTwitterUser);
+      // }
+      if (!err && user) {
         socket.emit("SET_TWITTER_USER", user);
       }
 
@@ -5759,30 +5759,6 @@ function initAppRouting(callback) {
     }
   });
 
-  // serialize and deserialize
-  // passport.serializeUser(function(nodeId, done) {
-  //   console.log(chalkAlert("SERIALIZE USER: " + nodeId));
-  //   done(null, nodeId);
-  // });
-
-  // passport.deserializeUser(function(userObj, done) {
-
-  //   console.log(chalkAlert("DESERIALIZE USER: @" + userObj.screenName));
-
-  //   userServerController.findOne({ user: userObj}, function(err, user){
-
-  //     console.log(chalkAlert("DESERIALIZED USER: @" + user.screenName));
-
-  //     if (!err) {
-  //       done(null, user);
-  //     }
-  //     else {
-  //       done(err, null);
-  //     }
-
-  //   });
-  // });
-
   app.use(express.static("./"));
   app.use(express.static("./js"));
   app.use(express.static("./css"));
@@ -5888,12 +5864,16 @@ function initAppRouting(callback) {
         console.log(chalkError("*** ERROR TWITTER AUTHENTICATION: " + jsonPrint(err)));  // handle errors
         res.redirect("/504.html");
       } 
-      else {
+      else if (user) {
         console.log(chalk.green("TWITTER USER AUTHENTICATED: @" + user.screenName));  // handle errors
         slackPostMessage(slackChannel, "USER AUTH: @" + user.screenName);
         authenticatedTwitterUserCache.set(user.nodeId, user);
         res.redirect("/after-auth.html");
-
+      }
+      else {
+        console.log(chalkAlert("*** TWITTER USER AUTHENTICATE FAILED"
+          + " | @" + req.session.passport.user.screenName + " NOT FOUND"));
+        res.redirect("/504.html");
       }
     });
   });

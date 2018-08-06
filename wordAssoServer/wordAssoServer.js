@@ -3162,7 +3162,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
 
   initAppRouting(function initAppRoutingComplete() {
 
-    initSocketNamespaces();
+    // initSocketNamespaces();
     initLoadBestNetworkInterval(ONE_MINUTE+1);
 
   });
@@ -3210,6 +3210,8 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
     console.log(chalkError("*** WSC ERROR | " + err));
   });
 
+
+  initSocketNamespaces();
 
   initCategoryHashmapsReady = false;
 
@@ -4343,6 +4345,7 @@ function initSocketHandler(socketObj) {
       );
   
     });
+
   });
 
   socket.on("tweet", function(tweet){

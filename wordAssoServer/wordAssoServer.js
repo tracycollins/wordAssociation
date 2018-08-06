@@ -2855,12 +2855,6 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
     + " | ERROR: " + jsonPrint(childObj.err)
   ));
 
-  // if (childrenHashMap[childObj.childId] === undefined){
-  //   childrenHashMap[childObj.childId] = {};
-  //   childrenHashMap[childObj.childId].errors = 0;
-  //   childrenHashMap[childObj.childId].status = "UNKNOWN";
-  // }
-
   if (childrenHashMap[childObj.childId] !== undefined){
     childrenHashMap[childObj.childId].errors += 1;
     childrenHashMap[childObj.childId].status = "UNKNOWN";
@@ -2876,22 +2870,12 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
       console.log(chalkError("KILL TWEET PARSER"));
 
       killChild({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, numKilled){
-        // initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
         initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, twp){
           if (!err) { tweetParser = twp; }
         });
       });
 
     break;
-
-    // case DEFAULT_SORTER_CHILD_ID:
-    //   console.log(chalkError("KILL SORTER"));
-
-    //   killChild({childId: DEFAULT_SORTER_CHILD_ID}, function(err, numKilled){
-    //     initSorter({childId: DEFAULT_SORTER_CHILD_ID});
-    //   });
-
-    // break;
 
   }
 });
@@ -3345,10 +3329,6 @@ function categorizeNode(categorizeObj, callback) {
               obj: categorizedUserHashMap.entries()
             });
 
-          // const text = "CATEGORIZE"
-          //   + "\n@" + categorizeObj.node.screenName 
-          //   + ": " + categorizeObj.category;
-
           slackPostMessage(slackChannel, "CATEGORIZE" + "\n@" + categorizeObj.node.screenName + ": " + categorizeObj.category );
 
           debug(chalkLog("UPDATE_CATEGORY USER | @" + updatedUser.screenName ));
@@ -3402,10 +3382,6 @@ function categorizeNode(categorizeObj, callback) {
             updatedHashtag.nodeId, 
             { manual: updatedHashtag.category, auto: updatedHashtag.categoryAuto });
 
-          // const text = "CATEGORIZE"
-          //   + "\n#" + categorizeObj.node.nodeId.toLowerCase() + ": " + categorizeObj.category;
-
-          // slackPostMessage(slackChannel, text);
           slackPostMessage(slackChannel, "CATEGORIZE" + "\n@" + categorizeObj.node.nodeId.toLowerCase() + ": " + categorizeObj.category );
 
           debug(chalkLog("UPDATE_CATEGORY HASHTAG | #" + updatedHashtag.nodeId ));
@@ -3535,9 +3511,6 @@ function follow(params, callback) {
   });
 
   console.log(chalk.blue("+++ FOLLOW | @" + params.user.screenName));
-
-  // adminNameSpace.emit("FOLLOW", params.user);
-  // utilNameSpace.emit("FOLLOW", params.user);
 
   if (callback !== undefined) { callback(null, null); }
 }
@@ -4870,16 +4843,14 @@ function autoFollowUser(params, callback){
       + " | FOLLOWING: " + params.user.following
       + " | 3C FOLLOW: " + params.user.threeceeFollowing
       + " | FLWRs: " + params.user.followersCount
-      // + "\nDESCRIPTION: " + params.user.description
     ));
 
-    const text = "*WAS | AUTO FOLLOW*"
-      + "\n@" + params.user.screenName
-      + "\nNAME: " + params.user.name
-      + "\nID: " + params.user.userId
+    const text = "*WAS*"
+      + "\n*AUTO FOLLOW*"
+      + "\n@" + params.user.screenName + " | " + params.user.name
+      // + "\nID: " + params.user.userId
       + "\nFLWRs: " + params.user.followersCount
       + "\n3C @" + params.user.threeceeFollowing;
-      // + "\nDESC: " + params.user.description;
 
     slackPostMessage(slackChannelAutoFollow, text);
 
@@ -7764,7 +7735,6 @@ initialize(function initializeComplete(err) {
 
     initStatsInterval(configuration.statsUpdateInterval);
     initCheckTwitterRateLimitInterval(configuration.checkTwitterRateLimitInterval);
-    // initUpdateTrendsInterval(configuration.updateTrendsInterval);
 
     slackPostMessage(slackChannel, "\n*INIT* | " + hostname + "\n");
 

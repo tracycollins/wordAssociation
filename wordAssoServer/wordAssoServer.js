@@ -4841,6 +4841,8 @@ function autoFollowUser(params, callback){
     return;
   }
 
+  unfollowableUserSet.add(params.user.nodeId);
+
   console.log(chalkUser("AUTO FOLLOW USER"
     + " | MIN: " + configuration.minFollowersAuto
     + "\n" + printUser({user:params.user})
@@ -4848,11 +4850,13 @@ function autoFollowUser(params, callback){
 
   follow({user: params.user}, function(err, results){
     if (err) {
+
+      unfollowableUserSet.delete(params.user.nodeId);
+
       if (callback !== undefined) { return callback(err, params); }
       return;
     }
 
-    unfollowableUserSet.add(params.user.nodeId);
 
     adminNameSpace.emit("FOLLOW", params.user);
     utilNameSpace.emit("FOLLOW", params.user);

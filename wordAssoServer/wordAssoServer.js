@@ -1220,7 +1220,15 @@ function msToTime(duration) {
   return days + ":" + hours + ":" + minutes + ":" + seconds;
 }
 
+let previousSlackMessage = "";
+
 function slackPostMessage(channel, text, callback){
+
+  if (text === previousSlackMessage) {
+    console.log(chalkInfo("XXX DUPLICATE SLACK MESSAGE \nTEXT: " + text));
+    if (callback !== undefined) { callback(null, null); }
+    return;
+  }
 
   debug(chalkInfo("SLACK POST: " + text));
 
@@ -4819,6 +4827,19 @@ let userFollowable = function(user){
 };
 
 function autoFollowUser(params, callback){
+
+  if (unfollowableUserSet.has(params.user.nodeId)){
+
+    console.log(chalkInfo("XXX AUTO FOLLOW USER | IN UNFOLLOWABLE SET"
+      + "\n" + printUser({user:params.user})
+    ));
+
+    if (callback !== undefined) { 
+      return callback(null, null);
+    }
+
+    return;
+  }
 
   console.log(chalkUser("AUTO FOLLOW USER"
     + " | MIN: " + configuration.minFollowersAuto

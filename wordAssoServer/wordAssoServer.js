@@ -1054,124 +1054,144 @@ const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
 const dbAppName = "WA_" + process.pid;
 
-wordAssoDb.connect(dbAppName, function(err, db) {
 
-  if (err) {
-    console.log(chalkError("*** WA | MONGO DB CONNECTION ERROR"
-      + " | DB APP NAME: " + dbAppName
-      + " | ERROR: " + err
-    ));
-    configEvents.emit("DB_ERROR", err);
-    return;
+function connectDb(callback){
+
+  wordAssoDb.connect(dbAppName, function(err, db) {
+
+    if (err) {
+      console.log(chalkError("*** WA | MONGO DB CONNECTION ERROR"
+        + " | DB APP NAME: " + dbAppName
+        + " | ERROR: " + err
+      ));
+      configEvents.emit("DB_ERROR", err);
+      return callback(false);
+    }
+
+    db.on("error", function(err){
+      console.log(chalkError("*** WA | MONGO DB ERROR"
+        + " | DB APP NAME: " + dbAppName
+        + " | ERROR: " + err
+      ));
+      dbConnectionReady = false;
+      statsObj.dbConnectionReady = false;
+      configEvents.emit("DB_ERROR", err);
+    });
+
+    db.on("timeout", function(){
+      console.log(chalkError("*** WA | MONGO DB TIMEOUT"
+        + " | " + getTimeStamp()
+        + " | DB APP NAME: " + dbAppName
+      ));
+      dbConnectionReady = false;
+      statsObj.dbConnectionReady = false;
+      configEvents.emit("DB_ERROR", "timeout");
+    });
+
+    db.on("disconnected", function(){
+      console.log(chalkError("*** WA | MONGO DB DISCONNECTED"
+        + " | " + getTimeStamp()
+        + " | DB APP NAME: " + dbAppName
+      ));
+      dbConnectionReady = false;
+      statsObj.dbConnectionReady = false;
+      configEvents.emit("DB_DISCONNECT");
+    });
+
+    Emoji = mongoose.model("Emoji", emojiModel.EmojiSchema);
+    Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
+    Media = mongoose.model("Media", mediaModel.MediaSchema);
+    NeuralNetwork = mongoose.model("NeuralNetwork", neuralNetworkModel.NeuralNetworkSchema);
+    Place = mongoose.model("Place", placeModel.PlaceSchema);
+    Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
+    Url = mongoose.model("Url", urlModel.UrlSchema);
+    User = mongoose.model("User", userModel.UserSchema);
+    Word = mongoose.model("Word", wordModel.WordSchema);
+
+    console.log(chalkInfo("WA | DB READY STATE: " + db.readyState));
+
+    console.log(chalk.bold.green("WA | MONGOOSE DEFAULT CONNECTION OPEN"));
+
+
+    global.dbConnection = db;
+
+    dbConnectionReady = true;
+    statsObj.dbConnectionReady = true;
+
+    statsObj.user = {};
+    statsObj.user.total = 0;
+    statsObj.user.following = 0;
+    statsObj.user.notFollowing = 0;
+    statsObj.user.categorizedTotal = 0;
+    statsObj.user.categorizedManual = 0;
+    statsObj.user.categorizedAuto = 0;
+    statsObj.user.uncategorizedTotal = 0;
+    statsObj.user.uncategorizedManual = 0;
+    statsObj.user.uncategorizedAuto = 0;
+    statsObj.user.mismatched = 0;
+    statsObj.user.uncategorizedManualUserArray = 0;
+
+    updateUserSets();
+    initUpdateUserSetsInterval(ONE_MINUTE);
+
+    const neuralNetworkCollection = db.collection("neuralnetworks");
+
+    neuralNetworkCollection.countDocuments(function(err, count){
+      if (err) { throw Error; }
+      console.log(chalkAlert("NEURAL NETWORKS IN DB: " + count));
+    });
+
+    const filterNetwork = {
+      $match: {
+        $or: [{ operationType: "insert" },{ operationType: "delete" },{ operationType: "update" },{ operationType: "replace" }]
+      }
+    };
+    const optionsNetwork = { fullDocument: "updateLookup" };
+
+    const neuralNetworkChangeStream = neuralNetworkCollection.watch([filterNetwork], optionsNetwork);
+
+    neuralNetworkChangeStream.on("change", function(change){
+      if (change && change.fullDocument) { 
+        const nn = networkDefaults(change.fullDocument); 
+        printNetworkObj("--> NN   CHANGE | " +  change.operationType, nn);
+      }
+      else {
+        console.log(chalkAlert("--> NN   CHANGE | " +  change.operationType));
+      }
+    });
+
+    callback(true);
+    configEvents.emit("DB_CONNECT");
+  });
+}
+
+let dbConnectInterval;
+statsObj.dbConnectBusy = false;
+
+dbConnectInterval = setInterval(function(){
+
+  if (!statsObj.dbConnectionReady && !statsObj.dbConnectBusy) {
+
+    statsObj.dbConnectBusy = true;
+
+    connectDb(function(connected){
+      statsObj.dbConnectBusy = false;
+      statsObj.dbConnectionReady = connected;
+    });
+
   }
 
-  db.on("error", function(err){
-    console.log(chalkError("*** WA | MONGO DB ERROR"
-      + " | DB APP NAME: " + dbAppName
-      + " | ERROR: " + err
-    ));
-    dbConnectionReady = false;
-    statsObj.dbConnectionReady = false;
-    configEvents.emit("DB_ERROR", err);
-  });
+}, 10*ONE_SECOND);
 
-  db.on("timeout", function(){
-    console.log(chalkError("*** WA | MONGO DB TIMEOUT"
-      + " | " + getTimeStamp()
-      + " | DB APP NAME: " + dbAppName
-    ));
-    dbConnectionReady = false;
-    statsObj.dbConnectionReady = false;
-    configEvents.emit("DB_ERROR", "timeout");
-  });
-
-  db.on("disconnected", function(){
-    console.log(chalkError("*** WA | MONGO DB DISCONNECTED"
-      + " | " + getTimeStamp()
-      + " | DB APP NAME: " + dbAppName
-    ));
-    dbConnectionReady = false;
-    statsObj.dbConnectionReady = false;
-    configEvents.emit("DB_DISCONNECT");
-  });
-
-  Emoji = mongoose.model("Emoji", emojiModel.EmojiSchema);
-  Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
-  Media = mongoose.model("Media", mediaModel.MediaSchema);
-  NeuralNetwork = mongoose.model("NeuralNetwork", neuralNetworkModel.NeuralNetworkSchema);
-  Place = mongoose.model("Place", placeModel.PlaceSchema);
-  Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
-  Url = mongoose.model("Url", urlModel.UrlSchema);
-  User = mongoose.model("User", userModel.UserSchema);
-  Word = mongoose.model("Word", wordModel.WordSchema);
-
-  console.log(chalkInfo("WA | DB READY STATE: " + db.readyState));
-
-  console.log(chalk.bold.green("WA | MONGOOSE DEFAULT CONNECTION OPEN"));
-
-
-  global.dbConnection = db;
-
-  dbConnectionReady = true;
-  statsObj.dbConnectionReady = true;
-
-  statsObj.user = {};
-  statsObj.user.total = 0;
-  statsObj.user.following = 0;
-  statsObj.user.notFollowing = 0;
-  statsObj.user.categorizedTotal = 0;
-  statsObj.user.categorizedManual = 0;
-  statsObj.user.categorizedAuto = 0;
-  statsObj.user.uncategorizedTotal = 0;
-  statsObj.user.uncategorizedManual = 0;
-  statsObj.user.uncategorizedAuto = 0;
-  statsObj.user.mismatched = 0;
-  statsObj.user.uncategorizedManualUserArray = 0;
-
-  updateUserSets();
-  initUpdateUserSetsInterval(ONE_MINUTE);
-
-  const neuralNetworkCollection = db.collection("neuralnetworks");
-
-  neuralNetworkCollection.countDocuments(function(err, count){
-    if (err) { throw Error; }
-    console.log(chalkAlert("NEURAL NETWORKS IN DB: " + count));
-  });
-
-  const filterNetwork = {
-    $match: {
-      $or: [{ operationType: "insert" },{ operationType: "delete" },{ operationType: "update" },{ operationType: "replace" }]
-    }
-  };
-  const optionsNetwork = { fullDocument: "updateLookup" };
-
-  const neuralNetworkChangeStream = neuralNetworkCollection.watch([filterNetwork], optionsNetwork);
-
-  neuralNetworkChangeStream.on("change", function(change){
-    if (change && change.fullDocument) { 
-      const nn = networkDefaults(change.fullDocument); 
-      printNetworkObj("--> NN   CHANGE | " +  change.operationType, nn);
-    }
-    else {
-      console.log(chalkAlert("--> NN   CHANGE | " +  change.operationType));
-    }
-  });
-
-
-  configEvents.emit("DB_CONNECT");
-});
 
 let HashtagServerController;
 let UserServerController;
-// let WordServerController;
 
 let hashtagServerController;
 let userServerController;
-// let wordServerController;
 
 let hashtagServerControllerReady = true;
 let userServerControllerReady = true;
-// let wordServerControllerReady = true;
 
 function toMegabytes(sizeInBytes) {
   return sizeInBytes/ONE_MEGABYTE;
@@ -3175,21 +3195,14 @@ configEvents.on("INTERNET_NOT_READY", function internetNotReady() {
 configEvents.on("DB_CONNECT", function configEventDbConnect(){
 
   HashtagServerController = require("@threeceelabs/hashtag-server-controller");
-  // HashtagServerController = require("../../hashtagServerController");
 
   UserServerController = require("@threeceelabs/user-server-controller");
-  // UserServerController = require("../../userServerController");
-
-  // WordServerController = require("@threeceelabs/word-server-controller");
-  // WordServerController = require("../../wordServerController");
 
   hashtagServerController = new HashtagServerController("WA_HSC");
   userServerController = new UserServerController("WA_USC");
-  // wordServerController = new WordServerController("WA_WSC");
 
   hashtagServerControllerReady = true;
   userServerControllerReady = true;
-  // wordServerControllerReady = true;
 
   hashtagServerController.on("error", function(err){
     hashtagServerControllerReady = false;
@@ -3201,13 +3214,10 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
     console.log(chalkError("*** USC ERROR | " + err));
   });
 
-  // wordServerController.on("error", function(err){
-  //   wordServerControllerReady = false;
-  //   console.log(chalkError("*** WSC ERROR | " + err));
-  // });
-
-
   initSocketNamespaces();
+
+  initUnfollowableUserSet();
+  initFollowableSearchTermSet();
 
   initCategoryHashmapsReady = false;
 
@@ -7722,8 +7732,8 @@ initialize(function initializeComplete(err) {
     debug(chalkLog("INITIALIZE COMPLETE"));
 
     initDropboxSync();
-    initUnfollowableUserSet();
-    initFollowableSearchTermSet();
+    // initUnfollowableUserSet();
+    // initFollowableSearchTermSet();
     initSaveFileQueue(configuration);
     initIgnoreWordsHashMap();
     initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});

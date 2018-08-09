@@ -395,11 +395,15 @@ const optionDefinitions = [
 
 function quit(message) {
 
-  console.log(chalkAlert("\n... QUITTING ..."));
+  console.log(chalkAlert("\n... QUITTING ... " + getTimeStamp()));
+  console.error(chalkAlert("\n... QUITTING ... " + getTimeStamp()));
+
   let msg = "";
   if (message) {msg = message;}
 
-  debug("QUIT MESSAGE: " + msg);
+  console.log(chalkAlert("\n... QUITTING ..."));
+  console.log(chalkAlert("QUIT MESSAGE: " + msg));
+  console.error(chalkAlert("QUIT MESSAGE: " + msg));
 
   setTimeout(function() {
 
@@ -1159,15 +1163,15 @@ wordAssoDb.connect(dbAppName, function(err, db) {
 
 let HashtagServerController;
 let UserServerController;
-let WordServerController;
+// let WordServerController;
 
 let hashtagServerController;
 let userServerController;
-let wordServerController;
+// let wordServerController;
 
 let hashtagServerControllerReady = true;
 let userServerControllerReady = true;
-let wordServerControllerReady = true;
+// let wordServerControllerReady = true;
 
 function toMegabytes(sizeInBytes) {
   return sizeInBytes/ONE_MEGABYTE;
@@ -3176,16 +3180,16 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
   UserServerController = require("@threeceelabs/user-server-controller");
   // UserServerController = require("../../userServerController");
 
-  WordServerController = require("@threeceelabs/word-server-controller");
+  // WordServerController = require("@threeceelabs/word-server-controller");
   // WordServerController = require("../../wordServerController");
 
   hashtagServerController = new HashtagServerController("WA_HSC");
   userServerController = new UserServerController("WA_USC");
-  wordServerController = new WordServerController("WA_WSC");
+  // wordServerController = new WordServerController("WA_WSC");
 
   hashtagServerControllerReady = true;
   userServerControllerReady = true;
-  wordServerControllerReady = true;
+  // wordServerControllerReady = true;
 
   hashtagServerController.on("error", function(err){
     hashtagServerControllerReady = false;
@@ -3197,10 +3201,10 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
     console.log(chalkError("*** USC ERROR | " + err));
   });
 
-  wordServerController.on("error", function(err){
-    wordServerControllerReady = false;
-    console.log(chalkError("*** WSC ERROR | " + err));
-  });
+  // wordServerController.on("error", function(err){
+  //   wordServerControllerReady = false;
+  //   console.log(chalkError("*** WSC ERROR | " + err));
+  // });
 
 
   initSocketNamespaces();

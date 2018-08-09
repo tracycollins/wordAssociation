@@ -115,6 +115,7 @@ const pick = require("object.pick");
 const config = require("./config/config");
 const os = require("os");
 const fs = require("fs");
+const retry = require("retry");
 const path = require("path");
 const async = require("async");
 const yaml = require("yamljs");
@@ -1138,7 +1139,7 @@ function connectDb(callback){
 
     neuralNetworkCollection.countDocuments(function(err, count){
       if (err) { throw Error; }
-      console.log(chalkAlert("NEURAL NETWORKS IN DB: " + count));
+      console.log(chalkInfo("NEURAL NETWORKS IN DB: " + count));
     });
 
     const filterNetwork = {
@@ -1922,11 +1923,12 @@ function loadCommandLineArgs(callback){
   });
 }
 
-function getFileMetadata(path, file, callback) {
+function getFileMetadata(params, callback) {
 
-  const fullPath = path + "/" + file;
-  debug(chalkInfo("FOLDER " + path));
-  debug(chalkInfo("FILE " + file));
+  const fullPath = params.folder + "/" + params.file;
+
+  debug(chalkInfo("FOLDER " + params.folder));
+  debug(chalkInfo("FILE " + params.file));
   debug(chalkInfo("getFileMetadata FULL PATH: " + fullPath));
 
   if (configuration.offlineMode) {
@@ -1939,7 +1941,7 @@ function getFileMetadata(path, file, callback) {
   dropboxClient.filesGetMetadata({path: fullPath})
     .then(function(response) {
       debug(chalkInfo("FILE META\n" + jsonPrint(response)));
-      return callback(null, response);
+      callback(null, response);
     })
     .catch(function(error) {
       console.log(chalkError("WA | DROPBOX getFileMetadata ERROR: " + fullPath + "\n" + error));
@@ -1957,8 +1959,34 @@ function getFileMetadata(path, file, callback) {
           + " ... NO INTERNET CONNECTION? ... SKIPPING ..."));
         return callback(null, null);
       }
-      return callback(error, null);
+      callback(error, null);
     });
+}
+
+function getFileMetadataRetry(params, callback) {
+
+  console.log(chalkAlert("getFileMetadataRetry | PARAMS\n" + jsonPrint(params)));
+
+  let operation = retry.operation();
+ 
+  operation.attempt(function(currentAttempt) {
+
+    debug(chalkAlert("getFileMetadataRetry"
+      + " | ATTEMPT NUM: " + currentAttempt
+      + "\nPARAMS\n" + jsonPrint(params)
+    ));
+
+    getFileMetadata(params, function(err, metaData) {
+
+      if (operation.retry(err)) {
+        return;
+      }
+ 
+      callback(err ? operation.mainError() : null, metaData);
+
+    });
+
+  });
 }
 
 function loadFile(path, file, callback) {
@@ -2071,13 +2099,13 @@ function loadConfigFile(params, callback) {
 
     const fullPath = folder + "/" + file;
 
-    getFileMetadata(folder, file, function(err, response){
+    getFileMetadataRetry({folder: folder, file: file}, function(err, metaData){
 
       if (err) {
         return callback(err);
       }
 
-      const fileModifiedMoment = moment(new Date(response.client_modified));
+      const fileModifiedMoment = moment(new Date(metaData.client_modified));
     
       if (fileModifiedMoment.isSameOrBefore(prevConfigFileModifiedMoment)){
 
@@ -6809,7 +6837,9 @@ function loadBestRuntimeNetwork(){
             });
           }
 
-          if (bestNetworkObj && (tweetParser !== undefined) && (statsObj.previousBestNetworkId !== bestNetworkObj.networkId)) {
+          if (bestNetworkObj 
+            && (tweetParser !== undefined) 
+            && (statsObj.previousBestNetworkId !== bestNetworkObj.networkId)) {
 
             if (bestNetworkObj) { statsObj.previousBestNetworkId = bestNetworkObj.networkId; }
 

@@ -73,7 +73,6 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
 
   TweetServerController = require("@threeceelabs/tweet-server-controller");
   tweetServerController = new TweetServerController("TWP");
-  // tweetServerControllerReady = true;
 
   tweetServerController.on("ready", function(err){
     tweetServerControllerReady = true;
@@ -422,13 +421,16 @@ process.on("message", function(m) {
         cb();
 
       }, function(){
+
         if (tweetServerController === undefined) {
           console.log(chalkAlert("TWP | *** TWEET SERVER CONTROLLER UNDEFINED ??? ON NETWORK OP"));
           return;
         }
+
         tweetServerController.loadNeuralNetwork({networkObj: cnf.networkObj}, function(){
           networkReady = true;
         });
+
       });
     break;
 

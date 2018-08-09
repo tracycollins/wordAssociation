@@ -1965,16 +1965,18 @@ function getFileMetadata(params, callback) {
 
 function getFileMetadataRetry(params, callback) {
 
-  console.log(chalkAlert("getFileMetadataRetry | PARAMS\n" + jsonPrint(params)));
+  debug(chalkAlert("getFileMetadataRetry | PARAMS\n" + jsonPrint(params)));
 
   let operation = retry.operation();
  
   operation.attempt(function(currentAttempt) {
 
-    debug(chalkAlert("getFileMetadataRetry"
-      + " | ATTEMPT NUM: " + currentAttempt
-      + "\nPARAMS\n" + jsonPrint(params)
-    ));
+    if (currentAttempt > 1) {
+      console.log(chalkAlert("getFileMetadataRetry"
+        + " | ATTEMPT NUM: " + currentAttempt
+        + "\nPARAMS\n" + jsonPrint(params)
+      ));
+    }
 
     getFileMetadata(params, function(err, metaData) {
 

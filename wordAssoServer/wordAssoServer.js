@@ -2401,8 +2401,6 @@ function saveFile (params, callback){
           + fullPath + " > " + options.destination
         ));
 
-        // const source = fs.createReadStream(fullPath);
-
         const stats = fs.statSync(fullPath);
         const fileSizeInBytes = stats.size;
         const savedSize = fileSizeInBytes/ONE_MEGABYTE;
@@ -2412,8 +2410,6 @@ function saveFile (params, callback){
           + " | " + savedSize.toFixed(2) + " MBYTES"
           + "\n SRC: " + fullPath
           + "\n DST: " + options.destination
-          // + " successMetadata\n" + jsonPrint(successMetadata)
-          // + " successMetadata\n" + jsonPrint(successMetadata)
         ));
 
         const drbx = require("@davvo/drbx")({

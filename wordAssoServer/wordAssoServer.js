@@ -106,6 +106,22 @@ const TRENDING_CACHE_CHECK_PERIOD = 60;
 const NODE_CACHE_DEFAULT_TTL = 60;
 const NODE_CACHE_CHECK_PERIOD = 5;
 
+const chalk = require("chalk");
+const chalkUser = chalk.blue;
+const chalkNetwork = chalk.black;
+const chalkTwitter = chalk.blue;
+const chalkConnect = chalk.black;
+const chalkSession = chalk.black;
+const chalkDisconnect = chalk.black;
+const chalkSocket = chalk.black;
+const chalkInfo = chalk.black;
+const chalkAlert = chalk.red;
+const chalkWarn = chalk.bold.yellow;
+const chalkError = chalk.bold.red;
+const chalkLog = chalk.gray;
+const chalkBlue = chalk.blue;
+
+
 
 const util = require("util");
 const _ = require("lodash");
@@ -262,21 +278,6 @@ const slackChannelAutoFollow = "#wasAuto";
 const slackErrorChannel = "#wasError";
 const Slack = require("slack-node");
 let slack = false;
-
-const chalk = require("chalk");
-const chalkUser = chalk.blue;
-const chalkNetwork = chalk.black;
-const chalkTwitter = chalk.blue;
-const chalkConnect = chalk.black;
-const chalkSession = chalk.black;
-const chalkDisconnect = chalk.black;
-const chalkSocket = chalk.black;
-const chalkInfo = chalk.black;
-const chalkAlert = chalk.red;
-const chalkWarn = chalk.bold.yellow;
-const chalkError = chalk.bold.red;
-const chalkLog = chalk.gray;
-const chalkBlue = chalk.blue;
 
 
 let configEvents = new EventEmitter2({

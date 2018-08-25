@@ -4489,9 +4489,9 @@ function processCheckCategory(nodeObj, callback){
     case "user":
       categorizedNodeHashMap = categorizedUserHashMap;
     break;
-    case "word":
-      categorizedNodeHashMap = categorizedWordHashMap;
-    break;
+    // case "word":
+    //   categorizedNodeHashMap = categorizedWordHashMap;
+    // break;
     default:
       return callback("NO CATEGORY HASHMAP: " + nodeObj.nodeType, null);
   }
@@ -4566,16 +4566,14 @@ function checkCategory(nodeObj, callback) {
     case "media":
     case "url":
     case "place":
+    case "word":
       callback(null, nodeObj);
     break;
 
     case "hashtag":
-    case "word":
     case "user":
       processCheckCategory(nodeObj, function(err, updatedNodeObj){
-        if (err) {
-          return callback(err, null);
-        }
+        if (err) { return callback(err, null); }
         callback(null, updatedNodeObj);
       });
     break;
@@ -4693,27 +4691,28 @@ function initUpdateTrendsInterval(interval){
 
 function updateNodeMeter(node, callback){
 
-
   const nodeType = node.nodeType;
 
-  if (!configuration.metrics.nodeMeterEnabled
-    || (
-        (nodeType !== "user") 
-      && (nodeType !== "hashtag") 
-      && (nodeType !== "emoji") 
-      && (nodeType !== "word") 
-      && (nodeType !== "url") 
-      && (nodeType !== "media") 
-      && (nodeType !== "place"))
-    ) 
-  {
-    callback(null, node);
-    return;
-  }
+  // if (!configuration.metrics.nodeMeterEnabled
+  //   || (
+  //       (nodeType !== "user") 
+  //     && (nodeType !== "hashtag") 
+  //     && (nodeType !== "emoji") 
+  //     && (nodeType !== "word") 
+  //     && (nodeType !== "url") 
+  //     && (nodeType !== "media") 
+  //     && (nodeType !== "place"))
+  //   ) 
+  // {
+  //   callback(null, node);
+  //   return;
+  // }
+
+  if (!configuration.metrics.nodeMeterEnabled) { return callback(null, node); }
 
   if (node.nodeId === undefined) {
     console.log(chalkError("NODE ID UNDEFINED\n" + jsonPrint(node)));
-    callback("NODE ID UNDEFINED", node);
+    return callback("NODE ID UNDEFINED", node);
   }
 
   let nodeObj = {};
@@ -5531,6 +5530,7 @@ function transmitNodes(tw, callback){
   }
 
   if (tw.user) {transmitNodeQueue.push(tw.user);}
+
   if (tw.place && configuration.enableTransmitPlace) {transmitNodeQueue.push(tw.place);}
 
   tw.userMentions.forEach(function userMentionsTxNodeQueue(user){
@@ -5538,27 +5538,32 @@ function transmitNodes(tw, callback){
   });
 
   tw.hashtags.forEach(function hashtagsTxNodeQueue(hashtag){
-    if (hashtag && configuration.enableTransmitHashtag) {transmitNodeQueue.push(hashtag);}
+    if (hashtag && configuration.enableTransmitHashtag) { transmitNodeQueue.push(hashtag); }
   });
 
-  tw.media.forEach(function mediaTxNodeQueue(media){
-    if (media && configuration.enableTransmitMedia) {transmitNodeQueue.push(media);}
-  });
+  if (configuration.enableTransmitMedia) {
+    tw.media.forEach(function mediaTxNodeQueue(media){
+      if (media) { transmitNodeQueue.push(media); }
+    });
+  }
 
-  tw.emoji.forEach(function emojiTxNodeQueue(emoji){
-    if (emoji && configuration.enableTransmitEmoji) {transmitNodeQueue.push(emoji);}
-  });
+  if (configuration.enableTransmitEmoji) {
+    tw.emoji.forEach(function emojiTxNodeQueue(emoji){
+      if (emoji) { transmitNodeQueue.push(emoji); }
+    });
+  }
 
-  tw.urls.forEach(function urlTxNodeQueue(url){
-    if (url && configuration.enableTransmitUrl) {transmitNodeQueue.push(url);}
-  });
+  if (configuration.enableTransmitUrl) {
+    tw.urls.forEach(function urlTxNodeQueue(url){
+      if (url) { transmitNodeQueue.push(url); }
+    });
+  }
 
-  tw.words.forEach(function wordsTxNodeQueue(word){
-    // if (word && !ignoreWordHashMap.has(word.nodeId)) { transmitNodeQueue.push(word); }
-    if (word && configuration.enableTransmitWord && categorizedWordHashMap.has(word.nodeId)) { 
-      transmitNodeQueue.push(word); 
-    }
-  });
+  if (configuration.enableTransmitWord) {
+    tw.words.forEach(function wordsTxNodeQueue(word){
+      if (word && categorizedWordHashMap.has(word.nodeId)) { transmitNodeQueue.push(word); }
+    });
+  }
 
 
   callback();
@@ -6073,59 +6078,59 @@ function initTwitterRxQueueInterval(interval){
   }, interval);
 }
 
-let htObj = {};
-let categoryObj = {};
+// let htObj = {};
+// let categoryObj = {};
 
-function initHashtagLookupQueueInterval(interval){
+// function initHashtagLookupQueueInterval(interval){
 
-  let hashtagLookupQueueReady = true;
+//   let hashtagLookupQueueReady = true;
 
-  console.log(chalk.bold.black("INIT HASHTAG LOOKUP QUEUE INTERVAL | " + msToTime(interval)));
+//   console.log(chalk.bold.black("INIT HASHTAG LOOKUP QUEUE INTERVAL | " + msToTime(interval)));
 
-  clearInterval(hashtagLookupQueueInterval);
+//   clearInterval(hashtagLookupQueueInterval);
 
-  hashtagLookupQueueInterval = setInterval(function hashtagLookupQueueDeQ() {
+//   hashtagLookupQueueInterval = setInterval(function hashtagLookupQueueDeQ() {
 
-    if ((hashtagLookupQueue.length > 0) && hashtagLookupQueueReady) {
+//     if ((hashtagLookupQueue.length > 0) && hashtagLookupQueueReady) {
 
-      hashtagLookupQueueReady = false;
+//       hashtagLookupQueueReady = false;
 
-      htObj = hashtagLookupQueue.shift();
+//       htObj = hashtagLookupQueue.shift();
 
 
-      hashtagServerController.findOne({hashtag: htObj}, function(err, hashtag){
-        if (err) {
-          console.log(chalkError("HASHTAG FIND ONE ERROR\n" + jsonPrint(err)));
-        }
-        else if (hashtag) { 
+//       hashtagServerController.findOne({hashtag: htObj}, function(err, hashtag){
+//         if (err) {
+//           console.log(chalkError("HASHTAG FIND ONE ERROR\n" + jsonPrint(err)));
+//         }
+//         else if (hashtag) { 
 
-          categoryObj = {};
+//           categoryObj = {};
 
-          categoryObj.manual = hashtag.category || false;
-          categoryObj.auto = hashtag.categoryAuto || false;
+//           categoryObj.manual = hashtag.category || false;
+//           categoryObj.auto = hashtag.categoryAuto || false;
 
-          categorizedHashtagHashMap.set(hashtag.nodeId.toLowerCase(), categoryObj); 
+//           categorizedHashtagHashMap.set(hashtag.nodeId.toLowerCase(), categoryObj); 
 
-          debug(chalkTwitter("+++ HT HIT "
-            + " | CM: " + printCat(hashtag.category)
-            + " | CA: " + printCat(hashtag.categoryAuto)
-            + " | #" + hashtag.nodeId.toLowerCase()
-          ));
-        }
-        else {
-          // debug(chalkTwitter("HASHTAG NOT FOUND: " + htObj.text));
-          debug(chalkTwitter("--- HT MISS"
-            + " | CM: " + printCat(htObj.category)
-            + " | CA: " + printCat(htObj.categoryAuto)
-            + " | #" + htObj.nodeId.toLowerCase()
-          ));
-        }
-        hashtagLookupQueueReady = true;
-      });
+//           debug(chalkTwitter("+++ HT HIT "
+//             + " | CM: " + printCat(hashtag.category)
+//             + " | CA: " + printCat(hashtag.categoryAuto)
+//             + " | #" + hashtag.nodeId.toLowerCase()
+//           ));
+//         }
+//         else {
+//           // debug(chalkTwitter("HASHTAG NOT FOUND: " + htObj.text));
+//           debug(chalkTwitter("--- HT MISS"
+//             + " | CM: " + printCat(htObj.category)
+//             + " | CA: " + printCat(htObj.categoryAuto)
+//             + " | #" + htObj.nodeId.toLowerCase()
+//           ));
+//         }
+//         hashtagLookupQueueReady = true;
+//       });
 
-    }
-  }, interval);
-}
+//     }
+//   }, interval);
+// }
 
 function findChildByPid(pid, callback){
 
@@ -7777,7 +7782,7 @@ initialize(function initializeComplete(err) {
 
     initTweetParserMessageRxQueueInterval(configuration.tweetParserMessageRxQueueInterval);
 
-    initHashtagLookupQueueInterval(configuration.hashtagLookupQueueInterval);
+    // initHashtagLookupQueueInterval(configuration.hashtagLookupQueueInterval);
 
     initTwitterSearchNodeQueueInterval(configuration.twitterSearchNodeQueueInterval);
 

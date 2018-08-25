@@ -72,16 +72,17 @@ function ViewTreepack() {
     "yellowgreen": "#738A05"
   };
 
-  var DEFAULT_MIN_RATE = 2.5;
+  var DEFAULT_MIN_RATE = 1.5;
   var minRate = DEFAULT_MIN_RATE;
 
   var DEFAULT_MIN_FOLLOWERS = 5000;
   var minFollowers = DEFAULT_MIN_FOLLOWERS;
 
   var DEFAULT_MIN_MENTIONS = 1000;
+
   var minMentions = DEFAULT_MIN_MENTIONS;
   var minMentionsUsers = DEFAULT_MIN_MENTIONS;
-  var minMentionsHashtags = 0.5*DEFAULT_MIN_MENTIONS;
+  var minMentionsHashtags = 100;
 
   var DEFAULT_MIN_FOLLOWERS_AGE_RATE_RATIO = 0.9;  // age users with many followers at a slower rate
 

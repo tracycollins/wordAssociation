@@ -80,6 +80,8 @@ function ViewTreepack() {
 
   var DEFAULT_MIN_MENTIONS = 1000;
   var minMentions = DEFAULT_MIN_MENTIONS;
+  var minMentionsUsers = DEFAULT_MIN_MENTIONS;
+  var minMentionsHashtags = 0.5*DEFAULT_MIN_MENTIONS;
 
   var DEFAULT_MIN_FOLLOWERS_AGE_RATE_RATIO = 0.9;  // age users with many followers at a slower rate
 
@@ -1034,7 +1036,7 @@ function ViewTreepack() {
           + "<br>FMs: " + d.followersMentions
           + "<br>Ms: " + d.mentions
           + "<br>Ts: " + d.statusesCount
-          + "<br>" + d.rate.toFixed(2) + " WPM"
+          + "<br>" + d.rate.toFixed(3) + " WPM"
           + "<br>C: " + d.category
           + "<br>CA: " + d.categoryAuto;
       break;
@@ -1051,7 +1053,7 @@ function ViewTreepack() {
 
         tooltipString = "#" + d.nodeId
           + "<br>Ms: " + d.mentions
-          + "<br>" + d.rate.toFixed(2) + " MPM"
+          + "<br>" + d.rate.toFixed(3) + " MPM"
           + "<br>C: " + d.category
           + "<br>CA: " + d.categoryAuto;
       break;
@@ -1120,14 +1122,14 @@ function ViewTreepack() {
       if ((d.nodeType === "user") 
         && (
           (d.followersCount > minFollowers) 
-          || (d.mentions > minMentions) 
+          || (d.mentions > minMentionsUsers) 
           || (d.screenName.toLowerCase().includes("trump"))
           || (d.name && d.name.toLowerCase().includes("trump"))
           )
       ) { 
         return ""; 
       }
-      if ((d.nodeType === "hashtag") && ((d.mentions > minMentions) || (d.text.toLowerCase().includes("trump")))){ 
+      if ((d.nodeType === "hashtag") && ((d.mentions > minMentionsHashtags) || (d.text.toLowerCase().includes("trump")))){ 
         return ""; 
       }
       return "none";
@@ -1142,20 +1144,20 @@ function ViewTreepack() {
     }
     if (d.nodeType === "hashtag") { 
       if (d.category || d.categoryAuto) { return "#" + d.text.toUpperCase(); }
-      if (d.mentions >= minMentions) { return "#" + d.text.toUpperCase(); }
+      if (d.mentions >= minMentionsHashtags) { return "#" + d.text.toUpperCase(); }
       return "#" + d.text.toLowerCase(); 
     }
     if (d.nodeType === "user") { 
       if (d.screenName) { 
         if (d.category || d.categoryAuto) { return "@" + d.screenName.toUpperCase(); }
         if (d.followersCount >= minFollowers) { return "@" + d.screenName.toUpperCase(); }
-        if (d.mentions >= minMentions) { return "@" + d.screenName.toUpperCase(); }
+        if (d.mentions >= minMentionsUsers) { return "@" + d.screenName.toUpperCase(); }
         return "@" + d.screenName.toLowerCase(); 
       }
       else if (d.name){ 
         if (d.category || d.categoryAuto) { return "@" + d.name.toUpperCase(); }
         if (d.followersCount >= minFollowers) { return "@" + d.name.toUpperCase(); }
-        if (d.mentions >= minMentions) { return "@" + d.name.toUpperCase(); }
+        if (d.mentions >= minMentionsUsers) { return "@" + d.name.toUpperCase(); }
         return "@" + d.name.toLowerCase(); 
       }
       else { return "@UNKNOWN?"; }
@@ -1510,14 +1512,14 @@ function ViewTreepack() {
         if ((d.nodeType === "user") 
           && (
             (d.followersCount > minFollowers) 
-            || (d.mentions > minMentions) 
+            || (d.mentions > minMentionsUsers) 
             || (d.screenName.toLowerCase().includes("trump"))
             || (d.name && d.name.toLowerCase().includes("trump"))
             )
         ) { 
           return "unset"; 
         }
-        if ((d.nodeType === "hashtag") && ((d.mentions > minMentions) || (d.text.toLowerCase().includes("trump"))))
+        if ((d.nodeType === "hashtag") && ((d.mentions > minMentionsHashtags) || (d.text.toLowerCase().includes("trump"))))
         { 
           return "unset"; 
         }
@@ -1561,14 +1563,14 @@ function ViewTreepack() {
         if ((d.nodeType === "user") 
           && (
             (d.followersCount > minFollowers) 
-            || (d.mentions > minMentions) 
+            || (d.mentions > minMentionsUsers) 
             || (d.screenName.toLowerCase().includes("trump"))
             || (d.name && d.name.toLowerCase().includes("trump"))
             )
         ) { 
           return "unset"; 
         }
-        if ((d.nodeType === "hashtag") && ((d.mentions > minMentions) || (d.text.toLowerCase().includes("trump"))))
+        if ((d.nodeType === "hashtag") && ((d.mentions > minMentionsHashtags) || (d.text.toLowerCase().includes("trump"))))
         { 
           return "unset"; 
         }

@@ -1120,6 +1120,9 @@ function ViewTreepack() {
       if (!d.isValid) { return "none"; }
       if (d.category) { return "unset"; }
       if (d.rate > minRate) { return "unset"; }
+      if ((d.nodeType === "hashtag") && ((d.mentions > minMentionsHashtags) || (d.text.toLowerCase().includes("trump")))){ 
+        return "unset"; 
+      }
       if ((d.nodeType === "user") 
         && (
           (d.followersCount > minFollowers) 
@@ -1128,9 +1131,6 @@ function ViewTreepack() {
           || (d.name && d.name.toLowerCase().includes("trump"))
           )
       ) { 
-        return ""; 
-      }
-      if ((d.nodeType === "hashtag") && ((d.mentions > minMentionsHashtags) || (d.text.toLowerCase().includes("trump")))){ 
         return ""; 
       }
       return "none";

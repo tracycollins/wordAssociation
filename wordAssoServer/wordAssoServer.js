@@ -5297,7 +5297,7 @@ function initTransmitNodeQueueInterval(interval){
 
               if (configuration.verbose) { 
                 printUserObj("FOLLWABLE: " + followable, n);
-             }
+              }
 
               getCurrentThreeceeUser(function(currentThreeceeUser){
 
@@ -5489,29 +5489,29 @@ function initTransmitNodeQueueInterval(interval){
                   transmitNodeQueueReady = true;
                 }
 
-                if (n.nodeType === "emoji"){
-                  delete n._id;
-                  viewNameSpace.volatile.emit("node", n);
-                  transmitNodeQueueReady = true;
-                }
+                // if (n.nodeType === "emoji"){
+                //   delete n._id;
+                //   viewNameSpace.volatile.emit("node", n);
+                //   transmitNodeQueueReady = true;
+                // }
 
-                if (n.nodeType === "media"){
-                  delete n._id;
-                  viewNameSpace.volatile.emit("node", n);
-                  transmitNodeQueueReady = true;
-                }
+                // if (n.nodeType === "media"){
+                //   delete n._id;
+                //   viewNameSpace.volatile.emit("node", n);
+                //   transmitNodeQueueReady = true;
+                // }
 
-                if (n.nodeType === "place"){
-                  delete n._id;
-                  viewNameSpace.volatile.emit("node", n);
-                  transmitNodeQueueReady = true;
-                }
+                // if (n.nodeType === "place"){
+                //   delete n._id;
+                //   viewNameSpace.volatile.emit("node", n);
+                //   transmitNodeQueueReady = true;
+                // }
 
-                if (n.nodeType === "word"){
-                  delete n._id;
-                  viewNameSpace.volatile.emit("node", n);
-                  transmitNodeQueueReady = true;
-                }
+                // if (n.nodeType === "word"){
+                //   delete n._id;
+                //   viewNameSpace.volatile.emit("node", n);
+                //   transmitNodeQueueReady = true;
+                // }
 
               });
             }

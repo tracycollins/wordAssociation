@@ -260,7 +260,7 @@ const HashMap = require("hashmap").HashMap;
 const NodeCache = require("node-cache");
 const commandLineArgs = require("command-line-args");
 
-let metricsRate = "1MinuteRate";
+let metricsRate = "5MinuteRate";
 
 const shell = require("shelljs");
 const JSONParse = require("json-parse-safe");
@@ -5782,16 +5782,16 @@ function initAppRouting(callback) {
         ));
         res.send(req.body.challenge);
       }
-      else {
-        switch (req.body.event.type) {
-          case "message":
-            slackMessageHandler(req.body.event);
-          break;
-          default:
-          console.log(chalkAlert("R< ??? UNKNOWN SLACK EVENT TYPE\n" + util.inspect(req.body, {showHidden:false, depth:1})));
-        }
-        res.sendStatus(200);
-      }
+      // else {
+      //   switch (req.body.event.type) {
+      //     case "message":
+      //       slackMessageHandler(req.body.event);
+      //     break;
+      //     default:
+      //     console.log(chalkAlert("R< ??? UNKNOWN SLACK EVENT TYPE\n" + util.inspect(req.body, {showHidden:false, depth:1})));
+      //   }
+      //   res.sendStatus(200);
+      // }
     }
     else {
       console.log(chalkLog("R<"

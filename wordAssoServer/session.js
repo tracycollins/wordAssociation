@@ -29,9 +29,9 @@ var config = {};
 var previousConfig = {};
 
 config.displayNodeHashMap = {};
-config.displayNodeHashMap.emoji = "show";
+config.displayNodeHashMap.emoji = "hide";
 config.displayNodeHashMap.hashtag = "show";
-config.displayNodeHashMap.place = "show";
+config.displayNodeHashMap.place = "hide";
 config.displayNodeHashMap.url = "hide";
 config.displayNodeHashMap.user = "show";
 config.displayNodeHashMap.word = "hide";

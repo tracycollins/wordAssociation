@@ -72,7 +72,7 @@ function ViewTreepack() {
     "yellowgreen": "#738A05"
   };
 
-  var DEFAULT_MIN_RATE = 1.5;
+  var DEFAULT_MIN_RATE = 0.1;
   var minRate = DEFAULT_MIN_RATE;
 
   var DEFAULT_MIN_FOLLOWERS = 5000;

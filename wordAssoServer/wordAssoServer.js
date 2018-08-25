@@ -5777,7 +5777,6 @@ function initAppRouting(callback) {
     else if (req.path === "/slack_event"){
 
       console.log(chalkAlert("SLACK"));
-      console.log(req);
 
       if (req.body.type === "url_verification") {
         console.log(chalkInfo("R< SLACK URL VERIFICATION"

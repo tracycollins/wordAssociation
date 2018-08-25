@@ -1131,7 +1131,7 @@ function ViewTreepack() {
           || (d.name && d.name.toLowerCase().includes("trump"))
           )
       ) { 
-        return ""; 
+        return "unset"; 
       }
       return "none";
     });

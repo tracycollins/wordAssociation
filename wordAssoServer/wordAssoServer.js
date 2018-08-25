@@ -6787,6 +6787,9 @@ function loadBestRuntimeNetwork(){
       else {
         console.log(chalkError("*** LOAD BEST NETWORK ERROR: " + err));
       }
+
+      console.log(err);
+
     }
     else if (bRtNnObj) {
 

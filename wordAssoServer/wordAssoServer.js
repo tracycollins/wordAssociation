@@ -2325,8 +2325,9 @@ function loadMaxInputHashMap(params, callback){
         console.log(chalkError("*** LOAD MAX INPUT: FILE NOT FOUND"
           + " | " + params.folder + "/" + params.file
         ));
-        return(callback(err));
       }
+
+      return(callback(err));
     }
     if (dataObj.maxInputHashMap === undefined) {
       console.log(chalkError("ERROR: loadMaxInputHashMap: loadFile: maxInputHashMap UNDEFINED"));

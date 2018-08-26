@@ -65,7 +65,7 @@ const DEFAULT_HASHTAG_LOOKUP_QUEUE_INTERVAL = 10;
 const DEFAULT_SOCKET_AUTH_TIMEOUT = 30*ONE_SECOND;
 const DEFAULT_QUIT_ON_ERROR = false;
 const DEFAULT_MAX_TOP_TERMS = 100;
-const DEFAULT_METRICS_NODE_METER_ENABLED = false;
+const DEFAULT_METRICS_NODE_METER_ENABLED = true;
 
 const DEFAULT_MAX_QUEUE = 200;
 const DEFAULT_OFFLINE_MODE = process.env.OFFLINE_MODE || false; // if network connection is down, will auto switch to OFFLINE_MODE
@@ -2177,6 +2177,22 @@ function loadConfigFile(params, callback) {
               configuration.enableStdin = loadedConfigObj.WAS_ENABLE_STDIN;
             }
 
+            if (loadedConfigObj.NODE_METER_ENABLED !== undefined){
+
+              console.log("WA | LOADED NODE_METER_ENABLED: " + loadedConfigObj.NODE_METER_ENABLED);
+
+              if (loadedConfigObj.NODE_METER_ENABLED === "true") {
+                configuration.metrics.nodeMeterEnabled = true;
+              }
+              else if (loadedConfigObj.NODE_METER_ENABLED === "false") {
+                configuration.metrics.nodeMeterEnabled = false;
+              }
+              else {
+                configuration.metrics.nodeMeterEnabled = true;
+              }
+            }
+
+
             if (loadedConfigObj.PROCESS_NAME !== undefined){
               console.log("WA | LOADED PROCESS_NAME: " + loadedConfigObj.PROCESS_NAME);
               configuration.processName = loadedConfigObj.PROCESS_NAME;
@@ -3136,79 +3152,78 @@ configEvents.on("INTERNET_READY", function internetReady() {
   }
 
 
-  function postAuthenticate(socket, data) {
+  // function postAuthenticate(socket, data) {
 
-    data.timeStamp = moment().valueOf();
+  //   data.timeStamp = moment().valueOf();
 
-    console.log(chalk.bold.green("+++ SOCKET AUTHENTICATED"
-      + " | " + data.namespace.toUpperCase()
-      + " | " + socket.id
-      + " | " + data.userId
-    ));
+  //   console.log(chalk.bold.green("+++ SOCKET AUTHENTICATED"
+  //     + " | " + data.namespace.toUpperCase()
+  //     + " | " + socket.id
+  //     + " | " + data.userId
+  //   ));
 
-    authenticatedSocketCache.set(socket.id, data);
-  }
+  //   USER_READY
 
-  function disconnect(socket) {
-    authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
-      if (authenticatedSocketObj) {
-        console.log(chalkAlert("POST AUTHENTICATE DISCONNECT"
-          + " | " + authenticatedSocketObj.namespace.toUpperCase()
-          + " | " + socket.id
-          + " | " + authenticatedSocketObj.userId
-        ));
-      }
-      else {
-        console.log(chalkAlert("POST AUTHENTICATE DISCONNECT | " + socket.id));
-      }
-    });
-  }
+  //   authenticatedSocketCache.set(socket.id, data);
+  // }
 
-  const socketIoAuth = require("@threeceelabs/socketio-auth")(io, {
+  // function disconnect(socket) {
+  //   authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
+  //     if (authenticatedSocketObj) {
+  //       console.log(chalkAlert("POST AUTHENTICATE DISCONNECT"
+  //         + " | " + authenticatedSocketObj.namespace.toUpperCase()
+  //         + " | " + socket.id
+  //         + " | " + authenticatedSocketObj.userId
+  //       ));
+  //     }
+  //     else {
+  //       console.log(chalkAlert("POST AUTHENTICATE DISCONNECT | " + socket.id));
+  //     }
+  //   });
+  // }
 
-    authenticate: function (socket, data, callback) {
+  // const socketIoAuth = require("@threeceelabs/socketio-auth")(io, {
 
-      const namespace = data.namespace;
-      const userId = data.userId.toLowerCase();
-      const password = data.password;
+  //   authenticate: function (socket, data, callback) {
 
-      console.log(chalkLog("... AUTHENTICATING SOCKET"
-        + " | " + getTimeStamp()
-        + " | " + socket.id
-        + " | NSP: " + namespace.toUpperCase()
-        + " | UID: " + userId
-        // + "\n" + jsonPrint(data)
-      ));
-      //get credentials sent by the client
+  //     const namespace = data.namespace;
+  //     const userId = data.userId.toLowerCase();
+  //     const password = data.password;
 
-      if ((namespace === "admin") && (password === "this is a very weak password")) {
-        debug(chalk.green("+++ ADMIN AUTHENTICATED | " + userId));
-        return callback(null, true);
-      }
+  //     console.log(chalkLog("... AUTHENTICATING SOCKET"
+  //       + " | " + getTimeStamp()
+  //       + " | " + socket.id
+  //       + " | NSP: " + namespace.toUpperCase()
+  //       + " | UID: " + userId
+  //       // + "\n" + jsonPrint(data)
+  //     ));
+  //     //get credentials sent by the client
 
-      if (namespace === "view") {
-        debug(chalk.green("+++ VIEWER AUTHENTICATED | " + userId));
-        return callback(null, true);
-      }
+  //     if ((namespace === "admin") && (password === "this is a very weak password")) {
+  //       debug(chalk.green("+++ ADMIN AUTHENTICATED | " + userId));
+  //       return callback(null, true);
+  //     }
 
-      if ((namespace === "util") && (password === "0123456789")) {
-        debug(chalk.green("+++ UTIL AUTHENTICATED | " + userId));
-        return callback(null, true);
-      }
+  //     if (namespace === "view") {
+  //       debug(chalk.green("+++ VIEWER AUTHENTICATED | " + userId));
+  //       return callback(null, true);
+  //     }
 
-      return callback(null, false);
+  //     if ((namespace === "util") && (password === "0123456789")) {
+  //       debug(chalk.green("+++ UTIL AUTHENTICATED | " + userId));
+  //       return callback(null, true);
+  //     }
 
-    },
-    postAuthenticate: postAuthenticate,
-    disconnect: disconnect,
-    timeout: configuration.socketAuthTimeout
-  });
+  //     return callback(null, false);
+
+  //   },
+  //   postAuthenticate: postAuthenticate,
+  //   disconnect: disconnect,
+  //   timeout: configuration.socketAuthTimeout
+  // });
 
   initAppRouting(function initAppRoutingComplete() {
-
-    // initSocketNamespaces();
     initLoadBestNetworkInterval(ONE_MINUTE+1);
-
   });
 
 });
@@ -4257,7 +4272,6 @@ function initSocketHandler(socketObj) {
     });
   });
 
-
   socket.on("TWITTER_SEARCH_NODE", function (sn) {
 
     twitterSearchNodeQueue.push({searchNode: sn, socket: socket});
@@ -4268,7 +4282,6 @@ function initSocketHandler(socketObj) {
       + " | SID: " + socket.id
       + " | " + sn
     ));
-
   });
 
   socket.on("TWITTER_CATEGORIZE_NODE", function twitterCategorizeNode(dataObj) {
@@ -4368,7 +4381,6 @@ function initSocketHandler(socketObj) {
       );
   
     });
-
   });
 
   socket.on("tweet", function(tweet){
@@ -4450,7 +4462,79 @@ function initSocketNamespaces(callback){
   utilNameSpace.on("connect", function utilConnect(socket) {
     console.log(chalk.blue("UTIL CONNECT " + socket.id));
     statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
-    initSocketHandler({namespace: "util", socket: socket});
+    // initSocketHandler({namespace: "util", socket: socket});
+
+    function postAuthenticate(socket, data) {
+
+      data.timeStamp = moment().valueOf();
+
+      console.log(chalk.bold.green("+++ SOCKET AUTHENTICATED"
+        + " | " + data.namespace.toUpperCase()
+        + " | " + socket.id
+        + " | " + data.userId
+      ));
+
+      authenticatedSocketCache.set(socket.id, data);
+
+      initSocketHandler({namespace: "util", socket: socket});
+
+    }
+
+    function disconnect(socket) {
+      authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
+        if (authenticatedSocketObj) {
+          console.log(chalkAlert("POST AUTHENTICATE DISCONNECT"
+            + " | " + authenticatedSocketObj.namespace.toUpperCase()
+            + " | " + socket.id
+            + " | " + authenticatedSocketObj.userId
+          ));
+        }
+        else {
+          console.log(chalkAlert("POST AUTHENTICATE DISCONNECT | " + socket.id));
+        }
+      });
+    }
+
+    const socketIoAuth = require("@threeceelabs/socketio-auth")(io, {
+
+      authenticate: function (socket, data, callback) {
+
+        const namespace = data.namespace;
+        const userId = data.userId.toLowerCase();
+        const password = data.password;
+
+        console.log(chalkLog("... AUTHENTICATING SOCKET"
+          + " | " + getTimeStamp()
+          + " | " + socket.id
+          + " | NSP: " + namespace.toUpperCase()
+          + " | UID: " + userId
+          // + "\n" + jsonPrint(data)
+        ));
+        //get credentials sent by the client
+
+        if ((namespace === "admin") && (password === "this is a very weak password")) {
+          debug(chalk.green("+++ ADMIN AUTHENTICATED | " + userId));
+          return callback(null, true);
+        }
+
+        if (namespace === "view") {
+          debug(chalk.green("+++ VIEWER AUTHENTICATED | " + userId));
+          return callback(null, true);
+        }
+
+        if ((namespace === "util") && (password === "0123456789")) {
+          debug(chalk.green("+++ UTIL AUTHENTICATED | " + userId));
+          return callback(null, true);
+        }
+
+        return callback(null, false);
+
+      },
+      postAuthenticate: postAuthenticate,
+      disconnect: disconnect,
+      timeout: configuration.socketAuthTimeout
+    });
+
   });
 
   userNameSpace.on("connect", function userConnect(socket) {
@@ -6778,13 +6862,20 @@ function loadBestRuntimeNetwork(){
   loadFile(bestNetworkFolder, bestRuntimeNetworkFileName, function(err, bRtNnObj){
 
     if (err) {
+      if (err.code === "ETIMEDOUT") {
+        console.log(chalkError("*** LOAD BEST NETWORK ERROR: NETWORK TIMEOUT:  " 
+          + bestNetworkFolder + "/" + bestRuntimeNetworkFileName
+        ));
+      }
       if (err.code === "ENOTFOUND") {
         console.log(chalkError("*** LOAD BEST NETWORK ERROR: FILE NOT FOUND:  " 
           + bestNetworkFolder + "/" + bestRuntimeNetworkFileName
         ));
       }
       else {
-        console.log(chalkError("*** LOAD BEST NETWORK ERROR: " + err));
+        console.log(chalkError("*** LOAD BEST NETWORK ERROR: " + err
+          + bestNetworkFolder + "/" + bestRuntimeNetworkFileName
+        ));
       }
 
       console.log(err);
@@ -7798,7 +7889,7 @@ initialize(function initializeComplete(err) {
     console.log(chalk.blue("CONFIGURATION\n" + jsonPrint(configuration)));
 
     if (!configuration.metrics.nodeMeterEnabled) {
-      console.log(chalkAlert("*** WORD RATE METER DISABLED ***"));
+      console.log(chalkAlert("*** NODE RATE METER DISABLED ***"));
     }
 
     statsObj.configuration = configuration;

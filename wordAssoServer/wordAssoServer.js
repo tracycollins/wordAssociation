@@ -4495,10 +4495,12 @@ function initSocketNamespaces(callback){
     console.log(chalk.blue("UTIL CONNECT " + socket.id));
 
     authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
+      if (authenticatedSocketObj){
         console.log(chalkAlert("UTIL ALREADY AUTHENTICATED"
           + " | " + socket.id
           + "\n" + jsonPrint(authenticatedSocketObj)
         ));
+      }
     });
 
     statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
@@ -4581,10 +4583,12 @@ function initSocketNamespaces(callback){
     console.log(chalk.blue("VIEWER CONNECT " + socket.id));
 
     authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
+      if (authenticatedSocketObj){
         console.log(chalkAlert("VIEWER ALREADY AUTHENTICATED"
           + " | " + socket.id
           + "\n" + jsonPrint(authenticatedSocketObj)
         ));
+      }
     });
 
     statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;

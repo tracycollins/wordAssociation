@@ -4480,10 +4480,12 @@ function initSocketNamespaces(callback){
     console.log(chalk.blue("ADMIN CONNECT " + socket.id));
 
     authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
+      if (authenticatedSocketObj){
         console.log(chalkAlert("ADMIN ALREADY AUTHENTICATED"
           + " | " + socket.id
           + "\n" + jsonPrint(authenticatedSocketObj)
         ));
+      }
     });
 
     statsObj.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;

@@ -143,17 +143,31 @@ const treeify = require("treeify");
 
 const express = require("express");
 const app = express();
+app.set('trust proxy', 1) // trust first proxy
+
+const expressSession = require("express-session");
+const MongoStore = require("connect-mongo")(expressSession);
+
 // const cookieParser = require("cookie-parser");
 // const bodyParser = require("body-parser");
 // const expressSession = require("express-session");
+
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const TwitterStrategy = require("passport-twitter").Strategy;
 
 app.use(require("serve-static")(__dirname + "/public"));
-app.use(require("cookie-parser")());
+// app.use(require("cookie-parser")());
 app.use(require("body-parser").urlencoded({ extended: true }));
-app.use(require("express-session")({ secret: "keyboard cat", resave: true, saveUninitialized: true }));
+
+
+// app.use(expressSession({ 
+//   secret: "three cee labs 47", 
+//   resave: true, 
+//   saveUninitialized: true
+//   store: new MongoStore({ mongooseConnection: mongoose.connection })
+// }));
+
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -1116,6 +1130,14 @@ function connectDb(callback){
 
 
     global.dbConnection = db;
+
+    app.use(expressSession({ 
+      secret: "three cee labs 47", 
+      resave: false, 
+      saveUninitialized: false,
+      store: new MongoStore({ mongooseConnection: db })
+    }));
+
 
     dbConnectionReady = true;
     statsObj.dbConnectionReady = true;
@@ -4477,7 +4499,6 @@ function initSocketNamespaces(callback){
       authenticatedSocketCache.set(socket.id, data);
 
       initSocketHandler({namespace: "util", socket: socket});
-
     }
 
     function disconnect(socket) {
@@ -4534,7 +4555,6 @@ function initSocketNamespaces(callback){
       disconnect: disconnect,
       timeout: configuration.socketAuthTimeout
     });
-
   });
 
   userNameSpace.on("connect", function userConnect(socket) {
@@ -4545,6 +4565,65 @@ function initSocketNamespaces(callback){
   viewNameSpace.on("connect", function viewConnect(socket) {
     console.log(chalk.blue("VIEWER CONNECT " + socket.id));
     statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
+
+    function postAuthenticate(socket, data) {
+
+      data.timeStamp = moment().valueOf();
+
+      console.log(chalk.bold.green("+++ SOCKET AUTHENTICATED"
+        + " | " + data.namespace.toUpperCase()
+        + " | " + socket.id
+        + " | " + data.userId
+      ));
+
+      authenticatedSocketCache.set(socket.id, data);
+
+      initSocketHandler({namespace: "util", socket: socket});
+    }
+
+    function disconnect(socket) {
+      authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
+        if (authenticatedSocketObj) {
+          console.log(chalkAlert("POST AUTHENTICATE DISCONNECT"
+            + " | " + authenticatedSocketObj.namespace.toUpperCase()
+            + " | " + socket.id
+            + " | " + authenticatedSocketObj.userId
+          ));
+        }
+        else {
+          console.log(chalkAlert("POST AUTHENTICATE DISCONNECT | " + socket.id));
+        }
+      });
+    }
+
+    const socketIoAuth = require("@threeceelabs/socketio-auth")(io, {
+
+      authenticate: function (socket, data, callback) {
+
+        const namespace = data.namespace;
+        const userId = data.userId.toLowerCase();
+        const password = data.password;
+
+        console.log(chalkLog("... AUTHENTICATING SOCKET"
+          + " | " + getTimeStamp()
+          + " | " + socket.id
+          + " | NSP: " + namespace.toUpperCase()
+          + " | UID: " + userId
+          // + "\n" + jsonPrint(data)
+        ));
+        //get credentials sent by the client
+
+        debug(chalk.green("+++ VIEWER AUTHENTICATED | " + userId));
+        return callback(null, true);
+
+        return callback(null, false);
+
+      },
+      postAuthenticate: postAuthenticate,
+      disconnect: disconnect,
+      timeout: configuration.socketAuthTimeout
+    });
+
     initSocketHandler({namespace: "view", socket: socket});
   });
 
@@ -5747,7 +5826,9 @@ function initAppRouting(callback) {
   // }
 
   // app.use(bodyParser.urlencoded({ extended: false }));
+
   app.use(methodOverride());
+
   // app.use(exp.static(__dirname + "/public"));
 
   app.use(function requestLog(req, res, next) {
@@ -5819,8 +5900,6 @@ function initAppRouting(callback) {
 
             }
           });
-
-
         }, function(err){
           dropboxFolderGetLastestCursorReady = true;
           next();
@@ -5945,17 +6024,23 @@ function initAppRouting(callback) {
         debug(chalkInfo("SENT:", loginHtml));
       }
     });
-
   });
 
   const sessionHtml = __dirname + "/sessionModular.html";
 
   app.get("/session", function requestSession(req, res, next) {
+
     debug(chalkInfo("get next\n" + next));
+
+    debug("req");
+    debug(req);
+
     console.log(chalkLog("LOADING PAGE"
+      // + " [ VIEWS: " + req.session.views + "]"
       + " | REQ: " + req.url
       + " | RES: " + sessionHtml
     ));
+
     res.sendFile(sessionHtml, function responseSession(err) {
       if (err) {
         console.log(chalkError("GET /session ERROR:"

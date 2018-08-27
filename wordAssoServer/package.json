@@ -17,6 +17,7 @@
     "cache-base": "^4.0.0",
     "chalk": "^2.4.1",
     "command-line-args": "^5.0.2",
+    "connect-mongo": "^2.0.1",
     "connect-mongodb-session": "^2.0.3",
     "connect-mongostore": "^0.1.4",
     "cookie-parser": "^1.4.3",

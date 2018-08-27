@@ -4531,24 +4531,25 @@ function initSocketNamespaces(callback){
           + " | UID: " + userId
           // + "\n" + jsonPrint(data)
         ));
+
         //get credentials sent by the client
 
-        if ((namespace === "admin") && (password === "this is a very weak password")) {
-          debug(chalk.green("+++ ADMIN AUTHENTICATED | " + userId));
-          return callback(null, true);
-        }
+        // if ((namespace === "admin") && (password === "this is a very weak password")) {
+        //   debug(chalk.green("+++ ADMIN AUTHENTICATED | " + userId));
+        //   return callback(null, true);
+        // }
 
-        if (namespace === "view") {
-          debug(chalk.green("+++ VIEWER AUTHENTICATED | " + userId));
-          return callback(null, true);
-        }
+        // if (namespace === "view") {
+        //   debug(chalk.green("+++ VIEWER AUTHENTICATED | " + userId));
+        //   return callback(null, true);
+        // }
 
         if ((namespace === "util") && (password === "0123456789")) {
           debug(chalk.green("+++ UTIL AUTHENTICATED | " + userId));
           return callback(null, true);
         }
 
-        return callback(null, false);
+        callback(null, false);
 
       },
       postAuthenticate: postAuthenticate,

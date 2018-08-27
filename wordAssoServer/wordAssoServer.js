@@ -4577,11 +4577,11 @@ function initSocketNamespaces(callback){
       ));
 
       authenticatedSocketCache.set(socket.id, data);
-
       initSocketHandler({namespace: "util", socket: socket});
     }
 
     function disconnect(socket) {
+
       authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
         if (authenticatedSocketObj) {
           console.log(chalkAlert("POST AUTHENTICATE DISCONNECT"
@@ -4611,12 +4611,11 @@ function initSocketNamespaces(callback){
           + " | UID: " + userId
           // + "\n" + jsonPrint(data)
         ));
+
         //get credentials sent by the client
 
         debug(chalk.green("+++ VIEWER AUTHENTICATED | " + userId));
         return callback(null, true);
-
-        return callback(null, false);
 
       },
       postAuthenticate: postAuthenticate,

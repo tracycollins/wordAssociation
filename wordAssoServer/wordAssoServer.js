@@ -4624,7 +4624,7 @@ function initSocketNamespaces(callback){
       timeout: configuration.socketAuthTimeout
     });
 
-    initSocketHandler({namespace: "view", socket: socket});
+    // initSocketHandler({namespace: "view", socket: socket});
   });
 
   statsObj.ioReady = true;

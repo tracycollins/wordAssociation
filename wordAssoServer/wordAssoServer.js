@@ -4476,15 +4476,32 @@ function initSocketNamespaces(callback){
   viewNameSpace = io.of("/view");
 
   adminNameSpace.on("connect", function adminConnect(socket) {
+
     console.log(chalk.blue("ADMIN CONNECT " + socket.id));
+
+    authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
+        console.log(chalkAlert("ADMIN ALREADY AUTHENTICATED"
+          + " | " + socket.id
+          + "\n" + jsonPrint(authenticatedSocketObj)
+        ));
+    });
+
     statsObj.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
     initSocketHandler({namespace: "admin", socket: socket});
   });
 
   utilNameSpace.on("connect", function utilConnect(socket) {
+
     console.log(chalk.blue("UTIL CONNECT " + socket.id));
+
+    authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
+        console.log(chalkAlert("UTIL ALREADY AUTHENTICATED"
+          + " | " + socket.id
+          + "\n" + jsonPrint(authenticatedSocketObj)
+        ));
+    });
+
     statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
-    // initSocketHandler({namespace: "util", socket: socket});
 
     function postAuthenticate(socket, data) {
 
@@ -4532,18 +4549,6 @@ function initSocketNamespaces(callback){
           // + "\n" + jsonPrint(data)
         ));
 
-        //get credentials sent by the client
-
-        // if ((namespace === "admin") && (password === "this is a very weak password")) {
-        //   debug(chalk.green("+++ ADMIN AUTHENTICATED | " + userId));
-        //   return callback(null, true);
-        // }
-
-        // if (namespace === "view") {
-        //   debug(chalk.green("+++ VIEWER AUTHENTICATED | " + userId));
-        //   return callback(null, true);
-        // }
-
         if ((namespace === "util") && (password === "0123456789")) {
           debug(chalk.green("+++ UTIL AUTHENTICATED | " + userId));
           return callback(null, true);
@@ -4560,11 +4565,28 @@ function initSocketNamespaces(callback){
 
   userNameSpace.on("connect", function userConnect(socket) {
     console.log(chalk.blue("USER CONNECT " + socket.id));
+
+    authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
+        console.log(chalkAlert("USER ALREADY AUTHENTICATED"
+          + " | " + socket.id
+          + "\n" + jsonPrint(authenticatedSocketObj)
+        ));
+    });
+
     initSocketHandler({namespace: "user", socket: socket});
   });
 
   viewNameSpace.on("connect", function viewConnect(socket) {
+
     console.log(chalk.blue("VIEWER CONNECT " + socket.id));
+
+    authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
+        console.log(chalkAlert("VIEWER ALREADY AUTHENTICATED"
+          + " | " + socket.id
+          + "\n" + jsonPrint(authenticatedSocketObj)
+        ));
+    });
+
     statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
 
     function postAuthenticate(socket, data) {
@@ -4578,7 +4600,7 @@ function initSocketNamespaces(callback){
       ));
 
       authenticatedSocketCache.set(socket.id, data);
-      initSocketHandler({namespace: "util", socket: socket});
+      initSocketHandler({namespace: "view", socket: socket});
     }
 
     function disconnect(socket) {
@@ -4624,7 +4646,6 @@ function initSocketNamespaces(callback){
       timeout: configuration.socketAuthTimeout
     });
 
-    // initSocketHandler({namespace: "view", socket: socket});
   });
 
   statsObj.ioReady = true;

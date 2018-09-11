@@ -5860,7 +5860,14 @@ function initAppRouting(callback) {
 
   app.use(function requestLog(req, res, next) {
 
-    if (req.path === "/dropbox_webhook") {
+    if (req.path === "/json"){
+      console.log(chalkLog("R< /json"
+        + " | req.query: " + jsonPrint(req.query)
+        + " | req.params: " + jsonPrint(req.params)
+      ));
+      res.sendStatus(404);
+    }
+    else if (req.path === "/dropbox_webhook") {
 
       console.log(chalkLog("R< DROPBOX WEB HOOK | /dropbox_webhook")); 
 

@@ -271,6 +271,8 @@ const Monitoring = require("@google-cloud/monitoring");
 let googleMonitoringClient;
 
 const HashMap = require("hashmap").HashMap;
+const ignoreIpSet = new Set();
+
 const NodeCache = require("node-cache");
 const commandLineArgs = require("command-line-args");
 
@@ -5860,11 +5862,19 @@ function initAppRouting(callback) {
 
   app.use(function requestLog(req, res, next) {
 
-    if (req.path === "/json"){
-      console.log(chalkLog("R< /json"
-        + " | req.query: " + jsonPrint(req.query)
-        + " | req.params: " + jsonPrint(req.params)
-      ));
+    if (req.path === "/json") {
+      if (!ignoreIpSet.has(req.ip) {
+        console.log(chalkLog("R< REJECT: /json"
+          // + " | req.query: " + jsonPrint(req.query)
+          // + " | req.params: " + jsonPrint(req.params)
+          + " | " + getTimeStamp()
+          + " | IP: " + req.ip
+          + " | HOST: " + req.hostname
+          + " | METHOD: " + req.method
+          + " | PATH: " + req.path
+        ));
+        ignoreIpSet.add(req.ip);
+      }
       res.sendStatus(404);
     }
     else if (req.path === "/dropbox_webhook") {

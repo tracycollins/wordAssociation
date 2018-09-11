@@ -5863,7 +5863,7 @@ function initAppRouting(callback) {
   app.use(function requestLog(req, res, next) {
 
     if (req.path === "/json") {
-      if (!ignoreIpSet.has(req.ip) {
+      if (!ignoreIpSet.has(req.ip)) {
         console.log(chalkLog("R< REJECT: /json"
           // + " | req.query: " + jsonPrint(req.query)
           // + " | req.params: " + jsonPrint(req.params)

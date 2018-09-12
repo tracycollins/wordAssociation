@@ -4413,7 +4413,7 @@ function initSocketHandler(socketObj) {
   });
 }
 
-function initSocketNamespaces(callback){
+function initSocketNamespaces(){
 
   console.log(chalkInfo(getTimeStamp() + " | INIT SOCKET NAMESPACES"));
 
@@ -4468,7 +4468,8 @@ function initSocketNamespaces(callback){
       authenticatedSocketCache.set(socket.id, data);
 
       initSocketHandler({namespace: "util", socket: socket});
-      callback(null, true);
+      // callback(null, true);
+      return;
 
     }
 
@@ -4487,6 +4488,9 @@ function initSocketNamespaces(callback){
         else {
           console.log(chalkAlert("POST AUTHENTICATE DISCONNECT | " + socket.id));
         }
+
+        return;
+
       });
     }
 
@@ -4512,6 +4516,8 @@ function initSocketNamespaces(callback){
         }
 
         // callback(null, false);
+
+        callback();
 
       },
       postAuthenticate: postAuthenticate,
@@ -4561,6 +4567,8 @@ function initSocketNamespaces(callback){
 
       authenticatedSocketCache.set(socket.id, data);
       initSocketHandler({namespace: "view", socket: socket});
+
+      return;
     }
 
     function disconnect(socket) {
@@ -4577,6 +4585,8 @@ function initSocketNamespaces(callback){
           console.log(chalkAlert("POST AUTHENTICATE DISCONNECT | " + socket.id));
         }
       });
+
+      return;
     }
 
     const socketIoAuth = require("@threeceelabs/socketio-auth")(io, {
@@ -4598,7 +4608,9 @@ function initSocketNamespaces(callback){
         //get credentials sent by the client
 
         debug(chalk.green("+++ VIEWER AUTHENTICATED | " + userId));
-        return callback(null, true);
+        // return callback(null, true);
+
+        callback();
 
       },
       postAuthenticate: postAuthenticate,

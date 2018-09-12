@@ -160,6 +160,8 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const TwitterStrategy = require("passport-twitter").Strategy;
 
+const PythonShell = require("python-shell");
+
 app.use(require("serve-static")(__dirname + "/public"));
 // app.use(require("cookie-parser")());
 app.use(require("body-parser").urlencoded({ extended: true }));
@@ -754,7 +756,7 @@ if (hostname === "google") {
 
   console.log(chalkBlue("INIT HEADLESS DROPBOX VIA PYTHON SHELL"));
 
-  const PythonShell = require("python-shell");
+  // const PythonShell = require("python-shell");
 
   const CONFIG_PATH = "/home/tc/Dropbox/Apps/wordAssociation/config";
   const pythonPath = "/usr/bin/python";

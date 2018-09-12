@@ -4449,7 +4449,6 @@ function initSocketNamespaces(){
           + " | " + socket.id
           + "\n" + jsonPrint(authenticatedSocketObj)
         ));
-        return;
       }
     });
 
@@ -4468,8 +4467,6 @@ function initSocketNamespaces(){
       authenticatedSocketCache.set(socket.id, data);
 
       initSocketHandler({namespace: "util", socket: socket});
-      // callback(null, true);
-      return;
 
     }
 
@@ -4489,12 +4486,10 @@ function initSocketNamespaces(){
           console.log(chalkAlert("POST AUTHENTICATE DISCONNECT | " + socket.id));
         }
 
-        return;
-
       });
     }
 
-    const socketIoAuth = require("@threeceelabs/socketio-auth")(io, {
+    const socketIoAuth = require("@threeceelabs/socketio-auth")(io, "util", {
 
       authenticate: function (socket, data, callback) {
 
@@ -4511,13 +4506,12 @@ function initSocketNamespaces(){
         ));
 
         if ((namespace === "util") && (password === "0123456789")) {
-          debug(chalk.green("+++ UTIL AUTHENTICATED | " + userId));
-          // return callback(null, true);
+          console.log(chalk.green("+++ UTIL AUTHENTICATED | " + userId));
+          callback(null, true);
         }
-
-        // callback(null, false);
-
-        callback();
+        else {
+          callback(null, false);
+        }
 
       },
       postAuthenticate: postAuthenticate,
@@ -4568,7 +4562,6 @@ function initSocketNamespaces(){
       authenticatedSocketCache.set(socket.id, data);
       initSocketHandler({namespace: "view", socket: socket});
 
-      return;
     }
 
     function disconnect(socket) {
@@ -4585,11 +4578,9 @@ function initSocketNamespaces(){
           console.log(chalkAlert("POST AUTHENTICATE DISCONNECT | " + socket.id));
         }
       });
-
-      return;
     }
 
-    const socketIoAuth = require("@threeceelabs/socketio-auth")(io, {
+    const socketIoAuth = require("@threeceelabs/socketio-auth")(io, "view", {
 
       authenticate: function (socket, data, callback) {
 
@@ -4610,19 +4601,20 @@ function initSocketNamespaces(){
         debug(chalk.green("+++ VIEWER AUTHENTICATED | " + userId));
         // return callback(null, true);
 
-        callback();
+        callback(null, true);
 
       },
       postAuthenticate: postAuthenticate,
       disconnect: disconnect,
       timeout: configuration.socketAuthTimeout
     });
-
   });
 
   statsObj.ioReady = true;
 
-  if (callback !== undefined) { callback(); }
+  // return;
+
+  // if (callback !== undefined) { callback(); }
 }
 
 function printCat(c){

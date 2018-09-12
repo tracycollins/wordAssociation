@@ -4454,70 +4454,71 @@ function initSocketNamespaces(){
 
     statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
 
-    function postAuthenticate(socket, data) {
+    initSocketHandler({namespace: "util", socket: socket});
 
-      data.timeStamp = moment().valueOf();
+    // function postAuthenticate(socket, data) {
 
-      console.log(chalk.bold.green("+++ SOCKET AUTHENTICATED"
-        + " | " + data.namespace.toUpperCase()
-        + " | " + socket.id
-        + " | " + data.userId
-      ));
+    //   data.timeStamp = moment().valueOf();
 
-      authenticatedSocketCache.set(socket.id, data);
+    //   console.log(chalk.bold.green("+++ SOCKET AUTHENTICATED"
+    //     + " | " + data.namespace.toUpperCase()
+    //     + " | " + socket.id
+    //     + " | " + data.userId
+    //   ));
 
-      initSocketHandler({namespace: "util", socket: socket});
+    //   authenticatedSocketCache.set(socket.id, data);
 
-    }
+    //   initSocketHandler({namespace: "util", socket: socket});
+    // }
 
-    function disconnect(socket) {
-      authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
+    // function disconnect(socket) {
+    //   authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
 
-        serverCache.del(socket.id);
+    //     serverCache.del(socket.id);
 
-        if (authenticatedSocketObj) {
-          console.log(chalkAlert("POST AUTHENTICATE DISCONNECT"
-            + " | " + authenticatedSocketObj.namespace.toUpperCase()
-            + " | " + socket.id
-            + " | " + authenticatedSocketObj.userId
-          ));
-        }
-        else {
-          console.log(chalkAlert("POST AUTHENTICATE DISCONNECT | " + socket.id));
-        }
+    //     if (authenticatedSocketObj) {
+    //       console.log(chalkAlert("POST AUTHENTICATE DISCONNECT"
+    //         + " | " + authenticatedSocketObj.namespace.toUpperCase()
+    //         + " | " + socket.id
+    //         + " | " + authenticatedSocketObj.userId
+    //       ));
+    //     }
+    //     else {
+    //       console.log(chalkAlert("POST AUTHENTICATE DISCONNECT | " + socket.id));
+    //     }
 
-      });
-    }
+    //   });
+    // }
 
-    const socketIoAuth = require("@threeceelabs/socketio-auth")(io, "util", {
+    // const socketIoAuth = require("@threeceelabs/socketio-auth")(io, "util", {
 
-      authenticate: function (socket, data, callback) {
+    //   authenticate: function (socket, data, callback) {
 
-        const namespace = data.namespace;
-        const userId = data.userId.toLowerCase();
-        const password = data.password;
+    //     const namespace = data.namespace;
+    //     const userId = data.userId.toLowerCase();
+    //     const password = data.password;
 
-        console.log(chalkLog("... AUTHENTICATING SOCKET"
-          + " | " + getTimeStamp()
-          + " | " + socket.id
-          + " | NSP: " + namespace.toUpperCase()
-          + " | UID: " + userId
-          // + "\n" + jsonPrint(data)
-        ));
+    //     console.log(chalkLog("... AUTHENTICATING SOCKET"
+    //       + " | " + getTimeStamp()
+    //       + " | " + socket.id
+    //       + " | NSP: " + namespace.toUpperCase()
+    //       + " | UID: " + userId
+    //       // + "\n" + jsonPrint(data)
+    //     ));
 
-        if ((namespace === "util") && (password === "0123456789")) {
-          console.log(chalk.green("+++ UTIL AUTHENTICATED | " + userId));
-          callback(null, true);
-        }
-        else {
-          callback(null, false);
-        }
+    //     if ((namespace === "util") && (password === "0123456789")) {
+    //       console.log(chalk.green("+++ UTIL AUTHENTICATED | " + userId));
+    //       callback(null, true);
+    //     }
+    //     else {
+    //       callback(null, false);
+    //     }
 
-      },
-      postAuthenticate: postAuthenticate,
-      disconnect: disconnect,
-      timeout: configuration.socketAuthTimeout
-    });
+    //   },
+    //   postAuthenticate: postAuthenticate,
+    //   disconnect: disconnect,
+    //   timeout: configuration.socketAuthTimeout
+    // });
 
   });
 
@@ -4549,65 +4550,67 @@ function initSocketNamespaces(){
 
     statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
 
-    function postAuthenticate(socket, data) {
+    initSocketHandler({namespace: "view", socket: socket});
 
-      data.timeStamp = moment().valueOf();
+    // function postAuthenticate(socket, data) {
 
-      console.log(chalk.bold.green("+++ SOCKET AUTHENTICATED"
-        + " | " + data.namespace.toUpperCase()
-        + " | " + socket.id
-        + " | " + data.userId
-      ));
+    //   data.timeStamp = moment().valueOf();
 
-      authenticatedSocketCache.set(socket.id, data);
-      initSocketHandler({namespace: "view", socket: socket});
+    //   console.log(chalk.bold.green("+++ SOCKET AUTHENTICATED"
+    //     + " | " + data.namespace.toUpperCase()
+    //     + " | " + socket.id
+    //     + " | " + data.userId
+    //   ));
 
-    }
+    //   authenticatedSocketCache.set(socket.id, data);
+    //   initSocketHandler({namespace: "view", socket: socket});
+    // }
 
-    function disconnect(socket) {
+    // function disconnect(socket) {
 
-      authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
-        if (authenticatedSocketObj) {
-          console.log(chalkAlert("POST AUTHENTICATE DISCONNECT"
-            + " | " + authenticatedSocketObj.namespace.toUpperCase()
-            + " | " + socket.id
-            + " | " + authenticatedSocketObj.userId
-          ));
-        }
-        else {
-          console.log(chalkAlert("POST AUTHENTICATE DISCONNECT | " + socket.id));
-        }
-      });
-    }
+    //   authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
+    //     if (authenticatedSocketObj) {
+    //       console.log(chalkAlert("POST AUTHENTICATE DISCONNECT"
+    //         + " | " + authenticatedSocketObj.namespace.toUpperCase()
+    //         + " | " + socket.id
+    //         + " | " + authenticatedSocketObj.userId
+    //       ));
+    //     }
+    //     else {
+    //       console.log(chalkAlert("POST AUTHENTICATE DISCONNECT | " + socket.id));
+    //     }
+    //   });
+    // }
 
-    const socketIoAuth = require("@threeceelabs/socketio-auth")(io, "view", {
+    // const socketIoAuth = require("@threeceelabs/socketio-auth")(io, "view", {
 
-      authenticate: function (socket, data, callback) {
+    //   authenticate: function (socket, data, callback) {
 
-        const namespace = data.namespace;
-        const userId = data.userId.toLowerCase();
-        const password = data.password;
+    //     const namespace = data.namespace;
+    //     const userId = data.userId.toLowerCase();
+    //     const password = data.password;
 
-        console.log(chalkLog("... AUTHENTICATING SOCKET"
-          + " | " + getTimeStamp()
-          + " | " + socket.id
-          + " | NSP: " + namespace.toUpperCase()
-          + " | UID: " + userId
-          // + "\n" + jsonPrint(data)
-        ));
+    //     console.log(chalkLog("... AUTHENTICATING SOCKET"
+    //       + " | " + getTimeStamp()
+    //       + " | " + socket.id
+    //       + " | NSP: " + namespace.toUpperCase()
+    //       + " | UID: " + userId
+    //       // + "\n" + jsonPrint(data)
+    //     ));
 
-        //get credentials sent by the client
+    //     //get credentials sent by the client
 
-        debug(chalk.green("+++ VIEWER AUTHENTICATED | " + userId));
-        // return callback(null, true);
+    //     debug(chalk.green("+++ VIEWER AUTHENTICATED | " + userId));
+    //     // return callback(null, true);
 
-        callback(null, true);
+    //     callback(null, true);
 
-      },
-      postAuthenticate: postAuthenticate,
-      disconnect: disconnect,
-      timeout: configuration.socketAuthTimeout
-    });
+    //   },
+    //   postAuthenticate: postAuthenticate,
+    //   disconnect: disconnect,
+    //   timeout: configuration.socketAuthTimeout
+    // });
+
   });
 
   statsObj.ioReady = true;

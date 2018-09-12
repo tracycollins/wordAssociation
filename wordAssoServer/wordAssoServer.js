@@ -4433,6 +4433,10 @@ function initSocketNamespaces(){
           + "\n" + jsonPrint(authenticatedSocketObj)
         ));
       }
+      else {
+        authenticatedSocketCache.set(socket.id, true);
+        socket.emit("authenticated", true);
+      }
     });
 
     statsObj.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
@@ -4449,6 +4453,10 @@ function initSocketNamespaces(){
           + " | " + socket.id
           + "\n" + jsonPrint(authenticatedSocketObj)
         ));
+      }
+      else {
+        authenticatedSocketCache.set(socket.id, true);
+        socket.emit("authenticated", true);
       }
     });
 
@@ -4545,6 +4553,10 @@ function initSocketNamespaces(){
           + " | " + socket.id
           + "\n" + jsonPrint(authenticatedSocketObj)
         ));
+      }
+      else {
+        authenticatedSocketCache.set(socket.id, true);
+        socket.emit("authenticated", true);
       }
     });
 

@@ -4434,8 +4434,27 @@ function initSocketNamespaces(){
         ));
       }
       else {
-        authenticatedSocketCache.set(socket.id, true);
-        socket.emit("authenticated", true);
+        socket.on("authentication", function(data) {
+
+          if (configuration.verbose) {
+            console.log("RX SOCKET AUTHENTICATION"
+              + " | " + socket.nsp.name.toUpperCase()
+              + " | " + socket.id
+              + " | USER ID: " + data.userId
+            );
+          }
+
+          data.timeStamp = moment().valueOf();
+
+          authenticatedSocketCache.set(socket.id, data);
+
+          statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
+
+          initSocketHandler({namespace: "admin", socket: socket});
+
+          socket.emit("authenticated", true);
+
+        });
       }
     });
 
@@ -4455,78 +4474,29 @@ function initSocketNamespaces(){
         ));
       }
       else {
-        authenticatedSocketCache.set(socket.id, true);
-        socket.emit("authenticated", true);
+        socket.on("authentication", function(data) {
+
+          if (configuration.verbose) {
+            console.log("RX SOCKET AUTHENTICATION"
+              + " | " + socket.nsp.name.toUpperCase()
+              + " | " + socket.id
+              + " | USER ID: " + data.userId
+            );
+          }
+
+          data.timeStamp = moment().valueOf();
+
+          authenticatedSocketCache.set(socket.id, data);
+
+          statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
+
+          initSocketHandler({namespace: "util", socket: socket});
+
+          socket.emit("authenticated", true);
+
+        });
       }
     });
-
-    statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
-
-    initSocketHandler({namespace: "util", socket: socket});
-
-    // function postAuthenticate(socket, data) {
-
-    //   data.timeStamp = moment().valueOf();
-
-    //   console.log(chalk.bold.green("+++ SOCKET AUTHENTICATED"
-    //     + " | " + data.namespace.toUpperCase()
-    //     + " | " + socket.id
-    //     + " | " + data.userId
-    //   ));
-
-    //   authenticatedSocketCache.set(socket.id, data);
-
-    //   initSocketHandler({namespace: "util", socket: socket});
-    // }
-
-    // function disconnect(socket) {
-    //   authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
-
-    //     serverCache.del(socket.id);
-
-    //     if (authenticatedSocketObj) {
-    //       console.log(chalkAlert("POST AUTHENTICATE DISCONNECT"
-    //         + " | " + authenticatedSocketObj.namespace.toUpperCase()
-    //         + " | " + socket.id
-    //         + " | " + authenticatedSocketObj.userId
-    //       ));
-    //     }
-    //     else {
-    //       console.log(chalkAlert("POST AUTHENTICATE DISCONNECT | " + socket.id));
-    //     }
-
-    //   });
-    // }
-
-    // const socketIoAuth = require("@threeceelabs/socketio-auth")(io, "util", {
-
-    //   authenticate: function (socket, data, callback) {
-
-    //     const namespace = data.namespace;
-    //     const userId = data.userId.toLowerCase();
-    //     const password = data.password;
-
-    //     console.log(chalkLog("... AUTHENTICATING SOCKET"
-    //       + " | " + getTimeStamp()
-    //       + " | " + socket.id
-    //       + " | NSP: " + namespace.toUpperCase()
-    //       + " | UID: " + userId
-    //       // + "\n" + jsonPrint(data)
-    //     ));
-
-    //     if ((namespace === "util") && (password === "0123456789")) {
-    //       console.log(chalk.green("+++ UTIL AUTHENTICATED | " + userId));
-    //       callback(null, true);
-    //     }
-    //     else {
-    //       callback(null, false);
-    //     }
-
-    //   },
-    //   postAuthenticate: postAuthenticate,
-    //   disconnect: disconnect,
-    //   timeout: configuration.socketAuthTimeout
-    // });
 
   });
 
@@ -4555,8 +4525,27 @@ function initSocketNamespaces(){
         ));
       }
       else {
-        authenticatedSocketCache.set(socket.id, true);
-        socket.emit("authenticated", true);
+        socket.on("authentication", function(data) {
+
+          if (configuration.verbose) {
+            console.log("RX SOCKET AUTHENTICATION"
+              + " | " + socket.nsp.name.toUpperCase()
+              + " | " + socket.id
+              + " | USER ID: " + data.userId
+            );
+          }
+
+          data.timeStamp = moment().valueOf();
+
+          authenticatedSocketCache.set(socket.id, data);
+
+          statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
+
+          initSocketHandler({namespace: "view", socket: socket});
+
+          socket.emit("authenticated", true);
+
+        });
       }
     });
 
@@ -4564,72 +4553,9 @@ function initSocketNamespaces(){
 
     initSocketHandler({namespace: "view", socket: socket});
 
-    // function postAuthenticate(socket, data) {
-
-    //   data.timeStamp = moment().valueOf();
-
-    //   console.log(chalk.bold.green("+++ SOCKET AUTHENTICATED"
-    //     + " | " + data.namespace.toUpperCase()
-    //     + " | " + socket.id
-    //     + " | " + data.userId
-    //   ));
-
-    //   authenticatedSocketCache.set(socket.id, data);
-    //   initSocketHandler({namespace: "view", socket: socket});
-    // }
-
-    // function disconnect(socket) {
-
-    //   authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
-    //     if (authenticatedSocketObj) {
-    //       console.log(chalkAlert("POST AUTHENTICATE DISCONNECT"
-    //         + " | " + authenticatedSocketObj.namespace.toUpperCase()
-    //         + " | " + socket.id
-    //         + " | " + authenticatedSocketObj.userId
-    //       ));
-    //     }
-    //     else {
-    //       console.log(chalkAlert("POST AUTHENTICATE DISCONNECT | " + socket.id));
-    //     }
-    //   });
-    // }
-
-    // const socketIoAuth = require("@threeceelabs/socketio-auth")(io, "view", {
-
-    //   authenticate: function (socket, data, callback) {
-
-    //     const namespace = data.namespace;
-    //     const userId = data.userId.toLowerCase();
-    //     const password = data.password;
-
-    //     console.log(chalkLog("... AUTHENTICATING SOCKET"
-    //       + " | " + getTimeStamp()
-    //       + " | " + socket.id
-    //       + " | NSP: " + namespace.toUpperCase()
-    //       + " | UID: " + userId
-    //       // + "\n" + jsonPrint(data)
-    //     ));
-
-    //     //get credentials sent by the client
-
-    //     debug(chalk.green("+++ VIEWER AUTHENTICATED | " + userId));
-    //     // return callback(null, true);
-
-    //     callback(null, true);
-
-    //   },
-    //   postAuthenticate: postAuthenticate,
-    //   disconnect: disconnect,
-    //   timeout: configuration.socketAuthTimeout
-    // });
-
   });
 
   statsObj.ioReady = true;
-
-  // return;
-
-  // if (callback !== undefined) { callback(); }
 }
 
 function printCat(c){

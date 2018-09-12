@@ -160,7 +160,7 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const TwitterStrategy = require("passport-twitter").Strategy;
 
-const PythonShell = require("python-shell");
+// const PythonShell = require("python-shell");
 
 app.use(require("serve-static")(__dirname + "/public"));
 // app.use(require("cookie-parser")());
@@ -752,83 +752,83 @@ hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
 
-if (hostname === "google") {
+// if (hostname === "google") {
 
-  console.log(chalkBlue("INIT HEADLESS DROPBOX VIA PYTHON SHELL"));
+//   console.log(chalkBlue("INIT HEADLESS DROPBOX VIA PYTHON SHELL"));
 
-  // const PythonShell = require("python-shell");
+//   // const PythonShell = require("python-shell");
 
-  const CONFIG_PATH = "/home/tc/Dropbox/Apps/wordAssociation/config";
-  const pythonPath = "/usr/bin/python";
-  const pythonScriptPath = CONFIG_PATH;
-  const pythonScript = "dropbox.py";
+//   const CONFIG_PATH = "/home/tc/Dropbox/Apps/wordAssociation/config";
+//   const pythonPath = "/usr/bin/python";
+//   const pythonScriptPath = CONFIG_PATH;
+//   const pythonScript = "dropbox.py";
 
-  const pythonDropboxStartOptions = {
-    mode: "text",
-    pythonPath: pythonPath,
-    scriptPath: pythonScriptPath,
-    lansync: true,
-    args: ["start"]
-  };
+//   const pythonDropboxStartOptions = {
+//     mode: "text",
+//     pythonPath: pythonPath,
+//     scriptPath: pythonScriptPath,
+//     lansync: true,
+//     args: ["start"]
+//   };
 
-  const pythonDropboxRunningOptions = {
-    mode: "text",
-    pythonPath: pythonPath,
-    scriptPath: pythonScriptPath,
-    lansync: true,
-    args: ["running"]
-  };
+//   const pythonDropboxRunningOptions = {
+//     mode: "text",
+//     pythonPath: pythonPath,
+//     scriptPath: pythonScriptPath,
+//     lansync: true,
+//     args: ["running"]
+//   };
 
-  const pythonDropboxStatusOptions = {
-    mode: "text",
-    pythonPath: pythonPath,
-    scriptPath: pythonScriptPath,
-    lansync: true,
-    args: ["status"]
-  };
+//   const pythonDropboxStatusOptions = {
+//     mode: "text",
+//     pythonPath: pythonPath,
+//     scriptPath: pythonScriptPath,
+//     lansync: true,
+//     args: ["status"]
+//   };
 
 
-  const pythonDropboxStart = new PythonShell(pythonScript, pythonDropboxStartOptions);
-  const pythonDropboxRunning = new PythonShell(pythonScript, pythonDropboxRunningOptions);
-  const pythonDropboxStatus = new PythonShell(pythonScript, pythonDropboxStatusOptions);
+//   const pythonDropboxStart = new PythonShell(pythonScript, pythonDropboxStartOptions);
+//   const pythonDropboxRunning = new PythonShell(pythonScript, pythonDropboxRunningOptions);
+//   const pythonDropboxStatus = new PythonShell(pythonScript, pythonDropboxStatusOptions);
 
-  pythonDropboxStart.on("error", function (err) {
-    console.log(chalkError("*** DROPBOX PYTHON SHELL STARTERROR"
-      + " | " + err
-    ));
-  });
+//   pythonDropboxStart.on("error", function (err) {
+//     console.log(chalkError("*** DROPBOX PYTHON SHELL STARTERROR"
+//       + " | " + err
+//     ));
+//   });
 
-  pythonDropboxStart.on("message", function (message) {
-    console.log(chalkBlue("DROPBOX PYTHON SHELL START MESSAGE"
-      + " | " + message
-    ));
-  });
+//   pythonDropboxStart.on("message", function (message) {
+//     console.log(chalkBlue("DROPBOX PYTHON SHELL START MESSAGE"
+//       + " | " + message
+//     ));
+//   });
 
-  pythonDropboxRunning.on("error", function (err) {
-    console.log(chalkError("*** DROPBOX PYTHON SHELL RUNNING ERROR"
-      + " | " + err
-    ));
-  });
+//   pythonDropboxRunning.on("error", function (err) {
+//     console.log(chalkError("*** DROPBOX PYTHON SHELL RUNNING ERROR"
+//       + " | " + err
+//     ));
+//   });
 
-  pythonDropboxRunning.on("message", function (message) {
-    console.log(chalkBlue("DROPBOX PYTHON SHELL RUNNING MESSAGE"
-      + " | " + message
-    ));
-  });
+//   pythonDropboxRunning.on("message", function (message) {
+//     console.log(chalkBlue("DROPBOX PYTHON SHELL RUNNING MESSAGE"
+//       + " | " + message
+//     ));
+//   });
 
-  pythonDropboxStatus.on("error", function (err) {
-    console.log(chalkError("*** DROPBOX PYTHON SHELL STATUS ERROR"
-      + " | " + err
-    ));
-  });
+//   pythonDropboxStatus.on("error", function (err) {
+//     console.log(chalkError("*** DROPBOX PYTHON SHELL STATUS ERROR"
+//       + " | " + err
+//     ));
+//   });
 
-  pythonDropboxStatus.on("message", function (message) {
-    console.log(chalkBlue("DROPBOX PYTHON SHELL STATUS MESSAGE"
-      + " | " + message
-    ));
-  });
+//   pythonDropboxStatus.on("message", function (message) {
+//     console.log(chalkBlue("DROPBOX PYTHON SHELL STATUS MESSAGE"
+//       + " | " + message
+//     ));
+//   });
 
-}
+// }
 
 
 const tweetMeter = new Measured.Meter({rateUnit: 60000});

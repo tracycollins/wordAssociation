@@ -10,6 +10,10 @@ let initCategoryHashmapsReady = true;
 
 process.env.NODE_ENV = process.env.NODE_ENV || "development";
 
+const NS_PER_SEC = 1e9;
+let time = process.hrtime();
+let diff = process.hrtime(time);
+let deltaNS = diff[0] * NS_PER_SEC + diff[1];
 
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
@@ -3175,77 +3179,6 @@ configEvents.on("INTERNET_READY", function internetReady() {
     slack = new Slack(slackOAuthAccessToken);
   }
 
-
-  // function postAuthenticate(socket, data) {
-
-  //   data.timeStamp = moment().valueOf();
-
-  //   console.log(chalk.bold.green("+++ SOCKET AUTHENTICATED"
-  //     + " | " + data.namespace.toUpperCase()
-  //     + " | " + socket.id
-  //     + " | " + data.userId
-  //   ));
-
-  //   USER_READY
-
-  //   authenticatedSocketCache.set(socket.id, data);
-  // }
-
-  // function disconnect(socket) {
-  //   authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
-  //     if (authenticatedSocketObj) {
-  //       console.log(chalkAlert("POST AUTHENTICATE DISCONNECT"
-  //         + " | " + authenticatedSocketObj.namespace.toUpperCase()
-  //         + " | " + socket.id
-  //         + " | " + authenticatedSocketObj.userId
-  //       ));
-  //     }
-  //     else {
-  //       console.log(chalkAlert("POST AUTHENTICATE DISCONNECT | " + socket.id));
-  //     }
-  //   });
-  // }
-
-  // const socketIoAuth = require("@threeceelabs/socketio-auth")(io, {
-
-  //   authenticate: function (socket, data, callback) {
-
-  //     const namespace = data.namespace;
-  //     const userId = data.userId.toLowerCase();
-  //     const password = data.password;
-
-  //     console.log(chalkLog("... AUTHENTICATING SOCKET"
-  //       + " | " + getTimeStamp()
-  //       + " | " + socket.id
-  //       + " | NSP: " + namespace.toUpperCase()
-  //       + " | UID: " + userId
-  //       // + "\n" + jsonPrint(data)
-  //     ));
-  //     //get credentials sent by the client
-
-  //     if ((namespace === "admin") && (password === "this is a very weak password")) {
-  //       debug(chalk.green("+++ ADMIN AUTHENTICATED | " + userId));
-  //       return callback(null, true);
-  //     }
-
-  //     if (namespace === "view") {
-  //       debug(chalk.green("+++ VIEWER AUTHENTICATED | " + userId));
-  //       return callback(null, true);
-  //     }
-
-  //     if ((namespace === "util") && (password === "0123456789")) {
-  //       debug(chalk.green("+++ UTIL AUTHENTICATED | " + userId));
-  //       return callback(null, true);
-  //     }
-
-  //     return callback(null, false);
-
-  //   },
-  //   postAuthenticate: postAuthenticate,
-  //   disconnect: disconnect,
-  //   timeout: configuration.socketAuthTimeout
-  // });
-
   initAppRouting(function initAppRoutingComplete() {
     initLoadBestNetworkInterval(ONE_MINUTE+1);
   });
@@ -3893,7 +3826,7 @@ function initSocketHandler(socketObj) {
         + " | " + socketId
       ));
 
-      serverCache.set(socketId, currentServer);
+      serverCache.del(socketId);
 
       adminNameSpace.emit("SERVER_ERROR", currentServer);
     }
@@ -3916,7 +3849,7 @@ function initSocketHandler(socketObj) {
         + " | " + socketId
       ));
 
-      viewerHashMap.set(socketId, currentViewer);
+      viewerCache.del(socketId);
 
       adminNameSpace.emit("VIEWER_ERROR", currentViewer);
     }
@@ -4029,6 +3962,7 @@ function initSocketHandler(socketObj) {
           + " | " + keepAliveObj.user.userId
         ));
         socket.disconnect();
+        serverCache.del(socket.id);
       }
     });
 
@@ -4107,12 +4041,21 @@ function initSocketHandler(socketObj) {
       case "LA" :
       case "TMP" :
 
+        // console.log(`Benchmark took ${diff[0] * NS_PER_SEC + diff[1]} nanoseconds`);
+
+        deltaNS = diff[0] * NS_PER_SEC + diff[1];
+
+        diff = process.hrtime(time);
+
         console.log(chalkLog("R< KA"
+          + " | DELTA: " + deltaNS + " NS"
           + " | " + currentSessionType + " SERVER" 
           + " | " + getTimeStamp()
           + " | " + keepAliveObj.user.userId
           + " | " + socket.id
         ));
+
+        time = process.hrtime();
 
         sessionObj.socketId = socket.id;
         sessionObj.ip = ipAddress;
@@ -4504,6 +4447,7 @@ function initSocketNamespaces(callback){
           + " | " + socket.id
           + "\n" + jsonPrint(authenticatedSocketObj)
         ));
+        return;
       }
     });
 
@@ -4522,10 +4466,15 @@ function initSocketNamespaces(callback){
       authenticatedSocketCache.set(socket.id, data);
 
       initSocketHandler({namespace: "util", socket: socket});
+      callback(null, true);
+
     }
 
     function disconnect(socket) {
       authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
+
+        serverCache.del(socketId);
+
         if (authenticatedSocketObj) {
           console.log(chalkAlert("POST AUTHENTICATE DISCONNECT"
             + " | " + authenticatedSocketObj.namespace.toUpperCase()
@@ -4557,16 +4506,17 @@ function initSocketNamespaces(callback){
 
         if ((namespace === "util") && (password === "0123456789")) {
           debug(chalk.green("+++ UTIL AUTHENTICATED | " + userId));
-          return callback(null, true);
+          // return callback(null, true);
         }
 
-        callback(null, false);
+        // callback(null, false);
 
       },
       postAuthenticate: postAuthenticate,
       disconnect: disconnect,
       timeout: configuration.socketAuthTimeout
     });
+
   });
 
   userNameSpace.on("connect", function userConnect(socket) {

@@ -4475,7 +4475,7 @@ function initSocketNamespaces(callback){
     function disconnect(socket) {
       authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
 
-        serverCache.del(socketId);
+        serverCache.del(socket.id);
 
         if (authenticatedSocketObj) {
           console.log(chalkAlert("POST AUTHENTICATE DISCONNECT"

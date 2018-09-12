@@ -101,24 +101,21 @@ console.log("viewerObj\n" + jsonPrint(viewerObj));
 
 var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
 
-// var categoryTypes = ["left", "neutral", "right", "positive", "negative"];
-
-// var debug = true;
 
 var twitterUserThreecee = {
-    nodeId : "14607119",
-    userId : "14607119",
-    profileImageUrl : "http://pbs.twimg.com/profile_images/780466729692659712/p6RcVjNK.jpg",
-    profileUrl : "http://twitter.com/threecee",
-    url : "http://threeCeeMedia.com",
-    name : "Tracy Collins",
-    screenName : "threecee",
-    nodeType : "user",
-    following : null,
-    description : "photography + animation + design",
-    isTwitterUser : true,
-    screenNameLower : "threecee",
-    category: "left"
+  nodeId : "14607119",
+  userId : "14607119",
+  profileImageUrl : "http://pbs.twimg.com/profile_images/780466729692659712/p6RcVjNK.jpg",
+  profileUrl : "http://twitter.com/threecee",
+  url : "http://threeCeeMedia.com",
+  name : "Tracy Collins",
+  screenName : "threecee",
+  nodeType : "user",
+  following : null,
+  description : "photography + animation + design",
+  isTwitterUser : true,
+  screenNameLower : "threecee",
+  category: "left"
 };
 
 var PARENT_ID = "0047";
@@ -141,7 +138,6 @@ var controlPanel;
 var controlPanelWindow; 
 var controlPanelFlag = false;
 
-// var statsTableFlag = false;
 
 requirejs(["https://d3js.org/d3.v5.min.js"], function(d3Loaded) {
     console.log("d3 LOADED");
@@ -150,17 +146,11 @@ requirejs(["https://d3js.org/d3.v5.min.js"], function(d3Loaded) {
 
       PARENT_ID = config.sessionViewType;
 
-      // createStatsTable(function(){
-      //   statsTableFlag = true;
-      // });
-
       addControlButton();
       addLoginButton();
       addFullscreenButton();
       addMetricButton();
-      // addStatsButton();
       addCategoryButton();
-
       resetMouseMoveTimer();
       
       document.addEventListener("mousemove", function() {
@@ -174,6 +164,7 @@ requirejs(["https://d3js.org/d3.v5.min.js"], function(d3Loaded) {
           resetMouseMoveTimer();
         }
       }, true);
+
     });
   },
   function(error) {
@@ -485,20 +476,14 @@ ignoreWordsArray.push("'");
 ignoreWordsArray.push("`");
 
 var hashtagHashMap = new HashMap();
-
-
-
 var ignoreWordHashMap = new HashMap();
-
 var categoryColorHashMap = new HashMap();
 
 categoryColorHashMap.set("positive", palette.green);
 categoryColorHashMap.set("negative", palette.red);
 categoryColorHashMap.set("neutral", palette.lightgray);
-
 categoryColorHashMap.set("left", palette.blue);
 categoryColorHashMap.set("right", palette.yellow);
-
 
 
 var rxSessionUpdateQueue = [];
@@ -612,26 +597,6 @@ function resetServerActiveTimer() {
   }, serverActiveTimeoutInterval);
 }
 
-// document.addEventListener("dragEnd", function(e) {
-//   console.log("DRAG END: " + jsonPrint(dragEndPosition));
-//   if (sessionHashMap.has(dragEndPosition.id)){
-//     var dragSession = sessionHashMap.get(dragEndPosition.id);
-//     dragSession.initialPosition.x = dragEndPosition.x;
-//     dragSession.initialPosition.y = dragEndPosition.y;
-//     dragSession.node.px = dragEndPosition.x;
-//     dragSession.node.py = dragEndPosition.y;
-//     sessionHashMap.set(dragSession.nodeId, dragSession);
-//     nodeHashMap.set(dragSession.node.nodeId, dragSession.node);
-//     // console.error("dragSession\n" + jsonPrint(dragSession));
-//   }
-// });
-
-// var sessionDragEndEvent = new CustomEvent(
-//   "dragEnd", { 
-//     "detail": dragEndPosition
-//   } 
-// );
-
 window.onbeforeunload = function() {
   if (controlPanelFlag) { controlPanelWindow.close(); }
   controlPanelFlag = false;
@@ -725,15 +690,6 @@ function addControlButton(){
   controlDivElement.appendChild(controlPanelButton);
 }
 
-// function addStatsText(){
-//   var statsText = document.createTextNode("STATS");
-//   statsDivElement.appendChild(statsText);
-// }
-
-// function updateStatsText(statsText){
-//   statsDivElement.innerHTML = statsText;
-// }
-
 function addCategoryButton(){
   var categoryButton = document.createElement("BUTTON");
   categoryButton.className = "button";
@@ -746,21 +702,6 @@ function addCategoryButton(){
 function updateCategoryButton(){
   document.getElementById("categoryButton").innerHTML = config.autoCategoryFlag ? "AUTO CATEGORY" : "MANUAL CATEGORY";
 }
-
-// function addStatsButton(){
-//   var statsButton = document.createElement("BUTTON");
-//   statsButton.className = "button";
-//   statsButton.setAttribute("id", "statsButton");
-//   statsButton.setAttribute("onclick", "toggleStats()");
-//   statsButton.innerHTML = config.showStats ? "HIDE STATS" : "SHOW STATS";
-//   controlDivElement.appendChild(statsButton);
-// }
-
-// var statsButtonElement = document.getElementById("statsButton");
-
-// function updateStatsButton(){
-//   statsButtonElement.innerHTML = config.showStatsFlag ? "HIDE STATS" : "SHOW STATS";
-// }
 
 function updateMetricButton(){
   document.getElementById("metricButton").innerHTML = config.metricMode.toUpperCase() + " RADIUS";
@@ -1188,54 +1129,6 @@ function getVisibilityEvent(prefix) {
   else { return "visibilitychange"; }
 }
 
-socket.on("SERVER_READY", function(serverAck) {
-  statsObj.serverConnected = true;
-  statsObj.socket.connected = true;
-  console.log("RX SERVER_READY | SERVER ACK: " + jsonPrint(serverAck));
-});
-
-socket.on("VIEWER_READY_ACK", function(vSesKey) {
-
-  statsObj.serverConnected = true;
-  statsObj.socket.connected = true;
-
-  console.log("RX VIEWER_READY_ACK | SESSION KEY: " + vSesKey);
-
-  statsObj.viewerSessionKey = vSesKey;
-  viewerObj.viewerSessionKey = vSesKey;
-
-  if (config.VIEWER_OBJ === undefined) {
-    config.VIEWER_OBJ = {};
-  }
-
-  config.VIEWER_OBJ = viewerObj;
-
-  console.debug("STORE CONFIG ON VIEWER_READY_ACK\n" + jsonPrint(config));
-  saveConfig();
-
-  if (!config.pauseFlag) {
-    currentSessionView.simulationControl("RESUME");
-  }
-});
-
-socket.on("reconnect", function() {
-
-  viewerObj.socketId = socket.id;
-
-  statsObj.serverConnected = true;
-  console.log("RECONNECTED TO HOST | SOCKET ID: " + socket.id);
-
-  statsObj.socket.reconnectMoment = moment();
-  statsObj.socket.reconnects += 1;
-  statsObj.socket.connected = true;
-
-  viewerObj.timeStamp = moment().valueOf();
-  // viewerObj.stats = statsObj;
-
-  socket.emit("authentication", viewerObj);
-
-});
-
 socket.on("connect", function() {
 
   viewerObj.socketId = socket.id;
@@ -1250,67 +1143,108 @@ socket.on("connect", function() {
   statsObj.socket.connectMoment = moment();
   statsObj.socket.connects += 1;
 
-  // viewerObj.stats = statsObj;
-
   viewerObj.timeStamp = moment().valueOf();
 
+  socket.on("SERVER_READY", function(serverAck) {
+    statsObj.serverConnected = true;
+    statsObj.socket.connected = true;
+    console.log("RX SERVER_READY | SERVER ACK: " + jsonPrint(serverAck));
+  });
+
+  socket.on("VIEWER_READY_ACK", function(vSesKey) {
+
+    statsObj.serverConnected = true;
+    statsObj.socket.connected = true;
+
+    console.log("RX VIEWER_READY_ACK | SESSION KEY: " + vSesKey);
+
+    statsObj.viewerSessionKey = vSesKey;
+    viewerObj.viewerSessionKey = vSesKey;
+
+    if (config.VIEWER_OBJ === undefined) {
+      config.VIEWER_OBJ = {};
+    }
+
+    config.VIEWER_OBJ = viewerObj;
+
+    console.debug("STORE CONFIG ON VIEWER_READY_ACK\n" + jsonPrint(config));
+    saveConfig();
+
+    if (!config.pauseFlag) {
+      currentSessionView.simulationControl("RESUME");
+    }
+  });
+
+  socket.on("reconnect", function() {
+
+    viewerObj.socketId = socket.id;
+
+    statsObj.serverConnected = true;
+    console.log("RECONNECTED TO HOST | SOCKET ID: " + socket.id);
+
+    statsObj.socket.reconnectMoment = moment();
+    statsObj.socket.reconnects += 1;
+    statsObj.socket.connected = true;
+
+    viewerObj.timeStamp = moment().valueOf();
+    // viewerObj.stats = statsObj;
+
+    socket.emit("authentication", viewerObj);
+  });
+
+  socket.on("disconnect", function() {
+
+    statsObj.serverConnected = false;
+
+    statsObj.socket.connected = false;
+    statsObj.socket.disconnectMoment = moment();
+
+    if (currentSessionView !== undefined) { currentSessionView.setEnableAgeNodes(false); }
+    console.log("*** DISCONNECTED FROM HOST ... DELETING ALL SESSIONS ...");
+    if (currentSessionView !== undefined) { currentSessionView.resize(); }
+  });
+
+  socket.on("error", function(error) {
+
+    statsObj.socket.errors += 1;
+    statsObj.socket.error = error;
+    statsObj.socket.errorMoment = moment();
+
+    // viewerObj.stats = statsObj;
+
+    console.log("*** SOCKET ERROR ... DELETING ALL SESSIONS ...");
+    console.error("*** SOCKET ERROR\n" + error);
+
+    if (currentSessionView !== undefined) { currentSessionView.resize(); }
+  });
+
+  socket.on("connect_error", function(error) {
+
+    statsObj.socket.errors += 1;
+    statsObj.socket.error = error;
+    statsObj.socket.errorMoment = moment();
+
+    // viewerObj.stats = statsObj;
+
+    console.log("*** SOCKET CONNECT ERROR ... DELETING ALL SESSIONS ...");
+    console.error("*** SOCKET CONNECT ERROR\n" + error);
+    if (currentSessionView !== undefined) { currentSessionView.resize(); }
+  });
+
+  socket.on("reconnect_error", function(error) {
+
+    statsObj.socket.errors += 1;
+    statsObj.socket.error = error;
+    statsObj.socket.errorMoment = moment();
+
+    // viewerObj.stats = statsObj;
+
+    console.log("*** SOCKET RECONNECT ERROR ... DELETING ALL SESSIONS ...");
+    console.error("*** SOCKET RECONNECT ERROR\n" + error);
+    if (currentSessionView !== undefined) { currentSessionView.resize(); }
+  });
+
   socket.emit("authentication", viewerObj);
-
-});
-
-socket.on("disconnect", function() {
-
-  statsObj.serverConnected = false;
-
-  statsObj.socket.connected = false;
-  statsObj.socket.disconnectMoment = moment();
-
-  // viewerObj.stats = statsObj;
-
-  if (currentSessionView !== undefined) { currentSessionView.setEnableAgeNodes(false); }
-  console.log("*** DISCONNECTED FROM HOST ... DELETING ALL SESSIONS ...");
-  if (currentSessionView !== undefined) { currentSessionView.resize(); }
-
-});
-
-socket.on("error", function(error) {
-
-  statsObj.socket.errors += 1;
-  statsObj.socket.error = error;
-  statsObj.socket.errorMoment = moment();
-
-  // viewerObj.stats = statsObj;
-
-  console.log("*** SOCKET ERROR ... DELETING ALL SESSIONS ...");
-  console.error("*** SOCKET ERROR\n" + error);
-
-  if (currentSessionView !== undefined) { currentSessionView.resize(); }
-});
-
-socket.on("connect_error", function(error) {
-
-  statsObj.socket.errors += 1;
-  statsObj.socket.error = error;
-  statsObj.socket.errorMoment = moment();
-
-  // viewerObj.stats = statsObj;
-
-  console.log("*** SOCKET CONNECT ERROR ... DELETING ALL SESSIONS ...");
-  console.error("*** SOCKET CONNECT ERROR\n" + error);
-  if (currentSessionView !== undefined) { currentSessionView.resize(); }
-});
-
-socket.on("reconnect_error", function(error) {
-
-  statsObj.socket.errors += 1;
-  statsObj.socket.error = error;
-  statsObj.socket.errorMoment = moment();
-
-  // viewerObj.stats = statsObj;
-
-  console.log("*** SOCKET RECONNECT ERROR ... DELETING ALL SESSIONS ...");
-  console.error("*** SOCKET RECONNECT ERROR\n" + error);
-  if (currentSessionView !== undefined) { currentSessionView.resize(); }
 });
 
 
@@ -1487,16 +1421,6 @@ function tableCreateRow(parentTable, options, cells) {
         tableCell.style.backgroundColor = tdBgColor;
         tableCell.innerHTML = content.text;
       } 
-      // else if (content.type === "BUTTON") {
-      //   tableButton = document.createElement("BUTTON");
-      //   tableButton.className = content.class;
-      //   tableButton.setAttribute("id", content.id);
-      //   tableButton.setAttribute("mode", content.mode);
-      //   tableButton.addEventListener("click", function(e){ buttonHandler(e); }, false);
-      //   tableButton.innerHTML = content.text;
-      //   tableCell.appendChild(tableButton);
-      //   // controlIdHash[content.id] = content;
-      // } 
       else if (content.type === "SLIDER") {
         tableSlider = document.createElement("INPUT");
         tableSlider.type = "range";
@@ -1508,258 +1432,10 @@ function tableCreateRow(parentTable, options, cells) {
         tableSlider.setAttribute("oninput", content.oninput);
         tableSlider.value = content.value;
         tableCell.appendChild(tableSlider);
-        // controlIdHash[content.id] = content;
       }
     });
   }
 }
-
-// function createStatsTable(callback) {
-
-//   console.log("CREATE STATS TABLE");
-
-//   statsDivElement.style.visibility = "hidden";
-//   statsDivElement.style.border = "2px solid black ";
-//   statsDivElement.style.backgroundColor = palette.white;
-//   statsDivElement.style.textColor = palette.black;
-//   var statsTableServer = document.createElement("TABLE");
-//   var statsTableClient = document.createElement("TABLE");
-//   var br = document.createElement("br");
-
-//   statsTableServer.className = "table";
-//   statsTableServer.setAttribute("id", "statsTableServer");
-//   statsTableServer.style.border = "1px solid black ";
-
-//   statsDivElement.appendChild(statsTableServer);
-//   statsDivElement.appendChild(br);
-
-//   statsTableClient.className = "table";
-//   statsTableClient.setAttribute("id", "statsTableClient");
-//   statsDivElement.appendChild(statsTableClient);
-
-//   var optionsHead = {
-//     headerFlag: true,
-//     textColor: palette.black,
-//     backgroundColor: palette.white
-//   };
-
-//   var optionsBody = {
-//     headerFlag: false,
-//     textColor: palette.black,
-//     border: "2px solid red",
-//     backgroundColor: palette.white
-//   };
-
-//   // var statsClientSessionIdLabel = {
-//   //   type: "TEXT",
-//   //   id: "statsClientSessionIdLabel",
-//   //   class: "statsTableText",
-//   //   text: "SESSION"
-//   // };
-
-//   // var statsClientSessionId = {
-//   //   type: "TEXT",
-//   //   id: "statsClientSessionId",
-//   //   class: "statsTableText",
-//   //   text: statsObj.socketId
-//   // };
-
-//   // var statsClientNumberNodesLabel = {
-//   //   type: "TEXT",
-//   //   id: "statsClientNumberNodesLabel",
-//   //   class: "statsTableText",
-//   //   text: "NODES"
-//   // };
-
-//   // var statsClientNumberNodes = {
-//   //   type: "TEXT",
-//   //   id: "statsClientNumberNodes",
-//   //   class: "statsTableText",
-//   //   text: "---"
-//   // };
-
-//   // var statsClientNumberMaxNodesLabel = {
-//   //   type: "TEXT",
-//   //   id: "statsClientNumberMaxNodesLabel",
-//   //   class: "statsTableText",
-//   //   text: "MAX"
-//   // };
-
-//   // var statsClientNumberMaxNodes = {
-//   //   type: "TEXT",
-//   //   id: "statsClientNumberMaxNodes",
-//   //   class: "statsTableText",
-//   //   text: "---"
-//   // };
-
-//   // var statsClientAddNodeQLabel = {
-//   //   type: "TEXT",
-//   //   id: "statsClientAddNodeQLabel",
-//   //   class: "statsTableText",
-//   //   text: "NODE ADD Q"
-//   // };
-
-//   // var statsClientAddNodeQ = {
-//   //   type: "TEXT",
-//   //   id: "statsClientAddNodeQ",
-//   //   class: "statsTableText",
-//   //   text: "---"
-//   // };
-
-//   // var statsClientAgeRateLabel = {
-//   //   type: "TEXT",
-//   //   id: "statsClientAgeRateLabel",
-//   //   class: "statsTableText",
-//   //   text: "AGE RATE"
-//   // };
-
-//   // var statsClientAgeRate = {
-//   //   type: "TEXT",
-//   //   id: "statsClientAgeRate",
-//   //   class: "statsTableText",
-//   //   text: "---"
-//   // };
-
-//   // var statsClientMaxAgeRateLabel = {
-//   //   type: "TEXT",
-//   //   id: "statsClientMaxAgeRateLabel",
-//   //   class: "statsTableText",
-//   //   text: "MAX"
-//   // };
-
-//   // var statsClientMaxAgeRate = {
-//   //   type: "TEXT",
-//   //   id: "statsClientMaxAgeRate",
-//   //   class: "statsTableText",
-//   //   text: "---"
-//   // };
-
-//   // var statsClientMaxAddNodeQLabel = {
-//   //   type: "TEXT",
-//   //   id: "statsClientMaxAddNodeQLabel",
-//   //   class: "statsTableText",
-//   //   text: "MAX"
-//   // };
-
-//   // var statsClientMaxAddNodeQ = {
-//   //   type: "TEXT",
-//   //   id: "statsClientMaxAddNodeQ",
-//   //   class: "statsTableText",
-//   //   text: "---"
-//   // };
-
-//   // var statsServerTimeLabel = {
-//   //   type: "TEXT",
-//   //   id: "statsServerTimeLabel",
-//   //   class: "statsTableText",
-//   //   text: "TIME"
-//   // };
-
-//   // var statsServerTime = {
-//   //   type: "TEXT",
-//   //   id: "statsServerTime",
-//   //   class: "statsTableText",
-//   //   text: moment(parseInt(heartbeat.serverTime)).format(defaultDateTimeFormat)
-//   // };
-
-//   // var statsServerUpTimeLabel = {
-//   //   type: "TEXT",
-//   //   id: "statsServerTimeLabel",
-//   //   class: "statsTableText",
-//   //   text: "UPTIME"
-//   // };
-
-//   // var statsServerUpTime = {
-//   //   type: "TEXT",
-//   //   id: "statsServerUpTime",
-//   //   class: "statsTableText",
-//   //   text: moment(parseInt(heartbeat.upTime)).format(defaultDateTimeFormat)
-//   // };
-
-//   // var statsServerStartTimeLabel = {
-//   //   type: "TEXT",
-//   //   id: "statsServerStartTimeLabel",
-//   //   class: "statsTableText",
-//   //   text: "START"
-//   // };
-
-//   // var statsServerStartTime = {
-//   //   type: "TEXT",
-//   //   id: "statsServerStartTime",
-//   //   class: "statsTableText",
-//   //   text: moment(parseInt(heartbeat.startTime)).format(defaultDateTimeFormat)
-//   // };
-
-//   // var statsServerRunTimeLabel = {
-//   //   type: "TEXT",
-//   //   id: "statsServerRunTimeLabel",
-//   //   class: "statsTableText",
-//   //   text: "RUN TIME"
-//   // };
-
-//   // var statsServerRunTime = {
-//   //   type: "TEXT",
-//   //   id: "statsServerRunTime",
-//   //   class: "statsTableText",
-//   //   text: msToTime(heartbeat.runTime)
-//   // };
-
-//   // var statsServerTweetsPerMinLabel = {
-//   //   type: "TEXT",
-//   //   id: "statsServerTweetsPerMinLabel",
-//   //   class: "statsTableText",
-//   //   text: "TWEETS/MIN"
-//   // };
-
-//   // var statsServerTweetsPerMin = {
-//   //   type: "TEXT",
-//   //   id: "statsServerTweetsPerMin",
-//   //   class: "statsTableText",
-//   //   text: "0.00"
-//   // };
-
-//   // var statsServerMaxTweetsPerMinLabel = {
-//   //   type: "TEXT",
-//   //   id: "statsServerMaxTweetsPerMinLabel",
-//   //   class: "statsTableText",
-//   //   text: "MAX"
-//   // };
-
-//   // var statsServerMaxTweetsPerMin = {
-//   //   type: "TEXT",
-//   //   id: "statsServerMaxTweetsPerMin",
-//   //   class: "statsTableText",
-//   //   text: "---"
-//   // };
-
-//   // tableCreateRow(statsTableServer, optionsHead, ["SERVER"]);
-//   // tableCreateRow(statsTableServer, optionsBody, [statsServerTimeLabel, statsServerTime]);
-//   // tableCreateRow(statsTableServer, optionsBody, [statsServerUpTimeLabel, statsServerUpTime]);
-//   // tableCreateRow(statsTableServer, optionsBody, [statsServerStartTimeLabel, statsServerStartTime]);
-//   // tableCreateRow(statsTableServer, optionsBody, [statsServerRunTimeLabel, statsServerRunTime]);
-//   // tableCreateRow(statsTableServer, optionsBody, [statsServerTweetsPerMinLabel, statsServerTweetsPerMin, statsServerMaxTweetsPerMinLabel, statsServerMaxTweetsPerMin]);
-//   // tableCreateRow(statsTableClient, optionsHead, ["CLIENT"]);
-//   // tableCreateRow(statsTableClient, optionsBody, [statsClientSessionIdLabel, statsClientSessionId]);
-//   // tableCreateRow(statsTableClient, optionsBody, [statsClientNumberNodesLabel, statsClientNumberNodes, statsClientNumberMaxNodesLabel, statsClientNumberMaxNodes]);
-//   // tableCreateRow(statsTableClient, optionsBody, [statsClientAgeRateLabel, statsClientAgeRate, statsClientMaxAgeRateLabel, statsClientMaxAgeRate]);
-//   // tableCreateRow(statsTableClient, optionsBody, [statsClientAddNodeQLabel, statsClientAddNodeQ, statsClientMaxAddNodeQLabel, statsClientMaxAddNodeQ]);
-  
-//   // statsServerTimeElement = document.getElementById("statsServerTime");
-//   // statsServerUpTimeElement = document.getElementById("statsServerUpTime");
-//   // statsServerStartTimeElement = document.getElementById("statsServerStartTime");
-//   // statsServerRunTimeElement = document.getElementById("statsServerRunTime");
-//   // statsServerTweetsPerMinElement = document.getElementById("statsServerTweetsPerMin");
-//   // statsServerMaxTweetsPerMinElement = document.getElementById("statsServerMaxTweetsPerMin");
-//   // statsClientNumberNodesElement = document.getElementById("statsClientNumberNodes");
-//   // statsClientNumberMaxNodesElement = document.getElementById("statsClientNumberMaxNodes");
-//   // statsClientAddNodeQElement = document.getElementById("statsClientAddNodeQ");
-//   // statsClientMaxAddNodeQElement = document.getElementById("statsClientMaxAddNodeQ");
-//   // statsClientAgeRateElement = document.getElementById("statsClientAgeRate");
-//   // statsClientMaxAgeRateElement = document.getElementById("statsClientMaxAgeRate");
-//   // statsClientSessionIdElement = document.getElementById("statsClientSessionId");
-
-//   if (callback) { callback(); }
-// }
 
 //  STATS UPDATE
 function initStatsUpdate(interval){
@@ -1810,28 +1486,6 @@ setInterval(function() {
   }
 }, serverCheckInterval);
 
-// function updateStatsTable(statsObj){
-//   statsServerTimeElement.innerHTML = moment(heartbeat.timeStamp).format(defaultDateTimeFormat);
-//   statsServerUpTimeElement.innerHTML = msToTime(heartbeat.upTime);
-//   statsServerStartTimeElement.innerHTML = moment(heartbeat.startTime).format(defaultDateTimeFormat);
-//   statsServerRunTimeElement.innerHTML = msToTime(heartbeat.runTime);
-//   statsServerTweetsPerMinElement.innerHTML = heartbeat.twitter.tweetsPerMin.toFixed(0);
-//   statsServerMaxTweetsPerMinElement.innerHTML = heartbeat.twitter.maxTweetsPerMin.toFixed(0);
-//   statsClientNumberNodesElement.innerHTML = currentSessionView.getNodesLength();
-//   statsClientNumberMaxNodesElement.innerHTML = currentSessionView.getMaxNodes();
-//   statsClientAddNodeQElement.innerHTML = currentSessionView.getNodeAddQlength();
-//   statsClientMaxAddNodeQElement.innerHTML = currentSessionView.getMaxNodeAddQ();
-//   statsClientAgeRateElement.innerHTML = currentSessionView.getAgeRate().toFixed(2);
-//   statsClientMaxAgeRateElement.innerHTML = currentSessionView.getMaxAgeRate().toFixed(2);
-
-//   if (statsObj.serverConnected) {
-//     statsClientSessionIdElement.innerHTML = statsObj.socketId;
-//   }
-//   else {
-//     statsClientSessionIdElement.innerHTML = "*** CANNOT CONNECT TO SERVER ***";
-//   }
-// }
-
 var heartBeatsReceived = 0;
 
 socket.on("HEARTBEAT", function(hb) {
@@ -1847,7 +1501,6 @@ socket.on("HEARTBEAT", function(hb) {
   statsObj.serverConnected = true;
   statsObj.socket.connected = true;
   lastHeartbeatReceived = moment().valueOf();
-
 });
 
 socket.on("CONFIG_CHANGE", function(rxConfig) {

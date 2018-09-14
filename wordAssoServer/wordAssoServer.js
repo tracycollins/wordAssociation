@@ -4951,6 +4951,10 @@ let userFollowable = function(user){
   if ((user.screenName === undefined) || !user.screenName) { user.screenName = ""; }
   if ((user.name === undefined) || !user.name) { user.name = ""; }
 
+  if (followableRegEx === undefined) {
+    return false;
+  }
+
   return followableRegEx.test(user.description)
     || followableRegEx.test(user.screenName) 
     || followableRegEx.test(user.name);

@@ -28,6 +28,8 @@ var MAX_RX_QUEUE = 250;
 var config = {};
 var previousConfig = {};
 
+config.keepaliveInterval = 10000;
+
 config.displayNodeHashMap = {};
 config.displayNodeHashMap.emoji = "hide";
 config.displayNodeHashMap.hashtag = "show";
@@ -35,6 +37,7 @@ config.displayNodeHashMap.place = "hide";
 config.displayNodeHashMap.url = "hide";
 config.displayNodeHashMap.user = "show";
 config.displayNodeHashMap.word = "hide";
+config.viewerReadyInterval = 10000;
 
 var statsObj = {};
 statsObj.isAuthenticated = false;
@@ -77,13 +80,13 @@ var randomIntFromInterval = function(min, max) {
 
 var randomId = randomIntFromInterval(1000000000, 9999999999);
 var VIEWER_ID = "viewer_" + randomId;
-var USER_ID = "viewer_" + randomId;
+var VIEWER_ID = "viewer_" + randomId;
 
 var DEFAULT_VIEWER_OBJ = {
-  nodeId: USER_ID,
-  userId: USER_ID,
+  nodeId: VIEWER_ID,
+  userId: VIEWER_ID,
   viewerId: VIEWER_ID,
-  screenName: USER_ID,
+  screenName: VIEWER_ID,
   type: "viewer",
   namespace: "view",
   timeStamp: moment().valueOf(),
@@ -92,7 +95,7 @@ var DEFAULT_VIEWER_OBJ = {
 
 DEFAULT_VIEWER_OBJ.tags.type = "viewer";
 DEFAULT_VIEWER_OBJ.tags.mode = "stream";
-DEFAULT_VIEWER_OBJ.tags.entity = USER_ID;
+DEFAULT_VIEWER_OBJ.tags.entity = VIEWER_ID;
 
 var viewerObj = {};
 viewerObj = DEFAULT_VIEWER_OBJ;
@@ -721,20 +724,22 @@ function updateLoginButton(){
   document.getElementById("loginButton").innerHTML = statsObj.isAuthenticated ? "LOG OUT" : "LOG IN";
 }
 
-socket.on("unauthorized", function(response) {
-  statsObj.isAuthenticated = false;
-  console.log("UNAUTHORIZED | " + socket.id + " | " + jsonPrint(response));
-});
+// socket.on("unauthorized", function(response) {
+//   statsObj.isAuthenticated = false;
+//   console.log("UNAUTHORIZED | " + socket.id + " | " + jsonPrint(response));
+// });
 
-socket.on("authenticated", function() {
-  console.log("AUTHENTICATED | " + socket.id);
-  statsObj.serverConnected = true;
-  statsObj.socket.connected = true;
-  statsObj.isAuthenticated = true;
-  console.log( "CONNECTED TO HOST" 
-    + " | ID: " + socket.id 
-  );
-});
+// socket.on("authenticated", function() {
+//   console.log("AUTHENTICATED | " + socket.id);
+//   statsObj.serverConnected = true;
+//   statsObj.socket.connected = true;
+//   statsObj.isAuthenticated = true;
+//   console.log( "CONNECTED TO HOST" 
+//     + " | ID: " + socket.id 
+//   );
+
+//   initViewerReadyInterval(config.viewerReadyInterval);
+// });
 
 function login() {
   console.warn("LOGIN: AUTH: " + statsObj.isAuthenticated + " | URL: " + config.authenticationUrl);
@@ -1129,6 +1134,123 @@ function getVisibilityEvent(prefix) {
   else { return "visibilitychange"; }
 }
 
+
+let viewerReadyInterval;
+
+function initViewerReadyInterval(interval){
+
+  console.log("INIT VIEWER READY INTERVAL");
+
+  clearInterval(viewerReadyInterval);
+
+  viewerReadyInterval = setInterval(function(){
+
+    if (statsObj.serverConnected && !statsObj.viewerReadyTransmitted && !statsObj.viewerReadyAck){
+
+      viewerObj.timeStamp = moment().valueOf();
+
+      console.log(chalkInfo("T> VIEWER_READY"
+        + " | " + viewerObj.userId
+        + " | CONNECTED: " + statsObj.serverConnected
+        + " | READY TXD: " + statsObj.viewerReadyTransmitted
+        + " | READY ACK RXD: " + statsObj.viewerReadyAck
+        + " | " + getTimeStamp()
+      ));
+
+      statsObj.viewerReadyTransmitted = true; 
+
+      socket.emit("VIEWER_READY", {userId: viewerObj.userId, timeStamp: moment().valueOf()}, function(){
+      }); 
+
+    }
+
+    else if (statsObj.serverConnected && statsObj.viewerReadyTransmitted && !statsObj.viewerReadyAck) {
+
+      if (statsObj.userReadyAckWait > MAX_READY_ACK_WAIT_COUNT){
+        statsObj.viewerReadyTransmitted = false;
+        console.log("*** RESENDING _READY AFTER " + MAX_READY_ACK_WAIT_COUNT + " WAIT CYCLES");
+      }
+      else {
+        statsObj.userReadyAckWait += 1;
+        console.log("... WAITING FOR VIEWER_READY_ACK"
+          + " | " + MAX_READY_ACK_WAIT_COUNT + " WAIT CYCLES"
+        );
+      }
+
+    }
+    else if (!statsObj.serverConnected) {
+      console.log("... WAITING FOR SERVER CONNECTION ...");
+    }
+
+  }, interval);
+}
+
+function sendKeepAlive(viewerObj, callback){
+
+  if (statsObj.viewerReadyAck && statsObj.serverConnected){
+
+    socket.emit(
+      "SESSION_KEEPALIVE", 
+      {
+        user: viewerObj, 
+        stats: statsObj, 
+        results: {}
+      }
+    );
+
+    callback(null);
+  }
+  else {
+    console.error("!!!! CANNOT TX KEEPALIVE"
+      + " | " + viewerObj.userId
+      + " | CONNECTED: " + statsObj.serverConnected
+      + " | READY TXD: " + statsObj.viewerReadyTransmitted
+      + " | READY ACK RXD: " + statsObj.viewerReadyAck
+      + " | " + moment().format(defaultDateTimeFormat)
+    );
+    callback("ERROR");
+  }
+}
+
+let socketKeepaliveInterval;
+
+function initKeepalive(viewerObj, interval){
+
+  let keepaliveIndex = 0;
+
+  clearInterval(socketKeepaliveInterval);
+
+  console.log("START KEEPALIVE"
+    + " | READY ACK: " + statsObj.viewerReadyAck
+    + " | SERVER CONNECTED: " + statsObj.serverConnected
+    + " | INTERVAL: " + interval + " ms"
+  );
+
+  sendKeepAlive(viewerObj, function(err){
+    if (err) {
+      console.error("KEEPALIVE ERROR: " + err);
+    }
+  });
+
+
+  socketKeepaliveInterval = setInterval(function(){ // TX KEEPALIVE
+
+    statsObj.elapsed = moment().valueOf() - statsObj.startTime;
+
+    viewerObj.stats = statsObj;
+
+    sendKeepAlive(viewerObj, function(err){
+      if (err) {
+        console.error("KEEPALIVE ERROR: " + err);
+      }
+    });
+
+    keepaliveIndex += 1;
+
+  }, interval);
+}
+
+
 socket.on("connect", function() {
 
   viewerObj.socketId = socket.id;
@@ -1153,8 +1275,10 @@ socket.on("connect", function() {
 
   socket.on("VIEWER_READY_ACK", function(vSesKey) {
 
-    statsObj.serverConnected = true;
+    statsObj.serverConnected = true ;
     statsObj.socket.connected = true;
+    statsObj.viewerReadyAck = true ;
+
 
     console.log("RX VIEWER_READY_ACK | SESSION KEY: " + vSesKey);
 
@@ -1170,9 +1294,7 @@ socket.on("connect", function() {
     console.debug("STORE CONFIG ON VIEWER_READY_ACK\n" + jsonPrint(config));
     saveConfig();
 
-    if (!config.pauseFlag) {
-      currentSessionView.simulationControl("RESUME");
-    }
+    initKeepalive(viewerObj, config.keepaliveInterval);
   });
 
   socket.on("reconnect", function() {
@@ -1187,9 +1309,11 @@ socket.on("connect", function() {
     statsObj.socket.connected = true;
 
     viewerObj.timeStamp = moment().valueOf();
-    // viewerObj.stats = statsObj;
 
-    socket.emit("authentication", viewerObj);
+    socket.emit("VIEWER_READY", viewerObj);
+
+    // socket.emit("authentication", viewerObj);
+    socket.emit("authentication", { namespace: "view", userId: viewerObj.userId, password: "0123456789" });
   });
 
   socket.on("disconnect", function() {
@@ -1210,12 +1334,17 @@ socket.on("connect", function() {
     statsObj.socket.error = error;
     statsObj.socket.errorMoment = moment();
 
-    // viewerObj.stats = statsObj;
-
     console.log("*** SOCKET ERROR ... DELETING ALL SESSIONS ...");
     console.error("*** SOCKET ERROR\n" + error);
 
     if (currentSessionView !== undefined) { currentSessionView.resize(); }
+
+    socket.disconnect(true);  // full disconnect, not just namespace
+
+    setTimeout(function(){
+      socket.connect();
+    }, 5000);
+
   });
 
   socket.on("connect_error", function(error) {
@@ -1223,8 +1352,6 @@ socket.on("connect", function() {
     statsObj.socket.errors += 1;
     statsObj.socket.error = error;
     statsObj.socket.errorMoment = moment();
-
-    // viewerObj.stats = statsObj;
 
     console.log("*** SOCKET CONNECT ERROR ... DELETING ALL SESSIONS ...");
     console.error("*** SOCKET CONNECT ERROR\n" + error);
@@ -1237,14 +1364,43 @@ socket.on("connect", function() {
     statsObj.socket.error = error;
     statsObj.socket.errorMoment = moment();
 
-    // viewerObj.stats = statsObj;
-
     console.log("*** SOCKET RECONNECT ERROR ... DELETING ALL SESSIONS ...");
     console.error("*** SOCKET RECONNECT ERROR\n" + error);
     if (currentSessionView !== undefined) { currentSessionView.resize(); }
   });
 
-  socket.emit("authentication", viewerObj);
+  // socket.emit("authentication", viewerObj);
+  socket.emit("authentication", { namespace: "view", userId: viewerObj.userId, password: "0123456789" });
+
+  socket.on("unauthorized", function(err){
+
+    statsObj.serverConnected = true;
+
+    console.error("TSS | *** UNAUTHORIZED *** "
+      + " | ID: " + socket.id
+      + " | VIEWER ID: " + viewerObj.userId
+      + " | " + err.message
+    );
+
+  });
+
+  socket.on("authenticated", function() {
+
+    console.debug("AUTHENTICATED | " + socket.id);
+
+    statsObj.socketId = socket.id;
+    statsObj.serverConnected = true ;
+    statsObj.userReadyTransmitted = false;
+    statsObj.userReadyAck = false ;
+
+    console.log( "CONNECTED TO HOST" 
+      + " | ID: " + socket.id 
+    );
+
+    initViewerReadyInterval(config.viewerReadyInterval);
+
+  });
+
 });
 
 
@@ -1443,19 +1599,19 @@ function initStatsUpdate(interval){
   }, interval);
 }
 
-//  KEEPALIVE
-setInterval(function() {
-  if (statsObj.serverConnected) {
+// //  KEEPALIVE
+// setInterval(function() {
+//   if (statsObj.serverConnected) {
 
-    socket.emit(
-      "SESSION_KEEPALIVE", 
-      {
-        user: viewerObj
-      }
-    );
+//     socket.emit(
+//       "SESSION_KEEPALIVE", 
+//       {
+//         user: viewerObj
+//       }
+//     );
 
-  }
-}, serverKeepaliveInteval);
+//   }
+// }, serverKeepaliveInteval);
 
 var lastHeartbeatReceived = 0;
 

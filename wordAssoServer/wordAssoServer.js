@@ -4527,19 +4527,19 @@ function initSocketNamespaces(){
       else {
         socket.on("authentication", function(data) {
 
-          if (configuration.verbose) {
+          // if (configuration.verbose) {
             console.log("RX SOCKET AUTHENTICATION"
               + " | " + socket.nsp.name.toUpperCase()
               + " | " + socket.id
               + " | USER ID: " + data.userId
             );
-          }
+          // }
 
           data.timeStamp = moment().valueOf();
 
           authenticatedSocketCache.set(socket.id, data);
 
-          statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
+          statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // viewNameSpace.sockets.length ;
 
           initSocketHandler({namespace: "view", socket: socket});
 
@@ -4549,9 +4549,9 @@ function initSocketNamespaces(){
       }
     });
 
-    statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
+    // statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // viewNameSpace.sockets.length ;
 
-    initSocketHandler({namespace: "view", socket: socket});
+    // initSocketHandler({namespace: "view", socket: socket});
 
   });
 

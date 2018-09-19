@@ -837,7 +837,7 @@ let languageServer = {};
 
 
 let adminHashMap = new HashMap();
-let viewerHashMap = new HashMap();
+// let viewerHashMap = new HashMap();
 
 const globalNodeMeter = new Measured.Meter({rateUnit: 60000});
 
@@ -4088,7 +4088,6 @@ function initSocketHandler(socketObj) {
           ));
 
           serverCache.set(socket.id, sessionObj);
-
           adminNameSpace.emit("SERVER_ADD", sessionObj);
         }
         else {
@@ -4101,7 +4100,6 @@ function initSocketHandler(socketObj) {
           sessionObj.stats = keepAliveObj.stats;
 
           serverCache.set(socket.id, sessionObj);
-
           adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
           socket.emit("GET_STATS");
         }
@@ -4157,10 +4155,7 @@ function initSocketHandler(socketObj) {
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
           sessionObj.stats = keepAliveObj.stats;
 
-          viewerHashMap.set(socket.id, sessionObj);
-
           viewerCache.set(socket.id, sessionObj);
-
           adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
         }
       break;
@@ -5438,10 +5433,22 @@ function initTransmitNodeQueueInterval(interval){
                         viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
 
                       }
+                      else if (err.code === 63){
+                        console.log(chalkError("*** TWITTER SHOW USER ERROR | USER SUSPENDED"
+                          + " | " + getTimeStamp() 
+                          + " | 3C @" + currentThreeceeUser 
+                          + " | UID: " + n.nodeId
+                          + " | ERR CODE: " + err.code
+                          + " | " + err.message
+                        ));
+
+                        unfollowableUserSet.add(n.nodeId);
+                      }
                       else {
                         console.log(chalkError("*** TWITTER SHOW USER ERROR"
-                          + " | @" + currentThreeceeUser 
                           + " | " + getTimeStamp() 
+                          + " | 3C @" + currentThreeceeUser 
+                          + " | UID: " + n.nodeId
                           + " | ERR CODE: " + err.code
                           + " | " + err.message
                         ));

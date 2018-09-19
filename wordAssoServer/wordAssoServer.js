@@ -7009,35 +7009,87 @@ function loadBestRuntimeNetwork(){
 
 }
 
-let configInterval;
+// let configInterval;
 
-function initConfigInterval(interval){
+// function initConfigInterval(interval){
 
-  console.log(chalk.bold.black("INIT CONFIG INTERVAL | " + msToTime(interval)));
+//   console.log(chalk.bold.black("INIT CONFIG INTERVAL | " + msToTime(interval)));
 
-  clearInterval(configInterval);
+//   clearInterval(configInterval);
+
+//   const loadConfigFileParams = {
+//     folder: dropboxConfigDefaultFolder,
+//     file: dropboxConfigDefaultFile
+//   };
+
+//   debug(chalkTwitter("THREECEE USERS\n" + jsonPrint(configuration.threeceeUsers)));
+
+//   configuration.threeceeUsers.forEach(function(user){
+//     threeceeTwitter[user] = {};
+//     threeceeTwitter[user].twit = {};
+//     threeceeTwitter[user].ready = false;
+//     threeceeTwitter[user].status = "UNCONFIGURED";
+//     threeceeTwitter[user].error = false;
+//     threeceeTwitter[user].twitterRateLimitException = false;
+//     threeceeTwitter[user].twitterRateLimitExceptionFlag = false;
+//     threeceeTwitter[user].twitterRateLimitResetAt = false;
+
+//     debug(chalkTwitter("THREECEE USER @" + user + "\n" + jsonPrint(threeceeTwitter[user])));
+//   });
+
+//   configInterval = setInterval(function(){
+
+//     loadConfigFile(loadConfigFileParams, function(err0){
+
+//       if (err0) {
+//         console.log(chalkError("*** LOAD CONFIGURATION FILE ERROR: " + err0));
+//         quit("LOAD CONFIGURATION FILE ERROR");
+//         return;
+//       }
+
+//       if (statsObj.commandLineArgsLoaded) {
+//         debug(chalkLog("... SKIP LOAD COMMAND LINE ARGS | ALREADY LOADED"));
+//         return;
+//       }
+      
+
+//       loadCommandLineArgs(function(err1, results){
+
+//         if (err1) {
+//           console.log(chalkError("*** LOAD COMMAND LINE ARGS ERROR: " + err1));
+//           quit("LOAD COMMAND LINE ARGS ERROR");
+//           return;
+//         }
+
+//         const configArgs = Object.keys(configuration);
+
+//         configArgs.forEach(function(arg){
+//           if (_.isObject(configuration[arg])) {
+//             console.log(chalkLog("WA | _FINAL CONFIG | " + arg + ": " + jsonPrint(configuration[arg])));
+//           }
+//           else {
+//             console.log(chalkLog("WA | _FINAL CONFIG | " + arg + ": " + configuration[arg]));
+//           }
+//         });
+        
+//         statsObj.commandLineArgsLoaded = true;
+
+//       });
+
+//     });
+
+//   }, interval);
+// }
+function initConfig(){
+
+  console.log(chalk.bold.black("INIT CONFIG"));
 
   const loadConfigFileParams = {
     folder: dropboxConfigDefaultFolder,
     file: dropboxConfigDefaultFile
   };
 
-  debug(chalkTwitter("THREECEE USERS\n" + jsonPrint(configuration.threeceeUsers)));
-
-  configuration.threeceeUsers.forEach(function(user){
-    threeceeTwitter[user] = {};
-    threeceeTwitter[user].twit = {};
-    threeceeTwitter[user].ready = false;
-    threeceeTwitter[user].status = "UNCONFIGURED";
-    threeceeTwitter[user].error = false;
-    threeceeTwitter[user].twitterRateLimitException = false;
-    threeceeTwitter[user].twitterRateLimitExceptionFlag = false;
-    threeceeTwitter[user].twitterRateLimitResetAt = false;
-
-    debug(chalkTwitter("THREECEE USER @" + user + "\n" + jsonPrint(threeceeTwitter[user])));
-  });
-
-  configInterval = setInterval(function(){
+  // configInterval = setInterval(function(){
 
     loadConfigFile(loadConfigFileParams, function(err0){
 
@@ -7078,7 +7130,7 @@ function initConfigInterval(interval){
 
     });
 
-  }, interval);
+  // }, interval);
 }
 
 function initLoadBestNetworkInterval(interval){
@@ -7302,7 +7354,23 @@ function initialize(callback){
   configuration.quitOnError = process.env.QUIT_ON_ERROR || false ;
   configuration.enableStdin = process.env.ENABLE_STDIN || true ;
 
-  initConfigInterval(DEFAULT_CONFIG_INIT_INTERVAL);
+  debug(chalkTwitter("THREECEE USERS\n" + jsonPrint(configuration.threeceeUsers)));
+
+  configuration.threeceeUsers.forEach(function(user){
+    threeceeTwitter[user] = {};
+    threeceeTwitter[user].twit = {};
+    threeceeTwitter[user].ready = false;
+    threeceeTwitter[user].status = "UNCONFIGURED";
+    threeceeTwitter[user].error = false;
+    threeceeTwitter[user].twitterRateLimitException = false;
+    threeceeTwitter[user].twitterRateLimitExceptionFlag = false;
+    threeceeTwitter[user].twitterRateLimitResetAt = false;
+
+    debug(chalkTwitter("THREECEE USER @" + user + "\n" + jsonPrint(threeceeTwitter[user])));
+  });
+
+  // initConfigInterval(DEFAULT_CONFIG_INIT_INTERVAL);
+  initConfig();
 
   if (!statsObj.internetReady) { 
     initInternetCheckInterval(10000);

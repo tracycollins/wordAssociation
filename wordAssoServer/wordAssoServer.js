@@ -4050,7 +4050,7 @@ function initSocketHandler(socketObj) {
         diff = process.hrtime(time);
 
         console.log(chalkLog("R< KA"
-          + " | DELTA: " + deltaNS + " NS"
+          // + " | DELTA: " + deltaNS + " NS"
           + " | " + currentSessionType + " SERVER" 
           + " | " + getTimeStamp()
           + " | " + keepAliveObj.user.userId
@@ -6909,7 +6909,6 @@ function loadBestRuntimeNetwork(){
       }
 
       console.log(err);
-
     }
     else if (bRtNnObj) {
 
@@ -7000,6 +6999,7 @@ function loadBestRuntimeNetwork(){
       });
     }
   });
+
 }
 
 let configInterval;
@@ -7080,11 +7080,11 @@ function initLoadBestNetworkInterval(interval){
 
   loadBestRuntimeNetwork();
 
-  loadBestNetworkInterval = setInterval(function(){
+  // loadBestNetworkInterval = setInterval(function(){
 
-    loadBestRuntimeNetwork();
+  //   loadBestRuntimeNetwork();
   
-  }, interval);
+  // }, interval);
 }
 // kludge
 // probably can write one general purpose function to handle all types of nodes

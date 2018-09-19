@@ -5838,6 +5838,10 @@ function initAppRouting(callback) {
                     // + " | NAME: " + entry.name
                   ));
 
+                  if (entry.path_lower.endsWith("default_wordassoserverconfig.json")){
+                    initConfig();
+                  }
+
                 });
 
                 cb();

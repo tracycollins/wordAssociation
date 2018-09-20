@@ -1155,7 +1155,7 @@ function connectDb(callback){
         consumerSecret: altthreecee00config.consumer_secret,
         callbackURL: TWITTER_AUTH_CALLBACK_URL
       },
-      function(token, tokenSecret, profile, callback) {
+      function(token, tokenSecret, profile, cb) {
 
         console.log(chalkAlert("TWITTER AUTH\nprofile\n" + jsonPrint(profile)));
 
@@ -1166,7 +1166,7 @@ function connectDb(callback){
 
           if (err) {
             console.log(chalkError("*** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
-            return callback("RAW USER", rawUser);
+            return cb("RAW USER", rawUser);
           }
 
           printUserObj("TWITTER AUTH USER", user);
@@ -1175,7 +1175,7 @@ function connectDb(callback){
 
             if (err) {
               console.log(chalkError("findOneUser ERROR: " + err));
-              return callback(err);
+              return cb(err);
             }
 
             console.log(chalk.blue("UPDATED updatedUser"
@@ -1184,7 +1184,8 @@ function connectDb(callback){
               + "\n" + printUser({user:updatedUser})
             ));
 
-            callback(null, updatedUser);
+            cb(null, updatedUser);
+
           });
         });
 

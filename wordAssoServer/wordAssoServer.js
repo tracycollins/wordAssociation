@@ -1201,7 +1201,8 @@ function connectDb(callback){
     app.get("/auth/twitter/callback", 
       passport.authenticate("twitter", 
         { 
-          successRedirect: "/session",
+          // successRedirect: "/session",
+          successReturnToOrRedirect: "/session",
           failureRedirect: "/login" 
         }
       )
@@ -5827,7 +5828,7 @@ function initAppRouting(callback) {
 
   app.post("/login",
     passport.authenticate("local", { 
-      successRedirect: "/session",
+      successReturnToOrRedirect: "/session",
       failureRedirect: "/login"
     })
   );

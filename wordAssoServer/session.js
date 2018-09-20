@@ -21,8 +21,8 @@ ProgressBar
 
 "use strict";
 
-// var DEFAULT_SOURCE = "https://localhost:9997";
-var DEFAULT_SOURCE = "https://word.threeceelabs.com";
+var DEFAULT_SOURCE = "http://localhost:9997";
+// var DEFAULT_SOURCE = "https://word.threeceelabs.com";
 var MAX_RX_QUEUE = 250;
 
 var config = {};
@@ -102,7 +102,8 @@ viewerObj = DEFAULT_VIEWER_OBJ;
 
 console.log("viewerObj\n" + jsonPrint(viewerObj));
 
-var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
+// var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
+var DEFAULT_AUTH_URL = DEFAULT_SOURCE + "/auth/twitter";
 
 
 var twitterUserThreecee = {
@@ -612,9 +613,9 @@ function createPopUpControlPanel (cnf, callback) {
   console.debug("createPopUpControlPanel\ncnf\n" + jsonPrint(cnf));
 
   controlPanelWindow = window.open(
-    "controlPanel.html", 
+    DEFAULT_SOURCE + "/controlPanel.html", 
     "CONTROL",
-    "width=1200,height=1200"
+    "width=1200,height=800"
   );
 
   controlPanelWindow.addEventListener("message", controlPanelComm, false);

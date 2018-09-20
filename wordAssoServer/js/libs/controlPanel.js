@@ -5,8 +5,8 @@
 function ControlPanel() {
   "use strict";
 
-  // var DEFAULT_SOURCE = "https://localhost:9997";
-  var DEFAULT_SOURCE = "https://word.threeceelabs.com";
+  var DEFAULT_SOURCE = "http://localhost:9997";
+  // var DEFAULT_SOURCE = "https://word.threeceelabs.com";
 
   var parentWindow = window.opener;
   console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);
@@ -300,7 +300,7 @@ function ControlPanel() {
       statsObj.user.mentions = node.mentions;
       statsObj.user.description = node.description;
 
-      if (twttr) {
+      if (twttr && twttr.widgets) {
         twttr.widgets.createFollowButton(
           screenName,
           timelineDiv

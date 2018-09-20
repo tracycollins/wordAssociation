@@ -3,6 +3,7 @@
 "use strict";
 
 const TWITTER_AUTH_CALLBACK_URL = "https://word.threeceelabs.com/auth/twitter/callback";
+// const TWITTER_AUTH_CALLBACK_URL = "http://localhost:9997/auth/twitter/callback";
 
 global.dbConnection = false;
 let dbConnectionReady = false;
@@ -174,8 +175,8 @@ app.use(require("body-parser").urlencoded({ extended: true }));
 //   store: new MongoStore({ mongooseConnection: mongoose.connection })
 // }));
 
-app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.initialize());
+// app.use(passport.session());
 
 const altthreecee00config = {
   consumer_key: "0g1pAgIqe6f3LN9yjaPBGJcSL",
@@ -185,88 +186,88 @@ const altthreecee00config = {
 };
 
 
-passport.use(new TwitterStrategy({
-    consumerKey: altthreecee00config.consumer_key,
-    consumerSecret: altthreecee00config.consumer_secret,
-    callbackURL: TWITTER_AUTH_CALLBACK_URL
-  },
-  function(token, tokenSecret, profile, callback) {
+// passport.use(new TwitterStrategy({
+//     consumerKey: altthreecee00config.consumer_key,
+//     consumerSecret: altthreecee00config.consumer_secret,
+//     callbackURL: TWITTER_AUTH_CALLBACK_URL
+//   },
+//   function(token, tokenSecret, profile, callback) {
 
-    console.log(chalkAlert("TWITTER AUTH\nprofile\n" + jsonPrint(profile)));
+//     console.log(chalkAlert("TWITTER AUTH\nprofile\n" + jsonPrint(profile)));
 
-    const rawUser = profile._json;
+//     const rawUser = profile._json;
 
 
-    userServerController.convertRawUser({user:rawUser}, function(err, user){
+//     userServerController.convertRawUser({user:rawUser}, function(err, user){
 
-      if (err) {
-        console.log(chalkError("*** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
-        return callback("RAW USER", rawUser);
-      }
+//       if (err) {
+//         console.log(chalkError("*** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
+//         return callback("RAW USER", rawUser);
+//       }
 
-      printUserObj("TWITTER AUTH USER", user);
+//       printUserObj("TWITTER AUTH USER", user);
 
-      userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
+//       userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
 
-        if (err) {
-          console.log(chalkError("findOneUser ERROR: " + err));
-          return callback(err);
-        }
+//         if (err) {
+//           console.log(chalkError("findOneUser ERROR: " + err));
+//           return callback(err);
+//         }
 
-        console.log(chalk.blue("UPDATED updatedUser"
-          + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
-          + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
-          + "\n" + printUser({user:updatedUser})
-        ));
+//         console.log(chalk.blue("UPDATED updatedUser"
+//           + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
+//           + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
+//           + "\n" + printUser({user:updatedUser})
+//         ));
 
-        callback(null, updatedUser);
-      });
-    });
+//         callback(null, updatedUser);
+//       });
+//     });
 
-    // userServerController.convertRawUser(..., function(err, user) {
-    //   if (err) { return done(err); }
-    //   done(null, user);
-    // });
-  }
-));
+//     // userServerController.convertRawUser(..., function(err, user) {
+//     //   if (err) { return done(err); }
+//     //   done(null, user);
+//     // });
+//   }
+// ));
 
-app.get("/auth/twitter", passport.authenticate("twitter"));
-app.get("/auth/twitter/callback",
-  passport.authenticate("twitter", { successRedirect: "/session",
-                                     failureRedirect: "/login" }));
+// app.get("/auth/twitter", passport.authenticate("twitter"));
+// app.get("/auth/twitter/callback",
+//   passport.authenticate("twitter", { successRedirect: "/session",
+//                                      failureRedirect: "/login" }));
 
-passport.use(new LocalStrategy(
-  function(username, password, done) {
+// passport.use(new LocalStrategy(
+//   function(username, password, done) {
 
-    console.log(chalkAlert("*** LOGIN *** | " + username));
+//     console.log(chalkAlert("*** LOGIN *** | " + username));
 
-    User.findOne({ screenName: username.toLowerCase() }, function (err, user) {
-      if (err) { 
-        console.log(chalkAlert("*** LOGIN USER DB ERROR *** | " + err));
-        return done(err);
-      }
-      if (!user) {
-        console.log(chalkAlert("*** LOGIN FAILED | USER NOT FOUND *** | " + username));
-        return done(null, false, { message: 'Incorrect username.' });
-      }
-      if ((user.screenName !== "threecee") || (password !== "what")) {
-        console.log(chalkAlert("*** LOGIN FAILED | INVALID PASSWORD *** | " + username));
-        return done(null, false, { message: 'Incorrect password.' });
-      }
-      return done(null, user);
-    });
-  }
-));
+//     User.findOne({ screenName: username.toLowerCase() }, function (err, user) {
+//       if (err) { 
+//         console.log(chalkAlert("*** LOGIN USER DB ERROR *** | " + err));
+//         return done(err);
+//       }
+//       if (!user) {
+//         console.log(chalkAlert("*** LOGIN FAILED | USER NOT FOUND *** | " + username));
+//         return done(null, false, { message: 'Incorrect username.' });
+//       }
+//       if ((user.screenName !== "threecee") || (password !== "what")) {
+//         console.log(chalkAlert("*** LOGIN FAILED | INVALID PASSWORD *** | " + username));
+//         return done(null, false, { message: 'Incorrect password.' });
+//       }
+//       return done(null, user);
+//     });
+//   }
+// ));
 
-passport.serializeUser(function(user, done) {
-  done(null, user.nodeId);
-});
+// passport.serializeUser(function(user, done) {
+//   done(null, user.nodeId);
+// });
 
-passport.deserializeUser(function(nodeId, done) {
-  User.findOne({nodeId: nodeId}, function(err, user) {
-    done(err, user);
-  });
-});
+// passport.deserializeUser(function(nodeId, done) {
+//   User.findOne({nodeId: nodeId}, function(err, user) {
+//     done(err, user);
+//   });
+// });
 
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 require("isomorphic-fetch");
@@ -1145,6 +1146,98 @@ function connectDb(callback){
       saveUninitialized: false,
       store: new MongoStore({ mongooseConnection: db })
     }));
+
+    app.use(passport.initialize());
+    app.use(passport.session());
+
+    passport.use(new TwitterStrategy({
+        consumerKey: altthreecee00config.consumer_key,
+        consumerSecret: altthreecee00config.consumer_secret,
+        callbackURL: TWITTER_AUTH_CALLBACK_URL
+      },
+      function(token, tokenSecret, profile, callback) {
+
+        console.log(chalkAlert("TWITTER AUTH\nprofile\n" + jsonPrint(profile)));
+
+        const rawUser = profile._json;
+
+
+        userServerController.convertRawUser({user:rawUser}, function(err, user){
+
+          if (err) {
+            console.log(chalkError("*** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
+            return callback("RAW USER", rawUser);
+          }
+
+          printUserObj("TWITTER AUTH USER", user);
+
+          userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
+
+            if (err) {
+              console.log(chalkError("findOneUser ERROR: " + err));
+              return callback(err);
+            }
+
+            console.log(chalk.blue("UPDATED updatedUser"
+              + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
+              + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
+              + "\n" + printUser({user:updatedUser})
+            ));
+
+            callback(null, updatedUser);
+          });
+        });
+
+        // userServerController.convertRawUser(..., function(err, user) {
+        //   if (err) { return done(err); }
+        //   done(null, user);
+        // });
+      }
+    ));
+
+    app.get("/auth/twitter", passport.authenticate("twitter"));
+
+    app.get("/auth/twitter/callback", 
+      passport.authenticate("twitter", 
+        { 
+          successRedirect: "/session",
+          failureRedirect: "/login" 
+        }
+      )
+    );
+
+    passport.use(new LocalStrategy(
+      function(username, password, done) {
+
+        console.log(chalkAlert("*** LOGIN *** | " + username));
+
+        User.findOne({ screenName: username.toLowerCase() }, function (err, user) {
+          if (err) { 
+            console.log(chalkAlert("*** LOGIN USER DB ERROR *** | " + err));
+            return done(err);
+          }
+          if (!user) {
+            console.log(chalkAlert("*** LOGIN FAILED | USER NOT FOUND *** | " + username));
+            return done(null, false, { message: 'Incorrect username.' });
+          }
+          if ((user.screenName !== "threecee") || (password !== "what")) {
+            console.log(chalkAlert("*** LOGIN FAILED | INVALID PASSWORD *** | " + username));
+            return done(null, false, { message: 'Incorrect password.' });
+          }
+          return done(null, user);
+        });
+      }
+    ));
+
+    passport.serializeUser(function(user, done) {
+      done(null, user.nodeId);
+    });
+
+    passport.deserializeUser(function(nodeId, done) {
+      User.findOne({nodeId: nodeId}, function(err, user) {
+        done(err, user);
+      });
+    });
 
 
     dbConnectionReady = true;
@@ -5470,7 +5563,7 @@ function initTransmitNodeQueueInterval(interval){
                       n.screenName = rawUser.screen_name.toLowerCase();
                       n.screenNameLower = rawUser.screen_name.toLowerCase();
                       n.url = rawUser.url;
-                      n.profileUrl = "http://twitter.com/" + rawUser.screen_name;
+                      n.profileUrl = "https://twitter.com/" + rawUser.screen_name;
                       n.profileImageUrl = rawUser.profile_image_url;
                       n.bannerImageUrl = rawUser.profile_banner_url;
                       n.verified = rawUser.verified;

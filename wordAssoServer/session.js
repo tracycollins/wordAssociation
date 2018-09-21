@@ -1269,144 +1269,141 @@ socket.on("connect", function() {
 
   viewerObj.timeStamp = moment().valueOf();
 
-  socket.on("SERVER_READY", function(serverAck) {
-    statsObj.serverConnected = true;
-    statsObj.socket.connected = true;
-    console.log("RX SERVER_READY | SERVER ACK: " + jsonPrint(serverAck));
-  });
-
-  socket.on("VIEWER_READY_ACK", function(vSesKey) {
-
-    statsObj.serverConnected = true ;
-    statsObj.socket.connected = true;
-    statsObj.viewerReadyAck = true ;
-
-
-    console.log("RX VIEWER_READY_ACK | SESSION KEY: " + vSesKey);
-
-    statsObj.viewerSessionKey = vSesKey;
-    viewerObj.viewerSessionKey = vSesKey;
-
-    if (config.VIEWER_OBJ === undefined) {
-      config.VIEWER_OBJ = {};
-    }
-
-    config.VIEWER_OBJ = viewerObj;
-
-    console.debug("STORE CONFIG ON VIEWER_READY_ACK\n" + jsonPrint(config));
-    saveConfig();
-
-    initKeepalive(viewerObj, config.keepaliveInterval);
-  });
-
-  socket.on("reconnect", function() {
-
-    viewerObj.socketId = socket.id;
-
-    statsObj.serverConnected = true;
-    console.log("RECONNECTED TO HOST | SOCKET ID: " + socket.id);
-
-    statsObj.socket.reconnectMoment = moment();
-    statsObj.socket.reconnects += 1;
-    statsObj.socket.connected = true;
-
-    viewerObj.timeStamp = moment().valueOf();
-
-    socket.emit("VIEWER_READY", viewerObj, function(){
-      statsObj.viewerReadyTransmitted = true;
-
-      socket.emit("authentication", { namespace: "view", userId: viewerObj.userId, password: "0123456789" });
-
-    }); 
-
-    // socket.emit("authentication", { namespace: "view", userId: viewerObj.userId, password: "0123456789" });
-  });
-
-  socket.on("disconnect", function() {
-
-    statsObj.serverConnected = false;
-
-    statsObj.socket.connected = false;
-    statsObj.socket.disconnectMoment = moment();
-
-    if (currentSessionView !== undefined) { currentSessionView.setEnableAgeNodes(false); }
-    console.log("*** DISCONNECTED FROM HOST ... DELETING ALL SESSIONS ...");
-    if (currentSessionView !== undefined) { currentSessionView.resize(); }
-  });
-
-  socket.on("error", function(error) {
-
-    statsObj.socket.errors += 1;
-    statsObj.socket.error = error;
-    statsObj.socket.errorMoment = moment();
-
-    console.log("*** SOCKET ERROR ... DELETING ALL SESSIONS ...");
-    console.error("*** SOCKET ERROR\n" + error);
-
-    if (currentSessionView !== undefined) { currentSessionView.resize(); }
-
-    socket.disconnect(true);  // full disconnect, not just namespace
-
-    setTimeout(function(){
-      socket.connect();
-    }, 5000);
-
-  });
-
-  socket.on("connect_error", function(error) {
-
-    statsObj.socket.errors += 1;
-    statsObj.socket.error = error;
-    statsObj.socket.errorMoment = moment();
-
-    console.log("*** SOCKET CONNECT ERROR ... DELETING ALL SESSIONS ...");
-    console.error("*** SOCKET CONNECT ERROR\n" + error);
-    if (currentSessionView !== undefined) { currentSessionView.resize(); }
-  });
-
-  socket.on("reconnect_error", function(error) {
-
-    statsObj.socket.errors += 1;
-    statsObj.socket.error = error;
-    statsObj.socket.errorMoment = moment();
-
-    console.log("*** SOCKET RECONNECT ERROR ... DELETING ALL SESSIONS ...");
-    console.error("*** SOCKET RECONNECT ERROR\n" + error);
-    if (currentSessionView !== undefined) { currentSessionView.resize(); }
-  });
-
-  // socket.emit("authentication", viewerObj);
   socket.emit("authentication", { namespace: "view", userId: viewerObj.userId, password: "0123456789" });
 
-  socket.on("unauthorized", function(err){
+});
 
-    statsObj.serverConnected = true;
 
-    console.error("TSS | *** UNAUTHORIZED *** "
-      + " | ID: " + socket.id
-      + " | VIEWER ID: " + viewerObj.userId
-      + " | " + err.message
-    );
+socket.on("SERVER_READY", function(serverAck) {
+  statsObj.serverConnected = true;
+  statsObj.socket.connected = true;
+  console.log("RX SERVER_READY | SERVER ACK: " + jsonPrint(serverAck));
+});
 
-  });
+socket.on("VIEWER_READY_ACK", function(vSesKey) {
 
-  socket.on("authenticated", function() {
+  statsObj.serverConnected = true ;
+  statsObj.socket.connected = true;
+  statsObj.viewerReadyAck = true ;
 
-    console.debug("AUTHENTICATED | " + socket.id);
 
-    statsObj.socketId = socket.id;
-    statsObj.serverConnected = true ;
-    statsObj.userReadyTransmitted = false;
-    statsObj.userReadyAck = false ;
+  console.log("RX VIEWER_READY_ACK | SESSION KEY: " + vSesKey);
 
-    console.log( "CONNECTED TO HOST" 
-      + " | ID: " + socket.id 
-    );
+  statsObj.viewerSessionKey = vSesKey;
+  viewerObj.viewerSessionKey = vSesKey;
 
-    initViewerReadyInterval(config.viewerReadyInterval);
+  if (config.VIEWER_OBJ === undefined) {
+    config.VIEWER_OBJ = {};
+  }
 
-  });
+  config.VIEWER_OBJ = viewerObj;
 
+  console.debug("STORE CONFIG ON VIEWER_READY_ACK\n" + jsonPrint(config));
+  saveConfig();
+
+  initKeepalive(viewerObj, config.keepaliveInterval);
+});
+
+socket.on("reconnect", function() {
+
+  viewerObj.socketId = socket.id;
+
+  statsObj.serverConnected = true;
+  console.log("RECONNECTED TO HOST | SOCKET ID: " + socket.id);
+
+  statsObj.socket.reconnectMoment = moment();
+  statsObj.socket.reconnects += 1;
+  statsObj.socket.connected = true;
+
+  viewerObj.timeStamp = moment().valueOf();
+
+  socket.emit("VIEWER_READY", viewerObj, function(){
+    statsObj.viewerReadyTransmitted = true;
+
+    socket.emit("authentication", { namespace: "view", userId: viewerObj.userId, password: "0123456789" });
+
+  }); 
+
+  // socket.emit("authentication", { namespace: "view", userId: viewerObj.userId, password: "0123456789" });
+});
+
+socket.on("disconnect", function() {
+
+  statsObj.serverConnected = false;
+
+  statsObj.socket.connected = false;
+  statsObj.socket.disconnectMoment = moment();
+
+  if (currentSessionView !== undefined) { currentSessionView.setEnableAgeNodes(false); }
+  console.log("*** DISCONNECTED FROM HOST ... DELETING ALL SESSIONS ...");
+  if (currentSessionView !== undefined) { currentSessionView.resize(); }
+});
+
+socket.on("error", function(error) {
+
+  statsObj.socket.errors += 1;
+  statsObj.socket.error = error;
+  statsObj.socket.errorMoment = moment();
+
+  console.log("*** SOCKET ERROR ... DELETING ALL SESSIONS ...");
+  console.error("*** SOCKET ERROR\n" + error);
+
+  if (currentSessionView !== undefined) { currentSessionView.resize(); }
+
+  socket.disconnect(true);  // full disconnect, not just namespace
+
+  setTimeout(function(){
+    socket.connect();
+  }, 5000);
+});
+
+socket.on("connect_error", function(error) {
+
+  statsObj.socket.errors += 1;
+  statsObj.socket.error = error;
+  statsObj.socket.errorMoment = moment();
+
+  console.log("*** SOCKET CONNECT ERROR ... DELETING ALL SESSIONS ...");
+  console.error("*** SOCKET CONNECT ERROR\n" + error);
+  if (currentSessionView !== undefined) { currentSessionView.resize(); }
+});
+
+socket.on("reconnect_error", function(error) {
+
+  statsObj.socket.errors += 1;
+  statsObj.socket.error = error;
+  statsObj.socket.errorMoment = moment();
+
+  console.log("*** SOCKET RECONNECT ERROR ... DELETING ALL SESSIONS ...");
+  console.error("*** SOCKET RECONNECT ERROR\n" + error);
+  if (currentSessionView !== undefined) { currentSessionView.resize(); }
+});
+
+socket.on("unauthorized", function(err){
+
+  statsObj.serverConnected = true;
+
+  console.error("TSS | *** UNAUTHORIZED *** "
+    + " | ID: " + socket.id
+    + " | VIEWER ID: " + viewerObj.userId
+    + " | " + err.message
+  );
+});
+
+socket.on("authenticated", function() {
+
+  console.debug("AUTHENTICATED | " + socket.id);
+
+  statsObj.socketId = socket.id;
+  statsObj.serverConnected = true ;
+  statsObj.userReadyTransmitted = false;
+  statsObj.userReadyAck = false ;
+
+  console.log( "CONNECTED TO HOST" 
+    + " | ID: " + socket.id 
+  );
+
+  initViewerReadyInterval(config.viewerReadyInterval);
 });
 
 

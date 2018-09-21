@@ -1602,20 +1602,6 @@ function initStatsUpdate(interval){
   }, interval);
 }
 
-// //  KEEPALIVE
-// setInterval(function() {
-//   if (statsObj.serverConnected) {
-
-//     socket.emit(
-//       "SESSION_KEEPALIVE", 
-//       {
-//         user: viewerObj
-//       }
-//     );
-
-//   }
-// }, serverKeepaliveInteval);
-
 var lastHeartbeatReceived = 0;
 
 // CHECK FOR SERVER HEARTBEAT

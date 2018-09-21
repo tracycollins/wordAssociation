@@ -960,6 +960,12 @@ function controlPanelComm(event) {
         }
       }
       else {
+        console.debug("R< CONTROL PANEL CATEGORIZE | NOT AUTHENTICATED !"
+          + " | " + event.data.node.nodeId
+          + " | @" + event.data.node.screenName
+          + " | C: " + event.data.category
+        );
+        console.debug("... AUTHENTICATING ...");
         window.open(config.authenticationUrl, "_blank");
       }
     break;
@@ -1252,6 +1258,36 @@ function initKeepalive(viewerObj, interval){
   }, interval);
 }
 
+var lastHeartbeatReceived = 0;
+
+// CHECK FOR SERVER HEARTBEAT
+setInterval(function() {
+  if (!statsObj.serverConnected) {
+    console.error("\n????? SERVER DOWN ????? | | LAST HEARTBEAT: " 
+      + getTimeStamp(lastHeartbeatReceived) 
+      + " | " + moment().format(defaultDateTimeFormat) 
+      + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived));
+    socket.connect();
+    if (currentSessionView !== undefined) {
+      currentSessionView.setEnableAgeNodes(false);
+    }
+  }
+  else if ((lastHeartbeatReceived > 0) && (lastHeartbeatReceived + serverHeartbeatTimeout) < moment()) {
+    console.error("\n????? SERVER DOWN ????? | LAST HEARTBEAT: " 
+      + getTimeStamp(lastHeartbeatReceived) 
+      + " | " + moment().format(defaultDateTimeFormat) 
+      + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived));
+    socket.connect();
+    if (currentSessionView !== undefined) {
+      currentSessionView.setEnableAgeNodes(false);
+    }
+  }
+  else {
+    currentSessionView.setEnableAgeNodes(true);
+  }
+}, serverCheckInterval);
+
+var heartBeatsReceived = 0;
 
 socket.on("connect", function() {
 
@@ -1270,9 +1306,7 @@ socket.on("connect", function() {
   viewerObj.timeStamp = moment().valueOf();
 
   socket.emit("authentication", { namespace: "view", userId: viewerObj.userId, password: "0123456789" });
-
 });
-
 
 socket.on("SERVER_READY", function(serverAck) {
   statsObj.serverConnected = true;
@@ -1304,6 +1338,12 @@ socket.on("VIEWER_READY_ACK", function(vSesKey) {
   initKeepalive(viewerObj, config.keepaliveInterval);
 });
 
+socket.on("USER_AUTHENTICATED", function(userObj) {
+  statsObj.isAuthenticated = true;
+  statsObj.socket.connected = true;
+  console.log("RX USER_AUTHENTICATED | USER: @" + userObj.screenName);
+});
+
 socket.on("reconnect", function() {
 
   viewerObj.socketId = socket.id;
@@ -1323,7 +1363,6 @@ socket.on("reconnect", function() {
     socket.emit("authentication", { namespace: "view", userId: viewerObj.userId, password: "0123456789" });
 
   }); 
-
 });
 
 socket.on("disconnect", function() {
@@ -1403,6 +1442,111 @@ socket.on("authenticated", function() {
   );
 
   initViewerReadyInterval(config.viewerReadyInterval);
+});
+
+socket.on("HEARTBEAT", function(hb) {
+
+
+  // console.log("HEARTBEAT\n" + jsonPrint(hb));
+
+  resetServerActiveTimer();
+
+  statsObj.maxNodes = ( currentSessionView === undefined) ? 0 : currentSessionView.getMaxNodes();
+  statsObj.maxNodeAddQ = ( currentSessionView === undefined) ? 0 : currentSessionView.getMaxNodeAddQ();
+
+  heartBeatsReceived += 1;
+  statsObj.serverConnected = true;
+  statsObj.socket.connected = true;
+  lastHeartbeatReceived = moment().valueOf();
+});
+
+socket.on("CONFIG_CHANGE", function(rxConfig) {
+
+  statsObj.serverConnected = true;
+  statsObj.socket.connected = true;
+
+  console.log("\n-----------------------\nRX CONFIG_CHANGE\n" 
+    + JSON.stringify(rxConfig, null, 3) + "\n------------------------\n");
+
+  if (rxConfig.testMode !== undefined) {
+    config.testMode = rxConfig.testMode;
+    console.log("\n*** ENV CHANGE: TEST_MODE:  WAS: " 
+      + previousConfig.testMode + " | NOW: " + config.testMode + "\n");
+    previousConfig.testMode = config.testMode;
+  }
+
+  if (rxConfig.testSendInterval !== undefined) {
+    config.testSendInterval = rxConfig.testSendInterval;
+    console.log("\n*** ENV CHANGE: TEST_SEND_INTERVAL: WAS: " 
+      + previousConfig.testSendInterval + " | NOW: " + config.testSendInterval + "\n");
+    previousConfig.testSendInterval = config.testSendInterval;
+  }
+
+  if (rxConfig.nodeMaxAge !== undefined) {
+    config.nodeMaxAge = rxConfig.nodeMaxAge;
+    console.log("\n*** ENV CHANGE: NODE_MAX_AGE: WAS: " 
+      + previousConfig.nodeMaxAge + " | NOW: " + config.nodeMaxAge + "\n");
+    // nodeMaxAge = config.nodeMaxAge;
+    currentSessionView.setMaxAge(rxConfig.nodeMaxAge);
+    previousConfig.nodeMaxAge = config.nodeMaxAge;
+  }
+});
+
+socket.on("SET_TWITTER_USER", function(twitterUser) {
+
+  statsObj.serverConnected = true;
+  statsObj.socket.connected = true;
+
+  if (!twitterUser) { return; }
+  if (!twitterUser || (twitterUser.notFound !== undefined)) {
+
+    console.log("SET_TWITTER_USER | NOT FOUND" 
+      + " | @" + twitterUser.screenName 
+    );
+    
+    currentSessionView.setTwitterUser(twitterUser);
+    return;
+  }
+
+  console.log("SET_TWITTER_USER" 
+    + " | " + twitterUser.nodeId 
+    + " | @" + twitterUser.screenName 
+    + " | CR: " + twitterUser.createdAt 
+    + " | FLWRs: " + twitterUser.followersCount 
+    + " | FRNDs: " + twitterUser.friendsCount 
+    + " | Ts: " + twitterUser.statusesCount 
+    + " | Ms: " + twitterUser.mentions 
+    + " | C: " + twitterUser.category
+    + " | CA: " + twitterUser.categoryAuto
+  );
+
+  if (twitterUser.nodeId === twitterUserThreecee.nodeId) {
+    twitterUserThreecee = twitterUser;
+    config.twitterUser = twitterUser;
+  }
+
+  currentSessionView.setTwitterUser(twitterUser);
+});
+
+socket.on("SET_TWITTER_HASHTAG", function(twitterHashtag) {
+
+  statsObj.serverConnected = true;
+  statsObj.socket.connected = true;
+
+  console.log("SET_TWITTER_HASHTAG" 
+    + " | " + twitterHashtag.hashtagId 
+    + " | #" + twitterHashtag.text 
+    + " | C: " + twitterHashtag.category
+    + " | CA: " + twitterHashtag.categoryAuto
+  );
+
+  currentSessionView.setTwitterHashtag(twitterHashtag);
+});
+
+socket.on("TWITTER_TOPTERM_1MIN", function(top10obj) {
+  statsObj.socket.connected = true;
+  statsObj.serverConnected = true;
+  console.debug("TWITTER_TOPTERM_1MIN\n" + jsonPrint(top10obj));
 });
 
 
@@ -1600,142 +1744,6 @@ function initStatsUpdate(interval){
   setInterval(function() {
   }, interval);
 }
-
-var lastHeartbeatReceived = 0;
-
-// CHECK FOR SERVER HEARTBEAT
-setInterval(function() {
-  if (!statsObj.serverConnected) {
-    console.error("\n????? SERVER DOWN ????? | | LAST HEARTBEAT: " 
-      + getTimeStamp(lastHeartbeatReceived) 
-      + " | " + moment().format(defaultDateTimeFormat) 
-      + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived));
-    socket.connect();
-    if (currentSessionView !== undefined) {
-      currentSessionView.setEnableAgeNodes(false);
-    }
-  }
-  else if ((lastHeartbeatReceived > 0) && (lastHeartbeatReceived + serverHeartbeatTimeout) < moment()) {
-    console.error("\n????? SERVER DOWN ????? | LAST HEARTBEAT: " 
-      + getTimeStamp(lastHeartbeatReceived) 
-      + " | " + moment().format(defaultDateTimeFormat) 
-      + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived));
-    socket.connect();
-    if (currentSessionView !== undefined) {
-      currentSessionView.setEnableAgeNodes(false);
-    }
-  }
-  else {
-    currentSessionView.setEnableAgeNodes(true);
-  }
-}, serverCheckInterval);
-
-var heartBeatsReceived = 0;
-
-socket.on("HEARTBEAT", function(hb) {
-
-
-  // console.log("HEARTBEAT\n" + jsonPrint(hb));
-
-  resetServerActiveTimer();
-
-  statsObj.maxNodes = ( currentSessionView === undefined) ? 0 : currentSessionView.getMaxNodes();
-  statsObj.maxNodeAddQ = ( currentSessionView === undefined) ? 0 : currentSessionView.getMaxNodeAddQ();
-
-  heartBeatsReceived += 1;
-  statsObj.serverConnected = true;
-  statsObj.socket.connected = true;
-  lastHeartbeatReceived = moment().valueOf();
-});
-
-socket.on("CONFIG_CHANGE", function(rxConfig) {
-
-  statsObj.serverConnected = true;
-  statsObj.socket.connected = true;
-
-  console.log("\n-----------------------\nRX CONFIG_CHANGE\n" 
-    + JSON.stringify(rxConfig, null, 3) + "\n------------------------\n");
-
-  if (rxConfig.testMode !== undefined) {
-    config.testMode = rxConfig.testMode;
-    console.log("\n*** ENV CHANGE: TEST_MODE:  WAS: " 
-      + previousConfig.testMode + " | NOW: " + config.testMode + "\n");
-    previousConfig.testMode = config.testMode;
-  }
-
-  if (rxConfig.testSendInterval !== undefined) {
-    config.testSendInterval = rxConfig.testSendInterval;
-    console.log("\n*** ENV CHANGE: TEST_SEND_INTERVAL: WAS: " 
-      + previousConfig.testSendInterval + " | NOW: " + config.testSendInterval + "\n");
-    previousConfig.testSendInterval = config.testSendInterval;
-  }
-
-  if (rxConfig.nodeMaxAge !== undefined) {
-    config.nodeMaxAge = rxConfig.nodeMaxAge;
-    console.log("\n*** ENV CHANGE: NODE_MAX_AGE: WAS: " 
-      + previousConfig.nodeMaxAge + " | NOW: " + config.nodeMaxAge + "\n");
-    // nodeMaxAge = config.nodeMaxAge;
-    currentSessionView.setMaxAge(rxConfig.nodeMaxAge);
-    previousConfig.nodeMaxAge = config.nodeMaxAge;
-  }
-});
-
-socket.on("SET_TWITTER_USER", function(twitterUser) {
-
-  statsObj.serverConnected = true;
-  statsObj.socket.connected = true;
-
-  if (!twitterUser) { return; }
-  if (!twitterUser || (twitterUser.notFound !== undefined)) {
-
-    console.log("SET_TWITTER_USER | NOT FOUND" 
-      + " | @" + twitterUser.screenName 
-    );
-    
-    currentSessionView.setTwitterUser(twitterUser);
-    return;
-  }
-
-  console.log("SET_TWITTER_USER" 
-    + " | " + twitterUser.nodeId 
-    + " | @" + twitterUser.screenName 
-    + " | CR: " + twitterUser.createdAt 
-    + " | FLWRs: " + twitterUser.followersCount 
-    + " | FRNDs: " + twitterUser.friendsCount 
-    + " | Ts: " + twitterUser.statusesCount 
-    + " | Ms: " + twitterUser.mentions 
-    + " | C: " + twitterUser.category
-    + " | CA: " + twitterUser.categoryAuto
-  );
-
-  if (twitterUser.nodeId === twitterUserThreecee.nodeId) {
-    twitterUserThreecee = twitterUser;
-    config.twitterUser = twitterUser;
-  }
-
-  currentSessionView.setTwitterUser(twitterUser);
-});
-
-socket.on("SET_TWITTER_HASHTAG", function(twitterHashtag) {
-
-  statsObj.serverConnected = true;
-  statsObj.socket.connected = true;
-
-  console.log("SET_TWITTER_HASHTAG" 
-    + " | " + twitterHashtag.hashtagId 
-    + " | #" + twitterHashtag.text 
-    + " | C: " + twitterHashtag.category
-    + " | CA: " + twitterHashtag.categoryAuto
-  );
-
-  currentSessionView.setTwitterHashtag(twitterHashtag);
-});
-
-socket.on("TWITTER_TOPTERM_1MIN", function(top10obj) {
-  statsObj.socket.connected = true;
-  statsObj.serverConnected = true;
-  console.debug("TWITTER_TOPTERM_1MIN\n" + jsonPrint(top10obj));
-});
 
 var rxNodeQueueReady = false;
 var rxNodeQueue = [];

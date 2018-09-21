@@ -474,7 +474,7 @@ function ControlPanel() {
 
     console.warn("CATEGORY BUTTON"
      + " | ID: " + e.target.id
-     + "\n" + jsonPrint(e.target)
+     // + "\n" + jsonPrint(e.target)
     );
 
     switch (e.target.id){

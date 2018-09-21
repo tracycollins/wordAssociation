@@ -1880,7 +1880,7 @@ function dropboxFolderGetLastestCursor(folder, callback) {
         });
       }
       else {
-        console.log(chalkLog("... FOLDER NO CHANGE | " + folder));
+        console.log(chalkLog("DROPBOX | FOLDER NO CHANGE | " + folder));
         callback(null, null);
       }
     });
@@ -4479,8 +4479,8 @@ function initSocketNamespaces(){
       }
     });
 
-    statsObj.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
-    initSocketHandler({namespace: "admin", socket: socket});
+    // statsObj.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
+    // initSocketHandler({namespace: "admin", socket: socket});
   });
 
   utilNameSpace.on("connect", function utilConnect(socket) {
@@ -5813,7 +5813,7 @@ function initAppRouting(callback) {
             }
 
           });
-          
+
         }, function(err){
           dropboxFolderGetLastestCursorReady = true;
           next();

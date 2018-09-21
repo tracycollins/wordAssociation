@@ -152,31 +152,12 @@ app.set('trust proxy', 1) // trust first proxy
 
 const expressSession = require("express-session");
 const MongoStore = require("connect-mongo")(expressSession);
-
-// const cookieParser = require("cookie-parser");
-// const bodyParser = require("body-parser");
-// const expressSession = require("express-session");
-
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const TwitterStrategy = require("passport-twitter").Strategy;
 
-// const PythonShell = require("python-shell");
-
 app.use(require("serve-static")(__dirname + "/public"));
-// app.use(require("cookie-parser")());
 app.use(require("body-parser").urlencoded({ extended: true }));
-
-
-// app.use(expressSession({ 
-//   secret: "three cee labs 47", 
-//   resave: true, 
-//   saveUninitialized: true
-//   store: new MongoStore({ mongooseConnection: mongoose.connection })
-// }));
-
-// app.use(passport.initialize());
-// app.use(passport.session());
 
 const altthreecee00config = {
   consumer_key: "0g1pAgIqe6f3LN9yjaPBGJcSL",
@@ -184,90 +165,6 @@ const altthreecee00config = {
   access_token: "848591649575927810-EHQmRALtPJLCYhRJqI8wkAzwfkEpDri",
   access_token_secret: "ZnUrnTUtH2D2iesTjaHVqNrrEWeDU8Rj13nFQ1UI2aDjl"
 };
-
-
-// passport.use(new TwitterStrategy({
-//     consumerKey: altthreecee00config.consumer_key,
-//     consumerSecret: altthreecee00config.consumer_secret,
-//     callbackURL: TWITTER_AUTH_CALLBACK_URL
-//   },
-//   function(token, tokenSecret, profile, callback) {
-
-//     console.log(chalkAlert("TWITTER AUTH\nprofile\n" + jsonPrint(profile)));
-
-//     const rawUser = profile._json;
-
-
-//     userServerController.convertRawUser({user:rawUser}, function(err, user){
-
-//       if (err) {
-//         console.log(chalkError("*** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
-//         return callback("RAW USER", rawUser);
-//       }
-
-//       printUserObj("TWITTER AUTH USER", user);
-
-//       userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
-
-//         if (err) {
-//           console.log(chalkError("findOneUser ERROR: " + err));
-//           return callback(err);
-//         }
-
-//         console.log(chalk.blue("UPDATED updatedUser"
-//           + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
-//           + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
-//           + "\n" + printUser({user:updatedUser})
-//         ));
-
-//         callback(null, updatedUser);
-//       });
-//     });
-
-//     // userServerController.convertRawUser(..., function(err, user) {
-//     //   if (err) { return done(err); }
-//     //   done(null, user);
-//     // });
-//   }
-// ));
-
-// app.get("/auth/twitter", passport.authenticate("twitter"));
-// app.get("/auth/twitter/callback",
-//   passport.authenticate("twitter", { successRedirect: "/session",
-//                                      failureRedirect: "/login" }));
-
-// passport.use(new LocalStrategy(
-//   function(username, password, done) {
-
-//     console.log(chalkAlert("*** LOGIN *** | " + username));
-
-//     User.findOne({ screenName: username.toLowerCase() }, function (err, user) {
-//       if (err) { 
-//         console.log(chalkAlert("*** LOGIN USER DB ERROR *** | " + err));
-//         return done(err);
-//       }
-//       if (!user) {
-//         console.log(chalkAlert("*** LOGIN FAILED | USER NOT FOUND *** | " + username));
-//         return done(null, false, { message: 'Incorrect username.' });
-//       }
-//       if ((user.screenName !== "threecee") || (password !== "what")) {
-//         console.log(chalkAlert("*** LOGIN FAILED | INVALID PASSWORD *** | " + username));
-//         return done(null, false, { message: 'Incorrect password.' });
-//       }
-//       return done(null, user);
-//     });
-//   }
-// ));
-
-// passport.serializeUser(function(user, done) {
-//   done(null, user.nodeId);
-// });
-
-// passport.deserializeUser(function(nodeId, done) {
-//   User.findOne({nodeId: nodeId}, function(err, user) {
-//     done(err, user);
-//   });
-// });
 
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 require("isomorphic-fetch");
@@ -1189,10 +1086,6 @@ function connectDb(callback){
           });
         });
 
-        // userServerController.convertRawUser(..., function(err, user) {
-        //   if (err) { return done(err); }
-        //   done(null, user);
-        // });
       }
     ));
 
@@ -1201,8 +1094,7 @@ function connectDb(callback){
     app.get("/auth/twitter/callback", 
       passport.authenticate("twitter", 
         { 
-          // successRedirect: "/session",
-          successReturnToOrRedirect: "back",
+          successReturnToOrRedirect: "/session",
           failureRedirect: "/login" 
         }
       )
@@ -1231,16 +1123,13 @@ function connectDb(callback){
       }
     ));
 
-    passport.serializeUser(function(user, done) {
-      done(null, user.nodeId);
-    });
+    passport.serializeUser(function(user, done) { done(null, user.nodeId); });
 
     passport.deserializeUser(function(nodeId, done) {
       User.findOne({nodeId: nodeId}, function(err, user) {
         done(err, user);
       });
     });
-
 
     dbConnectionReady = true;
     statsObj.dbConnectionReady = true;
@@ -5828,49 +5717,18 @@ function initAppRouting(callback) {
 
   app.post("/login",
     passport.authenticate("local", { 
-      // successReturnToOrRedirect: "/session",
-      successReturnToOrRedirect: "back",
+      successReturnToOrRedirect: "/session",
       failureRedirect: "/login"
     })
   );
-  // if (
-  //   (threeceeTwitter.altthreecee00 !== undefined) 
-  //   && threeceeTwitter.altthreecee00.ready)
-  // { 
-  // app.use(express.cookieParser());
-  // app.use(express.bodyParser());
-  // app.use(express.session({ secret: "12345678" }));
-  // //Below two lines are required to initialize passport
-  // app.use(passport.initialize());
-  // app.use(passport.session());//this should come after express-session  
-  //                             //to ensure login session is restored in correct order
-  // passport.use(new TwitterStrategy({
-  //     consumerKey: altthreecee00config.consumer_key,
-  //     consumerSecret: altthreecee00config.consumer_secret,
-  //     callbackURL: TWITTER_AUTH_CALLBACK_URL
-  //   },
-  //   function(token, tokenSecret, profile, cb) {
-  //     User.findOrCreate({ twitterId: profile.id }, function (err, user) {
-  //       return cb(err, user);
-  //     });
-  //   }
-  // ));
-
-  // }
-
-  // app.use(bodyParser.urlencoded({ extended: false }));
 
   app.use(methodOverride());
-
-  // app.use(exp.static(__dirname + "/public"));
 
   app.use(function requestLog(req, res, next) {
 
     if (req.path === "/json") {
       if (!ignoreIpSet.has(req.ip)) {
         console.log(chalkLog("R< REJECT: /json"
-          // + " | req.query: " + jsonPrint(req.query)
-          // + " | req.params: " + jsonPrint(req.params)
           + " | " + getTimeStamp()
           + " | IP: " + req.ip
           + " | HOST: " + req.hostname
@@ -5906,11 +5764,7 @@ function initAppRouting(callback) {
           dropboxFolderGetLastestCursor(folder, function(err, response){
 
             if (err) {
-              setTimeout(function(){
-
-                cb();
-              }, 1000);
-
+              setTimeout(function(){ cb(); }, 1000);
             }
             else if (response && (response.entries.length > 0)) {
 
@@ -5928,11 +5782,7 @@ function initAppRouting(callback) {
 
                 response.entries.forEach(function(entry){
 
-                  console.log(chalkBlue(">>> DROPBOX CHANGE"
-                    // + " | TYPE: " + entry[".tag"]
-                    + " | " + entry.path_lower
-                    // + " | NAME: " + entry.name
-                  ));
+                  console.log(chalkBlue(">>> DROPBOX CHANGE | " + entry.path_lower));
 
                   if ((entry.path_lower.endsWith("google_wordassoserverconfig.json"))
                     || (entry.path_lower.endsWith("default_wordassoserverconfig.json"))){
@@ -5946,11 +5796,7 @@ function initAppRouting(callback) {
 
             }
             else {
-              setTimeout(function(){
-
-                cb();
-              }, 1000);
-
+              setTimeout(function(){ cb(); }, 1000);
             }
           });
         }, function(err){
@@ -6001,16 +5847,6 @@ function initAppRouting(callback) {
         ));
         res.send(req.body.challenge);
       }
-      // else {
-      //   switch (req.body.event.type) {
-      //     case "message":
-      //       slackMessageHandler(req.body.event);
-      //     break;
-      //     default:
-      //     console.log(chalkAlert("R< ??? UNKNOWN SLACK EVENT TYPE\n" + util.inspect(req.body, {showHidden:false, depth:1})));
-      //   }
-      //   res.sendStatus(200);
-      // }
     }
     else {
       console.log(chalkLog("R<"
@@ -6152,30 +5988,6 @@ function initAppRouting(callback) {
   app.get("/auth/twitter/error", function(req, res){
     console.log(chalkAlert("PASSPORT AUTH TWITTER ERROR"));
   });
-
-  // app.get("/auth/twitter",
-  //   passport.authenticate("twitter"),
-  //   function(req, res){
-  //     console.log(chalk.green("PASSPORT AUTH TWITTER"
-  //       + " | req.query: " + jsonPrint(req.query)
-  //       + " | req.params: " + jsonPrint(req.params)
-  //     ));
-  //   });
-
-  // app.get("/auth/twitter/callback",
-  //   passport.authenticate("twitter", { successRedirect: "/account", failureRedirect: "/auth/twitter/error" }),
-  //   function(req, res) {
-  //     console.log(chalk.green("PASSPORT AUTH TWITTER CALLBACK"));
-  //   });
-// app.get("/auth/twitter",
-//   passport.authenticate("twitter"));
-
-// app.get("/auth/twitter/callback", 
-//   passport.authenticate("twitter", { failureRedirect: "/login" }),
-//   function(req, res) {
-//     // Successful authentication, redirect home.
-//     res.redirect("/");
-//   });
 
   app.get("/logout", function(req, res){
     req.logout();

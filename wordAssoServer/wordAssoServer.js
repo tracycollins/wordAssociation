@@ -1123,10 +1123,26 @@ function connectDb(callback){
       }
     ));
 
-    passport.serializeUser(function(user, done) { done(null, user.nodeId); });
+    passport.serializeUser(function(user, done) { 
+
+      console.log(chalkAlert("PASSPORT SERIALIZE USER | @" + user.screenName));
+
+      done(null, user.nodeId); 
+    });
 
     passport.deserializeUser(function(nodeId, done) {
       User.findOne({nodeId: nodeId}, function(err, user) {
+        if (err) {
+          console.log(chalkError("*** ERROR PASSPORT DESERIALIZE USER: " + err));
+          return done(err, null);
+        }
+        if (!user) {
+          console.log(chalkAlert("!!! PASSPORT DESERIALIZE USER NOT FOUND | NODE ID: " + nodeId));
+          return done(null, null);
+        }
+
+        console.log(chalkAlert("PASSPORT DESERIALIZE USER FOUND | @" + user.screenName));
+
         done(err, user);
       });
     });

@@ -162,8 +162,8 @@ app.use(require("body-parser").urlencoded({ extended: true }));
 const altthreecee00config = {
   consumer_key: "0g1pAgIqe6f3LN9yjaPBGJcSL",
   consumer_secret: "op5mSFdo1jenyiTxFyED0yD2W1rmviq35qpVlgSSyIIlFPuBj7",
-  access_token: "848591649575927810-EHQmRALtPJLCYhRJqI8wkAzwfkEpDri",
-  access_token_secret: "ZnUrnTUtH2D2iesTjaHVqNrrEWeDU8Rj13nFQ1UI2aDjl"
+  access_token: "848591649575927810-WDKNQnWvisJD9uJIP5eHxAVHsnFq5jE",
+  access_token_secret: "O2ZFttRte6RXs1XjZ5wcDgbXDoWZTr2wt245vRqvL0X8G"
 };
 
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
@@ -1054,6 +1054,8 @@ function connectDb(callback){
       },
       function(token, tokenSecret, profile, cb) {
 
+        console.log(chalkAlert("TWITTER AUTH: token:       " + token));
+        console.log(chalkAlert("TWITTER AUTH: tokenSecret: " + tokenSecret));
         console.log(chalkAlert("TWITTER AUTH\nprofile\n" + jsonPrint(profile)));
 
         const rawUser = profile._json;

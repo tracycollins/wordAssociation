@@ -1634,7 +1634,8 @@ var heartBeatsReceived = 0;
 
 socket.on("HEARTBEAT", function(hb) {
 
-  console.log("HEARTBEAT\n" + jsonPrint(hb));
+
+  // console.log("HEARTBEAT\n" + jsonPrint(hb));
 
   resetServerActiveTimer();
 

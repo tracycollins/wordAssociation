@@ -3976,6 +3976,7 @@ function initSocketHandler(socketObj) {
           + " | " + "ADMIN" 
           + " | " + getTimeStamp()
           + " | " + keepAliveObj.user.userId
+          + " | " + ipAddress
           + " | " + socket.id
         ));
 
@@ -4038,6 +4039,7 @@ function initSocketHandler(socketObj) {
           + " | " + currentSessionType + " SERVER" 
           + " | " + getTimeStamp()
           + " | " + keepAliveObj.user.userId
+          + " | " + ipAddress
           + " | " + socket.id
         ));
 
@@ -4096,6 +4098,7 @@ function initSocketHandler(socketObj) {
           + " | " + "VIEWER"
           + " | " + getTimeStamp()
           + " | " + keepAliveObj.user.userId
+          + " | " + ipAddress
           + " | " + socket.id
         ));
 
@@ -4159,9 +4162,12 @@ function initSocketHandler(socketObj) {
       return;
     }
 
+    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
     console.log(chalkSocket("R< TWITTER_FOLLOW"
       + " | " + getTimeStamp()
-      + " | SID: " + socket.id
+      + " | " + ipAddress
+      + " | " + socket.id
       + " | NID: " + user.nodeId
       + " | UID: " + user.userId
       + " | @" + user.screenName
@@ -4182,7 +4188,8 @@ function initSocketHandler(socketObj) {
       utilNameSpace.emit("FOLLOW", updatedUser);
 
       console.log(chalk.blue("+++ TWITTER_FOLLOW"
-        + " | SID: " + socket.id
+        + " | " + ipAddress
+        + " | " + socket.id
         + " | UID" + updatedUser.nodeId
         + " | @" + updatedUser.screenName
       ));
@@ -4192,9 +4199,12 @@ function initSocketHandler(socketObj) {
 
   socket.on("TWITTER_UNFOLLOW", function twitterUnfollow(user) {
 
+    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
     console.log(chalkSocket("R< TWITTER_UNFOLLOW"
       + " | " + getTimeStamp()
-      + " | SID: " + socket.id
+      + " | " + ipAddress
+      + " | " + socket.id
       + " | UID: " + user.userId
       + " | @" + user.screenName
     ));
@@ -4222,22 +4232,28 @@ function initSocketHandler(socketObj) {
 
   socket.on("TWITTER_SEARCH_NODE", function (sn) {
 
+    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
     twitterSearchNodeQueue.push({searchNode: sn, socket: socket});
 
     console.log(chalkSocket("R< TWITTER_SEARCH_NODE"
       + " [ TSNQ: " + twitterSearchNodeQueue.length + "]"
       + " | " + getTimeStamp()
-      + " | SID: " + socket.id
+      + " | " + ipAddress
+      + " | " + socket.id
       + " | " + sn
     ));
   });
 
   socket.on("TWITTER_CATEGORIZE_NODE", function twitterCategorizeNode(dataObj) {
 
+    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
     if (dataObj.node.nodeType === "user") {
       console.log(chalkSocket("TWITTER_CATEGORIZE_NODE"
         + " | " + getTimeStamp()
-        + " | SID: " + socket.id
+        + " | " + ipAddress
+        + " | " + socket.id
         + " | @" + dataObj.node.screenName
         + " | CAT: " + dataObj.category
       ));
@@ -4288,8 +4304,12 @@ function initSocketHandler(socketObj) {
 
   socket.on("USER_READY", function userReady(userObj) {
 
+    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
     console.log(chalkSocket("R< USER READY"
       + " | " + getTimeStamp()
+      + " | " + ipAddress
+      + " | " + socket.id
       + " | " + userObj.userId
       + " | SENT " + getTimeStamp(parseInt(userObj.timeStamp))
     ));
@@ -4305,28 +4325,42 @@ function initSocketHandler(socketObj) {
   });
 
   socket.on("VIEWER_READY", function viewerReady(viewerObj) {
+
+    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
     console.log(chalkSocket("VIEWER READY"
       + " | " + getTimeStamp()
+      + " | " + ipAddress
+      + " | " + socket.id
       + " | " + viewerObj.viewerId
       + " | SENT AT " + getTimeStamp(parseInt(viewerObj.timeStamp))
     ));
 
 
     userServerController.findOne({user: defaultTwitterUser}, function(err, user){
-      // if (err) {
-      //   socket.emit("SET_TWITTER_USER", defaultTwitterUser);
-      // }
-      if (!err && user) {
-        socket.emit("SET_TWITTER_USER", user);
-      }
 
-      socket.emit("VIEWER_READY_ACK", 
-        {
-          nodeId: viewerObj.viewerId,
-          timeStamp: moment().valueOf(),
-          viewerSessionKey: moment().valueOf()
+      if (err) {
+        console.log(chalkError("*** ERROR | VIEWER READY FIND USER"
+          + " | " + getTimeStamp()
+          + " | " + ipAddress
+          + " | " + socket.id
+          + " | " + viewerObj.viewerId
+          + " | ERROR: " + err
+        ));
+      }
+      else {
+        else if (user) {
+          socket.emit("SET_TWITTER_USER", user);
         }
-      );
+
+        socket.emit("VIEWER_READY_ACK", 
+          {
+            nodeId: viewerObj.viewerId,
+            timeStamp: moment().valueOf(),
+            viewerSessionKey: moment().valueOf()
+          }
+        );
+      }
   
     });
   });
@@ -4341,10 +4375,13 @@ function initSocketHandler(socketObj) {
   // side channel twitter auth in process...
   socket.on("login", function socketLogin(viewerObj){
 
+    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
     viewerObj.timeStamp = moment().valueOf();
 
     console.log(chalkAlert("LOGIN"
-      + " | SID: " + socket.id
+      + " | " + ipAddress
+      + " | " + socket.id
       + "\n" + jsonPrint(viewerObj)
     ));
 
@@ -4352,6 +4389,8 @@ function initSocketHandler(socketObj) {
   });
 
   socket.on("STATS", function socketStats(statsObj){
+
+    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
     let serverObj = serverCache.get(socket.id);
     let viewerObj = viewerCache.get(socket.id);
@@ -5776,7 +5815,7 @@ function initAppRouting(callback) {
             else {
               setTimeout(function(){ cb(); }, 100);
             }
-            
+
           });
         }, function(err){
           dropboxFolderGetLastestCursorReady = true;

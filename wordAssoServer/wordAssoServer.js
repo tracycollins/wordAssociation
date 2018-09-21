@@ -1084,6 +1084,9 @@ function connectDb(callback){
               + "\n" + printUser({user:updatedUser})
             ));
 
+            adminNameSpace.emit("USER_AUTHENTICATED", updatedUser);
+            viewNameSpace.emit("USER_AUTHENTICATED", updatedUser);
+
             cb(null, updatedUser);
 
           });

@@ -5742,14 +5742,14 @@ function initAppRouting(callback) {
           dropboxFolderGetLastestCursor(folder, function(err, response){
 
             if (err) {
-              setTimeout(function(){ cb(); }, 1000);
+              setTimeout(function(){ cb(); }, 100);
             }
             else if (response && (response.entries.length > 0)) {
 
               setTimeout(function(){
 
-                adminNameSpace.emit("DROPBOX_CHANGE", response);
-                utilNameSpace.emit("DROPBOX_CHANGE", response);
+                // adminNameSpace.emit("DROPBOX_CHANGE", response);
+                // utilNameSpace.emit("DROPBOX_CHANGE", response);
 
                 if (configuration.verbose) {
                   console.log(chalkWarn(">>> DROPBOX CHANGE"
@@ -5770,12 +5770,13 @@ function initAppRouting(callback) {
                 });
 
                 cb();
-              }, 1000);
+              }, 100);
 
             }
             else {
-              setTimeout(function(){ cb(); }, 1000);
+              setTimeout(function(){ cb(); }, 100);
             }
+            
           });
         }, function(err){
           dropboxFolderGetLastestCursorReady = true;

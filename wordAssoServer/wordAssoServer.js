@@ -3126,6 +3126,8 @@ configEvents.on("INTERNET_READY", function internetReady() {
         heartbeatObj.twitter.maxTweetsPerMinTime = statsObj.twitter.maxTweetsPerMinTime;
 
         adminNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
+        utilNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
+        viewNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
 
         heartbeatsSent += 1;
         if (heartbeatsSent % 60 === 0) { logHeartbeat(); }
@@ -4567,10 +4569,6 @@ function initSocketNamespaces(){
       }
     });
 
-    // statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // viewNameSpace.sockets.length ;
-
-    // initSocketHandler({namespace: "view", socket: socket});
-
   });
 
   statsObj.ioReady = true;
@@ -5786,9 +5784,6 @@ function initAppRouting(callback) {
             else if (response && (response.entries.length > 0)) {
 
               setTimeout(function(){
-
-                // adminNameSpace.emit("DROPBOX_CHANGE", response);
-                // utilNameSpace.emit("DROPBOX_CHANGE", response);
 
                 if (configuration.verbose) {
                   console.log(chalkWarn(">>> DROPBOX CHANGE"

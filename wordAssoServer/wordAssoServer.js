@@ -4351,7 +4351,8 @@ function initSocketHandler(socketObj) {
         ));
       }
       else {
-        else if (user) {
+        
+        if (user) {
           socket.emit("SET_TWITTER_USER", user);
         }
 

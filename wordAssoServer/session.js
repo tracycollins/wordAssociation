@@ -1161,6 +1161,7 @@ function initViewerReadyInterval(interval){
       statsObj.viewerReadyTransmitted = true; 
 
       socket.emit("VIEWER_READY", {userId: viewerObj.userId, timeStamp: moment().valueOf()}, function(){
+        statsObj.viewerReadyTransmitted = true;
       }); 
 
     }
@@ -1311,10 +1312,14 @@ socket.on("connect", function() {
 
     viewerObj.timeStamp = moment().valueOf();
 
-    socket.emit("VIEWER_READY", viewerObj);
+    socket.emit("VIEWER_READY", viewerObj, function(){
+      statsObj.viewerReadyTransmitted = true;
 
-    // socket.emit("authentication", viewerObj);
-    socket.emit("authentication", { namespace: "view", userId: viewerObj.userId, password: "0123456789" });
+      socket.emit("authentication", { namespace: "view", userId: viewerObj.userId, password: "0123456789" });
+
+    }); 
+
+    // socket.emit("authentication", { namespace: "view", userId: viewerObj.userId, password: "0123456789" });
   });
 
   socket.on("disconnect", function() {
@@ -2064,7 +2069,10 @@ function initialize(callback) {
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
 
             viewerObj.timeStamp = moment().valueOf();
-            socket.emit("VIEWER_READY", viewerObj);
+
+            socket.emit("VIEWER_READY", viewerObj, function(){
+              statsObj.viewerReadyTransmitted = true;
+            }); 
 
             setTimeout(function() {
               console.log("END PAGE LOAD TIMEOUT");
@@ -2118,7 +2126,10 @@ function initialize(callback) {
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
 
             viewerObj.timeStamp = moment().valueOf();
-            socket.emit("VIEWER_READY", viewerObj);
+
+            socket.emit("VIEWER_READY", viewerObj, function(){
+              statsObj.viewerReadyTransmitted = true;
+            }); 
 
             setTimeout(function() {
               console.log("END PAGE LOAD TIMEOUT");
@@ -2175,7 +2186,10 @@ function initialize(callback) {
           console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
 
           viewerObj.timeStamp = moment().valueOf();
-          socket.emit("VIEWER_READY", viewerObj);
+
+          socket.emit("VIEWER_READY", viewerObj, function(){
+            statsObj.viewerReadyTransmitted = true;
+          }); 
 
           setTimeout(function() {
             console.error("END PAGE LOAD TIMEOUT");

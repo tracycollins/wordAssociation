@@ -5544,8 +5544,7 @@ function initTransmitNodeQueueInterval(interval){
 
                   transmitNodeQueueReady = true;
                 }
-
-                if ((n.nodeType === "hashtag") && n.category){
+                else if ((n.nodeType === "hashtag") && n.category){
 
                   n.updateLastSeen = true;
 
@@ -5573,30 +5572,9 @@ function initTransmitNodeQueueInterval(interval){
                   viewNameSpace.volatile.emit("node", n);
                   transmitNodeQueueReady = true;
                 }
-
-                // if (n.nodeType === "emoji"){
-                //   delete n._id;
-                //   viewNameSpace.volatile.emit("node", n);
-                //   transmitNodeQueueReady = true;
-                // }
-
-                // if (n.nodeType === "media"){
-                //   delete n._id;
-                //   viewNameSpace.volatile.emit("node", n);
-                //   transmitNodeQueueReady = true;
-                // }
-
-                // if (n.nodeType === "place"){
-                //   delete n._id;
-                //   viewNameSpace.volatile.emit("node", n);
-                //   transmitNodeQueueReady = true;
-                // }
-
-                // if (n.nodeType === "word"){
-                //   delete n._id;
-                //   viewNameSpace.volatile.emit("node", n);
-                //   transmitNodeQueueReady = true;
-                // }
+                else {
+                  transmitNodeQueueReady = true;
+                }
 
               });
             }
@@ -5604,8 +5582,8 @@ function initTransmitNodeQueueInterval(interval){
           });
         });
       }
-
     }
+
   }, interval);
 }
 

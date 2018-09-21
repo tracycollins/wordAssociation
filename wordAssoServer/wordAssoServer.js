@@ -4351,7 +4351,7 @@ function initSocketHandler(socketObj) {
         ));
       }
       else {
-        
+
         if (user) {
           socket.emit("SET_TWITTER_USER", user);
         }
@@ -5780,7 +5780,7 @@ function initAppRouting(callback) {
           dropboxFolderGetLastestCursor(folder, function(err, response){
 
             if (err) {
-              setTimeout(function(){ cb(); }, 100);
+              setTimeout(function(){ cb(); }, 10);
             }
             else if (response && (response.entries.length > 0)) {
 
@@ -5805,14 +5805,15 @@ function initAppRouting(callback) {
                 });
 
                 cb();
-              }, 100);
+              }, 10);
 
             }
             else {
-              setTimeout(function(){ cb(); }, 100);
+              setTimeout(function(){ cb(); }, 10);
             }
 
           });
+          
         }, function(err){
           dropboxFolderGetLastestCursorReady = true;
           next();

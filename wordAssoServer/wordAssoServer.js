@@ -3750,51 +3750,61 @@ function initSocketHandler(socketObj) {
 
   socket.on("reconnect_error", function reconnectError(errorObj) {
 
+    const timeStamp = moment().valueOf();
+
     serverCache.del(socketId);
     viewerCache.del(socketId);
 
     statsObj.socket.errors.reconnect_errors += 1;
-    debug(chalkError(getTimeStamp() 
+    debug(chalkError(getTimeStamp(timeStamp) 
       + " | SOCKET RECONNECT ERROR: " + socketId + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on("reconnect_failed", function reconnectFailed(errorObj) {
 
+    const timeStamp = moment().valueOf();
+
     serverCache.del(socketId);
     viewerCache.del(socketId);
 
     statsObj.socket.errors.reconnect_fails += 1;
-    console.log(chalkError(getTimeStamp() 
+    console.log(chalkError(getTimeStamp(timeStamp) 
       + " | SOCKET RECONNECT FAILED: " + socketId + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on("connect_error", function connectError(errorObj) {
 
+    const timeStamp = moment().valueOf();
+
     serverCache.del(socketId);
     viewerCache.del(socketId);
 
     statsObj.socket.errors.connect_errors += 1;
-    console.log(chalkError(getTimeStamp() 
+    console.log(chalkError(getTimeStamp(timeStamp) 
       + " | SOCKET CONNECT ERROR: " + socketId + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on("connect_timeout", function connectTimeout(errorObj) {
 
+    const timeStamp = moment().valueOf();
+
     serverCache.del(socketId);
     viewerCache.del(socketId);
 
     statsObj.socket.errors.connect_timeouts += 1;
-    console.log(chalkError(getTimeStamp() 
+    console.log(chalkError(getTimeStamp(timeStamp) 
       + " | SOCKET CONNECT TIMEOUT: " + socketId + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on("error", function socketError(error) {
 
+    const timeStamp = moment().valueOf();
+
     ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
     statsObj.socket.errors.errors += 1;
 
-    console.log(chalkError(getTimeStamp() 
+    console.log(chalkError(getTimeStamp(timeStamp) 
       + " | *** SOCKET ERROR" + " | " + socketId + " | " + error));
 
     let currentServer = serverCache.get(socketId);
@@ -3844,11 +3854,16 @@ function initSocketHandler(socketObj) {
   });
 
   socket.on("reconnect", function socketReconnect() {
+
+    const timeStamp = moment().valueOf();
+
     statsObj.socket.reconnects += 1;
-    console.log(chalkConnect(getTimeStamp() + " | SOCKET RECONNECT: " + socket.id));
+    console.log(chalkConnect(getTimeStamp(timeStamp) + " | SOCKET RECONNECT: " + socket.id));
   });
 
   socket.on("disconnect", function socketDisconnect(reason) {
+
+    const timeStamp = moment().valueOf();
 
     statsObj.socket.disconnects += 1;
 
@@ -3859,7 +3874,7 @@ function initSocketHandler(socketObj) {
 
     if (adminHashMap.has(socketId)) { 
       console.log(chalkAlert("XXX DELETED ADMIN" 
-        + " | " + getTimeStamp()
+        + " | " + getTimeStamp(timeStamp)
         + " | " + adminHashMap.get(socketId).user.type.toUpperCase()
         + " | " + adminHashMap.get(socketId).user.nodeId
         + " | " + socketId
@@ -3875,7 +3890,7 @@ function initSocketHandler(socketObj) {
       currentServer.status = "DISCONNECTED";
 
       console.log(chalkAlert("XXX SERVER DISCONNECTED" 
-        + " | " + getTimeStamp()
+        + " | " + getTimeStamp(timeStamp)
         + " | " + currentServer.user.type.toUpperCase()
         + " | " + currentServer.user.nodeId
         + " | " + socketId
@@ -3914,6 +3929,8 @@ function initSocketHandler(socketObj) {
   });
 
   socket.on("SESSION_KEEPALIVE", function sessionKeepalive(keepAliveObj) {
+
+    const timeStamp = moment().valueOf();
 
     ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
@@ -3976,7 +3993,7 @@ function initSocketHandler(socketObj) {
 
         console.log(chalkLog("R< KA"
           + " | " + "ADMIN" 
-          + " | " + getTimeStamp()
+          + " | " + getTimeStamp(timeStamp)
           + " | " + keepAliveObj.user.userId
           + " | " + ipAddress
           + " | " + socket.id
@@ -3998,7 +4015,7 @@ function initSocketHandler(socketObj) {
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
           console.log(chalk.green("+++ ADD " + currentSessionType 
-            + " | " + getTimeStamp()
+            + " | " + getTimeStamp(timeStamp)
             + " | " + keepAliveObj.user.userId
             + " | " + sessionObj.ip
             + " | " + socket.id
@@ -4039,7 +4056,7 @@ function initSocketHandler(socketObj) {
         console.log(chalkLog("R< KA"
           // + " | DELTA: " + deltaNS + " NS"
           + " | " + currentSessionType + " SERVER" 
-          + " | " + getTimeStamp()
+          + " | " + getTimeStamp(timeStamp)
           + " | " + keepAliveObj.user.userId
           + " | " + ipAddress
           + " | " + socket.id
@@ -4069,7 +4086,7 @@ function initSocketHandler(socketObj) {
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
           console.log(chalk.green("+++ ADD " + currentSessionType + " SERVER" 
-            + " | " + getTimeStamp()
+            + " | " + getTimeStamp(timeStamp)
             + " | " + keepAliveObj.user.userId
             + " | " + sessionObj.ip
             + " | " + socket.id
@@ -4098,7 +4115,7 @@ function initSocketHandler(socketObj) {
 
         console.log(chalkLog("R< KA"
           + " | " + "VIEWER"
-          + " | " + getTimeStamp()
+          + " | " + getTimeStamp(timeStamp)
           + " | " + keepAliveObj.user.userId
           + " | " + ipAddress
           + " | " + socket.id
@@ -4126,7 +4143,7 @@ function initSocketHandler(socketObj) {
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
           console.log(chalk.green("+++ ADD " + currentSessionType + " SESSION" 
-            + " | " + getTimeStamp()
+            + " | " + getTimeStamp(timeStamp)
             + " | " + keepAliveObj.user.userId
             + " | " + sessionObj.ip
             + " | " + socket.id
@@ -4164,10 +4181,12 @@ function initSocketHandler(socketObj) {
       return;
     }
 
+    const timeStamp = moment().valueOf();
+
     ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
     console.log(chalkSocket("R< TWITTER_FOLLOW"
-      + " | " + getTimeStamp()
+      + " | " + getTimeStamp(timeStamp)
       + " | " + ipAddress
       + " | " + socket.id
       + " | NID: " + user.nodeId
@@ -4201,10 +4220,12 @@ function initSocketHandler(socketObj) {
 
   socket.on("TWITTER_UNFOLLOW", function twitterUnfollow(user) {
 
+    const timeStamp = moment().valueOf();
+
     ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
     console.log(chalkSocket("R< TWITTER_UNFOLLOW"
-      + " | " + getTimeStamp()
+      + " | " + getTimeStamp(timeStamp)
       + " | " + ipAddress
       + " | " + socket.id
       + " | UID: " + user.userId
@@ -4234,13 +4255,15 @@ function initSocketHandler(socketObj) {
 
   socket.on("TWITTER_SEARCH_NODE", function (sn) {
 
+    const timeStamp = moment().valueOf();
+
     ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
     twitterSearchNodeQueue.push({searchNode: sn, socket: socket});
 
     console.log(chalkSocket("R< TWITTER_SEARCH_NODE"
       + " [ TSNQ: " + twitterSearchNodeQueue.length + "]"
-      + " | " + getTimeStamp()
+      + " | " + getTimeStamp(timeStamp)
       + " | " + ipAddress
       + " | " + socket.id
       + " | " + sn
@@ -4249,11 +4272,13 @@ function initSocketHandler(socketObj) {
 
   socket.on("TWITTER_CATEGORIZE_NODE", function twitterCategorizeNode(dataObj) {
 
+    const timeStamp = moment().valueOf();
+
     ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
     if (dataObj.node.nodeType === "user") {
       console.log(chalkSocket("TWITTER_CATEGORIZE_NODE"
-        + " | " + getTimeStamp()
+        + " | " + getTimeStamp(timeStamp)
         + " | " + ipAddress
         + " | " + socket.id
         + " | @" + dataObj.node.screenName
@@ -4262,7 +4287,7 @@ function initSocketHandler(socketObj) {
     }
     if (dataObj.node.nodeType === "hashtag") {
       console.log(chalkSocket("TWITTER_CATEGORIZE_NODE"
-        + " | " + getTimeStamp()
+        + " | " + getTimeStamp(timeStamp)
         + " | SID: " + socket.id
         + " | #" + dataObj.node.nodeId
         + " | CAT: " + dataObj.category
@@ -4277,7 +4302,7 @@ function initSocketHandler(socketObj) {
         if (updatedNodeObj.nodeType === "user") {
           socket.emit("SET_TWITTER_USER", updatedNodeObj);
           console.log(chalkSocket("TX> SET_TWITTER_USER"
-            + " | " + getTimeStamp()
+            + " | " + getTimeStamp(timeStamp)
             + " | SID: " + socket.id
             + "\nNID: " + updatedNodeObj.nodeId
             + " | UID: " + updatedNodeObj.userId
@@ -4293,7 +4318,7 @@ function initSocketHandler(socketObj) {
         if (updatedNodeObj.nodeType === "hashtag") {
           socket.emit("SET_TWITTER_HASHTAG", updatedNodeObj);
           console.log(chalkSocket("TX> SET_TWITTER_HASHTAG"
-            + " | " + getTimeStamp()
+            + " | " + getTimeStamp(timeStamp)
             + " | SID: " + socket.id
             + " | #" + updatedNodeObj.nodeId
             + " | Ms: " + updatedNodeObj.mentions
@@ -4306,10 +4331,12 @@ function initSocketHandler(socketObj) {
 
   socket.on("USER_READY", function userReady(userObj) {
 
+    const timeStamp = moment().valueOf();
+
     ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
     console.log(chalkSocket("R< USER READY"
-      + " | " + getTimeStamp()
+      + " | " + getTimeStamp(timeStamp)
       + " | " + ipAddress
       + " | " + socket.id
       + " | " + userObj.userId
@@ -4328,10 +4355,12 @@ function initSocketHandler(socketObj) {
 
   socket.on("VIEWER_READY", function viewerReady(viewerObj) {
 
+    const timeStamp = moment().valueOf();
+
     ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
     console.log(chalkSocket("VIEWER READY"
-      + " | " + getTimeStamp()
+      + " | " + getTimeStamp(timeStamp)
       + " | " + ipAddress
       + " | " + socket.id
       + " | " + viewerObj.viewerId
@@ -4343,7 +4372,7 @@ function initSocketHandler(socketObj) {
 
       if (err) {
         console.log(chalkError("*** ERROR | VIEWER READY FIND USER"
-          + " | " + getTimeStamp()
+          + " | " + getTimeStamp(timeStamp)
           + " | " + ipAddress
           + " | " + socket.id
           + " | " + viewerObj.viewerId
@@ -4378,6 +4407,8 @@ function initSocketHandler(socketObj) {
   // side channel twitter auth in process...
   socket.on("login", function socketLogin(viewerObj){
 
+    const timeStamp = moment().valueOf();
+
     ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
     viewerObj.timeStamp = moment().valueOf();
@@ -4392,6 +4423,8 @@ function initSocketHandler(socketObj) {
   });
 
   socket.on("STATS", function socketStats(statsObj){
+
+    const timeStamp = moment().valueOf();
 
     ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
@@ -4436,7 +4469,9 @@ function initSocketHandler(socketObj) {
 
 function initSocketNamespaces(){
 
-  console.log(chalkInfo(getTimeStamp() + " | INIT SOCKET NAMESPACES"));
+  const timeStamp = moment().valueOf();
+
+  console.log(chalkInfo(getTimeStamp(timeStamp) + " | INIT SOCKET NAMESPACES"));
 
   adminNameSpace = io.of("/admin");
   utilNameSpace = io.of("/util");

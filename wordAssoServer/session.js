@@ -1324,7 +1324,6 @@ socket.on("reconnect", function() {
 
   }); 
 
-  // socket.emit("authentication", { namespace: "view", userId: viewerObj.userId, password: "0123456789" });
 });
 
 socket.on("disconnect", function() {

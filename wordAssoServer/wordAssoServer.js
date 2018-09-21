@@ -1054,9 +1054,10 @@ function connectDb(callback){
       },
       function(token, tokenSecret, profile, cb) {
 
-        console.log(chalkAlert("TWITTER AUTH: token:       " + token));
-        console.log(chalkAlert("TWITTER AUTH: tokenSecret: " + tokenSecret));
-        console.log(chalkAlert("TWITTER AUTH\nprofile\n" + jsonPrint(profile)));
+        console.log(chalkAlert("PASSPORT TWITTER AUTH: token:       " + token));
+        console.log(chalkAlert("PASSPORT TWITTER AUTH: tokenSecret: " + tokenSecret));
+        console.log(chalkAlert("PASSPORT TWITTER AUTH USER | @" + profile.username + " | " + profile.id));
+        if (configuration.verbose) { console.log(chalkAlert("PASSPORT TWITTER AUTH\nprofile\n" + jsonPrint(profile))); }
 
         const rawUser = profile._json;
 
@@ -1068,7 +1069,7 @@ function connectDb(callback){
             return cb("RAW USER", rawUser);
           }
 
-          printUserObj("TWITTER AUTH USER", user);
+          printUserObj("MONGO DB | TWITTER AUTH USER", user);
 
           userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
 

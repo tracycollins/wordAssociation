@@ -105,6 +105,9 @@ console.log("viewerObj\n" + jsonPrint(viewerObj));
 // var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
 var DEFAULT_AUTH_URL = DEFAULT_SOURCE + "/auth/twitter";
 
+var loginCallBack = function() {
+  console.log("LOGIN CALL BACK");
+}
 
 var twitterUserThreecee = {
   nodeId : "14607119",

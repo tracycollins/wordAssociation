@@ -1100,7 +1100,8 @@ function connectDb(callback){
     app.get("/auth/twitter/callback", 
       passport.authenticate("twitter", 
         { 
-          successReturnToOrRedirect: "/session",
+          // successReturnToOrRedirect: "/session",
+          successReturnToOrRedirect: "/after-auth.html",
           failureRedirect: "/login" 
         }
       )

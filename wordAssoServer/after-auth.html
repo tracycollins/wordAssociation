@@ -1,11 +1,16 @@
 <script type="text/javascript">
-    if (window.opener) {
-        window.opener.focus();
 
-      if(window.opener.loginCallBack) {
-      	var data = { userId: "userId" };
-        window.opener.loginCallBack(data);
-      }
+	console.log("AUTH AFTER");
+
+  if (window.opener) {
+  	console.log("AUTH AFTER WINDOW OPENER");
+     window.opener.focus();
+
+    if(window.opener.loginCallBack) {
+	  	console.log("AUTH AFTER WINDOW OPENER | loginCallBack");
+    	var data = { userId: "userId" };
+      window.opener.loginCallBack(data);
     }
-    window.close();
+  }
+  window.close();
 </script>  

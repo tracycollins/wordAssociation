@@ -1180,24 +1180,24 @@ function connectDb(callback){
       console.log(chalkInfo("NEURAL NETWORKS IN DB: " + count));
     });
 
-    // const filterNetwork = {
-    //   $match: {
-    //     $or: [{ operationType: "insert" },{ operationType: "delete" },{ operationType: "update" },{ operationType: "replace" }]
-    //   }
-    // };
-    // const optionsNetwork = { fullDocument: "updateLookup" };
+    const filterNetwork = {
+      $match: {
+        $or: [{ operationType: "insert" },{ operationType: "delete" },{ operationType: "update" },{ operationType: "replace" }]
+      }
+    };
+    const optionsNetwork = { fullDocument: "updateLookup" };
 
-    // const neuralNetworkChangeStream = neuralNetworkCollection.watch([filterNetwork], optionsNetwork);
+    const neuralNetworkChangeStream = neuralNetworkCollection.watch([filterNetwork], optionsNetwork);
 
-    // neuralNetworkChangeStream.on("change", function(change){
-    //   if (change && change.fullDocument) { 
-    //     const nn = networkDefaults(change.fullDocument); 
-    //     printNetworkObj("--> NN   CHANGE | " +  change.operationType, nn);
-    //   }
-    //   else {
-    //     console.log(chalkAlert("--> NN   CHANGE | " +  change.operationType));
-    //   }
-    // });
+    neuralNetworkChangeStream.on("change", function(change){
+      if (change && change.fullDocument) { 
+        const nn = networkDefaults(change.fullDocument); 
+        printNetworkObj("--> NN   CHANGE | " +  change.operationType, nn);
+      }
+      else {
+        console.log(chalkAlert("--> NN   CHANGE | " +  change.operationType));
+      }
+    });
 
     callback(true);
     configEvents.emit("DB_CONNECT");

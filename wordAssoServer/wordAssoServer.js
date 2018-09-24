@@ -5669,48 +5669,71 @@ function initTransmitNodeQueueInterval(interval){
 }
 
 function transmitNodes(tw, callback){
+
   if (configuration.verbose) {
     console.log("TX NODES | TW ID: " + tw.tweetId + " | @" + tw.user.screenName);
   }
 
-  if (tw.user) {transmitNodeQueue.push(tw.user);}
+  async.parallel({
+    user: function(cb){
+      if (tw.user) { transmitNodeQueue.push(tw.user); }
+      cb();
+    },
+    userMentions: function(cb){
+      tw.userMentions.forEach(function userMentionsTxNodeQueue(user){
+        if (user && configuration.enableTransmitUser) { transmitNodeQueue.push(user); }
+      });
+      cb();
+    },
+    hashtags: function(cb){
+      tw.hashtags.forEach(function hashtagsTxNodeQueue(hashtag){
+        if (hashtag && configuration.enableTransmitHashtag) { transmitNodeQueue.push(hashtag); }
+      });
+      cb();
+    },
+  },
+  function(){
+    callback();
+  });   
 
-  if (tw.place && configuration.enableTransmitPlace) {transmitNodeQueue.push(tw.place);}
+  // if (tw.user) {transmitNodeQueue.push(tw.user);}
 
-  tw.userMentions.forEach(function userMentionsTxNodeQueue(user){
-    if (user && configuration.enableTransmitUser) {transmitNodeQueue.push(user);}
-  });
+  // if (tw.place && configuration.enableTransmitPlace) {transmitNodeQueue.push(tw.place);}
 
-  tw.hashtags.forEach(function hashtagsTxNodeQueue(hashtag){
-    if (hashtag && configuration.enableTransmitHashtag) { transmitNodeQueue.push(hashtag); }
-  });
+  // tw.userMentions.forEach(function userMentionsTxNodeQueue(user){
+  //   if (user && configuration.enableTransmitUser) {transmitNodeQueue.push(user);}
+  // });
 
-  if (configuration.enableTransmitMedia) {
-    tw.media.forEach(function mediaTxNodeQueue(media){
-      if (media) { transmitNodeQueue.push(media); }
-    });
-  }
+  // tw.hashtags.forEach(function hashtagsTxNodeQueue(hashtag){
+  //   if (hashtag && configuration.enableTransmitHashtag) { transmitNodeQueue.push(hashtag); }
+  // });
 
-  if (configuration.enableTransmitEmoji) {
-    tw.emoji.forEach(function emojiTxNodeQueue(emoji){
-      if (emoji) { transmitNodeQueue.push(emoji); }
-    });
-  }
+  // if (configuration.enableTransmitMedia) {
+  //   tw.media.forEach(function mediaTxNodeQueue(media){
+  //     if (media) { transmitNodeQueue.push(media); }
+  //   });
+  // }
 
-  if (configuration.enableTransmitUrl) {
-    tw.urls.forEach(function urlTxNodeQueue(url){
-      if (url) { transmitNodeQueue.push(url); }
-    });
-  }
+  // if (configuration.enableTransmitEmoji) {
+  //   tw.emoji.forEach(function emojiTxNodeQueue(emoji){
+  //     if (emoji) { transmitNodeQueue.push(emoji); }
+  //   });
+  // }
 
-  if (configuration.enableTransmitWord) {
-    tw.words.forEach(function wordsTxNodeQueue(word){
-      if (word && categorizedWordHashMap.has(word.nodeId)) { transmitNodeQueue.push(word); }
-    });
-  }
+  // if (configuration.enableTransmitUrl) {
+  //   tw.urls.forEach(function urlTxNodeQueue(url){
+  //     if (url) { transmitNodeQueue.push(url); }
+  //   });
+  // }
+
+  // if (configuration.enableTransmitWord) {
+  //   tw.words.forEach(function wordsTxNodeQueue(word){
+  //     if (word && categorizedWordHashMap.has(word.nodeId)) { transmitNodeQueue.push(word); }
+  //   });
+  // }
 
 
-  callback();
+  // callback();
 }
 
 

@@ -927,6 +927,7 @@ function initSearchTerms(cnf, callback){
                 if (msg.event) {
                   console.log(chalkAlert("TSS | " + getTimeStamp() 
                     + " | TWITTER MESSAGE EVENT: " + msg.event
+                    + " | @" + screenName
                     + "\n" + jsonPrint(msg)
                   ));
                 }
@@ -936,7 +937,7 @@ function initSearchTerms(cnf, callback){
               twitterUserObj.searchStream.on("connect", function(){
                 console.log(chalkTwitter("TSS | " + getTimeStamp()
                   + " | TWITTER CONNECT"
-                  + " | @" + twitterUserObj.screenName
+                  + " | @" + screenName
                 ));
                 statsObj.twitterConnects += 1;
                 twitterUserObj.stats.connected = true;
@@ -948,7 +949,7 @@ function initSearchTerms(cnf, callback){
               twitterUserObj.searchStream.on("reconnect", function(data){
                 console.log(chalkTwitter("TSS | " + getTimeStamp()
                   + " | TWITTER RECONNECT"
-                  + " | @" + twitterUserObj.screenName
+                  + " | @" + screenName
                   // + "\n" + jsonPrint(data)
                 ));
 
@@ -966,7 +967,10 @@ function initSearchTerms(cnf, callback){
               });
 
               twitterUserObj.searchStream.on("disconnect", function(data){
-                console.log(chalkAlert("TSS | " + getTimeStamp() + " | !!! TWITTER DISCONNECT: " + jsonPrint(data)));
+                console.log(chalkAlert("TSS | " + getTimeStamp()
+                  + " | @" + screenName
+                  + " | !!! TWITTER DISCONNECT\n" + jsonPrint(data)
+                ));
                 statsObj.twitterDisconnects+= 1;
                 twitterUserObj.stats.connected = false;
                 twitterUserObj.stats.twitterReconnects = 0;
@@ -982,6 +986,7 @@ function initSearchTerms(cnf, callback){
 
               twitterUserObj.searchStream.on("direct_message", function (message) {
                 console.log(chalkTwitter("TSS | R< TWITTER DIRECT MESSAGE"
+                  + " | @" + screenName
                   + " | " + message.direct_message.sender_screen_name
                   + "\n" + message.direct_message.text
                 ));
@@ -1026,7 +1031,10 @@ function initSearchTerms(cnf, callback){
               });
 
               twitterUserObj.searchStream.on("error", function(err){
-                console.log(chalkError("TSS | " + getTimeStamp() + " | *** TWITTER ERROR: " + err));
+                console.log(chalkError("TSS | " + getTimeStamp()
+                  + " | @" + twitterUserObj.screenName
+                  + " | *** TWITTER ERROR: " + err
+                  ));
                 statsObj.twitterErrors += 1;
                 twitterUserObj.stats.twitterErrors = 0;
 
@@ -1049,7 +1057,10 @@ function initSearchTerms(cnf, callback){
 
                 deltaTweet = process.hrtime(deltaTweetStart);
                 if (deltaTweet[0] > 0) { 
-                  console.log(chalkAlert("TSS | *** TWEET RX DELTA: " + deltaTweet[0] + "." + deltaTweet[1]));
+                  console.log(chalkAlert("TSS | *** TWEET RX DELTA"
+                    + " | @" + screenName
+                    + " | " + deltaTweet[0] + "." + deltaTweet[1]
+                  ));
                 }
                 deltaTweetStart = process.hrtime();
 
@@ -1443,7 +1454,7 @@ process.on("message", function(m) {
 
       setTimeout(function(){
         process.send({ op: "PONG", pongId: m.pingId });
-        
+
         // process.send({ op: "PONG", pongId: m.pingId }, function(err){
         //   if (err) {
         //     console.log(chalkError("TWP | !!! TSS PONG SEND ERR: " + err));

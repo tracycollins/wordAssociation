@@ -3499,17 +3499,6 @@ function socketRxTweet(tw) {
     + " | " + tw.user.name
   ));
 
-  if (statsObj.twitter.tweetsReceived % 100 === 0) {
-    console.log(chalkTwitter("WAS | <T | "+ getTimeStamp()
-      + " [ RXQ: " + tweetRxQueue.length + "]"
-      + " [ TPQ: " + tweetParserQueue.length + "]"
-      + " | " + tw.id_str
-      + " | @" + tw.user.screen_name
-      + " | " + tw.user.name
-    ));
-  }
-
-
   if (tweetRxQueue.length > configuration.maxQueue){
 
     statsObj.errors.twitter.maxRxQueue += 1;
@@ -3556,6 +3545,17 @@ function socketRxTweet(tw) {
       + " | @" + tw.user.screen_name
       + " | " + tw.user.name
     ));
+
+    if (statsObj.twitter.tweetsReceived % 100 === 0) {
+      console.log(chalkTwitter("WAS | <T | "+ getTimeStamp()
+        + " [ RXQ: " + tweetRxQueue.length + "]"
+        + " [ TPQ: " + tweetParserQueue.length + "]"
+        + " | " + tw.id_str
+        + " | @" + tw.user.screen_name
+        + " | " + tw.user.name
+      ));
+    }
+
   }
   else {
     console.log(chalkAlert("NULL USER T*<"

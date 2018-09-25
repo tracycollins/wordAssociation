@@ -5466,17 +5466,25 @@ function initTransmitNodeQueueInterval(interval){
   let followable;
   let nCacheObj;
 
+  let deltaTxNodeStart = process.hrtime();
+  let deltaTxNode = process.hrtime(deltaTxNodeStart);
+
   transmitNodeQueueInterval = setInterval(function txNodeQueue () {
 
     if (transmitNodeQueueReady && (transmitNodeQueue.length > 0)) {
 
-      transmitNodeQueueReady = false;
+      deltaTxNodeStart = process.hrtime();
 
+      transmitNodeQueueReady = false;
       nodeObj = transmitNodeQueue.shift();
 
       if (!nodeObj) {
         console.log(chalkError(new Error("transmitNodeQueue: NULL NODE OBJ DE-Q")));
         transmitNodeQueueReady = true;
+
+        deltaTxNode = process.hrtime(deltaTxNodeStart);
+        if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (!nodeObj): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+
       }
       else {
 
@@ -5498,6 +5506,12 @@ function initTransmitNodeQueueInterval(interval){
 
           if (err) { 
             transmitNodeQueueReady = true;
+
+            console.log(chalkError("*** CHECK CATEGORY ERROR: " + err));
+
+            deltaTxNode = process.hrtime(deltaTxNodeStart);
+            if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (checkCategory err): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+
             return; 
           }
 
@@ -5512,6 +5526,10 @@ function initTransmitNodeQueueInterval(interval){
               viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
 
               transmitNodeQueueReady = true;
+
+              deltaTxNode = process.hrtime(deltaTxNodeStart);
+              if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (updateNodeMeter err): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+
             }
             else {
 
@@ -5561,12 +5579,12 @@ function initTransmitNodeQueueInterval(interval){
 
                         checkTwitterRateLimit({user: currentThreeceeUser});
 
-
                         delete n._id;
                         viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
 
                       }
                       else if (err.code === 63){
+
                         console.log(chalkError("*** TWITTER SHOW USER ERROR | USER SUSPENDED"
                           + " | " + getTimeStamp() 
                           + " | 3C @" + currentThreeceeUser 
@@ -5578,6 +5596,7 @@ function initTransmitNodeQueueInterval(interval){
                         unfollowableUserSet.add(n.nodeId);
                       }
                       else {
+
                         console.log(chalkError("*** TWITTER SHOW USER ERROR"
                           + " | " + getTimeStamp() 
                           + " | 3C @" + currentThreeceeUser 
@@ -5589,6 +5608,10 @@ function initTransmitNodeQueueInterval(interval){
 
                       twitUserShowReady = true;
                       transmitNodeQueueReady = true;
+
+                      deltaTxNode = process.hrtime(deltaTxNodeStart);
+                      if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (users/show err): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+
                     }
 
                     else if (rawUser && (rawUser.followers_count >= configuration.minFollowersAuto)) {
@@ -5650,6 +5673,10 @@ function initTransmitNodeQueueInterval(interval){
 
                         twitUserShowReady = true;
                         transmitNodeQueueReady = true;
+
+                        deltaTxNode = process.hrtime(deltaTxNodeStart);
+                        if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (findOneUser): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+
                       });
                     }
                     else {
@@ -5658,6 +5685,9 @@ function initTransmitNodeQueueInterval(interval){
 
                       twitUserShowReady = true;
                       transmitNodeQueueReady = true;
+
+                      deltaTxNode = process.hrtime(deltaTxNodeStart);
+                      if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (no autofollow): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
                     }
                   });
                 }
@@ -5685,6 +5715,9 @@ function initTransmitNodeQueueInterval(interval){
 
                     transmitNodeQueueReady = true;
 
+                    deltaTxNode = process.hrtime(deltaTxNodeStart);
+                    if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (user categorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+
                   });
                 }
                 else if (n.nodeType === "user") {
@@ -5692,6 +5725,10 @@ function initTransmitNodeQueueInterval(interval){
                   viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
 
                   transmitNodeQueueReady = true;
+
+                  deltaTxNode = process.hrtime(deltaTxNodeStart);
+                  if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (user uncategorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+
                 }
                 else if ((n.nodeType === "hashtag") && n.category){
 
@@ -5714,15 +5751,26 @@ function initTransmitNodeQueueInterval(interval){
 
                     transmitNodeQueueReady = true;
 
+                    deltaTxNode = process.hrtime(deltaTxNodeStart);
+                    if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (hashtag categorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+
                   });
                 }
                 else if (n.nodeType === "hashtag") {
                   delete n._id;
                   viewNameSpace.volatile.emit("node", n);
                   transmitNodeQueueReady = true;
+
+                  deltaTxNode = process.hrtime(deltaTxNodeStart);
+                  if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (hashtag uncategorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+
                 }
                 else {
                   transmitNodeQueueReady = true;
+
+                  deltaTxNode = process.hrtime(deltaTxNodeStart);
+                  if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (nothing?): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+
                 }
 
               });
@@ -6243,7 +6291,7 @@ function initTwitterRxQueueInterval(interval){
       // }
 
       childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({ op: "tweet", tweetStatus: tweet });
-      
+
       // childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({ op: "tweet", tweetStatus: tweet }, function sendTweetParser(err){
 
       //   if (err) {

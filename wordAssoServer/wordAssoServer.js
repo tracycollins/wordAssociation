@@ -149,7 +149,7 @@ const treeify = require("treeify");
 
 const express = require("express");
 const app = express();
-app.set('trust proxy', 1) // trust first proxy
+app.set("trust proxy", 1); // trust first proxy
 
 const expressSession = require("express-session");
 const MongoStore = require("connect-mongo")(expressSession);
@@ -907,10 +907,10 @@ function filesGetMetadataLocal(options){
 let dropboxRemoteClient = new Dropbox({ accessToken: configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN });
 let dropboxLocalClient = {  // offline mode
   filesListFolder: filesListFolderLocal,
-  filesUpload: function(){},
-  filesDownload: function(){},
+  filesUpload: function(){ console.log(chalkInfo("filesUpload")); },
+  filesDownload: function(){ console.log(chalkInfo("filesDownload")); },
   filesGetMetadata: filesGetMetadataLocal,
-  filesDelete: function(){}
+  filesDelete: function(){ console.log(chalkInfo("filesDelete")); }
 };
 
 let dropboxClient = dropboxRemoteClient;
@@ -1092,8 +1092,7 @@ function connectDb(callback){
         console.log(chalkAlert("PASSPORT TWITTER AUTH USER | @" + profile.username + " | " + profile.id));
         if (configuration.verbose) { console.log(chalkAlert("PASSPORT TWITTER AUTH\nprofile\n" + jsonPrint(profile))); }
 
-        const rawUser = profile._json;
-
+        const rawUser = profile["_json"];
 
         userServerController.convertRawUser({user:rawUser}, function(err, user){
 
@@ -1152,11 +1151,11 @@ function connectDb(callback){
           }
           if (!user) {
             console.log(chalkAlert("*** LOGIN FAILED | USER NOT FOUND *** | " + username));
-            return done(null, false, { message: 'Incorrect username.' });
+            return done(null, false, { message: "Incorrect username." });
           }
           if ((user.screenName !== "threecee") || (password !== "what")) {
             console.log(chalkAlert("*** LOGIN FAILED | INVALID PASSWORD *** | " + username));
-            return done(null, false, { message: 'Incorrect password.' });
+            return done(null, false, { message: "Incorrect password." });
           }
           return done(null, user);
         });
@@ -1166,7 +1165,7 @@ function connectDb(callback){
     passport.serializeUser(function(user, done) { 
 
       let sessionUser = { 
-        _id: user._id, 
+        "_id": user["_id"], 
         nodeId: user.nodeId, 
         screenName: user.screenName, 
         name: user.name
@@ -1225,8 +1224,8 @@ function connectDb(callback){
     });
 
     const filterNetwork = {
-      $match: {
-        $or: [{ operationType: "insert" },{ operationType: "delete" },{ operationType: "update" },{ operationType: "replace" }]
+      "$match": {
+        "$or": [{ operationType: "insert" },{ operationType: "delete" },{ operationType: "update" },{ operationType: "replace" }]
       }
     };
     const optionsNetwork = { fullDocument: "updateLookup" };
@@ -1468,17 +1467,17 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
     if( !err ){
       socketIds.forEach(function(socketId){
 
-        const authSocketObj = authenticatedSocketCache.get(socketId);
+        const authSocketObjCache = authenticatedSocketCache.get(socketId);
 
-        if (authSocketObj) {
+        if (authSocketObjCache) {
 
           console.log(chalkInfo("AUTH SOCKET CACHE ENTRIES"
-            + " | NSP: " + authSocketObj.namespace.toUpperCase()
+            + " | NSP: " + authSocketObjCache.namespace.toUpperCase()
             + " | " + socketId
-            + " | USER ID: " + authSocketObj.userId
+            + " | USER ID: " + authSocketObjCache.userId
             + " | NOW: " + getTimeStamp()
-            + " | TS: " + getTimeStamp(authSocketObj.timeStamp)
-            + " | AGO: " + msToTime(moment().valueOf() - authSocketObj.timeStamp)
+            + " | TS: " + getTimeStamp(authSocketObjCache.timeStamp)
+            + " | AGO: " + msToTime(moment().valueOf() - authSocketObjCache.timeStamp)
           ));
         }
         else {
@@ -2778,16 +2777,12 @@ function killChild(params, callback){
     if (childrenHashMap[params.childId] === undefined) {
       console.log(chalkError("KILL CHILD ERROR: CHILD NOT IN HM: " + params.childId));
       if (callback !== undefined) { 
-        return callback("ERROR: CHILD NOT IN HM: " + params.childId, null);
+        callback("ERROR: CHILD NOT IN HM: " + params.childId, null);
       }
-      else {
-        return;
-      }
+      return;
     }
-    else {
-      pid = childrenHashMap[params.childId].pid;
-      command = "kill " + pid;
-    }
+    pid = childrenHashMap[params.childId].pid;
+    command = "kill " + pid;
   }
 
 
@@ -3812,7 +3807,8 @@ function initUnfollowableUserSet(){
             console.log(chalkError("*** initUnfollowableUserSet | USER FIND ONE ERROR: " + err));
             return cb(err, userId);
           }
-          else if (userUpdated){
+          
+          if (userUpdated){
 
             numUnfollowed += 1;
             console.log(chalkLog("XXX UNFOLLOW"
@@ -3861,7 +3857,6 @@ function initSocketHandler(socketObj) {
   let ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
   socketConnectText = "\nSOCKET CONNECT"
-    // + " | " + socket.id
     + "\n" + hostname
     + " | " + socketObj.namespace
     + " | " + ipAddress
@@ -4369,9 +4364,8 @@ function initSocketHandler(socketObj) {
         console.log(chalkError("TWITTER_UNFOLLOW ERROR: " + err));
         return;
       }
-      else if (!updatedUser) { // already unfollowed
-        return;
-      }
+      
+      if (!updatedUser) { return; }
 
       adminNameSpace.emit("UNFOLLOW", updatedUser);
       utilNameSpace.emit("UNFOLLOW", updatedUser);
@@ -4708,13 +4702,11 @@ function initSocketNamespaces(){
       else {
         socket.on("authentication", function(data) {
 
-          // if (configuration.verbose) {
-            console.log("RX SOCKET AUTHENTICATION"
-              + " | " + socket.nsp.name.toUpperCase()
-              + " | " + socket.id
-              + " | USER ID: " + data.userId
-            );
-          // }
+          console.log("RX SOCKET AUTHENTICATION"
+            + " | " + socket.nsp.name.toUpperCase()
+            + " | " + socket.id
+            + " | USER ID: " + data.userId
+          );
 
           data.timeStamp = moment().valueOf();
 
@@ -5300,7 +5292,7 @@ function initCheckTwitterRateLimitInterval(interval){
 
 function getCurrentThreeceeUser(callback){
 
-  debug(chalkTwitter("getCurrentThreeceeUser 3C USERS\s" + jsonPrint(threeceeTwitter)));
+  debug(chalkTwitter("getCurrentThreeceeUser 3C USERS\n" + jsonPrint(threeceeTwitter)));
 
   if (!statsObj.threeceeUsersConfiguredFlag) {
     if (configuration.verbose ){ console.log(chalkAlert("*** THREECEE_USERS NOT CONFIGURED")); }
@@ -5553,7 +5545,7 @@ function initTransmitNodeQueueInterval(interval){
                 + " | TYPE: " + node.nodeType
                 + " | NID: " + node.nodeId
               ));
-              delete node._id;
+              delete node["_id"];
               viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
 
               transmitNodeQueueReady = true;
@@ -5610,7 +5602,7 @@ function initTransmitNodeQueueInterval(interval){
 
                         checkTwitterRateLimit({user: currentThreeceeUser});
 
-                        delete n._id;
+                        delete n["_id"];
                         viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
 
                       }
@@ -5683,12 +5675,12 @@ function initTransmitNodeQueueInterval(interval){
     
                         if (err) {
                           console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
-                          delete n._id;
+                          delete n["_id"];
                           viewNameSpace.volatile.emit("node", n);
                         }
                         else {
 
-                          delete n._id;
+                          delete n["_id"];
                           viewNameSpace.volatile.emit("node", updatedUser);
 
                           if (!unfollowableUserSet.has(updatedUser.nodeId)) { 
@@ -5711,7 +5703,7 @@ function initTransmitNodeQueueInterval(interval){
                       });
                     }
                     else {
-                      delete n._id;
+                      delete n["_id"];
                       viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
 
                       twitUserShowReady = true;
@@ -5736,11 +5728,11 @@ function initTransmitNodeQueueInterval(interval){
                   userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit}, function(err, updatedUser){
                     if (err) {
                       console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
-                      delete n._id;
+                      delete n["_id"];
                       viewNameSpace.volatile.emit("node", n);
                     }
                     else {
-                      delete n._id;
+                      delete n["_id"];
                       viewNameSpace.volatile.emit("node", updatedUser);
                     }
 
@@ -5752,7 +5744,7 @@ function initTransmitNodeQueueInterval(interval){
                   });
                 }
                 else if (n.nodeType === "user") {
-                  delete n._id;
+                  delete n["_id"];
                   viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
 
                   transmitNodeQueueReady = true;
@@ -5768,15 +5760,15 @@ function initTransmitNodeQueueInterval(interval){
                   hashtagServerController.findOneHashtag(n, {noInc: false}, function(err, updatedHashtag){
                     if (err) {
                       console.log(chalkError("updatedHashtag ERROR\n" + jsonPrint(err)));
-                      delete n._id;
+                      delete n["_id"];
                       viewNameSpace.volatile.emit("node", n);
                     }
                     else if (updatedHashtag) {
-                      delete n._id;
+                      delete n["_id"];
                       viewNameSpace.volatile.emit("node", updatedHashtag);
                     }
                     else {
-                      delete n._id;
+                      delete n["_id"];
                       viewNameSpace.volatile.emit("node", n);
                     }
 
@@ -5788,7 +5780,7 @@ function initTransmitNodeQueueInterval(interval){
                   });
                 }
                 else if (n.nodeType === "hashtag") {
-                  delete n._id;
+                  delete n["_id"];
                   viewNameSpace.volatile.emit("node", n);
                   transmitNodeQueueReady = true;
 
@@ -5837,7 +5829,7 @@ function transmitNodes(tw, callback){
         if (hashtag && configuration.enableTransmitHashtag) { transmitNodeQueue.push(hashtag); }
       });
       cb();
-    },
+    }
   },
   function(){
     callback();
@@ -6227,8 +6219,6 @@ function initAppRouting(callback) {
 
 function testInternetConnection(params, callback) {
 
-  // console.log("testInternetConnection | statsObj.internetReady: " + statsObj.internetReady);
-
   if (statsObj.internetReady) {
     return callback(null, true);
   }
@@ -6282,11 +6272,13 @@ function initInternetCheckInterval(interval){
   let params = {url: configuration.testInternetConnectionUrl};
 
   testInternetConnection(params, function(err, internetReady){
+    console.log("testInternetConnection");
   });
 
   internetCheckInterval = setInterval(function internetCheck(){
 
     testInternetConnection(params, function(err, internetReady){
+      console.log("testInternetConnection");
     });
 
   }, interval);
@@ -6309,39 +6301,10 @@ function initTwitterRxQueueInterval(interval){
 
       tweet = tweetRxQueue.shift();
 
-      // if (configuration.verbose) {
-      //   console.log(chalkInfo("TPQ<"
-      //     // + " [" + tweetRxQueue.size() + "]"
-      //     + " [" + tweetRxQueue.length + "]"
-      //     // + " | " + socket.id
-      //     + " | " + tweet.id_str
-      //     + " | " + tweet.user.id_str
-      //     + " | " + tweet.user.screen_name
-      //     + " | " + tweet.user.name
-      //   ));
-      // }
 
       childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({ op: "tweet", tweetStatus: tweet });
 
-      // childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({ op: "tweet", tweetStatus: tweet }, function sendTweetParser(err){
 
-      //   if (err) {
-      //     console.log(chalkError("*** TWEET PARSER SEND ERROR"
-      //       + " | " + err
-      //     ));
-
-      //     if (quitOnError) {
-      //       quit("TWEET PARSER SEND ERROR");
-      //     }
-      //     statsObj.tweetParserSendReady = false;
-
-      //     childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].status = "ERROR";
-      //   }
-      //   else {
-      //     statsObj.tweetParserSendReady = true;
-      //     childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].status = "RUNNING";
-      //   }
-      // });
     }
   }, interval);
 }
@@ -6856,7 +6819,7 @@ function initTssChild(params, callback){
         console.log(chalkInfo("<PONG | TSS"
           + " | NOW: " + getTimeStamp()
           + " | PONG ID: " + getTimeStamp(m.pongId)
-          + " | RESPONSE TIME: " + msToTime((moment().valueOf() - m.pongId))
+          + " | RESPONSE TIME: " + msToTime(moment().valueOf() - m.pongId)
         ));
       }
     } 
@@ -7078,7 +7041,7 @@ function initTweetParser(params, callback){
         console.log(chalkInfo("<PONG | TWEET PARSER"
           + " | NOW: " + getTimeStamp()
           + " | PONG ID: " + getTimeStamp(m.pongId)
-          + " | RESPONSE TIME: " + msToTime((moment().valueOf() - m.pongId))
+          + " | RESPONSE TIME: " + msToTime(moment().valueOf() - m.pongId)
         ));
       }
     } 
@@ -7255,9 +7218,6 @@ function initRateQinterval(interval){
            + " | " + getTimeStamp()
           ));
         }
-      }
-
-      if (userNameSpace) {
       }
 
       if (adminNameSpace) {
@@ -8171,17 +8131,15 @@ function twitterGetUserUpdateDb(user, callback){
           console.log(chalkError("findOneUser ERROR: " + err));
           return callback("NO DB OR TWITTER UPDATE", user);
         }
-        else {
 
-          console.log(chalk.blue("UPDATED updatedUser"
-            + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
-            + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
-            + "\n" + printUser({user:updatedUser})
-          ));
+        console.log(chalk.blue("UPDATED updatedUser"
+          + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
+          + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
+          + "\n" + printUser({user:updatedUser})
+        ));
 
-          callback("DB NO TWITTER UPDATE", updatedUser);
+        callback("DB NO TWITTER UPDATE", updatedUser);
 
-        }
       });
     }
   });
@@ -8438,6 +8396,7 @@ initialize(function initializeComplete(err) {
 
     initTssChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, tss){
       if (err) { 
+        console.log(chalkError("INIT TSS CHILD ERROR: " + err));
       }
       else {
         tssChild = tss;
@@ -8446,6 +8405,7 @@ initialize(function initializeComplete(err) {
 
     initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, twp){
       if (err) { 
+        console.log(chalkError("INIT TWEET PARSER CHILD ERROR: " + err));
       }
       else {
         tweetParser = twp;

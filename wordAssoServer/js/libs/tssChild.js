@@ -110,6 +110,7 @@ configuration.maxTweetQueue = DEFAULT_MAX_TWEET_QUEUE;
 configuration.searchTermsDir = DROPBOX_DEFAULT_SEARCH_TERMS_DIR;
 configuration.searchTermsFile = DROPBOX_DEFAULT_SEARCH_TERMS_FILE;
 
+configuration.sendMessageTimeout = ONE_SECOND;
 configuration.twitterDownTimeout = 3*ONE_MINUTE;
 configuration.initSearchTermsTimeout = 1*ONE_MINUTE;
 configuration.initTwitterUsersTimeout = 1*ONE_MINUTE;
@@ -1278,6 +1279,7 @@ let deltaTxTweetStart = process.hrtime();
 let deltaTxTweet = process.hrtime(deltaTxTweetStart);
 
 let tweetSendReady = true;
+let sendMessageTimeout;
 
 function initTwitterQueue(cnf, callback){
 
@@ -1307,7 +1309,13 @@ function initTwitterQueue(cnf, callback){
         debug(chalkTwitter("[" + tweetQueue.length + "] " + tweetStatus.id_str));
         // socket.emit("tweet", tweetStatus);
 
+        sendMessageTimeout = setTimeout(function(){
+          console.log(chalkAlert("*** TSS | SEND TWEET TIMEOUT | " + msToTime(configuration.sendMessageTimeout)));
+        }, configuration.sendMessageTimeout);
+
         process.send({op: "tweet", tweet: tweetStatus}, function(err){
+
+          clearTimeout(sendMessageTimeout);
 
           tweetSendReady = true;
 

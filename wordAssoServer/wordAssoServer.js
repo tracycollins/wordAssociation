@@ -316,6 +316,33 @@ const optionDefinitions = [
   help
 ];
 
+function getTimeStamp(inputTime) {
+
+  let currentTimeStamp ;
+
+  if (inputTime === undefined) {
+    currentTimeStamp = moment().format(compactDateTimeFormat);
+    return currentTimeStamp;
+  }
+  else if (moment.isMoment(inputTime)) {
+    currentTimeStamp = moment(inputTime).format(compactDateTimeFormat);
+    return currentTimeStamp;
+  }
+  else if (moment(new Date(inputTime)).isValid()) {
+    currentTimeStamp = moment(new Date(inputTime)).format(compactDateTimeFormat);
+    return currentTimeStamp;
+  }
+  else if (moment(parseInt(inputTime)).isValid()) {
+    currentTimeStamp = moment(parseInt(inputTime)).format(compactDateTimeFormat);
+    return currentTimeStamp;
+  }
+  else {
+    console.log(chalkAlert("*** getTimeStamp INVALID DATE: " + inputTime));
+    return null;
+  }
+}
+
+
 function quit(message) {
 
   console.log(chalkAlert("\n... QUITTING ... " + getTimeStamp()));
@@ -1826,32 +1853,6 @@ function initStats(callback){
   statsObj.utilities = {};
 
   callback();
-}
-
-function getTimeStamp(inputTime) {
-
-  let currentTimeStamp ;
-
-  if (inputTime === undefined) {
-    currentTimeStamp = moment().format(compactDateTimeFormat);
-    return currentTimeStamp;
-  }
-  else if (moment.isMoment(inputTime)) {
-    currentTimeStamp = moment(inputTime).format(compactDateTimeFormat);
-    return currentTimeStamp;
-  }
-  else if (moment(new Date(inputTime)).isValid()) {
-    currentTimeStamp = moment(new Date(inputTime)).format(compactDateTimeFormat);
-    return currentTimeStamp;
-  }
-  else if (moment(parseInt(inputTime)).isValid()) {
-    currentTimeStamp = moment(parseInt(inputTime)).format(compactDateTimeFormat);
-    return currentTimeStamp;
-  }
-  else {
-    console.log(chalkAlert("*** getTimeStamp INVALID DATE: " + inputTime));
-    return null;
-  }
 }
 
 function dropboxLongPoll(last_cursor, callback) {

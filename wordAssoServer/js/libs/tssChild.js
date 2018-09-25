@@ -1066,7 +1066,8 @@ function initSearchTerms(cnf, callback){
                 }
 
                 if (statsObj.tweetsReceived % 100 === 0) {
-                  console.log(chalkTwitter("TSS | <T "
+                  console.log(chalkTwitter("TSS | <T | "+ getTimeStamp()
+                    + " | TWQ: " + tweetQueue.length
                     + " [ Ts/RTs: " + statsObj.tweetsReceived + "/" + statsObj.retweetsReceived + "]"
                     + " | DELTA TW RX: " + deltaTweet[0] + "." + deltaTweet[1]
                     + " | " + statsObj.tweetsPerMinute.toFixed(3) + " TPM"

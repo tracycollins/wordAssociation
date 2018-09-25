@@ -1313,7 +1313,7 @@ function initTwitterQueue(cnf, callback){
 
           console.log(chalkAlert("*** TSS | SEND TWEET TIMEOUT"
             + " | " + msToTime(configuration.sendMessageTimeout)
-            + "\nTWEET\n" + jsonPrint(tweetStatus)
+            // + "\nTWEET\n" + jsonPrint(tweetStatus)
           ));
           
         }, configuration.sendMessageTimeout);

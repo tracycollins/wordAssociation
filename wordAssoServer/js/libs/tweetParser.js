@@ -455,12 +455,13 @@ process.on("message", function(m) {
       ));
 
       setTimeout(function(){
-        process.send({ op: "PONG", pongId: m.pingId }, function(err){
-          if (err) {
-            console.log(chalkError("TWP | !!! TWEET PARSER PONG SEND ERR: " + err));
-            quit("TWEET PARSER PONG SEND ERR");
-          }
-        });
+        process.send({ op: "PONG", pongId: m.pingId });
+        // process.send({ op: "PONG", pongId: m.pingId }, function(err){
+        //   if (err) {
+        //     console.log(chalkError("TWP | !!! TWEET PARSER PONG SEND ERR: " + err));
+        //     quit("TWEET PARSER PONG SEND ERR");
+        //   }
+        // });
       }, 1000);
     break;
 

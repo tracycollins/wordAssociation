@@ -2836,6 +2836,14 @@ function getChildProcesses(params, callback){
 
   shell.exec(command, {silent: true}, function(code, stdout, stderr){
 
+    if (stderr) {
+      console.log(chalkError("*** SHELL ERROR"
+        + " | COMMAND: " + command
+        + " | STDERR: " + stderr
+      ));
+      return cb(stderr);
+    }
+
     if (code === 0) {
 
       let soArray = stdout.trim();
@@ -2851,6 +2859,14 @@ function getChildProcesses(params, callback){
           command = "ps -o command= -p " + pid;
 
           shell.exec(command, {silent: true}, function(code, stdout, stderr){
+
+            if (stderr) {
+              console.log(chalkError("*** SHELL ERROR"
+                + " | COMMAND: " + command
+                + " | STDERR: " + stderr
+              ));
+              return cb(stderr);
+            }
 
             childId = stdout.trim();
 
@@ -2875,6 +2891,15 @@ function getChildProcesses(params, callback){
               ));
 
               killChild({pid: pid}, function(err, numKilled){
+
+                if (err) {
+                  console.log(chalkError("*** KILL CHILD ERROR"
+                    + " | PID: " + pid
+                    + " | ERROR: " + err
+                  ));
+                  return cb(err);
+                }
+
                 console.log(chalkAlert("WA | XXX ZOMBIE CHILD KILLED | PID: " + pid + " | CH ID: " + childId));
               });
 
@@ -2898,7 +2923,13 @@ function getChildProcesses(params, callback){
 
       }, function(err){
 
-        if (callback !== undefined) { callback(null, childPidArray); }
+        if (err) {
+          console.log(chalkError("*** GET CHILD PROCESSES ERROR"
+            + " | ERROR: " + err
+          ));
+        }
+
+        if (callback !== undefined) { callback(err, childPidArray); }
 
       });
 
@@ -2934,7 +2965,7 @@ function killAll(callback){
 
         killChild({pid: childObj.pid}, function(err, numKilled){
           console.log(chalkAlert("WA | KILL ALL | KILLED | PID: " + childObj.pid + " | CH ID: " + childObj.childId));
-          cb();
+          cb(err);
         });
 
       }, function(err){

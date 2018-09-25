@@ -230,6 +230,9 @@ function initTweetParserQueueInterval(cnf){
 
   clearInterval(tweetParserQueueInterval);
 
+  let deltaTweetParserMessageStart = process.hrtime();
+  let deltaTweetParserMessage = process.hrtime(deltaTweetParserMessageStart);
+
   let tweet;
   let tweetParserQueueReady = true;
   let params = {
@@ -301,6 +304,18 @@ function initTweetParserQueueInterval(cnf){
           }
 
           process.send({op: "parsedTweet", tweetObj: tweetObj}, function(err){
+
+            deltaTweetParserMessage = process.hrtime(deltaTweetParserMessageStart);
+            if (deltaTweetParserMessage[0] > 0) { 
+              console.log.bind(console, "*** TWP SEND DELTA: " + deltaTweetParserMessage[0] + "." + deltaTweetParserMessage[1]); 
+              console.log("*** TWP SEND DELTA: " + deltaTweetParserMessage[0] + "." + deltaTweetParserMessage[1]); 
+            }
+            // else if (true) {
+            //   console.log.bind(console, "TWP SEND DELTA: " + deltaTweetParserMessage[0] + "." + deltaTweetParserMessage[1]); 
+            //   console.log("TWP SEND DELTA: " + deltaTweetParserMessage[0] + "." + deltaTweetParserMessage[1]); 
+            // }
+
+            deltaTweetParserMessageStart = process.hrtime();
 
             tweetParserQueueReady = true;
 

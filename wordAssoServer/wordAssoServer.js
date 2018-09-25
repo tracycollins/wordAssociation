@@ -44,6 +44,7 @@ const DEFAULT_CURSOR_BATCH_SIZE = 100;
 const DEFAULT_THREECEE_USERS = ["altthreecee00"];
 
 const DEFAULT_SORTER_CHILD_ID = "wa_node_sorter";
+const DEFAULT_TSS_CHILD_ID = "wa_node_tss";
 const DEFAULT_TWEET_PARSER_CHILD_ID = "wa_node_tweetParser";
 
 const DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER = "altthreecee00";
@@ -760,10 +761,15 @@ let twitterSearchNodeQueue = [];
 let twitterSearchNodeQueueInterval;
 let twitterSearchNodeQueueReady = false;
 
+let tssPingInterval;
+let tssPingSent = false;
+let tssPongReceived = false;
+let tssPingId = false;
+
 let tweetParserPingInterval;
 let tweetParserPingSent = false;
 let tweetParserPongReceived = false;
-let pingId = false;
+let tweetParserPingId = false;
 
 let categoryHashmapsInterval;
 let statsInterval;
@@ -1658,6 +1664,7 @@ let sorterMessageRxQueue = [];
 const ignoreWordHashMap = new HashMap();
 const localHostHashMap = new HashMap();
 
+let tssChild;
 let tweetParser;
 
 function initStats(callback){
@@ -2978,6 +2985,18 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
 
   switch(childObj.childId){
 
+    case DEFAULT_TSS_CHILD_ID:
+
+      console.log(chalkError("KILL TSS CHILD"));
+
+      killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, numKilled){
+        initTssChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, tss){
+          if (!err) { tssChild = tss; }
+        });
+      });
+
+    break;
+
     case DEFAULT_TWEET_PARSER_CHILD_ID:
 
       console.log(chalkError("KILL TWEET PARSER"));
@@ -3427,7 +3446,29 @@ function categorizeNode(categorizeObj, callback) {
   }
 }
 
+let deltaTweetStart = process.hrtime();
+let deltaTweet = process.hrtime(deltaTweetStart);
+
 function socketRxTweet(tw) {
+
+  deltaTweet = process.hrtime(deltaTweetStart);
+  if (deltaTweet[0] > 0) { 
+    statsObj.twitter.tweetsPerMin = parseInt(tweetMeter.toJSON()[metricsRate]);
+    console.log(chalkAlert("*** TWEET RX DELTA: " + deltaTweet[0] + "." + deltaTweet[1]));
+    console.log(chalkLog("S"
+      + " | " + getTimeStamp()
+      + " | E: " + statsObj.elapsed
+      + " | S: " + getTimeStamp(parseInt(statsObj.startTime))
+      + " | AD: " + statsObj.admin.connected
+      + " | UT: " + statsObj.entity.util.connected
+      + " | VW: " + statsObj.entity.viewer.connected
+      + " | TwRxPM: " + statsObj.twitter.tweetsPerMin
+      + " | MaxTwRxPM: " + statsObj.twitter.maxTweetsPerMin
+      + " | TwRXQ: " + tweetRxQueue.length
+      + " | TwPRQ: " + tweetParserQueue.length
+    ));
+  }
+  deltaTweetStart = process.hrtime();
 
   statsObj.twitter.tweetsReceived += 1;
   tweetMeter.mark();
@@ -3474,6 +3515,7 @@ function socketRxTweet(tw) {
     }
 
     tweetRxQueue.push(tw);
+
     statsObj.queues.tweetRxQueue = tweetRxQueue.length;
 
     debug(chalkLog("T<"
@@ -4420,10 +4462,10 @@ function initSocketHandler(socketObj) {
     });
   });
 
-  socket.on("tweet", function(tweet){
-    if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + tweet.id_str + " | @" + tweet.user.screen_name)); }
-    if (statsObj.tweetParserReady) { socketRxTweet(tweet); }
-  });
+  // socket.on("tweet", function(tweet){
+  //   if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + tweet.id_str + " | @" + tweet.user.screen_name)); }
+  //   if (statsObj.tweetParserReady) { socketRxTweet(tweet); }
+  // });
 
   socket.on("categorize", categorizeNode);
 
@@ -6346,6 +6388,82 @@ function initTweetParserMessageRxQueueInterval(interval){
   }, interval);
 }
 
+
+// let tssMessageRxQueueReady = true;
+// let tssMessageRxQueueInterval;
+
+// function initTssMessageRxQueueInterval(interval){
+
+//   console.log(chalk.bold.black("INIT TWEET PARSER MESSAGE RX QUEUE INTERVAL | " + msToTime(interval)));
+
+//   clearInterval(tssMessageRxQueueInterval);
+
+//   let tssMessage = {};
+//   let tweetObj = {};
+
+//   tssMessageRxQueueInterval = setInterval(function tssMessageRxQueueDequeue() {
+
+//     if ((tssMessageRxQueue.length > 0) && tssMessageRxQueueReady) {
+
+//       tssMessageRxQueueReady = false;
+
+//       tssMessage = tssMessageRxQueue.shift();
+
+//       debug(chalkLog("TWEET PARSER RX MESSAGE"
+//         + " | OP: " + tssMessage.op
+//         // + "\n" + jsonPrint(m)
+//       ));
+
+//       if (tssMessage.op === "parsedTweet") {
+
+//         tweetObj = tssMessage.tweetObj;
+
+//         if (!tweetObj.user) {
+//           console.log(chalkAlert("parsedTweet -- TW USER UNDEFINED"
+//             + " | " + tweetObj.tweetId
+//           ));
+//           tssMessageRxQueueReady = true;
+//         }
+//         else {
+
+//           debug(chalkInfo("PARSED TW"
+//             + " [ TPMRQ: " + tssMessageRxQueue.length + "]"
+//             + " | " + tweetObj.tweetId
+//             + " | USR: " + tweetObj.user.screenName
+//             + " | Hs: " + tweetObj.hashtags.length
+//             + " | UMs: " + tweetObj.userMentions.length
+//             + " | EJs: " + tweetObj.emoji.length
+//             + " | WDs: " + tweetObj.words.length
+//           ));
+
+//           if (transmitNodeQueue.length < configuration.maxQueue) {
+
+//             transmitNodes(tweetObj, function transmitNode(err){
+//               if (err) {
+//                 console.log(chalkError("TRANSMIT NODES ERROR\n" + err));
+//               }
+//               tssMessageRxQueueReady = true;
+//             });
+
+//           }
+//           else {
+//             tssMessageRxQueueReady = true;
+//           }
+//         }
+//       }
+//       else {
+//         console.log(chalkError("*** TWEET PARSER UNKNOWN OP"
+//           + " | INTERVAL: " + tssMessage.op
+//         ));
+//         tssMessageRxQueueReady = true;
+//       }
+
+//     }
+//   }, interval);
+// }
+
+
+
 let sorterMessageRxReady = true; 
 let sorterMessageRxQueueInterval;
 
@@ -6499,6 +6617,225 @@ function initKeySortInterval(interval){
   }, interval);
 }
 
+function initTssPingInterval(interval){
+
+  clearInterval(tssPingInterval);
+
+  tssPingSent = false;
+  tssPongReceived = false;
+
+  tssPingId = moment().valueOf();
+
+  if ((childrenHashMap[DEFAULT_TSS_CHILD_ID] !== undefined) 
+    && childrenHashMap[DEFAULT_TSS_CHILD_ID].child) {
+
+    tssPingInterval = setInterval(function(){
+
+      if (!tssPingSent) {
+
+        tssPingId = moment().valueOf();
+
+        childrenHashMap[DEFAULT_TSS_CHILD_ID].child.send({op: "PING", pingId: tssPingId}, function(err){
+
+          tssPingSent = true; 
+
+          if (err) {
+
+            console.log(chalkError("*** TWEET_PARSER SEND PING ERROR: " + err));
+
+            killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, numKilled){
+              tssPongReceived = false;
+              initTssChild({childId: DEFAULT_TSS_CHILD_ID});
+            });
+
+            return;
+          }
+
+          if (configuration.verbose) { console.log(chalkInfo(">PING | TWEET_PARSER | PING ID: " + getTimeStamp(tssPingId))); }
+
+        });
+
+      }
+      else if (tssPingSent && tssPongReceived) {
+
+        tssPingId = moment().valueOf();
+
+        tssPingSent = false; 
+        tssPongReceived = false;
+
+        childrenHashMap[DEFAULT_TSS_CHILD_ID].child.send({op: "PING", pingId: tssPingId}, function(err){
+
+          if (err) {
+
+            console.log(chalkError("*** TWEET_PARSER SEND PING ERROR: " + err));
+
+            killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, numKilled){
+              tssPongReceived = false;
+              initTssChild({childId: DEFAULT_TSS_CHILD_ID});
+            });
+
+            return;
+          }
+
+          if (configuration.verbose) { console.log(chalkInfo(">PING | TWEET_PARSER | PING ID: " + getTimeStamp(tssPingId))); }
+
+          tssPingSent = true; 
+
+        });
+
+      }
+      else {
+
+        console.log(chalkAlert("*** PONG TIMEOUT | TSS"
+          + " | NOW: " + getTimeStamp()
+          + " | PING ID: " + getTimeStamp(tssPingId)
+          + " | ELAPSED: " + msToTime(moment().valueOf() - tssPingId)
+        ));
+        
+        slackPostMessage(slackErrorChannel, "\n*CHILD ERROR*\nTWEET_PARSER\nPONG TIMEOUT");
+
+        clearInterval(tssPingInterval);
+
+        tssPingSent = false; 
+        tssPongReceived = false;
+
+        setTimeout(function(){
+
+          killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, numKilled){
+            initTssChild({childId: DEFAULT_TSS_CHILD_ID});
+          });
+
+        }, 5000);
+      }
+    }, interval);
+
+  }
+}
+
+function initTssChild(params, callback){
+
+  console.log(chalk.bold.black("INIT TSS CHILD\n" + jsonPrint(params)));
+
+  statsObj.tssChildReady = false;
+
+  let deltaTssMessageStart = process.hrtime();
+  let deltaTssMessage = process.hrtime(deltaTssMessageStart);
+
+  const tss = cp.fork(`${__dirname}/js/libs/tssChild.js`);
+
+  childrenHashMap[params.childId] = {};
+  childrenHashMap[params.childId].pid = tss.pid;
+  childrenHashMap[params.childId].childId = params.childId;
+  childrenHashMap[params.childId].title = "wa_node_tss";
+  childrenHashMap[params.childId].status = "NEW";
+  childrenHashMap[params.childId].errors = 0;
+
+  tss.on("message", function tssMessageRx(m){
+
+    childrenHashMap[params.childId].status = "RUNNING";  
+
+    debug(chalkLog("TSS RX MESSAGE"
+      + " | OP: " + m.op
+    ));
+
+    if (m.op === "PONG"){
+
+      tssPongReceived = m.pongId;
+
+      childrenHashMap[params.childId].status = "RUNNING";
+
+      if (configuration.verbose) {
+        console.log(chalkInfo("<PONG | TSS"
+          + " | NOW: " + getTimeStamp()
+          + " | PONG ID: " + getTimeStamp(m.pongId)
+          + " | RESPONSE TIME: " + msToTime((moment().valueOf() - m.pongId))
+        ));
+      }
+    } 
+
+    else {
+
+      deltaTssMessage = process.hrtime(deltaTssMessageStart);
+      if (deltaTssMessage[0] > 0) { console.log(chalkAlert("*** TSS RX DELTA: " + deltaTssMessage[0] + "." + deltaTssMessage[1])); }
+      deltaTssMessageStart = process.hrtime();
+
+      if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + m.tweet.id_str + " | @" + m.tweet.user.screen_name)); }
+      
+      socketRxTweet(m.tweet);
+
+    }
+
+  });
+
+  tss.on("error", function tssError(err){
+    console.log(chalkError(getTimeStamp()
+      + " | *** TSS ERROR ***"
+      + " \n" + jsonPrint(err)
+    ));
+    statsObj.tssSendReady = false;
+    statsObj.tssReady = false;
+    clearInterval(tssPingInterval);
+    childrenHashMap[params.childId].status = "ERROR";
+  });
+
+  tss.on("exit", function tssExit(code){
+    console.log(chalkError(getTimeStamp()
+      + " | *** TSS EXIT ***"
+      + " | EXIT CODE: " + code
+    ));
+    statsObj.tssSendReady = false;
+    statsObj.tssReady = false;
+    clearInterval(tssPingInterval);
+    childrenHashMap[params.childId].status = "EXIT";
+  });
+
+  tss.on("close", function tssClose(code){
+    console.log(chalkError(getTimeStamp()
+      + " | *** TSS CLOSE ***"
+      + " | EXIT CODE: " + code
+    ));
+    statsObj.tssSendReady = false;
+    statsObj.tssReady = false;
+    clearInterval(tssPingInterval);
+    childrenHashMap[params.childId].status = "CLOSE";
+  });
+
+  childrenHashMap[params.childId].child = tss;
+
+  statsObj.tssReady = true;
+
+  tss.send({
+    op: "INIT",
+    title: "wa_node_tss",
+    networkObj: bestNetworkObj,
+    maxInputHashMap: maxInputHashMap,
+    normalization: normalization,
+    interval: configuration.tssInterval,
+    verbose: false
+  }, function tssMessageRxError(err){
+    if (err) {
+      console.log(chalkError("*** TSS SEND ERROR"
+        + " | " + err
+      ));
+      statsObj.tssSendReady = false;
+      statsObj.tssReady = false;
+      clearInterval(tssPingInterval);
+      childrenHashMap[params.childId].status = "ERROR";
+    }
+    else {
+      statsObj.tssSendReady = true;
+      statsObj.tssReady = true;
+      childrenHashMap[params.childId].status = "INIT";
+      clearInterval(tssPingInterval);
+      setTimeout(function(){
+        initTssPingInterval(DEFAULT_PING_INTERVAL);
+      }, 1000);
+    }
+  });
+
+  if (callback !== undefined) { callback(null, tss); }
+}
+
 function initTweetParserPingInterval(interval){
 
   clearInterval(tweetParserPingInterval);
@@ -6506,7 +6843,7 @@ function initTweetParserPingInterval(interval){
   tweetParserPingSent = false;
   tweetParserPongReceived = false;
 
-  pingId = moment().valueOf();
+  tweetParserPingId = moment().valueOf();
 
   if ((childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID] !== undefined) 
     && childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child) {
@@ -6515,9 +6852,9 @@ function initTweetParserPingInterval(interval){
 
       if (!tweetParserPingSent) {
 
-        pingId = moment().valueOf();
+        tweetParserPingId = moment().valueOf();
 
-        childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({op: "PING", pingId: pingId}, function(err){
+        childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({op: "PING", pingId: tweetParserPingId}, function(err){
 
           tweetParserPingSent = true; 
 
@@ -6533,19 +6870,19 @@ function initTweetParserPingInterval(interval){
             return;
           }
 
-          if (configuration.verbose) { console.log(chalkInfo(">PING | TWEET_PARSER | PING ID: " + getTimeStamp(pingId))); }
+          if (configuration.verbose) { console.log(chalkInfo(">PING | TWEET_PARSER | PING ID: " + getTimeStamp(tweetParserPingId))); }
 
         });
 
       }
       else if (tweetParserPingSent && tweetParserPongReceived) {
 
-        pingId = moment().valueOf();
+        tweetParserPingId = moment().valueOf();
 
         tweetParserPingSent = false; 
         tweetParserPongReceived = false;
 
-        childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({op: "PING", pingId: pingId}, function(err){
+        childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({op: "PING", pingId: tweetParserPingId}, function(err){
 
           if (err) {
 
@@ -6559,7 +6896,7 @@ function initTweetParserPingInterval(interval){
             return;
           }
 
-          if (configuration.verbose) { console.log(chalkInfo(">PING | TWEET_PARSER | PING ID: " + getTimeStamp(pingId))); }
+          if (configuration.verbose) { console.log(chalkInfo(">PING | TWEET_PARSER | PING ID: " + getTimeStamp(tweetParserPingId))); }
 
           tweetParserPingSent = true; 
 
@@ -6570,8 +6907,8 @@ function initTweetParserPingInterval(interval){
 
         console.log(chalkAlert("*** PONG TIMEOUT | TWEET_PARSER"
           + " | NOW: " + getTimeStamp()
-          + " | PING ID: " + getTimeStamp(pingId)
-          + " | ELAPSED: " + msToTime(moment().valueOf() - pingId)
+          + " | PING ID: " + getTimeStamp(tweetParserPingId)
+          + " | ELAPSED: " + msToTime(moment().valueOf() - tweetParserPingId)
         ));
         
         slackPostMessage(slackErrorChannel, "\n*CHILD ERROR*\nTWEET_PARSER\nPONG TIMEOUT");
@@ -6593,7 +6930,6 @@ function initTweetParserPingInterval(interval){
 
   }
 }
-
 function initTweetParser(params, callback){
 
   console.log(chalk.bold.black("INIT TWEET PARSER\n" + jsonPrint(params)));
@@ -6602,6 +6938,9 @@ function initTweetParser(params, callback){
   tweetParserPongReceived = false;
 
   statsObj.tweetParserReady = false;
+
+  let deltaTweetParserMessageStart = process.hrtime();
+  let deltaTweetParserMessage = process.hrtime(deltaTweetParserMessageStart);
 
   const twp = cp.fork(`${__dirname}/js/libs/tweetParser.js`);
 
@@ -6636,6 +6975,9 @@ function initTweetParser(params, callback){
     } 
 
     else if (tweetParserMessageRxQueue.length < configuration.maxQueue){
+      deltaTweetParserMessage = process.hrtime(deltaTweetParserMessageStart);
+      if (deltaTweetParserMessage[0] > 0) { console.log(chalkAlert("*** TWP RX DELTA: " + deltaTweetParserMessage[0] + "." + deltaTweetParserMessage[1])); }
+      deltaTweetParserMessageStart = process.hrtime();
       tweetParserMessageRxQueue.push(m);
     }
 
@@ -7963,24 +8305,14 @@ initialize(function initializeComplete(err) {
     debug(chalkLog("INITIALIZE COMPLETE"));
 
     initDropboxSync();
-    // initUnfollowableUserSet();
-    // initFollowableSearchTermSet();
     initSaveFileQueue(configuration);
     initIgnoreWordsHashMap();
     initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
-
     initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval);
-
     initCategoryHashmapsInterval(configuration.categoryHashmapsUpdateInterval);
-
     initRateQinterval(configuration.rateQueueInterval);
-
     initTwitterRxQueueInterval(configuration.twitterRxQueueInterval);
-
     initTweetParserMessageRxQueueInterval(configuration.tweetParserMessageRxQueueInterval);
-
-    // initHashtagLookupQueueInterval(configuration.hashtagLookupQueueInterval);
-
     initTwitterSearchNodeQueueInterval(configuration.twitterSearchNodeQueueInterval);
 
     console.log(chalkInfo("NODE CACHE TTL: " + nodeCacheTtl + " SECONDS"));
@@ -7994,6 +8326,14 @@ initialize(function initializeComplete(err) {
     statsObj.configuration = configuration;
 
     initKeySortInterval(configuration.keySortInterval);
+
+    initTssChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, tss){
+      if (err) { 
+      }
+      else {
+        tssChild = tss;
+      }
+    });
 
     initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, twp){
       if (err) { 

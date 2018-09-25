@@ -1442,12 +1442,14 @@ process.on("message", function(m) {
       ));
 
       setTimeout(function(){
-        process.send({ op: "PONG", pongId: m.pingId }, function(err){
-          if (err) {
-            console.log(chalkError("TWP | !!! TSS PONG SEND ERR: " + err));
-            quit("TSS PONG SEND ERR");
-          }
-        });
+        process.send({ op: "PONG", pongId: m.pingId });
+        
+        // process.send({ op: "PONG", pongId: m.pingId }, function(err){
+        //   if (err) {
+        //     console.log(chalkError("TWP | !!! TSS PONG SEND ERR: " + err));
+        //     quit("TSS PONG SEND ERR");
+        //   }
+        // });
       }, 1000);
     break;
 

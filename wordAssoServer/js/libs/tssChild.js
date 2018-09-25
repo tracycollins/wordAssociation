@@ -1315,29 +1315,36 @@ function initTwitterQueue(cnf, callback){
             + " | " + msToTime(configuration.sendMessageTimeout)
             // + "\nTWEET\n" + jsonPrint(tweetStatus)
           ));
-          
+
         }, configuration.sendMessageTimeout);
 
-        process.send({op: "tweet", tweet: tweetStatus}, function(err){
+        const sendSuccess = process.send({op: "tweet", tweet: tweetStatus});
 
-          clearTimeout(sendMessageTimeout);
+        if (!sendSuccess) { console.log(chalkAlert("SEND ERROR")); }
 
-          tweetSendReady = true;
+        clearTimeout(sendMessageTimeout);
+        tweetSendReady = true;
 
-          if (err) {
-            console.error(chalkError("*** TSS SEND TWEET ERROR"
-              + " | " + moment().format(compactDateTimeFormat)
-              + " | " + err
-            ));
-          }
-          else {
-            debug(chalkInfo("TSS SEND TWEET COMPLETE"
-              + " | " + moment().format(compactDateTimeFormat)
-              + " | " + tweetStatus.id_str
-            ));
-          }
+        // process.send({op: "tweet", tweet: tweetStatus}, function(err){
 
-        });
+        //   clearTimeout(sendMessageTimeout);
+
+        //   tweetSendReady = true;
+
+        //   if (err) {
+        //     console.error(chalkError("*** TSS SEND TWEET ERROR"
+        //       + " | " + moment().format(compactDateTimeFormat)
+        //       + " | " + err
+        //     ));
+        //   }
+        //   else {
+        //     debug(chalkInfo("TSS SEND TWEET COMPLETE"
+        //       + " | " + moment().format(compactDateTimeFormat)
+        //       + " | " + tweetStatus.id_str
+        //     ));
+        //   }
+
+        // });
 
       }
       else {

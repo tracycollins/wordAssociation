@@ -3462,10 +3462,16 @@ let deltaTweet = process.hrtime(deltaTweetStart);
 
 function socketRxTweet(tw) {
 
+  tweetMeter.mark();
+
   deltaTweet = process.hrtime(deltaTweetStart);
+
   if (deltaTweet[0] > 0) { 
+
     statsObj.twitter.tweetsPerMin = parseInt(tweetMeter.toJSON()[metricsRate]);
+
     console.log(chalkAlert("*** TWEET RX DELTA: " + deltaTweet[0] + "." + deltaTweet[1]));
+
     console.log(chalkLog("S"
       + " | " + getTimeStamp()
       + " | E: " + statsObj.elapsed
@@ -3479,10 +3485,10 @@ function socketRxTweet(tw) {
       + " | TwPRQ: " + tweetParserQueue.length
     ));
   }
+
   deltaTweetStart = process.hrtime();
 
   statsObj.twitter.tweetsReceived += 1;
-  tweetMeter.mark();
 
   debug(chalkSocket("tweet" 
     + " [" + statsObj.twitter.tweetsReceived + "]"
@@ -3512,8 +3518,10 @@ function socketRxTweet(tw) {
     tw.inc = true;
 
     if (categorizedUserHashMap.has(tw.user.screen_name.toLowerCase())){
+
       tw.user.category = categorizedUserHashMap.get(tw.user.screen_name.toLowerCase()).manual;
       tw.user.categoryAuto = categorizedUserHashMap.get(tw.user.screen_name.toLowerCase()).auto;
+
       debug(chalkLog("T< HM HIT"
         + " [ RXQ: " + tweetRxQueue.length + "]"
         + " [ TPQ: " + tweetParserQueue.length + "]"
@@ -3537,7 +3545,7 @@ function socketRxTweet(tw) {
       + " | " + tw.user.name
     ));
   }
-  else{
+  else {
     console.log(chalkAlert("NULL USER T*<"
       + " [ RXQ: " + tweetRxQueue.length + "]"
       + " [ TPQ: " + tweetParserQueue.length + "]"
@@ -4473,14 +4481,8 @@ function initSocketHandler(socketObj) {
     });
   });
 
-  // socket.on("tweet", function(tweet){
-  //   if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + tweet.id_str + " | @" + tweet.user.screen_name)); }
-  //   if (statsObj.tweetParserReady) { socketRxTweet(tweet); }
-  // });
-
   socket.on("categorize", categorizeNode);
 
-  // side channel twitter auth in process...
   socket.on("login", function socketLogin(viewerObj){
 
     const timeStamp = moment().valueOf();
@@ -4629,7 +4631,6 @@ function initSocketNamespaces(){
         });
       }
     });
-
   });
 
   userNameSpace.on("connect", function userConnect(socket) {
@@ -4680,7 +4681,6 @@ function initSocketNamespaces(){
         });
       }
     });
-
   });
 
   statsObj.ioReady = true;
@@ -4701,15 +4701,15 @@ function processCheckCategory(nodeObj, callback){
   let categorizedNodeHashMap;
 
   switch (nodeObj.nodeType) {
+
     case "hashtag":
       categorizedNodeHashMap = categorizedHashtagHashMap;
     break;
+
     case "user":
       categorizedNodeHashMap = categorizedUserHashMap;
     break;
-    // case "word":
-    //   categorizedNodeHashMap = categorizedWordHashMap;
-    // break;
+
     default:
       return callback("NO CATEGORY HASHMAP: " + nodeObj.nodeType, null);
   }
@@ -4803,8 +4803,6 @@ function checkCategory(nodeObj, callback) {
 }
 
 function updateTrends(currentThreeceeUser){
-
-  // getCurrentThreeceeUser(function(currentThreeceeUser){
 
   if ( !currentThreeceeUser
     || (threeceeTwitter[currentThreeceeUser] === undefined)

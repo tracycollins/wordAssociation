@@ -7774,11 +7774,10 @@ function initialize(callback){
     debug(chalkTwitter("THREECEE USER @" + user + "\n" + jsonPrint(threeceeTwitter[user])));
   });
 
-  // initConfigInterval(DEFAULT_CONFIG_INIT_INTERVAL);
   initConfig();
 
   if (!statsObj.internetReady) { 
-    initInternetCheckInterval(10000);
+    initInternetCheckInterval(ONE_MINUTE);
   }
 
   callback();

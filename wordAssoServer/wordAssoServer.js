@@ -3500,7 +3500,7 @@ function socketRxTweet(tw) {
   ));
 
   if (statsObj.twitter.tweetsReceived % 100 === 0) {
-    console.log(chalkTwitter("WA | <T | "+ getTimeStamp()
+    console.log(chalkTwitter("WAS | <T | "+ getTimeStamp()
       + " [ RXQ: " + tweetRxQueue.length + "]"
       + " [ TPQ: " + tweetParserQueue.length + "]"
       + " | " + tw.id_str

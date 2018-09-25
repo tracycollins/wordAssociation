@@ -6217,7 +6217,7 @@ function initTwitterRxQueueInterval(interval){
 
   let tweet = {};
 
-  statsObj.tweetParserSendReady = true;
+  // statsObj.tweetParserSendReady = true;
 
   console.log(chalk.bold.black("INIT TWITTER RX QUEUE INTERVAL | " + interval + " MS"));
 
@@ -6225,7 +6225,8 @@ function initTwitterRxQueueInterval(interval){
 
   tweetRxQueueInterval = setInterval(function tweetRxQueueDequeue() {
 
-    if ((tweetRxQueue.length > 0) && statsObj.tweetParserReady && statsObj.tweetParserSendReady) {
+    // if ((tweetRxQueue.length > 0) && statsObj.tweetParserReady && statsObj.tweetParserSendReady) {
+    if ((tweetRxQueue.length > 0) && statsObj.tweetParserReady) {
 
       tweet = tweetRxQueue.shift();
 
@@ -6241,26 +6242,27 @@ function initTwitterRxQueueInterval(interval){
       //   ));
       // }
 
-      childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({ op: "tweet", tweetStatus: tweet }, function sendTweetParser(err){
+      childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({ op: "tweet", tweetStatus: tweet });
+      
+      // childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({ op: "tweet", tweetStatus: tweet }, function sendTweetParser(err){
 
-        if (err) {
-          console.log(chalkError("*** TWEET PARSER SEND ERROR"
-            + " | " + err
-          ));
+      //   if (err) {
+      //     console.log(chalkError("*** TWEET PARSER SEND ERROR"
+      //       + " | " + err
+      //     ));
 
-          if (quitOnError) {
-            quit("TWEET PARSER SEND ERROR");
-          }
-          statsObj.tweetParserSendReady = false;
+      //     if (quitOnError) {
+      //       quit("TWEET PARSER SEND ERROR");
+      //     }
+      //     statsObj.tweetParserSendReady = false;
 
-          childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].status = "ERROR";
-        }
-        else {
-          statsObj.tweetParserSendReady = true;
-          childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].status = "RUNNING";
-        }
-      });
-
+      //     childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].status = "ERROR";
+      //   }
+      //   else {
+      //     statsObj.tweetParserSendReady = true;
+      //     childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].status = "RUNNING";
+      //   }
+      // });
     }
   }, interval);
 }

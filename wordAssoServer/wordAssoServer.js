@@ -54,7 +54,7 @@ const DEFAULT_TWITTER_CONFIG_THREECEE = "altthreecee00";
 const DEFAULT_TWITTER_CONFIG_THREECEE_FILE = DEFAULT_TWITTER_CONFIG_THREECEE + ".json";
 
 const DEFAULT_INTERVAL = 10;
-const DEFAULT_PING_INTERVAL = 10*ONE_SECOND;
+const DEFAULT_PING_INTERVAL = 30*ONE_SECOND;
 const DEFAULT_DROPBOX_LIST_FOLDER_LIMIT = 50;
 const DEFAULT_MIN_FOLLOWERS_AUTO = 15000;
 const DEFAULT_RATE_QUEUE_INTERVAL = ONE_SECOND; // 1 second
@@ -6713,6 +6713,7 @@ function initTssPingInterval(interval){
       else {
 
         console.log(chalkAlert("*** PONG TIMEOUT | TSS"
+          + " | TIMEOUT: " + interval
           + " | NOW: " + getTimeStamp()
           + " | PING ID: " + getTimeStamp(tssPingId)
           + " | ELAPSED: " + msToTime(moment().valueOf() - tssPingId)
@@ -6932,6 +6933,7 @@ function initTweetParserPingInterval(interval){
       else {
 
         console.log(chalkAlert("*** PONG TIMEOUT | TWEET_PARSER"
+          + " | TIMEOUT: " + interval
           + " | NOW: " + getTimeStamp()
           + " | PING ID: " + getTimeStamp(tweetParserPingId)
           + " | ELAPSED: " + msToTime(moment().valueOf() - tweetParserPingId)

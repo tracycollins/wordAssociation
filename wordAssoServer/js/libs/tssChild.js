@@ -1410,16 +1410,17 @@ function initSearchTermsInterval(cnf){
   searchTermsUpdateInterval = setInterval(function(){
 
     initSearchTerms(cnf, function(err, status){
-
-      if (!err) {
-
-        configEvents.emit("SEARCH_TERM_UPDATE_COMPLETE", cnf);
-
-        console.log("SEARCH TERM UPDATE COMPLETE"
-          + " | " + searchTermHashMap.count() + " SEARCH TERMS"
-          + " | STATUS: " + status
-        );
+      if (err) {
+        console.log(chalkError("*** TSS INIT SEARCH TERMS UPDATE ERROR: " + err));
+        return;
       }
+
+      configEvents.emit("SEARCH_TERM_UPDATE_COMPLETE", cnf);
+
+      console.log("SEARCH TERM UPDATE COMPLETE"
+        + " | " + searchTermHashMap.count() + " SEARCH TERMS"
+        + " | STATUS: " + status
+      );
 
     });
 
@@ -1532,19 +1533,28 @@ setTimeout(function(){
       ));
 
       initFollowUsers(configuration, function(err){
-       
+
+        if (err) {
+          console.log(chalkError("*** TSS INIT FOLLOW USERS ERROR: " + err));
+          quit();
+          return;
+        }
+
         initSearchTerms(configuration, function(err, status){
 
-          if (!err) {
-
-            console.log(chalkInfo("TSS | INITIALIZATION COMPLETE"));
-
-            debug("initSearchTerms status\n" + jsonPrint(status));
-
-            initSearchTermsInterval(configuration);
-            if (!twitterSearchInit) { initTwitterSearch(configuration); }
-
+          if (err) {
+            console.log(chalkError("*** TSS INIT SEARCH TERMS ERROR: " + err));
+            quit();
+            return;
           }
+
+          console.log(chalkInfo("TSS | INITIALIZATION COMPLETE"));
+
+          debug("initSearchTerms status\n" + jsonPrint(status));
+
+          // initSearchTermsInterval(configuration);
+          if (!twitterSearchInit) { initTwitterSearch(configuration); }
+
         });
 
       });

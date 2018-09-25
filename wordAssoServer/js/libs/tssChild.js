@@ -1310,7 +1310,12 @@ function initTwitterQueue(cnf, callback){
         // socket.emit("tweet", tweetStatus);
 
         sendMessageTimeout = setTimeout(function(){
-          console.log(chalkAlert("*** TSS | SEND TWEET TIMEOUT | " + msToTime(configuration.sendMessageTimeout)));
+
+          console.log(chalkAlert("*** TSS | SEND TWEET TIMEOUT"
+            + " | " + msToTime(configuration.sendMessageTimeout)
+            + "\nTWEET\n" + jsonPrint(tweetStatus)
+          ));
+          
         }, configuration.sendMessageTimeout);
 
         process.send({op: "tweet", tweet: tweetStatus}, function(err){

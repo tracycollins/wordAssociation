@@ -288,21 +288,31 @@ debug("statsFile : " + statsFile);
 const dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN });
 
 function getTimeStamp(inputTime) {
+
   let currentTimeStamp ;
 
-  if (inputTime  === undefined) {
-    currentTimeStamp = moment().format(defaultDateTimeFormat);
+  if (inputTime === undefined) {
+    currentTimeStamp = moment().format(compactDateTimeFormat);
     return currentTimeStamp;
   }
   else if (moment.isMoment(inputTime)) {
-    currentTimeStamp = moment(inputTime).format(defaultDateTimeFormat);
+    currentTimeStamp = moment(inputTime).format(compactDateTimeFormat);
+    return currentTimeStamp;
+  }
+  else if (moment(new Date(inputTime)).isValid()) {
+    currentTimeStamp = moment(new Date(inputTime)).format(compactDateTimeFormat);
+    return currentTimeStamp;
+  }
+  else if (moment(parseInt(inputTime)).isValid()) {
+    currentTimeStamp = moment(parseInt(inputTime)).format(compactDateTimeFormat);
     return currentTimeStamp;
   }
   else {
-    currentTimeStamp = moment(parseInt(inputTime)).format(defaultDateTimeFormat);
-    return currentTimeStamp;
+    console.log(chalkAlert("*** getTimeStamp INVALID DATE: " + inputTime));
+    return null;
   }
 }
+
 
 function showStats(options){
 

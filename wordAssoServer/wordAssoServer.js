@@ -1138,26 +1138,37 @@ function connectDb(callback){
 
     passport.serializeUser(function(user, done) { 
 
+      let sessionUser = { 
+        _id: user._id, 
+        nodeId: user.nodeId, 
+        screenName: user.screenName, 
+        name: user.name
+      };
+
       console.log(chalkAlert("PASSPORT SERIALIZE USER | @" + user.screenName));
 
-      done(null, user.nodeId); 
+      done(null, sessionUser); 
     });
 
-    passport.deserializeUser(function(nodeId, done) {
-      User.findOne({nodeId: nodeId}, function(err, user) {
-        if (err) {
-          console.log(chalkError("*** ERROR PASSPORT DESERIALIZE USER: " + err));
-          return done(err, null);
-        }
-        if (!user) {
-          console.log(chalkAlert("!!! PASSPORT DESERIALIZE USER NOT FOUND | NODE ID: " + nodeId));
-          return done(null, null);
-        }
+    passport.deserializeUser(function(sessionUser, done) {
 
-        console.log(chalkAlert("PASSPORT DESERIALIZE USER FOUND | @" + user.screenName));
+      done(null, sessionUser);
 
-        done(err, user);
-      });
+      // User.findOne({nodeId: nodeId}, function(err, user) {
+      //   if (err) {
+      //     console.log(chalkError("*** ERROR PASSPORT DESERIALIZE USER: " + err));
+      //     return done(err, null);
+      //   }
+      //   if (!user) {
+      //     console.log(chalkAlert("!!! PASSPORT DESERIALIZE USER NOT FOUND | NODE ID: " + nodeId));
+      //     return done(null, null);
+      //   }
+
+      //   console.log(chalkAlert("PASSPORT DESERIALIZE USER FOUND | @" + user.screenName));
+
+      //   done(err, user);
+      // });
+
     });
 
     dbConnectionReady = true;

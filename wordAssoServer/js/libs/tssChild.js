@@ -914,7 +914,7 @@ function initSearchTerms(cnf, callback){
 
               twitterUserObj.searchStream.on("message", function(msg){
                 if (msg.event) {
-                  console.warn(chalkAlert("TSS | " + getTimeStamp() 
+                  console.log(chalkAlert("TSS | " + getTimeStamp() 
                     + " | TWITTER MESSAGE EVENT: " + msg.event
                     + "\n" + jsonPrint(msg)
                   ));
@@ -964,7 +964,7 @@ function initSearchTerms(cnf, callback){
               });
 
               twitterUserObj.searchStream.on("warning", function(data){
-                console.warn(chalkAlert("TSS | " + getTimeStamp() + " | !!! TWITTER WARNING: " + jsonPrint(data)));
+                console.log(chalkAlert("TSS | " + getTimeStamp() + " | !!! TWITTER WARNING: " + jsonPrint(data)));
                 statsObj.twitterWarnings+= 1;
                 showStats();
               });
@@ -978,19 +978,19 @@ function initSearchTerms(cnf, callback){
               });
 
               twitterUserObj.searchStream.on("scrub_geo", function(data){
-                console.warn(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER SCRUB GEO: " + jsonPrint(data)));
+                console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER SCRUB GEO: " + jsonPrint(data)));
                 statsObj.twitterScrubGeo+= 1;
                 showStats();
               });
 
               twitterUserObj.searchStream.on("status_withheld", function(data){
-                console.warn(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER STATUS WITHHELD: " + jsonPrint(data)));
+                console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER STATUS WITHHELD: " + jsonPrint(data)));
                 statsObj.twitterStatusWithheld+= 1;
                 showStats();
               });
 
               twitterUserObj.searchStream.on("user_withheld", function(data){
-                console.warn(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER USER WITHHELD: " + jsonPrint(data)));
+                console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER USER WITHHELD: " + jsonPrint(data)));
                 statsObj.twitterUserWithheld+= 1;
                 showStats();
               });

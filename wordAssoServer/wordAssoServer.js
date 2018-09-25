@@ -1745,6 +1745,7 @@ function initStats(callback){
 
   statsObj.twitter = {};
   statsObj.twitter.tweetsReceived = 0;
+  statsObj.twitter.retweetsReceived = 0;
   statsObj.twitter.tweetsPerMin = 0;
   statsObj.twitter.maxTweetsPerMinTime = moment().valueOf();
 
@@ -3491,6 +3492,10 @@ function socketRxTweet(tw) {
 
   statsObj.twitter.tweetsReceived += 1;
 
+  if (tw.retweeted_status) {
+    statsObj.twitter.retweetsReceived += 1;
+  }
+
   debug(chalkSocket("tweet" 
     + " [" + statsObj.twitter.tweetsReceived + "]"
     + " | " + tw.id_str
@@ -3548,8 +3553,8 @@ function socketRxTweet(tw) {
 
     if (statsObj.twitter.tweetsReceived % 100 === 0) {
       console.log(chalkTwitter("WAS | <T | "+ getTimeStamp()
-        + " [ RXQ: " + tweetRxQueue.length + "]"
-        + " [ TPQ: " + tweetParserQueue.length + "]"
+        + " | RXQ: " + tweetRxQueue.length
+        + " [ Ts/RTs: " + statsObj.twitter.tweetsReceived + "/" + statsObj.twitter.retweetsReceived + "]"
         + " | " + tw.id_str
         + " | @" + tw.user.screen_name
         + " | " + tw.user.name

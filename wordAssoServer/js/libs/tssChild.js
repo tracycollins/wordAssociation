@@ -180,6 +180,8 @@ statsObj.twitterWarnings = 0;
 statsObj.twitterErrors = 0;
 statsObj.twitterLimit = 0;
 statsObj.twitterScrubGeo = 0;
+statsObj.twitterStatusWithheld = 0;
+statsObj.twitterUserWithheld = 0;
 statsObj.twitterLimit = 0;
 statsObj.twitterLimitMax = 0;
 statsObj.twitterLimitMaxTime = moment().valueOf();
@@ -910,6 +912,16 @@ function initSearchTerms(cnf, callback){
                 { track: twitterUserObj.searchTermArray, follow: twitterUserObj.followUserArray }
               );
 
+              twitterUserObj.searchStream.on("message", function(msg){
+                if (msg.event) {
+                  console.warn(chalkAlert("TSS | " + getTimeStamp() 
+                    + " | TWITTER MESSAGE EVENT: " + msg.event
+                    + "\n" + jsonPrint(msg)
+                  ));
+                }
+              });
+
+
               twitterUserObj.searchStream.on("connect", function(){
                 console.log(chalkTwitter("TSS | " + getTimeStamp()
                   + " | TWITTER CONNECT"
@@ -968,6 +980,18 @@ function initSearchTerms(cnf, callback){
               twitterUserObj.searchStream.on("scrub_geo", function(data){
                 console.warn(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER SCRUB GEO: " + jsonPrint(data)));
                 statsObj.twitterScrubGeo+= 1;
+                showStats();
+              });
+
+              twitterUserObj.searchStream.on("status_withheld", function(data){
+                console.warn(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER STATUS WITHHELD: " + jsonPrint(data)));
+                statsObj.twitterStatusWithheld+= 1;
+                showStats();
+              });
+
+              twitterUserObj.searchStream.on("user_withheld", function(data){
+                console.warn(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER USER WITHHELD: " + jsonPrint(data)));
+                statsObj.twitterUserWithheld+= 1;
                 showStats();
               });
 
@@ -1054,7 +1078,6 @@ function initSearchTerms(cnf, callback){
                 }
 
                 statsObj.queues.tweetQueue = tweetQueue.length;
-
               });
 
               console.log(chalkInfo("TSS | END TRACK USER"

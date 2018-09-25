@@ -3577,7 +3577,7 @@ function follow(params, callback) {
 
   if (unfollowableUserSet.has(params.user.nodeId)) { 
 
-    console.log(chalkAlert("XXX FOLLOW | @" + params.user.screenName + " | IN UNFOLLOWABLE USER SET"));
+    console.log(chalkWarn("XXX FOLLOW | @" + params.user.screenName + " | IN UNFOLLOWABLE USER SET"));
 
     if (callback !== undefined) { 
       return callback("XXX FOLLOW", null);
@@ -3621,9 +3621,9 @@ function follow(params, callback) {
 
   });
 
-  console.log(chalk.blue("+++ FOLLOW | @" + params.user.screenName));
+  // console.log(chalk.blue("+++ FOLLOW | @" + params.user.screenName));
 
-  if (callback !== undefined) { callback(null, null); }
+  // if (callback !== undefined) { callback(null, null); }
 }
 
 function unfollow(params, callback) {

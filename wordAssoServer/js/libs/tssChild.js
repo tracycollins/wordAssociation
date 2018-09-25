@@ -1318,9 +1318,7 @@ function initTwitterQueue(cnf, callback){
 
         }, configuration.sendMessageTimeout);
 
-        const sendSuccess = process.send({op: "tweet", tweet: tweetStatus});
-
-        if (!sendSuccess) { console.log(chalkAlert("SEND ERROR")); }
+        process.send({op: "tweet", tweet: tweetStatus});
 
         clearTimeout(sendMessageTimeout);
         tweetSendReady = true;

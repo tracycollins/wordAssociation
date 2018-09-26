@@ -1445,7 +1445,29 @@ process.on("message", function(m) {
       console.log(chalkInfo("TSS INIT"
         + " | TITLE: " + m.title
       ));
-      
+    break;
+
+    case "UPDATE_SEARCH_TERMS":
+      console.log(chalkInfo("TSS UPDATE SEARCH TERMS"
+      ));
+
+      initSearchTerms(configuration, function(err, status){
+
+        if (err) {
+          console.log(chalkError("*** TSS INIT SEARCH TERMS ERROR: " + err));
+          quit();
+          return;
+        }
+
+        console.log(chalkInfo("TSS | INIT SEARCH TERMS COMPLETE"));
+
+        debug("initSearchTerms status\n" + jsonPrint(status));
+
+        // initSearchTermsInterval(configuration);
+        if (!twitterSearchInit) { initTwitterSearch(configuration); }
+
+      });
+
     break;
 
     case "PING":

@@ -5072,7 +5072,7 @@ function autoFollowUser(params, callback){
 
   if (unfollowableUserSet.has(params.user.nodeId)){
 
-    console.log(chalkInfo("XXX AUTO FOLLOW USER | IN UNFOLLOWABLE SET"
+    console.log(chalk.bold.blue("XXX AUTO FOLLOW USER | IN UNFOLLOWABLE SET"
       + "\n" + printUser({user:params.user})
     ));
 
@@ -5082,8 +5082,6 @@ function autoFollowUser(params, callback){
 
     return;
   }
-
-  // unfollowableUserSet.add(params.user.nodeId);
 
   console.log(chalkUser("AUTO FOLLOW USER"
     + " | MIN: " + configuration.minFollowersAuto
@@ -5940,7 +5938,7 @@ function initAppRouting(callback) {
 
         dropboxFolderGetLastestCursorReady = false;
 
-        async.eachSeries(dropboxCursorFolderArray, function(folder, cb){
+        async.each(dropboxCursorFolderArray, function(folder, cb){
 
           dropboxFolderGetLastestCursor(folder, function(err, response){
 
@@ -6239,13 +6237,13 @@ function initInternetCheckInterval(interval){
   let params = {url: configuration.testInternetConnectionUrl};
 
   testInternetConnection(params, function(err, internetReady){
-    console.log("testInternetConnection");
+    // console.log("testInternetConnection");
   });
 
   internetCheckInterval = setInterval(function internetCheck(){
 
     testInternetConnection(params, function(err, internetReady){
-      console.log("testInternetConnection");
+      // console.log("testInternetConnection");
     });
 
   }, interval);

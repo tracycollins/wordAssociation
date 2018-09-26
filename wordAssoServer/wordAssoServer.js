@@ -5919,7 +5919,10 @@ function initAppRouting(callback) {
     }
     else if (req.path === "/dropbox_webhook") {
 
-      console.log(chalkLog("R< DROPBOX WEB HOOK | /dropbox_webhook")); 
+      console.log(chalkLog("R< DROPBOX WEB HOOK | /dropbox_webhook"
+        + " | DB CURSOR READY: " + dropboxFolderGetLastestCursorReady
+        + " | DB CHANGE FOLDER ARRAY\n" + jsonPrint(configuration.dropboxChangeFolderArray)
+      )); 
 
       if (configuration.verbose) {
         console.log(chalkInfo("R< dropbox_webhook"

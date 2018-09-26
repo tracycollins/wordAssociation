@@ -5977,11 +5977,11 @@ function initAppRouting(callback) {
                 });
 
                 cb();
-              }, 1000);
+              }, 2000);
 
             }
             else {
-              setTimeout(function(){ cb(); }, 1000);
+              setTimeout(function(){ cb(); }, 2000);
             }
 
           });

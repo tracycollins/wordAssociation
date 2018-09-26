@@ -5917,7 +5917,7 @@ function initAppRouting(callback) {
     }
     else if (req.path === "/dropbox_webhook") {
 
-      console.log(chalkLog("R< DROPBOX WEB HOOK | /dropbox_webhook"
+      console.log(chalk.bold.blue("R< DROPBOX WEB HOOK | /dropbox_webhook"
         + " | DB CURSOR READY: " + dropboxFolderGetLastestCursorReady
         + " | DB CHANGE FOLDER ARRAY\n" + jsonPrint(configuration.dropboxChangeFolderArray)
       )); 
@@ -5953,7 +5953,7 @@ function initAppRouting(callback) {
               setTimeout(function(){
 
                 // if (configuration.verbose) {
-                  console.log(chalkWarn(">>> DROPBOX CHANGE"
+                  console.log(chalkAlert(">>> DROPBOX CHANGE"
                     + " | " + getTimeStamp()
                     + " | FOLDER: " + folder
                   ));
@@ -5961,7 +5961,7 @@ function initAppRouting(callback) {
 
                 response.entries.forEach(function(entry){
 
-                  console.log(chalkBlue(">>> DROPBOX CHANGE | " + entry.path_lower));
+                  console.log(chalkAlert(">>> DROPBOX CHANGE | " + entry.path_lower));
 
                   if ((entry.path_lower.endsWith("google_wordassoserverconfig.json"))
                     || (entry.path_lower.endsWith("default_wordassoserverconfig.json"))){

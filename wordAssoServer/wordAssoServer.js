@@ -5917,7 +5917,7 @@ function initAppRouting(callback) {
     }
     else if (req.path === "/dropbox_webhook") {
 
-      console.log(chalk.bold.blue("R< DROPBOX WEB HOOK | /dropbox_webhook"
+      console.log(chalk.bold.black("R< DROPBOX WEB HOOK | /dropbox_webhook"
         + " | DB CURSOR READY: " + dropboxFolderGetLastestCursorReady
         + " | DB CHANGE FOLDER ARRAY\n" + jsonPrint(configuration.dropboxChangeFolderArray)
       )); 
@@ -5953,7 +5953,7 @@ function initAppRouting(callback) {
               setTimeout(function(){
 
                 // if (configuration.verbose) {
-                  console.log(chalkAlert(">>> DROPBOX CHANGE"
+                  console.log(chalk.bold.black(">>> DROPBOX CHANGE"
                     + " | " + getTimeStamp()
                     + " | FOLDER: " + folder
                   ));
@@ -5971,11 +5971,11 @@ function initAppRouting(callback) {
                 });
 
                 cb();
-              }, 10);
+              }, 1000);
 
             }
             else {
-              setTimeout(function(){ cb(); }, 10);
+              setTimeout(function(){ cb(); }, 1000);
             }
 
           });

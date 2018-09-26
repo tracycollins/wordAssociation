@@ -1825,7 +1825,7 @@ function dropboxFolderGetLastestCursor(folder, callback) {
     include_has_explicit_shared_members: false
   };
 
-  debug(chalkLog("dropboxFolderGetLastestCursor FOLDER: " + folder));
+  console.log(chalkLog("dropboxFolderGetLastestCursor FOLDER: " + folder));
 
   dropboxClient.filesListFolderGetLatestCursor(optionsGetLatestCursor)
   .then(function(last_cursor) {
@@ -1874,7 +1874,7 @@ function dropboxFolderGetLastestCursor(folder, callback) {
     });
   })
   .catch(function(err){
-    console.log(err);
+    console.log(chalkError("*** ERROR DROPBOX FOLDER | " + folder + " | " + err));
     callback(err, folder);
   });
 }

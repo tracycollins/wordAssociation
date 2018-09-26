@@ -3640,6 +3640,8 @@ function follow(params, callback) {
     }
   }
 
+  unfollowableUserSet.add(params.user.nodeId);
+
   const query = { nodeId: params.user.nodeId };
 
   let update = {};
@@ -5153,7 +5155,7 @@ function autoFollowUser(params, callback){
     return;
   }
 
-  unfollowableUserSet.add(params.user.nodeId);
+  // unfollowableUserSet.add(params.user.nodeId);
 
   console.log(chalkUser("AUTO FOLLOW USER"
     + " | MIN: " + configuration.minFollowersAuto

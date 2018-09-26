@@ -1584,7 +1584,7 @@ function nodeCacheExpired(nodeCacheId, nodeObj) {
     nodeMeter = omit(nodeMeter, nodeCacheId);
     delete nodeMeter[nodeCacheId];
 
-    debugCache(chalkLog("XXX NODE METER"
+    console.log(chalkLog("XXX NODE METER"
       + " | Ks: " + Object.keys(nodeMeter).length
       + " | " + nodeCacheId
     ));
@@ -1593,7 +1593,7 @@ function nodeCacheExpired(nodeCacheId, nodeObj) {
     if (statsObj.nodeMeterEntries > statsObj.nodeMeterEntriesMax) {
       statsObj.nodeMeterEntriesMax = statsObj.nodeMeterEntries;
       statsObj.nodeMeterEntriesMaxTime = moment().valueOf();
-      debugCache(chalkLog("NEW MAX NODE METER ENTRIES"
+      console.log(chalkLog("NEW MAX NODE METER ENTRIES"
         + " | " + getTimeStamp()
         + " | " + statsObj.nodeMeterEntries.toFixed(0)
       ));
@@ -1608,7 +1608,7 @@ function nodeCacheExpired(nodeCacheId, nodeObj) {
     nodeMeterType[nodeObj.nodeType] = omit(nodeMeterType[nodeObj.nodeType], nodeCacheId);
     delete nodeMeterType[nodeObj.nodeType][nodeCacheId];
 
-    debug(chalkLog("XXX NODE TYPE METER | " + nodeObj.nodeType
+    console.log(chalkLog("XXX NODE TYPE METER | " + nodeObj.nodeType
       + " | Ks: " + Object.keys(nodeMeterType[nodeObj.nodeType]).length
       + " | " + nodeCacheId
     ));

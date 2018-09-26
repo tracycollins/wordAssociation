@@ -1091,7 +1091,7 @@ function initSearchTerms(cnf, callback){
                   console.log(chalkTwitter("TSS | <T | "+ getTimeStamp()
                     + " | TWQ: " + tweetQueue.length
                     + " [ Ts/RTs: " + statsObj.tweetsReceived + "/" + statsObj.retweetsReceived + "]"
-                    + " | DELTA TW RX: " + deltaTweet[0] + "." + deltaTweet[1]
+                    // + " | DELTA TW RX: " + deltaTweet[0] + "." + deltaTweet[1]
                     + " | " + statsObj.tweetsPerMinute.toFixed(3) + " TPM"
                     + " | " + tweetStatus.id_str
                     + " | @" + tweetStatus.user.screen_name

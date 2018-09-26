@@ -5987,7 +5987,10 @@ function initAppRouting(callback) {
           dropboxFolderGetLastestCursorReady = true;
           next();
         });
-
+      }
+      else {
+        console.log(chalkAlert("--- SKIP DROPBOX WEBHOOK ... NOT READY"));
+        next();
       }
     }
     else if (req.path === "/googleccd19766bea2dfd2.html") {

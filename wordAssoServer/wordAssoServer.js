@@ -5983,6 +5983,7 @@ function initAppRouting(callback) {
           });
 
         }, function(err){
+          console.log(chalkInfo("--- END DROPBOX WEBHOOK"));
           dropboxFolderGetLastestCursorReady = true;
           next();
         });

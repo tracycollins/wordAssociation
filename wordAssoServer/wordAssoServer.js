@@ -6678,7 +6678,7 @@ function initTssPingInterval(interval){
 }
 
 function updateSearchTerms(){
-  console.log(chalk.bold.black("UPDATE SEARCH TERMS"));
+  console.log(chalk.bold.black("WAS | UPDATE SEARCH TERMS"));
 
   if (statsObj.tssChildReady) {
     tssChild.send({op: "UPDATE_SEARCH_TERMS"});
@@ -6746,7 +6746,7 @@ function initTssChild(params, callback){
       + " \n" + jsonPrint(err)
     ));
     statsObj.tssSendReady = false;
-    statsObj.tssReady = false;
+    statsObj.tssChildReady = false;
     clearInterval(tssPingInterval);
     childrenHashMap[params.childId].status = "ERROR";
   });
@@ -6757,7 +6757,7 @@ function initTssChild(params, callback){
       + " | EXIT CODE: " + code
     ));
     statsObj.tssSendReady = false;
-    statsObj.tssReady = false;
+    statsObj.tssChildReady = false;
     clearInterval(tssPingInterval);
     childrenHashMap[params.childId].status = "EXIT";
   });
@@ -6768,14 +6768,14 @@ function initTssChild(params, callback){
       + " | EXIT CODE: " + code
     ));
     statsObj.tssSendReady = false;
-    statsObj.tssReady = false;
+    statsObj.tssChildReady = false;
     clearInterval(tssPingInterval);
     childrenHashMap[params.childId].status = "CLOSE";
   });
 
   childrenHashMap[params.childId].child = tss;
 
-  statsObj.tssReady = true;
+  statsObj.tssChildReady = true;
 
   tss.send({
     op: "INIT",
@@ -6791,13 +6791,13 @@ function initTssChild(params, callback){
         + " | " + err
       ));
       statsObj.tssSendReady = false;
-      statsObj.tssReady = false;
+      statsObj.tssChildReady = false;
       clearInterval(tssPingInterval);
       childrenHashMap[params.childId].status = "ERROR";
     }
     else {
       statsObj.tssSendReady = true;
-      statsObj.tssReady = true;
+      statsObj.tssChildReady = true;
       childrenHashMap[params.childId].status = "INIT";
       clearInterval(tssPingInterval);
       setTimeout(function(){

@@ -5954,12 +5954,12 @@ function initAppRouting(callback) {
 
               setTimeout(function(){
 
-                if (configuration.verbose) {
+                // if (configuration.verbose) {
                   console.log(chalkWarn(">>> DROPBOX CHANGE"
                     + " | " + getTimeStamp()
                     + " | FOLDER: " + folder
                   ));
-                }
+                // }
 
                 response.entries.forEach(function(entry){
 

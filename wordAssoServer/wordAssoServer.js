@@ -110,7 +110,7 @@ const TRENDING_CACHE_DEFAULT_TTL = 300;
 const TRENDING_CACHE_CHECK_PERIOD = 60;
 
 const NODE_CACHE_DEFAULT_TTL = 60;
-const NODE_CACHE_CHECK_PERIOD = 5;
+const NODE_CACHE_CHECK_PERIOD = 1;
 
 const chalk = require("chalk");
 const chalkUser = chalk.blue;
@@ -1569,7 +1569,11 @@ const nodeCache = new NodeCache({
   checkperiod: nodeCacheCheckPeriod
 });
 
-function nodeCacheExpired(nodeCacheId, nodeObj) {
+let nodeCacheDeleteQueue = [];
+
+function nodeCacheExpired(nodeObj, callback) {
+
+  const nodeCacheId = nodeObj.nodeId;
 
   debugCache(chalkLog("XXX $ NODE"
     + " | " + nodeObj.nodeType
@@ -1584,10 +1588,10 @@ function nodeCacheExpired(nodeCacheId, nodeObj) {
     nodeMeter = omit(nodeMeter, nodeCacheId);
     delete nodeMeter[nodeCacheId];
 
-    console.log(chalkLog("XXX NODE METER"
-      + " | Ks: " + Object.keys(nodeMeter).length
-      + " | " + nodeCacheId
-    ));
+    // console.log(chalkLog("XXX NODE METER"
+    //   + " | Ks: " + Object.keys(nodeMeter).length
+    //   + " | " + nodeCacheId
+    // ));
 
 
     if (statsObj.nodeMeterEntries > statsObj.nodeMeterEntriesMax) {
@@ -1608,14 +1612,37 @@ function nodeCacheExpired(nodeCacheId, nodeObj) {
     nodeMeterType[nodeObj.nodeType] = omit(nodeMeterType[nodeObj.nodeType], nodeCacheId);
     delete nodeMeterType[nodeObj.nodeType][nodeCacheId];
 
-    console.log(chalkLog("XXX NODE TYPE METER | " + nodeObj.nodeType
-      + " | Ks: " + Object.keys(nodeMeterType[nodeObj.nodeType]).length
-      + " | " + nodeCacheId
-    ));
+    // console.log(chalkLog("XXX NODE TYPE METER | " + nodeObj.nodeType
+    //   + " | Ks: " + Object.keys(nodeMeterType[nodeObj.nodeType]).length
+    //   + " | " + nodeCacheId
+    // ));
   }
+
+  callback();
 }
 
-nodeCache.on("expired", nodeCacheExpired);
+// nodeCache.on("expired", nodeCacheExpired);
+nodeCache.on("expired", function(nodeCacheId, nodeObj){
+  nodeCacheDeleteQueue.push(nodeObj);
+});
+
+let nodeCacheDeleteReady = true;
+
+setInterval(function(){
+
+  if (nodeCacheDeleteReady && (nodeCacheDeleteQueue.length > 0)) {
+
+    nodeCacheDeleteReady = false;
+
+    const nodeObj = nodeCacheDeleteQueue.shift();
+    
+    nodeCacheExpired(nodeObj, function(){
+      nodeCacheDeleteReady = true;
+    });
+  }
+
+}, 1);
+
 
 // ==================================================================
 // TWITTER TRENDING TOPIC CACHE

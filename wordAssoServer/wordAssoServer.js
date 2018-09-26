@@ -60,6 +60,7 @@ const DEFAULT_MIN_FOLLOWERS_AUTO = 15000;
 const DEFAULT_RATE_QUEUE_INTERVAL = ONE_SECOND; // 1 second
 const DEFAULT_RATE_QUEUE_INTERVAL_MODULO = 60; // modulo RATE_QUEUE_INTERVAL
 const DEFAULT_TWEET_PARSER_INTERVAL = 10;
+const DEFAULT_SORTER_INTERVAL = 10;
 const DEFAULT_TWITTER_RX_QUEUE_INTERVAL = 10;
 const DEFAULT_TRANSMIT_NODE_QUEUE_INTERVAL = 10;
 const DEFAULT_TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = 10;
@@ -80,7 +81,8 @@ const DEFAULT_IO_PING_INTERVAL = ONE_MINUTE;
 const DEFAULT_IO_PING_TIMEOUT = 3*ONE_MINUTE;
 
 
-const DEFAULT_NODE_TYPES = ["emoji", "hashtag", "media", "place", "url", "user", "word"];
+// const DEFAULT_NODE_TYPES = ["emoji", "hashtag", "media", "place", "url", "user", "word"];
+const DEFAULT_NODE_TYPES = ["hashtag", "user"];
 
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 const tinyDateTimeFormat = "YYYYMMDDHHmmss";
@@ -230,6 +232,7 @@ configuration.twitterThreeceeAutoFollowUser = DEFAULT_TWITTER_THREECEE_AUTO_FOLL
 configuration.dropboxListFolderLimit = DEFAULT_DROPBOX_LIST_FOLDER_LIMIT;
 
 configuration.tweetParserInterval = DEFAULT_TWEET_PARSER_INTERVAL;
+configuration.sorterMessageRxQueueInterval = DEFAULT_SORTER_INTERVAL;
 configuration.rateQueueInterval = DEFAULT_RATE_QUEUE_INTERVAL;
 configuration.rateQueueIntervalModulo = DEFAULT_RATE_QUEUE_INTERVAL_MODULO;
 configuration.statsUpdateInterval = DEFAULT_STATS_UPDATE_INTERVAL;
@@ -678,85 +681,6 @@ hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
 
-// if (hostname === "google") {
-
-//   console.log(chalkBlue("INIT HEADLESS DROPBOX VIA PYTHON SHELL"));
-
-//   // const PythonShell = require("python-shell");
-
-//   const CONFIG_PATH = "/home/tc/Dropbox/Apps/wordAssociation/config";
-//   const pythonPath = "/usr/bin/python";
-//   const pythonScriptPath = CONFIG_PATH;
-//   const pythonScript = "dropbox.py";
-
-//   const pythonDropboxStartOptions = {
-//     mode: "text",
-//     pythonPath: pythonPath,
-//     scriptPath: pythonScriptPath,
-//     lansync: true,
-//     args: ["start"]
-//   };
-
-//   const pythonDropboxRunningOptions = {
-//     mode: "text",
-//     pythonPath: pythonPath,
-//     scriptPath: pythonScriptPath,
-//     lansync: true,
-//     args: ["running"]
-//   };
-
-//   const pythonDropboxStatusOptions = {
-//     mode: "text",
-//     pythonPath: pythonPath,
-//     scriptPath: pythonScriptPath,
-//     lansync: true,
-//     args: ["status"]
-//   };
-
-
-//   const pythonDropboxStart = new PythonShell(pythonScript, pythonDropboxStartOptions);
-//   const pythonDropboxRunning = new PythonShell(pythonScript, pythonDropboxRunningOptions);
-//   const pythonDropboxStatus = new PythonShell(pythonScript, pythonDropboxStatusOptions);
-
-//   pythonDropboxStart.on("error", function (err) {
-//     console.log(chalkError("*** DROPBOX PYTHON SHELL STARTERROR"
-//       + " | " + err
-//     ));
-//   });
-
-//   pythonDropboxStart.on("message", function (message) {
-//     console.log(chalkBlue("DROPBOX PYTHON SHELL START MESSAGE"
-//       + " | " + message
-//     ));
-//   });
-
-//   pythonDropboxRunning.on("error", function (err) {
-//     console.log(chalkError("*** DROPBOX PYTHON SHELL RUNNING ERROR"
-//       + " | " + err
-//     ));
-//   });
-
-//   pythonDropboxRunning.on("message", function (message) {
-//     console.log(chalkBlue("DROPBOX PYTHON SHELL RUNNING MESSAGE"
-//       + " | " + message
-//     ));
-//   });
-
-//   pythonDropboxStatus.on("error", function (err) {
-//     console.log(chalkError("*** DROPBOX PYTHON SHELL STATUS ERROR"
-//       + " | " + err
-//     ));
-//   });
-
-//   pythonDropboxStatus.on("message", function (message) {
-//     console.log(chalkBlue("DROPBOX PYTHON SHELL STATUS MESSAGE"
-//       + " | " + message
-//     ));
-//   });
-
-// }
-
-
 const tweetMeter = new Measured.Meter({rateUnit: 60000});
 
 let languageServer = {};
@@ -797,6 +721,11 @@ let tweetParserPingInterval;
 let tweetParserPingSent = false;
 let tweetParserPongReceived = false;
 let tweetParserPingId = false;
+
+let sorterPingInterval;
+let sorterPingSent = false;
+let sorterPongReceived = false;
+let sorterPingId = false;
 
 let categoryHashmapsInterval;
 let statsInterval;
@@ -1588,12 +1517,6 @@ function nodeCacheExpired(nodeObj, callback) {
     nodeMeter = omit(nodeMeter, nodeCacheId);
     delete nodeMeter[nodeCacheId];
 
-    // console.log(chalkLog("XXX NODE METER"
-    //   + " | Ks: " + Object.keys(nodeMeter).length
-    //   + " | " + nodeCacheId
-    // ));
-
-
     if (statsObj.nodeMeterEntries > statsObj.nodeMeterEntriesMax) {
       statsObj.nodeMeterEntriesMax = statsObj.nodeMeterEntries;
       statsObj.nodeMeterEntriesMaxTime = moment().valueOf();
@@ -1612,16 +1535,11 @@ function nodeCacheExpired(nodeObj, callback) {
     nodeMeterType[nodeObj.nodeType] = omit(nodeMeterType[nodeObj.nodeType], nodeCacheId);
     delete nodeMeterType[nodeObj.nodeType][nodeCacheId];
 
-    // console.log(chalkLog("XXX NODE TYPE METER | " + nodeObj.nodeType
-    //   + " | Ks: " + Object.keys(nodeMeterType[nodeObj.nodeType]).length
-    //   + " | " + nodeCacheId
-    // ));
   }
 
   callback();
 }
 
-// nodeCache.on("expired", nodeCacheExpired);
 nodeCache.on("expired", function(nodeCacheId, nodeObj){
   nodeCacheDeleteQueue.push(nodeObj);
 });
@@ -1729,7 +1647,8 @@ const ignoreWordHashMap = new HashMap();
 const localHostHashMap = new HashMap();
 
 let tssChild;
-let tweetParser;
+let sorterChild;
+let parserChild;
 
 function initStats(callback){
   console.log(chalk.bold.black("INIT STATS"));
@@ -3069,7 +2988,7 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
 
       killChild({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, numKilled){
         initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, twp){
-          if (!err) { tweetParser = twp; }
+          if (!err) { parserChild = twp; }
         });
       });
 
@@ -4796,13 +4715,17 @@ function processCheckCategory(nodeObj, callback){
 
     async.parallel({
       overall: function(cb){
-        nodesPerMinuteTopTermCache.get(nodeObj.nodeId,
-          function topTermNodeId(err, nodeId) {
+        nodesPerMinuteTopTermCache.get(nodeObj.nodeId, function topTermNodeId(err, nodeRate) {
           if (err){
             console.log(chalkError("nodesPerMinuteTopTermCache GET ERR: " + err));
           }
-          if (nodeId !== undefined) {
-            debugCategory(chalkLog("TOP TERM WORD NODEID: " + nodeId));
+          if (nodeRate !== undefined) {
+
+            debugCategory(chalkLog("TOP TERM"
+              + " | " + nodeObj.nodeId 
+              + " | " + nodeRate.toFixed(3)
+            ));
+
             nodeObj.isTopTerm = true;
           }
           else {
@@ -4812,13 +4735,18 @@ function processCheckCategory(nodeObj, callback){
         cb();
       },
       nodeType: function(cb){
-        nodesPerMinuteTopTermNodeTypeCache[nodeObj.nodeType].get(nodeObj.nodeId,
-          function topTermNodeId(err, nodeId) {
+        nodesPerMinuteTopTermNodeTypeCache[nodeObj.nodeType].get(nodeObj.nodeId, function topTermNodeId(err, nodeRate) {
           if (err){
             console.log(chalkError("nodesPerMinuteTopTermNodeTypeCache" + nodeObj.nodeType + " GET ERR: " + err));
           }
-          if (nodeId !== undefined) {
-            debugCategory(chalkLog("TOP TERM NODETYPE " + nodeObj.nodeType + " NODEID: " + nodeId));
+          if (nodeRate !== undefined) {
+
+            debugCategory(chalkLog("TOP TERM NODE TYPE"
+              + " | " + nodeObj.nodeType 
+              + " | " + nodeObj.nodeId 
+              + " | " + nodeRate.toFixed(3)
+            ));
+            
             nodeObj.isTopTermNodeType = true;
           }
           else {
@@ -6490,82 +6418,6 @@ function initTweetParserMessageRxQueueInterval(interval){
   }, interval);
 }
 
-
-// let tssMessageRxQueueReady = true;
-// let tssMessageRxQueueInterval;
-
-// function initTssMessageRxQueueInterval(interval){
-
-//   console.log(chalk.bold.black("INIT TWEET PARSER MESSAGE RX QUEUE INTERVAL | " + msToTime(interval)));
-
-//   clearInterval(tssMessageRxQueueInterval);
-
-//   let tssMessage = {};
-//   let tweetObj = {};
-
-//   tssMessageRxQueueInterval = setInterval(function tssMessageRxQueueDequeue() {
-
-//     if ((tssMessageRxQueue.length > 0) && tssMessageRxQueueReady) {
-
-//       tssMessageRxQueueReady = false;
-
-//       tssMessage = tssMessageRxQueue.shift();
-
-//       debug(chalkLog("TWEET PARSER RX MESSAGE"
-//         + " | OP: " + tssMessage.op
-//         // + "\n" + jsonPrint(m)
-//       ));
-
-//       if (tssMessage.op === "parsedTweet") {
-
-//         tweetObj = tssMessage.tweetObj;
-
-//         if (!tweetObj.user) {
-//           console.log(chalkAlert("parsedTweet -- TW USER UNDEFINED"
-//             + " | " + tweetObj.tweetId
-//           ));
-//           tssMessageRxQueueReady = true;
-//         }
-//         else {
-
-//           debug(chalkInfo("PARSED TW"
-//             + " [ TPMRQ: " + tssMessageRxQueue.length + "]"
-//             + " | " + tweetObj.tweetId
-//             + " | USR: " + tweetObj.user.screenName
-//             + " | Hs: " + tweetObj.hashtags.length
-//             + " | UMs: " + tweetObj.userMentions.length
-//             + " | EJs: " + tweetObj.emoji.length
-//             + " | WDs: " + tweetObj.words.length
-//           ));
-
-//           if (transmitNodeQueue.length < configuration.maxQueue) {
-
-//             transmitNodes(tweetObj, function transmitNode(err){
-//               if (err) {
-//                 console.log(chalkError("TRANSMIT NODES ERROR\n" + err));
-//               }
-//               tssMessageRxQueueReady = true;
-//             });
-
-//           }
-//           else {
-//             tssMessageRxQueueReady = true;
-//           }
-//         }
-//       }
-//       else {
-//         console.log(chalkError("*** TWEET PARSER UNKNOWN OP"
-//           + " | INTERVAL: " + tssMessage.op
-//         ));
-//         tssMessageRxQueueReady = true;
-//       }
-
-//     }
-//   }, interval);
-// }
-
-
-
 let sorterMessageRxReady = true; 
 let sorterMessageRxQueueInterval;
 
@@ -6688,7 +6540,7 @@ function initKeySortInterval(interval){
 
   keySortInterval = setInterval(function(){
 
-    if (keySortQueue.length > 0) {
+    if (keySortReady && (keySortQueue.length > 0)) {
 
       keySortReady = false;
 
@@ -6696,10 +6548,9 @@ function initKeySortInterval(interval){
 
       keySort(keySortParams, function(err, results){
 
-        keySortReady = true;
-
         if (err) {
           console.log(chalkError("KEY SORT ERROR: " + err));
+          keySortReady = true;
         }
         else {
 
@@ -6710,12 +6561,12 @@ function initKeySortInterval(interval){
               sortedKeys: results.sortedKeys
             }
           );
+
+          keySortReady = true;
         }
 
       });
     }
-
-
   }, interval);
 }
 
@@ -7157,6 +7008,221 @@ function initTweetParser(params, callback){
   if (callback !== undefined) { callback(null, twp); }
 }
 
+
+// function initSorterPingInterval(interval){
+
+//   clearInterval(sorterPingInterval);
+
+//   sorterPingSent = false;
+//   sorterPongReceived = false;
+
+//   sorterPingId = moment().valueOf();
+
+//   if ((childrenHashMap[DEFAULT_SORTER_CHILD_ID] !== undefined) 
+//     && childrenHashMap[DEFAULT_SORTER_CHILD_ID].child) {
+
+//     sorterPingInterval = setInterval(function(){
+
+//       if (!sorterPingSent) {
+
+//         sorterPingId = moment().valueOf();
+
+//         childrenHashMap[DEFAULT_SORTER_CHILD_ID].child.send({op: "PING", pingId: sorterPingId}, function(err){
+
+//           sorterPingSent = true; 
+
+//           if (err) {
+
+//             console.log(chalkError("*** TWEET_PARSER SEND PING ERROR: " + err));
+
+//             killChild({childId: DEFAULT_SORTER_CHILD_ID}, function(err, numKilled){
+//               sorterPongReceived = false;
+//               initSorter({childId: DEFAULT_SORTER_CHILD_ID});
+//             });
+
+//             return;
+//           }
+
+//           if (configuration.verbose) { console.log(chalkInfo(">PING | TWEET_PARSER | PING ID: " + getTimeStamp(sorterPingId))); }
+
+//         });
+
+//       }
+//       else if (sorterPingSent && sorterPongReceived) {
+
+//         sorterPingId = moment().valueOf();
+
+//         sorterPingSent = false; 
+//         sorterPongReceived = false;
+
+//         childrenHashMap[DEFAULT_SORTER_CHILD_ID].child.send({op: "PING", pingId: sorterPingId}, function(err){
+
+//           if (err) {
+
+//             console.log(chalkError("*** TWEET_PARSER SEND PING ERROR: " + err));
+
+//             killChild({childId: DEFAULT_SORTER_CHILD_ID}, function(err, numKilled){
+//               sorterPongReceived = false;
+//               initSorter({childId: DEFAULT_SORTER_CHILD_ID});
+//             });
+
+//             return;
+//           }
+
+//           if (configuration.verbose) { console.log(chalkInfo(">PING | TWEET_PARSER | PING ID: " + getTimeStamp(sorterPingId))); }
+
+//           sorterPingSent = true; 
+
+//         });
+
+//       }
+//       else {
+
+//         console.log(chalkAlert("*** PONG TIMEOUT | TWEET_PARSER"
+//           + " | TIMEOUT: " + interval
+//           + " | NOW: " + getTimeStamp()
+//           + " | PING ID: " + getTimeStamp(sorterPingId)
+//           + " | ELAPSED: " + msToTime(moment().valueOf() - sorterPingId)
+//         ));
+        
+//         slackPostMessage(slackErrorChannel, "\n*CHILD ERROR*\nTWEET_PARSER\nPONG TIMEOUT");
+
+//         clearInterval(sorterPingInterval);
+
+//         sorterPingSent = false; 
+//         sorterPongReceived = false;
+
+//         setTimeout(function(){
+
+//           killChild({childId: DEFAULT_SORTER_CHILD_ID}, function(err, numKilled){
+//             initSorter({childId: DEFAULT_SORTER_CHILD_ID});
+//           });
+
+//         }, 5000);
+//       }
+//     }, interval);
+
+//   }
+// }
+// function initSorterChild(params, callback){
+
+//   console.log(chalk.bold.black("INIT TWEET PARSER\n" + jsonPrint(params)));
+
+//   clearInterval(sorterPingInterval);
+//   sorterPongReceived = false;
+
+//   statsObj.sorterReady = false;
+
+//   let deltaSorterMessageStart = process.hrtime();
+//   let deltaSorterMessage = process.hrtime(deltaSorterMessageStart);
+
+//   const srt = cp.fork(`${__dirname}/js/libs/sorter.js`);
+
+//   childrenHashMap[params.childId] = {};
+//   childrenHashMap[params.childId].pid = srt.pid;
+//   childrenHashMap[params.childId].childId = params.childId;
+//   childrenHashMap[params.childId].title = "wa_node_sorter";
+//   childrenHashMap[params.childId].status = "NEW";
+//   childrenHashMap[params.childId].errors = 0;
+
+//   srt.on("message", function sorterMessageRx(m){
+
+//     childrenHashMap[params.childId].status = "RUNNING";  
+
+//     debug(chalkLog("SORTER CHILD RX MESSAGE"
+//       + " | OP: " + m.op
+//     ));
+
+//     if (m.op === "PONG"){
+
+//       sorterPongReceived = m.pongId;
+
+//       childrenHashMap[params.childId].status = "RUNNING";
+
+//       if (configuration.verbose) {
+//         console.log(chalkInfo("<PONG | SORTER CHILD"
+//           + " | NOW: " + getTimeStamp()
+//           + " | PONG ID: " + getTimeStamp(m.pongId)
+//           + " | RESPONSE TIME: " + msToTime(moment().valueOf() - m.pongId)
+//         ));
+//       }
+//     } 
+
+//     else if (sorterMessageRxQueue.length < configuration.maxQueue){
+//       deltaSorterMessage = process.hrtime(deltaSorterMessageStart);
+//       if (deltaSorterMessage[0] > 0) { console.log(chalkAlert("*** SORTER RX DELTA: " + deltaSorterMessage[0] + "." + deltaSorterMessage[1])); }
+//       deltaSorterMessageStart = process.hrtime();
+//       sorterMessageRxQueue.push(m);
+//     }
+
+//   });
+
+//   srt.on("error", function sorterError(err){
+//     console.log(chalkError(getTimeStamp()
+//       + " | *** SORTER CHILD ERROR ***"
+//       + " \n" + jsonPrint(err)
+//     ));
+//     statsObj.sorterSendReady = false;
+//     statsObj.sorterReady = false;
+//     clearInterval(sorterPingInterval);
+//     childrenHashMap[params.childId].status = "ERROR";
+//   });
+
+//   srt.on("exit", function sorterExit(code){
+//     console.log(chalkError(getTimeStamp()
+//       + " | *** SORTER CHILD EXIT ***"
+//       + " | EXIT CODE: " + code
+//     ));
+//     statsObj.sorterSendReady = false;
+//     statsObj.sorterReady = false;
+//     clearInterval(sorterPingInterval);
+//     childrenHashMap[params.childId].status = "EXIT";
+//   });
+
+//   srt.on("close", function sorterClose(code){
+//     console.log(chalkError(getTimeStamp()
+//       + " | *** SORTER CHILD CLOSE ***"
+//       + " | EXIT CODE: " + code
+//     ));
+//     statsObj.sorterSendReady = false;
+//     statsObj.sorterReady = false;
+//     clearInterval(sorterPingInterval);
+//     childrenHashMap[params.childId].status = "CLOSE";
+//   });
+
+//   childrenHashMap[params.childId].child = srt;
+
+//   statsObj.sorterReady = true;
+
+//   srt.send({
+//     op: "INIT",
+//     title: "wa_node_sorter",
+//     verbose: false
+//   }, function sorterMessageRxError(err){
+//     if (err) {
+//       console.log(chalkError("*** SORTER CHILD SEND ERROR"
+//         + " | " + err
+//       ));
+//       statsObj.sorterSendReady = false;
+//       statsObj.sorterReady = false;
+//       clearInterval(sorterPingInterval);
+//       childrenHashMap[params.childId].status = "ERROR";
+//     }
+//     else {
+//       statsObj.sorterSendReady = true;
+//       statsObj.sorterReady = true;
+//       childrenHashMap[params.childId].status = "INIT";
+//       clearInterval(sorterPingInterval);
+//       setTimeout(function(){
+//         initSorterPingInterval(DEFAULT_PING_INTERVAL);
+//       }, 1000);
+//     }
+//   });
+
+//   if (callback !== undefined) { callback(null, srt); }
+// }
+
+
 function initRateQinterval(interval){
 
   console.log(chalk.bold.black("INIT RATE QUEUE INTERVAL | " + msToTime(interval)));
@@ -7413,7 +7479,7 @@ function loadBestRuntimeNetwork(){
           }
 
           if (bestNetworkObj 
-            && (tweetParser !== undefined) 
+            && (parserChild !== undefined) 
             && (statsObj.previousBestNetworkId !== bestNetworkObj.networkId)) {
 
             if (bestNetworkObj) { statsObj.previousBestNetworkId = bestNetworkObj.networkId; }
@@ -7443,80 +7509,8 @@ function loadBestRuntimeNetwork(){
       });
     }
   });
-
 }
 
-// let configInterval;
-
-// function initConfigInterval(interval){
-
-//   console.log(chalk.bold.black("INIT CONFIG INTERVAL | " + msToTime(interval)));
-
-//   clearInterval(configInterval);
-
-//   const loadConfigFileParams = {
-//     folder: dropboxConfigDefaultFolder,
-//     file: dropboxConfigDefaultFile
-//   };
-
-//   debug(chalkTwitter("THREECEE USERS\n" + jsonPrint(configuration.threeceeUsers)));
-
-//   configuration.threeceeUsers.forEach(function(user){
-//     threeceeTwitter[user] = {};
-//     threeceeTwitter[user].twit = {};
-//     threeceeTwitter[user].ready = false;
-//     threeceeTwitter[user].status = "UNCONFIGURED";
-//     threeceeTwitter[user].error = false;
-//     threeceeTwitter[user].twitterRateLimitException = false;
-//     threeceeTwitter[user].twitterRateLimitExceptionFlag = false;
-//     threeceeTwitter[user].twitterRateLimitResetAt = false;
-
-//     debug(chalkTwitter("THREECEE USER @" + user + "\n" + jsonPrint(threeceeTwitter[user])));
-//   });
-
-//   configInterval = setInterval(function(){
-
-//     loadConfigFile(loadConfigFileParams, function(err0){
-
-//       if (err0) {
-//         console.log(chalkError("*** LOAD CONFIGURATION FILE ERROR: " + err0));
-//         quit("LOAD CONFIGURATION FILE ERROR");
-//         return;
-//       }
-
-//       if (statsObj.commandLineArgsLoaded) {
-//         debug(chalkLog("... SKIP LOAD COMMAND LINE ARGS | ALREADY LOADED"));
-//         return;
-//       }
-      
-
-//       loadCommandLineArgs(function(err1, results){
-
-//         if (err1) {
-//           console.log(chalkError("*** LOAD COMMAND LINE ARGS ERROR: " + err1));
-//           quit("LOAD COMMAND LINE ARGS ERROR");
-//           return;
-//         }
-
-//         const configArgs = Object.keys(configuration);
-
-//         configArgs.forEach(function(arg){
-//           if (_.isObject(configuration[arg])) {
-//             console.log(chalkLog("WA | _FINAL CONFIG | " + arg + ": " + jsonPrint(configuration[arg])));
-//           }
-//           else {
-//             console.log(chalkLog("WA | _FINAL CONFIG | " + arg + ": " + configuration[arg]));
-//           }
-//         });
-        
-//         statsObj.commandLineArgsLoaded = true;
-
-//       });
-
-//     });
-
-//   }, interval);
-// }
 function initConfig(){
 
   console.log(chalk.bold.black("INIT CONFIG"));
@@ -7526,61 +7520,48 @@ function initConfig(){
     file: dropboxConfigDefaultFile
   };
 
-  // configInterval = setInterval(function(){
+  loadConfigFile(loadConfigFileParams, function(err0){
 
-    loadConfigFile(loadConfigFileParams, function(err0){
+    if (err0) {
+      console.log(chalkError("*** LOAD CONFIGURATION FILE ERROR: " + err0));
+      quit("LOAD CONFIGURATION FILE ERROR");
+      return;
+    }
 
-      if (err0) {
-        console.log(chalkError("*** LOAD CONFIGURATION FILE ERROR: " + err0));
-        quit("LOAD CONFIGURATION FILE ERROR");
+    if (statsObj.commandLineArgsLoaded) {
+      debug(chalkLog("... SKIP LOAD COMMAND LINE ARGS | ALREADY LOADED"));
+      return;
+    }
+    
+
+    loadCommandLineArgs(function(err1, results){
+
+      if (err1) {
+        console.log(chalkError("*** LOAD COMMAND LINE ARGS ERROR: " + err1));
+        quit("LOAD COMMAND LINE ARGS ERROR");
         return;
       }
 
-      if (statsObj.commandLineArgsLoaded) {
-        debug(chalkLog("... SKIP LOAD COMMAND LINE ARGS | ALREADY LOADED"));
-        return;
-      }
-      
+      const configArgs = Object.keys(configuration);
 
-      loadCommandLineArgs(function(err1, results){
-
-        if (err1) {
-          console.log(chalkError("*** LOAD COMMAND LINE ARGS ERROR: " + err1));
-          quit("LOAD COMMAND LINE ARGS ERROR");
-          return;
+      configArgs.forEach(function(arg){
+        if (_.isObject(configuration[arg])) {
+          console.log(chalkLog("WA | _FINAL CONFIG | " + arg + ": " + jsonPrint(configuration[arg])));
         }
-
-        const configArgs = Object.keys(configuration);
-
-        configArgs.forEach(function(arg){
-          if (_.isObject(configuration[arg])) {
-            console.log(chalkLog("WA | _FINAL CONFIG | " + arg + ": " + jsonPrint(configuration[arg])));
-          }
-          else {
-            console.log(chalkLog("WA | _FINAL CONFIG | " + arg + ": " + configuration[arg]));
-          }
-        });
-        
-        statsObj.commandLineArgsLoaded = true;
-
+        else {
+          console.log(chalkLog("WA | _FINAL CONFIG | " + arg + ": " + configuration[arg]));
+        }
       });
+      
+      statsObj.commandLineArgsLoaded = true;
 
     });
-
-  // }, interval);
+  });
 }
 
 function initLoadBestNetworkInterval(interval){
-
   clearInterval(loadBestNetworkInterval);
-
   loadBestRuntimeNetwork();
-
-  // loadBestNetworkInterval = setInterval(function(){
-
-  //   loadBestRuntimeNetwork();
-  
-  // }, interval);
 }
 // kludge
 // probably can write one general purpose function to handle all types of nodes
@@ -8364,7 +8345,6 @@ function twitterSearchNode(params, callback) {
   }
 }
 
-
 function initTwitterSearchNodeQueueInterval(interval){
 
   let searchNodeParams;
@@ -8390,7 +8370,6 @@ function initTwitterSearchNodeQueueInterval(interval){
   }, interval);
 }
 
-
 initStats(function setCacheObjKeys(){
   cacheObjKeys = Object.keys(statsObj.caches);
 });
@@ -8412,6 +8391,7 @@ initialize(function initializeComplete(err) {
     initTwitterRxQueueInterval(configuration.twitterRxQueueInterval);
     initTweetParserMessageRxQueueInterval(configuration.tweetParserMessageRxQueueInterval);
     initTwitterSearchNodeQueueInterval(configuration.twitterSearchNodeQueueInterval);
+    initSorterMessageRxQueueInterval(configuration.sorterMessageRxQueueInterval);
 
     console.log(chalkInfo("NODE CACHE TTL: " + nodeCacheTtl + " SECONDS"));
 
@@ -8424,6 +8404,15 @@ initialize(function initializeComplete(err) {
     statsObj.configuration = configuration;
 
     initKeySortInterval(configuration.keySortInterval);
+
+    // initSorterChild({childId: DEFAULT_SORTER_CHILD_ID}, function(err, srt){
+    //   if (err) { 
+    //     console.log(chalkError("INIT SORTER CHILD ERROR: " + err));
+    //   }
+    //   else {
+    //     sorterChild = srt;
+    //   }
+    // });
 
     initTssChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, tss){
       if (err) { 
@@ -8439,7 +8428,7 @@ initialize(function initializeComplete(err) {
         console.log(chalkError("INIT TWEET PARSER CHILD ERROR: " + err));
       }
       else {
-        tweetParser = twp;
+        parserChild = twp;
       }
     });
 

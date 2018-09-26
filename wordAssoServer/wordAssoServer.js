@@ -5968,6 +5968,12 @@ function initAppRouting(callback) {
                     initConfig();
                   }
 
+                  if (entry.path_lower.endsWith("defaultsearchterms.txt")){
+                    updateSearchTerms();
+                  }
+
+                  // /config/utility/default/defaultsearchterms.txt
+
                 });
 
                 cb();
@@ -6668,6 +6674,14 @@ function initTssPingInterval(interval){
       }
     }, interval);
 
+  }
+}
+
+function updateSearchTerms(){
+  console.log(chalk.bold.black("UPDATE SEARCH TERMS"));
+
+  if (statsObj.tssChildReady) {
+    tssChild.send({op: "UPDATE_SEARCH_TERMS"});
   }
 }
 

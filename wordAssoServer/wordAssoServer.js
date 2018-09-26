@@ -5985,9 +5985,12 @@ function initAppRouting(callback) {
           dropboxFolderGetLastestCursor(folder, function(err, response){
 
             if (err) {
-              setTimeout(function(){ cb(); }, 10);
+              console.log(chalkError("*** DROPBOX GET LATEST CURSOR ERROR: " + err));
+              return cb(err);
+              // setTimeout(function(){ cb(); }, 10);
             }
-            else if (response && (response.entries.length > 0)) {
+            
+            if (response && (response.entries.length > 0)) {
 
               setTimeout(function(){
 

@@ -620,6 +620,7 @@ function initTwitterUsers(cnf, callback){
             ));
 
             twitterUserObj.stats.twitterErrors += 1;
+
             twitterUserHashMap.set(screenName, twitterUserObj);
 
             return(cb());
@@ -920,6 +921,31 @@ function initSearchTerms(cnf, callback){
                 return(cb(err0));
               }
 
+              twitterUserObj.twit.stream.on("follow", function(msg){
+                console.log(chalkAlert("TSS | " + getTimeStamp() 
+                  + " | TWITTER FOLLOW EVENT"
+                  + " | @" + screenName
+                  + "\n" + jsonPrint(msg)
+                ));
+              });
+
+              twitterUserObj.twit.stream.on("unfollow", function(msg){
+                console.log(chalkAlert("TSS | " + getTimeStamp() 
+                  + " | TWITTER UNFOLLOW EVENT"
+                  + " | @" + screenName
+                  + "\n" + jsonPrint(msg)
+                ));
+              });
+
+              twitterUserObj.twit.stream.on("user_update", function(msg){
+                console.log(chalkAlert("TSS | " + getTimeStamp() 
+                  + " | TWITTER USER UPDATE EVENT"
+                  + " | @" + screenName
+                  + "\n" + jsonPrint(msg)
+                ));
+              });
+
+
               twitterUserObj.searchStream = twitterUserObj.twit.stream(
                 "statuses/filter", 
                 { track: twitterUserObj.searchTermArray, follow: twitterUserObj.followUserArray }
@@ -934,7 +960,6 @@ function initSearchTerms(cnf, callback){
                   ));
                 }
               });
-
 
               twitterUserObj.searchStream.on("connect", function(){
                 console.log(chalkTwitter("TSS | " + getTimeStamp()

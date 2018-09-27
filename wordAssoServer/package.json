@@ -42,6 +42,7 @@
     "json-schema": "^0.2.3",
     "measured": "^1.1.0",
     "memwatch-next": "^0.3.0",
+    "merge": "^1.2.0",
     "method-override": "^3.0.0",
     "moment": "^2.22.2",
     "mongoose": "^5.2.17",

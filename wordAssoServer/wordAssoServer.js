@@ -130,10 +130,9 @@ const chalkError = chalk.bold.red;
 const chalkLog = chalk.gray;
 const chalkBlue = chalk.blue;
 
-
-
 const util = require("util");
 const _ = require("lodash");
+const merge = require("deepmerge");
 const Measured = require("measured");
 const omit = require("object.omit");
 const pick = require("object.pick");
@@ -224,6 +223,8 @@ statsObj.twitNotReadyWarning = false;
 
 let previousConfiguration = {};
 let configuration = {};
+let defaultConfiguration = {}; // general configuration
+let hostConfiguration = {}; // host-specific configuration
 
 configuration.verbose = false;
 configuration.maxQueue = DEFAULT_MAX_QUEUE;
@@ -5988,13 +5989,13 @@ function initAppRouting(callback) {
           });
 
         }, function(err){
-          console.log(chalkInfo("--- END DROPBOX WEBHOOK"));
+          console.log(chalkInfo("WAS | END DROPBOX WEBHOOK"));
           dropboxFolderGetLastestCursorReady = true;
           next();
         });
       }
       else {
-        console.log(chalkAlert("--- SKIP DROPBOX WEBHOOK ... NOT READY"));
+        console.log(chalkAlert("WAS | SKIP DROPBOX WEBHOOK ... NOT READY"));
         next();
       }
     }
@@ -7531,17 +7532,81 @@ function loadBestRuntimeNetwork(){
   });
 }
 
+function loadAllConfigFiles(callback){
+
+  statsObj.status = "LOAD CONFIG";
+
+  async.series({
+
+    defaultConfig: function(cb) {
+      loadConfigFile({folder: dropboxConfigDefaultFolder, file: dropboxConfigDefaultFile}, function(err, defaultConfig){
+
+        if (err) {
+          console.log(chalkAlert("WAS | ERROR LOADED DEFAULT CONFIG " + dropboxConfigDefaultFolder + "/" + dropboxConfigDefaultFile));
+          console.log(chalkAlert("WAS | ERROR LOADED DEFAULT CONFIG " + err));
+          return cb(err);
+        }
+
+        if (defaultConfig) {
+
+          defaultConfiguration = defaultConfig;
+
+          console.log(chalkAlert("WAS | +++ RELOADED DEFAULT CONFIG " + dropboxConfigDefaultFolder + "/" + dropboxConfigDefaultFile));
+
+          cb();
+        }
+        else {
+          cb();
+        }
+
+      });
+    },
+
+    hostConfig: function(cb){
+      loadConfigFile({folder: dropboxConfigHostFolder, file: dropboxConfigHostFile}, function(err, hostConfig){
+
+        if (err) {
+          console.log(chalkAlert("WAS | ERROR LOADED HOST CONFIG " + dropboxConfigHostFolder + "/" + dropboxConfigHostFile));
+          console.log(chalkAlert("WAS | ERROR LOADED HOST CONFIG " + err));
+          return cb(err);
+        }
+
+        if (hostConfig) {
+
+          hostConfiguration = hostConfig;
+
+          console.log(chalkAlert("WAS | +++ RELOADED HOST CONFIG " + dropboxConfigHostFolder + "/" + dropboxConfigHostFile));
+
+          cb();
+        }
+        else {
+          cb();
+        }
+
+      });
+    }
+
+  }, function(err, results) {
+
+    if (err) {
+      console.log(chalkError("LOAD ALL CONFIG FILES ERROR: " + err));
+      return callback(err);
+    }
+
+    let defaultAndHostConfig = merge(defaultConfiguration, hostConfiguration); // host settings override defaults
+    let tempConfig = merge(configuration, defaultAndHostConfig); // any new settings override existing config
+
+    configuration = tempConfig;
+
+    callback();
+  });
+}
+
 function initConfig(){
 
   console.log(chalk.bold.black("INIT CONFIG"));
 
-  const loadConfigFileParams = {
-    folder: dropboxConfigDefaultFolder,
-    file: dropboxConfigDefaultFile
-  };
-
-  loadConfigFile(loadConfigFileParams, function(err0){
-
+  loadAllConfigFiles(function(err0){
     if (err0) {
       console.log(chalkError("*** LOAD CONFIGURATION FILE ERROR: " + err0));
       quit("LOAD CONFIGURATION FILE ERROR");
@@ -7576,7 +7641,53 @@ function initConfig(){
       statsObj.commandLineArgsLoaded = true;
 
     });
+
   });
+
+  // const loadConfigFileParams = {
+  //   folder: dropboxConfigDefaultFolder,
+  //   file: dropboxConfigDefaultFile
+  // };
+
+
+
+  // loadConfigFile(loadConfigFileParams, function(err0){
+
+  //   if (err0) {
+  //     console.log(chalkError("*** LOAD CONFIGURATION FILE ERROR: " + err0));
+  //     quit("LOAD CONFIGURATION FILE ERROR");
+  //     return;
+  //   }
+
+  //   if (statsObj.commandLineArgsLoaded) {
+  //     debug(chalkLog("... SKIP LOAD COMMAND LINE ARGS | ALREADY LOADED"));
+  //     return;
+  //   }
+    
+
+  //   loadCommandLineArgs(function(err1, results){
+
+  //     if (err1) {
+  //       console.log(chalkError("*** LOAD COMMAND LINE ARGS ERROR: " + err1));
+  //       quit("LOAD COMMAND LINE ARGS ERROR");
+  //       return;
+  //     }
+
+  //     const configArgs = Object.keys(configuration);
+
+  //     configArgs.forEach(function(arg){
+  //       if (_.isObject(configuration[arg])) {
+  //         console.log(chalkLog("WA | _FINAL CONFIG | " + arg + ": " + jsonPrint(configuration[arg])));
+  //       }
+  //       else {
+  //         console.log(chalkLog("WA | _FINAL CONFIG | " + arg + ": " + configuration[arg]));
+  //       }
+  //     });
+      
+  //     statsObj.commandLineArgsLoaded = true;
+
+  //   });
+  // });
 }
 
 function initLoadBestNetworkInterval(interval){

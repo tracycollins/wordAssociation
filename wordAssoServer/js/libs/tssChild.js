@@ -45,7 +45,8 @@ const Dropbox = require("dropbox").Dropbox;
 const async = require("async");
 const Twit = require("twit");
 const moment = require("moment");
-const treeify = require("treeify");
+// const treeify = require("treeify");
+const treeify = require("../libs/treeify");
 const TwitterStreamChannels = require("node-tweet-stream");
 const Slack = require("slack-node");
 const commandLineArgs = require("command-line-args");
@@ -1470,7 +1471,7 @@ function follow(params, callback){
       if (err) {
         console.log(chalkError("*** ERROR FRIENDSHIP CREATE: " + err));
         console.log(chalkError("*** ERROR FRIENDSHIP CREATE\nDATA\n" + jsonPrint(data)));
-        console.log(chalkError("*** ERROR FRIENDSHIP CREATE\nRESPONSE\n" + response));
+        console.log(chalkError("*** ERROR FRIENDSHIP CREATE\nRESPONSE\n" + jsonPrint(response)));
         return   callback(err, false);
       }
 

@@ -5612,6 +5612,18 @@ function initTransmitNodeQueueInterval(interval){
 
                         unfollowableUserSet.add(n.nodeId);
                       }
+                      else if (err.code === 99){
+
+                        console.log(chalkError("*** TWITTER SHOW USER ERROR | UNABLE TO VERIFY CREDENTIALS"
+                          + " | " + getTimeStamp() 
+                          + " | 3C @" + currentThreeceeUser 
+                          + " | ERR CODE: " + err.code
+                          + " | " + err.message
+                        ));
+
+                        threeceeTwitter[currentThreeceeUser].ready = false;
+                        threeceeTwitter[currentThreeceeUser].twitterCredentialErrorFlag = true;
+                      }
                       else {
 
                         console.log(chalkError("*** TWITTER SHOW USER ERROR"
@@ -6765,10 +6777,13 @@ function initTssChild(params, callback){
       break;
 
       case "FOLLOW_LIMIT":
+
         console.log(chalkInfo("<TSS | FOLLOW LIMIT"
+          + " | 3C @" + m.threeceeUser
           + " | LIMIT: " + getTimeStamp(m.twitterFollowLimit)
           + " | NOW: " + getTimeStamp()
         ));
+        configuration.twitterThreeceeAutoFollowUser = "altthreecee02";
       break;
 
       case "TWEET":
@@ -7993,6 +8008,7 @@ function initialize(callback){
     threeceeTwitter[user].ready = false;
     threeceeTwitter[user].status = "UNCONFIGURED";
     threeceeTwitter[user].error = false;
+    threeceeTwitter[user].twitterCredentialErrorFlag = false;
     threeceeTwitter[user].twitterRateLimitException = false;
     threeceeTwitter[user].twitterRateLimitExceptionFlag = false;
     threeceeTwitter[user].twitterRateLimitResetAt = false;

@@ -1466,6 +1466,8 @@ function follow(params, callback){
     twitterUserObj.twit.post("friendships/create", {screen_name: params.user.screenName}, function(err, data, response) {
       if (err) {
         console.log(chalkError("*** ERROR FRIENDSHIP CREATE: " + err));
+        console.log(chalkError("*** ERROR FRIENDSHIP CREATE\nDATA\n" + jsonPrint(data)));
+        console.log(chalkError("*** ERROR FRIENDSHIP CREATE\nRESPONSE\n" + jsonPrint(response)));
         return   callback(err, false);
       }
 

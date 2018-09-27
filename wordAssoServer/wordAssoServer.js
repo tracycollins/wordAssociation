@@ -5349,6 +5349,74 @@ function getCurrentThreeceeUser(callback){
   });
 }
 
+
+function getNextThreeceeAutoFollowUser(params, callback){
+
+  debug(chalkTwitter("getNextThreeceeAutoFollowUser current 3C USER: " + params.currentUser));
+
+  if (!statsObj.threeceeUsersConfiguredFlag) {
+    if (configuration.verbose ){ console.log(chalkAlert("*** THREECEE_USERS NOT CONFIGURED")); }
+    return callback(false);
+  }
+
+  if (configuration.threeceeUsers.length === 0){
+    console.log(chalkAlert("??? NO THREECEE_USERS ???"));
+    configuration.twitterThreeceeAutoFollowUser = false;
+    return callback(false);
+  }
+
+  async.eachSeries(configuration.threeceeUsers, function(threeceeUser, cb){
+
+    if ((threeceeTwitter[threeceeUser] !== undefined) 
+      && threeceeTwitter[threeceeUser].ready 
+      && !threeceeTwitter[threeceeUser].twitterFollowLimit) {
+
+      debug(chalkTwitter("IN getNextThreeceeAutoFollowUser 3C USER"
+        + " | @" + threeceeUser + " READY and NO FOLLOW LIMIT"
+      ));
+
+      return cb(threeceeUser);
+    }
+
+    debug(chalkTwitter("IN getNextThreeceeAutoFollowUser 3C USER"
+      + " | @" + threeceeUser + " NOT READY or FOLLOW LIMIT"
+    ));
+
+    cb();
+
+
+  }, function(threeceeUser){
+
+    if (threeceeUser) { 
+
+      configuration.twitterThreeceeAutoFollowUser = threeceeUser;
+
+      debug(chalkTwitter("getNextThreeceeAutoFollowUser 3C USER"
+        + " | 3C USERS: " + configuration.threeceeUsers
+        + " | @" + configuration.twitterThreeceeAutoFollowUser
+      ));
+
+    }
+    else {
+
+
+      if (configuration.twitterThreeceeAutoFollowUser) {
+
+        configuration.twitterThreeceeAutoFollowUser = false;
+
+        console.log(chalkAlert("getNextThreeceeAutoFollowUser 3C USER"
+          + " | 3C USERS: " + configuration.threeceeUsers
+          + " | NONE AUTO FOLLOW READY"
+        ));
+      }
+
+    }
+
+    return callback(configuration.twitterThreeceeAutoFollowUser);
+
+  });
+}
+
 function updateUserSets(callback){
 
   const userCollection = global.dbConnection.collection("users");
@@ -6783,7 +6851,13 @@ function initTssChild(params, callback){
           + " | LIMIT: " + getTimeStamp(m.twitterFollowLimit)
           + " | NOW: " + getTimeStamp()
         ));
-        configuration.twitterThreeceeAutoFollowUser = "altthreecee02";
+
+        threeceeTwitter[m.threeceeUser].twitterFollowLimit = true;
+
+        getNextThreeceeAutoFollowUser({currentUser: m.threeceeUser}, function(threeceeAutofollowUser){
+          console.log(chalkInfo("CURRENT 3C TWITTER AUTOFOLLOW USER: @" + threeceeAutofollowUser));
+          configuration.twitterThreeceeAutoFollowUser = threeceeAutofollowUser;
+        });
       break;
 
       case "TWEET":
@@ -8008,6 +8082,7 @@ function initialize(callback){
     threeceeTwitter[user].ready = false;
     threeceeTwitter[user].status = "UNCONFIGURED";
     threeceeTwitter[user].error = false;
+    threeceeTwitter[user].twitterFollowLimit = false;
     threeceeTwitter[user].twitterCredentialErrorFlag = false;
     threeceeTwitter[user].twitterRateLimitException = false;
     threeceeTwitter[user].twitterRateLimitExceptionFlag = false;

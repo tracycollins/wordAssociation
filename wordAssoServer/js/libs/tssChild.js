@@ -1495,7 +1495,9 @@ process.on("message", function(m) {
         + " | @" + m.user.screenName
       ));
 
-      follow({user: m.user})
+      follow(m, function(err, success){
+
+      });
 
     break;
 

@@ -3610,7 +3610,12 @@ function follow(params, callback) {
       ));
 
       if (statsObj.tssChildReady) {
-        tssChild.send({op: "FOLLOW", threeceeUser: configuration.twitterThreeceeAutoFollowUser, user: params.user});
+        tssChild.send({
+          op: "FOLLOW", 
+          threeceeUser: configuration.twitterThreeceeAutoFollowUser, 
+          user: params.user,
+          forceFollow: configuration.forceFollow
+        });
       }
 
     }

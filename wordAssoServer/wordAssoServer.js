@@ -6008,6 +6008,16 @@ function initAppRouting(callback) {
                     updateSearchTerms();
                   }
 
+                  if ((entry.path_lower.endsWith("google_twitterSearchStreamConfig.json"))
+                    || (entry.path_lower.endsWith("default_twitterSearchStreamConfig.json"))){
+                    
+                    killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, numKilled){
+                      tssPongReceived = false;
+                      initTssChild({childId: DEFAULT_TSS_CHILD_ID});
+                    });
+
+                  }
+
                 });
 
                 cb();
@@ -6748,7 +6758,7 @@ function initTssChild(params, callback){
     switch (m.op) {
 
       case "FOLLOW_LIMIT":
-        console.log(chalkInfo("<PONG | TSS FOLLOW LIMIT"
+        console.log(chalkInfo("<TSS | FOLLOW LIMIT"
           + " | LIMIT: " + getTimeStamp(m.twitterFollowLimit)
           + " | NOW: " + getTimeStamp()
         ));
@@ -6766,7 +6776,7 @@ function initTssChild(params, callback){
         tssPongReceived = m.pongId;
         childrenHashMap[params.childId].status = "RUNNING";
         if (configuration.verbose) {
-          console.log(chalkInfo("<PONG | TSS"
+          console.log(chalkInfo("<TSS | PONG"
             + " | NOW: " + getTimeStamp()
             + " | PONG ID: " + getTimeStamp(m.pongId)
             + " | RESPONSE TIME: " + msToTime(moment().valueOf() - m.pongId)

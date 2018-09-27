@@ -1439,7 +1439,7 @@ function follow(params, callback){
 
   if (twitterUserObj.stats.twitterFollowLimit) {
     console.log(chalkInfo("TSS | FOLLOW SKIP"
-      + " | FOLLOW LIMIT: " + twitterUserObj.stats.twitterFollowLimit
+      + " | FOLLOW LIMIT: " + getTimeStamp(twitterUserObj.stats.twitterFollowLimit)
       + " | 3C @" + params.threeceeUser
       + " | @" + params.user.screenName
       + " | FOLLOWING: " + twitterUserObj.followUserArray.length 
@@ -1468,7 +1468,7 @@ function follow(params, callback){
         if (data.errors[0].code !== undefined) { 
           if (data.errors[0].code === 161) {
             // console.log(chalkError("*** ERROR FRIENDSHIP CREATE: " + err));
-            twitterUserObj.stats.twitterFollowLimit = getTimeStamp();
+            twitterUserObj.stats.twitterFollowLimit = moment().valueOf();
 
             process.send({
               op: "FOLLOW_LIMIT", 

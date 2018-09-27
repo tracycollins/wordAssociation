@@ -24,6 +24,8 @@ const ONE_DAY = 24 * ONE_HOUR;
 const ONE_KILOBYTE = 1024;
 const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
 
+const DEFAULT_FORCE_FOLLOW = false;
+
 const DEFAULT_SAVE_FILE_QUEUE_INTERVAL = ONE_SECOND;
 const DEFAULT_CHECK_TWITTER_RATE_LIMIT_INTERVAL = ONE_MINUTE;
 
@@ -228,6 +230,7 @@ let hostConfiguration = {}; // host-specific configuration
 
 configuration.verbose = false;
 configuration.maxQueue = DEFAULT_MAX_QUEUE;
+configuration.forceFollow = DEFAULT_FORCE_FOLLOW;
 
 configuration.twitterThreeceeAutoFollowUser = DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER;
 
@@ -2169,6 +2172,20 @@ function loadConfigFile(params, callback) {
               }
               else {
                 configuration.verbose = false;
+              }
+            }
+
+            if (loadedConfigObj.FORCE_FOLLOW  !== undefined){
+              console.log("WA | LOADED FORCE_FOLLOW: " + loadedConfigObj.FORCE_FOLLOW);
+
+              if ((loadedConfigObj.FORCE_FOLLOW === false) || (loadedConfigObj.FORCE_FOLLOW === "false")) {
+                configuration.forceFollow = false;
+              }
+              else if ((loadedConfigObj.FORCE_FOLLOW === true) || (loadedConfigObj.FORCE_FOLLOW === "true")) {
+                configuration.forceFollow = true;
+              }
+              else {
+                configuration.forceFollow = false;
               }
             }
 

@@ -56,6 +56,7 @@ const DEFAULT_TWITTER_CONFIG_THREECEE_FILE = DEFAULT_TWITTER_CONFIG_THREECEE + "
 const DEFAULT_INTERVAL = 10;
 const DEFAULT_PING_INTERVAL = 30*ONE_SECOND;
 const DEFAULT_DROPBOX_LIST_FOLDER_LIMIT = 50;
+const DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT = 5*ONE_SECOND;
 const DEFAULT_MIN_FOLLOWERS_AUTO = 15000;
 const DEFAULT_RATE_QUEUE_INTERVAL = ONE_SECOND; // 1 second
 const DEFAULT_RATE_QUEUE_INTERVAL_MODULO = 60; // modulo RATE_QUEUE_INTERVAL
@@ -230,6 +231,7 @@ configuration.maxQueue = DEFAULT_MAX_QUEUE;
 configuration.twitterThreeceeAutoFollowUser = DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER;
 
 configuration.dropboxListFolderLimit = DEFAULT_DROPBOX_LIST_FOLDER_LIMIT;
+configuration.dropboxWebhookChangeTimeout = DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT;
 
 configuration.tweetParserInterval = DEFAULT_TWEET_PARSER_INTERVAL;
 configuration.sorterMessageRxQueueInterval = DEFAULT_SORTER_INTERVAL;
@@ -2194,7 +2196,6 @@ function loadConfigFile(params, callback) {
               }
             }
 
-
             if (loadedConfigObj.PROCESS_NAME !== undefined){
               console.log("WA | LOADED PROCESS_NAME: " + loadedConfigObj.PROCESS_NAME);
               configuration.processName = loadedConfigObj.PROCESS_NAME;
@@ -2213,6 +2214,11 @@ function loadConfigFile(params, callback) {
             if (loadedConfigObj.CURSOR_BATCH_SIZE !== undefined){
               console.log("WA | LOADED CURSOR_BATCH_SIZE: " + loadedConfigObj.CURSOR_BATCH_SIZE);
               configuration.cursorBatchSize = loadedConfigObj.CURSOR_BATCH_SIZE;
+            }
+
+            if (loadedConfigObj.DROPBOX_WEBHOOK_CHANGE_TIMEOUT !== undefined){
+              console.log("WA | LOADED DROPBOX_WEBHOOK_CHANGE_TIMEOUT: " + loadedConfigObj.DROPBOX_WEBHOOK_CHANGE_TIMEOUT);
+              configuration.dropboxWebhookChangeTimeout = loadedConfigObj.DROPBOX_WEBHOOK_CHANGE_TIMEOUT;
             }
 
             if (loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT !== undefined){
@@ -5945,19 +5951,16 @@ function initAppRouting(callback) {
             if (err) {
               console.log(chalkError("*** DROPBOX GET LATEST CURSOR ERROR: " + err));
               return cb(err);
-              // setTimeout(function(){ cb(); }, 10);
             }
             
             if (response && (response.entries.length > 0)) {
 
               setTimeout(function(){
 
-                // if (configuration.verbose) {
-                  console.log(chalk.bold.black(">>> DROPBOX CHANGE"
-                    + " | " + getTimeStamp()
-                    + " | FOLDER: " + folder
-                  ));
-                // }
+                console.log(chalk.bold.black(">>> DROPBOX CHANGE"
+                  + " | " + getTimeStamp()
+                  + " | FOLDER: " + folder
+                ));
 
                 response.entries.forEach(function(entry){
 
@@ -5972,16 +5975,14 @@ function initAppRouting(callback) {
                     updateSearchTerms();
                   }
 
-                  // /config/utility/default/defaultsearchterms.txt
-
                 });
 
                 cb();
-              }, 2000);
+              }, configuration.dropboxWebhookChangeTimeout);
 
             }
             else {
-              setTimeout(function(){ cb(); }, 2000);
+              setTimeout(function(){ cb(); }, configuration.dropboxWebhookChangeTimeout);
             }
 
           });

@@ -16,9 +16,6 @@ const TWITTER_MAX_FOLLOW_USER_NUMBER = process.env.TWITTER_MAX_FOLLOW_USER_NUMBE
 const DROPBOX_DEFAULT_SEARCH_TERMS_DIR = "/config/utiltiy/default";
 const DROPBOX_DEFAULT_SEARCH_TERMS_FILE = "defaultSearchTerms.txt";
 
-const slackOAuthAccessToken = "xoxp-3708084981-3708084993-206468961315-ec62db5792cd55071a51c544acf0da55";
-const slackChannel = "#tss";
-
 const ONE_SECOND = 1000 ;
 const ONE_MINUTE = ONE_SECOND*60 ;
 
@@ -48,7 +45,6 @@ const moment = require("moment");
 // const treeify = require("treeify");
 const treeify = require("../libs/treeify");
 const TwitterStreamChannels = require("node-tweet-stream");
-const Slack = require("slack-node");
 const commandLineArgs = require("command-line-args");
 const Measured = require("measured");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
@@ -1066,13 +1062,8 @@ function initSearchTerms(cnf, callback){
                 statsObj.twitterErrors += 1;
                 twitterUserObj.stats.twitterErrors = 0;
 
-                slackPostMessage(slackChannel, "\n*TWITTER ERROR*"
-                  + "\n*" + twitterUserObj.screenName + "*\n"
-                  + "\n*" + userObj.twitterUserScreenName + "*\n"
-                  + "\nDATA\n" + jsonPrint(err) + "\n"
-                  + "\n" + statsObj.twitterErrors + " ERRORs\n"
-                );
-                
+                process.send({op: "ERROR", threeceeUser: screenName, errorType: "TWITTER", error: err});
+
                 showStats();
               });
               

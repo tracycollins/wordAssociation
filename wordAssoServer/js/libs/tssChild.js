@@ -72,6 +72,7 @@ const chalkConnect = chalk.green;
 const searchTermHashMap = new HashMap();
 const twitterUserHashMap = new HashMap();
 
+const twitterFollowQueue = [];
 
 process.on("SIGHUP", function processSigHup() {
   quit("SIGHUP");
@@ -1427,6 +1428,46 @@ function initSearchTermsInterval(cnf){
   }, cnf.searchTermsUpdateInterval);
 }
 
+function follow(params, callback){
+
+  let twitterUserObj = twitterUserHashMap.get(params.threeceeUser);
+
+  if (!twitterUserObj.followUserArray.includes(params.user.userId)){
+
+    twitterUserObj.followUserArray.push(params.user.userId);
+
+    twitterUserObj.twit.post("friendships/create", {screen_name: params.user.screenName}, function(err, data, response) {
+      if (err) {
+        console.log(chalkError("*** ERROR FRIENDSHIP CREATE: " + err));
+        return   callback(err, false);
+      }
+
+      console.log(chalkAlert("TSS | +++ FOLLOW"
+        + " | 3C @" + params.threeceeUser
+        + " | @" + params.user.screenName
+        + " | FOLLOWING: " + twitterUserObj.followUserArray.length 
+        + "/" + TWITTER_MAX_FOLLOW_USER_NUMBER + " MAX"
+        + " | UID: " + params.user.userId
+      ));
+
+      callback(null, true);
+    });
+
+  }
+  else {
+
+    console.log(chalkInfo("TSS | ... SKIP FOLLOW"
+      + " | 3C @" + params.threeceeUser
+      + " | @" + params.user.screenName
+      + " | FOLLOWING: " + twitterUserObj.followUserArray.length 
+      + "/" + TWITTER_MAX_FOLLOW_USER_NUMBER + " MAX"
+      + " | UID: " + params.user.userId
+    ));
+
+    callback(null, false);
+  }
+}
+
 
 process.on("message", function(m) {
 
@@ -1445,6 +1486,17 @@ process.on("message", function(m) {
       console.log(chalkInfo("TSS INIT"
         + " | TITLE: " + m.title
       ));
+    break;
+
+    case "FOLLOW":
+      console.log(chalkInfo("TSS FOLLOW"
+        + " | 3C USER @" + m.threeceeUser
+        + " | USER " + m.user.userId
+        + " | @" + m.user.screenName
+      ));
+
+      follow({user: m.user})
+
     break;
 
     case "UPDATE_SEARCH_TERMS":

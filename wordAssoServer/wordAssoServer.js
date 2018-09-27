@@ -5119,46 +5119,54 @@ function autoFollowUser(params, callback){
     return;
   }
 
-  console.log(chalkUser("AUTO FOLLOW USER"
-    + " | MIN: " + configuration.minFollowersAuto
-    + "\n" + printUser({user:params.user})
-  ));
+  getNextThreeceeAutoFollowUser(function(threeceeAutofollowUser){
+    if (!threeceeAutofollowUser) {
+      console.log(chalkAlert("NO AUTOFOLLOW USER"));
+      if (callback !== undefined) { 
+        return callback(null, null);
+      }
 
-  follow({user: params.user}, function(err, results){
-    if (err) {
-
-      unfollowableUserSet.delete(params.user.nodeId);
-
-      if (callback !== undefined) { return callback(err, params); }
       return;
     }
+    console.log(chalkInfo("CURRENT 3C TWITTER AUTOFOLLOW USER: @" + threeceeAutofollowUser));
+    configuration.twitterThreeceeAutoFollowUser = threeceeAutofollowUser;
 
-    // adminNameSpace.emit("FOLLOW", params.user);
-    // utilNameSpace.emit("FOLLOW", params.user);
-
-    // if (statsObj.tssChildReady) {
-    //   tssChild.send({op: "FOLLOW", user: params.user});
-    // }
-
-    console.log(chalk.blue("+++ AUTO FOLLOW"
-      + " | UID: " + params.user.userId
-      + " | @" + params.user.screenName
-      + " | NAME: " + params.user.name
-      + " | FOLLOWING: " + params.user.following
-      + " | 3C FOLLOW: " + params.user.threeceeFollowing
-      + " | FLWRs: " + params.user.followersCount
+    console.log(chalkUser("AUTO FOLLOW USER"
+      + " | MIN: " + configuration.minFollowersAuto
+      + "\n" + printUser({user:params.user})
     ));
 
-    const text = "*WAS*"
-      + "\n*AUTO FOLLOW*"
-      + "\n@" + params.user.screenName + " | " + params.user.name
-      // + "\nID: " + params.user.userId
-      + "\nFLWRs: " + params.user.followersCount
-      + "\n3C @" + params.user.threeceeFollowing;
+    follow({user: params.user}, function(err, results){
+      if (err) {
 
-    slackPostMessage(slackChannelAutoFollow, text);
+        unfollowableUserSet.delete(params.user.nodeId);
 
-    if (callback !== undefined) { return callback(null, results); }
+        if (callback !== undefined) { return callback(err, params); }
+        return;
+      }
+
+      console.log(chalk.blue("+++ AUTO FOLLOW"
+        + " | UID: " + params.user.userId
+        + " | @" + params.user.screenName
+        + " | NAME: " + params.user.name
+        + " | FOLLOWING: " + params.user.following
+        + " | 3C FOLLOW: " + params.user.threeceeFollowing
+        + " | FLWRs: " + params.user.followersCount
+      ));
+
+      const text = "*WAS*"
+        + "\n*AUTO FOLLOW*"
+        + "\n@" + params.user.screenName + " | " + params.user.name
+        // + "\nID: " + params.user.userId
+        + "\nFLWRs: " + params.user.followersCount
+        + "\n3C @" + params.user.threeceeFollowing;
+
+      slackPostMessage(slackChannelAutoFollow, text);
+
+      if (callback !== undefined) { return callback(null, results); }
+
+    });
+
   });
 }
 
@@ -5350,9 +5358,7 @@ function getCurrentThreeceeUser(callback){
 }
 
 
-function getNextThreeceeAutoFollowUser(params, callback){
-
-  debug(chalkTwitter("getNextThreeceeAutoFollowUser current 3C USER: " + params.currentUser));
+function getNextThreeceeAutoFollowUser(callback){
 
   if (!statsObj.threeceeUsersConfiguredFlag) {
     if (configuration.verbose ){ console.log(chalkAlert("*** THREECEE_USERS NOT CONFIGURED")); }
@@ -6854,9 +6860,15 @@ function initTssChild(params, callback){
 
         threeceeTwitter[m.threeceeUser].twitterFollowLimit = true;
 
-        getNextThreeceeAutoFollowUser({currentUser: m.threeceeUser}, function(threeceeAutofollowUser){
-          console.log(chalkInfo("CURRENT 3C TWITTER AUTOFOLLOW USER: @" + threeceeAutofollowUser));
-          configuration.twitterThreeceeAutoFollowUser = threeceeAutofollowUser;
+        getNextThreeceeAutoFollowUser(function(threeceeAutofollowUser){
+
+          if (!threeceeAutofollowUser) {
+            console.log(chalkAlert("NO AUTOFOLLOW USER"));
+          }
+          else {
+            console.log(chalkInfo("CURRENT 3C TWITTER AUTOFOLLOW USER: @" + threeceeAutofollowUser));
+            configuration.twitterThreeceeAutoFollowUser = threeceeAutofollowUser;
+          }
         });
       break;
 

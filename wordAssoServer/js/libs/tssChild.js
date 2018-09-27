@@ -124,9 +124,6 @@ let resetInProgressFlag = false;
 
 const jsonPrint = function (obj){
   if (obj) {
-    if (obj.hasOwnProperty === undefined) {
-      return "HAS OWN PROPERTY UNDEFINED";
-    }
     return treeify.asTree(obj, true, true);
   }
   else {

@@ -1433,7 +1433,7 @@ function follow(params, callback){
 
   let twitterUserObj = twitterUserHashMap.get(params.threeceeUser);
 
-  if (configuration.forceFollow || !twitterUserObj.followUserArray.includes(params.user.userId)){
+  if (params.forceFollow || configuration.forceFollow || !twitterUserObj.followUserArray.includes(params.user.userId)){
 
     if (!twitterUserObj.followUserArray.includes(params.user.userId)) {
       twitterUserObj.followUserArray.push(params.user.userId);

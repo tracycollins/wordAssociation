@@ -1450,6 +1450,13 @@ function follow(params, callback){
         + " | UID: " + params.user.userId
       ));
 
+      twitterUserObj.searchStream = twitterUserObj.twit.stream(
+        "statuses/filter", 
+        { track: twitterUserObj.searchTermArray, follow: twitterUserObj.followUserArray }
+      );
+
+      twitterUserHashMap.set(params.threeceeUser, params.threeceeUser);
+
       callback(null, true);
     });
 

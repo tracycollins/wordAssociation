@@ -6760,7 +6760,7 @@ function initTssChild(params, callback){
       case "ERROR":
         console.log(chalkError("<TSS | ERROR"
           + " | ERROR TYPE: " + m.errorType
-          + " | ERROR: " + m.error
+          + " | ERROR: " + jsonPrint(m.error)
         ));
       break;
 
@@ -8189,7 +8189,13 @@ function initThreeceeTwitterUsers(params, callback){
           threeceeTwitter[user].config = {};
           threeceeTwitter[user].config = twitterConfig;
 
-          threeceeTwitter[user].twit = new Twit(twitterConfig);
+          // threeceeTwitter[user].twit = new Twit(twitterConfig);
+          threeceeTwitter[user].twit = new Twit({
+            consumer_key: twitterConfig.consumer_key, 
+            consumer_secret:twitterConfig.consumer_secret,
+            app_only_auth: true
+          });
+          // app_only_auth
           threeceeTwitter[user].ready = true;
           threeceeTwitter[user].status = false;
           threeceeTwitter[user].error = false;

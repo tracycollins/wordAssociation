@@ -43,7 +43,7 @@ const DEFAULT_FIND_CAT_HASHTAG_CURSOR_LIMIT = 100;
 
 const DEFAULT_CURSOR_BATCH_SIZE = 100;
 
-const DEFAULT_THREECEE_USERS = ["altthreecee00", "altthreecee01", "altthreecee02", "altthreecee03"];
+const DEFAULT_THREECEE_USERS = ["altthreecee00", "altthreecee01", "altthreecee02", "altthreecee03", "altthreecee04", "altthreecee05"];
 
 const DEFAULT_SORTER_CHILD_ID = "wa_node_sorter";
 const DEFAULT_TSS_CHILD_ID = "wa_node_tss";
@@ -5264,7 +5264,7 @@ function initCheckTwitterRateLimitInterval(interval){
 
       async.eachSeries(configuration.threeceeUsers, function(user, cb){
 
-        if (threeceeTwitter[user].twitterRateLimitExceptionFlag) {
+        if ((threeceeTwitter[user] !== undefined) && (threeceeTwitter[user].twitterRateLimitExceptionFlag)) {
 
           checkTwitterRateLimit({user: user}, function(err){
             cb();

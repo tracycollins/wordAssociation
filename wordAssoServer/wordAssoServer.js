@@ -149,7 +149,8 @@ const debug = require("debug")("wa");
 const debugCache = require("debug")("cache");
 const debugCategory = require("debug")("kw");
 const moment = require("moment");
-const treeify = require("treeify");
+// const treeify = require("treeify");
+const treeify = require(__dirname + "/js/libs/treeify");
 
 const express = require("express");
 const app = express();

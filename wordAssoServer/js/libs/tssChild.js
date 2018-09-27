@@ -1468,7 +1468,7 @@ function follow(params, callback){
       if (err) {
         console.log(chalkError("*** ERROR FRIENDSHIP CREATE: " + err));
         console.log(chalkError("*** ERROR FRIENDSHIP CREATE\nDATA\n" + jsonPrint(data)));
-        console.log(chalkError("*** ERROR FRIENDSHIP CREATE\nRESPONSE\n" + jsonPrint(response)));
+        // console.log(chalkError("*** ERROR FRIENDSHIP CREATE\nRESPONSE\n" + jsonPrint(response)));
         return   callback(err, false);
       }
 

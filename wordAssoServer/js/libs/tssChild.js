@@ -104,6 +104,7 @@ let stdin;
 
 let configuration = {};
 configuration.verbose = false;
+configuration.forceFollow = false;
 configuration.globalTestMode = false;
 configuration.testMode = false; // per tweet test mode
 configuration.searchTermsUpdateInterval = 1*ONE_MINUTE;
@@ -1432,9 +1433,11 @@ function follow(params, callback){
 
   let twitterUserObj = twitterUserHashMap.get(params.threeceeUser);
 
-  if (!twitterUserObj.followUserArray.includes(params.user.userId)){
+  if (configuration.forceFollow || !twitterUserObj.followUserArray.includes(params.user.userId)){
 
-    twitterUserObj.followUserArray.push(params.user.userId);
+    if (!twitterUserObj.followUserArray.includes(params.user.userId)) {
+      twitterUserObj.followUserArray.push(params.user.userId);
+    }
 
     twitterUserObj.twit.post("friendships/create", {screen_name: params.user.screenName}, function(err, data, response) {
       if (err) {
@@ -1500,7 +1503,10 @@ process.on("message", function(m) {
         + " | 3C USER @" + m.threeceeUser
         + " | USER " + m.user.userId
         + " | @" + m.user.screenName
+        + " | FORCE FOLLOW: " + m.forceFollow
       ));
+
+      if (m.forceFollow !== undefined) { configuration.forceFollow = m.forceFollow; }
 
       follow(m, function(err, success){
 

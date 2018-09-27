@@ -3571,6 +3571,7 @@ function follow(params, callback) {
   const query = { nodeId: params.user.nodeId };
 
   let update = {};
+
   update["$set"] = { 
     following: true, 
     threeceeFollowing: configuration.twitterThreeceeAutoFollowUser
@@ -3590,6 +3591,11 @@ function follow(params, callback) {
       console.log(chalkLog("+++ FOLLOW"
         + " | " + printUser({user: userUpdated})
       ));
+
+      if (statsObj.tssChildReady) {
+        tssChild.send({op: "FOLLOW", threeceeUser: configuration.twitterThreeceeAutoFollowUser, user: params.user});
+      }
+
     }
     else {
       console.log(chalkLog("... ALREADY FOLLOWING"
@@ -4287,8 +4293,8 @@ function initSocketHandler(socketObj) {
         return;
       }
 
-      adminNameSpace.emit("FOLLOW", updatedUser);
-      utilNameSpace.emit("FOLLOW", updatedUser);
+      // adminNameSpace.emit("FOLLOW", updatedUser);
+      // utilNameSpace.emit("FOLLOW", updatedUser);
 
       console.log(chalk.blue("+++ TWITTER_FOLLOW"
         + " | " + ipAddress
@@ -5104,9 +5110,12 @@ function autoFollowUser(params, callback){
       return;
     }
 
+    // adminNameSpace.emit("FOLLOW", params.user);
+    // utilNameSpace.emit("FOLLOW", params.user);
 
-    adminNameSpace.emit("FOLLOW", params.user);
-    utilNameSpace.emit("FOLLOW", params.user);
+    // if (statsObj.tssChildReady) {
+    //   tssChild.send({op: "FOLLOW", user: params.user});
+    // }
 
     console.log(chalk.blue("+++ AUTO FOLLOW"
       + " | UID: " + params.user.userId

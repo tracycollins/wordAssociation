@@ -10,7 +10,7 @@
       "WA_VERBOSE_MODE": false,
       "FORCE_COLOR": 1,
       "NODE_ENV": "development",
-      "THREECEE_USERS": ["altthreecee00"],
+      "THREECEE_USERS": ["altthreecee00", "altthreecee01", "altthreecee02", "altthreecee03"],
       "CATEGORY_HASHMAPS_UPDATE_INTERVAL": 300000,
       "CHECK_TWITTER_RATE_LIMIT_INTERVAL": 60000,
       "HEAPDUMP_ENABLED": false,

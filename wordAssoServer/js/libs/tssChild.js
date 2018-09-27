@@ -1455,7 +1455,7 @@ function follow(params, callback){
         { track: twitterUserObj.searchTermArray, follow: twitterUserObj.followUserArray }
       );
 
-      twitterUserHashMap.set(params.threeceeUser, params.threeceeUser);
+      twitterUserHashMap.set(params.threeceeUser, twitterUserObj);
 
       callback(null, true);
     });

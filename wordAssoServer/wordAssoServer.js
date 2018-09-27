@@ -43,7 +43,7 @@ const DEFAULT_FIND_CAT_HASHTAG_CURSOR_LIMIT = 100;
 
 const DEFAULT_CURSOR_BATCH_SIZE = 100;
 
-const DEFAULT_THREECEE_USERS = ["altthreecee00"];
+const DEFAULT_THREECEE_USERS = ["altthreecee00", "altthreecee01", "altthreecee02", "altthreecee03"];
 
 const DEFAULT_SORTER_CHILD_ID = "wa_node_sorter";
 const DEFAULT_TSS_CHILD_ID = "wa_node_tss";
@@ -6745,32 +6745,65 @@ function initTssChild(params, callback){
       + " | OP: " + m.op
     ));
 
-    if (m.op === "PONG"){
+    switch (m.op) {
 
-      tssPongReceived = m.pongId;
-
-      childrenHashMap[params.childId].status = "RUNNING";
-
-      if (configuration.verbose) {
-        console.log(chalkInfo("<PONG | TSS"
+      case "FOLLOW_LIMIT":
+        console.log(chalkInfo("<PONG | TSS FOLLOW LIMIT"
+          + " | LIMIT: " + getTimeStamp(m.twitterFollowLimit)
           + " | NOW: " + getTimeStamp()
-          + " | PONG ID: " + getTimeStamp(m.pongId)
-          + " | RESPONSE TIME: " + msToTime(moment().valueOf() - m.pongId)
         ));
-      }
-    } 
+      break;
 
-    else {
+      case "TWEET":
+        deltaTssMessage = process.hrtime(deltaTssMessageStart);
+        if (deltaTssMessage[0] > 0) { console.log(chalkAlert("*** TSS RX DELTA: " + deltaTssMessage[0] + "." + deltaTssMessage[1])); }
+        deltaTssMessageStart = process.hrtime();
+        if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + m.tweet.id_str + " | @" + m.tweet.user.screen_name)); }
+        socketRxTweet(m.tweet);
+      break;
 
-      deltaTssMessage = process.hrtime(deltaTssMessageStart);
-      if (deltaTssMessage[0] > 0) { console.log(chalkAlert("*** TSS RX DELTA: " + deltaTssMessage[0] + "." + deltaTssMessage[1])); }
-      deltaTssMessageStart = process.hrtime();
+      case "PONG":
+        tssPongReceived = m.pongId;
+        childrenHashMap[params.childId].status = "RUNNING";
+        if (configuration.verbose) {
+          console.log(chalkInfo("<PONG | TSS"
+            + " | NOW: " + getTimeStamp()
+            + " | PONG ID: " + getTimeStamp(m.pongId)
+            + " | RESPONSE TIME: " + msToTime(moment().valueOf() - m.pongId)
+          ));
+        }
+      break;
 
-      if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + m.tweet.id_str + " | @" + m.tweet.user.screen_name)); }
-      
-      socketRxTweet(m.tweet);
-
+      default:
+        console.log(chalkError("TSS | *** ERROR *** UNKNOWN OP: " + m.op));
     }
+
+    // if (m.op === "PONG"){
+
+    //   tssPongReceived = m.pongId;
+
+    //   childrenHashMap[params.childId].status = "RUNNING";
+
+    //   if (configuration.verbose) {
+    //     console.log(chalkInfo("<PONG | TSS"
+    //       + " | NOW: " + getTimeStamp()
+    //       + " | PONG ID: " + getTimeStamp(m.pongId)
+    //       + " | RESPONSE TIME: " + msToTime(moment().valueOf() - m.pongId)
+    //     ));
+    //   }
+    // } 
+
+    // else {
+
+    //   deltaTssMessage = process.hrtime(deltaTssMessageStart);
+    //   if (deltaTssMessage[0] > 0) { console.log(chalkAlert("*** TSS RX DELTA: " + deltaTssMessage[0] + "." + deltaTssMessage[1])); }
+    //   deltaTssMessageStart = process.hrtime();
+
+    //   if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + m.tweet.id_str + " | @" + m.tweet.user.screen_name)); }
+      
+    //   socketRxTweet(m.tweet);
+
+    // }
 
   });
 

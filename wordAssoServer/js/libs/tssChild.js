@@ -1176,7 +1176,7 @@ function initialize(cnf, callback){
 
   cnf.twitterQueueIntervalTime = process.env.TSS_TWITTER_QUEUE_INTERVAL || DEFAULT_TWITTER_QUEUE_INTERVAL ;
   cnf.maxTweetQueue = process.env.TSS_MAX_TWEET_QUEUE || DEFAULT_MAX_TWEET_QUEUE ;
-  cnf.twitterUsers = [ "altthreecee00", "altthreecee01" ];
+  cnf.twitterUsers = [ "altthreecee00", "altthreecee01", "altthreecee02", "altthreecee03" ];
 
   cnf.twitterConfigFolder = process.env.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER || "/config/twitter"; 
   cnf.twitterConfigFile = process.env.DROPBOX_TSS_DEFAULT_TWITTER_CONFIG_FILE 
@@ -1356,7 +1356,6 @@ function initTwitterQueue(cnf, callback){
       if (tweetStatus.id_str !== prevTweetId) {
 
         debug(chalkTwitter("[" + tweetQueue.length + "] " + tweetStatus.id_str));
-        // socket.emit("tweet", tweetStatus);
 
         sendMessageTimeout = setTimeout(function(){
 
@@ -1367,31 +1366,10 @@ function initTwitterQueue(cnf, callback){
 
         }, configuration.sendMessageTimeout);
 
-        process.send({op: "tweet", tweet: tweetStatus});
+        process.send({op: "TWEET", tweet: tweetStatus});
 
         clearTimeout(sendMessageTimeout);
         tweetSendReady = true;
-
-        // process.send({op: "tweet", tweet: tweetStatus}, function(err){
-
-        //   clearTimeout(sendMessageTimeout);
-
-        //   tweetSendReady = true;
-
-        //   if (err) {
-        //     console.error(chalkError("*** TSS SEND TWEET ERROR"
-        //       + " | " + moment().format(compactDateTimeFormat)
-        //       + " | " + err
-        //     ));
-        //   }
-        //   else {
-        //     debug(chalkInfo("TSS SEND TWEET COMPLETE"
-        //       + " | " + moment().format(compactDateTimeFormat)
-        //       + " | " + tweetStatus.id_str
-        //     ));
-        //   }
-
-        // });
 
       }
       else {
@@ -1469,6 +1447,12 @@ function follow(params, callback){
       + " | UID: " + params.user.userId
     ));
 
+    process.send({
+      op: "FOLLOW_LIMIT", 
+      threeceeUser: params.threeceeUser, 
+      twitterFollowLimit: twitterUserObj.stats.twitterFollowLimit
+    });
+
     return callback(null, false);
   }
 
@@ -1483,8 +1467,15 @@ function follow(params, callback){
         // console.log(chalkError("*** ERROR FRIENDSHIP CREATE\nRESPONSE\n" + jsonPrint(response)));
         if (data.errors[0].code !== undefined) { 
           if (data.errors[0].code === 161) {
-            console.log(chalkError("*** ERROR FRIENDSHIP CREATE: " + err));
+            // console.log(chalkError("*** ERROR FRIENDSHIP CREATE: " + err));
             twitterUserObj.stats.twitterFollowLimit = getTimeStamp();
+
+            process.send({
+              op: "FOLLOW_LIMIT", 
+              threeceeUser: params.threeceeUser, 
+              twitterFollowLimit: twitterUserObj.stats.twitterFollowLimit
+            });
+
           }
         }
         console.log(chalkError("*** ERROR FRIENDSHIP CREATE: " + err));
@@ -1590,13 +1581,6 @@ process.on("message", function(m) {
 
       setTimeout(function(){
         process.send({ op: "PONG", pongId: m.pingId });
-
-        // process.send({ op: "PONG", pongId: m.pingId }, function(err){
-        //   if (err) {
-        //     console.log(chalkError("TWP | !!! TSS PONG SEND ERR: " + err));
-        //     quit("TSS PONG SEND ERR");
-        //   }
-        // });
       }, 1000);
     break;
 

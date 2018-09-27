@@ -575,6 +575,7 @@ function initTwitterUsers(cnf, callback){
         twitterUserObj.stats.retweetsReceived = 0;
         twitterUserObj.stats.twitterConnects = 0;
         twitterUserObj.stats.twitterReconnects = 0;
+        twitterUserObj.stats.twitterFollowLimit = false;
         twitterUserObj.stats.twitterLimit = 0;
         twitterUserObj.stats.twitterErrors = 0;
         twitterUserObj.stats.rateLimited = false;
@@ -1458,6 +1459,19 @@ function follow(params, callback){
 
   let twitterUserObj = twitterUserHashMap.get(params.threeceeUser);
 
+  if (twitterUserObj.stats.twitterFollowLimit) {
+    console.log(chalkInfo("TSS | FOLLOW SKIP"
+      + " | FOLLOW LIMIT: " + twitterUserObj.stats.twitterFollowLimit
+      + " | 3C @" + params.threeceeUser
+      + " | @" + params.user.screenName
+      + " | FOLLOWING: " + twitterUserObj.followUserArray.length 
+      + "/" + TWITTER_MAX_FOLLOW_USER_NUMBER + " MAX"
+      + " | UID: " + params.user.userId
+    ));
+
+    return callback(null, false);
+  }
+
   if (params.forceFollow || configuration.forceFollow || !twitterUserObj.followUserArray.includes(params.user.userId)){
 
     if (!twitterUserObj.followUserArray.includes(params.user.userId)) {
@@ -1466,9 +1480,15 @@ function follow(params, callback){
 
     twitterUserObj.twit.post("friendships/create", {screen_name: params.user.screenName}, function(err, data, response) {
       if (err) {
+        // console.log(chalkError("*** ERROR FRIENDSHIP CREATE\nRESPONSE\n" + jsonPrint(response)));
+        if (data.errors[0].code !== undefined) { 
+          if (data.errors[0].code === 161) {
+            console.log(chalkError("*** ERROR FRIENDSHIP CREATE: " + err));
+            twitterUserObj.stats.twitterFollowLimit = getTimeStamp();
+          }
+        }
         console.log(chalkError("*** ERROR FRIENDSHIP CREATE: " + err));
         console.log(chalkError("*** ERROR FRIENDSHIP CREATE\nDATA\n" + jsonPrint(data)));
-        // console.log(chalkError("*** ERROR FRIENDSHIP CREATE\nRESPONSE\n" + jsonPrint(response)));
         return   callback(err, false);
       }
 
@@ -1489,7 +1509,6 @@ function follow(params, callback){
 
       callback(null, true);
     });
-
   }
   else {
 

@@ -342,7 +342,7 @@ function showStats(options){
 
     twitterUserHashMap.forEach(function(twitterUserObj, screenName){
       console.log("@" + screenName
-        + " | FOLLOWING USERS: " + twitterUserObj.followUserArray.length
+        + " | FOLLOWING USERS: " + twitterUserObj.followUserSet.size
         + " | TRACKING SEARCH TERMS: " + twitterUserObj.searchTermArray.length
         + "\n" + jsonPrint(twitterUserObj.stats)
       );
@@ -365,7 +365,7 @@ function showStats(options){
 
     twitterUserHashMap.forEach(function(twitterUserObj, screenName){
       console.log("@" + screenName
-        + " | FOLLOWING USERS: " + twitterUserObj.followUserArray.length
+        + " | FOLLOWING USERS: " + twitterUserObj.followUserSet.size
         + " | TRACKING SEARCH TERMS: " + twitterUserObj.searchTermArray.length
         + "\n" + jsonPrint(twitterUserObj.stats)
       );
@@ -596,7 +596,8 @@ function initTwit(params, callback){
 
   twitterUserObj.searchStream = {};
   twitterUserObj.searchTermArray = [];
-  twitterUserObj.followUserArray = [];
+  // twitterUserObj.followUserArray = [];
+  twitterUserObj.followUserSet = new Set();
 
   console.log(chalkTwitter("INIT TWITTER USER"
     + " | NAME: " + params.config.SCREEN_NAME
@@ -622,11 +623,11 @@ function initTwit(params, callback){
       return callback(err, twitterUserObj);
     }
 
-    twitterUserObj.followUserArray = data.ids;
+    twitterUserObj.followUserSet = new Set(data.ids);
 
     console.log(chalkError("TSS | TWITTER GET FRIENDS IDS"
       + " | @" + twitterUserObj.screenName
-      + " | " + twitterUserObj.followUserArray.length + " FRIENDS"
+      + " | " + twitterUserObj.followUserSet.size + " FRIENDS"
     ));
 
     twitterUserHashMap.set(twitterUserObj.screenName, twitterUserObj);
@@ -634,12 +635,15 @@ function initTwit(params, callback){
     let userIndex = 0;
     let printString = "";
 
-    async.eachSeries(twitterUserObj.followUserArray, function(userId, cb){
+    async.eachSeries([...twitterUserObj.followUserSet], function(userId, cb){
 
       userIndex += 1;
 
       if (followingUserIdSet.has(userId)){
-        console.log(chalk.black("TSS [ " + userIndex + "/" + twitterUserObj.followUserArray.length + " ]"
+
+        twitterUserObj.followUserSet.delete(userId);
+
+        console.log(chalk.black("TSS [ " + userIndex + "/" + twitterUserObj.followUserSet.size + " ]"
           + " XXX UNFOLLOW | " + userId
         ));
 
@@ -669,24 +673,50 @@ function initTwit(params, callback){
         followingUserIdSet.add(userId);
 
         User.findOne({ userId: userId }, function (err, user) {
+
           if (err) { 
             console.log(chalkAlert("TSS | *** USER DB ERROR *** | " + err));
             return cb(err);
           }
+
           if (user) {
-            printString = "TSS | [ " + userIndex + "/" + twitterUserObj.followUserArray.length + " ] @" + twitterUserObj.screenName + " | DB USER FOUND";
+
+            printString = "TSS | [ " + userIndex + "/" + twitterUserObj.followUserSet.size + " ] @" + twitterUserObj.screenName + " | DB USER FOUND";
+
             printUserObj(printString, user);
+
             if (!user.following) {
               user.following = true;
               user.threeceeFollowing = twitterUserObj.screenName;
-              user.update();
+              user.markModified("following");
+              user.markModified("threeceeFollowing");
+              user.save(function(err){
+                if (err) { console.log(chalkError("TSS | *** USER DB SAVE ERROR: " + err)); }
+                cb();
+              });
             }
-            return cb();
+            else if (user.following && (user.threeceeFollowing > twitterUserObj.screenName)) {
+              console.log(chalk.black("TSS | -X- CHANGE 3C FOLLOWING"
+                + " | UID: " + user.userId
+                + " | @" + user.screenName
+                + " | 3C @" + user.threeceeFollowing + " -> " + twitterUserObj.screenName
+              ));
+              user.threeceeFollowing = twitterUserObj.screenName;
+              user.markModified("threeceeFollowing");
+              user.save(function(err){
+                if (err) { console.log(chalkError("TSS | *** USER DB SAVE ERROR: " + err)); }
+                cb();
+              });
+            }
+            else {
+              cb();
+            }
+
           }
           else {
-            console.log(chalkLog("TSS | [ " + userIndex + "/" + twitterUserObj.followUserArray.length + " ]"
+            console.log(chalkLog("TSS | [ " + userIndex + "/" + twitterUserObj.followUserSet.size + " ]"
               + " @" + twitterUserObj.screenName 
-              + " | DB USER MISS | UID: " + userId
+              + " | DB USER MISS  | UID: " + userId
             ));
             cb();
           }
@@ -694,7 +724,7 @@ function initTwit(params, callback){
       }
 
     }, function(err){
-      process.send({op: "TWITTER_STATS", threeceeUser: twitterUserObj.screenName, twitterFollowing: twitterUserObj.followUserArray.length});
+      process.send({op: "TWITTER_STATS", threeceeUser: twitterUserObj.screenName, twitterFollowing: twitterUserObj.followUserSet.size});
       callback(null, twitterUserObj);
     });
 
@@ -800,7 +830,7 @@ function initTwitterUsers(cnf, callback){
 
         // twitterUserObj.searchStream = {};
         // twitterUserObj.searchTermArray = [];
-        // twitterUserObj.followUserArray = [];
+        // twitterUserObj.followUserSet = [];
 
         // console.log(chalkTwitter("ADDED TWITTER USER STREAM"
         //   + " | NAME: " + screenName
@@ -875,7 +905,7 @@ async function initFollowUsers(cnf, callback){
 
     async.whilst( 
       function(){ 
-        return ((twitterUserObj.followUserArray.length < TWITTER_MAX_FOLLOW_USER_NUMBER)
+        return ((twitterUserObj.followUserSet.size < TWITTER_MAX_FOLLOW_USER_NUMBER)
           && (userIdArray.length > 0));
       },
       function(cb0){
@@ -883,13 +913,13 @@ async function initFollowUsers(cnf, callback){
         const userId = userIdArray.shift();
 
         // need to check other 3C users if more than one
-        if (!twitterUserObj.followUserArray.includes(userId)){
+        if (!twitterUserObj.followUserSet.has(userId)){
 
-          twitterUserObj.followUserArray.push(userId);
+          twitterUserObj.followUserSet.add(userId);
 
           console.log(chalkInfo("+++ FOLLOW"
             + " | @" + screenName
-            + " | FOLLOWING: " + twitterUserObj.followUserArray.length 
+            + " | FOLLOWING: " + twitterUserObj.followUserSet.size 
             + "/" + TWITTER_MAX_FOLLOW_USER_NUMBER + " MAX"
             + " | UID: " + userId
           ));
@@ -900,7 +930,7 @@ async function initFollowUsers(cnf, callback){
         else {
           console.log(chalkInfo("--- SKIP FOLLOW"
             + " | @" + screenName
-            + " | FOLLOWING: " + twitterUserObj.followUserArray.length 
+            + " | FOLLOWING: " + twitterUserObj.followUserSet.size 
             + "/" + TWITTER_MAX_FOLLOW_USER_NUMBER + " MAX"
             + " | UID: " + userId
           ));
@@ -1120,7 +1150,7 @@ function initSearchTerms(cnf, callback){
 
               twitterUserObj.searchStream = twitterUserObj.twit.stream(
                 "statuses/filter", 
-                { track: twitterUserObj.searchTermArray, follow: twitterUserObj.followUserArray }
+                { track: twitterUserObj.searchTermArray, follow: twitterUserObj.followUserSet }
               );
 
               twitterUserObj.searchStream.on("message", function(msg){
@@ -1632,7 +1662,7 @@ function follow(params, callback){
       + " | FOLLOW LIMIT: " + getTimeStamp(twitterUserObj.stats.twitterFollowLimit)
       + " | 3C @" + params.threeceeUser
       + " | @" + params.user.screenName
-      + " | FOLLOWING: " + twitterUserObj.followUserArray.length 
+      + " | FOLLOWING: " + twitterUserObj.followUserSet.size 
       + "/" + TWITTER_MAX_FOLLOW_USER_NUMBER + " MAX"
       + " | UID: " + params.user.userId
     ));
@@ -1646,10 +1676,10 @@ function follow(params, callback){
     return callback(null, false);
   }
 
-  if (params.forceFollow || configuration.forceFollow || !twitterUserObj.followUserArray.includes(params.user.userId)){
+  if (params.forceFollow || configuration.forceFollow || !twitterUserObj.followUserSet.has(params.user.userId)){
 
-    if (!twitterUserObj.followUserArray.includes(params.user.userId)) {
-      twitterUserObj.followUserArray.push(params.user.userId);
+    if (!twitterUserObj.followUserSet.has(params.user.userId)) {
+      twitterUserObj.followUserSet.add(params.user.userId);
     }
 
     twitterUserObj.twit.post("friendships/create", {screen_name: params.user.screenName}, function(err, data, response) {
@@ -1676,14 +1706,14 @@ function follow(params, callback){
       console.log(chalkAlert("TSS | +++ FOLLOW"
         + " | 3C @" + params.threeceeUser
         + " | @" + params.user.screenName
-        + " | FOLLOWING: " + twitterUserObj.followUserArray.length 
+        + " | FOLLOWING: " + twitterUserObj.followUserSet.size 
         + "/" + TWITTER_MAX_FOLLOW_USER_NUMBER + " MAX"
         + " | UID: " + params.user.userId
       ));
 
       twitterUserObj.searchStream = twitterUserObj.twit.stream(
         "statuses/filter", 
-        { track: twitterUserObj.searchTermArray, follow: twitterUserObj.followUserArray }
+        { track: twitterUserObj.searchTermArray, follow: twitterUserObj.followUserSet }
       );
 
       twitterUserHashMap.set(params.threeceeUser, twitterUserObj);
@@ -1696,7 +1726,7 @@ function follow(params, callback){
     console.log(chalkInfo("TSS | ... SKIP FOLLOW"
       + " | 3C @" + params.threeceeUser
       + " | @" + params.user.screenName
-      + " | FOLLOWING: " + twitterUserObj.followUserArray.length 
+      + " | FOLLOWING: " + twitterUserObj.followUserSet.size 
       + "/" + TWITTER_MAX_FOLLOW_USER_NUMBER + " MAX"
       + " | UID: " + params.user.userId
     ));

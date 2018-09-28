@@ -645,8 +645,18 @@ function initTwit(params, callback){
 
         twitterUserObj.twit.post("friendships/destroy", {user_id: userId}, function(err, data, response) {
           if (err){
-            console.log(chalkError("TSS | *** UNFOLLOW ERROR: " + err));
-            cb(err);
+            console.log(chalkError("TSS | *** UNFOLLOW ERROR"
+              + " | CODE: " + err.code
+              + " | STATUS CODE: " + err.statusCode
+              + " | " + err
+            ));
+
+            if (err.code === 34) {
+              cb();
+            }
+            else {
+              cb(err);
+            }
           }
           else {
             cb();

@@ -1026,6 +1026,7 @@ function connectDb(callback){
         console.log(chalkAlert("PASSPORT TWITTER AUTH: token:       " + token));
         console.log(chalkAlert("PASSPORT TWITTER AUTH: tokenSecret: " + tokenSecret));
         console.log(chalkAlert("PASSPORT TWITTER AUTH USER | @" + profile.username + " | " + profile.id));
+
         if (configuration.verbose) { console.log(chalkAlert("PASSPORT TWITTER AUTH\nprofile\n" + jsonPrint(profile))); }
 
         const rawUser = profile["_json"];
@@ -1051,6 +1052,15 @@ function connectDb(callback){
               + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
               + "\n" + printUser({user:updatedUser})
             ));
+
+            if (statsObj.tssChildReady) {
+              tssChild.send({
+                op: "USER_AUTHENTICATED",
+                token: token,
+                tokenSecret: tokenSecret,
+                user: updatedUser
+              });
+            }
 
             adminNameSpace.emit("USER_AUTHENTICATED", updatedUser);
             viewNameSpace.emit("USER_AUTHENTICATED", updatedUser);
@@ -4315,9 +4325,6 @@ function initSocketHandler(socketObj) {
         console.log(chalkError("TWITTER_FOLLOW ERROR: NULL UPDATED USER"));
         return;
       }
-
-      // adminNameSpace.emit("FOLLOW", updatedUser);
-      // utilNameSpace.emit("FOLLOW", updatedUser);
 
       console.log(chalk.blue("+++ TWITTER_FOLLOW"
         + " | " + ipAddress

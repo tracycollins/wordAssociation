@@ -551,9 +551,6 @@ function initTwit(params, callback){
 
   console.log("USER @" + params.config.SCREEN_NAME);
 
-  // cnf.twitterConfig[screenName] = {};
-  // cnf.twitterConfig[screenName] = twitterConfig;
-
   console.log(chalkInfo(getTimeStamp()
     + " | TWITTER CONFIG " 
     + "\n" + jsonPrint(params.config)
@@ -596,7 +593,6 @@ function initTwit(params, callback){
 
   twitterUserObj.searchStream = {};
   twitterUserObj.searchTermArray = [];
-  // twitterUserObj.followUserArray = [];
   twitterUserObj.followUserSet = new Set();
 
   console.log(chalkTwitter("INIT TWITTER USER"
@@ -1148,10 +1144,12 @@ function initSearchTerms(cnf, callback){
                 return(cb(err0));
               }
 
-              twitterUserObj.searchStream = twitterUserObj.twit.stream(
-                "statuses/filter", 
-                { track: twitterUserObj.searchTermArray, follow: twitterUserObj.followUserSet }
-              );
+              let filter = {};
+
+              if (twitterUserObj.searchTermArray.length > 0) { filter.track = twitterUserObj.searchTermArray; }
+              if (twitterUserObj.followUserSet.size > 0) { filter.follow = [...twitterUserObj.followUserSet]; }
+
+              twitterUserObj.searchStream = twitterUserObj.twit.stream("statuses/filter", filter);
 
               twitterUserObj.searchStream.on("message", function(msg){
                 if (msg.event) {
@@ -1719,10 +1717,12 @@ function follow(params, callback){
         + " | UID: " + params.user.userId
       ));
 
-      twitterUserObj.searchStream = twitterUserObj.twit.stream(
-        "statuses/filter", 
-        { track: twitterUserObj.searchTermArray, follow: twitterUserObj.followUserSet }
-      );
+      let filter = {};
+
+      if (twitterUserObj.searchTermArray.length > 0) { filter.track = twitterUserObj.searchTermArray; }
+      if (twitterUserObj.followUserSet.size > 0) { filter.follow = [...twitterUserObj.followUserSet]; }
+
+      twitterUserObj.searchStream = twitterUserObj.twit.stream("statuses/filter", filter);
 
       twitterUserHashMap.set(params.threeceeUser, twitterUserObj);
 
@@ -1773,6 +1773,21 @@ process.on("message", function(m) {
       ));
 
       let twitterUserObj = twitterUserHashMap.get(m.user.screenName);
+
+      // const newTwit = new Twit({
+      //   consumer_key: params.config.CONSUMER_KEY,
+      //   consumer_secret: params.config.CONSUMER_SECRET,
+      //   access_token: params.config.TOKEN,
+      //   access_token_secret: params.config.TOKEN_SECRET
+      // });
+
+      twitterUserObj.twit.getAuth(function(auth){
+        console.log("TSS | CURRENT AUTH\n" + jsonPrint(auth));
+        twitterUserObj.twit.setAuth({access_token: m.token, access_token_secret: m.tokenSecret});
+        twitterUserObj.twit.getAuth(function(authNew){
+          console.log("TSS | UPDATED AUTH\n" + jsonPrint(authNew));
+        });
+      });
 
     break;
 

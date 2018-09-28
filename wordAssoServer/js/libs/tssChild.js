@@ -649,6 +649,7 @@ function initTwit(params, callback){
 
             if (err.code === 34) {
               console.log(chalk.black("TSS | UNFOLLOW USER NOT FOUND"
+                + " | 3C @:" + twitterUserObj.screenName
                 + " | CODE: " + err.code
                 + " | STATUS CODE: " + err.statusCode
                 + " | " + err
@@ -657,6 +658,7 @@ function initTwit(params, callback){
             }
             else {
               console.log(chalkError("TSS | *** UNFOLLOW ERROR"
+                + " | 3C @:" + twitterUserObj.screenName
                 + " | CODE: " + err.code
                 + " | STATUS CODE: " + err.statusCode
                 + " | " + err
@@ -1067,13 +1069,15 @@ function initSearchTerms(cnf, callback){
               }
 
               let filter = {};
+              filter.track = [];
+              filter.follow = [];
 
               if (twitterUserObj.searchTermArray.length > 0) { filter.track = twitterUserObj.searchTermArray; }
               if (twitterUserObj.followUserSet.size > 0) { filter.follow = [...twitterUserObj.followUserSet]; }
 
-              if ((filter.track !== undefined) || (filter.follow !== undefined)) {
-                twitterUserObj.searchStream = twitterUserObj.twit.stream("statuses/filter", filter);
-              }
+              // if ((filter.track !== undefined) || (filter.follow !== undefined)) {
+              twitterUserObj.searchStream = twitterUserObj.twit.stream("statuses/filter", filter);
+              // }
 
               twitterUserObj.searchStream.on("message", function(msg){
                 if (msg.event) {
@@ -1709,13 +1713,15 @@ function follow(params, callback){
       });
 
       let filter = {};
+      filter.track = [];
+      filter.follow = [];
 
       if (twitterUserObj.searchTermArray.length > 0) { filter.track = twitterUserObj.searchTermArray; }
       if (twitterUserObj.followUserSet.size > 0) { filter.follow = [...twitterUserObj.followUserSet]; }
 
-      if ((filter.track !== undefined) || (filter.follow !== undefined)) {
-        twitterUserObj.searchStream = twitterUserObj.twit.stream("statuses/filter", filter);
-      }
+      // if ((filter.track !== undefined) || (filter.follow !== undefined)) {
+      twitterUserObj.searchStream = twitterUserObj.twit.stream("statuses/filter", filter);
+      // }
 
       twitterUserHashMap.set(params.threeceeUser, twitterUserObj);
 

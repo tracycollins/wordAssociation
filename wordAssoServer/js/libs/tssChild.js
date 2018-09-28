@@ -1790,13 +1790,16 @@ process.on("message", function(m) {
       // });
 
       if (twitterUserObj !== undefined) {
-        twitterUserObj.twit.getAuth(function(auth){
-          console.log(chalkAlert("TSS | CURRENT AUTH\n" + jsonPrint(auth)));
-          twitterUserObj.twit.setAuth({access_token: m.token, access_token_secret: m.tokenSecret});
-          twitterUserObj.twit.getAuth(function(authNew){
-            console.log(chalkError("TSS | UPDATED AUTH\n" + jsonPrint(authNew)));
-          });
-        });
+
+        const auth = twitterUserObj.twit.getAuth();
+
+        console.log(chalkAlert("TSS | CURRENT AUTH\n" + jsonPrint(auth)));
+
+        twitterUserObj.twit.setAuth({access_token: m.token, access_token_secret: m.tokenSecret});
+
+        const authNew = twitterUserObj.twit.getAuth();
+
+        console.log(chalkError("TSS | UPDATED AUTH\n" + jsonPrint(authNew)));
       }
 
     break;

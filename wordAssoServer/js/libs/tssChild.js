@@ -1750,15 +1750,22 @@ process.on("message", function(m) {
 
       if (twitterUserObj !== undefined) {
 
-        const auth = twitterUserObj.twit.getAuth();
+        const authObj = twitterUserObj.twit.getAuth();
 
-        console.log(chalkAlert("TSS | CURRENT AUTH\n" + jsonPrint(auth)));
+        console.log(chalkAlert("TSS | CURRENT AUTH\n" + jsonPrint(authObj)));
 
         twitterUserObj.twit.setAuth({access_token: m.token, access_token_secret: m.tokenSecret});
 
-        const authNew = twitterUserObj.twit.getAuth();
+        const authObjNew = twitterUserObj.twit.getAuth();
 
-        console.log(chalkError("TSS | UPDATED AUTH\n" + jsonPrint(authNew)));
+        console.log(chalkError("TSS | UPDATED AUTH\n" + jsonPrint(authObjNew)));
+
+        const twitterConfigFile = twitterUserObj.screenName + ".json";
+
+        saveFile(configuration.twitterConfigFolder, twitterConfigFile, authObjNew, function(){
+          console.log(chalkLog("TSS | SAVED UPDATED AUTH " + configuration.twitterConfigFolder + "/" + twitterConfigFile));
+        });
+
       }
 
     break;

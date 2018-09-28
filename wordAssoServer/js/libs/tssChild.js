@@ -1686,8 +1686,13 @@ function follow(params, callback){
       if (err) {
         // console.log(chalkError("*** ERROR FRIENDSHIP CREATE\nRESPONSE\n" + jsonPrint(response)));
         if (data.errors[0].code !== undefined) { 
+
+          if (data.errors[0].code === 89) {
+            process.send({op: "ERROR", threeceeUser: params.threeceeUser, errorType: "TWITTER_TOKEN", error: data.errors[0]});
+          }
+
           if (data.errors[0].code === 161) {
-            // console.log(chalkError("*** ERROR FRIENDSHIP CREATE: " + err));
+
             twitterUserObj.stats.twitterFollowLimit = moment().valueOf();
 
             process.send({
@@ -1698,8 +1703,11 @@ function follow(params, callback){
 
           }
         }
-        console.log(chalkError("*** ERROR FRIENDSHIP CREATE: " + err));
-        console.log(chalkError("*** ERROR FRIENDSHIP CREATE\nDATA\n" + jsonPrint(data)));
+
+        twitterUserObj.followUserSet.delete(params.user.userId);
+
+        console.log(chalkError("TSS | *** ERROR FRIENDSHIP CREATE: " + err));
+        console.log(chalkError("TSS | *** ERROR FRIENDSHIP CREATE\nDATA\n" + jsonPrint(data)));
         return   callback(err, false);
       }
 

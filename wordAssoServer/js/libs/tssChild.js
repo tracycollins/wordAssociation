@@ -645,16 +645,21 @@ function initTwit(params, callback){
 
         twitterUserObj.twit.post("friendships/destroy", {user_id: userId}, function(err, data, response) {
           if (err){
-            console.log(chalkError("TSS | *** UNFOLLOW ERROR"
-              + " | CODE: " + err.code
-              + " | STATUS CODE: " + err.statusCode
-              + " | " + err
-            ));
 
             if (err.code === 34) {
+              console.log(chalk.black("TSS | UNFOLLOW USER NOT FOUND"
+                + " | CODE: " + err.code
+                + " | STATUS CODE: " + err.statusCode
+                + " | " + err
+              ));
               cb();
             }
             else {
+              console.log(chalkError("TSS | *** UNFOLLOW ERROR"
+                + " | CODE: " + err.code
+                + " | STATUS CODE: " + err.statusCode
+                + " | " + err
+              ));
               cb(err);
             }
           }
@@ -1201,12 +1206,18 @@ function initSearchTerms(cnf, callback){
                 console.log(chalkError("TSS | " + getTimeStamp()
                   + " | @" + twitterUserObj.screenName
                   + " | *** TWITTER ERROR: " + err
-                  + "\n" + jsonPrint(err)
-                  ));
+                  // + "\n" + jsonPrint(err)
+                ));
                 statsObj.twitterErrors += 1;
-                twitterUserObj.stats.twitterErrors = 0;
+                twitterUserObj.stats.twitterErrors += 1;
 
-                process.send({op: "ERROR", threeceeUser: screenName, errorType: "TWITTER", error: err});
+                if (err.statusCode === 401) {
+                  process.send({op: "ERROR", threeceeUser: screenName, errorType: "TWITTER_UNAUTHORIZED", error: err});
+                }
+                else {
+                  process.send({op: "ERROR", threeceeUser: screenName, errorType: "TWITTER", error: err});
+                }
+
 
                 showStats();
               });

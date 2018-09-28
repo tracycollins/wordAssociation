@@ -1062,6 +1062,13 @@ function connectDb(callback){
               });
             }
 
+            saveFileQueue.push({
+              localFlag: false, 
+              folder: categorizedFolder, 
+              file: categorizedUsersFile, 
+              obj: categorizedUserHashMap.entries()
+            });
+
             adminNameSpace.emit("USER_AUTHENTICATED", updatedUser);
             viewNameSpace.emit("USER_AUTHENTICATED", updatedUser);
 
@@ -6860,7 +6867,25 @@ function initTssChild(params, callback){
           + "\n" + jsonPrint(m.error)
         ));
 
-        if (m.errorType === "TWITTER_TOKEN") {
+        if (m.errorType === "TWITTER_UNAUTHORIZED") {
+
+          threeceeTwitter[m.threeceeUser].twitterErrors += 1;
+          threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
+          threeceeTwitter[m.threeceeUser].twitterAuthorizationErrorFlag = m.error;
+
+          getNextThreeceeAutoFollowUser(function(threeceeAutofollowUser){
+
+            if (!threeceeAutofollowUser) {
+              console.log(chalkAlert("NO AUTOFOLLOW USER"));
+            }
+            else {
+              console.log(chalkInfo("CURRENT 3C TWITTER AUTOFOLLOW USER: @" + threeceeAutofollowUser));
+              configuration.twitterThreeceeAutoFollowUser = threeceeAutofollowUser;
+            }
+          });
+
+        }
+        else if (m.errorType === "TWITTER_TOKEN") {
 
           threeceeTwitter[m.threeceeUser].twitterErrors += 1;
           threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
@@ -8165,6 +8190,7 @@ function initialize(callback){
     threeceeTwitter[user].error = false;
     threeceeTwitter[user].twitterFollowing = 0;
     threeceeTwitter[user].twitterFollowLimit = false;
+    threeceeTwitter[user].twitterAuthorizationErrorFlag = false;
     threeceeTwitter[user].twitterErrorFlag = false;
     threeceeTwitter[user].twitterTokenErrorFlag = false;
     threeceeTwitter[user].twitterCredentialErrorFlag = false;

@@ -1816,6 +1816,7 @@ process.on("message", function(m) {
 
             }
 
+            twitterUserObj.stats.notAuthenticated = false;
             twitterUserObj.followUserSet = new Set(data.ids);
 
             console.log(chalkError("TSS | TWITTER GET FRIENDS IDS"

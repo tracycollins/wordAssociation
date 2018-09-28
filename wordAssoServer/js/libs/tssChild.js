@@ -618,6 +618,8 @@ function initTwit(params, callback){
       return callback(err, twitterUserObj);
     }
 
+    twitterUserObj.stats.notAuthenticated = false;
+
     twitterUserObj.followUserSet = new Set(data.ids);
 
     console.log(chalkError("TSS | TWITTER GET FRIENDS IDS"

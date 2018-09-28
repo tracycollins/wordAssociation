@@ -1593,7 +1593,7 @@ function follow(params, callback){
 
   const twUsersArray = twitterUserHashMap.keys();
 
-  twUsersArray.keys().forEach(function(threeceeUser){
+  twUsersArray.forEach(function(threeceeUser){
     if (twitterUserHashMap.get(threeceeUser).followUserSet.has(params.user.userId)){
       console.log(chalkAlert("TSS | --- SKIP FOLLOW | ALREADY FOLLOWING"
         + " | 3C @" + params.threeceeUser

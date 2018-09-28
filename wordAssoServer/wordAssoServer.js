@@ -5382,17 +5382,18 @@ function getNextThreeceeAutoFollowUser(callback){
 
     if ((threeceeTwitter[threeceeUser] !== undefined) 
       && threeceeTwitter[threeceeUser].ready 
+      && (threeceeTwitter[threeceeUser].twitterFollowing < 5000) 
       && !threeceeTwitter[threeceeUser].twitterFollowLimit) {
 
       debug(chalkTwitter("IN getNextThreeceeAutoFollowUser 3C USER"
-        + " | @" + threeceeUser + " READY and NO FOLLOW LIMIT"
+        + " | @" + threeceeUser + " READY and NO FOLLOW LIMIT and FOLLOWING < 5000"
       ));
 
       return cb(threeceeUser);
     }
 
     debug(chalkTwitter("IN getNextThreeceeAutoFollowUser 3C USER"
-      + " | @" + threeceeUser + " NOT READY or FOLLOW LIMIT"
+      + " | @" + threeceeUser + " NOT READY or FOLLOW LIMIT or FOLLOWING >= 5000"
     ));
 
     cb();
@@ -6857,6 +6858,27 @@ function initTssChild(params, callback){
         ));
       break;
 
+      case "TWITTER_STATS":
+
+        console.log(chalkInfo("<TSS | TWITTER STATS"
+          + " | 3C @" + m.threeceeUser
+          + " | FOLLOWING: " + m.twitterFollowing
+        ));
+
+        threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
+
+        getNextThreeceeAutoFollowUser(function(threeceeAutofollowUser){
+
+          if (!threeceeAutofollowUser) {
+            console.log(chalkAlert("NO AUTOFOLLOW USER"));
+          }
+          else {
+            console.log(chalkInfo("CURRENT 3C TWITTER AUTOFOLLOW USER: @" + threeceeAutofollowUser));
+            configuration.twitterThreeceeAutoFollowUser = threeceeAutofollowUser;
+          }
+        });
+      break;
+
       case "FOLLOW_LIMIT":
 
         console.log(chalkInfo("<TSS | FOLLOW LIMIT"
@@ -6865,6 +6887,7 @@ function initTssChild(params, callback){
           + " | NOW: " + getTimeStamp()
         ));
 
+        threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
         threeceeTwitter[m.threeceeUser].twitterFollowLimit = true;
 
         getNextThreeceeAutoFollowUser(function(threeceeAutofollowUser){
@@ -8101,6 +8124,7 @@ function initialize(callback){
     threeceeTwitter[user].ready = false;
     threeceeTwitter[user].status = "UNCONFIGURED";
     threeceeTwitter[user].error = false;
+    threeceeTwitter[user].twitterFollowing = 0;
     threeceeTwitter[user].twitterFollowLimit = false;
     threeceeTwitter[user].twitterCredentialErrorFlag = false;
     threeceeTwitter[user].twitterRateLimitException = false;

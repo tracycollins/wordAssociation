@@ -1674,7 +1674,10 @@ function follow(params, callback){
     return callback(null, false);
   }
 
-  if (params.forceFollow || configuration.forceFollow || !twitterUserObj.followUserSet.has(params.user.userId)){
+  if ( (params.forceFollow && (twitterUserObj.followUserSet.size < 5000))
+    || ( configuration.forceFollow && (twitterUserObj.followUserSet.size < 5000))
+    || ((twitterUserObj.followUserSet.size < 5000) && !twitterUserObj.followUserSet.has(params.user.userId))
+  ){
 
     if (!twitterUserObj.followUserSet.has(params.user.userId)) {
       twitterUserObj.followUserSet.add(params.user.userId);
@@ -1696,7 +1699,8 @@ function follow(params, callback){
             process.send({
               op: "FOLLOW_LIMIT", 
               threeceeUser: params.threeceeUser, 
-              twitterFollowLimit: twitterUserObj.stats.twitterFollowLimit
+              twitterFollowLimit: twitterUserObj.stats.twitterFollowLimit,
+              twitterFollowing: twitterUserObj.followUserSet.size
             });
 
           }
@@ -1726,6 +1730,8 @@ function follow(params, callback){
 
       twitterUserHashMap.set(params.threeceeUser, twitterUserObj);
 
+      process.send({op: "TWITTER_STATS", threeceeUser: twitterUserObj.screenName, twitterFollowing: twitterUserObj.followUserSet.size});
+
       callback(null, true);
     });
   }
@@ -1738,6 +1744,8 @@ function follow(params, callback){
       + "/" + TWITTER_MAX_FOLLOW_USER_NUMBER + " MAX"
       + " | UID: " + params.user.userId
     ));
+
+    process.send({op: "TWITTER_STATS", threeceeUser: twitterUserObj.screenName, twitterFollowing: twitterUserObj.followUserSet.size});
 
     callback(null, false);
   }

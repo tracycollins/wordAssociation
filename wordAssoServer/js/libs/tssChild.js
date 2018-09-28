@@ -1789,13 +1789,15 @@ process.on("message", function(m) {
       //   access_token_secret: params.config.TOKEN_SECRET
       // });
 
-      twitterUserObj.twit.getAuth(function(auth){
-        console.log("TSS | CURRENT AUTH\n" + jsonPrint(auth));
-        twitterUserObj.twit.setAuth({access_token: m.token, access_token_secret: m.tokenSecret});
-        twitterUserObj.twit.getAuth(function(authNew){
-          console.log("TSS | UPDATED AUTH\n" + jsonPrint(authNew));
+      if (twitterUserObj !== undefined) {
+        twitterUserObj.twit.getAuth(function(auth){
+          console.log(chalkAlert("TSS | CURRENT AUTH\n" + jsonPrint(auth)));
+          twitterUserObj.twit.setAuth({access_token: m.token, access_token_secret: m.tokenSecret});
+          twitterUserObj.twit.getAuth(function(authNew){
+            console.log(chalkError("TSS | UPDATED AUTH\n" + jsonPrint(authNew)));
+          });
         });
-      });
+      }
 
     break;
 

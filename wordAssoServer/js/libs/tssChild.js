@@ -1659,7 +1659,7 @@ function follow(params, callback){
 
         if (user) {
 
-          printString = "TSS | @" + user.screenName + " | DB USER FOUND";
+          const printString = "TSS | @" + user.screenName + " | DB USER FOUND";
 
           printUserObj(printString, user);
 

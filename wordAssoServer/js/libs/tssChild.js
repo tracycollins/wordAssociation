@@ -522,6 +522,93 @@ function initStatsUpdate(cnf, callback){
   callback(null, cnf);
 }
 
+function initTwit(params, callback){
+
+  console.log("USER @" + params.config.SCREEN_NAME);
+
+  // cnf.twitterConfig[screenName] = {};
+  // cnf.twitterConfig[screenName] = twitterConfig;
+
+  console.log(chalkInfo(getTimeStamp()
+    + " | TWITTER CONFIG " 
+    + "\n" + jsonPrint(params.config)
+  ));
+
+  let twitterUserObj = {};
+
+  twitterUserObj.stats = {};
+  twitterUserObj.stats.connected = false;
+  twitterUserObj.stats.tweetsReceived = 0;
+  twitterUserObj.stats.retweetsReceived = 0;
+  twitterUserObj.stats.twitterConnects = 0;
+  twitterUserObj.stats.twitterReconnects = 0;
+  twitterUserObj.stats.twitterFollowLimit = false;
+  twitterUserObj.stats.twitterLimit = 0;
+  twitterUserObj.stats.twitterErrors = 0;
+  twitterUserObj.stats.rateLimited = false;
+  twitterUserObj.stats.tweetsPerSecond = 0;
+  twitterUserObj.stats.tweetsPerMinute = 0;
+
+  twitterUserObj.rateMeter = Measured.createCollection();
+  twitterUserObj.rateMeter.meter("tweetsPerSecond", {rateUnit: 1000, tickInterval: 1000});
+  twitterUserObj.rateMeter.meter("tweetsPerMinute", {rateUnit: 60000, tickInterval: 1000});
+
+  twitterUserObj.trackingNumber = 0;
+
+  twitterUserObj.screenName = params.config.SCREEN_NAME ;
+  twitterUserObj.twitterConfig = {} ;
+  twitterUserObj.twitterConfig = params.config ;
+
+  const newTwit = new Twit({
+    consumer_key: params.config.CONSUMER_KEY,
+    consumer_secret: params.config.CONSUMER_SECRET,
+    access_token: params.config.TOKEN,
+    access_token_secret: params.config.TOKEN_SECRET
+  });
+
+  twitterUserObj.twit = {};
+  twitterUserObj.twit = newTwit;
+
+  twitterUserObj.searchStream = {};
+  twitterUserObj.searchTermArray = [];
+  twitterUserObj.followUserArray = [];
+
+  console.log(chalkTwitter("INIT TWITTER USER"
+    + " | NAME: " + params.config.SCREEN_NAME
+  ));
+
+  twitterUserObj.twit.get("friends/ids", function(err, data, response) {
+
+    if (err){
+
+      console.log(chalkError("TSS | *** TWITTER GET FRIENDS IDS ERROR | NOT AUTHENTICATED"
+        + " | @" + twitterUserObj.screenName
+        + " | " + getTimeStamp()
+        + " | CODE: " + err.code
+        + " | STATUS CODE: " + err.statusCode
+        + " | " + err.message
+      ));
+
+      twitterUserObj.stats.twitterErrors += 1;
+      twitterUserObj.stats.notAuthenticated = true;
+
+      twitterUserHashMap.set(twitterUserObj.screenName, twitterUserObj);
+
+      return callback(err, twitterUserObj);
+    }
+
+    twitterUserObj.followUserArray = data.ids;
+
+    console.log(chalkError("TSS | TWITTER GET FRIENDS IDS"
+      + " | @" + twitterUserObj.screenName
+      + " | " + twitterUserObj.followUserArray.length + " FRIENDS"
+    ));
+
+    twitterUserHashMap.set(twitterUserObj.screenName, twitterUserObj);
+    callback(null, twitterUserObj);
+  });
+}
+
 function initTwitterUsers(cnf, callback){
 
   if (!configuration.twitterUsers){
@@ -541,6 +628,7 @@ function initTwitterUsers(cnf, callback){
       const twitterConfigFile = screenName + ".json";
 
       loadFile(cnf.twitterConfigFolder, twitterConfigFile, function(err, twitterConfig){
+
         if (err){
           console.error(chalkError("*** TWITTER CONFIG FILE LOAD ERROR\n" + err));
           return(cb());
@@ -553,83 +641,102 @@ function initTwitterUsers(cnf, callback){
           return(cb());
         }
 
-        console.log("USER @" + screenName);
+        initTwit({config: twitterConfig}, function(err, twitterUserObj){
 
-        cnf.twitterConfig[screenName] = {};
-        cnf.twitterConfig[screenName] = twitterConfig;
-
-        console.log(chalkInfo(getTimeStamp() + " | TWITTER CONFIG FILE " 
-          + cnf.twitterConfigFolder + "/" + twitterConfigFile
-          + "\n" + jsonPrint(cnf.twitterConfig[screenName])
-        ));
-
-        let twitterUserObj = {};
-
-        twitterUserObj.stats = {};
-        twitterUserObj.stats.connected = false;
-        twitterUserObj.stats.tweetsReceived = 0;
-        twitterUserObj.stats.retweetsReceived = 0;
-        twitterUserObj.stats.twitterConnects = 0;
-        twitterUserObj.stats.twitterReconnects = 0;
-        twitterUserObj.stats.twitterFollowLimit = false;
-        twitterUserObj.stats.twitterLimit = 0;
-        twitterUserObj.stats.twitterErrors = 0;
-        twitterUserObj.stats.rateLimited = false;
-        twitterUserObj.stats.tweetsPerSecond = 0;
-        twitterUserObj.stats.tweetsPerMinute = 0;
-
-        twitterUserObj.rateMeter = Measured.createCollection();
-        twitterUserObj.rateMeter.meter("tweetsPerSecond", {rateUnit: 1000, tickInterval: 1000});
-        twitterUserObj.rateMeter.meter("tweetsPerMinute", {rateUnit: 60000, tickInterval: 1000});
-
-        twitterUserObj.trackingNumber = 0;
-
-        twitterUserObj.screenName = screenName ;
-        twitterUserObj.twitterConfig = {} ;
-        twitterUserObj.twitterConfig = cnf.twitterConfig[screenName] ;
-
-        const newTwit = new Twit({
-          consumer_key: cnf.twitterConfig.CONSUMER_KEY,
-          consumer_secret: cnf.twitterConfig.CONSUMER_SECRET,
-          access_token: cnf.twitterConfig.TOKEN,
-          access_token_secret: cnf.twitterConfig.TOKEN_SECRET
-        });
-
-        twitterUserObj.twit = {};
-        twitterUserObj.twit = newTwit;
-
-        twitterUserObj.searchStream = {};
-        twitterUserObj.searchTermArray = [];
-        twitterUserObj.followUserArray = [];
-
-        console.log(chalkTwitter("ADDED TWITTER USER STREAM"
-          + " | NAME: " + screenName
-        ));
-
-        twitterUserObj.twit.get("application/rate_limit_status", function(err, data, response) {
           if (err){
-
-            console.log(chalkError("!!!!! TWITTER ACCOUNT ERROR"
-              + " | @" + screenName
+            console.log(chalkError("TSS | *** TWIT INIT ERROR"
+              + " | @" + twitterUserObj.screenName
               + " | " + getTimeStamp()
-              + " | CODE: " + err.code
-              + " | STATUS CODE: " + err.statusCode
-              + " | " + err.message
+              + " | " + err
             ));
 
-            twitterUserObj.stats.twitterErrors += 1;
+            // twitterUserObj.stats.twitterErrors += 1;
 
-            twitterUserHashMap.set(screenName, twitterUserObj);
+            // twitterUserHashMap.set(screenName, twitterUserObj);
 
-            return(cb());
+            // return(cb());
           }
 
-          debug(chalkTwitter("TWITTER ACCOUNT RATE LIMIT DATA\n" + jsonPrint(data)));
-
-          twitterUserHashMap.set(screenName, twitterUserObj);
+          // twitterUserHashMap.set(twitterUserObj.screenName, twitterUserObj);
           cb();
-
         });
+
+        // console.log("USER @" + screenName);
+
+        // cnf.twitterConfig[screenName] = {};
+        // cnf.twitterConfig[screenName] = twitterConfig;
+
+        // console.log(chalkInfo(getTimeStamp() + " | TWITTER CONFIG FILE " 
+        //   + cnf.twitterConfigFolder + "/" + twitterConfigFile
+        //   + "\n" + jsonPrint(cnf.twitterConfig[screenName])
+        // ));
+
+        // let twitterUserObj = {};
+
+        // twitterUserObj.stats = {};
+        // twitterUserObj.stats.connected = false;
+        // twitterUserObj.stats.tweetsReceived = 0;
+        // twitterUserObj.stats.retweetsReceived = 0;
+        // twitterUserObj.stats.twitterConnects = 0;
+        // twitterUserObj.stats.twitterReconnects = 0;
+        // twitterUserObj.stats.twitterFollowLimit = false;
+        // twitterUserObj.stats.twitterLimit = 0;
+        // twitterUserObj.stats.twitterErrors = 0;
+        // twitterUserObj.stats.rateLimited = false;
+        // twitterUserObj.stats.tweetsPerSecond = 0;
+        // twitterUserObj.stats.tweetsPerMinute = 0;
+
+        // twitterUserObj.rateMeter = Measured.createCollection();
+        // twitterUserObj.rateMeter.meter("tweetsPerSecond", {rateUnit: 1000, tickInterval: 1000});
+        // twitterUserObj.rateMeter.meter("tweetsPerMinute", {rateUnit: 60000, tickInterval: 1000});
+
+        // twitterUserObj.trackingNumber = 0;
+
+        // twitterUserObj.screenName = screenName ;
+        // twitterUserObj.twitterConfig = {} ;
+        // twitterUserObj.twitterConfig = cnf.twitterConfig[screenName] ;
+
+        // const newTwit = new Twit({
+        //   consumer_key: cnf.twitterConfig.CONSUMER_KEY,
+        //   consumer_secret: cnf.twitterConfig.CONSUMER_SECRET,
+        //   access_token: cnf.twitterConfig.TOKEN,
+        //   access_token_secret: cnf.twitterConfig.TOKEN_SECRET
+        // });
+
+        // twitterUserObj.twit = {};
+        // twitterUserObj.twit = newTwit;
+
+        // twitterUserObj.searchStream = {};
+        // twitterUserObj.searchTermArray = [];
+        // twitterUserObj.followUserArray = [];
+
+        // console.log(chalkTwitter("ADDED TWITTER USER STREAM"
+        //   + " | NAME: " + screenName
+        // ));
+
+        // twitterUserObj.twit.get("application/rate_limit_status", function(err, data, response) {
+        //   if (err){
+
+        //     console.log(chalkError("!!!!! TWITTER ACCOUNT ERROR"
+        //       + " | @" + screenName
+        //       + " | " + getTimeStamp()
+        //       + " | CODE: " + err.code
+        //       + " | STATUS CODE: " + err.statusCode
+        //       + " | " + err.message
+        //     ));
+
+        //     twitterUserObj.stats.twitterErrors += 1;
+
+        //     twitterUserHashMap.set(screenName, twitterUserObj);
+
+        //     return(cb());
+        //   }
+
+        //   debug(chalkTwitter("TWITTER ACCOUNT RATE LIMIT DATA\n" + jsonPrint(data)));
+
+        //   twitterUserHashMap.set(screenName, twitterUserObj);
+        //   cb();
+        // });
 
       });
 
@@ -756,7 +863,7 @@ function initFollowingUserIdSet(callback){
 
     User.countDocuments(query, function (err, count) {
       statsObj.numUsersFollowing = count;
-      console.log(chalkAlert("FOLLOWING " + statsObj.numUsersFollowing + " USERS"));
+      console.log(chalkAlert("TSS | DB | FOLLOWING " + statsObj.numUsersFollowing + " USERS"));
     });
 
     const cursor = User.find(query).select({userId:1, screenName:1, lastSeen:1}).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
@@ -1526,6 +1633,19 @@ process.on("message", function(m) {
       ));
     break;
 
+    case "USER_AUTHENTICATED":
+
+      console.log(chalkInfo("TSS USER_AUTHENTICATED"
+        + " | @" + m.user.screenName
+        + " | UID: " + m.user.userId
+        + " | TOKEN: " + m.token
+        + " | TOKEN SECRET: " + m.tokenSecret
+      ));
+
+      let twitterUserObj = twitterUserHashMap.get(m.user.screenName);
+
+    break;
+
     case "FOLLOW":
       console.log(chalkInfo("TSS FOLLOW"
         + " | 3C USER @" + m.threeceeUser
@@ -1642,32 +1762,31 @@ setTimeout(function(){
         + " | " + twitterUserHashMap.keys()
       ));
 
-      initFollowUsers(configuration, function(err){
+      // initFollowUsers(configuration, function(err){
+
+      //   if (err) {
+      //     console.log(chalkError("*** TSS INIT FOLLOW USERS ERROR: " + err));
+      //     quit();
+      //     return;
+      //   }
+
+      initSearchTerms(configuration, function(err, status){
 
         if (err) {
-          console.log(chalkError("*** TSS INIT FOLLOW USERS ERROR: " + err));
+          console.log(chalkError("*** TSS INIT SEARCH TERMS ERROR: " + err));
           quit();
           return;
         }
 
-        initSearchTerms(configuration, function(err, status){
+        console.log(chalkInfo("TSS | INITIALIZATION COMPLETE"));
 
-          if (err) {
-            console.log(chalkError("*** TSS INIT SEARCH TERMS ERROR: " + err));
-            quit();
-            return;
-          }
+        debug("initSearchTerms status\n" + jsonPrint(status));
 
-          console.log(chalkInfo("TSS | INITIALIZATION COMPLETE"));
-
-          debug("initSearchTerms status\n" + jsonPrint(status));
-
-          // initSearchTermsInterval(configuration);
-          if (!twitterSearchInit) { initTwitterSearch(configuration); }
-
-        });
-
+        // initSearchTermsInterval(configuration);
+        if (!twitterSearchInit) { initTwitterSearch(configuration); }
       });
+
+      // });
     });
 
   });

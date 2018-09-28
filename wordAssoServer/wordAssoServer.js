@@ -5383,6 +5383,7 @@ function getNextThreeceeAutoFollowUser(callback){
     if ((threeceeTwitter[threeceeUser] !== undefined) 
       && threeceeTwitter[threeceeUser].ready 
       && (threeceeTwitter[threeceeUser].twitterFollowing < 5000) 
+      && !threeceeTwitter[threeceeUser].twitterErrorFlag
       && !threeceeTwitter[threeceeUser].twitterTokenErrorFlag
       && !threeceeTwitter[threeceeUser].twitterFollowLimit
     ) {
@@ -6856,11 +6857,13 @@ function initTssChild(params, callback){
       case "ERROR":
         console.log(chalkError("<TSS | ERROR"
           + " | ERROR TYPE: " + m.errorType
-          + " | ERROR: " + jsonPrint(m.error)
+          + "\n" + jsonPrint(m.error)
         ));
 
         if (m.errorType === "TWITTER_TOKEN") {
 
+          threeceeTwitter[m.threeceeUser].twitterErrors += 1;
+          threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
           threeceeTwitter[m.threeceeUser].twitterTokenErrorFlag = m.error;
 
           getNextThreeceeAutoFollowUser(function(threeceeAutofollowUser){
@@ -6874,6 +6877,22 @@ function initTssChild(params, callback){
             }
           });
 
+        }
+        else {
+
+          threeceeTwitter[m.threeceeUser].twitterErrors += 1;
+          threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
+
+          getNextThreeceeAutoFollowUser(function(threeceeAutofollowUser){
+
+            if (!threeceeAutofollowUser) {
+              console.log(chalkAlert("NO AUTOFOLLOW USER"));
+            }
+            else {
+              console.log(chalkInfo("CURRENT 3C TWITTER AUTOFOLLOW USER: @" + threeceeAutofollowUser));
+              configuration.twitterThreeceeAutoFollowUser = threeceeAutofollowUser;
+            }
+          });
         }
 
       break;
@@ -8146,6 +8165,7 @@ function initialize(callback){
     threeceeTwitter[user].error = false;
     threeceeTwitter[user].twitterFollowing = 0;
     threeceeTwitter[user].twitterFollowLimit = false;
+    threeceeTwitter[user].twitterErrorFlag = false;
     threeceeTwitter[user].twitterTokenErrorFlag = false;
     threeceeTwitter[user].twitterCredentialErrorFlag = false;
     threeceeTwitter[user].twitterRateLimitException = false;

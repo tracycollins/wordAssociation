@@ -551,8 +551,7 @@ function initTwit(params, callback){
 
   console.log("USER @" + params.config.SCREEN_NAME);
 
-  console.log(chalkInfo(getTimeStamp()
-    + " | TWITTER CONFIG " 
+  console.log(chalkInfo("TSS INIT TWIT | TWITTER CONFIG " 
     + "\n" + jsonPrint(params.config)
   ));
 
@@ -577,7 +576,7 @@ function initTwit(params, callback){
 
   twitterUserObj.trackingNumber = 0;
 
-  twitterUserObj.screenName = params.config.SCREEN_NAME ;
+  twitterUserObj.screenName = params.config.screenName ;
   twitterUserObj.twitterConfig = {} ;
   twitterUserObj.twitterConfig = params.config ;
 
@@ -1222,6 +1221,20 @@ function initSearchTerms(cnf, callback){
                 showStats();
               });
               
+              twitterUserObj.searchStream.on("parser-error", function(err){
+                console.log(chalkError("TSS | " + getTimeStamp()
+                  + " | @" + twitterUserObj.screenName
+                  + " | *** TWITTER PARSER ERROR: " + err
+                  // + "\n" + jsonPrint(err)
+                ));
+                statsObj.twitterErrors += 1;
+                twitterUserObj.stats.twitterErrors += 1;
+
+                process.send({op: "ERROR", threeceeUser: screenName, errorType: "TWITTER_PARSER", error: err});
+
+                showStats();
+              });
+              
               twitterUserObj.searchStream.on("tweet", function(tweetStatus){
 
                 tweetStatus.entities.media = [];
@@ -1769,12 +1782,113 @@ process.on("message", function(m) {
 
         const authObjNew = twitterUserObj.twit.getAuth();
 
+        twitterUserObj.twitterConfig.access_token = authObjNew.access_token;
+        twitterUserObj.twitterConfig.access_token_secret = authObjNew.access_token_secret;
+        twitterUserObj.twitterConfig.TOKEN = authObjNew.access_token;
+        twitterUserObj.twitterConfig.TOKEN_SECRET = authObjNew.access_token_secret;
+
         console.log(chalkError("TSS | UPDATED AUTH\n" + jsonPrint(authObjNew)));
 
         const twitterConfigFile = twitterUserObj.screenName + ".json";
 
-        saveFile(configuration.twitterConfigFolder, twitterConfigFile, authObjNew, function(){
+        saveFile(configuration.twitterConfigFolder, twitterConfigFile, twitterUserObj.twitterConfig, function(){
           console.log(chalkLog("TSS | SAVED UPDATED AUTH " + configuration.twitterConfigFolder + "/" + twitterConfigFile));
+
+          twitterUserObj.stats.connected = false;
+          twitterUserObj.stats.twitterFollowLimit = false;
+
+          twitterUserObj.twit.get("friends/ids", function(err, data, response) {
+
+            if (err){
+
+              console.log(chalkError("TSS | *** TWITTER GET FRIENDS IDS ERROR | NOT AUTHENTICATED"
+                + " | @" + twitterUserObj.screenName
+                + " | " + getTimeStamp()
+                + " | CODE: " + err.code
+                + " | STATUS CODE: " + err.statusCode
+                + " | " + err.message
+              ));
+
+              twitterUserObj.stats.twitterErrors += 1;
+              twitterUserObj.stats.notAuthenticated = true;
+
+              twitterUserHashMap.set(twitterUserObj.screenName, twitterUserObj);
+
+            }
+
+            twitterUserObj.followUserSet = new Set(data.ids);
+
+            console.log(chalkError("TSS | TWITTER GET FRIENDS IDS"
+              + " | @" + twitterUserObj.screenName
+              + " | " + twitterUserObj.followUserSet.size + " FRIENDS"
+            ));
+
+            twitterUserHashMap.set(twitterUserObj.screenName, twitterUserObj);
+
+            let userIndex = 0;
+            let printString = "";
+
+            async.eachSeries([...twitterUserObj.followUserSet], function(userId, cb){
+
+              userIndex += 1;
+
+              followingUserIdSet.add(userId);
+
+              User.findOne({ userId: userId }, function (err, user) {
+
+                if (err) { 
+                  console.log(chalkAlert("TSS | *** USER DB ERROR *** | " + err));
+                  return cb(err);
+                }
+
+                if (user) {
+
+                  printString = "TSS | [ " + userIndex + "/" + twitterUserObj.followUserSet.size + " ] @" + twitterUserObj.screenName + " | DB USER FOUND";
+
+                  printUserObj(printString, user);
+
+                  if (!user.following) {
+                    user.following = true;
+                    user.threeceeFollowing = twitterUserObj.screenName;
+                    user.markModified("following");
+                    user.markModified("threeceeFollowing");
+                    user.save(function(err){
+                      if (err) { console.log(chalkError("TSS | *** USER DB SAVE ERROR: " + err)); }
+                      cb();
+                    });
+                  }
+                  else if (user.following && (user.threeceeFollowing > twitterUserObj.screenName)) {
+                    console.log(chalk.black("TSS | -X- CHANGE 3C FOLLOWING"
+                      + " | UID: " + user.userId
+                      + " | @" + user.screenName
+                      + " | 3C @" + user.threeceeFollowing + " -> " + twitterUserObj.screenName
+                    ));
+                    user.threeceeFollowing = twitterUserObj.screenName;
+                    user.markModified("threeceeFollowing");
+                    user.save(function(err){
+                      if (err) { console.log(chalkError("TSS | *** USER DB SAVE ERROR: " + err)); }
+                      cb();
+                    });
+                  }
+                  else {
+                    cb();
+                  }
+
+                }
+                else {
+                  console.log(chalkLog("TSS | [ " + userIndex + "/" + twitterUserObj.followUserSet.size + " ]"
+                    + " @" + twitterUserObj.screenName 
+                    + " | DB USER MISS  | UID: " + userId
+                  ));
+                  cb();
+                }
+              });
+
+            }, function(err){
+              process.send({op: "TWITTER_STATS", threeceeUser: twitterUserObj.screenName, twitterFollowing: twitterUserObj.followUserSet.size});
+            });
+
+          });
         });
 
       }

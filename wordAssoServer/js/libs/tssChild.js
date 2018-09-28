@@ -1071,7 +1071,9 @@ function initSearchTerms(cnf, callback){
               if (twitterUserObj.searchTermArray.length > 0) { filter.track = twitterUserObj.searchTermArray; }
               if (twitterUserObj.followUserSet.size > 0) { filter.follow = [...twitterUserObj.followUserSet]; }
 
-              twitterUserObj.searchStream = twitterUserObj.twit.stream("statuses/filter", filter);
+              if ((filter.track !== undefined) || (filter.follow !== undefined)) {
+                twitterUserObj.searchStream = twitterUserObj.twit.stream("statuses/filter", filter);
+              }
 
               twitterUserObj.searchStream.on("message", function(msg){
                 if (msg.event) {
@@ -1711,7 +1713,9 @@ function follow(params, callback){
       if (twitterUserObj.searchTermArray.length > 0) { filter.track = twitterUserObj.searchTermArray; }
       if (twitterUserObj.followUserSet.size > 0) { filter.follow = [...twitterUserObj.followUserSet]; }
 
-      twitterUserObj.searchStream = twitterUserObj.twit.stream("statuses/filter", filter);
+      if ((filter.track !== undefined) || (filter.follow !== undefined)) {
+        twitterUserObj.searchStream = twitterUserObj.twit.stream("statuses/filter", filter);
+      }
 
       twitterUserHashMap.set(params.threeceeUser, twitterUserObj);
 

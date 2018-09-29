@@ -2132,6 +2132,11 @@ process.on("message", function(m) {
               });
 
             }, function(err){
+
+              let filter = {};
+              filter.track = [];
+              filter.follow = [];
+              
               if (twitterUserObj.searchTermArray.length > 0) { filter.track = twitterUserObj.searchTermArray; }
               if (twitterUserObj.followUserSet.size > 0) { filter.follow = [...twitterUserObj.followUserSet]; }
 

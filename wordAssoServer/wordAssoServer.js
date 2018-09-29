@@ -399,6 +399,8 @@ let viewNameSpace;
 let unfollowableUserFile = "unfollowableUser.json";
 let followableSearchTermFile = "followableSearchTerm.json";
 
+let pendingFollowSet = new Set();
+
 let followableSearchTermSet = new Set();
 
 followableSearchTermSet.add("potus");
@@ -3620,20 +3622,28 @@ function follow(params, callback) {
   User.findOneAndUpdate(query, update, options, function(err, userUpdated){
 
     if (err) {
-      console.log(chalkError("*** UNFOLLOW | USER FIND ONE ERROR: " + err));
+      console.log(chalkError("*** FOLLOW | USER FIND ONE ERROR: " + err));
     }
     else if (userUpdated){
-      console.log(chalkLog("+++ FOLLOW"
-        + " | " + printUser({user: userUpdated})
-      ));
+      if (statsObj.tssChildReady && configuration.twitterThreeceeAutoFollowUser) {
 
-      if (statsObj.tssChildReady) {
+        console.log(chalkLog("+++ FOLLOW"
+          + " | " + printUser({user: userUpdated})
+        ));
+
         tssChild.send({
           op: "FOLLOW", 
           threeceeUser: configuration.twitterThreeceeAutoFollowUser, 
-          user: params.user,
+          user: userUpdated,
           forceFollow: configuration.forceFollow
         });
+      }
+      else {
+        pendingFollowSet.add(userUpdated.userId);
+        console.log(chalkAlert("WAS | 000 CAN'T FOLLOW | NO AUTO FOLLOW USER"
+          + " | PENDING FOLLOWS: " + pendingFollowSet.size
+          + " | " + printUser({user: userUpdated})
+        ));
       }
 
     }

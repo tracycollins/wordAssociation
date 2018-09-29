@@ -2136,11 +2136,11 @@ process.on("message", function(m) {
               let filter = {};
               filter.track = [];
               filter.follow = [];
-              
+
               if (twitterUserObj.searchTermArray.length > 0) { filter.track = twitterUserObj.searchTermArray; }
               if (twitterUserObj.followUserSet.size > 0) { filter.follow = [...twitterUserObj.followUserSet]; }
 
-              twitterUserObj.searchStream("statuses/filter", filter);
+              twitterUserObj.searchStream.stream("statuses/filter", filter);
 
               process.send({op: "TWITTER_STATS", threeceeUser: twitterUserObj.screenName, twitterFollowing: twitterUserObj.followUserSet.size});
             });

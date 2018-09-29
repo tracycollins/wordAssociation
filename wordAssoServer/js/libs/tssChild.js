@@ -1181,11 +1181,11 @@ function initSearchStream(params, callback){
       tweetQueue.push(tweetStatus);
     }
 
-    if (statsObj.tweetsReceived % 100 === 0) {
+    if ((twitterUserObj.stats.tweetsReceived % 100 === 0) || (statsObj.tweetsReceived % 100 === 0)) {
       console.log(chalkTwitter("TSS | <T | "+ getTimeStamp()
         + " | TWQ: " + tweetQueue.length
         + " [ Ts/RTs: " + statsObj.tweetsReceived + "/" + statsObj.retweetsReceived + "]"
-        // + " | DELTA TW RX: " + deltaTweet[0] + "." + deltaTweet[1]
+        + " | 3C @" + twitterUserObj.screenName
         + " | " + statsObj.tweetsPerMinute.toFixed(3) + " TPM"
         + " | " + tweetStatus.id_str
         + " | @" + tweetStatus.user.screen_name

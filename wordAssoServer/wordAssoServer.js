@@ -1056,6 +1056,13 @@ function connectDb(callback){
             ));
 
             if (statsObj.tssChildReady) {
+
+              threeceeTwitter[updatedUser.screenName].twitterAuthorizationErrorFlag = false;
+              threeceeTwitter[updatedUser.screenName].twitterCredentialErrorFlag = false;
+              threeceeTwitter[updatedUser.screenName].twitterErrorFlag = false;
+              threeceeTwitter[updatedUser.screenName].twitterFollowLimit = false;
+              threeceeTwitter[updatedUser.screenName].twitterTokenErrorFlag = false;
+
               tssChild.send({
                 op: "USER_AUTHENTICATED",
                 token: token,
@@ -5385,7 +5392,7 @@ function getCurrentThreeceeUser(callback){
 function getNextThreeceeAutoFollowUser(callback){
 
   if (!statsObj.threeceeUsersConfiguredFlag) {
-    if (configuration.verbose ){ console.log(chalkAlert("*** THREECEE_USERS NOT CONFIGURED")); }
+    console.log(chalkAlert("*** THREECEE_USERS NOT CONFIGURED"));
     return callback(false);
   }
 

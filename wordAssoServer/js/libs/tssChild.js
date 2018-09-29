@@ -2140,9 +2140,17 @@ process.on("message", function(m) {
               if (twitterUserObj.searchTermArray.length > 0) { filter.track = twitterUserObj.searchTermArray; }
               if (twitterUserObj.followUserSet.size > 0) { filter.follow = [...twitterUserObj.followUserSet]; }
 
-              twitterUserObj.searchStream.stream("statuses/filter", filter);
+              initSearchStream({twitterUserObj: twitterUserObj}, function(err, tuObj){
 
-              process.send({op: "TWITTER_STATS", threeceeUser: twitterUserObj.screenName, twitterFollowing: twitterUserObj.followUserSet.size});
+                console.log(chalkInfo("TSS | END USER_AUTHENTICATED"
+                  + " | @" + tuObj.screenName
+                ));
+
+                twitterUserHashMap.set(tuObj.screenName, tuObj);
+                process.send({op: "TWITTER_STATS", threeceeUser: twitterUserObj.screenName, twitterFollowing: twitterUserObj.followUserSet.size});
+
+              });
+
             });
 
           });

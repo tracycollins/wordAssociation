@@ -964,6 +964,242 @@ let deltaTweet = process.hrtime(deltaTweetStart);
 
 let prevFileModifiedMoment = moment("2010-01-01");
 
+function initSearchStream(params, callback){
+
+  let twitterUserObj = params.twitterUserObj;
+
+  let filter = {};
+  filter.track = [];
+  filter.follow = [];
+
+  if (twitterUserObj.searchTermArray.length > 0) { filter.track = twitterUserObj.searchTermArray; }
+  if (twitterUserObj.followUserSet.size > 0) { filter.follow = [...twitterUserObj.followUserSet]; }
+
+  // if ((filter.track !== undefined) || (filter.follow !== undefined)) {
+  twitterUserObj.searchStream = twitterUserObj.twit.stream("statuses/filter", filter);
+  // }
+
+  twitterUserObj.searchStream.on("message", function(msg){
+    if (msg.event) {
+      console.log(chalkAlert("TSS | " + getTimeStamp() 
+        + " | TWITTER MESSAGE EVENT: " + msg.event
+        + " | @" + twitterUserObj.screenName
+        + "\n" + jsonPrint(msg)
+      ));
+    }
+  });
+
+  twitterUserObj.searchStream.on("follow", function(msg){
+    console.log(chalkAlert("TSS | " + getTimeStamp() 
+      + " | TWITTER FOLLOW EVENT"
+      + " | @" + twitterUserObj.screenName
+      + "\n" + jsonPrint(msg)
+    ));
+  });
+
+  twitterUserObj.searchStream.on("unfollow", function(msg){
+    console.log(chalkAlert("TSS | " + getTimeStamp() 
+      + " | TWITTER UNFOLLOW EVENT"
+      + " | @" + twitterUserObj.screenName
+      + "\n" + jsonPrint(msg)
+    ));
+  });
+
+  twitterUserObj.searchStream.on("user_update", function(msg){
+    console.log(chalkAlert("TSS | " + getTimeStamp() 
+      + " | TWITTER USER UPDATE EVENT"
+      + " | @" + twitterUserObj.screenName
+      + "\n" + jsonPrint(msg)
+    ));
+  });
+
+  twitterUserObj.searchStream.on("connect", function(){
+    console.log(chalkTwitter("TSS | " + getTimeStamp()
+      + " | TWITTER CONNECT"
+      + " | @" + twitterUserObj.screenName
+    ));
+    statsObj.twitterConnects += 1;
+    twitterUserObj.stats.connected = true;
+    twitterUserObj.stats.twitterConnects += 1;
+    twitterUserObj.stats.rateLimited = false;
+    showStats();
+  });
+
+  twitterUserObj.searchStream.on("reconnect", function(data){
+    console.log(chalkTwitter("TSS | " + getTimeStamp()
+      + " | TWITTER RECONNECT"
+      + " | @" + twitterUserObj.screenName
+      // + "\n" + jsonPrint(data)
+    ));
+
+    if (data.type === "rate-limit") {
+      twitterUserObj.stats.rateLimited = true;
+    }
+    else {
+      twitterUserObj.stats.rateLimited = false;
+    }
+
+    twitterUserObj.stats.connected = true;
+    statsObj.twitterReconnects+= 1;
+    twitterUserObj.stats.twitterReconnects += 1;
+    showStats();
+  });
+
+  twitterUserObj.searchStream.on("disconnect", function(data){
+    console.log(chalkAlert("TSS | " + getTimeStamp()
+      + " | @" + twitterUserObj.screenName
+      + " | !!! TWITTER DISCONNECT\n" + jsonPrint(data)
+    ));
+    statsObj.twitterDisconnects+= 1;
+    twitterUserObj.stats.connected = false;
+    twitterUserObj.stats.twitterReconnects = 0;
+    twitterUserObj.stats.rateLimited = false;
+    showStats();
+  });
+
+  twitterUserObj.searchStream.on("warning", function(data){
+    console.log(chalkAlert("TSS | " + getTimeStamp() + " | !!! TWITTER WARNING: " + jsonPrint(data)));
+    statsObj.twitterWarnings+= 1;
+    showStats();
+  });
+
+  twitterUserObj.searchStream.on("direct_message", function (message) {
+    console.log(chalkTwitter("TSS | R< TWITTER DIRECT MESSAGE"
+      + " | @" + twitterUserObj.screenName
+      + " | " + message.direct_message.sender_screen_name
+      + "\n" + message.direct_message.text
+    ));
+    showStats();
+  });
+
+  twitterUserObj.searchStream.on("scrub_geo", function(data){
+    console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER SCRUB GEO: " + jsonPrint(data)));
+    statsObj.twitterScrubGeo+= 1;
+    showStats();
+  });
+
+  twitterUserObj.searchStream.on("status_withheld", function(data){
+    console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER STATUS WITHHELD: " + jsonPrint(data)));
+    statsObj.twitterStatusWithheld+= 1;
+    showStats();
+  });
+
+  twitterUserObj.searchStream.on("user_withheld", function(data){
+    console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER USER WITHHELD: " + jsonPrint(data)));
+    statsObj.twitterUserWithheld+= 1;
+    showStats();
+  });
+
+  twitterUserObj.searchStream.on("limit", function(limitMessage){
+
+    statsObj.twitterLimit += limitMessage.limit.track;
+    twitterUserObj.stats.twitterLimit += limitMessage.limit.track;
+
+    if (statsObj.twitterLimit > statsObj.twitterLimitMax) {
+      statsObj.twitterLimitMax = statsObj.twitterLimit;
+      statsObj.twitterLimitMaxTime = moment().valueOf();
+    }
+
+    debug(chalkTwitter("TSS | " + getTimeStamp()
+      + " | TWITTER LIMIT" 
+      + " | @" + twitterUserObj.screenName
+      + " | USER LIMIT: " + statsObj.twitterLimit
+      + " | TOTAL LIMIT: " + twitterUserObj.stats.twitterLimit
+      // + " | " + jsonPrint(limitMessage)
+    ));
+  });
+
+  twitterUserObj.searchStream.on("error", function(err){
+    console.log(chalkError("TSS | " + getTimeStamp()
+      + " | @" + twitterUserObj.screenName
+      + " | *** TWITTER ERROR: " + err
+      // + "\n" + jsonPrint(err)
+    ));
+    statsObj.twitterErrors += 1;
+    twitterUserObj.stats.twitterErrors += 1;
+
+    if (err.statusCode === 401) {
+      process.send({op: "ERROR", threeceeUser: twitterUserObj.screenName, errorType: "TWITTER_UNAUTHORIZED", error: err});
+    }
+    else {
+      process.send({op: "ERROR", threeceeUser: twitterUserObj.screenName, errorType: "TWITTER", error: err});
+    }
+
+    showStats();
+  });
+  
+  twitterUserObj.searchStream.on("parser-error", function(err){
+    console.log(chalkError("TSS | " + getTimeStamp()
+      + " | @" + twitterUserObj.screenName
+      + " | *** TWITTER PARSER ERROR: " + err
+      // + "\n" + jsonPrint(err)
+    ));
+    statsObj.twitterErrors += 1;
+    twitterUserObj.stats.twitterErrors += 1;
+
+    process.send({op: "ERROR", threeceeUser: twitterUserObj.screenName, errorType: "TWITTER_PARSER", error: err});
+
+    showStats();
+  });
+  
+  twitterUserObj.searchStream.on("tweet", function(tweetStatus){
+
+    tweetStatus.entities.media = [];
+    tweetStatus.entities.polls = [];
+    tweetStatus.entities.symbols = [];
+    tweetStatus.entities.urls = [];
+
+    deltaTweet = process.hrtime(deltaTweetStart);
+    if (deltaTweet[0] > 0) { 
+      console.log(chalkAlert("TSS | *** TWEET RX DELTA"
+        + " | @" + twitterUserObj.screenName
+        + " | " + deltaTweet[0] + "." + deltaTweet[1]
+      ));
+    }
+    deltaTweetStart = process.hrtime();
+
+    twitterUserObj.stats.rateLimited = false;
+
+    twitterStats.meter("tweetsPerSecond").mark();
+    twitterStats.meter("tweetsPerMinute").mark();
+
+    twitterUserObj.rateMeter.meter("tweetsPerSecond").mark();
+    twitterUserObj.rateMeter.meter("tweetsPerMinute").mark();
+
+    twitterUserObj.stats.tweetsPerSecond = twitterUserObj.rateMeter.toJSON().tweetsPerSecond["1MinuteRate"];
+    twitterUserObj.stats.tweetsPerMinute = twitterUserObj.rateMeter.toJSON().tweetsPerMinute["1MinuteRate"];
+
+    statsObj.tweetsReceived+= 1 ;
+    twitterUserObj.stats.tweetsReceived += 1;
+
+    if (tweetStatus.retweeted_status) {
+      statsObj.retweetsReceived += 1;
+      twitterUserObj.stats.retweetsReceived += 1;
+    }
+
+    if (tweetQueue.length < configuration.maxTweetQueue ) {
+      tweetQueue.push(tweetStatus);
+    }
+
+    if (statsObj.tweetsReceived % 100 === 0) {
+      console.log(chalkTwitter("TSS | <T | "+ getTimeStamp()
+        + " | TWQ: " + tweetQueue.length
+        + " [ Ts/RTs: " + statsObj.tweetsReceived + "/" + statsObj.retweetsReceived + "]"
+        // + " | DELTA TW RX: " + deltaTweet[0] + "." + deltaTweet[1]
+        + " | " + statsObj.tweetsPerMinute.toFixed(3) + " TPM"
+        + " | " + tweetStatus.id_str
+        + " | @" + tweetStatus.user.screen_name
+        + " | " + tweetStatus.user.name
+        + " | " + tweetStatus.user.id_str
+      ));
+    }
+
+    statsObj.queues.tweetQueue = tweetQueue.length;
+  });
+
+  callback(null, twitterUserObj);
+}
+
 function initSearchTerms(cnf, callback){
 
   getFileMetadata(cnf.searchTermsDir, cnf.searchTermsFile, function(err, response){
@@ -1068,242 +1304,247 @@ function initSearchTerms(cnf, callback){
                 return(cb(err0));
               }
 
-              let filter = {};
-              filter.track = [];
-              filter.follow = [];
+              // let filter = {};
+              // filter.track = [];
+              // filter.follow = [];
 
-              if (twitterUserObj.searchTermArray.length > 0) { filter.track = twitterUserObj.searchTermArray; }
-              if (twitterUserObj.followUserSet.size > 0) { filter.follow = [...twitterUserObj.followUserSet]; }
+              // if (twitterUserObj.searchTermArray.length > 0) { filter.track = twitterUserObj.searchTermArray; }
+              // if (twitterUserObj.followUserSet.size > 0) { filter.follow = [...twitterUserObj.followUserSet]; }
 
-              // if ((filter.track !== undefined) || (filter.follow !== undefined)) {
-              twitterUserObj.searchStream = twitterUserObj.twit.stream("statuses/filter", filter);
-              // }
+              // // if ((filter.track !== undefined) || (filter.follow !== undefined)) {
+              // twitterUserObj.searchStream = twitterUserObj.twit.stream("statuses/filter", filter);
+              // // }
 
-              twitterUserObj.searchStream.on("message", function(msg){
-                if (msg.event) {
-                  console.log(chalkAlert("TSS | " + getTimeStamp() 
-                    + " | TWITTER MESSAGE EVENT: " + msg.event
-                    + " | @" + screenName
-                    + "\n" + jsonPrint(msg)
-                  ));
-                }
-              });
+              // twitterUserObj.searchStream.on("message", function(msg){
+              //   if (msg.event) {
+              //     console.log(chalkAlert("TSS | " + getTimeStamp() 
+              //       + " | TWITTER MESSAGE EVENT: " + msg.event
+              //       + " | @" + screenName
+              //       + "\n" + jsonPrint(msg)
+              //     ));
+              //   }
+              // });
 
-              twitterUserObj.searchStream.on("follow", function(msg){
-                console.log(chalkAlert("TSS | " + getTimeStamp() 
-                  + " | TWITTER FOLLOW EVENT"
-                  + " | @" + screenName
-                  + "\n" + jsonPrint(msg)
-                ));
-              });
+              // twitterUserObj.searchStream.on("follow", function(msg){
+              //   console.log(chalkAlert("TSS | " + getTimeStamp() 
+              //     + " | TWITTER FOLLOW EVENT"
+              //     + " | @" + screenName
+              //     + "\n" + jsonPrint(msg)
+              //   ));
+              // });
 
-              twitterUserObj.searchStream.on("unfollow", function(msg){
-                console.log(chalkAlert("TSS | " + getTimeStamp() 
-                  + " | TWITTER UNFOLLOW EVENT"
-                  + " | @" + screenName
-                  + "\n" + jsonPrint(msg)
-                ));
-              });
+              // twitterUserObj.searchStream.on("unfollow", function(msg){
+              //   console.log(chalkAlert("TSS | " + getTimeStamp() 
+              //     + " | TWITTER UNFOLLOW EVENT"
+              //     + " | @" + screenName
+              //     + "\n" + jsonPrint(msg)
+              //   ));
+              // });
 
-              twitterUserObj.searchStream.on("user_update", function(msg){
-                console.log(chalkAlert("TSS | " + getTimeStamp() 
-                  + " | TWITTER USER UPDATE EVENT"
-                  + " | @" + screenName
-                  + "\n" + jsonPrint(msg)
-                ));
-              });
+              // twitterUserObj.searchStream.on("user_update", function(msg){
+              //   console.log(chalkAlert("TSS | " + getTimeStamp() 
+              //     + " | TWITTER USER UPDATE EVENT"
+              //     + " | @" + screenName
+              //     + "\n" + jsonPrint(msg)
+              //   ));
+              // });
 
-              twitterUserObj.searchStream.on("connect", function(){
-                console.log(chalkTwitter("TSS | " + getTimeStamp()
-                  + " | TWITTER CONNECT"
-                  + " | @" + screenName
-                ));
-                statsObj.twitterConnects += 1;
-                twitterUserObj.stats.connected = true;
-                twitterUserObj.stats.twitterConnects += 1;
-                twitterUserObj.stats.rateLimited = false;
-                showStats();
-              });
+              // twitterUserObj.searchStream.on("connect", function(){
+              //   console.log(chalkTwitter("TSS | " + getTimeStamp()
+              //     + " | TWITTER CONNECT"
+              //     + " | @" + screenName
+              //   ));
+              //   statsObj.twitterConnects += 1;
+              //   twitterUserObj.stats.connected = true;
+              //   twitterUserObj.stats.twitterConnects += 1;
+              //   twitterUserObj.stats.rateLimited = false;
+              //   showStats();
+              // });
 
-              twitterUserObj.searchStream.on("reconnect", function(data){
-                console.log(chalkTwitter("TSS | " + getTimeStamp()
-                  + " | TWITTER RECONNECT"
-                  + " | @" + screenName
-                  // + "\n" + jsonPrint(data)
-                ));
+              // twitterUserObj.searchStream.on("reconnect", function(data){
+              //   console.log(chalkTwitter("TSS | " + getTimeStamp()
+              //     + " | TWITTER RECONNECT"
+              //     + " | @" + screenName
+              //     // + "\n" + jsonPrint(data)
+              //   ));
 
-                if (data.type === "rate-limit") {
-                  twitterUserObj.stats.rateLimited = true;
-                }
-                else {
-                  twitterUserObj.stats.rateLimited = false;
-                }
+              //   if (data.type === "rate-limit") {
+              //     twitterUserObj.stats.rateLimited = true;
+              //   }
+              //   else {
+              //     twitterUserObj.stats.rateLimited = false;
+              //   }
 
-                twitterUserObj.stats.connected = true;
-                statsObj.twitterReconnects+= 1;
-                twitterUserObj.stats.twitterReconnects += 1;
-                showStats();
-              });
+              //   twitterUserObj.stats.connected = true;
+              //   statsObj.twitterReconnects+= 1;
+              //   twitterUserObj.stats.twitterReconnects += 1;
+              //   showStats();
+              // });
 
-              twitterUserObj.searchStream.on("disconnect", function(data){
-                console.log(chalkAlert("TSS | " + getTimeStamp()
-                  + " | @" + screenName
-                  + " | !!! TWITTER DISCONNECT\n" + jsonPrint(data)
-                ));
-                statsObj.twitterDisconnects+= 1;
-                twitterUserObj.stats.connected = false;
-                twitterUserObj.stats.twitterReconnects = 0;
-                twitterUserObj.stats.rateLimited = false;
-                showStats();
-              });
+              // twitterUserObj.searchStream.on("disconnect", function(data){
+              //   console.log(chalkAlert("TSS | " + getTimeStamp()
+              //     + " | @" + screenName
+              //     + " | !!! TWITTER DISCONNECT\n" + jsonPrint(data)
+              //   ));
+              //   statsObj.twitterDisconnects+= 1;
+              //   twitterUserObj.stats.connected = false;
+              //   twitterUserObj.stats.twitterReconnects = 0;
+              //   twitterUserObj.stats.rateLimited = false;
+              //   showStats();
+              // });
 
-              twitterUserObj.searchStream.on("warning", function(data){
-                console.log(chalkAlert("TSS | " + getTimeStamp() + " | !!! TWITTER WARNING: " + jsonPrint(data)));
-                statsObj.twitterWarnings+= 1;
-                showStats();
-              });
+              // twitterUserObj.searchStream.on("warning", function(data){
+              //   console.log(chalkAlert("TSS | " + getTimeStamp() + " | !!! TWITTER WARNING: " + jsonPrint(data)));
+              //   statsObj.twitterWarnings+= 1;
+              //   showStats();
+              // });
 
-              twitterUserObj.searchStream.on("direct_message", function (message) {
-                console.log(chalkTwitter("TSS | R< TWITTER DIRECT MESSAGE"
-                  + " | @" + screenName
-                  + " | " + message.direct_message.sender_screen_name
-                  + "\n" + message.direct_message.text
-                ));
-                showStats();
-              });
+              // twitterUserObj.searchStream.on("direct_message", function (message) {
+              //   console.log(chalkTwitter("TSS | R< TWITTER DIRECT MESSAGE"
+              //     + " | @" + screenName
+              //     + " | " + message.direct_message.sender_screen_name
+              //     + "\n" + message.direct_message.text
+              //   ));
+              //   showStats();
+              // });
 
-              twitterUserObj.searchStream.on("scrub_geo", function(data){
-                console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER SCRUB GEO: " + jsonPrint(data)));
-                statsObj.twitterScrubGeo+= 1;
-                showStats();
-              });
+              // twitterUserObj.searchStream.on("scrub_geo", function(data){
+              //   console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER SCRUB GEO: " + jsonPrint(data)));
+              //   statsObj.twitterScrubGeo+= 1;
+              //   showStats();
+              // });
 
-              twitterUserObj.searchStream.on("status_withheld", function(data){
-                console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER STATUS WITHHELD: " + jsonPrint(data)));
-                statsObj.twitterStatusWithheld+= 1;
-                showStats();
-              });
+              // twitterUserObj.searchStream.on("status_withheld", function(data){
+              //   console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER STATUS WITHHELD: " + jsonPrint(data)));
+              //   statsObj.twitterStatusWithheld+= 1;
+              //   showStats();
+              // });
 
-              twitterUserObj.searchStream.on("user_withheld", function(data){
-                console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER USER WITHHELD: " + jsonPrint(data)));
-                statsObj.twitterUserWithheld+= 1;
-                showStats();
-              });
+              // twitterUserObj.searchStream.on("user_withheld", function(data){
+              //   console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER USER WITHHELD: " + jsonPrint(data)));
+              //   statsObj.twitterUserWithheld+= 1;
+              //   showStats();
+              // });
 
-              twitterUserObj.searchStream.on("limit", function(limitMessage){
+              // twitterUserObj.searchStream.on("limit", function(limitMessage){
 
-                statsObj.twitterLimit += limitMessage.limit.track;
-                twitterUserObj.stats.twitterLimit += limitMessage.limit.track;
+              //   statsObj.twitterLimit += limitMessage.limit.track;
+              //   twitterUserObj.stats.twitterLimit += limitMessage.limit.track;
 
-                if (statsObj.twitterLimit > statsObj.twitterLimitMax) {
-                  statsObj.twitterLimitMax = statsObj.twitterLimit;
-                  statsObj.twitterLimitMaxTime = moment().valueOf();
-                }
+              //   if (statsObj.twitterLimit > statsObj.twitterLimitMax) {
+              //     statsObj.twitterLimitMax = statsObj.twitterLimit;
+              //     statsObj.twitterLimitMaxTime = moment().valueOf();
+              //   }
 
-                debug(chalkTwitter("TSS | " + getTimeStamp()
-                  + " | TWITTER LIMIT" 
-                  + " | @" + screenName
-                  + " | USER LIMIT: " + statsObj.twitterLimit
-                  + " | TOTAL LIMIT: " + twitterUserObj.stats.twitterLimit
-                  // + " | " + jsonPrint(limitMessage)
-                ));
-              });
+              //   debug(chalkTwitter("TSS | " + getTimeStamp()
+              //     + " | TWITTER LIMIT" 
+              //     + " | @" + screenName
+              //     + " | USER LIMIT: " + statsObj.twitterLimit
+              //     + " | TOTAL LIMIT: " + twitterUserObj.stats.twitterLimit
+              //     // + " | " + jsonPrint(limitMessage)
+              //   ));
+              // });
 
-              twitterUserObj.searchStream.on("error", function(err){
-                console.log(chalkError("TSS | " + getTimeStamp()
-                  + " | @" + twitterUserObj.screenName
-                  + " | *** TWITTER ERROR: " + err
-                  // + "\n" + jsonPrint(err)
-                ));
-                statsObj.twitterErrors += 1;
-                twitterUserObj.stats.twitterErrors += 1;
+              // twitterUserObj.searchStream.on("error", function(err){
+              //   console.log(chalkError("TSS | " + getTimeStamp()
+              //     + " | @" + twitterUserObj.screenName
+              //     + " | *** TWITTER ERROR: " + err
+              //     // + "\n" + jsonPrint(err)
+              //   ));
+              //   statsObj.twitterErrors += 1;
+              //   twitterUserObj.stats.twitterErrors += 1;
 
-                if (err.statusCode === 401) {
-                  process.send({op: "ERROR", threeceeUser: screenName, errorType: "TWITTER_UNAUTHORIZED", error: err});
-                }
-                else {
-                  process.send({op: "ERROR", threeceeUser: screenName, errorType: "TWITTER", error: err});
-                }
+              //   if (err.statusCode === 401) {
+              //     process.send({op: "ERROR", threeceeUser: screenName, errorType: "TWITTER_UNAUTHORIZED", error: err});
+              //   }
+              //   else {
+              //     process.send({op: "ERROR", threeceeUser: screenName, errorType: "TWITTER", error: err});
+              //   }
 
 
-                showStats();
-              });
+              //   showStats();
+              // });
               
-              twitterUserObj.searchStream.on("parser-error", function(err){
-                console.log(chalkError("TSS | " + getTimeStamp()
-                  + " | @" + twitterUserObj.screenName
-                  + " | *** TWITTER PARSER ERROR: " + err
-                  // + "\n" + jsonPrint(err)
-                ));
-                statsObj.twitterErrors += 1;
-                twitterUserObj.stats.twitterErrors += 1;
+              // twitterUserObj.searchStream.on("parser-error", function(err){
+              //   console.log(chalkError("TSS | " + getTimeStamp()
+              //     + " | @" + twitterUserObj.screenName
+              //     + " | *** TWITTER PARSER ERROR: " + err
+              //     // + "\n" + jsonPrint(err)
+              //   ));
+              //   statsObj.twitterErrors += 1;
+              //   twitterUserObj.stats.twitterErrors += 1;
 
-                process.send({op: "ERROR", threeceeUser: screenName, errorType: "TWITTER_PARSER", error: err});
+              //   process.send({op: "ERROR", threeceeUser: screenName, errorType: "TWITTER_PARSER", error: err});
 
-                showStats();
-              });
+              //   showStats();
+              // });
               
-              twitterUserObj.searchStream.on("tweet", function(tweetStatus){
+              // twitterUserObj.searchStream.on("tweet", function(tweetStatus){
 
-                tweetStatus.entities.media = [];
-                tweetStatus.entities.polls = [];
-                tweetStatus.entities.symbols = [];
-                tweetStatus.entities.urls = [];
+              //   tweetStatus.entities.media = [];
+              //   tweetStatus.entities.polls = [];
+              //   tweetStatus.entities.symbols = [];
+              //   tweetStatus.entities.urls = [];
 
-                deltaTweet = process.hrtime(deltaTweetStart);
-                if (deltaTweet[0] > 0) { 
-                  console.log(chalkAlert("TSS | *** TWEET RX DELTA"
-                    + " | @" + screenName
-                    + " | " + deltaTweet[0] + "." + deltaTweet[1]
-                  ));
-                }
-                deltaTweetStart = process.hrtime();
+              //   deltaTweet = process.hrtime(deltaTweetStart);
+              //   if (deltaTweet[0] > 0) { 
+              //     console.log(chalkAlert("TSS | *** TWEET RX DELTA"
+              //       + " | @" + screenName
+              //       + " | " + deltaTweet[0] + "." + deltaTweet[1]
+              //     ));
+              //   }
+              //   deltaTweetStart = process.hrtime();
 
-                twitterUserObj.stats.rateLimited = false;
+              //   twitterUserObj.stats.rateLimited = false;
 
-                twitterStats.meter("tweetsPerSecond").mark();
-                twitterStats.meter("tweetsPerMinute").mark();
+              //   twitterStats.meter("tweetsPerSecond").mark();
+              //   twitterStats.meter("tweetsPerMinute").mark();
 
-                twitterUserObj.rateMeter.meter("tweetsPerSecond").mark();
-                twitterUserObj.rateMeter.meter("tweetsPerMinute").mark();
+              //   twitterUserObj.rateMeter.meter("tweetsPerSecond").mark();
+              //   twitterUserObj.rateMeter.meter("tweetsPerMinute").mark();
 
-                twitterUserObj.stats.tweetsPerSecond = twitterUserObj.rateMeter.toJSON().tweetsPerSecond["1MinuteRate"];
-                twitterUserObj.stats.tweetsPerMinute = twitterUserObj.rateMeter.toJSON().tweetsPerMinute["1MinuteRate"];
+              //   twitterUserObj.stats.tweetsPerSecond = twitterUserObj.rateMeter.toJSON().tweetsPerSecond["1MinuteRate"];
+              //   twitterUserObj.stats.tweetsPerMinute = twitterUserObj.rateMeter.toJSON().tweetsPerMinute["1MinuteRate"];
 
-                statsObj.tweetsReceived+= 1 ;
-                twitterUserObj.stats.tweetsReceived += 1;
+              //   statsObj.tweetsReceived+= 1 ;
+              //   twitterUserObj.stats.tweetsReceived += 1;
 
-                if (tweetStatus.retweeted_status) {
-                  statsObj.retweetsReceived += 1;
-                  twitterUserObj.stats.retweetsReceived += 1;
-                }
+              //   if (tweetStatus.retweeted_status) {
+              //     statsObj.retweetsReceived += 1;
+              //     twitterUserObj.stats.retweetsReceived += 1;
+              //   }
 
-                if (tweetQueue.length < configuration.maxTweetQueue ) {
-                  tweetQueue.push(tweetStatus);
-                }
+              //   if (tweetQueue.length < configuration.maxTweetQueue ) {
+              //     tweetQueue.push(tweetStatus);
+              //   }
 
-                if (statsObj.tweetsReceived % 100 === 0) {
-                  console.log(chalkTwitter("TSS | <T | "+ getTimeStamp()
-                    + " | TWQ: " + tweetQueue.length
-                    + " [ Ts/RTs: " + statsObj.tweetsReceived + "/" + statsObj.retweetsReceived + "]"
-                    // + " | DELTA TW RX: " + deltaTweet[0] + "." + deltaTweet[1]
-                    + " | " + statsObj.tweetsPerMinute.toFixed(3) + " TPM"
-                    + " | " + tweetStatus.id_str
-                    + " | @" + tweetStatus.user.screen_name
-                    + " | " + tweetStatus.user.name
-                    + " | " + tweetStatus.user.id_str
-                  ));
-                }
+              //   if (statsObj.tweetsReceived % 100 === 0) {
+              //     console.log(chalkTwitter("TSS | <T | "+ getTimeStamp()
+              //       + " | TWQ: " + tweetQueue.length
+              //       + " [ Ts/RTs: " + statsObj.tweetsReceived + "/" + statsObj.retweetsReceived + "]"
+              //       // + " | DELTA TW RX: " + deltaTweet[0] + "." + deltaTweet[1]
+              //       + " | " + statsObj.tweetsPerMinute.toFixed(3) + " TPM"
+              //       + " | " + tweetStatus.id_str
+              //       + " | @" + tweetStatus.user.screen_name
+              //       + " | " + tweetStatus.user.name
+              //       + " | " + tweetStatus.user.id_str
+              //     ));
+              //   }
 
-                statsObj.queues.tweetQueue = tweetQueue.length;
+              //   statsObj.queues.tweetQueue = tweetQueue.length;
+              // });
+
+              initSearchStream({twitterUserObj: twitterUserObj}, function(err, tuObj){
+
+                console.log(chalkInfo("TSS | END TRACK USER"
+                  + " | @" + tuObj.screenName
+                ));
+
+                twitterUserHashMap.set(tuObj.screenName, tuObj);
+
+                cb();
+
               });
-
-              console.log(chalkInfo("TSS | END TRACK USER"
-                + " | @" + screenName
-              ));
-
-              twitterUserHashMap.set(screenName, twitterUserObj);
-              cb();
 
             }
           );
@@ -1777,13 +2018,6 @@ process.on("message", function(m) {
 
       let twitterUserObj = twitterUserHashMap.get(m.user.screenName);
 
-      // const newTwit = new Twit({
-      //   consumer_key: params.config.CONSUMER_KEY,
-      //   consumer_secret: params.config.CONSUMER_SECRET,
-      //   access_token: params.config.TOKEN,
-      //   access_token_secret: params.config.TOKEN_SECRET
-      // });
-
       if (twitterUserObj !== undefined) {
 
         const authObj = twitterUserObj.twit.getAuth();
@@ -1898,6 +2132,11 @@ process.on("message", function(m) {
               });
 
             }, function(err){
+              if (twitterUserObj.searchTermArray.length > 0) { filter.track = twitterUserObj.searchTermArray; }
+              if (twitterUserObj.followUserSet.size > 0) { filter.follow = [...twitterUserObj.followUserSet]; }
+
+              twitterUserObj.searchStream("statuses/filter", filter);
+
               process.send({op: "TWITTER_STATS", threeceeUser: twitterUserObj.screenName, twitterFollowing: twitterUserObj.followUserSet.size});
             });
 

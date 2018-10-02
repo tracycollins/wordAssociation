@@ -559,6 +559,7 @@ function initTwit(params, callback){
 
   twitterUserObj.stats = {};
   twitterUserObj.stats.connected = false;
+  twitterUserObj.stats.authenticated = false;
   twitterUserObj.stats.tweetsReceived = 0;
   twitterUserObj.stats.retweetsReceived = 0;
   twitterUserObj.stats.twitterConnects = 0;
@@ -611,14 +612,14 @@ function initTwit(params, callback){
       ));
 
       twitterUserObj.stats.twitterErrors += 1;
-      twitterUserObj.stats.notAuthenticated = true;
+      twitterUserObj.stats.authenticated = false;
 
       twitterUserHashMap.set(twitterUserObj.screenName, twitterUserObj);
 
       return callback(err, twitterUserObj);
     }
 
-    twitterUserObj.stats.notAuthenticated = false;
+    twitterUserObj.stats.authenticated = true;
 
     twitterUserObj.followUserSet = new Set(data.ids);
 
@@ -2056,13 +2057,13 @@ process.on("message", function(m) {
               ));
 
               twitterUserObj.stats.twitterErrors += 1;
-              twitterUserObj.stats.notAuthenticated = true;
+              twitterUserObj.stats.authenticated = false;
 
               twitterUserHashMap.set(twitterUserObj.screenName, twitterUserObj);
 
             }
 
-            twitterUserObj.stats.notAuthenticated = false;
+            twitterUserObj.stats.authenticated = true;
             twitterUserObj.followUserSet = new Set(data.ids);
 
             console.log(chalkError("TSS | TWITTER GET FRIENDS IDS"

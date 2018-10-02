@@ -560,6 +560,7 @@ function initTwit(params, callback){
   twitterUserObj.stats = {};
   twitterUserObj.stats.connected = false;
   twitterUserObj.stats.authenticated = false;
+  twitterUserObj.stats.twitterTokenErrorFlag = false;
   twitterUserObj.stats.tweetsReceived = 0;
   twitterUserObj.stats.retweetsReceived = 0;
   twitterUserObj.stats.twitterConnects = 0;
@@ -620,6 +621,7 @@ function initTwit(params, callback){
     }
 
     twitterUserObj.stats.authenticated = true;
+    twitterUserObj.stats.twitterTokenErrorFlag = false;
 
     twitterUserObj.followUserSet = new Set(data.ids);
 
@@ -777,93 +779,10 @@ function initTwitterUsers(cnf, callback){
               + " | " + err
             ));
 
-            // twitterUserObj.stats.twitterErrors += 1;
-
-            // twitterUserHashMap.set(screenName, twitterUserObj);
-
-            // return(cb());
           }
 
-          // twitterUserHashMap.set(twitterUserObj.screenName, twitterUserObj);
           cb();
         });
-
-        // console.log("USER @" + screenName);
-
-        // cnf.twitterConfig[screenName] = {};
-        // cnf.twitterConfig[screenName] = twitterConfig;
-
-        // console.log(chalkInfo(getTimeStamp() + " | TWITTER CONFIG FILE " 
-        //   + cnf.twitterConfigFolder + "/" + twitterConfigFile
-        //   + "\n" + jsonPrint(cnf.twitterConfig[screenName])
-        // ));
-
-        // let twitterUserObj = {};
-
-        // twitterUserObj.stats = {};
-        // twitterUserObj.stats.connected = false;
-        // twitterUserObj.stats.tweetsReceived = 0;
-        // twitterUserObj.stats.retweetsReceived = 0;
-        // twitterUserObj.stats.twitterConnects = 0;
-        // twitterUserObj.stats.twitterReconnects = 0;
-        // twitterUserObj.stats.twitterFollowLimit = false;
-        // twitterUserObj.stats.twitterLimit = 0;
-        // twitterUserObj.stats.twitterErrors = 0;
-        // twitterUserObj.stats.rateLimited = false;
-        // twitterUserObj.stats.tweetsPerSecond = 0;
-        // twitterUserObj.stats.tweetsPerMinute = 0;
-
-        // twitterUserObj.rateMeter = Measured.createCollection();
-        // twitterUserObj.rateMeter.meter("tweetsPerSecond", {rateUnit: 1000, tickInterval: 1000});
-        // twitterUserObj.rateMeter.meter("tweetsPerMinute", {rateUnit: 60000, tickInterval: 1000});
-
-        // twitterUserObj.trackingNumber = 0;
-
-        // twitterUserObj.screenName = screenName ;
-        // twitterUserObj.twitterConfig = {} ;
-        // twitterUserObj.twitterConfig = cnf.twitterConfig[screenName] ;
-
-        // const newTwit = new Twit({
-        //   consumer_key: cnf.twitterConfig.CONSUMER_KEY,
-        //   consumer_secret: cnf.twitterConfig.CONSUMER_SECRET,
-        //   access_token: cnf.twitterConfig.TOKEN,
-        //   access_token_secret: cnf.twitterConfig.TOKEN_SECRET
-        // });
-
-        // twitterUserObj.twit = {};
-        // twitterUserObj.twit = newTwit;
-
-        // twitterUserObj.searchStream = {};
-        // twitterUserObj.searchTermArray = [];
-        // twitterUserObj.followUserSet = [];
-
-        // console.log(chalkTwitter("ADDED TWITTER USER STREAM"
-        //   + " | NAME: " + screenName
-        // ));
-
-        // twitterUserObj.twit.get("application/rate_limit_status", function(err, data, response) {
-        //   if (err){
-
-        //     console.log(chalkError("!!!!! TWITTER ACCOUNT ERROR"
-        //       + " | @" + screenName
-        //       + " | " + getTimeStamp()
-        //       + " | CODE: " + err.code
-        //       + " | STATUS CODE: " + err.statusCode
-        //       + " | " + err.message
-        //     ));
-
-        //     twitterUserObj.stats.twitterErrors += 1;
-
-        //     twitterUserHashMap.set(screenName, twitterUserObj);
-
-        //     return(cb());
-        //   }
-
-        //   debug(chalkTwitter("TWITTER ACCOUNT RATE LIMIT DATA\n" + jsonPrint(data)));
-
-        //   twitterUserHashMap.set(screenName, twitterUserObj);
-        //   cb();
-        // });
 
       });
 
@@ -1023,6 +942,7 @@ function initSearchStream(params, callback){
     twitterUserObj.stats.connected = true;
     twitterUserObj.stats.twitterConnects += 1;
     twitterUserObj.stats.rateLimited = false;
+    twitterUserObj.stats.twitterTokenErrorFlag = false;
     showStats();
   });
 
@@ -1040,9 +960,11 @@ function initSearchStream(params, callback){
       twitterUserObj.stats.rateLimited = false;
     }
 
-    twitterUserObj.stats.connected = true;
     statsObj.twitterReconnects+= 1;
+
+    twitterUserObj.stats.connected = true;
     twitterUserObj.stats.twitterReconnects += 1;
+    twitterUserObj.stats.twitterTokenErrorFlag = false;
     showStats();
   });
 
@@ -1055,6 +977,7 @@ function initSearchStream(params, callback){
     twitterUserObj.stats.connected = false;
     twitterUserObj.stats.twitterReconnects = 0;
     twitterUserObj.stats.rateLimited = false;
+    twitterUserObj.stats.twitterTokenErrorFlag = false;
     showStats();
   });
 
@@ -1304,236 +1227,6 @@ function initSearchTerms(cnf, callback){
                 ));
                 return(cb(err0));
               }
-
-              // let filter = {};
-              // filter.track = [];
-              // filter.follow = [];
-
-              // if (twitterUserObj.searchTermArray.length > 0) { filter.track = twitterUserObj.searchTermArray; }
-              // if (twitterUserObj.followUserSet.size > 0) { filter.follow = [...twitterUserObj.followUserSet]; }
-
-              // // if ((filter.track !== undefined) || (filter.follow !== undefined)) {
-              // twitterUserObj.searchStream = twitterUserObj.twit.stream("statuses/filter", filter);
-              // // }
-
-              // twitterUserObj.searchStream.on("message", function(msg){
-              //   if (msg.event) {
-              //     console.log(chalkAlert("TSS | " + getTimeStamp() 
-              //       + " | TWITTER MESSAGE EVENT: " + msg.event
-              //       + " | @" + screenName
-              //       + "\n" + jsonPrint(msg)
-              //     ));
-              //   }
-              // });
-
-              // twitterUserObj.searchStream.on("follow", function(msg){
-              //   console.log(chalkAlert("TSS | " + getTimeStamp() 
-              //     + " | TWITTER FOLLOW EVENT"
-              //     + " | @" + screenName
-              //     + "\n" + jsonPrint(msg)
-              //   ));
-              // });
-
-              // twitterUserObj.searchStream.on("unfollow", function(msg){
-              //   console.log(chalkAlert("TSS | " + getTimeStamp() 
-              //     + " | TWITTER UNFOLLOW EVENT"
-              //     + " | @" + screenName
-              //     + "\n" + jsonPrint(msg)
-              //   ));
-              // });
-
-              // twitterUserObj.searchStream.on("user_update", function(msg){
-              //   console.log(chalkAlert("TSS | " + getTimeStamp() 
-              //     + " | TWITTER USER UPDATE EVENT"
-              //     + " | @" + screenName
-              //     + "\n" + jsonPrint(msg)
-              //   ));
-              // });
-
-              // twitterUserObj.searchStream.on("connect", function(){
-              //   console.log(chalkTwitter("TSS | " + getTimeStamp()
-              //     + " | TWITTER CONNECT"
-              //     + " | @" + screenName
-              //   ));
-              //   statsObj.twitterConnects += 1;
-              //   twitterUserObj.stats.connected = true;
-              //   twitterUserObj.stats.twitterConnects += 1;
-              //   twitterUserObj.stats.rateLimited = false;
-              //   showStats();
-              // });
-
-              // twitterUserObj.searchStream.on("reconnect", function(data){
-              //   console.log(chalkTwitter("TSS | " + getTimeStamp()
-              //     + " | TWITTER RECONNECT"
-              //     + " | @" + screenName
-              //     // + "\n" + jsonPrint(data)
-              //   ));
-
-              //   if (data.type === "rate-limit") {
-              //     twitterUserObj.stats.rateLimited = true;
-              //   }
-              //   else {
-              //     twitterUserObj.stats.rateLimited = false;
-              //   }
-
-              //   twitterUserObj.stats.connected = true;
-              //   statsObj.twitterReconnects+= 1;
-              //   twitterUserObj.stats.twitterReconnects += 1;
-              //   showStats();
-              // });
-
-              // twitterUserObj.searchStream.on("disconnect", function(data){
-              //   console.log(chalkAlert("TSS | " + getTimeStamp()
-              //     + " | @" + screenName
-              //     + " | !!! TWITTER DISCONNECT\n" + jsonPrint(data)
-              //   ));
-              //   statsObj.twitterDisconnects+= 1;
-              //   twitterUserObj.stats.connected = false;
-              //   twitterUserObj.stats.twitterReconnects = 0;
-              //   twitterUserObj.stats.rateLimited = false;
-              //   showStats();
-              // });
-
-              // twitterUserObj.searchStream.on("warning", function(data){
-              //   console.log(chalkAlert("TSS | " + getTimeStamp() + " | !!! TWITTER WARNING: " + jsonPrint(data)));
-              //   statsObj.twitterWarnings+= 1;
-              //   showStats();
-              // });
-
-              // twitterUserObj.searchStream.on("direct_message", function (message) {
-              //   console.log(chalkTwitter("TSS | R< TWITTER DIRECT MESSAGE"
-              //     + " | @" + screenName
-              //     + " | " + message.direct_message.sender_screen_name
-              //     + "\n" + message.direct_message.text
-              //   ));
-              //   showStats();
-              // });
-
-              // twitterUserObj.searchStream.on("scrub_geo", function(data){
-              //   console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER SCRUB GEO: " + jsonPrint(data)));
-              //   statsObj.twitterScrubGeo+= 1;
-              //   showStats();
-              // });
-
-              // twitterUserObj.searchStream.on("status_withheld", function(data){
-              //   console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER STATUS WITHHELD: " + jsonPrint(data)));
-              //   statsObj.twitterStatusWithheld+= 1;
-              //   showStats();
-              // });
-
-              // twitterUserObj.searchStream.on("user_withheld", function(data){
-              //   console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER USER WITHHELD: " + jsonPrint(data)));
-              //   statsObj.twitterUserWithheld+= 1;
-              //   showStats();
-              // });
-
-              // twitterUserObj.searchStream.on("limit", function(limitMessage){
-
-              //   statsObj.twitterLimit += limitMessage.limit.track;
-              //   twitterUserObj.stats.twitterLimit += limitMessage.limit.track;
-
-              //   if (statsObj.twitterLimit > statsObj.twitterLimitMax) {
-              //     statsObj.twitterLimitMax = statsObj.twitterLimit;
-              //     statsObj.twitterLimitMaxTime = moment().valueOf();
-              //   }
-
-              //   debug(chalkTwitter("TSS | " + getTimeStamp()
-              //     + " | TWITTER LIMIT" 
-              //     + " | @" + screenName
-              //     + " | USER LIMIT: " + statsObj.twitterLimit
-              //     + " | TOTAL LIMIT: " + twitterUserObj.stats.twitterLimit
-              //     // + " | " + jsonPrint(limitMessage)
-              //   ));
-              // });
-
-              // twitterUserObj.searchStream.on("error", function(err){
-              //   console.log(chalkError("TSS | " + getTimeStamp()
-              //     + " | @" + twitterUserObj.screenName
-              //     + " | *** TWITTER ERROR: " + err
-              //     // + "\n" + jsonPrint(err)
-              //   ));
-              //   statsObj.twitterErrors += 1;
-              //   twitterUserObj.stats.twitterErrors += 1;
-
-              //   if (err.statusCode === 401) {
-              //     process.send({op: "ERROR", threeceeUser: screenName, errorType: "TWITTER_UNAUTHORIZED", error: err});
-              //   }
-              //   else {
-              //     process.send({op: "ERROR", threeceeUser: screenName, errorType: "TWITTER", error: err});
-              //   }
-
-
-              //   showStats();
-              // });
-              
-              // twitterUserObj.searchStream.on("parser-error", function(err){
-              //   console.log(chalkError("TSS | " + getTimeStamp()
-              //     + " | @" + twitterUserObj.screenName
-              //     + " | *** TWITTER PARSER ERROR: " + err
-              //     // + "\n" + jsonPrint(err)
-              //   ));
-              //   statsObj.twitterErrors += 1;
-              //   twitterUserObj.stats.twitterErrors += 1;
-
-              //   process.send({op: "ERROR", threeceeUser: screenName, errorType: "TWITTER_PARSER", error: err});
-
-              //   showStats();
-              // });
-              
-              // twitterUserObj.searchStream.on("tweet", function(tweetStatus){
-
-              //   tweetStatus.entities.media = [];
-              //   tweetStatus.entities.polls = [];
-              //   tweetStatus.entities.symbols = [];
-              //   tweetStatus.entities.urls = [];
-
-              //   deltaTweet = process.hrtime(deltaTweetStart);
-              //   if (deltaTweet[0] > 0) { 
-              //     console.log(chalkAlert("TSS | *** TWEET RX DELTA"
-              //       + " | @" + screenName
-              //       + " | " + deltaTweet[0] + "." + deltaTweet[1]
-              //     ));
-              //   }
-              //   deltaTweetStart = process.hrtime();
-
-              //   twitterUserObj.stats.rateLimited = false;
-
-              //   twitterStats.meter("tweetsPerSecond").mark();
-              //   twitterStats.meter("tweetsPerMinute").mark();
-
-              //   twitterUserObj.rateMeter.meter("tweetsPerSecond").mark();
-              //   twitterUserObj.rateMeter.meter("tweetsPerMinute").mark();
-
-              //   twitterUserObj.stats.tweetsPerSecond = twitterUserObj.rateMeter.toJSON().tweetsPerSecond["1MinuteRate"];
-              //   twitterUserObj.stats.tweetsPerMinute = twitterUserObj.rateMeter.toJSON().tweetsPerMinute["1MinuteRate"];
-
-              //   statsObj.tweetsReceived+= 1 ;
-              //   twitterUserObj.stats.tweetsReceived += 1;
-
-              //   if (tweetStatus.retweeted_status) {
-              //     statsObj.retweetsReceived += 1;
-              //     twitterUserObj.stats.retweetsReceived += 1;
-              //   }
-
-              //   if (tweetQueue.length < configuration.maxTweetQueue ) {
-              //     tweetQueue.push(tweetStatus);
-              //   }
-
-              //   if (statsObj.tweetsReceived % 100 === 0) {
-              //     console.log(chalkTwitter("TSS | <T | "+ getTimeStamp()
-              //       + " | TWQ: " + tweetQueue.length
-              //       + " [ Ts/RTs: " + statsObj.tweetsReceived + "/" + statsObj.retweetsReceived + "]"
-              //       // + " | DELTA TW RX: " + deltaTweet[0] + "." + deltaTweet[1]
-              //       + " | " + statsObj.tweetsPerMinute.toFixed(3) + " TPM"
-              //       + " | " + tweetStatus.id_str
-              //       + " | @" + tweetStatus.user.screen_name
-              //       + " | " + tweetStatus.user.name
-              //       + " | " + tweetStatus.user.id_str
-              //     ));
-              //   }
-
-              //   statsObj.queues.tweetQueue = tweetQueue.length;
-              // });
 
               initSearchStream({twitterUserObj: twitterUserObj}, function(err, tuObj){
 
@@ -1893,6 +1586,7 @@ function follow(params, callback){
 
           if (data.errors[0].code === 89) {
             process.send({op: "ERROR", threeceeUser: params.threeceeUser, errorType: "TWITTER_TOKEN", error: data.errors[0]});
+            twitterUserObj.stats.twitterTokenErrorFlag = true;
           }
 
           if (data.errors[0].code === 161) {
@@ -2041,7 +1735,7 @@ process.on("message", function(m) {
         saveFile(configuration.twitterConfigFolder, twitterConfigFile, twitterUserObj.twitterConfig, function(){
           console.log(chalkLog("TSS | SAVED UPDATED AUTH " + configuration.twitterConfigFolder + "/" + twitterConfigFile));
 
-          twitterUserObj.stats.connected = false;
+          twitterUserObj.stats.connected = true;
           twitterUserObj.stats.twitterFollowLimit = false;
 
           twitterUserObj.twit.get("friends/ids", function(err, data, response) {

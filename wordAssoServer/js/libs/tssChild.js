@@ -312,7 +312,6 @@ function getTimeStamp(inputTime) {
   }
 }
 
-
 function showStats(options){
 
   statsObj.heap = process.memoryUsage().heapUsed/(1024*1024);
@@ -322,8 +321,10 @@ function showStats(options){
   statsObj.tweetsPerMinute = 0;
 
   twitterUserHashMap.forEach(function(twitterUserObj, screenName){
-    statsObj.tweetsPerSecond += twitterUserObj.stats.tweetsPerSecond;
-    statsObj.tweetsPerMinute += twitterUserObj.stats.tweetsPerMinute;
+    if (twitterUserObj) {
+      statsObj.tweetsPerSecond += twitterUserObj.stats.tweetsPerSecond;
+      statsObj.tweetsPerMinute += twitterUserObj.stats.tweetsPerMinute;
+    }
   });
 
   statsObj.elapsed = moment().valueOf() - statsObj.startTime;
@@ -516,6 +517,8 @@ function initStatsUpdate(cnf, callback){
       showStats();
     });
 
+    checkTwitterRateLimitAll();
+
   }, cnf.statsUpdateIntervalTime);
 
 
@@ -558,6 +561,8 @@ function initTwit(params, callback){
   let twitterUserObj = {};
 
   twitterUserObj.stats = {};
+  twitterUserObj.stats.ready = false;
+  twitterUserObj.stats.error = false;
   twitterUserObj.stats.connected = false;
   twitterUserObj.stats.authenticated = false;
   twitterUserObj.stats.twitterTokenErrorFlag = false;
@@ -571,6 +576,12 @@ function initTwit(params, callback){
   twitterUserObj.stats.rateLimited = false;
   twitterUserObj.stats.tweetsPerSecond = 0;
   twitterUserObj.stats.tweetsPerMinute = 0;
+
+  twitterUserObj.stats.twitterRateLimit = 0;
+  twitterUserObj.stats.twitterRateLimitRemaining = 0;
+  twitterUserObj.stats.twitterRateLimitResetAt = 0;
+  twitterUserObj.stats.twitterRateLimitRemainingTime = 0;
+  twitterUserObj.stats.twitterRateLimitExceptionFlag = false;
 
   twitterUserObj.rateMeter = Measured.createCollection();
   twitterUserObj.rateMeter.meter("tweetsPerSecond", {rateUnit: 1000, tickInterval: 1000});
@@ -625,7 +636,7 @@ function initTwit(params, callback){
 
     twitterUserObj.followUserSet = new Set(data.ids);
 
-    console.log(chalkError("TSS | TWITTER GET FRIENDS IDS"
+    console.log(chalkTwitter("TSS | TWITTER GET FRIENDS IDS"
       + " | @" + twitterUserObj.screenName
       + " | " + twitterUserObj.followUserSet.size + " FRIENDS"
     ));
@@ -884,6 +895,109 @@ let deltaTweet = process.hrtime(deltaTweetStart);
 
 let prevFileModifiedMoment = moment("2010-01-01");
 
+function checkTwitterRateLimit(params, callback){
+
+  let twitterUserObj = params.twitterUserObj;
+
+  if ((twitterUserObj === undefined) || (twitterUserObj.twit === undefined)) {
+    return callback(new Error("INVALID PARAMS", params));
+  }
+
+  twitterUserObj.twit.get("application/rate_limit_status", function(err, data, response) {
+    
+    if (err){
+
+      console.log(chalkError("!!!!! TWITTER ACCOUNT ERROR"
+        + " | @" + twitterUserObj.screenName
+        + " | " + getTimeStamp()
+        + " | CODE: " + err.code
+        + " | STATUS CODE: " + err.statusCode
+        + " | " + err.message
+      ));
+
+      twitterUserObj.stats.error = err;
+      twitterUserObj.stats.twitterErrors += 1;
+      twitterUserObj.stats.ready = false;
+
+      callback(err, twitterUserObj);
+    }
+    else {
+
+      if (configuration.verbose) {
+        console.log(chalkLog("TWITTER RATE LIMIT STATUS"
+          + " | @" + twitterUserObj.screenName
+          + " | LIM: " + twitterUserObj.stats.twitterRateLimit
+          + " | REM: " + twitterUserObj.stats.twitterRateLimitRemaining
+          + " | RST: " + getTimeStamp(twitterUserObj.stats.twitterRateLimitResetAt)
+          + " | NOW: " + moment().format(compactDateTimeFormat)
+          + " | IN " + msToTime(twitterUserObj.stats.twitterRateLimitRemainingTime)
+        ));
+      }
+
+      if (data.resources.users["/users/show/:id"].remaining > 0){
+
+
+        twitterUserObj.stats.ready = true;
+
+        twitterUserObj.stats.twitterRateLimit = data.resources.users["/users/show/:id"].limit;
+        twitterUserObj.stats.twitterRateLimitRemaining = data.resources.users["/users/show/:id"].remaining;
+        twitterUserObj.stats.twitterRateLimitResetAt = moment.unix(data.resources.users["/users/show/:id"].reset).valueOf();
+        twitterUserObj.stats.twitterRateLimitRemainingTime = moment(twitterUserObj.stats.twitterRateLimitResetAt).diff(moment());
+
+        if (twitterUserObj.stats.twitterRateLimitExceptionFlag) {
+
+          twitterUserObj.stats.twitterRateLimitExceptionFlag = false;
+          
+          console.log(chalkInfo("XXX RESET TWITTER RATE LIMIT"
+            + " | @" + twitterUserObj.screenName
+            + " | CONTEXT: " + data.rate_limit_context.access_token
+            + " | LIM: " + twitterUserObj.stats.twitterRateLimit
+            + " | REM: " + twitterUserObj.stats.twitterRateLimitRemaining
+            + " | EXP: " + twitterUserObj.stats.twitterRateLimitException.format(compactDateTimeFormat)
+            + " | NOW: " + moment().format(compactDateTimeFormat)
+          ));
+        }
+
+        callback(null, twitterUserObj);
+
+      }
+      else {
+
+        twitterUserObj.stats.ready = false;
+        twitterUserObj.stats.twitterRateLimitExceptionFlag = true;
+
+        twitterUserObj.stats.twitterRateLimit = data.resources.users["/users/show/:id"].limit;
+        twitterUserObj.stats.twitterRateLimitRemaining = data.resources.users["/users/show/:id"].remaining;
+        twitterUserObj.stats.twitterRateLimitResetAt = moment.unix(data.resources.users["/users/show/:id"].reset).valueOf();
+        twitterUserObj.stats.twitterRateLimitRemainingTime = moment(twitterUserObj.stats.twitterRateLimitResetAt).diff(moment());
+
+        console.log(chalkLog("--- TWITTER RATE LIMIT"
+          + " | @" + twitterUserObj.screenName
+          + " | CONTEXT: " + data.rate_limit_context.access_token
+          + " | LIM: " + twitterUserObj.stats.twitterRateLimit
+          + " | REM: " + twitterUserObj.stats.twitterRateLimitRemaining
+          + " | EXP: " + twitterUserObj.stats.twitterRateLimitException.format(compactDateTimeFormat)
+          + " | RST: " + moment(twitterUserObj.stats.twitterRateLimitResetAt).format(compactDateTimeFormat)
+          + " | NOW: " + moment().format(compactDateTimeFormat)
+          + " | IN " + msToTime(twitterUserObj.stats.twitterRateLimitRemainingTime)
+        ));
+
+        callback(null, twitterUserObj);
+
+      }
+
+    }
+  });
+}
+
+function checkTwitterRateLimitAll(callback){
+  twitterUserHashMap.forEach(function(twitterUserObj, threeceeUser){
+    checkTwitterRateLimit({twitterUserObj: twitterUserObj}, function(err, tuObj){
+      if (!err && (tuObj !== undefined)) { twitterUserHashMap.set(threeceeUser, tuObj); }
+    });
+  });
+}
+
 function initSearchStream(params, callback){
 
   let twitterUserObj = params.twitterUserObj;
@@ -895,9 +1009,7 @@ function initSearchStream(params, callback){
   if (twitterUserObj.searchTermArray.length > 0) { filter.track = twitterUserObj.searchTermArray; }
   if (twitterUserObj.followUserSet.size > 0) { filter.follow = [...twitterUserObj.followUserSet]; }
 
-  // if ((filter.track !== undefined) || (filter.follow !== undefined)) {
   twitterUserObj.searchStream = twitterUserObj.twit.stream("statuses/filter", filter);
-  // }
 
   twitterUserObj.searchStream.on("message", function(msg){
     if (msg.event) {
@@ -1511,29 +1623,6 @@ function initTwitterSearch(cnf){
   ));
 }
 
-function initSearchTermsInterval(cnf){
-
-  clearInterval(searchTermsUpdateInterval);
-
-  searchTermsUpdateInterval = setInterval(function(){
-
-    initSearchTerms(cnf, function(err, status){
-      if (err) {
-        console.log(chalkError("*** TSS INIT SEARCH TERMS UPDATE ERROR: " + err));
-        return;
-      }
-
-      configEvents.emit("SEARCH_TERM_UPDATE_COMPLETE", cnf);
-
-      console.log("SEARCH TERM UPDATE COMPLETE"
-        + " | " + searchTermHashMap.count() + " SEARCH TERMS"
-        + " | STATUS: " + status
-      );
-
-    });
-
-  }, cnf.searchTermsUpdateInterval);
-}
 
 function follow(params, callback){
 
@@ -1866,7 +1955,6 @@ process.on("message", function(m) {
       if (m.forceFollow !== undefined) { configuration.forceFollow = m.forceFollow; }
 
       follow(m, function(err, success){
-
       });
 
     break;
@@ -1887,7 +1975,6 @@ process.on("message", function(m) {
 
         debug("initSearchTerms status\n" + jsonPrint(status));
 
-        // initSearchTermsInterval(configuration);
         if (!twitterSearchInit) { initTwitterSearch(configuration); }
 
       });
@@ -1983,11 +2070,9 @@ setTimeout(function(){
 
         debug("initSearchTerms status\n" + jsonPrint(status));
 
-        // initSearchTermsInterval(configuration);
         if (!twitterSearchInit) { initTwitterSearch(configuration); }
       });
 
-      // });
     });
 
   });

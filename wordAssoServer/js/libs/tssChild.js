@@ -1739,6 +1739,8 @@ function initTwitterSearch(cnf){
 
 function follow(params, callback) {
 
+  const twUsersArray = twitterUserHashMap.keys();
+
   async.eachSeries(twUsersArray, function(screenName, cb){
 
     let twitterUserObj = twitterUserHashMap.get(screenName);

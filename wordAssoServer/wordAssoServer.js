@@ -3632,7 +3632,7 @@ function follow(params, callback) {
       console.log(chalkError("*** FOLLOW | USER FIND ONE ERROR: " + err));
     }
     else if (userUpdated){
-      if (statsObj.tssChildReady && configuration.twitterThreeceeAutoFollowUser) {
+      if (statsObj.tssChildReady) {
 
         console.log(chalkLog("+++ FOLLOW"
           + " | " + printUser({user: userUpdated})
@@ -3640,7 +3640,7 @@ function follow(params, callback) {
 
         tssChild.send({
           op: "FOLLOW", 
-          threeceeUser: configuration.twitterThreeceeAutoFollowUser, 
+          // threeceeUser: configuration.twitterThreeceeAutoFollowUser, 
           user: userUpdated,
           forceFollow: configuration.forceFollow
         });
@@ -5150,22 +5150,22 @@ function autoFollowUser(params, callback){
     return;
   }
 
-  getNextThreeceeAutoFollowUser(function(threeceeAutofollowUser){
-    if (!threeceeAutofollowUser) {
-      console.log(chalkAlert("NO AUTOFOLLOW USER"));
-      if (callback !== undefined) { 
-        return callback(null, null);
-      }
+  // getNextThreeceeAutoFollowUser(function(threeceeAutofollowUser){
+  //   if (!threeceeAutofollowUser) {
+  //     console.log(chalkAlert("NO AUTOFOLLOW USER"));
+  //     if (callback !== undefined) { 
+  //       return callback(null, null);
+  //     }
 
-      return;
-    }
-    console.log(chalkInfo("CURRENT 3C TWITTER AUTOFOLLOW USER: @" + threeceeAutofollowUser));
-    configuration.twitterThreeceeAutoFollowUser = threeceeAutofollowUser;
+  //     return;
+  //   }
+  //   console.log(chalkInfo("CURRENT 3C TWITTER AUTOFOLLOW USER: @" + threeceeAutofollowUser));
+  //   configuration.twitterThreeceeAutoFollowUser = threeceeAutofollowUser;
 
-    console.log(chalkUser("AUTO FOLLOW USER"
-      + " | MIN: " + configuration.minFollowersAuto
-      + "\n" + printUser({user:params.user})
-    ));
+  //   console.log(chalkUser("AUTO FOLLOW USER"
+  //     + " | MIN: " + configuration.minFollowersAuto
+  //     + "\n" + printUser({user:params.user})
+  //   ));
 
     follow({user: params.user}, function(err, results){
       if (err) {
@@ -5198,7 +5198,7 @@ function autoFollowUser(params, callback){
 
     });
 
-  });
+  // });
 }
 
 // function checkTwitterRateLimit(params, callback){
@@ -5389,74 +5389,74 @@ function getCurrentThreeceeUser(callback){
 }
 
 
-function getNextThreeceeAutoFollowUser(callback){
+// function getNextThreeceeAutoFollowUser(callback){
 
-  if (!statsObj.threeceeUsersConfiguredFlag) {
-    console.log(chalkAlert("*** THREECEE_USERS NOT CONFIGURED"));
-    return callback(false);
-  }
+//   if (!statsObj.threeceeUsersConfiguredFlag) {
+//     console.log(chalkAlert("*** THREECEE_USERS NOT CONFIGURED"));
+//     return callback(false);
+//   }
 
-  if (configuration.threeceeUsers.length === 0){
-    console.log(chalkAlert("??? NO THREECEE_USERS ???"));
-    configuration.twitterThreeceeAutoFollowUser = false;
-    return callback(false);
-  }
+//   if (configuration.threeceeUsers.length === 0){
+//     console.log(chalkAlert("??? NO THREECEE_USERS ???"));
+//     configuration.twitterThreeceeAutoFollowUser = false;
+//     return callback(false);
+//   }
 
-  async.eachSeries(configuration.threeceeUsers, function(threeceeUser, cb){
+//   async.eachSeries(configuration.threeceeUsers, function(threeceeUser, cb){
 
-    if ((threeceeTwitter[threeceeUser] !== undefined) 
-      && threeceeTwitter[threeceeUser].ready 
-      && (threeceeTwitter[threeceeUser].twitterFollowing < 5000) 
-      && !threeceeTwitter[threeceeUser].twitterErrorFlag
-      && !threeceeTwitter[threeceeUser].twitterTokenErrorFlag
-      && !threeceeTwitter[threeceeUser].twitterFollowLimit
-    ) {
+//     if ((threeceeTwitter[threeceeUser] !== undefined) 
+//       && threeceeTwitter[threeceeUser].ready 
+//       && (threeceeTwitter[threeceeUser].twitterFollowing < 5000) 
+//       && !threeceeTwitter[threeceeUser].twitterErrorFlag
+//       && !threeceeTwitter[threeceeUser].twitterTokenErrorFlag
+//       && !threeceeTwitter[threeceeUser].twitterFollowLimit
+//     ) {
 
-      debug(chalkTwitter("IN getNextThreeceeAutoFollowUser 3C USER"
-        + " | @" + threeceeUser + " READY and NO TOKEN ERROR and NO FOLLOW LIMIT and FOLLOWING < 5000"
-      ));
+//       debug(chalkTwitter("IN getNextThreeceeAutoFollowUser 3C USER"
+//         + " | @" + threeceeUser + " READY and NO TOKEN ERROR and NO FOLLOW LIMIT and FOLLOWING < 5000"
+//       ));
 
-      return cb(threeceeUser);
-    }
+//       return cb(threeceeUser);
+//     }
 
-    debug(chalkTwitter("IN getNextThreeceeAutoFollowUser 3C USER"
-      + " | @" + threeceeUser + " NOT READY or TOKEN ERROR or FOLLOW LIMIT or FOLLOWING >= 5000"
-    ));
+//     debug(chalkTwitter("IN getNextThreeceeAutoFollowUser 3C USER"
+//       + " | @" + threeceeUser + " NOT READY or TOKEN ERROR or FOLLOW LIMIT or FOLLOWING >= 5000"
+//     ));
 
-    cb();
-
-
-  }, function(threeceeUser){
-
-    if (threeceeUser) { 
-
-      configuration.twitterThreeceeAutoFollowUser = threeceeUser;
-
-      debug(chalkTwitter("getNextThreeceeAutoFollowUser 3C USER"
-        + " | 3C USERS: " + configuration.threeceeUsers
-        + " | @" + configuration.twitterThreeceeAutoFollowUser
-      ));
-
-    }
-    else {
+//     cb();
 
 
-      if (configuration.twitterThreeceeAutoFollowUser) {
+//   }, function(threeceeUser){
 
-        configuration.twitterThreeceeAutoFollowUser = false;
+//     if (threeceeUser) { 
 
-        console.log(chalkAlert("getNextThreeceeAutoFollowUser 3C USER"
-          + " | 3C USERS: " + configuration.threeceeUsers
-          + " | NONE AUTO FOLLOW READY"
-        ));
-      }
+//       configuration.twitterThreeceeAutoFollowUser = threeceeUser;
 
-    }
+//       debug(chalkTwitter("getNextThreeceeAutoFollowUser 3C USER"
+//         + " | 3C USERS: " + configuration.threeceeUsers
+//         + " | @" + configuration.twitterThreeceeAutoFollowUser
+//       ));
 
-    return callback(configuration.twitterThreeceeAutoFollowUser);
+//     }
+//     else {
 
-  });
-}
+
+//       if (configuration.twitterThreeceeAutoFollowUser) {
+
+//         configuration.twitterThreeceeAutoFollowUser = false;
+
+//         console.log(chalkAlert("getNextThreeceeAutoFollowUser 3C USER"
+//           + " | 3C USERS: " + configuration.threeceeUsers
+//           + " | NONE AUTO FOLLOW READY"
+//         ));
+//       }
+
+//     }
+
+//     return callback(configuration.twitterThreeceeAutoFollowUser);
+
+//   });
+// }
 
 function updateUserSets(callback){
 
@@ -5665,253 +5665,255 @@ function initTransmitNodeQueueInterval(interval){
                 printUserObj("FOLLWABLE: " + followable, n);
               }
 
-              getCurrentThreeceeUser(function(currentThreeceeUser){
+              // getCurrentThreeceeUser(function(currentThreeceeUser){
 
-                if (configuration.verbose) { 
-                  console.log(chalkAlert("getCurrentThreeceeUser: " + currentThreeceeUser));
-                  if (threeceeTwitter[currentThreeceeUser] !== undefined) {
-                    console.log(chalkAlert("threeceeTwitter[currentThreeceeUser].ready: " + threeceeTwitter[currentThreeceeUser].ready));
+                // if (configuration.verbose) { 
+                //   console.log(chalkAlert("getCurrentThreeceeUser: " + currentThreeceeUser));
+                //   if (threeceeTwitter[currentThreeceeUser] !== undefined) {
+                //     console.log(chalkAlert("threeceeTwitter[currentThreeceeUser].ready: " + threeceeTwitter[currentThreeceeUser].ready));
+                //   }
+                //   console.log(chalkAlert("twitUserShowReady: " + twitUserShowReady));
+                //   console.log(chalkAlert("followable: " + followable));
+                // }
+
+              // if (currentThreeceeUser
+              //   && (threeceeTwitter[currentThreeceeUser] !== undefined) 
+              //   && threeceeTwitter[currentThreeceeUser].ready 
+              //   && twitUserShowReady 
+              //   && followable){
+
+              if (followable) {
+
+                // threeceeTwitter[currentThreeceeUser].twit.get("users/show", 
+                //   {user_id: n.nodeId, include_entities: true}, 
+                //   function usersShow (err, rawUser, response){
+
+                tssChild.send({op: "USER_SHOW", userId: n.nodeId, includeEntities: true});
+
+                // twitUserShowReady = false;
+
+                // if (configuration.verbose) { debug(chalkAlert("RAW USER\n" + jsonPrint(rawUser))); }
+
+                // if (err){
+
+                //   if (err.code === 88){
+
+                //     console.log(chalkAlert("*** TWITTER SHOW USER ERROR | RATE LIMIT EXCEEDED" 
+                //       + " | " + getTimeStamp() 
+                //       + " | @" + currentThreeceeUser 
+                //     ));
+
+                //     threeceeTwitter[currentThreeceeUser].ready = false;
+                //     threeceeTwitter[currentThreeceeUser].twitterRateLimitException = moment();
+                //     threeceeTwitter[currentThreeceeUser].twitterRateLimitExceptionFlag = true;
+
+                //     // checkTwitterRateLimit({user: currentThreeceeUser});
+
+                //     delete n["_id"];
+                //     viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
+
+                //   }
+                //   else if (err.code === 63){
+
+                //     console.log(chalkError("*** TWITTER SHOW USER ERROR | USER SUSPENDED"
+                //       + " | " + getTimeStamp() 
+                //       + " | 3C @" + currentThreeceeUser 
+                //       + " | UID: " + n.nodeId
+                //       + " | ERR CODE: " + err.code
+                //       + " | " + err.message
+                //     ));
+
+                //     unfollowableUserSet.add(n.nodeId);
+                //   }
+                //   else if (err.code === 99){
+
+                //     console.log(chalkError("*** TWITTER SHOW USER ERROR | UNABLE TO VERIFY CREDENTIALS"
+                //       + " | " + getTimeStamp() 
+                //       + " | 3C @" + currentThreeceeUser 
+                //       + " | ERR CODE: " + err.code
+                //       + " | " + err.message
+                //     ));
+
+                //     threeceeTwitter[currentThreeceeUser].ready = false;
+                //     threeceeTwitter[currentThreeceeUser].twitterCredentialErrorFlag = true;
+                //   }
+                //   else {
+
+                //     console.log(chalkError("*** TWITTER SHOW USER ERROR"
+                //       + " | " + getTimeStamp() 
+                //       + " | 3C @" + currentThreeceeUser 
+                //       + " | UID: " + n.nodeId
+                //       + " | ERR CODE: " + err.code
+                //       + " | " + err.message
+                //     ));
+                //   }
+
+                //   twitUserShowReady = true;
+                //   transmitNodeQueueReady = true;
+
+                //   deltaTxNode = process.hrtime(deltaTxNodeStart);
+
+                //   if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (users/show err): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+                // }
+                // else if (rawUser && (rawUser.followers_count >= configuration.minFollowersAuto)) {
+
+                //   startTwitUserShowRateLimitTimeoutDuration = ONE_MINUTE;
+
+                //   debug(chalkTwitter("FOUND users/show rawUser" + jsonPrint(rawUser)));
+
+                //   n.isTwitterUser = true;
+                //   n.name = rawUser.name;
+                //   n.createdAt = rawUser.created_at;
+                //   n.screenName = rawUser.screen_name.toLowerCase();
+                //   n.screenNameLower = rawUser.screen_name.toLowerCase();
+                //   n.url = rawUser.url;
+                //   n.profileUrl = "https://twitter.com/" + rawUser.screen_name;
+                //   n.profileImageUrl = rawUser.profile_image_url;
+                //   n.bannerImageUrl = rawUser.profile_banner_url;
+                //   n.verified = rawUser.verified;
+                //   n.following = true;
+                //   n.threeceeFollowing = configuration.twitterThreeceeAutoFollowUser;
+                //   n.description = rawUser.description;
+                //   n.lastTweetId = (rawUser.status !== undefined) ? rawUser.status.id_str : null;
+                //   n.statusesCount = rawUser.statuses_count;
+                //   n.friendsCount = rawUser.friends_count;
+                //   n.followersCount = rawUser.followers_count;
+                //   n.status = rawUser.status;
+                //   n.lastSeen = (rawUser.status !== undefined) ? rawUser.status.created_at : null;
+                //   n.updateLastSeen = true;
+
+                //   nCacheObj = nodeCache.get(n.nodeId);
+
+                //   if (nCacheObj) {
+                //     n.mentions = Math.max(n.mentions, nCacheObj.mentions);
+                //     n.setMentions = true;
+                //   }
+
+                //   userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit, lean: true}, function(err, updatedUser){
+
+                //     if (err) {
+                //       console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
+                //       delete n["_id"];
+                //       viewNameSpace.volatile.emit("node", n);
+                //     }
+                //     else {
+
+                //       delete n["_id"];
+                //       viewNameSpace.volatile.emit("node", updatedUser);
+
+                //       if (!unfollowableUserSet.has(updatedUser.nodeId)) { 
+                //         autoFollowUser({ threeceeUser: configuration.twitterThreeceeAutoFollowUser, user: updatedUser });
+                //       }
+                //       else {
+                //         console.log(chalkAlert("... NO AUTO FOLLOW | IN UNFOLLOWABLE SET"
+                //           + "\n" + printUser( { user: updatedUser} )
+                //         ));
+                //       }
+
+                //     }
+
+                //     twitUserShowReady = true;
+                //     transmitNodeQueueReady = true;
+
+                //     deltaTxNode = process.hrtime(deltaTxNodeStart);
+                //     if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (findOneUser): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+
+                //   });
+                // }
+                // else {
+                //   delete n["_id"];
+                //   viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
+
+                //   twitUserShowReady = true;
+                //   transmitNodeQueueReady = true;
+
+                //   deltaTxNode = process.hrtime(deltaTxNodeStart);
+                //   if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (no autofollow): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+                // }
+
+                // });
+              }
+
+              if ((n.nodeType === "user") && n.category){
+
+                nCacheObj = nodeCache.get(n.nodeId);
+
+                if (nCacheObj) {
+                  n.mentions = Math.max(n.mentions, nCacheObj.mentions);
+                  n.setMentions = true;
+                }
+
+                n.updateLastSeen = true;
+
+                userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit}, function(err, updatedUser){
+                  if (err) {
+                    console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
+                    delete n["_id"];
+                    viewNameSpace.volatile.emit("node", n);
                   }
-                  console.log(chalkAlert("twitUserShowReady: " + twitUserShowReady));
-                  console.log(chalkAlert("followable: " + followable));
-                }
-
-                if (currentThreeceeUser
-                  && (threeceeTwitter[currentThreeceeUser] !== undefined) 
-                  && threeceeTwitter[currentThreeceeUser].ready 
-                  && twitUserShowReady 
-                  && followable){
-
-                  threeceeTwitter[currentThreeceeUser].twit.get("users/show", 
-                    {user_id: n.nodeId, include_entities: true}, 
-                    function usersShow (err, rawUser, response){
-
-                    twitUserShowReady = false;
-
-                    if (configuration.verbose) { debug(chalkAlert("RAW USER\n" + jsonPrint(rawUser))); }
-
-                    if (err){
-
-                      if (err.code === 88){
-
-                        console.log(chalkAlert("*** TWITTER SHOW USER ERROR | RATE LIMIT EXCEEDED" 
-                          + " | " + getTimeStamp() 
-                          + " | @" + currentThreeceeUser 
-                        ));
-
-                        threeceeTwitter[currentThreeceeUser].ready = false;
-                        threeceeTwitter[currentThreeceeUser].twitterRateLimitException = moment();
-                        threeceeTwitter[currentThreeceeUser].twitterRateLimitExceptionFlag = true;
-
-                        // checkTwitterRateLimit({user: currentThreeceeUser});
-
-                        delete n["_id"];
-                        viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
-
-                      }
-                      else if (err.code === 63){
-
-                        console.log(chalkError("*** TWITTER SHOW USER ERROR | USER SUSPENDED"
-                          + " | " + getTimeStamp() 
-                          + " | 3C @" + currentThreeceeUser 
-                          + " | UID: " + n.nodeId
-                          + " | ERR CODE: " + err.code
-                          + " | " + err.message
-                        ));
-
-                        unfollowableUserSet.add(n.nodeId);
-                      }
-                      else if (err.code === 99){
-
-                        console.log(chalkError("*** TWITTER SHOW USER ERROR | UNABLE TO VERIFY CREDENTIALS"
-                          + " | " + getTimeStamp() 
-                          + " | 3C @" + currentThreeceeUser 
-                          + " | ERR CODE: " + err.code
-                          + " | " + err.message
-                        ));
-
-                        threeceeTwitter[currentThreeceeUser].ready = false;
-                        threeceeTwitter[currentThreeceeUser].twitterCredentialErrorFlag = true;
-                      }
-                      else {
-
-                        console.log(chalkError("*** TWITTER SHOW USER ERROR"
-                          + " | " + getTimeStamp() 
-                          + " | 3C @" + currentThreeceeUser 
-                          + " | UID: " + n.nodeId
-                          + " | ERR CODE: " + err.code
-                          + " | " + err.message
-                        ));
-                      }
-
-                      twitUserShowReady = true;
-                      transmitNodeQueueReady = true;
-
-                      deltaTxNode = process.hrtime(deltaTxNodeStart);
-                      if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (users/show err): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
-
-                    }
-
-                    else if (rawUser && (rawUser.followers_count >= configuration.minFollowersAuto)) {
-
-                      startTwitUserShowRateLimitTimeoutDuration = ONE_MINUTE;
-
-                      debug(chalkTwitter("FOUND users/show rawUser" + jsonPrint(rawUser)));
-
-                      n.isTwitterUser = true;
-                      n.name = rawUser.name;
-                      n.createdAt = rawUser.created_at;
-                      n.screenName = rawUser.screen_name.toLowerCase();
-                      n.screenNameLower = rawUser.screen_name.toLowerCase();
-                      n.url = rawUser.url;
-                      n.profileUrl = "https://twitter.com/" + rawUser.screen_name;
-                      n.profileImageUrl = rawUser.profile_image_url;
-                      n.bannerImageUrl = rawUser.profile_banner_url;
-                      n.verified = rawUser.verified;
-                      n.following = true;
-                      n.threeceeFollowing = configuration.twitterThreeceeAutoFollowUser;
-                      n.description = rawUser.description;
-                      n.lastTweetId = (rawUser.status !== undefined) ? rawUser.status.id_str : null;
-                      n.statusesCount = rawUser.statuses_count;
-                      n.friendsCount = rawUser.friends_count;
-                      n.followersCount = rawUser.followers_count;
-                      n.status = rawUser.status;
-                      n.lastSeen = (rawUser.status !== undefined) ? rawUser.status.created_at : null;
-                      n.updateLastSeen = true;
-
-                      nCacheObj = nodeCache.get(n.nodeId);
-
-                      if (nCacheObj) {
-                        n.mentions = Math.max(n.mentions, nCacheObj.mentions);
-                        n.setMentions = true;
-                      }
-
-                      userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit, lean: true}, function(err, updatedUser){
-    
-                        if (err) {
-                          console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
-                          delete n["_id"];
-                          viewNameSpace.volatile.emit("node", n);
-                        }
-                        else {
-
-                          delete n["_id"];
-                          viewNameSpace.volatile.emit("node", updatedUser);
-
-                          if (!unfollowableUserSet.has(updatedUser.nodeId)) { 
-                            autoFollowUser({ threeceeUser: configuration.twitterThreeceeAutoFollowUser, user: updatedUser });
-                          }
-                          else {
-                            console.log(chalkAlert("... NO AUTO FOLLOW | IN UNFOLLOWABLE SET"
-                              + "\n" + printUser( { user: updatedUser} )
-                            ));
-                          }
-
-                        }
-
-                        twitUserShowReady = true;
-                        transmitNodeQueueReady = true;
-
-                        deltaTxNode = process.hrtime(deltaTxNodeStart);
-                        if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (findOneUser): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
-
-                      });
-                    }
-                    else {
-                      delete n["_id"];
-                      viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
-
-                      twitUserShowReady = true;
-                      transmitNodeQueueReady = true;
-
-                      deltaTxNode = process.hrtime(deltaTxNodeStart);
-                      if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (no autofollow): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
-                    }
-                  });
-                }
-                else if ((n.nodeType === "user") && n.category){
-
-                  nCacheObj = nodeCache.get(n.nodeId);
-
-                  if (nCacheObj) {
-                    n.mentions = Math.max(n.mentions, nCacheObj.mentions);
-                    n.setMentions = true;
+                  else {
+                    delete n["_id"];
+                    viewNameSpace.volatile.emit("node", updatedUser);
                   }
 
-                  n.updateLastSeen = true;
+                  transmitNodeQueueReady = true;
 
-                  userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit}, function(err, updatedUser){
-                    if (err) {
-                      console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
-                      delete n["_id"];
-                      viewNameSpace.volatile.emit("node", n);
-                    }
-                    else {
-                      delete n["_id"];
-                      viewNameSpace.volatile.emit("node", updatedUser);
-                    }
+                  deltaTxNode = process.hrtime(deltaTxNodeStart);
+                  if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (user categorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
 
-                    transmitNodeQueueReady = true;
+                });
+              }
+              else if (n.nodeType === "user") {
+                delete n["_id"];
+                viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
 
-                    deltaTxNode = process.hrtime(deltaTxNodeStart);
-                    if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (user categorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+                transmitNodeQueueReady = true;
 
-                  });
-                }
-                else if (n.nodeType === "user") {
-                  delete n["_id"];
-                  viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
+                deltaTxNode = process.hrtime(deltaTxNodeStart);
+                if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (user uncategorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+              }
+              else if ((n.nodeType === "hashtag") && n.category){
+
+                n.updateLastSeen = true;
+
+                hashtagServerController.findOneHashtag(n, {noInc: false}, function(err, updatedHashtag){
+                  if (err) {
+                    console.log(chalkError("updatedHashtag ERROR\n" + jsonPrint(err)));
+                    delete n["_id"];
+                    viewNameSpace.volatile.emit("node", n);
+                  }
+                  else if (updatedHashtag) {
+                    delete n["_id"];
+                    viewNameSpace.volatile.emit("node", updatedHashtag);
+                  }
+                  else {
+                    delete n["_id"];
+                    viewNameSpace.volatile.emit("node", n);
+                  }
 
                   transmitNodeQueueReady = true;
 
                   deltaTxNode = process.hrtime(deltaTxNodeStart);
-                  if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (user uncategorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+                  if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (hashtag categorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
 
-                }
-                else if ((n.nodeType === "hashtag") && n.category){
+                });
+              }
+              else if (n.nodeType === "hashtag") {
+                delete n["_id"];
+                viewNameSpace.volatile.emit("node", n);
+                transmitNodeQueueReady = true;
 
-                  n.updateLastSeen = true;
+                deltaTxNode = process.hrtime(deltaTxNodeStart);
+                if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (hashtag uncategorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+              }
+              else {
+                transmitNodeQueueReady = true;
 
-                  hashtagServerController.findOneHashtag(n, {noInc: false}, function(err, updatedHashtag){
-                    if (err) {
-                      console.log(chalkError("updatedHashtag ERROR\n" + jsonPrint(err)));
-                      delete n["_id"];
-                      viewNameSpace.volatile.emit("node", n);
-                    }
-                    else if (updatedHashtag) {
-                      delete n["_id"];
-                      viewNameSpace.volatile.emit("node", updatedHashtag);
-                    }
-                    else {
-                      delete n["_id"];
-                      viewNameSpace.volatile.emit("node", n);
-                    }
+                deltaTxNode = process.hrtime(deltaTxNodeStart);
+                if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (nothing?): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+              }
 
-                    transmitNodeQueueReady = true;
-
-                    deltaTxNode = process.hrtime(deltaTxNodeStart);
-                    if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (hashtag categorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
-
-                  });
-                }
-                else if (n.nodeType === "hashtag") {
-                  delete n["_id"];
-                  viewNameSpace.volatile.emit("node", n);
-                  transmitNodeQueueReady = true;
-
-                  deltaTxNode = process.hrtime(deltaTxNodeStart);
-                  if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (hashtag uncategorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
-
-                }
-                else {
-                  transmitNodeQueueReady = true;
-
-                  deltaTxNode = process.hrtime(deltaTxNodeStart);
-                  if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (nothing?): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
-
-                }
-
-              });
+              // });
             }
 
           });
@@ -6890,17 +6892,6 @@ function initTssChild(params, callback){
           threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
           threeceeTwitter[m.threeceeUser].twitterAuthorizationErrorFlag = m.error;
 
-          getNextThreeceeAutoFollowUser(function(threeceeAutofollowUser){
-
-            if (!threeceeAutofollowUser) {
-              console.log(chalkAlert("NO AUTOFOLLOW USER"));
-            }
-            else {
-              console.log(chalkInfo("CURRENT 3C TWITTER AUTOFOLLOW USER: @" + threeceeAutofollowUser));
-              configuration.twitterThreeceeAutoFollowUser = threeceeAutofollowUser;
-            }
-          });
-
         }
         else if (m.errorType === "TWITTER_TOKEN") {
 
@@ -6908,33 +6899,12 @@ function initTssChild(params, callback){
           threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
           threeceeTwitter[m.threeceeUser].twitterTokenErrorFlag = m.error;
 
-          getNextThreeceeAutoFollowUser(function(threeceeAutofollowUser){
-
-            if (!threeceeAutofollowUser) {
-              console.log(chalkAlert("NO AUTOFOLLOW USER"));
-            }
-            else {
-              console.log(chalkInfo("CURRENT 3C TWITTER AUTOFOLLOW USER: @" + threeceeAutofollowUser));
-              configuration.twitterThreeceeAutoFollowUser = threeceeAutofollowUser;
-            }
-          });
-
         }
         else {
 
           threeceeTwitter[m.threeceeUser].twitterErrors += 1;
           threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
 
-          getNextThreeceeAutoFollowUser(function(threeceeAutofollowUser){
-
-            if (!threeceeAutofollowUser) {
-              console.log(chalkAlert("NO AUTOFOLLOW USER"));
-            }
-            else {
-              console.log(chalkInfo("CURRENT 3C TWITTER AUTOFOLLOW USER: @" + threeceeAutofollowUser));
-              configuration.twitterThreeceeAutoFollowUser = threeceeAutofollowUser;
-            }
-          });
         }
 
       break;
@@ -6948,16 +6918,6 @@ function initTssChild(params, callback){
 
         threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
 
-        getNextThreeceeAutoFollowUser(function(threeceeAutofollowUser){
-
-          if (!threeceeAutofollowUser) {
-            console.log(chalkAlert("NO AUTOFOLLOW USER"));
-          }
-          else {
-            console.log(chalkInfo("CURRENT 3C TWITTER AUTOFOLLOW USER: @" + threeceeAutofollowUser));
-            configuration.twitterThreeceeAutoFollowUser = threeceeAutofollowUser;
-          }
-        });
       break;
 
       case "FOLLOW_LIMIT":
@@ -6971,16 +6931,6 @@ function initTssChild(params, callback){
         threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
         threeceeTwitter[m.threeceeUser].twitterFollowLimit = true;
 
-        getNextThreeceeAutoFollowUser(function(threeceeAutofollowUser){
-
-          if (!threeceeAutofollowUser) {
-            console.log(chalkAlert("NO AUTOFOLLOW USER"));
-          }
-          else {
-            console.log(chalkInfo("CURRENT 3C TWITTER AUTOFOLLOW USER: @" + threeceeAutofollowUser));
-            configuration.twitterThreeceeAutoFollowUser = threeceeAutofollowUser;
-          }
-        });
       break;
 
       case "TWEET":

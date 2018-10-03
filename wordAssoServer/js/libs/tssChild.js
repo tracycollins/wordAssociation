@@ -7,6 +7,7 @@ process.title = "wa_node_tss";
 const DEFAULT_MAX_TWEET_QUEUE = 500;
 const DEFAULT_TWITTER_QUEUE_INTERVAL = 10;
 const DEFAULT_CURSOR_BATCH_SIZE = 5000;
+const DEFAULT_INFO_TWITTER_USER = "threeceeinfo";
 
 const MAX_READY_ACK_WAIT_COUNT = 10;
 
@@ -70,6 +71,7 @@ const searchTermHashMap = new HashMap();
 const twitterUserHashMap = new HashMap();
 
 const twitterFollowQueue = [];
+const userShowQueue = [];
 
 process.on("SIGHUP", function processSigHup() {
   quit("SIGHUP");
@@ -86,6 +88,8 @@ const configEvents = new EventEmitter2({
   maxListeners: 20,
   verboseMemoryLeak: true
 });
+
+let infoTwitterUserObj = {};  // used for general twitter tasks
 
 const twitterStats = Measured.createCollection();
 twitterStats.meter("tweetsPerSecond", {rateUnit: 1000, tickInterval: 1000});
@@ -105,6 +109,7 @@ configuration.forceFollow = false;
 configuration.globalTestMode = false;
 configuration.testMode = false; // per tweet test mode
 configuration.searchTermsUpdateInterval = 1*ONE_MINUTE;
+configuration.userShowQueueInterval = ONE_SECOND;
 configuration.maxTweetQueue = DEFAULT_MAX_TWEET_QUEUE;
 configuration.searchTermsDir = DROPBOX_DEFAULT_SEARCH_TERMS_DIR;
 configuration.searchTermsFile = DROPBOX_DEFAULT_SEARCH_TERMS_FILE;
@@ -392,7 +397,6 @@ function twitterStopAll(callback){
 
   });
 }
-
 
 function quit(message) {
 
@@ -755,6 +759,73 @@ function initTwit(params, callback){
   });
 }
 
+function initInfoTwit(params, callback){
+
+  console.log(chalkTwitter("TSS | INIT INFO USER @" + params.screenName));
+
+  const twitterConfigFile = params.screenName + ".json";
+
+  loadFile(configuration.twitterConfigFolder, twitterConfigFile, function(err, twitterConfig){
+
+    if (err){
+      console.error(chalkError("*** TWITTER CONFIG FILE LOAD ERROR\n" + err));
+      return callback(err, null);
+    }
+
+    if (!twitterConfig){
+      console.error(chalkError("*** TWITTER CONFIG FILE LOAD ERROR | NOT FOUND?"
+        + " | " + configuration.twitterConfigFolder + "/" + twitterConfigFile
+      ));
+      return callback("TWITTER CONFIG FILE LOAD ERROR | NOT FOUND?", null);
+    }
+
+    let twitterUserObj = {};
+
+    twitterUserObj.stats = {};
+    twitterUserObj.stats.ready = false;
+    twitterUserObj.stats.error = false;
+    twitterUserObj.stats.connected = false;
+    twitterUserObj.stats.authenticated = false;
+    twitterUserObj.stats.twitterTokenErrorFlag = false;
+    twitterUserObj.stats.twitterConnects = 0;
+    twitterUserObj.stats.twitterReconnects = 0;
+    twitterUserObj.stats.twitterFollowLimit = false;
+    twitterUserObj.stats.twitterLimit = 0;
+    twitterUserObj.stats.twitterErrors = 0;
+    twitterUserObj.stats.rateLimited = false;
+
+    twitterUserObj.stats.twitterRateLimit = 0;
+    twitterUserObj.stats.twitterRateLimitRemaining = 0;
+    twitterUserObj.stats.twitterRateLimitResetAt = 0;
+    twitterUserObj.stats.twitterRateLimitRemainingTime = 0;
+    twitterUserObj.stats.twitterRateLimitExceptionFlag = false;
+
+    twitterUserObj.screenName = twitterConfig.screenName ;
+    twitterUserObj.twitterConfig = {} ;
+    twitterUserObj.twitterConfig = twitterConfig ;
+
+    const newTwit = new Twit({
+      consumer_key: twitterConfig.CONSUMER_KEY,
+      consumer_secret: twitterConfig.CONSUMER_SECRET,
+      access_token: twitterConfig.TOKEN,
+      access_token_secret: twitterConfig.TOKEN_SECRET
+    });
+
+    twitterUserObj.twit = {};
+    twitterUserObj.twit = newTwit;
+
+    console.log(chalkTwitter("INIT INFO TWITTER USER"
+      + " | NAME: " + twitterConfig.screenName
+    ));
+
+    checkTwitterRateLimit({twitterUserObj: twitterUserObj}, function(err, tuObj){
+      if (callback !== undefined) { callback(err, tuObj); }
+    });
+
+  });
+
+}
+
 function initTwitterUsers(cnf, callback){
 
   if (!configuration.twitterUsers){
@@ -1004,6 +1075,35 @@ function checkTwitterRateLimitAll(callback){
       if (!err && (tuObj !== undefined)) { twitterUserHashMap.set(threeceeUser, tuObj); }
     });
   });
+}
+
+let userShowQueueReady = true;
+
+function initUserShowQueueInterval(cnf, callback){
+
+  let userId;
+
+  console.log(chalkTwitter("INIT TWITTER USER SHOW QUEUE INTERVAL: " + cnf.userShowQueueInterval));
+
+  clearInterval(userShowQueueInterval);
+
+  userShowQueueInterval = setInterval(function () {
+
+    if (userShowQueueReady && (userShowQueue.length > 0)) {
+
+      userShowQueueReady = false;
+
+      userId = userShowQueue.shift();
+
+    // threeceeTwitter[currentThreeceeUser].twit.get("users/show", 
+    //   {user_id: n.nodeId, include_entities: true}, 
+    //   function usersShow (err, rawUser, response){
+
+
+    }
+  }, cnf.userShowQueueInterval);
+
+  if (callback) { callback(); }
 }
 
 function initSearchStream(params, callback){
@@ -1631,7 +1731,6 @@ function initTwitterSearch(cnf){
   ));
 }
 
-
 function follow(params, callback){
 
   let twitterUserObj = twitterUserHashMap.get(params.threeceeUser);
@@ -1961,6 +2060,18 @@ process.on("message", function(m) {
         });
 
       }
+    break;
+
+    case "USER_SHOW":
+
+      // tssChild.send({op: "USER_SHOW", userId: n.nodeId, includeEntities: true});
+
+      userShowQueue.push(m.userId);
+
+      console.log(chalkInfo("TSS USER_SHOW"
+        + " [ USQ: " + userShowQueue.length + "]"
+        + " | USER ID: " + m.userId
+      ));
 
     break;
 
@@ -1976,7 +2087,6 @@ process.on("message", function(m) {
 
       follow(m, function(err, success){
       });
-
     break;
 
     case "UPDATE_SEARCH_TERMS":
@@ -1998,7 +2108,6 @@ process.on("message", function(m) {
         if (!twitterSearchInit) { initTwitterSearch(configuration); }
 
       });
-
     break;
 
     case "PING":
@@ -2015,6 +2124,7 @@ process.on("message", function(m) {
       console.error(chalkError("TWP | *** TSS UNKNOWN OP"
         + " | INTERVAL: " + m.op
       ));
+
   }
 });
 
@@ -2068,6 +2178,10 @@ setTimeout(function(){
         console.log(chalkAlert("TSS | ... WAIT DB CONNECTED ..."));
       }
     }, 1000);
+
+    initInfoTwit({screenName: DEFAULT_INFO_TWITTER_USER}, function(err, ituObj){
+      infoTwitterUserObj = ituObj;
+    });
 
     initTwitterUsers(configuration, function(err){
       if (err){

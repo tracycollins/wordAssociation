@@ -1813,8 +1813,8 @@ function follow(params, callback) {
 
         params.user.following = true;
         params.user.threeceeFollowing = twitterUserObj.screenName;
-        params.user.markModified("following");
-        params.user.markModified("threeceeFollowing");
+        // params.user.markModified("following");
+        // params.user.markModified("threeceeFollowing");
 
         userServerController.findOneUser(params.user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
 

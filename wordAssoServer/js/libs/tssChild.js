@@ -24,6 +24,12 @@ const ONE_MINUTE = ONE_SECOND*60 ;
 const defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
+const fieldsExclude = {
+  histograms: 0,
+  countHistory: 0,
+  friends: 0
+};
+
 const mangledRegEx = /\u00C3.\u00C2|\u00B5/g;
 
 
@@ -1805,48 +1811,67 @@ function follow(params, callback) {
           + " | @" + params.user.screenName
         ));
 
-        User.findOne({ userId: params.user.userId }, function (err, user) {
+        params.user.following = true;
+        params.user.threeceeFollowing = twitterUserObj.screenName;
+        params.user.markModified("following");
+        params.user.markModified("threeceeFollowing");
 
-          if (err) { 
+        userServerController.findOneUser(params.user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
+
+          if (err) {
             console.log(chalkAlert("TSS | *** USER DB ERROR *** | " + err));
           }
-          else if (user) {
-
-            const printString = "TSS | @" + user.screenName + " | DB USER FOUND";
-
-            printUserObj(printString, user);
-
-            user.following = true;
-            user.threeceeFollowing = twitterUserObj.screenName;
-            user.markModified("following");
-            user.markModified("threeceeFollowing");
-            user.save(function(err){
-              if (err) { console.log(chalkError("TSS | *** USER DB SAVE ERROR: " + err)); }
-            });
-
-          }
           else {
-            console.log(chalkLog("TSS"
-              + " @" + twitterUserObj.screenName 
-              + " | DB USER MISS  | UID: " + userId
-            ));
+            const printString = "TSS | @" + updatedUser.screenName + " | DB USER UPDATED";
+            printUserObj(printString, updatedUser);
           }
+
+          let filter = {};
+          filter.track = [];
+          filter.follow = [];
+
+          if (twitterUserObj.searchTermArray.length > 0) { filter.track = twitterUserObj.searchTermArray; }
+          if (twitterUserObj.followUserSet.size > 0) { filter.follow = [...twitterUserObj.followUserSet]; }
+
+          twitterUserObj.searchStream = twitterUserObj.twit.stream("statuses/filter", filter);
+
+          twitterUserHashMap.set(params.threeceeUser, twitterUserObj);
+
+          process.send({op: "TWITTER_STATS", threeceeUser: twitterUserObj.screenName, twitterFollowing: twitterUserObj.followUserSet.size});
+
+          cb(true);
+
+
         });
 
-        let filter = {};
-        filter.track = [];
-        filter.follow = [];
+        // User.findOne({ userId: params.user.userId }, function (err, user) {
 
-        if (twitterUserObj.searchTermArray.length > 0) { filter.track = twitterUserObj.searchTermArray; }
-        if (twitterUserObj.followUserSet.size > 0) { filter.follow = [...twitterUserObj.followUserSet]; }
+        //   if (err) { 
+        //     console.log(chalkAlert("TSS | *** USER DB ERROR *** | " + err));
+        //   }
+        //   else if (user) {
 
-        twitterUserObj.searchStream = twitterUserObj.twit.stream("statuses/filter", filter);
+        //     const printString = "TSS | @" + user.screenName + " | DB USER FOUND";
 
-        twitterUserHashMap.set(params.threeceeUser, twitterUserObj);
+        //     printUserObj(printString, user);
 
-        process.send({op: "TWITTER_STATS", threeceeUser: twitterUserObj.screenName, twitterFollowing: twitterUserObj.followUserSet.size});
+        //     user.following = true;
+        //     user.threeceeFollowing = twitterUserObj.screenName;
+        //     user.markModified("following");
+        //     user.markModified("threeceeFollowing");
+        //     user.save(function(err){
+        //       if (err) { console.log(chalkError("TSS | *** USER DB SAVE ERROR: " + err)); }
+        //     });
 
-        cb(true);
+        //   }
+        //   else {
+        //     console.log(chalkLog("TSS"
+        //       + " @" + twitterUserObj.screenName 
+        //       + " | DB USER MISS  | UID: " + userId
+        //     ));
+        //   }
+        // });
+
       });
     }
     else {
@@ -2233,7 +2258,7 @@ process.on("message", function(m) {
           + " | USER " + m.user.userId
           + " | @" + m.user.screenName
           + " | " + m.user.name
-          + " | " + m.user.description
+          + "\nTSS USER_SHOW | DESC: " + m.user.description
         ));
       }
 

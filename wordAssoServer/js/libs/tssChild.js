@@ -8,6 +8,7 @@ const DEFAULT_MAX_TWEET_QUEUE = 500;
 const DEFAULT_TWITTER_QUEUE_INTERVAL = 10;
 const DEFAULT_CURSOR_BATCH_SIZE = 5000;
 const DEFAULT_INFO_TWITTER_USER = "threeceeinfo";
+const USER_SHOW_QUEUE_MAX_LENGTH = 500;
 
 const MAX_READY_ACK_WAIT_COUNT = 10;
 
@@ -612,7 +613,7 @@ function initTwit(params, callback){
   twitterUserObj.followUserSet = new Set();
 
   console.log(chalkTwitter("INIT TWITTER USER"
-    + " | NAME: " + params.config.SCREEN_NAME
+    + " | NAME: " + params.config.screenName
   ));
 
   twitterUserObj.twit.get("friends/ids", function(err, data, response) {
@@ -778,6 +779,8 @@ function initInfoTwit(params, callback){
       ));
       return callback("TWITTER CONFIG FILE LOAD ERROR | NOT FOUND?", null);
     }
+
+    console.log(chalkTwitter("TSS | INFO TWITTER USER CONFIG\n" + jsonPrint(twitterConfig)));
 
     let twitterUserObj = {};
 
@@ -1078,6 +1081,7 @@ function checkTwitterRateLimitAll(callback){
 }
 
 let userShowQueueReady = true;
+let userShowQueueInterval;
 
 function initUserShowQueueInterval(cnf, callback){
 
@@ -1098,6 +1102,8 @@ function initUserShowQueueInterval(cnf, callback){
     // threeceeTwitter[currentThreeceeUser].twit.get("users/show", 
     //   {user_id: n.nodeId, include_entities: true}, 
     //   function usersShow (err, rawUser, response){
+
+      userShowQueueReady = true;
 
 
     }
@@ -2066,12 +2072,20 @@ process.on("message", function(m) {
 
       // tssChild.send({op: "USER_SHOW", userId: n.nodeId, includeEntities: true});
 
-      userShowQueue.push(m.userId);
+      if (!userShowQueue.includes(m.user.userId) && (userShowQueue.length < USER_SHOW_QUEUE_MAX_LENGTH)) {
 
-      console.log(chalkInfo("TSS USER_SHOW"
-        + " [ USQ: " + userShowQueue.length + "]"
-        + " | USER ID: " + m.userId
-      ));
+        userShowQueue.push(m.user);
+
+        console.log(chalkInfo("TSS USER_SHOW"
+          + " [ USQ: " + userShowQueue.length + "]"
+          + " | FLWRs: " + m.user.followersCount
+          + " | FRNDs: " + m.user.friendsCount
+          + " | USER " + m.user.userId
+          + " | @" + m.user.screenName
+          + " | " + m.user.name
+          + " | " + m.user.description
+        ));
+      }
 
     break;
 
@@ -2181,6 +2195,7 @@ setTimeout(function(){
 
     initInfoTwit({screenName: DEFAULT_INFO_TWITTER_USER}, function(err, ituObj){
       infoTwitterUserObj = ituObj;
+      initUserShowQueueInterval(configuration);
     });
 
     initTwitterUsers(configuration, function(err){

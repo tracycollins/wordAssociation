@@ -1066,6 +1066,7 @@ function connectDb(callback){
                 infoTwitterUserObj.twitterErrorFlag = false;
                 infoTwitterUserObj.twitterFollowLimit = false;
                 infoTwitterUserObj.twitterTokenErrorFlag = false;
+              }
               else {
 
                 threeceeTwitter[updatedUser.screenName].twitterAuthorizationErrorFlag = false;

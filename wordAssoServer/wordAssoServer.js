@@ -24,6 +24,9 @@ const ONE_DAY = 24 * ONE_HOUR;
 const ONE_KILOBYTE = 1024;
 const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
 
+const DEFAULT_INFO_TWITTER_USER = "threeceeinfo";
+let infoTwitterUserObj = {};
+
 const DEFAULT_FORCE_FOLLOW = false;
 
 const DEFAULT_SAVE_FILE_QUEUE_INTERVAL = ONE_SECOND;
@@ -1057,11 +1060,21 @@ function connectDb(callback){
 
             if (statsObj.tssChildReady) {
 
-              threeceeTwitter[updatedUser.screenName].twitterAuthorizationErrorFlag = false;
-              threeceeTwitter[updatedUser.screenName].twitterCredentialErrorFlag = false;
-              threeceeTwitter[updatedUser.screenName].twitterErrorFlag = false;
-              threeceeTwitter[updatedUser.screenName].twitterFollowLimit = false;
-              threeceeTwitter[updatedUser.screenName].twitterTokenErrorFlag = false;
+              if (updatedUser.screenName === DEFAULT_INFO_TWITTER_USER) {
+                infoTwitterUserObj.twitterAuthorizationErrorFlag = false;
+                infoTwitterUserObj.twitterCredentialErrorFlag = false;
+                infoTwitterUserObj.twitterErrorFlag = false;
+                infoTwitterUserObj.twitterFollowLimit = false;
+                infoTwitterUserObj.twitterTokenErrorFlag = false;
+              else {
+
+                threeceeTwitter[updatedUser.screenName].twitterAuthorizationErrorFlag = false;
+                threeceeTwitter[updatedUser.screenName].twitterCredentialErrorFlag = false;
+                threeceeTwitter[updatedUser.screenName].twitterErrorFlag = false;
+                threeceeTwitter[updatedUser.screenName].twitterFollowLimit = false;
+                threeceeTwitter[updatedUser.screenName].twitterTokenErrorFlag = false;
+
+              }
 
               tssChild.send({
                 op: "USER_AUTHENTICATED",

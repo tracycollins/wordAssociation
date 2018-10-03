@@ -5120,6 +5120,7 @@ let userFollowable = function(user){
   if (user.nodeType !== "user") { return false; }
   if (user.following !== undefined && user.following) { return false; }
   if (user.category !== undefined && user.category) { return false; }
+  if (user.followersCount !== undefined && (user.followersCount < configuration.minFollowersAuto)) { return false; }
   if (unfollowableUserSet.has(user.nodeId)) { return false; }
 
   if ((user.description === undefined) || !user.description) { user.description = ""; }
@@ -5688,7 +5689,7 @@ function initTransmitNodeQueueInterval(interval){
                 //   {user_id: n.nodeId, include_entities: true}, 
                 //   function usersShow (err, rawUser, response){
 
-                tssChild.send({op: "USER_SHOW", userId: n.nodeId, includeEntities: true});
+                tssChild.send({op: "USER_SHOW", user: n, includeEntities: true});
 
                 // twitUserShowReady = false;
 

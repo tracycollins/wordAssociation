@@ -1745,6 +1745,8 @@ function follow(params, callback) {
 
     let twitterUserObj = twitterUserHashMap.get(screenName);
 
+    console.log(chalkInfo("TSS | CHECK FOLLOW | 3C @" + twitterUserObj.screenName + " | SCREEN_NAME: " + screenName));
+
     if ( (params.forceFollow && (twitterUserObj.followUserSet.size < 5000))
       || ( configuration.forceFollow && (twitterUserObj.followUserSet.size < 5000))
       || ((twitterUserObj.followUserSet.size < 5000) && !twitterUserObj.followUserSet.has(params.user.userId))
@@ -1796,21 +1798,19 @@ function follow(params, callback) {
         twitterUserObj.stats.error = false;
 
         console.log(chalkAlert("TSS | +++ FOLLOW"
-          + " | 3C @" + params.threeceeUser
-          + " | @" + params.user.screenName
+          + " | 3C @" + twitterUserObj.screenName
           + " | FOLLOWING: " + twitterUserObj.followUserSet.size 
           + "/" + TWITTER_MAX_FOLLOW_USER_NUMBER + " MAX"
           + " | UID: " + params.user.userId
+          + " | @" + params.user.screenName
         ));
 
         User.findOne({ userId: params.user.userId }, function (err, user) {
 
           if (err) { 
             console.log(chalkAlert("TSS | *** USER DB ERROR *** | " + err));
-            // return cb(err);
           }
-
-          if (user) {
+          else if (user) {
 
             const printString = "TSS | @" + user.screenName + " | DB USER FOUND";
 
@@ -1847,13 +1847,11 @@ function follow(params, callback) {
         process.send({op: "TWITTER_STATS", threeceeUser: twitterUserObj.screenName, twitterFollowing: twitterUserObj.followUserSet.size});
 
         cb(true);
-
       });
     }
     else {
 
       console.log(chalkInfo("TSS | ... SKIP FOLLOW"
-        + " | 3C @" + params.threeceeUser
         + " | @" + params.user.screenName
         + " | FOLLOWING: " + twitterUserObj.followUserSet.size 
         + "/" + TWITTER_MAX_FOLLOW_USER_NUMBER + " MAX"

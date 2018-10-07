@@ -84,7 +84,7 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
 
   tweetServerController.on("error", function(err){
     tweetServerControllerReady = false;
-    console.log(chalkError("*** TSC ERROR | " + err));
+    console.log(chalkError("TWP | *** TSC ERROR | " + err));
   });
 });
 
@@ -94,7 +94,7 @@ const dbAppName = "TWP_" + process.pid;
 wordAssoDb.connect(dbAppName, function(err, db) {
 
   if (err) {
-    console.log(chalkError("*** TWP | MONGO DB CONNECTION ERROR"
+    console.log(chalkError("TWP | *** MONGO DB CONNECTION ERROR"
       + " | DB APP NAME: " + dbAppName
       + " | ERROR: " + err
     ));
@@ -103,8 +103,8 @@ wordAssoDb.connect(dbAppName, function(err, db) {
   }
 
   db.on("error", function(err){
-    console.error.bind(console, "*** TWP | MONGO DB CONNECTION ERROR ***\n");
-    console.log(chalkError("*** TWP | MONGO DB CONNECTION ERROR"
+    console.error.bind(console, "TWP | *** MONGO DB CONNECTION ERROR ***\n");
+    console.log(chalkError("TWP | *** MONGO DB CONNECTION ERROR"
       + " | DB APP NAME: " + dbAppName
       + " | ERROR: " + err
     ));
@@ -114,8 +114,8 @@ wordAssoDb.connect(dbAppName, function(err, db) {
   });
 
   db.on("disconnected", function(){
-    console.error.bind(console, "*** TWP | MONGO DB DISCONNECTED ***\n");
-    console.log(chalkError("*** TWP | MONGO DB DISCONNECTED"
+    console.error.bind(console, "TWP | MONGO DB DISCONNECTED ***\n");
+    console.log(chalkError("TWP | MONGO DB DISCONNECTED"
       + " | DB APP NAME: " + dbAppName
     ));
     dbConnectionReady = false;
@@ -184,9 +184,9 @@ function quit(message) {
   global.dbConnection.close(function () {
     
     console.log(chalkAlert(
-      "\n==========================\n"
+      "\nTWP | ==========================\n"
       + "TWP | MONGO DB CONNECTION CLOSED"
-      + "\n==========================\n"
+      + "\nTWP | ==========================\n"
     ));
 
     process.exit(exitCode);
@@ -203,16 +203,16 @@ process.on("SIGINT", function processSigInt() {
 });
 
 console.log(
-  "\n\n====================================================================================================\n" 
+  "\n\nTWP | ====================================================================================================\n" 
   + process.argv[1] 
-  + "\nPROCESS ID:    " + process.pid 
-  + "\nPROCESS TITLE: " + process.title 
-  + "\n" + "====================================================================================================\n" 
+  + "\nTWP | PROCESS ID:    " + process.pid 
+  + "\nTWP | PROCESS TITLE: " + process.title 
+  + "\nTWP | " + "====================================================================================================\n" 
 );
 
 
 if (debug.enabled) {
-  console.log("*** TWP\n%%%%%%%%%%%%%%\n%%%%%%% DEBUG ENABLED %%%%%%%\n%%%%%%%%%%%%%%\n");
+  console.log("TWP | %%%%%%%%%%%%%%\nTWP | %%%%%%% DEBUG ENABLED %%%%%%%\nTWP | %%%%%%%%%%%%%%\n");
 }
 
 let cnf = {};
@@ -307,26 +307,22 @@ function initTweetParserQueueInterval(cnf){
 
             deltaTweetParserMessage = process.hrtime(deltaTweetParserMessageStart);
             if (deltaTweetParserMessage[0] > 0) { 
-              console.log.bind(console, "*** TWP SEND DELTA: " + deltaTweetParserMessage[0] + "." + deltaTweetParserMessage[1]); 
-              console.log("*** TWP SEND DELTA: " + deltaTweetParserMessage[0] + "." + deltaTweetParserMessage[1]); 
+              console.log.bind(console, "TWP | *** SEND DELTA: " + deltaTweetParserMessage[0] + "." + deltaTweetParserMessage[1]); 
+              console.log("TWP | *** SEND DELTA: " + deltaTweetParserMessage[0] + "." + deltaTweetParserMessage[1]); 
             }
-            // else if (true) {
-            //   console.log.bind(console, "TWP SEND DELTA: " + deltaTweetParserMessage[0] + "." + deltaTweetParserMessage[1]); 
-            //   console.log("TWP SEND DELTA: " + deltaTweetParserMessage[0] + "." + deltaTweetParserMessage[1]); 
-            // }
 
             deltaTweetParserMessageStart = process.hrtime();
 
             tweetParserQueueReady = true;
 
             if (err) {
-              console.error(chalkError("*** TW PARSER SEND TWEET ERROR"
+              console.error(chalkError("TWP | *** PARSER SEND TWEET ERROR"
                 + " | " + moment().format(compactDateTimeFormat)
                 + " | " + err
               ));
             }
             else {
-              debug(chalkInfo("TW PARSER SEND COMPLETE"
+              debug(chalkInfo("TWP | *** PARSER SEND COMPLETE"
                 + " | " + moment().format(compactDateTimeFormat)
                 + " | " + tweetObj.tweetId
               ));
@@ -362,20 +358,20 @@ process.on("message", function(m) {
       cnf.normalization = m.normalization;
       cnf.inputArrays = {};
 
-      console.log(chalkInfo("TWEET PARSER INIT"
+      console.log(chalkInfo("TWP | TWEET PARSER INIT"
         + " | TITLE: " + m.title
         + " | INTERVAL: " + m.interval
         // + "\nMESSAGE " + jsonPrint(m)
       ));
 
       if (cnf.networkObj) {
-        console.log(chalkInfo("TWEET PARSER INIT"
+        console.log(chalkInfo("TWP | TWEET PARSER INIT"
           + " | NN: " + m.networkObj.networkId
         ));
 
         async.eachSeries(Object.keys(m.networkObj.inputsObj.inputs), function(type, cb){
 
-          console.log(chalkNetwork("NN INPUTS TYPE" 
+          console.log(chalkNetwork("TWP | NN INPUTS TYPE" 
             + " | " + type
             + " | INPUTS: " + m.networkObj.inputsObj.inputs[type].length
           ));
@@ -396,13 +392,13 @@ process.on("message", function(m) {
       }
       
       if (cnf.maxInputHashMap) {
-        console.log(chalkInfo("TWEET PARSER INIT"
+        console.log(chalkInfo("TWP | TWEET PARSER INIT"
           + " | MAX IN HM INPUT TYPES: " + Object.keys(cnf.maxInputHashMap)
         ));
       }
       
       if (cnf.normalization) {
-        console.log(chalkInfo("TWEET PARSER INIT"
+        console.log(chalkInfo("TWP | TWEET PARSER INIT"
           + " | NORMALIZATION INPUT TYPES: " + Object.keys(cnf.normalization)
         ));
       }
@@ -412,7 +408,7 @@ process.on("message", function(m) {
 
       networkReady = false;
 
-      console.log(chalkInfo("TWEET PARSER NETWORK"
+      console.log(chalkInfo("TWP | TWEET PARSER NETWORK"
         + " | NN: " + m.networkObj.networkId
         + " | SUCCESS RATE: " + m.networkObj.successRate.toFixed(2)
       ));
@@ -425,7 +421,7 @@ process.on("message", function(m) {
 
       async.eachSeries(Object.keys(m.networkObj.inputsObj.inputs), function(type, cb){
 
-        console.log(chalkNetwork("NN INPUTS TYPE" 
+        console.log(chalkNetwork("TWP | NN INPUTS TYPE" 
           + " | " + type
           + " | INPUTS: " + m.networkObj.inputsObj.inputs[type].length
         ));
@@ -456,12 +452,6 @@ process.on("message", function(m) {
 
       setTimeout(function(){
         process.send({ op: "PONG", pongId: m.pingId });
-        // process.send({ op: "PONG", pongId: m.pingId }, function(err){
-        //   if (err) {
-        //     console.log(chalkError("TWP | !!! TWEET PARSER PONG SEND ERR: " + err));
-        //     quit("TWEET PARSER PONG SEND ERR");
-        //   }
-        // });
       }, 1000);
     break;
 
@@ -470,7 +460,7 @@ process.on("message", function(m) {
 
         tweetParserQueue.push(m.tweetStatus);
 
-        debug(chalkInfo("TW PARSER T<"
+        debug(chalkInfo("TWP | PARSER T<"
           + " [ TPQ: " + tweetParserQueue.length + "]"
           + " | " + m.tweetStatus.id_str
         ));
@@ -481,7 +471,7 @@ process.on("message", function(m) {
     break;
 
     default:
-      console.error(chalkError("TWP | *** TWEET PARSER UNKNOWN OP"
+      console.log(chalkError("TWP | *** TWEET PARSER UNKNOWN OP"
         + " | INTERVAL: " + m.op
       ));
   }

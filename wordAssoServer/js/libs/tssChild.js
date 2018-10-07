@@ -1110,7 +1110,7 @@ function initUserShowQueueInterval(cnf, callback){
       });
 
     }
-    
+
   }, cnf.userShowQueueInterval);
 
   if (callback) { callback(); }
@@ -1744,7 +1744,7 @@ function follow(params, callback) {
 
     let twitterUserObj = twitterUserHashMap.get(screenName);
 
-    console.log(chalkInfo("TSS | CHECK FOLLOW | 3C @" + twitterUserObj.screenName + " | SCREEN_NAME: " + screenName));
+    console.log(chalkInfo("TSS | CHECK FOLLOW | 3C @" + twitterUserObj.screenName + " | @" + params.user.screenName));
 
     if (twitterUserObj.stats.twitterTokenErrorFlag) {
       console.log(chalkAlert("TSS | SKIP FOLLOW | TOKEN ERROR FLAG | 3C @" + twitterUserObj.screenName));

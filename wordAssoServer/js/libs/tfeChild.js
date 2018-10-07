@@ -49,6 +49,8 @@ const commandLineArgs = require("command-line-args");
 const Measured = require("measured");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const HashMap = require("hashmap").HashMap;
+const neataptic = require("neataptic");
+const networksHashMap = new HashMap();
 
 const debug = require("debug")("tfe");
 const debugCache = require("debug")("cache");
@@ -738,9 +740,301 @@ function initUserShowQueueInterval(cnf, callback){
   if (callback) { callback(); }
 }
 
+function initNetworkHashMap(params, callback){
+  loadFile(bestn, dropboxConfigFile, function(err, loadedConfigObj){
+
+    let commandLineConfigKeys;
+    let configArgs;
+
+    if (!err) {
+      console.log("TFE | " + dropboxConfigFile + "\n" + jsonPrint(loadedConfigObj));
+
+      if (loadedConfigObj.TFE_VERBOSE_MODE  !== undefined){
+        console.log("TFE | LOADED TFE_VERBOSE_MODE: " + loadedConfigObj.TFE_VERBOSE_MODE);
+        cnf.verbose = loadedConfigObj.TFE_VERBOSE_MODE;
+      }
+
+      if (loadedConfigObj.TFE_GLOBAL_TEST_MODE  !== undefined){
+        console.log("TFE | LOADED TFE_GLOBAL_TEST_MODE: " + loadedConfigObj.TFE_GLOBAL_TEST_MODE);
+        cnf.globalTestMode = loadedConfigObj.TFE_GLOBAL_TEST_MODE;
+      }
+
+      if (loadedConfigObj.TFE_TEST_MODE  !== undefined){
+        console.log("TFE | LOADED TFE_TEST_MODE: " + loadedConfigObj.TFE_TEST_MODE);
+        cnf.testMode = loadedConfigObj.TFE_TEST_MODE;
+      }
+
+      if (loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER  !== undefined){
+        console.log("TFE | LOADED DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER: " 
+          + jsonPrint(loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER));
+        cnf.twitterConfigFolder = loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER;
+      }
+
+      if (loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FILE  !== undefined){
+        console.log("TFE | LOADED DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FILE: " 
+          + jsonPrint(loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FILE));
+        cnf.twitterConfigFile = loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FILE;
+      }
+
+      if (loadedConfigObj.TFE_STATS_UPDATE_INTERVAL  !== undefined) {
+        console.log("TFE | LOADED TFE_STATS_UPDATE_INTERVAL: " + loadedConfigObj.TFE_STATS_UPDATE_INTERVAL);
+        cnf.statsUpdateIntervalTime = loadedConfigObj.TFE_STATS_UPDATE_INTERVAL;
+      }
+
+      if (loadedConfigObj.TFE_MAX_TWEET_QUEUE  !== undefined) {
+        console.log("TFE | LOADED TFE_MAX_TWEET_QUEUE: " + loadedConfigObj.TFE_MAX_TWEET_QUEUE);
+        cnf.maxTweetQueue = loadedConfigObj.TFE_MAX_TWEET_QUEUE;
+      }
+
+      // OVERIDE CONFIG WITH COMMAND LINE ARGS
+
+      configArgs = Object.keys(cnf);
+
+      configArgs.forEach(function(arg){
+        console.log("TFE | FINAL CONFIG | " + arg + ": " + cnf[arg]);
+      });
+
+      initStatsUpdate(cnf, function(err, cnf2){
+
+        if (err) {
+          console.log(chalkLog("TFE | ERROR initStatsUpdate\n" + err));
+        }
+
+        loadFile(cnf.twitterConfigFolder, cnf.twitterConfigFile, function(err, tc){
+          if (err){
+            console.error(chalkLog("TFE | *** TWITTER CONFIG LOAD ERROR\n" + err));
+            quit();
+            return;
+          }
+
+          cnf2.twitterConfig = {};
+          cnf2.twitterConfig = tc;
+
+          console.log("TFE | " + chalkInfo(getTimeStamp() + " | TWITTER CONFIG FILE " 
+            + cnf2.twitterConfigFolder
+            + cnf2.twitterConfigFile
+            + "\n" + jsonPrint(cnf2.twitterConfig )
+          ));
+          return(callback(null, cnf2));
+        });
+      });
+    }
+    else {
+      console.error("TFE | *** ERROR LOAD DROPBOX CONFIG: " + dropboxConfigFile + "\n" + jsonPrint(err));
+
+      if (err.status === 404){
+
+        configArgs = Object.keys(cnf);
+
+        configArgs.forEach(function(arg){
+          console.log("TFE | FINAL CONFIG | " + arg + ": " + cnf[arg]);
+        });
+
+        initStatsUpdate(cnf, function(err, cnf2){
+
+          if (err) {
+            console.log(chalkLog("TFE | ERROR initStatsUpdate\n" + jsonPrint(err)));
+          }
+
+          loadFile(cnf.twitterConfigFolder, cnf.twitterConfigFile, function(err, tc){
+            if (err){
+              console.error(chalkLog("TFE | *** TWITTER CONFIG LOAD ERROR\n" + err));
+              quit();
+              return;
+            }
+
+            cnf2.twitterConfig = {};
+            cnf2.twitterConfig = tc;
+
+            console.log("TFE | " + chalkInfo(getTimeStamp() + " | TWITTER CONFIG FILE " 
+              + cnf2.twitterConfigFolder
+              + cnf2.twitterConfigFile
+              + "\n" + jsonPrint(cnf2.twitterConfig )
+            ));
+            return(callback(null, cnf2));
+          });
+        });
+      }
+      return(callback(err, cnf));
+     }
+  });
+}
+
+let generateNetworkInputBusy = false;
+
+function generateNetworkInputIndexed(params, callback){
+
+  // const params = {
+  //   networkId: networkObj.networkId,
+  //   userScreenName: user.screenName,
+  //   histograms: userHistograms,
+  //   languageAnalysis: languageAnalysis,
+  //   inputsObj: networkObj.inputsObj,
+  //   maxInputHashMap: maxInputHashMap
+  // };
+
+
+  generateNetworkInputBusy = true;
+
+  const inputTypes = Object.keys(params.inputsObj.inputs).sort();
+  let networkInput = [];
+
+  let indexOffset = 0;
+
+  async.eachSeries(inputTypes, function(inputType, cb0){
+
+    debug("RNT | GENERATE NET INPUT | TYPE: " + inputType);
+
+    const histogramObj = params.histograms[inputType];
+    const networkInputTypeNames = params.inputsObj.inputs[inputType];
+
+    async.eachOf(networkInputTypeNames, function(inputName, index, cb1){
+
+      if (histogramObj && (histogramObj[inputName] !== undefined)) {
+
+        if ((params.maxInputHashMap === undefined) 
+          || (params.maxInputHashMap[inputType] === undefined)) {
+
+          networkInput[indexOffset + index] = 1;
+
+          console.log(chalkLog("RNT | ??? UNDEFINED MAX INPUT"
+            + " | IN ID: " + params.inputsObj.inputsId
+            + " | IN LENGTH: " + networkInput.length
+            + " | @" + params.userScreenName
+            + " | TYPE: " + inputType
+            + " | " + inputName
+            + " | " + histogramObj[inputName]
+          ));
+
+          async.setImmediate(function() { 
+            cb1(); 
+          });
+
+        }
+        else {
+
+          const inputValue = (params.maxInputHashMap[inputType][inputName] > 0) 
+            ? histogramObj[inputName]/params.maxInputHashMap[inputType][inputName] 
+            : 1;
+
+          networkInput[indexOffset + index] = inputValue;
+
+          async.setImmediate(function() {
+            cb1();
+          });
+        }
+      }
+      else {
+
+        networkInput[indexOffset + index] = 0;
+ 
+        async.setImmediate(function() { 
+          cb1(); 
+        });
+      }
+
+    }, function(err){
+
+      async.setImmediate(function() { 
+        indexOffset += networkInputTypeNames.length;
+        cb0(); 
+      });
+
+    });
+
+  }, function(err){
+
+    generateNetworkInputBusy = false;
+
+    // elapsed_time("end generateNetworkInputIndexed");
+
+    callback(err, networkInput);
+  });
+}
+
+let activateNetworkBusy = false;
+
+function activateNetwork2(user, callback){
+
+  activateNetworkBusy = true;
+  let networkOutput = {};
+  let userHistograms = {};
+  let languageAnalysis = {};
+
+  userHistograms = user.histograms;
+  languageAnalysis = user.languageAnalysis;
+
+  async.each(networksHashMap.keys(), function(nnId, cb){
+
+    const networkObj = networksHashMap.get(nnId);
+
+    networkOutput[nnId] = {};
+    networkOutput[nnId].output = [];
+    networkOutput[nnId].left = statsObj.loadedNetworks[nnId].left;
+    networkOutput[nnId].neutral = statsObj.loadedNetworks[nnId].neutral;
+    networkOutput[nnId].right = statsObj.loadedNetworks[nnId].right;
+    networkOutput[nnId].none = statsObj.loadedNetworks[nnId].none;
+    networkOutput[nnId].positive = statsObj.loadedNetworks[nnId].positive;
+    networkOutput[nnId].negative = statsObj.loadedNetworks[nnId].negative;
+
+    if (networkObj.inputsObj.inputs === undefined) {
+      console.log(chalkError("UNDEFINED NETWORK INPUTS OBJ | NETWORK OBJ KEYS: " + Object.keys(networkObj)));
+    }
+
+    const params = {
+      networkId: networkObj.networkId,
+      userScreenName: user.screenName,
+      histograms: userHistograms,
+      languageAnalysis: languageAnalysis,
+      inputsObj: networkObj.inputsObj,
+      maxInputHashMap: maxInputHashMap
+    };
+
+    generateNetworkInputIndexed(params, function(err, networkInput){
+
+      const output = networkObj.network.activate(networkInput);
+
+      if (output.length !== 3) {
+        console.log(chalkError("*** ZERO LENGTH NETWORK OUTPUT | " + nnId ));
+        return(cb("ZERO LENGTH NETWORK OUTPUT", networkOutput));
+      }
+
+      indexOfMax(output, function maxNetworkOutput(maxOutputIndex){
+
+        switch (maxOutputIndex) {
+          case 0:
+            networkOutput[nnId].output = [1,0,0];
+            networkOutput[nnId].left += 1;
+          break;
+          case 1:
+            networkOutput[nnId].output = [0,1,0];
+            networkOutput[nnId].neutral += 1;
+          break;
+          case 2:
+            networkOutput[nnId].output = [0,0,1];
+            networkOutput[nnId].right += 1;
+          break;
+          default:
+            networkOutput[nnId].output = [0,0,0];
+            networkOutput[nnId].none += 1;
+        }
+
+        async.setImmediate(function() {
+          cb();
+        });
+
+      });
+    });
+
+  }, function(err){
+    activateNetworkBusy = false;
+    callback(err, networkOutput);
+  });
+}
+
 function initialize(cnf, callback){
 
-  console.log(chalkLog("TFE | INITIALIZE cnf\n" + jsonPrint(cnf)));
+  console.log(chalkLog("TFE | INITIALIZE"));
 
   if (debug.enabled || debugCache.enabled || debugQ.enabled){
     console.log("\nTFE | %%%%%%%%%%%%%%\nTFE | DEBUG ENABLED \nTFE | %%%%%%%%%%%%%%\n");
@@ -894,13 +1188,24 @@ process.on("message", function(m) {
 
     case "INIT":
 
+      // networkObj: bestNetworkObj,
+      // maxInputHashMap: maxInputHashMap,
+      // normalization: normalization,
+
       process.title = m.title;
 
       configuration.verbose = m.verbose;
+      configuration.networkObj = m.networkObj;
+      configuration.maxInputHashMap = m.maxInputHashMap;
+      configuration.normalization = m.normalization;
 
       console.log(chalkInfo("TFE | INIT"
         + " | TITLE: " + m.title
+        + " | NETWORK: " + m.networkObj.networkId
+        + " | MAX INPUT HM KEYS: " + Object.keys(m.maxInputHashMap)
+        + " | NORMALIZATION: " + Object.keys(m.maxInputHashMap)
       ));
+
     break;
 
     case "USER_AUTHENTICATED":

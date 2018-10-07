@@ -1780,7 +1780,11 @@ function follow(params, callback) {
 
     console.log(chalkInfo("TSS | CHECK FOLLOW | 3C @" + twitterUserObj.screenName + " | SCREEN_NAME: " + screenName));
 
-    if ( (params.forceFollow && (twitterUserObj.followUserSet.size < 5000))
+    if (twitterUserObj.stats.twitterTokenErrorFlag) {
+      console.log(chalkAlert("TSS | SKIP FOLLOW | TOKEN ERROR FLAG | 3C @" + twitterUserObj.screenName));
+      cb();
+    }
+    else if ( (params.forceFollow && (twitterUserObj.followUserSet.size < 5000))
       || ( configuration.forceFollow && (twitterUserObj.followUserSet.size < 5000))
       || ((twitterUserObj.followUserSet.size < 5000) && !twitterUserObj.followUserSet.has(params.user.userId))
     ){
@@ -1798,6 +1802,13 @@ function follow(params, callback) {
           if (data.errors[0].code !== undefined) { 
 
             if (data.errors[0].code === 89) {
+              process.send({op: "ERROR", threeceeUser: params.threeceeUser, errorType: "TWITTER_TOKEN", error: data.errors[0]});
+              twitterUserObj.stats.twitterTokenErrorFlag = true;
+              return cb();
+            }
+
+            if (data.errors[0].code === 261) {
+              console.log(chalkError("TSS | *** ERROR FRIENDSHIP CREATE: " + err));
               process.send({op: "ERROR", threeceeUser: params.threeceeUser, errorType: "TWITTER_TOKEN", error: data.errors[0]});
               twitterUserObj.stats.twitterTokenErrorFlag = true;
               return cb();
@@ -1823,7 +1834,7 @@ function follow(params, callback) {
           twitterUserHashMap.set(twitterUserObj.screenName, twitterUserObj);
 
           console.log(chalkError("TSS | *** ERROR FRIENDSHIP CREATE: " + err));
-          console.log(chalkError("TSS | *** ERROR FRIENDSHIP CREATE\nDATA\n" + jsonPrint(data)));
+          // console.log(chalkError("TSS | *** ERROR FRIENDSHIP CREATE\nDATA\n" + jsonPrint(data)));
 
           return cb();
         }

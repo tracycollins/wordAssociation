@@ -1105,46 +1105,12 @@ function initUserShowQueueInterval(cnf, callback){
 
       user = userShowQueue.shift();
 
-      async.eachSeries(twitterUserHashMap.keys(), function(threeceeUser, cb){
-
-        let twitterUserObj = twitterUserHashMap.get(threeceeUser);
-
-        if ((twitterUserObj === undefined) || !twitterUserObj) {
-          console.log(chalkError("TSS | *** TWITTER USER UNDEFINED | " + threeceeUser));
-          return cb("3C TWITTER USER UNDEFINED");
-        }
-
-        if (twitterUserObj.followUserSet.has(user.userId)) {
-          console.log(chalkAlert("TSS | USER ALREADY FOLLOWED"
-            + " | 3C @" + twitterUserObj.screenName
-            + " | UID: " + user.userId
-            + " | @" + user.screenName
-          ));
-          return cb("FOLLOWED");
-        }
-
-        console.log(chalkLog("TSS | USER NOT FOLLOWED"
-          + " | 3C @" + twitterUserObj.screenName
-          + " | UID: " + user.userId
-          + " | @" + user.screenName
-        ));
-
-        follow({user: user, forceFollow: false}, function(err, success){
-          if (err) {
-            return cb(err);
-          }
-          console.log("TSS | +++ FOLLOW");
-
-          cb();
-
-        });
-
-
-      }, function(err){
+      follow({user: user, forceFollow: false}, function(err, success){
         userShowQueueReady = true;
       });
 
     }
+    
   }, cnf.userShowQueueInterval);
 
   if (callback) { callback(); }

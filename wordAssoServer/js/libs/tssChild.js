@@ -1802,14 +1802,14 @@ function follow(params, callback) {
           if (data.errors[0].code !== undefined) { 
 
             if (data.errors[0].code === 89) {
-              process.send({op: "ERROR", threeceeUser: params.threeceeUser, errorType: "TWITTER_TOKEN", error: data.errors[0]});
+              process.send({op: "ERROR", threeceeUser: twitterUserObj.screenName, errorType: "TWITTER_TOKEN", error: data.errors[0]});
               twitterUserObj.stats.twitterTokenErrorFlag = true;
               return cb();
             }
 
             if (data.errors[0].code === 261) {
               console.log(chalkError("TSS | *** ERROR FRIENDSHIP CREATE: " + err));
-              process.send({op: "ERROR", threeceeUser: params.threeceeUser, errorType: "TWITTER_TOKEN", error: data.errors[0]});
+              process.send({op: "ERROR", threeceeUser: twitterUserObj.screenName, errorType: "TWITTER_TOKEN", error: data.errors[0]});
               twitterUserObj.stats.twitterTokenErrorFlag = true;
               return cb();
             }
@@ -1820,7 +1820,7 @@ function follow(params, callback) {
 
               process.send({
                 op: "FOLLOW_LIMIT", 
-                threeceeUser: params.threeceeUser, 
+                threeceeUser: twitterUserObj.screenName, 
                 twitterFollowLimit: twitterUserObj.stats.twitterFollowLimit,
                 twitterFollowing: twitterUserObj.followUserSet.size
               });

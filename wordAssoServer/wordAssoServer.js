@@ -49,6 +49,7 @@ const DEFAULT_CURSOR_BATCH_SIZE = 100;
 const DEFAULT_THREECEE_USERS = ["altthreecee00", "altthreecee01", "altthreecee02", "altthreecee03", "altthreecee04", "altthreecee05"];
 
 const DEFAULT_SORTER_CHILD_ID = "wa_node_sorter";
+const DEFAULT_TFE_CHILD_ID = "wa_node_tfe";
 const DEFAULT_TSS_CHILD_ID = "wa_node_tss";
 const DEFAULT_TWEET_PARSER_CHILD_ID = "wa_node_tweetParser";
 
@@ -60,6 +61,7 @@ const DEFAULT_TWITTER_CONFIG_THREECEE_FILE = DEFAULT_TWITTER_CONFIG_THREECEE + "
 
 const DEFAULT_INTERVAL = 10;
 const DEFAULT_PING_INTERVAL = 30*ONE_SECOND;
+const TFE_PING_INTERVAL = 10*ONE_SECOND;
 const DEFAULT_DROPBOX_LIST_FOLDER_LIMIT = 50;
 const DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT = 1*ONE_SECOND;
 const DEFAULT_MIN_FOLLOWERS_AUTO = 15000;
@@ -350,7 +352,7 @@ function getTimeStamp(inputTime) {
     return currentTimeStamp;
   }
   else {
-    console.log(chalkAlert("*** getTimeStamp INVALID DATE: " + inputTime));
+    console.log(chalkAlert("WAS | *** getTimeStamp INVALID DATE: " + inputTime));
     return null;
   }
 }
@@ -358,24 +360,24 @@ function getTimeStamp(inputTime) {
 
 function quit(message) {
 
-  console.log(chalkAlert("\n... QUITTING ... " + getTimeStamp()));
-  console.error(chalkAlert("\n... QUITTING ... " + getTimeStamp()));
+  console.log(chalkAlert("\nWAS | ... QUITTING ... " + getTimeStamp()));
+  console.error(chalkAlert("\nWAS | ... QUITTING ... " + getTimeStamp()));
 
   let msg = "";
   if (message) {msg = message;}
 
-  console.log(chalkAlert("\n... QUITTING ..."));
-  console.log(chalkAlert("QUIT MESSAGE: " + msg));
-  console.error(chalkAlert("QUIT MESSAGE: " + msg));
+  console.log(chalkAlert("\nWAS | ... QUITTING ..."));
+  console.log(chalkAlert("WAS | QUIT MESSAGE: " + msg));
+  console.error(chalkAlert("WAS | QUIT MESSAGE: " + msg));
 
   setTimeout(function() {
 
     global.dbConnection.close(function () {
 
       console.log(chalkAlert(
-        "\n==========================\n"
-        + "MONGO DB CONNECTION CLOSED"
-        + "\n==========================\n"
+        "\nWAS | ==========================\n"
+        + "WAS | MONGO DB CONNECTION CLOSED"
+        + "\nWAS | ==========================\n"
       ));
 
       process.exit();
@@ -387,10 +389,10 @@ function quit(message) {
 
 
 const commandLineConfig = commandLineArgs(optionDefinitions);
-console.log(chalkInfo("WA | COMMAND LINE CONFIG\nWA | " + jsonPrint(commandLineConfig)));
+console.log(chalkInfo("WAS | COMMAND LINE CONFIG\nWAS | " + jsonPrint(commandLineConfig)));
 
 if (Object.keys(commandLineConfig).includes("help")) {
-  console.log("WA |optionDefinitions\n" + jsonPrint(optionDefinitions));
+  console.log(chalkInfo("WAS | optionDefinitions\n" + jsonPrint(optionDefinitions)));
   quit("help");
 }
 
@@ -515,11 +517,11 @@ let defaultTwitterUser = twitterUserThreecee;
 let unfollowableUserSet = new Set();
 
 process.title = "node_wordAssoServer";
-console.log("\n\n============== START ==============\n\n");
+console.log(chalkAlert("\n\nWAS | ============== START ==============\n\n"));
 
-console.log(chalkAlert("PROCESS PID:   " + process.pid));
-console.log(chalkAlert("PROCESS TITLE: " + process.title));
-console.log(chalkAlert("ENVIRONMENT: " + process.env.NODE_ENV));
+console.log(chalkAlert("WAS | PROCESS PID:   " + process.pid));
+console.log(chalkAlert("WAS | PROCESS TITLE: " + process.title));
+console.log(chalkAlert("WAS | ENVIRONMENT: " + process.env.NODE_ENV));
 
 // ==================================================================
 // GLOBAL VARIABLES
@@ -729,6 +731,11 @@ let tssPingSent = false;
 let tssPongReceived = false;
 let tssPingId = false;
 
+let tfePingInterval;
+let tfePingSent = false;
+let tfePongReceived = false;
+let tfePingId = false;
+
 let tweetParserPingInterval;
 let tweetParserPingSent = false;
 let tweetParserPongReceived = false;
@@ -776,9 +783,9 @@ configuration.dropboxChangeFolderArray = [
   dropboxConfigTwitterFolder
 ];
 
-console.log("DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN);
-console.log("DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY);
-console.log("DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET);
+console.log(chalkLog("WAS | DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN));
+console.log(chalkLog("WAS | DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY));
+console.log(chalkLog("WAS | DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET));
 
 function filesListFolderLocal(options){
   return new Promise(function(resolve, reject) {
@@ -826,7 +833,7 @@ function filesGetMetadataLocal(options){
 
   return new Promise(function(resolve, reject) {
 
-    console.log("filesGetMetadataLocal options\n" + jsonPrint(options));
+    console.log(chalkLog("WAS | filesGetMetadataLocal options\n" + jsonPrint(options)));
 
     const fullPath = "/Users/tc/Dropbox/Apps/wordAssociation" + options.path;
 
@@ -848,10 +855,10 @@ function filesGetMetadataLocal(options){
 let dropboxRemoteClient = new Dropbox({ accessToken: configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN });
 let dropboxLocalClient = {  // offline mode
   filesListFolder: filesListFolderLocal,
-  filesUpload: function(){ console.log(chalkInfo("filesUpload")); },
-  filesDownload: function(){ console.log(chalkInfo("filesDownload")); },
+  filesUpload: function(){ console.log(chalkInfo("WAS | filesUpload")); },
+  filesDownload: function(){ console.log(chalkInfo("WAS | filesDownload")); },
   filesGetMetadata: filesGetMetadataLocal,
-  filesDelete: function(){ console.log(chalkInfo("filesDelete")); }
+  filesDelete: function(){ console.log(chalkInfo("WAS | filesDelete")); }
 };
 
 let dropboxClient = dropboxRemoteClient;
@@ -912,10 +919,11 @@ function printUserObj(title, user) {
   ));
 }
 
-const neuralNetworkModel = require("@threeceelabs/mongoose-twitter/models/neuralNetwork.server.model");
 const emojiModel = require("@threeceelabs/mongoose-twitter/models/emoji.server.model");
 const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
 const mediaModel = require("@threeceelabs/mongoose-twitter/models/media.server.model");
+const neuralNetworkModel = require("@threeceelabs/mongoose-twitter/models/neuralNetwork.server.model");
+const networkInputsModel = require("@threeceelabs/mongoose-twitter/models/networkInputs.server.model");
 const placeModel = require("@threeceelabs/mongoose-twitter/models/place.server.model");
 const tweetModel = require("@threeceelabs/mongoose-twitter/models/tweet.server.model");
 const urlModel = require("@threeceelabs/mongoose-twitter/models/url.server.model");
@@ -956,7 +964,7 @@ function connectDb(callback){
   wordAssoDb.connect(dbAppName, function(err, db) {
 
     if (err) {
-      console.log(chalkError("*** WA | MONGO DB CONNECTION ERROR"
+      console.log(chalkError("WAS | *** MONGO DB CONNECTION ERROR"
         + " | DB APP NAME: " + dbAppName
         + " | ERROR: " + err
       ));
@@ -965,7 +973,7 @@ function connectDb(callback){
     }
 
     db.on("error", function(err){
-      console.log(chalkError("*** WA | MONGO DB ERROR"
+      console.log(chalkError("WAS | *** MONGO DB ERROR"
         + " | DB APP NAME: " + dbAppName
         + " | ERROR: " + err
       ));
@@ -975,7 +983,7 @@ function connectDb(callback){
     });
 
     db.on("timeout", function(){
-      console.log(chalkError("*** WA | MONGO DB TIMEOUT"
+      console.log(chalkError("WAS | *** MONGO DB TIMEOUT"
         + " | " + getTimeStamp()
         + " | DB APP NAME: " + dbAppName
       ));
@@ -985,7 +993,7 @@ function connectDb(callback){
     });
 
     db.on("disconnected", function(){
-      console.log(chalkError("*** WA | MONGO DB DISCONNECTED"
+      console.log(chalkError("WAS | *** MONGO DB DISCONNECTED"
         + " | " + getTimeStamp()
         + " | DB APP NAME: " + dbAppName
       ));
@@ -1004,9 +1012,9 @@ function connectDb(callback){
     User = mongoose.model("User", userModel.UserSchema);
     Word = mongoose.model("Word", wordModel.WordSchema);
 
-    console.log(chalkInfo("WA | DB READY STATE: " + db.readyState));
+    console.log(chalkInfo("WAS | DB READY STATE: " + db.readyState));
 
-    console.log(chalk.bold.green("WA | MONGOOSE DEFAULT CONNECTION OPEN"));
+    console.log(chalk.bold.green("WAS | MONGOOSE DEFAULT CONNECTION OPEN"));
 
 
     global.dbConnection = db;
@@ -1028,34 +1036,34 @@ function connectDb(callback){
       },
       function(token, tokenSecret, profile, cb) {
 
-        console.log(chalkAlert("PASSPORT TWITTER AUTH: token:       " + token));
-        console.log(chalkAlert("PASSPORT TWITTER AUTH: tokenSecret: " + tokenSecret));
-        console.log(chalkAlert("PASSPORT TWITTER AUTH USER | @" + profile.username + " | " + profile.id));
+        console.log(chalkAlert("WAS | PASSPORT TWITTER AUTH: token:       " + token));
+        console.log(chalkAlert("WAS | PASSPORT TWITTER AUTH: tokenSecret: " + tokenSecret));
+        console.log(chalkAlert("WAS | PASSPORT TWITTER AUTH USER | @" + profile.username + " | " + profile.id));
 
-        if (configuration.verbose) { console.log(chalkAlert("PASSPORT TWITTER AUTH\nprofile\n" + jsonPrint(profile))); }
+        if (configuration.verbose) { console.log(chalkAlert("WAS | PASSPORT TWITTER AUTH\nprofile\n" + jsonPrint(profile))); }
 
         const rawUser = profile["_json"];
 
         userServerController.convertRawUser({user:rawUser}, function(err, user){
 
           if (err) {
-            console.log(chalkError("*** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
+            console.log(chalkError("WAS | *** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
             return cb("RAW USER", rawUser);
           }
 
-          printUserObj("MONGO DB | TWITTER AUTH USER", user);
+          printUserObj("WAS | MONGO DB | TWITTER AUTH USER", user);
 
           userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
 
             if (err) {
-              console.log(chalkError("findOneUser ERROR: " + err));
+              console.log(chalkError("WAS | ***findOneUser ERROR: " + err));
               return cb(err);
             }
 
-            console.log(chalk.blue("UPDATED updatedUser"
+            console.log(chalk.blue("WAS | UPDATED updatedUser"
               + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
               + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
-              + "\n" + printUser({user:updatedUser})
+              + "\nWAS | " + printUser({user:updatedUser})
             ));
 
             if (statsObj.tssChildReady) {
@@ -1118,19 +1126,19 @@ function connectDb(callback){
     passport.use(new LocalStrategy(
       function(username, password, done) {
 
-        console.log(chalkAlert("*** LOGIN *** | " + username));
+        console.log(chalkAlert("WAS | *** LOGIN *** | " + username));
 
         User.findOne({ screenName: username.toLowerCase() }, function (err, user) {
           if (err) { 
-            console.log(chalkAlert("*** LOGIN USER DB ERROR *** | " + err));
+            console.log(chalkAlert("WAS | *** LOGIN USER DB ERROR *** | " + err));
             return done(err);
           }
           if (!user) {
-            console.log(chalkAlert("*** LOGIN FAILED | USER NOT FOUND *** | " + username));
+            console.log(chalkAlert("WAS | *** LOGIN FAILED | USER NOT FOUND *** | " + username));
             return done(null, false, { message: "Incorrect username." });
           }
           if ((user.screenName !== "threecee") || (password !== "what")) {
-            console.log(chalkAlert("*** LOGIN FAILED | INVALID PASSWORD *** | " + username));
+            console.log(chalkAlert("WAS | *** LOGIN FAILED | INVALID PASSWORD *** | " + username));
             return done(null, false, { message: "Incorrect password." });
           }
           return done(null, user);
@@ -1147,30 +1155,13 @@ function connectDb(callback){
         name: user.name
       };
 
-      console.log(chalkAlert("PASSPORT SERIALIZE USER | @" + user.screenName));
+      console.log(chalkAlert("WAS | PASSPORT SERIALIZE USER | @" + user.screenName));
 
       done(null, sessionUser); 
     });
 
     passport.deserializeUser(function(sessionUser, done) {
-
       done(null, sessionUser);
-
-      // User.findOne({nodeId: nodeId}, function(err, user) {
-      //   if (err) {
-      //     console.log(chalkError("*** ERROR PASSPORT DESERIALIZE USER: " + err));
-      //     return done(err, null);
-      //   }
-      //   if (!user) {
-      //     console.log(chalkAlert("!!! PASSPORT DESERIALIZE USER NOT FOUND | NODE ID: " + nodeId));
-      //     return done(null, null);
-      //   }
-
-      //   console.log(chalkAlert("PASSPORT DESERIALIZE USER FOUND | @" + user.screenName));
-
-      //   done(err, user);
-      // });
-
     });
 
     dbConnectionReady = true;
@@ -1196,7 +1187,7 @@ function connectDb(callback){
 
     neuralNetworkCollection.countDocuments(function(err, count){
       if (err) { throw Error; }
-      console.log(chalkInfo("NEURAL NETWORKS IN DB: " + count));
+      console.log(chalkInfo("WAS | NEURAL NETWORKS IN DB: " + count));
     });
 
     const filterNetwork = {
@@ -1211,10 +1202,10 @@ function connectDb(callback){
     neuralNetworkChangeStream.on("change", function(change){
       if (change && change.fullDocument) { 
         const nn = networkDefaults(change.fullDocument); 
-        printNetworkObj("--> NN   CHANGE | " +  change.operationType, nn);
+        printNetworkObj("WAS | --> NN   CHANGE | " +  change.operationType, nn);
       }
       else {
-        console.log(chalkAlert("--> NN   CHANGE | " +  change.operationType));
+        console.log(chalkAlert("WAS | --> NN   CHANGE | " +  change.operationType));
       }
     });
 
@@ -1307,15 +1298,15 @@ let previousSlackMessage = "";
 function slackPostMessage(channel, text, callback){
 
   if (text === previousSlackMessage) {
-    console.log(chalkInfo("XXX DUPLICATE SLACK MESSAGE \nTEXT: " + text));
+    console.log(chalkInfo("WAS | XXX DUPLICATE SLACK MESSAGE \nTEXT: " + text));
     if (callback !== undefined) { callback(null, null); }
     return;
   }
 
-  debug(chalkInfo("SLACK POST: " + text));
+  debug(chalkInfo("WAS | SLACK POST: " + text));
 
   if (!slack) {
-    debug(chalkInfo("SLACK NOT AVAILABLE"));
+    debug(chalkInfo("WAS | SLACK NOT AVAILABLE"));
     if (callback !== undefined) { 
       return callback("SLACK NOT AVAILABLE", null);
     }
@@ -1329,7 +1320,7 @@ function slackPostMessage(channel, text, callback){
     channel: channel
   }, function(err, response){
     if (err){
-      console.log(chalkError("*** SLACK POST MESSAGE ERROR\nTEXT: " + text + "\nERROR: " + err));
+      console.log(chalkError("WAS | *** SLACK POST MESSAGE ERROR\nWAS | TEXT: " + text + "\nWAS | ERROR: " + err));
     }
     else {
       debug(response);
@@ -1344,12 +1335,12 @@ function slackPostMessage(channel, text, callback){
 let viewerCacheTtl = process.env.VIEWER_CACHE_DEFAULT_TTL;
 if (viewerCacheTtl === undefined) { viewerCacheTtl = VIEWER_CACHE_DEFAULT_TTL;}
 
-console.log("VIEWER CACHE TTL: " + viewerCacheTtl + " SECONDS");
+console.log("WAS | VIEWER CACHE TTL: " + viewerCacheTtl + " SECONDS");
 
 let viewerCacheCheckPeriod = process.env.VIEWER_CACHE_CHECK_PERIOD;
 if (viewerCacheCheckPeriod === undefined) { viewerCacheCheckPeriod = VIEWER_CACHE_CHECK_PERIOD;}
 
-console.log("VIEWER CACHE CHECK PERIOD: " + viewerCacheCheckPeriod + " SECONDS");
+console.log("WAS | VIEWER CACHE CHECK PERIOD: " + viewerCacheCheckPeriod + " SECONDS");
 
 const viewerCache = new NodeCache({
   stdTTL: viewerCacheTtl,
@@ -1358,7 +1349,7 @@ const viewerCache = new NodeCache({
 
 function viewerCacheExpired(viewerCacheId, viewerObj) {
 
-  console.log(chalkInfo("XXX VIEWER CACHE EXPIRED"
+  console.log(chalkInfo("WAS | XXX VIEWER CACHE EXPIRED"
     + " | TTL: " + viewerCacheTtl + " SECS"
     + " | TYPE: " + viewerObj.user.type.toUpperCase()
     + " | " + viewerCacheId
@@ -1379,11 +1370,11 @@ viewerCache.on("expired", viewerCacheExpired);
 // ==================================================================
 let serverCacheTtl = process.env.SERVER_CACHE_DEFAULT_TTL;
 if (serverCacheTtl === undefined) { serverCacheTtl = SERVER_CACHE_DEFAULT_TTL;}
-console.log("SERVER CACHE TTL: " + serverCacheTtl + " SECONDS");
+console.log("WAS | SERVER CACHE TTL: " + serverCacheTtl + " SECONDS");
 
 let serverCacheCheckPeriod = process.env.SERVER_CACHE_CHECK_PERIOD;
 if (serverCacheCheckPeriod === undefined) { serverCacheCheckPeriod = SERVER_CACHE_CHECK_PERIOD;}
-console.log("SERVER CACHE CHECK PERIOD: " + serverCacheCheckPeriod + " SECONDS");
+console.log("WAS | SERVER CACHE CHECK PERIOD: " + serverCacheCheckPeriod + " SECONDS");
 
 const serverCache = new NodeCache({
   stdTTL: serverCacheTtl,
@@ -1394,7 +1385,7 @@ function serverCacheExpired(serverCacheId, serverObj) {
 
   const ttl = serverCache.getTtl(serverCacheId);
 
-  console.log(chalkInfo("XXX SERVER CACHE EXPIRED"
+  console.log(chalkInfo("WAS | XXX SERVER CACHE EXPIRED"
     + " | TTL: " + serverCacheTtl + " SECS"
     + " | TYPE: " + serverObj.user.type.toUpperCase()
     + " | " + serverCacheId
@@ -1414,11 +1405,11 @@ serverCache.on("expired", serverCacheExpired);
 // ==================================================================
 let authenticatedSocketCacheTtl = process.env.AUTH_SOCKET_CACHE_DEFAULT_TTL;
 if (authenticatedSocketCacheTtl === undefined) { authenticatedSocketCacheTtl = AUTH_SOCKET_CACHE_DEFAULT_TTL;}
-console.log("AUTHENTICATED SOCKET CACHE TTL: " + authenticatedSocketCacheTtl + " SECONDS");
+console.log("WAS | AUTHENTICATED SOCKET CACHE TTL: " + authenticatedSocketCacheTtl + " SECONDS");
 
 let authenticatedSocketCacheCheckPeriod = process.env.AUTH_SOCKET_CACHE_CHECK_PERIOD;
 if (authenticatedSocketCacheCheckPeriod === undefined) { authenticatedSocketCacheCheckPeriod = AUTH_SOCKET_CACHE_CHECK_PERIOD;}
-console.log("AUTHENTICATED SOCKET CACHE CHECK PERIOD: " + authenticatedSocketCacheCheckPeriod + " SECONDS");
+console.log("WAS | AUTHENTICATED SOCKET CACHE CHECK PERIOD: " + authenticatedSocketCacheCheckPeriod + " SECONDS");
 
 const authenticatedSocketCache = new NodeCache({
   stdTTL: authenticatedSocketCacheTtl,
@@ -1429,7 +1420,7 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
 
   const ttl = authenticatedSocketCache.getTtl(socketId);
 
-  console.log(chalkInfo("XXX AUTH SOCKET CACHE EXPIRED"
+  console.log(chalkInfo("WAS | XXX AUTH SOCKET CACHE EXPIRED"
     + " | TTL: " + msToTime(authenticatedSocketCacheTtl*1000)
     + " | NSP: " + authSocketObj.namespace.toUpperCase()
     + " | " + socketId
@@ -1447,7 +1438,7 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
 
         if (authSocketObjCache) {
 
-          console.log(chalkInfo("AUTH SOCKET CACHE ENTRIES"
+          console.log(chalkInfo("WAS | AUTH SOCKET CACHE ENTRIES"
             + " | NSP: " + authSocketObjCache.namespace.toUpperCase()
             + " | " + socketId
             + " | USER ID: " + authSocketObjCache.userId
@@ -1457,13 +1448,13 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
           ));
         }
         else {
-          console.log(chalkAlert("???? AUTH SOCKET CACHE NO ENTRY??? | SOCKET ID: " + socketId));
+          console.log(chalkAlert("WAS | ??? AUTH SOCKET CACHE NO ENTRY? | SOCKET ID: " + socketId));
         }
 
       });
     }
     else {
-      console.log(chalkError("*** AUTH CACHE GET KEYS ERROR: " + err));
+      console.log(chalkError("WAS | *** AUTH CACHE GET KEYS ERROR: " + err));
     }
   });
 
@@ -1478,11 +1469,11 @@ authenticatedSocketCache.on("expired", authenticatedSocketCacheExpired);
 // ==================================================================
 let authenticatedTwitterUserCacheTtl = process.env.AUTH_USER_CACHE_DEFAULT_TTL;
 if (authenticatedTwitterUserCacheTtl === undefined) { authenticatedTwitterUserCacheTtl = AUTH_USER_CACHE_DEFAULT_TTL;}
-console.log("AUTHENTICATED TWITTER USER CACHE TTL: " + authenticatedTwitterUserCacheTtl + " SECONDS");
+console.log("WAS | AUTHENTICATED TWITTER USER CACHE TTL: " + authenticatedTwitterUserCacheTtl + " SECONDS");
 
 let authenticatedTwitterUserCacheCheckPeriod = process.env.AUTH_USER_CACHE_CHECK_PERIOD;
 if (authenticatedTwitterUserCacheCheckPeriod === undefined) { authenticatedTwitterUserCacheCheckPeriod = AUTH_USER_CACHE_CHECK_PERIOD;}
-console.log("AUTHENTICATED TWITTERUSER CACHE CHECK PERIOD: " + authenticatedTwitterUserCacheCheckPeriod + " SECONDS");
+console.log("WAS | AUTHENTICATED TWITTERUSER CACHE CHECK PERIOD: " + authenticatedTwitterUserCacheCheckPeriod + " SECONDS");
 
 const authenticatedTwitterUserCache = new NodeCache({
   stdTTL: authenticatedTwitterUserCacheTtl,
@@ -1491,7 +1482,7 @@ const authenticatedTwitterUserCache = new NodeCache({
 
 function authenticatedTwitterUserCacheExpired(nodeId, userObj) {
 
-  console.log(chalkInfo("XXX AUTH TWITTER USER CACHE EXPIRED"
+  console.log(chalkInfo("WAS | XXX AUTH TWITTER USER CACHE EXPIRED"
     + " | TTL: " + authenticatedTwitterUserCacheTtl + " SECS"
     + " | LS: " + userObj.lastSeen
     + " | @" + userObj.screenName
@@ -1507,11 +1498,11 @@ authenticatedTwitterUserCache.on("expired", authenticatedTwitterUserCacheExpired
 // ==================================================================
 let authInProgressTwitterUserCacheTtl = process.env.AUTH_IN_PROGRESS_CACHE_DEFAULT_TTL;
 if (authInProgressTwitterUserCacheTtl === undefined) { authInProgressTwitterUserCacheTtl = AUTH_IN_PROGRESS_CACHE_DEFAULT_TTL;}
-console.log("AUTH IN PROGRESS CACHE TTL: " + authInProgressTwitterUserCacheTtl + " SECONDS");
+console.log("WAS | AUTH IN PROGRESS CACHE TTL: " + authInProgressTwitterUserCacheTtl + " SECONDS");
 
 let authInProgressTwitterUserCacheCheckPeriod = process.env.AUTH_IN_PROGRESS_CACHE_CHECK_PERIOD;
 if (authInProgressTwitterUserCacheCheckPeriod === undefined) { authInProgressTwitterUserCacheCheckPeriod = AUTH_IN_PROGRESS_CACHE_CHECK_PERIOD;}
-console.log("AUTH IN PROGRESS CACHE CHECK PERIOD: " + authInProgressTwitterUserCacheCheckPeriod + " SECONDS");
+console.log("WAS | AUTH IN PROGRESS CACHE CHECK PERIOD: " + authInProgressTwitterUserCacheCheckPeriod + " SECONDS");
 
 const authInProgressTwitterUserCache = new NodeCache({
   stdTTL: authInProgressTwitterUserCacheTtl,
@@ -1520,7 +1511,7 @@ const authInProgressTwitterUserCache = new NodeCache({
 
 authInProgressTwitterUserCache.on("expired", function(nodeId, userObj){
 
-  console.log(chalkInfo("XXX AUTH IN PROGRESS TWITTER USER CACHE EXPIRED"
+  console.log(chalkInfo("WAS | XXX AUTH IN PROGRESS TWITTER USER CACHE EXPIRED"
     + " | TTL: " + authInProgressTwitterUserCacheTtl + " SECS"
     + " | NODE ID: " + nodeId
     + " | userObj\n" + jsonPrint(userObj)
@@ -1533,11 +1524,11 @@ authInProgressTwitterUserCache.on("expired", function(nodeId, userObj){
 // ==================================================================
 let nodeCacheTtl = process.env.NODE_CACHE_DEFAULT_TTL;
 if (nodeCacheTtl === undefined) { nodeCacheTtl = NODE_CACHE_DEFAULT_TTL;}
-console.log("NODE CACHE TTL: " + nodeCacheTtl + " SECONDS");
+console.log("WAS | NODE CACHE TTL: " + nodeCacheTtl + " SECONDS");
 
 let nodeCacheCheckPeriod = process.env.NODE_CACHE_CHECK_PERIOD;
 if (nodeCacheCheckPeriod === undefined) { nodeCacheCheckPeriod = NODE_CACHE_CHECK_PERIOD;}
-console.log("NODE CACHE CHECK PERIOD: " + nodeCacheCheckPeriod + " SECONDS");
+console.log("WAS | NODE CACHE CHECK PERIOD: " + nodeCacheCheckPeriod + " SECONDS");
 
 
 const nodeCache = new NodeCache({
@@ -1567,7 +1558,7 @@ function nodeCacheExpired(nodeObj, callback) {
     if (statsObj.nodeMeterEntries > statsObj.nodeMeterEntriesMax) {
       statsObj.nodeMeterEntriesMax = statsObj.nodeMeterEntries;
       statsObj.nodeMeterEntriesMaxTime = moment().valueOf();
-      console.log(chalkLog("NEW MAX NODE METER ENTRIES"
+      console.log(chalkLog("WAS | NEW MAX NODE METER ENTRIES"
         + " | " + getTimeStamp()
         + " | " + statsObj.nodeMeterEntries.toFixed(0)
       ));
@@ -1616,7 +1607,7 @@ let updateTrendsInterval;
 
 let trendingCacheTtl = process.env.TRENDING_CACHE_DEFAULT_TTL;
 if (trendingCacheTtl === undefined) {trendingCacheTtl = TRENDING_CACHE_DEFAULT_TTL;}
-console.log("TRENDING CACHE TTL: " + trendingCacheTtl + " SECONDS");
+console.log("WAS | TRENDING CACHE TTL: " + trendingCacheTtl + " SECONDS");
 
 const trendingCache = new NodeCache({
   stdTTL: trendingCacheTtl,
@@ -1625,13 +1616,13 @@ const trendingCache = new NodeCache({
 
 let nodesPerMinuteTopTermTtl = process.env.TOPTERMS_CACHE_DEFAULT_TTL;
 if (nodesPerMinuteTopTermTtl === undefined) {nodesPerMinuteTopTermTtl = TOPTERMS_CACHE_DEFAULT_TTL;}
-console.log("TOP TERMS WPM CACHE TTL: " + nodesPerMinuteTopTermTtl + " SECONDS");
+console.log("WAS | TOP TERMS WPM CACHE TTL: " + nodesPerMinuteTopTermTtl + " SECONDS");
 
 let nodesPerMinuteTopTermCheckPeriod = process.env.TOPTERMS_CACHE_CHECK_PERIOD;
 if (nodesPerMinuteTopTermCheckPeriod === undefined) {
   nodesPerMinuteTopTermCheckPeriod = TOPTERMS_CACHE_CHECK_PERIOD;
 }
-console.log("TOP TERMS WPM CACHE CHECK PERIOD: " + nodesPerMinuteTopTermCheckPeriod + " SECONDS");
+console.log("WAS | TOP TERMS WPM CACHE CHECK PERIOD: " + nodesPerMinuteTopTermCheckPeriod + " SECONDS");
 
 const nodesPerMinuteTopTermCache = new NodeCache({
   stdTTL: nodesPerMinuteTopTermTtl,
@@ -1665,11 +1656,8 @@ DEFAULT_NODE_TYPES.forEach(function(nodeType){
 
 let cacheObjKeys = Object.keys(cacheObj);
 
-
 let updateMetricsInterval;
 let saveFileQueue = [];
-
-
 
 let internetCheckInterval;
 
@@ -1693,12 +1681,13 @@ let sorterMessageRxQueue = [];
 const ignoreWordHashMap = new HashMap();
 const localHostHashMap = new HashMap();
 
+let tfeChild;
 let tssChild;
 let sorterChild;
 let parserChild;
 
 function initStats(callback){
-  console.log(chalk.bold.black("INIT STATS"));
+  console.log(chalk.bold.black("WAS | INIT STATS"));
   // statsObj = {};
 
   statsObj.ioReady = false;
@@ -1801,7 +1790,7 @@ function initStats(callback){
   statsObj.entity.viewer.connectedMax = 0.1;
   statsObj.entity.viewer.connectedMaxTime = moment().valueOf();
 
-  console.log("process.memoryUsage()\n"+ jsonPrint(process.memoryUsage()));
+  console.log("WAS | process.memoryUsage()\n"+ jsonPrint(process.memoryUsage()));
   statsObj.memory = {};
   statsObj.memory.rss = process.memoryUsage().rss/(1024*1024);
   statsObj.memory.maxRss = process.memoryUsage().heapUsed/(1024*1024);
@@ -1872,26 +1861,25 @@ function dropboxFolderGetLastestCursor(folder, callback) {
     include_has_explicit_shared_members: false
   };
 
-  console.log(chalkLog("dropboxFolderGetLastestCursor FOLDER: " + folder));
+  console.log(chalkLog("WAS | dropboxFolderGetLastestCursor FOLDER: " + folder));
 
   dropboxClient.filesListFolderGetLatestCursor(optionsGetLatestCursor)
   .then(function(last_cursor) {
 
     lastCursorTruncated = last_cursor.cursor.substring(0,20);
 
-    // console.log(chalkLog("lastCursorTruncated: " + lastCursorTruncated));
-    if (configuration.verbose) { console.log(chalkLog("DROPBOX LAST CURSOR\n" + jsonPrint(last_cursor))); }
+    if (configuration.verbose) { console.log(chalkLog("WAS | DROPBOX LAST CURSOR\n" + jsonPrint(last_cursor))); }
 
     dropboxLongPoll(last_cursor.cursor, function(err, results){
 
-      if (configuration.verbose) { console.log(chalkLog("DROPBOX LONG POLL RESULTS\n" + jsonPrint(results))); }
+      if (configuration.verbose) { console.log(chalkLog("WAS | DROPBOX LONG POLL RESULTS\n" + jsonPrint(results))); }
 
       if (results.changes) {
 
         dropboxClient.filesListFolderContinue({ cursor: last_cursor.cursor})
         .then(function(response){
 
-          if (configuration.verbose) { console.log(chalkLog("DROPBOX FILE LIST FOLDER CONTINUE\n" + jsonPrint(response))); }
+          if (configuration.verbose) { console.log(chalkLog("WAS | DROPBOX FILE LIST FOLDER CONTINUE\n" + jsonPrint(response))); }
 
           callback(null, response);
 
@@ -1899,13 +1887,13 @@ function dropboxFolderGetLastestCursor(folder, callback) {
         .catch(function(err){
 
           if (err.status === 429){
-            console.log(chalkError("dropboxFolderGetLastestCursor filesListFolder *** DROPBOX FILES LIST FOLDER ERROR"
+            console.log(chalkError("WAS | *** dropboxFolderGetLastestCursor filesListFolder *** DROPBOX FILES LIST FOLDER ERROR"
               + " | TOO MANY REQUESTS" 
               + " | FOLDER: " + folder 
             ));
           }
           else {
-            console.log(chalkError("dropboxFolderGetLastestCursor filesListFolder *** DROPBOX FILES LIST FOLDER ERROR"
+            console.log(chalkError("WAS | *** dropboxFolderGetLastestCursor filesListFolder *** DROPBOX FILES LIST FOLDER ERROR"
               + "\nERROR: " + err 
               + "\nERROR: " + jsonPrint(err)
             ));
@@ -1915,13 +1903,13 @@ function dropboxFolderGetLastestCursor(folder, callback) {
         });
       }
       else {
-        console.log(chalkLog("DROPBOX | FOLDER NO CHANGE | " + folder));
+        console.log(chalkLog("WAS | DROPBOX | FOLDER NO CHANGE | " + folder));
         callback(null, null);
       }
     });
   })
   .catch(function(err){
-    console.log(chalkError("*** ERROR DROPBOX FOLDER | " + folder + " | " + err));
+    console.log(chalkError("WAS | *** ERROR DROPBOX FOLDER | " + folder + " | " + err));
     callback(err, folder);
   });
 }
@@ -1939,10 +1927,10 @@ function showStats(options){
   }
 
   if (options) {
-    console.log(chalkLog("STATS\n" + jsonPrint(statsObj)));
+    console.log(chalkLog("WAS | STATS\n" + jsonPrint(statsObj)));
   }
 
-  console.log(chalkLog("S"
+  console.log(chalkLog("WAS | S"
     + " | " + getTimeStamp()
     + " | E: " + statsObj.elapsed
     + " | S: " + getTimeStamp(parseInt(statsObj.startTime))
@@ -1964,7 +1952,7 @@ function loadCommandLineArgs(callback){
 
   async.each(commandLineConfigKeys, function(arg, cb){
     configuration[arg] = commandLineConfig[arg];
-    console.log("WA | --> COMMAND LINE CONFIG | " + arg + ": " + configuration[arg]);
+    console.log("WAS | --> COMMAND LINE CONFIG | " + arg + ": " + configuration[arg]);
     cb();
   }, function(){
     statsObj.commandLineArgsLoaded = true;
@@ -1994,18 +1982,18 @@ function getFileMetadata(params, callback) {
       callback(null, response);
     })
     .catch(function(error) {
-      console.log(chalkError("WA | DROPBOX getFileMetadata ERROR: " + fullPath + "\n" + error));
-      console.log(chalkError("WA | !!! DROPBOX READ " + fullPath + " ERROR"));
-      console.log(chalkError("WA | " + jsonPrint(error.error)));
+      console.log(chalkError("WAS | *** DROPBOX getFileMetadata ERROR: " + fullPath + "\n" + error));
+      console.log(chalkError("WAS | *** DROPBOX READ " + fullPath + " ERROR"));
+      console.log(chalkError("WAS | *** " + jsonPrint(error.error)));
 
       if ((error.status === 404) || (error.status === 409)) {
-        console.error(chalkError("WA | !!! DROPBOX READ FILE " + fullPath + " NOT FOUND"
+        console.error(chalkError("WAS | *** DROPBOX READ FILE " + fullPath + " NOT FOUND"
           + " ... SKIPPING ...")
         );
         return callback(null, null);
       }
       if (error.status === 0) {
-        console.error(chalkError("WA | !!! DROPBOX NO RESPONSE"
+        console.error(chalkError("WAS | *** DROPBOX NO RESPONSE"
           + " ... NO INTERNET CONNECTION? ... SKIPPING ..."));
         return callback(null, null);
       }
@@ -2015,14 +2003,14 @@ function getFileMetadata(params, callback) {
 
 function getFileMetadataRetry(params, callback) {
 
-  debug(chalkAlert("getFileMetadataRetry | PARAMS\n" + jsonPrint(params)));
+  debug(chalkAlert("WAS | getFileMetadataRetry | PARAMS\n" + jsonPrint(params)));
 
   let operation = retry.operation();
  
   operation.attempt(function(currentAttempt) {
 
     if (currentAttempt > 1) {
-      console.log(chalkAlert("getFileMetadataRetry"
+      console.log(chalkAlert("WAS | getFileMetadataRetry"
         + " | ATTEMPT NUM: " + currentAttempt
         + "\nPARAMS\n" + jsonPrint(params)
       ));
@@ -2057,10 +2045,10 @@ function loadFile(path, file, callback) {
     fs.readFile(fullPath, "utf8", function(err, data) {
 
       if (err) {
-        console.log(chalkError("fs readFile ERROR: " + err));
+        console.log(chalkError("WAS | *** fs.readFile ERROR: " + err));
       }
 
-      debug(chalkLog(getTimeStamp()
+      debug(chalkLog("WAS | " + getTimeStamp()
         + " | LOADING FILE FROM DROPBOX FILE"
         + " | " + fullPath
       ));
@@ -2116,10 +2104,10 @@ function loadFile(path, file, callback) {
     .catch(function(err) {
 
       if (err.code === "ENOTFOUND") {
-        debug(chalkError("WA | LOAD FILE ERROR | FILE NOT FOUND: " + fullPath));
+        debug(chalkError("WAS | LOAD FILE ERROR | FILE NOT FOUND: " + fullPath));
       }
       else {
-        debug(chalkError("WA | LOAD FILE ERROR: " + err));
+        debug(chalkError("WAS | LOAD FILE ERROR: " + err));
       }
 
       callback(err, null);
@@ -2133,7 +2121,7 @@ function loadConfigFile(params, callback) {
   const file = params.file;
   const folder = params.folder;
 
-  console.log(chalk.bold.black("LOAD CONFIG FILE | " + folder + "/" + file));
+  console.log(chalk.bold.black("WAS | LOAD CONFIG FILE | " + folder + "/" + file));
 
   if (file === dropboxConfigDefaultFile) {
     prevConfigFileModifiedMoment = moment(prevDefaultConfigFileModifiedMoment);
@@ -2161,7 +2149,7 @@ function loadConfigFile(params, callback) {
     
       if (fileModifiedMoment.isSameOrBefore(prevConfigFileModifiedMoment)){
 
-        debug(chalkInfo("WA | CONFIG FILE BEFORE OR EQUAL"
+        debug(chalkInfo("WAS | CONFIG FILE BEFORE OR EQUAL"
           + " | " + fullPath
           + " | PREV: " + prevConfigFileModifiedMoment.format(compactDateTimeFormat)
           + " | " + fileModifiedMoment.format(compactDateTimeFormat)
@@ -2169,7 +2157,7 @@ function loadConfigFile(params, callback) {
         callback(null);
       }
       else {
-        console.log(chalkInfo("WA | +++ CONFIG FILE AFTER ... LOADING"
+        console.log(chalkInfo("WAS | +++ CONFIG FILE AFTER ... LOADING"
           + " | " + fullPath
           + " | PREV: " + prevConfigFileModifiedMoment.format(compactDateTimeFormat)
           + " | " + fileModifiedMoment.format(compactDateTimeFormat)
@@ -2188,22 +2176,22 @@ function loadConfigFile(params, callback) {
         loadFile(folder, file, function(err, loadedConfigObj){
 
           if (err) {
-            console.error(chalkError("WA | ERROR LOAD DROPBOX CONFIG: " + file
+            console.error(chalkError("WAS | ERROR LOAD DROPBOX CONFIG: " + file
               + "\n" + jsonPrint(err)
             ));
             callback(err);
           }
           else if ((loadedConfigObj === undefined) || !loadedConfigObj) {
-            console.log(chalkError("WA | DROPBOX CONFIG LOAD FILE ERROR | JSON UNDEFINED ??? "));
+            console.log(chalkError("WAS | *** DROPBOX CONFIG LOAD FILE ERROR | JSON UNDEFINED ??? "));
             callback("JSON UNDEFINED");
           }
 
           else {
 
-            console.log(chalkInfo("WA | LOADED CONFIG FILE: " + file + "\n" + jsonPrint(loadedConfigObj)));
+            console.log(chalkInfo("WAS | LOADED CONFIG FILE: " + file + "\n" + jsonPrint(loadedConfigObj)));
 
             if (loadedConfigObj.VERBOSE  !== undefined){
-              console.log("WA | LOADED VERBOSE: " + loadedConfigObj.VERBOSE);
+              console.log("WAS | LOADED VERBOSE: " + loadedConfigObj.VERBOSE);
 
               if ((loadedConfigObj.VERBOSE === false) || (loadedConfigObj.VERBOSE === "false")) {
                 configuration.verbose = false;
@@ -2217,7 +2205,7 @@ function loadConfigFile(params, callback) {
             }
 
             if (loadedConfigObj.FORCE_FOLLOW  !== undefined){
-              console.log("WA | LOADED FORCE_FOLLOW: " + loadedConfigObj.FORCE_FOLLOW);
+              console.log("WAS | LOADED FORCE_FOLLOW: " + loadedConfigObj.FORCE_FOLLOW);
 
               if ((loadedConfigObj.FORCE_FOLLOW === false) || (loadedConfigObj.FORCE_FOLLOW === "false")) {
                 configuration.forceFollow = false;
@@ -2231,18 +2219,18 @@ function loadConfigFile(params, callback) {
             }
 
             if (loadedConfigObj.WA_TEST_MODE  !== undefined){
-              console.log("WA | LOADED WA_TEST_MODE: " + loadedConfigObj.WA_TEST_MODE);
+              console.log("WAS | LOADED WA_TEST_MODE: " + loadedConfigObj.WA_TEST_MODE);
               configuration.testMode = loadedConfigObj.WA_TEST_MODE;
             }
 
             if (loadedConfigObj.WAS_ENABLE_STDIN !== undefined){
-              console.log("WA | LOADED WAS_ENABLE_STDIN: " + loadedConfigObj.WAS_ENABLE_STDIN);
+              console.log("WAS | LOADED WAS_ENABLE_STDIN: " + loadedConfigObj.WAS_ENABLE_STDIN);
               configuration.enableStdin = loadedConfigObj.WAS_ENABLE_STDIN;
             }
 
             if (loadedConfigObj.NODE_METER_ENABLED !== undefined){
 
-              console.log("WA | LOADED NODE_METER_ENABLED: " + loadedConfigObj.NODE_METER_ENABLED);
+              console.log("WAS | LOADED NODE_METER_ENABLED: " + loadedConfigObj.NODE_METER_ENABLED);
 
               if (loadedConfigObj.NODE_METER_ENABLED === "true") {
                 configuration.metrics.nodeMeterEnabled = true;
@@ -2256,139 +2244,134 @@ function loadConfigFile(params, callback) {
             }
 
             if (loadedConfigObj.PROCESS_NAME !== undefined){
-              console.log("WA | LOADED PROCESS_NAME: " + loadedConfigObj.PROCESS_NAME);
+              console.log("WAS | LOADED PROCESS_NAME: " + loadedConfigObj.PROCESS_NAME);
               configuration.processName = loadedConfigObj.PROCESS_NAME;
             }
 
             if (loadedConfigObj.THREECEE_USERS !== undefined){
-              console.log("WA | LOADED THREECEE_USERS: " + loadedConfigObj.THREECEE_USERS);
+              console.log("WAS | LOADED THREECEE_USERS: " + loadedConfigObj.THREECEE_USERS);
               configuration.threeceeUsers = loadedConfigObj.THREECEE_USERS;
             }
 
             if (loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW_USER !== undefined){
-              console.log("WA | LOADED TWITTER_THREECEE_AUTO_FOLLOW_USER: " + loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW_USER);
+              console.log("WAS | LOADED TWITTER_THREECEE_AUTO_FOLLOW_USER: " + loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW_USER);
               configuration.twitterThreeceeAutoFollowUser = loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW_USER;
             }
 
             if (loadedConfigObj.CURSOR_BATCH_SIZE !== undefined){
-              console.log("WA | LOADED CURSOR_BATCH_SIZE: " + loadedConfigObj.CURSOR_BATCH_SIZE);
+              console.log("WAS | LOADED CURSOR_BATCH_SIZE: " + loadedConfigObj.CURSOR_BATCH_SIZE);
               configuration.cursorBatchSize = loadedConfigObj.CURSOR_BATCH_SIZE;
             }
 
             if (loadedConfigObj.DROPBOX_WEBHOOK_CHANGE_TIMEOUT !== undefined){
-              console.log("WA | LOADED DROPBOX_WEBHOOK_CHANGE_TIMEOUT: " + loadedConfigObj.DROPBOX_WEBHOOK_CHANGE_TIMEOUT);
+              console.log("WAS | LOADED DROPBOX_WEBHOOK_CHANGE_TIMEOUT: " + loadedConfigObj.DROPBOX_WEBHOOK_CHANGE_TIMEOUT);
               configuration.dropboxWebhookChangeTimeout = loadedConfigObj.DROPBOX_WEBHOOK_CHANGE_TIMEOUT;
             }
 
             if (loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT !== undefined){
-              console.log("WA | LOADED FIND_CAT_USER_CURSOR_LIMIT: " + loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT);
+              console.log("WAS | LOADED FIND_CAT_USER_CURSOR_LIMIT: " + loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT);
               configuration.findCatUserLimit = loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT;
             }
 
             if (loadedConfigObj.FIND_CAT_HASHTAG_CURSOR_LIMIT !== undefined){
-              console.log("WA | LOADED FIND_CAT_HASHTAG_CURSOR_LIMIT: " + loadedConfigObj.FIND_CAT_HASHTAG_CURSOR_LIMIT);
+              console.log("WAS | LOADED FIND_CAT_HASHTAG_CURSOR_LIMIT: " + loadedConfigObj.FIND_CAT_HASHTAG_CURSOR_LIMIT);
               configuration.findCatHashtagLimit = loadedConfigObj.FIND_CAT_HASHTAG_CURSOR_LIMIT;
             }
 
             if (loadedConfigObj.HEAPDUMP_ENABLED !== undefined){
-              console.log("WA | LOADED HEAPDUMP_ENABLED: " + loadedConfigObj.HEAPDUMP_ENABLED);
+              console.log("WAS | LOADED HEAPDUMP_ENABLED: " + loadedConfigObj.HEAPDUMP_ENABLED);
               configuration.heapDumpEnabled = loadedConfigObj.HEAPDUMP_ENABLED;
             }
 
             if (loadedConfigObj.HEAPDUMP_MODULO !== undefined){
-              console.log("WA | LOADED HEAPDUMP_MODULO: " + loadedConfigObj.HEAPDUMP_MODULO);
+              console.log("WAS | LOADED HEAPDUMP_MODULO: " + loadedConfigObj.HEAPDUMP_MODULO);
               configuration.heapDumpModulo = loadedConfigObj.HEAPDUMP_MODULO;
             }
 
             if (loadedConfigObj.HEAPDUMP_THRESHOLD !== undefined){
-              console.log("WA | LOADED HEAPDUMP_THRESHOLD: " + loadedConfigObj.HEAPDUMP_THRESHOLD);
+              console.log("WAS | LOADED HEAPDUMP_THRESHOLD: " + loadedConfigObj.HEAPDUMP_THRESHOLD);
               configuration.heapDumpThreshold = loadedConfigObj.HEAPDUMP_THRESHOLD;
             }
 
             if (loadedConfigObj.NODE_CACHE_CHECK_PERIOD !== undefined){
-              console.log("WA | LOADED NODE_CACHE_CHECK_PERIOD: " + loadedConfigObj.NODE_CACHE_CHECK_PERIOD);
+              console.log("WAS | LOADED NODE_CACHE_CHECK_PERIOD: " + loadedConfigObj.NODE_CACHE_CHECK_PERIOD);
               configuration.nodeCacheCheckPeriod = loadedConfigObj.NODE_CACHE_CHECK_PERIOD;
             }
 
             if (loadedConfigObj.NODE_CACHE_DEFAULT_TTL !== undefined){
-              console.log("WA | LOADED NODE_CACHE_DEFAULT_TTL: " + loadedConfigObj.NODE_CACHE_DEFAULT_TTL);
+              console.log("WAS | LOADED NODE_CACHE_DEFAULT_TTL: " + loadedConfigObj.NODE_CACHE_DEFAULT_TTL);
               configuration.nodeCacheTtl = loadedConfigObj.NODE_CACHE_DEFAULT_TTL;
             }
 
             if (loadedConfigObj.SOCKET_IDLE_TIMEOUT !== undefined){
-              console.log("WA | LOADED SOCKET_IDLE_TIMEOUT: " + loadedConfigObj.SOCKET_IDLE_TIMEOUT);
+              console.log("WAS | LOADED SOCKET_IDLE_TIMEOUT: " + loadedConfigObj.SOCKET_IDLE_TIMEOUT);
               configuration.socketIdleTimeout = loadedConfigObj.SOCKET_IDLE_TIMEOUT;
             }
 
             if (loadedConfigObj.TOPTERMS_CACHE_CHECK_PERIOD !== undefined){
-              console.log("WA | LOADED TOPTERMS_CACHE_CHECK_PERIOD: " + loadedConfigObj.TOPTERMS_CACHE_CHECK_PERIOD);
+              console.log("WAS | LOADED TOPTERMS_CACHE_CHECK_PERIOD: " + loadedConfigObj.TOPTERMS_CACHE_CHECK_PERIOD);
               configuration.topTermsCacheCheckPeriod = loadedConfigObj.TOPTERMS_CACHE_CHECK_PERIOD;
             }
 
             if (loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL !== undefined){
-              console.log("WA | LOADED TOPTERMS_CACHE_DEFAULT_TTL: " + loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL);
+              console.log("WAS | LOADED TOPTERMS_CACHE_DEFAULT_TTL: " + loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL);
               configuration.topTermsCacheTtl = loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL;
             }
 
             if (loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD !== undefined){
-              console.log("WA | LOADED TRENDING_CACHE_CHECK_PERIOD: " + loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD);
+              console.log("WAS | LOADED TRENDING_CACHE_CHECK_PERIOD: " + loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD);
               configuration.trendingCacheCheckPeriod = loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD;
             }
 
             if (loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL !== undefined){
-              console.log("WA | LOADED TRENDING_CACHE_DEFAULT_TTL: " + loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL);
+              console.log("WAS | LOADED TRENDING_CACHE_DEFAULT_TTL: " + loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL);
               configuration.trendingCacheTtl = loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL;
             }
 
             if (loadedConfigObj.MIN_FOLLOWERS_AUTO !== undefined){
-              console.log("WA | LOADED MIN_FOLLOWERS_AUTO: " + loadedConfigObj.MIN_FOLLOWERS_AUTO);
+              console.log("WAS | LOADED MIN_FOLLOWERS_AUTO: " + loadedConfigObj.MIN_FOLLOWERS_AUTO);
               configuration.minFollowersAuto = loadedConfigObj.MIN_FOLLOWERS_AUTO;
             }
 
             if (loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL !== undefined){
-              console.log("WA | LOADED CATEGORY_HASHMAPS_UPDATE_INTERVAL: " + loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL);
+              console.log("WAS | LOADED CATEGORY_HASHMAPS_UPDATE_INTERVAL: " + loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL);
               configuration.categoryHashmapsUpdateInterval = loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL;
             }
 
             if (loadedConfigObj.STATS_UPDATE_INTERVAL !== undefined){
-              console.log("WA | LOADED STATS_UPDATE_INTERVAL: " + loadedConfigObj.STATS_UPDATE_INTERVAL);
+              console.log("WAS | LOADED STATS_UPDATE_INTERVAL: " + loadedConfigObj.STATS_UPDATE_INTERVAL);
               configuration.statsUpdateInterval = loadedConfigObj.STATS_UPDATE_INTERVAL;
             }
 
             if (loadedConfigObj.RATE_QUEUE_INTERVAL !== undefined){
-              console.log("WA | LOADED RATE_QUEUE_INTERVAL: " + loadedConfigObj.RATE_QUEUE_INTERVAL);
+              console.log("WAS | LOADED RATE_QUEUE_INTERVAL: " + loadedConfigObj.RATE_QUEUE_INTERVAL);
               configuration.rateQueueInterval = loadedConfigObj.RATE_QUEUE_INTERVAL;
             }
 
             if (loadedConfigObj.RATE_QUEUE_INTERVAL_MODULO !== undefined){
-              console.log("WA | LOADED RATE_QUEUE_INTERVAL_MODULO: " + loadedConfigObj.RATE_QUEUE_INTERVAL_MODULO);
+              console.log("WAS | LOADED RATE_QUEUE_INTERVAL_MODULO: " + loadedConfigObj.RATE_QUEUE_INTERVAL_MODULO);
               configuration.rateQueueIntervalModulo = loadedConfigObj.RATE_QUEUE_INTERVAL_MODULO;
             }
 
             if (loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW !== undefined){
-              console.log("WA | LOADED TWITTER_THREECEE_AUTO_FOLLOW: " + loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW);
+              console.log("WAS | LOADED TWITTER_THREECEE_AUTO_FOLLOW: " + loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW);
               configuration.twitterThreeceeAutoFollowConfigFile = loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW + ".json";
             }
 
             if (loadedConfigObj.TWEET_PARSER_INTERVAL !== undefined){
-              console.log("WA | LOADED TWEET_PARSER_INTERVAL: " + loadedConfigObj.TWEET_PARSER_INTERVAL);
+              console.log("WAS | LOADED TWEET_PARSER_INTERVAL: " + loadedConfigObj.TWEET_PARSER_INTERVAL);
               configuration.tweetParserInterval = loadedConfigObj.TWEET_PARSER_INTERVAL;
             }
 
             if (loadedConfigObj.UPDATE_TRENDS_INTERVAL !== undefined){
-              console.log("WA | LOADED UPDATE_TRENDS_INTERVAL: " + loadedConfigObj.UPDATE_TRENDS_INTERVAL);
+              console.log("WAS | LOADED UPDATE_TRENDS_INTERVAL: " + loadedConfigObj.UPDATE_TRENDS_INTERVAL);
               configuration.updateTrendsInterval = loadedConfigObj.UPDATE_TRENDS_INTERVAL;
             }
 
             if (loadedConfigObj.KEEPALIVE_INTERVAL !== undefined){
-              console.log("WA | LOADED KEEPALIVE_INTERVAL: " + loadedConfigObj.KEEPALIVE_INTERVAL);
+              console.log("WAS | LOADED KEEPALIVE_INTERVAL: " + loadedConfigObj.KEEPALIVE_INTERVAL);
               configuration.keepaliveInterval = loadedConfigObj.KEEPALIVE_INTERVAL;
             }
-
-            // if (loadedConfigObj.CHECK_TWITTER_RATE_LIMIT_INTERVAL !== undefined){
-            //   console.log("WA | LOADED CHECK_TWITTER_RATE_LIMIT_INTERVAL: " + loadedConfigObj.CHECK_TWITTER_RATE_LIMIT_INTERVAL);
-            //   configuration.checkTwitterRateLimitInterval = loadedConfigObj.CHECK_TWITTER_RATE_LIMIT_INTERVAL;
-            // }
 
             callback(null);
 
@@ -2405,7 +2388,7 @@ function loadMaxInputHashMap(params, callback){
     if (err){
 
       if (err.code === "ENOTFOUND") {
-        console.log(chalkError("*** LOAD MAX INPUT: FILE NOT FOUND"
+        console.log(chalkError("WAS | *** LOAD MAX INPUT: FILE NOT FOUND"
           + " | " + params.folder + "/" + params.file
         ));
       }
@@ -2413,11 +2396,11 @@ function loadMaxInputHashMap(params, callback){
       return(callback(err));
     }
     if (dataObj.maxInputHashMap === undefined) {
-      console.log(chalkError("ERROR: loadMaxInputHashMap: loadFile: maxInputHashMap UNDEFINED"));
+      console.log(chalkError("WAS | *** ERROR: loadMaxInputHashMap: loadFile: maxInputHashMap UNDEFINED"));
       return(callback("dataObj.maxInputHashMap UNDEFINED"));
     }
     if (dataObj.normalization === undefined) {
-      console.log(chalkError("ERROR: loadMaxInputHashMap: loadFile: normalization UNDEFINED"));
+      console.log(chalkError("WAS | *** ERROR: loadMaxInputHashMap: loadFile: normalization UNDEFINED"));
       return(callback("dataObj.normalization UNDEFINED"));
     }
     maxInputHashMap = {};
@@ -2429,11 +2412,11 @@ function loadMaxInputHashMap(params, callback){
 }
 
 function loadYamlConfig(yamlFile, callback){
-  console.log(chalkInfo("LOADING YAML CONFIG FILE: " + yamlFile));
+  console.log(chalkInfo("WAS | LOADING YAML CONFIG FILE: " + yamlFile));
   fs.exists(yamlFile, function yamlCheckFileExists(exists) {
     if (exists) {
       let cnf = yaml.load(yamlFile);
-      console.log(chalkInfo("FOUND FILE " + yamlFile));
+      console.log(chalkInfo("WAS | FOUND FILE " + yamlFile));
       callback(null, cnf);
     }
     else {
@@ -2561,8 +2544,8 @@ function saveFile (params, callback){
 
     })
     .catch(function(error){
-      console.log(chalkError("WAS | " + getTimeStamp() 
-        + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
+      console.log(chalkError("WAS | *** " + getTimeStamp() 
+        + " | *** ERROR DROBOX JSON WRITE | FILE: " + fullPath 
         + " | ERROR: " + error
         + " | ERROR\n" + jsonPrint(error)
         // + " ERROR\n" + jsonPrint(params)
@@ -2587,34 +2570,30 @@ function saveFile (params, callback){
       .catch(function(error){
         if (error.status === 413){
           console.log(chalkError("WAS | " + getTimeStamp() 
-            + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
+            + " | *** ERROR DROBOX JSON WRITE | FILE: " + fullPath 
             + " | ERROR: 413"
-            // + " ERROR\n" + jsonPrint(error.error)
           ));
           if (callback !== undefined) { return callback(error); }
         }
         else if (error.status === 429){
           console.log(chalkError("WAS | " + getTimeStamp() 
-            + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
+            + " | *** ERROR DROBOX JSON WRITE | FILE: " + fullPath 
             + " | ERROR: TOO MANY WRITES"
-            // + " ERROR\n" + "jsonPrint"(error.error)
           ));
           if (callback !== undefined) { return callback(error); }
         }
         else if (error.status === 500){
           console.log(chalkError("WAS | " + getTimeStamp() 
-            + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
+            + " | *** ERROR DROBOX JSON WRITE | FILE: " + fullPath 
             + " | ERROR: DROPBOX SERVER ERROR"
-            // + " ERROR\n" + jsonPrint(error.error)
           ));
           if (callback !== undefined) { return callback(error); }
         }
         else {
           console.log(chalkError("WAS | " + getTimeStamp() 
-            + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
+            + " | *** ERROR DROBOX JSON WRITE | FILE: " + fullPath 
             + " | ERROR: " + error
             + " | ERROR\n" + jsonPrint(error)
-            // + " ERROR\n" + jsonPrint(params)
           ));
           if (callback !== undefined) { return callback(error); }
         }
@@ -2626,7 +2605,7 @@ function saveFile (params, callback){
       dropboxClient.filesListFolder({path: params.folder, limit: configuration.dropboxListFolderLimit})
       .then(function(response){
 
-        debug(chalkLog("DROPBOX LIST FOLDER"
+        debug(chalkLog("WAS | DROPBOX LIST FOLDER"
           + " | ENTRIES: " + response.entries.length
           + " | CURSOR (trunc): " + response.cursor.substr(-10)
           + " | MORE: " + response.has_more
@@ -2684,7 +2663,7 @@ let saveFileBusy = false;
 
 function initSaveFileQueue(cnf){
 
-  console.log(chalk.bold.black("INIT DROPBOX SAVE FILE INTERVAL | " + msToTime(cnf.saveFileQueueInterval)));
+  console.log(chalk.bold.black("WAS | INIT DROPBOX SAVE FILE INTERVAL | " + msToTime(cnf.saveFileQueueInterval)));
 
   clearInterval(saveFileQueueInterval);
 
@@ -2786,7 +2765,7 @@ function killChild(params, callback){
   }
   else if (params.childId !== undefined) {
     if (childrenHashMap[params.childId] === undefined) {
-      console.log(chalkError("KILL CHILD ERROR: CHILD NOT IN HM: " + params.childId));
+      console.log(chalkError("WAS | KILL CHILD ERROR: CHILD NOT IN HM: " + params.childId));
       if (callback !== undefined) { 
         callback("ERROR: CHILD NOT IN HM: " + params.childId, null);
       }
@@ -2799,7 +2778,7 @@ function killChild(params, callback){
 
   shell.exec(command, function(code, stdout, stderr){
 
-    console.log(chalkAlert("KILL CHILD"
+    console.log(chalkAlert("WAS | KILL CHILD"
       + "\nPARAMS\n " + jsonPrint(params)
       + "\nCOMMAND: " + command
       + "\nCODE:    " + code
@@ -2843,7 +2822,7 @@ function getChildProcesses(params, callback){
   shell.exec(command, {silent: true}, function(code, stdout, stderr){
 
     if (stderr) {
-      console.log(chalkError("*** SHELL ERROR"
+      console.log(chalkError("WAS | *** SHELL ERROR"
         + " | COMMAND: " + command
         + " | STDERR: " + stderr
       ));
@@ -2867,7 +2846,7 @@ function getChildProcesses(params, callback){
           shell.exec(command, {silent: true}, function(code, stdout, stderr){
 
             if (stderr) {
-              console.log(chalkError("*** SHELL ERROR"
+              console.log(chalkError("WAS | *** SHELL ERROR"
                 + " | COMMAND: " + command
                 + " | STDERR: " + stderr
               ));
@@ -2878,7 +2857,7 @@ function getChildProcesses(params, callback){
 
             numChildren += 1;
 
-            debug(chalk.blue("WA | FOUND CHILD PROCESS"
+            debug(chalk.blue("WAS | FOUND CHILD PROCESS"
               + " | NUM: " + numChildren
               + " | PID: " + pid
               + " | " + childId
@@ -2889,7 +2868,7 @@ function getChildProcesses(params, callback){
               childrenHashMap[childId] = {};
               childrenHashMap[childId].status = "ZOMBIE";
 
-              console.log(chalkError("WA | ??? CHILD ZOMBIE ???"
+              console.log(chalkError("WAS | *** CHILD ZOMBIE ***"
                 + " | NUM: " + numChildren
                 + " | PID: " + pid
                 + " | " + childId
@@ -2899,19 +2878,19 @@ function getChildProcesses(params, callback){
               killChild({pid: pid}, function(err, numKilled){
 
                 if (err) {
-                  console.log(chalkError("*** KILL CHILD ERROR"
+                  console.log(chalkError("WAS | *** KILL CHILD ERROR"
                     + " | PID: " + pid
                     + " | ERROR: " + err
                   ));
                   return cb(err);
                 }
 
-                console.log(chalkAlert("WA | XXX ZOMBIE CHILD KILLED | PID: " + pid + " | CH ID: " + childId));
+                console.log(chalkAlert("WAS | XXX ZOMBIE CHILD KILLED | PID: " + pid + " | CH ID: " + childId));
               });
 
             }
             else {
-              debug(chalkInfo("WA | CHILD"
+              debug(chalkInfo("WAS | CHILD"
                 + " | PID: " + pid
                 + " | " + childId
                 + " | STATUS: " + childrenHashMap[childId].status
@@ -2930,7 +2909,7 @@ function getChildProcesses(params, callback){
       }, function(err){
 
         if (err) {
-          console.log(chalkError("*** GET CHILD PROCESSES ERROR"
+          console.log(chalkError("WAS | *** GET CHILD PROCESSES ERROR"
             + " | ERROR: " + err
           ));
         }
@@ -2942,16 +2921,16 @@ function getChildProcesses(params, callback){
     }
 
     if (code === 1) {
-      console.log(chalkInfo("WA | NO NN CHILD PROCESSES FOUND"));
+      console.log(chalkInfo("WAS | NO NN CHILD PROCESSES FOUND"));
         if (callback !== undefined) { callback(null, []); }
     }
 
     if (code > 1) {
-      console.log(chalkAlert("SHELL : WA | ERROR *** KILL CHILD"
-        + "\nSHELL :: WA | COMMAND: " + command
-        + "\nSHELL :: WA | EXIT CODE: " + code
-        + "\nSHELL :: WA | STDOUT\n" + stdout
-        + "\nSHELL :: WA | STDERR\n" + stderr
+      console.log(chalkAlert("WAS | ERROR *** SHELL KILL CHILD"
+        + "\nSHELL :: WAS | COMMAND: " + command
+        + "\nSHELL :: WAS | EXIT CODE: " + code
+        + "\nSHELL :: WAS | STDOUT\n" + stdout
+        + "\nSHELL :: WAS | STDERR\n" + stderr
       ));
       if (callback !== undefined) { callback(stderr, command); }
     }
@@ -2970,7 +2949,7 @@ function killAll(callback){
       async.eachSeries(childPidArray, function(childObj, cb){
 
         killChild({pid: childObj.pid}, function(err, numKilled){
-          console.log(chalkAlert("WA | KILL ALL | KILLED | PID: " + childObj.pid + " | CH ID: " + childObj.childId));
+          console.log(chalkAlert("WAS | KILL ALL | KILLED | PID: " + childObj.pid + " | CH ID: " + childObj.childId));
           cb(err);
         });
 
@@ -2982,7 +2961,7 @@ function killAll(callback){
     }
     else {
 
-      console.log(chalkAlert("WA | KILL ALL | NO CHILDREN"));
+      console.log(chalkAlert("WAS | KILL ALL | NO CHILDREN"));
 
       if (callback !== undefined) { callback(err, childPidArray); }
     }
@@ -2998,7 +2977,7 @@ process.on("message", function processMessageRx(msg) {
 
   if ((msg === "SIGINT") || (msg === "shutdown")) {
 
-    console.log(chalkAlert("\n=============================\n***** SHUTDOWN OR SIGINT *****\n=============================\n"));
+    console.log(chalkAlert("\nWAS | =============================\nWAS | *** SHUTDOWN OR SIGINT ***\nWAS | =============================\n"));
 
     clearInterval(internetCheckInterval);
 
@@ -3020,7 +2999,7 @@ process.on("message", function processMessageRx(msg) {
 
 configEvents.on("CHILD_ERROR", function childError(childObj){
 
-  console.log(chalkError("CHILD_ERROR"
+  console.log(chalkError("WAS | *** CHILD_ERROR"
     + " | " + childObj.childId
     + " | ERROR: " + jsonPrint(childObj.err)
   ));
@@ -3037,7 +3016,7 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
 
     case DEFAULT_TSS_CHILD_ID:
 
-      console.log(chalkError("KILL TSS CHILD"));
+      console.log(chalkError("WAS | *** KILL TSS CHILD"));
 
       killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, numKilled){
         initTssChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, tss){
@@ -3049,7 +3028,7 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
 
     case DEFAULT_TWEET_PARSER_CHILD_ID:
 
-      console.log(chalkError("KILL TWEET PARSER"));
+      console.log(chalkError("WAS | *** KILL TWEET PARSER"));
 
       killChild({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, numKilled){
         initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, twp){
@@ -3081,13 +3060,13 @@ configEvents.on("INTERNET_READY", function internetReady() {
 
       httpServer.on("disconnect", function serverDisconnect() {
         statsObj.internetReady = false;
-        console.log(chalkError("\n***** PORT DISCONNECTED | " + getTimeStamp() 
+        console.log(chalkError("WAS | *** PORT DISCONNECTED | " + getTimeStamp() 
           + " | " + config.port));
       });
     });
 
     httpServer.listen(config.port, function serverListen() {
-      debug(chalkInfo(getTimeStamp() + " | LISTENING ON PORT " + config.port));
+      debug(chalkInfo("WAS | " + getTimeStamp() + " | LISTENING ON PORT " + config.port));
     });
 
     httpServer.on("error", function serverError(err) {
@@ -3095,15 +3074,15 @@ configEvents.on("INTERNET_READY", function internetReady() {
       statsObj.socket.errors.httpServer_errors += 1;
       statsObj.internetReady = false;
 
-      debug(chalkError("??? HTTP ERROR | " + getTimeStamp() + "\n" + err));
+      debug(chalkError("WAS | *** HTTP ERROR | " + getTimeStamp() + "\n" + err));
 
       if (err.code === "EADDRINUSE") {
 
-        debug(chalkError("??? HTTP ADDRESS IN USE: " + config.port + " ... RETRYING..."));
+        debug(chalkError("WAS | *** HTTP ADDRESS IN USE: " + config.port + " ... RETRYING..."));
 
         setTimeout(function serverErrorTimeout() {
           httpServer.listen(config.port, function serverErrorListen() {
-            debug("LISTENING ON PORT " + config.port);
+            debug("WAS | LISTENING ON PORT " + config.port);
           });
         }, 5000);
       }
@@ -3149,7 +3128,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
         serverCache.get(serverCacheKey, function(err, serverObj){
 
           if (err) {
-            console.log(chalkError("SERVER CACHE ERROR: " + err));
+            console.log(chalkError("WAS | *** SERVER CACHE ERROR: " + err));
             return cb(err);
           }
 
@@ -3170,7 +3149,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
         viewerCache.get(viewerCacheKey, function(err, viewerObj){
 
           if (err) {
-            console.log(chalkError("VIEWER CACHE ERROR: " + err));
+            console.log(chalkError("WAS | *** VIEWER CACHE ERROR: " + err));
             return cb(err);
           }
 
@@ -3240,18 +3219,18 @@ configEvents.on("INTERNET_READY", function internetReady() {
   loadMaxInputHashMap({folder: dropboxConfigDefaultTrainingSetsFolder, file: maxInputHashMapFile}, function(err){
     if (err) {
       if (err.code === "ENOTFOUND") {
-        console.log(chalkError("*** LOAD MAX INPUT ERROR: FILE NOT FOUND"
+        console.log(chalkError("WAS | *** LOAD MAX INPUT ERROR: FILE NOT FOUND"
           + " | " + dropboxConfigDefaultTrainingSetsFolder + "/" + maxInputHashMapFile
         ));
       }
       else {
-        console.log(chalkError("*** LOAD MAX INPUT ERROR: " + err));
+        console.log(chalkError("WAS | *** LOAD MAX INPUT ERROR: " + err));
       }
     }
     else {
-      console.log(chalkInfo("LOADED MAX INPUT HASHMAP + NORMALIZATION"));
-      console.log(chalkInfo("MAX INPUT HASHMAP INPUT TYPES: " + Object.keys(maxInputHashMap)));
-      console.log(chalkInfo("NORMALIZATION INPUT TYPES: " + Object.keys(normalization)));
+      console.log(chalkInfo("WAS | LOADED MAX INPUT HASHMAP + NORMALIZATION"));
+      console.log(chalkInfo("WAS | MAX INPUT HASHMAP INPUT TYPES: " + Object.keys(maxInputHashMap)));
+      console.log(chalkInfo("WAS | NORMALIZATION INPUT TYPES: " + Object.keys(normalization)));
     }
   });
 
@@ -3268,7 +3247,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
 configEvents.on("INTERNET_NOT_READY", function internetNotReady() {
   if (configuration.autoOfflineMode) {
     configuration.offlineMode = true;
-    console.log(chalkAlert("*** AUTO_OFFLINE_MODE ***"));
+    console.log(chalkAlert("WAS | *** AUTO_OFFLINE_MODE ***"));
   }
 });
 
@@ -3286,12 +3265,12 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
 
   hashtagServerController.on("error", function(err){
     hashtagServerControllerReady = false;
-    console.log(chalkError("*** HSC ERROR | " + err));
+    console.log(chalkError("WAS | *** HSC ERROR | " + err));
   });
 
   userServerController.on("error", function(err){
     userServerControllerReady = false;
-    console.log(chalkError("*** USC ERROR | " + err));
+    console.log(chalkError("WAS | *** USC ERROR | " + err));
   });
 
   initSocketNamespaces();
@@ -3306,7 +3285,7 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
     initCategoryHashmapsReady = true;
 
     if (err) {
-      console.log(chalkError("ERROR: LOAD CATEGORY HASHMAPS: " + err));
+      console.log(chalkError("WAS | *** ERROR: LOAD CATEGORY HASHMAPS: " + err));
     }
     else {
       console.log(chalk.bold.green("+++ LOADED CATEGORY HASHMAPS"));
@@ -3363,7 +3342,7 @@ function categorizeNode(categorizeObj, callback) {
       && (categorizeObj.twitterUser.nodeId !== "14607119") 
       && (categorizeObj.twitterUser.nodeId !== "848591649575927810")) 
     {
-      console.log(chalkAlert("*** AUTH USER NOT IN CACHE\n" + jsonPrint(categorizeObj.twitterUser)));
+      console.log(chalkAlert("WAS | *** AUTH USER NOT IN CACHE\n" + jsonPrint(categorizeObj.twitterUser)));
 
       if (callback !== undefined) {
         return(callback("AUTH USER NOT IN CACHE", categorizeObj.twitterUser));
@@ -3411,7 +3390,7 @@ function categorizeNode(categorizeObj, callback) {
         function(err, updatedUser){
 
         if (err) {
-          console.log(chalkError("*** USER UPDATE CATEGORY ERROR: " + jsonPrint(err)));
+          console.log(chalkError("WAS | *** USER UPDATE CATEGORY ERROR: " + jsonPrint(err)));
           if (callback !== undefined) {
             callback(err, categorizeObj);
           }
@@ -3473,7 +3452,7 @@ function categorizeNode(categorizeObj, callback) {
         { hashtag: categorizeObj.node, category: categorizeObj.category }, 
         function(err, updatedHashtag){
         if (err) {
-          console.log(chalkError("*** HASHTAG UPDATE CATEGORY ERROR: " + jsonPrint(err)));
+          console.log(chalkError("WAS | *** HASHTAG UPDATE CATEGORY ERROR: " + jsonPrint(err)));
           if (callback !== undefined) {
             callback(err, categorizeObj);
           }
@@ -3509,9 +3488,9 @@ function socketRxTweet(tw) {
 
     statsObj.twitter.tweetsPerMin = parseInt(tweetMeter.toJSON()[metricsRate]);
 
-    console.log(chalkAlert("*** TWEET RX DELTA: " + deltaTweet[0] + "." + deltaTweet[1]));
+    console.log(chalkAlert("WAS | *** TWEET RX DELTA: " + deltaTweet[0] + "." + deltaTweet[1]));
 
-    console.log(chalkLog("S"
+    console.log(chalkLog("WAS | S"
       + " | " + getTimeStamp()
       + " | E: " + statsObj.elapsed
       + " | S: " + getTimeStamp(parseInt(statsObj.startTime))
@@ -3546,7 +3525,7 @@ function socketRxTweet(tw) {
     statsObj.errors.twitter.maxRxQueue += 1;
 
     if (statsObj.errors.twitter.maxRxQueue % 1000 === 0) {
-      console.log(chalkLog("*** TWEET RX MAX QUEUE [" + tweetRxQueue.length + "]"
+      console.log(chalkLog("WAS | *** TWEET RX MAX QUEUE [" + tweetRxQueue.length + "]"
         + " | " + getTimeStamp()
         + " | TWP READY: " + statsObj.tweetParserReady
         + " | TWP SEND READY: " + statsObj.tweetParserSendReady
@@ -3600,7 +3579,7 @@ function socketRxTweet(tw) {
 
   }
   else {
-    console.log(chalkAlert("NULL USER T*<"
+    console.log(chalkAlert("WAS | NULL USER T*<"
       + " [ RXQ: " + tweetRxQueue.length + "]"
       + " [ TPQ: " + tweetParserQueue.length + "]"
       + " | " + tw.id_str
@@ -3643,12 +3622,12 @@ function follow(params, callback) {
   User.findOneAndUpdate(query, update, options, function(err, userUpdated){
 
     if (err) {
-      console.log(chalkError("*** FOLLOW | USER FIND ONE ERROR: " + err));
+      console.log(chalkError("WAS | *** FOLLOW | USER FIND ONE ERROR: " + err));
     }
     else if (userUpdated){
       if (statsObj.tssChildReady) {
 
-        console.log(chalkLog("+++ FOLLOW"
+        console.log(chalkLog("WAS | +++ FOLLOW"
           + " | " + printUser({user: userUpdated})
         ));
 
@@ -3669,7 +3648,7 @@ function follow(params, callback) {
 
     }
     else {
-      console.log(chalkLog("... ALREADY FOLLOWING"
+      console.log(chalkLog("WAS | ... ALREADY FOLLOWING"
         + " | NID: " + params.user.nodeId
         + " | @" + params.user.screenName
       ));
@@ -3679,14 +3658,11 @@ function follow(params, callback) {
 
   });
 
-  // console.log(chalk.blue("+++ FOLLOW | @" + params.user.screenName));
-
-  // if (callback !== undefined) { callback(null, null); }
 }
 
 function unfollow(params, callback) {
 
-  console.log(chalk.blue("+++ UNFOLLOW | @" + params.user.screenName));
+  console.log(chalk.blue("WAS | +++ UNFOLLOW | @" + params.user.screenName));
 
   if (params.user.nodeId !== undefined){
 
@@ -3702,9 +3678,6 @@ function unfollow(params, callback) {
 
   } 
 
-  // adminNameSpace.emit("UNFOLLOW", params.user);
-  // utilNameSpace.emit("UNFOLLOW", params.user);
-
   const query = { nodeId: params.user.nodeId, following: true };
 
   let update = {};
@@ -3718,15 +3691,15 @@ function unfollow(params, callback) {
   User.findOneAndUpdate(query, update, options, function(err, userUpdated){
 
     if (err) {
-      console.log(chalkError("*** UNFOLLOW | USER FIND ONE ERROR: " + err));
+      console.log(chalkError("WAS | *** UNFOLLOW | USER FIND ONE ERROR: " + err));
     }
     else if (userUpdated){
-      console.log(chalkLog("XXX UNFOLLOW"
+      console.log(chalkLog("WAS | XXX UNFOLLOW"
         + " | " + printUser({user: userUpdated})
       ));
     }
     else {
-      console.log(chalkLog("... ALREADY UNFOLLOWED"
+      console.log(chalkLog("WAS | ... ALREADY UNFOLLOWED"
         + " | ID: " + params.user.nodeId
       ));
     }
@@ -3739,18 +3712,18 @@ function unfollow(params, callback) {
 
 function initFollowableSearchTermSet(){
 
-  console.log(chalkBlue("INIT FOLLOWABLE SEARCH TERM SET"));
+  console.log(chalkBlue("WAS | INIT FOLLOWABLE SEARCH TERM SET"));
 
   loadFile(dropboxConfigDefaultFolder, followableSearchTermFile, function(err, followableSearchTermSetArray){
 
     if (err) {
       if (err.status === 409) {
-        console.log(chalkError("*** LOAD FOLLOWABLE SEARCH TERM ERROR: FILE NOT FOUND:  " 
+        console.log(chalkError("WAS | *** LOAD FOLLOWABLE SEARCH TERM ERROR: FILE NOT FOUND:  " 
           + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
         ));
       }
       else {
-        console.log(chalkError("*** LOAD FOLLOWABLE SEARCH TERM ERROR: STATUS: " + err.status));
+        console.log(chalkError("WAS | *** LOAD FOLLOWABLE SEARCH TERM ERROR: STATUS: " + err.status));
         console.log(err);
       }
 
@@ -3759,7 +3732,7 @@ function initFollowableSearchTermSet(){
     }
     else if (followableSearchTermSetArray) {
 
-      console.log(chalkLog("LOADED FOLLOWABLE SEARCH TERM FILE"
+      console.log(chalkLog("WAS | LOADED FOLLOWABLE SEARCH TERM FILE"
         + " | " + followableSearchTermSetArray.length + " SEARCH TERMS"
         + " | " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
       ));
@@ -3771,7 +3744,7 @@ function initFollowableSearchTermSet(){
 
       }, function(err){
 
-        console.log(chalkLog("FOLLOWABLE SEARCH TERM SET"
+        console.log(chalkLog("WAS | FOLLOWABLE SEARCH TERM SET"
           + " | " + followableSearchTermSet.size + " SEARCH TERMS"
           + " | " + followableSearchTermSetArray.length + " SEARCH TERMS IN FILE"
           + " | " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
@@ -3786,33 +3759,31 @@ function initFollowableSearchTermSet(){
 
 function initDropboxSync(){
 
-  console.log(chalkLog("INIT DROPBOX SYNC"));
+  console.log(chalkLog("WAS | INIT DROPBOX SYNC"));
 
 }
 
 function initUnfollowableUserSet(){
 
-  console.log(chalkLog("INIT UNFOLLOWABLE USER SET"));
+  console.log(chalkLog("WAS | INIT UNFOLLOWABLE USER SET"));
 
   loadFile(dropboxConfigDefaultFolder, unfollowableUserFile, function(err, unfollowableUserSetArray){
     if (err) {
       if (err.code === "ENOTFOUND") {
-        console.log(chalkError("*** LOAD UNFOLLOWABLE USERS ERROR: FILE NOT FOUND:  " 
+        console.log(chalkError("WAS | *** LOAD UNFOLLOWABLE USERS ERROR: FILE NOT FOUND:  " 
           + dropboxConfigDefaultFolder + "/" + unfollowableUserFile
         ));
       }
       else {
-        console.log(chalkError("*** LOAD UNFOLLOWABLE USERS ERROR: " + err));
+        console.log(chalkError("WAS | *** LOAD UNFOLLOWABLE USERS ERROR: " + err));
       }
     }
     else if (unfollowableUserSetArray) {
 
-      console.log(chalkLog("LOADED UNFOLLOWABLE USERS FILE"
+      console.log(chalkLog("WAS | LOADED UNFOLLOWABLE USERS FILE"
         + " | " + unfollowableUserSetArray.length + " USERS"
         + " | " + dropboxConfigDefaultFolder + "/" + unfollowableUserFile
       ));
-
-      // unfollowableUserSet = new Set(unfollowableUserSetArray);
 
       let query;
       let update;
@@ -3836,14 +3807,14 @@ function initUnfollowableUserSet(){
         User.findOneAndUpdate(query, update, options, function(err, userUpdated){
 
           if (err) {
-            console.log(chalkError("*** initUnfollowableUserSet | USER FIND ONE ERROR: " + err));
+            console.log(chalkError("WAS | *** initUnfollowableUserSet | USER FIND ONE ERROR: " + err));
             return cb(err, userId);
           }
           
           if (userUpdated){
 
             numUnfollowed += 1;
-            console.log(chalkLog("XXX UNFOLLOW"
+            console.log(chalkLog("WAS | XXX UNFOLLOW"
               + " [" + numUnfollowed + "/" + numAlreadyUnfollowed + "/" + unfollowableUserSetArray.length + "]"
               + " | " + printUser({user: userUpdated})
             ));
@@ -3853,7 +3824,7 @@ function initUnfollowableUserSet(){
           else {
             numAlreadyUnfollowed += 1;
             if (configuration.verbose){
-              console.log(chalkLog("... ALREADY UNFOLLOWED"
+              console.log(chalkLog("WAS | ... ALREADY UNFOLLOWED"
                 + " [" + numUnfollowed + "/" + numAlreadyUnfollowed + "/" + unfollowableUserSetArray.length + "]"
                 + " | ID: " + userId
               ));
@@ -3863,8 +3834,7 @@ function initUnfollowableUserSet(){
         });
 
       }, function(err){
-        // console.log(chalk.bold.black("INIT UNFOLLOWABLE USERS | " + unfollowableUserSet.size + " USERS"));
-        console.log(chalkBlue("INIT UNFOLLOWABLE USERS"
+        console.log(chalkBlue("WAS | INIT UNFOLLOWABLE USERS"
           + " | " + numUnfollowed + " NEW UNFOLLOWED"
           + " | " + numAlreadyUnfollowed + " ALREADY UNFOLLOWED"
           + " | " + unfollowableUserSet.size + " USERS IN SET"
@@ -3896,7 +3866,7 @@ function initSocketHandler(socketObj) {
     + " | UT: " + statsObj.entity.util.connected
     + " | VW: " + statsObj.entity.viewer.connected;
 
-  console.log(chalk.blue("SOCKET CONNECT"
+  console.log(chalk.blue("WAS | SOCKET CONNECT"
     + " | " + ipAddress
     + " | " + socketObj.namespace
     + " | " + socket.id
@@ -3974,7 +3944,7 @@ function initSocketHandler(socketObj) {
       currentServer.ip = ipAddress;
       currentServer.status = "ERROR";
 
-      console.log(chalkError("SERVER ERROR" 
+      console.log(chalkError("WAS | SERVER ERROR" 
         + " | " + getTimeStamp(currentServer.timeStamp)
         + " | " + currentServer.user.type.toUpperCase()
         + " | " + currentServer.user.nodeId
@@ -3997,7 +3967,7 @@ function initSocketHandler(socketObj) {
       currentViewer.ip = ipAddress;
       currentViewer.status = "ERROR";
 
-      console.log(chalkError("VIEWER ERROR" 
+      console.log(chalkError("WAS | VIEWER ERROR" 
         + " | " + getTimeStamp(currentViewer.timeStamp)
         + " | " + currentViewer.user.type.toUpperCase()
         + " | " + currentViewer.user.nodeId
@@ -4026,13 +3996,13 @@ function initSocketHandler(socketObj) {
 
     statsObj.socket.disconnects += 1;
 
-    console.log(chalkAlert("XXX SOCKET DISCONNECT"
+    console.log(chalkAlert("WAS | XXX SOCKET DISCONNECT"
       + " | " + socketId
       + " | REASON: " + reason
     ));
 
     if (adminHashMap.has(socketId)) { 
-      console.log(chalkAlert("XXX DELETED ADMIN" 
+      console.log(chalkAlert("WAS | XXX DELETED ADMIN" 
         + " | " + getTimeStamp(timeStamp)
         + " | " + adminHashMap.get(socketId).user.type.toUpperCase()
         + " | " + adminHashMap.get(socketId).user.nodeId
@@ -4048,7 +4018,7 @@ function initSocketHandler(socketObj) {
 
       currentServer.status = "DISCONNECTED";
 
-      console.log(chalkAlert("XXX SERVER DISCONNECTED" 
+      console.log(chalkAlert("WAS | XXX SERVER DISCONNECTED" 
         + " | " + getTimeStamp(timeStamp)
         + " | " + currentServer.user.type.toUpperCase()
         + " | " + currentServer.user.nodeId
@@ -4068,13 +4038,13 @@ function initSocketHandler(socketObj) {
       viewerCache.del(socketId, function(err, count){
 
         if (err) { 
-          console.log(chalkError("VIEWER CA ENTRY DELETE ERROR"
+          console.log(chalkError("WAS | VIEWER CA ENTRY DELETE ERROR"
             + " | " + err
             + " | " + err
           ));
         }
 
-        console.log(chalkAlert("-X- VIEWER DISCONNECTED" 
+        console.log(chalkAlert("WAS | -X- VIEWER DISCONNECTED" 
           + " | " + getTimeStamp(currentViewer.timeStamp)
           + " | " + currentViewer.user.type.toUpperCase()
           + " | " + currentViewer.user.nodeId
@@ -4094,7 +4064,7 @@ function initSocketHandler(socketObj) {
     ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
     if (keepAliveObj.user === undefined) {
-      console.log(chalkAlert("SESSION_KEEPALIVE USER UNDEFINED ??"
+      console.log(chalkAlert("WAS | SESSION_KEEPALIVE USER UNDEFINED ??"
         + " | NSP: " + socket.nsp.name.toUpperCase()
         + " | " + socket.id
         + " | " + ipAddress
@@ -4108,7 +4078,7 @@ function initSocketHandler(socketObj) {
       if (authSocketObj !== undefined) {
 
         if (configuration.verbose) {
-          console.log(chalkLog("... KEEPALIVE AUTHENTICATED SOCKET"
+          console.log(chalkLog("WAS | ... KEEPALIVE AUTHENTICATED SOCKET"
             + " | " + socket.id
             + " | NSP: " + authSocketObj.namespace.toUpperCase()
             + " | USER ID: " + authSocketObj.userId
@@ -4120,7 +4090,7 @@ function initSocketHandler(socketObj) {
 
       }
       else {
-        console.log(chalkAlert("*** KEEPALIVE UNAUTHENTICATED SOCKET | DISCONNECTING..."
+        console.log(chalkAlert("WAS | *** KEEPALIVE UNAUTHENTICATED SOCKET | DISCONNECTING..."
           + " | " + socket.id
           + " | NSP: " + socket.nsp.name.toUpperCase()
           + " | " + keepAliveObj.user.userId
@@ -4150,7 +4120,7 @@ function initSocketHandler(socketObj) {
 
       case "ADMIN" :
 
-        console.log(chalkLog("R< KA"
+        console.log(chalkLog("WAS | R< KA"
           + " | " + "ADMIN" 
           + " | " + getTimeStamp(timeStamp)
           + " | " + keepAliveObj.user.userId
@@ -4212,7 +4182,7 @@ function initSocketHandler(socketObj) {
 
         diff = process.hrtime(time);
 
-        console.log(chalkLog("R< KA"
+        console.log(chalkLog("WAS | R< KA"
           // + " | DELTA: " + deltaNS + " NS"
           + " | " + currentSessionType + " SERVER" 
           + " | " + getTimeStamp(timeStamp)
@@ -4272,7 +4242,7 @@ function initSocketHandler(socketObj) {
 
       case "VIEWER" :
 
-        console.log(chalkLog("R< KA"
+        console.log(chalkLog("WAS | R< KA"
           + " | " + "VIEWER"
           + " | " + getTimeStamp(timeStamp)
           + " | " + keepAliveObj.user.userId
@@ -4326,7 +4296,7 @@ function initSocketHandler(socketObj) {
       break;
 
       default:
-        console.log(chalkAlert("**** NOT SERVER ****"
+        console.log(chalkAlert("WAS | **** NOT SERVER ****"
           + " | SESSION TYPE: " + currentSessionType
           + "\n" + jsonPrint(keepAliveObj.user)
         ));
@@ -4336,7 +4306,7 @@ function initSocketHandler(socketObj) {
   socket.on("TWITTER_FOLLOW", function twitterFollow(user) {
 
     if (!user || (user === undefined)) {
-      console.log(chalkError("TWITTER_FOLLOW ERROR: NULL USER"));
+      console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: NULL USER"));
       return;
     }
 
@@ -4355,16 +4325,16 @@ function initSocketHandler(socketObj) {
 
     follow({user: user}, function(err, updatedUser){
       if (err) {
-        console.log(chalkError("TWITTER_FOLLOW ERROR: " + err));
+        console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: " + err));
         return;
       }
 
       if (!updatedUser) {
-        console.log(chalkError("TWITTER_FOLLOW ERROR: NULL UPDATED USER"));
+        console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: NULL UPDATED USER"));
         return;
       }
 
-      console.log(chalk.blue("+++ TWITTER_FOLLOW"
+      console.log(chalk.blue("WAS | +++ TWITTER_FOLLOW"
         + " | " + ipAddress
         + " | " + socket.id
         + " | UID" + updatedUser.nodeId
@@ -4390,7 +4360,7 @@ function initSocketHandler(socketObj) {
 
     unfollow({user: user, socketId: socket.id}, function(err, updatedUser){
       if (err) {
-        console.log(chalkError("TWITTER_UNFOLLOW ERROR: " + err));
+        console.log(chalkError("WAS | TWITTER_UNFOLLOW ERROR: " + err));
         return;
       }
       
@@ -4399,7 +4369,7 @@ function initSocketHandler(socketObj) {
       adminNameSpace.emit("UNFOLLOW", updatedUser);
       utilNameSpace.emit("UNFOLLOW", updatedUser);
 
-      console.log(chalk.blue("XXX TWITTER_UNFOLLOW"
+      console.log(chalk.blue("WAS | XXX TWITTER_UNFOLLOW"
         + " | SID: " + socket.id
         + " | UID" + updatedUser.nodeId
         + " | @" + updatedUser.screenName
@@ -4451,7 +4421,7 @@ function initSocketHandler(socketObj) {
 
     categorizeNode(dataObj, function(err, updatedNodeObj){
       if (err) {
-        console.log(chalkError("CAT NODE ERROR: " + err));
+        console.log(chalkError("WAS | CAT NODE ERROR: " + err));
       }
       else if (updatedNodeObj) {
         if (updatedNodeObj.nodeType === "user") {
@@ -4500,10 +4470,10 @@ function initSocketHandler(socketObj) {
 
     socket.emit("USER_READY_ACK", { userId: userObj.userId, timeStamp: moment().valueOf() }, function(err){
       if (err) {
-        console.log(chalkError("*** USER_READY_ACK SEND ERROR | " + userObj.userId));
+        console.log(chalkError("WAS | *** USER_READY_ACK SEND ERROR | " + userObj.userId));
       }
       else {
-        console.log(chalkError("TXD> USER_READY_ACK | " + userObj.userId));
+        console.log(chalkError("WAS | TXD> USER_READY_ACK | " + userObj.userId));
       }
     });
   });
@@ -4526,7 +4496,7 @@ function initSocketHandler(socketObj) {
     userServerController.findOne({user: defaultTwitterUser}, function(err, user){
 
       if (err) {
-        console.log(chalkError("*** ERROR | VIEWER READY FIND USER"
+        console.log(chalkError("WAS | *** ERROR | VIEWER READY FIND USER"
           + " | " + getTimeStamp(timeStamp)
           + " | " + ipAddress
           + " | " + socket.id
@@ -4562,7 +4532,7 @@ function initSocketHandler(socketObj) {
 
     viewerObj.timeStamp = moment().valueOf();
 
-    console.log(chalkAlert("LOGIN"
+    console.log(chalkAlert("WAS | LOGIN"
       + " | " + ipAddress
       + " | " + socket.id
       + "\n" + jsonPrint(viewerObj)
@@ -4629,11 +4599,11 @@ function initSocketNamespaces(){
 
   adminNameSpace.on("connect", function adminConnect(socket) {
 
-    console.log(chalk.blue("ADMIN CONNECT " + socket.id));
+    console.log(chalk.blue("WAS | ADMIN CONNECT " + socket.id));
 
     authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
       if (authenticatedSocketObj){
-        console.log(chalkAlert("ADMIN ALREADY AUTHENTICATED"
+        console.log(chalkAlert("WAS | ADMIN ALREADY AUTHENTICATED"
           + " | " + socket.id
           + "\n" + jsonPrint(authenticatedSocketObj)
         ));
@@ -4642,7 +4612,7 @@ function initSocketNamespaces(){
         socket.on("authentication", function(data) {
 
           if (configuration.verbose) {
-            console.log("RX SOCKET AUTHENTICATION"
+            console.log("WAS | RX SOCKET AUTHENTICATION"
               + " | " + socket.nsp.name.toUpperCase()
               + " | " + socket.id
               + " | USER ID: " + data.userId
@@ -4663,17 +4633,15 @@ function initSocketNamespaces(){
       }
     });
 
-    // statsObj.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
-    // initSocketHandler({namespace: "admin", socket: socket});
   });
 
   utilNameSpace.on("connect", function utilConnect(socket) {
 
-    console.log(chalk.blue("UTIL CONNECT " + socket.id));
+    console.log(chalk.blue("WAS | UTIL CONNECT " + socket.id));
 
     authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
       if (authenticatedSocketObj){
-        console.log(chalkAlert("UTIL ALREADY AUTHENTICATED"
+        console.log(chalkAlert("WAS | UTIL ALREADY AUTHENTICATED"
           + " | " + socket.id
           + "\n" + jsonPrint(authenticatedSocketObj)
         ));
@@ -4682,7 +4650,7 @@ function initSocketNamespaces(){
         socket.on("authentication", function(data) {
 
           if (configuration.verbose) {
-            console.log("RX SOCKET AUTHENTICATION"
+            console.log("WAS | RX SOCKET AUTHENTICATION"
               + " | " + socket.nsp.name.toUpperCase()
               + " | " + socket.id
               + " | USER ID: " + data.userId
@@ -4705,10 +4673,10 @@ function initSocketNamespaces(){
   });
 
   userNameSpace.on("connect", function userConnect(socket) {
-    console.log(chalk.blue("USER CONNECT " + socket.id));
+    console.log(chalk.blue("WAS | USER CONNECT " + socket.id));
 
     authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
-        console.log(chalkAlert("USER ALREADY AUTHENTICATED"
+        console.log(chalkAlert("WAS | USER ALREADY AUTHENTICATED"
           + " | " + socket.id
           + "\n" + jsonPrint(authenticatedSocketObj)
         ));
@@ -4719,11 +4687,11 @@ function initSocketNamespaces(){
 
   viewNameSpace.on("connect", function viewConnect(socket) {
 
-    console.log(chalk.blue("VIEWER CONNECT " + socket.id));
+    console.log(chalk.blue("WAS | VIEWER CONNECT " + socket.id));
 
     authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
       if (authenticatedSocketObj){
-        console.log(chalkAlert("VIEWER ALREADY AUTHENTICATED"
+        console.log(chalkAlert("WAS | VIEWER ALREADY AUTHENTICATED"
           + " | " + socket.id
           + "\n" + jsonPrint(authenticatedSocketObj)
         ));
@@ -4731,7 +4699,7 @@ function initSocketNamespaces(){
       else {
         socket.on("authentication", function(data) {
 
-          console.log("RX SOCKET AUTHENTICATION"
+          console.log("WAS | RX SOCKET AUTHENTICATION"
             + " | " + socket.nsp.name.toUpperCase()
             + " | " + socket.id
             + " | USER ID: " + data.userId
@@ -4788,7 +4756,7 @@ function processCheckCategory(nodeObj, callback){
     nodeObj.category = categorizedNodeHashMap.get(nodeObj.nodeId).manual;
     nodeObj.categoryAuto = categorizedNodeHashMap.get(nodeObj.nodeId).auto;
 
-    debugCategory(chalk.blue("KW HIT WORD NODEID"
+    debugCategory(chalk.blue("WAS | KW HIT WORD NODEID"
       + " | " + nodeObj.nodeId
       + " | CAT: " + nodeObj.category
       + " | CATA: " + nodeObj.categoryAuto
@@ -4798,11 +4766,11 @@ function processCheckCategory(nodeObj, callback){
       overall: function(cb){
         nodesPerMinuteTopTermCache.get(nodeObj.nodeId, function topTermNodeId(err, nodeRate) {
           if (err){
-            console.log(chalkError("nodesPerMinuteTopTermCache GET ERR: " + err));
+            console.log(chalkError("WAS | nodesPerMinuteTopTermCache GET ERR: " + err));
           }
           if (nodeRate !== undefined) {
 
-            debugCategory(chalkLog("TOP TERM"
+            debugCategory(chalkLog("WAS | TOP TERM"
               + " | " + nodeObj.nodeId 
               + " | " + nodeRate.toFixed(3)
             ));
@@ -4818,7 +4786,7 @@ function processCheckCategory(nodeObj, callback){
       nodeType: function(cb){
         nodesPerMinuteTopTermNodeTypeCache[nodeObj.nodeType].get(nodeObj.nodeId, function topTermNodeId(err, nodeRate) {
           if (err){
-            console.log(chalkError("nodesPerMinuteTopTermNodeTypeCache" + nodeObj.nodeType + " GET ERR: " + err));
+            console.log(chalkError("WAS | nodesPerMinuteTopTermNodeTypeCache" + nodeObj.nodeType + " GET ERR: " + err));
           }
           if (nodeRate !== undefined) {
 
@@ -4875,7 +4843,7 @@ function checkCategory(nodeObj, callback) {
     break;
 
     default:
-      console.log(chalk.blue("DEFAULT | checkCategory\n" + jsonPrint(nodeObj)));
+      console.log(chalk.blue("WAS | DEFAULT | checkCategory\n" + jsonPrint(nodeObj)));
       callback(null, nodeObj);
   }
 }
@@ -4889,7 +4857,7 @@ function updateTrends(currentThreeceeUser){
     
     if (!statsObj.twitNotReadyWarning) {
 
-      console.log(chalkError("*** updateTrends | TWIT NOT READY"
+      console.log(chalkError("WAS | *** updateTrends | TWIT NOT READY"
         + " | CURRENT 3C USER: @" + currentThreeceeUser
       ));
 
@@ -4901,14 +4869,14 @@ function updateTrends(currentThreeceeUser){
 
   statsObj.twitNotReadyWarning = false;
 
-  console.log(chalkLog("UPDATE TWITTER TRENDS"
+  console.log(chalkLog("WAS | UPDATE TWITTER TRENDS"
     + " | CURRENT 3C USER: @" + currentThreeceeUser
   ));
 
   threeceeTwitter[currentThreeceeUser].twit.get("trends/place", {id: 1}, function updateTrendsWorldWide (err, data, response){
 
     if (err){
-      console.log(chalkError("*** TWITTER GET trends/place ID=1 ERROR ***"
+      console.log(chalkError("WAS | *** TWITTER GET trends/place ID=1 ERROR ***"
         + " | " + err
       ));
     }
@@ -4929,7 +4897,7 @@ function updateTrends(currentThreeceeUser){
   threeceeTwitter[currentThreeceeUser].twit.get("trends/place", {id: 23424977}, function updateTrendsUs (err, data, response){
 
     if (err){
-      console.log(chalkError("*** TWITTER GET trends/place ID=23424977 ERROR ***"
+      console.log(chalkError("WAS | *** TWITTER GET trends/place ID=23424977 ERROR ***"
         + " | " + err
       ));
     }
@@ -4955,7 +4923,7 @@ function updateTrends(currentThreeceeUser){
 
 function initUpdateTrendsInterval(interval){
 
-  console.log(chalk.bold.black("INIT UPDATE TRENDS INTERVAL: " + msToTime(interval)));
+  console.log(chalk.bold.black("WAS | INIT UPDATE TRENDS INTERVAL: " + msToTime(interval)));
 
   clearInterval(updateTrendsInterval);
 
@@ -4990,7 +4958,7 @@ function updateNodeMeter(node, callback){
   if (!configuration.metrics.nodeMeterEnabled) { return callback(null, node); }
 
   if (node.nodeId === undefined) {
-    console.log(chalkError("NODE ID UNDEFINED\n" + jsonPrint(node)));
+    console.log(chalkError("WAS | NODE ID UNDEFINED\n" + jsonPrint(node)));
     return callback("NODE ID UNDEFINED", node);
   }
 
@@ -5123,10 +5091,9 @@ function initFollowableSearchTerms(){
 
   debug(chalkInfo("followableRegEx: " + followableRegEx));
 
-  console.log(chalkLog("FOLLOWABLE SEARCH TERM REGEX INITIALIZED"
+  console.log(chalkLog("WAS | FOLLOWABLE SEARCH TERM REGEX INITIALIZED"
     + " | " + followableSearchTermSet.size + " SEARCH TERMS"
   ));
-
 }
 
 let userFollowable = function(user){
@@ -5154,7 +5121,7 @@ function autoFollowUser(params, callback){
 
   if (unfollowableUserSet.has(params.user.nodeId)){
 
-    console.log(chalk.bold.blue("XXX AUTO FOLLOW USER | IN UNFOLLOWABLE SET"
+    console.log(chalk.bold.blue("WAS | XXX AUTO FOLLOW USER | IN UNFOLLOWABLE SET"
       + "\n" + printUser({user:params.user})
     ));
 
@@ -5165,23 +5132,6 @@ function autoFollowUser(params, callback){
     return;
   }
 
-  // getNextThreeceeAutoFollowUser(function(threeceeAutofollowUser){
-  //   if (!threeceeAutofollowUser) {
-  //     console.log(chalkAlert("NO AUTOFOLLOW USER"));
-  //     if (callback !== undefined) { 
-  //       return callback(null, null);
-  //     }
-
-  //     return;
-  //   }
-  //   console.log(chalkInfo("CURRENT 3C TWITTER AUTOFOLLOW USER: @" + threeceeAutofollowUser));
-  //   configuration.twitterThreeceeAutoFollowUser = threeceeAutofollowUser;
-
-  //   console.log(chalkUser("AUTO FOLLOW USER"
-  //     + " | MIN: " + configuration.minFollowersAuto
-  //     + "\n" + printUser({user:params.user})
-  //   ));
-
     follow({user: params.user}, function(err, results){
       if (err) {
 
@@ -5191,7 +5141,7 @@ function autoFollowUser(params, callback){
         return;
       }
 
-      console.log(chalk.blue("+++ AUTO FOLLOW"
+      console.log(chalk.blue("WAS | +++ AUTO FOLLOW"
         + " | UID: " + params.user.userId
         + " | @" + params.user.screenName
         + " | NAME: " + params.user.name
@@ -5216,139 +5166,17 @@ function autoFollowUser(params, callback){
   // });
 }
 
-// function checkTwitterRateLimit(params, callback){
-
-//   threeceeTwitter[params.user].twit.get("application/rate_limit_status", function(err, data, response) {
-    
-//     if (err){
-
-//       console.log(chalkError("!!!!! TWITTER ACCOUNT ERROR"
-//         + " | @" + params.user
-//         + " | " + getTimeStamp()
-//         + " | CODE: " + err.code
-//         + " | STATUS CODE: " + err.statusCode
-//         + " | " + err.message
-//       ));
-
-//       threeceeTwitter[params.user].error = err;
-//       threeceeTwitter[params.user].ready = false;
-
-//       if (callback !== undefined) { callback(err, null); }
-//     }
-//     else {
-
-//       if (configuration.verbose) {
-//         console.log(chalkLog("TWITTER RATE LIMIT STATUS"
-//           + " | @" + params.user
-//           + " | LIM: " + threeceeTwitter[params.user].twitterRateLimit
-//           + " | REM: " + threeceeTwitter[params.user].twitterRateLimitRemaining
-//           + " | RST: " + getTimeStamp(threeceeTwitter[params.user].twitterRateLimitResetAt)
-//           + " | NOW: " + moment().format(compactDateTimeFormat)
-//           + " | IN " + msToTime(threeceeTwitter[params.user].twitterRateLimitRemainingTime)
-//         ));
-//       }
-
-//       if (data.resources.users["/users/show/:id"].remaining > 0){
-
-
-//         threeceeTwitter[params.user].ready = true;
-
-//         threeceeTwitter[params.user].twitterRateLimit = data.resources.users["/users/show/:id"].limit;
-//         threeceeTwitter[params.user].twitterRateLimitRemaining = data.resources.users["/users/show/:id"].remaining;
-//         threeceeTwitter[params.user].twitterRateLimitResetAt = moment.unix(data.resources.users["/users/show/:id"].reset);
-//         threeceeTwitter[params.user].twitterRateLimitRemainingTime = threeceeTwitter[params.user].twitterRateLimitResetAt.diff(moment());
-
-//         if (threeceeTwitter[params.user].twitterRateLimitExceptionFlag) {
-
-//           threeceeTwitter[params.user].twitterRateLimitExceptionFlag = false;
-          
-//           console.log(chalkInfo("XXX RESET TWITTER RATE LIMIT"
-//             + " | @" + params.user
-//             + " | CONTEXT: " + data.rate_limit_context.access_token
-//             + " | LIM: " + threeceeTwitter[params.user].twitterRateLimit
-//             + " | REM: " + threeceeTwitter[params.user].twitterRateLimitRemaining
-//             + " | EXP: " + threeceeTwitter[params.user].twitterRateLimitException.format(compactDateTimeFormat)
-//             + " | NOW: " + moment().format(compactDateTimeFormat)
-//           ));
-//         }
-
-
-//       }
-//       else {
-
-//         threeceeTwitter[params.user].ready = false;
-//         threeceeTwitter[params.user].twitterRateLimitExceptionFlag = true;
-
-//         threeceeTwitter[params.user].twitterRateLimit = data.resources.users["/users/show/:id"].limit;
-//         threeceeTwitter[params.user].twitterRateLimitRemaining = data.resources.users["/users/show/:id"].remaining;
-//         threeceeTwitter[params.user].twitterRateLimitResetAt = moment.unix(data.resources.users["/users/show/:id"].reset);
-//         threeceeTwitter[params.user].twitterRateLimitRemainingTime = threeceeTwitter[params.user].twitterRateLimitResetAt.diff(moment());
-
-//         console.log(chalkLog("--- TWITTER RATE LIMIT"
-//           + " | @" + params.user
-//           + " | CONTEXT: " + data.rate_limit_context.access_token
-//           + " | LIM: " + threeceeTwitter[params.user].twitterRateLimit
-//           + " | REM: " + threeceeTwitter[params.user].twitterRateLimitRemaining
-//           + " | EXP: " + threeceeTwitter[params.user].twitterRateLimitException.format(compactDateTimeFormat)
-//           + " | RST: " + threeceeTwitter[params.user].twitterRateLimitResetAt.format(compactDateTimeFormat)
-//           + " | NOW: " + moment().format(compactDateTimeFormat)
-//           + " | IN " + msToTime(threeceeTwitter[params.user].twitterRateLimitRemainingTime)
-//         ));
-//       }
-
-//       if (callback !== undefined) { callback(); }
-//     }
-//   });
-// }
-
-// let checkTwitterRateLimitInterval;
-// let checkTwitterRateLimitReady = true;
-
-// function initCheckTwitterRateLimitInterval(interval){
-
-//   clearInterval(checkTwitterRateLimitInterval);
-
-//   checkTwitterRateLimitReady = true;
-
-//   checkTwitterRateLimitInterval = setInterval(function(){
-
-//     if (checkTwitterRateLimitReady) {
-
-//       checkTwitterRateLimitReady = false;
-
-//       async.eachSeries(configuration.threeceeUsers, function(user, cb){
-
-//         if ((threeceeTwitter[user] !== undefined) && (threeceeTwitter[user].twitterRateLimitExceptionFlag)) {
-
-//           checkTwitterRateLimit({user: user}, function(err){
-//             cb();
-//           });
-
-//         }
-//         else {
-//           cb();
-//         }
-
-//       }, function(err){
-//           checkTwitterRateLimitReady = true;
-//       });
-
-//     }
-
-//   }, interval);
-// }
-
 function getCurrentThreeceeUser(callback){
 
-  debug(chalkTwitter("getCurrentThreeceeUser 3C USERS\n" + jsonPrint(threeceeTwitter)));
+  debug(chalkTwitter("WAS | getCurrentThreeceeUser 3C USERS\n" + jsonPrint(threeceeTwitter)));
 
   if (!statsObj.threeceeUsersConfiguredFlag) {
-    if (configuration.verbose ){ console.log(chalkAlert("*** THREECEE_USERS NOT CONFIGURED")); }
+    if (configuration.verbose ){ console.log(chalkAlert("WAS | *** THREECEE_USERS NOT CONFIGURED")); }
     return callback(false);
   }
 
   if (configuration.threeceeUsers.length === 0){
-    console.log(chalkAlert("??? NO THREECEE_USERS ???"));
+    console.log(chalkAlert("WAS | ??? NO THREECEE_USERS ???"));
     statsObj.currentThreeceeUser = false;
     return callback(statsObj.currentThreeceeUser);
   }
@@ -5357,14 +5185,14 @@ function getCurrentThreeceeUser(callback){
 
     if ((threeceeTwitter[threeceeUser] !== undefined) && threeceeTwitter[threeceeUser].ready) {
 
-      debug(chalkTwitter("IN getCurrentThreeceeUser 3C USER"
+      debug(chalkTwitter("WAS | IN getCurrentThreeceeUser 3C USER"
         + " | @" + threeceeUser + " READY"
       ));
 
       return cb(threeceeUser);
     }
 
-    debug(chalkTwitter("IN getCurrentThreeceeUser 3C USER"
+    debug(chalkTwitter("WAS | IN getCurrentThreeceeUser 3C USER"
       + " | @" + threeceeUser + " NOT READY"
     ));
 
@@ -5377,7 +5205,7 @@ function getCurrentThreeceeUser(callback){
 
       statsObj.currentThreeceeUser = threeceeUser;
 
-      debug(chalkTwitter("getCurrentThreeceeUser 3C USER"
+      debug(chalkTwitter("WAS | getCurrentThreeceeUser 3C USER"
         + " | 3C USERS: " + configuration.threeceeUsers
         + " | @" + statsObj.currentThreeceeUser
       ));
@@ -5390,7 +5218,7 @@ function getCurrentThreeceeUser(callback){
 
         statsObj.currentThreeceeUser = false;
 
-        console.log(chalkAlert("getCurrentThreeceeUser 3C USER"
+        console.log(chalkAlert("WAS | getCurrentThreeceeUser 3C USER"
           + " | 3C USERS: " + configuration.threeceeUsers
           + " | NONE READY"
         ));
@@ -5403,76 +5231,6 @@ function getCurrentThreeceeUser(callback){
   });
 }
 
-
-// function getNextThreeceeAutoFollowUser(callback){
-
-//   if (!statsObj.threeceeUsersConfiguredFlag) {
-//     console.log(chalkAlert("*** THREECEE_USERS NOT CONFIGURED"));
-//     return callback(false);
-//   }
-
-//   if (configuration.threeceeUsers.length === 0){
-//     console.log(chalkAlert("??? NO THREECEE_USERS ???"));
-//     configuration.twitterThreeceeAutoFollowUser = false;
-//     return callback(false);
-//   }
-
-//   async.eachSeries(configuration.threeceeUsers, function(threeceeUser, cb){
-
-//     if ((threeceeTwitter[threeceeUser] !== undefined) 
-//       && threeceeTwitter[threeceeUser].ready 
-//       && (threeceeTwitter[threeceeUser].twitterFollowing < 5000) 
-//       && !threeceeTwitter[threeceeUser].twitterErrorFlag
-//       && !threeceeTwitter[threeceeUser].twitterTokenErrorFlag
-//       && !threeceeTwitter[threeceeUser].twitterFollowLimit
-//     ) {
-
-//       debug(chalkTwitter("IN getNextThreeceeAutoFollowUser 3C USER"
-//         + " | @" + threeceeUser + " READY and NO TOKEN ERROR and NO FOLLOW LIMIT and FOLLOWING < 5000"
-//       ));
-
-//       return cb(threeceeUser);
-//     }
-
-//     debug(chalkTwitter("IN getNextThreeceeAutoFollowUser 3C USER"
-//       + " | @" + threeceeUser + " NOT READY or TOKEN ERROR or FOLLOW LIMIT or FOLLOWING >= 5000"
-//     ));
-
-//     cb();
-
-
-//   }, function(threeceeUser){
-
-//     if (threeceeUser) { 
-
-//       configuration.twitterThreeceeAutoFollowUser = threeceeUser;
-
-//       debug(chalkTwitter("getNextThreeceeAutoFollowUser 3C USER"
-//         + " | 3C USERS: " + configuration.threeceeUsers
-//         + " | @" + configuration.twitterThreeceeAutoFollowUser
-//       ));
-
-//     }
-//     else {
-
-
-//       if (configuration.twitterThreeceeAutoFollowUser) {
-
-//         configuration.twitterThreeceeAutoFollowUser = false;
-
-//         console.log(chalkAlert("getNextThreeceeAutoFollowUser 3C USER"
-//           + " | 3C USERS: " + configuration.threeceeUsers
-//           + " | NONE AUTO FOLLOW READY"
-//         ));
-//       }
-
-//     }
-
-//     return callback(configuration.twitterThreeceeAutoFollowUser);
-
-//   });
-// }
-
 function updateUserSets(callback){
 
   const userCollection = global.dbConnection.collection("users");
@@ -5480,43 +5238,43 @@ function updateUserSets(callback){
   userCollection.countDocuments(function(err, count){
     if (err) { throw Error; }
     statsObj.user.total = count;
-    console.log(chalkBlue("GRAND TOTAL USERS IN DB: " + statsObj.user.total));
+    console.log(chalkBlue("WAS | GRAND TOTAL USERS IN DB: " + statsObj.user.total));
   });
 
   userCollection.countDocuments({"following": true}, function(err, count){
     if (err) { throw Error; }
     statsObj.user.following = count;
-    console.log(chalkBlue("TOTAL FOLLOWING USERS IN DB: " + statsObj.user.following));
+    console.log(chalkBlue("WAS | TOTAL FOLLOWING USERS IN DB: " + statsObj.user.following));
   });
 
   userCollection.countDocuments({"following": false}, function(err, count){
     if (err) { throw Error; }
     statsObj.user.notFollowing = count;
-    console.log(chalkBlue("TOTAL NOT FOLLOWING USERS IN DB: " + statsObj.user.notFollowing));
+    console.log(chalkBlue("WAS | TOTAL NOT FOLLOWING USERS IN DB: " + statsObj.user.notFollowing));
   });
 
   userCollection.countDocuments({category: { "$nin": [ false, "false", null ] }}, function(err, count){
     if (err) { throw Error; }
     statsObj.user.categorizedManual = count;
-    console.log(chalkBlue("TOTAL CATEGORIZED MANUAL USERS IN DB: " + statsObj.user.categorizedManual));
+    console.log(chalkBlue("WAS | TOTAL CATEGORIZED MANUAL USERS IN DB: " + statsObj.user.categorizedManual));
   });
 
   userCollection.countDocuments({category: { "$in": [ false, "false", null ] }}, function(err, count){
     if (err) { throw Error; }
     statsObj.user.uncategorizedManual = count;
-    console.log(chalkBlue("TOTAL UNCATEGORIZED MANUAL USERS IN DB: " + statsObj.user.uncategorizedManual));
+    console.log(chalkBlue("WAS | TOTAL UNCATEGORIZED MANUAL USERS IN DB: " + statsObj.user.uncategorizedManual));
   });
 
   userCollection.countDocuments({categoryAuto: { "$nin": [ false, "false", null ] }}, function(err, count){
     if (err) { throw Error; }
     statsObj.user.categorizedAuto = count;
-    console.log(chalkBlue("TOTAL CATEGORIZED AUTO USERS IN DB: " + statsObj.user.categorizedAuto));
+    console.log(chalkBlue("WAS | TOTAL CATEGORIZED AUTO USERS IN DB: " + statsObj.user.categorizedAuto));
   });
 
   userCollection.countDocuments({categoryAuto: { "$in": [ false, "false", null ] }}, function(err, count){
     if (err) { throw Error; }
     statsObj.user.uncategorizedAuto = count;
-    console.log(chalkBlue("TOTAL UNCATEGORIZED AUTO USERS IN DB: " + statsObj.user.uncategorizedAuto));
+    console.log(chalkBlue("WAS | TOTAL UNCATEGORIZED AUTO USERS IN DB: " + statsObj.user.uncategorizedAuto));
   });
 
   const followingSearchQuery = {following: true};
@@ -5563,8 +5321,8 @@ function updateUserSets(callback){
     statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
     statsObj.user.mismatched = mismatchUserSet.size;
 
-    console.log(chalkBlue("END FOLLOWING CURSOR | FOLLOWING USER SET"));
-    console.log(chalkBlue("USER DB STATS\n" + jsonPrint(statsObj.user)));
+    console.log(chalkBlue("WAS | END FOLLOWING CURSOR | FOLLOWING USER SET"));
+    console.log(chalkBlue("WAS | USER DB STATS\n" + jsonPrint(statsObj.user)));
   });
 
   userFollowingCursor.on("error", function(err) {
@@ -5576,7 +5334,7 @@ function updateUserSets(callback){
     statsObj.user.mismatched = mismatchUserSet.size;
 
     console.error(chalkError("*** ERROR userFollowingCursor: " + err));
-    console.log(chalkAlert("USER DB STATS\n" + jsonPrint(statsObj.user)));
+    console.log(chalkAlert("WAS | USER DB STATS\n" + jsonPrint(statsObj.user)));
   });
 
   userFollowingCursor.on("close", function() {
@@ -5587,19 +5345,18 @@ function updateUserSets(callback){
     statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
     statsObj.user.mismatched = mismatchUserSet.size;
 
-    console.log(chalkBlue("CLOSE FOLLOWING CURSOR"));
-    console.log(chalkBlue("USER DB STATS\n" + jsonPrint(statsObj.user)));
+    console.log(chalkBlue("WAS | CLOSE FOLLOWING CURSOR"));
+    console.log(chalkBlue("WAS | USER DB STATS\n" + jsonPrint(statsObj.user)));
 
     if (callback !== undefined) { callback(); }
 
   });
 
-  // if (callback !== undefined) { callback(); }
 }
 
 function initTransmitNodeQueueInterval(interval){
 
-  console.log(chalk.bold.black("INIT TRANSMIT NODE QUEUE INTERVAL: " + msToTime(interval)));
+  console.log(chalk.bold.black("WAS | INIT TRANSMIT NODE QUEUE INTERVAL: " + msToTime(interval)));
 
   clearInterval(transmitNodeQueueInterval);
 
@@ -5624,7 +5381,7 @@ function initTransmitNodeQueueInterval(interval){
         transmitNodeQueueReady = true;
 
         deltaTxNode = process.hrtime(deltaTxNodeStart);
-        if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (!nodeObj): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+        if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** TX NODE DELTA (!nodeObj): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
 
       }
       else {
@@ -5648,10 +5405,10 @@ function initTransmitNodeQueueInterval(interval){
           if (err) { 
             transmitNodeQueueReady = true;
 
-            console.log(chalkError("*** CHECK CATEGORY ERROR: " + err));
+            console.log(chalkError("WAS | *** CHECK CATEGORY ERROR: " + err));
 
             deltaTxNode = process.hrtime(deltaTxNodeStart);
-            if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (checkCategory err): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+            if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** TX NODE DELTA (checkCategory err): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
 
             return; 
           }
@@ -5659,7 +5416,7 @@ function initTransmitNodeQueueInterval(interval){
           updateNodeMeter(node, function updateNodeMeterCallback(err, n){
 
             if (err) {
-              console.log(chalkError("ERROR updateNodeMeter: " + err
+              console.log(chalkError("WAS | ERROR updateNodeMeter: " + err
                 + " | TYPE: " + node.nodeType
                 + " | NID: " + node.nodeId
               ));
@@ -5669,7 +5426,7 @@ function initTransmitNodeQueueInterval(interval){
               transmitNodeQueueReady = true;
 
               deltaTxNode = process.hrtime(deltaTxNodeStart);
-              if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (updateNodeMeter err): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+              if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** TX NODE DELTA (updateNodeMeter err): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
 
             }
             else {
@@ -5680,173 +5437,8 @@ function initTransmitNodeQueueInterval(interval){
                 printUserObj("FOLLWABLE: " + followable, n);
               }
 
-              // getCurrentThreeceeUser(function(currentThreeceeUser){
-
-                // if (configuration.verbose) { 
-                //   console.log(chalkAlert("getCurrentThreeceeUser: " + currentThreeceeUser));
-                //   if (threeceeTwitter[currentThreeceeUser] !== undefined) {
-                //     console.log(chalkAlert("threeceeTwitter[currentThreeceeUser].ready: " + threeceeTwitter[currentThreeceeUser].ready));
-                //   }
-                //   console.log(chalkAlert("twitUserShowReady: " + twitUserShowReady));
-                //   console.log(chalkAlert("followable: " + followable));
-                // }
-
-              // if (currentThreeceeUser
-              //   && (threeceeTwitter[currentThreeceeUser] !== undefined) 
-              //   && threeceeTwitter[currentThreeceeUser].ready 
-              //   && twitUserShowReady 
-              //   && followable){
-
               if (followable) {
-
-                // threeceeTwitter[currentThreeceeUser].twit.get("users/show", 
-                //   {user_id: n.nodeId, include_entities: true}, 
-                //   function usersShow (err, rawUser, response){
-
                 tssChild.send({op: "USER_SHOW", user: n, includeEntities: true});
-
-                // twitUserShowReady = false;
-
-                // if (configuration.verbose) { debug(chalkAlert("RAW USER\n" + jsonPrint(rawUser))); }
-
-                // if (err){
-
-                //   if (err.code === 88){
-
-                //     console.log(chalkAlert("*** TWITTER SHOW USER ERROR | RATE LIMIT EXCEEDED" 
-                //       + " | " + getTimeStamp() 
-                //       + " | @" + currentThreeceeUser 
-                //     ));
-
-                //     threeceeTwitter[currentThreeceeUser].ready = false;
-                //     threeceeTwitter[currentThreeceeUser].twitterRateLimitException = moment();
-                //     threeceeTwitter[currentThreeceeUser].twitterRateLimitExceptionFlag = true;
-
-                //     // checkTwitterRateLimit({user: currentThreeceeUser});
-
-                //     delete n["_id"];
-                //     viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
-
-                //   }
-                //   else if (err.code === 63){
-
-                //     console.log(chalkError("*** TWITTER SHOW USER ERROR | USER SUSPENDED"
-                //       + " | " + getTimeStamp() 
-                //       + " | 3C @" + currentThreeceeUser 
-                //       + " | UID: " + n.nodeId
-                //       + " | ERR CODE: " + err.code
-                //       + " | " + err.message
-                //     ));
-
-                //     unfollowableUserSet.add(n.nodeId);
-                //   }
-                //   else if (err.code === 99){
-
-                //     console.log(chalkError("*** TWITTER SHOW USER ERROR | UNABLE TO VERIFY CREDENTIALS"
-                //       + " | " + getTimeStamp() 
-                //       + " | 3C @" + currentThreeceeUser 
-                //       + " | ERR CODE: " + err.code
-                //       + " | " + err.message
-                //     ));
-
-                //     threeceeTwitter[currentThreeceeUser].ready = false;
-                //     threeceeTwitter[currentThreeceeUser].twitterCredentialErrorFlag = true;
-                //   }
-                //   else {
-
-                //     console.log(chalkError("*** TWITTER SHOW USER ERROR"
-                //       + " | " + getTimeStamp() 
-                //       + " | 3C @" + currentThreeceeUser 
-                //       + " | UID: " + n.nodeId
-                //       + " | ERR CODE: " + err.code
-                //       + " | " + err.message
-                //     ));
-                //   }
-
-                //   twitUserShowReady = true;
-                //   transmitNodeQueueReady = true;
-
-                //   deltaTxNode = process.hrtime(deltaTxNodeStart);
-
-                //   if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (users/show err): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
-                // }
-                // else if (rawUser && (rawUser.followers_count >= configuration.minFollowersAuto)) {
-
-                //   startTwitUserShowRateLimitTimeoutDuration = ONE_MINUTE;
-
-                //   debug(chalkTwitter("FOUND users/show rawUser" + jsonPrint(rawUser)));
-
-                //   n.isTwitterUser = true;
-                //   n.name = rawUser.name;
-                //   n.createdAt = rawUser.created_at;
-                //   n.screenName = rawUser.screen_name.toLowerCase();
-                //   n.screenNameLower = rawUser.screen_name.toLowerCase();
-                //   n.url = rawUser.url;
-                //   n.profileUrl = "https://twitter.com/" + rawUser.screen_name;
-                //   n.profileImageUrl = rawUser.profile_image_url;
-                //   n.bannerImageUrl = rawUser.profile_banner_url;
-                //   n.verified = rawUser.verified;
-                //   n.following = true;
-                //   n.threeceeFollowing = configuration.twitterThreeceeAutoFollowUser;
-                //   n.description = rawUser.description;
-                //   n.lastTweetId = (rawUser.status !== undefined) ? rawUser.status.id_str : null;
-                //   n.statusesCount = rawUser.statuses_count;
-                //   n.friendsCount = rawUser.friends_count;
-                //   n.followersCount = rawUser.followers_count;
-                //   n.status = rawUser.status;
-                //   n.lastSeen = (rawUser.status !== undefined) ? rawUser.status.created_at : null;
-                //   n.updateLastSeen = true;
-
-                //   nCacheObj = nodeCache.get(n.nodeId);
-
-                //   if (nCacheObj) {
-                //     n.mentions = Math.max(n.mentions, nCacheObj.mentions);
-                //     n.setMentions = true;
-                //   }
-
-                //   userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit, lean: true}, function(err, updatedUser){
-
-                //     if (err) {
-                //       console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
-                //       delete n["_id"];
-                //       viewNameSpace.volatile.emit("node", n);
-                //     }
-                //     else {
-
-                //       delete n["_id"];
-                //       viewNameSpace.volatile.emit("node", updatedUser);
-
-                //       if (!unfollowableUserSet.has(updatedUser.nodeId)) { 
-                //         autoFollowUser({ threeceeUser: configuration.twitterThreeceeAutoFollowUser, user: updatedUser });
-                //       }
-                //       else {
-                //         console.log(chalkAlert("... NO AUTO FOLLOW | IN UNFOLLOWABLE SET"
-                //           + "\n" + printUser( { user: updatedUser} )
-                //         ));
-                //       }
-
-                //     }
-
-                //     twitUserShowReady = true;
-                //     transmitNodeQueueReady = true;
-
-                //     deltaTxNode = process.hrtime(deltaTxNodeStart);
-                //     if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (findOneUser): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
-
-                //   });
-                // }
-                // else {
-                //   delete n["_id"];
-                //   viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
-
-                //   twitUserShowReady = true;
-                //   transmitNodeQueueReady = true;
-
-                //   deltaTxNode = process.hrtime(deltaTxNodeStart);
-                //   if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (no autofollow): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
-                // }
-
-                // });
               }
 
               if ((n.nodeType === "user") && n.category){
@@ -5862,7 +5454,7 @@ function initTransmitNodeQueueInterval(interval){
 
                 userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit}, function(err, updatedUser){
                   if (err) {
-                    console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
+                    console.log(chalkError("WAS | findOneUser ERROR" + jsonPrint(err)));
                     delete n["_id"];
                     viewNameSpace.volatile.emit("node", n);
                   }
@@ -5874,7 +5466,7 @@ function initTransmitNodeQueueInterval(interval){
                   transmitNodeQueueReady = true;
 
                   deltaTxNode = process.hrtime(deltaTxNodeStart);
-                  if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (user categorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+                  if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** TX NODE DELTA (user categorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
 
                 });
               }
@@ -5885,7 +5477,7 @@ function initTransmitNodeQueueInterval(interval){
                 transmitNodeQueueReady = true;
 
                 deltaTxNode = process.hrtime(deltaTxNodeStart);
-                if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (user uncategorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+                if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** WAS TX NODE DELTA (user uncategorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
               }
               else if ((n.nodeType === "hashtag") && n.category){
 
@@ -5893,7 +5485,7 @@ function initTransmitNodeQueueInterval(interval){
 
                 hashtagServerController.findOneHashtag(n, {noInc: false}, function(err, updatedHashtag){
                   if (err) {
-                    console.log(chalkError("updatedHashtag ERROR\n" + jsonPrint(err)));
+                    console.log(chalkError("WAS | updatedHashtag ERROR\n" + jsonPrint(err)));
                     delete n["_id"];
                     viewNameSpace.volatile.emit("node", n);
                   }
@@ -5909,7 +5501,7 @@ function initTransmitNodeQueueInterval(interval){
                   transmitNodeQueueReady = true;
 
                   deltaTxNode = process.hrtime(deltaTxNodeStart);
-                  if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (hashtag categorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+                  if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** WAS TX NODE DELTA (hashtag categorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
 
                 });
               }
@@ -5919,13 +5511,13 @@ function initTransmitNodeQueueInterval(interval){
                 transmitNodeQueueReady = true;
 
                 deltaTxNode = process.hrtime(deltaTxNodeStart);
-                if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (hashtag uncategorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+                if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** WAS TX NODE DELTA (hashtag uncategorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
               }
               else {
                 transmitNodeQueueReady = true;
 
                 deltaTxNode = process.hrtime(deltaTxNodeStart);
-                if (deltaTxNode[0] > 0) { console.log(chalkAlert("*** WAS TX NODE DELTA (nothing?): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+                if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** WAS TX NODE DELTA (nothing?): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
               }
 
               // });
@@ -5942,7 +5534,7 @@ function initTransmitNodeQueueInterval(interval){
 function transmitNodes(tw, callback){
 
   if (configuration.verbose) {
-    console.log("TX NODES | TW ID: " + tw.tweetId + " | @" + tw.user.screenName);
+    console.log("WAS | TX NODES | TW ID: " + tw.tweetId + " | @" + tw.user.screenName);
   }
 
   async.parallel({
@@ -6035,7 +5627,7 @@ function logHeartbeat() {
 //=================================
 function slackMessageHandler(messageObj){
 
-  console.log(chalk.blue("R< SLACK MSG"
+  console.log(chalk.blue("WAS | R< SLACK MSG"
     + " | CH: " + messageObj.channel
     + " | USER: " + messageObj.user
     + " | " + messageObj.text
@@ -6054,11 +5646,11 @@ function slackMessageHandler(messageObj){
         if (val === "1") { metricsRate = "1MinuteRate"; }
         if (val === "5") { metricsRate = "5MinuteRate"; }
         if (val === "15") { metricsRate = "15MinuteRate"; }
-        console.log(chalkLog("METRICS RATE: " + metricsRate));
+        console.log(chalkLog("WAS | METRICS RATE: " + metricsRate));
       }
     break;
     default:
-      console.log(chalkError("UNKNOWN SLACK OP: " + op));
+      console.log(chalkError("WAS | UNKNOWN SLACK OP: " + op));
   }
 }
 
@@ -6081,7 +5673,7 @@ function initAppRouting(callback) {
 
     if (req.path === "/json") {
       if (!ignoreIpSet.has(req.ip)) {
-        console.log(chalkLog("R< REJECT: /json"
+        console.log(chalkLog("WAS | R< REJECT: /json"
           + " | " + getTimeStamp()
           + " | IP: " + req.ip
           + " | HOST: " + req.hostname
@@ -6094,13 +5686,13 @@ function initAppRouting(callback) {
     }
     else if (req.path === "/dropbox_webhook") {
 
-      console.log(chalk.bold.black("R< DROPBOX WEB HOOK | /dropbox_webhook"
+      console.log(chalk.bold.black("WAS | R< DROPBOX WEB HOOK | /dropbox_webhook"
         + " | DB CURSOR READY: " + dropboxFolderGetLastestCursorReady
         + " | DB CHANGE FOLDER ARRAY\n" + jsonPrint(configuration.dropboxChangeFolderArray)
       )); 
 
       if (configuration.verbose) {
-        console.log(chalkInfo("R< dropbox_webhook"
+        console.log(chalkInfo("WAS | R< dropbox_webhook"
           + "\nreq.query\n" + jsonPrint(req.query)
           + "\nreq.params\n" + jsonPrint(req.params)
           + "\nreq.body\n" + jsonPrint(req.body)
@@ -6120,7 +5712,7 @@ function initAppRouting(callback) {
           dropboxFolderGetLastestCursor(folder, function(err, response){
 
             if (err) {
-              console.log(chalkError("*** DROPBOX GET LATEST CURSOR ERROR: " + err));
+              console.log(chalkError("WAS | *** DROPBOX GET LATEST CURSOR ERROR: " + err));
               return cb(err);
             }
             
@@ -6128,14 +5720,14 @@ function initAppRouting(callback) {
 
               setTimeout(function(){
 
-                console.log(chalk.bold.black(">>> DROPBOX CHANGE"
+                console.log(chalk.bold.black("WAS | >>> DROPBOX CHANGE"
                   + " | " + getTimeStamp()
                   + " | FOLDER: " + folder
                 ));
 
                 response.entries.forEach(function(entry){
 
-                  console.log(chalkAlert(">>> DROPBOX CHANGE | " + entry.path_lower));
+                  console.log(chalkAlert("WAS | >>> DROPBOX CHANGE | " + entry.path_lower));
 
                   if ((entry.path_lower.endsWith("google_wordassoserverconfig.json"))
                     || (entry.path_lower.endsWith("default_wordassoserverconfig.json"))){
@@ -6180,13 +5772,13 @@ function initAppRouting(callback) {
       }
     }
     else if (req.path === "/googleccd19766bea2dfd2.html") {
-      console.log(chalkAlert("R< googleccd19766bea2dfd2.html")); 
+      console.log(chalkAlert("WAS | R< googleccd19766bea2dfd2.html")); 
 
       const googleVerification = __dirname + "/googleccd19766bea2dfd2.html";
 
       res.sendFile(googleVerification, function googleVerify(err) {
         if (err) {
-          console.log(chalkError("GET /googleccd19766bea2dfd2.html ERROR:"
+          console.log(chalkError("WAS | GET /googleccd19766bea2dfd2.html ERROR:"
             + " | " + getTimeStamp()
             + " | " + req.url
             + " | " + googleVerification
@@ -6194,16 +5786,16 @@ function initAppRouting(callback) {
           ));
         } 
         else {
-          console.log(chalkInfo("SENT:", googleVerification));
+          console.log(chalkInfo("WAS | SENT:", googleVerification));
         }
       });
     }
     else if (req.path === "/") {
-      console.log(chalkLog("R< REDIRECT /session")); 
+      console.log(chalkLog("WAS | R< REDIRECT /session")); 
       res.redirect("/session");
     }
     else if (req.path === "/categorize"){
-      console.log(chalkLog("R< CATEGORIZE"
+      console.log(chalkLog("WAS | R< CATEGORIZE"
         + " | req.query: " + jsonPrint(req.query)
         + " | req.params: " + jsonPrint(req.params)
       ));
@@ -6211,10 +5803,10 @@ function initAppRouting(callback) {
     }
     else if (req.path === "/slack_event"){
 
-      console.log(chalkAlert("SLACK"));
+      console.log(chalkAlert("WAS | SLACK"));
 
       if (req.body.type === "url_verification") {
-        console.log(chalkInfo("R< SLACK URL VERIFICATION"
+        console.log(chalkInfo("WAS | R< SLACK URL VERIFICATION"
           + " | TOKEN: " + req.body.token
           + " | CHALLENGE: " + req.body.challenge
         ));
@@ -6222,7 +5814,7 @@ function initAppRouting(callback) {
       }
     }
     else {
-      console.log(chalkLog("R<"
+      console.log(chalkLog("WAS | R<"
         + " | " + getTimeStamp()
         + " | IP: " + req.ip
         + " | HOST: " + req.hostname
@@ -6243,13 +5835,13 @@ function initAppRouting(callback) {
 
   app.get("/admin", function requestAdmin(req, res) {
     debug(chalkInfo("get req\n" + req));
-    console.log(chalkLog("LOADING PAGE"
+    console.log(chalkLog("WAS | LOADING PAGE"
       + " | REQ: " + req.url
       + " | RES: " + adminHtml
     ));
     res.sendFile(adminHtml, function responseAdmin(err) {
       if (err) {
-        console.log(chalkError("GET /admin ERROR:"
+        console.log(chalkError("WAS | GET /admin ERROR:"
           + " | " + getTimeStamp()
           + " | " + req.url
           + " | " + adminHtml
@@ -6268,14 +5860,14 @@ function initAppRouting(callback) {
 
     debug(chalkInfo("get next\n" + next));
 
-    console.log(chalkLog("LOADING PAGE"
+    console.log(chalkLog("WAS | LOADING PAGE"
       + " | REQ: " + req.url
       + " | RES: " + loginHtml
     ));
 
     res.sendFile(loginHtml, function responseSession(err) {
       if (err) {
-        console.log(chalkError("GET /login ERROR:"
+        console.log(chalkError("WAS | GET /login ERROR:"
           + " | " + getTimeStamp()
           + " | " + req.url
           + " | " + loginHtml
@@ -6297,7 +5889,7 @@ function initAppRouting(callback) {
     debug("req");
     debug(req);
 
-    console.log(chalkLog("LOADING PAGE"
+    console.log(chalkLog("WAS | LOADING PAGE"
       // + " [ VIEWS: " + req.session.views + "]"
       + " | REQ: " + req.url
       + " | RES: " + sessionHtml
@@ -6305,7 +5897,7 @@ function initAppRouting(callback) {
 
     res.sendFile(sessionHtml, function responseSession(err) {
       if (err) {
-        console.log(chalkError("GET /session ERROR:"
+        console.log(chalkError("WAS | GET /session ERROR:"
           + " | " + getTimeStamp()
           + " | " + req.url
           + " | " + sessionHtml
@@ -6320,19 +5912,18 @@ function initAppRouting(callback) {
 
   function ensureAuthenticated(req, res, next) {
     if (req.isAuthenticated()) { 
-      console.log(chalkAlert("PASSPORT TWITTER AUTHENTICATED"));
+      console.log(chalkAlert("WAS | PASSPORT TWITTER AUTHENTICATED"));
       slackPostMessage(slackChannel, "PASSPORT TWITTER AUTHENTICATED");
       return next();
     }
-    console.log(chalkAlert("*** PASSPORT TWITTER *NOT* AUTHENTICATED ***"));
+    console.log(chalkAlert("WAS | *** PASSPORT TWITTER *NOT* AUTHENTICATED ***"));
     slackPostMessage(slackChannel, "PASSPORT TWITTER AUTHENTICATION FAILED");
   }
 
   app.get("/account", ensureAuthenticated, function(req, res){
 
-    console.log(chalkError("PASSPORT TWITTER AUTH USER\n" + jsonPrint(req.session.passport.user)));  // handle errors
-    console.log(chalkError("PASSPORT TWITTER AUTH USER"
-      // + " | SID: " + util.inspect(req, {showHidden:false, depth:1})
+    console.log(chalkError("WAS | PASSPORT TWITTER AUTH USER\n" + jsonPrint(req.session.passport.user)));  // handle errors
+    console.log(chalkError("WAS | PASSPORT TWITTER AUTH USER"
       + " | @" + req.session.passport.user.screenName
       + " | UID" + req.session.passport.user.nodeId
     ));  // handle errors
@@ -6341,7 +5932,7 @@ function initAppRouting(callback) {
 
     userServerController.findOne({ user: req.session.passport.user}, function(err, user) {
       if(err) {
-        console.log(chalkError("*** ERROR TWITTER AUTHENTICATION: " + jsonPrint(err)));  // handle errors
+        console.log(chalkError("WAS | *** ERROR TWITTER AUTHENTICATION: " + jsonPrint(err)));  // handle errors
         res.redirect("/504.html");
       } 
       else if (user) {
@@ -6351,7 +5942,7 @@ function initAppRouting(callback) {
         res.redirect("/after-auth.html");
       }
       else {
-        console.log(chalkAlert("*** TWITTER USER AUTHENTICATE FAILED"
+        console.log(chalkAlert("WAS | *** TWITTER USER AUTHENTICATE FAILED"
           + " | @" + req.session.passport.user.screenName + " NOT FOUND"));
         res.redirect("/504.html");
       }
@@ -6359,7 +5950,7 @@ function initAppRouting(callback) {
   });
 
   app.get("/auth/twitter/error", function(req, res){
-    console.log(chalkAlert("PASSPORT AUTH TWITTER ERROR"));
+    console.log(chalkAlert("WAS | PASSPORT AUTH TWITTER ERROR"));
   });
 
   app.get("/logout", function(req, res){
@@ -6397,7 +5988,7 @@ function testInternetConnection(params, callback) {
 
     if (err) {
       if (err.code !== "ENOTFOUND") {
-        console.log(chalkError("testClient ERROR " + jsonPrint(err)));
+        console.log(chalkError("WAS | testClient ERROR " + jsonPrint(err)));
       }
     }
 
@@ -6425,13 +6016,11 @@ function initInternetCheckInterval(interval){
   let params = {url: configuration.testInternetConnectionUrl};
 
   testInternetConnection(params, function(err, internetReady){
-    // console.log("testInternetConnection");
   });
 
   internetCheckInterval = setInterval(function internetCheck(){
 
     testInternetConnection(params, function(err, internetReady){
-      // console.log("testInternetConnection");
     });
 
   }, interval);
@@ -6441,19 +6030,15 @@ function initTwitterRxQueueInterval(interval){
 
   let tweet = {};
 
-  // statsObj.tweetParserSendReady = true;
-
-  console.log(chalk.bold.black("INIT TWITTER RX QUEUE INTERVAL | " + interval + " MS"));
+  console.log(chalk.bold.black("WAS | INIT TWITTER RX QUEUE INTERVAL | " + interval + " MS"));
 
   clearInterval(tweetRxQueueInterval);
 
   tweetRxQueueInterval = setInterval(function tweetRxQueueDequeue() {
 
-    // if ((tweetRxQueue.length > 0) && statsObj.tweetParserReady && statsObj.tweetParserSendReady) {
     if ((tweetRxQueue.length > 0) && statsObj.tweetParserReady) {
 
       tweet = tweetRxQueue.shift();
-
 
       childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({ op: "tweet", tweetStatus: tweet });
 
@@ -6462,59 +6047,6 @@ function initTwitterRxQueueInterval(interval){
   }, interval);
 }
 
-// let htObj = {};
-// let categoryObj = {};
-
-// function initHashtagLookupQueueInterval(interval){
-
-//   let hashtagLookupQueueReady = true;
-
-//   console.log(chalk.bold.black("INIT HASHTAG LOOKUP QUEUE INTERVAL | " + msToTime(interval)));
-
-//   clearInterval(hashtagLookupQueueInterval);
-
-//   hashtagLookupQueueInterval = setInterval(function hashtagLookupQueueDeQ() {
-
-//     if ((hashtagLookupQueue.length > 0) && hashtagLookupQueueReady) {
-
-//       hashtagLookupQueueReady = false;
-
-//       htObj = hashtagLookupQueue.shift();
-
-
-//       hashtagServerController.findOne({hashtag: htObj}, function(err, hashtag){
-//         if (err) {
-//           console.log(chalkError("HASHTAG FIND ONE ERROR\n" + jsonPrint(err)));
-//         }
-//         else if (hashtag) { 
-
-//           categoryObj = {};
-
-//           categoryObj.manual = hashtag.category || false;
-//           categoryObj.auto = hashtag.categoryAuto || false;
-
-//           categorizedHashtagHashMap.set(hashtag.nodeId.toLowerCase(), categoryObj); 
-
-//           debug(chalkTwitter("+++ HT HIT "
-//             + " | CM: " + printCat(hashtag.category)
-//             + " | CA: " + printCat(hashtag.categoryAuto)
-//             + " | #" + hashtag.nodeId.toLowerCase()
-//           ));
-//         }
-//         else {
-//           // debug(chalkTwitter("HASHTAG NOT FOUND: " + htObj.text));
-//           debug(chalkTwitter("--- HT MISS"
-//             + " | CM: " + printCat(htObj.category)
-//             + " | CA: " + printCat(htObj.categoryAuto)
-//             + " | #" + htObj.nodeId.toLowerCase()
-//           ));
-//         }
-//         hashtagLookupQueueReady = true;
-//       });
-
-//     }
-//   }, interval);
-// }
 
 function findChildByPid(pid, callback){
 
@@ -6543,7 +6075,7 @@ let tweetParserMessageRxQueueInterval;
 
 function initTweetParserMessageRxQueueInterval(interval){
 
-  console.log(chalk.bold.black("INIT TWEET PARSER MESSAGE RX QUEUE INTERVAL | " + msToTime(interval)));
+  console.log(chalk.bold.black("WAS | INIT TWEET PARSER MESSAGE RX QUEUE INTERVAL | " + msToTime(interval)));
 
   clearInterval(tweetParserMessageRxQueueInterval);
 
@@ -6568,7 +6100,7 @@ function initTweetParserMessageRxQueueInterval(interval){
         tweetObj = tweetParserMessage.tweetObj;
 
         if (!tweetObj.user) {
-          console.log(chalkAlert("parsedTweet -- TW USER UNDEFINED"
+          console.log(chalkAlert("WAS | parsedTweet -- TW USER UNDEFINED"
             + " | " + tweetObj.tweetId
           ));
           tweetParserMessageRxQueueReady = true;
@@ -6589,7 +6121,7 @@ function initTweetParserMessageRxQueueInterval(interval){
 
             transmitNodes(tweetObj, function transmitNode(err){
               if (err) {
-                console.log(chalkError("TRANSMIT NODES ERROR\n" + err));
+                console.log(chalkError("WAS | TRANSMIT NODES ERROR\n" + err));
               }
               tweetParserMessageRxQueueReady = true;
             });
@@ -6601,7 +6133,7 @@ function initTweetParserMessageRxQueueInterval(interval){
         }
       }
       else {
-        console.log(chalkError("*** TWEET PARSER UNKNOWN OP"
+        console.log(chalkError("WAS | *** TWEET PARSER UNKNOWN OP"
           + " | INTERVAL: " + tweetParserMessage.op
         ));
         tweetParserMessageRxQueueReady = true;
@@ -6641,7 +6173,7 @@ const sortedObjectValues = function(params) {
 
 function initSorterMessageRxQueueInterval(interval){
 
-  console.log(chalk.bold.black("INIT SORTER RX MESSAGE QUEUE INTERVAL | " + msToTime(interval)));
+  console.log(chalk.bold.black("WAS | INIT SORTER RX MESSAGE QUEUE INTERVAL | " + msToTime(interval)));
 
   clearInterval(sorterMessageRxQueueInterval);
 
@@ -6698,7 +6230,7 @@ function initSorterMessageRxQueueInterval(interval){
         break;
 
         default:
-          console.log(chalkError("??? SORTER UNKNOWN OP\n" + jsonPrint(sorterObj)));
+          console.log(chalkError("WAS | ??? SORTER UNKNOWN OP\n" + jsonPrint(sorterObj)));
           sorterMessageRxReady = true; 
       }
     }
@@ -6742,7 +6274,7 @@ function initKeySortInterval(interval){
       keySort(keySortParams, function(err, results){
 
         if (err) {
-          console.log(chalkError("KEY SORT ERROR: " + err));
+          console.log(chalkError("WAS | *** KEY SORT ERROR: " + err));
           keySortReady = true;
         }
         else {
@@ -6761,6 +6293,103 @@ function initKeySortInterval(interval){
       });
     }
   }, interval);
+}
+
+function initTfePingInterval(interval){
+
+  clearInterval(tfePingInterval);
+
+  tfePingSent = false;
+  tfePongReceived = false;
+
+  tfePingId = moment().valueOf();
+
+  if ((childrenHashMap[DEFAULT_TFE_CHILD_ID] !== undefined) 
+    && childrenHashMap[DEFAULT_TFE_CHILD_ID].child) {
+
+    tfePingInterval = setInterval(function(){
+
+      if (!tfePingSent) {
+
+        tfePingId = moment().valueOf();
+
+        childrenHashMap[DEFAULT_TFE_CHILD_ID].child.send({op: "PING", pingId: tfePingId}, function(err){
+
+          tfePingSent = true; 
+
+          if (err) {
+
+            console.log(chalkError("WAS | *** TFE SEND PING ERROR: " + err));
+
+            killChild({childId: DEFAULT_TFE_CHILD_ID}, function(err, numKilled){
+              tfePongReceived = false;
+              initTfeChild({childId: DEFAULT_TFE_CHILD_ID});
+            });
+
+            return;
+          }
+
+          // if (configuration.verbose) { console.log(chalkInfo("WAS | >PING | TFE | PING ID: " + getTimeStamp(tfePingId))); }
+          console.log(chalkInfo("WAS | >PING | TFE | PING ID: " + getTimeStamp(tfePingId)));
+
+        });
+
+      }
+      else if (tfePingSent && tfePongReceived) {
+
+        tfePingId = moment().valueOf();
+
+        tfePingSent = false; 
+        tfePongReceived = false;
+
+        childrenHashMap[DEFAULT_TFE_CHILD_ID].child.send({op: "PING", pingId: tfePingId}, function(err){
+
+          if (err) {
+
+            console.log(chalkError("WAS | *** TFE SEND PING ERROR: " + err));
+
+            killChild({childId: DEFAULT_TFE_CHILD_ID}, function(err, numKilled){
+              tfePongReceived = false;
+              initTfeChild({childId: DEFAULT_TFE_CHILD_ID});
+            });
+
+            return;
+          }
+
+          if (configuration.verbose) { console.log(chalkInfo("WAS | >PING | TFE | PING ID: " + getTimeStamp(tfePingId))); }
+
+          tfePingSent = true; 
+
+        });
+
+      }
+      else {
+
+        console.log(chalkAlert("WAS | *** PONG TIMEOUT | TFE"
+          + " | TIMEOUT: " + interval
+          + " | NOW: " + getTimeStamp()
+          + " | PING ID: " + getTimeStamp(tfePingId)
+          + " | ELAPSED: " + msToTime(moment().valueOf() - tfePingId)
+        ));
+        
+        slackPostMessage(slackErrorChannel, "\n*CHILD ERROR*\nTWEET_PARSER\nPONG TIMEOUT");
+
+        clearInterval(tfePingInterval);
+
+        tfePingSent = false; 
+        tfePongReceived = false;
+
+        setTimeout(function(){
+
+          killChild({childId: DEFAULT_TFE_CHILD_ID}, function(err, numKilled){
+            initTfeChild({childId: DEFAULT_TFE_CHILD_ID});
+          });
+
+        }, 5000);
+      }
+    }, interval);
+
+  }
 }
 
 function initTssPingInterval(interval){
@@ -6787,7 +6416,7 @@ function initTssPingInterval(interval){
 
           if (err) {
 
-            console.log(chalkError("*** TWEET_PARSER SEND PING ERROR: " + err));
+            console.log(chalkError("WAS | *** TWEET_PARSER SEND PING ERROR: " + err));
 
             killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, numKilled){
               tssPongReceived = false;
@@ -6797,7 +6426,7 @@ function initTssPingInterval(interval){
             return;
           }
 
-          if (configuration.verbose) { console.log(chalkInfo(">PING | TWEET_PARSER | PING ID: " + getTimeStamp(tssPingId))); }
+          if (configuration.verbose) { console.log(chalkInfo("WAS | >PING | TWEET_PARSER | PING ID: " + getTimeStamp(tssPingId))); }
 
         });
 
@@ -6813,7 +6442,7 @@ function initTssPingInterval(interval){
 
           if (err) {
 
-            console.log(chalkError("*** TWEET_PARSER SEND PING ERROR: " + err));
+            console.log(chalkError("WAS | *** TWEET_PARSER SEND PING ERROR: " + err));
 
             killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, numKilled){
               tssPongReceived = false;
@@ -6823,7 +6452,7 @@ function initTssPingInterval(interval){
             return;
           }
 
-          if (configuration.verbose) { console.log(chalkInfo(">PING | TWEET_PARSER | PING ID: " + getTimeStamp(tssPingId))); }
+          if (configuration.verbose) { console.log(chalkInfo("WAS | >PING | TWEET_PARSER | PING ID: " + getTimeStamp(tssPingId))); }
 
           tssPingSent = true; 
 
@@ -6832,7 +6461,7 @@ function initTssPingInterval(interval){
       }
       else {
 
-        console.log(chalkAlert("*** PONG TIMEOUT | TSS"
+        console.log(chalkAlert("WAS | *** PONG TIMEOUT | TSS"
           + " | TIMEOUT: " + interval
           + " | NOW: " + getTimeStamp()
           + " | PING ID: " + getTimeStamp(tssPingId)
@@ -6860,7 +6489,7 @@ function initTssPingInterval(interval){
 }
 
 function updateSearchTerms(){
-  console.log(chalk.bold.black("WAS | UPDATE SEARCH TERMS"));
+  console.log(chalk.bold.black("WAS | WAS | UPDATE SEARCH TERMS"));
 
   if (statsObj.tssChildReady) {
     tssChild.send({op: "UPDATE_SEARCH_TERMS"});
@@ -6869,7 +6498,7 @@ function updateSearchTerms(){
 
 function initTssChild(params, callback){
 
-  console.log(chalk.bold.black("INIT TSS CHILD\n" + jsonPrint(params)));
+  console.log(chalk.bold.black("WAS | INIT TSS CHILD\n" + jsonPrint(params)));
 
   statsObj.tssChildReady = false;
 
@@ -6896,7 +6525,7 @@ function initTssChild(params, callback){
     switch (m.op) {
 
       case "ERROR":
-        console.log(chalkError("<TSS | ERROR"
+        console.log(chalkError("WAS | <TSS | ERROR"
           + " | ERROR TYPE: " + m.errorType
           + "\n" + jsonPrint(m.error)
         ));
@@ -6926,7 +6555,7 @@ function initTssChild(params, callback){
 
       case "TWITTER_STATS":
 
-        console.log(chalkInfo("<TSS | TWITTER STATS"
+        console.log(chalkInfo("WAS | <TSS | TWITTER STATS"
           + " | 3C @" + m.threeceeUser
           + " | FOLLOWING: " + m.twitterFollowing
         ));
@@ -6937,7 +6566,7 @@ function initTssChild(params, callback){
 
       case "FOLLOW_LIMIT":
 
-        console.log(chalkInfo("<TSS | FOLLOW LIMIT"
+        console.log(chalkInfo("WAS | <TSS | FOLLOW LIMIT"
           + " | 3C @" + m.threeceeUser
           + " | LIMIT: " + getTimeStamp(m.twitterFollowLimit)
           + " | NOW: " + getTimeStamp()
@@ -6950,7 +6579,7 @@ function initTssChild(params, callback){
 
       case "TWEET":
         deltaTssMessage = process.hrtime(deltaTssMessageStart);
-        if (deltaTssMessage[0] > 0) { console.log(chalkAlert("*** TSS RX DELTA: " + deltaTssMessage[0] + "." + deltaTssMessage[1])); }
+        if (deltaTssMessage[0] > 0) { console.log(chalkAlert("WAS | *** TSS RX DELTA: " + deltaTssMessage[0] + "." + deltaTssMessage[1])); }
         deltaTssMessageStart = process.hrtime();
         if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + m.tweet.id_str + " | @" + m.tweet.user.screen_name)); }
         socketRxTweet(m.tweet);
@@ -6960,7 +6589,7 @@ function initTssChild(params, callback){
         tssPongReceived = m.pongId;
         childrenHashMap[params.childId].status = "RUNNING";
         if (configuration.verbose) {
-          console.log(chalkInfo("<TSS | PONG"
+          console.log(chalkInfo("WAS | <TSS | PONG"
             + " | NOW: " + getTimeStamp()
             + " | PONG ID: " + getTimeStamp(m.pongId)
             + " | RESPONSE TIME: " + msToTime(moment().valueOf() - m.pongId)
@@ -6969,35 +6598,8 @@ function initTssChild(params, callback){
       break;
 
       default:
-        console.log(chalkError("TSS | *** ERROR *** UNKNOWN OP: " + m.op));
+        console.log(chalkError("WAS | TSS | *** ERROR *** UNKNOWN OP: " + m.op));
     }
-
-    // if (m.op === "PONG"){
-
-    //   tssPongReceived = m.pongId;
-
-    //   childrenHashMap[params.childId].status = "RUNNING";
-
-    //   if (configuration.verbose) {
-    //     console.log(chalkInfo("<PONG | TSS"
-    //       + " | NOW: " + getTimeStamp()
-    //       + " | PONG ID: " + getTimeStamp(m.pongId)
-    //       + " | RESPONSE TIME: " + msToTime(moment().valueOf() - m.pongId)
-    //     ));
-    //   }
-    // } 
-
-    // else {
-
-    //   deltaTssMessage = process.hrtime(deltaTssMessageStart);
-    //   if (deltaTssMessage[0] > 0) { console.log(chalkAlert("*** TSS RX DELTA: " + deltaTssMessage[0] + "." + deltaTssMessage[1])); }
-    //   deltaTssMessageStart = process.hrtime();
-
-    //   if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + m.tweet.id_str + " | @" + m.tweet.user.screen_name)); }
-      
-    //   socketRxTweet(m.tweet);
-
-    // }
 
   });
 
@@ -7048,7 +6650,7 @@ function initTssChild(params, callback){
     verbose: false
   }, function tssMessageRxError(err){
     if (err) {
-      console.log(chalkError("*** TSS SEND ERROR"
+      console.log(chalkError("WAS | *** TSS SEND ERROR"
         + " | " + err
       ));
       statsObj.tssSendReady = false;
@@ -7068,6 +6670,182 @@ function initTssChild(params, callback){
   });
 
   if (callback !== undefined) { callback(null, tss); }
+}
+
+function initTfeChild(params, callback){
+
+  console.log(chalk.bold.black("WAS | INIT TFE CHILD\n" + jsonPrint(params)));
+
+  statsObj.tfeChildReady = false;
+
+  let deltaTfeMessageStart = process.hrtime();
+  let deltaTfeMessage = process.hrtime(deltaTfeMessageStart);
+
+  const tfe = cp.fork(`${__dirname}/js/libs/tfeChild.js`);
+
+  childrenHashMap[params.childId] = {};
+  childrenHashMap[params.childId].pid = tfe.pid;
+  childrenHashMap[params.childId].childId = params.childId;
+  childrenHashMap[params.childId].title = "wa_node_tfe";
+  childrenHashMap[params.childId].status = "NEW";
+  childrenHashMap[params.childId].errors = 0;
+
+  tfe.on("message", function tfeMessageRx(m){
+
+    childrenHashMap[params.childId].status = "RUNNING";  
+
+    debug(chalkLog("TFE RX MESSAGE"
+      + " | OP: " + m.op
+    ));
+
+    switch (m.op) {
+
+      case "ERROR":
+        console.log(chalkError("WAS | <TFE | ERROR"
+          + " | ERROR TYPE: " + m.errorType
+          + "\n" + jsonPrint(m.error)
+        ));
+
+        if (m.errorType === "TWITTER_UNAUTHORIZED") {
+
+          threeceeTwitter[m.threeceeUser].twitterErrors += 1;
+          threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
+          threeceeTwitter[m.threeceeUser].twitterAuthorizationErrorFlag = m.error;
+
+        }
+        else if (m.errorType === "TWITTER_TOKEN") {
+
+          threeceeTwitter[m.threeceeUser].twitterErrors += 1;
+          threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
+          threeceeTwitter[m.threeceeUser].twitterTokenErrorFlag = m.error;
+
+        }
+        else {
+
+          threeceeTwitter[m.threeceeUser].twitterErrors += 1;
+          threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
+
+        }
+
+      break;
+
+      case "TWITTER_STATS":
+
+        console.log(chalkInfo("WAS | <TFE | TWITTER STATS"
+          + " | 3C @" + m.threeceeUser
+          + " | FOLLOWING: " + m.twitterFollowing
+        ));
+
+        threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
+
+      break;
+
+      case "FOLLOW_LIMIT":
+
+        console.log(chalkInfo("WAS | <TFE | FOLLOW LIMIT"
+          + " | 3C @" + m.threeceeUser
+          + " | LIMIT: " + getTimeStamp(m.twitterFollowLimit)
+          + " | NOW: " + getTimeStamp()
+        ));
+
+        threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
+        threeceeTwitter[m.threeceeUser].twitterFollowLimit = true;
+
+      break;
+
+      case "TWEET":
+        deltaTfeMessage = process.hrtime(deltaTfeMessageStart);
+        if (deltaTfeMessage[0] > 0) { console.log(chalkAlert("WAS | *** TFE RX DELTA: " + deltaTfeMessage[0] + "." + deltaTfeMessage[1])); }
+        deltaTfeMessageStart = process.hrtime();
+        if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + m.tweet.id_str + " | @" + m.tweet.user.screen_name)); }
+        socketRxTweet(m.tweet);
+      break;
+
+      case "PONG":
+        tfePongReceived = m.pongId;
+        childrenHashMap[params.childId].status = "RUNNING";
+        if (configuration.verbose) {
+          console.log(chalkInfo("WAS | <TFE | PONG"
+            + " | NOW: " + getTimeStamp()
+            + " | PONG ID: " + getTimeStamp(m.pongId)
+            + " | RESPONSE TIME: " + msToTime(moment().valueOf() - m.pongId)
+          ));
+        }
+      break;
+
+      default:
+        console.log(chalkError("WAS | TFE | *** ERROR *** UNKNOWN OP: " + m.op));
+    }
+
+  });
+
+  tfe.on("error", function tfeError(err){
+    console.log(chalkError(getTimeStamp()
+      + " | *** TFE ERROR ***"
+      + " \n" + jsonPrint(err)
+    ));
+    statsObj.tfeSendReady = false;
+    statsObj.tfeChildReady = false;
+    clearInterval(tfePingInterval);
+    childrenHashMap[params.childId].status = "ERROR";
+  });
+
+  tfe.on("exit", function tfeExit(code){
+    console.log(chalkError(getTimeStamp()
+      + " | *** TFE EXIT ***"
+      + " | EXIT CODE: " + code
+    ));
+    statsObj.tfeSendReady = false;
+    statsObj.tfeChildReady = false;
+    clearInterval(tfePingInterval);
+    childrenHashMap[params.childId].status = "EXIT";
+  });
+
+  tfe.on("close", function tfeClose(code){
+    console.log(chalkError(getTimeStamp()
+      + " | *** TFE CLOSE ***"
+      + " | EXIT CODE: " + code
+    ));
+    statsObj.tfeSendReady = false;
+    statsObj.tfeChildReady = false;
+    clearInterval(tfePingInterval);
+    childrenHashMap[params.childId].status = "CLOSE";
+  });
+
+  childrenHashMap[params.childId].child = tfe;
+
+  statsObj.tfeChildReady = true;
+
+  tfe.send({
+    op: "INIT",
+    title: "wa_node_tfe",
+    networkObj: bestNetworkObj,
+    maxInputHashMap: maxInputHashMap,
+    normalization: normalization,
+    interval: configuration.tfeInterval,
+    verbose: false
+  }, function tfeMessageRxError(err){
+    if (err) {
+      console.log(chalkError("WAS | *** TFE SEND ERROR"
+        + " | " + err
+      ));
+      statsObj.tfeSendReady = false;
+      statsObj.tfeChildReady = false;
+      clearInterval(tfePingInterval);
+      childrenHashMap[params.childId].status = "ERROR";
+    }
+    else {
+      statsObj.tfeSendReady = true;
+      statsObj.tfeChildReady = true;
+      childrenHashMap[params.childId].status = "INIT";
+      clearInterval(tfePingInterval);
+      setTimeout(function(){
+        initTfePingInterval(TFE_PING_INTERVAL);
+      }, 1000);
+    }
+  });
+
+  if (callback !== undefined) { callback(null, tfe); }
 }
 
 function initTweetParserPingInterval(interval){
@@ -7094,7 +6872,7 @@ function initTweetParserPingInterval(interval){
 
           if (err) {
 
-            console.log(chalkError("*** TWEET_PARSER SEND PING ERROR: " + err));
+            console.log(chalkError("WAS | *** TWEET_PARSER SEND PING ERROR: " + err));
 
             killChild({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, numKilled){
               tweetParserPongReceived = false;
@@ -7104,7 +6882,7 @@ function initTweetParserPingInterval(interval){
             return;
           }
 
-          if (configuration.verbose) { console.log(chalkInfo(">PING | TWEET_PARSER | PING ID: " + getTimeStamp(tweetParserPingId))); }
+          if (configuration.verbose) { console.log(chalkInfo("WAS | >PING | TWEET_PARSER | PING ID: " + getTimeStamp(tweetParserPingId))); }
 
         });
 
@@ -7120,7 +6898,7 @@ function initTweetParserPingInterval(interval){
 
           if (err) {
 
-            console.log(chalkError("*** TWEET_PARSER SEND PING ERROR: " + err));
+            console.log(chalkError("WAS | *** TWEET_PARSER SEND PING ERROR: " + err));
 
             killChild({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, numKilled){
               tweetParserPongReceived = false;
@@ -7130,7 +6908,7 @@ function initTweetParserPingInterval(interval){
             return;
           }
 
-          if (configuration.verbose) { console.log(chalkInfo(">PING | TWEET_PARSER | PING ID: " + getTimeStamp(tweetParserPingId))); }
+          if (configuration.verbose) { console.log(chalkInfo("WAS | >PING | TWEET_PARSER | PING ID: " + getTimeStamp(tweetParserPingId))); }
 
           tweetParserPingSent = true; 
 
@@ -7139,7 +6917,7 @@ function initTweetParserPingInterval(interval){
       }
       else {
 
-        console.log(chalkAlert("*** PONG TIMEOUT | TWEET_PARSER"
+        console.log(chalkAlert("WAS | *** PONG TIMEOUT | TWEET_PARSER"
           + " | TIMEOUT: " + interval
           + " | NOW: " + getTimeStamp()
           + " | PING ID: " + getTimeStamp(tweetParserPingId)
@@ -7167,7 +6945,7 @@ function initTweetParserPingInterval(interval){
 }
 function initTweetParser(params, callback){
 
-  console.log(chalk.bold.black("INIT TWEET PARSER\n" + jsonPrint(params)));
+  console.log(chalk.bold.black("WAS | INIT TWEET PARSER\n" + jsonPrint(params)));
 
   clearInterval(tweetParserPingInterval);
   tweetParserPongReceived = false;
@@ -7201,7 +6979,7 @@ function initTweetParser(params, callback){
       childrenHashMap[params.childId].status = "RUNNING";
 
       if (configuration.verbose) {
-        console.log(chalkInfo("<PONG | TWEET PARSER"
+        console.log(chalkInfo("WAS | <PONG | TWEET PARSER"
           + " | NOW: " + getTimeStamp()
           + " | PONG ID: " + getTimeStamp(m.pongId)
           + " | RESPONSE TIME: " + msToTime(moment().valueOf() - m.pongId)
@@ -7211,7 +6989,7 @@ function initTweetParser(params, callback){
 
     else if (tweetParserMessageRxQueue.length < configuration.maxQueue){
       deltaTweetParserMessage = process.hrtime(deltaTweetParserMessageStart);
-      if (deltaTweetParserMessage[0] > 0) { console.log(chalkAlert("*** TWP RX DELTA: " + deltaTweetParserMessage[0] + "." + deltaTweetParserMessage[1])); }
+      if (deltaTweetParserMessage[0] > 0) { console.log(chalkAlert("WAS | *** TWP RX DELTA: " + deltaTweetParserMessage[0] + "." + deltaTweetParserMessage[1])); }
       deltaTweetParserMessageStart = process.hrtime();
       tweetParserMessageRxQueue.push(m);
     }
@@ -7261,12 +7039,11 @@ function initTweetParser(params, callback){
     networkObj: bestNetworkObj,
     maxInputHashMap: maxInputHashMap,
     normalization: normalization,
-    // interval: TWEET_PARSER_INTERVAL,
     interval: configuration.tweetParserInterval,
     verbose: false
   }, function tweetParserMessageRxError(err){
     if (err) {
-      console.log(chalkError("*** TWEET PARSER SEND ERROR"
+      console.log(chalkError("WAS | *** TWEET PARSER SEND ERROR"
         + " | " + err
       ));
       statsObj.tweetParserSendReady = false;
@@ -7288,224 +7065,9 @@ function initTweetParser(params, callback){
   if (callback !== undefined) { callback(null, twp); }
 }
 
-
-// function initSorterPingInterval(interval){
-
-//   clearInterval(sorterPingInterval);
-
-//   sorterPingSent = false;
-//   sorterPongReceived = false;
-
-//   sorterPingId = moment().valueOf();
-
-//   if ((childrenHashMap[DEFAULT_SORTER_CHILD_ID] !== undefined) 
-//     && childrenHashMap[DEFAULT_SORTER_CHILD_ID].child) {
-
-//     sorterPingInterval = setInterval(function(){
-
-//       if (!sorterPingSent) {
-
-//         sorterPingId = moment().valueOf();
-
-//         childrenHashMap[DEFAULT_SORTER_CHILD_ID].child.send({op: "PING", pingId: sorterPingId}, function(err){
-
-//           sorterPingSent = true; 
-
-//           if (err) {
-
-//             console.log(chalkError("*** TWEET_PARSER SEND PING ERROR: " + err));
-
-//             killChild({childId: DEFAULT_SORTER_CHILD_ID}, function(err, numKilled){
-//               sorterPongReceived = false;
-//               initSorter({childId: DEFAULT_SORTER_CHILD_ID});
-//             });
-
-//             return;
-//           }
-
-//           if (configuration.verbose) { console.log(chalkInfo(">PING | TWEET_PARSER | PING ID: " + getTimeStamp(sorterPingId))); }
-
-//         });
-
-//       }
-//       else if (sorterPingSent && sorterPongReceived) {
-
-//         sorterPingId = moment().valueOf();
-
-//         sorterPingSent = false; 
-//         sorterPongReceived = false;
-
-//         childrenHashMap[DEFAULT_SORTER_CHILD_ID].child.send({op: "PING", pingId: sorterPingId}, function(err){
-
-//           if (err) {
-
-//             console.log(chalkError("*** TWEET_PARSER SEND PING ERROR: " + err));
-
-//             killChild({childId: DEFAULT_SORTER_CHILD_ID}, function(err, numKilled){
-//               sorterPongReceived = false;
-//               initSorter({childId: DEFAULT_SORTER_CHILD_ID});
-//             });
-
-//             return;
-//           }
-
-//           if (configuration.verbose) { console.log(chalkInfo(">PING | TWEET_PARSER | PING ID: " + getTimeStamp(sorterPingId))); }
-
-//           sorterPingSent = true; 
-
-//         });
-
-//       }
-//       else {
-
-//         console.log(chalkAlert("*** PONG TIMEOUT | TWEET_PARSER"
-//           + " | TIMEOUT: " + interval
-//           + " | NOW: " + getTimeStamp()
-//           + " | PING ID: " + getTimeStamp(sorterPingId)
-//           + " | ELAPSED: " + msToTime(moment().valueOf() - sorterPingId)
-//         ));
-        
-//         slackPostMessage(slackErrorChannel, "\n*CHILD ERROR*\nTWEET_PARSER\nPONG TIMEOUT");
-
-//         clearInterval(sorterPingInterval);
-
-//         sorterPingSent = false; 
-//         sorterPongReceived = false;
-
-//         setTimeout(function(){
-
-//           killChild({childId: DEFAULT_SORTER_CHILD_ID}, function(err, numKilled){
-//             initSorter({childId: DEFAULT_SORTER_CHILD_ID});
-//           });
-
-//         }, 5000);
-//       }
-//     }, interval);
-
-//   }
-// }
-// function initSorterChild(params, callback){
-
-//   console.log(chalk.bold.black("INIT TWEET PARSER\n" + jsonPrint(params)));
-
-//   clearInterval(sorterPingInterval);
-//   sorterPongReceived = false;
-
-//   statsObj.sorterReady = false;
-
-//   let deltaSorterMessageStart = process.hrtime();
-//   let deltaSorterMessage = process.hrtime(deltaSorterMessageStart);
-
-//   const srt = cp.fork(`${__dirname}/js/libs/sorter.js`);
-
-//   childrenHashMap[params.childId] = {};
-//   childrenHashMap[params.childId].pid = srt.pid;
-//   childrenHashMap[params.childId].childId = params.childId;
-//   childrenHashMap[params.childId].title = "wa_node_sorter";
-//   childrenHashMap[params.childId].status = "NEW";
-//   childrenHashMap[params.childId].errors = 0;
-
-//   srt.on("message", function sorterMessageRx(m){
-
-//     childrenHashMap[params.childId].status = "RUNNING";  
-
-//     debug(chalkLog("SORTER CHILD RX MESSAGE"
-//       + " | OP: " + m.op
-//     ));
-
-//     if (m.op === "PONG"){
-
-//       sorterPongReceived = m.pongId;
-
-//       childrenHashMap[params.childId].status = "RUNNING";
-
-//       if (configuration.verbose) {
-//         console.log(chalkInfo("<PONG | SORTER CHILD"
-//           + " | NOW: " + getTimeStamp()
-//           + " | PONG ID: " + getTimeStamp(m.pongId)
-//           + " | RESPONSE TIME: " + msToTime(moment().valueOf() - m.pongId)
-//         ));
-//       }
-//     } 
-
-//     else if (sorterMessageRxQueue.length < configuration.maxQueue){
-//       deltaSorterMessage = process.hrtime(deltaSorterMessageStart);
-//       if (deltaSorterMessage[0] > 0) { console.log(chalkAlert("*** SORTER RX DELTA: " + deltaSorterMessage[0] + "." + deltaSorterMessage[1])); }
-//       deltaSorterMessageStart = process.hrtime();
-//       sorterMessageRxQueue.push(m);
-//     }
-
-//   });
-
-//   srt.on("error", function sorterError(err){
-//     console.log(chalkError(getTimeStamp()
-//       + " | *** SORTER CHILD ERROR ***"
-//       + " \n" + jsonPrint(err)
-//     ));
-//     statsObj.sorterSendReady = false;
-//     statsObj.sorterReady = false;
-//     clearInterval(sorterPingInterval);
-//     childrenHashMap[params.childId].status = "ERROR";
-//   });
-
-//   srt.on("exit", function sorterExit(code){
-//     console.log(chalkError(getTimeStamp()
-//       + " | *** SORTER CHILD EXIT ***"
-//       + " | EXIT CODE: " + code
-//     ));
-//     statsObj.sorterSendReady = false;
-//     statsObj.sorterReady = false;
-//     clearInterval(sorterPingInterval);
-//     childrenHashMap[params.childId].status = "EXIT";
-//   });
-
-//   srt.on("close", function sorterClose(code){
-//     console.log(chalkError(getTimeStamp()
-//       + " | *** SORTER CHILD CLOSE ***"
-//       + " | EXIT CODE: " + code
-//     ));
-//     statsObj.sorterSendReady = false;
-//     statsObj.sorterReady = false;
-//     clearInterval(sorterPingInterval);
-//     childrenHashMap[params.childId].status = "CLOSE";
-//   });
-
-//   childrenHashMap[params.childId].child = srt;
-
-//   statsObj.sorterReady = true;
-
-//   srt.send({
-//     op: "INIT",
-//     title: "wa_node_sorter",
-//     verbose: false
-//   }, function sorterMessageRxError(err){
-//     if (err) {
-//       console.log(chalkError("*** SORTER CHILD SEND ERROR"
-//         + " | " + err
-//       ));
-//       statsObj.sorterSendReady = false;
-//       statsObj.sorterReady = false;
-//       clearInterval(sorterPingInterval);
-//       childrenHashMap[params.childId].status = "ERROR";
-//     }
-//     else {
-//       statsObj.sorterSendReady = true;
-//       statsObj.sorterReady = true;
-//       childrenHashMap[params.childId].status = "INIT";
-//       clearInterval(sorterPingInterval);
-//       setTimeout(function(){
-//         initSorterPingInterval(DEFAULT_PING_INTERVAL);
-//       }, 1000);
-//     }
-//   });
-
-//   if (callback !== undefined) { callback(null, srt); }
-// }
-
-
 function initRateQinterval(interval){
 
-  console.log(chalk.bold.black("INIT RATE QUEUE INTERVAL | " + msToTime(interval)));
+  console.log(chalk.bold.black("WAS | INIT RATE QUEUE INTERVAL | " + msToTime(interval)));
   
   clearInterval(updateMetricsInterval);
 
@@ -7552,7 +7114,7 @@ function initRateQinterval(interval){
             if (statsObj.caches[cacheName][nodeType].stats.keys > statsObj.caches[cacheName][nodeType].stats.keysMax) {
               statsObj.caches[cacheName][nodeType].stats.keysMax = statsObj.caches[cacheName][nodeType].stats.keys;
               statsObj.caches[cacheName][nodeType].stats.keysMaxTime = moment().valueOf();
-              console.log(chalkInfo("MAX CACHE"
+              console.log(chalkInfo("WAS | MAX CACHE"
                 + " | " + cacheName + " - " + nodeType
                 + " | Ks: " + statsObj.caches[cacheName][nodeType].stats.keys
               ));
@@ -7566,7 +7128,7 @@ function initRateQinterval(interval){
           if (statsObj.caches[cacheName].stats.keys > statsObj.caches[cacheName].stats.keysMax) {
             statsObj.caches[cacheName].stats.keysMax = statsObj.caches[cacheName].stats.keys;
             statsObj.caches[cacheName].stats.keysMaxTime = moment().valueOf();
-            console.log(chalkInfo("MAX CACHE"
+            console.log(chalkInfo("WAS | MAX CACHE"
               + " | " + cacheName
               + " | Ks: " + statsObj.caches[cacheName].stats.keys
             ));
@@ -7579,7 +7141,7 @@ function initRateQinterval(interval){
         if (statsObj.admin.connected > statsObj.admin.connectedMax) {
           statsObj.admin.connectedMaxTime = moment().valueOf();
           statsObj.admin.connectedMax = statsObj.admin.connected;
-          console.log(chalkInfo("MAX ADMINS"
+          console.log(chalkInfo("WAS | MAX ADMINS"
            + " | " + statsObj.admin.connected
            + " | " + getTimeStamp()
           ));
@@ -7591,7 +7153,7 @@ function initRateQinterval(interval){
         if (statsObj.entity.util.connected > statsObj.entity.util.connectedMax) {
           statsObj.entity.util.connectedMaxTime = moment().valueOf();
           statsObj.entity.util.connectedMax = statsObj.entity.util.connected;
-          console.log(chalkInfo("MAX UTILS"
+          console.log(chalkInfo("WAS | MAX UTILS"
            + " | " + statsObj.entity.util.connected
            + " | " + getTimeStamp()
           ));
@@ -7607,7 +7169,7 @@ function initRateQinterval(interval){
           statsObj.entity.viewer.connectedMaxTime = moment().valueOf();
           statsObj.entity.viewer.connectedMax = statsObj.entity.viewer.connected;
 
-          console.log(chalkInfo("MAX VIEWERS"
+          console.log(chalkInfo("WAS | MAX VIEWERS"
            + " | " + statsObj.entity.viewer.connected
            + " | " + getTimeStamp()
           ));
@@ -7628,7 +7190,7 @@ function initRateQinterval(interval){
         async.each(Object.keys(nodeMeterType[nodeType]), function sorterParams(meterId, cb){
 
           if (!nodeMeterType[nodeType][meterId]) {
-            console.log(chalkError("*** ERROR NULL nodeMeterType[" + nodeType + "]: " + meterId));
+            console.log(chalkError("WAS | *** ERROR NULL nodeMeterType[" + nodeType + "]: " + meterId));
           }
 
           paramsSorter.obj[meterId] = pick(nodeMeterType[nodeType][meterId].toJSON(), paramsSorter.sortKey);
@@ -7638,7 +7200,7 @@ function initRateQinterval(interval){
         }, function(err){
 
           if (err) {
-            console.log(chalkError("ERROR RATE QUEUE INTERVAL\n" + err ));
+            console.log(chalkError("WAS | ERROR RATE QUEUE INTERVAL\n" + err ));
           }
 
           keySortQueue.push(paramsSorter);
@@ -7656,7 +7218,7 @@ function initRateQinterval(interval){
       async.each(Object.keys(nodeMeter), function sorterParams(meterId, cb){
 
         if (!nodeMeter[meterId]) {
-          console.log(chalkError("*** ERROR NULL nodeMeter[meterId]: " + meterId));
+          console.log(chalkError("WAS | *** ERROR NULL nodeMeter[meterId]: " + meterId));
         }
 
         paramsSorterOverall.obj[meterId] = pick(nodeMeter[meterId].toJSON(), paramsSorterOverall.sortKey);
@@ -7664,7 +7226,7 @@ function initRateQinterval(interval){
         cb();
       }, function(err){
         if (err) {
-          console.log(chalkError("ERROR RATE QUEUE INTERVAL\n" + err ));
+          console.log(chalkError("WAS | ERROR RATE QUEUE INTERVAL\n" + err ));
         }
 
         keySortQueue.push(paramsSorterOverall);
@@ -7683,17 +7245,17 @@ function loadBestRuntimeNetwork(){
 
     if (err) {
       if (err.code === "ETIMEDOUT") {
-        console.log(chalkError("*** LOAD BEST NETWORK ERROR: NETWORK TIMEOUT:  " 
+        console.log(chalkError("WAS | *** LOAD BEST NETWORK ERROR: NETWORK TIMEOUT:  " 
           + bestNetworkFolder + "/" + bestRuntimeNetworkFileName
         ));
       }
       if (err.code === "ENOTFOUND") {
-        console.log(chalkError("*** LOAD BEST NETWORK ERROR: FILE NOT FOUND:  " 
+        console.log(chalkError("WAS | *** LOAD BEST NETWORK ERROR: FILE NOT FOUND:  " 
           + bestNetworkFolder + "/" + bestRuntimeNetworkFileName
         ));
       }
       else {
-        console.log(chalkError("*** LOAD BEST NETWORK ERROR: " + err
+        console.log(chalkError("WAS | *** LOAD BEST NETWORK ERROR: " + err
           + bestNetworkFolder + "/" + bestRuntimeNetworkFileName
         ));
       }
@@ -7704,7 +7266,7 @@ function loadBestRuntimeNetwork(){
 
       bRtNnObj.matchRate = (bRtNnObj.matchRate !== undefined) ? bRtNnObj.matchRate : 0;
 
-      console.log(chalkInfo("LOAD BEST NETWORK RUNTIME ID"
+      console.log(chalkInfo("WAS | LOAD BEST NETWORK RUNTIME ID"
         + " | " + bRtNnObj.networkId
         + " | SUCCESS: " + bRtNnObj.successRate.toFixed(2) + "%"
         + " | MATCH: " + bRtNnObj.matchRate.toFixed(2) + "%"
@@ -7720,12 +7282,12 @@ function loadBestRuntimeNetwork(){
 
         if (err) {
           if (err.code === "ENOTFOUND") {
-            console.log(chalkError("*** LOAD BEST NETWORK ERROR: FILE NOT FOUND:  "
+            console.log(chalkError("WAS | *** LOAD BEST NETWORK ERROR: FILE NOT FOUND:  "
               + bestNetworkFolder + "/" + file
             ));
           }
           else {
-            console.log(chalkError("*** LOAD BEST NETWORK ERROR: " + err));
+            console.log(chalkError("WAS | *** LOAD BEST NETWORK ERROR: " + err));
           }
        }
         else {
@@ -7738,17 +7300,17 @@ function loadBestRuntimeNetwork(){
           else {
             NeuralNetwork.find({}).sort({"matchRate": -1}).limit(1).exec(function(err, nnArray){
               if (err){
-                console.log(chalkError("*** NEURAL NETWORK FIND ERROR: " + err));
+                console.log(chalkError("WAS | *** NEURAL NETWORK FIND ERROR: " + err));
               }
               else if (nnArray === 0){
-                console.log(chalkError("*** NEURAL NETWORK NOT FOUND"));
+                console.log(chalkError("WAS | *** NEURAL NETWORK NOT FOUND"));
               }
               else {
                 bestNetworkObj = {};
                 bestNetworkObj = nnArray[0];
                 if (bestNetworkObj.matchRate === undefined) { bestNetworkObj.matchRate = 0; }
                 if (bestNetworkObj.overallMatchRate === undefined) { bestNetworkObj.overallMatchRate = 0; }
-                console.log(chalk.blue("+++ BEST NEURAL NETWORK LOADED FROM DB"
+                console.log(chalk.blue("WAS | +++ BEST NEURAL NETWORK LOADED FROM DB"
                   + " | " + bestNetworkObj.networkId
                   + " | SR: " + bestNetworkObj.successRate.toFixed(2) + "%"
                   + " | MR: " + bestNetworkObj.matchRate.toFixed(2) + "%"
@@ -7764,11 +7326,10 @@ function loadBestRuntimeNetwork(){
 
             if (bestNetworkObj) { statsObj.previousBestNetworkId = bestNetworkObj.networkId; }
 
-            console.log(chalk.blue("NEW BEST NETWORK"
+            console.log(chalk.blue("WAS | NEW BEST NETWORK"
               + " | " + nnObj.networkId
               + " | " + nnObj.successRate.toFixed(2)
               + " | " + nnObj.matchRate.toFixed(2)
-              // + "\n" + jsonPrint(nnObj)
             ));
 
             statsObj.bestNetwork.networkId = nnObj.networkId;
@@ -7777,7 +7338,7 @@ function loadBestRuntimeNetwork(){
 
             childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({ op: "NETWORK", networkObj: bestNetworkObj }, function twpNetwork(err){
               if (err) {
-                console.log(chalkError("*** TWEET PARSER SEND NETWORK ERROR"
+                console.log(chalkError("WAS | *** TWEET PARSER SEND NETWORK ERROR"
                   + " | " + err
                 ));
               }
@@ -7848,7 +7409,7 @@ function loadAllConfigFiles(callback){
   }, function(err, results) {
 
     if (err) {
-      console.log(chalkError("LOAD ALL CONFIG FILES ERROR: " + err));
+      console.log(chalkError("WAS | LOAD ALL CONFIG FILES ERROR: " + err));
       return callback(err);
     }
 
@@ -7863,11 +7424,11 @@ function loadAllConfigFiles(callback){
 
 function initConfig(){
 
-  console.log(chalk.bold.black("INIT CONFIG"));
+  console.log(chalk.bold.black("WAS | INIT CONFIG"));
 
   loadAllConfigFiles(function(err0){
     if (err0) {
-      console.log(chalkError("*** LOAD CONFIGURATION FILE ERROR: " + err0));
+      console.log(chalkError("WAS | *** LOAD CONFIGURATION FILE ERROR: " + err0));
       quit("LOAD CONFIGURATION FILE ERROR");
       return;
     }
@@ -7881,7 +7442,7 @@ function initConfig(){
     loadCommandLineArgs(function(err1, results){
 
       if (err1) {
-        console.log(chalkError("*** LOAD COMMAND LINE ARGS ERROR: " + err1));
+        console.log(chalkError("WAS | *** LOAD COMMAND LINE ARGS ERROR: " + err1));
         quit("LOAD COMMAND LINE ARGS ERROR");
         return;
       }
@@ -7890,10 +7451,10 @@ function initConfig(){
 
       configArgs.forEach(function(arg){
         if (_.isObject(configuration[arg])) {
-          console.log(chalkLog("WA | _FINAL CONFIG | " + arg + ": " + jsonPrint(configuration[arg])));
+          console.log(chalkLog("WAS | _FINAL CONFIG | " + arg + ": " + jsonPrint(configuration[arg])));
         }
         else {
-          console.log(chalkLog("WA | _FINAL CONFIG | " + arg + ": " + configuration[arg]));
+          console.log(chalkLog("WAS | _FINAL CONFIG | " + arg + ": " + configuration[arg]));
         }
       });
       
@@ -7903,50 +7464,6 @@ function initConfig(){
 
   });
 
-  // const loadConfigFileParams = {
-  //   folder: dropboxConfigDefaultFolder,
-  //   file: dropboxConfigDefaultFile
-  // };
-
-
-
-  // loadConfigFile(loadConfigFileParams, function(err0){
-
-  //   if (err0) {
-  //     console.log(chalkError("*** LOAD CONFIGURATION FILE ERROR: " + err0));
-  //     quit("LOAD CONFIGURATION FILE ERROR");
-  //     return;
-  //   }
-
-  //   if (statsObj.commandLineArgsLoaded) {
-  //     debug(chalkLog("... SKIP LOAD COMMAND LINE ARGS | ALREADY LOADED"));
-  //     return;
-  //   }
-    
-
-  //   loadCommandLineArgs(function(err1, results){
-
-  //     if (err1) {
-  //       console.log(chalkError("*** LOAD COMMAND LINE ARGS ERROR: " + err1));
-  //       quit("LOAD COMMAND LINE ARGS ERROR");
-  //       return;
-  //     }
-
-  //     const configArgs = Object.keys(configuration);
-
-  //     configArgs.forEach(function(arg){
-  //       if (_.isObject(configuration[arg])) {
-  //         console.log(chalkLog("WA | _FINAL CONFIG | " + arg + ": " + jsonPrint(configuration[arg])));
-  //       }
-  //       else {
-  //         console.log(chalkLog("WA | _FINAL CONFIG | " + arg + ": " + configuration[arg]));
-  //       }
-  //     });
-      
-  //     statsObj.commandLineArgsLoaded = true;
-
-  //   });
-  // });
 }
 
 function initLoadBestNetworkInterval(interval){
@@ -7958,7 +7475,7 @@ function initLoadBestNetworkInterval(interval){
 
 function initCategoryHashmaps(callback){
 
-  console.log(chalk.bold.black("INIT CATEGORIZED USER + HASHTAG HASHMAPS FROM DB"));
+  console.log(chalk.bold.black("WAS | INIT CATEGORIZED USER + HASHTAG HASHMAPS FROM DB"));
 
   async.series({
 
@@ -7979,7 +7496,7 @@ function initCategoryHashmaps(callback){
       let totalMismatched = 0;
       let totalMatchRate = 0;
 
-      debug(chalkInfo("WA | LOADING CATEGORIZED HASHTAGS FROM DB ..."));
+      debug(chalkInfo("WAS | LOADING CATEGORIZED HASHTAGS FROM DB ..."));
 
       async.whilst(
 
@@ -7992,7 +7509,7 @@ function initCategoryHashmaps(callback){
           hashtagServerController.findCategorizedHashtagsCursor(p, function(err, results){
 
             if (err) {
-              console.log(chalkError("WA | ERROR: initCategorizedHashtagHashmap: hashtagServerController: findCategorizedHashtagsCursor" + err));
+              console.log(chalkError("WAS | ERROR: initCategorizedHashtagHashmap: hashtagServerController: findCategorizedHashtagsCursor" + err));
               cb0(err);
             }
             else if (results) {
@@ -8020,7 +7537,7 @@ function initCategoryHashmaps(callback){
 
               more = false;
 
-              console.log(chalk.bold.blue("LOADED CATEGORIZED HASHTAGS FROM DB"
+              console.log(chalk.bold.blue("WAS | LOADED CATEGORIZED HASHTAGS FROM DB"
                 + " | TOTAL HASHTAGS: " + statsObj.db.totalHashtags
                 + " | TOTAL CATEGORIZED: " + totalCount
                 + " | LIMIT: " + p.limit
@@ -8039,7 +7556,7 @@ function initCategoryHashmaps(callback){
 
         function(err){
           if (err) {
-            console.log(chalkError("WA | INIT CATEGORIZED HASHTAG HASHMAP ERROR: " + err + "\n" + jsonPrint(err)));
+            console.log(chalkError("WAS | INIT CATEGORIZED HASHTAG HASHMAP ERROR: " + err + "\n" + jsonPrint(err)));
           }
           cb(err);
         }
@@ -8063,7 +7580,7 @@ function initCategoryHashmaps(callback){
       let totalMismatched = 0;
       let totalMatchRate = 0;
 
-      debug(chalkInfo("WA | LOADING CATEGORIZED USERS FROM DB ..."));
+      debug(chalkInfo("WAS | LOADING CATEGORIZED USERS FROM DB ..."));
 
       async.whilst(
 
@@ -8076,7 +7593,7 @@ function initCategoryHashmaps(callback){
           userServerController.findCategorizedUsersCursor(p, function(err, results){
 
             if (err) {
-              console.log(chalkError("WA | ERROR: initCategorizedUserHashmap: userServerController: findCategorizedUsersCursor" + err));
+              console.log(chalkError("WAS | ERROR: initCategorizedUserHashmap: userServerController: findCategorizedUsersCursor" + err));
               cb0(err);
             }
             else if (results) {
@@ -8104,7 +7621,7 @@ function initCategoryHashmaps(callback){
 
               more = false;
 
-              console.log(chalk.bold.blue("LOADED CATEGORIZED USERS FROM DB"
+              console.log(chalk.bold.blue("WAS | LOADED CATEGORIZED USERS FROM DB"
                 + " | TOTAL USERS: " + statsObj.db.totalUsers
                 + " | TOTAL CATEGORIZED: " + totalCount
                 + " | LIMIT: " + p.limit
@@ -8123,7 +7640,7 @@ function initCategoryHashmaps(callback){
 
         function(err){
           if (err) {
-            console.log(chalkError("WA | INIT CATEGORIZED USER HASHMAP ERROR: " + err + "\n" + jsonPrint(err)));
+            console.log(chalkError("WAS | *** INIT CATEGORIZED USER HASHMAP ERROR: " + err + "\n" + jsonPrint(err)));
           }
           cb(err);
         }
@@ -8132,11 +7649,11 @@ function initCategoryHashmaps(callback){
 
   }, function(err){
     if (err) {
-      console.log(chalkError("ERROR: initCategoryHashmaps: " + err));
+      console.log(chalkError("WAS | *** ERROR: initCategoryHashmaps: " + err));
       if (callback !== undefined) { callback(err); }
     }
     else {
-      debug(chalk.blue("LOAD COMPLETE: initCategoryHashmaps"));
+      debug(chalk.blue("WAS | LOAD COMPLETE: initCategoryHashmaps"));
       if (callback !== undefined) { callback(); }
     }
 
@@ -8151,10 +7668,10 @@ function initialize(callback){
 
   io = require("socket.io")(httpServer, ioConfig);
 
-  debug(chalkBlue("INITIALIZE configuration\n" + jsonPrint(configuration)));
+  debug(chalkBlue("WAS | INITIALIZE configuration\n" + jsonPrint(configuration)));
 
   if (debug.enabled || debugCache.enabled){
-    console.log("\nWA | %%%%%%%%%%%%%%\nWA |  DEBUG ENABLED \nWA | %%%%%%%%%%%%%%\n");
+    console.log("\nWAS | %%%%%%%%%%%%%%\nWAS |  DEBUG ENABLED \nWAS | %%%%%%%%%%%%%%\n");
   }
 
   configuration.processName = process.env.PROCESS_NAME || "node_wordAssoServer";
@@ -8162,7 +7679,7 @@ function initialize(callback){
   configuration.quitOnError = process.env.QUIT_ON_ERROR || false ;
   configuration.enableStdin = process.env.ENABLE_STDIN || true ;
 
-  debug(chalkTwitter("THREECEE USERS\n" + jsonPrint(configuration.threeceeUsers)));
+  debug(chalkTwitter("WAS | THREECEE USERS\n" + jsonPrint(configuration.threeceeUsers)));
 
   configuration.threeceeUsers.forEach(function(user){
     threeceeTwitter[user] = {};
@@ -8180,7 +7697,7 @@ function initialize(callback){
     threeceeTwitter[user].twitterRateLimitExceptionFlag = false;
     threeceeTwitter[user].twitterRateLimitResetAt = false;
 
-    debug(chalkTwitter("THREECEE USER @" + user + "\n" + jsonPrint(threeceeTwitter[user])));
+    debug(chalkTwitter("WAS | THREECEE USER @" + user + "\n" + jsonPrint(threeceeTwitter[user])));
   });
 
   initConfig();
@@ -8207,7 +7724,7 @@ let updateUserSetsIntervalReady = true;
 
 function initUpdateUserSetsInterval(interval){
 
-  console.log(chalk.bold.black("INIT USER SETS INTERVAL"
+  console.log(chalk.bold.black("WAS | INIT USER SETS INTERVAL"
     + " | " + msToTime(interval)
   ));
 
@@ -8237,7 +7754,7 @@ function initStatsInterval(interval){
 
   let statsUpdated = 0;
 
-  console.log(chalk.bold.black("INIT STATS INTERVAL"
+  console.log(chalk.bold.black("WAS | INIT STATS INTERVAL"
     + " | " + msToTime(interval)
     + " | FILE: " + statsFolder + "/" + statsFile
   ));
@@ -8256,7 +7773,7 @@ function initStatsInterval(interval){
       statsObj.memory.maxRss = statsObj.memory.rss;
       statsObj.memory.maxRssTime = moment().valueOf();
 
-      console.log(chalkInfo("NEW MAX RSS"
+      console.log(chalkInfo("WAS | NEW MAX RSS"
         + " | " + getTimeStamp()
         + " | " + statsObj.memory.rss.toFixed(1) + " MB"
       ));
@@ -8268,10 +7785,10 @@ function initStatsInterval(interval){
 
     getChildProcesses({searchTerm: "ALL"}, function(err, childArray){
 
-      if (configuration.verbose)  { console.log(chalkLog("WA | FOUND " + childArray.length + " CHILDREN")); }
+      if (configuration.verbose)  { console.log(chalkLog("WAS | FOUND " + childArray.length + " CHILDREN")); }
       
       childArray.forEach(function(childObj){
-        console.log(chalkLog("WA | CHILD | PID: " + childObj.pid + " | " + childObj.childId + " | " + childrenHashMap[childObj.childId].status));
+        console.log(chalkLog("WAS | CHILD | PID: " + childObj.pid + " | " + childObj.childId + " | " + childrenHashMap[childObj.childId].status));
       });
     });
 
@@ -8332,11 +7849,11 @@ function initThreeceeTwitterUsers(params, callback){
 
   const threeceeUsers = params.threeceeUsers;
 
-  console.log(chalkTwitter("INIT THREECEE TWITTER USERS\n" + jsonPrint(threeceeUsers)));
+  console.log(chalkTwitter("WAS | INIT THREECEE TWITTER USERS\n" + jsonPrint(threeceeUsers)));
 
   async.eachSeries(threeceeUsers, function(user, cb){
 
-    console.log(chalkTwitter("LOADING TWITTER CONFIG | @" + user));
+    console.log(chalkTwitter("WAS | LOADING TWITTER CONFIG | @" + user));
 
     const configFile = user + ".json";
 
@@ -8347,12 +7864,12 @@ function initThreeceeTwitterUsers(params, callback){
         if (err) {
 
           if (err.code === "ENOTFOUND") {
-            console.log(chalkError("*** LOAD TWITTER CONFIG ERROR: FILE NOT FOUND"
+            console.log(chalkError("WAS | *** LOAD TWITTER CONFIG ERROR: FILE NOT FOUND"
               + " | " + dropboxConfigTwitterFolder + "/" + configFile
             ));
           }
           else {
-            console.log(chalkError("*** LOAD TWITTER CONFIG ERROR: " + err));
+            console.log(chalkError("WAS | *** LOAD TWITTER CONFIG ERROR: " + err));
           }
 
           threeceeTwitter[user].error = "CONFIG LOAD ERROR: " + err;
@@ -8363,7 +7880,7 @@ function initThreeceeTwitterUsers(params, callback){
           cb();
         }
         else {
-          console.log(chalkTwitter("LOADED TWITTER CONFIG"
+          console.log(chalkTwitter("WAS | LOADED TWITTER CONFIG"
             + " | 3C @" + user
             + " | " + dropboxConfigTwitterFolder + "/" + configFile
             + "\nCONFIG\n" + jsonPrint(twitterConfig)
@@ -8393,7 +7910,7 @@ function initThreeceeTwitterUsers(params, callback){
 
     getCurrentThreeceeUser(function(currentThreeceeUser){
 
-      console.log(chalkInfo("CURRENT 3C TWITTER USER: @" + currentThreeceeUser));
+      console.log(chalkInfo("WAS | CURRENT 3C TWITTER USER: @" + currentThreeceeUser));
 
       if (callback !== undefined) { callback(); }
     });
@@ -8403,7 +7920,7 @@ function initThreeceeTwitterUsers(params, callback){
 
 function initCategoryHashmapsInterval(interval){
 
-  console.log(chalk.bold.black("INIT CATEGORY HASHMAP INTERVAL"
+  console.log(chalk.bold.black("WAS | INIT CATEGORY HASHMAP INTERVAL"
     + " | " + msToTime(interval)
   ));
 
@@ -8424,10 +7941,10 @@ function initCategoryHashmapsInterval(interval){
         initCategoryHashmapsReady = true;
 
         if (err) {
-          console.log(chalkError("ERROR: LOAD CATEGORY HASHMAPS: " + err));
+          console.log(chalkError("WAS | *** ERROR: LOAD CATEGORY HASHMAPS: " + err));
         }
         else {
-          debug(chalk.bold.green("+++ LOADED CATEGORY HASHMAPS"));
+          debug(chalk.bold.green("WAS | +++ LOADED CATEGORY HASHMAPS"));
         }
       });
     }
@@ -8458,7 +7975,7 @@ function twitterGetUserUpdateDb(user, callback){
       threeceeTwitter[currentThreeceeUser].twit.get("users/show", twitQuery, function usersShow (err, rawUser, response){
 
         if (err) {
-          console.log(chalkError("ERROR users/show rawUser | @" + user.screenName + " | " + err + "\ntwitQuery\n" + jsonPrint(twitQuery)));
+          console.log(chalkError("WAS | *** ERROR users/show rawUser | @" + user.screenName + " | " + err + "\ntwitQuery\n" + jsonPrint(twitQuery)));
           return callback("NO TWITTER UPDATE", user);
         }
 
@@ -8467,7 +7984,7 @@ function twitterGetUserUpdateDb(user, callback){
           userServerController.convertRawUser({user:rawUser}, function(err, cUser){
 
             if (err) {
-              console.log(chalkError("*** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
+              console.log(chalkError("WAS | *** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
               return callback("RAW USER", rawUser);
             }
 
@@ -8494,11 +8011,11 @@ function twitterGetUserUpdateDb(user, callback){
             userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
 
               if (err) {
-                console.log(chalkError("findOneUser ERROR: " + err));
+                console.log(chalkError("WAS | *** findOneUser ERROR: " + err));
                 return callback("NO DB UPDATE", user);
               }
 
-              console.log(chalk.blue("UPDATED updatedUser"
+              console.log(chalk.blue("WAS | UPDATED updatedUser"
                 + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
                 + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
                 + "\n" + printUser({user:updatedUser})
@@ -8509,13 +8026,13 @@ function twitterGetUserUpdateDb(user, callback){
           });
         }
         else {
-          console.log(chalkTwitter("NOT FOUND users/show data"));
+          console.log(chalkTwitter("WAS | NOT FOUND users/show data"));
           callback("TWITTER NOT FOUND", user);
         }
       });
     }
     else if (threeceeTwitter[currentThreeceeUser] !== undefined) {
-      console.log(chalkTwitter("XXX TWITTER_SEARCH_NODE USER FAIL"
+      console.log(chalkTwitter("WAS | XXX TWITTER_SEARCH_NODE USER FAIL"
         + " | 3C @" + currentThreeceeUser
         + " | 3C READY: " + threeceeTwitter[currentThreeceeUser].ready
         + "\n" + printUser({user:user})
@@ -8523,7 +8040,7 @@ function twitterGetUserUpdateDb(user, callback){
       callback("TWITTER NOT READY", user);
     }
     else {
-      console.log(chalkTwitter("XXX TWITTER_SEARCH_NODE USER FAIL"
+      console.log(chalkTwitter("WAS | XXX TWITTER_SEARCH_NODE USER FAIL"
         + " | threeceeTwitter[currentThreeceeUser] UNDEFINED"
         + " | 3C @" + currentThreeceeUser
         + "\n" + printUser({user:user})
@@ -8542,11 +8059,11 @@ function twitterGetUserUpdateDb(user, callback){
       userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
 
         if (err) {
-          console.log(chalkError("findOneUser ERROR: " + err));
+          console.log(chalkError("WAS | *** findOneUser ERROR: " + err));
           return callback("NO DB OR TWITTER UPDATE", user);
         }
 
-        console.log(chalk.blue("UPDATED updatedUser"
+        console.log(chalk.blue("WAS | UPDATED updatedUser"
           + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
           + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
           + "\n" + printUser({user:updatedUser})
@@ -8564,7 +8081,7 @@ function twitterSearchUserNode(searchQuery, callback){
   User.findOne(searchQuery, function(err, user){
 
     if (err) {
-      console.log(chalkError("TWITTER SEARCH NODE USER ERROR"
+      console.log(chalkError("WAS | *** TWITTER SEARCH NODE USER ERROR"
         + "searchQuery\n" + jsonPrint(searchQuery)
         + "ERROR\n" + jsonPrint(err)
       ));
@@ -8584,7 +8101,7 @@ function twitterSearchUserNode(searchQuery, callback){
     }
     else {
 
-      console.log(chalkAlert("TWITTER SEARCH DB USER NOT FOUND"
+      console.log(chalkAlert("WAS | TWITTER SEARCH DB USER NOT FOUND"
         + "\nsearchQuery\n" + jsonPrint(searchQuery)
       ));
 
@@ -8620,10 +8137,10 @@ function twitterSearchNode(params, callback) {
 
     hashtagServerController.findOne({hashtag: searchNodeHashtag}, function(err, hashtag){
       if (err) {
-        console.log(chalkError("TWITTER_SEARCH_NODE HASHTAG ERROR\n" + jsonPrint(err)));
+        console.log(chalkError("WAS | *** TWITTER_SEARCH_NODE HASHTAG ERROR\n" + jsonPrint(err)));
       }
       else if (hashtag) { 
-        console.log(chalkTwitter("TWITTER_SEARCH_NODE HASHTAG FOUND\n" + jsonPrint(hashtag)));
+        console.log(chalkTwitter("WAS | TWITTER_SEARCH_NODE HASHTAG FOUND\n" + jsonPrint(hashtag)));
 
         params.socket.emit("SET_TWITTER_HASHTAG", hashtag);
 
@@ -8638,22 +8155,22 @@ function twitterSearchNode(params, callback) {
         }
       }
       else {
-        console.log(chalkTwitter("TWITTER_SEARCH_NODE HASHTAG NOT FOUND: #" + searchNodeHashtag.nodeId));
-        console.log(chalkTwitter("+++ CREATE NEW HASHTAG: #" + searchNodeHashtag.nodeId));
+        console.log(chalkTwitter("WAS | TWITTER_SEARCH_NODE HASHTAG NOT FOUND: #" + searchNodeHashtag.nodeId));
+        console.log(chalkTwitter("WAS | +++ CREATE NEW HASHTAG: #" + searchNodeHashtag.nodeId));
 
         new Hashtag({
           nodeId: searchNodeHashtag.nodeId.toLowerCase(), 
           text: searchNodeHashtag.nodeId.toLowerCase()})
         .save(function(err, newHt){
           if (err) {
-            console.log(chalkError("ERROR:  SAVE NEW HASHTAG"
+            console.log(chalkError("WAS | *** ERROR:  SAVE NEW HASHTAG"
               + " | #" + searchNodeHashtag.nodeId.toLowerCase()
               + " | ERROR: " + err
             ));
             return;
           }
 
-          console.log(chalk.blue("+++ SAVED NEW HASHTAG"
+          console.log(chalk.blue("WAS | +++ SAVED NEW HASHTAG"
             + " | #" + newHt.nodeId
           ));
 
@@ -8732,7 +8249,7 @@ function twitterSearchNode(params, callback) {
       }
     }
     else {
-      console.log(chalkInfo("SEARCH FOR SPECIFIC USER | " + jsonPrint(searchNodeUser)));
+      console.log(chalkInfo("WAS | SEARCH FOR SPECIFIC USER | " + jsonPrint(searchNodeUser)));
       nodeSearchType = "USER_SPECIFIC";
 
       twitterSearchUserNode(searchNodeUser, function(err, user){
@@ -8752,7 +8269,7 @@ function initTwitterSearchNodeQueueInterval(interval){
   let searchNodeParams;
   twitterSearchNodeQueueReady = true;
 
-  console.log(chalk.bold.black("INIT TWITTER SEARCH NODE QUEUE INTERVAL: " + msToTime(interval)));
+  console.log(chalk.bold.black("WAS | INIT TWITTER SEARCH NODE QUEUE INTERVAL: " + msToTime(interval)));
 
   clearInterval(twitterSearchNodeQueueInterval);
 
@@ -8778,7 +8295,7 @@ initStats(function setCacheObjKeys(){
 
 initialize(function initializeComplete(err) {
   if (err) {
-    console.log(chalkError("*** INITIALIZE ERROR ***\n" + jsonPrint(err)));
+    console.log(chalkError("WAS | *** INITIALIZE ERROR ***\n" + jsonPrint(err)));
   } 
   else {
     debug(chalkLog("INITIALIZE COMPLETE"));
@@ -8795,30 +8312,30 @@ initialize(function initializeComplete(err) {
     initTwitterSearchNodeQueueInterval(configuration.twitterSearchNodeQueueInterval);
     initSorterMessageRxQueueInterval(configuration.sorterMessageRxQueueInterval);
 
-    console.log(chalkInfo("NODE CACHE TTL: " + nodeCacheTtl + " SECONDS"));
+    console.log(chalkInfo("WAS | NODE CACHE TTL: " + nodeCacheTtl + " SECONDS"));
 
-    console.log(chalk.blue("CONFIGURATION\n" + jsonPrint(configuration)));
+    console.log(chalk.blue("WAS | CONFIGURATION\n" + jsonPrint(configuration)));
 
     if (!configuration.metrics.nodeMeterEnabled) {
-      console.log(chalkAlert("*** NODE RATE METER DISABLED ***"));
+      console.log(chalkAlert("WAS | *** NODE RATE METER DISABLED ***"));
     }
 
     statsObj.configuration = configuration;
 
     initKeySortInterval(configuration.keySortInterval);
 
-    // initSorterChild({childId: DEFAULT_SORTER_CHILD_ID}, function(err, srt){
-    //   if (err) { 
-    //     console.log(chalkError("INIT SORTER CHILD ERROR: " + err));
-    //   }
-    //   else {
-    //     sorterChild = srt;
-    //   }
-    // });
+    initTfeChild({childId: DEFAULT_TFE_CHILD_ID}, function(err, tfe){
+      if (err) { 
+        console.log(chalkError("WAS | *** INIT TFE CHILD ERROR: " + err));
+      }
+      else {
+        tfeChild = tfe;
+      }
+    });
 
     initTssChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, tss){
       if (err) { 
-        console.log(chalkError("INIT TSS CHILD ERROR: " + err));
+        console.log(chalkError("WAS | *** INIT TSS CHILD ERROR: " + err));
       }
       else {
         tssChild = tss;
@@ -8827,7 +8344,7 @@ initialize(function initializeComplete(err) {
 
     initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, twp){
       if (err) { 
-        console.log(chalkError("INIT TWEET PARSER CHILD ERROR: " + err));
+        console.log(chalkError("WAS | *** INIT TWEET PARSER CHILD ERROR: " + err));
       }
       else {
         parserChild = twp;
@@ -8835,7 +8352,6 @@ initialize(function initializeComplete(err) {
     });
 
     initStatsInterval(configuration.statsUpdateInterval);
-    // initCheckTwitterRateLimitInterval(configuration.checkTwitterRateLimitInterval);
 
     slackPostMessage(slackChannel, "\n*INIT* | " + hostname + "\n");
 

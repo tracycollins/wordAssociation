@@ -7239,11 +7239,12 @@ function initRateQinterval(interval){
 
 let loadBestNetworkInterval;
 
-function loadBestRuntimeNetwork(){
+function loadBestRuntimeNetwork(callback){
 
   loadFile(bestNetworkFolder, bestRuntimeNetworkFileName, function(err, bRtNnObj){
 
     if (err) {
+
       if (err.code === "ETIMEDOUT") {
         console.log(chalkError("WAS | *** LOAD BEST NETWORK ERROR: NETWORK TIMEOUT:  " 
           + bestNetworkFolder + "/" + bestRuntimeNetworkFileName
@@ -7261,8 +7262,10 @@ function loadBestRuntimeNetwork(){
       }
 
       console.log(err);
+      return callback(err, null);
     }
-    else if (bRtNnObj) {
+    
+    if (bRtNnObj) {
 
       bRtNnObj.matchRate = (bRtNnObj.matchRate !== undefined) ? bRtNnObj.matchRate : 0;
 
@@ -7289,63 +7292,74 @@ function loadBestRuntimeNetwork(){
           else {
             console.log(chalkError("WAS | *** LOAD BEST NETWORK ERROR: " + err));
           }
-       }
-        else {
 
-          if (nnObj) { 
-            nnObj.matchRate = (nnObj.matchRate !== undefined) ? nnObj.matchRate : 0;
-            bestNetworkObj = {};
-            bestNetworkObj = deepcopy(nnObj);
-          }
-          else {
-            NeuralNetwork.find({}).sort({"matchRate": -1}).limit(1).exec(function(err, nnArray){
-              if (err){
-                console.log(chalkError("WAS | *** NEURAL NETWORK FIND ERROR: " + err));
-              }
-              else if (nnArray === 0){
-                console.log(chalkError("WAS | *** NEURAL NETWORK NOT FOUND"));
-              }
-              else {
-                bestNetworkObj = {};
-                bestNetworkObj = nnArray[0];
-                if (bestNetworkObj.matchRate === undefined) { bestNetworkObj.matchRate = 0; }
-                if (bestNetworkObj.overallMatchRate === undefined) { bestNetworkObj.overallMatchRate = 0; }
-                console.log(chalk.blue("WAS | +++ BEST NEURAL NETWORK LOADED FROM DB"
-                  + " | " + bestNetworkObj.networkId
-                  + " | SR: " + bestNetworkObj.successRate.toFixed(2) + "%"
-                  + " | MR: " + bestNetworkObj.matchRate.toFixed(2) + "%"
-                  + " | OAMR: " + bestNetworkObj.overallMatchRate.toFixed(2) + "%"
-                ));
-              }
-            });
-          }
-
-          if (bestNetworkObj 
-            && (parserChild !== undefined) 
-            && (statsObj.previousBestNetworkId !== bestNetworkObj.networkId)) {
-
-            if (bestNetworkObj) { statsObj.previousBestNetworkId = bestNetworkObj.networkId; }
-
-            console.log(chalk.blue("WAS | NEW BEST NETWORK"
-              + " | " + nnObj.networkId
-              + " | " + nnObj.successRate.toFixed(2)
-              + " | " + nnObj.matchRate.toFixed(2)
-            ));
-
-            statsObj.bestNetwork.networkId = nnObj.networkId;
-            statsObj.bestNetwork.successRate = nnObj.successRate;
-            statsObj.bestNetwork.matchRate = nnObj.matchRate;
-
-            childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({ op: "NETWORK", networkObj: bestNetworkObj }, function twpNetwork(err){
-              if (err) {
-                console.log(chalkError("WAS | *** TWEET PARSER SEND NETWORK ERROR"
-                  + " | " + err
-                ));
-              }
-            });
-          }
+          return callback(err, null);
 
         }
+
+        if (nnObj) { 
+          nnObj.matchRate = (nnObj.matchRate !== undefined) ? nnObj.matchRate : 0;
+          bestNetworkObj = {};
+          bestNetworkObj = deepcopy(nnObj);
+          console.log(chalkAlert("WAS | +++ LOADED BEST NETWORK: " + bestNetworkObj.networkId));
+          callback(null, bestNetworkObj.networkId);
+        }
+        else {
+          NeuralNetwork.find({}).sort({"matchRate": -1}).limit(1).exec(function(err, nnArray){
+            if (err){
+              console.log(chalkError("WAS | *** NEURAL NETWORK FIND ERROR: " + err));
+              return callback(err, null);
+            }
+            
+            if (nnArray === 0){
+              console.log(chalkError("WAS | *** NEURAL NETWORK NOT FOUND"));
+              return callback(null, null);
+            }
+
+            bestNetworkObj = {};
+            bestNetworkObj = nnArray[0];
+            
+            if (bestNetworkObj.matchRate === undefined) { bestNetworkObj.matchRate = 0; }
+            if (bestNetworkObj.overallMatchRate === undefined) { bestNetworkObj.overallMatchRate = 0; }
+            
+            console.log(chalk.blue("WAS | +++ BEST NEURAL NETWORK LOADED FROM DB"
+              + " | " + bestNetworkObj.networkId
+              + " | SR: " + bestNetworkObj.successRate.toFixed(2) + "%"
+              + " | MR: " + bestNetworkObj.matchRate.toFixed(2) + "%"
+              + " | OAMR: " + bestNetworkObj.overallMatchRate.toFixed(2) + "%"
+            ));
+
+            callback(null, bestNetworkObj.networkId);
+
+          });
+        }
+
+        if (bestNetworkObj 
+          && (parserChild !== undefined) 
+          && (statsObj.previousBestNetworkId !== bestNetworkObj.networkId)) {
+
+          if (bestNetworkObj) { statsObj.previousBestNetworkId = bestNetworkObj.networkId; }
+
+          console.log(chalk.blue("WAS | NEW BEST NETWORK"
+            + " | " + nnObj.networkId
+            + " | " + nnObj.successRate.toFixed(2)
+            + " | " + nnObj.matchRate.toFixed(2)
+          ));
+
+          statsObj.bestNetwork.networkId = nnObj.networkId;
+          statsObj.bestNetwork.successRate = nnObj.successRate;
+          statsObj.bestNetwork.matchRate = nnObj.matchRate;
+
+          childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({ op: "NETWORK", networkObj: bestNetworkObj }, function twpNetwork(err){
+            if (err) {
+              console.log(chalkError("WAS | *** TWEET PARSER SEND NETWORK ERROR"
+                + " | " + err
+              ));
+            }
+          });
+
+        }
+
 
       });
     }
@@ -7468,7 +7482,9 @@ function initConfig(){
 
 function initLoadBestNetworkInterval(interval){
   clearInterval(loadBestNetworkInterval);
-  loadBestRuntimeNetwork();
+  loadBestRuntimeNetwork(function(err, bestNetworkId){
+
+  });
 }
 // kludge
 // probably can write one general purpose function to handle all types of nodes
@@ -7706,7 +7722,10 @@ function initialize(callback){
     initInternetCheckInterval(ONE_MINUTE);
   }
 
-  callback();
+  loadBestRuntimeNetwork(function(err, bestNetworkId){
+    callback();
+  });
+
 }
 
 function initIgnoreWordsHashMap(callback) {
@@ -8299,6 +8318,7 @@ initialize(function initializeComplete(err) {
   } 
   else {
     debug(chalkLog("INITIALIZE COMPLETE"));
+
 
     initDropboxSync();
     initSaveFileQueue(configuration);

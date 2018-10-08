@@ -1498,6 +1498,12 @@ function ViewTreepack() {
       .text(labelText)
       .attr("x", function (d) { return d.x; })
       .attr("y", function (d) { return d.y; })
+      .style("fill", function (d) { 
+        if (d.isTopTerm && (d.followersCount > minFollowers)) { return palette.red; }
+        if (!d.isTopTerm && (d.followersCount > minFollowers)) { return palette.blue; }
+        if (d.isTopTerm) { return palette.green; }
+        return palette.green; 
+      })
       .style("fill-opacity", function updateNodeLabelOpacity(d) { 
         if (d.nodeType === "media") { return 1e-6; }
         if (d.mouseHoverFlag) { return 1.0; }
@@ -1587,7 +1593,13 @@ function ViewTreepack() {
         if (d.nodeType === "media") { return 1e-6; }
         return nodeLabelOpacityScale(d.ageMaxRatio);
       })
-      .style("fill", palette.white)
+      // .style("fill", palette.white)
+      .style("fill", function (d) { 
+        if (d.isTopTerm && (d.followersCount > minFollowers)) { return palette.red; }
+        if (!d.isTopTerm && (d.followersCount > minFollowers)) { return palette.blue; }
+        if (d.isTopTerm) { return palette.green; }
+        return palette.green; 
+      })
       .style("stroke-width", function (d) { 
         if (d.categoryMatch) { return categoryMatchStrokeWidth; }
         if (d.categoryMismatch) { return categoryMismatchStrokeWidth; }

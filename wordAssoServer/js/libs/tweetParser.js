@@ -6,7 +6,7 @@ let dbConnectionReady = false;
 
 process.title = "wa_node_tweetParser";
 
-let networkReady = false;
+// let networkReady = false;
 
 const MAX_Q = 100;
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
@@ -78,7 +78,11 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
     tweetServerControllerReady = true;
     console.log(chalk.green("TWP | TSC READY"));
 
-    if (cnf.networkObj) { tweetServerController.loadNeuralNetwork({networkObj: cnf.networkObj}, function(){}); }
+    // if (cnf.networkObj) { 
+    //   tweetServerController.loadNeuralNetwork({networkObj: cnf.networkObj}, function(){
+    //     networkReady = true;
+    //   });
+    // }
 
   });
 
@@ -253,7 +257,8 @@ function initTweetParserQueueInterval(cnf){
     if (tweetServerController 
       // && tweetServerController.ready() 
       && (tweetParserQueue.length > 0) 
-      && tweetParserQueueReady && networkReady)
+      && tweetParserQueueReady)
+      // && tweetParserQueueReady && networkReady)
     {
 
       tweetParserQueueReady = false;
@@ -382,13 +387,13 @@ process.on("message", function(m) {
           cb();
         }, function(){
           initTweetParserQueueInterval(cnf);
-          networkReady = true;
+          // networkReady = true;
         });
 
       }
       else {
         initTweetParserQueueInterval(cnf);
-        networkReady = false;
+        // networkReady = false;
       }
       
       if (cnf.maxInputHashMap) {
@@ -406,7 +411,7 @@ process.on("message", function(m) {
 
     case "NETWORK":
 
-      networkReady = false;
+      // networkReady = false;
 
       console.log(chalkInfo("TWP | TWEET PARSER NETWORK"
         + " | NN: " + m.networkObj.networkId
@@ -433,14 +438,14 @@ process.on("message", function(m) {
 
       }, function(){
 
-        if (tweetServerController === undefined) {
-          console.log(chalkAlert("TWP | *** TWEET SERVER CONTROLLER UNDEFINED ??? ON NETWORK OP"));
-          return;
-        }
+        // if (tweetServerController === undefined) {
+        //   console.log(chalkAlert("TWP | *** TWEET SERVER CONTROLLER UNDEFINED ??? ON NETWORK OP"));
+        //   return;
+        // }
 
-        tweetServerController.loadNeuralNetwork({networkObj: cnf.networkObj}, function(){
-          networkReady = true;
-        });
+        // tweetServerController.loadNeuralNetwork({networkObj: cnf.networkObj}, function(){
+        //   networkReady = true;
+        // });
 
       });
     break;

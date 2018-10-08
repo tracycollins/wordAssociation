@@ -6042,7 +6042,6 @@ function initTwitterRxQueueInterval(interval){
 
       childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({ op: "tweet", tweetStatus: tweet });
 
-
     }
   }, interval);
 }

@@ -4,11 +4,17 @@
 
 process.title = "wa_node_tfe";
 
+let maxInputHashMap = {};
+let normalization = {};
+let globalHistograms = {};
+
+let langAnalyzer; // undefined for now
+
 const DEFAULT_MAX_TWEET_QUEUE = 500;
 const DEFAULT_TWITTER_QUEUE_INTERVAL = 10;
 const DEFAULT_CURSOR_BATCH_SIZE = 5000;
 const DEFAULT_INFO_TWITTER_USER = "threeceeinfo";
-const USER_SHOW_QUEUE_MAX_LENGTH = 500;
+const USER_CAT_QUEUE_MAX_LENGTH = 500;
 
 const MAX_READY_ACK_WAIT_COUNT = 10;
 
@@ -37,6 +43,9 @@ hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
 
+const twitterTextParser = require("@threeceelabs/twitter-text-parser");
+const twitterImageParser = require("@threeceelabs/twitter-image-parser");
+
 const S = require("string");
 const util = require("util");
 require("isomorphic-fetch");
@@ -51,6 +60,7 @@ const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const HashMap = require("hashmap").HashMap;
 const neataptic = require("neataptic");
 const networksHashMap = new HashMap();
+const arrayNormalize = require("array-normalize");
 
 const debug = require("debug")("tfe");
 const debugCache = require("debug")("cache");
@@ -69,7 +79,7 @@ const chalkConnect = chalk.green;
 
 const twitterUserHashMap = new HashMap();
 
-const userShowQueue = [];
+const userCategorizeQueue = [];
 
 process.on("SIGHUP", function processSigHup() {
   quit("SIGHUP");
@@ -95,7 +105,21 @@ let configuration = {};
 configuration.verbose = false;
 configuration.globalTestMode = false;
 configuration.testMode = false; // per tweet test mode
-configuration.userShowQueueInterval = ONE_SECOND;
+configuration.userCategorizeQueueInterval = ONE_SECOND;
+configuration.enableImageAnalysis = false;
+
+configuration.enableLanguageAnalysis = false;
+configuration.forceLanguageAnalysis = false;
+
+configuration.inputTypes = [ 
+  "emoji",
+  "hashtags",
+  "images",
+  "mentions",
+  "sentiment",
+  "urls",
+  "words"
+];
 
 configuration.sendMessageTimeout = ONE_SECOND;
 configuration.twitterDownTimeout = 3*ONE_MINUTE;
@@ -165,6 +189,12 @@ statsObj.twitterUserWithheld = 0;
 statsObj.twitterLimit = 0;
 statsObj.twitterLimitMax = 0;
 statsObj.twitterLimitMaxTime = moment().valueOf();
+
+statsObj.analyzer = {};
+statsObj.analyzer.total = 0;
+statsObj.analyzer.analyzed = 0;
+statsObj.analyzer.skipped = 0;
+statsObj.analyzer.errors = 0;
 
 global.dbConnection = false;
 const mongoose = require("mongoose");
@@ -713,152 +743,9 @@ function checkTwitterRateLimitAll(callback){
   });
 }
 
-let userShowQueueReady = true;
-let userShowQueueInterval;
+let userCategorizeQueueReady = true;
+let userCategorizeQueueInterval;
 
-function initUserShowQueueInterval(cnf, callback){
-
-  let userId;
-
-  console.log(chalkTwitter("TFE | INIT TWITTER USER SHOW QUEUE INTERVAL: " + cnf.userShowQueueInterval));
-
-  clearInterval(userShowQueueInterval);
-
-  userShowQueueInterval = setInterval(function () {
-
-    if (userShowQueueReady && (userShowQueue.length > 0)) {
-
-      userShowQueueReady = false;
-
-      userId = userShowQueue.shift();
-
-      userShowQueueReady = true;
-
-    }
-  }, cnf.userShowQueueInterval);
-
-  if (callback) { callback(); }
-}
-
-function initNetworkHashMap(params, callback){
-  loadFile(bestn, dropboxConfigFile, function(err, loadedConfigObj){
-
-    let commandLineConfigKeys;
-    let configArgs;
-
-    if (!err) {
-      console.log("TFE | " + dropboxConfigFile + "\n" + jsonPrint(loadedConfigObj));
-
-      if (loadedConfigObj.TFE_VERBOSE_MODE  !== undefined){
-        console.log("TFE | LOADED TFE_VERBOSE_MODE: " + loadedConfigObj.TFE_VERBOSE_MODE);
-        cnf.verbose = loadedConfigObj.TFE_VERBOSE_MODE;
-      }
-
-      if (loadedConfigObj.TFE_GLOBAL_TEST_MODE  !== undefined){
-        console.log("TFE | LOADED TFE_GLOBAL_TEST_MODE: " + loadedConfigObj.TFE_GLOBAL_TEST_MODE);
-        cnf.globalTestMode = loadedConfigObj.TFE_GLOBAL_TEST_MODE;
-      }
-
-      if (loadedConfigObj.TFE_TEST_MODE  !== undefined){
-        console.log("TFE | LOADED TFE_TEST_MODE: " + loadedConfigObj.TFE_TEST_MODE);
-        cnf.testMode = loadedConfigObj.TFE_TEST_MODE;
-      }
-
-      if (loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER  !== undefined){
-        console.log("TFE | LOADED DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER: " 
-          + jsonPrint(loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER));
-        cnf.twitterConfigFolder = loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER;
-      }
-
-      if (loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FILE  !== undefined){
-        console.log("TFE | LOADED DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FILE: " 
-          + jsonPrint(loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FILE));
-        cnf.twitterConfigFile = loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FILE;
-      }
-
-      if (loadedConfigObj.TFE_STATS_UPDATE_INTERVAL  !== undefined) {
-        console.log("TFE | LOADED TFE_STATS_UPDATE_INTERVAL: " + loadedConfigObj.TFE_STATS_UPDATE_INTERVAL);
-        cnf.statsUpdateIntervalTime = loadedConfigObj.TFE_STATS_UPDATE_INTERVAL;
-      }
-
-      if (loadedConfigObj.TFE_MAX_TWEET_QUEUE  !== undefined) {
-        console.log("TFE | LOADED TFE_MAX_TWEET_QUEUE: " + loadedConfigObj.TFE_MAX_TWEET_QUEUE);
-        cnf.maxTweetQueue = loadedConfigObj.TFE_MAX_TWEET_QUEUE;
-      }
-
-      // OVERIDE CONFIG WITH COMMAND LINE ARGS
-
-      configArgs = Object.keys(cnf);
-
-      configArgs.forEach(function(arg){
-        console.log("TFE | FINAL CONFIG | " + arg + ": " + cnf[arg]);
-      });
-
-      initStatsUpdate(cnf, function(err, cnf2){
-
-        if (err) {
-          console.log(chalkLog("TFE | ERROR initStatsUpdate\n" + err));
-        }
-
-        loadFile(cnf.twitterConfigFolder, cnf.twitterConfigFile, function(err, tc){
-          if (err){
-            console.error(chalkLog("TFE | *** TWITTER CONFIG LOAD ERROR\n" + err));
-            quit();
-            return;
-          }
-
-          cnf2.twitterConfig = {};
-          cnf2.twitterConfig = tc;
-
-          console.log("TFE | " + chalkInfo(getTimeStamp() + " | TWITTER CONFIG FILE " 
-            + cnf2.twitterConfigFolder
-            + cnf2.twitterConfigFile
-            + "\n" + jsonPrint(cnf2.twitterConfig )
-          ));
-          return(callback(null, cnf2));
-        });
-      });
-    }
-    else {
-      console.error("TFE | *** ERROR LOAD DROPBOX CONFIG: " + dropboxConfigFile + "\n" + jsonPrint(err));
-
-      if (err.status === 404){
-
-        configArgs = Object.keys(cnf);
-
-        configArgs.forEach(function(arg){
-          console.log("TFE | FINAL CONFIG | " + arg + ": " + cnf[arg]);
-        });
-
-        initStatsUpdate(cnf, function(err, cnf2){
-
-          if (err) {
-            console.log(chalkLog("TFE | ERROR initStatsUpdate\n" + jsonPrint(err)));
-          }
-
-          loadFile(cnf.twitterConfigFolder, cnf.twitterConfigFile, function(err, tc){
-            if (err){
-              console.error(chalkLog("TFE | *** TWITTER CONFIG LOAD ERROR\n" + err));
-              quit();
-              return;
-            }
-
-            cnf2.twitterConfig = {};
-            cnf2.twitterConfig = tc;
-
-            console.log("TFE | " + chalkInfo(getTimeStamp() + " | TWITTER CONFIG FILE " 
-              + cnf2.twitterConfigFolder
-              + cnf2.twitterConfigFile
-              + "\n" + jsonPrint(cnf2.twitterConfig )
-            ));
-            return(callback(null, cnf2));
-          });
-        });
-      }
-      return(callback(err, cnf));
-     }
-  });
-}
 
 let generateNetworkInputBusy = false;
 
@@ -943,42 +830,60 @@ function generateNetworkInputIndexed(params, callback){
     });
 
   }, function(err){
-
     generateNetworkInputBusy = false;
-
-    // elapsed_time("end generateNetworkInputIndexed");
-
     callback(err, networkInput);
+  });
+}
+
+function indexOfMax (arr, callback) {
+
+  if (arr.length === 0) {
+    console.log(chalkAlert("indexOfMax: 0 LENG ARRAY: -1"));
+    return callback(-1);
+  }
+  if ((arr[0] === arr[1]) && (arr[1] === arr[2])){
+    return callback(-1);
+  }
+
+  arrayNormalize(arr);
+
+  let max = arr[0];
+  let maxIndex = 0;
+
+  async.eachOfSeries(arr, function(val, index, cb){
+
+    if (val > max) {
+      maxIndex = index;
+      max = val;
+    }
+
+    async.setImmediate(function() { cb(); });
+
+  }, function(){
+
+    callback(maxIndex) ; 
+
   });
 }
 
 let activateNetworkBusy = false;
 
-function activateNetwork2(user, callback){
+async function activateNetwork(user){
 
   activateNetworkBusy = true;
-  let networkOutput = {};
-  let userHistograms = {};
-  let languageAnalysis = {};
 
-  userHistograms = user.histograms;
-  languageAnalysis = user.languageAnalysis;
+  let networkOutput = {};
+
+  let userHistograms = user.histograms || {};
+  let languageAnalysis = user.languageAnalysis || {};
 
   async.each(networksHashMap.keys(), function(nnId, cb){
 
     const networkObj = networksHashMap.get(nnId);
 
-    networkOutput[nnId] = {};
-    networkOutput[nnId].output = [];
-    networkOutput[nnId].left = statsObj.loadedNetworks[nnId].left;
-    networkOutput[nnId].neutral = statsObj.loadedNetworks[nnId].neutral;
-    networkOutput[nnId].right = statsObj.loadedNetworks[nnId].right;
-    networkOutput[nnId].none = statsObj.loadedNetworks[nnId].none;
-    networkOutput[nnId].positive = statsObj.loadedNetworks[nnId].positive;
-    networkOutput[nnId].negative = statsObj.loadedNetworks[nnId].negative;
-
     if (networkObj.inputsObj.inputs === undefined) {
       console.log(chalkError("UNDEFINED NETWORK INPUTS OBJ | NETWORK OBJ KEYS: " + Object.keys(networkObj)));
+      throw new Error("UNDEFINED NETWORK INPUTS OBJ");
     }
 
     const params = {
@@ -996,26 +901,35 @@ function activateNetwork2(user, callback){
 
       if (output.length !== 3) {
         console.log(chalkError("*** ZERO LENGTH NETWORK OUTPUT | " + nnId ));
-        return(cb("ZERO LENGTH NETWORK OUTPUT", networkOutput));
+        throw new Error("ZERO LENGTH NETWORK OUTPUT");
       }
 
       indexOfMax(output, function maxNetworkOutput(maxOutputIndex){
 
+        if (networkOutput[nnId] === undefined) {
+          networkOutput[nnId] = {};
+          networkOutput[nnId].output = "0";
+          networkOutput[nnId].left = 0;
+          networkOutput[nnId].neutral = 0;
+          networkOutput[nnId].right = 0;
+          networkOutput[nnId].none = 0;
+        }
+
         switch (maxOutputIndex) {
           case 0:
-            networkOutput[nnId].output = [1,0,0];
+            networkOutput[nnId].output = "L";
             networkOutput[nnId].left += 1;
           break;
           case 1:
-            networkOutput[nnId].output = [0,1,0];
+            networkOutput[nnId].output = "N";
             networkOutput[nnId].neutral += 1;
           break;
           case 2:
-            networkOutput[nnId].output = [0,0,1];
+            networkOutput[nnId].output = "R";
             networkOutput[nnId].right += 1;
           break;
           default:
-            networkOutput[nnId].output = [0,0,0];
+            networkOutput[nnId].output = "0";
             networkOutput[nnId].none += 1;
         }
 
@@ -1028,9 +942,541 @@ function activateNetwork2(user, callback){
 
   }, function(err){
     activateNetworkBusy = false;
-    callback(err, networkOutput);
+    return networkOutput;
   });
 }
+
+function updateGlobalHistograms(params, callback) {
+
+  if (params.user === undefined) { return callback ("UNDEFINED USER")}
+
+  statsObj.status = "UPDATE GLOBAL HISTOGRAMS";
+
+  async.each(Object.keys(params.user.histograms), function(type, cb0) {
+
+    if (globalHistograms[type] === undefined) { globalHistograms[type] = {}; }
+
+    async.each(Object.keys(params.user.histograms[type]), function(item, cb1) {
+
+      if (globalHistograms[type][item] === undefined) {
+        globalHistograms[type][item] = {};
+        globalHistograms[type][item].total = 0;
+        globalHistograms[type][item].left = 0;
+        globalHistograms[type][item].neutral = 0;
+        globalHistograms[type][item].right = 0;
+        globalHistograms[type][item].positive = 0;
+        globalHistograms[type][item].negative = 0;
+        globalHistograms[type][item].uncategorized = 0;
+      }
+
+      globalHistograms[type][item].total += 1;
+
+      if (params.user.category) {
+        if (params.user.category === "left") { globalHistograms[type][item].left += 1; }
+        if (params.user.category === "neutral") { globalHistograms[type][item].neutral += 1; }
+        if (params.user.category === "right") { globalHistograms[type][item].right += 1; }
+        if (params.user.category === "positive") { globalHistograms[type][item].positive += 1; }
+        if (params.user.category === "negative") { globalHistograms[type][item].negative += 1; }
+      }
+      else {
+        globalHistograms[type][item].uncategorized += 1;
+      }
+
+      cb1();
+
+    }, function() {
+
+      cb0();
+
+    });
+
+  }, function() {
+
+    if (callback !== undefined) { callback(); }
+
+  });
+}
+
+function updateHistograms(params, callback) {
+
+  statsObj.status = "UPDATE HISTOGRAMS";
+
+  let user = {};
+  let histogramsIn = {};
+
+  user = params.user;
+  histogramsIn = params.histograms;
+
+  if (!user.histograms || (user.histograms === undefined)) {
+    user.histograms = {};
+  }
+  
+  async.each(configuration.inputTypes, function(type, cb0) {
+
+    if (user.histograms[type] === undefined) { user.histograms[type] = {}; }
+    if (histogramsIn[type] === undefined) { histogramsIn[type] = {}; }
+
+    const inputHistogramTypeItems = Object.keys(histogramsIn[type]);
+
+    async.each(inputHistogramTypeItems, function(item, cb1) {
+
+      if (user.histograms[type][item] === undefined) {
+        user.histograms[type][item] = histogramsIn[type][item];
+      }
+      else if (params.accumulateFlag) {
+        user.histograms[type][item] += histogramsIn[type][item];
+      }
+
+      debug("user histograms"
+        + " | @" + user.screenName
+        + " | " + type
+        + " | " + item
+        + " | USER VAL: " + user.histograms[type][item]
+        + " | UPDATE VAL: " + histogramsIn[type][item]
+      );
+
+      async.setImmediate(function() {
+        cb1();
+      });
+
+    }, function (argument) {
+
+      async.setImmediate(function() {
+        cb0();
+      });
+
+    });
+  }, function(err) {
+
+    if (err) {
+      console.log(chalkError("TFE | UPDATE HISTOGRAMS ERROR: " + err));
+      throw new Error(err);
+    }
+
+    updateGlobalHistograms({user: user}, function(err){
+
+      if (err) {
+        console.log(chalkError("TFE | UPDATE GLOBAL HISTOGRAMS ERROR: " + err));
+        throw new Error(err);
+      }
+      callback(err, user);
+    });
+
+  });
+}
+
+
+function enableAnalysis(user, languageAnalysis) {
+  if (!configuration.enableLanguageAnalysis) { return false; }
+  if (configuration.forceLanguageAnalysis) {
+    debug(chalkAlert("enableAnalysis: configuration.forceLanguageAnalysis: "
+      + configuration.forceLanguageAnalysis
+    ));
+    return true;
+  }
+  if (!user.languageAnalyzed) {
+    debug(chalkAlert("enableAnalysis: user.languageAnalyzed: "
+      + user.languageAnalyzed
+    ));
+    return true;
+  }
+  if (user.languageAnalysis.error !== undefined) {
+    if ((user.languageAnalysis.error.code === 3)
+      || (user.languageAnalysis.error.code === 8)) {
+      debug(chalkAlert("enableAnalysis: user.languageAnalysis.error: "
+        + user.languageAnalysis.error.code
+      ));
+      return true;
+    }
+  }
+  if (user.languageAnalyzed && (languageAnalysis.magnitude === 0) && (languageAnalysis.score === 0)) {
+    debug(chalkAlert("enableAnalysis: user.languageAnalyzed: "
+      + user.languageAnalyzed
+    ));
+    return true;
+  }
+  return false;
+}
+
+
+function generateUserData(user) {
+
+  if (user === undefined) {
+    console.log(chalkError("TFE | *** generateUserData USER UNDEFINED"));
+    throw new Error("TFE | *** generateUserData USER UNDEFINED");
+  }
+
+  let text = "";
+  text = (user.screenName !== undefined) ? "@" + user.screenName.toLowerCase()
+
+  async.waterfall([
+
+    function userScreenName(cb) {
+      if (user.screenName !== undefined) {
+        async.setImmediate(function() {
+          cb(null, "@" + user.screenName.toLowerCase());
+        });
+      }
+      else {
+        async.setImmediate(function() {
+          cb(null, null);
+        });
+      }
+    },
+    function userName(text, cb) {
+      if (user.name !== undefined) {
+        if (text) {
+          async.setImmediate(function() {
+            cb(null, text + " | " + user.name);
+          });
+        }
+        else {
+          async.setImmediate(function() {
+            cb(null, user.name);
+          });
+        }
+      }
+      else {
+        if (text) {
+          async.setImmediate(function() {
+            cb(null, text);
+          });
+        }
+        else {
+          async.setImmediate(function() {
+            cb(null, null);
+          });
+        }
+      }
+    },
+    function userStatusText(text, cb) {
+      if ((user.status !== undefined)
+        && user.status
+        && user.status.text) {
+        if (text) {
+          async.setImmediate(function() {
+            cb(null, text + "\n" + user.status.text);
+          });
+        }
+        else {
+          async.setImmediate(function() {
+            cb(null, user.status.text);
+          });
+        }
+      }
+      else {
+        if (text) {
+          async.setImmediate(function() {
+            cb(null, text);
+          });
+        }
+        else {
+          async.setImmediate(function() {
+            cb(null, null);
+          });
+        }
+      }
+    },
+    function userRetweetText(text, cb) {
+      if ((user.retweeted_status !== undefined)
+        && user.retweeted_status
+        && user.retweeted_status.text) {
+        console.log(chalkTwitter("RT\n" + jsonPrint(user.retweeted_status.text)));
+        if (text) {
+          async.setImmediate(function() {
+            cb(null, text + "\n" + user.retweeted_status.text);
+          });
+        }
+        else {
+          async.setImmediate(function() {
+            cb(null, user.retweeted_status.text);
+          });
+        }
+      }
+      else {
+        if (text) {
+          async.setImmediate(function() {
+            cb(null, text);
+          });
+        }
+        else {
+          async.setImmediate(function() {
+            cb(null, null);
+          });
+        }
+      }
+    },
+    function userDescriptionText(text, cb) {
+      if ((user.description !== undefined) && user.description) {
+        if (text) {
+          async.setImmediate(function() {
+            cb(null, text + "\n" + user.description);
+          });
+        }
+        else {
+          async.setImmediate(function() {
+            cb(null, user.description);
+          });
+        }
+      }
+      else {
+        if (text) {
+          async.setImmediate(function() {
+            cb(null, text);
+          });
+        }
+        else {
+          async.setImmediate(function() {
+            cb(null, null);
+          });
+        }
+      }
+    },
+    function userLanguageAnalysis(text, cb) {
+      if (user.languageAnalysis === undefined) {
+        user.languageAnalysis = {};
+        user.languageAnalysis.score = 0;
+        user.languageAnalysis.sentiment = 0;
+      }
+
+      if (text) {
+        async.setImmediate(function() {
+          cb(null, text);
+        });
+      }
+      else {
+        async.setImmediate(function() {
+          cb(null, null);
+        });
+      }
+    },
+    function userBannerImage(text, cb) {
+
+      if (!user.histograms || (user.histograms === undefined)) { 
+        // user.markModified("histograms");
+        user.histograms = {}; 
+        user.histograms.images = {}; 
+      }
+      else if (user.histograms.images === undefined) { 
+        user.histograms.images = {}; 
+      }
+
+      if (
+        (configuration.enableImageAnalysis && !user.bannerImageAnalyzed && user.bannerImageUrl)
+        || (configuration.enableImageAnalysis && user.bannerImageUrl && (user.bannerImageAnalyzed !== user.bannerImageUrl))
+        || (configuration.forceImageAnalysis && user.bannerImageUrl)
+      ) {
+
+        twitterImageParser.parseImage(
+          user.bannerImageUrl,
+          {screenName: user.screenName, category: user.category, updateGlobalHistograms: true},
+          function(err, results) {
+            if (err) {
+              if (err.code === 8) {
+                console.log(chalkAlert("PARSE BANNER IMAGE QUOTA ERROR"
+                ));
+                configuration.enableImageAnalysis = false;
+                startImageQuotaTimeout();
+              }
+              else if (err.code === 7) {
+                console.log(chalkAlert("PARSE BANNER IMAGE CLOUD VISION API ERROR"
+                ));
+                configuration.enableImageAnalysis = false;
+                startImageQuotaTimeout();
+              }
+              else{
+                console.log(chalkError("PARSE BANNER IMAGE ERROR"
+                  // + "\nREQ\n" + jsonPrint(results)
+                  + " | ERR: " + err
+                  + "\nERR\n" + jsonPrint(err)
+                ));
+              }
+              cb(null, text);
+            }
+            else {
+
+              if (user.bannerImageAnalyzed 
+                && user.bannerImageUrl 
+                && (user.bannerImageAnalyzed !== user.bannerImageUrl)) {
+                console.log(chalk.bold.blue("^^^ BANNER IMAGE UPDATED "
+                  + " | @" + user.screenName
+                  + "\nTFE | bannerImageAnalyzed: " + user.bannerImageAnalyzed
+                  + "\nTFE | bannerImageUrl: " + user.bannerImageUrl
+                  // + "\nTFE | RESULTS: " + Object.keys(results.images)
+                ));
+              }
+              else {
+                console.log(chalk.bold.blue("TFE | +++ BANNER IMAGE ANALYZED"
+                  + " | @" + user.screenName
+                  + "\nTFE | bannerImageAnalyzed: " + user.bannerImageAnalyzed
+                  + "\nTFE | bannerImageUrl: " + user.bannerImageUrl
+                  // + "\nTFE | RESULTS: " + Object.keys(results.images)
+                ));
+              }
+
+              user.bannerImageAnalyzed = user.bannerImageUrl;
+              // user.markModified("bannerImageAnalyzed");
+
+              if (Object.keys(results.images).length > 0) {
+
+                async.each(Object.keys(results.images), function(item, cb0){
+
+                  if (user.histograms.images[item] === undefined) { 
+                    user.histograms.images[item] = results.images[item];
+                    console.log(chalk.bold.blue("+++ USER IMAGE HISTOGRAM ADD"
+                      + " | @" + user.screenName
+                      + " | " + item + ": " + results.images[item]
+                    ));
+                  }
+                  else {
+                    console.log(chalk.bold.blue("... USER IMAGE HISTOGRAM HIT"
+                      + " | @" + user.screenName
+                      + " | " + item
+                      + " | IN HISTOGRAM: " + user.histograms.images[item]
+                      + " | IN BANNER: " + item + ": " + results.images[item]
+                    ));
+                  }
+
+                  cb0();
+
+                }, function(){
+
+                  cb(null, text);
+
+                });
+              }
+              else {
+                cb(null, text);
+              }
+
+            }
+          }
+        );
+      }
+      else {
+        async.setImmediate(function() {
+          cb(null, text);
+        });
+      }
+    }
+
+  ], function (err, text, bannerResults) {
+
+    if (err) {
+      console.log(chalkError("*** ERROR generateAutoCategory: " + err));
+      throw new Error(err);
+    }
+
+    if (!text) { text = " "; }
+
+    let parseTextOptions = {};
+    parseTextOptions.updateGlobalHistograms = true;
+
+    if (user.category) {
+      parseTextOptions.category = user.category;
+    }
+    else {
+      parseTextOptions.category = false;
+    }
+
+    twitterTextParser.parseText(text, parseTextOptions, function(err, hist) {
+
+      if (err) {
+        console.log(chalkError("*** TWITTER TEXT PARSER ERROR: " + err));
+        throw new Error(err);
+      }
+
+      updateHistograms({user: user, histograms: hist}, function(err, updatedUser) {
+
+        if (err) {
+          console.trace(chalkError("*** UPDATE USER HISTOGRAMS ERROR\n" + jsonPrint(err)));
+          console.trace(chalkError("*** UPDATE USER HISTOGRAMS ERROR\nUSER\n" + jsonPrint(user)));
+          throw new Error(err);
+        }
+
+        updatedUser.inputHits = 0;
+
+        const score = updatedUser.languageAnalysis.sentiment ? updatedUser.languageAnalysis.sentiment.score : 0;
+        const mag = updatedUser.languageAnalysis.sentiment ? updatedUser.languageAnalysis.sentiment.magnitude : 0;
+
+        statsObj.analyzer.total += 1;
+
+        if (enableAnalysis(updatedUser, {magnitude: mag, score: score})) {
+          debug(chalkLog(">>>> LANG ANALYZE"
+            + " [ ANLd: " + statsObj.analyzer.analyzed
+            + " [ SKPd: " + statsObj.analyzer.skipped
+            + " | " + updatedUser.nodeId
+            + " | @" + updatedUser.screenName
+            + " | LAd: " + updatedUser.languageAnalyzed
+            + " | LA: S: " + score.toFixed(2)
+            + " M: " + mag.toFixed(2)
+          ));
+
+          if ((langAnalyzer !== undefined) && langAnalyzer) {
+            langAnalyzer.send({op: "LANG_ANALIZE", obj: updatedUser, text: text}, function() {
+              statsObj.analyzer.analyzed += 1;
+            });
+          }
+        }
+        else {
+          statsObj.analyzer.skipped += 1;
+          debug(chalkLog("SKIP LANG ANALYZE"
+            + " [ ANLd: " + statsObj.analyzer.analyzed
+            + " [ SKPd: " + statsObj.analyzer.skipped
+            + " | " + updatedUser.nodeId
+            + " | @" + updatedUser.screenName
+            + " | LAd: " + updatedUser.languageAnalyzed
+            + " | LA: S: " + score.toFixed(2)
+            + " M: " + mag.toFixed(2)
+          ));
+        }
+
+        printUserObj("TFE | generateUserData", updatedUser);
+
+        return updatedUser;
+      });
+
+      // });
+    });
+  });
+}
+
+async function initUserCategorizeQueueInterval(cnf){
+
+  let user = {};
+
+  console.log(chalkTwitter("TFE | INIT TWITTER USER CATEGORIZE QUEUE INTERVAL: " + cnf.userCategorizeQueueInterval));
+
+  clearInterval(userCategorizeQueueInterval);
+
+  userCategorizeQueueInterval = setInterval(async function () {
+
+    if (userCategorizeQueueReady && (userCategorizeQueue.length > 0)) {
+
+      userCategorizeQueueReady = false;
+
+      user = userCategorizeQueue.shift();
+
+      try {
+        let updatedUser = await generateUserData(user);
+        printUserObj("TFE | PRE NET", updatedUser);
+        let networkOutput = await activateNetwork(updatedUser);
+        printUserObj("TFE | NET: " + networkOutput.output, updatedUser);
+        userCategorizeQueueReady = true;
+      }
+      catch (err) {
+        console.log(chalkError("TFE | *** USER CATEGORIZE ERROR: " + err));
+        userCategorizeQueueReady = true;
+      }
+
+
+
+    }
+
+  }, cnf.userCategorizeQueueInterval);
+
+}
+
 
 function initialize(cnf, callback){
 
@@ -1188,24 +1634,36 @@ process.on("message", function(m) {
 
     case "INIT":
 
-      // networkObj: bestNetworkObj,
-      // maxInputHashMap: maxInputHashMap,
-      // normalization: normalization,
-
       process.title = m.title;
 
       configuration.verbose = m.verbose;
-      configuration.networkObj = m.networkObj;
-      configuration.maxInputHashMap = m.maxInputHashMap;
-      configuration.normalization = m.normalization;
+      maxInputHashMap = m.maxInputHashMap;
+      normalization = m.normalization;
+
+      const network = neataptic.Network.fromJSON(m.networkObj.network);
+
+      m.networkObj.network = {};
+      m.networkObj.network = network;
+
+      networksHashMap.set(m.networkObj.networkId, m.networkObj);
 
       console.log(chalkInfo("TFE | INIT"
-        + " | TITLE: " + m.title
-        + " | NETWORK: " + m.networkObj.networkId
-        + " | MAX INPUT HM KEYS: " + Object.keys(m.maxInputHashMap)
-        + " | NORMALIZATION: " + Object.keys(m.maxInputHashMap)
+        + " | TITLE: " + process.title
+        + " | NETWORK: " + networksHashMap.get(m.networkObj.networkId).networkId
+        + " | MAX INPUT HM KEYS: " + Object.keys(maxInputHashMap)
+        + " | NORMALIZATION: " + Object.keys(normalization)
       ));
 
+    break;
+
+    case "PING":
+      debug(chalkLog("TFE | TWP | PING"
+        + " | PING ID: " + moment(m.pingId).format(compactDateTimeFormat)
+      ));
+
+      setTimeout(function(){
+        process.send({ op: "PONG", pongId: m.pingId });
+      }, 1000);
     break;
 
     case "USER_AUTHENTICATED":
@@ -1234,145 +1692,24 @@ process.on("message", function(m) {
         twitterUserObj.twitterConfig.TOKEN = authObjNew.access_token;
         twitterUserObj.twitterConfig.TOKEN_SECRET = authObjNew.access_token_secret;
 
+        twitterUserHashMap.set(m.user.screenName, twitterUserObj);
+
         console.log(chalkError("TFE | UPDATED AUTH\n" + jsonPrint(authObjNew)));
 
-        const twitterConfigFile = twitterUserObj.screenName + ".json";
-
-        saveFile(configuration.twitterConfigFolder, twitterConfigFile, twitterUserObj.twitterConfig, function(){
-          console.log(chalkLog("TFE | SAVED UPDATED AUTH " + configuration.twitterConfigFolder + "/" + twitterConfigFile));
-
-          twitterUserObj.stats.connected = true;
-          twitterUserObj.stats.twitterFollowLimit = false;
-
-          twitterUserObj.twit.get("friends/ids", function(err, data, response) {
-
-            if (err){
-
-              console.log(chalkError("TFE | *** TWITTER GET FRIENDS IDS ERROR | NOT AUTHENTICATED"
-                + " | @" + twitterUserObj.screenName
-                + " | " + getTimeStamp()
-                + " | CODE: " + err.code
-                + " | STATUS CODE: " + err.statusCode
-                + " | " + err.message
-              ));
-
-              twitterUserObj.stats.twitterErrors += 1;
-              twitterUserObj.stats.authenticated = false;
-              twitterUserObj.stats.error = err;
-
-              twitterUserHashMap.set(twitterUserObj.screenName, twitterUserObj);
-
-            }
-            else {
-
-              twitterUserObj.stats.error = false;
-              twitterUserObj.stats.authenticated = true;
-              twitterUserObj.followUserSet = new Set(data.ids);
-
-              console.log(chalkError("TFE | TWITTER GET FRIENDS IDS"
-                + " | @" + twitterUserObj.screenName
-                + " | " + twitterUserObj.followUserSet.size + " FRIENDS"
-              ));
-
-              twitterUserHashMap.set(twitterUserObj.screenName, twitterUserObj);
-
-              let userIndex = 0;
-              let printString = "";
-
-              async.eachSeries([...twitterUserObj.followUserSet], function(userId, cb){
-
-                userIndex += 1;
-
-                followingUserIdSet.add(userId);
-
-                User.findOne({ userId: userId }, function (err, user) {
-
-                  if (err) { 
-                    console.log(chalkAlert("TFE | *** USER DB ERROR *** | " + err));
-                    return cb(err);
-                  }
-
-                  if (user) {
-
-                    printString = "TFE | [ " + userIndex + "/" + twitterUserObj.followUserSet.size + " ] @" + twitterUserObj.screenName + " | DB USER FOUND";
-
-                    printUserObj(printString, user);
-
-                    if (!user.following) {
-                      user.following = true;
-                      user.threeceeFollowing = twitterUserObj.screenName;
-                      user.markModified("following");
-                      user.markModified("threeceeFollowing");
-                      user.save(function(err){
-                        if (err) { console.log(chalkError("TFE | *** USER DB SAVE ERROR: " + err)); }
-                        cb();
-                      });
-                    }
-                    else if (user.following && (user.threeceeFollowing > twitterUserObj.screenName)) {
-                      console.log(chalk.black("TFE | -X- CHANGE 3C FOLLOWING"
-                        + " | UID: " + user.userId
-                        + " | @" + user.screenName
-                        + " | 3C @" + user.threeceeFollowing + " -> " + twitterUserObj.screenName
-                      ));
-                      user.threeceeFollowing = twitterUserObj.screenName;
-                      user.markModified("threeceeFollowing");
-                      user.save(function(err){
-                        if (err) { console.log(chalkError("TFE | *** USER DB SAVE ERROR: " + err)); }
-                        cb();
-                      });
-                    }
-                    else {
-                      cb();
-                    }
-
-                  }
-                  else {
-                    console.log(chalkLog("TFE | [ " + userIndex + "/" + twitterUserObj.followUserSet.size + " ]"
-                      + " @" + twitterUserObj.screenName 
-                      + " | DB USER MISS  | UID: " + userId
-                    ));
-                    cb();
-                  }
-                });
-
-              }, function(err){
-
-                let filter = {};
-                filter.track = [];
-                filter.follow = [];
-
-                if (twitterUserObj.searchTermArray.length > 0) { filter.track = twitterUserObj.searchTermArray; }
-                if (twitterUserObj.followUserSet.size > 0) { filter.follow = [...twitterUserObj.followUserSet]; }
-
-                initSearchStream({twitterUserObj: twitterUserObj}, function(err, tuObj){
-
-                  console.log(chalkInfo("TFE | END USER_AUTHENTICATED"
-                    + " | @" + tuObj.screenName
-                  ));
-
-                  twitterUserHashMap.set(tuObj.screenName, tuObj);
-                  process.send({op: "TWITTER_STATS", threeceeUser: twitterUserObj.screenName, twitterFollowing: twitterUserObj.followUserSet.size});
-
-                });
-
-              });
-
-            }
-
-          });
-        });
-
+      }
+      else {
+        console.log(chalkAlert("TFE | TWITTER USER OBJ UNDEFINED: " + m.user.screenName));
       }
     break;
 
-    case "USER_SHOW":
+    case "USER_CATEGORIZE":
 
-      if (!userShowQueue.includes(m.user.userId) && (userShowQueue.length < USER_SHOW_QUEUE_MAX_LENGTH)) {
+      if (!userCategorizeQueue.includes(m.user.userId) && (userCategorizeQueue.length < USER_CAT_QUEUE_MAX_LENGTH)) {
 
-        userShowQueue.push(m.user);
+        userCategorizeQueue.push(m.user);
 
-        console.log(chalkInfo("TFE | USER_SHOW"
-          + " [ USQ: " + userShowQueue.length + "]"
+        console.log(chalkInfo("TFE | USER_CATEGORIZE"
+          + " [ USQ: " + userCategorizeQueue.length + "]"
           + " | FLWRs: " + m.user.followersCount
           + " | FRNDs: " + m.user.friendsCount
           + " | USER " + m.user.userId
@@ -1454,7 +1791,7 @@ setTimeout(function(){
 
     initInfoTwit({screenName: DEFAULT_INFO_TWITTER_USER}, function(err, ituObj){
       infoTwitterUserObj = ituObj;
-      initUserShowQueueInterval(configuration);
+      initUserCategorizeQueueInterval(configuration);
     });
 
   });

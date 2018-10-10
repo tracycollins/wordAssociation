@@ -360,7 +360,7 @@ function showStats(options){
         console.log("TSS | @" + screenName
           + " | FOLLOWING USERS: " + twitterUserObj.followUserSet.size
           + " | TRACKING SEARCH TERMS: " + twitterUserObj.searchTermArray.length
-          + "\n" + jsonPrint(twitterUserObj.stats)
+          // + "\n" + jsonPrint(twitterUserObj.stats)
         );
       }
     });
@@ -385,7 +385,7 @@ function showStats(options){
       console.log(chalkLog("TSS | @" + twitterUserObj.screenName
         + " | FOLLOWING USERS: " + twitterUserObj.followUserSet.size
         + " | TRACKING SEARCH TERMS: " + twitterUserObj.searchTermArray.length
-        + "\n" + jsonPrint(twitterUserObj.stats)
+        // + "\n" + jsonPrint(twitterUserObj.stats)
       ));
     });
   }
@@ -748,10 +748,10 @@ function initTwit(params, callback){
 
           }
           else {
-            console.log(chalkLog("TSS | [ " + userIndex + "/" + twitterUserObj.followUserSet.size + " ]"
-              + " @" + twitterUserObj.screenName 
-              + " | DB USER MISS  | UID: " + userId
-            ));
+            // console.log(chalkLog("TSS | [ " + userIndex + "/" + twitterUserObj.followUserSet.size + " ]"
+            //   + " @" + twitterUserObj.screenName 
+            //   + " | DB USER MISS  | UID: " + userId
+            // ));
             cb();
           }
         });

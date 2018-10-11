@@ -6783,7 +6783,10 @@ async function initTfeChild(params){
             threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
 
           }
+        break;
 
+        case "USER_CATEGORIZED":
+          console.log(chalkTwitter("R< USER_CATEGORIZED | @" + m.user.screenName + " | CAT AUTO: " + m.user.categoryAuto)); }
         break;
 
         case "TWITTER_STATS":
@@ -6794,7 +6797,6 @@ async function initTfeChild(params){
           ));
 
           threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
-
         break;
 
         case "FOLLOW_LIMIT":
@@ -6807,7 +6809,6 @@ async function initTfeChild(params){
 
           threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
           threeceeTwitter[m.threeceeUser].twitterFollowLimit = true;
-
         break;
 
         case "TWEET":
@@ -8310,6 +8311,12 @@ function twitterSearchNode(params, callback) {
 
         twitterSearchUserNode(searchQuery, function(err, user){
           if (user) {
+            if (tfeChild !== undefined) { 
+
+              const categorizeable = userCategorizeable(user);
+              if (categorizeable) { tfeChild.send({op: "USER_CATEGORIZE", user: user}); }
+
+            }
             params.socket.emit("SET_TWITTER_USER", user);
             uncategorizedManualUserSet.delete(user.nodeId);
           }

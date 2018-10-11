@@ -477,7 +477,7 @@ function initStatsUpdate(cnf, callback){
 
 function printUserObj(title, user, chalkConfig) {
 
-  let curChalk = chalkLog || chalkConfig;
+  let curChalk = chalkConfig || chalkLog;
 
   user = userDefaults(user);
 

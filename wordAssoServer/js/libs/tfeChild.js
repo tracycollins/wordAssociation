@@ -944,19 +944,19 @@ async function activateNetwork(user){
 
           switch (maxOutputIndex) {
             case 0:
-              networkOutput[nnId].output = "L";
+              networkOutput[nnId].output = "left";
               networkOutput[nnId].left += 1;
             break;
             case 1:
-              networkOutput[nnId].output = "N";
+              networkOutput[nnId].output = "neutral";
               networkOutput[nnId].neutral += 1;
             break;
             case 2:
-              networkOutput[nnId].output = "R";
+              networkOutput[nnId].output = "right";
               networkOutput[nnId].right += 1;
             break;
             default:
-              networkOutput[nnId].output = "0";
+              networkOutput[nnId].output = "none";
               networkOutput[nnId].none += 1;
           }
 

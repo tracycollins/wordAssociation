@@ -543,7 +543,7 @@ function printUserObj(title, user) {
   user = userDefaults(user);
 
   console.log(chalkLog(title
-    + " | UID: " + user.userId
+    + " | " + user.userId
     + " | @" + user.screenName
     + " | N: " + user.name 
     + " | FLWRs: " + user.followersCount
@@ -553,8 +553,7 @@ function printUserObj(title, user) {
     + " | LS: " + getTimeStamp(user.lastSeen)
     + " | FLWg: " + user.following 
     + " | 3C: @" + user.threeceeFollowing 
-    + " | CAT MAN: " + user.category
-    + " | CAT AUTO: " + user.categoryAuto
+    + " | CAT M: " + user.category + " - A: " + user.categoryAuto
   ));
 }
 
@@ -668,7 +667,7 @@ function initTwit(params, callback){
         twitterUserObj.followUserSet.delete(userId);
 
         console.log(chalk.black("TSS [ " + userIndex + "/" + twitterUserObj.followUserSet.size + " ]"
-          + " XXX UNFOLLOW | " + userId
+          + " XXX UNFOLLOWING | " + userId
         ));
 
         twitterUserObj.twit.post("friendships/destroy", {user_id: userId}, function(err, data, response) {
@@ -696,7 +695,11 @@ function initTwit(params, callback){
             }
           }
           else {
-           twitterUserObj.stats.error = false;
+            twitterUserObj.stats.error = false;
+            console.log(chalkTwitter("TSS | +++ UNFOLLOWED"
+              + " | 3C @:" + twitterUserObj.screenName
+              + "\n" + jsonPrint(data)
+            ));
            cb();
           }
         });
@@ -715,7 +718,7 @@ function initTwit(params, callback){
 
           if (user) {
 
-            printString = "TSS | [ " + userIndex + "/" + twitterUserObj.followUserSet.size + " ] @" + twitterUserObj.screenName + " | DB USER FOUND";
+            printString = "TSS | [ " + userIndex + "/" + twitterUserObj.followUserSet.size + " ] @" + twitterUserObj.screenName + " | DB HIT";
 
             printUserObj(printString, user);
 
@@ -748,10 +751,6 @@ function initTwit(params, callback){
 
           }
           else {
-            // console.log(chalkLog("TSS | [ " + userIndex + "/" + twitterUserObj.followUserSet.size + " ]"
-            //   + " @" + twitterUserObj.screenName 
-            //   + " | DB USER MISS  | UID: " + userId
-            // ));
             cb();
           }
         });
@@ -1976,7 +1975,7 @@ process.on("message", function(m) {
 
                   if (user) {
 
-                    printString = "TSS | [ " + userIndex + "/" + twitterUserObj.followUserSet.size + " ] @" + twitterUserObj.screenName + " | DB USER FOUND";
+                    printString = "TSS | [ " + userIndex + "/" + twitterUserObj.followUserSet.size + " ] @" + twitterUserObj.screenName + " | DB HIT";
 
                     printUserObj(printString, user);
 

@@ -10,6 +10,28 @@ let globalHistograms = {};
 
 let langAnalyzer; // undefined for now
 
+const fieldsTransmit = {
+  userId: 1,
+  nodeId: 1,
+  nodeType: 1,
+  name: 1,
+  screenName: 1,
+  screenNameLower: 1,
+  lastTweetId: 1,
+  mentions: 1,
+  rate: 1,
+  isTopTerm: 1,
+  category: 1,
+  categoryAuto: 1,
+  followersCount: 1,
+  friendsCount: 1,
+  statusesCount: 1,
+  following: 1,
+  threeceeFollowing: 1
+};
+
+const fieldsTransmitKeys = Object.keys(fieldsTransmit);
+
 const DEFAULT_MAX_TWEET_QUEUE = 500;
 const DEFAULT_TWITTER_QUEUE_INTERVAL = 10;
 const DEFAULT_CURSOR_BATCH_SIZE = 5000;

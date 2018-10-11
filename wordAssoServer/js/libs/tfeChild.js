@@ -1368,6 +1368,7 @@ async function initUserCategorizeQueueInterval(cnf){
 
           userServerController.findOneUser(updatedUser, {noInc: false, fields: fieldsTransmit}, function(err, dbUser){
             printUserObj("TFE | DB CAT", dbUser);
+            process.send({ op: "USER_CATEGORIZED", user: dbUser });
           });
 
         });

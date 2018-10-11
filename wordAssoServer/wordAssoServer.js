@@ -2383,38 +2383,45 @@ function loadConfigFile(params, callback) {
   }
 }
 
+// const defaultTrainingSetFolder = dropboxConfigDefaultFolder + "/trainingSets";
+// const defaultMaxInputHashmapFile = "maxInputHashMap.json";
+
+
 function loadMaxInputHashMap(params){
 
-  loadFile(params.folder, params.file, function(err, dataObj){
+  return new Promise(function(resolve, reject) {
 
-    if (err){
+    loadFile(params.folder, params.file, function(err, dataObj){
 
-      if (err.code === "ENOTFOUND") {
-        console.log(chalkError("WAS | *** LOAD MAX INPUT: FILE NOT FOUND"
-          + " | " + params.folder + "/" + params.file
-        ));
+      if (err){
+
+        if (err.code === "ENOTFOUND") {
+          console.log(chalkError("WAS | *** LOAD MAX INPUT: FILE NOT FOUND"
+            + " | " + params.folder + "/" + params.file
+          ));
+        }
+
+        reject(err);
+      }
+      if (dataObj.maxInputHashMap === undefined) {
+        console.log(chalkError("WAS | *** ERROR: loadMaxInputHashMap: loadFile: maxInputHashMap UNDEFINED"));
+        // return "dataObj.maxInputHashMap UNDEFINED";
+      }
+      if (dataObj.normalization === undefined) {
+        console.log(chalkError("WAS | *** ERROR: loadMaxInputHashMap: loadFile: normalization UNDEFINED"));
+        // return "dataObj.normalization UNDEFINED";
       }
 
-      return err;
-    }
-    if (dataObj.maxInputHashMap === undefined) {
-      console.log(chalkError("WAS | *** ERROR: loadMaxInputHashMap: loadFile: maxInputHashMap UNDEFINED"));
-      return "dataObj.maxInputHashMap UNDEFINED";
-    }
-    if (dataObj.normalization === undefined) {
-      console.log(chalkError("WAS | *** ERROR: loadMaxInputHashMap: loadFile: normalization UNDEFINED"));
-      return "dataObj.normalization UNDEFINED";
-    }
+      maxInputHashMap = dataObj.maxInputHashMap || {};
+      normalization = dataObj.normalization || {};
 
+      resolve();
 
-    maxInputHashMap = {};
-    maxInputHashMap = dataObj.maxInputHashMap;
-    normalization = {};
-    normalization = dataObj.normalization;
-
-    return;
+    });
 
   });
+
+
 }
 
 function loadYamlConfig(yamlFile, callback){
@@ -3254,7 +3261,7 @@ configEvents.on("INTERNET_NOT_READY", function internetNotReady() {
   }
 });
 
-configEvents.on("DB_CONNECT", function configEventDbConnect(){
+configEvents.on("DB_CONNECT", async function configEventDbConnect(){
 
   HashtagServerController = require("@threeceelabs/hashtag-server-controller");
 
@@ -3276,24 +3283,22 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
     console.log(chalkError("WAS | *** USC ERROR | " + err));
   });
 
-  initSocketNamespaces();
+  try{
 
-  initUnfollowableUserSet();
-  initFollowableSearchTermSet();
+    initSocketNamespaces();
+    await initUnfollowableUserSet();
+    await initFollowableSearchTermSet();
 
-  initCategoryHashmapsReady = false;
-
-  initCategoryHashmaps(function(err){
-
+    initCategoryHashmapsReady = false;
+    await initCategoryHashmaps();
     initCategoryHashmapsReady = true;
+    console.log(chalk.bold.green("WAS | +++ LOADED CATEGORY HASHMAPS"));
+  }
+  catch(err){
+    console.log(chalkError("WAS | *** ERROR: LOAD CATEGORY HASHMAPS: " + err));
+    console.error(err);
+  }
 
-    if (err) {
-      console.log(chalkError("WAS | *** ERROR: LOAD CATEGORY HASHMAPS: " + err));
-    }
-    else {
-      console.log(chalk.bold.green("+++ LOADED CATEGORY HASHMAPS"));
-    }
-  });
 });
 
 
@@ -3717,46 +3722,51 @@ function initFollowableSearchTermSet(){
 
   console.log(chalkBlue("WAS | INIT FOLLOWABLE SEARCH TERM SET"));
 
-  loadFile(dropboxConfigDefaultFolder, followableSearchTermFile, function(err, followableSearchTermSetArray){
+  return new Promise(function(resolve, reject) {
 
-    if (err) {
-      if (err.status === 409) {
-        console.log(chalkError("WAS | *** LOAD FOLLOWABLE SEARCH TERM ERROR: FILE NOT FOUND:  " 
-          + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
-        ));
+    loadFile(dropboxConfigDefaultFolder, followableSearchTermFile, function(err, followableSearchTermSetArray){
+
+      if (err) {
+        if (err.status === 409) {
+          console.log(chalkError("WAS | *** LOAD FOLLOWABLE SEARCH TERM ERROR: FILE NOT FOUND:  " 
+            + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
+          ));
+        }
+        else {
+          console.log(chalkError("WAS | *** LOAD FOLLOWABLE SEARCH TERM ERROR: STATUS: " + err.status));
+          console.error(err);
+        }
+
+        initFollowableSearchTerms();
+        resolve();
       }
-      else {
-        console.log(chalkError("WAS | *** LOAD FOLLOWABLE SEARCH TERM ERROR: STATUS: " + err.status));
-        console.log(err);
-      }
+      else if (followableSearchTermSetArray) {
 
-      initFollowableSearchTerms();
-
-    }
-    else if (followableSearchTermSetArray) {
-
-      console.log(chalkLog("WAS | LOADED FOLLOWABLE SEARCH TERM FILE"
-        + " | " + followableSearchTermSetArray.length + " SEARCH TERMS"
-        + " | " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
-      ));
-
-      async.each(followableSearchTermSetArray, function(searchTerm, cb){
-
-        followableSearchTermSet.add(searchTerm);
-        cb();
-
-      }, function(err){
-
-        console.log(chalkLog("WAS | FOLLOWABLE SEARCH TERM SET"
-          + " | " + followableSearchTermSet.size + " SEARCH TERMS"
-          + " | " + followableSearchTermSetArray.length + " SEARCH TERMS IN FILE"
+        console.log(chalkLog("WAS | LOADED FOLLOWABLE SEARCH TERM FILE"
+          + " | " + followableSearchTermSetArray.length + " SEARCH TERMS"
           + " | " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
         ));
 
-        initFollowableSearchTerms();
-      });
+        async.each(followableSearchTermSetArray, function(searchTerm, cb){
 
-    }
+          followableSearchTermSet.add(searchTerm);
+          cb();
+
+        }, function(err){
+
+          console.log(chalkLog("WAS | FOLLOWABLE SEARCH TERM SET"
+            + " | " + followableSearchTermSet.size + " SEARCH TERMS"
+            + " | " + followableSearchTermSetArray.length + " SEARCH TERMS IN FILE"
+            + " | " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
+          ));
+
+          initFollowableSearchTerms();
+          resolve();
+        });
+
+      }
+    });
+
   });
 }
 
@@ -3770,82 +3780,98 @@ function initUnfollowableUserSet(){
 
   console.log(chalkLog("WAS | INIT UNFOLLOWABLE USER SET"));
 
-  loadFile(dropboxConfigDefaultFolder, unfollowableUserFile, function(err, unfollowableUserSetArray){
-    if (err) {
-      if (err.code === "ENOTFOUND") {
-        console.log(chalkError("WAS | *** LOAD UNFOLLOWABLE USERS ERROR: FILE NOT FOUND:  " 
-          + dropboxConfigDefaultFolder + "/" + unfollowableUserFile
-        ));
+  return new Promise(function(resolve, reject) {
+
+    loadFile(dropboxConfigDefaultFolder, unfollowableUserFile, function(err, unfollowableUserSetArray){
+      if (err) {
+        if (err.code === "ENOTFOUND") {
+          console.log(chalkError("WAS | *** LOAD UNFOLLOWABLE USERS ERROR: FILE NOT FOUND:  " 
+            + dropboxConfigDefaultFolder + "/" + unfollowableUserFile
+          ));
+        }
+        else {
+          console.log(chalkError("WAS | *** LOAD UNFOLLOWABLE USERS ERROR: " + err));
+        }
+        console.error(err);
+        reject(err);
       }
-      else {
-        console.log(chalkError("WAS | *** LOAD UNFOLLOWABLE USERS ERROR: " + err));
-      }
-    }
-    else if (unfollowableUserSetArray) {
+      
+      if (unfollowableUserSetArray) {
 
-      console.log(chalkLog("WAS | LOADED UNFOLLOWABLE USERS FILE"
-        + " | " + unfollowableUserSetArray.length + " USERS"
-        + " | " + dropboxConfigDefaultFolder + "/" + unfollowableUserFile
-      ));
-
-      let query;
-      let update;
-      let numUnfollowed = 0;
-      let numAlreadyUnfollowed = 0;
-
-      async.eachSeries(unfollowableUserSetArray, function(userId, cb){
-
-        unfollowableUserSet.add(userId);
-
-        query = { nodeId: userId, following: true };
-
-        update = {};
-        update["$set"] = { following: false, threeceeFollowing: false };
-
-        const options = {
-          new: true,
-          upsert: false
-        };
-
-        User.findOneAndUpdate(query, update, options, function(err, userUpdated){
-
-          if (err) {
-            console.log(chalkError("WAS | *** initUnfollowableUserSet | USER FIND ONE ERROR: " + err));
-            return cb(err, userId);
-          }
-          
-          if (userUpdated){
-
-            numUnfollowed += 1;
-            console.log(chalkLog("WAS | XXX UNFOLLOW"
-              + " [" + numUnfollowed + "/" + numAlreadyUnfollowed + "/" + unfollowableUserSetArray.length + "]"
-              + " | " + printUser({user: userUpdated})
-            ));
-
-            cb(null, userUpdated);
-          }
-          else {
-            numAlreadyUnfollowed += 1;
-            if (configuration.verbose){
-              console.log(chalkLog("WAS | ... ALREADY UNFOLLOWED"
-                + " [" + numUnfollowed + "/" + numAlreadyUnfollowed + "/" + unfollowableUserSetArray.length + "]"
-                + " | ID: " + userId
-              ));
-            }
-            cb(null, null);
-          }
-        });
-
-      }, function(err){
-        console.log(chalkBlue("WAS | INIT UNFOLLOWABLE USERS"
-          + " | " + numUnfollowed + " NEW UNFOLLOWED"
-          + " | " + numAlreadyUnfollowed + " ALREADY UNFOLLOWED"
-          + " | " + unfollowableUserSet.size + " USERS IN SET"
-          + " | " + unfollowableUserSetArray.length + " USERS IN FILE"
+        console.log(chalkLog("WAS | LOADED UNFOLLOWABLE USERS FILE"
+          + " | " + unfollowableUserSetArray.length + " USERS"
           + " | " + dropboxConfigDefaultFolder + "/" + unfollowableUserFile
         ));
-      });
-    }
+
+        let query;
+        let update;
+        let numUnfollowed = 0;
+        let numAlreadyUnfollowed = 0;
+
+        async.eachSeries(unfollowableUserSetArray, function(userId, cb){
+
+          unfollowableUserSet.add(userId);
+
+          query = { nodeId: userId, following: true };
+
+          update = {};
+          update["$set"] = { following: false, threeceeFollowing: false };
+
+          const options = {
+            new: true,
+            upsert: false
+          };
+
+          User.findOneAndUpdate(query, update, options, function(err, userUpdated){
+
+            if (err) {
+              console.log(chalkError("WAS | *** initUnfollowableUserSet | USER FIND ONE ERROR: " + err));
+              return cb(err, userId);
+            }
+            
+            if (userUpdated){
+
+              numUnfollowed += 1;
+              console.log(chalkLog("WAS | XXX UNFOLLOW"
+                + " [" + numUnfollowed + "/" + numAlreadyUnfollowed + "/" + unfollowableUserSetArray.length + "]"
+                + " | " + printUser({user: userUpdated})
+              ));
+
+              cb(null, userUpdated);
+            }
+            else {
+              numAlreadyUnfollowed += 1;
+              if (configuration.verbose){
+                console.log(chalkLog("WAS | ... ALREADY UNFOLLOWED"
+                  + " [" + numUnfollowed + "/" + numAlreadyUnfollowed + "/" + unfollowableUserSetArray.length + "]"
+                  + " | ID: " + userId
+                ));
+              }
+              cb(null, null);
+            }
+          });
+
+        }, function(err){
+
+          if (err) {
+            reject(err);
+          }
+          console.log(chalkBlue("WAS | INIT UNFOLLOWABLE USERS"
+            + " | " + numUnfollowed + " NEW UNFOLLOWED"
+            + " | " + numAlreadyUnfollowed + " ALREADY UNFOLLOWED"
+            + " | " + unfollowableUserSet.size + " USERS IN SET"
+            + " | " + unfollowableUserSetArray.length + " USERS IN FILE"
+            + " | " + dropboxConfigDefaultFolder + "/" + unfollowableUserFile
+          ));
+          resolve();
+        });
+      }
+      else {
+        console.log(chalkAlert("WAS | ??? LOAD UNFOLLOWABLE USERS EMPTY SET???"));
+        resolve();
+      }
+    });
+
   });
 }
 
@@ -5097,6 +5123,8 @@ function initFollowableSearchTerms(){
   console.log(chalkLog("WAS | FOLLOWABLE SEARCH TERM REGEX INITIALIZED"
     + " | " + followableSearchTermSet.size + " SEARCH TERMS"
   ));
+
+  return;
 }
 
 let userCategorizeable = function(user){
@@ -6287,6 +6315,8 @@ let keySortReady = true;
 
 function initKeySortInterval(interval){
 
+  console.log(chalkInfo("WAS | INIT KEY SORT INTERVAL: " + msToTime(interval)));
+
   clearInterval(keySortInterval);
 
   keySortReady = true;
@@ -6323,6 +6353,8 @@ function initKeySortInterval(interval){
       });
     }
   }, interval);
+
+  return;
 }
 
 function initTfePingInterval(interval){
@@ -6729,195 +6761,201 @@ async function initTfeChild(params){
 
   console.log(chalk.bold.black("WAS | INIT TFE CHILD\n" + jsonPrint(params)));
 
-  let err = await loadMaxInputHashMap({folder: dropboxConfigDefaultTrainingSetsFolder, file: maxInputHashMapFile});
 
-  if (err) {
-    if (err.code && (err.code === "ENOTFOUND")) {
-      console.log(chalkError("WAS | *** LOAD MAX INPUT ERROR: FILE NOT FOUND"
-        + " | " + dropboxConfigDefaultTrainingSetsFolder + "/" + maxInputHashMapFile
+  return new Promise(async function(resolve, reject){
+
+    try {
+      await loadMaxInputHashMap({folder: dropboxConfigDefaultTrainingSetsFolder, file: maxInputHashMapFile});
+    }
+    catch (err){
+      if (err.code && (err.code === "ENOTFOUND")) {
+        console.log(chalkError("WAS | *** LOAD MAX INPUT ERROR: FILE NOT FOUND"
+          + " | " + dropboxConfigDefaultTrainingSetsFolder + "/" + maxInputHashMapFile
+        ));
+      }
+      else {
+        console.log(chalkError("WAS | *** LOAD MAX INPUT ERROR: " + err));
+      }
+      console.error(err);
+      // throw new Error(err);
+    }
+
+    console.log(chalkInfo("WAS | LOADED MAX INPUT HASHMAP + NORMALIZATION"));
+    console.log(chalkInfo("WAS | MAX INPUT HASHMAP INPUT TYPES: " + Object.keys(maxInputHashMap)));
+    console.log(chalkInfo("WAS | NORMALIZATION INPUT TYPES: " + Object.keys(normalization)));
+
+    let deltaTfeMessageStart = process.hrtime();
+    let deltaTfeMessage = process.hrtime(deltaTfeMessageStart);
+
+    const tfe = cp.fork(`${__dirname}/js/libs/tfeChild.js`);
+
+    childrenHashMap[params.childId] = {};
+    childrenHashMap[params.childId].pid = tfe.pid;
+    childrenHashMap[params.childId].childId = params.childId;
+    childrenHashMap[params.childId].title = "wa_node_tfe";
+    childrenHashMap[params.childId].status = "NEW";
+    childrenHashMap[params.childId].errors = 0;
+
+    tfe.on("message", function tfeMessageRx(m){
+
+      childrenHashMap[params.childId].status = "RUNNING";  
+
+      debug(chalkLog("TFE RX MESSAGE"
+        + " | OP: " + m.op
       ));
-    }
-    else {
-      console.log(chalkError("WAS | *** LOAD MAX INPUT ERROR: " + err));
-    }
-    throw new Error(err);
-  }
 
-  console.log(chalkInfo("WAS | LOADED MAX INPUT HASHMAP + NORMALIZATION"));
-  console.log(chalkInfo("WAS | MAX INPUT HASHMAP INPUT TYPES: " + Object.keys(maxInputHashMap)));
-  console.log(chalkInfo("WAS | NORMALIZATION INPUT TYPES: " + Object.keys(normalization)));
+      switch (m.op) {
 
-  let deltaTfeMessageStart = process.hrtime();
-  let deltaTfeMessage = process.hrtime(deltaTfeMessageStart);
-
-  const tfe = cp.fork(`${__dirname}/js/libs/tfeChild.js`);
-
-  childrenHashMap[params.childId] = {};
-  childrenHashMap[params.childId].pid = tfe.pid;
-  childrenHashMap[params.childId].childId = params.childId;
-  childrenHashMap[params.childId].title = "wa_node_tfe";
-  childrenHashMap[params.childId].status = "NEW";
-  childrenHashMap[params.childId].errors = 0;
-
-  tfe.on("message", function tfeMessageRx(m){
-
-    childrenHashMap[params.childId].status = "RUNNING";  
-
-    debug(chalkLog("TFE RX MESSAGE"
-      + " | OP: " + m.op
-    ));
-
-    switch (m.op) {
-
-      case "ERROR":
-        console.log(chalkError("WAS | <TFE | ERROR"
-          + " | ERROR TYPE: " + m.errorType
-          + "\n" + jsonPrint(m.error)
-        ));
-
-        if (m.errorType === "TWITTER_UNAUTHORIZED") {
-
-          threeceeTwitter[m.threeceeUser].twitterErrors += 1;
-          threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
-          threeceeTwitter[m.threeceeUser].twitterAuthorizationErrorFlag = m.error;
-
-        }
-        else if (m.errorType === "TWITTER_TOKEN") {
-
-          threeceeTwitter[m.threeceeUser].twitterErrors += 1;
-          threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
-          threeceeTwitter[m.threeceeUser].twitterTokenErrorFlag = m.error;
-
-        }
-        else {
-
-          threeceeTwitter[m.threeceeUser].twitterErrors += 1;
-          threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
-
-        }
-
-      break;
-
-      case "TWITTER_STATS":
-
-        console.log(chalkInfo("WAS | <TFE | TWITTER STATS"
-          + " | 3C @" + m.threeceeUser
-          + " | FOLLOWING: " + m.twitterFollowing
-        ));
-
-        threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
-
-      break;
-
-      case "FOLLOW_LIMIT":
-
-        console.log(chalkInfo("WAS | <TFE | FOLLOW LIMIT"
-          + " | 3C @" + m.threeceeUser
-          + " | LIMIT: " + getTimeStamp(m.twitterFollowLimit)
-          + " | NOW: " + getTimeStamp()
-        ));
-
-        threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
-        threeceeTwitter[m.threeceeUser].twitterFollowLimit = true;
-
-      break;
-
-      case "TWEET":
-        deltaTfeMessage = process.hrtime(deltaTfeMessageStart);
-        if (deltaTfeMessage[0] > 0) { console.log(chalkAlert("WAS | *** TFE RX DELTA: " + deltaTfeMessage[0] + "." + deltaTfeMessage[1])); }
-        deltaTfeMessageStart = process.hrtime();
-        if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + m.tweet.id_str + " | @" + m.tweet.user.screen_name)); }
-        socketRxTweet(m.tweet);
-      break;
-
-      case "PONG":
-        tfePongReceived = m.pongId;
-        childrenHashMap[params.childId].status = "RUNNING";
-        if (configuration.verbose) {
-          console.log(chalkInfo("WAS | <TFE | PONG"
-            + " | NOW: " + getTimeStamp()
-            + " | PONG ID: " + getTimeStamp(m.pongId)
-            + " | RESPONSE TIME: " + msToTime(moment().valueOf() - m.pongId)
+        case "ERROR":
+          console.log(chalkError("WAS | <TFE | ERROR"
+            + " | ERROR TYPE: " + m.errorType
+            + "\n" + jsonPrint(m.error)
           ));
-        }
-      break;
 
-      default:
-        console.log(chalkError("WAS | TFE | *** ERROR *** UNKNOWN OP: " + m.op));
-    }
-  });
+          if (m.errorType === "TWITTER_UNAUTHORIZED") {
 
-  tfe.on("error", function tfeError(err){
-    console.log(chalkError(getTimeStamp()
-      + " | *** TFE ERROR ***"
-      + " \n" + jsonPrint(err)
-    ));
-    statsObj.tfeSendReady = false;
-    statsObj.tfeChildReady = false;
-    clearInterval(tfePingInterval);
-    childrenHashMap[params.childId].status = "ERROR";
-  });
+            threeceeTwitter[m.threeceeUser].twitterErrors += 1;
+            threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
+            threeceeTwitter[m.threeceeUser].twitterAuthorizationErrorFlag = m.error;
 
-  tfe.on("exit", function tfeExit(code){
-    console.log(chalkError(getTimeStamp()
-      + " | *** TFE EXIT ***"
-      + " | EXIT CODE: " + code
-    ));
-    statsObj.tfeSendReady = false;
-    statsObj.tfeChildReady = false;
-    clearInterval(tfePingInterval);
-    childrenHashMap[params.childId].status = "EXIT";
-  });
+          }
+          else if (m.errorType === "TWITTER_TOKEN") {
 
-  tfe.on("close", function tfeClose(code){
-    console.log(chalkError(getTimeStamp()
-      + " | *** TFE CLOSE ***"
-      + " | EXIT CODE: " + code
-    ));
-    statsObj.tfeSendReady = false;
-    statsObj.tfeChildReady = false;
-    clearInterval(tfePingInterval);
-    childrenHashMap[params.childId].status = "CLOSE";
-  });
+            threeceeTwitter[m.threeceeUser].twitterErrors += 1;
+            threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
+            threeceeTwitter[m.threeceeUser].twitterTokenErrorFlag = m.error;
 
-  childrenHashMap[params.childId].child = tfe;
+          }
+          else {
 
-  statsObj.tfeChildReady = true;
+            threeceeTwitter[m.threeceeUser].twitterErrors += 1;
+            threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
 
-  tfeChild = tfe;
+          }
 
-  tfeChild.send({
-    op: "INIT",
-    title: "wa_node_tfe",
-    networkObj: bestNetworkObj,
-    maxInputHashMap: maxInputHashMap,
-    normalization: normalization,
-    interval: configuration.tfeInterval,
-    verbose: false
-  }, function tfeMessageRxError(err){
-    if (err) {
-      console.log(chalkError("WAS | *** TFE SEND ERROR"
-        + " | " + err
+        break;
+
+        case "TWITTER_STATS":
+
+          console.log(chalkInfo("WAS | <TFE | TWITTER STATS"
+            + " | 3C @" + m.threeceeUser
+            + " | FOLLOWING: " + m.twitterFollowing
+          ));
+
+          threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
+
+        break;
+
+        case "FOLLOW_LIMIT":
+
+          console.log(chalkInfo("WAS | <TFE | FOLLOW LIMIT"
+            + " | 3C @" + m.threeceeUser
+            + " | LIMIT: " + getTimeStamp(m.twitterFollowLimit)
+            + " | NOW: " + getTimeStamp()
+          ));
+
+          threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
+          threeceeTwitter[m.threeceeUser].twitterFollowLimit = true;
+
+        break;
+
+        case "TWEET":
+          deltaTfeMessage = process.hrtime(deltaTfeMessageStart);
+          if (deltaTfeMessage[0] > 0) { console.log(chalkAlert("WAS | *** TFE RX DELTA: " + deltaTfeMessage[0] + "." + deltaTfeMessage[1])); }
+          deltaTfeMessageStart = process.hrtime();
+          if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + m.tweet.id_str + " | @" + m.tweet.user.screen_name)); }
+          socketRxTweet(m.tweet);
+        break;
+
+        case "PONG":
+          tfePongReceived = m.pongId;
+          childrenHashMap[params.childId].status = "RUNNING";
+          if (configuration.verbose) {
+            console.log(chalkInfo("WAS | <TFE | PONG"
+              + " | NOW: " + getTimeStamp()
+              + " | PONG ID: " + getTimeStamp(m.pongId)
+              + " | RESPONSE TIME: " + msToTime(moment().valueOf() - m.pongId)
+            ));
+          }
+        break;
+
+        default:
+          console.log(chalkError("WAS | TFE | *** ERROR *** UNKNOWN OP: " + m.op));
+      }
+    });
+
+    tfe.on("error", function tfeError(err){
+      console.log(chalkError(getTimeStamp()
+        + " | *** TFE ERROR ***"
+        + " \n" + jsonPrint(err)
       ));
       statsObj.tfeSendReady = false;
       statsObj.tfeChildReady = false;
       clearInterval(tfePingInterval);
       childrenHashMap[params.childId].status = "ERROR";
-    }
-    else {
-      statsObj.tfeSendReady = true;
-      statsObj.tfeChildReady = true;
-      childrenHashMap[params.childId].status = "INIT";
+    });
+
+    tfe.on("exit", function tfeExit(code){
+      console.log(chalkError(getTimeStamp()
+        + " | *** TFE EXIT ***"
+        + " | EXIT CODE: " + code
+      ));
+      statsObj.tfeSendReady = false;
+      statsObj.tfeChildReady = false;
       clearInterval(tfePingInterval);
-      setTimeout(function(){
-        initTfePingInterval(TFE_PING_INTERVAL);
-      }, 1000);
-    }
+      childrenHashMap[params.childId].status = "EXIT";
+    });
+
+    tfe.on("close", function tfeClose(code){
+      console.log(chalkError(getTimeStamp()
+        + " | *** TFE CLOSE ***"
+        + " | EXIT CODE: " + code
+      ));
+      statsObj.tfeSendReady = false;
+      statsObj.tfeChildReady = false;
+      clearInterval(tfePingInterval);
+      childrenHashMap[params.childId].status = "CLOSE";
+    });
+
+    childrenHashMap[params.childId].child = tfe;
+
+    statsObj.tfeChildReady = true;
+
+    tfeChild = tfe;
+
+    tfeChild.send({
+      op: "INIT",
+      title: "wa_node_tfe",
+      networkObj: bestNetworkObj,
+      maxInputHashMap: maxInputHashMap,
+      normalization: normalization,
+      interval: configuration.tfeInterval,
+      verbose: false
+    }, function tfeMessageRxError(err){
+      if (err) {
+        console.log(chalkError("WAS | *** TFE SEND ERROR"
+          + " | " + err
+        ));
+        console.error(err);
+        statsObj.tfeSendReady = false;
+        statsObj.tfeChildReady = false;
+        clearInterval(tfePingInterval);
+        childrenHashMap[params.childId].status = "ERROR";
+        reject(err);
+      }
+      else {
+        statsObj.tfeSendReady = true;
+        statsObj.tfeChildReady = true;
+        childrenHashMap[params.childId].status = "INIT";
+        clearInterval(tfePingInterval);
+        setTimeout(function(){
+          initTfePingInterval(TFE_PING_INTERVAL);
+        }, 1000);
+        resolve();
+      }
+    });
+
   });
-
-
-
-  return; ;
 
 }
 
@@ -7142,173 +7180,181 @@ async function initTweetParser(params, callback){
 function initRateQinterval(interval){
 
   console.log(chalk.bold.black("WAS | INIT RATE QUEUE INTERVAL | " + msToTime(interval)));
-  
-  clearInterval(updateMetricsInterval);
 
-  statsObj.nodesPerMin = 0.0;
-  statsObj.nodesPerSec = 0.0;
-  statsObj.maxNodesPerMin = 0.0;
+  return new Promise(function(resolve, reject){
 
-  statsObj.twitter.tweetsPerMin = 0.0;
-  statsObj.twitter.maxTweetsPerMin = 0.0;
-  statsObj.twitter.maxTweetsPerMinTime = 0;
+    clearInterval(updateMetricsInterval);
 
-  statsObj.queues.transmitNodeQueue = transmitNodeQueue.length;
-  statsObj.queues.tweetRxQueue = tweetRxQueue.length;
-  statsObj.queues.sorterMessageRxQueue = {};
-  statsObj.queues.sorterMessageRxQueue.ready = sorterMessageRxReady;
-  statsObj.queues.sorterMessageRxQueue.length = sorterMessageRxQueue.length;
-  statsObj.queues.tweetParserMessageRxQueue = tweetParserMessageRxQueue.length;
+    statsObj.nodesPerMin = 0.0;
+    statsObj.nodesPerSec = 0.0;
+    statsObj.maxNodesPerMin = 0.0;
 
-  
-  let queueNames;
-
-  let updateTimeSeriesCount = 0;
-
-  let paramsSorterOverall = {};
-  let paramsSorter = {};
-
-  updateMetricsInterval = setInterval(function updateMetrics () {
+    statsObj.twitter.tweetsPerMin = 0.0;
+    statsObj.twitter.maxTweetsPerMin = 0.0;
+    statsObj.twitter.maxTweetsPerMinTime = 0;
 
     statsObj.queues.transmitNodeQueue = transmitNodeQueue.length;
     statsObj.queues.tweetRxQueue = tweetRxQueue.length;
-    statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.length;
+    statsObj.queues.sorterMessageRxQueue = {};
+    statsObj.queues.sorterMessageRxQueue.ready = sorterMessageRxReady;
+    statsObj.queues.sorterMessageRxQueue.length = sorterMessageRxQueue.length;
     statsObj.queues.tweetParserMessageRxQueue = tweetParserMessageRxQueue.length;
 
-    updateTimeSeriesCount += 1;
+    
+    let queueNames;
 
-    // if (updateTimeSeriesCount % RATE_QUEUE_INTERVAL_MODULO === 0){
-    if (updateTimeSeriesCount % configuration.rateQueueIntervalModulo === 0){
+    let updateTimeSeriesCount = 0;
 
-      cacheObjKeys.forEach(function statsCachesUpdate(cacheName){
-        if (cacheName === "nodesPerMinuteTopTermNodeTypeCache") {
-          DEFAULT_NODE_TYPES.forEach(function(nodeType){
-            statsObj.caches[cacheName][nodeType].stats.keys = cacheObj[cacheName][nodeType].getStats().keys;
+    let paramsSorterOverall = {};
+    let paramsSorter = {};
 
-            if (statsObj.caches[cacheName][nodeType].stats.keys > statsObj.caches[cacheName][nodeType].stats.keysMax) {
-              statsObj.caches[cacheName][nodeType].stats.keysMax = statsObj.caches[cacheName][nodeType].stats.keys;
-              statsObj.caches[cacheName][nodeType].stats.keysMaxTime = moment().valueOf();
+    updateMetricsInterval = setInterval(function updateMetrics () {
+
+      statsObj.queues.transmitNodeQueue = transmitNodeQueue.length;
+      statsObj.queues.tweetRxQueue = tweetRxQueue.length;
+      statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.length;
+      statsObj.queues.tweetParserMessageRxQueue = tweetParserMessageRxQueue.length;
+
+      updateTimeSeriesCount += 1;
+
+      // if (updateTimeSeriesCount % RATE_QUEUE_INTERVAL_MODULO === 0){
+      if (updateTimeSeriesCount % configuration.rateQueueIntervalModulo === 0){
+
+        cacheObjKeys.forEach(function statsCachesUpdate(cacheName){
+          if (cacheName === "nodesPerMinuteTopTermNodeTypeCache") {
+            DEFAULT_NODE_TYPES.forEach(function(nodeType){
+              statsObj.caches[cacheName][nodeType].stats.keys = cacheObj[cacheName][nodeType].getStats().keys;
+
+              if (statsObj.caches[cacheName][nodeType].stats.keys > statsObj.caches[cacheName][nodeType].stats.keysMax) {
+                statsObj.caches[cacheName][nodeType].stats.keysMax = statsObj.caches[cacheName][nodeType].stats.keys;
+                statsObj.caches[cacheName][nodeType].stats.keysMaxTime = moment().valueOf();
+                console.log(chalkInfo("WAS | MAX CACHE"
+                  + " | " + cacheName + " - " + nodeType
+                  + " | Ks: " + statsObj.caches[cacheName][nodeType].stats.keys
+                ));
+              }
+            });
+          }
+          else {
+
+            statsObj.caches[cacheName].stats.keys = cacheObj[cacheName].getStats().keys;
+
+            if (statsObj.caches[cacheName].stats.keys > statsObj.caches[cacheName].stats.keysMax) {
+              statsObj.caches[cacheName].stats.keysMax = statsObj.caches[cacheName].stats.keys;
+              statsObj.caches[cacheName].stats.keysMaxTime = moment().valueOf();
               console.log(chalkInfo("WAS | MAX CACHE"
-                + " | " + cacheName + " - " + nodeType
-                + " | Ks: " + statsObj.caches[cacheName][nodeType].stats.keys
+                + " | " + cacheName
+                + " | Ks: " + statsObj.caches[cacheName].stats.keys
               ));
             }
-          });
-        }
-        else {
+          }
+        });
 
-          statsObj.caches[cacheName].stats.keys = cacheObj[cacheName].getStats().keys;
-
-          if (statsObj.caches[cacheName].stats.keys > statsObj.caches[cacheName].stats.keysMax) {
-            statsObj.caches[cacheName].stats.keysMax = statsObj.caches[cacheName].stats.keys;
-            statsObj.caches[cacheName].stats.keysMaxTime = moment().valueOf();
-            console.log(chalkInfo("WAS | MAX CACHE"
-              + " | " + cacheName
-              + " | Ks: " + statsObj.caches[cacheName].stats.keys
+        if (adminNameSpace) {
+          statsObj.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
+          if (statsObj.admin.connected > statsObj.admin.connectedMax) {
+            statsObj.admin.connectedMaxTime = moment().valueOf();
+            statsObj.admin.connectedMax = statsObj.admin.connected;
+            console.log(chalkInfo("WAS | MAX ADMINS"
+             + " | " + statsObj.admin.connected
+             + " | " + getTimeStamp()
             ));
           }
         }
-      });
 
-      if (adminNameSpace) {
-        statsObj.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
-        if (statsObj.admin.connected > statsObj.admin.connectedMax) {
-          statsObj.admin.connectedMaxTime = moment().valueOf();
-          statsObj.admin.connectedMax = statsObj.admin.connected;
-          console.log(chalkInfo("WAS | MAX ADMINS"
-           + " | " + statsObj.admin.connected
-           + " | " + getTimeStamp()
-          ));
+        if (utilNameSpace) {
+          statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
+          if (statsObj.entity.util.connected > statsObj.entity.util.connectedMax) {
+            statsObj.entity.util.connectedMaxTime = moment().valueOf();
+            statsObj.entity.util.connectedMax = statsObj.entity.util.connected;
+            console.log(chalkInfo("WAS | MAX UTILS"
+             + " | " + statsObj.entity.util.connected
+             + " | " + getTimeStamp()
+            ));
+          }
         }
-      }
 
-      if (utilNameSpace) {
-        statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
-        if (statsObj.entity.util.connected > statsObj.entity.util.connectedMax) {
-          statsObj.entity.util.connectedMaxTime = moment().valueOf();
-          statsObj.entity.util.connectedMax = statsObj.entity.util.connected;
-          console.log(chalkInfo("WAS | MAX UTILS"
-           + " | " + statsObj.entity.util.connected
-           + " | " + getTimeStamp()
-          ));
+        if (adminNameSpace) {
+
+          statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
+
+          if (statsObj.entity.viewer.connected > statsObj.entity.viewer.connectedMax) {
+
+            statsObj.entity.viewer.connectedMaxTime = moment().valueOf();
+            statsObj.entity.viewer.connectedMax = statsObj.entity.viewer.connected;
+
+            console.log(chalkInfo("WAS | MAX VIEWERS"
+             + " | " + statsObj.entity.viewer.connected
+             + " | " + getTimeStamp()
+            ));
+
+          }
         }
-      }
-
-      if (adminNameSpace) {
-
-        statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
-
-        if (statsObj.entity.viewer.connected > statsObj.entity.viewer.connectedMax) {
-
-          statsObj.entity.viewer.connectedMaxTime = moment().valueOf();
-          statsObj.entity.viewer.connectedMax = statsObj.entity.viewer.connected;
-
-          console.log(chalkInfo("WAS | MAX VIEWERS"
-           + " | " + statsObj.entity.viewer.connected
-           + " | " + getTimeStamp()
-          ));
-
-        }
-      }
 
 
-      DEFAULT_NODE_TYPES.forEach(function(nodeType){
+        DEFAULT_NODE_TYPES.forEach(function(nodeType){
 
-        paramsSorter = {};
-        paramsSorter.op = "SORT";
-        paramsSorter.nodeType = nodeType;
-        paramsSorter.sortKey = metricsRate;
-        paramsSorter.max = configuration.maxTopTerms;
-        paramsSorter.obj = {};
+          paramsSorter = {};
+          paramsSorter.op = "SORT";
+          paramsSorter.nodeType = nodeType;
+          paramsSorter.sortKey = metricsRate;
+          paramsSorter.max = configuration.maxTopTerms;
+          paramsSorter.obj = {};
 
-        async.each(Object.keys(nodeMeterType[nodeType]), function sorterParams(meterId, cb){
+          async.each(Object.keys(nodeMeterType[nodeType]), function sorterParams(meterId, cb){
 
-          if (!nodeMeterType[nodeType][meterId]) {
-            console.log(chalkError("WAS | *** ERROR NULL nodeMeterType[" + nodeType + "]: " + meterId));
+            if (!nodeMeterType[nodeType][meterId]) {
+              console.log(chalkError("WAS | *** ERROR NULL nodeMeterType[" + nodeType + "]: " + meterId));
+            }
+
+            paramsSorter.obj[meterId] = pick(nodeMeterType[nodeType][meterId].toJSON(), paramsSorter.sortKey);
+
+            cb();
+
+          }, function(err){
+
+            if (err) {
+              console.log(chalkError("WAS | ERROR RATE QUEUE INTERVAL\n" + err ));
+            }
+
+            keySortQueue.push(paramsSorter);
+
+          });
+        });
+
+        paramsSorterOverall = {};
+        paramsSorterOverall.op = "SORT";
+        paramsSorterOverall.nodeType = "overall";
+        paramsSorterOverall.sortKey = metricsRate;
+        paramsSorterOverall.max = configuration.maxTopTerms;
+        paramsSorterOverall.obj = {};
+
+        async.each(Object.keys(nodeMeter), function sorterParams(meterId, cb){
+
+          if (!nodeMeter[meterId]) {
+            console.log(chalkError("WAS | *** ERROR NULL nodeMeter[meterId]: " + meterId));
           }
 
-          paramsSorter.obj[meterId] = pick(nodeMeterType[nodeType][meterId].toJSON(), paramsSorter.sortKey);
+          paramsSorterOverall.obj[meterId] = pick(nodeMeter[meterId].toJSON(), paramsSorterOverall.sortKey);
 
           cb();
-
         }, function(err){
-
           if (err) {
             console.log(chalkError("WAS | ERROR RATE QUEUE INTERVAL\n" + err ));
           }
 
-          keySortQueue.push(paramsSorter);
-
+          keySortQueue.push(paramsSorterOverall);
         });
-      });
 
-      paramsSorterOverall = {};
-      paramsSorterOverall.op = "SORT";
-      paramsSorterOverall.nodeType = "overall";
-      paramsSorterOverall.sortKey = metricsRate;
-      paramsSorterOverall.max = configuration.maxTopTerms;
-      paramsSorterOverall.obj = {};
+      }
 
-      async.each(Object.keys(nodeMeter), function sorterParams(meterId, cb){
+    }, interval);
 
-        if (!nodeMeter[meterId]) {
-          console.log(chalkError("WAS | *** ERROR NULL nodeMeter[meterId]: " + meterId));
-        }
+    resolve();
 
-        paramsSorterOverall.obj[meterId] = pick(nodeMeter[meterId].toJSON(), paramsSorterOverall.sortKey);
+  });
 
-        cb();
-      }, function(err){
-        if (err) {
-          console.log(chalkError("WAS | ERROR RATE QUEUE INTERVAL\n" + err ));
-        }
 
-        keySortQueue.push(paramsSorterOverall);
-      });
-
-    }
-
-  }, interval);
 }
 
 let loadBestNetworkInterval;
@@ -7375,7 +7421,7 @@ function loadBestRuntimeNetwork(callback){
           nnObj.matchRate = (nnObj.matchRate !== undefined) ? nnObj.matchRate : 0;
           bestNetworkObj = {};
           bestNetworkObj = deepcopy(nnObj);
-          console.log(chalkAlert("WAS | +++ LOADED BEST NETWORK: " + bestNetworkObj.networkId));
+          console.log(chalkLog("WAS | +++ LOADED BEST NETWORK: " + bestNetworkObj.networkId));
           callback(null, bestNetworkObj.networkId);
         }
         else {
@@ -7563,191 +7609,194 @@ function initLoadBestNetworkInterval(interval){
 // kludge
 // probably can write one general purpose function to handle all types of nodes
 
-function initCategoryHashmaps(callback){
+function initCategoryHashmaps(){
 
   console.log(chalk.bold.black("WAS | INIT CATEGORIZED USER + HASHTAG HASHMAPS FROM DB"));
 
-  async.series({
+  return new Promise(function(resolve, reject){
 
-    hashtag: function(cb){
+    async.series({
 
-      let p = {};
+      hashtag: function(cb){
 
-      p.skip = 0;
-      p.batchSize = configuration.cursorBatchSize;
-      p.limit = configuration.findCatHashtagLimit;
-      p.verbose = false;
+        let p = {};
 
-      let more = true;
-      let totalCount = 0;
-      let totalManual = 0;
-      let totalAuto = 0;
-      let totalMatched = 0;
-      let totalMismatched = 0;
-      let totalMatchRate = 0;
+        p.skip = 0;
+        p.batchSize = configuration.cursorBatchSize;
+        p.limit = configuration.findCatHashtagLimit;
+        p.verbose = false;
 
-      debug(chalkInfo("WAS | LOADING CATEGORIZED HASHTAGS FROM DB ..."));
+        let more = true;
+        let totalCount = 0;
+        let totalManual = 0;
+        let totalAuto = 0;
+        let totalMatched = 0;
+        let totalMismatched = 0;
+        let totalMatchRate = 0;
 
-      async.whilst(
+        debug(chalkInfo("WAS | LOADING CATEGORIZED HASHTAGS FROM DB ..."));
 
-        function() {
-          return more;
-        },
+        async.whilst(
 
-        function(cb0){
+          function() {
+            return more;
+          },
 
-          hashtagServerController.findCategorizedHashtagsCursor(p, function(err, results){
+          function(cb0){
 
+            hashtagServerController.findCategorizedHashtagsCursor(p, function(err, results){
+
+              if (err) {
+                console.log(chalkError("WAS | ERROR: initCategorizedHashtagHashmap: hashtagServerController: findCategorizedHashtagsCursor" + err));
+                cb0(err);
+              }
+              else if (results) {
+
+                statsObj.db.totalHashtags = results.totalHashtags;
+
+                more = true;
+                totalCount += results.count;
+                totalManual += results.manual;
+                totalAuto += results.auto;
+                totalMatched += results.matched;
+                totalMismatched += results.mismatched;
+
+                totalMatchRate = 100*(totalMatched/(totalMatched+totalMismatched));
+
+                Object.keys(results.obj).forEach(function(nodeId){
+                  categorizedHashtagHashMap.set(nodeId, results.obj[nodeId]);
+                });
+
+                p.skip += results.count;
+
+                cb0();
+              }
+              else {
+
+                more = false;
+
+                console.log(chalk.bold.blue("WAS | LOADED CATEGORIZED HASHTAGS FROM DB"
+                  + " | TOTAL HASHTAGS: " + statsObj.db.totalHashtags
+                  + " | TOTAL CATEGORIZED: " + totalCount
+                  + " | LIMIT: " + p.limit
+                  + " | SKIP: " + p.skip
+                  + " | " + totalManual + " MAN"
+                  + " | " + totalAuto + " AUTO"
+                  + " | " + totalMatched + " MATCHED"
+                  + " / " + totalMismatched + " MISMATCHED"
+                  + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
+                ));
+
+                cb0();
+              }
+            });
+          },
+
+          function(err){
             if (err) {
-              console.log(chalkError("WAS | ERROR: initCategorizedHashtagHashmap: hashtagServerController: findCategorizedHashtagsCursor" + err));
-              cb0(err);
+              console.log(chalkError("WAS | INIT CATEGORIZED HASHTAG HASHMAP ERROR: " + err + "\n" + jsonPrint(err)));
             }
-            else if (results) {
-
-              statsObj.db.totalHashtags = results.totalHashtags;
-
-              more = true;
-              totalCount += results.count;
-              totalManual += results.manual;
-              totalAuto += results.auto;
-              totalMatched += results.matched;
-              totalMismatched += results.mismatched;
-
-              totalMatchRate = 100*(totalMatched/(totalMatched+totalMismatched));
-
-              Object.keys(results.obj).forEach(function(nodeId){
-                categorizedHashtagHashMap.set(nodeId, results.obj[nodeId]);
-              });
-
-              p.skip += results.count;
-
-              cb0();
-            }
-            else {
-
-              more = false;
-
-              console.log(chalk.bold.blue("WAS | LOADED CATEGORIZED HASHTAGS FROM DB"
-                + " | TOTAL HASHTAGS: " + statsObj.db.totalHashtags
-                + " | TOTAL CATEGORIZED: " + totalCount
-                + " | LIMIT: " + p.limit
-                + " | SKIP: " + p.skip
-                + " | " + totalManual + " MAN"
-                + " | " + totalAuto + " AUTO"
-                + " | " + totalMatched + " MATCHED"
-                + " / " + totalMismatched + " MISMATCHED"
-                + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
-              ));
-
-              cb0();
-            }
-          });
-        },
-
-        function(err){
-          if (err) {
-            console.log(chalkError("WAS | INIT CATEGORIZED HASHTAG HASHMAP ERROR: " + err + "\n" + jsonPrint(err)));
+            cb(err);
           }
-          cb(err);
-        }
-      );
-    },
+        );
+      },
 
-    user: function(cb){
+      user: function(cb){
 
-      let p = {};
+        let p = {};
 
-      p.skip = 0;
-      p.batchSize = configuration.cursorBatchSize;
-      p.limit = configuration.findCatUserLimit;
-      p.verbose = false;
+        p.skip = 0;
+        p.batchSize = configuration.cursorBatchSize;
+        p.limit = configuration.findCatUserLimit;
+        p.verbose = false;
 
-      let more = true;
-      let totalCount = 0;
-      let totalManual = 0;
-      let totalAuto = 0;
-      let totalMatched = 0;
-      let totalMismatched = 0;
-      let totalMatchRate = 0;
+        let more = true;
+        let totalCount = 0;
+        let totalManual = 0;
+        let totalAuto = 0;
+        let totalMatched = 0;
+        let totalMismatched = 0;
+        let totalMatchRate = 0;
 
-      debug(chalkInfo("WAS | LOADING CATEGORIZED USERS FROM DB ..."));
+        debug(chalkInfo("WAS | LOADING CATEGORIZED USERS FROM DB ..."));
 
-      async.whilst(
+        async.whilst(
 
-        function() {
-          return more;
-        },
+          function() {
+            return more;
+          },
 
-        function(cb0){
+          function(cb0){
 
-          userServerController.findCategorizedUsersCursor(p, function(err, results){
+            userServerController.findCategorizedUsersCursor(p, function(err, results){
 
+              if (err) {
+                console.log(chalkError("WAS | ERROR: initCategorizedUserHashmap: userServerController: findCategorizedUsersCursor" + err));
+                cb0(err);
+              }
+              else if (results) {
+
+                statsObj.db.totalUsers = results.totalUsers;
+
+                more = true;
+                totalCount += results.count;
+                totalManual += results.manual;
+                totalAuto += results.auto;
+                totalMatched += results.matched;
+                totalMismatched += results.mismatched;
+
+                totalMatchRate = 100*(totalMatched/(totalMatched+totalMismatched));
+
+                Object.keys(results.obj).forEach(function(nodeId){
+                  categorizedUserHashMap.set(nodeId, results.obj[nodeId]);
+                });
+
+                p.skip += results.count;
+
+                cb0();
+              }
+              else {
+
+                more = false;
+
+                console.log(chalk.bold.blue("WAS | LOADED CATEGORIZED USERS FROM DB"
+                  + " | TOTAL USERS: " + statsObj.db.totalUsers
+                  + " | TOTAL CATEGORIZED: " + totalCount
+                  + " | LIMIT: " + p.limit
+                  + " | SKIP: " + p.skip
+                  + " | " + totalManual + " MAN"
+                  + " | " + totalAuto + " AUTO"
+                  + " | " + totalMatched + " MATCHED"
+                  + " / " + totalMismatched + " MISMATCHED"
+                  + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
+                ));
+
+                cb0();
+              }
+            });
+          },
+
+          function(err){
             if (err) {
-              console.log(chalkError("WAS | ERROR: initCategorizedUserHashmap: userServerController: findCategorizedUsersCursor" + err));
-              cb0(err);
+              console.log(chalkError("WAS | *** INIT CATEGORIZED USER HASHMAP ERROR: " + err + "\n" + jsonPrint(err)));
             }
-            else if (results) {
-
-              statsObj.db.totalUsers = results.totalUsers;
-
-              more = true;
-              totalCount += results.count;
-              totalManual += results.manual;
-              totalAuto += results.auto;
-              totalMatched += results.matched;
-              totalMismatched += results.mismatched;
-
-              totalMatchRate = 100*(totalMatched/(totalMatched+totalMismatched));
-
-              Object.keys(results.obj).forEach(function(nodeId){
-                categorizedUserHashMap.set(nodeId, results.obj[nodeId]);
-              });
-
-              p.skip += results.count;
-
-              cb0();
-            }
-            else {
-
-              more = false;
-
-              console.log(chalk.bold.blue("WAS | LOADED CATEGORIZED USERS FROM DB"
-                + " | TOTAL USERS: " + statsObj.db.totalUsers
-                + " | TOTAL CATEGORIZED: " + totalCount
-                + " | LIMIT: " + p.limit
-                + " | SKIP: " + p.skip
-                + " | " + totalManual + " MAN"
-                + " | " + totalAuto + " AUTO"
-                + " | " + totalMatched + " MATCHED"
-                + " / " + totalMismatched + " MISMATCHED"
-                + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
-              ));
-
-              cb0();
-            }
-          });
-        },
-
-        function(err){
-          if (err) {
-            console.log(chalkError("WAS | *** INIT CATEGORIZED USER HASHMAP ERROR: " + err + "\n" + jsonPrint(err)));
+            cb(err);
           }
-          cb(err);
-        }
-      );
-    }
+        );
+      }
 
-  }, function(err){
-    if (err) {
-      console.log(chalkError("WAS | *** ERROR: initCategoryHashmaps: " + err));
-      if (callback !== undefined) { callback(err); }
-    }
-    else {
-      debug(chalk.blue("WAS | LOAD COMPLETE: initCategoryHashmaps"));
-      if (callback !== undefined) { callback(); }
-    }
+    }, function(err){
+      if (err) {
+        console.log(chalkError("WAS | *** ERROR: initCategoryHashmaps: " + err));
+        reject(err);
+      }
+        
+      console.log(chalk.blue("WAS | LOAD COMPLETE: initCategoryHashmaps"));
+      resolve();
 
-  });
+    });
+
+  })
 }
 
 function initialize(callback){
@@ -7802,13 +7851,13 @@ function initialize(callback){
 
 }
 
-function initIgnoreWordsHashMap(callback) {
+function initIgnoreWordsHashMap() {
   async.each(ignoreWordsArray, function ignoreWordHashMapSet(ignoreWord, cb) {
     ignoreWordHashMap.set(ignoreWord, true);
     ignoreWordHashMap.set(ignoreWord.toLowerCase(), true);
     cb();
   }, function ignoreWordHashMapError(err) {
-    if (callback) { callback(err); }
+    return;
   });
 }
 
@@ -8013,36 +8062,41 @@ function initThreeceeTwitterUsers(params, callback){
 
 function initCategoryHashmapsInterval(interval){
 
-  console.log(chalk.bold.black("WAS | INIT CATEGORY HASHMAP INTERVAL"
-    + " | " + msToTime(interval)
-  ));
+  return new Promise(function(resolve, reject){
 
-  clearInterval(categoryHashmapsInterval);
+    console.log(chalk.bold.black("WAS | INIT CATEGORY HASHMAP INTERVAL"
+      + " | " + msToTime(interval)
+    ));
 
-  categoryHashmapsInterval = setInterval(function updateMemStats() {
+    clearInterval(categoryHashmapsInterval);
 
-    if (statsObj.dbConnectionReady && initCategoryHashmapsReady) {
+    categoryHashmapsInterval = setInterval(async function updateMemStats() {
 
-      debug(chalkInfo("--- IN CATEGORY HASHMAP INTERVAL"
-        + " | " + msToTime(interval)
-      ));
+      if (statsObj.dbConnectionReady && initCategoryHashmapsReady) {
 
-      initCategoryHashmapsReady = false;
+        debug(chalkInfo("--- IN CATEGORY HASHMAP INTERVAL"
+          + " | " + msToTime(interval)
+        ));
 
-      initCategoryHashmaps(function(err){
+        initCategoryHashmapsReady = false;
+
+        try {
+          await initCategoryHashmaps();
+        }
+        catch (err){
+          console.log(chalkError("WAS | *** ERROR: LOAD CATEGORY HASHMAPS: " + err));
+          console.error(err);
+        }
 
         initCategoryHashmapsReady = true;
+        debug(chalk.bold.green("WAS | +++ LOADED CATEGORY HASHMAPS"));
+      }
 
-        if (err) {
-          console.log(chalkError("WAS | *** ERROR: LOAD CATEGORY HASHMAPS: " + err));
-        }
-        else {
-          debug(chalk.bold.green("WAS | +++ LOADED CATEGORY HASHMAPS"));
-        }
-      });
-    }
+    }, interval);
 
-  }, interval);
+    resolve();
+  });
+
 }
 
 function twitterGetUserUpdateDb(user, callback){

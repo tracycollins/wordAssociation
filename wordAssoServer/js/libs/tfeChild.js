@@ -468,8 +468,7 @@ function printUserObj(title, user) {
     + " | LS: " + getTimeStamp(user.lastSeen)
     + " | FLWg: " + user.following 
     + " | 3C: @" + user.threeceeFollowing 
-    + " | CAT MAN: " + user.category
-    + " | CAT AUTO: " + user.categoryAuto
+    + " | CAT M: " + user.category + " - A: " + user.categoryAuto
   ));
 }
 
@@ -870,79 +869,87 @@ let activateNetworkBusy = false;
 
 async function activateNetwork(user){
 
-  activateNetworkBusy = true;
+  return new Promise(function(resolve, reject) {
 
-  let networkOutput = {};
+    activateNetworkBusy = true;
 
-  let userHistograms = user.histograms || {};
-  let languageAnalysis = user.languageAnalysis || {};
+    let networkOutput = {};
 
-  async.each(networksHashMap.keys(), function(nnId, cb){
+    let userHistograms = user.histograms || {};
+    let languageAnalysis = user.languageAnalysis || {};
 
-    const networkObj = networksHashMap.get(nnId);
+    async.each(networksHashMap.keys(), function(nnId, cb){
 
-    if (networkObj.inputsObj.inputs === undefined) {
-      console.log(chalkError("UNDEFINED NETWORK INPUTS OBJ | NETWORK OBJ KEYS: " + Object.keys(networkObj)));
-      throw new Error("UNDEFINED NETWORK INPUTS OBJ");
-    }
+      const networkObj = networksHashMap.get(nnId);
 
-    const params = {
-      networkId: networkObj.networkId,
-      userScreenName: user.screenName,
-      histograms: userHistograms,
-      languageAnalysis: languageAnalysis,
-      inputsObj: networkObj.inputsObj,
-      maxInputHashMap: maxInputHashMap
-    };
-
-    generateNetworkInputIndexed(params, function(err, networkInput){
-
-      const output = networkObj.network.activate(networkInput);
-
-      if (output.length !== 3) {
-        console.log(chalkError("*** ZERO LENGTH NETWORK OUTPUT | " + nnId ));
-        throw new Error("ZERO LENGTH NETWORK OUTPUT");
+      if (networkObj.inputsObj.inputs === undefined) {
+        console.log(chalkError("UNDEFINED NETWORK INPUTS OBJ | NETWORK OBJ KEYS: " + Object.keys(networkObj)));
+        const err = new Error("UNDEFINED NETWORK INPUTS OBJ");
+        console.error(err);
+        reject(err);
       }
 
-      indexOfMax(output, function maxNetworkOutput(maxOutputIndex){
+      const params = {
+        networkId: networkObj.networkId,
+        userScreenName: user.screenName,
+        histograms: userHistograms,
+        languageAnalysis: languageAnalysis,
+        inputsObj: networkObj.inputsObj,
+        maxInputHashMap: maxInputHashMap
+      };
 
-        if (networkOutput[nnId] === undefined) {
-          networkOutput[nnId] = {};
-          networkOutput[nnId].output = "0";
-          networkOutput[nnId].left = 0;
-          networkOutput[nnId].neutral = 0;
-          networkOutput[nnId].right = 0;
-          networkOutput[nnId].none = 0;
+      generateNetworkInputIndexed(params, function(err, networkInput){
+
+        const output = networkObj.network.activate(networkInput);
+
+        if (output.length !== 3) {
+          console.log(chalkError("*** ZERO LENGTH NETWORK OUTPUT | " + nnId ));
+          const e = new Error("ZERO LENGTH NETWORK OUTPUT");
+          console.error(e);
+          reject(err);
         }
 
-        switch (maxOutputIndex) {
-          case 0:
-            networkOutput[nnId].output = "L";
-            networkOutput[nnId].left += 1;
-          break;
-          case 1:
-            networkOutput[nnId].output = "N";
-            networkOutput[nnId].neutral += 1;
-          break;
-          case 2:
-            networkOutput[nnId].output = "R";
-            networkOutput[nnId].right += 1;
-          break;
-          default:
+        indexOfMax(output, function maxNetworkOutput(maxOutputIndex){
+
+          if (networkOutput[nnId] === undefined) {
+            networkOutput[nnId] = {};
             networkOutput[nnId].output = "0";
-            networkOutput[nnId].none += 1;
-        }
+            networkOutput[nnId].left = 0;
+            networkOutput[nnId].neutral = 0;
+            networkOutput[nnId].right = 0;
+            networkOutput[nnId].none = 0;
+          }
 
-        async.setImmediate(function() {
-          cb();
+          switch (maxOutputIndex) {
+            case 0:
+              networkOutput[nnId].output = "L";
+              networkOutput[nnId].left += 1;
+            break;
+            case 1:
+              networkOutput[nnId].output = "N";
+              networkOutput[nnId].neutral += 1;
+            break;
+            case 2:
+              networkOutput[nnId].output = "R";
+              networkOutput[nnId].right += 1;
+            break;
+            default:
+              networkOutput[nnId].output = "0";
+              networkOutput[nnId].none += 1;
+          }
+
+          async.setImmediate(function() {
+            cb();
+          });
+
         });
-
       });
+
+    }, function(err){
+      activateNetworkBusy = false;
+      resolve(networkOutput);
     });
 
-  }, function(err){
-    activateNetworkBusy = false;
-    return networkOutput;
   });
 }
 
@@ -997,69 +1004,77 @@ function updateGlobalHistograms(params, callback) {
   });
 }
 
-function updateHistograms(params, callback) {
+function updateHistograms(params) {
 
-  statsObj.status = "UPDATE HISTOGRAMS";
+  // printUserObj("TFE | IN UPDATE HISTOGRAMS", params.user);
 
-  let user = {};
-  let histogramsIn = {};
+  return new Promise(function(resolve, reject) {
 
-  user = params.user;
-  histogramsIn = params.histograms;
+    statsObj.status = "UPDATE HISTOGRAMS";
 
-  if (!user.histograms || (user.histograms === undefined)) {
-    user.histograms = {};
-  }
-  
-  async.each(configuration.inputTypes, function(type, cb0) {
+    let user = {};
+    let histogramsIn = {};
 
-    if (user.histograms[type] === undefined) { user.histograms[type] = {}; }
-    if (histogramsIn[type] === undefined) { histogramsIn[type] = {}; }
+    user = params.user;
+    histogramsIn = params.histograms;
 
-    const inputHistogramTypeItems = Object.keys(histogramsIn[type]);
-
-    async.each(inputHistogramTypeItems, function(item, cb1) {
-
-      if (user.histograms[type][item] === undefined) {
-        user.histograms[type][item] = histogramsIn[type][item];
-      }
-      else if (params.accumulateFlag) {
-        user.histograms[type][item] += histogramsIn[type][item];
-      }
-
-      debug("user histograms"
-        + " | @" + user.screenName
-        + " | " + type
-        + " | " + item
-        + " | USER VAL: " + user.histograms[type][item]
-        + " | UPDATE VAL: " + histogramsIn[type][item]
-      );
-
-      async.setImmediate(function() {
-        cb1();
-      });
-
-    }, function (argument) {
-
-      async.setImmediate(function() {
-        cb0();
-      });
-
-    });
-  }, function(err) {
-
-    if (err) {
-      console.log(chalkError("TFE | UPDATE HISTOGRAMS ERROR: " + err));
-      throw new Error(err);
+    if (!user.histograms || (user.histograms === undefined)) {
+      user.histograms = {};
     }
+    
+    async.each(configuration.inputTypes, function(type, cb0) {
 
-    updateGlobalHistograms({user: user}, function(err){
+      if (user.histograms[type] === undefined) { user.histograms[type] = {}; }
+      if (histogramsIn[type] === undefined) { histogramsIn[type] = {}; }
+
+      const inputHistogramTypeItems = Object.keys(histogramsIn[type]);
+
+      async.each(inputHistogramTypeItems, function(item, cb1) {
+
+        if (user.histograms[type][item] === undefined) {
+          user.histograms[type][item] = histogramsIn[type][item];
+        }
+        else if (params.accumulateFlag) {
+          user.histograms[type][item] += histogramsIn[type][item];
+        }
+
+        debug("user histograms"
+          + " | @" + user.screenName
+          + " | " + type
+          + " | " + item
+          + " | USER VAL: " + user.histograms[type][item]
+          + " | UPDATE VAL: " + histogramsIn[type][item]
+        );
+
+        async.setImmediate(function() {
+          cb1();
+        });
+
+      }, function (argument) {
+
+        async.setImmediate(function() {
+          cb0();
+        });
+
+      });
+    }, function(err) {
 
       if (err) {
-        console.log(chalkError("TFE | UPDATE GLOBAL HISTOGRAMS ERROR: " + err));
-        throw new Error(err);
+        console.log(chalkError("TFE | UPDATE HISTOGRAMS ERROR: " + err));
+        reject(err);
       }
-      callback(err, user);
+
+      updateGlobalHistograms({user: user}, function(err){
+
+        if (err) {
+          console.log(chalkError("TFE | UPDATE GLOBAL HISTOGRAMS ERROR: " + err));
+          reject(err);
+        }
+
+        resolve(user);
+
+      });
+
     });
 
   });
@@ -1098,347 +1113,210 @@ function enableAnalysis(user, languageAnalysis) {
   return false;
 }
 
+function parseUserImage(user){
 
-function generateUserData(user) {
+  if (
+    (configuration.enableImageAnalysis && !user.bannerImageAnalyzed && user.bannerImageUrl)
+    || (configuration.enableImageAnalysis && user.bannerImageUrl && (user.bannerImageAnalyzed !== user.bannerImageUrl))
+    || (configuration.forceImageAnalysis && user.bannerImageUrl)
+  ) 
 
-  if (user === undefined) {
-    console.log(chalkError("TFE | *** generateUserData USER UNDEFINED"));
-    throw new Error("TFE | *** generateUserData USER UNDEFINED");
-  }
+  {
 
-  let text = "";
-  text = (user.screenName !== undefined) ? "@" + user.screenName.toLowerCase()
+    twitterImageParser.parseImage(
+      user.bannerImageUrl,
+      {screenName: user.screenName, category: user.category, updateGlobalHistograms: true},
+      function(err, results) {
+        if (err) {
+          if (err.code === 8) {
+            console.log(chalkAlert("PARSE BANNER IMAGE QUOTA ERROR"
+            ));
+            configuration.enableImageAnalysis = false;
+            startImageQuotaTimeout();
+            return user;
+          }
+          else if (err.code === 7) {
+            console.log(chalkAlert("PARSE BANNER IMAGE CLOUD VISION API ERROR"
+            ));
+            configuration.enableImageAnalysis = false;
+            startImageQuotaTimeout();
+            return user;
+          }
+          else{
+            console.log(chalkError("PARSE BANNER IMAGE ERROR"
+              // + "\nREQ\n" + jsonPrint(results)
+              + " | ERR: " + err
+              + "\nERR\n" + jsonPrint(err)
+            ));
+            throw new Error(err);
+          }
+        }
 
-  async.waterfall([
-
-    function userScreenName(cb) {
-      if (user.screenName !== undefined) {
-        async.setImmediate(function() {
-          cb(null, "@" + user.screenName.toLowerCase());
-        });
-      }
-      else {
-        async.setImmediate(function() {
-          cb(null, null);
-        });
-      }
-    },
-    function userName(text, cb) {
-      if (user.name !== undefined) {
-        if (text) {
-          async.setImmediate(function() {
-            cb(null, text + " | " + user.name);
-          });
+        if (user.bannerImageAnalyzed 
+          && user.bannerImageUrl 
+          && (user.bannerImageAnalyzed !== user.bannerImageUrl)) {
+          console.log(chalk.bold.blue("^^^ BANNER IMAGE UPDATED "
+            + " | @" + user.screenName
+            + "\nTFE | bannerImageAnalyzed: " + user.bannerImageAnalyzed
+            + "\nTFE | bannerImageUrl: " + user.bannerImageUrl
+          ));
         }
         else {
-          async.setImmediate(function() {
-            cb(null, user.name);
-          });
+          console.log(chalk.bold.blue("TFE | +++ BANNER IMAGE ANALYZED"
+            + " | @" + user.screenName
+            + "\nTFE | bannerImageAnalyzed: " + user.bannerImageAnalyzed
+            + "\nTFE | bannerImageUrl: " + user.bannerImageUrl
+          ));
         }
-      }
-      else {
-        if (text) {
-          async.setImmediate(function() {
-            cb(null, text);
-          });
-        }
-        else {
-          async.setImmediate(function() {
-            cb(null, null);
-          });
-        }
-      }
-    },
-    function userStatusText(text, cb) {
-      if ((user.status !== undefined)
-        && user.status
-        && user.status.text) {
-        if (text) {
-          async.setImmediate(function() {
-            cb(null, text + "\n" + user.status.text);
-          });
-        }
-        else {
-          async.setImmediate(function() {
-            cb(null, user.status.text);
-          });
-        }
-      }
-      else {
-        if (text) {
-          async.setImmediate(function() {
-            cb(null, text);
-          });
-        }
-        else {
-          async.setImmediate(function() {
-            cb(null, null);
-          });
-        }
-      }
-    },
-    function userRetweetText(text, cb) {
-      if ((user.retweeted_status !== undefined)
-        && user.retweeted_status
-        && user.retweeted_status.text) {
-        console.log(chalkTwitter("RT\n" + jsonPrint(user.retweeted_status.text)));
-        if (text) {
-          async.setImmediate(function() {
-            cb(null, text + "\n" + user.retweeted_status.text);
-          });
-        }
-        else {
-          async.setImmediate(function() {
-            cb(null, user.retweeted_status.text);
-          });
-        }
-      }
-      else {
-        if (text) {
-          async.setImmediate(function() {
-            cb(null, text);
-          });
-        }
-        else {
-          async.setImmediate(function() {
-            cb(null, null);
-          });
-        }
-      }
-    },
-    function userDescriptionText(text, cb) {
-      if ((user.description !== undefined) && user.description) {
-        if (text) {
-          async.setImmediate(function() {
-            cb(null, text + "\n" + user.description);
-          });
-        }
-        else {
-          async.setImmediate(function() {
-            cb(null, user.description);
-          });
-        }
-      }
-      else {
-        if (text) {
-          async.setImmediate(function() {
-            cb(null, text);
-          });
-        }
-        else {
-          async.setImmediate(function() {
-            cb(null, null);
-          });
-        }
-      }
-    },
-    function userLanguageAnalysis(text, cb) {
-      if (user.languageAnalysis === undefined) {
-        user.languageAnalysis = {};
-        user.languageAnalysis.score = 0;
-        user.languageAnalysis.sentiment = 0;
-      }
 
-      if (text) {
-        async.setImmediate(function() {
-          cb(null, text);
-        });
-      }
-      else {
-        async.setImmediate(function() {
-          cb(null, null);
-        });
-      }
-    },
-    function userBannerImage(text, cb) {
+        user.bannerImageAnalyzed = user.bannerImageUrl;
 
-      if (!user.histograms || (user.histograms === undefined)) { 
-        // user.markModified("histograms");
-        user.histograms = {}; 
-        user.histograms.images = {}; 
-      }
-      else if (user.histograms.images === undefined) { 
-        user.histograms.images = {}; 
-      }
+        if (Object.keys(results.images).length > 0) {
 
-      if (
-        (configuration.enableImageAnalysis && !user.bannerImageAnalyzed && user.bannerImageUrl)
-        || (configuration.enableImageAnalysis && user.bannerImageUrl && (user.bannerImageAnalyzed !== user.bannerImageUrl))
-        || (configuration.forceImageAnalysis && user.bannerImageUrl)
-      ) {
+          async.each(Object.keys(results.images), function(item, cb){
 
-        twitterImageParser.parseImage(
-          user.bannerImageUrl,
-          {screenName: user.screenName, category: user.category, updateGlobalHistograms: true},
-          function(err, results) {
-            if (err) {
-              if (err.code === 8) {
-                console.log(chalkAlert("PARSE BANNER IMAGE QUOTA ERROR"
-                ));
-                configuration.enableImageAnalysis = false;
-                startImageQuotaTimeout();
-              }
-              else if (err.code === 7) {
-                console.log(chalkAlert("PARSE BANNER IMAGE CLOUD VISION API ERROR"
-                ));
-                configuration.enableImageAnalysis = false;
-                startImageQuotaTimeout();
-              }
-              else{
-                console.log(chalkError("PARSE BANNER IMAGE ERROR"
-                  // + "\nREQ\n" + jsonPrint(results)
-                  + " | ERR: " + err
-                  + "\nERR\n" + jsonPrint(err)
-                ));
-              }
-              cb(null, text);
+            if (user.histograms.images[item] === undefined) { 
+              user.histograms.images[item] = results.images[item];
+              console.log(chalk.bold.blue("+++ USER IMAGE HISTOGRAM ADD"
+                + " | @" + user.screenName
+                + " | " + item + ": " + results.images[item]
+              ));
             }
             else {
-
-              if (user.bannerImageAnalyzed 
-                && user.bannerImageUrl 
-                && (user.bannerImageAnalyzed !== user.bannerImageUrl)) {
-                console.log(chalk.bold.blue("^^^ BANNER IMAGE UPDATED "
-                  + " | @" + user.screenName
-                  + "\nTFE | bannerImageAnalyzed: " + user.bannerImageAnalyzed
-                  + "\nTFE | bannerImageUrl: " + user.bannerImageUrl
-                  // + "\nTFE | RESULTS: " + Object.keys(results.images)
-                ));
-              }
-              else {
-                console.log(chalk.bold.blue("TFE | +++ BANNER IMAGE ANALYZED"
-                  + " | @" + user.screenName
-                  + "\nTFE | bannerImageAnalyzed: " + user.bannerImageAnalyzed
-                  + "\nTFE | bannerImageUrl: " + user.bannerImageUrl
-                  // + "\nTFE | RESULTS: " + Object.keys(results.images)
-                ));
-              }
-
-              user.bannerImageAnalyzed = user.bannerImageUrl;
-              // user.markModified("bannerImageAnalyzed");
-
-              if (Object.keys(results.images).length > 0) {
-
-                async.each(Object.keys(results.images), function(item, cb0){
-
-                  if (user.histograms.images[item] === undefined) { 
-                    user.histograms.images[item] = results.images[item];
-                    console.log(chalk.bold.blue("+++ USER IMAGE HISTOGRAM ADD"
-                      + " | @" + user.screenName
-                      + " | " + item + ": " + results.images[item]
-                    ));
-                  }
-                  else {
-                    console.log(chalk.bold.blue("... USER IMAGE HISTOGRAM HIT"
-                      + " | @" + user.screenName
-                      + " | " + item
-                      + " | IN HISTOGRAM: " + user.histograms.images[item]
-                      + " | IN BANNER: " + item + ": " + results.images[item]
-                    ));
-                  }
-
-                  cb0();
-
-                }, function(){
-
-                  cb(null, text);
-
-                });
-              }
-              else {
-                cb(null, text);
-              }
-
+              console.log(chalk.bold.blue("... USER IMAGE HISTOGRAM HIT"
+                + " | @" + user.screenName
+                + " | " + item
+                + " | IN HISTOGRAM: " + user.histograms.images[item]
+                + " | IN BANNER: " + item + ": " + results.images[item]
+              ));
             }
-          }
-        );
+
+            cb();
+
+          }, function(){
+
+            return user;
+
+          });
+        }
+        else {
+          return user;
+        }
+
       }
-      else {
-        async.setImmediate(function() {
-          cb(null, text);
-        });
-      }
-    }
+    );
+  }
+  else {
+    return user;
+  }
+}
 
-  ], function (err, text, bannerResults) {
+function parseText(params){
 
-    if (err) {
-      console.log(chalkError("*** ERROR generateAutoCategory: " + err));
-      throw new Error(err);
-    }
-
-    if (!text) { text = " "; }
+  return new Promise(function(resolve, reject) {
 
     let parseTextOptions = {};
     parseTextOptions.updateGlobalHistograms = true;
 
-    if (user.category) {
-      parseTextOptions.category = user.category;
+    if (params.user.category) {
+      parseTextOptions.category = params.user.category;
     }
     else {
       parseTextOptions.category = false;
     }
 
-    twitterTextParser.parseText(text, parseTextOptions, function(err, hist) {
+    twitterTextParser.parseText(params.text, parseTextOptions, function(err, hist) {
 
       if (err) {
         console.log(chalkError("*** TWITTER TEXT PARSER ERROR: " + err));
-        throw new Error(err);
+        console.error(err);
+        reject(err);
       }
 
-      updateHistograms({user: user, histograms: hist}, function(err, updatedUser) {
+      const response = {user: params.user, histograms: hist};
+      resolve(response);
 
-        if (err) {
-          console.trace(chalkError("*** UPDATE USER HISTOGRAMS ERROR\n" + jsonPrint(err)));
-          console.trace(chalkError("*** UPDATE USER HISTOGRAMS ERROR\nUSER\n" + jsonPrint(user)));
-          throw new Error(err);
-        }
-
-        updatedUser.inputHits = 0;
-
-        const score = updatedUser.languageAnalysis.sentiment ? updatedUser.languageAnalysis.sentiment.score : 0;
-        const mag = updatedUser.languageAnalysis.sentiment ? updatedUser.languageAnalysis.sentiment.magnitude : 0;
-
-        statsObj.analyzer.total += 1;
-
-        if (enableAnalysis(updatedUser, {magnitude: mag, score: score})) {
-          debug(chalkLog(">>>> LANG ANALYZE"
-            + " [ ANLd: " + statsObj.analyzer.analyzed
-            + " [ SKPd: " + statsObj.analyzer.skipped
-            + " | " + updatedUser.nodeId
-            + " | @" + updatedUser.screenName
-            + " | LAd: " + updatedUser.languageAnalyzed
-            + " | LA: S: " + score.toFixed(2)
-            + " M: " + mag.toFixed(2)
-          ));
-
-          if ((langAnalyzer !== undefined) && langAnalyzer) {
-            langAnalyzer.send({op: "LANG_ANALIZE", obj: updatedUser, text: text}, function() {
-              statsObj.analyzer.analyzed += 1;
-            });
-          }
-        }
-        else {
-          statsObj.analyzer.skipped += 1;
-          debug(chalkLog("SKIP LANG ANALYZE"
-            + " [ ANLd: " + statsObj.analyzer.analyzed
-            + " [ SKPd: " + statsObj.analyzer.skipped
-            + " | " + updatedUser.nodeId
-            + " | @" + updatedUser.screenName
-            + " | LAd: " + updatedUser.languageAnalyzed
-            + " | LA: S: " + score.toFixed(2)
-            + " M: " + mag.toFixed(2)
-          ));
-        }
-
-        printUserObj("TFE | generateUserData", updatedUser);
-
-        return updatedUser;
-      });
-
-      // });
     });
+
   });
+}
+
+
+async function generateUserData(user) {
+
+  if (user === undefined) {
+    console.log(chalkError("TFE | *** generateUserData USER UNDEFINED"));
+    const err = new Error("TFE | *** generateUserData USER UNDEFINED");
+    console.error(err);
+  }
+
+  let text = " ";
+
+  text = (user.screenName !== undefined) ? "@" + user.screenName.toLowerCase() : text;
+  text = (user.userName !== undefined) ? text + " | " + user.name.toLowerCase() : text;
+  text = ((user.description !== undefined) && user.description) ? text + "\n" + user.description : text;
+  text = ((user.status !== undefined) && user.status && user.status.text) ? text + "\n" + user.status.text : text;
+  text = ((user.retweeted_status !== undefined) && user.retweeted_status && user.retweeted_status.text) ? text + "\n" + user.retweeted_status.text : text;
+
+  if (!user.histograms || (user.histograms === undefined)) { 
+    user.histograms = {}; 
+    user.histograms.images = {}; 
+  }
+  else if (user.histograms.images === undefined) { 
+    user.histograms.images = {}; 
+  }
+
+  let userParsedImage = await parseUserImage(user);
+  let textParserResults = await parseText({user: userParsedImage, text: text});
+  let updatedUser = await updateHistograms({user: textParserResults.user, histograms: textParserResults.histograms});
+
+  updatedUser.inputHits = 0;
+
+  if (updatedUser.languageAnalysis === undefined) {
+    updatedUser.languageAnalysis = {};
+    updatedUser.languageAnalysis.sentiment = 0;
+    updatedUser.languageAnalysis.magnitude = 0;
+  }
+
+  const score = updatedUser.languageAnalysis.sentiment ? updatedUser.languageAnalysis.sentiment.score : 0;
+  const mag = updatedUser.languageAnalysis.sentiment ? updatedUser.languageAnalysis.sentiment.magnitude : 0;
+
+  statsObj.analyzer.total += 1;
+
+  // if (enableAnalysis(updatedUser, {magnitude: mag, score: score})) {
+  //   debug(chalkLog(">>>> LANG ANALYZE"
+  //     + " [ ANLd: " + statsObj.analyzer.analyzed
+  //     + " [ SKPd: " + statsObj.analyzer.skipped
+  //     + " | " + updatedUser.nodeId
+  //     + " | @" + updatedUser.screenName
+  //     + " | LAd: " + updatedUser.languageAnalyzed
+  //     + " | LA: S: " + score.toFixed(2)
+  //     + " M: " + mag.toFixed(2)
+  //   ));
+
+  //   if ((langAnalyzer !== undefined) && langAnalyzer) {
+  //     langAnalyzer.send({op: "LANG_ANALIZE", obj: updatedUser, text: text}, function() {
+  //       statsObj.analyzer.analyzed += 1;
+  //     });
+  //   }
+  // }
+  // else {
+  //   statsObj.analyzer.skipped += 1;
+  //   debug(chalkLog("SKIP LANG ANALYZE"
+  //     + " [ ANLd: " + statsObj.analyzer.analyzed
+  //     + " [ SKPd: " + statsObj.analyzer.skipped
+  //     + " | " + updatedUser.nodeId
+  //     + " | @" + updatedUser.screenName
+  //     + " | LAd: " + updatedUser.languageAnalyzed
+  //     + " | LA: S: " + score.toFixed(2)
+  //     + " M: " + mag.toFixed(2)
+  //   ));
+  // }
+
+  // printUserObj("TFE | generateUserData", updatedUser);
+
+  return updatedUser;
+
 }
 
 async function initUserCategorizeQueueInterval(cnf){
@@ -1458,14 +1336,26 @@ async function initUserCategorizeQueueInterval(cnf){
       user = userCategorizeQueue.shift();
 
       try {
+
         let updatedUser = await generateUserData(user);
-        printUserObj("TFE | PRE NET", updatedUser);
         let networkOutput = await activateNetwork(updatedUser);
-        printUserObj("TFE | NET: " + networkOutput.output, updatedUser);
+
+        Object.keys(networkOutput).forEach(function(nnId){
+
+          updatedUser.categoryAuto = networkOutput[nnId].output;
+
+          userServerController.findOneUser(updatedUser, {noInc: false, fields: fieldsTransmit}, function(err, dbUser){
+            printUserObj("TFE | DB CAT", dbUser);
+          });
+
+        });
+
         userCategorizeQueueReady = true;
+
       }
       catch (err) {
         console.log(chalkError("TFE | *** USER CATEGORIZE ERROR: " + err));
+        console.error(err);
         userCategorizeQueueReady = true;
       }
 
@@ -1708,7 +1598,7 @@ process.on("message", function(m) {
 
         userCategorizeQueue.push(m.user);
 
-        console.log(chalkInfo("TFE | USER_CATEGORIZE"
+        debug(chalkInfo("TFE | USER_CATEGORIZE"
           + " [ USQ: " + userCategorizeQueue.length + "]"
           + " | FLWRs: " + m.user.followersCount
           + " | FRNDs: " + m.user.friendsCount

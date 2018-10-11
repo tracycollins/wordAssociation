@@ -1066,7 +1066,7 @@ function connectDb(callback){
               + "\nWAS | " + printUser({user:updatedUser})
             ));
 
-            if (statsObj.tssChildReady) {
+            if (tssChild !== undefined) {
 
               if (updatedUser.screenName === DEFAULT_INFO_TWITTER_USER) {
                 infoTwitterUserObj.twitterAuthorizationErrorFlag = false;
@@ -3042,14 +3042,7 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
       console.log(chalkError("WAS | *** KILL TSS CHILD"));
 
       killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, numKilled){
-        initTssChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, tss){
-          if (err) { 
-            console.log(chalkError("WAS | *** INIT TSS CHILD ERROR: " + err));
-          }
-          else {
-            tssChild = tss;
-          }
-        });
+        initTssChild({childId: DEFAULT_TSS_CHILD_ID});
       });
 
     break;
@@ -3633,7 +3626,7 @@ function follow(params, callback) {
       console.log(chalkError("WAS | *** FOLLOW | USER FIND ONE ERROR: " + err));
     }
     else if (userUpdated){
-      if (statsObj.tssChildReady) {
+      if (tssChild !== undefined) {
 
         console.log(chalkLog("WAS | +++ FOLLOW"
           + " | " + printUser({user: userUpdated})
@@ -3641,7 +3634,6 @@ function follow(params, callback) {
 
         tssChild.send({
           op: "FOLLOW", 
-          // threeceeUser: configuration.twitterThreeceeAutoFollowUser, 
           user: userUpdated,
           forceFollow: configuration.forceFollow
         });
@@ -5795,14 +5787,7 @@ function initAppRouting(callback) {
 
                     killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, numKilled){
                       tssPongReceived = false;
-                      initTssChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, tss){
-                        if (err) { 
-                          console.log(chalkError("WAS | *** INIT TSS CHILD ERROR: " + err));
-                        }
-                        else {
-                          tssChild = tss;
-                        }
-                      });
+                      initTssChild({childId: DEFAULT_TSS_CHILD_ID});
                     });
 
                   }
@@ -6482,14 +6467,7 @@ function initTssPingInterval(interval){
 
             killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, numKilled){
               tssPongReceived = false;
-              initTssChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, tss){
-                if (err) { 
-                  console.log(chalkError("WAS | *** INIT TSS CHILD ERROR: " + err));
-                }
-                else {
-                  tssChild = tss;
-                }
-              });
+              initTssChild({childId: DEFAULT_TSS_CHILD_ID});
             });
 
             return;
@@ -6515,14 +6493,7 @@ function initTssPingInterval(interval){
 
             killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, numKilled){
               tssPongReceived = false;
-              initTssChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, tss){
-                if (err) { 
-                  console.log(chalkError("WAS | *** INIT TSS CHILD ERROR: " + err));
-                }
-                else {
-                  tssChild = tss;
-                }
-              });
+              initTssChild({childId: DEFAULT_TSS_CHILD_ID});
             });
 
             return;
@@ -6554,14 +6525,7 @@ function initTssPingInterval(interval){
         setTimeout(function(){
 
           killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, numKilled){
-            initTssChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, tss){
-              if (err) { 
-                console.log(chalkError("WAS | *** INIT TSS CHILD ERROR: " + err));
-              }
-              else {
-                tssChild = tss;
-              }
-            });
+            initTssChild({childId: DEFAULT_TSS_CHILD_ID});
           });
 
         }, 5000);
@@ -6574,185 +6538,172 @@ function initTssPingInterval(interval){
 function updateSearchTerms(){
   console.log(chalk.bold.black("WAS | WAS | UPDATE SEARCH TERMS"));
 
-  if (statsObj.tssChildReady) {
-    tssChild.send({op: "UPDATE_SEARCH_TERMS"});
-  }
+  if (tssChild !== undefined) { tssChild.send({op: "UPDATE_SEARCH_TERMS"}); }
 }
 
-async function initTssChild(params, callback){
+async function initTssChild(params){
 
   console.log(chalk.bold.black("WAS | INIT TSS CHILD\n" + jsonPrint(params)));
 
-  statsObj.tssChildReady = false;
+  return new Promise(async function(resolve, reject){
 
-  let deltaTssMessageStart = process.hrtime();
-  let deltaTssMessage = process.hrtime(deltaTssMessageStart);
+    let deltaTssMessageStart = process.hrtime();
+    let deltaTssMessage = process.hrtime(deltaTssMessageStart);
 
-  const tss = cp.fork(`${__dirname}/js/libs/tssChild.js`);
+    const tss = cp.fork(`${__dirname}/js/libs/tssChild.js`);
 
-  childrenHashMap[params.childId] = {};
-  childrenHashMap[params.childId].pid = tss.pid;
-  childrenHashMap[params.childId].childId = params.childId;
-  childrenHashMap[params.childId].title = "wa_node_tss";
-  childrenHashMap[params.childId].status = "NEW";
-  childrenHashMap[params.childId].errors = 0;
+    childrenHashMap[params.childId] = {};
+    childrenHashMap[params.childId].pid = tss.pid;
+    childrenHashMap[params.childId].childId = params.childId;
+    childrenHashMap[params.childId].title = "wa_node_tss";
+    childrenHashMap[params.childId].status = "NEW";
+    childrenHashMap[params.childId].errors = 0;
 
-  tss.on("message", function tssMessageRx(m){
+    tss.on("message", function tssMessageRx(m){
 
-    childrenHashMap[params.childId].status = "RUNNING";  
+      childrenHashMap[params.childId].status = "RUNNING";  
 
-    debug(chalkLog("TSS RX MESSAGE"
-      + " | OP: " + m.op
-    ));
-
-    switch (m.op) {
-
-      case "ERROR":
-        console.log(chalkError("WAS | <TSS | ERROR"
-          + " | ERROR TYPE: " + m.errorType
-          + "\n" + jsonPrint(m.error)
-        ));
-
-        if (m.errorType === "TWITTER_UNAUTHORIZED") {
-
-          threeceeTwitter[m.threeceeUser].twitterErrors += 1;
-          threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
-          threeceeTwitter[m.threeceeUser].twitterAuthorizationErrorFlag = m.error;
-
-        }
-        else if (m.errorType === "TWITTER_TOKEN") {
-
-          threeceeTwitter[m.threeceeUser].twitterErrors += 1;
-          threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
-          threeceeTwitter[m.threeceeUser].twitterTokenErrorFlag = m.error;
-
-        }
-        else {
-
-          threeceeTwitter[m.threeceeUser].twitterErrors += 1;
-          threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
-
-        }
-
-      break;
-
-      case "TWITTER_STATS":
-
-        console.log(chalkInfo("WAS | <TSS | TWITTER STATS"
-          + " | 3C @" + m.threeceeUser
-          + " | FOLLOWING: " + m.twitterFollowing
-        ));
-
-        threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
-
-      break;
-
-      case "FOLLOW_LIMIT":
-
-        console.log(chalkInfo("WAS | <TSS | FOLLOW LIMIT"
-          + " | 3C @" + m.threeceeUser
-          + " | LIMIT: " + getTimeStamp(m.twitterFollowLimit)
-          + " | NOW: " + getTimeStamp()
-        ));
-
-        threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
-        threeceeTwitter[m.threeceeUser].twitterFollowLimit = true;
-
-      break;
-
-      case "TWEET":
-        deltaTssMessage = process.hrtime(deltaTssMessageStart);
-        if (deltaTssMessage[0] > 0) { console.log(chalkAlert("WAS | *** TSS RX DELTA: " + deltaTssMessage[0] + "." + deltaTssMessage[1])); }
-        deltaTssMessageStart = process.hrtime();
-        if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + m.tweet.id_str + " | @" + m.tweet.user.screen_name)); }
-        socketRxTweet(m.tweet);
-      break;
-
-      case "PONG":
-        tssPongReceived = m.pongId;
-        childrenHashMap[params.childId].status = "RUNNING";
-        if (configuration.verbose) {
-          console.log(chalkInfo("WAS | <TSS | PONG"
-            + " | NOW: " + getTimeStamp()
-            + " | PONG ID: " + getTimeStamp(m.pongId)
-            + " | RESPONSE TIME: " + msToTime(moment().valueOf() - m.pongId)
-          ));
-        }
-      break;
-
-      default:
-        console.log(chalkError("WAS | TSS | *** ERROR *** UNKNOWN OP: " + m.op));
-    }
-
-  });
-
-  tss.on("error", function tssError(err){
-    console.log(chalkError(getTimeStamp()
-      + " | *** TSS ERROR ***"
-      + " \n" + jsonPrint(err)
-    ));
-    statsObj.tssSendReady = false;
-    statsObj.tssChildReady = false;
-    clearInterval(tssPingInterval);
-    childrenHashMap[params.childId].status = "ERROR";
-  });
-
-  tss.on("exit", function tssExit(code){
-    console.log(chalkError(getTimeStamp()
-      + " | *** TSS EXIT ***"
-      + " | EXIT CODE: " + code
-    ));
-    statsObj.tssSendReady = false;
-    statsObj.tssChildReady = false;
-    clearInterval(tssPingInterval);
-    childrenHashMap[params.childId].status = "EXIT";
-  });
-
-  tss.on("close", function tssClose(code){
-    console.log(chalkError(getTimeStamp()
-      + " | *** TSS CLOSE ***"
-      + " | EXIT CODE: " + code
-    ));
-    statsObj.tssSendReady = false;
-    statsObj.tssChildReady = false;
-    clearInterval(tssPingInterval);
-    childrenHashMap[params.childId].status = "CLOSE";
-  });
-
-  childrenHashMap[params.childId].child = tss;
-
-  statsObj.tssChildReady = true;
-
-  tss.send({
-    op: "INIT",
-    title: "wa_node_tss",
-    networkObj: bestNetworkObj,
-    maxInputHashMap: maxInputHashMap,
-    normalization: normalization,
-    interval: configuration.tssInterval,
-    verbose: false
-  }, function tssMessageRxError(err){
-    if (err) {
-      console.log(chalkError("WAS | *** TSS SEND ERROR"
-        + " | " + err
+      debug(chalkLog("TSS RX MESSAGE"
+        + " | OP: " + m.op
       ));
-      statsObj.tssSendReady = false;
-      statsObj.tssChildReady = false;
+
+      switch (m.op) {
+
+        case "ERROR":
+          console.log(chalkError("WAS | <TSS | ERROR"
+            + " | ERROR TYPE: " + m.errorType
+            + "\n" + jsonPrint(m.error)
+          ));
+
+          if (m.errorType === "TWITTER_UNAUTHORIZED") {
+
+            threeceeTwitter[m.threeceeUser].twitterErrors += 1;
+            threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
+            threeceeTwitter[m.threeceeUser].twitterAuthorizationErrorFlag = m.error;
+
+          }
+          else if (m.errorType === "TWITTER_TOKEN") {
+
+            threeceeTwitter[m.threeceeUser].twitterErrors += 1;
+            threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
+            threeceeTwitter[m.threeceeUser].twitterTokenErrorFlag = m.error;
+
+          }
+          else {
+
+            threeceeTwitter[m.threeceeUser].twitterErrors += 1;
+            threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
+
+          }
+
+        break;
+
+        case "TWITTER_STATS":
+
+          console.log(chalkInfo("WAS | <TSS | TWITTER STATS"
+            + " | 3C @" + m.threeceeUser
+            + " | FOLLOWING: " + m.twitterFollowing
+          ));
+
+          threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
+
+        break;
+
+        case "FOLLOW_LIMIT":
+
+          console.log(chalkInfo("WAS | <TSS | FOLLOW LIMIT"
+            + " | 3C @" + m.threeceeUser
+            + " | LIMIT: " + getTimeStamp(m.twitterFollowLimit)
+            + " | NOW: " + getTimeStamp()
+          ));
+
+          threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
+          threeceeTwitter[m.threeceeUser].twitterFollowLimit = true;
+
+        break;
+
+        case "TWEET":
+          deltaTssMessage = process.hrtime(deltaTssMessageStart);
+          if (deltaTssMessage[0] > 0) { console.log(chalkAlert("WAS | *** TSS RX DELTA: " + deltaTssMessage[0] + "." + deltaTssMessage[1])); }
+          deltaTssMessageStart = process.hrtime();
+          if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + m.tweet.id_str + " | @" + m.tweet.user.screen_name)); }
+          socketRxTweet(m.tweet);
+        break;
+
+        case "PONG":
+          tssPongReceived = m.pongId;
+          childrenHashMap[params.childId].status = "RUNNING";
+          if (configuration.verbose) {
+            console.log(chalkInfo("WAS | <TSS | PONG"
+              + " | NOW: " + getTimeStamp()
+              + " | PONG ID: " + getTimeStamp(m.pongId)
+              + " | RESPONSE TIME: " + msToTime(moment().valueOf() - m.pongId)
+            ));
+          }
+        break;
+
+        default:
+          console.log(chalkError("WAS | TSS | *** ERROR *** UNKNOWN OP: " + m.op));
+      }
+    });
+
+    tss.on("error", function tssError(err){
+      console.log(chalkError(getTimeStamp()
+        + " | *** TSS ERROR ***"
+        + " \n" + jsonPrint(err)
+      ));
       clearInterval(tssPingInterval);
       childrenHashMap[params.childId].status = "ERROR";
-    }
-    else {
-      statsObj.tssSendReady = true;
-      statsObj.tssChildReady = true;
-      childrenHashMap[params.childId].status = "INIT";
+    });
+
+    tss.on("exit", function tssExit(code){
+      console.log(chalkError(getTimeStamp()
+        + " | *** TSS EXIT ***"
+        + " | EXIT CODE: " + code
+      ));
       clearInterval(tssPingInterval);
-      setTimeout(function(){
-        initTssPingInterval(DEFAULT_PING_INTERVAL);
-      }, 1000);
-    }
+      childrenHashMap[params.childId].status = "EXIT";
+    });
+
+    tss.on("close", function tssClose(code){
+      console.log(chalkError(getTimeStamp()
+        + " | *** TSS CLOSE ***"
+        + " | EXIT CODE: " + code
+      ));
+      clearInterval(tssPingInterval);
+      childrenHashMap[params.childId].status = "CLOSE";
+    });
+
+    childrenHashMap[params.childId].child = tss;
+
+    tss.send({
+      op: "INIT",
+      title: "wa_node_tss",
+      networkObj: bestNetworkObj,
+      maxInputHashMap: maxInputHashMap,
+      normalization: normalization,
+      interval: configuration.tssInterval,
+      verbose: false
+    }, function tssMessageRxError(err){
+      if (err) {
+        console.log(chalkError("WAS | *** TSS SEND ERROR: " + err));
+        console.error(err);
+        clearInterval(tssPingInterval);
+        childrenHashMap[params.childId].status = "ERROR";
+        reject(err);
+      }
+      else {
+        childrenHashMap[params.childId].status = "INIT";
+        clearInterval(tssPingInterval);
+        setTimeout(function(){
+          initTssPingInterval(DEFAULT_PING_INTERVAL);
+        }, 1000);
+        resolve();
+      }
+    });
+
   });
 
-  if (callback !== undefined) { callback(null, tss); }
 }
 
 async function initTfeChild(params){

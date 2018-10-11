@@ -475,11 +475,13 @@ function initStatsUpdate(cnf, callback){
   callback(null, cnf);
 }
 
-function printUserObj(title, user) {
+function printUserObj(title, user, chalkConfig) {
+
+  let curChalk = chalkLog || chalkConfig;
 
   user = userDefaults(user);
 
-  console.log(chalkLog(title
+  console.log(curChalk(title
     + " | UID: " + user.userId
     + " | @" + user.screenName
     + " | N: " + user.name 
@@ -1367,7 +1369,7 @@ async function initUserCategorizeQueueInterval(cnf){
           updatedUser.categoryAuto = networkOutput[nnId].output;
 
           userServerController.findOneUser(updatedUser, {noInc: false, fields: fieldsTransmit}, function(err, dbUser){
-            printUserObj("TFE | DB CAT", dbUser);
+            printUserObj("TFE | DB CAT", dbUser, chalkRed);
             process.send({ op: "USER_CATEGORIZED", user: dbUser });
           });
 

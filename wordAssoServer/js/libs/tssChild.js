@@ -684,6 +684,15 @@ function initTwit(params, callback){
               ));
               cb();
             }
+            else if (err.code === 261) { //  Application cannot perform write actions
+              console.log(chalk.black("TSS | UNFOLLOW ERROR"
+                + " | 3C @:" + twitterUserObj.screenName
+                + " | CODE: " + err.code
+                + " | STATUS CODE: " + err.statusCode
+                + " | " + err
+              ));
+              cb();
+            }
             else {
               console.log(chalkError("TSS | *** UNFOLLOW ERROR"
                 + " | 3C @:" + twitterUserObj.screenName

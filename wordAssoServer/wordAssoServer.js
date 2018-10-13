@@ -5524,11 +5524,31 @@ function initTransmitNodeQueueInterval(interval){
               }
 
               if (followable) {
-                if (tssChild !== undefined) { tssChild.send({op: "USER_SHOW", user: n, includeEntities: true}); }
+                if (tssChild !== undefined) { 
+
+                if (!n.categoryAuto) { 
+                  uncategorizedAutoUserSet.add(n.nodeId);
+                  if (uncategorizedAutoUserSet.size % 100 === 0) {
+                    printUserObj("UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", n);
+                  }
+                }
+
+                  tssChild.send({op: "USER_SHOW", user: n, includeEntities: true});
+                }
               }
 
               if (categorizeable) {
-                if (tfeChild !== undefined) { tfeChild.send({op: "USER_CATEGORIZE", user: n}); }
+
+                if (!n.categoryAuto) { 
+                  uncategorizedAutoUserSet.add(n.nodeId);
+                  if (uncategorizedAutoUserSet.size % 100 === 0) {
+                    printUserObj("UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", n);
+                  }
+                }
+
+                if (tfeChild !== undefined) { 
+                  tfeChild.send({op: "USER_CATEGORIZE", user: n});
+                }
               }
 
               if ((n.nodeType === "user") && n.category){

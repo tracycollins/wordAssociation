@@ -731,7 +731,7 @@ function initTwit(params, callback){
 
             printUserObj(printString, user);
 
-            if (!user.following) {
+            if (!user.following) { 
               user.following = true;
               user.threeceeFollowing = twitterUserObj.screenName;
               user.markModified("following");

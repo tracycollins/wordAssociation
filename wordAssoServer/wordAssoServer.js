@@ -1180,8 +1180,9 @@ function connectDb(callback){
     statsObj.user.mismatched = 0;
     statsObj.user.uncategorizedManualUserArray = 0;
 
-    updateUserSets();
-    initUpdateUserSetsInterval(ONE_MINUTE);
+    updateUserSets(function(err){
+      initUpdateUserSetsInterval(ONE_MINUTE);
+    });
 
     const neuralNetworkCollection = db.collection("neuralnetworks");
 
@@ -5271,46 +5272,76 @@ function getCurrentThreeceeUser(callback){
 
 function updateUserSets(callback){
 
+  let calledBack = false;
+
   const userCollection = global.dbConnection.collection("users");
 
   userCollection.countDocuments(function(err, count){
-    if (err) { throw Error; }
+    if (err) { 
+      console.log(chalkError("UPDATE USER SETS COUNT DOCS ERROR: " + err));
+      calledBack = true;
+      return callback(err);
+    }
     statsObj.user.total = count;
     console.log(chalkBlue("WAS | GRAND TOTAL USERS IN DB: " + statsObj.user.total));
   });
 
   userCollection.countDocuments({"following": true}, function(err, count){
-    if (err) { throw Error; }
+    if (err) { 
+      console.log(chalkError("UPDATE USER SETS COUNT FOLLOWING ERROR: " + err));
+      calledBack = true;
+      return callback(err);
+    }
     statsObj.user.following = count;
     console.log(chalkBlue("WAS | TOTAL FOLLOWING USERS IN DB: " + statsObj.user.following));
   });
 
   userCollection.countDocuments({"following": false}, function(err, count){
-    if (err) { throw Error; }
+    if (err) { 
+      console.log(chalkError("UPDATE USER SETS COUNT NOT FOLLOWING ERROR: " + err));
+      calledBack = true;
+      return callback(err);
+    }
     statsObj.user.notFollowing = count;
     console.log(chalkBlue("WAS | TOTAL NOT FOLLOWING USERS IN DB: " + statsObj.user.notFollowing));
   });
 
   userCollection.countDocuments({category: { "$nin": [ false, "false", null ] }}, function(err, count){
-    if (err) { throw Error; }
+    if (err) { 
+      console.log(chalkError("UPDATE USER SETS COUNT CAT MAN ERROR: " + err));
+      calledBack = true;
+      return callback(err);
+    }
     statsObj.user.categorizedManual = count;
     console.log(chalkBlue("WAS | TOTAL CATEGORIZED MANUAL USERS IN DB: " + statsObj.user.categorizedManual));
   });
 
   userCollection.countDocuments({category: { "$in": [ false, "false", null ] }}, function(err, count){
-    if (err) { throw Error; }
+    if (err) { 
+      console.log(chalkError("UPDATE USER SETS COUNT UNCAT MAN ERROR: " + err));
+      calledBack = true;
+      return callback(err);
+    }
     statsObj.user.uncategorizedManual = count;
     console.log(chalkBlue("WAS | TOTAL UNCATEGORIZED MANUAL USERS IN DB: " + statsObj.user.uncategorizedManual));
   });
 
   userCollection.countDocuments({categoryAuto: { "$nin": [ false, "false", null ] }}, function(err, count){
-    if (err) { throw Error; }
+    if (err) { 
+      console.log(chalkError("UPDATE USER SETS COUNT CAT AUTO ERROR: " + err));
+      calledBack = true;
+      return callback(err);
+    }
     statsObj.user.categorizedAuto = count;
     console.log(chalkBlue("WAS | TOTAL CATEGORIZED AUTO USERS IN DB: " + statsObj.user.categorizedAuto));
   });
 
   userCollection.countDocuments({categoryAuto: { "$in": [ false, "false", null ] }}, function(err, count){
-    if (err) { throw Error; }
+    if (err) { 
+      console.log(chalkError("UPDATE USER SETS COUNT UNCAT AUTO ERROR: " + err));
+      calledBack = true;
+      return callback(err);
+    }
     statsObj.user.uncategorizedAuto = count;
     console.log(chalkBlue("WAS | TOTAL UNCATEGORIZED AUTO USERS IN DB: " + statsObj.user.uncategorizedAuto));
   });
@@ -5361,6 +5392,12 @@ function updateUserSets(callback){
 
     console.log(chalkBlue("WAS | END FOLLOWING CURSOR | FOLLOWING USER SET"));
     console.log(chalkBlue("WAS | USER DB STATS\n" + jsonPrint(statsObj.user)));
+
+    if (!calledBack) { 
+      calledBack = true;
+      return callback();
+    }
+
   });
 
   userFollowingCursor.on("error", function(err) {
@@ -5373,6 +5410,12 @@ function updateUserSets(callback){
 
     console.error(chalkError("*** ERROR userFollowingCursor: " + err));
     console.log(chalkAlert("WAS | USER DB STATS\n" + jsonPrint(statsObj.user)));
+
+    if (!calledBack) { 
+      calledBack = true;
+      return callback(err);
+    }
+
   });
 
   userFollowingCursor.on("close", function() {
@@ -5386,9 +5429,12 @@ function updateUserSets(callback){
     console.log(chalkBlue("WAS | CLOSE FOLLOWING CURSOR"));
     console.log(chalkBlue("WAS | USER DB STATS\n" + jsonPrint(statsObj.user)));
 
-  });
+    if (!calledBack) { 
+      calledBack = true;
+      return callback();
+    }
 
-  if (callback !== undefined) { callback(); }
+  });
 
 }
 
@@ -7831,7 +7877,7 @@ function initUpdateUserSetsInterval(interval){
 
       updateUserSetsIntervalReady = false;
 
-      updateUserSets(function(){
+      updateUserSets(function(err){
 
         updateUserSetsIntervalReady = true;
 

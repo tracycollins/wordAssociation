@@ -5386,9 +5386,9 @@ function updateUserSets(callback){
     console.log(chalkBlue("WAS | CLOSE FOLLOWING CURSOR"));
     console.log(chalkBlue("WAS | USER DB STATS\n" + jsonPrint(statsObj.user)));
 
-    if (callback !== undefined) { callback(); }
-
   });
+
+  if (callback !== undefined) { callback(); }
 
 }
 

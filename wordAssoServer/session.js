@@ -638,6 +638,8 @@ function createPopUpControlPanel (cnf, callback) {
 }
 
 
+var controlPanelInitWaitInterval;
+
 function toggleControlPanel(){
 
   // var cnf = config;
@@ -653,9 +655,10 @@ function toggleControlPanel(){
   }
   else {
 
-    var controlPanelInitWaitInterval;
 
     createPopUpControlPanel(config, function(){
+
+      clearInterval(controlPanelInitWaitInterval);
 
       console.warn("createPopUpControlPanel toggleControlPanel: " + controlPanelFlag);
 
@@ -727,23 +730,6 @@ function addMetricButton(){
 function updateLoginButton(){
   document.getElementById("loginButton").innerHTML = statsObj.isAuthenticated ? "LOG OUT" : "LOG IN";
 }
-
-// socket.on("unauthorized", function(response) {
-//   statsObj.isAuthenticated = false;
-//   console.log("UNAUTHORIZED | " + socket.id + " | " + jsonPrint(response));
-// });
-
-// socket.on("authenticated", function() {
-//   console.log("AUTHENTICATED | " + socket.id);
-//   statsObj.serverConnected = true;
-//   statsObj.socket.connected = true;
-//   statsObj.isAuthenticated = true;
-//   console.log( "CONNECTED TO HOST" 
-//     + " | ID: " + socket.id 
-//   );
-
-//   initViewerReadyInterval(config.viewerReadyInterval);
-// });
 
 function login() {
   console.warn("LOGIN: AUTH: " + statsObj.isAuthenticated + " | URL: " + config.authenticationUrl);
@@ -1771,6 +1757,7 @@ function initSocketSessionUpdateRx(){
   rxNodeQueueReady = true;
 
   var newNode = {};
+  var category;
 
   setInterval(function(){
 
@@ -1780,7 +1767,6 @@ function initSocketSessionUpdateRx(){
 
       newNode = rxNodeQueue.shift();
 
-      var category;
       if (config.autoCategoryFlag &&  newNode.categoryAuto){
         category = newNode.categoryAuto;
       }
@@ -1834,30 +1820,6 @@ function initSocketSessionUpdateRx(){
     }
   }, RX_NODE_QUEUE_INTERVAL);
 
-  // socket.on("STATS_HASHTAG", function(htStatsObj){
-  //     console.log(">>> RX STATS_HASHTAG");
-
-  //     var htObjArray = [];
-
-  //     Object.keys(htStatsObj).forEach(function(key) {
-  //       if (htStatsObj.hasOwnProperty(key)) {
-
-  //         var htObj = htStatsObj[key];
-  //         var mntns = htObj.mentions.toString() ;
-  //         var numPadSpaces = 10 - mntns.length;
-  //         htObj.displaytext = new Array(numPadSpaces).join("xa0") + mntns + " " + key ;
-  //         htObj.barlabel = key ;
-
-  //         getTimeNow(function(t){
-  //           htObj.seen = t ;
-  //           htObj.topHashtag = true ;
-  //           htObj.newFlag = false ;
-  //           htObjArray.push(htObj);
-  //           hashtagHashMap.set(key, htObj);
-  //         });
-  //       }
-  //     });
-  // });
 }
 
 //================================

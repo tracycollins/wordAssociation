@@ -14,27 +14,22 @@ function ViewTreepack() {
 
   var getWindowDimensions = function (){
 
-    var w;
-    var h;
-
     if (window.innerWidth !== "undefined") {
       w = window.innerWidth;
       h = window.innerHeight;
+      return { width: window.innerWidth, height: window.innerHeight };
     }
     // IE6 in standards compliant mode (i.e. with a valid doctype as the first line in the document)
-    else if (document.documentElement !== "undefined" 
+    
+    if (document.documentElement !== "undefined" 
       && document.documentElement.clientWidth !== "undefined" 
       && document.documentElement.clientWidth !== 0) {
-      w = document.documentElement.clientWidth;
-      h = document.documentElement.clientHeight;
+      return { width: document.documentElement.clientWidth, height: document.documentElement.clientHeight };
     }
     // older versions of IE
-    else {
-      w = document.getElementsByTagName("body")[0].clientWidth;
-      h = document.getElementsByTagName("body")[0].clientHeight;
-    }
+    return { width: document.getElementsByTagName("body")[0].clientWidth, height: document.getElementsByTagName("body")[0].clientHeight };
 
-    return { width: w, height: h };
+    // return { width: w, height: h };
   };
 
   var width = getWindowDimensions().width;
@@ -201,8 +196,6 @@ function ViewTreepack() {
   currentMax.mentions.mentions = 0.1;
   currentMax.mentions.timeStamp = moment().valueOf();
 
-  var deadNodesHash = {};
-
   function Node(nodePoolId){
     this.nodePoolId = nodePoolId;
     this.isValid = false;
@@ -323,7 +316,6 @@ function ViewTreepack() {
   var runningFlag = false;
   
   var nodeAddQ = [];
-  var nodeDeleteQ = [];
 
   self.sessionKeepalive = function() {
     return null;
@@ -1237,10 +1229,8 @@ function ViewTreepack() {
 
     nodeTopTermLabels
       .exit()
-      // .style("visibility", "hidden")
       .style("display", "none")
       .style("fill-opacity", 1e-6);
-      // .remove();
 
     nodeTopTermLabels
       .attr("x", xposition)
@@ -1258,7 +1248,6 @@ function ViewTreepack() {
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
-      // .style("visibility", null)
       .style("display", "unset")
       .transition()
         .duration(transitionDuration)
@@ -1279,7 +1268,6 @@ function ViewTreepack() {
         return d.displaytext;
       })
       .style("font-family", "monospace")
-      // .style("visibility", null)
       .style("display", "unset")
       .style("fill-opacity", function updateTopTermOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
@@ -1322,10 +1310,6 @@ function ViewTreepack() {
         if (metricMode === "rate") { return d.y - 0.5*(imageSizeScale(parseInt(d.rate) + 1.0)); }
         if (metricMode === "mentions") { return d.y - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); }
       })
-      // .style("visibility", function (d) { 
-      //   if (!d.isValid) { return "hidden"; }
-      //   return "visible"; 
-      // })
       .style("display", function (d) { 
         if (!d.isValid) { return "none"; }
         return "unset"; 
@@ -1364,10 +1348,6 @@ function ViewTreepack() {
         if (metricMode === "rate") {return imageSizeScale(parseInt(d.rate + 1.0));}
         if (metricMode === "mentions") {return imageSizeScale(parseInt(d.mentions + 1.0));}
       })
-      // .style("visibility", function (d) { 
-      //   if (!d.isValid) { return "hidden"; }
-      //   return "visible"; 
-      // })
       .style("display", function (d) { 
         if (!d.isValid) { return "none"; }
         return "unset"; 
@@ -2224,7 +2204,6 @@ function ViewTreepack() {
 
   self.reset = function() {
     console.info("RESET");
-    deadNodesHash = {};
     mouseHoverFlag = false;
     localNodeHashMap.clear();
     nodeIdHashMap.clear();

@@ -1459,7 +1459,15 @@ function checkUserChanges(params){
     }
     if (user.lastHistogramTweetId === undefined) {
       results.initFlag = true;
-      user.lastHistogramTweetId = user.status.id_str;
+      if (user.status !== undefined) { 
+        user.lastHistogramTweetId = user.status.id_str; 
+      }
+      else if (user.lastTweetId !== undefined) { 
+        user.lastHistogramTweetId = user.lastTweetId; 
+      }
+      else {
+        user.lastHistogramTweetId = 0; 
+      }
     }
 
     if (user.previousName !== user.name) { 

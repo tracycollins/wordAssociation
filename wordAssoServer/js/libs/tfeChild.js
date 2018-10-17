@@ -1464,7 +1464,7 @@ async function initDbUserChangeStream(params){
       userChangeStream.on("change", async function(change){
 
         if (change && change.fullDocument) { 
-          const user = change.fullDocument; 
+          let user = new User(change.fullDocument); 
 
           const userChanges = await checkUserChanges({user:user});
 

@@ -1373,7 +1373,13 @@ async function initUserChangeDbQueueInterval(cnf){
           console.log(chalkError("TFE | *** USER DB UPDATE ERROR: " + err));
         }
         else {
-          printUserObj("TFE | CHANGE USER DB", dbUser, chalkAlert);
+          if (user.initFlag && !user.chages) {
+            printUserObj("TFE | CHANGE USER DB | INIT", dbUser, chalkWarn);
+          }
+          else if (user.changes) {
+            dbUser.changes = user.chages;
+            printUserObj("TFE | CHANGE USER DB | CHNG", dbUser, chalkAlert);
+          }
         }
         userChangeDbQueueReady = true;
       });

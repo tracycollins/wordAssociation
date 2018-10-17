@@ -102,6 +102,7 @@ const chalkConnect = chalk.green;
 const twitterUserHashMap = new HashMap();
 
 const userCategorizeQueue = [];
+const userChangeDbQueue = [];
 
 process.on("SIGHUP", function processSigHup() {
   quit("SIGHUP");
@@ -128,6 +129,7 @@ configuration.verbose = false;
 configuration.globalTestMode = false;
 configuration.testMode = false; // per tweet test mode
 configuration.userCategorizeQueueInterval = ONE_SECOND;
+configuration.userChangeDbQueueInterval = 10;
 configuration.enableImageAnalysis = false;
 
 configuration.enableLanguageAnalysis = false;
@@ -777,6 +779,9 @@ function checkTwitterRateLimitAll(callback){
 let userCategorizeQueueReady = true;
 let userCategorizeQueueInterval;
 
+let userChangeDbQueueReady = true;
+let userChangeDbQueueInterval;
+
 
 let generateNetworkInputBusy = false;
 
@@ -790,7 +795,6 @@ function generateNetworkInputIndexed(params, callback){
   //   inputsObj: networkObj.inputsObj,
   //   maxInputHashMap: maxInputHashMap
   // };
-
 
   generateNetworkInputBusy = true;
 
@@ -1348,6 +1352,38 @@ async function generateUserData(user) {
   return updatedUser;
 }
 
+async function initUserChangeDbQueueInterval(cnf){
+
+  let user = {};
+
+  console.log(chalkTwitter("TFE | INIT TWITTER USER CHANGE DB QUEUE INTERVAL: " + cnf.userChangeDbQueueInterval));
+
+  clearInterval(userChangeDbQueueInterval);
+
+  userChangeDbQueueInterval = setInterval(async function () {
+
+    if (userChangeDbQueueReady && (userChangeDbQueue.length > 0)) {
+
+      userChangeDbQueueReady = false;
+
+      user = userChangeDbQueue.shift();
+
+      userServerController.findOneUser(user, {noInc: true, fields: fieldsTransmit}, function(err, dbUser){
+        if (err) {
+          console.log(chalkError("TFE | *** USER DB UPDATE ERROR: " + err));
+        }
+        else {
+          printUserObj("TFE | CHANGE USER DB", dbUser, chalkAlert);
+        }
+        userChangeDbQueueReady = true;
+      });
+
+
+    }
+
+  }, cnf.userChangeDbQueueInterval);
+}
+
 async function initUserCategorizeQueueInterval(cnf){
 
   let user = {};
@@ -1468,34 +1504,18 @@ async function initDbUserChangeStream(params){
 
           const userChanges = await checkUserChanges({user:user});
 
+          if (userChanges.changeFlag) { user.changes = userChanges; }
+
           if (userChanges.initFlag) {
 
+            user.initFlag = true;
             user.markModified("previousName");
             user.markModified("previousDescription");
             user.markModified("lastHistogramTweetId");
 
           }
 
-          if (userChanges.changeFlag) {
-
-            user.changes = userChanges;
-
-            // printUserObj("TFE | ++> USER UPDATE CHANGE | " +  change.operationType, user, chalkAlert);
-
-            userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
-              printUserObj("TFE | ++> USER CHANGE | UPDATE | " +  change.operationType, updatedUser, chalkAlert);
-            });
-
-          }
-          else if (userChanges.initFlag) {
-
-            // printUserObj("TFE | 00> USER INIT   CHANGE | " +  change.operationType, user, chalkWarn);
-
-            userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
-              printUserObj("TFE | 00> USER CHANGE | INIT   | " +  change.operationType, updatedUser, chalkWarn);
-            });
-
-          }
+          if (userChanges.changeFlag || userChanges.initFlag) { userChangeDbQueue.push(user); }
           
           if (configuration.verbose) {
             printUserObj("TFE | --> USER CHANGE | " +  change.operationType, user, chalkLog);
@@ -1513,7 +1533,6 @@ async function initDbUserChangeStream(params){
     });
 
   });
-
 }
 
 function initialize(cnf, callback){
@@ -1829,6 +1848,7 @@ setTimeout(function(){
 
     initInfoTwit({screenName: DEFAULT_INFO_TWITTER_USER}, function(err, ituObj){
       infoTwitterUserObj = ituObj;
+      initUserChangeDbQueueInterval(configuration);
       initUserCategorizeQueueInterval(configuration);
     });
 

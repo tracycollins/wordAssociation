@@ -244,7 +244,7 @@ function connectDb(callback){
 
   statsObj.status = "CONNECT DB";
 
-  wordAssoDb.connect("TFE_" + process.pid, function(err, db){
+  wordAssoDb.connect("TFE_" + process.pid, async function(err, db){
     if (err) {
       console.log(chalkError("TFE | *** MONGO DB CONNECTION ERROR: " + err));
       callback(err, null);
@@ -271,6 +271,8 @@ function connectDb(callback){
       dbConnectionReady = true;
 
       User = mongoose.model("User", userModel.UserSchema);
+
+      await initDbUserChangeStream({db: db});
 
       callback(null, db);
     }
@@ -1104,7 +1106,6 @@ function updateHistograms(params) {
   });
 }
 
-
 function enableAnalysis(user, languageAnalysis) {
   if (!configuration.enableLanguageAnalysis) { return false; }
   if (configuration.forceLanguageAnalysis) {
@@ -1265,7 +1266,6 @@ function parseText(params){
   });
 }
 
-
 async function generateUserData(user) {
 
   if (user === undefined) {
@@ -1340,7 +1340,6 @@ async function generateUserData(user) {
   // printUserObj("TFE | generateUserData", updatedUser);
 
   return updatedUser;
-
 }
 
 async function initUserCategorizeQueueInterval(cnf){
@@ -1389,9 +1388,51 @@ async function initUserCategorizeQueueInterval(cnf){
     }
 
   }, cnf.userCategorizeQueueInterval);
-
 }
 
+async function initDbUserChangeStream(params){
+
+  return new Promise(async function(resolve, reject){
+
+    const userCollection = params.db.collection("users");
+
+    userCollection.countDocuments(function(err, count){
+
+      if (err) { 
+        // throw Error;
+        return reject(err);
+      }
+      console.log(chalkInfo("TFE | USERS IN DB: " + count));
+
+      const changeFilter = {
+        "$match": {
+          "$or": [{ operationType: "insert" },{ operationType: "delete" },{ operationType: "update" },{ operationType: "replace" }]
+        }
+      };
+      const changeOptions = { fullDocument: "updateLookup" };
+
+      const userChangeStream = userCollection.watch([changeFilter], changeOptions);
+
+      userChangeStream.on("change", function(change){
+
+        if (change && change.fullDocument) { 
+          const user = change.fullDocument; 
+          printUserObj("TFE | --> USER CHANGE | " +  change.operationType, user, chalkAlert);
+
+        }
+        else {
+          console.log(chalkAlert("TFE | --> USER CHANGE | " +  change.operationType));
+        }
+
+      });
+
+      resolve();
+
+    });
+
+  });
+
+}
 
 function initialize(cnf, callback){
 

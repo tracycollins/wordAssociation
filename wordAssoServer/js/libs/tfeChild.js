@@ -1467,13 +1467,13 @@ async function initDbUserChangeStream(params){
             user.changes = userChanges;
             printUserObj("TFE | ++> USER CHANGE | " +  change.operationType, user, chalkAlert);
           }
-          else {
+          else if (configuration.verbose) {
             printUserObj("TFE | --> USER CHANGE | " +  change.operationType, user, chalkLog);
           }
 
         }
         else {
-          console.log(chalkAlert("TFE | --> USER CHANGE | " +  change.operationType));
+          console.log(chalkAlert("TFE | XX> USER CHANGE | " +  change.operationType));
         }
 
       });

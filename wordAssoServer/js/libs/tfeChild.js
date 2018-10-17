@@ -1374,11 +1374,11 @@ async function initUserChangeDbQueueInterval(cnf){
         }
         else {
           if (user.initFlag && !user.chages) {
-            printUserObj("TFE | CHANGE USER DB | INIT", dbUser, chalkWarn);
+            printUserObj("TFE | CHANGE USER DB [" + userChangeDbQueue.length + "] INIT", dbUser, chalkWarn);
           }
           else if (user.changes) {
             dbUser.changes = user.chages;
-            printUserObj("TFE | CHANGE USER DB | CHNG", dbUser, chalkAlert);
+            printUserObj("TFE | CHANGE USER DB [" + userChangeDbQueue.length + "] CHNG", dbUser, chalkAlert);
           }
         }
         userChangeDbQueueReady = true;

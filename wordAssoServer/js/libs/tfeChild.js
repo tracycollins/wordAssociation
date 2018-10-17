@@ -30,7 +30,7 @@ const fieldsTransmit = {
   threeceeFollowing: 1
 };
 
-const fieldsTransmitKeys = Object.keys(fieldsTransmit);
+// const fieldsTransmitKeys = Object.keys(fieldsTransmit);
 
 const DEFAULT_MAX_TWEET_QUEUE = 500;
 const DEFAULT_TWITTER_QUEUE_INTERVAL = 10;
@@ -1368,7 +1368,7 @@ async function initUserChangeDbQueueInterval(cnf){
 
       user = userChangeDbQueue.shift();
 
-      userServerController.findOneUser(user, {noInc: true, fields: fieldsTransmit}, function(err, dbUser){
+      userServerController.findOneUser(user, {noInc: true}, function(err, dbUser){
         if (err) {
           console.log(chalkError("TFE | *** USER DB UPDATE ERROR: " + err));
         }

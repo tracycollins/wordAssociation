@@ -496,6 +496,12 @@ function printUserObj(title, user, chalkConfig) {
     + " | 3C: @" + user.threeceeFollowing 
     + " | CAT M: " + user.category + " - A: " + user.categoryAuto
   ));
+
+  if (user.changes) {
+    console.log(curChalk(title
+    + "\nCHANGES\n" + jsonPrint(user.changes)
+    ));
+  }
 }
 
 const userDefaults = function (user){
@@ -1390,6 +1396,43 @@ async function initUserCategorizeQueueInterval(cnf){
   }, cnf.userCategorizeQueueInterval);
 }
 
+function checkUserChanges(params){
+
+  return new Promise(async function(resolve, reject){
+
+    let flag = false;
+    let results = {};
+
+    let user = {};
+    user = params.user;
+
+    if (user.previousName === undefined) { user.previousName = user.name; }
+    if (user.previousDescription === undefined) { user.previousDescription = user.description; }
+    if (user.lastHistogramTweetId === undefined) { user.lastHistogramTweetId = user.status.id_str; }
+
+    if (user.previousName !== user.name) { 
+      flag = true;
+      results.name = user.name;
+    }
+    if (user.previousDescription !== user.description) { 
+      flag = true;
+      results.description = user.description; 
+    }
+    if (user.lastHistogramTweetId !== user.status.id_str) { 
+      flag = true;
+      results.status = user.status;
+    }
+
+    if (flag) {
+      resolve(results);
+    }
+    else {
+      resolve(false);
+    }
+
+  });
+}
+
 async function initDbUserChangeStream(params){
 
   return new Promise(async function(resolve, reject){
@@ -1413,11 +1456,20 @@ async function initDbUserChangeStream(params){
 
       const userChangeStream = userCollection.watch([changeFilter], changeOptions);
 
-      userChangeStream.on("change", function(change){
+      userChangeStream.on("change", async function(change){
 
         if (change && change.fullDocument) { 
           const user = change.fullDocument; 
-          printUserObj("TFE | --> USER CHANGE | " +  change.operationType, user, chalkAlert);
+
+          const userChanges = await checkUserChanges({user:user});
+
+          if (userChanges) {
+            user.changes = userChanges;
+            printUserObj("TFE | ++> USER CHANGE | " +  change.operationType, user, chalkAlert);
+          }
+          else {
+            printUserObj("TFE | --> USER CHANGE | " +  change.operationType, user, chalkLog);
+          }
 
         }
         else {

@@ -1468,14 +1468,33 @@ async function initDbUserChangeStream(params){
 
           const userChanges = await checkUserChanges({user:user});
 
-          if (userChanges.changeFlag) {
-            user.changes = userChanges;
-            printUserObj("TFE | ++> USER UPDATE CHANGE | " +  change.operationType, user, chalkAlert);
+          if (userChanges.initFlag) {
+
+            user.markModified("previousName");
+            user.markModified("previousDescription");
+            user.markModified("lastHistogramTweetId");
+
           }
-          
-          if (userChanges.initFlag && !userChanges.changeFlag) {
+
+          if (userChanges.changeFlag) {
+
             user.changes = userChanges;
-            printUserObj("TFE | 00> USER INIT   CHANGE | " +  change.operationType, user, chalkWarn);
+
+            // printUserObj("TFE | ++> USER UPDATE CHANGE | " +  change.operationType, user, chalkAlert);
+
+            userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
+              printUserObj("TFE | ++> USER CHANGE | UPDATE | " +  change.operationType, updatedUser, chalkAlert);
+            });
+
+          }
+          else if (userChanges.initFlag) {
+
+            // printUserObj("TFE | 00> USER INIT   CHANGE | " +  change.operationType, user, chalkWarn);
+
+            userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
+              printUserObj("TFE | 00> USER CHANGE | INIT   | " +  change.operationType, updatedUser, chalkWarn);
+            });
+
           }
           
           if (configuration.verbose) {

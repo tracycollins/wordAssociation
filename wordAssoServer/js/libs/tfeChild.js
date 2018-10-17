@@ -1400,35 +1400,40 @@ function checkUserChanges(params){
 
   return new Promise(async function(resolve, reject){
 
-    let flag = false;
     let results = {};
+    results.changeFlag = false;
+    results.initFlag = false;
 
     let user = {};
     user = params.user;
 
-    if (user.previousName === undefined) { user.previousName = user.name; }
-    if (user.previousDescription === undefined) { user.previousDescription = user.description; }
-    if (user.lastHistogramTweetId === undefined) { user.lastHistogramTweetId = user.status.id_str; }
+    if (user.previousName === undefined) { 
+      results.initFlag = true;
+      user.previousName = user.name; 
+    }
+    if (user.previousDescription === undefined) { 
+      results.initFlag = true;
+      user.previousDescription = user.description; 
+    }
+    if (user.lastHistogramTweetId === undefined) {
+      results.initFlag = true;
+      user.lastHistogramTweetId = user.status.id_str;
+    }
 
     if (user.previousName !== user.name) { 
-      flag = true;
+      results.changeFlag = true;
       results.name = user.name;
     }
     if (user.previousDescription !== user.description) { 
-      flag = true;
+      results.changeFlag = true;
       results.description = user.description; 
     }
     if (user.lastHistogramTweetId !== user.status.id_str) { 
-      flag = true;
+      results.changeFlag = true;
       results.status = user.status;
     }
 
-    if (flag) {
-      resolve(results);
-    }
-    else {
-      resolve(false);
-    }
+    resolve(results);
 
   });
 }
@@ -1463,11 +1468,17 @@ async function initDbUserChangeStream(params){
 
           const userChanges = await checkUserChanges({user:user});
 
-          if (userChanges) {
+          if (userChanges.changeFlag) {
             user.changes = userChanges;
-            printUserObj("TFE | ++> USER CHANGE | " +  change.operationType, user, chalkAlert);
+            printUserObj("TFE | ++> USER UPDATE CHANGE | " +  change.operationType, user, chalkAlert);
           }
-          else if (configuration.verbose) {
+          
+          if (userChanges.initFlag && !userChanges.changeFlag) {
+            user.changes = userChanges;
+            printUserObj("TFE | 00> USER INIT   CHANGE | " +  change.operationType, user, chalkWarn);
+          }
+          
+          if (configuration.verbose) {
             printUserObj("TFE | --> USER CHANGE | " +  change.operationType, user, chalkLog);
           }
 

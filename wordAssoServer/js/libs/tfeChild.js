@@ -1529,7 +1529,9 @@ async function initDbUserChangeStream(params){
 
           }
 
-          if (userChanges.changeFlag || userChanges.initFlag) { userChangeDbQueue.push(user); }
+          if ((userChangeDbQueue.length < 10000) && (userChanges.changeFlag || userChanges.initFlag)) { 
+            userChangeDbQueue.push(user);
+          }
           
           if (configuration.verbose) {
             printUserObj("TFE | --> USER CHANGE | " +  change.operationType, user, chalkLog);

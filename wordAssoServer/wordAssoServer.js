@@ -3543,6 +3543,9 @@ function socketRxTweet(tw) {
 
     tw.inc = true;
 
+    tw.user.statusId = tw.id_str;
+    tw.user.status = (tw.text !== undefined) ? tw.text;
+
     if (categorizedUserHashMap.has(tw.user.screen_name.toLowerCase())){
 
       tw.user.category = categorizedUserHashMap.get(tw.user.screen_name.toLowerCase()).manual;

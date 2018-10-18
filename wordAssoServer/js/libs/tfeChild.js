@@ -1354,7 +1354,7 @@ async function generateUserData(user) {
 
 async function initUserChangeDbQueueInterval(cnf){
 
-  // let user = {};
+  let user = {};
 
   console.log(chalkTwitter("TFE | INIT TWITTER USER CHANGE DB QUEUE INTERVAL: " + cnf.userChangeDbQueueInterval));
 
@@ -1366,20 +1366,18 @@ async function initUserChangeDbQueueInterval(cnf){
 
       userChangeDbQueueReady = false;
 
-      const user = userChangeDbQueue.shift();
+      user = userChangeDbQueue.shift();
+
+      if (user.initFlag && !user.chages) {
+        printUserObj("TFE | CHANGE USER DB [" + userChangeDbQueue.length + "] INIT", user, chalkWarn);
+      }
+      else if (user.changes) {
+        printUserObj("TFE | CHANGE USER DB [" + userChangeDbQueue.length + "] CHNG", user, chalkAlert);
+      }
 
       userServerController.findOneUser(user, {noInc: true}, function(err, dbUser){
         if (err) {
           console.log(chalkError("TFE | *** USER DB UPDATE ERROR: " + err));
-        }
-        else {
-          if (user.initFlag && !user.chages) {
-            printUserObj("TFE | CHANGE USER DB [" + userChangeDbQueue.length + "] INIT", dbUser, chalkWarn);
-          }
-          else if (user.changes) {
-            dbUser.changes = user.chages;
-            printUserObj("TFE | CHANGE USER DB [" + userChangeDbQueue.length + "] CHNG", dbUser, chalkAlert);
-          }
         }
         userChangeDbQueueReady = true;
       });

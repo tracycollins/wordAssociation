@@ -6,7 +6,7 @@
   "dependencies": {
     "@google-cloud/monitoring": "^0.6.0",
     "@threeceelabs/hashtag-server-controller": "^1.0.60",
-    "@threeceelabs/mongoose-twitter": "^1.0.145",
+    "@threeceelabs/mongoose-twitter": "^1.0.146",
     "@threeceelabs/socketio-auth": "^1.0.13",
     "@threeceelabs/tweet-server-controller": "^1.0.281",
     "@threeceelabs/twitter-image-parser": "^1.0.54",

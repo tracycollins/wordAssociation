@@ -17,6 +17,8 @@ const fieldsTransmit = {
   name: 1,
   screenName: 1,
   screenNameLower: 1,
+  status: 1,
+  statusId: 1,
   lastTweetId: 1,
   mentions: 1,
   rate: 1,

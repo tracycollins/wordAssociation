@@ -1370,7 +1370,7 @@ async function initUserChangeDbQueueInterval(cnf){
 
       user = userChangeDbQueue.shift();
 
-      if (user.initFlag && !user.chages) {
+      if (user.initFlag && !user.changes) {
         printUserObj("TFE | CHANGE USER DB [" + userChangeDbQueue.length + "] INIT", user, chalkWarn);
       }
       else if (user.changes) {
@@ -1522,6 +1522,7 @@ async function initDbUserChangeStream(params){
             user.changes = userChanges; 
             user.markModified("previousName");
             user.markModified("previousDescription");
+            user.markModified("statusId");
             user.markModified("previousStatusId");
           }
 
@@ -1530,6 +1531,7 @@ async function initDbUserChangeStream(params){
             user.initFlag = true;
             user.markModified("previousName");
             user.markModified("previousDescription");
+            user.markModified("statusId");
             user.markModified("previousStatusId");
 
           }

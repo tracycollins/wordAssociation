@@ -320,7 +320,7 @@ const enableStdin = { name: "enableStdin", alias: "S", type: Boolean, defaultVal
 const quitOnComplete = { name: "quitOnComplete", alias: "q", type: Boolean };
 const quitOnError = { name: "quitOnError", alias: "Q", type: Boolean, defaultValue: true };
 const verbose = { name: "verbose", alias: "v", type: Boolean };
-const testMode = { name: "testMode", alias: "X", type: Boolean, defaultValue: false };
+const testMode = { name: "testMode", alias: "X", type: Boolean };
 
 const optionDefinitions = [
   enableStdin, 
@@ -6762,7 +6762,8 @@ async function initTssChild(params){
       maxInputHashMap: maxInputHashMap,
       normalization: normalization,
       interval: configuration.tssInterval,
-      verbose: false
+      testMode: configuration.testMode,
+      verbose: configuration.verbose
     }, function tssMessageRxError(err){
       if (err) {
         console.log(chalkError("WAS | *** TSS SEND ERROR: " + err));
@@ -6961,7 +6962,8 @@ async function initTfeChild(params){
       maxInputHashMap: maxInputHashMap,
       normalization: normalization,
       interval: configuration.tfeInterval,
-      verbose: false
+      testMode: configuration.testMode,
+      verbose: configuration.verbose
     }, function tfeMessageRxError(err){
       if (err) {
         console.log(chalkError("WAS | *** TFE SEND ERROR"
@@ -7183,7 +7185,8 @@ async function initTweetParser(params, callback){
     maxInputHashMap: maxInputHashMap,
     normalization: normalization,
     interval: configuration.tweetParserInterval,
-    verbose: false
+    testMode: configuration.testMode,
+    verbose: configuration.verbose
   }, function tweetParserMessageRxError(err){
     if (err) {
       console.log(chalkError("WAS | *** TWEET PARSER SEND ERROR"

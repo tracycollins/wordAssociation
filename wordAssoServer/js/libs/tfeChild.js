@@ -81,7 +81,7 @@ const async = require("async");
 const Twit = require("twit");
 const moment = require("moment");
 const treeify = require("../libs/treeify");
-const commandLineArgs = require("command-line-args");
+// const commandLineArgs = require("command-line-args");
 const Measured = require("measured");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const HashMap = require("hashmap").HashMap;
@@ -1155,100 +1155,101 @@ function enableAnalysis(user, languageAnalysis) {
 
 function parseUserImage(user){
 
-  if (
-    (configuration.enableImageAnalysis && !user.bannerImageAnalyzed && user.bannerImageUrl)
-    || (configuration.enableImageAnalysis && user.bannerImageUrl && (user.bannerImageAnalyzed !== user.bannerImageUrl))
-    || (configuration.forceImageAnalysis && user.bannerImageUrl)
-  ) 
+  return new Promise(function(resolve, reject) {
 
-  {
+    if (
+      (configuration.enableImageAnalysis && !user.bannerImageAnalyzed && user.bannerImageUrl)
+      || (configuration.enableImageAnalysis && user.bannerImageUrl && (user.bannerImageAnalyzed !== user.bannerImageUrl))
+      || (configuration.forceImageAnalysis && user.bannerImageUrl)
+    ) 
 
-    twitterImageParser.parseImage(
-      user.bannerImageUrl,
-      {screenName: user.screenName, category: user.category, updateGlobalHistograms: true},
-      function(err, results) {
-        if (err) {
-          if (err.code === 8) {
-            console.log(chalkAlert("PARSE BANNER IMAGE QUOTA ERROR"
-            ));
-            configuration.enableImageAnalysis = false;
-            startImageQuotaTimeout();
-            return user;
-          }
-          else if (err.code === 7) {
-            console.log(chalkAlert("PARSE BANNER IMAGE CLOUD VISION API ERROR"
-            ));
-            configuration.enableImageAnalysis = false;
-            startImageQuotaTimeout();
-            return user;
-          }
-          else{
-            console.log(chalkError("PARSE BANNER IMAGE ERROR"
-              // + "\nREQ\n" + jsonPrint(results)
-              + " | ERR: " + err
-              + "\nERR\n" + jsonPrint(err)
-            ));
-            throw new Error(err);
-          }
-        }
+    {
 
-        if (user.bannerImageAnalyzed 
-          && user.bannerImageUrl 
-          && (user.bannerImageAnalyzed !== user.bannerImageUrl)) {
-          console.log(chalk.bold.blue("^^^ BANNER IMAGE UPDATED "
-            + " | @" + user.screenName
-            + "\nTFE | bannerImageAnalyzed: " + user.bannerImageAnalyzed
-            + "\nTFE | bannerImageUrl: " + user.bannerImageUrl
-          ));
-        }
-        else {
-          console.log(chalk.bold.blue("TFE | +++ BANNER IMAGE ANALYZED"
-            + " | @" + user.screenName
-            + "\nTFE | bannerImageAnalyzed: " + user.bannerImageAnalyzed
-            + "\nTFE | bannerImageUrl: " + user.bannerImageUrl
-          ));
-        }
-
-        user.bannerImageAnalyzed = user.bannerImageUrl;
-
-        if (Object.keys(results.images).length > 0) {
-
-          async.each(Object.keys(results.images), function(item, cb){
-
-            if (user.histograms.images[item] === undefined) { 
-              user.histograms.images[item] = results.images[item];
-              console.log(chalk.bold.blue("+++ USER IMAGE HISTOGRAM ADD"
-                + " | @" + user.screenName
-                + " | " + item + ": " + results.images[item]
+      twitterImageParser.parseImage(
+        user.bannerImageUrl,
+        {screenName: user.screenName, category: user.category, updateGlobalHistograms: true},
+        function(err, results) {
+          if (err) {
+            if (err.code === 8) {
+              console.log(chalkAlert("PARSE BANNER IMAGE QUOTA ERROR"
               ));
+              configuration.enableImageAnalysis = false;
+              startImageQuotaTimeout();
+              resolve(user);
             }
-            else {
-              console.log(chalk.bold.blue("... USER IMAGE HISTOGRAM HIT"
-                + " | @" + user.screenName
-                + " | " + item
-                + " | IN HISTOGRAM: " + user.histograms.images[item]
-                + " | IN BANNER: " + item + ": " + results.images[item]
+            else if (err.code === 7) {
+              console.log(chalkAlert("PARSE BANNER IMAGE CLOUD VISION API ERROR"
               ));
+              configuration.enableImageAnalysis = false;
+              startImageQuotaTimeout();
+              resolve(user);
             }
+            else{
+              console.log(chalkError("PARSE BANNER IMAGE ERROR"
+                // + "\nREQ\n" + jsonPrint(results)
+                + " | ERR: " + err
+                + "\nERR\n" + jsonPrint(err)
+              ));
+              reject(user);
+            }
+          }
 
-            cb();
+          if (user.bannerImageAnalyzed 
+            && user.bannerImageUrl 
+            && (user.bannerImageAnalyzed !== user.bannerImageUrl)) {
+            console.log(chalk.bold.blue("^^^ BANNER IMAGE UPDATED "
+              + " | @" + user.screenName
+              + "\nTFE | bannerImageAnalyzed: " + user.bannerImageAnalyzed
+              + "\nTFE | bannerImageUrl: " + user.bannerImageUrl
+            ));
+          }
+          else {
+            console.log(chalk.bold.blue("TFE | +++ BANNER IMAGE ANALYZED"
+              + " | @" + user.screenName
+              + "\nTFE | bannerImageAnalyzed: " + user.bannerImageAnalyzed
+              + "\nTFE | bannerImageUrl: " + user.bannerImageUrl
+            ));
+          }
 
-          }, function(){
+          user.bannerImageAnalyzed = user.bannerImageUrl;
 
-            return user;
+          if (Object.keys(results.images).length > 0) {
 
-          });
+            async.each(Object.keys(results.images), function(item, cb){
+
+              if (user.histograms.images[item] === undefined) { 
+                user.histograms.images[item] = results.images[item];
+                console.log(chalk.bold.blue("+++ USER IMAGE HISTOGRAM ADD"
+                  + " | @" + user.screenName
+                  + " | " + item + ": " + results.images[item]
+                ));
+              }
+              else {
+                console.log(chalk.bold.blue("... USER IMAGE HISTOGRAM HIT"
+                  + " | @" + user.screenName
+                  + " | " + item
+                  + " | IN HISTOGRAM: " + user.histograms.images[item]
+                  + " | IN BANNER: " + item + ": " + results.images[item]
+                ));
+              }
+
+              cb();
+
+            }, function(){
+              resolve(user);
+            });
+          }
+          else {
+            resolve(user);
+          }
+
         }
-        else {
-          return user;
-        }
-
-      }
-    );
-  }
-  else {
-    return user;
-  }
+      );
+    }
+    else {
+      resolve(user);
+    }
+  });
 }
 
 function parseText(params){
@@ -1284,7 +1285,7 @@ function parseText(params){
 async function generateUserData(user) {
 
   return new Promise(async function(resolve, reject){
-    if (user === undefined) {
+    if ((user === undefined) || !user) {
       console.log(chalkError("TFE | *** generateUserData USER UNDEFINED"));
       const err = new Error("TFE | *** generateUserData USER UNDEFINED");
       console.error(err);
@@ -1564,7 +1565,7 @@ function initialize(cnf, callback){
 
   loadFile(dropboxConfigHostFolder, dropboxConfigFile, function(err, loadedConfigObj){
 
-    let commandLineConfigKeys;
+    // let commandLineConfigKeys;
     let configArgs;
 
     if (!err) {

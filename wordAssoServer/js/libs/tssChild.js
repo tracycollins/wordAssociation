@@ -1704,6 +1704,7 @@ function initTwitterQueue(cnf, callback){
         process.send({op: "TWEET", tweet: tweetStatus});
 
         clearTimeout(sendMessageTimeout);
+        prevTweetId = tweetStatus.id_str;
         tweetSendReady = true;
 
       }
@@ -1722,7 +1723,6 @@ function initTwitterQueue(cnf, callback){
         ));
       }
 
-      prevTweetId = tweetStatus.id_str;
 
     }
   }, cnf.twitterQueueIntervalTime);

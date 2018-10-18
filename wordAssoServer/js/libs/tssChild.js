@@ -53,7 +53,7 @@ const moment = require("moment");
 // const treeify = require("treeify");
 const treeify = require("../libs/treeify");
 const TwitterStreamChannels = require("node-tweet-stream");
-const commandLineArgs = require("command-line-args");
+// const commandLineArgs = require("command-line-args");
 const Measured = require("measured");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const HashMap = require("hashmap").HashMap;
@@ -661,6 +661,10 @@ function initTwit(params, callback){
     async.eachSeries([...twitterUserObj.followUserSet], function(userId, cb){
 
       userIndex += 1;
+
+      if (configuration.testMode && (userIndex > 100)){
+        return cb();
+      }
 
       if (followingUserIdSet.has(userId)){
 
@@ -1526,7 +1530,7 @@ function initialize(cnf, callback){
 
   loadFile(dropboxConfigHostFolder, dropboxConfigFile, function(err, loadedConfigObj){
 
-    let commandLineConfigKeys;
+    // let commandLineConfigKeys;
     let configArgs;
 
     if (!err) {
@@ -1892,6 +1896,7 @@ process.on("message", function(m) {
       process.title = m.title;
 
       configuration.verbose = m.verbose;
+      configuration.testMode = m.testMode;
 
       console.log(chalkInfo("TSS | INIT"
         + " | TITLE: " + m.title

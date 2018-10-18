@@ -1354,18 +1354,40 @@ async function initUserChangeDbQueueInterval(cnf){
       user = userChangeDbQueue.shift();
 
       if (user.initFlag && !user.changes) {
+
         printUserObj("TFE | CHANGE USER DB [" + userChangeDbQueue.length + "] INIT", user, chalkWarn);
+
+        userServerController.findOneUser(user, {noInc: true}, function(err, dbUser){
+          if (err) {
+            console.log(chalkError("TFE | *** USER DB UPDATE ERROR: " + err));
+          }
+          userChangeDbQueueReady = true;
+        });
+
       }
       else if (user.changes) {
+
         printUserObj("TFE | CHANGE USER DB [" + userChangeDbQueue.length + "] CHNG", user, chalkAlert);
+
+        if (!userCategorizeQueue.includes(user.userId) && (userCategorizeQueue.length < USER_CAT_QUEUE_MAX_LENGTH)) {
+          userCategorizeQueue.push(user);
+          debug(chalkInfo("TFE | USER_CATEGORIZE"
+            + " [ USQ: " + userCategorizeQueue.length + "]"
+            + " | FLWRs: " + user.followersCount
+            + " | FRNDs: " + user.friendsCount
+            + " | USER " + user.userId
+            + " | @" + user.screenName
+            + " | " + user.name
+            + "\nTFE | USER_SHOW | DESC: " + user.description
+          ));
+        }
+
+        userChangeDbQueueReady = true;
+      }
+      else {
+        userChangeDbQueueReady = true;
       }
 
-      userServerController.findOneUser(user, {noInc: true}, function(err, dbUser){
-        if (err) {
-          console.log(chalkError("TFE | *** USER DB UPDATE ERROR: " + err));
-        }
-        userChangeDbQueueReady = true;
-      });
 
 
     }

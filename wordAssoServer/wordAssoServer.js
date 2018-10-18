@@ -4833,6 +4833,11 @@ function processCheckCategory(nodeObj, callback){
       }
     },
     function(err, results){
+
+      if (tfeChild !== undefined) { 
+        tfeChild.send({op: "USER_CATEGORIZE", user: nodeObj});
+      }
+
       callback(null, nodeObj);
     });   
   }

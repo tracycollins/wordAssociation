@@ -1473,7 +1473,7 @@ function checkUserChanges(params){
       results.changeFlag = true;
       results.change.name = user.previousName;
       results.name = user.name;
-      user.name = user.name; 
+      user.previousName = user.name; 
     }
     if (user.description && (user.previousDescription !== user.description)) { 
       results.changeFlag = true;
@@ -1523,7 +1523,12 @@ async function initDbUserChangeStream(params){
 
           const userChanges = await checkUserChanges({user:user});
 
-          if (userChanges.changeFlag) { user.changes = userChanges; }
+          if (userChanges.changeFlag) { 
+            user.changes = userChanges; 
+            user.markModified("previousName");
+            user.markModified("previousDescription");
+            user.markModified("lastHistogramTweetId");
+          }
 
           if (userChanges.initFlag) {
 

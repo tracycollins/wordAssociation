@@ -1354,7 +1354,7 @@ async function generateUserData(user) {
 
 async function initUserChangeDbQueueInterval(cnf){
 
-  let user = {};
+  // let user = {};
 
   console.log(chalkTwitter("TFE | INIT TWITTER USER CHANGE DB QUEUE INTERVAL: " + cnf.userChangeDbQueueInterval));
 
@@ -1366,7 +1366,7 @@ async function initUserChangeDbQueueInterval(cnf){
 
       userChangeDbQueueReady = false;
 
-      user = userChangeDbQueue.shift();
+      const user = userChangeDbQueue.shift();
 
       userServerController.findOneUser(user, {noInc: true}, function(err, dbUser){
         if (err) {

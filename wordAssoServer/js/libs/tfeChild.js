@@ -1441,6 +1441,7 @@ function checkUserChanges(params){
   return new Promise(async function(resolve, reject){
 
     let results = {};
+    results.change = {};
     results.changeFlag = false;
     results.initFlag = false;
 
@@ -1468,17 +1469,23 @@ function checkUserChanges(params){
       }
     }
 
-    if (user.previousName !== user.name) { 
+    if (user.name && (user.previousName !== user.name)) { 
       results.changeFlag = true;
+      results.change.name = user.previousName;
       results.name = user.name;
+      user.name = user.name; 
     }
-    if (user.previousDescription !== user.description) { 
+    if (user.description && (user.previousDescription !== user.description)) { 
       results.changeFlag = true;
+      results.change.description = user.previousDescription;
       results.description = user.description; 
+      user.previousDescription = user.description; 
     }
-    if (user.lastHistogramTweetId !== user.status.id_str) { 
+    if (user.status && (user.lastHistogramTweetId !== user.status.id_str)) { 
       results.changeFlag = true;
+      results.change.lastHistogramTweetId = user.lastHistogramTweetId;
       results.status = user.status;
+      user.lastHistogramTweetId = user.status.id_str;
     }
 
     resolve(results);

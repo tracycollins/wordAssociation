@@ -94,7 +94,7 @@ const chalkTwitter = chalk.blue;
 const chalkRed = chalk.red;
 const chalkRedBold = chalk.bold.red;
 const chalkError = chalk.bold.red;
-const chalkWarn = chalk.red;
+const chalkWarn = chalk.yellow;
 const chalkLog = chalk.gray;
 const chalkInfo = chalk.black;
 const chalkConnect = chalk.green;
@@ -1450,23 +1450,15 @@ function checkUserChanges(params){
 
     if (user.previousName === undefined) { 
       results.initFlag = true;
-      user.previousName = user.name; 
+      user.previousName = user.name || ""; 
     }
     if (user.previousDescription === undefined) { 
       results.initFlag = true;
-      user.previousDescription = user.description; 
+      user.previousDescription = user.description || ""; 
     }
-    if (user.lastHistogramTweetId === undefined) {
+    if (user.previousStatusId === undefined) {
       results.initFlag = true;
-      if (user.status !== undefined) { 
-        user.lastHistogramTweetId = user.status.id_str; 
-      }
-      else if (user.lastTweetId !== undefined) { 
-        user.lastHistogramTweetId = user.lastTweetId; 
-      }
-      else {
-        user.lastHistogramTweetId = 0; 
-      }
+      user.previousStatusId = user.statusId || "0"; 
     }
 
     if (user.name && (user.previousName !== user.name)) { 
@@ -1481,11 +1473,11 @@ function checkUserChanges(params){
       results.description = user.description; 
       user.previousDescription = user.description; 
     }
-    if (user.status && (user.lastHistogramTweetId !== user.status.id_str)) { 
+    if (user.statusId && (user.previousStatusId !== user.statusId)) { 
       results.changeFlag = true;
-      results.change.lastHistogramTweetId = user.lastHistogramTweetId;
-      results.status = user.status;
-      user.lastHistogramTweetId = user.status.id_str;
+      results.change.statusId = user.previousStatusId;
+      results.statusId = user.statusId;
+      user.previousStatusId = user.statusId;
     }
 
     resolve(results);
@@ -1519,6 +1511,7 @@ async function initDbUserChangeStream(params){
       userChangeStream.on("change", async function(change){
 
         if (change && change.fullDocument) { 
+
           let user = new User(change.fullDocument); 
 
           const userChanges = await checkUserChanges({user:user});
@@ -1527,7 +1520,7 @@ async function initDbUserChangeStream(params){
             user.changes = userChanges; 
             user.markModified("previousName");
             user.markModified("previousDescription");
-            user.markModified("lastHistogramTweetId");
+            user.markModified("previousStatusId");
           }
 
           if (userChanges.initFlag) {
@@ -1535,7 +1528,7 @@ async function initDbUserChangeStream(params){
             user.initFlag = true;
             user.markModified("previousName");
             user.markModified("previousDescription");
-            user.markModified("lastHistogramTweetId");
+            user.markModified("previousStatusId");
 
           }
 

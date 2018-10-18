@@ -1283,78 +1283,57 @@ function parseText(params){
 
 async function generateUserData(user) {
 
-  if (user === undefined) {
-    console.log(chalkError("TFE | *** generateUserData USER UNDEFINED"));
-    const err = new Error("TFE | *** generateUserData USER UNDEFINED");
-    console.error(err);
-  }
+  return new Promise(async function(resolve, reject){
+    if (user === undefined) {
+      console.log(chalkError("TFE | *** generateUserData USER UNDEFINED"));
+      const err = new Error("TFE | *** generateUserData USER UNDEFINED");
+      console.error(err);
+      reject(err);
+    }
 
-  let text = " ";
+    let text = " ";
 
-  text = (user.screenName !== undefined) ? "@" + user.screenName.toLowerCase() : text;
-  text = (user.userName !== undefined) ? text + " | " + user.name.toLowerCase() : text;
-  text = ((user.description !== undefined) && user.description) ? text + "\n" + user.description : text;
-  text = ((user.status !== undefined) && user.status && user.status.text) ? text + "\n" + user.status.text : text;
-  text = ((user.retweeted_status !== undefined) && user.retweeted_status && user.retweeted_status.text) ? text + "\n" + user.retweeted_status.text : text;
+    text = (user.screenName !== undefined) ? "@" + user.screenName.toLowerCase() : text;
+    text = (user.userName !== undefined) ? text + " | " + user.name.toLowerCase() : text;
+    text = ((user.description !== undefined) && user.description) ? text + "\n" + user.description : text;
+    text = ((user.status !== undefined) && user.status && user.status.text) ? text + "\n" + user.status.text : text;
+    text = ((user.retweeted_status !== undefined) && user.retweeted_status && user.retweeted_status.text) ? text + "\n" + user.retweeted_status.text : text;
 
-  if (!user.histograms || (user.histograms === undefined)) { 
-    user.histograms = {}; 
-    user.histograms.images = {}; 
-  }
-  else if (user.histograms.images === undefined) { 
-    user.histograms.images = {}; 
-  }
+    if (!user.histograms || (user.histograms === undefined)) { 
+      user.histograms = {}; 
+      user.histograms.images = {}; 
+    }
+    else if (user.histograms.images === undefined) { 
+      user.histograms.images = {}; 
+    }
 
-  let userParsedImage = await parseUserImage(user);
-  let textParserResults = await parseText({user: userParsedImage, text: text});
-  let updatedUser = await updateHistograms({user: textParserResults.user, histograms: textParserResults.histograms});
+    try {
+      let userParsedImage = await parseUserImage(user);
+      let textParserResults = await parseText({user: userParsedImage, text: text});
+      let updatedUser = await updateHistograms({user: textParserResults.user, histograms: textParserResults.histograms});
 
-  updatedUser.inputHits = 0;
+      updatedUser.inputHits = 0;
 
-  if (updatedUser.languageAnalysis === undefined) {
-    updatedUser.languageAnalysis = {};
-    updatedUser.languageAnalysis.sentiment = 0;
-    updatedUser.languageAnalysis.magnitude = 0;
-  }
+      if (updatedUser.languageAnalysis === undefined) {
+        updatedUser.languageAnalysis = {};
+        updatedUser.languageAnalysis.sentiment = 0;
+        updatedUser.languageAnalysis.magnitude = 0;
+      }
 
-  const score = updatedUser.languageAnalysis.sentiment ? updatedUser.languageAnalysis.sentiment.score : 0;
-  const mag = updatedUser.languageAnalysis.sentiment ? updatedUser.languageAnalysis.sentiment.magnitude : 0;
+      const score = updatedUser.languageAnalysis.sentiment ? updatedUser.languageAnalysis.sentiment.score : 0;
+      const mag = updatedUser.languageAnalysis.sentiment ? updatedUser.languageAnalysis.sentiment.magnitude : 0;
 
-  statsObj.analyzer.total += 1;
+      statsObj.analyzer.total += 1;
 
-  // if (enableAnalysis(updatedUser, {magnitude: mag, score: score})) {
-  //   debug(chalkLog(">>>> LANG ANALYZE"
-  //     + " [ ANLd: " + statsObj.analyzer.analyzed
-  //     + " [ SKPd: " + statsObj.analyzer.skipped
-  //     + " | " + updatedUser.nodeId
-  //     + " | @" + updatedUser.screenName
-  //     + " | LAd: " + updatedUser.languageAnalyzed
-  //     + " | LA: S: " + score.toFixed(2)
-  //     + " M: " + mag.toFixed(2)
-  //   ));
+      printUserObj("TFE | generateUserData", updatedUser);
 
-  //   if ((langAnalyzer !== undefined) && langAnalyzer) {
-  //     langAnalyzer.send({op: "LANG_ANALIZE", obj: updatedUser, text: text}, function() {
-  //       statsObj.analyzer.analyzed += 1;
-  //     });
-  //   }
-  // }
-  // else {
-  //   statsObj.analyzer.skipped += 1;
-  //   debug(chalkLog("SKIP LANG ANALYZE"
-  //     + " [ ANLd: " + statsObj.analyzer.analyzed
-  //     + " [ SKPd: " + statsObj.analyzer.skipped
-  //     + " | " + updatedUser.nodeId
-  //     + " | @" + updatedUser.screenName
-  //     + " | LAd: " + updatedUser.languageAnalyzed
-  //     + " | LA: S: " + score.toFixed(2)
-  //     + " M: " + mag.toFixed(2)
-  //   ));
-  // }
+      resolve(updatedUser);
+    }
+    catch (err) {
+      reject(err);
+    }
 
-  printUserObj("TFE | generateUserData", updatedUser);
-
-  return updatedUser;
+  });
 }
 
 async function initUserChangeDbQueueInterval(cnf){

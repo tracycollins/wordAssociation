@@ -1520,20 +1520,18 @@ async function initDbUserChangeStream(params){
 
           if (userChanges.changeFlag) { 
             user.changes = userChanges; 
-            user.markModified("previousName");
-            user.markModified("previousDescription");
-            user.markModified("statusId");
-            user.markModified("previousStatusId");
+            // user.markModified("previousName");
+            // user.markModified("previousDescription");
+            // user.markModified("statusId");
+            // user.markModified("previousStatusId");
           }
 
           if (userChanges.initFlag) {
-
             user.initFlag = true;
-            user.markModified("previousName");
-            user.markModified("previousDescription");
-            user.markModified("statusId");
-            user.markModified("previousStatusId");
-
+            // user.markModified("previousName");
+            // user.markModified("previousDescription");
+            // user.markModified("statusId");
+            // user.markModified("previousStatusId");
           }
 
           if ((userChangeDbQueue.length < 10000) && (userChanges.changeFlag || userChanges.initFlag)) { 

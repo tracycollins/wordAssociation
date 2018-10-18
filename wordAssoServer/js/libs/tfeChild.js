@@ -96,6 +96,7 @@ const debugQ = require("debug")("queue");
 const chalk = require("chalk");
 const chalkAlert = chalk.red;
 const chalkTwitter = chalk.blue;
+const chalkGreen = chalk.green;
 const chalkRed = chalk.red;
 const chalkRedBold = chalk.bold.red;
 const chalkError = chalk.bold.red;
@@ -1326,7 +1327,7 @@ async function generateUserData(user) {
 
       statsObj.analyzer.total += 1;
 
-      printUserObj("TFE | generateUserData", updatedUser);
+      // printUserObj("TFE | generateUserData", updatedUser);
 
       resolve(updatedUser);
     }
@@ -1355,7 +1356,7 @@ async function initUserChangeDbQueueInterval(cnf){
 
       if (user.initFlag && !user.changes) {
 
-        printUserObj("TFE | CHANGE USER DB [" + userChangeDbQueue.length + "] INIT", user, chalkWarn);
+        printUserObj("TFE | CHANGE USER DB [" + userChangeDbQueue.length + "] INIT", user, chalkGreen);
 
         userServerController.findOneUser(user, {noInc: true}, function(err, dbUser){
           if (err) {
@@ -1367,7 +1368,7 @@ async function initUserChangeDbQueueInterval(cnf){
       }
       else if (user.changes) {
 
-        printUserObj("TFE | CHANGE USER DB [" + userChangeDbQueue.length + "] CHNG", user, chalkAlert);
+        printUserObj("TFE | CHANGE USER DB [" + userChangeDbQueue.length + "] CHNG", user, chalkGreen);
 
         if (!userCategorizeQueue.includes(user.userId) && (userCategorizeQueue.length < USER_CAT_QUEUE_MAX_LENGTH)) {
           userCategorizeQueue.push(user);
@@ -1418,10 +1419,21 @@ async function initUserCategorizeQueueInterval(cnf){
 
         Object.keys(networkOutput).forEach(function(nnId){
 
+
+          if (updatedUser.categoryAuto !== networkOutput[nnId].output) {
+            console.log(chalkGreen("TFE | >>> NN AUTO CAT CHANGE"
+              + " | " + nnId
+              + " | AUTO: " + updatedUser.categoryAuto + " > " + networkOutput[nnId].output
+              + " | @" + updatedUser.screenName
+            ));
+          }
+          else {
+
+          }
           updatedUser.categoryAuto = networkOutput[nnId].output;
 
           userServerController.findOneUser(updatedUser, {noInc: false, fields: fieldsTransmit}, function(err, dbUser){
-            printUserObj("TFE | DB CAT", dbUser, chalkRed);
+            printUserObj("TFE | NN: " + nnId + " | DB CAT", dbUser, chalkGreen);
             process.send({ op: "USER_CATEGORIZED", user: dbUser });
           });
 

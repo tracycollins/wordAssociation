@@ -2094,13 +2094,18 @@ function loadFile(path, file, callback) {
           return callback(new Error("WA LOAD FILE PAYLOAD UNDEFINED"), null);
         }
 
-        const fileObj = JSONParse(payload);
+        try {
+          const fileObj = JSONParse(payload);
 
-        if (fileObj.value) {
-          callback(null, fileObj.value);
+          if (fileObj.value) {
+            callback(null, fileObj.value);
+          }
+          else {
+            callback(fileObj.error, null);
+          }
         }
-        else {
-          callback(fileObj.error, null);
+        catch (e){
+          callback(e, null);
         }
       }
       else {
@@ -3678,14 +3683,22 @@ function unfollow(params, callback) {
     unfollowableUserSet.add(params.user.nodeId);
     uncategorizedManualUserSet.delete(params.user.nodeId);
 
+    const obj = {
+      userIds : [...unfollowableUserSet]
+    }
+
     saveFileQueue.push({
       localFlag: false, 
       folder: dropboxConfigDefaultFolder, 
       file: unfollowableUserFile, 
-      obj: [...unfollowableUserSet]
+      obj: obj
     });
 
   } 
+
+  if (tssChild !== undefined) { 
+    tssChild.send({op: "UNFOLLOW", user: params.user});
+  }
 
   const query = { nodeId: params.user.nodeId, following: true };
 
@@ -3713,6 +3726,7 @@ function unfollow(params, callback) {
       ));
     }
 
+
     if (callback !== undefined) { callback(err, userUpdated); }
 
   });
@@ -3725,7 +3739,7 @@ function initFollowableSearchTermSet(){
 
   return new Promise(function(resolve, reject) {
 
-    loadFile(dropboxConfigDefaultFolder, followableSearchTermFile, function(err, followableSearchTermSetArray){
+    loadFile(dropboxConfigDefaultFolder, followableSearchTermFile, function(err, followableSearchTermSetObj){
 
       if (err) {
         if (err.status === 409) {
@@ -3741,14 +3755,14 @@ function initFollowableSearchTermSet(){
         initFollowableSearchTerms();
         resolve();
       }
-      else if (followableSearchTermSetArray) {
+      else if (followableSearchTermSetObj) {
 
         console.log(chalkLog("WAS | LOADED FOLLOWABLE SEARCH TERM FILE"
-          + " | " + followableSearchTermSetArray.length + " SEARCH TERMS"
+          + " | " + followableSearchTermSetObj.searchTerms.length + " SEARCH TERMS"
           + " | " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
         ));
 
-        async.each(followableSearchTermSetArray, function(searchTerm, cb){
+        async.each(followableSearchTermSetObj.searchTerms, function(searchTerm, cb){
 
           followableSearchTermSet.add(searchTerm);
           cb();
@@ -3757,7 +3771,7 @@ function initFollowableSearchTermSet(){
 
           console.log(chalkLog("WAS | FOLLOWABLE SEARCH TERM SET"
             + " | " + followableSearchTermSet.size + " SEARCH TERMS"
-            + " | " + followableSearchTermSetArray.length + " SEARCH TERMS IN FILE"
+            + " | " + followableSearchTermSetObj.searchTerms.length + " SEARCH TERMS IN FILE"
             + " | " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
           ));
 
@@ -3783,7 +3797,7 @@ function initUnfollowableUserSet(){
 
   return new Promise(function(resolve, reject) {
 
-    loadFile(dropboxConfigDefaultFolder, unfollowableUserFile, function(err, unfollowableUserSetArray){
+    loadFile(dropboxConfigDefaultFolder, unfollowableUserFile, function(err, unfollowableUserSetObj){
       if (err) {
         if (err.code === "ENOTFOUND") {
           console.log(chalkError("WAS | *** LOAD UNFOLLOWABLE USERS ERROR: FILE NOT FOUND:  " 
@@ -3797,10 +3811,10 @@ function initUnfollowableUserSet(){
         reject(err);
       }
       
-      if (unfollowableUserSetArray) {
+      if (unfollowableUserSetObj) {
 
         console.log(chalkLog("WAS | LOADED UNFOLLOWABLE USERS FILE"
-          + " | " + unfollowableUserSetArray.length + " USERS"
+          + " | " + unfollowableUserSetObj.userIds.length + " USERS"
           + " | " + dropboxConfigDefaultFolder + "/" + unfollowableUserFile
         ));
 
@@ -3809,7 +3823,7 @@ function initUnfollowableUserSet(){
         let numUnfollowed = 0;
         let numAlreadyUnfollowed = 0;
 
-        async.eachSeries(unfollowableUserSetArray, function(userId, cb){
+        async.eachSeries(unfollowableUserSetObj.userIds, function(userId, cb){
 
           unfollowableUserSet.add(userId);
 
@@ -3834,7 +3848,7 @@ function initUnfollowableUserSet(){
 
               numUnfollowed += 1;
               console.log(chalkLog("WAS | XXX UNFOLLOW"
-                + " [" + numUnfollowed + "/" + numAlreadyUnfollowed + "/" + unfollowableUserSetArray.length + "]"
+                + " [" + numUnfollowed + "/" + numAlreadyUnfollowed + "/" + unfollowableUserSetObj.userIds.length + "]"
                 + " | " + printUser({user: userUpdated})
               ));
 
@@ -3844,7 +3858,7 @@ function initUnfollowableUserSet(){
               numAlreadyUnfollowed += 1;
               if (configuration.verbose){
                 console.log(chalkLog("WAS | ... ALREADY UNFOLLOWED"
-                  + " [" + numUnfollowed + "/" + numAlreadyUnfollowed + "/" + unfollowableUserSetArray.length + "]"
+                  + " [" + numUnfollowed + "/" + numAlreadyUnfollowed + "/" + unfollowableUserSetObj.userIds.length + "]"
                   + " | ID: " + userId
                 ));
               }
@@ -3861,7 +3875,7 @@ function initUnfollowableUserSet(){
             + " | " + numUnfollowed + " NEW UNFOLLOWED"
             + " | " + numAlreadyUnfollowed + " ALREADY UNFOLLOWED"
             + " | " + unfollowableUserSet.size + " USERS IN SET"
-            + " | " + unfollowableUserSetArray.length + " USERS IN FILE"
+            + " | " + unfollowableUserSetObj.userIds.length + " USERS IN FILE"
             + " | " + dropboxConfigDefaultFolder + "/" + unfollowableUserFile
           ));
           resolve();
@@ -4836,11 +4850,6 @@ function processCheckCategory(nodeObj, callback){
       }
     },
     function(err, results){
-
-      // if (tfeChild !== undefined) { 
-      //   tfeChild.send({op: "USER_CATEGORIZE", user: nodeObj});
-      // }
-
       callback(null, nodeObj);
     });   
   }

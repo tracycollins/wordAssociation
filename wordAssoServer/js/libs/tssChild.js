@@ -1883,6 +1883,104 @@ function follow(params, callback) {
   });
 }
 
+function unfollow(params, callback) {
+
+  const twUsersArray = twitterUserHashMap.keys();
+
+  async.eachSeries(twUsersArray, function(screenName, cb){
+
+    let twitterUserObj = twitterUserHashMap.get(screenName);
+
+    console.log(chalkInfo("TSS | CHECK UNFOLLOW | 3C @" + twitterUserObj.screenName + " | @" + params.user.screenName));
+
+    if (twitterUserObj.stats.twitterTokenErrorFlag) {
+      console.log(chalkAlert("TSS | SKIP FOLLOW | TOKEN ERROR FLAG | 3C @" + twitterUserObj.screenName));
+      cb();
+    }
+    else {
+
+      if (twitterUserObj.followUserSet.has(params.user.userId)) {
+        twitterUserObj.followUserSet.delete(params.user.userId);
+      }
+
+      twitterUserObj.twit.post("friendships/destroy", {user_id: userId}, function(err, data, response) {
+        if (err) {
+    
+          twitterUserObj.stats.error = err;
+          twitterUserObj.stats.twitterErrors += 1;
+
+          if (data.errors[0].code !== undefined) { 
+
+            if (data.errors[0].code === 89) {
+              process.send({op: "ERROR", threeceeUser: twitterUserObj.screenName, errorType: "TWITTER_TOKEN", error: data.errors[0]});
+              twitterUserObj.stats.twitterTokenErrorFlag = true;
+              return cb();
+            }
+
+            console.log(chalkError("TSS | *** ERROR FRIENDSHIP DESTROY: " + err));
+            return cb();
+          }
+
+          twitterUserHashMap.set(twitterUserObj.screenName, twitterUserObj);
+
+          console.log(chalkError("TSS | *** ERROR FRIENDSHIP DESTROY: " + err));
+
+          return cb();
+        }
+
+        twitterUserObj.stats.error = false;
+
+        console.log(chalkAlert("TSS | XXX UNFOLLOW"
+          + " | 3C @" + twitterUserObj.screenName
+          + " | FOLLOWING: " + twitterUserObj.followUserSet.size 
+          + "/" + TWITTER_MAX_FOLLOW_USER_NUMBER + " MAX"
+          + " | UID: " + params.user.userId
+          + " | @" + params.user.screenName
+        ));
+
+        params.user.following = false;
+        params.user.threeceeFollowing = false;
+
+        userServerController.findOneUser(params.user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
+
+          if (err) {
+            console.log(chalkAlert("TSS | *** USER DB ERROR *** | " + err));
+          }
+          else {
+            const printString = "TSS | @" + updatedUser.screenName + " | UNFOLLOW DB USER UPDATED";
+            printUserObj(printString, updatedUser);
+          }
+
+          let filter = {};
+          filter.track = [];
+          filter.follow = [];
+
+          if (twitterUserObj.searchTermArray.length > 0) { filter.track = twitterUserObj.searchTermArray; }
+          if (twitterUserObj.followUserSet.size > 0) { filter.follow = [...twitterUserObj.followUserSet]; }
+
+          twitterUserObj.searchStream = twitterUserObj.twit.stream("statuses/filter", filter);
+
+          twitterUserHashMap.set(twitterUserObj.screenName, twitterUserObj);
+
+          process.send({op: "TWITTER_STATS", threeceeUser: twitterUserObj.screenName, twitterFollowing: twitterUserObj.followUserSet.size});
+
+          cb(true);
+
+        });
+
+      });
+    }
+
+  },
+  function(success){
+    if (success) {
+      console.log(chalkError("TSS | UNFOLLOW SUCCESS"
+      ));
+    }
+    callback(null, success);
+  });
+}
+
 process.on("message", function(m) {
 
   debug(chalkAlert("TSS | RX MESSAGE"
@@ -2078,7 +2176,6 @@ process.on("message", function(m) {
           + "\nTSS | USER_SHOW | DESC: " + m.user.description
         ));
       }
-
     break;
 
     case "FOLLOW":
@@ -2092,6 +2189,17 @@ process.on("message", function(m) {
 
       follow(m, function(err, success){
       });
+    break;
+
+    case "UNFOLLOW":
+      console.log(chalkInfo("TSS | UNFOLLOW"
+        + " | USER " + m.user.userId
+        + " | @" + m.user.screenName
+      ));
+
+      unfollow(m, function(err, success){
+      });
+
     break;
 
     case "UPDATE_SEARCH_TERMS":

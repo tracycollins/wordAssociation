@@ -81,7 +81,6 @@ const async = require("async");
 const Twit = require("twit");
 const moment = require("moment");
 const treeify = require("../libs/treeify");
-// const commandLineArgs = require("command-line-args");
 const Measured = require("measured");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const HashMap = require("hashmap").HashMap;
@@ -781,6 +780,7 @@ function checkTwitterRateLimitAll(callback){
     });
   });
 }
+
 
 let userCategorizeQueueReady = true;
 let userCategorizeQueueInterval;
@@ -1748,17 +1748,6 @@ process.on("message", function(m) {
         + " | MAX INPUT HM KEYS: " + Object.keys(maxInputHashMap)
         + " | NORMALIZATION: " + Object.keys(normalization)
       ));
-
-    break;
-
-    case "PING":
-      debug(chalkLog("TFE | TWP | PING"
-        + " | PING ID: " + moment(m.pingId).format(compactDateTimeFormat)
-      ));
-
-      setTimeout(function(){
-        process.send({ op: "PONG", pongId: m.pingId });
-      }, 1000);
     break;
 
     case "USER_AUTHENTICATED":
@@ -1816,7 +1805,7 @@ process.on("message", function(m) {
     break;
 
     case "PING":
-      debug(chalkLog("TFE | TWP | PING"
+      debug(chalkLog("TFE | PING"
         + " | PING ID: " + moment(m.pingId).format(compactDateTimeFormat)
       ));
 

@@ -623,7 +623,12 @@ function initTwit(params, callback){
     + " | NAME: " + params.config.screenName
   ));
 
-  twitterUserObj.twit.get("friends/ids", {screen_name: twitterUserObj.screenName}, function(err, data, response) {
+  const twitGetFriendsParams = {
+    screen_name: twitterUserObj.screenName,
+    stringify_ids: true
+  };
+
+  twitterUserObj.twit.get("friends/ids", twitGetFriendsParams, function(err, data, response) {
 
     if (err){
 
@@ -2044,7 +2049,12 @@ process.on("message", function(m) {
           twitterUserObj.stats.connected = true;
           twitterUserObj.stats.twitterFollowLimit = false;
 
-          twitterUserObj.twit.get("friends/ids", {screen_name: twitterUserObj.screenName}, function(err, data, response) {
+          const twitGetFriendsParams = {
+            screen_name: twitterUserObj.screenName,
+            stringify_ids: true
+          };
+
+          twitterUserObj.twit.get("friends/ids", twitGetFriendsParams, function(err, data, response) {
 
             if (err){
 

@@ -652,7 +652,11 @@ function initTwit(params, callback){
 
     console.log(chalkTwitter("TSS | TWITTER GET FRIENDS IDS"
       + " | @" + twitterUserObj.screenName
-      + " | " + twitterUserObj.followUserSet.size + " FRIENDS"
+      + " | FOLLOW USER SET SIZE: " + twitterUserObj.followUserSet.size + " FRIENDS"
+      + " | DATA IDS: " + data.ids.length + " FRIENDS"
+      + " | PREV CURSOR: " + data.previous_cursor_str
+      + " | NEXT CURSOR: " + data.next_cursor_str
+      + " | data keys: " + Object.keys(data)
     ));
 
     let userIndex = 0;
@@ -671,7 +675,9 @@ function initTwit(params, callback){
         twitterUserObj.followUserSet.delete(userId);
 
         console.log(chalk.black("TSS [ " + userIndex + "/" + twitterUserObj.followUserSet.size + " ]"
-          + " XXX UNFOLLOWING | " + userId
+          + " XXX UNFOLLOWING"
+          + " | 3C @" + twitterUserObj.screenName
+          + " | " + userId
         ));
 
         twitterUserObj.twit.post("friendships/destroy", {user_id: userId}, function(err, data, response) {
@@ -710,8 +716,9 @@ function initTwit(params, callback){
           else {
             twitterUserObj.stats.error = false;
             console.log(chalkTwitter("TSS | +++ UNFOLLOWED"
-              + " | 3C @:" + twitterUserObj.screenName
-              + "\n" + jsonPrint(data)
+              + " | 3C @" + twitterUserObj.screenName
+              + " | @" + data.screen_name
+              // + "\n" + jsonPrint(data)
             ));
            cb();
           }

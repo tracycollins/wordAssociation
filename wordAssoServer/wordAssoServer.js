@@ -24,7 +24,7 @@ const ONE_DAY = 24 * ONE_HOUR;
 const ONE_KILOBYTE = 1024;
 const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
 
-const DEFAULT_INFO_TWITTER_USER = "threeceeinfo";
+const DEFAULT_INFO_TWITTER_USER = "threecee";
 let infoTwitterUserObj = {};
 
 const DEFAULT_FORCE_FOLLOW = false;

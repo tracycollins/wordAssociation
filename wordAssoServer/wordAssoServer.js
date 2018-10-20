@@ -5589,7 +5589,7 @@ function initTransmitNodeQueueInterval(interval){
                 }
               }
 
-              if ((n.nodeType === "user") && n.category){
+              if ((n.nodeType === "user") && (n.category || n.categoryAuto || n.following || n.threeceeFollowing)){
 
                 nCacheObj = nodeCache.get(n.nodeId);
 

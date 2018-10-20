@@ -1534,7 +1534,7 @@ const authInProgressTwitterUserCache = new NodeCache({
 authInProgressTwitterUserCache.on("expired", function(nodeId, userObj){
 
   console.log(chalkInfo("WAS | XXX AUTH IN PROGRESS TWITTER USER CACHE EXPIRED"
-    + " | TTL: " + authInProgressTwittxerUserCacheTtl + " SECS"
+    + " | TTL: " + authInProgressTwitterUserCacheTtl + " SECS"
     + " | NODE ID: " + nodeId
     + " | userObj\n" + jsonPrint(userObj)
   ));

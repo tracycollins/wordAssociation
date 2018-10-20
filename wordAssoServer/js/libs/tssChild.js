@@ -1008,7 +1008,7 @@ function checkTwitterRateLimit(params, callback){
     return callback(new Error("INVALID PARAMS", params));
   }
 
-  twitterUserObj.twit.get("application/rate_limit_status", function(err, data, response) {
+  twitterUserObj.twit.get("application/rate_limit_status", {screen_name: twitterUserObj.screenName}, function(err, data, response) {
     
     if (err){
 
@@ -2044,7 +2044,7 @@ process.on("message", function(m) {
           twitterUserObj.stats.connected = true;
           twitterUserObj.stats.twitterFollowLimit = false;
 
-          twitterUserObj.twit.get("friends/ids", function(err, data, response) {
+          twitterUserObj.twit.get("friends/ids", {screen_name: twitterUserObj.screenName}, function(err, data, response) {
 
             if (err){
 

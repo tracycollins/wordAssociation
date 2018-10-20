@@ -5886,6 +5886,10 @@ function initAppRouting(callback) {
                     updateSearchTerms();
                   }
 
+                  if (entry.path_lower.endsWith("followableSearchTerm.json")){
+                    initFollowableSearchTermSet();
+                  }
+
                   if ((entry.path_lower.endsWith("google_twitterSearchStreamConfig.json"))
                     || (entry.path_lower.endsWith("default_twitterSearchStreamConfig.json"))){
 

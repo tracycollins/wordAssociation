@@ -5855,7 +5855,7 @@ function initAppRouting(callback) {
 
       const response = { "response_token" : response_token };
 
-      res.send(hmac);
+      res.send(response);
 
     }
     else if (req.path === "/dropbox_webhook") {

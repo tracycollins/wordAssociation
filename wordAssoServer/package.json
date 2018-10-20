@@ -22,6 +22,7 @@
     "connect-mongostore": "^0.1.4",
     "cookie-parser": "^1.4.3",
     "cookie-session": "^2.0.0-beta.3",
+    "crypto": "^1.0.1",
     "deep-copy": "^1.4.2",
     "deep-equal": "^1.0.1",
     "deepcopy": "^1.0.0",

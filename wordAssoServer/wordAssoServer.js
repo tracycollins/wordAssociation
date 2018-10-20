@@ -137,6 +137,8 @@ const chalkError = chalk.bold.red;
 const chalkLog = chalk.gray;
 const chalkBlue = chalk.blue;
 
+const crypto = require("crypto");
+
 const util = require("util");
 const _ = require("lodash");
 const merge = require("deepmerge");
@@ -5804,6 +5806,11 @@ function slackMessageHandler(messageObj){
 
 let dropboxFolderGetLastestCursorReady = true;
 
+function getChallengeResponse(crc_token, consumer_secret) {
+  const hmac = crypto.createHmac("sha256", consumer_secret).update(crc_token).digest("base64");
+  return hmac;
+}
+
 function initAppRouting(callback) {
 
   console.log(chalkInfo(getTimeStamp() + " | INIT APP ROUTING"));
@@ -5831,6 +5838,25 @@ function initAppRouting(callback) {
         ignoreIpSet.add(req.ip);
       }
       res.sendStatus(404);
+    }
+    else if (req.path === "/webhooks/twitter") {
+
+      console.log(chalk.bold.blue("WAS | R< TWITTER WEB HOOK | /webhooks/twitter"
+        + " | CRC TOKEN: " + req.query.crc_token
+      ));
+
+      const hmac = getChallengeResponse(req.query.crc_token, threeceeConfig.consumer_secret);
+
+      const response_token = "sha256=" + Buffer.from(hmac).toString('base64');
+
+      console.log(chalk.bold.blue("WAS | T> TWITTER WEB HOOK RES TOKEN"
+        + " | " + response_token
+      ));
+
+      const response = { "response_token" : response_token };
+
+      res.send(hmac);
+
     }
     else if (req.path === "/dropbox_webhook") {
 

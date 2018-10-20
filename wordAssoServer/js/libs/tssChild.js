@@ -623,7 +623,7 @@ function initTwit(params, callback){
     + " | NAME: " + params.config.screenName
   ));
 
-  twitterUserObj.twit.get("friends/ids", function(err, data, response) {
+  twitterUserObj.twit.get("friends/ids", {screen_name: twitterUserObj.screenName}, function(err, data, response) {
 
     if (err){
 

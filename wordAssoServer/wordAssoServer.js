@@ -177,6 +177,22 @@ const altthreecee00config = {
   access_token_secret: "O2ZFttRte6RXs1XjZ5wcDgbXDoWZTr2wt245vRqvL0X8G"
 };
 
+{
+//   "fileName": "threecee.json",
+//   "screenName": "threecee",
+//   "consumer_key": "p08qa943B9Oe7Wpl9MAnbS4ca",
+//   "consumer_secret": "ds3t7bAvMqSRSY58jSR9lLjmS92ZjTgyH3JQaLtD49t9jq8Axe",
+//   "access_token": "14607119-AZdkHnnScAo8ubXB3klfz3tsDINNCES5ni1vaNBso",
+//   "access_token_secret": "Fb3XQP5LEF3LT0Yx2d3DKIyXLojtwNh7KAc4CTWJbuLIq",
+// }
+
+const threeceeConfig = {
+  consumer_key: "p08qa943B9Oe7Wpl9MAnbS4ca",
+  consumer_secret: "ds3t7bAvMqSRSY58jSR9lLjmS92ZjTgyH3JQaLtD49t9jq8Axe",
+  access_token: "14607119-AZdkHnnScAo8ubXB3klfz3tsDINNCES5ni1vaNBso",
+  access_token_secret: "Fb3XQP5LEF3LT0Yx2d3DKIyXLojtwNh7KAc4CTWJbuLIq"
+};
+
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 require("isomorphic-fetch");
 const Dropbox = require("dropbox").Dropbox;
@@ -1035,8 +1051,8 @@ function connectDb(callback){
     app.use(passport.session());
 
     passport.use(new TwitterStrategy({
-        consumerKey: altthreecee00config.consumer_key,
-        consumerSecret: altthreecee00config.consumer_secret,
+        consumerKey: threeceeConfig.consumer_key,
+        consumerSecret: threeceeConfig.consumer_secret,
         callbackURL: TWITTER_AUTH_CALLBACK_URL
       },
       function(token, tokenSecret, profile, cb) {
@@ -1518,7 +1534,7 @@ const authInProgressTwitterUserCache = new NodeCache({
 authInProgressTwitterUserCache.on("expired", function(nodeId, userObj){
 
   console.log(chalkInfo("WAS | XXX AUTH IN PROGRESS TWITTER USER CACHE EXPIRED"
-    + " | TTL: " + authInProgressTwitterUserCacheTtl + " SECS"
+    + " | TTL: " + authInProgressTwittxerUserCacheTtl + " SECS"
     + " | NODE ID: " + nodeId
     + " | userObj\n" + jsonPrint(userObj)
   ));

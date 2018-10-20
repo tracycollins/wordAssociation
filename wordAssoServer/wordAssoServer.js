@@ -53,10 +53,10 @@ const DEFAULT_TFE_CHILD_ID = "wa_node_tfe";
 const DEFAULT_TSS_CHILD_ID = "wa_node_tss";
 const DEFAULT_TWEET_PARSER_CHILD_ID = "wa_node_tweetParser";
 
-const DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER = "altthreecee00";
+const DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER = "altthreecee02";
 const DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER_FILE = DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER + ".json";
 
-const DEFAULT_TWITTER_CONFIG_THREECEE = "altthreecee00";
+const DEFAULT_TWITTER_CONFIG_THREECEE = "threecee";
 const DEFAULT_TWITTER_CONFIG_THREECEE_FILE = DEFAULT_TWITTER_CONFIG_THREECEE + ".json";
 
 const DEFAULT_INTERVAL = 10;
@@ -177,7 +177,7 @@ const altthreecee00config = {
   access_token_secret: "O2ZFttRte6RXs1XjZ5wcDgbXDoWZTr2wt245vRqvL0X8G"
 };
 
-{
+// {
 //   "fileName": "threecee.json",
 //   "screenName": "threecee",
 //   "consumer_key": "p08qa943B9Oe7Wpl9MAnbS4ca",

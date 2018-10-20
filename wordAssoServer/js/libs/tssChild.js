@@ -7,7 +7,7 @@ process.title = "wa_node_tss";
 const DEFAULT_MAX_TWEET_QUEUE = 500;
 const DEFAULT_TWITTER_QUEUE_INTERVAL = 10;
 const DEFAULT_CURSOR_BATCH_SIZE = 5000;
-const DEFAULT_INFO_TWITTER_USER = "threeceeinfo";
+const DEFAULT_INFO_TWITTER_USER = "threecee";
 const USER_SHOW_QUEUE_MAX_LENGTH = 500;
 
 const MAX_READY_ACK_WAIT_COUNT = 10;

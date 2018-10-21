@@ -204,6 +204,9 @@ statsObj.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
 statsObj.startTime = moment().valueOf();
 statsObj.elapsed = moment().valueOf() - statsObj.startTime;
 
+statsObj.user = {};
+statsObj.user.changes = 0;
+
 statsObj.queues = {};
 statsObj.twitterDeletes = 0;
 statsObj.twitterConnects = 0;
@@ -1368,7 +1371,11 @@ async function initUserChangeDbQueueInterval(cnf){
       }
       else if (user.changes) {
 
-        printUserObj("TFE | CHANGE USER DB [" + userChangeDbQueue.length + "] CHNG", user, chalkGreen);
+        statsObj.user.changes += 1;
+
+        if (configuration.verbose) { 
+          printUserObj("TFE | CHANGE USER DB [" + userChangeDbQueue.length + "] CHNG", user, chalkGreen); 
+        }
 
         if (!userCategorizeQueue.includes(user.userId) && (userCategorizeQueue.length < USER_CAT_QUEUE_MAX_LENGTH)) {
           userCategorizeQueue.push(user);

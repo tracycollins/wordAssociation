@@ -1887,7 +1887,7 @@ function dropboxFolderGetLastestCursor(folder, callback) {
     include_has_explicit_shared_members: false
   };
 
-  console.log(chalkLog("WAS | dropboxFolderGetLastestCursor FOLDER: " + folder));
+  if (configuration.verbose) { console.log(chalkLog("WAS | dropboxFolderGetLastestCursor FOLDER: " + folder)); }
 
   dropboxClient.filesListFolderGetLatestCursor(optionsGetLatestCursor)
   .then(function(last_cursor) {
@@ -5864,7 +5864,7 @@ function initAppRouting(callback) {
 
       console.log(chalk.bold.black("WAS | R< DROPBOX WEB HOOK | /dropbox_webhook"
         + " | DB CURSOR READY: " + dropboxFolderGetLastestCursorReady
-        + " | DB CHANGE FOLDER ARRAY\n" + jsonPrint(configuration.dropboxChangeFolderArray)
+        // + " | DB CHANGE FOLDER ARRAY\n" + jsonPrint(configuration.dropboxChangeFolderArray)
       )); 
 
       if (configuration.verbose) {
@@ -5947,7 +5947,7 @@ function initAppRouting(callback) {
         });
       }
       else {
-        console.log(chalkAlert("WAS | SKIP DROPBOX WEBHOOK ... NOT READY"));
+        debug(chalkAlert("WAS | SKIP DROPBOX WEBHOOK ... NOT READY"));
         next();
       }
     }

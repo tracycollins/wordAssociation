@@ -7473,8 +7473,9 @@ function loadBestRuntimeNetwork(callback){
         ));
       }
       else {
-        console.log(chalkError("WAS | *** LOAD BEST NETWORK ERROR: " + err
-          + bestNetworkFolder + "/" + bestRuntimeNetworkFileName
+        console.log(chalkError("WAS | *** LOAD BEST NETWORK ERROR"
+          + " | " + bestNetworkFolder + "/" + bestRuntimeNetworkFileName
+          + "\n" + jsonPrint(err)
         ));
       }
 

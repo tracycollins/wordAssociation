@@ -727,7 +727,11 @@ function initTwit(params, callback){
               // + "\n" + jsonPrint(data)
               // + "\n" + jsonPrint(response)
             ));
-            cb();
+
+            setTimeout(function(){
+              // delay for twitter
+              cb();
+            }, 1000);
           }
         });
 

@@ -6670,7 +6670,7 @@ function initTssPingInterval(interval){
 }
 
 function updateSearchTerms(){
-  console.log(chalk.bold.black("WAS | WAS | UPDATE SEARCH TERMS"));
+  console.log(chalkAlert("WAS | WAS | UPDATE SEARCH TERMS"));
 
   if (tssChild !== undefined) { tssChild.send({op: "UPDATE_SEARCH_TERMS"}); }
 }

@@ -1921,7 +1921,7 @@ function unfollow(params, callback) {
         twitterUserObj.followUserSet.delete(params.user.userId);
       }
 
-      twitterUserObj.twit.post("friendships/destroy", {user_id: userId}, function(err, data, response) {
+      twitterUserObj.twit.post("friendships/destroy", {user_id: params.user.userId}, function(err, data, response) {
         if (err) {
     
           twitterUserObj.stats.error = err;

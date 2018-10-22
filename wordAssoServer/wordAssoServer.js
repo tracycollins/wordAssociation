@@ -3273,7 +3273,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
   }
 
   initAppRouting(function initAppRoutingComplete() {
-    initLoadBestNetworkInterval(ONE_MINUTE+1);
+    // initLoadBestNetworkInterval(ONE_MINUTE+1);
   });
 
 });
@@ -8572,6 +8572,7 @@ initialize(async function initializeComplete(err) {
       await initTwitterSearchNodeQueueInterval(configuration.twitterSearchNodeQueueInterval);
       await initSorterMessageRxQueueInterval(configuration.sorterMessageRxQueueInterval);
       await initStatsInterval(configuration.statsUpdateInterval);
+      await initLoadBestNetworkInterval(ONE_MINUTE+1);
 
       await initTfeChild({childId: DEFAULT_TFE_CHILD_ID});
       await initTssChild({childId: DEFAULT_TSS_CHILD_ID});

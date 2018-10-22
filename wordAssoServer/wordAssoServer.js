@@ -246,6 +246,8 @@ statsObj.currentThreeceeUserIndex = 0;
 statsObj.currentThreeceeUser = "altthreecee00";
 statsObj.threeceeUsersConfiguredFlag = false;
 statsObj.twitNotReadyWarning = false;
+statsObj.tfeChildReady = false;
+statsObj.tssChildReady = false;
 
 let previousConfiguration = {};
 let configuration = {};
@@ -6677,6 +6679,8 @@ function updateSearchTerms(){
 
 async function initTssChild(params){
 
+  statsObj.tssChildReady = false;
+
   console.log(chalk.bold.black("WAS | INIT TSS CHILD\n" + jsonPrint(params)));
 
   return new Promise(async function(resolve, reject){
@@ -6809,6 +6813,10 @@ async function initTssChild(params){
     });
 
     childrenHashMap[params.childId].child = tss;
+
+    statsObj.tssChildReady = true;
+
+    tssChild = tss;
 
     tss.send({
       op: "INIT",

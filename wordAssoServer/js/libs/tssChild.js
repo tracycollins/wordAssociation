@@ -720,12 +720,14 @@ function initTwit(params, callback){
           }
           else {
             twitterUserObj.stats.error = false;
-            console.log(chalkTwitter("TSS | +++ UNFOLLOWED"
+            console.log(chalkTwitter("TSS | XXX UNFOLLOWED"
               + " | 3C @" + twitterUserObj.screenName
+              + " | FOLLOWING: " + data.following
               + " | @" + data.screen_name
               // + "\n" + jsonPrint(data)
+              // + "\n" + jsonPrint(response)
             ));
-           cb();
+            cb();
           }
         });
 

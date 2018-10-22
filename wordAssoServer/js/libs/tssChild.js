@@ -2220,8 +2220,7 @@ process.on("message", function(m) {
     break;
 
     case "UPDATE_SEARCH_TERMS":
-      console.log(chalkInfo("TSS | UPDATE SEARCH TERMS"
-      ));
+      console.log(chalkAlert("TSS | UPDATE SEARCH TERMS"));
 
       initSearchTerms(configuration, function(err, status){
 

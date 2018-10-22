@@ -7699,9 +7699,7 @@ function initConfig(){
 
 function initLoadBestNetworkInterval(interval){
   clearInterval(loadBestNetworkInterval);
-  loadBestRuntimeNetwork(function(err, bestNetworkId){
-
-  });
+  loadBestRuntimeNetwork(function(err, bestNetworkId){});
 }
 // kludge
 // probably can write one general purpose function to handle all types of nodes
@@ -8561,10 +8559,6 @@ initialize(async function initializeComplete(err) {
     statsObj.configuration = configuration;
 
     try {
-      await initTfeChild({childId: DEFAULT_TFE_CHILD_ID});
-      await initTssChild({childId: DEFAULT_TSS_CHILD_ID});
-      await initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
-
       await initKeySortInterval(configuration.keySortInterval);
       await initDropboxSync();
       await initSaveFileQueue(configuration);
@@ -8578,6 +8572,10 @@ initialize(async function initializeComplete(err) {
       await initTwitterSearchNodeQueueInterval(configuration.twitterSearchNodeQueueInterval);
       await initSorterMessageRxQueueInterval(configuration.sorterMessageRxQueueInterval);
       await initStatsInterval(configuration.statsUpdateInterval);
+
+      await initTfeChild({childId: DEFAULT_TFE_CHILD_ID});
+      await initTssChild({childId: DEFAULT_TSS_CHILD_ID});
+      await initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
 
       slackPostMessage(slackChannel, "\n*INIT* | " + hostname + "\n");
 

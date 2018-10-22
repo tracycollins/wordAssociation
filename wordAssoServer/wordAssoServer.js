@@ -5912,12 +5912,12 @@ function initAppRouting(callback) {
                     updateSearchTerms();
                   }
 
-                  if (entry.path_lower.endsWith("followableSearchTerm.json")){
+                  if (entry.path_lower.endsWith("followablesearchterm.json")){
                     initFollowableSearchTermSet();
                   }
 
-                  if ((entry.path_lower.endsWith("google_twitterSearchStreamConfig.json"))
-                    || (entry.path_lower.endsWith("default_twitterSearchStreamConfig.json"))){
+                  if ((entry.path_lower.endsWith("google_twittersearchstreamconfig.json"))
+                    || (entry.path_lower.endsWith("default_twittersearchstreamconfig.json"))){
 
                     killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, numKilled){
                       tssPongReceived = false;

@@ -125,7 +125,7 @@ configuration.sendMessageTimeout = ONE_SECOND;
 configuration.twitterDownTimeout = 3*ONE_MINUTE;
 configuration.initSearchTermsTimeout = 1*ONE_MINUTE;
 configuration.initTwitterUsersTimeout = 1*ONE_MINUTE;
-configuration.twitterFollowLimitTimeout = 5*ONE_MINUTE;
+configuration.twitterFollowLimitTimeout = 15*ONE_MINUTE;
 
 configuration.twitterConfig = {};
 

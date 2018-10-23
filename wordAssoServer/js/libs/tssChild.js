@@ -125,7 +125,7 @@ configuration.sendMessageTimeout = ONE_SECOND;
 configuration.twitterDownTimeout = 3*ONE_MINUTE;
 configuration.initSearchTermsTimeout = 1*ONE_MINUTE;
 configuration.initTwitterUsersTimeout = 1*ONE_MINUTE;
-configuration.twitterFollowLimitTimeout = 1*ONE_MINUTE;
+configuration.twitterFollowLimitTimeout = 5*ONE_MINUTE;
 
 configuration.twitterConfig = {};
 
@@ -1785,13 +1785,13 @@ function follow(params, callback) {
     
     if (twitterUserObj.stats.twitterFollowLimit) {
 
-      if (twitterUserObj.stats.twitterFollowLimit + configuration.twitterFollowLimitTimeout < moment().valueOf()) {
+      if (twitterUserObj.stats.twitterFollowLimit + configuration.twitterFollowLimitTimeout >= moment().valueOf()) {
 
-        console.log(chalkAlert("TSS | SKIP FOLLOW | FOLLOW LIMIT"
+        console.log(chalkInfo("TSS | ... SKIP FOLLOW | FOLLOW LIMIT"
           + " | 3C @" + twitterUserObj.screenName
           + " | AT: " + moment(twitterUserObj.stats.twitterFollowLimit).format(compactDateTimeFormat)
-          + " | " + msToTime(moment().valueOf() - twitterUserObj.stats.twitterFollowLimit) + "AGO"
-          + " | " + msToTime(twitterUserObj.stats.twitterFollowLimit + configuration.twitterFollowLimitTimeout - moment().valueOf()) + "REMAINING"
+          + " | " + msToTime(moment().valueOf() - twitterUserObj.stats.twitterFollowLimit) + " AGO"
+          + " | " + msToTime(twitterUserObj.stats.twitterFollowLimit + configuration.twitterFollowLimitTimeout - moment().valueOf()) + " REMAINING"
         ));
         return cb();
       }
@@ -1799,8 +1799,8 @@ function follow(params, callback) {
       console.log(chalkAlert("TSS | XXX FOLLOW LIMIT"
         + " | 3C @" + twitterUserObj.screenName
         + " | AT: " + moment(twitterUserObj.stats.twitterFollowLimit).format(compactDateTimeFormat)
-        + " | " + msToTime(moment().valueOf() - twitterUserObj.stats.twitterFollowLimit) + "AGO"
-        + " | " + msToTime(twitterUserObj.stats.twitterFollowLimit + configuration.twitterFollowLimitTimeout - moment().valueOf()) + "REMAINING"
+        + " | " + msToTime(moment().valueOf() - twitterUserObj.stats.twitterFollowLimit) + " AGO"
+        + " | " + msToTime(twitterUserObj.stats.twitterFollowLimit + configuration.twitterFollowLimitTimeout - moment().valueOf()) + " REMAINING"
       ));
 
       twitterUserObj.stats.twitterFollowLimit = false;

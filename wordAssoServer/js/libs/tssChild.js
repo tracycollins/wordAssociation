@@ -1782,6 +1782,15 @@ function follow(params, callback) {
       return cb();
     }
     
+    if (twitterUserObj.stats.twitterFollowLimit) {
+      console.log(chalkAlert("TSS | SKIP FOLLOW | FOLLOW LIMIT"
+        + " | 3C @" + twitterUserObj.screenName
+        + " | AT: " + moment(twitterUserObj.stats.twitterFollowLimit).format(compactDateTimeFormat)
+        + " | " + msToTime(twitterUserObj.stats.twitterFollowLimit) + "AGO"
+      ));
+      return cb();
+    }
+    
     if ((twitterUserObj.followUserSet.size >= 5000) || (twitterUserObj.followUserSet.has(params.user.userId))){
 
       console.log(chalkInfo("TSS | ... SKIP FOLLOW"

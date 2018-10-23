@@ -125,6 +125,7 @@ configuration.sendMessageTimeout = ONE_SECOND;
 configuration.twitterDownTimeout = 3*ONE_MINUTE;
 configuration.initSearchTermsTimeout = 1*ONE_MINUTE;
 configuration.initTwitterUsersTimeout = 1*ONE_MINUTE;
+configuration.twitterFollowLimitTimeout = 1*ONE_MINUTE;
 
 configuration.twitterConfig = {};
 
@@ -1783,12 +1784,27 @@ function follow(params, callback) {
     }
     
     if (twitterUserObj.stats.twitterFollowLimit) {
-      console.log(chalkAlert("TSS | SKIP FOLLOW | FOLLOW LIMIT"
+
+      if (twitterUserObj.stats.twitterFollowLimit + configuration.twitterFollowLimitTimeout < moment().valueOf()) {
+
+        console.log(chalkAlert("TSS | SKIP FOLLOW | FOLLOW LIMIT"
+          + " | 3C @" + twitterUserObj.screenName
+          + " | AT: " + moment(twitterUserObj.stats.twitterFollowLimit).format(compactDateTimeFormat)
+          + " | " + msToTime(moment().valueOf() - twitterUserObj.stats.twitterFollowLimit) + "AGO"
+          + " | " + msToTime(twitterUserObj.stats.twitterFollowLimit + configuration.twitterFollowLimitTimeout - moment().valueOf()) + "REMAINING"
+        ));
+        return cb();
+      }
+
+      console.log(chalkAlert("TSS | XXX FOLLOW LIMIT"
         + " | 3C @" + twitterUserObj.screenName
         + " | AT: " + moment(twitterUserObj.stats.twitterFollowLimit).format(compactDateTimeFormat)
-        + " | " + msToTime(twitterUserObj.stats.twitterFollowLimit) + "AGO"
+        + " | " + msToTime(moment().valueOf() - twitterUserObj.stats.twitterFollowLimit) + "AGO"
+        + " | " + msToTime(twitterUserObj.stats.twitterFollowLimit + configuration.twitterFollowLimitTimeout - moment().valueOf()) + "REMAINING"
       ));
-      return cb();
+
+      twitterUserObj.stats.twitterFollowLimit = false;
+
     }
     
     if ((twitterUserObj.followUserSet.size >= 5000) || (twitterUserObj.followUserSet.has(params.user.userId))){

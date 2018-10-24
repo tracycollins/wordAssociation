@@ -1422,8 +1422,13 @@ function ViewTreepack() {
       .attr("cx", function (d) { return d.x; })
       .attr("cy", function (d) { return d.y; })
       .style("fill", function (d) { 
-        if (d.isTopTerm && !d.category && !d.categoryAuto) { return palette.lightgray; }
+        if (d.isTopTerm && !d.category && !d.categoryAuto) { return palette.white; }
         if (!d.category && !d.categoryAuto) { return palette.black; }
+        if (d.category) { return d.categoryColor; }
+        if (d.categoryAuto === "right") { return palette.yellow; }
+        if (d.categoryAuto === "left") { return palette.blue; }
+        if (d.categoryAuto === "positive") { return palette.green; }
+        if (d.categoryAuto ==="negative") { return palette.red; }
         return d.categoryColor; 
       })
       .style("stroke", function (d) {
@@ -1432,7 +1437,7 @@ function ViewTreepack() {
         if (d.categoryAuto === "right") { return palette.yellow; }
         if (d.categoryAuto === "left") { return palette.blue; }
         if (d.categoryAuto === "positive") { return palette.green; }
-        if (d.categoryAuto ==="negative") { return palette.red; }
+        if (d.categoryAuto ==="negative") { return palette.black; }
         return palette.white; 
       })
       .style("stroke-width", function (d) { 
@@ -1462,6 +1467,25 @@ function ViewTreepack() {
       })
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
+      .style("fill", function (d) { 
+        if (d.isTopTerm && !d.category && !d.categoryAuto) { return palette.white; }
+        if (!d.category && !d.categoryAuto) { return palette.black; }
+        if (d.category) { return d.categoryColor; }
+        if (d.categoryAuto === "right") { return palette.yellow; }
+        if (d.categoryAuto === "left") { return palette.blue; }
+        if (d.categoryAuto === "positive") { return palette.green; }
+        if (d.categoryAuto ==="negative") { return palette.red; }
+        return d.categoryColor; 
+      })
+      .style("stroke", function (d) {
+        if (d.categoryMismatch) { return palette.red; }
+        if (d.categoryMatch) { return categoryMatchColor; }
+        if (d.categoryAuto === "right") { return palette.yellow; }
+        if (d.categoryAuto === "left") { return palette.blue; }
+        if (d.categoryAuto === "positive") { return palette.green; }
+        if (d.categoryAuto ==="negative") { return palette.black; }
+        return palette.white; 
+      })
       .style("fill-opacity", function(d) { 
         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
         return nodeLabelOpacityScale(d.ageMaxRatio); 

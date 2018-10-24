@@ -218,7 +218,7 @@ function ViewTreepack() {
     this.rank = -1;
     this.newFlag = true;
     this.x = 0.5*width;
-    this.y = 0.5*height;
+    this.y = 0.75*height;
     this.isCategory = false;
     this.category = false;
     this.categoryAuto = false;

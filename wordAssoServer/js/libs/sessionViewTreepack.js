@@ -6,6 +6,9 @@ function ViewTreepack() {
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
+  var initialXposition = 0.5;
+  var initialYposition = 0.75;
+
   var DEFAULT_ZOOM_FACTOR = 0.5;
   var emojiFontMulipier = 2.0;
   var minRateMetricChange = 0.5;
@@ -217,8 +220,8 @@ function ViewTreepack() {
     this.rate = 1e-6;
     this.rank = -1;
     this.newFlag = true;
-    this.x = 0.5*width;
-    this.y = 0.75*height;
+    this.x = initialXposition*width;
+    this.y = initialYposition*height;
     this.isCategory = false;
     this.category = false;
     this.categoryAuto = false;
@@ -1841,8 +1844,8 @@ function ViewTreepack() {
         currentNode.isMaxNode = false;
         currentNode.mouseHoverFlag = false;
         currentNode.newFlag = true;
-        currentNode.x = 0.5*width;
-        currentNode.y = 0.5*height;
+        currentNode.x = initialXposition*width;
+        currentNode.y = initialYposition*height;
 
         currentNode.nodeId = newNode.nodeId;
         currentNode.userId = newNode.userId;

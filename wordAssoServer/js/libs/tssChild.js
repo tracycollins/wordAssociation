@@ -2263,25 +2263,27 @@ process.on("message", function(m) {
 
                       unfollowQueue.push({threeceeUser: threeceeUserObj.screenName, userId: userId});
 
-                      console.log(chalkAlert("TSS | +++ UNFOLLOW Q"
+                      console.log(chalkAlert("TSS | > UNFOLLOW Q"
                         + "[" + unfollowQueue.length + "]"
                         + " | UID: " + userId
                         + " | 3C @: " + threeceeUserObj.screenName
                       ));
 
-                      return cb();
                     }
                     else {
 
                       unfollowQueue.push({threeceeUser: threeceeFollowingInHashMap, userId: userId});
 
-                      console.log(chalkAlert("TSS | +++ UNFOLLOW Q"
+                      console.log(chalkAlert("TSS | > UNFOLLOW Q"
                         + "[" + unfollowQueue.length + "]"
                         + " | UID: " + userId
                         + " | 3C @" + threeceeFollowingInHashMap
                       ));
 
                     }
+
+                    return cb();
+
                   }
                   else {
                     console.log(chalkAlert("TSS | ??? TWITTER USER FOLLOW HM HIT"

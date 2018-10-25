@@ -1198,7 +1198,7 @@ function initUnfollowQueueInterval(cnf, callback){
 
   unfollowQueueInterval = setInterval(function () {
 
-    if (userShowQueueReady && (unfollowQueueReady.length > 0)) {
+    if (userShowQueueReady && (unfollowQueue.length > 0)) {
 
       unfollowQueueReady = false;
 

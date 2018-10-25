@@ -167,8 +167,8 @@ function ViewTreepack() {
   var xMinRatioDefault = 0.45;
   var xMaxRatioDefault = 0.55;
 
-  var yMinRatioDefault = 0.75;
-  var yMaxRatioDefault = 0.85;
+  var yMinRatioDefault = 0.85;
+  var yMaxRatioDefault = 0.95;
 
   var foci = {
     left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 

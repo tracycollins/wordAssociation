@@ -48,10 +48,10 @@ const util = require("util");
 require("isomorphic-fetch");
 const Dropbox = require("dropbox").Dropbox;
 const async = require("async");
-const Twit = require("twit");
+// const Twit = require("twit");
+const Twit = require("../libs/twit");
 const moment = require("moment");
 const treeify = require("../libs/treeify");
-const TwitterStreamChannels = require("node-tweet-stream");
 const Measured = require("measured");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const HashMap = require("hashmap").HashMap;
@@ -1424,18 +1424,22 @@ function initSearchStream(params, callback){
   });
 
   threeceeUserObj.searchStream.on("error", function(err){
+
     console.log(chalkError("TSS | " + getTimeStamp()
       + " | @" + threeceeUserObj.screenName
       + " | *** TWITTER ERROR: " + err
     ));
+
     statsObj.twitterErrors += 1;
     threeceeUserObj.stats.twitterErrors += 1;
+
+    const errorType = (err.statusCode === 401) ? "TWITTER_UNAUTHORIZED" : "TWITTER";
 
     process.send({
       op: "ERROR", 
       threeceeUser: threeceeUserObj.screenName, 
       stats: threeceeUserObj.stats, 
-      errorType: "TWITTER", 
+      errorType: errorType, 
       error: err
     });
 

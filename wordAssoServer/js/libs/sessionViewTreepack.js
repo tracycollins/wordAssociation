@@ -115,48 +115,48 @@ function ViewTreepack() {
   var maxHashtagCols = 5;
 
   // FORCE X & Y
-  var xFocusLeftRatio = 0.3;
+  var xFocusLeftRatio = 0.2;
   var yFocusLeftRatio = 0.5;
 
-  var xFocusRightRatio = 0.7;
+  var xFocusRightRatio = 0.8;
   var yFocusRightRatio = 0.5;
 
   var xFocusPositiveRatio = 0.5;
-  var yFocusPositiveRatio = 0.3;
+  var yFocusPositiveRatio = 0.2;
 
-  var xFocusNegativeRatio = 0.7;
-  var yFocusNegativeRatio = 0.7;
+  var xFocusNegativeRatio = 0.5;
+  var yFocusNegativeRatio = 0.9;
 
   var xFocusNeutralRatio = 0.5;
   var yFocusNeutralRatio = 0.5;
 
   var xFocusDefaultRatio = 0.5;
-  var yFocusDefaultRatio = 0.8;
+  var yFocusDefaultRatio = 0.6;
 
   // INITIAL POSITION
-  var xMinRatioLeft = 0.10;
+  var xMinRatioLeft = 0.3;
   var xMaxRatioLeft = 0.35;
 
-  var yMinRatioLeft = 0.75;
-  var yMaxRatioLeft = 0.80;
+  var yMinRatioLeft = 0.65;
+  var yMaxRatioLeft = 0.75;
 
-  var xMinRatioRight = 0.65;
-  var xMaxRatioRight = 0.90;
+  var xMinRatioRight = 0.7;
+  var xMaxRatioRight = 0.75;
 
-  var yMinRatioRight = 0.75;
-  var yMaxRatioRight = 0.80;
+  var yMinRatioRight = 0.65;
+  var yMaxRatioRight = 0.75;
 
   var xMinRatioPositive = 0.45;
   var xMaxRatioPositive = 0.55;
 
-  var yMinRatioPositive = 0.65;
-  var yMaxRatioPositive = 0.75;
+  var yMinRatioPositive = 0.3;
+  var yMaxRatioPositive = 0.4;
 
-  var xMinRatioNegative = 0.75;
-  var xMaxRatioNegative = 0.85;
+  var xMinRatioNegative = 0.45;
+  var xMaxRatioNegative = 0.55;
 
-  var yMinRatioNegative = 0.85;
-  var yMaxRatioNegative = 0.95;
+  var yMinRatioNegative = 0.8;
+  var yMaxRatioNegative = 0.85;
 
   var xMinRatioNeutral = 0.45;
   var xMaxRatioNeutral = 0.55;
@@ -167,8 +167,8 @@ function ViewTreepack() {
   var xMinRatioDefault = 0.45;
   var xMaxRatioDefault = 0.55;
 
-  var yMinRatioDefault = 0.85;
-  var yMaxRatioDefault = 0.95;
+  var yMinRatioDefault = 0.75;
+  var yMaxRatioDefault = 0.85;
 
   var foci = {
     left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 

@@ -60,7 +60,7 @@ const DEFAULT_TWITTER_CONFIG_THREECEE = "threecee";
 const DEFAULT_TWITTER_CONFIG_THREECEE_FILE = DEFAULT_TWITTER_CONFIG_THREECEE + ".json";
 
 const DEFAULT_INTERVAL = 10;
-const DEFAULT_PING_INTERVAL = 30*ONE_SECOND;
+const DEFAULT_PING_INTERVAL = ONE_MINUTE;
 const TFE_PING_INTERVAL = 600*ONE_SECOND;
 const DEFAULT_DROPBOX_LIST_FOLDER_LIMIT = 50;
 const DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT = 1*ONE_SECOND;
@@ -3318,7 +3318,7 @@ configEvents.on("DB_CONNECT", async function configEventDbConnect(){
   try{
 
     initSocketNamespaces();
-    await initUnfollowableUserSet();
+    // await initUnfollowableUserSet();
     await initFollowableSearchTermSet();
 
     initCategoryHashmapsReady = false;
@@ -3704,7 +3704,7 @@ function follow(params, callback) {
 
 function unfollow(params, callback) {
 
-  console.log(chalk.blue("WAS | +++ UNFOLLOW | @" + params.user.screenName));
+  console.log(chalk.blue("WAS | XXX UNFOLLOW | @" + params.user.screenName));
 
   if (params.user.nodeId !== undefined){
 

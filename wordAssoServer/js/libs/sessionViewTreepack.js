@@ -155,8 +155,8 @@ function ViewTreepack() {
   var xMinRatioNegative = 0.45;
   var xMaxRatioNegative = 0.55;
 
-  var yMinRatioNegative = 0.8;
-  var yMaxRatioNegative = 0.85;
+  var yMinRatioNegative = 0.85;
+  var yMaxRatioNegative = 0.95;
 
   var xMinRatioNeutral = 0.45;
   var xMaxRatioNeutral = 0.55;
@@ -167,8 +167,8 @@ function ViewTreepack() {
   var xMinRatioDefault = 0.45;
   var xMaxRatioDefault = 0.55;
 
-  var yMinRatioDefault = 0.75;
-  var yMaxRatioDefault = 0.85;
+  var yMinRatioDefault = 0.65;
+  var yMaxRatioDefault = 0.75;
 
   var foci = {
     left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 

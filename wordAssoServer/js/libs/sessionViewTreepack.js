@@ -7,7 +7,7 @@ function ViewTreepack() {
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
   var initialXposition = 0.5;
-  var initialYposition = 0.75;
+  var initialYposition = 0.85;
 
   var DEFAULT_ZOOM_FACTOR = 0.5;
   var emojiFontMulipier = 2.0;
@@ -124,13 +124,14 @@ function ViewTreepack() {
   var xFocusPositiveRatio = 0.5;
   var yFocusPositiveRatio = 0.3;
 
+  var xFocusNegativeRatio = 0.7;
   var yFocusNegativeRatio = 0.7;
 
   var xFocusNeutralRatio = 0.5;
   var yFocusNeutralRatio = 0.5;
 
   var xFocusDefaultRatio = 0.5;
-  var yFocusDefaultRatio = 0.5;
+  var yFocusDefaultRatio = 0.8;
 
   // INITIAL POSITION
   var xMinRatioLeft = 0.10;
@@ -154,14 +155,20 @@ function ViewTreepack() {
   var xMinRatioNegative = 0.75;
   var xMaxRatioNegative = 0.85;
 
-  var yMinRatioNegative = 0.65;
-  var yMaxRatioNegative = 0.75;
+  var yMinRatioNegative = 0.85;
+  var yMaxRatioNegative = 0.95;
 
   var xMinRatioNeutral = 0.45;
   var xMaxRatioNeutral = 0.55;
 
   var yMinRatioNeutral = 0.55;
   var yMaxRatioNeutral = 0.65;
+
+  var xMinRatioDefault = 0.45;
+  var xMaxRatioDefault = 0.55;
+
+  var yMinRatioDefault = 0.75;
+  var yMaxRatioDefault = 0.85;
 
   var foci = {
     left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 
@@ -1686,8 +1693,8 @@ function ViewTreepack() {
         });
       default:
         return({
-          x: randomIntFromInterval(xMinRatioNeutral*width, xMaxRatioNeutral*width), 
-          y: randomIntFromInterval(yMinRatioNeutral*height, yMaxRatioNeutral*height)
+          x: randomIntFromInterval(xMinRatioDefault*width, xMaxRatioDefault*width), 
+          y: randomIntFromInterval(yMinRatioDefault*height, yMaxRatioDefault*height)
         });
     }
   };
@@ -1904,8 +1911,8 @@ function ViewTreepack() {
 
         }
         else {
-          currentNode.x = focus("neutral").x; 
-          currentNode.y = focus("neutral").y;
+          currentNode.x = focus("default").x; 
+          currentNode.y = focus("default").y;
         }
 
         nodePoolIdcircle = document.getElementById(currentNode.nodePoolId);

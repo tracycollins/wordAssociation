@@ -1425,13 +1425,24 @@ function initSearchStream(params, callback){
 
   threeceeUserObj.searchStream.on("error", function(err){
 
+    threeceeUserObj.searchStream.stop();
+
     console.log(chalkError("TSS | " + getTimeStamp()
       + " | @" + threeceeUserObj.screenName
       + " | *** TWITTER ERROR: " + err
     ));
 
+
     statsObj.twitterErrors += 1;
     threeceeUserObj.stats.twitterErrors += 1;
+
+    threeceeUserObj.stats.ready = false;
+    threeceeUserObj.stats.error = err;
+    threeceeUserObj.stats.connected = false;
+    threeceeUserObj.stats.authenticated = false;
+    threeceeUserObj.stats.twitterTokenErrorFlag = true;
+
+    twitterUsersHashMap.set(threeceeUserObj.screenName, threeceeUserObj);
 
     const errorType = (err.statusCode === 401) ? "TWITTER_UNAUTHORIZED" : "TWITTER";
 

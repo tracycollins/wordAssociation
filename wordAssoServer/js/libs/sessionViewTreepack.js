@@ -7,9 +7,9 @@ function ViewTreepack() {
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
   var initialXposition = 0.5;
-  var initialYposition = 0.85;
+  var initialYposition = 0.9;
 
-  var DEFAULT_ZOOM_FACTOR = 0.5;
+  var DEFAULT_ZOOM_FACTOR = 0.4;
   var emojiFontMulipier = 2.0;
   var minRateMetricChange = 0.5;
 

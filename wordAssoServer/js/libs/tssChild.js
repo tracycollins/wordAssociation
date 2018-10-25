@@ -1431,6 +1431,25 @@ function initSearchStream(params, callback){
     statsObj.twitterErrors += 1;
     threeceeUserObj.stats.twitterErrors += 1;
 
+    process.send({
+      op: "ERROR", 
+      threeceeUser: threeceeUserObj.screenName, 
+      stats: threeceeUserObj.stats, 
+      errorType: "TWITTER", 
+      error: err
+    });
+
+    showStats();
+  });
+  
+  threeceeUserObj.searchStream.on("end", function(err){
+    console.log(chalkError("TSS | " + getTimeStamp()
+      + " | @" + threeceeUserObj.screenName
+      + " | *** TWITTER ERROR: " + err
+    ));
+    statsObj.twitterErrors += 1;
+    threeceeUserObj.stats.twitterErrors += 1;
+
     if (err.statusCode === 401) {
       process.send({
         op: "ERROR", 

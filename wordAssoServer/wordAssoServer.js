@@ -6565,18 +6565,19 @@ function initTfePingInterval(interval){
         
         slackPostMessage(slackErrorChannel, "\n*CHILD ERROR*\nTWEET_PARSER\nPONG TIMEOUT");
 
-        clearInterval(tfePingInterval);
+        // clearInterval(tfePingInterval);
 
-        tfePingSent = false; 
-        tfePongReceived = false;
+        // tfePingSent = false; 
+        // tfePongReceived = false;
 
-        setTimeout(function(){
+        // setTimeout(function(){
 
-          killChild({childId: DEFAULT_TFE_CHILD_ID}, function(err, numKilled){
-            initTfeChild({childId: DEFAULT_TFE_CHILD_ID});
-          });
+        //   killChild({childId: DEFAULT_TFE_CHILD_ID}, function(err, numKilled){
+        //     initTfeChild({childId: DEFAULT_TFE_CHILD_ID});
+        //   });
 
-        }, 5000);
+        // }, 5000);
+        
       }
     }, interval);
 
@@ -6661,18 +6662,18 @@ function initTssPingInterval(interval){
         
         slackPostMessage(slackErrorChannel, "\n*CHILD ERROR*\nTWEET_PARSER\nPONG TIMEOUT");
 
-        clearInterval(tssPingInterval);
+        // clearInterval(tssPingInterval);
 
-        tssPingSent = false; 
-        tssPongReceived = false;
+        // tssPingSent = false; 
+        // tssPongReceived = false;
 
-        setTimeout(function(){
+        // setTimeout(function(){
 
-          killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, numKilled){
-            initTssChild({childId: DEFAULT_TSS_CHILD_ID});
-          });
+        //   killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, numKilled){
+        //     initTssChild({childId: DEFAULT_TSS_CHILD_ID});
+        //   });
 
-        }, 5000);
+        // }, 5000);
       }
     }, interval);
 
@@ -7141,18 +7142,18 @@ function initTweetParserPingInterval(interval){
         
         slackPostMessage(slackErrorChannel, "\n*CHILD ERROR*\nTWEET_PARSER\nPONG TIMEOUT");
 
-        clearInterval(tweetParserPingInterval);
+        // clearInterval(tweetParserPingInterval);
 
-        tweetParserPingSent = false; 
-        tweetParserPongReceived = false;
+        // tweetParserPingSent = false; 
+        // tweetParserPongReceived = false;
 
-        setTimeout(function(){
+        // setTimeout(function(){
 
-          killChild({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, numKilled){
-            initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
-          });
+        //   killChild({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, numKilled){
+        //     initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
+        //   });
 
-        }, 5000);
+        // }, 5000);
       }
     }, interval);
 

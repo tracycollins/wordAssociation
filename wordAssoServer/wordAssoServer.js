@@ -6577,7 +6577,7 @@ function initTfePingInterval(interval){
         //   });
 
         // }, 5000);
-        
+
       }
     }, interval);
 
@@ -6801,6 +6801,7 @@ async function initTssChild(params){
       ));
       clearInterval(tssPingInterval);
       childrenHashMap[params.childId].status = "ERROR";
+      configEvents.emit("CHILD_ERROR", {childId: params.childId});
     });
 
     tss.on("exit", function tssExit(code){
@@ -6819,6 +6820,7 @@ async function initTssChild(params){
       ));
       clearInterval(tssPingInterval);
       childrenHashMap[params.childId].status = "CLOSE";
+      configEvents.emit("CHILD_ERROR", {childId: params.childId});
     });
 
     childrenHashMap[params.childId].child = tss;

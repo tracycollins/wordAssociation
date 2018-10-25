@@ -1049,18 +1049,18 @@ function toggleTestMode() {
   controlPanel.updateControlPanel(config);
 }
 
-var initialPosition;
-function computeInitialPosition() {
-  initialPosition = {
-    x: randomIntFromInterval(0.95 * currentSessionView.getWidth(), 1.0 * currentSessionView.getWidth()),
-    y: randomIntFromInterval(0.3 * currentSessionView.getHeight(), 0.7 * currentSessionView.getHeight())
-  };
+// var initialPosition;
+// function computeInitialPosition() {
+//   initialPosition = {
+//     x: randomIntFromInterval(0.95 * currentSessionView.getWidth(), 1.0 * currentSessionView.getWidth()),
+//     y: randomIntFromInterval(0.3 * currentSessionView.getHeight(), 0.7 * currentSessionView.getHeight())
+//   };
 
-  if (!initialPosition.x || !initialPosition.y) {
-    console.error("POS " + jsonPrint(initialPosition));
-  }
-  return initialPosition;
-}
+//   if (!initialPosition.x || !initialPosition.y) {
+//     console.error("POS " + jsonPrint(initialPosition));
+//   }
+//   return initialPosition;
+// }
 
 var keysForSortedKeys = [];
 function getSortedKeys(hmap, sortProperty) {

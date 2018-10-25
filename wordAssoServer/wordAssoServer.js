@@ -307,7 +307,8 @@ configuration.threeceeUsers = DEFAULT_THREECEE_USERS;
 statsObj.currentThreeceeUser = configuration.threeceeUsers[0];
 
 
-const Twit = require("twit");
+// const Twit = require("twit");
+const Twit = require(__dirname + "/js/libs/twit");
 
 let threeceeTwitter = {};
 threeceeTwitter.config = {};
@@ -6719,10 +6720,11 @@ async function initTssChild(params){
         case "ERROR":
           console.log(chalkError("WAS | <TSS | ERROR"
             + " | ERROR TYPE: " + m.errorType
-            + "\n" + jsonPrint(m.error)
+            + " | ERROR MESSAGE: " + m.error.message
+            // + "\n" + jsonPrint(m.error)
           ));
 
-          if (m.errorType === "TWITTER_UNAUTHORIZED") {
+          if ((m.errorType === "TWITTER_UNAUTHORIZED") || (m.error.statusCode === 401)) {
 
             threeceeTwitter[m.threeceeUser].twitterErrors += 1;
             threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;

@@ -1369,6 +1369,8 @@ async function initUserChangeDbQueueInterval(cnf){
 
         printUserObj("TFE | CHANGE USER DB [" + userChangeDbQueue.length + "] INIT", user, chalkGreen);
 
+        user.nodeId = user.userId;
+
         userServerController.findOneUser(user, {noInc: true}, function(err, dbUser){
           if (err) {
             console.log(chalkError("TFE | *** USER DB UPDATE ERROR: " + err));
@@ -1426,6 +1428,7 @@ async function initUserCategorizeQueueInterval(cnf){
       userCategorizeQueueReady = false;
 
       user = userCategorizeQueue.shift();
+      user.nodeId = user.userId;
 
       try {
 
@@ -1446,6 +1449,7 @@ async function initUserCategorizeQueueInterval(cnf){
 
           }
           updatedUser.categoryAuto = networkOutput[nnId].output;
+          updatedUser.nodeId = updatedUser.nodeId;
 
           userServerController.findOneUser(updatedUser, {noInc: false, fields: fieldsTransmit}, function(err, dbUser){
             printUserObj("TFE | NN: " + nnId + " | DB CAT", dbUser, chalkGreen);

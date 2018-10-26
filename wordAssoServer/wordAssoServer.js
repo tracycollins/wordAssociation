@@ -6942,7 +6942,11 @@ async function initTfeChild(params){
         break;
 
         case "USER_CATEGORIZED":
-          console.log(chalkTwitter("WAS | R< USER_CATEGORIZED | @" + m.user.screenName + " | CAT AUTO: " + m.user.categoryAuto));
+          console.log(chalkTwitter("WAS | R< USER_CATEGORIZED"
+            + " | @" + m.user.screenName 
+            + " | CAT MAN: " + m.user.category
+            + " | AUTO: " + m.user.categoryAuto
+            ));
         break;
 
         case "TWITTER_STATS":

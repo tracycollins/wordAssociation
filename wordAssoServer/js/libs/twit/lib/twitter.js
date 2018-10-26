@@ -368,7 +368,7 @@ Twitter.prototype._doRestApiRequest = function (reqOpts, twitOptions, method, ca
   req.on('error', function (err) {
     // transport-level error occurred - likely a socket error
     if (twitOptions.retry &&
-        STATUS_CODES_TO_ABORT_ON.indexOf(err.statusCode) !== -1;
+        STATUS_CODES_TO_ABORT_ON.indexOf(err.statusCode) !== -1
     ) {
       // retry the request since retries were specified and we got a status code we should retry on
       self.request(method, path, params, callback);

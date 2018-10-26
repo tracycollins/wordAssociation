@@ -627,6 +627,7 @@ function initTwit(params, callback){
   threeceeUserObj.searchStream = {};
   threeceeUserObj.searchTermArray = [];
   threeceeUserObj.followUserSet = new Set();
+  threeceeUserObj.doNotFollowUserSet = new Set();
 
   console.log(chalkTwitter("TSS | INIT TWITTER USER"
     + " | NAME: " + params.config.screenName
@@ -1963,6 +1964,20 @@ function follow(params, callback) {
 
     console.log(chalkLog("TSS | CHECK FOLLOW | 3C @" + threeceeUserObj.screenName + " | @" + params.user.screenName));
 
+    if (threeceeUserObj.doNotFollowUserSet.has(params.user.userId)){
+
+      console.log(chalkLog("TSS | ... SKIP FOLLOW | FOLLOW USER BLOCK"
+        + " | @" + params.user.screenName
+        + " | FOLLOWING: " + threeceeUserObj.followUserSet.size 
+        + "/" + TWITTER_MAX_FOLLOW_USER_NUMBER + " MAX"
+        + " | UID: " + params.user.userId
+        + " | IN FOLLOW USER BLOCK SET: " + threeceeUserObj.doNotFollowUserSet.has(params.user.userId)
+      ));
+
+      return cb();
+
+    }
+
     if (threeceeUserObj.followUserSet.has(params.user.userId)){
 
       console.log(chalkLog("TSS | ... SKIP FOLLOW | ALREADY FOLLOWING"
@@ -1972,13 +1987,6 @@ function follow(params, callback) {
         + " | UID: " + params.user.userId
         + " | IN FOLLOW USER SET: " + threeceeUserObj.followUserSet.has(params.user.userId)
       ));
-
-      // process.send({
-      //   op: "TWITTER_STATS", 
-      //   threeceeUser: threeceeUserObj.screenName, 
-      //   stats: threeceeUserObj.stats, 
-      //   twitterFollowing: threeceeUserObj.followUserSet.size
-      // });
 
       return cb(true);
 
@@ -2098,6 +2106,32 @@ function follow(params, callback) {
               stats: threeceeUserObj.stats, 
               twitterFollowLimit: threeceeUserObj.stats.twitterFollowLimit,
               twitterFollowing: threeceeUserObj.followUserSet.size
+            });
+
+            return cb();
+          }
+
+          if (data.errors[0].code === 162) {
+
+            threeceeUserObj.stats.twitterFollowLimit = moment().valueOf();
+
+            console.log(chalkError("TSS | *** ERROR FRIENDSHIP CREATE | FOLLOW BLOCK (CODE 162)"
+              + " | 3C @" + threeceeUserObj.screenName
+              + " | UID: " + params.user.userId
+              + " | @" + params.user.screenName
+              + " | " + err
+            ));
+
+            threeceeUserObj.doNotFollowUserSet.add(params.user.userId);
+            
+            process.send({
+              op: "ERROR", 
+              threeceeUser: threeceeUserObj.screenName, 
+              userId: params.user.userId,
+              screenName: params.user.screenName,
+              stats: threeceeUserObj.stats,
+              errorType: "TWITTER_FOLLOW_BLOCK", 
+              error: data.errors[0]
             });
 
             return cb();

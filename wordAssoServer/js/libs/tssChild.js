@@ -112,8 +112,8 @@ let stdin;
 let configuration = {};
 configuration.verbose = false;
 configuration.forceFollow = false;
-configuration.globalTestMode = false;
-configuration.testMode = false; // per tweet test mode
+configuration.globalTestMode = true;
+configuration.testMode = true; // per tweet test mode
 configuration.searchTermsUpdateInterval = 1*ONE_MINUTE;
 configuration.userShowQueueInterval = 15 * ONE_SECOND;
 configuration.unfollowQueueInterval = 15 * ONE_SECOND;
@@ -1290,7 +1290,7 @@ function initSearchStream(params, callback){
   if (threeceeUserObj.searchTermArray.length > 0) { filter.track = threeceeUserObj.searchTermArray; }
   if (threeceeUserObj.followUserSet.size > 0) { filter.follow = [...threeceeUserObj.followUserSet]; }
 
-  threeceeUserObj.searchStream = threeceeUserObj.twit.stream("statuses/filter", filter);
+  threeceeUserObj.searchStream = threeceeUserObj.twit.post("statuses/filter", filter);
 
   threeceeUserObj.searchStream.on("message", function(msg){
     if (msg.event) {
@@ -1723,7 +1723,7 @@ function initialize(cnf, callback){
 
   cnf.verbose = process.env.TSS_VERBOSE_MODE || false ;
   cnf.globalTestMode = process.env.TSS_GLOBAL_TEST_MODE || false ;
-  cnf.testMode = process.env.TSS_TEST_MODE || false ;
+  cnf.testMode = process.env.TSS_TEST_MODE || true ;
   cnf.quitOnError = process.env.TSS_QUIT_ON_ERROR || false ;
 
   cnf.twitterQueueIntervalTime = process.env.TSS_TWITTER_QUEUE_INTERVAL || DEFAULT_TWITTER_QUEUE_INTERVAL ;
@@ -2191,7 +2191,7 @@ function follow(params, callback) {
         if (threeceeUserObj.searchTermArray.length > 0) { filter.track = threeceeUserObj.searchTermArray; }
         if (threeceeUserObj.followUserSet.size > 0) { filter.follow = [...threeceeUserObj.followUserSet]; }
 
-        threeceeUserObj.searchStream = threeceeUserObj.twit.stream("statuses/filter", filter);
+        threeceeUserObj.searchStream = threeceeUserObj.twit.post("statuses/filter", filter);
 
         threeceeUserHashMap.set(threeceeUserObj.screenName, threeceeUserObj);
 
@@ -2300,7 +2300,7 @@ function unfollow(params, callback) {
         if (threeceeUserObj.searchTermArray.length > 0) { filter.track = threeceeUserObj.searchTermArray; }
         if (threeceeUserObj.followUserSet.size > 0) { filter.follow = [...threeceeUserObj.followUserSet]; }
 
-        threeceeUserObj.searchStream = threeceeUserObj.twit.stream("statuses/filter", filter);
+        threeceeUserObj.searchStream = threeceeUserObj.twit.post("statuses/filter", filter);
 
         threeceeUserHashMap.set(threeceeUserObj.screenName, threeceeUserObj);
 
@@ -2416,7 +2416,7 @@ function unfollow(params, callback) {
           if (threeceeUserObj.searchTermArray.length > 0) { filter.track = threeceeUserObj.searchTermArray; }
           if (threeceeUserObj.followUserSet.size > 0) { filter.follow = [...threeceeUserObj.followUserSet]; }
 
-          threeceeUserObj.searchStream = threeceeUserObj.twit.stream("statuses/filter", filter);
+          threeceeUserObj.searchStream = threeceeUserObj.twit.post("statuses/filter", filter);
 
           threeceeUserHashMap.set(threeceeUserObj.screenName, threeceeUserObj);
 

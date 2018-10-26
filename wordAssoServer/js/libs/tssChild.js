@@ -1431,6 +1431,7 @@ function initSearchStream(params, callback){
     console.log(chalkError("TSS | " + getTimeStamp()
       + " | @" + threeceeUserObj.screenName
       + " | *** TWITTER ERROR: " + err
+      + " | *** TWITTER ERROR\n" + jsonPrint(err)
     ));
 
 
@@ -1455,14 +1456,19 @@ function initSearchStream(params, callback){
       error: err
     });
 
-    showStats();
+    // showStats();
   });
   
   threeceeUserObj.searchStream.on("end", function(err){
+
+    threeceeUserObj.searchStream.stop();
+
     console.log(chalkError("TSS | " + getTimeStamp()
       + " | @" + threeceeUserObj.screenName
-      + " | *** TWITTER ERROR: " + err
+      + " | *** TWITTER END: " + err
     ));
+
+
     statsObj.twitterErrors += 1;
     threeceeUserObj.stats.twitterErrors += 1;
 
@@ -1480,12 +1486,12 @@ function initSearchStream(params, callback){
         op: "ERROR", 
         threeceeUser: threeceeUserObj.screenName, 
         stats: threeceeUserObj.stats, 
-        errorType: "TWITTER", 
+        errorType: "TWITTER_END", 
         error: err
       });
     }
 
-    showStats();
+    // showStats();
   });
   
   threeceeUserObj.searchStream.on("parser-error", function(err){

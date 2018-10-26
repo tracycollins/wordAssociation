@@ -6,16 +6,16 @@ var helpers = require('./helpers')
 var Parser = require('./parser');
 var request = require('request');
 
-var STATUS_CODES_TO_ABORT_ON = require('./settings').STATUS_CODES_TO_ABORT_ON
+var STATUS_CODES_TO_ABORT_ON = require('./settings').STATUS_CODES_TO_ABORT_ON;
 
 var StreamingAPIConnection = function (reqOpts, twitOptions) {
-  this.reqOpts = reqOpts
-  this.twitOptions = twitOptions
-  this._twitter_time_minus_local_time_ms = 0
-  EventEmitter.call(this)
+  this.reqOpts = reqOpts;
+  this.twitOptions = twitOptions;
+  this._twitter_time_minus_local_time_ms = 0;
+  EventEmitter.call(this);
 }
 
-util.inherits(StreamingAPIConnection, EventEmitter)
+util.inherits(StreamingAPIConnection, EventEmitter);
 
 /**
  * Resets the connection.
@@ -37,16 +37,16 @@ StreamingAPIConnection.prototype._resetConnection = function () {
   }
 
   if (this.parser) {
-    this.parser.removeAllListeners()
+    this.parser.removeAllListeners();
   }
 
   // ensure a scheduled reconnect does not occur (if one was scheduled)
   // this can happen if we get a close event before .stop() is called
-  clearTimeout(this._scheduledReconnect)
-  delete this._scheduledReconnect
+  clearTimeout(this._scheduledReconnect);
+  delete this._scheduledReconnect;
 
   // clear our stall abort timeout
-  this._stopStallAbortTimeout()
+  this._stopStallAbortTimeout();
 }
 
 /**
@@ -54,9 +54,9 @@ StreamingAPIConnection.prototype._resetConnection = function () {
  */
 StreamingAPIConnection.prototype._resetRetryParams = function () {
   // delay for next reconnection attempt
-  this._connectInterval = 0
+  this._connectInterval = 0;
   // flag indicating whether we used a 0-delay reconnect
-  this._usedFirstReconnect = false
+  this._usedFirstReconnect = false;
 }
 
 StreamingAPIConnection.prototype._startPersistentConnection = function () {
@@ -65,17 +65,17 @@ StreamingAPIConnection.prototype._startPersistentConnection = function () {
   self._setupParser();
   self._resetStallAbortTimeout();
   self._setOauthTimestamp();
-  this.reqOpts.encoding = 'utf8'
+  this.reqOpts.encoding = 'utf8';
   self.request = request.post(this.reqOpts);
   self.emit('connect', self.request);
   self.request.on('response', function (response) {
-    self._updateOauthTimestampOffsetFromResponse(response)
+    self._updateOauthTimestampOffsetFromResponse(response);
     // reset our reconnection attempt flag so next attempt goes through with 0 delay
     // if we get a transport-level error
     self._usedFirstReconnect = false;
     // start a stall abort timeout handle
     self._resetStallAbortTimeout();
-    self.response = response
+    self.response = response;
     if (STATUS_CODES_TO_ABORT_ON.indexOf(self.response.statusCode) !== -1) {
       // We got a status code telling us we should abort the connection.
       // Read the body from the response and return an error to the user.
@@ -87,15 +87,15 @@ StreamingAPIConnection.prototype._startPersistentConnection = function () {
 
       self.request.on('end', function () {
         try {
-          body = JSON.parse(body)
+          body = JSON.parse(body);
         } catch (jsonDecodeError) {
           // Twitter may send an HTML body
           // if non-JSON text was returned, we'll just attach it to the error as-is
         }
         // surface the error to the user
-        var error = helpers.makeTwitError('Bad Twitter streaming request: ' + self.response.statusCode)
+        var error = helpers.makeTwitError('Bad Twitter streaming request: ' + self.response.statusCode);
         error.statusCode = response ? response.statusCode: null;
-        helpers.attachBodyInfoToError(error, body)
+        helpers.attachBodyInfoToError(error, body);
         self.emit('error', error);
         // stop the stream explicitly so we don't reconnect
         // =====================
@@ -119,7 +119,7 @@ StreamingAPIConnection.prototype._startPersistentConnection = function () {
       // Read the body from the response and return to the user.
       //pass all response data to parser
       self.request.on('data', function(data) {
-        self._connectInterval = 0
+        self._connectInterval = 0;
         self._resetStallAbortTimeout();
         self.parser.parse(data);
       })
@@ -152,7 +152,7 @@ StreamingAPIConnection.prototype._onClose = function () {
   if (self._scheduledReconnect) {
     // if we already have a reconnect scheduled, don't schedule another one.
     // this race condition can happen if the http.ClientRequest and http.IncomingMessage both emit `close`
-    return
+    return;
   }
 
   self._scheduleReconnect();
@@ -190,7 +190,7 @@ StreamingAPIConnection.prototype._resetStallAbortTimeout = function () {
   self._stopStallAbortTimeout();
   //start a new 90s timeout to trigger a close & reconnect if no data received
   self._stallAbortTimeout = setTimeout(function () {
-    self._scheduleReconnect()
+    self._scheduleReconnect();
   }, 90000);
   return this;
 }
@@ -256,53 +256,53 @@ StreamingAPIConnection.prototype._scheduleReconnect = function () {
 }
 
 StreamingAPIConnection.prototype._setupParser = function () {
-  var self = this
-  self.parser = new Parser()
+  var self = this;
+  self.parser = new Parser();
 
   // handle twitter objects as they come in - emit the generic `message` event
   // along with the specific event corresponding to the message
   self.parser.on('element', function (msg) {
-    self.emit('message', msg)
+    self.emit('message', msg);
 
-    if      (msg.delete)          { self.emit('delete', msg) }
-    else if (msg.disconnect)      { self._handleDisconnect(msg) }
-    else if (msg.limit)           { self.emit('limit', msg) }
-    else if (msg.scrub_geo)       { self.emit('scrub_geo', msg) }
-    else if (msg.warning)         { self.emit('warning', msg) }
-    else if (msg.status_withheld) { self.emit('status_withheld', msg) }
-    else if (msg.user_withheld)   { self.emit('user_withheld', msg) }
-    else if (msg.friends || msg.friends_str) { self.emit('friends', msg) }
-    else if (msg.direct_message)  { self.emit('direct_message', msg) }
+    if      (msg.delete)          { self.emit('delete', msg); }
+    else if (msg.disconnect)      { self._handleDisconnect(msg); }
+    else if (msg.limit)           { self.emit('limit', msg); }
+    else if (msg.scrub_geo)       { self.emit('scrub_geo', msg); }
+    else if (msg.warning)         { self.emit('warning', msg); }
+    else if (msg.status_withheld) { self.emit('status_withheld', msg); }
+    else if (msg.user_withheld)   { self.emit('user_withheld', msg); }
+    else if (msg.friends || msg.friends_str) { self.emit('friends', msg); }
+    else if (msg.direct_message)  { self.emit('direct_message', msg); }
     else if (msg.event)           {
-      self.emit('user_event', msg)
+      self.emit('user_event', msg);
       // reference: https://dev.twitter.com/docs/streaming-apis/messages#User_stream_messages
-      var ev = msg.event
+      var ev = msg.event;
 
-      if      (ev === 'blocked')                { self.emit('blocked', msg) }
-      else if (ev === 'unblocked')              { self.emit('unblocked', msg) }
-      else if (ev === 'favorite')               { self.emit('favorite', msg) }
-      else if (ev === 'unfavorite')             { self.emit('unfavorite', msg) }
-      else if (ev === 'follow')                 { self.emit('follow', msg) }
-      else if (ev === 'unfollow')               { self.emit('unfollow', msg) }
-      else if (ev === 'mute')                   { self.emit('mute', msg) }
-      else if (ev === 'unmute')                 { self.emit('unmute', msg) }
-      else if (ev === 'user_update')            { self.emit('user_update', msg) }
-      else if (ev === 'list_created')           { self.emit('list_created', msg) }
-      else if (ev === 'list_destroyed')         { self.emit('list_destroyed', msg) }
-      else if (ev === 'list_updated')           { self.emit('list_updated', msg) }
-      else if (ev === 'list_member_added')      { self.emit('list_member_added', msg) }
-      else if (ev === 'list_member_removed')    { self.emit('list_member_removed', msg) }
-      else if (ev === 'list_user_subscribed')   { self.emit('list_user_subscribed', msg) }
-      else if (ev === 'list_user_unsubscribed') { self.emit('list_user_unsubscribed', msg) }
-      else if (ev === 'quoted_tweet')           { self.emit('quoted_tweet', msg) }
-      else if (ev === 'favorited_retweet')      { self.emit('favorited_retweet', msg) }
-      else if (ev === 'retweeted_retweet')      { self.emit('retweeted_retweet', msg) }
-      else                                      { self.emit('unknown_user_event', msg) }
-    } else                                      { self.emit('tweet', msg) }
+      if      (ev === 'blocked')                { self.emit('blocked', msg); }
+      else if (ev === 'unblocked')              { self.emit('unblocked', msg); }
+      else if (ev === 'favorite')               { self.emit('favorite', msg); }
+      else if (ev === 'unfavorite')             { self.emit('unfavorite', msg); }
+      else if (ev === 'follow')                 { self.emit('follow', msg); }
+      else if (ev === 'unfollow')               { self.emit('unfollow', msg); }
+      else if (ev === 'mute')                   { self.emit('mute', msg); }
+      else if (ev === 'unmute')                 { self.emit('unmute', msg); }
+      else if (ev === 'user_update')            { self.emit('user_update', msg); }
+      else if (ev === 'list_created')           { self.emit('list_created', msg); }
+      else if (ev === 'list_destroyed')         { self.emit('list_destroyed', msg); }
+      else if (ev === 'list_updated')           { self.emit('list_updated', msg); }
+      else if (ev === 'list_member_added')      { self.emit('list_member_added', msg); }
+      else if (ev === 'list_member_removed')    { self.emit('list_member_removed', msg); }
+      else if (ev === 'list_user_subscribed')   { self.emit('list_user_subscribed', msg); }
+      else if (ev === 'list_user_unsubscribed') { self.emit('list_user_unsubscribed', msg); }
+      else if (ev === 'quoted_tweet')           { self.emit('quoted_tweet', msg); }
+      else if (ev === 'favorited_retweet')      { self.emit('favorited_retweet', msg); }
+      else if (ev === 'retweeted_retweet')      { self.emit('retweeted_retweet', msg); }
+      else                                      { self.emit('unknown_user_event', msg); }
+    } else                                      { self.emit('tweet', msg); }
   })
 
   self.parser.on('error', function (err) {
-    self.emit('parser-error', err)
+    self.emit('parser-error', err);
   });
   self.parser.on('connection-limit-exceeded', function (err) {
     self.emit('error', err);
@@ -339,9 +339,9 @@ StreamingAPIConnection.prototype._updateOauthTimestampOffsetFromResponse = funct
   if (resp && resp.headers && resp.headers.date &&
       new Date(resp.headers.date).toString() !== 'Invalid Date'
   ) {
-    var twitterTimeMs = new Date(resp.headers.date).getTime()
+    var twitterTimeMs = new Date(resp.headers.date).getTime();
     this._twitter_time_minus_local_time_ms = twitterTimeMs - Date.now();
   }
 }
 
-module.exports = StreamingAPIConnection
+module.exports = StreamingAPIConnection;

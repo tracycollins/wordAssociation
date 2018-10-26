@@ -18,8 +18,8 @@ var MAX_FILE_CHUNK_BYTES = 5 * 1024 * 1024;
  * @param  {Twit(object)}   twit    Twit instance.
  */
 var FileUploader = function (params, twit) {
-  assert(params)
-  assert(params.file_path, 'Must specify `file_path` to upload a file. Got: ' + params.file_path + '.')
+  assert(params);
+  assert(params.file_path, 'Must specify `file_path` to upload a file. Got: ' + params.file_path + '.');
   var self = this;
   self._file_path = params.file_path;
   self._twit = twit;
@@ -113,7 +113,7 @@ FileUploader.prototype._appendMedia = function(media_id_string, chunk_part, segm
     command: 'APPEND',
     media_id: media_id_string.toString(),
     segment_index: segment_index,
-    media: chunk_part,
+    media: chunk_part
   }, cb);
 }
 
@@ -151,4 +151,4 @@ FileUploader.prototype._initMedia = function (cb) {
   }
 }
 
-module.exports = FileUploader
+module.exports = FileUploader;

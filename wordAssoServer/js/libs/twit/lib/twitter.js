@@ -44,7 +44,7 @@ var Twitter = function (config) {
     return new Twitter(config);
   }
 
-  var self = this
+  var self = this;
   var credentials = {
     consumer_key        : config.consumer_key,
     consumer_secret     : config.consumer_secret,
@@ -53,23 +53,23 @@ var Twitter = function (config) {
     access_token_secret : config.access_token_secret,
     // flag indicating whether requests should be made with application-only auth
     app_only_auth       : config.app_only_auth,
-  }
+  };
 
   this._validateConfigOrThrow(config);
   this.config = config;
   this._twitter_time_minus_local_time_ms = 0;
-}
+};
 
 Twitter.prototype.get = function (path, params, callback) {
-  return this.request('GET', path, params, callback)
+  return this.request('GET', path, params, callback);
 }
 
 Twitter.prototype.post = function (path, params, callback) {
-  return this.request('POST', path, params, callback)
+  return this.request('POST', path, params, callback);
 }
 
 Twitter.prototype.delete = function (path, params, callback) {
-  return this.request('DELETE', path, params, callback)
+  return this.request('DELETE', path, params, callback);
 }
 
 Twitter.prototype.request = function (method, path, params, callback) {
@@ -77,8 +77,8 @@ Twitter.prototype.request = function (method, path, params, callback) {
   assert(method == 'GET' || method == 'POST' || method == 'DELETE');
   // if no `params` is specified but a callback is, use default params
   if (typeof params === 'function') {
-    callback = params
-    params = {}
+    callback = params;
+    params = {};
   }
 
   return new Promise(function (resolve, reject) {
@@ -93,7 +93,7 @@ Twitter.prototype.request = function (method, path, params, callback) {
     self._buildReqOpts(method, path, params, false, function (err, reqOpts) {
       if (err) {
         _returnErrorToUser(err);
-        return
+        return;
       }
 
       var twitOptions = (params && params.twit_options) || {};
@@ -127,7 +127,7 @@ Twitter.prototype.request = function (method, path, params, callback) {
             callback(err, parsedBody, resp);
           } else {
             if (err) {
-              reject(err)
+              reject(err);
             } else {
               resolve({ data: parsedBody, resp: resp });
             }
@@ -189,15 +189,15 @@ Twitter.prototype._updateClockOffsetFromResponse = function (resp) {
  * Returns error raised (if any) by `helpers.moveParamsIntoPath()`
  */
 Twitter.prototype._buildReqOpts = function (method, path, params, isStreaming, callback) {
-  var self = this
+  var self = this;
   if (!params) {
-    params = {}
+    params = {};
   }
   // clone `params` object so we can modify it without modifying the user's reference
-  var paramsClone = JSON.parse(JSON.stringify(params))
+  var paramsClone = JSON.parse(JSON.stringify(params));
   // convert any arrays in `paramsClone` to comma-seperated strings
-  var finalParams = this.normalizeParams(paramsClone)
-  delete finalParams.twit_options
+  var finalParams = this.normalizeParams(paramsClone);
+  delete finalParams.twit_options;
 
   // the options object passed to `request` used to perform the HTTP request
   var reqOpts = {
@@ -206,8 +206,8 @@ Twitter.prototype._buildReqOpts = function (method, path, params, isStreaming, c
       'User-Agent': 'twit-client'
     },
     gzip: true,
-    encoding: null,
-  }
+    encoding: null
+  };
 
   if (typeof self.config.timeout_ms !== 'undefined' && !isStreaming) {
     reqOpts.timeout = self.config.timeout_ms;
@@ -223,14 +223,14 @@ Twitter.prototype._buildReqOpts = function (method, path, params, isStreaming, c
     try {
       path = helpers.moveParamsIntoPath(finalParams, path)
     } catch (e) {
-      callback(e, null, null)
-      return
+      callback(e, null, null);
+      return;
     }
   }
 
   if (path.match(/^https?:\/\//i)) {
     // This is a full url request
-    reqOpts.url = path
+    reqOpts.url = path;
   } else
   if (isStreaming) {
     // This is a Streaming API request.
@@ -238,9 +238,9 @@ Twitter.prototype._buildReqOpts = function (method, path, params, isStreaming, c
     var stream_endpoint_map = {
       user: endpoints.USER_STREAM,
       site: endpoints.SITE_STREAM
-    }
-    var endpoint = stream_endpoint_map[path] || endpoints.PUB_STREAM
-    reqOpts.url = endpoint + path + '.json'
+    };
+    var endpoint = stream_endpoint_map[path] || endpoints.PUB_STREAM;
+    reqOpts.url = endpoint + path + '.json';
   } else {
     // This is a REST API request.
 
@@ -269,12 +269,12 @@ Twitter.prototype._buildReqOpts = function (method, path, params, isStreaming, c
   }
 
   if (isStreaming) {
-    reqOpts.form = finalParams
+    reqOpts.form = finalParams;
   } else if (Object.keys(finalParams).length) {
     // not all of the user's parameters were used to build the request path
     // add them as a query string
-    var qs = helpers.makeQueryString(finalParams)
-    reqOpts.url += '?' + qs
+    var qs = helpers.makeQueryString(finalParams);
+    reqOpts.url += '?' + qs;
   }
 
   if (!self.config.app_only_auth) {
@@ -287,8 +287,8 @@ Twitter.prototype._buildReqOpts = function (method, path, params, isStreaming, c
       consumer_secret: self.config.consumer_secret,
       token: self.config.access_token,
       token_secret: self.config.access_token_secret,
-      timestamp: Math.floor(oauth_ts/1000).toString(),
-    }
+      timestamp: Math.floor(oauth_ts/1000).toString()
+    };
 
     callback(null, reqOpts);
     return;
@@ -297,13 +297,13 @@ Twitter.prototype._buildReqOpts = function (method, path, params, isStreaming, c
     // Once we have a bearer token, add the Authorization header and return the fully qualified `reqOpts`.
     self._getBearerToken(function (err, bearerToken) {
       if (err) {
-        callback(err, null)
-        return
+        callback(err, null);
+        return;
       }
 
       reqOpts.headers['Authorization'] = 'Bearer ' + bearerToken;
-      callback(null, reqOpts)
-      return
+      callback(null, reqOpts);
+      return;
     })
   }
 }
@@ -332,9 +332,9 @@ Twitter.prototype._doRestApiRequest = function (reqOpts, twitOptions, method, ca
         // surface this to the caller
         var err = helpers.makeTwitError('JSON decode error: Twitter HTTP response body was not valid JSON')
         err.statusCode = response ? response.statusCode: null;
-        err.allErrors.concat({error: jsonDecodeError.toString()})
+        err.allErrors.concat({error: jsonDecodeError.toString()});
         callback(err, body, response);
-        return
+        return;
       }
     }
 
@@ -345,40 +345,40 @@ Twitter.prototype._doRestApiRequest = function (reqOpts, twitOptions, method, ca
       err.statusCode = response ? response.statusCode: null;
       helpers.attachBodyInfoToError(err, body);
       callback(err, body, response);
-      return
+      return;
     }
 
     // success case - no errors in HTTP response body
-    callback(err, body, response)
+    callback(err, body, response);
   }
 
   req.on('response', function (res) {
-    response = res
+    response = res;
     // read data from `request` object which contains the decompressed HTTP response body,
     // `response` is the unmodified http.IncomingMessage object which may contain compressed data
     req.on('data', function (chunk) {
-      body += chunk.toString('utf8')
+      body += chunk.toString('utf8');
     })
     // we're done reading the response
     req.on('end', function () {
-      onRequestComplete()
+      onRequestComplete();
     })
   })
 
   req.on('error', function (err) {
     // transport-level error occurred - likely a socket error
     if (twitOptions.retry &&
-        STATUS_CODES_TO_ABORT_ON.indexOf(err.statusCode) !== -1
+        STATUS_CODES_TO_ABORT_ON.indexOf(err.statusCode) !== -1;
     ) {
       // retry the request since retries were specified and we got a status code we should retry on
       self.request(method, path, params, callback);
       return;
     } else {
       // pass the transport-level error to the caller
-      err.statusCode = null
-      err.code = null
+      err.statusCode = null;
+      err.code = null;
       err.allErrors = [];
-      helpers.attachBodyInfoToError(err, body)
+      helpers.attachBodyInfoToError(err, body);
       callback(err, body, response);
       return;
     }
@@ -397,24 +397,24 @@ Twitter.prototype.stream = function (path, params) {
   var self = this;
   var twitOptions = (params && params.twit_options) || {};
 
-  var streamingConnection = new StreamingAPIConnection()
+  var streamingConnection = new StreamingAPIConnection();
   self._buildReqOpts('POST', path, params, true, function (err, reqOpts) {
     if (err) {
       // we can get an error if we fail to obtain a bearer token or construct reqOpts
       // surface this on the streamingConnection instance (where a user may register their error handler)
-      streamingConnection.emit('error', err)
-      return
+      streamingConnection.emit('error', err);
+      return;
     }
     // set the properties required to start the connection
-    streamingConnection.reqOpts = reqOpts
-    streamingConnection.twitOptions = twitOptions
+    streamingConnection.reqOpts = reqOpts;
+    streamingConnection.twitOptions = twitOptions;
 
     process.nextTick(function () {
-      streamingConnection.start()
+      streamingConnection.start();
     })
   })
 
-  return streamingConnection
+  return streamingConnection;
 }
 
 /**
@@ -426,7 +426,7 @@ Twitter.prototype.stream = function (path, params) {
 Twitter.prototype._getBearerToken = function (callback) {
   var self = this;
   if (self._bearerToken) {
-    return callback(null, self._bearerToken)
+    return callback(null, self._bearerToken);
   }
 
   helpers.getBearerToken(self.config.consumer_key, self.config.consumer_secret,
@@ -443,22 +443,22 @@ Twitter.prototype._getBearerToken = function (callback) {
 }
 
 Twitter.prototype.normalizeParams = function (params) {
-  var normalized = params
+  var normalized = params;
   if (params && typeof params === 'object') {
     Object.keys(params).forEach(function (key) {
-      var value = params[key]
+      var value = params[key];
       // replace any arrays in `params` with comma-separated string
       if (Array.isArray(value))
-        normalized[key] = value.join(',')
+        normalized[key] = value.join(',');
     })
   } else if (!params) {
-    normalized = {}
+    normalized = {};
   }
-  return normalized
+  return normalized;
 }
 
 Twitter.prototype.setAuth = function (auth) {
-  var self = this
+  var self = this;
   var configKeys = [
     'consumer_key',
     'consumer_secret',
@@ -469,14 +469,14 @@ Twitter.prototype.setAuth = function (auth) {
   // update config
   configKeys.forEach(function (k) {
     if (auth[k]) {
-      self.config[k] = auth[k]
+      self.config[k] = auth[k];
     }
-  })
+  });
   this._validateConfigOrThrow(self.config);
 }
 
 Twitter.prototype.getAuth = function () {
-  return this.config
+  return this.config;
 }
 
 //
@@ -486,7 +486,7 @@ Twitter.prototype.getAuth = function () {
 Twitter.prototype._validateConfigOrThrow = function (config) {
   //check config for proper format
   if (typeof config !== 'object') {
-    throw new TypeError('config must be object, got ' + typeof config)
+    throw new TypeError('config must be object, got ' + typeof config);
   }
 
   if (typeof config.timeout_ms !== 'undefined' && isNaN(Number(config.timeout_ms))) {
@@ -498,19 +498,19 @@ Twitter.prototype._validateConfigOrThrow = function (config) {
   }
 
   if (config.app_only_auth) {
-    var auth_type = 'app-only auth'
-    var required_keys = required_for_app_auth
+    var auth_type = 'app-only auth';
+    var required_keys = required_for_app_auth;
   } else {
-    var auth_type = 'user auth'
-    var required_keys = required_for_user_auth
+    var auth_type = 'user auth';
+    var required_keys = required_for_user_auth;
   }
 
   required_keys.forEach(function (req_key) {
     if (!config[req_key]) {
-      var err_msg = util.format('Twit config must include `%s` when using %s.', req_key, auth_type)
-      throw new Error(err_msg)
+      var err_msg = util.format('Twit config must include `%s` when using %s.', req_key, auth_type);
+      throw new Error(err_msg);
     }
   })
 }
 
-module.exports = Twitter
+module.exports = Twitter;

@@ -100,9 +100,9 @@ StreamingAPIConnection.prototype._startPersistentConnection = function () {
         // stop the stream explicitly so we don't reconnect
         // =====================
         // tc 10/25/2018: trying to catch the Bad Twitter streaming request: 401 error before
-        // it crashes the app. Commented out "self.stop()"
+        // it crashes the app. Commented out "self.stop()" ... didn't really work
         // =====================
-        // self.stop();
+        self.stop();
         // body = null;
       });
       self.request.on('error', function (err) {

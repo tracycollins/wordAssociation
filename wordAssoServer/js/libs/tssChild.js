@@ -716,7 +716,7 @@ function initTwit(params, callback){
           }
           else {
 
-            unfollowQueue.push({threeceeUser: threeceeFollowingInHashMap, userId: user});
+            unfollowQueue.push({threeceeUser: threeceeFollowingInHashMap, user: user});
 
             console.log(chalkAlert("TSS | > UNFOLLOW Q"
               + " [" + unfollowQueue.length + "]"
@@ -2550,7 +2550,7 @@ process.on("message", function(m) {
 
                     if (threeceeFollowingInHashMap < threeceeUserObj.screenName) {
 
-                      unfollowQueue.push({threeceeUser: threeceeUserObj.screenName, userId: userId});
+                      unfollowQueue.push({threeceeUser: threeceeUserObj.screenName, user: { userId: userId} });
 
                       console.log(chalkAlert("TSS | > UNFOLLOW Q"
                         + "[" + unfollowQueue.length + "]"
@@ -2561,7 +2561,7 @@ process.on("message", function(m) {
                     }
                     else {
 
-                      unfollowQueue.push({threeceeUser: threeceeFollowingInHashMap, userId: userId});
+                      unfollowQueue.push({threeceeUser: threeceeUserObj.screenName, user: { userId: userId} });
 
                       console.log(chalkAlert("TSS | > UNFOLLOW Q"
                         + "[" + unfollowQueue.length + "]"

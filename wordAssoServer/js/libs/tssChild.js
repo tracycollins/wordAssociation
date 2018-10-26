@@ -1977,6 +1977,7 @@ function follow(params, callback) {
         + " | FOLLOWING: " + threeceeUserObj.followUserSet.size 
         + "/" + TWITTER_MAX_FOLLOW_USER_NUMBER + " MAX"
         + " | UID: " + params.user.userId
+        + " | BLOCK SET SIZE: " + threeceeUserObj.doNotFollowUserSet.size
         + " | IN FOLLOW USER BLOCK SET: " + threeceeUserObj.doNotFollowUserSet.has(params.user.userId)
       ));
 
@@ -1987,6 +1988,7 @@ function follow(params, callback) {
     if (threeceeUserObj.followUserSet.has(params.user.userId)){
 
       console.log(chalkLog("TSS | ... SKIP FOLLOW | ALREADY FOLLOWING"
+        + " | 3C @" + threeceeUserObj.screenName
         + " | @" + params.user.screenName
         + " | FOLLOWING: " + threeceeUserObj.followUserSet.size 
         + "/" + TWITTER_MAX_FOLLOW_USER_NUMBER + " MAX"

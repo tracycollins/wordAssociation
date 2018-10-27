@@ -632,7 +632,7 @@ function initFollowingUserIdSet(callback){
 
     User.countDocuments(query, function (err, count) {
       statsObj.numUsersFollowing = count;
-      console.log(chalkAlert("TFE | FOUND FOLLOWING IN DB: " + statsObj.numUsersFollowing + " USERS"));
+      console.log(chalkLog("TFE | FOUND FOLLOWING IN DB: " + statsObj.numUsersFollowing + " USERS"));
     });
 
     const cursor = User.find(query).select({userId:1, screenName:1, lastSeen:1}).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
@@ -1584,7 +1584,7 @@ async function initDbUserChangeStream(params){
 
         }
         else {
-          console.log(chalkAlert("TFE | XX> USER CHANGE | " +  change.operationType));
+          console.log(chalkLog("TFE | XX> USER CHANGE | " +  change.operationType));
         }
 
       });
@@ -1876,7 +1876,7 @@ setTimeout(function(){
 
       userServerController.on("ready", function(appname){
         userServerControllerReady = true;
-        console.log(chalkAlert("TFE | USC READY | " + appname));
+        console.log(chalkLog("TFE | USC READY | " + appname));
       });
 
       User = mongoose.model("User", userModel.UserSchema);
@@ -1892,7 +1892,7 @@ setTimeout(function(){
 
       }
       else {
-        console.log(chalkAlert("TFE | ... WAIT DB CONNECTED ..."));
+        console.log(chalkLog("TFE | ... WAIT DB CONNECTED ..."));
       }
     }, 1000);
 

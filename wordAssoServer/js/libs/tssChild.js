@@ -2608,7 +2608,9 @@ process.on("message", function(m) {
 
                   if (user) {
 
-                    printString = "TSS | [ " + userIndex + "/" + threeceeUserObj.followUserSet.size + " ] @" + threeceeUserObj.screenName + " | DB HIT";
+                    if (configuration.verbose || (userIndex % 100 === 0)){
+                      printString = "TSS | [ " + userIndex + "/" + threeceeUserObj.followUserSet.size + " ] @" + threeceeUserObj.screenName + " | DB HIT";
+                    }
 
                     printUserObj(printString, user);
 

@@ -72,6 +72,7 @@ const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 configEvents.on("DB_CONNECT", function configEventDbConnect(){
 
   TweetServerController = require("@threeceelabs/tweet-server-controller");
+  // TweetServerController = require("../../../../tweetServerController");
   tweetServerController = new TweetServerController("TWP");
 
   tweetServerController.on("ready", function(err){
@@ -205,6 +206,11 @@ process.on("SIGHUP", function processSigHup() {
 process.on("SIGINT", function processSigInt() {
   quit("SIGINT");
 });
+
+process.on("disconnect", function processDisconnect() {
+  quit("DISCONNECT");
+});
+
 
 console.log(
   "\n\nTWP | ====================================================================================================\n" 

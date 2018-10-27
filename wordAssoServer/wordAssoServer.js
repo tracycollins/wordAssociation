@@ -1232,7 +1232,7 @@ function connectDb(callback){
         printNetworkObj("WAS | --> NN   CHANGE | " +  change.operationType, nn);
       }
       else {
-        console.log(chalkAlert("WAS | --> NN   CHANGE | " +  change.operationType));
+        console.log(chalkLog("WAS | --> NN   CHANGE | " +  change.operationType));
       }
     });
 
@@ -2580,11 +2580,11 @@ function saveFile (params, callback){
         });
 
         localReadStream.on("close", function(){
-          console.log(chalkAlert("WAS | LOCAL STREAM READ CLOSED | SOURCE: " + fullPath));
+          console.log(chalkLog("WAS | LOCAL STREAM READ CLOSED | SOURCE: " + fullPath));
         });
 
         remoteWriteStream.on("close", function(){
-          console.log(chalkAlert("WAS | REMOTE STREAM WRITE CLOSED | DEST: " + options.destination));
+          console.log(chalkLog("WAS | REMOTE STREAM WRITE CLOSED | DEST: " + options.destination));
         });
 
         localReadStream.on("end", function(){
@@ -2602,7 +2602,7 @@ function saveFile (params, callback){
         });
 
         remoteWriteStream.on("end", function(){
-          console.log(chalkAlert("WAS | REMOTE STREAM WRITE END | DEST: " + options.destination));
+          console.log(chalkLog("WAS | REMOTE STREAM WRITE END | DEST: " + options.destination));
           if (callback !== undefined) { return callback(null); }
         });
 
@@ -8446,7 +8446,7 @@ function twitterSearchUserNode(searchQuery, callback){
     }
     else {
 
-      console.log(chalkAlert("WAS | TWITTER SEARCH DB USER NOT FOUND"
+      console.log(chalkLog("WAS | TWITTER SEARCH DB USER NOT FOUND"
         + "\nsearchQuery\n" + jsonPrint(searchQuery)
       ));
 

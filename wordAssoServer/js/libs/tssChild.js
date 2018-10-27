@@ -88,6 +88,10 @@ process.on("SIGINT", function processSigInt() {
   quit("SIGINT");
 });
 
+process.on("disconnect", function processDisconnect() {
+  quit("DISCONNECT");
+});
+
 const configEvents = new EventEmitter2({
   wildcard: true,
   newListener: true,
@@ -1290,7 +1294,7 @@ function initSearchStream(params, callback){
   if (threeceeUserObj.searchTermArray.length > 0) { filter.track = threeceeUserObj.searchTermArray; }
   if (threeceeUserObj.followUserSet.size > 0) { filter.follow = [...threeceeUserObj.followUserSet]; }
 
-  threeceeUserObj.searchStream = threeceeUserObj.twit.post("statuses/filter", filter);
+  threeceeUserObj.searchStream = threeceeUserObj.twit.stream("statuses/filter", filter);
 
   threeceeUserObj.searchStream.on("message", function(msg){
     if (msg.event) {
@@ -2191,7 +2195,7 @@ function follow(params, callback) {
         if (threeceeUserObj.searchTermArray.length > 0) { filter.track = threeceeUserObj.searchTermArray; }
         if (threeceeUserObj.followUserSet.size > 0) { filter.follow = [...threeceeUserObj.followUserSet]; }
 
-        threeceeUserObj.searchStream = threeceeUserObj.twit.post("statuses/filter", filter);
+        threeceeUserObj.searchStream = threeceeUserObj.twit.stream("statuses/filter", filter);
 
         threeceeUserHashMap.set(threeceeUserObj.screenName, threeceeUserObj);
 
@@ -2300,7 +2304,7 @@ function unfollow(params, callback) {
         if (threeceeUserObj.searchTermArray.length > 0) { filter.track = threeceeUserObj.searchTermArray; }
         if (threeceeUserObj.followUserSet.size > 0) { filter.follow = [...threeceeUserObj.followUserSet]; }
 
-        threeceeUserObj.searchStream = threeceeUserObj.twit.post("statuses/filter", filter);
+        threeceeUserObj.searchStream = threeceeUserObj.twit.stream("statuses/filter", filter);
 
         threeceeUserHashMap.set(threeceeUserObj.screenName, threeceeUserObj);
 
@@ -2416,7 +2420,7 @@ function unfollow(params, callback) {
           if (threeceeUserObj.searchTermArray.length > 0) { filter.track = threeceeUserObj.searchTermArray; }
           if (threeceeUserObj.followUserSet.size > 0) { filter.follow = [...threeceeUserObj.followUserSet]; }
 
-          threeceeUserObj.searchStream = threeceeUserObj.twit.post("statuses/filter", filter);
+          threeceeUserObj.searchStream = threeceeUserObj.twit.stream("statuses/filter", filter);
 
           threeceeUserHashMap.set(threeceeUserObj.screenName, threeceeUserObj);
 

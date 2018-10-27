@@ -1443,7 +1443,7 @@ async function initUserCategorizeQueueInterval(cnf){
 
 
           if (updatedUser.categoryAuto !== networkOutput[nnId].output) {
-            console.log(chalkGreen("TFE | >>> NN AUTO CAT CHANGE"
+            console.log(chalkLog("TFE | >>> NN AUTO CAT CHANGE"
               + " | " + nnId
               + " | AUTO: " + updatedUser.categoryAuto + " > " + networkOutput[nnId].output
               + " | @" + updatedUser.screenName
@@ -1456,7 +1456,7 @@ async function initUserCategorizeQueueInterval(cnf){
           updatedUser.nodeId = updatedUser.nodeId;
 
           userServerController.findOneUser(updatedUser, {noInc: false, fields: fieldsTransmit}, function(err, dbUser){
-            printUserObj("TFE | NN: " + nnId + " | DB CAT", dbUser, chalkGreen);
+            printUserObj("TFE | NN: " + nnId + " | DB CAT", dbUser, chalkInfo);
             process.send({ op: "USER_CATEGORIZED", user: dbUser });
           });
 

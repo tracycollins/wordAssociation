@@ -274,8 +274,8 @@ configuration.DROPBOX = {};
 configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN ;
 configuration.DROPBOX.DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY ;
 configuration.DROPBOX.DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
-configuration.DROPBOX.DROPBOX_WA_CONFIG_FILE = process.env.DROPBOX_CONFIG_FILE || "wordAssoServerConfig.json";
-configuration.DROPBOX.DROPBOX_WA_STATS_FILE = process.env.DROPBOX_STATS_FILE || "wordAssoServerStats.json";
+configuration.DROPBOX.DROPBOX_WAS_CONFIG_FILE = process.env.DROPBOX_CONFIG_FILE || "wordAssoServerConfig.json";
+configuration.DROPBOX.DROPBOX_WAS_STATS_FILE = process.env.DROPBOX_STATS_FILE || "wordAssoServerStats.json";
 
 configuration.categoryHashmapsUpdateInterval = DEFAULT_CATEGORY_HASHMAPS_UPDATE_INTERVAL;
 configuration.testInternetConnectionUrl = DEFAULT_TEST_INTERNET_CONNECTION_URL;
@@ -337,9 +337,9 @@ previousConfiguration = deepcopy(configuration);
 
 const help = { name: "help", alias: "h", type: Boolean};
 
-const enableStdin = { name: "enableStdin", alias: "S", type: Boolean, defaultValue: true };
+const enableStdin = { name: "enableStdin", alias: "S", type: Boolean };
 const quitOnComplete = { name: "quitOnComplete", alias: "q", type: Boolean };
-const quitOnError = { name: "quitOnError", alias: "Q", type: Boolean, defaultValue: true };
+const quitOnError = { name: "quitOnError", alias: "Q", type: Boolean };
 const verbose = { name: "verbose", alias: "v", type: Boolean };
 const testMode = { name: "testMode", alias: "X", type: Boolean };
 
@@ -790,8 +790,8 @@ let dropboxConfigFolder = "/config/utility";
 let dropboxConfigDefaultFolder = "/config/utility/default";
 let dropboxConfigHostFolder = "/config/utility/" + hostname;
 
-let dropboxConfigDefaultFile = "default_" + configuration.DROPBOX.DROPBOX_WA_CONFIG_FILE;
-let dropboxConfigHostFile = hostname + "_" + configuration.DROPBOX.DROPBOX_WA_CONFIG_FILE;
+let dropboxConfigDefaultFile = "default_" + configuration.DROPBOX.DROPBOX_WAS_CONFIG_FILE;
+let dropboxConfigHostFile = hostname + "_" + configuration.DROPBOX.DROPBOX_WAS_CONFIG_FILE;
 
 let dropboxConfigDefaultTrainingSetsFolder = dropboxConfigDefaultFolder + "/trainingSets";
 
@@ -982,7 +982,7 @@ mongoose.Promise = global.Promise;
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 // const wordAssoDb = require("../../mongooseTwitter");
 
-const dbAppName = "WA_" + process.pid;
+const dbAppName = "WAS_" + process.pid;
 
 
 function connectDb(callback){
@@ -2258,14 +2258,32 @@ function loadConfigFile(params, callback) {
               }
             }
 
-            if (loadedConfigObj.WA_TEST_MODE  !== undefined){
-              console.log("WAS | LOADED WA_TEST_MODE: " + loadedConfigObj.WA_TEST_MODE);
-              configuration.testMode = loadedConfigObj.WA_TEST_MODE;
+            if (loadedConfigObj.WAS_TEST_MODE  !== undefined){
+              console.log("WAS | LOADED WAS_TEST_MODE: " + loadedConfigObj.WAS_TEST_MODE);
+
+              if ((loadedConfigObj.WAS_TEST_MODE === false) || (loadedConfigObj.WAS_TEST_MODE === "false")) {
+                configuration.testMode = false;
+              }
+              else if ((loadedConfigObj.WAS_TEST_MODE === true) || (loadedConfigObj.WAS_TEST_MODE === "true")) {
+                configuration.testMode = true;
+              }
+              else {
+                configuration.testMode = false;
+              }
             }
 
-            if (loadedConfigObj.WAS_ENABLE_STDIN !== undefined){
+            if (loadedConfigObj.WAS_ENABLE_STDIN  !== undefined){
               console.log("WAS | LOADED WAS_ENABLE_STDIN: " + loadedConfigObj.WAS_ENABLE_STDIN);
-              configuration.enableStdin = loadedConfigObj.WAS_ENABLE_STDIN;
+
+              if ((loadedConfigObj.WAS_ENABLE_STDIN === false) || (loadedConfigObj.WAS_ENABLE_STDIN === "false")) {
+                configuration.enableStdin = false;
+              }
+              else if ((loadedConfigObj.WAS_ENABLE_STDIN === true) || (loadedConfigObj.WAS_ENABLE_STDIN === "true")) {
+                configuration.enableStdin = true;
+              }
+              else {
+                configuration.enableStdin = false;
+              }
             }
 
             if (loadedConfigObj.NODE_METER_ENABLED !== undefined){
@@ -3300,8 +3318,8 @@ configEvents.on("DB_CONNECT", async function configEventDbConnect(){
 
   UserServerController = require("@threeceelabs/user-server-controller");
 
-  hashtagServerController = new HashtagServerController("WA_HSC");
-  userServerController = new UserServerController("WA_USC");
+  hashtagServerController = new HashtagServerController("WAS_HSC");
+  userServerController = new UserServerController("WAS_USC");
 
   hashtagServerControllerReady = true;
   userServerControllerReady = true;
@@ -3581,7 +3599,12 @@ function socketRxTweet(tw) {
     tw.inc = true;
 
     tw.user.statusId = tw.id_str;
-    tw.user.status = (tw.text !== undefined) ? tw.text : "";
+    tw.user.status = {};
+    tw.user.status.id_str = tw.id_str;
+    tw.user.status.created_at = tw.created_at;
+    tw.user.status.text = (tw.truncated) ? tw.extended_tweet.full_text : (tw.text || "");
+
+    // tw.user.status = (tw.text !== undefined) ? tw.text : "";
 
     if (categorizedUserHashMap.has(tw.user.screen_name.toLowerCase())){
 
@@ -7912,6 +7935,57 @@ function initCategoryHashmaps(){
   })
 }
 
+let stdin;
+
+function initStdIn(callback){
+  console.log("TNN | STDIN ENABLED");
+
+  stdin = process.stdin;
+  if(stdin.setRawMode  !== undefined) {
+    stdin.setRawMode( true );
+  }
+  stdin.resume();
+  stdin.setEncoding( "utf8" );
+  stdin.on( "data", function( key ){
+
+    switch (key) {
+      case "\u0003":
+        process.exit();
+      break;
+      case "t":
+        configuration.testMode = !configuration.testMode;
+        console.log(chalkRedBold("TNN | TEST MODE: " + configuration.testMode));
+      break;
+      case "v":
+        configuration.verbose = !configuration.verbose;
+        console.log(chalkRedBold("TNN | VERBOSE: " + configuration.verbose));
+      break;
+      case "q":
+        quit();
+      break;
+      case "Q":
+        quit();
+      break;
+      case "s":
+        showStats();
+      break;
+      case "S":
+        showStats(true);
+      break;
+      default:
+        console.log(chalkAlert(
+          "\n" + "q/Q: quit"
+          + "\n" + "s: showStats"
+          + "\n" + "S: showStats verbose"
+          + "\n" + "v: verbose log"
+        ));
+    }
+  });
+
+  if (callback !== undefined) { callback(null, stdin); }
+}
+
+
 function initialize(callback){
 
   statsObj.status = "INITIALIZE";
@@ -7930,6 +8004,11 @@ function initialize(callback){
   configuration.verbose = process.env.VERBOSE || false ;
   configuration.quitOnError = process.env.QUIT_ON_ERROR || false ;
   configuration.enableStdin = process.env.ENABLE_STDIN || true ;
+
+
+  if (configuration.enableStdin) {
+    initStdIn();
+  }
 
   debug(chalkTwitter("WAS | THREECEE USERS\n" + jsonPrint(configuration.threeceeUsers)));
 
@@ -8135,11 +8214,17 @@ function initThreeceeTwitterUsers(params, callback){
           cb();
         }
         else {
+
           console.log(chalkTwitter("WAS | LOADED TWITTER CONFIG"
             + " | 3C @" + user
             + " | " + dropboxConfigTwitterFolder + "/" + configFile
             + "\nCONFIG\n" + jsonPrint(twitterConfig)
           ));
+
+          if (!configuration.threeceeUsers.includes(twitterConfig.screenName)) {
+            console.log(chalkAlert("WAS | SKIP CONFIG @" + twitterConfig.screenName + " | NOT IN 3C USERS: " + configuration.threeceeUsers));
+            return cb();
+          }
 
           threeceeTwitter[user].config = {};
           threeceeTwitter[user].config = twitterConfig;

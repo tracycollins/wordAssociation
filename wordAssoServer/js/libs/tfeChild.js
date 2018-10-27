@@ -117,6 +117,10 @@ process.on("SIGINT", function processSigInt() {
   quit("SIGINT");
 });
 
+process.on("disconnect", function processDisconnect() {
+  quit("DISCONNECT");
+});
+
 
 const configEvents = new EventEmitter2({
   wildcard: true,

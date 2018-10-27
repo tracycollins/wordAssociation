@@ -699,7 +699,7 @@ function initTwit(params, callback){
 
         if (threeceeFollowingInHashMap !== threeceeUserObj.screenName) {
 
-          console.log(chalkAlert("TSS | !!! TWITTER USER FOLLOW MISMATCH"
+          console.log(chalkLog("TSS | !!! TWITTER USER FOLLOW MISMATCH"
             + " | UID: " + userId
             + " | IN HM: 3C @" + threeceeFollowingInHashMap
             + " | CUR 3C @: " + threeceeUserObj.screenName
@@ -711,7 +711,7 @@ function initTwit(params, callback){
 
             unfollowQueue.push({threeceeUser: threeceeUserObj.screenName, user: user});
 
-            console.log(chalkAlert("TSS | > UNFOLLOW Q | ALREADY FOLLOWING"
+            console.log(chalkLog("TSS | > UNFOLLOW Q | ALREADY FOLLOWING"
               + " [" + unfollowQueue.length + "]"
               + " | UID: " + user.userId
               + " | 3C IN HM @: " + threeceeFollowingInHashMap
@@ -722,7 +722,7 @@ function initTwit(params, callback){
 
             unfollowQueue.push({threeceeUser: threeceeFollowingInHashMap, user: user});
 
-            console.log(chalkAlert("TSS | > UNFOLLOW Q"
+            console.log(chalkLog("TSS | > UNFOLLOW Q"
               + " [" + unfollowQueue.length + "]"
               + " | UID: " + user.userId
               + " | 3C @" + threeceeFollowingInHashMap
@@ -1206,7 +1206,7 @@ function initUnfollowQueueInterval(cnf, callback){
 
       if ((unfollowObj.threeceeUser === undefined) || (unfollowObj.threeceeUser === "ALL")) {
 
-        console.log(chalkAlert("TSS | < UNFOLLOW QUEUE"
+        console.log(chalkLog("TSS | < UNFOLLOW QUEUE"
           + " [" + unfollowQueue.length + "]"
           + " | 3C ALL UNFOLLOW"
           + " | UID: " + unfollowObj.user.userId
@@ -1220,7 +1220,7 @@ function initUnfollowQueueInterval(cnf, callback){
 
       if (!threeceeUserUnfollowReady(unfollowObj.threeceeUser)) {
 
-        console.log(chalkAlert("TSS | < UNFOLLOW QUEUE"
+        console.log(chalkLog("TSS | < UNFOLLOW QUEUE"
           + " [" + unfollowQueue.length + "]"
           + " | 3C @" + unfollowObj.threeceeUser
           + " | UID: " + unfollowObj.user.userId
@@ -2166,7 +2166,7 @@ function follow(params, callback) {
 
       threeceeUserObj.stats.error = false;
 
-      console.log(chalkAlert("TSS | +++ FOLLOW"
+      console.log(chalkLog("TSS | +++ FOLLOW"
         + " | 3C @" + threeceeUserObj.screenName
         + " | FOLLOWING: " + threeceeUserObj.followUserSet.size 
         + "/" + TWITTER_MAX_FOLLOW_USER_NUMBER + " MAX"
@@ -2231,7 +2231,7 @@ function unfollow(params, callback) {
       }
     }
 
-    console.log(chalkAlert("TSS | UNFOLLOWING ... | 3C @" + params.threeceeUser + " | UID: " + params.user.userId));
+    console.log(chalkLog("TSS | UNFOLLOWING ... | 3C @" + params.threeceeUser + " | UID: " + params.user.userId));
 
     let threeceeUserObj = threeceeUserHashMap.get(params.threeceeUser);
 
@@ -2271,7 +2271,7 @@ function unfollow(params, callback) {
 
       threeceeUserObj.stats.error = false;
 
-      console.log(chalkAlert("TSS | XXX UNFOLLOW"
+      console.log(chalkLog("TSS | XXX UNFOLLOW"
         + " | 3C @" + threeceeUserObj.screenName
         + " | FOLLOWING: " + threeceeUserObj.followUserSet.size 
         + "/" + TWITTER_MAX_FOLLOW_USER_NUMBER + " MAX"
@@ -2391,7 +2391,7 @@ function unfollow(params, callback) {
 
         threeceeUserObj.stats.error = false;
 
-        console.log(chalkAlert("TSS | XXX UNFOLLOW"
+        console.log(chalkLog("TSS | XXX UNFOLLOW"
           + " | 3C @" + threeceeUserObj.screenName
           + " | FOLLOWING: " + threeceeUserObj.followUserSet.size 
           + "/" + TWITTER_MAX_FOLLOW_USER_NUMBER + " MAX"
@@ -2483,7 +2483,7 @@ process.on("message", function(m) {
 
         const authObj = threeceeUserObj.twit.getAuth();
 
-        console.log(chalkAlert("TSS | CURRENT AUTH\n" + jsonPrint(authObj)));
+        console.log(chalkLog("TSS | CURRENT AUTH\n" + jsonPrint(authObj)));
 
         threeceeUserObj.twit.setAuth({access_token: m.token, access_token_secret: m.tokenSecret});
 
@@ -2554,7 +2554,7 @@ process.on("message", function(m) {
 
                   if (threeceeFollowingInHashMap !== threeceeUserObj.screenName) {
 
-                    console.log(chalkAlert("TSS | !!! TWITTER USER FOLLOW MISMATCH"
+                    console.log(chalkLog("TSS | !!! TWITTER USER FOLLOW MISMATCH"
                       + " | UID: " + userId
                       + " | IN HM: 3C @" + threeceeFollowingInHashMap
                       + " | CUR 3C @: " + threeceeUserObj.screenName
@@ -2564,7 +2564,7 @@ process.on("message", function(m) {
 
                       unfollowQueue.push({threeceeUser: threeceeUserObj.screenName, user: { userId: userId} });
 
-                      console.log(chalkAlert("TSS | > UNFOLLOW Q"
+                      console.log(chalkLog("TSS | > UNFOLLOW Q"
                         + "[" + unfollowQueue.length + "]"
                         + " | 3C @: " + threeceeUserObj.screenName
                         + " | UID: " + userId
@@ -2575,7 +2575,7 @@ process.on("message", function(m) {
 
                       unfollowQueue.push({threeceeUser: threeceeUserObj.screenName, user: { userId: userId} });
 
-                      console.log(chalkAlert("TSS | > UNFOLLOW Q"
+                      console.log(chalkLog("TSS | > UNFOLLOW Q"
                         + "[" + unfollowQueue.length + "]"
                         + " | 3C @: " + threeceeFollowingInHashMap
                         + " | UID: " + userId
@@ -2731,7 +2731,7 @@ process.on("message", function(m) {
     break;
 
     case "UPDATE_SEARCH_TERMS":
-      console.log(chalkAlert("TSS | UPDATE SEARCH TERMS"));
+      console.log(chalkLog("TSS | UPDATE SEARCH TERMS"));
 
       initSearchTerms(configuration, function(err, status){
 
@@ -2804,7 +2804,7 @@ setTimeout(function(){
 
       userServerController.on("ready", function(appname){
         userServerControllerReady = true;
-        console.log(chalkAlert("TSS | USC READY | " + appname));
+        console.log(chalkLog("TSS | USC READY | " + appname));
       });
 
       User = mongoose.model("User", userModel.UserSchema);
@@ -2820,7 +2820,7 @@ setTimeout(function(){
 
       }
       else {
-        console.log(chalkAlert("TSS | WAIT DB CONNECTED ..."));
+        console.log(chalkLog("TSS | WAIT DB CONNECTED ..."));
       }
     }, 1000);
 

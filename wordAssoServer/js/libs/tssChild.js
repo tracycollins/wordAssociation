@@ -116,8 +116,8 @@ let stdin;
 let configuration = {};
 configuration.verbose = false;
 configuration.forceFollow = false;
-configuration.globalTestMode = true;
-configuration.testMode = true; // per tweet test mode
+configuration.globalTestMode = false;
+configuration.testMode = false; // per tweet test mode
 configuration.searchTermsUpdateInterval = 1*ONE_MINUTE;
 configuration.userShowQueueInterval = 15 * ONE_SECOND;
 configuration.unfollowQueueInterval = 15 * ONE_SECOND;
@@ -1727,7 +1727,7 @@ function initialize(cnf, callback){
 
   cnf.verbose = process.env.TSS_VERBOSE_MODE || false ;
   cnf.globalTestMode = process.env.TSS_GLOBAL_TEST_MODE || false ;
-  cnf.testMode = process.env.TSS_TEST_MODE || true ;
+  cnf.testMode = process.env.TSS_TEST_MODE || false ;
   cnf.quitOnError = process.env.TSS_QUIT_ON_ERROR || false ;
 
   cnf.twitterQueueIntervalTime = process.env.TSS_TWITTER_QUEUE_INTERVAL || DEFAULT_TWITTER_QUEUE_INTERVAL ;

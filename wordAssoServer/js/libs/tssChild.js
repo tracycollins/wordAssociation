@@ -832,12 +832,6 @@ function threeceeUserUnfollowReady(threeceeUser){
     console.log("3C @" + threeceeUser + " | NOT READY | ERROR: " + threeceeUserObj.stats.error);
     return false; 
   }
-  // if (threeceeUserObj.stats.twitterFollowLimit) { 
-  //   console.log("3C @" + threeceeUser + " | NOT READY"
-  //     + " | TWITTER FOLLOW LIMIT: " + threeceeUserObj.stats.twitterFollowLimit
-  //   );
-  //   return false; 
-  // }
 
   if (threeceeUserObj.stats.twitterTokenErrorFlag) { 
     console.log("3C @" + threeceeUser + " | NOT READY | TWITTER TOKEN ERROR: " + threeceeUserObj.stats.twitterTokenErrorFlag);
@@ -969,7 +963,6 @@ function initTwitterUsers(cnf, callback){
               + " | " + getTimeStamp()
               + " | " + err
             ));
-
           }
 
           cb();
@@ -1005,76 +998,6 @@ function getFileMetadata(path, file, callback) {
 const MAX_FOLLOW_USER_IDS = 5000;
 
 let followingUserIdHashMap = new HashMap();
-
-// function initFollowingUserIdHashMap(callback){
-
-//   return new Promise(async function(resolve, reject){
-
-//     statsObj.numFollowUsers = 0;
-//     statsObj.numUsersFollowing = 0;
-
-//     let query = { "following": true };
-
-//     User.countDocuments(query, function (err, count) {
-//       statsObj.numUsersFollowing = count;
-//       console.log(chalkAlert("TSS | FOUND FOLLOWING IN DB: " + statsObj.numUsersFollowing + " USERS"));
-//     });
-
-//     const cursor = User.find(query).select({userId:1, screenName:1, threeceeFollowing:1, lastSeen:1}).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
-
-//     cursor.on("data", function(user) {
-
-//       statsObj.numFollowUsers += 1;
-
-//       if (followingUserIdHashMap.has(user.userId)) {
-
-//         if ()
-
-//         if (configuration.verbose || (statsObj.numFollowUsers % 100 === 0)) {
-//           console.log(chalkInfo("TSS | U | IN SET "
-//             + " [ FUS: " + followingUserIdHashMap.size
-//             + " | USRs FTCHD: " + statsObj.numFollowUsers + "]"
-//             + " | 3C @" + user.threeceeFollowing
-//             + " | @" + user.screenName
-//             + " | " + user.userId
-//             + " | LS: " + getTimeStamp(user.lastSeen)
-//           ));
-//         }
-
-//       }
-//       else {
-
-//         followingUserIdHashMap.set(user.userId, );
-
-//         if (configuration.verbose || (statsObj.numFollowUsers % 100 === 0)) {
-//           console.log(chalk.blue("TSS | U | ADD SET"
-//             + " [ FUS: " + followingUserIdHashMap.size
-//             + " | USRs FTCHD: " + statsObj.numFollowUsers + "]"
-//             + " | 3C @" + user.threeceeFollowing
-//             + " | @" + user.screenName
-//             + " | " + user.userId
-//             + " | LS: " + getTimeStamp(user.lastSeen)
-//           ));
-//         }
-//       }
-//     });
-
-//     cursor.on("end", function() {
-//       resolve();
-//     });
-
-//     cursor.on("error", function(err) {
-//       console.error(chalkError("TSS | *** ERROR initFollowingUserIdSet: " + err));
-//       reject(err);
-//     });
-
-//     cursor.on("close", function() {
-//       resolve();
-//     });
-
-//   });
-// }
-
 let deltaTweetStart = process.hrtime();
 let deltaTweet = process.hrtime(deltaTweetStart);
 
@@ -1123,9 +1046,7 @@ function checkTwitterRateLimit(params, callback){
 
       if (data.resources.users["/users/show/:id"].remaining > 0){
 
-
         threeceeUserObj.stats.ready = true;
-
         threeceeUserObj.stats.twitterRateLimit = data.resources.users["/users/show/:id"].limit;
         threeceeUserObj.stats.twitterRateLimitRemaining = data.resources.users["/users/show/:id"].remaining;
         threeceeUserObj.stats.twitterRateLimitResetAt = moment.unix(data.resources.users["/users/show/:id"].reset).valueOf();

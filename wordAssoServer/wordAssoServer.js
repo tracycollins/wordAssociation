@@ -196,7 +196,8 @@ const threeceeConfig = {
 };
 
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
-require("isomorphic-fetch");
+
+const fetch = require("isomorphic-fetch"); // or another library of choice.
 const Dropbox = require("dropbox").Dropbox;
 
 const Monitoring = require("@google-cloud/monitoring");
@@ -878,7 +879,12 @@ function filesGetMetadataLocal(options){
   });
 }
 
-let dropboxRemoteClient = new Dropbox({ accessToken: configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN });
+// let dropboxRemoteClient = new Dropbox({ accessToken: configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN, fetch:  });
+let dropboxRemoteClient = new Dropbox({ 
+  accessToken: configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN,
+  fetch: fetch
+});
+
 let dropboxLocalClient = {  // offline mode
   filesListFolder: filesListFolderLocal,
   filesUpload: function(){ console.log(chalkInfo("WAS | filesUpload")); },
@@ -6012,6 +6018,18 @@ function initAppRouting(callback) {
         + " | req.params: " + jsonPrint(req.params)
       ));
       res.sendStatus(200);
+    }
+    else if (req.path === "/slack"){
+
+      console.log(chalkAlert("WAS | SLACK"));
+
+      if (req.body.type === "url_verification") {
+        console.log(chalkInfo("WAS | R< SLACK URL VERIFICATION"
+          + " | TOKEN: " + req.body.token
+          + " | CHALLENGE: " + req.body.challenge
+        ));
+        res.send(req.body.challenge);
+      }
     }
     else if (req.path === "/slack_event"){
 

@@ -847,35 +847,49 @@ function ViewTreepack() {
   var tempNodeLabel;
   var tempNodeTopTermLabel;
 
+
   function resetNode(n, callback){
     n.age = 1e-6;
     n.ageMaxRatio = 1e-6;
-    n.ageUpdated = moment().valueOf();
+    n.ageUpdated = 1e-6;
     n.category = false;
     n.categoryAuto = false;
-    n.categoryColor = palette.white;
+    n.categoryColor = "#FFFFFF";
     n.categoryMatch = false;
     n.categoryMismatch = false;
     n.displaytext = "";
+    n.emojiId = null;
     n.followersCount = 0;
     n.followersMentions = 0;
+    n.friendsCount = 0;
+    n.fullName = "";
+    n.hashtagId = null;
+    n.index = 0;
     n.isCategory = false;
     n.isDead = true;
     n.isMaxNode = false;
     n.isTopTerm = false;
     n.isTrendingTopic = false;
     n.isValid = false;
+    n.lastTweetId = false;
     n.mentions = 0;
     n.mouseHoverFlag = false;
     n.name = "";
-    n.newFlag = true;
+    n.newFlag = false
     n.nodeId = "";
     n.nodeType = "user";
+    n.placeId = null;
     n.rank = -1;
     n.rate = 1e-6;
-    n.screenName = "";
+    n.screenName = "leonbergers"
+    n.statusesCount = 0;
     n.text = "";
-    n.lastTweetId = false;
+    n.userId = "";
+    n.vx = 1e-6;
+    n.vy = 1e-6;
+    n.wordId = null;
+    n.x = 1e-6;
+    n.y = 1e-6;
 
     tempNodeCirle = document.getElementById(n.nodePoolId);
     tempNodeCirle.setAttribute("display", "none");

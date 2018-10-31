@@ -868,7 +868,7 @@ function ViewTreepack() {
     n.placeId = null;
     n.rank = -1;
     n.rate = 1e-6;
-    n.screenName = ""
+    n.screenName = "leonbergers"
     n.statusesCount = 0;
     n.text = "";
     // n.userId = "";
@@ -924,9 +924,9 @@ function ViewTreepack() {
       nPoolId = nodeIdHashMap.get(nodeId);
       node = localNodeHashMap.get(nPoolId);
 
-      // if (!node.isValid || node.isDead) {
-      //   return;
-      // }
+      if (!node.isValid || node.isDead) {
+        return;
+      }
 
       if (!enableAgeNodes || (resumeTimeStamp > 0)) {
         ageRate = 1e-6;
@@ -941,8 +941,7 @@ function ViewTreepack() {
 
       ageMaxRatio = age/nodeMaxAge ;
 
-      // if (removeDeadNodesFlag && (!node.isValid || node.isDead || (age >= nodeMaxAge))) {
-      if (removeDeadNodesFlag && (node.isDead || (age >= nodeMaxAge))) {
+      if (removeDeadNodesFlag && (age >= nodeMaxAge)) {
 
         node.isDead = true;
         node.ageUpdated = moment().valueOf();
@@ -950,16 +949,14 @@ function ViewTreepack() {
         node.ageMaxRatio = ageMaxRatio;
 
         nodeIdHashMap.remove(node.nodeId);
+        localNodeHashMap.set(nPoolId, node);
 
         if (node.isValid) {
           node.isValid = false;
           resetNode(node, function(n){
             nodePool.recycle(n);
-            localNodeHashMap.set(nPoolId, n);
+            // console.debug("NODE POOL SIZE: " + nodePool.size());     
           });
-        }
-        else {
-          localNodeHashMap.set(nPoolId, node);
         }
       } 
       else {
@@ -968,6 +965,8 @@ function ViewTreepack() {
         node.ageUpdated = currentTime;
         node.age = Math.max(age, 1e-6);
         node.ageMaxRatio = Math.max(ageMaxRatio, 1e-6);
+
+        // node.newFlag = false; // 
 
         localNodeHashMap.set(nPoolId, node);
         nodeIdHashMap.set(node.nodeId, nPoolId);

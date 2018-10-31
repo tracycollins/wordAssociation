@@ -10,7 +10,7 @@ function ViewTreepack() {
   var initialYposition = 0.9;
 
   var DEFAULT_ZOOM_FACTOR = 0.4;
-  var emojiFontMulipier = 2.0;
+  // var emojiFontMulipier = 2.0;
   var minRateMetricChange = 0.5;
 
   var topTermsDivVisible = false;
@@ -88,7 +88,7 @@ function ViewTreepack() {
 
   var currentTwitterUser = twitterUserThreecee;
   var currentTwitterHashtag = "resist";
-  var currentTwitterEmoji = "";
+  // var currentTwitterEmoji = "";
 
   var defaultProfileImageUrl = "favicon.png";
 
@@ -246,6 +246,8 @@ function ViewTreepack() {
     this.x = initialXposition*width;
     this.y = initialYposition*height;
   } 
+
+ 
 
   var nodePoolIndex = 0;
 
@@ -432,10 +434,10 @@ function ViewTreepack() {
     .range([nodeRadiusMin, nodeRadiusMax])
     .clamp(true);
 
-  var emojiLabelSizeScale = d3.scaleLinear()
-    .domain([1, currentMax[metricMode][metricMode]])
-    .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
-    .clamp(true);
+  // var emojiLabelSizeScale = d3.scaleLinear()
+  //   .domain([1, currentMax[metricMode][metricMode]])
+  //   .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
+  //   .clamp(true);
 
   var nodeLabelSizeScale = d3.scaleLinear()
     .domain([1, currentMax[metricMode][metricMode]])
@@ -604,10 +606,10 @@ function ViewTreepack() {
     metricMode = mode;
     config.defaultMetricMode = mode;
 
-    emojiLabelSizeScale = d3.scaleLinear()
-      .domain([1, currentMax[metricMode][metricMode]])
-      .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
-      .clamp(true);
+    // emojiLabelSizeScale = d3.scaleLinear()
+    //   .domain([1, currentMax[metricMode][metricMode]])
+    //   .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
+    //   .clamp(true);
 
     nodeLabelSizeScale = d3.scaleLinear()
       .domain([1, currentMax[mode][mode]])
@@ -754,10 +756,10 @@ function ViewTreepack() {
     fontSizeMinRatio = value;
     fontSizeMin = value * height;
 
-    emojiLabelSizeScale = d3.scaleLinear()
-      .domain([1, currentMax[metricMode][metricMode]])
-      .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
-      .clamp(true);
+    // emojiLabelSizeScale = d3.scaleLinear()
+    //   .domain([1, currentMax[metricMode][metricMode]])
+    //   .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
+    //   .clamp(true);
 
     nodeLabelSizeScale = d3.scaleLinear()
       .domain([1, currentMax[metricMode][metricMode]])
@@ -772,10 +774,10 @@ function ViewTreepack() {
     fontSizeMaxRatio = value;
     fontSizeMax = value * height;
 
-    emojiLabelSizeScale = d3.scaleLinear()
-      .domain([1, currentMax[metricMode][metricMode]])
-      .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
-      .clamp(true);
+    // emojiLabelSizeScale = d3.scaleLinear()
+    //   .domain([1, currentMax[metricMode][metricMode]])
+    //   .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
+    //   .clamp(true);
 
     nodeLabelSizeScale = d3.scaleLinear()
       .domain([1, currentMax[metricMode][metricMode]])
@@ -868,13 +870,13 @@ function ViewTreepack() {
     n.mentions = 0;
     n.mouseHoverFlag = false;
     n.name = "";
-    n.newFlag = false
+    n.newFlag = false;
     n.nodeId = "";
     n.nodePoolId = n.nodePoolId;
     n.nodeType = "user";
     n.rank = -1;
     n.rate = 1e-6;
-    n.screenName = "leonbergers"
+    n.screenName = "";
     n.statusesCount = 0;
     n.text = "";
     n.vx = 1e-6;
@@ -993,7 +995,7 @@ function ViewTreepack() {
   };
 
   var previousTwitterUserId;
-  var previousTwitterEmoji;
+  // var previousTwitterEmoji;
   var previousTwitterHashtag;
   var tooltipString;
 
@@ -1018,20 +1020,20 @@ function ViewTreepack() {
 
     switch (d.nodeType) {
 
-      case "emoji":
+      // case "emoji":
 
-        currentTwitterEmoji = d;
+      //   currentTwitterEmoji = d;
 
-        if (mouseMovingFlag 
-          && controlPanelReadyFlag 
-          && (!previousTwitterEmoji || (previousTwitterEmoji !== d.nodeId))){
-          previousTwitterEmoji = currentTwitterEmoji.nodeId;
-        }
+      //   if (mouseMovingFlag 
+      //     && controlPanelReadyFlag 
+      //     && (!previousTwitterEmoji || (previousTwitterEmoji !== d.nodeId))){
+      //     previousTwitterEmoji = currentTwitterEmoji.nodeId;
+      //   }
 
-        tooltipString = d.nodeId
-          + "<br>Ms: " + d.mentions
-          + "<br>" + d.rate.toFixed(2) + " MPM";
-      break;
+      //   tooltipString = d.nodeId
+      //     + "<br>Ms: " + d.mentions
+      //     + "<br>" + d.rate.toFixed(2) + " MPM";
+      // break;
 
       case "user":
 
@@ -1072,29 +1074,29 @@ function ViewTreepack() {
           + "<br>CA: " + d.categoryAuto;
       break;
 
-      case "media":
-        tooltipString = "ID: " + d.nodeId
-          + "<br>Ms: " + d.mentions
-          + "<br>" + d.rate.toFixed(2) + " WPM"
-          + "<br>URL: " + d.url
-          + "<br>MEDIA URL: " + d.mediaUrl;
-      break;
+      // case "media":
+      //   tooltipString = "ID: " + d.nodeId
+      //     + "<br>Ms: " + d.mentions
+      //     + "<br>" + d.rate.toFixed(2) + " WPM"
+      //     + "<br>URL: " + d.url
+      //     + "<br>MEDIA URL: " + d.mediaUrl;
+      // break;
 
-      case "word":
-        tooltipString = d.nodeId
-          + "<br>Ms: " + d.mentions
-          + "<br>" + d.rate.toFixed(2) + " WPM"
-          + "<br>C: " + d.category
-          + "<br>CA: " + d.categoryAuto;
-      break;
+      // case "word":
+      //   tooltipString = d.nodeId
+      //     + "<br>Ms: " + d.mentions
+      //     + "<br>" + d.rate.toFixed(2) + " WPM"
+      //     + "<br>C: " + d.category
+      //     + "<br>CA: " + d.categoryAuto;
+      // break;
 
-      case "place":
-        tooltipString = d.fullName
-          + "<br>Ms: " + d.mentions
-          + "<br>" + d.rate.toFixed(2) + " WPM"
-          + "<br>C: " + d.category
-          + "<br>CA: " + d.categoryAuto;
-      break;
+      // case "place":
+      //   tooltipString = d.fullName
+      //     + "<br>Ms: " + d.mentions
+      //     + "<br>" + d.rate.toFixed(2) + " WPM"
+      //     + "<br>C: " + d.category
+      //     + "<br>CA: " + d.categoryAuto;
+      // break;
     }
 
     divTooltip.html(tooltipString);
@@ -1151,10 +1153,10 @@ function ViewTreepack() {
   }
 
   function labelText(d) {
-    if (d.nodeType === "emoji") { 
-      if (d.category || d.categoryAuto) { return d.text.toUpperCase(); }
-      if (d.mentions >= minMentions) { return d.text.toUpperCase(); }
-      return d.text.toLowerCase(); 
+    // if (d.nodeType === "emoji") { 
+    //   if (d.category || d.categoryAuto) { return d.text.toUpperCase(); }
+    //   if (d.mentions >= minMentions) { return d.text.toUpperCase(); }
+    //   return d.text.toLowerCase(); 
     }
     if (d.nodeType === "hashtag") { 
       if (d.category || d.categoryAuto) { return "#" + d.text.toUpperCase(); }
@@ -1176,9 +1178,9 @@ function ViewTreepack() {
       }
       else { return "@UNKNOWN?"; }
     }
-    if (d.nodeType === "place") {  
-      if (d.fullName) { return d.fullName.toUpperCase(); }
-    }
+    // if (d.nodeType === "place") {  
+    //   if (d.fullName) { return d.fullName.toUpperCase(); }
+    // }
     return d.nodeId; 
   }
 
@@ -1213,10 +1215,10 @@ function ViewTreepack() {
         }
       break;
 
-      case "media" :
-        console.debug("LOADING MEDIA: " + d.url);
-        window.open(d.url, "_blank");
-      break;
+      // case "media" :
+      //   console.debug("LOADING MEDIA: " + d.url);
+      //   window.open(d.url, "_blank");
+      // break;
 
       case "hashtag" :
 
@@ -1235,9 +1237,9 @@ function ViewTreepack() {
         window.open("https://twitter.com/search?f=tweets&q=%23"+d.text, "_blank");
       break;
 
-      case "place" :
-        window.open("http://twitter.com/search?q=place%3A" + d.placeId, "_blank");
-      break;
+      // case "place" :
+      //   window.open("http://twitter.com/search?q=place%3A" + d.placeId, "_blank");
+      // break;
     }
   }
 
@@ -1310,77 +1312,77 @@ function ViewTreepack() {
   //   callback(null, null);
   // };
 
-  var nodeMedia;
-  var updateNodeMedia = function(callback) {
+  // var nodeMedia;
+  // var updateNodeMedia = function(callback) {
 
-    nodeMedia = nodeSvgGroup.selectAll("image")
-      .data(nodeArray.filter(function(d){ return d.nodeType === "media"; }), function (d){ return d.nodeId; });
+  //   nodeMedia = nodeSvgGroup.selectAll("image")
+  //     .data(nodeArray.filter(function(d){ return d.nodeType === "media"; }), function (d){ return d.nodeId; });
 
-    nodeMedia
-      .enter().append("svg:image")
-      .attr("id", function (d) { return d.nodePoolId; })
-      .attr("nodeId", function (d) { return d.nodeId; })
-      .attr("xlink:href", function (d) { return d.mediaUrl; })
-      .attr("class", "nodeImage")
-      .attr("r", 1e-6) 
-      .attr("x", function(d) {
-        if (metricMode === "rate") { return d.x - 0.5*(imageSizeScale(parseInt(d.rate) + 1.0)); }
-        if (metricMode === "mentions") { return d.x - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); }
-      })
-      .attr("y", function(d) { 
-        if (metricMode === "rate") { return d.y - 0.5*(imageSizeScale(parseInt(d.rate) + 1.0)); }
-        if (metricMode === "mentions") { return d.y - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); }
-      })
-      .style("display", function (d) { 
-        if (!d.isValid) { return "none"; }
-        return "unset"; 
-      })
-      .attr("width", function(d){ 
-        if (metricMode === "rate") {return imageSizeScale(parseInt(d.rate + 1.0));}
-        if (metricMode === "mentions") {return imageSizeScale(parseInt(d.mentions + 1.0));}
-      })
-      .attr("height", function(d){ 
-        if (metricMode === "rate") {return imageSizeScale(parseInt(d.rate + 1.0));}
-        if (metricMode === "mentions") {return imageSizeScale(parseInt(d.mentions + 1.0));}
-      })
-      .style("opacity", function (d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
-      .on("mouseover", nodeMouseOver)
-      .on("mouseout", nodeMouseOut)
-      .on("click", nodeClick);
+  //   nodeMedia
+  //     .enter().append("svg:image")
+  //     .attr("id", function (d) { return d.nodePoolId; })
+  //     .attr("nodeId", function (d) { return d.nodeId; })
+  //     .attr("xlink:href", function (d) { return d.mediaUrl; })
+  //     .attr("class", "nodeImage")
+  //     .attr("r", 1e-6) 
+  //     .attr("x", function(d) {
+  //       if (metricMode === "rate") { return d.x - 0.5*(imageSizeScale(parseInt(d.rate) + 1.0)); }
+  //       if (metricMode === "mentions") { return d.x - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); }
+  //     })
+  //     .attr("y", function(d) { 
+  //       if (metricMode === "rate") { return d.y - 0.5*(imageSizeScale(parseInt(d.rate) + 1.0)); }
+  //       if (metricMode === "mentions") { return d.y - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); }
+  //     })
+  //     .style("display", function (d) { 
+  //       if (!d.isValid) { return "none"; }
+  //       return "unset"; 
+  //     })
+  //     .attr("width", function(d){ 
+  //       if (metricMode === "rate") {return imageSizeScale(parseInt(d.rate + 1.0));}
+  //       if (metricMode === "mentions") {return imageSizeScale(parseInt(d.mentions + 1.0));}
+  //     })
+  //     .attr("height", function(d){ 
+  //       if (metricMode === "rate") {return imageSizeScale(parseInt(d.rate + 1.0));}
+  //       if (metricMode === "mentions") {return imageSizeScale(parseInt(d.mentions + 1.0));}
+  //     })
+  //     .style("opacity", function (d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
+  //     .on("mouseover", nodeMouseOver)
+  //     .on("mouseout", nodeMouseOut)
+  //     .on("click", nodeClick);
 
-    nodeMedia
-      .attr("r", function(d) {
-        if (metricMode === "rate") { return imageSizeScale(Math.sqrt(d.rate));}
-        if (metricMode === "mentions") {return imageSizeScale(Math.sqrt(d.mentions));}
-      })
-      .attr("x", function(d) {
-        if (metricMode === "rate") {return d.x - 0.5*(imageSizeScale(parseInt(d.rate) + 1.0));}
-        if (metricMode === "mentions") {return d.x - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0));}
-      })
-      .attr("y", function(d) { 
-        if (metricMode === "rate") {return d.y - 0.5*(imageSizeScale(parseInt(d.rate) + 1.0));}
-        if (metricMode === "mentions") {return d.y - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0));}
-      })
-      .attr("width", function(d){ 
-        if (metricMode === "rate") {return imageSizeScale(parseInt(d.rate + 1.0));}
-        if (metricMode === "mentions") {return imageSizeScale(parseInt(d.mentions + 1.0));}
-      })
-      .attr("height", function(d){ 
-        if (metricMode === "rate") {return imageSizeScale(parseInt(d.rate + 1.0));}
-        if (metricMode === "mentions") {return imageSizeScale(parseInt(d.mentions + 1.0));}
-      })
-      .style("display", function (d) { 
-        if (!d.isValid) { return "none"; }
-        return "unset"; 
-      })
-      .style("opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); });
+  //   nodeMedia
+  //     .attr("r", function(d) {
+  //       if (metricMode === "rate") { return imageSizeScale(Math.sqrt(d.rate));}
+  //       if (metricMode === "mentions") {return imageSizeScale(Math.sqrt(d.mentions));}
+  //     })
+  //     .attr("x", function(d) {
+  //       if (metricMode === "rate") {return d.x - 0.5*(imageSizeScale(parseInt(d.rate) + 1.0));}
+  //       if (metricMode === "mentions") {return d.x - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0));}
+  //     })
+  //     .attr("y", function(d) { 
+  //       if (metricMode === "rate") {return d.y - 0.5*(imageSizeScale(parseInt(d.rate) + 1.0));}
+  //       if (metricMode === "mentions") {return d.y - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0));}
+  //     })
+  //     .attr("width", function(d){ 
+  //       if (metricMode === "rate") {return imageSizeScale(parseInt(d.rate + 1.0));}
+  //       if (metricMode === "mentions") {return imageSizeScale(parseInt(d.mentions + 1.0));}
+  //     })
+  //     .attr("height", function(d){ 
+  //       if (metricMode === "rate") {return imageSizeScale(parseInt(d.rate + 1.0));}
+  //       if (metricMode === "mentions") {return imageSizeScale(parseInt(d.mentions + 1.0));}
+  //     })
+  //     .style("display", function (d) { 
+  //       if (!d.isValid) { return "none"; }
+  //       return "unset"; 
+  //     })
+  //     .style("opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); });
 
-    nodeMedia
-      .exit()
-      .style("display", "none");
+  //   nodeMedia
+  //     .exit()
+  //     .style("display", "none");
 
-    callback();
-  };
+  //   callback();
+  // };
 
   var updateChangedCircleNodes = function(d){
 
@@ -1543,14 +1545,14 @@ function ViewTreepack() {
         return palette.darkgray; 
       })
       .style("fill-opacity", function updateNodeLabelOpacity(d) { 
-        if (d.nodeType === "media") { return 1e-6; }
+        // if (d.nodeType === "media") { return 1e-6; }
         if (d.mouseHoverFlag) { return 1.0; }
         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .style("display", function (d) {
         if (!d.isValid) { return "none"; }
-        if (d.nodeType === "media") { return "none"; }
+        // if (d.nodeType === "media") { return "none"; }
         if (d.mouseHoverFlag) { return "unset"; }
         if (d.category) { return "unset"; }
         if (d.categoryAuto) { return "unset"; }
@@ -1573,12 +1575,12 @@ function ViewTreepack() {
       })
       .style("font-size", function (d) {
         if (metricMode === "rate") {
-          if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.rate); }
+          // if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.rate); }
           if (d.isTopTerm) { return nodeLabelSizeScale(1.5*d.rate); }
           return nodeLabelSizeScale(d.rate);
         }
         if (metricMode === "mentions") { 
-          if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.mentions); }
+          // if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.mentions); }
           if (d.isTopTerm) { return nodeLabelSizeScale(1.5*d.mentions); }
           return nodeLabelSizeScale(d.mentions);
         }
@@ -1603,7 +1605,7 @@ function ViewTreepack() {
       })
       .style("display", function (d) {
         if (!d.isValid) { return "none"; }
-        if (d.nodeType === "media") { return "hidden"; }
+        // if (d.nodeType === "media") { return "hidden"; }
         if (d.category) { return "unset"; }
         if (d.categoryAuto) { return "unset"; }
         if (mouseMovingFlag) { return "unset"; }
@@ -1631,7 +1633,7 @@ function ViewTreepack() {
         return "none"; 
       })
       .style("fill-opacity", function (d) { 
-        if (d.nodeType === "media") { return 1e-6; }
+        // if (d.nodeType === "media") { return 1e-6; }
         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
         return nodeLabelOpacityScale(d.ageMaxRatio);
       })
@@ -1651,12 +1653,12 @@ function ViewTreepack() {
       })
       .style("font-size", function (d) {
         if (metricMode === "rate") {
-          if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.rate); }
+          // if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.rate); }
           if (d.isTopTerm) { return nodeLabelSizeScale(1.5*d.rate); }
           return nodeLabelSizeScale(d.rate);
         }
         if (metricMode === "mentions") { 
-          if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.mentions); }
+          // if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.mentions); }
           if (d.isTopTerm) { return nodeLabelSizeScale(1.5*d.mentions); }
           return nodeLabelSizeScale(d.mentions);
         }
@@ -1768,11 +1770,11 @@ function ViewTreepack() {
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt 
         + " | #" + node.text.toUpperCase() ;
       }
-      else if (node.nodeType === "place") { 
-        displaytext = new Array(ratePadSpaces).join("\xa0") + rateString 
-        + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt 
-        + " | " + node.fullName.toUpperCase() ;
-      }
+      // else if (node.nodeType === "place") { 
+      //   displaytext = new Array(ratePadSpaces).join("\xa0") + rateString 
+      //   + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt 
+      //   + " | " + node.fullName.toUpperCase() ;
+      // }
       else if (testMode) { 
         displaytext = new Array(ratePadSpaces).join("\xa0") + rateString 
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt 
@@ -1844,54 +1846,56 @@ function ViewTreepack() {
 
         nodeIdHashMap.set(newNode.nodeId, currentNode.nodePoolId);
 
-        currentNode.isValid = true;
-        currentNode.age = 1e-6;
-        currentNode.ageMaxRatio = 1e-6;
+        // currentNode.age = 1e-6;
+        // currentNode.ageMaxRatio = 1e-6;
         currentNode.ageUpdated = moment().valueOf();
-        currentNode.isDead = false;
-        currentNode.isMaxNode = false;
-        currentNode.mouseHoverFlag = false;
-        currentNode.newFlag = true;
-        currentNode.x = initialXposition*width;
-        currentNode.y = initialYposition*height;
-
-        currentNode.nodeId = newNode.nodeId;
-        // currentNode.userId = newNode.userId;
-        currentNode.hashtagId = newNode.hashtagId;
-        currentNode.emojiId = newNode.emojiId;
-        currentNode.placeId = newNode.placeId;
-        currentNode.wordId = newNode.wordId;
-        currentNode.fullName = newNode.fullName;
-        currentNode.nodeType = newNode.nodeType;
-        currentNode.screenName = newNode.screenName;
-        currentNode.name = newNode.name;
-        currentNode.rate = newNode.rate;
-        currentNode.text = newNode.text;
-        currentNode.rank = newNode.rank;
-        currentNode.isTopTerm = newNode.isTopTerm;
-        currentNode.isTrendingTopic = newNode.isTrendingTopic;
         currentNode.category = newNode.category;
         currentNode.categoryAuto = newNode.categoryAuto;
-        currentNode.isCategory = newNode.isCategory;
+        currentNode.categoryColor = newNode.categoryColor;
         currentNode.categoryMatch = newNode.categoryMatch;
         currentNode.categoryMismatch = newNode.categoryMismatch;
-        currentNode.categoryColor = newNode.categoryColor;
-        currentNode.mentions = newNode.mentions;
-        currentNode.statusesCount = newNode.statusesCount;
+        // currentNode.displaytext = "";
+        currentNode.followersCount = newNode.followersCount;
+        currentNode.followersMentions = newNode.mentions;
         currentNode.friendsCount = newNode.friendsCount;
+        currentNode.fullName = newNode.fullName;
+        currentNode.hashtagId = newNode.hashtagId;
+        // currentNode.index = 0;
+        currentNode.isCategory = newNode.isCategory;
+        // currentNode.isDead = false;
+        // currentNode.isMaxNode = false;
+        currentNode.isTopTerm = newNode.isTopTerm;
+        currentNode.isTrendingTopic = newNode.isTrendingTopic;
+        // currentNode.isValid = true;
         currentNode.lastTweetId = newNode.lastTweetId;
+        currentNode.mentions = newNode.mentions;
+        // currentNode.mouseHoverFlag = false;
+        currentNode.name = newNode.name;
+        // currentNode.newFlag = true;
+        currentNode.nodeId = newNode.nodeId;
+        currentNode.nodePoolId = nodePoolId;
+        currentNode.nodeType = newNode.nodeType;
+        currentNode.rank = newNode.rank;
+        currentNode.rate = newNode.rate;
+        currentNode.screenName = newNode.screenName;
+        currentNode.statusesCount = newNode.statusesCount;
+        // currentNode.text = newNode.text;
+        // currentNode.vx = 1e-6;
+        // currentNode.vy = 1e-6;
+        // currentNode.x = initialXposition*width;
+        // currentNode.y = initialYposition*height;
 
         if (newNode.nodeType === "user"){
           currentNode.followersCount = newNode.followersCount || 0;
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
         }
 
-        if (newNode.nodeType === "media"){
-          currentNode.url = newNode.url;
-          currentNode.mediaUrl = newNode.mediaUrl;
-          currentNode.width = 100;
-          currentNode.height = 100;
-        }
+        // if (newNode.nodeType === "media"){
+        //   currentNode.url = newNode.url;
+        //   currentNode.mediaUrl = newNode.mediaUrl;
+        //   currentNode.width = 100;
+        //   currentNode.height = 100;
+        // }
 
         currentNode.displaytext = createDisplayText(currentNode);
 
@@ -1978,10 +1982,10 @@ function ViewTreepack() {
           .range([fontSizeMin, fontSizeMax])
           .clamp(true);
 
-        emojiLabelSizeScale = d3.scaleLinear()
-          .domain([1, currentMax[metricMode][metricMode]])
-          .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
-          .clamp(true);
+        // emojiLabelSizeScale = d3.scaleLinear()
+        //   .domain([1, currentMax[metricMode][metricMode]])
+        //   .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
+        //   .clamp(true);
 
         defaultRadiusScale = d3.scaleLinear()
           .domain([0, Math.sqrt(currentMax[metricMode][metricMode])])
@@ -2179,10 +2183,10 @@ function ViewTreepack() {
     fontSizeMin = fontSizeMinRatio * height;
     fontSizeMax = fontSizeMaxRatio * height;
 
-    emojiLabelSizeScale = d3.scaleLinear()
-      .domain([1, currentMax[metricMode][metricMode]])
-      .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
-      .clamp(true);
+    // emojiLabelSizeScale = d3.scaleLinear()
+    //   .domain([1, currentMax[metricMode][metricMode]])
+    //   .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
+    //   .clamp(true);
 
     nodeLabelSizeScale = d3.scaleLinear()
       .domain([1, currentMax[metricMode][metricMode]])

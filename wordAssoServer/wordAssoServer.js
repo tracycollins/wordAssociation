@@ -526,7 +526,7 @@ let normalization = false;
 
 let twitterUserThreecee = {
     nodeId : "14607119",
-    userId : "14607119",
+    // userId : "14607119",
     profileImageUrl : "http://pbs.twimg.com/profile_images/780466729692659712/p6RcVjNK.jpg",
     profileUrl : "http://twitter.com/threecee",
     url : "http://threeCeeMedia.com",
@@ -5586,6 +5586,7 @@ function initTransmitNodeQueueInterval(interval){
                 + " | NID: " + node.nodeId
               ));
               delete node["_id"];
+              delete node["userId"];
               viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
 
               transmitNodeQueueReady = true;
@@ -5646,10 +5647,12 @@ function initTransmitNodeQueueInterval(interval){
                   if (err) {
                     console.log(chalkError("WAS | findOneUser ERROR" + jsonPrint(err)));
                     delete n["_id"];
+                    delete n["userId"];
                     viewNameSpace.volatile.emit("node", n);
                   }
                   else {
                     delete n["_id"];
+                    delete n["userId"];
                     viewNameSpace.volatile.emit("node", updatedUser);
                   }
 
@@ -5662,6 +5665,7 @@ function initTransmitNodeQueueInterval(interval){
               }
               else if (n.nodeType === "user") {
                 delete n["_id"];
+                delete n["userId"];
                 viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
 
                 transmitNodeQueueReady = true;
@@ -5677,14 +5681,17 @@ function initTransmitNodeQueueInterval(interval){
                   if (err) {
                     console.log(chalkError("WAS | updatedHashtag ERROR\n" + jsonPrint(err)));
                     delete n["_id"];
+                    delete n["userId"];
                     viewNameSpace.volatile.emit("node", n);
                   }
                   else if (updatedHashtag) {
                     delete n["_id"];
+                    delete n["userId"];
                     viewNameSpace.volatile.emit("node", updatedHashtag);
                   }
                   else {
                     delete n["_id"];
+                    delete n["userId"];
                     viewNameSpace.volatile.emit("node", n);
                   }
 
@@ -5697,6 +5704,7 @@ function initTransmitNodeQueueInterval(interval){
               }
               else if (n.nodeType === "hashtag") {
                 delete n["_id"];
+                delete n["userId"];
                 viewNameSpace.volatile.emit("node", n);
                 transmitNodeQueueReady = true;
 

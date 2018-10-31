@@ -111,7 +111,7 @@ var loginCallBack = function() {
 
 var twitterUserThreecee = {
   nodeId : "14607119",
-  userId : "14607119",
+  // userId : "14607119",
   profileImageUrl : "http://pbs.twimg.com/profile_images/780466729692659712/p6RcVjNK.jpg",
   profileUrl : "http://twitter.com/threecee",
   url : "http://threeCeeMedia.com",
@@ -795,7 +795,7 @@ function controlPanelComm(event) {
     case "FOLLOW" :
       console.warn("R< CONTROL FOLLOW"
         + " | NID: " + event.data.user.nodeId
-        + " | UID: " + event.data.user.userId
+        // + " | UID: " + event.data.user.userId
         + " | @" + event.data.user.screenName
       );
       socket.emit("TWITTER_FOLLOW", event.data.user);
@@ -803,7 +803,7 @@ function controlPanelComm(event) {
 
     case "UNFOLLOW" :
       console.warn("R< CONTROL UNFOLLOW"
-        + " | UID: " + event.data.user.userId
+        + " | UID: " + event.data.user.nodeId
         + " | @" + event.data.user.screenName
       );
       socket.emit("TWITTER_UNFOLLOW", event.data.user);
@@ -1786,11 +1786,11 @@ function initSocketSessionUpdateRx(){
       newNode.mouseHoverFlag = false;
       newNode.isDead = false;
       newNode.r = 0;
-      newNode.links = [];
+      // newNode.links = [];
       newNode.mentions = (newNode.mentions) ? newNode.mentions : 1;
 
       if (newNode.nodeType === "user"){
-        newNode.userId = newNode.userId;
+        // newNode.userId = newNode.userId;
         newNode.nodeId = newNode.userId;
         newNode.text = newNode.screenName.toLowerCase();
         newNode.screenName = newNode.screenName.toLowerCase();

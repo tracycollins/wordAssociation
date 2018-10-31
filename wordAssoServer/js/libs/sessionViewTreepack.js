@@ -868,7 +868,7 @@ function ViewTreepack() {
     n.placeId = null;
     n.rank = -1;
     n.rate = 1e-6;
-    n.screenName = "leonbergers"
+    n.screenName = ""
     n.statusesCount = 0;
     n.text = "";
     // n.userId = "";
@@ -941,7 +941,8 @@ function ViewTreepack() {
 
       ageMaxRatio = age/nodeMaxAge ;
 
-      if (removeDeadNodesFlag && (!node.isValid || node.isDead || (age >= nodeMaxAge))) {
+      // if (removeDeadNodesFlag && (!node.isValid || node.isDead || (age >= nodeMaxAge))) {
+      if (removeDeadNodesFlag && (node.isDead || (age >= nodeMaxAge))) {
 
         node.isDead = true;
         node.ageUpdated = moment().valueOf();

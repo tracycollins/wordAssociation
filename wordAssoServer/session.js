@@ -537,12 +537,12 @@ function saveConfig(){
 }
 
 var controlDivElement = document.getElementById("controlDiv");
-var topTermsDivElement = document.getElementById("topTermsDiv");
+// var topTermsDivElement = document.getElementById("topTermsDiv");
 var statsDivElement = document.getElementById("statsDiv");
 
 function displayControl(isVisible) {
   controlDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
-  topTermsDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
+  // topTermsDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
 }
 
 function displayStats(isVisible, dColor) {
@@ -1791,7 +1791,7 @@ function initSocketSessionUpdateRx(){
 
       if (newNode.nodeType === "user"){
         // newNode.userId = newNode.userId;
-        newNode.nodeId = newNode.userId;
+        // newNode.nodeId = newNode.userId;
         newNode.text = newNode.screenName.toLowerCase();
         newNode.screenName = newNode.screenName.toLowerCase();
       }

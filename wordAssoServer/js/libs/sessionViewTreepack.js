@@ -959,7 +959,7 @@ function ViewTreepack() {
           node.isValid = false;
           resetNode(node, function(n){
             nodePool.recycle(n);
-            // console.debug("NODE POOL SIZE: " + nodePool.size());     
+            localNodeHashMap.set(nPoolId, n);
           });
         }
       } 

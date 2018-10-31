@@ -13,7 +13,7 @@ function ViewTreepack() {
   // var emojiFontMulipier = 2.0;
   var minRateMetricChange = 0.5;
 
-  var topTermsDivVisible = false;
+  // var topTermsDivVisible = false;
 
   var getWindowDimensions = function (){
 
@@ -247,20 +247,15 @@ function ViewTreepack() {
     this.y = initialYposition*height;
   } 
 
- 
-
   var nodePoolIndex = 0;
 
   var nodePool = deePool.create(function makeNode(){
-
     nodePoolIndex += 1;
-
     return (new Node("nodePoolId_" + nodePoolIndex));
   });
 
 
   var autoCategoryFlag = config.autoCategoryFlag;
-
   var metricMode = config.defaultMetricMode;
   var transitionDuration = config.defaultTransitionDuration;
   var blahMode = config.defaultBlahMode;
@@ -355,6 +350,7 @@ function ViewTreepack() {
   self.getHeight = function() { return height; };
 
   var keysForSort = [];
+
   self.getSortedKeys = function(hmap, sortProperty) {
     hmap.forEach(function(value, key) {
       if (!value.isSessionNode) { keysForSort.push(key); }
@@ -387,35 +383,35 @@ function ViewTreepack() {
     .attr("class", "tooltip")
     .style("display", "none");
 
-  var topTermsDiv = d3.select("#topTermsDiv");
+  // var topTermsDiv = d3.select("#topTermsDiv");
 
-  var topTermsCheckBox = topTermsDiv.append("input")
-    .attr("id", "topTermsCheckBox")
-    .attr("type", "checkbox")
-    .style("pointer-events", "auto")
-    .on("change", function topTermsCheckBoxFunc(){
-      if (topTermsCheckBox.property("checked") === false) { 
-        topTermsDiv.style("display", "none");
-        topTermsDivVisible = false;
-      }
-      else { 
-      }
-    });
+  // var topTermsCheckBox = topTermsDiv.append("input")
+  //   .attr("id", "topTermsCheckBox")
+  //   .attr("type", "checkbox")
+  //   .style("pointer-events", "auto")
+  //   .on("change", function topTermsCheckBoxFunc(){
+  //     if (topTermsCheckBox.property("checked") === false) { 
+  //       topTermsDiv.style("display", "none");
+  //       topTermsDivVisible = false;
+  //     }
+  //     else { 
+  //     }
+  //   });
 
-  var mouseMoveTimeoutEventHandler = function(e) {
+  // var mouseMoveTimeoutEventHandler = function(e) {
 
-    d3.selectAll("iframe").style("display", "none");
+    // d3.selectAll("iframe").style("display", "none");
 
-    if (topTermsCheckBox.property("checked") === false) { 
-      topTermsDiv.style("display", "none"); 
-      topTermsDivVisible = false;
-    }
-    else { 
-    }
-  };
+    // if (topTermsCheckBox.property("checked") === false) { 
+    //   topTermsDiv.style("display", "none"); 
+    //   topTermsDivVisible = false;
+    // }
+    // else { 
+    // }
+  // };
 
 
-  document.addEventListener("mouseMoveTimeoutEvent", mouseMoveTimeoutEventHandler);
+  // document.addEventListener("mouseMoveTimeoutEvent", mouseMoveTimeoutEventHandler);
 
   document.addEventListener("mousemove", function mousemoveFunc() {
 
@@ -463,7 +459,7 @@ function ViewTreepack() {
     .domain([1, MAX_NODES])
     .range([1.0, 10.0]);
 
-  var fontTopTerm = config.defaultFontSizeTopTermRatio * topTermsDiv.height;
+  // var fontTopTerm = config.defaultFontSizeTopTermRatio * topTermsDiv.height;
 
   var d3image = d3.select("#d3group");
 
@@ -502,39 +498,39 @@ function ViewTreepack() {
     zoomFactor
   );
 
-  var svgTopTerms = topTermsDiv.append("svg:svg")
-    .attr("id", "svgTopTerms")
-    .attr("width", width)
-    .attr("height", height)
-    .attr("x", 1e-6)
-    .attr("y", 1e-6);
+  // var svgTopTerms = topTermsDiv.append("svg:svg")
+  //   .attr("id", "svgTopTerms")
+  //   .attr("width", width)
+  //   .attr("height", height)
+  //   .attr("x", 1e-6)
+  //   .attr("y", 1e-6);
 
-  var maxRateMentionsSvgGroup = svgTopTerms.append("svg:g")
-    .attr("id", "maxRateMentionsSvgGroup")
-    .attr("width", width)
-    .attr("height", height)
-    .style("zIndex", 100)
-    .style("opacity", 1.0);
+  // var maxRateMentionsSvgGroup = svgTopTerms.append("svg:g")
+  //   .attr("id", "maxRateMentionsSvgGroup")
+  //   .attr("width", width)
+  //   .attr("height", height)
+  //   .style("zIndex", 100)
+  //   .style("opacity", 1.0);
 
-  var maxRateMentionsText = maxRateMentionsSvgGroup.append("svg:text")
-    .attr("id", "maxRateMentionsText")
-    .attr("x", maxRateMentionsLeftMargin + "%")
-    .attr("y", maxRateMentionsTopMargin + "%")
-    .text("MAX MENTIONS: 0")
-    .style("font-family", "monospace")
-    .style("font-size", fontTopTerm)
-    .style("fill", palette.lightgray)
-    // .style("stroke", palette.white)
-    .style("opacity", 1.0)
-    .style("text-anchor", "right")
-    .style("alignment-baseline", "top");
+  // var maxRateMentionsText = maxRateMentionsSvgGroup.append("svg:text")
+  //   .attr("id", "maxRateMentionsText")
+  //   .attr("x", maxRateMentionsLeftMargin + "%")
+  //   .attr("y", maxRateMentionsTopMargin + "%")
+  //   .text("MAX MENTIONS: 0")
+  //   .style("font-family", "monospace")
+  //   .style("font-size", fontTopTerm)
+  //   .style("fill", palette.lightgray)
+  //   // .style("stroke", palette.white)
+  //   .style("opacity", 1.0)
+  //   .style("text-anchor", "right")
+  //   .style("alignment-baseline", "top");
 
-  var nodeTopTermLabelSvgGroup = svgTopTerms.append("svg:g")
-    .attr("id", "nodeTopTermLabelSvgGroup")
-    .attr("width", width)
-    .attr("height", height)
-    .attr("x", 1e-6)
-    .attr("y", 1e-6);
+  // var nodeTopTermLabelSvgGroup = svgTopTerms.append("svg:g")
+  //   .attr("id", "nodeTopTermLabelSvgGroup")
+  //   .attr("width", width)
+  //   .attr("height", height)
+  //   .attr("x", 1e-6)
+  //   .attr("y", 1e-6);
 
   var nodeSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
   var nodeLabelSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
@@ -872,7 +868,7 @@ function ViewTreepack() {
     n.name = "";
     n.newFlag = false;
     n.nodeId = "";
-    n.nodePoolId = n.nodePoolId;
+    // n.nodePoolId = n.nodePoolId;
     n.nodeType = "user";
     n.rank = -1;
     n.rate = 1e-6;
@@ -947,7 +943,7 @@ function ViewTreepack() {
 
       ageMaxRatio = age/nodeMaxAge ;
 
-      if (removeDeadNodesFlag && (age >= nodeMaxAge)) {
+      if (removeDeadNodesFlag && (node.isDead || (age >= nodeMaxAge))) {
 
         node.isDead = true;
         node.ageUpdated = moment().valueOf();
@@ -983,7 +979,7 @@ function ViewTreepack() {
 
     resumeTimeStamp = 0;
 
-    maxRateMentionsText.text(createDisplayText(currentMax[metricMode]));
+    // maxRateMentionsText.text(createDisplayText(currentMax[metricMode]));
 
     nodeArray = tempNodeArray;
     callback(null);
@@ -1157,7 +1153,7 @@ function ViewTreepack() {
     //   if (d.category || d.categoryAuto) { return d.text.toUpperCase(); }
     //   if (d.mentions >= minMentions) { return d.text.toUpperCase(); }
     //   return d.text.toLowerCase(); 
-    }
+    // }
     if (d.nodeType === "hashtag") { 
       if (d.category || d.categoryAuto) { return "#" + d.text.toUpperCase(); }
       if (d.mentions >= minMentionsHashtags) { return "#" + d.text.toUpperCase(); }
@@ -1861,11 +1857,11 @@ function ViewTreepack() {
         currentNode.fullName = newNode.fullName;
         currentNode.hashtagId = newNode.hashtagId;
         // currentNode.index = 0;
-        currentNode.isCategory = newNode.isCategory;
+        currentNode.isCategory = newNode.isCategory || false;
         // currentNode.isDead = false;
         // currentNode.isMaxNode = false;
-        currentNode.isTopTerm = newNode.isTopTerm;
-        currentNode.isTrendingTopic = newNode.isTrendingTopic;
+        currentNode.isTopTerm = newNode.isTopTerm || false;
+        currentNode.isTrendingTopic = newNode.isTrendingTopic || false;
         // currentNode.isValid = true;
         currentNode.lastTweetId = newNode.lastTweetId;
         currentNode.mentions = newNode.mentions;
@@ -1873,7 +1869,7 @@ function ViewTreepack() {
         currentNode.name = newNode.name;
         // currentNode.newFlag = true;
         currentNode.nodeId = newNode.nodeId;
-        currentNode.nodePoolId = nodePoolId;
+        // currentNode.nodePoolId = nodePoolId;
         currentNode.nodeType = newNode.nodeType;
         currentNode.rank = newNode.rank;
         currentNode.rate = newNode.rate;
@@ -1955,7 +1951,7 @@ function ViewTreepack() {
 
     async.series([
       function updateNodeCirclesSeries (cb){ updateNodeCircles(cb); },
-      function updateNodeLabelsSeries (cb){ updateNodeLabels(cb); },
+      function updateNodeLabelsSeries (cb){ updateNodeLabels(cb); }
     ], function drawSimulationCallback (err, results) {
 
       if (
@@ -2042,6 +2038,7 @@ function ViewTreepack() {
 
     if (newNode.nodeType === "user") {
       newNode.followersMentions = newNode.mentions + newNode.followersCount;
+      // newNode.nodeId = newNode.userId;
     }
 
     if (newNode.mentions > currentMax.mentions.mentions) { 
@@ -2205,26 +2202,26 @@ function ViewTreepack() {
       .attr("x", 1e-6)
       .attr("y", 1e-6);
 
-    svgTopTermLayoutArea
-      .attr("width", width)
-      .attr("height", height)
-      .attr("x", 1e-6)
-      .attr("y", 1e-6);
+    // svgTopTermLayoutArea
+    //   .attr("width", width)
+    //   .attr("height", height)
+    //   .attr("x", 1e-6)
+    //   .attr("y", 1e-6);
 
-    nodeTopTermLabelSvgGroup
-      .attr("width", width)
-      .attr("height", height)
-      .attr("x", 1e-6)
-      .attr("y", 1e-6);
+    // nodeTopTermLabelSvgGroup
+    //   .attr("width", width)
+    //   .attr("height", height)
+    //   .attr("x", 1e-6)
+    //   .attr("y", 1e-6);
 
-    svgTopTerms
-      .attr("width", width)
-      .attr("height", height)
-      .attr("x", 1e-6)
-      .attr("y", 1e-6);
+    // svgTopTerms
+    //   .attr("width", width)
+    //   .attr("height", height)
+    //   .attr("x", 1e-6)
+    //   .attr("y", 1e-6);
 
-    fontTopTerm = fontSizeTopTermRatio * topTermsDiv.height;
-    rowSpacing = fontSizeTopTermRatio*110; // %
+    // fontTopTerm = fontSizeTopTermRatio * topTermsDiv.height;
+    // rowSpacing = fontSizeTopTermRatio*110; // %
 
     if (simulation){
       simulation

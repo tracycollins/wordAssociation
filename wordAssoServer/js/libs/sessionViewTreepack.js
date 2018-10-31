@@ -577,7 +577,7 @@ function ViewTreepack() {
   this.setTwitterUser = function(user) {
 
     if (user.notFound !== undefined) { console.log("setTwitterUser | NOT FOUND: @"  + user.screenName); }
-    else { console.log("setTwitterUser | "  + user.userId + " | @" + user.screenName); }
+    else { console.log("setTwitterUser | "  + user.nodeId + " | @" + user.screenName); }
 
     if (controlPanelReadyFlag){ 
       controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: user}, DEFAULT_SOURCE);
@@ -871,7 +871,7 @@ function ViewTreepack() {
     n.screenName = "leonbergers"
     n.statusesCount = 0;
     n.text = "";
-    n.userId = "";
+    // n.userId = "";
     n.vx = 1e-6;
     n.vy = 1e-6;
     n.wordId = null;
@@ -967,7 +967,7 @@ function ViewTreepack() {
         node.ageUpdated = currentTime;
         node.age = Math.max(age, 1e-6);
         node.ageMaxRatio = Math.max(ageMaxRatio, 1e-6);
-        
+
         localNodeHashMap.set(nPoolId, node);
         nodeIdHashMap.set(node.nodeId, nPoolId);
 
@@ -1035,8 +1035,8 @@ function ViewTreepack() {
 
         if (mouseMovingFlag 
           && controlPanelReadyFlag 
-          && (!previousTwitterUserId || (previousTwitterUserId !== d.userId))){
-          previousTwitterUserId = currentTwitterUser.userId;
+          && (!previousTwitterUserId || (previousTwitterUserId !== d.nodeId))){
+          previousTwitterUserId = currentTwitterUser.nodeId;
         }
 
         tooltipString = "@" + d.screenName
@@ -1193,8 +1193,8 @@ function ViewTreepack() {
 
         if (mouseMovingFlag 
           && controlPanelReadyFlag 
-          && (!previousTwitterUserId || (previousTwitterUserId !== d.userId))){
-          previousTwitterUserId = currentTwitterUser.userId;
+          && (!previousTwitterUserId || (previousTwitterUserId !== d.nodeId))){
+          previousTwitterUserId = currentTwitterUser.nodeId;
         }
 
         if ((d.lastTweetId !== undefined) && (d.lastTweetId !== "false")) {
@@ -1852,7 +1852,7 @@ function ViewTreepack() {
         currentNode.y = initialYposition*height;
 
         currentNode.nodeId = newNode.nodeId;
-        currentNode.userId = newNode.userId;
+        // currentNode.userId = newNode.userId;
         currentNode.hashtagId = newNode.hashtagId;
         currentNode.emojiId = newNode.emojiId;
         currentNode.placeId = newNode.placeId;

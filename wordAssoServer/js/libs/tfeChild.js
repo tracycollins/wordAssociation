@@ -75,7 +75,7 @@ const twitterImageParser = require("@threeceelabs/twitter-image-parser");
 
 const S = require("string");
 const util = require("util");
-require("isomorphic-fetch");
+const fetch = require("isomorphic-fetch");
 const Dropbox = require("dropbox").Dropbox;
 const async = require("async");
 const Twit = require("twit");
@@ -326,7 +326,11 @@ debug("TFE | dropboxConfigFile : " + dropboxConfigFile);
 debug("TFE | statsFolder : " + statsFolder);
 debug("TFE | statsFile : " + statsFile);
 
-const dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN });
+// const dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN });
+const dropboxClient = new Dropbox({ 
+  accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN,
+  fetch: fetch
+});
 
 function getTimeStamp(inputTime) {
 

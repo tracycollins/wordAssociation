@@ -957,7 +957,7 @@ function ViewTreepack() {
           node.isValid = false;
           resetNode(node, function(n){
             nodePool.recycle(n);
-            // localNodeHashMap.set(nPoolId, n);
+            localNodeHashMap.set(nPoolId, n);
           });
         }
       } 

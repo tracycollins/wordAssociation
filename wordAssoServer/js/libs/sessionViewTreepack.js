@@ -339,10 +339,6 @@ function ViewTreepack() {
     else { 
       mouseMovingFlag = isMoving;
     }
-
-    // if (isMoving) {
-    //   topTermsDivVisible = true;
-    // }
   };
 
   self.getWidth = function() { return width; };
@@ -380,7 +376,6 @@ function ViewTreepack() {
   var divTooltip = d3.select("body").append("div")
     .attr("id", "divTooltip")
     .attr("class", "tooltip")
-    // .style("visibility", "hidden");
     .style("display", "none");
 
   var topTermsDiv = d3.select("#topTermsDiv");
@@ -395,14 +390,11 @@ function ViewTreepack() {
         topTermsDivVisible = false;
       }
       else { 
-        // topTermsDiv.style("display", "unset"); 
-        // topTermsDivVisible = true;
       }
     });
 
   var mouseMoveTimeoutEventHandler = function(e) {
 
-    // d3.selectAll("iframe").style("visibility", "hidden");
     d3.selectAll("iframe").style("display", "none");
 
     if (topTermsCheckBox.property("checked") === false) { 
@@ -410,8 +402,6 @@ function ViewTreepack() {
       topTermsDivVisible = false;
     }
     else { 
-      // topTermsDiv.style("display", "unset"); 
-      // topTermsDivVisible = true;
     }
   };
 
@@ -419,9 +409,6 @@ function ViewTreepack() {
   document.addEventListener("mouseMoveTimeoutEvent", mouseMoveTimeoutEventHandler);
 
   document.addEventListener("mousemove", function mousemoveFunc() {
-
-    // topTermsDiv.style("display", "unset");
-    // topTermsDivVisible = true;
 
     if (mouseHoverFlag) { d3.select("body").style("cursor", "pointer"); } 
     else { d3.select("body").style("cursor", "default"); }
@@ -845,7 +832,7 @@ function ViewTreepack() {
 
   var tempNodeCirle;
   var tempNodeLabel;
-  var tempNodeTopTermLabel;
+  // var tempNodeTopTermLabel;
 
 
   function resetNode(n, callback){
@@ -897,10 +884,10 @@ function ViewTreepack() {
     tempNodeLabel = document.getElementById(n.nodePoolId + "_label");
     tempNodeLabel.setAttribute("display", "none");
 
-    tempNodeTopTermLabel = document.getElementById(n.nodePoolId + "_labelTopTerm");
-    if (tempNodeTopTermLabel) {
-      tempNodeTopTermLabel.setAttribute("display", "none");
-    }
+    // tempNodeTopTermLabel = document.getElementById(n.nodePoolId + "_labelTopTerm");
+    // if (tempNodeTopTermLabel) {
+    //   tempNodeTopTermLabel.setAttribute("display", "none");
+    // }
     callback(n);
   }
 
@@ -913,12 +900,10 @@ function ViewTreepack() {
   var currentTime = moment().valueOf();
   var nodeIdArray = [];
   var tempNodeArray = [];
-  var tempNodesTopTerm = [];
 
   var ageNodes = function (callback) {
 
     tempNodeArray = [];
-    tempNodesTopTerm = [];
 
     nodeIdArray = nodeIdHashMap.keys();
     ageMaxRatio = 1e-6;
@@ -939,9 +924,9 @@ function ViewTreepack() {
       nPoolId = nodeIdHashMap.get(nodeId);
       node = localNodeHashMap.get(nPoolId);
 
-      if (!node.isValid || node.isDead) {
-        return;
-      }
+      // if (!node.isValid || node.isDead) {
+      //   return;
+      // }
 
       if (!enableAgeNodes || (resumeTimeStamp > 0)) {
         ageRate = 1e-6;
@@ -956,7 +941,7 @@ function ViewTreepack() {
 
       ageMaxRatio = age/nodeMaxAge ;
 
-      if (removeDeadNodesFlag && (age >= nodeMaxAge)) {
+      if (removeDeadNodesFlag && (!node.isValid || node.isDead || (age >= nodeMaxAge))) {
 
         node.isDead = true;
         node.ageUpdated = moment().valueOf();
@@ -964,14 +949,16 @@ function ViewTreepack() {
         node.ageMaxRatio = ageMaxRatio;
 
         nodeIdHashMap.remove(node.nodeId);
-        localNodeHashMap.set(nPoolId, node);
 
         if (node.isValid) {
           node.isValid = false;
           resetNode(node, function(n){
             nodePool.recycle(n);
-            // console.debug("NODE POOL SIZE: " + nodePool.size());     
+            localNodeHashMap.set(nPoolId, n);
           });
+        }
+        else {
+          localNodeHashMap.set(nPoolId, node);
         }
       } 
       else {
@@ -980,9 +967,7 @@ function ViewTreepack() {
         node.ageUpdated = currentTime;
         node.age = Math.max(age, 1e-6);
         node.ageMaxRatio = Math.max(ageMaxRatio, 1e-6);
-
-        // node.newFlag = false; // 
-
+        
         localNodeHashMap.set(nPoolId, node);
         nodeIdHashMap.set(node.nodeId, nPoolId);
 
@@ -994,10 +979,13 @@ function ViewTreepack() {
 
     maxRateMentionsText.text(createDisplayText(currentMax[metricMode]));
 
-    rankArrayByValue(tempNodesTopTerm, metricMode, function rankArrayByValueFunc(){
-      nodeArray = tempNodeArray;
-      callback(null);
-    });
+    nodeArray = tempNodeArray;
+    callback(null);
+
+    // rankArrayByValue(tempNodesTopTerm, metricMode, function rankArrayByValueFunc(){
+    //   nodeArray = tempNodeArray;
+    //   callback(null);
+    // });
   };
 
   var previousTwitterUserId;
@@ -1249,74 +1237,74 @@ function ViewTreepack() {
     }
   }
 
-  var nodeTopTermLabels;
+  // var nodeTopTermLabels;
 
-  var updateTopTerm = function(callback) {
+  // var updateTopTerm = function(callback) {
 
-    nodeTopTermLabels = nodeTopTermLabelSvgGroup.selectAll("text")
-      .data(nodesTopTerm, function updateTopTermData(d) { return d.nodeId; });
+  //   nodeTopTermLabels = nodeTopTermLabelSvgGroup.selectAll("text")
+  //     .data(nodesTopTerm, function updateTopTermData(d) { return d.nodeId; });
 
-    nodeTopTermLabels
-      .exit()
-      .style("display", "none")
-      .style("fill-opacity", 1e-6);
+  //   nodeTopTermLabels
+  //     .exit()
+  //     .style("display", "none")
+  //     .style("fill-opacity", 1e-6);
 
-    nodeTopTermLabels
-      .attr("x", xposition)
-      .text(function updateTopTermText(d) {
-        return d.displaytext;
-      })
-      .style("fill", function updateTopTermFill(d) { 
-        if (d.mouseHoverFlag) { return palette.blue; }
-        if (d.category || d.categoryAuto) { return d.categoryColor; }
-        if (d.isTrendingTopic || d.isNumber || d.isCurrency) { return palette.white; }
-        if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
-        return palette.darkgray; 
-      })
-      .style("fill-opacity", function updateTopTermOpacity(d) { 
-        if (d.mouseHoverFlag) { return 1.0; }
-        return topTermLabelOpacityScale(d.ageMaxRatio); 
-      })
-      .style("display", "unset")
-      .transition()
-        .duration(transitionDuration)
-        .attr("y", yposition);
+  //   nodeTopTermLabels
+  //     .attr("x", xposition)
+  //     .text(function updateTopTermText(d) {
+  //       return d.displaytext;
+  //     })
+  //     .style("fill", function updateTopTermFill(d) { 
+  //       if (d.mouseHoverFlag) { return palette.blue; }
+  //       if (d.category || d.categoryAuto) { return d.categoryColor; }
+  //       if (d.isTrendingTopic || d.isNumber || d.isCurrency) { return palette.white; }
+  //       if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
+  //       return palette.darkgray; 
+  //     })
+  //     .style("fill-opacity", function updateTopTermOpacity(d) { 
+  //       if (d.mouseHoverFlag) { return 1.0; }
+  //       return topTermLabelOpacityScale(d.ageMaxRatio); 
+  //     })
+  //     .style("display", "unset")
+  //     .transition()
+  //       .duration(transitionDuration)
+  //       .attr("y", yposition);
 
-    nodeTopTermLabels
-      .enter().append("text")
-      .attr("id", function (d) { return d.nodePoolId + "_labelTopTerm"; })
-      .attr("nodeId", function (d) { return d.nodeId; })
-      .style("text-anchor", "right")
-      .style("alignment-baseline", "bottom")
-      .on("mouseover", nodeMouseOver)
-      .on("mouseout", nodeMouseOut)
-      .on("click", nodeClick)
-      .style("pointer-events", "auto")
-      .attr("x", xposition)
-      .text(function updateTopTermText(d) {
-        return d.displaytext;
-      })
-      .style("font-family", "monospace")
-      .style("display", "unset")
-      .style("fill-opacity", function updateTopTermOpacity(d) { 
-        if (d.mouseHoverFlag) { return 1.0; }
-        return topTermLabelOpacityScale(d.ageMaxRatio); 
-      })
-      .style("fill", function updateTopTermFill(d) { 
-        if (d.mouseHoverFlag) { return palette.blue; }
-        if (d.category || d.categoryAuto) { return d.categoryColor; }
-        if (d.isTrendingTopic || d.isNumber || d.isCurrency) { return palette.white; }
-        if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
-        return palette.darkgray; 
-      })
-      .style("font-size", fontTopTerm)
-      .transition()
-        .duration(2*transitionDuration)
-        .attr("y", yposition);
+  //   nodeTopTermLabels
+  //     .enter().append("text")
+  //     .attr("id", function (d) { return d.nodePoolId + "_labelTopTerm"; })
+  //     .attr("nodeId", function (d) { return d.nodeId; })
+  //     .style("text-anchor", "right")
+  //     .style("alignment-baseline", "bottom")
+  //     .on("mouseover", nodeMouseOver)
+  //     .on("mouseout", nodeMouseOut)
+  //     .on("click", nodeClick)
+  //     .style("pointer-events", "auto")
+  //     .attr("x", xposition)
+  //     .text(function updateTopTermText(d) {
+  //       return d.displaytext;
+  //     })
+  //     .style("font-family", "monospace")
+  //     .style("display", "unset")
+  //     .style("fill-opacity", function updateTopTermOpacity(d) { 
+  //       if (d.mouseHoverFlag) { return 1.0; }
+  //       return topTermLabelOpacityScale(d.ageMaxRatio); 
+  //     })
+  //     .style("fill", function updateTopTermFill(d) { 
+  //       if (d.mouseHoverFlag) { return palette.blue; }
+  //       if (d.category || d.categoryAuto) { return d.categoryColor; }
+  //       if (d.isTrendingTopic || d.isNumber || d.isCurrency) { return palette.white; }
+  //       if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
+  //       return palette.darkgray; 
+  //     })
+  //     .style("font-size", fontTopTerm)
+  //     .transition()
+  //       .duration(2*transitionDuration)
+  //       .attr("y", yposition);
 
 
-    callback(null, null);
-  };
+  //   callback(null, null);
+  // };
 
   var nodeMedia;
   var updateNodeMedia = function(callback) {
@@ -1838,11 +1826,6 @@ function ViewTreepack() {
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
         }
 
-        if (newNode.nodeType === "media"){
-          currentNode.url = newNode.url;
-          currentNode.mediaUrl = newNode.mediaUrl;
-        }
-
         currentNode.displaytext = createDisplayText(currentNode);
 
         localNodeHashMap.set(currentNode.nodePoolId, currentNode);
@@ -1932,9 +1915,7 @@ function ViewTreepack() {
         nodePoolIdcircle = document.getElementById(currentNode.nodePoolId);
         if (nodePoolIdcircle) {
           nodePoolIdcircle.setAttribute("r", 1e-6);
-          // nodePoolIdcircle.setAttribute("visibility", "hidden");
           nodePoolIdcircle.setAttribute("display", "none");
-          // nodePoolIdcircle.setAttribute("opacity", 1e-6);
           nodePoolIdcircle.setAttribute("fill-opacity", 1e-6);
           nodePoolIdcircle.setAttribute("stroke-opacity", 1e-6);
         }
@@ -1965,10 +1946,8 @@ function ViewTreepack() {
   function drawSimulation(callback){
 
     async.series([
-      // function updateNodeMediaSeries (cb){ updateNodeMedia(cb); },
       function updateNodeCirclesSeries (cb){ updateNodeCircles(cb); },
       function updateNodeLabelsSeries (cb){ updateNodeLabels(cb); },
-      // function updateTopTermSeries (cb){ updateTopTerm(cb); }
     ], function drawSimulationCallback (err, results) {
 
       if (
@@ -2281,7 +2260,7 @@ function ViewTreepack() {
     localNodeHashMap.clear();
     nodeIdHashMap.clear();
     nodeArray = [];
-    nodesTopTermHashMap.clear();
+    // nodesTopTermHashMap.clear();
     self.toolTipVisibility(false);
     self.resize();
     self.resetDefaultForce();

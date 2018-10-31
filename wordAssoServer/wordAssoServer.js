@@ -491,16 +491,16 @@ const fieldsExclude = {
 };
 
 const fieldsTransmit = {
-  userId: 1,
+  // userId: 1,
   nodeId: 1,
   nodeType: 1,
   name: 1,
-  previousName: 1,
+  // previousName: 1,
   screenName: 1,
   screenNameLower: 1,
-  description: 1,
-  previousDescription: 1,
-  status: 1,
+  // description: 1,
+  // previousDescription: 1,
+  // status: 1,
   statusId: 1,
   lastTweetId: 1,
   mentions: 1,

@@ -395,21 +395,23 @@ function quit(message) {
   console.log(chalkAlert("WAS | QUIT MESSAGE: " + msg));
   console.error(chalkAlert("WAS | QUIT MESSAGE: " + msg));
 
+  global.dbConnection.close(function () {
+
+    console.log(chalkAlert(
+      "\nWAS | ==========================\n"
+      + "WAS | MONGO DB CONNECTION CLOSED"
+      + "\nWAS | ==========================\n"
+    ));
+
+  });
+
   setTimeout(function() {
 
-    global.dbConnection.close(function () {
-
-      console.log(chalkAlert(
-        "\nWAS | ==========================\n"
-        + "WAS | MONGO DB CONNECTION CLOSED"
-        + "\nWAS | ==========================\n"
-      ));
-
-      process.exit();
-
-    });
+    process.exit();
 
   }, 5000);
+
+
 }
 
 
@@ -430,6 +432,9 @@ let unfollowableUserFile = "unfollowableUser.json";
 let followableSearchTermFile = "followableSearchTerm.json";
 
 let pendingFollowSet = new Set();
+
+let followableUserSet = new Set();
+let categorizeableUserSet = new Set();
 
 let followableSearchTermSet = new Set();
 
@@ -5210,6 +5215,7 @@ function initFollowableSearchTerms(){
   return;
 }
 
+let categorizeableFlag = false;
 let userCategorizeable = function(user){
 
   if (user.nodeType !== "user") { return false; }
@@ -5222,11 +5228,16 @@ let userCategorizeable = function(user){
 
   if (followableRegEx === undefined) { return false; }
 
-  return followableRegEx.test(user.description)
+  categorizeableFlag = followableRegEx.test(user.description)
     || followableRegEx.test(user.screenName) 
     || followableRegEx.test(user.name);
+
+  if (categorizeableFlag) { categorizeableUserSet.add(user.nodeId); }
+
+  return categorizeableFlag;
 };
 
+let followableFlag = false;
 let userFollowable = function(user){
 
   if (user.nodeType !== "user") { return false; }
@@ -5241,9 +5252,14 @@ let userFollowable = function(user){
 
   if (followableRegEx === undefined) { return false; }
 
-  return followableRegEx.test(user.description)
+  followableFlag = followableRegEx.test(user.description)
     || followableRegEx.test(user.screenName) 
     || followableRegEx.test(user.name);
+
+
+  if (followableFlag) { followableUserSet.add(user.nodeId); }
+
+  return followableFlag;
 };
 
 function autoFollowUser(params, callback){
@@ -5611,9 +5627,9 @@ function initTransmitNodeQueueInterval(interval){
               followable = userFollowable(n);
               categorizeable = userCategorizeable(n);
 
-              if (configuration.verbose) { 
-                printUserObj("FOLLWABLE: " + followable, n);
-              }
+              // if (configuration.verbose) { 
+              //   printUserObj("FOLLWABLE: " + followable, n);
+              // }
 
               if (followable) {
                 if (tssChild !== undefined) { 
@@ -5742,9 +5758,9 @@ function initTransmitNodeQueueInterval(interval){
 
 function transmitNodes(tw, callback){
 
-  if (configuration.verbose) {
-    console.log("WAS | TX NODES | TW ID: " + tw.tweetId + " | @" + tw.user.screenName);
-  }
+  // if (configuration.verbose) {
+  //   console.log("WAS | TX NODES | TW ID: " + tw.tweetId + " | @" + tw.user.screenName);
+  // }
 
   async.parallel({
     user: function(cb){
@@ -6355,7 +6371,7 @@ function initTweetParserMessageRxQueueInterval(interval){
         }
         else {
 
-          console.log(chalkInfo("WAS | PARSED TW"
+          debug(chalkInfo("WAS | PARSED TW"
             + " [ TPMRQ: " + tweetParserMessageRxQueue.length + "]"
             + " | " + tweetObj.tweetId
             + " | USR: " + tweetObj.user.screenName
@@ -6366,7 +6382,7 @@ function initTweetParserMessageRxQueueInterval(interval){
           ));
 
 
-          if (dbuChild && statsObj.dbuChildReady) {
+          if (dbuChild && statsObj.dbuChildReady && (followableUserSet.has(tweetObj.user.nodeId) || categorizeableUserSet.has(tweetObj.user.nodeId))) {
             dbuChild.send({op: "TWEET", tweetObj: tweetObj});
           }
 
@@ -7320,8 +7336,7 @@ async function initDbuChild(params){
       title: "wa_node_dbu",
       interval: configuration.dbuInterval,
       testMode: configuration.testMode,
-      // verbose: configuration.verbose
-      verbose: true
+      verbose: configuration.verbose
     }, function dbuMessageRxError(err){
       if (err) {
         console.log(chalkError("WAS | *** DBU SEND ERROR"

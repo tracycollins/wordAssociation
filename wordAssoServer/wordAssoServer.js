@@ -6355,7 +6355,7 @@ function initTweetParserMessageRxQueueInterval(interval){
         }
         else {
 
-          debug(chalkInfo("PARSED TW"
+          console.log(chalkInfo("WAS | PARSED TW"
             + " [ TPMRQ: " + tweetParserMessageRxQueue.length + "]"
             + " | " + tweetObj.tweetId
             + " | USR: " + tweetObj.user.screenName
@@ -6365,6 +6365,10 @@ function initTweetParserMessageRxQueueInterval(interval){
             + " | WDs: " + tweetObj.words.length
           ));
 
+
+          if (dbuChild && statsObj.dbuChildReady) {
+            dbuChild.send({op: "TWEET", tweetObj: tweetObj});
+          }
 
           /*
 

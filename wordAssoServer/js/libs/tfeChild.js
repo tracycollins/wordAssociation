@@ -260,8 +260,6 @@ let userServerController;
 
 let userServerControllerReady = false;
 
-require("isomorphic-fetch");
-
 function connectDb(callback){
 
   statsObj.status = "CONNECT DB";
@@ -1396,7 +1394,9 @@ async function initUserChangeDbQueueInterval(cnf){
         }
 
         if (!userCategorizeQueue.includes(user.userId) && (userCategorizeQueue.length < USER_CAT_QUEUE_MAX_LENGTH)) {
+
           userCategorizeQueue.push(user);
+
           debug(chalkInfo("TFE | USER_CATEGORIZE"
             + " [ USQ: " + userCategorizeQueue.length + "]"
             + " | FLWRs: " + user.followersCount
@@ -1406,6 +1406,7 @@ async function initUserChangeDbQueueInterval(cnf){
             + " | " + user.name
             + "\nTFE | USER_SHOW | DESC: " + user.description
           ));
+          
         }
 
         userChangeDbQueueReady = true;

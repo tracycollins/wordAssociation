@@ -66,25 +66,15 @@ const mongoose = require("mongoose");
 mongoose.Promise = global.Promise;
 
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
-// const wordAssoDb = require("../../mongooseTwitter");
-
 
 configEvents.on("DB_CONNECT", function configEventDbConnect(){
 
   TweetServerController = require("@threeceelabs/tweet-server-controller");
-  // TweetServerController = require("../../../../tweetServerController");
   tweetServerController = new TweetServerController("TWP");
 
   tweetServerController.on("ready", function(err){
     tweetServerControllerReady = true;
     console.log(chalk.green("TWP | TSC READY"));
-
-    // if (cnf.networkObj) { 
-    //   tweetServerController.loadNeuralNetwork({networkObj: cnf.networkObj}, function(){
-    //     networkReady = true;
-    //   });
-    // }
-
   });
 
   tweetServerController.on("error", function(err){
@@ -261,10 +251,8 @@ function initTweetParserQueueInterval(cnf){
   tweetParserQueueInterval = setInterval(function(){
 
     if (tweetServerController 
-      // && tweetServerController.ready() 
       && (tweetParserQueue.length > 0) 
       && tweetParserQueueReady)
-      // && tweetParserQueueReady && networkReady)
     {
 
       tweetParserQueueReady = false;
@@ -317,6 +305,7 @@ function initTweetParserQueueInterval(cnf){
           process.send({op: "parsedTweet", tweetObj: tweetObj}, function(err){
 
             deltaTweetParserMessage = process.hrtime(deltaTweetParserMessageStart);
+
             if (deltaTweetParserMessage[0] > 0) { 
               console.log.bind(console, "TWP | *** SEND DELTA: " + deltaTweetParserMessage[0] + "." + deltaTweetParserMessage[1]); 
               console.log("TWP | *** SEND DELTA: " + deltaTweetParserMessage[0] + "." + deltaTweetParserMessage[1]); 
@@ -443,16 +432,6 @@ process.on("message", function(m) {
         cb();
 
       }, function(){
-
-        // if (tweetServerController === undefined) {
-        //   console.log(chalkAlert("TWP | *** TWEET SERVER CONTROLLER UNDEFINED ??? ON NETWORK OP"));
-        //   return;
-        // }
-
-        // tweetServerController.loadNeuralNetwork({networkObj: cnf.networkObj}, function(){
-        //   networkReady = true;
-        // });
-
       });
     break;
 

@@ -201,9 +201,9 @@ const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const fetch = require("isomorphic-fetch"); // or another library of choice.
 const Dropbox = require("dropbox").Dropbox;
 
-const Monitoring = require("@google-cloud/monitoring");
+// const Monitoring = require("@google-cloud/monitoring");
 
-let googleMonitoringClient;
+// let googleMonitoringClient;
 
 const HashMap = require("hashmap").HashMap;
 const ignoreIpSet = new Set();

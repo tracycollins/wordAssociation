@@ -4,9 +4,10 @@
 
 process.title = "node_databaseUpdate";
 
-const DEFAULT_VERBOSE = false;
+const DEFAULT_VERBOSE = true;
 const DEFAULT_TEST_MODE = true;
 const DEFAULT_USER_UPDATE_QUEUE_INTERVAL = 100;
+const DEFAULT_MAX_UPDATE_QUEUE = 500;
 
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
@@ -129,8 +130,19 @@ let userServerControllerReady = false;
 
 let configuration = {}; // merge of defaultConfiguration & hostConfiguration
 configuration.processName = process.env.DBU_PROCESS_NAME || "node_databaseUpdate";
-configuration.verbose = false;
-configuration.testMode = false; // per tweet test mode
+configuration.verbose = DEFAULT_VERBOSE;
+configuration.testMode = DEFAULT_TEST_MODE; // per tweet test mode
+configuration.maxUserUpdateQueue = DEFAULT_MAX_UPDATE_QUEUE;
+configuration.inputTypes = [ 
+  "emoji",
+  "hashtags",
+  "images",
+  "userMentions",
+  "mentions",
+  "sentiment",
+  "urls",
+  "words"
+];
 
 function msToTime(duration) {
 
@@ -314,18 +326,71 @@ function userUpdateDb(tweetObj){
     // tweetObj.words = results.words || [];
     // tweetObj.place = results.place;
 
+    console.log(chalkLog("DBU | USER UPDATE DB"
+      + "\n" + jsonPrint(tweetObj)
+    ));
+
     let userHistograms = [];
 
     async.each(Object.keys(tweetObj), function(entityType, cb0){
 
       if (entityType === "user") { return cb0(); }
+      if (!configuration.inputTypes.includes(entityType)) { return cb0(); }
 
       if (tweetObj[entityType].length === 0) { return cb0(); }
 
-      async.each(Object.keys(tweetObj[entityType]), function(entity, cb1){
+      console.log(chalkLog("DBU | USER HIST"
+        + " | @" + tweetObj.user.screenName
+        + " | ENTITY TYPE: " + entityType.toUpperCase()
+      ));
+
+      async.each(tweetObj[entityType], function(entityObj, cb1){
+
+        if (!entityObj) {
+          console.log(chalkAlert("DBU | !!! NULL entity? | ENTITY TYPE: " + entityType));
+          console.log(chalkAlert("DBU | !!! NULL entity?\n" + jsonPrint(tweetObj)));
+          return cb1();
+        }
+
+        let entity;
+
+        switch (entityType) {
+          case "hashtags":
+            entity = "#" + entityObj.nodeId;
+          break;
+          case "mentions":
+          case "userMentions":
+            entity = "@" + entityObj.screenName;
+          break;
+          case "media":
+            entity = entityObj.nodeId;
+          break;
+          case "emoji":
+            entity = entityObj.nodeId;
+          break;
+          case "urls":
+            entity = entityObj.nodeId;
+          break;
+          case "words":
+            entity = entityObj.nodeId;
+          break;
+          case "place":
+            entity = entityObj.nodeId;
+          break;
+        }
+
+        if (!tweetObj.user.histograms || (tweetObj.user.histograms === undefined)){
+          tweetObj.user.histograms = {};
+          tweetObj.user.histograms[entityType] = {};
+          tweetObj.user.histograms[entityType][entity] = 0;
+        }
 
         if (!tweetObj.user.histograms[entityType] || (tweetObj.user.histograms[entityType] === undefined)){
           tweetObj.user.histograms[entityType] = {};
+          tweetObj.user.histograms[entityType][entity] = 0;
+        }
+
+        if (!tweetObj.user.histograms[entityType][entity] || (tweetObj.user.histograms[entityType][entity] === undefined)){
           tweetObj.user.histograms[entityType][entity] = 0;
         }
 
@@ -349,7 +414,7 @@ function userUpdateDb(tweetObj){
 
     }, function(err0){
 
-      if (err) { return reject(err); }
+      if (err0) { return reject(err0); }
 
       resolve(tweetObj.user);
 
@@ -372,10 +437,9 @@ function initUserUpdateQueueInterval(interval){
 
         userUpdateQueueReady = false;
 
-        tweetObj = userUpdateQueue.shift();
-
         try {
-          user = await userUpdateDb(tweetObj);
+          tweetObj = userUpdateQueue.shift();
+          let updatedUser = await userUpdateDb(tweetObj);
         }
         catch(err){
           console.log(chalkError("DBU | *** USER UPDATE DB ERROR: " + err));
@@ -451,8 +515,8 @@ process.on("message", function(m) {
     break;
 
     default:
-      console.error(chalkError("DBU | TWP | *** DBU UNKNOWN OP"
-        + " | INTERVAL: " + m.op
+      console.error(chalkError("DBU | *** DBU UNKNOWN OP"
+        + " | OP: " + m.op
       ));
 
   }

@@ -48,7 +48,7 @@ const DEFAULT_CURSOR_BATCH_SIZE = 100;
 
 const DEFAULT_THREECEE_USERS = ["altthreecee00", "altthreecee01", "altthreecee02", "altthreecee03", "altthreecee04", "altthreecee05"];
 
-const DEFAULT_SORTER_CHILD_ID = "wa_node_sorter";
+const DEFAULT_DBU_CHILD_ID = "wa_node_dbu";
 const DEFAULT_TFE_CHILD_ID = "wa_node_tfe";
 const DEFAULT_TSS_CHILD_ID = "wa_node_tss";
 const DEFAULT_TWEET_PARSER_CHILD_ID = "wa_node_tweetParser";
@@ -61,6 +61,7 @@ const DEFAULT_TWITTER_CONFIG_THREECEE_FILE = DEFAULT_TWITTER_CONFIG_THREECEE + "
 
 const DEFAULT_INTERVAL = 10;
 const DEFAULT_PING_INTERVAL = ONE_MINUTE;
+const DBU_PING_INTERVAL = ONE_SECOND;
 const TFE_PING_INTERVAL = 600*ONE_SECOND;
 const DEFAULT_DROPBOX_LIST_FOLDER_LIMIT = 50;
 const DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT = 1*ONE_SECOND;
@@ -247,6 +248,8 @@ statsObj.currentThreeceeUserIndex = 0;
 statsObj.currentThreeceeUser = "altthreecee00";
 statsObj.threeceeUsersConfiguredFlag = false;
 statsObj.twitNotReadyWarning = false;
+
+statsObj.dbuChildReady = false;
 statsObj.tfeChildReady = false;
 statsObj.tssChildReady = false;
 
@@ -753,6 +756,11 @@ let twitterSearchNodeQueue = [];
 let twitterSearchNodeQueueInterval;
 let twitterSearchNodeQueueReady = false;
 
+let dbuPingInterval;
+let dbuPingSent = false;
+let dbuPongReceived = false;
+let dbuPingId = false;
+
 let tssPingInterval;
 let tssPingSent = false;
 let tssPongReceived = false;
@@ -768,10 +776,6 @@ let tweetParserPingSent = false;
 let tweetParserPongReceived = false;
 let tweetParserPingId = false;
 
-let sorterPingInterval;
-let sorterPingSent = false;
-let sorterPongReceived = false;
-let sorterPingId = false;
 
 let categoryHashmapsInterval;
 let statsInterval;
@@ -1722,9 +1726,9 @@ let sorterMessageRxQueue = [];
 const ignoreWordHashMap = new HashMap();
 const localHostHashMap = new HashMap();
 
+let dbuChild;
 let tfeChild;
 let tssChild;
-let sorterChild;
 let parserChild;
 
 function initStats(callback){
@@ -1888,7 +1892,6 @@ function dropboxLongPoll(last_cursor, callback) {
       callback(err, null);
     });
 }
-
 
 function dropboxFolderGetLastestCursor(folder, callback) {
 
@@ -3091,6 +3094,16 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
 
   switch(childObj.childId){
 
+    case DEFAULT_DBU_CHILD_ID:
+
+      console.log(chalkError("WAS | *** KILL DBU CHILD"));
+
+      killChild({childId: DEFAULT_DBU_CHILD_ID}, function(err, numKilled){
+        initDbuChild({childId: DEFAULT_DBU_CHILD_ID});
+      });
+
+    break;
+
     case DEFAULT_TFE_CHILD_ID:
 
       console.log(chalkError("WAS | *** KILL TFE CHILD"));
@@ -3125,7 +3138,6 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
 
   }
 });
-
 
 configEvents.on("INTERNET_READY", function internetReady() {
 
@@ -3308,7 +3320,6 @@ configEvents.on("INTERNET_READY", function internetReady() {
   initAppRouting(function initAppRoutingComplete() {
     // initLoadBestNetworkInterval(ONE_MINUTE+1);
   });
-
 });
 
 configEvents.on("INTERNET_NOT_READY", function internetNotReady() {
@@ -3355,7 +3366,6 @@ configEvents.on("DB_CONNECT", async function configEventDbConnect(){
     console.log(chalkError("WAS | *** ERROR: LOAD CATEGORY HASHMAPS: " + err));
     console.error(err);
   }
-
 });
 
 
@@ -5539,6 +5549,7 @@ function initTransmitNodeQueueInterval(interval){
       deltaTxNodeStart = process.hrtime();
 
       transmitNodeQueueReady = false;
+
       nodeObj = transmitNodeQueue.shift();
 
       if (!nodeObj) {
@@ -6354,6 +6365,14 @@ function initTweetParserMessageRxQueueInterval(interval){
             + " | WDs: " + tweetObj.words.length
           ));
 
+
+          /*
+
+
+          
+
+          */
+
           if (transmitNodeQueue.length < configuration.maxQueue) {
 
             transmitNodes(tweetObj, function transmitNode(err){
@@ -6534,6 +6553,89 @@ function initKeySortInterval(interval){
   }, interval);
 
   return;
+}
+
+function initDbuPingInterval(interval){
+
+  clearInterval(dbuPingInterval);
+
+  dbuPingSent = false;
+  dbuPongReceived = false;
+
+  dbuPingId = moment().valueOf();
+
+  if ((childrenHashMap[DEFAULT_DBU_CHILD_ID] !== undefined) 
+    && childrenHashMap[DEFAULT_DBU_CHILD_ID].child) {
+
+    dbuPingInterval = setInterval(function(){
+
+      if (!dbuPingSent) {
+
+        dbuPingId = moment().valueOf();
+
+        childrenHashMap[DEFAULT_DBU_CHILD_ID].child.send({op: "PING", pingId: dbuPingId}, function(err){
+
+          dbuPingSent = true; 
+
+          if (err) {
+
+            console.log(chalkError("WAS | *** DBU SEND PING ERROR: " + err));
+
+            killChild({childId: DEFAULT_DBU_CHILD_ID}, function(err, numKilled){
+              dbuPongReceived = false;
+              initDbuChild({childId: DEFAULT_DBU_CHILD_ID});
+            });
+
+            return;
+          }
+
+          console.log(chalkInfo("WAS | >PING | DBU | PING ID: " + getTimeStamp(dbuPingId)));
+
+        });
+
+      }
+      else if (dbuPingSent && dbuPongReceived) {
+
+        dbuPingId = moment().valueOf();
+
+        dbuPingSent = false; 
+        dbuPongReceived = false;
+
+        childrenHashMap[DEFAULT_DBU_CHILD_ID].child.send({op: "PING", pingId: dbuPingId}, function(err){
+
+          if (err) {
+
+            console.log(chalkError("WAS | *** DBU SEND PING ERROR: " + err));
+
+            killChild({childId: DEFAULT_DBU_CHILD_ID}, function(err, numKilled){
+              dbuPongReceived = false;
+              initDbuChild({childId: DEFAULT_DBU_CHILD_ID});
+            });
+
+            return;
+          }
+
+          if (configuration.verbose) { console.log(chalkInfo("WAS | >PING | DBU | PING ID: " + getTimeStamp(dbuPingId))); }
+
+          dbuPingSent = true; 
+
+        });
+
+      }
+      else {
+
+        console.log(chalkAlert("WAS | *** PONG TIMEOUT | DBU"
+          + " | TIMEOUT: " + interval
+          + " | NOW: " + getTimeStamp()
+          + " | PING ID: " + getTimeStamp(dbuPingId)
+          + " | ELAPSED: " + msToTime(moment().valueOf() - dbuPingId)
+        ));
+        
+        slackPostMessage(slackErrorChannel, "\n*CHILD ERROR*\nTWEET_PARSER\nPONG TIMEOUT");
+      }
+    }, interval);
+
+  }
 }
 
 function initTfePingInterval(interval){
@@ -6908,7 +7010,6 @@ async function initTssChild(params){
     });
 
   });
-
 }
 
 async function initTfeChild(params){
@@ -7118,7 +7219,130 @@ async function initTfeChild(params){
     });
 
   });
+}
 
+async function initDbuChild(params){
+
+  statsObj.dbuChildReady = false;
+
+  console.log(chalk.bold.black("WAS | INIT DBU CHILD\n" + jsonPrint(params)));
+
+  return new Promise(async function(resolve, reject){
+
+    const dbu = cp.fork(`${__dirname}/js/libs/dbuChild.js`);
+
+    childrenHashMap[params.childId] = {};
+    childrenHashMap[params.childId].pid = dbu.pid;
+    childrenHashMap[params.childId].childId = params.childId;
+    childrenHashMap[params.childId].title = "wa_node_dbu";
+    childrenHashMap[params.childId].status = "NEW";
+    childrenHashMap[params.childId].errors = 0;
+
+    dbu.on("message", function dbuMessageRx(m){
+
+      childrenHashMap[params.childId].status = "RUNNING";  
+
+      debug(chalkLog("DBU RX MESSAGE"
+        + " | OP: " + m.op
+      ));
+
+      switch (m.op) {
+
+        case "ERROR":
+          console.log(chalkError("WAS | <DBU | ERROR"
+            + " | ERROR TYPE: " + m.errorType
+            + "\n" + jsonPrint(m.error)
+          ));
+        break;
+
+        case "PONG":
+          dbuPongReceived = m.pongId;
+          childrenHashMap[params.childId].status = "RUNNING";
+          if (configuration.verbose) {
+            console.log(chalkInfo("WAS | <DBU | PONG"
+              + " | NOW: " + getTimeStamp()
+              + " | PONG ID: " + getTimeStamp(m.pongId)
+              + " | RESPONSE TIME: " + msToTime(moment().valueOf() - m.pongId)
+            ));
+          }
+        break;
+
+        default:
+          console.log(chalkError("WAS | DBU | *** ERROR *** UNKNOWN OP: " + m.op));
+      }
+    });
+
+    dbu.on("error", function dbuError(err){
+      console.log(chalkError(getTimeStamp()
+        + " | *** DBU ERROR ***"
+        + " \n" + jsonPrint(err)
+      ));
+      statsObj.dbuSendReady = false;
+      statsObj.dbuChildReady = false;
+      clearInterval(dbuPingInterval);
+      childrenHashMap[params.childId].status = "ERROR";
+    });
+
+    dbu.on("exit", function dbuExit(code){
+      console.log(chalkError(getTimeStamp()
+        + " | *** DBU EXIT ***"
+        + " | EXIT CODE: " + code
+      ));
+      statsObj.dbuSendReady = false;
+      statsObj.dbuChildReady = false;
+      clearInterval(dbuPingInterval);
+      childrenHashMap[params.childId].status = "EXIT";
+    });
+
+    dbu.on("close", function dbuClose(code){
+      console.log(chalkError(getTimeStamp()
+        + " | *** DBU CLOSE ***"
+        + " | EXIT CODE: " + code
+      ));
+      statsObj.dbuSendReady = false;
+      statsObj.dbuChildReady = false;
+      clearInterval(dbuPingInterval);
+      childrenHashMap[params.childId].status = "CLOSE";
+    });
+
+    childrenHashMap[params.childId].child = dbu;
+
+    statsObj.dbuChildReady = true;
+
+    dbuChild = dbu;
+
+    dbuChild.send({
+      op: "INIT",
+      title: "wa_node_dbu",
+      interval: configuration.dbuInterval,
+      testMode: configuration.testMode,
+      // verbose: configuration.verbose
+      verbose: true
+    }, function dbuMessageRxError(err){
+      if (err) {
+        console.log(chalkError("WAS | *** DBU SEND ERROR"
+          + " | " + err
+        ));
+        console.error(err);
+        statsObj.dbuSendReady = false;
+        statsObj.dbuChildReady = false;
+        clearInterval(dbuPingInterval);
+        childrenHashMap[params.childId].status = "ERROR";
+        reject(err);
+      }
+      else {
+        statsObj.dbuSendReady = true;
+        statsObj.dbuChildReady = true;
+        childrenHashMap[params.childId].status = "INIT";
+        clearInterval(dbuPingInterval);
+        setTimeout(function(){
+          // initDbuPingInterval(DBU_PING_INTERVAL);
+        }, 1000);
+        resolve();
+      }
+    });
+
+  });
 }
 
 function initTweetParserPingInterval(interval){
@@ -7516,8 +7740,6 @@ function initRateQinterval(interval){
     resolve();
 
   });
-
-
 }
 
 let loadBestNetworkInterval;
@@ -7761,7 +7983,6 @@ function initConfig(){
     });
 
   });
-
 }
 
 function initLoadBestNetworkInterval(interval){
@@ -7980,11 +8201,11 @@ function initStdIn(callback){
       break;
       case "t":
         configuration.testMode = !configuration.testMode;
-        console.log(chalkRedBold("TNN | TEST MODE: " + configuration.testMode));
+        console.log(chalkAlert("TNN | TEST MODE: " + configuration.testMode));
       break;
       case "v":
         configuration.verbose = !configuration.verbose;
-        console.log(chalkRedBold("TNN | VERBOSE: " + configuration.verbose));
+        console.log(chalkAlert("TNN | VERBOSE: " + configuration.verbose));
       break;
       case "q":
         quit();
@@ -8010,7 +8231,6 @@ function initStdIn(callback){
 
   if (callback !== undefined) { callback(null, stdin); }
 }
-
 
 function initialize(callback){
 
@@ -8066,7 +8286,6 @@ function initialize(callback){
   loadBestRuntimeNetwork(function(err, bestNetworkId){
     callback();
   });
-
 }
 
 function initIgnoreWordsHashMap() {
@@ -8320,7 +8539,6 @@ function initCategoryHashmapsInterval(interval){
 
     resolve();
   });
-
 }
 
 function twitterGetUserUpdateDb(user, callback){
@@ -8637,7 +8855,6 @@ function twitterSearchNode(params, callback) {
       });
 
     }
-
   }
 }
 
@@ -8703,6 +8920,7 @@ initialize(async function initializeComplete(err) {
       await initStatsInterval(configuration.statsUpdateInterval);
       await initLoadBestNetworkInterval(ONE_MINUTE+1);
 
+      await initDbuChild({childId: DEFAULT_DBU_CHILD_ID});
       await initTfeChild({childId: DEFAULT_TFE_CHILD_ID});
       await initTssChild({childId: DEFAULT_TSS_CHILD_ID});
       await initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});

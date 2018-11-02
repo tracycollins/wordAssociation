@@ -326,7 +326,7 @@ function userUpdateDb(tweetObj){
     // tweetObj.words = results.words || [];
     // tweetObj.place = results.place;
 
-    console.log(chalkLog("DBU | USER UPDATE DB"
+    debug(chalkLog("DBU | USER UPDATE DB"
       + "\n" + jsonPrint(tweetObj)
     ));
 
@@ -347,8 +347,9 @@ function userUpdateDb(tweetObj){
       async.each(tweetObj[entityType], function(entityObj, cb1){
 
         if (!entityObj) {
-          console.log(chalkAlert("DBU | !!! NULL entity? | ENTITY TYPE: " + entityType));
-          console.log(chalkAlert("DBU | !!! NULL entity?\n" + jsonPrint(tweetObj)));
+          console.log(chalkAlert("DBU | !!! NULL entity? | ENTITY TYPE: " + entityType + " | entityObj: " + entityObj));
+          console.log(chalkAlert("DBU | !!! NULL entity? | ENTITY TYPE: " + entityType + "\nentityObj\n" + jsonPrint(entityObj)));
+          // console.log(chalkAlert("DBU | !!! NULL entity?\n" + jsonPrint(tweetObj)));
           return cb1();
         }
 

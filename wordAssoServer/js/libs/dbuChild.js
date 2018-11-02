@@ -4,8 +4,8 @@
 
 process.title = "node_databaseUpdate";
 
-const DEFAULT_VERBOSE = true;
-const DEFAULT_TEST_MODE = true;
+const DEFAULT_VERBOSE = false;
+const DEFAULT_TEST_MODE = false;
 const DEFAULT_USER_UPDATE_QUEUE_INTERVAL = 100;
 const DEFAULT_MAX_UPDATE_QUEUE = 500;
 
@@ -339,7 +339,7 @@ function userUpdateDb(tweetObj){
 
       if (tweetObj[entityType].length === 0) { return cb0(); }
 
-      console.log(chalkLog("DBU | USER HIST"
+      debug(chalkLog("DBU | USER HIST"
         + " | @" + tweetObj.user.screenName
         + " | ENTITY TYPE: " + entityType.toUpperCase()
       ));
@@ -348,7 +348,7 @@ function userUpdateDb(tweetObj){
 
         if (!entityObj) {
           console.log(chalkAlert("DBU | !!! NULL entity? | ENTITY TYPE: " + entityType + " | entityObj: " + entityObj));
-          console.log(chalkAlert("DBU | !!! NULL entity? | ENTITY TYPE: " + entityType + "\nentityObj\n" + jsonPrint(entityObj)));
+          // console.log(chalkAlert("DBU | !!! NULL entity? | ENTITY TYPE: " + entityType + "\nentityObj\n" + jsonPrint(entityObj)));
           // console.log(chalkAlert("DBU | !!! NULL entity?\n" + jsonPrint(tweetObj)));
           return cb1();
         }

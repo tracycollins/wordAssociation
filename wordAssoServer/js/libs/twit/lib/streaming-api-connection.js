@@ -111,6 +111,13 @@ StreamingAPIConnection.prototype._startPersistentConnection = function () {
         helpers.attachBodyInfoToError(twitErr, body);
         self.emit('parser-error', twitErr);
       });
+    } else if (self.response.statusCode === 401) {
+      // close the connection forcibly so a reconnect is scheduled by `self.onClose()`
+        // =====================
+        // tc 11/02/2018: trying to catch the Bad Twitter streaming request: 401 error before
+        // it crashes the app.
+        // =====================
+      self._scheduleReconnect();
     } else if (self.response.statusCode === 420) {
       // close the connection forcibly so a reconnect is scheduled by `self.onClose()`
       self._scheduleReconnect();

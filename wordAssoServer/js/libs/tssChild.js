@@ -10,6 +10,9 @@ const DEFAULT_CURSOR_BATCH_SIZE = 5000;
 const DEFAULT_INFO_TWITTER_USER = "threecee";
 const USER_SHOW_QUEUE_MAX_LENGTH = 500;
 
+const USER_CACHE_DEFAULT_TTL = 10;
+const USER_CACHE_CHECK_PERIOD = 1;
+
 const MAX_READY_ACK_WAIT_COUNT = 10;
 
 const TWITTER_MAX_TRACKING_NUMBER = process.env.TWITTER_MAX_TRACKING_NUMBER || 400;
@@ -55,6 +58,23 @@ const treeify = require("../libs/treeify");
 const Measured = require("measured");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const HashMap = require("hashmap").HashMap;
+const NodeCache = require("node-cache");
+
+// ==================================================================
+// NODE CACHE
+// ==================================================================
+let userCacheTtl = process.env.USER_CACHE_DEFAULT_TTL;
+if (userCacheTtl === undefined) { userCacheTtl = USER_CACHE_DEFAULT_TTL;}
+console.log("TSS | USER CACHE TTL: " + userCacheTtl + " SECONDS");
+
+let userCacheCheckPeriod = process.env.USER_CACHE_CHECK_PERIOD;
+if (userCacheCheckPeriod === undefined) { userCacheCheckPeriod = USER_CACHE_CHECK_PERIOD;}
+console.log("TSS | USER CACHE CHECK PERIOD: " + userCacheCheckPeriod + " SECONDS");
+
+const userCache = new NodeCache({
+  stdTTL: userCacheTtl,
+  checkperiod: userCacheCheckPeriod
+});
 
 const debug = require("debug")("tss");
 const debugCache = require("debug")("cache");
@@ -2614,22 +2634,38 @@ process.on("message", function(m) {
 
     case "USER_SHOW":
 
-      if (!userShowQueue.includes(m.user.userId) && (userShowQueue.length < USER_SHOW_QUEUE_MAX_LENGTH)) {
+      if (userShowQueue.length < USER_SHOW_QUEUE_MAX_LENGTH) {
 
-        userShowQueue.push(m.user);
+        userCache.get(m.user.userId, function(err, userCacheValue){
 
-        console.log(chalkInfo("TSS | USER_SHOW"
-          + " | 3C FOLLOWING: " + m.user.following
-          + " | 3C @" + m.user.threeceeFollowing
-          + " [ USQ: " + userShowQueue.length + "]"
-          + " | FLWRs: " + m.user.followersCount
-          + " | FRNDs: " + m.user.friendsCount
-          + " | USER " + m.user.userId
-          + " | @" + m.user.screenName
-          + " | " + m.user.name
-          + "\nTSS | USER_SHOW | DESC: " + m.user.description
-        ));
+          if (err) {
+            console.log(chalkError("TSS | *** USER CACHE ERROR: " + err));
+          }
+
+          if (userCacheValue) { 
+            console.log(chalkLog("TSS | USER CACHE HIT: " + m.user.userId));
+            return; 
+          }
+
+          userShowQueue.push(m.user);
+
+          userCache.set(m.user.userId, true);
+
+          console.log(chalkInfo("TSS | USER_SHOW"
+            + " | 3C FOLLOWING: " + m.user.following
+            + " | 3C @" + m.user.threeceeFollowing
+            + " [ USQ: " + userShowQueue.length + "]"
+            + " | FLWRs: " + m.user.followersCount
+            + " | FRNDs: " + m.user.friendsCount
+            + " | USER " + m.user.userId
+            + " | @" + m.user.screenName
+            + " | " + m.user.name
+            + "\nTSS | USER_SHOW | DESC: " + m.user.description
+          ));
+
+        });
       }
+
     break;
 
     case "FOLLOW":

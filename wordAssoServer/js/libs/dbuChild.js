@@ -26,6 +26,8 @@ const debug = require("debug")("dbu");
 const debugCache = require("debug")("cache");
 const debugQ = require("debug")("queue");
 const async = require("async");
+const merge = require("merge");
+const _ = require("lodash");
 
 const chalk = require("chalk");
 const chalkAlert = chalk.red;
@@ -308,6 +310,47 @@ function initialize(){
 
 }
 
+function mergeHistograms(params){
+
+  return new Promise(function(resolve, reject){
+
+    let histA = params.histogramA;
+    let histB = params.histogramB;
+
+    let histogramMerged = {};
+
+    const entityTypeArray = _.union(Object.keys(histA), Object.keys(histB));
+
+    entityTypeArray.forEach(function(entityType){
+
+      histogramMerged[entityType] = {};
+
+      if (histA[entityType] === undefined) { histA[entityType] = {}; }
+      if (histB[entityType] === undefined) { histB[entityType] = {}; }
+
+      const entityArray = _.union(Object.keys(histA[entityType]), Object.keys(histB[entityType]));
+
+      entityArray.forEach(function(entity){
+
+        histogramMerged[entityType][entity] = 0;
+
+        if (histA[entityType][entity] !== undefined) {  histogramMerged[entityType][entity] += histA[entityType][entity]; }
+        if (histB[entityType][entity] !== undefined) {  histogramMerged[entityType][entity] += histB[entityType][entity]; }
+
+        console.log(chalkLog("histogramMerged | " + entityType + " | " + entity + ": " + histogramMerged[entityType][entity]));
+
+      });
+
+    });
+
+    console.log(chalkLog("histogramMerged\n" + jsonPrint(histogramMerged)));
+
+    resolve(histogramMerged);
+
+  });
+
+}
+
 let userUpdateQueueInterval;
 let userUpdateQueueReady = false;
 let userUpdateQueue = [];
@@ -417,7 +460,39 @@ function userUpdateDb(tweetObj){
 
       if (err0) { return reject(err0); }
 
-      resolve(tweetObj.user);
+      User.findOne({ nodeId: tweetObj.user.nodeId }).exec(async function(err, user) {
+
+        if (err) {
+          console.log(chalkError("TSS | *** FIND USER DB: " + err));
+          return reject(err);
+        }
+
+        if (!user) {
+          console.log(chalkLog("TSS | USER DB MISS: @" + tweetObj.user.screenName));
+          return resolve(null);
+        }
+
+        let histogramMerged = {};
+
+        try {
+          histogramMerged = await mergeHistograms({histogramA: tweetObj.user.histograms, histogramB: user.histograms});
+        }
+        catch(err){
+          console.log(chalkError("TSS | *** ERROR mergeHistograms: @" + updatedUser.screenName + " | " + err));
+          return reject(err);
+        }
+
+        updatedUser.save()
+        .then(function() {
+          resolve(updatedUser);
+        })
+        .catch(function(err) {
+          console.log(chalkError("TSS | *** ERROR USER SAVE: @" + updatedUser.screenName + " | " + err));
+          reject(err);
+        });
+
+    });
+
 
     });
 

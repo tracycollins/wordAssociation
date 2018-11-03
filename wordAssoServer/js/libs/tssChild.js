@@ -921,6 +921,7 @@ function initInfoTwit(params, callback){
     threeceeUserObj.stats.twitterRateLimitRemainingTime = 0;
     threeceeUserObj.stats.twitterRateLimitExceptionFlag = false;
 
+
     threeceeUserObj.screenName = twitterConfig.screenName ;
     threeceeUserObj.twitterConfig = {} ;
     threeceeUserObj.twitterConfig = twitterConfig ;
@@ -1375,7 +1376,7 @@ function initSearchStream(params, callback){
 
   threeceeUserObj.searchStream.on("error", function(err){
 
-    threeceeUserObj.searchStream.stop();
+    // threeceeUserObj.searchStream.stop();
 
     console.log(chalkError("TSS | " + getTimeStamp()
       + " | @" + threeceeUserObj.screenName

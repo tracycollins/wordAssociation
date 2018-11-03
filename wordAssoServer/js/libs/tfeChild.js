@@ -148,7 +148,7 @@ configuration.inputTypes = [
   "emoji",
   "hashtags",
   "images",
-  "mentions",
+  "userMentions",
   "sentiment",
   "urls",
   "words"
@@ -1884,7 +1884,7 @@ setTimeout(function(){
         console.log(chalkLog("TFE | USC READY | " + appname));
       });
 
-      User = mongoose.model("User", userModel.UserSchema);
+      // User = mongoose.model("User", userModel.UserSchema);
 
       dbConnectionReady = true;
     });

@@ -478,21 +478,20 @@ function userUpdateDb(tweetObj){
           histogramMerged = await mergeHistograms({histogramA: tweetObj.user.histograms, histogramB: user.histograms});
         }
         catch(err){
-          console.log(chalkError("TSS | *** ERROR mergeHistograms: @" + updatedUser.screenName + " | " + err));
+          console.log(chalkError("TSS | *** ERROR mergeHistograms: @" + user.screenName + " | " + err));
           return reject(err);
         }
 
-        updatedUser.save()
+        user.save()
         .then(function() {
-          resolve(updatedUser);
+          resolve(user);
         })
         .catch(function(err) {
-          console.log(chalkError("TSS | *** ERROR USER SAVE: @" + updatedUser.screenName + " | " + err));
+          console.log(chalkError("TSS | *** ERROR USER SAVE: @" + user.screenName + " | " + err));
           reject(err);
         });
 
-    });
-
+      });
 
     });
 

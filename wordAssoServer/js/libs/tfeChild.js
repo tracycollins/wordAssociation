@@ -148,6 +148,7 @@ configuration.inputTypes = [
   "emoji",
   "hashtags",
   "images",
+  "media",
   "userMentions",
   "sentiment",
   "urls",

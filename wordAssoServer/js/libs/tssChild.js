@@ -247,8 +247,6 @@ let userServerController;
 
 let userServerControllerReady = false;
 
-require("isomorphic-fetch");
-
 function connectDb(callback){
 
   statsObj.status = "CONNECT DB";
@@ -2771,7 +2769,7 @@ setTimeout(function(){
         console.log(chalkLog("TSS | USC READY | " + appname));
       });
 
-      User = mongoose.model("User", userModel.UserSchema);
+      // User = mongoose.model("User", userModel.UserSchema);
 
       dbConnectionReady = true;
     });

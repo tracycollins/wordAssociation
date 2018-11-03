@@ -120,6 +120,7 @@ StreamingAPIConnection.prototype._startPersistentConnection = function () {
       // self._scheduleReconnect();
         var error = helpers.makeTwitError('TC | Bad Twitter streaming request: ' + self.response.statusCode);
         self.emit('error', error);
+        self.stop();
     } else if (self.response.statusCode === 420) {
       // close the connection forcibly so a reconnect is scheduled by `self.onClose()`
       self._scheduleReconnect();

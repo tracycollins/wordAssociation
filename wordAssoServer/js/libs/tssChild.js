@@ -2341,7 +2341,7 @@ function unfollow(params, callback) {
           + "/" + TWITTER_MAX_FOLLOW_USER_NUMBER + " MAX"
           + " | UID: " + params.user.userId
           + " | @" + params.user.screenName
-          + "\nDATA\n" + jsonPrint(data)
+          // + "\nDATA\n" + jsonPrint(data)
         ));
 
         params.user.nodeId = params.user.userId;
@@ -2389,7 +2389,6 @@ function unfollow(params, callback) {
       }
       callback(null, success);
     });
-
   }
 }
 

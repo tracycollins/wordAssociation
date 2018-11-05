@@ -1745,6 +1745,7 @@ var rxNode = function(node){
   if ((rxNodeQueue.length < RX_NODE_QUEUE_MAX)
   ){
     if (config.displayNodeHashMap[node.nodeType] === "show") {
+      if ((node.threeceeFollowing !== undefined) && node.threeceeFollowing) { node.following = true; }
       rxNodeQueue.push(node);
     }
   }

@@ -1834,6 +1834,8 @@ function ViewTreepack() {
         currentNode.lastTweetId = newNode.lastTweetId;
 
         if (newNode.nodeType === "user"){
+          currentNode.following = newNode.following;
+          currentNode.followersCount = newNode.followersCount || 0;
           currentNode.followersCount = newNode.followersCount || 0;
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
         }
@@ -1860,13 +1862,9 @@ function ViewTreepack() {
         currentNode.categoryColor = newNode.categoryColor;
         currentNode.categoryMatch = newNode.categoryMatch;
         currentNode.categoryMismatch = newNode.categoryMismatch;
-        // currentNode.displaytext = "";
-        currentNode.followersCount = newNode.followersCount;
-        currentNode.followersMentions = newNode.mentions;
         currentNode.friendsCount = newNode.friendsCount;
         currentNode.fullName = newNode.fullName;
         currentNode.hashtagId = newNode.hashtagId;
-        // currentNode.index = 0;
         currentNode.isCategory = newNode.isCategory || false;
         currentNode.isDead = false;
         currentNode.isMaxNode = false;
@@ -1879,19 +1877,18 @@ function ViewTreepack() {
         currentNode.name = newNode.name;
         currentNode.newFlag = true;
         currentNode.nodeId = newNode.nodeId;
-        // currentNode.nodePoolId = nodePoolId;
         currentNode.nodeType = newNode.nodeType;
         currentNode.rank = newNode.rank;
         currentNode.rate = newNode.rate;
         currentNode.screenName = newNode.screenName;
         currentNode.statusesCount = newNode.statusesCount;
-        // currentNode.text = newNode.text;
         currentNode.vx = 1e-6;
         currentNode.vy = 1e-6;
         currentNode.x = initialXposition*width;
         currentNode.y = initialYposition*height;
 
         if (newNode.nodeType === "user"){
+          currentNode.following = newNode.following;
           currentNode.followersCount = newNode.followersCount || 0;
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
         }

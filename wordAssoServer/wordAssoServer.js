@@ -8,6 +8,7 @@ const TWITTER_AUTH_CALLBACK_URL = "https://word.threeceelabs.com/auth/twitter/ca
 global.dbConnection = false;
 let dbConnectionReady = false;
 let neuralNetworkChangeStream;
+let userFollowingCursor;
 
 let initCategoryHashmapsReady = true;
 let heartbeatInterval;
@@ -390,6 +391,7 @@ function quit(message) {
 
   console.log(chalkAlert("\nWAS | ... QUITTING ... " + getTimeStamp()));
 
+  if (userFollowingCursor !== undefined) { userFollowingCursor.close(); }
   if (neuralNetworkChangeStream !== undefined) { neuralNetworkChangeStream.close(); }
 
   clearInterval(updateUserSetsInterval);
@@ -421,15 +423,19 @@ function quit(message) {
   console.log(chalkAlert("WAS | QUIT MESSAGE: " + msg));
   console.error(chalkAlert("WAS | QUIT MESSAGE: " + msg));
 
-  global.dbConnection.close(function () {
+  if (global.dbConnection) {
 
-    console.log(chalkAlert(
-      "\nWAS | ==========================\n"
-      + "WAS | MONGO DB CONNECTION CLOSED"
-      + "\nWAS | ==========================\n"
-    ));
+    global.dbConnection.close(function () {
 
-  });
+      console.log(chalkAlert(
+        "\nWAS | ==========================\n"
+        + "WAS | MONGO DB CONNECTION CLOSED"
+        + "\nWAS | ==========================\n"
+      ));
+
+    });
+
+  }
 
   setTimeout(function() {
 
@@ -5430,6 +5436,11 @@ function getCurrentThreeceeUser(callback){
 
 function updateUserSets(callback){
 
+  if (!dbConnectionReady) {
+    console.log(chalkAlert("WAS | ABORT updateUserSets: DB CONNECTION NOT READY"));
+    return callback();
+  }
+
   let calledBack = false;
 
   const userCollection = global.dbConnection.collection("users");
@@ -5505,7 +5516,8 @@ function updateUserSets(callback){
   });
 
   const followingSearchQuery = {following: true};
-  const userFollowingCursor = User.find(followingSearchQuery).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
+  
+  userFollowingCursor = User.find(followingSearchQuery).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
 
   userFollowingCursor.on("data", function(user) {
 

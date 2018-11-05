@@ -7,7 +7,10 @@ const TWITTER_AUTH_CALLBACK_URL = "https://word.threeceelabs.com/auth/twitter/ca
 
 global.dbConnection = false;
 let dbConnectionReady = false;
+let neuralNetworkChangeStream;
+
 let initCategoryHashmapsReady = true;
+let heartbeatInterval;
 
 process.env.NODE_ENV = process.env.NODE_ENV || "development";
 
@@ -386,7 +389,30 @@ function getTimeStamp(inputTime) {
 function quit(message) {
 
   console.log(chalkAlert("\nWAS | ... QUITTING ... " + getTimeStamp()));
-  console.error(chalkAlert("\nWAS | ... QUITTING ... " + getTimeStamp()));
+
+  if (neuralNetworkChangeStream !== undefined) { neuralNetworkChangeStream.close(); }
+
+  clearInterval(updateUserSetsInterval);
+  clearInterval(dbConnectInterval);
+  clearInterval(nodeCacheInterval);
+  clearInterval(saveFileQueueInterval);
+  clearInterval(heartbeatInterval);
+  clearInterval(updateTrendsInterval);
+  clearInterval(transmitNodeQueueInterval);
+  clearInterval(internetCheckInterval);
+  clearInterval(tweetRxQueueInterval);
+  clearInterval(tweetParserMessageRxQueueInterval);
+  clearInterval(sorterMessageRxQueueInterval);
+  clearInterval(keySortInterval);
+  clearInterval(dbuPingInterval);
+  clearInterval(tfePingInterval);
+  clearInterval(tssPingInterval);
+  clearInterval(tweetParserPingInterval);
+  clearInterval(updateMetricsInterval);
+  clearInterval(statsInterval);
+  clearInterval(memStatsInterval);
+  clearInterval(categoryHashmapsInterval);
+  clearInterval(twitterSearchNodeQueueInterval);
 
   let msg = "";
   if (message) {msg = message;}
@@ -552,11 +578,11 @@ let defaultTwitterUser = twitterUserThreecee;
 let unfollowableUserSet = new Set();
 
 process.title = "node_wordAssoServer";
-console.log(chalkAlert("\n\nWAS | ============== START ==============\n\n"));
+console.log(chalkBlue("\n\nWAS | ============== START ==============\n\n"));
 
-console.log(chalkAlert("WAS | PROCESS PID:   " + process.pid));
-console.log(chalkAlert("WAS | PROCESS TITLE: " + process.title));
-console.log(chalkAlert("WAS | ENVIRONMENT: " + process.env.NODE_ENV));
+console.log(chalkBlue("WAS | PROCESS PID:   " + process.pid));
+console.log(chalkBlue("WAS | PROCESS TITLE: " + process.title));
+console.log(chalkBlue("WAS | ENVIRONMENT: " + process.env.NODE_ENV));
 
 // ==================================================================
 // GLOBAL VARIABLES
@@ -1239,7 +1265,7 @@ function connectDb(callback){
     };
     const optionsNetwork = { fullDocument: "updateLookup" };
 
-    const neuralNetworkChangeStream = neuralNetworkCollection.watch([filterNetwork], optionsNetwork);
+    neuralNetworkChangeStream = neuralNetworkCollection.watch([filterNetwork], optionsNetwork);
 
     neuralNetworkChangeStream.on("change", function(change){
       if (change && change.fullDocument) { 
@@ -1633,8 +1659,9 @@ nodeCache.on("expired", function(nodeCacheId, nodeObj){
 });
 
 let nodeCacheDeleteReady = true;
+let nodeCacheInterval;
 
-setInterval(function(){
+nodeCacheInterval = setInterval(function(){
 
   if (nodeCacheDeleteReady && (nodeCacheDeleteQueue.length > 0)) {
 
@@ -2836,226 +2863,251 @@ function saveStats(statsFile, statsObj, callback) {
   }
 }
 
-function killChild(params, callback){
+function killChild(params){
 
-  let pid = false;
-  let command;
+  return new Promise(async function(resolve, reject){
 
-  if (params.title !== undefined) {
-    command = "pkill -f " + params.title;
-  }
-  else if (params.pid !== undefined) {
-    pid = params.pid;
-    command = "kill " + pid;
-  }
-  else if (params.childId !== undefined) {
-    if (childrenHashMap[params.childId] === undefined) {
-      console.log(chalkError("WAS | KILL CHILD ERROR: CHILD NOT IN HM: " + params.childId));
-      if (callback !== undefined) { 
-        callback("ERROR: CHILD NOT IN HM: " + params.childId, null);
-      }
-      return;
+    let pid = false;
+    let command;
+
+    if (params.title !== undefined) {
+      command = "pkill -f " + params.title;
     }
-    pid = childrenHashMap[params.childId].pid;
-    command = "kill " + pid;
-  }
+    else if (params.pid !== undefined) {
+      pid = params.pid;
+      command = "kill " + pid;
+    }
+    else if (params.childId !== undefined) {
+      if (childrenHashMap[params.childId] === undefined) {
+        console.log(chalkError("WAS | KILL CHILD ERROR: CHILD NOT IN HM: " + params.childId));
+        return reject(new Error("ERROR: CHILD NOT IN HM: " + params.childId));
+      }
+      pid = childrenHashMap[params.childId].pid;
+      command = "kill " + pid;
+    }
 
 
-  shell.exec(command, function(code, stdout, stderr){
+    shell.exec(command, function(code, stdout, stderr){
 
-    console.log(chalkAlert("WAS | KILL CHILD"
-      + "\nPARAMS\n " + jsonPrint(params)
-      + "\nCOMMAND: " + command
-      + "\nCODE:    " + code
-      + "\nSTDOUT:  " + stdout
-      + "\nSTDERR:  " + stderr
-    )); 
+      console.log(chalkAlert("WAS | KILL CHILD"
+        + "\nPARAMS\n " + jsonPrint(params)
+        + "\nCOMMAND: " + command
+        + "\nCODE:    " + code
+        + "\nSTDOUT:  " + stdout
+        + "\nSTDERR:  " + stderr
+      )); 
 
-    slackPostMessage(
-      slackErrorChannel, 
-      "\n*KILL CHILD*"
-      + "\nPARAMS\n " + jsonPrint(params)
-      + "\nCOMMAND: " + command
-      + "\nCODE:    " + code
-      + "\nSTDOUT:  " + stdout
-      + "\nSTDERR:  " + stderr
-    );
+      slackPostMessage(
+        slackErrorChannel, 
+        "\n*KILL CHILD*"
+        + "\nPARAMS\n " + jsonPrint(params)
+        + "\nCOMMAND: " + command
+        + "\nCODE:    " + code
+        + "\nSTDOUT:  " + stdout
+        + "\nSTDERR:  " + stderr
+      );
 
-    if (callback !== undefined) { return callback(stderr, { code: code, stdout: stdout }); }
+      resolve({stderr: stderr, code: code, stdout: stdout });
+
+    });
 
   });
 }
 
-function getChildProcesses(params, callback){
+function getChildProcesses(params){
 
-  let command;
-  let pid;
-  let childId;
-  let numChildren = 0;
-  let childPidArray = [];
+  return new Promise(function(resolve, reject){
 
-  if ((params.searchTerm === undefined) || (params.searchTerm === "ALL")){
-    command = "pgrep " + "wa_";
-  }
-  else {
-    command = "pgrep " + params.searchTerm;
-  }
+    let command;
+    let pid;
+    let childId;
+    let numChildren = 0;
+    let childPidArray = [];
 
-  debug(chalkAlert("getChildProcesses | command: " + command));
-
-
-  shell.exec(command, {silent: true}, function(code, stdout, stderr){
-
-    if (stderr) {
-      console.log(chalkError("WAS | *** SHELL ERROR"
-        + " | COMMAND: " + command
-        + " | STDERR: " + stderr
-      ));
-      return cb(stderr);
+    if ((params.searchTerm === undefined) || (params.searchTerm === "ALL")){
+      command = "pgrep " + "wa_";
+    }
+    else {
+      command = "pgrep " + params.searchTerm;
     }
 
-    if (code === 0) {
+    debug(chalkAlert("getChildProcesses | command: " + command));
 
-      let soArray = stdout.trim();
 
-      let stdoutArray = soArray.split("\n");
+    shell.exec(command, {silent: true}, function(code, stdout, stderr){
 
-      async.eachSeries(stdoutArray, function(pidRaw, cb){
+      if (stderr) {
+        console.log(chalkError("WAS | *** SHELL ERROR"
+          + " | COMMAND: " + command
+          + " | STDERR: " + stderr
+        ));
+        return reject(stderr);
+      }
 
-        pid = pidRaw.trim();
+      if (code === 0) {
 
-        if (parseInt(pid) > 0) {
+        let soArray = stdout.trim();
 
-          command = "ps -o command= -p " + pid;
+        let stdoutArray = soArray.split("\n");
 
-          shell.exec(command, {silent: true}, function(code, stdout, stderr){
+        async.eachSeries(stdoutArray, async function(pidRaw){
 
-            if (stderr) {
-              console.log(chalkError("WAS | *** SHELL ERROR"
-                + " | COMMAND: " + command
-                + " | STDERR: " + stderr
-              ));
-              return cb(stderr);
-            }
+          pid = pidRaw.trim();
 
-            childId = stdout.trim();
+          if (parseInt(pid) > 0) {
 
-            numChildren += 1;
+            command = "ps -o command= -p " + pid;
 
-            debug(chalk.blue("WAS | FOUND CHILD PROCESS"
-              + " | NUM: " + numChildren
-              + " | PID: " + pid
-              + " | " + childId
-            ));
+            shell.exec(command, {silent: true}, async function(code, stdout, stderr){
 
-            if (childrenHashMap[childId] === undefined) {
+              if (stderr) {
+                console.log(chalkError("WAS | *** SHELL ERROR"
+                  + " | COMMAND: " + command
+                  + " | STDERR: " + stderr
+                ));
+                return (stderr);
+              }
 
-              childrenHashMap[childId] = {};
-              childrenHashMap[childId].status = "ZOMBIE";
+              childId = stdout.trim();
 
-              console.log(chalkError("WAS | *** CHILD ZOMBIE ***"
+              numChildren += 1;
+
+              debug(chalk.blue("WAS | FOUND CHILD PROCESS"
                 + " | NUM: " + numChildren
                 + " | PID: " + pid
                 + " | " + childId
-                + " | STATUS: " + childrenHashMap[childId].status
               ));
 
-              killChild({pid: pid}, function(err, numKilled){
+              if (childrenHashMap[childId] === undefined) {
 
-                if (err) {
-                  console.log(chalkError("WAS | *** KILL CHILD ERROR"
+                childrenHashMap[childId] = {};
+                childrenHashMap[childId].status = "ZOMBIE";
+
+                console.log(chalkError("WAS | *** CHILD ZOMBIE ***"
+                  + " | NUM: " + numChildren
+                  + " | PID: " + pid
+                  + " | " + childId
+                  + " | STATUS: " + childrenHashMap[childId].status
+                ));
+
+
+                try {
+                  await killChild({pid: pid});
+                  console.log(chalkAlert("WAS | XXX ZOMBIE CHILD KILLED | PID: " + pid + " | CH ID: " + childId));
+                  return;
+                }
+                catch(err){
+                 console.log(chalkError("WAS | *** KILL CHILD ERROR"
                     + " | PID: " + pid
                     + " | ERROR: " + err
                   ));
                   return cb(err);
                 }
+              }
+              else {
+                debug(chalkInfo("WAS | CHILD"
+                  + " | PID: " + pid
+                  + " | " + childId
+                  + " | STATUS: " + childrenHashMap[childId].status
+                ));
+                childPidArray.push({ pid: pid, childId: childId});
+                return;
+              }
 
-                console.log(chalkAlert("WAS | XXX ZOMBIE CHILD KILLED | PID: " + pid + " | CH ID: " + childId));
-              });
+            });
+          }
+          else {
+            return;
+          }
 
-            }
-            else {
-              debug(chalkInfo("WAS | CHILD"
-                + " | PID: " + pid
-                + " | " + childId
-                + " | STATUS: " + childrenHashMap[childId].status
-              ));
-            }
+        }, function(err){
 
-            childPidArray.push({ pid: pid, childId: childId});
+          if (err) {
+            console.log(chalkError("WAS | *** GET CHILD PROCESSES ERROR"
+              + " | ERROR: " + err
+            ));
+            return reject(err);
+          }
 
-            cb();
-          });
-        }
-        else {
-          cb();
-        }
+          resolve(childPidArray);
 
-      }, function(err){
+        });
 
-        if (err) {
-          console.log(chalkError("WAS | *** GET CHILD PROCESSES ERROR"
-            + " | ERROR: " + err
-          ));
-        }
+      }
 
-        if (callback !== undefined) { callback(err, childPidArray); }
+      if (code === 1) {
+        console.log(chalkInfo("WAS | NO NN CHILD PROCESSES FOUND"));
+        return resolve([]);
+      }
 
-      });
+      if (code > 1) {
+        console.log(chalkAlert("WAS | ERROR *** SHELL KILL CHILD"
+          + "\nSHELL :: WAS | COMMAND: " + command
+          + "\nSHELL :: WAS | EXIT CODE: " + code
+          + "\nSHELL :: WAS | STDOUT\n" + stdout
+          + "\nSHELL :: WAS | STDERR\n" + stderr
+        ));
+        return reject(stderr);
+        // if (callback !== undefined) { callback(stderr, command); }
+      }
 
-    }
-
-    if (code === 1) {
-      console.log(chalkInfo("WAS | NO NN CHILD PROCESSES FOUND"));
-        if (callback !== undefined) { callback(null, []); }
-    }
-
-    if (code > 1) {
-      console.log(chalkAlert("WAS | ERROR *** SHELL KILL CHILD"
-        + "\nSHELL :: WAS | COMMAND: " + command
-        + "\nSHELL :: WAS | EXIT CODE: " + code
-        + "\nSHELL :: WAS | STDOUT\n" + stdout
-        + "\nSHELL :: WAS | STDERR\n" + stderr
-      ));
-      if (callback !== undefined) { callback(stderr, command); }
-    }
+    });
 
   });
 }
 
 function killAll(callback){
 
-  getChildProcesses({searchTerm: "ALL"}, function(err, childPidArray){
+  return new Promise(async function(resolve, reject){
+
+    let childPidArray = await getChildProcesses({searchTerm: "ALL"});
 
     debug(chalkAlert("getChildProcesses childPidArray\n" + jsonPrint(childPidArray)));
 
     if (childPidArray && (childPidArray.length > 0)) {
 
-      async.eachSeries(childPidArray, function(childObj, cb){
+      async.eachSeries(childPidArray, async function(childObj){
 
-        killChild({pid: childObj.pid}, function(err, numKilled){
+        try {
+          await killChild({pid: childObj.pid});
           console.log(chalkAlert("WAS | KILL ALL | KILLED | PID: " + childObj.pid + " | CH ID: " + childObj.childId));
-          cb(err);
-        });
+          return;
+        }
+        catch(err){
+          return(err);
+        }
 
       }, function(err){
 
-        if (callback !== undefined) { callback(err, childPidArray); }
+        if (err){
+          return reject(err);
+        }
+
+        resolve(childPidArray);
 
       });
     }
     else {
 
-      console.log(chalkAlert("WAS | KILL ALL | NO CHILDREN"));
-
-      if (callback !== undefined) { callback(err, childPidArray); }
+      console.log(chalkBlue("WAS | KILL ALL | NO CHILDREN"));
+      resolve(childPidArray);
     }
+
   });
 }
 
 
-process.on("exit", function processExit() {
-  killAll();
+process.on("exit", async function processExit() {
+
+  console.log(chalkAlert("\nWAS | MAIN PROCESS EXITING ...\n"));
+
+  try {
+    await killAll();
+    console.log(chalkAlert("\nWAS | *** MAIN PROCESS EXIT *** \n"));
+  }
+  catch(err){
+    console.log(chalkError("WAS | *** MAIN PROCESS EXIT ERROR: " + err));
+  }
 });
 
 process.on("message", function processMessageRx(msg) {
@@ -3209,7 +3261,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
     let tempServerArray = [];
     let tempViewerArray = [];
 
-    setInterval(function hearbeatInterval() {
+    heartbeatInterval = setInterval(function() {
 
       statsObj.serverTime = moment().valueOf();
       statsObj.runTime = moment().valueOf() - statsObj.startTime;
@@ -8125,7 +8177,7 @@ function initCategoryHashmaps(){
         async.whilst(
 
           function() {
-            return more;
+            return (dbConnectionReady && more);
           },
 
           function(cb0){
@@ -8133,7 +8185,7 @@ function initCategoryHashmaps(){
             userServerController.findCategorizedUsersCursor(p, function(err, results){
 
               if (err) {
-                console.log(chalkError("WAS | ERROR: initCategorizedUserHashmap: userServerController: findCategorizedUsersCursor" + err));
+                console.log(chalkError("WAS | ERROR: initCategorizedUserHashmap: userServerController: findCategorizedUsersCursor: " + err));
                 cb0(err);
               }
               else if (results) {
@@ -8251,11 +8303,17 @@ function initStdIn(callback){
   if (callback !== undefined) { callback(null, stdin); }
 }
 
-function initialize(callback){
+async function initialize(callback){
 
   statsObj.status = "INITIALIZE";
 
-  killAll();
+  try {
+    await killAll();
+  }
+  catch(err){
+    console.log(chalkError("WAS | *** INITIALIZE ERROR: " + err));
+    return callback(err);
+  }
 
   io = require("socket.io")(httpServer, ioConfig);
 
@@ -8322,6 +8380,8 @@ let updateUserSetsIntervalReady = true;
 
 function initUpdateUserSetsInterval(interval){
 
+  clearInterval(updateUserSetsInterval);
+
   console.log(chalk.bold.black("WAS | INIT USER SETS INTERVAL"
     + " | " + msToTime(interval)
   ));
@@ -8331,7 +8391,7 @@ function initUpdateUserSetsInterval(interval){
     uncategorizedManualUserArray = [...uncategorizedManualUserSet];
     statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
 
-    if (updateUserSetsIntervalReady && (uncategorizedManualUserArray.length < 10)) {
+    if (dbConnectionReady && updateUserSetsIntervalReady && (uncategorizedManualUserArray.length < 10)) {
 
       updateUserSetsIntervalReady = false;
 

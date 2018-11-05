@@ -1078,6 +1078,7 @@ function checkTwitterRateLimit(params, callback){
         if (threeceeUserObj.stats.twitterRateLimitExceptionFlag) {
 
           threeceeUserObj.stats.twitterRateLimitExceptionFlag = false;
+          threeceeUserObj.stats.twitterFollowLimit = false;
           
           console.log(chalkInfo("TSS | XXX RESET TWITTER RATE LIMIT"
             + " | @" + threeceeUserObj.screenName
@@ -2285,14 +2286,42 @@ function unfollow(params, callback) {
         return cb();
       }
 
+      // if (threeceeUserObj.stats.twitterFollowLimit) {
+      //   console.log(chalkAlert("TSS | SKIP UNFOLLOW | FOLLOW LIMIT"
+      //     + " | 3C @" + threeceeUserObj.screenName
+      //     + " | AT: " + moment(threeceeUserObj.stats.twitterFollowLimit).format(compactDateTimeFormat)
+      //     + " | " + msToTime(threeceeUserObj.stats.twitterFollowLimit) + " AGO"
+      //   ));
+      //   return cb();
+      // }
+
+
+
       if (threeceeUserObj.stats.twitterFollowLimit) {
-        console.log(chalkAlert("TSS | SKIP UNFOLLOW | FOLLOW LIMIT"
+
+        if (threeceeUserObj.stats.twitterFollowLimit + configuration.twitterFollowLimitTimeout >= moment().valueOf()) {
+
+          console.log(chalkLog("TSS | ... SKIP FOLLOW | FOLLOW LIMIT"
+            + " | 3C @" + threeceeUserObj.screenName
+            + " | AT: " + moment(threeceeUserObj.stats.twitterFollowLimit).format(compactDateTimeFormat)
+            + " | " + msToTime(moment().valueOf() - threeceeUserObj.stats.twitterFollowLimit) + " AGO"
+            + " | " + msToTime(threeceeUserObj.stats.twitterFollowLimit + configuration.twitterFollowLimitTimeout - moment().valueOf()) + " REMAINING"
+          ));
+          return cb();
+        }
+
+        console.log(chalkAlert("TSS | XXX FOLLOW LIMIT"
           + " | 3C @" + threeceeUserObj.screenName
           + " | AT: " + moment(threeceeUserObj.stats.twitterFollowLimit).format(compactDateTimeFormat)
-          + " | " + msToTime(threeceeUserObj.stats.twitterFollowLimit) + "AGO"
+          + " | " + msToTime(moment().valueOf() - threeceeUserObj.stats.twitterFollowLimit) + " AGO"
+          + " | " + msToTime(threeceeUserObj.stats.twitterFollowLimit + configuration.twitterFollowLimitTimeout - moment().valueOf()) + " REMAINING"
         ));
-        return cb();
+
+        threeceeUserObj.stats.twitterFollowLimit = false;
       }
+
+
+
 
       if (threeceeUserObj.followUserSet.has(params.user.userId)) {
         threeceeUserObj.followUserSet.delete(params.user.userId);

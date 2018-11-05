@@ -2300,6 +2300,7 @@ function unfollow(params, callback) {
       }
 
       threeceeUserObj.twit.post("friendships/destroy", {user_id: params.user.userId}, function(err, data, response) {
+
         if (err) {
     
           threeceeUserObj.stats.error = err;
@@ -2341,6 +2342,7 @@ function unfollow(params, callback) {
           + "/" + TWITTER_MAX_FOLLOW_USER_NUMBER + " MAX"
           + " | UID: " + params.user.userId
           + " | @" + params.user.screenName
+          + "\nDATA\n" + jsonPrint(data)
         ));
 
         params.user.nodeId = params.user.userId;
@@ -2375,7 +2377,7 @@ function unfollow(params, callback) {
             twitterFollowing: threeceeUserObj.followUserSet.size
           });
 
-          cb(true);
+          cb();
 
         });
 

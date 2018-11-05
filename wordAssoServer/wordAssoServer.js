@@ -3417,7 +3417,7 @@ configEvents.on("DB_CONNECT", async function configEventDbConnect(){
   try{
 
     initSocketNamespaces();
-    // await initUnfollowableUserSet();
+    await initUnfollowableUserSet();
     await initFollowableSearchTermSet();
 
     initCategoryHashmapsReady = false;

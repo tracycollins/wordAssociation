@@ -216,6 +216,7 @@ function ViewTreepack() {
     this.categoryMatch = false;
     this.categoryMismatch = false;
     // this.displaytext = "";
+    this.following = false;
     this.followersCount = 0;
     this.followersMentions = 0;
     this.friendsCount = 0;
@@ -849,7 +850,7 @@ function ViewTreepack() {
     n.categoryColor = "#FFFFFF";
     n.categoryMatch = false;
     n.categoryMismatch = false;
-    // n.displaytext = "";
+    n.following = false;
     n.followersCount = 0;
     n.followersMentions = 0;
     n.friendsCount = 0;
@@ -868,7 +869,6 @@ function ViewTreepack() {
     n.name = "";
     n.newFlag = false;
     n.nodeId = "";
-    // n.nodePoolId = n.nodePoolId;
     n.nodeType = "user";
     n.rank = -1;
     n.rate = 1e-6;
@@ -2043,6 +2043,7 @@ function ViewTreepack() {
     newNode.ageMaxRatio = 1e-6;
     newNode.rank = -1;
     newNode.newFlag = true;
+    newNode.following = (newNode.following !== undefined) ? newNode.following : false;
     newNode.followersCount = (newNode.followersCount) ? parseInt(newNode.followersCount) : 0;
     newNode.mentions = (newNode.mentions) ? parseInt(newNode.mentions) : 0;
 

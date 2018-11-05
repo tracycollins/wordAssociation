@@ -1645,11 +1645,11 @@ function ViewTreepack() {
       })
       // .style("fill", palette.white)
       .style("fill", function (d) { 
+        if (d.isTopTerm && (d.nodeType === "hashtag")) { return palette.white; }
         if (d.isTopTerm && (d.followersCount > minFollowers)) { return palette.white; }
         if (!d.isTopTerm && (d.followersCount > minFollowers)) { return palette.lightgray; }
-        if (d.isTopTerm && (d.nodeType === "hashtag")) { return palette.white; }
-        if (d.isTopTerm) { return palette.gray; }
-        return palette.darkgray; 
+        if (d.isTopTerm) { return palette.lightgray; }
+        return palette.gray; 
       })
       .style("stroke-width", function (d) { 
         if (d.categoryMatch) { return categoryMatchStrokeWidth; }

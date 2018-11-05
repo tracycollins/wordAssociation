@@ -4,7 +4,7 @@
     "script"      : "wordAssoServer.js",
     "cwd"         : "/home/tc/wordAssociation/wordAssoServer",
     "autorestart" : true,
-    "restart_delay": 180000,
+    "restart_delay": 300000,
     "node_args"   : "--max-old-space-size=10240",
     "env": {
       "WA_VERBOSE_MODE": false,

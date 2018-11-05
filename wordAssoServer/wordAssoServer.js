@@ -581,6 +581,7 @@ let twitterUserThreecee = {
 
 let defaultTwitterUser = twitterUserThreecee;
 
+let followedUserSet = new Set();
 let unfollowableUserSet = new Set();
 
 process.title = "node_wordAssoServer";
@@ -3737,9 +3738,9 @@ function socketRxTweet(tw) {
 
 function follow(params, callback) {
 
-  if (unfollowableUserSet.has(params.user.nodeId)) { 
+  if (followedUserSet.has(params.user.nodeId) || unfollowableUserSet.has(params.user.nodeId)) { 
 
-    console.log(chalkWarn("XXX FOLLOW | @" + params.user.screenName + " | IN UNFOLLOWABLE USER SET"));
+    console.log(chalkWarn("XXX FOLLOW | @" + params.user.screenName + " | IN UNFOLLOWABLE or FOLLOWED USER SET"));
 
     if (callback !== undefined) { 
       return callback("XXX FOLLOW", null);
@@ -3749,7 +3750,7 @@ function follow(params, callback) {
     }
   }
 
-  unfollowableUserSet.add(params.user.nodeId);
+  followedUserSet.add(params.user.nodeId);
 
   const query = { nodeId: params.user.nodeId };
 
@@ -3793,7 +3794,7 @@ function follow(params, callback) {
 
     }
     else {
-      console.log(chalkLog("WAS | ... ALREADY FOLLOWING"
+      console.log(chalkLog("WAS | --- FOLLOW | USER NOT IN DB"
         + " | NID: " + params.user.nodeId
         + " | @" + params.user.screenName
       ));
@@ -3812,6 +3813,7 @@ function unfollow(params, callback) {
   if (params.user.nodeId !== undefined){
 
     unfollowableUserSet.add(params.user.nodeId);
+    followedUserSet.delete(params.user.nodeId);
     uncategorizedManualUserSet.delete(params.user.nodeId);
 
     const obj = {
@@ -5335,38 +5337,36 @@ function autoFollowUser(params, callback){
     return;
   }
 
-    follow({user: params.user}, function(err, results){
-      if (err) {
+  follow({user: params.user}, function(err, results){
+    if (err) {
 
-        unfollowableUserSet.delete(params.user.nodeId);
+      // unfollowableUserSet.delete(params.user.nodeId);
 
-        if (callback !== undefined) { return callback(err, params); }
-        return;
-      }
+      if (callback !== undefined) { return callback(err, params); }
+      return;
+    }
 
-      console.log(chalk.blue("WAS | +++ AUTO FOLLOW"
-        + " | UID: " + params.user.userId
-        + " | @" + params.user.screenName
-        + " | NAME: " + params.user.name
-        + " | FOLLOWING: " + params.user.following
-        + " | 3C FOLLOW: " + params.user.threeceeFollowing
-        + " | FLWRs: " + params.user.followersCount
-      ));
+    console.log(chalk.blue("WAS | +++ AUTO FOLLOW"
+      + " | UID: " + params.user.userId
+      + " | @" + params.user.screenName
+      + " | NAME: " + params.user.name
+      + " | FOLLOWING: " + params.user.following
+      + " | 3C FOLLOW: " + params.user.threeceeFollowing
+      + " | FLWRs: " + params.user.followersCount
+    ));
 
-      const text = "*WAS*"
-        + "\n*AUTO FOLLOW*"
-        + "\n@" + params.user.screenName + " | " + params.user.name
-        // + "\nID: " + params.user.userId
-        + "\nFLWRs: " + params.user.followersCount
-        + "\n3C @" + params.user.threeceeFollowing;
+    const text = "*WAS*"
+      + "\n*AUTO FOLLOW*"
+      + "\n@" + params.user.screenName + " | " + params.user.name
+      // + "\nID: " + params.user.userId
+      + "\nFLWRs: " + params.user.followersCount
+      + "\n3C @" + params.user.threeceeFollowing;
 
-      slackPostMessage(slackChannelAutoFollow, text);
+    slackPostMessage(slackChannelAutoFollow, text);
 
-      if (callback !== undefined) { return callback(null, results); }
+    if (callback !== undefined) { return callback(null, results); }
+  });
 
-    });
-
-  // });
 }
 
 function getCurrentThreeceeUser(callback){

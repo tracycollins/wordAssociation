@@ -6973,6 +6973,16 @@ async function initTssChild(params){
             threeceeTwitter[m.threeceeUser].twitterTokenErrorFlag = m.error;
 
           }
+          else if (m.errorType === "TWITTER_FOLLOW_BLOCK") {
+
+            unfollowableUserSet.add(m.userId);
+            
+            console.log(chalkLog("WAS | XXX TWITTER FOLLOW BLOCK"
+              + " | UID: " + m.userId
+              + " | @" + m.screenName
+              + " | UNFOLLOWABLE SET SIZE: " + unfollowableUserSet.size
+            ));
+          }
           else {
 
             threeceeTwitter[m.threeceeUser].twitterErrors += 1;

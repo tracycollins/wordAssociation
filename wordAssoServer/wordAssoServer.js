@@ -3852,7 +3852,7 @@ function unfollow(params, callback) {
       ));
     }
     else {
-      console.log(chalkLog("WAS | ... ALREADY UNFOLLOWED"
+      console.log(chalkLog("WAS | --- UNFOLLOWED USER NOT IN DB"
         + " | ID: " + params.user.nodeId
       ));
     }

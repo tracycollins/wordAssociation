@@ -65,7 +65,7 @@ const DEFAULT_TWITTER_CONFIG_THREECEE_FILE = DEFAULT_TWITTER_CONFIG_THREECEE + "
 
 const DEFAULT_INTERVAL = 10;
 const DEFAULT_PING_INTERVAL = ONE_MINUTE;
-const DBU_PING_INTERVAL = ONE_SECOND;
+const DBU_PING_INTERVAL = 600*ONE_SECOND;
 const TFE_PING_INTERVAL = 600*ONE_SECOND;
 const DEFAULT_DROPBOX_LIST_FOLDER_LIMIT = 50;
 const DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT = 1*ONE_SECOND;
@@ -7419,7 +7419,7 @@ async function initDbuChild(params){
         childrenHashMap[params.childId].status = "INIT";
         clearInterval(dbuPingInterval);
         setTimeout(function(){
-          // initDbuPingInterval(DBU_PING_INTERVAL);
+          initDbuPingInterval(DBU_PING_INTERVAL);
         }, 1000);
         resolve();
       }

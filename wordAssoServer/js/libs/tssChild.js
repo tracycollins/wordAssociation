@@ -1161,8 +1161,7 @@ function initUnfollowQueueInterval(cnf, callback){
         });
 
       }
-
-      if (!threeceeUserUnfollowReady(unfollowObj.threeceeUser)) {
+      else if (!threeceeUserUnfollowReady(unfollowObj.threeceeUser)) {
 
         console.log(chalkLog("TSS | < UNFOLLOW QUEUE"
           + " [" + unfollowQueue.length + "]"

@@ -1578,19 +1578,19 @@ function ViewTreepack() {
           return "unset"; 
         }
         return "none";
+      })
+      .style("font-size", function (d) {
+        if (metricMode === "rate") {
+          // if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.rate); }
+          if (d.isTopTerm) { return nodeLabelSizeScale(1.5*d.rate); }
+          return nodeLabelSizeScale(d.rate);
+        }
+        if (metricMode === "mentions") { 
+          // if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.mentions); }
+          if (d.isTopTerm) { return nodeLabelSizeScale(1.5*d.mentions); }
+          return nodeLabelSizeScale(d.mentions);
+        }
       });
-      // .style("font-size", function (d) {
-      //   if (metricMode === "rate") {
-      //     // if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.rate); }
-      //     if (d.isTopTerm) { return nodeLabelSizeScale(1.5*d.rate); }
-      //     return nodeLabelSizeScale(d.rate);
-      //   }
-      //   if (metricMode === "mentions") { 
-      //     // if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.mentions); }
-      //     if (d.isTopTerm) { return nodeLabelSizeScale(1.5*d.mentions); }
-      //     return nodeLabelSizeScale(d.mentions);
-      //   }
-      // });
 
     // ENTER
     nodeLabels 

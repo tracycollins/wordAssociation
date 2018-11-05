@@ -1786,7 +1786,7 @@ function initSocketSessionUpdateRx(){
       newNode.mouseHoverFlag = false;
       newNode.isDead = false;
       newNode.r = 0;
-      // newNode.links = [];
+      newNode.following = (newNode.following) ? newNode.following : false;
       newNode.mentions = (newNode.mentions) ? newNode.mentions : 1;
 
       if (newNode.nodeType === "user"){

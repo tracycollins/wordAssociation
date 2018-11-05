@@ -6976,12 +6976,24 @@ async function initTssChild(params){
           else if (m.errorType === "TWITTER_FOLLOW_BLOCK") {
 
             unfollowableUserSet.add(m.userId);
-            
+
             console.log(chalkLog("WAS | XXX TWITTER FOLLOW BLOCK"
               + " | UID: " + m.userId
               + " | @" + m.screenName
               + " | UNFOLLOWABLE SET SIZE: " + unfollowableUserSet.size
             ));
+
+            const obj = {
+              userIds : [...unfollowableUserSet]
+            }
+
+            saveFileQueue.push({
+              localFlag: false, 
+              folder: dropboxConfigDefaultFolder, 
+              file: unfollowableUserFile, 
+              obj: obj
+            });
+
           }
           else {
 

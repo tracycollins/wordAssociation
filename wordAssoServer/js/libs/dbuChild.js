@@ -352,9 +352,6 @@ function mergeHistograms(params){
 }
 
 function printUserObj(title, user) {
-
-  user = userDefaults(user);
-
   console.log(chalkUser(title
     + " | UID: " + user.userId
     + " | @" + user.screenName

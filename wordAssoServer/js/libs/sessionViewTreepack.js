@@ -1402,11 +1402,16 @@ function ViewTreepack() {
           return palette.white; 
         })
         .style("stroke-width", function (d) { 
-          if (d.categoryMismatch) { return categoryMismatchStrokeWidth; }
-          if (d.categoryMatch) { return categoryMatchStrokeWidth; }
-          if (d.isTopTerm) { return topTermStrokeWidth; }
-          if (d.categoryAuto) { return categoryAutoStrokeWidth; }
-          return defaultStrokeWidth; 
+          if (d.categoryMismatch && d.following) { return categoryMismatchStrokeWidth; }
+          if (d.categoryMismatch && !d.following) { return 0.5*categoryMismatchStrokeWidth; }
+          if (d.categoryMatch && d.following) { return categoryMatchStrokeWidth; }
+          if (d.categoryMatch && !d.following) { return 0.5*categoryMatchStrokeWidth; }
+          if (d.isTopTerm && d.following) { return topTermStrokeWidth; }
+          if (d.isTopTerm && !d.following) { return 0.5*topTermStrokeWidth; }
+          if (d.categoryAuto && d.following) { return categoryAutoStrokeWidth; }
+          if (d.categoryAuto && !d.following) { return 0.5*categoryAutoStrokeWidth; }
+          if (d.following) { return defaultStrokeWidth; }
+          return 0.5*defaultStrokeWidth; 
         });
     }
   };
@@ -1455,11 +1460,16 @@ function ViewTreepack() {
         return palette.white; 
       })
       .style("stroke-width", function (d) { 
-        if (d.categoryMismatch) { return categoryMismatchStrokeWidth; }
-        if (d.categoryMatch) { return categoryMatchStrokeWidth; }
-        if (d.isTopTerm) { return topTermStrokeWidth; }
-        if (d.categoryAuto) { return categoryAutoStrokeWidth; }
-        return defaultStrokeWidth; 
+        if (d.categoryMismatch && d.following) { return categoryMismatchStrokeWidth; }
+        if (d.categoryMismatch && !d.following) { return 0.5*categoryMismatchStrokeWidth; }
+        if (d.categoryMatch && d.following) { return categoryMatchStrokeWidth; }
+        if (d.categoryMatch && !d.following) { return 0.5*categoryMatchStrokeWidth; }
+        if (d.isTopTerm && d.following) { return topTermStrokeWidth; }
+        if (d.isTopTerm && !d.following) { return 0.5*topTermStrokeWidth; }
+        if (d.categoryAuto && d.following) { return categoryAutoStrokeWidth; }
+        if (d.categoryAuto && !d.following) { return 0.5*categoryAutoStrokeWidth; }
+        if (d.following) { return defaultStrokeWidth; }
+        return 0.5*defaultStrokeWidth; 
       })
       .style("fill-opacity", function(d) { 
         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
@@ -1481,25 +1491,25 @@ function ViewTreepack() {
       })
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
-      .style("fill", function (d) { 
-        if (d.isTopTerm && !d.category && !d.categoryAuto) { return palette.white; }
-        if (!d.category && !d.categoryAuto) { return palette.black; }
-        if (d.category) { return d.categoryColor; }
-        if (d.categoryAuto === "right") { return palette.yellow; }
-        if (d.categoryAuto === "left") { return palette.blue; }
-        if (d.categoryAuto === "positive") { return palette.green; }
-        if (d.categoryAuto ==="negative") { return palette.red; }
-        return d.categoryColor; 
-      })
-      .style("stroke", function (d) {
-        if (d.categoryMismatch) { return palette.red; }
-        if (d.categoryMatch) { return categoryMatchColor; }
-        if (d.categoryAuto === "right") { return palette.yellow; }
-        if (d.categoryAuto === "left") { return palette.blue; }
-        if (d.categoryAuto === "positive") { return palette.green; }
-        if (d.categoryAuto ==="negative") { return palette.black; }
-        return palette.white; 
-      })
+      // .style("fill", function (d) { 
+      //   if (d.isTopTerm && !d.category && !d.categoryAuto) { return palette.white; }
+      //   if (!d.category && !d.categoryAuto) { return palette.black; }
+      //   if (d.category) { return d.categoryColor; }
+      //   if (d.categoryAuto === "right") { return palette.yellow; }
+      //   if (d.categoryAuto === "left") { return palette.blue; }
+      //   if (d.categoryAuto === "positive") { return palette.green; }
+      //   if (d.categoryAuto ==="negative") { return palette.red; }
+      //   return d.categoryColor; 
+      // })
+      // .style("stroke", function (d) {
+      //   if (d.categoryMismatch) { return palette.red; }
+      //   if (d.categoryMatch) { return categoryMatchColor; }
+      //   if (d.categoryAuto === "right") { return palette.yellow; }
+      //   if (d.categoryAuto === "left") { return palette.blue; }
+      //   if (d.categoryAuto === "positive") { return palette.green; }
+      //   if (d.categoryAuto ==="negative") { return palette.black; }
+      //   return palette.white; 
+      // })
       .style("fill-opacity", function(d) { 
         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
@@ -1534,12 +1544,12 @@ function ViewTreepack() {
       .text(labelText)
       .attr("x", function (d) { return d.x; })
       .attr("y", function (d) { return d.y; })
-      .style("fill", function (d) { 
-        if (d.isTopTerm && (d.followersCount > minFollowers)) { return palette.white; }
-        if (!d.isTopTerm && (d.followersCount > minFollowers)) { return palette.lightgray; }
-        if (d.isTopTerm && (d.nodeType === "hashtag")) { return palette.white; }
-        return palette.darkgray; 
-      })
+      // .style("fill", function (d) { 
+      //   if (d.isTopTerm && (d.followersCount > minFollowers)) { return palette.white; }
+      //   if (!d.isTopTerm && (d.followersCount > minFollowers)) { return palette.lightgray; }
+      //   if (d.isTopTerm && (d.nodeType === "hashtag")) { return palette.white; }
+      //   return palette.darkgray; 
+      // })
       .style("fill-opacity", function updateNodeLabelOpacity(d) { 
         // if (d.nodeType === "media") { return 1e-6; }
         if (d.mouseHoverFlag) { return 1.0; }
@@ -1568,19 +1578,19 @@ function ViewTreepack() {
           return "unset"; 
         }
         return "none";
-      })
-      .style("font-size", function (d) {
-        if (metricMode === "rate") {
-          // if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.rate); }
-          if (d.isTopTerm) { return nodeLabelSizeScale(1.5*d.rate); }
-          return nodeLabelSizeScale(d.rate);
-        }
-        if (metricMode === "mentions") { 
-          // if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.mentions); }
-          if (d.isTopTerm) { return nodeLabelSizeScale(1.5*d.mentions); }
-          return nodeLabelSizeScale(d.mentions);
-        }
       });
+      // .style("font-size", function (d) {
+      //   if (metricMode === "rate") {
+      //     // if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.rate); }
+      //     if (d.isTopTerm) { return nodeLabelSizeScale(1.5*d.rate); }
+      //     return nodeLabelSizeScale(d.rate);
+      //   }
+      //   if (metricMode === "mentions") { 
+      //     // if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.mentions); }
+      //     if (d.isTopTerm) { return nodeLabelSizeScale(1.5*d.mentions); }
+      //     return nodeLabelSizeScale(d.mentions);
+      //   }
+      // });
 
     // ENTER
     nodeLabels 

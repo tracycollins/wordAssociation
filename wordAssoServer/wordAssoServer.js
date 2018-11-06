@@ -4012,19 +4012,18 @@ function initIgnoredUserSet(){
 
     loadFile(dropboxConfigDefaultFolder, ignoredUserFile, function(err, ignoredUserSetObj){
       if (err) {
-        if (err.code === "ENOTFOUND") {
+        if ((err.code === "ENOTFOUND") || (err.status === 409)) {
           console.log(chalkError("WAS | *** LOAD IGNORED USERS ERROR: FILE NOT FOUND:  " 
             + dropboxConfigDefaultFolder + "/" + ignoredUserFile
           ));
+          return resolve();
         }
-        else {
-          console.log(chalkError("WAS | *** LOAD IGNORED USERS ERROR: " + err));
-        }
-        console.error(err);
-        reject(err);
+        
+        console.log(chalkError("WAS | *** LOAD IGNORED USERS ERROR: " + err));
+        return reject(err);
       }
       
-      if (ignoredUserSetObj) {
+      else if (ignoredUserSetObj) {
 
         console.log(chalkLog("WAS | LOADED IGNORED USERS FILE"
           + " | " + ignoredUserSetObj.userIds.length + " USERS"
@@ -4082,7 +4081,7 @@ function initIgnoredUserSet(){
         }, function(err){
 
           if (err) {
-            reject(err);
+            return reject(err);
           }
           console.log(chalkBlue("WAS | INIT IGNORED USERS"
             + " | " + numIgnored + " NEW IGNORED"
@@ -6045,12 +6044,12 @@ function transmitNodes(tw, callback){
 
   async.parallel({
     user: function(cb){
-      if (tw.user) { transmitNodeQueue.push(tw.user); }
+      if (tw.user && !ignoredUserSet.has(tw.user.nodeId)) { transmitNodeQueue.push(tw.user); }
       cb();
     },
     userMentions: function(cb){
       tw.userMentions.forEach(function userMentionsTxNodeQueue(user){
-        if (user && configuration.enableTransmitUser) { transmitNodeQueue.push(user); }
+        if (user && configuration.enableTransmitUser && !ignoredUserSet.has(user.nodeId)) { transmitNodeQueue.push(user); }
       });
       cb();
     },
@@ -8344,7 +8343,7 @@ function initCategoryHashmaps(){
         async.whilst(
 
           function() {
-            return more;
+            return (dbConnectionReady && more);
           },
 
           function(cb0){
@@ -8617,12 +8616,16 @@ async function initialize(callback){
 }
 
 function initIgnoreWordsHashMap() {
-  async.each(ignoreWordsArray, function ignoreWordHashMapSet(ignoreWord, cb) {
-    ignoreWordHashMap.set(ignoreWord, true);
-    ignoreWordHashMap.set(ignoreWord.toLowerCase(), true);
-    cb();
-  }, function ignoreWordHashMapError(err) {
-    return;
+  return new Promise(function(resolve, reject){
+
+    async.each(ignoreWordsArray, function ignoreWordHashMapSet(ignoreWord, cb) {
+      ignoreWordHashMap.set(ignoreWord, true);
+      ignoreWordHashMap.set(ignoreWord.toLowerCase(), true);
+      cb();
+    }, function ignoreWordHashMapError(err) {
+      resolve();
+    });
+
   });
 }
 

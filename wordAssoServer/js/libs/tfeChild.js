@@ -11,28 +11,29 @@ let globalHistograms = {};
 let langAnalyzer; // undefined for now
 
 const fieldsTransmit = {
-  userId: 1,
-  nodeId: 1,
-  nodeType: 1,
-  name: 1,
-  previousName: 1,
-  screenName: 1,
-  screenNameLower: 1,
-  description: 1,
-  previousDescription: 1,
-  status: 1,
-  statusId: 1,
-  lastTweetId: 1,
-  mentions: 1,
-  rate: 1,
-  isTopTerm: 1,
   category: 1,
   categoryAuto: 1,
+  description: 1,
   followersCount: 1,
-  friendsCount: 1,
-  statusesCount: 1,
   following: 1,
-  threeceeFollowing: 1
+  friendsCount: 1,
+  ignored: 1,
+  isTopTerm: 1,
+  lastTweetId: 1,
+  mentions: 1,
+  name: 1,
+  nodeId: 1,
+  nodeType: 1,
+  previousDescription: 1,
+  previousName: 1,
+  rate: 1,
+  screenName: 1,
+  screenNameLower: 1,
+  status: 1,
+  statusesCount: 1,
+  statusId: 1,
+  threeceeFollowing: 1,
+  userId: 1
 };
 
 // const fieldsTransmitKeys = Object.keys(fieldsTransmit);
@@ -517,6 +518,7 @@ function printUserObj(title, user, chalkConfig) {
     + " | Ts: " + user.statusesCount
     + " | Ms:  " + user.mentions
     + " | LS: " + getTimeStamp(user.lastSeen)
+    + " | IGNRD: " + user.ignored 
     + " | FLWg: " + user.following 
     + " | 3C: @" + user.threeceeFollowing 
     + " | CAT M: " + user.category + " - A: " + user.categoryAuto
@@ -1566,18 +1568,10 @@ async function initDbUserChangeStream(params){
 
           if (userChanges.changeFlag) { 
             user.changes = userChanges; 
-            // user.markModified("previousName");
-            // user.markModified("previousDescription");
-            // user.markModified("statusId");
-            // user.markModified("previousStatusId");
           }
 
           if (userChanges.initFlag) {
             user.initFlag = true;
-            // user.markModified("previousName");
-            // user.markModified("previousDescription");
-            // user.markModified("statusId");
-            // user.markModified("previousStatusId");
           }
 
           if ((userChangeDbQueue.length < 10000) && (userChanges.changeFlag || userChanges.initFlag)) { 

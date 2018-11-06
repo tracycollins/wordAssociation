@@ -3807,6 +3807,69 @@ function follow(params, callback) {
 
 }
 
+function ignore(params, callback) {
+
+  console.log(chalk.blue("WAS | XXX IGNORE | @" + params.user.screenName));
+
+  if (params.user.nodeId !== undefined){
+
+    ignoredUserSet.add(params.user.nodeId);
+
+    ignoredUserSet.add(params.user.nodeId);
+
+    const ob = {
+      userIds : [...ignoredUserSet]
+    }
+
+    saveFileQueue.push({
+      localFlag: false, 
+      folder: dropboxConfigDefaultFolder, 
+      file: ignoredUserFile, 
+      obj: ob
+    });
+
+  } 
+
+  if (tssChild !== undefined) { 
+    tssChild.send({op: "IGNORE", user: params.user});
+  }
+
+  // if (tfeChild !== undefined) { 
+  //   tfeChild.send({op: "IGNORE", user: params.user});
+  // }
+
+  const query = { nodeId: params.user.nodeId };
+
+  let update = {};
+  update["$set"] = { ignored: true };
+
+  const options = {
+    new: true,
+    upsert: false
+  };
+
+  User.findOneAndUpdate(query, update, options, function(err, userUpdated){
+
+    if (err) {
+      console.log(chalkError("WAS | *** IGNORE | USER FIND ONE ERROR: " + err));
+    }
+    else if (userUpdated){
+      console.log(chalkLog("WAS | XXX IGNORE"
+        + " | " + printUser({user: userUpdated})
+      ));
+    }
+    else {
+      console.log(chalkLog("WAS | --- IGNORE USER NOT IN DB"
+        + " | ID: " + params.user.nodeId
+      ));
+    }
+
+
+    if (callback !== undefined) { callback(err, userUpdated); }
+
+  });
+}
+
 function unfollow(params, callback) {
 
   console.log(chalk.blue("WAS | XXX UNFOLLOW | @" + params.user.screenName));
@@ -4653,7 +4716,7 @@ function initSocketHandler(socketObj) {
       + " | @" + user.screenName
     ));
 
-    unfollow({user: user, socketId: socket.id, ignored: true}, function(err, updatedUser){
+    unfollow({user: user, socketId: socket.id}, function(err, updatedUser){
       if (err) {
         console.log(chalkError("WAS | TWITTER_UNFOLLOW ERROR: " + err));
         return;
@@ -4665,6 +4728,40 @@ function initSocketHandler(socketObj) {
       utilNameSpace.emit("UNFOLLOW", updatedUser);
 
       console.log(chalk.blue("WAS | XXX TWITTER_UNFOLLOW"
+        + " | SID: " + socket.id
+        + " | UID" + updatedUser.nodeId
+        + " | @" + updatedUser.screenName
+      ));
+
+    });
+  });
+
+  socket.on("TWITTER_IGNORE", function twitterIgnore(user) {
+
+    const timeStamp = moment().valueOf();
+
+    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
+    console.log(chalkSocket("R< TWITTER_IGNORE"
+      + " | " + getTimeStamp(timeStamp)
+      + " | " + ipAddress
+      + " | " + socket.id
+      + " | UID: " + user.userId
+      + " | @" + user.screenName
+    ));
+
+    ignore({user: user, socketId: socket.id}, function(err, updatedUser){
+      if (err) {
+        console.log(chalkError("WAS | TWITTER_IGNORE ERROR: " + err));
+        return;
+      }
+      
+      if (!updatedUser) { return; }
+
+      adminNameSpace.emit("IGNORE", updatedUser);
+      utilNameSpace.emit("IGNORE", updatedUser);
+
+      console.log(chalk.blue("WAS | XXX TWITTER_IGNORE"
         + " | SID: " + socket.id
         + " | UID" + updatedUser.nodeId
         + " | @" + updatedUser.screenName

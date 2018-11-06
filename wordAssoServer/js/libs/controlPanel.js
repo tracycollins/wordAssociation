@@ -178,6 +178,25 @@ function ControlPanel() {
 
   //--------------
 
+  function ignoreButtonHandler(e){
+    console.warn("IGNORE BUTTON | ID: " + e.target.id + " | USER: @" + twitterFeedUser.screenName);
+    parentWindow.postMessage({op: "IGNORE", user: twitterFeedUser}, DEFAULT_SOURCE);
+  }
+
+  var ignoreButton = document.createElement("button");
+  ignoreButton.setAttribute("class", "button");
+  ignoreButton.setAttribute("id", "ignoreButton");
+  ignoreButton.innerHTML = "IGNORE";
+  ignoreButton.addEventListener(
+    "click", 
+    function(e){ ignoreButtonHandler(e); }, 
+    false
+  );
+
+  twitterUserButtonsDiv.appendChild(ignoreButton);
+
+  //--------------
+
   function unfollowButtonHandler(e){
     console.warn("UNFOLLOW BUTTON | ID: " + e.target.id + " | USER: @" + twitterFeedUser.screenName);
     parentWindow.postMessage({op: "UNFOLLOW", user: twitterFeedUser}, DEFAULT_SOURCE);

@@ -460,6 +460,7 @@ let utilNameSpace;
 let userNameSpace;
 let viewNameSpace;
 
+let ignoredUserFile = "ignoredUser.json";
 let unfollowableUserFile = "unfollowableUser.json";
 let followableSearchTermFile = "followableSearchTerm.json";
 
@@ -578,6 +579,7 @@ let defaultTwitterUser = twitterUserThreecee;
 
 let followedUserSet = new Set();
 let unfollowableUserSet = new Set();
+let ignoredUserSet = new Set();
 
 process.title = "node_wordAssoServer";
 console.log(chalkBlue("\n\nWAS | ============== START ==============\n\n"));
@@ -3414,6 +3416,7 @@ configEvents.on("DB_CONNECT", async function configEventDbConnect(){
 
     initSocketNamespaces();
     await initUnfollowableUserSet();
+    await initIgnoredUserSet();
     await initFollowableSearchTermSet();
 
     initCategoryHashmapsReady = false;
@@ -3733,9 +3736,12 @@ function socketRxTweet(tw) {
 
 function follow(params, callback) {
 
-  if (followedUserSet.has(params.user.nodeId) || unfollowableUserSet.has(params.user.nodeId)) { 
+  if (followedUserSet.has(params.user.nodeId) 
+    || ignoredUserSet.has(params.user.nodeId)
+    || unfollowableUserSet.has(params.user.nodeId)) 
+  { 
 
-    console.log(chalkWarn("XXX FOLLOW | @" + params.user.screenName + " | IN UNFOLLOWABLE or FOLLOWED USER SET"));
+    console.log(chalkWarn("XXX FOLLOW | @" + params.user.screenName + " | IN UNFOLLOWABLE, FOLLOWED or IGNORED USER SET"));
 
     if (callback !== undefined) { 
       return callback("XXX FOLLOW", null);
@@ -3810,6 +3816,21 @@ function unfollow(params, callback) {
     unfollowableUserSet.add(params.user.nodeId);
     followedUserSet.delete(params.user.nodeId);
     uncategorizedManualUserSet.delete(params.user.nodeId);
+
+    if (params.ignored) {
+      ignoredUserSet.add(params.user.nodeId);
+
+      const ob = {
+        userIds : [...ignoredUserSet]
+      }
+
+      saveFileQueue.push({
+        localFlag: false, 
+        folder: dropboxConfigDefaultFolder, 
+        file: ignoredUserFile, 
+        obj: ob
+      });
+    }
 
     const obj = {
       userIds : [...unfollowableUserSet]
@@ -3918,6 +3939,108 @@ function initDropboxSync(){
   console.log(chalkLog("WAS | INIT DROPBOX SYNC"));
 
 }
+
+
+function initIgnoredUserSet(){
+
+  console.log(chalkLog("WAS | INIT IGNORED USER SET"));
+
+  return new Promise(function(resolve, reject) {
+
+    loadFile(dropboxConfigDefaultFolder, ignoredUserFile, function(err, ignoredUserSetObj){
+      if (err) {
+        if (err.code === "ENOTFOUND") {
+          console.log(chalkError("WAS | *** LOAD IGNORED USERS ERROR: FILE NOT FOUND:  " 
+            + dropboxConfigDefaultFolder + "/" + ignoredUserFile
+          ));
+        }
+        else {
+          console.log(chalkError("WAS | *** LOAD IGNORED USERS ERROR: " + err));
+        }
+        console.error(err);
+        reject(err);
+      }
+      
+      if (ignoredUserSetObj) {
+
+        console.log(chalkLog("WAS | LOADED IGNORED USERS FILE"
+          + " | " + ignoredUserSetObj.userIds.length + " USERS"
+          + " | " + dropboxConfigDefaultFolder + "/" + ignoredUserFile
+        ));
+
+        let query;
+        let update;
+        let numIgnored = 0;
+        let numAlreadyIgnored = 0;
+
+        async.eachSeries(ignoredUserSetObj.userIds, function(userId, cb){
+
+          ignoredUserSet.add(userId);
+
+          query = { nodeId: userId, ignored: {"$in": [ false, "false", null ]} };
+
+          update = {};
+          update["$set"] = { ignored: true, following: false, threeceeFollowing: false };
+
+          const options = {
+            new: true,
+            upsert: false
+          };
+
+          User.findOneAndUpdate(query, update, options, function(err, userUpdated){
+
+            if (err) {
+              console.log(chalkError("WAS | *** initIgnoredUserSet | USER FIND ONE ERROR: " + err));
+              return cb(err, userId);
+            }
+            
+            if (userUpdated){
+
+              numIgnored += 1;
+              console.log(chalkLog("WAS | XXX IGNORE"
+                + " [" + numIgnored + "/" + numAlreadyIgnored + "/" + ignoredUserSetObj.userIds.length + "]"
+                + " | " + printUser({user: userUpdated})
+              ));
+
+              cb(null, userUpdated);
+            }
+            else {
+              numAlreadyIgnored += 1;
+              if (configuration.verbose){
+                console.log(chalkLog("WAS | ... ALREADY IGNORED"
+                  + " [" + numIgnored + "/" + numAlreadyIgnored + "/" + ignoredUserSetObj.userIds.length + "]"
+                  + " | ID: " + userId
+                ));
+              }
+              cb(null, null);
+            }
+          });
+
+        }, function(err){
+
+          if (err) {
+            reject(err);
+          }
+          console.log(chalkBlue("WAS | INIT IGNORED USERS"
+            + " | " + numIgnored + " NEW IGNORED"
+            + " | " + numAlreadyIgnored + " ALREADY IGNORED"
+            + " | " + ignoredUserSet.size + " USERS IN SET"
+            + " | " + ignoredUserSetObj.userIds.length + " USERS IN FILE"
+            + " | " + dropboxConfigDefaultFolder + "/" + ignoredUserFile
+          ));
+          resolve();
+        });
+      }
+      else {
+        console.log(chalkAlert("WAS | ??? LOAD IGNORED USERS EMPTY SET???"));
+        resolve();
+      }
+    });
+
+  });
+}
+
+
 
 function initUnfollowableUserSet(){
 
@@ -4530,7 +4653,7 @@ function initSocketHandler(socketObj) {
       + " | @" + user.screenName
     ));
 
-    unfollow({user: user, socketId: socket.id}, function(err, updatedUser){
+    unfollow({user: user, socketId: socket.id, ignored: true}, function(err, updatedUser){
       if (err) {
         console.log(chalkError("WAS | TWITTER_UNFOLLOW ERROR: " + err));
         return;
@@ -5296,10 +5419,12 @@ let followableFlag = false;
 let userFollowable = function(user){
 
   if (user.nodeType !== "user") { return false; }
+  if (user.ignored !== undefined && user.ignored) { return false; }
   if (user.following !== undefined && user.following) { return false; }
+  if (ignoredUserSet.has(user.nodeId)) { return false; }
+  if (unfollowableUserSet.has(user.nodeId)) { return false; }
   if (user.category !== undefined && user.category) { return false; }
   if (user.followersCount !== undefined && (user.followersCount < configuration.minFollowersAuto)) { return false; }
-  if (unfollowableUserSet.has(user.nodeId)) { return false; }
 
   if ((user.description === undefined) || !user.description) { user.description = ""; }
   if ((user.screenName === undefined) || !user.screenName) { user.screenName = ""; }
@@ -5319,9 +5444,9 @@ let userFollowable = function(user){
 
 function autoFollowUser(params, callback){
 
-  if (unfollowableUserSet.has(params.user.nodeId)){
+  if (ignoredUserSet.has(params.user.nodeId) || unfollowableUserSet.has(params.user.nodeId)){
 
-    console.log(chalk.bold.blue("WAS | XXX AUTO FOLLOW USER | IN UNFOLLOWABLE SET"
+    console.log(chalk.bold.blue("WAS | XXX AUTO FOLLOW USER | IN UNFOLLOWABLE or IGNORED SET"
       + "\n" + printUser({user:params.user})
     ));
 

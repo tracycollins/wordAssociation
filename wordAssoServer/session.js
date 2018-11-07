@@ -89,7 +89,7 @@ var DEFAULT_VIEWER_OBJ = {
   screenName: VIEWER_ID,
   type: "viewer",
   namespace: "view",
-  timeStamp: moment().valueOf(),
+  timeStamp: Date.now(),
   tags: {}
 };
 
@@ -1151,7 +1151,7 @@ function initViewerReadyInterval(interval){
 
     if (statsObj.serverConnected && !statsObj.viewerReadyTransmitted && !statsObj.viewerReadyAck){
 
-      viewerObj.timeStamp = moment().valueOf();
+      viewerObj.timeStamp = Date.now();
 
       console.log(chalkInfo("T> VIEWER_READY"
         + " | " + viewerObj.userId
@@ -1163,7 +1163,7 @@ function initViewerReadyInterval(interval){
 
       statsObj.viewerReadyTransmitted = true; 
 
-      socket.emit("VIEWER_READY", {userId: viewerObj.userId, timeStamp: moment().valueOf()}, function(){
+      socket.emit("VIEWER_READY", {userId: viewerObj.userId, timeStamp: Date.now()}, function(){
         statsObj.viewerReadyTransmitted = true;
       }); 
 
@@ -1240,7 +1240,7 @@ function initKeepalive(viewerObj, interval){
 
   socketKeepaliveInterval = setInterval(function(){ // TX KEEPALIVE
 
-    statsObj.elapsed = moment().valueOf() - statsObj.startTime;
+    statsObj.elapsed = Date.now() - statsObj.startTime;
 
     viewerObj.stats = statsObj;
 
@@ -1263,7 +1263,7 @@ setInterval(function() {
     console.error("\n????? SERVER DOWN ????? | | LAST HEARTBEAT: " 
       + getTimeStamp(lastHeartbeatReceived) 
       + " | " + moment().format(defaultDateTimeFormat) 
-      + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived));
+      + " | AGO: " + msToTime(Date.now() - lastHeartbeatReceived));
     socket.connect();
     if (currentSessionView !== undefined) {
       currentSessionView.setEnableAgeNodes(false);
@@ -1273,7 +1273,7 @@ setInterval(function() {
     console.error("\n????? SERVER DOWN ????? | LAST HEARTBEAT: " 
       + getTimeStamp(lastHeartbeatReceived) 
       + " | " + moment().format(defaultDateTimeFormat) 
-      + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived));
+      + " | AGO: " + msToTime(Date.now() - lastHeartbeatReceived));
     socket.connect();
     if (currentSessionView !== undefined) {
       currentSessionView.setEnableAgeNodes(false);
@@ -1300,7 +1300,7 @@ socket.on("connect", function() {
   statsObj.socket.connectMoment = moment();
   statsObj.socket.connects += 1;
 
-  viewerObj.timeStamp = moment().valueOf();
+  viewerObj.timeStamp = Date.now();
 
   socket.emit("authentication", { namespace: "view", userId: viewerObj.userId, password: "0123456789" });
 });
@@ -1352,7 +1352,7 @@ socket.on("reconnect", function() {
   statsObj.socket.reconnects += 1;
   statsObj.socket.connected = true;
 
-  viewerObj.timeStamp = moment().valueOf();
+  viewerObj.timeStamp = Date.now();
 
   socket.emit("VIEWER_READY", viewerObj, function(){
     statsObj.viewerReadyTransmitted = true;
@@ -1454,7 +1454,7 @@ socket.on("HEARTBEAT", function(hb) {
   heartBeatsReceived += 1;
   statsObj.serverConnected = true;
   statsObj.socket.connected = true;
-  lastHeartbeatReceived = moment().valueOf();
+  lastHeartbeatReceived = Date.now();
 });
 
 socket.on("CONFIG_CHANGE", function(rxConfig) {
@@ -2033,7 +2033,7 @@ function initialize(callback) {
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
 
-            viewerObj.timeStamp = moment().valueOf();
+            viewerObj.timeStamp = Date.now();
 
             socket.emit("VIEWER_READY", viewerObj, function(){
               statsObj.viewerReadyTransmitted = true;
@@ -2090,7 +2090,7 @@ function initialize(callback) {
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
 
-            viewerObj.timeStamp = moment().valueOf();
+            viewerObj.timeStamp = Date.now();
 
             socket.emit("VIEWER_READY", viewerObj, function(){
               statsObj.viewerReadyTransmitted = true;
@@ -2150,7 +2150,7 @@ function initialize(callback) {
 
           console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
 
-          viewerObj.timeStamp = moment().valueOf();
+          viewerObj.timeStamp = Date.now();
 
           socket.emit("VIEWER_READY", viewerObj, function(){
             statsObj.viewerReadyTransmitted = true;

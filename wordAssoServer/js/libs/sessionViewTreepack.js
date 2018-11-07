@@ -197,7 +197,7 @@ function ViewTreepack() {
   currentMax.rate.screenName = "threecee";
   currentMax.rate.rate = 0.1;
   currentMax.rate.mentions = 0.1;
-  currentMax.rate.timeStamp = moment().valueOf();
+  currentMax.rate.timeStamp = Date.now();
 
   currentMax.mentions = {};
   currentMax.mentions.isMaxNode = true;
@@ -206,12 +206,12 @@ function ViewTreepack() {
   currentMax.mentions.screenName = "whatever";
   currentMax.mentions.rate = 0.1;
   currentMax.mentions.mentions = 0.1;
-  currentMax.mentions.timeStamp = moment().valueOf();
+  currentMax.mentions.timeStamp = Date.now();
 
   function Node(nodePoolId){
     this.age = 1e-6;
     this.ageMaxRatio = 1e-6;
-    this.ageUpdated = moment().valueOf();
+    this.ageUpdated = Date.now();
     this.category = false;
     this.categoryAuto = false;
     this.categoryColor = "#FFFFFF";
@@ -298,8 +298,8 @@ function ViewTreepack() {
   maxRateMentions.rate = 2;
   maxRateMentions.rateNodeId = "what";
   maxRateMentions.mentionsNodeId = "what";
-  maxRateMentions.rateTimeStamp = moment().valueOf();
-  maxRateMentions.mentionsTimeStamp = moment().valueOf();
+  maxRateMentions.rateTimeStamp = Date.now();
+  maxRateMentions.mentionsTimeStamp = Date.now();
   maxRateMentions.mentions = 2;
   maxRateMentions.ageMaxRatio = 1e-6;
   maxRateMentions.isTrendingTopic = true;
@@ -846,7 +846,7 @@ function ViewTreepack() {
   function resetNode(n, callback){
     n.age = 1e-6;
     n.ageMaxRatio = 1e-6;
-    n.ageUpdated = moment.valueOf();
+    n.ageUpdated = Date.now();
     n.category = false;
     n.categoryAuto = false;
     n.categoryColor = "#FFFFFF";
@@ -901,7 +901,7 @@ function ViewTreepack() {
   var node;
   var nPoolId;
   var prevNode;
-  var currentTime = moment().valueOf();
+  var currentTime = Date.now();
   var nodeIdArray = [];
   var tempNodeArray = [];
 
@@ -921,7 +921,7 @@ function ViewTreepack() {
     else { ageRate = DEFAULT_AGE_RATE; }
 
     maxAgeRate = Math.max(ageRate, maxAgeRate);
-    currentTime = moment().valueOf();
+    currentTime = Date.now();
 
     nodeIdArray.forEach(function(nodeId){
 
@@ -1812,7 +1812,7 @@ function ViewTreepack() {
 
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
-        currentNode.ageUpdated = moment().valueOf();
+        currentNode.ageUpdated = Date.now();
         currentNode.isDead = false;
         currentNode.isMaxNode = false;
         currentNode.isValid = true;
@@ -1850,7 +1850,7 @@ function ViewTreepack() {
 
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
-        currentNode.ageUpdated = moment().valueOf();
+        currentNode.ageUpdated = Date.now();
         currentNode.category = newNode.category;
         currentNode.categoryAuto = newNode.categoryAuto;
         currentNode.categoryColor = newNode.categoryColor;
@@ -2030,7 +2030,7 @@ function ViewTreepack() {
     // self.setEnableAgeNodes(true);
 
     newNode.age = 1e-6;
-    newNode.ageUpdated = moment().valueOf();
+    newNode.ageUpdated = Date.now();
     newNode.ageMaxRatio = 1e-6;
     newNode.rank = -1;
     newNode.newFlag = true;
@@ -2052,7 +2052,7 @@ function ViewTreepack() {
       currentMax.mentions.screenName = newNode.screenName; 
       currentMax.mentions.mentions = newNode.mentions; 
       currentMax.mentions.rate = newNode.rate;
-      currentMax.mentions.timeStamp = moment().valueOf(); 
+      currentMax.mentions.timeStamp = Date.now(); 
 
       if (metricMode === "mentions") {
         currentMaxMentionsMetric = newNode.mentions; 
@@ -2068,7 +2068,7 @@ function ViewTreepack() {
       currentMax.rate.screenName = newNode.screenName; 
       currentMax.rate.rate = newNode.rate;
       currentMax.rate.mentions = newNode.mentions;
-      currentMax.rate.timeStamp = moment().valueOf(); 
+      currentMax.rate.timeStamp = Date.now(); 
 
       if (metricMode === "rate") { currentMaxRateMetric = newNode.rate; }
     }
@@ -2122,7 +2122,7 @@ function ViewTreepack() {
         runningFlag = true;
       break;
       case "RESUME":
-        resumeTimeStamp = moment().valueOf();
+        resumeTimeStamp = Date.now();
         runningFlag = true;
         simulation.alphaTarget(0.7).restart();
       break;

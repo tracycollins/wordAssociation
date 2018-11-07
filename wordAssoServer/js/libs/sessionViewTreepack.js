@@ -50,8 +50,10 @@ function ViewTreepack() {
   var palette = {
     "black": "#000000",
     "white": "#FFFFFF",
-    "lightgray": "#819090",
-    "gray": "#708284",
+    // "lightgray": "#819090",
+    "lightgray": "#AAAAAA",
+    // "gray": "#708284",
+    "gray": "#888888",
     "mediumgray": "#536870",
     "darkgray": "#475B62",
     "darkblue": "#0A2933",

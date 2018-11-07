@@ -449,12 +449,12 @@ function ViewTreepack() {
     .clamp(true);
     
   var nodeLabelOpacityScale = d3.scaleLinear()
-    .domain([1e-6, 0.1, 1.0])
-    .range([1.0, 0.5, minOpacity])
+    .domain([1e-6, 0.2, 1.0])
+    .range([1.0, 0.5, 1.5*minOpacity])
     .clamp(true);
     
   var nodeLabelOpacityScaleTopTerm = d3.scaleLinear()
-    .domain([1e-6, 0.1, 1.0])
+    .domain([1e-6, 0.2, 1.0])
     .range([1.0, 0.75, 2.0*minOpacity])
     .clamp(true);
     
@@ -1553,7 +1553,6 @@ function ViewTreepack() {
       //   return palette.darkgray; 
       // })
       .style("fill-opacity", function updateNodeLabelOpacity(d) { 
-        // if (d.nodeType === "media") { return 1e-6; }
         if (d.mouseHoverFlag) { return 1.0; }
         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
@@ -1645,19 +1644,12 @@ function ViewTreepack() {
         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
         return nodeLabelOpacityScale(d.ageMaxRatio);
       })
-      // .style("fill", palette.white)
       .style("fill", function (d) { 
         if (d.isTopTerm && (d.nodeType === "hashtag")) { return palette.white; }
         if (d.isTopTerm && (d.followersCount > minFollowers)) { return palette.white; }
         if (!d.isTopTerm && (d.followersCount > minFollowers)) { return palette.lightgray; }
         if (d.isTopTerm) { return palette.lightgray; }
         return palette.gray; 
-      })
-      .style("stroke-width", function (d) { 
-        if (d.categoryMatch) { return categoryMatchStrokeWidth; }
-        if (d.categoryMismatch) { return categoryMismatchStrokeWidth; }
-        if (d.isTopTerm) { return topTermStrokeWidth; }
-        return defaultStrokeWidth; 
       })
       .style("font-size", function (d) {
         if (metricMode === "rate") {

@@ -313,7 +313,7 @@ function ViewTreepack() {
   var testMode = false;
   var freezeFlag = false;
 
-  var MAX_NODES = 100;
+  var MAX_NODES = 50;
 
   var NEW_NODE_AGE_RATIO = 0.01;
 

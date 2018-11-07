@@ -3947,7 +3947,7 @@ function unfollow(params, callback) {
 
 function initFollowableSearchTermSet(){
 
-  console.log(chalkBlue("WAS | INIT FOLLOWABLE SEARCH TERM SET"));
+  console.log(chalkBlue("WAS | INIT FOLLOWABLE SEARCH TERM SET: " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile));
 
   return new Promise(function(resolve, reject) {
 
@@ -3960,7 +3960,9 @@ function initFollowableSearchTermSet(){
           ));
         }
         else {
-          console.log(chalkError("WAS | *** LOAD FOLLOWABLE SEARCH TERM ERROR: STATUS: " + err.status));
+          console.log(chalkError("WAS | *** LOAD FOLLOWABLE SEARCH TERM ERROR: " + err
+            + " | " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
+          ));
           console.error(err);
         }
 

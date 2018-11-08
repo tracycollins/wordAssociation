@@ -3,6 +3,7 @@
 "use strict";
 
 const TWITTER_AUTH_CALLBACK_URL = "https://word.threeceelabs.com/auth/twitter/callback";
+const TWITTER_WEBHOOK_URL = "/webhooks/twitter";
 // const TWITTER_AUTH_CALLBACK_URL = "http://localhost:9997/auth/twitter/callback";
 
 global.dbConnection = false;
@@ -163,6 +164,92 @@ const debugCategory = require("debug")("kw");
 const moment = require("moment");
 // const treeify = require("treeify");
 const treeify = require(__dirname + "/js/libs/treeify");
+
+const request = require("request");
+
+var request_options = {
+  url: "https://api.twitter.com/oauth2/token",
+  method: "POST",
+  auth: {
+    user: "p08qa943B9Oe7Wpl9MAnbS4ca",
+    pass: "ds3t7bAvMqSRSY58jSR9lLjmS92ZjTgyH3JQaLtD49t9jq8Axe"
+  },
+  form: {
+    "grant_type": "client_credentials"
+  }
+};
+
+function bearerTokenRequest(request_options){
+  return new Promise(function(resolve, reject){
+    request(request_options, function(error, response) {
+      if (error) {
+        reject(error);
+      }
+      else {
+
+        var json_body = JSON.parse(response.body);
+
+        console.log(chalkAlert("WAS | TWITTER BEARER TOKEN | " + json_body.access_token));
+
+        let twitter_bearer_token = json_body.access_token;
+
+        // request options
+        var req_options = {
+          url: 'https://api.twitter.com/1.1/account_activity/all/dev/webhooks.json?url=https%3A%2F%word.threeceelabs.com%2Fwebhooks%2Ftwitter',
+          method: "POST",
+          resolveWithFullResponse: true,
+          auth: { "bearer" : twitter_bearer_token }
+        }
+
+        // PUT request to retrieve webhook config
+        request(req_options, function(error, response) {
+          if (error) {
+            console.log(chalkError("WAS | *** TWITTER WEBHOOK CONFIG REQ ERROR: " + error));
+            return reject(twitter_bearer_token);
+          }
+          console.log(chalkAlert("WAS | +++ TWITTER WEBHOOK VALID"));
+          resolve(twitter_bearer_token);
+        });
+      }
+    })
+  });
+}
+
+function addAccountActivitySubscription(params){
+
+  return new Promise(function(resolve, reject){
+
+    let options = {
+      url: "https://api.twitter.com/1.1/account_activity/all/dev/subscriptions.json",
+      method: "POST",
+      resolveWithFullResponse: true,
+      oauth: {
+        consumer_key: "p08qa943B9Oe7Wpl9MAnbS4ca",
+        consumer_secret: "ds3t7bAvMqSRSY58jSR9lLjmS92ZjTgyH3JQaLtD49t9jq8Axe",
+        token: "14607119-AZdkHnnScAo8ubXB3klfz3tsDINNCES5ni1vaNBso",
+        token_secret: "Fb3XQP5LEF3LT0Yx2d3DKIyXLojtwNh7KAc4CTWJbuLIq"
+      } 
+    };
+
+    request(options, function(error, response) {
+
+      if (error) {
+        reject(error);
+      }
+      else {
+        if (response.statusCode == 204) {
+          console.log(chalkAlert("WAS | +++ TWITTER WEBHOOK SUBSCRIPTION ADDED"));
+          resolve(response.statusCode);
+        }
+        else {
+          console.log(chalkAlert("WAS | --- TWITTER WEBHOOK SUBSCRIPTION NOT ADDED: STATUS: " + response.statusCode));
+          resolve(response.statusCode);
+        }
+      }
+    })
+  });
+}
+
 
 const express = require("express");
 const app = express();
@@ -6179,6 +6266,25 @@ function initAppRouting(callback) {
     })
   );
 
+  app.post(TWITTER_WEBHOOK_URL, function requestTwitterWebhook(req, res) {
+
+    console.log(chalk.bold.blue("WAS | R< TWITTER WEB HOOK | " + TWITTER_WEBHOOK_URL
+      + " | CRC TOKEN: " + req.query.crc_token
+    ));
+
+    const hmac = getChallengeResponse(req.query.crc_token, threeceeConfig.consumer_secret);
+
+    const response_token = "sha256=" + Buffer.from(hmac).toString('base64');
+
+    console.log(chalk.bold.blue("WAS | T> TWITTER WEB HOOK RES TOKEN"
+      + " | " + response_token
+    ));
+
+    const response = { "response_token" : response_token };
+
+    res.send(response);
+  });
+
   app.use(methodOverride());
 
   app.use(function requestLog(req, res, next) {
@@ -6196,25 +6302,24 @@ function initAppRouting(callback) {
       }
       res.sendStatus(404);
     }
-    else if (req.path === "/webhooks/twitter") {
+    // else if (req.path === TWITTER_WEBHOOK_URL) {
 
-      console.log(chalk.bold.blue("WAS | R< TWITTER WEB HOOK | /webhooks/twitter"
-        + " | CRC TOKEN: " + req.query.crc_token
-      ));
+    //   console.log(chalk.bold.blue("WAS | R< TWITTER WEB HOOK | " + TWITTER_WEBHOOK_URL
+    //     + " | CRC TOKEN: " + req.query.crc_token
+    //   ));
 
-      const hmac = getChallengeResponse(req.query.crc_token, threeceeConfig.consumer_secret);
+    //   const hmac = getChallengeResponse(req.query.crc_token, threeceeConfig.consumer_secret);
 
-      const response_token = "sha256=" + Buffer.from(hmac).toString('base64');
+    //   const response_token = "sha256=" + Buffer.from(hmac).toString('base64');
 
-      console.log(chalk.bold.blue("WAS | T> TWITTER WEB HOOK RES TOKEN"
-        + " | " + response_token
-      ));
+    //   console.log(chalk.bold.blue("WAS | T> TWITTER WEB HOOK RES TOKEN"
+    //     + " | " + response_token
+    //   ));
 
-      const response = { "response_token" : response_token };
+    //   const response = { "response_token" : response_token };
 
-      res.send(response);
-
-    }
+    //   res.send(response);
+    // }
     else if (req.path === "/dropbox_webhook") {
 
       console.log(chalk.bold.black("WAS | R< DROPBOX WEB HOOK | /dropbox_webhook"
@@ -9240,6 +9345,11 @@ initialize(async function initializeComplete(err) {
     statsObj.configuration = configuration;
 
     try {
+      if (configuration.twitter === undefined) {
+        configuration.twitter = {};
+      }
+      configuration.twitter.bearerToken = await bearerTokenRequest(request_options);
+      await addAccountActivitySubscription();
       await initKeySortInterval(configuration.keySortInterval);
       await initDropboxSync();
       await initSaveFileQueue(configuration);

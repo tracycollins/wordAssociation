@@ -1072,6 +1072,7 @@ function printUserObj(title, user) {
     + " | LS: " + getTimeStamp(user.lastSeen)
     + " | FLWg: " + user.following 
     + " | 3C: @" + user.threeceeFollowing 
+    + " | LOC: " + user.location
     + " | CAT MAN: " + user.category
     + " | CAT AUTO: " + user.categoryAuto
   ));
@@ -1426,6 +1427,7 @@ function printUser(params) {
       + " | CR: " + getTimeStamp(params.user.createdAt)
       + " | LS: " + getTimeStamp(params.user.lastSeen)
       + " | ULS: " + params.user.updateLastSeen 
+      + " | LOC: " + params.user.location 
       + "\nFLWg: " + params.user.following 
       + " | 3C: " + params.user.threeceeFollowing 
       + "\nTs: " + params.user.statusesCount 
@@ -5655,6 +5657,7 @@ function autoFollowUser(params, callback){
       + " | UID: " + params.user.userId
       + " | @" + params.user.screenName
       + " | NAME: " + params.user.name
+      + " | LOC: " + params.user.location
       + " | FOLLOWING: " + params.user.following
       + " | 3C FOLLOW: " + params.user.threeceeFollowing
       + " | FLWRs: " + params.user.followersCount
@@ -9027,6 +9030,7 @@ function twitterGetUserUpdateDb(user, callback){
             user.friendsCount = cUser.friendsCount;
             user.statusesCount = cUser.statusesCount;
             user.createdAt = cUser.createdAt;
+            user.location = cUser.location;
             user.updateLastSeen = true;
             user.lastSeen = (cUser.status !== undefined) ? cUser.status.created_at : Date.now();
 

@@ -583,6 +583,7 @@ function printUserObj(title, user) {
     + " | " + user.userId
     + " | @" + user.screenName
     + " | N: " + user.name 
+    + " | LOC: " + user.location 
     + " | FLWRs: " + user.followersCount
     + " | FRNDs: " + user.friendsCount
     + " | Ts: " + user.statusesCount
@@ -1582,6 +1583,7 @@ function initSearchStream(params, callback){
         + " | " + tweetStatus.id_str
         + " | @" + tweetStatus.user.screen_name
         + " | " + tweetStatus.user.name
+        + " | LOC " + tweetStatus.user.location
         + " | " + tweetStatus.user.id_str
       ));
     }

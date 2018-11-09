@@ -514,6 +514,8 @@ function quit(message) {
 
     global.dbConnection.close(function () {
 
+      statsObj.dbConnectionReady = false;
+
       console.log(chalkAlert(
         "\nWAS | ==========================\n"
         + "WAS | MONGO DB CONNECTION CLOSED"
@@ -1857,6 +1859,7 @@ let tssChild;
 let parserChild;
 
 function initStats(callback){
+
   console.log(chalk.bold.black("WAS | INIT STATS"));
   // statsObj = {};
 
@@ -2272,7 +2275,8 @@ function loadFile(path, file, callback) {
         }
       }
       else {
-        callback(null, null);
+        let payload = data.fileBinary;
+        callback(null, payload);
       }
     })
     .catch(function(err) {
@@ -4084,7 +4088,13 @@ function initFollowableSearchTermSet(){
           initFollowableSearchTerms();
           resolve();
         });
-
+      }
+      else {
+        console.log(chalkAlert("WAS | ??? NO FOLLOWABLE SEARCH TERMS ERROR ???"
+          + " | " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
+        ));
+        initFollowableSearchTerms();
+        resolve();
       }
     });
 
@@ -5747,7 +5757,7 @@ function getCurrentThreeceeUser(callback){
 
 function updateUserSets(callback){
 
-  if (!dbConnectionReady) {
+  if (!statsObj.dbConnectionReady) {
     console.log(chalkAlert("WAS | ABORT updateUserSets: DB CONNECTION NOT READY"));
     return callback();
   }
@@ -8456,7 +8466,7 @@ function initCategoryHashmaps(){
         async.whilst(
 
           function() {
-            return (dbConnectionReady && more);
+            return (statsObj.dbConnectionReady && more);
           },
 
           function(cb0){
@@ -8540,11 +8550,14 @@ function initCategoryHashmaps(){
         async.whilst(
 
           function() {
-            return (dbConnectionReady && more);
+            return (statsObj.dbConnectionReady && more);
           },
 
           function(cb0){
 
+            if (!statsObj.dbConnectionReady) { 
+              return cb0("DB CONNECTION NOT READY");
+            }
             userServerController.findCategorizedUsersCursor(p, function(err, results){
 
               if (err) {
@@ -8758,7 +8771,7 @@ function initUpdateUserSetsInterval(interval){
     uncategorizedManualUserArray = [...uncategorizedManualUserSet];
     statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
 
-    if (dbConnectionReady && updateUserSetsIntervalReady && (uncategorizedManualUserArray.length < 10)) {
+    if (statsObj.dbConnectionReady && updateUserSetsIntervalReady && (uncategorizedManualUserArray.length < 10)) {
 
       updateUserSetsIntervalReady = false;
 

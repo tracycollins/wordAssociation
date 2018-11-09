@@ -9032,7 +9032,7 @@ function twitterGetUserUpdateDb(user, callback){
             user.createdAt = cUser.createdAt;
             user.location = cUser.location;
             user.updateLastSeen = true;
-            user.lastSeen = (cUser.status !== undefined) ? cUser.status.created_at : Date.now();
+            user.lastSeen = (cUser.status && (cUser.status !== undefined)) ? cUser.status.created_at : Date.now();
 
             let nCacheObj = nodeCache.get(user.nodeId);
 

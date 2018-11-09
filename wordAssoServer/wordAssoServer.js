@@ -549,7 +549,7 @@ let viewNameSpace;
 
 let ignoredUserFile = "ignoredUser.json";
 let unfollowableUserFile = "unfollowableUser.json";
-let followableSearchTermFile = "followableSearchTerm.json";
+let followableSearchTermFile = "followableSearchTerm.txt";
 
 let pendingFollowSet = new Set();
 
@@ -4040,7 +4040,7 @@ function initFollowableSearchTermSet(){
 
   return new Promise(function(resolve, reject) {
 
-    loadFile(dropboxConfigDefaultFolder, followableSearchTermFile, function(err, followableSearchTermSetObj){
+    loadFile(dropboxConfigDefaultFolder, followableSearchTermFile, function(err, data){
 
       if (err) {
         if (err.status === 409) {
@@ -4058,14 +4058,17 @@ function initFollowableSearchTermSet(){
         initFollowableSearchTerms();
         resolve();
       }
-      else if (followableSearchTermSetObj) {
+      else if (data && (data !== undefined)) {
+
+
+        const dataArray = data.toString().toLowerCase().split("\n");
 
         console.log(chalkLog("WAS | LOADED FOLLOWABLE SEARCH TERM FILE"
-          + " | " + followableSearchTermSetObj.searchTerms.length + " SEARCH TERMS"
+          + " | " + dataArray.length + " SEARCH TERMS"
           + " | " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
         ));
 
-        async.each(followableSearchTermSetObj.searchTerms, function(searchTerm, cb){
+        async.each(dataArray, function(searchTerm, cb){
 
           followableSearchTermSet.add(searchTerm);
           cb();
@@ -4074,7 +4077,7 @@ function initFollowableSearchTermSet(){
 
           console.log(chalkLog("WAS | FOLLOWABLE SEARCH TERM SET"
             + " | " + followableSearchTermSet.size + " SEARCH TERMS"
-            + " | " + followableSearchTermSetObj.searchTerms.length + " SEARCH TERMS IN FILE"
+            + " | " + dataArray.length + " SEARCH TERMS IN FILE"
             + " | " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
           ));
 
@@ -6377,7 +6380,7 @@ function initAppRouting(callback) {
                     updateSearchTerms();
                   }
 
-                  if (entry.path_lower.endsWith("followablesearchterm.json")){
+                  if (entry.path_lower.endsWith("followablesearchterm.txt")){
                     initFollowableSearchTermSet();
                   }
 

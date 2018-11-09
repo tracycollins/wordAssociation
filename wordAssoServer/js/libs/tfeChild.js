@@ -152,10 +152,11 @@ configuration.inputTypes = [
   "images",
   "locations",
   "media",
+  "mentions", 
   "places",
-  "userMentions",
   "sentiment",
   "urls",
+  "userMentions",
   "words"
 ];
 
@@ -827,12 +828,12 @@ function generateNetworkInputIndexed(params, callback){
 
   generateNetworkInputBusy = true;
 
-  const inputTypes = Object.keys(params.inputsObj.inputs).sort();
+  const inTypes = Object.keys(params.inputsObj.inputs).sort();
   let networkInput = [];
 
   let indexOffset = 0;
 
-  async.eachSeries(inputTypes, function(inputType, cb0){
+  async.eachSeries(inTypes, function(inputType, cb0){
 
     debug("RNT | GENERATE NET INPUT | TYPE: " + inputType);
 

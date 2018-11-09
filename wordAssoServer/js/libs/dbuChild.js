@@ -384,7 +384,7 @@ function userUpdateDb(tweetObj){
     // tweetObj.media = results.media || [];
     // tweetObj.emoji = results.emoji || [];
     // tweetObj.words = results.words || [];
-    // tweetObj.place = results.place;
+    // tweetObj.places = results.places;
 
     debug(chalkLog("DBU | USER UPDATE DB"
       + "\n" + jsonPrint(tweetObj)
@@ -423,6 +423,9 @@ function userUpdateDb(tweetObj){
           case "userMentions":
             entity = "@" + entityObj.screenName;
           break;
+          case "locations":
+            entity = entityObj.nodeId;
+          break;
           case "media":
             entity = entityObj.nodeId;
           break;
@@ -435,7 +438,7 @@ function userUpdateDb(tweetObj){
           case "words":
             entity = entityObj.nodeId;
           break;
-          case "place":
+          case "places":
             entity = entityObj.nodeId;
           break;
         }

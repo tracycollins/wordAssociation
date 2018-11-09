@@ -5,7 +5,7 @@
   "main": "wordAssoServer.js",
   "dependencies": {
     "@threeceelabs/hashtag-server-controller": "^1.0.60",
-    "@threeceelabs/mongoose-twitter": "^1.0.150",
+    "@threeceelabs/mongoose-twitter": "^1.0.151",
     "@threeceelabs/socketio-auth": "^1.0.13",
     "@threeceelabs/tweet-server-controller": "^1.0.311",
     "@threeceelabs/twitter-image-parser": "^1.0.56",

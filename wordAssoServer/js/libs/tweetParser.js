@@ -43,6 +43,7 @@ configEvents.on("newListener", function configEventsNewListener(data) {
 const emojiModel = require("@threeceelabs/mongoose-twitter/models/emoji.server.model");
 const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
 const mediaModel = require("@threeceelabs/mongoose-twitter/models/media.server.model");
+const locationModel = require("@threeceelabs/mongoose-twitter/models/location.server.model");
 const placeModel = require("@threeceelabs/mongoose-twitter/models/place.server.model");
 const tweetModel = require("@threeceelabs/mongoose-twitter/models/tweet.server.model");
 const urlModel = require("@threeceelabs/mongoose-twitter/models/url.server.model");
@@ -52,6 +53,7 @@ const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.mod
 let Emoji;
 let Hashtag;
 let Media;
+let Location;
 let Place;
 let Tweet;
 let Url;
@@ -121,6 +123,7 @@ wordAssoDb.connect(dbAppName, function(err, db) {
   Emoji = mongoose.model("Emoji", emojiModel.EmojiSchema);
   Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
   Media = mongoose.model("Media", mediaModel.MediaSchema);
+  Location = mongoose.model("Location", locationModel.LocationSchema);
   Place = mongoose.model("Place", placeModel.PlaceSchema);
   Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
   Url = mongoose.model("Url", urlModel.UrlSchema);

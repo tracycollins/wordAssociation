@@ -265,9 +265,11 @@ function initTweetParserQueueInterval(cnf){
       debug(chalkInfo("TW PARSER TPQ>"
         + " [" + tweetParserQueue.length + "]"
         + " | " + tweet.id_str
+        + " | TWEET LANG: " + tweet.lang
         + " | " + tweet.user.id_str
         + " | @" + tweet.user.screen_name
         + " | " + tweet.user.name
+        + " | USER LANG: " + tweet.user.lang
         + " | Ts: " + tweet.user.statuses_count
         + " | FLs: " + tweet.user.followers_count
         + " | FRs: " + tweet.user.friends_count

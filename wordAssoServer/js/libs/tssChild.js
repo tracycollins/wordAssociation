@@ -1581,8 +1581,10 @@ function initSearchStream(params, callback){
         + " [ Ts/RTs: " + threeceeUserObj.stats.tweetsReceived + "/" + threeceeUserObj.stats.retweetsReceived + "]"
         + " | " + statsObj.tweetsPerMinute.toFixed(3) + " TPM"
         + " | " + tweetStatus.id_str
+        + " | TWEET LANG: " + tweetStatus.lang
         + " | @" + tweetStatus.user.screen_name
         + " | " + tweetStatus.user.name
+        + " | USER LANG: " + tweetStatus.user.lang
         + " | LOC " + tweetStatus.user.location
         + " | " + tweetStatus.user.id_str
       ));

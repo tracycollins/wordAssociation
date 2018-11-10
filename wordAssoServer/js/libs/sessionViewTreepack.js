@@ -227,6 +227,7 @@ function ViewTreepack() {
     this.index = 0;
     this.isCategory = false;
     this.isDead = true;
+    this.isIgnored = false;
     this.isMaxNode = false;
     this.isTopTerm = false;
     this.isTrendingTopic = false;
@@ -1493,25 +1494,6 @@ function ViewTreepack() {
       })
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
-      // .style("fill", function (d) { 
-      //   if (d.isTopTerm && !d.category && !d.categoryAuto) { return palette.white; }
-      //   if (!d.category && !d.categoryAuto) { return palette.black; }
-      //   if (d.category) { return d.categoryColor; }
-      //   if (d.categoryAuto === "right") { return palette.yellow; }
-      //   if (d.categoryAuto === "left") { return palette.blue; }
-      //   if (d.categoryAuto === "positive") { return palette.green; }
-      //   if (d.categoryAuto ==="negative") { return palette.red; }
-      //   return d.categoryColor; 
-      // })
-      // .style("stroke", function (d) {
-      //   if (d.categoryMismatch) { return palette.red; }
-      //   if (d.categoryMatch) { return categoryMatchColor; }
-      //   if (d.categoryAuto === "right") { return palette.yellow; }
-      //   if (d.categoryAuto === "left") { return palette.blue; }
-      //   if (d.categoryAuto === "positive") { return palette.green; }
-      //   if (d.categoryAuto ==="negative") { return palette.black; }
-      //   return palette.white; 
-      // })
       .style("fill-opacity", function(d) { 
         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
@@ -1530,7 +1512,6 @@ function ViewTreepack() {
     nodeCircles
       .exit()
       .style("display", "none");
-      // .attr("r", 1e-6);
 
     callback();
   };
@@ -1546,12 +1527,6 @@ function ViewTreepack() {
       .text(labelText)
       .attr("x", function (d) { return d.x; })
       .attr("y", function (d) { return d.y; })
-      // .style("fill", function (d) { 
-      //   if (d.isTopTerm && (d.followersCount > minFollowers)) { return palette.white; }
-      //   if (!d.isTopTerm && (d.followersCount > minFollowers)) { return palette.lightgray; }
-      //   if (d.isTopTerm && (d.nodeType === "hashtag")) { return palette.white; }
-      //   return palette.darkgray; 
-      // })
       .style("fill-opacity", function updateNodeLabelOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
@@ -1821,6 +1796,7 @@ function ViewTreepack() {
 
         currentNode.rate = newNode.rate;
         currentNode.mentions = newNode.mentions;
+        currentNode.isIgnored = newNode.isIgnored;
         currentNode.isTopTerm = newNode.isTopTerm;
         currentNode.isTrendingTopic = newNode.isTrendingTopic;
         currentNode.category = newNode.category;
@@ -1861,6 +1837,7 @@ function ViewTreepack() {
         currentNode.hashtagId = newNode.hashtagId;
         currentNode.isCategory = newNode.isCategory || false;
         currentNode.isDead = false;
+        currentNode.isIgnored = newNode.isIgnored;
         currentNode.isMaxNode = false;
         currentNode.isTopTerm = newNode.isTopTerm || false;
         currentNode.isTrendingTopic = newNode.isTrendingTopic || false;

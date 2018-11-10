@@ -6778,9 +6778,14 @@ function initTweetParserMessageRxQueueInterval(interval){
             + " [ TPMRQ: " + tweetParserMessageRxQueue.length + "]"
             + " | " + tweetObj.tweetId
             + " | USR: " + tweetObj.user.screenName
-            + " | Hs: " + tweetObj.hashtags.length
-            + " | UMs: " + tweetObj.userMentions.length
             + " | EJs: " + tweetObj.emoji.length
+            + " | Hs: " + tweetObj.hashtags.length
+            + " | Hs: " + tweetObj.images.length
+            + " | LCs: " + tweetObj.locations.length
+            + " | Ms: " + tweetObj.mentions.length
+            + " | PLs: " + tweetObj.places.length
+            + " | ULs: " + tweetObj.urls.length
+            + " | UMs: " + tweetObj.userMentions.length
             + " | WDs: " + tweetObj.words.length
           ));
 
@@ -6788,13 +6793,6 @@ function initTweetParserMessageRxQueueInterval(interval){
           if (dbuChild && statsObj.dbuChildReady && (followableUserSet.has(tweetObj.user.nodeId) || categorizeableUserSet.has(tweetObj.user.nodeId))) {
             dbuChild.send({op: "TWEET", tweetObj: tweetObj});
           }
-
-          /*
-
-
-          
-
-          */
 
           if (transmitNodeQueue.length < configuration.maxQueue) {
 

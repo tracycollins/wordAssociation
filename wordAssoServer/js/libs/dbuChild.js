@@ -4,6 +4,20 @@
 
 process.title = "node_databaseUpdate";
 
+let inputTypes = [
+  "emoji", 
+  "hashtags", 
+  "images", 
+  "locations", 
+  "media", 
+  "mentions", 
+  "places", 
+  "sentiment", 
+  "urls", 
+  "userMentions", 
+  "words"
+];
+
 const DEFAULT_VERBOSE = false;
 const DEFAULT_TEST_MODE = false;
 const DEFAULT_USER_UPDATE_QUEUE_INTERVAL = 100;
@@ -136,15 +150,7 @@ configuration.processName = process.env.DBU_PROCESS_NAME || "node_databaseUpdate
 configuration.verbose = DEFAULT_VERBOSE;
 configuration.testMode = DEFAULT_TEST_MODE; // per tweet test mode
 configuration.maxUserUpdateQueue = DEFAULT_MAX_UPDATE_QUEUE;
-configuration.inputTypes = [ 
-  "emoji",
-  "hashtags",
-  "images",
-  "sentiment",
-  "urls",
-  "userMentions",
-  "words"
-];
+configuration.inputTypes = inputTypes;
 
 function msToTime(duration) {
 
@@ -498,8 +504,26 @@ function userUpdateDb(tweetObj){
 
         try {
           histogramMerged = await mergeHistograms({histogramA: tweetObj.user.histograms, histogramB: user.histograms});
+
           user.histograms = histogramMerged;
+
           printUserObj("DBU | USER MERGED HISTOGRAMS", user);
+
+          console.log(chalkInfo("DBU | MERGED HISTOGRAMS"
+            + " | @" + user.screenName
+            + " | " + user.nodeId
+            + " | EJs: " + user.histograms.emoji.length
+            + " | Hs: " + user.histograms.hashtags.length
+            + " | IMs: " + user.histograms.images.length
+            + " | LCs: " + user.histograms.locations.length
+            + " | MEs: " + user.histograms.media.length
+            + " | Ms: " + user.histograms.mentions.length
+            + " | PLs: " + user.histograms.places.length
+            + " | STs: " + user.histograms.sentiment.length
+            + " | UMs: " + user.histograms.userMentions.length
+            + " | WDs: " + user.histograms.words.length
+          ));
+          
           debug(chalkLog("DBU | USER MERGED HISTOGRAMS\n" + jsonPrint(histogramMerged)));
         }
         catch(err){

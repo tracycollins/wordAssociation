@@ -3745,9 +3745,11 @@ function socketRxTweet(tw) {
   debug(chalkSocket("tweet" 
     + " [" + statsObj.twitter.tweetsReceived + "]"
     + " | " + tw.id_str
+    + " | TW LANG: " + tw.lang
     + " | " + tw.user.id_str
     + " | " + tw.user.screen_name
     + " | " + tw.user.name
+    + " | USER LANG: " + tw.user.lang
   ));
 
   if (tweetRxQueue.length > configuration.maxQueue){
@@ -3773,6 +3775,7 @@ function socketRxTweet(tw) {
     tw.user.status = {};
     tw.user.status.id_str = tw.id_str;
     tw.user.status.created_at = tw.created_at;
+    tw.user.status.lang = tw.lang;
     tw.user.status.text = (tw.truncated) ? tw.extended_tweet.full_text : (tw.text || "");
 
     // tw.user.status = (tw.text !== undefined) ? tw.text : "";
@@ -5599,6 +5602,10 @@ let userCategorizeable = function(user){
   if (user.nodeType !== "user") { return false; }
   if (user.categoryAuto !== undefined && user.categoryAuto) { return false; }
   if (user.followersCount !== undefined && (user.followersCount < configuration.minFollowersAuto)) { return false; }
+  if (user.lang !== undefined && user.lang !== "en") { 
+    console.log(chalkBlue("WAS | --- UNCATEGORIZEABLE | USER LANG NOT ENGLISH: " + user.lang));
+    return false;
+  }
 
   if ((user.description === undefined) || !user.description) { user.description = ""; }
   if ((user.screenName === undefined) || !user.screenName) { user.screenName = ""; }
@@ -5625,6 +5632,10 @@ let userFollowable = function(user){
   if (unfollowableUserSet.has(user.nodeId)) { return false; }
   if (user.category !== undefined && user.category) { return false; }
   if (user.followersCount !== undefined && (user.followersCount < configuration.minFollowersAuto)) { return false; }
+  if (user.lang !== undefined && user.lang !== "en") { 
+    console.log(chalkBlue("WAS | --- UNFOLLOWABLE | USER LANG NOT ENGLISH: " + user.lang));
+    return false;
+  }
 
   if ((user.description === undefined) || !user.description) { user.description = ""; }
   if ((user.screenName === undefined) || !user.screenName) { user.screenName = ""; }
@@ -5642,53 +5653,53 @@ let userFollowable = function(user){
   return followableFlag;
 };
 
-function autoFollowUser(params, callback){
+// function autoFollowUser(params, callback){
 
-  if (ignoredUserSet.has(params.user.nodeId) || unfollowableUserSet.has(params.user.nodeId)){
+//   if (ignoredUserSet.has(params.user.nodeId) || unfollowableUserSet.has(params.user.nodeId)){
 
-    console.log(chalk.bold.blue("WAS | XXX AUTO FOLLOW USER | IN UNFOLLOWABLE or IGNORED SET"
-      + "\n" + printUser({user:params.user})
-    ));
+//     console.log(chalk.bold.blue("WAS | XXX AUTO FOLLOW USER | IN UNFOLLOWABLE or IGNORED SET"
+//       + "\n" + printUser({user:params.user})
+//     ));
 
-    if (callback !== undefined) { 
-      return callback(null, null);
-    }
+//     if (callback !== undefined) { 
+//       return callback(null, null);
+//     }
 
-    return;
-  }
+//     return;
+//   }
 
-  follow({user: params.user}, function(err, results){
-    if (err) {
+//   follow({user: params.user}, function(err, results){
+//     if (err) {
 
-      // unfollowableUserSet.delete(params.user.nodeId);
+//       // unfollowableUserSet.delete(params.user.nodeId);
 
-      if (callback !== undefined) { return callback(err, params); }
-      return;
-    }
+//       if (callback !== undefined) { return callback(err, params); }
+//       return;
+//     }
 
-    console.log(chalk.blue("WAS | +++ AUTO FOLLOW"
-      + " | UID: " + params.user.userId
-      + " | @" + params.user.screenName
-      + " | NAME: " + params.user.name
-      + " | LOC: " + params.user.location
-      + " | FOLLOWING: " + params.user.following
-      + " | 3C FOLLOW: " + params.user.threeceeFollowing
-      + " | FLWRs: " + params.user.followersCount
-    ));
+//     console.log(chalk.blue("WAS | +++ AUTO FOLLOW"
+//       + " | UID: " + params.user.userId
+//       + " | @" + params.user.screenName
+//       + " | NAME: " + params.user.name
+//       + " | LOC: " + params.user.location
+//       + " | FOLLOWING: " + params.user.following
+//       + " | 3C FOLLOW: " + params.user.threeceeFollowing
+//       + " | FLWRs: " + params.user.followersCount
+//     ));
 
-    const text = "*WAS*"
-      + "\n*AUTO FOLLOW*"
-      + "\n@" + params.user.screenName + " | " + params.user.name
-      // + "\nID: " + params.user.userId
-      + "\nFLWRs: " + params.user.followersCount
-      + "\n3C @" + params.user.threeceeFollowing;
+//     const text = "*WAS*"
+//       + "\n*AUTO FOLLOW*"
+//       + "\n@" + params.user.screenName + " | " + params.user.name
+//       // + "\nID: " + params.user.userId
+//       + "\nFLWRs: " + params.user.followersCount
+//       + "\n3C @" + params.user.threeceeFollowing;
 
-    slackPostMessage(slackChannelAutoFollow, text);
+//     slackPostMessage(slackChannelAutoFollow, text);
 
-    if (callback !== undefined) { return callback(null, results); }
-  });
+//     if (callback !== undefined) { return callback(null, results); }
+//   });
 
-}
+// }
 
 function getCurrentThreeceeUser(callback){
 

@@ -331,19 +331,28 @@ function mergeHistograms(params){
 
       histogramMerged[entityType] = {};
 
-      if (histA[entityType] === undefined) { histA[entityType] = {}; }
-      if (histB[entityType] === undefined) { histB[entityType] = {}; }
+      if (!histA[entityType] || histA[entityType] === undefined || histA[entityType] === null) { histA[entityType] = {}; }
+      if (!histB[entityType] || histB[entityType] === undefined || histB[entityType] === null) { histB[entityType] = {}; }
+
+      // console.log(chalkLog("histogramMerged | histA[entityType]: " + jsonPrint(histA[entityType])));
+      // console.log(chalkLog("histogramMerged | histB[entityType]: " + jsonPrint(histB[entityType])));
 
       const entityArray = _.union(Object.keys(histA[entityType]), Object.keys(histB[entityType]));
 
-      entityArray.forEach(function(entity){
+      // console.log(chalkLog("histogramMerged | entityArray: " + entityArray));
+
+      entityArray.forEach(function(e){
+
+        let entity = e.trim();
+
+        if (!entity || entity === "" || entity === " " || entity === null || entity === undefined || entity === "-") { return; }
 
         histogramMerged[entityType][entity] = 0;
 
-        if (histA[entityType][entity] !== undefined) {  histogramMerged[entityType][entity] += histA[entityType][entity]; }
-        if (histB[entityType][entity] !== undefined) {  histogramMerged[entityType][entity] += histB[entityType][entity]; }
+        if (histA[entityType][entity] && histA[entityType][entity] !== undefined) {  histogramMerged[entityType][entity] += histA[entityType][entity]; }
+        if (histB[entityType][entity] && histB[entityType][entity] !== undefined) {  histogramMerged[entityType][entity] += histB[entityType][entity]; }
 
-        debug(chalkLog("histogramMerged | " + entityType + " | " + entity + ": " + histogramMerged[entityType][entity]));
+        // console.log(chalkLog("histogramMerged | " + entityType + " | " + entity + ": " + histogramMerged[entityType][entity]));
 
       });
 
@@ -359,7 +368,7 @@ function mergeHistograms(params){
 
 function printUserObj(title, user) {
   console.log(chalkUser(title
-    + " | UID: " + user.userId
+    + " | " + user.userId
     + " | @" + user.screenName
     + " | N: " + user.name 
     + " | FLWRs: " + user.followersCount
@@ -379,6 +388,11 @@ let userUpdateQueueReady = false;
 let userUpdateQueue = [];
 let tweetObj = {};
 // let user;
+
+function getNumKeys(obj){
+  if (!obj || obj === undefined || typeof obj !== "object" || obj === null) { return 0; }
+  return (Object.keys).length;
+}
 
 function userUpdateDb(tweetObj){
   return new Promise(function(resolve, reject){
@@ -498,32 +512,33 @@ function userUpdateDb(tweetObj){
           return resolve(null);
         }
 
-        printUserObj("DBU | +++ USER DB HIT", user);
 
         let histogramMerged = {};
+
+        if (!user.histograms || user.histograms === undefined || user.histograms === null) { user.histograms = {}; }
 
         try {
           histogramMerged = await mergeHistograms({histogramA: tweetObj.user.histograms, histogramB: user.histograms});
 
           user.histograms = histogramMerged;
 
-          printUserObj("DBU | USER MERGED HISTOGRAMS", user);
+          printUserObj("DBU | +++ USER DB HIT", user);
 
-          console.log(chalkInfo("DBU | MERGED HISTOGRAMS"
-            + " | @" + user.screenName
+          console.log(chalkInfo("DBU | USER MERGED HISTOGRAMS"
             + " | " + user.nodeId
-            + " | EJs: " + user.histograms.emoji.length
-            + " | Hs: " + user.histograms.hashtags.length
-            + " | IMs: " + user.histograms.images.length
-            + " | LCs: " + user.histograms.locations.length
-            + " | MEs: " + user.histograms.media.length
-            + " | Ms: " + user.histograms.mentions.length
-            + " | PLs: " + user.histograms.places.length
-            + " | STs: " + user.histograms.sentiment.length
-            + " | UMs: " + user.histograms.userMentions.length
-            + " | WDs: " + user.histograms.words.length
+            + " | @" + user.screenName
+            + " | EJs: " + getNumKeys(user.histograms.emoji)
+            + " | Hs: " + getNumKeys(user.histograms.hashtags)
+            + " | IMs: " + getNumKeys(user.histograms.images)
+            + " | LCs: " + getNumKeys(user.histograms.locations)
+            + " | MEs: " + getNumKeys(user.histograms.media)
+            + " | Ms: " + getNumKeys(user.histograms.mentions)
+            + " | PLs: " + getNumKeys(user.histograms.places)
+            + " | STs: " + getNumKeys(user.histograms.sentiment)
+            + " | UMs: " + getNumKeys(user.histograms.userMentions)
+            + " | WDs: " + getNumKeys(user.histograms.words)
           ));
-          
+
           debug(chalkLog("DBU | USER MERGED HISTOGRAMS\n" + jsonPrint(histogramMerged)));
         }
         catch(err){

@@ -49,16 +49,16 @@ statsObj.socket = {};
 
 statsObj.socket.errors = 0;
 statsObj.socket.error = false;
-statsObj.socket.errorMoment = moment();
+// statsObj.socket.errorMoment = moment();
 
 statsObj.socket.connected = true;
 statsObj.socket.connects = 0;
-statsObj.socket.connectMoment = moment();
+// statsObj.socket.connectMoment = moment();
 
-statsObj.socket.reconnectMoment = moment();
+// statsObj.socket.reconnectMoment = moment();
 statsObj.socket.reconnects = 0;
 
-statsObj.socket.disconnectMoment = moment();
+// statsObj.socket.disconnectMoment = moment();
 
 
 const RX_NODE_QUEUE_INTERVAL = 10;
@@ -1297,7 +1297,7 @@ socket.on("connect", function() {
   if (currentSessionView !== undefined) { currentSessionView.setEnableAgeNodes(true); }
   console.log("CONNECTED TO HOST | SOCKET ID: " + socket.id);
 
-  statsObj.socket.connectMoment = moment();
+  // statsObj.socket.connectMoment = moment();
   statsObj.socket.connects += 1;
 
   viewerObj.timeStamp = Date.now();
@@ -1348,7 +1348,7 @@ socket.on("reconnect", function() {
   statsObj.serverConnected = true;
   console.log("RECONNECTED TO HOST | SOCKET ID: " + socket.id);
 
-  statsObj.socket.reconnectMoment = moment();
+  // statsObj.socket.reconnectMoment = moment();
   statsObj.socket.reconnects += 1;
   statsObj.socket.connected = true;
 
@@ -1367,7 +1367,7 @@ socket.on("disconnect", function() {
   statsObj.serverConnected = false;
 
   statsObj.socket.connected = false;
-  statsObj.socket.disconnectMoment = moment();
+  // statsObj.socket.disconnectMoment = moment();
 
   if (currentSessionView !== undefined) { currentSessionView.setEnableAgeNodes(false); }
   console.log("*** DISCONNECTED FROM HOST ... DELETING ALL SESSIONS ...");
@@ -1378,7 +1378,7 @@ socket.on("error", function(error) {
 
   statsObj.socket.errors += 1;
   statsObj.socket.error = error;
-  statsObj.socket.errorMoment = moment();
+  // statsObj.socket.errorMoment = moment();
 
   console.log("*** SOCKET ERROR ... DELETING ALL SESSIONS ...");
   console.error("*** SOCKET ERROR\n" + error);
@@ -1396,7 +1396,7 @@ socket.on("connect_error", function(error) {
 
   statsObj.socket.errors += 1;
   statsObj.socket.error = error;
-  statsObj.socket.errorMoment = moment();
+  // statsObj.socket.errorMoment = moment();
 
   console.log("*** SOCKET CONNECT ERROR ... DELETING ALL SESSIONS ...");
   console.error("*** SOCKET CONNECT ERROR\n" + error);
@@ -1407,7 +1407,7 @@ socket.on("reconnect_error", function(error) {
 
   statsObj.socket.errors += 1;
   statsObj.socket.error = error;
-  statsObj.socket.errorMoment = moment();
+  // statsObj.socket.errorMoment = moment();
 
   console.log("*** SOCKET RECONNECT ERROR ... DELETING ALL SESSIONS ...");
   console.error("*** SOCKET RECONNECT ERROR\n" + error);

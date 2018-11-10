@@ -5604,7 +5604,7 @@ let userCategorizeable = function(user){
   if (user.categoryAuto !== undefined && user.categoryAuto) { return false; }
   if (user.followersCount !== undefined && (user.followersCount < configuration.minFollowersAuto)) { return false; }
   if (user.lang !== undefined && user.lang !== "en") { 
-    console.log(chalkBlue("WAS | --- UNCATEGORIZEABLE | USER LANG NOT ENGLISH: " + user.lang));
+    console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LANG NOT ENGLISH: " + user.lang));
     return false;
   }
 
@@ -5634,7 +5634,8 @@ let userFollowable = function(user){
   if (user.category !== undefined && user.category) { return false; }
   if (user.followersCount !== undefined && (user.followersCount < configuration.minFollowersAuto)) { return false; }
   if (user.lang !== undefined && user.lang !== "en") { 
-    console.log(chalkBlue("WAS | --- UNFOLLOWABLE | USER LANG NOT ENGLISH: " + user.lang));
+    ignoredUserSet.add(user.nodeId);
+    console.log(chalkBlue("WAS | XXX UNFOLLOWABLE | USER LANG NOT ENGLISH: " + user.lang + " | IGNORED USER SET SIZE: " + ignoredUserSet.size));
     return false;
   }
 

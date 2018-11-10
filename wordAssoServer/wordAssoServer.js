@@ -630,6 +630,7 @@ const fieldsTransmit = {
   lastTweetId: 1,
   mentions: 1,
   name: 1,
+  lang: 1,
   nodeId: 1,
   nodeType: 1,
   rate: 1,

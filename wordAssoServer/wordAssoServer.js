@@ -925,7 +925,13 @@ let dropboxConfigDefaultFile = "default_" + configuration.DROPBOX.DROPBOX_WAS_CO
 let dropboxConfigHostFile = hostname + "_" + configuration.DROPBOX.DROPBOX_WAS_CONFIG_FILE;
 
 let dropboxConfigDefaultTrainingSetsFolder = dropboxConfigDefaultFolder + "/trainingSets";
-let trainingSetsUsersFolderLocal = (hostname === "google") ? "/home/tc/Dropbox/Apps/wordAssociation/config/utility/default/trainingSets/users" : "/Users/tc/Dropbox/Apps/wordAssociation/config/utility/default/trainingSets/users";
+let trainingSetsUsersFolder = dropboxConfigDefaultTrainingSetsFolder + "/users";
+
+// need local version for "touch"
+let trainingSetsUsersFolderLocal = (hostname === "google") 
+  ? "/home/tc/Dropbox/Apps/wordAssociation/config/utility/default/trainingSets/users" 
+  : "/Users/tc/Dropbox/Apps/wordAssociation/config/utility/default/trainingSets/users";
+
 let usersZipUpdateFlagFile = trainingSetsUsersFolderLocal + "/usersZipUpdateFlag.txt";
 
 let categorizedFolder = dropboxConfigDefaultFolder + "/categorized";
@@ -940,7 +946,7 @@ configuration.dropboxChangeFolderArray = [
   dropboxConfigDefaultFolder, 
   dropboxConfigHostFolder, 
   dropboxConfigTwitterFolder,
-  trainingSetsUsersFolderLocal
+  trainingSetsUsersFolder
 ];
 
 console.log(chalkLog("WAS | DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN));

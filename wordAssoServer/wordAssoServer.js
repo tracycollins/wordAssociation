@@ -147,6 +147,7 @@ const crypto = require("crypto");
 
 const util = require("util");
 const _ = require("lodash");
+const touch = require("touch");
 const merge = require("deepmerge");
 const Measured = require("measured");
 const omit = require("object.omit");
@@ -924,6 +925,8 @@ let dropboxConfigDefaultFile = "default_" + configuration.DROPBOX.DROPBOX_WAS_CO
 let dropboxConfigHostFile = hostname + "_" + configuration.DROPBOX.DROPBOX_WAS_CONFIG_FILE;
 
 let dropboxConfigDefaultTrainingSetsFolder = dropboxConfigDefaultFolder + "/trainingSets";
+let trainingSetsUsersFolderLocal = (hostname === "google") ? "/home/tc/Dropbox/Apps/wordAssociation/config/utility/default/trainingSets/users" : "/Users/tc/Dropbox/Apps/wordAssociation/config/utility/default/trainingSets/users";
+let usersZipUpdateFlagFile = trainingSetsUsersFolderLocal + "/usersZipUpdateFlag.txt";
 
 let categorizedFolder = dropboxConfigDefaultFolder + "/categorized";
 let categorizedUsersFile = "categorizedUsers.json";
@@ -936,7 +939,8 @@ configuration.dropboxChangeFolderArray = [
   bestNetworkFolder, 
   dropboxConfigDefaultFolder, 
   dropboxConfigHostFolder, 
-  dropboxConfigTwitterFolder
+  dropboxConfigTwitterFolder,
+  trainingSetsUsersFolderLocal
 ];
 
 console.log(chalkLog("WAS | DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN));
@@ -6285,6 +6289,12 @@ function getChallengeResponse(crc_token, consumer_secret) {
   return hmac;
 }
 
+function touchUsersZipUpdateFlag(params){
+  console.log(chalkLog("WAS | TOUCH FILE: " + usersZipUpdateFlagFile));
+  touch.sync(usersZipUpdateFlagFile, { force: true });
+  return;
+}
+
 function initAppRouting(callback) {
 
   console.log(chalkInfo(getTimeStamp() + " | INIT APP ROUTING"));
@@ -6398,6 +6408,10 @@ function initAppRouting(callback) {
                   if ((entry.path_lower.endsWith("google_wordassoserverconfig.json"))
                     || (entry.path_lower.endsWith("default_wordassoserverconfig.json"))){
                     initConfig();
+                  }
+
+                  if (entry.path_lower.endsWith("users.zip")){
+                    touchUsersZipUpdateFlag();
                   }
 
                   if (entry.path_lower.endsWith("defaultsearchterms.txt")){
@@ -9365,6 +9379,8 @@ initialize(async function initializeComplete(err) {
   } 
   else {
     debug(chalkLog("INITIALIZE COMPLETE"));
+
+    touchUsersZipUpdateFlag();
 
     console.log(chalkInfo("WAS | NODE CACHE TTL: " + nodeCacheTtl + " SECONDS"));
 

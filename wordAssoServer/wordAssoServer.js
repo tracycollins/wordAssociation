@@ -9380,8 +9380,6 @@ initialize(async function initializeComplete(err) {
   else {
     debug(chalkLog("INITIALIZE COMPLETE"));
 
-    touchUsersZipUpdateFlag();
-
     console.log(chalkInfo("WAS | NODE CACHE TTL: " + nodeCacheTtl + " SECONDS"));
 
     console.log(chalk.blue("WAS | CONFIGURATION\n" + jsonPrint(configuration)));

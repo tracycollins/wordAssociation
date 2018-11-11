@@ -517,6 +517,7 @@ function printUserObj(title, user, chalkConfig) {
     + " | UID: " + user.userId
     + " | @" + user.screenName
     + " | N: " + user.name 
+    + " | LANG: " + user.lang 
     + " | FLWRs: " + user.followersCount
     + " | FRNDs: " + user.friendsCount
     + " | Ts: " + user.statusesCount
@@ -1408,9 +1409,10 @@ async function initUserChangeDbQueueInterval(cnf){
             + " [ USQ: " + userCategorizeQueue.length + "]"
             + " | FLWRs: " + user.followersCount
             + " | FRNDs: " + user.friendsCount
-            + " | USER " + user.userId
+            + " | UID: " + user.userId
             + " | @" + user.screenName
             + " | " + user.name
+            + " | LANG: " + user.lang
             + "\nTFE | USER_SHOW | DESC: " + user.description
           ));
           

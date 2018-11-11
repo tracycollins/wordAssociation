@@ -4932,6 +4932,7 @@ function initSocketHandler(socketObj) {
             + " | UID: " + updatedNodeObj.userId
             + " | @" + updatedNodeObj.screenName
             + " | NAME: " + updatedNodeObj.name
+            + " | LANG: " + updatedNodeObj.lang
             + "\nFLWRs: " + updatedNodeObj.followersCount
             + " | FRNDs: " + updatedNodeObj.friendsCount
             + " | Ms: " + updatedNodeObj.mentions

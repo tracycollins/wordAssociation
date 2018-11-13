@@ -1779,6 +1779,42 @@ process.on("message", function(m) {
       ));
     break;
 
+    case "NETWORK":
+
+      const network = neataptic.Network.fromJSON(m.networkObj.network);
+
+      m.networkObj.network = {};
+      m.networkObj.network = network;
+
+      networksHashMap.set(m.networkObj.networkId, m.networkObj);
+
+      console.log(chalkInfo("TFE | +++ NETWORK"
+        + " | NNs IN HM: " + networksHashMap.size
+        + " | NETWORK: " + networksHashMap.get(m.networkObj.networkId).networkId
+      ));
+      
+    break;
+
+    case "MAX_INPUT_HASHMAP":
+
+      maxInputHashMap = m.maxInputHashMap;
+
+      console.log(chalkInfo("TFE | +++ MAX_INPUT_HASHMAP"
+        + " | MAX INPUT HM KEYS: " + Object.keys(maxInputHashMap)
+      ));
+      
+    break;
+
+    case "NORMALIZATION":
+
+      normalization = m.normalization;
+
+      console.log(chalkInfo("TFE | +++ NORMALIZATION"
+        + " | NORMALIZATION: " + Object.keys(normalization)
+      ));
+      
+    break;
+
     case "USER_AUTHENTICATED":
 
       console.log(chalkInfo("TFE | USER_AUTHENTICATED"

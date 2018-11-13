@@ -6716,22 +6716,30 @@ function testInternetConnection(params, callback) {
 
 function initInternetCheckInterval(interval){
 
-  debug(chalkInfo(getTimeStamp() 
-    + " | INIT INTERNET CHECK INTERVAL | " + interval + " MS"));
 
-  clearInterval(internetCheckInterval);
+  return new Promise(function(resolve, reject){
 
-  let params = {url: configuration.testInternetConnectionUrl};
+    debug(chalkInfo(getTimeStamp() 
+      + " | INIT INTERNET CHECK INTERVAL | " + interval + " MS"));
 
-  testInternetConnection(params, function(err, internetReady){
-  });
+    clearInterval(internetCheckInterval);
 
-  internetCheckInterval = setInterval(function internetCheck(){
+    let params = {url: configuration.testInternetConnectionUrl};
 
     testInternetConnection(params, function(err, internetReady){
     });
 
-  }, interval);
+    internetCheckInterval = setInterval(function internetCheck(){
+
+      testInternetConnection(params, function(err, internetReady){
+      });
+
+    }, interval);
+
+    resolve();
+
+  });
+
 }
 
 function initTwitterRxQueueInterval(interval){
@@ -10399,6 +10407,8 @@ setTimeout(async function(){
       if (dbConnectionReady) {
 
         clearInterval(dbConnectionReadyInterval);
+
+        await initInternetCheckInterval(ONE_MINUTE);
 
         if (configuration.twitter === undefined) {
           configuration.twitter = {};

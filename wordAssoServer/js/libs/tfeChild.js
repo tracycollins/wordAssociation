@@ -1754,6 +1754,8 @@ process.on("message", function(m) {
     + " | OP: " + m.op
   ));
 
+  let network;
+
   switch (m.op) {
 
     case "INIT":
@@ -1764,7 +1766,7 @@ process.on("message", function(m) {
       maxInputHashMap = m.maxInputHashMap;
       normalization = m.normalization;
 
-      const network = neataptic.Network.fromJSON(m.networkObj.network);
+      network = neataptic.Network.fromJSON(m.networkObj.network);
 
       m.networkObj.network = {};
       m.networkObj.network = network;
@@ -1781,7 +1783,7 @@ process.on("message", function(m) {
 
     case "NETWORK":
 
-      const network = neataptic.Network.fromJSON(m.networkObj.network);
+      network = neataptic.Network.fromJSON(m.networkObj.network);
 
       m.networkObj.network = {};
       m.networkObj.network = network;

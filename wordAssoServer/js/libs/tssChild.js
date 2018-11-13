@@ -1168,14 +1168,14 @@ function initUnfollowQueueInterval(cnf, callback){
       }
       else if (!threeceeUserUnfollowReady(unfollowObj.threeceeUser)) {
 
+        unfollowQueue.push(unfollowObj);
+
         console.log(chalkLog("TSS | < UNFOLLOW QUEUE"
           + " [" + unfollowQueue.length + "]"
           + " | 3C @" + unfollowObj.threeceeUser
           + " | UID: " + unfollowObj.user.userId
           + " | NOT READY ... SKIPPING"
         ));
-
-        unfollowQueue.push(unfollowObj);
 
         unfollowQueueReady = true;
 

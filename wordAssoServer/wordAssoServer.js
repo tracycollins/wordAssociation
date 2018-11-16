@@ -1417,7 +1417,6 @@ function connectDb(){
 
         if (err) {
           console.log(chalkError("WAS | *** MONGO DB CONNECTION ERROR: " + err));
-          callback(err, null);
           statsObj.status = "MONGO CONNECTION ERROR";
           slackSendMessage(hostname + " | WAS | " + statsObj.status);
           dbConnectionReady = false;

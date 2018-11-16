@@ -1141,7 +1141,7 @@ let mismatchUserArray = [];
 
 
 const mongoose = require("mongoose");
-mongoose.Promise = global.Promise;
+// mongoose.Promise = global.Promise;
 
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 // const wordAssoDb = require("../../mongooseTwitter");

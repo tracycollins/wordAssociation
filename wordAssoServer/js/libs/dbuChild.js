@@ -130,7 +130,7 @@ function getTimeStamp(inputTime) {
 
 global.dbConnection = false;
 const mongoose = require("mongoose");
-mongoose.Promise = global.Promise;
+// mongoose.Promise = global.Promise;
 
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
@@ -255,6 +255,12 @@ function connectDb(){
         return reject(err);
       }
       else {
+
+        db.on("close", function(err){
+          console.error.bind(console, "*** DBU | MONGO DB CONNECTION CLOSED ***\n");
+          console.log(chalkAlert("*** DBU | MONGO DB CONNECTION CLOSED ***\n"));
+          statsObj.dbConnectionReady = false;
+        });
 
         db.on("error", function(err){
           console.error.bind(console, "*** DBU | MONGO DB CONNECTION ERROR ***\n");

@@ -1148,263 +1148,6 @@ const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
 const dbAppName = "WAS_" + process.pid;
 
-
-// function connectDb(callback){
-
-//   wordAssoDb.connect(dbAppName, function(err, db) {
-
-//     if (err) {
-//       console.log(chalkError("WAS | *** MONGO DB CONNECTION ERROR"
-//         + " | DB APP NAME: " + dbAppName
-//         + " | ERROR: " + err
-//       ));
-//       configEvents.emit("DB_ERROR", err);
-//       return callback(false);
-//     }
-
-//     db.on("error", function(err){
-//       console.log(chalkError("WAS | *** MONGO DB ERROR"
-//         + " | DB APP NAME: " + dbAppName
-//         + " | ERROR: " + err
-//       ));
-//       dbConnectionReady = false;
-//       statsObj.dbConnectionReady = false;
-//       configEvents.emit("DB_ERROR", err);
-//     });
-
-//     db.on("timeout", function(){
-//       console.log(chalkError("WAS | *** MONGO DB TIMEOUT"
-//         + " | " + getTimeStamp()
-//         + " | DB APP NAME: " + dbAppName
-//       ));
-//       dbConnectionReady = false;
-//       statsObj.dbConnectionReady = false;
-//       configEvents.emit("DB_ERROR", "timeout");
-//     });
-
-//     db.on("disconnected", function(){
-//       console.log(chalkError("WAS | *** MONGO DB DISCONNECTED"
-//         + " | " + getTimeStamp()
-//         + " | DB APP NAME: " + dbAppName
-//       ));
-//       dbConnectionReady = false;
-//       statsObj.dbConnectionReady = false;
-//       configEvents.emit("DB_DISCONNECT");
-//     });
-
-//     Emoji = mongoose.model("Emoji", emojiModel.EmojiSchema);
-//     Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
-//     Media = mongoose.model("Media", mediaModel.MediaSchema);
-//     NeuralNetwork = mongoose.model("NeuralNetwork", neuralNetworkModel.NeuralNetworkSchema);
-//     Place = mongoose.model("Place", placeModel.PlaceSchema);
-//     Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
-//     Url = mongoose.model("Url", urlModel.UrlSchema);
-//     User = mongoose.model("User", userModel.UserSchema);
-//     Word = mongoose.model("Word", wordModel.WordSchema);
-
-//     console.log(chalkInfo("WAS | DB READY STATE: " + db.readyState));
-
-//     console.log(chalk.bold.green("WAS | MONGOOSE DEFAULT CONNECTION OPEN"));
-
-
-//     global.dbConnection = db;
-
-//     app.use(expressSession({ 
-//       secret: "three cee labs 47", 
-//       resave: false, 
-//       saveUninitialized: false,
-//       store: new MongoStore({ mongooseConnection: db })
-//     }));
-
-//     app.use(passport.initialize());
-//     app.use(passport.session());
-
-//     passport.use(new TwitterStrategy({
-//         consumerKey: threeceeConfig.consumer_key,
-//         consumerSecret: threeceeConfig.consumer_secret,
-//         callbackURL: TWITTER_AUTH_CALLBACK_URL
-//       },
-//       function(token, tokenSecret, profile, cb) {
-
-//         console.log(chalkAlert("WAS | PASSPORT TWITTER AUTH: token:       " + token));
-//         console.log(chalkAlert("WAS | PASSPORT TWITTER AUTH: tokenSecret: " + tokenSecret));
-//         console.log(chalkAlert("WAS | PASSPORT TWITTER AUTH USER | @" + profile.username + " | " + profile.id));
-
-//         if (configuration.verbose) { console.log(chalkAlert("WAS | PASSPORT TWITTER AUTH\nprofile\n" + jsonPrint(profile))); }
-
-//         const rawUser = profile["_json"];
-
-//         userServerController.convertRawUser({user:rawUser}, function(err, user){
-
-//           if (err) {
-//             console.log(chalkError("WAS | *** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
-//             return cb("RAW USER", rawUser);
-//           }
-
-//           printUserObj("WAS | MONGO DB | TWITTER AUTH USER", user);
-
-//           userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
-
-//             if (err) {
-//               console.log(chalkError("WAS | ***findOneUser ERROR: " + err));
-//               return cb(err);
-//             }
-
-//             console.log(chalk.blue("WAS | UPDATED updatedUser"
-//               + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
-//               + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
-//               + "\nWAS | " + printUser({user:updatedUser})
-//             ));
-
-//             if (tssChild !== undefined) {
-
-//               if (updatedUser.screenName === DEFAULT_INFO_TWITTER_USER) {
-//                 infoTwitterUserObj.twitterAuthorizationErrorFlag = false;
-//                 infoTwitterUserObj.twitterCredentialErrorFlag = false;
-//                 infoTwitterUserObj.twitterErrorFlag = false;
-//                 infoTwitterUserObj.twitterFollowLimit = false;
-//                 infoTwitterUserObj.twitterTokenErrorFlag = false;
-//               }
-//               else {
-
-//                 threeceeTwitter[updatedUser.screenName].twitterAuthorizationErrorFlag = false;
-//                 threeceeTwitter[updatedUser.screenName].twitterCredentialErrorFlag = false;
-//                 threeceeTwitter[updatedUser.screenName].twitterErrorFlag = false;
-//                 threeceeTwitter[updatedUser.screenName].twitterFollowLimit = false;
-//                 threeceeTwitter[updatedUser.screenName].twitterTokenErrorFlag = false;
-
-//               }
-
-//               tssChild.send({
-//                 op: "USER_AUTHENTICATED",
-//                 token: token,
-//                 tokenSecret: tokenSecret,
-//                 user: updatedUser
-//               });
-//             }
-
-//             saveFileQueue.push({
-//               localFlag: false, 
-//               folder: categorizedFolder, 
-//               file: categorizedUsersFile, 
-//               obj: categorizedUserHashMap.entries()
-//             });
-
-//             adminNameSpace.emit("USER_AUTHENTICATED", updatedUser);
-//             viewNameSpace.emit("USER_AUTHENTICATED", updatedUser);
-
-//             cb(null, updatedUser);
-
-//           });
-//         });
-
-//       }
-//     ));
-
-//     app.get("/auth/twitter", passport.authenticate("twitter"));
-
-//     app.get("/auth/twitter/callback", 
-//       passport.authenticate("twitter", 
-//         { 
-//           // successReturnToOrRedirect: "/session",
-//           successReturnToOrRedirect: "/after-auth.html",
-//           failureRedirect: "/login" 
-//         }
-//       )
-//     );
-
-//     passport.use(new LocalStrategy(
-//       function(username, password, done) {
-
-//         console.log(chalkAlert("WAS | *** LOGIN *** | " + username));
-
-//         User.findOne({ screenName: username.toLowerCase() }, function (err, user) {
-//           if (err) { 
-//             console.log(chalkAlert("WAS | *** LOGIN USER DB ERROR *** | " + err));
-//             return done(err);
-//           }
-//           if (!user) {
-//             console.log(chalkAlert("WAS | *** LOGIN FAILED | USER NOT FOUND *** | " + username));
-//             return done(null, false, { message: "Incorrect username." });
-//           }
-//           if ((user.screenName !== "threecee") || (password !== "what")) {
-//             console.log(chalkAlert("WAS | *** LOGIN FAILED | INVALID PASSWORD *** | " + username));
-//             return done(null, false, { message: "Incorrect password." });
-//           }
-//           return done(null, user);
-//         });
-//       }
-//     ));
-
-//     passport.serializeUser(function(user, done) { 
-
-//       let sessionUser = { 
-//         "_id": user["_id"], 
-//         nodeId: user.nodeId, 
-//         screenName: user.screenName, 
-//         name: user.name
-//       };
-
-//       console.log(chalkAlert("WAS | PASSPORT SERIALIZE USER | @" + user.screenName));
-
-//       done(null, sessionUser); 
-//     });
-
-//     passport.deserializeUser(function(sessionUser, done) {
-//       done(null, sessionUser);
-//     });
-
-//     dbConnectionReady = true;
-//     statsObj.dbConnectionReady = true;
-
-//     statsObj.user = {};
-//     statsObj.user.total = 0;
-//     statsObj.user.following = 0;
-//     statsObj.user.notFollowing = 0;
-//     statsObj.user.categorizedTotal = 0;
-//     statsObj.user.categorizedManual = 0;
-//     statsObj.user.categorizedAuto = 0;
-//     statsObj.user.uncategorizedTotal = 0;
-//     statsObj.user.uncategorizedManual = 0;
-//     statsObj.user.uncategorizedAuto = 0;
-//     statsObj.user.mismatched = 0;
-//     statsObj.user.uncategorizedManualUserArray = 0;
-
-//     updateUserSets(function(err){
-//       initUpdateUserSetsInterval(ONE_MINUTE);
-//     });
-
-//     const neuralNetworkCollection = db.collection("neuralnetworks");
-
-//     neuralNetworkCollection.countDocuments(function(err, count){
-//       if (err) { throw Error; }
-//       console.log(chalkInfo("WAS | NEURAL NETWORKS IN DB: " + count));
-//     });
-
-//     const filterNetwork = {
-//       "$match": {
-//         "$or": [{ operationType: "insert" },{ operationType: "delete" },{ operationType: "update" },{ operationType: "replace" }]
-//       }
-//     };
-//     const optionsNetwork = { fullDocument: "updateLookup" };
-
-//     neuralNetworkChangeStream = neuralNetworkCollection.watch([filterNetwork], optionsNetwork);
-
-//     neuralNetworkChangeStream.on("change", function(change){
-//       if (change && change.fullDocument) { 
-//         const nn = networkDefaults(change.fullDocument); 
-//         printNetworkObj("WAS | --> NN   CHANGE | " +  change.operationType, nn);
-//       }
-//       else {
-//         console.log(chalkLog("WAS | --> NN   CHANGE | " +  change.operationType));
-//       }
-//     });
-
-//     callback(true);
-//     configEvents.emit("DB_CONNECT");
-//   });
-// }
-
 function connectDb(){
 
   return new Promise(async function(resolve, reject){
@@ -1423,6 +1166,16 @@ function connectDb(){
           quit(statsObj.status);
           return reject(err);
         }
+
+        db.on("close", async function(){
+          statsObj.status = "MONGO CLOSED";
+          console.error.bind(console, "WAS | *** MONGO DB CONNECTION CLOSED ***\n");
+          console.log(chalkAlert("WAS | *** MONGO DB CONNECTION CLOSED ***\n"));
+          slackSendMessage(hostname + " | WAS | " + statsObj.status);
+          // db.close();
+          dbConnectionReady = false;
+          quit(statsObj.status);
+        });
 
         db.on("error", async function(){
           statsObj.status = "MONGO ERROR";
@@ -10613,7 +10366,7 @@ setTimeout(async function(){
         
       }
       else {
-        console.log(chalkAlert("WAS | ... WAIT DB CONNECTED ..."));
+        console.log(chalkAlert("WAS | WAIT DB CONNECTED ..."));
       }
     }, 1000);
 

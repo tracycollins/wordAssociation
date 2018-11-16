@@ -1197,7 +1197,8 @@ function connectDb(){
         });
 
         dbConnectionReady = true;
-
+        statsObj.dbConnectionReady = true;
+        
         global.dbConnection = db;
 
         console.log(chalk.green("WAS | MONGOOSE DEFAULT CONNECTION OPEN"));

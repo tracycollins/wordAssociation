@@ -239,7 +239,7 @@ const mongoose = require("mongoose");
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
 
-let User;
+let User = mongoose.model("User", userModel.UserSchema);
 
 let dbConnectionReady = false;
 let dbConnectionReadyInterval;
@@ -249,49 +249,129 @@ let userServerController;
 
 let userServerControllerReady = false;
 
-function connectDb(callback){
+// function connectDb(callback){
 
-  statsObj.status = "CONNECT DB";
+//   statsObj.status = "CONNECT DB";
 
-  wordAssoDb.connect("TSS_" + process.pid, function(err, db){
-    if (err) {
-      console.log(chalkError("TSS | *** MONGO DB CONNECTION ERROR: " + err));
-      dbConnectionReady = false;
-      callback(err, null);
+//   wordAssoDb.connect("TSS_" + process.pid, function(err, db){
+//     if (err) {
+//       console.log(chalkError("TSS | *** MONGO DB CONNECTION ERROR: " + err));
+//       dbConnectionReady = false;
+//       callback(err, null);
+//     }
+//     else {
+
+//       db.on("close", function(){
+//         console.error.bind(console, "TSS | ***  MONGO DB CONNECTION CLOSED ***\n");
+//         console.log(chalkError("TSS | *** MONGO DB CONNECTION CLOSED ***\n"));
+//         dbConnectionReady = false;
+//       });
+
+//       db.on("error", function(){
+//         console.error.bind(console, "TSS | ***  MONGO DB CONNECTION ERROR ***\n");
+//         console.log(chalkError("TSS | *** MONGO DB CONNECTION ERROR ***\n"));
+//         db.close();
+//         dbConnectionReady = false;
+//       });
+
+//       db.on("disconnected", function(){
+//         console.error.bind(console, "TSS | *** MONGO DB DISCONNECTED ***\n");
+//         console.log(chalkAlert("TSS | *** MONGO DB DISCONNECTED ***\n"));
+//         dbConnectionReady = false;
+//       });
+
+
+//       console.log(chalk.green("TSS | MONGOOSE DEFAULT CONNECTION OPEN"));
+
+//       dbConnectionReady = true;
+
+//       // User = mongoose.model("User", userModel.UserSchema);
+
+//       callback(null, db);
+//     }
+//   });
+// }
+
+function connectDb(){
+
+  return new Promise(async function(resolve, reject){
+
+    try {
+
+      statsObj.status = "CONNECTING MONGO DB";
+
+      wordAssoDb.connect("TSS_" + process.pid, async function(err, db){
+
+        if (err) {
+          console.log(chalkError("TSS | *** MONGO DB CONNECTION ERROR: " + err));
+          statsObj.status = "MONGO CONNECTION ERROR";
+          dbConnectionReady = false;
+          quit(statsObj.status);
+          return reject(err);
+        }
+
+        db.on("close", async function(){
+          statsObj.status = "MONGO CLOSED";
+          console.error.bind(console, "TSS | *** MONGO DB CONNECTION CLOSED ***\n");
+          console.log(chalkAlert("TSS | *** MONGO DB CONNECTION CLOSED ***\n"));
+          dbConnectionReady = false;
+          quit(statsObj.status);
+        });
+
+        db.on("error", async function(){
+          statsObj.status = "MONGO ERROR";
+          console.error.bind(console, "TSS | *** MONGO DB CONNECTION ERROR ***\n");
+          console.log(chalkError("TSS | *** MONGO DB CONNECTION ERROR ***\n"));
+          db.close();
+          dbConnectionReady = false;
+          quit(statsObj.status);
+        });
+
+        db.on("disconnected", async function(){
+          statsObj.status = "MONGO DISCONNECTED";
+          console.error.bind(console, "TSS | *** MONGO DB DISCONNECTED ***\n");
+          console.log(chalkAlert("TSS | *** MONGO DB DISCONNECTED ***\n"));
+          dbConnectionReady = false;
+          quit(statsObj.status);
+        });
+
+        dbConnectionReady = true;
+        statsObj.dbConnectionReady = true;
+
+        global.dbConnection = db;
+
+        console.log(chalk.green("TSS | MONGOOSE DEFAULT CONNECTION OPEN"));
+
+        // // UserServerController = require("../userServerController/index.js");
+        UserServerController = require("@threeceelabs/user-server-controller");
+        userServerController = new UserServerController("TSS_USC");
+
+        userServerControllerReady = false;
+
+        userServerController.on("ready", function(appname){
+
+          statsObj.status = "MONGO DB CONNECTED";
+
+          userServerControllerReady = true;
+
+          console.log(chalkAlert("TSS | USC READY | " + appname));
+          // dbConnectionReady = true;
+
+          resolve(db);
+          configEvents.emit("DB_CONNECT");
+
+        });
+
+      });
+
     }
-    else {
-
-      db.on("close", function(){
-        console.error.bind(console, "TSS | ***  MONGO DB CONNECTION CLOSED ***\n");
-        console.log(chalkError("TSS | *** MONGO DB CONNECTION CLOSED ***\n"));
-        dbConnectionReady = false;
-      });
-
-      db.on("error", function(){
-        console.error.bind(console, "TSS | ***  MONGO DB CONNECTION ERROR ***\n");
-        console.log(chalkError("TSS | *** MONGO DB CONNECTION ERROR ***\n"));
-        db.close();
-        dbConnectionReady = false;
-      });
-
-      db.on("disconnected", function(){
-        console.error.bind(console, "TSS | *** MONGO DB DISCONNECTED ***\n");
-        console.log(chalkAlert("TSS | *** MONGO DB DISCONNECTED ***\n"));
-        dbConnectionReady = false;
-      });
-
-
-      console.log(chalk.green("TSS | MONGOOSE DEFAULT CONNECTION OPEN"));
-
-      dbConnectionReady = true;
-
-      User = mongoose.model("User", userModel.UserSchema);
-
-      callback(null, db);
+    catch(err){
+      console.log(chalkError("TSS | *** MONGO DB CONNECT ERROR: " + err));
+      reject(err);
     }
+
   });
 }
-
 
 
 // ==================================================================
@@ -3133,7 +3213,7 @@ setTimeout(function(){
         quit("MONGO DB CONNECT ERROR");
       }
 
-      global.dbConnection = db;
+      // global.dbConnection = db;
 
       UserServerController = require("@threeceelabs/user-server-controller");
       userServerController = new UserServerController("TSS_USC");
@@ -3145,7 +3225,7 @@ setTimeout(function(){
         console.log(chalkLog("TSS | USC READY | " + appname));
       });
 
-      // User = mongoose.model("User", userModel.UserSchema);
+      User = mongoose.model("User", userModel.UserSchema);
 
       dbConnectionReady = true;
     });

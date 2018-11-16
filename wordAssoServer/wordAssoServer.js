@@ -541,6 +541,7 @@ function quit(message) {
     global.dbConnection.close(function () {
 
       statsObj.dbConnectionReady = false;
+      dbConnectionReady = false;
 
       console.log(chalkAlert(
         "\nWAS | ==========================\n"
@@ -1443,6 +1444,7 @@ function connectDb(){
           quit(statsObj.status);
         });
 
+        dbConnectionReady = true;
 
         global.dbConnection = db;
 
@@ -1638,8 +1640,6 @@ function connectDb(){
           done(null, sessionUser);
         });
 
-
-
         statsObj.user = {};
         statsObj.user.total = 0;
         statsObj.user.following = 0;
@@ -1663,16 +1663,14 @@ function connectDb(){
 
           userServerControllerReady = true;
           console.log(chalkAlert("WAS | USC READY | " + appname));
-          dbConnectionReady = true;
+          // dbConnectionReady = true;
 
           resolve(db);
           configEvents.emit("DB_CONNECT");
 
         });
 
-
       });
-
 
     }
     catch(err){
@@ -1697,11 +1695,14 @@ dbConnectInterval = setInterval(async function(){
       await connectDb();
       statsObj.dbConnectBusy = false;
       statsObj.dbConnectionReady = true;
+      dbConnectionReady = true;
 
     }
     catch(err){
       console.log(chalkError("WAS | *** CONNECT DB INTERVAL ERROR: " + err));
       statsObj.dbConnectionReady = false;
+      dbConnectionReady = false;
+      statsObj.dbConnectBusy = false;
     }
 
   }
@@ -2194,6 +2195,11 @@ function initStats(callback){
   statsObj.nodes.user.uncategorized = 0;
 
   statsObj.bestNetwork = {};
+  statsObj.bestNetwork.networkId = false;
+  statsObj.bestNetwork.successRate = false;
+  statsObj.bestNetwork.matchRate = false;
+  statsObj.bestNetwork.overallMatchRate = false;
+  statsObj.bestNetwork.inputsId = false;
 
   statsObj.memwatch = {};
   statsObj.memwatch.snapshotTaken = false;
@@ -3450,6 +3456,8 @@ configEvents.on("INTERNET_READY", function internetReady() {
 
     heartbeatObj.twitter = {};
     heartbeatObj.memory = {};
+    heartbeatObj.bestNetwork = {};
+    heartbeatObj.bestNetwork = statsObj.bestNetwork;
 
     let tempAdminArray = [];
     let tempServerArray = [];
@@ -3465,6 +3473,8 @@ configEvents.on("INTERNET_READY", function internetReady() {
       statsObj.memory.memoryTotal = os.totalmem();
       statsObj.memory.memoryAvailable = os.freemem();
       statsObj.memory.memoryUsage = process.memoryUsage();
+
+      heartbeatObj.bestNetwork = statsObj.bestNetwork;
 
       tempAdminArray = adminHashMap.entries();
       heartbeatObj.admins = tempAdminArray;
@@ -8103,6 +8113,7 @@ async function initTweetParser(params, callback){
     statsObj.tweetParserReady = false;
     clearInterval(tweetParserPingInterval);
     childrenHashMap[params.childId].status = "ERROR";
+    configEvents.emit("CHILD_ERROR", {childId: params.childId});
   });
 
   twp.on("exit", function tweetParserExit(code){
@@ -8368,6 +8379,8 @@ function loadBestRuntimeNetwork(params){
         statsObj.bestNetwork.networkId = bRtNnObj.networkId;
         statsObj.bestNetwork.successRate = bRtNnObj.successRate;
         statsObj.bestNetwork.matchRate = bRtNnObj.matchRate;
+        statsObj.bestNetwork.overallMatchRate = bRtNnObj.overallMatchRate;
+        statsObj.bestNetwork.inputsId = bRtNnObj.inputsId;
 
         file = bRtNnObj.networkId + ".json";
 
@@ -8407,6 +8420,16 @@ function loadBestRuntimeNetwork(params){
             if (bestNetworkObj.matchRate === undefined) { bestNetworkObj.matchRate = 0; }
             if (bestNetworkObj.overallMatchRate === undefined) { bestNetworkObj.overallMatchRate = 0; }
             
+            statsObj.bestNetwork.networkId = bRtNnObj.networkId;
+            statsObj.bestNetwork.successRate = bRtNnObj.successRate;
+            statsObj.bestNetwork.matchRate = bRtNnObj.matchRate;
+            statsObj.bestNetwork.overallMatchRate = bRtNnObj.overallMatchRate;
+            statsObj.bestNetwork.inputsId = bRtNnObj.inputsId;
+
+            if (statsObj.previousBestNetworkId !== bestNetworkObj.networkId) {
+              statsObj.previousBestNetworkId = bestNetworkObj.networkId;
+              configEvents.emit("NEW_BEST_NETWORK", bestNetworkObj.networkId);
+            }
             console.log(chalk.blue("WAS | +++ BEST NEURAL NETWORK LOADED FROM DB"
               + " | " + bestNetworkObj.networkId
               + " | SR: " + bestNetworkObj.successRate.toFixed(2) + "%"
@@ -10541,17 +10564,17 @@ setTimeout(async function(){
     await killAll();
     io = require("socket.io")(httpServer, ioConfig);
 
-    try {
-      await connectDb();
-      statsObj.dbConnectionReady = true;
-      dbConnectionReady = true;
-    }
-    catch(err){
-      statsObj.dbConnectionReady = false;
-      dbConnectionReady = false;
-      console.log(chalkError("TFE | *** MONGO DB CONNECT ERROR: " + err + " | QUITTING ***"));
-      quit("MONGO DB CONNECT ERROR");
-    }
+    // try {
+    //   await connectDb();
+    //   statsObj.dbConnectionReady = true;
+    //   dbConnectionReady = true;
+    // }
+    // catch(err){
+    //   statsObj.dbConnectionReady = false;
+    //   dbConnectionReady = false;
+    //   console.log(chalkError("TFE | *** MONGO DB CONNECT ERROR: " + err + " | QUITTING ***"));
+    //   quit("MONGO DB CONNECT ERROR");
+    // }
 
     dbConnectionReadyInterval = setInterval(async function() {
 

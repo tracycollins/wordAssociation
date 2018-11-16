@@ -308,7 +308,6 @@ else {
   }
 }
 
-
 var serverHeartbeatTimeout = 30000;
 var serverCheckInterval = 30000;
 var serverKeepaliveInteval = 30000;
@@ -873,9 +872,9 @@ function controlPanelComm(event) {
         case "pauseToggleButton" :
           togglePause();
         break;
-        // case "statsToggleButton" :
-        //   toggleStats();
-        // break;
+        case "statsToggleButton" :
+          toggleStats();
+        break;
         case "testModeToggleButton" :
           toggleTestMode();
         break;
@@ -1045,7 +1044,6 @@ function toggleStats() {
   if (config.showStatsFlag) { displayStats(config.showStatsFlag); }
   else { displayStats(false, palette.white); }
 
-  // if (statsButtonElement) { updateStatsButton(); }
   if (controlPanelFlag) { controlPanel.updateControlPanel(config); }
 }
 

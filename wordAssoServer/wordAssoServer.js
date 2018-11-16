@@ -1198,7 +1198,7 @@ function connectDb(){
 
         dbConnectionReady = true;
         statsObj.dbConnectionReady = true;
-        
+
         global.dbConnection = db;
 
         console.log(chalk.green("WAS | MONGOOSE DEFAULT CONNECTION OPEN"));
@@ -10333,37 +10333,43 @@ setTimeout(async function(){
 
       if (dbConnectionReady) {
 
-        clearInterval(dbConnectionReadyInterval);
+        try {
 
-        await initInternetCheckInterval(ONE_MINUTE);
+          clearInterval(dbConnectionReadyInterval);
 
-        if (configuration.twitter === undefined) {
-          configuration.twitter = {};
+          await initInternetCheckInterval(ONE_MINUTE);
+
+          if (configuration.twitter === undefined) {
+            configuration.twitter = {};
+          }
+          configuration.twitter.bearerToken = await bearerTokenRequest(request_options);
+
+          await addAccountActivitySubscription();
+          await initKeySortInterval(configuration.keySortInterval);
+          await initDropboxSync();
+          await initSaveFileQueue(configuration);
+          await updateUserSets();
+          await loadBestRuntimeNetwork();
+          await loadMaxInputHashMap();
+
+          await initIgnoreWordsHashMap();
+          await initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
+          await initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval);
+          await initCategoryHashmapsInterval(configuration.categoryHashmapsUpdateInterval);
+          await initRateQinterval(configuration.rateQueueInterval);
+          await initTwitterRxQueueInterval(configuration.twitterRxQueueInterval);
+          await initTweetParserMessageRxQueueInterval(configuration.tweetParserMessageRxQueueInterval);
+          await initTwitterSearchNodeQueueInterval(configuration.twitterSearchNodeQueueInterval);
+          await initSorterMessageRxQueueInterval(configuration.sorterMessageRxQueueInterval);
+
+          await initDbuChild({childId: DEFAULT_DBU_CHILD_ID});
+          await initTfeChild({childId: DEFAULT_TFE_CHILD_ID});
+          await initTssChild({childId: DEFAULT_TSS_CHILD_ID});
+          await initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
         }
-        configuration.twitter.bearerToken = await bearerTokenRequest(request_options);
-
-        await addAccountActivitySubscription();
-        await initKeySortInterval(configuration.keySortInterval);
-        await initDropboxSync();
-        await initSaveFileQueue(configuration);
-        await updateUserSets();
-        await loadBestRuntimeNetwork();
-        await loadMaxInputHashMap();
-
-        await initIgnoreWordsHashMap();
-        await initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
-        await initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval);
-        await initCategoryHashmapsInterval(configuration.categoryHashmapsUpdateInterval);
-        await initRateQinterval(configuration.rateQueueInterval);
-        await initTwitterRxQueueInterval(configuration.twitterRxQueueInterval);
-        await initTweetParserMessageRxQueueInterval(configuration.tweetParserMessageRxQueueInterval);
-        await initTwitterSearchNodeQueueInterval(configuration.twitterSearchNodeQueueInterval);
-        await initSorterMessageRxQueueInterval(configuration.sorterMessageRxQueueInterval);
-
-        await initDbuChild({childId: DEFAULT_DBU_CHILD_ID});
-        await initTfeChild({childId: DEFAULT_TFE_CHILD_ID});
-        await initTssChild({childId: DEFAULT_TSS_CHILD_ID});
-        await initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
+        catch(err){
+          console.log(chalkError("WAS | *** DB CONNECT READY INTERVAL ERROR: " + err));
+        }
         
       }
       else {

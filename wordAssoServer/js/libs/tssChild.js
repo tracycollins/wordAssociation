@@ -234,7 +234,7 @@ statsObj.twitterLimitMaxTime = moment().valueOf();
 
 global.dbConnection = false;
 const mongoose = require("mongoose");
-mongoose.Promise = global.Promise;
+// mongoose.Promise = global.Promise;
 
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
@@ -256,10 +256,16 @@ function connectDb(callback){
   wordAssoDb.connect("TSS_" + process.pid, function(err, db){
     if (err) {
       console.log(chalkError("TSS | *** MONGO DB CONNECTION ERROR: " + err));
-      callback(err, null);
       dbConnectionReady = false;
+      callback(err, null);
     }
     else {
+
+      db.on("close", function(){
+        console.error.bind(console, "TSS | ***  MONGO DB CONNECTION CLOSED ***\n");
+        console.log(chalkError("TSS | *** MONGO DB CONNECTION CLOSED ***\n"));
+        dbConnectionReady = false;
+      });
 
       db.on("error", function(){
         console.error.bind(console, "TSS | ***  MONGO DB CONNECTION ERROR ***\n");

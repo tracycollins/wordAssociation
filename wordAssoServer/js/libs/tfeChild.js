@@ -138,6 +138,7 @@ let stdin;
 let configuration = {};
 configuration.verbose = false;
 configuration.globalTestMode = false;
+configuration.forceImageAnalysis = false;
 configuration.testMode = false; // per tweet test mode
 configuration.userCategorizeQueueInterval = ONE_SECOND;
 configuration.userChangeDbQueueInterval = 10;
@@ -1352,8 +1353,6 @@ async function generateUserData(user) {
 
       statsObj.analyzer.total += 1;
 
-      // printUserObj("TFE | generateUserData", updatedUser);
-
       resolve(updatedUser);
     }
     catch (err) {
@@ -1424,8 +1423,6 @@ async function initUserChangeDbQueueInterval(cnf){
         userChangeDbQueueReady = true;
       }
 
-
-
     }
 
   }, cnf.userChangeDbQueueInterval);
@@ -1484,9 +1481,6 @@ async function initUserCategorizeQueueInterval(cnf){
         console.error(err);
         userCategorizeQueueReady = true;
       }
-
-
-
     }
 
   }, cnf.userCategorizeQueueInterval);
@@ -1763,6 +1757,7 @@ process.on("message", function(m) {
       process.title = m.title;
 
       configuration.verbose = m.verbose;
+      configuration.forceImageAnalysis = m.forceImageAnalysis;
       maxInputHashMap = m.maxInputHashMap;
       normalization = m.normalization;
 
@@ -1776,6 +1771,7 @@ process.on("message", function(m) {
       console.log(chalkInfo("TFE | INIT"
         + " | TITLE: " + process.title
         + " | NETWORK: " + networksHashMap.get(m.networkObj.networkId).networkId
+        + " | FORCE IMAGE ANALYSIS: " + configuration.forceImageAnalysis
         + " | MAX INPUT HM KEYS: " + Object.keys(maxInputHashMap)
         + " | NORMALIZATION: " + Object.keys(normalization)
       ));
@@ -1793,6 +1789,16 @@ process.on("message", function(m) {
       console.log(chalkInfo("TFE | +++ NETWORK"
         + " | NNs IN HM: " + networksHashMap.size
         + " | NETWORK: " + networksHashMap.get(m.networkObj.networkId).networkId
+      ));
+      
+    break;
+
+    case "FORCE_IMAGE_ANALYSIS":
+
+      configuration.forceImageAnalysis = m.forceImageAnalysis;
+
+      console.log(chalkInfo("TFE | +++ FORCE_IMAGE_ANALYSIS"
+        + " | FORCE IMAGE ANALYSIS: " + configuration.forceImageAnalysis
       ));
       
     break;
@@ -1922,8 +1928,6 @@ setTimeout(function(){
         userServerControllerReady = true;
         console.log(chalkLog("TFE | USC READY | " + appname));
       });
-
-      // User = mongoose.model("User", userModel.UserSchema);
 
       dbConnectionReady = true;
     });

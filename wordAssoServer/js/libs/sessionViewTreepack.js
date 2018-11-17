@@ -896,23 +896,25 @@ function ViewTreepack() {
     callback(n);
   }
 
-  var age;
-  var ageMaxRatio = 1e-6;
-  var ageNodesLength = 0;
-  var node;
-  var nPoolId;
-  var prevNode;
+  // var age;
+  // var ageMaxRatio = 1e-6;
+  // var ageNodesLength = 0;
+  // var node;
+  // var nPoolId;
+  // var prevNode;
   // var currentTime = Date.now();
-  var nodeIdArray = [];
-  var tempNodeArray = [];
+  // var nodeIdArray = [];
+  // var tempNodeArray = [];
 
   function ageNodes(callback) {
 
-    tempNodeArray = [];
+    var tempNodeArray = [];
 
-    nodeIdArray = nodeIdHashMap.keys();
-    ageMaxRatio = 1e-6;
-    ageNodesLength = nodeIdArray.length;
+    var nodeIdArray = nodeIdHashMap.keys();
+    var age = 1e-6;
+    var ageMaxRatio = 1e-6;
+    var ageNodesLength = nodeIdArray.length;
+    var ageRate = DEFAULT_AGE_RATE;
 
     if (ageNodesLength === 0) { ageRate = DEFAULT_AGE_RATE; } 
     else if ((ageNodesLength > MAX_NODES) && (nodeAddQ.length <= MAX_RX_QUEUE)) {
@@ -921,14 +923,14 @@ function ViewTreepack() {
     else if (nodeAddQ.length > MAX_RX_QUEUE) { ageRate = adjustedAgeRateScale(nodeAddQ.length - MAX_RX_QUEUE); } 
     else { ageRate = DEFAULT_AGE_RATE; }
 
-    maxAgeRate = Math.max(ageRate, maxAgeRate);
+    var maxAgeRate = Math.max(ageRate, maxAgeRate);
     // currentTime = Date.now();
 
     // nodeIdArray.forEach(function(nodeId){
     async.each(nodeIdArray, function(nodeId, cb){
 
-      nPoolId = nodeIdHashMap.get(nodeId);
-      node = localNodeHashMap.get(nPoolId);
+      var nPoolId = nodeIdHashMap.get(nodeId);
+      var node = localNodeHashMap.get(nPoolId);
 
       if (!node.isValid || node.isDead) {
         return cb();
@@ -1968,7 +1970,8 @@ function ViewTreepack() {
 
     processNodeAddQ(function(){
       ageNodes(function(err, tempNodeArray){
-        simulation.nodes(tempNodeArray);
+        nodeArray = tempNodeArray;
+        simulation.nodes(nodeArray);
       });
     });
 

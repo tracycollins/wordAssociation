@@ -902,7 +902,7 @@ function ViewTreepack() {
   var node;
   var nPoolId;
   var prevNode;
-  var currentTime = Date.now();
+  // var currentTime = Date.now();
   var nodeIdArray = [];
   var tempNodeArray = [];
 
@@ -922,7 +922,7 @@ function ViewTreepack() {
     else { ageRate = DEFAULT_AGE_RATE; }
 
     maxAgeRate = Math.max(ageRate, maxAgeRate);
-    currentTime = Date.now();
+    // currentTime = Date.now();
 
     nodeIdArray.forEach(function(nodeId){
 
@@ -938,10 +938,10 @@ function ViewTreepack() {
       }
 
       if ((node.nodeType === "user") && node.followersCount && (node.followersCount > minFollowers)){
-        age = node.age + (ageRate * DEFAULT_MIN_FOLLOWERS_AGE_RATE_RATIO * (currentTime - node.ageUpdated));
+        age = node.age + (ageRate * DEFAULT_MIN_FOLLOWERS_AGE_RATE_RATIO * (Date.now() - node.ageUpdated));
       }
       else {
-        age = node.age + (ageRate * (currentTime - node.ageUpdated));
+        age = node.age + (ageRate * (Date.now() - node.ageUpdated));
       }
 
       ageMaxRatio = age/nodeMaxAge ;
@@ -949,7 +949,7 @@ function ViewTreepack() {
       if (removeDeadNodesFlag && (node.isDead || (age >= nodeMaxAge))) {
 
         node.isDead = true;
-        node.ageUpdated = currentTime;
+        node.ageUpdated = Date.now();
         node.age = 1e-6;
         node.ageMaxRatio = 1e-6;
 
@@ -967,7 +967,7 @@ function ViewTreepack() {
       else {
         node.isValid = true;
         node.isDead = false;
-        node.ageUpdated = currentTime;
+        node.ageUpdated = Date.now();
         node.age = Math.max(age, 1e-6);
         node.ageMaxRatio = Math.max(ageMaxRatio, 1e-6);
 

@@ -925,7 +925,7 @@ function ViewTreepack() {
     // currentTime = Date.now();
 
     // nodeIdArray.forEach(function(nodeId){
-    async.each(nodeIdArray, function(cb, nodeId){
+    async.each(nodeIdArray, function(nodeId, cb){
 
       nPoolId = nodeIdHashMap.get(nodeId);
       node = localNodeHashMap.get(nPoolId);

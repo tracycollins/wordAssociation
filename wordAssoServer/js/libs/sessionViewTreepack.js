@@ -906,7 +906,7 @@ function ViewTreepack() {
   var nodeIdArray = [];
   var tempNodeArray = [];
 
-  var ageNodes = function (callback) {
+  function ageNodes(callback) {
 
     tempNodeArray = [];
 
@@ -924,13 +924,14 @@ function ViewTreepack() {
     maxAgeRate = Math.max(ageRate, maxAgeRate);
     // currentTime = Date.now();
 
-    nodeIdArray.forEach(function(nodeId){
+    // nodeIdArray.forEach(function(nodeId){
+    async.each(nodeIdArray, function(cb, nodeId){
 
       nPoolId = nodeIdHashMap.get(nodeId);
       node = localNodeHashMap.get(nPoolId);
 
       if (!node.isValid || node.isDead) {
-        return;
+        return cb();
       }
 
       if (!enableAgeNodes || (resumeTimeStamp > 0)) {
@@ -961,7 +962,11 @@ function ViewTreepack() {
           resetNode(node, function(n){
             nodePool.recycle(n);
             localNodeHashMap.set(nPoolId, n);
+            cb();
           });
+        }
+        else {
+          cb();
         }
       } 
       else {
@@ -971,21 +976,21 @@ function ViewTreepack() {
         node.age = Math.max(age, 1e-6);
         node.ageMaxRatio = Math.max(ageMaxRatio, 1e-6);
 
-        // node.newFlag = false; // 
-
         localNodeHashMap.set(nPoolId, node);
         nodeIdHashMap.set(node.nodeId, nPoolId);
 
         tempNodeArray.push(node);
+        cb();
       }
+    }, function(err){
+      resumeTimeStamp = 0;
+      callback(null, tempNodeArray);
     });
 
-    resumeTimeStamp = 0;
 
     // maxRateMentionsText.text(createDisplayText(currentMax[metricMode]));
 
-    nodeArray = tempNodeArray;
-    callback(null);
+    // nodeArray = tempNodeArray;
 
     // rankArrayByValue(tempNodesTopTerm, metricMode, function rankArrayByValueFunc(){
     //   nodeArray = tempNodeArray;
@@ -1771,7 +1776,9 @@ function ViewTreepack() {
   var nodePoolId;
   var nodePoolIdcircle;
 
-  var processNodeAddQ = function(callback) {
+  function processNodeAddQ(callback) {
+
+    if (nodeIdHashMap.size > maxNumberNodes) { maxNumberNodes = nodeIdHashMap.size; }
 
     if (nodeAddQReady && (nodeAddQ.length > 0)) {
 
@@ -1810,13 +1817,10 @@ function ViewTreepack() {
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
         }
 
-        // currentNode.displaytext = createDisplayText(currentNode);
-
         localNodeHashMap.set(currentNode.nodePoolId, currentNode);
-
         nodeAddQReady = true;
 
-        callback(null);
+        callback();
       }
       else {
 
@@ -1864,15 +1868,6 @@ function ViewTreepack() {
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
         }
 
-        // if (newNode.nodeType === "media"){
-        //   currentNode.url = newNode.url;
-        //   currentNode.mediaUrl = newNode.mediaUrl;
-        //   currentNode.width = 100;
-        //   currentNode.height = 100;
-        // }
-
-        // currentNode.displaytext = createDisplayText(currentNode);
-
         if (newNode.category || newNode.categoryAuto) {
 
           if (autoCategoryFlag && newNode.categoryAuto) { 
@@ -1887,7 +1882,6 @@ function ViewTreepack() {
             currentNode.x = focus(newNode.category).x; 
             currentNode.y = focus(newNode.category).y;
           }
-
         }
         else {
           currentNode.x = focus("default").x; 
@@ -1895,6 +1889,7 @@ function ViewTreepack() {
         }
 
         nodePoolIdcircle = document.getElementById(currentNode.nodePoolId);
+
         if (nodePoolIdcircle) {
           nodePoolIdcircle.setAttribute("r", 1e-6);
           nodePoolIdcircle.setAttribute("display", "none");
@@ -1906,15 +1901,12 @@ function ViewTreepack() {
 
         nodeAddQReady = true;
 
-        callback(null);
+        callback();
       }
-
-      if (nodeIdHashMap.size > maxNumberNodes) { maxNumberNodes = nodeIdHashMap.size; }
 
     }
     else {
-      if (nodeIdHashMap.size > maxNumberNodes) { maxNumberNodes = nodeIdHashMap.size; }
-      callback(null);
+      callback();
     }
   };
 
@@ -1974,15 +1966,20 @@ function ViewTreepack() {
 
   function updateSimulation() {
 
-    async.series(
-      {
-        addNode: processNodeAddQ,
-        ageNode: ageNodes
-      },
-      function updateSimulationCallback() {
-        simulation.nodes(nodeArray);
-      }
-    );
+    processNodeAddQ(function(){
+      ageNodes(function(err, tempNodeArray){
+        simulation.nodes(tempNodeArray);
+      });
+    });
+
+    // async.series(
+    //   {
+    //     addNode: processNodeAddQ,
+    //     ageNode: ageNodes
+    //   },
+    //   function updateSimulationCallback() {
+    //   }
+    // );
   }
 
   function yposition(d){

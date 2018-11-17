@@ -45,6 +45,7 @@ const DEFAULT_INFO_TWITTER_USER = "threecee";
 let infoTwitterUserObj = {};
 
 const DEFAULT_FORCE_FOLLOW = false;
+const DEFAULT_FORCE_IMAGE_ANALYSIS = false;
 
 const DEFAULT_SAVE_FILE_QUEUE_INTERVAL = ONE_SECOND;
 const DEFAULT_CHECK_TWITTER_RATE_LIMIT_INTERVAL = ONE_MINUTE;
@@ -376,6 +377,7 @@ let hostConfiguration = {}; // host-specific configuration
 configuration.verbose = false;
 configuration.maxQueue = DEFAULT_MAX_QUEUE;
 configuration.forceFollow = DEFAULT_FORCE_FOLLOW;
+configuration.forceImageAnalysis = DEFAULT_FORCE_IMAGE_ANALYSIS;
 
 configuration.slackChannel = {};
 
@@ -7556,6 +7558,7 @@ async function initTfeChild(params){
       maxInputHashMap: maxInputHashMap,
       normalization: normalization,
       interval: configuration.tfeInterval,
+      forceImageAnalysis: configuration.forceImageAnalysis,
       testMode: configuration.testMode,
       verbose: configuration.verbose
     }, function tfeMessageRxError(err){
@@ -8225,76 +8228,6 @@ function loadBestRuntimeNetwork(params){
   });
 }
 
-// function loadAllConfigFiles(callback){
-
-//   statsObj.status = "LOAD CONFIG";
-
-//   async.series({
-
-//     defaultConfig: function(cb) {
-//       loadConfigFile({folder: dropboxConfigDefaultFolder, file: dropboxConfigDefaultFile}, function(err, defaultConfig){
-
-//         if (err) {
-//           console.log(chalkAlert("WAS | ERROR LOADED DEFAULT CONFIG " + dropboxConfigDefaultFolder + "/" + dropboxConfigDefaultFile));
-//           console.log(chalkAlert("WAS | ERROR LOADED DEFAULT CONFIG " + err));
-//           return cb(err);
-//         }
-
-//         if (defaultConfig) {
-
-//           defaultConfiguration = defaultConfig;
-
-//           console.log(chalkAlert("WAS | +++ RELOADED DEFAULT CONFIG " + dropboxConfigDefaultFolder + "/" + dropboxConfigDefaultFile));
-
-//           cb();
-//         }
-//         else {
-//           cb();
-//         }
-
-//       });
-//     },
-
-//     hostConfig: function(cb){
-//       loadConfigFile({folder: dropboxConfigHostFolder, file: dropboxConfigHostFile}, function(err, hostConfig){
-
-//         if (err) {
-//           console.log(chalkAlert("WAS | ERROR LOADED HOST CONFIG " + dropboxConfigHostFolder + "/" + dropboxConfigHostFile));
-//           console.log(chalkAlert("WAS | ERROR LOADED HOST CONFIG " + err));
-//           return cb(err);
-//         }
-
-//         if (hostConfig) {
-
-//           hostConfiguration = hostConfig;
-
-//           console.log(chalkAlert("WAS | +++ RELOADED HOST CONFIG " + dropboxConfigHostFolder + "/" + dropboxConfigHostFile));
-
-//           cb();
-//         }
-//         else {
-//           cb();
-//         }
-
-//       });
-//     }
-
-//   }, function(err, results) {
-
-//     if (err) {
-//       console.log(chalkError("WAS | LOAD ALL CONFIG FILES ERROR: " + err));
-//       return callback(err);
-//     }
-
-//     let defaultAndHostConfig = merge(defaultConfiguration, hostConfiguration); // host settings override defaults
-//     let tempConfig = merge(configuration, defaultAndHostConfig); // any new settings override existing config
-
-//     configuration = tempConfig;
-
-//     callback();
-//   });
-// }
-
 function loadConfigFile(params) {
 
   return new Promise(async function(resolve, reject){
@@ -8383,6 +8316,20 @@ function loadConfigFile(params) {
         }
         else {
           newConfiguration.verbose = false;
+        }
+      }
+
+      if (loadedConfigObj.FORCE_IMAGE_ANALYSIS  !== undefined){
+        console.log("WAS | LOADED FORCE_IMAGE_ANALYSIS: " + loadedConfigObj.FORCE_IMAGE_ANALYSIS);
+
+        if ((loadedConfigObj.FORCE_IMAGE_ANALYSIS === false) || (loadedConfigObj.FORCE_IMAGE_ANALYSIS === "false")) {
+          newConfiguration.forceImageAnalysis = false;
+        }
+        else if ((loadedConfigObj.FORCE_IMAGE_ANALYSIS === true) || (loadedConfigObj.FORCE_IMAGE_ANALYSIS === "true")) {
+          newConfiguration.forceImageAnalysis = true;
+        }
+        else {
+          newConfiguration.forceImageAnalysis = false;
         }
       }
 
@@ -8559,143 +8506,6 @@ function loadConfigFile(params) {
         newConfiguration.keepaliveInterval = loadedConfigObj.KEEPALIVE_INTERVAL;
       }
 
-      // if (loadedConfigObj.TFE_TEST_MODE !== undefined) {
-      //   console.log("TFE | LOADED TFE_TEST_MODE: " + loadedConfigObj.TFE_TEST_MODE);
-      //   if ((loadedConfigObj.TFE_TEST_MODE === true) || (loadedConfigObj.TFE_TEST_MODE === "true")) {
-      //     newConfiguration.testMode = true;
-      //   }
-      //   if ((loadedConfigObj.TFE_TEST_MODE === false) || (loadedConfigObj.TFE_TEST_MODE === "false")) {
-      //     newConfiguration.testMode = false;
-      //   }
-      // }
-
-      // if (loadedConfigObj.TFE_THRECEE_AUTO_FOLLOW_USER !== undefined) {
-      //   console.log("TFE | LOADED TFE_THRECEE_AUTO_FOLLOW_USER: " + loadedConfigObj.TFE_THRECEE_AUTO_FOLLOW_USER);
-      //   newConfiguration.threeceeAutoFollowUser = loadedConfigObj.TFE_THRECEE_AUTO_FOLLOW_USER;
-      // }
-
-      // if (loadedConfigObj.TFE_FORCE_INIT_RANDOM_NETWORKS !== undefined) {
-      //   console.log("TFE | LOADED TFE_FORCE_INIT_RANDOM_NETWORKS: " + loadedConfigObj.TFE_FORCE_INIT_RANDOM_NETWORKS);
-      //   newConfiguration.forceInitRandomNetworks = loadedConfigObj.TFE_FORCE_INIT_RANDOM_NETWORKS;
-      // }
-
-      // if (loadedConfigObj.TFE_FETCH_ALL_INTERVAL !== undefined) {
-      //   console.log("TFE | LOADED TFE_FETCH_ALL_INTERVAL: " + loadedConfigObj.TFE_FETCH_ALL_INTERVAL);
-      //   newConfiguration.fetchAllIntervalTime = loadedConfigObj.TFE_FETCH_ALL_INTERVAL;
-      // }
-
-      // if (newConfiguration.testMode) {
-      //   newConfiguration.fetchAllIntervalTime = TEST_MODE_FETCH_ALL_INTERVAL;
-      //   console.log(chalkAlert("TFE | TEST MODE | fetchAllIntervalTime: " + newConfiguration.fetchAllIntervalTime));
-      // }
-
-      // if (loadedConfigObj.TFE_BEST_NN_INCREMENTAL_UPDATE !== undefined) {
-      //   console.log("TFE | LOADED TFE_BEST_NN_INCREMENTAL_UPDATE: " + loadedConfigObj.TFE_BEST_NN_INCREMENTAL_UPDATE);
-      //   newConfiguration.bestNetworkIncrementalUpdate = loadedConfigObj.TFE_BEST_NN_INCREMENTAL_UPDATE;
-      // }
-
-      // if (loadedConfigObj.TFE_QUIT_ON_COMPLETE !== undefined) {
-      //   console.log("TFE | LOADED TFE_QUIT_ON_COMPLETE: " + loadedConfigObj.TFE_QUIT_ON_COMPLETE);
-      //   if ((loadedConfigObj.TFE_QUIT_ON_COMPLETE === true) || (loadedConfigObj.TFE_QUIT_ON_COMPLETE === "true")) {
-      //     newConfiguration.quitOnComplete = true;
-      //   }
-      //   if ((loadedConfigObj.TFE_QUIT_ON_COMPLETE === false) || (loadedConfigObj.TFE_QUIT_ON_COMPLETE === "false")) {
-      //     newConfiguration.quitOnComplete = false;
-      //   }
-      // }
-
-      // if (loadedConfigObj.TFE_VERBOSE !== undefined) {
-      //   console.log("TFE | LOADED TFE_VERBOSE: " + loadedConfigObj.TFE_VERBOSE);
-      //   if ((loadedConfigObj.TFE_VERBOSE === true) || (loadedConfigObj.TFE_VERBOSE === "true")) {
-      //     newConfiguration.verbose = true;
-      //   }
-      //   if ((loadedConfigObj.TFE_VERBOSE === false) || (loadedConfigObj.TFE_VERBOSE === "false")) {
-      //     newConfiguration.verbose = false;
-      //   }
-      // }
-
-      // if (loadedConfigObj.TFE_HISTOGRAM_PARSE_DOMINANT_MIN !== undefined) {
-      //   console.log("TFE | LOADED TFE_HISTOGRAM_PARSE_DOMINANT_MIN: " + loadedConfigObj.TFE_HISTOGRAM_PARSE_DOMINANT_MIN);
-      //   newConfiguration.histogramParseDominantMin = loadedConfigObj.TFE_HISTOGRAM_PARSE_DOMINANT_MIN;
-      // }
-
-      // if (loadedConfigObj.TFE_HISTOGRAM_PARSE_TOTAL_MIN !== undefined) {
-      //   console.log("TFE | LOADED TFE_HISTOGRAM_PARSE_TOTAL_MIN: " + loadedConfigObj.TFE_HISTOGRAM_PARSE_TOTAL_MIN);
-      //   newConfiguration.histogramParseTotalMin = loadedConfigObj.TFE_HISTOGRAM_PARSE_TOTAL_MIN;
-      // }
-
-      // if (loadedConfigObj.TFE_MIN_SUCCESS_RATE !== undefined) {
-      //   console.log("TFE | LOADED TFE_MIN_SUCCESS_RATE: " + loadedConfigObj.TFE_MIN_SUCCESS_RATE);
-      //   newConfiguration.minSuccessRate = loadedConfigObj.TFE_MIN_SUCCESS_RATE;
-      // }
-
-      // if (loadedConfigObj.TFE_MIN_MATCH_RATE !== undefined) {
-      //   console.log("TFE | LOADED TFE_MIN_MATCH_RATE: " + loadedConfigObj.TFE_MIN_MATCH_RATE);
-      //   newConfiguration.minMatchRate = loadedConfigObj.TFE_MIN_MATCH_RATE;
-      // }
-
-      // if (loadedConfigObj.TFE_NUM_RANDOM_NETWORKS !== undefined) {
-      //   console.log("TFE | LOADED TFE_NUM_RANDOM_NETWORKS: " + loadedConfigObj.TFE_NUM_RANDOM_NETWORKS);
-      //   newConfiguration.numRandomNetworks = loadedConfigObj.TFE_NUM_RANDOM_NETWORKS;
-      // }
-
-      // if (loadedConfigObj.TFE_ENABLE_LANG_ANALYSIS !== undefined) {
-      //   console.log("TFE | LOADED TFE_ENABLE_LANG_ANALYSIS: " + loadedConfigObj.TFE_ENABLE_LANG_ANALYSIS);
-      //   newConfiguration.enableLanguageAnalysis = loadedConfigObj.TFE_ENABLE_LANG_ANALYSIS;
-      // }
-
-      // if (loadedConfigObj.TFE_FORCE_LANG_ANALYSIS !== undefined) {
-      //   console.log("TFE | LOADED TFE_FORCE_LANG_ANALYSIS: " + loadedConfigObj.TFE_FORCE_LANG_ANALYSIS);
-      //   newConfiguration.forceLanguageAnalysis = loadedConfigObj.TFE_FORCE_LANG_ANALYSIS;
-      // }
-
-      // if (loadedConfigObj.TFE_FORCE_IMAGE_ANALYSIS !== undefined) {
-      //   console.log("TFE | LOADED TFE_FORCE_IMAGE_ANALYSIS: " + loadedConfigObj.TFE_FORCE_IMAGE_ANALYSIS);
-      //   newConfiguration.forceImageAnalysis = loadedConfigObj.TFE_FORCE_IMAGE_ANALYSIS;
-      // }
-
-      // if (loadedConfigObj.TFE_ENABLE_STDIN !== undefined) {
-      //   console.log("TFE | LOADED TFE_ENABLE_STDIN: " + loadedConfigObj.TFE_ENABLE_STDIN);
-      //   newConfiguration.enableStdin = loadedConfigObj.TFE_ENABLE_STDIN;
-      // }
-
-      // if (loadedConfigObj.TFE_NEURAL_NETWORK_FILE_PID  !== undefined) {
-      //   console.log("TFE | LOADED TFE_NEURAL_NETWORK_FILE_PID: " + loadedConfigObj.TFE_NEURAL_NETWORK_FILE_PID);
-      //   newConfiguration.loadNeuralNetworkID = loadedConfigObj.TFE_NEURAL_NETWORK_FILE_PID;
-      // }
-
-      // if (loadedConfigObj.TFE_USER_DB_CRAWL !== undefined) {
-      //   console.log("TFE | LOADED TFE_USER_DB_CRAWL: " + loadedConfigObj.TFE_USER_DB_CRAWL);
-      //   newConfiguration.userDbCrawl = loadedConfigObj.TFE_USER_DB_CRAWL;
-      // }
-
-      // if (loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER !== undefined) {
-      //   console.log("TFE | LOADED DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER: "
-      //     + jsonPrint(loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER));
-      //   newConfiguration.twitterConfigFolder = loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER;
-      // }
-
-      // if (loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FILE !== undefined) {
-      //   console.log("TFE | LOADED DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FILE: "
-      //     + jsonPrint(loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FILE));
-      //   newConfiguration.twitterConfigFile = loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FILE;
-      // }
-
-      // if (loadedConfigObj.TFE_TWITTER_USERS !== undefined) {
-      //   console.log("TFE | LOADED TFE_TWITTER_USERS: " + jsonPrint(loadedConfigObj.TFE_TWITTER_USERS));
-      //   newConfiguration.twitterUsers = loadedConfigObj.TFE_TWITTER_USERS;
-      // }
-
-      // if (loadedConfigObj.TFE_TWITTER_DEFAULT_USER !== undefined) {
-      //   console.log("TFE | LOADED TFE_TWITTER_DEFAULT_USER: " + jsonPrint(loadedConfigObj.TFE_TWITTER_DEFAULT_USER));
-      //   newConfiguration.twitterDefaultUser = loadedConfigObj.TFE_TWITTER_DEFAULT_USER;
-      // }
-
-      // if (loadedConfigObj.TFE_KEEPALIVE_INTERVAL !== undefined) {
-      //   console.log("TFE | LOADED TFE_KEEPALIVE_INTERVAL: " + loadedConfigObj.TFE_KEEPALIVE_INTERVAL);
-      //   newConfiguration.keepaliveInterval = loadedConfigObj.TFE_KEEPALIVE_INTERVAL;
-      // }
-
       resolve(newConfiguration);
     }
     catch(err){
@@ -8746,49 +8556,6 @@ function loadAllConfigFiles(){
     }
   });
 }
-
-// function initConfig(){
-
-//   console.log(chalk.bold.black("WAS | INIT CONFIG"));
-
-//   loadAllConfigFiles(function(err0){
-//     if (err0) {
-//       console.log(chalkError("WAS | *** LOAD CONFIGURATION FILE ERROR: " + err0));
-//       quit("LOAD CONFIGURATION FILE ERROR");
-//       return;
-//     }
-
-//     if (statsObj.commandLineArgsLoaded) {
-//       debug(chalkLog("... SKIP LOAD COMMAND LINE ARGS | ALREADY LOADED"));
-//       return;
-//     }
-    
-
-//     loadCommandLineArgs(function(err1, results){
-
-//       if (err1) {
-//         console.log(chalkError("WAS | *** LOAD COMMAND LINE ARGS ERROR: " + err1));
-//         quit("LOAD COMMAND LINE ARGS ERROR");
-//         return;
-//       }
-
-//       const configArgs = Object.keys(configuration);
-
-//       configArgs.forEach(function(arg){
-//         if (_.isObject(configuration[arg])) {
-//           console.log(chalkLog("WAS | _FINAL CONFIG | " + arg + ": " + jsonPrint(configuration[arg])));
-//         }
-//         else {
-//           console.log(chalkLog("WAS | _FINAL CONFIG | " + arg + ": " + configuration[arg]));
-//         }
-//       });
-      
-//       statsObj.commandLineArgsLoaded = true;
-
-//     });
-
-//   });
-// }
 
 function initStatsUpdate(cnf) {
 
@@ -10237,61 +10004,6 @@ initStats(function setCacheObjKeys(){
   cacheObjKeys = Object.keys(statsObj.caches);
 });
 
-// initialize(async function initializeComplete(err) {
-
-//   if (err) {
-//     console.log(chalkError("WAS | *** INITIALIZE ERROR ***\n" + jsonPrint(err)));
-//   } 
-//   else {
-
-//     console.log(chalk.blue("WAS | CONFIGURATION\n" + jsonPrint(configuration)));
-
-//     if (!configuration.metrics.nodeMeterEnabled) {
-//       console.log(chalkAlert("WAS | *** NODE RATE METER DISABLED ***"));
-//     }
-
-//     statsObj.configuration = configuration;
-
-//     try {
-
-//       if (configuration.twitter === undefined) {
-//         configuration.twitter = {};
-//       }
-//       configuration.twitter.bearerToken = await bearerTokenRequest(request_options);
-
-//       await addAccountActivitySubscription();
-//       await initKeySortInterval(configuration.keySortInterval);
-//       await initDropboxSync();
-//       await initSaveFileQueue(configuration);
-      
-//       await loadBestRuntimeNetwork();
-//       await loadMaxInputHashMap();
-
-//       await initIgnoreWordsHashMap();
-//       await initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
-//       await initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval);
-//       await initCategoryHashmapsInterval(configuration.categoryHashmapsUpdateInterval);
-//       await initRateQinterval(configuration.rateQueueInterval);
-//       await initTwitterRxQueueInterval(configuration.twitterRxQueueInterval);
-//       await initTweetParserMessageRxQueueInterval(configuration.tweetParserMessageRxQueueInterval);
-//       await initTwitterSearchNodeQueueInterval(configuration.twitterSearchNodeQueueInterval);
-//       await initSorterMessageRxQueueInterval(configuration.sorterMessageRxQueueInterval);
-
-//       await initDbuChild({childId: DEFAULT_DBU_CHILD_ID});
-//       await initTfeChild({childId: DEFAULT_TFE_CHILD_ID});
-//       await initTssChild({childId: DEFAULT_TSS_CHILD_ID});
-//       await initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
-
-//       slackSendMessage(slackChannel, "\n*INIT* | " + hostname + "\n");
-
-//     }
-//     catch (err) {
-//       console.log(chalkError("WAS | *** ERROR INIT: " + err));
-//     }
-
-//   }
-// });
-
 setTimeout(async function(){
 
   try {
@@ -10316,18 +10028,6 @@ setTimeout(async function(){
 
     await killAll();
     io = require("socket.io")(httpServer, ioConfig);
-
-    // try {
-    //   await connectDb();
-    //   statsObj.dbConnectionReady = true;
-    //   dbConnectionReady = true;
-    // }
-    // catch(err){
-    //   statsObj.dbConnectionReady = false;
-    //   dbConnectionReady = false;
-    //   console.log(chalkError("TFE | *** MONGO DB CONNECT ERROR: " + err + " | QUITTING ***"));
-    //   quit("MONGO DB CONNECT ERROR");
-    // }
 
     dbConnectionReadyInterval = setInterval(async function() {
 

@@ -251,7 +251,7 @@ function initTweetParserQueueInterval(cnf){
     if (cnf.normalization) { tweetServerController.loadNormalization(cnf.normalization, function(){}); }
   }
 
-  tweetParserQueueInterval = setInterval(function(){
+  tweetParserQueueInterval = setInterval(async function(){
 
     if (tweetServerController 
       && (tweetParserQueue.length > 0) 
@@ -277,17 +277,13 @@ function initTweetParserQueueInterval(cnf){
 
       params.tweetStatus = tweet;
 
-      tweetServerController.createStreamTweet(params, function createStreamTweetCallback(err, tweetObj){
+      let tweetObj;
 
-        if (err){
+      try {
 
-          tweetParserQueueReady = true;
+        tweetObj = await tweetServerController.createStreamTweet(params);
 
-          if (err.code !== 11000) {
-            console.log(chalkError("TWP | CREATE STREAM TWEET ERROR\n" + jsonPrint(err)));
-          }
-        }
-        else if (cnf.globalTestMode){
+        if (cnf.globalTestMode){
 
           tweetParserQueueReady = true;
 
@@ -299,6 +295,7 @@ function initTweetParserQueueInterval(cnf){
           }
         }
         else {
+
           if (cnf.verbose) {
             console.log.bind(console, "TWP | TW PARSER [" + tweetParserQueue.length + "]"
               + " | " + tweetObj.tweetId);
@@ -335,7 +332,12 @@ function initTweetParserQueueInterval(cnf){
             
           });
         }
-      });
+
+      }
+      catch(err){
+        tweetParserQueueReady = true;
+        if (err.code !== 11000) { console.log(chalkError("TWP | CREATE STREAM TWEET ERROR\n" + jsonPrint(err))); }
+      }
     }
 
   }, cnf.updateInterval);

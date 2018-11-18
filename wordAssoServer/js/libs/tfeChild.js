@@ -4,6 +4,22 @@
 
 process.title = "wa_node_tfe";
 
+const DEFAULT_INPUT_TYPES = [
+  "emoji", 
+  "hashtags",  
+  "images", 
+  "locations", 
+  "media", 
+  "mentions", 
+  "places", 
+  "sentiment", 
+  "urls", 
+  "userMentions", 
+  "words"
+];
+
+DEFAULT_INPUT_TYPES.sort();
+
 let maxInputHashMap = {};
 let normalization = {};
 let globalHistograms = {};
@@ -147,20 +163,7 @@ configuration.enableImageAnalysis = false;
 configuration.enableLanguageAnalysis = false;
 configuration.forceLanguageAnalysis = false;
 
-configuration.inputTypes = [ 
-  "emoji",
-  "hashtags",
-  "images",
-  "locations",
-  "media",
-  "mentions", 
-  "places",
-  "sentiment",
-  "urls",
-  "userMentions",
-  "words"
-];
-
+configuration.inputTypes = DEFAULT_INPUT_TYPES;
 configuration.sendMessageTimeout = ONE_SECOND;
 configuration.twitterDownTimeout = 3*ONE_MINUTE;
 configuration.initTwitterUsersTimeout = 1*ONE_MINUTE;
@@ -1322,8 +1325,9 @@ async function generateUserData(user) {
     let text = " ";
 
     text = (user.screenName !== undefined) ? "@" + user.screenName.toLowerCase() : text;
-    text = (user.userName !== undefined) ? text + " | " + user.name.toLowerCase() : text;
+    text = (user.userName !== undefined) ? text + "\n" + user.name.toLowerCase() : text;
     text = ((user.description !== undefined) && user.description) ? text + "\n" + user.description : text;
+    text = ((user.location !== undefined) && user.location) ? text + "\n" + user.location : text;
     text = ((user.status !== undefined) && user.status && user.status.text) ? text + "\n" + user.status.text : text;
     text = ((user.retweeted_status !== undefined) && user.retweeted_status && user.retweeted_status.text) ? text + "\n" + user.retweeted_status.text : text;
 

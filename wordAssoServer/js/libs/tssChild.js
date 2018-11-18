@@ -51,7 +51,6 @@ const util = require("util");
 const fetch = require("isomorphic-fetch");
 const Dropbox = require("dropbox").Dropbox;
 const async = require("async");
-// const Twit = require("twit");
 const Twit = require("../libs/twit");
 const moment = require("moment");
 const treeify = require("../libs/treeify");
@@ -551,16 +550,23 @@ function quit(message) {
     
   );
 
-  global.dbConnection.close(function () {
-    
-    console.log(chalkAlert(
-      "\nTSS | ==========================\n"
-      + "TSS | MONGO DB CONNECTION CLOSED"
-      + "\nTSS | ==========================\n"
-    ));
+  if ((global.dbConnection !== undefined) && (global.dbConnection.readyState > 0)) {
 
+    global.dbConnection.close(function () {
+      
+      console.log(chalkAlert(
+        "\nTSS | ==========================\n"
+        + "TSS | MONGO DB CONNECTION CLOSED"
+        + "\nTSS | ==========================\n"
+      ));
+
+      process.exit(exitCode);
+    });
+
+  }
+  else {
     process.exit(exitCode);
-  });
+  }
 }
 
 
@@ -2845,6 +2851,11 @@ process.on("message", function(m) {
 
   switch (m.op) {
 
+    case "QUIT":
+      console.log(chalkAlert("TSS | QUIT"));
+      quit("PARENT QUIT");
+    break;
+
     case "INIT":
 
       process.title = m.title;
@@ -3109,7 +3120,6 @@ process.on("message", function(m) {
 
         });
       }
-
     break;
 
     case "FOLLOW":
@@ -3134,7 +3144,6 @@ process.on("message", function(m) {
         + " | USER " + m.user.userId
         + " | @" + m.user.screenName
       ));
-
     break;
 
     case "IGNORE":
@@ -3145,7 +3154,6 @@ process.on("message", function(m) {
       ));
 
       ignoreQueue.push(m);;
-
     break;
 
     case "UPDATE_SEARCH_TERMS":

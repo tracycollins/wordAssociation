@@ -248,49 +248,6 @@ let userServerController;
 
 let userServerControllerReady = false;
 
-// function connectDb(callback){
-
-//   statsObj.status = "CONNECT DB";
-
-//   wordAssoDb.connect("TSS_" + process.pid, function(err, db){
-//     if (err) {
-//       console.log(chalkError("TSS | *** MONGO DB CONNECTION ERROR: " + err));
-//       dbConnectionReady = false;
-//       callback(err, null);
-//     }
-//     else {
-
-//       db.on("close", function(){
-//         console.error.bind(console, "TSS | ***  MONGO DB CONNECTION CLOSED ***\n");
-//         console.log(chalkError("TSS | *** MONGO DB CONNECTION CLOSED ***\n"));
-//         dbConnectionReady = false;
-//       });
-
-//       db.on("error", function(){
-//         console.error.bind(console, "TSS | ***  MONGO DB CONNECTION ERROR ***\n");
-//         console.log(chalkError("TSS | *** MONGO DB CONNECTION ERROR ***\n"));
-//         db.close();
-//         dbConnectionReady = false;
-//       });
-
-//       db.on("disconnected", function(){
-//         console.error.bind(console, "TSS | *** MONGO DB DISCONNECTED ***\n");
-//         console.log(chalkAlert("TSS | *** MONGO DB DISCONNECTED ***\n"));
-//         dbConnectionReady = false;
-//       });
-
-
-//       console.log(chalk.green("TSS | MONGOOSE DEFAULT CONNECTION OPEN"));
-
-//       dbConnectionReady = true;
-
-//       // User = mongoose.model("User", userModel.UserSchema);
-
-//       callback(null, db);
-//     }
-//   });
-// }
-
 function connectDb(){
 
   return new Promise(async function(resolve, reject){
@@ -371,7 +328,6 @@ function connectDb(){
 
   });
 }
-
 
 // ==================================================================
 // DROPBOX
@@ -2096,7 +2052,6 @@ function follow(params, callback) {
       ));
 
       return cb();
-
     }
 
     if (threeceeUserObj.followUserSet.has(params.user.userId)){
@@ -2111,7 +2066,6 @@ function follow(params, callback) {
       ));
 
       return cb(true);
-
     }
 
     if (threeceeUserObj.stats.twitterTokenErrorFlag) {
@@ -2160,7 +2114,6 @@ function follow(params, callback) {
       // });
 
       return cb();
-
     }
 
     threeceeUserObj.twit.post("friendships/create", {screen_name: params.user.screenName}, function(err, data, response) {

@@ -1976,6 +1976,7 @@ function initStats(callback){
   statsObj.twitter = {};
   statsObj.twitter.tweetsReceived = 0;
   statsObj.twitter.retweetsReceived = 0;
+  statsObj.twitter.quotedTweetsReceived = 0;
   statsObj.twitter.tweetsPerMin = 0;
   statsObj.twitter.maxTweetsPerMinTime = moment().valueOf();
 
@@ -3663,6 +3664,10 @@ function socketRxTweet(tw) {
     statsObj.twitter.retweetsReceived += 1;
   }
 
+  if (tw.quoted_status) {
+    statsObj.twitter.quotedTweetsReceived += 1;
+  }
+
   debug(chalkSocket("tweet" 
     + " [" + statsObj.twitter.tweetsReceived + "]"
     + " | " + tw.id_str
@@ -3699,6 +3704,11 @@ function socketRxTweet(tw) {
     tw.user.status.lang = tw.lang;
     tw.user.status.text = (tw.truncated) ? tw.extended_tweet.full_text : (tw.text || "");
 
+    if (tw.quoted_status) {
+      tw.user.quotedStatus = {};
+      tw.user.quotedStatus = tw.quoted_status;
+    }
+
     // tw.user.status = (tw.text !== undefined) ? tw.text : "";
 
     if (categorizedUserHashMap.has(tw.user.screen_name.toLowerCase())){
@@ -3732,7 +3742,7 @@ function socketRxTweet(tw) {
     if (statsObj.twitter.tweetsReceived % 100 === 0) {
       console.log(chalkTwitter("WAS | <T | "+ getTimeStamp()
         + " | RXQ: " + tweetRxQueue.length
-        + " [ Ts/RTs: " + statsObj.twitter.tweetsReceived + "/" + statsObj.twitter.retweetsReceived + "]"
+        + " [ Ts/RTs/QTs: " + statsObj.twitter.tweetsReceived + "/" + statsObj.twitter.retweetsReceived + "/" + statsObj.twitter.quotedTweetsReceived + "]"
         + " | " + tw.id_str
         + " | @" + tw.user.screen_name
         + " | " + tw.user.name

@@ -9907,8 +9907,6 @@ function twitterSearchUserNode(searchQuery, callback){
         if (updatedUser) { return callback(err, updatedUser); }
         callback(err, user);
       });
-
-
     }
 
   });
@@ -9991,7 +9989,6 @@ function twitterSearchNode(params, callback) {
         + " | " + getTimeStamp()
         + " | SEARCH UNCATEGORIZED USER"
       ));
-
 
       if (uncategorizedManualUserArray.length > 0) {
 

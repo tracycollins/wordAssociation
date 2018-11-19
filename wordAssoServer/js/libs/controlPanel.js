@@ -197,6 +197,25 @@ function ControlPanel() {
 
   //--------------
 
+  function unignoreButtonHandler(e){
+    console.warn("UNIGNORE BUTTON | ID: " + e.target.id + " | USER: @" + twitterFeedUser.screenName);
+    parentWindow.postMessage({op: "UNIGNORE", user: twitterFeedUser}, DEFAULT_SOURCE);
+  }
+
+  var unignoreButton = document.createElement("button");
+  unignoreButton.setAttribute("class", "button");
+  unignoreButton.setAttribute("id", "ignoreButton");
+  unignoreButton.innerHTML = "IGNORE";
+  unignoreButton.addEventListener(
+    "click", 
+    function(e){ unignoreButtonHandler(e); }, 
+    false
+  );
+
+  twitterUserButtonsDiv.appendChild(unignoreButton);
+
+  //--------------
+
   function unfollowButtonHandler(e){
     console.warn("UNFOLLOW BUTTON | ID: " + e.target.id + " | USER: @" + twitterFeedUser.screenName);
     parentWindow.postMessage({op: "UNFOLLOW", user: twitterFeedUser}, DEFAULT_SOURCE);

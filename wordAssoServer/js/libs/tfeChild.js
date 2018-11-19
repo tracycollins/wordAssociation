@@ -1284,30 +1284,29 @@ function parseUserImage(user){
 
 function parseText(params){
 
-  return new Promise(function(resolve, reject) {
+  return new Promise(async function(resolve, reject) {
 
-    let parseTextOptions = {};
-    parseTextOptions.updateGlobalHistograms = true;
+      // let textParserResults = await parseText({user: userParsedImage, text: text});
 
-    if (params.user.category) {
-      parseTextOptions.category = params.user.category;
-    }
-    else {
-      parseTextOptions.category = false;
-    }
+    params.updateGlobalHistograms = (params.updateGlobalHistograms !== undefined) ? params.updateGlobalHistograms : false;
+    params.category = params.user.category || "none";
+    params.minWordLength = params.minWordLength || "none";
 
-    twitterTextParser.parseText(params.text, parseTextOptions, function(err, hist) {
+    // let text = params.text;
+    // const minWordLength = params.minWordLength || DEFAULT_WORD_MIN_LENGTH;
+    // const updateGlobalHistograms = params.updateGlobalHistograms || false;
+    // const category = params.category || "none";
 
-      if (err) {
-        console.log(chalkError("*** TWITTER TEXT PARSER ERROR: " + err));
-        console.error(err);
-        reject(err);
-      }
-
+    try {
+      const hist = await twitterTextParser.parseText(params);
       const response = {user: params.user, histograms: hist};
       resolve(response);
-
-    });
+    }
+    catch(err){
+      console.log(chalkError("*** TWITTER TEXT PARSER ERROR: " + err));
+      console.error(err);
+      reject(err);
+    }
 
   });
 }

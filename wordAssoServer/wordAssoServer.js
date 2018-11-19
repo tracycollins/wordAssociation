@@ -3751,12 +3751,17 @@ function socketRxTweet(tw) {
   }
 }
 
+function enableFollow(params){
+  if (params.forceFollow) { return true; }
+  if (followedUserSet.has(params.user.nodeId)) { return false; }
+  if (ignoredUserSet.has(params.user.nodeId)) { return false; }
+  if (unfollowableUserSet.has(params.user.nodeId)) { return false; }
+  return true;
+}
+
 function follow(params, callback) {
 
-  if (followedUserSet.has(params.user.nodeId) 
-    || ignoredUserSet.has(params.user.nodeId)
-    || unfollowableUserSet.has(params.user.nodeId)) 
-  { 
+  if (!enableFollow(params)) { 
 
     console.log(chalkWarn("XXX FOLLOW | @" + params.user.screenName + " | IN UNFOLLOWABLE, FOLLOWED or IGNORED USER SET"));
 
@@ -4712,7 +4717,7 @@ function initSocketHandler(socketObj) {
       + " | @" + user.screenName
     ));
 
-    follow({user: user}, function(err, updatedUser){
+    follow({user: user, forceFollow: true}, function(err, updatedUser){
       if (err) {
         console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: " + err));
         return;
@@ -7278,7 +7283,6 @@ async function initTssChild(params){
             threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
 
           }
-
         break;
 
         case "TWITTER_STATS":

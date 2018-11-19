@@ -816,6 +816,14 @@ function controlPanelComm(event) {
       socket.emit("TWITTER_IGNORE", event.data.user);
     break;
 
+    case "UNIGNORE" :
+      console.warn("R< CONTROL UNIGNORE"
+        + " | UID: " + event.data.user.nodeId
+        + " | @" + event.data.user.screenName
+      );
+      socket.emit("TWITTER_UNIGNORE", event.data.user);
+    break;
+
     case "NODE_SEARCH" :
       console.warn("R< CONTROL NODE_SEARCH\n" + jsonPrint(event.data.input));
       socket.emit("TWITTER_SEARCH_NODE", event.data.input);

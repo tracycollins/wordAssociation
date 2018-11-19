@@ -89,6 +89,7 @@ function ControlPanel() {
   statsObj.user.statusesCount = 0;
   statsObj.user.mentions = 0;
   statsObj.user.threeceeFollowing = "---";
+  statsObj.user.ignored = "---";
 
   var controlIdHash = {};
 
@@ -324,6 +325,7 @@ function ControlPanel() {
       document.getElementById("userStatusesCountText").innerHTML = node.statusesCount;
       document.getElementById("userMentionsText").innerHTML = node.mentions;
       document.getElementById("user3cFollowingText").innerHTML = node.threeceeFollowing;
+      document.getElementById("userIgnoredText").innerHTML = node.ignored;
       document.getElementById("userDescriptionText").innerHTML = node.description;
 
       statsObj.user.nodeId = node.nodeId;
@@ -334,6 +336,7 @@ function ControlPanel() {
       statsObj.user.followersCount = node.followersCount;
       statsObj.user.friendsCount = node.friendsCount;
       statsObj.user.statusesCount = node.statusesCount;
+      statsObj.user.ignored = node.ignored;
       statsObj.user.threeceeFollowing = node.threeceeFollowing;
       statsObj.user.mentions = node.mentions;
       statsObj.user.description = node.description;
@@ -977,6 +980,7 @@ function ControlPanel() {
 
         console.log("CREATE CONTROL PANEL" 
           + " | " + config.twitterUser.screenName
+          + " | " + config.twitterUser.ignored
           + " | " + config.twitterUser.threeceeFollowing
         );
 
@@ -1551,6 +1555,19 @@ function ControlPanel() {
     userStatusesCountLabel.class = "userStatusText";
     userStatusesCountLabel.text = "TWEETS";
 
+    var userIgnoredText = {
+      type: "TEXT",
+      id: "userIgnoredText",
+      class: "userStatusText",
+      text: statsObj.user.ignored
+    };
+
+    var userIgnoredLabel = {};
+    userIgnoredLabel.type = "TEXT";
+    userIgnoredLabel.id = "userIgnoredLabel";
+    userIgnoredLabel.class = "userStatusText";
+    userIgnoredLabel.text = "3C IGNORED";
+
     var user3cFollowingText = {
       type: "TEXT",
       id: "user3cFollowingText",
@@ -1643,6 +1660,7 @@ function ControlPanel() {
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userMentionsLabel, userMentionsText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userStatusesCountLabel, userStatusesCountText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [user3cFollowingLabel, user3cFollowingText]);
+        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userIgnoredLabel, userIgnoredText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MIN", fontSizeMinRatioSlider, fontSizeMinRatioSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MAX", fontSizeMaxRatioSlider, fontSizeMaxRatioSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["TRANSITION", transitionDurationSlider, transitionDurationSliderText]);

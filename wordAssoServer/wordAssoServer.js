@@ -3774,6 +3774,8 @@ function follow(params, callback) {
   }
 
   followedUserSet.add(params.user.nodeId);
+  ignoredUserSet.delete(params.user.nodeId);
+  unfollowableUserSet.delete(params.user.nodeId);
 
   const query = { nodeId: params.user.nodeId };
 
@@ -3837,8 +3839,6 @@ function ignore(params, callback) {
 
     ignoredUserSet.add(params.user.nodeId);
 
-    ignoredUserSet.add(params.user.nodeId);
-
     const ob = {
       userIds : [...ignoredUserSet]
     }
@@ -3886,6 +3886,62 @@ function ignore(params, callback) {
       ));
     }
 
+
+    if (callback !== undefined) { callback(err, userUpdated); }
+
+  });
+}
+
+function unignore(params, callback) {
+
+  console.log(chalk.blue("WAS | +++ UNIGNORE | @" + params.user.screenName));
+
+  if (params.user.nodeId !== undefined){
+
+    ignoredUserSet.delete(params.user.nodeId);
+
+    const ob = {
+      userIds : [...ignoredUserSet]
+    }
+
+    saveFileQueue.push({
+      localFlag: false, 
+      folder: dropboxConfigDefaultFolder, 
+      file: ignoredUserFile, 
+      obj: ob
+    });
+
+  } 
+
+  if (tssChild !== undefined) { 
+    tssChild.send({op: "UNIGNORE", user: params.user});
+  }
+
+  const query = { nodeId: params.user.nodeId };
+
+  let update = {};
+  update["$set"] = { ignored: false };
+
+  const options = {
+    new: true,
+    upsert: false
+  };
+
+  User.findOneAndUpdate(query, update, options, function(err, userUpdated){
+
+    if (err) {
+      console.log(chalkError("WAS | *** UNIGNORE | USER FIND ONE ERROR: " + err));
+    }
+    else if (userUpdated){
+      console.log(chalkLog("WAS | +++ UNIGNORE"
+        + " | " + printUser({user: userUpdated})
+      ));
+    }
+    else {
+      console.log(chalkLog("WAS | --- UNIGNORE USER NOT IN DB"
+        + " | ID: " + params.user.nodeId
+      ));
+    }
 
     if (callback !== undefined) { callback(err, userUpdated); }
 
@@ -4798,6 +4854,40 @@ function initSocketHandler(socketObj) {
       utilNameSpace.emit("IGNORE", updatedUser);
 
       console.log(chalk.blue("WAS | XXX TWITTER_IGNORE"
+        + " | SID: " + socket.id
+        + " | UID" + updatedUser.nodeId
+        + " | @" + updatedUser.screenName
+      ));
+
+    });
+  });
+
+  socket.on("TWITTER_UNIGNORE", function twitterUnignore(user) {
+
+    const timeStamp = moment().valueOf();
+
+    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
+    console.log(chalkSocket("R< TWITTER_UNIGNORE"
+      + " | " + getTimeStamp(timeStamp)
+      + " | " + ipAddress
+      + " | " + socket.id
+      + " | UID: " + user.userId
+      + " | @" + user.screenName
+    ));
+
+    unignore({user: user, socketId: socket.id}, function(err, updatedUser){
+      if (err) {
+        console.log(chalkError("WAS | TWITTER_UNIGNORE ERROR: " + err));
+        return;
+      }
+      
+      if (!updatedUser) { return; }
+
+      adminNameSpace.emit("UNIGNORE", updatedUser);
+      utilNameSpace.emit("UNIGNORE", updatedUser);
+
+      console.log(chalk.blue("WAS | +++ TWITTER_UNIGNORE"
         + " | SID: " + socket.id
         + " | UID" + updatedUser.nodeId
         + " | @" + updatedUser.screenName

@@ -212,6 +212,7 @@ statsObj.elapsed = moment().valueOf() - statsObj.startTime;
 statsObj.queues = {};
 statsObj.tweetsReceived = 0;
 statsObj.retweetsReceived = 0;
+statsObj.quotedTweetsReceived = 0;
 statsObj.tweetsDuplicates = 0;
 statsObj.tweetsPerSecond = 0.0;
 statsObj.tweetsPerMinute = 0.0;
@@ -710,6 +711,7 @@ function initTwit(params, callback){
   threeceeUserObj.stats.twitterTokenErrorFlag = false;
   threeceeUserObj.stats.tweetsReceived = 0;
   threeceeUserObj.stats.retweetsReceived = 0;
+  threeceeUserObj.stats.quotedTweetsReceived = 0;
   threeceeUserObj.stats.twitterConnects = 0;
   threeceeUserObj.stats.twitterReconnects = 0;
   threeceeUserObj.stats.twitterFollowLimit = false;
@@ -1661,6 +1663,11 @@ function initSearchStream(params, callback){
       threeceeUserObj.stats.retweetsReceived += 1;
     }
 
+    if (tweetStatus.quoted_status) {
+      statsObj.quotedTweetsReceived += 1;
+      threeceeUserObj.stats.quotedTweetsReceived += 1;
+    }
+
     if (tweetQueue.length < configuration.maxTweetQueue ) {
       tweetQueue.push(tweetStatus);
     }
@@ -1668,9 +1675,9 @@ function initSearchStream(params, callback){
     if ((threeceeUserObj.stats.tweetsReceived % 500 === 0) || (statsObj.tweetsReceived % 500 === 0)) {
       console.log(chalkTwitter("TSS | <T | "+ getTimeStamp()
         + " | TWQ: " + tweetQueue.length
-        + " [ TOTAL Ts/RTs: " + statsObj.tweetsReceived + "/" + statsObj.retweetsReceived + "]"
+        + " [ TOTAL Ts/RTs/QTs: " + statsObj.tweetsReceived + "/" + statsObj.retweetsReceived + "/" + statsObj.quotedTweetsReceived + "]"
         + " | 3C @" + threeceeUserObj.screenName
-        + " [ Ts/RTs: " + threeceeUserObj.stats.tweetsReceived + "/" + threeceeUserObj.stats.retweetsReceived + "]"
+        + " [ Ts/RTs/QTs: " + threeceeUserObj.stats.tweetsReceived + "/" + threeceeUserObj.stats.retweetsReceived + "/" + threeceeUserObj.stats.quotedTweetsReceived + "]"
         + " | " + statsObj.tweetsPerMinute.toFixed(3) + " TPM"
         + " | " + tweetStatus.id_str
         + " | TWEET LANG: " + tweetStatus.lang

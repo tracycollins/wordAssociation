@@ -230,7 +230,7 @@ function ControlPanel() {
   var unignoreButton = document.createElement("button");
   unignoreButton.setAttribute("class", "button");
   unignoreButton.setAttribute("id", "ignoreButton");
-  unignoreButton.innerHTML = "IGNORE";
+  unignoreButton.innerHTML = "UNIGNORE";
   unignoreButton.addEventListener(
     "click", 
     function(e){ unignoreButtonHandler(e); }, 

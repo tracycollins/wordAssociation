@@ -27,6 +27,7 @@ function ControlPanel() {
   nodeTypesSet.add("word");
 
   var twitterFeedUser;
+  var twitterFeedPreviousUser;
   var twitterFeedHashtag;
 
   function jsonPrint(obj) {
@@ -179,6 +180,29 @@ function ControlPanel() {
 
   //--------------
 
+  function previousUserButtonHandler(e){
+    if (!twitterFeedPreviousUser) {
+      console.warn("PREVIOUS USER BUTTON | ID: " + e.target.id + " | PREV USER UNDEFINED ... SKIPPING");
+      return;
+    }
+    console.warn("PREVIOUS USER BUTTON | ID: " + e.target.id + " | USER: @" + twitterFeedPreviousUser.screenName);
+    parentWindow.postMessage({op: "NODE_SEARCH", input: "@" + twitterFeedPreviousUser.screenName}, DEFAULT_SOURCE);
+  }
+
+  var previousUserButton = document.createElement("button");
+  previousUserButton.setAttribute("class", "button");
+  previousUserButton.setAttribute("id", "previousUserButton");
+  previousUserButton.innerHTML = "PREVIOUS USER";
+  previousUserButton.addEventListener(
+    "click", 
+    function(e){ previousUserButtonButtonHandler(e); }, 
+    false
+  );
+
+  twitterUserButtonsDiv.appendChild(previousUserButton);
+
+  //--------------
+
   function ignoreButtonHandler(e){
     console.warn("IGNORE BUTTON | ID: " + e.target.id + " | USER: @" + twitterFeedUser.screenName);
     parentWindow.postMessage({op: "IGNORE", user: twitterFeedUser}, DEFAULT_SOURCE);
@@ -307,6 +331,8 @@ function ControlPanel() {
     }
     else {
 
+      twitterFeedPreviousUser = node;
+
       var screenName = node.screenName;
       var name = (node.name !== undefined) ? node.name : "---";
       // var followersMentions = node.followersCount + node.mentions;
@@ -403,6 +429,7 @@ function ControlPanel() {
 
     if (node.nodeType === "user"){
 
+      twitterFeedPreviousUser = twitterFeedUser;
       twitterFeedUser = node;
 
       console.debug("loadTwitterFeed"
@@ -1515,7 +1542,7 @@ function ControlPanel() {
     userFollowersCountLabel.class = "userStatusText";
     userFollowersCountLabel.text = "FOLLOWERS";
 
-
+//-----------------------------------------------------------
     var userFriendsCountText = {
       type: "TEXT",
       id: "userFriendsCountText",
@@ -1528,7 +1555,7 @@ function ControlPanel() {
     userFriendsCountLabel.id = "userFriendsCountLabel";
     userFriendsCountLabel.class = "userStatusText";
     userFriendsCountLabel.text = "FRIENDS";
-
+//-----------------------------------------------------------
     var userMentionsText = {
       type: "TEXT",
       id: "userMentionsText",
@@ -1541,7 +1568,7 @@ function ControlPanel() {
     userMentionsLabel.id = "userMentionsLabel";
     userMentionsLabel.class = "userStatusText";
     userMentionsLabel.text = "MENTIONS";
-
+//-----------------------------------------------------------
     var userStatusesCountText = {
       type: "TEXT",
       id: "userStatusesCountText",
@@ -1554,7 +1581,7 @@ function ControlPanel() {
     userStatusesCountLabel.id = "userStatusesCountLabel";
     userStatusesCountLabel.class = "userStatusText";
     userStatusesCountLabel.text = "TWEETS";
-
+//-----------------------------------------------------------
     var userIgnoredText = {
       type: "TEXT",
       id: "userIgnoredText",
@@ -1567,7 +1594,7 @@ function ControlPanel() {
     userIgnoredLabel.id = "userIgnoredLabel";
     userIgnoredLabel.class = "userStatusText";
     userIgnoredLabel.text = "3C IGNORED";
-
+//-----------------------------------------------------------
     var user3cFollowingText = {
       type: "TEXT",
       id: "user3cFollowingText",
@@ -1580,7 +1607,7 @@ function ControlPanel() {
     user3cFollowingLabel.id = "user3cFollowingLabel";
     user3cFollowingLabel.class = "userStatusText";
     user3cFollowingLabel.text = "3C FOLLOW";
-
+//-----------------------------------------------------------
     var userCategoryText = {
       type: "TEXT",
       id: "userCategoryText",
@@ -1593,7 +1620,7 @@ function ControlPanel() {
     userCategoryLabel.id = "userCategoryLabel";
     userCategoryLabel.class = "userStatusText";
     userCategoryLabel.text = "CATEGORY";
-
+//-----------------------------------------------------------
     switch (config.sessionViewType) {
 
       case "force":

@@ -3913,10 +3913,6 @@ function unignore(params, callback) {
 
   } 
 
-  if (tssChild !== undefined) { 
-    tssChild.send({op: "UNIGNORE", user: params.user});
-  }
-
   const query = { nodeId: params.user.nodeId };
 
   let update = {};

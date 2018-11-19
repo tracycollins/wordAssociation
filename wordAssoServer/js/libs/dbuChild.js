@@ -452,6 +452,7 @@ function userUpdateDb(tweetObj){
           case "locations":
             entity = entityObj.nodeId;
           break;
+          case "images":
           case "media":
             entity = entityObj.nodeId;
           break;
@@ -542,6 +543,7 @@ function userUpdateDb(tweetObj){
             + " | PLs: " + getNumKeys(user.histograms.places)
             + " | STs: " + getNumKeys(user.histograms.sentiment)
             + " | UMs: " + getNumKeys(user.histograms.userMentions)
+            + " | ULs: " + getNumKeys(user.histograms.urls)
             + " | WDs: " + getNumKeys(user.histograms.words)
           ));
 
@@ -583,8 +585,8 @@ function initUserUpdateQueueInterval(interval){
         userUpdateQueueReady = false;
 
         try {
-          tweetObj = userUpdateQueue.shift();
-          let updatedUser = await userUpdateDb(tweetObj);
+          const twObj = userUpdateQueue.shift();
+          let updatedUser = await userUpdateDb(twObj);
         }
         catch(err){
           console.log(chalkError("DBU | *** USER UPDATE DB ERROR: " + err));

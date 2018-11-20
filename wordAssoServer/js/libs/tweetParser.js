@@ -1,5 +1,7 @@
 /*jslint node: true */
+/*jshint sub:true*/
 "use strict";
+
 
 global.dbConnection = false;
 let dbConnectionReady = false;
@@ -179,16 +181,21 @@ function quit(message) {
     
   );
 
-  global.dbConnection.close(function () {
-    
-    console.log(chalkAlert(
-      "\nTWP | ==========================\n"
-      + "TWP | MONGO DB CONNECTION CLOSED"
-      + "\nTWP | ==========================\n"
-    ));
+  if ((global.dbConnection !== undefined) && (global.dbConnection.readyState > 0)) {
+    global.dbConnection.close(function () {
+      
+      console.log(chalkAlert(
+        "\nTWP | ==========================\n"
+        + "TWP | MONGO DB CONNECTION CLOSED"
+        + "\nTWP | ==========================\n"
+      ));
 
+      process.exit(exitCode);
+    });
+  }
+  else {
     process.exit(exitCode);
-  });
+  }
 
 }
 
@@ -251,7 +258,7 @@ function initTweetParserQueueInterval(cnf){
     if (cnf.normalization) { tweetServerController.loadNormalization(cnf.normalization, function(){}); }
   }
 
-  tweetParserQueueInterval = setInterval(async function(){
+  tweetParserQueueInterval = setInterval(function(){
 
     if (tweetServerController 
       && (tweetParserQueue.length > 0) 
@@ -277,11 +284,9 @@ function initTweetParserQueueInterval(cnf){
 
       params.tweetStatus = tweet;
 
-      let tweetObj;
 
-      try {
-
-        tweetObj = await tweetServerController.createStreamTweet(params);
+      tweetServerController.createStreamTweet(params)
+      .then(function(tweetObj){
 
         if (cnf.globalTestMode){
 
@@ -332,12 +337,75 @@ function initTweetParserQueueInterval(cnf){
             
           });
         }
-
-      }
-      catch(err){
+      })
+      .catch(function(err){
+        if (err) {
+          console.log(chalkError("TWP | *** CREATE STREAM TWEET ERROR: " + err));
+        }
         tweetParserQueueReady = true;
         if (err.code !== 11000) { console.log(chalkError("TWP | CREATE STREAM TWEET ERROR\n" + jsonPrint(err))); }
-      }
+      });
+
+      // let tweetObj;
+      // try {
+
+    //     tweetObj = await tweetServerController.createStreamTweet(params);
+
+    //     if (cnf.globalTestMode){
+
+    //       tweetParserQueueReady = true;
+
+    //       if (cnf.verbose){
+    //         console.log(chalkAlert("TWP | t< GLOBAL TEST MODE"
+    //           + " | " + tweetObj.tweetId
+    //           + " | @" + tweetObj.user.screenName
+    //         ));
+    //       }
+    //     }
+    //     else {
+
+    //       if (cnf.verbose) {
+    //         console.log.bind(console, "TWP | TW PARSER [" + tweetParserQueue.length + "]"
+    //           + " | " + tweetObj.tweetId);
+    //         console.log(chalkInfo("TWP | TW PARSER [" + tweetParserQueue.length + "]"
+    //           + " | " + tweetObj.tweetId
+    //         ));
+    //       }
+
+    //       process.send({op: "parsedTweet", tweetObj: tweetObj}, function(err){
+
+    //         deltaTweetParserMessage = process.hrtime(deltaTweetParserMessageStart);
+
+    //         if (deltaTweetParserMessage[0] > 0) { 
+    //           console.log.bind(console, "TWP | *** SEND DELTA: " + deltaTweetParserMessage[0] + "." + deltaTweetParserMessage[1]); 
+    //           console.log("TWP | *** SEND DELTA: " + deltaTweetParserMessage[0] + "." + deltaTweetParserMessage[1]); 
+    //         }
+
+    //         deltaTweetParserMessageStart = process.hrtime();
+
+    //         tweetParserQueueReady = true;
+
+    //         if (err) {
+    //           console.error(chalkError("TWP | *** PARSER SEND TWEET ERROR"
+    //             + " | " + moment().format(compactDateTimeFormat)
+    //             + " | " + err
+    //           ));
+    //         }
+    //         else {
+    //           debug(chalkInfo("TWP | *** PARSER SEND COMPLETE"
+    //             + " | " + moment().format(compactDateTimeFormat)
+    //             + " | " + tweetObj.tweetId
+    //           ));
+    //         }
+            
+    //       });
+    //     }
+    //   }
+    //   catch(err){
+    //     tweetParserQueueReady = true;
+    //     if (err.code !== 11000) { console.log(chalkError("TWP | CREATE STREAM TWEET ERROR\n" + jsonPrint(err))); }
+    //   }
+
     }
 
   }, cnf.updateInterval);

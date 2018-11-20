@@ -424,16 +424,22 @@ function quit(message) {
     
   );
 
-  global.dbConnection.close(function () {
-    
-    console.log(chalkAlert(
-      "\nTFE | ==========================\n"
-      + "TFE | MONGO DB CONNECTION CLOSED"
-      + "\nTFE | ==========================\n"
-    ));
+  if ((global.dbConnection !== undefined) && (global.dbConnection.readyState > 0)) {
 
+    global.dbConnection.close(function () {
+      
+      console.log(chalkAlert(
+        "\nTFE | ==========================\n"
+        + "TFE | MONGO DB CONNECTION CLOSED"
+        + "\nTFE | ==========================\n"
+      ));
+
+      process.exit(exitCode);
+    });
+  }
+  else {
     process.exit(exitCode);
-  });
+  }
 }
 
 function saveFile (path, file, jsonObj, callback){

@@ -1269,7 +1269,7 @@ function parseText(params){
   return new Promise(function(resolve, reject) {
 
     params.updateGlobalHistograms = (params.updateGlobalHistograms !== undefined) ? params.updateGlobalHistograms : false;
-    params.category = params.user.category || "none";
+    params.category = (params.user && params.user.category) ? params.user.category : "none";
     params.minWordLength = params.minWordLength || DEFAULT_WORD_MIN_LENGTH;
 
     twitterTextParser.parseText(params)
@@ -1540,7 +1540,7 @@ function userStatusChangeHistogram(params) {
       // let textParseResults;
 
       if (text){
-       parseText({text: text})
+       parseText({user: user, text: text})
         .then(function(textParseResults){
           resolve(textParseResults);
         })

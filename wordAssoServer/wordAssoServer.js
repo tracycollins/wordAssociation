@@ -9570,15 +9570,15 @@ function initStdIn(params){
         break;
         case "t":
           configuration.testMode = !configuration.testMode;
-          console.log(chalkAlert("TNN | TEST MODE: " + configuration.testMode));
+          console.log(chalkAlert("WAS | TEST MODE: " + configuration.testMode));
         break;
         case "x":
           saveSampleTweetFlag = true;
-          console.log(chalkAlert("TNN | SAVE SAMPLE TWEET"));
+          console.log(chalkAlert("WAS | SAVE SAMPLE TWEET"));
         break;
         case "v":
           configuration.verbose = !configuration.verbose;
-          console.log(chalkAlert("TNN | VERBOSE: " + configuration.verbose));
+          console.log(chalkAlert("WAS | VERBOSE: " + configuration.verbose));
         break;
         case "q":
           quit();

@@ -1410,7 +1410,11 @@ function userProfileChangeHistogram(params) {
 
           if (text){
 
-            parseText({text: text})
+            // params.updateGlobalHistograms = (params.updateGlobalHistograms !== undefined) ? params.updateGlobalHistograms : false;
+            // params.category = params.user.category || "none";
+            // params.minWordLength = params.minWordLength || DEFAULT_WORD_MIN_LENGTH;
+
+            parseText({user: user, text: text})
             .then(function(textParseResults){
 
               if (profileUrl) {

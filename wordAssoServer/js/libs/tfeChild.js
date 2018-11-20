@@ -1354,6 +1354,8 @@ function userProfileChangeHistogram(params) {
         case "screenName":
           text += "\n@" + user[userProp];
           break;
+        case "url":
+          url = user[userProp];
         case "profileUrl":
           profileUrl = user[userProp];
         break;
@@ -1624,7 +1626,7 @@ function updateUserHistograms(params) {
           });
 
         });
-        
+
       })
       .catch(function(err){
         console.log(chalkError("TFE | *** UPDATE USER HISTOGRAM ERROR: " + err));

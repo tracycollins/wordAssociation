@@ -1239,7 +1239,9 @@ function parseImage(params){
 
     params.updateGlobalHistograms = (params.updateGlobalHistograms !== undefined) ? params.updateGlobalHistograms : false;
     params.category = params.user.category || "none";
-
+    params.imageUrl = params.user.bannerImageUrl;
+    params.histograms = params.user.histograms;
+    params.screenName = params.user.screenName;
 
     twitterImageParser.parseImage(params)
     .then(function(hist){
@@ -1391,7 +1393,7 @@ function userProfileChangeHistogram(params) {
         imageHist: function(cb) {
 
           if (bannerImageUrl){
-            parseImage({url: bannerImageUrl})
+            parseImage(params)
             .then(function(imageParseResults){
               cb(null, imageParseResults);
             })
@@ -1414,7 +1416,7 @@ function userProfileChangeHistogram(params) {
             // params.category = params.user.category || "none";
             // params.minWordLength = params.minWordLength || DEFAULT_WORD_MIN_LENGTH;
 
-            parseText({user: user, text: text})
+            parseText({category: category, text: text})
             .then(function(textParseResults){
 
               if (profileUrl) {

@@ -1637,7 +1637,7 @@ function updateUserHistograms(params) {
             }
             params.user.profileHistograms = results.profileHist;
             params.user.tweetHistograms = results.tweetHist;
-            resolve(params);
+            resolve(params.user);
           });
 
         });
@@ -1778,6 +1778,7 @@ function initUserCategorizeQueueInterval(cnf){
               console.log(chalkLog("TFE | >>> NN AUTO CAT CHANGE"
                 + " | " + nnId
                 + " | AUTO: " + updatedUser.categoryAuto + " > " + networkOutput[nnId].output
+                + " | NID: " + updatedUser.nodeId
                 + " | @" + updatedUser.screenName
               ));
             }

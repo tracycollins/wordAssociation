@@ -2,6 +2,8 @@
 /*jshint sub:true*/
 "use strict";
 
+let saveSampleTweetFlag = true;
+
 const os = require("os");
 
 let hostname = os.hostname();
@@ -79,8 +81,10 @@ const DEFAULT_TWITTER_CONFIG_THREECEE_FILE = DEFAULT_TWITTER_CONFIG_THREECEE + "
 
 const DEFAULT_INTERVAL = 10;
 const DEFAULT_PING_INTERVAL = ONE_MINUTE;
-const DBU_PING_INTERVAL = 600*ONE_SECOND;
-const TFE_PING_INTERVAL = 600*ONE_SECOND;
+const TWP_PING_INTERVAL = 10*ONE_MINUTE;
+const TSS_PING_INTERVAL = 10*ONE_MINUTE;
+const DBU_PING_INTERVAL = 10*ONE_MINUTE;
+const TFE_PING_INTERVAL = 10*ONE_MINUTE;
 const DEFAULT_DROPBOX_LIST_FOLDER_LIMIT = 50;
 const DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT = 1*ONE_SECOND;
 const DEFAULT_MIN_FOLLOWERS_AUTO = 15000;
@@ -213,7 +217,7 @@ function bearerTokenRequest(request_options){
           method: "POST",
           resolveWithFullResponse: true,
           auth: { "bearer" : twitter_bearer_token }
-        }
+        };
 
         // PUT request to retrieve webhook config
         request(req_options, function(error, response) {
@@ -225,7 +229,7 @@ function bearerTokenRequest(request_options){
           resolve(twitter_bearer_token);
         });
       }
-    })
+    });
   });
 }
 
@@ -260,7 +264,7 @@ function addAccountActivitySubscription(params){
           resolve(response.statusCode);
         }
       }
-    })
+    });
   });
 }
 
@@ -330,21 +334,21 @@ const writeJsonFile = require("write-json-file");
 
 const MongoDBStore = require("express-session-mongo");
 
-const slackOAuthAccessToken = "xoxp-3708084981-3708084993-206468961315-ec62db5792cd55071a51c544acf0da55";
-const slackChannel = "was";
-const slackChannelAutoFollow = "wasAuto";
-const slackErrorChannel = "wasError";
-const Slack = require("slack-node");
-const slack = new Slack(slackOAuthAccessToken);
+// const slackOAuthAccessToken = "xoxp-3708084981-3708084993-206468961315-ec62db5792cd55071a51c544acf0da55";
+// const slackChannel = "was";
+// const slackChannelAutoFollow = "wasAuto";
+// const slackErrorChannel = "wasError";
+// const Slack = require("slack-node");
+// const slack = new Slack(slackOAuthAccessToken);
 
-const slackConversationId = "D65CSAELX"; // wordbot
-const slackRtmToken = "xoxb-209434353623-bNIoT4Dxu1vv8JZNgu7CDliy";
-const shackTitleLink = "https://twitter.com/threecee";
+// const slackConversationId = "D65CSAELX"; // wordbot
+// const slackRtmToken = "xoxb-209434353623-bNIoT4Dxu1vv8JZNgu7CDliy";
+// const shackTitleLink = "https://twitter.com/threecee";
 
-let slackRtmClient;
-let slackWebClient;
+// let slackRtmClient;
+// let slackWebClient;
 
-let slackMessagePrefix = "#" + slackChannel + ":" + hostname + "_" + process.pid;
+// let slackMessagePrefix = "#" + slackChannel + ":" + hostname + "_" + process.pid;
 
 
 let configEvents = new EventEmitter2({
@@ -379,7 +383,7 @@ configuration.maxQueue = DEFAULT_MAX_QUEUE;
 configuration.forceFollow = DEFAULT_FORCE_FOLLOW;
 configuration.forceImageAnalysis = DEFAULT_FORCE_IMAGE_ANALYSIS;
 
-configuration.slackChannel = {};
+// configuration.slackChannel = {};
 
 configuration.twitterThreeceeAutoFollowUser = DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER;
 
@@ -1153,49 +1157,53 @@ const dbAppName = "WAS_" + process.pid;
 
 function connectDb(){
 
-  return new Promise(async function(resolve, reject){
+  return new Promise(function(resolve, reject){
 
     try {
 
       statsObj.status = "CONNECTING MONGO DB";
 
-      wordAssoDb.connect("WAS_" + process.pid, async function(err, db){
+      wordAssoDb.connect("WAS_" + process.pid, function(err, db){
 
         if (err) {
           console.log(chalkError("WAS | *** MONGO DB CONNECTION ERROR: " + err));
           statsObj.status = "MONGO CONNECTION ERROR";
-          slackSendMessage(hostname + " | WAS | " + statsObj.status);
+          // slackSendMessage(hostname + " | WAS | " + statsObj.status);
           dbConnectionReady = false;
+          statsObj.dbConnectionReady = false;
           quit(statsObj.status);
           return reject(err);
         }
 
-        db.on("close", async function(){
+        db.on("close", function(){
           statsObj.status = "MONGO CLOSED";
           console.error.bind(console, "WAS | *** MONGO DB CONNECTION CLOSED ***\n");
           console.log(chalkAlert("WAS | *** MONGO DB CONNECTION CLOSED ***\n"));
-          slackSendMessage(hostname + " | WAS | " + statsObj.status);
+          // slackSendMessage(hostname + " | WAS | " + statsObj.status);
           // db.close();
           dbConnectionReady = false;
+          statsObj.dbConnectionReady = false;
           quit(statsObj.status);
         });
 
-        db.on("error", async function(){
+        db.on("error", function(){
           statsObj.status = "MONGO ERROR";
           console.error.bind(console, "WAS | *** MONGO DB CONNECTION ERROR ***\n");
           console.log(chalkError("WAS | *** MONGO DB CONNECTION ERROR ***\n"));
-          slackSendMessage(hostname + " | WAS | " + statsObj.status);
+          // slackSendMessage(hostname + " | WAS | " + statsObj.status);
           db.close();
           dbConnectionReady = false;
+          statsObj.dbConnectionReady = false;
           quit(statsObj.status);
         });
 
-        db.on("disconnected", async function(){
+        db.on("disconnected", function(){
           statsObj.status = "MONGO DISCONNECTED";
           console.error.bind(console, "WAS | *** MONGO DB DISCONNECTED ***\n");
-          slackSendMessage(hostname + " | WAS | " + statsObj.status);
+          // slackSendMessage(hostname + " | WAS | " + statsObj.status);
           console.log(chalkAlert("WAS | *** MONGO DB DISCONNECTED ***\n"));
           dbConnectionReady = false;
+          statsObj.dbConnectionReady = false;
           quit(statsObj.status);
         });
 
@@ -1415,7 +1423,7 @@ function connectDb(){
         userServerController.on("ready", function(appname){
 
           statsObj.status = "MONGO DB CONNECTED";
-          slackSendMessage(hostname + " | WAS | " + statsObj.status);
+          // slackSendMessage(hostname + " | WAS | " + statsObj.status);
 
           userServerControllerReady = true;
           console.log(chalkAlert("WAS | USC READY | " + appname));
@@ -1440,26 +1448,30 @@ function connectDb(){
 let dbConnectInterval;
 statsObj.dbConnectBusy = false;
 
-dbConnectInterval = setInterval(async function(){
+dbConnectInterval = setInterval(function(){
 
   if (!statsObj.dbConnectionReady && !statsObj.dbConnectBusy) {
 
-    try{
+    // try{
 
       statsObj.dbConnectBusy = true;
 
-      await connectDb();
-      statsObj.dbConnectBusy = false;
-      statsObj.dbConnectionReady = true;
-      dbConnectionReady = true;
+      connectDb()
+      .then(function(){
+        statsObj.dbConnectBusy = false;
+        statsObj.dbConnectionReady = true;
+        dbConnectionReady = true;
+      })
+      .catch(function(err){
+        console.log(chalkError("WAS | *** CONNECT DB INTERVAL ERROR: " + err));
+        statsObj.dbConnectionReady = false;
+        dbConnectionReady = false;
+        statsObj.dbConnectBusy = false;
+      });
 
-    }
-    catch(err){
-      console.log(chalkError("WAS | *** CONNECT DB INTERVAL ERROR: " + err));
-      statsObj.dbConnectionReady = false;
-      dbConnectionReady = false;
-      statsObj.dbConnectBusy = false;
-    }
+    // }
+    // catch(err){
+    // }
 
   }
 
@@ -1535,7 +1547,7 @@ function msToTime(duration) {
   return "- " + days + ":" + hours + ":" + minutes + ":" + seconds;
 }
 
-let previousSlackMessage = "";
+// let previousSlackMessage = "";
 
 // function slackSendMessage(channel, text, callback){
 
@@ -2193,20 +2205,27 @@ function showStats(options){
   ));
 }
 
-function loadCommandLineArgs(callback){
+function loadCommandLineArgs(params){
 
-  statsObj.status = "LOAD COMMAND LINE ARGS";
+  return new Promise(function(resolve, reject){
 
-  const commandLineConfigKeys = Object.keys(commandLineConfig);
+    statsObj.status = "LOAD COMMAND LINE ARGS";
 
-  async.each(commandLineConfigKeys, function(arg, cb){
-    configuration[arg] = commandLineConfig[arg];
-    console.log("WAS | --> COMMAND LINE CONFIG | " + arg + ": " + configuration[arg]);
-    cb();
-  }, function(){
-    statsObj.commandLineArgsLoaded = true;
+    const commandLineConfigKeys = Object.keys(commandLineConfig);
 
-    if (callback !== undefined) { callback(null, commandLineConfig); }
+    async.each(commandLineConfigKeys, function(arg, cb){
+      configuration[arg] = commandLineConfig[arg];
+      console.log("WAS | --> COMMAND LINE CONFIG | " + arg + ": " + configuration[arg]);
+      cb();
+    }, function(err){
+
+      if (err) {
+        return reject(err);
+      }
+      statsObj.commandLineArgsLoaded = true;
+      resolve();
+    });
+
   });
 }
 
@@ -2319,9 +2338,9 @@ function getFileMetadataRetry(params, callback) {
 
 function loadFile(params) {
 
-  return new Promise(async function(resolve, reject){
+  return new Promise(function(resolve, reject){
 
-    let fullPath = params.folder + "/" + params.file
+    let fullPath = params.folder + "/" + params.file;
 
     debug(chalkInfo("LOAD FOLDER " + params.folder));
     debug(chalkInfo("LOAD FILE " + params.file));
@@ -2445,38 +2464,52 @@ function loadFile(params) {
 
 function loadMaxInputHashMap(params){
 
-  return new Promise(async function(resolve, reject) {
+  return new Promise(function(resolve, reject) {
 
-    try{
+    // try{
+
       params = params || {};
       params.folder = params.folder || dropboxConfigDefaultTrainingSetsFolder;
       params.file = params.file || maxInputHashMapFile;
 
-      let dataObj = await loadFile(params);
+      // let dataObj = await loadFile(params);
 
-      if (dataObj.maxInputHashMap === undefined) {
-        console.log(chalkError("WAS | *** ERROR: loadMaxInputHashMap: loadFile: maxInputHashMap UNDEFINED"));
-      }
-      if (dataObj.normalization === undefined) {
-        console.log(chalkError("WAS | *** ERROR: loadMaxInputHashMap: loadFile: normalization UNDEFINED"));
-      }
+      loadFile(params)
+      .then(function(dataObj){
+        if (dataObj.maxInputHashMap === undefined) {
+          console.log(chalkError("WAS | *** ERROR: loadMaxInputHashMap: loadFile: maxInputHashMap UNDEFINED"));
+        }
+        if (dataObj.normalization === undefined) {
+          console.log(chalkError("WAS | *** ERROR: loadMaxInputHashMap: loadFile: normalization UNDEFINED"));
+        }
 
-      maxInputHashMap = dataObj.maxInputHashMap || {};
-      normalization = dataObj.normalization || {};
+        maxInputHashMap = dataObj.maxInputHashMap || {};
+        normalization = dataObj.normalization || {};
 
-      resolve();
+        resolve();
+      })
+      .catch(function(err){
+        if (err.code === "ENOTFOUND") {
+          console.log(chalkError("WAS | *** LOAD MAX INPUT: FILE NOT FOUND"
+            + " | " + params.folder + "/" + params.file
+          ));
+        }
 
-    }
-    catch(err){
+        return reject(err);
+      });
 
-      if (err.code === "ENOTFOUND") {
-        console.log(chalkError("WAS | *** LOAD MAX INPUT: FILE NOT FOUND"
-          + " | " + params.folder + "/" + params.file
-        ));
-      }
 
-      return reject(err);
-    }
+    // }
+    // catch(err){
+
+    //   if (err.code === "ENOTFOUND") {
+    //     console.log(chalkError("WAS | *** LOAD MAX INPUT: FILE NOT FOUND"
+    //       + " | " + params.folder + "/" + params.file
+    //     ));
+    //   }
+
+    //   return reject(err);
+    // }
 
   });
 }
@@ -2823,7 +2856,7 @@ function saveStats(statsFile, statsObj, callback) {
 
 function killChild(params){
 
-  return new Promise(async function(resolve, reject){
+  return new Promise(function(resolve, reject){
 
     let pid = false;
     let command;
@@ -2855,14 +2888,14 @@ function killChild(params){
         + "\nSTDERR:  " + stderr
       )); 
 
-      slackSendMessage(
-        "\n*KILL CHILD*"
-        + "\nPARAMS\n " + jsonPrint(params)
-        + "\nCOMMAND: " + command
-        + "\nCODE:    " + code
-        + "\nSTDOUT:  " + stdout
-        + "\nSTDERR:  " + stderr
-      );
+      // slackSendMessage(
+      //   "\n*KILL CHILD*"
+      //   + "\nPARAMS\n " + jsonPrint(params)
+      //   + "\nCOMMAND: " + command
+      //   + "\nCODE:    " + code
+      //   + "\nSTDOUT:  " + stdout
+      //   + "\nSTDERR:  " + stderr
+      // );
 
       resolve({stderr: stderr, code: code, stdout: stdout });
 
@@ -2907,7 +2940,7 @@ function getChildProcesses(params){
 
         let stdoutArray = soArray.split("\n");
 
-        async.eachSeries(stdoutArray, async function(pidRaw){
+        async.eachSeries(stdoutArray, function(pidRaw, cb){
 
           pid = pidRaw.trim();
 
@@ -2915,14 +2948,14 @@ function getChildProcesses(params){
 
             command = "ps -o command= -p " + pid;
 
-            shell.exec(command, {silent: true}, async function(code, stdout, stderr){
+            shell.exec(command, {silent: true}, function(code, stdout, stderr){
 
               if (stderr) {
                 console.log(chalkError("WAS | *** SHELL ERROR"
                   + " | COMMAND: " + command
                   + " | STDERR: " + stderr
                 ));
-                return (stderr);
+                return cb(stderr);
               }
 
               childId = stdout.trim();
@@ -2948,18 +2981,29 @@ function getChildProcesses(params){
                 ));
 
 
-                try {
-                  await killChild({pid: pid});
-                  console.log(chalkAlert("WAS | XXX ZOMBIE CHILD KILLED | PID: " + pid + " | CH ID: " + childId));
-                  return;
-                }
-                catch(err){
-                 console.log(chalkError("WAS | *** KILL CHILD ERROR"
-                    + " | PID: " + pid
-                    + " | ERROR: " + err
-                  ));
-                  return cb(err);
-                }
+                // try {
+                  // await killChild({pid: pid});
+                  killChild({pid: pid})
+                  .then(function(){
+                    console.log(chalkAlert("WAS | XXX ZOMBIE CHILD KILLED | PID: " + pid + " | CH ID: " + childId));
+                    cb();
+                  })
+                  .catch(function(err){
+                    console.log(chalkError("WAS | *** KILL CHILD ERROR"
+                      + " | PID: " + pid
+                      + " | ERROR: " + err
+                    ));
+                    return cb(err);
+                  });
+
+                // }
+                // catch(err){
+                //  console.log(chalkError("WAS | *** KILL CHILD ERROR"
+                //     + " | PID: " + pid
+                //     + " | ERROR: " + err
+                //   ));
+                //   return cb(err);
+                // }
               }
               else {
                 debug(chalkInfo("WAS | CHILD"
@@ -2968,13 +3012,13 @@ function getChildProcesses(params){
                   + " | STATUS: " + childrenHashMap[childId].status
                 ));
                 childPidArray.push({ pid: pid, childId: childId});
-                return;
+                cb();
               }
 
             });
           }
           else {
-            return;
+            cb();
           }
 
         }, function(err){
@@ -3015,56 +3059,84 @@ function getChildProcesses(params){
 
 function killAll(callback){
 
-  return new Promise(async function(resolve, reject){
+  return new Promise(function(resolve, reject){
 
-    let childPidArray = await getChildProcesses({searchTerm: "ALL"});
+    // let childPidArray = await getChildProcesses({searchTerm: "ALL"});
+    getChildProcesses({searchTerm: "ALL"})
+    .then(function(childPidArray){
+      debug(chalkAlert("getChildProcesses childPidArray\n" + jsonPrint(childPidArray)));
+      if (childPidArray && (childPidArray.length > 0)) {
 
-    debug(chalkAlert("getChildProcesses childPidArray\n" + jsonPrint(childPidArray)));
+        async.eachSeries(childPidArray, function(childObj, cb){
 
-    if (childPidArray && (childPidArray.length > 0)) {
+          killChild({pid: childObj.pid})
+          .then(function(){
+            console.log(chalkAlert("WAS | KILL ALL | KILLED | PID: " + childObj.pid + " | CH ID: " + childObj.childId));
+            cb();
+          })
+          .catch(function(err){
+            console.log(chalkError("WAS | *** KILL CHILD ERROR"
+              + " | PID: " + childObj.pid
+              + " | ERROR: " + err
+            ));
+            return cb(err);
+          });
 
-      async.eachSeries(childPidArray, async function(childObj){
+          // try {
+          //   await killChild({pid: childObj.pid});
+          //   console.log(chalkAlert("WAS | KILL ALL | KILLED | PID: " + childObj.pid + " | CH ID: " + childObj.childId));
+          //   return;
+          // }
+          // catch(err){
+          //   return(err);
+          // }
 
-        try {
-          await killChild({pid: childObj.pid});
-          console.log(chalkAlert("WAS | KILL ALL | KILLED | PID: " + childObj.pid + " | CH ID: " + childObj.childId));
-          return;
-        }
-        catch(err){
-          return(err);
-        }
+        }, function(err){
 
-      }, function(err){
+          if (err){
+            return reject(err);
+          }
 
-        if (err){
-          return reject(err);
-        }
+          resolve(childPidArray);
 
+        });
+      }
+      else {
+
+        console.log(chalkBlue("WAS | KILL ALL | NO CHILDREN"));
         resolve(childPidArray);
+      }
+    })
+    .catch(function(err){
 
-      });
-    }
-    else {
+    });
 
-      console.log(chalkBlue("WAS | KILL ALL | NO CHILDREN"));
-      resolve(childPidArray);
-    }
 
   });
 }
 
 
-process.on("exit", async function processExit() {
+process.on("exit", function processExit() {
 
   console.log(chalkAlert("\nWAS | MAIN PROCESS EXITING ...\n"));
 
-  try {
-    await killAll();
+  killAll()
+  .then(function(){
     console.log(chalkAlert("\nWAS | *** MAIN PROCESS EXIT *** \n"));
-  }
-  catch(err){
+  })
+  .catch(function(err){
     console.log(chalkError("WAS | *** MAIN PROCESS EXIT ERROR: " + err));
-  }
+  });
+
+
+  // try {
+  //   await killAll();
+  //   console.log(chalkAlert("\nWAS | *** MAIN PROCESS EXIT *** \n"));
+  // }
+  // catch(err){
+  //   console.log(chalkError("WAS | *** MAIN PROCESS EXIT ERROR: " + err));
+  // }
+
 });
 
 process.on("message", function processMessageRx(msg) {
@@ -3104,7 +3176,7 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
   }
 
 
-  slackSendMessage("\n*CHILD ERROR*\n" + childObj.childId + "\n" + childObj.err);
+  // slackSendMessage("\n*CHILD ERROR*\n" + childObj.childId + "\n" + childObj.err);
 
   switch(childObj.childId){
 
@@ -3343,47 +3415,117 @@ configEvents.on("INTERNET_NOT_READY", function internetNotReady() {
   }
 });
 
-configEvents.on("DB_CONNECT", async function configEventDbConnect(){
+configEvents.on("DB_CONNECT", function configEventDbConnect(){
+
+  initCategoryHashmapsReady = false;
 
   HashtagServerController = require("@threeceelabs/hashtag-server-controller");
-
-  UserServerController = require("@threeceelabs/user-server-controller");
-
   hashtagServerController = new HashtagServerController("WAS_HSC");
-  userServerController = new UserServerController("WAS_USC");
-
   hashtagServerControllerReady = true;
-  userServerControllerReady = true;
 
   hashtagServerController.on("error", function(err){
     hashtagServerControllerReady = false;
     console.log(chalkError("WAS | *** HSC ERROR | " + err));
   });
 
+  UserServerController = require("@threeceelabs/user-server-controller");
+  userServerController = new UserServerController("WAS_USC");
+  userServerControllerReady = true;
+
   userServerController.on("error", function(err){
     userServerControllerReady = false;
     console.log(chalkError("WAS | *** USC ERROR | " + err));
   });
 
-  try{
+  async.parallel({
 
-    await initSocketNamespaces();
-    await initUnfollowableUserSet();
-    await initIgnoredUserSet();
-    await initFollowableSearchTermSet();
+    socketInit: function(cb){
 
-    initCategoryHashmapsReady = false;
-    await initCategoryHashmaps();
-    initCategoryHashmapsReady = true;
-    console.log(chalk.bold.green("WAS | +++ LOADED CATEGORY HASHMAPS"));
-  }
-  catch(err){
-    console.log(chalkError("WAS | *** ERROR: LOAD CATEGORY HASHMAPS: " + err));
-    console.error(err);
-  }
+      initSocketNamespaces()
+      .then(function(){
+        cb();
+      })
+      .catch(function(err){
+        return cb(err);
+      });
+
+    },
+    
+    unfollowableInit: function(cb){
+
+      initUnfollowableUserSet()
+      .then(function(){
+        cb();
+      })
+      .catch(function(err){
+        return cb(err);
+      });
+
+    },
+    
+    ignoredInit: function(cb){
+
+      initIgnoredUserSet()
+      .then(function(){
+        cb();
+      })
+      .catch(function(err){
+        return cb(err);
+      });
+
+    },
+    
+    followSearchInit: function(cb){
+
+      initFollowableSearchTermSet()
+      .then(function(){
+        cb();
+      })
+      .catch(function(err){
+        return cb(err);
+      });
+
+    },
+
+    categoryHashmapsInit: function(cb){
+
+      initCategoryHashmaps()
+      .then(function(){
+        cb();
+        initCategoryHashmapsReady = true;
+      })
+      .catch(function(err){
+        return cb(err);
+      });
+
+    }
+  },
+  function(err, results){
+    if (err){
+      console.log(chalkError("WAS | *** ERROR: LOAD CATEGORY HASHMAPS: " + err));
+      console.error(err);
+    }
+  });
+ 
+  // try{
+
+  //   await initSocketNamespaces();
+  //   await initUnfollowableUserSet();
+  //   await initIgnoredUserSet();
+  //   await initFollowableSearchTermSet();
+
+  //   initCategoryHashmapsReady = false;
+  //   await initCategoryHashmaps();
+  //   initCategoryHashmapsReady = true;
+  //   console.log(chalk.bold.green("WAS | +++ LOADED CATEGORY HASHMAPS"));
+  // }
+  // catch(err){
+  //   console.log(chalkError("WAS | *** ERROR: LOAD CATEGORY HASHMAPS: " + err));
+  //   console.error(err);
+  // }
 });
 
-configEvents.on("NEW_BEST_NETWORK", async function configEventDbConnect(bestNetworkId){
+configEvents.on("NEW_BEST_NETWORK", function configEventDbConnect(bestNetworkId){
 
   if (childrenHashMap[DEFAULT_TFE_CHILD_ID] !== undefined) {
 
@@ -3414,7 +3556,7 @@ configEvents.on("NEW_BEST_NETWORK", async function configEventDbConnect(bestNetw
 
 });
 
-configEvents.on("NEW_MAX_INPUT_HASHMAP", async function configEventDbConnect(){
+configEvents.on("NEW_MAX_INPUT_HASHMAP", function configEventDbConnect(){
 
   if (childrenHashMap[DEFAULT_TFE_CHILD_ID] !== undefined) {
 
@@ -3562,7 +3704,7 @@ function categorizeNode(categorizeObj, callback) {
               obj: categorizedUserHashMap.entries()
             });
 
-          slackSendMessage("CATEGORIZE" + "\n@" + categorizeObj.node.screenName + ": " + categorizeObj.category );
+          // slackSendMessage("CATEGORIZE" + "\n@" + categorizeObj.node.screenName + ": " + categorizeObj.category );
 
           debug(chalkLog("UPDATE_CATEGORY USER | @" + updatedUser.screenName ));
           if (callback !== undefined) {
@@ -3615,7 +3757,7 @@ function categorizeNode(categorizeObj, callback) {
             updatedHashtag.nodeId, 
             { manual: updatedHashtag.category, auto: updatedHashtag.categoryAuto });
 
-          slackSendMessage("CATEGORIZE" + "\n@" + categorizeObj.node.nodeId.toLowerCase() + ": " + categorizeObj.category );
+          // slackSendMessage("CATEGORIZE" + "\n@" + categorizeObj.node.nodeId.toLowerCase() + ": " + categorizeObj.category );
 
           debug(chalkLog("UPDATE_CATEGORY HASHTAG | #" + updatedHashtag.nodeId ));
           if (callback !== undefined) {
@@ -3694,6 +3836,30 @@ function socketRxTweet(tw) {
     }
   }
   else if (tw.user) {
+
+    const sampleTweetFileName = "sampleTweet_" + getTimeStamp() + ".json";
+
+    if (saveSampleTweetFlag) {
+
+      saveSampleTweetFlag = false;
+
+      console.log(chalkLog("WAS | SAVING SAMPLE TWEET"
+        + " [" + statsObj.twitter.tweetsReceived + " RXd]"
+        + " | " + getTimeStamp()
+        + " | " + tw.id_str
+        + " | " + tw.user.id_str
+        + " | @" + tw.user.screen_name
+        + " | " + tw.user.name
+        + " | " + sampleTweetFileName
+      ));
+
+      saveFileQueue.push({
+        localFlag: false, 
+        folder: dropboxConfigDefaultFolder, 
+        file: sampleTweetFileName, 
+        obj: tw
+      });
+    }
 
     tw.inc = true;
 
@@ -3851,7 +4017,7 @@ function ignore(params, callback) {
 
     const ob = {
       userIds : [...ignoredUserSet]
-    }
+    };
 
     saveFileQueue.push({
       localFlag: false, 
@@ -3912,7 +4078,7 @@ function unignore(params, callback) {
 
     const ob = {
       userIds : [...ignoredUserSet]
-    }
+    };
 
     saveFileQueue.push({
       localFlag: false, 
@@ -3969,7 +4135,7 @@ function unfollow(params, callback) {
 
       const ob = {
         userIds : [...ignoredUserSet]
-      }
+      };
 
       saveFileQueue.push({
         localFlag: false, 
@@ -3981,7 +4147,7 @@ function unfollow(params, callback) {
 
     const obj = {
       userIds : [...unfollowableUserSet]
-    }
+    };
 
     saveFileQueue.push({
       localFlag: false, 
@@ -4033,20 +4199,27 @@ function initFollowableSearchTermSet(){
 
   console.log(chalkBlue("WAS | INIT FOLLOWABLE SEARCH TERM SET: " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile));
 
-  return new Promise(async function(resolve, reject) {
+  return new Promise(function(resolve, reject) {
 
-    try{
-
-      let dataObj = await loadFile({folder: dropboxConfigDefaultFolder, file: followableSearchTermFile});
+    loadFile({folder: dropboxConfigDefaultFolder, file: followableSearchTermFile})
+    .then(function(dataObj){
 
       if (!dataObj || dataObj === undefined) {
+
        console.log(chalkAlert("WAS | ??? NO FOLLOWABLE SEARCH TERMS ERROR ???"
           + " | " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
         ));
-        await initFollowableSearchTerms();
-        resolve();
-      }
 
+        initFollowableSearchTerms()
+        .then(function(){
+          return resolve();
+        })
+        .catch(function(err){
+          console.log(chalkError("WAS | *** INIT FOLLOWABLE SEARCH TERM SET ERROR: " + err));
+          return reject(err);
+        });
+
+      }
       else{
 
         const dataArray = dataObj.toString().toLowerCase().split("\n");
@@ -4061,7 +4234,7 @@ function initFollowableSearchTermSet(){
           followableSearchTermSet.add(searchTerm);
           cb();
 
-        }, async function(err){
+        }, function(err){
 
           console.log(chalkLog("WAS | FOLLOWABLE SEARCH TERM SET"
             + " | " + followableSearchTermSet.size + " SEARCH TERMS"
@@ -4069,28 +4242,80 @@ function initFollowableSearchTermSet(){
             + " | " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
           ));
 
-          await initFollowableSearchTerms();
-          resolve();
+          initFollowableSearchTerms()
+          .then(function(){
+            return resolve();
+          })
+          .catch(function(err){
+            console.log(chalkError("WAS | *** INIT FOLLOWABLE SEARCH TERM SET ERROR: " + err));
+            return reject(err);
+          });
+
         });
       }
 
-    }
-    catch(err) {
-      if (err.status === 409) {
-        console.log(chalkError("WAS | *** LOAD FOLLOWABLE SEARCH TERM ERROR: FILE NOT FOUND:  " 
-          + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
-        ));
-      }
-      else {
-        console.log(chalkError("WAS | *** LOAD FOLLOWABLE SEARCH TERM ERROR: " + err
-          + " | " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
-        ));
-        console.error(err);
-      }
+    })
+    .catch(function(err){
+      console.log(chalkError("WAS | *** INIT FOLLOWABLE SEARCH TERM SET ERROR: " + err));
+      return reject(err);
+    });
 
-      await initFollowableSearchTerms();
-      resolve();
-    }
+
+    // try{
+
+    //   let dataObj = await loadFile({folder: dropboxConfigDefaultFolder, file: followableSearchTermFile});
+
+    //   if (!dataObj || dataObj === undefined) {
+    //    console.log(chalkAlert("WAS | ??? NO FOLLOWABLE SEARCH TERMS ERROR ???"
+    //       + " | " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
+    //     ));
+    //     await initFollowableSearchTerms();
+    //     resolve();
+    //   }
+    //   else{
+
+    //     const dataArray = dataObj.toString().toLowerCase().split("\n");
+
+    //     console.log(chalkLog("WAS | LOADED FOLLOWABLE SEARCH TERM FILE"
+    //       + " | " + dataArray.length + " SEARCH TERMS"
+    //       + " | " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
+    //     ));
+
+    //     async.each(dataArray, function(searchTerm, cb){
+
+    //       followableSearchTermSet.add(searchTerm);
+    //       cb();
+
+    //     }, async function(err){
+
+    //       console.log(chalkLog("WAS | FOLLOWABLE SEARCH TERM SET"
+    //         + " | " + followableSearchTermSet.size + " SEARCH TERMS"
+    //         + " | " + dataArray.length + " SEARCH TERMS IN FILE"
+    //         + " | " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
+    //       ));
+
+    //       await initFollowableSearchTerms();
+    //       resolve();
+    //     });
+    //   }
+
+    // }
+    // catch(err) {
+    //   if (err.status === 409) {
+    //     console.log(chalkError("WAS | *** LOAD FOLLOWABLE SEARCH TERM ERROR: FILE NOT FOUND:  " 
+    //       + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
+    //     ));
+    //   }
+    //   else {
+    //     console.log(chalkError("WAS | *** LOAD FOLLOWABLE SEARCH TERM ERROR: " + err
+    //       + " | " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
+    //     ));
+    //     console.error(err);
+    //   }
+
+    //   await initFollowableSearchTerms();
+    //   resolve();
+    // }
 
   });
 }
@@ -4104,12 +4329,12 @@ function initIgnoredUserSet(){
 
   console.log(chalkLog("WAS | INIT IGNORED USER SET"));
 
-  return new Promise(async function(resolve, reject) {
+  return new Promise(function(resolve, reject) {
 
-    try {
 
-      let ignoredUserSetObj = await loadFile({folder: dropboxConfigDefaultFolder, file: ignoredUserFile});
-      
+    loadFile({folder: dropboxConfigDefaultFolder, file: ignoredUserFile})
+    .then(function(ignoredUserSetObj){
+
       if (!ignoredUserSetObj || ignoredUserSetObj === undefined) {
         console.log(chalkAlert("WAS | ??? LOAD IGNORED USERS EMPTY SET???"));
         return resolve();
@@ -4167,7 +4392,6 @@ function initIgnoredUserSet(){
             cb(null, null);
           }
         });
-
       }, function(err){
 
         if (err) {
@@ -4183,9 +4407,8 @@ function initIgnoredUserSet(){
         resolve();
       });
 
-    
-    }
-    catch(err) {
+    })
+    .catch(function(err){
       if ((err.code === "ENOTFOUND") || (err.status === 409)) {
         console.log(chalkError("WAS | *** LOAD IGNORED USERS ERROR: FILE NOT FOUND:  " 
           + dropboxConfigDefaultFolder + "/" + ignoredUserFile
@@ -4195,7 +4418,97 @@ function initIgnoredUserSet(){
       
       console.log(chalkError("WAS | *** LOAD IGNORED USERS ERROR: " + err));
       return reject(err);
-    }
+    });
+
+    // try {
+
+    //   let ignoredUserSetObj = await loadFile({folder: dropboxConfigDefaultFolder, file: ignoredUserFile});
+      
+    //   if (!ignoredUserSetObj || ignoredUserSetObj === undefined) {
+    //     console.log(chalkAlert("WAS | ??? LOAD IGNORED USERS EMPTY SET???"));
+    //     return resolve();
+    //   }
+
+    //   console.log(chalkLog("WAS | LOADED IGNORED USERS FILE"
+    //     + " | " + ignoredUserSetObj.userIds.length + " USERS"
+    //     + " | " + dropboxConfigDefaultFolder + "/" + ignoredUserFile
+    //   ));
+
+    //   let query;
+    //   let update;
+    //   let numIgnored = 0;
+    //   let numAlreadyIgnored = 0;
+
+    //   async.eachSeries(ignoredUserSetObj.userIds, function(userId, cb){
+
+    //     ignoredUserSet.add(userId);
+
+    //     query = { nodeId: userId, ignored: {"$in": [ false, "false", null ]} };
+
+    //     update = {};
+    //     update["$set"] = { ignored: true, following: false, threeceeFollowing: false };
+
+    //     const options = {
+    //       new: true,
+    //       upsert: false
+    //     };
+
+    //     User.findOneAndUpdate(query, update, options, function(err, userUpdated){
+
+    //       if (err) {
+    //         console.log(chalkError("WAS | *** initIgnoredUserSet | USER FIND ONE ERROR: " + err));
+    //         return cb(err, userId);
+    //       }
+          
+    //       if (userUpdated){
+
+    //         numIgnored += 1;
+    //         console.log(chalkLog("WAS | XXX IGNORE"
+    //           + " [" + numIgnored + "/" + numAlreadyIgnored + "/" + ignoredUserSetObj.userIds.length + "]"
+    //           + " | " + printUser({user: userUpdated})
+    //         ));
+
+    //         cb(null, userUpdated);
+    //       }
+    //       else {
+    //         numAlreadyIgnored += 1;
+    //         if (configuration.verbose){
+    //           console.log(chalkLog("WAS | ... ALREADY IGNORED"
+    //             + " [" + numIgnored + "/" + numAlreadyIgnored + "/" + ignoredUserSetObj.userIds.length + "]"
+    //             + " | ID: " + userId
+    //           ));
+    //         }
+    //         cb(null, null);
+    //       }
+    //     });
+    //   }, function(err){
+
+    //     if (err) {
+    //       return reject(err);
+    //     }
+    //     console.log(chalkBlue("WAS | INIT IGNORED USERS"
+    //       + " | " + numIgnored + " NEW IGNORED"
+    //       + " | " + numAlreadyIgnored + " ALREADY IGNORED"
+    //       + " | " + ignoredUserSet.size + " USERS IN SET"
+    //       + " | " + ignoredUserSetObj.userIds.length + " USERS IN FILE"
+    //       + " | " + dropboxConfigDefaultFolder + "/" + ignoredUserFile
+    //     ));
+    //     resolve();
+    //   });
+
+    
+    // }
+    // catch(err) {
+    //   if ((err.code === "ENOTFOUND") || (err.status === 409)) {
+    //     console.log(chalkError("WAS | *** LOAD IGNORED USERS ERROR: FILE NOT FOUND:  " 
+    //       + dropboxConfigDefaultFolder + "/" + ignoredUserFile
+    //     ));
+    //     return resolve();
+    //   }
+      
+    //   console.log(chalkError("WAS | *** LOAD IGNORED USERS ERROR: " + err));
+    //   return reject(err);
+    // }
 
   });
 }
@@ -4204,11 +4517,11 @@ function initUnfollowableUserSet(){
 
   console.log(chalkLog("WAS | INIT UNFOLLOWABLE USER SET"));
 
-  return new Promise(async function(resolve, reject) {
+  return new Promise(function(resolve, reject) {
 
-    try {
 
-      let unfollowableUserSetObj = await loadFile({folder: dropboxConfigDefaultFolder, file: unfollowableUserFile});
+    loadFile({folder: dropboxConfigDefaultFolder, file: unfollowableUserFile})
+    .then(function(unfollowableUserSetObj){
 
       if (!unfollowableUserSetObj || unfollowableUserSetObj === undefined) {
         console.log(chalkAlert("WAS | ??? LOAD UNFOLLOWABLE USERS EMPTY SET???"));
@@ -4283,9 +4596,8 @@ function initUnfollowableUserSet(){
         return resolve();
       });
 
-    }
-
-    catch(err) {
+    })
+    .catch(function(err){
       if (err.code === "ENOTFOUND") {
         console.log(chalkError("WAS | *** LOAD UNFOLLOWABLE USERS ERROR: FILE NOT FOUND:  " 
           + dropboxConfigDefaultFolder + "/" + unfollowableUserFile
@@ -4296,7 +4608,101 @@ function initUnfollowableUserSet(){
       }
       console.error(err);
       reject(err);
-    }
+
+    });
+
+
+    // try {
+
+    //   let unfollowableUserSetObj = await loadFile({folder: dropboxConfigDefaultFolder, file: unfollowableUserFile});
+
+    //   if (!unfollowableUserSetObj || unfollowableUserSetObj === undefined) {
+    //     console.log(chalkAlert("WAS | ??? LOAD UNFOLLOWABLE USERS EMPTY SET???"));
+    //     return resolve();
+    //   }
+
+    //   console.log(chalkLog("WAS | LOADED UNFOLLOWABLE USERS FILE"
+    //     + " | " + unfollowableUserSetObj.userIds.length + " USERS"
+    //     + " | " + dropboxConfigDefaultFolder + "/" + unfollowableUserFile
+    //   ));
+
+    //   let query;
+    //   let update;
+    //   let numUnfollowed = 0;
+    //   let numAlreadyUnfollowed = 0;
+
+    //   async.eachSeries(unfollowableUserSetObj.userIds, function(userId, cb){
+
+    //     unfollowableUserSet.add(userId);
+
+    //     query = { nodeId: userId, following: true };
+
+    //     update = {};
+    //     update["$set"] = { following: false, threeceeFollowing: false };
+
+    //     const options = {
+    //       new: true,
+    //       upsert: false
+    //     };
+
+    //     User.findOneAndUpdate(query, update, options, function(err, userUpdated){
+
+    //       if (err) {
+    //         console.log(chalkError("WAS | *** initUnfollowableUserSet | USER FIND ONE ERROR: " + err));
+    //         return cb(err, userId);
+    //       }
+          
+    //       if (userUpdated){
+
+    //         numUnfollowed += 1;
+    //         console.log(chalkLog("WAS | XXX UNFOLLOW"
+    //           + " [" + numUnfollowed + "/" + numAlreadyUnfollowed + "/" + unfollowableUserSetObj.userIds.length + "]"
+    //           + " | " + printUser({user: userUpdated})
+    //         ));
+
+    //         cb(null, userUpdated);
+    //       }
+    //       else {
+    //         numAlreadyUnfollowed += 1;
+    //         if (configuration.verbose){
+    //           console.log(chalkLog("WAS | ... ALREADY UNFOLLOWED"
+    //             + " [" + numUnfollowed + "/" + numAlreadyUnfollowed + "/" + unfollowableUserSetObj.userIds.length + "]"
+    //             + " | ID: " + userId
+    //           ));
+    //         }
+    //         cb(null, null);
+    //       }
+    //     });
+
+    //   }, function(err){
+
+    //     if (err) {
+    //       return reject(err);
+    //     }
+    //     console.log(chalkBlue("WAS | INIT UNFOLLOWABLE USERS"
+    //       + " | " + numUnfollowed + " NEW UNFOLLOWED"
+    //       + " | " + numAlreadyUnfollowed + " ALREADY UNFOLLOWED"
+    //       + " | " + unfollowableUserSet.size + " USERS IN SET"
+    //       + " | " + unfollowableUserSetObj.userIds.length + " USERS IN FILE"
+    //       + " | " + dropboxConfigDefaultFolder + "/" + unfollowableUserFile
+    //     ));
+    //     return resolve();
+    //   });
+
+    // }
+
+    // catch(err) {
+    //   if (err.code === "ENOTFOUND") {
+    //     console.log(chalkError("WAS | *** LOAD UNFOLLOWABLE USERS ERROR: FILE NOT FOUND:  " 
+    //       + dropboxConfigDefaultFolder + "/" + unfollowableUserFile
+    //     ));
+    //   }
+    //   else {
+    //     console.log(chalkError("WAS | *** LOAD UNFOLLOWABLE USERS ERROR: " + err));
+    //   }
+    //   console.error(err);
+    //   reject(err);
+    // }
       
 
   });
@@ -4331,7 +4737,7 @@ function initSocketHandler(socketObj) {
     + " | VW: " + statsObj.entity.viewer.connected
   ));
 
-  slackSendMessage(socketConnectText);
+  // slackSendMessage(socketConnectText);
 
   socket.on("reconnect_error", function reconnectError(errorObj) {
 
@@ -6260,34 +6666,34 @@ function logHeartbeat() {
 //=================================
 // INIT APP ROUTING
 //=================================
-function slackMessageHandler(messageObj){
+// function slackMessageHandler(messageObj){
 
-  console.log(chalk.blue("WAS | R< SLACK MSG"
-    + " | CH: " + messageObj.channel
-    + " | USER: " + messageObj.user
-    + " | " + messageObj.text
-  ));
+//   console.log(chalk.blue("WAS | R< SLACK MSG"
+//     + " | CH: " + messageObj.channel
+//     + " | USER: " + messageObj.user
+//     + " | " + messageObj.text
+//   ));
 
-  const textArray = messageObj.text.split(":");
-  const op = textArray[0];
+//   const textArray = messageObj.text.split(":");
+//   const op = textArray[0];
 
-  let val;
+//   let val;
 
-  switch(op){
-    case "mr":
-      if (textArray.length > 1) {
-        val = textArray[1];
-        if (val === "c") { metricsRate = "currentRate"; }
-        if (val === "1") { metricsRate = "1MinuteRate"; }
-        if (val === "5") { metricsRate = "5MinuteRate"; }
-        if (val === "15") { metricsRate = "15MinuteRate"; }
-        console.log(chalkLog("WAS | METRICS RATE: " + metricsRate));
-      }
-    break;
-    default:
-      console.log(chalkError("WAS | UNKNOWN SLACK OP: " + op));
-  }
-}
+//   switch(op){
+//     case "mr":
+//       if (textArray.length > 1) {
+//         val = textArray[1];
+//         if (val === "c") { metricsRate = "currentRate"; }
+//         if (val === "1") { metricsRate = "1MinuteRate"; }
+//         if (val === "5") { metricsRate = "5MinuteRate"; }
+//         if (val === "15") { metricsRate = "15MinuteRate"; }
+//         console.log(chalkLog("WAS | METRICS RATE: " + metricsRate));
+//       }
+//     break;
+//     default:
+//       console.log(chalkError("WAS | UNKNOWN SLACK OP: " + op));
+//   }
+// }
 
 let dropboxFolderGetLastestCursorReady = true;
 
@@ -6390,9 +6796,8 @@ function initAppRouting(callback) {
 
         dropboxFolderGetLastestCursorReady = false;
 
-        async.each(dropboxCursorFolderArray, async function(folder){
+        async.each(dropboxCursorFolderArray, function(folder, cb){
 
-          try {
             dropboxFolderGetLastestCursor(folder, function(err, response){
 
               if (err) {
@@ -6409,67 +6814,163 @@ function initAppRouting(callback) {
                     + " | FOLDER: " + folder
                   ));
 
-                  response.entries.forEach(async function(entry){
+                  response.entries.forEach(function(entry){
 
                     console.log(chalkAlert("WAS | >>> DROPBOX CHANGE | " + entry.path_lower));
 
                     if ((entry.path_lower.endsWith("google_wordassoserverconfig.json"))
                       || (entry.path_lower.endsWith("default_wordassoserverconfig.json"))){
                       initConfig(configuration);
+                      return cb();
                     }
 
-                    if (entry.path_lower.endsWith("users.zip")){
+                    else if (entry.path_lower.endsWith("users.zip")){
                       touchUsersZipUpdateFlag();
+                      return cb();
                     }
 
-                    if (entry.path_lower.endsWith(bestRuntimeNetworkFileName)){
-                      await loadBestRuntimeNetwork();
+                    else if (entry.path_lower.endsWith(bestRuntimeNetworkFileName)){
+                      loadBestRuntimeNetwork()
+                      .then(function(){
+                        return cb();
+                      })
+                      .catch(function(err){
+                        return cb(err);
+                      });
                     }
 
-                    if (entry.path_lower.endsWith(maxInputHashMapFile)){
+                    else if (entry.path_lower.endsWith(maxInputHashMapFile)){
 
-                      setTimeout(async function(){
+                      setTimeout(function(){
 
-                        await loadMaxInputHashMap();
-                        configEvents.emit("NEW_MAX_INPUT_HASHMAP");
+                        loadMaxInputHashMap()
+                        .then(function(){
+                          configEvents.emit("NEW_MAX_INPUT_HASHMAP");
+                          return cb();
+                        })
+                        .catch(function(err){
+                          return cb(err);
+                        });
 
                       }, 10*ONE_SECOND);
-
                     }
 
-                    if (entry.path_lower.endsWith("defaultsearchterms.txt")){
+                    else if (entry.path_lower.endsWith("defaultsearchterms.txt")){
                       updateSearchTerms();
+                      return cb();
                     }
 
-                    if (entry.path_lower.endsWith("followablesearchterm.txt")){
+                    else if (entry.path_lower.endsWith("followablesearchterm.txt")){
                       initFollowableSearchTermSet();
+                      return cb();
                     }
 
-                    if ((entry.path_lower.endsWith("google_twittersearchstreamconfig.json"))
+                    else if ((entry.path_lower.endsWith("google_twittersearchstreamconfig.json"))
                       || (entry.path_lower.endsWith("default_twittersearchstreamconfig.json"))){
 
                       killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, numKilled){
+                        if (err) {
+                          return cb(err);
+                        }
                         tssPongReceived = false;
                         initTssChild({childId: DEFAULT_TSS_CHILD_ID});
+                        return cb();
                       });
+                    }
 
+                    else{
+                      cb();
                     }
 
                   });
 
-                  return;
                 }, configuration.dropboxWebhookChangeTimeout);
 
               }
               else {
-                setTimeout(function(){ return; }, configuration.dropboxWebhookChangeTimeout);
+                setTimeout(function(){ cb(); }, configuration.dropboxWebhookChangeTimeout);
               }
             });
-          }
-          catch(err){
-            console.log(chalkError("WAS | *** DROPBOX WEBHOOK ERROR: " + err));
-            return err;
-          }
+
+
+          // try {
+          //   dropboxFolderGetLastestCursor(folder, function(err, response){
+
+          //     if (err) {
+          //       console.log(chalkError("WAS | *** DROPBOX GET LATEST CURSOR ERROR: " + err));
+          //       return err;
+          //     }
+              
+          //     if (response && (response.entries.length > 0)) {
+
+          //       setTimeout(function(){
+
+          //         console.log(chalk.bold.black("WAS | >>> DROPBOX CHANGE"
+          //           + " | " + getTimeStamp()
+          //           + " | FOLDER: " + folder
+          //         ));
+
+          //         response.entries.forEach(async function(entry){
+
+          //           console.log(chalkAlert("WAS | >>> DROPBOX CHANGE | " + entry.path_lower));
+
+          //           if ((entry.path_lower.endsWith("google_wordassoserverconfig.json"))
+          //             || (entry.path_lower.endsWith("default_wordassoserverconfig.json"))){
+          //             initConfig(configuration);
+          //           }
+
+          //           if (entry.path_lower.endsWith("users.zip")){
+          //             touchUsersZipUpdateFlag();
+          //           }
+
+          //           if (entry.path_lower.endsWith(bestRuntimeNetworkFileName)){
+          //             await loadBestRuntimeNetwork();
+          //           }
+
+          //           if (entry.path_lower.endsWith(maxInputHashMapFile)){
+
+          //             setTimeout(async function(){
+
+          //               await loadMaxInputHashMap();
+          //               configEvents.emit("NEW_MAX_INPUT_HASHMAP");
+
+          //             }, 10*ONE_SECOND);
+
+          //           }
+
+          //           if (entry.path_lower.endsWith("defaultsearchterms.txt")){
+          //             updateSearchTerms();
+          //           }
+
+          //           if (entry.path_lower.endsWith("followablesearchterm.txt")){
+          //             initFollowableSearchTermSet();
+          //           }
+
+          //           if ((entry.path_lower.endsWith("google_twittersearchstreamconfig.json"))
+          //             || (entry.path_lower.endsWith("default_twittersearchstreamconfig.json"))){
+
+          //             killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, numKilled){
+          //               tssPongReceived = false;
+          //               initTssChild({childId: DEFAULT_TSS_CHILD_ID});
+          //             });
+
+          //           }
+
+          //         });
+
+          //         return;
+          //       }, configuration.dropboxWebhookChangeTimeout);
+
+          //     }
+          //     else {
+          //       setTimeout(function(){ return; }, configuration.dropboxWebhookChangeTimeout);
+          //     }
+          //   });
+          // }
+          // catch(err){
+          //   console.log(chalkError("WAS | *** DROPBOX WEBHOOK ERROR: " + err));
+          //   return err;
+          // }
 
         }, function(err){
           if (err) {
@@ -6515,30 +7016,30 @@ function initAppRouting(callback) {
       ));
       res.sendStatus(200);
     }
-    else if (req.path === "/slack"){
+    // else if (req.path === "/slack"){
 
-      console.log(chalkAlert("WAS | SLACK"));
+    //   console.log(chalkAlert("WAS | SLACK"));
 
-      if (req.body.type === "url_verification") {
-        console.log(chalkInfo("WAS | R< SLACK URL VERIFICATION"
-          + " | TOKEN: " + req.body.token
-          + " | CHALLENGE: " + req.body.challenge
-        ));
-        res.send(req.body.challenge);
-      }
-    }
-    else if (req.path === "/slack_event"){
+    //   if (req.body.type === "url_verification") {
+    //     console.log(chalkInfo("WAS | R< SLACK URL VERIFICATION"
+    //       + " | TOKEN: " + req.body.token
+    //       + " | CHALLENGE: " + req.body.challenge
+    //     ));
+    //     res.send(req.body.challenge);
+    //   }
+    // }
+    // else if (req.path === "/slack_event"){
 
-      console.log(chalkAlert("WAS | SLACK"));
+    //   console.log(chalkAlert("WAS | SLACK"));
 
-      if (req.body.type === "url_verification") {
-        console.log(chalkInfo("WAS | R< SLACK URL VERIFICATION"
-          + " | TOKEN: " + req.body.token
-          + " | CHALLENGE: " + req.body.challenge
-        ));
-        res.send(req.body.challenge);
-      }
-    }
+    //   if (req.body.type === "url_verification") {
+    //     console.log(chalkInfo("WAS | R< SLACK URL VERIFICATION"
+    //       + " | TOKEN: " + req.body.token
+    //       + " | CHALLENGE: " + req.body.challenge
+    //     ));
+    //     res.send(req.body.challenge);
+    //   }
+    // }
     else {
       console.log(chalkLog("WAS | R<"
         + " | " + getTimeStamp()
@@ -6639,11 +7140,11 @@ function initAppRouting(callback) {
   function ensureAuthenticated(req, res, next) {
     if (req.isAuthenticated()) { 
       console.log(chalkAlert("WAS | PASSPORT TWITTER AUTHENTICATED"));
-      slackSendMessage("PASSPORT TWITTER AUTHENTICATED");
+      // slackSendMessage("PASSPORT TWITTER AUTHENTICATED");
       return next();
     }
     console.log(chalkAlert("WAS | *** PASSPORT TWITTER *NOT* AUTHENTICATED ***"));
-    slackSendMessage("PASSPORT TWITTER AUTHENTICATION FAILED");
+    // slackSendMessage("PASSPORT TWITTER AUTHENTICATION FAILED");
   }
 
   app.get("/account", ensureAuthenticated, function(req, res){
@@ -6654,7 +7155,7 @@ function initAppRouting(callback) {
       + " | UID" + req.session.passport.user.nodeId
     ));  // handle errors
 
-    slackSendMessage("PASSPORT TWITTER AUTH USER: @" + req.session.passport.user.screenName);
+    // slackSendMessage("PASSPORT TWITTER AUTH USER: @" + req.session.passport.user.screenName);
 
     userServerController.findOne({ user: req.session.passport.user}, function(err, user) {
       if(err) {
@@ -6663,7 +7164,7 @@ function initAppRouting(callback) {
       } 
       else if (user) {
         console.log(chalk.green("TWITTER USER AUTHENTICATED: @" + user.screenName));  // handle errors
-        slackSendMessage("USER AUTH: @" + user.screenName);
+        // slackSendMessage("USER AUTH: @" + user.screenName);
         authenticatedTwitterUserCache.set(user.nodeId, user);
         res.redirect("/after-auth.html");
       }
@@ -7118,7 +7619,7 @@ function initDbuPingInterval(interval){
           + " | ELAPSED: " + msToTime(moment().valueOf() - dbuPingId)
         ));
         
-        slackSendMessage("\n*CHILD ERROR*\nTWEET_PARSER\nPONG TIMEOUT");
+        // slackSendMessage("\n*CHILD ERROR*\nTWEET_PARSER\nPONG TIMEOUT");
       }
     }, interval);
 
@@ -7202,7 +7703,7 @@ function initTfePingInterval(interval){
           + " | ELAPSED: " + msToTime(moment().valueOf() - tfePingId)
         ));
         
-        slackSendMessage("\n*CHILD ERROR*\nTWEET_PARSER\nPONG TIMEOUT");
+        // slackSendMessage("\n*CHILD ERROR*\nTWEET_PARSER\nPONG TIMEOUT");
 
       }
     }, interval);
@@ -7286,7 +7787,7 @@ function initTssPingInterval(interval){
           + " | ELAPSED: " + msToTime(moment().valueOf() - tssPingId)
         ));
         
-        slackSendMessage("\n*CHILD ERROR*\nTWEET_PARSER\nPONG TIMEOUT");
+        // slackSendMessage("\n*CHILD ERROR*\nTWEET_PARSER\nPONG TIMEOUT");
 
       }
     }, interval);
@@ -7300,13 +7801,13 @@ function updateSearchTerms(){
   if (tssChild !== undefined) { tssChild.send({op: "UPDATE_SEARCH_TERMS"}); }
 }
 
-async function initTssChild(params){
+function initTssChild(params){
 
   statsObj.tssChildReady = false;
 
   console.log(chalk.bold.black("WAS | INIT TSS CHILD\n" + jsonPrint(params)));
 
-  return new Promise(async function(resolve, reject){
+  return new Promise(function(resolve, reject){
 
     let deltaTssMessageStart = process.hrtime();
     let deltaTssMessage = process.hrtime(deltaTssMessageStart);
@@ -7363,7 +7864,7 @@ async function initTssChild(params){
 
             const obj = {
               userIds : [...unfollowableUserSet]
-            }
+            };
 
             saveFileQueue.push({
               localFlag: false, 
@@ -7486,7 +7987,7 @@ async function initTssChild(params){
         childrenHashMap[params.childId].status = "INIT";
         clearInterval(tssPingInterval);
         setTimeout(function(){
-          initTssPingInterval(DEFAULT_PING_INTERVAL);
+          initTssPingInterval(TSS_PING_INTERVAL);
         }, 1000);
         resolve();
       }
@@ -7495,14 +7996,13 @@ async function initTssChild(params){
   });
 }
 
-async function initTfeChild(params){
+function initTfeChild(params){
 
-  statsObj.tfeChildReady = false;
+  return new Promise(function(resolve, reject){
 
-  console.log(chalk.bold.black("WAS | INIT TFE CHILD\n" + jsonPrint(params)));
+    statsObj.tfeChildReady = false;
 
-
-  return new Promise(async function(resolve, reject){
+    console.log(chalk.bold.black("WAS | INIT TFE CHILD\n" + jsonPrint(params)));
 
     console.log(chalkInfo("WAS | LOADED MAX INPUT HASHMAP + NORMALIZATION"));
     console.log(chalkInfo("WAS | MAX INPUT HASHMAP INPUT TYPES: " + Object.keys(maxInputHashMap)));
@@ -7689,13 +8189,13 @@ async function initTfeChild(params){
   });
 }
 
-async function initDbuChild(params){
+function initDbuChild(params){
 
-  statsObj.dbuChildReady = false;
+  return new Promise(function(resolve, reject){
 
-  console.log(chalk.bold.black("WAS | INIT DBU CHILD\n" + jsonPrint(params)));
+    statsObj.dbuChildReady = false;
 
-  return new Promise(async function(resolve, reject){
+    console.log(chalk.bold.black("WAS | INIT DBU CHILD\n" + jsonPrint(params)));
 
     const dbu = cp.fork(`${__dirname}/js/libs/dbuChild.js`);
 
@@ -7888,7 +8388,7 @@ function initTweetParserPingInterval(interval){
           + " | ELAPSED: " + msToTime(moment().valueOf() - tweetParserPingId)
         ));
         
-        slackSendMessage("\n*CHILD ERROR*\nTWEET_PARSER\nPONG TIMEOUT");
+        // slackSendMessage("\n*CHILD ERROR*\nTWEET_PARSER\nPONG TIMEOUT");
 
         // clearInterval(tweetParserPingInterval);
 
@@ -7908,7 +8408,7 @@ function initTweetParserPingInterval(interval){
   }
 }
 
-async function initTweetParser(params, callback){
+function initTweetParser(params, callback){
 
   console.log(chalk.bold.black("WAS | INIT TWEET PARSER\n" + jsonPrint(params)));
 
@@ -8024,7 +8524,7 @@ async function initTweetParser(params, callback){
       childrenHashMap[params.childId].status = "INIT";
       clearInterval(tweetParserPingInterval);
       setTimeout(function(){
-        initTweetParserPingInterval(DEFAULT_PING_INTERVAL);
+        initTweetParserPingInterval(TWP_PING_INTERVAL);
       }, 1000);
     }
   });
@@ -8212,17 +8712,15 @@ function initRateQinterval(interval){
 
 function loadBestRuntimeNetwork(params){
 
-  return new Promise(async function(resolve, reject){
+  return new Promise(function(resolve, reject){
 
     params = params || {};
 
     const folder = params.folder || bestNetworkFolder;
     let file = params.file || bestRuntimeNetworkFileName;
 
-    try{
-
-      let bRtNnObj = await loadFile({folder: folder, file: file});
-
+    loadFile({folder: folder, file: file})
+    .then(function(bRtNnObj){
       if (bRtNnObj) {
 
         bRtNnObj.matchRate = (bRtNnObj.matchRate !== undefined) ? bRtNnObj.matchRate : 0;
@@ -8241,70 +8739,68 @@ function loadBestRuntimeNetwork(params){
 
         file = bRtNnObj.networkId + ".json";
 
-        let nnObj = await loadFile({folder: folder, file: file});
+        loadFile({folder: folder, file: file})
+        .then(function(nnObj){
+          if (nnObj) { 
 
-        if (nnObj) { 
-
-          nnObj.matchRate = (nnObj.matchRate !== undefined) ? nnObj.matchRate : 0;
-          bestNetworkObj = {};
-          bestNetworkObj = deepcopy(nnObj);
-          console.log(chalkLog("WAS | +++ LOADED BEST NETWORK: " + bestNetworkObj.networkId));
-
-          if (statsObj.previousBestNetworkId !== bestNetworkObj.networkId) {
-            statsObj.previousBestNetworkId = bestNetworkObj.networkId;
-            configEvents.emit("NEW_BEST_NETWORK", bestNetworkObj.networkId);
-          }
-
-          resolve(bestNetworkObj.networkId);
-
-        }
-        else {
-
-          NeuralNetwork.find({}).sort({"matchRate": -1}).limit(1).exec(function(err, nnArray){
-            if (err){
-              console.log(chalkError("WAS | *** NEURAL NETWORK FIND ERROR: " + err));
-              return reject(err);
-            }
-            
-            if (nnArray === 0){
-              console.log(chalkError("WAS | *** NEURAL NETWORK NOT FOUND"));
-              return resolve(null);
-            }
-
+            nnObj.matchRate = (nnObj.matchRate !== undefined) ? nnObj.matchRate : 0;
             bestNetworkObj = {};
-            bestNetworkObj = nnArray[0];
-            
-            if (bestNetworkObj.matchRate === undefined) { bestNetworkObj.matchRate = 0; }
-            if (bestNetworkObj.overallMatchRate === undefined) { bestNetworkObj.overallMatchRate = 0; }
-            
-            statsObj.bestNetwork.networkId = bRtNnObj.networkId;
-            statsObj.bestNetwork.successRate = bRtNnObj.successRate;
-            statsObj.bestNetwork.matchRate = bRtNnObj.matchRate;
-            statsObj.bestNetwork.overallMatchRate = bRtNnObj.overallMatchRate;
-            statsObj.bestNetwork.inputsId = bRtNnObj.inputsId;
+            bestNetworkObj = deepcopy(nnObj);
+            console.log(chalkLog("WAS | +++ LOADED BEST NETWORK: " + bestNetworkObj.networkId));
 
             if (statsObj.previousBestNetworkId !== bestNetworkObj.networkId) {
               statsObj.previousBestNetworkId = bestNetworkObj.networkId;
               configEvents.emit("NEW_BEST_NETWORK", bestNetworkObj.networkId);
             }
-            console.log(chalk.blue("WAS | +++ BEST NEURAL NETWORK LOADED FROM DB"
-              + " | " + bestNetworkObj.networkId
-              + " | SR: " + bestNetworkObj.successRate.toFixed(2) + "%"
-              + " | MR: " + bestNetworkObj.matchRate.toFixed(2) + "%"
-              + " | OAMR: " + bestNetworkObj.overallMatchRate.toFixed(2) + "%"
-            ));
 
             resolve(bestNetworkObj.networkId);
 
-          });
+          }
+          else {
 
-        }
+            NeuralNetwork.find({}).sort({"matchRate": -1}).limit(1).exec(function(err, nnArray){
+              if (err){
+                console.log(chalkError("WAS | *** NEURAL NETWORK FIND ERROR: " + err));
+                return reject(err);
+              }
+              
+              if (nnArray === 0){
+                console.log(chalkError("WAS | *** NEURAL NETWORK NOT FOUND"));
+                return resolve(null);
+              }
 
+              bestNetworkObj = {};
+              bestNetworkObj = nnArray[0];
+              
+              if (bestNetworkObj.matchRate === undefined) { bestNetworkObj.matchRate = 0; }
+              if (bestNetworkObj.overallMatchRate === undefined) { bestNetworkObj.overallMatchRate = 0; }
+              
+              statsObj.bestNetwork.networkId = bRtNnObj.networkId;
+              statsObj.bestNetwork.successRate = bRtNnObj.successRate;
+              statsObj.bestNetwork.matchRate = bRtNnObj.matchRate;
+              statsObj.bestNetwork.overallMatchRate = bRtNnObj.overallMatchRate;
+              statsObj.bestNetwork.inputsId = bRtNnObj.inputsId;
 
+              if (statsObj.previousBestNetworkId !== bestNetworkObj.networkId) {
+                statsObj.previousBestNetworkId = bestNetworkObj.networkId;
+                configEvents.emit("NEW_BEST_NETWORK", bestNetworkObj.networkId);
+              }
+
+              console.log(chalk.blue("WAS | +++ BEST NEURAL NETWORK LOADED FROM DB"
+                + " | " + bestNetworkObj.networkId
+                + " | SR: " + bestNetworkObj.successRate.toFixed(2) + "%"
+                + " | MR: " + bestNetworkObj.matchRate.toFixed(2) + "%"
+                + " | OAMR: " + bestNetworkObj.overallMatchRate.toFixed(2) + "%"
+              ));
+
+              resolve(bestNetworkObj.networkId);
+
+            });
+          }
+        });
       }
-    }
-    catch (err) {
-
+    })
+    .catch(function(err){
       if (err.code === "ETIMEDOUT") {
         console.log(chalkError("WAS | *** LOAD BEST NETWORK ERROR: NETWORK TIMEOUT:  " 
           + folder + "/" + file
@@ -8324,34 +8820,36 @@ function loadBestRuntimeNetwork(params){
 
       console.log(err);
       return reject(err);
-    }
-      
+    });
+
   });
 }
 
 function loadConfigFile(params) {
 
-  return new Promise(async function(resolve, reject){
+  return new Promise(function(resolve, reject){
 
     const fullPath = params.folder + "/" + params.file;
 
-    try {
+    if (params.file === dropboxConfigDefaultFile) {
+      prevConfigFileModifiedMoment = moment(prevDefaultConfigFileModifiedMoment);
+    }
+    else {
+      prevConfigFileModifiedMoment = moment(prevHostConfigFileModifiedMoment);
+    }
 
-      if (params.file === dropboxConfigDefaultFile) {
-        prevConfigFileModifiedMoment = moment(prevDefaultConfigFileModifiedMoment);
-      }
-      else {
-        prevConfigFileModifiedMoment = moment(prevHostConfigFileModifiedMoment);
-      }
-
-      if (configuration.offlineMode) {
-        await loadCommandLineArgs();
+    if (configuration.offlineMode) {
+      loadCommandLineArgs()
+      .then(function(){
         return resolve();
-      }
+      })
+      .catch(function(err){
+        return reject(err);
+      });
+    }
 
-
-      const response = await getFileMetadata({folder: params.folder, file: params.file});
-
+    getFileMetadata({folder: params.folder, file: params.file})
+    .then(function(response){
       const fileModifiedMoment = moment(new Date(response.client_modified));
       
       if (fileModifiedMoment.isSameOrBefore(prevConfigFileModifiedMoment)){
@@ -8379,242 +8877,246 @@ function loadConfigFile(params) {
         prevHostConfigFileModifiedMoment = moment(fileModifiedMoment);
       }
 
-      const loadedConfigObj = await loadFile({folder: params.folder, file: params.file});
+      loadFile({folder: params.folder, file: params.file})
+      .then(function(loadedConfigObj){
 
-      if ((loadedConfigObj === undefined) || !loadedConfigObj) {
-        console.log(chalkError("WAS | DROPBOX CONFIG LOAD FILE ERROR | JSON UNDEFINED ??? "));
-        return reject(new Error("JSON UNDEFINED"));
-      }
-
-      console.log(chalkInfo("WAS | LOADED CONFIG FILE: " + params.file + "\n" + jsonPrint(loadedConfigObj)));
-
-      let newConfiguration = {};
-      newConfiguration.metrics = {};
-      newConfiguration.threeceeUsers = {};
-
-      if (loadedConfigObj.WAS_TEST_MODE  !== undefined){
-        console.log("WAS | LOADED WAS_TEST_MODE: " + loadedConfigObj.WAS_TEST_MODE);
-
-        if ((loadedConfigObj.WAS_TEST_MODE === false) || (loadedConfigObj.WAS_TEST_MODE === "false")) {
-          newConfiguration.testMode = false;
+        if ((loadedConfigObj === undefined) || !loadedConfigObj) {
+          console.log(chalkError("WAS | DROPBOX CONFIG LOAD FILE ERROR | JSON UNDEFINED ??? "));
+          return reject(new Error("JSON UNDEFINED"));
         }
-        else if ((loadedConfigObj.WAS_TEST_MODE === true) || (loadedConfigObj.WAS_TEST_MODE === "true")) {
-          newConfiguration.testMode = true;
+
+        console.log(chalkInfo("WAS | LOADED CONFIG FILE: " + params.file + "\n" + jsonPrint(loadedConfigObj)));
+
+        let newConfiguration = {};
+        newConfiguration.metrics = {};
+        newConfiguration.threeceeUsers = {};
+
+        if (loadedConfigObj.WAS_TEST_MODE  !== undefined){
+          console.log("WAS | LOADED WAS_TEST_MODE: " + loadedConfigObj.WAS_TEST_MODE);
+
+          if ((loadedConfigObj.WAS_TEST_MODE === false) || (loadedConfigObj.WAS_TEST_MODE === "false")) {
+            newConfiguration.testMode = false;
+          }
+          else if ((loadedConfigObj.WAS_TEST_MODE === true) || (loadedConfigObj.WAS_TEST_MODE === "true")) {
+            newConfiguration.testMode = true;
+          }
+          else {
+            newConfiguration.testMode = false;
+          }
         }
-        else {
-          newConfiguration.testMode = false;
+
+        if (loadedConfigObj.VERBOSE  !== undefined){
+          console.log("WAS | LOADED VERBOSE: " + loadedConfigObj.VERBOSE);
+
+          if ((loadedConfigObj.VERBOSE === false) || (loadedConfigObj.VERBOSE === "false")) {
+            newConfiguration.verbose = false;
+          }
+          else if ((loadedConfigObj.VERBOSE === true) || (loadedConfigObj.VERBOSE === "true")) {
+            newConfiguration.verbose = true;
+          }
+          else {
+            newConfiguration.verbose = false;
+          }
         }
-      }
 
-      if (loadedConfigObj.VERBOSE  !== undefined){
-        console.log("WAS | LOADED VERBOSE: " + loadedConfigObj.VERBOSE);
+        if (loadedConfigObj.FORCE_IMAGE_ANALYSIS  !== undefined){
+          console.log("WAS | LOADED FORCE_IMAGE_ANALYSIS: " + loadedConfigObj.FORCE_IMAGE_ANALYSIS);
 
-        if ((loadedConfigObj.VERBOSE === false) || (loadedConfigObj.VERBOSE === "false")) {
-          newConfiguration.verbose = false;
+          if ((loadedConfigObj.FORCE_IMAGE_ANALYSIS === false) || (loadedConfigObj.FORCE_IMAGE_ANALYSIS === "false")) {
+            newConfiguration.forceImageAnalysis = false;
+          }
+          else if ((loadedConfigObj.FORCE_IMAGE_ANALYSIS === true) || (loadedConfigObj.FORCE_IMAGE_ANALYSIS === "true")) {
+            newConfiguration.forceImageAnalysis = true;
+          }
+          else {
+            newConfiguration.forceImageAnalysis = false;
+          }
         }
-        else if ((loadedConfigObj.VERBOSE === true) || (loadedConfigObj.VERBOSE === "true")) {
-          newConfiguration.verbose = true;
+
+        if (loadedConfigObj.FORCE_FOLLOW  !== undefined){
+          console.log("WAS | LOADED FORCE_FOLLOW: " + loadedConfigObj.FORCE_FOLLOW);
+
+          if ((loadedConfigObj.FORCE_FOLLOW === false) || (loadedConfigObj.FORCE_FOLLOW === "false")) {
+            newConfiguration.forceFollow = false;
+          }
+          else if ((loadedConfigObj.FORCE_FOLLOW === true) || (loadedConfigObj.FORCE_FOLLOW === "true")) {
+            newConfiguration.forceFollow = true;
+          }
+          else {
+            newConfiguration.forceFollow = false;
+          }
         }
-        else {
-          newConfiguration.verbose = false;
+
+        if (loadedConfigObj.WAS_ENABLE_STDIN  !== undefined){
+          console.log("WAS | LOADED WAS_ENABLE_STDIN: " + loadedConfigObj.WAS_ENABLE_STDIN);
+
+          if ((loadedConfigObj.WAS_ENABLE_STDIN === false) || (loadedConfigObj.WAS_ENABLE_STDIN === "false")) {
+            newConfiguration.enableStdin = false;
+          }
+          else if ((loadedConfigObj.WAS_ENABLE_STDIN === true) || (loadedConfigObj.WAS_ENABLE_STDIN === "true")) {
+            newConfiguration.enableStdin = true;
+          }
+          else {
+            newConfiguration.enableStdin = false;
+          }
         }
-      }
 
-      if (loadedConfigObj.FORCE_IMAGE_ANALYSIS  !== undefined){
-        console.log("WAS | LOADED FORCE_IMAGE_ANALYSIS: " + loadedConfigObj.FORCE_IMAGE_ANALYSIS);
+        if (loadedConfigObj.NODE_METER_ENABLED !== undefined){
 
-        if ((loadedConfigObj.FORCE_IMAGE_ANALYSIS === false) || (loadedConfigObj.FORCE_IMAGE_ANALYSIS === "false")) {
-          newConfiguration.forceImageAnalysis = false;
+          console.log("WAS | LOADED NODE_METER_ENABLED: " + loadedConfigObj.NODE_METER_ENABLED);
+
+          if (loadedConfigObj.NODE_METER_ENABLED === "true") {
+            newConfiguration.metrics.nodeMeterEnabled = true;
+          }
+          else if (loadedConfigObj.NODE_METER_ENABLED === "false") {
+            newConfiguration.metrics.nodeMeterEnabled = false;
+          }
+          else {
+            newConfiguration.metrics.nodeMeterEnabled = true;
+          }
         }
-        else if ((loadedConfigObj.FORCE_IMAGE_ANALYSIS === true) || (loadedConfigObj.FORCE_IMAGE_ANALYSIS === "true")) {
-          newConfiguration.forceImageAnalysis = true;
+
+        if (loadedConfigObj.PROCESS_NAME !== undefined){
+          console.log("WAS | LOADED PROCESS_NAME: " + loadedConfigObj.PROCESS_NAME);
+          newConfiguration.processName = loadedConfigObj.PROCESS_NAME;
         }
-        else {
-          newConfiguration.forceImageAnalysis = false;
+
+        if (loadedConfigObj.THREECEE_USERS !== undefined){
+          console.log("WAS | LOADED THREECEE_USERS: " + loadedConfigObj.THREECEE_USERS);
+          newConfiguration.threeceeUsers = loadedConfigObj.THREECEE_USERS;
         }
-      }
 
-      if (loadedConfigObj.FORCE_FOLLOW  !== undefined){
-        console.log("WAS | LOADED FORCE_FOLLOW: " + loadedConfigObj.FORCE_FOLLOW);
-
-        if ((loadedConfigObj.FORCE_FOLLOW === false) || (loadedConfigObj.FORCE_FOLLOW === "false")) {
-          newConfiguration.forceFollow = false;
+        if (loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW_USER !== undefined){
+          console.log("WAS | LOADED TWITTER_THREECEE_AUTO_FOLLOW_USER: " + loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW_USER);
+          newConfiguration.twitterThreeceeAutoFollowUser = loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW_USER;
         }
-        else if ((loadedConfigObj.FORCE_FOLLOW === true) || (loadedConfigObj.FORCE_FOLLOW === "true")) {
-          newConfiguration.forceFollow = true;
+
+        if (loadedConfigObj.CURSOR_BATCH_SIZE !== undefined){
+          console.log("WAS | LOADED CURSOR_BATCH_SIZE: " + loadedConfigObj.CURSOR_BATCH_SIZE);
+          newConfiguration.cursorBatchSize = loadedConfigObj.CURSOR_BATCH_SIZE;
         }
-        else {
-          newConfiguration.forceFollow = false;
+
+        if (loadedConfigObj.DROPBOX_WEBHOOK_CHANGE_TIMEOUT !== undefined){
+          console.log("WAS | LOADED DROPBOX_WEBHOOK_CHANGE_TIMEOUT: " + loadedConfigObj.DROPBOX_WEBHOOK_CHANGE_TIMEOUT);
+          newConfiguration.dropboxWebhookChangeTimeout = loadedConfigObj.DROPBOX_WEBHOOK_CHANGE_TIMEOUT;
         }
-      }
 
-      if (loadedConfigObj.WAS_ENABLE_STDIN  !== undefined){
-        console.log("WAS | LOADED WAS_ENABLE_STDIN: " + loadedConfigObj.WAS_ENABLE_STDIN);
-
-        if ((loadedConfigObj.WAS_ENABLE_STDIN === false) || (loadedConfigObj.WAS_ENABLE_STDIN === "false")) {
-          newConfiguration.enableStdin = false;
+        if (loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT !== undefined){
+          console.log("WAS | LOADED FIND_CAT_USER_CURSOR_LIMIT: " + loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT);
+          newConfiguration.findCatUserLimit = loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT;
         }
-        else if ((loadedConfigObj.WAS_ENABLE_STDIN === true) || (loadedConfigObj.WAS_ENABLE_STDIN === "true")) {
-          newConfiguration.enableStdin = true;
+
+        if (loadedConfigObj.FIND_CAT_HASHTAG_CURSOR_LIMIT !== undefined){
+          console.log("WAS | LOADED FIND_CAT_HASHTAG_CURSOR_LIMIT: " + loadedConfigObj.FIND_CAT_HASHTAG_CURSOR_LIMIT);
+          newConfiguration.findCatHashtagLimit = loadedConfigObj.FIND_CAT_HASHTAG_CURSOR_LIMIT;
         }
-        else {
-          newConfiguration.enableStdin = false;
+
+        if (loadedConfigObj.HEAPDUMP_ENABLED !== undefined){
+          console.log("WAS | LOADED HEAPDUMP_ENABLED: " + loadedConfigObj.HEAPDUMP_ENABLED);
+          newConfiguration.heapDumpEnabled = loadedConfigObj.HEAPDUMP_ENABLED;
         }
-      }
 
-      if (loadedConfigObj.NODE_METER_ENABLED !== undefined){
-
-        console.log("WAS | LOADED NODE_METER_ENABLED: " + loadedConfigObj.NODE_METER_ENABLED);
-
-        if (loadedConfigObj.NODE_METER_ENABLED === "true") {
-          newConfiguration.metrics.nodeMeterEnabled = true;
+        if (loadedConfigObj.HEAPDUMP_MODULO !== undefined){
+          console.log("WAS | LOADED HEAPDUMP_MODULO: " + loadedConfigObj.HEAPDUMP_MODULO);
+          newConfiguration.heapDumpModulo = loadedConfigObj.HEAPDUMP_MODULO;
         }
-        else if (loadedConfigObj.NODE_METER_ENABLED === "false") {
-          newConfiguration.metrics.nodeMeterEnabled = false;
+
+        if (loadedConfigObj.HEAPDUMP_THRESHOLD !== undefined){
+          console.log("WAS | LOADED HEAPDUMP_THRESHOLD: " + loadedConfigObj.HEAPDUMP_THRESHOLD);
+          newConfiguration.heapDumpThreshold = loadedConfigObj.HEAPDUMP_THRESHOLD;
         }
-        else {
-          newConfiguration.metrics.nodeMeterEnabled = true;
+
+        if (loadedConfigObj.NODE_CACHE_CHECK_PERIOD !== undefined){
+          console.log("WAS | LOADED NODE_CACHE_CHECK_PERIOD: " + loadedConfigObj.NODE_CACHE_CHECK_PERIOD);
+          newConfiguration.nodeCacheCheckPeriod = loadedConfigObj.NODE_CACHE_CHECK_PERIOD;
         }
-      }
 
-      if (loadedConfigObj.PROCESS_NAME !== undefined){
-        console.log("WAS | LOADED PROCESS_NAME: " + loadedConfigObj.PROCESS_NAME);
-        newConfiguration.processName = loadedConfigObj.PROCESS_NAME;
-      }
+        if (loadedConfigObj.NODE_CACHE_DEFAULT_TTL !== undefined){
+          console.log("WAS | LOADED NODE_CACHE_DEFAULT_TTL: " + loadedConfigObj.NODE_CACHE_DEFAULT_TTL);
+          newConfiguration.nodeCacheTtl = loadedConfigObj.NODE_CACHE_DEFAULT_TTL;
+        }
 
-      if (loadedConfigObj.THREECEE_USERS !== undefined){
-        console.log("WAS | LOADED THREECEE_USERS: " + loadedConfigObj.THREECEE_USERS);
-        newConfiguration.threeceeUsers = loadedConfigObj.THREECEE_USERS;
-      }
+        if (loadedConfigObj.SOCKET_IDLE_TIMEOUT !== undefined){
+          console.log("WAS | LOADED SOCKET_IDLE_TIMEOUT: " + loadedConfigObj.SOCKET_IDLE_TIMEOUT);
+          newConfiguration.socketIdleTimeout = loadedConfigObj.SOCKET_IDLE_TIMEOUT;
+        }
 
-      if (loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW_USER !== undefined){
-        console.log("WAS | LOADED TWITTER_THREECEE_AUTO_FOLLOW_USER: " + loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW_USER);
-        newConfiguration.twitterThreeceeAutoFollowUser = loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW_USER;
-      }
+        if (loadedConfigObj.TOPTERMS_CACHE_CHECK_PERIOD !== undefined){
+          console.log("WAS | LOADED TOPTERMS_CACHE_CHECK_PERIOD: " + loadedConfigObj.TOPTERMS_CACHE_CHECK_PERIOD);
+          newConfiguration.topTermsCacheCheckPeriod = loadedConfigObj.TOPTERMS_CACHE_CHECK_PERIOD;
+        }
 
-      if (loadedConfigObj.CURSOR_BATCH_SIZE !== undefined){
-        console.log("WAS | LOADED CURSOR_BATCH_SIZE: " + loadedConfigObj.CURSOR_BATCH_SIZE);
-        newConfiguration.cursorBatchSize = loadedConfigObj.CURSOR_BATCH_SIZE;
-      }
+        if (loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL !== undefined){
+          console.log("WAS | LOADED TOPTERMS_CACHE_DEFAULT_TTL: " + loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL);
+          newConfiguration.topTermsCacheTtl = loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL;
+        }
 
-      if (loadedConfigObj.DROPBOX_WEBHOOK_CHANGE_TIMEOUT !== undefined){
-        console.log("WAS | LOADED DROPBOX_WEBHOOK_CHANGE_TIMEOUT: " + loadedConfigObj.DROPBOX_WEBHOOK_CHANGE_TIMEOUT);
-        newConfiguration.dropboxWebhookChangeTimeout = loadedConfigObj.DROPBOX_WEBHOOK_CHANGE_TIMEOUT;
-      }
+        if (loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD !== undefined){
+          console.log("WAS | LOADED TRENDING_CACHE_CHECK_PERIOD: " + loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD);
+          newConfiguration.trendingCacheCheckPeriod = loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD;
+        }
 
-      if (loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT !== undefined){
-        console.log("WAS | LOADED FIND_CAT_USER_CURSOR_LIMIT: " + loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT);
-        newConfiguration.findCatUserLimit = loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT;
-      }
+        if (loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL !== undefined){
+          console.log("WAS | LOADED TRENDING_CACHE_DEFAULT_TTL: " + loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL);
+          newConfiguration.trendingCacheTtl = loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL;
+        }
 
-      if (loadedConfigObj.FIND_CAT_HASHTAG_CURSOR_LIMIT !== undefined){
-        console.log("WAS | LOADED FIND_CAT_HASHTAG_CURSOR_LIMIT: " + loadedConfigObj.FIND_CAT_HASHTAG_CURSOR_LIMIT);
-        newConfiguration.findCatHashtagLimit = loadedConfigObj.FIND_CAT_HASHTAG_CURSOR_LIMIT;
-      }
+        if (loadedConfigObj.MIN_FOLLOWERS_AUTO !== undefined){
+          console.log("WAS | LOADED MIN_FOLLOWERS_AUTO: " + loadedConfigObj.MIN_FOLLOWERS_AUTO);
+          newConfiguration.minFollowersAuto = loadedConfigObj.MIN_FOLLOWERS_AUTO;
+        }
 
-      if (loadedConfigObj.HEAPDUMP_ENABLED !== undefined){
-        console.log("WAS | LOADED HEAPDUMP_ENABLED: " + loadedConfigObj.HEAPDUMP_ENABLED);
-        newConfiguration.heapDumpEnabled = loadedConfigObj.HEAPDUMP_ENABLED;
-      }
+        if (loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL !== undefined){
+          console.log("WAS | LOADED CATEGORY_HASHMAPS_UPDATE_INTERVAL: " + loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL);
+          newConfiguration.categoryHashmapsUpdateInterval = loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL;
+        }
 
-      if (loadedConfigObj.HEAPDUMP_MODULO !== undefined){
-        console.log("WAS | LOADED HEAPDUMP_MODULO: " + loadedConfigObj.HEAPDUMP_MODULO);
-        newConfiguration.heapDumpModulo = loadedConfigObj.HEAPDUMP_MODULO;
-      }
+        if (loadedConfigObj.STATS_UPDATE_INTERVAL !== undefined){
+          console.log("WAS | LOADED STATS_UPDATE_INTERVAL: " + loadedConfigObj.STATS_UPDATE_INTERVAL);
+          newConfiguration.statsUpdateInterval = loadedConfigObj.STATS_UPDATE_INTERVAL;
+        }
 
-      if (loadedConfigObj.HEAPDUMP_THRESHOLD !== undefined){
-        console.log("WAS | LOADED HEAPDUMP_THRESHOLD: " + loadedConfigObj.HEAPDUMP_THRESHOLD);
-        newConfiguration.heapDumpThreshold = loadedConfigObj.HEAPDUMP_THRESHOLD;
-      }
+        if (loadedConfigObj.RATE_QUEUE_INTERVAL !== undefined){
+          console.log("WAS | LOADED RATE_QUEUE_INTERVAL: " + loadedConfigObj.RATE_QUEUE_INTERVAL);
+          newConfiguration.rateQueueInterval = loadedConfigObj.RATE_QUEUE_INTERVAL;
+        }
 
-      if (loadedConfigObj.NODE_CACHE_CHECK_PERIOD !== undefined){
-        console.log("WAS | LOADED NODE_CACHE_CHECK_PERIOD: " + loadedConfigObj.NODE_CACHE_CHECK_PERIOD);
-        newConfiguration.nodeCacheCheckPeriod = loadedConfigObj.NODE_CACHE_CHECK_PERIOD;
-      }
+        if (loadedConfigObj.RATE_QUEUE_INTERVAL_MODULO !== undefined){
+          console.log("WAS | LOADED RATE_QUEUE_INTERVAL_MODULO: " + loadedConfigObj.RATE_QUEUE_INTERVAL_MODULO);
+          newConfiguration.rateQueueIntervalModulo = loadedConfigObj.RATE_QUEUE_INTERVAL_MODULO;
+        }
 
-      if (loadedConfigObj.NODE_CACHE_DEFAULT_TTL !== undefined){
-        console.log("WAS | LOADED NODE_CACHE_DEFAULT_TTL: " + loadedConfigObj.NODE_CACHE_DEFAULT_TTL);
-        newConfiguration.nodeCacheTtl = loadedConfigObj.NODE_CACHE_DEFAULT_TTL;
-      }
+        if (loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW !== undefined){
+          console.log("WAS | LOADED TWITTER_THREECEE_AUTO_FOLLOW: " + loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW);
+          newConfiguration.twitterThreeceeAutoFollowConfigFile = loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW + ".json";
+        }
 
-      if (loadedConfigObj.SOCKET_IDLE_TIMEOUT !== undefined){
-        console.log("WAS | LOADED SOCKET_IDLE_TIMEOUT: " + loadedConfigObj.SOCKET_IDLE_TIMEOUT);
-        newConfiguration.socketIdleTimeout = loadedConfigObj.SOCKET_IDLE_TIMEOUT;
-      }
+        if (loadedConfigObj.TWEET_PARSER_INTERVAL !== undefined){
+          console.log("WAS | LOADED TWEET_PARSER_INTERVAL: " + loadedConfigObj.TWEET_PARSER_INTERVAL);
+          newConfiguration.tweetParserInterval = loadedConfigObj.TWEET_PARSER_INTERVAL;
+        }
 
-      if (loadedConfigObj.TOPTERMS_CACHE_CHECK_PERIOD !== undefined){
-        console.log("WAS | LOADED TOPTERMS_CACHE_CHECK_PERIOD: " + loadedConfigObj.TOPTERMS_CACHE_CHECK_PERIOD);
-        newConfiguration.topTermsCacheCheckPeriod = loadedConfigObj.TOPTERMS_CACHE_CHECK_PERIOD;
-      }
+        if (loadedConfigObj.UPDATE_TRENDS_INTERVAL !== undefined){
+          console.log("WAS | LOADED UPDATE_TRENDS_INTERVAL: " + loadedConfigObj.UPDATE_TRENDS_INTERVAL);
+          newConfiguration.updateTrendsInterval = loadedConfigObj.UPDATE_TRENDS_INTERVAL;
+        }
 
-      if (loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL !== undefined){
-        console.log("WAS | LOADED TOPTERMS_CACHE_DEFAULT_TTL: " + loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL);
-        newConfiguration.topTermsCacheTtl = loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL;
-      }
+        if (loadedConfigObj.KEEPALIVE_INTERVAL !== undefined){
+          console.log("WAS | LOADED KEEPALIVE_INTERVAL: " + loadedConfigObj.KEEPALIVE_INTERVAL);
+          newConfiguration.keepaliveInterval = loadedConfigObj.KEEPALIVE_INTERVAL;
+        }
 
-      if (loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD !== undefined){
-        console.log("WAS | LOADED TRENDING_CACHE_CHECK_PERIOD: " + loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD);
-        newConfiguration.trendingCacheCheckPeriod = loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD;
-      }
+        resolve(newConfiguration);
 
-      if (loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL !== undefined){
-        console.log("WAS | LOADED TRENDING_CACHE_DEFAULT_TTL: " + loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL);
-        newConfiguration.trendingCacheTtl = loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL;
-      }
-
-      if (loadedConfigObj.MIN_FOLLOWERS_AUTO !== undefined){
-        console.log("WAS | LOADED MIN_FOLLOWERS_AUTO: " + loadedConfigObj.MIN_FOLLOWERS_AUTO);
-        newConfiguration.minFollowersAuto = loadedConfigObj.MIN_FOLLOWERS_AUTO;
-      }
-
-      if (loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL !== undefined){
-        console.log("WAS | LOADED CATEGORY_HASHMAPS_UPDATE_INTERVAL: " + loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL);
-        newConfiguration.categoryHashmapsUpdateInterval = loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL;
-      }
-
-      if (loadedConfigObj.STATS_UPDATE_INTERVAL !== undefined){
-        console.log("WAS | LOADED STATS_UPDATE_INTERVAL: " + loadedConfigObj.STATS_UPDATE_INTERVAL);
-        newConfiguration.statsUpdateInterval = loadedConfigObj.STATS_UPDATE_INTERVAL;
-      }
-
-      if (loadedConfigObj.RATE_QUEUE_INTERVAL !== undefined){
-        console.log("WAS | LOADED RATE_QUEUE_INTERVAL: " + loadedConfigObj.RATE_QUEUE_INTERVAL);
-        newConfiguration.rateQueueInterval = loadedConfigObj.RATE_QUEUE_INTERVAL;
-      }
-
-      if (loadedConfigObj.RATE_QUEUE_INTERVAL_MODULO !== undefined){
-        console.log("WAS | LOADED RATE_QUEUE_INTERVAL_MODULO: " + loadedConfigObj.RATE_QUEUE_INTERVAL_MODULO);
-        newConfiguration.rateQueueIntervalModulo = loadedConfigObj.RATE_QUEUE_INTERVAL_MODULO;
-      }
-
-      if (loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW !== undefined){
-        console.log("WAS | LOADED TWITTER_THREECEE_AUTO_FOLLOW: " + loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW);
-        newConfiguration.twitterThreeceeAutoFollowConfigFile = loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW + ".json";
-      }
-
-      if (loadedConfigObj.TWEET_PARSER_INTERVAL !== undefined){
-        console.log("WAS | LOADED TWEET_PARSER_INTERVAL: " + loadedConfigObj.TWEET_PARSER_INTERVAL);
-        newConfiguration.tweetParserInterval = loadedConfigObj.TWEET_PARSER_INTERVAL;
-      }
-
-      if (loadedConfigObj.UPDATE_TRENDS_INTERVAL !== undefined){
-        console.log("WAS | LOADED UPDATE_TRENDS_INTERVAL: " + loadedConfigObj.UPDATE_TRENDS_INTERVAL);
-        newConfiguration.updateTrendsInterval = loadedConfigObj.UPDATE_TRENDS_INTERVAL;
-      }
-
-      if (loadedConfigObj.KEEPALIVE_INTERVAL !== undefined){
-        console.log("WAS | LOADED KEEPALIVE_INTERVAL: " + loadedConfigObj.KEEPALIVE_INTERVAL);
-        newConfiguration.keepaliveInterval = loadedConfigObj.KEEPALIVE_INTERVAL;
-      }
-
-      resolve(newConfiguration);
-    }
-    catch(err){
+      });
+    })
+    .catch(function(err){
       console.error(chalkError("WAS | ERROR LOAD DROPBOX CONFIG: " + fullPath
         + "\n" + jsonPrint(err)
       ));
       reject(err);
-    }
+
+    });
 
   });
 }
@@ -8622,39 +9124,42 @@ function loadConfigFile(params) {
 
 function loadAllConfigFiles(){
 
-  return new Promise(async function(resolve, reject){
+  return new Promise(function(resolve, reject){
 
-    try {
+    statsObj.status = "LOAD CONFIG";
 
-      statsObj.status = "LOAD CONFIG";
-
-      const defaultConfig = await loadConfigFile({folder: dropboxConfigDefaultFolder, file: dropboxConfigDefaultFile});
+    loadConfigFile({folder: dropboxConfigDefaultFolder, file: dropboxConfigDefaultFile})
+    .then(function(defaultConfig){
 
       if (defaultConfig) {
         defaultConfiguration = defaultConfig;
         console.log(chalkAlert("WAS | +++ RELOADED DEFAULT CONFIG " + dropboxConfigDefaultFolder + "/" + dropboxConfigDefaultFile));
       }
-      
-      const hostConfig = await loadConfigFile({folder: dropboxConfigHostFolder, file: dropboxConfigHostFile});
 
-      if (hostConfig) {
-        hostConfiguration = hostConfig;
-        console.log(chalkAlert("WAS | +++ RELOADED HOST CONFIG " + dropboxConfigHostFolder + "/" + dropboxConfigHostFile));
-      }
-      
+      loadConfigFile({folder: dropboxConfigHostFolder, file: dropboxConfigHostFile})
+      .then(function(hostConfig){
 
-      let defaultAndHostConfig = merge(defaultConfiguration, hostConfiguration); // host settings override defaults
-      let tempConfig = merge(configuration, defaultAndHostConfig); // any new settings override existing config
+        if (hostConfig) {
+          hostConfiguration = hostConfig;
+          console.log(chalkAlert("WAS | +++ RELOADED HOST CONFIG " + dropboxConfigHostFolder + "/" + dropboxConfigHostFile));
+        }
 
-      configuration = tempConfig;
-      configuration.twitterUsers = _.uniq(configuration.twitterUsers);  // merge concats arrays!
+        let defaultAndHostConfig = merge(defaultConfiguration, hostConfiguration); // host settings override defaults
+        let tempConfig = merge(configuration, defaultAndHostConfig); // any new settings override existing config
 
-      resolve();
+        configuration = tempConfig;
+        configuration.twitterUsers = _.uniq(configuration.twitterUsers);  // merge concats arrays!
 
-    }
-    catch(err){
+        resolve();
+
+      });
+
+    })
+    .catch(function(err){
       reject(err);
-    }
+    });
+
+
   });
 }
 
@@ -8763,7 +9268,7 @@ function initStatsUpdate(cnf) {
 
 function initConfig() {
 
-  return new Promise(async function(resolve, reject){
+  return new Promise(function(resolve, reject){
 
     statsObj.status = "INIT CONFIG";
 
@@ -8774,7 +9279,13 @@ function initConfig() {
     configuration.statsUpdateIntervalTime = process.env.TFE_STATS_UPDATE_INTERVAL || ONE_MINUTE;
 
     if (configuration.enableStdin) {
-      await initStdIn();
+      initStdIn()
+      .then(function(){
+
+      })
+      .catch(function(err){
+        return reject(err);
+      });
     }
 
     debug(chalkTwitter("WAS | THREECEE USERS\n" + jsonPrint(configuration.threeceeUsers)));
@@ -8798,38 +9309,41 @@ function initConfig() {
       debug(chalkTwitter("WAS | THREECEE USER @" + user + "\n" + jsonPrint(threeceeTwitter[user])));
     });
 
+    loadAllConfigFiles()
+    .then(function(){
 
-    try {
+      loadCommandLineArgs()
+      .then(function(){
 
-      await loadAllConfigFiles();
-      await loadCommandLineArgs();
+        const configArgs = Object.keys(configuration);
 
-      const configArgs = Object.keys(configuration);
+        configArgs.forEach(function(arg){
+          if (_.isObject(configuration[arg])) {
+            console.log("WAS | _FINAL CONFIG | " + arg + "\n" + jsonPrint(configuration[arg]));
+          }
+          else {
+            console.log("WAS | _FINAL CONFIG | " + arg + ": " + configuration[arg]);
+          }
+        });
+        
+        statsObj.commandLineArgsLoaded = true;
 
-      configArgs.forEach(function(arg){
-        if (_.isObject(configuration[arg])) {
-          console.log("WAS | _FINAL CONFIG | " + arg + "\n" + jsonPrint(configuration[arg]));
+        if (configuration.enableStdin) {
+          initStdIn().then(function(){});
         }
-        else {
-          console.log("WAS | _FINAL CONFIG | " + arg + ": " + configuration[arg]);
-        }
+
+        initStatsUpdate(configuration)
+        .then(function(){
+          resolve(configuration);
+        });
+
       });
-      
-      statsObj.commandLineArgsLoaded = true;
 
-      if (configuration.enableStdin) {
-        initStdIn();
-      }
-
-      await initStatsUpdate(configuration);
-
-      resolve(configuration) ;
-
-    }
-    catch(err){
+    })
+    .catch(function(err){
       console.log(chalkLog("WAS | *** INIT CONFIG ERROR: " + err));
       return reject(err);
-    }
+    });
 
   });
 
@@ -8958,9 +9472,10 @@ function initCategoryHashmaps(){
 
           function(cb0){
 
-            if (!statsObj.dbConnectionReady) { 
+            if (!statsObj.dbConnectionReady) {
               return cb0("DB CONNECTION NOT READY");
             }
+
             userServerController.findCategorizedUsersCursor(p, function(err, results){
 
               if (err) {
@@ -9021,7 +9536,7 @@ function initCategoryHashmaps(){
     }, function(err){
       if (err) {
         console.log(chalkError("WAS | *** ERROR: initCategoryHashmaps: " + err));
-        reject(err);
+        return reject(err);
       }
         
       console.log(chalk.blue("WAS | LOAD COMPLETE: initCategoryHashmaps"));
@@ -9029,7 +9544,7 @@ function initCategoryHashmaps(){
 
     });
 
-  })
+  });
 }
 
 let stdin;
@@ -9056,6 +9571,10 @@ function initStdIn(params){
         case "t":
           configuration.testMode = !configuration.testMode;
           console.log(chalkAlert("TNN | TEST MODE: " + configuration.testMode));
+        break;
+        case "x":
+          saveSampleTweetFlag = true;
+          console.log(chalkAlert("TNN | SAVE SAMPLE TWEET"));
         break;
         case "v":
           configuration.verbose = !configuration.verbose;
@@ -9088,335 +9607,320 @@ function initStdIn(params){
   });
 }
 
-let slackText = "";
-
-function slackSendMessage(msgObj){
-
-  let message = msgObj;
-
-  if (msgObj.message || msgObj.webOnly) { message = msgObj.message; }
-
-  return new Promise(async function(resolve, reject){
-
-    try {
-      if (slackWebClient !== undefined) { await slackSendWebMessage(message); }
-      if (!msgObj.webOnly && !msgObj.message) { await slackSendRtmMessage(msgObj); }
-      resolve();
-    }
-    catch(err){
-      reject(err);
-    }
-
-  });
-}
-
-function slackSendRtmMessage(msg){
-
-  return new Promise(async function(resolve, reject){
-
-    try {
-
-      // const message = slackMessagePrefix + ":" + msg;
-
-      console.log(chalkBlueBold("TFE | SLACK RTM | SEND: " + msg));
-
-      const sendResponse = await slackRtmClient.sendMessage(msg, slackConversationId);
-
-      console.log(chalkLog("TFE | SLACK RTM | >T\n" + jsonPrint(sendResponse)));
-      resolve(sendResponse);
-    }
-    catch(err){
-      reject(err);
-    }
-
-  });
-}
-
-let slackDefaultAttachments = [];
-
-let slackDefaultAttachment = {};
-slackDefaultAttachment.fallback = "TFE | " + hostname + "_" + process.pid;
-slackDefaultAttachment.title = "@threecee";
-slackDefaultAttachment.title_link = "http://twitter.com/threecee";
-slackDefaultAttachment.text = "TFE";
-slackDefaultAttachment.fields = [];
-slackDefaultAttachment.fields.push({ title: "PROCESS", value: hostname + "_" + process.pid });
-
-slackDefaultAttachments.push(slackDefaultAttachment);
-
-
-function slackSendWebMessage(msgObj){
-
-  return new Promise(async function(resolve, reject){
-
-    try {
-
-      const token = msgObj.token || slackOAuthAccessToken;
-      const channel = msgObj.channel || configuration.slackChannel.id;
-      const title = msgObj.title || null;
-      const title_link = msgObj.title_link || null;
-      const pretext = msgObj.pretext || hostname + "_" + process.pid;
-      const text = msgObj.text || "TFE | " + hostname + "_" + process.pid + " | " + msgObj;
-      const attachments = msgObj.attachments || slackDefaultAttachments;
-
-      let message = {
-        token: token, 
-        channel: channel,
-        title: title,
-        title_link: title_link,
-        pretext: pretext,
-        text: text,
-        attachments: attachments
-      };
-
-      debug(chalkBlueBold("TFE | SLACK WEB | SEND\n" + jsonPrint(message)));
-      const sendResponse = await slackWebClient.chat.postMessage(message);
-
-      debug(chalkLog("TFE | SLACK WEB | >T\n" + jsonPrint(sendResponse)));
-      console.log(chalkLog("TFE | SLACK WEB | >T | " + sendResponse.message.text));
-      resolve(sendResponse);
-    }
-    catch(err){
-      reject(err);
-    }
-
-  });
-}
-
-function slackSendWebStats(params){
-
-  return new Promise(async function(resolve, reject){
-
-    try {
-
-      const token = params.token || slackOAuthAccessToken;
-      const channel = params.channel || slackChannel;
-      const title = "TFE | " + hostname +  "_" + process.pid + " | STATS";
-      const title_link = params.title_link || shackTitleLink;
-      const pretext = params.pretext || "S: " + statsObj.startTimeMoment.format(compactDateTimeFormat) + " | E: " + msToTime(statsObj.elapsed);
-      const text = params.text || "TFE | " + hostname + "_" + process.pid;
-      const attachments = params.attachments || slackDefaultAttachments;
-
-      let message = {
-        token: token, 
-        channel: channel,
-        title: title,
-        title_link: title_link,
-        pretext: pretext,
-        text: text,
-        attachments: attachments
-      };
-
-      console.log(chalkBlueBold("TFE | SLACK WEB | SEND\n" + jsonPrint(message)));
-
-      const sendResponse = await slackWebClient.chat.postMessage(message);
-
-      console.log(chalkLog("TFE | SLACK WEB | >T\n" + jsonPrint(sendResponse)));
-      resolve(sendResponse);
-    }
-    catch(err){
-      reject(err);
-    }
-
-  });
-}
-
-function slackMessageHandler(message){
-  return new Promise(async function(resolve, reject){
-
-    try {
-
-      console.log(chalkAlert("TFE | <RX MESSAGE | " + message.type + " | " + message.text));
-
-      switch (message.text) {
-        case "ERROR":
-        case "FETCH FRIENDS":
-        case "FSM INIT":
-        case "INIT LANG ANALYZER":
-        case "INIT MAX INPUT HASHMAP":
-        case "INIT NNs":
-        case "INIT RAN NNs":
-        case "INIT RNT CHILD":
-        case "INIT TWITTER USERS":
-        case "INIT UNFOLLOWABLE":
-        case "INIT":
-        case "LOAD BEST NN":
-        case "LOAD NN":
-        case "PONG":
-        case "QUIT":
-        case "QUITTING":
-        case "READY":
-        case "RESET":
-        case "SLACK QUIT":
-        case "SLACK READY":
-        case "START":
-        case "STATS":
-        case "TEXT":
-          resolve();
-        break;
-        case "PING":
-          // slackSendMessage("PONG");
-          resolve();
-        break;
-        default:
-          // console.log(chalkAlert("TFE | *** UNDEFINED SLACK MESSAGE: " + message.text));
-          // reject(new Error("UNDEFINED SLACK MESSAGE TYPE: " + message.text));
-          resolve();
-      }
-    }
-    catch(err){
-      reject(err);
-    }
-
-  });
-}
-function initSlackWebClient(params){
-
-  return new Promise(async function(resolve, reject){
-
-    try {
-
-      const { WebClient } = require("@slack/client");
-      slackWebClient = new WebClient(slackRtmToken);
-
-      const testResponse = await slackWebClient.api.test();
-      console.log("WAS | SLACK WEB TEST RESPONSE\n" + jsonPrint(testResponse));
-
-      const botsInfoResponse = await slackWebClient.bots.info();
-      console.log("WAS | SLACK WEB BOTS INFO RESPONSE\n" + jsonPrint(botsInfoResponse));
-
-      const conversationsListResponse = await slackWebClient.conversations.list({token: slackOAuthAccessToken});
-
-      async.each(conversationsListResponse.channels, async function(channel){
-  
-        console.log(chalkLog("WAS | CHANNEL | " + channel.id + " | " + channel.name));
-
-        if (channel.name === slackChannel) {
-          configuration.slackChannel = channel;
-          const conversationsJoinResponse = await slackWebClient.conversations.join({token: slackOAuthAccessToken, channel: configuration.slackChannel.id });
-          slackSendWebMessage("SLACK INIT");
-          // channelsHashMap.set(channel.id, channel);
-          // return;
-        }
-
-        // channelsHashMap.set(channel.id, channel);
-        return;
-
-
-      }, function(err){
-        if (err) {
-          return reject(err);
-        }
-        resolve();
-      });
-
-    }
-    catch(err){
-      console.log(chalkError("WAS | *** INIT SLACK WEB CLIENT ERROR: " + err));
-      reject(err);
-    }
-
-  });
-}
-
-function initSlackRtmClient(params){
-
-  return new Promise(async function(resolve, reject){
-
-    try {
-
-      const { RTMClient } = require("@slack/client");
-      slackRtmClient = new RTMClient(slackRtmToken);
-
-      const slackInfo = await slackRtmClient.start();
-
-      console.log(chalkInfo("WAS | SLACK RTM | INFO\n" + jsonPrint(slackInfo)));
-
-      slackRtmClient.on("slack_event", async function(eventType, event){
-        switch (eventType) {
-          case "pong":
-            debug(chalkLog("WAS | SLACK RTM PONG | " + getTimeStamp() + " | " + event.reply_to));
-          break;
-          default: console.log(chalkInfo("WAS | SLACK RTM EVENT | " + getTimeStamp() + " | "  + eventType + " | " + event.text));
-        }
-      });
-
-
-      slackRtmClient.on("message", async function(message){
-        if (configuration.verbose)  { console.log(chalkLog("WAS | RTM R<\n" + jsonPrint(message))); }
-        console.log(`WAS | SLACK RX< RTM MESSAGE | CH: ${message.channel} | USER: ${message.user} | ${message.text}`);
-
-        try {
-          await slackMessageHandler(message);
-        }
-        catch(err){
-          console.log(chalkError("WAS | *** SLACK RTM MESSAGE ERROR: " + err));
-        }
-
-      });
-
-      slackRtmClient.on("error", async function(err){
-        console.log(chalkError("WAS | *** SLACK RTM CLIENT ERROR: " + err));
-        statsObj.status = "SLACK RTM ERROR";
-        objectPath.set(statsObj, "slack.rtm.error", err); 
-        objectPath.set(statsObj, "slack.rtm.connected", false); 
-        objectPath.set(statsObj, "slack.rtm.ready", false); 
-        console.log(chalkLog("WAS | SLACK STATUS\n" + jsonPrint(statsObj.slack)));
-      });
-
-      slackRtmClient.on("disconnected", async function(){
-        console.log(chalkAlert("WAS | *** SLACK RTM CLIENT DISCONNECTED"));
-        statsObj.status = "SLACK RTM DISCONNECTED";
-        objectPath.set(statsObj, "slack.rtm.connected", false); 
-        objectPath.set(statsObj, "slack.rtm.ready", false); 
-        console.log(chalkLog("WAS | SLACK STATUS\n" + jsonPrint(statsObj.slack)));
-      });
-
-      slackRtmClient.on("ready", async function(){
-
-        try {
-
-          statsObj.status = "SLACK RTM READY";
-
-          objectPath.set(statsObj, "slack.rtm.error", false); 
-          objectPath.set(statsObj, "slack.rtm.connected", true); 
-
-          const slackRtmReady = objectPath.get(statsObj, "slack.rtm.ready", false); 
-
-          console.log("slackRtmReady: " + slackRtmReady);
-
-          if (slackRtmReady) { return resolve(); } // already sent slack rtm ready
-
-          objectPath.set(statsObj, "slack.rtm.ready", true); 
-
-          await slackSendRtmMessage(hostname + " | WAS | SLACK RTM READY");
-
-          let message = {};
-          message.pretext = hostname + "_" + process.pid;
-          message.text = hostname + " | WAS | SLACK RTM READY";
-
-          if (slackWebClient !== undefined) {
-            await slackSendWebMessage(message);
-          }
-
-          console.log(chalkLog("WAS | SLACK STATUS\n" + jsonPrint(statsObj.slack)));
-
-          resolve();
-        }
-        catch(err){
-          reject(err);
-        }
-      });
-
-
-    }
-    catch(err){
-      console.log(chalkError("WAS | *** INIT SLACK RTM CLIENT | " + err));
-      reject(err);
-    }
-
-  });
-}
+// let slackText = "";
+
+// function slackSendMessage(msgObj){
+
+//   return new Promise(function(resolve, reject){
+
+//     let message = msgObj;
+
+//     if (msgObj.message || msgObj.webOnly) { message = msgObj.message; }
+
+//     async.series([
+//       function(cb){
+//         if (slackWebClient !== undefined) { 
+//           slackSendWebMessage(message)
+//           .then(function(){
+//             cb(null, null);
+//           })
+//           .catch(function(err){
+//             cb(err, null);
+//           });
+//         }
+//         else {
+//           cb(null, null);
+//         }
+//       },
+//       function(cb){
+//         if (!msgObj.webOnly && !msgObj.message) { 
+//           slackSendRtmMessage(msgObj)
+//           .then(function(){
+//             cb(null, null);
+//           })
+//           .catch(function(err){
+//             cb(err, null);
+//           });
+//         }
+//         else {
+//           cb(null, null);
+//         }
+//       }
+//     ], function(err, results){
+//       if(err){
+//         return reject(err);
+//       }
+//       resolve(results);
+//     });
+
+//   });
+// }
+
+// function slackSendRtmMessage(msg){
+
+//   return new Promise(function(resolve, reject){
+
+//     slackRtmClient.sendMessage(msg, slackConversationId)
+//     .then(function(sendResponse){
+//       console.log(chalkLog("TFE | SLACK RTM | >T\n" + jsonPrint(sendResponse)));
+//       resolve(sendResponse);
+//     })
+//     .catch(function(err){
+//       reject(err);
+//     });
+
+//   });
+// }
+
+// let slackDefaultAttachments = [];
+
+// let slackDefaultAttachment = {};
+// slackDefaultAttachment.fallback = "TFE | " + hostname + "_" + process.pid;
+// slackDefaultAttachment.title = "@threecee";
+// slackDefaultAttachment.title_link = "http://twitter.com/threecee";
+// slackDefaultAttachment.text = "TFE";
+// slackDefaultAttachment.fields = [];
+// slackDefaultAttachment.fields.push({ title: "PROCESS", value: hostname + "_" + process.pid });
+
+// slackDefaultAttachments.push(slackDefaultAttachment);
+
+
+// function slackSendWebMessage(msgObj){
+
+//   return new Promise(function(resolve, reject){
+
+//     const token = msgObj.token || slackOAuthAccessToken;
+//     const channel = msgObj.channel || configuration.slackChannel.id;
+//     const title = msgObj.title || null;
+//     const title_link = msgObj.title_link || null;
+//     const pretext = msgObj.pretext || hostname + "_" + process.pid;
+//     const text = msgObj.text || "TFE | " + hostname + "_" + process.pid + " | " + msgObj;
+//     const attachments = msgObj.attachments || slackDefaultAttachments;
+
+//     let message = {
+//       token: token, 
+//       channel: channel,
+//       title: title,
+//       title_link: title_link,
+//       pretext: pretext,
+//       text: text,
+//       attachments: attachments
+//     };
+
+//     debug(chalkBlueBold("TFE | SLACK WEB | SEND\n" + jsonPrint(message)));
+
+//     slackWebClient.chat.postMessage(message)
+//     .then(function(sendResponse){
+//       // console.log(chalkLog("TFE | SLACK WEB CHAT | >T\n" + jsonPrint(message)));
+//       resolve(sendResponse);
+//     })
+//     .catch(function(err){
+//       reject(err);
+//     });
+
+//     debug(chalkLog("TFE | SLACK WEB | >T\n" + jsonPrint(sendResponse)));
+//     console.log(chalkLog("TFE | SLACK WEB | >T | " + sendResponse.message.text));
+//     resolve(sendResponse);
+
+//   });
+// }
+
+// function slackMessageHandler(message){
+
+//   return new Promise(function(resolve, reject){
+
+//     console.log(chalkAlert("TFE | <RX MESSAGE | " + message.type + " | " + message.text));
+
+//     switch (message.text) {
+//       case "ERROR":
+//       case "FETCH FRIENDS":
+//       case "FSM INIT":
+//       case "INIT LANG ANALYZER":
+//       case "INIT MAX INPUT HASHMAP":
+//       case "INIT NNs":
+//       case "INIT RAN NNs":
+//       case "INIT RNT CHILD":
+//       case "INIT TWITTER USERS":
+//       case "INIT UNFOLLOWABLE":
+//       case "INIT":
+//       case "LOAD BEST NN":
+//       case "LOAD NN":
+//       case "PONG":
+//       case "QUIT":
+//       case "QUITTING":
+//       case "READY":
+//       case "RESET":
+//       case "SLACK QUIT":
+//       case "SLACK READY":
+//       case "START":
+//       case "STATS":
+//       case "TEXT":
+//         resolve();
+//       break;
+//       case "PING":
+//         // slackSendMessage("PONG");
+//         resolve();
+//       break;
+//       default:
+//         // console.log(chalkAlert("TFE | *** UNDEFINED SLACK MESSAGE: " + message.text));
+//         // reject(new Error("UNDEFINED SLACK MESSAGE TYPE: " + message.text));
+//         resolve();
+//     }
+
+//   });
+// }
+
+// function initSlackWebClient(params){
+
+//   return new Promise(function(resolve, reject){
+
+//     const { WebClient } = require("@slack/client");
+//     slackWebClient = new WebClient(slackRtmToken);
+
+//     slackWebClient.api.test()
+//     .then(function(testResponse){
+
+//       console.log("WAS | SLACK WEB TEST RESPONSE\n" + jsonPrint(testResponse));
+
+//       slackWebClient.bots.info()
+//       .then(function(botsInfoResponse){
+
+//         console.log("WAS | SLACK WEB BOTS INFO RESPONSE\n" + jsonPrint(botsInfoResponse));
+
+//         slackWebClient.conversations.list({token: slackOAuthAccessToken})
+//         .then(function(conversationsListResponse){
+//           async.each(conversationsListResponse.channels, function(channel, cb){
+      
+//             console.log(chalkLog("WAS | CHANNEL | " + channel.id + " | " + channel.name));
+
+//             if (channel.name === slackChannel) {
+
+//               configuration.slackChannel = channel;
+              
+//               slackWebClient.conversations.join({token: slackOAuthAccessToken, channel: configuration.slackChannel.id })
+//               .then(function(conversationsListResponse){
+//                 slackSendWebMessage("SLACK INIT");
+//                 cb();
+//               });
+//             }
+//             else {
+//               cb();
+//             }
+//           }, function(err){
+//             if (err) {
+//               return reject(err);
+//             }
+//             resolve();
+//           });
+//         });
+//       });
+//     })
+//     .catch(function(err){
+//       console.log(chalkError("WAS | *** INIT SLACK WEB CLIENT ERROR: " + err));
+//       reject(err);
+//     });
+
+//   });
+// }
+
+// function initSlackRtmClient(params){
+
+//   return new Promise(async function(resolve, reject){
+
+//     try {
+
+//       const { RTMClient } = require("@slack/client");
+//       slackRtmClient = new RTMClient(slackRtmToken);
+
+//       const slackInfo = await slackRtmClient.start();
+
+//       console.log(chalkInfo("WAS | SLACK RTM | INFO\n" + jsonPrint(slackInfo)));
+
+//       slackRtmClient.on("slack_event", async function(eventType, event){
+//         switch (eventType) {
+//           case "pong":
+//             debug(chalkLog("WAS | SLACK RTM PONG | " + getTimeStamp() + " | " + event.reply_to));
+//           break;
+//           default: console.log(chalkInfo("WAS | SLACK RTM EVENT | " + getTimeStamp() + " | "  + eventType + " | " + event.text));
+//         }
+//       });
+
+
+//       slackRtmClient.on("message", async function(message){
+//         if (configuration.verbose)  { console.log(chalkLog("WAS | RTM R<\n" + jsonPrint(message))); }
+//         console.log(`WAS | SLACK RX< RTM MESSAGE | CH: ${message.channel} | USER: ${message.user} | ${message.text}`);
+
+//         try {
+//           await slackMessageHandler(message);
+//         }
+//         catch(err){
+//           console.log(chalkError("WAS | *** SLACK RTM MESSAGE ERROR: " + err));
+//         }
+
+//       });
+
+//       slackRtmClient.on("error", async function(err){
+//         console.log(chalkError("WAS | *** SLACK RTM CLIENT ERROR: " + err));
+//         statsObj.status = "SLACK RTM ERROR";
+//         objectPath.set(statsObj, "slack.rtm.error", err); 
+//         objectPath.set(statsObj, "slack.rtm.connected", false); 
+//         objectPath.set(statsObj, "slack.rtm.ready", false); 
+//         console.log(chalkLog("WAS | SLACK STATUS\n" + jsonPrint(statsObj.slack)));
+//       });
+
+//       slackRtmClient.on("disconnected", async function(){
+//         console.log(chalkAlert("WAS | *** SLACK RTM CLIENT DISCONNECTED"));
+//         statsObj.status = "SLACK RTM DISCONNECTED";
+//         objectPath.set(statsObj, "slack.rtm.connected", false); 
+//         objectPath.set(statsObj, "slack.rtm.ready", false); 
+//         console.log(chalkLog("WAS | SLACK STATUS\n" + jsonPrint(statsObj.slack)));
+//       });
+
+//       slackRtmClient.on("ready", async function(){
+
+//         try {
+
+//           statsObj.status = "SLACK RTM READY";
+
+//           objectPath.set(statsObj, "slack.rtm.error", false); 
+//           objectPath.set(statsObj, "slack.rtm.connected", true); 
+
+//           const slackRtmReady = objectPath.get(statsObj, "slack.rtm.ready", false); 
+
+//           console.log("slackRtmReady: " + slackRtmReady);
+
+//           if (slackRtmReady) { return resolve(); } // already sent slack rtm ready
+
+//           objectPath.set(statsObj, "slack.rtm.ready", true); 
+
+//           await slackSendRtmMessage(hostname + " | WAS | SLACK RTM READY");
+
+//           let message = {};
+//           message.pretext = hostname + "_" + process.pid;
+//           message.text = hostname + " | WAS | SLACK RTM READY";
+
+//           if (slackWebClient !== undefined) {
+//             await slackSendWebMessage(message);
+//           }
+
+//           console.log(chalkLog("WAS | SLACK STATUS\n" + jsonPrint(statsObj.slack)));
+
+//           resolve();
+//         }
+//         catch(err){
+//           reject(err);
+//         }
+//       });
+
+
+//     }
+//     catch(err){
+//       console.log(chalkError("WAS | *** INIT SLACK RTM CLIENT | " + err));
+//       reject(err);
+//     }
+
+//   });
+// }
 
 
 // function initialize(params){
@@ -9509,7 +10013,7 @@ function initUpdateUserSetsInterval(interval){
 
   console.log(chalk.bold.black("WAS | INIT USER SETS INTERVAL | " + msToTime(interval) ));
 
-  updateUserSetsInterval = setInterval(async function() {
+  updateUserSetsInterval = setInterval(function() {
 
     try {
 
@@ -9520,9 +10024,11 @@ function initUpdateUserSetsInterval(interval){
 
         updateUserSetsIntervalReady = false;
 
-        await updateUserSets();
+        updateUserSets()
+        .then(function(){
+          updateUserSetsIntervalReady = true;
+        });
 
-        updateUserSetsIntervalReady = true;
 
       }
 
@@ -9642,7 +10148,7 @@ function initThreeceeTwitterUsers(params){
 
     console.log(chalkTwitter("WAS | INIT THREECEE TWITTER USERS\n" + jsonPrint(threeceeUsers)));
 
-    async.eachSeries(threeceeUsers, async function(user){
+    async.eachSeries(threeceeUsers, function(user, cb){
 
       console.log(chalkTwitter("WAS | LOADING TWITTER CONFIG | @" + user));
 
@@ -9650,34 +10156,39 @@ function initThreeceeTwitterUsers(params){
 
       try {
 
-        let twitterConfig = await loadFile({folder: dropboxConfigTwitterFolder, file: configFile});
+        // let twitterConfig = await loadFile({folder: dropboxConfigTwitterFolder, file: configFile});
 
-        console.log(chalkTwitter("WAS | LOADED TWITTER CONFIG"
-          + " | 3C @" + user
-          + " | " + dropboxConfigTwitterFolder + "/" + configFile
-          + "\nCONFIG\n" + jsonPrint(twitterConfig)
-        ));
+        loadFile({folder: dropboxConfigTwitterFolder, file: configFile})
+        .then(function(twitterConfig){
 
-        if (!configuration.threeceeUsers.includes(twitterConfig.screenName)) {
-          console.log(chalkAlert("WAS | SKIP CONFIG @" + twitterConfig.screenName + " | NOT IN 3C USERS: " + configuration.threeceeUsers));
-          return ;
-        }
+          console.log(chalkTwitter("WAS | LOADED TWITTER CONFIG"
+            + " | 3C @" + user
+            + " | " + dropboxConfigTwitterFolder + "/" + configFile
+            + "\nCONFIG\n" + jsonPrint(twitterConfig)
+          ));
 
-        threeceeTwitter[user].config = {};
-        threeceeTwitter[user].config = twitterConfig;
+          if (!configuration.threeceeUsers.includes(twitterConfig.screenName)) {
+            console.log(chalkAlert("WAS | SKIP CONFIG @" + twitterConfig.screenName + " | NOT IN 3C USERS: " + configuration.threeceeUsers));
+            return cb() ;
+          }
 
-        threeceeTwitter[user].twit = new Twit({
-          consumer_key: twitterConfig.consumer_key, 
-          consumer_secret:twitterConfig.consumer_secret,
-          app_only_auth: true
+          threeceeTwitter[user].config = {};
+          threeceeTwitter[user].config = twitterConfig;
+
+          threeceeTwitter[user].twit = new Twit({
+            consumer_key: twitterConfig.consumer_key, 
+            consumer_secret:twitterConfig.consumer_secret,
+            app_only_auth: true
+          });
+
+          threeceeTwitter[user].ready = true;
+          threeceeTwitter[user].status = false;
+          threeceeTwitter[user].error = false;
+          statsObj.threeceeUsersConfiguredFlag = true;
+
+          cb();
+
         });
-
-        threeceeTwitter[user].ready = true;
-        threeceeTwitter[user].status = false;
-        threeceeTwitter[user].error = false;
-        statsObj.threeceeUsersConfiguredFlag = true;
-
-        return;
       }
 
       catch(err) {
@@ -9696,19 +10207,23 @@ function initThreeceeTwitterUsers(params){
         threeceeTwitter[user].twit = false;
         threeceeTwitter[user].status = false;
 
-        return(err);
+        return cb(err);
       }
 
-    }, async function(err){
+    }, function(err){
 
       if (err) {
         return reject(err);
       }
 
       try{
-        const currentThreeceeUser = await getCurrentThreeceeUser();
-        console.log(chalkInfo("WAS | CURRENT 3C TWITTER USER: @" + currentThreeceeUser));
-        resolve(currentThreeceeUser);
+
+        getCurrentThreeceeUser()
+        .then(function(currentThreeceeUser){
+          console.log(chalkInfo("WAS | CURRENT 3C TWITTER USER: @" + currentThreeceeUser));
+          resolve(currentThreeceeUser);
+        });
+
       }
       catch(err){
         return reject(err);
@@ -9730,7 +10245,7 @@ function initCategoryHashmapsInterval(interval){
 
     clearInterval(categoryHashmapsInterval);
 
-    categoryHashmapsInterval = setInterval(async function updateMemStats() {
+    categoryHashmapsInterval = setInterval(function updateMemStats() {
 
       if (statsObj.dbConnectionReady && initCategoryHashmapsReady) {
 
@@ -9741,7 +10256,7 @@ function initCategoryHashmapsInterval(interval){
         initCategoryHashmapsReady = false;
 
         try {
-          await initCategoryHashmaps();
+          initCategoryHashmaps().then(function(){});
         }
         catch (err){
           console.log(chalkError("WAS | *** ERROR: LOAD CATEGORY HASHMAPS: " + err));
@@ -9786,6 +10301,10 @@ function twitterGetUserUpdateDb(user, callback){
         }
 
         if (rawUser && (rawUser !== undefined)) {
+
+          if (!statsObj.dbConnectionReady) {
+            return callback("DB CONNECTION NOT READY", rawUser);
+          }
 
           userServerController.convertRawUser({user:rawUser}, function(err, cUser){
 
@@ -9861,6 +10380,10 @@ function twitterGetUserUpdateDb(user, callback){
           user.mentions = Math.max(user.mentions, nCacheObj.mentions);
           user.setMentions = true;
         }
+      }
+
+      if (!statsObj.dbConnectionReady) {
+        return callback("DB CONNECTION NOT READY", user);
       }
 
       userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
@@ -10102,78 +10625,81 @@ initStats(function setCacheObjKeys(){
   cacheObjKeys = Object.keys(statsObj.caches);
 });
 
-setTimeout(async function(){
+setTimeout(function(){
 
   try {
 
-    let cnf = await initConfig();
-    configuration = deepcopy(cnf);
+    initConfig()
+    .then(function(cnf){
 
-    console.log("WAS | " + chalkTwitter(configuration.processName + " STARTED " + getTimeStamp() ));
+      configuration = deepcopy(cnf);
 
-    statsObj.status = "START";
+      console.log("WAS | " + chalkTwitter(configuration.processName + " STARTED " + getTimeStamp() ));
+
+      statsObj.status = "START";
 
 
-    if (configuration.testMode) {
-    }
+      if (configuration.testMode) {
+      }
 
-    console.log("WAS | " + chalkTwitter(configuration.processName + " CONFIGURATION\n" + jsonPrint(configuration)));
+      console.log("WAS | " + chalkTwitter(configuration.processName + " CONFIGURATION\n" + jsonPrint(configuration)));
 
-    await initSlackRtmClient();
-    await initSlackWebClient();
+      // await initSlackRtmClient();
+      // await initSlackWebClient();
 
-    slackSendMessage(hostname + " | WAS | " + statsObj.status);
+      // slackSendMessage(hostname + " | WAS | " + statsObj.status);
 
-    await killAll();
-    io = require("socket.io")(httpServer, ioConfig);
+      killAll().then(function(){
 
-    dbConnectionReadyInterval = setInterval(async function() {
+        io = require("socket.io")(httpServer, ioConfig);
 
-      if (dbConnectionReady) {
+        dbConnectionReadyInterval = setInterval(function() {
 
-        try {
+          if (dbConnectionReady) {
 
-          clearInterval(dbConnectionReadyInterval);
+            try {
 
-          await initInternetCheckInterval(ONE_MINUTE);
+              clearInterval(dbConnectionReadyInterval);
 
-          if (configuration.twitter === undefined) {
-            configuration.twitter = {};
+              if (configuration.twitter === undefined) { configuration.twitter = {}; }
+              // configuration.twitter.bearerToken = await bearerTokenRequest(request_options);
+
+              initInternetCheckInterval(ONE_MINUTE)
+              .then(()=>addAccountActivitySubscription())
+              .then(()=>initKeySortInterval(configuration.keySortInterval))
+              .then(()=>initDropboxSync())
+              .then(()=>initSaveFileQueue(configuration))
+              .then(()=>updateUserSets())
+              .then(()=>loadBestRuntimeNetwork())
+              .then(()=>loadMaxInputHashMap())
+              .then(()=>initIgnoreWordsHashMap())
+              .then(()=>initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers}))
+              .then(()=>initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval))
+              .then(()=>initCategoryHashmapsInterval(configuration.categoryHashmapsUpdateInterval))
+              .then(()=>initRateQinterval(configuration.rateQueueInterval))
+              .then(()=>initTwitterRxQueueInterval(configuration.twitterRxQueueInterval))
+              .then(()=>initTweetParserMessageRxQueueInterval(configuration.tweetParserMessageRxQueueInterval))
+              .then(()=>initTwitterSearchNodeQueueInterval(configuration.twitterSearchNodeQueueInterval))
+              .then(()=>initSorterMessageRxQueueInterval(configuration.sorterMessageRxQueueInterval))
+              .then(()=>initDbuChild({childId: DEFAULT_DBU_CHILD_ID}))
+              .then(()=>initTfeChild({childId: DEFAULT_TFE_CHILD_ID}))
+              .then(()=>initTssChild({childId: DEFAULT_TSS_CHILD_ID}))
+              .then(()=>initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID}));
+
+            }
+            catch(err){
+              console.log(chalkError("WAS | *** DB CONNECT READY INTERVAL ERROR: " + err));
+            }
+            
           }
-          configuration.twitter.bearerToken = await bearerTokenRequest(request_options);
+          else {
+            console.log(chalkAlert("WAS | WAIT DB CONNECTED ..."));
+          }
+        }, 1000);
 
-          await addAccountActivitySubscription();
-          await initKeySortInterval(configuration.keySortInterval);
-          await initDropboxSync();
-          await initSaveFileQueue(configuration);
-          await updateUserSets();
-          await loadBestRuntimeNetwork();
-          await loadMaxInputHashMap();
+      });
 
-          await initIgnoreWordsHashMap();
-          await initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
-          await initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval);
-          await initCategoryHashmapsInterval(configuration.categoryHashmapsUpdateInterval);
-          await initRateQinterval(configuration.rateQueueInterval);
-          await initTwitterRxQueueInterval(configuration.twitterRxQueueInterval);
-          await initTweetParserMessageRxQueueInterval(configuration.tweetParserMessageRxQueueInterval);
-          await initTwitterSearchNodeQueueInterval(configuration.twitterSearchNodeQueueInterval);
-          await initSorterMessageRxQueueInterval(configuration.sorterMessageRxQueueInterval);
-
-          await initDbuChild({childId: DEFAULT_DBU_CHILD_ID});
-          await initTfeChild({childId: DEFAULT_TFE_CHILD_ID});
-          await initTssChild({childId: DEFAULT_TSS_CHILD_ID});
-          await initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
-        }
-        catch(err){
-          console.log(chalkError("WAS | *** DB CONNECT READY INTERVAL ERROR: " + err));
-        }
-        
-      }
-      else {
-        console.log(chalkAlert("WAS | WAIT DB CONNECTED ..."));
-      }
-    }, 1000);
+    });
 
   }
   catch(err){

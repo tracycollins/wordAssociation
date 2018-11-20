@@ -68,10 +68,12 @@ const DEFAULT_CURSOR_BATCH_SIZE = 100;
 
 const DEFAULT_THREECEE_USERS = ["altthreecee00", "altthreecee01", "altthreecee02", "altthreecee03", "altthreecee04", "altthreecee05"];
 
-const DEFAULT_DBU_CHILD_ID = "wa_node_dbu";
-const DEFAULT_TFE_CHILD_ID = "wa_node_tfe";
-const DEFAULT_TSS_CHILD_ID = "wa_node_tss";
-const DEFAULT_TWEET_PARSER_CHILD_ID = "wa_node_tweetParser";
+const DEFAULT_CHILD_ID_PREFIX = "wa_node_child_";
+
+const DEFAULT_DBU_CHILD_ID = DEFAULT_CHILD_ID_PREFIX + "dbu";
+const DEFAULT_TFE_CHILD_ID = DEFAULT_CHILD_ID_PREFIX + "tfe";
+const DEFAULT_TSS_CHILD_ID = DEFAULT_CHILD_ID_PREFIX + "tss";
+const DEFAULT_TWP_CHILD_ID = DEFAULT_CHILD_ID_PREFIX + "twp";
 
 const DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER = "altthreecee02";
 const DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER_FILE = DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER + ".json";
@@ -949,6 +951,10 @@ let dropboxConfigHostFolder = "/config/utility/" + hostname;
 let dropboxConfigDefaultFile = "default_" + configuration.DROPBOX.DROPBOX_WAS_CONFIG_FILE;
 let dropboxConfigHostFile = hostname + "_" + configuration.DROPBOX.DROPBOX_WAS_CONFIG_FILE;
 
+let childPidFolderLocal = (hostname === "google") 
+  ? "/home/tc/Dropbox/Apps/wordAssociation/config/utility/default/children" 
+  : "/Users/tc/Dropbox/Apps/wordAssociation/config/utility/default/children";
+
 let dropboxConfigDefaultTrainingSetsFolder = dropboxConfigDefaultFolder + "/trainingSets";
 let trainingSetsUsersFolder = dropboxConfigDefaultTrainingSetsFolder + "/users";
 
@@ -1545,6 +1551,22 @@ function msToTime(duration) {
 
   if (sign > 0) return days + ":" + hours + ":" + minutes + ":" + seconds;
   return "- " + days + ":" + hours + ":" + minutes + ":" + seconds;
+}
+
+
+function touchChildPidFile(params){
+
+  const childPidFile = params.childId + "=" + params.pid;
+
+  const folder = params.folder || childPidFolderLocal;
+
+  shell.mkdir("-p", folder);
+
+  const path = folder + "/" + childPidFile;
+
+  touch.sync(path, { force: true });
+
+  console.log(chalkBlue("WAS | TOUCH CHILD PID FILE: " + path));
 }
 
 // let previousSlackMessage = "";
@@ -2908,6 +2930,12 @@ function getChildProcesses(params){
 
   return new Promise(function(resolve, reject){
 
+    // DEFAULT_CHILD_ID_PREFIX_XXX=[pid] 
+    shell.cd(childPidFolderLocal);
+    shell.ls(DEFAULT_CHILD_ID_PREFIX + "*").forEach(function (childPidFile) {
+      console.log(chalkAlert("WAS | FOUND CHILD PID FILE: " + childPidFile));
+    });
+
     let command;
     let pid;
     let childId;
@@ -3210,12 +3238,12 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
 
     break;
 
-    case DEFAULT_TWEET_PARSER_CHILD_ID:
+    case DEFAULT_TWP_CHILD_ID:
 
       console.log(chalkError("WAS | *** KILL TWEET PARSER"));
 
-      killChild({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, numKilled){
-        initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, twp){
+      killChild({childId: DEFAULT_TWP_CHILD_ID}, function(err, numKilled){
+        initTweetParser({childId: DEFAULT_TWP_CHILD_ID}, function(err, twp){
           if (!err) { parserChild = twp; }
         });
       });
@@ -3541,11 +3569,11 @@ configEvents.on("NEW_BEST_NETWORK", function configEventDbConnect(bestNetworkId)
 
   }
 
-  if (childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID] !== undefined) {
+  if (childrenHashMap[DEFAULT_TWP_CHILD_ID] !== undefined) {
 
     console.log(chalkBlue("WAS | UPDATE TWP CHILD NETWORK: " + bestNetworkObj.networkId));
 
-    childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({ op: "NETWORK", networkObj: bestNetworkObj }, function twpNetwork(err){
+    childrenHashMap[DEFAULT_TWP_CHILD_ID].child.send({ op: "NETWORK", networkObj: bestNetworkObj }, function twpNetwork(err){
       if (err) {
         console.log(chalkError("WAS | *** TWEET PARSER SEND NETWORK ERROR"
           + " | " + err
@@ -3572,11 +3600,11 @@ configEvents.on("NEW_MAX_INPUT_HASHMAP", function configEventDbConnect(){
 
   }
 
-  if (childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID] !== undefined) {
+  if (childrenHashMap[DEFAULT_TWP_CHILD_ID] !== undefined) {
 
     console.log(chalkBlue("WAS | UPDATE TWP CHILD MAX INPUT HASHMAP: " + Object.keys(maxInputHashMap)));
 
-    childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({ op: "MAX_INPUT_HASHMAP", maxInputHashMap: maxInputHashMap }, function twpMaxInputHashMap(err){
+    childrenHashMap[DEFAULT_TWP_CHILD_ID].child.send({ op: "MAX_INPUT_HASHMAP", maxInputHashMap: maxInputHashMap }, function twpMaxInputHashMap(err){
       if (err) {
         console.log(chalkError("WAS | *** TWEET PARSER SEND MAX_INPUT_HASHMAP ERROR"
           + " | " + err
@@ -7275,7 +7303,7 @@ function initTwitterRxQueueInterval(interval){
 
       tweet = tweetRxQueue.shift();
 
-      childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({ op: "tweet", tweetStatus: tweet });
+      childrenHashMap[DEFAULT_TWP_CHILD_ID].child.send({ op: "tweet", tweetStatus: tweet });
 
     }
   }, interval);
@@ -7821,6 +7849,11 @@ function initTssChild(params){
     childrenHashMap[params.childId].status = "NEW";
     childrenHashMap[params.childId].errors = 0;
 
+    touchChildPidFile({ 
+      childId: params.childId, 
+      pid: childrenHashMap[params.childId].pid
+    });
+
     tss.on("message", function tssMessageRx(m){
 
       childrenHashMap[params.childId].status = "RUNNING";  
@@ -8020,6 +8053,11 @@ function initTfeChild(params){
     childrenHashMap[params.childId].status = "NEW";
     childrenHashMap[params.childId].errors = 0;
 
+    touchChildPidFile({ 
+      childId: params.childId, 
+      pid: childrenHashMap[params.childId].pid
+    });
+
     tfe.on("message", function tfeMessageRx(m){
 
       childrenHashMap[params.childId].status = "RUNNING";  
@@ -8206,6 +8244,11 @@ function initDbuChild(params){
     childrenHashMap[params.childId].status = "NEW";
     childrenHashMap[params.childId].errors = 0;
 
+    touchChildPidFile({ 
+      childId: params.childId, 
+      pid: childrenHashMap[params.childId].pid
+    });
+
     dbu.on("message", function dbuMessageRx(m){
 
       childrenHashMap[params.childId].status = "RUNNING";  
@@ -8321,8 +8364,8 @@ function initTweetParserPingInterval(interval){
 
   tweetParserPingId = moment().valueOf();
 
-  if ((childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID] !== undefined) 
-    && childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child) {
+  if ((childrenHashMap[DEFAULT_TWP_CHILD_ID] !== undefined) 
+    && childrenHashMap[DEFAULT_TWP_CHILD_ID].child) {
 
     tweetParserPingInterval = setInterval(function(){
 
@@ -8330,7 +8373,7 @@ function initTweetParserPingInterval(interval){
 
         tweetParserPingId = moment().valueOf();
 
-        childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({op: "PING", pingId: tweetParserPingId}, function(err){
+        childrenHashMap[DEFAULT_TWP_CHILD_ID].child.send({op: "PING", pingId: tweetParserPingId}, function(err){
 
           tweetParserPingSent = true; 
 
@@ -8338,9 +8381,9 @@ function initTweetParserPingInterval(interval){
 
             console.log(chalkError("WAS | *** TWEET_PARSER SEND PING ERROR: " + err));
 
-            killChild({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, numKilled){
+            killChild({childId: DEFAULT_TWP_CHILD_ID}, function(err, numKilled){
               tweetParserPongReceived = false;
-              initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
+              initTweetParser({childId: DEFAULT_TWP_CHILD_ID});
             });
 
             return;
@@ -8358,15 +8401,15 @@ function initTweetParserPingInterval(interval){
         tweetParserPingSent = false; 
         tweetParserPongReceived = false;
 
-        childrenHashMap[DEFAULT_TWEET_PARSER_CHILD_ID].child.send({op: "PING", pingId: tweetParserPingId}, function(err){
+        childrenHashMap[DEFAULT_TWP_CHILD_ID].child.send({op: "PING", pingId: tweetParserPingId}, function(err){
 
           if (err) {
 
             console.log(chalkError("WAS | *** TWEET_PARSER SEND PING ERROR: " + err));
 
-            killChild({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, numKilled){
+            killChild({childId: DEFAULT_TWP_CHILD_ID}, function(err, numKilled){
               tweetParserPongReceived = false;
-              initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
+              initTweetParser({childId: DEFAULT_TWP_CHILD_ID});
             });
 
             return;
@@ -8397,8 +8440,8 @@ function initTweetParserPingInterval(interval){
 
         // setTimeout(function(){
 
-        //   killChild({childId: DEFAULT_TWEET_PARSER_CHILD_ID}, function(err, numKilled){
-        //     initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID});
+        //   killChild({childId: DEFAULT_TWP_CHILD_ID}, function(err, numKilled){
+        //     initTweetParser({childId: DEFAULT_TWP_CHILD_ID});
         //   });
 
         // }, 5000);
@@ -8428,6 +8471,11 @@ function initTweetParser(params, callback){
   childrenHashMap[params.childId].title = "wa_node_tweetParser";
   childrenHashMap[params.childId].status = "NEW";
   childrenHashMap[params.childId].errors = 0;
+
+  touchChildPidFile({ 
+    childId: params.childId, 
+    pid: childrenHashMap[params.childId].pid
+  });
 
   twp.on("message", function tweetParserMessageRx(m){
 
@@ -10684,7 +10732,7 @@ setTimeout(function(){
               .then(()=>initDbuChild({childId: DEFAULT_DBU_CHILD_ID}))
               .then(()=>initTfeChild({childId: DEFAULT_TFE_CHILD_ID}))
               .then(()=>initTssChild({childId: DEFAULT_TSS_CHILD_ID}))
-              .then(()=>initTweetParser({childId: DEFAULT_TWEET_PARSER_CHILD_ID}));
+              .then(()=>initTweetParser({childId: DEFAULT_TWP_CHILD_ID}));
 
             }
             catch(err){

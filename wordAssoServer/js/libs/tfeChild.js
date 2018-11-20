@@ -1004,7 +1004,7 @@ function activateNetwork(params){
           reject(err);
         }
 
-        const params = {
+        const prms = {
           networkId: networkObj.networkId,
           userScreenName: user.screenName,
           histograms: mergedUserHistograms,
@@ -1013,7 +1013,7 @@ function activateNetwork(params){
           maxInputHashMap: maxInputHashMap
         };
 
-        generateNetworkInputIndexed(params, function(err, networkInput){
+        generateNetworkInputIndexed(prms, function(err, networkInput){
 
           const output = networkObj.network.activate(networkInput);
 
@@ -1763,7 +1763,7 @@ function initUserCategorizeQueueInterval(cnf){
 
       updateUserHistograms({user: user})
       .then(function(updatedUser){
-        activateNetwork(updatedUser)
+        activateNetwork({user: updatedUser})
         .then(function(networkOutput){
 
           if (Object.keys(networkOutput).length === 0) {

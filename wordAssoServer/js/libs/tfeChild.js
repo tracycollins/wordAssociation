@@ -1754,7 +1754,7 @@ function initUserCategorizeQueueInterval(cnf){
 
   userCategorizeQueueInterval = setInterval(function () {
 
-    if (userCategorizeQueueReady && (userCategorizeQueue.length > 0)) {
+    if (userServerControllerReady && userCategorizeQueueReady && (userCategorizeQueue.length > 0)) {
 
       userCategorizeQueueReady = false;
 
@@ -1784,7 +1784,11 @@ function initUserCategorizeQueueInterval(cnf){
             }
 
             updatedUser.categoryAuto = networkOutput[nnId].output;
-            updatedUser.nodeId = updatedUser.nodeId;
+
+            if (!userServerControllerReady) {
+              userCategorizeQueueReady = true;
+              return;
+            }
 
             userServerController.findOneUser(updatedUser, {noInc: false, fields: fieldsTransmit}, function(err, dbUser){
               if (err) {

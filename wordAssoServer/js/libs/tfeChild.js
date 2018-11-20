@@ -100,8 +100,8 @@ hostname = hostname.replace(/word0-instance-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
 
 // const mergeHistograms = require("./mergeHistograms");
-const mergeHistograms = require("@threeceelabs/mergehistograms");
-// const mergeHistograms = new MergeHistograms();
+const MergeHistograms = require("@threeceelabs/mergehistograms");
+const mergeHistograms = new MergeHistograms();
 
 const twitterTextParser = require("@threeceelabs/twitter-text-parser");
 const twitterImageParser = require("@threeceelabs/twitter-image-parser");

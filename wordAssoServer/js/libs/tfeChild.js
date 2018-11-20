@@ -1416,7 +1416,7 @@ function userProfileChangeHistogram(params) {
             // params.category = params.user.category || "none";
             // params.minWordLength = params.minWordLength || DEFAULT_WORD_MIN_LENGTH;
 
-            parseText({category: category, text: text})
+            parseText({category: user.category, text: text})
             .then(function(textParseResults){
 
               if (profileUrl) {

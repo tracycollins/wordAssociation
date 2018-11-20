@@ -210,6 +210,10 @@ statsObj.startTime = moment().valueOf();
 statsObj.elapsed = moment().valueOf() - statsObj.startTime;
 
 statsObj.queues = {};
+statsObj.queues.tweetQueue = {};
+statsObj.queues.tweetQueue.size = 0;
+statsObj.queues.tweetQueue.fullEvents = 0;
+
 statsObj.tweetsReceived = 0;
 statsObj.retweetsReceived = 0;
 statsObj.quotedTweetsReceived = 0;
@@ -554,7 +558,6 @@ function quit(message) {
   if ((global.dbConnection !== undefined) && (global.dbConnection.readyState > 0)) {
 
     global.dbConnection.close(function () {
-      
       console.log(chalkAlert(
         "\nTSS | ==========================\n"
         + "TSS | MONGO DB CONNECTION CLOSED"
@@ -563,7 +566,6 @@ function quit(message) {
 
       process.exit(exitCode);
     });
-
   }
   else {
     process.exit(exitCode);
@@ -1670,10 +1672,14 @@ function initSearchStream(params, callback){
 
     if (tweetQueue.length < configuration.maxTweetQueue ) {
       tweetQueue.push(tweetStatus);
+      statsObj.queues.tweetQueue.size = tweetQueue.length;
+    }
+    else {
+      statsObj.queues.tweetQueue.fullEvents += 1;
     }
 
     if ((threeceeUserObj.stats.tweetsReceived % 500 === 0) || (statsObj.tweetsReceived % 500 === 0)) {
-      console.log(chalkTwitter("TSS | <T | "+ getTimeStamp()
+      console.log(chalkTwitter("TSS | <T | " + getTimeStamp()
         + " | TWQ: " + tweetQueue.length
         + " [ TOTAL Ts/RTs/QTs: " + statsObj.tweetsReceived + "/" + statsObj.retweetsReceived + "/" + statsObj.quotedTweetsReceived + "]"
         + " | 3C @" + threeceeUserObj.screenName
@@ -1689,7 +1695,6 @@ function initSearchStream(params, callback){
       ));
     }
 
-    statsObj.queues.tweetQueue = tweetQueue.length;
   });
 
   callback(null, threeceeUserObj);
@@ -2017,6 +2022,7 @@ function initTwitterQueue(cnf, callback){
     if (tweetSendReady && (tweetQueue.length > 0)) {
 
       tweetSendReady = false;
+      statsObj.queues.tweetQueue.ready = false;
 
       deltaTxTweet = process.hrtime(deltaTxTweetStart);
       if (deltaTxTweet[0] > 0) { 
@@ -2025,6 +2031,7 @@ function initTwitterQueue(cnf, callback){
       deltaTxTweetStart = process.hrtime();
 
       tweetStatus = tweetQueue.shift();
+      statsObj.queues.tweetQueue.size = tweetQueue.length;
 
       if (tweetStatus.id_str !== prevTweetId) {
 
@@ -2043,11 +2050,13 @@ function initTwitterQueue(cnf, callback){
         clearTimeout(sendMessageTimeout);
         prevTweetId = tweetStatus.id_str;
         tweetSendReady = true;
+        statsObj.queues.tweetQueue.ready = true;
 
       }
       else {
 
         tweetSendReady = true;
+        statsObj.queues.tweetQueue.ready = true;
 
         statsObj.tweetsDuplicates += 1 ;
 

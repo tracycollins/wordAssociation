@@ -1339,10 +1339,12 @@ function userProfileChangeHistogram(params) {
     }
 
     let text = false;
+    let url = false;
     let profileUrl = false;
     let bannerImageUrl = false;
 
     async.each(userProfileChanges, function(userProp, cb){
+
 
       const prevUserProp = "previous" + _.upperFirst(userProp);
 
@@ -1359,9 +1361,10 @@ function userProfileChangeHistogram(params) {
         break;
         case "screenName":
           text += "\n@" + user[userProp];
-          break;
+        break;
         case "url":
           url = user[userProp];
+        break;
         case "profileUrl":
           profileUrl = user[userProp];
         break;

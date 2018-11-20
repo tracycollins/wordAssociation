@@ -340,7 +340,7 @@ function initTweetParserQueueInterval(cnf){
       })
       .catch(function(err){
         if (err) {
-          console.log(chalkError("TWP | *** CREATE STREAM TWEET ERROR: " + err));
+          console.log(chalkError("TWP | *** CREATE STREAM TWEET ERROR: ", err));
         }
         tweetParserQueueReady = true;
         if (err.code !== 11000) { console.log(chalkError("TWP | CREATE STREAM TWEET ERROR\n" + jsonPrint(err))); }

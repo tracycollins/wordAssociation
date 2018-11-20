@@ -9,7 +9,7 @@
     "@threeceelabs/mergehistograms": "^1.0.1",
     "@threeceelabs/mongoose-twitter": "^1.0.173",
     "@threeceelabs/socketio-auth": "^1.0.13",
-    "@threeceelabs/tweet-server-controller": "^1.0.334",
+    "@threeceelabs/tweet-server-controller": "^1.0.335",
     "@threeceelabs/twitter-image-parser": "^1.0.56",
     "@threeceelabs/user-server-controller": "^1.0.376",
     "@threeceelabs/word-server-controller": "^1.0.41",

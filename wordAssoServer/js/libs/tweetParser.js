@@ -83,7 +83,7 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
 
   tweetServerController.on("error", function(err){
     tweetServerControllerReady = false;
-    console.log(chalkError("TWP | *** TSC ERROR | " + err));
+    console.trace(chalkError("TWP | *** TSC ERROR | " + err));
   });
 });
 
@@ -93,7 +93,7 @@ const dbAppName = "TWP_" + process.pid;
 wordAssoDb.connect(dbAppName, function(err, db) {
 
   if (err) {
-    console.log(chalkError("TWP | *** MONGO DB CONNECTION ERROR"
+    console.trace(chalkError("TWP | *** MONGO DB CONNECTION ERROR"
       + " | DB APP NAME: " + dbAppName
       + " | ERROR: " + err
     ));
@@ -103,7 +103,7 @@ wordAssoDb.connect(dbAppName, function(err, db) {
 
   db.on("error", function(err){
     console.error.bind(console, "TWP | *** MONGO DB CONNECTION ERROR ***\n");
-    console.log(chalkError("TWP | *** MONGO DB CONNECTION ERROR"
+    console.trace(chalkError("TWP | *** MONGO DB CONNECTION ERROR"
       + " | DB APP NAME: " + dbAppName
       + " | ERROR: " + err
     ));
@@ -114,7 +114,7 @@ wordAssoDb.connect(dbAppName, function(err, db) {
 
   db.on("disconnected", function(){
     console.error.bind(console, "TWP | MONGO DB DISCONNECTED ***\n");
-    console.log(chalkError("TWP | MONGO DB DISCONNECTED"
+    console.trace(chalkError("TWP | MONGO DB DISCONNECTED"
       + " | DB APP NAME: " + dbAppName
     ));
     dbConnectionReady = false;
@@ -323,7 +323,7 @@ function initTweetParserQueueInterval(cnf){
             tweetParserQueueReady = true;
 
             if (err) {
-              console.error(chalkError("TWP | *** PARSER SEND TWEET ERROR"
+              console.trace(chalkError("TWP | *** PARSER SEND TWEET ERROR"
                 + " | " + moment().format(compactDateTimeFormat)
                 + " | " + err
               ));
@@ -340,10 +340,10 @@ function initTweetParserQueueInterval(cnf){
       })
       .catch(function(err){
         if (err) {
-          console.log(chalkError("TWP | *** CREATE STREAM TWEET ERROR: ", err));
+          console.trace(chalkError("TWP | *** CREATE STREAM TWEET ERROR: ", err));
         }
         tweetParserQueueReady = true;
-        if (err.code !== 11000) { console.log(chalkError("TWP | CREATE STREAM TWEET ERROR\n" + jsonPrint(err))); }
+        if (err.code !== 11000) { console.trace(chalkError("TWP | CREATE STREAM TWEET ERROR\n" + jsonPrint(err))); }
       });
 
       // let tweetObj;
@@ -403,7 +403,7 @@ function initTweetParserQueueInterval(cnf){
     //   }
     //   catch(err){
     //     tweetParserQueueReady = true;
-    //     if (err.code !== 11000) { console.log(chalkError("TWP | CREATE STREAM TWEET ERROR\n" + jsonPrint(err))); }
+    //     if (err.code !== 11000) { console.trace(chalkError("TWP | CREATE STREAM TWEET ERROR\n" + jsonPrint(err))); }
     //   }
 
     }
@@ -536,7 +536,7 @@ process.on("message", function(m) {
     break;
 
     default:
-      console.log(chalkError("TWP | *** TWEET PARSER UNKNOWN OP"
+      console.trace(chalkError("TWP | *** TWEET PARSER UNKNOWN OP"
         + " | INTERVAL: " + m.op
       ));
   }

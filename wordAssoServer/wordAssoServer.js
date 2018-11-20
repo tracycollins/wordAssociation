@@ -5,6 +5,7 @@
 let saveSampleTweetFlag = true;
 
 const os = require("os");
+const kill = require("tree-kill");
 
 let hostname = os.hostname();
 hostname = hostname.replace(/.local/g, "");
@@ -952,8 +953,8 @@ let dropboxConfigDefaultFile = "default_" + configuration.DROPBOX.DROPBOX_WAS_CO
 let dropboxConfigHostFile = hostname + "_" + configuration.DROPBOX.DROPBOX_WAS_CONFIG_FILE;
 
 let childPidFolderLocal = (hostname === "google") 
-  ? "/home/tc/Dropbox/Apps/wordAssociation/config/utility/default/children" 
-  : "/Users/tc/Dropbox/Apps/wordAssociation/config/utility/default/children";
+  ? "/home/tc/Dropbox/Apps/wordAssociation/config/utility/google/children" 
+  : "/Users/tc/Dropbox/Apps/wordAssociation/config/utility/" + hostname + "/children";
 
 let dropboxConfigDefaultTrainingSetsFolder = dropboxConfigDefaultFolder + "/trainingSets";
 let trainingSetsUsersFolder = dropboxConfigDefaultTrainingSetsFolder + "/users";
@@ -2880,48 +2881,70 @@ function killChild(params){
 
   return new Promise(function(resolve, reject){
 
-    let pid = false;
-    let command;
+    let pid;
 
-    if (params.title !== undefined) {
-      command = "pkill -f " + params.title;
+    if ((params.pid === undefined) && childrenHashMap[params.childId] === undefined) {
+      return reject(new Error("CHILD ID NOT FOUND: " + params.childId));
     }
-    else if (params.pid !== undefined) {
+
+    if (params.pid) {
       pid = params.pid;
-      command = "kill " + pid;
     }
-    else if (params.childId !== undefined) {
-      if (childrenHashMap[params.childId] === undefined) {
-        console.log(chalkError("WAS | KILL CHILD ERROR: CHILD NOT IN HM: " + params.childId));
-        return reject(new Error("ERROR: CHILD NOT IN HM: " + params.childId));
-      }
+    else if (params.childId && childrenHashMap[params.childId] !== undefined) {
       pid = childrenHashMap[params.childId].pid;
-      command = "kill " + pid;
     }
 
 
-    shell.exec(command, function(code, stdout, stderr){
+    kill(pid, function(err){
 
-      console.log(chalkAlert("WAS | KILL CHILD"
-        + "\nPARAMS\n " + jsonPrint(params)
-        + "\nCOMMAND: " + command
-        + "\nCODE:    " + code
-        + "\nSTDOUT:  " + stdout
-        + "\nSTDERR:  " + stderr
-      )); 
-
-      // slackSendMessage(
-      //   "\n*KILL CHILD*"
-      //   + "\nPARAMS\n " + jsonPrint(params)
-      //   + "\nCOMMAND: " + command
-      //   + "\nCODE:    " + code
-      //   + "\nSTDOUT:  " + stdout
-      //   + "\nSTDERR:  " + stderr
-      // );
-
-      resolve({stderr: stderr, code: code, stdout: stdout });
+      if (err) { return reject(err); }
+      resolve(params);
 
     });
+
+
+    // let pid = false;
+    // let command;
+
+    // if (params.title !== undefined) {
+    //   command = "pkill -f " + params.title;
+    // }
+    // else if (params.pid !== undefined) {
+    //   pid = params.pid;
+    //   command = "kill " + pid;
+    // }
+    // else if (params.childId !== undefined) {
+    //   if (childrenHashMap[params.childId] === undefined) {
+    //     console.log(chalkError("WAS | KILL CHILD ERROR: CHILD NOT IN HM: " + params.childId));
+    //     return reject(new Error("ERROR: CHILD NOT IN HM: " + params.childId));
+    //   }
+    //   pid = childrenHashMap[params.childId].pid;
+    //   command = "kill " + pid;
+    // }
+
+
+    // shell.exec(command, function(code, stdout, stderr){
+
+    //   console.log(chalkAlert("WAS | KILL CHILD"
+    //     + "\nPARAMS\n " + jsonPrint(params)
+    //     + "\nCOMMAND: " + command
+    //     + "\nCODE:    " + code
+    //     + "\nSTDOUT:  " + stdout
+    //     + "\nSTDERR:  " + stderr
+    //   )); 
+
+    //   // slackSendMessage(
+    //   //   "\n*KILL CHILD*"
+    //   //   + "\nPARAMS\n " + jsonPrint(params)
+    //   //   + "\nCOMMAND: " + command
+    //   //   + "\nCODE:    " + code
+    //   //   + "\nSTDOUT:  " + stdout
+    //   //   + "\nSTDERR:  " + stderr
+    //   // );
+
+    //   resolve({stderr: stderr, code: code, stdout: stdout });
+
+    // });
 
   });
 }
@@ -2930,157 +2953,235 @@ function getChildProcesses(params){
 
   return new Promise(function(resolve, reject){
 
-    // DEFAULT_CHILD_ID_PREFIX_XXX=[pid] 
-    shell.cd(childPidFolderLocal);
-    shell.ls(DEFAULT_CHILD_ID_PREFIX + "*").forEach(function (childPidFile) {
-      console.log(chalkAlert("WAS | FOUND CHILD PID FILE: " + childPidFile));
-    });
-
     let command;
     let pid;
     let childId;
     let numChildren = 0;
     let childPidArray = [];
 
-    if ((params.searchTerm === undefined) || (params.searchTerm === "ALL")){
-      command = "pgrep " + "wa_";
-    }
-    else {
-      command = "pgrep " + params.searchTerm;
-    }
+    // DEFAULT_CHILD_ID_PREFIX_XXX=[pid] 
+    console.log("SHELL: cd " + childPidFolderLocal);
+    shell.cd(childPidFolderLocal);
 
-    debug(chalkAlert("getChildProcesses | command: " + command));
+    const childPidFileNameArray = shell.ls(DEFAULT_CHILD_ID_PREFIX + "*");
 
+    async.eachSeries(childPidFileNameArray, function (childPidFileName, cb) {
 
-    shell.exec(command, {silent: true}, function(code, stdout, stderr){
+      console.log("SHELL: childPidFileName: " + childPidFileName);
 
-      if (stderr) {
-        console.log(chalkError("WAS | *** SHELL ERROR"
-          + " | COMMAND: " + command
-          + " | STDERR: " + stderr
+      // wa_node_child_dbu=46633
+      const childPidStringArray = childPidFileName.split("=");
+
+      const childId = childPidStringArray[0];
+      const childPid = childPidStringArray[1];
+
+      console.log("SHELL: CHILD ID: " + childId + " | PID: " + childPid);
+
+      if ((childrenHashMap[childId] !== undefined) && (childrenHashMap[childId].pid === childPid)) {
+        // cool kid
+        childPidArray.push({ pid: childPid, childId: childId});
+
+        console.log(chalkInfo("WAS | FOUND CHILD"
+          + " [ " + childPidArray.length + " CHILDREN ]"
+          + " | ID: " + childId
+          + " | PID: " + childPid
+          + " | FILE: " + childPidFileName
         ));
-        return reject(stderr);
+
+        cb();
+
       }
+      else {
 
-      if (code === 0) {
+        console.log("SHELL: CHILD NOT IN HASH | ID: " + childId + " | PID: " + childPid);
 
-        let soArray = stdout.trim();
+        if (childrenHashMap[childId] === undefined) {
+          childrenHashMap[childId] = {};
+          childrenHashMap[childId].status = "ZOMBIE";
+        }
 
-        let stdoutArray = soArray.split("\n");
+        console.log(chalkAlert("WAS | *** CHILD ZOMBIE"
+          + " | STATUS: " + childrenHashMap[childId].status
+          + " | TERMINATING ..."
+        ));
 
-        async.eachSeries(stdoutArray, function(pidRaw, cb){
-
-          pid = pidRaw.trim();
-
-          if (parseInt(pid) > 0) {
-
-            command = "ps -o command= -p " + pid;
-
-            shell.exec(command, {silent: true}, function(code, stdout, stderr){
-
-              if (stderr) {
-                console.log(chalkError("WAS | *** SHELL ERROR"
-                  + " | COMMAND: " + command
-                  + " | STDERR: " + stderr
-                ));
-                return cb(stderr);
-              }
-
-              childId = stdout.trim();
-
-              numChildren += 1;
-
-              debug(chalk.blue("WAS | FOUND CHILD PROCESS"
-                + " | NUM: " + numChildren
-                + " | PID: " + pid
-                + " | " + childId
-              ));
-
-              if (childrenHashMap[childId] === undefined) {
-
-                childrenHashMap[childId] = {};
-                childrenHashMap[childId].status = "ZOMBIE";
-
-                console.log(chalkError("WAS | *** CHILD ZOMBIE ***"
-                  + " | NUM: " + numChildren
-                  + " | PID: " + pid
-                  + " | " + childId
-                  + " | STATUS: " + childrenHashMap[childId].status
-                ));
-
-
-                // try {
-                  // await killChild({pid: pid});
-                  killChild({pid: pid})
-                  .then(function(){
-                    console.log(chalkAlert("WAS | XXX ZOMBIE CHILD KILLED | PID: " + pid + " | CH ID: " + childId));
-                    cb();
-                  })
-                  .catch(function(err){
-                    console.log(chalkError("WAS | *** KILL CHILD ERROR"
-                      + " | PID: " + pid
-                      + " | ERROR: " + err
-                    ));
-                    return cb(err);
-                  });
-
-                // }
-                // catch(err){
-                //  console.log(chalkError("WAS | *** KILL CHILD ERROR"
-                //     + " | PID: " + pid
-                //     + " | ERROR: " + err
-                //   ));
-                //   return cb(err);
-                // }
-              }
-              else {
-                debug(chalkInfo("WAS | CHILD"
-                  + " | PID: " + pid
-                  + " | " + childId
-                  + " | STATUS: " + childrenHashMap[childId].status
-                ));
-                childPidArray.push({ pid: pid, childId: childId});
-                cb();
-              }
-
-            });
-          }
-          else {
-            cb();
-          }
-
-        }, function(err){
+        kill(childPid, function(err){
 
           if (err) {
-            console.log(chalkError("WAS | *** GET CHILD PROCESSES ERROR"
-              + " | ERROR: " + err
-            ));
-            return reject(err);
+            console.log(chalkError("WAS | *** KILL ZOMBIE ERROR: ", err));
+            return cb(err);
           }
 
-          resolve(childPidArray);
+          delete childrenHashMap[childId];
+
+          shell.rm(childPidFileName);
+
+          console.log(chalkAlert("WAS | XXX CHILD ZOMBIE"
+            + " [ " + childPidArray.length + " CHILDREN ]"
+            + " | ID: " + childId
+            + " | PID: " + childPid
+          ));
+
+          cb();
 
         });
 
       }
 
-      if (code === 1) {
-        console.log(chalkInfo("WAS | NO NN CHILD PROCESSES FOUND"));
-        return resolve([]);
+    }, function(err){
+      if (err) {
+        return reject(err);
       }
 
-      if (code > 1) {
-        console.log(chalkAlert("WAS | ERROR *** SHELL KILL CHILD"
-          + "\nSHELL :: WAS | COMMAND: " + command
-          + "\nSHELL :: WAS | EXIT CODE: " + code
-          + "\nSHELL :: WAS | STDOUT\n" + stdout
-          + "\nSHELL :: WAS | STDERR\n" + stderr
-        ));
-        return reject(stderr);
-        // if (callback !== undefined) { callback(stderr, command); }
-      }
+      resolve(childPidArray);
 
     });
+
+    // let command;
+    // let pid;
+    // let childId;
+    // let numChildren = 0;
+    // let childPidArray = [];
+
+    // if ((params.searchTerm === undefined) || (params.searchTerm === "ALL")){
+    //   command = "pgrep " + "wa_";
+    // }
+    // else {
+    //   command = "pgrep " + params.searchTerm;
+    // }
+
+    // debug(chalkAlert("getChildProcesses | command: " + command));
+
+
+    // shell.exec(command, {silent: true}, function(code, stdout, stderr){
+
+    //   if (stderr) {
+    //     console.log(chalkError("WAS | *** SHELL ERROR"
+    //       + " | COMMAND: " + command
+    //       + " | STDERR: " + stderr
+    //     ));
+    //     return reject(stderr);
+    //   }
+
+    //   if (code === 0) {
+
+    //     let soArray = stdout.trim();
+
+    //     let stdoutArray = soArray.split("\n");
+
+    //     async.eachSeries(stdoutArray, function(pidRaw, cb){
+
+    //       pid = pidRaw.trim();
+
+    //       if (parseInt(pid) > 0) {
+
+    //         command = "ps -o command= -p " + pid;
+
+    //         shell.exec(command, {silent: true}, function(code, stdout, stderr){
+
+    //           if (stderr) {
+    //             console.log(chalkError("WAS | *** SHELL ERROR"
+    //               + " | COMMAND: " + command
+    //               + " | STDERR: " + stderr
+    //             ));
+    //             return cb(stderr);
+    //           }
+
+    //           childId = stdout.trim();
+
+    //           numChildren += 1;
+
+    //           debug(chalk.blue("WAS | FOUND CHILD PROCESS"
+    //             + " | NUM: " + numChildren
+    //             + " | PID: " + pid
+    //             + " | " + childId
+    //           ));
+
+    //           if (childrenHashMap[childId] === undefined) {
+
+    //             childrenHashMap[childId] = {};
+    //             childrenHashMap[childId].status = "ZOMBIE";
+
+    //             console.log(chalkError("WAS | *** CHILD ZOMBIE ***"
+    //               + " | NUM: " + numChildren
+    //               + " | PID: " + pid
+    //               + " | " + childId
+    //               + " | STATUS: " + childrenHashMap[childId].status
+    //             ));
+
+
+    //             // try {
+    //               // await killChild({pid: pid});
+    //               killChild({pid: pid})
+    //               .then(function(){
+    //                 console.log(chalkAlert("WAS | XXX ZOMBIE CHILD KILLED | PID: " + pid + " | CH ID: " + childId));
+    //                 cb();
+    //               })
+    //               .catch(function(err){
+    //                 console.log(chalkError("WAS | *** KILL CHILD ERROR"
+    //                   + " | PID: " + pid
+    //                   + " | ERROR: " + err
+    //                 ));
+    //                 return cb(err);
+    //               });
+
+    //             // }
+    //             // catch(err){
+    //             //  console.log(chalkError("WAS | *** KILL CHILD ERROR"
+    //             //     + " | PID: " + pid
+    //             //     + " | ERROR: " + err
+    //             //   ));
+    //             //   return cb(err);
+    //             // }
+    //           }
+    //           else {
+    //             debug(chalkInfo("WAS | CHILD"
+    //               + " | PID: " + pid
+    //               + " | " + childId
+    //               + " | STATUS: " + childrenHashMap[childId].status
+    //             ));
+    //             childPidArray.push({ pid: pid, childId: childId});
+    //             cb();
+    //           }
+
+    //         });
+    //       }
+    //       else {
+    //         cb();
+    //       }
+
+    //     }, function(err){
+
+    //       if (err) {
+    //         console.log(chalkError("WAS | *** GET CHILD PROCESSES ERROR"
+    //           + " | ERROR: " + err
+    //         ));
+    //         return reject(err);
+    //       }
+
+    //       resolve(childPidArray);
+
+    //     });
+
+    //   }
+
+    //   if (code === 1) {
+    //     console.log(chalkInfo("WAS | NO NN CHILD PROCESSES FOUND"));
+    //     return resolve([]);
+    //   }
+
+    //   if (code > 1) {
+    //     console.log(chalkAlert("WAS | ERROR *** SHELL KILL CHILD"
+    //       + "\nSHELL :: WAS | COMMAND: " + command
+    //       + "\nSHELL :: WAS | EXIT CODE: " + code
+    //       + "\nSHELL :: WAS | STDOUT\n" + stdout
+    //       + "\nSHELL :: WAS | STDERR\n" + stderr
+    //     ));
+    //     return reject(stderr);
+    //     // if (callback !== undefined) { callback(stderr, command); }
+    //   }
+
+    // });
 
   });
 }
@@ -3092,7 +3193,7 @@ function killAll(callback){
     // let childPidArray = await getChildProcesses({searchTerm: "ALL"});
     getChildProcesses({searchTerm: "ALL"})
     .then(function(childPidArray){
-      debug(chalkAlert("getChildProcesses childPidArray\n" + jsonPrint(childPidArray)));
+      console.log(chalkAlert("getChildProcesses childPidArray\n" + jsonPrint(childPidArray)));
       if (childPidArray && (childPidArray.length > 0)) {
 
         async.eachSeries(childPidArray, function(childObj, cb){
@@ -9244,64 +9345,75 @@ function initStatsUpdate(cnf) {
 
       statsInterval = setInterval(function updateStats() {
 
-        getChildProcesses({searchTerm: "ALL"}, function(err, childArray){
+        getChildProcesses({searchTerm: "ALL"})
+        .then(function(childArray){
 
-          if (configuration.verbose)  { console.log(chalkLog("WAS | FOUND " + childArray.length + " CHILDREN")); }
+          if (configuration.verbose)  { 
+            console.log(chalkLog("WAS | FOUND " + childArray.length + " CHILDREN"));
+          }
           
           childArray.forEach(function(childObj){
-            console.log(chalkLog("WAS | CHILD | PID: " + childObj.pid + " | " + childObj.childId + " | " + childrenHashMap[childObj.childId].status));
+            console.log(chalkLog("WAS | CHILD"
+              + " | PID: " + childObj.pid 
+              + " | " + childObj.childId 
+              + " | " + childrenHashMap[childObj.childId].status
+            ));
           });
+
+          statsObj.serverTime = moment().valueOf();
+          statsObj.timeStamp = getTimeStamp();
+          statsObj.runTime = moment().valueOf() - statsObj.startTime;
+          statsObj.upTime = os.uptime() * 1000;
+
+          if (statsObj.twitter.tweetsPerMin > statsObj.twitter.maxTweetsPerMin){
+            statsObj.twitter.maxTweetsPerMin = statsObj.twitter.tweetsPerMin;
+            statsObj.twitter.maxTweetsPerMinTime = moment().valueOf();
+          }
+
+          statsObj.nodeMeterEntries = Object.keys(nodeMeter).length;
+
+          if (statsObj.nodeMeterEntries > statsObj.nodeMeterEntriesMax) {
+            statsObj.nodeMeterEntriesMax = statsObj.nodeMeterEntries;
+            statsObj.nodeMeterEntriesMaxTime = moment().valueOf();
+            debug(chalkLog("NEW MAX NODE METER ENTRIES"
+              + " | " + getTimeStamp()
+              + " | " + statsObj.nodeMeterEntries.toFixed(0)
+            ));
+          }
+
+          statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
+
+          if (statsObj.memory.heap > statsObj.memory.maxHeap) {
+            statsObj.memory.maxHeap = statsObj.memory.heap;
+            statsObj.memory.maxHeapTime = moment().valueOf();
+            debug(chalkLog("NEW MAX HEAP"
+              + " | " + getTimeStamp()
+              + " | " + statsObj.memory.heap.toFixed(0) + " MB"
+            ));
+          }
+
+          statsObj.memory.memoryAvailable = os.freemem();
+          statsObj.memory.memoryTotal = os.totalmem();
+          statsObj.memory.memoryUsage = process.memoryUsage();
+
+          if (adminNameSpace) { statsObj.admin.connected = Object.keys(adminNameSpace.connected).length; }// userNameSpace.sockets.length ;
+          if (utilNameSpace) { statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; } // userNameSpace.sockets.length ;
+          if (viewNameSpace) { statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; } // userNameSpace.sockets.length ;
+
+          saveStats(statsFile, statsObj, function saveStatsComplete(status){
+            debug(chalkLog("SAVE STATS " + status));
+          });
+
+          showStats();
+
+          if (statsObj.twitNotReadyWarning) { statsObj.twitNotReadyWarning = false; }
+
+          statsUpdated += 1;
+
+        })
+        .catch(function(err){
+
         });
-
-        statsObj.serverTime = moment().valueOf();
-        statsObj.timeStamp = getTimeStamp();
-        statsObj.runTime = moment().valueOf() - statsObj.startTime;
-        statsObj.upTime = os.uptime() * 1000;
-
-        if (statsObj.twitter.tweetsPerMin > statsObj.twitter.maxTweetsPerMin){
-          statsObj.twitter.maxTweetsPerMin = statsObj.twitter.tweetsPerMin;
-          statsObj.twitter.maxTweetsPerMinTime = moment().valueOf();
-        }
-
-        statsObj.nodeMeterEntries = Object.keys(nodeMeter).length;
-
-        if (statsObj.nodeMeterEntries > statsObj.nodeMeterEntriesMax) {
-          statsObj.nodeMeterEntriesMax = statsObj.nodeMeterEntries;
-          statsObj.nodeMeterEntriesMaxTime = moment().valueOf();
-          debug(chalkLog("NEW MAX NODE METER ENTRIES"
-            + " | " + getTimeStamp()
-            + " | " + statsObj.nodeMeterEntries.toFixed(0)
-          ));
-        }
-
-        statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
-
-        if (statsObj.memory.heap > statsObj.memory.maxHeap) {
-          statsObj.memory.maxHeap = statsObj.memory.heap;
-          statsObj.memory.maxHeapTime = moment().valueOf();
-          debug(chalkLog("NEW MAX HEAP"
-            + " | " + getTimeStamp()
-            + " | " + statsObj.memory.heap.toFixed(0) + " MB"
-          ));
-        }
-
-        statsObj.memory.memoryAvailable = os.freemem();
-        statsObj.memory.memoryTotal = os.totalmem();
-        statsObj.memory.memoryUsage = process.memoryUsage();
-
-        if (adminNameSpace) { statsObj.admin.connected = Object.keys(adminNameSpace.connected).length; }// userNameSpace.sockets.length ;
-        if (utilNameSpace) { statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; } // userNameSpace.sockets.length ;
-        if (viewNameSpace) { statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; } // userNameSpace.sockets.length ;
-
-        saveStats(statsFile, statsObj, function saveStatsComplete(status){
-          debug(chalkLog("SAVE STATS " + status));
-        });
-
-        showStats();
-
-        if (statsObj.twitNotReadyWarning) { statsObj.twitNotReadyWarning = false; }
-
-        statsUpdated += 1;
 
       }, cnf.statsUpdateIntervalTime);
 

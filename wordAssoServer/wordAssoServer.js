@@ -2960,6 +2960,9 @@ function getChildProcesses(params){
     let childPidArray = [];
 
     // DEFAULT_CHILD_ID_PREFIX_XXX=[pid] 
+
+    shell.mkdir("-p", childPidFolderLocal);
+
     console.log("SHELL: cd " + childPidFolderLocal);
     shell.cd(childPidFolderLocal);
 
@@ -7273,7 +7276,9 @@ function initAppRouting(callback) {
         ));
       } 
       else {
-        debug(chalkInfo("SENT:", sessionHtml));
+        if (configuration.verbose) {
+          console.log(chalkInfo("SENT:", sessionHtml));
+        }
       }
     });
   });

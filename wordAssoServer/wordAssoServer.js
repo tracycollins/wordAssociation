@@ -7196,11 +7196,11 @@ function initAppRouting(callback) {
     }
   });
 
-  app.use(express.static("./"));
-  app.use(express.static("./js"));
-  app.use(express.static("./css"));
-  app.use(express.static("./node_modules"));
-  app.use(express.static("./public/assets/images"));
+  app.use(express.static(__dirname + "/"));
+  app.use(express.static(__dirname + "/js"));
+  app.use(express.static(__dirname + "/css"));
+  app.use(express.static(__dirname + "/node_modules"));
+  app.use(express.static(__dirname + "/public/assets/images"));
 
   const adminHtml = __dirname + "/admin/admin.html";
 

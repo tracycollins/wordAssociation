@@ -2973,11 +2973,23 @@ function getChildProcesses(params){
       const childPidStringArray = childPidFileName.split("=");
 
       const childId = childPidStringArray[0];
-      const childPid = childPidStringArray[1];
+      const childPid = parseInt(childPidStringArray[1]);
 
       console.log("SHELL: CHILD ID: " + childId + " | PID: " + childPid);
 
-      if ((childrenHashMap[childId] !== undefined) && (childrenHashMap[childId].pid === childPid)) {
+      if (childrenHashMap[childId]) {
+        console.log("CHILD HM HIT"
+          + " | ID: " + childId 
+          + " | SHELL PID: " + childPid 
+          + " | HM PID: " + childrenHashMap[childId].pid 
+          + " | STATUS: " + childrenHashMap[childId].status
+        );
+      }
+      else {
+        console.log("CHILD HM MISS | ID: " + childId + " | PID: " + childPid + " | STATUS: UNKNOWN");
+      }
+
+      if ((childrenHashMap[childId] !== undefined) && (childrenHashMap[childId].pid == childPid)) {
         // cool kid
         childPidArray.push({ pid: childPid, childId: childId});
 
@@ -8332,27 +8344,29 @@ function initDbuChild(params){
 
   return new Promise(function(resolve, reject){
 
+    const childId = params.childId;
+
     statsObj.dbuChildReady = false;
 
     console.log(chalk.bold.black("WAS | INIT DBU CHILD\n" + jsonPrint(params)));
 
     const dbu = cp.fork(`${__dirname}/js/libs/dbuChild.js`);
 
-    childrenHashMap[params.childId] = {};
-    childrenHashMap[params.childId].pid = dbu.pid;
-    childrenHashMap[params.childId].childId = params.childId;
-    childrenHashMap[params.childId].title = "wa_node_dbu";
-    childrenHashMap[params.childId].status = "NEW";
-    childrenHashMap[params.childId].errors = 0;
+    childrenHashMap[childId] = {};
+    childrenHashMap[childId].pid = dbu.pid;
+    childrenHashMap[childId].childId = childId;
+    childrenHashMap[childId].title = "wa_node_dbu";
+    childrenHashMap[childId].status = "NEW";
+    childrenHashMap[childId].errors = 0;
 
     touchChildPidFile({ 
-      childId: params.childId, 
-      pid: childrenHashMap[params.childId].pid
+      childId: childId, 
+      pid: childrenHashMap[childId].pid
     });
 
     dbu.on("message", function dbuMessageRx(m){
 
-      childrenHashMap[params.childId].status = "RUNNING";  
+      childrenHashMap[childId].status = "RUNNING";  
 
       debug(chalkLog("DBU RX MESSAGE"
         + " | OP: " + m.op
@@ -8369,7 +8383,7 @@ function initDbuChild(params){
 
         case "PONG":
           dbuPongReceived = m.pongId;
-          childrenHashMap[params.childId].status = "RUNNING";
+          childrenHashMap[childId].status = "RUNNING";
           if (configuration.verbose) {
             console.log(chalkInfo("WAS | <DBU | PONG"
               + " | NOW: " + getTimeStamp()
@@ -8392,7 +8406,7 @@ function initDbuChild(params){
       statsObj.dbuSendReady = false;
       statsObj.dbuChildReady = false;
       clearInterval(dbuPingInterval);
-      childrenHashMap[params.childId].status = "ERROR";
+      childrenHashMap[childId].status = "ERROR";
     });
 
     dbu.on("exit", function dbuExit(code){
@@ -8403,7 +8417,7 @@ function initDbuChild(params){
       statsObj.dbuSendReady = false;
       statsObj.dbuChildReady = false;
       clearInterval(dbuPingInterval);
-      childrenHashMap[params.childId].status = "EXIT";
+      childrenHashMap[childId].status = "EXIT";
     });
 
     dbu.on("close", function dbuClose(code){
@@ -8414,10 +8428,10 @@ function initDbuChild(params){
       statsObj.dbuSendReady = false;
       statsObj.dbuChildReady = false;
       clearInterval(dbuPingInterval);
-      childrenHashMap[params.childId].status = "CLOSE";
+      childrenHashMap[childId].status = "CLOSE";
     });
 
-    childrenHashMap[params.childId].child = dbu;
+    childrenHashMap[childId].child = dbu;
 
     statsObj.dbuChildReady = true;
 
@@ -8438,13 +8452,13 @@ function initDbuChild(params){
         statsObj.dbuSendReady = false;
         statsObj.dbuChildReady = false;
         clearInterval(dbuPingInterval);
-        childrenHashMap[params.childId].status = "ERROR";
+        childrenHashMap[childId].status = "ERROR";
         reject(err);
       }
       else {
         statsObj.dbuSendReady = true;
         statsObj.dbuChildReady = true;
-        childrenHashMap[params.childId].status = "INIT";
+        childrenHashMap[childId].status = "INIT";
         clearInterval(dbuPingInterval);
         setTimeout(function(){
           initDbuPingInterval(DBU_PING_INTERVAL);
@@ -8569,7 +8583,7 @@ function initTweetParser(params, callback){
   childrenHashMap[params.childId] = {};
   childrenHashMap[params.childId].pid = twp.pid;
   childrenHashMap[params.childId].childId = params.childId;
-  childrenHashMap[params.childId].title = "wa_node_tweetParser";
+  childrenHashMap[params.childId].title = "wa_node_twp";
   childrenHashMap[params.childId].status = "NEW";
   childrenHashMap[params.childId].errors = 0;
 

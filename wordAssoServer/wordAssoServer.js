@@ -1153,6 +1153,14 @@ let uncategorizedAutoUserArray = [];
 let mismatchUserSet = new Set();
 let mismatchUserArray = [];
 
+let HashtagServerController;
+let UserServerController;
+
+let hashtagServerController;
+let userServerController;
+
+let hashtagServerControllerReady = false;
+let userServerControllerReady = false;
 
 const mongoose = require("mongoose");
 // mongoose.Promise = global.Promise;
@@ -1287,8 +1295,12 @@ function connectDb(){
 
             const rawUser = profile["_json"];
 
-            if (userServerController === undefined) {
-              return cb("USC UNDEFINED", null);
+            // if (userServerController === undefined) {
+            //   return cb("USC UNDEFINED", null);
+            // }
+
+            if (!userServerControllerReady) {
+              return cb(new Error("userServerController not ready"), null);
             }
 
             userServerController.convertRawUser({user:rawUser}, function(err, user){
@@ -1484,15 +1496,6 @@ dbConnectInterval = setInterval(function(){
 
 }, 10*ONE_SECOND);
 
-
-let HashtagServerController;
-let UserServerController;
-
-let hashtagServerController;
-let userServerController;
-
-let hashtagServerControllerReady = true;
-let userServerControllerReady = true;
 
 function toMegabytes(sizeInBytes) {
   return sizeInBytes/ONE_MEGABYTE;
@@ -3822,6 +3825,9 @@ function categorizeNode(categorizeObj, callback) {
         categorizeObj.node.mentions = Math.max(categorizeObj.node.mentions, nCacheObj.mentions);
       }
 
+      if (!userServerControllerReady) {
+        return callback(new Error("userServerController not ready"), null);
+      }
 
       userServerController.updateCategory(
         {user: categorizeObj.node, category: categorizeObj.category}, 
@@ -5567,6 +5573,9 @@ function initSocketHandler(socketObj) {
       + " | SENT AT " + getTimeStamp(parseInt(viewerObj.timeStamp))
     ));
 
+    if (!userServerControllerReady) {
+      return callback(new Error("userServerController not ready"), null);
+    }
 
     userServerController.findOne({user: defaultTwitterUser}, function(err, user){
 
@@ -6630,6 +6639,10 @@ function initTransmitNodeQueueInterval(interval){
 
                 n.updateLastSeen = true;
 
+                if (!userServerControllerReady) {
+                  return callback(new Error("userServerController not ready"), null);
+                }
+
                 userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit}, function(err, updatedUser){
                   if (err) {
                     console.log(chalkError("WAS | findOneUser ERROR" + jsonPrint(err)));
@@ -7302,6 +7315,9 @@ function initAppRouting(callback) {
     ));  // handle errors
 
     // slackSendMessage("PASSPORT TWITTER AUTH USER: @" + req.session.passport.user.screenName);
+    if (!userServerControllerReady) {
+      return callback(new Error("userServerController not ready"), null);
+    }
 
     userServerController.findOne({ user: req.session.passport.user}, function(err, user) {
       if(err) {
@@ -9651,9 +9667,13 @@ function initCategoryHashmaps(){
 
           function(cb0){
 
-            if (!statsObj.dbConnectionReady) {
-              return cb0("DB CONNECTION NOT READY");
+            // if (!statsObj.dbConnectionReady) {
+            //   return cb0("DB CONNECTION NOT READY");
+            // }
+            if (!userServerControllerReady) {
+              return cb0(new Error("userServerController not ready"), null);
             }
+
 
             userServerController.findCategorizedUsersCursor(p, function(err, results){
 
@@ -10481,8 +10501,11 @@ function twitterGetUserUpdateDb(user, callback){
 
         if (rawUser && (rawUser !== undefined)) {
 
-          if (!statsObj.dbConnectionReady) {
-            return callback("DB CONNECTION NOT READY", rawUser);
+          // if (!statsObj.dbConnectionReady) {
+          //   return callback("DB CONNECTION NOT READY", rawUser);
+          // }
+          if (!userServerControllerReady) {
+            return callback(new Error("userServerController not ready"), null);
           }
 
           userServerController.convertRawUser({user:rawUser}, function(err, cUser){
@@ -10511,6 +10534,10 @@ function twitterGetUserUpdateDb(user, callback){
             if (nCacheObj) {
               user.mentions = Math.max(user.mentions, nCacheObj.mentions);
               user.setMentions = true;
+            }
+
+            if (!userServerControllerReady) {
+              return callback(new Error("userServerController not ready"), null);
             }
 
             userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
@@ -10561,8 +10588,12 @@ function twitterGetUserUpdateDb(user, callback){
         }
       }
 
-      if (!statsObj.dbConnectionReady) {
-        return callback("DB CONNECTION NOT READY", user);
+      // if (!statsObj.dbConnectionReady) {
+      //   return callback("DB CONNECTION NOT READY", user);
+      // }
+
+      if (!userServerControllerReady) {
+        return callback(new Error("userServerController not ready"), user);
       }
 
       userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){

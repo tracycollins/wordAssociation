@@ -2,7 +2,7 @@
 /*jshint sub:true*/
 "use strict";
 
-process.title = "wa_node_tss";
+process.title = "wa_node_child_tss";
 
 const DEFAULT_MAX_TWEET_QUEUE = 500;
 const DEFAULT_TWITTER_QUEUE_INTERVAL = 10;

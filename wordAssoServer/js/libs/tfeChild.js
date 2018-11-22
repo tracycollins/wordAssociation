@@ -2,7 +2,7 @@
 /*jshint sub:true*/
 "use strict";
 
-process.title = "wa_node_tfe";
+process.title = "wa_node_child_tfe";
 
 const DEFAULT_WORD_MIN_LENGTH = 3;
 const DEFAULT_INPUT_TYPES = [

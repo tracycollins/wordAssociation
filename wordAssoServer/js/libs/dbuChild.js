@@ -2,7 +2,7 @@
 /*jshint sub:true*/
 "use strict";
 
-process.title = "node_databaseUpdate";
+process.title = "wa_node_child_dbu";
 
 let inputTypes = [
   "emoji", 

@@ -7979,7 +7979,7 @@ function initTssChild(params){
     childrenHashMap[params.childId] = {};
     childrenHashMap[params.childId].pid = tss.pid;
     childrenHashMap[params.childId].childId = params.childId;
-    childrenHashMap[params.childId].title = "wa_node_tss";
+    childrenHashMap[params.childId].title = params.childId;
     childrenHashMap[params.childId].status = "NEW";
     childrenHashMap[params.childId].errors = 0;
 
@@ -8135,7 +8135,7 @@ function initTssChild(params){
 
     tss.send({
       op: "INIT",
-      title: "wa_node_tss",
+      title: "wa_node_child_tss",
       networkObj: bestNetworkObj,
       maxInputHashMap: maxInputHashMap,
       normalization: normalization,
@@ -8183,7 +8183,7 @@ function initTfeChild(params){
     childrenHashMap[params.childId] = {};
     childrenHashMap[params.childId].pid = tfe.pid;
     childrenHashMap[params.childId].childId = params.childId;
-    childrenHashMap[params.childId].title = "wa_node_tfe";
+    childrenHashMap[params.childId].title = params.childId;
     childrenHashMap[params.childId].status = "NEW";
     childrenHashMap[params.childId].errors = 0;
 
@@ -8326,7 +8326,7 @@ function initTfeChild(params){
 
     tfeChild.send({
       op: "INIT",
-      title: "wa_node_tfe",
+      title: "wa_node_child_tfe",
       networkObj: bestNetworkObj,
       maxInputHashMap: maxInputHashMap,
       normalization: normalization,
@@ -8375,8 +8375,8 @@ function initDbuChild(params){
 
     childrenHashMap[childId] = {};
     childrenHashMap[childId].pid = dbu.pid;
-    childrenHashMap[childId].childId = childId;
-    childrenHashMap[childId].title = "wa_node_dbu";
+    childrenHashMap[childId].childId = params.childId;
+    childrenHashMap[params.childId].title = params.childId;
     childrenHashMap[childId].status = "NEW";
     childrenHashMap[childId].errors = 0;
 
@@ -8460,7 +8460,7 @@ function initDbuChild(params){
 
     dbuChild.send({
       op: "INIT",
-      title: "wa_node_dbu",
+      title: "wa_node_child_dbu",
       interval: configuration.dbuInterval,
       testMode: configuration.testMode,
       verbose: configuration.verbose
@@ -8604,7 +8604,7 @@ function initTweetParser(params, callback){
   childrenHashMap[params.childId] = {};
   childrenHashMap[params.childId].pid = twp.pid;
   childrenHashMap[params.childId].childId = params.childId;
-  childrenHashMap[params.childId].title = "wa_node_twp";
+  childrenHashMap[params.childId].title = params.childId;
   childrenHashMap[params.childId].status = "NEW";
   childrenHashMap[params.childId].errors = 0;
 
@@ -8685,7 +8685,7 @@ function initTweetParser(params, callback){
 
   twp.send({
     op: "INIT",
-    title: "wa_node_tweetParser",
+    title: "wa_node_child_twp",
     networkObj: bestNetworkObj,
     maxInputHashMap: maxInputHashMap,
     normalization: normalization,

@@ -6,7 +6,7 @@
 global.dbConnection = false;
 let dbConnectionReady = false;
 
-process.title = "wa_node_tweetParser";
+process.title = "wa_node_child_twp";
 
 // let networkReady = false;
 

@@ -113,8 +113,8 @@ wordAssoDb.connect(dbAppName, function(err, db) {
   });
 
   db.on("disconnected", function(){
-    console.error.bind(console, "TWP | MONGO DB DISCONNECTED ***\n");
-    console.trace(chalkError("TWP | MONGO DB DISCONNECTED"
+    // console.error.bind(console, "TWP | MONGO DB DISCONNECTED ***\n");
+    console.log(chalkError("TWP | MONGO DB DISCONNECTED"
       + " | DB APP NAME: " + dbAppName
     ));
     dbConnectionReady = false;

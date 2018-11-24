@@ -130,7 +130,6 @@ function getTimeStamp(inputTime) {
 
 global.dbConnection = false;
 const mongoose = require("mongoose");
-// mongoose.Promise = global.Promise;
 
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 

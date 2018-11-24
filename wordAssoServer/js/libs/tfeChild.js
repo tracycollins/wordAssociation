@@ -268,7 +268,6 @@ statsObj.analyzer.errors = 0;
 
 global.dbConnection = false;
 const mongoose = require("mongoose");
-mongoose.Promise = global.Promise;
 
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
@@ -356,7 +355,6 @@ debug("TFE | dropboxConfigFile : " + dropboxConfigFile);
 debug("TFE | statsFolder : " + statsFolder);
 debug("TFE | statsFile : " + statsFile);
 
-// const dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN });
 const dropboxClient = new Dropbox({ 
   accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN,
   fetch: fetchDropbox
@@ -465,7 +463,7 @@ function saveFile (path, file, jsonObj, callback){
     .catch(function(error){
       console.error(chalkError("TFE | " + moment().format(defaultDateTimeFormat) 
         + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
-        + "\nTFE | ERROR: " + error
+        + "\nTFE | ERROR: ", error
       ));
       callback(error.error, null);
     });

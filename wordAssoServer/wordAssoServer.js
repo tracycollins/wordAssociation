@@ -6912,24 +6912,6 @@ function initAppRouting(callback) {
       }
       res.sendStatus(404);
     }
-    // else if (req.path === TWITTER_WEBHOOK_URL) {
-
-    //   console.log(chalk.bold.blue("WAS | R< TWITTER WEB HOOK | " + TWITTER_WEBHOOK_URL
-    //     + " | CRC TOKEN: " + req.query.crc_token
-    //   ));
-
-    //   const hmac = getChallengeResponse(req.query.crc_token, threeceeConfig.consumer_secret);
-
-    //   const response_token = "sha256=" + Buffer.from(hmac).toString('base64');
-
-    //   console.log(chalk.bold.blue("WAS | T> TWITTER WEB HOOK RES TOKEN"
-    //     + " | " + response_token
-    //   ));
-
-    //   const response = { "response_token" : response_token };
-
-    //   res.send(response);
-    // }
     else if (req.path === "/dropbox_webhook") {
 
       console.log(chalk.bold.black("WAS | R< DROPBOX WEB HOOK | /dropbox_webhook"
@@ -6959,7 +6941,7 @@ function initAppRouting(callback) {
 
               if (err) {
                 console.log(chalkError("WAS | *** DROPBOX GET LATEST CURSOR ERROR: " + err));
-                return err;
+                return cb(err);
               }
               
               if (response && (response.entries.length > 0)) {
@@ -7049,86 +7031,6 @@ function initAppRouting(callback) {
               }
             });
 
-
-          // try {
-          //   dropboxFolderGetLastestCursor(folder, function(err, response){
-
-          //     if (err) {
-          //       console.log(chalkError("WAS | *** DROPBOX GET LATEST CURSOR ERROR: " + err));
-          //       return err;
-          //     }
-              
-          //     if (response && (response.entries.length > 0)) {
-
-          //       setTimeout(function(){
-
-          //         console.log(chalk.bold.black("WAS | >>> DROPBOX CHANGE"
-          //           + " | " + getTimeStamp()
-          //           + " | FOLDER: " + folder
-          //         ));
-
-          //         response.entries.forEach(async function(entry){
-
-          //           console.log(chalkAlert("WAS | >>> DROPBOX CHANGE | " + entry.path_lower));
-
-          //           if ((entry.path_lower.endsWith("google_wordassoserverconfig.json"))
-          //             || (entry.path_lower.endsWith("default_wordassoserverconfig.json"))){
-          //             initConfig(configuration);
-          //           }
-
-          //           if (entry.path_lower.endsWith("users.zip")){
-          //             touchUsersZipUpdateFlag();
-          //           }
-
-          //           if (entry.path_lower.endsWith(bestRuntimeNetworkFileName)){
-          //             await loadBestRuntimeNetwork();
-          //           }
-
-          //           if (entry.path_lower.endsWith(maxInputHashMapFile)){
-
-          //             setTimeout(async function(){
-
-          //               await loadMaxInputHashMap();
-          //               configEvents.emit("NEW_MAX_INPUT_HASHMAP");
-
-          //             }, 10*ONE_SECOND);
-
-          //           }
-
-          //           if (entry.path_lower.endsWith("defaultsearchterms.txt")){
-          //             updateSearchTerms();
-          //           }
-
-          //           if (entry.path_lower.endsWith("followablesearchterm.txt")){
-          //             initFollowableSearchTermSet();
-          //           }
-
-          //           if ((entry.path_lower.endsWith("google_twittersearchstreamconfig.json"))
-          //             || (entry.path_lower.endsWith("default_twittersearchstreamconfig.json"))){
-
-          //             killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, numKilled){
-          //               tssPongReceived = false;
-          //               initTssChild({childId: DEFAULT_TSS_CHILD_ID});
-          //             });
-
-          //           }
-
-          //         });
-
-          //         return;
-          //       }, configuration.dropboxWebhookChangeTimeout);
-
-          //     }
-          //     else {
-          //       setTimeout(function(){ return; }, configuration.dropboxWebhookChangeTimeout);
-          //     }
-          //   });
-          // }
-          // catch(err){
-          //   console.log(chalkError("WAS | *** DROPBOX WEBHOOK ERROR: " + err));
-          //   return err;
-          // }
-
         }, function(err){
           if (err) {
             console.log(chalkError("WAS | *** DROPBOX WEBHOOK ERROR: " + err));
@@ -7173,30 +7075,7 @@ function initAppRouting(callback) {
       ));
       res.sendStatus(200);
     }
-    // else if (req.path === "/slack"){
 
-    //   console.log(chalkAlert("WAS | SLACK"));
-
-    //   if (req.body.type === "url_verification") {
-    //     console.log(chalkInfo("WAS | R< SLACK URL VERIFICATION"
-    //       + " | TOKEN: " + req.body.token
-    //       + " | CHALLENGE: " + req.body.challenge
-    //     ));
-    //     res.send(req.body.challenge);
-    //   }
-    // }
-    // else if (req.path === "/slack_event"){
-
-    //   console.log(chalkAlert("WAS | SLACK"));
-
-    //   if (req.body.type === "url_verification") {
-    //     console.log(chalkInfo("WAS | R< SLACK URL VERIFICATION"
-    //       + " | TOKEN: " + req.body.token
-    //       + " | CHALLENGE: " + req.body.challenge
-    //     ));
-    //     res.send(req.body.challenge);
-    //   }
-    // }
     else {
       console.log(chalkLog("WAS | R<"
         + " | " + getTimeStamp()

@@ -238,7 +238,6 @@ statsObj.twitterLimitMaxTime = moment().valueOf();
 
 global.dbConnection = false;
 const mongoose = require("mongoose");
-// mongoose.Promise = global.Promise;
 
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
@@ -253,48 +252,6 @@ let userServerController;
 
 let userServerControllerReady = false;
 
-// function connectDb(callback){
-
-//   statsObj.status = "CONNECT DB";
-
-//   wordAssoDb.connect("TSS_" + process.pid, function(err, db){
-//     if (err) {
-//       console.log(chalkError("TSS | *** MONGO DB CONNECTION ERROR: " + err));
-//       dbConnectionReady = false;
-//       callback(err, null);
-//     }
-//     else {
-
-//       db.on("close", function(){
-//         console.error.bind(console, "TSS | ***  MONGO DB CONNECTION CLOSED ***\n");
-//         console.log(chalkError("TSS | *** MONGO DB CONNECTION CLOSED ***\n"));
-//         dbConnectionReady = false;
-//       });
-
-//       db.on("error", function(){
-//         console.error.bind(console, "TSS | ***  MONGO DB CONNECTION ERROR ***\n");
-//         console.log(chalkError("TSS | *** MONGO DB CONNECTION ERROR ***\n"));
-//         db.close();
-//         dbConnectionReady = false;
-//       });
-
-//       db.on("disconnected", function(){
-//         console.error.bind(console, "TSS | *** MONGO DB DISCONNECTED ***\n");
-//         console.log(chalkAlert("TSS | *** MONGO DB DISCONNECTED ***\n"));
-//         dbConnectionReady = false;
-//       });
-
-
-//       console.log(chalk.green("TSS | MONGOOSE DEFAULT CONNECTION OPEN"));
-
-//       dbConnectionReady = true;
-
-//       // User = mongoose.model("User", userModel.UserSchema);
-
-//       callback(null, db);
-//     }
-//   });
-// }
 
 function connectDb(){
 

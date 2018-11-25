@@ -1078,8 +1078,8 @@ function getFileMetadata(path, file, callback) {
 const MAX_FOLLOW_USER_IDS = 5000;
 
 let followingUserIdHashMap = new HashMap();
-let deltaTweetStart = process.hrtime();
-let deltaTweet = process.hrtime(deltaTweetStart);
+// let deltaTweetStart = process.hrtime();
+// let deltaTweet = process.hrtime(deltaTweetStart);
 
 let prevFileModifiedMoment = moment("2010-01-01");
 
@@ -1594,14 +1594,14 @@ function initSearchStream(params, callback){
     tweetStatus.entities.symbols = [];
     tweetStatus.entities.urls = [];
 
-    deltaTweet = process.hrtime(deltaTweetStart);
-    if (deltaTweet[0] > 0) { 
-      console.log(chalkAlert("TSS | *** TWEET RX DELTA"
-        + " | @" + threeceeUserObj.screenName
-        + " | " + deltaTweet[0] + "." + deltaTweet[1]
-      ));
-    }
-    deltaTweetStart = process.hrtime();
+    // deltaTweet = process.hrtime(deltaTweetStart);
+    // if (deltaTweet[0] > 0) { 
+    //   console.log(chalkAlert("TSS | *** TWEET RX DELTA"
+    //     + " | @" + threeceeUserObj.screenName
+    //     + " | " + deltaTweet[0] + "." + deltaTweet[1]
+    //   ));
+    // }
+    // deltaTweetStart = process.hrtime();
 
     threeceeUserObj.stats.rateLimited = false;
 
@@ -1959,8 +1959,8 @@ function initialize(cnf, callback){
   });
 }
 
-let deltaTxTweetStart = process.hrtime();
-let deltaTxTweet = process.hrtime(deltaTxTweetStart);
+// let deltaTxTweetStart = process.hrtime();
+// let deltaTxTweet = process.hrtime(deltaTxTweetStart);
 
 let tweetSendReady = true;
 let sendMessageTimeout;
@@ -1981,11 +1981,11 @@ function initTwitterQueue(cnf, callback){
       tweetSendReady = false;
       statsObj.queues.tweetQueue.ready = false;
 
-      deltaTxTweet = process.hrtime(deltaTxTweetStart);
-      if (deltaTxTweet[0] > 0) { 
-        console.log(chalkAlert("TSS | *** TWEET TX DELTA: " + deltaTxTweet[0] + "." + deltaTxTweet[1]));
-      }
-      deltaTxTweetStart = process.hrtime();
+      // deltaTxTweet = process.hrtime(deltaTxTweetStart);
+      // if (deltaTxTweet[0] > 0) { 
+      //   console.log(chalkAlert("TSS | *** TWEET TX DELTA: " + deltaTxTweet[0] + "." + deltaTxTweet[1]));
+      // }
+      // deltaTxTweetStart = process.hrtime();
 
       tweetStatus = tweetQueue.shift();
       statsObj.queues.tweetQueue.size = tweetQueue.length;
@@ -3208,7 +3208,7 @@ setTimeout(function(){
 
       }
       else {
-        console.log(chalkLog("TSS | WAIT DB CONNECTED ..."));
+        console.log(chalkInfo("TSS | WAIT DB CONNECTED ..."));
       }
     }, 1000);
 

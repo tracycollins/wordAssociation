@@ -70,9 +70,21 @@ const mongoose = require("mongoose");
 
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
+  Emoji = mongoose.model("Emoji", emojiModel.EmojiSchema);
+  Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
+  Media = mongoose.model("Media", mediaModel.MediaSchema);
+  Location = mongoose.model("Location", locationModel.LocationSchema);
+  Place = mongoose.model("Place", placeModel.PlaceSchema);
+  Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
+  Url = mongoose.model("Url", urlModel.UrlSchema);
+  User = mongoose.model("User", userModel.UserSchema);
+  Word = mongoose.model("Word", wordModel.WordSchema);
+
+
 configEvents.on("DB_CONNECT", function configEventDbConnect(){
 
   TweetServerController = require("@threeceelabs/tweet-server-controller");
+  // TweetServerController = require("../../../../tweetServerController/index.js");
   tweetServerController = new TweetServerController("TWP");
 
   tweetServerController.on("ready", function(err){
@@ -121,15 +133,15 @@ wordAssoDb.connect(dbAppName, function(err, db) {
     configEvents.emit("DB_DISCONNECT");
   });
 
-  Emoji = mongoose.model("Emoji", emojiModel.EmojiSchema);
-  Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
-  Media = mongoose.model("Media", mediaModel.MediaSchema);
-  Location = mongoose.model("Location", locationModel.LocationSchema);
-  Place = mongoose.model("Place", placeModel.PlaceSchema);
-  Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
-  Url = mongoose.model("Url", urlModel.UrlSchema);
-  User = mongoose.model("User", userModel.UserSchema);
-  Word = mongoose.model("Word", wordModel.WordSchema);
+  // Emoji = mongoose.model("Emoji", emojiModel.EmojiSchema);
+  // Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
+  // Media = mongoose.model("Media", mediaModel.MediaSchema);
+  // Location = mongoose.model("Location", locationModel.LocationSchema);
+  // Place = mongoose.model("Place", placeModel.PlaceSchema);
+  // Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
+  // Url = mongoose.model("Url", urlModel.UrlSchema);
+  // User = mongoose.model("User", userModel.UserSchema);
+  // Word = mongoose.model("Word", wordModel.WordSchema);
 
 
   console.log(chalkInfo("TWP | DB READY STATE: " + db.readyState));
@@ -308,7 +320,7 @@ function initTweetParserQueueInterval(cnf){
 
           process.send({op: "parsedTweet", tweetObj: tweetObj}, function(err){
 
-            tweetParserQueueReady = true;
+            // tweetParserQueueReady = true;
 
             if (err) {
               console.trace(chalkError("TWP | *** PARSER SEND TWEET ERROR"
@@ -322,8 +334,9 @@ function initTweetParserQueueInterval(cnf){
                 + " | " + tweetObj.tweetId
               ));
             }
-            
           });
+
+          tweetParserQueueReady = true;
         }
       })
       .catch(function(err){

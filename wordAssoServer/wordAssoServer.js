@@ -31,10 +31,10 @@ let heartbeatInterval;
 
 process.env.NODE_ENV = process.env.NODE_ENV || "development";
 
-const NS_PER_SEC = 1e9;
-let time = process.hrtime();
-let diff = process.hrtime(time);
-let deltaNS = diff[0] * NS_PER_SEC + diff[1];
+// const NS_PER_SEC = 1e9;
+// let time = process.hrtime();
+// let diff = process.hrtime(time);
+// let deltaNS = diff[0] * NS_PER_SEC + diff[1];
 
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
@@ -973,6 +973,9 @@ let categorizedHashtagsFile = "categorizedHashtags.json";
 let statsFolder = "/stats/" + hostname;
 let statsFile = "wordAssoServerStats_" + moment().format(tinyDateTimeFormat) + ".json";
 
+let testDataFolder = dropboxConfigDefaultFolder + "/test/testData/tweets";
+
+
 configuration.dropboxChangeFolderArray = [ 
   bestNetworkFolder, 
   dropboxConfigDefaultFolder, 
@@ -1448,8 +1451,8 @@ function connectDb(){
           console.log(chalkAlert("WAS | USC READY | " + appname));
           // dbConnectionReady = true;
 
-          resolve(db);
           configEvents.emit("DB_CONNECT");
+          resolve(db);
 
         });
 
@@ -2966,14 +2969,14 @@ function getChildProcesses(params){
 
     shell.mkdir("-p", childPidFolderLocal);
 
-    console.log("SHELL: cd " + childPidFolderLocal);
+    debug("SHELL: cd " + childPidFolderLocal);
     shell.cd(childPidFolderLocal);
 
     const childPidFileNameArray = shell.ls(DEFAULT_CHILD_ID_PREFIX + "*");
 
     async.eachSeries(childPidFileNameArray, function (childPidFileName, cb) {
 
-      console.log("SHELL: childPidFileName: " + childPidFileName);
+      debug("SHELL: childPidFileName: " + childPidFileName);
 
       // wa_node_child_dbu=46633
       const childPidStringArray = childPidFileName.split("=");
@@ -2981,10 +2984,10 @@ function getChildProcesses(params){
       const childId = childPidStringArray[0];
       const childPid = parseInt(childPidStringArray[1]);
 
-      console.log("SHELL: CHILD ID: " + childId + " | PID: " + childPid);
+      debug("SHELL: CHILD ID: " + childId + " | PID: " + childPid);
 
       if (childrenHashMap[childId]) {
-        console.log("CHILD HM HIT"
+        debug("CHILD HM HIT"
           + " | ID: " + childId 
           + " | SHELL PID: " + childPid 
           + " | HM PID: " + childrenHashMap[childId].pid 
@@ -2992,14 +2995,14 @@ function getChildProcesses(params){
         );
       }
       else {
-        console.log("CHILD HM MISS | ID: " + childId + " | PID: " + childPid + " | STATUS: UNKNOWN");
+        debug("CHILD HM MISS | ID: " + childId + " | PID: " + childPid + " | STATUS: UNKNOWN");
       }
 
       if ((childrenHashMap[childId] !== undefined) && (childrenHashMap[childId].pid == childPid)) {
         // cool kid
         childPidArray.push({ pid: childPid, childId: childId});
 
-        console.log(chalkInfo("WAS | FOUND CHILD"
+        debug(chalkInfo("WAS | FOUND CHILD"
           + " [ " + childPidArray.length + " CHILDREN ]"
           + " | ID: " + childId
           + " | PID: " + childPid
@@ -3011,7 +3014,7 @@ function getChildProcesses(params){
       }
       else {
 
-        console.log("SHELL: CHILD NOT IN HASH | ID: " + childId + " | PID: " + childPid);
+        debug("SHELL: CHILD NOT IN HASH | ID: " + childId + " | PID: " + childPid);
 
         if (childrenHashMap[childId] === undefined) {
           childrenHashMap[childId] = {};
@@ -3638,10 +3641,11 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
 
       initCategoryHashmaps()
       .then(function(){
-        cb();
         initCategoryHashmapsReady = true;
+        cb();
       })
       .catch(function(err){
+        initCategoryHashmapsReady = true;
         return cb(err);
       });
 
@@ -3654,22 +3658,6 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
     }
   });
  
-  // try{
-
-  //   await initSocketNamespaces();
-  //   await initUnfollowableUserSet();
-  //   await initIgnoredUserSet();
-  //   await initFollowableSearchTermSet();
-
-  //   initCategoryHashmapsReady = false;
-  //   await initCategoryHashmaps();
-  //   initCategoryHashmapsReady = true;
-  //   console.log(chalk.bold.green("WAS | +++ LOADED CATEGORY HASHMAPS"));
-  // }
-  // catch(err){
-  //   console.log(chalkError("WAS | *** ERROR: LOAD CATEGORY HASHMAPS: " + err));
-  //   console.error(err);
-  // }
 });
 
 configEvents.on("NEW_BEST_NETWORK", function configEventDbConnect(bestNetworkId){
@@ -3919,36 +3907,36 @@ function categorizeNode(categorizeObj, callback) {
   }
 }
 
-let deltaTweetStart = process.hrtime();
-let deltaTweet = process.hrtime(deltaTweetStart);
+// let deltaTweetStart = process.hrtime();
+// let deltaTweet = process.hrtime(deltaTweetStart);
 
 function socketRxTweet(tw) {
 
   tweetMeter.mark();
 
-  deltaTweet = process.hrtime(deltaTweetStart);
+  // deltaTweet = process.hrtime(deltaTweetStart);
 
-  if (deltaTweet[0] > 0) { 
+  // if (deltaTweet[0] > 0) { 
 
-    statsObj.twitter.tweetsPerMin = parseInt(tweetMeter.toJSON()[metricsRate]);
+  //   statsObj.twitter.tweetsPerMin = parseInt(tweetMeter.toJSON()[metricsRate]);
 
-    console.log(chalkAlert("WAS | *** TWEET RX DELTA: " + deltaTweet[0] + "." + deltaTweet[1]));
+  //   // console.log(chalkAlert("WAS | *** TWEET RX DELTA: " + deltaTweet[0] + "." + deltaTweet[1]));
 
-    console.log(chalkLog("WAS | S"
-      + " | " + getTimeStamp()
-      + " | E: " + statsObj.elapsed
-      + " | S: " + getTimeStamp(parseInt(statsObj.startTime))
-      + " | AD: " + statsObj.admin.connected
-      + " | UT: " + statsObj.entity.util.connected
-      + " | VW: " + statsObj.entity.viewer.connected
-      + " | TwRxPM: " + statsObj.twitter.tweetsPerMin
-      + " | MaxTwRxPM: " + statsObj.twitter.maxTweetsPerMin
-      + " | TwRXQ: " + tweetRxQueue.length
-      + " | TwPRQ: " + tweetParserQueue.length
-    ));
-  }
+  //   console.log(chalkLog("WAS | S"
+  //     + " | " + getTimeStamp()
+  //     + " | E: " + statsObj.elapsed
+  //     + " | S: " + getTimeStamp(parseInt(statsObj.startTime))
+  //     + " | AD: " + statsObj.admin.connected
+  //     + " | UT: " + statsObj.entity.util.connected
+  //     + " | VW: " + statsObj.entity.viewer.connected
+  //     + " | TwRxPM: " + statsObj.twitter.tweetsPerMin
+  //     + " | MaxTwRxPM: " + statsObj.twitter.maxTweetsPerMin
+  //     + " | TwRXQ: " + tweetRxQueue.length
+  //     + " | TwPRQ: " + tweetParserQueue.length
+  //   ));
+  // }
 
-  deltaTweetStart = process.hrtime();
+  // deltaTweetStart = process.hrtime();
 
   statsObj.twitter.tweetsReceived += 1;
 
@@ -4005,7 +3993,7 @@ function socketRxTweet(tw) {
 
       saveFileQueue.push({
         localFlag: false, 
-        folder: dropboxConfigDefaultFolder, 
+        folder: testDataFolder, 
         file: sampleTweetFileName, 
         obj: tw
       });
@@ -5190,9 +5178,9 @@ function initSocketHandler(socketObj) {
 
         // console.log(`Benchmark took ${diff[0] * NS_PER_SEC + diff[1]} nanoseconds`);
 
-        deltaNS = diff[0] * NS_PER_SEC + diff[1];
+        // deltaNS = diff[0] * NS_PER_SEC + diff[1];
 
-        diff = process.hrtime(time);
+        // diff = process.hrtime(time);
 
         console.log(chalkLog("WAS | R< KA"
           // + " | DELTA: " + deltaNS + " NS"
@@ -5203,7 +5191,7 @@ function initSocketHandler(socketObj) {
           + " | " + socket.id
         ));
 
-        time = process.hrtime();
+        // time = process.hrtime();
 
         sessionObj.socketId = socket.id;
         sessionObj.ip = ipAddress;
@@ -6524,14 +6512,14 @@ function initTransmitNodeQueueInterval(interval){
   let categorizeable;
   let nCacheObj;
 
-  let deltaTxNodeStart = process.hrtime();
-  let deltaTxNode = process.hrtime(deltaTxNodeStart);
+  // let deltaTxNodeStart = process.hrtime();
+  // let deltaTxNode = process.hrtime(deltaTxNodeStart);
 
   transmitNodeQueueInterval = setInterval(function txNodeQueue () {
 
     if (transmitNodeQueueReady && (transmitNodeQueue.length > 0)) {
 
-      deltaTxNodeStart = process.hrtime();
+      // deltaTxNodeStart = process.hrtime();
 
       transmitNodeQueueReady = false;
 
@@ -6541,8 +6529,8 @@ function initTransmitNodeQueueInterval(interval){
         console.log(chalkError(new Error("transmitNodeQueue: NULL NODE OBJ DE-Q")));
         transmitNodeQueueReady = true;
 
-        deltaTxNode = process.hrtime(deltaTxNodeStart);
-        if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** TX NODE DELTA (!nodeObj): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+        // deltaTxNode = process.hrtime(deltaTxNodeStart);
+        // if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** TX NODE DELTA (!nodeObj): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
 
       }
       else {
@@ -6568,8 +6556,8 @@ function initTransmitNodeQueueInterval(interval){
 
             console.log(chalkError("WAS | *** CHECK CATEGORY ERROR: " + err));
 
-            deltaTxNode = process.hrtime(deltaTxNodeStart);
-            if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** TX NODE DELTA (checkCategory err): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+            // deltaTxNode = process.hrtime(deltaTxNodeStart);
+            // if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** TX NODE DELTA (checkCategory err): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
 
             return; 
           }
@@ -6587,8 +6575,8 @@ function initTransmitNodeQueueInterval(interval){
 
               transmitNodeQueueReady = true;
 
-              deltaTxNode = process.hrtime(deltaTxNodeStart);
-              if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** TX NODE DELTA (updateNodeMeter err): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+              // deltaTxNode = process.hrtime(deltaTxNodeStart);
+              // if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** TX NODE DELTA (updateNodeMeter err): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
 
             }
             else {
@@ -6658,8 +6646,8 @@ function initTransmitNodeQueueInterval(interval){
 
                   transmitNodeQueueReady = true;
 
-                  deltaTxNode = process.hrtime(deltaTxNodeStart);
-                  if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** TX NODE DELTA (user categorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+                  // deltaTxNode = process.hrtime(deltaTxNodeStart);
+                  // if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** TX NODE DELTA (user categorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
 
                 });
               }
@@ -6670,8 +6658,8 @@ function initTransmitNodeQueueInterval(interval){
 
                 transmitNodeQueueReady = true;
 
-                deltaTxNode = process.hrtime(deltaTxNodeStart);
-                if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** WAS TX NODE DELTA (user uncategorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+                // deltaTxNode = process.hrtime(deltaTxNodeStart);
+                // if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** WAS TX NODE DELTA (user uncategorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
               }
               else if ((n.nodeType === "hashtag") && n.category){
 
@@ -6697,8 +6685,8 @@ function initTransmitNodeQueueInterval(interval){
 
                   transmitNodeQueueReady = true;
 
-                  deltaTxNode = process.hrtime(deltaTxNodeStart);
-                  if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** WAS TX NODE DELTA (hashtag categorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+                  // deltaTxNode = process.hrtime(deltaTxNodeStart);
+                  // if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** WAS TX NODE DELTA (hashtag categorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
 
                 });
               }
@@ -6708,14 +6696,14 @@ function initTransmitNodeQueueInterval(interval){
                 viewNameSpace.volatile.emit("node", n);
                 transmitNodeQueueReady = true;
 
-                deltaTxNode = process.hrtime(deltaTxNodeStart);
-                if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** WAS TX NODE DELTA (hashtag uncategorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+                // deltaTxNode = process.hrtime(deltaTxNodeStart);
+                // if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** WAS TX NODE DELTA (hashtag uncategorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
               }
               else {
                 transmitNodeQueueReady = true;
 
-                deltaTxNode = process.hrtime(deltaTxNodeStart);
-                if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** WAS TX NODE DELTA (nothing?): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
+                // deltaTxNode = process.hrtime(deltaTxNodeStart);
+                // if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** WAS TX NODE DELTA (nothing?): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
               }
 
               // });
@@ -7850,8 +7838,8 @@ function initTssChild(params){
 
   return new Promise(function(resolve, reject){
 
-    let deltaTssMessageStart = process.hrtime();
-    let deltaTssMessage = process.hrtime(deltaTssMessageStart);
+    // let deltaTssMessageStart = process.hrtime();
+    // let deltaTssMessage = process.hrtime(deltaTssMessageStart);
 
     const tss = cp.fork(`${__dirname}/js/libs/tssChild.js`);
 
@@ -7953,9 +7941,9 @@ function initTssChild(params){
         break;
 
         case "TWEET":
-          deltaTssMessage = process.hrtime(deltaTssMessageStart);
-          if (deltaTssMessage[0] > 0) { console.log(chalkAlert("WAS | *** TSS RX DELTA: " + deltaTssMessage[0] + "." + deltaTssMessage[1])); }
-          deltaTssMessageStart = process.hrtime();
+          // deltaTssMessage = process.hrtime(deltaTssMessageStart);
+          // if (deltaTssMessage[0] > 0) { console.log(chalkAlert("WAS | *** TSS RX DELTA: " + deltaTssMessage[0] + "." + deltaTssMessage[1])); }
+          // deltaTssMessageStart = process.hrtime();
           if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + m.tweet.id_str + " | @" + m.tweet.user.screen_name)); }
           socketRxTweet(m.tweet);
         break;
@@ -8054,8 +8042,8 @@ function initTfeChild(params){
     console.log(chalkInfo("WAS | MAX INPUT HASHMAP INPUT TYPES: " + Object.keys(maxInputHashMap)));
     console.log(chalkInfo("WAS | NORMALIZATION INPUT TYPES: " + Object.keys(normalization)));
 
-    let deltaTfeMessageStart = process.hrtime();
-    let deltaTfeMessage = process.hrtime(deltaTfeMessageStart);
+    // let deltaTfeMessageStart = process.hrtime();
+    // let deltaTfeMessage = process.hrtime(deltaTfeMessageStart);
 
     const tfe = cp.fork(`${__dirname}/js/libs/tfeChild.js`);
 
@@ -8140,9 +8128,9 @@ function initTfeChild(params){
         break;
 
         case "TWEET":
-          deltaTfeMessage = process.hrtime(deltaTfeMessageStart);
-          if (deltaTfeMessage[0] > 0) { console.log(chalkAlert("WAS | *** TFE RX DELTA: " + deltaTfeMessage[0] + "." + deltaTfeMessage[1])); }
-          deltaTfeMessageStart = process.hrtime();
+          // deltaTfeMessage = process.hrtime(deltaTfeMessageStart);
+          // if (deltaTfeMessage[0] > 0) { console.log(chalkAlert("WAS | *** TFE RX DELTA: " + deltaTfeMessage[0] + "." + deltaTfeMessage[1])); }
+          // deltaTfeMessageStart = process.hrtime();
           if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + m.tweet.id_str + " | @" + m.tweet.user.screen_name)); }
           socketRxTweet(m.tweet);
         break;
@@ -8475,8 +8463,8 @@ function initTweetParser(params, callback){
 
   statsObj.tweetParserReady = false;
 
-  let deltaTweetParserMessageStart = process.hrtime();
-  let deltaTweetParserMessage = process.hrtime(deltaTweetParserMessageStart);
+  // let deltaTweetParserMessageStart = process.hrtime();
+  // let deltaTweetParserMessage = process.hrtime(deltaTweetParserMessageStart);
 
   const twp = cp.fork(`${__dirname}/js/libs/tweetParser.js`);
 
@@ -8516,9 +8504,9 @@ function initTweetParser(params, callback){
     } 
 
     else if (tweetParserMessageRxQueue.length < configuration.maxQueue){
-      deltaTweetParserMessage = process.hrtime(deltaTweetParserMessageStart);
-      if (deltaTweetParserMessage[0] > 0) { console.log(chalkAlert("WAS | *** TWP RX DELTA: " + deltaTweetParserMessage[0] + "." + deltaTweetParserMessage[1])); }
-      deltaTweetParserMessageStart = process.hrtime();
+      // deltaTweetParserMessage = process.hrtime(deltaTweetParserMessageStart);
+      // if (deltaTweetParserMessage[0] > 0) { console.log(chalkAlert("WAS | *** TWP RX DELTA: " + deltaTweetParserMessage[0] + "." + deltaTweetParserMessage[1])); }
+      // deltaTweetParserMessageStart = process.hrtime();
       tweetParserMessageRxQueue.push(m);
     }
 
@@ -9352,15 +9340,15 @@ function initConfig() {
     configuration.enableStdin = process.env.ENABLE_STDIN || true ;
     configuration.statsUpdateIntervalTime = process.env.TFE_STATS_UPDATE_INTERVAL || ONE_MINUTE;
 
-    if (configuration.enableStdin) {
-      initStdIn()
-      .then(function(){
+    // if (configuration.enableStdin) {
+    //   initStdIn()
+    //   .then(function(){
 
-      })
-      .catch(function(err){
-        return reject(err);
-      });
-    }
+    //   })
+    //   .catch(function(err){
+    //     return reject(err);
+    //   });
+    // }
 
     debug(chalkTwitter("WAS | THREECEE USERS\n" + jsonPrint(configuration.threeceeUsers)));
 
@@ -9546,9 +9534,6 @@ function initCategoryHashmaps(){
 
           function(cb0){
 
-            // if (!statsObj.dbConnectionReady) {
-            //   return cb0("DB CONNECTION NOT READY");
-            // }
             if (!userServerControllerReady) {
               return cb0(new Error("userServerController not ready"), null);
             }
@@ -10334,14 +10319,17 @@ function initCategoryHashmapsInterval(interval){
         initCategoryHashmapsReady = false;
 
         try {
-          initCategoryHashmaps().then(function(){});
+          initCategoryHashmaps()
+          .then(function(){
+            initCategoryHashmapsReady = true;
+          });
         }
         catch (err){
           console.log(chalkError("WAS | *** ERROR: LOAD CATEGORY HASHMAPS: " + err));
           console.error(err);
+          initCategoryHashmapsReady = true;
         }
 
-        initCategoryHashmapsReady = true;
         debug(chalk.bold.green("WAS | +++ LOADED CATEGORY HASHMAPS"));
       }
 
@@ -10762,18 +10750,18 @@ setTimeout(function(){
               .then(()=>loadBestRuntimeNetwork())
               .then(()=>loadMaxInputHashMap())
               .then(()=>initIgnoreWordsHashMap())
+              .then(()=>initCategoryHashmapsInterval(configuration.categoryHashmapsUpdateInterval))
               .then(()=>initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers}))
               .then(()=>initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval))
-              .then(()=>initCategoryHashmapsInterval(configuration.categoryHashmapsUpdateInterval))
               .then(()=>initRateQinterval(configuration.rateQueueInterval))
               .then(()=>initTwitterRxQueueInterval(configuration.twitterRxQueueInterval))
               .then(()=>initTweetParserMessageRxQueueInterval(configuration.tweetParserMessageRxQueueInterval))
               .then(()=>initTwitterSearchNodeQueueInterval(configuration.twitterSearchNodeQueueInterval))
               .then(()=>initSorterMessageRxQueueInterval(configuration.sorterMessageRxQueueInterval))
               .then(()=>initDbuChild({childId: DEFAULT_DBU_CHILD_ID}))
+              .then(()=>initTweetParser({childId: DEFAULT_TWP_CHILD_ID}))
               .then(()=>initTfeChild({childId: DEFAULT_TFE_CHILD_ID}))
-              .then(()=>initTssChild({childId: DEFAULT_TSS_CHILD_ID}))
-              .then(()=>initTweetParser({childId: DEFAULT_TWP_CHILD_ID}));
+              .then(()=>initTssChild({childId: DEFAULT_TSS_CHILD_ID}));
 
             }
             catch(err){

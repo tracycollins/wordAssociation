@@ -1301,13 +1301,13 @@ function checkUserProfileChanged(params) {
 
   let results = [];
 
-  if (user.name !== user.previousName) { results.push("name"); }
-  if (user.screenName !== user.previousScreenName) { results.push("screenName"); }
-  if (user.description !== user.previousDescription) { results.push("description"); }
-  if (user.location !== user.previousLocation) { results.push("location"); }
-  if (user.url !== user.previousUrl) { results.push("url"); }
-  if (user.profileUrl !== user.previousProfileUrl) { results.push("profileUrl"); }
-  if (user.bannerImageUrl !== user.previousBannerImageUrl) { results.push("bannerImageUrl"); }
+  if (user.name && (user.name !== undefined) && (user.name !== user.previousName)) { results.push("name"); }
+  if (user.screenName && (user.screenName !== undefined) && (user.screenName !== user.previousScreenName)) { results.push("screenName"); }
+  if (user.description && (user.description !== undefined) && (user.description !== user.previousDescription)) { results.push("description"); }
+  if (user.location && (user.location !== undefined) && (user.location !== user.previousLocation)) { results.push("location"); }
+  if (user.url && (user.url !== undefined) && (user.url !== user.previousUrl)) { results.push("url"); }
+  if (user.profileUrl && (user.profileUrl !== undefined) && (user.profileUrl !== user.previousProfileUrl)) { results.push("profileUrl"); }
+  if (user.bannerImageUrl && (user.bannerImageUrl !== undefined) && (user.bannerImageUrl !== user.previousBannerImageUrl)) { results.push("bannerImageUrl"); }
 
   if (results.length === 0) { return false; }
   return results;    
@@ -1338,13 +1338,12 @@ function userProfileChangeHistogram(params) {
       return resolve(false);
     }
 
-    let text = false;
+    let text = "";
     let url = false;
     let profileUrl = false;
     let bannerImageUrl = false;
 
     async.each(userProfileChanges, function(userProp, cb){
-
 
       const prevUserProp = "previous" + _.upperFirst(userProp);
 
@@ -1357,10 +1356,10 @@ function userProfileChangeHistogram(params) {
         case "name":
         case "location":
         case "description":
-          text += "\n" + user[userProp];
+          text += user[userProp] + "\n";
         break;
         case "screenName":
-          text += "\n@" + user[userProp];
+          text += "@" + user[userProp] + "\n";
         break;
         case "url":
           url = user[userProp];
@@ -1408,7 +1407,7 @@ function userProfileChangeHistogram(params) {
 
         textHist: function(cb){
 
-          if (text){
+          if (text && (text !== undefined)){
 
             // params.updateGlobalHistograms = (params.updateGlobalHistograms !== undefined) ? params.updateGlobalHistograms : false;
             // params.category = params.user.category || "none";
@@ -1518,10 +1517,15 @@ function userStatusChangeHistogram(params) {
 
       switch (userProp) {
         case "statusId":
-          text += "\n" + user.status;
+          text += "\n" + user.status.text;
         break;
         case "quotedStatusId":
-          text += "\n" + user.quotedStatus;
+          if (user.quotedStatus.extended_tweet) {
+            text += "\n" + user.quotedStatus.extended_tweet.full_text;
+          }
+          else {
+            text += "\n" + user.quotedStatus.text;
+          }
         break;
         default:
           console.log(chalkError("TFE | UNKNOWN USER PROPERTY: " + userProp));
@@ -2332,7 +2336,7 @@ setTimeout(function(){
 
       }
       else {
-        console.log(chalkLog("TFE | ... WAIT DB CONNECTED ..."));
+        console.log(chalkInfo("TFE | WAIT DB CONNECTED ..."));
       }
     }, 1000);
 

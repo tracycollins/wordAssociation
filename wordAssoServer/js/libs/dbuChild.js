@@ -586,16 +586,17 @@ function initUserUpdateQueueInterval(interval){
         try {
           const twObj = userUpdateQueue.shift();
           let updatedUser = await userUpdateDb(twObj);
+          userUpdateQueueReady = true;
         }
         catch(err){
           console.log(chalkError("DBU | *** USER UPDATE DB ERROR: " + err));
+          userUpdateQueueReady = true;
         }
 
-        userUpdateQueueReady = true;
 
       }
 
-    }, interval)
+    }, interval);
 
     resolve();
 

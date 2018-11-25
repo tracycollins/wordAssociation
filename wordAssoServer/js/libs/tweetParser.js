@@ -344,7 +344,7 @@ function initTweetParserQueueInterval(cnf){
           console.trace(chalkError("TWP | *** CREATE STREAM TWEET ERROR: ", err));
         }
         tweetParserQueueReady = true;
-        if (err.code !== 11000) { console.trace(chalkError("TWP | CREATE STREAM TWEET ERROR\n" + jsonPrint(err))); }
+        // if (err.code !== 11000) { console.trace(chalkError("TWP | CREATE STREAM TWEET ERROR\n" + jsonPrint(err))); }
       });
 
     }

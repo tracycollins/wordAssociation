@@ -1002,16 +1002,16 @@ function initInfoTwit(params, callback){
     // threeceeUserObj.twit = newTwit;
 
     const newTwitStream = new Twit({
-      consumer_key: params.config.CONSUMER_KEY,
-      consumer_secret: params.config.CONSUMER_SECRET,
+      consumer_key: twitterConfig.CONSUMER_KEY,
+      consumer_secret: twitterConfig.CONSUMER_SECRET,
       app_only_auth: true
     });
 
     const newTwit = new Twit({
-      consumer_key: params.config.CONSUMER_KEY,
-      consumer_secret: params.config.CONSUMER_SECRET,
-      access_token: params.config.TOKEN,
-      access_token_secret: params.config.TOKEN_SECRET
+      consumer_key: twitterConfig.CONSUMER_KEY,
+      consumer_secret: twitterConfig.CONSUMER_SECRET,
+      access_token: twitterConfig.TOKEN,
+      access_token_secret: twitterConfig.TOKEN_SECRET
     });
 
     threeceeUserObj.twit = {};

@@ -7867,6 +7867,7 @@ function initTssChild(params){
 
         case "ERROR":
           console.log(chalkError("WAS | <TSS | ERROR"
+            + " | 3C @" + m.threeceeUser
             + " | ERROR TYPE: " + m.errorType
             + " | ERROR MESSAGE: " + m.error.message
             // + "\n" + jsonPrint(m.error)
@@ -7972,6 +7973,7 @@ function initTssChild(params){
       ));
       clearInterval(tssPingInterval);
       childrenHashMap[params.childId].status = "ERROR";
+      childrenHashMap[params.childId].error = err;
       configEvents.emit("CHILD_ERROR", {childId: params.childId});
     });
 

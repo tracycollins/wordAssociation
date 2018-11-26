@@ -187,13 +187,12 @@ const moment = require("moment");
 // const treeify = require("treeify");
 const treeify = require(__dirname + "/js/libs/treeify");
 
-
 var request_options = {
   url: "https://api.twitter.com/oauth2/token",
   method: "POST",
   auth: {
-    user: "p08qa943B9Oe7Wpl9MAnbS4ca",
-    pass: "ds3t7bAvMqSRSY58jSR9lLjmS92ZjTgyH3JQaLtD49t9jq8Axe"
+    user: "ex0jSXayxMOjNm4DZIiic9Nc0",
+    pass: "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa"
   },
   form: {
     "grant_type": "client_credentials"
@@ -245,10 +244,10 @@ function addAccountActivitySubscription(params){
       method: "POST",
       resolveWithFullResponse: true,
       oauth: {
-        consumer_key: "p08qa943B9Oe7Wpl9MAnbS4ca",
-        consumer_secret: "ds3t7bAvMqSRSY58jSR9lLjmS92ZjTgyH3JQaLtD49t9jq8Axe",
-        token: "14607119-AZdkHnnScAo8ubXB3klfz3tsDINNCES5ni1vaNBso",
-        token_secret: "Fb3XQP5LEF3LT0Yx2d3DKIyXLojtwNh7KAc4CTWJbuLIq"
+        consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",
+        consumer_secret: "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa",
+        token: "14607119-1VaZOqc1sgWOyANgO4jbD9SF7TzFhJvkiujQtkT4J",
+        token_secret: "ZmvfjYU0z0wgDslyESZQLIHPr4pcCizflg5Y2IxhvwVVf"
       } 
     };
 
@@ -286,10 +285,10 @@ app.use(require("serve-static")(__dirname + "/public"));
 app.use(require("body-parser").urlencoded({ extended: true }));
 
 const altthreecee00config = {
-  consumer_key: "0g1pAgIqe6f3LN9yjaPBGJcSL",
-  consumer_secret: "op5mSFdo1jenyiTxFyED0yD2W1rmviq35qpVlgSSyIIlFPuBj7",
-  access_token: "848591649575927810-WDKNQnWvisJD9uJIP5eHxAVHsnFq5jE",
-  access_token_secret: "O2ZFttRte6RXs1XjZ5wcDgbXDoWZTr2wt245vRqvL0X8G"
+  consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",
+  consumer_secret: "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa",
+  token: "14607119-1VaZOqc1sgWOyANgO4jbD9SF7TzFhJvkiujQtkT4J",
+  token_secret: "ZmvfjYU0z0wgDslyESZQLIHPr4pcCizflg5Y2IxhvwVVf"
 };
 
 // {
@@ -302,10 +301,10 @@ const altthreecee00config = {
 // }
 
 const threeceeConfig = {
-  consumer_key: "p08qa943B9Oe7Wpl9MAnbS4ca",
-  consumer_secret: "ds3t7bAvMqSRSY58jSR9lLjmS92ZjTgyH3JQaLtD49t9jq8Axe",
-  access_token: "14607119-AZdkHnnScAo8ubXB3klfz3tsDINNCES5ni1vaNBso",
-  access_token_secret: "Fb3XQP5LEF3LT0Yx2d3DKIyXLojtwNh7KAc4CTWJbuLIq"
+  consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",
+  consumer_secret: "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa",
+  token: "14607119-1VaZOqc1sgWOyANgO4jbD9SF7TzFhJvkiujQtkT4J",
+  token_secret: "ZmvfjYU0z0wgDslyESZQLIHPr4pcCizflg5Y2IxhvwVVf"
 };
 
 const EventEmitter2 = require("eventemitter2").EventEmitter2;

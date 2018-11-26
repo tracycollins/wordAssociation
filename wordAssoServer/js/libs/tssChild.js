@@ -699,12 +699,21 @@ function initTwit(params, callback){
   const newTwit = new Twit({
     consumer_key: params.config.CONSUMER_KEY,
     consumer_secret: params.config.CONSUMER_SECRET,
+    app_only_auth: true
+  });
+
+  const newTwitStream = new Twit({
+    consumer_key: params.config.CONSUMER_KEY,
+    consumer_secret: params.config.CONSUMER_SECRET,
     access_token: params.config.TOKEN,
     access_token_secret: params.config.TOKEN_SECRET
   });
 
   threeceeUserObj.twit = {};
   threeceeUserObj.twit = newTwit;
+
+  threeceeUserObj.twitStream = {};
+  threeceeUserObj.twitStream = newTwitStream;
 
   threeceeUserObj.searchStream = {};
   threeceeUserObj.searchTermArray = [];
@@ -981,15 +990,35 @@ function initInfoTwit(params, callback){
     threeceeUserObj.twitterConfig = {} ;
     threeceeUserObj.twitterConfig = twitterConfig ;
 
+    // const newTwit = new Twit({
+    //   consumer_key: twitterConfig.CONSUMER_KEY,
+    //   consumer_secret: twitterConfig.CONSUMER_SECRET,
+    //   // access_token: twitterConfig.TOKEN,
+    //   // access_token_secret: twitterConfig.TOKEN_SECRET,
+    //   app_only_auth: true
+    // });
+
+    // threeceeUserObj.twit = {};
+    // threeceeUserObj.twit = newTwit;
+
     const newTwit = new Twit({
-      consumer_key: twitterConfig.CONSUMER_KEY,
-      consumer_secret: twitterConfig.CONSUMER_SECRET,
-      access_token: twitterConfig.TOKEN,
-      access_token_secret: twitterConfig.TOKEN_SECRET
+      consumer_key: params.config.CONSUMER_KEY,
+      consumer_secret: params.config.CONSUMER_SECRET,
+      app_only_auth: true
+    });
+
+    const newTwitStream = new Twit({
+      consumer_key: params.config.CONSUMER_KEY,
+      consumer_secret: params.config.CONSUMER_SECRET,
+      access_token: params.config.TOKEN,
+      access_token_secret: params.config.TOKEN_SECRET
     });
 
     threeceeUserObj.twit = {};
     threeceeUserObj.twit = newTwit;
+
+    threeceeUserObj.twitStream = {};
+    threeceeUserObj.twitStream = newTwitStream;
 
     console.log(chalkTwitter("TSS | INIT INFO TWITTER USER"
       + " | NAME: " + twitterConfig.screenName
@@ -1362,7 +1391,7 @@ function initSearchStream(params, callback){
   if (threeceeUserObj.searchTermArray.length > 0) { filter.track = threeceeUserObj.searchTermArray; }
   if (threeceeUserObj.followUserSet.size > 0) { filter.follow = [...threeceeUserObj.followUserSet]; }
 
-  threeceeUserObj.searchStream = threeceeUserObj.twit.stream("statuses/filter", filter);
+  threeceeUserObj.searchStream = threeceeUserObj.twitStream.stream("statuses/filter", filter);
 
   threeceeUserObj.searchStream.on("message", function(msg){
     if (msg.event) {
@@ -2278,7 +2307,7 @@ function follow(params, callback) {
         if (threeceeUserObj.searchTermArray.length > 0) { filter.track = threeceeUserObj.searchTermArray; }
         if (threeceeUserObj.followUserSet.size > 0) { filter.follow = [...threeceeUserObj.followUserSet]; }
 
-        threeceeUserObj.searchStream = threeceeUserObj.twit.stream("statuses/filter", filter);
+        threeceeUserObj.searchStream = threeceeUserObj.twitStream.stream("statuses/filter", filter);
 
         threeceeUserHashMap.set(threeceeUserObj.screenName, threeceeUserObj);
 
@@ -2386,7 +2415,7 @@ function ignore(params, callback) {
         if (threeceeUserObj.searchTermArray.length > 0) { filter.track = threeceeUserObj.searchTermArray; }
         if (threeceeUserObj.followUserSet.size > 0) { filter.follow = [...threeceeUserObj.followUserSet]; }
 
-        threeceeUserObj.searchStream = threeceeUserObj.twit.stream("statuses/filter", filter);
+        threeceeUserObj.searchStream = threeceeUserObj.twitStream.stream("statuses/filter", filter);
 
         threeceeUserHashMap.set(threeceeUserObj.screenName, threeceeUserObj);
 
@@ -2521,7 +2550,7 @@ function ignore(params, callback) {
           if (threeceeUserObj.searchTermArray.length > 0) { filter.track = threeceeUserObj.searchTermArray; }
           if (threeceeUserObj.followUserSet.size > 0) { filter.follow = [...threeceeUserObj.followUserSet]; }
 
-          threeceeUserObj.searchStream = threeceeUserObj.twit.stream("statuses/filter", filter);
+          threeceeUserObj.searchStream = threeceeUserObj.twitStream.stream("statuses/filter", filter);
 
           threeceeUserHashMap.set(threeceeUserObj.screenName, threeceeUserObj);
 
@@ -2632,7 +2661,7 @@ function unfollow(params, callback) {
         if (threeceeUserObj.searchTermArray.length > 0) { filter.track = threeceeUserObj.searchTermArray; }
         if (threeceeUserObj.followUserSet.size > 0) { filter.follow = [...threeceeUserObj.followUserSet]; }
 
-        threeceeUserObj.searchStream = threeceeUserObj.twit.stream("statuses/filter", filter);
+        threeceeUserObj.searchStream = threeceeUserObj.twitStream.stream("statuses/filter", filter);
 
         threeceeUserHashMap.set(threeceeUserObj.screenName, threeceeUserObj);
 
@@ -2778,7 +2807,7 @@ function unfollow(params, callback) {
           if (threeceeUserObj.searchTermArray.length > 0) { filter.track = threeceeUserObj.searchTermArray; }
           if (threeceeUserObj.followUserSet.size > 0) { filter.follow = [...threeceeUserObj.followUserSet]; }
 
-          threeceeUserObj.searchStream = threeceeUserObj.twit.stream("statuses/filter", filter);
+          threeceeUserObj.searchStream = threeceeUserObj.twitStream.stream("statuses/filter", filter);
 
           threeceeUserHashMap.set(threeceeUserObj.screenName, threeceeUserObj);
 

@@ -895,7 +895,6 @@ function initTwit(params, callback){
 
       callback(null, threeceeUserObj);
     });
-
   });
 }
 
@@ -1391,150 +1390,304 @@ function initSearchStream(params, callback){
   if (threeceeUserObj.searchTermArray.length > 0) { filter.track = threeceeUserObj.searchTermArray; }
   if (threeceeUserObj.followUserSet.size > 0) { filter.follow = [...threeceeUserObj.followUserSet]; }
 
-  threeceeUserObj.searchStream = threeceeUserObj.twitStream.stream("statuses/filter", filter);
+  try {
+    threeceeUserObj.searchStream = threeceeUserObj.twitStream.stream("statuses/filter", filter);
 
-  threeceeUserObj.searchStream.on("message", function(msg){
-    if (msg.event) {
+    threeceeUserObj.searchStream.on("message", function(msg){
+      if (msg.event) {
+        console.log(chalkAlert("TSS | " + getTimeStamp() 
+          + " | TWITTER MESSAGE EVENT: " + msg.event
+          + " | @" + threeceeUserObj.screenName
+          + "\n" + jsonPrint(msg)
+        ));
+      }
+    });
+
+    threeceeUserObj.searchStream.on("follow", function(msg){
       console.log(chalkAlert("TSS | " + getTimeStamp() 
-        + " | TWITTER MESSAGE EVENT: " + msg.event
+        + " | TWITTER FOLLOW EVENT"
         + " | @" + threeceeUserObj.screenName
         + "\n" + jsonPrint(msg)
       ));
-    }
-  });
+    });
 
-  threeceeUserObj.searchStream.on("follow", function(msg){
-    console.log(chalkAlert("TSS | " + getTimeStamp() 
-      + " | TWITTER FOLLOW EVENT"
-      + " | @" + threeceeUserObj.screenName
-      + "\n" + jsonPrint(msg)
-    ));
-  });
+    threeceeUserObj.searchStream.on("unfollow", function(msg){
+      console.log(chalkAlert("TSS | " + getTimeStamp() 
+        + " | TWITTER UNFOLLOW EVENT"
+        + " | @" + threeceeUserObj.screenName
+        + "\n" + jsonPrint(msg)
+      ));
+    });
 
-  threeceeUserObj.searchStream.on("unfollow", function(msg){
-    console.log(chalkAlert("TSS | " + getTimeStamp() 
-      + " | TWITTER UNFOLLOW EVENT"
-      + " | @" + threeceeUserObj.screenName
-      + "\n" + jsonPrint(msg)
-    ));
-  });
+    threeceeUserObj.searchStream.on("user_update", function(msg){
+      console.log(chalkAlert("TSS | " + getTimeStamp() 
+        + " | TWITTER USER UPDATE EVENT"
+        + " | @" + threeceeUserObj.screenName
+        + "\n" + jsonPrint(msg)
+      ));
+    });
 
-  threeceeUserObj.searchStream.on("user_update", function(msg){
-    console.log(chalkAlert("TSS | " + getTimeStamp() 
-      + " | TWITTER USER UPDATE EVENT"
-      + " | @" + threeceeUserObj.screenName
-      + "\n" + jsonPrint(msg)
-    ));
-  });
-
-  threeceeUserObj.searchStream.on("connect", function(){
-    console.log(chalkTwitter("TSS | " + getTimeStamp()
-      + " | TWITTER CONNECT"
-      + " | @" + threeceeUserObj.screenName
-    ));
-    statsObj.twitterConnects += 1;
-    threeceeUserObj.stats.connected = true;
-    threeceeUserObj.stats.twitterConnects += 1;
-    threeceeUserObj.stats.rateLimited = false;
-    threeceeUserObj.stats.twitterTokenErrorFlag = false;
-    showStats();
-  });
-
-  threeceeUserObj.searchStream.on("reconnect", function(data){
-    console.log(chalkTwitter("TSS | " + getTimeStamp()
-      + " | TWITTER RECONNECT"
-      + " | @" + threeceeUserObj.screenName
-    ));
-
-    if (data.type === "rate-limit") {
-      threeceeUserObj.stats.rateLimited = true;
-    }
-    else {
+    threeceeUserObj.searchStream.on("connect", function(){
+      console.log(chalkTwitter("TSS | " + getTimeStamp()
+        + " | TWITTER CONNECT"
+        + " | @" + threeceeUserObj.screenName
+      ));
+      statsObj.twitterConnects += 1;
+      threeceeUserObj.stats.connected = true;
+      threeceeUserObj.stats.twitterConnects += 1;
       threeceeUserObj.stats.rateLimited = false;
-    }
+      threeceeUserObj.stats.twitterTokenErrorFlag = false;
+      showStats();
+    });
 
-    statsObj.twitterReconnects+= 1;
+    threeceeUserObj.searchStream.on("reconnect", function(data){
+      console.log(chalkTwitter("TSS | " + getTimeStamp()
+        + " | TWITTER RECONNECT"
+        + " | @" + threeceeUserObj.screenName
+      ));
 
-    threeceeUserObj.stats.connected = true;
-    threeceeUserObj.stats.twitterReconnects += 1;
-    threeceeUserObj.stats.twitterTokenErrorFlag = false;
-    showStats();
-  });
+      if (data.type === "rate-limit") {
+        threeceeUserObj.stats.rateLimited = true;
+      }
+      else {
+        threeceeUserObj.stats.rateLimited = false;
+      }
 
-  threeceeUserObj.searchStream.on("disconnect", function(data){
-    console.log(chalkAlert("TSS | " + getTimeStamp()
-      + " | @" + threeceeUserObj.screenName
-      + " | !!! TWITTER DISCONNECT\n" + jsonPrint(data)
-    ));
-    statsObj.twitterDisconnects+= 1;
-    threeceeUserObj.stats.connected = false;
-    threeceeUserObj.stats.twitterReconnects = 0;
-    threeceeUserObj.stats.rateLimited = false;
-    threeceeUserObj.stats.twitterTokenErrorFlag = false;
-    showStats();
-  });
+      statsObj.twitterReconnects+= 1;
 
-  threeceeUserObj.searchStream.on("warning", function(data){
-    console.log(chalkAlert("TSS | " + getTimeStamp() + " | !!! TWITTER WARNING: " + jsonPrint(data)));
-    statsObj.twitterWarnings+= 1;
-    showStats();
-  });
+      threeceeUserObj.stats.connected = true;
+      threeceeUserObj.stats.twitterReconnects += 1;
+      threeceeUserObj.stats.twitterTokenErrorFlag = false;
+      showStats();
+    });
 
-  threeceeUserObj.searchStream.on("direct_message", function (message) {
-    console.log(chalkTwitter("TSS | R< TWITTER DIRECT MESSAGE"
-      + " | @" + threeceeUserObj.screenName
-      + " | " + message.direct_message.sender_screen_name
-      + "\n" + message.direct_message.text
-    ));
-    showStats();
-  });
+    threeceeUserObj.searchStream.on("disconnect", function(data){
+      console.log(chalkAlert("TSS | " + getTimeStamp()
+        + " | @" + threeceeUserObj.screenName
+        + " | !!! TWITTER DISCONNECT\n" + jsonPrint(data)
+      ));
+      statsObj.twitterDisconnects+= 1;
+      threeceeUserObj.stats.connected = false;
+      threeceeUserObj.stats.twitterReconnects = 0;
+      threeceeUserObj.stats.rateLimited = false;
+      threeceeUserObj.stats.twitterTokenErrorFlag = false;
+      showStats();
+    });
 
-  threeceeUserObj.searchStream.on("scrub_geo", function(data){
-    console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER SCRUB GEO: " + jsonPrint(data)));
-    statsObj.twitterScrubGeo+= 1;
-    showStats();
-  });
+    threeceeUserObj.searchStream.on("warning", function(data){
+      console.log(chalkAlert("TSS | " + getTimeStamp() + " | !!! TWITTER WARNING: " + jsonPrint(data)));
+      statsObj.twitterWarnings+= 1;
+      showStats();
+    });
 
-  threeceeUserObj.searchStream.on("status_withheld", function(data){
-    console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER STATUS WITHHELD: " + jsonPrint(data)));
-    statsObj.twitterStatusWithheld+= 1;
-    showStats();
-  });
+    threeceeUserObj.searchStream.on("direct_message", function (message) {
+      console.log(chalkTwitter("TSS | R< TWITTER DIRECT MESSAGE"
+        + " | @" + threeceeUserObj.screenName
+        + " | " + message.direct_message.sender_screen_name
+        + "\n" + message.direct_message.text
+      ));
+      showStats();
+    });
 
-  threeceeUserObj.searchStream.on("user_withheld", function(data){
-    console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER USER WITHHELD: " + jsonPrint(data)));
-    statsObj.twitterUserWithheld+= 1;
-    showStats();
-  });
+    threeceeUserObj.searchStream.on("scrub_geo", function(data){
+      console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER SCRUB GEO: " + jsonPrint(data)));
+      statsObj.twitterScrubGeo+= 1;
+      showStats();
+    });
 
-  threeceeUserObj.searchStream.on("limit", function(limitMessage){
+    threeceeUserObj.searchStream.on("status_withheld", function(data){
+      console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER STATUS WITHHELD: " + jsonPrint(data)));
+      statsObj.twitterStatusWithheld+= 1;
+      showStats();
+    });
 
-    statsObj.twitterLimit += limitMessage.limit.track;
-    threeceeUserObj.stats.twitterLimit += limitMessage.limit.track;
+    threeceeUserObj.searchStream.on("user_withheld", function(data){
+      console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER USER WITHHELD: " + jsonPrint(data)));
+      statsObj.twitterUserWithheld+= 1;
+      showStats();
+    });
 
-    if (statsObj.twitterLimit > statsObj.twitterLimitMax) {
-      statsObj.twitterLimitMax = statsObj.twitterLimit;
-      statsObj.twitterLimitMaxTime = moment().valueOf();
-    }
+    threeceeUserObj.searchStream.on("limit", function(limitMessage){
 
-    debug(chalkTwitter("TSS | " + getTimeStamp()
-      + " | TWITTER LIMIT" 
-      + " | @" + threeceeUserObj.screenName
-      + " | USER LIMIT: " + statsObj.twitterLimit
-      + " | TOTAL LIMIT: " + threeceeUserObj.stats.twitterLimit
-    ));
-  });
+      statsObj.twitterLimit += limitMessage.limit.track;
+      threeceeUserObj.stats.twitterLimit += limitMessage.limit.track;
 
-  threeceeUserObj.searchStream.on("error", function(err){
+      if (statsObj.twitterLimit > statsObj.twitterLimitMax) {
+        statsObj.twitterLimitMax = statsObj.twitterLimit;
+        statsObj.twitterLimitMaxTime = moment().valueOf();
+      }
 
-    // threeceeUserObj.searchStream.stop();
+      debug(chalkTwitter("TSS | " + getTimeStamp()
+        + " | TWITTER LIMIT" 
+        + " | @" + threeceeUserObj.screenName
+        + " | USER LIMIT: " + statsObj.twitterLimit
+        + " | TOTAL LIMIT: " + threeceeUserObj.stats.twitterLimit
+      ));
+    });
 
-    console.log(chalkError("TSS | " + getTimeStamp()
+    threeceeUserObj.searchStream.on("error", function(err){
+
+      // threeceeUserObj.searchStream.stop();
+
+      console.log(chalkError("TSS | " + getTimeStamp()
+        + " | @" + threeceeUserObj.screenName
+        + " | *** TWITTER ERROR: " + err
+        + " | *** TWITTER ERROR\n" + jsonPrint(err)
+      ));
+
+
+      statsObj.twitterErrors += 1;
+      threeceeUserObj.stats.twitterErrors += 1;
+
+      threeceeUserObj.stats.ready = false;
+      threeceeUserObj.stats.error = err;
+      threeceeUserObj.stats.connected = false;
+      threeceeUserObj.stats.authenticated = false;
+      threeceeUserObj.stats.twitterTokenErrorFlag = true;
+
+      twitterUsersHashMap.set(threeceeUserObj.screenName, threeceeUserObj);
+
+      const errorType = (err.statusCode === 401) ? "TWITTER_UNAUTHORIZED" : "TWITTER";
+
+      process.send({
+        op: "ERROR", 
+        threeceeUser: threeceeUserObj.screenName, 
+        stats: threeceeUserObj.stats, 
+        errorType: errorType, 
+        error: err
+      });
+
+      // showStats();
+    });
+    
+    threeceeUserObj.searchStream.on("end", function(err){
+
+      threeceeUserObj.searchStream.stop();
+
+      console.log(chalkError("TSS | " + getTimeStamp()
+        + " | @" + threeceeUserObj.screenName
+        + " | *** TWITTER END: " + err
+      ));
+
+
+      statsObj.twitterErrors += 1;
+      threeceeUserObj.stats.twitterErrors += 1;
+
+      if (err.statusCode === 401) {
+        process.send({
+          op: "ERROR", 
+          threeceeUser: threeceeUserObj.screenName, 
+          stats: threeceeUserObj.stats, 
+          errorType: "TWITTER_UNAUTHORIZED", 
+          error: err
+        });
+      }
+      else {
+        process.send({
+          op: "ERROR", 
+          threeceeUser: threeceeUserObj.screenName, 
+          stats: threeceeUserObj.stats, 
+          errorType: "TWITTER_END", 
+          error: err
+        });
+      }
+
+      // showStats();
+    });
+    
+    threeceeUserObj.searchStream.on("parser-error", function(err){
+
+      console.log(chalkError("TSS | " + getTimeStamp()
+        + " | @" + threeceeUserObj.screenName
+        + " | *** TWITTER PARSER ERROR: " + err
+      ));
+
+      statsObj.twitterErrors += 1;
+      threeceeUserObj.stats.twitterErrors += 1;
+
+      process.send({
+        op: "ERROR", 
+        threeceeUser: threeceeUserObj.screenName, 
+        stats: threeceeUserObj.stats, 
+        errorType: "TWITTER_PARSER", 
+        error: err
+      });
+
+      showStats();
+    });
+    
+    threeceeUserObj.searchStream.on("tweet", function(tweetStatus){
+
+      tweetStatus.entities.media = [];
+      tweetStatus.entities.polls = [];
+      tweetStatus.entities.symbols = [];
+      tweetStatus.entities.urls = [];
+
+      // deltaTweet = process.hrtime(deltaTweetStart);
+      // if (deltaTweet[0] > 0) { 
+      //   console.log(chalkAlert("TSS | *** TWEET RX DELTA"
+      //     + " | @" + threeceeUserObj.screenName
+      //     + " | " + deltaTweet[0] + "." + deltaTweet[1]
+      //   ));
+      // }
+      // deltaTweetStart = process.hrtime();
+
+      threeceeUserObj.stats.rateLimited = false;
+
+      twitterStats.meter("tweetsPerSecond").mark();
+      twitterStats.meter("tweetsPerMinute").mark();
+
+      threeceeUserObj.rateMeter.meter("tweetsPerSecond").mark();
+      threeceeUserObj.rateMeter.meter("tweetsPerMinute").mark();
+
+      threeceeUserObj.stats.tweetsPerSecond = threeceeUserObj.rateMeter.toJSON().tweetsPerSecond["1MinuteRate"];
+      threeceeUserObj.stats.tweetsPerMinute = threeceeUserObj.rateMeter.toJSON().tweetsPerMinute["1MinuteRate"];
+
+      statsObj.tweetsReceived+= 1 ;
+      threeceeUserObj.stats.tweetsReceived += 1;
+
+      if (tweetStatus.retweeted_status) {
+        statsObj.retweetsReceived += 1;
+        threeceeUserObj.stats.retweetsReceived += 1;
+      }
+
+      if (tweetStatus.quoted_status) {
+        statsObj.quotedTweetsReceived += 1;
+        threeceeUserObj.stats.quotedTweetsReceived += 1;
+      }
+
+      if (tweetQueue.length < configuration.maxTweetQueue ) {
+        tweetQueue.push(tweetStatus);
+        statsObj.queues.tweetQueue.size = tweetQueue.length;
+      }
+      else {
+        statsObj.queues.tweetQueue.fullEvents += 1;
+      }
+
+      if ((threeceeUserObj.stats.tweetsReceived % 500 === 0) || (statsObj.tweetsReceived % 500 === 0)) {
+        console.log(chalkTwitter("TSS | <T | " + getTimeStamp()
+          + " | TWQ: " + tweetQueue.length
+          + " [ TOTAL Ts/RTs/QTs: " + statsObj.tweetsReceived + "/" + statsObj.retweetsReceived + "/" + statsObj.quotedTweetsReceived + "]"
+          + " | 3C @" + threeceeUserObj.screenName
+          + " [ Ts/RTs/QTs: " + threeceeUserObj.stats.tweetsReceived + "/" + threeceeUserObj.stats.retweetsReceived + "/" + threeceeUserObj.stats.quotedTweetsReceived + "]"
+          + " | " + statsObj.tweetsPerMinute.toFixed(3) + " TPM"
+          + " | " + tweetStatus.id_str
+          + " | TWEET LANG: " + tweetStatus.lang
+          + " | @" + tweetStatus.user.screen_name
+          + " | " + tweetStatus.user.name
+          + " | USER LANG: " + tweetStatus.user.lang
+          + " | LOC " + tweetStatus.user.location
+          + " | " + tweetStatus.user.id_str
+        ));
+      }
+    });
+  }
+  catch(err){
+    console.log(chalkError("TSS | CAUGHT ERROR | " + getTimeStamp()
       + " | @" + threeceeUserObj.screenName
       + " | *** TWITTER ERROR: " + err
       + " | *** TWITTER ERROR\n" + jsonPrint(err)
     ));
-
 
     statsObj.twitterErrors += 1;
     threeceeUserObj.stats.twitterErrors += 1;
@@ -1556,132 +1709,7 @@ function initSearchStream(params, callback){
       errorType: errorType, 
       error: err
     });
-
-    // showStats();
-  });
-  
-  threeceeUserObj.searchStream.on("end", function(err){
-
-    threeceeUserObj.searchStream.stop();
-
-    console.log(chalkError("TSS | " + getTimeStamp()
-      + " | @" + threeceeUserObj.screenName
-      + " | *** TWITTER END: " + err
-    ));
-
-
-    statsObj.twitterErrors += 1;
-    threeceeUserObj.stats.twitterErrors += 1;
-
-    if (err.statusCode === 401) {
-      process.send({
-        op: "ERROR", 
-        threeceeUser: threeceeUserObj.screenName, 
-        stats: threeceeUserObj.stats, 
-        errorType: "TWITTER_UNAUTHORIZED", 
-        error: err
-      });
-    }
-    else {
-      process.send({
-        op: "ERROR", 
-        threeceeUser: threeceeUserObj.screenName, 
-        stats: threeceeUserObj.stats, 
-        errorType: "TWITTER_END", 
-        error: err
-      });
-    }
-
-    // showStats();
-  });
-  
-  threeceeUserObj.searchStream.on("parser-error", function(err){
-
-    console.log(chalkError("TSS | " + getTimeStamp()
-      + " | @" + threeceeUserObj.screenName
-      + " | *** TWITTER PARSER ERROR: " + err
-    ));
-
-    statsObj.twitterErrors += 1;
-    threeceeUserObj.stats.twitterErrors += 1;
-
-    process.send({
-      op: "ERROR", 
-      threeceeUser: threeceeUserObj.screenName, 
-      stats: threeceeUserObj.stats, 
-      errorType: "TWITTER_PARSER", 
-      error: err
-    });
-
-    showStats();
-  });
-  
-  threeceeUserObj.searchStream.on("tweet", function(tweetStatus){
-
-    tweetStatus.entities.media = [];
-    tweetStatus.entities.polls = [];
-    tweetStatus.entities.symbols = [];
-    tweetStatus.entities.urls = [];
-
-    // deltaTweet = process.hrtime(deltaTweetStart);
-    // if (deltaTweet[0] > 0) { 
-    //   console.log(chalkAlert("TSS | *** TWEET RX DELTA"
-    //     + " | @" + threeceeUserObj.screenName
-    //     + " | " + deltaTweet[0] + "." + deltaTweet[1]
-    //   ));
-    // }
-    // deltaTweetStart = process.hrtime();
-
-    threeceeUserObj.stats.rateLimited = false;
-
-    twitterStats.meter("tweetsPerSecond").mark();
-    twitterStats.meter("tweetsPerMinute").mark();
-
-    threeceeUserObj.rateMeter.meter("tweetsPerSecond").mark();
-    threeceeUserObj.rateMeter.meter("tweetsPerMinute").mark();
-
-    threeceeUserObj.stats.tweetsPerSecond = threeceeUserObj.rateMeter.toJSON().tweetsPerSecond["1MinuteRate"];
-    threeceeUserObj.stats.tweetsPerMinute = threeceeUserObj.rateMeter.toJSON().tweetsPerMinute["1MinuteRate"];
-
-    statsObj.tweetsReceived+= 1 ;
-    threeceeUserObj.stats.tweetsReceived += 1;
-
-    if (tweetStatus.retweeted_status) {
-      statsObj.retweetsReceived += 1;
-      threeceeUserObj.stats.retweetsReceived += 1;
-    }
-
-    if (tweetStatus.quoted_status) {
-      statsObj.quotedTweetsReceived += 1;
-      threeceeUserObj.stats.quotedTweetsReceived += 1;
-    }
-
-    if (tweetQueue.length < configuration.maxTweetQueue ) {
-      tweetQueue.push(tweetStatus);
-      statsObj.queues.tweetQueue.size = tweetQueue.length;
-    }
-    else {
-      statsObj.queues.tweetQueue.fullEvents += 1;
-    }
-
-    if ((threeceeUserObj.stats.tweetsReceived % 500 === 0) || (statsObj.tweetsReceived % 500 === 0)) {
-      console.log(chalkTwitter("TSS | <T | " + getTimeStamp()
-        + " | TWQ: " + tweetQueue.length
-        + " [ TOTAL Ts/RTs/QTs: " + statsObj.tweetsReceived + "/" + statsObj.retweetsReceived + "/" + statsObj.quotedTweetsReceived + "]"
-        + " | 3C @" + threeceeUserObj.screenName
-        + " [ Ts/RTs/QTs: " + threeceeUserObj.stats.tweetsReceived + "/" + threeceeUserObj.stats.retweetsReceived + "/" + threeceeUserObj.stats.quotedTweetsReceived + "]"
-        + " | " + statsObj.tweetsPerMinute.toFixed(3) + " TPM"
-        + " | " + tweetStatus.id_str
-        + " | TWEET LANG: " + tweetStatus.lang
-        + " | @" + tweetStatus.user.screen_name
-        + " | " + tweetStatus.user.name
-        + " | USER LANG: " + tweetStatus.user.lang
-        + " | LOC " + tweetStatus.user.location
-        + " | " + tweetStatus.user.id_str
-      ));
-    }
-
-  });
+  }
 
   callback(null, threeceeUserObj);
 }

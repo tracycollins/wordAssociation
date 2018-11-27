@@ -1401,6 +1401,12 @@ function initSearchStream(params, callback){
   if (threeceeUserObj.searchTermSet.size > 0) { filter.track = [...threeceeUserObj.searchTermSet]; }
   // if (threeceeUserObj.followUserSet.size > 0) { filter.follow = [...threeceeUserObj.followUserSet]; }
 
+  console.log(chalkInfo("TSS | INIT SEARCH STREAM"
+    + " | @" + threeceeUserObj.screenName
+    + " | SEARCH TERMS: " + threeceeUserObj.searchTermSet.size
+    + " | FILTER TRACK SIZE: " + filter.track.length
+  ));
+
   try {
     threeceeUserObj.searchStream = threeceeUserObj.twitStream.stream("statuses/filter", filter);
 
@@ -3089,18 +3095,20 @@ process.on("message", function(m) {
 
               }, function(err){
 
-                let filter = {};
-                filter.track = [];
+                // let filter = {};
+                // filter.track = [];
                 // filter.follow = [];
 
                 // if (threeceeUserObj.searchTermArray.length > 0) { filter.track = threeceeUserObj.searchTermArray; }
-                if (threeceeUserObj.searchTermSet.size > 0) { filter.track = [...threeceeUserObj.searchTermSet]; }
+                // if (threeceeUserObj.searchTermSet.size > 0) { filter.track = [...threeceeUserObj.searchTermSet]; }
                 // if (threeceeUserObj.followUserSet.size > 0) { filter.follow = [...threeceeUserObj.followUserSet]; }
 
                 initSearchStream({threeceeUserObj: threeceeUserObj}, function(err, tuObj){
 
                   console.log(chalkInfo("TSS | END USER_AUTHENTICATED"
                     + " | @" + tuObj.screenName
+                    // + " | SEARCH TERMS: " + threeceeUserObj.searchTermSet.size
+                    // + " | FILTER TRACK SIZE: " + filter.track
                   ));
 
                   threeceeUserHashMap.set(tuObj.screenName, tuObj);

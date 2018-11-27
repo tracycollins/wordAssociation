@@ -850,7 +850,9 @@ function initTwit(params, callback){
 
           if (user) {
 
-            threeceeUserObj.searchTermSet.add("@" + user.screenName.toLowerCase());
+            if (threeceeUserObj.searchTermSet.size < TWITTER_MAX_TRACKING_NUMBER) {
+              threeceeUserObj.searchTermSet.add("@" + user.screenName.toLowerCase());
+            }
 
             if (configuration.verbose || (userIndex % 100 === 0)) {
               printString = "TSS | [ " + userIndex + "/" + threeceeUserObj.followUserSet.size + " ] @" + threeceeUserObj.screenName + " | DB HIT";

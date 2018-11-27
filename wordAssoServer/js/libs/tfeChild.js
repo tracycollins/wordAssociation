@@ -1347,10 +1347,14 @@ function userProfileChangeHistogram(params) {
 
       const prevUserProp = "previous" + _.upperFirst(userProp);
 
-      console.log(chalkLog("TFE | +++ USER PROFILE CHANGE"
-        + " | " + userProp 
-        + " | " + user[userProp] + " <-- " + user[prevUserProp]
-      ));
+      if (user[prevUserProp] && user[prevUserProp] !== undefined) {
+
+        console.log(chalkInfo("TFE | +++ USER PROFILE CHANGE"
+          + " | " + userProp 
+          + " | " + user[userProp] + " <-- " + user[prevUserProp]
+        ));
+
+      }
 
       switch (userProp) {
         case "name":
@@ -1798,7 +1802,7 @@ function initUserCategorizeQueueInterval(cnf){
                 userCategorizeQueueReady = true;
                 return;
               }
-              printUserObj("TFE | NN: " + nnId + " | DB CAT", dbUser, chalkInfo);
+              printUserObj("TFE | NN: " + nnId + " | DB CAT", dbUser, chalkLog);
               process.send({ op: "USER_CATEGORIZED", user: dbUser });
               userCategorizeQueueReady = true;
             });

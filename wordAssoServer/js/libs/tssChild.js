@@ -2978,7 +2978,7 @@ process.on("message", function(m) {
               threeceeUserObj.stats.authenticated = true;
               threeceeUserObj.followUserSet = new Set(data.ids);
 
-              console.log(chalkError("TSS | TWITTER GET FRIENDS IDS"
+              console.log(chalkTwitter("TSS | TWITTER GET FRIENDS IDS"
                 + " | @" + threeceeUserObj.screenName
                 + " | " + threeceeUserObj.followUserSet.size + " FRIENDS"
               ));
@@ -3031,11 +3031,14 @@ process.on("message", function(m) {
 
                   }
                   else {
-                    console.log(chalkAlert("TSS | ??? TWITTER USER FOLLOW HM HIT"
-                      + " | UID: " + userId
-                      + " | IN HM: 3C @" + threeceeFollowingInHashMap
-                      + " | CUR 3C @: " + threeceeUserObj.screenName
-                    ));
+
+                    if (configuration.verbose) {
+                      console.log(chalkAlert("TSS | ??? TWITTER USER FOLLOW HM HIT"
+                        + " | UID: " + userId
+                        + " | IN HM: 3C @" + threeceeFollowingInHashMap
+                        + " | CUR 3C @: " + threeceeUserObj.screenName
+                      ));
+                    }
 
                     return cb();
                   }

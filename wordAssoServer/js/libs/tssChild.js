@@ -851,7 +851,7 @@ function initTwit(params, callback){
           if (user) {
 
             if (threeceeUserObj.searchTermSet.size < TWITTER_MAX_TRACKING_NUMBER) {
-              threeceeUserObj.searchTermSet.add("@" + user.screenName.toLowerCase());
+              threeceeUserObj.searchTermSet.add(user.screenName.toLowerCase());
             }
 
             if (configuration.verbose || (userIndex % 100 === 0)) {

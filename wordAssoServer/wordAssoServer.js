@@ -68,6 +68,7 @@ const DEFAULT_FIND_CAT_HASHTAG_CURSOR_LIMIT = 100;
 const DEFAULT_CURSOR_BATCH_SIZE = 100;
 
 const DEFAULT_THREECEE_USERS = ["altthreecee00", "altthreecee01", "altthreecee02", "altthreecee03", "altthreecee04", "altthreecee05"];
+const DEFAULT_THREECEE_INFO_USERS = ["threecee", "threeceeinfo", "ninjathreecee"];
 
 const DEFAULT_CHILD_ID_PREFIX = "wa_node_child_";
 
@@ -284,27 +285,18 @@ const TwitterStrategy = require("passport-twitter").Strategy;
 app.use(require("serve-static")(__dirname + "/public"));
 app.use(require("body-parser").urlencoded({ extended: true }));
 
-const altthreecee00config = {
-  consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",
-  consumer_secret: "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa",
-  token: "14607119-1VaZOqc1sgWOyANgO4jbD9SF7TzFhJvkiujQtkT4J",
-  token_secret: "ZmvfjYU0z0wgDslyESZQLIHPr4pcCizflg5Y2IxhvwVVf"
-};
-
-// {
-//   "fileName": "threecee.json",
-//   "screenName": "threecee",
-//   "consumer_key": "p08qa943B9Oe7Wpl9MAnbS4ca",
-//   "consumer_secret": "ds3t7bAvMqSRSY58jSR9lLjmS92ZjTgyH3JQaLtD49t9jq8Axe",
-//   "access_token": "14607119-AZdkHnnScAo8ubXB3klfz3tsDINNCES5ni1vaNBso",
-//   "access_token_secret": "Fb3XQP5LEF3LT0Yx2d3DKIyXLojtwNh7KAc4CTWJbuLIq",
-// }
+// const altthreecee00config = {
+//   consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",
+//   consumer_secret: "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa",
+//   token: "14607119-1VaZOqc1sgWOyANgO4jbD9SF7TzFhJvkiujQtkT4J",
+//   token_secret: "ZmvfjYU0z0wgDslyESZQLIHPr4pcCizflg5Y2IxhvwVVf"
+// };
 
 const threeceeConfig = {
   consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",
   consumer_secret: "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa",
-  token: "14607119-1VaZOqc1sgWOyANgO4jbD9SF7TzFhJvkiujQtkT4J",
-  token_secret: "ZmvfjYU0z0wgDslyESZQLIHPr4pcCizflg5Y2IxhvwVVf"
+  token: "14607119-S5EIEw89NSC462IkX4GWT67K1zWzoLzuZF7wiurku",
+  token_secret: "3NI3s4sTILiqBilgEDBSlC6oSJYXcdLQP7lXp58TQMk0A"
 };
 
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
@@ -389,6 +381,8 @@ configuration.forceImageAnalysis = DEFAULT_FORCE_IMAGE_ANALYSIS;
 
 configuration.twitterThreeceeAutoFollowUser = DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER;
 
+configuration.threeceeInfoUsersArray = DEFAULT_THREECEE_INFO_USERS;
+
 configuration.dropboxListFolderLimit = DEFAULT_DROPBOX_LIST_FOLDER_LIMIT;
 configuration.dropboxWebhookChangeTimeout = DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT;
 
@@ -442,6 +436,9 @@ const Twit = require(__dirname + "/js/libs/twit");
 
 let threeceeTwitter = {};
 threeceeTwitter.config = {};
+
+let threeceeInfoTwitter = {};
+threeceeInfoTwitter.config = {};
 
 if (process.env.MIN_FOLLOWERS_AUTO !== undefined) {
   configuration.minFollowersAuto = parseInt(process.env.MIN_FOLLOWERS_AUTO);
@@ -1329,12 +1326,21 @@ function connectDb(){
 
                 if (tssChild !== undefined) {
 
-                  if (updatedUser.screenName === DEFAULT_INFO_TWITTER_USER) {
-                    infoTwitterUserObj.twitterAuthorizationErrorFlag = false;
-                    infoTwitterUserObj.twitterCredentialErrorFlag = false;
-                    infoTwitterUserObj.twitterErrorFlag = false;
-                    infoTwitterUserObj.twitterFollowLimit = false;
-                    infoTwitterUserObj.twitterTokenErrorFlag = false;
+                  // if (updatedUser.screenName === DEFAULT_INFO_TWITTER_USER) {
+                  if (configuration.threeceeInfoUsersArray.includes(updatedUser.screenName)) {
+                    if (threeceeInfoTwitter[updatedUser.screenName] === undefined) {
+                      threeceeInfoTwitter[updatedUser.screenName] = {};
+                    }
+                    threeceeInfoTwitter[updatedUser.screenName].twitterAuthorizationErrorFlag = false;
+                    threeceeInfoTwitter[updatedUser.screenName].twitterCredentialErrorFlag = false;
+                    threeceeInfoTwitter[updatedUser.screenName].twitterErrorFlag = false;
+                    threeceeInfoTwitter[updatedUser.screenName].twitterFollowLimit = false;
+                    threeceeInfoTwitter[updatedUser.screenName].twitterTokenErrorFlag = false;
+                    // infoTwitterUserObj.twitterAuthorizationErrorFlag = false;
+                    // infoTwitterUserObj.twitterCredentialErrorFlag = false;
+                    // infoTwitterUserObj.twitterErrorFlag = false;
+                    // infoTwitterUserObj.twitterFollowLimit = false;
+                    // infoTwitterUserObj.twitterTokenErrorFlag = false;
                   }
                   else {
 
@@ -9038,6 +9044,11 @@ function loadConfigFile(params) {
           newConfiguration.threeceeUsers = loadedConfigObj.THREECEE_USERS;
         }
 
+        if (loadedConfigObj.TWITTER_THREECEE_INFO_USERS !== undefined){
+          console.log("WAS | LOADED TWITTER_THREECEE_INFO_USERS: " + loadedConfigObj.TWITTER_THREECEE_INFO_USERS);
+          newConfiguration.threeceeInfoUsersArray = loadedConfigObj.TWITTER_THREECEE_INFO_USERS;
+        }
+
         if (loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW_USER !== undefined){
           console.log("WAS | LOADED TWITTER_THREECEE_AUTO_FOLLOW_USER: " + loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW_USER);
           newConfiguration.twitterThreeceeAutoFollowUser = loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW_USER;
@@ -9370,6 +9381,25 @@ function initConfig() {
       threeceeTwitter[user].twitterRateLimitResetAt = false;
 
       debug(chalkTwitter("WAS | THREECEE USER @" + user + "\n" + jsonPrint(threeceeTwitter[user])));
+    });
+
+    configuration.threeceeInfoUsersArray.forEach(function(user){
+      threeceeInfoTwitter[user] = {};
+      threeceeInfoTwitter[user].twit = {};
+      threeceeInfoTwitter[user].ready = false;
+      threeceeInfoTwitter[user].status = "UNCONFIGURED";
+      threeceeInfoTwitter[user].error = false;
+      threeceeInfoTwitter[user].twitterFollowing = 0;
+      threeceeInfoTwitter[user].twitterFollowLimit = false;
+      threeceeInfoTwitter[user].twitterAuthorizationErrorFlag = false;
+      threeceeInfoTwitter[user].twitterErrorFlag = false;
+      threeceeInfoTwitter[user].twitterTokenErrorFlag = false;
+      threeceeInfoTwitter[user].twitterCredentialErrorFlag = false;
+      threeceeInfoTwitter[user].twitterRateLimitException = false;
+      threeceeInfoTwitter[user].twitterRateLimitExceptionFlag = false;
+      threeceeInfoTwitter[user].twitterRateLimitResetAt = false;
+
+      debug(chalkTwitter("WAS | THREECEE INFO USER @" + user + "\n" + jsonPrint(threeceeInfoTwitter[user])));
     });
 
     loadAllConfigFiles()

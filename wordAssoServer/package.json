@@ -12,7 +12,7 @@
     "@threeceelabs/tweet-server-controller": "^1.0.368",
     "@threeceelabs/twitter-image-parser": "^1.0.65",
     "@threeceelabs/twitter-text-parser": "^1.0.71",
-    "@threeceelabs/user-server-controller": "^1.0.378",
+    "@threeceelabs/user-server-controller": "^1.0.380",
     "@threeceelabs/word-server-controller": "^1.0.41",
     "acorn": "^6.0.4",
     "array-normalize": "^1.1.3",

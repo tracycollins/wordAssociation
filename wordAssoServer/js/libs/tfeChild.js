@@ -1600,7 +1600,7 @@ function updateUserHistograms(params) {
 
           async.parallel({
 
-            profHist: function(cb){
+            profileHist: function(cb){
 
               if (profileHistogramChanges) {
 

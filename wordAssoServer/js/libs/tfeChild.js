@@ -1420,10 +1420,13 @@ function userProfileChangeHistogram(params) {
             parseText({category: user.category, text: text})
             .then(function(textParseResults){
 
-              if (profileUrl) {
+              if (url || profileUrl) {
 
                 let histB = {};
-                histB[profileUrl] = 1;
+                histB.urls = {};
+                
+                if (url) { histB.urls[url] = 1; }
+                if (profileUrl) { histB.urls[profileUrl] = 1; }
 
                 mergeHistograms.merge({ histogramA: textParseResults, histogramB: histB })
                 .then(function(textParseResults){

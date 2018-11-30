@@ -519,39 +519,75 @@ function userUpdateDb(tweetObj){
         }
 
 
-        let histogramMerged = {};
+        let tweetHistogramMerged = {};
 
-        if (!user.histograms || user.histograms === undefined || user.histograms === null) { user.histograms = {}; }
+        if (!user.tweetHistograms || user.tweetHistograms === undefined || user.tweetHistograms === null) { 
+          user.tweetHistograms = {};
+          user.markModified("tweetHistograms");
+        }
 
         try {
-          histogramMerged = await mergeHistograms({histogramA: tweetObj.user.histograms, histogramB: user.tweetHistograms});
 
-          user.histograms = histogramMerged;
+          tweetHistogramMerged = await mergeHistograms({histogramA: tweetObj.user.histograms, histogramB: user.tweetHistograms});
+
+          user.tweetHistograms = tweetHistogramMerged;
 
           printUserObj("DBU | +++ USER DB HIT", user);
 
           console.log(chalkInfo("DBU | USER MERGED HISTOGRAMS"
             + " | " + user.nodeId
             + " | @" + user.screenName
-            + " | EJs: " + getNumKeys(user.histograms.emoji)
-            + " | Hs: " + getNumKeys(user.histograms.hashtags)
-            + " | IMs: " + getNumKeys(user.histograms.images)
-            + " | LCs: " + getNumKeys(user.histograms.locations)
-            + " | MEs: " + getNumKeys(user.histograms.media)
-            + " | Ms: " + getNumKeys(user.histograms.mentions)
-            + " | PLs: " + getNumKeys(user.histograms.places)
-            + " | STs: " + getNumKeys(user.histograms.sentiment)
-            + " | UMs: " + getNumKeys(user.histograms.userMentions)
-            + " | ULs: " + getNumKeys(user.histograms.urls)
-            + " | WDs: " + getNumKeys(user.histograms.words)
+            + " | EJs: " + getNumKeys(user.tweetHistogramMerged.emoji)
+            + " | Hs: " + getNumKeys(user.tweetHistogramMerged.hashtags)
+            + " | IMs: " + getNumKeys(user.tweetHistograms.images)
+            + " | LCs: " + getNumKeys(user.tweetHistograms.locations)
+            + " | MEs: " + getNumKeys(user.tweetHistograms.media)
+            + " | Ms: " + getNumKeys(user.tweetHistograms.mentions)
+            + " | PLs: " + getNumKeys(user.tweetHistograms.places)
+            + " | STs: " + getNumKeys(user.tweetHistograms.sentiment)
+            + " | UMs: " + getNumKeys(user.tweetHistograms.userMentions)
+            + " | ULs: " + getNumKeys(user.tweetHistograms.urls)
+            + " | WDs: " + getNumKeys(user.tweetHistograms.words)
           ));
 
-          debug(chalkLog("DBU | USER MERGED HISTOGRAMS\n" + jsonPrint(histogramMerged)));
+          debug(chalkLog("DBU | USER MERGED TWEET HISTOGRAMS\n" + jsonPrint(tweetHistogramMerged)));
         }
         catch(err){
           console.log(chalkError("DBU | *** ERROR mergeHistograms: @" + user.screenName + " | " + err));
           return reject(err);
         }
+
+        // if (!user.histograms || user.histograms === undefined || user.histograms === null) { user.histograms = {}; }
+
+        // try {
+        //   histogramMerged = await mergeHistograms({histogramA: tweetObj.user.histograms, histogramB: user.tweetHistograms});
+
+        //   user.histograms = histogramMerged;
+
+        //   printUserObj("DBU | +++ USER DB HIT", user);
+
+        //   console.log(chalkInfo("DBU | USER MERGED HISTOGRAMS"
+        //     + " | " + user.nodeId
+        //     + " | @" + user.screenName
+        //     + " | EJs: " + getNumKeys(user.histograms.emoji)
+        //     + " | Hs: " + getNumKeys(user.histograms.hashtags)
+        //     + " | IMs: " + getNumKeys(user.histograms.images)
+        //     + " | LCs: " + getNumKeys(user.histograms.locations)
+        //     + " | MEs: " + getNumKeys(user.histograms.media)
+        //     + " | Ms: " + getNumKeys(user.histograms.mentions)
+        //     + " | PLs: " + getNumKeys(user.histograms.places)
+        //     + " | STs: " + getNumKeys(user.histograms.sentiment)
+        //     + " | UMs: " + getNumKeys(user.histograms.userMentions)
+        //     + " | ULs: " + getNumKeys(user.histograms.urls)
+        //     + " | WDs: " + getNumKeys(user.histograms.words)
+        //   ));
+
+        //   debug(chalkLog("DBU | USER MERGED HISTOGRAMS\n" + jsonPrint(histogramMerged)));
+        // }
+        // catch(err){
+        //   console.log(chalkError("DBU | *** ERROR mergeHistograms: @" + user.screenName + " | " + err));
+        //   return reject(err);
+        // }
 
         user.save()
         .then(function() {

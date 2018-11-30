@@ -875,7 +875,7 @@ function generateNetworkInputIndexed(params, callback){
 
   async.eachSeries(inTypes, function(inputType, cb0){
 
-    debug("RNT | GENERATE NET INPUT | TYPE: " + inputType);
+    debug("TFE | GENERATE NET INPUT | TYPE: " + inputType);
 
     const histogramObj = params.histograms[inputType];
     const networkInputTypeNames = params.inputsObj.inputs[inputType];
@@ -889,7 +889,7 @@ function generateNetworkInputIndexed(params, callback){
 
           networkInput[indexOffset + index] = 1;
 
-          console.log(chalkLog("RNT | ??? UNDEFINED MAX INPUT"
+          console.log(chalkLog("TFE | ??? UNDEFINED MAX INPUT"
             + " | IN ID: " + params.inputsObj.inputsId
             + " | IN LENGTH: " + networkInput.length
             + " | @" + params.userScreenName

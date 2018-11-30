@@ -396,7 +396,7 @@ let tweetObj = {};
 
 function getNumKeys(obj){
   if (!obj || obj === undefined || typeof obj !== "object" || obj === null) { return 0; }
-  return (Object.keys).length;
+  return Object.keys(obj).length;
 }
 
 function userUpdateDb(tweetObj){
@@ -432,7 +432,7 @@ function userUpdateDb(tweetObj){
       async.each(tweetObj[entityType], function(entityObj, cb1){
 
         if (!entityObj) {
-          console.log(chalkAlert("DBU | !!! NULL entity? | ENTITY TYPE: " + entityType + " | entityObj: " + entityObj));
+          console.log(chalkInfo("DBU | !!! NULL entity? | ENTITY TYPE: " + entityType + " | entityObj: " + entityObj));
           // console.log(chalkAlert("DBU | !!! NULL entity? | ENTITY TYPE: " + entityType + "\nentityObj\n" + jsonPrint(entityObj)));
           // console.log(chalkAlert("DBU | !!! NULL entity?\n" + jsonPrint(tweetObj)));
           return cb1();
@@ -442,11 +442,11 @@ function userUpdateDb(tweetObj){
 
         switch (entityType) {
           case "hashtags":
-            entity = "#" + entityObj.nodeId;
+            entity = "#" + entityObj.nodeId.toLowerCase();
           break;
           case "mentions":
           case "userMentions":
-            entity = "@" + entityObj.screenName;
+            entity = "@" + entityObj.screenName.toLowerCase();
           break;
           case "locations":
             entity = entityObj.nodeId;
@@ -462,7 +462,7 @@ function userUpdateDb(tweetObj){
             entity = entityObj.nodeId;
           break;
           case "words":
-            entity = entityObj.nodeId;
+            entity = entityObj.nodeId.toLowerCase();
           break;
           case "places":
             entity = entityObj.nodeId;
@@ -522,8 +522,21 @@ function userUpdateDb(tweetObj){
         let tweetHistogramMerged = {};
 
         if (!user.tweetHistograms || user.tweetHistograms === undefined || user.tweetHistograms === null) { 
+          console.log(chalkLog("DBU | TWEET HISTOGRAMS UNDEFINED"
+            + " | " + user.nodeId
+            + " | @" + user.screenName
+          ));
           user.tweetHistograms = {};
           user.markModified("tweetHistograms");
+        }
+
+        if (!user.profileHistograms || user.profileHistograms === undefined || user.profileHistograms === null) { 
+          console.log(chalkLog("DBU | PROFILE HISTOGRAMS UNDEFINED"
+            + " | " + user.nodeId
+            + " | @" + user.screenName
+          ));
+          user.profileHistograms = {};
+          user.markModified("profileHistograms");
         }
 
         try {
@@ -537,8 +550,8 @@ function userUpdateDb(tweetObj){
           console.log(chalkInfo("DBU | USER MERGED HISTOGRAMS"
             + " | " + user.nodeId
             + " | @" + user.screenName
-            + " | EJs: " + getNumKeys(user.tweetHistogramMerged.emoji)
-            + " | Hs: " + getNumKeys(user.tweetHistogramMerged.hashtags)
+            + " | EJs: " + getNumKeys(user.tweetHistograms.emoji)
+            + " | Hs: " + getNumKeys(user.tweetHistograms.hashtags)
             + " | IMs: " + getNumKeys(user.tweetHistograms.images)
             + " | LCs: " + getNumKeys(user.tweetHistograms.locations)
             + " | MEs: " + getNumKeys(user.tweetHistograms.media)
@@ -549,6 +562,15 @@ function userUpdateDb(tweetObj){
             + " | ULs: " + getNumKeys(user.tweetHistograms.urls)
             + " | WDs: " + getNumKeys(user.tweetHistograms.words)
           ));
+
+          if (configuration.verbose){
+            console.log(chalkInfo("DBU | USER MERGED HISTOGRAMS"
+              + " | " + user.nodeId
+              + " | @" + user.screenName
+              + "\nprofileHistograms\n" + jsonPrint(user.nprofileHistograms)
+              + "\ntweetHistograms\n" + jsonPrint(user.tweetHistograms)
+            ));
+          }
 
           debug(chalkLog("DBU | USER MERGED TWEET HISTOGRAMS\n" + jsonPrint(tweetHistogramMerged)));
         }

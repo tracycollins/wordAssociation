@@ -18,7 +18,7 @@ let inputTypes = [
   "words"
 ];
 
-const DEFAULT_VERBOSE = false;
+const DEFAULT_VERBOSE = true;
 const DEFAULT_TEST_MODE = false;
 const DEFAULT_USER_UPDATE_QUEUE_INTERVAL = 100;
 const DEFAULT_MAX_UPDATE_QUEUE = 500;
@@ -524,7 +524,7 @@ function userUpdateDb(tweetObj){
         if (!user.histograms || user.histograms === undefined || user.histograms === null) { user.histograms = {}; }
 
         try {
-          histogramMerged = await mergeHistograms({histogramA: tweetObj.user.histograms, histogramB: user.histograms});
+          histogramMerged = await mergeHistograms({histogramA: tweetObj.user.histograms, histogramB: user.tweetHistograms});
 
           user.histograms = histogramMerged;
 

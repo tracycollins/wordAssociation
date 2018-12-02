@@ -41,27 +41,6 @@ configEvents.on("newListener", function configEventsNewListener(data) {
   debug("*** NEW CONFIG EVENT LISTENER: " + data);
 });
 
-
-// const emojiModel = require("@threeceelabs/mongoose-twitter/models/emoji.server.model");
-// const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
-// const mediaModel = require("@threeceelabs/mongoose-twitter/models/media.server.model");
-// const locationModel = require("@threeceelabs/mongoose-twitter/models/location.server.model");
-// const placeModel = require("@threeceelabs/mongoose-twitter/models/place.server.model");
-// const tweetModel = require("@threeceelabs/mongoose-twitter/models/tweet.server.model");
-// const urlModel = require("@threeceelabs/mongoose-twitter/models/url.server.model");
-// const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
-// const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
-
-// let Emoji;
-// let Hashtag;
-// let Media;
-// let Location;
-// let Place;
-// let Tweet;
-// let Url;
-// let User;
-// let Word;
-
 const Emoji = global.Emoji;
 const Hashtag = global.Hashtag;
 const Location = global.Location;
@@ -78,20 +57,6 @@ const userServerController = new UserServerController("TSC_USC");
 let TweetServerController;
 let tweetServerController;
 let tweetServerControllerReady = false;
-
-// const mongoose = require("mongoose");
-
-// const wordAssoDb = require("@threeceelabs/mongoose-twitter");
-
-// Emoji = mongoose.model("Emoji", wordAssoDb.emojiModel.EmojiSchema);
-// Hashtag = mongoose.model("Hashtag", wordAssoDb.hashtagModel.HashtagSchema);
-// Media = mongoose.model("Media", wordAssoDb.mediaModel.MediaSchema);
-// Location = mongoose.model("Location", wordAssoDb.locationModel.LocationSchema);
-// Place = mongoose.model("Place", wordAssoDb.placeModel.PlaceSchema);
-// Tweet = mongoose.model("Tweet", wordAssoDb.tweetModel.TweetSchema);
-// Url = mongoose.model("Url", wordAssoDb.urlModel.UrlSchema);
-// User = mongoose.model("User", wordAssoDb.userModel.UserSchema);
-// Word = mongoose.model("Word", wordAssoDb.wordModel.WordSchema);
 
 
 configEvents.on("DB_CONNECT", function configEventDbConnect(){

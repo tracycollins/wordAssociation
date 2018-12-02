@@ -52,33 +52,46 @@ configEvents.on("newListener", function configEventsNewListener(data) {
 // const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
 // const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
 
-let Emoji;
-let Hashtag;
-let Media;
-let Location;
-let Place;
-let Tweet;
-let Url;
-let User;
-let Word;
+// let Emoji;
+// let Hashtag;
+// let Media;
+// let Location;
+// let Place;
+// let Tweet;
+// let Url;
+// let User;
+// let Word;
+
+const Emoji = global.Emoji;
+const Hashtag = global.Hashtag;
+const Location = global.Location;
+const Media = global.Media;
+const Place = global.Place;
+const Tweet = global.Tweet;
+const Url = global.Url;
+const User = global.User;
+const Word = global.Word;
+
+const UserServerController = require("@threeceelabs/user-server-controller");
+const userServerController = new UserServerController("TSC_USC");
 
 let TweetServerController;
 let tweetServerController;
 let tweetServerControllerReady = false;
 
-const mongoose = require("mongoose");
+// const mongoose = require("mongoose");
 
-const wordAssoDb = require("@threeceelabs/mongoose-twitter");
+// const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
-  Emoji = mongoose.model("Emoji", wordAssoDb.emojiModel.EmojiSchema);
-  Hashtag = mongoose.model("Hashtag", wordAssoDb.hashtagModel.HashtagSchema);
-  Media = mongoose.model("Media", wordAssoDb.mediaModel.MediaSchema);
-  Location = mongoose.model("Location", wordAssoDb.locationModel.LocationSchema);
-  Place = mongoose.model("Place", wordAssoDb.placeModel.PlaceSchema);
-  Tweet = mongoose.model("Tweet", wordAssoDb.tweetModel.TweetSchema);
-  Url = mongoose.model("Url", wordAssoDb.urlModel.UrlSchema);
-  User = mongoose.model("User", wordAssoDb.userModel.UserSchema);
-  Word = mongoose.model("Word", wordAssoDb.wordModel.WordSchema);
+// Emoji = mongoose.model("Emoji", wordAssoDb.emojiModel.EmojiSchema);
+// Hashtag = mongoose.model("Hashtag", wordAssoDb.hashtagModel.HashtagSchema);
+// Media = mongoose.model("Media", wordAssoDb.mediaModel.MediaSchema);
+// Location = mongoose.model("Location", wordAssoDb.locationModel.LocationSchema);
+// Place = mongoose.model("Place", wordAssoDb.placeModel.PlaceSchema);
+// Tweet = mongoose.model("Tweet", wordAssoDb.tweetModel.TweetSchema);
+// Url = mongoose.model("Url", wordAssoDb.urlModel.UrlSchema);
+// User = mongoose.model("User", wordAssoDb.userModel.UserSchema);
+// Word = mongoose.model("Word", wordAssoDb.wordModel.WordSchema);
 
 
 configEvents.on("DB_CONNECT", function configEventDbConnect(){

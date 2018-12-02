@@ -20,9 +20,41 @@ const TWITTER_AUTH_CALLBACK_URL = "https://word.threeceelabs.com/auth/twitter/ca
 const TWITTER_WEBHOOK_URL = "/webhooks/twitter";
 // const TWITTER_AUTH_CALLBACK_URL = "http://localhost:9997/auth/twitter/callback";
 
+const dbAppName = "WAS_" + process.pid;
+
 global.dbConnection = false;
+
 let dbConnectionReady = false;
 let dbConnectionReadyInterval;
+
+const mongoose = require("mongoose");
+mongoose.set("useFindAndModify", false);
+
+global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
+
+global.Emoji;
+global.Hashtag;
+global.Location;
+global.Media;
+global.NetworkInputs;
+global.NeuralNetwork;
+global.Place;
+global.Tweet;
+global.Url;
+global.User;
+global.Word;
+
+
+let HashtagServerController;
+let UserServerController;
+
+let hashtagServerController;
+let userServerController;
+
+let hashtagServerControllerReady = false;
+let userServerControllerReady = false;
+
+
 let neuralNetworkChangeStream;
 let userFollowingCursor;
 
@@ -188,7 +220,7 @@ const moment = require("moment");
 // const treeify = require("treeify");
 const treeify = require(__dirname + "/js/libs/treeify");
 
-var request_options = {
+const request_options = {
   url: "https://api.twitter.com/oauth2/token",
   method: "POST",
   auth: {
@@ -285,13 +317,6 @@ const TwitterStrategy = require("passport-twitter").Strategy;
 app.use(require("serve-static")(__dirname + "/public"));
 app.use(require("body-parser").urlencoded({ extended: true }));
 
-// const altthreecee00config = {
-//   consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",
-//   consumer_secret: "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa",
-//   token: "14607119-1VaZOqc1sgWOyANgO4jbD9SF7TzFhJvkiujQtkT4J",
-//   token_secret: "ZmvfjYU0z0wgDslyESZQLIHPr4pcCizflg5Y2IxhvwVVf"
-// };
-
 const threeceeConfig = {
   consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",
   consumer_secret: "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa",
@@ -304,12 +329,7 @@ const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const fetch = require("isomorphic-fetch"); // or another library of choice.
 const Dropbox = require("dropbox").Dropbox;
 
-// const Monitoring = require("@google-cloud/monitoring");
-
-// let googleMonitoringClient;
-
 const HashMap = require("hashmap").HashMap;
-// const channelsHashMap = new HashMap();
 
 const ignoreIpSet = new Set();
 
@@ -431,6 +451,9 @@ configuration.threeceeUsers = DEFAULT_THREECEE_USERS;
 statsObj.currentThreeceeUser = configuration.threeceeUsers[0];
 
 
+// global.dbConnection = false;
+
+
 // const Twit = require("twit");
 const Twit = require(__dirname + "/js/libs/twit");
 
@@ -538,7 +561,7 @@ function quit(message) {
   let msg = "";
   if (message) {msg = message;}
 
-  console.log(chalkAlert("\nWAS | ... QUITTING ..."));
+  console.log(chalkAlert("WAS | ... QUITTING ..."));
   console.log(chalkAlert("WAS | QUIT MESSAGE: " + msg));
   console.error(chalkAlert("WAS | QUIT MESSAGE: " + msg));
 
@@ -550,9 +573,9 @@ function quit(message) {
       dbConnectionReady = false;
 
       console.log(chalkAlert(
-        "\nWAS | ==========================\n"
-        + "WAS | MONGO DB CONNECTION CLOSED"
-        + "\nWAS | ==========================\n"
+            "WAS | =========================="
+        + "\nWAS | MONGO DB CONNECTION CLOSED"
+        + "\nWAS | =========================="
       ));
 
     });
@@ -930,6 +953,16 @@ let tweetParserPingId = false;
 let categoryHashmapsInterval;
 let statsInterval;
 
+let uncategorizedManualUserSet = new Set();
+let uncategorizedAutoUserSet = new Set();
+
+let uncategorizedManualUserArray = [];
+let uncategorizedAutoUserArray = [];
+
+let mismatchUserSet = new Set();
+let mismatchUserArray = [];
+
+
 // ==================================================================
 // DROPBOX
 // ==================================================================
@@ -1122,53 +1155,6 @@ function printUserObj(title, user) {
   ));
 }
 
-const emojiModel = require("@threeceelabs/mongoose-twitter/models/emoji.server.model");
-const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
-const mediaModel = require("@threeceelabs/mongoose-twitter/models/media.server.model");
-const neuralNetworkModel = require("@threeceelabs/mongoose-twitter/models/neuralNetwork.server.model");
-const networkInputsModel = require("@threeceelabs/mongoose-twitter/models/networkInputs.server.model");
-const placeModel = require("@threeceelabs/mongoose-twitter/models/place.server.model");
-const tweetModel = require("@threeceelabs/mongoose-twitter/models/tweet.server.model");
-const urlModel = require("@threeceelabs/mongoose-twitter/models/url.server.model");
-const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
-const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
-
-let NeuralNetwork;
-let Emoji;
-let Hashtag;
-let Media;
-let Place;
-let Tweet;
-let Url;
-let User;
-let Word;
-
-let uncategorizedManualUserSet = new Set();
-let uncategorizedAutoUserSet = new Set();
-
-let uncategorizedManualUserArray = [];
-let uncategorizedAutoUserArray = [];
-
-let mismatchUserSet = new Set();
-let mismatchUserArray = [];
-
-let HashtagServerController;
-let UserServerController;
-
-let hashtagServerController;
-let userServerController;
-
-let hashtagServerControllerReady = false;
-let userServerControllerReady = false;
-
-const mongoose = require("mongoose");
-// mongoose.Promise = global.Promise;
-
-const wordAssoDb = require("@threeceelabs/mongoose-twitter");
-// const wordAssoDb = require("../../mongooseTwitter");
-
-const dbAppName = "WAS_" + process.pid;
-
 function connectDb(){
 
   return new Promise(function(resolve, reject){
@@ -1228,19 +1214,28 @@ function connectDb(){
 
         console.log(chalk.green("WAS | MONGOOSE DEFAULT CONNECTION OPEN"));
 
-        // UserServerController = require("../userServerController/index.js");
-        UserServerController = require("@threeceelabs/user-server-controller");
-        userServerController = new UserServerController("WAS_USC");
+        const emojiModel = require("@threeceelabs/mongoose-twitter/models/emoji.server.model");
+        const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
+        const locationModel = require("@threeceelabs/mongoose-twitter/models/location.server.model");
+        const mediaModel = require("@threeceelabs/mongoose-twitter/models/media.server.model");
+        const neuralNetworkModel = require("@threeceelabs/mongoose-twitter/models/neuralNetwork.server.model");
+        const placeModel = require("@threeceelabs/mongoose-twitter/models/place.server.model");
+        const tweetModel = require("@threeceelabs/mongoose-twitter/models/tweet.server.model");
+        const urlModel = require("@threeceelabs/mongoose-twitter/models/url.server.model");
+        const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
+        const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
 
-        Emoji = mongoose.model("Emoji", emojiModel.EmojiSchema);
-        Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
-        Media = mongoose.model("Media", mediaModel.MediaSchema);
-        NeuralNetwork = mongoose.model("NeuralNetwork", neuralNetworkModel.NeuralNetworkSchema);
-        Place = mongoose.model("Place", placeModel.PlaceSchema);
-        Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
-        Url = mongoose.model("Url", urlModel.UrlSchema);
-        User = mongoose.model("User", userModel.UserSchema);
-        Word = mongoose.model("Word", wordModel.WordSchema);
+        global.Emoji = global.dbConnection.model("Emoji", emojiModel.EmojiSchema);
+        global.Hashtag = global.dbConnection.model("Hashtag", hashtagModel.HashtagSchema);
+        global.Location = global.dbConnection.model("Location", locationModel.LocationSchema);
+        global.Media = global.dbConnection.model("Media", mediaModel.MediaSchema);
+        global.NeuralNetwork = global.dbConnection.model("NeuralNetwork", neuralNetworkModel.NeuralNetworkSchema);
+        global.Place = global.dbConnection.model("Place", placeModel.PlaceSchema);
+        global.Tweet = global.dbConnection.model("Tweet", tweetModel.TweetSchema);
+        global.Url = global.dbConnection.model("Url", urlModel.UrlSchema);
+        global.User = global.dbConnection.model("User", userModel.UserSchema);
+        global.Word = global.dbConnection.model("Word", wordModel.WordSchema);
+
 
         const neuralNetworkCollection = db.collection("neuralnetworks");
 
@@ -1446,15 +1441,32 @@ function connectDb(){
 
         initUpdateUserSetsInterval(ONE_MINUTE);
 
-        userServerControllerReady = false;
+        HashtagServerController = require("@threeceelabs/hashtag-server-controller");
+        hashtagServerController = new HashtagServerController("WAS_HSC");
+        hashtagServerControllerReady = true;
+
+        hashtagServerController.on("error", function(err){
+          hashtagServerControllerReady = false;
+          console.log(chalkError("WAS | *** HSC ERROR | " + err));
+        });
+
+        UserServerController = require("@threeceelabs/user-server-controller");
+        userServerController = new UserServerController("WAS_USC");
+
+        userServerController.on("error", function(err){
+          userServerControllerReady = false;
+          console.log(chalkError("WAS | *** USC ERROR | " + err));
+        });
+
+
         userServerController.on("ready", function(appname){
 
           statsObj.status = "MONGO DB CONNECTED";
           // slackSendMessage(hostname + " | WAS | " + statsObj.status);
 
           userServerControllerReady = true;
-          console.log(chalkAlert("WAS | USC READY | " + appname));
-          // dbConnectionReady = true;
+          console.log(chalk.green("WAS | USC READY | " + appname));
+          dbConnectionReady = true;
 
           configEvents.emit("DB_CONNECT");
           resolve(db);
@@ -3003,7 +3015,7 @@ function getChildProcesses(params){
         debug("CHILD HM MISS | ID: " + childId + " | PID: " + childPid + " | STATUS: UNKNOWN");
       }
 
-      if ((childrenHashMap[childId] !== undefined) && (childrenHashMap[childId].pid == childPid)) {
+      if ((childrenHashMap[childId] !== undefined) && (childrenHashMap[childId].pid === childPid)) {
         // cool kid
         childPidArray.push({ pid: childPid, childId: childId});
 
@@ -3282,15 +3294,6 @@ process.on("exit", function processExit() {
   .catch(function(err){
     console.log(chalkError("WAS | *** MAIN PROCESS EXIT ERROR: " + err));
   });
-
-
-  // try {
-  //   await killAll();
-  //   console.log(chalkAlert("\nWAS | *** MAIN PROCESS EXIT *** \n"));
-  // }
-  // catch(err){
-  //   console.log(chalkError("WAS | *** MAIN PROCESS EXIT ERROR: " + err));
-  // }
 
 });
 
@@ -3574,24 +3577,6 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
 
   initCategoryHashmapsReady = false;
 
-  HashtagServerController = require("@threeceelabs/hashtag-server-controller");
-  hashtagServerController = new HashtagServerController("WAS_HSC");
-  hashtagServerControllerReady = true;
-
-  hashtagServerController.on("error", function(err){
-    hashtagServerControllerReady = false;
-    console.log(chalkError("WAS | *** HSC ERROR | " + err));
-  });
-
-  UserServerController = require("@threeceelabs/user-server-controller");
-  userServerController = new UserServerController("WAS_USC");
-  userServerControllerReady = true;
-
-  userServerController.on("error", function(err){
-    userServerControllerReady = false;
-    console.log(chalkError("WAS | *** USC ERROR | " + err));
-  });
-
   async.parallel({
 
     socketInit: function(cb){
@@ -3693,7 +3678,6 @@ configEvents.on("NEW_BEST_NETWORK", function configEventDbConnect(bestNetworkId)
       }
     });
   }
-
 });
 
 configEvents.on("NEW_MAX_INPUT_HASHMAP", function configEventDbConnect(){
@@ -3724,7 +3708,6 @@ configEvents.on("NEW_MAX_INPUT_HASHMAP", function configEventDbConnect(){
       }
     });
   }
-
 });
 
 
@@ -3911,9 +3894,6 @@ function categorizeNode(categorizeObj, callback) {
     break;
   }
 }
-
-// let deltaTweetStart = process.hrtime();
-// let deltaTweet = process.hrtime(deltaTweetStart);
 
 function socketRxTweet(tw) {
 
@@ -5168,7 +5148,6 @@ function initSocketHandler(socketObj) {
           sessionObj.stats = keepAliveObj.stats;
 
           adminHashMap.set(socket.id, sessionObj);
-
           adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
         }
       break;
@@ -5181,11 +5160,6 @@ function initSocketHandler(socketObj) {
       case "LA" :
       case "TMP" :
 
-        // console.log(`Benchmark took ${diff[0] * NS_PER_SEC + diff[1]} nanoseconds`);
-
-        // deltaNS = diff[0] * NS_PER_SEC + diff[1];
-
-        // diff = process.hrtime(time);
 
         console.log(chalkLog("WAS | R< KA"
           // + " | DELTA: " + deltaNS + " NS"
@@ -5195,8 +5169,6 @@ function initSocketHandler(socketObj) {
           + " | " + ipAddress
           + " | " + socket.id
         ));
-
-        // time = process.hrtime();
 
         sessionObj.socketId = socket.id;
         sessionObj.ip = ipAddress;
@@ -6191,7 +6163,6 @@ function initFollowableSearchTerms(){
   });
 }
 
-
 let categorizeableFlag = false;
 let userCategorizeable = function(user){
 
@@ -6324,8 +6295,6 @@ function getCurrentThreeceeUser(params){
     }
 
   });
-
-
 }
 
 function updateUserSets(params){
@@ -6503,7 +6472,6 @@ function updateUserSets(params){
     });
 
   });
-
 }
 
 function initTransmitNodeQueueInterval(interval){
@@ -6517,14 +6485,9 @@ function initTransmitNodeQueueInterval(interval){
   let categorizeable;
   let nCacheObj;
 
-  // let deltaTxNodeStart = process.hrtime();
-  // let deltaTxNode = process.hrtime(deltaTxNodeStart);
-
   transmitNodeQueueInterval = setInterval(function txNodeQueue () {
 
     if (transmitNodeQueueReady && (transmitNodeQueue.length > 0)) {
-
-      // deltaTxNodeStart = process.hrtime();
 
       transmitNodeQueueReady = false;
 
@@ -6533,10 +6496,6 @@ function initTransmitNodeQueueInterval(interval){
       if (!nodeObj) {
         console.log(chalkError(new Error("transmitNodeQueue: NULL NODE OBJ DE-Q")));
         transmitNodeQueueReady = true;
-
-        // deltaTxNode = process.hrtime(deltaTxNodeStart);
-        // if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** TX NODE DELTA (!nodeObj): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
-
       }
       else {
 
@@ -6558,12 +6517,7 @@ function initTransmitNodeQueueInterval(interval){
 
           if (err) { 
             transmitNodeQueueReady = true;
-
             console.log(chalkError("WAS | *** CHECK CATEGORY ERROR: " + err));
-
-            // deltaTxNode = process.hrtime(deltaTxNodeStart);
-            // if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** TX NODE DELTA (checkCategory err): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
-
             return; 
           }
 
@@ -6580,30 +6534,24 @@ function initTransmitNodeQueueInterval(interval){
 
               transmitNodeQueueReady = true;
 
-              // deltaTxNode = process.hrtime(deltaTxNodeStart);
-              // if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** TX NODE DELTA (updateNodeMeter err): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
-
             }
             else {
 
               followable = userFollowable(n);
               categorizeable = userCategorizeable(n);
 
-              // if (configuration.verbose) { 
-              //   printUserObj("FOLLWABLE: " + followable, n);
-              // }
-
               if (followable) {
                 if (tssChild !== undefined) { 
 
-                if (!n.categoryAuto) { 
-                  uncategorizedAutoUserSet.add(n.nodeId);
-                  if (uncategorizedAutoUserSet.size % 100 === 0) {
-                    printUserObj("UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", n);
-                  }
-                }
+                  if (!n.categoryAuto) { 
 
-                  tssChild.send({op: "USER_SHOW", user: n, includeEntities: true});
+                    uncategorizedAutoUserSet.add(n.nodeId);
+
+                    if (uncategorizedAutoUserSet.size % 100 === 0) {
+                      printUserObj("UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", n);
+                    }
+
+                  }
                 }
               }
 
@@ -6651,9 +6599,6 @@ function initTransmitNodeQueueInterval(interval){
 
                   transmitNodeQueueReady = true;
 
-                  // deltaTxNode = process.hrtime(deltaTxNodeStart);
-                  // if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** TX NODE DELTA (user categorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
-
                 });
               }
               else if (n.nodeType === "user") {
@@ -6663,8 +6608,6 @@ function initTransmitNodeQueueInterval(interval){
 
                 transmitNodeQueueReady = true;
 
-                // deltaTxNode = process.hrtime(deltaTxNodeStart);
-                // if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** WAS TX NODE DELTA (user uncategorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
               }
               else if ((n.nodeType === "hashtag") && n.category){
 
@@ -6690,9 +6633,6 @@ function initTransmitNodeQueueInterval(interval){
 
                   transmitNodeQueueReady = true;
 
-                  // deltaTxNode = process.hrtime(deltaTxNodeStart);
-                  // if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** WAS TX NODE DELTA (hashtag categorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
-
                 });
               }
               else if (n.nodeType === "hashtag") {
@@ -6701,17 +6641,11 @@ function initTransmitNodeQueueInterval(interval){
                 viewNameSpace.volatile.emit("node", n);
                 transmitNodeQueueReady = true;
 
-                // deltaTxNode = process.hrtime(deltaTxNodeStart);
-                // if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** WAS TX NODE DELTA (hashtag uncategorized): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
               }
               else {
                 transmitNodeQueueReady = true;
-
-                // deltaTxNode = process.hrtime(deltaTxNodeStart);
-                // if (deltaTxNode[0] > 0) { console.log(chalkAlert("WAS | *** WAS TX NODE DELTA (nothing?): " + deltaTxNode[0] + "." + deltaTxNode[1])); }
               }
 
-              // });
             }
 
           });
@@ -9352,16 +9286,6 @@ function initConfig() {
     configuration.enableStdin = process.env.ENABLE_STDIN || true ;
     configuration.statsUpdateIntervalTime = process.env.TFE_STATS_UPDATE_INTERVAL || ONE_MINUTE;
 
-    // if (configuration.enableStdin) {
-    //   initStdIn()
-    //   .then(function(){
-
-    //   })
-    //   .catch(function(err){
-    //     return reject(err);
-    //   });
-    // }
-
     debug(chalkTwitter("WAS | THREECEE USERS\n" + jsonPrint(configuration.threeceeUsers)));
 
     configuration.threeceeUsers.forEach(function(user){
@@ -10016,73 +9940,6 @@ function initStdIn(params){
 //   });
 // }
 
-
-// function initialize(params){
-
-//   return new Promise(async function(resolve, reject){
-
-//     statsObj.status = "INITIALIZE";
-
-//     try {
-//       await killAll();
-//       io = require("socket.io")(httpServer, ioConfig);
-
-//       debug(chalkBlue("WAS | INITIALIZE configuration\n" + jsonPrint(configuration)));
-
-//       if (debug.enabled || debugCache.enabled){
-//         console.log("\nWAS | %%%%%%%%%%%%%%\nWAS |  DEBUG ENABLED \nWAS | %%%%%%%%%%%%%%\n");
-//       }
-
-//       configuration.processName = process.env.PROCESS_NAME || "node_wordAssoServer";
-//       configuration.verbose = process.env.VERBOSE || false ;
-//       configuration.quitOnError = process.env.QUIT_ON_ERROR || false ;
-//       configuration.enableStdin = process.env.ENABLE_STDIN || true ;
-
-
-//       if (configuration.enableStdin) {
-//         await initStdIn();
-//       }
-
-//       debug(chalkTwitter("WAS | THREECEE USERS\n" + jsonPrint(configuration.threeceeUsers)));
-
-//       configuration.threeceeUsers.forEach(function(user){
-//         threeceeTwitter[user] = {};
-//         threeceeTwitter[user].twit = {};
-//         threeceeTwitter[user].ready = false;
-//         threeceeTwitter[user].status = "UNCONFIGURED";
-//         threeceeTwitter[user].error = false;
-//         threeceeTwitter[user].twitterFollowing = 0;
-//         threeceeTwitter[user].twitterFollowLimit = false;
-//         threeceeTwitter[user].twitterAuthorizationErrorFlag = false;
-//         threeceeTwitter[user].twitterErrorFlag = false;
-//         threeceeTwitter[user].twitterTokenErrorFlag = false;
-//         threeceeTwitter[user].twitterCredentialErrorFlag = false;
-//         threeceeTwitter[user].twitterRateLimitException = false;
-//         threeceeTwitter[user].twitterRateLimitExceptionFlag = false;
-//         threeceeTwitter[user].twitterRateLimitResetAt = false;
-
-//         debug(chalkTwitter("WAS | THREECEE USER @" + user + "\n" + jsonPrint(threeceeTwitter[user])));
-//       });
-
-//       await initConfig();
-//       await initSlackWebClient();
-//       await initSlackRtmClient();
-
-//       if (!statsObj.internetReady) { 
-//         initInternetCheckInterval(ONE_MINUTE);
-//       }
-
-//       resolve();
-
-//     }
-//     catch(err){
-//       console.log(chalkError("WAS | *** INITIALIZE ERROR: " + err));
-//       reject(err);
-//     }
-
-//   });
-
-// }
 
 function initIgnoreWordsHashMap() {
   return new Promise(function(resolve, reject){

@@ -58,25 +58,15 @@ const urlModel = require("@threeceelabs/mongoose-twitter/models/url.server.model
 const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
 const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
 
-let NeuralNetwork;
-let Emoji;
-let Hashtag;
-let Media;
-let Place;
-let Tweet;
-let Url;
-let User;
-let Word;
-
-Emoji = mongoose.model("Emoji", emojiModel.EmojiSchema);
-Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
-Media = mongoose.model("Media", mediaModel.MediaSchema);
-NeuralNetwork = mongoose.model("NeuralNetwork", neuralNetworkModel.NeuralNetworkSchema);
-Place = mongoose.model("Place", placeModel.PlaceSchema);
-Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
-Url = mongoose.model("Url", urlModel.UrlSchema);
-User = mongoose.model("User", userModel.UserSchema);
-Word = mongoose.model("Word", wordModel.WordSchema);
+global.Emoji = mongoose.model("Emoji", emojiModel.EmojiSchema);
+global.Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
+global.Media = mongoose.model("Media", mediaModel.MediaSchema);
+global.NeuralNetwork = mongoose.model("NeuralNetwork", neuralNetworkModel.NeuralNetworkSchema);
+global.Place = mongoose.model("Place", placeModel.PlaceSchema);
+global.Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
+global.Url = mongoose.model("Url", urlModel.UrlSchema);
+global.User = mongoose.model("User", userModel.UserSchema);
+global.Word = mongoose.model("Word", wordModel.WordSchema);
 
 const UserServerController = require("@threeceelabs/user-server-controller");
 const userServerController = new UserServerController("WAS_TEST_USC");
@@ -84,11 +74,11 @@ const userServerController = new UserServerController("WAS_TEST_USC");
 describe("mongoose", function() {
 
   beforeEach(async function() {
-	  await User.deleteMany({}); // Delete all users
+	  await global.User.deleteMany({}); // Delete all users
   });
 
   afterEach(async function() {
-	  await User.deleteMany({}); // Delete all users
+	  await global.User.deleteMany({}); // Delete all users
   });
 
   after(async function() {
@@ -99,11 +89,11 @@ describe("mongoose", function() {
 
     it("create and find 1 user", async function() {
 
-		  let tobi = new User({ nodeId: "1234", name: "tobi"});
+		  let tobi = new global.User({ nodeId: "1234", name: "tobi"});
 
 		  let savedUser0 = await tobi.save();
 
-		  const res = await User.find({});
+		  const res = await global.User.find({});
 
       res.should.have.length(1);
       res[0].should.have.property("name", "tobi");
@@ -113,13 +103,13 @@ describe("mongoose", function() {
     
     it("create and find 2 users", async function() {
 
-		  let tobi = new User({ nodeId: "1234", name: "tobi"});
-		  let hector = new User({ nodeId: "54321", name: "hector"});
+		  let tobi = new global.User({ nodeId: "1234", name: "tobi"});
+		  let hector = new global.User({ nodeId: "54321", name: "hector"});
 
 		  let savedUser0 = await tobi.save();
 		  let savedUser1 = await hector.save();
 
-		  const res = await User.find({});
+		  const res = await global.User.find({});
 
       res.should.have.length(2);
       res[0].should.have.property("name", "tobi");
@@ -128,13 +118,13 @@ describe("mongoose", function() {
     
     it("userServerController updateHistograms", async function() {
 
-		  let tobi = new User({ nodeId: "1234", name: "tobi"});
-		  let hector = new User({ nodeId: "54321", name: "hector"});
+		  let tobi = new global.User({ nodeId: "1234", name: "tobi"});
+		  let hector = new global.User({ nodeId: "54321", name: "hector"});
 
 		  let savedTobi = await tobi.save();
 		  let savedHector = await hector.save();
 
-		  const res = await User.find({});
+		  const res = await global.User.find({});
 
       res.should.have.length(2);
       res[0].should.have.property("name", "tobi");
@@ -234,7 +224,6 @@ describe("mongoose", function() {
 	    		params = params || {};
 
 	    		const interval = params.interval || 10000;
-
 
     			const quitTimeout = setTimeout(function(){
     				tss.send({op: "QUIT"});

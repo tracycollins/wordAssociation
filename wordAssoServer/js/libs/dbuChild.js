@@ -18,7 +18,7 @@ let inputTypes = [
   "words"
 ];
 
-const DEFAULT_VERBOSE = true;
+const DEFAULT_VERBOSE = false;
 const DEFAULT_TEST_MODE = false;
 const DEFAULT_USER_UPDATE_QUEUE_INTERVAL = 100;
 const DEFAULT_MAX_UPDATE_QUEUE = 500;
@@ -135,7 +135,7 @@ const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
 const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
 
-let User = mongoose.model("User", userModel.UserSchema);
+global.User = mongoose.model("User", userModel.UserSchema);
 
 
 
@@ -204,7 +204,7 @@ function showStats(options){
 
 function quit(options){
 
-  console.log(chalkAlert( "\n\nDBU | ... QUITTING ...\n\n" ));
+  console.log(chalkAlert( "DBU | ... QUITTING ..." ));
 
   clearInterval(userUpdateQueueInterval);
 
@@ -222,9 +222,9 @@ function quit(options){
   setTimeout(function(){
     global.dbConnection.close(function () {
       console.log(chalkAlert(
-          "\nDBU | =========================="
+            "DBU | =========================="
         + "\nDBU | MONGO DB CONNECTION CLOSED"
-        + "\nDBU | ==========================\n"
+        + "\nDBU | =========================="
       ));
       process.exit();
     });
@@ -506,7 +506,7 @@ function userUpdateDb(tweetObj){
 
       if (err0) { return reject(err0); }
 
-      User.findOne({ nodeId: tweetObj.user.nodeId }).exec(async function(err, user) {
+      global.User.findOne({ nodeId: tweetObj.user.nodeId }).exec(async function(err, user) {
 
         if (err) {
           console.log(chalkError("DBU | *** FIND USER DB: " + err));

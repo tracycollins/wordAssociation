@@ -573,52 +573,30 @@ function userUpdateDb(tweetObj){
           }
 
           debug(chalkLog("DBU | USER MERGED TWEET HISTOGRAMS\n" + jsonPrint(tweetHistogramMerged)));
+
+          user.save()
+          .then(function() {
+            resolve(user);
+          })
+          .catch(function(err) {
+            console.log(chalkError("DBU | *** ERROR USER SAVE: @" + user.screenName + " | " + err));
+            reject(err);
+          });
+
         }
         catch(err){
           console.log(chalkError("DBU | *** ERROR mergeHistograms: @" + user.screenName + " | " + err));
           return reject(err);
         }
 
-        // if (!user.histograms || user.histograms === undefined || user.histograms === null) { user.histograms = {}; }
-
-        // try {
-        //   histogramMerged = await mergeHistograms({histogramA: tweetObj.user.histograms, histogramB: user.tweetHistograms});
-
-        //   user.histograms = histogramMerged;
-
-        //   printUserObj("DBU | +++ USER DB HIT", user);
-
-        //   console.log(chalkInfo("DBU | USER MERGED HISTOGRAMS"
-        //     + " | " + user.nodeId
-        //     + " | @" + user.screenName
-        //     + " | EJs: " + getNumKeys(user.histograms.emoji)
-        //     + " | Hs: " + getNumKeys(user.histograms.hashtags)
-        //     + " | IMs: " + getNumKeys(user.histograms.images)
-        //     + " | LCs: " + getNumKeys(user.histograms.locations)
-        //     + " | MEs: " + getNumKeys(user.histograms.media)
-        //     + " | Ms: " + getNumKeys(user.histograms.mentions)
-        //     + " | PLs: " + getNumKeys(user.histograms.places)
-        //     + " | STs: " + getNumKeys(user.histograms.sentiment)
-        //     + " | UMs: " + getNumKeys(user.histograms.userMentions)
-        //     + " | ULs: " + getNumKeys(user.histograms.urls)
-        //     + " | WDs: " + getNumKeys(user.histograms.words)
-        //   ));
-
-        //   debug(chalkLog("DBU | USER MERGED HISTOGRAMS\n" + jsonPrint(histogramMerged)));
-        // }
-        // catch(err){
-        //   console.log(chalkError("DBU | *** ERROR mergeHistograms: @" + user.screenName + " | " + err));
-        //   return reject(err);
-        // }
-
-        user.save()
-        .then(function() {
-          resolve(user);
-        })
-        .catch(function(err) {
-          console.log(chalkError("DBU | *** ERROR USER SAVE: @" + user.screenName + " | " + err));
-          reject(err);
-        });
+        // user.save()
+        // .then(function() {
+        //   resolve(user);
+        // })
+        // .catch(function(err) {
+        //   console.log(chalkError("DBU | *** ERROR USER SAVE: @" + user.screenName + " | " + err));
+        //   reject(err);
+        // });
 
       });
 

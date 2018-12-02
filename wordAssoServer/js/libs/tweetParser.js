@@ -42,15 +42,15 @@ configEvents.on("newListener", function configEventsNewListener(data) {
 });
 
 
-const emojiModel = require("@threeceelabs/mongoose-twitter/models/emoji.server.model");
-const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
-const mediaModel = require("@threeceelabs/mongoose-twitter/models/media.server.model");
-const locationModel = require("@threeceelabs/mongoose-twitter/models/location.server.model");
-const placeModel = require("@threeceelabs/mongoose-twitter/models/place.server.model");
-const tweetModel = require("@threeceelabs/mongoose-twitter/models/tweet.server.model");
-const urlModel = require("@threeceelabs/mongoose-twitter/models/url.server.model");
-const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
-const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
+// const emojiModel = require("@threeceelabs/mongoose-twitter/models/emoji.server.model");
+// const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
+// const mediaModel = require("@threeceelabs/mongoose-twitter/models/media.server.model");
+// const locationModel = require("@threeceelabs/mongoose-twitter/models/location.server.model");
+// const placeModel = require("@threeceelabs/mongoose-twitter/models/place.server.model");
+// const tweetModel = require("@threeceelabs/mongoose-twitter/models/tweet.server.model");
+// const urlModel = require("@threeceelabs/mongoose-twitter/models/url.server.model");
+// const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
+// const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
 
 let Emoji;
 let Hashtag;
@@ -70,15 +70,15 @@ const mongoose = require("mongoose");
 
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
-  Emoji = mongoose.model("Emoji", emojiModel.EmojiSchema);
-  Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
-  Media = mongoose.model("Media", mediaModel.MediaSchema);
-  Location = mongoose.model("Location", locationModel.LocationSchema);
-  Place = mongoose.model("Place", placeModel.PlaceSchema);
-  Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
-  Url = mongoose.model("Url", urlModel.UrlSchema);
-  User = mongoose.model("User", userModel.UserSchema);
-  Word = mongoose.model("Word", wordModel.WordSchema);
+  Emoji = mongoose.model("Emoji", wordAssoDb.emojiModel.EmojiSchema);
+  Hashtag = mongoose.model("Hashtag", wordAssoDb.hashtagModel.HashtagSchema);
+  Media = mongoose.model("Media", wordAssoDb.mediaModel.MediaSchema);
+  Location = mongoose.model("Location", wordAssoDb.locationModel.LocationSchema);
+  Place = mongoose.model("Place", wordAssoDb.placeModel.PlaceSchema);
+  Tweet = mongoose.model("Tweet", wordAssoDb.tweetModel.TweetSchema);
+  Url = mongoose.model("Url", wordAssoDb.urlModel.UrlSchema);
+  User = mongoose.model("User", wordAssoDb.userModel.UserSchema);
+  Word = mongoose.model("Word", wordAssoDb.wordModel.WordSchema);
 
 
 configEvents.on("DB_CONNECT", function configEventDbConnect(){

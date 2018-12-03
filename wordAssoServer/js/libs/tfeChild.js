@@ -350,8 +350,8 @@ function connectDb(){
 
         db.on("error", async function(){
           statsObj.status = "MONGO ERROR";
-          console.error.bind(console, "TFE | *** MONGO DB CONNECTION ERROR ***\n");
-          console.log(chalkError("TFE | *** MONGO DB CONNECTION ERROR ***\n"));
+          console.error.bind(console, "TFE | *** MONGO DB CONNECTION ERROR ***");
+          console.log(chalkError("TFE | *** MONGO DB CONNECTION ERROR ***"));
           db.close();
           dbConnectionReady = false;
           quit(statsObj.status);
@@ -359,8 +359,8 @@ function connectDb(){
 
         db.on("disconnected", async function(){
           statsObj.status = "MONGO DISCONNECTED";
-          console.error.bind(console, "TFE | *** MONGO DB DISCONNECTED ***\n");
-          console.log(chalkAlert("TFE | *** MONGO DB DISCONNECTED ***\n"));
+          console.error.bind(console, "TFE | *** MONGO DB DISCONNECTED ***");
+          console.log(chalkAlert("TFE | *** MONGO DB DISCONNECTED ***"));
           dbConnectionReady = false;
           quit(statsObj.status);
         });
@@ -413,7 +413,7 @@ function connectDb(){
           statsObj.status = "MONGO DB CONNECTED";
 
           userServerControllerReady = true;
-          console.log(chalkAlert("TFC | USC READY | " + appname));
+          console.log(chalkLog("TFC | USC READY | " + appname));
           dbConnectionReady = true;
 
           initDbUserChangeStream({db: db})
@@ -1397,16 +1397,16 @@ function userProfileChangeHistogram(params) {
         break;
         case "expandedUrl":
           urlsHistogram.urls[userPropValue] = (urlsHistogram.urls[userPropValue] === undefined) ? 1 : urlsHistogram.urls[userPropValue] + 1;
-          console.log(chalkAlert("TFE | XPNDED URL CHANGE | " + userProp + ": " + userPropValue + " = " + urlsHistogram.urls[userPropValue]));
+          console.log(chalkLog("TFE | XPNDED URL CHANGE | " + userProp + ": " + userPropValue + " = " + urlsHistogram.urls[userPropValue]));
         break;
         case "url":
           urlsHistogram.urls[userPropValue] = (urlsHistogram.urls[userPropValue] === undefined) ? 1 : urlsHistogram.urls[userPropValue] + 1;
-          console.log(chalkAlert("TFE | URL CHANGE | " + userProp + ": " + userPropValue + " = " + urlsHistogram.urls[userPropValue]));
+          console.log(chalkLog("TFE | URL CHANGE | " + userProp + ": " + userPropValue + " = " + urlsHistogram.urls[userPropValue]));
         break;
         case "profileUrl":
           // profileUrl = userPropValue;
           urlsHistogram.urls[userPropValue] = (urlsHistogram.urls[userPropValue] === undefined) ? 1 : urlsHistogram.urls[userPropValue] + 1;
-          console.log(chalkAlert("TFE | URL CHANGE | " + userProp + ": " + userPropValue + " = " + urlsHistogram.urls[userPropValue]));
+          console.log(chalkLog("TFE | URL CHANGE | " + userProp + ": " + userPropValue + " = " + urlsHistogram.urls[userPropValue]));
         break;
         case "bannerImageUrl":
           bannerImageUrl = userPropValue;
@@ -1440,7 +1440,7 @@ function userProfileChangeHistogram(params) {
               updateGlobalHistograms: true
             })
             .then(function(imageParseResults){
-              console.log(chalkAlert("TFE | IMAGE PARSE imageParseResults\n" + jsonPrint(imageParseResults)));
+              console.log(chalkLog("TFE | IMAGE PARSE imageParseResults\n" + jsonPrint(imageParseResults)));
               cb(null, imageParseResults);
             })
             .catch(function(err){
@@ -1482,7 +1482,7 @@ function userProfileChangeHistogram(params) {
             });
           }
           else {
-            console.log(chalkAlert("TFE | URLS urlsHistogram\n" + jsonPrint(urlsHistogram)));
+            console.log(chalkLog("TFE | URLS urlsHistogram\n" + jsonPrint(urlsHistogram)));
             cb(null, urlsHistogram);
           }
         }
@@ -1553,7 +1553,7 @@ function userStatusChangeHistogram(params) {
       tweetServerController.createStreamTweet(tscParams)
       .then(function(tweetObj){
 
-        // console.log(chalkAlert("TFE | CREATE STREAM TWEET | " + Object.keys(tweetObj)));
+        // console.log(chalkLog("TFE | CREATE STREAM TWEET | " + Object.keys(tweetObj)));
 
         async.eachSeries(DEFAULT_INPUT_TYPES, function(entityType, cb0){
 
@@ -2281,7 +2281,7 @@ process.on("message", function(m) {
 
         const authObj = twitterUserObj.twit.getAuth();
 
-        console.log(chalkAlert("TFE | CURRENT AUTH\n" + jsonPrint(authObj)));
+        console.log(chalkLog("TFE | CURRENT AUTH\n" + jsonPrint(authObj)));
 
         twitterUserObj.twit.setAuth({access_token: m.token, access_token_secret: m.tokenSecret});
 

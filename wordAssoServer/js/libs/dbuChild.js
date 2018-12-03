@@ -249,29 +249,29 @@ function connectDb(){
 
     wordAssoDb.connect("DBU_" + process.pid, function(err, db){
       if (err) {
-        console.log(chalkError("*** DBU | MONGO DB CONNECTION ERROR: " + err));
+        console.log(chalkError("*** DBU | *** MONGO DB CONNECTION ERROR: " + err));
         statsObj.dbConnectionReady = false;
         return reject(err);
       }
       else {
 
         db.on("close", function(err){
-          console.error.bind(console, "*** DBU | MONGO DB CONNECTION CLOSED ***\n");
-          console.log(chalkAlert("*** DBU | MONGO DB CONNECTION CLOSED ***\n"));
+          console.error.bind(console, "DBU | *** MONGO DB CONNECTION CLOSED ***");
+          console.log(chalkAlert("DBU | *** MONGO DB CONNECTION CLOSED ***"));
           statsObj.dbConnectionReady = false;
         });
 
         db.on("error", function(err){
-          console.error.bind(console, "*** DBU | MONGO DB CONNECTION ERROR ***\n");
-          console.log(chalkError("*** DBU | MONGO DB CONNECTION ERROR ***\n"));
+          console.error.bind(console, "DBU | *** MONGO DB CONNECTION ERROR: " + err);
+          console.log(chalkError("DBU | *** MONGO DB CONNECTION ERROR: " + err));
           db.close();
           statsObj.dbConnectionReady = false;
           quit(err);
         });
 
         db.on("disconnected", function(){
-          console.error.bind(console, "*** DBU | MONGO DB DISCONNECTED ***\n");
-          console.log(chalkAlert("*** DBU | MONGO DB DISCONNECTED ***\n"));
+          console.error.bind(console, "TFE | *** MONGO DB DISCONNECTED ****");
+          console.log(chalkAlert("TFE | *** MONGO DB DISCONNECTED ***"));
           statsObj.dbConnectionReady = false;
           quit("MONGO DB DISCONNECTED");
         });
@@ -432,9 +432,7 @@ function userUpdateDb(tweetObj){
       async.each(tweetObj[entityType], function(entityObj, cb1){
 
         if (!entityObj) {
-          console.log(chalkInfo("DBU | !!! NULL entity? | ENTITY TYPE: " + entityType + " | entityObj: " + entityObj));
-          // console.log(chalkAlert("DBU | !!! NULL entity? | ENTITY TYPE: " + entityType + "\nentityObj\n" + jsonPrint(entityObj)));
-          // console.log(chalkAlert("DBU | !!! NULL entity?\n" + jsonPrint(tweetObj)));
+          debug(chalkInfo("DBU | !!! NULL entity? | ENTITY TYPE: " + entityType + " | entityObj: " + entityObj));
           return cb1();
         }
 
@@ -459,7 +457,7 @@ function userUpdateDb(tweetObj){
             entity = entityObj.nodeId;
           break;
           case "urls":
-            entity = entityObj.nodeId;
+            entity = (entityObj.expandedUrl && entityObj.expandedUrl !== undefined) ? entityObj.expandedUrl.toLowerCase() : entityObj.nodeId;
           break;
           case "words":
             entity = entityObj.nodeId.toLowerCase();
@@ -486,13 +484,13 @@ function userUpdateDb(tweetObj){
 
         tweetObj.user.histograms[entityType][entity] += 1;
 
-        if (configuration.verbose) {
+        // if (configuration.verbose) {
           console.log(chalkLog("DBU | +++ USER HIST"
             + " | " + entityType.toUpperCase()
             + " | " + entity
             + " | " + tweetObj.user.histograms[entityType][entity]
           ));
-        }
+        // }
 
         cb1();
 

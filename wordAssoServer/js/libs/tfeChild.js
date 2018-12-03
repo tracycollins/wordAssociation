@@ -1416,7 +1416,7 @@ function userProfileChangeHistogram(params) {
           return cb(new Error("UNKNOWN USER PROPERTY: " + userProp));
       }
 
-      async.setImmediate(function() { cb(); });
+      cb();
 
     }, function(err){
 
@@ -1569,9 +1569,7 @@ function userStatusChangeHistogram(params) {
           async.each(tweetObj[entityType], function(entityObj, cb1){
 
             if (!entityObj) {
-              console.log(chalkInfo("TFE | !!! NULL entity? | ENTITY TYPE: " + entityType + " | entityObj: " + entityObj));
-              // console.log(chalkAlert("DBU | !!! NULL entity? | ENTITY TYPE: " + entityType + "\nentityObj\n" + jsonPrint(entityObj)));
-              // console.log(chalkAlert("DBU | !!! NULL entity?\n" + jsonPrint(tweetObj)));
+              debug(chalkInfo("TFE | !!! NULL entity? | ENTITY TYPE: " + entityType + " | entityObj: " + entityObj));
               return cb1();
             }
 
@@ -1675,8 +1673,8 @@ function updateUserHistograms(params) {
         userProfileChangeHistogram(params)
         .then(function(profileHistogramChanges){
 
-          console.log(chalkAlert("params.user.profileHistograms\n" + jsonPrint(params.user.profileHistograms)));
-          console.log(chalkAlert("profileHistogramChanges\n" + jsonPrint(profileHistogramChanges)));
+          // console.log(chalkAlert("params.user.profileHistograms\n" + jsonPrint(params.user.profileHistograms)));
+          // console.log(chalkAlert("profileHistogramChanges\n" + jsonPrint(profileHistogramChanges)));
 
           async.parallel({
 

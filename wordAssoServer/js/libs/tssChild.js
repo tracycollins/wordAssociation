@@ -273,16 +273,16 @@ function connectDb(){
 
         db.on("close", function(){
           statsObj.status = "MONGO CLOSED";
-          console.error.bind(console, "TSS | *** MONGO DB CONNECTION CLOSED ***\n");
-          console.log(chalkAlert("TSS | *** MONGO DB CONNECTION CLOSED ***\n"));
+          console.error.bind(console, "TSS | *** MONGO DB CONNECTION CLOSED ***");
+          console.log(chalkAlert("TSS | *** MONGO DB CONNECTION CLOSED ***"));
           dbConnectionReady = false;
           quit(statsObj.status);
         });
 
         db.on("error", function(){
           statsObj.status = "MONGO ERROR";
-          console.error.bind(console, "TSS | *** MONGO DB CONNECTION ERROR ***\n");
-          console.log(chalkError("TSS | *** MONGO DB CONNECTION ERROR ***\n"));
+          console.error.bind(console, "TSS | *** MONGO DB CONNECTION ERROR ***");
+          console.log(chalkError("TSS | *** MONGO DB CONNECTION ERROR ***"));
           db.close();
           dbConnectionReady = false;
           quit(statsObj.status);
@@ -290,8 +290,8 @@ function connectDb(){
 
         db.on("disconnected", function(){
           statsObj.status = "MONGO DISCONNECTED";
-          console.error.bind(console, "TSS | *** MONGO DB DISCONNECTED ***\n");
-          console.log(chalkAlert("TSS | *** MONGO DB DISCONNECTED ***\n"));
+          console.error.bind(console, "TSS | *** MONGO DB DISCONNECTED ***");
+          console.log(chalkAlert("TSS | *** MONGO DB DISCONNECTED ***"));
           dbConnectionReady = false;
           quit(statsObj.status);
         });

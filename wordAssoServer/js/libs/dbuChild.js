@@ -484,13 +484,13 @@ function userUpdateDb(tweetObj){
 
         tweetObj.user.histograms[entityType][entity] += 1;
 
-        // if (configuration.verbose) {
+        if (configuration.verbose) {
           console.log(chalkLog("DBU | +++ USER HIST"
             + " | " + entityType.toUpperCase()
             + " | " + entity
             + " | " + tweetObj.user.histograms[entityType][entity]
           ));
-        // }
+        }
 
         cb1();
 

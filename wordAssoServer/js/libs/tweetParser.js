@@ -184,8 +184,8 @@ function connectDb(){
 
         db.on("error", async function(){
           statsObj.status = "MONGO ERROR";
-          console.error.bind(console, "TWP | *** MONGO DB CONNECTION ERROR ***\n");
-          console.log(chalkError("TWP | *** MONGO DB CONNECTION ERROR ***\n"));
+          console.error.bind(console, "TWP | *** MONGO DB CONNECTION ERROR ***");
+          console.log(chalkError("TWP | *** MONGO DB CONNECTION ERROR ***"));
           db.close();
           dbConnectionReady = false;
           quit(statsObj.status);
@@ -193,8 +193,8 @@ function connectDb(){
 
         db.on("disconnected", async function(){
           statsObj.status = "MONGO DISCONNECTED";
-          console.error.bind(console, "TWP | *** MONGO DB DISCONNECTED ***\n");
-          console.log(chalkAlert("TWP | *** MONGO DB DISCONNECTED ***\n"));
+          console.error.bind(console, "TWP | *** MONGO DB DISCONNECTED ***");
+          console.log(chalkAlert("TWP | *** MONGO DB DISCONNECTED ***"));
           dbConnectionReady = false;
           quit(statsObj.status);
         });

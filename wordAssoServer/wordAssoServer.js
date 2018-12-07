@@ -10507,7 +10507,8 @@ function twitterSearchNode(params, callback) {
             if (tfeChild !== undefined) { 
 
               const categorizeable = userCategorizeable(user);
-              if (categorizeable) { tfeChild.send({op: "USER_CATEGORIZE", user: user}); }
+
+              if (categorizeable) { tfeChild.send({op: "USER_CATEGORIZE", user: user.toObject()}); }
 
             }
             params.socket.emit("SET_TWITTER_USER", user);

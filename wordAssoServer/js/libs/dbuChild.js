@@ -457,7 +457,8 @@ function userUpdateDb(tweetObj){
             entity = entityObj.nodeId;
           break;
           case "urls":
-            entity = (entityObj.expandedUrl && entityObj.expandedUrl !== undefined) ? entityObj.expandedUrl.toLowerCase() : entityObj.nodeId;
+            // entity = (entityObj.expandedUrl && entityObj.expandedUrl !== undefined) ? entityObj.expandedUrl.toLowerCase() : entityObj.nodeId;
+            entity = entityObj.nodeId;  // should already be b64 encoded by tweetServerController
           break;
           case "words":
             entity = entityObj.nodeId.toLowerCase();

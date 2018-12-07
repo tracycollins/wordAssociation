@@ -1683,14 +1683,14 @@ function userStatusChangeHistogram(params) {
       if (userProp === "statusId"){
         tscParams.tweetStatus = user.status;
         tscParams.tweetStatus.user = {};
-        tscParams.tweetStatus.user = user;
+        tscParams.tweetStatus.user = user.toObject();
         tscParams.tweetStatus.user.isNotRaw = true;
       }
 
       if (userProp === "quotedStatusId"){
         tscParams.tweetStatus = user.quotedStatus;
         tscParams.tweetStatus.user = {};
-        tscParams.tweetStatus.user = user;
+        tscParams.tweetStatus.user = user.toObject();
         tscParams.tweetStatus.user.isNotRaw = true;
       }
 

@@ -1222,36 +1222,6 @@ function indexOfMax (arr) {
 
   });
 }
-// function indexOfMax (arr, callback) {
-
-//   if (arr.length === 0) {
-//     console.log(chalkAlert("indexOfMax: 0 LENG ARRAY: -1"));
-//     return callback(-1);
-//   }
-//   if ((arr[0] === arr[1]) && (arr[1] === arr[2])){
-//     return callback(-1);
-//   }
-
-//   arrayNormalize(arr);
-
-//   let max = arr[0];
-//   let maxIndex = 0;
-
-//   async.eachOfSeries(arr, function(val, index, cb){
-
-//     if (val > max) {
-//       maxIndex = index;
-//       max = val;
-//     }
-
-//     async.setImmediate(function() { cb(); });
-
-//   }, function(){
-
-//     callback(maxIndex) ; 
-
-//   });
-// }
 
 let activateNetworkBusy = false;
 
@@ -1267,6 +1237,8 @@ networkOutput.negative = 0;
 function activateNetwork(params){
 
   return new Promise(async function(resolve, reject) {
+
+    if (!params.user || params.user === undefined) { return reject(new Error("user undefined")); }
 
     let user = params.user;
 
@@ -1691,7 +1663,7 @@ function userStatusChangeHistogram(params) {
     let tweetHistograms = {};
     let text = "";
 
-    async.each(userStatusChangeArray, function(userProp, cb){
+    async.eachSeries(userStatusChangeArray, function(userProp, cb){
 
       const prevUserProp = "previous" + _.upperFirst(userProp);
 
@@ -1738,7 +1710,7 @@ function userStatusChangeHistogram(params) {
           if (!tweetObj[entityType] || tweetObj[entityType] === undefined) { return cb0(); }
           if (tweetObj[entityType].length === 0) { return cb0(); }
 
-          async.each(tweetObj[entityType], function(entityObj, cb1){
+          async.eachSeries(tweetObj[entityType], function(entityObj, cb1){
 
             if (!entityObj) {
               debug(chalkInfo("TFE | !!! NULL entity? | ENTITY TYPE: " + entityType + " | entityObj: " + entityObj));
@@ -1766,7 +1738,8 @@ function userStatusChangeHistogram(params) {
                 entity = entityObj.nodeId;
               break;
               case "urls":
-                entity = (entityObj.expandedUrl && entityObj.expandedUrl !== undefined) ? entityObj.expandedUrl.toLowerCase() : entityObj.nodeId;
+                // entity = (entityObj.expandedUrl && entityObj.expandedUrl !== undefined) ? entityObj.expandedUrl.toLowerCase() : entityObj.nodeId;
+                entity = entityObj.nodeId;
               break;
               case "words":
                 entity = entityObj.nodeId.toLowerCase();
@@ -1836,7 +1809,9 @@ function updateUserHistograms(params) {
       return reject(err);
     }
 
-    params.user.profileHistograms = params.user.profileHistograms || {};
+    let user = params.user;
+
+    user.profileHistograms = user.profileHistograms || {};
 
     userStatusChangeHistogram(params)
 
@@ -1845,7 +1820,7 @@ function updateUserHistograms(params) {
         userProfileChangeHistogram(params)
         .then(function(profileHistogramChanges){
 
-          // console.log(chalkAlert("params.user.profileHistograms\n" + jsonPrint(params.user.profileHistograms)));
+          // console.log(chalkAlert("user.profileHistograms\n" + jsonPrint(user.profileHistograms)));
           // console.log(chalkAlert("profileHistogramChanges\n" + jsonPrint(profileHistogramChanges)));
 
           async.parallel({
@@ -1854,7 +1829,7 @@ function updateUserHistograms(params) {
 
               if (profileHistogramChanges) {
 
-                mergeHistograms.merge({ histogramA: params.user.profileHistograms, histogramB: profileHistogramChanges })
+                mergeHistograms.merge({ histogramA: user.profileHistograms, histogramB: profileHistogramChanges })
                 .then(function(profileHist){
                   cb(null, profileHist);
                 })
@@ -1874,7 +1849,7 @@ function updateUserHistograms(params) {
 
               if (tweetHistogramChanges) {
 
-                mergeHistograms.merge({ histogramA: params.user.tweetHistograms, histogramB: tweetHistogramChanges })
+                mergeHistograms.merge({ histogramA: user.tweetHistograms, histogramB: tweetHistogramChanges })
                 .then(function(tweetHist){
                   cb(null, tweetHist);
                 })
@@ -1894,12 +1869,12 @@ function updateUserHistograms(params) {
               return reject(err);
             }
 
-            params.user.profileHistograms = results.profileHist;
-            params.user.tweetHistograms = results.tweetHist;
+            user.profileHistograms = results.profileHist;
+            user.tweetHistograms = results.tweetHist;
 
             updateGlobalHistograms(params)
             .then(function(){
-              resolve(params.user);
+              resolve(user);
             })
             .catch(function(err){
               console.log(chalkError("TFE | *** UPDATE USER HISTOGRAM ERROR: " + err));
@@ -1992,7 +1967,7 @@ function initUserCategorizeQueueInterval(cnf){
 
   clearInterval(userCategorizeQueueInterval);
 
-  userCategorizeQueueInterval = setInterval(async function () {
+  userCategorizeQueueInterval = setInterval(async function(){
 
     if (userServerControllerReady && userCategorizeQueueReady && (userCategorizeQueue.length > 0)) {
 
@@ -2001,37 +1976,46 @@ function initUserCategorizeQueueInterval(cnf){
       user = userCategorizeQueue.shift();
       user.nodeId = user.userId;
 
+      let updatedUser;
+      let networkOutput;
+
       try {
-
-        let updatedUser = await updateUserHistograms({user: user});
-
-        let networkOutput = await activateNetwork(updatedUser);
-
-        if (updatedUser.categoryAuto !== networkOutput.output) {
-          console.log(chalkLog("TFE | >>> NN AUTO CAT CHANGE"
-            + " | " + networkObj.networkId
-            + " | AUTO: " + updatedUser.categoryAuto + " > " + networkOutput.output
-            + " | @" + updatedUser.screenName
-          ));
-        }
-
-        updatedUser.categoryAuto = networkOutput.output;
-        updatedUser.nodeId = updatedUser.nodeId;
-
-        userServerController.findOneUser(updatedUser, {noInc: false, fields: fieldsTransmit}, function(err, dbUser){
-          if (err) {
-            console.log(chalkError("TFC | *** USER FIND ONE ERROR: " + err));
-          }
-          printUserObj("TFE | NN: " + networkObj.networkId + " | DB CAT", dbUser, chalkInfo);
-          process.send({ op: "USER_CATEGORIZED", user: dbUser });
-          userCategorizeQueueReady = true;
-        });
+        updatedUser = await updateUserHistograms({user: user});
+        networkOutput = await activateNetwork({user: updatedUser});
       }
       catch (err) {
-        console.log(chalkError("TFE | *** USER CATEGORIZE ERROR: " + err));
+        console.log(chalkError("TFE | *** UPDATE USER HISTOGRAMS ERROR: " + err));
         console.error(err);
         userCategorizeQueueReady = true;
+        return;
       }
+
+      if (updatedUser.categoryAuto !== networkOutput.output) {
+        console.log(chalkLog("TFE | >>> NN AUTO CAT CHANGE"
+          + " | " + networkObj.networkId
+          + " | AUTO: " + updatedUser.categoryAuto + " > " + networkOutput.output
+          + " | @" + updatedUser.screenName
+        ));
+      }
+
+      updatedUser.categoryAuto = networkOutput.output;
+      updatedUser.nodeId = updatedUser.nodeId;
+
+      userServerController.findOneUser(updatedUser, {noInc: false, fields: fieldsTransmit}, function(err, dbUser){
+        if (err) {
+          console.log(chalkError("TFC | *** USER FIND ONE ERROR: " + err));
+          return;
+        }
+        printUserObj("TFE | NN: " + networkObj.networkId + " | DB CAT", dbUser, chalkInfo);
+        process.send({ op: "USER_CATEGORIZED", user: dbUser });
+        userCategorizeQueueReady = true;
+      });
+      // }
+      // catch (err) {
+      //   console.log(chalkError("TFE | *** USER CATEGORIZE ERROR: " + err));
+      //   console.error(err);
+      //   userCategorizeQueueReady = true;
+      // }
     }
 
 
@@ -2418,18 +2402,34 @@ process.on("message", function(m) {
     case "USER_CATEGORIZE":
 
       if (!userCategorizeQueue.includes(m.user.userId) && (userCategorizeQueue.length < USER_CAT_QUEUE_MAX_LENGTH)) {
+        try {
+          let user = m.user.toObject();
+          userCategorizeQueue.push(user);
 
-        userCategorizeQueue.push(m.user);
+          debug(chalkInfo("TFE | USER_CATEGORIZE"
+            + " [ USQ: " + userCategorizeQueue.length + "]"
+            + " | FLWRs: " + user.followersCount
+            + " | FRNDs: " + user.friendsCount
+            + " | USER " + user.userId
+            + " | @" + user.screenName
+            + " | " + user.name
+            + "\nTFE | USER_SHOW | DESC: " + user.description
+          ));
+        }
+        catch(err){
+          userCategorizeQueue.push(m.user);
 
-        debug(chalkInfo("TFE | USER_CATEGORIZE"
-          + " [ USQ: " + userCategorizeQueue.length + "]"
-          + " | FLWRs: " + m.user.followersCount
-          + " | FRNDs: " + m.user.friendsCount
-          + " | USER " + m.user.userId
-          + " | @" + m.user.screenName
-          + " | " + m.user.name
-          + "\nTFE | USER_SHOW | DESC: " + m.user.description
-        ));
+          debug(chalkInfo("TFE | USER_CATEGORIZE"
+            + " [ USQ: " + userCategorizeQueue.length + "]"
+            + " | FLWRs: " + m.user.followersCount
+            + " | FRNDs: " + m.user.friendsCount
+            + " | USER " + m.user.userId
+            + " | @" + m.user.screenName
+            + " | " + m.user.name
+            + "\nTFE | USER_SHOW | DESC: " + m.user.description
+          ));
+        }
+
       }
     break;
 

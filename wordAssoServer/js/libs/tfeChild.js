@@ -1665,12 +1665,15 @@ function userStatusChangeHistogram(params) {
 
     async.eachSeries(userStatusChangeArray, function(userProp, cb){
 
+      delete user._id; // fix for UnhandledPromiseRejectionWarning: RangeError: Maximum call stack size exceeded
+
       const prevUserProp = "previous" + _.upperFirst(userProp);
 
       console.log(chalkLog("TFE | +++ USER STATUS CHANGE"
         + " | @" + user.screenName 
         + " | " + userProp 
         + " | " + user[userProp] + " <-- " + user[prevUserProp]
+        + "\n" + jsonPrint(user) 
       ));
 
       let tscParams = {
@@ -1681,16 +1684,20 @@ function userStatusChangeHistogram(params) {
       };
 
       if (userProp === "statusId"){
+        user.statusId = user.statusId.toString();
+        tscParams.tweetStatus = {};
         tscParams.tweetStatus = user.status;
         tscParams.tweetStatus.user = {};
-        tscParams.tweetStatus.user = user.toObject();
+        tscParams.tweetStatus.user = user;
         tscParams.tweetStatus.user.isNotRaw = true;
       }
 
       if (userProp === "quotedStatusId"){
+        user.quotedStatusId = user.quotedStatusId.toString();
+        tscParams.tweetStatus = {};
         tscParams.tweetStatus = user.quotedStatus;
         tscParams.tweetStatus.user = {};
-        tscParams.tweetStatus.user = user.toObject();
+        tscParams.tweetStatus.user = user;
         tscParams.tweetStatus.user.isNotRaw = true;
       }
 
@@ -1812,6 +1819,7 @@ function updateUserHistograms(params) {
     let user = params.user;
 
     user.profileHistograms = user.profileHistograms || {};
+    user.tweetHistogramChanges = user.tweetHistogramChanges || {};
 
     userStatusChangeHistogram(params)
 

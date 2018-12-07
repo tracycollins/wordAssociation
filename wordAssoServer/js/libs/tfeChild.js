@@ -288,51 +288,6 @@ let TweetServerController;
 let tweetServerController;
 let tweetServerControllerReady = false;
 
-// function connectDb(callback){
-
-//   statsObj.status = "CONNECT DB";
-
-//   wordAssoDb.connect("TFE_" + process.pid, function(err, db){
-//     if (err) {
-//       console.log(chalkError("TFE | *** MONGO DB CONNECTION ERROR: " + err));
-//       callback(err, null);
-//       dbConnectionReady = false;
-//     }
-//     else {
-
-//       db.on("error", function(){
-//         console.error.bind(console, "TFE | *** MONGO DB CONNECTION ERROR ***\n");
-//         console.log(chalkError("TFE | *** MONGO DB CONNECTION ERROR ***\n"));
-//         db.close();
-//         dbConnectionReady = false;
-//       });
-
-//       db.on("disconnected", function(){
-//         console.error.bind(console, "TFE | MONGO DB DISCONNECTED\n");
-//         console.log(chalkAlert("TFE | MONGO DB DISCONNECTED\n"));
-//         dbConnectionReady = false;
-//       });
-
-
-//       console.log(chalk.green("TFE | MONGOOSE DEFAULT CONNECTION OPEN"));
-
-//       dbConnectionReady = true;
-
-//       global.User = mongoose.model("User", userModel.UserSchema);
-
-//       initDbUserChangeStream({db: db})
-//       .then(function(){
-//         callback(null, db);
-//       })
-//       .catch(function(err){
-//         console.log(chalkError("TFE | *** INIT DB CHANGE STREAM ERROR: " + err));
-//         callback(err, null);
-//       });
-
-//     }
-//   });
-// }
-
 function connectDb(){
 
   return new Promise(async function(resolve, reject){

@@ -122,6 +122,7 @@ const HashMap = require("hashmap").HashMap;
 const neataptic = require("neataptic");
 const networksHashMap = new HashMap();
 const arrayNormalize = require("array-normalize");
+const deepcopy = require("deepcopy");
 
 const debug = require("debug")("tfe");
 const debugCache = require("debug")("cache");
@@ -1524,6 +1525,8 @@ function userProfileChangeHistogram(params) {
         return reject(err);
       }
 
+      // console.log("text: " + text);
+      // console.log("urlsHistogram\n" + jsonPrint(urlsHistogram));
 
       async.parallel({
 
@@ -1539,7 +1542,7 @@ function userProfileChangeHistogram(params) {
               updateGlobalHistograms: true
             })
             .then(function(imageParseResults){
-              console.log(chalkLog("TFE | IMAGE PARSE imageParseResults\n" + jsonPrint(imageParseResults)));
+              // console.log(chalkLog("TFE | IMAGE PARSE imageParseResults\n" + jsonPrint(imageParseResults)));
               cb(null, imageParseResults);
             })
             .catch(function(err){
@@ -1555,6 +1558,7 @@ function userProfileChangeHistogram(params) {
         textHist: function(cb){
 
           if (text && (text !== undefined)){
+
 
             parseText({ category: user.category, text: text, updateGlobalHistograms: true })
             .then(function(textParseResults){
@@ -1581,15 +1585,19 @@ function userProfileChangeHistogram(params) {
             });
           }
           else {
-            console.log(chalkLog("TFE | URLS urlsHistogram\n" + jsonPrint(urlsHistogram)));
+            // console.log(chalkLog("TFE | URLS urlsHistogram\n" + jsonPrint(urlsHistogram)));
             cb(null, urlsHistogram);
           }
         }
 
       }, function(err, results){
 
+
         mergeHistograms.merge({ histogramA: results.textHist, histogramB: results.imageHist})
         .then(function(histogramsMerged){
+
+          // console.log(chalkAlert("TFE | histogramsMerged\n" + jsonPrint(histogramsMerged)));
+
           resolve(histogramsMerged);
         })
         .catch(function(err){
@@ -1625,10 +1633,11 @@ function userStatusChangeHistogram(params) {
       const prevUserProp = "previous" + _.upperFirst(userProp);
 
       console.log(chalkLog("TFE | +++ USER STATUS CHANGE"
+        + " | NODE ID: " + user.nodeId 
         + " | @" + user.screenName 
         + " | " + userProp 
         + " | " + user[userProp] + " <-- " + user[prevUserProp]
-        + "\n" + jsonPrint(user) 
+        // + "\n" + jsonPrint(user) 
       ));
 
       let tscParams = {
@@ -1638,23 +1647,32 @@ function userStatusChangeHistogram(params) {
         twitterEvents: configEvents
       };
 
+
       if (userProp === "statusId"){
+
+        let status = deepcopy(user.status);  // avoid circular references
+
         user.statusId = user.statusId.toString();
         tscParams.tweetStatus = {};
-        tscParams.tweetStatus = user.status;
+        tscParams.tweetStatus = status;
         tscParams.tweetStatus.user = {};
         tscParams.tweetStatus.user = user;
         tscParams.tweetStatus.user.isNotRaw = true;
       }
 
       if (userProp === "quotedStatusId"){
+
+        let quotedStatus = deepcopy(user.quotedStatus);  // avoid circular references
+
         user.quotedStatusId = user.quotedStatusId.toString();
         tscParams.tweetStatus = {};
-        tscParams.tweetStatus = user.quotedStatus;
+        tscParams.tweetStatus = quotedStatus;
         tscParams.tweetStatus.user = {};
         tscParams.tweetStatus.user = user;
         tscParams.tweetStatus.user.isNotRaw = true;
       }
+
+      // console.log(chalkAlert("TFE | tscParams\n", jsonPrint(tscParams)));
 
       tweetServerController.createStreamTweet(tscParams)
       .then(function(tweetObj){
@@ -1957,12 +1975,15 @@ function initUserCategorizeQueueInterval(cnf){
         console.log(chalkLog("TFE | >>> NN AUTO CAT CHANGE"
           + " | " + networkObj.networkId
           + " | AUTO: " + updatedUser.categoryAuto + " > " + networkOutput.output
+          + " | NODE ID: " + updatedUser.nodeId
           + " | @" + updatedUser.screenName
         ));
       }
 
       updatedUser.categoryAuto = networkOutput.output;
       updatedUser.nodeId = updatedUser.nodeId;
+
+      printUserObj("TFE | updatedUser", updatedUser, chalkAlert);
 
       userServerController.findOneUser(updatedUser, {noInc: false, fields: fieldsTransmit}, function(err, dbUser){
         if (err) {

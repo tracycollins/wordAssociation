@@ -647,7 +647,6 @@ const userDefaults = function (user){
   return user;
 };
 
-
 function initInfoTwit(params, callback){
 
   console.log(chalkTwitter("TFE | INIT INFO USER @" + params.screenName));
@@ -922,91 +921,6 @@ let userChangeDbQueueInterval;
 
 let generateNetworkInputBusy = false;
 
-// function generateNetworkInputIndexed(params, callback){
-
-//   // const params = {
-//   //   networkId: networkObj.networkId,
-//   //   userScreenName: user.screenName,
-//   //   histograms: userHistograms,
-//   //   languageAnalysis: languageAnalysis,
-//   //   inputsObj: networkObj.inputsObj,
-//   //   maxInputHashMap: maxInputHashMap
-//   // };
-
-//   generateNetworkInputBusy = true;
-
-//   const inTypes = Object.keys(params.inputsObj.inputs).sort();
-//   let networkInput = [];
-
-//   let indexOffset = 0;
-
-//   async.eachSeries(inTypes, function(inputType, cb0){
-
-//     debug("TFE | GENERATE NET INPUT | TYPE: " + inputType);
-
-//     const histogramObj = params.histograms[inputType];
-//     const networkInputTypeNames = params.inputsObj.inputs[inputType];
-
-//     async.eachOf(networkInputTypeNames, function(inputName, index, cb1){
-
-//       if (histogramObj && (histogramObj[inputName] !== undefined)) {
-
-//         if ((params.maxInputHashMap === undefined) 
-//           || (params.maxInputHashMap[inputType] === undefined)) {
-
-//           networkInput[indexOffset + index] = 1;
-
-//           console.log(chalkLog("TFE | ??? UNDEFINED MAX INPUT"
-//             + " | IN ID: " + params.inputsObj.inputsId
-//             + " | IN LENGTH: " + networkInput.length
-//             + " | @" + params.userScreenName
-//             + " | TYPE: " + inputType
-//             + " | " + inputName
-//             + " | " + histogramObj[inputName]
-//           ));
-
-//           async.setImmediate(function() { 
-//             cb1(); 
-//           });
-
-//         }
-//         else {
-
-//           const inputValue = (params.maxInputHashMap[inputType][inputName] > 0) 
-//             ? histogramObj[inputName]/params.maxInputHashMap[inputType][inputName] 
-//             : 1;
-
-//           networkInput[indexOffset + index] = inputValue;
-
-//           async.setImmediate(function() {
-//             cb1();
-//           });
-//         }
-//       }
-//       else {
-
-//         networkInput[indexOffset + index] = 0;
- 
-//         async.setImmediate(function() { 
-//           cb1(); 
-//         });
-//       }
-
-//     }, function(err){
-
-//       async.setImmediate(function() { 
-//         indexOffset += networkInputTypeNames.length;
-//         cb0(); 
-//       });
-
-//     });
-
-//   }, function(err){
-//     generateNetworkInputBusy = false;
-//     callback(err, networkInput);
-//   });
-// }
-
 function generateNetworkInputIndexed(params){
 
   return new Promise(function(resolve, reject){
@@ -1017,7 +931,6 @@ function generateNetworkInputIndexed(params){
 
     const inputTypes = Object.keys(params.inputsObj.inputs).sort();
     let networkInput = [];
-    // const title = "RNT | NETWORK INPUT | INPUTS: " + params.inputsObj.inputsId + " | " +  params.networkId + " | @" + params.userScreenName;
 
     let indexOffset = 0;
 
@@ -1622,10 +1535,6 @@ function userStatusChangeHistogram(params) {
     if (!userStatusChangeArray) {
       return resolve();
     }
-
-    let tweetHistograms = {};
-    let text = "";
-
     async.eachSeries(userStatusChangeArray, function(userProp, cb){
 
       delete user._id; // fix for UnhandledPromiseRejectionWarning: RangeError: Maximum call stack size exceeded
@@ -1646,7 +1555,6 @@ function userStatusChangeHistogram(params) {
         inc: false,
         twitterEvents: configEvents
       };
-
 
       if (userProp === "statusId"){
 
@@ -1983,7 +1891,7 @@ function initUserCategorizeQueueInterval(cnf){
       updatedUser.categoryAuto = networkOutput.output;
       updatedUser.nodeId = updatedUser.nodeId;
 
-      printUserObj("TFE | updatedUser", updatedUser, chalkAlert);
+      printUserObj("TFE | updatedUser", updatedUser, chalkLog);
 
       userServerController.findOneUser(updatedUser, {noInc: false, fields: fieldsTransmit}, function(err, dbUser){
         if (err) {
@@ -2458,43 +2366,6 @@ setTimeout(function(){
       console.log(chalkError("TFC | *** MONGO DB CONNECT ERROR: " + err + " | QUITTING ***"));
       quit("MONGO DB CONNECT ERROR");
     }
-
-
-    // connectDb(function(err, db){
-
-    //   if (err) {
-    //     dbConnectionReady = false;
-    //     console.log(chalkError("TFE | *** MONGO DB CONNECT ERROR: " + err + " | QUITTING ***"));
-    //     quit("MONGO DB CONNECT ERROR");
-    //   }
-
-    //   global.dbConnection = db;
-
-    //   TweetServerController = require("@threeceelabs/tweet-server-controller");
-    //   tweetServerController = new TweetServerController("TFE_TSC");
-
-    //   tweetServerController.on("ready", function(err){
-    //     tweetServerControllerReady = true;
-    //     console.log(chalk.green("TFE | TSC READY"));
-    //   });
-
-    //   tweetServerController.on("error", function(err){
-    //     tweetServerControllerReady = false;
-    //     console.trace(chalkError("TFE | *** TSC ERROR | " + err));
-    //   });
-
-    //   UserServerController = require("@threeceelabs/user-server-controller");
-    //   userServerController = new UserServerController("TFE_USC");
-
-    //   userServerControllerReady = false;
-
-    //   userServerController.on("ready", function(appname){
-    //     userServerControllerReady = true;
-    //     console.log(chalkLog("TFE | USC READY | " + appname));
-    //   });
-
-    //   dbConnectionReady = true;
-    // });
 
     dbConnectionReadyInterval = setInterval(function() {
       if (dbConnectionReady) {

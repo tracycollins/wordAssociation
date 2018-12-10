@@ -1371,6 +1371,159 @@ function checkUserStatusChanged(params) {
   return results;    
 }
 
+// function userProfileChangeHistogram(params) {
+
+//   let text = "";
+//   let urlsHistogram = {};
+//   urlsHistogram.urls = {};
+//   let profileUrl = false;
+//   let bannerImageUrl = false;
+
+//   let profileHistograms = {};
+
+//   return new Promise(function(resolve, reject){
+
+//     let user = params.user;
+  
+//     const userProfileChanges = checkUserProfileChanged(params);
+
+//     if (!userProfileChanges) {
+//       return resolve();
+//     }
+
+//     async.each(userProfileChanges, function(userProp, cb){
+
+//       const userPropValue = user[userProp].toLowerCase();
+
+//       const prevUserProp = "previous" + _.upperFirst(userProp);
+
+//       user[prevUserProp] = (!user[prevUserProp] || (user[prevUserProp] === undefined)) ? {} : user[prevUserProp];
+
+//       switch (userProp) {
+//         case "name":
+//         case "location":
+//         case "description":
+//           text += userPropValue + "\n";
+//         break;
+//         case "screenName":
+//           text += "@" + userPropValue + "\n";
+//         break;
+//         case "expandedUrl":
+//           urlsHistogram.urls[userPropValue] = (urlsHistogram.urls[userPropValue] === undefined) ? 1 : urlsHistogram.urls[userPropValue] + 1;
+//           console.log(chalkLog("TFE | XPNDED URL CHANGE | " + userProp + ": " + userPropValue + " = " + urlsHistogram.urls[userPropValue]));
+//         break;
+//         case "url":
+//           urlsHistogram.urls[userPropValue] = (urlsHistogram.urls[userPropValue] === undefined) ? 1 : urlsHistogram.urls[userPropValue] + 1;
+//           console.log(chalkLog("TFE | URL CHANGE | " + userProp + ": " + userPropValue + " = " + urlsHistogram.urls[userPropValue]));
+//         break;
+//         case "profileUrl":
+//           // profileUrl = userPropValue;
+//           urlsHistogram.urls[userPropValue] = (urlsHistogram.urls[userPropValue] === undefined) ? 1 : urlsHistogram.urls[userPropValue] + 1;
+//           console.log(chalkLog("TFE | URL CHANGE | " + userProp + ": " + userPropValue + " = " + urlsHistogram.urls[userPropValue]));
+//         break;
+//         case "bannerImageUrl":
+//           bannerImageUrl = userPropValue;
+//         break;
+//         default:
+//           console.log(chalkError("TFE | UNKNOWN USER PROPERTY: " + userProp));
+//           return cb(new Error("UNKNOWN USER PROPERTY: " + userProp));
+//       }
+
+//       cb();
+
+//     }, function(err){
+
+//       if (err) {
+//         console.log(chalkError("TFE | USER PROFILE HISTOGRAM ERROR: " + err));
+//         return reject(err);
+//       }
+
+//       // console.log("text: " + text);
+//       // console.log("urlsHistogram\n" + jsonPrint(urlsHistogram));
+
+//       async.parallel({
+
+//         imageHist: function(cb) {
+
+//           if (configuration.enableImageAnalysis && bannerImageUrl){
+
+//             parseImage({
+//               screenName: user.screenName, 
+//               category: user.category, 
+//               imageUrl: bannerImageUrl, 
+//               histograms: user.histograms,
+//               updateGlobalHistograms: true
+//             })
+//             .then(function(imageParseResults){
+//               // console.log(chalkLog("TFE | IMAGE PARSE imageParseResults\n" + jsonPrint(imageParseResults)));
+//               cb(null, imageParseResults);
+//             })
+//             .catch(function(err){
+//               cb(err, null);
+//             });
+
+//           }
+//           else {
+//             cb(null, null);
+//           }
+//         }, 
+
+//         textHist: function(cb){
+
+//           if (text && (text !== undefined)){
+
+
+//             parseText({ category: user.category, text: text, updateGlobalHistograms: true })
+//             .then(function(textParseResults){
+
+//               if (Object.keys(urlsHistogram.urls).length > 0) {
+
+//                 mergeHistograms.merge({ histogramA: textParseResults, histogramB: urlsHistogram })
+//                 .then(function(textMergeResults){
+
+//                   cb(null, textMergeResults);
+//                 })
+//                 .catch(function(err){
+//                   cb(err, null);
+//                 });
+
+//               }
+//               else {
+//                 cb(null, textParseResults);
+//               }
+
+//             })
+//             .catch(function(err){
+//               cb(err, null);
+//             });
+//           }
+//           else {
+//             // console.log(chalkLog("TFE | URLS urlsHistogram\n" + jsonPrint(urlsHistogram)));
+//             cb(null, urlsHistogram);
+//           }
+//         }
+
+//       }, function(err, results){
+
+
+//         mergeHistograms.merge({ histogramA: results.textHist, histogramB: results.imageHist})
+//         .then(function(histogramsMerged){
+
+//           // console.log(chalkAlert("TFE | histogramsMerged\n" + jsonPrint(histogramsMerged)));
+
+//           resolve(histogramsMerged);
+//         })
+//         .catch(function(err){
+//           console.log(chalkError("TFE | USER PROFILE CHANGE HISTOGRAM ERROR: " + err));
+//           return reject(err);
+//         });
+//       });
+
+//     });
+
+//   });
+// }
+
 function userProfileChangeHistogram(params) {
 
   let text = "";
@@ -1410,16 +1563,16 @@ function userProfileChangeHistogram(params) {
         break;
         case "expandedUrl":
           urlsHistogram.urls[userPropValue] = (urlsHistogram.urls[userPropValue] === undefined) ? 1 : urlsHistogram.urls[userPropValue] + 1;
-          console.log(chalkLog("TFE | XPNDED URL CHANGE | " + userProp + ": " + userPropValue + " = " + urlsHistogram.urls[userPropValue]));
+          // console.log(chalkLog("TFE | XPNDED URL CHANGE | " + userProp + ": " + userPropValue + " = " + urlsHistogram.urls[userPropValue]));
         break;
         case "url":
           urlsHistogram.urls[userPropValue] = (urlsHistogram.urls[userPropValue] === undefined) ? 1 : urlsHistogram.urls[userPropValue] + 1;
-          console.log(chalkLog("TFE | URL CHANGE | " + userProp + ": " + userPropValue + " = " + urlsHistogram.urls[userPropValue]));
+          // console.log(chalkLog("TFE | URL CHANGE | " + userProp + ": " + userPropValue + " = " + urlsHistogram.urls[userPropValue]));
         break;
         case "profileUrl":
           // profileUrl = userPropValue;
           urlsHistogram.urls[userPropValue] = (urlsHistogram.urls[userPropValue] === undefined) ? 1 : urlsHistogram.urls[userPropValue] + 1;
-          console.log(chalkLog("TFE | URL CHANGE | " + userProp + ": " + userPropValue + " = " + urlsHistogram.urls[userPropValue]));
+          // console.log(chalkLog("TFE | URL CHANGE | " + userProp + ": " + userPropValue + " = " + urlsHistogram.urls[userPropValue]));
         break;
         case "bannerImageUrl":
           bannerImageUrl = userPropValue;
@@ -1524,6 +1677,171 @@ function userProfileChangeHistogram(params) {
   });
 }
 
+// function userStatusChangeHistogram(params) {
+
+//   return new Promise(function(resolve, reject){
+
+//     let user = params.user;
+  
+//     const userStatusChangeArray = checkUserStatusChanged(params);
+
+//     if (!userStatusChangeArray) {
+//       return resolve();
+//     }
+
+//     let tweetHistograms = {};
+    
+//     async.eachSeries(userStatusChangeArray, function(userProp, cb){
+
+//       delete user._id; // fix for UnhandledPromiseRejectionWarning: RangeError: Maximum call stack size exceeded
+
+//       const prevUserProp = "previous" + _.upperFirst(userProp);
+
+//       console.log(chalkLog("TFE | +++ USER STATUS CHANGE"
+//         + " | NODE ID: " + user.nodeId 
+//         + " | @" + user.screenName 
+//         + " | " + userProp 
+//         + " | " + user[userProp] + " <-- " + user[prevUserProp]
+//         // + "\n" + jsonPrint(user) 
+//       ));
+
+//       let tscParams = {
+//         globalTestMode: configuration.globalTestMode,
+//         testMode: configuration.testMode,
+//         inc: false,
+//         twitterEvents: configEvents
+//       };
+
+//       if (userProp === "statusId"){
+
+//         let status = deepcopy(user.status);  // avoid circular references
+
+//         user.statusId = user.statusId.toString();
+//         tscParams.tweetStatus = {};
+//         tscParams.tweetStatus = status;
+//         tscParams.tweetStatus.user = {};
+//         tscParams.tweetStatus.user = user;
+//         tscParams.tweetStatus.user.isNotRaw = true;
+//       }
+
+//       if (userProp === "quotedStatusId"){
+
+//         let quotedStatus = deepcopy(user.quotedStatus);  // avoid circular references
+
+//         user.quotedStatusId = user.quotedStatusId.toString();
+//         tscParams.tweetStatus = {};
+//         tscParams.tweetStatus = quotedStatus;
+//         tscParams.tweetStatus.user = {};
+//         tscParams.tweetStatus.user = user;
+//         tscParams.tweetStatus.user.isNotRaw = true;
+//       }
+
+//       // console.log(chalkAlert("TFE | tscParams\n", jsonPrint(tscParams)));
+
+//       tweetServerController.createStreamTweet(tscParams)
+//       .then(function(tweetObj){
+
+//         // console.log(chalkLog("TFE | CREATE STREAM TWEET | " + Object.keys(tweetObj)));
+
+//         async.eachSeries(DEFAULT_INPUT_TYPES, function(entityType, cb0){
+
+//           if (!entityType || entityType === undefined) {
+//             console.log(chalkAlert("TFE | ??? UNDEFINED TWEET entityType: ", entityType));
+//             return cb0();
+//           }
+
+//           if (entityType === "user") { return cb0(); }
+//           if (!tweetObj[entityType] || tweetObj[entityType] === undefined) { return cb0(); }
+//           if (tweetObj[entityType].length === 0) { return cb0(); }
+
+//           async.eachSeries(tweetObj[entityType], function(entityObj, cb1){
+
+//             if (!entityObj) {
+//               debug(chalkInfo("TFE | !!! NULL entity? | ENTITY TYPE: " + entityType + " | entityObj: " + entityObj));
+//               return cb1();
+//             }
+
+//             let entity;
+
+//             switch (entityType) {
+//               case "hashtags":
+//                 entity = "#" + entityObj.nodeId.toLowerCase();
+//               break;
+//               case "mentions":
+//               case "userMentions":
+//                 entity = "@" + entityObj.screenName.toLowerCase();
+//               break;
+//               case "locations":
+//                 entity = entityObj.nodeId;
+//               break;
+//               case "images":
+//               case "media":
+//                 entity = entityObj.nodeId;
+//               break;
+//               case "emoji":
+//                 entity = entityObj.nodeId;
+//               break;
+//               case "urls":
+//                 // entity = (entityObj.expandedUrl && entityObj.expandedUrl !== undefined) ? entityObj.expandedUrl.toLowerCase() : entityObj.nodeId;
+//                 entity = entityObj.nodeId;
+//               break;
+//               case "words":
+//                 entity = entityObj.nodeId.toLowerCase();
+//               break;
+//               case "places":
+//                 entity = entityObj.nodeId;
+//               break;
+//             }
+
+//             if (!tweetHistograms[entityType] || (tweetHistograms[entityType] === undefined)){
+//               tweetHistograms[entityType] = {};
+//               tweetHistograms[entityType][entity] = 1;
+//             }
+
+//             if (!tweetHistograms[entityType][entity] || (tweetHistograms[entityType][entity] === undefined)){
+//               tweetHistograms[entityType][entity] = 1;
+//             }
+
+//             // if (configuration.verbose) {
+//               console.log(chalkLog("TFE | +++ USER HIST"
+//                 + " | " + entityType.toUpperCase()
+//                 + " | " + entity
+//                 + " | " + tweetHistograms[entityType][entity]
+//               ));
+//             // }
+
+//             async.setImmediate(function() { cb1(); });
+
+//           }, function(){
+
+//             async.setImmediate(function() { cb0(); });
+
+//           });
+//         }, function(err0){
+
+//           async.setImmediate(function() { cb(); });
+
+//         });
+
+//       })
+//       .catch(function(err){
+//         return cb(err);
+//       });
+
+//     }, function(err){
+
+//       if (err) {
+//         console.log(chalkError("TFE | USER STATUS HISTOGRAM ERROR: " + err));
+//         return reject(err);
+//       }
+
+//       resolve(tweetHistograms);
+ 
+//     });
+
+//   });
+// }
+
 function userStatusChangeHistogram(params) {
 
   return new Promise(function(resolve, reject){
@@ -1535,19 +1853,25 @@ function userStatusChangeHistogram(params) {
     if (!userStatusChangeArray) {
       return resolve();
     }
+
+    let tweetHistograms = {};
+    let text = "";
+
     async.eachSeries(userStatusChangeArray, function(userProp, cb){
 
       delete user._id; // fix for UnhandledPromiseRejectionWarning: RangeError: Maximum call stack size exceeded
 
       const prevUserProp = "previous" + _.upperFirst(userProp);
 
-      console.log(chalkLog("TFE | +++ USER STATUS CHANGE"
-        + " | NODE ID: " + user.nodeId 
-        + " | @" + user.screenName 
-        + " | " + userProp 
-        + " | " + user[userProp] + " <-- " + user[prevUserProp]
-        // + "\n" + jsonPrint(user) 
-      ));
+      if (configuration.verbose) {
+        console.log(chalkLog("TFE | +++ USER STATUS CHANGE"
+          + " | NODE ID: " + user.nodeId 
+          + " | @" + user.screenName 
+          + " | " + userProp 
+          + " | " + user[userProp] + " <-- " + user[prevUserProp]
+          // + "\n" + jsonPrint(user) 
+        ));
+      }
 
       let tscParams = {
         globalTestMode: configuration.globalTestMode,
@@ -1646,13 +1970,13 @@ function userStatusChangeHistogram(params) {
               tweetHistograms[entityType][entity] = 1;
             }
 
-            // if (configuration.verbose) {
+            if (configuration.verbose) {
               console.log(chalkLog("TFE | +++ USER HIST"
                 + " | " + entityType.toUpperCase()
                 + " | " + entity
                 + " | " + tweetHistograms[entityType][entity]
               ));
-            // }
+            }
 
             async.setImmediate(function() { cb1(); });
 
@@ -1686,6 +2010,102 @@ function userStatusChangeHistogram(params) {
   });
 }
 
+// function updateUserHistograms(params) {
+
+//   return new Promise(function(resolve, reject){
+    
+//     if ((params.user === undefined) || !params.user) {
+//       console.log(chalkError("TFE | *** updateUserHistograms USER UNDEFINED"));
+//       const err = new Error("TFE | *** updateUserHistograms USER UNDEFINED");
+//       console.error(err);
+//       return reject(err);
+//     }
+
+//     let user = params.user;
+
+//     user.profileHistograms = user.profileHistograms || {};
+//     user.tweetHistogramChanges = user.tweetHistogramChanges || {};
+
+//     userStatusChangeHistogram(params)
+
+//       .then(function(tweetHistogramChanges){
+
+//         userProfileChangeHistogram(params)
+//         .then(function(profileHistogramChanges){
+
+//           // console.log(chalkAlert("user.profileHistograms\n" + jsonPrint(user.profileHistograms)));
+//           // console.log(chalkAlert("profileHistogramChanges\n" + jsonPrint(profileHistogramChanges)));
+
+//           async.parallel({
+
+//             profileHist: function(cb){
+
+//               if (profileHistogramChanges) {
+
+//                 mergeHistograms.merge({ histogramA: user.profileHistograms, histogramB: profileHistogramChanges })
+//                 .then(function(profileHist){
+//                   cb(null, profileHist);
+//                 })
+//                 .catch(function(err){
+//                   console.log(chalkError("TFE | *** MERGE HISTOGRAMS ERROR | PROFILE: " + err));
+//                   return cb(err, null);
+//                 });
+
+//               }
+//               else {
+//                 cb(null, null);
+//               }
+
+//             },
+
+//             tweetHist: function(cb){
+
+//               if (tweetHistogramChanges) {
+
+//                 mergeHistograms.merge({ histogramA: user.tweetHistograms, histogramB: tweetHistogramChanges })
+//                 .then(function(tweetHist){
+//                   cb(null, tweetHist);
+//                 })
+//                 .catch(function(err){
+//                   console.log(chalkError("TFE | *** MERGE HISTOGRAMS ERROR | TWEET: " + err));
+//                   return cb(err, null);
+//                 });
+
+//               }
+//               else {
+//                 cb(null, null);
+//               }
+//             }
+
+//           }, function(err, results){
+//             if (err) {
+//               return reject(err);
+//             }
+
+//             user.profileHistograms = results.profileHist;
+//             user.tweetHistograms = results.tweetHist;
+
+//             updateGlobalHistograms(params)
+//             .then(function(){
+//               resolve(user);
+//             })
+//             .catch(function(err){
+//               console.log(chalkError("TFE | *** UPDATE USER HISTOGRAM ERROR: " + err));
+//               return reject(err);
+//             });
+
+//           });
+
+//         });
+
+//       })
+//       .catch(function(err){
+//         console.log(chalkError("TFE | *** UPDATE USER HISTOGRAM ERROR: " + err));
+//         return reject(err);
+//       });
+//   });
+// }
+
 function updateUserHistograms(params) {
 
   return new Promise(function(resolve, reject){
@@ -1702,7 +2122,7 @@ function updateUserHistograms(params) {
     user.profileHistograms = user.profileHistograms || {};
     user.tweetHistogramChanges = user.tweetHistogramChanges || {};
 
-    userStatusChangeHistogram(params)
+    userStatusChangeHistogram({user: user})
 
       .then(function(tweetHistogramChanges){
 

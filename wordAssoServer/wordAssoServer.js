@@ -3197,6 +3197,11 @@ function killAll(callback){
   });
 }
 
+process.on("unhandledRejection", function(err, promise) {
+  console.trace("WAS | *** Unhandled rejection (promise: ", promise, ", reason: ", err, ").");
+  quit("unhandledRejection");
+  process.exit(1);
+});
 
 process.on("exit", function processExit() {
 
@@ -3209,7 +3214,6 @@ process.on("exit", function processExit() {
   .catch(function(err){
     console.log(chalkError("WAS | *** MAIN PROCESS EXIT ERROR: " + err));
   });
-
 });
 
 process.on("message", function processMessageRx(msg) {

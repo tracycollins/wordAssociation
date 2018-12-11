@@ -171,7 +171,7 @@ function connectDb(){
 
       statsObj.status = "CONNECTING MONGO DB";
 
-      wordAssoDb.connect("TWP_" + process.pid, function(err, db){
+      global.wordAssoDb.connect("TWP_" + process.pid, function(err, db){
 
         if (err) {
           console.log(chalkError("TWP | *** MONGO DB CONNECTION ERROR: " + err));
@@ -279,8 +279,8 @@ function initTweetParserQueueInterval(cnf){
   let params = {
     globalTestMode: cnf.globalTestMode,
     testMode: cnf.testMode,
-    inc: cnf.inc,
-    twitterEvents: configEvents
+    inc: cnf.inc
+    // twitterEvents: configEvents
   };
 
   // if (tweetServerControllerReady) { 

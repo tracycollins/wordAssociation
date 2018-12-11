@@ -397,11 +397,8 @@ function showStats(options){
   statsObj.heap = process.memoryUsage().heapUsed/(1024*1024);
   statsObj.maxHeap = Math.max(statsObj.maxHeap, statsObj.heap);
 
-  statsObj.tweetsPerSecond = 0;
-  statsObj.tweetsPerMinute = 0;
-
-  statsObj.tweetsPerSecond += threeceeUserObj.stats.tweetsPerSecond;
-  statsObj.tweetsPerMinute += threeceeUserObj.stats.tweetsPerMinute;
+  statsObj.tweetsPerSecond = threeceeUserObj.stats.tweetsPerSecond;
+  statsObj.tweetsPerMinute = threeceeUserObj.stats.tweetsPerMinute;
 
   statsObj.elapsed = moment().valueOf() - statsObj.startTime;
 
@@ -1295,7 +1292,7 @@ function initSearchStream(params){
             + " [ TOTAL Ts/RTs/QTs: " + statsObj.tweetsReceived + "/" + statsObj.retweetsReceived + "/" + statsObj.quotedTweetsReceived + "]"
             + " | 3C @" + threeceeUserObj.screenName
             + " [ Ts/RTs/QTs: " + threeceeUserObj.stats.tweetsReceived + "/" + threeceeUserObj.stats.retweetsReceived + "/" + threeceeUserObj.stats.quotedTweetsReceived + "]"
-            + " | " + statsObj.tweetsPerMinute.toFixed(3) + " TPM"
+            + " | " + threeceeUserObj.stats.tweetsPerMinute.toFixed(3) + " TPM"
             + " | " + tweetStatus.id_str
             + " | TWEET LANG: " + tweetStatus.lang
             + " | @" + tweetStatus.user.screen_name

@@ -1149,7 +1149,7 @@ function connectDb(){
 
       statsObj.status = "CONNECTING MONGO DB";
 
-      wordAssoDb.connect("WAS_" + process.pid, function(err, db){
+      global.wordAssoDb.connect("WAS_" + process.pid, function(err, db){
 
         if (err) {
           console.log(chalkError("WAS | *** MONGO DB CONNECTION ERROR: " + err));

@@ -1371,159 +1371,6 @@ function checkUserStatusChanged(params) {
   return results;    
 }
 
-// function userProfileChangeHistogram(params) {
-
-//   let text = "";
-//   let urlsHistogram = {};
-//   urlsHistogram.urls = {};
-//   let profileUrl = false;
-//   let bannerImageUrl = false;
-
-//   let profileHistograms = {};
-
-//   return new Promise(function(resolve, reject){
-
-//     let user = params.user;
-  
-//     const userProfileChanges = checkUserProfileChanged(params);
-
-//     if (!userProfileChanges) {
-//       return resolve();
-//     }
-
-//     async.each(userProfileChanges, function(userProp, cb){
-
-//       const userPropValue = user[userProp].toLowerCase();
-
-//       const prevUserProp = "previous" + _.upperFirst(userProp);
-
-//       user[prevUserProp] = (!user[prevUserProp] || (user[prevUserProp] === undefined)) ? {} : user[prevUserProp];
-
-//       switch (userProp) {
-//         case "name":
-//         case "location":
-//         case "description":
-//           text += userPropValue + "\n";
-//         break;
-//         case "screenName":
-//           text += "@" + userPropValue + "\n";
-//         break;
-//         case "expandedUrl":
-//           urlsHistogram.urls[userPropValue] = (urlsHistogram.urls[userPropValue] === undefined) ? 1 : urlsHistogram.urls[userPropValue] + 1;
-//           console.log(chalkLog("TFE | XPNDED URL CHANGE | " + userProp + ": " + userPropValue + " = " + urlsHistogram.urls[userPropValue]));
-//         break;
-//         case "url":
-//           urlsHistogram.urls[userPropValue] = (urlsHistogram.urls[userPropValue] === undefined) ? 1 : urlsHistogram.urls[userPropValue] + 1;
-//           console.log(chalkLog("TFE | URL CHANGE | " + userProp + ": " + userPropValue + " = " + urlsHistogram.urls[userPropValue]));
-//         break;
-//         case "profileUrl":
-//           // profileUrl = userPropValue;
-//           urlsHistogram.urls[userPropValue] = (urlsHistogram.urls[userPropValue] === undefined) ? 1 : urlsHistogram.urls[userPropValue] + 1;
-//           console.log(chalkLog("TFE | URL CHANGE | " + userProp + ": " + userPropValue + " = " + urlsHistogram.urls[userPropValue]));
-//         break;
-//         case "bannerImageUrl":
-//           bannerImageUrl = userPropValue;
-//         break;
-//         default:
-//           console.log(chalkError("TFE | UNKNOWN USER PROPERTY: " + userProp));
-//           return cb(new Error("UNKNOWN USER PROPERTY: " + userProp));
-//       }
-
-//       cb();
-
-//     }, function(err){
-
-//       if (err) {
-//         console.log(chalkError("TFE | USER PROFILE HISTOGRAM ERROR: " + err));
-//         return reject(err);
-//       }
-
-//       // console.log("text: " + text);
-//       // console.log("urlsHistogram\n" + jsonPrint(urlsHistogram));
-
-//       async.parallel({
-
-//         imageHist: function(cb) {
-
-//           if (configuration.enableImageAnalysis && bannerImageUrl){
-
-//             parseImage({
-//               screenName: user.screenName, 
-//               category: user.category, 
-//               imageUrl: bannerImageUrl, 
-//               histograms: user.histograms,
-//               updateGlobalHistograms: true
-//             })
-//             .then(function(imageParseResults){
-//               // console.log(chalkLog("TFE | IMAGE PARSE imageParseResults\n" + jsonPrint(imageParseResults)));
-//               cb(null, imageParseResults);
-//             })
-//             .catch(function(err){
-//               cb(err, null);
-//             });
-
-//           }
-//           else {
-//             cb(null, null);
-//           }
-//         }, 
-
-//         textHist: function(cb){
-
-//           if (text && (text !== undefined)){
-
-
-//             parseText({ category: user.category, text: text, updateGlobalHistograms: true })
-//             .then(function(textParseResults){
-
-//               if (Object.keys(urlsHistogram.urls).length > 0) {
-
-//                 mergeHistograms.merge({ histogramA: textParseResults, histogramB: urlsHistogram })
-//                 .then(function(textMergeResults){
-
-//                   cb(null, textMergeResults);
-//                 })
-//                 .catch(function(err){
-//                   cb(err, null);
-//                 });
-
-//               }
-//               else {
-//                 cb(null, textParseResults);
-//               }
-
-//             })
-//             .catch(function(err){
-//               cb(err, null);
-//             });
-//           }
-//           else {
-//             // console.log(chalkLog("TFE | URLS urlsHistogram\n" + jsonPrint(urlsHistogram)));
-//             cb(null, urlsHistogram);
-//           }
-//         }
-
-//       }, function(err, results){
-
-
-//         mergeHistograms.merge({ histogramA: results.textHist, histogramB: results.imageHist})
-//         .then(function(histogramsMerged){
-
-//           // console.log(chalkAlert("TFE | histogramsMerged\n" + jsonPrint(histogramsMerged)));
-
-//           resolve(histogramsMerged);
-//         })
-//         .catch(function(err){
-//           console.log(chalkError("TFE | USER PROFILE CHANGE HISTOGRAM ERROR: " + err));
-//           return reject(err);
-//         });
-//       });
-
-//     });
-
-//   });
-// }
-
 function userProfileChangeHistogram(params) {
 
   let text = "";
@@ -2010,102 +1857,6 @@ function userStatusChangeHistogram(params) {
   });
 }
 
-// function updateUserHistograms(params) {
-
-//   return new Promise(function(resolve, reject){
-    
-//     if ((params.user === undefined) || !params.user) {
-//       console.log(chalkError("TFE | *** updateUserHistograms USER UNDEFINED"));
-//       const err = new Error("TFE | *** updateUserHistograms USER UNDEFINED");
-//       console.error(err);
-//       return reject(err);
-//     }
-
-//     let user = params.user;
-
-//     user.profileHistograms = user.profileHistograms || {};
-//     user.tweetHistogramChanges = user.tweetHistogramChanges || {};
-
-//     userStatusChangeHistogram(params)
-
-//       .then(function(tweetHistogramChanges){
-
-//         userProfileChangeHistogram(params)
-//         .then(function(profileHistogramChanges){
-
-//           // console.log(chalkAlert("user.profileHistograms\n" + jsonPrint(user.profileHistograms)));
-//           // console.log(chalkAlert("profileHistogramChanges\n" + jsonPrint(profileHistogramChanges)));
-
-//           async.parallel({
-
-//             profileHist: function(cb){
-
-//               if (profileHistogramChanges) {
-
-//                 mergeHistograms.merge({ histogramA: user.profileHistograms, histogramB: profileHistogramChanges })
-//                 .then(function(profileHist){
-//                   cb(null, profileHist);
-//                 })
-//                 .catch(function(err){
-//                   console.log(chalkError("TFE | *** MERGE HISTOGRAMS ERROR | PROFILE: " + err));
-//                   return cb(err, null);
-//                 });
-
-//               }
-//               else {
-//                 cb(null, null);
-//               }
-
-//             },
-
-//             tweetHist: function(cb){
-
-//               if (tweetHistogramChanges) {
-
-//                 mergeHistograms.merge({ histogramA: user.tweetHistograms, histogramB: tweetHistogramChanges })
-//                 .then(function(tweetHist){
-//                   cb(null, tweetHist);
-//                 })
-//                 .catch(function(err){
-//                   console.log(chalkError("TFE | *** MERGE HISTOGRAMS ERROR | TWEET: " + err));
-//                   return cb(err, null);
-//                 });
-
-//               }
-//               else {
-//                 cb(null, null);
-//               }
-//             }
-
-//           }, function(err, results){
-//             if (err) {
-//               return reject(err);
-//             }
-
-//             user.profileHistograms = results.profileHist;
-//             user.tweetHistograms = results.tweetHist;
-
-//             updateGlobalHistograms(params)
-//             .then(function(){
-//               resolve(user);
-//             })
-//             .catch(function(err){
-//               console.log(chalkError("TFE | *** UPDATE USER HISTOGRAM ERROR: " + err));
-//               return reject(err);
-//             });
-
-//           });
-
-//         });
-
-//       })
-//       .catch(function(err){
-//         console.log(chalkError("TFE | *** UPDATE USER HISTOGRAM ERROR: " + err));
-//         return reject(err);
-//       });
-//   });
-// }
-
 function updateUserHistograms(params) {
 
   return new Promise(function(resolve, reject){
@@ -2117,12 +1868,12 @@ function updateUserHistograms(params) {
       return reject(err);
     }
 
-    let user = params.user;
+    // let user = params.user;
 
-    user.profileHistograms = user.profileHistograms || {};
-    user.tweetHistogramChanges = user.tweetHistogramChanges || {};
+    params.user.profileHistograms = params.user.profileHistograms || {};
+    params.user.tweetHistogramChanges = params.user.tweetHistogramChanges || {};
 
-    userStatusChangeHistogram({user: user})
+    userStatusChangeHistogram({user: params.user})
 
       .then(function(tweetHistogramChanges){
 
@@ -2138,7 +1889,7 @@ function updateUserHistograms(params) {
 
               if (profileHistogramChanges) {
 
-                mergeHistograms.merge({ histogramA: user.profileHistograms, histogramB: profileHistogramChanges })
+                mergeHistograms.merge({ histogramA: params.user.profileHistograms, histogramB: profileHistogramChanges })
                 .then(function(profileHist){
                   cb(null, profileHist);
                 })
@@ -2158,7 +1909,7 @@ function updateUserHistograms(params) {
 
               if (tweetHistogramChanges) {
 
-                mergeHistograms.merge({ histogramA: user.tweetHistograms, histogramB: tweetHistogramChanges })
+                mergeHistograms.merge({ histogramA: params.user.tweetHistograms, histogramB: tweetHistogramChanges })
                 .then(function(tweetHist){
                   cb(null, tweetHist);
                 })
@@ -2178,12 +1929,12 @@ function updateUserHistograms(params) {
               return reject(err);
             }
 
-            user.profileHistograms = results.profileHist;
-            user.tweetHistograms = results.tweetHist;
+            params.user.profileHistograms = results.profileHist;
+            params.user.tweetHistograms = results.tweetHist;
 
             updateGlobalHistograms(params)
             .then(function(){
-              resolve(user);
+              resolve(params.user);
             })
             .catch(function(err){
               console.log(chalkError("TFE | *** UPDATE USER HISTOGRAM ERROR: " + err));

@@ -382,7 +382,7 @@ function ControlPanel() {
           callback(null, el);
         })
         .catch(function(err){
-          console.error("TWITTER WIDGET ERROR: " + err);
+          console.error("TWITTER CREATE TIMELINE ERROR: " + err);
           callback(err, null);
         });
       }
@@ -449,7 +449,11 @@ function ControlPanel() {
 
       updateCategoryRadioButtons(node.category, function(){
 
-        twitterWidgetsCreateTimeline(node, function(){
+        twitterWidgetsCreateTimeline(node, function(err, el){
+          if (err){
+            console.error("LOAD TWITTER FEED ERROR: " + err);
+            return callback(err);
+          }
           var nsi =document.getElementById("nodeSearchInput");
           nsi.value = "@" + node.screenName;
           callback(null);

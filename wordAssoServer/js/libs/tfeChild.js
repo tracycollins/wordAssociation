@@ -107,6 +107,9 @@ const mergeHistograms = new MergeHistograms();
 const twitterTextParser = require("@threeceelabs/twitter-text-parser");
 const twitterImageParser = require("@threeceelabs/twitter-image-parser");
 
+const urlParse = require("url-parse");
+const btoa = require("btoa");
+
 const _ = require("lodash");
 const S = require("string");
 const util = require("util");
@@ -1397,30 +1400,33 @@ function userProfileChangeHistogram(params) {
 
       const prevUserProp = "previous" + _.upperFirst(userProp);
 
+      let domain;
+      let nodeId;
+
       user[prevUserProp] = (!user[prevUserProp] || (user[prevUserProp] === undefined)) ? {} : user[prevUserProp];
 
       switch (userProp) {
+
         case "name":
         case "location":
         case "description":
           text += userPropValue + "\n";
         break;
+
         case "screenName":
           text += "@" + userPropValue + "\n";
         break;
-        case "expandedUrl":
-          urlsHistogram.urls[userPropValue] = (urlsHistogram.urls[userPropValue] === undefined) ? 1 : urlsHistogram.urls[userPropValue] + 1;
-          // console.log(chalkLog("TFE | XPNDED URL CHANGE | " + userProp + ": " + userPropValue + " = " + urlsHistogram.urls[userPropValue]));
-        break;
+
         case "url":
-          urlsHistogram.urls[userPropValue] = (urlsHistogram.urls[userPropValue] === undefined) ? 1 : urlsHistogram.urls[userPropValue] + 1;
-          // console.log(chalkLog("TFE | URL CHANGE | " + userProp + ": " + userPropValue + " = " + urlsHistogram.urls[userPropValue]));
-        break;
         case "profileUrl":
-          // profileUrl = userPropValue;
-          urlsHistogram.urls[userPropValue] = (urlsHistogram.urls[userPropValue] === undefined) ? 1 : urlsHistogram.urls[userPropValue] + 1;
-          // console.log(chalkLog("TFE | URL CHANGE | " + userProp + ": " + userPropValue + " = " + urlsHistogram.urls[userPropValue]));
+        case "expandedUrl":
+          domain = urlParse(userPropValue.toLowerCase()).hostname;
+          nodeId = btoa(userPropValue.toLowerCase());
+
+          if (domain) { urlsHistogram.urls[domain] = (urlsHistogram.urls[domain] === undefined) ? 1 : urlsHistogram.urls[domain] + 1; }
+          urlsHistogram.urls[nodeId] = (urlsHistogram.urls[nodeId] === undefined) ? 1 : urlsHistogram.urls[nodeId] + 1;
         break;
+
         case "bannerImageUrl":
           bannerImageUrl = userPropValue;
         break;

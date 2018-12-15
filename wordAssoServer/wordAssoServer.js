@@ -719,7 +719,7 @@ console.log(chalkBlue("\n\nWAS | ============== START ==============\n\n"));
 
 console.log(chalkBlue("WAS | PROCESS PID:   " + process.pid));
 console.log(chalkBlue("WAS | PROCESS TITLE: " + process.title));
-console.log(chalkBlue("WAS | ENVIRONMENT: " + process.env.NODE_ENV));
+console.log(chalkBlue("WAS | ENVIRONMENT:   " + process.env.NODE_ENV));
 
 // ==================================================================
 // GLOBAL VARIABLES

@@ -208,6 +208,7 @@ console.log(
   + process.argv[1] 
   + "\nPROCESS ID:    " + process.pid 
   + "\nPROCESS TITLE: " + process.title 
+  + "\nPROCESS NAME:  " + process.title 
   + "\n" + "====================================================================================================\n" 
 );
 

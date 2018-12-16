@@ -1159,13 +1159,13 @@ function initViewerReadyInterval(interval){
 
       viewerObj.timeStamp = Date.now();
 
-      console.log(chalkInfo("T> VIEWER_READY"
+      console.log("T> VIEWER_READY"
         + " | " + viewerObj.userId
         + " | CONNECTED: " + statsObj.serverConnected
         + " | READY TXD: " + statsObj.viewerReadyTransmitted
         + " | READY ACK RXD: " + statsObj.viewerReadyAck
         + " | " + getTimeStamp()
-      ));
+      );
 
       statsObj.viewerReadyTransmitted = true; 
 

@@ -2075,6 +2075,7 @@ function initUserCategorizeQueueInterval(cnf){
         if (err) {
           console.log(chalkError("TFC | *** USER FIND ONE ERROR: " + err));
           return;
+          userCategorizeQueueReady = true;
         }
         printUserObj("TFE | NN: " + networkObj.networkId + " | DB CAT", dbUser, chalkInfo);
         process.send({ op: "USER_CATEGORIZED", user: dbUser });
@@ -2550,7 +2551,7 @@ setTimeout(function(){
 
     initInfoTwit({screenName: DEFAULT_INFO_TWITTER_USER}, function(err, ituObj){
       infoTwitterUserObj = ituObj;
-      initUserChangeDbQueueInterval(configuration);
+      // initUserChangeDbQueueInterval(configuration);
       initUserCategorizeQueueInterval(configuration);
     });
 

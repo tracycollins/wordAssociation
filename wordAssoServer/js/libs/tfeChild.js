@@ -2080,12 +2080,6 @@ function initUserCategorizeQueueInterval(cnf){
         process.send({ op: "USER_CATEGORIZED", user: dbUser });
         userCategorizeQueueReady = true;
       });
-      // }
-      // catch (err) {
-      //   console.log(chalkError("TFE | *** USER CATEGORIZE ERROR: " + err));
-      //   console.error(err);
-      //   userCategorizeQueueReady = true;
-      // }
     }
 
 

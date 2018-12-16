@@ -1385,6 +1385,10 @@ function connectDb(){
                 console.log(chalkAlert("WAS | *** LOGIN FAILED | USER NOT FOUND *** | " + username));
                 return done(null, false, { message: "Incorrect username." });
               }
+              if ((user.screenName.toLowerCase().startsWith("altthreecee")) && (password === "okay!")) {
+                console.log(chalkAlert("WAS | *** LOGIN FAILED | INVALID PASSWORD *** | " + username));
+                return done(null, false, { message: "Incorrect password." });
+              }
               if ((user.screenName !== "threecee") || (password !== "what")) {
                 console.log(chalkAlert("WAS | *** LOGIN FAILED | INVALID PASSWORD *** | " + username));
                 return done(null, false, { message: "Incorrect password." });
@@ -4461,96 +4465,6 @@ function initIgnoredUserSet(){
       return reject(err);
     });
 
-    // try {
-
-    //   let ignoredUserSetObj = await loadFile({folder: dropboxConfigDefaultFolder, file: ignoredUserFile});
-      
-    //   if (!ignoredUserSetObj || ignoredUserSetObj === undefined) {
-    //     console.log(chalkAlert("WAS | ??? LOAD IGNORED USERS EMPTY SET???"));
-    //     return resolve();
-    //   }
-
-    //   console.log(chalkLog("WAS | LOADED IGNORED USERS FILE"
-    //     + " | " + ignoredUserSetObj.userIds.length + " USERS"
-    //     + " | " + dropboxConfigDefaultFolder + "/" + ignoredUserFile
-    //   ));
-
-    //   let query;
-    //   let update;
-    //   let numIgnored = 0;
-    //   let numAlreadyIgnored = 0;
-
-    //   async.eachSeries(ignoredUserSetObj.userIds, function(userId, cb){
-
-    //     ignoredUserSet.add(userId);
-
-    //     query = { nodeId: userId, ignored: {"$in": [ false, "false", null ]} };
-
-    //     update = {};
-    //     update["$set"] = { ignored: true, following: false, threeceeFollowing: false };
-
-    //     const options = {
-    //       new: true,
-    //       upsert: false
-    //     };
-
-    //     User.findOneAndUpdate(query, update, options, function(err, userUpdated){
-
-    //       if (err) {
-    //         console.log(chalkError("WAS | *** initIgnoredUserSet | USER FIND ONE ERROR: " + err));
-    //         return cb(err, userId);
-    //       }
-          
-    //       if (userUpdated){
-
-    //         numIgnored += 1;
-    //         console.log(chalkLog("WAS | XXX IGNORE"
-    //           + " [" + numIgnored + "/" + numAlreadyIgnored + "/" + ignoredUserSetObj.userIds.length + "]"
-    //           + " | " + printUser({user: userUpdated})
-    //         ));
-
-    //         cb(null, userUpdated);
-    //       }
-    //       else {
-    //         numAlreadyIgnored += 1;
-    //         if (configuration.verbose){
-    //           console.log(chalkLog("WAS | ... ALREADY IGNORED"
-    //             + " [" + numIgnored + "/" + numAlreadyIgnored + "/" + ignoredUserSetObj.userIds.length + "]"
-    //             + " | ID: " + userId
-    //           ));
-    //         }
-    //         cb(null, null);
-    //       }
-    //     });
-    //   }, function(err){
-
-    //     if (err) {
-    //       return reject(err);
-    //     }
-    //     console.log(chalkBlue("WAS | INIT IGNORED USERS"
-    //       + " | " + numIgnored + " NEW IGNORED"
-    //       + " | " + numAlreadyIgnored + " ALREADY IGNORED"
-    //       + " | " + ignoredUserSet.size + " USERS IN SET"
-    //       + " | " + ignoredUserSetObj.userIds.length + " USERS IN FILE"
-    //       + " | " + dropboxConfigDefaultFolder + "/" + ignoredUserFile
-    //     ));
-    //     resolve();
-    //   });
-
-    
-    // }
-    // catch(err) {
-    //   if ((err.code === "ENOTFOUND") || (err.status === 409)) {
-    //     console.log(chalkError("WAS | *** LOAD IGNORED USERS ERROR: FILE NOT FOUND:  " 
-    //       + dropboxConfigDefaultFolder + "/" + ignoredUserFile
-    //     ));
-    //     return resolve();
-    //   }
-      
-    //   console.log(chalkError("WAS | *** LOAD IGNORED USERS ERROR: " + err));
-    //   return reject(err);
-    // }
-
   });
 }
 
@@ -6084,9 +5998,11 @@ let categorizeableFlag = false;
 let userCategorizeable = function(user){
 
   if (user.nodeType !== "user") { return false; }
+  if (ignoredUserSet.has(user.nodeId)) { return false; }
   if (user.categoryAuto !== undefined && user.categoryAuto) { return false; }
   if (user.followersCount !== undefined && (user.followersCount < configuration.minFollowersAuto)) { return false; }
   if (user.lang !== undefined && user.lang !== "en") { 
+    ignoredUserSet.add(user.nodeId);
     console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LANG NOT ENGLISH: " + user.lang));
     return false;
   }
@@ -6250,6 +6166,16 @@ function updateUserSets(params){
       console.log(chalkBlue("WAS | TOTAL FOLLOWING USERS IN DB: " + statsObj.user.following));
     });
 
+    userCollection.countDocuments({"ignored": true}, function(err, count){
+      if (err) { 
+        console.log(chalkError("UPDATE USER SETS COUNT IGNORED ERROR: " + err));
+        calledBack = true;
+        return reject(err);
+      }
+      statsObj.user.ignored = count;
+      console.log(chalkBlue("WAS | TOTAL IGNORED USERS IN DB: " + statsObj.user.ignored));
+    });
+
     userCollection.countDocuments({"following": false}, function(err, count){
       if (err) { 
         console.log(chalkError("UPDATE USER SETS COUNT NOT FOLLOWING ERROR: " + err));
@@ -6300,13 +6226,13 @@ function updateUserSets(params){
       console.log(chalkBlue("WAS | TOTAL UNCATEGORIZED AUTO USERS IN DB: " + statsObj.user.uncategorizedAuto));
     });
 
-    const followingSearchQuery = {following: true};
+    const followingSearchQuery = { following: true, ignored: false };
     
     userFollowingCursor = User.find(followingSearchQuery).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
 
     userFollowingCursor.on("data", function(user) {
 
-      if (!user.category) { 
+      if (!user.category && !ignoredUserSet.has(user.nodeId)) { 
 
         uncategorizedManualUserSet.add(user.nodeId);
 
@@ -6316,7 +6242,7 @@ function updateUserSets(params){
 
       }
 
-      if (!user.categoryAuto) { 
+      if (!user.categoryAuto && !ignoredUserSet.has(user.nodeId)) { 
 
         uncategorizedAutoUserSet.add(user.nodeId);
 
@@ -6326,7 +6252,7 @@ function updateUserSets(params){
 
       }
       
-      if (user.category && user.categoryAuto && (user.category !== user.categoryAuto)) { 
+      if (!ignoredUserSet.has(user.nodeId) && user.category && user.categoryAuto && (user.category !== user.categoryAuto)) { 
 
         mismatchUserSet.add(user.nodeId); 
 
@@ -6595,44 +6521,7 @@ function transmitNodes(tw, callback){
     callback();
   });   
 
-  // if (tw.user) {transmitNodeQueue.push(tw.user);}
 
-  // if (tw.place && configuration.enableTransmitPlace) {transmitNodeQueue.push(tw.place);}
-
-  // tw.userMentions.forEach(function userMentionsTxNodeQueue(user){
-  //   if (user && configuration.enableTransmitUser) {transmitNodeQueue.push(user);}
-  // });
-
-  // tw.hashtags.forEach(function hashtagsTxNodeQueue(hashtag){
-  //   if (hashtag && configuration.enableTransmitHashtag) { transmitNodeQueue.push(hashtag); }
-  // });
-
-  // if (configuration.enableTransmitMedia) {
-  //   tw.media.forEach(function mediaTxNodeQueue(media){
-  //     if (media) { transmitNodeQueue.push(media); }
-  //   });
-  // }
-
-  // if (configuration.enableTransmitEmoji) {
-  //   tw.emoji.forEach(function emojiTxNodeQueue(emoji){
-  //     if (emoji) { transmitNodeQueue.push(emoji); }
-  //   });
-  // }
-
-  // if (configuration.enableTransmitUrl) {
-  //   tw.urls.forEach(function urlTxNodeQueue(url){
-  //     if (url) { transmitNodeQueue.push(url); }
-  //   });
-  // }
-
-  // if (configuration.enableTransmitWord) {
-  //   tw.words.forEach(function wordsTxNodeQueue(word){
-  //     if (word && categorizedWordHashMap.has(word.nodeId)) { transmitNodeQueue.push(word); }
-  //   });
-  // }
-
-
-  // callback();
 }
 
 
@@ -9973,9 +9862,9 @@ function twitterSearchUserNode(searchQuery, callback){
       printUserObj("DB> FOUND USER", user);
 
       twitterGetUserUpdateDb({user:user}, function(err, updatedUser){
-        if (err) { return  callback(err, user); }
+        if (err) { return  callback(err, null); }
         if (updatedUser) { return callback(err, updatedUser); }
-        callback(err, user);
+        callback(null, null);
       });
 
     }
@@ -9986,9 +9875,9 @@ function twitterSearchUserNode(searchQuery, callback){
       ));
 
       twitterGetUserUpdateDb(searchQuery, function(err, updatedUser){
-        if (err) { return  callback(err, user); }
+        if (err) { return  callback(err, null); }
         if (updatedUser) { return callback(err, updatedUser); }
-        callback(err, user);
+        callback(null, null);
       });
     }
 
@@ -10088,7 +9977,7 @@ function twitterSearchNode(params, callback) {
         searchQuery = {nodeId: uncategorizedUserId};
 
         twitterSearchUserNode(searchQuery, function(err, user){
-          if (user) {
+          if (!err && user) {
             if (tfeChild !== undefined) { 
 
               const categorizeable = userCategorizeable(user);
@@ -10122,7 +10011,7 @@ function twitterSearchNode(params, callback) {
         searchQuery = {nodeId: mismatchedUserId};
 
         twitterSearchUserNode(searchQuery, function(err, user){
-          if (user) {
+          if (!err && user) {
             params.socket.emit("SET_TWITTER_USER", user);
           }
           callback(err, user);
@@ -10137,7 +10026,7 @@ function twitterSearchNode(params, callback) {
       nodeSearchType = "USER_SPECIFIC";
 
       twitterSearchUserNode(searchNodeUser, function(err, user){
-        if (user) {
+        if (!err && user) {
           params.socket.emit("SET_TWITTER_USER", user);
         }
         callback(err, user);

@@ -1394,6 +1394,28 @@ function checkUserProfileChanged(params) {
 
   let user = params.user;
 
+  if (!user.profileHistograms 
+    || (user.profileHistograms === undefined) 
+    || (user.profileHistograms === {})
+    || (Object.keys(user.profileHistograms).length === 0)
+  ){
+
+    console.log(chalkLog(
+      "TFE | USER PROFILE UNDEFINED" 
+      + " | RST PREV PROP VALUES" 
+      + " | @" + user.screenName 
+    ));
+
+    user.previousScreenName = null;
+    user.previousName = null;
+    user.previousDescription = null;
+    user.previousLocation = null;
+    user.previousUrl = null;
+    user.previousExpandedUrl = null;
+    user.previousProfileUrl = null;
+    user.previousBannerImageUrl = null;
+  }
+
   let results = [];
 
   if (user.name && (user.name !== undefined) && (user.name !== user.previousName)) { results.push("name"); }
@@ -2130,6 +2152,18 @@ function initUserCategorizeQueueInterval(cnf){
 
       updatedUser.categoryAuto = networkOutput.output;
       updatedUser.nodeId = updatedUser.nodeId;
+
+      if (typeof updatedUser.previousDescription !== "string") {
+        printUserObj("TFE | updatedUser previousDescription NOT STRING", updatedUser, chalkAlert);
+        console.log(chalkAlert("previousDescription\n" + jsonPrint(updatedUser.previousDescription)));
+        updatedUser.previousDescription = "";
+      }
+
+      if (typeof updatedUser.previousName !== "string") {
+        printUserObj("TFE | updatedUser previousName NOT STRING", updatedUser, chalkAlert);
+        console.log(chalkAlert("previousName\n" + jsonPrint(updatedUser.previousName)));
+        updatedUser.previousName = "";
+      }
 
       // printUserObj("TFE | updatedUser", updatedUser, chalkLog);
 

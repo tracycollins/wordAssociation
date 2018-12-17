@@ -1836,6 +1836,7 @@ function ViewTreepack() {
         currentNode.mouseHoverFlag = false;
         currentNode.newFlag = true;
 
+        currentNode.rank = newNode.rank;
         currentNode.rate = newNode.rate;
         currentNode.mentions = newNode.mentions;
         currentNode.isIgnored = newNode.isIgnored;

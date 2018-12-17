@@ -1028,11 +1028,13 @@ function initSearchStream(params){
     filter.follow = [];
 
     if (threeceeUserObj.searchTermSet.size > 0) { filter.track = [...threeceeUserObj.searchTermSet]; }
+    if (threeceeUserObj.followUserIdSet.size > 0) { filter.follow = [...threeceeUserObj.followUserIdSet]; }
 
     console.log(chalkInfo("TSS | INIT SEARCH STREAM"
       + " | @" + threeceeUserObj.screenName
       + " | SEARCH TERMS: " + threeceeUserObj.searchTermSet.size
       + " | FILTER TRACK SIZE: " + filter.track.length
+      + " | FILTER FOLLOW SIZE: " + filter.follow.length
     ));
 
     try {

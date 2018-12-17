@@ -73,6 +73,9 @@ const DEFAULT_CURSOR_BATCH_SIZE = 5000;
 const DEFAULT_INFO_TWITTER_USER = "threecee";
 const USER_CAT_QUEUE_MAX_LENGTH = 500;
 
+const USER_CHANGE_CACHE_DEFAULT_TTL = 120;
+const USER_CHANGE_CACHE_CHECK_PERIOD = 5;
+
 const MAX_READY_ACK_WAIT_COUNT = 10;
 
 const ONE_SECOND = 1000 ;
@@ -126,6 +129,7 @@ const neataptic = require("neataptic");
 const networksHashMap = new HashMap();
 const arrayNormalize = require("array-normalize");
 const deepcopy = require("deepcopy");
+const NodeCache = require("node-cache");
 
 const debug = require("debug")("tfe");
 const debugCache = require("debug")("cache");
@@ -293,6 +297,46 @@ let TweetServerController;
 let tweetServerController;
 let tweetServerControllerReady = false;
 
+// ==================================================================
+// USER CHANGE CACHE
+// ==================================================================
+let userChangeCacheTtl = process.env.USER_CHANGE_CACHE_DEFAULT_TTL;
+if (userChangeCacheTtl === undefined) { userChangeCacheTtl = USER_CHANGE_CACHE_DEFAULT_TTL;}
+
+console.log("WAS | USER CHANGE CACHE TTL: " + userChangeCacheTtl + " SECONDS");
+
+let userChangeCacheCheckPeriod = process.env.USER_CHANGE_CACHE_CHECK_PERIOD;
+if (userChangeCacheCheckPeriod === undefined) { userChangeCacheCheckPeriod = USER_CHANGE_CACHE_CHECK_PERIOD;}
+
+console.log("WAS | userChange CACHE CHECK PERIOD: " + userChangeCacheCheckPeriod + " SECONDS");
+
+const userChangeCache = new NodeCache({
+  stdTTL: userChangeCacheTtl,
+  checkperiod: userChangeCacheCheckPeriod
+});
+
+function userChangeCacheExpired(userChangeCacheId, changeObj) {
+
+  debug(chalkLog("WAS | XXX USER CHANGE CACHE EXPIRED"
+    + " | TTL: " + userChangeCacheTtl + " SECS"
+    + " | " + userChangeCacheId
+    + " | UID: " + changeObj.user.userId
+    + " | @" + changeObj.user.screenName
+    // + " | INIT FLAG: " + changeObj.user.initFlag
+    // + "\nCHANGES\n" + changeObj.user.initFlag
+    // + "\nNOW: " + getTimeStamp()
+    // + " | TS: " + getTimeStamp(changeObj.timeStamp)
+    // + " | AGO: " + msToTime(moment().valueOf() - changeObj.timeStamp)
+  ));
+
+}
+
+userChangeCache.on("expired", userChangeCacheExpired);
+
+
+// ==================================================================
+// MONGO DB
+// ==================================================================
 function connectDb(){
 
   return new Promise(async function(resolve, reject){
@@ -472,6 +516,9 @@ function showStats(options){
     console.log(chalkLog("TFE | S"
       + " | ELPSD " + msToTime(statsObj.elapsed)
       + " | START " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
+      + " | UC$: " + userChangeCache.getStats().keys
+      + " | UCDBQ: " + userChangeDbQueue.length
+      + " | UCATQ: " + userCategorizeQueue.length
     ));
   }
 }
@@ -1987,6 +2034,7 @@ function initUserChangeDbQueueInterval(cnf){
             console.log(chalkError("TFE | *** USER DB UPDATE ERROR: " + err));
           }
           userChangeDbQueueReady = true;
+          userChangeCache.del(user.nodeId);
         });
 
       }
@@ -1998,7 +2046,18 @@ function initUserChangeDbQueueInterval(cnf){
           printUserObj("TFE | CHANGE USER DB [" + userChangeDbQueue.length + "] CHNG", user, chalkGreen); 
         }
 
-        if (!userCategorizeQueue.includes(user.userId) && (userCategorizeQueue.length < USER_CAT_QUEUE_MAX_LENGTH)) {
+        const cacheObj = userChangeCache.get(user.nodeId);
+
+        if (cacheObj === undefined) { 
+          console.log(chalkInfo("WAS | USER CHG $ MISS"
+            + " [UC$: " + userChangeCache.getStats().keys + "]"
+            + " [UCATQ: " + userCategorizeQueue.length + "]"
+            + " | NID: " + user.nodeId
+            + " | @" + user.screenName
+          ));
+        }
+
+        if ((cacheObj === undefined) && !userCategorizeQueue.includes(user.userId) && (userCategorizeQueue.length < USER_CAT_QUEUE_MAX_LENGTH)) {
 
           userCategorizeQueue.push(user);
 
@@ -2053,12 +2112,15 @@ function initUserCategorizeQueueInterval(cnf){
       catch (err) {
         console.log(chalkError("TFE | *** UPDATE USER HISTOGRAMS ERROR: " + err));
         console.error(err);
+        userChangeCache.del(user.nodeId);
         userCategorizeQueueReady = true;
         return;
       }
 
       if (updatedUser.categoryAuto !== networkOutput.output) {
         console.log(chalkLog("TFE | >>> NN AUTO CAT CHANGE"
+          + " [UC$: " + userChangeCache.getStats().keys + "]"
+          + " [UCATQ: " + userCategorizeQueue.length + "]"
           + " | " + networkObj.networkId
           + " | AUTO: " + updatedUser.categoryAuto + " > " + networkOutput.output
           + " | NODE ID: " + updatedUser.nodeId
@@ -2069,16 +2131,22 @@ function initUserCategorizeQueueInterval(cnf){
       updatedUser.categoryAuto = networkOutput.output;
       updatedUser.nodeId = updatedUser.nodeId;
 
-      printUserObj("TFE | updatedUser", updatedUser, chalkLog);
+      // printUserObj("TFE | updatedUser", updatedUser, chalkLog);
 
       userServerController.findOneUser(updatedUser, {noInc: false, fields: fieldsTransmit}, function(err, dbUser){
         if (err) {
           console.log(chalkError("TFC | *** USER FIND ONE ERROR: " + err));
-          return;
           userCategorizeQueueReady = true;
+          return;
         }
-        printUserObj("TFE | NN: " + networkObj.networkId + " | DB CAT", dbUser, chalkInfo);
+
+        printUserObj("TFE | " 
+          + " [UC$: " + userChangeCache.getStats().keys + "]"
+          + " [UCQ: " + userCategorizeQueue.length + "]"
+          + " | NN: " + networkObj.networkId + " | DB CAT", dbUser, chalkInfo);
+
         process.send({ op: "USER_CATEGORIZED", user: dbUser });
+        userChangeCache.del(dbUser.nodeId);
         userCategorizeQueueReady = true;
       });
     }
@@ -2140,7 +2208,8 @@ function initDbUserChangeStream(params){
 
   return new Promise(function(resolve, reject){
 
-    const userCollection = params.db.collection("users");
+    // const userCollection = params.db.collection("users");
+    const userCollection = global.dbConnection.collection("users");
 
     userCollection.countDocuments(function(err, count){
 
@@ -2176,10 +2245,23 @@ function initDbUserChangeStream(params){
               user.initFlag = true;
             }
 
-            if ((userChangeDbQueue.length < 10000) && (userChanges.changeFlag || userChanges.initFlag)) { 
+            const cacheObj = userChangeCache.get(user.nodeId);
+
+            if (cacheObj === undefined) { 
+              console.log(chalkInfo("WAS | USER CHG $ MISS"
+                + " [UC$: " + userChangeCache.getStats().keys + "]"
+                + " [UCDBQ: " + userChangeDbQueue.length + "]"
+                + " | NID: " + user.nodeId
+                + " | @" + user.screenName
+              ));
+            }
+
+            if ((cacheObj === undefined) && (userChangeDbQueue.length < 10000) && (userChanges.changeFlag || userChanges.initFlag)) { 
               userChangeDbQueue.push(user);
             }
             
+            userChangeCache.set(user.nodeId, { user: user, timeStamp: moment().valueOf() } );
+
             if (configuration.verbose) {
               printUserObj("TFE | --> USER CHANGE | " +  change.operationType, user, chalkLog);
             }
@@ -2466,7 +2548,26 @@ process.on("message", function(m) {
 
     case "USER_CATEGORIZE":
 
-      if (!userCategorizeQueue.includes(m.user.userId) && (userCategorizeQueue.length < USER_CAT_QUEUE_MAX_LENGTH)) {
+      if (!m.user.nodeId || (m.user.nodeId === undefined)) { 
+        console.log(chalkError("WAS | ??? USER NODE ID UNDEFINED ... SET TO USER ID"
+          + " | UID: " + m.user.userId
+          + " | @" + m.user.screenName
+        ));
+        m.user.nodeId = m.user.userId;
+      }
+
+      const cacheObj = userChangeCache.get(m.user.nodeId);
+
+      if (cacheObj === undefined) { 
+        console.log(chalkInfo("WAS | USER CAT $ MISS"
+          + " [UC$: " + userChangeCache.getStats().keys + "]"
+          + " [UCATQ: " + userCategorizeQueue.length + "]"
+          + " | NID: " + m.user.nodeId
+          + " | @" + m.user.screenName
+        ));
+      }
+
+      if ((cacheObj === undefined) && !userCategorizeQueue.includes(m.user.userId) && (userCategorizeQueue.length < USER_CAT_QUEUE_MAX_LENGTH)) {
         try {
           let user = m.user.toObject();
           userCategorizeQueue.push(user);
@@ -2483,6 +2584,7 @@ process.on("message", function(m) {
         }
         catch(err){
           userCategorizeQueue.push(m.user);
+          userChangeCache.set(m.user.nodeId, {user: m.user, timeStamp: moment().valueOf()});
 
           debug(chalkInfo("TFE | USER_CATEGORIZE"
             + " [ USQ: " + userCategorizeQueue.length + "]"
@@ -2496,6 +2598,9 @@ process.on("message", function(m) {
         }
 
       }
+
+      userChangeCache.set(m.user.nodeId, {user: m.user, timeStamp: moment().valueOf()});
+
     break;
 
     case "PING":
@@ -2549,10 +2654,11 @@ setTimeout(function(){
       }
     }, 1000);
 
-    initInfoTwit({screenName: DEFAULT_INFO_TWITTER_USER}, function(err, ituObj){
+    initInfoTwit({screenName: DEFAULT_INFO_TWITTER_USER}, async function(err, ituObj){
       infoTwitterUserObj = ituObj;
-      // initUserChangeDbQueueInterval(configuration);
+      initUserChangeDbQueueInterval(configuration);
       initUserCategorizeQueueInterval(configuration);
+      await initDbUserChangeStream({db: global.dbConnection});
     });
 
   });

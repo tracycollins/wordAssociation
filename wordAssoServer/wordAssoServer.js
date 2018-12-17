@@ -9913,7 +9913,7 @@ function twitterSearchNode(params, callback) {
       else if (hashtag) { 
         console.log(chalkTwitter("WAS | TWITTER_SEARCH_NODE HASHTAG FOUND\n" + jsonPrint(hashtag)));
 
-        viewNameSpace("SET_TWITTER_HASHTAG", hashtag);
+        viewNameSpace.emit("SET_TWITTER_HASHTAG", hashtag);
 
         if (hashtag.category) { 
           let htCatObj = {};

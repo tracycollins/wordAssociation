@@ -103,7 +103,8 @@ viewerObj = DEFAULT_VIEWER_OBJ;
 console.log("viewerObj\n" + jsonPrint(viewerObj));
 
 // var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
-var DEFAULT_AUTH_URL = DEFAULT_SOURCE + "/login";
+var DEFAULT_AUTH_URL = "http://localhost:9997/auth/twitter";
+// var DEFAULT_AUTH_URL = DEFAULT_SOURCE + "/login";
 
 var loginCallBack = function() {
   console.log("LOGIN CALL BACK");

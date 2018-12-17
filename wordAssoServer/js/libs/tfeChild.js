@@ -303,12 +303,12 @@ let tweetServerControllerReady = false;
 let userChangeCacheTtl = process.env.USER_CHANGE_CACHE_DEFAULT_TTL;
 if (userChangeCacheTtl === undefined) { userChangeCacheTtl = USER_CHANGE_CACHE_DEFAULT_TTL;}
 
-console.log("WAS | USER CHANGE CACHE TTL: " + userChangeCacheTtl + " SECONDS");
+console.log("TFE | USER CHANGE CACHE TTL: " + userChangeCacheTtl + " SECONDS");
 
 let userChangeCacheCheckPeriod = process.env.USER_CHANGE_CACHE_CHECK_PERIOD;
 if (userChangeCacheCheckPeriod === undefined) { userChangeCacheCheckPeriod = USER_CHANGE_CACHE_CHECK_PERIOD;}
 
-console.log("WAS | userChange CACHE CHECK PERIOD: " + userChangeCacheCheckPeriod + " SECONDS");
+console.log("TFE | userChange CACHE CHECK PERIOD: " + userChangeCacheCheckPeriod + " SECONDS");
 
 const userChangeCache = new NodeCache({
   stdTTL: userChangeCacheTtl,
@@ -317,7 +317,7 @@ const userChangeCache = new NodeCache({
 
 function userChangeCacheExpired(userChangeCacheId, changeObj) {
 
-  debug(chalkLog("WAS | XXX USER CHANGE CACHE EXPIRED"
+  debug(chalkLog("TFE | XXX USER CHANGE CACHE EXPIRED"
     + " | TTL: " + userChangeCacheTtl + " SECS"
     + " | " + userChangeCacheId
     + " | UID: " + changeObj.user.userId
@@ -2048,8 +2048,8 @@ function initUserChangeDbQueueInterval(cnf){
 
         const cacheObj = userChangeCache.get(user.nodeId);
 
-        if (cacheObj === undefined) { 
-          console.log(chalkInfo("WAS | USER CHG $ MISS"
+        if (configuration.verbose && (cacheObj === undefined)) { 
+          console.log(chalkInfo("TFE | USER CHG $ MISS"
             + " [UC$: " + userChangeCache.getStats().keys + "]"
             + " [UCATQ: " + userCategorizeQueue.length + "]"
             + " | NID: " + user.nodeId
@@ -2247,8 +2247,8 @@ function initDbUserChangeStream(params){
 
             const cacheObj = userChangeCache.get(user.nodeId);
 
-            if (cacheObj === undefined) { 
-              console.log(chalkInfo("WAS | USER CHG $ MISS"
+            if (configuration.verbose && (cacheObj === undefined)) { 
+              console.log(chalkInfo("TFE | USER CHG $ MISS"
                 + " [UC$: " + userChangeCache.getStats().keys + "]"
                 + " [UCDBQ: " + userChangeDbQueue.length + "]"
                 + " | NID: " + user.nodeId
@@ -2549,7 +2549,7 @@ process.on("message", function(m) {
     case "USER_CATEGORIZE":
 
       if (!m.user.nodeId || (m.user.nodeId === undefined)) { 
-        console.log(chalkError("WAS | ??? USER NODE ID UNDEFINED ... SET TO USER ID"
+        console.log(chalkError("TFE | ??? USER NODE ID UNDEFINED ... SET TO USER ID"
           + " | UID: " + m.user.userId
           + " | @" + m.user.screenName
         ));
@@ -2558,8 +2558,8 @@ process.on("message", function(m) {
 
       const cacheObj = userChangeCache.get(m.user.nodeId);
 
-      if (cacheObj === undefined) { 
-        console.log(chalkInfo("WAS | USER CAT $ MISS"
+      if (configuration.verbose && (cacheObj === undefined)) { 
+        console.log(chalkInfo("TFE | USER CAT $ MISS"
           + " [UC$: " + userChangeCache.getStats().keys + "]"
           + " [UCATQ: " + userCategorizeQueue.length + "]"
           + " | NID: " + m.user.nodeId

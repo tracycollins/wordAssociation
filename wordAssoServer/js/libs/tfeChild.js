@@ -2107,9 +2107,11 @@ function initUserChangeDbQueueInterval(cnf){
   }, cnf.userChangeDbQueueInterval);
 }
 
+let uscTimeout;
+
 function initUserCategorizeQueueInterval(cnf){
 
-  let user = {};
+  // let user = {};
 
   console.log(chalkTwitter("TFC | INIT TWITTER USER CATEGORIZE QUEUE INTERVAL: " + cnf.userCategorizeQueueInterval));
 
@@ -2121,8 +2123,18 @@ function initUserCategorizeQueueInterval(cnf){
 
       userCategorizeQueueReady = false;
 
-      user = userCategorizeQueue.shift();
+      let user = userCategorizeQueue.shift();
+
+      if ((!user.nodeId || user.nodeId === undefined) && (!user.userId || user.userId === undefined)){
+        console.log(chalkError("TFC | *** USER CAT ERROR: USER NODE ID & USER ID UNDEFINED\n" + jsonPrint(user)));
+
+        userCategorizeQueueReady = false;
+        return;
+      }
+
       user.nodeId = user.userId;
+
+      printUserObj("TFC | USER CAT [UCATQ: " + userCategorizeQueue.length + "]", user, chalkLog);
 
       let updatedUser;
       let networkOutput;
@@ -2154,23 +2166,40 @@ function initUserCategorizeQueueInterval(cnf){
       updatedUser.nodeId = updatedUser.nodeId;
 
       if (typeof updatedUser.previousDescription !== "string") {
-        printUserObj("TFC | updatedUser previousDescription NOT STRING", updatedUser, chalkAlert);
+        printUserObj("TFC | updatedUser previousDescription NOT STRING | " + typeof updatedUser.previousDescription, updatedUser, chalkAlert);
         console.log(chalkAlert("previousDescription\n" + jsonPrint(updatedUser.previousDescription)));
         updatedUser.previousDescription = "";
       }
 
       if (typeof updatedUser.previousName !== "string") {
-        printUserObj("TFC | updatedUser previousName NOT STRING", updatedUser, chalkAlert);
+        printUserObj("TFC | updatedUser previousName NOT STRING | " + typeof updatedUser.previousName, updatedUser, chalkAlert);
         console.log(chalkAlert("previousName\n" + jsonPrint(updatedUser.previousName)));
         updatedUser.previousName = "";
       }
 
+      uscTimeout = setTimeout(function(){
+
+        console.log(chalkError("TFC | *** USC FINDONEUSER TIMEOUT"));
+
+        printUserObj("TFC | " 
+          + " [UC$: " + userChangeCache.getStats().keys + "]"
+          + " [UCQ: " + userCategorizeQueue.length + "]"
+          + " | NN: " + networkObj.networkId + " | ", updatedUser, chalkInfo);
+
+        quit({cause: "USC TIMEOUT"});
+
+      }, 5000);
+
       // printUserObj("TFC | updatedUser", updatedUser, chalkLog);
 
       userServerController.findOneUser(updatedUser, {noInc: false, fields: fieldsTransmit}, function(err, dbUser){
+
+        clearTimeout(uscTimeout);
+
+        userCategorizeQueueReady = true;
+
         if (err) {
           console.log(chalkError("TFC | *** USER FIND ONE ERROR: " + err));
-          userCategorizeQueueReady = true;
         }
         else {
 
@@ -2181,7 +2210,6 @@ function initUserCategorizeQueueInterval(cnf){
 
           process.send({ op: "USER_CATEGORIZED", user: dbUser });
           userChangeCache.del(dbUser.nodeId);
-          userCategorizeQueueReady = true;
         }
         
       });

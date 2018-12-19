@@ -16,9 +16,10 @@ hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
 
-// const TWITTER_AUTH_CALLBACK_URL = "https://word.threeceelabs.com/auth/twitter/callback";
 const TWITTER_WEBHOOK_URL = "/webhooks/twitter";
-const TWITTER_AUTH_CALLBACK_URL = "http://localhost:9997/auth/twitter/callback";
+
+const TWITTER_AUTH_CALLBACK_URL = "https://word.threeceelabs.com/auth/twitter/callback";
+// const TWITTER_AUTH_CALLBACK_URL = "http://localhost:9997/auth/twitter/callback";
 
 const dbAppName = "WAS_" + process.pid;
 

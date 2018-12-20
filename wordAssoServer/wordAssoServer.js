@@ -9725,7 +9725,14 @@ function twitterGetUserUpdateDb(user, callback){
       threeceeTwitter[currentThreeceeUser].twit.get("users/show", twitQuery, function usersShow (err, rawUser, response){
 
         if (err) {
-          console.log(chalkError("WAS | *** ERROR users/show rawUser | @" + user.screenName + " | " + err + "\ntwitQuery\n" + jsonPrint(twitQuery)));
+
+          console.log(chalkError("WAS | *** ERROR users/show rawUser"
+            + " | @" + user.screenName 
+            + " | " + err 
+            + "\nerr\n" + jsonPrint(err)
+            + "\ntwitQuery\n" + jsonPrint(twitQuery)
+          ));
+
           return callback("NO TWITTER UPDATE", user);
         }
 
@@ -9992,6 +9999,9 @@ function twitterSearchNode(params, callback) {
               + " | UID: " + uncategorizedUserId
               + " | ERROR: " + err
             ));
+
+            uncategorizedManualUserSet.delete(uncategorizedUserId);
+            ignoredUserSet.add(params.user.nodeId);
           }
           else if (user) {
             if (tfeChild !== undefined) { 
@@ -10048,7 +10058,7 @@ function twitterSearchNode(params, callback) {
         twitterSearchUserNode(searchQuery, function(err, user){
           if (err){
             console.log(chalkError("WAS | *** TWITTER_SEARCH_NODE ERROR"
-              + "[ UC MISMATCHED ARRAY: " + mismatchUserArray.length + "]"
+              + " [ UC MISMATCHED ARRAY: " + mismatchUserArray.length + "]"
               + " | " + getTimeStamp()
               + " | SEARCH MISMATCHED USER"
               + " | UID: " + mismatchedUserId
@@ -10060,7 +10070,7 @@ function twitterSearchNode(params, callback) {
           }
           else {
             console.log(chalkAlert("WAS | --- TWITTER_SEARCH_NODE NOT FOUND"
-              + "[ UC USER ARRAY: " + uncategorizedManualUserArray.length + "]"
+              + " [ UC USER ARRAY: " + uncategorizedManualUserArray.length + "]"
               + " | " + getTimeStamp()
               + " | SEARCH MISMATCHED USER"
               + " | UID: " + uncategorizedUserId

@@ -21,8 +21,13 @@ ProgressBar
 
 "use strict";
 
-var DEFAULT_SOURCE = "http://localhost:9997";
-// var DEFAULT_SOURCE = "https://word.threeceelabs.com";
+// var DEFAULT_SOURCE = "http://localhost:9997";
+var DEFAULT_SOURCE = "https://word.threeceelabs.com";
+
+var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
+// var DEFAULT_AUTH_URL = "http://localhost:9997/auth/twitter";
+// var DEFAULT_AUTH_URL = DEFAULT_SOURCE + "/login";
+
 var MAX_RX_QUEUE = 250;
 
 var config = {};
@@ -101,9 +106,6 @@ var viewerObj = {};
 viewerObj = DEFAULT_VIEWER_OBJ;
 
 console.log("viewerObj\n" + jsonPrint(viewerObj));
-
-// var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
-var DEFAULT_AUTH_URL = DEFAULT_SOURCE + "/login";
 
 var loginCallBack = function() {
   console.log("LOGIN CALL BACK");
@@ -1159,13 +1161,13 @@ function initViewerReadyInterval(interval){
 
       viewerObj.timeStamp = Date.now();
 
-      console.log(chalkInfo("T> VIEWER_READY"
+      console.log("T> VIEWER_READY"
         + " | " + viewerObj.userId
         + " | CONNECTED: " + statsObj.serverConnected
         + " | READY TXD: " + statsObj.viewerReadyTransmitted
         + " | READY ACK RXD: " + statsObj.viewerReadyAck
         + " | " + getTimeStamp()
-      ));
+      );
 
       statsObj.viewerReadyTransmitted = true; 
 

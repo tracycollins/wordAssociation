@@ -1679,7 +1679,7 @@ function userProfileChangeHistogram(params) {
             ));
             return err;                
           }
-          
+
         break;
 
 
@@ -1745,6 +1745,7 @@ function userProfileChangeHistogram(params) {
               cb(null, imageParseResults);
             })
             .catch(function(err){
+              console.log(chalkError("TFC | USER PROFILE CHANGE HISTOGRAM ERROR: " + err));
               cb(err, null);
             });
 
@@ -1780,6 +1781,9 @@ function userProfileChangeHistogram(params) {
 
             })
             .catch(function(err){
+              if (err) {
+                console.log(chalkError("TFC | USER PROFILE CHANGE HISTOGRAM ERROR: " + err));
+              }
               cb(err, null);
             });
           }
@@ -1793,6 +1797,11 @@ function userProfileChangeHistogram(params) {
         }
 
       }, function(err, results){
+
+        if (err) {
+          console.log(chalkError("TFC | USER PROFILE CHANGE HISTOGRAM ERROR: " + err));
+          return reject(err);
+        }
 
 
         mergeHistogramsArray( {histogramArray: [ results.textHist, results.imageHist, urlsHistogram, locationsHistogram ]} )

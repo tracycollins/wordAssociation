@@ -2858,6 +2858,7 @@ process.on("message", function(m) {
         try {
           let user = m.user.toObject();
           userCategorizeQueue.push(user);
+          userChangeCache.set(user.nodeId, {user: user, timeStamp: moment().valueOf()});
 
           debug(chalkInfo("TFC | USER_CATEGORIZE"
             + " [ USQ: " + userCategorizeQueue.length + "]"
@@ -2883,10 +2884,9 @@ process.on("message", function(m) {
             + "\nTFE | USER_SHOW | DESC: " + m.user.description
           ));
         }
-
       }
 
-      userChangeCache.set(m.user.nodeId, {user: m.user, timeStamp: moment().valueOf()});
+      // userChangeCache.set(m.user.nodeId, {user: m.user, timeStamp: moment().valueOf()});
 
     break;
 

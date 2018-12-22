@@ -10000,7 +10000,7 @@ function twitterSearchNode(params, callback) {
         twitterSearchUserNode(searchQuery, function(err, user){
           if (err){
             console.log(chalkError("WAS | *** TWITTER_SEARCH_NODE ERROR"
-              + "[ UC USER ARRAY: " + uncategorizedManualUserArray.length + "]"
+              + " [ UC USER ARRAY: " + uncategorizedManualUserArray.length + "]"
               + " | " + getTimeStamp()
               + " | SEARCH UNCATEGORIZED USER"
               + " | UID: " + uncategorizedUserId
@@ -10008,7 +10008,7 @@ function twitterSearchNode(params, callback) {
             ));
 
             uncategorizedManualUserSet.delete(uncategorizedUserId);
-            ignoredUserSet.add(params.user.nodeId);
+            ignoredUserSet.add(uncategorizedUserId);
           }
           else if (user) {
             if (tfeChild !== undefined) { 

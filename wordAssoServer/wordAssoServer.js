@@ -403,6 +403,7 @@ configuration.dropboxWebhookChangeTimeout = DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEO
 
 configuration.tweetParserInterval = DEFAULT_TWEET_PARSER_INTERVAL;
 configuration.sorterMessageRxQueueInterval = DEFAULT_SORTER_INTERVAL;
+configuration.transmitNodeQueueInterval = DEFAULT_TRANSMIT_NODE_QUEUE_INTERVAL;
 configuration.rateQueueInterval = DEFAULT_RATE_QUEUE_INTERVAL;
 configuration.rateQueueIntervalModulo = DEFAULT_RATE_QUEUE_INTERVAL_MODULO;
 configuration.statsUpdateInterval = DEFAULT_STATS_UPDATE_INTERVAL;
@@ -6422,6 +6423,7 @@ function initTransmitNodeQueueInterval(interval){
 
                 if (!userServerControllerReady) {
                   return callback(new Error("userServerController not ready"), null);
+                  transmitNodeQueueReady = true;
                 }
 
                 userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit}, function(err, updatedUser){
@@ -8868,6 +8870,11 @@ function loadConfigFile(params) {
         if (loadedConfigObj.STATS_UPDATE_INTERVAL !== undefined){
           console.log("WAS | LOADED STATS_UPDATE_INTERVAL: " + loadedConfigObj.STATS_UPDATE_INTERVAL);
           newConfiguration.statsUpdateInterval = loadedConfigObj.STATS_UPDATE_INTERVAL;
+        }
+
+        if (loadedConfigObj.TRANSMIT_NODE_QUEUE_INTERVAL !== undefined){
+          console.log("WAS | LOADED TRANSMIT_NODE_QUEUE_INTERVAL: " + loadedConfigObj.TRANSMIT_NODE_QUEUE_INTERVAL);
+          newConfiguration.transmitNodeQueueInterval = loadedConfigObj.TRANSMIT_NODE_QUEUE_INTERVAL;
         }
 
         if (loadedConfigObj.RATE_QUEUE_INTERVAL !== undefined){

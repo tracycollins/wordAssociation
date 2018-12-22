@@ -2552,11 +2552,11 @@ function initDbUserChangeStream(params){
               printUserObj("TFC | --> USER CHANGE | " +  change.operationType, user, chalkLog);
             }
 
-            resolve();
+            // resolve();
           })
           .catch(function(err){
             console.log(chalkLog("TFC | *** USER CHANGE STREAM ERROR | " +  err));
-            reject(err);
+            // reject(err);
           });
 
         }
@@ -2564,8 +2564,9 @@ function initDbUserChangeStream(params){
           console.log(chalkLog("TFC | XX> USER CHANGE | " +  change.operationType));
           resolve();
         }
-
       });
+
+      resolve();
 
     });
 

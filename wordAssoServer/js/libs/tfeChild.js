@@ -31,6 +31,8 @@ DEFAULT_INPUT_TYPES.forEach(function(type){
 
 });
 
+let geoCodeHashMap = {};
+
 let networkObj = {};
 let network;
 
@@ -102,6 +104,11 @@ hostname = hostname.replace(/.fios-router/g, "");
 hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
+
+const googleMapsClient = require("@google/maps").createClient({
+  key: "AIzaSyDBxA6RmuBcyj-t7gfvK61yp8CDNnRLUlc"
+});
+
 
 // const mergeHistograms = require("./mergeHistograms");
 const MergeHistograms = require("@threeceelabs/mergehistograms");
@@ -268,6 +275,11 @@ statsObj.twitterUserWithheld = 0;
 statsObj.twitterLimit = 0;
 statsObj.twitterLimitMax = 0;
 statsObj.twitterLimitMaxTime = moment().valueOf();
+
+statsObj.geo = {};
+statsObj.geo.hashmap = {};
+statsObj.geo.hashmap.misses = 0;
+statsObj.geo.hashmap.hits = 0;
 
 statsObj.analyzer = {};
 statsObj.analyzer.total = 0;
@@ -1390,6 +1402,135 @@ function parseText(params){
   });
 }
 
+function geoCode(params) {
+
+  return new Promise(function(resolve, reject){
+
+    let components = {};
+    let placeId = false;
+    let formattedAddress;
+    let geoValid = false;
+
+    googleMapsClient.geocode({ address: params.address }, function(err, response) {
+      if (err) {
+        console.log(chalkError("TCS | *** GEOCODE ERROR: " + err));
+        return reject(err);
+      }
+      if (response.json.results.length > 0) {
+
+        geoValid = true;
+        placeId = response.json.results[0].place_id;
+        formattedAddress = response.json.results[0].formatted_address;
+
+        debug(chalkLog("TCS | GEOCODE"
+          + " | " + params.address
+          + " | PLACE ID: " + placeId
+          + " | FORMATTED: " + response.json.results[0].formatted_address
+          // + "\n" + jsonPrint(response.json)
+        ));
+
+        async.each(response.json.results[0].address_components, function(addressComponent, cb0){
+
+          // console.log(chalkLog("TCS | GEOCODE | addressComponent"
+          //  + "\n" + jsonPrint(addressComponent)
+          // ));
+
+          if (!addressComponent.types || addressComponent.types === undefined || addressComponent.types.length === 0){
+            async.setImmediate(function() { return cb0(); });
+          }
+
+          async.eachOf(addressComponent.types, function(addressComponentType, index, cb1){
+            switch(addressComponentType){
+              case "country":
+              case "locality":
+              case "sublocality":
+              case "sublocality_level_1":
+              case "administrative_area_level_1":
+              case "administrative_area_level_2":
+              case "administrative_area_level_3":
+                components[addressComponentType] = addressComponent.long_name;
+
+                debug(chalkInfo("TCS | GEOCODE | +++ ADDRESS COMPONENT"
+                  + " | " + params.address
+                  + " | FORMATTED: " + response.json.results[0].formatted_address
+                  + " | TYPE: " + addressComponentType
+                  + " | " + components[addressComponentType]
+                ));
+
+              break;
+              default:
+            }
+            cb1();
+          }, function(){
+            async.setImmediate(function() { cb0(); });
+          });
+
+        }, function(err){
+          if (err) {
+
+            console.log(chalkError("TCS | *** GEOCODE ERROR: " + err));
+            return reject(err);
+          }
+
+          debug(chalkLog("TCS | GEOCODE"
+            + " | " + params.address
+            + " | PLACE ID: " + placeId
+            + " | FORMATTED: " + response.json.results[0].formatted_address
+            // + "\n" + jsonPrint(response.json)
+          ));
+
+          resolve({
+            address: params.address,
+            geoValid: geoValid,
+            placeId: placeId, 
+            formattedAddress: formattedAddress, 
+            components: components, 
+            raw: response.json 
+          });
+        });
+      }
+      else {
+        resolve({ 
+          geoValid: geoValid,
+          address: params.address,
+          placeId: placeId, 
+          formattedAddress: formattedAddress, 
+          components: components, 
+          raw: response.json 
+        });
+      }
+
+      // console.log(chalkAlert("TCS | GEOCODE | PLACE: " + placeId));
+      // resolve({ placeId: placeId, components: components, raw: response.json });
+    });
+
+  });
+}
+
+function mergeHistogramsArray(params) {
+  return new Promise(function(resolve, reject){
+
+    let resultHistogram = {};
+
+    async.eachSeries(params.histogramArray, async function(histogram){
+      
+      try {
+        resultHistogram = await mergeHistograms.merge({ histogramA: resultHistogram, histogramB: histogram });
+        return ;
+      }
+      catch(err){
+        return err;
+      }
+
+    }, function(err){
+      if (err) {
+        return reject(err);
+      }
+      resolve(resultHistogram);
+    })
+  });
+}
+
 function checkUserProfileChanged(params) {
 
   let user = params.user;
@@ -1447,10 +1588,14 @@ function checkUserStatusChanged(params) {
 function userProfileChangeHistogram(params) {
 
   let text = "";
+
   let urlsHistogram = {};
   urlsHistogram.urls = {};
   let profileUrl = false;
   let bannerImageUrl = false;
+
+  let locationsHistogram = {};
+  locationsHistogram.locations = {};
 
   let profileHistograms = {};
 
@@ -1464,7 +1609,7 @@ function userProfileChangeHistogram(params) {
       return resolve();
     }
 
-    async.each(userProfileChanges, function(userProp, cb){
+    async.each(userProfileChanges, async function(userProp){
 
       const userPropValue = user[userProp].toLowerCase();
 
@@ -1472,19 +1617,81 @@ function userProfileChangeHistogram(params) {
 
       let domain;
       let nodeId;
+      let geoCodeResults;
 
       user[prevUserProp] = (!user[prevUserProp] || (user[prevUserProp] === undefined)) ? {} : user[prevUserProp];
 
       switch (userProp) {
 
-        case "name":
         case "location":
+
+          try {
+
+            // placeId: placeId, 
+            // formattedAddress: formattedAddress, 
+            // components: components, 
+            // raw: response.json 
+
+            if (!geoCodeHashMap[userPropValue]) {
+              geoCodeResults = await geoCode({address: userPropValue});
+              geoCodeHashMap[userPropValue] = {};
+              geoCodeHashMap[userPropValue] = geoCodeResults;
+              statsObj.geo.hashmap.size = Object.keys(geoCodeHashMap).length;
+              statsObj.geo.hashmap.misses += 1;
+            }
+            else {
+              geoCodeResults = geoCodeHashMap[userPropValue];
+              console.log(chalkLog("TFC | +++ GEOCODE HASHMAP HIT"
+                + " [" + Object.keys(geoCodeHashMap).length + "]"
+                + " | " + userPropValue + " | " + geoCodeResults.placeId
+              ));
+              statsObj.geo.hashmap.hits += 1;
+            }
+
+
+            user.geoValid = geoCodeResults.geoValid;
+            user.geo = geoCodeResults;
+
+            // user.markModified("geo");
+            // user.markModified("geoValid");
+
+            console.log(chalkLog("TFC"
+              + " | GEOCODE"
+                + " [" + Object.keys(geoCodeHashMap).length + "]"
+              + " | @" + user.screenName
+              + " | VALID: " + user.geo.geoValid
+              + " | PLACE ID: " + user.geo.placeId
+              + " | NAME: " + user.geo.address
+              + " | FORMATTED: " + user.geo.formattedAddress
+              // + "\n" + jsonPrint(locations[index].geo)
+            ));                    
+
+            if (geoCodeResults.placeId){
+              locationsHistogram.locations[geoCodeResults.placeId] = (locationsHistogram.locations[geoCodeResults.placeId] === undefined) 
+                ? 1 
+                : locationsHistogram.locations[geoCodeResults.placeId] + 1;
+            }
+
+            return;
+          }
+          catch(err){
+            console.log(chalkError("TCS | *** GEOCODE ERROR: " + err
+            ));
+            return err;                
+          }
+          
+        break;
+
+
+        case "name":
         case "description":
           text += userPropValue + "\n";
+          return;
         break;
 
         case "screenName":
           text += "@" + userPropValue + "\n";
+          return;
         break;
 
         case "url":
@@ -1495,17 +1702,20 @@ function userProfileChangeHistogram(params) {
 
           if (domain) { urlsHistogram.urls[domain] = (urlsHistogram.urls[domain] === undefined) ? 1 : urlsHistogram.urls[domain] + 1; }
           urlsHistogram.urls[nodeId] = (urlsHistogram.urls[nodeId] === undefined) ? 1 : urlsHistogram.urls[nodeId] + 1;
+          return;
         break;
 
         case "bannerImageUrl":
           bannerImageUrl = userPropValue;
+          return;
         break;
+
         default:
           console.log(chalkError("TFC | UNKNOWN USER PROPERTY: " + userProp));
-          return cb(new Error("UNKNOWN USER PROPERTY: " + userProp));
+          return (new Error("UNKNOWN USER PROPERTY: " + userProp));
       }
 
-      cb();
+      // cb();
 
     }, function(err){
 
@@ -1548,25 +1758,25 @@ function userProfileChangeHistogram(params) {
 
           if (text && (text !== undefined)){
 
-
             parseText({ category: user.category, text: text, updateGlobalHistograms: true })
             .then(function(textParseResults){
 
-              if (Object.keys(urlsHistogram.urls).length > 0) {
+              cb(null, textParseResults);
 
-                mergeHistograms.merge({ histogramA: textParseResults, histogramB: urlsHistogram })
-                .then(function(textMergeResults){
+              // if (Object.keys(urlsHistogram.urls).length > 0) {
 
-                  cb(null, textMergeResults);
-                })
-                .catch(function(err){
-                  cb(err, null);
-                });
+              //   mergeHistograms.merge({ histogramA: textParseResults, histogramB: urlsHistogram })
+              //   .then(function(textMergeResults){
+              //     cb(null, textMergeResults);
+              //   })
+              //   .catch(function(err){
+              //     cb(err, null);
+              //   });
 
-              }
-              else {
-                cb(null, textParseResults);
-              }
+              // }
+              // else {
+              //   cb(null, textParseResults);
+              // }
 
             })
             .catch(function(err){
@@ -1574,15 +1784,18 @@ function userProfileChangeHistogram(params) {
             });
           }
           else {
-            // console.log(chalkLog("TFC | URLS urlsHistogram\n" + jsonPrint(urlsHistogram)));
-            cb(null, urlsHistogram);
+            cb(null, null);
           }
+          // else {
+          //   // console.log(chalkLog("TFC | URLS urlsHistogram\n" + jsonPrint(urlsHistogram)));
+          //   cb(null, urlsHistogram);
+          // }
         }
 
       }, function(err, results){
 
 
-        mergeHistograms.merge({ histogramA: results.textHist, histogramB: results.imageHist})
+        mergeHistogramsArray( {histogramArray: [ results.textHist, results.imageHist, urlsHistogram, locationsHistogram ]} )
         .then(function(histogramsMerged){
 
           // console.log(chalkAlert("TFC | histogramsMerged\n" + jsonPrint(histogramsMerged)));

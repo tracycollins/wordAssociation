@@ -2350,7 +2350,7 @@ function initUserCategorizeQueueInterval(cnf){
       if ((!user.nodeId || user.nodeId === undefined) && (!user.userId || user.userId === undefined)){
         console.log(chalkError("TFC | *** USER CAT ERROR: USER NODE ID & USER ID UNDEFINED\n" + jsonPrint(user)));
 
-        userCategorizeQueueReady = false;
+        userCategorizeQueueReady = true;
         return;
       }
 

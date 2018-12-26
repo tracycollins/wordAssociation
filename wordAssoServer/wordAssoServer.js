@@ -6653,28 +6653,29 @@ function initAppRouting(callback) {
                     + " | FOLDER: " + folder
                   ));
 
-                  response.entries.forEach(function(entry){
+                  // response.entries.forEach(function(entry){
+                  async.eachSeries(response.entries, function(entry, cb1){
 
                     console.log(chalkAlert("WAS | >>> DROPBOX CHANGE | " + entry.path_lower));
 
                     if ((entry.path_lower.endsWith("google_wordassoserverconfig.json"))
                       || (entry.path_lower.endsWith("default_wordassoserverconfig.json"))){
                       initConfig(configuration);
-                      return cb();
+                      cb1();
                     }
 
                     else if (entry.path_lower.endsWith("users.zip")){
                       touchUsersZipUpdateFlag();
-                      return cb();
+                      cb1();
                     }
 
                     else if (entry.path_lower.endsWith(bestRuntimeNetworkFileName)){
                       loadBestRuntimeNetwork()
                       .then(function(){
-                        return cb();
+                        cb1();
                       })
                       .catch(function(err){
-                        return cb(err);
+                        cb1(err);
                       });
                     }
 
@@ -6685,10 +6686,10 @@ function initAppRouting(callback) {
                         loadMaxInputHashMap()
                         .then(function(){
                           configEvents.emit("NEW_MAX_INPUT_HASHMAP");
-                          return cb();
+                          cb1();
                         })
                         .catch(function(err){
-                          return cb(err);
+                          cb1(err);
                         });
 
                       }, 10*ONE_SECOND);
@@ -6696,12 +6697,12 @@ function initAppRouting(callback) {
 
                     else if (entry.path_lower.endsWith("defaultsearchterms.txt")){
                       updateSearchTerms();
-                      return cb();
+                      cb1();
                     }
 
                     else if (entry.path_lower.endsWith("followablesearchterm.txt")){
                       initFollowableSearchTermSet();
-                      return cb();
+                      cb1();
                     }
 
                     else if ((entry.path_lower.endsWith("google_twittersearchstreamconfig.json"))
@@ -6710,24 +6711,31 @@ function initAppRouting(callback) {
                       killTssChildren()
                       .then(function(){
                         initTssChildren();
-                        return cb();
+                        cb1();
                       })
                       .catch(function(err){
-                        return cb(err);
+                        cb1(err);
                       });
                     }
 
-                    else{
-                      cb();
+                    else {
+                      cb1();
                     }
 
+                  }, function(err){
+                    if (err) {
+                      return cb(err);
+                    }
+                    cb();
                   });
 
                 }, configuration.dropboxWebhookChangeTimeout);
 
               }
               else {
-                setTimeout(function(){ cb(); }, configuration.dropboxWebhookChangeTimeout);
+                setTimeout(function(){ 
+                  cb(); 
+                }, configuration.dropboxWebhookChangeTimeout);
               }
             });
 

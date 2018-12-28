@@ -9666,7 +9666,7 @@ function initThreeceeTwitterUsers(params){
         resolve(currentThreeceeUser);
       }
       catch(err){
-        console.log(chalkInfo("WAS | *** CURRENT 3C TWITTER ERROR USER ERROR: " + err));
+        console.log(chalkInfo("WAS | *** CURRENT 3C TWITTER USER ERROR: " + err));
         return reject(err);
       }
     
@@ -10241,7 +10241,10 @@ setTimeout(function(){
               .then(()=>initDbuChild({childId: DEFAULT_DBU_CHILD_ID}))
               .then(()=>initTweetParser({childId: DEFAULT_TWP_CHILD_ID}))
               .then(()=>initTfeChild({childId: DEFAULT_TFE_CHILD_ID}))
-              .then(()=>initTssChildren());
+              .then(()=>initTssChildren())
+              .catch(function(err){
+                console.log(chalkError("WAS | *** INIT ERROR: " + err));
+              });
 
             }
             catch(err){

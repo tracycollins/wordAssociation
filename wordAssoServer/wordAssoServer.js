@@ -9867,7 +9867,8 @@ function twitterGetUserUpdateDb(user, callback){
     }
   })
   .catch(function(err){
-
+    console.log(chalkError("WAS | *** GET CURRENT 3C USER ERROR: " + err));
+    return callback(err, null);
   });
 }
 

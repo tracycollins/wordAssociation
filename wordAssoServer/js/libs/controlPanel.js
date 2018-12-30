@@ -587,6 +587,14 @@ function ControlPanel() {
     parentWindow.postMessage({op: "CATEGORIZE", node: catNode, category: category}, DEFAULT_SOURCE);
   }
 
+  this.setMaxNodesSliderValue = function (value) {
+    value = parseInt(value);
+    if (!document.getElementById("maxNodesSlider")) { return; }
+    console.log("setMaxNodesSliderValue: " + value);
+    document.getElementById("maxNodesSlider").value = parseInt(value * document.getElementById("maxNodesSlider").getAttribute("multiplier"));
+    document.getElementById("maxNodesSliderText").innerHTML = value;
+  };
+
   this.setNodeRadiusMaxRatioSliderValue = function (value) {
     if (!document.getElementById("nodeRadiusMaxRatioSlider")) { return; }
     console.log("setNodeRadiusMaxRatioSliderValue: " + value);
@@ -640,14 +648,14 @@ function ControlPanel() {
     if (!document.getElementById("chargeSlider")) { return; }
     console.log("setChargeSliderValue: " + value);
     document.getElementById("chargeSlider").value = value;
-    document.getElementById("chargeSliderText").innerHTML = value;
+    document.getElementById("chargeSliderText").innerHTML = value.toFixed(0);
   };
 
   this.setMaxAgeSliderValue = function (value) {
     if (!document.getElementById("maxAgeSlider")) { return; }
     console.log("setMaxAgeSliderValue: " + value);
     document.getElementById("maxAgeSlider").value = value;
-    document.getElementById("maxAgeSliderText").innerHTML = value;
+    document.getElementById("maxAgeSliderText").innerHTML = value.toFixed(0);
   };
 
   this.setFontSizeMinRatioSliderValue = function (value) {
@@ -712,6 +720,7 @@ function ControlPanel() {
           );
         });
 
+        self.setMaxNodesSliderValue(cnf.defaultMaxNodes);
         self.setTransitionDurationSliderValue(cnf.defaultTransitionDuration);
         self.setLinkStrengthSliderValue(cnf.defaultLinkStrength);
         self.setLinkDistanceSliderValue(cnf.defaultLinkDistance);
@@ -1276,6 +1285,23 @@ function ControlPanel() {
       buttonHandler: toggleDisplayNodeTypeButtonHandler
     };
 
+    var maxNodesSlider = {
+      type: "SLIDER",
+      id: "maxNodesSlider",
+      class: "slider",
+      min: 1,
+      max: 500,
+      value: config.defaultMaxNodes,
+      multiplier: 1.0
+    };
+
+    var maxNodesSliderText = {
+      type: "TEXT",
+      id: "maxNodesSliderText",
+      class: "sliderText",
+      text: maxNodesSlider.value + " NODES"
+    };
+
     var maxAgeSlider = {
       type: "SLIDER",
       id: "maxAgeSlider",
@@ -1643,6 +1669,7 @@ function ControlPanel() {
             fullscreenButton
           ]);
         self.tableCreateRow(controlTable, optionsBody, [resetButton]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ["MAX NODES", maxNodesSlider, maxNodesSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MIN", fontSizeMinRatioSlider, fontSizeMinRatioSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MAX", fontSizeMaxRatioSlider, fontSizeMaxRatioSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["MAX AGE", maxAgeSlider, maxAgeSliderText]);
@@ -1692,6 +1719,7 @@ function ControlPanel() {
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userStatusesCountLabel, userStatusesCountText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [user3cFollowingLabel, user3cFollowingText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userIgnoredLabel, userIgnoredText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ["MAX NODES", maxNodesSlider, maxNodesSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MIN", fontSizeMinRatioSlider, fontSizeMinRatioSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MAX", fontSizeMaxRatioSlider, fontSizeMaxRatioSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["TRANSITION", transitionDurationSlider, transitionDurationSliderText]);

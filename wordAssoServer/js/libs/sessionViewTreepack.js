@@ -314,7 +314,7 @@ function ViewTreepack() {
   var testMode = false;
   var freezeFlag = false;
 
-  var MAX_NODES = 100;
+  var MAX_NODES_LIMIT = 100;
 
   var NEW_NODE_AGE_RATIO = 0.01;
 
@@ -329,7 +329,8 @@ function ViewTreepack() {
   var nodeIdHashMap = new HashMap();
 
   var maxNodeAddQ = 0;
-  var maxNumberNodes = 0;
+  var maxNodes = 0;
+  var maxNodesLimit = MAX_NODES_LIMIT;
 
   var runningFlag = false;
   
@@ -460,7 +461,7 @@ function ViewTreepack() {
     .clamp(true);
     
   var adjustedAgeRateScale = d3.scaleLinear()
-    .domain([1, MAX_NODES])
+    .domain([1, maxNodesLimit])
     .range([1.0, 10.0]);
 
   // var fontTopTerm = config.defaultFontSizeTopTermRatio * topTermsDiv.height;
@@ -564,7 +565,7 @@ function ViewTreepack() {
   
   this.getNodesLength = function() { return "NODES: " + nodeArray.length + " | POOL: " + nodePool.size(); };
   
-  this.getMaxNodes = function() { return maxNumberNodes; };
+  this.getMaxNodes = function() { return maxNodes; };
   
   this.getNodeAddQlength = function() { return nodeAddQ.length; };
   
@@ -572,6 +573,12 @@ function ViewTreepack() {
     
   this.getAgeRate = function() { return ageRate; };
   
+  this.setMaxNodesLimit = function(mNodesLimit) {
+    maxNodesLimit = mNodesLimit;
+    config.defaultMaxNodesLimit = mNodesLimit;
+    console.debug("SET MAX NODES LIMIT: " + maxNodesLimit);
+  };
+
   this.setNodeMaxAge = function(mAge) {
     nodeMaxAge = mAge;
     config.defaultMaxAge = mAge;
@@ -919,8 +926,8 @@ function ViewTreepack() {
     var ageRate = DEFAULT_AGE_RATE;
 
     if (ageNodesLength === 0) { ageRate = DEFAULT_AGE_RATE; } 
-    else if ((ageNodesLength > MAX_NODES) && (nodeAddQ.length <= MAX_RX_QUEUE)) {
-      ageRate = adjustedAgeRateScale(ageNodesLength - MAX_NODES);
+    else if ((ageNodesLength > maxNodesLimit) && (nodeAddQ.length <= MAX_RX_QUEUE)) {
+      ageRate = adjustedAgeRateScale(ageNodesLength - maxNodesLimit);
     } 
     else if (nodeAddQ.length > MAX_RX_QUEUE) { ageRate = adjustedAgeRateScale(nodeAddQ.length - MAX_RX_QUEUE); } 
     else { ageRate = DEFAULT_AGE_RATE; }
@@ -1813,7 +1820,7 @@ function ViewTreepack() {
 
   function processNodeAddQ(callback) {
 
-    if (nodeIdHashMap.size > maxNumberNodes) { maxNumberNodes = nodeIdHashMap.size; }
+    if (nodeIdHashMap.size > maxNodes) { maxNodes = nodeIdHashMap.size; }
 
     if (nodeAddQReady && (nodeAddQ.length > 0)) {
 

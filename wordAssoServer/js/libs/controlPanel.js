@@ -720,7 +720,7 @@ function ControlPanel() {
           );
         });
 
-        self.setMaxNodesSliderValue(cnf.defaultMaxNodes);
+        self.setMaxNodesSliderValue(cnf.defaultMaxNodesLimit);
         self.setTransitionDurationSliderValue(cnf.defaultTransitionDuration);
         self.setLinkStrengthSliderValue(cnf.defaultLinkStrength);
         self.setLinkDistanceSliderValue(cnf.defaultLinkDistance);
@@ -1291,7 +1291,7 @@ function ControlPanel() {
       class: "slider",
       min: 1,
       max: 500,
-      value: config.defaultMaxNodes,
+      value: config.defaultMaxNodesLimit,
       multiplier: 1.0
     };
 

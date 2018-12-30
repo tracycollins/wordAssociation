@@ -190,8 +190,13 @@ var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 var pageLoadedTimeIntervalFlag = true;
 
 var DEFAULT_METRIC_MODE = "rate";
+var DEFAULT_MAX_NODES = 100;
 var DEFAULT_MAX_AGE = 60000;
+
+var TREEMAP_MAX_NODES = 100;
 var TREEMAP_MAX_AGE = 15000;
+
+var TREEPACK_MAX_NODES = 100;
 var TREEPACK_MAX_AGE = 15000;
 
 var DEFAULT_AGE_RATE = 1.0;
@@ -220,6 +225,7 @@ var DEFAULT_NODE_RADIUS = 20.0;
 
 var TREEPACK_DEFAULT = {};
 TREEPACK_DEFAULT.TRANSITION_DURATION = 50;
+TREEPACK_DEFAULT.MAX_NODES = TREEPACK_MAX_NODES;
 TREEPACK_DEFAULT.MAX_AGE = TREEPACK_MAX_AGE;
 TREEPACK_DEFAULT.CHARGE = DEFAULT_CHARGE;
 TREEPACK_DEFAULT.GRAVITY = 0.001;
@@ -278,6 +284,7 @@ else {
   config.testMode = false;
   config.removeDeadNodesFlag = true;
 
+  config.defaultMaxNodes = DEFAULT_MAX_NODES;
   config.defaultTransitionDuration = DEFAULT_TRANSITION_DURATION;
   config.defaultMaxAge = DEFAULT_MAX_AGE;
   config.defaultMultiplier = 1000.0;
@@ -916,6 +923,9 @@ function controlPanelComm(event) {
         case "maxAgeSlider" :
           currentSessionView.setNodeMaxAge(event.data.value);
         break;
+        case "maxNodesSlider" :
+          currentSessionView.setMaxNodesLimit(event.data.value);
+        break;
         case "fontSizeMinRatioSlider" :
           currentSessionView.updateFontSizeMinRatio(event.data.value);
         break;
@@ -1487,11 +1497,18 @@ socket.on("CONFIG_CHANGE", function(rxConfig) {
     previousConfig.testSendInterval = config.testSendInterval;
   }
 
+  if (rxConfig.maxNodes !== undefined) {
+    config.maxNodes = rxConfig.maxNodes;
+    console.log("\n*** ENV CHANGE: NODE_MAX_NODES: WAS: " 
+      + previousConfig.maxNodes + " | NOW: " + config.maxNodes + "\n");
+    currentSessionView.setMaxAge(rxConfig.maxNodes);
+    previousConfig.maxNodes = config.maxNodes;
+  }
+
   if (rxConfig.nodeMaxAge !== undefined) {
     config.nodeMaxAge = rxConfig.nodeMaxAge;
     console.log("\n*** ENV CHANGE: NODE_MAX_AGE: WAS: " 
       + previousConfig.nodeMaxAge + " | NOW: " + config.nodeMaxAge + "\n");
-    // nodeMaxAge = config.nodeMaxAge;
     currentSessionView.setMaxAge(rxConfig.nodeMaxAge);
     previousConfig.nodeMaxAge = config.nodeMaxAge;
   }
@@ -2023,6 +2040,7 @@ function initialize(callback) {
               config.authenticationUrl = DEFAULT_AUTH_URL;
 
               if (config.sessionViewType === "treepack") {
+                currentSessionView.setMaxNodesLimit(config.defaultMaxNodes);
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
               }
             }
@@ -2030,7 +2048,7 @@ function initialize(callback) {
               console.debug("STORED CONFIG NOT FOUND: " + storedConfigName);
 
               if (config.sessionViewType === "treepack") {
-                // initUpdateSessionsInterval(50);
+                currentSessionView.setMaxNodesLimit(DEFAULT_MAX_NODES);
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
               }
             }
@@ -2085,9 +2103,11 @@ function initialize(callback) {
               });
 
               config.authenticationUrl = DEFAULT_AUTH_URL;
+              currentSessionView.setMaxNodesLimit(config.defaultMaxNodes);
               currentSessionView.setNodeMaxAge(config.defaultMaxAge);
             }
             else {
+              currentSessionView.setMaxNodesLimit(DEFAULT_MAX_NODES);
               currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
             }
 
@@ -2146,9 +2166,11 @@ function initialize(callback) {
               config.authenticationUrl = DEFAULT_AUTH_URL;
 
               currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+              currentSessionView.setMaxNodesLimit(config.defaultMaxNodes);
             }
             else {
               currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+              currentSessionView.setMaxNodesLimit(DEFAULT_MAX_NODES);
             }
 
           currentSessionView.initD3timer();

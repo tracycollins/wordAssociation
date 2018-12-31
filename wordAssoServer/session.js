@@ -556,9 +556,6 @@ function displayControl(isVisible) {
   // topTermsDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
 }
 
-
-statsText.setAttribute("id", "statsText");
-
 function displayStats(isVisible, dColor) {
 
   statsText.innerHTML = getTimeStamp();
@@ -1718,6 +1715,7 @@ function generateLinkId() {
 //  STATS UPDATE
 function initStatsUpdate(interval){
   setInterval(function() {
+    statsTotalBar.animate(Math.random());
     statsText.innerHTML = getTimeStamp();
   }, interval);
 }

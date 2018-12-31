@@ -178,8 +178,17 @@ function ViewTreepack() {
     positive: {x: xFocusPositiveRatio*width, y: yFocusPositiveRatio*height}, 
     negative: {x: xFocusNeutralRatio*width, y: yFocusNegativeRatio*height},
     neutral: {x: xFocusNeutralRatio*width, y: yFocusNeutralRatio*height},
+    none: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height},
     default: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height}
   };
+
+  var totalHashmap = {};
+  totalHashmap.left = 0;
+  totalHashmap.right = 0;
+  totalHashmap.neutral = 0;
+  totalHashmap.positive = 0;
+  totalHashmap.negative = 0;
+  totalHashmap.none = 0;
 
 
   var nodeArray = [];
@@ -905,17 +914,16 @@ function ViewTreepack() {
     callback(n);
   }
 
-  // var age;
-  // var ageMaxRatio = 1e-6;
-  // var ageNodesLength = 0;
-  // var node;
-  // var nPoolId;
-  // var prevNode;
-  // var currentTime = Date.now();
-  // var nodeIdArray = [];
-  // var tempNodeArray = [];
+  var tempTotalHashmap = {};
 
   function ageNodes(callback) {
+
+    tempTotalHashmap.left = 0;
+    tempTotalHashmap.right = 0;
+    tempTotalHashmap.neutral = 0;
+    tempTotalHashmap.positive = 0;
+    tempTotalHashmap.negative = 0;
+    tempTotalHashmap.none = 0;
 
     var tempNodeArray = [];
 
@@ -933,9 +941,7 @@ function ViewTreepack() {
     else { ageRate = DEFAULT_AGE_RATE; }
 
     var maxAgeRate = Math.max(ageRate, maxAgeRate);
-    // currentTime = Date.now();
 
-    // nodeIdArray.forEach(function(nodeId){
     async.each(nodeIdArray, function(nodeId, cb){
 
       var nPoolId = nodeIdHashMap.get(nodeId);
@@ -991,10 +997,21 @@ function ViewTreepack() {
         nodeIdHashMap.set(node.nodeId, nPoolId);
 
         tempNodeArray.push(node);
+
+        if (node.category) {
+          if (metricMode === "rate") { tempTotalHashmap[node.category] += node.rate; }
+          if (metricMode === "mentions") { tempTotalHashmap[node.category] += node.mentions; }
+        }
+        else {
+          if (metricMode === "rate") { tempTotalHashmap.none += node.rate; }
+          if (metricMode === "mentions") { tempTotalHashmap.none += node.mentions; }
+        }
+
         cb();
       }
     }, function(err){
       resumeTimeStamp = 0;
+      totalHashmap = tempTotalHashmap;
       callback(null, tempNodeArray);
     });
 

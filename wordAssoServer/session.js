@@ -553,6 +553,7 @@ statsDivElement.appendChild(statsTotalBarText);
 var statsTotalBarDiv = document.createElement("DIV");
 statsTotalBarDiv.id = "total-bar";
 statsTotalBarDiv.className = "bar";
+statsTotalBarDiv.style.display = "inline-block";
 statsDivElement.appendChild(statsTotalBarDiv);
 
 var statsTotalBar = new ProgressBar.Line(statsTotalBarDiv, { duration: 100 });

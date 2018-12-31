@@ -550,6 +550,7 @@ var statsTotalBarDiv = document.getElementById("total-bar");
 
 var statsTotalBar = new ProgressBar.Line(statsTotalBarDiv, { duration: 100 });
 statsTotalBar.animate(0);
+statsTotalBar.path.setAttribute("stroke", palette.red);
 
 function displayControl(isVisible) {
   controlDivElement.style.visibility = (isVisible) ? "visible" : "hidden";

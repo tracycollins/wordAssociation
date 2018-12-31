@@ -544,13 +544,20 @@ var statsDivElement = document.getElementById("statsDiv");
 
 var statsText = document.getElementById("stats-text");
 
-var statsTotalBarText = document.getElementById("total-bar-text");
+var statsLeftBarText = document.getElementById("left-bar-text");
+var statsRightBarText = document.getElementById("right-bar-text");
 
-var statsTotalBarDiv = document.getElementById("total-bar");
+var statsLeftBarDiv = document.getElementById("left-bar");
+var statsRightBarDiv = document.getElementById("right-bar");
 
-var statsTotalBar = new ProgressBar.Line(statsTotalBarDiv, { duration: 100 });
-statsTotalBar.animate(0);
-statsTotalBar.path.setAttribute("stroke", palette.red);
+var statsLeftBar = new ProgressBar.Line(statsLeftBarDiv, { duration: 100 });
+var statsRightBar = new ProgressBar.Line(statsRightBarDiv, { duration: 100 });
+
+statsLeftBar.animate(0);
+statsLeftBar.path.setAttribute("stroke", palette.blue);
+
+statsRightBar.animate(0);
+statsRightBar.path.setAttribute("stroke", palette.yellow);
 
 function displayControl(isVisible) {
   controlDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
@@ -1713,16 +1720,26 @@ function generateLinkId() {
 }
 
 var totalHashMap = {};
-var totalNodesRatio = 0;
+var leftNodesRatio = 0;
+var rightNodesRatio = 0;
+
 //  STATS UPDATE
 function initStatsUpdate(interval){
   setInterval(function() {
+
     totalHashMap = currentSessionView.getTotalHashMap();
+
     if (totalHashMap.left > 0 && totalHashMap.right > 0) {
-      totalNodesRatio = totalHashMap.left / (totalHashMap.left + totalHashMap.right);
+      leftNodesRatio = totalHashMap.left / (totalHashMap.left + totalHashMap.right);
+      rightNodesRatio = totalHashMap.right / (totalHashMap.left + totalHashMap.right);
     }
-    statsTotalBar.animate(totalNodesRatio);
-    statsTotalBar.path.setAttribute("stroke", palette.blue);
+
+    statsLeftBar.animate(leftNodesRatio);
+    statsRightBar.animate(leftNodesRatio);
+
+    statsLeftBar.path.setAttribute("stroke", palette.blue);
+    statsRightBar.path.setAttribute("stroke", palette.yellow);
+
     statsText.innerHTML = getTimeStamp();
   }, interval);
 }

@@ -541,8 +541,20 @@ var controlDivElement = document.getElementById("controlDiv");
 // var topTermsDivElement = document.getElementById("topTermsDiv");
 
 var statsDivElement = document.getElementById("statsDiv");
+
 var statsText = document.createElement("TEXT");
 statsDivElement.appendChild(statsText);
+
+var statsTotalBarText = document.createElement("DIV");
+statsTotalBarText.id = "total-bar-text";
+statsTotalBarText.className = "bar-text";
+statsDivElement.appendChild(statsTotalBarText);
+
+var statsTotalBar = document.createElement("DIV");
+statsTotalBar.id = "total-bar";
+statsTotalBar.className = "bar";
+statsDivElement.appendChild(statsTotalBar);
+
 
 function displayControl(isVisible) {
   controlDivElement.style.visibility = (isVisible) ? "visible" : "hidden";

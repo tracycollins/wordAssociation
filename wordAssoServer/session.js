@@ -1717,6 +1717,7 @@ function generateLinkId() {
 function initStatsUpdate(interval){
   setInterval(function() {
     statsTotalBar.animate(Math.random());
+    statsTotalBar.path.setAttribute("stroke", palette.red);
     statsText.innerHTML = getTimeStamp();
   }, interval);
 }

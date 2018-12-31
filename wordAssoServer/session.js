@@ -1712,12 +1712,17 @@ function generateLinkId() {
   return "LNK" + globalLinkIndex;
 }
 
-
+var totalHashMap = {};
+var totalNodesRatio = 0;
 //  STATS UPDATE
 function initStatsUpdate(interval){
   setInterval(function() {
-    statsTotalBar.animate(Math.random());
-    statsTotalBar.path.setAttribute("stroke", palette.red);
+    totalHashMap = currentSessionView.getTotalHashMap();
+    if (totalHashMap.left > 0 && totalHashMap.right > 0) {
+      totalNodesRatio = totalHashMap.left / (totalHashMap.left + totalHashMap.right);
+    }
+    statsTotalBar.animate(totalNodesRatio);
+    statsTotalBar.path.setAttribute("stroke", palette.blue);
     statsText.innerHTML = getTimeStamp();
   }, interval);
 }

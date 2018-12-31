@@ -542,14 +542,11 @@ var controlDivElement = document.getElementById("controlDiv");
 
 var statsDivElement = document.getElementById("statsDiv");
 
-var statsText = document.createElement("TEXT");
-statsDivElement.appendChild(statsText);
+var statsText = document.getElementById("stats-text");
 
 var statsTotalBarText = document.getElementById("total-bar-text");
-statsDivElement.appendChild(statsTotalBarText);
 
 var statsTotalBarDiv = document.getElementById("total-bar");
-statsDivElement.appendChild(statsTotalBarDiv);
 
 var statsTotalBar = new ProgressBar.Line(statsTotalBarDiv, { duration: 100 });
 statsTotalBar.animate(0);

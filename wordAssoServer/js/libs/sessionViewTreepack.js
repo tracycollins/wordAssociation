@@ -180,6 +180,7 @@ function ViewTreepack() {
   };
 
   var totalHashmap = {};
+  totalHashmap.total = 0;
   totalHashmap.left = 0;
   totalHashmap.right = 0;
   totalHashmap.neutral = 0;
@@ -916,6 +917,7 @@ function ViewTreepack() {
 
   function ageNodes(callback) {
 
+    tempTotalHashmap.total = 0;
     tempTotalHashmap.left = 0;
     tempTotalHashmap.right = 0;
     tempTotalHashmap.neutral = 0;
@@ -997,12 +999,24 @@ function ViewTreepack() {
         tempNodeArray.push(node);
 
         if (node.category) {
-          if (metricMode === "rate") { tempTotalHashmap[node.category] += node.rate; }
-          if (metricMode === "mentions") { tempTotalHashmap[node.category] += node.mentions; }
+          if (metricMode === "rate") { 
+            tempTotalHashmap[node.category] += node.rate; 
+            tempTotalHashmap.total += node.rate; 
+          }
+          if (metricMode === "mentions") { 
+            tempTotalHashmap[node.category] += node.mentions; 
+            tempTotalHashmap.total += node.mentions; 
+          }
         }
         else {
-          if (metricMode === "rate") { tempTotalHashmap.none += node.rate; }
-          if (metricMode === "mentions") { tempTotalHashmap.none += node.mentions; }
+          if (metricMode === "rate") { 
+            tempTotalHashmap.none += node.rate; 
+            tempTotalHashmap.total += node.rate; 
+          }
+          if (metricMode === "mentions") { 
+            tempTotalHashmap.none += node.mentions; 
+            tempTotalHashmap.total += node.mentions; 
+          }
         }
 
         cb();

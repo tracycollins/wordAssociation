@@ -54,17 +54,10 @@ statsObj.socket = {};
 
 statsObj.socket.errors = 0;
 statsObj.socket.error = false;
-// statsObj.socket.errorMoment = moment();
 
 statsObj.socket.connected = true;
 statsObj.socket.connects = 0;
-// statsObj.socket.connectMoment = moment();
-
-// statsObj.socket.reconnectMoment = moment();
 statsObj.socket.reconnects = 0;
-
-// statsObj.socket.disconnectMoment = moment();
-
 
 const RX_NODE_QUEUE_INTERVAL = 10;
 const RX_NODE_QUEUE_MAX = 100;
@@ -555,6 +548,8 @@ function displayControl(isVisible) {
 
 function displayStats(isVisible, dColor) {
   statsDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
+  statsDivElement.html(getTimeStamp());
+
   if (dColor !== undefined) {statsDivElement.style.color = dColor;}
 }
 
@@ -1704,62 +1699,6 @@ function generateLinkId() {
   return "LNK" + globalLinkIndex;
 }
 
-var tableRow;
-var tableHead;
-var tableCell;
-var tableButton;
-var tableSlider;
-var tdTextColor;
-var tdBgColor;
-
-function tableCreateRow(parentTable, options, cells) {
-
-  tableRow = parentTable.insertRow();
-  tdTextColor = options.textColor;
-  tdBgColor = options.backgroundColor || "#222222";
-
-  if (options.trClass) {
-    tableRow.className = options.trClass;
-  }
-
-  if (options.headerFlag) {
-    cells.forEach(function(content) {
-      tableHead = tableRow.insertCell();
-      tableHead.appendChild(document.createTextNode(content));
-      tableHead.style.color = tdTextColor;
-      tableHead.style.backgroundColor = tdBgColor;
-    });
-  } 
-  else {
-    cells.forEach(function(content) {
-      tableCell = tableRow.insertCell();
-      if (content.type === undefined) {
-        tableCell.appendChild(document.createTextNode(content));
-        tableCell.style.color = tdTextColor;
-        tableCell.style.backgroundColor = tdBgColor;
-      } 
-      else if (content.type === "TEXT") {
-        tableCell.className = content.class;
-        tableCell.setAttribute("id", content.id);
-        tableCell.style.color = tdTextColor;
-        tableCell.style.backgroundColor = tdBgColor;
-        tableCell.innerHTML = content.text;
-      } 
-      else if (content.type === "SLIDER") {
-        tableSlider = document.createElement("INPUT");
-        tableSlider.type = "range";
-        tableSlider.className = content.class;
-        tableSlider.setAttribute("id", content.id);
-        tableSlider.setAttribute("min", content.min);
-        tableSlider.setAttribute("max", content.max);
-        tableSlider.setAttribute("multiplier", content.multiplier);
-        tableSlider.setAttribute("oninput", content.oninput);
-        tableSlider.value = content.value;
-        tableCell.appendChild(tableSlider);
-      }
-    });
-  }
-}
 
 //  STATS UPDATE
 function initStatsUpdate(interval){

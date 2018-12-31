@@ -162,6 +162,7 @@ requirejs(["https://d3js.org/d3.v5.min.js"], function(d3Loaded) {
           }
           mouseMovingFlag = true;
           currentSessionView.mouseMoving(true);
+          displayStats(true, palette.white);
           displayControl(true);
           resetMouseMoveTimer();
         }

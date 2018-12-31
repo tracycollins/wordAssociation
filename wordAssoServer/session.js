@@ -1735,7 +1735,7 @@ function initStatsUpdate(interval){
     }
 
     statsLeftBar.animate(leftNodesRatio);
-    statsRightBar.animate(leftNodesRatio);
+    statsRightBar.animate(rightNodesRatio);
 
     statsLeftBar.path.setAttribute("stroke", palette.blue);
     statsRightBar.path.setAttribute("stroke", palette.yellow);

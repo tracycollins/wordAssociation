@@ -546,18 +546,42 @@ var statsText = document.getElementById("stats-text");
 
 var statsLeftBarText = document.getElementById("left-bar-text");
 var statsRightBarText = document.getElementById("right-bar-text");
+var statsNeutralBarText = document.getElementById("neutral-bar-text");
+var statsPositiveBarText = document.getElementById("positive-bar-text");
+var statsNegativeBarText = document.getElementById("negative-bar-text");
+var statsNoneBarText = document.getElementById("none-bar-text");
 
 var statsLeftBarDiv = document.getElementById("left-bar");
 var statsRightBarDiv = document.getElementById("right-bar");
+var statsNeutralBarDiv = document.getElementById("neutral-bar");
+var statsPositiveBarDiv = document.getElementById("positive-bar");
+var statsNegativeBarDiv = document.getElementById("negative-bar");
+var statsNoneBarDiv = document.getElementById("none-bar");
 
 var statsLeftBar = new ProgressBar.Line(statsLeftBarDiv, { duration: 100 });
 var statsRightBar = new ProgressBar.Line(statsRightBarDiv, { duration: 100 });
+var statsNeutralBar = new ProgressBar.Line(statsNeutralBarDiv, { duration: 100 });
+var statsPositiveBar = new ProgressBar.Line(statsPositiveBarDiv, { duration: 100 });
+var statsNegativeBar = new ProgressBar.Line(statsNegativeBarDiv, { duration: 100 });
+var statsNoneBar = new ProgressBar.Line(statsNoneBarDiv, { duration: 100 });
 
 statsLeftBar.animate(0);
 statsLeftBar.path.setAttribute("stroke", palette.blue);
 
 statsRightBar.animate(0);
 statsRightBar.path.setAttribute("stroke", palette.yellow);
+
+statsNeutralBar.animate(0);
+statsNeutralBar.path.setAttribute("stroke", palette.gray);
+
+statsPositiveBar.animate(0);
+statsPositiveBar.path.setAttribute("stroke", palette.green);
+
+statsNegativeBar.animate(0);
+statsNegativeBar.path.setAttribute("stroke", palette.red);
+
+statsNoneBar.animate(0);
+statsNoneBar.path.setAttribute("stroke", palette.white);
 
 function displayControl(isVisible) {
   controlDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
@@ -1720,8 +1744,13 @@ function generateLinkId() {
 }
 
 var totalHashMap = {};
+var totalNodes = 0;
 var leftNodesRatio = 0;
 var rightNodesRatio = 0;
+var neuralNodesRatio = 0;
+var positiveNodesRatio = 0;
+var negativeNodesRatio = 0;
+var noneNodesRatio = 0;
 
 //  STATS UPDATE
 function initStatsUpdate(interval){
@@ -1729,16 +1758,28 @@ function initStatsUpdate(interval){
 
     totalHashMap = currentSessionView.getTotalHashMap();
 
-    if (totalHashMap.left > 0 && totalHashMap.right > 0) {
-      leftNodesRatio = totalHashMap.left / (totalHashMap.left + totalHashMap.right);
-      rightNodesRatio = totalHashMap.right / (totalHashMap.left + totalHashMap.right);
+    if (totalHashMap.total > 0) {
+      leftNodesRatio = totalHashMap.left / totalHashMap.total;
+      rightNodesRatio = totalHashMap.right / totalHashMap.total;
+      neutralNodesRatio = totalHashMap.neutral / totalHashMap.total;
+      positiveNodesRatio = totalHashMap.positive / totalHashMap.total;
+      negativeNodesRatio = totalHashMap.negative / totalHashMap.total;
+      noneNodesRatio = totalHashMap.none / totalHashMap.total;
     }
 
     statsLeftBar.animate(leftNodesRatio);
     statsRightBar.animate(rightNodesRatio);
+    statsNeutralBar.animate(neuralNodesRatio);
+    statsPositiveBar.animate(positiveNodesRatio);
+    statsNegativeBar.animate(negativeNodesRatio);
+    statsNoneBar.animate(noneNodesRatio);
 
     statsLeftBar.path.setAttribute("stroke", palette.blue);
     statsRightBar.path.setAttribute("stroke", palette.yellow);
+    statsNeutralBar.path.setAttribute("stroke", palette.gray);
+    statsPositiveBar.path.setAttribute("stroke", palette.green);
+    statsNegativeBar.path.setAttribute("stroke", palette.red);
+    statsNoneBar.path.setAttribute("stroke", palette.white);
 
     statsText.innerHTML = getTimeStamp();
   }, interval);

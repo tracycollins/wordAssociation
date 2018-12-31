@@ -539,18 +539,26 @@ function saveConfig(){
 
 var controlDivElement = document.getElementById("controlDiv");
 // var topTermsDivElement = document.getElementById("topTermsDiv");
+
 var statsDivElement = document.getElementById("statsDiv");
+var statsText = document.createElement("TEXT");
+statsDivElement.appendChild(statsText);
 
 function displayControl(isVisible) {
   controlDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
   // topTermsDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
 }
 
-var statsString = getTimeStamp();
+
+statsText.setAttribute("id", "statsText");
+
 function displayStats(isVisible, dColor) {
+
+  statsText.innerHTML = getTimeStamp();
+
   statsDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
   if (dColor !== undefined) {statsDivElement.style.color = dColor;}
-  statsDivElement.html(statsString);
+
 }
 
 var mouseMoveTimeoutEventObj = new CustomEvent("mouseMoveTimeoutEvent");

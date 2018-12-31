@@ -546,11 +546,11 @@ function displayControl(isVisible) {
   // topTermsDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
 }
 
+var statsString = getTimeStamp();
 function displayStats(isVisible, dColor) {
   statsDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
-  statsDivElement.html(getTimeStamp());
-
   if (dColor !== undefined) {statsDivElement.style.color = dColor;}
+  statsDivElement.html(statsString);
 }
 
 var mouseMoveTimeoutEventObj = new CustomEvent("mouseMoveTimeoutEvent");

@@ -545,15 +545,10 @@ var statsDivElement = document.getElementById("statsDiv");
 var statsText = document.createElement("TEXT");
 statsDivElement.appendChild(statsText);
 
-var statsTotalBarText = document.createElement("DIV");
-statsTotalBarText.id = "total-bar-text";
-statsTotalBarText.className = "bar-text";
+var statsTotalBarText = document.getElementById("total-bar-text");
 statsDivElement.appendChild(statsTotalBarText);
 
-var statsTotalBarDiv = document.createElement("DIV");
-statsTotalBarDiv.id = "total-bar";
-statsTotalBarDiv.className = "bar";
-statsTotalBarDiv.style.display = "inline-block";
+var statsTotalBarDiv = document.getElementById("total-bar");
 statsDivElement.appendChild(statsTotalBarDiv);
 
 var statsTotalBar = new ProgressBar.Line(statsTotalBarDiv, { duration: 100 });

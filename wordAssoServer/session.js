@@ -550,11 +550,13 @@ statsTotalBarText.id = "total-bar-text";
 statsTotalBarText.className = "bar-text";
 statsDivElement.appendChild(statsTotalBarText);
 
-var statsTotalBar = document.createElement("DIV");
-statsTotalBar.id = "total-bar";
-statsTotalBar.className = "bar";
-statsDivElement.appendChild(statsTotalBar);
+var statsTotalBarDiv = document.createElement("DIV");
+statsTotalBarDiv.id = "total-bar";
+statsTotalBarDiv.className = "bar";
+statsDivElement.appendChild(statsTotalBarDiv);
 
+var statsTotalBar = new ProgressBar.Line(statsTotalBarDiv, { duration: 100 });
+statsTotalBar.animate(0);
 
 function displayControl(isVisible) {
   controlDivElement.style.visibility = (isVisible) ? "visible" : "hidden";

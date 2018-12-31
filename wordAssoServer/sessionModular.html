@@ -204,6 +204,25 @@
       pointer-events: none;
       z-index: 20;
     }
+
+    .bar-text {
+      color: #CCCCCC;
+      font-family: "Lucida Console", Monaco, monospace;
+      font-size: 1.5em;
+      font-weight: 100;
+      line-height: 1.2em;
+    }
+    
+    .bar {
+      height: 5px;
+      width: 500px;
+      background-color: #444444;
+    }
+    
+    .bar > svg {
+      height: 100%;
+      display: block;
+    }
     
     input[type=range] {
       -webkit-appearance: none;
@@ -324,7 +343,13 @@
 <body style="overflow:hidden;">
   <div id="d3group"></div>
   <!-- <div id="topTermsDiv"></div> -->
-  <div id="statsDiv" style="overflow:hidden;"></div>
+  <div id="statsDiv" style="overflow:hidden;">
+    <br>
+    <div class="bar-text" id="total-bar-text"></div>
+    <br>
+    <div class="bar" id="total-bar"></div>
+    <br>
+  </div>
   <div id="controlDiv" style="overflow:hidden;"></div>
 </body>
 

@@ -1747,7 +1747,7 @@ var totalHashMap = {};
 var totalNodes = 0;
 var leftNodesRatio = 0;
 var rightNodesRatio = 0;
-var neuralNodesRatio = 0;
+var neutralNodesRatio = 0;
 var positiveNodesRatio = 0;
 var negativeNodesRatio = 0;
 var noneNodesRatio = 0;
@@ -1769,7 +1769,7 @@ function initStatsUpdate(interval){
 
     statsLeftBar.animate(leftNodesRatio);
     statsRightBar.animate(rightNodesRatio);
-    statsNeutralBar.animate(neuralNodesRatio);
+    statsNeutralBar.animate(neutralNodesRatio);
     statsPositiveBar.animate(positiveNodesRatio);
     statsNegativeBar.animate(negativeNodesRatio);
     statsNoneBar.animate(noneNodesRatio);

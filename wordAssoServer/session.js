@@ -1711,6 +1711,7 @@ function generateLinkId() {
 //  STATS UPDATE
 function initStatsUpdate(interval){
   setInterval(function() {
+    statsText.innerHTML = getTimeStamp();
   }, interval);
 }
 

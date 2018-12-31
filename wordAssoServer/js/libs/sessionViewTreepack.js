@@ -31,8 +31,6 @@ function ViewTreepack() {
     }
     // older versions of IE
     return { width: document.getElementsByTagName("body")[0].clientWidth, height: document.getElementsByTagName("body")[0].clientHeight };
-
-    // return { width: w, height: h };
   };
 
   var width = getWindowDimensions().width;
@@ -90,7 +88,6 @@ function ViewTreepack() {
 
   var currentTwitterUser = twitterUserThreecee;
   var currentTwitterHashtag = "resist";
-  // var currentTwitterEmoji = "";
 
   var defaultProfileImageUrl = "favicon.png";
 
@@ -189,7 +186,6 @@ function ViewTreepack() {
   totalHashmap.positive = 0;
   totalHashmap.negative = 0;
   totalHashmap.none = 0;
-
 
   var nodeArray = [];
   var nodesTopTerm = [];
@@ -571,6 +567,8 @@ function ViewTreepack() {
   };
   
   this.deleteNode = function() { return null; };
+
+  this.getTotalHashMap = function() { return totalHashmap; };
   
   this.getNodesLength = function() { return "NODES: " + nodeArray.length + " | POOL: " + nodePool.size(); };
   

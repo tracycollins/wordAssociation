@@ -1294,7 +1294,7 @@ function initSearchStream(params){
           statsObj.queues.tweetQueue.fullEvents += 1;
         }
 
-        if ((threeceeUserObj.stats.tweetsReceived % 500 === 0) || (statsObj.tweetsReceived % 500 === 0)) {
+        if ((threeceeUserObj.stats.tweetsReceived % 1000 === 0) || (statsObj.tweetsReceived % 1000 === 0)) {
           console.log(chalkTwitter("TSS | <T | " + getTimeStamp()
             + " | TWQ: " + tweetQueue.length
             + " [ TOTAL Ts/RTs/QTs: " + statsObj.tweetsReceived + "/" + statsObj.retweetsReceived + "/" + statsObj.quotedTweetsReceived + "]"

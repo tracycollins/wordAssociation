@@ -3826,30 +3826,6 @@ function socketRxTweet(tw) {
 
   tweetMeter.mark();
 
-  // deltaTweet = process.hrtime(deltaTweetStart);
-
-  // if (deltaTweet[0] > 0) { 
-
-  //   statsObj.twitter.tweetsPerMin = parseInt(tweetMeter.toJSON()[metricsRate]);
-
-  //   // console.log(chalkAlert("WAS | *** TWEET RX DELTA: " + deltaTweet[0] + "." + deltaTweet[1]));
-
-  //   console.log(chalkLog("WAS | S"
-  //     + " | " + getTimeStamp()
-  //     + " | E: " + statsObj.elapsed
-  //     + " | S: " + getTimeStamp(parseInt(statsObj.startTime))
-  //     + " | AD: " + statsObj.admin.connected
-  //     + " | UT: " + statsObj.entity.util.connected
-  //     + " | VW: " + statsObj.entity.viewer.connected
-  //     + " | TwRxPM: " + statsObj.twitter.tweetsPerMin
-  //     + " | MaxTwRxPM: " + statsObj.twitter.maxTweetsPerMin
-  //     + " | TwRXQ: " + tweetRxQueue.length
-  //     + " | TwPRQ: " + tweetParserQueue.length
-  //   ));
-  // }
-
-  // deltaTweetStart = process.hrtime();
-
   statsObj.twitter.tweetsReceived += 1;
 
   if (tw.retweeted_status) {
@@ -3925,8 +3901,6 @@ function socketRxTweet(tw) {
       tw.user.quotedStatus = tw.quoted_status;
     }
 
-    // tw.user.status = (tw.text !== undefined) ? tw.text : "";
-
     if (categorizedUserHashMap.has(tw.user.screen_name.toLowerCase())){
 
       tw.user.category = categorizedUserHashMap.get(tw.user.screen_name.toLowerCase()).manual;
@@ -3955,7 +3929,7 @@ function socketRxTweet(tw) {
       + " | " + tw.user.name
     ));
 
-    if (statsObj.twitter.tweetsReceived % 100 === 0) {
+    if (statsObj.twitter.tweetsReceived % 1000 === 0) {
       console.log(chalkTwitter("WAS | <T | "+ getTimeStamp()
         + " | RXQ: " + tweetRxQueue.length
         + " [ Ts/RTs/QTs: " + statsObj.twitter.tweetsReceived + "/" + statsObj.twitter.retweetsReceived + "/" + statsObj.twitter.quotedTweetsReceived + "]"

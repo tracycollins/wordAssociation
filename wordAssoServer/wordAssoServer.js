@@ -249,7 +249,7 @@ function bearerTokenRequest(request_options){
 
         var json_body = JSON.parse(response.body);
 
-        console.log(chalkAlert("WAS | TWITTER BEARER TOKEN | " + json_body.access_token));
+        console.log(chalk.green("WAS | TWITTER BEARER TOKEN | " + json_body.access_token));
 
         let twitter_bearer_token = json_body.access_token;
 
@@ -267,7 +267,7 @@ function bearerTokenRequest(request_options){
             console.log(chalkError("WAS | *** TWITTER WEBHOOK CONFIG REQ ERROR: " + error));
             return reject(twitter_bearer_token);
           }
-          console.log(chalkAlert("WAS | +++ TWITTER WEBHOOK VALID"));
+          console.log(chalk.green("WAS | +++ TWITTER WEBHOOK VALID"));
           resolve(twitter_bearer_token);
         });
       }
@@ -298,7 +298,7 @@ function addAccountActivitySubscription(params){
       }
       else {
         if (response.statusCode == 204) {
-          console.log(chalkAlert("WAS | +++ TWITTER WEBHOOK SUBSCRIPTION ADDED"));
+          console.log(chalk.green("WAS | +++ TWITTER WEBHOOK SUBSCRIPTION ADDED"));
           resolve(response.statusCode);
         }
         else {
@@ -1253,7 +1253,7 @@ function connectDb(){
         });
 
         const sessionId = btoa("threecee");
-        console.log(chalkAlert("WAS | PASSPORT SESSION ID: " + sessionId ));
+        console.log(chalk.green("WAS | PASSPORT SESSION ID: " + sessionId ));
 
         app.use(expressSession({
           sessionId: sessionId,
@@ -1273,11 +1273,11 @@ function connectDb(){
           },
           function(token, tokenSecret, profile, cb) {
 
-            console.log(chalkAlert("WAS | PASSPORT TWITTER AUTH: token:       " + token));
-            console.log(chalkAlert("WAS | PASSPORT TWITTER AUTH: tokenSecret: " + tokenSecret));
-            console.log(chalkAlert("WAS | PASSPORT TWITTER AUTH USER | @" + profile.username + " | " + profile.id));
+            console.log(chalk.green("WAS | PASSPORT TWITTER AUTH: token:       " + token));
+            console.log(chalk.green("WAS | PASSPORT TWITTER AUTH: tokenSecret: " + tokenSecret));
+            console.log(chalk.green("WAS | PASSPORT TWITTER AUTH USER | @" + profile.username + " | " + profile.id));
 
-            if (configuration.verbose) { console.log(chalkAlert("WAS | PASSPORT TWITTER AUTH\nprofile\n" + jsonPrint(profile))); }
+            if (configuration.verbose) { console.log(chalk.green("WAS | PASSPORT TWITTER AUTH\nprofile\n" + jsonPrint(profile))); }
 
             const rawUser = profile["_json"];
 
@@ -1412,7 +1412,7 @@ function connectDb(){
             name: user.name
           };
 
-          console.log(chalkAlert("WAS | PASSPORT SERIALIZE USER | @" + user.screenName));
+          console.log(chalk.green("WAS | PASSPORT SERIALIZE USER | @" + user.screenName));
 
           done(null, sessionUser); 
         });
@@ -3145,7 +3145,7 @@ function killAll(callback){
     // let childPidArray = await getChildProcesses({searchTerm: "ALL"});
     getChildProcesses({searchTerm: "ALL"})
     .then(function(childPidArray){
-      console.log(chalkAlert("getChildProcesses childPidArray\n" + jsonPrint(childPidArray)));
+      console.log(chalk.green("getChildProcesses childPidArray\n" + jsonPrint(childPidArray)));
       if (childPidArray && (childPidArray.length > 0)) {
 
         async.eachSeries(childPidArray, function(childObj, cb){
@@ -6630,7 +6630,7 @@ function initAppRouting(callback) {
                   // response.entries.forEach(function(entry){
                   async.eachSeries(response.entries, function(entry, cb1){
 
-                    console.log(chalkAlert("WAS | >>> DROPBOX CHANGE | " + entry.path_lower));
+                    console.log(chalk.green("WAS | >>> DROPBOX CHANGE | " + entry.path_lower));
 
                     if ((entry.path_lower.endsWith("google_wordassoserverconfig.json"))
                       || (entry.path_lower.endsWith("default_wordassoserverconfig.json"))){
@@ -6728,7 +6728,7 @@ function initAppRouting(callback) {
       }
     }
     else if (req.path === "/googleccd19766bea2dfd2.html") {
-      console.log(chalkAlert("WAS | R< googleccd19766bea2dfd2.html")); 
+      console.log(chalk.green("WAS | R< googleccd19766bea2dfd2.html")); 
 
       const googleVerification = __dirname + "/googleccd19766bea2dfd2.html";
 
@@ -6884,7 +6884,7 @@ function initAppRouting(callback) {
 
   function ensureAuthenticated(req, res, next) {
     if (req.isAuthenticated()) { 
-      console.log(chalkAlert("WAS | PASSPORT TWITTER AUTHENTICATED"));
+      console.log(chalk.green("WAS | PASSPORT TWITTER AUTHENTICATED"));
       // slackSendMessage("PASSPORT TWITTER AUTHENTICATED");
       return next();
     }
@@ -7544,7 +7544,7 @@ function initTfePingInterval(interval){
 // }
 
 function updateSearchTerms(){
-  console.log(chalkAlert("WAS | WAS | UPDATE SEARCH TERMS"));
+  console.log(chalk.green("WAS | WAS | UPDATE SEARCH TERMS"));
 
   tssSendAllChildren({op: "UPDATE_SEARCH_TERMS"});
 }
@@ -8635,7 +8635,7 @@ function loadConfigFile(params) {
         return resolve();
       }
 
-      console.log(chalkAlert("WAS | +++ CONFIG FILE AFTER ... LOADING"
+      console.log(chalk.green("WAS | +++ CONFIG FILE AFTER ... LOADING"
         + " | " + fullPath
         + " | PREV: " + prevConfigFileModifiedMoment.format(compactDateTimeFormat)
         + " | " + fileModifiedMoment.format(compactDateTimeFormat)
@@ -8916,7 +8916,7 @@ function loadAllConfigFiles(){
 
       if (defaultConfig) {
         defaultConfiguration = defaultConfig;
-        console.log(chalkAlert("WAS | +++ RELOADED DEFAULT CONFIG " + dropboxConfigDefaultFolder + "/" + dropboxConfigDefaultFile));
+        console.log(chalk.green("WAS | +++ RELOADED DEFAULT CONFIG " + dropboxConfigDefaultFolder + "/" + dropboxConfigDefaultFile));
       }
 
       loadConfigFile({folder: dropboxConfigHostFolder, file: dropboxConfigHostFile})
@@ -8924,7 +8924,7 @@ function loadAllConfigFiles(){
 
         if (hostConfig) {
           hostConfiguration = hostConfig;
-          console.log(chalkAlert("WAS | +++ RELOADED HOST CONFIG " + dropboxConfigHostFolder + "/" + dropboxConfigHostFile));
+          console.log(chalk.green("WAS | +++ RELOADED HOST CONFIG " + dropboxConfigHostFolder + "/" + dropboxConfigHostFile));
         }
 
         let defaultAndHostConfig = merge(defaultConfiguration, hostConfiguration); // host settings override defaults
@@ -10140,7 +10140,7 @@ function initTwitterSearchNodeQueueInterval(interval){
           console.log(chalkError("WAS | *** TWITTER SEARCH NODE ERROR: " + err));
         }
         else if (node) {
-          console.log(chalkAlert("WAS | TWITTER SEARCH NODE FOUND | NID: " + node.nodeId));
+          console.log(chalk.green("WAS | TWITTER SEARCH NODE FOUND | NID: " + node.nodeId));
         }
 
         clearTimeout(searchTimeout);
@@ -10227,7 +10227,7 @@ setTimeout(function(){
             
           }
           else {
-            console.log(chalkAlert("WAS | WAIT DB CONNECTED ..."));
+            console.log(chalkLog("WAS | WAIT DB CONNECTED ..."));
           }
         }, 1000);
 

@@ -9835,7 +9835,7 @@ function twitterGetUserUpdateDb(user, callback){
           + "\n" + printUser({user:updatedUser})
         ));
 
-        callback("DB NO TWITTER UPDATE", updatedUser);
+        callback(null, updatedUser);
 
       });
     }

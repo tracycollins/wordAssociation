@@ -1703,21 +1703,26 @@ function userProfileChangeHistogram(params) {
         case "url":
         case "profileUrl":
         case "expandedUrl":
+        case "bannerImageUrl":
+
           domain = urlParse(userPropValue.toLowerCase()).hostname;
           nodeId = btoa(userPropValue.toLowerCase());
+          console.log("userProp: " + userProp + " | url nodeId: " + nodeId);
 
           if (domain) { 
             domainNodeId = btoa(domain);
+            console.log("userProp: " + userProp + " | url domainNodeId: " + domainNodeId);
             urlsHistogram.urls[domainNodeId] = (urlsHistogram.urls[domainNodeId] === undefined) ? 1 : urlsHistogram.urls[domainNodeId] + 1; 
           }
           urlsHistogram.urls[nodeId] = (urlsHistogram.urls[nodeId] === undefined) ? 1 : urlsHistogram.urls[nodeId] + 1;
+
           return;
         break;
 
-        case "bannerImageUrl":
-          bannerImageUrl = userPropValue;
-          return;
-        break;
+        // case "bannerImageUrl":
+        //   bannerImageUrl = userPropValue;
+        //   return;
+        // break;
 
         default:
           console.log(chalkError("TFC | UNKNOWN USER PROPERTY: " + userProp));
@@ -2030,7 +2035,7 @@ function updateUserHistograms(params) {
 
               }
               else {
-                cb(null, null);
+                cb(null, params.user.profileHistograms);
               }
 
             },
@@ -2050,7 +2055,7 @@ function updateUserHistograms(params) {
 
               }
               else {
-                cb(null, null);
+                cb(null, params.user.tweetHistograms);
               }
             }
 
@@ -2222,38 +2227,38 @@ function initUserCategorizeQueueInterval(cnf){
       updatedUser.nodeId = updatedUser.nodeId;
 
       if (typeof updatedUser.previousLocation !== "string") {
-        printUserObj("TFC | previousLocation NOT STRING | " + typeof updatedUser.previousLocation, updatedUser, chalkAlert);
-        console.log(chalkAlert("previousLocation\n" + jsonPrint(updatedUser.previousLocation)));
+        // printUserObj("TFC | previousLocation NOT STRING | " + typeof updatedUser.previousLocation, updatedUser, chalkAlert);
+        // console.log(chalkAlert("previousLocation\n" + jsonPrint(updatedUser.previousLocation)));
         updatedUser.previousLocation = "";
       }
 
       if (typeof updatedUser.previousUrl !== "string") {
-        printUserObj("TFC | previousUrl NOT STRING | " + typeof updatedUser.previousUrl, updatedUser, chalkAlert);
-        console.log(chalkAlert("previousUrl\n" + jsonPrint(updatedUser.previousUrl)));
+        // printUserObj("TFC | previousUrl NOT STRING | " + typeof updatedUser.previousUrl, updatedUser, chalkAlert);
+        // console.log(chalkAlert("previousUrl\n" + jsonPrint(updatedUser.previousUrl)));
         updatedUser.previousUrl = "";
       }
 
       if (typeof updatedUser.previousBannerImageUrl !== "string") {
-        printUserObj("TFC | previousBannerImageUrl NOT STRING | " + typeof updatedUser.previousBannerImageUrl, updatedUser, chalkAlert);
-        console.log(chalkAlert("previousBannerImageUrl\n" + jsonPrint(updatedUser.previousBannerImageUrl)));
+        // printUserObj("TFC | previousBannerImageUrl NOT STRING | " + typeof updatedUser.previousBannerImageUrl, updatedUser, chalkAlert);
+        // console.log(chalkAlert("previousBannerImageUrl\n" + jsonPrint(updatedUser.previousBannerImageUrl)));
         updatedUser.previousBannerImageUrl = "";
       }
 
       if (typeof updatedUser.previousScreenName !== "string") {
-        printUserObj("TFC | previousScreenName NOT STRING | " + typeof updatedUser.previousScreenName, updatedUser, chalkAlert);
-        console.log(chalkAlert("previousScreenName\n" + jsonPrint(updatedUser.previousScreenName)));
+        // printUserObj("TFC | previousScreenName NOT STRING | " + typeof updatedUser.previousScreenName, updatedUser, chalkAlert);
+        // console.log(chalkAlert("previousScreenName\n" + jsonPrint(updatedUser.previousScreenName)));
         updatedUser.previousScreenName = "";
       }
 
       if (typeof updatedUser.previousProfileUrl !== "string") {
-        printUserObj("TFC | previousProfileUrl NOT STRING | " + typeof updatedUser.previousProfileUrl, updatedUser, chalkAlert);
-        console.log(chalkAlert("previousProfileUrl\n" + jsonPrint(updatedUser.previousProfileUrl)));
+        // printUserObj("TFC | previousProfileUrl NOT STRING | " + typeof updatedUser.previousProfileUrl, updatedUser, chalkAlert);
+        // console.log(chalkAlert("previousProfileUrl\n" + jsonPrint(updatedUser.previousProfileUrl)));
         updatedUser.previousProfileUrl = "";
       }
 
       if (typeof updatedUser.previousName !== "string") {
-        printUserObj("TFC | previousName NOT STRING | " + typeof updatedUser.previousName, updatedUser, chalkAlert);
-        console.log(chalkAlert("previousName\n" + jsonPrint(updatedUser.previousName)));
+        // printUserObj("TFC | previousName NOT STRING | " + typeof updatedUser.previousName, updatedUser, chalkAlert);
+        // console.log(chalkAlert("previousName\n" + jsonPrint(updatedUser.previousName)));
         updatedUser.previousName = "";
       }
 

@@ -517,6 +517,11 @@ function userUpdateDb(tweetObj){
           return resolve(null);
         }
 
+        if (tweetObj.user.statusId === user.statusId) {
+          console.log(chalkLog("DBU | ... USER DB SKIP | STATUS ID SAME: " + user.statusId + " | @" + tweetObj.user.screenName));
+          return resolve(null);
+        }
+
 
         let tweetHistogramMerged = {};
 

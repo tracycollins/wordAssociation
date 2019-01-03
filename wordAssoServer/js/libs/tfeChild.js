@@ -1931,11 +1931,10 @@ function userStatusChangeHistogram(params) {
               break;
               case "words":
                 entity = entityObj.nodeId.toLowerCase();
-                entity = entity.replace(/\./gi, "_");
+                entity = entity.replace(/\./gi, "_")
               break;
               case "places":
                 entity = entityObj.nodeId;
-                entity = entity.replace(/\./gi, "_");
               break;
             }
 

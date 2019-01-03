@@ -515,9 +515,9 @@ function saveFile (path, file, jsonObj, callback){
 
 function loadFile(path, file, callback) {
 
-  console.log(chalkInfo("TSS | LOAD FOLDER " + path));
-  console.log(chalkInfo("TSS | LOAD FILE " + file));
-  console.log(chalkInfo("TSS | FULL PATH " + path + "/" + file));
+  // console.log(chalkInfo("TSS | LOAD FOLDER " + path));
+  // console.log(chalkInfo("TSS | LOAD FILE " + file));
+  // console.log(chalkInfo("TSS | FULL PATH " + path + "/" + file));
 
   dropboxClient.filesDownload({path: path + "/" + file})
     .then(function(data) {
@@ -906,7 +906,7 @@ function getFileMetadata(path, file, callback) {
   const fullPath = path + "/" + file;
   debug(chalkInfo("TSS | FOLDER " + path));
   debug(chalkInfo("TSS | FILE " + file));
-  console.log(chalkInfo("TSS | getFileMetadata FULL PATH: " + fullPath));
+  // console.log(chalkInfo("TSS | getFileMetadata FULL PATH: " + fullPath));
 
   dropboxClient.filesGetMetadata({path: fullPath})
     .then(function(response) {

@@ -4072,7 +4072,7 @@ function follow(params, callback) {
 function initTssChildren(params){
   return new Promise(function(resolve, reject){
 
-    async.forEach(DEFAULT_THREECEE_USERS, function(threeceeUser, cb){
+    async.eachSeries(DEFAULT_THREECEE_USERS, function(threeceeUser, cb){
       const childId = DEFAULT_TSS_CHILD_ID + "_" + threeceeUser.toLowerCase();
       tssChildren[threeceeUser] = {};
       tssChildren[threeceeUser].childId = childId;

@@ -526,7 +526,6 @@ function userUpdateDb(tweetObj){
             + " | @" + user.screenName
           ));
           user.tweetHistograms = {};
-          user.markModified("tweetHistograms");
         }
 
         if (!user.profileHistograms || user.profileHistograms === undefined || user.profileHistograms === null) { 
@@ -535,7 +534,6 @@ function userUpdateDb(tweetObj){
             + " | @" + user.screenName
           ));
           user.profileHistograms = {};
-          user.markModified("profileHistograms");
         }
 
         try {
@@ -543,6 +541,8 @@ function userUpdateDb(tweetObj){
           tweetHistogramMerged = await mergeHistograms({histogramA: tweetObj.user.histograms, histogramB: user.tweetHistograms});
 
           user.tweetHistograms = tweetHistogramMerged;
+          user.markModified("profileHistograms");
+          user.markModified("tweetHistograms");
 
           printUserObj("DBU | +++ USR DB HIT", user);
 

@@ -3850,14 +3850,16 @@ function socketRxTweet(tw) {
   tweetUser = tweetIdCache.get(tw.id_str);
 
   if (tweetUser) {
-    console.log(chalkLog("WAS"
-      + " | ??? DUP TWEET"
-      + " [" + tweetIdCache.getStats().keys + "]"
-      + " | " + tw.id_str 
-      + " | @" + tweetUser
-    ));
     statsObj.twitter.duplicateTweetsReceived += 1;
-    return;
+    if (statsObj.twitter.duplicateTweetsReceived % 1000 === 0){
+      console.log(chalkLog("WAS"
+        + " | ??? DUP TWEET"
+        + " [ $: " + tweetIdCache.getStats().keys + " / " + statsObj.twitter.duplicateTweetsReceived + " DUPs ]"
+        + " | " + tw.id_str 
+        + " | @" + tweetUser
+      ));
+    }
+     return;
   }
 
   tweetIdCache.set(tw.id_str, tw.user.screen_name);

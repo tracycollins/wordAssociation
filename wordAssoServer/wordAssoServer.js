@@ -187,6 +187,9 @@ const TRENDING_CACHE_CHECK_PERIOD = 60;
 const NODE_CACHE_DEFAULT_TTL = 60;
 const NODE_CACHE_CHECK_PERIOD = 1;
 
+const TWEET_ID_CACHE_DEFAULT_TTL = 60;
+const TWEET_ID_CACHE_CHECK_PERIOD = 5;
+
 const chalk = require("chalk");
 const chalkUser = chalk.blue;
 const chalkNetwork = chalk.black;
@@ -1588,6 +1591,24 @@ function touchChildPidFile(params){
 }
 
 // ==================================================================
+// TWEET ID CACHE
+// ==================================================================
+let tweetIdCacheTtl = process.env.TWEET_ID_CACHE_DEFAULT_TTL;
+if (tweetIdCacheTtl === undefined) { tweetIdCacheTtl = TWEET_ID_CACHE_DEFAULT_TTL;}
+
+console.log("WAS | TWEET ID CACHE TTL: " + tweetIdCacheTtl + " SECONDS");
+
+let tweetIdCacheCheckPeriod = process.env.TWEET_ID_CACHE_CHECK_PERIOD;
+if (tweetIdCacheCheckPeriod === undefined) { tweetIdCacheCheckPeriod = TWEET_ID_CACHE_CHECK_PERIOD;}
+
+console.log("WAS | TWEET ID CACHE CHECK PERIOD: " + tweetIdCacheCheckPeriod + " SECONDS");
+
+const tweetIdCache = new NodeCache({
+  stdTTL: tweetIdCacheTtl,
+  checkperiod: tweetIdCacheCheckPeriod
+});
+
+// ==================================================================
 // VIEWER CACHE
 // ==================================================================
 let viewerCacheTtl = process.env.VIEWER_CACHE_DEFAULT_TTL;
@@ -1987,6 +2008,7 @@ function initStats(callback){
 
   statsObj.twitter = {};
   statsObj.twitter.tweetsReceived = 0;
+  statsObj.twitter.duplicateTweetsReceived = 0;
   statsObj.twitter.retweetsReceived = 0;
   statsObj.twitter.quotedTweetsReceived = 0;
   statsObj.twitter.tweetsPerMin = 0;
@@ -3822,8 +3844,23 @@ function categorizeNode(categorizeObj, callback) {
   }
 }
 
+let tweetUser;
 function socketRxTweet(tw) {
 
+  tweetUser = tweetIdCache.get(tw.id_str);
+
+  if (tweetUser) {
+    console.log(chalkLog("WAS"
+      + " | ??? DUP TWEET"
+      + " [" + tweetIdCache.getStats().keys + "]"
+      + " | " + tw.id_str 
+      + " | @" + tweetUser
+    ));
+    statsObj.twitter.duplicateTweetsReceived += 1;
+    return;
+  }
+
+  tweetIdCache.set(tw.id_str, tw.user.screen_name);
   tweetMeter.mark();
 
   statsObj.twitter.tweetsReceived += 1;
@@ -4101,14 +4138,6 @@ function ignore(params, callback) {
   }
 
   tssSendAllChildren({op: "IGNORE", user: params.user});
-
-  // if (tssChild !== undefined) { 
-  //   tssChild.send({op: "IGNORE", user: params.user});
-  // }
-
-  // if (tfeChild !== undefined) { 
-  //   tfeChild.send({op: "IGNORE", user: params.user});
-  // }
 
   const query = { nodeId: params.user.nodeId };
 

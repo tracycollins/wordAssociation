@@ -1623,6 +1623,7 @@ function userProfileChangeHistogram(params) {
       const prevUserProp = "previous" + _.upperFirst(userProp);
 
       let domain;
+      let domainNodeId;
       let nodeId;
       let geoCodeResults;
 
@@ -1702,10 +1703,13 @@ function userProfileChangeHistogram(params) {
         case "url":
         case "profileUrl":
         case "expandedUrl":
-          domain = btoa(urlParse(userPropValue.toLowerCase()).hostname);
+          domain = urlParse(userPropValue.toLowerCase()).hostname;
           nodeId = btoa(userPropValue.toLowerCase());
 
-          if (domain) { urlsHistogram.urls[domain] = (urlsHistogram.urls[domain] === undefined) ? 1 : urlsHistogram.urls[domain] + 1; }
+          if (domain) { 
+            domainNodeId = btoa(domain);
+            urlsHistogram.urls[domainNodeId] = (urlsHistogram.urls[domainNodeId] === undefined) ? 1 : urlsHistogram.urls[domainNodeId] + 1; 
+          }
           urlsHistogram.urls[nodeId] = (urlsHistogram.urls[nodeId] === undefined) ? 1 : urlsHistogram.urls[nodeId] + 1;
           return;
         break;
@@ -1808,170 +1812,6 @@ function userProfileChangeHistogram(params) {
   });
 }
 
-// function userStatusChangeHistogram(params) {
-
-//   return new Promise(function(resolve, reject){
-
-//     let user = params.user;
-  
-//     const userStatusChangeArray = checkUserStatusChanged(params);
-
-//     if (!userStatusChangeArray) {
-//       return resolve();
-//     }
-
-//     let tweetHistograms = {};
-    
-//     async.eachSeries(userStatusChangeArray, function(userProp, cb){
-
-//       delete user._id; // fix for UnhandledPromiseRejectionWarning: RangeError: Maximum call stack size exceeded
-
-//       const prevUserProp = "previous" + _.upperFirst(userProp);
-
-//       console.log(chalkLog("TFC | +++ USER STATUS CHANGE"
-//         + " | NODE ID: " + user.nodeId 
-//         + " | @" + user.screenName 
-//         + " | " + userProp 
-//         + " | " + user[userProp] + " <-- " + user[prevUserProp]
-//         // + "\n" + jsonPrint(user) 
-//       ));
-
-//       let tscParams = {
-//         globalTestMode: configuration.globalTestMode,
-//         testMode: configuration.testMode,
-//         inc: false,
-//         twitterEvents: configEvents
-//       };
-
-//       if (userProp === "statusId"){
-
-//         let status = deepcopy(user.status);  // avoid circular references
-
-//         user.statusId = user.statusId.toString();
-//         tscParams.tweetStatus = {};
-//         tscParams.tweetStatus = status;
-//         tscParams.tweetStatus.user = {};
-//         tscParams.tweetStatus.user = user;
-//         tscParams.tweetStatus.user.isNotRaw = true;
-//       }
-
-//       if (userProp === "quotedStatusId"){
-
-//         let quotedStatus = deepcopy(user.quotedStatus);  // avoid circular references
-
-//         user.quotedStatusId = user.quotedStatusId.toString();
-//         tscParams.tweetStatus = {};
-//         tscParams.tweetStatus = quotedStatus;
-//         tscParams.tweetStatus.user = {};
-//         tscParams.tweetStatus.user = user;
-//         tscParams.tweetStatus.user.isNotRaw = true;
-//       }
-
-//       // console.log(chalkAlert("TFC | tscParams\n", jsonPrint(tscParams)));
-
-//       tweetServerController.createStreamTweet(tscParams)
-//       .then(function(tweetObj){
-
-//         // console.log(chalkLog("TFC | CREATE STREAM TWEET | " + Object.keys(tweetObj)));
-
-//         async.eachSeries(DEFAULT_INPUT_TYPES, function(entityType, cb0){
-
-//           if (!entityType || entityType === undefined) {
-//             console.log(chalkAlert("TFC | ??? UNDEFINED TWEET entityType: ", entityType));
-//             return cb0();
-//           }
-
-//           if (entityType === "user") { return cb0(); }
-//           if (!tweetObj[entityType] || tweetObj[entityType] === undefined) { return cb0(); }
-//           if (tweetObj[entityType].length === 0) { return cb0(); }
-
-//           async.eachSeries(tweetObj[entityType], function(entityObj, cb1){
-
-//             if (!entityObj) {
-//               debug(chalkInfo("TFC | !!! NULL entity? | ENTITY TYPE: " + entityType + " | entityObj: " + entityObj));
-//               return cb1();
-//             }
-
-//             let entity;
-
-//             switch (entityType) {
-//               case "hashtags":
-//                 entity = "#" + entityObj.nodeId.toLowerCase();
-//               break;
-//               case "mentions":
-//               case "userMentions":
-//                 entity = "@" + entityObj.screenName.toLowerCase();
-//               break;
-//               case "locations":
-//                 entity = entityObj.nodeId;
-//               break;
-//               case "images":
-//               case "media":
-//                 entity = entityObj.nodeId;
-//               break;
-//               case "emoji":
-//                 entity = entityObj.nodeId;
-//               break;
-//               case "urls":
-//                 // entity = (entityObj.expandedUrl && entityObj.expandedUrl !== undefined) ? entityObj.expandedUrl.toLowerCase() : entityObj.nodeId;
-//                 entity = entityObj.nodeId;
-//               break;
-//               case "words":
-//                 entity = entityObj.nodeId.toLowerCase();
-//               break;
-//               case "places":
-//                 entity = entityObj.nodeId;
-//               break;
-//             }
-
-//             if (!tweetHistograms[entityType] || (tweetHistograms[entityType] === undefined)){
-//               tweetHistograms[entityType] = {};
-//               tweetHistograms[entityType][entity] = 1;
-//             }
-
-//             if (!tweetHistograms[entityType][entity] || (tweetHistograms[entityType][entity] === undefined)){
-//               tweetHistograms[entityType][entity] = 1;
-//             }
-
-//             // if (configuration.verbose) {
-//               console.log(chalkLog("TFC | +++ USER HIST"
-//                 + " | " + entityType.toUpperCase()
-//                 + " | " + entity
-//                 + " | " + tweetHistograms[entityType][entity]
-//               ));
-//             // }
-
-//             async.setImmediate(function() { cb1(); });
-
-//           }, function(){
-
-//             async.setImmediate(function() { cb0(); });
-
-//           });
-//         }, function(err0){
-
-//           async.setImmediate(function() { cb(); });
-
-//         });
-
-//       })
-//       .catch(function(err){
-//         return cb(err);
-//       });
-
-//     }, function(err){
-
-//       if (err) {
-//         console.log(chalkError("TFC | USER STATUS HISTOGRAM ERROR: " + err));
-//         return reject(err);
-//       }
-
-//       resolve(tweetHistograms);
- 
-//     });
-
-//   });
-// }
 
 function userStatusChangeHistogram(params) {
 
@@ -2081,14 +1921,21 @@ function userStatusChangeHistogram(params) {
                 entity = entityObj.nodeId;
               break;
               case "urls":
+                if (entityObj.nodeId.includes(".")) { 
+                  entity = btoa(entityObj.nodeId);
+                }
                 // entity = (entityObj.expandedUrl && entityObj.expandedUrl !== undefined) ? entityObj.expandedUrl.toLowerCase() : entityObj.nodeId;
-                entity = entityObj.nodeId;
+                else{
+                  entity = entityObj.nodeId;
+                }
               break;
               case "words":
                 entity = entityObj.nodeId.toLowerCase();
+                entity = entity.replace(/\./gi, "_");
               break;
               case "places":
                 entity = entityObj.nodeId;
+                entity = entity.replace(/\./gi, "_");
               break;
             }
 

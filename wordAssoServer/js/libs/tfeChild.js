@@ -287,6 +287,8 @@ statsObj.geo = {};
 statsObj.geo.hashmap = {};
 statsObj.geo.hashmap.misses = 0;
 statsObj.geo.hashmap.hits = 0;
+statsObj.geo.hashmap.hitRate = 0;
+statsObj.geo.hashmap.total = 0;
 
 statsObj.analyzer = {};
 statsObj.analyzer.total = 0;
@@ -1646,14 +1648,23 @@ function userProfileChangeHistogram(params) {
               geoCodeHashMap[userPropValue] = geoCodeResults;
               statsObj.geo.hashmap.size = Object.keys(geoCodeHashMap).length;
               statsObj.geo.hashmap.misses += 1;
+              statsObj.geo.hashmap.total += 1;
+              statsObj.geo.hashmap.hitRate = statsObj.geo.hashmap.hits/statsObj.geo.hashmap.total;
             }
             else {
               geoCodeResults = geoCodeHashMap[userPropValue];
+              statsObj.geo.hashmap.hits += 1;
+              statsObj.geo.hashmap.total += 1;
+              statsObj.geo.hashmap.hitRate = statsObj.geo.hashmap.hits/statsObj.geo.hashmap.total;
+
               console.log(chalkLog("TFC | +++ GEOCODE HASHMAP HIT"
-                + " [" + Object.keys(geoCodeHashMap).length + "]"
+                + " | KEYS: " + Object.keys(geoCodeHashMap).length
+                + " | Hs: " + statsObj.geo.hashmap.hits
+                + " | Ms: " + statsObj.geo.hashmap.misses
+                + " | TOT: " + statsObj.geo.hashmap.total
+                + " | HITRATE: " + statsObj.geo.hashmap.hitRate.toFixed(2)
                 + " | " + userPropValue + " | " + geoCodeResults.placeId
               ));
-              statsObj.geo.hashmap.hits += 1;
             }
 
 

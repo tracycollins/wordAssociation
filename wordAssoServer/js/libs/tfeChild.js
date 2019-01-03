@@ -2414,25 +2414,28 @@ function initUserCategorizeQueueInterval(cnf){
 
       // printUserObj("TFC | updatedUser", updatedUser, chalkLog);
 
-      userServerController.findOneUser(updatedUser, {noInc: false, fields: fieldsTransmit}, function(err, dbUser){
+      userServerController.findOneUser(
+        updatedUser, 
+        { mergeHistograms: true, noInc: false, fields: fieldsTransmit}, 
+        function(err, dbUser){
 
-        clearTimeout(uscTimeout);
+          clearTimeout(uscTimeout);
 
-        userCategorizeQueueReady = true;
+          userCategorizeQueueReady = true;
 
-        if (err) {
-          console.log(chalkError("TFC | *** USER FIND ONE ERROR: " + err));
-        }
-        else {
+          if (err) {
+            console.log(chalkError("TFC | *** USER FIND ONE ERROR: " + err));
+          }
+          else {
 
-          printUserObj("TFC | " 
-            + " [UC$: " + userChangeCache.getStats().keys + "]"
-            + " [UCQ: " + userCategorizeQueue.length + "]"
-            + " | NN: " + networkObj.networkId + " | DB CAT", dbUser, chalkInfo);
+            printUserObj("TFC | " 
+              + " [UC$: " + userChangeCache.getStats().keys + "]"
+              + " [UCQ: " + userCategorizeQueue.length + "]"
+              + " | NN: " + networkObj.networkId + " | DB CAT", dbUser, chalkInfo);
 
-          process.send({ op: "USER_CATEGORIZED", user: dbUser });
-          userChangeCache.del(dbUser.nodeId);
-        }
+            process.send({ op: "USER_CATEGORIZED", user: dbUser });
+            userChangeCache.del(dbUser.nodeId);
+          }
         
       });
     }

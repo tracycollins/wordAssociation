@@ -7449,7 +7449,7 @@ function unfollowDuplicates(params){
         return cb0();
       }
 
-      debug(chalkAlert("WAS | UNFOLLOW DUPLICATES ARRAY" 
+      debug(chalkLog("WAS | UNFOLLOW DUPLICATES ARRAY" 
         + " | 3C TARGET @" + threeceeUserTarget + " | " + threeceeTwitter[threeceeUserTarget].twitterFriends.length + " FRNDs"
         + " | UNFOLLOW ARRAY: " + unfollowArrarys[threeceeUserTarget].length + " USERS =============="
       ));
@@ -7462,7 +7462,7 @@ function unfollowDuplicates(params){
 
           unfollowArrarys[threeceeUserTarget] = _.concat(unfollowArrarys[threeceeUserTarget], _.intersection(threeceeTwitter[threeceeUserTarget].twitterFriends, threeceeTwitter[threeceeUserSource].twitterFriends));
 
-          debug(chalkAlert("WAS | UNFOLLOW DUPLICATES ARRAY" 
+          debug(chalkLog("WAS | UNFOLLOW DUPLICATES ARRAY" 
             + " | 3C TARGET @" + threeceeUserTarget + " | " + threeceeTwitter[threeceeUserTarget].twitterFriends.length + " FRNDs"
             + " | 3C SOURCE @" + threeceeUserSource + " | " + threeceeTwitter[threeceeUserSource].twitterFriends.length + " FRNDs"
             + " | UNFOLLOW ARRAY: " + unfollowArrarys[threeceeUserTarget].length + " USERS"
@@ -7475,7 +7475,7 @@ function unfollowDuplicates(params){
 
       }, function(err1){
 
-        console.log(chalkAlert("WAS | UNFOLLOW DUPLICATES ARRAY" 
+        console.log(chalkLog("WAS | UNFOLLOW DUPLICATES ARRAY" 
           + " | 3C TARGET @" + threeceeUserTarget + " | " + threeceeTwitter[threeceeUserTarget].twitterFriends.length + " FRNDs"
           + " | UNFOLLOW ARRAY: " + unfollowArrarys[threeceeUserTarget].length + " USERS"
         ));

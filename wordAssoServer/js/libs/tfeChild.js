@@ -284,11 +284,10 @@ statsObj.twitterLimitMax = 0;
 statsObj.twitterLimitMaxTime = moment().valueOf();
 
 statsObj.geo = {};
-statsObj.geo.hashmap = {};
-statsObj.geo.hashmap.misses = 0;
-statsObj.geo.hashmap.hits = 0;
-statsObj.geo.hashmap.hitRate = 0;
-statsObj.geo.hashmap.total = 0;
+statsObj.geo.misses = 0;
+statsObj.geo.hits = 0;
+statsObj.geo.hitRate = 0;
+statsObj.geo.total = 0;
 
 statsObj.analyzer = {};
 statsObj.analyzer.total = 0;
@@ -1635,69 +1634,186 @@ function userProfileChangeHistogram(params) {
 
         case "location":
 
+          // try {
+
+          //   // placeId: placeId, 
+          //   // formattedAddress: formattedAddress, 
+          //   // components: components, 
+          //   // raw: response.json 
+
+          //   if (!geoCodeHashMap[userPropValue]) {
+          //     geoCodeResults = await geoCode({address: userPropValue});
+          //     geoCodeHashMap[userPropValue] = {};
+          //     geoCodeHashMap[userPropValue] = geoCodeResults;
+          //     statsObj.geo.hashmap.size = Object.keys(geoCodeHashMap).length;
+          //     statsObj.geo.hashmap.misses += 1;
+          //     statsObj.geo.hashmap.total += 1;
+          //     statsObj.geo.hashmap.hitRate = statsObj.geo.hashmap.hits/statsObj.geo.hashmap.total;
+          //   }
+          //   else {
+          //     geoCodeResults = geoCodeHashMap[userPropValue];
+          //     statsObj.geo.hashmap.hits += 1;
+          //     statsObj.geo.hashmap.total += 1;
+          //     statsObj.geo.hashmap.hitRate = statsObj.geo.hashmap.hits/statsObj.geo.hashmap.total;
+
+          //     console.log(chalkLog("TFC | +++ GEOCODE HASHMAP HIT"
+          //       + " | KEYS: " + Object.keys(geoCodeHashMap).length
+          //       + " | Hs: " + statsObj.geo.hashmap.hits
+          //       + " | Ms: " + statsObj.geo.hashmap.misses
+          //       + " | TOT: " + statsObj.geo.hashmap.total
+          //       + " | HITRATE: " + statsObj.geo.hashmap.hitRate.toFixed(2)
+          //       + " | " + userPropValue + " | " + geoCodeResults.placeId
+          //     ));
+          //   }
+
+
+          //   user.geoValid = geoCodeResults.geoValid;
+          //   user.geo = geoCodeResults;
+
+          //   // user.markModified("geo");
+          //   // user.markModified("geoValid");
+
+          //   console.log(chalkLog("TFC"
+          //     + " | GEOCODE"
+          //       + " [" + Object.keys(geoCodeHashMap).length + "]"
+          //     + " | @" + user.screenName
+          //     + " | VALID: " + user.geo.geoValid
+          //     + " | PLACE ID: " + user.geo.placeId
+          //     + " | NAME: " + user.geo.address
+          //     + " | FORMATTED: " + user.geo.formattedAddress
+          //     // + "\n" + jsonPrint(locations[index].geo)
+          //   ));                    
+
+          //   if (geoCodeResults.placeId){
+          //     locationsHistogram.locations[geoCodeResults.placeId] = (locationsHistogram.locations[geoCodeResults.placeId] === undefined) 
+          //       ? 1 
+          //       : locationsHistogram.locations[geoCodeResults.placeId] + 1;
+          //   }
+
+          //   return;
+          // }
+          // catch(err){
+          //   console.log(chalkError("TCS | *** GEOCODE ERROR: " + err
+          //   ));
+          //   return err;                
+          // }
+
+          const lastSeen = Date.now();
+
+          const name = userPropValue.trim().toLowerCase().replace(/\./gi, "");
+          nodeId = btoa(name);
+
           try {
 
-            // placeId: placeId, 
-            // formattedAddress: formattedAddress, 
-            // components: components, 
-            // raw: response.json 
+            let locationDoc = await Location.findOne({nodeId: nodeId});
 
-            if (!geoCodeHashMap[userPropValue]) {
-              geoCodeResults = await geoCode({address: userPropValue});
-              geoCodeHashMap[userPropValue] = {};
-              geoCodeHashMap[userPropValue] = geoCodeResults;
-              statsObj.geo.hashmap.size = Object.keys(geoCodeHashMap).length;
-              statsObj.geo.hashmap.misses += 1;
-              statsObj.geo.hashmap.total += 1;
-              statsObj.geo.hashmap.hitRate = statsObj.geo.hashmap.hits/statsObj.geo.hashmap.total;
+            if (!locationDoc) {
+
+              console.log(chalkInfo("TFC | --- LOC DB MISS"
+                + " | NID: " + nodeId
+                + " | N: " + name + " / " + userPropValue
+              ));
+
+              locationDoc = new Location({
+                nodeId: nodeId,
+                name : name,
+                nameRaw : userPropValue,
+                geoValid: false,
+                lastSeen : lastSeen,
+                mentions : 0
+              });
+
+              let geoCodeResults = await geoCode({address: name});
+
+              if (geoCodeResults.placeId) {
+
+                locationDoc.geoValid = true;
+                locationDoc.placeId = geoCodeResults.placeId;
+                locationDoc.formattedAddress = geoCodeResults.formattedAddress;
+
+                await locationDoc.save();
+
+                statsObj.geo.hits += 1;
+                statsObj.geo.total += 1;
+                statsObj.geo.hitRate = 100*(statsObj.geo.hits/statsObj.geo.total);
+
+                console.log(chalk.blue("TFC | +++ LOC GEO HIT "
+                  + " | GEO: " + locationDoc.geoValid
+                  + "  H " + statsObj.geo.hits
+                  + "  M " + statsObj.geo.misses
+                  + "  T " + statsObj.geo.total
+                  + " HR: " + statsObj.geo.hitRate.toFixed(2)
+                  + " | PID: " + locationDoc.placeId 
+                  + " | NID: " + locationDoc.nodeId
+                  + " | N: " + locationDoc.name + " / " + locationDoc.nameRaw
+                  + " | A: " + locationDoc.formattedAddress
+                ));
+
+
+                locationsHistogram.locations[geoCodeResults.placeId] = (locationsHistogram.locations[geoCodeResults.placeId] === undefined) 
+                  ? 1 
+                  : locationsHistogram.locations[geoCodeResults.placeId] + 1;
+
+                return;
+
+              } else {
+
+                await locationDoc.save();
+
+                statsObj.geo.misses += 1;
+                statsObj.geo.total += 1;
+                statsObj.geo.hitRate = 100*(statsObj.geo.hits/statsObj.geo.total);
+
+                console.log(chalkLog("TFC | --- LOC GEO MISS"
+                  + " | GEO: " + locationDoc.geoValid
+                  + "  H " + statsObj.geo.hits
+                  + "  M " + statsObj.geo.misses
+                  + "  T " + statsObj.geo.total
+                  + " HR: " + statsObj.geo.hitRate.toFixed(2)
+                  + " | NID: " + locationDoc.nodeId
+                  + " | N: " + locationDoc.name + " / " + locationDoc.nameRaw
+                ));
+
+                locationsHistogram.locations[locationDoc.nodeId] = (locationsHistogram.locations[locationDoc.nodeId] === undefined) 
+                  ? 1 
+                  : locationsHistogram.locations[locationDoc.nodeId] + 1;
+
+                return;
+
+              }
+
             }
             else {
-              geoCodeResults = geoCodeHashMap[userPropValue];
-              statsObj.geo.hashmap.hits += 1;
-              statsObj.geo.hashmap.total += 1;
-              statsObj.geo.hashmap.hitRate = statsObj.geo.hashmap.hits/statsObj.geo.hashmap.total;
 
-              console.log(chalkLog("TFC | +++ GEOCODE HASHMAP HIT"
-                + " | KEYS: " + Object.keys(geoCodeHashMap).length
-                + " | Hs: " + statsObj.geo.hashmap.hits
-                + " | Ms: " + statsObj.geo.hashmap.misses
-                + " | TOT: " + statsObj.geo.hashmap.total
-                + " | HITRATE: " + statsObj.geo.hashmap.hitRate.toFixed(2)
-                + " | " + userPropValue + " | " + geoCodeResults.placeId
+              locationDoc.mentions += 1;
+              locationDoc.lastSeen = lastSeen;
+
+              await locationDoc.save();
+
+              console.log(chalk.green("TFC | +++ LOC DB HIT "
+                + " | GEO: " + locationDoc.geoValid
+                + "  H " + statsObj.geo.hits
+                + "  M " + statsObj.geo.misses
+                + "  T " + statsObj.geo.total
+                + " HR: " + statsObj.geo.hitRate.toFixed(2)
+                + " | PID: " + locationDoc.placeId 
+                + " | NID: " + locationDoc.nodeId
+                + " | N: " + locationDoc.name + " / " + locationDoc.nameRaw
+                + " | A: " + locationDoc.formattedAddress
               ));
+
+              const key = (locationDoc.placeId && locationDoc.placeId !== undefined) ? locationDoc.placeId : locationDoc.nodeId;
+
+              locationsHistogram.locations[key] = (locationsHistogram.locations[key] === undefined) ? 1 : locationsHistogram.locations[key] + 1;
+              return;
             }
-
-
-            user.geoValid = geoCodeResults.geoValid;
-            user.geo = geoCodeResults;
-
-            // user.markModified("geo");
-            // user.markModified("geoValid");
-
-            console.log(chalkLog("TFC"
-              + " | GEOCODE"
-                + " [" + Object.keys(geoCodeHashMap).length + "]"
-              + " | @" + user.screenName
-              + " | VALID: " + user.geo.geoValid
-              + " | PLACE ID: " + user.geo.placeId
-              + " | NAME: " + user.geo.address
-              + " | FORMATTED: " + user.geo.formattedAddress
-              // + "\n" + jsonPrint(locations[index].geo)
-            ));                    
-
-            if (geoCodeResults.placeId){
-              locationsHistogram.locations[geoCodeResults.placeId] = (locationsHistogram.locations[geoCodeResults.placeId] === undefined) 
-                ? 1 
-                : locationsHistogram.locations[geoCodeResults.placeId] + 1;
-            }
-
-            return;
           }
           catch(err){
-            console.log(chalkError("TCS | *** GEOCODE ERROR: " + err
-            ));
-            return err;                
+            console.log(chalkError("TCS | *** GEOCODE ERROR", err));
+            return;
           }
+
+
         break;
 
         case "name":

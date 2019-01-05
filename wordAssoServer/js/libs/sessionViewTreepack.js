@@ -6,6 +6,8 @@ function ViewTreepack() {
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
+  var heartBeat = {};
+
   var initialXposition = 0.5;
   var initialYposition = 0.9;
 
@@ -566,6 +568,10 @@ function ViewTreepack() {
     enableAgeNodes = enabled;
     config.enableAgeNodes = enabled;
   };
+
+  this.setHeartBeat = function(heartBeat) {
+    heartBeat = heartBeat;
+  }
   
   this.deleteNode = function() { return null; };
 

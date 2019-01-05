@@ -77,6 +77,7 @@ let infoTwitterUserObj = {};
 
 const DEFAULT_GEOCODE_ENABLED = true;
 
+const DEFAULT_FILTER_DUPLICATE_TWEETS = true;
 const DEFAULT_FORCE_FOLLOW = false;
 const DEFAULT_FORCE_IMAGE_ANALYSIS = false;
 const DEFAULT_ENABLE_IMAGE_ANALYSIS = true;
@@ -397,6 +398,7 @@ let hostConfiguration = {}; // host-specific configuration
 
 configuration.verbose = false;
 configuration.maxQueue = DEFAULT_MAX_QUEUE;
+configuration.filterDuplicateTweets = DEFAULT_FILTER_DUPLICATE_TWEETS;
 configuration.forceFollow = DEFAULT_FORCE_FOLLOW;
 configuration.enableImageAnalysis = DEFAULT_ENABLE_IMAGE_ANALYSIS;
 configuration.forceImageAnalysis = DEFAULT_FORCE_IMAGE_ANALYSIS;
@@ -3869,7 +3871,9 @@ function socketRxTweet(tw) {
   prevTweetUser = tweetIdCache.get(tw.id_str);
 
   if (prevTweetUser) {
+
     statsObj.twitter.duplicateTweetsReceived += 1;
+
     if (statsObj.twitter.duplicateTweetsReceived % 1000 === 0){
       console.log(chalkLog("WAS"
         + " | ??? DUP TWEET"
@@ -3879,7 +3883,8 @@ function socketRxTweet(tw) {
         + " | PREV @" + prevTweetUser
       ));
     }
-     return;
+    
+    if (configuration.filterDuplicateTweets) { return; }
   }
 
   tweetIdCache.set(tw.id_str, tw.user.screen_name);
@@ -8694,6 +8699,20 @@ function loadConfigFile(params) {
           }
           else {
             newConfiguration.geoCodeEnabled = false;
+          }
+        }
+
+        if (loadedConfigObj.FILTER_DUPLICATE_TWEETS  !== undefined){
+          console.log("WAS | LOADED FILTER_DUPLICATE_TWEETS: " + loadedConfigObj.FILTER_DUPLICATE_TWEETS);
+
+          if ((loadedConfigObj.FILTER_DUPLICATE_TWEETS === false) || (loadedConfigObj.FILTER_DUPLICATE_TWEETS === "false")) {
+            newConfiguration.filterDuplicateTweets = false;
+          }
+          else if ((loadedConfigObj.FILTER_DUPLICATE_TWEETS === true) || (loadedConfigObj.FILTER_DUPLICATE_TWEETS === "true")) {
+            newConfiguration.filterDuplicateTweets = true;
+          }
+          else {
+            newConfiguration.filterDuplicateTweets = true;
           }
         }
 

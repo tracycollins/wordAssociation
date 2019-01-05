@@ -2955,7 +2955,7 @@ setTimeout(function(){
       infoTwitterUserObj = ituObj;
       // initUserChangeDbQueueInterval(configuration);
       initUserCategorizeQueueInterval(configuration);
-      await initDbUserChangeStream({db: global.dbConnection});
+      // await initDbUserChangeStream({db: global.dbConnection});
     });
 
   });

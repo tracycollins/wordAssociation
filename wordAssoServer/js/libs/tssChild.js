@@ -1466,7 +1466,7 @@ function initSearchTerms(params){
               threeceeUserObj.searchTermSet.add(searchTerm);
               searchTermHashMap.set(searchTerm, threeceeUserObj.screenName);
 
-              console.log(chalkInfo("TSS | +++ TRACK"
+              debug(chalkInfo("TSS | +++ TRACK"
                 + " | @" + threeceeUserObj.screenName
                 + " | TRACKING: " + threeceeUserObj.searchTermSet.size 
                 + "/" + TWITTER_MAX_TRACKING_NUMBER + " MAX"
@@ -1477,7 +1477,7 @@ function initSearchTerms(params){
 
             }
             else {
-              console.log(chalkInfo("TSS | --- SKIP TRACK"
+              debug(chalkInfo("TSS | --- SKIP TRACK"
                 + " | @" + threeceeUserObj.screenName
                 + " | IN HM: " + searchTermHashMap.has(searchTerm)
                 + " | SEARCH TERM: " + searchTerm
@@ -1551,7 +1551,7 @@ function initialize(cnf, callback){
     let configArgs;
 
     if (!err) {
-      console.log(dropboxConfigFile + "\n" + jsonPrint(loadedConfigObj));
+      debug(dropboxConfigFile + "\n" + jsonPrint(loadedConfigObj));
 
       if (loadedConfigObj.TSS_VERBOSE_MODE  !== undefined){
         console.log("TSS | LOADED TSS_VERBOSE_MODE: " + loadedConfigObj.TSS_VERBOSE_MODE);

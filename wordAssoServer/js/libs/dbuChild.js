@@ -525,6 +525,8 @@ function userUpdateDb(tweetObj){
 
         let tweetHistogramMerged = {};
 
+        user.histograms = null;
+
         if (!user.tweetHistograms || user.tweetHistograms === undefined || user.tweetHistograms === null) { 
           console.log(chalkLog("DBU | TWEET HISTOGRAMS UNDEFINED"
             + " | " + user.nodeId

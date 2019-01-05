@@ -1790,12 +1790,12 @@ function initStatsUpdate(interval){
     statsNegativeBar.path.setAttribute("stroke", palette.red);
     statsNoneBar.path.setAttribute("stroke", palette.white);
 
-    if (!heartBeat.bestNetwork || heartBeat.bestNetwork === undefined) {
-      heartBeat.bestNetwork = {};
-      heartBeat.bestNetwork.networkId = "";
+    if (!statsObj.heartBeat.bestNetwork || statsObj.heartBeat.bestNetwork === undefined) {
+      statsObj.heartBeat.bestNetwork = {};
+      statsObj.heartBeat.bestNetwork.networkId = "";
     }
 
-    statsText.innerHTML = getTimeStamp() + " | " + heartBeat.bestNetwork.networkId;
+    statsText.innerHTML = getTimeStamp() + " | " + statsObj.heartBeat.bestNetwork.networkId;
   }, interval);
 }
 

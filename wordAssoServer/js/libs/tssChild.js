@@ -317,7 +317,7 @@ function connectDb(){
 
           userServerControllerReady = true;
 
-          console.log(chalkAlert("TSS | USC READY | " + appname));
+          console.log(chalkLog("TSS | USC READY | " + appname));
 
           resolve(db);
           configEvents.emit("DB_CONNECT");

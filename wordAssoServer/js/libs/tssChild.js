@@ -698,11 +698,10 @@ function initTwit(params){
 
       console.log(chalkTwitter("TSS | TWITTER GET FRIENDS IDS"
         + " | @" + threeceeUserObj.twitterConfig.screenName
-        + " | FOLLOW USER SET SIZE: " + threeceeUserObj.followUserIdSet.size + " FRIENDS"
-        + " | DATA IDS: " + data.ids.length + " FRIENDS"
-        + " | PREV CURSOR: " + data.previous_cursor_str
-        + " | NEXT CURSOR: " + data.next_cursor_str
-        + " | data keys: " + Object.keys(data)
+        + " | " + threeceeUserObj.followUserIdSet.size + " FRIENDS"
+        // + " | DATA IDS: " + data.ids.length + " FRIENDS"
+        // + " | PREV CURSOR: " + data.previous_cursor_str
+        // + " | NEXT CURSOR: " + data.next_cursor_str
       ));
 
       let userIndex = 0;

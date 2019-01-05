@@ -1131,19 +1131,19 @@ function printUserObj(title, user) {
   user = userDefaults(user);
 
   console.log(chalkUser(title
-    + " | UID: " + user.userId
+    + " | " + user.userId
     + " | @" + user.screenName
-    + " | N: " + user.name 
-    + " | FLWRs: " + user.followersCount
-    + " | FRNDs: " + user.friendsCount
-    + " | Ts: " + user.statusesCount
-    + " | Ms:  " + user.mentions
+    + " | " + user.name 
+    + " | FWR: " + user.followersCount
+    + " | FRD: " + user.friendsCount
+    + " | T: " + user.statusesCount
+    + " | M:  " + user.mentions
     + " | LS: " + getTimeStamp(user.lastSeen)
-    + " | FLWg: " + user.following 
+    + " | FLW: " + user.following 
     + " | 3C: @" + user.threeceeFollowing 
     + " | LOC: " + user.location
-    + " | CAT MAN: " + user.category
-    + " | CAT AUTO: " + user.categoryAuto
+    + " | CAT M: " + user.category
+    + " / A: " + user.categoryAuto
   ));
 }
 
@@ -1199,8 +1199,8 @@ function connectDb(){
           quit(statsObj.status);
         });
 
-        dbConnectionReady = true;
-        statsObj.dbConnectionReady = true;
+        // dbConnectionReady = true;
+        // statsObj.dbConnectionReady = true;
 
         global.dbConnection = db;
 
@@ -1464,7 +1464,7 @@ function connectDb(){
 
           userServerControllerReady = true;
           console.log(chalk.green("WAS | USC READY | " + appname));
-          dbConnectionReady = true;
+          // dbConnectionReady = true;
 
           configEvents.emit("DB_CONNECT");
           resolve(db);
@@ -3595,6 +3595,10 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
       console.log(chalkError("WAS | *** ERROR: LOAD CATEGORY HASHMAPS: " + err));
       console.error(err);
     }
+    else {
+      console.log(chalk.green("WAS | +++ MONGO DB CONNECTION READY"));
+      // dbConnectionReady = true;
+    }
   });
  
 });
@@ -4227,7 +4231,7 @@ function unignore(params, callback) {
 
 function unfollow(params, callback) {
 
-  console.log(chalk.blue("WAS | XXX UNFOLLOW | @" + params.user.screenName));
+  // console.log(chalk.blue("WAS | XXX UNFOLLOW | @" + params.user.screenName));
 
   if (params.user.nodeId !== undefined){
 
@@ -4282,7 +4286,9 @@ function unfollow(params, callback) {
     }
     else if (userUpdated){
       console.log(chalkLog("WAS | XXX UNFOLLOW"
-        + " | " + printUser({user: userUpdated})
+        + " | " + userUpdated.nodeId
+        + " | @" + userUpdated.screenName
+        + " | " + userUpdated.name
       ));
     }
     else {
@@ -4517,9 +4523,12 @@ function initUnfollowableUserSet(){
           if (userUpdated){
 
             numUnfollowed += 1;
+
             console.log(chalkLog("WAS | XXX UNFOLLOW"
               + " [" + numUnfollowed + "/" + numAlreadyUnfollowed + "/" + unfollowableUserSetObj.userIds.length + "]"
-              + " | " + printUser({user: userUpdated})
+              + " | " + userUpdated.nodeId
+              + " | @" + userUpdated.screenName
+              + " | " + userUpdated.name
             ));
 
             cb(null, userUpdated);
@@ -10204,7 +10213,9 @@ setTimeout(function(){
       if (configuration.testMode) {
       }
 
-      console.log("WAS | " + chalkTwitter(configuration.processName + " CONFIGURATION\n" + jsonPrint(configuration)));
+      console.log(chalkTwitter("WAS" 
+        + " | " + configuration.processName 
+      ));
 
       // await initSlackRtmClient();
       // await initSlackWebClient();
@@ -10217,7 +10228,7 @@ setTimeout(function(){
 
         dbConnectionReadyInterval = setInterval(function() {
 
-          if (dbConnectionReady) {
+          if (statsObj.dbConnectionReady) {
 
             try {
 

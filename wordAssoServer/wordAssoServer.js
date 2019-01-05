@@ -7411,97 +7411,94 @@ function initTfePingInterval(interval){
           + " | ELAPSED: " + msToTime(moment().valueOf() - tfePingId)
         ));
         
-        // slackSendMessage("\n*CHILD ERROR*\nTWEET_PARSER\nPONG TIMEOUT");
-
       }
     }, interval);
 
   }
 }
 
-// function initTssPingInterval(interval){
+function unfollowDuplicates(params){
 
-//   clearInterval(tssPingInterval);
+  console.log(chalk.bold.black("WAS | UNFOLLOW DUPLICATES"
+    + " | " + params.threeceeUser
+  ));
 
-//   tssPingSent = false;
-//   tssPongReceived = false;
+  return new Promise(function(resolve, reject){
 
-//   tssPingId = moment().valueOf();
+    const threeceeUserTarget = params.threeceeUser;
+    const threeceeUsersArray = Object.keys(threeceeTwitter).sort();
 
-//   if ((childrenHashMap[DEFAULT_TSS_CHILD_ID] !== undefined) 
-//     && childrenHashMap[DEFAULT_TSS_CHILD_ID].child) {
+    let unfollowArrarys = {};
 
-//     tssPingInterval = setInterval(function(){
+    async.eachSeries(threeceeUsersArray, function(threeceeUserTarget, cb0){
 
-//       if (!tssPingSent) {
+      unfollowArrarys[threeceeUserTarget] = [];
 
-//         tssPingId = moment().valueOf();
+      if (
+        !threeceeTwitter[threeceeUserTarget].twitterFriends 
+        || threeceeTwitter[threeceeUserTarget] === undefined 
+        || threeceeTwitter[threeceeUserTarget].twitterFriends === undefined
+      ){
+        return cb0();
+      }
 
-//         childrenHashMap[DEFAULT_TSS_CHILD_ID].child.send({op: "PING", pingId: tssPingId}, function(err){
+      debug(chalkAlert("WAS | UNFOLLOW DUPLICATES ARRAY" 
+        + " | 3C TARGET @" + threeceeUserTarget + " | " + threeceeTwitter[threeceeUserTarget].twitterFriends.length + " FRNDs"
+        + " | UNFOLLOW ARRAY: " + unfollowArrarys[threeceeUserTarget].length + " USERS =============="
+      ));
 
-//           tssPingSent = true; 
+      async.eachSeries(threeceeUsersArray, function(threeceeUserSource, cb1){
+        if (threeceeUserSource < threeceeUserTarget 
+            && (threeceeTwitter[threeceeUserTarget].twitterFriends !== undefined)
+            && (threeceeTwitter[threeceeUserSource].twitterFriends !== undefined)
+          ) { // altthreecee00 < altthreecee01
 
-//           if (err) {
+          unfollowArrarys[threeceeUserTarget] = _.concat(unfollowArrarys[threeceeUserTarget], _.intersection(threeceeTwitter[threeceeUserTarget].twitterFriends, threeceeTwitter[threeceeUserSource].twitterFriends));
 
-//             console.log(chalkError("WAS | *** TSS SEND PING ERROR: " + err));
+          debug(chalkAlert("WAS | UNFOLLOW DUPLICATES ARRAY" 
+            + " | 3C TARGET @" + threeceeUserTarget + " | " + threeceeTwitter[threeceeUserTarget].twitterFriends.length + " FRNDs"
+            + " | 3C SOURCE @" + threeceeUserSource + " | " + threeceeTwitter[threeceeUserSource].twitterFriends.length + " FRNDs"
+            + " | UNFOLLOW ARRAY: " + unfollowArrarys[threeceeUserTarget].length + " USERS"
+          ));
 
-//             killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, numKilled){
-//               tssPongReceived = false;
-//               initTssChild({childId: DEFAULT_TSS_CHILD_ID});
-//             });
+          return cb1();
+        }
 
-//             return;
-//           }
+        cb1();
 
-//           if (configuration.verbose) { console.log(chalkInfo("WAS | >PING | TSS | PING ID: " + getTimeStamp(tssPingId))); }
+      }, function(err1){
 
-//         });
+        console.log(chalkAlert("WAS | UNFOLLOW DUPLICATES ARRAY" 
+          + " | 3C TARGET @" + threeceeUserTarget + " | " + threeceeTwitter[threeceeUserTarget].twitterFriends.length + " FRNDs"
+          + " | UNFOLLOW ARRAY: " + unfollowArrarys[threeceeUserTarget].length + " USERS"
+        ));
 
-//       }
-//       else if (tssPingSent && tssPongReceived) {
+        if (unfollowArrarys[threeceeUserTarget].length > 0) {
+          tssChildren[threeceeUserTarget].child.send({op: "UNFOLLOW_ID_ARRAY", userArray: unfollowArrarys[threeceeUserTarget]});
+        }
 
-//         tssPingId = moment().valueOf();
+        cb0();
 
-//         tssPingSent = false; 
-//         tssPongReceived = false;
+      });
 
-//         childrenHashMap[DEFAULT_TSS_CHILD_ID].child.send({op: "PING", pingId: tssPingId}, function(err){
+    }, function(err){
 
-//           if (err) {
+      if (err) {
+        console.log(chalkError("WAS | *** UNFOLLOW DUPLICATES ERROR: " + err
+          + " | 3C USER TARGET: " + threeceeUserTarget
+          + " | 3C USER SOURCE: " + threeceeUserSource
+          + " | NOW: " + getTimeStamp()
+          + " | PING ID: " + getTimeStamp(tfePingId)
+          + " | ELAPSED: " + msToTime(moment().valueOf() - tfePingId)
+        ));
+        return reject(err);
+      }
 
-//             console.log(chalkError("WAS | *** TSS SEND PING ERROR: " + err));
+      resolve(unfollowArrarys);
 
-//             killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, numKilled){
-//               tssPongReceived = false;
-//               initTssChild({childId: DEFAULT_TSS_CHILD_ID});
-//             });
-
-//             return;
-//           }
-
-//           if (configuration.verbose) { console.log(chalkInfo("WAS | >PING | TSS | PING ID: " + getTimeStamp(tssPingId))); }
-
-//           tssPingSent = true; 
-
-//         });
-
-//       }
-//       else {
-
-//         console.log(chalkAlert("WAS | *** PONG TIMEOUT | TSS"
-//           + " | TIMEOUT: " + interval
-//           + " | NOW: " + getTimeStamp()
-//           + " | PING ID: " + getTimeStamp(tssPingId)
-//           + " | ELAPSED: " + msToTime(moment().valueOf() - tssPingId)
-//         ));
-        
-//         // slackSendMessage("\n*CHILD ERROR*\nTWEET_PARSER\nPONG TIMEOUT");
-
-//       }
-//     }, interval);
-
-//   }
-// }
+    });
+  });
+}
 
 function updateSearchTerms(){
   console.log(chalk.green("WAS | WAS | UPDATE SEARCH TERMS"));
@@ -7517,9 +7514,6 @@ function initTssChild(params){
 
   return new Promise(function(resolve, reject){
 
-    // let deltaTssMessageStart = process.hrtime();
-    // let deltaTssMessage = process.hrtime(deltaTssMessageStart);
-
     const tss = cp.fork(`${__dirname}/js/libs/tssChild.js`);
 
     childrenHashMap[params.childId] = {};
@@ -7529,13 +7523,14 @@ function initTssChild(params){
     childrenHashMap[params.childId].title = params.childId;
     childrenHashMap[params.childId].status = "NEW";
     childrenHashMap[params.childId].errors = 0;
+    childrenHashMap[params.childId].unfollowArrary = [];
 
     touchChildPidFile({ 
       childId: params.childId, 
       pid: childrenHashMap[params.childId].pid
     });
 
-    tss.on("message", function tssMessageRx(m){
+    tss.on("message", async function tssMessageRx(m){
 
       childrenHashMap[params.childId].status = "RUNNING";  
 
@@ -7605,6 +7600,17 @@ function initTssChild(params){
           ));
 
           threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
+          threeceeTwitter[m.threeceeUser].twitterFriends = m.twitterFriends;
+
+          try{
+            childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});
+          }
+          catch(err){
+            console.log(chalkError("WAS | <TSS | *** UNFOLLOW DUPLICATES ERROR"
+              + " | 3C @" + m.threeceeUser
+              + " | ERR: " + err
+            ));
+          }
 
         break;
 
@@ -7617,7 +7623,18 @@ function initTssChild(params){
           ));
 
           threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
+          threeceeTwitter[m.threeceeUser].twitterFriends = m.twitterFriends;
           threeceeTwitter[m.threeceeUser].twitterFollowLimit = true;
+
+          try{
+            childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});
+          }
+          catch(err){
+            console.log(chalkError("WAS | <TSS | *** UNFOLLOW DUPLICATES ERROR"
+              + " | 3C @" + m.threeceeUser
+              + " | ERR: " + err
+            ));
+          }
 
         break;
 
@@ -7740,7 +7757,7 @@ function initTfeChild(params){
       pid: childrenHashMap[params.childId].pid
     });
 
-    tfe.on("message", function tfeMessageRx(m){
+    tfe.on("message", async function tfeMessageRx(m){
 
       childrenHashMap[params.childId].status = "RUNNING";  
 
@@ -7795,6 +7812,18 @@ function initTfeChild(params){
           ));
 
           threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
+          threeceeTwitter[m.threeceeUser].twitterFriends = m.twitterFriends;
+
+          try{
+            childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});
+          }
+          catch(err){
+            console.log(chalkError("WAS | <TSS | *** UNFOLLOW DUPLICATES ERROR"
+              + " | 3C @" + m.threeceeUser
+              + " | ERR: " + err
+            ));
+          }
+
         break;
 
         case "FOLLOW_LIMIT":
@@ -7806,14 +7835,12 @@ function initTfeChild(params){
           ));
 
           threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
+          threeceeTwitter[m.threeceeUser].twitterFriends = m.twitterFriends;
           threeceeTwitter[m.threeceeUser].twitterFollowLimit = true;
         break;
 
         case "TWEET":
-          // deltaTfeMessage = process.hrtime(deltaTfeMessageStart);
-          // if (deltaTfeMessage[0] > 0) { console.log(chalkAlert("WAS | *** TFE RX DELTA: " + deltaTfeMessage[0] + "." + deltaTfeMessage[1])); }
-          // deltaTfeMessageStart = process.hrtime();
-          if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + m.tweet.id_str + " | @" + m.tweet.user.screen_name)); }
+           if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + m.tweet.id_str + " | @" + m.tweet.user.screen_name)); }
           socketRxTweet(m.tweet);
         break;
 
@@ -9071,6 +9098,7 @@ function initConfig() {
       threeceeTwitter[user].status = "UNCONFIGURED";
       threeceeTwitter[user].error = false;
       threeceeTwitter[user].twitterFollowing = 0;
+      threeceeTwitter[user].twitterFriends = [];
       threeceeTwitter[user].twitterFollowLimit = false;
       threeceeTwitter[user].twitterAuthorizationErrorFlag = false;
       threeceeTwitter[user].twitterErrorFlag = false;
@@ -9090,6 +9118,7 @@ function initConfig() {
       threeceeInfoTwitter[user].status = "UNCONFIGURED";
       threeceeInfoTwitter[user].error = false;
       threeceeInfoTwitter[user].twitterFollowing = 0;
+      threeceeInfoTwitter[user].twitterFriends = [];
       threeceeInfoTwitter[user].twitterFollowLimit = false;
       threeceeInfoTwitter[user].twitterAuthorizationErrorFlag = false;
       threeceeInfoTwitter[user].twitterErrorFlag = false;

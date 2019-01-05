@@ -596,7 +596,7 @@ function displayControl(isVisible) {
 
 function displayStats(isVisible, dColor) {
 
-  statsText.innerHTML = getTimeStamp() + " | " + statsObj.heartBeat.bestNetwork.networkId;
+  statsText.innerHTML = getTimeStamp() + "<br>" + statsObj.heartBeat.bestNetwork.networkId;
 
   statsDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
   if (dColor !== undefined) {statsDivElement.style.color = dColor;}
@@ -1797,7 +1797,7 @@ function initStatsUpdate(interval){
       statsObj.heartBeat.bestNetwork.networkId = "";
     }
 
-    statsText.innerHTML = getTimeStamp() + " | " + statsObj.heartBeat.bestNetwork.networkId;
+    statsText.innerHTML = getTimeStamp() + "<br>" + statsObj.heartBeat.bestNetwork.networkId;
   }, interval);
 }
 

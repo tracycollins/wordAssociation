@@ -1718,11 +1718,11 @@ function userProfileChangeHistogram(params) {
 
           domain = urlParse(userPropValue.toLowerCase()).hostname;
           nodeId = btoa(userPropValue.toLowerCase());
-          console.log("userProp: " + userProp + " | url nodeId: " + nodeId);
+          // console.log("userProp: " + userProp + " | url nodeId: " + nodeId);
 
           if (domain) { 
             domainNodeId = btoa(domain);
-            console.log("userProp: " + userProp + " | url domainNodeId: " + domainNodeId);
+            // console.log("userProp: " + userProp + " | url domainNodeId: " + domainNodeId);
             urlsHistogram.urls[domainNodeId] = (urlsHistogram.urls[domainNodeId] === undefined) ? 1 : urlsHistogram.urls[domainNodeId] + 1; 
           }
           urlsHistogram.urls[nodeId] = (urlsHistogram.urls[nodeId] === undefined) ? 1 : urlsHistogram.urls[nodeId] + 1;

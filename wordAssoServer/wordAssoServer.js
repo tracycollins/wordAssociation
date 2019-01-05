@@ -3862,19 +3862,22 @@ function categorizeNode(categorizeObj, callback) {
   }
 }
 
-let tweetUser;
+let prevTweetUser;
+
 function socketRxTweet(tw) {
 
-  tweetUser = tweetIdCache.get(tw.id_str);
+  prevTweetUser = tweetIdCache.get(tw.id_str);
 
-  if (tweetUser) {
+  if (prevTweetUser) {
+    currTweetUser = (tw.user && tw.user.screen_name) ? tw.user.screen_name : "UNKNOWN_SCREEN_NAME";
     statsObj.twitter.duplicateTweetsReceived += 1;
     if (statsObj.twitter.duplicateTweetsReceived % 1000 === 0){
       console.log(chalkLog("WAS"
         + " | ??? DUP TWEET"
         + " [ $: " + tweetIdCache.getStats().keys + " / " + statsObj.twitter.duplicateTweetsReceived + " DUPs ]"
         + " | " + tw.id_str 
-        + " | @" + tweetUser
+        + " | CURR @" + tw.user.screen_name
+        + " | PREV @" + prevTweetUser
       ));
     }
      return;

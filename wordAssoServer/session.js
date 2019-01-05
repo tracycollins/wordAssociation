@@ -599,13 +599,31 @@ function displayControl(isVisible) {
   // topTermsDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
 }
 
+let showPropArray = [
+  "networkId",
+  "successRate",
+  "matchRate",
+  "overallMatchRate",
+  "numInputs",
+  "inputsId"
+];
+
 function updateStatsText(){
   let innerHTML = "";
   innerHTML += getTimeStamp() + "<br><hr><br>";
 
   Object.keys(statsObj.heartBeat.bestNetwork).forEach(function(key){
     if (showPropArray.includes(key)){
-        innerHTML += key.toUpperCase() + " | " + statsObj.heartBeat.bestNetwork[key] + "<br><hr><br>";
+        switch (key) {
+          case "successRate":
+          case "matchRate":
+          case "overallMatchRate":
+            innerHTML += key.toUpperCase() + " | " + statsObj.heartBeat.bestNetwork[key].toFixed(2) + "%<br><hr><br>";
+          break;
+
+          default:
+            innerHTML += key.toUpperCase() + " | " + statsObj.heartBeat.bestNetwork[key] + "<br><hr><br>";
+        }
     }
   })
 

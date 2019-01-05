@@ -2188,7 +2188,7 @@ function initUserChangeDbQueueInterval(cnf){
         user.nodeId = user.userId;
 
         try {
-          let dbUser = await userServerController.findOneUserV2({user: user, mergeHistograms: true, noInc: true});
+          let dbUser = await userServerController.findOneUserV2({user: user, mergeHistograms: false, noInc: true});
         }
         catch(err){
           console.log(chalkError("WAS | TFC | *** USER DB UPDATE ERROR: " + err));
@@ -2355,7 +2355,7 @@ function initUserCategorizeQueueInterval(cnf){
       // printUserObj("WAS | TFC | updatedUser", updatedUser, chalkLog);
 
       try {
-        let dbUser = await userServerController.findOneUserV2({user: updatedUser, mergeHistograms: true, noInc: true});
+        let dbUser = await userServerController.findOneUserV2({user: updatedUser, mergeHistograms: false, noInc: true});
         printUserObj("WAS | TFC | " 
           + " [UC$: " + userChangeCache.getStats().keys + "]"
           + " [UCQ: " + userCategorizeQueue.length + "]"

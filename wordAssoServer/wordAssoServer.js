@@ -190,7 +190,7 @@ const TRENDING_CACHE_CHECK_PERIOD = 60;
 const NODE_CACHE_DEFAULT_TTL = 60;
 const NODE_CACHE_CHECK_PERIOD = 1;
 
-const TWEET_ID_CACHE_DEFAULT_TTL = 60;
+const TWEET_ID_CACHE_DEFAULT_TTL = 30;
 const TWEET_ID_CACHE_CHECK_PERIOD = 5;
 
 const chalk = require("chalk");
@@ -4538,7 +4538,7 @@ function initUnfollowableUserSet(){
 
             numUnfollowed += 1;
 
-            console.log(chalkLog("WAS | XXX UNFOLLOW"
+            debug(chalkLog("WAS | XXX UNFOLLOW"
               + " [" + numUnfollowed + "/" + numAlreadyUnfollowed + "/" + unfollowableUserSetObj.userIds.length + "]"
               + " | " + userUpdated.nodeId
               + " | @" + userUpdated.screenName

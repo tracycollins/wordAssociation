@@ -6597,7 +6597,7 @@ function initAppRouting(callback) {
                   // response.entries.forEach(function(entry){
                   async.eachSeries(response.entries, function(entry, cb1){
 
-                    console.log(chalk.green("WAS | >>> DROPBOX CHANGE | " + entry.path_lower));
+                    console.log(chalk.green("WAS | >>> DROPBOX CHANGE | PATH LOWER: " + entry.path_lower));
 
                     if ((entry.path_lower.endsWith("google_wordassoserverconfig.json"))
                       || (entry.path_lower.endsWith("default_wordassoserverconfig.json"))){
@@ -6610,7 +6610,7 @@ function initAppRouting(callback) {
                       cb1();
                     }
 
-                    else if (entry.path_lower.endsWith(bestRuntimeNetworkFileName)){
+                    else if (entry.path_lower.endsWith(bestRuntimeNetworkFileName.toLowerCase())){
                       loadBestRuntimeNetwork()
                       .then(function(){
                         cb1();

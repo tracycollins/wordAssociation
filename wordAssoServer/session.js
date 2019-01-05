@@ -49,6 +49,11 @@ var statsObj = {};
 statsObj.heartBeat = {};
 statsObj.heartBeat.bestNetwork = {};
 statsObj.heartBeat.bestNetwork.networkId = "";
+statsObj.heartBeat.bestNetwork.successRate = 0;
+statsObj.heartBeat.bestNetwork.matchRate = 0;
+statsObj.heartBeat.bestNetwork.overallMatchRate = 0;
+statsObj.heartBeat.bestNetwork.inputsId = "";
+statsObj.heartBeat.bestNetwork.numInputs = 0;
 
 statsObj.isAuthenticated = false;
 statsObj.maxNodes = 0;
@@ -595,7 +600,16 @@ function displayControl(isVisible) {
 }
 
 function updateStatsText(){
-  statsText.innerHTML = getTimeStamp() + "<br><hr><br>" + statsObj.heartBeat.bestNetwork.networkId;
+  let innerHTML = "";
+  innerHTML += getTimeStamp() + "<br><hr><br>";
+
+  Object.keys(statsObj.heartBeat.bestNetwork).forEach(function(key){
+    if (showPropArray.includes(key)){
+        innerHTML += key.toUpperCase() + " | " + statsObj.heartBeat.bestNetwork[key] + "<br><hr><br>";
+    }
+  })
+
+  statsText.innerHTML = innerHTML;
 }
 
 function displayStats(isVisible, dColor) {

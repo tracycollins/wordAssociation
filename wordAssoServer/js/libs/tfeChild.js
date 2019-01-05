@@ -1634,74 +1634,12 @@ function userProfileChangeHistogram(params) {
 
         case "location":
 
-          // try {
-
-          //   // placeId: placeId, 
-          //   // formattedAddress: formattedAddress, 
-          //   // components: components, 
-          //   // raw: response.json 
-
-          //   if (!geoCodeHashMap[userPropValue]) {
-          //     geoCodeResults = await geoCode({address: userPropValue});
-          //     geoCodeHashMap[userPropValue] = {};
-          //     geoCodeHashMap[userPropValue] = geoCodeResults;
-          //     statsObj.geo.hashmap.size = Object.keys(geoCodeHashMap).length;
-          //     statsObj.geo.hashmap.misses += 1;
-          //     statsObj.geo.hashmap.total += 1;
-          //     statsObj.geo.hashmap.hitRate = statsObj.geo.hashmap.hits/statsObj.geo.hashmap.total;
-          //   }
-          //   else {
-          //     geoCodeResults = geoCodeHashMap[userPropValue];
-          //     statsObj.geo.hashmap.hits += 1;
-          //     statsObj.geo.hashmap.total += 1;
-          //     statsObj.geo.hashmap.hitRate = statsObj.geo.hashmap.hits/statsObj.geo.hashmap.total;
-
-          //     console.log(chalkLog("TFC | +++ GEOCODE HASHMAP HIT"
-          //       + " | KEYS: " + Object.keys(geoCodeHashMap).length
-          //       + " | Hs: " + statsObj.geo.hashmap.hits
-          //       + " | Ms: " + statsObj.geo.hashmap.misses
-          //       + " | TOT: " + statsObj.geo.hashmap.total
-          //       + " | HITRATE: " + statsObj.geo.hashmap.hitRate.toFixed(2)
-          //       + " | " + userPropValue + " | " + geoCodeResults.placeId
-          //     ));
-          //   }
-
-
-          //   user.geoValid = geoCodeResults.geoValid;
-          //   user.geo = geoCodeResults;
-
-          //   // user.markModified("geo");
-          //   // user.markModified("geoValid");
-
-          //   console.log(chalkLog("TFC"
-          //     + " | GEOCODE"
-          //       + " [" + Object.keys(geoCodeHashMap).length + "]"
-          //     + " | @" + user.screenName
-          //     + " | VALID: " + user.geo.geoValid
-          //     + " | PLACE ID: " + user.geo.placeId
-          //     + " | NAME: " + user.geo.address
-          //     + " | FORMATTED: " + user.geo.formattedAddress
-          //     // + "\n" + jsonPrint(locations[index].geo)
-          //   ));                    
-
-          //   if (geoCodeResults.placeId){
-          //     locationsHistogram.locations[geoCodeResults.placeId] = (locationsHistogram.locations[geoCodeResults.placeId] === undefined) 
-          //       ? 1 
-          //       : locationsHistogram.locations[geoCodeResults.placeId] + 1;
-          //   }
-
-          //   return;
-          // }
-          // catch(err){
-          //   console.log(chalkError("TCS | *** GEOCODE ERROR: " + err
-          //   ));
-          //   return err;                
-          // }
-
           const lastSeen = Date.now();
 
           const name = userPropValue.trim().toLowerCase().replace(/\./gi, "");
           nodeId = btoa(name);
+
+          locationsHistogram.locations[nodeId] = (locationsHistogram.locations[nodeId] === undefined) ? 1 : locationsHistogram.locations[nodeId] + 1;
 
           try {
 
@@ -1728,6 +1666,7 @@ function userProfileChangeHistogram(params) {
               if (geoCodeResults.placeId) {
 
                 locationDoc.geoValid = true;
+                locationDoc.geo = geoCodeResults;
                 locationDoc.placeId = geoCodeResults.placeId;
                 locationDoc.formattedAddress = geoCodeResults.formattedAddress;
 
@@ -1749,6 +1688,8 @@ function userProfileChangeHistogram(params) {
                   + " | A: " + locationDoc.formattedAddress
                 ));
 
+                user.geoValid = geoCodeResults.geoValid;
+                user.geo = geoCodeResults;
 
                 locationsHistogram.locations[geoCodeResults.placeId] = (locationsHistogram.locations[geoCodeResults.placeId] === undefined) 
                   ? 1 
@@ -1774,10 +1715,6 @@ function userProfileChangeHistogram(params) {
                   + " | N: " + locationDoc.name + " / " + locationDoc.nameRaw
                 ));
 
-                locationsHistogram.locations[locationDoc.nodeId] = (locationsHistogram.locations[locationDoc.nodeId] === undefined) 
-                  ? 1 
-                  : locationsHistogram.locations[locationDoc.nodeId] + 1;
-
                 return;
 
               }
@@ -1801,6 +1738,14 @@ function userProfileChangeHistogram(params) {
                 + " | N: " + locationDoc.name + " / " + locationDoc.nameRaw
                 + " | A: " + locationDoc.formattedAddress
               ));
+
+              if (locationDoc.geoValid) {
+                if (!locationDoc.geo || locationDoc.geo === undefined) {
+                  locationDoc.geo = await geoCode({address: locationDoc.name});
+                }
+                user.geoValid = true;
+                user.geo = locationDoc.geo;
+              }
 
               const key = (locationDoc.placeId && locationDoc.placeId !== undefined) ? locationDoc.placeId : locationDoc.nodeId;
 

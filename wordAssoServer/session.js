@@ -594,9 +594,13 @@ function displayControl(isVisible) {
   // topTermsDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
 }
 
+function updateStatsText(){
+  statsText.innerHTML = getTimeStamp() + "<br><hr><br>" + statsObj.heartBeat.bestNetwork.networkId;
+}
+
 function displayStats(isVisible, dColor) {
 
-  statsText.innerHTML = getTimeStamp() + "<br>" + statsObj.heartBeat.bestNetwork.networkId;
+  updateStatsText();
 
   statsDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
   if (dColor !== undefined) {statsDivElement.style.color = dColor;}
@@ -1797,7 +1801,8 @@ function initStatsUpdate(interval){
       statsObj.heartBeat.bestNetwork.networkId = "";
     }
 
-    statsText.innerHTML = getTimeStamp() + "<br>" + statsObj.heartBeat.bestNetwork.networkId;
+    updateStatsText();
+
   }, interval);
 }
 

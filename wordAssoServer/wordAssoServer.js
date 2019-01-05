@@ -400,7 +400,7 @@ configuration.maxQueue = DEFAULT_MAX_QUEUE;
 configuration.forceFollow = DEFAULT_FORCE_FOLLOW;
 configuration.enableImageAnalysis = DEFAULT_ENABLE_IMAGE_ANALYSIS;
 configuration.forceImageAnalysis = DEFAULT_FORCE_IMAGE_ANALYSIS;
-geoCodeEnabled.geoCodeEnabled = DEFAULT_GEOCODE_ENABLED;
+configuration.geoCodeEnabled = DEFAULT_GEOCODE_ENABLED;
 
 configuration.twitterThreeceeAutoFollowUser = DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER;
 

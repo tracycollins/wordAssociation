@@ -45,6 +45,9 @@ config.displayNodeHashMap.word = "hide";
 config.viewerReadyInterval = 10000;
 
 var statsObj = {};
+
+statsObj.heartBeat = {};
+
 statsObj.isAuthenticated = false;
 statsObj.maxNodes = 0;
 statsObj.maxNodeAddQ = 0;
@@ -1506,6 +1509,10 @@ socket.on("HEARTBEAT", function(hb) {
 
   resetServerActiveTimer();
 
+  statsObj.heartBeat = hb;
+
+  currentSessionView.setHeartBeat(hb);
+
   statsObj.maxNodes = ( currentSessionView === undefined) ? 0 : currentSessionView.getMaxNodes();
   statsObj.maxNodeAddQ = ( currentSessionView === undefined) ? 0 : currentSessionView.getMaxNodeAddQ();
 
@@ -1513,6 +1520,7 @@ socket.on("HEARTBEAT", function(hb) {
   statsObj.serverConnected = true;
   statsObj.socket.connected = true;
   lastHeartbeatReceived = Date.now();
+
 });
 
 socket.on("CONFIG_CHANGE", function(rxConfig) {
@@ -1782,7 +1790,12 @@ function initStatsUpdate(interval){
     statsNegativeBar.path.setAttribute("stroke", palette.red);
     statsNoneBar.path.setAttribute("stroke", palette.white);
 
-    statsText.innerHTML = getTimeStamp();
+    if (!heartBeat.bestNetwork || heartBeat.bestNetwork === undefined) {
+      heartBeat.bestNetwork = {};
+      heartBeat.bestNetwork.networkId = "";
+    }
+
+    statsText.innerHTML = getTimeStamp() + " | " + heartBeat.bestNetwork.networkId;
   }, interval);
 }
 

@@ -609,25 +609,28 @@ let showPropArray = [
 ];
 
 function updateStatsText(){
-  let innerHTML = "";
-  innerHTML += getTimeStamp() + "<br><hr><br>";
+
+  statsText.innerHTML = getTimeStamp() + "<br><hr><br>";
 
   Object.keys(statsObj.heartBeat.bestNetwork).forEach(function(key){
     if (showPropArray.includes(key)){
         switch (key) {
           case "successRate":
+            statsText.innerHTML +=  "SR: | " + statsObj.heartBeat.bestNetwork[key].toFixed(2) + "%<br><br>";
+          break;
           case "matchRate":
+            statsText.innerHTML +=  "MR: | " + statsObj.heartBeat.bestNetwork[key].toFixed(2) + "%<br><br>";
+          break;
           case "overallMatchRate":
-            innerHTML += key.toUpperCase() + " | " + statsObj.heartBeat.bestNetwork[key].toFixed(2) + "%<br><hr><br>";
+            statsText.innerHTML +=  "OAMR: | " + statsObj.heartBeat.bestNetwork[key].toFixed(2) + "%<br><br>";
           break;
 
           default:
-            innerHTML += key.toUpperCase() + " | " + statsObj.heartBeat.bestNetwork[key] + "<br><hr><br>";
+            statsText.innerHTML += key.toUpperCase() + " | " + statsObj.heartBeat.bestNetwork[key] + "<br><br>";
         }
     }
   })
 
-  statsText.innerHTML = innerHTML;
 }
 
 function displayStats(isVisible, dColor) {

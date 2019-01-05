@@ -3869,7 +3869,6 @@ function socketRxTweet(tw) {
   prevTweetUser = tweetIdCache.get(tw.id_str);
 
   if (prevTweetUser) {
-    currTweetUser = (tw.user && tw.user.screen_name) ? tw.user.screen_name : "UNKNOWN_SCREEN_NAME";
     statsObj.twitter.duplicateTweetsReceived += 1;
     if (statsObj.twitter.duplicateTweetsReceived % 1000 === 0){
       console.log(chalkLog("WAS"

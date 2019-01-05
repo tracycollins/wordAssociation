@@ -47,6 +47,8 @@ config.viewerReadyInterval = 10000;
 var statsObj = {};
 
 statsObj.heartBeat = {};
+statsObj.heartBeat.bestNetwork = {};
+statsObj.heartBeat.bestNetwork.networkId = "";
 
 statsObj.isAuthenticated = false;
 statsObj.maxNodes = 0;
@@ -594,7 +596,7 @@ function displayControl(isVisible) {
 
 function displayStats(isVisible, dColor) {
 
-  statsText.innerHTML = getTimeStamp();
+  statsText.innerHTML = getTimeStamp() + " | " + statsObj.heartBeat.bestNetwork.networkId;
 
   statsDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
   if (dColor !== undefined) {statsDivElement.style.color = dColor;}

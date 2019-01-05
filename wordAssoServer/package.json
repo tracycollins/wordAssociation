@@ -8,9 +8,9 @@
     "@slack/client": "^4.8.0",
     "@threeceelabs/hashtag-server-controller": "^1.0.61",
     "@threeceelabs/mergehistograms": "^1.0.2",
-    "@threeceelabs/mongoose-twitter": "^1.0.210",
+    "@threeceelabs/mongoose-twitter": "^1.0.211",
     "@threeceelabs/socketio-auth": "^1.0.13",
-    "@threeceelabs/tweet-server-controller": "^1.0.426",
+    "@threeceelabs/tweet-server-controller": "^1.0.431",
     "@threeceelabs/twitter-image-parser": "^1.0.65",
     "@threeceelabs/twitter-text-parser": "^1.0.78",
     "@threeceelabs/user-server-controller": "^1.0.404",
@@ -88,7 +88,7 @@
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
-    "eslint": "^5.11.1",
+    "eslint": "^5.12.0",
     "jshint": "^2.9.7"
   },
   "scripts": {

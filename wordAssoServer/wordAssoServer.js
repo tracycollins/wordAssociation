@@ -75,8 +75,11 @@ const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
 const DEFAULT_INFO_TWITTER_USER = "threecee";
 let infoTwitterUserObj = {};
 
+cosnt DEFAULT_GEOCODE_ENABLED = true;
+
 const DEFAULT_FORCE_FOLLOW = false;
 const DEFAULT_FORCE_IMAGE_ANALYSIS = false;
+const DEFAULT_ENABLE_IMAGE_ANALYSIS = true;
 
 const DEFAULT_SAVE_FILE_QUEUE_INTERVAL = 5*ONE_SECOND;
 const DEFAULT_CHECK_TWITTER_RATE_LIMIT_INTERVAL = ONE_MINUTE;
@@ -395,7 +398,9 @@ let hostConfiguration = {}; // host-specific configuration
 configuration.verbose = false;
 configuration.maxQueue = DEFAULT_MAX_QUEUE;
 configuration.forceFollow = DEFAULT_FORCE_FOLLOW;
+configuration.enableImageAnalysis = DEFAULT_ENABLE_IMAGE_ANALYSIS;
 configuration.forceImageAnalysis = DEFAULT_FORCE_IMAGE_ANALYSIS;
+geoCodeEnabled.geoCodeEnabled = DEFAULT_GEOCODE_ENABLED;
 
 configuration.twitterThreeceeAutoFollowUser = DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER;
 
@@ -3524,8 +3529,6 @@ configEvents.on("INTERNET_NOT_READY", function internetNotReady() {
 
 configEvents.on("DB_CONNECT", function configEventDbConnect(){
 
-  initCategoryHashmapsReady = false;
-
   async.parallel({
 
     socketInit: function(cb){
@@ -3580,11 +3583,9 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
 
       initCategoryHashmaps()
       .then(function(){
-        initCategoryHashmapsReady = true;
         cb();
       })
       .catch(function(err){
-        initCategoryHashmapsReady = true;
         return cb(err);
       });
 
@@ -7960,6 +7961,8 @@ function initTfeChild(params){
       maxInputHashMap: maxInputHashMap,
       normalization: normalization,
       interval: configuration.tfeInterval,
+      geoCodeEnabled: configuration.geoCodeEnabled,
+      enableImageAnalysis: configuration.enableImageAnalysis,
       forceImageAnalysis: configuration.forceImageAnalysis,
       testMode: configuration.testMode,
       verbose: configuration.verbose
@@ -8732,6 +8735,34 @@ function loadConfigFile(params) {
           }
         }
 
+        if (loadedConfigObj.GEOCODE_ENABLED  !== undefined){
+          console.log("WAS | LOADED GEOCODE_ENABLED: " + loadedConfigObj.GEOCODE_ENABLED);
+
+          if ((loadedConfigObj.GEOCODE_ENABLED === false) || (loadedConfigObj.GEOCODE_ENABLED === "false")) {
+            newConfiguration.geoCodeEnabled = false;
+          }
+          else if ((loadedConfigObj.GEOCODE_ENABLED === true) || (loadedConfigObj.GEOCODE_ENABLED === "true")) {
+            newConfiguration.geoCodeEnabled = true;
+          }
+          else {
+            newConfiguration.geoCodeEnabled = false;
+          }
+        }
+
+        if (loadedConfigObj.ENABLE_IMAGE_ANALYSIS  !== undefined){
+          console.log("WAS | LOADED ENABLE_IMAGE_ANALYSIS: " + loadedConfigObj.ENABLE_IMAGE_ANALYSIS);
+
+          if ((loadedConfigObj.ENABLE_IMAGE_ANALYSIS === false) || (loadedConfigObj.ENABLE_IMAGE_ANALYSIS === "false")) {
+            newConfiguration.enableImageAnalysis = false;
+          }
+          else if ((loadedConfigObj.ENABLE_IMAGE_ANALYSIS === true) || (loadedConfigObj.ENABLE_IMAGE_ANALYSIS === "true")) {
+            newConfiguration.enableImageAnalysis = true;
+          }
+          else {
+            newConfiguration.enableImageAnalysis = false;
+          }
+        }
+
         if (loadedConfigObj.FORCE_IMAGE_ANALYSIS  !== undefined){
           console.log("WAS | LOADED FORCE_IMAGE_ANALYSIS: " + loadedConfigObj.FORCE_IMAGE_ANALYSIS);
 
@@ -9202,90 +9233,6 @@ function initCategoryHashmaps(){
 
     async.series({
 
-      hashtag: function(cb){
-
-        let p = {};
-
-        p.skip = 0;
-        p.batchSize = configuration.cursorBatchSize;
-        p.limit = configuration.findCatHashtagLimit;
-        p.verbose = false;
-
-        let more = true;
-        let totalCount = 0;
-        let totalManual = 0;
-        let totalAuto = 0;
-        let totalMatched = 0;
-        let totalMismatched = 0;
-        let totalMatchRate = 0;
-
-        debug(chalkInfo("WAS | LOADING CATEGORIZED HASHTAGS FROM DB ..."));
-
-        async.whilst(
-
-          function() {
-            return (statsObj.dbConnectionReady && more);
-          },
-
-          function(cb0){
-
-            hashtagServerController.findCategorizedHashtagsCursor(p, function(err, results){
-
-              if (err) {
-                console.log(chalkError("WAS | ERROR: initCategorizedHashtagHashmap: hashtagServerController: findCategorizedHashtagsCursor" + err));
-                cb0(err);
-              }
-              else if (results) {
-
-                statsObj.db.totalHashtags = results.totalHashtags;
-
-                more = true;
-                totalCount += results.count;
-                totalManual += results.manual;
-                totalAuto += results.auto;
-                totalMatched += results.matched;
-                totalMismatched += results.mismatched;
-
-                totalMatchRate = 100*(totalMatched/(totalMatched+totalMismatched));
-
-                Object.keys(results.obj).forEach(function(nodeId){
-                  categorizedHashtagHashMap.set(nodeId, results.obj[nodeId]);
-                });
-
-                p.skip += results.count;
-
-                cb0();
-              }
-              else {
-
-                more = false;
-
-                console.log(chalk.bold.blue("WAS | LOADED CATEGORIZED HASHTAGS FROM DB"
-                  + " | TOTAL HASHTAGS: " + statsObj.db.totalHashtags
-                  + " | TOTAL CATEGORIZED: " + totalCount
-                  + " | LIMIT: " + p.limit
-                  + " | SKIP: " + p.skip
-                  + " | " + totalManual + " MAN"
-                  + " | " + totalAuto + " AUTO"
-                  + " | " + totalMatched + " MATCHED"
-                  + " / " + totalMismatched + " MISMATCHED"
-                  + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
-                ));
-
-                cb0();
-              }
-            });
-          },
-
-          function(err){
-            if (err) {
-              console.log(chalkError("WAS | INIT CATEGORIZED HASHTAG HASHMAP ERROR: " + err + "\n" + jsonPrint(err)));
-            }
-            cb(err);
-          }
-        );
-      },
-
       user: function(cb){
 
         let p = {};
@@ -9369,6 +9316,90 @@ function initCategoryHashmaps(){
           function(err){
             if (err) {
               console.log(chalkError("WAS | *** INIT CATEGORIZED USER HASHMAP ERROR: " + err + "\n" + jsonPrint(err)));
+            }
+            cb(err);
+          }
+        );
+      },
+
+      hashtag: function(cb){
+
+        let p = {};
+
+        p.skip = 0;
+        p.batchSize = configuration.cursorBatchSize;
+        p.limit = configuration.findCatHashtagLimit;
+        p.verbose = false;
+
+        let more = true;
+        let totalCount = 0;
+        let totalManual = 0;
+        let totalAuto = 0;
+        let totalMatched = 0;
+        let totalMismatched = 0;
+        let totalMatchRate = 0;
+
+        debug(chalkInfo("WAS | LOADING CATEGORIZED HASHTAGS FROM DB ..."));
+
+        async.whilst(
+
+          function() {
+            return (statsObj.dbConnectionReady && more);
+          },
+
+          function(cb0){
+
+            hashtagServerController.findCategorizedHashtagsCursor(p, function(err, results){
+
+              if (err) {
+                console.log(chalkError("WAS | ERROR: initCategorizedHashtagHashmap: hashtagServerController: findCategorizedHashtagsCursor" + err));
+                cb0(err);
+              }
+              else if (results) {
+
+                statsObj.db.totalHashtags = results.totalHashtags;
+
+                more = true;
+                totalCount += results.count;
+                totalManual += results.manual;
+                totalAuto += results.auto;
+                totalMatched += results.matched;
+                totalMismatched += results.mismatched;
+
+                totalMatchRate = 100*(totalMatched/(totalMatched+totalMismatched));
+
+                Object.keys(results.obj).forEach(function(nodeId){
+                  categorizedHashtagHashMap.set(nodeId, results.obj[nodeId]);
+                });
+
+                p.skip += results.count;
+
+                cb0();
+              }
+              else {
+
+                more = false;
+
+                console.log(chalk.bold.blue("WAS | LOADED CATEGORIZED HASHTAGS FROM DB"
+                  + " | TOTAL HASHTAGS: " + statsObj.db.totalHashtags
+                  + " | TOTAL CATEGORIZED: " + totalCount
+                  + " | LIMIT: " + p.limit
+                  + " | SKIP: " + p.skip
+                  + " | " + totalManual + " MAN"
+                  + " | " + totalAuto + " AUTO"
+                  + " | " + totalMatched + " MATCHED"
+                  + " / " + totalMismatched + " MISMATCHED"
+                  + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
+                ));
+
+                cb0();
+              }
+            });
+          },
+
+          function(err){
+            if (err) {
+              console.log(chalkError("WAS | INIT CATEGORIZED HASHTAG HASHMAP ERROR: " + err + "\n" + jsonPrint(err)));
             }
             cb(err);
           }
@@ -10245,8 +10276,9 @@ setTimeout(function(){
               .then(()=>updateUserSets())
               .then(()=>loadBestRuntimeNetwork())
               .then(()=>loadMaxInputHashMap())
-              .then(()=>initIgnoreWordsHashMap())
+              .then(()=>initCategoryHashmaps())
               .then(()=>initCategoryHashmapsInterval(configuration.categoryHashmapsUpdateInterval))
+              .then(()=>initIgnoreWordsHashMap())
               .then(()=>initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers}))
               .then(()=>initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval))
               .then(()=>initRateQinterval(configuration.rateQueueInterval))

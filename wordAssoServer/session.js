@@ -615,18 +615,21 @@ function updateStatsText(){
   Object.keys(statsObj.heartBeat.bestNetwork).forEach(function(key){
     if (showPropArray.includes(key)){
         switch (key) {
+          case "networkId":
+            statsText.innerHTML +=  statsObj.heartBeat.bestNetwork[key] + "<br><br><br>";
+          break;
           case "successRate":
-            statsText.innerHTML +=  "SR: | " + statsObj.heartBeat.bestNetwork[key].toFixed(2) + "%<br><br>";
+            statsText.innerHTML +=  "SR: " + statsObj.heartBeat.bestNetwork[key].toFixed(2) + "%<br><br>";
           break;
           case "matchRate":
-            statsText.innerHTML +=  "MR: | " + statsObj.heartBeat.bestNetwork[key].toFixed(2) + "%<br><br>";
+            statsText.innerHTML +=  "MR: " + statsObj.heartBeat.bestNetwork[key].toFixed(2) + "%<br><br>";
           break;
           case "overallMatchRate":
-            statsText.innerHTML +=  "OAMR: | " + statsObj.heartBeat.bestNetwork[key].toFixed(2) + "%<br><br>";
+            statsText.innerHTML +=  "OAMR: " + statsObj.heartBeat.bestNetwork[key].toFixed(2) + "%<br><br>";
           break;
 
           default:
-            statsText.innerHTML += key.toUpperCase() + " | " + statsObj.heartBeat.bestNetwork[key] + "<br><br>";
+            statsText.innerHTML += key.toUpperCase() + ": " + statsObj.heartBeat.bestNetwork[key] + "<br><br>";
         }
     }
   })

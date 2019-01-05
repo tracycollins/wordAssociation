@@ -8515,7 +8515,7 @@ function loadBestRuntimeNetwork(params){
             nnObj.matchRate = (nnObj.matchRate !== undefined) ? nnObj.matchRate : 0;
             bestNetworkObj = {};
             bestNetworkObj = deepcopy(nnObj);
-            console.log(chalkLog("WAS | +++ LOADED BEST NETWORK: " + bestNetworkObj.networkId));
+            console.log(chalk.green.bold("WAS | +++ LOADED BEST NETWORK: " + bestNetworkObj.networkId));
 
             if (statsObj.previousBestNetworkId !== bestNetworkObj.networkId) {
               statsObj.previousBestNetworkId = bestNetworkObj.networkId;
@@ -8555,7 +8555,7 @@ function loadBestRuntimeNetwork(params){
                 configEvents.emit("NEW_BEST_NETWORK", bestNetworkObj.networkId);
               }
 
-              console.log(chalk.blue("WAS | +++ BEST NEURAL NETWORK LOADED FROM DB"
+              console.log(chalk.blue.bold("WAS | +++ BEST NEURAL NETWORK LOADED FROM DB"
                 + " | " + bestNetworkObj.networkId
                 + " | SR: " + bestNetworkObj.successRate.toFixed(2) + "%"
                 + " | MR: " + bestNetworkObj.matchRate.toFixed(2) + "%"
@@ -8567,6 +8567,12 @@ function loadBestRuntimeNetwork(params){
             });
           }
         });
+      }
+      else {
+        console.log(chalkError("WAS | *** LOAD BEST NETWORK ERROR: NO PAYLOAD?" 
+          + folder + "/" + file
+        ));
+        reject(new Error("NO NETWORK PAYLOAD"));
       }
     })
     .catch(function(err){

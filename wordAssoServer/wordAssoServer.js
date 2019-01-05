@@ -75,7 +75,7 @@ const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
 const DEFAULT_INFO_TWITTER_USER = "threecee";
 let infoTwitterUserObj = {};
 
-cosnt DEFAULT_GEOCODE_ENABLED = true;
+const DEFAULT_GEOCODE_ENABLED = true;
 
 const DEFAULT_FORCE_FOLLOW = false;
 const DEFAULT_FORCE_IMAGE_ANALYSIS = false;

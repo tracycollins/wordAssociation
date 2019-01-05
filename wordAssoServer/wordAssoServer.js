@@ -2420,6 +2420,19 @@ function loadFile(params) {
           console.log(chalkError("WAS | DROPBOX loadFile ERROR: " + fullPath));
           return reject(fileObj.error);
         }
+        else if (params.file.match(/\.txt$/gi)) {
+
+          let payload = data.fileBinary;
+
+          if (!payload || (payload === undefined)) {
+            return reject(new Error("WAS LOAD FILE PAYLOAD UNDEFINED"));
+          }
+
+          return resolve(payload);
+
+          console.log(chalkError("WAS | DROPBOX loadFile ERROR: " + fullPath));
+          return reject(fileObj.error);
+        }
         else {
           resolve();
         }

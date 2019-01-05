@@ -1764,7 +1764,6 @@ function userProfileChangeHistogram(params) {
             console.log(chalkError("TCS | *** GEOCODE ERROR", err));
             return;
           }
-
         break;
 
         case "name":

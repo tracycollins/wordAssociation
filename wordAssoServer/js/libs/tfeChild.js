@@ -1422,7 +1422,7 @@ function geoCode(params) {
 
     googleMapsClient.geocode({ address: params.address }, function(err, response) {
       if (err) {
-        console.log(chalkError("TCS | *** GEOCODE ERROR: " + err));
+        console.log(chalkError("TCS | *** GEOCODE ERROR\n", jsonPrint(err)));
         return reject(err);
       }
       if (response.json.results.length > 0) {

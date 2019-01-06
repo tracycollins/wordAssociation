@@ -1142,7 +1142,7 @@ function initSearchStream(params){
       });
 
       threeceeUserObj.searchStream.on("warning", function(data){
-        console.log(chalkAlert("TSS | " + getTimeStamp() + " | !!! TWITTER WARNING: " + jsonPrint(data)));
+        console.log(chalkAlert("TSS | " + getTimeStamp() + " | !!! TWITTER WARNING\n" + jsonPrint(data)));
         statsObj.twitter.warnings+= 1;
         showStats();
       });
@@ -1157,19 +1157,19 @@ function initSearchStream(params){
       });
 
       threeceeUserObj.searchStream.on("scrub_geo", function(data){
-        console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER SCRUB GEO: " + jsonPrint(data)));
+        console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER SCRUB GEO\n" + jsonPrint(data)));
         statsObj.twitter.scrubGeo+= 1;
         showStats();
       });
 
       threeceeUserObj.searchStream.on("status_withheld", function(data){
-        console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER STATUS WITHHELD: " + jsonPrint(data)));
+        console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER STATUS WITHHELD\n" + jsonPrint(data)));
         statsObj.twitter.statusWithheld+= 1;
         showStats();
       });
 
       threeceeUserObj.searchStream.on("user_withheld", function(data){
-        console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER USER WITHHELD: " + jsonPrint(data)));
+        console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER USER WITHHELD\n" + jsonPrint(data)));
         statsObj.twitter.userWithheld+= 1;
         showStats();
       });

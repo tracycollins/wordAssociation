@@ -1295,19 +1295,18 @@ function initSearchStream(params){
         }
 
         if ((threeceeUserObj.stats.tweetsReceived % 1000 === 0) || (statsObj.tweetsReceived % 1000 === 0)) {
-          console.log(chalkTwitter("TSS | <T | " + getTimeStamp()
-            + " | TWQ: " + tweetQueue.length
-            + " [ TOTAL Ts/RTs/QTs: " + statsObj.tweetsReceived + "/" + statsObj.retweetsReceived + "/" + statsObj.quotedTweetsReceived + "]"
-            + " | 3C @" + threeceeUserObj.screenName
-            + " [ Ts/RTs/QTs: " + threeceeUserObj.stats.tweetsReceived + "/" + threeceeUserObj.stats.retweetsReceived + "/" + threeceeUserObj.stats.quotedTweetsReceived + "]"
+          console.log(chalkTwitter("TSS | <T | "
+            + " | TQ " + tweetQueue.length
+            + " [ Ts/Rs/Qs " + statsObj.tweetsReceived + "/" + statsObj.retweetsReceived + "/" + statsObj.quotedTweetsReceived + "]"
+            + " | " + threeceeUserObj.screenName
             + " | " + threeceeUserObj.stats.tweetsPerMinute.toFixed(3) + " TPM"
             + " | " + tweetStatus.id_str
-            + " | TWEET LANG: " + tweetStatus.lang
+            + " | TLNG " + tweetStatus.lang
+            + " | " + tweetStatus.user.id_str
             + " | @" + tweetStatus.user.screen_name
             + " | " + tweetStatus.user.name
-            + " | USER LANG: " + tweetStatus.user.lang
+            + " | ULANG " + tweetStatus.user.lang
             + " | LOC " + tweetStatus.user.location
-            + " | " + tweetStatus.user.id_str
           ));
         }
 

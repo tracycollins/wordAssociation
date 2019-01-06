@@ -57,6 +57,8 @@ let userServerControllerReady = false;
 
 
 let neuralNetworkChangeStream;
+let userChangeStream;
+
 let userFollowingCursor;
 
 let initCategoryHashmapsReady = true;
@@ -539,6 +541,7 @@ function quit(message) {
 
   if (userFollowingCursor !== undefined) { userFollowingCursor.close(); }
   if (neuralNetworkChangeStream !== undefined) { neuralNetworkChangeStream.close(); }
+  if (userChangeStream !== undefined) { userChangeStream.close(); }
 
   clearInterval(updateUserSetsInterval);
   clearInterval(dbConnectInterval);
@@ -7848,14 +7851,14 @@ function initTfeChild(params){
           }
         break;
 
-        case "USER_CATEGORIZED":
-          console.log(chalkTwitter("WAS | R< USER_CATEGORIZED"
-            + " | @" + m.user.screenName 
-            + " | CAT MAN: " + m.user.category
-            + " | AUTO: " + m.user.categoryAuto
-          ));
-          categorizedUserHashMap.set(m.nodeId, m.user);
-        break;
+        // case "USER_CATEGORIZED":
+        //   console.log(chalkTwitter("WAS | R< USER_CATEGORIZED"
+        //     + " | @" + m.user.screenName 
+        //     + " | CAT MAN: " + m.user.category
+        //     + " | AUTO: " + m.user.categoryAuto
+        //   ));
+        //   categorizedUserHashMap.set(m.user.nodeId, m.user);
+        // break;
 
         case "TWITTER_STATS":
 
@@ -9236,8 +9239,87 @@ function initConfig() {
   });
 }
 
-// kludge
-// probably can write one general purpose function to handle all types of nodes
+function initDbUserChangeStream(params){
+
+  return new Promise(function(resolve, reject){
+
+    const userCollection = global.dbConnection.collection("users");
+
+    userCollection.countDocuments(function(err, count){
+
+      if (err) {
+        console.log(chalkError("WAS | *** DB USERS COUNTER ERROR: " + err));
+        return reject(err);
+      }
+
+      console.log(chalkInfo("WAS | USERS IN DB: " + count));
+
+      const userChangeFilter = {
+        "$match": {
+          "$or": [
+            { operationType: "insert" },
+            { operationType: "delete" },
+            { operationType: "update" },
+            { operationType: "replace" }
+          ]
+        }
+      };
+
+      const userChangeOptions = { fullDocument: "updateLookup" };
+
+      userChangeStream = userCollection.watch([userChangeFilter], userChangeOptions);
+
+      let categoryChanges = {};
+      let catObj = {};
+
+      userChangeStream.on("change", function(change){
+
+        if (change 
+          && change.fullDocument 
+          && change.updateDescription 
+          && change.updateDescription.updatedFields 
+          && (Object.keys(change.updateDescription.updatedFields).includes("category")
+            || Object.keys(change.updateDescription.updatedFields).includes("categoryAuto"))
+        ) { 
+
+          categoryChanges = {};
+
+          categoryChanges.manual = change.fullDocument.category;
+          categoryChanges.auto = change.fullDocument.categoryAuto;
+          
+          if (categoryChanges.auto || categoryChanges.manual) {
+
+            catObj = categorizedUserHashMap.get(change.fullDocument.nodeId);
+
+            if (catObj === undefined) {
+              catObj = {};
+              catObj.screenName = change.fullDocument.screenName;
+              catObj.nodeId = change.fullDocument.nodeId;
+            }
+
+            catObj.manual = categoryChanges.manual || catObj.manual;
+            catObj.auto = categoryChanges.auto || catObj.auto;
+
+            categorizedUserHashMap.set(catObj.nodeId, catObj);
+
+            console.log(chalkInfo("WAS | USER CHG"
+              + " | NID: " + catObj.nodeId
+              + " | @" + catObj.screenName
+              + " | CAT M: " + categoryChanges.manual + " | A: " + categoryChanges.auto
+            ));
+          }
+        }
+        // else {
+        //   console.log(chalkLog("WAS | XX> USER CHANGE | " +  change.operationType));
+        // }
+      });
+
+      resolve();
+
+    });
+
+  });
+}
 
 function initCategoryHashmaps(){
 
@@ -9425,7 +9507,7 @@ function initCategoryHashmaps(){
         return reject(err);
       }
         
-      console.log(chalk.blue("WAS | LOAD COMPLETE: initCategoryHashmaps"));
+      console.log(chalk.green("WAS | INIT CATEGORIZED HASHMAPS COMPLETE"));
       resolve();
 
     });
@@ -9493,7 +9575,6 @@ function initStdIn(params){
   });
 }
 
-
 function initIgnoreWordsHashMap() {
   return new Promise(function(resolve, reject){
 
@@ -9544,7 +9625,6 @@ function initUpdateUserSetsInterval(interval){
 
 
   }, interval);
-
 }
 
 let memStatsInterval;
@@ -9733,46 +9813,44 @@ function initThreeceeTwitterUsers(params){
   });
 }
 
-function initCategoryHashmapsInterval(interval){
+// function initCategoryHashmapsInterval(interval){
 
-  return new Promise(function(resolve, reject){
+//   return new Promise(function(resolve, reject){
 
-    console.log(chalk.bold.black("WAS | INIT CATEGORY HASHMAP INTERVAL"
-      + " | " + msToTime(interval)
-    ));
+//     console.log(chalk.bold.black("WAS | INIT CATEGORY HASHMAP INTERVAL"
+//       + " | " + msToTime(interval)
+//     ));
 
-    clearInterval(categoryHashmapsInterval);
+//     clearInterval(categoryHashmapsInterval);
 
-    categoryHashmapsInterval = setInterval(function updateMemStats() {
+//     categoryHashmapsInterval = setInterval(async function updateMemStats() {
 
-      if (statsObj.dbConnectionReady && initCategoryHashmapsReady) {
+//       if (statsObj.dbConnectionReady && initCategoryHashmapsReady) {
 
-        debug(chalkInfo("--- IN CATEGORY HASHMAP INTERVAL"
-          + " | " + msToTime(interval)
-        ));
+//         debug(chalkInfo("--- IN CATEGORY HASHMAP INTERVAL"
+//           + " | " + msToTime(interval)
+//         ));
 
-        initCategoryHashmapsReady = false;
+//         initCategoryHashmapsReady = false;
 
-        try {
-          initCategoryHashmaps()
-          .then(function(){
-            initCategoryHashmapsReady = true;
-          });
-        }
-        catch (err){
-          console.log(chalkError("WAS | *** ERROR: LOAD CATEGORY HASHMAPS: " + err));
-          console.error(err);
-          initCategoryHashmapsReady = true;
-        }
+//         try {
+//           await initCategoryHashmaps();
+//           console.log(chalk.bold.green("WAS | INIT CATEGORY HASHMAPS COMPLETE"));
+//           initCategoryHashmapsReady = true;
+//         }
+//         catch (err){
+//           console.log(chalkError("WAS | *** ERROR: INIT CATEGORY HASHMAPS: " + err));
+//           console.error(err);
+//           initCategoryHashmapsReady = true;
+//         }
 
-        debug(chalk.bold.green("WAS | +++ LOADED CATEGORY HASHMAPS"));
-      }
+//       }
 
-    }, interval);
+//     }, interval);
 
-    resolve();
-  });
-}
+//     resolve();
+//   });
+// }
 
 function twitterGetUserUpdateDb(user, callback){
 
@@ -10290,7 +10368,7 @@ setTimeout(function(){
               .then(()=>loadBestRuntimeNetwork())
               .then(()=>loadMaxInputHashMap())
               .then(()=>initCategoryHashmaps())
-              .then(()=>initCategoryHashmapsInterval(configuration.categoryHashmapsUpdateInterval))
+              // .then(()=>initCategoryHashmapsInterval(configuration.categoryHashmapsUpdateInterval))
               .then(()=>initIgnoreWordsHashMap())
               .then(()=>initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers}))
               .then(()=>initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval))
@@ -10302,6 +10380,7 @@ setTimeout(function(){
               .then(()=>initDbuChild({childId: DEFAULT_DBU_CHILD_ID}))
               .then(()=>initTweetParser({childId: DEFAULT_TWP_CHILD_ID}))
               .then(()=>initTfeChild({childId: DEFAULT_TFE_CHILD_ID}))
+              .then(()=>initDbUserChangeStream())
               .then(()=>initTssChildren())
               .catch(function(err){
                 console.log(chalkError("WAS | *** INIT ERROR: " + err));

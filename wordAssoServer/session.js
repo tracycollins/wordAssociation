@@ -619,13 +619,21 @@ function updateStatsText(){
             statsText.innerHTML +=  statsObj.heartBeat.bestNetwork[key] + "<br><br><br>";
           break;
           case "successRate":
+            if (typeof statsObj.heartBeat.bestNetwork[key] !== "number") { break; }
             statsText.innerHTML +=  "SR: " + statsObj.heartBeat.bestNetwork[key].toFixed(2) + "%<br><br>";
           break;
           case "matchRate":
+            if (typeof statsObj.heartBeat.bestNetwork[key] !== "number") { break; }
             statsText.innerHTML +=  "MR: " + statsObj.heartBeat.bestNetwork[key].toFixed(2) + "%<br><br>";
           break;
           case "overallMatchRate":
+            if (typeof statsObj.heartBeat.bestNetwork[key] !== "number") { break; }
             statsText.innerHTML +=  "OAMR: " + statsObj.heartBeat.bestNetwork[key].toFixed(2) + "%<br><br>";
+          break;
+
+          case "seedNetworkRes":
+            if (typeof statsObj.heartBeat.bestNetwork[key] !== "number") { break; }
+            statsText.innerHTML +=  "SN SR: " + statsObj.heartBeat.bestNetwork[key].toFixed(2) + "%<br><br>";
           break;
 
           default:

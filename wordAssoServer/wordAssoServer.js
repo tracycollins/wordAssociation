@@ -6587,13 +6587,14 @@ function initAppRouting(callback) {
     }
     else if (req.path === "/dropbox_webhook") {
 
-      console.log(chalkInfo("WAS | R< DROPBOX WEB HOOK | /dropbox_webhook"
-        + " | DB CURSOR READY: " + dropboxFolderGetLastestCursorReady
-        // + " | DB CHANGE FOLDER ARRAY\n" + jsonPrint(configuration.dropboxChangeFolderArray)
-      )); 
-
       if (configuration.verbose) {
-        console.log(chalkInfo("WAS | R< dropbox_webhook"
+
+        console.log(chalkLog("WAS | R< DROPBOX WEB HOOK | /dropbox_webhook"
+          + " | DB CURSOR READY: " + dropboxFolderGetLastestCursorReady
+          // + " | DB CHANGE FOLDER ARRAY\n" + jsonPrint(configuration.dropboxChangeFolderArray)
+        )); 
+
+        debug(chalkInfo("WAS | R< dropbox_webhook"
           + "\nreq.query\n" + jsonPrint(req.query)
           + "\nreq.params\n" + jsonPrint(req.params)
           + "\nreq.body\n" + jsonPrint(req.body)
@@ -6601,6 +6602,8 @@ function initAppRouting(callback) {
       }
 
       res.send(req.query.challenge);
+
+      next();
 
       let dropboxCursorFolderArray = configuration.dropboxChangeFolderArray;
 
@@ -6718,12 +6721,12 @@ function initAppRouting(callback) {
           }
           console.log(chalkLog("WAS | END DROPBOX WEBHOOK"));
           dropboxFolderGetLastestCursorReady = true;
-          next();
+          // next();
         });
       }
       else {
         debug(chalkAlert("WAS | SKIP DROPBOX WEBHOOK ... NOT READY"));
-        next();
+        // next();
       }
     }
     else if (req.path === "/googleccd19766bea2dfd2.html") {

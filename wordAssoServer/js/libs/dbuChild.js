@@ -375,16 +375,15 @@ function printUserObj(title, user) {
   console.log(chalkUser(title
     + " | " + user.userId
     + " | @" + user.screenName
-    + " | N: " + user.name 
-    + " | FLWRs: " + user.followersCount
-    + " | FRNDs: " + user.friendsCount
-    + " | Ts: " + user.statusesCount
-    + " | Ms:  " + user.mentions
-    + " | LS: " + getTimeStamp(user.lastSeen)
-    + " | FLWg: " + user.following 
-    + " | 3C: @" + user.threeceeFollowing 
-    + " | CAT MAN: " + user.category
-    + " | CAT AUTO: " + user.categoryAuto
+    + " | N " + user.name 
+    + " | FWs " + user.followersCount
+    + " | FDs " + user.friendsCount
+    + " | T " + user.statusesCount
+    + " | M  " + user.mentions
+    + " | LS " + getTimeStamp(user.lastSeen)
+    + " | FW: " + user.following 
+    + " | 3C " + user.threeceeFollowing 
+    + " | C M " + user.category + " A " + user.categoryAuto
   ));
 }
 
@@ -513,7 +512,7 @@ function userUpdateDb(tweetObj){
         }
 
         if (!user) {
-          console.log(chalkLog("DBU | --- USER DB MISS: @" + tweetObj.user.screenName));
+          // console.log(chalkLog("DBU | --- USER DB MISS: @" + tweetObj.user.screenName));
           return resolve(null);
         }
 
@@ -551,7 +550,7 @@ function userUpdateDb(tweetObj){
           user.markModified("profileHistograms");
           user.markModified("tweetHistograms");
 
-          printUserObj("DBU | +++ USR DB HIT", user);
+          // printUserObj("DBU | +++ USR DB HIT", user);
 
           if (configuration.verbose) {
             console.log(chalkInfo("DBU | USER MERGED HISTOGRAMS"

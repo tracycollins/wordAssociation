@@ -682,19 +682,19 @@ function printUserObj(title, user, chalkConfig) {
   user = userDefaults(user);
 
   console.log(curChalk(title
-    + " | UID: " + user.userId
+    + " | U " + user.userId
     + " | @" + user.screenName
-    + " | N: " + user.name 
-    + " | LANG: " + user.lang 
-    + " | FLWRs: " + user.followersCount
-    + " | FRNDs: " + user.friendsCount
-    + " | Ts: " + user.statusesCount
-    + " | Ms:  " + user.mentions
-    + " | LS: " + getTimeStamp(user.lastSeen)
-    + " | IGNRD: " + user.ignored 
-    + " | FLWg: " + user.following 
-    + " | 3C: @" + user.threeceeFollowing 
-    + " | CAT M: " + user.category + " - A: " + user.categoryAuto
+    + " | N " + user.name 
+    + " | L " + user.lang 
+    + " | FWs " + user.followersCount
+    + " | FDs " + user.friendsCount
+    + " | T " + user.statusesCount
+    + " | M  " + user.mentions
+    + " | LS " + getTimeStamp(user.lastSeen)
+    + " | IG " + user.ignored 
+    + " | FW " + user.following 
+    + " | 3C " + user.threeceeFollowing 
+    + " | CAT M " + user.category + " A " + user.categoryAuto
   ));
 
   if (user.changes) {
@@ -2165,85 +2165,85 @@ function updateUserHistograms(params) {
   });
 }
 
-function initUserChangeDbQueueInterval(cnf){
+// function initUserChangeDbQueueInterval(cnf){
 
-  let user = {};
+//   let user = {};
 
-  console.log(chalkTwitter("WAS | TFC | INIT TWITTER USER CHANGE DB QUEUE INTERVAL: " + cnf.userChangeDbQueueInterval));
+//   console.log(chalkTwitter("WAS | TFC | INIT TWITTER USER CHANGE DB QUEUE INTERVAL: " + cnf.userChangeDbQueueInterval));
 
-  clearInterval(userChangeDbQueueInterval);
+//   clearInterval(userChangeDbQueueInterval);
 
-  userChangeDbQueueInterval = setInterval(async function () {
+//   userChangeDbQueueInterval = setInterval(async function () {
 
-    if (userChangeDbQueueReady && (userChangeDbQueue.length > 0)) {
+//     if (userChangeDbQueueReady && (userChangeDbQueue.length > 0)) {
 
-      userChangeDbQueueReady = false;
+//       userChangeDbQueueReady = false;
 
-      user = userChangeDbQueue.shift();
+//       user = userChangeDbQueue.shift();
 
-      if (user.initFlag && !user.changes) {
+//       if (user.initFlag && !user.changes) {
 
-        printUserObj("WAS | TFC | CHANGE USER DB [ UCDBQ: " + userChangeDbQueue.length + " | UC$: " + userChangeCache.getStats().keys + "] INIT", user, chalkGreen);
+//         printUserObj("WAS | TFC | CHANGE USER DB [ UCDBQ: " + userChangeDbQueue.length + " | UC$: " + userChangeCache.getStats().keys + "] INIT", user, chalkGreen);
 
-        user.nodeId = user.userId;
+//         user.nodeId = user.userId;
 
-        try {
-          let dbUser = await userServerController.findOneUserV2({user: user, mergeHistograms: false, noInc: true});
-        }
-        catch(err){
-          console.log(chalkError("WAS | TFC | *** USER DB UPDATE ERROR: " + err));
-        }
+//         try {
+//           let dbUser = await userServerController.findOneUserV2({user: user, mergeHistograms: false, noInc: true});
+//         }
+//         catch(err){
+//           console.log(chalkError("WAS | TFC | *** USER DB UPDATE ERROR: " + err));
+//         }
 
-        userChangeDbQueueReady = true;
-        userChangeCache.del(user.nodeId);
+//         userChangeDbQueueReady = true;
+//         userChangeCache.del(user.nodeId);
 
-      }
-      else if (user.changes) {
+//       }
+//       else if (user.changes) {
 
-        statsObj.user.changes += 1;
+//         statsObj.user.changes += 1;
 
-        if (configuration.verbose) { 
-        printUserObj("WAS | TFC | CHANGE USER DB [ UCDBQ: " + userChangeDbQueue.length + " | UC$: " + userChangeCache.getStats().keys + "] CHNG", user, chalkGreen);
-        }
+//         if (configuration.verbose) { 
+//         printUserObj("WAS | TFC | CHANGE USER DB [ UCDBQ: " + userChangeDbQueue.length + " | UC$: " + userChangeCache.getStats().keys + "] CHNG", user, chalkGreen);
+//         }
 
-        const cacheObj = userChangeCache.get(user.nodeId);
+//         const cacheObj = userChangeCache.get(user.nodeId);
 
-        if (configuration.verbose && (cacheObj === undefined)) { 
-          console.log(chalkInfo("WAS | TFC | USER CHG $ MISS"
-            + " [UC$: " + userChangeCache.getStats().keys + "]"
-            + " [UCATQ: " + userCategorizeQueue.length + "]"
-            + " | NID: " + user.nodeId
-            + " | @" + user.screenName
-          ));
-        }
+//         if (configuration.verbose && (cacheObj === undefined)) { 
+//           console.log(chalkInfo("WAS | TFC | USER CHG $ MISS"
+//             + " [UC$: " + userChangeCache.getStats().keys + "]"
+//             + " [UCATQ: " + userCategorizeQueue.length + "]"
+//             + " | NID: " + user.nodeId
+//             + " | @" + user.screenName
+//           ));
+//         }
 
-        if ((cacheObj === undefined) && !userCategorizeQueue.includes(user.userId) && (userCategorizeQueue.length < USER_CAT_QUEUE_MAX_LENGTH)) {
+//         if ((cacheObj === undefined) && !userCategorizeQueue.includes(user.userId) && (userCategorizeQueue.length < USER_CAT_QUEUE_MAX_LENGTH)) {
 
-          userCategorizeQueue.push(user);
+//           userCategorizeQueue.push(user);
 
-          debug(chalkInfo("WAS | TFC | USER_CATEGORIZE"
-            + " [ USQ: " + userCategorizeQueue.length + "]"
-            + " | FLWRs: " + user.followersCount
-            + " | FRNDs: " + user.friendsCount
-            + " | UID: " + user.userId
-            + " | @" + user.screenName
-            + " | " + user.name
-            + " | LANG: " + user.lang
-            + "\nTFE | USER_SHOW | DESC: " + user.description
-          ));
+//           debug(chalkInfo("WAS | TFC | USER_CATEGORIZE"
+//             + " [ USQ: " + userCategorizeQueue.length + "]"
+//             + " | FLWRs: " + user.followersCount
+//             + " | FRNDs: " + user.friendsCount
+//             + " | UID: " + user.userId
+//             + " | @" + user.screenName
+//             + " | " + user.name
+//             + " | LANG: " + user.lang
+//             + "\nTFE | USER_SHOW | DESC: " + user.description
+//           ));
           
-        }
+//         }
 
-        userChangeDbQueueReady = true;
-      }
-      else {
-        userChangeDbQueueReady = true;
-      }
+//         userChangeDbQueueReady = true;
+//       }
+//       else {
+//         userChangeDbQueueReady = true;
+//       }
 
-    }
+//     }
 
-  }, cnf.userChangeDbQueueInterval);
-}
+//   }, cnf.userChangeDbQueueInterval);
+// }
 
 let uscTimeout;
 
@@ -2361,7 +2361,7 @@ function initUserCategorizeQueueInterval(cnf){
           + " [UCQ: " + userCategorizeQueue.length + "]"
           + " | NN: " + networkObj.networkId + " | DB CAT", dbUser, chalkInfo);
 
-        process.send({ op: "USER_CATEGORIZED", user: dbUser });
+        // process.send({ op: "USER_CATEGORIZED", user: dbUser });
         userChangeCache.del(dbUser.nodeId);
       }
       catch(err){
@@ -2491,88 +2491,88 @@ function checkUserChanges(params){
   });
 }
 
-function initDbUserChangeStream(params){
+// function initDbUserChangeStream(params){
 
-  return new Promise(function(resolve, reject){
+//   return new Promise(function(resolve, reject){
 
-    // const userCollection = params.db.collection("users");
-    const userCollection = global.dbConnection.collection("users");
+//     // const userCollection = params.db.collection("users");
+//     const userCollection = global.dbConnection.collection("users");
 
-    userCollection.countDocuments(function(err, count){
+//     userCollection.countDocuments(function(err, count){
 
-      if (err) { 
-        // throw Error;
-        return reject(err);
-      }
-      console.log(chalkInfo("WAS | TFC | USERS IN DB: " + count));
+//       if (err) { 
+//         // throw Error;
+//         return reject(err);
+//       }
+//       console.log(chalkInfo("WAS | TFC | USERS IN DB: " + count));
 
-      const changeFilter = {
-        "$match": {
-          "$or": [{ operationType: "insert" },{ operationType: "delete" },{ operationType: "update" },{ operationType: "replace" }]
-        }
-      };
-      const changeOptions = { fullDocument: "updateLookup" };
+//       const changeFilter = {
+//         "$match": {
+//           "$or": [{ operationType: "insert" },{ operationType: "delete" },{ operationType: "update" },{ operationType: "replace" }]
+//         }
+//       };
+//       const changeOptions = { fullDocument: "updateLookup" };
 
-      const userChangeStream = userCollection.watch([changeFilter], changeOptions);
+//       const userChangeStream = userCollection.watch([changeFilter], changeOptions);
 
-      userChangeStream.on("change", function(change){
+//       userChangeStream.on("change", function(change){
 
-        if (change && change.fullDocument) { 
+//         if (change && change.fullDocument) { 
 
-          let user = new global.User(change.fullDocument); 
+//           let user = new global.User(change.fullDocument); 
 
-          checkUserChanges({user:user})
-          .then(function(userChanges){
+//           checkUserChanges({user:user})
+//           .then(function(userChanges){
 
-            if (userChanges.changeFlag) { 
-              user.changes = userChanges; 
-            }
+//             if (userChanges.changeFlag) { 
+//               user.changes = userChanges; 
+//             }
 
-            if (userChanges.initFlag) {
-              user.initFlag = true;
-            }
+//             if (userChanges.initFlag) {
+//               user.initFlag = true;
+//             }
 
-            const cacheObj = userChangeCache.get(user.nodeId);
+//             const cacheObj = userChangeCache.get(user.nodeId);
 
-            if (configuration.verbose && (cacheObj === undefined)) { 
-              console.log(chalkInfo("WAS | TFC | USER CHG $ MISS"
-                + " [UC$: " + userChangeCache.getStats().keys + "]"
-                + " [UCDBQ: " + userChangeDbQueue.length + "]"
-                + " | NID: " + user.nodeId
-                + " | @" + user.screenName
-              ));
-            }
+//             if (configuration.verbose && (cacheObj === undefined)) { 
+//               console.log(chalkInfo("WAS | TFC | USER CHG $ MISS"
+//                 + " [UC$: " + userChangeCache.getStats().keys + "]"
+//                 + " [UCDBQ: " + userChangeDbQueue.length + "]"
+//                 + " | NID: " + user.nodeId
+//                 + " | @" + user.screenName
+//               ));
+//             }
 
-            if ((cacheObj === undefined) && (userChangeDbQueue.length < 10000) && (userChanges.changeFlag || userChanges.initFlag)) { 
-              userChangeDbQueue.push(user);
-            }
+//             if ((cacheObj === undefined) && (userChangeDbQueue.length < 10000) && (userChanges.changeFlag || userChanges.initFlag)) { 
+//               userChangeDbQueue.push(user);
+//             }
             
-            userChangeCache.set(user.nodeId, { user: user, timeStamp: moment().valueOf() } );
+//             userChangeCache.set(user.nodeId, { user: user, timeStamp: moment().valueOf() } );
 
-            if (configuration.verbose) {
-              printUserObj("WAS | TFC | --> USER CHANGE | " +  change.operationType, user, chalkLog);
-            }
+//             if (configuration.verbose) {
+//               printUserObj("WAS | TFC | --> USER CHANGE | " +  change.operationType, user, chalkLog);
+//             }
 
-            // resolve();
-          })
-          .catch(function(err){
-            console.log(chalkLog("WAS | TFC | *** USER CHANGE STREAM ERROR | " +  err));
-            // reject(err);
-          });
+//             // resolve();
+//           })
+//           .catch(function(err){
+//             console.log(chalkLog("WAS | TFC | *** USER CHANGE STREAM ERROR | " +  err));
+//             // reject(err);
+//           });
 
-        }
-        else {
-          console.log(chalkLog("WAS | TFC | XX> USER CHANGE | " +  change.operationType));
-          resolve();
-        }
-      });
+//         }
+//         else {
+//           console.log(chalkLog("WAS | TFC | XX> USER CHANGE | " +  change.operationType));
+//           resolve();
+//         }
+//       });
 
-      resolve();
+//       resolve();
 
-    });
+//     });
 
-  });
-}
+//   });
+// }
 
 function initialize(cnf, callback){
 

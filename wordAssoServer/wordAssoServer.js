@@ -410,6 +410,7 @@ configuration.threeceeInfoUsersArray = DEFAULT_THREECEE_INFO_USERS;
 configuration.dropboxListFolderLimit = DEFAULT_DROPBOX_LIST_FOLDER_LIMIT;
 configuration.dropboxWebhookChangeTimeout = DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT;
 
+configuration.tweetParserMessageRxQueueInterval = DEFAULT_TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL;
 configuration.tweetParserInterval = DEFAULT_TWEET_PARSER_INTERVAL;
 configuration.sorterMessageRxQueueInterval = DEFAULT_SORTER_INTERVAL;
 configuration.transmitNodeQueueInterval = DEFAULT_TRANSMIT_NODE_QUEUE_INTERVAL;
@@ -425,6 +426,7 @@ configuration.DROPBOX.DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_AS
 configuration.DROPBOX.DROPBOX_WAS_CONFIG_FILE = process.env.DROPBOX_CONFIG_FILE || "wordAssoServerConfig.json";
 configuration.DROPBOX.DROPBOX_WAS_STATS_FILE = process.env.DROPBOX_STATS_FILE || "wordAssoServerStats.json";
 
+configuration.twitterRxQueueInterval = DEFAULT_TWITTER_RX_QUEUE_INTERVAL;
 configuration.twitterSearchNodeQueueInterval = DEFAULT_TWITTER_SEARCH_NODE_QUEUE_INTERVAL;
 configuration.categoryHashmapsUpdateInterval = DEFAULT_CATEGORY_HASHMAPS_UPDATE_INTERVAL;
 configuration.testInternetConnectionUrl = DEFAULT_TEST_INTERNET_CONNECTION_URL;
@@ -7015,6 +7017,10 @@ function initTwitterRxQueueInterval(interval){
 
   let tweet = {};
 
+  if (typeof interval !== "number") {
+    throw new Error("initTwitterRxQueueInterval interval NOT a NUMBER: " + interval);
+  }
+
   console.log(chalk.bold.black("WAS | INIT TWITTER RX QUEUE INTERVAL | " + interval + " MS"));
 
   clearInterval(tweetRxQueueInterval);
@@ -7058,6 +7064,10 @@ let tweetParserMessageRxQueueReady = true;
 let tweetParserMessageRxQueueInterval;
 
 function initTweetParserMessageRxQueueInterval(interval){
+
+  if (typeof interval !== "number") {
+    throw new Error("initTweetParserMessageRxQueueInterval interval NOT a NUMBER: " + interval);
+  }
 
   console.log(chalk.bold.black("WAS | INIT TWEET PARSER MESSAGE RX QUEUE INTERVAL | " + msToTime(interval)));
 

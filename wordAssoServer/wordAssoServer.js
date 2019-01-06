@@ -1290,7 +1290,7 @@ function connectDb(){
 
             const rawUser = profile["_json"];
 
-            if (!userServerControllerReady) {
+            if (!userServerControllerReady || !statsObj.dbConnectionReady) {
               return cb(new Error("userServerController not ready"), null);
             }
 
@@ -3786,7 +3786,7 @@ function categorizeNode(categorizeObj, callback) {
         categorizeObj.node.mentions = Math.max(categorizeObj.node.mentions, nCacheObj.mentions);
       }
 
-      if (!userServerControllerReady) {
+      if (!userServerControllerReady || !statsObj.dbConnectionReady) {
         return callback(new Error("userServerController not ready"), null);
       }
 
@@ -3933,7 +3933,7 @@ function socketRxTweet(tw) {
     statsObj.errors.twitter.maxRxQueue += 1;
 
     if (statsObj.errors.twitter.maxRxQueue % 1000 === 0) {
-      console.log(chalkLog("WAS | *** TWEET RX MAX QUEUE [" + tweetRxQueue.length + "]"
+      console.log(chalk.black.bold("WAS | *** TWEET RX MAX QUEUE [" + tweetRxQueue.length + "]"
         + " | " + getTimeStamp()
         + " | TWP READY: " + statsObj.tweetParserReady
         + " | TWP SEND READY: " + statsObj.tweetParserSendReady
@@ -5323,7 +5323,7 @@ function initSocketHandler(socketObj) {
       + " | SENT AT " + getTimeStamp(parseInt(viewerObj.timeStamp))
     ));
 
-    if (!userServerControllerReady) {
+    if (!userServerControllerReady || !statsObj.dbConnectionReady) {
       return callback(new Error("userServerController not ready"), null);
     }
 
@@ -5613,6 +5613,7 @@ function processCheckCategory(nodeObj, callback){
         nodesPerMinuteTopTermCache.get(nodeObj.nodeId, function topTermNodeId(err, nodeRate) {
           if (err){
             console.log(chalkError("WAS | nodesPerMinuteTopTermCache GET ERR: " + err));
+            return cb(err);
           }
           if (nodeRate !== undefined) {
 
@@ -5626,13 +5627,16 @@ function processCheckCategory(nodeObj, callback){
           else {
             nodeObj.isTopTerm = false;
           }
+
+          cb();
+
         });
-        cb();
       },
       nodeType: function(cb){
         nodesPerMinuteTopTermNodeTypeCache[nodeObj.nodeType].get(nodeObj.nodeId, function topTermNodeId(err, nodeRate) {
           if (err){
             console.log(chalkError("WAS | nodesPerMinuteTopTermNodeTypeCache" + nodeObj.nodeType + " GET ERR: " + err));
+            return cb(err);
           }
           if (nodeRate !== undefined) {
 
@@ -5647,11 +5651,17 @@ function processCheckCategory(nodeObj, callback){
           else {
             nodeObj.isTopTermNodeType = false;
           }
+
+          cb();        
+
         });    
-        cb();        
       }
     },
     function(err, results){
+      if (err) {
+        console.log(chalkError("WAS | *** processCheckCategory ERROR: " + err));
+        return callback(err, null);
+      }
       callback(null, nodeObj);
     });   
   }
@@ -6380,7 +6390,7 @@ function initTransmitNodeQueueInterval(interval){
 
                 n.updateLastSeen = true;
 
-                if (!userServerControllerReady) {
+                if (!userServerControllerReady || !statsObj.dbConnectionReady) {
                   return callback(new Error("userServerController not ready"), null);
                   transmitNodeQueueReady = true;
                 }
@@ -6481,7 +6491,11 @@ function transmitNodes(tw, callback){
       cb();
     }
   },
-  function(){
+  function(err){
+    if (err) {
+      console.log(chalkError("WAS | *** TRANSMIT NODES ERROR: " + err));
+      return callback(err);
+    }
     callback();
   });   
 
@@ -6573,7 +6587,7 @@ function initAppRouting(callback) {
     }
     else if (req.path === "/dropbox_webhook") {
 
-      console.log(chalk.bold.black("WAS | R< DROPBOX WEB HOOK | /dropbox_webhook"
+      console.log(chalkInfo("WAS | R< DROPBOX WEB HOOK | /dropbox_webhook"
         + " | DB CURSOR READY: " + dropboxFolderGetLastestCursorReady
         // + " | DB CHANGE FOLDER ARRAY\n" + jsonPrint(configuration.dropboxChangeFolderArray)
       )); 
@@ -6702,7 +6716,7 @@ function initAppRouting(callback) {
           if (err) {
             console.log(chalkError("WAS | *** DROPBOX WEBHOOK ERROR: " + err));
           }
-          console.log(chalkInfo("WAS | END DROPBOX WEBHOOK"));
+          console.log(chalkLog("WAS | END DROPBOX WEBHOOK"));
           dropboxFolderGetLastestCursorReady = true;
           next();
         });
@@ -6886,7 +6900,7 @@ function initAppRouting(callback) {
     ));  // handle errors
 
     // slackSendMessage("PASSPORT TWITTER AUTH USER: @" + req.session.passport.user.screenName);
-    if (!userServerControllerReady) {
+    if (!userServerControllerReady || !statsObj.dbConnectionReady) {
       return callback(new Error("userServerController not ready"), null);
     }
 
@@ -9247,10 +9261,9 @@ function initCategoryHashmaps(){
 
           function(cb0){
 
-            if (!userServerControllerReady) {
+            if (!userServerControllerReady || !statsObj.dbConnectionReady) {
               return cb0(new Error("userServerController not ready"), null);
             }
-
 
             userServerController.findCategorizedUsersCursor(p, function(err, results){
 
@@ -9788,7 +9801,7 @@ function twitterGetUserUpdateDb(user, callback){
           // if (!statsObj.dbConnectionReady) {
           //   return callback("DB CONNECTION NOT READY", rawUser);
           // }
-          if (!userServerControllerReady) {
+          if (!userServerControllerReady || !statsObj.dbConnectionReady) {
             return callback(new Error("userServerController not ready"), null);
           }
 
@@ -9820,7 +9833,7 @@ function twitterGetUserUpdateDb(user, callback){
               user.setMentions = true;
             }
 
-            if (!userServerControllerReady) {
+            if (!userServerControllerReady || !statsObj.dbConnectionReady) {
               return callback(new Error("userServerController not ready"), null);
             }
 
@@ -9876,7 +9889,7 @@ function twitterGetUserUpdateDb(user, callback){
       //   return callback("DB CONNECTION NOT READY", user);
       // }
 
-      if (!userServerControllerReady) {
+      if (!userServerControllerReady || !statsObj.dbConnectionReady) {
         return callback(new Error("userServerController not ready"), user);
       }
 

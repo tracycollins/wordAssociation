@@ -11,6 +11,9 @@ const DEFAULT_INFO_TWITTER_USER = "threecee";
 const USER_CACHE_DEFAULT_TTL = 10;
 const USER_CACHE_CHECK_PERIOD = 1;
 
+const TWEET_ID_CACHE_DEFAULT_TTL = 20;
+const TWEET_ID_CACHE_CHECK_PERIOD = 5;
+
 const MAX_READY_ACK_WAIT_COUNT = 10;
 
 const TWITTER_MAX_TRACKING_NUMBER = process.env.TWITTER_MAX_TRACKING_NUMBER || 400;
@@ -76,6 +79,21 @@ const userCache = new NodeCache({
   checkperiod: userCacheCheckPeriod
 });
 
+
+let tweetIdCacheTtl = process.env.TWEET_ID_CACHE_DEFAULT_TTL;
+if (tweetIdCacheTtl === undefined) { tweetIdCacheTtl = TWEET_ID_CACHE_DEFAULT_TTL;}
+console.log("TSS | USER CACHE TTL: " + tweetIdCacheTtl + " SECONDS");
+
+let tweetIdCacheCheckPeriod = process.env.TWEET_ID_CACHE_CHECK_PERIOD;
+if (tweetIdCacheCheckPeriod === undefined) { tweetIdCacheCheckPeriod = TWEET_ID_CACHE_CHECK_PERIOD;}
+console.log("TSS | USER CACHE CHECK PERIOD: " + tweetIdCacheCheckPeriod + " SECONDS");
+
+const tweetIdCache = new NodeCache({
+  stdTTL: tweetIdCacheTtl,
+  checkperiod: tweetIdCacheCheckPeriod
+});
+
+
 const debug = require("debug")("tss");
 const debugCache = require("debug")("cache");
 const debugQ = require("debug")("queue");
@@ -133,6 +151,7 @@ let tweetQueueInterval;
 let stdin;
 
 let configuration = {};
+configuration.filterDuplicateTweets = true;
 configuration.verbose = false;
 configuration.forceFollow = false;
 configuration.globalTestMode = false;
@@ -222,24 +241,25 @@ statsObj.queues.unfollowQueue.fullEvents = 0;
 statsObj.tweetsReceived = 0;
 statsObj.retweetsReceived = 0;
 statsObj.quotedTweetsReceived = 0;
-statsObj.tweetsDuplicates = 0;
 statsObj.tweetsPerSecond = 0.0;
 statsObj.tweetsPerMinute = 0.0;
 statsObj.maxTweetsPerMinute = 0;
 statsObj.maxTweetsPerMinuteTime = moment().valueOf();
-statsObj.twitterDeletes = 0;
-statsObj.twitterConnects = 0;
-statsObj.twitterDisconnects = 0;
-statsObj.twitterReconnects = 0;
-statsObj.twitterWarnings = 0;
-statsObj.twitterErrors = 0;
-statsObj.twitterLimit = 0;
-statsObj.twitterScrubGeo = 0;
-statsObj.twitterStatusWithheld = 0;
-statsObj.twitterUserWithheld = 0;
-statsObj.twitterLimit = 0;
-statsObj.twitterLimitMax = 0;
-statsObj.twitterLimitMaxTime = moment().valueOf();
+
+statsObj.twitter = {};
+statsObj.twitter.duplicateTweetsReceived = 0;
+statsObj.twitter.deletes = 0;
+statsObj.twitter.connects = 0;
+statsObj.twitter.disconnects = 0;
+statsObj.twitter.reconnects = 0;
+statsObj.twitter.warnings = 0;
+statsObj.twitter.errors = 0;
+statsObj.twitter.limit = 0;
+statsObj.twitter.scrubGeo = 0;
+statsObj.twitter.statusWithheld = 0;
+statsObj.twitter.userWithheld = 0;
+statsObj.twitter.limitMax = 0;
+statsObj.twitter.limitMaxTime = moment().valueOf();
 
 global.dbConnection = false;
 const mongoose = require("mongoose");
@@ -437,9 +457,9 @@ function showStats(options){
       + " | " + statsObj.tweetsPerMinute.toFixed(0) + " TPM"
       + " | " + statsObj.maxTweetsPerMinute.toFixed(0) + " MAX"
       + " " + moment(parseInt(statsObj.maxTweetsPerMinuteTime)).format(compactDateTimeFormat)
-      + " \nTSS | TWITTER LIMIT: " + statsObj.twitterLimit
-      + " | " + statsObj.twitterLimitMax + " MAX"
-      + " " + moment(parseInt(statsObj.twitterLimitMaxTime)).format(compactDateTimeFormat)
+      + " \nTSS | TWITTER LIMIT: " + statsObj.twitter.limit
+      + " | " + statsObj.twitter.limitMax + " MAX"
+      + " " + moment(parseInt(statsObj.twitter.limitMaxTime)).format(compactDateTimeFormat)
     ));
 
     console.log(chalkLog("TSS | @" + threeceeUserObj.screenName
@@ -1079,7 +1099,7 @@ function initSearchStream(params){
           + " | TWITTER CONNECT"
           + " | @" + threeceeUserObj.screenName
         ));
-        statsObj.twitterConnects += 1;
+        statsObj.twitter.connects += 1;
         threeceeUserObj.stats.connected = true;
         threeceeUserObj.stats.twitterConnects += 1;
         threeceeUserObj.stats.rateLimited = false;
@@ -1100,7 +1120,7 @@ function initSearchStream(params){
           threeceeUserObj.stats.rateLimited = false;
         }
 
-        statsObj.twitterReconnects+= 1;
+        statsObj.twitter.reconnects+= 1;
 
         threeceeUserObj.stats.connected = true;
         threeceeUserObj.stats.twitterReconnects += 1;
@@ -1113,7 +1133,7 @@ function initSearchStream(params){
           + " | @" + threeceeUserObj.screenName
           + " | !!! TWITTER DISCONNECT\n" + jsonPrint(data)
         ));
-        statsObj.twitterDisconnects+= 1;
+        statsObj.twitter.disconnects+= 1;
         threeceeUserObj.stats.connected = false;
         threeceeUserObj.stats.twitterReconnects = 0;
         threeceeUserObj.stats.rateLimited = false;
@@ -1123,7 +1143,7 @@ function initSearchStream(params){
 
       threeceeUserObj.searchStream.on("warning", function(data){
         console.log(chalkAlert("TSS | " + getTimeStamp() + " | !!! TWITTER WARNING: " + jsonPrint(data)));
-        statsObj.twitterWarnings+= 1;
+        statsObj.twitter.warnings+= 1;
         showStats();
       });
 
@@ -1138,36 +1158,36 @@ function initSearchStream(params){
 
       threeceeUserObj.searchStream.on("scrub_geo", function(data){
         console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER SCRUB GEO: " + jsonPrint(data)));
-        statsObj.twitterScrubGeo+= 1;
+        statsObj.twitter.scrubGeo+= 1;
         showStats();
       });
 
       threeceeUserObj.searchStream.on("status_withheld", function(data){
         console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER STATUS WITHHELD: " + jsonPrint(data)));
-        statsObj.twitterStatusWithheld+= 1;
+        statsObj.twitter.statusWithheld+= 1;
         showStats();
       });
 
       threeceeUserObj.searchStream.on("user_withheld", function(data){
         console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER USER WITHHELD: " + jsonPrint(data)));
-        statsObj.twitterUserWithheld+= 1;
+        statsObj.twitter.userWithheld+= 1;
         showStats();
       });
 
       threeceeUserObj.searchStream.on("limit", function(limitMessage){
 
-        statsObj.twitterLimit += limitMessage.limit.track;
+        statsObj.twitter.limit += limitMessage.limit.track;
         threeceeUserObj.stats.twitterLimit += limitMessage.limit.track;
 
-        if (statsObj.twitterLimit > statsObj.twitterLimitMax) {
-          statsObj.twitterLimitMax = statsObj.twitterLimit;
-          statsObj.twitterLimitMaxTime = moment().valueOf();
+        if (statsObj.twitter.limit > statsObj.twitter.limitMax) {
+          statsObj.twitter.limitMax = statsObj.twitter.limit;
+          statsObj.twitter.limitMaxTime = moment().valueOf();
         }
 
         debug(chalkTwitter("TSS | " + getTimeStamp()
           + " | TWITTER LIMIT" 
           + " | @" + threeceeUserObj.screenName
-          + " | USER LIMIT: " + statsObj.twitterLimit
+          + " | USER LIMIT: " + statsObj.twitter.limit
           + " | TOTAL LIMIT: " + threeceeUserObj.stats.twitterLimit
         ));
       });
@@ -1181,7 +1201,7 @@ function initSearchStream(params){
         ));
 
 
-        statsObj.twitterErrors += 1;
+        statsObj.twitter.errors += 1;
         threeceeUserObj.stats.twitterErrors += 1;
 
         threeceeUserObj.stats.ready = false;
@@ -1211,7 +1231,7 @@ function initSearchStream(params){
         ));
 
 
-        statsObj.twitterErrors += 1;
+        statsObj.twitter.errors += 1;
         threeceeUserObj.stats.twitterErrors += 1;
 
         if (err.statusCode === 401) {
@@ -1241,7 +1261,7 @@ function initSearchStream(params){
           + " | *** TWITTER PARSER ERROR: " + err
         ));
 
-        statsObj.twitterErrors += 1;
+        statsObj.twitter.errors += 1;
         threeceeUserObj.stats.twitterErrors += 1;
 
         process.send({
@@ -1254,8 +1274,33 @@ function initSearchStream(params){
 
         showStats();
       });
+
+      let prevTweetUser;
       
       threeceeUserObj.searchStream.on("tweet", function(tweetStatus){
+
+        prevTweetUser = tweetIdCache.get(tweetStatus.id_str);
+
+        if (prevTweetUser) {
+
+          statsObj.twitter.duplicateTweetsReceived += 1;
+
+          if (statsObj.twitter.duplicateTweetsReceived % 1000 === 0){
+            console.log(chalkLog("TSS"
+              + " | @" + threeceeUserObj.screenName
+              + " | ??? DUP TWEET"
+              + " | FILTER DUPs: " + configuration.filterDuplicateTweets
+              + " [ $: " + tweetIdCache.getStats().keys + " / " + statsObj.twitter.duplicateTweetsReceived + " DUPs ]"
+              + " | " + tweetStatus.id_str 
+              + " | CURR @" + tweetStatus.user.screen_name
+              + " | PREV @" + prevTweetUser
+            ));
+          }
+          
+          if (configuration.filterDuplicateTweets) { return; }
+        }
+
+        tweetIdCache.set(tweetStatus.id_str, tweetStatus.user.screen_name);
 
         tweetStatus.entities.media = [];
         tweetStatus.entities.polls = [];
@@ -1319,7 +1364,7 @@ function initSearchStream(params){
         + " | *** TWITTER ERROR\n" + jsonPrint(err)
       ));
 
-      statsObj.twitterErrors += 1;
+      statsObj.twitter.errors += 1;
       threeceeUserObj.stats.twitterErrors += 1;
 
       threeceeUserObj.stats.ready = false;
@@ -1842,12 +1887,12 @@ function initTwitterQueue(cnf, callback){
         tweetSendReady = true;
         statsObj.queues.tweetQueue.ready = true;
 
-        statsObj.tweetsDuplicates += 1 ;
+        statsObj.twitter.duplicateTweetsReceived += 1 ;
 
-        const dupPercent = 100 * statsObj.tweetsDuplicates / statsObj.tweetsReceived;
+        const dupPercent = 100 * statsObj.twitter.duplicateTweetsReceived / statsObj.tweetsReceived;
 
         debug(chalkAlert("TSS | DUP [ Q: " + tweetQueue.length + "]"
-          + " [ " + statsObj.tweetsDuplicates + "/" + statsObj.tweetsReceived
+          + " [ " + statsObj.twitter.duplicateTweetsReceived + "/" + statsObj.tweetsReceived
           + " | " + dupPercent.toFixed(1) + "% ]"
           + " | " + tweetStatus.id_str
         ));
@@ -1899,6 +1944,7 @@ process.on("message", async function(m) {
       process.title = m.title;
 
       configuration.threeceeUser = m.threeceeUser;
+      configuration.filterDuplicateTweets = m.filterDuplicateTweets;
       configuration.verbose = m.verbose;
       configuration.testMode = m.testMode;
 

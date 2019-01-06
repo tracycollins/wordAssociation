@@ -8519,7 +8519,6 @@ function loadBestRuntimeNetwork(params){
           + " | MATCH: " + bRtNnObj.matchRate.toFixed(2) + "%"
         ));
 
-        statsObj.bestNetwork = pick(bRtNnObj, statsBestNetworkPickArray);
 
         file = bRtNnObj.networkId + ".json";
 
@@ -8531,6 +8530,8 @@ function loadBestRuntimeNetwork(params){
             bestNetworkObj = {};
             bestNetworkObj = deepcopy(nnObj);
             console.log(chalk.green.bold("WAS | +++ LOADED BEST NETWORK: " + bestNetworkObj.networkId));
+
+            statsObj.bestNetwork = pick(bestNetworkObj, statsBestNetworkPickArray);
 
             if (statsObj.previousBestNetworkId !== bestNetworkObj.networkId) {
               statsObj.previousBestNetworkId = bestNetworkObj.networkId;

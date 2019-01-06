@@ -604,18 +604,18 @@ function printUserObj(title, user) {
   user = userDefaults(user);
 
   console.log(chalkLog(title
-    + " | " + user.userId
+    + " | U " + user.userId
     + " | @" + user.screenName
-    + " | N: " + user.name 
-    + " | LOC: " + user.location 
-    + " | FLWRs: " + user.followersCount
-    + " | FRNDs: " + user.friendsCount
-    + " | Ts: " + user.statusesCount
-    + " | Ms:  " + user.mentions
-    + " | LS: " + getTimeStamp(user.lastSeen)
-    + " | FLWg: " + user.following 
-    + " | 3C: @" + user.threeceeFollowing 
-    + " | CAT M: " + user.category + " - A: " + user.categoryAuto
+    + " | N " + user.name 
+    + " | L " + user.location 
+    + " | FWs " + user.followersCount
+    + " | FDs " + user.friendsCount
+    + " | T " + user.statusesCount
+    + " | M  " + user.mentions
+    + " | LS " + getTimeStamp(user.lastSeen)
+    + " | FW " + user.following 
+    + " | 3C " + user.threeceeFollowing 
+    + " | C M " + user.category + " A " + user.categoryAuto
   ));
 }
 

@@ -390,7 +390,6 @@ DEFAULT_THREECEE_USERS.forEach(function(threeceeUser){
   statsObj.tssChildren[threeceeUser].ready = false;
 });
 
-
 let previousConfiguration = {};
 let configuration = {};
 let defaultConfiguration = {}; // general configuration
@@ -1968,6 +1967,18 @@ let sorterMessageRxQueue = [];
 const ignoreWordHashMap = new HashMap();
 const localHostHashMap = new HashMap();
 
+let statsBestNetworkPickArray = [
+  "networkId",
+  "successRate",
+  "matchRate",
+  "overallMatchRate",
+  "inputsId",
+  "testCycles",
+  "numInputs",
+  "seedNetworkId",
+  "seedNetworkRes",
+  "betterChild"
+];
 
 function initStats(callback){
 
@@ -1996,6 +2007,11 @@ function initStats(callback){
   statsObj.bestNetwork.matchRate = false;
   statsObj.bestNetwork.overallMatchRate = false;
   statsObj.bestNetwork.inputsId = false;
+  statsObj.bestNetwork.numInputs = 0;
+  statsObj.bestNetwork.seedNetworkId = false;
+  statsObj.bestNetwork.seedNetworkRes = 0;
+  statsObj.bestNetwork.testCycles = 0;
+  statsObj.bestNetwork.betterChild = false;
 
   statsObj.memwatch = {};
   statsObj.memwatch.snapshotTaken = false;
@@ -3877,6 +3893,7 @@ function socketRxTweet(tw) {
     if (statsObj.twitter.duplicateTweetsReceived % 1000 === 0){
       console.log(chalkLog("WAS"
         + " | ??? DUP TWEET"
+        + " | FILTER DUPs: " + configuration.filterDuplicateTweets
         + " [ $: " + tweetIdCache.getStats().keys + " / " + statsObj.twitter.duplicateTweetsReceived + " DUPs ]"
         + " | " + tw.id_str 
         + " | CURR @" + tw.user.screen_name
@@ -3888,6 +3905,7 @@ function socketRxTweet(tw) {
   }
 
   tweetIdCache.set(tw.id_str, tw.user.screen_name);
+
   tweetMeter.mark();
 
   statsObj.twitter.tweetsReceived += 1;
@@ -7712,6 +7730,7 @@ function initTssChild(params){
       threeceeUser: params.threeceeUser,
       twitterConfig: threeceeTwitter[params.threeceeUser].twitterConfig,
       interval: configuration.tssInterval,
+      filterDuplicateTweets: configuration.filterDuplicateTweets,
       testMode: configuration.testMode,
       verbose: configuration.verbose
     }, function tssMessageRxError(err){
@@ -8500,11 +8519,7 @@ function loadBestRuntimeNetwork(params){
           + " | MATCH: " + bRtNnObj.matchRate.toFixed(2) + "%"
         ));
 
-        statsObj.bestNetwork.networkId = bRtNnObj.networkId;
-        statsObj.bestNetwork.successRate = bRtNnObj.successRate;
-        statsObj.bestNetwork.matchRate = bRtNnObj.matchRate;
-        statsObj.bestNetwork.overallMatchRate = bRtNnObj.overallMatchRate;
-        statsObj.bestNetwork.inputsId = bRtNnObj.inputsId;
+        statsObj.bestNetwork = pick(bRtNnObj, statsBestNetworkPickArray);
 
         file = bRtNnObj.networkId + ".json";
 
@@ -8544,11 +8559,7 @@ function loadBestRuntimeNetwork(params){
               if (bestNetworkObj.matchRate === undefined) { bestNetworkObj.matchRate = 0; }
               if (bestNetworkObj.overallMatchRate === undefined) { bestNetworkObj.overallMatchRate = 0; }
               
-              statsObj.bestNetwork.networkId = bRtNnObj.networkId;
-              statsObj.bestNetwork.successRate = bRtNnObj.successRate;
-              statsObj.bestNetwork.matchRate = bRtNnObj.matchRate;
-              statsObj.bestNetwork.overallMatchRate = bRtNnObj.overallMatchRate;
-              statsObj.bestNetwork.inputsId = bRtNnObj.inputsId;
+              statsObj.bestNetwork = pick(bestNetworkObj, statsBestNetworkPickArray);
 
               if (statsObj.previousBestNetworkId !== bestNetworkObj.networkId) {
                 statsObj.previousBestNetworkId = bestNetworkObj.networkId;

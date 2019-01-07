@@ -46,14 +46,13 @@ config.viewerReadyInterval = 10000;
 
 var statsObj = {};
 
-statsObj.heartBeat = {};
-statsObj.heartBeat.bestNetwork = {};
-statsObj.heartBeat.bestNetwork.networkId = "";
-statsObj.heartBeat.bestNetwork.successRate = 0;
-statsObj.heartBeat.bestNetwork.matchRate = 0;
-statsObj.heartBeat.bestNetwork.overallMatchRate = 0;
-statsObj.heartBeat.bestNetwork.inputsId = "";
-statsObj.heartBeat.bestNetwork.numInputs = 0;
+statsObj.bestNetwork = {};
+statsObj.bestNetwork.networkId = "";
+statsObj.bestNetwork.successRate = 0;
+statsObj.bestNetwork.matchRate = 0;
+statsObj.bestNetwork.overallMatchRate = 0;
+statsObj.bestNetwork.inputsId = "";
+statsObj.bestNetwork.numInputs = 0;
 
 statsObj.isAuthenticated = false;
 statsObj.maxNodes = 0;
@@ -612,34 +611,32 @@ function updateStatsText(){
 
   statsText.innerHTML = getTimeStamp() + "<br><hr><br>";
 
-  if (!statsObj.heartBeat || statsObj.heartBeat === undefined) { statsObj.heartBeat = {}; }
-
-  Object.keys(statsObj.heartBeat.bestNetwork).forEach(function(key){
+  Object.keys(statsObj.bestNetwork).forEach(function(key){
     if (showPropArray.includes(key)){
         switch (key) {
           case "networkId":
-            statsText.innerHTML +=  statsObj.heartBeat.bestNetwork[key] + "<br><br><br>";
+            statsText.innerHTML +=  statsObj.bestNetwork[key] + "<br><br><br>";
           break;
           case "successRate":
-            if (typeof statsObj.heartBeat.bestNetwork[key] !== "number") { break; }
-            statsText.innerHTML +=  "SR: " + statsObj.heartBeat.bestNetwork[key].toFixed(2) + "%<br><br>";
+            if (typeof statsObj.bestNetwork[key] !== "number") { break; }
+            statsText.innerHTML +=  "SR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
           break;
           case "matchRate":
-            if (typeof statsObj.heartBeat.bestNetwork[key] !== "number") { break; }
-            statsText.innerHTML +=  "MR: " + statsObj.heartBeat.bestNetwork[key].toFixed(2) + "%<br><br>";
+            if (typeof statsObj.bestNetwork[key] !== "number") { break; }
+            statsText.innerHTML +=  "MR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
           break;
           case "overallMatchRate":
-            if (typeof statsObj.heartBeat.bestNetwork[key] !== "number") { break; }
-            statsText.innerHTML +=  "OAMR: " + statsObj.heartBeat.bestNetwork[key].toFixed(2) + "%<br><br>";
+            if (typeof statsObj.bestNetwork[key] !== "number") { break; }
+            statsText.innerHTML +=  "OAMR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
           break;
 
           case "seedNetworkRes":
-            if (typeof statsObj.heartBeat.bestNetwork[key] !== "number") { break; }
-            statsText.innerHTML +=  "SN SR: " + statsObj.heartBeat.bestNetwork[key].toFixed(2) + "%<br><br>";
+            if (typeof statsObj.bestNetwork[key] !== "number") { break; }
+            statsText.innerHTML +=  "SN SR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
           break;
 
           default:
-            statsText.innerHTML += key.toUpperCase() + ": " + statsObj.heartBeat.bestNetwork[key] + "<br><br>";
+            statsText.innerHTML += key.toUpperCase() + ": " + statsObj.bestNetwork[key] + "<br><br>";
         }
     }
   })
@@ -1566,7 +1563,7 @@ socket.on("HEARTBEAT", function(hb) {
 
   resetServerActiveTimer();
 
-  statsObj.heartBeat = hb;
+  statsObj.bestNetwork = hb.bestNetwork;
 
   if (currentSessionView !== undefined) { currentSessionView.setHeartBeat(hb); }
 
@@ -1820,7 +1817,7 @@ var noneNodesRatio = 0;
 
 //  STATS UPDATE
 function initStatsUpdate(interval){
-  
+
   setInterval(function() {
 
     totalHashMap = currentSessionView.getTotalHashMap();
@@ -1848,10 +1845,10 @@ function initStatsUpdate(interval){
     statsNegativeBar.path.setAttribute("stroke", palette.red);
     statsNoneBar.path.setAttribute("stroke", palette.white);
 
-    if (!statsObj.heartBeat.bestNetwork || statsObj.heartBeat.bestNetwork === undefined) {
-      statsObj.heartBeat.bestNetwork = {};
-      statsObj.heartBeat.bestNetwork.networkId = "";
-    }
+    // if (!statsObj.heartBeat.bestNetwork || statsObj.heartBeat.bestNetwork === undefined) {
+    //   statsObj.heartBeat.bestNetwork = {};
+    //   statsObj.heartBeat.bestNetwork.networkId = "";
+    // }
 
     updateStatsText();
 

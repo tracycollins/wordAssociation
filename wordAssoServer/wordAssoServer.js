@@ -4898,7 +4898,7 @@ function initSocketHandler(socketObj) {
 
       case "ADMIN" :
 
-        console.log(chalkLog("WAS | R< KA"
+        console.log(chalkInfo("WAS | R< KA"
           + " | " + "ADMIN" 
           + " | " + getTimeStamp(timeStamp)
           + " | " + keepAliveObj.user.userId
@@ -4918,7 +4918,7 @@ function initSocketHandler(socketObj) {
           sessionObj.isAdmin = true;
           sessionObj.isServer = false;
           sessionObj.isViewer = false;
-          sessionObj.stats = keepAliveObj.stats;
+          // sessionObj.stats = keepAliveObj.stats;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
           console.log(chalk.green("+++ ADD " + currentSessionType 
@@ -4938,7 +4938,7 @@ function initSocketHandler(socketObj) {
           sessionObj.timeStamp = moment().valueOf();
           sessionObj.user = keepAliveObj.user;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
-          sessionObj.stats = keepAliveObj.stats;
+          // sessionObj.stats = keepAliveObj.stats;
 
           adminHashMap.set(socket.id, sessionObj);
           adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
@@ -4954,7 +4954,7 @@ function initSocketHandler(socketObj) {
       case "TMP" :
 
 
-        console.log(chalkLog("WAS | R< KA"
+        console.log(chalkInfo("WAS | R< KA"
           // + " | DELTA: " + deltaNS + " NS"
           + " | " + currentSessionType + " SERVER" 
           + " | " + getTimeStamp(timeStamp)
@@ -4981,7 +4981,7 @@ function initSocketHandler(socketObj) {
           sessionObj.isAdmin = false;
           sessionObj.isServer = true;
           sessionObj.isViewer = false;
-          sessionObj.stats = keepAliveObj.stats;
+          // sessionObj.stats = keepAliveObj.stats;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
           console.log(chalk.green("+++ ADD " + currentSessionType + " SERVER" 
@@ -5001,7 +5001,7 @@ function initSocketHandler(socketObj) {
           sessionObj.timeStamp = moment().valueOf();
           sessionObj.user = keepAliveObj.user;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
-          sessionObj.stats = keepAliveObj.stats;
+          // sessionObj.stats = keepAliveObj.stats;
 
           serverCache.set(socket.id, sessionObj);
           adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
@@ -5012,7 +5012,7 @@ function initSocketHandler(socketObj) {
 
       case "VIEWER" :
 
-        console.log(chalkLog("WAS | R< KA"
+        console.log(chalkInfo("WAS | R< KA"
           + " | " + "VIEWER"
           + " | " + getTimeStamp(timeStamp)
           + " | " + keepAliveObj.user.userId
@@ -5038,7 +5038,7 @@ function initSocketHandler(socketObj) {
           sessionObj.isAdmin = false;
           sessionObj.isServer = false;
           sessionObj.isViewer = true;
-          sessionObj.stats = keepAliveObj.stats;
+          // sessionObj.stats = keepAliveObj.stats;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
           console.log(chalk.green("+++ ADD " + currentSessionType + " SESSION" 
@@ -5058,7 +5058,7 @@ function initSocketHandler(socketObj) {
           sessionObj.timeStamp = moment().valueOf();
           sessionObj.user = keepAliveObj.user;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
-          sessionObj.stats = keepAliveObj.stats;
+          // sessionObj.stats = keepAliveObj.stats;
 
           viewerCache.set(socket.id, sessionObj);
           adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
@@ -5464,6 +5464,7 @@ function initSocketNamespaces(params){
               if (configuration.verbose) {
                 console.log("WAS | RX SOCKET AUTHENTICATION"
                   + " | " + socket.nsp.name.toUpperCase()
+                  + " | " + ipAddress
                   + " | " + socket.id
                   + " | USER ID: " + data.userId
                 );
@@ -5505,6 +5506,7 @@ function initSocketNamespaces(params){
               if (configuration.verbose) {
                 console.log("WAS | RX SOCKET AUTHENTICATION"
                   + " | " + socket.nsp.name.toUpperCase()
+                  + " | " + ipAddress
                   + " | " + socket.id
                   + " | USER ID: " + data.userId
                 );
@@ -5546,6 +5548,8 @@ function initSocketNamespaces(params){
 
       viewNameSpace.on("connect", function viewConnect(socket) {
 
+        let ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
         console.log(chalk.blue("WAS | VIEWER CONNECT " + socket.id));
 
         authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
@@ -5561,6 +5565,7 @@ function initSocketNamespaces(params){
 
               console.log("WAS | RX SOCKET AUTHENTICATION"
                 + " | " + socket.nsp.name.toUpperCase()
+                + " | " + ipAddress
                 + " | " + socket.id
                 + " | USER ID: " + data.userId
               );
@@ -6598,7 +6603,7 @@ function initAppRouting(callback) {
 
     if (req.path === "/json") {
       if (!ignoreIpSet.has(req.ip)) {
-        console.log(chalkLog("WAS | R< REJECT: /json"
+        console.log(chalkInfo("WAS | R< REJECT: /json"
           + " | " + getTimeStamp()
           + " | IP: " + req.ip
           + " | HOST: " + req.hostname
@@ -6613,7 +6618,7 @@ function initAppRouting(callback) {
 
       if (configuration.verbose) {
 
-        console.log(chalkLog("WAS | R< DROPBOX WEB HOOK | /dropbox_webhook"
+        console.log(chalkInfo("WAS | R< DROPBOX WEB HOOK | /dropbox_webhook"
           + " | DB CURSOR READY: " + dropboxFolderGetLastestCursorReady
         )); 
 
@@ -6783,7 +6788,7 @@ function initAppRouting(callback) {
       res.sendStatus(200);
     }
     else {
-      console.log(chalkLog("WAS | R<"
+      console.log(chalkInfo("WAS | R<"
         + " | " + getTimeStamp()
         + " | IP: " + req.ip
         + " | HOST: " + req.hostname
@@ -6803,15 +6808,20 @@ function initAppRouting(callback) {
   const adminHtml = __dirname + "/admin/admin.html";
 
   app.get("/admin", function requestAdmin(req, res) {
+
     debug(chalkInfo("get req\n" + req));
+
     console.log(chalkLog("WAS | LOADING PAGE"
+      + " | IP: " + req.ip
       + " | REQ: " + req.url
       + " | RES: " + adminHtml
     ));
+
     res.sendFile(adminHtml, function responseAdmin(err) {
       if (err) {
         console.log(chalkError("WAS | GET /admin ERROR:"
           + " | " + getTimeStamp()
+          + " | IP: " + req.ip
           + " | " + req.url
           + " | " + adminHtml
           + " | " + err
@@ -6830,6 +6840,7 @@ function initAppRouting(callback) {
     debug(chalkInfo("get next\n" + next));
 
     console.log(chalkAlert("WAS | LOADING PAGE"
+      + " | IP: " + req.ip
       + " | REQ: " + req.url
       + " | RES: " + loginHtml
     ));
@@ -6886,6 +6897,7 @@ function initAppRouting(callback) {
 
     console.log(chalkLog("WAS | LOADING PAGE"
       // + " [ VIEWS: " + req.session.views + "]"
+      + " | IP: " + req.ip
       + " | REQ: " + req.url
       + " | RES: " + sessionHtml
     ));
@@ -6894,6 +6906,7 @@ function initAppRouting(callback) {
       if (err) {
         console.log(chalkError("WAS | GET /session ERROR:"
           + " | " + getTimeStamp()
+          + " | IP: " + req.ip
           + " | " + req.url
           + " | " + sessionHtml
           + " | " + err
@@ -6921,6 +6934,7 @@ function initAppRouting(callback) {
 
     console.log(chalkError("WAS | PASSPORT TWITTER AUTH USER\n" + jsonPrint(req.session.passport.user)));  // handle errors
     console.log(chalkError("WAS | PASSPORT TWITTER AUTH USER"
+      + " | IP: " + req.ip
       + " | @" + req.session.passport.user.screenName
       + " | UID" + req.session.passport.user.nodeId
     ));  // handle errors

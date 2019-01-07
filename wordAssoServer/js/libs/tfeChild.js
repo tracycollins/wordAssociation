@@ -341,11 +341,6 @@ function userChangeCacheExpired(userChangeCacheId, changeObj) {
     + " | " + userChangeCacheId
     + " | UID: " + changeObj.user.userId
     + " | @" + changeObj.user.screenName
-    // + " | INIT FLAG: " + changeObj.user.initFlag
-    // + "\nCHANGES\n" + changeObj.user.initFlag
-    // + "\nNOW: " + getTimeStamp()
-    // + " | TS: " + getTimeStamp(changeObj.timeStamp)
-    // + " | AGO: " + msToTime(moment().valueOf() - changeObj.timeStamp)
   ));
 
 }
@@ -444,15 +439,6 @@ function connectDb(){
           dbConnectionReady = true;
 
           resolve(db);
-
-          // initDbUserChangeStream({db: db})
-          // .then(function(){
-          //   resolve(db);
-          // })
-          // .catch(function(err){
-          //   console.log(chalkError("WAS | TFC | *** INIT DB CHANGE STREAM ERROR: " + err));
-          //   return reject(err);
-          // });
 
         });
 
@@ -1080,13 +1066,9 @@ function generateNetworkInputIndexed(params){
               ));
             }
 
-            // let inputValue = 0;
-
             networkInput[indexOffset + index] = (maxInputHashMap[inputType][inputName] > 0) 
               ? histogramObj[inputName]/maxInputHashMap[inputType][inputName] 
               : 1;
-
-            // networkInput[indexOffset + index] = inputValue;
 
             async.setImmediate(function() {
               cb1();
@@ -1116,10 +1098,6 @@ function generateNetworkInputIndexed(params){
       if (err) { return reject(err); }
 
       generateNetworkInputBusy = false;
-
-      // if (configuration.verbose) {
-      //   printNetworkInput({title: title, inputArray: networkInput});
-      // }
 
       resolve(networkInput);
     });
@@ -1275,7 +1253,6 @@ function updateGlobalHistograms(params) {
       return reject(err);
     }
 
-    // async.each(Object.keys(mergedHistograms), function(type, cb0) {
     async.each(DEFAULT_INPUT_TYPES, function(inputType, cb0) {
 
       if (!mergedHistograms[inputType] || (mergedHistograms[inputType] === undefined)){
@@ -1433,14 +1410,9 @@ function geoCode(params) {
           + " | " + params.address
           + " | PLACE ID: " + placeId
           + " | FORMATTED: " + response.json.results[0].formatted_address
-          // + "\n" + jsonPrint(response.json)
         ));
 
         async.each(response.json.results[0].address_components, function(addressComponent, cb0){
-
-          // console.log(chalkLog("TCS | GEOCODE | addressComponent"
-          //  + "\n" + jsonPrint(addressComponent)
-          // ));
 
           if (!addressComponent.types || addressComponent.types === undefined || addressComponent.types.length === 0){
             async.setImmediate(function() { return cb0(); });
@@ -1507,8 +1479,6 @@ function geoCode(params) {
         });
       }
 
-      // console.log(chalkAlert("TCS | GEOCODE | PLACE: " + placeId));
-      // resolve({ placeId: placeId, components: components, raw: response.json });
     });
 
   });
@@ -1538,6 +1508,21 @@ function mergeHistogramsArray(params) {
   });
 }
 
+function checkPropertyChange(user, prop){
+  const prevProp = "previous" + _.upperFirst(prop);
+  if (user[prop] && (user[prop] !== undefined) && (user[prevProp] !== user[prop])) { return true; }
+  return false;
+}
+
+function allHistogramsZeroKeys(histogram){
+
+  Object.keys(histogram).forEach(function(histogramType){
+    if (Object.keys(histogram[histogramType]).length > 0) { return false; }
+  });
+
+  return true;
+}
+
 function checkUserProfileChanged(params) {
 
   let user = params.user;
@@ -1546,10 +1531,11 @@ function checkUserProfileChanged(params) {
     || (user.profileHistograms === undefined) 
     || (user.profileHistograms === {})
     || (Object.keys(user.profileHistograms).length === 0)
+    || allHistogramsZeroKeys(user.profileHistograms)
   ){
 
-    console.log(chalkLog(
-      "WAS | TFC | USER PROFILE UNDEFINED" 
+    console.log(chalk.black.bold(
+      "WAS | TFC | USER PROFILE HISTOGRAMS UNDEFINED" 
       + " | RST PREV PROP VALUES" 
       + " | @" + user.screenName 
     ));
@@ -1566,14 +1552,14 @@ function checkUserProfileChanged(params) {
 
   let results = [];
 
-  if (user.bannerImageUrl && (user.bannerImageUrl !== undefined) && (user.bannerImageUrl !== user.previousBannerImageUrl)) { results.push("bannerImageUrl"); }
-  if (user.description && (user.description !== undefined) && (user.description !== user.previousDescription)) { results.push("description"); }
-  if (user.expandedUrl && (user.expandedUrl !== undefined) && (user.expandedUrl !== user.previousExpandedUrl)) { results.push("expandedUrl"); }
-  if (user.location && (user.location !== undefined) && (user.location !== user.previousLocation)) { results.push("location"); }
-  if (user.name && (user.name !== undefined) && (user.name !== user.previousName)) { results.push("name"); }
-  if (user.profileUrl && (user.profileUrl !== undefined) && (user.profileUrl !== user.previousProfileUrl)) { results.push("profileUrl"); }
-  if (user.screenName && (user.screenName !== undefined) && (user.screenName !== user.previousScreenName)) { results.push("screenName"); }
-  if (user.url && (user.url !== undefined) && (user.url !== user.previousUrl)) { results.push("url"); }
+  if (checkPropertyChange(user, "bannerImageUrl")) { results.push("bannerImageUrl"); }
+  if (checkPropertyChange(user, "description")) { results.push("description"); }
+  if (checkPropertyChange(user, "expandedUrl")) { results.push("expandedUrl"); }
+  if (checkPropertyChange(user, "location")) { results.push("location"); }
+  if (checkPropertyChange(user, "name")) { results.push("name"); }
+  if (checkPropertyChange(user, "profileUrl")) { results.push("profileUrl"); }
+  if (checkPropertyChange(user, "screenName")) { results.push("screenName"); }
+  if (checkPropertyChange(user, "url")) { results.push("url"); }
 
   if (results.length === 0) { return; }
   return results;    
@@ -1583,10 +1569,27 @@ function checkUserStatusChanged(params) {
 
   let user = params.user;
 
+  if (!user.tweetHistograms 
+    || (user.tweetHistograms === undefined) 
+    || (user.tweetHistograms === {})
+    || (Object.keys(user.tweetHistograms).length === 0)
+    || allHistogramsZeroKeys(user.tweetHistograms)
+  ){
+
+    console.log(chalk.black.bold(
+      "WAS | TFC | USER TWEET HISTOGRAMS UNDEFINED" 
+      + " | RST PREV PROP VALUES" 
+      + " | @" + user.screenName 
+    ));
+
+    user.previousStatusId = null;
+    user.previousQuotedStatusId = null;
+  }
+
   let results = [];
 
-  if (user.statusId !== user.previousStatusId) { results.push("statusId"); }
-  if (user.quotedStatusId !== user.previousQuotedStatusId) { results.push("quotedStatusId"); }
+  if (checkPropertyChange(user, "statusId")) { results.push("statusId"); }
+  if (checkPropertyChange(user, "quotedStatusId")) { results.push("quotedStatusId"); }
 
   if (results.length === 0) { return; }
   return results;    
@@ -1700,6 +1703,9 @@ function userProfileChangeHistogram(params) {
                   ? 1 
                   : locationsHistogram.locations[geoCodeResults.placeId] + 1;
 
+
+                user[prevUserProp] = user[userProp];
+
                 return;
 
               } else {
@@ -1719,6 +1725,8 @@ function userProfileChangeHistogram(params) {
                   + " | NID: " + locationDoc.nodeId
                   + " | N: " + locationDoc.name + " / " + locationDoc.nameRaw
                 ));
+
+                user[prevUserProp] = user[userProp];
 
                 return;
 
@@ -1757,8 +1765,12 @@ function userProfileChangeHistogram(params) {
               const key = (locationDoc.placeId && locationDoc.placeId !== undefined) ? locationDoc.placeId : locationDoc.nodeId;
 
               locationsHistogram.locations[key] = (locationsHistogram.locations[key] === undefined) ? 1 : locationsHistogram.locations[key] + 1;
+
+              user[prevUserProp] = user[userProp];
+
               return;
             }
+
           }
           catch(err){
             console.log(chalkError("TCS | *** GEOCODE ERROR", err));
@@ -1769,11 +1781,17 @@ function userProfileChangeHistogram(params) {
         case "name":
         case "description":
           text += userPropValue + "\n";
+
+          user[prevUserProp] = user[userProp];
+
           return;
         break;
 
         case "screenName":
           text += "@" + userPropValue + "\n";
+
+          user[prevUserProp] = user[userProp];
+
           return;
         break;
 
@@ -1784,29 +1802,23 @@ function userProfileChangeHistogram(params) {
 
           domain = urlParse(userPropValue.toLowerCase()).hostname;
           nodeId = btoa(userPropValue.toLowerCase());
-          // console.log("userProp: " + userProp + " | url nodeId: " + nodeId);
 
           if (domain) { 
             domainNodeId = btoa(domain);
-            // console.log("userProp: " + userProp + " | url domainNodeId: " + domainNodeId);
             urlsHistogram.urls[domainNodeId] = (urlsHistogram.urls[domainNodeId] === undefined) ? 1 : urlsHistogram.urls[domainNodeId] + 1; 
           }
           urlsHistogram.urls[nodeId] = (urlsHistogram.urls[nodeId] === undefined) ? 1 : urlsHistogram.urls[nodeId] + 1;
 
+          user[prevUserProp] = user[userProp];
+
           return;
         break;
-
-        // case "bannerImageUrl":
-        //   bannerImageUrl = userPropValue;
-        //   return;
-        // break;
 
         default:
           console.log(chalkError("WAS | TFC | UNKNOWN USER PROPERTY: " + userProp));
           return (new Error("UNKNOWN USER PROPERTY: " + userProp));
       }
 
-      // cb();
 
     }, function(err){
 
@@ -1814,9 +1826,6 @@ function userProfileChangeHistogram(params) {
         console.log(chalkError("WAS | TFC | USER PROFILE HISTOGRAM ERROR: " + err));
         return reject(err);
       }
-
-      // console.log("text: " + text);
-      // console.log("urlsHistogram\n" + jsonPrint(urlsHistogram));
 
       async.parallel({
 
@@ -1832,7 +1841,6 @@ function userProfileChangeHistogram(params) {
               updateGlobalHistograms: true
             })
             .then(function(imageParseResults){
-              // console.log(chalkLog("WAS | TFC | IMAGE PARSE imageParseResults\n" + jsonPrint(imageParseResults)));
               cb(null, imageParseResults);
             })
             .catch(function(err){
@@ -1875,12 +1883,8 @@ function userProfileChangeHistogram(params) {
           return reject(err);
         }
 
-
         mergeHistogramsArray( {histogramArray: [ results.textHist, results.imageHist, urlsHistogram, locationsHistogram ]} )
         .then(function(histogramsMerged){
-
-          // console.log(chalkAlert("WAS | TFC | histogramsMerged\n" + jsonPrint(histogramsMerged)));
-
           resolve(histogramsMerged);
         })
         .catch(function(err){
@@ -1893,7 +1897,6 @@ function userProfileChangeHistogram(params) {
 
   });
 }
-
 
 function userStatusChangeHistogram(params) {
 
@@ -1938,6 +1941,8 @@ function userStatusChangeHistogram(params) {
         let status = deepcopy(user.status);  // avoid circular references
 
         user.statusId = user.statusId.toString();
+        user.previousStatusId = user.statusId;
+
         tscParams.tweetStatus = {};
         tscParams.tweetStatus = status;
         tscParams.tweetStatus.user = {};
@@ -1950,6 +1955,8 @@ function userStatusChangeHistogram(params) {
         let quotedStatus = deepcopy(user.quotedStatus);  // avoid circular references
 
         user.quotedStatusId = user.quotedStatusId.toString();
+        user.previousQuotedStatusId = user.quotedStatusId;
+
         tscParams.tweetStatus = {};
         tscParams.tweetStatus = quotedStatus;
         tscParams.tweetStatus.user = {};
@@ -2030,7 +2037,7 @@ function userStatusChangeHistogram(params) {
             }
 
             if (configuration.verbose) {
-              console.log(chalkLog("WAS | TFC | +++ USER HIST"
+              console.log(chalkLog("WAS | TFC | +++ USER TWEET HIST"
                 + " | " + entityType.toUpperCase()
                 + " | " + entity
                 + " | " + tweetHistograms[entityType][entity]
@@ -2049,7 +2056,6 @@ function userStatusChangeHistogram(params) {
           async.setImmediate(function() { cb(); });
 
         });
-
       })
       .catch(function(err){
         return cb(err);
@@ -2165,91 +2171,9 @@ function updateUserHistograms(params) {
   });
 }
 
-// function initUserChangeDbQueueInterval(cnf){
-
-//   let user = {};
-
-//   console.log(chalkTwitter("WAS | TFC | INIT TWITTER USER CHANGE DB QUEUE INTERVAL: " + cnf.userChangeDbQueueInterval));
-
-//   clearInterval(userChangeDbQueueInterval);
-
-//   userChangeDbQueueInterval = setInterval(async function () {
-
-//     if (userChangeDbQueueReady && (userChangeDbQueue.length > 0)) {
-
-//       userChangeDbQueueReady = false;
-
-//       user = userChangeDbQueue.shift();
-
-//       if (user.initFlag && !user.changes) {
-
-//         printUserObj("WAS | TFC | CHANGE USER DB [ UCDBQ: " + userChangeDbQueue.length + " | UC$: " + userChangeCache.getStats().keys + "] INIT", user, chalkGreen);
-
-//         user.nodeId = user.userId;
-
-//         try {
-//           let dbUser = await userServerController.findOneUserV2({user: user, mergeHistograms: false, noInc: true});
-//         }
-//         catch(err){
-//           console.log(chalkError("WAS | TFC | *** USER DB UPDATE ERROR: " + err));
-//         }
-
-//         userChangeDbQueueReady = true;
-//         userChangeCache.del(user.nodeId);
-
-//       }
-//       else if (user.changes) {
-
-//         statsObj.user.changes += 1;
-
-//         if (configuration.verbose) { 
-//         printUserObj("WAS | TFC | CHANGE USER DB [ UCDBQ: " + userChangeDbQueue.length + " | UC$: " + userChangeCache.getStats().keys + "] CHNG", user, chalkGreen);
-//         }
-
-//         const cacheObj = userChangeCache.get(user.nodeId);
-
-//         if (configuration.verbose && (cacheObj === undefined)) { 
-//           console.log(chalkInfo("WAS | TFC | USER CHG $ MISS"
-//             + " [UC$: " + userChangeCache.getStats().keys + "]"
-//             + " [UCATQ: " + userCategorizeQueue.length + "]"
-//             + " | NID: " + user.nodeId
-//             + " | @" + user.screenName
-//           ));
-//         }
-
-//         if ((cacheObj === undefined) && !userCategorizeQueue.includes(user.userId) && (userCategorizeQueue.length < USER_CAT_QUEUE_MAX_LENGTH)) {
-
-//           userCategorizeQueue.push(user);
-
-//           debug(chalkInfo("WAS | TFC | USER_CATEGORIZE"
-//             + " [ USQ: " + userCategorizeQueue.length + "]"
-//             + " | FLWRs: " + user.followersCount
-//             + " | FRNDs: " + user.friendsCount
-//             + " | UID: " + user.userId
-//             + " | @" + user.screenName
-//             + " | " + user.name
-//             + " | LANG: " + user.lang
-//             + "\nTFE | USER_SHOW | DESC: " + user.description
-//           ));
-          
-//         }
-
-//         userChangeDbQueueReady = true;
-//       }
-//       else {
-//         userChangeDbQueueReady = true;
-//       }
-
-//     }
-
-//   }, cnf.userChangeDbQueueInterval);
-// }
-
 let uscTimeout;
 
 function initUserCategorizeQueueInterval(cnf){
-
-  // let user = {};
 
   console.log(chalkTwitter("WAS | TFC | INIT TWITTER USER CATEGORIZE QUEUE INTERVAL: " + cnf.userCategorizeQueueInterval));
 
@@ -2401,95 +2325,95 @@ function initUserCategorizeQueueInterval(cnf){
   }, cnf.userCategorizeQueueInterval);
 }
 
-function checkUserChanges(params){
+// function checkUserChanges(params){
 
-  return new Promise(function(resolve, reject){
+//   return new Promise(function(resolve, reject){
 
-    let results = {};
-    results.change = {};
-    results.changeFlag = false;
-    results.initFlag = false;
+//     let results = {};
+//     results.change = {};
+//     results.changeFlag = false;
+//     results.initFlag = false;
 
-    let user = {};
-    user = params.user;
+//     let user = {};
+//     user = params.user;
 
-    if (!user.previousName || user.previousName === undefined) { 
-      results.initFlag = true;
-      user.previousName = user.name || ""; 
-    }
-    if (!user.previousDescription || user.previousDescription === undefined) { 
-      results.initFlag = true;
-      user.previousDescription = user.description || ""; 
-    }
-    if (!user.previousStatusId || user.previousStatusId === undefined) {
-      results.initFlag = true;
-      user.previousStatusId = user.statusId || "0"; 
-    }
-    if (!user.previousScreenName || user.previousScreenName === undefined) {
-      results.initFlag = true;
-      user.previousScreenName = user.screenName || ""; 
-    }
-    if (user.previousLocation || user.previousLocation === undefined) {
-      results.initFlag = true;
-      user.previousLocation = user.location || ""; 
-    }
-    if (!user.previousBannerImageUrl || user.previousBannerImageUrl === undefined) {
-      results.initFlag = true;
-      user.previousBannerImageUrl = user.bannerImageUrl || ""; 
-    }
-    if (!user.previousProfileUrl || user.previousProfileUrl === undefined) {
-      results.initFlag = true;
-      user.previousProfileUrl = user.profileUrl || ""; 
-    }
+//     if (!user.previousName || user.previousName === undefined) { 
+//       results.initFlag = true;
+//       user.previousName = user.name || ""; 
+//     }
+//     if (!user.previousDescription || user.previousDescription === undefined) { 
+//       results.initFlag = true;
+//       user.previousDescription = user.description || ""; 
+//     }
+//     if (!user.previousStatusId || user.previousStatusId === undefined) {
+//       results.initFlag = true;
+//       user.previousStatusId = user.statusId || "0"; 
+//     }
+//     if (!user.previousScreenName || user.previousScreenName === undefined) {
+//       results.initFlag = true;
+//       user.previousScreenName = user.screenName || ""; 
+//     }
+//     if (user.previousLocation || user.previousLocation === undefined) {
+//       results.initFlag = true;
+//       user.previousLocation = user.location || ""; 
+//     }
+//     if (!user.previousBannerImageUrl || user.previousBannerImageUrl === undefined) {
+//       results.initFlag = true;
+//       user.previousBannerImageUrl = user.bannerImageUrl || ""; 
+//     }
+//     if (!user.previousProfileUrl || user.previousProfileUrl === undefined) {
+//       results.initFlag = true;
+//       user.previousProfileUrl = user.profileUrl || ""; 
+//     }
 
 
-    if (user.name && (user.previousName !== user.name)) { 
-      results.changeFlag = true;
-      results.change.name = user.previousName;
-      results.name = user.name;
-      user.previousName = user.name; 
-    }
-    if (user.screenName && (user.previousScreenName !== user.screenName)) { 
-      results.changeFlag = true;
-      results.change.screenName = user.previousScreenName;
-      results.screenName = user.screenName;
-      user.previousScreenName = user.screenName; 
-    }
-    if (user.profileUrl && (user.previousProfileUrl !== user.profileUrl)) { 
-      results.changeFlag = true;
-      results.change.profileUrl = user.previousProfileUrl;
-      results.profileUrl = user.profileUrl;
-      user.previousProfileUrl = user.profileUrl; 
-    }
-    if (user.bannerImageUrl && (user.previousBannerImageUrl !== user.bannerImageUrl)) { 
-      results.changeFlag = true;
-      results.change.bannerImageUrl = user.previousBannerImageUrl;
-      results.bannerImageUrl = user.bannerImageUrl;
-      user.previousBannerImageUrl = user.bannerImageUrl; 
-    }
-    if (user.description && (user.previousDescription !== user.description)) { 
-      results.changeFlag = true;
-      results.change.description = user.previousDescription;
-      results.description = user.description; 
-      user.previousDescription = user.description; 
-    }
-    if (user.location && (user.previousLocation !== user.location)) { 
-      results.changeFlag = true;
-      results.change.location = user.previousLocation;
-      results.location = user.location; 
-      user.previousLocation = user.location; 
-    }
-    if (user.statusId && (user.previousStatusId !== user.statusId)) { 
-      results.changeFlag = true;
-      results.change.statusId = user.previousStatusId;
-      results.statusId = user.statusId;
-      user.previousStatusId = user.statusId;
-    }
+//     if (user.name && (user.previousName !== user.name)) { 
+//       results.changeFlag = true;
+//       results.change.name = user.previousName;
+//       results.name = user.name;
+//       user.previousName = user.name; 
+//     }
+//     if (user.screenName && (user.previousScreenName !== user.screenName)) { 
+//       results.changeFlag = true;
+//       results.change.screenName = user.previousScreenName;
+//       results.screenName = user.screenName;
+//       user.previousScreenName = user.screenName; 
+//     }
+//     if (user.profileUrl && (user.previousProfileUrl !== user.profileUrl)) { 
+//       results.changeFlag = true;
+//       results.change.profileUrl = user.previousProfileUrl;
+//       results.profileUrl = user.profileUrl;
+//       user.previousProfileUrl = user.profileUrl; 
+//     }
+//     if (user.bannerImageUrl && (user.previousBannerImageUrl !== user.bannerImageUrl)) { 
+//       results.changeFlag = true;
+//       results.change.bannerImageUrl = user.previousBannerImageUrl;
+//       results.bannerImageUrl = user.bannerImageUrl;
+//       user.previousBannerImageUrl = user.bannerImageUrl; 
+//     }
+//     if (user.description && (user.previousDescription !== user.description)) { 
+//       results.changeFlag = true;
+//       results.change.description = user.previousDescription;
+//       results.description = user.description; 
+//       user.previousDescription = user.description; 
+//     }
+//     if (user.location && (user.previousLocation !== user.location)) { 
+//       results.changeFlag = true;
+//       results.change.location = user.previousLocation;
+//       results.location = user.location; 
+//       user.previousLocation = user.location; 
+//     }
+//     if (user.statusId && (user.previousStatusId !== user.statusId)) { 
+//       results.changeFlag = true;
+//       results.change.statusId = user.previousStatusId;
+//       results.statusId = user.statusId;
+//       user.previousStatusId = user.statusId;
+//     }
 
-    resolve(results);
+//     resolve(results);
 
-  });
-}
+//   });
+// }
 
 // function initDbUserChangeStream(params){
 

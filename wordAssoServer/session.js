@@ -1307,11 +1307,14 @@ function sendKeepAlive(viewerObj, callback){
 
   if (statsObj.viewerReadyAck && statsObj.serverConnected){
 
+    let statsObjSmall = statsObj;
+    delete statsObjSmall.heartBeat;
+
     socket.emit(
       "SESSION_KEEPALIVE", 
       {
         user: viewerObj, 
-        stats: statsObj, 
+        stats: statsObjSmall, 
         results: {}
       }
     );

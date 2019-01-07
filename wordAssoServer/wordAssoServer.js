@@ -6615,7 +6615,6 @@ function initAppRouting(callback) {
 
         console.log(chalkLog("WAS | R< DROPBOX WEB HOOK | /dropbox_webhook"
           + " | DB CURSOR READY: " + dropboxFolderGetLastestCursorReady
-          // + " | DB CHANGE FOLDER ARRAY\n" + jsonPrint(configuration.dropboxChangeFolderArray)
         )); 
 
         debug(chalkInfo("WAS | R< dropbox_webhook"

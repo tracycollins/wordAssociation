@@ -1732,6 +1732,7 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
           console.log(chalkInfo("WAS | AUTH SOCKET CACHE ENTRIES"
             + " | NSP: " + authSocketObjCache.namespace.toUpperCase()
             + " | " + socketId
+            + " | " + authSocketObjCache.ipAddress
             + " | USER ID: " + authSocketObjCache.userId
             + " | NOW: " + getTimeStamp()
             + " | TS: " + getTimeStamp(authSocketObjCache.timeStamp)

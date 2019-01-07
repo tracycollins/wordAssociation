@@ -1714,6 +1714,7 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
     + " | TTL: " + msToTime(authenticatedSocketCacheTtl*1000)
     + " | NSP: " + authSocketObj.namespace.toUpperCase()
     + " | " + socketId
+    + " | " + authSocketObj.ipAddress
     + " | USER ID: " + authSocketObj.userId
     + " | NOW: " + getTimeStamp()
     + " | TS: " + getTimeStamp(authSocketObj.timeStamp)
@@ -4860,7 +4861,9 @@ function initSocketHandler(socketObj) {
           ));
         }
 
+        authSocketObj.ipAddress = ipAddress;
         authSocketObj.timeStamp = moment().valueOf();
+
         authenticatedSocketCache.set(socket.id, authSocketObj);
 
       }
@@ -5444,10 +5447,14 @@ function initSocketNamespaces(params){
 
         console.log(chalk.blue("WAS | ADMIN CONNECT " + socket.id));
 
+        let ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
         authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
+
           if (authenticatedSocketObj){
             console.log(chalkAlert("WAS | ADMIN ALREADY AUTHENTICATED"
               + " | " + socket.id
+              + " | " + authenticatedSocketObj.ipAddress
               + "\n" + jsonPrint(authenticatedSocketObj)
             ));
           }
@@ -5462,6 +5469,7 @@ function initSocketNamespaces(params){
                 );
               }
 
+              data.ipAddress = ipAddress;
               data.timeStamp = moment().valueOf();
 
               authenticatedSocketCache.set(socket.id, data);
@@ -5481,10 +5489,13 @@ function initSocketNamespaces(params){
 
         console.log(chalk.blue("WAS | UTIL CONNECT " + socket.id));
 
+        let ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
         authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
           if (authenticatedSocketObj){
             console.log(chalkAlert("WAS | UTIL ALREADY AUTHENTICATED"
               + " | " + socket.id
+              + " | " + authenticatedSocketObj.ipAddress
               + "\n" + jsonPrint(authenticatedSocketObj)
             ));
           }
@@ -5499,6 +5510,7 @@ function initSocketNamespaces(params){
                 );
               }
 
+              data.ipAddress = ipAddress;
               data.timeStamp = moment().valueOf();
 
               authenticatedSocketCache.set(socket.id, data);
@@ -5517,11 +5529,16 @@ function initSocketNamespaces(params){
       userNameSpace.on("connect", function userConnect(socket) {
         console.log(chalk.blue("WAS | USER CONNECT " + socket.id));
 
+        let ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
         authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
+          if (authenticatedSocketObj){
             console.log(chalkAlert("WAS | USER ALREADY AUTHENTICATED"
               + " | " + socket.id
+              + " | " + authenticatedSocketObj.ipAddress
               + "\n" + jsonPrint(authenticatedSocketObj)
             ));
+          }
         });
 
         initSocketHandler({namespace: "user", socket: socket});
@@ -5535,6 +5552,7 @@ function initSocketNamespaces(params){
           if (authenticatedSocketObj){
             console.log(chalkAlert("WAS | VIEWER ALREADY AUTHENTICATED"
               + " | " + socket.id
+              + " | " + authenticatedSocketObj.ipAddress
               + "\n" + jsonPrint(authenticatedSocketObj)
             ));
           }
@@ -5547,6 +5565,7 @@ function initSocketNamespaces(params){
                 + " | USER ID: " + data.userId
               );
 
+              data.ipAddress = ipAddress;
               data.timeStamp = moment().valueOf();
 
               authenticatedSocketCache.set(socket.id, data);

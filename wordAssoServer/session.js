@@ -1820,6 +1820,7 @@ var noneNodesRatio = 0;
 
 //  STATS UPDATE
 function initStatsUpdate(interval){
+  
   setInterval(function() {
 
     totalHashMap = currentSessionView.getTotalHashMap();
@@ -2145,8 +2146,6 @@ function initialize(callback) {
 
             currentSessionView.initD3timer();
 
-            initStatsUpdate(STATS_UPDATE_INTERVAL);
-
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
 
             viewerObj.timeStamp = Date.now();
@@ -2158,6 +2157,7 @@ function initialize(callback) {
             setTimeout(function() {
               console.log("END PAGE LOAD TIMEOUT");
               pageLoadedTimeIntervalFlag = false;
+              initStatsUpdate(STATS_UPDATE_INTERVAL);
               if (!config.showStatsFlag) { displayStats(false, palette.white); }
             }, PAGE_LOAD_TIMEOUT);
 
@@ -2204,8 +2204,6 @@ function initialize(callback) {
             currentSessionView.simulationControl("START");
             currentSessionView.resize();
 
-            initStatsUpdate(STATS_UPDATE_INTERVAL);
-
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
 
             viewerObj.timeStamp = Date.now();
@@ -2216,6 +2214,7 @@ function initialize(callback) {
 
             setTimeout(function() {
               console.log("END PAGE LOAD TIMEOUT");
+              initStatsUpdate(STATS_UPDATE_INTERVAL);
               pageLoadedTimeIntervalFlag = false;
               if (!config.showStatsFlag) {displayStats(false, palette.white);}
             }, PAGE_LOAD_TIMEOUT);
@@ -2266,7 +2265,6 @@ function initialize(callback) {
           currentSessionView.initD3timer();
           currentSessionView.resize();
 
-          initStatsUpdate(STATS_UPDATE_INTERVAL);
 
           console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
 
@@ -2278,6 +2276,8 @@ function initialize(callback) {
 
           setTimeout(function() {
             console.error("END PAGE LOAD TIMEOUT");
+
+            initStatsUpdate(STATS_UPDATE_INTERVAL);
             pageLoadedTimeIntervalFlag = false;
             if (!config.showStatsFlag) { displayStats(false, palette.white); }
           }, PAGE_LOAD_TIMEOUT);

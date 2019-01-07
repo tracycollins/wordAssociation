@@ -612,6 +612,8 @@ function updateStatsText(){
 
   statsText.innerHTML = getTimeStamp() + "<br><hr><br>";
 
+  if (!statsObj.heartBeat || statsObj.heartBeat === undefined) { statsObj.heartBeat = {}; }
+
   Object.keys(statsObj.heartBeat.bestNetwork).forEach(function(key){
     if (showPropArray.includes(key)){
         switch (key) {

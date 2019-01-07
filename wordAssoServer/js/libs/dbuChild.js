@@ -42,6 +42,8 @@ const debugQ = require("debug")("queue");
 const async = require("async");
 const merge = require("merge");
 const _ = require("lodash");
+const MergeHistograms = require("@threeceelabs/mergehistograms");
+const mergeHistograms = new MergeHistograms();
 
 const chalk = require("chalk");
 const chalkAlert = chalk.red;
@@ -321,55 +323,55 @@ function initialize(){
 
 }
 
-function mergeHistograms(params){
+// function mergeHistograms(params){
 
-  return new Promise(function(resolve, reject){
+//   return new Promise(function(resolve, reject){
 
-    let histA = params.histogramA;
-    let histB = params.histogramB;
+//     let histA = params.histogramA;
+//     let histB = params.histogramB;
 
-    let histogramMerged = {};
+//     let histogramMerged = {};
 
-    const entityTypeArray = _.union(Object.keys(histA), Object.keys(histB));
+//     const entityTypeArray = _.union(Object.keys(histA), Object.keys(histB));
 
-    entityTypeArray.forEach(function(entityType){
+//     entityTypeArray.forEach(function(entityType){
 
-      histogramMerged[entityType] = {};
+//       histogramMerged[entityType] = {};
 
-      if (!histA[entityType] || histA[entityType] === undefined || histA[entityType] === null) { histA[entityType] = {}; }
-      if (!histB[entityType] || histB[entityType] === undefined || histB[entityType] === null) { histB[entityType] = {}; }
+//       if (!histA[entityType] || histA[entityType] === undefined || histA[entityType] === null) { histA[entityType] = {}; }
+//       if (!histB[entityType] || histB[entityType] === undefined || histB[entityType] === null) { histB[entityType] = {}; }
 
-      // console.log(chalkLog("histogramMerged | histA[entityType]: " + jsonPrint(histA[entityType])));
-      // console.log(chalkLog("histogramMerged | histB[entityType]: " + jsonPrint(histB[entityType])));
+//       // console.log(chalkLog("histogramMerged | histA[entityType]: " + jsonPrint(histA[entityType])));
+//       // console.log(chalkLog("histogramMerged | histB[entityType]: " + jsonPrint(histB[entityType])));
 
-      const entityArray = _.union(Object.keys(histA[entityType]), Object.keys(histB[entityType]));
+//       const entityArray = _.union(Object.keys(histA[entityType]), Object.keys(histB[entityType]));
 
-      // console.log(chalkLog("histogramMerged | entityArray: " + entityArray));
+//       // console.log(chalkLog("histogramMerged | entityArray: " + entityArray));
 
-      entityArray.forEach(function(e){
+//       entityArray.forEach(function(e){
 
-        let entity = e.trim();
+//         let entity = e.trim();
 
-        if (!entity || entity === "" || entity === " " || entity === null || entity === undefined || entity === "-") { return; }
+//         if (!entity || entity === "" || entity === " " || entity === null || entity === undefined || entity === "-") { return; }
 
-        histogramMerged[entityType][entity] = 0;
+//         histogramMerged[entityType][entity] = 0;
 
-        if (histA[entityType][entity] && histA[entityType][entity] !== undefined) {  histogramMerged[entityType][entity] += histA[entityType][entity]; }
-        if (histB[entityType][entity] && histB[entityType][entity] !== undefined) {  histogramMerged[entityType][entity] += histB[entityType][entity]; }
+//         if (histA[entityType][entity] && histA[entityType][entity] !== undefined) {  histogramMerged[entityType][entity] += histA[entityType][entity]; }
+//         if (histB[entityType][entity] && histB[entityType][entity] !== undefined) {  histogramMerged[entityType][entity] += histB[entityType][entity]; }
 
-        // console.log(chalkLog("histogramMerged | " + entityType + " | " + entity + ": " + histogramMerged[entityType][entity]));
+//         // console.log(chalkLog("histogramMerged | " + entityType + " | " + entity + ": " + histogramMerged[entityType][entity]));
 
-      });
+//       });
 
-    });
+//     });
 
-    debug(chalkLog("histogramMerged\n" + jsonPrint(histogramMerged)));
+//     debug(chalkLog("histogramMerged\n" + jsonPrint(histogramMerged)));
 
-    resolve(histogramMerged);
+//     resolve(histogramMerged);
 
-  });
+//   });
 
-}
+// }
 
 function printUserObj(title, user) {
   console.log(chalkUser(title
@@ -521,9 +523,6 @@ function userUpdateDb(tweetObj){
           return resolve(null);
         }
 
-
-        let tweetHistogramMerged = {};
-
         user.histograms = null;
 
         if (!user.tweetHistograms || user.tweetHistograms === undefined || user.tweetHistograms === null) { 
@@ -544,13 +543,12 @@ function userUpdateDb(tweetObj){
 
         try {
 
-          tweetHistogramMerged = await mergeHistograms({histogramA: tweetObj.user.histograms, histogramB: user.tweetHistograms});
+          user.tweetHistograms = await mergeHistograms.merge({ histogramA: tweetObj.user.histograms, histogramB: user.tweetHistograms });
 
-          user.tweetHistograms = tweetHistogramMerged;
           user.markModified("profileHistograms");
           user.markModified("tweetHistograms");
 
-          // printUserObj("DBU | +++ USR DB HIT", user);
+          printUserObj("DBU | +++ USR TW HIST CHG", user);
 
           if (configuration.verbose) {
             console.log(chalkInfo("DBU | USER MERGED HISTOGRAMS"
@@ -574,12 +572,12 @@ function userUpdateDb(tweetObj){
             debug(chalkInfo("DBU | USER MERGED HISTOGRAMS"
               + " | " + user.nodeId
               + " | @" + user.screenName
-              + "\nprofileHistograms\n" + jsonPrint(user.nprofileHistograms)
+              + "\nprofileHistograms\n" + jsonPrint(user.profileHistograms)
               + "\ntweetHistograms\n" + jsonPrint(user.tweetHistograms)
             ));
           // }
 
-          debug(chalkLog("DBU | USER MERGED TWEET HISTOGRAMS\n" + jsonPrint(tweetHistogramMerged)));
+          debug(chalkLog("DBU | USER MERGED TWEET HISTOGRAMS\n" + jsonPrint(user.tweetHistograms)));
 
           user.save()
           .then(function() {

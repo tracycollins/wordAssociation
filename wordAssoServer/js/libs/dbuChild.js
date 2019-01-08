@@ -375,16 +375,17 @@ function printUserObj(title, user) {
   console.log(chalkUser(title
     + " | " + user.userId
     + " | @" + user.screenName
-    + " | N: " + user.name 
-    + " | FLWRs: " + user.followersCount
-    + " | FRNDs: " + user.friendsCount
-    + " | Ts: " + user.statusesCount
-    + " | Ms:  " + user.mentions
-    + " | LS: " + getTimeStamp(user.lastSeen)
-    + " | FLWg: " + user.following 
-    + " | 3C: @" + user.threeceeFollowing 
-    + " | CAT MAN: " + user.category
-    + " | CAT AUTO: " + user.categoryAuto
+    + " | " + user.name 
+    + " | FWs " + user.followersCount
+    + " | FDs " + user.friendsCount
+    + " | T " + user.statusesCount
+    + " | M  " + user.mentions
+    + " | LS " + getTimeStamp(user.lastSeen)
+    + " | FW: " + user.following 
+    + " | 3C " + user.threeceeFollowing 
+    + " | LHTID " + user.lastHistogramTweetId 
+    + " | LHQID " + user.lastHistogramQuoteId 
+    + " | CAT M " + user.category + "A " + user.categoryAuto
   ));
 }
 
@@ -543,6 +544,8 @@ function userUpdateDb(tweetObj){
           tweetHistogramMerged = await mergeHistograms({histogramA: tweetObj.user.histograms, histogramB: user.tweetHistograms});
 
           user.tweetHistograms = tweetHistogramMerged;
+          user.lastHistogramTweetId = user.statusId;
+          user.lastHistogramQuoteId = user.quotedStatusId;
 
           printUserObj("DBU | +++ USR DB HIT", user);
 
@@ -550,6 +553,8 @@ function userUpdateDb(tweetObj){
             console.log(chalkInfo("DBU | USER MERGED HISTOGRAMS"
               + " | " + user.nodeId
               + " | @" + user.screenName
+              + " | LHTID" + user.lastHistogramTweetId
+              + " | LHQID" + user.lastHistogramQuoteId
               + " | EJs: " + getNumKeys(user.tweetHistograms.emoji)
               + " | Hs: " + getNumKeys(user.tweetHistograms.hashtags)
               + " | IMs: " + getNumKeys(user.tweetHistograms.images)

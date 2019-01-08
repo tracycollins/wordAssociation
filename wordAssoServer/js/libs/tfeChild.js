@@ -680,6 +680,9 @@ function printUserObj(title, user, chalkConfig) {
     + " | IG " + user.ignored 
     + " | FW " + user.following 
     + " | 3C " + user.threeceeFollowing 
+    + " | LHTID " + user.lastHistogramTweetId 
+    + " | LHQID " + user.lastHistogramQuoteId 
+    + " | 3C " + user.threeceeFollowing 
     + " | CAT M " + user.category + " A " + user.categoryAuto
   ));
 
@@ -2226,6 +2229,9 @@ function initUserCategorizeQueueInterval(cnf){
 
       updatedUser.categoryAuto = networkOutput.output;
       updatedUser.nodeId = updatedUser.nodeId;
+
+      updatedUser.lastHistogramTweetId = user.statusId;
+      updatedUser.lastHistogramQuoteId = user.quotedStatusId;
 
       if (typeof updatedUser.previousLocation !== "string") {
         // printUserObj("WAS | TFC | previousLocation NOT STRING | " + typeof updatedUser.previousLocation, updatedUser, chalkAlert);

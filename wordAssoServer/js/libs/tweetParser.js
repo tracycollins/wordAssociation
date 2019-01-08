@@ -520,7 +520,7 @@ setTimeout(async function(){
 
     statsObj.status = "START";
 
-    console.log("TWP | " + chalk.blue(configuration.processName + " CONFIGURATION\n" + jsonPrint(configuration)));
+    debug("TWP | " + chalk.blue(configuration.processName + " CONFIGURATION\n" + jsonPrint(configuration)));
 
     try {
       await connectDb();

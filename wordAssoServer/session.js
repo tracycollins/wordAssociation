@@ -23,6 +23,11 @@ ProgressBar
 
 // var DEFAULT_SOURCE = "http://localhost:9997";
 var DEFAULT_SOURCE = "https://word.threeceelabs.com";
+
+var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
+// var DEFAULT_AUTH_URL = "http://localhost:9997/auth/twitter";
+// var DEFAULT_AUTH_URL = DEFAULT_SOURCE + "/login";
+
 var MAX_RX_QUEUE = 250;
 
 var config = {};
@@ -40,6 +45,15 @@ config.displayNodeHashMap.word = "hide";
 config.viewerReadyInterval = 10000;
 
 var statsObj = {};
+
+statsObj.bestNetwork = {};
+statsObj.bestNetwork.networkId = "";
+statsObj.bestNetwork.successRate = 0;
+statsObj.bestNetwork.matchRate = 0;
+statsObj.bestNetwork.overallMatchRate = 0;
+statsObj.bestNetwork.inputsId = "";
+statsObj.bestNetwork.numInputs = 0;
+
 statsObj.isAuthenticated = false;
 statsObj.maxNodes = 0;
 statsObj.maxNodeAddQ = 0;
@@ -49,17 +63,10 @@ statsObj.socket = {};
 
 statsObj.socket.errors = 0;
 statsObj.socket.error = false;
-// statsObj.socket.errorMoment = moment();
 
 statsObj.socket.connected = true;
 statsObj.socket.connects = 0;
-// statsObj.socket.connectMoment = moment();
-
-// statsObj.socket.reconnectMoment = moment();
 statsObj.socket.reconnects = 0;
-
-// statsObj.socket.disconnectMoment = moment();
-
 
 const RX_NODE_QUEUE_INTERVAL = 10;
 const RX_NODE_QUEUE_MAX = 100;
@@ -101,10 +108,6 @@ var viewerObj = {};
 viewerObj = DEFAULT_VIEWER_OBJ;
 
 console.log("viewerObj\n" + jsonPrint(viewerObj));
-
-// var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
-var DEFAULT_AUTH_URL = "http://localhost:9997/auth/twitter";
-// var DEFAULT_AUTH_URL = DEFAULT_SOURCE + "/login";
 
 var loginCallBack = function() {
   console.log("LOGIN CALL BACK");
@@ -168,6 +171,7 @@ requirejs(["https://d3js.org/d3.v5.min.js"], function(d3Loaded) {
           }
           mouseMovingFlag = true;
           currentSessionView.mouseMoving(true);
+          displayStats(true, palette.white);
           displayControl(true);
           resetMouseMoveTimer();
         }
@@ -189,8 +193,13 @@ var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 var pageLoadedTimeIntervalFlag = true;
 
 var DEFAULT_METRIC_MODE = "rate";
+var DEFAULT_MAX_NODES = 100;
 var DEFAULT_MAX_AGE = 60000;
+
+var TREEMAP_MAX_NODES = 100;
 var TREEMAP_MAX_AGE = 15000;
+
+var TREEPACK_MAX_NODES = 100;
 var TREEPACK_MAX_AGE = 15000;
 
 var DEFAULT_AGE_RATE = 1.0;
@@ -219,6 +228,7 @@ var DEFAULT_NODE_RADIUS = 20.0;
 
 var TREEPACK_DEFAULT = {};
 TREEPACK_DEFAULT.TRANSITION_DURATION = 50;
+TREEPACK_DEFAULT.MAX_NODES = TREEPACK_MAX_NODES;
 TREEPACK_DEFAULT.MAX_AGE = TREEPACK_MAX_AGE;
 TREEPACK_DEFAULT.CHARGE = DEFAULT_CHARGE;
 TREEPACK_DEFAULT.GRAVITY = 0.001;
@@ -277,6 +287,7 @@ else {
   config.testMode = false;
   config.removeDeadNodesFlag = true;
 
+  config.defaultMaxNodes = DEFAULT_MAX_NODES;
   config.defaultTransitionDuration = DEFAULT_TRANSITION_DURATION;
   config.defaultMaxAge = DEFAULT_MAX_AGE;
   config.defaultMultiplier = 1000.0;
@@ -538,16 +549,107 @@ function saveConfig(){
 
 var controlDivElement = document.getElementById("controlDiv");
 // var topTermsDivElement = document.getElementById("topTermsDiv");
+
 var statsDivElement = document.getElementById("statsDiv");
+
+var statsText = document.getElementById("stats-text");
+
+var statsLeftBarText = document.getElementById("left-bar-text");
+var statsRightBarText = document.getElementById("right-bar-text");
+var statsNeutralBarText = document.getElementById("neutral-bar-text");
+var statsPositiveBarText = document.getElementById("positive-bar-text");
+var statsNegativeBarText = document.getElementById("negative-bar-text");
+var statsNoneBarText = document.getElementById("none-bar-text");
+
+var statsLeftBarDiv = document.getElementById("left-bar");
+var statsRightBarDiv = document.getElementById("right-bar");
+var statsNeutralBarDiv = document.getElementById("neutral-bar");
+var statsPositiveBarDiv = document.getElementById("positive-bar");
+var statsNegativeBarDiv = document.getElementById("negative-bar");
+var statsNoneBarDiv = document.getElementById("none-bar");
+
+var statsLeftBar = new ProgressBar.Line(statsLeftBarDiv, { duration: 100 });
+var statsRightBar = new ProgressBar.Line(statsRightBarDiv, { duration: 100 });
+var statsNeutralBar = new ProgressBar.Line(statsNeutralBarDiv, { duration: 100 });
+var statsPositiveBar = new ProgressBar.Line(statsPositiveBarDiv, { duration: 100 });
+var statsNegativeBar = new ProgressBar.Line(statsNegativeBarDiv, { duration: 100 });
+var statsNoneBar = new ProgressBar.Line(statsNoneBarDiv, { duration: 100 });
+
+statsLeftBar.animate(0);
+statsLeftBar.path.setAttribute("stroke", palette.blue);
+
+statsRightBar.animate(0);
+statsRightBar.path.setAttribute("stroke", palette.yellow);
+
+statsNeutralBar.animate(0);
+statsNeutralBar.path.setAttribute("stroke", palette.gray);
+
+statsPositiveBar.animate(0);
+statsPositiveBar.path.setAttribute("stroke", palette.green);
+
+statsNegativeBar.animate(0);
+statsNegativeBar.path.setAttribute("stroke", palette.red);
+
+statsNoneBar.animate(0);
+statsNoneBar.path.setAttribute("stroke", palette.white);
 
 function displayControl(isVisible) {
   controlDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
   // topTermsDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
 }
 
+let showPropArray = [
+  "networkId",
+  "successRate",
+  "matchRate",
+  "overallMatchRate",
+  "numInputs",
+  "inputsId"
+];
+
+function updateStatsText(){
+
+  statsText.innerHTML = getTimeStamp() + "<br><hr><br>";
+
+  Object.keys(statsObj.bestNetwork).forEach(function(key){
+    if (showPropArray.includes(key)){
+        switch (key) {
+          case "networkId":
+            statsText.innerHTML +=  statsObj.bestNetwork[key] + "<br><br><br>";
+          break;
+          case "successRate":
+            if (typeof statsObj.bestNetwork[key] !== "number") { break; }
+            statsText.innerHTML +=  "SR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
+          break;
+          case "matchRate":
+            if (typeof statsObj.bestNetwork[key] !== "number") { break; }
+            statsText.innerHTML +=  "MR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
+          break;
+          case "overallMatchRate":
+            if (typeof statsObj.bestNetwork[key] !== "number") { break; }
+            statsText.innerHTML +=  "OAMR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
+          break;
+
+          case "seedNetworkRes":
+            if (typeof statsObj.bestNetwork[key] !== "number") { break; }
+            statsText.innerHTML +=  "SN SR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
+          break;
+
+          default:
+            statsText.innerHTML += key.toUpperCase() + ": " + statsObj.bestNetwork[key] + "<br><br>";
+        }
+    }
+  })
+
+}
+
 function displayStats(isVisible, dColor) {
+
+  updateStatsText();
+
   statsDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
   if (dColor !== undefined) {statsDivElement.style.color = dColor;}
+
 }
 
 var mouseMoveTimeoutEventObj = new CustomEvent("mouseMoveTimeoutEvent");
@@ -915,6 +1017,9 @@ function controlPanelComm(event) {
         case "maxAgeSlider" :
           currentSessionView.setNodeMaxAge(event.data.value);
         break;
+        case "maxNodesSlider" :
+          currentSessionView.setMaxNodesLimit(event.data.value);
+        break;
         case "fontSizeMinRatioSlider" :
           currentSessionView.updateFontSizeMinRatio(event.data.value);
         break;
@@ -1201,11 +1306,14 @@ function sendKeepAlive(viewerObj, callback){
 
   if (statsObj.viewerReadyAck && statsObj.serverConnected){
 
+    let statsObjSmall = statsObj;
+    delete statsObjSmall.heartBeat;
+
     socket.emit(
       "SESSION_KEEPALIVE", 
       {
         user: viewerObj, 
-        stats: statsObj, 
+        stats: statsObjSmall, 
         results: {}
       }
     );
@@ -1455,6 +1563,10 @@ socket.on("HEARTBEAT", function(hb) {
 
   resetServerActiveTimer();
 
+  statsObj.bestNetwork = hb.bestNetwork;
+
+  if (currentSessionView !== undefined) { currentSessionView.setHeartBeat(hb); }
+
   statsObj.maxNodes = ( currentSessionView === undefined) ? 0 : currentSessionView.getMaxNodes();
   statsObj.maxNodeAddQ = ( currentSessionView === undefined) ? 0 : currentSessionView.getMaxNodeAddQ();
 
@@ -1462,6 +1574,7 @@ socket.on("HEARTBEAT", function(hb) {
   statsObj.serverConnected = true;
   statsObj.socket.connected = true;
   lastHeartbeatReceived = Date.now();
+
 });
 
 socket.on("CONFIG_CHANGE", function(rxConfig) {
@@ -1486,11 +1599,18 @@ socket.on("CONFIG_CHANGE", function(rxConfig) {
     previousConfig.testSendInterval = config.testSendInterval;
   }
 
+  if (rxConfig.maxNodes !== undefined) {
+    config.maxNodes = rxConfig.maxNodes;
+    console.log("\n*** ENV CHANGE: NODE_MAX_NODES: WAS: " 
+      + previousConfig.maxNodes + " | NOW: " + config.maxNodes + "\n");
+    currentSessionView.setMaxAge(rxConfig.maxNodes);
+    previousConfig.maxNodes = config.maxNodes;
+  }
+
   if (rxConfig.nodeMaxAge !== undefined) {
     config.nodeMaxAge = rxConfig.nodeMaxAge;
     console.log("\n*** ENV CHANGE: NODE_MAX_AGE: WAS: " 
       + previousConfig.nodeMaxAge + " | NOW: " + config.nodeMaxAge + "\n");
-    // nodeMaxAge = config.nodeMaxAge;
     currentSessionView.setMaxAge(rxConfig.nodeMaxAge);
     previousConfig.nodeMaxAge = config.nodeMaxAge;
   }
@@ -1686,66 +1806,52 @@ function generateLinkId() {
   return "LNK" + globalLinkIndex;
 }
 
-var tableRow;
-var tableHead;
-var tableCell;
-var tableButton;
-var tableSlider;
-var tdTextColor;
-var tdBgColor;
-
-function tableCreateRow(parentTable, options, cells) {
-
-  tableRow = parentTable.insertRow();
-  tdTextColor = options.textColor;
-  tdBgColor = options.backgroundColor || "#222222";
-
-  if (options.trClass) {
-    tableRow.className = options.trClass;
-  }
-
-  if (options.headerFlag) {
-    cells.forEach(function(content) {
-      tableHead = tableRow.insertCell();
-      tableHead.appendChild(document.createTextNode(content));
-      tableHead.style.color = tdTextColor;
-      tableHead.style.backgroundColor = tdBgColor;
-    });
-  } 
-  else {
-    cells.forEach(function(content) {
-      tableCell = tableRow.insertCell();
-      if (content.type === undefined) {
-        tableCell.appendChild(document.createTextNode(content));
-        tableCell.style.color = tdTextColor;
-        tableCell.style.backgroundColor = tdBgColor;
-      } 
-      else if (content.type === "TEXT") {
-        tableCell.className = content.class;
-        tableCell.setAttribute("id", content.id);
-        tableCell.style.color = tdTextColor;
-        tableCell.style.backgroundColor = tdBgColor;
-        tableCell.innerHTML = content.text;
-      } 
-      else if (content.type === "SLIDER") {
-        tableSlider = document.createElement("INPUT");
-        tableSlider.type = "range";
-        tableSlider.className = content.class;
-        tableSlider.setAttribute("id", content.id);
-        tableSlider.setAttribute("min", content.min);
-        tableSlider.setAttribute("max", content.max);
-        tableSlider.setAttribute("multiplier", content.multiplier);
-        tableSlider.setAttribute("oninput", content.oninput);
-        tableSlider.value = content.value;
-        tableCell.appendChild(tableSlider);
-      }
-    });
-  }
-}
+var totalHashMap = {};
+var totalNodes = 0;
+var leftNodesRatio = 0;
+var rightNodesRatio = 0;
+var neutralNodesRatio = 0;
+var positiveNodesRatio = 0;
+var negativeNodesRatio = 0;
+var noneNodesRatio = 0;
 
 //  STATS UPDATE
 function initStatsUpdate(interval){
+
   setInterval(function() {
+
+    totalHashMap = currentSessionView.getTotalHashMap();
+
+    if (totalHashMap.total > 0) {
+      leftNodesRatio = totalHashMap.left / totalHashMap.total;
+      rightNodesRatio = totalHashMap.right / totalHashMap.total;
+      neutralNodesRatio = totalHashMap.neutral / totalHashMap.total;
+      positiveNodesRatio = totalHashMap.positive / totalHashMap.total;
+      negativeNodesRatio = totalHashMap.negative / totalHashMap.total;
+      noneNodesRatio = totalHashMap.none / totalHashMap.total;
+    }
+
+    statsLeftBar.animate(leftNodesRatio);
+    statsRightBar.animate(rightNodesRatio);
+    statsNeutralBar.animate(neutralNodesRatio);
+    statsPositiveBar.animate(positiveNodesRatio);
+    statsNegativeBar.animate(negativeNodesRatio);
+    statsNoneBar.animate(noneNodesRatio);
+
+    statsLeftBar.path.setAttribute("stroke", palette.blue);
+    statsRightBar.path.setAttribute("stroke", palette.yellow);
+    statsNeutralBar.path.setAttribute("stroke", palette.gray);
+    statsPositiveBar.path.setAttribute("stroke", palette.green);
+    statsNegativeBar.path.setAttribute("stroke", palette.red);
+    statsNoneBar.path.setAttribute("stroke", palette.white);
+
+    // if (!statsObj.heartBeat.bestNetwork || statsObj.heartBeat.bestNetwork === undefined) {
+    //   statsObj.heartBeat.bestNetwork = {};
+    //   statsObj.heartBeat.bestNetwork.networkId = "";
+    // }
+
+    updateStatsText();
+
   }, interval);
 }
 
@@ -2022,6 +2128,7 @@ function initialize(callback) {
               config.authenticationUrl = DEFAULT_AUTH_URL;
 
               if (config.sessionViewType === "treepack") {
+                currentSessionView.setMaxNodesLimit(config.defaultMaxNodes);
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
               }
             }
@@ -2029,14 +2136,12 @@ function initialize(callback) {
               console.debug("STORED CONFIG NOT FOUND: " + storedConfigName);
 
               if (config.sessionViewType === "treepack") {
-                // initUpdateSessionsInterval(50);
+                currentSessionView.setMaxNodesLimit(DEFAULT_MAX_NODES);
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
               }
             }
 
             currentSessionView.initD3timer();
-
-            initStatsUpdate(STATS_UPDATE_INTERVAL);
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
 
@@ -2049,6 +2154,7 @@ function initialize(callback) {
             setTimeout(function() {
               console.log("END PAGE LOAD TIMEOUT");
               pageLoadedTimeIntervalFlag = false;
+              initStatsUpdate(STATS_UPDATE_INTERVAL);
               if (!config.showStatsFlag) { displayStats(false, palette.white); }
             }, PAGE_LOAD_TIMEOUT);
 
@@ -2084,16 +2190,16 @@ function initialize(callback) {
               });
 
               config.authenticationUrl = DEFAULT_AUTH_URL;
+              currentSessionView.setMaxNodesLimit(config.defaultMaxNodes);
               currentSessionView.setNodeMaxAge(config.defaultMaxAge);
             }
             else {
+              currentSessionView.setMaxNodesLimit(DEFAULT_MAX_NODES);
               currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
             }
 
             currentSessionView.simulationControl("START");
             currentSessionView.resize();
-
-            initStatsUpdate(STATS_UPDATE_INTERVAL);
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
 
@@ -2105,6 +2211,7 @@ function initialize(callback) {
 
             setTimeout(function() {
               console.log("END PAGE LOAD TIMEOUT");
+              initStatsUpdate(STATS_UPDATE_INTERVAL);
               pageLoadedTimeIntervalFlag = false;
               if (!config.showStatsFlag) {displayStats(false, palette.white);}
             }, PAGE_LOAD_TIMEOUT);
@@ -2145,15 +2252,16 @@ function initialize(callback) {
               config.authenticationUrl = DEFAULT_AUTH_URL;
 
               currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+              currentSessionView.setMaxNodesLimit(config.defaultMaxNodes);
             }
             else {
               currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+              currentSessionView.setMaxNodesLimit(DEFAULT_MAX_NODES);
             }
 
           currentSessionView.initD3timer();
           currentSessionView.resize();
 
-          initStatsUpdate(STATS_UPDATE_INTERVAL);
 
           console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
 
@@ -2165,6 +2273,8 @@ function initialize(callback) {
 
           setTimeout(function() {
             console.error("END PAGE LOAD TIMEOUT");
+
+            initStatsUpdate(STATS_UPDATE_INTERVAL);
             pageLoadedTimeIntervalFlag = false;
             if (!config.showStatsFlag) { displayStats(false, palette.white); }
           }, PAGE_LOAD_TIMEOUT);

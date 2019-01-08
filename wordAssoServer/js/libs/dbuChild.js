@@ -385,7 +385,7 @@ function printUserObj(title, user) {
     + " | 3C " + user.threeceeFollowing 
     + " | LHTID " + user.lastHistogramTweetId 
     + " | LHQID " + user.lastHistogramQuoteId 
-    + " | CAT M " + user.category + "A " + user.categoryAuto
+    + " | CAT M " + user.category + " A " + user.categoryAuto
   ));
 }
 

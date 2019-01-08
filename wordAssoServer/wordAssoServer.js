@@ -57,6 +57,8 @@ let userServerControllerReady = false;
 
 
 let neuralNetworkChangeStream;
+let userChangeStream;
+
 let userFollowingCursor;
 
 let initCategoryHashmapsReady = true;
@@ -75,10 +77,14 @@ const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
 const DEFAULT_INFO_TWITTER_USER = "threecee";
 let infoTwitterUserObj = {};
 
+const DEFAULT_GEOCODE_ENABLED = false;
+
+const DEFAULT_FILTER_DUPLICATE_TWEETS = true;
 const DEFAULT_FORCE_FOLLOW = false;
 const DEFAULT_FORCE_IMAGE_ANALYSIS = false;
+const DEFAULT_ENABLE_IMAGE_ANALYSIS = true;
 
-const DEFAULT_SAVE_FILE_QUEUE_INTERVAL = ONE_SECOND;
+const DEFAULT_SAVE_FILE_QUEUE_INTERVAL = 5*ONE_SECOND;
 const DEFAULT_CHECK_TWITTER_RATE_LIMIT_INTERVAL = ONE_MINUTE;
 
 const DEFAULT_TWITTER_SEARCH_NODE_QUEUE_INTERVAL = 100;
@@ -187,6 +193,9 @@ const TRENDING_CACHE_CHECK_PERIOD = 60;
 const NODE_CACHE_DEFAULT_TTL = 60;
 const NODE_CACHE_CHECK_PERIOD = 1;
 
+const TWEET_ID_CACHE_DEFAULT_TTL = 20;
+const TWEET_ID_CACHE_CHECK_PERIOD = 5;
+
 const chalk = require("chalk");
 const chalkUser = chalk.blue;
 const chalkNetwork = chalk.black;
@@ -249,7 +258,7 @@ function bearerTokenRequest(request_options){
 
         var json_body = JSON.parse(response.body);
 
-        console.log(chalkAlert("WAS | TWITTER BEARER TOKEN | " + json_body.access_token));
+        console.log(chalk.green("WAS | TWITTER BEARER TOKEN | " + json_body.access_token));
 
         let twitter_bearer_token = json_body.access_token;
 
@@ -267,7 +276,7 @@ function bearerTokenRequest(request_options){
             console.log(chalkError("WAS | *** TWITTER WEBHOOK CONFIG REQ ERROR: " + error));
             return reject(twitter_bearer_token);
           }
-          console.log(chalkAlert("WAS | +++ TWITTER WEBHOOK VALID"));
+          console.log(chalk.green("WAS | +++ TWITTER WEBHOOK VALID"));
           resolve(twitter_bearer_token);
         });
       }
@@ -298,7 +307,7 @@ function addAccountActivitySubscription(params){
       }
       else {
         if (response.statusCode == 204) {
-          console.log(chalkAlert("WAS | +++ TWITTER WEBHOOK SUBSCRIPTION ADDED"));
+          console.log(chalk.green("WAS | +++ TWITTER WEBHOOK SUBSCRIPTION ADDED"));
           resolve(response.statusCode);
         }
         else {
@@ -383,7 +392,6 @@ DEFAULT_THREECEE_USERS.forEach(function(threeceeUser){
   statsObj.tssChildren[threeceeUser].ready = false;
 });
 
-
 let previousConfiguration = {};
 let configuration = {};
 let defaultConfiguration = {}; // general configuration
@@ -391,8 +399,11 @@ let hostConfiguration = {}; // host-specific configuration
 
 configuration.verbose = false;
 configuration.maxQueue = DEFAULT_MAX_QUEUE;
+configuration.filterDuplicateTweets = DEFAULT_FILTER_DUPLICATE_TWEETS;
 configuration.forceFollow = DEFAULT_FORCE_FOLLOW;
+configuration.enableImageAnalysis = DEFAULT_ENABLE_IMAGE_ANALYSIS;
 configuration.forceImageAnalysis = DEFAULT_FORCE_IMAGE_ANALYSIS;
+configuration.geoCodeEnabled = DEFAULT_GEOCODE_ENABLED;
 
 configuration.twitterThreeceeAutoFollowUser = DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER;
 
@@ -401,8 +412,10 @@ configuration.threeceeInfoUsersArray = DEFAULT_THREECEE_INFO_USERS;
 configuration.dropboxListFolderLimit = DEFAULT_DROPBOX_LIST_FOLDER_LIMIT;
 configuration.dropboxWebhookChangeTimeout = DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT;
 
+configuration.tweetParserMessageRxQueueInterval = DEFAULT_TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL;
 configuration.tweetParserInterval = DEFAULT_TWEET_PARSER_INTERVAL;
 configuration.sorterMessageRxQueueInterval = DEFAULT_SORTER_INTERVAL;
+configuration.transmitNodeQueueInterval = DEFAULT_TRANSMIT_NODE_QUEUE_INTERVAL;
 configuration.rateQueueInterval = DEFAULT_RATE_QUEUE_INTERVAL;
 configuration.rateQueueIntervalModulo = DEFAULT_RATE_QUEUE_INTERVAL_MODULO;
 configuration.statsUpdateInterval = DEFAULT_STATS_UPDATE_INTERVAL;
@@ -415,6 +428,7 @@ configuration.DROPBOX.DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_AS
 configuration.DROPBOX.DROPBOX_WAS_CONFIG_FILE = process.env.DROPBOX_CONFIG_FILE || "wordAssoServerConfig.json";
 configuration.DROPBOX.DROPBOX_WAS_STATS_FILE = process.env.DROPBOX_STATS_FILE || "wordAssoServerStats.json";
 
+configuration.twitterRxQueueInterval = DEFAULT_TWITTER_RX_QUEUE_INTERVAL;
 configuration.twitterSearchNodeQueueInterval = DEFAULT_TWITTER_SEARCH_NODE_QUEUE_INTERVAL;
 configuration.categoryHashmapsUpdateInterval = DEFAULT_CATEGORY_HASHMAPS_UPDATE_INTERVAL;
 configuration.testInternetConnectionUrl = DEFAULT_TEST_INTERNET_CONNECTION_URL;
@@ -527,6 +541,7 @@ function quit(message) {
 
   if (userFollowingCursor !== undefined) { userFollowingCursor.close(); }
   if (neuralNetworkChangeStream !== undefined) { neuralNetworkChangeStream.close(); }
+  if (userChangeStream !== undefined) { userChangeStream.close(); }
 
   clearInterval(updateUserSetsInterval);
   clearInterval(dbConnectInterval);
@@ -1127,19 +1142,19 @@ function printUserObj(title, user) {
   user = userDefaults(user);
 
   console.log(chalkUser(title
-    + " | UID: " + user.userId
+    + " | " + user.userId
     + " | @" + user.screenName
-    + " | N: " + user.name 
-    + " | FLWRs: " + user.followersCount
-    + " | FRNDs: " + user.friendsCount
-    + " | Ts: " + user.statusesCount
-    + " | Ms:  " + user.mentions
+    + " | " + user.name 
+    + " | FWR: " + user.followersCount
+    + " | FRD: " + user.friendsCount
+    + " | T: " + user.statusesCount
+    + " | M:  " + user.mentions
     + " | LS: " + getTimeStamp(user.lastSeen)
-    + " | FLWg: " + user.following 
+    + " | FLW: " + user.following 
     + " | 3C: @" + user.threeceeFollowing 
     + " | LOC: " + user.location
-    + " | CAT MAN: " + user.category
-    + " | CAT AUTO: " + user.categoryAuto
+    + " | CAT M: " + user.category
+    + " / A: " + user.categoryAuto
   ));
 }
 
@@ -1195,8 +1210,8 @@ function connectDb(){
           quit(statsObj.status);
         });
 
-        dbConnectionReady = true;
-        statsObj.dbConnectionReady = true;
+        // dbConnectionReady = true;
+        // statsObj.dbConnectionReady = true;
 
         global.dbConnection = db;
 
@@ -1252,7 +1267,7 @@ function connectDb(){
         });
 
         const sessionId = btoa("threecee");
-        console.log(chalkAlert("WAS | PASSPORT SESSION ID: " + sessionId ));
+        console.log(chalk.green("WAS | PASSPORT SESSION ID: " + sessionId ));
 
         app.use(expressSession({
           sessionId: sessionId,
@@ -1272,15 +1287,15 @@ function connectDb(){
           },
           function(token, tokenSecret, profile, cb) {
 
-            console.log(chalkAlert("WAS | PASSPORT TWITTER AUTH: token:       " + token));
-            console.log(chalkAlert("WAS | PASSPORT TWITTER AUTH: tokenSecret: " + tokenSecret));
-            console.log(chalkAlert("WAS | PASSPORT TWITTER AUTH USER | @" + profile.username + " | " + profile.id));
+            console.log(chalk.green("WAS | PASSPORT TWITTER AUTH: token:       " + token));
+            console.log(chalk.green("WAS | PASSPORT TWITTER AUTH: tokenSecret: " + tokenSecret));
+            console.log(chalk.green("WAS | PASSPORT TWITTER AUTH USER | @" + profile.username + " | " + profile.id));
 
-            if (configuration.verbose) { console.log(chalkAlert("WAS | PASSPORT TWITTER AUTH\nprofile\n" + jsonPrint(profile))); }
+            if (configuration.verbose) { console.log(chalk.green("WAS | PASSPORT TWITTER AUTH\nprofile\n" + jsonPrint(profile))); }
 
             const rawUser = profile["_json"];
 
-            if (!userServerControllerReady) {
+            if (!userServerControllerReady || !statsObj.dbConnectionReady) {
               return cb(new Error("userServerController not ready"), null);
             }
 
@@ -1411,7 +1426,7 @@ function connectDb(){
             name: user.name
           };
 
-          console.log(chalkAlert("WAS | PASSPORT SERIALIZE USER | @" + user.screenName));
+          console.log(chalk.green("WAS | PASSPORT SERIALIZE USER | @" + user.screenName));
 
           done(null, sessionUser); 
         });
@@ -1460,7 +1475,7 @@ function connectDb(){
 
           userServerControllerReady = true;
           console.log(chalk.green("WAS | USC READY | " + appname));
-          dbConnectionReady = true;
+          // dbConnectionReady = true;
 
           configEvents.emit("DB_CONNECT");
           resolve(db);
@@ -1587,6 +1602,24 @@ function touchChildPidFile(params){
 }
 
 // ==================================================================
+// TWEET ID CACHE
+// ==================================================================
+let tweetIdCacheTtl = process.env.TWEET_ID_CACHE_DEFAULT_TTL;
+if (tweetIdCacheTtl === undefined) { tweetIdCacheTtl = TWEET_ID_CACHE_DEFAULT_TTL;}
+
+console.log("WAS | TWEET ID CACHE TTL: " + tweetIdCacheTtl + " SECONDS");
+
+let tweetIdCacheCheckPeriod = process.env.TWEET_ID_CACHE_CHECK_PERIOD;
+if (tweetIdCacheCheckPeriod === undefined) { tweetIdCacheCheckPeriod = TWEET_ID_CACHE_CHECK_PERIOD;}
+
+console.log("WAS | TWEET ID CACHE CHECK PERIOD: " + tweetIdCacheCheckPeriod + " SECONDS");
+
+const tweetIdCache = new NodeCache({
+  stdTTL: tweetIdCacheTtl,
+  checkperiod: tweetIdCacheCheckPeriod
+});
+
+// ==================================================================
 // VIEWER CACHE
 // ==================================================================
 let viewerCacheTtl = process.env.VIEWER_CACHE_DEFAULT_TTL;
@@ -1681,6 +1714,7 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
     + " | TTL: " + msToTime(authenticatedSocketCacheTtl*1000)
     + " | NSP: " + authSocketObj.namespace.toUpperCase()
     + " | " + socketId
+    + " | " + authSocketObj.ipAddress
     + " | USER ID: " + authSocketObj.userId
     + " | NOW: " + getTimeStamp()
     + " | TS: " + getTimeStamp(authSocketObj.timeStamp)
@@ -1698,6 +1732,7 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
           console.log(chalkInfo("WAS | AUTH SOCKET CACHE ENTRIES"
             + " | NSP: " + authSocketObjCache.namespace.toUpperCase()
             + " | " + socketId
+            + " | " + authSocketObjCache.ipAddress
             + " | USER ID: " + authSocketObjCache.userId
             + " | NOW: " + getTimeStamp()
             + " | TS: " + getTimeStamp(authSocketObjCache.timeStamp)
@@ -1939,6 +1974,18 @@ let sorterMessageRxQueue = [];
 const ignoreWordHashMap = new HashMap();
 const localHostHashMap = new HashMap();
 
+let statsBestNetworkPickArray = [
+  "networkId",
+  "successRate",
+  "matchRate",
+  "overallMatchRate",
+  "inputsId",
+  "testCycles",
+  "numInputs",
+  "seedNetworkId",
+  "seedNetworkRes",
+  "betterChild"
+];
 
 function initStats(callback){
 
@@ -1967,6 +2014,11 @@ function initStats(callback){
   statsObj.bestNetwork.matchRate = false;
   statsObj.bestNetwork.overallMatchRate = false;
   statsObj.bestNetwork.inputsId = false;
+  statsObj.bestNetwork.numInputs = 0;
+  statsObj.bestNetwork.seedNetworkId = false;
+  statsObj.bestNetwork.seedNetworkRes = 0;
+  statsObj.bestNetwork.testCycles = 0;
+  statsObj.bestNetwork.betterChild = false;
 
   statsObj.memwatch = {};
   statsObj.memwatch.snapshotTaken = false;
@@ -1986,6 +2038,7 @@ function initStats(callback){
 
   statsObj.twitter = {};
   statsObj.twitter.tweetsReceived = 0;
+  statsObj.twitter.duplicateTweetsReceived = 0;
   statsObj.twitter.retweetsReceived = 0;
   statsObj.twitter.quotedTweetsReceived = 0;
   statsObj.twitter.tweetsPerMin = 0;
@@ -2388,6 +2441,19 @@ function loadFile(params) {
           if (fileObj.value) {
             return resolve(fileObj.value);
           }
+
+          console.log(chalkError("WAS | DROPBOX loadFile ERROR: " + fullPath));
+          return reject(fileObj.error);
+        }
+        else if (params.file.match(/\.txt$/gi)) {
+
+          let payload = data.fileBinary;
+
+          if (!payload || (payload === undefined)) {
+            return reject(new Error("WAS LOAD FILE PAYLOAD UNDEFINED"));
+          }
+
+          return resolve(payload);
 
           console.log(chalkError("WAS | DROPBOX loadFile ERROR: " + fullPath));
           return reject(fileObj.error);
@@ -3144,7 +3210,7 @@ function killAll(callback){
     // let childPidArray = await getChildProcesses({searchTerm: "ALL"});
     getChildProcesses({searchTerm: "ALL"})
     .then(function(childPidArray){
-      console.log(chalkAlert("getChildProcesses childPidArray\n" + jsonPrint(childPidArray)));
+      console.log(chalk.green("getChildProcesses childPidArray\n" + jsonPrint(childPidArray)));
       if (childPidArray && (childPidArray.length > 0)) {
 
         async.eachSeries(childPidArray, function(childObj, cb){
@@ -3501,8 +3567,6 @@ configEvents.on("INTERNET_NOT_READY", function internetNotReady() {
 
 configEvents.on("DB_CONNECT", function configEventDbConnect(){
 
-  initCategoryHashmapsReady = false;
-
   async.parallel({
 
     socketInit: function(cb){
@@ -3557,11 +3621,9 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
 
       initCategoryHashmaps()
       .then(function(){
-        initCategoryHashmapsReady = true;
         cb();
       })
       .catch(function(err){
-        initCategoryHashmapsReady = true;
         return cb(err);
       });
 
@@ -3571,6 +3633,10 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
     if (err){
       console.log(chalkError("WAS | *** ERROR: LOAD CATEGORY HASHMAPS: " + err));
       console.error(err);
+    }
+    else {
+      console.log(chalk.green("WAS | +++ MONGO DB CONNECTION READY"));
+      // dbConnectionReady = true;
     }
   });
  
@@ -3727,7 +3793,7 @@ function categorizeNode(categorizeObj, callback) {
         categorizeObj.node.mentions = Math.max(categorizeObj.node.mentions, nCacheObj.mentions);
       }
 
-      if (!userServerControllerReady) {
+      if (!userServerControllerReady || !statsObj.dbConnectionReady) {
         return callback(new Error("userServerController not ready"), null);
       }
 
@@ -3821,33 +3887,33 @@ function categorizeNode(categorizeObj, callback) {
   }
 }
 
+let prevTweetUser;
+
 function socketRxTweet(tw) {
 
+  prevTweetUser = tweetIdCache.get(tw.id_str);
+
+  if (prevTweetUser) {
+
+    statsObj.twitter.duplicateTweetsReceived += 1;
+
+    if (statsObj.twitter.duplicateTweetsReceived % 1000 === 0){
+      console.log(chalkLog("WAS"
+        + " | ??? DUP TWEET"
+        + " | FILTER DUPs: " + configuration.filterDuplicateTweets
+        + " [ $: " + tweetIdCache.getStats().keys + " / " + statsObj.twitter.duplicateTweetsReceived + " DUPs ]"
+        + " | " + tw.id_str 
+        + " | CURR @" + tw.user.screen_name
+        + " | PREV @" + prevTweetUser
+      ));
+    }
+    
+    if (configuration.filterDuplicateTweets) { return; }
+  }
+
+  tweetIdCache.set(tw.id_str, tw.user.screen_name);
+
   tweetMeter.mark();
-
-  // deltaTweet = process.hrtime(deltaTweetStart);
-
-  // if (deltaTweet[0] > 0) { 
-
-  //   statsObj.twitter.tweetsPerMin = parseInt(tweetMeter.toJSON()[metricsRate]);
-
-  //   // console.log(chalkAlert("WAS | *** TWEET RX DELTA: " + deltaTweet[0] + "." + deltaTweet[1]));
-
-  //   console.log(chalkLog("WAS | S"
-  //     + " | " + getTimeStamp()
-  //     + " | E: " + statsObj.elapsed
-  //     + " | S: " + getTimeStamp(parseInt(statsObj.startTime))
-  //     + " | AD: " + statsObj.admin.connected
-  //     + " | UT: " + statsObj.entity.util.connected
-  //     + " | VW: " + statsObj.entity.viewer.connected
-  //     + " | TwRxPM: " + statsObj.twitter.tweetsPerMin
-  //     + " | MaxTwRxPM: " + statsObj.twitter.maxTweetsPerMin
-  //     + " | TwRXQ: " + tweetRxQueue.length
-  //     + " | TwPRQ: " + tweetParserQueue.length
-  //   ));
-  // }
-
-  // deltaTweetStart = process.hrtime();
 
   statsObj.twitter.tweetsReceived += 1;
 
@@ -3874,7 +3940,7 @@ function socketRxTweet(tw) {
     statsObj.errors.twitter.maxRxQueue += 1;
 
     if (statsObj.errors.twitter.maxRxQueue % 1000 === 0) {
-      console.log(chalkLog("WAS | *** TWEET RX MAX QUEUE [" + tweetRxQueue.length + "]"
+      console.log(chalk.black.bold("WAS | *** TWEET RX MAX QUEUE [" + tweetRxQueue.length + "]"
         + " | " + getTimeStamp()
         + " | TWP READY: " + statsObj.tweetParserReady
         + " | TWP SEND READY: " + statsObj.tweetParserSendReady
@@ -3924,8 +3990,6 @@ function socketRxTweet(tw) {
       tw.user.quotedStatus = tw.quoted_status;
     }
 
-    // tw.user.status = (tw.text !== undefined) ? tw.text : "";
-
     if (categorizedUserHashMap.has(tw.user.screen_name.toLowerCase())){
 
       tw.user.category = categorizedUserHashMap.get(tw.user.screen_name.toLowerCase()).manual;
@@ -3954,7 +4018,7 @@ function socketRxTweet(tw) {
       + " | " + tw.user.name
     ));
 
-    if (statsObj.twitter.tweetsReceived % 100 === 0) {
+    if (statsObj.twitter.tweetsReceived % 1000 === 0) {
       console.log(chalkTwitter("WAS | <T | "+ getTimeStamp()
         + " | RXQ: " + tweetRxQueue.length
         + " [ Ts/RTs/QTs: " + statsObj.twitter.tweetsReceived + "/" + statsObj.twitter.retweetsReceived + "/" + statsObj.twitter.quotedTweetsReceived + "]"
@@ -4058,7 +4122,7 @@ function follow(params, callback) {
 function initTssChildren(params){
   return new Promise(function(resolve, reject){
 
-    async.forEach(DEFAULT_THREECEE_USERS, function(threeceeUser, cb){
+    async.eachSeries(DEFAULT_THREECEE_USERS, function(threeceeUser, cb){
       const childId = DEFAULT_TSS_CHILD_ID + "_" + threeceeUser.toLowerCase();
       tssChildren[threeceeUser] = {};
       tssChildren[threeceeUser].childId = childId;
@@ -4126,14 +4190,6 @@ function ignore(params, callback) {
   }
 
   tssSendAllChildren({op: "IGNORE", user: params.user});
-
-  // if (tssChild !== undefined) { 
-  //   tssChild.send({op: "IGNORE", user: params.user});
-  // }
-
-  // if (tfeChild !== undefined) { 
-  //   tfeChild.send({op: "IGNORE", user: params.user});
-  // }
 
   const query = { nodeId: params.user.nodeId };
 
@@ -4221,7 +4277,7 @@ function unignore(params, callback) {
 
 function unfollow(params, callback) {
 
-  console.log(chalk.blue("WAS | XXX UNFOLLOW | @" + params.user.screenName));
+  // console.log(chalk.blue("WAS | XXX UNFOLLOW | @" + params.user.screenName));
 
   if (params.user.nodeId !== undefined){
 
@@ -4276,7 +4332,9 @@ function unfollow(params, callback) {
     }
     else if (userUpdated){
       console.log(chalkLog("WAS | XXX UNFOLLOW"
-        + " | " + printUser({user: userUpdated})
+        + " | " + userUpdated.nodeId
+        + " | @" + userUpdated.screenName
+        + " | " + userUpdated.name
       ));
     }
     else {
@@ -4511,9 +4569,12 @@ function initUnfollowableUserSet(){
           if (userUpdated){
 
             numUnfollowed += 1;
-            console.log(chalkLog("WAS | XXX UNFOLLOW"
+
+            debug(chalkLog("WAS | XXX UNFOLLOW"
               + " [" + numUnfollowed + "/" + numAlreadyUnfollowed + "/" + unfollowableUserSetObj.userIds.length + "]"
-              + " | " + printUser({user: userUpdated})
+              + " | " + userUpdated.nodeId
+              + " | @" + userUpdated.screenName
+              + " | " + userUpdated.name
             ));
 
             cb(null, userUpdated);
@@ -4559,100 +4620,6 @@ function initUnfollowableUserSet(){
       reject(err);
 
     });
-
-
-    // try {
-
-    //   let unfollowableUserSetObj = await loadFile({folder: dropboxConfigDefaultFolder, file: unfollowableUserFile});
-
-    //   if (!unfollowableUserSetObj || unfollowableUserSetObj === undefined) {
-    //     console.log(chalkAlert("WAS | ??? LOAD UNFOLLOWABLE USERS EMPTY SET???"));
-    //     return resolve();
-    //   }
-
-    //   console.log(chalkLog("WAS | LOADED UNFOLLOWABLE USERS FILE"
-    //     + " | " + unfollowableUserSetObj.userIds.length + " USERS"
-    //     + " | " + dropboxConfigDefaultFolder + "/" + unfollowableUserFile
-    //   ));
-
-    //   let query;
-    //   let update;
-    //   let numUnfollowed = 0;
-    //   let numAlreadyUnfollowed = 0;
-
-    //   async.eachSeries(unfollowableUserSetObj.userIds, function(userId, cb){
-
-    //     unfollowableUserSet.add(userId);
-
-    //     query = { nodeId: userId, following: true };
-
-    //     update = {};
-    //     update["$set"] = { following: false, threeceeFollowing: false };
-
-    //     const options = {
-    //       new: true,
-    //       upsert: false
-    //     };
-
-    //     User.findOneAndUpdate(query, update, options, function(err, userUpdated){
-
-    //       if (err) {
-    //         console.log(chalkError("WAS | *** initUnfollowableUserSet | USER FIND ONE ERROR: " + err));
-    //         return cb(err, userId);
-    //       }
-          
-    //       if (userUpdated){
-
-    //         numUnfollowed += 1;
-    //         console.log(chalkLog("WAS | XXX UNFOLLOW"
-    //           + " [" + numUnfollowed + "/" + numAlreadyUnfollowed + "/" + unfollowableUserSetObj.userIds.length + "]"
-    //           + " | " + printUser({user: userUpdated})
-    //         ));
-
-    //         cb(null, userUpdated);
-    //       }
-    //       else {
-    //         numAlreadyUnfollowed += 1;
-    //         if (configuration.verbose){
-    //           console.log(chalkLog("WAS | ... ALREADY UNFOLLOWED"
-    //             + " [" + numUnfollowed + "/" + numAlreadyUnfollowed + "/" + unfollowableUserSetObj.userIds.length + "]"
-    //             + " | ID: " + userId
-    //           ));
-    //         }
-    //         cb(null, null);
-    //       }
-    //     });
-
-    //   }, function(err){
-
-    //     if (err) {
-    //       return reject(err);
-    //     }
-    //     console.log(chalkBlue("WAS | INIT UNFOLLOWABLE USERS"
-    //       + " | " + numUnfollowed + " NEW UNFOLLOWED"
-    //       + " | " + numAlreadyUnfollowed + " ALREADY UNFOLLOWED"
-    //       + " | " + unfollowableUserSet.size + " USERS IN SET"
-    //       + " | " + unfollowableUserSetObj.userIds.length + " USERS IN FILE"
-    //       + " | " + dropboxConfigDefaultFolder + "/" + unfollowableUserFile
-    //     ));
-    //     return resolve();
-    //   });
-
-    // }
-
-    // catch(err) {
-    //   if (err.code === "ENOTFOUND") {
-    //     console.log(chalkError("WAS | *** LOAD UNFOLLOWABLE USERS ERROR: FILE NOT FOUND:  " 
-    //       + dropboxConfigDefaultFolder + "/" + unfollowableUserFile
-    //     ));
-    //   }
-    //   else {
-    //     console.log(chalkError("WAS | *** LOAD UNFOLLOWABLE USERS ERROR: " + err));
-    //   }
-    //   console.error(err);
-    //   reject(err);
-    // }
-      
 
   });
 }
@@ -4895,7 +4862,9 @@ function initSocketHandler(socketObj) {
           ));
         }
 
+        authSocketObj.ipAddress = ipAddress;
         authSocketObj.timeStamp = moment().valueOf();
+
         authenticatedSocketCache.set(socket.id, authSocketObj);
 
       }
@@ -4930,7 +4899,7 @@ function initSocketHandler(socketObj) {
 
       case "ADMIN" :
 
-        console.log(chalkLog("WAS | R< KA"
+        console.log(chalkInfo("WAS | R< KA"
           + " | " + "ADMIN" 
           + " | " + getTimeStamp(timeStamp)
           + " | " + keepAliveObj.user.userId
@@ -4950,7 +4919,7 @@ function initSocketHandler(socketObj) {
           sessionObj.isAdmin = true;
           sessionObj.isServer = false;
           sessionObj.isViewer = false;
-          sessionObj.stats = keepAliveObj.stats;
+          // sessionObj.stats = keepAliveObj.stats;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
           console.log(chalk.green("+++ ADD " + currentSessionType 
@@ -4970,7 +4939,7 @@ function initSocketHandler(socketObj) {
           sessionObj.timeStamp = moment().valueOf();
           sessionObj.user = keepAliveObj.user;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
-          sessionObj.stats = keepAliveObj.stats;
+          // sessionObj.stats = keepAliveObj.stats;
 
           adminHashMap.set(socket.id, sessionObj);
           adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
@@ -4986,7 +4955,7 @@ function initSocketHandler(socketObj) {
       case "TMP" :
 
 
-        console.log(chalkLog("WAS | R< KA"
+        console.log(chalkInfo("WAS | R< KA"
           // + " | DELTA: " + deltaNS + " NS"
           + " | " + currentSessionType + " SERVER" 
           + " | " + getTimeStamp(timeStamp)
@@ -5013,7 +4982,7 @@ function initSocketHandler(socketObj) {
           sessionObj.isAdmin = false;
           sessionObj.isServer = true;
           sessionObj.isViewer = false;
-          sessionObj.stats = keepAliveObj.stats;
+          // sessionObj.stats = keepAliveObj.stats;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
           console.log(chalk.green("+++ ADD " + currentSessionType + " SERVER" 
@@ -5033,7 +5002,7 @@ function initSocketHandler(socketObj) {
           sessionObj.timeStamp = moment().valueOf();
           sessionObj.user = keepAliveObj.user;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
-          sessionObj.stats = keepAliveObj.stats;
+          // sessionObj.stats = keepAliveObj.stats;
 
           serverCache.set(socket.id, sessionObj);
           adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
@@ -5044,7 +5013,7 @@ function initSocketHandler(socketObj) {
 
       case "VIEWER" :
 
-        console.log(chalkLog("WAS | R< KA"
+        console.log(chalkInfo("WAS | R< KA"
           + " | " + "VIEWER"
           + " | " + getTimeStamp(timeStamp)
           + " | " + keepAliveObj.user.userId
@@ -5070,7 +5039,7 @@ function initSocketHandler(socketObj) {
           sessionObj.isAdmin = false;
           sessionObj.isServer = false;
           sessionObj.isViewer = true;
-          sessionObj.stats = keepAliveObj.stats;
+          // sessionObj.stats = keepAliveObj.stats;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
           console.log(chalk.green("+++ ADD " + currentSessionType + " SESSION" 
@@ -5090,7 +5059,7 @@ function initSocketHandler(socketObj) {
           sessionObj.timeStamp = moment().valueOf();
           sessionObj.user = keepAliveObj.user;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
-          sessionObj.stats = keepAliveObj.stats;
+          // sessionObj.stats = keepAliveObj.stats;
 
           viewerCache.set(socket.id, sessionObj);
           adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
@@ -5363,7 +5332,7 @@ function initSocketHandler(socketObj) {
       + " | SENT AT " + getTimeStamp(parseInt(viewerObj.timeStamp))
     ));
 
-    if (!userServerControllerReady) {
+    if (!userServerControllerReady || !statsObj.dbConnectionReady) {
       return callback(new Error("userServerController not ready"), null);
     }
 
@@ -5479,10 +5448,14 @@ function initSocketNamespaces(params){
 
         console.log(chalk.blue("WAS | ADMIN CONNECT " + socket.id));
 
+        let ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
         authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
+
           if (authenticatedSocketObj){
             console.log(chalkAlert("WAS | ADMIN ALREADY AUTHENTICATED"
               + " | " + socket.id
+              + " | " + authenticatedSocketObj.ipAddress
               + "\n" + jsonPrint(authenticatedSocketObj)
             ));
           }
@@ -5492,11 +5465,13 @@ function initSocketNamespaces(params){
               if (configuration.verbose) {
                 console.log("WAS | RX SOCKET AUTHENTICATION"
                   + " | " + socket.nsp.name.toUpperCase()
+                  + " | " + ipAddress
                   + " | " + socket.id
                   + " | USER ID: " + data.userId
                 );
               }
 
+              data.ipAddress = ipAddress;
               data.timeStamp = moment().valueOf();
 
               authenticatedSocketCache.set(socket.id, data);
@@ -5516,10 +5491,13 @@ function initSocketNamespaces(params){
 
         console.log(chalk.blue("WAS | UTIL CONNECT " + socket.id));
 
+        let ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
         authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
           if (authenticatedSocketObj){
             console.log(chalkAlert("WAS | UTIL ALREADY AUTHENTICATED"
               + " | " + socket.id
+              + " | " + authenticatedSocketObj.ipAddress
               + "\n" + jsonPrint(authenticatedSocketObj)
             ));
           }
@@ -5529,11 +5507,13 @@ function initSocketNamespaces(params){
               if (configuration.verbose) {
                 console.log("WAS | RX SOCKET AUTHENTICATION"
                   + " | " + socket.nsp.name.toUpperCase()
+                  + " | " + ipAddress
                   + " | " + socket.id
                   + " | USER ID: " + data.userId
                 );
               }
 
+              data.ipAddress = ipAddress;
               data.timeStamp = moment().valueOf();
 
               authenticatedSocketCache.set(socket.id, data);
@@ -5552,11 +5532,16 @@ function initSocketNamespaces(params){
       userNameSpace.on("connect", function userConnect(socket) {
         console.log(chalk.blue("WAS | USER CONNECT " + socket.id));
 
+        let ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
         authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
+          if (authenticatedSocketObj){
             console.log(chalkAlert("WAS | USER ALREADY AUTHENTICATED"
               + " | " + socket.id
+              + " | " + authenticatedSocketObj.ipAddress
               + "\n" + jsonPrint(authenticatedSocketObj)
             ));
+          }
         });
 
         initSocketHandler({namespace: "user", socket: socket});
@@ -5564,12 +5549,15 @@ function initSocketNamespaces(params){
 
       viewNameSpace.on("connect", function viewConnect(socket) {
 
+        let ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
         console.log(chalk.blue("WAS | VIEWER CONNECT " + socket.id));
 
         authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
           if (authenticatedSocketObj){
             console.log(chalkAlert("WAS | VIEWER ALREADY AUTHENTICATED"
               + " | " + socket.id
+              + " | " + authenticatedSocketObj.ipAddress
               + "\n" + jsonPrint(authenticatedSocketObj)
             ));
           }
@@ -5578,10 +5566,12 @@ function initSocketNamespaces(params){
 
               console.log("WAS | RX SOCKET AUTHENTICATION"
                 + " | " + socket.nsp.name.toUpperCase()
+                + " | " + ipAddress
                 + " | " + socket.id
                 + " | USER ID: " + data.userId
               );
 
+              data.ipAddress = ipAddress;
               data.timeStamp = moment().valueOf();
 
               authenticatedSocketCache.set(socket.id, data);
@@ -5653,6 +5643,7 @@ function processCheckCategory(nodeObj, callback){
         nodesPerMinuteTopTermCache.get(nodeObj.nodeId, function topTermNodeId(err, nodeRate) {
           if (err){
             console.log(chalkError("WAS | nodesPerMinuteTopTermCache GET ERR: " + err));
+            return cb(err);
           }
           if (nodeRate !== undefined) {
 
@@ -5666,13 +5657,16 @@ function processCheckCategory(nodeObj, callback){
           else {
             nodeObj.isTopTerm = false;
           }
+
+          cb();
+
         });
-        cb();
       },
       nodeType: function(cb){
         nodesPerMinuteTopTermNodeTypeCache[nodeObj.nodeType].get(nodeObj.nodeId, function topTermNodeId(err, nodeRate) {
           if (err){
             console.log(chalkError("WAS | nodesPerMinuteTopTermNodeTypeCache" + nodeObj.nodeType + " GET ERR: " + err));
+            return cb(err);
           }
           if (nodeRate !== undefined) {
 
@@ -5687,11 +5681,17 @@ function processCheckCategory(nodeObj, callback){
           else {
             nodeObj.isTopTermNodeType = false;
           }
+
+          cb();        
+
         });    
-        cb();        
       }
     },
     function(err, results){
+      if (err) {
+        console.log(chalkError("WAS | *** processCheckCategory ERROR: " + err));
+        return callback(err, null);
+      }
       callback(null, nodeObj);
     });   
   }
@@ -6420,8 +6420,9 @@ function initTransmitNodeQueueInterval(interval){
 
                 n.updateLastSeen = true;
 
-                if (!userServerControllerReady) {
+                if (!userServerControllerReady || !statsObj.dbConnectionReady) {
                   return callback(new Error("userServerController not ready"), null);
+                  transmitNodeQueueReady = true;
                 }
 
                 userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit}, function(err, updatedUser){
@@ -6520,7 +6521,11 @@ function transmitNodes(tw, callback){
       cb();
     }
   },
-  function(){
+  function(err){
+    if (err) {
+      console.log(chalkError("WAS | *** TRANSMIT NODES ERROR: " + err));
+      return callback(err);
+    }
     callback();
   });   
 
@@ -6599,7 +6604,7 @@ function initAppRouting(callback) {
 
     if (req.path === "/json") {
       if (!ignoreIpSet.has(req.ip)) {
-        console.log(chalkLog("WAS | R< REJECT: /json"
+        console.log(chalkInfo("WAS | R< REJECT: /json"
           + " | " + getTimeStamp()
           + " | IP: " + req.ip
           + " | HOST: " + req.hostname
@@ -6612,13 +6617,13 @@ function initAppRouting(callback) {
     }
     else if (req.path === "/dropbox_webhook") {
 
-      console.log(chalk.bold.black("WAS | R< DROPBOX WEB HOOK | /dropbox_webhook"
-        + " | DB CURSOR READY: " + dropboxFolderGetLastestCursorReady
-        // + " | DB CHANGE FOLDER ARRAY\n" + jsonPrint(configuration.dropboxChangeFolderArray)
-      )); 
-
       if (configuration.verbose) {
-        console.log(chalkInfo("WAS | R< dropbox_webhook"
+
+        console.log(chalkInfo("WAS | R< DROPBOX WEB HOOK | /dropbox_webhook"
+          + " | DB CURSOR READY: " + dropboxFolderGetLastestCursorReady
+        )); 
+
+        debug(chalkInfo("WAS | R< dropbox_webhook"
           + "\nreq.query\n" + jsonPrint(req.query)
           + "\nreq.params\n" + jsonPrint(req.params)
           + "\nreq.body\n" + jsonPrint(req.body)
@@ -6626,6 +6631,8 @@ function initAppRouting(callback) {
       }
 
       res.send(req.query.challenge);
+
+      next();
 
       let dropboxCursorFolderArray = configuration.dropboxChangeFolderArray;
 
@@ -6651,28 +6658,29 @@ function initAppRouting(callback) {
                     + " | FOLDER: " + folder
                   ));
 
-                  response.entries.forEach(function(entry){
+                  // response.entries.forEach(function(entry){
+                  async.eachSeries(response.entries, function(entry, cb1){
 
-                    console.log(chalkAlert("WAS | >>> DROPBOX CHANGE | " + entry.path_lower));
+                    console.log(chalk.green("WAS | >>> DROPBOX CHANGE | PATH LOWER: " + entry.path_lower));
 
                     if ((entry.path_lower.endsWith("google_wordassoserverconfig.json"))
                       || (entry.path_lower.endsWith("default_wordassoserverconfig.json"))){
                       initConfig(configuration);
-                      return cb();
+                      cb1();
                     }
 
                     else if (entry.path_lower.endsWith("users.zip")){
                       touchUsersZipUpdateFlag();
-                      return cb();
+                      cb1();
                     }
 
-                    else if (entry.path_lower.endsWith(bestRuntimeNetworkFileName)){
+                    else if (entry.path_lower.endsWith(bestRuntimeNetworkFileName.toLowerCase())){
                       loadBestRuntimeNetwork()
                       .then(function(){
-                        return cb();
+                        cb1();
                       })
                       .catch(function(err){
-                        return cb(err);
+                        cb1(err);
                       });
                     }
 
@@ -6683,10 +6691,10 @@ function initAppRouting(callback) {
                         loadMaxInputHashMap()
                         .then(function(){
                           configEvents.emit("NEW_MAX_INPUT_HASHMAP");
-                          return cb();
+                          cb1();
                         })
                         .catch(function(err){
-                          return cb(err);
+                          cb1(err);
                         });
 
                       }, 10*ONE_SECOND);
@@ -6694,12 +6702,12 @@ function initAppRouting(callback) {
 
                     else if (entry.path_lower.endsWith("defaultsearchterms.txt")){
                       updateSearchTerms();
-                      return cb();
+                      cb1();
                     }
 
                     else if (entry.path_lower.endsWith("followablesearchterm.txt")){
                       initFollowableSearchTermSet();
-                      return cb();
+                      cb1();
                     }
 
                     else if ((entry.path_lower.endsWith("google_twittersearchstreamconfig.json"))
@@ -6708,24 +6716,31 @@ function initAppRouting(callback) {
                       killTssChildren()
                       .then(function(){
                         initTssChildren();
-                        return cb();
+                        cb1();
                       })
                       .catch(function(err){
-                        return cb(err);
+                        cb1(err);
                       });
                     }
 
-                    else{
-                      cb();
+                    else {
+                      cb1();
                     }
 
+                  }, function(err){
+                    if (err) {
+                      return cb(err);
+                    }
+                    cb();
                   });
 
                 }, configuration.dropboxWebhookChangeTimeout);
 
               }
               else {
-                setTimeout(function(){ cb(); }, configuration.dropboxWebhookChangeTimeout);
+                setTimeout(function(){ 
+                  cb(); 
+                }, configuration.dropboxWebhookChangeTimeout);
               }
             });
 
@@ -6733,18 +6748,18 @@ function initAppRouting(callback) {
           if (err) {
             console.log(chalkError("WAS | *** DROPBOX WEBHOOK ERROR: " + err));
           }
-          console.log(chalkInfo("WAS | END DROPBOX WEBHOOK"));
+          console.log(chalkLog("WAS | END DROPBOX WEBHOOK"));
           dropboxFolderGetLastestCursorReady = true;
-          next();
+          // next();
         });
       }
       else {
         debug(chalkAlert("WAS | SKIP DROPBOX WEBHOOK ... NOT READY"));
-        next();
+        // next();
       }
     }
     else if (req.path === "/googleccd19766bea2dfd2.html") {
-      console.log(chalkAlert("WAS | R< googleccd19766bea2dfd2.html")); 
+      console.log(chalk.green("WAS | R< googleccd19766bea2dfd2.html")); 
 
       const googleVerification = __dirname + "/googleccd19766bea2dfd2.html";
 
@@ -6774,7 +6789,7 @@ function initAppRouting(callback) {
       res.sendStatus(200);
     }
     else {
-      console.log(chalkLog("WAS | R<"
+      console.log(chalkInfo("WAS | R<"
         + " | " + getTimeStamp()
         + " | IP: " + req.ip
         + " | HOST: " + req.hostname
@@ -6794,15 +6809,20 @@ function initAppRouting(callback) {
   const adminHtml = __dirname + "/admin/admin.html";
 
   app.get("/admin", function requestAdmin(req, res) {
+
     debug(chalkInfo("get req\n" + req));
+
     console.log(chalkLog("WAS | LOADING PAGE"
+      + " | IP: " + req.ip
       + " | REQ: " + req.url
       + " | RES: " + adminHtml
     ));
+
     res.sendFile(adminHtml, function responseAdmin(err) {
       if (err) {
         console.log(chalkError("WAS | GET /admin ERROR:"
           + " | " + getTimeStamp()
+          + " | IP: " + req.ip
           + " | " + req.url
           + " | " + adminHtml
           + " | " + err
@@ -6821,6 +6841,7 @@ function initAppRouting(callback) {
     debug(chalkInfo("get next\n" + next));
 
     console.log(chalkAlert("WAS | LOADING PAGE"
+      + " | IP: " + req.ip
       + " | REQ: " + req.url
       + " | RES: " + loginHtml
     ));
@@ -6877,6 +6898,7 @@ function initAppRouting(callback) {
 
     console.log(chalkLog("WAS | LOADING PAGE"
       // + " [ VIEWS: " + req.session.views + "]"
+      + " | IP: " + req.ip
       + " | REQ: " + req.url
       + " | RES: " + sessionHtml
     ));
@@ -6885,6 +6907,7 @@ function initAppRouting(callback) {
       if (err) {
         console.log(chalkError("WAS | GET /session ERROR:"
           + " | " + getTimeStamp()
+          + " | IP: " + req.ip
           + " | " + req.url
           + " | " + sessionHtml
           + " | " + err
@@ -6900,7 +6923,7 @@ function initAppRouting(callback) {
 
   function ensureAuthenticated(req, res, next) {
     if (req.isAuthenticated()) { 
-      console.log(chalkAlert("WAS | PASSPORT TWITTER AUTHENTICATED"));
+      console.log(chalk.green("WAS | PASSPORT TWITTER AUTHENTICATED"));
       // slackSendMessage("PASSPORT TWITTER AUTHENTICATED");
       return next();
     }
@@ -6912,12 +6935,13 @@ function initAppRouting(callback) {
 
     console.log(chalkError("WAS | PASSPORT TWITTER AUTH USER\n" + jsonPrint(req.session.passport.user)));  // handle errors
     console.log(chalkError("WAS | PASSPORT TWITTER AUTH USER"
+      + " | IP: " + req.ip
       + " | @" + req.session.passport.user.screenName
       + " | UID" + req.session.passport.user.nodeId
     ));  // handle errors
 
     // slackSendMessage("PASSPORT TWITTER AUTH USER: @" + req.session.passport.user.screenName);
-    if (!userServerControllerReady) {
+    if (!userServerControllerReady || !statsObj.dbConnectionReady) {
       return callback(new Error("userServerController not ready"), null);
     }
 
@@ -7029,6 +7053,10 @@ function initTwitterRxQueueInterval(interval){
 
   let tweet = {};
 
+  if (typeof interval !== "number") {
+    throw new Error("initTwitterRxQueueInterval interval NOT a NUMBER: " + interval);
+  }
+
   console.log(chalk.bold.black("WAS | INIT TWITTER RX QUEUE INTERVAL | " + interval + " MS"));
 
   clearInterval(tweetRxQueueInterval);
@@ -7072,6 +7100,10 @@ let tweetParserMessageRxQueueReady = true;
 let tweetParserMessageRxQueueInterval;
 
 function initTweetParserMessageRxQueueInterval(interval){
+
+  if (typeof interval !== "number") {
+    throw new Error("initTweetParserMessageRxQueueInterval interval NOT a NUMBER: " + interval);
+  }
 
   console.log(chalk.bold.black("WAS | INIT TWEET PARSER MESSAGE RX QUEUE INTERVAL | " + msToTime(interval)));
 
@@ -7467,100 +7499,97 @@ function initTfePingInterval(interval){
           + " | ELAPSED: " + msToTime(moment().valueOf() - tfePingId)
         ));
         
-        // slackSendMessage("\n*CHILD ERROR*\nTWEET_PARSER\nPONG TIMEOUT");
-
       }
     }, interval);
 
   }
 }
 
-// function initTssPingInterval(interval){
+function unfollowDuplicates(params){
 
-//   clearInterval(tssPingInterval);
+  console.log(chalk.bold.black("WAS | UNFOLLOW DUPLICATES"
+    + " | " + params.threeceeUser
+  ));
 
-//   tssPingSent = false;
-//   tssPongReceived = false;
+  return new Promise(function(resolve, reject){
 
-//   tssPingId = moment().valueOf();
+    const threeceeUserTarget = params.threeceeUser;
+    const threeceeUsersArray = Object.keys(threeceeTwitter).sort();
 
-//   if ((childrenHashMap[DEFAULT_TSS_CHILD_ID] !== undefined) 
-//     && childrenHashMap[DEFAULT_TSS_CHILD_ID].child) {
+    let unfollowArrarys = {};
 
-//     tssPingInterval = setInterval(function(){
+    async.eachSeries(threeceeUsersArray, function(threeceeUserTarget, cb0){
 
-//       if (!tssPingSent) {
+      unfollowArrarys[threeceeUserTarget] = [];
 
-//         tssPingId = moment().valueOf();
+      if (
+        !threeceeTwitter[threeceeUserTarget].twitterFriends 
+        || threeceeTwitter[threeceeUserTarget] === undefined 
+        || threeceeTwitter[threeceeUserTarget].twitterFriends === undefined
+      ){
+        return cb0();
+      }
 
-//         childrenHashMap[DEFAULT_TSS_CHILD_ID].child.send({op: "PING", pingId: tssPingId}, function(err){
+      debug(chalkLog("WAS | UNFOLLOW DUPLICATES ARRAY" 
+        + " | 3C TARGET @" + threeceeUserTarget + " | " + threeceeTwitter[threeceeUserTarget].twitterFriends.length + " FRNDs"
+        + " | UNFOLLOW ARRAY: " + unfollowArrarys[threeceeUserTarget].length + " USERS =============="
+      ));
 
-//           tssPingSent = true; 
+      async.eachSeries(threeceeUsersArray, function(threeceeUserSource, cb1){
+        if (threeceeUserSource < threeceeUserTarget 
+            && (threeceeTwitter[threeceeUserTarget].twitterFriends !== undefined)
+            && (threeceeTwitter[threeceeUserSource].twitterFriends !== undefined)
+          ) { // altthreecee00 < altthreecee01
 
-//           if (err) {
+          unfollowArrarys[threeceeUserTarget] = _.concat(unfollowArrarys[threeceeUserTarget], _.intersection(threeceeTwitter[threeceeUserTarget].twitterFriends, threeceeTwitter[threeceeUserSource].twitterFriends));
 
-//             console.log(chalkError("WAS | *** TSS SEND PING ERROR: " + err));
+          debug(chalkLog("WAS | UNFOLLOW DUPLICATES ARRAY" 
+            + " | 3C TARGET @" + threeceeUserTarget + " | " + threeceeTwitter[threeceeUserTarget].twitterFriends.length + " FRNDs"
+            + " | 3C SOURCE @" + threeceeUserSource + " | " + threeceeTwitter[threeceeUserSource].twitterFriends.length + " FRNDs"
+            + " | UNFOLLOW ARRAY: " + unfollowArrarys[threeceeUserTarget].length + " USERS"
+          ));
 
-//             killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, numKilled){
-//               tssPongReceived = false;
-//               initTssChild({childId: DEFAULT_TSS_CHILD_ID});
-//             });
+          return cb1();
+        }
 
-//             return;
-//           }
+        cb1();
 
-//           if (configuration.verbose) { console.log(chalkInfo("WAS | >PING | TSS | PING ID: " + getTimeStamp(tssPingId))); }
+      }, function(err1){
 
-//         });
+        console.log(chalkLog("WAS | UNFOLLOW DUPLICATES ARRAY" 
+          + " | 3C TARGET @" + threeceeUserTarget + " | " + threeceeTwitter[threeceeUserTarget].twitterFriends.length + " FRNDs"
+          + " | UNFOLLOW ARRAY: " + unfollowArrarys[threeceeUserTarget].length + " USERS"
+        ));
 
-//       }
-//       else if (tssPingSent && tssPongReceived) {
+        if (unfollowArrarys[threeceeUserTarget].length > 0) {
+          tssChildren[threeceeUserTarget].child.send({op: "UNFOLLOW_ID_ARRAY", userArray: unfollowArrarys[threeceeUserTarget]});
+        }
 
-//         tssPingId = moment().valueOf();
+        cb0();
 
-//         tssPingSent = false; 
-//         tssPongReceived = false;
+      });
 
-//         childrenHashMap[DEFAULT_TSS_CHILD_ID].child.send({op: "PING", pingId: tssPingId}, function(err){
+    }, function(err){
 
-//           if (err) {
+      if (err) {
+        console.log(chalkError("WAS | *** UNFOLLOW DUPLICATES ERROR: " + err
+          + " | 3C USER TARGET: " + threeceeUserTarget
+          + " | 3C USER SOURCE: " + threeceeUserSource
+          + " | NOW: " + getTimeStamp()
+          + " | PING ID: " + getTimeStamp(tfePingId)
+          + " | ELAPSED: " + msToTime(moment().valueOf() - tfePingId)
+        ));
+        return reject(err);
+      }
 
-//             console.log(chalkError("WAS | *** TSS SEND PING ERROR: " + err));
+      resolve(unfollowArrarys);
 
-//             killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err, numKilled){
-//               tssPongReceived = false;
-//               initTssChild({childId: DEFAULT_TSS_CHILD_ID});
-//             });
-
-//             return;
-//           }
-
-//           if (configuration.verbose) { console.log(chalkInfo("WAS | >PING | TSS | PING ID: " + getTimeStamp(tssPingId))); }
-
-//           tssPingSent = true; 
-
-//         });
-
-//       }
-//       else {
-
-//         console.log(chalkAlert("WAS | *** PONG TIMEOUT | TSS"
-//           + " | TIMEOUT: " + interval
-//           + " | NOW: " + getTimeStamp()
-//           + " | PING ID: " + getTimeStamp(tssPingId)
-//           + " | ELAPSED: " + msToTime(moment().valueOf() - tssPingId)
-//         ));
-        
-//         // slackSendMessage("\n*CHILD ERROR*\nTWEET_PARSER\nPONG TIMEOUT");
-
-//       }
-//     }, interval);
-
-//   }
-// }
+    });
+  });
+}
 
 function updateSearchTerms(){
-  console.log(chalkAlert("WAS | WAS | UPDATE SEARCH TERMS"));
+  console.log(chalk.green("WAS | WAS | UPDATE SEARCH TERMS"));
 
   tssSendAllChildren({op: "UPDATE_SEARCH_TERMS"});
 }
@@ -7573,9 +7602,6 @@ function initTssChild(params){
 
   return new Promise(function(resolve, reject){
 
-    // let deltaTssMessageStart = process.hrtime();
-    // let deltaTssMessage = process.hrtime(deltaTssMessageStart);
-
     const tss = cp.fork(`${__dirname}/js/libs/tssChild.js`);
 
     childrenHashMap[params.childId] = {};
@@ -7585,13 +7611,14 @@ function initTssChild(params){
     childrenHashMap[params.childId].title = params.childId;
     childrenHashMap[params.childId].status = "NEW";
     childrenHashMap[params.childId].errors = 0;
+    childrenHashMap[params.childId].unfollowArrary = [];
 
     touchChildPidFile({ 
       childId: params.childId, 
       pid: childrenHashMap[params.childId].pid
     });
 
-    tss.on("message", function tssMessageRx(m){
+    tss.on("message", async function tssMessageRx(m){
 
       childrenHashMap[params.childId].status = "RUNNING";  
 
@@ -7661,6 +7688,17 @@ function initTssChild(params){
           ));
 
           threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
+          threeceeTwitter[m.threeceeUser].twitterFriends = m.twitterFriends;
+
+          try{
+            childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});
+          }
+          catch(err){
+            console.log(chalkError("WAS | <TSS | *** UNFOLLOW DUPLICATES ERROR"
+              + " | 3C @" + m.threeceeUser
+              + " | ERR: " + err
+            ));
+          }
 
         break;
 
@@ -7673,7 +7711,18 @@ function initTssChild(params){
           ));
 
           threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
+          threeceeTwitter[m.threeceeUser].twitterFriends = m.twitterFriends;
           threeceeTwitter[m.threeceeUser].twitterFollowLimit = true;
+
+          try{
+            childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});
+          }
+          catch(err){
+            console.log(chalkError("WAS | <TSS | *** UNFOLLOW DUPLICATES ERROR"
+              + " | 3C @" + m.threeceeUser
+              + " | ERR: " + err
+            ));
+          }
 
         break;
 
@@ -7744,6 +7793,7 @@ function initTssChild(params){
       threeceeUser: params.threeceeUser,
       twitterConfig: threeceeTwitter[params.threeceeUser].twitterConfig,
       interval: configuration.tssInterval,
+      filterDuplicateTweets: configuration.filterDuplicateTweets,
       testMode: configuration.testMode,
       verbose: configuration.verbose
     }, function tssMessageRxError(err){
@@ -7796,7 +7846,7 @@ function initTfeChild(params){
       pid: childrenHashMap[params.childId].pid
     });
 
-    tfe.on("message", function tfeMessageRx(m){
+    tfe.on("message", async function tfeMessageRx(m){
 
       childrenHashMap[params.childId].status = "RUNNING";  
 
@@ -7834,14 +7884,14 @@ function initTfeChild(params){
           }
         break;
 
-        case "USER_CATEGORIZED":
-          console.log(chalkTwitter("WAS | R< USER_CATEGORIZED"
-            + " | @" + m.user.screenName 
-            + " | CAT MAN: " + m.user.category
-            + " | AUTO: " + m.user.categoryAuto
-          ));
-          categorizedUserHashMap.set(m.nodeId, m.user);
-        break;
+        // case "USER_CATEGORIZED":
+        //   console.log(chalkTwitter("WAS | R< USER_CATEGORIZED"
+        //     + " | @" + m.user.screenName 
+        //     + " | CAT MAN: " + m.user.category
+        //     + " | AUTO: " + m.user.categoryAuto
+        //   ));
+        //   categorizedUserHashMap.set(m.user.nodeId, m.user);
+        // break;
 
         case "TWITTER_STATS":
 
@@ -7851,6 +7901,18 @@ function initTfeChild(params){
           ));
 
           threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
+          threeceeTwitter[m.threeceeUser].twitterFriends = m.twitterFriends;
+
+          try{
+            childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});
+          }
+          catch(err){
+            console.log(chalkError("WAS | <TSS | *** UNFOLLOW DUPLICATES ERROR"
+              + " | 3C @" + m.threeceeUser
+              + " | ERR: " + err
+            ));
+          }
+
         break;
 
         case "FOLLOW_LIMIT":
@@ -7862,14 +7924,12 @@ function initTfeChild(params){
           ));
 
           threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
+          threeceeTwitter[m.threeceeUser].twitterFriends = m.twitterFriends;
           threeceeTwitter[m.threeceeUser].twitterFollowLimit = true;
         break;
 
         case "TWEET":
-          // deltaTfeMessage = process.hrtime(deltaTfeMessageStart);
-          // if (deltaTfeMessage[0] > 0) { console.log(chalkAlert("WAS | *** TFE RX DELTA: " + deltaTfeMessage[0] + "." + deltaTfeMessage[1])); }
-          // deltaTfeMessageStart = process.hrtime();
-          if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + m.tweet.id_str + " | @" + m.tweet.user.screen_name)); }
+           if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + m.tweet.id_str + " | @" + m.tweet.user.screen_name)); }
           socketRxTweet(m.tweet);
         break;
 
@@ -7936,6 +7996,8 @@ function initTfeChild(params){
       maxInputHashMap: maxInputHashMap,
       normalization: normalization,
       interval: configuration.tfeInterval,
+      geoCodeEnabled: configuration.geoCodeEnabled,
+      enableImageAnalysis: configuration.enableImageAnalysis,
       forceImageAnalysis: configuration.forceImageAnalysis,
       testMode: configuration.testMode,
       verbose: configuration.verbose
@@ -8520,11 +8582,6 @@ function loadBestRuntimeNetwork(params){
           + " | MATCH: " + bRtNnObj.matchRate.toFixed(2) + "%"
         ));
 
-        statsObj.bestNetwork.networkId = bRtNnObj.networkId;
-        statsObj.bestNetwork.successRate = bRtNnObj.successRate;
-        statsObj.bestNetwork.matchRate = bRtNnObj.matchRate;
-        statsObj.bestNetwork.overallMatchRate = bRtNnObj.overallMatchRate;
-        statsObj.bestNetwork.inputsId = bRtNnObj.inputsId;
 
         file = bRtNnObj.networkId + ".json";
 
@@ -8535,7 +8592,9 @@ function loadBestRuntimeNetwork(params){
             nnObj.matchRate = (nnObj.matchRate !== undefined) ? nnObj.matchRate : 0;
             bestNetworkObj = {};
             bestNetworkObj = deepcopy(nnObj);
-            console.log(chalkLog("WAS | +++ LOADED BEST NETWORK: " + bestNetworkObj.networkId));
+            console.log(chalk.green.bold("WAS | +++ LOADED BEST NETWORK: " + bestNetworkObj.networkId));
+
+            statsObj.bestNetwork = pick(bestNetworkObj, statsBestNetworkPickArray);
 
             if (statsObj.previousBestNetworkId !== bestNetworkObj.networkId) {
               statsObj.previousBestNetworkId = bestNetworkObj.networkId;
@@ -8564,18 +8623,14 @@ function loadBestRuntimeNetwork(params){
               if (bestNetworkObj.matchRate === undefined) { bestNetworkObj.matchRate = 0; }
               if (bestNetworkObj.overallMatchRate === undefined) { bestNetworkObj.overallMatchRate = 0; }
               
-              statsObj.bestNetwork.networkId = bRtNnObj.networkId;
-              statsObj.bestNetwork.successRate = bRtNnObj.successRate;
-              statsObj.bestNetwork.matchRate = bRtNnObj.matchRate;
-              statsObj.bestNetwork.overallMatchRate = bRtNnObj.overallMatchRate;
-              statsObj.bestNetwork.inputsId = bRtNnObj.inputsId;
+              statsObj.bestNetwork = pick(bestNetworkObj, statsBestNetworkPickArray);
 
               if (statsObj.previousBestNetworkId !== bestNetworkObj.networkId) {
                 statsObj.previousBestNetworkId = bestNetworkObj.networkId;
                 configEvents.emit("NEW_BEST_NETWORK", bestNetworkObj.networkId);
               }
 
-              console.log(chalk.blue("WAS | +++ BEST NEURAL NETWORK LOADED FROM DB"
+              console.log(chalk.blue.bold("WAS | +++ BEST NEURAL NETWORK LOADED FROM DB"
                 + " | " + bestNetworkObj.networkId
                 + " | SR: " + bestNetworkObj.successRate.toFixed(2) + "%"
                 + " | MR: " + bestNetworkObj.matchRate.toFixed(2) + "%"
@@ -8587,6 +8642,12 @@ function loadBestRuntimeNetwork(params){
             });
           }
         });
+      }
+      else {
+        console.log(chalkError("WAS | *** LOAD BEST NETWORK ERROR: NO PAYLOAD?" 
+          + folder + "/" + file
+        ));
+        reject(new Error("NO NETWORK PAYLOAD"));
       }
     })
     .catch(function(err){
@@ -8651,7 +8712,7 @@ function loadConfigFile(params) {
         return resolve();
       }
 
-      console.log(chalkAlert("WAS | +++ CONFIG FILE AFTER ... LOADING"
+      console.log(chalk.green("WAS | +++ CONFIG FILE AFTER ... LOADING"
         + " | " + fullPath
         + " | PREV: " + prevConfigFileModifiedMoment.format(compactDateTimeFormat)
         + " | " + fileModifiedMoment.format(compactDateTimeFormat)
@@ -8705,6 +8766,48 @@ function loadConfigFile(params) {
           }
           else {
             newConfiguration.verbose = false;
+          }
+        }
+
+        if (loadedConfigObj.GEOCODE_ENABLED  !== undefined){
+          console.log("WAS | LOADED GEOCODE_ENABLED: " + loadedConfigObj.GEOCODE_ENABLED);
+
+          if ((loadedConfigObj.GEOCODE_ENABLED === false) || (loadedConfigObj.GEOCODE_ENABLED === "false")) {
+            newConfiguration.geoCodeEnabled = false;
+          }
+          else if ((loadedConfigObj.GEOCODE_ENABLED === true) || (loadedConfigObj.GEOCODE_ENABLED === "true")) {
+            newConfiguration.geoCodeEnabled = true;
+          }
+          else {
+            newConfiguration.geoCodeEnabled = false;
+          }
+        }
+
+        if (loadedConfigObj.FILTER_DUPLICATE_TWEETS  !== undefined){
+          console.log("WAS | LOADED FILTER_DUPLICATE_TWEETS: " + loadedConfigObj.FILTER_DUPLICATE_TWEETS);
+
+          if ((loadedConfigObj.FILTER_DUPLICATE_TWEETS === false) || (loadedConfigObj.FILTER_DUPLICATE_TWEETS === "false")) {
+            newConfiguration.filterDuplicateTweets = false;
+          }
+          else if ((loadedConfigObj.FILTER_DUPLICATE_TWEETS === true) || (loadedConfigObj.FILTER_DUPLICATE_TWEETS === "true")) {
+            newConfiguration.filterDuplicateTweets = true;
+          }
+          else {
+            newConfiguration.filterDuplicateTweets = true;
+          }
+        }
+
+        if (loadedConfigObj.ENABLE_IMAGE_ANALYSIS  !== undefined){
+          console.log("WAS | LOADED ENABLE_IMAGE_ANALYSIS: " + loadedConfigObj.ENABLE_IMAGE_ANALYSIS);
+
+          if ((loadedConfigObj.ENABLE_IMAGE_ANALYSIS === false) || (loadedConfigObj.ENABLE_IMAGE_ANALYSIS === "false")) {
+            newConfiguration.enableImageAnalysis = false;
+          }
+          else if ((loadedConfigObj.ENABLE_IMAGE_ANALYSIS === true) || (loadedConfigObj.ENABLE_IMAGE_ANALYSIS === "true")) {
+            newConfiguration.enableImageAnalysis = true;
+          }
+          else {
+            newConfiguration.enableImageAnalysis = false;
           }
         }
 
@@ -8870,6 +8973,11 @@ function loadConfigFile(params) {
           newConfiguration.statsUpdateInterval = loadedConfigObj.STATS_UPDATE_INTERVAL;
         }
 
+        if (loadedConfigObj.TRANSMIT_NODE_QUEUE_INTERVAL !== undefined){
+          console.log("WAS | LOADED TRANSMIT_NODE_QUEUE_INTERVAL: " + loadedConfigObj.TRANSMIT_NODE_QUEUE_INTERVAL);
+          newConfiguration.transmitNodeQueueInterval = loadedConfigObj.TRANSMIT_NODE_QUEUE_INTERVAL;
+        }
+
         if (loadedConfigObj.RATE_QUEUE_INTERVAL !== undefined){
           console.log("WAS | LOADED RATE_QUEUE_INTERVAL: " + loadedConfigObj.RATE_QUEUE_INTERVAL);
           newConfiguration.rateQueueInterval = loadedConfigObj.RATE_QUEUE_INTERVAL;
@@ -8927,7 +9035,7 @@ function loadAllConfigFiles(){
 
       if (defaultConfig) {
         defaultConfiguration = defaultConfig;
-        console.log(chalkAlert("WAS | +++ RELOADED DEFAULT CONFIG " + dropboxConfigDefaultFolder + "/" + dropboxConfigDefaultFile));
+        console.log(chalk.green("WAS | +++ RELOADED DEFAULT CONFIG " + dropboxConfigDefaultFolder + "/" + dropboxConfigDefaultFile));
       }
 
       loadConfigFile({folder: dropboxConfigHostFolder, file: dropboxConfigHostFile})
@@ -8935,7 +9043,7 @@ function loadAllConfigFiles(){
 
         if (hostConfig) {
           hostConfiguration = hostConfig;
-          console.log(chalkAlert("WAS | +++ RELOADED HOST CONFIG " + dropboxConfigHostFolder + "/" + dropboxConfigHostFile));
+          console.log(chalk.green("WAS | +++ RELOADED HOST CONFIG " + dropboxConfigHostFolder + "/" + dropboxConfigHostFile));
         }
 
         let defaultAndHostConfig = merge(defaultConfiguration, hostConfiguration); // host settings override defaults
@@ -9092,6 +9200,7 @@ function initConfig() {
       threeceeTwitter[user].status = "UNCONFIGURED";
       threeceeTwitter[user].error = false;
       threeceeTwitter[user].twitterFollowing = 0;
+      threeceeTwitter[user].twitterFriends = [];
       threeceeTwitter[user].twitterFollowLimit = false;
       threeceeTwitter[user].twitterAuthorizationErrorFlag = false;
       threeceeTwitter[user].twitterErrorFlag = false;
@@ -9111,6 +9220,7 @@ function initConfig() {
       threeceeInfoTwitter[user].status = "UNCONFIGURED";
       threeceeInfoTwitter[user].error = false;
       threeceeInfoTwitter[user].twitterFollowing = 0;
+      threeceeInfoTwitter[user].twitterFriends = [];
       threeceeInfoTwitter[user].twitterFollowLimit = false;
       threeceeInfoTwitter[user].twitterAuthorizationErrorFlag = false;
       threeceeInfoTwitter[user].twitterErrorFlag = false;
@@ -9162,8 +9272,87 @@ function initConfig() {
   });
 }
 
-// kludge
-// probably can write one general purpose function to handle all types of nodes
+function initDbUserChangeStream(params){
+
+  return new Promise(function(resolve, reject){
+
+    const userCollection = global.dbConnection.collection("users");
+
+    userCollection.countDocuments(function(err, count){
+
+      if (err) {
+        console.log(chalkError("WAS | *** DB USERS COUNTER ERROR: " + err));
+        return reject(err);
+      }
+
+      console.log(chalkInfo("WAS | USERS IN DB: " + count));
+
+      const userChangeFilter = {
+        "$match": {
+          "$or": [
+            { operationType: "insert" },
+            { operationType: "delete" },
+            { operationType: "update" },
+            { operationType: "replace" }
+          ]
+        }
+      };
+
+      const userChangeOptions = { fullDocument: "updateLookup" };
+
+      userChangeStream = userCollection.watch([userChangeFilter], userChangeOptions);
+
+      let categoryChanges = {};
+      let catObj = {};
+
+      userChangeStream.on("change", function(change){
+
+        if (change 
+          && change.fullDocument 
+          && change.updateDescription 
+          && change.updateDescription.updatedFields 
+          && (Object.keys(change.updateDescription.updatedFields).includes("category")
+            || Object.keys(change.updateDescription.updatedFields).includes("categoryAuto"))
+        ) { 
+
+          categoryChanges = {};
+
+          categoryChanges.manual = change.fullDocument.category;
+          categoryChanges.auto = change.fullDocument.categoryAuto;
+          
+          if (categoryChanges.auto || categoryChanges.manual) {
+
+            catObj = categorizedUserHashMap.get(change.fullDocument.nodeId);
+
+            if (catObj === undefined) {
+              catObj = {};
+              catObj.screenName = change.fullDocument.screenName;
+              catObj.nodeId = change.fullDocument.nodeId;
+            }
+
+            catObj.manual = categoryChanges.manual || catObj.manual;
+            catObj.auto = categoryChanges.auto || catObj.auto;
+
+            categorizedUserHashMap.set(catObj.nodeId, catObj);
+
+            console.log(chalkInfo("WAS | USER CHG"
+              + " | NID: " + catObj.nodeId
+              + " | @" + catObj.screenName
+              + " | CAT M: " + categoryChanges.manual + " | A: " + categoryChanges.auto
+            ));
+          }
+        }
+        // else {
+        //   console.log(chalkLog("WAS | XX> USER CHANGE | " +  change.operationType));
+        // }
+      });
+
+      resolve();
+
+    });
+
+  });
+}
 
 function initCategoryHashmaps(){
 
@@ -9172,6 +9361,94 @@ function initCategoryHashmaps(){
   return new Promise(function(resolve, reject){
 
     async.series({
+
+      user: function(cb){
+
+        let p = {};
+
+        p.skip = 0;
+        p.batchSize = configuration.cursorBatchSize;
+        p.limit = configuration.findCatUserLimit;
+        p.verbose = false;
+
+        let more = true;
+        let totalCount = 0;
+        let totalManual = 0;
+        let totalAuto = 0;
+        let totalMatched = 0;
+        let totalMismatched = 0;
+        let totalMatchRate = 0;
+
+        debug(chalkInfo("WAS | LOADING CATEGORIZED USERS FROM DB ..."));
+
+        async.whilst(
+
+          function() {
+            return (statsObj.dbConnectionReady && more);
+          },
+
+          function(cb0){
+
+            if (!userServerControllerReady || !statsObj.dbConnectionReady) {
+              return cb0(new Error("userServerController not ready"), null);
+            }
+
+            userServerController.findCategorizedUsersCursor(p, function(err, results){
+
+              if (err) {
+                console.log(chalkError("WAS | ERROR: initCategorizedUserHashmap: userServerController: findCategorizedUsersCursor: " + err));
+                cb0(err);
+              }
+              else if (results) {
+
+                statsObj.db.totalUsers = results.totalUsers;
+
+                more = true;
+                totalCount += results.count;
+                totalManual += results.manual;
+                totalAuto += results.auto;
+                totalMatched += results.matched;
+                totalMismatched += results.mismatched;
+
+                totalMatchRate = 100*(totalMatched/(totalMatched+totalMismatched));
+
+                Object.keys(results.obj).forEach(function(nodeId){
+                  categorizedUserHashMap.set(nodeId, results.obj[nodeId]);
+                });
+
+                p.skip += results.count;
+
+                cb0();
+              }
+              else {
+
+                more = false;
+
+                console.log(chalk.bold.blue("WAS | LOADED CATEGORIZED USERS FROM DB"
+                  + " | TOTAL USERS: " + statsObj.db.totalUsers
+                  + " | TOTAL CATEGORIZED: " + totalCount
+                  + " | LIMIT: " + p.limit
+                  + " | SKIP: " + p.skip
+                  + " | " + totalManual + " MAN"
+                  + " | " + totalAuto + " AUTO"
+                  + " | " + totalMatched + " MATCHED"
+                  + " / " + totalMismatched + " MISMATCHED"
+                  + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
+                ));
+
+                cb0();
+              }
+            });
+          },
+
+          function(err){
+            if (err) {
+              console.log(chalkError("WAS | *** INIT CATEGORIZED USER HASHMAP ERROR: " + err + "\n" + jsonPrint(err)));
+            }
+            cb(err);
+          }
+        );
+      },
 
       hashtag: function(cb){
 
@@ -9255,95 +9532,6 @@ function initCategoryHashmaps(){
             cb(err);
           }
         );
-      },
-
-      user: function(cb){
-
-        let p = {};
-
-        p.skip = 0;
-        p.batchSize = configuration.cursorBatchSize;
-        p.limit = configuration.findCatUserLimit;
-        p.verbose = false;
-
-        let more = true;
-        let totalCount = 0;
-        let totalManual = 0;
-        let totalAuto = 0;
-        let totalMatched = 0;
-        let totalMismatched = 0;
-        let totalMatchRate = 0;
-
-        debug(chalkInfo("WAS | LOADING CATEGORIZED USERS FROM DB ..."));
-
-        async.whilst(
-
-          function() {
-            return (statsObj.dbConnectionReady && more);
-          },
-
-          function(cb0){
-
-            if (!userServerControllerReady) {
-              return cb0(new Error("userServerController not ready"), null);
-            }
-
-
-            userServerController.findCategorizedUsersCursor(p, function(err, results){
-
-              if (err) {
-                console.log(chalkError("WAS | ERROR: initCategorizedUserHashmap: userServerController: findCategorizedUsersCursor: " + err));
-                cb0(err);
-              }
-              else if (results) {
-
-                statsObj.db.totalUsers = results.totalUsers;
-
-                more = true;
-                totalCount += results.count;
-                totalManual += results.manual;
-                totalAuto += results.auto;
-                totalMatched += results.matched;
-                totalMismatched += results.mismatched;
-
-                totalMatchRate = 100*(totalMatched/(totalMatched+totalMismatched));
-
-                Object.keys(results.obj).forEach(function(nodeId){
-                  categorizedUserHashMap.set(nodeId, results.obj[nodeId]);
-                });
-
-                p.skip += results.count;
-
-                cb0();
-              }
-              else {
-
-                more = false;
-
-                console.log(chalk.bold.blue("WAS | LOADED CATEGORIZED USERS FROM DB"
-                  + " | TOTAL USERS: " + statsObj.db.totalUsers
-                  + " | TOTAL CATEGORIZED: " + totalCount
-                  + " | LIMIT: " + p.limit
-                  + " | SKIP: " + p.skip
-                  + " | " + totalManual + " MAN"
-                  + " | " + totalAuto + " AUTO"
-                  + " | " + totalMatched + " MATCHED"
-                  + " / " + totalMismatched + " MISMATCHED"
-                  + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
-                ));
-
-                cb0();
-              }
-            });
-          },
-
-          function(err){
-            if (err) {
-              console.log(chalkError("WAS | *** INIT CATEGORIZED USER HASHMAP ERROR: " + err + "\n" + jsonPrint(err)));
-            }
-            cb(err);
-          }
-        );
       }
 
     }, function(err){
@@ -9352,7 +9540,7 @@ function initCategoryHashmaps(){
         return reject(err);
       }
         
-      console.log(chalk.blue("WAS | LOAD COMPLETE: initCategoryHashmaps"));
+      console.log(chalk.green("WAS | INIT CATEGORIZED HASHMAPS COMPLETE"));
       resolve();
 
     });
@@ -9420,7 +9608,6 @@ function initStdIn(params){
   });
 }
 
-
 function initIgnoreWordsHashMap() {
   return new Promise(function(resolve, reject){
 
@@ -9471,7 +9658,6 @@ function initUpdateUserSetsInterval(interval){
 
 
   }, interval);
-
 }
 
 let memStatsInterval;
@@ -9651,7 +9837,7 @@ function initThreeceeTwitterUsers(params){
         resolve(currentThreeceeUser);
       }
       catch(err){
-        console.log(chalkInfo("WAS | *** CURRENT 3C TWITTER ERROR USER ERROR: " + err));
+        console.log(chalkInfo("WAS | *** CURRENT 3C TWITTER USER ERROR: " + err));
         return reject(err);
       }
     
@@ -9660,46 +9846,44 @@ function initThreeceeTwitterUsers(params){
   });
 }
 
-function initCategoryHashmapsInterval(interval){
+// function initCategoryHashmapsInterval(interval){
 
-  return new Promise(function(resolve, reject){
+//   return new Promise(function(resolve, reject){
 
-    console.log(chalk.bold.black("WAS | INIT CATEGORY HASHMAP INTERVAL"
-      + " | " + msToTime(interval)
-    ));
+//     console.log(chalk.bold.black("WAS | INIT CATEGORY HASHMAP INTERVAL"
+//       + " | " + msToTime(interval)
+//     ));
 
-    clearInterval(categoryHashmapsInterval);
+//     clearInterval(categoryHashmapsInterval);
 
-    categoryHashmapsInterval = setInterval(function updateMemStats() {
+//     categoryHashmapsInterval = setInterval(async function updateMemStats() {
 
-      if (statsObj.dbConnectionReady && initCategoryHashmapsReady) {
+//       if (statsObj.dbConnectionReady && initCategoryHashmapsReady) {
 
-        debug(chalkInfo("--- IN CATEGORY HASHMAP INTERVAL"
-          + " | " + msToTime(interval)
-        ));
+//         debug(chalkInfo("--- IN CATEGORY HASHMAP INTERVAL"
+//           + " | " + msToTime(interval)
+//         ));
 
-        initCategoryHashmapsReady = false;
+//         initCategoryHashmapsReady = false;
 
-        try {
-          initCategoryHashmaps()
-          .then(function(){
-            initCategoryHashmapsReady = true;
-          });
-        }
-        catch (err){
-          console.log(chalkError("WAS | *** ERROR: LOAD CATEGORY HASHMAPS: " + err));
-          console.error(err);
-          initCategoryHashmapsReady = true;
-        }
+//         try {
+//           await initCategoryHashmaps();
+//           console.log(chalk.bold.green("WAS | INIT CATEGORY HASHMAPS COMPLETE"));
+//           initCategoryHashmapsReady = true;
+//         }
+//         catch (err){
+//           console.log(chalkError("WAS | *** ERROR: INIT CATEGORY HASHMAPS: " + err));
+//           console.error(err);
+//           initCategoryHashmapsReady = true;
+//         }
 
-        debug(chalk.bold.green("WAS | +++ LOADED CATEGORY HASHMAPS"));
-      }
+//       }
 
-    }, interval);
+//     }, interval);
 
-    resolve();
-  });
-}
+//     resolve();
+//   });
+// }
 
 function twitterGetUserUpdateDb(user, callback){
 
@@ -9725,7 +9909,14 @@ function twitterGetUserUpdateDb(user, callback){
       threeceeTwitter[currentThreeceeUser].twit.get("users/show", twitQuery, function usersShow (err, rawUser, response){
 
         if (err) {
-          console.log(chalkError("WAS | *** ERROR users/show rawUser | @" + user.screenName + " | " + err + "\ntwitQuery\n" + jsonPrint(twitQuery)));
+
+          console.log(chalkError("WAS | *** ERROR users/show rawUser"
+            + " | @" + user.screenName 
+            + " | " + err 
+            + "\nerr\n" + jsonPrint(err)
+            + "\ntwitQuery\n" + jsonPrint(twitQuery)
+          ));
+
           return callback("NO TWITTER UPDATE", user);
         }
 
@@ -9734,7 +9925,7 @@ function twitterGetUserUpdateDb(user, callback){
           // if (!statsObj.dbConnectionReady) {
           //   return callback("DB CONNECTION NOT READY", rawUser);
           // }
-          if (!userServerControllerReady) {
+          if (!userServerControllerReady || !statsObj.dbConnectionReady) {
             return callback(new Error("userServerController not ready"), null);
           }
 
@@ -9766,7 +9957,7 @@ function twitterGetUserUpdateDb(user, callback){
               user.setMentions = true;
             }
 
-            if (!userServerControllerReady) {
+            if (!userServerControllerReady || !statsObj.dbConnectionReady) {
               return callback(new Error("userServerController not ready"), null);
             }
 
@@ -9822,7 +10013,7 @@ function twitterGetUserUpdateDb(user, callback){
       //   return callback("DB CONNECTION NOT READY", user);
       // }
 
-      if (!userServerControllerReady) {
+      if (!userServerControllerReady || !statsObj.dbConnectionReady) {
         return callback(new Error("userServerController not ready"), user);
       }
 
@@ -9839,13 +10030,14 @@ function twitterGetUserUpdateDb(user, callback){
           + "\n" + printUser({user:updatedUser})
         ));
 
-        callback("DB NO TWITTER UPDATE", updatedUser);
+        callback(null, updatedUser);
 
       });
     }
   })
   .catch(function(err){
-
+    console.log(chalkError("WAS | *** GET CURRENT 3C USER ERROR: " + err));
+    return callback(err, null);
   });
 }
 
@@ -9986,12 +10178,15 @@ function twitterSearchNode(params, callback) {
         twitterSearchUserNode(searchQuery, function(err, user){
           if (err){
             console.log(chalkError("WAS | *** TWITTER_SEARCH_NODE ERROR"
-              + "[ UC USER ARRAY: " + uncategorizedManualUserArray.length + "]"
+              + " [ UC USER ARRAY: " + uncategorizedManualUserArray.length + "]"
               + " | " + getTimeStamp()
               + " | SEARCH UNCATEGORIZED USER"
               + " | UID: " + uncategorizedUserId
               + " | ERROR: " + err
             ));
+
+            uncategorizedManualUserSet.delete(uncategorizedUserId);
+            ignoredUserSet.add(uncategorizedUserId);
           }
           else if (user) {
             if (tfeChild !== undefined) { 
@@ -10048,7 +10243,7 @@ function twitterSearchNode(params, callback) {
         twitterSearchUserNode(searchQuery, function(err, user){
           if (err){
             console.log(chalkError("WAS | *** TWITTER_SEARCH_NODE ERROR"
-              + "[ UC MISMATCHED ARRAY: " + mismatchUserArray.length + "]"
+              + " [ UC MISMATCHED ARRAY: " + mismatchUserArray.length + "]"
               + " | " + getTimeStamp()
               + " | SEARCH MISMATCHED USER"
               + " | UID: " + mismatchedUserId
@@ -10060,7 +10255,7 @@ function twitterSearchNode(params, callback) {
           }
           else {
             console.log(chalkAlert("WAS | --- TWITTER_SEARCH_NODE NOT FOUND"
-              + "[ UC USER ARRAY: " + uncategorizedManualUserArray.length + "]"
+              + " [ UC USER ARRAY: " + uncategorizedManualUserArray.length + "]"
               + " | " + getTimeStamp()
               + " | SEARCH MISMATCHED USER"
               + " | UID: " + uncategorizedUserId
@@ -10140,7 +10335,7 @@ function initTwitterSearchNodeQueueInterval(interval){
           console.log(chalkError("WAS | *** TWITTER SEARCH NODE ERROR: " + err));
         }
         else if (node) {
-          console.log(chalkAlert("WAS | TWITTER SEARCH NODE FOUND | NID: " + node.nodeId));
+          console.log(chalk.green("WAS | TWITTER SEARCH NODE FOUND | NID: " + node.nodeId));
         }
 
         clearTimeout(searchTimeout);
@@ -10173,7 +10368,9 @@ setTimeout(function(){
       if (configuration.testMode) {
       }
 
-      console.log("WAS | " + chalkTwitter(configuration.processName + " CONFIGURATION\n" + jsonPrint(configuration)));
+      console.log(chalkTwitter("WAS" 
+        + " | " + configuration.processName 
+      ));
 
       // await initSlackRtmClient();
       // await initSlackWebClient();
@@ -10186,7 +10383,7 @@ setTimeout(function(){
 
         dbConnectionReadyInterval = setInterval(function() {
 
-          if (dbConnectionReady) {
+          if (statsObj.dbConnectionReady) {
 
             try {
 
@@ -10203,8 +10400,9 @@ setTimeout(function(){
               .then(()=>updateUserSets())
               .then(()=>loadBestRuntimeNetwork())
               .then(()=>loadMaxInputHashMap())
+              .then(()=>initCategoryHashmaps())
+              // .then(()=>initCategoryHashmapsInterval(configuration.categoryHashmapsUpdateInterval))
               .then(()=>initIgnoreWordsHashMap())
-              .then(()=>initCategoryHashmapsInterval(configuration.categoryHashmapsUpdateInterval))
               .then(()=>initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers}))
               .then(()=>initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval))
               .then(()=>initRateQinterval(configuration.rateQueueInterval))
@@ -10215,7 +10413,11 @@ setTimeout(function(){
               .then(()=>initDbuChild({childId: DEFAULT_DBU_CHILD_ID}))
               .then(()=>initTweetParser({childId: DEFAULT_TWP_CHILD_ID}))
               .then(()=>initTfeChild({childId: DEFAULT_TFE_CHILD_ID}))
-              .then(()=>initTssChildren());
+              .then(()=>initDbUserChangeStream())
+              .then(()=>initTssChildren())
+              .catch(function(err){
+                console.log(chalkError("WAS | *** INIT ERROR: " + err));
+              });
 
             }
             catch(err){
@@ -10224,7 +10426,7 @@ setTimeout(function(){
             
           }
           else {
-            console.log(chalkAlert("WAS | WAIT DB CONNECTED ..."));
+            console.log(chalkLog("WAS | WAIT DB CONNECTED ..."));
           }
         }, 1000);
 

@@ -41,6 +41,7 @@ let globalHistograms = {};
 let langAnalyzer; // undefined for now
 
 const fieldsTransmit = {
+  bannerImageUrl: 1,
   category: 1,
   categoryAuto: 1,
   description: 1,
@@ -55,8 +56,14 @@ const fieldsTransmit = {
   name: 1,
   nodeId: 1,
   nodeType: 1,
+  previousBannerImageUrl: 1,
   previousDescription: 1,
+  previousLocation: 1,
   previousName: 1,
+  previousProfileUrl: 1,
+  previousScreenName: 1,
+  previousStatusId: 1,
+  profileUrl: 1,
   rate: 1,
   screenName: 1,
   screenNameLower: 1,
@@ -73,7 +80,7 @@ const DEFAULT_CURSOR_BATCH_SIZE = 5000;
 const DEFAULT_INFO_TWITTER_USER = "threecee";
 const USER_CAT_QUEUE_MAX_LENGTH = 500;
 
-const USER_CHANGE_CACHE_DEFAULT_TTL = 120;
+const USER_CHANGE_CACHE_DEFAULT_TTL = 30;
 const USER_CHANGE_CACHE_CHECK_PERIOD = 5;
 
 const MAX_READY_ACK_WAIT_COUNT = 10;
@@ -102,6 +109,11 @@ hostname = hostname.replace(/.fios-router/g, "");
 hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
+
+const googleMapsClient = require("@google/maps").createClient({
+  key: "AIzaSyDBxA6RmuBcyj-t7gfvK61yp8CDNnRLUlc"
+});
+
 
 // const mergeHistograms = require("./mergeHistograms");
 const MergeHistograms = require("@threeceelabs/mergehistograms");
@@ -177,11 +189,12 @@ let infoTwitterUserObj = {};  // used for general twitter tasks
 let stdin;
 
 let configuration = {};
+configuration.geoCodeEnabled = false;
 configuration.inputsBinaryMode = true;
 configuration.verbose = false;
 configuration.globalTestMode = false;
 configuration.forceImageAnalysis = false;
-configuration.enableImageAnalysis = false;
+configuration.enableImageAnalysis = true;
 configuration.testMode = false; // per tweet test mode
 configuration.userCategorizeQueueInterval = ONE_SECOND;
 configuration.userChangeDbQueueInterval = 10;
@@ -269,6 +282,12 @@ statsObj.twitterLimit = 0;
 statsObj.twitterLimitMax = 0;
 statsObj.twitterLimitMaxTime = moment().valueOf();
 
+statsObj.geo = {};
+statsObj.geo.misses = 0;
+statsObj.geo.hits = 0;
+statsObj.geo.hitRate = 0;
+statsObj.geo.total = 0;
+
 statsObj.analyzer = {};
 statsObj.analyzer.total = 0;
 statsObj.analyzer.analyzed = 0;
@@ -303,12 +322,12 @@ let tweetServerControllerReady = false;
 let userChangeCacheTtl = process.env.USER_CHANGE_CACHE_DEFAULT_TTL;
 if (userChangeCacheTtl === undefined) { userChangeCacheTtl = USER_CHANGE_CACHE_DEFAULT_TTL;}
 
-console.log("TFC | USER CHANGE CACHE TTL: " + userChangeCacheTtl + " SECONDS");
+console.log("WAS | TFC | USER CHANGE CACHE TTL: " + userChangeCacheTtl + " SECONDS");
 
 let userChangeCacheCheckPeriod = process.env.USER_CHANGE_CACHE_CHECK_PERIOD;
 if (userChangeCacheCheckPeriod === undefined) { userChangeCacheCheckPeriod = USER_CHANGE_CACHE_CHECK_PERIOD;}
 
-console.log("TFC | userChange CACHE CHECK PERIOD: " + userChangeCacheCheckPeriod + " SECONDS");
+console.log("WAS | TFC | userChange CACHE CHECK PERIOD: " + userChangeCacheCheckPeriod + " SECONDS");
 
 const userChangeCache = new NodeCache({
   stdTTL: userChangeCacheTtl,
@@ -317,16 +336,11 @@ const userChangeCache = new NodeCache({
 
 function userChangeCacheExpired(userChangeCacheId, changeObj) {
 
-  debug(chalkLog("TFC | XXX USER CHANGE CACHE EXPIRED"
+  debug(chalkLog("WAS | TFC | XXX USER CHANGE CACHE EXPIRED"
     + " | TTL: " + userChangeCacheTtl + " SECS"
     + " | " + userChangeCacheId
     + " | UID: " + changeObj.user.userId
     + " | @" + changeObj.user.screenName
-    // + " | INIT FLAG: " + changeObj.user.initFlag
-    // + "\nCHANGES\n" + changeObj.user.initFlag
-    // + "\nNOW: " + getTimeStamp()
-    // + " | TS: " + getTimeStamp(changeObj.timeStamp)
-    // + " | AGO: " + msToTime(moment().valueOf() - changeObj.timeStamp)
   ));
 
 }
@@ -348,7 +362,7 @@ function connectDb(){
       wordAssoDb.connect("TFC_" + process.pid, async function(err, db){
 
         if (err) {
-          console.log(chalkError("TFC | *** MONGO DB CONNECTION ERROR: " + err));
+          console.log(chalkError("WAS | TFC | *** MONGO DB CONNECTION ERROR: " + err));
           callback(err, null);
           statsObj.status = "MONGO CONNECTION ERROR";
           dbConnectionReady = false;
@@ -358,8 +372,8 @@ function connectDb(){
 
         db.on("error", async function(){
           statsObj.status = "MONGO ERROR";
-          console.error.bind(console, "TFC | *** MONGO DB CONNECTION ERROR ***");
-          console.log(chalkError("TFC | *** MONGO DB CONNECTION ERROR ***"));
+          console.error.bind(console, "WAS | TFC | *** MONGO DB CONNECTION ERROR ***");
+          console.log(chalkError("WAS | TFC | *** MONGO DB CONNECTION ERROR ***"));
           db.close();
           dbConnectionReady = false;
           quit(statsObj.status);
@@ -367,15 +381,15 @@ function connectDb(){
 
         db.on("disconnected", async function(){
           statsObj.status = "MONGO DISCONNECTED";
-          console.error.bind(console, "TFC | *** MONGO DB DISCONNECTED ***");
-          console.log(chalkAlert("TFC | *** MONGO DB DISCONNECTED ***"));
+          console.error.bind(console, "WAS | TFC | *** MONGO DB DISCONNECTED ***");
+          console.log(chalkAlert("WAS | TFC | *** MONGO DB DISCONNECTED ***"));
           dbConnectionReady = false;
           quit(statsObj.status);
         });
 
         global.dbConnection = db;
 
-        console.log(chalk.green("TFC | MONGOOSE DEFAULT CONNECTION OPEN"));
+        console.log(chalk.green("WAS | TFC | MONGOOSE DEFAULT CONNECTION OPEN"));
 
         const emojiModel = require("@threeceelabs/mongoose-twitter/models/emoji.server.model");
         const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
@@ -407,12 +421,12 @@ function connectDb(){
 
         tweetServerController.on("ready", function(err){
           tweetServerControllerReady = true;
-          console.log(chalk.green("TFC | TSC READY"));
+          console.log(chalk.green("WAS | TFC | TSC READY"));
         });
 
         tweetServerController.on("error", function(err){
           tweetServerControllerReady = false;
-          console.trace(chalkError("TFC | *** TSC ERROR | " + err));
+          console.trace(chalkError("WAS | TFC | *** TSC ERROR | " + err));
         });
 
         userServerControllerReady = false;
@@ -421,26 +435,17 @@ function connectDb(){
           statsObj.status = "MONGO DB CONNECTED";
 
           userServerControllerReady = true;
-          console.log(chalkLog("TFC | USC READY | " + appname));
+          console.log(chalkLog("WAS | TFC | USC READY | " + appname));
           dbConnectionReady = true;
 
           resolve(db);
-
-          // initDbUserChangeStream({db: db})
-          // .then(function(){
-          //   resolve(db);
-          // })
-          // .catch(function(err){
-          //   console.log(chalkError("TFC | *** INIT DB CHANGE STREAM ERROR: " + err));
-          //   return reject(err);
-          // });
 
         });
 
       });
     }
     catch(err){
-      console.log(chalkError("TFC | *** MONGO DB CONNECT ERROR: " + err));
+      console.log(chalkError("WAS | TFC | *** MONGO DB CONNECT ERROR: " + err));
       reject(err);
     }
   });
@@ -462,14 +467,14 @@ const dropboxConfigFile = hostname + "_" + DROPBOX_TFE_CONFIG_FILE;
 const statsFolder = "/stats/" + hostname + "/followerExplorer";
 const statsFile = DROPBOX_TFE_STATS_FILE;
 
-console.log("TFC | DROPBOX_TFE_CONFIG_FILE: " + DROPBOX_TFE_CONFIG_FILE);
-console.log("TFC | DROPBOX_TFE_STATS_FILE : " + DROPBOX_TFE_STATS_FILE);
+console.log("WAS | TFC | DROPBOX_TFE_CONFIG_FILE: " + DROPBOX_TFE_CONFIG_FILE);
+console.log("WAS | TFC | DROPBOX_TFE_STATS_FILE : " + DROPBOX_TFE_STATS_FILE);
 
-debug("TFC | dropboxConfigFolder : " + dropboxConfigFolder);
-debug("TFC | dropboxConfigFile : " + dropboxConfigFile);
+debug("WAS | TFC | dropboxConfigFolder : " + dropboxConfigFolder);
+debug("WAS | TFC | dropboxConfigFile : " + dropboxConfigFile);
 
-debug("TFC | statsFolder : " + statsFolder);
-debug("TFC | statsFile : " + statsFile);
+debug("WAS | TFC | statsFolder : " + statsFolder);
+debug("WAS | TFC | statsFile : " + statsFile);
 
 const dropboxClient = new Dropbox({ 
   accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN,
@@ -497,7 +502,7 @@ function getTimeStamp(inputTime) {
     return currentTimeStamp;
   }
   else {
-    console.log(chalkAlert("TFC | *** getTimeStamp INVALID DATE: " + inputTime));
+    console.log(chalkAlert("WAS | TFC | *** getTimeStamp INVALID DATE: " + inputTime));
     return null;
   }
 }
@@ -510,10 +515,10 @@ function showStats(options){
   statsObj.elapsed = moment().valueOf() - statsObj.startTime;
 
   if (options) {
-    console.log("TFC | STATS\n" + jsonPrint(statsObj));
+    console.log("WAS | TFC | STATS\n" + jsonPrint(statsObj));
   }
   else {
-    console.log(chalkLog("TFC | S"
+    console.log(chalkLog("WAS | TFC | S"
       + " | ELPSD " + msToTime(statsObj.elapsed)
       + " | START " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
       + " | UC$: " + userChangeCache.getStats().keys
@@ -533,7 +538,7 @@ function quit(message) {
     exitCode = 1;
   }
 
-  console.error("TFC | " + process.argv[1]
+  console.error("WAS | TFC | " + process.argv[1]
     + " | " + moment().format(compactDateTimeFormat)
     + " | TFE CHILD: **** QUITTING"
     + " | CAUSE: " + msg
@@ -546,7 +551,7 @@ function quit(message) {
     global.dbConnection.close(function () {
       
       console.log(chalkAlert(
-            "TFC | =========================="
+            "WAS | TFC | =========================="
         + "\nTFE | MONGO DB CONNECTION CLOSED"
         + "\nTFE | =========================="
       ));
@@ -563,9 +568,9 @@ function saveFile (path, file, jsonObj, callback){
 
   const fullPath = path + "/" + file;
 
-  debug(chalkInfo("TFC | SAVE FOLDER " + path));
-  debug(chalkInfo("TFC | SAVE FILE " + file));
-  debug(chalkInfo("TFC | FULL PATH " + fullPath));
+  debug(chalkInfo("WAS | TFC | SAVE FOLDER " + path));
+  debug(chalkInfo("WAS | TFC | SAVE FILE " + file));
+  debug(chalkInfo("WAS | TFC | FULL PATH " + fullPath));
 
   let options = {};
 
@@ -576,11 +581,11 @@ function saveFile (path, file, jsonObj, callback){
 
   dropboxClient.filesUpload(options)
     .then(function(response){
-      debug(chalkLog("TFC | ... SAVED DROPBOX JSON | " + options.path));
+      debug(chalkLog("WAS | TFC | ... SAVED DROPBOX JSON | " + options.path));
       callback(null, response);
     })
     .catch(function(error){
-      console.error(chalkError("TFC | " + moment().format(defaultDateTimeFormat) 
+      console.error(chalkError("WAS | TFC | " + moment().format(defaultDateTimeFormat) 
         + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
         + "\nTFE | ERROR: ", error
       ));
@@ -590,13 +595,13 @@ function saveFile (path, file, jsonObj, callback){
 
 function loadFile(path, file, callback) {
 
-  console.log(chalkInfo("TFC | LOAD FOLDER " + path));
-  console.log(chalkInfo("TFC | LOAD FILE " + file));
-  console.log(chalkInfo("TFC | FULL PATH " + path + "/" + file));
+  console.log(chalkInfo("WAS | TFC | LOAD FOLDER " + path));
+  console.log(chalkInfo("WAS | TFC | LOAD FILE " + file));
+  console.log(chalkInfo("WAS | TFC | FULL PATH " + path + "/" + file));
 
   dropboxClient.filesDownload({path: path + "/" + file})
     .then(function(data) {
-      console.log(chalkLog("TFC | " + getTimeStamp()
+      console.log(chalkLog("WAS | TFC | " + getTimeStamp()
         + " | LOADING FILE FROM DROPBOX FILE: " + path + "/" + file
       ));
 
@@ -612,17 +617,17 @@ function loadFile(path, file, callback) {
       }
     })
     .catch(function(error) {
-      console.log(chalkLog("TFC | *** DROPBOX loadFile ERROR: " + file + " | " + error));
-      console.log(chalkLog("TFC | *** DROPBOX READ " + file + " ERROR"));
+      console.log(chalkLog("WAS | TFC | *** DROPBOX loadFile ERROR: " + file + " | " + error));
+      console.log(chalkLog("WAS | TFC | *** DROPBOX READ " + file + " ERROR"));
 
       if ((error.response.status === 404) || (error.response.status === 409)) {
-        console.error(chalkLog("TFC | *** DROPBOX READ FILE " + file + " NOT FOUND"
+        console.error(chalkLog("WAS | TFC | *** DROPBOX READ FILE " + file + " NOT FOUND"
           + " ... SKIPPING ...")
         );
         return(callback(null, null));
       }
       if (error.status === 0) {
-        console.error(chalkLog("TFC | *** DROPBOX NO RESPONSE"
+        console.error(chalkLog("WAS | TFC | *** DROPBOX NO RESPONSE"
           + " ... NO INTERNET CONNECTION? ... SKIPPING ..."));
         return(callback(null, null));
       }
@@ -630,14 +635,14 @@ function loadFile(path, file, callback) {
       return(callback(error, null));
     })
     .catch(function(err) {
-      console.log(chalkLog("TFC | *** ERROR DROPBOX LOAD FILE\n" + err));
+      console.log(chalkLog("WAS | TFC | *** ERROR DROPBOX LOAD FILE\n" + err));
       callback(err, null);
     });
 }
 
 function initStatsUpdate(cnf, callback){
 
-  console.log(chalkInfo("TFC | initStatsUpdate | INTERVAL: " + cnf.statsUpdateIntervalTime));
+  console.log(chalkInfo("WAS | TFC | initStatsUpdate | INTERVAL: " + cnf.statsUpdateIntervalTime));
 
   setInterval(function () {
 
@@ -663,19 +668,19 @@ function printUserObj(title, user, chalkConfig) {
   user = userDefaults(user);
 
   console.log(curChalk(title
-    + " | UID: " + user.userId
+    + " | U " + user.userId
     + " | @" + user.screenName
-    + " | N: " + user.name 
-    + " | LANG: " + user.lang 
-    + " | FLWRs: " + user.followersCount
-    + " | FRNDs: " + user.friendsCount
-    + " | Ts: " + user.statusesCount
-    + " | Ms:  " + user.mentions
-    + " | LS: " + getTimeStamp(user.lastSeen)
-    + " | IGNRD: " + user.ignored 
-    + " | FLWg: " + user.following 
-    + " | 3C: @" + user.threeceeFollowing 
-    + " | CAT M: " + user.category + " - A: " + user.categoryAuto
+    + " | N " + user.name 
+    + " | L " + user.lang 
+    + " | FWs " + user.followersCount
+    + " | FDs " + user.friendsCount
+    + " | T " + user.statusesCount
+    + " | M  " + user.mentions
+    + " | LS " + getTimeStamp(user.lastSeen)
+    + " | IG " + user.ignored 
+    + " | FW " + user.following 
+    + " | 3C " + user.threeceeFollowing 
+    + " | CAT M " + user.category + " A " + user.categoryAuto
   ));
 
   if (user.changes) {
@@ -700,25 +705,25 @@ const userDefaults = function (user){
 
 function initInfoTwit(params, callback){
 
-  console.log(chalkTwitter("TFC | INIT INFO USER @" + params.screenName));
+  console.log(chalkTwitter("WAS | TFC | INIT INFO USER @" + params.screenName));
 
   const twitterConfigFile = params.screenName + ".json";
 
   loadFile(configuration.twitterConfigFolder, twitterConfigFile, function(err, twitterConfig){
 
     if (err){
-      console.error(chalkLog("TFC | *** TWITTER CONFIG FILE LOAD ERROR\n" + err));
+      console.error(chalkLog("WAS | TFC | *** TWITTER CONFIG FILE LOAD ERROR\n" + err));
       return callback(err, null);
     }
 
     if (!twitterConfig){
-      console.error(chalkLog("TFC | *** TWITTER CONFIG FILE LOAD ERROR | NOT FOUND?"
+      console.error(chalkLog("WAS | TFC | *** TWITTER CONFIG FILE LOAD ERROR | NOT FOUND?"
         + " | " + configuration.twitterConfigFolder + "/" + twitterConfigFile
       ));
       return callback("TWITTER CONFIG FILE LOAD ERROR | NOT FOUND?", null);
     }
 
-    console.log(chalkTwitter("TFC | INFO TWITTER USER CONFIG\n" + jsonPrint(twitterConfig)));
+    console.log(chalkTwitter("WAS | TFC | INFO TWITTER USER CONFIG\n" + jsonPrint(twitterConfig)));
 
     let twitterUserObj = {};
 
@@ -755,7 +760,7 @@ function initInfoTwit(params, callback){
     twitterUserObj.twit = {};
     twitterUserObj.twit = newTwit;
 
-    console.log(chalkTwitter("TFC | INIT INFO TWITTER USER"
+    console.log(chalkTwitter("WAS | TFC | INIT INFO TWITTER USER"
       + " | NAME: " + twitterConfig.screenName
     ));
 
@@ -769,18 +774,18 @@ function initInfoTwit(params, callback){
 function getFileMetadata(path, file, callback) {
 
   const fullPath = path + "/" + file;
-  debug(chalkInfo("TFC | FOLDER " + path));
-  debug(chalkInfo("TFC | FILE " + file));
-  console.log(chalkInfo("TFC | getFileMetadata FULL PATH: " + fullPath));
+  debug(chalkInfo("WAS | TFC | FOLDER " + path));
+  debug(chalkInfo("WAS | TFC | FILE " + file));
+  console.log(chalkInfo("WAS | TFC | getFileMetadata FULL PATH: " + fullPath));
 
   dropboxClient.filesGetMetadata({path: fullPath})
     .then(function(response) {
-      debug(chalkInfo("TFC | FILE META\n" + jsonPrint(response)));
+      debug(chalkInfo("WAS | TFC | FILE META\n" + jsonPrint(response)));
       return(callback(null, response));
     })
     .catch(function(error) {
-      console.log(chalkLog("TFC | GET FILE METADATA ERROR: " + error));
-      console.log(chalkLog("TFC | GET FILE METADATA ERROR\n" + jsonPrint(error)));
+      console.log(chalkLog("WAS | TFC | GET FILE METADATA ERROR: " + error));
+      console.log(chalkLog("WAS | TFC | GET FILE METADATA ERROR\n" + jsonPrint(error)));
       return(callback(error, null));
     });
 }
@@ -799,7 +804,7 @@ function initFollowingUserIdSet(callback){
 
     global.User.countDocuments(query, function (err, count) {
       statsObj.numUsersFollowing = count;
-      console.log(chalkLog("TFC | FOUND FOLLOWING IN DB: " + statsObj.numUsersFollowing + " USERS"));
+      console.log(chalkLog("WAS | TFC | FOUND FOLLOWING IN DB: " + statsObj.numUsersFollowing + " USERS"));
     });
 
     const cursor = global.User.find(query).select({userId:1, screenName:1, lastSeen:1}).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
@@ -811,7 +816,7 @@ function initFollowingUserIdSet(callback){
       if (followingUserIdSet.has(user.userId)) {
 
         if (configuration.verbose || (statsObj.numFollowUsers % 100 === 0)) {
-          console.log(chalkInfo("TFC | U | IN SET "
+          console.log(chalkInfo("WAS | TFC | U | IN SET "
             + " [ FUS: " + followingUserIdSet.size
             + " | USRs FTCHD: " + statsObj.numFollowUsers + "]"
             + " | @" + user.screenName
@@ -826,7 +831,7 @@ function initFollowingUserIdSet(callback){
         followingUserIdSet.add(user.userId);
 
         if (configuration.verbose || (statsObj.numFollowUsers % 100 === 0)) {
-          console.log(chalkInfo("TFC | U | ADD SET"
+          console.log(chalkInfo("WAS | TFC | U | ADD SET"
             + " [ FUS: " + followingUserIdSet.size
             + " | USRs FTCHD: " + statsObj.numFollowUsers + "]"
             + " | @" + user.screenName
@@ -842,7 +847,7 @@ function initFollowingUserIdSet(callback){
     });
 
     cursor.on("error", function(err) {
-      console.error(chalkLog("TFC | *** ERROR initFollowingUserIdSet: " + err));
+      console.error(chalkLog("WAS | TFC | *** ERROR initFollowingUserIdSet: " + err));
       reject(err);
     });
 
@@ -870,7 +875,7 @@ function checkTwitterRateLimit(params, callback){
     
     if (err){
 
-      console.log(chalkError("TFC | *** TWITTER ACCOUNT ERROR"
+      console.log(chalkError("WAS | TFC | *** TWITTER ACCOUNT ERROR"
         + " | @" + twitterUserObj.screenName
         + " | " + getTimeStamp()
         + " | CODE: " + err.code
@@ -889,7 +894,7 @@ function checkTwitterRateLimit(params, callback){
       twitterUserObj.stats.error = false;
 
       if (configuration.verbose) {
-        console.log(chalkLog("TFC | TWITTER RATE LIMIT STATUS"
+        console.log(chalkLog("WAS | TFC | TWITTER RATE LIMIT STATUS"
           + " | @" + twitterUserObj.screenName
           + " | LIM: " + twitterUserObj.stats.twitterRateLimit
           + " | REM: " + twitterUserObj.stats.twitterRateLimitRemaining
@@ -913,7 +918,7 @@ function checkTwitterRateLimit(params, callback){
 
           twitterUserObj.stats.twitterRateLimitExceptionFlag = false;
           
-          console.log(chalkInfo("TFC | XXX RESET TWITTER RATE LIMIT"
+          console.log(chalkInfo("WAS | TFC | XXX RESET TWITTER RATE LIMIT"
             + " | @" + twitterUserObj.screenName
             + " | CONTEXT: " + data.rate_limit_context.access_token
             + " | LIM: " + twitterUserObj.stats.twitterRateLimit
@@ -936,7 +941,7 @@ function checkTwitterRateLimit(params, callback){
         twitterUserObj.stats.twitterRateLimitResetAt = moment.unix(data.resources.users["/users/show/:id"].reset).valueOf();
         twitterUserObj.stats.twitterRateLimitRemainingTime = moment(twitterUserObj.stats.twitterRateLimitResetAt).diff(moment());
 
-        console.log(chalkLog("TFC | --- TWITTER RATE LIMIT"
+        console.log(chalkLog("WAS | TFC | --- TWITTER RATE LIMIT"
           + " | @" + twitterUserObj.screenName
           + " | CONTEXT: " + data.rate_limit_context.access_token
           + " | LIM: " + twitterUserObj.stats.twitterRateLimit
@@ -1061,13 +1066,9 @@ function generateNetworkInputIndexed(params){
               ));
             }
 
-            // let inputValue = 0;
-
             networkInput[indexOffset + index] = (maxInputHashMap[inputType][inputName] > 0) 
               ? histogramObj[inputName]/maxInputHashMap[inputType][inputName] 
               : 1;
-
-            // networkInput[indexOffset + index] = inputValue;
 
             async.setImmediate(function() {
               cb1();
@@ -1097,10 +1098,6 @@ function generateNetworkInputIndexed(params){
       if (err) { return reject(err); }
 
       generateNetworkInputBusy = false;
-
-      // if (configuration.verbose) {
-      //   printNetworkInput({title: title, inputArray: networkInput});
-      // }
 
       resolve(networkInput);
     });
@@ -1252,11 +1249,10 @@ function updateGlobalHistograms(params) {
       mergedHistograms = await mergeHistograms.merge({ histogramA: params.user.profileHistograms, histogramB: params.user.tweetHistograms });
     }
     catch(err){
-      console.log(chalkError("TFC | *** UPDATE GLOBAL HISTOGRAMS ERROR: " + err));
+      console.log(chalkError("WAS | TFC | *** UPDATE GLOBAL HISTOGRAMS ERROR: " + err));
       return reject(err);
     }
 
-    // async.each(Object.keys(mergedHistograms), function(type, cb0) {
     async.each(DEFAULT_INPUT_TYPES, function(inputType, cb0) {
 
       if (!mergedHistograms[inputType] || (mergedHistograms[inputType] === undefined)){
@@ -1390,6 +1386,143 @@ function parseText(params){
   });
 }
 
+function geoCode(params) {
+
+  return new Promise(function(resolve, reject){
+
+    let components = {};
+    let placeId = false;
+    let formattedAddress;
+    let geoValid = false;
+
+    googleMapsClient.geocode({ address: params.address }, function(err, response) {
+      if (err) {
+        console.log(chalkError("TCS | *** GEOCODE ERROR\n", jsonPrint(err)));
+        return reject(err);
+      }
+      if (response.json.results.length > 0) {
+
+        geoValid = true;
+        placeId = response.json.results[0].place_id;
+        formattedAddress = response.json.results[0].formatted_address;
+
+        debug(chalkLog("TCS | GEOCODE"
+          + " | " + params.address
+          + " | PLACE ID: " + placeId
+          + " | FORMATTED: " + response.json.results[0].formatted_address
+        ));
+
+        async.each(response.json.results[0].address_components, function(addressComponent, cb0){
+
+          if (!addressComponent.types || addressComponent.types === undefined || addressComponent.types.length === 0){
+            async.setImmediate(function() { return cb0(); });
+          }
+
+          async.eachOf(addressComponent.types, function(addressComponentType, index, cb1){
+            switch(addressComponentType){
+              case "country":
+              case "locality":
+              case "sublocality":
+              case "sublocality_level_1":
+              case "administrative_area_level_1":
+              case "administrative_area_level_2":
+              case "administrative_area_level_3":
+                components[addressComponentType] = addressComponent.long_name;
+
+                debug(chalkInfo("TCS | GEOCODE | +++ ADDRESS COMPONENT"
+                  + " | " + params.address
+                  + " | FORMATTED: " + response.json.results[0].formatted_address
+                  + " | TYPE: " + addressComponentType
+                  + " | " + components[addressComponentType]
+                ));
+
+              break;
+              default:
+            }
+            cb1();
+          }, function(){
+            async.setImmediate(function() { cb0(); });
+          });
+
+        }, function(err){
+          if (err) {
+
+            console.log(chalkError("TCS | *** GEOCODE ERROR: " + err));
+            return reject(err);
+          }
+
+          debug(chalkLog("TCS | GEOCODE"
+            + " | " + params.address
+            + " | PLACE ID: " + placeId
+            + " | FORMATTED: " + response.json.results[0].formatted_address
+            // + "\n" + jsonPrint(response.json)
+          ));
+
+          resolve({
+            address: params.address,
+            geoValid: geoValid,
+            placeId: placeId, 
+            formattedAddress: formattedAddress, 
+            components: components, 
+            raw: response.json 
+          });
+        });
+      }
+      else {
+        resolve({ 
+          geoValid: geoValid,
+          address: params.address,
+          placeId: placeId, 
+          formattedAddress: formattedAddress, 
+          components: components, 
+          raw: response.json 
+        });
+      }
+
+    });
+
+  });
+}
+
+function mergeHistogramsArray(params) {
+  return new Promise(function(resolve, reject){
+
+    let resultHistogram = {};
+
+    async.eachSeries(params.histogramArray, async function(histogram){
+      
+      try {
+        resultHistogram = await mergeHistograms.merge({ histogramA: resultHistogram, histogramB: histogram });
+        return ;
+      }
+      catch(err){
+        return err;
+      }
+
+    }, function(err){
+      if (err) {
+        return reject(err);
+      }
+      resolve(resultHistogram);
+    })
+  });
+}
+
+function checkPropertyChange(user, prop){
+  const prevProp = "previous" + _.upperFirst(prop);
+  if (user[prop] && (user[prop] !== undefined) && (user[prevProp] !== user[prop])) { return true; }
+  return false;
+}
+
+function allHistogramsZeroKeys(histogram){
+
+  Object.keys(histogram).forEach(function(histogramType){
+    if (Object.keys(histogram[histogramType]).length > 0) { return false; }
+  });
+
+  return true;
+}
+
 function checkUserProfileChanged(params) {
 
   let user = params.user;
@@ -1398,34 +1531,35 @@ function checkUserProfileChanged(params) {
     || (user.profileHistograms === undefined) 
     || (user.profileHistograms === {})
     || (Object.keys(user.profileHistograms).length === 0)
+    || allHistogramsZeroKeys(user.profileHistograms)
   ){
 
-    console.log(chalkLog(
-      "TFC | USER PROFILE UNDEFINED" 
+    console.log(chalk.black.bold(
+      "WAS | TFC | USER PROFILE HISTOGRAMS UNDEFINED" 
       + " | RST PREV PROP VALUES" 
       + " | @" + user.screenName 
     ));
 
-    user.previousScreenName = null;
-    user.previousName = null;
-    user.previousDescription = null;
-    user.previousLocation = null;
-    user.previousUrl = null;
-    user.previousExpandedUrl = null;
-    user.previousProfileUrl = null;
     user.previousBannerImageUrl = null;
+    user.previousDescription = null;
+    user.previousExpandedUrl = null;
+    user.previousLocation = null;
+    user.previousName = null;
+    user.previousProfileUrl = null;
+    user.previousScreenName = null;
+    user.previousUrl = null;
   }
 
   let results = [];
 
-  if (user.name && (user.name !== undefined) && (user.name !== user.previousName)) { results.push("name"); }
-  if (user.screenName && (user.screenName !== undefined) && (user.screenName !== user.previousScreenName)) { results.push("screenName"); }
-  if (user.description && (user.description !== undefined) && (user.description !== user.previousDescription)) { results.push("description"); }
-  if (user.location && (user.location !== undefined) && (user.location !== user.previousLocation)) { results.push("location"); }
-  if (user.url && (user.url !== undefined) && (user.url !== user.previousUrl)) { results.push("url"); }
-  if (user.expandedUrl && (user.expandedUrl !== undefined) && (user.expandedUrl !== user.previousExpandedUrl)) { results.push("expandedUrl"); }
-  if (user.profileUrl && (user.profileUrl !== undefined) && (user.profileUrl !== user.previousProfileUrl)) { results.push("profileUrl"); }
-  if (user.bannerImageUrl && (user.bannerImageUrl !== undefined) && (user.bannerImageUrl !== user.previousBannerImageUrl)) { results.push("bannerImageUrl"); }
+  if (checkPropertyChange(user, "bannerImageUrl")) { results.push("bannerImageUrl"); }
+  if (checkPropertyChange(user, "description")) { results.push("description"); }
+  if (checkPropertyChange(user, "expandedUrl")) { results.push("expandedUrl"); }
+  if (checkPropertyChange(user, "location")) { results.push("location"); }
+  if (checkPropertyChange(user, "name")) { results.push("name"); }
+  if (checkPropertyChange(user, "profileUrl")) { results.push("profileUrl"); }
+  if (checkPropertyChange(user, "screenName")) { results.push("screenName"); }
+  if (checkPropertyChange(user, "url")) { results.push("url"); }
 
   if (results.length === 0) { return; }
   return results;    
@@ -1435,10 +1569,27 @@ function checkUserStatusChanged(params) {
 
   let user = params.user;
 
+  if (!user.tweetHistograms 
+    || (user.tweetHistograms === undefined) 
+    || (user.tweetHistograms === {})
+    || (Object.keys(user.tweetHistograms).length === 0)
+    || allHistogramsZeroKeys(user.tweetHistograms)
+  ){
+
+    console.log(chalk.black.bold(
+      "WAS | TFC | USER TWEET HISTOGRAMS UNDEFINED" 
+      + " | RST PREV PROP VALUES" 
+      + " | @" + user.screenName 
+    ));
+
+    user.previousStatusId = null;
+    user.previousQuotedStatusId = null;
+  }
+
   let results = [];
 
-  if (user.statusId !== user.previousStatusId) { results.push("statusId"); }
-  if (user.quotedStatusId !== user.previousQuotedStatusId) { results.push("quotedStatusId"); }
+  if (checkPropertyChange(user, "statusId")) { results.push("statusId"); }
+  if (checkPropertyChange(user, "quotedStatusId")) { results.push("quotedStatusId"); }
 
   if (results.length === 0) { return; }
   return results;    
@@ -1447,10 +1598,14 @@ function checkUserStatusChanged(params) {
 function userProfileChangeHistogram(params) {
 
   let text = "";
+
   let urlsHistogram = {};
   urlsHistogram.urls = {};
   let profileUrl = false;
   let bannerImageUrl = false;
+
+  let locationsHistogram = {};
+  locationsHistogram.locations = {};
 
   let profileHistograms = {};
 
@@ -1464,58 +1619,213 @@ function userProfileChangeHistogram(params) {
       return resolve();
     }
 
-    async.each(userProfileChanges, function(userProp, cb){
+    async.each(userProfileChanges, async function(userProp){
 
       const userPropValue = user[userProp].toLowerCase();
 
       const prevUserProp = "previous" + _.upperFirst(userProp);
 
       let domain;
+      let domainNodeId;
       let nodeId;
+      let geoCodeResults;
 
-      user[prevUserProp] = (!user[prevUserProp] || (user[prevUserProp] === undefined)) ? {} : user[prevUserProp];
+      user[prevUserProp] = (!user[prevUserProp] || (user[prevUserProp] === undefined)) ? null : user[prevUserProp];
 
       switch (userProp) {
 
-        case "name":
         case "location":
+
+          const lastSeen = Date.now();
+
+          const name = userPropValue.trim().toLowerCase().replace(/\./gi, "");
+          nodeId = btoa(name);
+
+          locationsHistogram.locations[nodeId] = (locationsHistogram.locations[nodeId] === undefined) ? 1 : locationsHistogram.locations[nodeId] + 1;
+
+          try {
+
+            let locationDoc = await Location.findOne({nodeId: nodeId});
+
+            if (!locationDoc) {
+
+              debug(chalkInfo("WAS | TFC | --- LOC DB MISS"
+                + " | NID: " + nodeId
+                + " | N: " + name + " / " + userPropValue
+              ));
+
+              locationDoc = new Location({
+                nodeId: nodeId,
+                name : name,
+                nameRaw : userPropValue,
+                geoSearch: false,
+                geoValid: false,
+                lastSeen : lastSeen,
+                mentions : 0
+              });
+
+              let geoCodeResults;
+
+              if (configuration.geoCodeEnabled) {
+                geoCodeResults = await geoCode({address: name});
+                locationDoc.geoSearch = true;
+              }
+
+              if (geoCodeResults && geoCodeResults.placeId) {
+
+                locationDoc.geoValid = true;
+                locationDoc.geo = geoCodeResults;
+                locationDoc.placeId = geoCodeResults.placeId;
+                locationDoc.formattedAddress = geoCodeResults.formattedAddress;
+
+                await locationDoc.save();
+
+                statsObj.geo.hits += 1;
+                statsObj.geo.total += 1;
+                statsObj.geo.hitRate = 100*(statsObj.geo.hits/statsObj.geo.total);
+
+                debug(chalk.blue("WAS | TFC | +++ LOC GEO HIT "
+                  + " | GEO: " + locationDoc.geoValid
+                  + "  H " + statsObj.geo.hits
+                  + "  M " + statsObj.geo.misses
+                  + "  T " + statsObj.geo.total
+                  + " HR: " + statsObj.geo.hitRate.toFixed(2)
+                  + " | PID: " + locationDoc.placeId 
+                  + " | NID: " + locationDoc.nodeId
+                  + " | N: " + locationDoc.name + " / " + locationDoc.nameRaw
+                  + " | A: " + locationDoc.formattedAddress
+                ));
+
+                user.geoValid = geoCodeResults.geoValid;
+                user.geo = geoCodeResults;
+
+                locationsHistogram.locations[geoCodeResults.placeId] = (locationsHistogram.locations[geoCodeResults.placeId] === undefined) 
+                  ? 1 
+                  : locationsHistogram.locations[geoCodeResults.placeId] + 1;
+
+
+                user[prevUserProp] = user[userProp];
+
+                return;
+
+              } else {
+
+                await locationDoc.save();
+
+                statsObj.geo.misses += 1;
+                statsObj.geo.total += 1;
+                statsObj.geo.hitRate = 100*(statsObj.geo.hits/statsObj.geo.total);
+
+                debug(chalkLog("WAS | TFC | --- LOC GEO MISS"
+                  + " | GEO: " + locationDoc.geoValid
+                  + "  H " + statsObj.geo.hits
+                  + "  M " + statsObj.geo.misses
+                  + "  T " + statsObj.geo.total
+                  + " HR: " + statsObj.geo.hitRate.toFixed(2)
+                  + " | NID: " + locationDoc.nodeId
+                  + " | N: " + locationDoc.name + " / " + locationDoc.nameRaw
+                ));
+
+                user[prevUserProp] = user[userProp];
+
+                return;
+
+              }
+
+            }
+            else {
+
+              locationDoc.mentions += 1;
+              locationDoc.lastSeen = lastSeen;
+
+
+              debug(chalk.green("WAS | TFC | +++ LOC DB HIT "
+                + " | GEO: " + locationDoc.geoValid
+                + "  H " + statsObj.geo.hits
+                + "  M " + statsObj.geo.misses
+                + "  T " + statsObj.geo.total
+                + " HR: " + statsObj.geo.hitRate.toFixed(2)
+                + " | PID: " + locationDoc.placeId 
+                + " | NID: " + locationDoc.nodeId
+                + " | N: " + locationDoc.name + " / " + locationDoc.nameRaw
+                + " | A: " + locationDoc.formattedAddress
+              ));
+
+              if (locationDoc.geoValid) {
+                if (configuration.geoCodeEnabled 
+                  && (!locationDoc.geoSearch || !locationDoc.geo || locationDoc.geo === undefined)) {
+                  locationDoc.geo = await geoCode({address: locationDoc.name});
+                }
+                user.geoValid = true;
+                user.geo = locationDoc.geo;
+              }
+
+              await locationDoc.save();
+
+              const key = (locationDoc.placeId && locationDoc.placeId !== undefined) ? locationDoc.placeId : locationDoc.nodeId;
+
+              locationsHistogram.locations[key] = (locationsHistogram.locations[key] === undefined) ? 1 : locationsHistogram.locations[key] + 1;
+
+              user[prevUserProp] = user[userProp];
+
+              return;
+            }
+
+          }
+          catch(err){
+            console.log(chalkError("TCS | *** GEOCODE ERROR", err));
+            return;
+          }
+        break;
+
+        case "name":
         case "description":
           text += userPropValue + "\n";
+
+          user[prevUserProp] = user[userProp];
+
+          return;
         break;
 
         case "screenName":
           text += "@" + userPropValue + "\n";
+
+          user[prevUserProp] = user[userProp];
+
+          return;
         break;
 
         case "url":
         case "profileUrl":
         case "expandedUrl":
+        case "bannerImageUrl":
+
           domain = urlParse(userPropValue.toLowerCase()).hostname;
           nodeId = btoa(userPropValue.toLowerCase());
 
-          if (domain) { urlsHistogram.urls[domain] = (urlsHistogram.urls[domain] === undefined) ? 1 : urlsHistogram.urls[domain] + 1; }
+          if (domain) { 
+            domainNodeId = btoa(domain);
+            urlsHistogram.urls[domainNodeId] = (urlsHistogram.urls[domainNodeId] === undefined) ? 1 : urlsHistogram.urls[domainNodeId] + 1; 
+          }
           urlsHistogram.urls[nodeId] = (urlsHistogram.urls[nodeId] === undefined) ? 1 : urlsHistogram.urls[nodeId] + 1;
+
+          user[prevUserProp] = user[userProp];
+
+          return;
         break;
 
-        case "bannerImageUrl":
-          bannerImageUrl = userPropValue;
-        break;
         default:
-          console.log(chalkError("TFC | UNKNOWN USER PROPERTY: " + userProp));
-          return cb(new Error("UNKNOWN USER PROPERTY: " + userProp));
+          console.log(chalkError("WAS | TFC | UNKNOWN USER PROPERTY: " + userProp));
+          return (new Error("UNKNOWN USER PROPERTY: " + userProp));
       }
 
-      cb();
 
     }, function(err){
 
       if (err) {
-        console.log(chalkError("TFC | USER PROFILE HISTOGRAM ERROR: " + err));
+        console.log(chalkError("WAS | TFC | USER PROFILE HISTOGRAM ERROR: " + err));
         return reject(err);
       }
-
-      // console.log("text: " + text);
-      // console.log("urlsHistogram\n" + jsonPrint(urlsHistogram));
 
       async.parallel({
 
@@ -1527,14 +1837,14 @@ function userProfileChangeHistogram(params) {
               screenName: user.screenName, 
               category: user.category, 
               imageUrl: bannerImageUrl, 
-              histograms: user.histograms,
+              histograms: user.profileHistograms,
               updateGlobalHistograms: true
             })
             .then(function(imageParseResults){
-              // console.log(chalkLog("TFC | IMAGE PARSE imageParseResults\n" + jsonPrint(imageParseResults)));
               cb(null, imageParseResults);
             })
             .catch(function(err){
+              console.log(chalkError("WAS | TFC | USER PROFILE CHANGE HISTOGRAM ERROR: " + err));
               cb(err, null);
             });
 
@@ -1548,49 +1858,37 @@ function userProfileChangeHistogram(params) {
 
           if (text && (text !== undefined)){
 
-
             parseText({ category: user.category, text: text, updateGlobalHistograms: true })
             .then(function(textParseResults){
 
-              if (Object.keys(urlsHistogram.urls).length > 0) {
-
-                mergeHistograms.merge({ histogramA: textParseResults, histogramB: urlsHistogram })
-                .then(function(textMergeResults){
-
-                  cb(null, textMergeResults);
-                })
-                .catch(function(err){
-                  cb(err, null);
-                });
-
-              }
-              else {
-                cb(null, textParseResults);
-              }
+              cb(null, textParseResults);
 
             })
             .catch(function(err){
+              if (err) {
+                console.log(chalkError("WAS | TFC | USER PROFILE CHANGE HISTOGRAM ERROR: " + err));
+              }
               cb(err, null);
             });
           }
           else {
-            // console.log(chalkLog("TFC | URLS urlsHistogram\n" + jsonPrint(urlsHistogram)));
-            cb(null, urlsHistogram);
+            cb(null, null);
           }
         }
 
       }, function(err, results){
 
+        if (err) {
+          console.log(chalkError("WAS | TFC | USER PROFILE CHANGE HISTOGRAM ERROR: " + err));
+          return reject(err);
+        }
 
-        mergeHistograms.merge({ histogramA: results.textHist, histogramB: results.imageHist})
+        mergeHistogramsArray( {histogramArray: [ results.textHist, results.imageHist, urlsHistogram, locationsHistogram ]} )
         .then(function(histogramsMerged){
-
-          // console.log(chalkAlert("TFC | histogramsMerged\n" + jsonPrint(histogramsMerged)));
-
           resolve(histogramsMerged);
         })
         .catch(function(err){
-          console.log(chalkError("TFC | USER PROFILE CHANGE HISTOGRAM ERROR: " + err));
+          console.log(chalkError("WAS | TFC | USER PROFILE CHANGE HISTOGRAM ERROR: " + err));
           return reject(err);
         });
       });
@@ -1599,171 +1897,6 @@ function userProfileChangeHistogram(params) {
 
   });
 }
-
-// function userStatusChangeHistogram(params) {
-
-//   return new Promise(function(resolve, reject){
-
-//     let user = params.user;
-  
-//     const userStatusChangeArray = checkUserStatusChanged(params);
-
-//     if (!userStatusChangeArray) {
-//       return resolve();
-//     }
-
-//     let tweetHistograms = {};
-    
-//     async.eachSeries(userStatusChangeArray, function(userProp, cb){
-
-//       delete user._id; // fix for UnhandledPromiseRejectionWarning: RangeError: Maximum call stack size exceeded
-
-//       const prevUserProp = "previous" + _.upperFirst(userProp);
-
-//       console.log(chalkLog("TFC | +++ USER STATUS CHANGE"
-//         + " | NODE ID: " + user.nodeId 
-//         + " | @" + user.screenName 
-//         + " | " + userProp 
-//         + " | " + user[userProp] + " <-- " + user[prevUserProp]
-//         // + "\n" + jsonPrint(user) 
-//       ));
-
-//       let tscParams = {
-//         globalTestMode: configuration.globalTestMode,
-//         testMode: configuration.testMode,
-//         inc: false,
-//         twitterEvents: configEvents
-//       };
-
-//       if (userProp === "statusId"){
-
-//         let status = deepcopy(user.status);  // avoid circular references
-
-//         user.statusId = user.statusId.toString();
-//         tscParams.tweetStatus = {};
-//         tscParams.tweetStatus = status;
-//         tscParams.tweetStatus.user = {};
-//         tscParams.tweetStatus.user = user;
-//         tscParams.tweetStatus.user.isNotRaw = true;
-//       }
-
-//       if (userProp === "quotedStatusId"){
-
-//         let quotedStatus = deepcopy(user.quotedStatus);  // avoid circular references
-
-//         user.quotedStatusId = user.quotedStatusId.toString();
-//         tscParams.tweetStatus = {};
-//         tscParams.tweetStatus = quotedStatus;
-//         tscParams.tweetStatus.user = {};
-//         tscParams.tweetStatus.user = user;
-//         tscParams.tweetStatus.user.isNotRaw = true;
-//       }
-
-//       // console.log(chalkAlert("TFC | tscParams\n", jsonPrint(tscParams)));
-
-//       tweetServerController.createStreamTweet(tscParams)
-//       .then(function(tweetObj){
-
-//         // console.log(chalkLog("TFC | CREATE STREAM TWEET | " + Object.keys(tweetObj)));
-
-//         async.eachSeries(DEFAULT_INPUT_TYPES, function(entityType, cb0){
-
-//           if (!entityType || entityType === undefined) {
-//             console.log(chalkAlert("TFC | ??? UNDEFINED TWEET entityType: ", entityType));
-//             return cb0();
-//           }
-
-//           if (entityType === "user") { return cb0(); }
-//           if (!tweetObj[entityType] || tweetObj[entityType] === undefined) { return cb0(); }
-//           if (tweetObj[entityType].length === 0) { return cb0(); }
-
-//           async.eachSeries(tweetObj[entityType], function(entityObj, cb1){
-
-//             if (!entityObj) {
-//               debug(chalkInfo("TFC | !!! NULL entity? | ENTITY TYPE: " + entityType + " | entityObj: " + entityObj));
-//               return cb1();
-//             }
-
-//             let entity;
-
-//             switch (entityType) {
-//               case "hashtags":
-//                 entity = "#" + entityObj.nodeId.toLowerCase();
-//               break;
-//               case "mentions":
-//               case "userMentions":
-//                 entity = "@" + entityObj.screenName.toLowerCase();
-//               break;
-//               case "locations":
-//                 entity = entityObj.nodeId;
-//               break;
-//               case "images":
-//               case "media":
-//                 entity = entityObj.nodeId;
-//               break;
-//               case "emoji":
-//                 entity = entityObj.nodeId;
-//               break;
-//               case "urls":
-//                 // entity = (entityObj.expandedUrl && entityObj.expandedUrl !== undefined) ? entityObj.expandedUrl.toLowerCase() : entityObj.nodeId;
-//                 entity = entityObj.nodeId;
-//               break;
-//               case "words":
-//                 entity = entityObj.nodeId.toLowerCase();
-//               break;
-//               case "places":
-//                 entity = entityObj.nodeId;
-//               break;
-//             }
-
-//             if (!tweetHistograms[entityType] || (tweetHistograms[entityType] === undefined)){
-//               tweetHistograms[entityType] = {};
-//               tweetHistograms[entityType][entity] = 1;
-//             }
-
-//             if (!tweetHistograms[entityType][entity] || (tweetHistograms[entityType][entity] === undefined)){
-//               tweetHistograms[entityType][entity] = 1;
-//             }
-
-//             // if (configuration.verbose) {
-//               console.log(chalkLog("TFC | +++ USER HIST"
-//                 + " | " + entityType.toUpperCase()
-//                 + " | " + entity
-//                 + " | " + tweetHistograms[entityType][entity]
-//               ));
-//             // }
-
-//             async.setImmediate(function() { cb1(); });
-
-//           }, function(){
-
-//             async.setImmediate(function() { cb0(); });
-
-//           });
-//         }, function(err0){
-
-//           async.setImmediate(function() { cb(); });
-
-//         });
-
-//       })
-//       .catch(function(err){
-//         return cb(err);
-//       });
-
-//     }, function(err){
-
-//       if (err) {
-//         console.log(chalkError("TFC | USER STATUS HISTOGRAM ERROR: " + err));
-//         return reject(err);
-//       }
-
-//       resolve(tweetHistograms);
- 
-//     });
-
-//   });
-// }
 
 function userStatusChangeHistogram(params) {
 
@@ -1787,7 +1920,7 @@ function userStatusChangeHistogram(params) {
       const prevUserProp = "previous" + _.upperFirst(userProp);
 
       if (configuration.verbose) {
-        console.log(chalkLog("TFC | +++ USER STATUS CHANGE"
+        console.log(chalkLog("WAS | TFC | +++ USER STATUS CHANGE"
           + " | NODE ID: " + user.nodeId 
           + " | @" + user.screenName 
           + " | " + userProp 
@@ -1808,6 +1941,8 @@ function userStatusChangeHistogram(params) {
         let status = deepcopy(user.status);  // avoid circular references
 
         user.statusId = user.statusId.toString();
+        user.previousStatusId = user.statusId;
+
         tscParams.tweetStatus = {};
         tscParams.tweetStatus = status;
         tscParams.tweetStatus.user = {};
@@ -1820,6 +1955,8 @@ function userStatusChangeHistogram(params) {
         let quotedStatus = deepcopy(user.quotedStatus);  // avoid circular references
 
         user.quotedStatusId = user.quotedStatusId.toString();
+        user.previousQuotedStatusId = user.quotedStatusId;
+
         tscParams.tweetStatus = {};
         tscParams.tweetStatus = quotedStatus;
         tscParams.tweetStatus.user = {};
@@ -1827,17 +1964,17 @@ function userStatusChangeHistogram(params) {
         tscParams.tweetStatus.user.isNotRaw = true;
       }
 
-      // console.log(chalkAlert("TFC | tscParams\n", jsonPrint(tscParams)));
+      // console.log(chalkAlert("WAS | TFC | tscParams\n", jsonPrint(tscParams)));
 
       tweetServerController.createStreamTweet(tscParams)
       .then(function(tweetObj){
 
-        // console.log(chalkLog("TFC | CREATE STREAM TWEET | " + Object.keys(tweetObj)));
+        // console.log(chalkLog("WAS | TFC | CREATE STREAM TWEET | " + Object.keys(tweetObj)));
 
         async.eachSeries(DEFAULT_INPUT_TYPES, function(entityType, cb0){
 
           if (!entityType || entityType === undefined) {
-            console.log(chalkAlert("TFC | ??? UNDEFINED TWEET entityType: ", entityType));
+            console.log(chalkAlert("WAS | TFC | ??? UNDEFINED TWEET entityType: ", entityType));
             return cb0();
           }
 
@@ -1848,7 +1985,7 @@ function userStatusChangeHistogram(params) {
           async.eachSeries(tweetObj[entityType], function(entityObj, cb1){
 
             if (!entityObj) {
-              debug(chalkInfo("TFC | !!! NULL entity? | ENTITY TYPE: " + entityType + " | entityObj: " + entityObj));
+              debug(chalkInfo("WAS | TFC | !!! NULL entity? | ENTITY TYPE: " + entityType + " | entityObj: " + entityObj));
               return cb1();
             }
 
@@ -1873,11 +2010,17 @@ function userStatusChangeHistogram(params) {
                 entity = entityObj.nodeId;
               break;
               case "urls":
+                if (entityObj.nodeId.includes(".")) { 
+                  entity = btoa(entityObj.nodeId);
+                }
                 // entity = (entityObj.expandedUrl && entityObj.expandedUrl !== undefined) ? entityObj.expandedUrl.toLowerCase() : entityObj.nodeId;
-                entity = entityObj.nodeId;
+                else{
+                  entity = entityObj.nodeId;
+                }
               break;
               case "words":
                 entity = entityObj.nodeId.toLowerCase();
+                entity = entity.replace(/\./gi, "_")
               break;
               case "places":
                 entity = entityObj.nodeId;
@@ -1894,7 +2037,7 @@ function userStatusChangeHistogram(params) {
             }
 
             if (configuration.verbose) {
-              console.log(chalkLog("TFC | +++ USER HIST"
+              console.log(chalkLog("WAS | TFC | +++ USER TWEET HIST"
                 + " | " + entityType.toUpperCase()
                 + " | " + entity
                 + " | " + tweetHistograms[entityType][entity]
@@ -1913,7 +2056,6 @@ function userStatusChangeHistogram(params) {
           async.setImmediate(function() { cb(); });
 
         });
-
       })
       .catch(function(err){
         return cb(err);
@@ -1922,7 +2064,7 @@ function userStatusChangeHistogram(params) {
     }, function(err){
 
       if (err) {
-        console.log(chalkError("TFC | USER STATUS HISTOGRAM ERROR: " + err));
+        console.log(chalkError("WAS | TFC | USER STATUS HISTOGRAM ERROR: " + err));
         return reject(err);
       }
 
@@ -1938,8 +2080,8 @@ function updateUserHistograms(params) {
   return new Promise(function(resolve, reject){
     
     if ((params.user === undefined) || !params.user) {
-      console.log(chalkError("TFC | *** updateUserHistograms USER UNDEFINED"));
-      const err = new Error("TFC | *** updateUserHistograms USER UNDEFINED");
+      console.log(chalkError("WAS | TFC | *** updateUserHistograms USER UNDEFINED"));
+      const err = new Error("WAS | TFC | *** updateUserHistograms USER UNDEFINED");
       console.error(err);
       return reject(err);
     }
@@ -1947,7 +2089,7 @@ function updateUserHistograms(params) {
     // let user = params.user;
 
     params.user.profileHistograms = params.user.profileHistograms || {};
-    params.user.tweetHistogramChanges = params.user.tweetHistogramChanges || {};
+    params.user.tweetHistograms = params.user.tweetHistograms || {};
 
     userStatusChangeHistogram({user: params.user})
 
@@ -1970,13 +2112,13 @@ function updateUserHistograms(params) {
                   cb(null, profileHist);
                 })
                 .catch(function(err){
-                  console.log(chalkError("TFC | *** MERGE HISTOGRAMS ERROR | PROFILE: " + err));
+                  console.log(chalkError("WAS | TFC | *** MERGE HISTOGRAMS ERROR | PROFILE: " + err));
                   return cb(err, null);
                 });
 
               }
               else {
-                cb(null, null);
+                cb(null, params.user.profileHistograms);
               }
 
             },
@@ -1990,13 +2132,13 @@ function updateUserHistograms(params) {
                   cb(null, tweetHist);
                 })
                 .catch(function(err){
-                  console.log(chalkError("TFC | *** MERGE HISTOGRAMS ERROR | TWEET: " + err));
+                  console.log(chalkError("WAS | TFC | *** MERGE HISTOGRAMS ERROR | TWEET: " + err));
                   return cb(err, null);
                 });
 
               }
               else {
-                cb(null, null);
+                cb(null, params.user.tweetHistograms);
               }
             }
 
@@ -2013,7 +2155,7 @@ function updateUserHistograms(params) {
               resolve(params.user);
             })
             .catch(function(err){
-              console.log(chalkError("TFC | *** UPDATE USER HISTOGRAM ERROR: " + err));
+              console.log(chalkError("WAS | TFC | *** UPDATE USER HISTOGRAM ERROR: " + err));
               return reject(err);
             });
 
@@ -2023,97 +2165,17 @@ function updateUserHistograms(params) {
 
       })
       .catch(function(err){
-        console.log(chalkError("TFC | *** UPDATE USER HISTOGRAM ERROR: " + err));
+        console.log(chalkError("WAS | TFC | *** UPDATE USER HISTOGRAM ERROR: " + err));
         return reject(err);
       });
   });
-}
-
-function initUserChangeDbQueueInterval(cnf){
-
-  let user = {};
-
-  console.log(chalkTwitter("TFC | INIT TWITTER USER CHANGE DB QUEUE INTERVAL: " + cnf.userChangeDbQueueInterval));
-
-  clearInterval(userChangeDbQueueInterval);
-
-  userChangeDbQueueInterval = setInterval(function () {
-
-    if (userChangeDbQueueReady && (userChangeDbQueue.length > 0)) {
-
-      userChangeDbQueueReady = false;
-
-      user = userChangeDbQueue.shift();
-
-      if (user.initFlag && !user.changes) {
-
-        printUserObj("TFC | CHANGE USER DB [" + userChangeDbQueue.length + "] INIT", user, chalkGreen);
-
-        user.nodeId = user.userId;
-
-        userServerController.findOneUser(user, {noInc: true}, function(err, dbUser){
-          if (err) {
-            console.log(chalkError("TFC | *** USER DB UPDATE ERROR: " + err));
-          }
-          userChangeDbQueueReady = true;
-          userChangeCache.del(user.nodeId);
-        });
-
-      }
-      else if (user.changes) {
-
-        statsObj.user.changes += 1;
-
-        if (configuration.verbose) { 
-          printUserObj("TFC | CHANGE USER DB [" + userChangeDbQueue.length + "] CHNG", user, chalkGreen); 
-        }
-
-        const cacheObj = userChangeCache.get(user.nodeId);
-
-        if (configuration.verbose && (cacheObj === undefined)) { 
-          console.log(chalkInfo("TFC | USER CHG $ MISS"
-            + " [UC$: " + userChangeCache.getStats().keys + "]"
-            + " [UCATQ: " + userCategorizeQueue.length + "]"
-            + " | NID: " + user.nodeId
-            + " | @" + user.screenName
-          ));
-        }
-
-        if ((cacheObj === undefined) && !userCategorizeQueue.includes(user.userId) && (userCategorizeQueue.length < USER_CAT_QUEUE_MAX_LENGTH)) {
-
-          userCategorizeQueue.push(user);
-
-          debug(chalkInfo("TFC | USER_CATEGORIZE"
-            + " [ USQ: " + userCategorizeQueue.length + "]"
-            + " | FLWRs: " + user.followersCount
-            + " | FRNDs: " + user.friendsCount
-            + " | UID: " + user.userId
-            + " | @" + user.screenName
-            + " | " + user.name
-            + " | LANG: " + user.lang
-            + "\nTFE | USER_SHOW | DESC: " + user.description
-          ));
-          
-        }
-
-        userChangeDbQueueReady = true;
-      }
-      else {
-        userChangeDbQueueReady = true;
-      }
-
-    }
-
-  }, cnf.userChangeDbQueueInterval);
 }
 
 let uscTimeout;
 
 function initUserCategorizeQueueInterval(cnf){
 
-  // let user = {};
-
-  console.log(chalkTwitter("TFC | INIT TWITTER USER CATEGORIZE QUEUE INTERVAL: " + cnf.userCategorizeQueueInterval));
+  console.log(chalkTwitter("WAS | TFC | INIT TWITTER USER CATEGORIZE QUEUE INTERVAL: " + cnf.userCategorizeQueueInterval));
 
   clearInterval(userCategorizeQueueInterval);
 
@@ -2126,15 +2188,15 @@ function initUserCategorizeQueueInterval(cnf){
       let user = userCategorizeQueue.shift();
 
       if ((!user.nodeId || user.nodeId === undefined) && (!user.userId || user.userId === undefined)){
-        console.log(chalkError("TFC | *** USER CAT ERROR: USER NODE ID & USER ID UNDEFINED\n" + jsonPrint(user)));
+        console.log(chalkError("WAS | TFC | *** USER CAT ERROR: USER NODE ID & USER ID UNDEFINED\n" + jsonPrint(user)));
 
-        userCategorizeQueueReady = false;
+        userCategorizeQueueReady = true;
         return;
       }
 
       user.nodeId = user.userId;
 
-      printUserObj("TFC | USER CAT [UCATQ: " + userCategorizeQueue.length + "]", user, chalkLog);
+      printUserObj("WAS | TFC | USER CAT [UCATQ: " + userCategorizeQueue.length + "]", user, chalkLog);
 
       let updatedUser;
       let networkOutput;
@@ -2144,7 +2206,7 @@ function initUserCategorizeQueueInterval(cnf){
         networkOutput = await activateNetwork({user: updatedUser});
       }
       catch (err) {
-        console.log(chalkError("TFC | *** UPDATE USER HISTOGRAMS ERROR: " + err));
+        console.log(chalkError("WAS | TFC | *** UPDATE USER HISTOGRAMS ERROR: " + err));
         console.error(err);
         userChangeCache.del(user.nodeId);
         userCategorizeQueueReady = true;
@@ -2152,7 +2214,7 @@ function initUserCategorizeQueueInterval(cnf){
       }
 
       if (updatedUser.categoryAuto !== networkOutput.output) {
-        console.log(chalkLog("TFC | >>> NN AUTO CAT CHANGE"
+        console.log(chalkLog("WAS | TFC | >>> NN AUTO CAT CHANGE"
           + " [UC$: " + userChangeCache.getStats().keys + "]"
           + " [UCATQ: " + userCategorizeQueue.length + "]"
           + " | " + networkObj.networkId
@@ -2165,23 +2227,47 @@ function initUserCategorizeQueueInterval(cnf){
       updatedUser.categoryAuto = networkOutput.output;
       updatedUser.nodeId = updatedUser.nodeId;
 
-      if (typeof updatedUser.previousDescription !== "string") {
-        printUserObj("TFC | updatedUser previousDescription NOT STRING | " + typeof updatedUser.previousDescription, updatedUser, chalkAlert);
-        console.log(chalkAlert("previousDescription\n" + jsonPrint(updatedUser.previousDescription)));
-        updatedUser.previousDescription = "";
+      if (typeof updatedUser.previousLocation !== "string") {
+        // printUserObj("WAS | TFC | previousLocation NOT STRING | " + typeof updatedUser.previousLocation, updatedUser, chalkAlert);
+        // console.log(chalkAlert("previousLocation\n" + jsonPrint(updatedUser.previousLocation)));
+        updatedUser.previousLocation = "";
+      }
+
+      if (typeof updatedUser.previousUrl !== "string") {
+        // printUserObj("WAS | TFC | previousUrl NOT STRING | " + typeof updatedUser.previousUrl, updatedUser, chalkAlert);
+        // console.log(chalkAlert("previousUrl\n" + jsonPrint(updatedUser.previousUrl)));
+        updatedUser.previousUrl = "";
+      }
+
+      if (typeof updatedUser.previousBannerImageUrl !== "string") {
+        // printUserObj("WAS | TFC | previousBannerImageUrl NOT STRING | " + typeof updatedUser.previousBannerImageUrl, updatedUser, chalkAlert);
+        // console.log(chalkAlert("previousBannerImageUrl\n" + jsonPrint(updatedUser.previousBannerImageUrl)));
+        updatedUser.previousBannerImageUrl = "";
+      }
+
+      if (typeof updatedUser.previousScreenName !== "string") {
+        // printUserObj("WAS | TFC | previousScreenName NOT STRING | " + typeof updatedUser.previousScreenName, updatedUser, chalkAlert);
+        // console.log(chalkAlert("previousScreenName\n" + jsonPrint(updatedUser.previousScreenName)));
+        updatedUser.previousScreenName = "";
+      }
+
+      if (typeof updatedUser.previousProfileUrl !== "string") {
+        // printUserObj("WAS | TFC | previousProfileUrl NOT STRING | " + typeof updatedUser.previousProfileUrl, updatedUser, chalkAlert);
+        // console.log(chalkAlert("previousProfileUrl\n" + jsonPrint(updatedUser.previousProfileUrl)));
+        updatedUser.previousProfileUrl = "";
       }
 
       if (typeof updatedUser.previousName !== "string") {
-        printUserObj("TFC | updatedUser previousName NOT STRING | " + typeof updatedUser.previousName, updatedUser, chalkAlert);
-        console.log(chalkAlert("previousName\n" + jsonPrint(updatedUser.previousName)));
+        // printUserObj("WAS | TFC | previousName NOT STRING | " + typeof updatedUser.previousName, updatedUser, chalkAlert);
+        // console.log(chalkAlert("previousName\n" + jsonPrint(updatedUser.previousName)));
         updatedUser.previousName = "";
       }
 
       uscTimeout = setTimeout(function(){
 
-        console.log(chalkError("TFC | *** USC FINDONEUSER TIMEOUT"));
+        console.log(chalkError("WAS | TFC | *** USC FINDONEUSER TIMEOUT"));
 
-        printUserObj("TFC | " 
+        printUserObj("WAS | TFC | " 
           + " [UC$: " + userChangeCache.getStats().keys + "]"
           + " [UCQ: " + userCategorizeQueue.length + "]"
           + " | NN: " + networkObj.networkId + " | ", updatedUser, chalkInfo);
@@ -2190,169 +2276,231 @@ function initUserCategorizeQueueInterval(cnf){
 
       }, 5000);
 
-      // printUserObj("TFC | updatedUser", updatedUser, chalkLog);
+      // printUserObj("WAS | TFC | updatedUser", updatedUser, chalkLog);
 
-      userServerController.findOneUser(updatedUser, {noInc: false, fields: fieldsTransmit}, function(err, dbUser){
+      try {
+        let dbUser = await userServerController.findOneUserV2({user: updatedUser, mergeHistograms: false, noInc: true});
+        printUserObj("WAS | TFC | " 
+          + " [UC$: " + userChangeCache.getStats().keys + "]"
+          + " [UCQ: " + userCategorizeQueue.length + "]"
+          + " | NN: " + networkObj.networkId + " | DB CAT", dbUser, chalkInfo);
 
-        clearTimeout(uscTimeout);
+        // process.send({ op: "USER_CATEGORIZED", user: dbUser });
+        userChangeCache.del(dbUser.nodeId);
+      }
+      catch(err){
+        console.log(chalkError("WAS | TFC | *** USER FIND ONE ERROR: " + err));
+      }
 
-        userCategorizeQueueReady = true;
+      clearTimeout(uscTimeout);
+      userCategorizeQueueReady = true;
 
-        if (err) {
-          console.log(chalkError("TFC | *** USER FIND ONE ERROR: " + err));
-        }
-        else {
+      // userServerController.findOneUser(
+      //   updatedUser, 
+      //   { mergeHistograms: true, noInc: false, fields: fieldsTransmit}, 
+      //   function(err, dbUser){
 
-          printUserObj("TFC | " 
-            + " [UC$: " + userChangeCache.getStats().keys + "]"
-            + " [UCQ: " + userCategorizeQueue.length + "]"
-            + " | NN: " + networkObj.networkId + " | DB CAT", dbUser, chalkInfo);
+      //     clearTimeout(uscTimeout);
 
-          process.send({ op: "USER_CATEGORIZED", user: dbUser });
-          userChangeCache.del(dbUser.nodeId);
-        }
+      //     userCategorizeQueueReady = true;
+
+      //     if (err) {
+      //       console.log(chalkError("WAS | TFC | *** USER FIND ONE ERROR: " + err));
+      //     }
+      //     else {
+
+      //       printUserObj("WAS | TFC | " 
+      //         + " [UC$: " + userChangeCache.getStats().keys + "]"
+      //         + " [UCQ: " + userCategorizeQueue.length + "]"
+      //         + " | NN: " + networkObj.networkId + " | DB CAT", dbUser, chalkInfo);
+
+      //       process.send({ op: "USER_CATEGORIZED", user: dbUser });
+      //       userChangeCache.del(dbUser.nodeId);
+      //     }
         
-      });
+      // });
     }
 
 
   }, cnf.userCategorizeQueueInterval);
 }
 
-function checkUserChanges(params){
+// function checkUserChanges(params){
 
-  return new Promise(function(resolve, reject){
+//   return new Promise(function(resolve, reject){
 
-    let results = {};
-    results.change = {};
-    results.changeFlag = false;
-    results.initFlag = false;
+//     let results = {};
+//     results.change = {};
+//     results.changeFlag = false;
+//     results.initFlag = false;
 
-    let user = {};
-    user = params.user;
+//     let user = {};
+//     user = params.user;
 
-    if (user.previousName === undefined) { 
-      results.initFlag = true;
-      user.previousName = user.name || ""; 
-    }
-    if (user.previousDescription === undefined) { 
-      results.initFlag = true;
-      user.previousDescription = user.description || ""; 
-    }
-    if (user.previousStatusId === undefined) {
-      results.initFlag = true;
-      user.previousStatusId = user.statusId || "0"; 
-    }
+//     if (!user.previousName || user.previousName === undefined) { 
+//       results.initFlag = true;
+//       user.previousName = user.name || ""; 
+//     }
+//     if (!user.previousDescription || user.previousDescription === undefined) { 
+//       results.initFlag = true;
+//       user.previousDescription = user.description || ""; 
+//     }
+//     if (!user.previousStatusId || user.previousStatusId === undefined) {
+//       results.initFlag = true;
+//       user.previousStatusId = user.statusId || "0"; 
+//     }
+//     if (!user.previousScreenName || user.previousScreenName === undefined) {
+//       results.initFlag = true;
+//       user.previousScreenName = user.screenName || ""; 
+//     }
+//     if (user.previousLocation || user.previousLocation === undefined) {
+//       results.initFlag = true;
+//       user.previousLocation = user.location || ""; 
+//     }
+//     if (!user.previousBannerImageUrl || user.previousBannerImageUrl === undefined) {
+//       results.initFlag = true;
+//       user.previousBannerImageUrl = user.bannerImageUrl || ""; 
+//     }
+//     if (!user.previousProfileUrl || user.previousProfileUrl === undefined) {
+//       results.initFlag = true;
+//       user.previousProfileUrl = user.profileUrl || ""; 
+//     }
 
-    if (user.name && (user.previousName !== user.name)) { 
-      results.changeFlag = true;
-      results.change.name = user.previousName;
-      results.name = user.name;
-      user.previousName = user.name; 
-    }
-    if (user.description && (user.previousDescription !== user.description)) { 
-      results.changeFlag = true;
-      results.change.description = user.previousDescription;
-      results.description = user.description; 
-      user.previousDescription = user.description; 
-    }
-    if (user.statusId && (user.previousStatusId !== user.statusId)) { 
-      results.changeFlag = true;
-      results.change.statusId = user.previousStatusId;
-      results.statusId = user.statusId;
-      user.previousStatusId = user.statusId;
-    }
 
-    resolve(results);
+//     if (user.name && (user.previousName !== user.name)) { 
+//       results.changeFlag = true;
+//       results.change.name = user.previousName;
+//       results.name = user.name;
+//       user.previousName = user.name; 
+//     }
+//     if (user.screenName && (user.previousScreenName !== user.screenName)) { 
+//       results.changeFlag = true;
+//       results.change.screenName = user.previousScreenName;
+//       results.screenName = user.screenName;
+//       user.previousScreenName = user.screenName; 
+//     }
+//     if (user.profileUrl && (user.previousProfileUrl !== user.profileUrl)) { 
+//       results.changeFlag = true;
+//       results.change.profileUrl = user.previousProfileUrl;
+//       results.profileUrl = user.profileUrl;
+//       user.previousProfileUrl = user.profileUrl; 
+//     }
+//     if (user.bannerImageUrl && (user.previousBannerImageUrl !== user.bannerImageUrl)) { 
+//       results.changeFlag = true;
+//       results.change.bannerImageUrl = user.previousBannerImageUrl;
+//       results.bannerImageUrl = user.bannerImageUrl;
+//       user.previousBannerImageUrl = user.bannerImageUrl; 
+//     }
+//     if (user.description && (user.previousDescription !== user.description)) { 
+//       results.changeFlag = true;
+//       results.change.description = user.previousDescription;
+//       results.description = user.description; 
+//       user.previousDescription = user.description; 
+//     }
+//     if (user.location && (user.previousLocation !== user.location)) { 
+//       results.changeFlag = true;
+//       results.change.location = user.previousLocation;
+//       results.location = user.location; 
+//       user.previousLocation = user.location; 
+//     }
+//     if (user.statusId && (user.previousStatusId !== user.statusId)) { 
+//       results.changeFlag = true;
+//       results.change.statusId = user.previousStatusId;
+//       results.statusId = user.statusId;
+//       user.previousStatusId = user.statusId;
+//     }
 
-  });
-}
+//     resolve(results);
 
-function initDbUserChangeStream(params){
+//   });
+// }
 
-  return new Promise(function(resolve, reject){
+// function initDbUserChangeStream(params){
 
-    // const userCollection = params.db.collection("users");
-    const userCollection = global.dbConnection.collection("users");
+//   return new Promise(function(resolve, reject){
 
-    userCollection.countDocuments(function(err, count){
+//     // const userCollection = params.db.collection("users");
+//     const userCollection = global.dbConnection.collection("users");
 
-      if (err) { 
-        // throw Error;
-        return reject(err);
-      }
-      console.log(chalkInfo("TFC | USERS IN DB: " + count));
+//     userCollection.countDocuments(function(err, count){
 
-      const changeFilter = {
-        "$match": {
-          "$or": [{ operationType: "insert" },{ operationType: "delete" },{ operationType: "update" },{ operationType: "replace" }]
-        }
-      };
-      const changeOptions = { fullDocument: "updateLookup" };
+//       if (err) { 
+//         // throw Error;
+//         return reject(err);
+//       }
+//       console.log(chalkInfo("WAS | TFC | USERS IN DB: " + count));
 
-      const userChangeStream = userCollection.watch([changeFilter], changeOptions);
+//       const changeFilter = {
+//         "$match": {
+//           "$or": [{ operationType: "insert" },{ operationType: "delete" },{ operationType: "update" },{ operationType: "replace" }]
+//         }
+//       };
+//       const changeOptions = { fullDocument: "updateLookup" };
 
-      userChangeStream.on("change", function(change){
+//       const userChangeStream = userCollection.watch([changeFilter], changeOptions);
 
-        if (change && change.fullDocument) { 
+//       userChangeStream.on("change", function(change){
 
-          let user = new global.User(change.fullDocument); 
+//         if (change && change.fullDocument) { 
 
-          checkUserChanges({user:user})
-          .then(function(userChanges){
+//           let user = new global.User(change.fullDocument); 
 
-            if (userChanges.changeFlag) { 
-              user.changes = userChanges; 
-            }
+//           checkUserChanges({user:user})
+//           .then(function(userChanges){
 
-            if (userChanges.initFlag) {
-              user.initFlag = true;
-            }
+//             if (userChanges.changeFlag) { 
+//               user.changes = userChanges; 
+//             }
 
-            const cacheObj = userChangeCache.get(user.nodeId);
+//             if (userChanges.initFlag) {
+//               user.initFlag = true;
+//             }
 
-            if (configuration.verbose && (cacheObj === undefined)) { 
-              console.log(chalkInfo("TFC | USER CHG $ MISS"
-                + " [UC$: " + userChangeCache.getStats().keys + "]"
-                + " [UCDBQ: " + userChangeDbQueue.length + "]"
-                + " | NID: " + user.nodeId
-                + " | @" + user.screenName
-              ));
-            }
+//             const cacheObj = userChangeCache.get(user.nodeId);
 
-            if ((cacheObj === undefined) && (userChangeDbQueue.length < 10000) && (userChanges.changeFlag || userChanges.initFlag)) { 
-              userChangeDbQueue.push(user);
-            }
+//             if (configuration.verbose && (cacheObj === undefined)) { 
+//               console.log(chalkInfo("WAS | TFC | USER CHG $ MISS"
+//                 + " [UC$: " + userChangeCache.getStats().keys + "]"
+//                 + " [UCDBQ: " + userChangeDbQueue.length + "]"
+//                 + " | NID: " + user.nodeId
+//                 + " | @" + user.screenName
+//               ));
+//             }
+
+//             if ((cacheObj === undefined) && (userChangeDbQueue.length < 10000) && (userChanges.changeFlag || userChanges.initFlag)) { 
+//               userChangeDbQueue.push(user);
+//             }
             
-            userChangeCache.set(user.nodeId, { user: user, timeStamp: moment().valueOf() } );
+//             userChangeCache.set(user.nodeId, { user: user, timeStamp: moment().valueOf() } );
 
-            if (configuration.verbose) {
-              printUserObj("TFC | --> USER CHANGE | " +  change.operationType, user, chalkLog);
-            }
+//             if (configuration.verbose) {
+//               printUserObj("WAS | TFC | --> USER CHANGE | " +  change.operationType, user, chalkLog);
+//             }
 
-            resolve();
-          })
-          .catch(function(err){
-            console.log(chalkLog("TFC | *** USER CHANGE STREAM ERROR | " +  err));
-            reject(err);
-          });
+//             // resolve();
+//           })
+//           .catch(function(err){
+//             console.log(chalkLog("WAS | TFC | *** USER CHANGE STREAM ERROR | " +  err));
+//             // reject(err);
+//           });
 
-        }
-        else {
-          console.log(chalkLog("TFC | XX> USER CHANGE | " +  change.operationType));
-          resolve();
-        }
+//         }
+//         else {
+//           console.log(chalkLog("WAS | TFC | XX> USER CHANGE | " +  change.operationType));
+//           resolve();
+//         }
+//       });
 
-      });
+//       resolve();
 
-    });
+//     });
 
-  });
-}
+//   });
+// }
 
 function initialize(cnf, callback){
 
-  console.log(chalkLog("TFC | INITIALIZE"));
+  console.log(chalkLog("WAS | TFC | INITIALIZE"));
 
   if (debug.enabled || debugCache.enabled || debugQ.enabled){
     console.log("\nTFE | %%%%%%%%%%%%%%\nTFE | DEBUG ENABLED \nTFE | %%%%%%%%%%%%%%\n");
@@ -2371,8 +2519,8 @@ function initialize(cnf, callback){
 
   cnf.statsUpdateIntervalTime = process.env.TFE_STATS_UPDATE_INTERVAL || 60000;
 
-  debug(chalkWarn("TFC | dropboxConfigFolder: " + dropboxConfigFolder));
-  debug(chalkWarn("TFC | dropboxConfigFile  : " + dropboxConfigFile));
+  debug(chalkWarn("WAS | TFC | dropboxConfigFolder: " + dropboxConfigFolder));
+  debug(chalkWarn("WAS | TFC | dropboxConfigFile  : " + dropboxConfigFile));
 
   loadFile(dropboxConfigHostFolder, dropboxConfigFile, function(err, loadedConfigObj){
 
@@ -2380,42 +2528,47 @@ function initialize(cnf, callback){
     let configArgs;
 
     if (!err) {
-      console.log("TFC | " + dropboxConfigFile + "\n" + jsonPrint(loadedConfigObj));
+      console.log("WAS | TFC | " + dropboxConfigFile + "\n" + jsonPrint(loadedConfigObj));
 
       if (loadedConfigObj.TFE_VERBOSE_MODE  !== undefined){
-        console.log("TFC | LOADED TFE_VERBOSE_MODE: " + loadedConfigObj.TFE_VERBOSE_MODE);
+        console.log("WAS | TFC | LOADED TFE_VERBOSE_MODE: " + loadedConfigObj.TFE_VERBOSE_MODE);
         cnf.verbose = loadedConfigObj.TFE_VERBOSE_MODE;
       }
 
       if (loadedConfigObj.TFE_GLOBAL_TEST_MODE  !== undefined){
-        console.log("TFC | LOADED TFE_GLOBAL_TEST_MODE: " + loadedConfigObj.TFE_GLOBAL_TEST_MODE);
+        console.log("WAS | TFC | LOADED TFE_GLOBAL_TEST_MODE: " + loadedConfigObj.TFE_GLOBAL_TEST_MODE);
         cnf.globalTestMode = loadedConfigObj.TFE_GLOBAL_TEST_MODE;
       }
 
       if (loadedConfigObj.TFE_TEST_MODE  !== undefined){
-        console.log("TFC | LOADED TFE_TEST_MODE: " + loadedConfigObj.TFE_TEST_MODE);
+        console.log("WAS | TFC | LOADED TFE_TEST_MODE: " + loadedConfigObj.TFE_TEST_MODE);
         cnf.testMode = loadedConfigObj.TFE_TEST_MODE;
       }
 
+      if (loadedConfigObj.TFE_GEOCODE_ENABLED  !== undefined){
+        console.log("WAS | TFC | LOADED TFE_GEOCODE_ENABLED: " + loadedConfigObj.TFE_GEOCODE_ENABLED);
+        cnf.geoCodeEnabled = loadedConfigObj.TFE_GEOCODE_ENABLED;
+      }
+
       if (loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER  !== undefined){
-        console.log("TFC | LOADED DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER: " 
+        console.log("WAS | TFC | LOADED DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER: " 
           + jsonPrint(loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER));
         cnf.twitterConfigFolder = loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER;
       }
 
       if (loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FILE  !== undefined){
-        console.log("TFC | LOADED DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FILE: " 
+        console.log("WAS | TFC | LOADED DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FILE: " 
           + jsonPrint(loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FILE));
         cnf.twitterConfigFile = loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FILE;
       }
 
       if (loadedConfigObj.TFE_STATS_UPDATE_INTERVAL  !== undefined) {
-        console.log("TFC | LOADED TFE_STATS_UPDATE_INTERVAL: " + loadedConfigObj.TFE_STATS_UPDATE_INTERVAL);
+        console.log("WAS | TFC | LOADED TFE_STATS_UPDATE_INTERVAL: " + loadedConfigObj.TFE_STATS_UPDATE_INTERVAL);
         cnf.statsUpdateIntervalTime = loadedConfigObj.TFE_STATS_UPDATE_INTERVAL;
       }
 
       if (loadedConfigObj.TFE_MAX_TWEET_QUEUE  !== undefined) {
-        console.log("TFC | LOADED TFE_MAX_TWEET_QUEUE: " + loadedConfigObj.TFE_MAX_TWEET_QUEUE);
+        console.log("WAS | TFC | LOADED TFE_MAX_TWEET_QUEUE: " + loadedConfigObj.TFE_MAX_TWEET_QUEUE);
         cnf.maxTweetQueue = loadedConfigObj.TFE_MAX_TWEET_QUEUE;
       }
 
@@ -2424,18 +2577,18 @@ function initialize(cnf, callback){
       configArgs = Object.keys(cnf);
 
       configArgs.forEach(function(arg){
-        console.log("TFC | FINAL CONFIG | " + arg + ": " + cnf[arg]);
+        console.log("WAS | TFC | FINAL CONFIG | " + arg + ": " + cnf[arg]);
       });
 
       initStatsUpdate(cnf, function(err, cnf2){
 
         if (err) {
-          console.log(chalkLog("TFC | ERROR initStatsUpdate\n" + err));
+          console.log(chalkLog("WAS | TFC | ERROR initStatsUpdate\n" + err));
         }
 
         loadFile(cnf.twitterConfigFolder, cnf.twitterConfigFile, function(err, tc){
           if (err){
-            console.error(chalkLog("TFC | *** TWITTER CONFIG LOAD ERROR\n" + err));
+            console.error(chalkLog("WAS | TFC | *** TWITTER CONFIG LOAD ERROR\n" + err));
             quit();
             return;
           }
@@ -2443,7 +2596,7 @@ function initialize(cnf, callback){
           cnf2.twitterConfig = {};
           cnf2.twitterConfig = tc;
 
-          console.log("TFC | " + chalkInfo(getTimeStamp() + " | TWITTER CONFIG FILE " 
+          console.log("WAS | TFC | " + chalkInfo(getTimeStamp() + " | TWITTER CONFIG FILE " 
             + cnf2.twitterConfigFolder
             + cnf2.twitterConfigFile
             + "\n" + jsonPrint(cnf2.twitterConfig )
@@ -2453,25 +2606,25 @@ function initialize(cnf, callback){
       });
     }
     else {
-      console.error("TFC | *** ERROR LOAD DROPBOX CONFIG: " + dropboxConfigFile + "\n" + jsonPrint(err));
+      console.error("WAS | TFC | *** ERROR LOAD DROPBOX CONFIG: " + dropboxConfigFile + "\n" + jsonPrint(err));
 
       if (err.status === 404){
 
         configArgs = Object.keys(cnf);
 
         configArgs.forEach(function(arg){
-          console.log("TFC | FINAL CONFIG | " + arg + ": " + cnf[arg]);
+          console.log("WAS | TFC | FINAL CONFIG | " + arg + ": " + cnf[arg]);
         });
 
         initStatsUpdate(cnf, function(err, cnf2){
 
           if (err) {
-            console.log(chalkLog("TFC | ERROR initStatsUpdate\n" + jsonPrint(err)));
+            console.log(chalkLog("WAS | TFC | ERROR initStatsUpdate\n" + jsonPrint(err)));
           }
 
           loadFile(cnf.twitterConfigFolder, cnf.twitterConfigFile, function(err, tc){
             if (err){
-              console.error(chalkLog("TFC | *** TWITTER CONFIG LOAD ERROR\n" + err));
+              console.error(chalkLog("WAS | TFC | *** TWITTER CONFIG LOAD ERROR\n" + err));
               quit();
               return;
             }
@@ -2479,7 +2632,7 @@ function initialize(cnf, callback){
             cnf2.twitterConfig = {};
             cnf2.twitterConfig = tc;
 
-            console.log("TFC | " + chalkInfo(getTimeStamp() + " | TWITTER CONFIG FILE " 
+            console.log("WAS | TFC | " + chalkInfo(getTimeStamp() + " | TWITTER CONFIG FILE " 
               + cnf2.twitterConfigFolder
               + cnf2.twitterConfigFile
               + "\n" + jsonPrint(cnf2.twitterConfig )
@@ -2510,7 +2663,9 @@ process.on("message", function(m) {
       process.title = m.title;
 
       configuration.verbose = m.verbose;
-      configuration.forceImageAnalysis = m.forceImageAnalysis;
+      configuration.geoCodeEnabled = m.geoCodeEnabled || false;
+      configuration.enableImageAnalysis = m.enableImageAnalysis || false;
+      configuration.forceImageAnalysis = m.forceImageAnalysis || false;
       maxInputHashMap = m.maxInputHashMap;
       normalization = m.normalization;
 
@@ -2519,9 +2674,11 @@ process.on("message", function(m) {
 
       // networksHashMap.set(m.networkObj.networkId, m.networkObj);
 
-      console.log(chalkInfo("TFC | INIT"
+      console.log(chalkInfo("WAS | TFC | INIT"
         + " | TITLE: " + process.title
         + " | NETWORK: " + networkObj.networkId
+        + " | ENABLE GEOCODE: " + configuration.geoCodeEnabled
+        + " | ENABLE IMAGE ANALYSIS: " + configuration.enableImageAnalysis
         + " | FORCE IMAGE ANALYSIS: " + configuration.forceImageAnalysis
         + " | MAX INPUT HM KEYS: " + Object.keys(maxInputHashMap)
         + " | NORMALIZATION: " + Object.keys(normalization)
@@ -2537,7 +2694,7 @@ process.on("message", function(m) {
 
       networksHashMap.set(m.networkObj.networkId, m.networkObj);
 
-      console.log(chalkInfo("TFC | +++ NETWORK"
+      console.log(chalkInfo("WAS | TFC | +++ NETWORK"
         + " | NNs IN HM: " + networksHashMap.size
         + " | NETWORK: " + networksHashMap.get(m.networkObj.networkId).networkId
       ));
@@ -2548,7 +2705,7 @@ process.on("message", function(m) {
 
       configuration.forceImageAnalysis = m.forceImageAnalysis;
 
-      console.log(chalkInfo("TFC | +++ FORCE_IMAGE_ANALYSIS"
+      console.log(chalkInfo("WAS | TFC | +++ FORCE_IMAGE_ANALYSIS"
         + " | FORCE IMAGE ANALYSIS: " + configuration.forceImageAnalysis
       ));
       
@@ -2558,7 +2715,7 @@ process.on("message", function(m) {
 
       maxInputHashMap = m.maxInputHashMap;
 
-      console.log(chalkInfo("TFC | +++ MAX_INPUT_HASHMAP"
+      console.log(chalkInfo("WAS | TFC | +++ MAX_INPUT_HASHMAP"
         + " | MAX INPUT HM KEYS: " + Object.keys(maxInputHashMap)
       ));
       
@@ -2568,7 +2725,7 @@ process.on("message", function(m) {
 
       normalization = m.normalization;
 
-      console.log(chalkInfo("TFC | +++ NORMALIZATION"
+      console.log(chalkInfo("WAS | TFC | +++ NORMALIZATION"
         + " | NORMALIZATION: " + Object.keys(normalization)
       ));
       
@@ -2576,7 +2733,7 @@ process.on("message", function(m) {
 
     case "USER_AUTHENTICATED":
 
-      console.log(chalkInfo("TFC | USER_AUTHENTICATED"
+      console.log(chalkInfo("WAS | TFC | USER_AUTHENTICATED"
         + " | @" + m.user.screenName
         + " | UID: " + m.user.userId
         + " | TOKEN: " + m.token
@@ -2589,7 +2746,7 @@ process.on("message", function(m) {
 
         const authObj = twitterUserObj.twit.getAuth();
 
-        console.log(chalkLog("TFC | CURRENT AUTH\n" + jsonPrint(authObj)));
+        console.log(chalkLog("WAS | TFC | CURRENT AUTH\n" + jsonPrint(authObj)));
 
         twitterUserObj.twit.setAuth({access_token: m.token, access_token_secret: m.tokenSecret});
 
@@ -2602,18 +2759,18 @@ process.on("message", function(m) {
 
         twitterUserHashMap.set(m.user.screenName, twitterUserObj);
 
-        console.log(chalkError("TFC | UPDATED AUTH\n" + jsonPrint(authObjNew)));
+        console.log(chalkError("WAS | TFC | UPDATED AUTH\n" + jsonPrint(authObjNew)));
 
       }
       else {
-        console.log(chalkAlert("TFC | TWITTER USER OBJ UNDEFINED: " + m.user.screenName));
+        console.log(chalkAlert("WAS | TFC | TWITTER USER OBJ UNDEFINED: " + m.user.screenName));
       }
     break;
 
     case "USER_CATEGORIZE":
 
       if (!m.user.nodeId || (m.user.nodeId === undefined)) { 
-        console.log(chalkError("TFC | ??? USER NODE ID UNDEFINED ... SET TO USER ID"
+        console.log(chalkError("WAS | TFC | ??? USER NODE ID UNDEFINED ... SET TO USER ID"
           + " | UID: " + m.user.userId
           + " | @" + m.user.screenName
         ));
@@ -2623,7 +2780,7 @@ process.on("message", function(m) {
       const cacheObj = userChangeCache.get(m.user.nodeId);
 
       if (configuration.verbose && (cacheObj === undefined)) { 
-        console.log(chalkInfo("TFC | USER CAT $ MISS"
+        console.log(chalkInfo("WAS | TFC | USER CAT $ MISS"
           + " [UC$: " + userChangeCache.getStats().keys + "]"
           + " [UCATQ: " + userCategorizeQueue.length + "]"
           + " | NID: " + m.user.nodeId
@@ -2635,8 +2792,9 @@ process.on("message", function(m) {
         try {
           let user = m.user.toObject();
           userCategorizeQueue.push(user);
+          userChangeCache.set(user.nodeId, {user: user, timeStamp: moment().valueOf()});
 
-          debug(chalkInfo("TFC | USER_CATEGORIZE"
+          debug(chalkInfo("WAS | TFC | USER_CATEGORIZE"
             + " [ USQ: " + userCategorizeQueue.length + "]"
             + " | FLWRs: " + user.followersCount
             + " | FRNDs: " + user.friendsCount
@@ -2650,7 +2808,7 @@ process.on("message", function(m) {
           userCategorizeQueue.push(m.user);
           userChangeCache.set(m.user.nodeId, {user: m.user, timeStamp: moment().valueOf()});
 
-          debug(chalkInfo("TFC | USER_CATEGORIZE"
+          debug(chalkInfo("WAS | TFC | USER_CATEGORIZE"
             + " [ USQ: " + userCategorizeQueue.length + "]"
             + " | FLWRs: " + m.user.followersCount
             + " | FRNDs: " + m.user.friendsCount
@@ -2660,15 +2818,14 @@ process.on("message", function(m) {
             + "\nTFE | USER_SHOW | DESC: " + m.user.description
           ));
         }
-
       }
 
-      userChangeCache.set(m.user.nodeId, {user: m.user, timeStamp: moment().valueOf()});
+      // userChangeCache.set(m.user.nodeId, {user: m.user, timeStamp: moment().valueOf()});
 
     break;
 
     case "PING":
-      debug(chalkLog("TFC | PING"
+      debug(chalkLog("WAS | TFC | PING"
         + " | PING ID: " + moment(m.pingId).format(compactDateTimeFormat)
       ));
 
@@ -2678,7 +2835,7 @@ process.on("message", function(m) {
     break;
 
     default:
-      console.error(chalkLog("TFC | TWP | *** TFE UNKNOWN OP"
+      console.error(chalkLog("WAS | TFC | TWP | *** TFE UNKNOWN OP"
         + " | INTERVAL: " + m.op
       ));
 
@@ -2690,13 +2847,13 @@ setTimeout(function(){
   initialize(configuration, async function(err, cnf){
 
     if (err && (err.status !== 404)) {
-      console.error(chalkLog("TFC | *** INIT ERROR \n" + jsonPrint(err)));
+      console.error(chalkLog("WAS | TFC | *** INIT ERROR \n" + jsonPrint(err)));
       quit();
     }
 
     configuration = cnf;
 
-    console.log("TFC | " + configuration.processName + " STARTED " + getTimeStamp() + "\n");
+    console.log("WAS | TFC | " + configuration.processName + " STARTED " + getTimeStamp() + "\n");
 
 
     try {
@@ -2705,7 +2862,7 @@ setTimeout(function(){
     }
     catch(err){
       dbConnectionReady = false;
-      console.log(chalkError("TFC | *** MONGO DB CONNECT ERROR: " + err + " | QUITTING ***"));
+      console.log(chalkError("WAS | TFC | *** MONGO DB CONNECT ERROR: " + err + " | QUITTING ***"));
       quit("MONGO DB CONNECT ERROR");
     }
 
@@ -2714,15 +2871,15 @@ setTimeout(function(){
         clearInterval(dbConnectionReadyInterval);
       }
       else {
-        console.log(chalkInfo("TFC | WAIT DB CONNECTED ..."));
+        console.log(chalkInfo("WAS | TFC | WAIT DB CONNECTED ..."));
       }
     }, 1000);
 
     initInfoTwit({screenName: DEFAULT_INFO_TWITTER_USER}, async function(err, ituObj){
       infoTwitterUserObj = ituObj;
-      initUserChangeDbQueueInterval(configuration);
+      // initUserChangeDbQueueInterval(configuration);
       initUserCategorizeQueueInterval(configuration);
-      await initDbUserChangeStream({db: global.dbConnection});
+      // await initDbUserChangeStream({db: global.dbConnection});
     });
 
   });

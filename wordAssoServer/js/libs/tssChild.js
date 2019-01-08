@@ -11,6 +11,9 @@ const DEFAULT_INFO_TWITTER_USER = "threecee";
 const USER_CACHE_DEFAULT_TTL = 10;
 const USER_CACHE_CHECK_PERIOD = 1;
 
+const TWEET_ID_CACHE_DEFAULT_TTL = 20;
+const TWEET_ID_CACHE_CHECK_PERIOD = 5;
+
 const MAX_READY_ACK_WAIT_COUNT = 10;
 
 const TWITTER_MAX_TRACKING_NUMBER = process.env.TWITTER_MAX_TRACKING_NUMBER || 400;
@@ -76,6 +79,21 @@ const userCache = new NodeCache({
   checkperiod: userCacheCheckPeriod
 });
 
+
+let tweetIdCacheTtl = process.env.TWEET_ID_CACHE_DEFAULT_TTL;
+if (tweetIdCacheTtl === undefined) { tweetIdCacheTtl = TWEET_ID_CACHE_DEFAULT_TTL;}
+console.log("TSS | USER CACHE TTL: " + tweetIdCacheTtl + " SECONDS");
+
+let tweetIdCacheCheckPeriod = process.env.TWEET_ID_CACHE_CHECK_PERIOD;
+if (tweetIdCacheCheckPeriod === undefined) { tweetIdCacheCheckPeriod = TWEET_ID_CACHE_CHECK_PERIOD;}
+console.log("TSS | USER CACHE CHECK PERIOD: " + tweetIdCacheCheckPeriod + " SECONDS");
+
+const tweetIdCache = new NodeCache({
+  stdTTL: tweetIdCacheTtl,
+  checkperiod: tweetIdCacheCheckPeriod
+});
+
+
 const debug = require("debug")("tss");
 const debugCache = require("debug")("cache");
 const debugQ = require("debug")("queue");
@@ -133,6 +151,7 @@ let tweetQueueInterval;
 let stdin;
 
 let configuration = {};
+configuration.filterDuplicateTweets = true;
 configuration.verbose = false;
 configuration.forceFollow = false;
 configuration.globalTestMode = false;
@@ -222,24 +241,25 @@ statsObj.queues.unfollowQueue.fullEvents = 0;
 statsObj.tweetsReceived = 0;
 statsObj.retweetsReceived = 0;
 statsObj.quotedTweetsReceived = 0;
-statsObj.tweetsDuplicates = 0;
 statsObj.tweetsPerSecond = 0.0;
 statsObj.tweetsPerMinute = 0.0;
 statsObj.maxTweetsPerMinute = 0;
 statsObj.maxTweetsPerMinuteTime = moment().valueOf();
-statsObj.twitterDeletes = 0;
-statsObj.twitterConnects = 0;
-statsObj.twitterDisconnects = 0;
-statsObj.twitterReconnects = 0;
-statsObj.twitterWarnings = 0;
-statsObj.twitterErrors = 0;
-statsObj.twitterLimit = 0;
-statsObj.twitterScrubGeo = 0;
-statsObj.twitterStatusWithheld = 0;
-statsObj.twitterUserWithheld = 0;
-statsObj.twitterLimit = 0;
-statsObj.twitterLimitMax = 0;
-statsObj.twitterLimitMaxTime = moment().valueOf();
+
+statsObj.twitter = {};
+statsObj.twitter.duplicateTweetsReceived = 0;
+statsObj.twitter.deletes = 0;
+statsObj.twitter.connects = 0;
+statsObj.twitter.disconnects = 0;
+statsObj.twitter.reconnects = 0;
+statsObj.twitter.warnings = 0;
+statsObj.twitter.errors = 0;
+statsObj.twitter.limit = 0;
+statsObj.twitter.scrubGeo = 0;
+statsObj.twitter.statusWithheld = 0;
+statsObj.twitter.userWithheld = 0;
+statsObj.twitter.limitMax = 0;
+statsObj.twitter.limitMaxTime = moment().valueOf();
 
 global.dbConnection = false;
 const mongoose = require("mongoose");
@@ -317,7 +337,7 @@ function connectDb(){
 
           userServerControllerReady = true;
 
-          console.log(chalkAlert("TSS | USC READY | " + appname));
+          console.log(chalkLog("TSS | USC READY | " + appname));
 
           resolve(db);
           configEvents.emit("DB_CONNECT");
@@ -437,9 +457,9 @@ function showStats(options){
       + " | " + statsObj.tweetsPerMinute.toFixed(0) + " TPM"
       + " | " + statsObj.maxTweetsPerMinute.toFixed(0) + " MAX"
       + " " + moment(parseInt(statsObj.maxTweetsPerMinuteTime)).format(compactDateTimeFormat)
-      + " \nTSS | TWITTER LIMIT: " + statsObj.twitterLimit
-      + " | " + statsObj.twitterLimitMax + " MAX"
-      + " " + moment(parseInt(statsObj.twitterLimitMaxTime)).format(compactDateTimeFormat)
+      + " \nTSS | TWITTER LIMIT: " + statsObj.twitter.limit
+      + " | " + statsObj.twitter.limitMax + " MAX"
+      + " " + moment(parseInt(statsObj.twitter.limitMaxTime)).format(compactDateTimeFormat)
     ));
 
     console.log(chalkLog("TSS | @" + threeceeUserObj.screenName
@@ -515,9 +535,9 @@ function saveFile (path, file, jsonObj, callback){
 
 function loadFile(path, file, callback) {
 
-  console.log(chalkInfo("TSS | LOAD FOLDER " + path));
-  console.log(chalkInfo("TSS | LOAD FILE " + file));
-  console.log(chalkInfo("TSS | FULL PATH " + path + "/" + file));
+  // console.log(chalkInfo("TSS | LOAD FOLDER " + path));
+  // console.log(chalkInfo("TSS | LOAD FILE " + file));
+  // console.log(chalkInfo("TSS | FULL PATH " + path + "/" + file));
 
   dropboxClient.filesDownload({path: path + "/" + file})
     .then(function(data) {
@@ -584,18 +604,18 @@ function printUserObj(title, user) {
   user = userDefaults(user);
 
   console.log(chalkLog(title
-    + " | " + user.userId
+    + " | U " + user.userId
     + " | @" + user.screenName
-    + " | N: " + user.name 
-    + " | LOC: " + user.location 
-    + " | FLWRs: " + user.followersCount
-    + " | FRNDs: " + user.friendsCount
-    + " | Ts: " + user.statusesCount
-    + " | Ms:  " + user.mentions
-    + " | LS: " + getTimeStamp(user.lastSeen)
-    + " | FLWg: " + user.following 
-    + " | 3C: @" + user.threeceeFollowing 
-    + " | CAT M: " + user.category + " - A: " + user.categoryAuto
+    + " | N " + user.name 
+    + " | L " + user.location 
+    + " | FWs " + user.followersCount
+    + " | FDs " + user.friendsCount
+    + " | T " + user.statusesCount
+    + " | M  " + user.mentions
+    + " | LS " + getTimeStamp(user.lastSeen)
+    + " | FW " + user.following 
+    + " | 3C " + user.threeceeFollowing 
+    + " | C M " + user.category + " A " + user.categoryAuto
   ));
 }
 
@@ -698,11 +718,10 @@ function initTwit(params){
 
       console.log(chalkTwitter("TSS | TWITTER GET FRIENDS IDS"
         + " | @" + threeceeUserObj.twitterConfig.screenName
-        + " | FOLLOW USER SET SIZE: " + threeceeUserObj.followUserIdSet.size + " FRIENDS"
-        + " | DATA IDS: " + data.ids.length + " FRIENDS"
-        + " | PREV CURSOR: " + data.previous_cursor_str
-        + " | NEXT CURSOR: " + data.next_cursor_str
-        + " | data keys: " + Object.keys(data)
+        + " | " + threeceeUserObj.followUserIdSet.size + " FRIENDS"
+        // + " | DATA IDS: " + data.ids.length + " FRIENDS"
+        // + " | PREV CURSOR: " + data.previous_cursor_str
+        // + " | NEXT CURSOR: " + data.next_cursor_str
       ));
 
       let userIndex = 0;
@@ -838,7 +857,8 @@ function initTwit(params){
           op: "TWITTER_STATS", 
           threeceeUser: threeceeUserObj.twitterConfig.screenName, 
           stats: threeceeUserObj.stats, 
-          twitterFollowing: threeceeUserObj.followUserIdSet.size
+          twitterFollowing: threeceeUserObj.followUserIdSet.size,
+          twitterFriends: [...threeceeUserObj.followUserIdSet]
         });
 
         resolve(threeceeUserObj);
@@ -906,7 +926,7 @@ function getFileMetadata(path, file, callback) {
   const fullPath = path + "/" + file;
   debug(chalkInfo("TSS | FOLDER " + path));
   debug(chalkInfo("TSS | FILE " + file));
-  console.log(chalkInfo("TSS | getFileMetadata FULL PATH: " + fullPath));
+  // console.log(chalkInfo("TSS | getFileMetadata FULL PATH: " + fullPath));
 
   dropboxClient.filesGetMetadata({path: fullPath})
     .then(function(response) {
@@ -1079,7 +1099,7 @@ function initSearchStream(params){
           + " | TWITTER CONNECT"
           + " | @" + threeceeUserObj.screenName
         ));
-        statsObj.twitterConnects += 1;
+        statsObj.twitter.connects += 1;
         threeceeUserObj.stats.connected = true;
         threeceeUserObj.stats.twitterConnects += 1;
         threeceeUserObj.stats.rateLimited = false;
@@ -1100,7 +1120,7 @@ function initSearchStream(params){
           threeceeUserObj.stats.rateLimited = false;
         }
 
-        statsObj.twitterReconnects+= 1;
+        statsObj.twitter.reconnects+= 1;
 
         threeceeUserObj.stats.connected = true;
         threeceeUserObj.stats.twitterReconnects += 1;
@@ -1113,7 +1133,7 @@ function initSearchStream(params){
           + " | @" + threeceeUserObj.screenName
           + " | !!! TWITTER DISCONNECT\n" + jsonPrint(data)
         ));
-        statsObj.twitterDisconnects+= 1;
+        statsObj.twitter.disconnects+= 1;
         threeceeUserObj.stats.connected = false;
         threeceeUserObj.stats.twitterReconnects = 0;
         threeceeUserObj.stats.rateLimited = false;
@@ -1122,8 +1142,8 @@ function initSearchStream(params){
       });
 
       threeceeUserObj.searchStream.on("warning", function(data){
-        console.log(chalkAlert("TSS | " + getTimeStamp() + " | !!! TWITTER WARNING: " + jsonPrint(data)));
-        statsObj.twitterWarnings+= 1;
+        console.log(chalkAlert("TSS | " + getTimeStamp() + " | !!! TWITTER WARNING\n" + jsonPrint(data)));
+        statsObj.twitter.warnings+= 1;
         showStats();
       });
 
@@ -1137,37 +1157,37 @@ function initSearchStream(params){
       });
 
       threeceeUserObj.searchStream.on("scrub_geo", function(data){
-        console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER SCRUB GEO: " + jsonPrint(data)));
-        statsObj.twitterScrubGeo+= 1;
+        console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER SCRUB GEO\n" + jsonPrint(data)));
+        statsObj.twitter.scrubGeo+= 1;
         showStats();
       });
 
       threeceeUserObj.searchStream.on("status_withheld", function(data){
-        console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER STATUS WITHHELD: " + jsonPrint(data)));
-        statsObj.twitterStatusWithheld+= 1;
+        console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER STATUS WITHHELD\n" + jsonPrint(data)));
+        statsObj.twitter.statusWithheld+= 1;
         showStats();
       });
 
       threeceeUserObj.searchStream.on("user_withheld", function(data){
-        console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER USER WITHHELD: " + jsonPrint(data)));
-        statsObj.twitterUserWithheld+= 1;
+        console.log(chalkTwitter("TSS | " + getTimeStamp() + " | !!! TWITTER USER WITHHELD\n" + jsonPrint(data)));
+        statsObj.twitter.userWithheld+= 1;
         showStats();
       });
 
       threeceeUserObj.searchStream.on("limit", function(limitMessage){
 
-        statsObj.twitterLimit += limitMessage.limit.track;
+        statsObj.twitter.limit += limitMessage.limit.track;
         threeceeUserObj.stats.twitterLimit += limitMessage.limit.track;
 
-        if (statsObj.twitterLimit > statsObj.twitterLimitMax) {
-          statsObj.twitterLimitMax = statsObj.twitterLimit;
-          statsObj.twitterLimitMaxTime = moment().valueOf();
+        if (statsObj.twitter.limit > statsObj.twitter.limitMax) {
+          statsObj.twitter.limitMax = statsObj.twitter.limit;
+          statsObj.twitter.limitMaxTime = moment().valueOf();
         }
 
         debug(chalkTwitter("TSS | " + getTimeStamp()
           + " | TWITTER LIMIT" 
           + " | @" + threeceeUserObj.screenName
-          + " | USER LIMIT: " + statsObj.twitterLimit
+          + " | USER LIMIT: " + statsObj.twitter.limit
           + " | TOTAL LIMIT: " + threeceeUserObj.stats.twitterLimit
         ));
       });
@@ -1181,7 +1201,7 @@ function initSearchStream(params){
         ));
 
 
-        statsObj.twitterErrors += 1;
+        statsObj.twitter.errors += 1;
         threeceeUserObj.stats.twitterErrors += 1;
 
         threeceeUserObj.stats.ready = false;
@@ -1211,7 +1231,7 @@ function initSearchStream(params){
         ));
 
 
-        statsObj.twitterErrors += 1;
+        statsObj.twitter.errors += 1;
         threeceeUserObj.stats.twitterErrors += 1;
 
         if (err.statusCode === 401) {
@@ -1241,7 +1261,7 @@ function initSearchStream(params){
           + " | *** TWITTER PARSER ERROR: " + err
         ));
 
-        statsObj.twitterErrors += 1;
+        statsObj.twitter.errors += 1;
         threeceeUserObj.stats.twitterErrors += 1;
 
         process.send({
@@ -1254,8 +1274,33 @@ function initSearchStream(params){
 
         showStats();
       });
+
+      let prevTweetUser;
       
       threeceeUserObj.searchStream.on("tweet", function(tweetStatus){
+
+        prevTweetUser = tweetIdCache.get(tweetStatus.id_str);
+
+        if (prevTweetUser) {
+
+          statsObj.twitter.duplicateTweetsReceived += 1;
+
+          if (statsObj.twitter.duplicateTweetsReceived % 1000 === 0){
+            console.log(chalkLog("TSS"
+              + " | @" + threeceeUserObj.screenName
+              + " | ??? DUP TWEET"
+              + " | FILTER DUPs: " + configuration.filterDuplicateTweets
+              + " [ $: " + tweetIdCache.getStats().keys + " / " + statsObj.twitter.duplicateTweetsReceived + " DUPs ]"
+              + " | " + tweetStatus.id_str 
+              + " | CURR @" + tweetStatus.user.screen_name
+              + " | PREV @" + prevTweetUser
+            ));
+          }
+          
+          if (configuration.filterDuplicateTweets) { return; }
+        }
+
+        tweetIdCache.set(tweetStatus.id_str, tweetStatus.user.screen_name);
 
         tweetStatus.entities.media = [];
         tweetStatus.entities.polls = [];
@@ -1294,20 +1339,19 @@ function initSearchStream(params){
           statsObj.queues.tweetQueue.fullEvents += 1;
         }
 
-        if ((threeceeUserObj.stats.tweetsReceived % 500 === 0) || (statsObj.tweetsReceived % 500 === 0)) {
-          console.log(chalkTwitter("TSS | <T | " + getTimeStamp()
-            + " | TWQ: " + tweetQueue.length
-            + " [ TOTAL Ts/RTs/QTs: " + statsObj.tweetsReceived + "/" + statsObj.retweetsReceived + "/" + statsObj.quotedTweetsReceived + "]"
-            + " | 3C @" + threeceeUserObj.screenName
-            + " [ Ts/RTs/QTs: " + threeceeUserObj.stats.tweetsReceived + "/" + threeceeUserObj.stats.retweetsReceived + "/" + threeceeUserObj.stats.quotedTweetsReceived + "]"
+        if ((threeceeUserObj.stats.tweetsReceived % 1000 === 0) || (statsObj.tweetsReceived % 1000 === 0)) {
+          console.log(chalkTwitter("TSS | <T | "
+            + " | TQ " + tweetQueue.length
+            + " [ Ts/Rs/Qs " + statsObj.tweetsReceived + "/" + statsObj.retweetsReceived + "/" + statsObj.quotedTweetsReceived + "]"
+            + " | " + threeceeUserObj.screenName
             + " | " + threeceeUserObj.stats.tweetsPerMinute.toFixed(3) + " TPM"
             + " | " + tweetStatus.id_str
-            + " | TWEET LANG: " + tweetStatus.lang
+            + " | TLNG " + tweetStatus.lang
+            + " | " + tweetStatus.user.id_str
             + " | @" + tweetStatus.user.screen_name
             + " | " + tweetStatus.user.name
-            + " | USER LANG: " + tweetStatus.user.lang
+            + " | ULANG " + tweetStatus.user.lang
             + " | LOC " + tweetStatus.user.location
-            + " | " + tweetStatus.user.id_str
           ));
         }
 
@@ -1320,7 +1364,7 @@ function initSearchStream(params){
         + " | *** TWITTER ERROR\n" + jsonPrint(err)
       ));
 
-      statsObj.twitterErrors += 1;
+      statsObj.twitter.errors += 1;
       threeceeUserObj.stats.twitterErrors += 1;
 
       threeceeUserObj.stats.ready = false;
@@ -1467,7 +1511,7 @@ function initSearchTerms(params){
               threeceeUserObj.searchTermSet.add(searchTerm);
               searchTermHashMap.set(searchTerm, threeceeUserObj.screenName);
 
-              console.log(chalkInfo("TSS | +++ TRACK"
+              debug(chalkInfo("TSS | +++ TRACK"
                 + " | @" + threeceeUserObj.screenName
                 + " | TRACKING: " + threeceeUserObj.searchTermSet.size 
                 + "/" + TWITTER_MAX_TRACKING_NUMBER + " MAX"
@@ -1478,7 +1522,7 @@ function initSearchTerms(params){
 
             }
             else {
-              console.log(chalkInfo("TSS | --- SKIP TRACK"
+              debug(chalkInfo("TSS | --- SKIP TRACK"
                 + " | @" + threeceeUserObj.screenName
                 + " | IN HM: " + searchTermHashMap.has(searchTerm)
                 + " | SEARCH TERM: " + searchTerm
@@ -1552,7 +1596,7 @@ function initialize(cnf, callback){
     let configArgs;
 
     if (!err) {
-      console.log(dropboxConfigFile + "\n" + jsonPrint(loadedConfigObj));
+      debug(dropboxConfigFile + "\n" + jsonPrint(loadedConfigObj));
 
       if (loadedConfigObj.TSS_VERBOSE_MODE  !== undefined){
         console.log("TSS | LOADED TSS_VERBOSE_MODE: " + loadedConfigObj.TSS_VERBOSE_MODE);
@@ -1740,13 +1784,13 @@ function initUnfollowQueue(params){
 
           unfollowObj = unfollowQueue.shift();
 
-          createParams.screen_name = unfollowObj.user.screenName || null;
-          createParams.user_id = unfollowObj.user.userId || null;
+          if (unfollowObj.user.userId) { createParams.user_id = unfollowObj.user.userId; }
+          if (unfollowObj.user.screenName) { createParams.screen_name = unfollowObj.user.screenName; }
 
           statsObj.queues.unfollowQueue.size = unfollowQueue.length;
 
-
           console.log(chalkTwitter("TSS | --> TWITTER UNFOLLOW"
+            + " [ UFQ: " + unfollowQueue.length + " ]"
             + " | 3C @" + threeceeUserObj.screenName
             + " | @" + unfollowObj.user.screenName
             + " | UID: " + unfollowObj.user.userId
@@ -1758,6 +1802,7 @@ function initUnfollowQueue(params){
           threeceeUserObj.twitStream.post("friendships/destroy", createParams, function(err, data, response) {
             if (err){
               console.log(chalkError("TSS | *** TWITTER UNFOLLOW ERROR"
+                + " [ UFQ: " + unfollowQueue.length + " ]"
                 + " | @" + threeceeUserObj.screenName
                 + " | ERROR: " + err
                 + "\ncreateParams\n" + jsonPrint(createParams)
@@ -1766,6 +1811,7 @@ function initUnfollowQueue(params){
             }
             else {
               console.log(chalk.green("TSS | XXX TWITTER UNFOLLOWING"
+                + " [ UFQ: " + unfollowQueue.length + " ]"
                 + " | 3C @" + threeceeUserObj.screenName
                 + " | @" + data.screen_name
                 + " | ID: " + data.id_str
@@ -1841,12 +1887,12 @@ function initTwitterQueue(cnf, callback){
         tweetSendReady = true;
         statsObj.queues.tweetQueue.ready = true;
 
-        statsObj.tweetsDuplicates += 1 ;
+        statsObj.twitter.duplicateTweetsReceived += 1 ;
 
-        const dupPercent = 100 * statsObj.tweetsDuplicates / statsObj.tweetsReceived;
+        const dupPercent = 100 * statsObj.twitter.duplicateTweetsReceived / statsObj.tweetsReceived;
 
         debug(chalkAlert("TSS | DUP [ Q: " + tweetQueue.length + "]"
-          + " [ " + statsObj.tweetsDuplicates + "/" + statsObj.tweetsReceived
+          + " [ " + statsObj.twitter.duplicateTweetsReceived + "/" + statsObj.tweetsReceived
           + " | " + dupPercent.toFixed(1) + "% ]"
           + " | " + tweetStatus.id_str
         ));
@@ -1898,6 +1944,7 @@ process.on("message", async function(m) {
       process.title = m.title;
 
       configuration.threeceeUser = m.threeceeUser;
+      configuration.filterDuplicateTweets = m.filterDuplicateTweets;
       configuration.verbose = m.verbose;
       configuration.testMode = m.testMode;
 
@@ -2115,33 +2162,6 @@ process.on("message", async function(m) {
 
             }, function(err){
 
-              // initSearchStream()
-              // .then(function(){
-              //   console.log(chalkInfo("TSS | END USER_AUTHENTICATED"
-              //     + " | @" + threeceeUserObj.screenName
-              //   ));
-
-              //   process.send({
-              //     op: "TWITTER_STATS", 
-              //     threeceeUser: threeceeUserObj.screenName, 
-              //     stats: threeceeUserObj.stats, 
-              //     twitterFollowing: threeceeUserObj.followUserIdSet.size
-              //   });
-              // })
-              // .catch(function(err){
-              //   console.log(chalkError("TSS | *** INIT SEARCH STREAM ERROR"
-              //     + " | @" + threeceeUserObj.screenName 
-              //     + " | ERROR: " + err
-              //   ));
-
-              //   process.send({
-              //     op: "TWITTER_ERROR", 
-              //     threeceeUser: threeceeUserObj.screenName, 
-              //     err: err
-              //   });
-              // });
-
-
               initSearchTerms(configuration)
               .then(function(status){
 
@@ -2154,7 +2174,8 @@ process.on("message", async function(m) {
                   op: "TWITTER_STATS", 
                   threeceeUser: threeceeUserObj.screenName, 
                   stats: threeceeUserObj.stats, 
-                  twitterFollowing: threeceeUserObj.followUserIdSet.size
+                  twitterFollowing: threeceeUserObj.followUserIdSet.size,
+                  twitterFriends: [...threeceeUserObj.followUserIdSet]
                 });
 
               })
@@ -2192,10 +2213,22 @@ process.on("message", async function(m) {
 
       unfollowQueue.push({threeceeUser: threeceeUserObj.twitterConfig.screenName, user: m.user});
 
-      console.log(chalkInfo("TSS | WAS > UNFOLLOW Q"
-        + "[" + unfollowQueue.length + "]"
+      console.log(chalkInfo("TSS | WAS > UNFOLLOW"
+        + " | Q: " + unfollowQueue.length
         + " | USER " + m.user.userId
         + " | @" + m.user.screenName
+      ));
+    break;
+
+    case "UNFOLLOW_ID_ARRAY":
+
+      m.userArray.forEach(function(userId){
+        unfollowQueue.push({threeceeUser: threeceeUserObj.twitterConfig.screenName, user: { userId: userId }});
+      });
+
+      console.log(chalkInfo("TSS | WAS > UNFOLLOW_ID_ARRAY"
+        + " | Q: " + unfollowQueue.length
+        + " | USER ARRAY " + m.userArray.length
       ));
     break;
 

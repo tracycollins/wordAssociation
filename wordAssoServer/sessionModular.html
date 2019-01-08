@@ -21,6 +21,7 @@
   <link rel="stylesheet" href="/css/base.css">
   <!-- <link href="css/base.css"> -->
   <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="stylesheet" href="/css/progressbar.css">
   <style>
     
     td {
@@ -203,7 +204,26 @@
       pointer-events: none;
       z-index: 20;
     }
+
+    .bar-text {
+      color: #CCCCCC;
+      font-family: "Lucida Console", Monaco, monospace;
+      font-size: 1.5em;
+      font-weight: 100;
+      line-height: 1.2em;
+    }
     
+    .bar {
+      height: 5px;
+      width: 500px;
+      background-color: #111111;
+    }
+    
+    .bar > svg {
+      height: 100%;
+      display: block;
+    }
+
     input[type=range] {
       -webkit-appearance: none;
       margin: 18px 0;
@@ -306,19 +326,16 @@
     }
   </style>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/progressbar.js/1.0.1/progressbar.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.23.0/moment.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/async/2.6.1/async.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/store.js/1.3.20/store.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/5.4.0/math.min.js"></script>
-  <!-- <script src="https://cdn.rawgit.com/anvaka/panzoom/v4.4.0/dist/panzoom.min.js"></script> -->
-  <script src="https://unpkg.com/panzoom@7.1.0/dist/panzoom.min.js"></script>
-
-
+  <script src="https://unpkg.com/panzoom@7.1.1/dist/panzoom.min.js"></script>
   <script src="node_modules/hashmap/hashmap.js"></script>
   <script src="node_modules/deepool/deePool.js"></script>
-  <!-- <script src="/node_modules/panzoom/dist/panzoom.min.js"></script> -->
   
   <script data-main="session" src="js/require.js"></script>
 </head>
@@ -326,7 +343,35 @@
 <body style="overflow:hidden;">
   <div id="d3group"></div>
   <!-- <div id="topTermsDiv"></div> -->
-  <div id="statsDiv" style="overflow:hidden;"></div>
+  <div id="statsDiv" style="overflow:hidden;">
+    <br>
+    <div class="text" id="stats-text"></div>
+    <br>
+    <div class="bar-text" id="left-bar-text"></div>
+    <br>
+    <div class="bar" id="left-bar"></div>
+    <br>
+    <div class="bar-text" id="right-bar-text"></div>
+    <br>
+    <div class="bar" id="right-bar"></div>
+    <br>
+    <div class="bar-text" id="neutral-bar-text"></div>
+    <br>
+    <div class="bar" id="neutral-bar"></div>
+    <br>
+    <div class="bar-text" id="positive-bar-text"></div>
+    <br>
+    <div class="bar" id="positive-bar"></div>
+    <br>
+    <div class="bar-text" id="negative-bar-text"></div>
+    <br>
+    <div class="bar" id="negative-bar"></div>
+    <br>
+    <div class="bar-text" id="none-bar-text"></div>
+    <br>
+    <div class="bar" id="none-bar"></div>
+    <br>
+  </div>
   <div id="controlDiv" style="overflow:hidden;"></div>
 </body>
 

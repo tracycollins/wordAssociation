@@ -6,6 +6,8 @@ function ViewTreepack() {
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
+  var heartBeat = {};
+
   var initialXposition = 0.5;
   var initialYposition = 0.9;
 
@@ -31,8 +33,6 @@ function ViewTreepack() {
     }
     // older versions of IE
     return { width: document.getElementsByTagName("body")[0].clientWidth, height: document.getElementsByTagName("body")[0].clientHeight };
-
-    // return { width: w, height: h };
   };
 
   var width = getWindowDimensions().width;
@@ -90,7 +90,6 @@ function ViewTreepack() {
 
   var currentTwitterUser = twitterUserThreecee;
   var currentTwitterHashtag = "resist";
-  // var currentTwitterEmoji = "";
 
   var defaultProfileImageUrl = "favicon.png";
 
@@ -178,9 +177,18 @@ function ViewTreepack() {
     positive: {x: xFocusPositiveRatio*width, y: yFocusPositiveRatio*height}, 
     negative: {x: xFocusNeutralRatio*width, y: yFocusNegativeRatio*height},
     neutral: {x: xFocusNeutralRatio*width, y: yFocusNeutralRatio*height},
+    none: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height},
     default: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height}
   };
 
+  var totalHashmap = {};
+  totalHashmap.total = 0;
+  totalHashmap.left = 0;
+  totalHashmap.right = 0;
+  totalHashmap.neutral = 0;
+  totalHashmap.positive = 0;
+  totalHashmap.negative = 0;
+  totalHashmap.none = 0;
 
   var nodeArray = [];
   var nodesTopTerm = [];
@@ -314,7 +322,7 @@ function ViewTreepack() {
   var testMode = false;
   var freezeFlag = false;
 
-  var MAX_NODES = 100;
+  var MAX_NODES_LIMIT = 100;
 
   var NEW_NODE_AGE_RATIO = 0.01;
 
@@ -329,7 +337,8 @@ function ViewTreepack() {
   var nodeIdHashMap = new HashMap();
 
   var maxNodeAddQ = 0;
-  var maxNumberNodes = 0;
+  var maxNodes = 0;
+  var maxNodesLimit = MAX_NODES_LIMIT;
 
   var runningFlag = false;
   
@@ -460,7 +469,7 @@ function ViewTreepack() {
     .clamp(true);
     
   var adjustedAgeRateScale = d3.scaleLinear()
-    .domain([1, MAX_NODES])
+    .domain([1, maxNodesLimit])
     .range([1.0, 10.0]);
 
   // var fontTopTerm = config.defaultFontSizeTopTermRatio * topTermsDiv.height;
@@ -492,7 +501,7 @@ function ViewTreepack() {
   var zoomFactor = DEFAULT_ZOOM_FACTOR;
   var panzoomElement = document.getElementById("svgTreemapLayoutArea");
 
-  panzoom(panzoomElement);
+  panzoom(panzoomElement, {maxZoom: 1, minZoom: 0.1}).zoomAbs(0.5*width, 0.5*height, zoomFactor);
 
   // panzoom(panzoomElement, { 
   //   zoomSpeed: 0.040,
@@ -559,12 +568,18 @@ function ViewTreepack() {
     enableAgeNodes = enabled;
     config.enableAgeNodes = enabled;
   };
+
+  this.setHeartBeat = function(heartBeat) {
+    heartBeat = heartBeat;
+  }
   
   this.deleteNode = function() { return null; };
+
+  this.getTotalHashMap = function() { return totalHashmap; };
   
   this.getNodesLength = function() { return "NODES: " + nodeArray.length + " | POOL: " + nodePool.size(); };
   
-  this.getMaxNodes = function() { return maxNumberNodes; };
+  this.getMaxNodes = function() { return maxNodes; };
   
   this.getNodeAddQlength = function() { return nodeAddQ.length; };
   
@@ -572,6 +587,12 @@ function ViewTreepack() {
     
   this.getAgeRate = function() { return ageRate; };
   
+  this.setMaxNodesLimit = function(mNodesLimit) {
+    maxNodesLimit = mNodesLimit;
+    config.defaultMaxNodesLimit = mNodesLimit;
+    console.debug("SET MAX NODES LIMIT: " + maxNodesLimit);
+  };
+
   this.setNodeMaxAge = function(mAge) {
     nodeMaxAge = mAge;
     config.defaultMaxAge = mAge;
@@ -898,17 +919,17 @@ function ViewTreepack() {
     callback(n);
   }
 
-  // var age;
-  // var ageMaxRatio = 1e-6;
-  // var ageNodesLength = 0;
-  // var node;
-  // var nPoolId;
-  // var prevNode;
-  // var currentTime = Date.now();
-  // var nodeIdArray = [];
-  // var tempNodeArray = [];
+  var tempTotalHashmap = {};
 
   function ageNodes(callback) {
+
+    tempTotalHashmap.total = 0;
+    tempTotalHashmap.left = 0;
+    tempTotalHashmap.right = 0;
+    tempTotalHashmap.neutral = 0;
+    tempTotalHashmap.positive = 0;
+    tempTotalHashmap.negative = 0;
+    tempTotalHashmap.none = 0;
 
     var tempNodeArray = [];
 
@@ -919,16 +940,14 @@ function ViewTreepack() {
     var ageRate = DEFAULT_AGE_RATE;
 
     if (ageNodesLength === 0) { ageRate = DEFAULT_AGE_RATE; } 
-    else if ((ageNodesLength > MAX_NODES) && (nodeAddQ.length <= MAX_RX_QUEUE)) {
-      ageRate = adjustedAgeRateScale(ageNodesLength - MAX_NODES);
+    else if ((ageNodesLength > maxNodesLimit) && (nodeAddQ.length <= MAX_RX_QUEUE)) {
+      ageRate = adjustedAgeRateScale(ageNodesLength - maxNodesLimit);
     } 
     else if (nodeAddQ.length > MAX_RX_QUEUE) { ageRate = adjustedAgeRateScale(nodeAddQ.length - MAX_RX_QUEUE); } 
     else { ageRate = DEFAULT_AGE_RATE; }
 
     var maxAgeRate = Math.max(ageRate, maxAgeRate);
-    // currentTime = Date.now();
 
-    // nodeIdArray.forEach(function(nodeId){
     async.each(nodeIdArray, function(nodeId, cb){
 
       var nPoolId = nodeIdHashMap.get(nodeId);
@@ -984,10 +1003,33 @@ function ViewTreepack() {
         nodeIdHashMap.set(node.nodeId, nPoolId);
 
         tempNodeArray.push(node);
+
+        if (node.category) {
+          if (metricMode === "rate") { 
+            tempTotalHashmap[node.category] += node.rate; 
+            tempTotalHashmap.total += node.rate; 
+          }
+          if (metricMode === "mentions") { 
+            tempTotalHashmap[node.category] += node.mentions; 
+            tempTotalHashmap.total += node.mentions; 
+          }
+        }
+        else {
+          if (metricMode === "rate") { 
+            tempTotalHashmap.none += node.rate; 
+            tempTotalHashmap.total += node.rate; 
+          }
+          if (metricMode === "mentions") { 
+            tempTotalHashmap.none += node.mentions; 
+            tempTotalHashmap.total += node.mentions; 
+          }
+        }
+
         cb();
       }
     }, function(err){
       resumeTimeStamp = 0;
+      totalHashmap = tempTotalHashmap;
       callback(null, tempNodeArray);
     });
 
@@ -1813,7 +1855,7 @@ function ViewTreepack() {
 
   function processNodeAddQ(callback) {
 
-    if (nodeIdHashMap.size > maxNumberNodes) { maxNumberNodes = nodeIdHashMap.size; }
+    if (nodeIdHashMap.size > maxNodes) { maxNodes = nodeIdHashMap.size; }
 
     if (nodeAddQReady && (nodeAddQ.length > 0)) {
 

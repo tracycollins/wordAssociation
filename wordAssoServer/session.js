@@ -159,6 +159,7 @@ requirejs(["https://d3js.org/d3.v5.min.js"], function(d3Loaded) {
 
       addControlButton();
       addLoginButton();
+      addStatsButton();
       addFullscreenButton();
       addMetricButton();
       addCategoryButton();

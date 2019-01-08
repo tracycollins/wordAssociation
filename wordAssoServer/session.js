@@ -848,6 +848,19 @@ function addLoginButton(){
   controlDivElement.appendChild(loginButton);
 }
 
+function updateStatsButton(){
+  document.getElementById("statsButton").innerHTML = config.showStatsFlag ? "HIDE STATS" : "STATS";
+}
+
+function addStatsButton(){
+  var statsButton = document.createElement("BUTTON");
+  statsButton.className = "button";
+  statsButton.setAttribute("id", "statsButton");
+  statsButton.setAttribute("onclick", "toggleStats()");
+  statsButton.innerHTML = config.showStatsFlag ? "HIDE STATS" : "STATS";
+  controlDivElement.appendChild(statsButton);
+}
+
 function updateFullscreenButton(){
   document.getElementById("fullscreenButton").innerHTML = config.fullscreenMode ? "EXIT FULLSCREEN" : "FULLSCREEN";
 }

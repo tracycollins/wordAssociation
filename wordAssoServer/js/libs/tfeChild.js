@@ -2061,7 +2061,6 @@ function userStatusChangeHistogram(params) {
                 if (entityObj.nodeId.includes(".")) { 
                   entity = btoa(entityObj.nodeId);
                 }
-                // entity = (entityObj.expandedUrl && entityObj.expandedUrl !== undefined) ? entityObj.expandedUrl.toLowerCase() : entityObj.nodeId;
                 else{
                   entity = entityObj.nodeId;
                 }

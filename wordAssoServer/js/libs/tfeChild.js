@@ -1600,21 +1600,22 @@ function checkUserStatusChanged(params) {
 
 function userProfileChangeHistogram(params) {
 
-  let text = "";
-
-  let urlsHistogram = {};
-  urlsHistogram.urls = {};
-  let profileUrl = false;
-  let bannerImageUrl = false;
-
-  let locationsHistogram = {};
-  locationsHistogram.locations = {};
-
-  let profileHistograms = {};
-
   return new Promise(function(resolve, reject){
 
     let user = params.user;
+
+    let text = "";
+
+    let urlsHistogram = {};
+    urlsHistogram.urls = {};
+    let profileUrl = false;
+    let bannerImageUrl = false;
+
+    let locationsHistogram = {};
+    locationsHistogram.locations = {};
+
+    let profileHistograms = {};
+
   
     const userProfileChanges = checkUserProfileChanged(params);
 

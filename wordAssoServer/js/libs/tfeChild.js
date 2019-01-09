@@ -1519,53 +1519,70 @@ function checkPropertyChange(user, prop){
 
 function allHistogramsZeroKeys(histogram){
 
-  Object.keys(histogram).forEach(function(histogramType){
-    if (Object.keys(histogram[histogramType]).length > 0) { return false; }
-  });
+  return new Promise(function(resolve, reject){
 
-  return true;
+    Object.keys(histogram).forEach(function(histogramType){
+      if (Object.keys(histogram[histogramType]).length > 0) { return resolve(false); }
+    });
+
+    resolve(true);
+
+  });
 }
 
 function checkUserProfileChanged(params) {
 
-  let user = params.user;
+  return new Promise(async function(resolve, reject){
 
-  if (!user.profileHistograms 
-    || (user.profileHistograms === undefined) 
-    || (user.profileHistograms === {})
-    || (Object.keys(user.profileHistograms).length === 0)
-    || allHistogramsZeroKeys(user.profileHistograms)
-  ){
+    let user = params.user;
 
-    console.log(chalkLog(
-      "WAS | TFC | USER PROFILE HISTOGRAMS UNDEFINED" 
-      + " | RST PREV PROP VALUES" 
-      + " | @" + user.screenName 
-    ));
+    let allHistogramsZero = false;
 
-    user.previousBannerImageUrl = null;
-    user.previousDescription = null;
-    user.previousExpandedUrl = null;
-    user.previousLocation = null;
-    user.previousName = null;
-    user.previousProfileUrl = null;
-    user.previousScreenName = null;
-    user.previousUrl = null;
-  }
+    try{
+      allHistogramsZero = await allHistogramsZeroKeys(user.profileHistograms);
+    }
+    catch(err){
+      console.log(chalkError("WAS | TFC | *** ALL HISTOGRAMS ZERO ERROR: " + err));
+      return reject(err);
+    }
 
-  let results = [];
+    if (!user.profileHistograms 
+      || (user.profileHistograms === undefined) 
+      || (user.profileHistograms === {})
+      || (Object.keys(user.profileHistograms).length === 0)
+      || allHistogramsZero
+    ){
 
-  if (checkPropertyChange(user, "bannerImageUrl")) { results.push("bannerImageUrl"); }
-  if (checkPropertyChange(user, "description")) { results.push("description"); }
-  if (checkPropertyChange(user, "expandedUrl")) { results.push("expandedUrl"); }
-  if (checkPropertyChange(user, "location")) { results.push("location"); }
-  if (checkPropertyChange(user, "name")) { results.push("name"); }
-  if (checkPropertyChange(user, "profileUrl")) { results.push("profileUrl"); }
-  if (checkPropertyChange(user, "screenName")) { results.push("screenName"); }
-  if (checkPropertyChange(user, "url")) { results.push("url"); }
+      console.log(chalkLog(
+        "WAS | TFC | USER PROFILE HISTOGRAMS UNDEFINED" 
+        + " | RST PREV PROP VALUES" 
+        + " | @" + user.screenName 
+      ));
 
-  if (results.length === 0) { return; }
-  return results;    
+      user.previousBannerImageUrl = null;
+      user.previousDescription = null;
+      user.previousExpandedUrl = null;
+      user.previousLocation = null;
+      user.previousName = null;
+      user.previousProfileUrl = null;
+      user.previousScreenName = null;
+      user.previousUrl = null;
+    }
+
+    let results = [];
+
+    if (checkPropertyChange(user, "bannerImageUrl")) { results.push("bannerImageUrl"); }
+    if (checkPropertyChange(user, "description")) { results.push("description"); }
+    if (checkPropertyChange(user, "expandedUrl")) { results.push("expandedUrl"); }
+    if (checkPropertyChange(user, "location")) { results.push("location"); }
+    if (checkPropertyChange(user, "name")) { results.push("name"); }
+    if (checkPropertyChange(user, "profileUrl")) { results.push("profileUrl"); }
+    if (checkPropertyChange(user, "screenName")) { results.push("screenName"); }
+    if (checkPropertyChange(user, "url")) { results.push("url"); }
+
+    if (results.length === 0) { return resolve(); }
+    resolve(results);    
+  });
 }
 
 function checkUserStatusChanged(params) {
@@ -1600,7 +1617,7 @@ function checkUserStatusChanged(params) {
 
 function userProfileChangeHistogram(params) {
 
-  return new Promise(function(resolve, reject){
+  return new Promise(async function(resolve, reject){
 
     let user = params.user;
 
@@ -1615,9 +1632,14 @@ function userProfileChangeHistogram(params) {
     locationsHistogram.locations = {};
 
     let profileHistograms = {};
+    let userProfileChanges = false;
 
-  
-    const userProfileChanges = checkUserProfileChanged(params);
+    try {
+      userProfileChanges = await checkUserProfileChanged(params);
+    }
+    catch(err){
+      return reject(err);
+    }
 
     if (!userProfileChanges) {
       return resolve();
@@ -2114,7 +2136,7 @@ function updateUserHistograms(params) {
 
       .then(function(tweetHistogramChanges){
 
-        userProfileChangeHistogram(params)
+        userProfileChangeHistogram({user:user})
         .then(function(profileHistogramChanges){
 
           async.parallel({
@@ -2254,12 +2276,12 @@ function initUserCategorizeQueueInterval(cnf){
       updatedUser.lastHistogramTweetId = updatedUser.statusId;
       updatedUser.lastHistogramQuoteId = updatedUser.quotedStatusId;
 
-      if (typeof updatedUser.previousLocation !== "string") { updatedUser.previousLocation = ""; }
-      if (typeof updatedUser.previousUrl !== "string") { updatedUser.previousUrl = ""; }
-      if (typeof updatedUser.previousBannerImageUrl !== "string") { updatedUser.previousBannerImageUrl = ""; }
-      if (typeof updatedUser.previousScreenName !== "string") { updatedUser.previousScreenName = ""; }
-      if (typeof updatedUser.previousProfileUrl !== "string") { updatedUser.previousProfileUrl = ""; }
-      if (typeof updatedUser.previousName !== "string") { updatedUser.previousName = ""; }
+      // if (typeof updatedUser.previousLocation !== "string") { updatedUser.previousLocation = ""; }
+      // if (typeof updatedUser.previousUrl !== "string") { updatedUser.previousUrl = ""; }
+      // if (typeof updatedUser.previousBannerImageUrl !== "string") { updatedUser.previousBannerImageUrl = ""; }
+      // if (typeof updatedUser.previousScreenName !== "string") { updatedUser.previousScreenName = ""; }
+      // if (typeof updatedUser.previousProfileUrl !== "string") { updatedUser.previousProfileUrl = ""; }
+      // if (typeof updatedUser.previousName !== "string") { updatedUser.previousName = ""; }
 
       uscTimeout = setTimeout(function(){
 
@@ -2270,7 +2292,7 @@ function initUserCategorizeQueueInterval(cnf){
           + " [UCQ: " + userCategorizeQueue.length + "]"
           + " | NN: " + networkObj.networkId + " | ", updatedUser, chalkInfo);
 
-        quit({cause: "USC TIMEOUT"});
+        // quit({cause: "USC TIMEOUT"});
 
       }, 5000);
 
@@ -2586,7 +2608,7 @@ process.on("message", function(m) {
       }
 
       // if ((cacheObj === undefined) && !userCategorizeQueue.includes(m.user.userId) && (userCategorizeQueue.length < USER_CAT_QUEUE_MAX_LENGTH)) {
-      if (cacheObj === undefined){
+      if ((cacheObj === undefined) && (userCategorizeQueue.length < USER_CAT_QUEUE_MAX_LENGTH)){
         try {
 
           let user = m.user.toObject();

@@ -2094,7 +2094,10 @@ function updateUserHistograms(params) {
     params.user.userId = (params.user.nodeId && !params.user.userId) ? params.user.nodeId : params.user.userId;
 
     try {
-      user = await User.findOne({nodeId: params.user.nodeId});
+      user = await global.User.findOne({nodeId: params.user.nodeId});
+      if (!user) {
+        user = global.User(params.user);
+      }
     }
     catch (err){
       console.log(chalkError("WAS | TFE | *** updateUserHistograms USER FIND ERROR"

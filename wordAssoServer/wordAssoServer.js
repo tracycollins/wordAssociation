@@ -6249,7 +6249,7 @@ function updateUserSets(params){
 
     userFollowingCursor.on("data", function(user) {
 
-      if (user.lang && (user.lang !== undefined) && (user.lang !== "en") && !ignoredUserSet.has(user.nodeId) && !unfollowableUserSet.has(user.nodeId)){
+      if (!ignoredUserSet.has(user.nodeId) && !unfollowableUserSet.has(user.nodeId) && user.lang && (user.lang !== undefined) && (user.lang !== "en")){
         ignoredUserSet.add(user.nodeId);
         unfollowableUserSet.add(user.nodeId);
         printUserObj(
@@ -6260,7 +6260,7 @@ function updateUserSets(params){
         );
       }
 
-      if (!user.category && !ignoredUserSet.has(user.nodeId)) { 
+      if (!uncategorizedManualUserSet.has(user.nodeId) && !user.category && !ignoredUserSet.has(user.nodeId)) { 
 
         uncategorizedManualUserSet.add(user.nodeId);
 
@@ -6270,7 +6270,7 @@ function updateUserSets(params){
 
       }
 
-      if (!user.categoryAuto && !ignoredUserSet.has(user.nodeId)) { 
+      if (!uncategorizedAutoUserSet.has(user.nodeId) && !user.categoryAuto && !ignoredUserSet.has(user.nodeId)) { 
 
         uncategorizedAutoUserSet.add(user.nodeId);
 
@@ -6280,7 +6280,7 @@ function updateUserSets(params){
 
       }
       
-      if (!ignoredUserSet.has(user.nodeId) && user.category && user.categoryAuto && (user.category !== user.categoryAuto)) { 
+      if (!mismatchUserSet.has(user.nodeId) && !ignoredUserSet.has(user.nodeId) && user.category && user.categoryAuto && (user.category !== user.categoryAuto)) { 
 
         mismatchUserSet.add(user.nodeId); 
 

@@ -1587,37 +1587,63 @@ function checkUserProfileChanged(params) {
 
 function checkUserStatusChanged(params) {
 
-  let user = params.user;
+  return new Promise(async function(resolve, reject){
 
-  if (!user.tweetHistograms 
-    || (user.tweetHistograms === undefined) 
-    || (user.tweetHistograms === {})
-    || (Object.keys(user.tweetHistograms).length === 0)
-    || allHistogramsZeroKeys(user.tweetHistograms)
-  ){
+    let user = params.user;
 
-    console.log(chalkLog(
-      "WAS | TFC | USER TWEET HISTOGRAMS UNDEFINED" 
-      + " | RST PREV PROP VALUES" 
-      + " | @" + user.screenName 
-    ));
+    let allHistogramsZero = false;
 
-    user.previousStatusId = null;
-    user.previousQuotedStatusId = null;
-  }
+    try{
+      allHistogramsZero = await allHistogramsZeroKeys(user.tweetHistograms);
+    }
+    catch(err){
+      console.log(chalkError("WAS | TFC | *** ALL HISTOGRAMS ZERO ERROR: " + err));
+      return reject(err);
+    }
 
-  let results = [];
+    if (!user.tweetHistograms 
+      || (user.tweetHistograms === undefined) 
+      || (user.tweetHistograms === {})
+      || (Object.keys(user.tweetHistograms).length === 0)
+      || allHistogramsZero
+    ){
 
-  if (checkPropertyChange(user, "statusId")) { results.push("statusId"); }
-  if (checkPropertyChange(user, "quotedStatusId")) { results.push("quotedStatusId"); }
+      console.log(chalkLog(
+        "WAS | TFC | USER TWEET HISTOGRAMS UNDEFINED" 
+        + " | RST PREV PROP VALUES" 
+        + " | @" + user.screenName 
+      ));
 
-  if (results.length === 0) { return; }
-  return results;    
+      user.previousStatusId = null;
+      user.previousQuotedStatusId = null;
+    }
+
+    let results = [];
+
+    if (checkPropertyChange(user, "statusId")) { results.push("statusId"); }
+    if (checkPropertyChange(user, "quotedStatusId")) { results.push("quotedStatusId"); }
+
+    if (results.length === 0) { return resolve(); }
+    resolve(results);    
+
+  });
 }
 
 function userProfileChangeHistogram(params) {
 
   return new Promise(async function(resolve, reject){
+
+    try {
+      userProfileChanges = await checkUserProfileChanged(params);
+    }
+    catch(err){
+      return reject(err);
+    }
+
+    if (!userProfileChanges) {
+      return resolve();
+    }
+
 
     let user = params.user;
 
@@ -1633,17 +1659,6 @@ function userProfileChangeHistogram(params) {
 
     let profileHistograms = {};
     let userProfileChanges = false;
-
-    try {
-      userProfileChanges = await checkUserProfileChanged(params);
-    }
-    catch(err){
-      return reject(err);
-    }
-
-    if (!userProfileChanges) {
-      return resolve();
-    }
 
     async.each(userProfileChanges, async function(userProp){
 

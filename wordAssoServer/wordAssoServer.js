@@ -6018,6 +6018,7 @@ let userCategorizeable = function(user){
   if (user.followersCount !== undefined && (user.followersCount < configuration.minFollowersAuto)) { return false; }
   if (user.lang !== undefined && user.lang !== "en") { 
     ignoredUserSet.add(user.nodeId);
+    unfollowableUserSet.add(user.nodeId);
     console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LANG NOT ENGLISH: " + user.lang));
     return false;
   }
@@ -6049,6 +6050,7 @@ let userFollowable = function(user){
   if (user.followersCount !== undefined && (user.followersCount < configuration.minFollowersAuto)) { return false; }
   if (user.lang !== undefined && user.lang !== "en") { 
     ignoredUserSet.add(user.nodeId);
+    unfollowableUserSet.add(user.nodeId);
     console.log(chalkBlue("WAS | XXX UNFOLLOWABLE | USER LANG NOT ENGLISH: " + user.lang + " | IGNORED USER SET SIZE: " + ignoredUserSet.size));
     return false;
   }
@@ -6247,10 +6249,15 @@ function updateUserSets(params){
 
     userFollowingCursor.on("data", function(user) {
 
-      if (user.lang && (user.lang !== undefined) && (user.lang !== "en")){
+      if (user.lang && (user.lang !== undefined) && (user.lang !== "en") && !ignoredUserSet.has(user.nodeId) && !unfollowableUserSet.has(user.nodeId)){
         ignoredUserSet.add(user.nodeId);
         unfollowableUserSet.add(user.nodeId);
-        printUserObj("LANG NOT ENGLISH | IGNORE+UNFOLLOW [ IG SET: " + ignoredUserSet.size + "]", user, chalkAlert);
+        printUserObj(
+          "LANG NOT ENGLISH: " + user.lang 
+          + " | IGNORE+UNFOLLOW [ IG: " + ignoredUserSet.size + " | UF: " + unfollowableUserSet.size + "]", 
+          user, 
+          chalkAlert
+        );
       }
 
       if (!user.category && !ignoredUserSet.has(user.nodeId)) { 
@@ -7573,6 +7580,7 @@ function unfollowDuplicates(params){
           ) { // altthreecee00 < altthreecee01
 
           unfollowArrarys[threeceeUserTarget] = _.concat(unfollowArrarys[threeceeUserTarget], _.intersection(threeceeTwitter[threeceeUserTarget].twitterFriends, threeceeTwitter[threeceeUserSource].twitterFriends));
+          unfollowArrarys[threeceeUserTarget] = _.concat(unfollowArrarys[threeceeUserTarget], _.intersection(threeceeTwitter[threeceeUserTarget].twitterFriends, [...unfollowableUserSet]));
 
           debug(chalkLog("WAS | UNFOLLOW DUPLICATES ARRAY" 
             + " | 3C TARGET @" + threeceeUserTarget + " | " + threeceeTwitter[threeceeUserTarget].twitterFriends.length + " FRNDs"

@@ -2166,6 +2166,17 @@ function updateUserHistograms(params) {
             user.profileHistograms = results.profileHist;
             user.tweetHistograms = results.tweetHist;
 
+            user.previousBannerImageUrl = user.bannerImageUrl;
+            user.previousDescription = user.description;
+            user.previousExpandedUrl = user.expandedUrl;
+            user.previousLocation = user.location;
+            user.previousName = user.name;
+            user.previousProfileUrl = user.profileUrl;
+            user.previousQuotedStatusId = user.quotedStatusId;
+            user.previousScreenName = user.screenName;
+            user.previousStatusId = user.statusId;
+            user.previousUrl = user.url;
+
             updateGlobalHistograms({user: user})
             .then(function(){
               resolve(user);

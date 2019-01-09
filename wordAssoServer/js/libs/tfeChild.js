@@ -2222,7 +2222,7 @@ function initUserCategorizeQueueInterval(cnf){
 
       user.nodeId = user.userId;
 
-      printUserObj("WAS | TFC | USER CAT [UCATQ: " + userCategorizeQueue.length + "]", user, chalkLog);
+      printUserObj("WAS | TFC | USER CAT [ UCATQ: " + userCategorizeQueue.length + " ]", user, chalkLog);
 
       let updatedUser;
       let networkOutput;
@@ -2585,13 +2585,14 @@ process.on("message", function(m) {
         ));
       }
 
-      if ((cacheObj === undefined) && !userCategorizeQueue.includes(m.user.userId) && (userCategorizeQueue.length < USER_CAT_QUEUE_MAX_LENGTH)) {
+      // if ((cacheObj === undefined) && !userCategorizeQueue.includes(m.user.userId) && (userCategorizeQueue.length < USER_CAT_QUEUE_MAX_LENGTH)) {
+      if (cacheObj === undefined){
         try {
 
           let user = m.user.toObject();
 
-          userCategorizeQueue.push(user);
           userChangeCache.set(user.nodeId, {user: user, timeStamp: moment().valueOf()});
+          userCategorizeQueue.push(user);
 
           debug(chalkInfo("WAS | TFC | USER_CATEGORIZE"
             + " [ USQ: " + userCategorizeQueue.length + "]"
@@ -2604,8 +2605,8 @@ process.on("message", function(m) {
           ));
         }
         catch(err){
-          userCategorizeQueue.push(m.user);
           userChangeCache.set(m.user.nodeId, {user: m.user, timeStamp: moment().valueOf()});
+          userCategorizeQueue.push(m.user);
 
           debug(chalkInfo("WAS | TFC | USER_CATEGORIZE"
             + " [ USQ: " + userCategorizeQueue.length + "]"

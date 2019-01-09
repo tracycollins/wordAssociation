@@ -9801,7 +9801,7 @@ function initThreeceeTwitterUsers(params){
           console.log(chalkTwitter("WAS | LOADED TWITTER CONFIG"
             + " | 3C @" + user
             + " | " + dropboxConfigTwitterFolder + "/" + configFile
-            + "\nCONFIG\n" + jsonPrint(twitterConfig)
+            // + "\nCONFIG\n" + jsonPrint(twitterConfig)
           ));
 
           if (!configuration.threeceeUsers.includes(twitterConfig.screenName)) {
@@ -9918,7 +9918,7 @@ function twitterGetUserUpdateDb(user, callback){
       && (threeceeTwitter[currentThreeceeUser] !== undefined)
       && threeceeTwitter[currentThreeceeUser].ready) {
 
-      printUserObj("+++ UNCATEGORIZED USER | GET USER TWITTER DATA", user);
+      printUserObj("WAS | GET USER TWITTER DATA", user);
 
       let twitQuery = {};
 
@@ -9960,17 +9960,28 @@ function twitterGetUserUpdateDb(user, callback){
 
             printUserObj("FOUND users/show rawUser", cUser);
 
-            user.userId = cUser.userId;
-            user.nodeId = cUser.nodeId;
-            user.name = cUser.name;
+            user.bannerImageUrl = cUser.bannerImageUrl;
+            user.createdAt = cUser.createdAt;
             user.description = cUser.description;
             user.followersCount = cUser.followersCount;
             user.friendsCount = cUser.friendsCount;
-            user.statusesCount = cUser.statusesCount;
-            user.createdAt = cUser.createdAt;
-            user.location = cUser.location;
-            user.updateLastSeen = true;
+            user.ignored = cUser.ignored;
+            user.lang = cUser.lang;
             user.lastSeen = (cUser.status && (cUser.status !== undefined)) ? cUser.status.created_at : Date.now();
+            user.lastTweetId = cUser.lastTweetId;
+            user.location = cUser.location;
+            user.name = cUser.name;
+            user.nodeId = cUser.nodeId;
+            user.profileImageUrl = cUser.profileImageUrl;
+            user.profileUrl = cUser.profileUrl;
+            user.screenName = cUser.screenName;
+            user.status = cUser.status;
+            user.statusesCount = cUser.statusesCount;
+            user.statusId = cUser.statusId;
+            user.updateLastSeen = true;
+            user.url = cUser.url;
+            user.userId = cUser.userId;
+            user.verified = cUser.verified;
 
             let nCacheObj = nodeCache.get(user.nodeId);
 

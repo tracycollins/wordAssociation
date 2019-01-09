@@ -527,7 +527,6 @@ function userUpdateDb(tweetObj){
             + " | @" + user.screenName
           ));
           user.tweetHistograms = {};
-          user.markModified("tweetHistograms");
         }
 
         if (!user.profileHistograms || user.profileHistograms === undefined || user.profileHistograms === null) { 
@@ -536,7 +535,6 @@ function userUpdateDb(tweetObj){
             + " | @" + user.screenName
           ));
           user.profileHistograms = {};
-          user.markModified("profileHistograms");
         }
 
         try {

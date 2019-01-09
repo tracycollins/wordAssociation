@@ -2198,7 +2198,6 @@ process.on("message", async function(m) {
 
         });
       });
-
     break;
 
     case "FOLLOW":
@@ -2211,7 +2210,6 @@ process.on("message", async function(m) {
       if (m.forceFollow !== undefined) { configuration.forceFollow = m.forceFollow; }
 
       followQueue.push(m);
-      
     break;
 
     case "UNFOLLOW":
@@ -2260,7 +2258,6 @@ process.on("message", async function(m) {
         quit();
         return;
       });
-
     break;
 
     case "PING":

@@ -1537,7 +1537,7 @@ function checkUserProfileChanged(params) {
     || allHistogramsZeroKeys(user.profileHistograms)
   ){
 
-    console.log(chalk.black.bold(
+    console.log(chalkLog(
       "WAS | TFC | USER PROFILE HISTOGRAMS UNDEFINED" 
       + " | RST PREV PROP VALUES" 
       + " | @" + user.screenName 
@@ -1579,7 +1579,7 @@ function checkUserStatusChanged(params) {
     || allHistogramsZeroKeys(user.tweetHistograms)
   ){
 
-    console.log(chalk.black.bold(
+    console.log(chalkLog(
       "WAS | TFC | USER TWEET HISTOGRAMS UNDEFINED" 
       + " | RST PREV PROP VALUES" 
       + " | @" + user.screenName 
@@ -2165,7 +2165,7 @@ function updateUserHistograms(params) {
             user.profileHistograms = results.profileHist;
             user.tweetHistograms = results.tweetHist;
 
-            updateGlobalHistograms(params)
+            updateGlobalHistograms({user: user})
             .then(function(){
               resolve(user);
             })
@@ -2239,9 +2239,8 @@ function initUserCategorizeQueueInterval(cnf){
       }
 
       updatedUser.categoryAuto = networkOutput.output;
-      updatedUser.nodeId = updatedUser.nodeId;
-      updatedUser.lastHistogramTweetId = user.statusId;
-      updatedUser.lastHistogramQuoteId = user.quotedStatusId;
+      updatedUser.lastHistogramTweetId = updatedUser.statusId;
+      updatedUser.lastHistogramQuoteId = updatedUser.quotedStatusId;
 
       if (typeof updatedUser.previousLocation !== "string") { updatedUser.previousLocation = ""; }
       if (typeof updatedUser.previousUrl !== "string") { updatedUser.previousUrl = ""; }
@@ -2263,8 +2262,6 @@ function initUserCategorizeQueueInterval(cnf){
 
       }, 5000);
 
-      // printUserObj("WAS | TFC | updatedUser", updatedUser, chalkLog);
-
       try {
         let dbUser = await userServerController.findOneUserV2({user: updatedUser, mergeHistograms: false, noInc: true});
         printUserObj("WAS | TFC | " 
@@ -2272,7 +2269,6 @@ function initUserCategorizeQueueInterval(cnf){
           + " [UCQ: " + userCategorizeQueue.length + "]"
           + " | NN: " + networkObj.networkId + " | DB CAT", dbUser, chalkInfo);
 
-        // process.send({ op: "USER_CATEGORIZED", user: dbUser });
         userChangeCache.del(dbUser.nodeId);
       }
       catch(err){
@@ -2281,31 +2277,6 @@ function initUserCategorizeQueueInterval(cnf){
 
       clearTimeout(uscTimeout);
       userCategorizeQueueReady = true;
-
-      // userServerController.findOneUser(
-      //   updatedUser, 
-      //   { mergeHistograms: true, noInc: false, fields: fieldsTransmit}, 
-      //   function(err, dbUser){
-
-      //     clearTimeout(uscTimeout);
-
-      //     userCategorizeQueueReady = true;
-
-      //     if (err) {
-      //       console.log(chalkError("WAS | TFC | *** USER FIND ONE ERROR: " + err));
-      //     }
-      //     else {
-
-      //       printUserObj("WAS | TFC | " 
-      //         + " [UC$: " + userChangeCache.getStats().keys + "]"
-      //         + " [UCQ: " + userCategorizeQueue.length + "]"
-      //         + " | NN: " + networkObj.networkId + " | DB CAT", dbUser, chalkInfo);
-
-      //       process.send({ op: "USER_CATEGORIZED", user: dbUser });
-      //       userChangeCache.del(dbUser.nodeId);
-      //     }
-        
-      // });
     }
 
 

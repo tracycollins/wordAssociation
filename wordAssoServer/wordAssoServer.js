@@ -10217,7 +10217,7 @@ function twitterSearchNode(params, callback) {
 
             }
 
-            viewNameSpace.emit("SET_TWITTER_USER", user);
+            viewNameSpace.emit("SET_TWITTER_USER", user.toObject());
 
             console.log(chalkBlue("WAS | T> TWITTER_SEARCH_NODE"
               + " | " + params.socketId
@@ -10271,7 +10271,7 @@ function twitterSearchNode(params, callback) {
             ));
           }
           else if (user) {
-            viewNameSpace.emit("SET_TWITTER_USER", user);
+            viewNameSpace.emit("SET_TWITTER_USER", user.toObject());
           }
           else {
             console.log(chalkAlert("WAS | --- TWITTER_SEARCH_NODE NOT FOUND"
@@ -10303,7 +10303,7 @@ function twitterSearchNode(params, callback) {
           ));
         }
         else if (user) {
-          viewNameSpace.emit("SET_TWITTER_USER", user);
+          viewNameSpace.emit("SET_TWITTER_USER", user.toObject());
         }
         else {
           console.log(chalkAlert("WAS | --- TWITTER_SEARCH_NODE NOT FOUND"

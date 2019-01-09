@@ -2042,6 +2042,7 @@ function initStats(callback){
   statsObj.twitter.retweetsReceived = 0;
   statsObj.twitter.quotedTweetsReceived = 0;
   statsObj.twitter.tweetsPerMin = 0;
+  statsObj.twitter.maxTweetsPerMin = 0;
   statsObj.twitter.maxTweetsPerMinTime = moment().valueOf();
 
   statsObj.hostname = hostname;
@@ -3831,6 +3832,7 @@ function categorizeNode(categorizeObj, callback) {
         }
       });
     break;
+
     case "hashtag":
 
       debug(chalkSocket("categorizeNode HASHTAG"
@@ -6002,7 +6004,14 @@ let userCategorizeable = function(user){
 
   if (user.nodeType !== "user") { return false; }
   if (ignoredUserSet.has(user.nodeId)) { return false; }
-  if (user.categoryAuto !== undefined && user.categoryAuto) { return false; }
+  // if (user.categoryAuto !== undefined && user.categoryAuto) { return false; }
+  if (user.following) { 
+    if ((user.description === undefined) || !user.description) { user.description = ""; }
+    if ((user.screenName === undefined) || !user.screenName) { user.screenName = ""; }
+    if ((user.name === undefined) || !user.name) { user.name = ""; }
+    categorizeableUserSet.add(user.nodeId);
+    return true;
+  }
   if (user.followersCount !== undefined && (user.followersCount < configuration.minFollowersAuto)) { return false; }
   if (user.lang !== undefined && user.lang !== "en") { 
     ignoredUserSet.add(user.nodeId);
@@ -6387,7 +6396,13 @@ function initTransmitNodeQueueInterval(interval){
               categorizeable = userCategorizeable(n);
 
               if (followable) {
-                if (!n.categoryAuto) { 
+                if (!n.category && !uncategorizedManualUserSet.has(n.nodeId)) { 
+                  uncategorizedManualUserSet.add(n.nodeId);
+                  if (uncategorizedManualUserSet.size % 100 === 0) {
+                    printUserObj("UNCAT MAN USER [" + uncategorizedManualUserSet.size + "]", n);
+                  }
+                }
+                if (!n.categoryAuto && !uncategorizedAutoUserSet.has(n.nodeId) { 
                   uncategorizedAutoUserSet.add(n.nodeId);
                   if (uncategorizedAutoUserSet.size % 100 === 0) {
                     printUserObj("UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", n);
@@ -6397,7 +6412,14 @@ function initTransmitNodeQueueInterval(interval){
 
               if (categorizeable) {
 
-                if (!n.categoryAuto) { 
+                if (!n.category && !uncategorizedManualUserSet.has(n.nodeId)) { 
+                  uncategorizedManualUserSet.add(n.nodeId);
+                  if (uncategorizedManualUserSet.size % 100 === 0) {
+                    printUserObj("UNCAT MAN USER [" + uncategorizedManualUserSet.size + "]", n);
+                  }
+                }
+
+                if (!n.categoryAuto && !uncategorizedAutoUserSet.has(n.nodeId) { 
                   uncategorizedAutoUserSet.add(n.nodeId);
                   if (uncategorizedAutoUserSet.size % 100 === 0) {
                     printUserObj("UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", n);

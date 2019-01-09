@@ -2080,7 +2080,7 @@ function userStatusChangeHistogram(params) {
 
 function updateUserHistograms(params) {
 
-  return new Promise(function(resolve, reject){
+  return new Promise(async function(resolve, reject){
     
     if ((params.user === undefined) || !params.user) {
       console.log(chalkError("WAS | TFC | *** updateUserHistograms USER UNDEFINED"));
@@ -2089,20 +2089,29 @@ function updateUserHistograms(params) {
       return reject(err);
     }
 
-    // let user = params.user;
+    let user;
 
-    params.user.profileHistograms = params.user.profileHistograms || {};
-    params.user.tweetHistograms = params.user.tweetHistograms || {};
+    params.user.userId = (params.user.nodeId && !params.user.userId) ? params.user.nodeId : params.user.userId;
 
-    userStatusChangeHistogram({user: params.user})
+    try {
+      user = await User.findOne({nodeId: params.user.nodeId});
+    }
+    catch (err){
+      console.log(chalkError("WAS | TFE | *** updateUserHistograms USER FIND ERROR"
+        + " | NID: " + params.user.nodeId
+        + " | @" + params.user.screenName
+      ));
+    }
+
+    user.profileHistograms = user.profileHistograms || {};
+    user.tweetHistograms = user.tweetHistograms || {};
+
+    userStatusChangeHistogram({user: user})
 
       .then(function(tweetHistogramChanges){
 
         userProfileChangeHistogram(params)
         .then(function(profileHistogramChanges){
-
-          // console.log(chalkAlert("user.profileHistograms\n" + jsonPrint(user.profileHistograms)));
-          // console.log(chalkAlert("profileHistogramChanges\n" + jsonPrint(profileHistogramChanges)));
 
           async.parallel({
 
@@ -2110,7 +2119,7 @@ function updateUserHistograms(params) {
 
               if (profileHistogramChanges) {
 
-                mergeHistograms.merge({ histogramA: params.user.profileHistograms, histogramB: profileHistogramChanges })
+                mergeHistograms.merge({ histogramA: user.profileHistograms, histogramB: profileHistogramChanges })
                 .then(function(profileHist){
                   cb(null, profileHist);
                 })
@@ -2121,7 +2130,7 @@ function updateUserHistograms(params) {
 
               }
               else {
-                cb(null, params.user.profileHistograms);
+                cb(null, user.profileHistograms);
               }
 
             },
@@ -2130,7 +2139,7 @@ function updateUserHistograms(params) {
 
               if (tweetHistogramChanges) {
 
-                mergeHistograms.merge({ histogramA: params.user.tweetHistograms, histogramB: tweetHistogramChanges })
+                mergeHistograms.merge({ histogramA: user.tweetHistograms, histogramB: tweetHistogramChanges })
                 .then(function(tweetHist){
                   cb(null, tweetHist);
                 })
@@ -2141,7 +2150,7 @@ function updateUserHistograms(params) {
 
               }
               else {
-                cb(null, params.user.tweetHistograms);
+                cb(null, user.tweetHistograms);
               }
             }
 
@@ -2150,12 +2159,12 @@ function updateUserHistograms(params) {
               return reject(err);
             }
 
-            params.user.profileHistograms = results.profileHist;
-            params.user.tweetHistograms = results.tweetHist;
+            user.profileHistograms = results.profileHist;
+            user.tweetHistograms = results.tweetHist;
 
             updateGlobalHistograms(params)
             .then(function(){
-              resolve(params.user);
+              resolve(user);
             })
             .catch(function(err){
               console.log(chalkError("WAS | TFC | *** UPDATE USER HISTOGRAM ERROR: " + err));
@@ -2192,7 +2201,6 @@ function initUserCategorizeQueueInterval(cnf){
 
       if ((!user.nodeId || user.nodeId === undefined) && (!user.userId || user.userId === undefined)){
         console.log(chalkError("WAS | TFC | *** USER CAT ERROR: USER NODE ID & USER ID UNDEFINED\n" + jsonPrint(user)));
-
         userCategorizeQueueReady = true;
         return;
       }
@@ -2229,45 +2237,15 @@ function initUserCategorizeQueueInterval(cnf){
 
       updatedUser.categoryAuto = networkOutput.output;
       updatedUser.nodeId = updatedUser.nodeId;
-
       updatedUser.lastHistogramTweetId = user.statusId;
       updatedUser.lastHistogramQuoteId = user.quotedStatusId;
 
-      if (typeof updatedUser.previousLocation !== "string") {
-        // printUserObj("WAS | TFC | previousLocation NOT STRING | " + typeof updatedUser.previousLocation, updatedUser, chalkAlert);
-        // console.log(chalkAlert("previousLocation\n" + jsonPrint(updatedUser.previousLocation)));
-        updatedUser.previousLocation = "";
-      }
-
-      if (typeof updatedUser.previousUrl !== "string") {
-        // printUserObj("WAS | TFC | previousUrl NOT STRING | " + typeof updatedUser.previousUrl, updatedUser, chalkAlert);
-        // console.log(chalkAlert("previousUrl\n" + jsonPrint(updatedUser.previousUrl)));
-        updatedUser.previousUrl = "";
-      }
-
-      if (typeof updatedUser.previousBannerImageUrl !== "string") {
-        // printUserObj("WAS | TFC | previousBannerImageUrl NOT STRING | " + typeof updatedUser.previousBannerImageUrl, updatedUser, chalkAlert);
-        // console.log(chalkAlert("previousBannerImageUrl\n" + jsonPrint(updatedUser.previousBannerImageUrl)));
-        updatedUser.previousBannerImageUrl = "";
-      }
-
-      if (typeof updatedUser.previousScreenName !== "string") {
-        // printUserObj("WAS | TFC | previousScreenName NOT STRING | " + typeof updatedUser.previousScreenName, updatedUser, chalkAlert);
-        // console.log(chalkAlert("previousScreenName\n" + jsonPrint(updatedUser.previousScreenName)));
-        updatedUser.previousScreenName = "";
-      }
-
-      if (typeof updatedUser.previousProfileUrl !== "string") {
-        // printUserObj("WAS | TFC | previousProfileUrl NOT STRING | " + typeof updatedUser.previousProfileUrl, updatedUser, chalkAlert);
-        // console.log(chalkAlert("previousProfileUrl\n" + jsonPrint(updatedUser.previousProfileUrl)));
-        updatedUser.previousProfileUrl = "";
-      }
-
-      if (typeof updatedUser.previousName !== "string") {
-        // printUserObj("WAS | TFC | previousName NOT STRING | " + typeof updatedUser.previousName, updatedUser, chalkAlert);
-        // console.log(chalkAlert("previousName\n" + jsonPrint(updatedUser.previousName)));
-        updatedUser.previousName = "";
-      }
+      if (typeof updatedUser.previousLocation !== "string") { updatedUser.previousLocation = ""; }
+      if (typeof updatedUser.previousUrl !== "string") { updatedUser.previousUrl = ""; }
+      if (typeof updatedUser.previousBannerImageUrl !== "string") { updatedUser.previousBannerImageUrl = ""; }
+      if (typeof updatedUser.previousScreenName !== "string") { updatedUser.previousScreenName = ""; }
+      if (typeof updatedUser.previousProfileUrl !== "string") { updatedUser.previousProfileUrl = ""; }
+      if (typeof updatedUser.previousName !== "string") { updatedUser.previousName = ""; }
 
       uscTimeout = setTimeout(function(){
 
@@ -2623,7 +2601,9 @@ process.on("message", function(m) {
 
       if ((cacheObj === undefined) && !userCategorizeQueue.includes(m.user.userId) && (userCategorizeQueue.length < USER_CAT_QUEUE_MAX_LENGTH)) {
         try {
+
           let user = m.user.toObject();
+
           userCategorizeQueue.push(user);
           userChangeCache.set(user.nodeId, {user: user, timeStamp: moment().valueOf()});
 

@@ -1137,14 +1137,17 @@ const userDefaults = function (user){
   return user;
 };
 
-function printUserObj(title, user) {
+function printUserObj(title, user, chalkFormat) {
+
+  const chlk = chalkFormat || chalkUser;
 
   user = userDefaults(user);
 
-  console.log(chalkUser(title
+  console.log(chlk(title
     + " | " + user.userId
     + " | @" + user.screenName
     + " | " + user.name 
+    + " | LANG: " + user.lang
     + " | FWR: " + user.followersCount
     + " | FRD: " + user.friendsCount
     + " | T: " + user.statusesCount
@@ -6243,6 +6246,12 @@ function updateUserSets(params){
     userFollowingCursor = User.find(followingSearchQuery).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
 
     userFollowingCursor.on("data", function(user) {
+
+      if (user.lang && (user.lang !== undefined) && (user.lang !== "en")){
+        ignoredUserSet.add(user.nodeId);
+        unfollowableUserSet.add(user.nodeId);
+        printUserObj("LANG NOT ENGLISH | IGNORE+UNFOLLOW [ IG SET: " + ignoredUserSet.size + "]", user, chalkAlert);
+      }
 
       if (!user.category && !ignoredUserSet.has(user.nodeId)) { 
 

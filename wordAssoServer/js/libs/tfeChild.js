@@ -1646,7 +1646,6 @@ function userProfileChangeHistogram(params) {
       return resolve();
     }
 
-
     let user = params.user;
 
     let text = "";
@@ -1859,8 +1858,6 @@ function userProfileChangeHistogram(params) {
           console.log(chalkError("WAS | TFC | UNKNOWN USER PROPERTY: " + userProp));
           return (new Error("UNKNOWN USER PROPERTY: " + userProp));
       }
-
-
     }, function(err){
 
       if (err) {
@@ -1933,7 +1930,6 @@ function userProfileChangeHistogram(params) {
           return reject(err);
         });
       });
-
     });
 
   });

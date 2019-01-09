@@ -1633,6 +1633,8 @@ function userProfileChangeHistogram(params) {
 
   return new Promise(async function(resolve, reject){
 
+    let userProfileChanges = false;
+
     try {
       userProfileChanges = await checkUserProfileChanged(params);
     }
@@ -1648,7 +1650,6 @@ function userProfileChangeHistogram(params) {
     let user = params.user;
 
     let text = "";
-
     let urlsHistogram = {};
     urlsHistogram.urls = {};
     let profileUrl = false;
@@ -1658,7 +1659,6 @@ function userProfileChangeHistogram(params) {
     locationsHistogram.locations = {};
 
     let profileHistograms = {};
-    let userProfileChanges = false;
 
     async.each(userProfileChanges, async function(userProp){
 
@@ -1941,20 +1941,27 @@ function userProfileChangeHistogram(params) {
 
 function userStatusChangeHistogram(params) {
 
-  return new Promise(function(resolve, reject){
+  return new Promise(async function(resolve, reject){
 
-    let user = params.user;
-  
-    const userStatusChangeArray = checkUserStatusChanged(params);
+    let userStatusChanges = false;
 
-    if (!userStatusChangeArray) {
+    try {
+      userStatusChanges = await checkUserStatusChanged(params);
+    }
+    catch(err){
+      return reject(err);
+    }
+
+    if (!userStatusChanges) {
       return resolve();
     }
 
+    let user = params.user;
+  
     let tweetHistograms = {};
     let text = "";
 
-    async.eachSeries(userStatusChangeArray, function(userProp, cb){
+    async.eachSeries(userStatusChanges, function(userProp, cb){
 
       delete user._id; // fix for UnhandledPromiseRejectionWarning: RangeError: Maximum call stack size exceeded
 

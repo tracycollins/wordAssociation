@@ -630,7 +630,7 @@ function initTwit(params){
 
     console.log(chalkLog("TSS | INIT TWIT USER @" + threeceeUserObj.twitterConfig.screenName));
 
-    console.log(chalkInfo("TSS | INIT TWIT | TWITTER CONFIG " 
+    debug(chalkInfo("TSS | INIT TWIT | TWITTER CONFIG " 
       + "\n" + jsonPrint(threeceeUserObj.twitterConfig)
     ));
 
@@ -1567,7 +1567,10 @@ function initSearchTerms(params){
 
 function initialize(cnf, callback){
 
-  console.log(chalkLog("INITIALIZE cnf\n" + jsonPrint(cnf)));
+  console.log(chalkLog("WAS | TSS | INITIALIZE"
+    + " | @" + cnf.threeceeUser
+    // + "\n" + jsonPrint(cnf)
+  ));
 
   if (debug.enabled || debugCache.enabled || debugQ.enabled){
     console.log("\nTSS | %%%%%%%%%%%%%%\nTSS | DEBUG ENABLED \nTSS | %%%%%%%%%%%%%%\n");
@@ -1645,9 +1648,11 @@ function initialize(cnf, callback){
 
       configArgs = Object.keys(cnf);
 
-      configArgs.forEach(function(arg){
-        console.log("TSS | FINAL CONFIG | " + arg + ": " + cnf[arg]);
-      });
+      if (cnf.verbose) {
+        configArgs.forEach(function(arg){
+          console.log("TSS | FINAL CONFIG | " + arg + ": " + cnf[arg]);
+        });
+      }
 
       return(callback(err, cnf));
 

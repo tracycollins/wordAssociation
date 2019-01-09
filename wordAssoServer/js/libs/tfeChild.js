@@ -726,7 +726,7 @@ function initInfoTwit(params, callback){
       return callback("TWITTER CONFIG FILE LOAD ERROR | NOT FOUND?", null);
     }
 
-    console.log(chalkTwitter("WAS | TFC | INFO TWITTER USER CONFIG\n" + jsonPrint(twitterConfig)));
+    debug(chalkTwitter("WAS | TFC | INFO TWITTER USER CONFIG\n" + jsonPrint(twitterConfig)));
 
     let twitterUserObj = {};
 

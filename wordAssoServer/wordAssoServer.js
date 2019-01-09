@@ -9951,7 +9951,7 @@ function twitterGetUserUpdateDb(user, callback){
             return callback(new Error("userServerController not ready"), null);
           }
 
-          userServerController.convertRawUser({user:rawUser}, function(err, cUser){
+          userServerController.convertRawUser({user:rawUser}, async function(err, cUser){
 
             if (err) {
               console.log(chalkError("WAS | *** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
@@ -9983,21 +9983,19 @@ function twitterGetUserUpdateDb(user, callback){
               return callback(new Error("userServerController not ready"), null);
             }
 
-            userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
-
-              if (err) {
-                console.log(chalkError("WAS | *** findOneUser ERROR: " + err));
-                return callback("NO DB UPDATE", user);
-              }
-
+            try{
+              const updatedUser = await userServerController.findOneUserV2({user: user, mergeHistograms: false, noInc: true});
               console.log(chalk.blue("WAS | UPDATED updatedUser"
                 + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
                 + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
                 + "\n" + printUser({user:updatedUser})
               ));
-
               callback(null, updatedUser);
-            });
+            }
+            catch(err){
+              console.log(chalkError("WAS | *** findOneUser ERROR: " + err));
+              return callback("NO DB UPDATE", user);
+            }
           });
         }
         else {

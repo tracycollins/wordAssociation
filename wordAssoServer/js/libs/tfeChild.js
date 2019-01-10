@@ -1969,7 +1969,6 @@ function userStatusChangeHistogram(params) {
           + " | @" + user.screenName 
           + " | " + userProp 
           + " | " + user[userProp] + " <-- " + user[prevUserProp]
-          // + "\n" + jsonPrint(user) 
         ));
       }
 
@@ -1980,21 +1979,7 @@ function userStatusChangeHistogram(params) {
         twitterEvents: configEvents
       };
 
-      if (userProp === "statusId"){
-
-        let status = deepcopy(user.status);  // avoid circular references
-
-        user.statusId = user.statusId.toString();
-        user.previousStatusId = user.statusId;
-
-        tscParams.tweetStatus = {};
-        tscParams.tweetStatus = status;
-        tscParams.tweetStatus.user = {};
-        tscParams.tweetStatus.user = user;
-        tscParams.tweetStatus.user.isNotRaw = true;
-      }
-
-      if (userProp === "quotedStatusId"){
+      if ((userProp === "quotedStatusId") && user.quotedStatus && (user.quotedStatus !== undefined) && user.quotedStatus.text){
 
         let quotedStatus = deepcopy(user.quotedStatus);  // avoid circular references
 
@@ -2007,13 +1992,26 @@ function userStatusChangeHistogram(params) {
         tscParams.tweetStatus.user = user;
         tscParams.tweetStatus.user.isNotRaw = true;
       }
+      else if ((userProp === "statusId") && user.status && (user.status !== undefined) && user.status.text){
 
-      // console.log(chalkAlert("WAS | TFC | tscParams\n", jsonPrint(tscParams)));
+        let status = deepcopy(user.status);  // avoid circular references
+
+        user.statusId = user.statusId.toString();
+        user.previousStatusId = user.statusId;
+
+        tscParams.tweetStatus = {};
+        tscParams.tweetStatus = status;
+        tscParams.tweetStatus.user = {};
+        tscParams.tweetStatus.user = user;
+        tscParams.tweetStatus.user.isNotRaw = true;
+      }
+      else {
+        printUserObj("WAS | TFC | *** NO STATUS NOR QUOTED STATUS ???", user, chalkAlert);
+        return reject(new Error("NO STATUS NOR QUOTED STATUS"));
+      }
 
       tweetServerController.createStreamTweet(tscParams)
       .then(function(tweetObj){
-
-        // console.log(chalkLog("WAS | TFC | CREATE STREAM TWEET | " + Object.keys(tweetObj)));
 
         async.eachSeries(DEFAULT_INPUT_TYPES, function(entityType, cb0){
 
@@ -2261,7 +2259,7 @@ function initUserCategorizeQueueInterval(cnf){
 
       user.nodeId = user.userId;
 
-      printUserObj("WAS | TFC | USER CAT [ UCATQ: " + userCategorizeQueue.length + " ]", user, chalkLog);
+      if (configuration.verbose) { printUserObj("WAS | TFC | USER CAT [ UCATQ: " + userCategorizeQueue.length + " ]", user, chalkLog); }
 
       let updatedUser;
       let networkOutput;
@@ -2279,26 +2277,19 @@ function initUserCategorizeQueueInterval(cnf){
       }
 
       if (updatedUser.categoryAuto !== networkOutput.output) {
-        console.log(chalkLog("WAS | TFC | >>> NN AUTO CAT CHANGE"
-          + " [UC$: " + userChangeCache.getStats().keys + "]"
-          + " [UCATQ: " + userCategorizeQueue.length + "]"
-          + " | " + networkObj.networkId
-          + " | AUTO: " + updatedUser.categoryAuto + " > " + networkOutput.output
-          + " | NODE ID: " + updatedUser.nodeId
-          + " | @" + updatedUser.screenName
+        console.log(chalkGreen("WAS | TFC | >>> NN AUTO CHG"
+          + " | UC$ " + userChangeCache.getStats().keys
+          + " UCQ " + userCategorizeQueue.length
+          + " NN " + networkObj.networkId
+          + " CA " + updatedUser.categoryAuto + " > " + networkOutput.output
+          + " NID " + updatedUser.nodeId
+          + " @" + updatedUser.screenName
         ));
       }
 
       updatedUser.categoryAuto = networkOutput.output;
       updatedUser.lastHistogramTweetId = updatedUser.statusId;
       updatedUser.lastHistogramQuoteId = updatedUser.quotedStatusId;
-
-      // if (typeof updatedUser.previousLocation !== "string") { updatedUser.previousLocation = ""; }
-      // if (typeof updatedUser.previousUrl !== "string") { updatedUser.previousUrl = ""; }
-      // if (typeof updatedUser.previousBannerImageUrl !== "string") { updatedUser.previousBannerImageUrl = ""; }
-      // if (typeof updatedUser.previousScreenName !== "string") { updatedUser.previousScreenName = ""; }
-      // if (typeof updatedUser.previousProfileUrl !== "string") { updatedUser.previousProfileUrl = ""; }
-      // if (typeof updatedUser.previousName !== "string") { updatedUser.previousName = ""; }
 
       uscTimeout = setTimeout(function(){
 

@@ -545,36 +545,32 @@ function userUpdateDb(tweetObj){
           user.lastHistogramTweetId = user.statusId;
           user.lastHistogramQuoteId = user.quotedStatusId;
 
-          printUserObj("DBU | +++ USR DB HIT", user);
+          if (configuration.verbose) { printUserObj("DBU | +++ USR DB HIT", user); }
 
-          if (configuration.verbose) {
-            console.log(chalkInfo("DBU | USER MERGED HISTOGRAMS"
-              + " | " + user.nodeId
-              + " | @" + user.screenName
-              + " | LHTID" + user.lastHistogramTweetId
-              + " | LHQID" + user.lastHistogramQuoteId
-              + " | EJs: " + getNumKeys(user.tweetHistograms.emoji)
-              + " | Hs: " + getNumKeys(user.tweetHistograms.hashtags)
-              + " | IMs: " + getNumKeys(user.tweetHistograms.images)
-              + " | LCs: " + getNumKeys(user.tweetHistograms.locations)
-              + " | MEs: " + getNumKeys(user.tweetHistograms.media)
-              + " | Ms: " + getNumKeys(user.tweetHistograms.mentions)
-              + " | PLs: " + getNumKeys(user.tweetHistograms.places)
-              + " | STs: " + getNumKeys(user.tweetHistograms.sentiment)
-              + " | UMs: " + getNumKeys(user.tweetHistograms.userMentions)
-              + " | ULs: " + getNumKeys(user.tweetHistograms.urls)
-              + " | WDs: " + getNumKeys(user.tweetHistograms.words)
-            ));
-          }
+          debug(chalkInfo("DBU | USER MERGED HISTOGRAMS"
+            + " | " + user.nodeId
+            + " | @" + user.screenName
+            + " | LHTID" + user.lastHistogramTweetId
+            + " | LHQID" + user.lastHistogramQuoteId
+            + " | EJs: " + getNumKeys(user.tweetHistograms.emoji)
+            + " | Hs: " + getNumKeys(user.tweetHistograms.hashtags)
+            + " | IMs: " + getNumKeys(user.tweetHistograms.images)
+            + " | LCs: " + getNumKeys(user.tweetHistograms.locations)
+            + " | MEs: " + getNumKeys(user.tweetHistograms.media)
+            + " | Ms: " + getNumKeys(user.tweetHistograms.mentions)
+            + " | PLs: " + getNumKeys(user.tweetHistograms.places)
+            + " | STs: " + getNumKeys(user.tweetHistograms.sentiment)
+            + " | UMs: " + getNumKeys(user.tweetHistograms.userMentions)
+            + " | ULs: " + getNumKeys(user.tweetHistograms.urls)
+            + " | WDs: " + getNumKeys(user.tweetHistograms.words)
+          ));
 
-          // if (configuration.verbose){
-            debug(chalkInfo("DBU | USER MERGED HISTOGRAMS"
-              + " | " + user.nodeId
-              + " | @" + user.screenName
-              + "\nprofileHistograms\n" + jsonPrint(user.nprofileHistograms)
-              + "\ntweetHistograms\n" + jsonPrint(user.tweetHistograms)
-            ));
-          // }
+          debug(chalkInfo("DBU | USER MERGED HISTOGRAMS"
+            + " | " + user.nodeId
+            + " | @" + user.screenName
+            + "\nprofileHistograms\n" + jsonPrint(user.nprofileHistograms)
+            + "\ntweetHistograms\n" + jsonPrint(user.tweetHistograms)
+          ));
 
           debug(chalkLog("DBU | USER MERGED TWEET HISTOGRAMS\n" + jsonPrint(tweetHistogramMerged)));
 

@@ -1340,17 +1340,17 @@ function initSearchStream(params){
         }
 
         if ((threeceeUserObj.stats.tweetsReceived % 1000 === 0) || (statsObj.tweetsReceived % 1000 === 0)) {
-          console.log(chalkTwitter("TSS | <T | "
-            + " | TQ " + tweetQueue.length
-            + " [ Ts/Rs/Qs " + statsObj.tweetsReceived + "/" + statsObj.retweetsReceived + "/" + statsObj.quotedTweetsReceived + "]"
-            + " | " + threeceeUserObj.screenName
+          console.log(chalkTwitter("TSS | <T"
+            + " | 3C " + threeceeUserObj.screenName
             + " | " + threeceeUserObj.stats.tweetsPerMinute.toFixed(3) + " TPM"
-            + " | " + tweetStatus.id_str
-            + " | TLNG " + tweetStatus.lang
-            + " | " + tweetStatus.user.id_str
+            + " | TQ " + tweetQueue.length
+            + " [ T/R/Q " + statsObj.tweetsReceived + "/" + statsObj.retweetsReceived + "/" + statsObj.quotedTweetsReceived + "]"
+            + " | TW " + tweetStatus.id_str
+            + " | TLG " + tweetStatus.lang
+            + " | U " + tweetStatus.user.id_str
             + " | @" + tweetStatus.user.screen_name
             + " | " + tweetStatus.user.name
-            + " | ULANG " + tweetStatus.user.lang
+            + " | ULG " + tweetStatus.user.lang
             + " | LOC " + tweetStatus.user.location
           ));
         }
@@ -1794,15 +1794,14 @@ function initUnfollowQueue(params){
 
           statsObj.queues.unfollowQueue.size = unfollowQueue.length;
 
-          console.log(chalkTwitter("TSS | --> TWITTER UNFOLLOW"
-            + " [ UFQ: " + unfollowQueue.length + " ]"
-            + " | 3C @" + threeceeUserObj.screenName
-            + " | @" + unfollowObj.user.screenName
-            + " | UID: " + unfollowObj.user.userId
-            // + "\nunfollowObj\n" + jsonPrint(unfollowObj)
-            // + "\ncreateParams\n" + jsonPrint(createParams)
-          ));
-
+          if (configuration.verbose) {
+            console.log(chalkTwitter("TSS | --> TWITTER UNFOLLOW"
+              + " [ UFQ: " + unfollowQueue.length + " ]"
+              + " | 3C @" + threeceeUserObj.screenName
+              + " | @" + unfollowObj.user.screenName
+              + " | UID: " + unfollowObj.user.userId
+            ));
+          }
 
           threeceeUserObj.twitStream.post("friendships/destroy", createParams, function(err, data, response) {
             if (err){
@@ -1821,7 +1820,6 @@ function initUnfollowQueue(params){
                 + " | @" + data.screen_name
                 + " | ID: " + data.id_str
                 + " | " + data.name
-                // + "\ndata\n" + jsonPrint(data)
               ));
 
               threeceeUserObj.followUserIdSet.delete(data.id_str);

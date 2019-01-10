@@ -1147,17 +1147,16 @@ function printUserObj(title, user, chalkFormat) {
     + " | " + user.userId
     + " | @" + user.screenName
     + " | " + user.name 
-    + " | LANG: " + user.lang
-    + " | FWR: " + user.followersCount
-    + " | FRD: " + user.friendsCount
-    + " | T: " + user.statusesCount
-    + " | M:  " + user.mentions
-    + " | LS: " + getTimeStamp(user.lastSeen)
-    + " | FLW: " + user.following 
-    + " | 3C: @" + user.threeceeFollowing 
-    + " | LOC: " + user.location
-    + " | CAT M: " + user.category
-    + " / A: " + user.categoryAuto
+    + " | LG " + user.lang
+    + " | FW " + user.followersCount
+    + " | FD " + user.friendsCount
+    + " | T " + user.statusesCount
+    + " | M  " + user.mentions
+    + " | LS " + getTimeStamp(user.lastSeen)
+    + " | FWG " + user.following 
+    + " | 3C " + user.threeceeFollowing 
+    + " | LC " + user.location
+    + " | C M " + user.category + " A " + user.categoryAuto
   ));
 }
 
@@ -3905,11 +3904,9 @@ function socketRxTweet(tw) {
     if (statsObj.twitter.duplicateTweetsReceived % 1000 === 0){
       console.log(chalkLog("WAS"
         + " | ??? DUP TWEET"
-        + " | FILTER DUPs: " + configuration.filterDuplicateTweets
+        + " | FILTER: " + configuration.filterDuplicateTweets
         + " [ $: " + tweetIdCache.getStats().keys + " / " + statsObj.twitter.duplicateTweetsReceived + " DUPs ]"
         + " | " + tw.id_str 
-        + " | CURR @" + tw.user.screen_name
-        + " | PREV @" + prevTweetUser
       ));
     }
     
@@ -4024,10 +4021,10 @@ function socketRxTweet(tw) {
     ));
 
     if (statsObj.twitter.tweetsReceived % 1000 === 0) {
-      console.log(chalkTwitter("WAS | <T | "+ getTimeStamp()
+      console.log(chalkTwitter("WAS | <T"
         + " | RXQ: " + tweetRxQueue.length
-        + " [ Ts/RTs/QTs: " + statsObj.twitter.tweetsReceived + "/" + statsObj.twitter.retweetsReceived + "/" + statsObj.twitter.quotedTweetsReceived + "]"
-        + " | " + tw.id_str
+        + " [ T/R/Q " + statsObj.twitter.tweetsReceived + "/" + statsObj.twitter.retweetsReceived + "/" + statsObj.twitter.quotedTweetsReceived + "]"
+        + " | TW " + tw.id_str
         + " | @" + tw.user.screen_name
         + " | " + tw.user.name
       ));
@@ -6051,7 +6048,7 @@ let userFollowable = function(user){
   if (user.lang !== undefined && user.lang !== "en") { 
     ignoredUserSet.add(user.nodeId);
     unfollowableUserSet.add(user.nodeId);
-    console.log(chalkBlue("WAS | XXX UNFOLLOWABLE | USER LANG NOT ENGLISH: " + user.lang + " | IGNORED USER SET SIZE: " + ignoredUserSet.size));
+    console.log(chalkBlue("WAS | XXX UNFOLLOWABLE | LANG NOT EN: " + user.lang + " | IG: " + ignoredUserSet.size));
     return false;
   }
 

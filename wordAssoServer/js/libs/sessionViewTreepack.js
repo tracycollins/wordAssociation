@@ -225,7 +225,6 @@ function ViewTreepack() {
     this.categoryColor = "#FFFFFF";
     this.categoryMatch = false;
     this.categoryMismatch = false;
-    // this.displaytext = "";
     this.following = false;
     this.followersCount = 0;
     this.followersMentions = 0;
@@ -312,7 +311,6 @@ function ViewTreepack() {
   maxRateMentions.mentions = 2;
   maxRateMentions.ageMaxRatio = 1e-6;
   maxRateMentions.isTrendingTopic = true;
-  // maxRateMentions.displaytext = "WHAT?";
   maxRateMentions.mouseHoverFlag = false;
   maxRateMentions.x = 100;
   maxRateMentions.y = 100;
@@ -1203,11 +1201,6 @@ function ViewTreepack() {
   }
 
   function labelText(d) {
-    // if (d.nodeType === "emoji") { 
-    //   if (d.category || d.categoryAuto) { return d.text.toUpperCase(); }
-    //   if (d.mentions >= minMentions) { return d.text.toUpperCase(); }
-    //   return d.text.toLowerCase(); 
-    // }
     if (d.nodeType === "hashtag") { 
       if (d.category || d.categoryAuto) { return "#" + d.nodeId.toUpperCase(); }
       if (d.mentions >= minMentionsHashtags) { return "#" + d.nodeId.toUpperCase(); }
@@ -1228,9 +1221,6 @@ function ViewTreepack() {
       }
       else { return "@UNKNOWN?"; }
     }
-    // if (d.nodeType === "place") {  
-    //   if (d.fullName) { return d.fullName.toUpperCase(); }
-    // }
     return d.nodeId; 
   }
 
@@ -1616,7 +1606,6 @@ function ViewTreepack() {
       })
       .style("display", function (d) {
         if (!d.isValid) { return "none"; }
-        // if (d.nodeType === "media") { return "none"; }
         if (d.mouseHoverFlag) { return "unset"; }
         if (d.category) { return "unset"; }
         if (d.categoryAuto) { return "unset"; }
@@ -1639,12 +1628,10 @@ function ViewTreepack() {
       })
       .style("font-size", function (d) {
         if (metricMode === "rate") {
-          // if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.rate); }
           if (d.isTopTerm) { return nodeLabelSizeScale(1.5*d.rate); }
           return nodeLabelSizeScale(d.rate);
         }
         if (metricMode === "mentions") { 
-          // if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.mentions); }
           if (d.isTopTerm) { return nodeLabelSizeScale(1.5*d.mentions); }
           return nodeLabelSizeScale(d.mentions);
         }
@@ -1669,7 +1656,6 @@ function ViewTreepack() {
       })
       .style("display", function (d) {
         if (!d.isValid) { return "none"; }
-        // if (d.nodeType === "media") { return "hidden"; }
         if (d.category) { return "unset"; }
         if (d.categoryAuto) { return "unset"; }
         if (mouseMovingFlag) { return "unset"; }
@@ -1697,7 +1683,6 @@ function ViewTreepack() {
         return "none"; 
       })
       .style("fill-opacity", function (d) { 
-        // if (d.nodeType === "media") { return 1e-6; }
         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
         return nodeLabelOpacityScale(d.ageMaxRatio);
       })
@@ -1710,12 +1695,10 @@ function ViewTreepack() {
       })
       .style("font-size", function (d) {
         if (metricMode === "rate") {
-          // if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.rate); }
           if (d.isTopTerm) { return nodeLabelSizeScale(1.5*d.rate); }
           return nodeLabelSizeScale(d.rate);
         }
         if (metricMode === "mentions") { 
-          // if (d.nodeType === "emoji") { return emojiLabelSizeScale(d.mentions); }
           if (d.isTopTerm) { return nodeLabelSizeScale(1.5*d.mentions); }
           return nodeLabelSizeScale(d.mentions);
         }
@@ -1768,10 +1751,11 @@ function ViewTreepack() {
   var rateString = "";
   var mentionPadSpaces = 0;
   var ratePadSpaces = 0;
-  // var displaytext = "";
   var nodeIdString = "";
 
   var createDisplayText = function(node) {
+
+    let displaytext = "";
 
     mentionsInt = parseInt(node.mentions);
     rateString = node.rate.toFixed(2).toString() ;
@@ -1827,11 +1811,6 @@ function ViewTreepack() {
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt 
         + " | #" + node.text.toUpperCase() ;
       }
-      // else if (node.nodeType === "place") { 
-      //   displaytext = new Array(ratePadSpaces).join("\xa0") + rateString 
-      //   + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt 
-      //   + " | " + node.fullName.toUpperCase() ;
-      // }
       else if (testMode) { 
         displaytext = new Array(ratePadSpaces).join("\xa0") + rateString 
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt 

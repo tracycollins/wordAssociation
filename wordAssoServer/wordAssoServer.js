@@ -9958,9 +9958,6 @@ function twitterGetUserUpdateDb(user, callback){
 
         if (rawUser && (rawUser !== undefined)) {
 
-          // if (!statsObj.dbConnectionReady) {
-          //   return callback("DB CONNECTION NOT READY", rawUser);
-          // }
           if (!userServerControllerReady || !statsObj.dbConnectionReady) {
             return callback(new Error("userServerController not ready"), null);
           }
@@ -10002,10 +9999,6 @@ function twitterGetUserUpdateDb(user, callback){
             if (nCacheObj) {
               user.mentions = Math.max(user.mentions, nCacheObj.mentions);
               user.setMentions = true;
-            }
-
-            if (!userServerControllerReady || !statsObj.dbConnectionReady) {
-              return callback(new Error("userServerController not ready"), null);
             }
 
             try{

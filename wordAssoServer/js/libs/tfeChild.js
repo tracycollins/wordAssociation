@@ -196,8 +196,7 @@ configuration.globalTestMode = false;
 configuration.forceImageAnalysis = false;
 configuration.enableImageAnalysis = true;
 configuration.testMode = false; // per tweet test mode
-configuration.userCategorizeQueueInterval = ONE_SECOND;
-configuration.userChangeDbQueueInterval = 10;
+configuration.userCategorizeQueueInterval = 100;
 
 configuration.enableLanguageAnalysis = false;
 configuration.forceLanguageAnalysis = false;
@@ -974,9 +973,6 @@ function checkTwitterRateLimitAll(callback){
 
 let userCategorizeQueueReady = true;
 let userCategorizeQueueInterval;
-
-let userChangeDbQueueReady = true;
-let userChangeDbQueueInterval;
 
 let generateNetworkInputBusy = false;
 
@@ -2299,13 +2295,12 @@ function initUserCategorizeQueueInterval(cnf){
           + " [UC$: " + userChangeCache.getStats().keys + "]"
           + " [UCQ: " + userCategorizeQueue.length + "]"
           + " | NN: " + networkObj.networkId + " | ", updatedUser, chalkInfo);
-
-        // quit({cause: "USC TIMEOUT"});
-
       }, 5000);
 
       try {
+
         let dbUser = await userServerController.findOneUserV2({user: updatedUser, mergeHistograms: false, noInc: true});
+
         printUserObj("WAS | TFC | " 
           + " [UC$: " + userChangeCache.getStats().keys + "]"
           + " [UCQ: " + userCategorizeQueue.length + "]"
@@ -2707,9 +2702,7 @@ setTimeout(function(){
 
     initInfoTwit({screenName: DEFAULT_INFO_TWITTER_USER}, async function(err, ituObj){
       infoTwitterUserObj = ituObj;
-      // initUserChangeDbQueueInterval(configuration);
       initUserCategorizeQueueInterval(configuration);
-      // await initDbUserChangeStream({db: global.dbConnection});
     });
 
   });

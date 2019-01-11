@@ -385,9 +385,9 @@ function ViewTreepack() {
   var newFlagStrokeWidth = "2.0px";
 
   var categoryMatchColor = palette.green;
-  var categoryMatchStrokeWidth = "4.0px";
-  var categoryMismatchStrokeWidth = "6.0px";
-  var categoryAutoStrokeWidth = "8.0px";
+  var categoryMatchStrokeWidth = "10.0px";
+  var categoryMismatchStrokeWidth = "8.0px";
+  var categoryAutoStrokeWidth = "4.0px";
 
   var divTooltip = d3.select("body").append("div")
     .attr("id", "divTooltip")

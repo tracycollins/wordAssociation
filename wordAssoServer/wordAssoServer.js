@@ -7890,32 +7890,53 @@ function initTfeChild(params){
         + " | OP: " + m.op
       ));
 
+      const isInfoUser = m.isInfoUser || false;
+
+      const threeceeHashMap = (isInfoUser) ? threeceeInfoTwitter : threeceeTwitter ;
+
       switch (m.op) {
 
         case "ERROR":
+
           console.log(chalkError("WAS | <TFE | ERROR"
+            + " | 3C @" + m.threeceeUser
+            + " | INFO 3C: " + isInfoUser
             + " | ERROR TYPE: " + m.errorType
-            + "\n" + jsonPrint(m.error)
+            // + "\n" + jsonPrint(m.error)
           ));
 
           if (m.errorType === "TWITTER_UNAUTHORIZED") {
 
-            threeceeTwitter[m.threeceeUser].twitterErrors += 1;
-            threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
-            threeceeTwitter[m.threeceeUser].twitterAuthorizationErrorFlag = m.error;
+            threeceeHashMap[m.threeceeUser].twitterErrors += 1;
+            threeceeHashMap[m.threeceeUser].twitterErrorFlag = m.error;
+            threeceeHashMap[m.threeceeUser].twitterAuthorizationErrorFlag = m.error;
 
           }
           else if (m.errorType === "TWITTER_TOKEN") {
 
-            threeceeTwitter[m.threeceeUser].twitterErrors += 1;
-            threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
-            threeceeTwitter[m.threeceeUser].twitterTokenErrorFlag = m.error;
+            threeceeHashMap[m.threeceeUser].twitterErrors += 1;
+            threeceeHashMap[m.threeceeUser].twitterErrorFlag = m.error;
+            threeceeHashMap[m.threeceeUser].twitterTokenErrorFlag = m.error;
+
+          }
+          else if (m.errorType === "BLOCKED") {
+
+            threeceeHashMap[m.threeceeUser].twitterErrors += 1;
+            threeceeHashMap[m.threeceeUser].twitterErrorFlag = m.error;
+            threeceeHashMap[m.threeceeUser].twitterTokenErrorFlag = m.error;
 
           }
           else {
 
-            threeceeTwitter[m.threeceeUser].twitterErrors += 1;
-            threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
+            console.log(chalkError("WAS | <TFE | ERROR"
+              + " | 3C @" + m.threeceeUser
+              + " | INFO 3C: " + isInfoUser
+              + " | ERROR TYPE: " + m.errorType
+              + "\n" + jsonPrint(m.error)
+            ));
+
+            threeceeHashMap[m.threeceeUser].twitterErrors += 1;
+            threeceeHashMap[m.threeceeUser].twitterErrorFlag = m.error;
 
           }
         break;
@@ -7936,8 +7957,8 @@ function initTfeChild(params){
             + " | FOLLOWING: " + m.twitterFollowing
           ));
 
-          threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
-          threeceeTwitter[m.threeceeUser].twitterFriends = m.twitterFriends;
+          threeceeHashMap[m.threeceeUser].twitterFollowing = m.twitterFollowing;
+          threeceeHashMap[m.threeceeUser].twitterFriends = m.twitterFriends;
 
           try{
             childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});
@@ -7959,9 +7980,9 @@ function initTfeChild(params){
             + " | NOW: " + getTimeStamp()
           ));
 
-          threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
-          threeceeTwitter[m.threeceeUser].twitterFriends = m.twitterFriends;
-          threeceeTwitter[m.threeceeUser].twitterFollowLimit = true;
+          threeceeHashMap[m.threeceeUser].twitterFollowing = m.twitterFollowing;
+          threeceeHashMap[m.threeceeUser].twitterFriends = m.twitterFriends;
+          threeceeHashMap[m.threeceeUser].twitterFollowLimit = true;
         break;
 
         case "TWEET":
@@ -9881,45 +9902,6 @@ function initThreeceeTwitterUsers(params){
 
   });
 }
-
-// function initCategoryHashmapsInterval(interval){
-
-//   return new Promise(function(resolve, reject){
-
-//     console.log(chalk.bold.black("WAS | INIT CATEGORY HASHMAP INTERVAL"
-//       + " | " + msToTime(interval)
-//     ));
-
-//     clearInterval(categoryHashmapsInterval);
-
-//     categoryHashmapsInterval = setInterval(async function updateMemStats() {
-
-//       if (statsObj.dbConnectionReady && initCategoryHashmapsReady) {
-
-//         debug(chalkInfo("--- IN CATEGORY HASHMAP INTERVAL"
-//           + " | " + msToTime(interval)
-//         ));
-
-//         initCategoryHashmapsReady = false;
-
-//         try {
-//           await initCategoryHashmaps();
-//           console.log(chalk.bold.green("WAS | INIT CATEGORY HASHMAPS COMPLETE"));
-//           initCategoryHashmapsReady = true;
-//         }
-//         catch (err){
-//           console.log(chalkError("WAS | *** ERROR: INIT CATEGORY HASHMAPS: " + err));
-//           console.error(err);
-//           initCategoryHashmapsReady = true;
-//         }
-
-//       }
-
-//     }, interval);
-
-//     resolve();
-//   });
-// }
 
 function twitterGetUserUpdateDb(user, callback){
 

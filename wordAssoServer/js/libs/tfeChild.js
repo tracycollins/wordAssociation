@@ -4,6 +4,10 @@
 
 process.title = "wa_node_child_tfe";
 
+const DEFAULT_TWEET_FETCH_COUNT = 10;
+const DEFAULT_TWEET_FETCH_EXCLUDE_REPLIES = true;
+const DEFAULT_TWEET_FETCH_INCLUDE_RETWEETS = false;
+
 const DEFAULT_WORD_MIN_LENGTH = 3;
 const DEFAULT_INPUT_TYPES = [
   "emoji", 
@@ -114,8 +118,6 @@ const googleMapsClient = require("@google/maps").createClient({
   key: "AIzaSyDBxA6RmuBcyj-t7gfvK61yp8CDNnRLUlc"
 });
 
-
-// const mergeHistograms = require("./mergeHistograms");
 const MergeHistograms = require("@threeceelabs/mergehistograms");
 const mergeHistograms = new MergeHistograms();
 
@@ -229,7 +231,7 @@ console.log(
 );
 
 if (debug.enabled) {
-  console.log("*** TFE\n%%%%%%%%%%%%%%\n%%%%%%% DEBUG ENABLED %%%%%%%\n%%%%%%%%%%%%%%\n");
+  console.log("*** WAS | TFC\n%%%%%%%%%%%%%%\n%%%%%%% DEBUG ENABLED %%%%%%%\n%%%%%%%%%%%%%%\n");
 }
 
 function msToTime(duration) {
@@ -267,19 +269,11 @@ statsObj.user = {};
 statsObj.user.changes = 0;
 
 statsObj.queues = {};
-statsObj.twitterDeletes = 0;
-statsObj.twitterConnects = 0;
-statsObj.twitterDisconnects = 0;
-statsObj.twitterReconnects = 0;
-statsObj.twitterWarnings = 0;
-statsObj.twitterErrors = 0;
-statsObj.twitterLimit = 0;
-statsObj.twitterScrubGeo = 0;
-statsObj.twitterStatusWithheld = 0;
-statsObj.twitterUserWithheld = 0;
-statsObj.twitterLimit = 0;
-statsObj.twitterLimitMax = 0;
-statsObj.twitterLimitMaxTime = moment().valueOf();
+
+statsObj.twitter = {};
+statsObj.twitter.tweetsHits = 0;
+statsObj.twitter.tweetsProcessed = 0;
+statsObj.twitter.tweetsTotal = 0;
 
 statsObj.geo = {};
 statsObj.geo.misses = 0;
@@ -539,7 +533,7 @@ function quit(message) {
 
   console.error("WAS | TFC | " + process.argv[1]
     + " | " + moment().format(compactDateTimeFormat)
-    + " | TFE CHILD: **** QUITTING"
+    + " | **** QUITTING"
     + " | CAUSE: " + msg
     + " | PID: " + process.pid
     
@@ -906,7 +900,6 @@ function checkTwitterRateLimit(params, callback){
       }
 
       if (data.resources.users["/users/show/:id"].remaining > 0){
-
 
         twitterUserObj.stats.ready = true;
 
@@ -1548,11 +1541,13 @@ function checkUserProfileChanged(params) {
       || allHistogramsZero
     ){
 
-      console.log(chalkLog(
-        "WAS | TFC | USER PROFILE HISTOGRAMS UNDEFINED" 
-        + " | RST PREV PROP VALUES" 
-        + " | @" + user.screenName 
-      ));
+      if (configuration.verbose) {
+        console.log(chalkLog(
+          "WAS | TFC | USER PROFILE HISTOGRAMS UNDEFINED" 
+          + " | RST PREV PROP VALUES" 
+          + " | @" + user.screenName 
+        ));
+      }
 
       user.previousBannerImageUrl = null;
       user.previousDescription = null;
@@ -1620,6 +1615,211 @@ function checkUserStatusChanged(params) {
 
     if (results.length === 0) { return resolve(); }
     resolve(results);    
+
+  });
+}
+
+function processTweetObj(params){
+
+  return new Promise(async function(resolve, reject){
+
+    let tweetObj = params.tweetObj;
+    let histograms = params.histograms;
+
+    async.eachSeries(DEFAULT_INPUT_TYPES, function(entityType, cb0){
+
+      if (!entityType || entityType === undefined) {
+        console.log(chalkAlert("WAS | TFC | ??? UNDEFINED TWEET entityType: ", entityType));
+        return cb0();
+      }
+
+      if (entityType === "user") { return cb0(); }
+      if (!tweetObj[entityType] || tweetObj[entityType] === undefined) { return cb0(); }
+      if (tweetObj[entityType].length === 0) { return cb0(); }
+
+      async.eachSeries(tweetObj[entityType], function(entityObj, cb1){
+
+        if (!entityObj) {
+          debug(chalkInfo("WAS | TFC | !!! NULL entity? | ENTITY TYPE: " + entityType + " | entityObj: " + entityObj));
+          return cb1();
+        }
+
+        let entity;
+
+        switch (entityType) {
+          case "hashtags":
+            entity = "#" + entityObj.nodeId.toLowerCase();
+          break;
+          case "mentions":
+          case "userMentions":
+            entity = "@" + entityObj.screenName.toLowerCase();
+          break;
+          case "locations":
+            entity = entityObj.nodeId;
+          break;
+          case "images":
+          case "media":
+            entity = entityObj.nodeId;
+          break;
+          case "emoji":
+            entity = entityObj.nodeId;
+          break;
+          case "urls":
+            if (entityObj.nodeId.includes(".")) { 
+              entity = btoa(entityObj.nodeId);
+            }
+            else{
+              entity = entityObj.nodeId;
+            }
+          break;
+          case "words":
+            entity = entityObj.nodeId.toLowerCase();
+            entity = entity.replace(/\./gi, "_")
+          break;
+          case "places":
+            entity = entityObj.nodeId;
+          break;
+        }
+
+        if (!histograms[entityType] || (histograms[entityType] === undefined)){
+          histograms[entityType] = {};
+          histograms[entityType][entity] = 1;
+        }
+
+        if (!histograms[entityType][entity] || (histograms[entityType][entity] === undefined)){
+          histograms[entityType][entity] = 1;
+        }
+
+        async.setImmediate(function() { cb1(); });
+
+      }, function(){
+
+        async.setImmediate(function() { cb0(); });
+
+      });
+    }, function(err){
+
+      if (err) {
+        return reject(err);
+      }
+
+      resolve(histograms);
+
+    });
+
+  });
+}
+
+function updateUserTweets(params){
+
+  return new Promise(function(resolve, reject){
+
+    if (params.tweets.length === 0) { return resolve(params.user); }
+
+    let user = params.user;
+    if (user.tweetHistograms === undefined) { user.tweetHistograms = {}; }
+    if (user.tweets === undefined) { 
+      user.tweets = {};
+      user.tweets.maxId = "0";
+      user.tweets.sinceId = "0";
+      user.tweets.tweetIds = [];
+    }
+
+    user.tweets.maxId = user.tweets.maxId || "0";
+    user.tweets.sinceId = user.tweets.sinceId || "0";
+    user.tweets.tweetIds = user.tweets.tweetIds || [];
+
+    if (user.tweetHistograms === undefined) { user.tweetHistograms = {}; }
+
+    let tscParams = {};
+
+    tscParams.globalTestMode = configuration.globalTestMode;
+    tscParams.testMode = configuration.testMode;
+    tscParams.inc = false;
+    tscParams.twitterEvents = configEvents;
+    tscParams.tweetStatus = {};
+
+    let tweetsProcessed = 0;
+
+    async.eachSeries(params.tweets, async function(tweet){
+
+      tscParams.tweetStatus = tweet;
+      tscParams.tweetStatus.user = {};
+      tscParams.tweetStatus.user = user;
+      tscParams.tweetStatus.user.isNotRaw = true;
+
+      if (tweet.id_str > user.tweets.maxId) {
+        user.tweets.maxId = tweet.id_str;
+      }
+
+      if (tweet.id_str > user.tweets.sinceId) {
+        user.tweets.sinceId = tweet.id_str;
+      }
+
+      if (!user.tweets.tweetIds.includes(tweet.id_str)) { 
+
+        try {
+
+          const tweetObj = await tweetServerController.createStreamTweet(tscParams);
+
+          user.tweetHistograms = await processTweetObj({tweetObj: tweetObj, histograms: user.tweetHistograms});
+          user.tweets.tweetIds.push(tweet.id_str); 
+
+          tweetsProcessed += 1;
+          statsObj.twitter.tweetsProcessed += 1;
+          statsObj.twitter.tweetsTotal += 1;
+
+          if (configuration.verbose) {
+            console.log(chalkTwitter("WAS | TFC | +++ PROCESSED TWEET"
+              + " [ H/P/T " + statsObj.twitter.tweetsProcessed + "/" + statsObj.twitter.tweetsHits + "/" + statsObj.twitter.tweetsTotal + "]"
+              + " | TW: " + tweet.id_str
+              + " | SINCE: " + user.tweets.sinceId
+              + " | TWs: " + user.tweets.tweetIds.length
+              + " | @" + user.screenName
+            ));
+          }
+
+          return;
+        }
+        catch(err){
+          console.log(chalkError("WAS | TFC | updateUserTweets ERROR: " + err));
+          return err;
+        }
+      }
+      else {
+
+        statsObj.twitter.tweetsHits += 1;
+        statsObj.twitter.tweetsTotal += 1;
+
+        if (configuration.verbose) {
+          console.log(chalkInfo("WAS | TFC | ... TWEET ALREADY PROCESSED"
+            + " [ H/P/T " + statsObj.twitter.tweetsProcessed + "/" + statsObj.twitter.tweetsHits + "/" + statsObj.twitter.tweetsTotal + "]"
+            + " | TW: " + tweet.id_str
+            + " | TWs: " + user.tweets.tweetIds.length
+            + " | @" + user.screenName
+          ));
+        }
+
+        return;
+      }
+
+    }, function(err){
+      if (err) {
+        console.log(chalkError("WAS | TFC | updateUserTweets ERROR: " + err));
+        return reject(err);
+      }
+
+      if (configuration.verbose || (tweetsProcessed > 0)) {
+        console.log(chalkLog("WAS | TFC | +++ TWEETS"
+          + " [ H/P/T " + statsObj.twitter.tweetsProcessed + "/" + statsObj.twitter.tweetsHits + "/" + statsObj.twitter.tweetsTotal + " ]"
+          + " | SINCE: " + user.tweets.sinceId
+          + " | Ts: " + user.tweets.tweetIds.length
+          + " | @" + user.screenName
+        ));
+      }
+
+      resolve(user);
+    });
 
   });
 }
@@ -2111,6 +2311,166 @@ function userStatusChangeHistogram(params) {
   });
 }
 
+let infoRateLimitTimeout;
+let infoRateLimitStatusInterval;
+
+function initRateLimitPause(params){
+
+  // infoTwitterUserObj.stats.twitterRateLimitExceptionFlag = true;
+  // infoTwitterUserObj.stats.twitterRateLimit = response.headers["x-rate-limit-limit"];
+  // infoTwitterUserObj.stats.twitterRateLimitRemaining = response.headers["x-rate-limit-remaining"];
+  // infoTwitterUserObj.stats.twitterRateLimitResetAt = moment.unix(response.headers["x-rate-limit-reset"]);
+  // infoTwitterUserObj.stats.twitterRateLimitRemainingTime = moment.unix(response.headers["x-rate-limit-reset"]).diff(moment());
+
+  return new Promise(async function(resolve, reject){
+
+    console.log(chalkAlert("WAS | TFC"
+      + " | RATE LIMIT PAUSE"
+      + " | @" + configuration.threeceeUser
+      + " | NOW: " + moment().format(compactDateTimeFormat)
+      + " | RESET AT: " + params.twitterRateLimitResetAt.format(compactDateTimeFormat)
+      + " | REMAINING: " + msToTime(params.twitterRateLimitRemainingTime)
+    ));
+
+    clearInterval(infoRateLimitStatusInterval);
+    clearTimeout(infoRateLimitTimeout);
+
+    let remainingTime = params.twitterRateLimitRemainingTime;
+    const resetAt = params.twitterRateLimitResetAt;
+
+    infoRateLimitStatusInterval = setInterval(function(){
+
+      remainingTime = resetAt.diff(moment());
+
+      console.log(chalkAlert("WAS | TFC"
+        + " | RATE LIMIT PAUSE"
+        + " | @" + configuration.threeceeUser
+        + " | NOW: " + moment().format(compactDateTimeFormat)
+        + " | RESET AT: " + resetAt.format(compactDateTimeFormat)
+        + " | REMAINING: " + msToTime(remainingTime)
+      ));
+
+    }, 10*ONE_SECOND);
+
+    infoRateLimitTimeout = setTimeout(function(){
+
+      remainingTime = resetAt.diff(moment());
+
+      console.log(chalkAlert("WAS | TFC | XXX RATE LIMIT EXPIRED"
+        + " | @" + configuration.threeceeUser
+        + " | NOW: " + moment().format(compactDateTimeFormat)
+        + " | RESET AT: " + resetAt.format(compactDateTimeFormat)
+        + " | REMAINING: " + msToTime(remainingTime)
+      ));
+
+      infoTwitterUserObj.stats.twitterRateLimitExceptionFlag = false;
+
+      clearInterval(infoRateLimitStatusInterval);
+
+    }, params.twitterRateLimitRemainingTime);
+
+    resolve();
+
+  });
+
+}
+
+function fetchUserTweets(params){
+
+  return new Promise(async function(resolve, reject){
+
+    let fetchUserTweetsParams = {};
+
+    fetchUserTweetsParams.user_id = params.userId;
+
+    if (params.trimUser) { fetchUserTweetsParams.trim_user = params.trimId; } 
+    if (params.maxId) { fetchUserTweetsParams.max_id = params.maxId; } 
+    if (params.sinceId) { fetchUserTweetsParams.since_id = params.sinceId; } 
+
+    fetchUserTweetsParams.count = params.count || DEFAULT_TWEET_FETCH_COUNT;
+    fetchUserTweetsParams.exclude_replies = params.excludeReplies || DEFAULT_TWEET_FETCH_EXCLUDE_REPLIES;
+    fetchUserTweetsParams.include_rts = params.includeRetweets || DEFAULT_TWEET_FETCH_INCLUDE_RETWEETS;
+
+    infoTwitterUserObj.twit.get("statuses/user_timeline", fetchUserTweetsParams, async function(err, userTweetsArray, response) {
+
+      if (err){
+
+        console.log(chalkError("TFC | *** TWITTER FETCH USER TWEETS ERROR"
+          + " | @" + configuration.threeceeUser 
+          + " | FETCH USER ID: " + params.userId
+          + " | " + getTimeStamp() 
+          + " | ERR CODE: " + err.code
+          + " | " + err.message
+        ));
+
+        if (err.code === 136){ // You have been blocked from viewing this user's profile.
+          process.send({op:"ERROR", errorType: "BLOCKED", isInfoUser: true, threeceeUser: configuration.threeceeUser, error: err});
+          return reject(err);
+        }
+
+        if (err.code === 88){
+
+          infoTwitterUserObj.stats.twitterRateLimitExceptionFlag = true;
+          infoTwitterUserObj.stats.twitterRateLimit = response.headers["x-rate-limit-limit"];
+          infoTwitterUserObj.stats.twitterRateLimitRemaining = response.headers["x-rate-limit-remaining"];
+          infoTwitterUserObj.stats.twitterRateLimitResetAt = moment.unix(response.headers["x-rate-limit-reset"]);
+          infoTwitterUserObj.stats.twitterRateLimitRemainingTime = moment.unix(response.headers["x-rate-limit-reset"]).diff(moment());
+
+          console.log(chalkAlert("TFC | RATE LIMIT"
+            + " | LIM: " + infoTwitterUserObj.stats.twitterRateLimit
+            + " | REM: " + infoTwitterUserObj.stats.twitterRateLimitRemaining
+            + " | RESET AT: " + infoTwitterUserObj.stats.twitterRateLimitResetAt.format(compactDateTimeFormat)
+            + " | REMAINING: " + msToTime(infoTwitterUserObj.stats.twitterRateLimitRemainingTime)
+            // + "\n" + jsonPrint(response.headers)
+          ));
+
+          try {
+            await initRateLimitPause(infoTwitterUserObj.stats);
+          }
+          catch(err){
+            console.log(chalkError("WAS | TFC | *** INIT RATE LIMIT PAUSE ERROR: " + err));
+          }
+
+          return reject(err);
+        }
+
+        if (err.code === 89){
+
+          console.log(chalkAlert("TFC | *** TWITTER FETCH USER TWEETS ERROR | INVALID OR EXPIRED TOKEN" 
+            + " | " + getTimeStamp() 
+            + " | @" + configuration.threeceeUser 
+          ));
+
+
+          statsObj.threeceeUser = Object.assign({}, threeceeUserDefaults, statsObj.threeceeUser);  
+
+          statsObj.threeceeUser.err = err;
+
+          fsm.fsm_error();
+
+          process.send({op:"ERROR", errorType: "TWITTER_TOKEN", isInfoUser: true, threeceeUser: configuration.threeceeUser, error: err});
+          return reject(err);
+
+        }
+        
+        return reject(err);
+      }
+
+      if (configuration.verbose) {
+        console.log(chalkInfo("TFC | +++ FETCHED USER TWEETS" 
+          + " [" + userTweetsArray.length + "]"
+          + " | @" + configuration.threeceeUser 
+          + " | UID " + params.userId
+        ));
+      }
+
+      resolve(userTweetsArray);
+
+    });
+
+  });
+}
+
 function updateUserHistograms(params) {
 
   return new Promise(async function(resolve, reject){
@@ -2127,106 +2487,53 @@ function updateUserHistograms(params) {
     params.user.userId = (params.user.nodeId && !params.user.userId) ? params.user.nodeId : params.user.userId;
 
     try {
+
       user = await global.User.findOne({nodeId: params.user.nodeId});
+
       if (!user) {
         user = global.User(params.user);
       }
+
+      user.profileHistograms = user.profileHistograms || {};
+      user.tweetHistograms = user.tweetHistograms || {};
+
+      let latestTweets = [];
+
+      if (!infoTwitterUserObj.stats.twitterRateLimitExceptionFlag) {
+        latestTweets = await fetchUserTweets({userId: user.userId});
+      }
+
+      user = await updateUserTweets({user: user, tweets: latestTweets});
+
+      const profileHistogramChanges = await userProfileChangeHistogram({user:user});
+
+      if (profileHistogramChanges) {
+        user.profileHistograms = await mergeHistograms.merge({ histogramA: user.profileHistograms, histogramB: profileHistogramChanges });
+      }
+
+      user.previousBannerImageUrl = user.bannerImageUrl;
+      user.previousDescription = user.description;
+      user.previousExpandedUrl = user.expandedUrl;
+      user.previousLocation = user.location;
+      user.previousName = user.name;
+      user.previousProfileUrl = user.profileUrl;
+      user.previousQuotedStatusId = user.quotedStatusId;
+      user.previousScreenName = user.screenName;
+      user.previousStatusId = user.statusId;
+      user.previousUrl = user.url;
+
+      await updateGlobalHistograms({user: user});
+      resolve(user);
+
     }
-    catch (err){
-      console.log(chalkError("WAS | TFE | *** updateUserHistograms USER FIND ERROR"
+    catch(err){
+      console.log(chalkError("WAS | TFC | *** updateUserHistograms ERROR"
         + " | NID: " + params.user.nodeId
         + " | @" + params.user.screenName
       ));
+      return reject(err);
     }
 
-    user.profileHistograms = user.profileHistograms || {};
-    user.tweetHistograms = user.tweetHistograms || {};
-
-    userStatusChangeHistogram({user: user})
-
-      .then(function(tweetHistogramChanges){
-
-        userProfileChangeHistogram({user:user})
-        .then(function(profileHistogramChanges){
-
-          async.parallel({
-
-            profileHist: function(cb){
-
-              if (profileHistogramChanges) {
-
-                mergeHistograms.merge({ histogramA: user.profileHistograms, histogramB: profileHistogramChanges })
-                .then(function(profileHist){
-                  cb(null, profileHist);
-                })
-                .catch(function(err){
-                  console.log(chalkError("WAS | TFC | *** MERGE HISTOGRAMS ERROR | PROFILE: " + err));
-                  return cb(err, null);
-                });
-
-              }
-              else {
-                cb(null, user.profileHistograms);
-              }
-
-            },
-
-            tweetHist: function(cb){
-
-              if (tweetHistogramChanges) {
-
-                mergeHistograms.merge({ histogramA: user.tweetHistograms, histogramB: tweetHistogramChanges })
-                .then(function(tweetHist){
-                  cb(null, tweetHist);
-                })
-                .catch(function(err){
-                  console.log(chalkError("WAS | TFC | *** MERGE HISTOGRAMS ERROR | TWEET: " + err));
-                  return cb(err, null);
-                });
-
-              }
-              else {
-                cb(null, user.tweetHistograms);
-              }
-            }
-
-          }, function(err, results){
-            if (err) {
-              return reject(err);
-            }
-
-            user.profileHistograms = results.profileHist;
-            user.tweetHistograms = results.tweetHist;
-
-            user.previousBannerImageUrl = user.bannerImageUrl;
-            user.previousDescription = user.description;
-            user.previousExpandedUrl = user.expandedUrl;
-            user.previousLocation = user.location;
-            user.previousName = user.name;
-            user.previousProfileUrl = user.profileUrl;
-            user.previousQuotedStatusId = user.quotedStatusId;
-            user.previousScreenName = user.screenName;
-            user.previousStatusId = user.statusId;
-            user.previousUrl = user.url;
-
-            updateGlobalHistograms({user: user})
-            .then(function(){
-              resolve(user);
-            })
-            .catch(function(err){
-              console.log(chalkError("WAS | TFC | *** UPDATE USER HISTOGRAM ERROR: " + err));
-              return reject(err);
-            });
-
-          });
-
-        });
-
-      })
-      .catch(function(err){
-        console.log(chalkError("WAS | TFC | *** UPDATE USER HISTOGRAM ERROR: " + err));
-        return reject(err);
-      });
   });
 }
 
@@ -2265,7 +2572,7 @@ function initUserCategorizeQueueInterval(cnf){
       }
       catch (err) {
         console.log(chalkError("WAS | TFC | *** UPDATE USER HISTOGRAMS ERROR: " + err));
-        console.error(err);
+        // console.error(err);
         userChangeCache.del(user.nodeId);
         userCategorizeQueueReady = true;
         return;
@@ -2319,7 +2626,7 @@ function initialize(cnf, callback){
   console.log(chalkLog("WAS | TFC | INITIALIZE"));
 
   if (debug.enabled || debugCache.enabled || debugQ.enabled){
-    console.log("\nTFE | %%%%%%%%%%%%%%\nTFE | DEBUG ENABLED \nTFE | %%%%%%%%%%%%%%\n");
+    console.log("\nWAS | TFC | %%%%%%%%%%%%%%\nWAS | TFC | DEBUG ENABLED \nWAS | TFC | %%%%%%%%%%%%%%\n");
   }
 
   cnf.processName = process.env.TFE_PROCESS_NAME || "wa_node_tfe";
@@ -2463,7 +2770,6 @@ function initialize(cnf, callback){
 }
 
 let sendMessageTimeout;
-
 
 process.on("message", function(m) {
 
@@ -2654,7 +2960,7 @@ process.on("message", function(m) {
     break;
 
     default:
-      console.error(chalkLog("WAS | TFC | TWP | *** TFE UNKNOWN OP"
+      console.error(chalkLog("WAS | TFC | TWP | *** UNKNOWN OP"
         + " | INTERVAL: " + m.op
       ));
 
@@ -2695,6 +3001,7 @@ setTimeout(function(){
     }, 1000);
 
     initInfoTwit({screenName: DEFAULT_INFO_TWITTER_USER}, async function(err, ituObj){
+      configuration.threeceeUser = DEFAULT_INFO_TWITTER_USER;
       infoTwitterUserObj = ituObj;
       initUserCategorizeQueueInterval(configuration);
     });

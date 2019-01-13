@@ -5131,7 +5131,7 @@ function initSocketHandler(socketObj) {
       + " | @" + user.screenName
     ));
 
-    unfollow({user: user, socketId: socket.id}, function(err, updatedUser){
+    unfollow({user: user}, function(err, updatedUser){
       if (err) {
         console.log(chalkError("WAS | TWITTER_UNFOLLOW ERROR: " + err));
         return;
@@ -5143,7 +5143,6 @@ function initSocketHandler(socketObj) {
       utilNameSpace.emit("UNFOLLOW", updatedUser);
 
       console.log(chalk.blue("WAS | XXX TWITTER_UNFOLLOW"
-        + " | SID: " + socket.id
         + " | UID" + updatedUser.nodeId
         + " | @" + updatedUser.screenName
       ));
@@ -7926,7 +7925,12 @@ function initTfeChild(params){
             threeceeHashMap[m.threeceeUser].twitterErrorFlag = m.error;
             threeceeHashMap[m.threeceeUser].twitterTokenErrorFlag = m.error;
 
-            unfollow({user: {nodeId: m.userId}}, function(err, updatedUser){
+            const user = {
+              nodeId: m.userId,
+              userId: m.userId
+            }
+
+            unfollow({user: user}, function(err, updatedUser){
               if (err) {
                 console.log(chalkError("WAS | TWITTER_UNFOLLOW ERROR: " + err));
                 return;

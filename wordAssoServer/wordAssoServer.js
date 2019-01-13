@@ -5149,6 +5149,7 @@ function initSocketHandler(socketObj) {
       ));
 
     });
+
   });
 
   socket.on("TWITTER_IGNORE", function twitterIgnore(user) {
@@ -7925,6 +7926,24 @@ function initTfeChild(params){
             threeceeHashMap[m.threeceeUser].twitterErrorFlag = m.error;
             threeceeHashMap[m.threeceeUser].twitterTokenErrorFlag = m.error;
 
+            unfollow({user: {nodeId: m.userId}}, function(err, updatedUser){
+              if (err) {
+                console.log(chalkError("WAS | TWITTER_UNFOLLOW ERROR: " + err));
+                return;
+              }
+              
+              if (!updatedUser) { return; }
+
+              adminNameSpace.emit("UNFOLLOW", updatedUser);
+              utilNameSpace.emit("UNFOLLOW", updatedUser);
+
+              console.log(chalk.blue("WAS | XXX TWITTER_UNFOLLOW"
+                + " | UID" + updatedUser.nodeId
+                + " | @" + updatedUser.screenName
+              ));
+
+            });
+
           }
           else {
 
@@ -7940,15 +7959,6 @@ function initTfeChild(params){
 
           }
         break;
-
-        // case "USER_CATEGORIZED":
-        //   console.log(chalkTwitter("WAS | R< USER_CATEGORIZED"
-        //     + " | @" + m.user.screenName 
-        //     + " | CAT MAN: " + m.user.category
-        //     + " | AUTO: " + m.user.categoryAuto
-        //   ));
-        //   categorizedUserHashMap.set(m.user.nodeId, m.user);
-        // break;
 
         case "TWITTER_STATS":
 

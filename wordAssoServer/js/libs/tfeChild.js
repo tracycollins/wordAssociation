@@ -1811,6 +1811,7 @@ function updateUserTweets(params){
 
       if (configuration.verbose || (tweetsProcessed > 0)) {
         console.log(chalkLog("WAS | TFC | +++ TWEETS"
+          + " | NEW: " + tweetsProcessed
           + " [ H/P/T " + statsObj.twitter.tweetsProcessed + "/" + statsObj.twitter.tweetsHits + "/" + statsObj.twitter.tweetsTotal + " ]"
           + " | SINCE: " + user.tweets.sinceId
           + " | Ts: " + user.tweets.tweetIds.length

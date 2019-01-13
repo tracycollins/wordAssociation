@@ -2337,6 +2337,7 @@ function initRateLimitPause(params){
 
     let remainingTime = params.twitterRateLimitRemainingTime;
     const resetAt = params.twitterRateLimitResetAt;
+    const timeout = params.twitterRateLimitRemainingTime + ONE_MINUTE;
 
     infoRateLimitStatusInterval = setInterval(function(){
 
@@ -2367,7 +2368,7 @@ function initRateLimitPause(params){
 
       clearInterval(infoRateLimitStatusInterval);
 
-    }, params.twitterRateLimitRemainingTime);
+    }, timeout);
 
     resolve();
 
@@ -2404,7 +2405,14 @@ function fetchUserTweets(params){
         ));
 
         if (err.code === 136){ // You have been blocked from viewing this user's profile.
-          process.send({op:"ERROR", errorType: "BLOCKED", isInfoUser: true, threeceeUser: configuration.threeceeUser, error: err});
+          process.send({
+            op:"ERROR", 
+            errorType: "BLOCKED",
+            userId: params.userId,
+            isInfoUser: true, 
+            threeceeUser: configuration.threeceeUser,
+            error: err
+          });
           return reject(err);
         }
 

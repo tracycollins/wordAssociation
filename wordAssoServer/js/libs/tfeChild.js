@@ -667,22 +667,21 @@ function printUserObj(title, user, chalkConfig) {
   user = userDefaults(user);
 
   console.log(curChalk(title
-    + " | U " + user.userId
+    + " | " + user.userId
     + " | @" + user.screenName
     + " | N " + user.name 
-    + " | L " + user.lang 
+    // + " | L " + user.lang 
     + " | FWs " + user.followersCount
     + " | FDs " + user.friendsCount
     + " | T " + user.statusesCount
-    + " | M  " + user.mentions
+    // + " | M  " + user.mentions
     + " | LS " + getTimeStamp(user.lastSeen)
     + " | IG " + user.ignored 
     + " | FW " + user.following 
     + " | 3C " + user.threeceeFollowing 
-    + " | LHTID " + user.lastHistogramTweetId 
-    + " | LHQID " + user.lastHistogramQuoteId 
-    + " | 3C " + user.threeceeFollowing 
-    + " | CAT M " + user.category + " A " + user.categoryAuto
+    // + " | LHTID " + user.lastHistogramTweetId 
+    // + " | LHQID " + user.lastHistogramQuoteId 
+    + " | C M " + user.category + " A " + user.categoryAuto
   ));
 
   if (user.changes) {
@@ -2291,20 +2290,15 @@ function initUserCategorizeQueueInterval(cnf){
 
         console.log(chalkError("WAS | TFC | *** USC FINDONEUSER TIMEOUT"));
 
-        printUserObj("WAS | TFC | " 
-          + " [UC$: " + userChangeCache.getStats().keys + "]"
-          + " [UCQ: " + userCategorizeQueue.length + "]"
-          + " | NN: " + networkObj.networkId + " | ", updatedUser, chalkInfo);
+        printUserObj("WAS | TFC | DB CAT", dbUser, chalkInfo); 
+
       }, 5000);
 
       try {
 
         let dbUser = await userServerController.findOneUserV2({user: updatedUser, mergeHistograms: false, noInc: true});
 
-        printUserObj("WAS | TFC | " 
-          + " [UC$: " + userChangeCache.getStats().keys + "]"
-          + " [UCQ: " + userCategorizeQueue.length + "]"
-          + " | NN: " + networkObj.networkId + " | DB CAT", dbUser, chalkInfo);
+        printUserObj("WAS | TFC | DB CAT", dbUser, chalkInfo); 
 
         userChangeCache.del(dbUser.nodeId);
       }

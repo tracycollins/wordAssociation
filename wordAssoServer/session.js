@@ -640,13 +640,13 @@ function updateStatsText(){
             statsText.innerHTML += key.toUpperCase() + ": " + statsObj.bestNetwork[key] + "<br><br>";
         }
     }
-  })
+  });
 
 }
 
 function displayStats(isVisible, dColor) {
 
-  updateStatsText();
+  if (isVisible) { updateStatsText();  }
 
   statsDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
   if (dColor !== undefined) {statsDivElement.style.color = dColor;}

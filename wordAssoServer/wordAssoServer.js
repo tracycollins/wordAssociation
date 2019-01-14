@@ -1502,27 +1502,20 @@ dbConnectInterval = setInterval(function(){
 
   if (!statsObj.dbConnectionReady && !statsObj.dbConnectBusy) {
 
-    // try{
+    statsObj.dbConnectBusy = true;
 
-      statsObj.dbConnectBusy = true;
-
-      connectDb()
-      .then(function(){
-        statsObj.dbConnectBusy = false;
-        statsObj.dbConnectionReady = true;
-        dbConnectionReady = true;
-      })
-      .catch(function(err){
-        console.log(chalkError("WAS | *** CONNECT DB INTERVAL ERROR: " + err));
-        statsObj.dbConnectionReady = false;
-        dbConnectionReady = false;
-        statsObj.dbConnectBusy = false;
-      });
-
-    // }
-    // catch(err){
-    // }
-
+    connectDb()
+    .then(function(){
+      statsObj.dbConnectBusy = false;
+      statsObj.dbConnectionReady = true;
+      dbConnectionReady = true;
+    })
+    .catch(function(err){
+      console.log(chalkError("WAS | *** CONNECT DB INTERVAL ERROR: " + err));
+      statsObj.dbConnectionReady = false;
+      dbConnectionReady = false;
+      statsObj.dbConnectBusy = false;
+    });
   }
 
 }, 10*ONE_SECOND);
@@ -2579,6 +2572,7 @@ function saveFile (params, callback){
     const objSizeMBytes = options.file_size/ONE_MEGABYTE;
 
     showStats();
+    
     console.log(chalk.blue("WAS | ... SAVING LOCALLY"
       + " | " + objSizeMBytes.toFixed(2) + " MB | " + fullPath
     ));
@@ -7925,6 +7919,9 @@ function initTfeChild(params){
             threeceeHashMap[m.threeceeUser].twitterErrorFlag = m.error;
             threeceeHashMap[m.threeceeUser].twitterTokenErrorFlag = m.error;
 
+            ignoredUserSet.add(m.userId);
+            unfollowableUserSet.add(m.userId);
+
             const user = {
               nodeId: m.userId,
               userId: m.userId
@@ -10406,11 +10403,6 @@ setTimeout(function(){
         + " | " + configuration.processName 
       ));
 
-      // await initSlackRtmClient();
-      // await initSlackWebClient();
-
-      // slackSendMessage(hostname + " | WAS | " + statsObj.status);
-
       killAll().then(function(){
 
         io = require("socket.io")(httpServer, ioConfig);
@@ -10424,7 +10416,6 @@ setTimeout(function(){
               clearInterval(dbConnectionReadyInterval);
 
               if (configuration.twitter === undefined) { configuration.twitter = {}; }
-              // configuration.twitter.bearerToken = await bearerTokenRequest(request_options);
 
               initInternetCheckInterval(ONE_MINUTE)
               .then(()=>addAccountActivitySubscription())
@@ -10435,7 +10426,6 @@ setTimeout(function(){
               .then(()=>loadBestRuntimeNetwork())
               .then(()=>loadMaxInputHashMap())
               .then(()=>initCategoryHashmaps())
-              // .then(()=>initCategoryHashmapsInterval(configuration.categoryHashmapsUpdateInterval))
               .then(()=>initIgnoreWordsHashMap())
               .then(()=>initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers}))
               .then(()=>initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval))

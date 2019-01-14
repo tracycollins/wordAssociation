@@ -708,7 +708,10 @@ function resetServerActiveTimer() {
 }
 
 window.onbeforeunload = function() {
-  if (controlPanelFlag) { controlPanelWindow.close(); }
+  if (controlPanelFlag) { 
+    controlPanelWindow.close(); 
+    clearInterval(controlPanelInitWaitInterval);
+  }
   controlPanelFlag = false;
 };
 
@@ -750,6 +753,7 @@ function toggleControlPanel(){
   console.warn("toggleControlPanel config\n" + jsonPrint(config));
 
   if (controlPanelFlag){
+    clearInterval(controlPanelInitWaitInterval);
     controlPanelWindow.close();
     controlPanelFlag = false;
     controlPanelReadyFlag = false;
@@ -757,7 +761,6 @@ function toggleControlPanel(){
     console.debug("toggleControlPanel: " + controlPanelFlag);
   }
   else {
-
 
     createPopUpControlPanel(config, function(){
 
@@ -782,6 +785,7 @@ function toggleControlPanel(){
           controlPanelWindow.postMessage({op: "INIT", config: cf}, DEFAULT_SOURCE);
           controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: twitterUserThreecee}, DEFAULT_SOURCE);
         }
+
       }, 1000);
 
     });
@@ -1293,6 +1297,8 @@ function initViewerReadyInterval(interval){
         statsObj.viewerReadyTransmitted = true;
       }); 
 
+      clearInterval(viewerReadyInterval);
+
     }
 
     else if (statsObj.serverConnected && statsObj.viewerReadyTransmitted && !statsObj.viewerReadyAck) {
@@ -1365,7 +1371,6 @@ function initKeepalive(viewerObj, interval){
       console.error("KEEPALIVE ERROR: " + err);
     }
   });
-
 
   socketKeepaliveInterval = setInterval(function(){ // TX KEEPALIVE
 
@@ -1496,18 +1501,18 @@ socket.on("disconnect", function() {
   statsObj.serverConnected = false;
 
   statsObj.socket.connected = false;
-  // statsObj.socket.disconnectMoment = moment();
 
   if (currentSessionView !== undefined) { currentSessionView.setEnableAgeNodes(false); }
   console.log("*** DISCONNECTED FROM HOST ... DELETING ALL SESSIONS ...");
   if (currentSessionView !== undefined) { currentSessionView.resize(); }
 });
 
+var socketErrorTimeout;
+
 socket.on("error", function(error) {
 
   statsObj.socket.errors += 1;
   statsObj.socket.error = error;
-  // statsObj.socket.errorMoment = moment();
 
   console.log("*** SOCKET ERROR ... DELETING ALL SESSIONS ...");
   console.error("*** SOCKET ERROR\n" + error);
@@ -1516,7 +1521,9 @@ socket.on("error", function(error) {
 
   socket.disconnect(true);  // full disconnect, not just namespace
 
-  setTimeout(function(){
+  clearTimeout(socketErrorTimeout);
+
+  socketErrorTimeout = setTimeout(function(){
     socket.connect();
   }, 5000);
 });
@@ -1525,7 +1532,6 @@ socket.on("connect_error", function(error) {
 
   statsObj.socket.errors += 1;
   statsObj.socket.error = error;
-  // statsObj.socket.errorMoment = moment();
 
   console.log("*** SOCKET CONNECT ERROR ... DELETING ALL SESSIONS ...");
   console.error("*** SOCKET CONNECT ERROR\n" + error);
@@ -1536,7 +1542,6 @@ socket.on("reconnect_error", function(error) {
 
   statsObj.socket.errors += 1;
   statsObj.socket.error = error;
-  // statsObj.socket.errorMoment = moment();
 
   console.log("*** SOCKET RECONNECT ERROR ... DELETING ALL SESSIONS ...");
   console.error("*** SOCKET RECONNECT ERROR\n" + error);
@@ -1828,11 +1833,13 @@ var neutralNodesRatio = 0;
 var positiveNodesRatio = 0;
 var negativeNodesRatio = 0;
 var noneNodesRatio = 0;
-
+var statsUpdateInterval;
 //  STATS UPDATE
 function initStatsUpdate(interval){
 
-  setInterval(function() {
+  clearInterval(statsUpdateInterval);
+
+  statsUpdateInterval = setInterval(function() {
 
     totalHashMap = currentSessionView.getTotalHashMap();
 
@@ -1859,11 +1866,6 @@ function initStatsUpdate(interval){
     statsNegativeBar.path.setAttribute("stroke", palette.red);
     statsNoneBar.path.setAttribute("stroke", palette.white);
 
-    // if (!statsObj.heartBeat.bestNetwork || statsObj.heartBeat.bestNetwork === undefined) {
-    //   statsObj.heartBeat.bestNetwork = {};
-    //   statsObj.heartBeat.bestNetwork.networkId = "";
-    // }
-
     updateStatsText();
 
   }, interval);
@@ -1886,6 +1888,8 @@ var rxNode = function(node){
   }
 };
 
+var socketSessionUpdateInterval;
+
 function initSocketSessionUpdateRx(){
 
   socket.on("node", rxNode);
@@ -1895,7 +1899,9 @@ function initSocketSessionUpdateRx(){
   var newNode = {};
   var category;
 
-  setInterval(function(){
+  clearInterval(socketSessionUpdateInterval);
+
+  socketSessionUpdateInterval = setInterval(function(){
 
     if (rxNodeQueueReady && (rxNodeQueue.length > 0)) {
 
@@ -1926,8 +1932,6 @@ function initSocketSessionUpdateRx(){
       newNode.mentions = (newNode.mentions) ? newNode.mentions : 1;
 
       if (newNode.nodeType === "user"){
-        // newNode.userId = newNode.userId;
-        // newNode.nodeId = newNode.userId;
         newNode.text = newNode.screenName.toLowerCase();
         newNode.screenName = newNode.screenName.toLowerCase();
       }

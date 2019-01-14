@@ -1866,7 +1866,7 @@ function initStatsUpdate(interval){
     statsNegativeBar.path.setAttribute("stroke", palette.red);
     statsNoneBar.path.setAttribute("stroke", palette.white);
 
-    updateStatsText();
+    // updateStatsText();
 
   }, interval);
 }

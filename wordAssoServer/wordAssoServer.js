@@ -2572,7 +2572,7 @@ function saveFile (params, callback){
     const objSizeMBytes = options.file_size/ONE_MEGABYTE;
 
     showStats();
-    
+
     console.log(chalk.blue("WAS | ... SAVING LOCALLY"
       + " | " + objSizeMBytes.toFixed(2) + " MB | " + fullPath
     ));
@@ -6271,7 +6271,12 @@ function updateUserSets(params){
 
       }
       
-      if (!mismatchUserSet.has(user.nodeId) && !ignoredUserSet.has(user.nodeId) && user.category && user.categoryAuto && (user.category !== user.categoryAuto)) { 
+      if (!mismatchUserSet.has(user.nodeId) 
+        && !ignoredUserSet.has(user.nodeId) 
+        && ((user.category === "left") || (user.category === "neutral") || (user.category === "right"))
+        && ((user.categoryAuto === "left") || (user.categoryAuto === "neutral") || (user.categoryAuto === "right"))
+        && (user.category !== user.categoryAuto)
+      ) { 
 
         mismatchUserSet.add(user.nodeId); 
 

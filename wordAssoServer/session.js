@@ -1839,32 +1839,42 @@ function initStatsUpdate(interval){
 
   clearInterval(statsUpdateInterval);
 
+  statsLeftBar.path.setAttribute("stroke", palette.blue);
+  statsRightBar.path.setAttribute("stroke", palette.yellow);
+  statsNeutralBar.path.setAttribute("stroke", palette.gray);
+  statsPositiveBar.path.setAttribute("stroke", palette.green);
+  statsNegativeBar.path.setAttribute("stroke", palette.red);
+  statsNoneBar.path.setAttribute("stroke", palette.white);
+
   statsUpdateInterval = setInterval(function() {
 
-    totalHashMap = currentSessionView.getTotalHashMap();
+    if (config.showStatsFlag) {
+      
+      totalHashMap = currentSessionView.getTotalHashMap();
 
-    if (totalHashMap.total > 0) {
-      leftNodesRatio = totalHashMap.left / totalHashMap.total;
-      rightNodesRatio = totalHashMap.right / totalHashMap.total;
-      neutralNodesRatio = totalHashMap.neutral / totalHashMap.total;
-      positiveNodesRatio = totalHashMap.positive / totalHashMap.total;
-      negativeNodesRatio = totalHashMap.negative / totalHashMap.total;
-      noneNodesRatio = totalHashMap.none / totalHashMap.total;
+      if (totalHashMap.total > 0) {
+        leftNodesRatio = totalHashMap.left / totalHashMap.total;
+        rightNodesRatio = totalHashMap.right / totalHashMap.total;
+        neutralNodesRatio = totalHashMap.neutral / totalHashMap.total;
+        positiveNodesRatio = totalHashMap.positive / totalHashMap.total;
+        negativeNodesRatio = totalHashMap.negative / totalHashMap.total;
+        noneNodesRatio = totalHashMap.none / totalHashMap.total;
+      }
+
+      statsLeftBar.animate(leftNodesRatio);
+      statsRightBar.animate(rightNodesRatio);
+      statsNeutralBar.animate(neutralNodesRatio);
+      statsPositiveBar.animate(positiveNodesRatio);
+      statsNegativeBar.animate(negativeNodesRatio);
+      statsNoneBar.animate(noneNodesRatio);
+
     }
-
-    statsLeftBar.animate(leftNodesRatio);
-    statsRightBar.animate(rightNodesRatio);
-    statsNeutralBar.animate(neutralNodesRatio);
-    statsPositiveBar.animate(positiveNodesRatio);
-    statsNegativeBar.animate(negativeNodesRatio);
-    statsNoneBar.animate(noneNodesRatio);
-
-    statsLeftBar.path.setAttribute("stroke", palette.blue);
-    statsRightBar.path.setAttribute("stroke", palette.yellow);
-    statsNeutralBar.path.setAttribute("stroke", palette.gray);
-    statsPositiveBar.path.setAttribute("stroke", palette.green);
-    statsNegativeBar.path.setAttribute("stroke", palette.red);
-    statsNoneBar.path.setAttribute("stroke", palette.white);
+    // statsLeftBar.path.setAttribute("stroke", palette.blue);
+    // statsRightBar.path.setAttribute("stroke", palette.yellow);
+    // statsNeutralBar.path.setAttribute("stroke", palette.gray);
+    // statsPositiveBar.path.setAttribute("stroke", palette.green);
+    // statsNegativeBar.path.setAttribute("stroke", palette.red);
+    // statsNoneBar.path.setAttribute("stroke", palette.white);
 
     // updateStatsText();
 

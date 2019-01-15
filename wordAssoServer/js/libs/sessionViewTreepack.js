@@ -1537,6 +1537,10 @@ function ViewTreepack() {
 
     // UPDATE
     nodeCircles
+      .style("display", function (d) { 
+        if (!d.isValid) { return "none"; }
+        return "unset"; 
+      })
       .attr("r", function(d) {
         if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
         if (metricMode === "mentions") {return defaultRadiusScale(Math.sqrt(d.mentions));}
@@ -1582,10 +1586,6 @@ function ViewTreepack() {
         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
-      .style("display", function (d) { 
-        if (!d.isValid) { return "none"; }
-        return "unset"; 
-      })
       .each(updateChangedCircleNodes);
 
     // EXIT
@@ -1605,13 +1605,6 @@ function ViewTreepack() {
     // UPDATE
     nodeLabels
       // .text(labelText)
-      .attr("x", function (d) { return d.x; })
-      .attr("y", function (d) { return d.y; })
-      .style("fill-opacity", function updateNodeLabelOpacity(d) { 
-        if (d.mouseHoverFlag) { return 1.0; }
-        if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
-        return nodeLabelOpacityScale(d.ageMaxRatio); 
-      })
       .style("display", function (d) {
         if (!d.isValid) { return "none"; }
         if (d.mouseHoverFlag) { return "unset"; }
@@ -1633,6 +1626,13 @@ function ViewTreepack() {
           return "unset"; 
         }
         return "none";
+      })
+      .attr("x", function (d) { return d.x; })
+      .attr("y", function (d) { return d.y; })
+      .style("fill-opacity", function updateNodeLabelOpacity(d) { 
+        if (d.mouseHoverFlag) { return 1.0; }
+        if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
+        return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .style("font-size", function (d) {
         if (metricMode === "rate") {

@@ -575,8 +575,8 @@ function ViewTreepack() {
     config.enableAgeNodes = enabled;
   };
 
-  this.setHeartBeat = function(heartBeat) {
-    heartBeat = heartBeat;
+  this.setHeartBeat = function() {
+    // heartBeat = heartBeat;
   }
   
   this.deleteNode = function() { return null; };

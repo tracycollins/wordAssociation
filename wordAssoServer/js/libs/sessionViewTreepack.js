@@ -1547,7 +1547,7 @@ function ViewTreepack() {
       })
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
-      .style("fill", function (d) { 
+/*      .style("fill", function (d) { 
         if (d.isTopTerm && !d.category && !d.categoryAuto) { return palette.white; }
         if (!d.category && !d.categoryAuto) { return palette.black; }
         if (d.category) { return d.categoryColor; }
@@ -1557,7 +1557,7 @@ function ViewTreepack() {
         if (d.categoryAuto ==="negative") { return palette.red; }
         return d.categoryColor; 
       })
-      .style("stroke", function (d) {
+*/      .style("stroke", function (d) {
         if (d.categoryMismatch) { return palette.red; }
         if (d.categoryMatch) { return categoryMatchColor; }
         if (d.categoryAuto === "right") { return palette.yellow; }

@@ -661,21 +661,21 @@ function printUserObj(title, user, chalkConfig) {
   user = userDefaults(user);
 
   console.log(curChalk(title
-    + " | " + user.userId
+    // + " | C M " + user.category + " - A " + user.categoryAuto
     + " | @" + user.screenName
     + " | N " + user.name 
-    // + " | L " + user.lang 
-    + " | FWs " + user.followersCount
-    + " | FDs " + user.friendsCount
-    + " | T " + user.statusesCount
-    // + " | M  " + user.mentions
-    + " | LS " + getTimeStamp(user.lastSeen)
+    + " | " + user.userId
     + " | IG " + user.ignored 
-    + " | FW " + user.following 
     + " | 3C " + user.threeceeFollowing 
+    // + " | L " + user.lang 
+    // + " | FWs " + user.followersCount
+    // + " | FDs " + user.friendsCount
+    // + " | T " + user.statusesCount
+    // + " | M  " + user.mentions
+    // + " | LS " + getTimeStamp(user.lastSeen)
+    // + " | FW " + user.following 
     // + " | LHTID " + user.lastHistogramTweetId 
     // + " | LHQID " + user.lastHistogramQuoteId 
-    + " | C M " + user.category + " A " + user.categoryAuto
   ));
 
   if (user.changes) {

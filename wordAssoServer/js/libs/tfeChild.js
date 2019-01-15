@@ -701,6 +701,7 @@ function printUserObj(title, user, chalkConfig) {
 
   console.log(curChalk(title
     + " | C M: " + categoryToString(user.category) + " - A: " + categoryToString(user.categoryAuto)
+    + " | " + user.rate.toFixed(3) + " TPM"
     + " | @" + user.screenName
     + " | N: " + user.name 
     + " | " + user.userId
@@ -725,6 +726,10 @@ function printUserObj(title, user, chalkConfig) {
 }
 
 const userDefaults = function (user){
+
+  if (!user.rate || user.rate === undefined) { 
+    user.rate = 0;
+  }
 
   if (!user.profileHistograms || user.profileHistograms === undefined) { 
     user.profileHistograms = defaultUserProfileHistograms;

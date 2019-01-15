@@ -6,7 +6,7 @@ function ViewTreepack() {
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
-  var heartBeat = {};
+  var workerAgeNodes = new Worker("ageNodes.js");
 
   var initialXposition = 0.5;
   var initialYposition = 0.9;
@@ -575,10 +575,6 @@ function ViewTreepack() {
     config.enableAgeNodes = enabled;
   };
 
-  this.setHeartBeat = function() {
-    // heartBeat = heartBeat;
-  }
-  
   this.deleteNode = function() { return null; };
 
   this.getTotalHashMap = function() { return totalHashmap; };

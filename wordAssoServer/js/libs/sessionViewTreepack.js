@@ -1987,10 +1987,15 @@ function ViewTreepack() {
 
   function drawSimulation(callback){
 
-    async.series([
-      function updateNodeCirclesSeries (cb){ updateNodeCircles(cb); },
-      function updateNodeLabelsSeries (cb){ updateNodeLabels(cb); }
-    ], function drawSimulationCallback (err, results) {
+    // async.series([
+    //   function updateNodeCirclesSeries (cb){ updateNodeCircles(cb); },
+    //   function updateNodeLabelsSeries (cb){ updateNodeLabels(cb); }
+    // ], function drawSimulationCallback (err, results) {
+
+    async.parallel({
+      updateNodeCirclesSeries: function(cb){ updateNodeCircles(cb); },
+      updateNodeLabelsSeries: function(cb){ updateNodeLabels(cb); }
+    }, function drawSimulationCallback (err, results) {
 
       if (
         ( 

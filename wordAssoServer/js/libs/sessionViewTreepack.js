@@ -1604,7 +1604,7 @@ function ViewTreepack() {
 
     // UPDATE
     nodeLabels
-      .text(labelText)
+      // .text(labelText)
       .attr("x", function (d) { return d.x; })
       .attr("y", function (d) { return d.y; })
       .style("fill-opacity", function updateNodeLabelOpacity(d) { 

@@ -9436,7 +9436,7 @@ function initDbUserChangeStream(params){
 
             categorizedUserHashMap.set(catObj.nodeId, catObj);
 
-            console.log(chalkInfo("WAS | USER CHG"
+            console.log(chalkInfo("WAS | CHG"
               + " | NID: " + catObj.nodeId
               + " | @" + catObj.screenName
               + " | CAT M: " + categoryChanges.manual + " | A: " + categoryChanges.auto

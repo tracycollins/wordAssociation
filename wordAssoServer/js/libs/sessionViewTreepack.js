@@ -504,7 +504,7 @@ function ViewTreepack() {
     {
       maxZoom: 2, 
       minZoom: 0.1,
-      zoomSpeed: 0.01
+      zoomSpeed: 0.02
     }
   )
   .zoomAbs(0.5*width, 0.5*height, zoomFactor);

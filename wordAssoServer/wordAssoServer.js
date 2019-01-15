@@ -957,12 +957,16 @@ let tweetParserPingId = false;
 let categoryHashmapsInterval;
 let statsInterval;
 
+let categorizedManualUserSet = new Set();
+let categorizedAutoUserSet = new Set();
+
 let uncategorizedManualUserSet = new Set();
 let uncategorizedAutoUserSet = new Set();
 
 let uncategorizedManualUserArray = [];
 let uncategorizedAutoUserArray = [];
 
+let matchUserSet = new Set();
 let mismatchUserSet = new Set();
 let mismatchUserArray = [];
 
@@ -1447,6 +1451,7 @@ function connectDb(){
         statsObj.user.uncategorizedTotal = 0;
         statsObj.user.uncategorizedManual = 0;
         statsObj.user.uncategorizedAuto = 0;
+        statsObj.user.matched = 0;
         statsObj.user.mismatched = 0;
         statsObj.user.uncategorizedManualUserArray = 0;
 
@@ -6271,20 +6276,40 @@ function updateUserSets(params){
 
       }
       
-      if (!mismatchUserSet.has(user.nodeId) 
-        && !ignoredUserSet.has(user.nodeId) 
+      if (!ignoredUserSet.has(user.nodeId) 
         && ((user.category === "left") || (user.category === "neutral") || (user.category === "right"))
         && ((user.categoryAuto === "left") || (user.categoryAuto === "neutral") || (user.categoryAuto === "right"))
-        && (user.category !== user.categoryAuto)
       ) { 
 
-        mismatchUserSet.add(user.nodeId); 
+        uncategorizedManualUserSet.delete(user.nodeId); 
+        uncategorizedAutoUserSet.delete(user.nodeId); 
 
-        if (mismatchUserSet.size % 100 === 0) {
-          printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "]", user);
+        categorizedManualUserSet.add(user.nodeId); 
+        categorizedAutoUserSet.add(user.nodeId); 
+
+        if (!mismatchUserSet.has(user.nodeId) && (user.category !== user.categoryAuto)) {
+
+          mismatchUserSet.add(user.nodeId); 
+          matchUserSet.delete(user.nodeId); 
+
+          if (mismatchUserSet.size % 100 === 0) {
+            printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "]", user);
+          }
         }
 
+        if (!matchUserSet.has(user.nodeId) && (user.category === user.categoryAuto)) {
+
+          matchUserSet.add(user.nodeId); 
+          mismatchUserSet.delete(user.nodeId); 
+
+          if (matchUserSet.size % 100 === 0) {
+            printUserObj("MATCHED USER [" + matchUserSet.size + "]", user);
+          }
+        }
+
+
       }
+
     });
 
     userFollowingCursor.on("end", function() {
@@ -6293,6 +6318,7 @@ function updateUserSets(params){
       mismatchUserArray = mismatchUserSet.keys();
 
       statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
+      statsObj.user.matched = matchUserSet.size;
       statsObj.user.mismatched = mismatchUserSet.size;
 
       console.log(chalkBlue("WAS | END FOLLOWING CURSOR | FOLLOWING USER SET"));
@@ -6310,6 +6336,7 @@ function updateUserSets(params){
       mismatchUserArray = mismatchUserSet.keys();
 
       statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
+      statsObj.user.matched = matchUserSet.size;
       statsObj.user.mismatched = mismatchUserSet.size;
 
       console.error(chalkError("*** ERROR userFollowingCursor: " + err));
@@ -6327,6 +6354,7 @@ function updateUserSets(params){
       mismatchUserArray = mismatchUserSet.keys();
 
       statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
+      statsObj.user.matched = matchUserSet.size;
       statsObj.user.mismatched = mismatchUserSet.size;
 
       console.log(chalkBlue("WAS | CLOSE FOLLOWING CURSOR"));

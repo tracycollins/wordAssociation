@@ -221,6 +221,45 @@ const jsonPrint = function (obj){
   }
 };
 
+function categoryToString(c) {
+
+  let cs = "";
+
+  switch (c) {
+    case "left":
+      cs = "L";
+    break;
+    case "neutral":
+      cs = "N";
+    break;
+    case "right":
+      cs = "R";
+    break;
+    case "positive":
+      cs = "+";
+    break;
+    case "negative":
+      cs = "-";
+    break;
+    case "none":
+      cs = "0";
+    break;
+    case false:
+      cs = "false";
+    break;
+    case undefined:
+      cs = "undefined";
+    break;
+    case null:
+      cs = "null";
+    break;
+    default:
+      cs = "?";
+  }
+
+  return cs;
+}
+
 console.log(
   "\n\n====================================================================================================\n" 
   + process.argv[1] 
@@ -661,12 +700,12 @@ function printUserObj(title, user, chalkConfig) {
   user = userDefaults(user);
 
   console.log(curChalk(title
-    // + " | C M " + user.category + " - A " + user.categoryAuto
+    + " | C M: " + categoryToString(user.category) + " - A: " + categoryToString(user.categoryAuto)
     + " | @" + user.screenName
-    + " | N " + user.name 
+    + " | N: " + user.name 
     + " | " + user.userId
-    + " | IG " + user.ignored 
-    + " | 3C " + user.threeceeFollowing 
+    + " | IG: " + user.ignored 
+    + " | 3C: " + user.threeceeFollowing 
     // + " | L " + user.lang 
     // + " | FWs " + user.followersCount
     // + " | FDs " + user.friendsCount

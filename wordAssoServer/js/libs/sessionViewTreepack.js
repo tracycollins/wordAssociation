@@ -1580,8 +1580,8 @@ function ViewTreepack() {
       .style("stroke-opacity", function(d) { 
         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
-      })
-      .each(updateChangedCircleNodes);
+      });
+      // .each(updateChangedCircleNodes);
 
     // EXIT
     nodeCircles

@@ -1577,9 +1577,9 @@ function ViewTreepack() {
           return "unset"; 
         }
         return "none";
+      })
       .attr("x", function (d) { return d.x; })
       .attr("y", function (d) { return d.y; })
-      })
       .style("fill-opacity", function updateNodeLabelOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }

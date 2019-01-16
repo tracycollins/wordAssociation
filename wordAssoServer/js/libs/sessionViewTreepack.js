@@ -1434,6 +1434,12 @@ function ViewTreepack() {
       d.newFlag = false;
 
       d3.select(this)
+        .attr("r", function(d) {
+          if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
+          if (metricMode === "mentions") {return defaultRadiusScale(Math.sqrt(d.mentions));}
+        })
+        .attr("cx", function(d) { return d.x; })
+        .attr("cy", function(d) { return d.y; })
         .style("display", "unset")
         .style("fill", function (d) { 
           if (!d.category && !d.categoryAuto) { return palette.black; }
@@ -1532,16 +1538,16 @@ function ViewTreepack() {
 
     // UPDATE
     nodeCircles
-      .style("display", function (d) { 
-        if (!d.isValid) { return "none"; }
-        return "unset"; 
-      })
-      .attr("r", function(d) {
-        if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
-        if (metricMode === "mentions") {return defaultRadiusScale(Math.sqrt(d.mentions));}
-      })
-      .attr("cx", function(d) { return d.x; })
-      .attr("cy", function(d) { return d.y; })
+      // .style("display", function (d) { 
+      //   if (!d.isValid) { return "none"; }
+      //   return "unset"; 
+      // })
+      // .attr("r", function(d) {
+      //   if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
+      //   if (metricMode === "mentions") {return defaultRadiusScale(Math.sqrt(d.mentions));}
+      // })
+      // .attr("cx", function(d) { return d.x; })
+      // .attr("cy", function(d) { return d.y; })
       // .style("fill", function (d) { 
       //   if (d.isTopTerm && !d.category && !d.categoryAuto) { return palette.white; }
       //   if (!d.category && !d.categoryAuto) { return palette.black; }
@@ -1573,14 +1579,14 @@ function ViewTreepack() {
       //   if (d.following) { return defaultStrokeWidth; }
       //   return 0.5*defaultStrokeWidth; 
       // })
-      .style("fill-opacity", function(d) { 
-        if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
-        return nodeLabelOpacityScale(d.ageMaxRatio); 
-      })
-      .style("stroke-opacity", function(d) { 
-        if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
-        return nodeLabelOpacityScale(d.ageMaxRatio); 
-      })
+      // .style("fill-opacity", function(d) { 
+      //   if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
+      //   return nodeLabelOpacityScale(d.ageMaxRatio); 
+      // })
+      // .style("stroke-opacity", function(d) { 
+      //   if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
+      //   return nodeLabelOpacityScale(d.ageMaxRatio); 
+      // })
       .each(updateChangedCircleNodes);
 
     // EXIT
@@ -1621,9 +1627,9 @@ function ViewTreepack() {
           return "unset"; 
         }
         return "none";
-      })
       .attr("x", function (d) { return d.x; })
       .attr("y", function (d) { return d.y; })
+      })
       .style("fill-opacity", function updateNodeLabelOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }

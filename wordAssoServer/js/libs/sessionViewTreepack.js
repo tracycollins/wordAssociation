@@ -6,7 +6,7 @@ function ViewTreepack() {
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
-  var workerAgeNodes = new Worker("ageNodes.js");
+  // var workerAgeNodes = new Worker("ageNodes.js");
 
   var initialXposition = 0.5;
   var initialYposition = 0.9;

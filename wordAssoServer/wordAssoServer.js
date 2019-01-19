@@ -80,6 +80,7 @@ let infoTwitterUserObj = {};
 const DEFAULT_GEOCODE_ENABLED = false;
 
 const DEFAULT_FILTER_DUPLICATE_TWEETS = true;
+const DEFAULT_AUTO_FOLLOW = true;
 const DEFAULT_FORCE_FOLLOW = false;
 const DEFAULT_FORCE_IMAGE_ANALYSIS = false;
 const DEFAULT_ENABLE_IMAGE_ANALYSIS = true;
@@ -401,6 +402,7 @@ configuration.verbose = false;
 configuration.maxQueue = DEFAULT_MAX_QUEUE;
 configuration.filterDuplicateTweets = DEFAULT_FILTER_DUPLICATE_TWEETS;
 configuration.forceFollow = DEFAULT_FORCE_FOLLOW;
+configuration.autoFollow = DEFAULT_AUTO_FOLLOW;
 configuration.enableImageAnalysis = DEFAULT_ENABLE_IMAGE_ANALYSIS;
 configuration.forceImageAnalysis = DEFAULT_FORCE_IMAGE_ANALYSIS;
 configuration.geoCodeEnabled = DEFAULT_GEOCODE_ENABLED;
@@ -6451,6 +6453,22 @@ function initTransmitNodeQueueInterval(interval){
                     printUserObj("UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", n);
                   }
                 }
+
+                follow({user: n}, function(err, updatedUser){
+                  if (err) {
+                    console.log(chalkError("WAS | TWITTER AUTO FOLLOW ERROR: " + err));
+                  }
+                  else if (!updatedUser) {
+                    console.log(chalkError("WAS | TWITTER AUTO FOLLOW ERROR: NULL UPDATED USER"));
+                  }
+                  else {
+                    console.log(chalk.blue("WAS | +++ TWITTER AUTO FOLLOW"
+                      + " | UID" + updatedUser.nodeId
+                      + " | @" + updatedUser.screenName
+                    ));
+                  }
+                });
+
               }
 
               if (categorizeable) {
@@ -8926,6 +8944,20 @@ function loadConfigFile(params) {
           }
           else {
             newConfiguration.forceImageAnalysis = false;
+          }
+        }
+
+        if (loadedConfigObj.AUTO_FOLLOW  !== undefined){
+          console.log("WAS | LOADED AUTO_FOLLOW: " + loadedConfigObj.AUTO_FOLLOW);
+
+          if ((loadedConfigObj.AUTO_FOLLOW === false) || (loadedConfigObj.AUTO_FOLLOW === "false")) {
+            newConfiguration.autoFollow = false;
+          }
+          else if ((loadedConfigObj.AUTO_FOLLOW === true) || (loadedConfigObj.AUTO_FOLLOW === "true")) {
+            newConfiguration.autoFollow = true;
+          }
+          else {
+            newConfiguration.autoFollow = false;
           }
         }
 

@@ -1896,6 +1896,7 @@ var rxNode = function(node){
       rxNodeQueue.push(node);
     }
   }
+  
 };
 
 var socketSessionUpdateInterval;

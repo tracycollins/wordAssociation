@@ -124,7 +124,7 @@ DEFAULT_THREECEE_USERS.forEach(function(threeceeUser){
 });
 
 
-const DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER = "altthreecee02";
+const DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER = "altthreecee05";
 const DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER_FILE = DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER + ".json";
 
 const DEFAULT_TWITTER_CONFIG_THREECEE = "threecee";
@@ -10295,7 +10295,14 @@ function twitterSearchNode(params, callback) {
 
               const categorizeable = userCategorizeable(user);
 
-              if (categorizeable) { tfeChild.send({op: "USER_CATEGORIZE", user: user.toObject()}); }
+              if (categorizeable) { 
+                if (user.toObject && (typeof user.toObject === "function")) {
+                  tfeChild.send({op: "USER_CATEGORIZE", user: user.toObject()});
+                }
+                else {
+                  tfeChild.send({op: "USER_CATEGORIZE", user: user});
+                }
+              }
 
             }
 

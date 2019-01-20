@@ -29,6 +29,7 @@
       "DROPBOX_WORD_ASSO_APP_SECRET": "wqslhe2t95zfn19",
       "DROPBOX_WEBHOOK_CHANGE_TIMEOUT": 1000,
       "DEFAULT_TWITTER_CONFIG_FILE": "altthreecee00.json",
+      "AUTO_FOLLOW": true,
       "TWITTER_THREECEE_AUTO_FOLLOW_USER": "altthreecee05",
       "WA_STATS_FILE" : "wordAssoServerStats.json",
       "GOOGLE_PROJECT_ID": "graphic-tangent-627",

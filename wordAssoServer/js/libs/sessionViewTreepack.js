@@ -1829,9 +1829,9 @@ function ViewTreepack() {
     return displaytext;
   };
 
-  var newNode = {};
+  // var newNode = {};
   var nodeAddQReady = true;
-  var currentNode;
+  // var currentNode;
   var nodePoolId;
   var nodePoolIdcircle;
 
@@ -1843,13 +1843,13 @@ function ViewTreepack() {
 
       nodeAddQReady = false;
 
-      const newNode = nodeAddQ.shift();
+      const n = nodeAddQ.shift();
 
       if (nodeIdHashMap.has(n.nodeId)){
 
         nodePoolId = nodeIdHashMap.get(n.nodeId);
 
-        currentNode = localNodeHashMap.get(nodePoolId);
+        let currentNode = localNodeHashMap.get(nodePoolId);
 
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
@@ -1887,7 +1887,7 @@ function ViewTreepack() {
       }
       else {
 
-        currentNode = nodePool.use();
+        let currentNode = nodePool.use();
 
         nodeIdHashMap.set(n.nodeId, currentNode.nodePoolId);
 

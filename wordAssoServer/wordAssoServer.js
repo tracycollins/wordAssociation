@@ -9990,7 +9990,7 @@ function twitterGetUserUpdateDb(user, callback){
   if (!user.userId && !user.nodeId && !user.screenName) { return callback("NO USER PROPS", null); }
 
   getCurrentThreeceeUser()
-  .then(function(currentThreeceeUser){
+  .then(async function(currentThreeceeUser){
 
     if ( currentThreeceeUser
       && (threeceeTwitter[currentThreeceeUser] !== undefined)
@@ -10119,12 +10119,9 @@ function twitterGetUserUpdateDb(user, callback){
         return callback(new Error("userServerController not ready"), user);
       }
 
-      userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
+      try{
 
-        if (err) {
-          console.log(chalkError("WAS | *** findOneUser ERROR: " + err));
-          return callback("NO DB OR TWITTER UPDATE", user);
-        }
+        const updatedUser = await userServerController.findOneUserV2({user: user, mergeHistograms: false, noInc: true});
 
         console.log(chalk.blue("WAS | UPDATED updatedUser"
           + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
@@ -10134,7 +10131,28 @@ function twitterGetUserUpdateDb(user, callback){
 
         callback(null, updatedUser);
 
-      });
+      }
+      catch(err){
+        console.log(chalkError("WAS | *** findOneUser ERROR: " + err));
+        return callback("NO DB OR TWITTER UPDATE", user);
+      }
+
+      // userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
+
+      //   if (err) {
+      //     console.log(chalkError("WAS | *** findOneUser ERROR: " + err));
+      //     return callback("NO DB OR TWITTER UPDATE", user);
+      //   }
+
+      //   console.log(chalk.blue("WAS | UPDATED updatedUser"
+      //     + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
+      //     + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
+      //     + "\n" + printUser({user:updatedUser})
+      //   ));
+
+      //   callback(null, updatedUser);
+
+      // });
     }
   })
   .catch(function(err){

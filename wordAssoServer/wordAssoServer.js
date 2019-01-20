@@ -80,6 +80,7 @@ let infoTwitterUserObj = {};
 const DEFAULT_GEOCODE_ENABLED = false;
 
 const DEFAULT_FILTER_DUPLICATE_TWEETS = true;
+const DEFAULT_AUTO_FOLLOW = true;
 const DEFAULT_FORCE_FOLLOW = false;
 const DEFAULT_FORCE_IMAGE_ANALYSIS = false;
 const DEFAULT_ENABLE_IMAGE_ANALYSIS = true;
@@ -137,7 +138,7 @@ const DBU_PING_INTERVAL = 10*ONE_MINUTE;
 const TFE_PING_INTERVAL = 10*ONE_MINUTE;
 const DEFAULT_DROPBOX_LIST_FOLDER_LIMIT = 50;
 const DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT = 1*ONE_SECOND;
-const DEFAULT_MIN_FOLLOWERS_AUTO = 15000;
+const DEFAULT_MIN_FOLLOWERS_AUTO = 10000;
 const DEFAULT_RATE_QUEUE_INTERVAL = ONE_SECOND; // 1 second
 const DEFAULT_RATE_QUEUE_INTERVAL_MODULO = 60; // modulo RATE_QUEUE_INTERVAL
 const DEFAULT_TWEET_PARSER_INTERVAL = 10;
@@ -401,6 +402,7 @@ configuration.verbose = false;
 configuration.maxQueue = DEFAULT_MAX_QUEUE;
 configuration.filterDuplicateTweets = DEFAULT_FILTER_DUPLICATE_TWEETS;
 configuration.forceFollow = DEFAULT_FORCE_FOLLOW;
+configuration.autoFollow = DEFAULT_AUTO_FOLLOW;
 configuration.enableImageAnalysis = DEFAULT_ENABLE_IMAGE_ANALYSIS;
 configuration.forceImageAnalysis = DEFAULT_FORCE_IMAGE_ANALYSIS;
 configuration.geoCodeEnabled = DEFAULT_GEOCODE_ENABLED;
@@ -629,6 +631,7 @@ followableSearchTermSet.add("ivanka");
 followableSearchTermSet.add("mueller");
 followableSearchTermSet.add("reagan");
 followableSearchTermSet.add("hanity");
+followableSearchTermSet.add("aoc");
 followableSearchTermSet.add("putin");
 
 followableSearchTermSet.add("#maga");
@@ -652,6 +655,9 @@ followableSearchTermSet.add("congress");
 followableSearchTermSet.add("republican");
 followableSearchTermSet.add("conservative");
 followableSearchTermSet.add("livesmatter");
+
+followableSearchTermSet.add("specialcounsel");
+followableSearchTermSet.add("special counsel");
 
 let followableSearchTermString = "";
 
@@ -6061,7 +6067,6 @@ let userFollowable = function(user){
     || followableRegEx.test(user.screenName) 
     || followableRegEx.test(user.name);
 
-
   if (followableFlag) { followableUserSet.add(user.nodeId); }
 
   return followableFlag;
@@ -6448,6 +6453,22 @@ function initTransmitNodeQueueInterval(interval){
                     printUserObj("UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", n);
                   }
                 }
+
+                follow({user: n}, function(err, updatedUser){
+                  if (err) {
+                    console.log(chalkError("WAS | TWITTER AUTO FOLLOW ERROR: " + err));
+                  }
+                  else if (!updatedUser) {
+                    console.log(chalkError("WAS | TWITTER AUTO FOLLOW ERROR: NULL UPDATED USER"));
+                  }
+                  else {
+                    console.log(chalk.blue("WAS | +++ TWITTER AUTO FOLLOW"
+                      + " | UID" + updatedUser.nodeId
+                      + " | @" + updatedUser.screenName
+                    ));
+                  }
+                });
+
               }
 
               if (categorizeable) {
@@ -8923,6 +8944,20 @@ function loadConfigFile(params) {
           }
           else {
             newConfiguration.forceImageAnalysis = false;
+          }
+        }
+
+        if (loadedConfigObj.AUTO_FOLLOW  !== undefined){
+          console.log("WAS | LOADED AUTO_FOLLOW: " + loadedConfigObj.AUTO_FOLLOW);
+
+          if ((loadedConfigObj.AUTO_FOLLOW === false) || (loadedConfigObj.AUTO_FOLLOW === "false")) {
+            newConfiguration.autoFollow = false;
+          }
+          else if ((loadedConfigObj.AUTO_FOLLOW === true) || (loadedConfigObj.AUTO_FOLLOW === "true")) {
+            newConfiguration.autoFollow = true;
+          }
+          else {
+            newConfiguration.autoFollow = false;
           }
         }
 

@@ -659,9 +659,9 @@ followableSearchTermSet.add("livesmatter");
 followableSearchTermSet.add("specialcounsel");
 followableSearchTermSet.add("special counsel");
 
-let followableSearchTermString = "";
-
-let followableRegEx;
+let followableSearchTermsArray = Array.from(followableSearchTermSet);
+let followableSearchTermString = followableSearchTermsArray.join("|");
+let followableRegEx = new RegExp(followableSearchTermString, "gi");
 
 const DEFAULT_BEST_NETWORK_FOLDER = "/config/utility/best/neuralNetworks";
 const bestNetworkFolder = DEFAULT_BEST_NETWORK_FOLDER;
@@ -6061,15 +6061,18 @@ let userFollowable = function(user){
   if ((user.screenName === undefined) || !user.screenName) { user.screenName = ""; }
   if ((user.name === undefined) || !user.name) { user.name = ""; }
 
-  if (followableRegEx === undefined) { return false; }
+  if (followableRegEx !== undefined) {
 
-  followableFlag = followableRegEx.test(user.description)
-    || followableRegEx.test(user.screenName) 
-    || followableRegEx.test(user.name);
+    followableFlag = followableRegEx.test(user.description)
+      || followableRegEx.test(user.screenName) 
+      || followableRegEx.test(user.name);
 
-  if (followableFlag) { followableUserSet.add(user.nodeId); }
+    if (followableFlag) { followableUserSet.add(user.nodeId); }
+    return followableFlag;
+  }
 
-  return followableFlag;
+  return false;
+
 };
 
 function getCurrentThreeceeUser(params){

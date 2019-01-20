@@ -1843,11 +1843,11 @@ function ViewTreepack() {
 
       nodeAddQReady = false;
 
-      newNode = nodeAddQ.shift();
+      const newNode = nodeAddQ.shift();
 
-      if (nodeIdHashMap.has(newNode.nodeId)){
+      if (nodeIdHashMap.has(n.nodeId)){
 
-        nodePoolId = nodeIdHashMap.get(newNode.nodeId);
+        nodePoolId = nodeIdHashMap.get(n.nodeId);
 
         currentNode = localNodeHashMap.get(nodePoolId);
 
@@ -1860,24 +1860,24 @@ function ViewTreepack() {
         currentNode.mouseHoverFlag = false;
         currentNode.newFlag = true;
 
-        currentNode.rank = newNode.rank;
-        currentNode.rate = newNode.rate;
-        currentNode.mentions = newNode.mentions;
-        currentNode.isIgnored = newNode.isIgnored;
-        currentNode.isTopTerm = newNode.isTopTerm;
-        currentNode.isTrendingTopic = newNode.isTrendingTopic;
-        currentNode.category = newNode.category;
-        currentNode.categoryAuto = newNode.categoryAuto;
-        currentNode.categoryColor = newNode.categoryColor;
-        currentNode.categoryMismatch = newNode.categoryMismatch;
-        currentNode.categoryMatch = newNode.categoryMatch;
-        currentNode.lastTweetId = newNode.lastTweetId;
+        currentNode.rank = n.rank;
+        currentNode.rate = n.rate;
+        currentNode.mentions = n.mentions;
+        currentNode.isIgnored = n.isIgnored;
+        currentNode.isTopTerm = n.isTopTerm;
+        currentNode.isTrendingTopic = n.isTrendingTopic;
+        currentNode.category = n.category;
+        currentNode.categoryAuto = n.categoryAuto;
+        currentNode.categoryColor = n.categoryColor;
+        currentNode.categoryMismatch = n.categoryMismatch;
+        currentNode.categoryMatch = n.categoryMatch;
+        currentNode.lastTweetId = n.lastTweetId;
 
-        if (newNode.nodeType === "user"){
-          currentNode.following = newNode.following;
-          currentNode.followersCount = newNode.followersCount || 0;
-          currentNode.followersCount = newNode.followersCount || 0;
-          currentNode.followersMentions = newNode.followersCount + newNode.mentions;
+        if (n.nodeType === "user"){
+          currentNode.following = n.following;
+          currentNode.followersCount = n.followersCount || 0;
+          currentNode.followersCount = n.followersCount || 0;
+          currentNode.followersMentions = n.followersCount + n.mentions;
         }
 
         localNodeHashMap.set(currentNode.nodePoolId, currentNode);
@@ -1889,61 +1889,61 @@ function ViewTreepack() {
 
         currentNode = nodePool.use();
 
-        nodeIdHashMap.set(newNode.nodeId, currentNode.nodePoolId);
+        nodeIdHashMap.set(n.nodeId, currentNode.nodePoolId);
 
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
         currentNode.ageUpdated = Date.now();
-        currentNode.category = newNode.category;
-        currentNode.categoryAuto = newNode.categoryAuto;
-        currentNode.categoryColor = newNode.categoryColor;
-        currentNode.categoryMatch = newNode.categoryMatch;
-        currentNode.categoryMismatch = newNode.categoryMismatch;
-        currentNode.friendsCount = newNode.friendsCount;
-        currentNode.fullName = newNode.fullName;
-        currentNode.hashtagId = newNode.hashtagId;
-        currentNode.isCategory = newNode.isCategory || false;
+        currentNode.category = n.category;
+        currentNode.categoryAuto = n.categoryAuto;
+        currentNode.categoryColor = n.categoryColor;
+        currentNode.categoryMatch = n.categoryMatch;
+        currentNode.categoryMismatch = n.categoryMismatch;
+        currentNode.friendsCount = n.friendsCount;
+        currentNode.fullName = n.fullName;
+        currentNode.hashtagId = n.hashtagId;
+        currentNode.isCategory = n.isCategory || false;
         currentNode.isDead = false;
-        currentNode.isIgnored = newNode.isIgnored;
+        currentNode.isIgnored = n.isIgnored;
         currentNode.isMaxNode = false;
-        currentNode.isTopTerm = newNode.isTopTerm || false;
-        currentNode.isTrendingTopic = newNode.isTrendingTopic || false;
+        currentNode.isTopTerm = n.isTopTerm || false;
+        currentNode.isTrendingTopic = n.isTrendingTopic || false;
         currentNode.isValid = true;
-        currentNode.lastTweetId = newNode.lastTweetId;
-        currentNode.mentions = newNode.mentions;
+        currentNode.lastTweetId = n.lastTweetId;
+        currentNode.mentions = n.mentions;
         currentNode.mouseHoverFlag = false;
-        currentNode.name = newNode.name;
+        currentNode.name = n.name;
         currentNode.newFlag = true;
-        currentNode.nodeId = newNode.nodeId;
-        currentNode.nodeType = newNode.nodeType;
-        currentNode.rank = newNode.rank;
-        currentNode.rate = newNode.rate;
-        currentNode.screenName = newNode.screenName;
-        currentNode.statusesCount = newNode.statusesCount;
+        currentNode.nodeId = n.nodeId;
+        currentNode.nodeType = n.nodeType;
+        currentNode.rank = n.rank;
+        currentNode.rate = n.rate;
+        currentNode.screenName = n.screenName;
+        currentNode.statusesCount = n.statusesCount;
         currentNode.vx = 1e-6;
         currentNode.vy = 1e-6;
         currentNode.x = initialXposition*width;
         currentNode.y = initialYposition*height;
 
-        if (newNode.nodeType === "user"){
-          currentNode.following = newNode.following;
-          currentNode.followersCount = newNode.followersCount || 0;
-          currentNode.followersMentions = newNode.followersCount + newNode.mentions;
+        if (n.nodeType === "user"){
+          currentNode.following = n.following;
+          currentNode.followersCount = n.followersCount || 0;
+          currentNode.followersMentions = n.followersCount + n.mentions;
         }
 
-        if (newNode.category || newNode.categoryAuto) {
+        if (n.category || n.categoryAuto) {
 
-          if (autoCategoryFlag && newNode.categoryAuto) { 
-            currentNode.x = focus(newNode.categoryAuto).x; 
-            currentNode.y = focus(newNode.categoryAuto).y;
+          if (autoCategoryFlag && n.categoryAuto) { 
+            currentNode.x = focus(n.categoryAuto).x; 
+            currentNode.y = focus(n.categoryAuto).y;
           }
-          else if (newNode.categoryAuto && !newNode.category) { 
-            currentNode.x = focus(newNode.categoryAuto).x; 
-            currentNode.y = focus(newNode.categoryAuto).y;
+          else if (n.categoryAuto && !n.category) { 
+            currentNode.x = focus(n.categoryAuto).x; 
+            currentNode.y = focus(n.categoryAuto).y;
           }
-          else if (newNode.category) { 
-            currentNode.x = focus(newNode.category).x; 
-            currentNode.y = focus(newNode.category).y;
+          else if (n.category) { 
+            currentNode.x = focus(n.category).x; 
+            currentNode.y = focus(n.category).y;
           }
         }
         else {

@@ -4170,7 +4170,9 @@ function tssSendAllChildren(params){
   return new Promise(function(resolve, reject){
 
     Object.keys(tssChildren).forEach(function(threeceeUser){
-      tssChildren[threeceeUser].child.send(params);
+      if (tssChildren[threeceeUser] && (tssChildren[threeceeUser] !== undefined) && tssChildren[threeceeUser].child){
+        tssChildren[threeceeUser].child.send(params);
+      }
     });
 
     resolve();

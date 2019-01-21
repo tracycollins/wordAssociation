@@ -6049,6 +6049,7 @@ let userFollowable = function(user){
   if (user.nodeType !== "user") { return false; }
   if (user.ignored !== undefined && user.ignored) { return false; }
   if (user.following !== undefined && user.following) { return false; }
+  if (followedUserSet.has(user.nodeId)) { return false; }
   if (ignoredUserSet.has(user.nodeId)) { return false; }
   if (unfollowableUserSet.has(user.nodeId)) { return false; }
   if (user.category !== undefined && user.category) { return false; }

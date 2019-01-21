@@ -17,6 +17,7 @@ hostname = hostname.replace(/word0-instance-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
 
 const TWITTER_WEBHOOK_URL = "/webhooks/twitter";
+const TWITTER_WEBHOOK_URL_FULL = "https://api.twitter.com/1.1/account_activity/all/dev/webhooks.json?url=https%3A%2F%word.threeceelabs.com%2Fwebhooks%2Ftwitter";
 
 const TWITTER_AUTH_CALLBACK_URL = "https://word.threeceelabs.com/auth/twitter/callback";
 // const TWITTER_AUTH_CALLBACK_URL = "http://localhost:9997/auth/twitter/callback";
@@ -102,7 +103,14 @@ const DEFAULT_FIND_CAT_HASHTAG_CURSOR_LIMIT = 100;
 
 const DEFAULT_CURSOR_BATCH_SIZE = 100;
 
-const DEFAULT_THREECEE_USERS = ["altthreecee00", "altthreecee01", "altthreecee02", "altthreecee03", "altthreecee04", "altthreecee05"];
+const DEFAULT_THREECEE_USERS = [
+  "altthreecee00", 
+  "altthreecee01", 
+  "altthreecee02", 
+  "altthreecee03", 
+  "altthreecee04", 
+  "altthreecee05"
+];
 const DEFAULT_THREECEE_INFO_USERS = ["threecee", "threeceeinfo", "ninjathreecee"];
 
 const DEFAULT_CHILD_ID_PREFIX = "wa_node_child_";
@@ -157,7 +165,7 @@ const DEFAULT_MAX_TOP_TERMS = 100;
 const DEFAULT_METRICS_NODE_METER_ENABLED = true;
 
 const DEFAULT_MAX_QUEUE = 200;
-const DEFAULT_OFFLINE_MODE = process.env.OFFLINE_MODE || false; // if network connection is down, will auto switch to OFFLINE_MODE
+const DEFAULT_OFFLINE_MODE = process.env.OFFLINE_MODE || false; 
 const DEFAULT_AUTO_OFFLINE_MODE = true; // if network connection is down, will auto switch to OFFLINE_MODE
 const DEFAULT_IO_PING_INTERVAL = ONE_MINUTE;
 const DEFAULT_IO_PING_TIMEOUT = 3*ONE_MINUTE;
@@ -265,7 +273,7 @@ function bearerTokenRequest(request_options){
 
         // request options
         var req_options = {
-          url: 'https://api.twitter.com/1.1/account_activity/all/dev/webhooks.json?url=https%3A%2F%word.threeceelabs.com%2Fwebhooks%2Ftwitter',
+          url: TWITTER_WEBHOOK_URL_FULL,
           method: "POST",
           resolveWithFullResponse: true,
           auth: { "bearer" : twitter_bearer_token }
@@ -1703,11 +1711,15 @@ serverCache.on("expired", serverCacheExpired);
 // AUTH SOCKET CACHE ( for UTILs, ADMINS, VIEWERs )
 // ==================================================================
 let authenticatedSocketCacheTtl = process.env.AUTH_SOCKET_CACHE_DEFAULT_TTL;
-if (authenticatedSocketCacheTtl === undefined) { authenticatedSocketCacheTtl = AUTH_SOCKET_CACHE_DEFAULT_TTL;}
+if (authenticatedSocketCacheTtl === undefined) { 
+  authenticatedSocketCacheTtl = AUTH_SOCKET_CACHE_DEFAULT_TTL;
+}
 console.log("WAS | AUTHENTICATED SOCKET CACHE TTL: " + authenticatedSocketCacheTtl + " SECONDS");
 
 let authenticatedSocketCacheCheckPeriod = process.env.AUTH_SOCKET_CACHE_CHECK_PERIOD;
-if (authenticatedSocketCacheCheckPeriod === undefined) { authenticatedSocketCacheCheckPeriod = AUTH_SOCKET_CACHE_CHECK_PERIOD;}
+if (authenticatedSocketCacheCheckPeriod === undefined) {
+  authenticatedSocketCacheCheckPeriod = AUTH_SOCKET_CACHE_CHECK_PERIOD;
+}
 console.log("WAS | AUTHENTICATED SOCKET CACHE CHECK PERIOD: " + authenticatedSocketCacheCheckPeriod + " SECONDS");
 
 const authenticatedSocketCache = new NodeCache({
@@ -1769,11 +1781,15 @@ authenticatedSocketCache.on("expired", authenticatedSocketCacheExpired);
 // AUTH TWITTER USER CACHE
 // ==================================================================
 let authenticatedTwitterUserCacheTtl = process.env.AUTH_USER_CACHE_DEFAULT_TTL;
-if (authenticatedTwitterUserCacheTtl === undefined) { authenticatedTwitterUserCacheTtl = AUTH_USER_CACHE_DEFAULT_TTL;}
+if (authenticatedTwitterUserCacheTtl === undefined) { 
+  authenticatedTwitterUserCacheTtl = AUTH_USER_CACHE_DEFAULT_TTL;
+}
 console.log("WAS | AUTHENTICATED TWITTER USER CACHE TTL: " + authenticatedTwitterUserCacheTtl + " SECONDS");
 
 let authenticatedTwitterUserCacheCheckPeriod = process.env.AUTH_USER_CACHE_CHECK_PERIOD;
-if (authenticatedTwitterUserCacheCheckPeriod === undefined) { authenticatedTwitterUserCacheCheckPeriod = AUTH_USER_CACHE_CHECK_PERIOD;}
+if (authenticatedTwitterUserCacheCheckPeriod === undefined) {
+  authenticatedTwitterUserCacheCheckPeriod = AUTH_USER_CACHE_CHECK_PERIOD;
+}
 console.log("WAS | AUTHENTICATED TWITTERUSER CACHE CHECK PERIOD: " + authenticatedTwitterUserCacheCheckPeriod + " SECONDS");
 
 const authenticatedTwitterUserCache = new NodeCache({
@@ -1798,11 +1814,15 @@ authenticatedTwitterUserCache.on("expired", authenticatedTwitterUserCacheExpired
 // AUTH IN PROGRESS CACHE
 // ==================================================================
 let authInProgressTwitterUserCacheTtl = process.env.AUTH_IN_PROGRESS_CACHE_DEFAULT_TTL;
-if (authInProgressTwitterUserCacheTtl === undefined) { authInProgressTwitterUserCacheTtl = AUTH_IN_PROGRESS_CACHE_DEFAULT_TTL;}
+if (authInProgressTwitterUserCacheTtl === undefined) { 
+  authInProgressTwitterUserCacheTtl = AUTH_IN_PROGRESS_CACHE_DEFAULT_TTL;
+}
 console.log("WAS | AUTH IN PROGRESS CACHE TTL: " + authInProgressTwitterUserCacheTtl + " SECONDS");
 
 let authInProgressTwitterUserCacheCheckPeriod = process.env.AUTH_IN_PROGRESS_CACHE_CHECK_PERIOD;
-if (authInProgressTwitterUserCacheCheckPeriod === undefined) { authInProgressTwitterUserCacheCheckPeriod = AUTH_IN_PROGRESS_CACHE_CHECK_PERIOD;}
+if (authInProgressTwitterUserCacheCheckPeriod === undefined) { 
+  authInProgressTwitterUserCacheCheckPeriod = AUTH_IN_PROGRESS_CACHE_CHECK_PERIOD;
+}
 console.log("WAS | AUTH IN PROGRESS CACHE CHECK PERIOD: " + authInProgressTwitterUserCacheCheckPeriod + " SECONDS");
 
 const authInProgressTwitterUserCache = new NodeCache({
@@ -2184,25 +2204,35 @@ function dropboxFolderGetLastestCursor(folder, callback) {
     include_has_explicit_shared_members: false
   };
 
-  if (configuration.verbose) { console.log(chalkLog("WAS | dropboxFolderGetLastestCursor FOLDER: " + folder)); }
+  if (configuration.verbose) { 
+    console.log(chalkLog("WAS | dropboxFolderGetLastestCursor FOLDER: " + folder)); 
+  }
 
   dropboxClient.filesListFolderGetLatestCursor(optionsGetLatestCursor)
   .then(function(last_cursor) {
 
     lastCursorTruncated = last_cursor.cursor.substring(0,20);
 
-    if (configuration.verbose) { console.log(chalkLog("WAS | DROPBOX LAST CURSOR\n" + jsonPrint(last_cursor))); }
+    if (configuration.verbose) { 
+      console.log(chalkLog("WAS | DROPBOX LAST CURSOR\n" + jsonPrint(last_cursor))); 
+    }
 
     dropboxLongPoll(last_cursor.cursor, function(err, results){
 
-      if (configuration.verbose) { console.log(chalkLog("WAS | DROPBOX LONG POLL RESULTS\n" + jsonPrint(results))); }
+      if (configuration.verbose) { 
+        console.log(chalkLog("WAS | DROPBOX LONG POLL RESULTS\n" + jsonPrint(results))); 
+      }
 
       if (results.changes) {
 
         dropboxClient.filesListFolderContinue({ cursor: last_cursor.cursor})
         .then(function(response){
 
-          if (configuration.verbose) { console.log(chalkLog("WAS | DROPBOX FILE LIST FOLDER CONTINUE\n" + jsonPrint(response))); }
+          if (configuration.verbose) { 
+            console.log(chalkLog("WAS | DROPBOX FILE LIST FOLDER CONTINUE"
+              + "\n" + jsonPrint(response)
+            ));
+          }
 
           callback(null, response);
 
@@ -2210,13 +2240,15 @@ function dropboxFolderGetLastestCursor(folder, callback) {
         .catch(function(err){
 
           if (err.status === 429){
-            console.log(chalkError("WAS | *** dropboxFolderGetLastestCursor filesListFolder *** DROPBOX FILES LIST FOLDER ERROR"
+            console.log(chalkError("WAS | *** dropboxFolderGetLastestCursor filesListFolder"
+              + " | *** DROPBOX FILES LIST FOLDER ERROR"
               + " | TOO MANY REQUESTS" 
               + " | FOLDER: " + folder 
             ));
           }
           else {
-            console.log(chalkError("WAS | *** dropboxFolderGetLastestCursor filesListFolder *** DROPBOX FILES LIST FOLDER ERROR"
+            console.log(chalkError("WAS | *** dropboxFolderGetLastestCursor filesListFolder"
+              + " *** DROPBOX FILES LIST FOLDER ERROR"
               + "\nERROR: " + err 
               + "\nERROR: " + jsonPrint(err)
             ));
@@ -3295,7 +3327,9 @@ process.on("message", function processMessageRx(msg) {
 
   if ((msg === "SIGINT") || (msg === "shutdown")) {
 
-    console.log(chalkAlert("\nWAS | =============================\nWAS | *** SHUTDOWN OR SIGINT ***\nWAS | =============================\n"));
+    console.log(chalkAlert("\nWAS | =============================\nWAS"
+      + " | *** SHUTDOWN OR SIGINT ***\nWAS | =============================\n"
+    ));
 
     clearInterval(internetCheckInterval);
 
@@ -3689,7 +3723,9 @@ configEvents.on("NEW_MAX_INPUT_HASHMAP", function configEventDbConnect(){
 
     console.log(chalkBlue("WAS | UPDATE TFE CHILD MAX INPUT HASHMAP: " + Object.keys(maxInputHashMap)));
 
-    childrenHashMap[DEFAULT_TFE_CHILD_ID].child.send({ op: "MAX_INPUT_HASHMAP", maxInputHashMap: maxInputHashMap }, function tfeMaxInputHashMap(err){
+    childrenHashMap[DEFAULT_TFE_CHILD_ID].child.send(
+      { op: "MAX_INPUT_HASHMAP", maxInputHashMap: maxInputHashMap }, 
+      function tfeMaxInputHashMap(err){
       if (err) {
         console.log(chalkError("WAS | *** TFE CHILD SEND MAX_INPUT_HASHMAP ERROR"
           + " | " + err
@@ -3703,7 +3739,9 @@ configEvents.on("NEW_MAX_INPUT_HASHMAP", function configEventDbConnect(){
 
     console.log(chalkBlue("WAS | UPDATE TWP CHILD MAX INPUT HASHMAP: " + Object.keys(maxInputHashMap)));
 
-    childrenHashMap[DEFAULT_TWP_CHILD_ID].child.send({ op: "MAX_INPUT_HASHMAP", maxInputHashMap: maxInputHashMap }, function twpMaxInputHashMap(err){
+    childrenHashMap[DEFAULT_TWP_CHILD_ID].child.send(
+      { op: "MAX_INPUT_HASHMAP", maxInputHashMap: maxInputHashMap }, 
+      function twpMaxInputHashMap(err){
       if (err) {
         console.log(chalkError("WAS | *** TWEET PARSER SEND MAX_INPUT_HASHMAP ERROR"
           + " | " + err
@@ -3887,8 +3925,6 @@ function categorizeNode(categorizeObj, callback) {
             updatedHashtag.nodeId, 
             { manual: updatedHashtag.category, auto: updatedHashtag.categoryAuto });
 
-          // slackSendMessage("CATEGORIZE" + "\n@" + categorizeObj.node.nodeId.toLowerCase() + ": " + categorizeObj.category );
-
           debug(chalkLog("UPDATE_CATEGORY HASHTAG | #" + updatedHashtag.nodeId ));
           if (callback !== undefined) {
             callback(null, updatedHashtag);
@@ -4031,7 +4067,9 @@ function socketRxTweet(tw) {
     if (statsObj.twitter.tweetsReceived % 1000 === 0) {
       console.log(chalkTwitter("WAS | <T"
         + " | RXQ: " + tweetRxQueue.length
-        + " [ T/R/Q " + statsObj.twitter.tweetsReceived + "/" + statsObj.twitter.retweetsReceived + "/" + statsObj.twitter.quotedTweetsReceived + "]"
+        + " [ T/R/Q " + statsObj.twitter.tweetsReceived 
+        + "/" + statsObj.twitter.retweetsReceived 
+        + "/" + statsObj.twitter.quotedTweetsReceived + "]"
         + " | TW " + tw.id_str
         + " | @" + tw.user.screen_name
         + " | " + tw.user.name
@@ -4062,7 +4100,9 @@ function follow(params, callback) {
 
   if (!enableFollow(params)) { 
 
-    console.log(chalkWarn("-X- FOLLOW | @" + params.user.screenName + " | IN UNFOLLOWABLE, FOLLOWED or IGNORED USER SET"));
+    console.log(chalkWarn("-X- FOLLOW | @" + params.user.screenName 
+      + " | IN UNFOLLOWABLE, FOLLOWED or IGNORED USER SET"
+    ));
 
     if (callback !== undefined) { 
       return callback("XXX FOLLOW", null);
@@ -4077,12 +4117,17 @@ function follow(params, callback) {
   unfollowableUserSet.delete(params.user.nodeId);
 
   const query = { nodeId: params.user.nodeId };
+  const randomThreeceeUser = _.sample(configuration.threeceeUsers);
+
+  console.log(chalkWarn("--- FOLLOW | @" + params.user.screenName 
+    + " | RANDOM 3C @" + randomThreeceeUser
+  ));
 
   let update = {};
 
   update["$set"] = { 
     following: true, 
-    threeceeFollowing: configuration.twitterThreeceeAutoFollowUser
+    threeceeFollowing: randomThreeceeUser
   };
 
   const options = {
@@ -4096,13 +4141,13 @@ function follow(params, callback) {
       console.log(chalkError("WAS | *** FOLLOW | USER FIND ONE ERROR: " + err));
     }
     else if (userUpdated){
-      if (tssChildren[configuration.twitterThreeceeAutoFollowUser] !== undefined) {
+      if (tssChildren[randomThreeceeUser] !== undefined) {
 
         console.log(chalkLog("WAS | +++ FOLLOW"
           + " | " + printUser({user: userUpdated})
         ));
 
-        tssChildren[configuration.twitterThreeceeAutoFollowUser].child.send({
+        tssChildren[randomThreeceeUser].child.send({
           op: "FOLLOW", 
           user: userUpdated,
           forceFollow: configuration.forceFollow
@@ -4170,7 +4215,9 @@ function tssSendAllChildren(params){
   return new Promise(function(resolve, reject){
 
     Object.keys(tssChildren).forEach(function(threeceeUser){
-      if (tssChildren[threeceeUser] && (tssChildren[threeceeUser] !== undefined) && tssChildren[threeceeUser].child){
+      if (tssChildren[threeceeUser] 
+        && (tssChildren[threeceeUser] !== undefined) 
+        && tssChildren[threeceeUser].child){
         tssChildren[threeceeUser].child.send(params);
       }
     });
@@ -4363,7 +4410,9 @@ function unfollow(params, callback) {
 
 function initFollowableSearchTermSet(){
 
-  console.log(chalkBlue("WAS | INIT FOLLOWABLE SEARCH TERM SET: " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile));
+  console.log(chalkBlue("WAS | INIT FOLLOWABLE SEARCH TERM SET: " + dropboxConfigDefaultFolder 
+    + "/" + followableSearchTermFile
+  ));
 
   return new Promise(function(resolve, reject) {
 
@@ -8440,9 +8489,6 @@ function initTweetParser(params, callback){
     } 
 
     else if (tweetParserMessageRxQueue.length < configuration.maxQueue){
-      // deltaTweetParserMessage = process.hrtime(deltaTweetParserMessageStart);
-      // if (deltaTweetParserMessage[0] > 0) { console.log(chalkAlert("WAS | *** TWP RX DELTA: " + deltaTweetParserMessage[0] + "." + deltaTweetParserMessage[1])); }
-      // deltaTweetParserMessageStart = process.hrtime();
       tweetParserMessageRxQueue.push(m);
     }
 

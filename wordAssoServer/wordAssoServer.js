@@ -3950,11 +3950,11 @@ function socketRxTweet(tw) {
     statsObj.errors.twitter.maxRxQueue += 1;
 
     if (statsObj.errors.twitter.maxRxQueue % 1000 === 0) {
-      console.log(chalk.black.bold("WAS | *** TWEET RX MAX QUEUE [" + tweetRxQueue.length + "]"
+      console.log(chalkLog("WAS | !!! TW RX MAX Q [" + tweetRxQueue.length + "]"
         + " | " + getTimeStamp()
-        + " | TWP READY: " + statsObj.tweetParserReady
-        + " | TWP SEND READY: " + statsObj.tweetParserSendReady
-        + " | MAX Q EVENTS: " + statsObj.errors.twitter.maxRxQueue
+        + " | TWP RDY: " + statsObj.tweetParserReady
+        + " | TWP SND RDY: " + statsObj.tweetParserSendReady
+        + " | MAX Qs " + statsObj.errors.twitter.maxRxQueue
         + " | " + tw.id_str
         + " | " + tw.user.screen_name
       ));

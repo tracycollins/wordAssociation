@@ -6057,7 +6057,12 @@ let userFollowable = function(user){
   if (user.lang !== undefined && user.lang !== "en") { 
     ignoredUserSet.add(user.nodeId);
     unfollowableUserSet.add(user.nodeId);
-    console.log(chalkBlue("WAS | XXX UNFOLLOWABLE | LANG NOT EN: " + user.lang + " | IG: " + ignoredUserSet.size));
+    printUserObj(
+      "LANG NOT ENG: " + user.lang 
+      + " [ IG: " + ignoredUserSet.size + " | UF: " + unfollowableUserSet.size + "]", 
+      user, 
+      chalkLog
+    );
     return false;
   }
 

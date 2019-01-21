@@ -648,7 +648,10 @@ followableSearchTermSet.add("#russia");
 followableSearchTermSet.add("@nra");
 followableSearchTermSet.add("@gop");
 
+followableSearchTermSet.add("🌊");
+followableSearchTermSet.add("fbr");
 followableSearchTermSet.add("bluewave");
+followableSearchTermSet.add("bluetsunami");
 followableSearchTermSet.add("liberal");
 followableSearchTermSet.add("democrat");
 followableSearchTermSet.add("congress");

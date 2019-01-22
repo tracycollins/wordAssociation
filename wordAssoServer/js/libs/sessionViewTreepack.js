@@ -456,10 +456,8 @@ function ViewTreepack() {
     }
   );
 
-  var panzoomTransformModel;
   panzoomInstance.on("zoom", function(e){
-    panzoomTransformModel = panzoomInstance.getTransformModel();
-    console.log("ZOOM TRANSFORM\n", jsonPrint(panzoomTransformModel));
+    console.log("ZOOM: ", e);
   });
 
   

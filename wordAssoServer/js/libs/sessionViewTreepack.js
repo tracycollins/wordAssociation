@@ -112,8 +112,8 @@ function ViewTreepack() {
   // var mentionsNumChars = 12;
   // var rateNumChars = 8;
 
-  var maxHashtagRows = 100;
-  var maxHashtagCols = 5;
+  // var maxHashtagRows = 100;
+  // var maxHashtagCols = 5;
 
   // FORCE X & Y
   var xFocusLeftRatio = 0.2;
@@ -278,7 +278,7 @@ function ViewTreepack() {
   var velocityDecay = config.defaultVelocityDecay;
   var fontSizeMinRatio = config.defaultFontSizeMinRatio;
   var fontSizeMaxRatio = config.defaultFontSizeMaxRatio;
-  var fontSizeTopTermRatio = config.defaultFontSizeTopTermRatio;
+  // var fontSizeTopTermRatio = config.defaultFontSizeTopTermRatio;
   var fontSizeMin = config.defaultFontSizeMinRatio * height;
   var fontSizeMax = config.defaultFontSizeMaxRatio * height;
 

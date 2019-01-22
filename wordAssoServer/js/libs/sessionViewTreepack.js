@@ -11,7 +11,7 @@ function ViewTreepack() {
   var initialXposition = 0.5;
   var initialYposition = 0.9;
 
-  var DEFAULT_ZOOM_FACTOR = 0.4;
+  var DEFAULT_ZOOM_FACTOR = 0.75;
   // var emojiFontMulipier = 2.0;
   var minRateMetricChange = 0.5;
 
@@ -287,6 +287,8 @@ function ViewTreepack() {
   var nodeRadiusMin = config.defaultNodeRadiusMinRatio * width;
   var nodeRadiusMax = config.defaultNodeRadiusMaxRatio * width;
 
+  var zoomFactor = config.defaultZoomFactor || DEFAULT_ZOOM_FACTOR;
+
   // var rowSpacing = fontSizeTopTermRatio*110; // %
   // var colSpacing = 90/maxHashtagCols; // %
 
@@ -443,10 +445,9 @@ function ViewTreepack() {
   //   attr("y", 1e-6);
 
 
-  var zoomFactor = DEFAULT_ZOOM_FACTOR;
   var panzoomElement = document.getElementById("svgTreemapLayoutArea");
 
-  panzoom(
+  var panzoomInstance = panzoom(
     panzoomElement, 
     {
       maxZoom: 2, 
@@ -456,15 +457,9 @@ function ViewTreepack() {
   ).
   zoomAbs(0.5*width, 0.5*height, zoomFactor);
 
-  // panzoom(panzoomElement, { 
-  //   zoomSpeed: 0.040,
-  //   smoothScroll: true,
-  //   autocenter: true
-  // }).zoomAbs(
-  //   0.5*width,
-  //   0.5*height,
-  //   zoomFactor
-  // );
+  panzoomInstance.on("zoom", function(e){
+    console.log("ZOOM: ", e);
+  });
 
   // var svgTopTerms = topTermsDiv.append("svg:svg")
   //   .attr("id", "svgTopTerms")

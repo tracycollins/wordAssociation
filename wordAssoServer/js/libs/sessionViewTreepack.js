@@ -6,22 +6,15 @@ function ViewTreepack() {
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
-  // var workerAgeNodes = new Worker("ageNodes.js");
-
   var initialXposition = 0.5;
   var initialYposition = 0.9;
 
   var DEFAULT_ZOOM_FACTOR = 0.5;
-  // var emojiFontMulipier = 2.0;
   var minRateMetricChange = 0.5;
-
-  // var topTermsDivVisible = false;
 
   var getWindowDimensions = function (){
 
     if (window.innerWidth !== "undefined") {
-      // w = window.innerWidth;
-      // h = window.innerHeight;
       return { width: window.innerWidth, height: window.innerHeight };
     }
     // IE6 in standards compliant mode (i.e. with a valid doctype as the first line in the document)
@@ -40,7 +33,6 @@ function ViewTreepack() {
 
   function jsonPrint(obj) {
     if ((obj) || (obj === 0)) {
-      // var jsonString = JSON.stringify(obj, null, 2);
       return JSON.stringify(obj, null, 2);
     } else {
       return "UNDEFINED";
@@ -80,7 +72,6 @@ function ViewTreepack() {
 
   var DEFAULT_MIN_MENTIONS = 1000;
 
-  // var minMentions = DEFAULT_MIN_MENTIONS;
   var minMentionsUsers = DEFAULT_MIN_MENTIONS;
   var minMentionsHashtags = 100;
 
@@ -91,8 +82,6 @@ function ViewTreepack() {
   var currentTwitterUser = twitterUserThreecee;
   var currentTwitterHashtag = "resist";
 
-  // var defaultProfileImageUrl = "favicon.png";
-
   var self = this;
   var simulation;
 
@@ -101,19 +90,8 @@ function ViewTreepack() {
   var newCurrentMaxRateMetricFlag = true;
 
   var resumeTimeStamp = 0;
-  // var compactDateTimeFormat = "YYYYMMDD HHmmss";
 
   var sliderPercision = 5;
-
-  // var maxRateMentionsTopMargin = 2; // %
-  // var maxRateMentionsLeftMargin = 2; // %
-  // var hashtagTopMargin = 7; // %
-  // var hashtagLeftMargin = 2; // %
-  // var mentionsNumChars = 12;
-  // var rateNumChars = 8;
-
-  // var maxHashtagRows = 100;
-  // var maxHashtagCols = 5;
 
   // FORCE X & Y
   var xFocusLeftRatio = 0.2;
@@ -125,7 +103,6 @@ function ViewTreepack() {
   var xFocusPositiveRatio = 0.5;
   var yFocusPositiveRatio = 0.2;
 
-  // var xFocusNegativeRatio = 0.5;
   var yFocusNegativeRatio = 0.7;
 
   var xFocusNeutralRatio = 0.5;
@@ -191,9 +168,7 @@ function ViewTreepack() {
   totalHashmap.none = 0;
 
   var nodeArray = [];
-  // var nodesTopTerm = [];
 
-  // var currentMaxMentionsMetric = 2;
   var currentMaxRateMetric = 2;
 
   var currentMax = {};
@@ -267,7 +242,6 @@ function ViewTreepack() {
 
   var autoCategoryFlag = config.autoCategoryFlag;
   var metricMode = config.defaultMetricMode;
-  // var transitionDuration = config.defaultTransitionDuration;
   var blahMode = config.defaultBlahMode;
   var charge = config.defaultCharge;
   var gravity = config.defaultGravity;
@@ -278,7 +252,6 @@ function ViewTreepack() {
   var velocityDecay = config.defaultVelocityDecay;
   var fontSizeMinRatio = config.defaultFontSizeMinRatio;
   var fontSizeMaxRatio = config.defaultFontSizeMaxRatio;
-  // var fontSizeTopTermRatio = config.defaultFontSizeTopTermRatio;
   var fontSizeMin = config.defaultFontSizeMinRatio * height;
   var fontSizeMax = config.defaultFontSizeMaxRatio * height;
 
@@ -287,12 +260,9 @@ function ViewTreepack() {
   var nodeRadiusMin = config.defaultNodeRadiusMinRatio * width;
   var nodeRadiusMax = config.defaultNodeRadiusMaxRatio * width;
 
-  var zoomFactor = config.defaultZoomFactor || DEFAULT_ZOOM_FACTOR;
-  var zoomInitialX = config.defaultZoomInitialX || 0.5*width;
-  var zoomInitialY = config.defaultZoomInitialY || 0.5*height;
-
-  // var rowSpacing = fontSizeTopTermRatio*110; // %
-  // var colSpacing = 90/maxHashtagCols; // %
+  config.defaultZoomFactor = config.defaultZoomFactor || DEFAULT_ZOOM_FACTOR;
+  config.defaultZoomInitialX = config.defaultZoomInitialX || 0.5*width;
+  config.defaultZoomInitialY = config.defaultZoomInitialY || 0.5*height;
 
   var maxRateMentions = {};
   maxRateMentions.rateNodeType = "hashtag";
@@ -324,8 +294,6 @@ function ViewTreepack() {
   var freezeFlag = false;
 
   var MAX_NODES_LIMIT = 100;
-
-  // var NEW_NODE_AGE_RATIO = 0.01;
 
   var minOpacity = 0.2;
   var antonymFlag = false;
@@ -375,7 +343,6 @@ function ViewTreepack() {
 
   var defaultStrokeWidth = "1.5px";
   var topTermStrokeWidth = "4.0px";
-  // var newFlagStrokeWidth = "2.0px";
 
   var categoryMatchColor = palette.green;
   var categoryMatchStrokeWidth = "10.0px";
@@ -421,8 +388,6 @@ function ViewTreepack() {
     domain([1, maxNodesLimit]).
     range([1.0, 10.0]);
 
-  // var fontTopTerm = config.defaultFontSizeTopTermRatio * topTermsDiv.height;
-
   var d3image = d3.select("#d3group");
 
   var svgMain = d3image.append("svg:svg").
@@ -439,14 +404,6 @@ function ViewTreepack() {
     attr("x", 1e-6).
     attr("y", 1e-6);
 
-  // var svgTopTermLayoutArea = svgMain.append("svg:g").
-  //   attr("id", "svgTopTermLayoutArea").
-  //   attr("width", width).
-  //   attr("height", height).
-  //   attr("x", 1e-6).
-  //   attr("y", 1e-6);
-
-
   var panzoomElement = document.getElementById("svgTreemapLayoutArea");
 
   var panzoomInstance = panzoom(
@@ -461,50 +418,15 @@ function ViewTreepack() {
   var panzoomTransform;
 
   panzoomInstance.on("zoom", function(e){
-    // console.log("ZOOM: ", e);
     panzoomTransform = e.getTransform();
-    zoomFactor = panzoomTransform.scale;
-    zoomInitialX = panzoomTransform.x;
-    zoomInitialY = panzoomTransform.y;
+    config.zoomFactor = panzoomTransform.scale;
+    config.zoomInitialX = panzoomTransform.x;
+    config.zoomInitialY = panzoomTransform.y;
     console.log("panzoomTransform\n", jsonPrint(panzoomTransform));
   });
 
   
-  panzoomInstance.zoomAbs(zoomInitialX, zoomInitialY, zoomFactor);
-
-  // var svgTopTerms = topTermsDiv.append("svg:svg")
-  //   .attr("id", "svgTopTerms")
-  //   .attr("width", width)
-  //   .attr("height", height)
-  //   .attr("x", 1e-6)
-  //   .attr("y", 1e-6);
-
-  // var maxRateMentionsSvgGroup = svgTopTerms.append("svg:g")
-  //   .attr("id", "maxRateMentionsSvgGroup")
-  //   .attr("width", width)
-  //   .attr("height", height)
-  //   .style("zIndex", 100)
-  //   .style("opacity", 1.0);
-
-  // var maxRateMentionsText = maxRateMentionsSvgGroup.append("svg:text")
-  //   .attr("id", "maxRateMentionsText")
-  //   .attr("x", maxRateMentionsLeftMargin + "%")
-  //   .attr("y", maxRateMentionsTopMargin + "%")
-  //   .text("MAX MENTIONS: 0")
-  //   .style("font-family", "monospace")
-  //   .style("font-size", fontTopTerm)
-  //   .style("fill", palette.lightgray)
-  //   // .style("stroke", palette.white)
-  //   .style("opacity", 1.0)
-  //   .style("text-anchor", "right")
-  //   .style("alignment-baseline", "top");
-
-  // var nodeTopTermLabelSvgGroup = svgTopTerms.append("svg:g")
-  //   .attr("id", "nodeTopTermLabelSvgGroup")
-  //   .attr("width", width)
-  //   .attr("height", height)
-  //   .attr("x", 1e-6)
-  //   .attr("y", 1e-6);
+  panzoomInstance.zoomAbs(config.zoomInitialX, config.zoomInitialY, config.zoomFactor);
 
   var nodeSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
   var nodeLabelSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
@@ -584,11 +506,6 @@ function ViewTreepack() {
     metricMode = mode;
     config.defaultMetricMode = mode;
 
-    // emojiLabelSizeScale = d3.scaleLinear()
-    //   .domain([1, currentMetricModeDomainMax])
-    //   .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
-    //   .clamp(true);
-
     nodeLabelSizeScale = d3.scaleLinear().
       domain([1, currentMax[mode][mode]]).
       range([fontSizeMin, fontSizeMax]).
@@ -596,11 +513,6 @@ function ViewTreepack() {
 
     defaultRadiusScale = d3.scaleLinear().
       domain([0, Math.sqrt(currentMax[mode][mode])]).
-      range([nodeRadiusMin, nodeRadiusMax]).
-      clamp(true);
-
-    imageSizeScale = d3.scaleLinear().
-      domain([0, currentMetricModeDomainMaxSqrt]).
       range([nodeRadiusMin, nodeRadiusMax]).
       clamp(true);
 
@@ -671,7 +583,7 @@ function ViewTreepack() {
         if (d.category){ return foci[d.category].x; }
         return foci.default.x;
       }).
-strength(function(){
+      strength(function(){
         return forceXmultiplier * gravity; 
       })).
       force("forceY", d3.forceY().y(function(d) { 
@@ -681,7 +593,7 @@ strength(function(){
         if (d.category){ return foci[d.category].y; }
         return foci.default.y;
       }).
-strength(function(){
+      strength(function(){
         return forceYmultiplier * gravity; 
       }));
   };
@@ -708,10 +620,6 @@ strength(function(){
       domain([0, currentMetricModeDomainMaxSqrt]).
       range([nodeRadiusMin, nodeRadiusMax]).
       clamp(true);
-    // imageSizeScale = d3.scaleLinear().
-    //   domain([0, currentMetricModeDomainMaxSqrt]).
-    //   range([nodeRadiusMin, nodeRadiusMax]).
-    //   clamp(true);
   };
 
   self.updateNodeRadiusMaxRatio = function(value) {
@@ -723,10 +631,6 @@ strength(function(){
       domain([0, currentMetricModeDomainMaxSqrt]).
       range([nodeRadiusMin, nodeRadiusMax]).
       clamp(true);
-    // imageSizeScale = d3.scaleLinear().
-    //   domain([0, currentMetricModeDomainMaxSqrt]).
-    //   range([nodeRadiusMin, nodeRadiusMax]).
-    //   clamp(true);
   };
 
   self.updateFontSizeMinRatio = function(value) {
@@ -735,11 +639,6 @@ strength(function(){
 
     fontSizeMinRatio = value;
     fontSizeMin = value * height;
-
-    // emojiLabelSizeScale = d3.scaleLinear()
-    //   .domain([1, currentMetricModeDomainMax])
-    //   .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
-    //   .clamp(true);
 
     nodeLabelSizeScale = d3.scaleLinear().
       domain([1, currentMetricModeDomainMax]).
@@ -753,11 +652,6 @@ strength(function(){
 
     fontSizeMaxRatio = value;
     fontSizeMax = value * height;
-
-    // emojiLabelSizeScale = d3.scaleLinear()
-    //   .domain([1, currentMetricModeDomainMax])
-    //   .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
-    //   .clamp(true);
 
     nodeLabelSizeScale = d3.scaleLinear().
       domain([1, currentMetricModeDomainMax]).
@@ -774,56 +668,8 @@ strength(function(){
     self.updateGravity(config.defaultGravity);
   };
 
-  // var keysForRankHashMap = [];
-
-  // function rankHashMapByValue(hmap, sortProperty, callback) {
-
-  //   keysForRankHashMap = hmap.keys().sort(function hmapSortFunc(a,b){
-  //     if (!hmap.get(a).isValid && !hmap.get(b).isValid) { return 0; }
-  //     if (!hmap.get(a).isValid && hmap.get(b).isValid) { return -1; }
-  //     if (hmap.get(a).isValid && !hmap.get(b).isValid) { return 1; }
-  //     return hmap.get(b)[sortProperty]-hmap.get(a)[sortProperty];
-  //   });
-
-  //   async.forEachOf(keysForRankHashMap, function keysRank(key, index, cb) {
-
-  //     var entry = hmap.get(key);
-  //     entry.rank = index;
-
-  //     hmap.set(key, entry);
-  //     cb();
-
-  //   }, function keysRankCallback(err) {
-  //     if (err) { console.error("rankHashMapByValue ERROR: " + err); }
-  //     callback(hmap);
-  //   });
-  // }
-
-  // var keysForRankArray = [];
-  // function rankArrayByValue(arr, sortProperty, callback) {
-
-  //   keysForRankArray = arr.sort(function hmapSortFunc(a,b){
-  //     if (!a.isValid && !b.isValid) { return 0; }
-  //     if (!a.isValid && b.isValid) { return -1; }
-  //     if (a.isValid && !b.isValid) { return 1; }
-  //     return b[sortProperty]-a[sortProperty];
-  //   });
-
-  //   async.forEachOf(keysForRankArray, function keysRank(nodeId, index, cb) {
-
-  //     arr[index].rank = index;
-  //     cb();
-
-  //   }, function keysRankCallback(err) {
-  //     if (err) { console.error("rankArrayByValue ERROR: " + err); }
-  //     callback(arr);
-  //   });
-  // }
-
   var tempNodeCirle;
   var tempNodeLabel;
-  // var tempNodeTopTermLabel;
-
 
   function resetNode(n, callback){
     n.age = 1e-6;
@@ -870,10 +716,6 @@ strength(function(){
     tempNodeLabel = document.getElementById(n.nodePoolId + "_label");
     tempNodeLabel.setAttribute("display", "none");
 
-    // tempNodeTopTermLabel = document.getElementById(n.nodePoolId + "_labelTopTerm");
-    // if (tempNodeTopTermLabel) {
-    //   tempNodeTopTermLabel.setAttribute("display", "none");
-    // }
     callback(n);
   }
 
@@ -896,7 +738,6 @@ strength(function(){
     tempTotalHashmap.negative = 0;
     tempTotalHashmap.none = 0;
 
-    // tempNodeArray = [];
     tempNodeArray.length = 0;
 
     nodeIdArray = nodeIdHashMap.keys();
@@ -999,15 +840,6 @@ strength(function(){
       callback(null, tempNodeArray);
     });
 
-
-    // maxRateMentionsText.text(createDisplayText(currentMax[metricMode]));
-
-    // nodeArray = tempNodeArray;
-
-    // rankArrayByValue(tempNodesTopTerm, metricMode, function rankArrayByValueFunc(){
-    //   nodeArray = tempNodeArray;
-    //   callback(null);
-    // });
   }
 
   var previousTwitterUserId;
@@ -1035,21 +867,6 @@ strength(function(){
     d3.select("#" + d.nodePoolId + "_label").style("display", "unset");
 
     switch (d.nodeType) {
-
-      // case "emoji":
-
-      //   currentTwitterEmoji = d;
-
-      //   if (mouseMovingFlag 
-      //     && controlPanelReadyFlag 
-      //     && (!previousTwitterEmoji || (previousTwitterEmoji !== d.nodeId))){
-      //     previousTwitterEmoji = currentTwitterEmoji.nodeId;
-      //   }
-
-      //   tooltipString = d.nodeId
-      //     + "<br>Ms: " + d.mentions
-      //     + "<br>" + d.rate.toFixed(2) + " MPM";
-      // break;
 
       case "user":
 
@@ -1090,29 +907,6 @@ strength(function(){
           + "<br>CA: " + d.categoryAuto;
       break;
 
-      // case "media":
-      //   tooltipString = "ID: " + d.nodeId
-      //     + "<br>Ms: " + d.mentions
-      //     + "<br>" + d.rate.toFixed(2) + " WPM"
-      //     + "<br>URL: " + d.url
-      //     + "<br>MEDIA URL: " + d.mediaUrl;
-      // break;
-
-      // case "word":
-      //   tooltipString = d.nodeId
-      //     + "<br>Ms: " + d.mentions
-      //     + "<br>" + d.rate.toFixed(2) + " WPM"
-      //     + "<br>C: " + d.category
-      //     + "<br>CA: " + d.categoryAuto;
-      // break;
-
-      // case "place":
-      //   tooltipString = d.fullName
-      //     + "<br>Ms: " + d.mentions
-      //     + "<br>" + d.rate.toFixed(2) + " WPM"
-      //     + "<br>C: " + d.category
-      //     + "<br>CA: " + d.categoryAuto;
-      // break;
     }
 
     divTooltip.html(tooltipString);
@@ -1223,11 +1017,6 @@ strength(function(){
         }
       break;
 
-      // case "media" :
-      //   console.debug("LOADING MEDIA: " + d.url);
-      //   window.open(d.url, "_blank");
-      // break;
-
       case "hashtag" :
 
         currentTwitterHashtag = d;
@@ -1245,152 +1034,8 @@ strength(function(){
         window.open("https://twitter.com/search?f=tweets&q=%23"+d.nodeId, "_blank");
       break;
 
-      // case "place" :
-      //   window.open("http://twitter.com/search?q=place%3A" + d.placeId, "_blank");
-      // break;
     }
   }
-
-  // var nodeTopTermLabels;
-
-  // var updateTopTerm = function(callback) {
-
-  //   nodeTopTermLabels = nodeTopTermLabelSvgGroup.selectAll("text")
-  //     .data(nodesTopTerm, function updateTopTermData(d) { return d.nodeId; });
-
-  //   nodeTopTermLabels
-  //     .exit()
-  //     .style("display", "none")
-  //     .style("fill-opacity", 1e-6);
-
-  //   nodeTopTermLabels
-  //     .attr("x", xposition)
-  //     .text(function updateTopTermText(d) {
-  //       return d.displaytext;
-  //     })
-  //     .style("fill", function updateTopTermFill(d) { 
-  //       if (d.mouseHoverFlag) { return palette.blue; }
-  //       if (d.category || d.categoryAuto) { return d.categoryColor; }
-  //       if (d.isTrendingTopic || d.isNumber || d.isCurrency) { return palette.white; }
-  //       if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
-  //       return palette.darkgray; 
-  //     })
-  //     .style("fill-opacity", function updateTopTermOpacity(d) { 
-  //       if (d.mouseHoverFlag) { return 1.0; }
-  //       return topTermLabelOpacityScale(d.ageMaxRatio); 
-  //     })
-  //     .style("display", "unset")
-  //     .transition()
-  //       .duration(transitionDuration)
-  //       .attr("y", yposition);
-
-  //   nodeTopTermLabels
-  //     .enter().append("text")
-  //     .attr("id", function (d) { return d.nodePoolId + "_labelTopTerm"; })
-  //     .attr("nodeId", function (d) { return d.nodeId; })
-  //     .style("text-anchor", "right")
-  //     .style("alignment-baseline", "bottom")
-  //     .on("mouseover", nodeMouseOver)
-  //     .on("mouseout", nodeMouseOut)
-  //     .on("click", nodeClick)
-  //     .style("pointer-events", "auto")
-  //     .attr("x", xposition)
-  //     .text(function updateTopTermText(d) {
-  //       return d.displaytext;
-  //     })
-  //     .style("font-family", "monospace")
-  //     .style("display", "unset")
-  //     .style("fill-opacity", function updateTopTermOpacity(d) { 
-  //       if (d.mouseHoverFlag) { return 1.0; }
-  //       return topTermLabelOpacityScale(d.ageMaxRatio); 
-  //     })
-  //     .style("fill", function updateTopTermFill(d) { 
-  //       if (d.mouseHoverFlag) { return palette.blue; }
-  //       if (d.category || d.categoryAuto) { return d.categoryColor; }
-  //       if (d.isTrendingTopic || d.isNumber || d.isCurrency) { return palette.white; }
-  //       if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
-  //       return palette.darkgray; 
-  //     })
-  //     .style("font-size", fontTopTerm)
-  //     .transition()
-  //       .duration(2*transitionDuration)
-  //       .attr("y", yposition);
-
-
-  //   callback(null, null);
-  // };
-
-  // var nodeMedia;
-  // var updateNodeMedia = function(callback) {
-
-  //   nodeMedia = nodeSvgGroup.selectAll("image")
-  //     .data(nodeArray.filter(function(d){ return d.nodeType === "media"; }), function (d){ return d.nodeId; });
-
-  //   nodeMedia
-  //     .enter().append("svg:image")
-  //     .attr("id", function (d) { return d.nodePoolId; })
-  //     .attr("nodeId", function (d) { return d.nodeId; })
-  //     .attr("xlink:href", function (d) { return d.mediaUrl; })
-  //     .attr("class", "nodeImage")
-  //     .attr("r", 1e-6) 
-  //     .attr("x", function(d) {
-  //       if (metricMode === "rate") { return d.x - 0.5*(imageSizeScale(parseInt(d.rate) + 1.0)); }
-  //       if (metricMode === "mentions") { return d.x - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); }
-  //     })
-  //     .attr("y", function(d) { 
-  //       if (metricMode === "rate") { return d.y - 0.5*(imageSizeScale(parseInt(d.rate) + 1.0)); }
-  //       if (metricMode === "mentions") { return d.y - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); }
-  //     })
-  //     .style("display", function (d) { 
-  //       if (!d.isValid) { return "none"; }
-  //       return "unset"; 
-  //     })
-  //     .attr("width", function(d){ 
-  //       if (metricMode === "rate") {return imageSizeScale(parseInt(d.rate + 1.0));}
-  //       if (metricMode === "mentions") {return imageSizeScale(parseInt(d.mentions + 1.0));}
-  //     })
-  //     .attr("height", function(d){ 
-  //       if (metricMode === "rate") {return imageSizeScale(parseInt(d.rate + 1.0));}
-  //       if (metricMode === "mentions") {return imageSizeScale(parseInt(d.mentions + 1.0));}
-  //     })
-  //     .style("opacity", function (d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
-  //     .on("mouseover", nodeMouseOver)
-  //     .on("mouseout", nodeMouseOut)
-  //     .on("click", nodeClick);
-
-  //   nodeMedia
-  //     .attr("r", function(d) {
-  //       if (metricMode === "rate") { return imageSizeScale(Math.sqrt(d.rate));}
-  //       if (metricMode === "mentions") {return imageSizeScale(Math.sqrt(d.mentions));}
-  //     })
-  //     .attr("x", function(d) {
-  //       if (metricMode === "rate") {return d.x - 0.5*(imageSizeScale(parseInt(d.rate) + 1.0));}
-  //       if (metricMode === "mentions") {return d.x - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0));}
-  //     })
-  //     .attr("y", function(d) { 
-  //       if (metricMode === "rate") {return d.y - 0.5*(imageSizeScale(parseInt(d.rate) + 1.0));}
-  //       if (metricMode === "mentions") {return d.y - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0));}
-  //     })
-  //     .attr("width", function(d){ 
-  //       if (metricMode === "rate") {return imageSizeScale(parseInt(d.rate + 1.0));}
-  //       if (metricMode === "mentions") {return imageSizeScale(parseInt(d.mentions + 1.0));}
-  //     })
-  //     .attr("height", function(d){ 
-  //       if (metricMode === "rate") {return imageSizeScale(parseInt(d.rate + 1.0));}
-  //       if (metricMode === "mentions") {return imageSizeScale(parseInt(d.mentions + 1.0));}
-  //     })
-  //     .style("display", function (d) { 
-  //       if (!d.isValid) { return "none"; }
-  //       return "unset"; 
-  //     })
-  //     .style("opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); });
-
-  //   nodeMedia
-  //     .exit()
-  //     .style("display", "none");
-
-  //   callback();
-  // };
 
   var updateChangedCircleNodes = function(d){
 
@@ -1555,7 +1200,6 @@ strength(function(){
         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       });
-      // each(updateChangedCircleNodes);
 
     // EXIT
     nodeCircles.
@@ -1743,84 +1387,6 @@ strength(function(){
     }
   };
 
-  // var mentionsInt = 0;
-  // var rateString = "";
-  // var mentionPadSpaces = 0;
-  // var ratePadSpaces = 0;
-  // var nodeIdString = "";
-  // var displaytext = "";
-
-  // var createDisplayText = function(node) {
-
-  //   mentionsInt = parseInt(node.mentions);
-  //   rateString = node.rate.toFixed(2).toString() ;
-
-  //   mentionPadSpaces = mentionsNumChars - mentionsInt.toString().length;
-  //   ratePadSpaces = rateNumChars - rateString.length;
-
-  //   if (node.nodeType === "user") { 
-  //     nodeIdString = node.screenName.toUpperCase();
-  //     nodeIdString = "@" + nodeIdString; 
-  //   }
-  //   if (node.nodeType === "hashtag") { 
-  //     nodeIdString = node.nodeId.toUpperCase();
-  //     nodeIdString = "#" + nodeIdString; 
-  //   }
-
-  //   displaytext = "";
-
-  //   if (node.isMaxNode) {
-  //     if (metricMode === "rate") {
-  //       displaytext = new Array(ratePadSpaces).join("\xa0") + rateString
-  //       + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt 
-  //       + " | " + nodeIdString
-  //       + " | RATE MAX " + moment(parseInt(node.timeStamp)).format(compactDateTimeFormat);
-  //     }
-  //     else {
-  //       displaytext = new Array(ratePadSpaces).join("\xa0") + rateString 
-  //       + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt
-  //       + " | " + nodeIdString
-  //       + " | MENTION MAX " + moment(parseInt(node.timeStamp)).format(compactDateTimeFormat);
-  //     }
-  //   }
-  //   else {
-  //     if (node.nodeType === "user") { 
-  //       if (node.screenName) {
-  //         displaytext = new Array(ratePadSpaces).join("\xa0") + rateString 
-  //         + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt 
-  //         + " | @" + node.screenName.toUpperCase() ;
-  //       }
-  //       else if (node.name) {
-  //         displaytext = new Array(ratePadSpaces).join("\xa0") + rateString 
-  //         + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt 
-  //         + " | @" + node.name.toUpperCase() ;
-  //       }
-  //       else {
-  //         displaytext = new Array(ratePadSpaces).join("\xa0") + rateString 
-  //         + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt 
-  //         + " | @UNKNOWN?";
-  //       }
-  //     }
-  //     else if (node.nodeType === "hashtag") { 
-  //       displaytext = new Array(ratePadSpaces).join("\xa0") + rateString 
-  //       + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt 
-  //       + " | #" + node.text.toUpperCase() ;
-  //     }
-  //     else if (testMode) { 
-  //       displaytext = new Array(ratePadSpaces).join("\xa0") + rateString 
-  //       + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt 
-  //       + " | BLAH" ;
-  //     }
-  //     else { 
-  //       displaytext = new Array(ratePadSpaces).join("\xa0") + rateString 
-  //       + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt 
-  //       + " | " + node.nodeId.toUpperCase() ;
-  //     }
-  //   }
-
-  //   return displaytext;
-  // };
-
   var newNode = {};
   var nodeAddQReady = true;
   var currentNode;
@@ -1966,14 +1532,8 @@ strength(function(){
   }
 
   var previousMaxRateMetric = 0;
-  // var previousMaxMentionsMetric = 0;
 
   function drawSimulation(callback){
-
-    // async.series([
-    //   function updateNodeCirclesSeries (cb){ updateNodeCircles(cb); },
-    //   function updateNodeLabelsSeries (cb){ updateNodeLabels(cb); }
-    // ], function drawSimulationCallback (err, results) {
 
     async.parallel({
       updateNodeCirclesSeries: function(cb){ updateNodeCircles(cb); },
@@ -1996,18 +1556,12 @@ strength(function(){
         }
         if (metricMode === "mentions") { 
           newCurrentMaxMentionsMetricFlag = false;
-          // previousMaxMentionsMetric = currentMax.mentions.mentions;
         }
 
         nodeLabelSizeScale = d3.scaleLinear().
           domain([1, currentMetricModeDomainMax]).
           range([fontSizeMin, fontSizeMax]).
           clamp(true);
-
-        // emojiLabelSizeScale = d3.scaleLinear()
-        //   .domain([1, currentMetricModeDomainMax])
-        //   .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
-        //   .clamp(true);
 
         defaultRadiusScale = d3.scaleLinear().
           domain([0, currentMetricModeDomainMaxSqrt]).
@@ -2028,31 +1582,11 @@ strength(function(){
         simulation.nodes(nodeArray);
       });
     });
-
-    // async.series(
-    //   {
-    //     addNode: processNodeAddQ,
-    //     ageNode: ageNodes
-    //   },
-    //   function updateSimulationCallback() {
-    //   }
-    // );
   }
 
   function ticked() {
     drawSimulation(function drawSimulationCallback() { updateSimulation(); });
   }
-
-
-  // function yposition(d){
-  //   if (d.rank < 0) { return height; }
-  //   return (hashtagTopMargin + ((d.rank % maxHashtagRows) * rowSpacing)) + "%";
-  // }
-
-  // function xposition(d){
-  //   if (d.rank < 0) { return hashtagLeftMargin; }
-  //   return (hashtagLeftMargin + ((parseInt(d.rank / maxHashtagRows)) * colSpacing)) + "%";
-  // }
 
   this.setChargeSliderValue = function(value){
     console.debug("SET CHARGE: " + value);
@@ -2062,8 +1596,6 @@ strength(function(){
   };
 
   this.addNode = function(n) {
-
-    // self.setEnableAgeNodes(true);
 
     n.age = 1e-6;
     n.ageUpdated = Date.now();
@@ -2076,7 +1608,6 @@ strength(function(){
 
     if (n.nodeType === "user") {
       n.followersMentions = n.mentions + n.followersCount;
-      // n.nodeId = n.userId;
     }
 
     if (n.mentions > currentMax.mentions.mentions) { 
@@ -2093,9 +1624,6 @@ strength(function(){
       currentMetricModeDomainMaxSqrt = Math.sqrt(currentMax[metricMode][metricMode]);
       currentMetricModeDomainMax = currentMax[metricMode][metricMode];
 
-      // if (metricMode === "mentions") {
-      //   currentMaxMentionsMetric = n.mentions; 
-      // }
     }
 
     if (n.rate > currentMax.rate.rate) { 
@@ -2137,19 +1665,19 @@ strength(function(){
         if (d.category) { return foci[d.category].x; }
         return foci.default.x;
       }).
-strength(function strengthFunc() { return forceXmultiplier * gravity; })).
+      strength(function strengthFunc() { return forceXmultiplier * gravity; })).
       force("forceY", d3.forceY().y(function forceYfunc(d) { 
         if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categorya)){ return foci[d.categoryAuto].y; }
         if (d.category){ return foci[d.category].y; }
         return foci.default.y;
       }).
-strength(function strengthFunc(){ return forceYmultiplier * gravity; })).
+      strength(function strengthFunc(){ return forceYmultiplier * gravity; })).
       force("collide", d3.forceCollide().radius(function forceCollideFunc(d) { 
         if (metricMode === "rate") { return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate)); }
         if (metricMode === "mentions") { return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions)); }
       }).
       iterations(collisionIterations).
-strength(1.0)).
+      strength(1.0)).
       velocityDecay(velocityDecay).
       on("tick", ticked);
   };
@@ -2205,8 +1733,6 @@ strength(1.0)).
     width = getWindowDimensions().width;
     height = getWindowDimensions().height;
 
-    // const currentMaxMetric = (metricMode === "rate") ? currentMaxRateMetric : currentMaxMentionsMetric ;
-
     foci = {
       left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 
       right: {x: xFocusRightRatio*width, y: yFocusRightRatio*height}, 
@@ -2227,11 +1753,6 @@ strength(1.0)).
     fontSizeMin = fontSizeMinRatio * height;
     fontSizeMax = fontSizeMaxRatio * height;
 
-    // emojiLabelSizeScale = d3.scaleLinear()
-    //   .domain([1, currentMetricModeDomainMax])
-    //   .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
-    //   .clamp(true);
-
     nodeLabelSizeScale = d3.scaleLinear().
       domain([1, currentMetricModeDomainMax]).
       range([fontSizeMin, fontSizeMax]).
@@ -2249,27 +1770,6 @@ strength(1.0)).
       attr("x", 1e-6).
       attr("y", 1e-6);
 
-    // svgTopTermLayoutArea
-    //   .attr("width", width)
-    //   .attr("height", height)
-    //   .attr("x", 1e-6)
-    //   .attr("y", 1e-6);
-
-    // nodeTopTermLabelSvgGroup
-    //   .attr("width", width)
-    //   .attr("height", height)
-    //   .attr("x", 1e-6)
-    //   .attr("y", 1e-6);
-
-    // svgTopTerms
-    //   .attr("width", width)
-    //   .attr("height", height)
-    //   .attr("x", 1e-6)
-    //   .attr("y", 1e-6);
-
-    // fontTopTerm = fontSizeTopTermRatio * topTermsDiv.height;
-    // rowSpacing = fontSizeTopTermRatio*110; // %
-
     if (simulation){
       simulation.
         force("charge", d3.forceManyBody().strength(charge)).
@@ -2280,7 +1780,7 @@ strength(1.0)).
           if (d.category){ return foci[d.category].x; }
           return foci.default.x;
         }).
-strength(function strengthFunc(){
+        strength(function strengthFunc(){
           return forceXmultiplier * gravity; 
         })).
         force("forceY", d3.forceY().y(function forceYfunc(d) { 
@@ -2290,7 +1790,7 @@ strength(function strengthFunc(){
           if (d.category){ return foci[d.category].y; }
           return foci.default.y;
         }).
-strength(function strengthFunc(){
+        strength(function strengthFunc(){
           return forceYmultiplier * gravity; 
         })).
         force("collide", d3.forceCollide().radius(function forceCollideFunc(d) { 
@@ -2313,9 +1813,7 @@ strength(function strengthFunc(){
     mouseHoverFlag = false;
     localNodeHashMap.clear();
     nodeIdHashMap.clear();
-    // nodeArray = [];
     nodeArray.length = 0;
-    // nodesTopTermHashMap.clear();
     self.toolTipVisibility(false);
     self.resize();
     self.resetDefaultForce();

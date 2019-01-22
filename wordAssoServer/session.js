@@ -194,6 +194,8 @@ var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 
 var pageLoadedTimeIntervalFlag = true;
 
+var DEFAULT_ZOOM_FACTOR = 0.5;
+
 var DEFAULT_METRIC_MODE = "rate";
 var DEFAULT_MAX_NODES = 100;
 var DEFAULT_MAX_AGE = 60000;
@@ -229,6 +231,7 @@ var DEFAULT_FONT_SIZE_TOPTERM_RATIO = 0.026;
 var DEFAULT_NODE_RADIUS = 20.0;
 
 var TREEPACK_DEFAULT = {};
+TREEPACK_DEFAULT.ZOOOM_FACTOR = 0.5;
 TREEPACK_DEFAULT.TRANSITION_DURATION = 50;
 TREEPACK_DEFAULT.MAX_NODES = TREEPACK_MAX_NODES;
 TREEPACK_DEFAULT.MAX_AGE = TREEPACK_MAX_AGE;
@@ -288,6 +291,8 @@ else {
   config.maxWords = 100;
   config.testMode = false;
   config.removeDeadNodesFlag = true;
+
+  config.defaultZoomFactor = DEFAULT_ZOOM_FACTOR;
 
   config.defaultMaxNodes = DEFAULT_MAX_NODES;
   config.defaultTransitionDuration = DEFAULT_TRANSITION_DURATION;

@@ -11,7 +11,7 @@ function ViewTreepack() {
   var initialXposition = 0.5;
   var initialYposition = 0.9;
 
-  var DEFAULT_ZOOM_FACTOR = 0.75;
+  var DEFAULT_ZOOM_FACTOR = 0.5;
   // var emojiFontMulipier = 2.0;
   var minRateMetricChange = 0.5;
 

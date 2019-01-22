@@ -324,6 +324,10 @@ function ControlPanel() {
     }
   }
 
+  var nodeName;
+  var category;
+  var categoryAuto;
+
   function twitterWidgetsCreateTimeline(node, callback){
 
     if (node.notFound !== undefined) {
@@ -333,15 +337,15 @@ function ControlPanel() {
 
       twitterFeedPreviousUser = node;
 
-      var screenName = node.screenName;
-      var name = (node.name !== undefined) ? node.name : "---";
+      // var screenName = node.screenName;
+      nodeName = (node.name !== undefined) ? node.name : "---";
       // var followersMentions = node.followersCount + node.mentions;
 
-      var category = node.category || "none";
-      var categoryAuto = node.categoryAuto || "none";
+      category = node.category || "none";
+      categoryAuto = node.categoryAuto || "none";
 
       document.getElementById("userScreenNameText").innerHTML = "<h4>@" + node.screenName + "</h4>";
-      document.getElementById("userNameText").innerHTML = "<h4>" + name + "</h4>";
+      document.getElementById("userNameText").innerHTML = "<h4>" + nodeName + "</h4>";
       document.getElementById("userIdText").innerHTML = node.nodeId;
       document.getElementById("userCreatedAtText").innerHTML = moment(node.createdAt).format(compactDateTimeFormat);
       document.getElementById("userLastSeenText").innerHTML = moment(node.lastSeen).format(compactDateTimeFormat);
@@ -355,7 +359,7 @@ function ControlPanel() {
       document.getElementById("userDescriptionText").innerHTML = node.description;
 
       statsObj.user.nodeId = node.nodeId;
-      statsObj.user.name = name;
+      statsObj.user.name = nodeName;
       statsObj.user.screenName = node.screenName;
       statsObj.user.category = category;
       statsObj.user.categoryAuto = categoryAuto;
@@ -368,13 +372,13 @@ function ControlPanel() {
       statsObj.user.description = node.description;
 
       if (twttr && twttr.widgets) {
-        twttr.widgets.createFollowButton(
-          screenName,
-          timelineDiv
-        );
+        // twttr.widgets.createFollowButton(
+        //   node.screenName,
+        //   timelineDiv
+        // );
 
         twttr.widgets.createTimeline(
-          { sourceType: "profile", screenName: screenName},
+          { sourceType: "profile", screenName: node.screenName},
           timelineDiv,
           { width: "400", height: "600"}
         )

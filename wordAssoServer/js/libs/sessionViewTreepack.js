@@ -1829,9 +1829,9 @@ function ViewTreepack() {
     return displaytext;
   };
 
-  // var newNode = {};
+  var newNode = {};
   var nodeAddQReady = true;
-  // var currentNode;
+  var currentNode;
   var nodePoolId;
   var nodePoolIdcircle;
 
@@ -1843,13 +1843,13 @@ function ViewTreepack() {
 
       nodeAddQReady = false;
 
-      const n = nodeAddQ.shift();
+      newNode = nodeAddQ.shift();
 
-      if (nodeIdHashMap.has(n.nodeId)){
+      if (nodeIdHashMap.has(newNode.nodeId)){
 
-        nodePoolId = nodeIdHashMap.get(n.nodeId);
+        nodePoolId = nodeIdHashMap.get(newNode.nodeId);
 
-        let currentNode = localNodeHashMap.get(nodePoolId);
+        currentNode = localNodeHashMap.get(nodePoolId);
 
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
@@ -1860,24 +1860,24 @@ function ViewTreepack() {
         currentNode.mouseHoverFlag = false;
         currentNode.newFlag = true;
 
-        currentNode.rank = n.rank;
-        currentNode.rate = n.rate;
-        currentNode.mentions = n.mentions;
-        currentNode.isIgnored = n.isIgnored;
-        currentNode.isTopTerm = n.isTopTerm;
-        currentNode.isTrendingTopic = n.isTrendingTopic;
-        currentNode.category = n.category;
-        currentNode.categoryAuto = n.categoryAuto;
-        currentNode.categoryColor = n.categoryColor;
-        currentNode.categoryMismatch = n.categoryMismatch;
-        currentNode.categoryMatch = n.categoryMatch;
-        currentNode.lastTweetId = n.lastTweetId;
+        currentNode.rank = newNode.rank;
+        currentNode.rate = newNode.rate;
+        currentNode.mentions = newNode.mentions;
+        currentNode.isIgnored = newNode.isIgnored;
+        currentNode.isTopTerm = newNode.isTopTerm;
+        currentNode.isTrendingTopic = newNode.isTrendingTopic;
+        currentNode.category = newNode.category;
+        currentNode.categoryAuto = newNode.categoryAuto;
+        currentNode.categoryColor = newNode.categoryColor;
+        currentNode.categoryMismatch = newNode.categoryMismatch;
+        currentNode.categoryMatch = newNode.categoryMatch;
+        currentNode.lastTweetId = newNode.lastTweetId;
 
-        if (n.nodeType === "user"){
-          currentNode.following = n.following;
-          currentNode.followersCount = n.followersCount || 0;
-          currentNode.followersCount = n.followersCount || 0;
-          currentNode.followersMentions = n.followersCount + n.mentions;
+        if (newNode.nodeType === "user"){
+          currentNode.following = newNode.following;
+          currentNode.followersCount = newNode.followersCount || 0;
+          currentNode.followersCount = newNode.followersCount || 0;
+          currentNode.followersMentions = newNode.followersCount + newNode.mentions;
         }
 
         localNodeHashMap.set(currentNode.nodePoolId, currentNode);
@@ -1887,63 +1887,63 @@ function ViewTreepack() {
       }
       else {
 
-        let currentNode = nodePool.use();
+        currentNode = nodePool.use();
 
-        nodeIdHashMap.set(n.nodeId, currentNode.nodePoolId);
+        nodeIdHashMap.set(newNode.nodeId, currentNode.nodePoolId);
 
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
         currentNode.ageUpdated = Date.now();
-        currentNode.category = n.category;
-        currentNode.categoryAuto = n.categoryAuto;
-        currentNode.categoryColor = n.categoryColor;
-        currentNode.categoryMatch = n.categoryMatch;
-        currentNode.categoryMismatch = n.categoryMismatch;
-        currentNode.friendsCount = n.friendsCount;
-        currentNode.fullName = n.fullName;
-        currentNode.hashtagId = n.hashtagId;
-        currentNode.isCategory = n.isCategory || false;
+        currentNode.category = newNode.category;
+        currentNode.categoryAuto = newNode.categoryAuto;
+        currentNode.categoryColor = newNode.categoryColor;
+        currentNode.categoryMatch = newNode.categoryMatch;
+        currentNode.categoryMismatch = newNode.categoryMismatch;
+        currentNode.friendsCount = newNode.friendsCount;
+        currentNode.fullName = newNode.fullName;
+        currentNode.hashtagId = newNode.hashtagId;
+        currentNode.isCategory = newNode.isCategory || false;
         currentNode.isDead = false;
-        currentNode.isIgnored = n.isIgnored;
+        currentNode.isIgnored = newNode.isIgnored;
         currentNode.isMaxNode = false;
-        currentNode.isTopTerm = n.isTopTerm || false;
-        currentNode.isTrendingTopic = n.isTrendingTopic || false;
+        currentNode.isTopTerm = newNode.isTopTerm || false;
+        currentNode.isTrendingTopic = newNode.isTrendingTopic || false;
         currentNode.isValid = true;
-        currentNode.lastTweetId = n.lastTweetId;
-        currentNode.mentions = n.mentions;
+        currentNode.lastTweetId = newNode.lastTweetId;
+        currentNode.mentions = newNode.mentions;
         currentNode.mouseHoverFlag = false;
-        currentNode.name = n.name;
+        currentNode.name = newNode.name;
         currentNode.newFlag = true;
-        currentNode.nodeId = n.nodeId;
-        currentNode.nodeType = n.nodeType;
-        currentNode.rank = n.rank;
-        currentNode.rate = n.rate;
-        currentNode.screenName = n.screenName;
-        currentNode.statusesCount = n.statusesCount;
+        currentNode.nodeId = newNode.nodeId;
+        currentNode.nodeType = newNode.nodeType;
+        currentNode.rank = newNode.rank;
+        currentNode.rate = newNode.rate;
+        currentNode.screenName = newNode.screenName;
+        currentNode.statusesCount = newNode.statusesCount;
         currentNode.vx = 1e-6;
         currentNode.vy = 1e-6;
         currentNode.x = initialXposition*width;
         currentNode.y = initialYposition*height;
 
-        if (n.nodeType === "user"){
-          currentNode.following = n.following;
-          currentNode.followersCount = n.followersCount || 0;
-          currentNode.followersMentions = n.followersCount + n.mentions;
+        if (newNode.nodeType === "user"){
+          currentNode.following = newNode.following;
+          currentNode.followersCount = newNode.followersCount || 0;
+          currentNode.followersMentions = newNode.followersCount + newNode.mentions;
         }
 
-        if (n.category || n.categoryAuto) {
+        if (newNode.category || newNode.categoryAuto) {
 
-          if (autoCategoryFlag && n.categoryAuto) { 
-            currentNode.x = focus(n.categoryAuto).x; 
-            currentNode.y = focus(n.categoryAuto).y;
+          if (autoCategoryFlag && newNode.categoryAuto) { 
+            currentNode.x = focus(newNode.categoryAuto).x; 
+            currentNode.y = focus(newNode.categoryAuto).y;
           }
-          else if (n.categoryAuto && !n.category) { 
-            currentNode.x = focus(n.categoryAuto).x; 
-            currentNode.y = focus(n.categoryAuto).y;
+          else if (newNode.categoryAuto && !newNode.category) { 
+            currentNode.x = focus(newNode.categoryAuto).x; 
+            currentNode.y = focus(newNode.categoryAuto).y;
           }
-          else if (n.category) { 
-            currentNode.x = focus(n.category).x; 
-            currentNode.y = focus(n.category).y;
+          else if (newNode.category) { 
+            currentNode.x = focus(newNode.category).x; 
+            currentNode.y = focus(newNode.category).y;
           }
         }
         else {
@@ -2068,55 +2068,55 @@ function ViewTreepack() {
     simulation.force("charge", d3.forceManyBody().strength(value));
   };
 
-  this.addNode = function(newNode) {
+  this.addNode = function(n) {
 
     // self.setEnableAgeNodes(true);
 
-    newNode.age = 1e-6;
-    newNode.ageUpdated = Date.now();
-    newNode.ageMaxRatio = 1e-6;
-    newNode.rank = -1;
-    newNode.newFlag = true;
-    newNode.following = (newNode.following !== undefined) ? newNode.following : false;
-    newNode.followersCount = (newNode.followersCount) ? parseInt(newNode.followersCount) : 0;
-    newNode.mentions = (newNode.mentions) ? parseInt(newNode.mentions) : 0;
+    n.age = 1e-6;
+    n.ageUpdated = Date.now();
+    n.ageMaxRatio = 1e-6;
+    n.rank = -1;
+    n.newFlag = true;
+    n.following = (n.following !== undefined) ? n.following : false;
+    n.followersCount = (n.followersCount) ? parseInt(n.followersCount) : 0;
+    n.mentions = (n.mentions) ? parseInt(n.mentions) : 0;
 
-    if (newNode.nodeType === "user") {
-      newNode.followersMentions = newNode.mentions + newNode.followersCount;
-      // newNode.nodeId = newNode.userId;
+    if (n.nodeType === "user") {
+      n.followersMentions = n.mentions + n.followersCount;
+      // n.nodeId = n.userId;
     }
 
-    if (newNode.mentions > currentMax.mentions.mentions) { 
+    if (n.mentions > currentMax.mentions.mentions) { 
 
       newCurrentMaxMentionsMetricFlag = true;
 
-      currentMax.mentions.nodeType = newNode.nodeType;
-      currentMax.mentions.nodeId = newNode.nodeId; 
-      currentMax.mentions.screenName = newNode.screenName; 
-      currentMax.mentions.mentions = newNode.mentions; 
-      currentMax.mentions.rate = newNode.rate;
+      currentMax.mentions.nodeType = n.nodeType;
+      currentMax.mentions.nodeId = n.nodeId; 
+      currentMax.mentions.screenName = n.screenName; 
+      currentMax.mentions.mentions = n.mentions; 
+      currentMax.mentions.rate = n.rate;
       currentMax.mentions.timeStamp = Date.now(); 
 
       if (metricMode === "mentions") {
-        currentMaxMentionsMetric = newNode.mentions; 
+        currentMaxMentionsMetric = n.mentions; 
       }
     }
 
-    if (newNode.rate > currentMax.rate.rate) { 
+    if (n.rate > currentMax.rate.rate) { 
 
       newCurrentMaxRateMetricFlag = true;
 
-      currentMax.rate.nodeType = newNode.nodeType;
-      currentMax.rate.nodeId = newNode.nodeId;
-      currentMax.rate.screenName = newNode.screenName; 
-      currentMax.rate.rate = newNode.rate;
-      currentMax.rate.mentions = newNode.mentions;
+      currentMax.rate.nodeType = n.nodeType;
+      currentMax.rate.nodeId = n.nodeId;
+      currentMax.rate.screenName = n.screenName; 
+      currentMax.rate.rate = n.rate;
+      currentMax.rate.mentions = n.mentions;
       currentMax.rate.timeStamp = Date.now(); 
 
-      if (metricMode === "rate") { currentMaxRateMetric = newNode.rate; }
+      if (metricMode === "rate") { currentMaxRateMetric = n.rate; }
     }
 
-    if (nodeAddQ.length < MAX_RX_QUEUE) { nodeAddQ.push(newNode); }
+    if (nodeAddQ.length < MAX_RX_QUEUE) { nodeAddQ.push(n); }
 
     if (nodeAddQ.length > maxNodeAddQ) { maxNodeAddQ = nodeAddQ.length; }
   };

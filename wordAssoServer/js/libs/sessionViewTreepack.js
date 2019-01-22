@@ -877,6 +877,8 @@ strength(function(){
   var age = 1e-6;
   var nodeIdArray = [];
   var tempNodeArray = [];
+  var nPoolId;
+  var nNode;;
 
   function ageNodes(callback) {
 
@@ -908,10 +910,10 @@ strength(function(){
 
     async.each(nodeIdArray, function eachNodeIdArray(nodeId, cb){
 
-      var nPoolId = nodeIdHashMap.get(nodeId);
-      var node = localNodeHashMap.get(nPoolId);
+      nPoolId = nodeIdHashMap.get(nodeId);
+      nNode = localNodeHashMap.get(nPoolId);
 
-      if (!node.isValid || node.isDead) {
+      if (!nNode.isValid || nNode.isDead) {
         return cb();
       }
 
@@ -919,28 +921,28 @@ strength(function(){
         ageRate = 1e-6;
       }
 
-      if ((node.nodeType === "user") && node.followersCount && (node.followersCount > minFollowers)){
-        age = node.age + (ageRate * DEFAULT_MIN_FOLLOWERS_AGE_RATE_RATIO * (Date.now() - node.ageUpdated));
+      if ((nNode.nodeType === "user") && nNode.followersCount && (nNode.followersCount > minFollowers)){
+        age = nNode.age + (ageRate * DEFAULT_MIN_FOLLOWERS_AGE_RATE_RATIO * (Date.now() - nNode.ageUpdated));
       }
       else {
-        age = node.age + (ageRate * (Date.now() - node.ageUpdated));
+        age = nNode.age + (ageRate * (Date.now() - nNode.ageUpdated));
       }
 
       ageMaxRatio = age/nodeMaxAge;
 
-      if (removeDeadNodesFlag && (node.isDead || (age >= nodeMaxAge))) {
+      if (removeDeadNodesFlag && (nNode.isDead || (age >= nodeMaxAge))) {
 
-        node.isDead = true;
-        node.ageUpdated = Date.now();
-        node.age = 1e-6;
-        node.ageMaxRatio = 1e-6;
+        nNode.isDead = true;
+        nNode.ageUpdated = Date.now();
+        nNode.age = 1e-6;
+        nNode.ageMaxRatio = 1e-6;
 
-        nodeIdHashMap.remove(node.nodeId);
-        localNodeHashMap.set(nPoolId, node);
+        nodeIdHashMap.remove(nNode.nodeId);
+        localNodeHashMap.set(nPoolId, nNode);
 
-        if (node.isValid) {
-          node.isValid = false;
-          resetNode(node, function nodeReset(n){
+        if (nNode.isValid) {
+          nNode.isValid = false;
+          resetNode(nNode, function nodeReset(n){
             nodePool.recycle(n);
             localNodeHashMap.set(nPoolId, n);
             cb();
@@ -951,35 +953,35 @@ strength(function(){
         }
       } 
       else {
-        node.isValid = true;
-        node.isDead = false;
-        node.ageUpdated = Date.now();
-        node.age = Math.max(age, 1e-6);
-        node.ageMaxRatio = Math.max(ageMaxRatio, 1e-6);
+        nNode.isValid = true;
+        nNode.isDead = false;
+        nNode.ageUpdated = Date.now();
+        nNode.age = Math.max(age, 1e-6);
+        nNode.ageMaxRatio = Math.max(ageMaxRatio, 1e-6);
 
-        localNodeHashMap.set(nPoolId, node);
-        nodeIdHashMap.set(node.nodeId, nPoolId);
+        localNodeHashMap.set(nPoolId, nNode);
+        nodeIdHashMap.set(nNode.nodeId, nPoolId);
 
-        tempNodeArray.push(node);
+        tempNodeArray.push(nNode);
 
-        if (node.category) {
+        if (nNode.category) {
           if (metricMode === "rate") { 
-            tempTotalHashmap[node.category] += node.rate; 
-            tempTotalHashmap.total += node.rate; 
+            tempTotalHashmap[nNode.category] += nNode.rate; 
+            tempTotalHashmap.total += nNode.rate; 
           }
           if (metricMode === "mentions") { 
-            tempTotalHashmap[node.category] += node.mentions; 
-            tempTotalHashmap.total += node.mentions; 
+            tempTotalHashmap[nNode.category] += nNode.mentions; 
+            tempTotalHashmap.total += nNode.mentions; 
           }
         }
         else {
           if (metricMode === "rate") { 
-            tempTotalHashmap.none += node.rate; 
-            tempTotalHashmap.total += node.rate; 
+            tempTotalHashmap.none += nNode.rate; 
+            tempTotalHashmap.total += nNode.rate; 
           }
           if (metricMode === "mentions") { 
-            tempTotalHashmap.none += node.mentions; 
-            tempTotalHashmap.total += node.mentions; 
+            tempTotalHashmap.none += nNode.mentions; 
+            tempTotalHashmap.total += nNode.mentions; 
           }
         }
 

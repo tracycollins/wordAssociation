@@ -1578,15 +1578,15 @@ strength(function(){
       //   if (d.following) { return defaultStrokeWidth; }
       //   return 0.5*defaultStrokeWidth; 
       // })
-      // .style("fill-opacity", function(d) { 
-      //   if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
-      //   return nodeLabelOpacityScale(d.ageMaxRatio); 
-      // })
-      // .style("stroke-opacity", function(d) { 
-      //   if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
-      //   return nodeLabelOpacityScale(d.ageMaxRatio); 
-      // })
-      each(updateChangedCircleNodes);
+      .style("fill-opacity", function(d) { 
+        if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
+        return nodeLabelOpacityScale(d.ageMaxRatio); 
+      })
+      .style("stroke-opacity", function(d) { 
+        if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
+        return nodeLabelOpacityScale(d.ageMaxRatio); 
+      });
+      // each(updateChangedCircleNodes);
 
     // EXIT
     nodeCircles.

@@ -383,36 +383,6 @@ function ViewTreepack() {
     attr("class", "tooltip").
     style("display", "none");
 
-  // var topTermsDiv = d3.select("#topTermsDiv");
-
-  // var topTermsCheckBox = topTermsDiv.append("input")
-  //   .attr("id", "topTermsCheckBox")
-  //   .attr("type", "checkbox")
-  //   .style("pointer-events", "auto")
-  //   .on("change", function topTermsCheckBoxFunc(){
-  //     if (topTermsCheckBox.property("checked") === false) { 
-  //       topTermsDiv.style("display", "none");
-  //       topTermsDivVisible = false;
-  //     }
-  //     else { 
-  //     }
-  //   });
-
-  // var mouseMoveTimeoutEventHandler = function(e) {
-
-    // d3.selectAll("iframe").style("display", "none");
-
-    // if (topTermsCheckBox.property("checked") === false) { 
-    //   topTermsDiv.style("display", "none"); 
-    //   topTermsDivVisible = false;
-    // }
-    // else { 
-    // }
-  // };
-
-
-  // document.addEventListener("mouseMoveTimeoutEvent", mouseMoveTimeoutEventHandler);
-
   document.addEventListener("mousemove", function mousemoveFunc() {
 
     if (mouseHoverFlag) { d3.select("body").style("cursor", "pointer"); } 
@@ -428,26 +398,11 @@ function ViewTreepack() {
     range([nodeRadiusMin, nodeRadiusMax]).
     clamp(true);
 
-  // var imageSizeScale = d3.scaleLinear().
-  //   domain([0, currentMetricModeDomainMaxSqrt]).
-  //   range([nodeRadiusMin, nodeRadiusMax]).
-  //   clamp(true);
-
-  // var emojiLabelSizeScale = d3.scaleLinear()
-  //   .domain([1, currentMetricModeDomainMaxSqrt])
-  //   .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
-  //   .clamp(true);
-
   var nodeLabelSizeScale = d3.scaleLinear().
     domain([1, currentMetricModeDomainMax]).
     range([fontSizeMin, fontSizeMax]).
     clamp(true);
-    
-  // var topTermLabelOpacityScale = d3.scaleLinear().
-  //   domain([1e-6, 1.0]).
-  //   range([1.0, 2.0*minOpacity]).
-  //   clamp(true);
-    
+        
   var nodeLabelOpacityScale = d3.scaleLinear().
     domain([1e-6, 0.2, 1.0]).
     range([1.0, 0.5, 1.5*minOpacity]).
@@ -1636,6 +1591,13 @@ strength(function(){
       }).
       attr("x", function (d) { return d.x; }).
       attr("y", function (d) { return d.y; }).
+      style("fill", function (d) { 
+        if (d.isTopTerm && (d.nodeType === "hashtag")) { return palette.white; }
+        if (d.isTopTerm && (d.followersCount > minFollowers)) { return palette.white; }
+        if (!d.isTopTerm && (d.followersCount > minFollowers)) { return palette.lightgray; }
+        if (d.isTopTerm) { return palette.lightgray; }
+        return palette.gray; 
+      }).
       style("fill-opacity", function updateNodeLabelOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }

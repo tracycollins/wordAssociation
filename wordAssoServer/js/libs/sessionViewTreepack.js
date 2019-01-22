@@ -1539,7 +1539,7 @@ strength(function(){
 
     // UPDATE
     nodeCircles.
-      style("display", function (d) { 
+      style("display", function nodeCirclesDisplay(d) { 
         if (!d.isValid) { return "none"; }
         return "unset"; 
       }).
@@ -1549,7 +1549,7 @@ strength(function(){
       }).
       attr("cx", function nodeCircleCx(d) { return d.x; }).
       attr("cy", function nodeCircleCy(d) { return d.y; }).
-      style("fill", function (d) { 
+      style("fill", function nodeCirclesFill(d) { 
         if (d.isTopTerm && !d.category && !d.categoryAuto) { return palette.white; }
         if (!d.category && !d.categoryAuto) { return palette.black; }
         if (d.category) { return d.categoryColor; }
@@ -1559,7 +1559,7 @@ strength(function(){
         if (d.categoryAuto ==="negative") { return palette.red; }
         return d.categoryColor; 
       }).
-      style("stroke", function (d) {
+      style("stroke", function nodeCirclesStroke (d) {
         if (d.categoryMismatch) { return palette.red; }
         if (d.categoryMatch) { return categoryMatchColor; }
         if (d.categoryAuto === "right") { return palette.yellow; }
@@ -1568,7 +1568,7 @@ strength(function(){
         if (d.categoryAuto ==="negative") { return palette.black; }
         return palette.white; 
       }).
-      style("stroke-width", function (d) { 
+      style("stroke-width", function nodeCirclesStrokeWidth(d) { 
         if (d.categoryMismatch && d.following) { return categoryMismatchStrokeWidth; }
         if (d.categoryMismatch && !d.following) { return 0.5*categoryMismatchStrokeWidth; }
         if (d.categoryMatch && d.following) { return categoryMatchStrokeWidth; }
@@ -1580,11 +1580,11 @@ strength(function(){
         if (d.following) { return defaultStrokeWidth; }
         return 0.5*defaultStrokeWidth; 
       }).
-      style("fill-opacity", function(d) { 
+      style("fill-opacity", function nodeCirclesFillOpacity(d) { 
         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       }).
-      style("stroke-opacity", function(d) { 
+      style("stroke-opacity", function nodeCirclesStrokeOpacity(d) { 
         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       });

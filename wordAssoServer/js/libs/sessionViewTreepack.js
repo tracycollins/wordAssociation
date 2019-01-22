@@ -1469,7 +1469,7 @@ strength(function(){
   };
 
   var nodeCircles;
-  
+
   var updateNodeCircles = function(callback) {
 
     nodeCircles = nodeSvgGroup.selectAll("circle").
@@ -1542,12 +1542,12 @@ strength(function(){
         if (!d.isValid) { return "none"; }
         return "unset"; 
       }).
-      attr("r", function(d) {
+      attr("r", function nodeCircleRadius(d) {
         if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate)); }
         if (metricMode === "mentions") { return defaultRadiusScale(Math.sqrt(d.mentions)); }
       }).
-      attr("cx", function(d) { return d.x; }).
-      attr("cy", function(d) { return d.y; }).
+      attr("cx", function nodeCircleCx(d) { return d.x; }).
+      attr("cy", function nodeCircleCy(d) { return d.y; }).
       style("fill", function (d) { 
         if (d.isTopTerm && !d.category && !d.categoryAuto) { return palette.white; }
         if (!d.category && !d.categoryAuto) { return palette.black; }

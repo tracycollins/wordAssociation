@@ -428,17 +428,17 @@ function ViewTreepack() {
     clamp(true);
 
   // var imageSizeScale = d3.scaleLinear().
-  //   domain([0, Math.sqrt(currentMax[metricMode][metricMode])]).
+  //   domain([0, currentMetricModeDomainMax]).
   //   range([nodeRadiusMin, nodeRadiusMax]).
   //   clamp(true);
 
   // var emojiLabelSizeScale = d3.scaleLinear()
-  //   .domain([1, currentMax[metricMode][metricMode]])
+  //   .domain([1, currentMetricModeDomainMax])
   //   .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
   //   .clamp(true);
 
   var nodeLabelSizeScale = d3.scaleLinear().
-    domain([1, currentMax[metricMode][metricMode]]).
+    domain([1, currentMetricModeDomainMax]).
     range([fontSizeMin, fontSizeMax]).
     clamp(true);
     
@@ -623,7 +623,7 @@ function ViewTreepack() {
     config.defaultMetricMode = mode;
 
     // emojiLabelSizeScale = d3.scaleLinear()
-    //   .domain([1, currentMax[metricMode][metricMode]])
+    //   .domain([1, currentMetricModeDomainMax])
     //   .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
     //   .clamp(true);
 
@@ -775,12 +775,12 @@ strength(function(){
     fontSizeMin = value * height;
 
     // emojiLabelSizeScale = d3.scaleLinear()
-    //   .domain([1, currentMax[metricMode][metricMode]])
+    //   .domain([1, currentMetricModeDomainMax])
     //   .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
     //   .clamp(true);
 
     nodeLabelSizeScale = d3.scaleLinear().
-      domain([1, currentMax[metricMode][metricMode]]).
+      domain([1, currentMetricModeDomainMax]).
       range([fontSizeMin, fontSizeMax]).
       clamp(true);
   };
@@ -793,12 +793,12 @@ strength(function(){
     fontSizeMax = value * height;
 
     // emojiLabelSizeScale = d3.scaleLinear()
-    //   .domain([1, currentMax[metricMode][metricMode]])
+    //   .domain([1, currentMetricModeDomainMax])
     //   .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
     //   .clamp(true);
 
     nodeLabelSizeScale = d3.scaleLinear().
-      domain([1, currentMax[metricMode][metricMode]]).
+      domain([1, currentMetricModeDomainMax]).
       range([fontSizeMin, fontSizeMax]).
       clamp(true);
   };
@@ -2029,12 +2029,12 @@ strength(function(){
         }
 
         nodeLabelSizeScale = d3.scaleLinear().
-          domain([1, currentMax[metricMode][metricMode]]).
+          domain([1, currentMetricModeDomainMax]).
           range([fontSizeMin, fontSizeMax]).
           clamp(true);
 
         // emojiLabelSizeScale = d3.scaleLinear()
-        //   .domain([1, currentMax[metricMode][metricMode]])
+        //   .domain([1, currentMetricModeDomainMax])
         //   .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
         //   .clamp(true);
 
@@ -2119,7 +2119,7 @@ strength(function(){
       currentMax.mentions.rate = n.rate;
       currentMax.mentions.timeStamp = Date.now(); 
 
-      defaultRadiusScaleDomainMax = Math.sqrt(currentMax[metricMode][metricMode]);
+      currentMetricModeDomainMax = Math.sqrt(currentMax[metricMode][metricMode]);
 
       // if (metricMode === "mentions") {
       //   currentMaxMentionsMetric = n.mentions; 
@@ -2139,7 +2139,7 @@ strength(function(){
 
       if (metricMode === "rate") { currentMaxRateMetric = n.rate; }
 
-      defaultRadiusScaleDomainMax = Math.sqrt(currentMax[metricMode][metricMode]);
+      currentMetricModeDomainMax = Math.sqrt(currentMax[metricMode][metricMode]);
     }
 
     if (nodeAddQ.length < MAX_RX_QUEUE) { nodeAddQ.push(n); }
@@ -2247,7 +2247,7 @@ strength(1.0)).
     nodeRadiusMax = nodeRadiusMaxRatio * width;
 
     defaultRadiusScale = d3.scaleLinear().
-    domain([0, Math.sqrt(currentMax[metricMode][metricMode])]).
+    domain([0, currentMetricModeDomainMax]).
     range([nodeRadiusMin, nodeRadiusMax]).
     clamp(true);
 
@@ -2255,12 +2255,12 @@ strength(1.0)).
     fontSizeMax = fontSizeMaxRatio * height;
 
     // emojiLabelSizeScale = d3.scaleLinear()
-    //   .domain([1, currentMax[metricMode][metricMode]])
+    //   .domain([1, currentMetricModeDomainMax])
     //   .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
     //   .clamp(true);
 
     nodeLabelSizeScale = d3.scaleLinear().
-      domain([1, currentMax[metricMode][metricMode]]).
+      domain([1, currentMetricModeDomainMax]).
       range([fontSizeMin, fontSizeMax]).
       clamp(true);
 

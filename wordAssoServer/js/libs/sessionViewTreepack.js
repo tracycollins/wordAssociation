@@ -458,6 +458,7 @@ function ViewTreepack() {
 
   panzoomInstance.on("zoom", function(e){
     console.log("ZOOM: ", e);
+    e.getTransform();
   });
 
   

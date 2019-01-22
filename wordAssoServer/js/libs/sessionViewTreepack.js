@@ -420,20 +420,21 @@ function ViewTreepack() {
 
   }, true);
 
-  var currentMetricModeDomainMax = Math.sqrt(currentMax[metricMode][metricMode]);
+  var currentMetricModeDomainMaxSqrt = Math.sqrt(currentMax[metricMode][metricMode]);
+  var currentMetricModeDomainMax = currentMax[metricMode][metricMode];
 
   var defaultRadiusScale = d3.scaleLinear().
-    domain([0, currentMetricModeDomainMax]).
+    domain([0, currentMetricModeDomainMaxSqrt]).
     range([nodeRadiusMin, nodeRadiusMax]).
     clamp(true);
 
   // var imageSizeScale = d3.scaleLinear().
-  //   domain([0, currentMetricModeDomainMax]).
+  //   domain([0, currentMetricModeDomainMaxSqrt]).
   //   range([nodeRadiusMin, nodeRadiusMax]).
   //   clamp(true);
 
   // var emojiLabelSizeScale = d3.scaleLinear()
-  //   .domain([1, currentMetricModeDomainMax])
+  //   .domain([1, currentMetricModeDomainMaxSqrt])
   //   .range([emojiFontMulipier*fontSizeMin, emojiFontMulipier*fontSizeMax])
   //   .clamp(true);
 
@@ -638,7 +639,7 @@ function ViewTreepack() {
       clamp(true);
 
     imageSizeScale = d3.scaleLinear().
-      domain([0, currentMetricModeDomainMax]).
+      domain([0, currentMetricModeDomainMaxSqrt]).
       range([nodeRadiusMin, nodeRadiusMax]).
       clamp(true);
 
@@ -743,11 +744,11 @@ strength(function(){
     nodeRadiusMinRatio = value;
     nodeRadiusMin = value * width;
     defaultRadiusScale = d3.scaleLinear().
-      domain([0, currentMetricModeDomainMax]).
+      domain([0, currentMetricModeDomainMaxSqrt]).
       range([nodeRadiusMin, nodeRadiusMax]).
       clamp(true);
     // imageSizeScale = d3.scaleLinear().
-    //   domain([0, currentMetricModeDomainMax]).
+    //   domain([0, currentMetricModeDomainMaxSqrt]).
     //   range([nodeRadiusMin, nodeRadiusMax]).
     //   clamp(true);
   };
@@ -758,11 +759,11 @@ strength(function(){
     nodeRadiusMaxRatio = value;
     nodeRadiusMax = value * width;
     defaultRadiusScale = d3.scaleLinear().
-      domain([0, currentMetricModeDomainMax]).
+      domain([0, currentMetricModeDomainMaxSqrt]).
       range([nodeRadiusMin, nodeRadiusMax]).
       clamp(true);
     // imageSizeScale = d3.scaleLinear().
-    //   domain([0, currentMetricModeDomainMax]).
+    //   domain([0, currentMetricModeDomainMaxSqrt]).
     //   range([nodeRadiusMin, nodeRadiusMax]).
     //   clamp(true);
   };
@@ -2039,7 +2040,7 @@ strength(function(){
         //   .clamp(true);
 
         defaultRadiusScale = d3.scaleLinear().
-          domain([0, currentMetricModeDomainMax]).
+          domain([0, currentMetricModeDomainMaxSqrt]).
           range([nodeRadiusMin, nodeRadiusMax]).
           clamp(true);
 
@@ -2119,7 +2120,8 @@ strength(function(){
       currentMax.mentions.rate = n.rate;
       currentMax.mentions.timeStamp = Date.now(); 
 
-      currentMetricModeDomainMax = Math.sqrt(currentMax[metricMode][metricMode]);
+      currentMetricModeDomainMaxSqrt = Math.sqrt(currentMax[metricMode][metricMode]);
+      currentMetricModeDomainMax = currentMax[metricMode][metricMode];
 
       // if (metricMode === "mentions") {
       //   currentMaxMentionsMetric = n.mentions; 
@@ -2139,7 +2141,8 @@ strength(function(){
 
       if (metricMode === "rate") { currentMaxRateMetric = n.rate; }
 
-      currentMetricModeDomainMax = Math.sqrt(currentMax[metricMode][metricMode]);
+      currentMetricModeDomainMaxSqrt = Math.sqrt(currentMax[metricMode][metricMode]);
+      currentMetricModeDomainMax = currentMax[metricMode][metricMode];
     }
 
     if (nodeAddQ.length < MAX_RX_QUEUE) { nodeAddQ.push(n); }
@@ -2247,7 +2250,7 @@ strength(1.0)).
     nodeRadiusMax = nodeRadiusMaxRatio * width;
 
     defaultRadiusScale = d3.scaleLinear().
-    domain([0, currentMetricModeDomainMax]).
+    domain([0, currentMetricModeDomainMaxSqrt]).
     range([nodeRadiusMin, nodeRadiusMax]).
     clamp(true);
 

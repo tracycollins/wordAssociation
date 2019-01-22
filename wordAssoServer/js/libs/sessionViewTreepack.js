@@ -288,6 +288,8 @@ function ViewTreepack() {
   var nodeRadiusMax = config.defaultNodeRadiusMaxRatio * width;
 
   var zoomFactor = config.defaultZoomFactor || DEFAULT_ZOOM_FACTOR;
+  var zoomInitialX = config.defaultZoomInitialX || 0.5*width;
+  var zoomInitialY = config.defaultZoomInitialY || 0.5*height;
 
   // var rowSpacing = fontSizeTopTermRatio*110; // %
   // var colSpacing = 90/maxHashtagCols; // %
@@ -459,13 +461,16 @@ function ViewTreepack() {
   var panzoomTransform;
 
   panzoomInstance.on("zoom", function(e){
-    console.log("ZOOM: ", e);
+    // console.log("ZOOM: ", e);
     panzoomTransform = e.getTransform();
+    zoomFactor = panzoomTransform.scale;
+    zoomInitialX = panzoomTransform.x;
+    zoomInitialY = panzoomTransform.y;
     console.log("panzoomTransform\n", jsonPrint(panzoomTransform));
   });
 
   
-  panzoomInstance.zoomAbs(0.5*width, 0.5*height, zoomFactor);
+  panzoomInstance.zoomAbs(zoomInitialX, zoomInitialY, zoomFactor);
 
   // var svgTopTerms = topTermsDiv.append("svg:svg")
   //   .attr("id", "svgTopTerms")

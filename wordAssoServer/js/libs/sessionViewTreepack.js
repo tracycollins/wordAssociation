@@ -918,6 +918,7 @@ strength(function(){
   var ageMaxRatio = 1e-6;
   var age = 1e-6;
   var nodeIdArray = [];
+  var tempNodeArray = [];
 
   function ageNodes(callback) {
 
@@ -929,7 +930,7 @@ strength(function(){
     tempTotalHashmap.negative = 0;
     tempTotalHashmap.none = 0;
 
-    var tempNodeArray = [];
+    tempNodeArray = [];
 
     nodeIdArray = nodeIdHashMap.keys();
     age = 1e-6;
@@ -946,7 +947,7 @@ strength(function(){
 
     maxAgeRate = Math.max(ageRate, maxAgeRate);
 
-    async.each(nodeIdArray, function(nodeId, cb){
+    async.each(nodeIdArray, function eachNodeIdArray(nodeId, cb){
 
       var nPoolId = nodeIdHashMap.get(nodeId);
       var node = localNodeHashMap.get(nPoolId);
@@ -980,7 +981,7 @@ strength(function(){
 
         if (node.isValid) {
           node.isValid = false;
-          resetNode(node, function(n){
+          resetNode(node, function nodeReset(n){
             nodePool.recycle(n);
             localNodeHashMap.set(nPoolId, n);
             cb();
@@ -1025,7 +1026,7 @@ strength(function(){
 
         cb();
       }
-    }, function(){
+    }, function endAgeNodes(){
       resumeTimeStamp = 0;
       totalHashmap = tempTotalHashmap;
       callback(null, tempNodeArray);

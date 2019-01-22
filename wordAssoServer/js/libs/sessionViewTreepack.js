@@ -260,9 +260,9 @@ function ViewTreepack() {
   var nodeRadiusMin = config.defaultNodeRadiusMinRatio * width;
   var nodeRadiusMax = config.defaultNodeRadiusMaxRatio * width;
 
-  config.defaultZoomFactor = config.defaultZoomFactor || DEFAULT_ZOOM_FACTOR;
-  config.defaultZoomInitialX = config.defaultZoomInitialX || 0.5*width;
-  config.defaultZoomInitialY = config.defaultZoomInitialY || 0.5*height;
+  config.zoomFactor = config.defaultZoomFactor || DEFAULT_ZOOM_FACTOR;
+  config.zoomInitialX = config.defaultZoomInitialX || 0.5*width;
+  config.zoomInitialY = config.defaultZoomInitialY || 0.5*height;
 
   var maxRateMentions = {};
   maxRateMentions.rateNodeType = "hashtag";

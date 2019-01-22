@@ -1469,6 +1469,7 @@ strength(function(){
   };
 
   var nodeCircles;
+  
   var updateNodeCircles = function(callback) {
 
     nodeCircles = nodeSvgGroup.selectAll("circle").
@@ -1566,18 +1567,18 @@ strength(function(){
         if (d.categoryAuto ==="negative") { return palette.black; }
         return palette.white; 
       }).
-      style("stroke-width", function (d) { 
-        if (d.categoryMismatch && d.following) { return categoryMismatchStrokeWidth; }
-        if (d.categoryMismatch && !d.following) { return 0.5*categoryMismatchStrokeWidth; }
-        if (d.categoryMatch && d.following) { return categoryMatchStrokeWidth; }
-        if (d.categoryMatch && !d.following) { return 0.5*categoryMatchStrokeWidth; }
-        if (d.isTopTerm && d.following) { return topTermStrokeWidth; }
-        if (d.isTopTerm && !d.following) { return 0.5*topTermStrokeWidth; }
-        if (d.categoryAuto && d.following) { return categoryAutoStrokeWidth; }
-        if (d.categoryAuto && !d.following) { return 0.5*categoryAutoStrokeWidth; }
-        if (d.following) { return defaultStrokeWidth; }
-        return 0.5*defaultStrokeWidth; 
-      }).
+      // style("stroke-width", function (d) { 
+      //   if (d.categoryMismatch && d.following) { return categoryMismatchStrokeWidth; }
+      //   if (d.categoryMismatch && !d.following) { return 0.5*categoryMismatchStrokeWidth; }
+      //   if (d.categoryMatch && d.following) { return categoryMatchStrokeWidth; }
+      //   if (d.categoryMatch && !d.following) { return 0.5*categoryMatchStrokeWidth; }
+      //   if (d.isTopTerm && d.following) { return topTermStrokeWidth; }
+      //   if (d.isTopTerm && !d.following) { return 0.5*topTermStrokeWidth; }
+      //   if (d.categoryAuto && d.following) { return categoryAutoStrokeWidth; }
+      //   if (d.categoryAuto && !d.following) { return 0.5*categoryAutoStrokeWidth; }
+      //   if (d.following) { return defaultStrokeWidth; }
+      //   return 0.5*defaultStrokeWidth; 
+      // }).
       style("fill-opacity", function(d) { 
         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
         return nodeLabelOpacityScale(d.ageMaxRatio); 

@@ -30,6 +30,8 @@ var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
 
 var MAX_RX_QUEUE = 250;
 
+var MAX_READY_ACK_WAIT_COUNT = 10;
+
 var config = {};
 var previousConfig = {};
 
@@ -68,10 +70,10 @@ statsObj.socket.connected = true;
 statsObj.socket.connects = 0;
 statsObj.socket.reconnects = 0;
 
-const RX_NODE_QUEUE_INTERVAL = 10;
-const RX_NODE_QUEUE_MAX = 100;
+var RX_NODE_QUEUE_INTERVAL = 10;
+var RX_NODE_QUEUE_MAX = 100;
 
-const STATS_UPDATE_INTERVAL = 1000;
+var STATS_UPDATE_INTERVAL = 1000;
 
 function jsonPrint(obj) {
   if ((obj) || (obj === 0)) {
@@ -86,7 +88,6 @@ var randomIntFromInterval = function(min, max) {
 };
 
 var randomId = randomIntFromInterval(1000000000, 9999999999);
-var VIEWER_ID = "viewer_" + randomId;
 var VIEWER_ID = "viewer_" + randomId;
 
 var DEFAULT_VIEWER_OBJ = {
@@ -114,18 +115,18 @@ var loginCallBack = function() {
 }
 
 var twitterUserThreecee = {
-  nodeId : "14607119",
+  nodeId: "14607119",
   // userId : "14607119",
-  profileImageUrl : "http://pbs.twimg.com/profile_images/780466729692659712/p6RcVjNK.jpg",
-  profileUrl : "http://twitter.com/threecee",
-  url : "http://threeCeeMedia.com",
-  name : "Tracy Collins",
-  screenName : "threecee",
-  nodeType : "user",
-  following : null,
-  description : "photography + animation + design",
-  isTwitterUser : true,
-  screenNameLower : "threecee",
+  profileImageUrl: "http://pbs.twimg.com/profile_images/780466729692659712/p6RcVjNK.jpg",
+  profileUrl: "http://twitter.com/threecee",
+  url: "http://threeCeeMedia.com",
+  name: "Tracy Collins",
+  screenName: "threecee",
+  nodeType: "user",
+  following: null,
+  description: "photography + animation + design",
+  isTwitterUser: true,
+  screenNameLower: "threecee",
   category: "left"
 };
 
@@ -494,8 +495,8 @@ var ignoreWordsArray = [
 ignoreWordsArray.push("'");
 ignoreWordsArray.push("`");
 
-var hashtagHashMap = new HashMap();
-var ignoreWordHashMap = new HashMap();
+// var hashtagHashMap = new HashMap();
+// var ignoreWordHashMap = new HashMap();
 var categoryColorHashMap = new HashMap();
 
 categoryColorHashMap.set("positive", palette.green);
@@ -505,27 +506,27 @@ categoryColorHashMap.set("left", palette.blue);
 categoryColorHashMap.set("right", palette.yellow);
 
 
-var rxSessionUpdateQueue = [];
-var rxSessionDeleteQueue = [];
-var nodeCreateQueue = [];
+// var rxSessionUpdateQueue = [];
+// var rxSessionDeleteQueue = [];
+// var nodeCreateQueue = [];
 
-var urlRoot = DEFAULT_SOURCE + "/session?session=";
+// var urlRoot = DEFAULT_SOURCE + "/session?session=";
 
-var sessionId;
-var namespace;
-var sessionMode = false;
+// var sessionId;
+// var namespace;
+// var sessionMode = false;
 var monitorMode = false;
 
 var socket = io("/view");
 
-var milliseconds;
+// var milliseconds;
 var seconds;
 var minutes;
 var hours;
 var days;
 
 function msToTime(duration) {
-  milliseconds = parseInt((duration % 1000) / 1000);
+  // milliseconds = parseInt((duration % 1000) / 1000);
   seconds = parseInt((duration / 1000) % 60);
   minutes = parseInt((duration / (1000 * 60)) % 60);
   hours = parseInt((duration / (1000 * 60 * 60)) % 24);
@@ -555,12 +556,12 @@ var statsDivElement = document.getElementById("statsDiv");
 
 var statsText = document.getElementById("stats-text");
 
-var statsLeftBarText = document.getElementById("left-bar-text");
-var statsRightBarText = document.getElementById("right-bar-text");
-var statsNeutralBarText = document.getElementById("neutral-bar-text");
-var statsPositiveBarText = document.getElementById("positive-bar-text");
-var statsNegativeBarText = document.getElementById("negative-bar-text");
-var statsNoneBarText = document.getElementById("none-bar-text");
+// var statsLeftBarText = document.getElementById("left-bar-text");
+// var statsRightBarText = document.getElementById("right-bar-text");
+// var statsNeutralBarText = document.getElementById("neutral-bar-text");
+// var statsPositiveBarText = document.getElementById("positive-bar-text");
+// var statsNegativeBarText = document.getElementById("negative-bar-text");
+// var statsNoneBarText = document.getElementById("none-bar-text");
 
 var statsLeftBarDiv = document.getElementById("left-bar");
 var statsRightBarDiv = document.getElementById("right-bar");
@@ -599,7 +600,7 @@ function displayControl(isVisible) {
   // topTermsDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
 }
 
-let showPropArray = [
+var showPropArray = [
   "networkId",
   "successRate",
   "matchRate",
@@ -616,24 +617,24 @@ function updateStatsText(){
     if (showPropArray.includes(key)){
         switch (key) {
           case "networkId":
-            statsText.innerHTML +=  statsObj.bestNetwork[key] + "<br><br><br>";
+            statsText.innerHTML += statsObj.bestNetwork[key] + "<br><br><br>";
           break;
           case "successRate":
             if (typeof statsObj.bestNetwork[key] !== "number") { break; }
-            statsText.innerHTML +=  "SR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
+            statsText.innerHTML += "SR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
           break;
           case "matchRate":
             if (typeof statsObj.bestNetwork[key] !== "number") { break; }
-            statsText.innerHTML +=  "MR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
+            statsText.innerHTML += "MR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
           break;
           case "overallMatchRate":
             if (typeof statsObj.bestNetwork[key] !== "number") { break; }
-            statsText.innerHTML +=  "OAMR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
+            statsText.innerHTML += "OAMR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
           break;
 
           case "seedNetworkRes":
             if (typeof statsObj.bestNetwork[key] !== "number") { break; }
-            statsText.innerHTML +=  "SN SR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
+            statsText.innerHTML += "SN SR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
           break;
 
           default:
@@ -646,10 +647,10 @@ function updateStatsText(){
 
 function displayStats(isVisible, dColor) {
 
-  if (isVisible) { updateStatsText();  }
+  if (isVisible) { updateStatsText(); }
 
   statsDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
-  if (dColor !== undefined) {statsDivElement.style.color = dColor;}
+  if (dColor !== undefined) { statsDivElement.style.color = dColor; }
 
 }
 
@@ -779,7 +780,7 @@ function toggleControlPanel(){
           console.debug("TX> CONTROL PANEL INIT | SOURCE: " + DEFAULT_SOURCE);
 
           // doesn't like momment in config.VIEWER_OBJ in postMessage
-          let cf = config;
+          var cf = config;
           delete cf.VIEWER_OBJ;
 
           controlPanelWindow.postMessage({op: "INIT", config: cf}, DEFAULT_SOURCE);
@@ -971,27 +972,6 @@ function controlPanelComm(event) {
         case "categoryAutoButton" :
           toggleAutoCategory();
         break;
-        // case "displayNodeType_emoji" :
-        //   toggleShowEmoji();
-        // break;
-        // case "displayNodeType_hashtag" :
-        //   toggleShowHashtags();
-        // break;
-        // case "displayNodeType_media" :
-        //   toggleShowMedia();
-        // break;
-        // case "displayNodeType_place" :
-        //   toggleShowPlaces();
-        // break;
-        // case "displayNodeType_url" :
-        //   toggleShowUrls();
-        // break;
-        // case "displayNodeType_user" :
-        //   toggleShowUsers();
-        // break;
-        // case "displayNodeType_word" :
-        //   toggleShowWords();
-        // break;
         case "metricToggleButton" :
           toggleMetric();
         break;
@@ -1187,22 +1167,8 @@ function toggleTestMode() {
   controlPanel.updateControlPanel(config);
 }
 
-// var initialPosition;
-// function computeInitialPosition() {
-//   initialPosition = {
-//     x: randomIntFromInterval(0.95 * currentSessionView.getWidth(), 1.0 * currentSessionView.getWidth()),
-//     y: randomIntFromInterval(0.3 * currentSessionView.getHeight(), 0.7 * currentSessionView.getHeight())
-//   };
-
-//   if (!initialPosition.x || !initialPosition.y) {
-//     console.error("POS " + jsonPrint(initialPosition));
-//   }
-//   return initialPosition;
-// }
-
 var keysForSortedKeys = [];
 function getSortedKeys(hmap, sortProperty) {
-  // var keys = [];
   hmap.forEach(function(value, key) {
     if (!value.isSessionNode) { keysForSortedKeys.push(key); }
   });
@@ -1264,12 +1230,12 @@ function hiddenProperty(prefix) {
 }
 
 function getVisibilityEvent(prefix) {
-  if (prefix) {return prefix + "visibilitychange"; } 
+  if (prefix) { return prefix + "visibilitychange"; } 
   else { return "visibilitychange"; }
 }
 
 
-let viewerReadyInterval;
+var viewerReadyInterval;
 
 function initViewerReadyInterval(interval){
 
@@ -1326,7 +1292,7 @@ function sendKeepAlive(viewerObj, callback){
 
   if (statsObj.viewerReadyAck && statsObj.serverConnected){
 
-    let statsObjSmall = statsObj;
+    var statsObjSmall = statsObj;
     delete statsObjSmall.heartBeat;
 
     socket.emit(
@@ -1352,11 +1318,11 @@ function sendKeepAlive(viewerObj, callback){
   }
 }
 
-let socketKeepaliveInterval;
+var socketKeepaliveInterval;
 
 function initKeepalive(viewerObj, interval){
 
-  let keepaliveIndex = 0;
+  var keepaliveIndex = 0;
 
   clearInterval(socketKeepaliveInterval);
 
@@ -1447,9 +1413,9 @@ socket.on("SERVER_READY", function(serverAck) {
 
 socket.on("VIEWER_READY_ACK", function(vSesKey) {
 
-  statsObj.serverConnected = true ;
+  statsObj.serverConnected = true;
   statsObj.socket.connected = true;
-  statsObj.viewerReadyAck = true ;
+  statsObj.viewerReadyAck = true;
 
 
   console.log("RX VIEWER_READY_ACK | SESSION KEY: " + vSesKey);
@@ -1519,7 +1485,7 @@ socket.on("error", function(error) {
 
   if (currentSessionView !== undefined) { currentSessionView.resize(); }
 
-  socket.disconnect(true);  // full disconnect, not just namespace
+  socket.disconnect(true); // full disconnect, not just namespace
 
   clearTimeout(socketErrorTimeout);
 
@@ -1564,9 +1530,9 @@ socket.on("authenticated", function() {
   console.debug("AUTHENTICATED | " + socket.id);
 
   statsObj.socketId = socket.id;
-  statsObj.serverConnected = true ;
+  statsObj.serverConnected = true;
   statsObj.userReadyTransmitted = false;
-  statsObj.userReadyAck = false ;
+  statsObj.userReadyAck = false;
 
   console.log( "CONNECTED TO HOST" 
     + " | ID: " + socket.id 
@@ -1577,14 +1543,9 @@ socket.on("authenticated", function() {
 
 socket.on("HEARTBEAT", function(hb) {
 
-
-  // console.log("HEARTBEAT\n" + jsonPrint(hb));
-
   resetServerActiveTimer();
 
   statsObj.bestNetwork = hb.bestNetwork;
-
-  // if (currentSessionView !== undefined) { currentSessionView.setHeartBeat(hb); }
 
   statsObj.maxNodes = ( currentSessionView === undefined) ? 0 : currentSessionView.getMaxNodes();
   statsObj.maxNodeAddQ = ( currentSessionView === undefined) ? 0 : currentSessionView.getMaxNodeAddQ();
@@ -1834,6 +1795,7 @@ var positiveNodesRatio = 0;
 var negativeNodesRatio = 0;
 var noneNodesRatio = 0;
 var statsUpdateInterval;
+
 //  STATS UPDATE
 function initStatsUpdate(interval){
 
@@ -1869,14 +1831,6 @@ function initStatsUpdate(interval){
       statsNoneBar.animate(noneNodesRatio);
 
     }
-    // statsLeftBar.path.setAttribute("stroke", palette.blue);
-    // statsRightBar.path.setAttribute("stroke", palette.yellow);
-    // statsNeutralBar.path.setAttribute("stroke", palette.gray);
-    // statsPositiveBar.path.setAttribute("stroke", palette.green);
-    // statsNegativeBar.path.setAttribute("stroke", palette.red);
-    // statsNoneBar.path.setAttribute("stroke", palette.white);
-
-    // updateStatsText();
 
   }, interval);
 }
@@ -1920,7 +1874,7 @@ function initSocketSessionUpdateRx(){
 
       newNode = rxNodeQueue.shift();
 
-      if (config.autoCategoryFlag &&  newNode.categoryAuto){
+      if (config.autoCategoryFlag && newNode.categoryAuto){
         category = newNode.categoryAuto;
       }
       else {
@@ -2088,14 +2042,14 @@ function onFullScreenChange() {
   var fullscreenElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement;
   // if in fullscreen mode fullscreenElement wont be null
   currentSessionView.resize();
-  config.fullscreenMode = (fullscreenElement) ? true : false;
+  config.fullscreenMode = Boolean(fullscreenElement);
   console.log("FULLSCREEN: " + config.fullscreenMode);
   updateFullscreenButton();
 }
 
-var loginCallBack = function(data) {
-  console.warn("LOGIN CALLBACK\n" + jsonPrint(data));
-};
+// var loginCallBack = function(data) {
+//   console.warn("LOGIN CALLBACK\n" + jsonPrint(data));
+// };
 
 function initialize(callback) {
 
@@ -2105,10 +2059,10 @@ function initialize(callback) {
   document.addEventListener("webkitfullscreenchange", onFullScreenChange, false);
   document.addEventListener("mozfullscreenchange", onFullScreenChange, false);
 
+  var sessionId;
+  var namespace;
 
   getUrlVariables(function(err, urlVariablesObj) {
-
-    // document.dispatchEvent(sessionDragEndEvent);
 
     console.log("URL VARS\n" + jsonPrint(urlVariablesObj));
 
@@ -2242,7 +2196,7 @@ function initialize(callback) {
               console.log("END PAGE LOAD TIMEOUT");
               initStatsUpdate(STATS_UPDATE_INTERVAL);
               pageLoadedTimeIntervalFlag = false;
-              if (!config.showStatsFlag) {displayStats(false, palette.white);}
+              if (!config.showStatsFlag) { displayStats(false, palette.white); }
             }, PAGE_LOAD_TIMEOUT);
 
             callback();

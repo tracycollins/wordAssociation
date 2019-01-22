@@ -930,7 +930,8 @@ strength(function(){
     tempTotalHashmap.negative = 0;
     tempTotalHashmap.none = 0;
 
-    tempNodeArray = [];
+    // tempNodeArray = [];
+    tempNodeArray.length = 0;
 
     nodeIdArray = nodeIdHashMap.keys();
     age = 1e-6;
@@ -2050,8 +2051,8 @@ strength(function(){
 
     processNodeAddQ(function(){
       ageNodes(function(err, nArray){
-        // nodeArray = nArray;
-        simulation.nodes(nArray);
+        nodeArray = nArray;
+        simulation.nodes(nodeArray);
       });
     });
 
@@ -2333,7 +2334,8 @@ strength(function strengthFunc(){
     mouseHoverFlag = false;
     localNodeHashMap.clear();
     nodeIdHashMap.clear();
-    nodeArray = [];
+    // nodeArray = [];
+    nodeArray.length = 0;
     // nodesTopTermHashMap.clear();
     self.toolTipVisibility(false);
     self.resize();

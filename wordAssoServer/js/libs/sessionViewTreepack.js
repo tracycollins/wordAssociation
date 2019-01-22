@@ -2049,9 +2049,9 @@ strength(function(){
   function updateSimulation() {
 
     processNodeAddQ(function(){
-      ageNodes(function(err, tempNodeArray){
-        nodeArray = tempNodeArray;
-        simulation.nodes(nodeArray);
+      ageNodes(function(err, nArray){
+        // nodeArray = nArray;
+        simulation.nodes(nArray);
       });
     });
 

@@ -1,4 +1,4 @@
-/* jshint undef: true, unused: true */
+fv/* jshint undef: true, unused: true */
 /* globals
 CustomEvent,
 ViewTreepack, 
@@ -293,6 +293,8 @@ else {
   config.removeDeadNodesFlag = true;
 
   config.defaultZoomFactor = DEFAULT_ZOOM_FACTOR;
+  config.defaultZoomInitialX = 100;
+  config.defaultZoomInitialY = 100;
 
   config.defaultMaxNodes = DEFAULT_MAX_NODES;
   config.defaultTransitionDuration = DEFAULT_TRANSITION_DURATION;

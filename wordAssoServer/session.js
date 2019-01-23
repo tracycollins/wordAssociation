@@ -1,4 +1,4 @@
-fv/* jshint undef: true, unused: true */
+/* jshint undef: true, unused: true */
 /* globals
 CustomEvent,
 ViewTreepack, 

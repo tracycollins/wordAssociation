@@ -261,8 +261,8 @@ function ViewTreepack() {
   var nodeRadiusMax = config.defaultNodeRadiusMaxRatio * width;
 
   config.zoomFactor = config.zoomFactor || config.defaultZoomFactor;
-  config.zoomInitialX = config.zoomInitialX || config.defaultZoomInitialX;
-  config.zoomInitialY = config.defaultZoomInitialY || config.defaultZoomInitialY;
+  config.zoomInitialX = config.zoomInitialX || 0.5*width;
+  config.zoomInitialY = config.zoomInitialY || 0.5*height;
 
   var maxRateMentions = {};
   maxRateMentions.rateNodeType = "hashtag";

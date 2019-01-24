@@ -2636,8 +2636,23 @@ function initUserCategorizeQueueInterval(cnf){
 
       if (updatedUser.categoryAuto !== networkOutput.output) {
 
-        matchFlag = updatedUser.category && (updatedUser.category !== undefined) && (updatedUser.category === networkOutput.output);
-        chalkType = (matchFlag) ? chalkGreen : chalk.yellow;
+        matchFlag = updatedUser.category 
+          && (updatedUser.category !== undefined) 
+          && (updatedUser.category !== false) 
+          && (updatedUser.category !== "false") 
+          && (updatedUser.category === networkOutput.output);
+
+        if (!updatedUser.category || updatedUser.category === undefined) {
+          chalkType = chalkLog;
+        }
+        else if (matchFlag){
+          chalkType = chalkGreen;
+        }
+        else {
+          chalkType = chalk.yellow;
+        }
+        
+        // chalkType = (matchFlag) ? chalkGreen : chalk.yellow;
 
         console.log(chalkType("WAS | TFC | >>> NN AUTO CHG"
           + " | UC$ " + userChangeCache.getStats().keys

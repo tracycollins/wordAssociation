@@ -7799,7 +7799,20 @@ function initTssChild(params){
             // + "\n" + jsonPrint(m.error)
           ));
 
-          if ((m.errorType === "TWITTER_FOLLOW_LIMIT") || (m.error.code === 161)) {
+          if (m.errorType === "TWITTER_UNFOLLOW") {
+
+            threeceeTwitter[m.threeceeUser].twitterErrors += 1;
+            threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
+
+            console.log(chalkError("WAS | <TSS | ERROR | TWITTER_UNFOLLOW"
+              + " | AUTUO FOLLOW SET: " + [...threeceeAutoFollowUsersSet]
+              + " | ERROR TYPE: " + m.errorType
+              + " | ERROR MESSAGE: " + m.error.message
+              // + "\n" + jsonPrint(m.error)
+            ));
+
+          }
+          else if ((m.errorType === "TWITTER_FOLLOW_LIMIT") || (m.error.code === 161)) {
 
             threeceeAutoFollowUsersSet.delete(m.threeceeUser);
 

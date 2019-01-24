@@ -1180,6 +1180,46 @@ function printUserObj(title, user, chalkFormat) {
     + " | C M " + user.category + " A " + user.categoryAuto
   ));
 }
+function printUser(params) {
+  let text;
+  const user = params.user;
+
+  if (params.verbose) {
+    return jsonPrint(params.user);
+  } 
+  else {
+    text = user.userId
+    + " | @" + user.screenName
+    + " | " + user.name 
+    + " | LG " + user.lang
+    + " | FW " + user.followersCount
+    + " | FD " + user.friendsCount
+    + " | T " + user.statusesCount
+    + " | M  " + user.mentions
+    + " | LS " + getTimeStamp(user.lastSeen)
+    + " | FWG " + user.following 
+    + " | 3C " + user.threeceeFollowing 
+    + " | LC " + user.location
+    + " | C M " + user.category + " A " + user.categoryAuto;
+    // text = params.user.nodeId 
+    //   + " | @" + params.user.screenName 
+    //   + " | N: " + params.user.name 
+    //   + " | CR: " + getTimeStamp(params.user.createdAt)
+    //   + " | LS: " + getTimeStamp(params.user.lastSeen)
+    //   + " | ULS: " + params.user.updateLastSeen 
+    //   + " | LOC: " + params.user.location 
+    //   + "\nFLWg: " + params.user.following 
+    //   + " | 3C: " + params.user.threeceeFollowing 
+    //   + "\nTs: " + params.user.statusesCount 
+    //   + " | FRNDs: " + params.user.friendsCount 
+    //   + " | FLWRs: " + params.user.followersCount 
+    //   + " | LAd: " + params.user.languageAnalyzed 
+    //   + "\nCAT MAN: " + params.user.category
+    //   + " | CAT AUTO: " + params.user.categoryAuto;
+    return text;
+  }
+}
+
 
 function connectDb(){
 
@@ -1553,31 +1593,6 @@ function jsonPrint(obj) {
   } 
   else {
     return obj;
-  }
-}
-
-function printUser(params) {
-  let text;
-  if (params.verbose) {
-    return jsonPrint(params.user);
-  } 
-  else {
-    text = params.user.nodeId 
-      + " | @" + params.user.screenName 
-      + " | N: " + params.user.name 
-      + " | CR: " + getTimeStamp(params.user.createdAt)
-      + " | LS: " + getTimeStamp(params.user.lastSeen)
-      + " | ULS: " + params.user.updateLastSeen 
-      + " | LOC: " + params.user.location 
-      + "\nFLWg: " + params.user.following 
-      + " | 3C: " + params.user.threeceeFollowing 
-      + "\nTs: " + params.user.statusesCount 
-      + " | FRNDs: " + params.user.friendsCount 
-      + " | FLWRs: " + params.user.followersCount 
-      + " | LAd: " + params.user.languageAnalyzed 
-      + "\nCAT MAN: " + params.user.category
-      + " | CAT AUTO: " + params.user.categoryAuto;
-    return text;
   }
 }
 
@@ -4119,7 +4134,7 @@ function follow(params, callback) {
   const query = { nodeId: params.user.nodeId };
   const randomThreeceeUser = _.sample(configuration.threeceeUsers);
 
-  console.log(chalkWarn("--- FOLLOW | @" + params.user.screenName 
+  console.log(chalkInfo("WAS | FOLLOWING | @" + params.user.screenName 
     + " | RANDOM 3C @" + randomThreeceeUser
   ));
 

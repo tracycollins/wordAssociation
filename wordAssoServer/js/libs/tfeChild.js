@@ -2650,7 +2650,7 @@ function initUserCategorizeQueueInterval(cnf){
 
         console.log(chalkError("WAS | TFC | *** USC FINDONEUSER TIMEOUT"));
 
-        printUserObj("WAS | TFC | DB", dbUser, chalkLog); 
+        printUserObj("WAS | TFC | DB", dbUser, chalkError); 
 
       }, 5000);
 
@@ -2658,7 +2658,7 @@ function initUserCategorizeQueueInterval(cnf){
 
         let dbUser = await userServerController.findOneUserV2({user: updatedUser, mergeHistograms: false, noInc: true});
 
-        printUserObj("WAS | TFC | DB", dbUser, chalkLog); 
+        if (configuration.verbose) { printUserObj("WAS | TFC | DB", dbUser, chalkLog); }
 
         userChangeCache.del(dbUser.nodeId);
       }

@@ -469,6 +469,7 @@ configuration.threeceeUsers = [];
 configuration.threeceeUsers = DEFAULT_THREECEE_USERS;
 statsObj.currentThreeceeUser = configuration.threeceeUsers[0];
 
+const threeceeAutoFollowUsersSet = new Set(configuration.threeceeUsers);
 
 // global.dbConnection = false;
 
@@ -4132,7 +4133,7 @@ function follow(params, callback) {
   unfollowableUserSet.delete(params.user.nodeId);
 
   const query = { nodeId: params.user.nodeId };
-  const randomThreeceeUser = _.sample(configuration.threeceeUsers);
+  const randomThreeceeUser = _.sample([...threeceeAutoFollowUsersSet]);
 
   console.log(chalkInfo("WAS | FOLLOWING | @" + params.user.screenName 
     + " | RANDOM 3C @" + randomThreeceeUser
@@ -7852,6 +7853,10 @@ function initTssChild(params){
           threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
           threeceeTwitter[m.threeceeUser].twitterFriends = m.twitterFriends;
 
+          if (threeceeTwitter[m.threeceeUser].twitterFollowing >= 5000) {
+            threeceeAutoFollowUsersSet.delete(m.threeceeUser);
+          }
+
           try{
             childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});
           }
@@ -7875,6 +7880,8 @@ function initTssChild(params){
           threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
           threeceeTwitter[m.threeceeUser].twitterFriends = m.twitterFriends;
           threeceeTwitter[m.threeceeUser].twitterFollowLimit = true;
+
+          threeceeAutoFollowUsersSet.delete(m.threeceeUser);
 
           try{
             childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});
@@ -7969,9 +7976,6 @@ function initTssChild(params){
       else {
         childrenHashMap[params.childId].status = "INIT";
         clearInterval(tssPingInterval);
-        // setTimeout(function(){
-        //   initTssPingInterval(TSS_PING_INTERVAL);
-        // }, 1000);
         resolve();
       }
     });
@@ -7990,9 +7994,6 @@ function initTfeChild(params){
     console.log(chalkInfo("WAS | LOADED MAX INPUT HASHMAP + NORMALIZATION"));
     console.log(chalkInfo("WAS | MAX INPUT HASHMAP INPUT TYPES: " + Object.keys(maxInputHashMap)));
     console.log(chalkInfo("WAS | NORMALIZATION INPUT TYPES: " + Object.keys(normalization)));
-
-    // let deltaTfeMessageStart = process.hrtime();
-    // let deltaTfeMessage = process.hrtime(deltaTfeMessageStart);
 
     const tfe = cp.fork(`${__dirname}/js/libs/tfeChild.js`);
 
@@ -8103,6 +8104,10 @@ function initTfeChild(params){
           threeceeHashMap[m.threeceeUser].twitterFollowing = m.twitterFollowing;
           threeceeHashMap[m.threeceeUser].twitterFriends = m.twitterFriends;
 
+          if (threeceeTwitter[m.threeceeUser].twitterFollowing >= 5000) {
+            threeceeAutoFollowUsersSet.delete(m.threeceeUser);
+          }
+
           try{
             childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});
           }
@@ -8112,7 +8117,6 @@ function initTfeChild(params){
               + " | ERR: " + err
             ));
           }
-
         break;
 
         case "FOLLOW_LIMIT":

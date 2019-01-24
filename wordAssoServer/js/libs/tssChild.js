@@ -1826,10 +1826,21 @@ function initUnfollowQueue(params){
               console.log(chalkError("TSS | *** TWITTER UNFOLLOW ERROR"
                 + " [ UFQ: " + unfollowQueue.length + " ]"
                 + " | @" + threeceeUserObj.screenName
+                + " | ERROR CODE: " + err.code
                 + " | ERROR: " + err
                 + "\ncreateParams\n" + jsonPrint(createParams)
               ));
-              unfollowQueueReady = true;
+
+              unfollowQueue.length = 0;
+
+              process.send({
+                op: "ERROR", 
+                threeceeUser: threeceeUserObj.screenName, 
+                stats: threeceeUserObj.stats, 
+                errorType: "TWITTER_UNFOLLOW", 
+                error: err
+              });
+              // unfollowQueueReady = true;
             }
             else {
               console.log(chalk.green("TSS | XXX TWITTER UNFOLLOW"

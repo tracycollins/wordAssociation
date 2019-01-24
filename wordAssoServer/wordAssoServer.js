@@ -4135,7 +4135,7 @@ function follow(params, callback) {
   const query = { nodeId: params.user.nodeId };
   const randomThreeceeUser = _.sample([...threeceeAutoFollowUsersSet]);
 
-  console.log(chalkInfo("WAS | FOLLOWING | @" + params.user.screenName 
+  console.log(chalk.black.bold("WAS | FOLLOWING | @" + params.user.screenName 
     + " | RANDOM 3C @" + randomThreeceeUser
   ));
 
@@ -7799,7 +7799,25 @@ function initTssChild(params){
             // + "\n" + jsonPrint(m.error)
           ));
 
-          if ((m.errorType === "TWITTER_UNAUTHORIZED") || (m.error.statusCode === 401)) {
+          if ((m.errorType === "TWITTER_FOLLOW_LIMIT") || (m.error.code === 161)) {
+
+            threeceeAutoFollowUsersSet.delete(m.threeceeUser);
+
+            threeceeTwitter[m.threeceeUser].twitterErrors += 1;
+            threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
+            threeceeTwitter[m.threeceeUser].twitterAuthorizationErrorFlag = m.error;
+
+            console.log(chalkError("WAS | <TSS | ERROR | TWITTER_FOLLOW_LIMIT"
+              + " | AUTUO FOLLOW SET: " + [...threeceeAutoFollowUsersSet]
+              + " | ERROR TYPE: " + m.errorType
+              + " | ERROR MESSAGE: " + m.error.message
+              // + "\n" + jsonPrint(m.error)
+            ));
+
+          }
+          else if ((m.errorType === "TWITTER_UNAUTHORIZED") || (m.error.statusCode === 401)) {
+
+            threeceeAutoFollowUsersSet.delete(m.threeceeUser);
 
             threeceeTwitter[m.threeceeUser].twitterErrors += 1;
             threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
@@ -7807,6 +7825,8 @@ function initTssChild(params){
 
           }
           else if (m.errorType === "TWITTER_TOKEN") {
+
+            threeceeAutoFollowUsersSet.delete(m.threeceeUser);
 
             threeceeTwitter[m.threeceeUser].twitterErrors += 1;
             threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;

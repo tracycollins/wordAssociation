@@ -2598,13 +2598,20 @@ function initUserCategorizeQueueInterval(cnf){
 
   clearInterval(userCategorizeQueueInterval);
 
+  let updatedUser;
+  let networkOutput;
+  let user;
+  let dbUser;
+  let matchFlag = false;
+  let chalkType = chalkLog;
+
   userCategorizeQueueInterval = setInterval(async function(){
 
     if (userServerControllerReady && userCategorizeQueueReady && (userCategorizeQueue.length > 0)) {
 
       userCategorizeQueueReady = false;
 
-      let user = userCategorizeQueue.shift();
+      user = userCategorizeQueue.shift();
 
       if ((!user.nodeId || user.nodeId === undefined) && (!user.userId || user.userId === undefined)){
         console.log(chalkError("WAS | TFC | *** USER CAT ERROR: USER NODE ID & USER ID UNDEFINED\n" + jsonPrint(user)));
@@ -2616,26 +2623,28 @@ function initUserCategorizeQueueInterval(cnf){
 
       if (configuration.verbose) { printUserObj("WAS | TFC | USER CAT [ UCATQ: " + userCategorizeQueue.length + " ]", user, chalkLog); }
 
-      let updatedUser;
-      let networkOutput;
-
       try {
         updatedUser = await updateUserHistograms({user: user});
         networkOutput = await activateNetwork({user: updatedUser});
       }
       catch (err) {
         console.log(chalkError("WAS | TFC | *** UPDATE USER HISTOGRAMS ERROR: " + err));
-        // console.error(err);
         userChangeCache.del(user.nodeId);
         userCategorizeQueueReady = true;
         return;
       }
 
       if (updatedUser.categoryAuto !== networkOutput.output) {
-        console.log(chalkGreen("WAS | TFC | >>> NN AUTO CHG"
+
+        matchFlag = updatedUser.category && (updatedUser.category !== undefined) && (updatedUser.category === networkOutput.output);
+        chalkType = (matchFlag) ? chalkGreen : chalk.yellow;
+
+        console.log(chalkType("WAS | TFC | >>> NN AUTO CHG"
           + " | UC$ " + userChangeCache.getStats().keys
           + " UCQ " + userCategorizeQueue.length
           + " NN " + networkObj.networkId
+          + " MATCH " + matchFlag
+          + " CM " + updatedUser.category
           + " CA " + updatedUser.categoryAuto + " > " + networkOutput.output
           + " NID " + updatedUser.nodeId
           + " @" + updatedUser.screenName
@@ -2647,19 +2656,13 @@ function initUserCategorizeQueueInterval(cnf){
       updatedUser.lastHistogramQuoteId = updatedUser.quotedStatusId;
 
       uscTimeout = setTimeout(function(){
-
         console.log(chalkError("WAS | TFC | *** USC FINDONEUSER TIMEOUT"));
-
         printUserObj("WAS | TFC | DB", dbUser, chalkError); 
-
       }, 5000);
 
       try {
-
-        let dbUser = await userServerController.findOneUserV2({user: updatedUser, mergeHistograms: false, noInc: true});
-
+        dbUser = await userServerController.findOneUserV2({user: updatedUser, mergeHistograms: false, noInc: true});
         if (configuration.verbose) { printUserObj("WAS | TFC | DB", dbUser, chalkLog); }
-
         userChangeCache.del(dbUser.nodeId);
       }
       catch(err){
@@ -2669,7 +2672,6 @@ function initUserCategorizeQueueInterval(cnf){
       clearTimeout(uscTimeout);
       userCategorizeQueueReady = true;
     }
-
 
   }, cnf.userCategorizeQueueInterval);
 }

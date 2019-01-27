@@ -1,9 +1,16 @@
 module.exports = {
     "env": {
-        "browser": true
+        "node": true,
+        "browser": true,
+        "es6": true
     },
     "extends": "eslint:recommended",
+    "parserOptions": {
+        "ecmaVersion": 2018,
+        "sourceType": "module"
+    },
     "rules": {
+        "no-console": "off",
         "accessor-pairs": "error",
         "array-bracket-spacing": [
             "error",
@@ -17,7 +24,7 @@ module.exports = {
         "block-spacing": "error",
         "brace-style": "off",
         "callback-return": "off",
-        "camelcase": "error",
+        // "camelcase": "error",
         "comma-dangle": [
             "error",
             "only-multiline"
@@ -73,7 +80,7 @@ module.exports = {
         "max-nested-callbacks": "error",
         "max-params": "off",
         "max-statements": "off",
-        "max-statements-per-line": "error",
+        // "max-statements-per-line": "error",
         "multiline-ternary": "off",
         "new-cap": "error",
         "new-parens": "error",
@@ -130,8 +137,8 @@ module.exports = {
         "no-param-reassign": "error",
         "no-path-concat": "error",
         "no-plusplus": "off",
-        "no-process-env": "error",
-        "no-process-exit": "error",
+        // "no-process-env": "error",
+        // "no-process-exit": "error",
         "no-proto": "error",
         "no-prototype-builtins": "off",
         "no-restricted-globals": "error",
@@ -150,7 +157,7 @@ module.exports = {
         "no-throw-literal": "error",
         "no-trailing-spaces": "off",
         "no-undef-init": "error",
-        "no-undefined": "error",
+        // "no-undefined": "error",
         "no-underscore-dangle": "error",
         "no-unmodified-loop-condition": "error",
         "no-unneeded-ternary": "error",

@@ -736,7 +736,7 @@ function createPopUpControlPanel (cnf, callback) {
   );
 
   controlPanelWindow.addEventListener("message", controlPanelComm, false);
-  window.addEventListener("message", controlPanelComm, false);
+  // window.addEventListener("message", controlPanelComm, false);
 
   controlPanelWindow.addEventListener("beforeunload", function(){
     console.log("CONTROL POP UP CLOSING...");

@@ -417,40 +417,21 @@ function ViewTreepack() {
 
   var panzoomTransform;
 
-  // panzoomInstance.on("transform", function(e){
-  //   panzoomTransform = e.getTransform();
-  //   config.zoomFactor = panzoomTransform.scale;
-  //   config.zoomInitialX = panzoomTransform.x;
-  //   config.zoomInitialY = panzoomTransform.y;
-  //   console.log("panzoomTransform transform\n", jsonPrint(panzoomTransform));
-  // });
-
   panzoomInstance.on("panend", function(e){
-    panzoomTransform = e.getTransform();
-    config.zoomFactor = panzoomTransform.scale;
-    config.zoomInitialX = panzoomTransform.x;
-    config.zoomInitialY = panzoomTransform.y;
+    config.panzoomTransform = e.getTransform();
     console.log("panzoomTransform pan end\n", jsonPrint(panzoomTransform));
   });
 
   panzoomInstance.on("zoom", function(e){
-    panzoomTransform = e.getTransform();
-    config.zoomFactor = panzoomTransform.scale;
-    config.zoomInitialX = panzoomTransform.x;
-    config.zoomInitialY = panzoomTransform.y;
+    config.panzoomTransform = e.getTransform();
     console.log("panzoomTransform zoom\n", jsonPrint(panzoomTransform));
   });
 
-  // panzoomInstance.on("zoom", function(e){
-  //   panzoomTransform = e.getTransform();
-  //   config.zoomFactor = panzoomTransform.scale;
-  //   config.zoomInitialX = panzoomTransform.x;
-  //   config.zoomInitialY = panzoomTransform.y;
-  //   console.log("panzoomTransform\n", jsonPrint(panzoomTransform));
-  // });
+  config.panzoomTransform.x = config.panzoomTransform.x || (width * 0.5);
+  config.panzoomTransform.y = config.panzoomTransform.y || (height * 0.5);
+  config.panzoomTransform.scale = config.panzoomTransform.scale || config.defaultZoomFactor;
 
-  
-  panzoomInstance.zoomAbs(config.zoomInitialX, config.zoomInitialY, config.zoomFactor);
+  panzoomInstance.zoomAbs(config.panzoomTransform.x, config.panzoomTransform.y, config.panzoomTransform.scale);
 
   var nodeSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
   var nodeLabelSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");

@@ -1623,7 +1623,7 @@ socket.on("SET_TWITTER_USER", function(twitterUser) {
       + " | @" + twitterUser.screenName 
     );
     
-    currentSessionView.setTwitterUser(twitterUser);
+    // currentSessionView.setTwitterUser(twitterUser);
     return;
   }
 

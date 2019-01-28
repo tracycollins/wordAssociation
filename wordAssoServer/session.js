@@ -548,6 +548,7 @@ function msToTime(duration) {
 }
 
 function saveConfig(){
+  config.panzoomTransform = currentSessionView.getPanzoomTransform();
   storedConfigName = "config_" + config.sessionViewType;
   store.set(storedConfigName, config);
   console.debug("STORED CONFIG"

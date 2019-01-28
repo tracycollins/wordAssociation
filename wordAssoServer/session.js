@@ -179,9 +179,9 @@ requirejs(["https://d3js.org/d3.v5.min.js"], function(d3Loaded) {
         }
       }, true);
 
-      document.addEventListener("panzoomTransform", function(e) {
+      document.addEventListener("panzoomEvent", function(e) {
         if (currentSessionView) { 
-          console.debug("PAN ZOOM EVENT", e);
+          saveConfig();
         }
       }, true);
 
@@ -554,9 +554,9 @@ function msToTime(duration) {
 }
 
 function saveConfig(){
-  if (currentSessionView !== undefined) {
-    config.panzoomTransform = currentSessionView.getPanzoomTransform();
-  }
+  // if (currentSessionView !== undefined) {
+  //   config.panzoomTransform = currentSessionView.getPanzoomTransform();
+  // }
   storedConfigName = "config_" + config.sessionViewType;
   store.set(storedConfigName, config);
   console.debug("STORED CONFIG"

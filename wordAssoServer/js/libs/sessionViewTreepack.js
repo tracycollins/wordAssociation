@@ -417,6 +417,22 @@ function ViewTreepack() {
 
   var panzoomTransform;
 
+  panzoomInstance.on("pan", function(e){
+    panzoomTransform = e.getTransform();
+    config.zoomFactor = panzoomTransform.scale;
+    config.zoomInitialX = panzoomTransform.x;
+    config.zoomInitialY = panzoomTransform.y;
+    console.log("panzoomTransform pan\n", jsonPrint(panzoomTransform));
+  });
+
+  panzoomInstance.on("pan end", function(e){
+    panzoomTransform = e.getTransform();
+    config.zoomFactor = panzoomTransform.scale;
+    config.zoomInitialX = panzoomTransform.x;
+    config.zoomInitialY = panzoomTransform.y;
+    console.log("panzoomTransform pan end\n", jsonPrint(panzoomTransform));
+  });
+
   panzoomInstance.on("zoom", function(e){
     panzoomTransform = e.getTransform();
     config.zoomFactor = panzoomTransform.scale;

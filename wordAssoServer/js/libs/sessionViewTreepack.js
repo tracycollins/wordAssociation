@@ -417,29 +417,29 @@ function ViewTreepack() {
 
   var panzoomTransform;
 
-  panzoomInstance.on("pan", function(e){
+  panzoomInstance.on("transform", function(e){
     panzoomTransform = e.getTransform();
     config.zoomFactor = panzoomTransform.scale;
     config.zoomInitialX = panzoomTransform.x;
     config.zoomInitialY = panzoomTransform.y;
-    console.log("panzoomTransform pan\n", jsonPrint(panzoomTransform));
+    console.log("panzoomTransform transform\n", jsonPrint(panzoomTransform));
   });
 
-  panzoomInstance.on("pan end", function(e){
-    panzoomTransform = e.getTransform();
-    config.zoomFactor = panzoomTransform.scale;
-    config.zoomInitialX = panzoomTransform.x;
-    config.zoomInitialY = panzoomTransform.y;
-    console.log("panzoomTransform pan end\n", jsonPrint(panzoomTransform));
-  });
+  // panzoomInstance.on("pan end", function(e){
+  //   panzoomTransform = e.getTransform();
+  //   config.zoomFactor = panzoomTransform.scale;
+  //   config.zoomInitialX = panzoomTransform.x;
+  //   config.zoomInitialY = panzoomTransform.y;
+  //   console.log("panzoomTransform pan end\n", jsonPrint(panzoomTransform));
+  // });
 
-  panzoomInstance.on("zoom", function(e){
-    panzoomTransform = e.getTransform();
-    config.zoomFactor = panzoomTransform.scale;
-    config.zoomInitialX = panzoomTransform.x;
-    config.zoomInitialY = panzoomTransform.y;
-    console.log("panzoomTransform\n", jsonPrint(panzoomTransform));
-  });
+  // panzoomInstance.on("zoom", function(e){
+  //   panzoomTransform = e.getTransform();
+  //   config.zoomFactor = panzoomTransform.scale;
+  //   config.zoomInitialX = panzoomTransform.x;
+  //   config.zoomInitialY = panzoomTransform.y;
+  //   console.log("panzoomTransform\n", jsonPrint(panzoomTransform));
+  // });
 
   
   panzoomInstance.zoomAbs(config.zoomInitialX, config.zoomInitialY, config.zoomFactor);

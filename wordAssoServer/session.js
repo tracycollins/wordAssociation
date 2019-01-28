@@ -179,6 +179,12 @@ requirejs(["https://d3js.org/d3.v5.min.js"], function(d3Loaded) {
         }
       }, true);
 
+      document.addEventListener("panzoomTransform", function(e) {
+        if (currentSessionView) { 
+          console.debug("PAN ZOOM EVENT", e);
+        }
+      }, true);
+
     });
   },
   function(error) {
@@ -652,7 +658,6 @@ function updateStatsText(){
         }
     }
   });
-
 }
 
 function displayStats(isVisible, dColor) {
@@ -661,7 +666,6 @@ function displayStats(isVisible, dColor) {
 
   statsDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
   if (dColor !== undefined) { statsDivElement.style.color = dColor; }
-
 }
 
 var mouseMoveTimeoutEventObj = new CustomEvent("mouseMoveTimeoutEvent");
@@ -963,6 +967,7 @@ function controlPanelComm(event) {
 
     case "CLOSE" :
       console.warn("R< CONTROL PANEL CLOSING...");
+      resetConfigUpdateTimeOut();
     break;
 
     case "MOMENT" :
@@ -1990,6 +1995,8 @@ function toggleFullScreen() {
       document.webkitExitFullscreen();
     }
   }
+
+  resetConfigUpdateTimeOut();
 }
 
 requirejs.onError = function(err) {

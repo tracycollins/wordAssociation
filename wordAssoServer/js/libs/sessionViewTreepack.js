@@ -260,9 +260,12 @@ function ViewTreepack() {
   var nodeRadiusMin = config.defaultNodeRadiusMinRatio * width;
   var nodeRadiusMax = config.defaultNodeRadiusMaxRatio * width;
 
-  config.zoomFactor = config.zoomFactor || config.defaultZoomFactor;
-  config.zoomInitialX = config.zoomInitialX || 0.5*width;
-  config.zoomInitialY = config.zoomInitialY || 0.5*height;
+  if (config.panzoomTransform === undefined) { 
+    config.panzoomTransform = {}; 
+  }
+  config.panzoomTransform.scale = config.panzoomTransform.scale || config.defaultZoomFactor;
+  config.panzoomTransform.x = config.panzoomTransform.x || 0.5*width;
+  config.panzoomTransform.y = config.panzoomTransform.y || 0.5*height;
 
   var maxRateMentions = {};
   maxRateMentions.rateNodeType = "hashtag";
@@ -405,10 +408,10 @@ function ViewTreepack() {
     attr("y", 1e-6);
 
 
-  if (config.panzoomTransform === undefined) { config.panzoomTransform = {}; }
-  config.panzoomTransform.x = config.panzoomTransform.x || (width * 0.5);
-  config.panzoomTransform.y = config.panzoomTransform.y || (height * 0.5);
-  config.panzoomTransform.scale = config.panzoomTransform.scale || config.defaultZoomFactor;
+  // if (config.panzoomTransform === undefined) { config.panzoomTransform = {}; }
+  // config.panzoomTransform.x = config.panzoomTransform.x || (width * 0.5);
+  // config.panzoomTransform.y = config.panzoomTransform.y || (height * 0.5);
+  // config.panzoomTransform.scale = config.panzoomTransform.scale || config.defaultZoomFactor;
 
   var panzoomElement = document.getElementById("svgTreemapLayoutArea");
 
@@ -421,23 +424,35 @@ function ViewTreepack() {
     }
   );
 
-  var panzoomTransform;
   var panzoomEvent = new CustomEvent("panzoomEvent", { 
     bubbles: true, 
-    transform: () => panzoomTransform 
+    detail: { transform: () => config.panzoomTransform } 
   });
 
   panzoomInstance.on("panend", function(e){
     config.panzoomTransform = e.getTransform();
     document.dispatchEvent(panzoomEvent);
-    console.log("panzoomTransform pan end\n", jsonPrint(panzoomTransform));
+    // console.log("panzoomTransform pan end\n", jsonPrint(config.panzoomTransform));
   });
 
+  var zoomEndTimeout;
+  var resetZoomEndTimeout = function(){
+
+    clearTimeout(zoomEndTimeout);
+
+    zoomEndTimeout = setTimeout(function() {
+      document.dispatchEvent(panzoomEvent);
+      // console.log("panzoomTransform zoom end\n", jsonPrint(config.panzoomTransform));
+    }, 2000);
+
+  };
   panzoomInstance.on("zoom", function(e){
     config.panzoomTransform = e.getTransform();
-    console.log("panzoomTransform zoom\n", jsonPrint(panzoomTransform));
+    resetZoomEndTimeout();
+    // console.log("panzoomTransform zoom\n", jsonPrint(config.panzoomTransform));
   });
 
+  console.log("panzoomInstance zoomAbs\n", jsonPrint(config.panzoomTransform));
   panzoomInstance.zoomAbs(config.panzoomTransform.x, config.panzoomTransform.y, config.panzoomTransform.scale);
 
   var nodeSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");

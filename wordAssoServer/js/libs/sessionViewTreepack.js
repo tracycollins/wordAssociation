@@ -404,6 +404,11 @@ function ViewTreepack() {
     attr("x", 1e-6).
     attr("y", 1e-6);
 
+  if (config.panzoomTransform === undefined) { config.panzoomTransform = {}; }
+  config.panzoomTransform.x = config.panzoomTransform.x || (width * 0.5);
+  config.panzoomTransform.y = config.panzoomTransform.y || (height * 0.5);
+  config.panzoomTransform.scale = config.panzoomTransform.scale || config.defaultZoomFactor;
+
   var panzoomElement = document.getElementById("svgTreemapLayoutArea");
 
   var panzoomInstance = panzoom(
@@ -426,10 +431,6 @@ function ViewTreepack() {
     config.panzoomTransform = e.getTransform();
     console.log("panzoomTransform zoom\n", jsonPrint(panzoomTransform));
   });
-
-  config.panzoomTransform.x = config.panzoomTransform.x || (width * 0.5);
-  config.panzoomTransform.y = config.panzoomTransform.y || (height * 0.5);
-  config.panzoomTransform.scale = config.panzoomTransform.scale || config.defaultZoomFactor;
 
   panzoomInstance.zoomAbs(config.panzoomTransform.x, config.panzoomTransform.y, config.panzoomTransform.scale);
 

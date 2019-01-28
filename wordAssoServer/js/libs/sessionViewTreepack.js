@@ -417,21 +417,21 @@ function ViewTreepack() {
 
   var panzoomTransform;
 
-  panzoomInstance.on("transform", function(e){
-    panzoomTransform = e.getTransform();
-    config.zoomFactor = panzoomTransform.scale;
-    config.zoomInitialX = panzoomTransform.x;
-    config.zoomInitialY = panzoomTransform.y;
-    console.log("panzoomTransform transform\n", jsonPrint(panzoomTransform));
-  });
-
-  // panzoomInstance.on("pan end", function(e){
+  // panzoomInstance.on("transform", function(e){
   //   panzoomTransform = e.getTransform();
   //   config.zoomFactor = panzoomTransform.scale;
   //   config.zoomInitialX = panzoomTransform.x;
   //   config.zoomInitialY = panzoomTransform.y;
-  //   console.log("panzoomTransform pan end\n", jsonPrint(panzoomTransform));
+  //   console.log("panzoomTransform transform\n", jsonPrint(panzoomTransform));
   // });
+
+  panzoomInstance.on("panend", function(e){
+    panzoomTransform = e.getTransform();
+    config.zoomFactor = panzoomTransform.scale;
+    config.zoomInitialX = panzoomTransform.x;
+    config.zoomInitialY = panzoomTransform.y;
+    console.log("panzoomTransform pan end\n", jsonPrint(panzoomTransform));
+  });
 
   // panzoomInstance.on("zoom", function(e){
   //   panzoomTransform = e.getTransform();

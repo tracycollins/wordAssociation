@@ -455,6 +455,8 @@ function ViewTreepack() {
     config.enableAgeNodes = enabled;
   };
 
+  this.getPanzoomTransform = function() { return config.panzoomTransform; };
+
   this.deleteNode = function() { return null; };
 
   this.getTotalHashMap = function() { return totalHashmap; };

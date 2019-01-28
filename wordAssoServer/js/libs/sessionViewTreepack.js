@@ -404,6 +404,7 @@ function ViewTreepack() {
     attr("x", 1e-6).
     attr("y", 1e-6);
 
+
   if (config.panzoomTransform === undefined) { config.panzoomTransform = {}; }
   config.panzoomTransform.x = config.panzoomTransform.x || (width * 0.5);
   config.panzoomTransform.y = config.panzoomTransform.y || (height * 0.5);
@@ -421,9 +422,14 @@ function ViewTreepack() {
   );
 
   var panzoomTransform;
+  var panzoomEvent = new CustomEvent("panzoomEvent", { 
+    bubbles: true, 
+    transform: () => panzoomTransform 
+  });
 
   panzoomInstance.on("panend", function(e){
     config.panzoomTransform = e.getTransform();
+    document.dispatchEvent(panzoomEvent);
     console.log("panzoomTransform pan end\n", jsonPrint(panzoomTransform));
   });
 

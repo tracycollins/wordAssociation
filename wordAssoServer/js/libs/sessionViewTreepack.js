@@ -433,6 +433,14 @@ function ViewTreepack() {
     console.log("panzoomTransform pan end\n", jsonPrint(panzoomTransform));
   });
 
+  panzoomInstance.on("zoomend", function(e){
+    panzoomTransform = e.getTransform();
+    config.zoomFactor = panzoomTransform.scale;
+    config.zoomInitialX = panzoomTransform.x;
+    config.zoomInitialY = panzoomTransform.y;
+    console.log("panzoomTransform zoom end\n", jsonPrint(panzoomTransform));
+  });
+
   // panzoomInstance.on("zoom", function(e){
   //   panzoomTransform = e.getTransform();
   //   config.zoomFactor = panzoomTransform.scale;

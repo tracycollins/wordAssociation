@@ -24,7 +24,7 @@ const TWITTER_AUTH_CALLBACK_URL = "https://word.threeceelabs.com/auth/twitter/ca
 
 const dbAppName = "WAS_" + process.pid;
 
-global.dbConnection = false;
+global.globalDbConnection = false;
 
 let dbConnectionReady = false;
 let dbConnectionReadyInterval;
@@ -32,30 +32,28 @@ let dbConnectionReadyInterval;
 const mongoose = require("mongoose");
 mongoose.set("useFindAndModify", false);
 
-global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
+global.globalWordAssoDb = require("@threeceelabs/mongoose-twitter");
 
-global.Emoji;
-global.Hashtag;
-global.Location;
-global.Media;
-global.NetworkInputs;
-global.NeuralNetwork;
-global.Place;
-global.Tweet;
-global.Url;
-global.User;
-global.Word;
+global.globalEmoji;
+global.globalHashtag;
+global.globalLocation;
+global.globalMedia;
+global.globalNetworkInputs;
+global.globalNeuralNetwork;
+global.globalPlace;
+global.globalTweet;
+global.globalUrl;
+global.globalUser;
+global.globalWord;
 
 
 let HashtagServerController;
-let UserServerController;
-
 let hashtagServerController;
-let userServerController;
-
 let hashtagServerControllerReady = false;
-let userServerControllerReady = false;
 
+let UserServerController;
+let userServerController;
+let userServerControllerReady = false;
 
 let neuralNetworkChangeStream;
 let userChangeStream;
@@ -469,8 +467,6 @@ statsObj.currentThreeceeUser = configuration.threeceeUsers[0];
 
 const threeceeAutoFollowUsersSet = new Set(configuration.threeceeUsers);
 
-// global.dbConnection = false;
-
 const Twit = require(__dirname + "/js/libs/twit");
 
 let threeceeTwitter = {};
@@ -581,9 +577,9 @@ function quit(message) {
   console.log(chalkAlert("WAS | QUIT MESSAGE: " + msg));
   console.error(chalkAlert("WAS | QUIT MESSAGE: " + msg));
 
-  if (global.dbConnection) {
+  if (global.globalDbConnection) {
 
-    global.dbConnection.close(function () {
+    global.globalDbConnection.close(function () {
 
       statsObj.dbConnectionReady = false;
       dbConnectionReady = false;
@@ -1213,7 +1209,7 @@ function connectDb(){
 
       statsObj.status = "CONNECTING MONGO DB";
 
-      global.wordAssoDb.connect("WAS_" + process.pid, function(err, db){
+      global.globalWordAssoDb.connect("WAS_" + process.pid, function(err, db){
 
         if (err) {
           console.log(chalkError("WAS | *** MONGO DB CONNECTION ERROR: " + err));
@@ -1257,10 +1253,7 @@ function connectDb(){
           quit(statsObj.status);
         });
 
-        // dbConnectionReady = true;
-        // statsObj.dbConnectionReady = true;
-
-        global.dbConnection = db;
+        global.globalDbConnection = db;
 
         console.log(chalk.green("WAS | MONGOOSE DEFAULT CONNECTION OPEN"));
 
@@ -1275,16 +1268,16 @@ function connectDb(){
         const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
         const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
 
-        global.Emoji = global.dbConnection.model("Emoji", emojiModel.EmojiSchema);
-        global.Hashtag = global.dbConnection.model("Hashtag", hashtagModel.HashtagSchema);
-        global.Location = global.dbConnection.model("Location", locationModel.LocationSchema);
-        global.Media = global.dbConnection.model("Media", mediaModel.MediaSchema);
-        global.NeuralNetwork = global.dbConnection.model("NeuralNetwork", neuralNetworkModel.NeuralNetworkSchema);
-        global.Place = global.dbConnection.model("Place", placeModel.PlaceSchema);
-        global.Tweet = global.dbConnection.model("Tweet", tweetModel.TweetSchema);
-        global.Url = global.dbConnection.model("Url", urlModel.UrlSchema);
-        global.User = global.dbConnection.model("User", userModel.UserSchema);
-        global.Word = global.dbConnection.model("Word", wordModel.WordSchema);
+        global.globalEmoji = global.globalDbConnection.model("Emoji", emojiModel.EmojiSchema);
+        global.globalHashtag = global.globalDbConnection.model("Hashtag", hashtagModel.HashtagSchema);
+        global.globalLocation = global.globalDbConnection.model("Location", locationModel.LocationSchema);
+        global.globalMedia = global.globalDbConnection.model("Media", mediaModel.MediaSchema);
+        global.globalNeuralNetwork = global.globalDbConnection.model("NeuralNetwork", neuralNetworkModel.NeuralNetworkSchema);
+        global.globalPlace = global.globalDbConnection.model("Place", placeModel.PlaceSchema);
+        global.globalTweet = global.globalDbConnection.model("Tweet", tweetModel.TweetSchema);
+        global.globalUrl = global.globalDbConnection.model("Url", urlModel.UrlSchema);
+        global.globalUser = global.globalDbConnection.model("User", userModel.UserSchema);
+        global.globalWord = global.globalDbConnection.model("Word", wordModel.WordSchema);
 
 
         const neuralNetworkCollection = db.collection("neuralnetworks");
@@ -1321,7 +1314,7 @@ function connectDb(){
           secret: "three cee labs 47", 
           resave: false, 
           saveUninitialized: false,
-          store: new MongoStore({ mongooseConnection: global.dbConnection })
+          store: new MongoStore({ mongooseConnection: global.globalDbConnection })
         }));
 
         app.use(passport.initialize());
@@ -1411,7 +1404,6 @@ function connectDb(){
 
               });
             });
-
           }
         ));
 
@@ -1515,7 +1507,6 @@ function connectDb(){
           console.log(chalkError("WAS | *** USC ERROR | " + err));
         });
 
-
         userServerController.on("ready", function(appname){
 
           statsObj.status = "MONGO DB CONNECTED";
@@ -1523,11 +1514,9 @@ function connectDb(){
 
           userServerControllerReady = true;
           console.log(chalk.green("WAS | USC READY | " + appname));
-          // dbConnectionReady = true;
 
           configEvents.emit("DB_CONNECT");
           resolve(db);
-
         });
 
       });
@@ -4134,7 +4123,7 @@ function follow(params, callback) {
     upsert: false
   };
 
-  User.findOneAndUpdate(query, update, options, function(err, userUpdated){
+  global.globalUser.findOneAndUpdate(query, update, options, function(err, userUpdated){
 
     if (err) {
       console.log(chalkError("WAS | *** FOLLOW | USER FIND ONE ERROR: " + err));
@@ -4259,7 +4248,7 @@ function ignore(params, callback) {
     upsert: false
   };
 
-  User.findOneAndUpdate(query, update, options, function(err, userUpdated){
+  global.globalUser.findOneAndUpdate(query, update, options, function(err, userUpdated){
 
     if (err) {
       console.log(chalkError("WAS | *** IGNORE | USER FIND ONE ERROR: " + err));
@@ -4312,7 +4301,7 @@ function unignore(params, callback) {
     upsert: false
   };
 
-  User.findOneAndUpdate(query, update, options, function(err, userUpdated){
+  global.globalUser.findOneAndUpdate(query, update, options, function(err, userUpdated){
 
     if (err) {
       console.log(chalkError("WAS | *** UNIGNORE | USER FIND ONE ERROR: " + err));
@@ -4383,7 +4372,7 @@ function unfollow(params, callback) {
     upsert: false
   };
 
-  User.findOneAndUpdate(query, update, options, function(err, userUpdated){
+  global.globalUser.findOneAndUpdate(query, update, options, function(err, userUpdated){
 
     if (err) {
       console.log(chalkError("WAS | *** UNFOLLOW | USER FIND ONE ERROR: " + err));
@@ -4521,7 +4510,7 @@ function initIgnoredUserSet(){
           upsert: false
         };
 
-        User.findOneAndUpdate(query, update, options, function(err, userUpdated){
+        global.globalUser.findOneAndUpdate(query, update, options, function(err, userUpdated){
 
           if (err) {
             console.log(chalkError("WAS | *** initIgnoredUserSet | USER FIND ONE ERROR: " + err));
@@ -4619,7 +4608,7 @@ function initUnfollowableUserSet(){
           upsert: false
         };
 
-        User.findOneAndUpdate(query, update, options, function(err, userUpdated){
+        global.globalUser.findOneAndUpdate(query, update, options, function(err, userUpdated){
 
           if (err) {
             console.log(chalkError("WAS | *** initUnfollowableUserSet | USER FIND ONE ERROR: " + err));
@@ -5173,7 +5162,7 @@ function initSocketHandler(socketObj) {
     //   ));
 
     // });
-    
+
   });
 
   socket.on("TWITTER_UNFOLLOW", function twitterUnfollow(user) {
@@ -6223,7 +6212,7 @@ function updateUserSets(params){
       return reject(new Error("DB CONNECTION NOT READY"));
     }
 
-    const userCollection = global.dbConnection.collection("users");
+    const userCollection = global.globalDbConnection.collection("users");
 
     userCollection.countDocuments(function(err, count){
 
@@ -6309,7 +6298,7 @@ function updateUserSets(params){
 
     const followingSearchQuery = { following: true, ignored: false };
     
-    userFollowingCursor = User.find(followingSearchQuery).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
+    userFollowingCursor = global.globalUser.find(followingSearchQuery).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
 
     userFollowingCursor.on("data", function(user) {
 
@@ -9508,7 +9497,7 @@ function initDbUserChangeStream(params){
 
   return new Promise(function(resolve, reject){
 
-    const userCollection = global.dbConnection.collection("users");
+    const userCollection = global.globalDbConnection.collection("users");
 
     userCollection.countDocuments(function(err, count){
 
@@ -10256,7 +10245,7 @@ function twitterGetUserUpdateDb(user, callback){
 
 function twitterSearchUserNode(searchQuery, callback){
 
-  User.findOne(searchQuery, function(err, user){
+  global.globalUser.findOne(searchQuery, function(err, user){
 
     if (err) {
       console.log(chalkError("WAS | *** TWITTER SEARCH NODE USER ERROR"

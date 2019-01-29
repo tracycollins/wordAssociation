@@ -991,15 +991,6 @@ function printUserObj(title, u, chalkConfig) {
     + " | " + user.userId
     + " | IG: " + user.ignored 
     + " | 3C: " + user.threeceeFollowing 
-    // + " | L " + user.lang 
-    // + " | FWs " + user.followersCount
-    // + " | FDs " + user.friendsCount
-    // + " | T " + user.statusesCount
-    // + " | M  " + user.mentions
-    // + " | LS " + getTimeStamp(user.lastSeen)
-    // + " | FW " + user.following 
-    // + " | LHTID " + user.lastHistogramTweetId 
-    // + " | LHQID " + user.lastHistogramQuoteId 
   ));
 
   if (user.changes) {

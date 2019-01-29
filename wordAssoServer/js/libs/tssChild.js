@@ -1,45 +1,38 @@
 /*jslint node: true */
 /*jshint sub:true*/
-"use strict";
+
+const MODULE_ID_PREFIX = "TSS";
 
 const DEFAULT_MAX_TWEET_QUEUE = 500;
 const DEFAULT_TWITTER_QUEUE_INTERVAL = 10;
-const DEFAULT_CURSOR_BATCH_SIZE = 5000;
-const DEFAULT_INFO_TWITTER_USER = "threecee";
-// const USER_SHOW_QUEUE_MAX_LENGTH = 500;
-
-const USER_CACHE_DEFAULT_TTL = 10;
-const USER_CACHE_CHECK_PERIOD = 1;
 
 const TWEET_ID_CACHE_DEFAULT_TTL = 20;
 const TWEET_ID_CACHE_CHECK_PERIOD = 5;
 
-const MAX_READY_ACK_WAIT_COUNT = 10;
-
-const TWITTER_MAX_TRACKING_NUMBER = process.env.TWITTER_MAX_TRACKING_NUMBER || 400;
-const TWITTER_MAX_FOLLOW_USER_NUMBER = process.env.TWITTER_MAX_FOLLOW_USER_NUMBER || 5000;
+// const TWITTER_MAX_TRACKING_NUMBER = process.env.TWITTER_MAX_TRACKING_NUMBER || 400;
+const TWITTER_MAX_TRACKING_NUMBER = 400;
 
 const DROPBOX_DEFAULT_SEARCH_TERMS_DIR = "/config/utiltiy/default";
 const DROPBOX_DEFAULT_SEARCH_TERMS_FILE = "defaultSearchTerms.txt";
 
-const ONE_SECOND = 1000 ;
-const ONE_MINUTE = ONE_SECOND*60 ;
+const ONE_SECOND = 1000;
+const ONE_MINUTE = ONE_SECOND*60;
 
-let threeceeUserObj = {};
+const ONE_KILOBYTE = 1024;
+const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
+
+
+const threeceeUserObj = {};
 
 const defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
-
-const fieldsExclude = {
-  histograms: 0,
-  countHistory: 0,
-  friends: 0
-};
 
 const mangledRegEx = /\u00C3.\u00C2|\u00B5/g;
 
 
 const os = require("os");
+const fs = require("fs");
+
 let hostname = os.hostname();
 hostname = hostname.replace(/.local/g, "");
 hostname = hostname.replace(/.home/g, "");
@@ -49,9 +42,19 @@ hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
 
+let DROPBOX_ROOT_FOLDER;
+
+if (hostname === "google") {
+  DROPBOX_ROOT_FOLDER = "/home/tc/Dropbox/Apps/wordAssociation";
+}
+else {
+  DROPBOX_ROOT_FOLDER = "/Users/tc/Dropbox/Apps/wordAssociation";
+}
+
+const jsonParse = require("json-parse-safe");
+const sizeof = require("object-sizeof");
 const _ = require("lodash");
 const S = require("string");
-const util = require("util");
 const fetch = require("isomorphic-fetch");
 const Dropbox = require("dropbox").Dropbox;
 const async = require("async");
@@ -63,29 +66,13 @@ const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const HashMap = require("hashmap").HashMap;
 const NodeCache = require("node-cache");
 
-// ==================================================================
-// NODE CACHE
-// ==================================================================
-let userCacheTtl = process.env.USER_CACHE_DEFAULT_TTL;
-if (userCacheTtl === undefined) { userCacheTtl = USER_CACHE_DEFAULT_TTL;}
-console.log("TSS | USER CACHE TTL: " + userCacheTtl + " SECONDS");
-
-let userCacheCheckPeriod = process.env.USER_CACHE_CHECK_PERIOD;
-if (userCacheCheckPeriod === undefined) { userCacheCheckPeriod = USER_CACHE_CHECK_PERIOD;}
-console.log("TSS | USER CACHE CHECK PERIOD: " + userCacheCheckPeriod + " SECONDS");
-
-const userCache = new NodeCache({
-  stdTTL: userCacheTtl,
-  checkperiod: userCacheCheckPeriod
-});
-
 
 let tweetIdCacheTtl = process.env.TWEET_ID_CACHE_DEFAULT_TTL;
-if (tweetIdCacheTtl === undefined) { tweetIdCacheTtl = TWEET_ID_CACHE_DEFAULT_TTL;}
+if (tweetIdCacheTtl === undefined) { tweetIdCacheTtl = TWEET_ID_CACHE_DEFAULT_TTL; }
 console.log("TSS | USER CACHE TTL: " + tweetIdCacheTtl + " SECONDS");
 
 let tweetIdCacheCheckPeriod = process.env.TWEET_ID_CACHE_CHECK_PERIOD;
-if (tweetIdCacheCheckPeriod === undefined) { tweetIdCacheCheckPeriod = TWEET_ID_CACHE_CHECK_PERIOD;}
+if (tweetIdCacheCheckPeriod === undefined) { tweetIdCacheCheckPeriod = TWEET_ID_CACHE_CHECK_PERIOD; }
 console.log("TSS | USER CACHE CHECK PERIOD: " + tweetIdCacheCheckPeriod + " SECONDS");
 
 const tweetIdCache = new NodeCache({
@@ -102,29 +89,24 @@ const debugQ = require("debug")("queue");
 const chalk = require("chalk");
 const chalkAlert = chalk.red;
 const chalkTwitter = chalk.blue;
-const chalkRed = chalk.red;
-const chalkRedBold = chalk.bold.red;
 const chalkError = chalk.bold.red;
 const chalkWarn = chalk.red;
 const chalkLog = chalk.gray;
 const chalkInfo = chalk.black;
-const chalkConnect = chalk.green;
 
 const searchTermHashMap = new HashMap();
 
-const followQueue = [];
-const ignoreQueue = [];
 const unfollowQueue = [];
 
-process.on("SIGHUP", function processSigHup() {
+process.on("SIGHUP", function() {
   quit("SIGHUP");
 });
 
-process.on("SIGINT", function processSigInt() {
+process.on("SIGINT", function() {
   quit("SIGINT");
 });
 
-process.on("disconnect", function processDisconnect() {
+process.on("disconnect", function() {
   quit("DISCONNECT");
 });
 
@@ -135,20 +117,15 @@ const configEvents = new EventEmitter2({
   verboseMemoryLeak: true
 });
 
-let infoTwitterUserObj = {};  // used for general twitter tasks
-
 const twitterStats = Measured.createCollection();
 twitterStats.meter("tweetsPerSecond", {rateUnit: 1000, tickInterval: 1000});
 twitterStats.meter("tweetsPerMinute", {rateUnit: 60000, tickInterval: 1000});
 
 let twitterSearchInit = false;
-let searchTermsUpdateInterval;
 
-let tweetQueue = [];
+const tweetQueue = [];
 let tweetSendReady = [];
 let tweetQueueInterval;
-
-let stdin;
 
 let configuration = {};
 configuration.filterDuplicateTweets = true;
@@ -156,7 +133,7 @@ configuration.verbose = false;
 configuration.forceFollow = false;
 configuration.globalTestMode = false;
 configuration.testMode = false; // per tweet test mode
-configuration.searchTermsUpdateInterval = 1*ONE_MINUTE;
+configuration.searchTermsUpdateInterval = Number(ONE_MINUTE);
 configuration.followQueueIntervalTime = 5*ONE_MINUTE;
 configuration.ignoreQueueInterval = 15 * ONE_SECOND;
 configuration.maxTweetQueue = DEFAULT_MAX_TWEET_QUEUE;
@@ -165,12 +142,10 @@ configuration.searchTermsFile = DROPBOX_DEFAULT_SEARCH_TERMS_FILE;
 
 configuration.sendMessageTimeout = ONE_SECOND;
 configuration.twitterDownTimeout = 3*ONE_MINUTE;
-configuration.initSearchTermsTimeout = 1*ONE_MINUTE;
+configuration.initSearchTermsTimeout = Number(ONE_MINUTE);
 configuration.twitterFollowLimitTimeout = 15*ONE_MINUTE;
 
 configuration.twitterConfig = {};
-
-let resetInProgressFlag = false;
 
 const jsonPrint = function (obj){
   if (obj) {
@@ -194,8 +169,9 @@ if (debug.enabled) {
   console.log("\nTSS | %%%%%%%%%%%%%%\nTSS | %%%%%%% DEBUG ENABLED %%%%%%%\nTSS | %%%%%%%%%%%%%%\n");
 }
 
-function msToTime(duration) {
+function msToTime(d) {
 
+  let duration = d;
   let sign = 1;
 
   if (duration < 0) {
@@ -216,7 +192,7 @@ function msToTime(duration) {
   return "- " + days + ":" + hours + ":" + minutes + ":" + seconds;
 }
 
-let statsObj = {};
+const statsObj = {};
 
 statsObj.hostname = hostname;
 statsObj.pid = process.pid;
@@ -259,22 +235,20 @@ statsObj.twitter.userWithheld = 0;
 statsObj.twitter.limitMax = 0;
 statsObj.twitter.limitMaxTime = moment().valueOf();
 
-global.dbConnection = false;
+global.globalDbConnection = false;
 const mongoose = require("mongoose");
 
-const wordAssoDb = require("@threeceelabs/mongoose-twitter");
+global.globalWordAssoDb = require("@threeceelabs/mongoose-twitter");
 const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
 
-global.User = mongoose.model("User", userModel.UserSchema);
+global.globalUser = mongoose.model("User", userModel.UserSchema);
+const User = global.globalUser;
 
 let dbConnectionReady = false;
 let dbConnectionReadyInterval;
 
-let UserServerController;
+const UserServerController = require("@threeceelabs/user-server-controller");
 let userServerController;
-
-let userServerControllerReady = false;
-
 
 function connectDb(){
 
@@ -284,7 +258,7 @@ function connectDb(){
 
       statsObj.status = "CONNECTING MONGO DB";
 
-      wordAssoDb.connect("TSS_" + process.pid, function(err, db){
+      global.globalWordAssoDb.connect("TSS_" + process.pid, function(err, db){
 
         if (err) {
           console.log(chalkAlert("TSS | @" + threeceeUserObj.screenName + " | *** MONGO DB CONNECTION ERROR: " + err));
@@ -319,21 +293,15 @@ function connectDb(){
         dbConnectionReady = true;
         statsObj.dbConnectionReady = true;
 
-        global.dbConnection = db;
+        global.globalDbConnection = db;
 
         console.log(chalk.green("TSS | @" + threeceeUserObj.screenName + " | MONGO DB CONNECTION OPEN"));
 
-        // // UserServerController = require("../userServerController/index.js");
-        UserServerController = require("@threeceelabs/user-server-controller");
         userServerController = new UserServerController("TSS_USC");
-
-        userServerControllerReady = false;
 
         userServerController.on("ready", function(appname){
 
           statsObj.status = "MONGO DB CONNECTED";
-
-          userServerControllerReady = true;
 
           console.log(chalkLog("TSS | USC READY | " + appname));
 
@@ -360,21 +328,25 @@ function connectDb(){
 
 
 if (process.env.DROPBOX_DEFAULT_SEARCH_TERMS_DIR !== undefined) {
-  configuration.searchTermsDir = process.env.DROPBOX_DEFAULT_SEARCH_TERMS_DIR  ;
+  configuration.searchTermsDir = process.env.DROPBOX_DEFAULT_SEARCH_TERMS_DIR;
 }
 else {
   configuration.searchTermsDir = DROPBOX_DEFAULT_SEARCH_TERMS_DIR;
 }
 
 if (process.env.DROPBOX_DEFAULT_SEARCH_TERMS_FILE !== undefined) {
-  configuration.searchTermsFile = process.env.DROPBOX_DEFAULT_SEARCH_TERMS_FILE  ;
+  configuration.searchTermsFile = process.env.DROPBOX_DEFAULT_SEARCH_TERMS_FILE;
 }
 else {
   configuration.searchTermsFile = DROPBOX_DEFAULT_SEARCH_TERMS_FILE;
 }
 
-const DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN ;
+const DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN;
 const DROPBOX_TSS_CONFIG_FILE = process.env.DROPBOX_TSS_CONFIG_FILE || "twitterSearchStreamConfig.json";
+const DROPBOX_TSS_STATS_FILE = process.env.DROPBOX_TSS_STATS_FILE || "twitterSearchStreamStats.json";
+
+const statsFolder = "/stats/" + hostname + "/followerExplorer";
+const statsFile = DROPBOX_TSS_STATS_FILE;
 
 const dropboxConfigFolder = "/config/utility";
 const dropboxConfigHostFolder = "/config/utility/" + hostname;
@@ -394,7 +366,7 @@ const dropboxClient = new Dropbox({
 
 function getTimeStamp(inputTime) {
 
-  let currentTimeStamp ;
+  let currentTimeStamp;
 
   if (inputTime === undefined) {
     currentTimeStamp = moment().format(compactDateTimeFormat);
@@ -440,7 +412,7 @@ function showStats(options){
   if (options) {
     console.log("TSS | STATS\n" + jsonPrint(statsObj));
 
-    console.log("TSS | @" + screenName
+    console.log("TSS | @" + threeceeUserObj.screenName
       + " | TRACKING SEARCH TERMS: " + threeceeUserObj.searchTermSet.size
     );
 
@@ -485,9 +457,9 @@ function quit(message) {
     
   );
 
-  if ((global.dbConnection !== undefined) && (global.dbConnection.readyState > 0)) {
+  if ((global.globalDbConnection !== undefined) && (global.globalDbConnection.readyState > 0)) {
 
-    global.dbConnection.close(function () {
+    global.globalDbConnection.close(function () {
       console.log(chalkAlert(
             "TSS | =========================="
         + "\nTSS | MONGO DB CONNECTION CLOSED"
@@ -510,19 +482,19 @@ function saveFile (path, file, jsonObj, callback){
   debug(chalkInfo("TSS | SAVE FILE " + file));
   debug(chalkInfo("TSS | FULL PATH " + fullPath));
 
-  let options = {};
+  const options = {};
 
   options.contents = JSON.stringify(jsonObj, null, 2);
   options.path = fullPath;
   options.mode = "overwrite";
   options.autorename = false;
 
-  dropboxClient.filesUpload(options)
-    .then(function(response){
+  dropboxClient.filesUpload(options).
+    then(function(response){
       debug(chalkLog("TSS | SAVED DROPBOX JSON | " + options.path));
       callback(null, response);
-    })
-    .catch(function(error){
+    }).
+    catch(function(error){
       console.error(chalkError("TSS | " + moment().format(defaultDateTimeFormat) 
         + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
         + "\nERROR: " + error
@@ -531,75 +503,400 @@ function saveFile (path, file, jsonObj, callback){
     });
 }
 
-function loadFile(path, file, callback) {
+// function loadFile(path, file, callback) {
 
-  // console.log(chalkInfo("TSS | LOAD FOLDER " + path));
-  // console.log(chalkInfo("TSS | LOAD FILE " + file));
-  // console.log(chalkInfo("TSS | FULL PATH " + path + "/" + file));
+//   // console.log(chalkInfo("TSS | LOAD FOLDER " + path));
+//   // console.log(chalkInfo("TSS | LOAD FILE " + file));
+//   // console.log(chalkInfo("TSS | FULL PATH " + path + "/" + file));
 
-  dropboxClient.filesDownload({path: path + "/" + file})
-    .then(function(data) {
-      console.log("TSS | " + chalkLog(getTimeStamp()
-        + " | LOADING FILE FROM DROPBOX FILE: " + path + "/" + file
-      ));
+//   dropboxClient.filesDownload({path: path + "/" + file}).
+//     then(function(data) {
+//       console.log("TSS | " + chalkLog(getTimeStamp()
+//         + " | LOADING FILE FROM DROPBOX FILE: " + path + "/" + file
+//       ));
 
-      let payload = data.fileBinary;
-      debug(payload);
+//       const payload = data.fileBinary;
+//       debug(payload);
 
-      if (file.match(/\.json$/gi)) {
-        let fileObj = JSON.parse(payload);
-        return(callback(null, fileObj));
-      }
-      else {
-        return(callback(null, payload));
-      }
-    })
-    .catch(function(error) {
-      console.log(chalkError("TSS | *** DROPBOX loadFile ERROR: " + file + " | " + error));
-      console.log(chalkError("TSS | *** DROPBOX READ " + file + " ERROR"));
+//       if (file.match(/\.json$/gi)) {
+//         const fileObj = JSON.parse(payload);
+//         return(callback(null, fileObj));
+//       }
+//       else {
+//         return(callback(null, payload));
+//       }
+//     }).
+//     catch(function(error) {
+//       console.log(chalkError("TSS | *** DROPBOX loadFile ERROR: " + file + " | " + error));
+//       console.log(chalkError("TSS | *** DROPBOX READ " + file + " ERROR"));
 
-      if ((error.response.status === 404) || (error.response.status === 409)) {
-        console.error(chalkError("TSS | *** DROPBOX READ FILE " + file + " NOT FOUND"
-          + " ... SKIPPING ...")
-        );
-        return(callback(null, null));
-      }
-      if (error.status === 0) {
-        console.error(chalkError("TSS | *** DROPBOX NO RESPONSE"
-          + " ... NO INTERNET CONNECTION? ... SKIPPING ..."));
-        return(callback(null, null));
-      }
-      console.log(chalkError(jsonPrint(error)));
-      return(callback(error, null));
-    })
-    .catch(function(err) {
-      console.log(chalkError("TSS | *** ERROR DROPBOX LOAD FILE\n" + err));
-      callback(err, null);
-    });
+//       if ((error.response.status === 404) || (error.response.status === 409)) {
+//         console.error(chalkError("TSS | *** DROPBOX READ FILE " + file + " NOT FOUND"
+//           + " ... SKIPPING ...")
+//         );
+//         return(callback(null, null));
+//       }
+//       if (error.status === 0) {
+//         console.error(chalkError("TSS | *** DROPBOX NO RESPONSE"
+//           + " ... NO INTERNET CONNECTION? ... SKIPPING ..."));
+//         return(callback(null, null));
+//       }
+//       console.log(chalkError(jsonPrint(error)));
+//       return(callback(error, null));
+//     }).
+//     catch(function(err) {
+//       console.log(chalkError("TSS | *** ERROR DROPBOX LOAD FILE\n" + err));
+//       callback(err, null);
+//     });
+// }
+
+// function loadFile(params) {
+
+//   return new Promise(function(resolve, reject){
+
+//     const noErrorNotFound = params.noErrorNotFound || false;
+
+//     let fullPath = params.path || params.folder + "/" + params.file;
+
+//     debug(chalkInfo("LOAD PATH " + params.path));
+//     debug(chalkInfo("LOAD FOLDER " + params.folder));
+//     debug(chalkInfo("LOAD FILE " + params.file));
+//     debug(chalkInfo("FULL PATH " + fullPath));
+
+
+//     if (configuration.offlineMode || params.loadLocalFile) {
+
+//       fullPath = DROPBOX_ROOT_FOLDER + fullPath;
+
+//       fs.readFile(fullPath, "utf8", function(err, data) {
+
+//         if (err) {
+//           console.log(chalkError("fs readFile ERROR: " + err));
+//           return reject(err);
+//         }
+
+//         console.log(chalkInfo(getTimeStamp()
+//           + " | LOADING FILE FROM DROPBOX"
+//           + " | " + fullPath
+//         ));
+
+//         if (fullPath.match(/\.json$/gi)) {
+
+//           const results = jsonParse(data);
+
+//           if (results.error) {
+//             console.log(chalkError(getTimeStamp()
+//               + " | *** LOAD FILE FROM DROPBOX ERROR"
+//               + " | " + fullPath
+//               + " | " + results.error
+//             ));
+
+//             return reject(results.error);
+//           }
+
+//           const fileObjSizeMbytes = sizeof(results.value)/ONE_MEGABYTE;
+
+//           console.log(chalkInfo(getTimeStamp()
+//             + " | LOADED FILE FROM DROPBOX"
+//             + " | " + fileObjSizeMbytes.toFixed(2) + " MB"
+//             + " | " + fullPath
+//           ));
+
+//           return resolve(results.value);
+
+//         }
+
+//         console.log(chalkError(getTimeStamp()
+//           + " | SKIP LOAD FILE FROM DROPBOX"
+//           + " | " + fullPath
+//         ));
+//         resolve();
+
+//       });
+
+//      }
+//     else {
+
+//       dropboxClient.filesDownload({path: fullPath}).
+//       then(function(data) {
+
+//         debug(chalkLog(getTimeStamp()
+//           + " | LOADING FILE FROM DROPBOX FILE: " + fullPath
+//         ));
+
+//         if (fullPath.match(/\.json$/gi)) {
+
+//           const payload = data.fileBinary;
+
+//           if (!payload || (payload === undefined)) {
+//             return reject(new Error(MODULE_ID_PREFIX + " LOAD FILE PAYLOAD UNDEFINED"));
+//           }
+
+//           // jsonParse(payload, function(err, fileObj){
+//           //   if (err) {
+//           //     console.log(chalkError(getTimeStamp()
+//           //       + " | *** LOAD FILE FROM DROPBOX ERROR"
+//           //       + " | " + fullPath
+//           //       + " | " + err
+//           //     ));
+
+//           //     return reject(err);
+//           //   }
+
+//           //   return resolve(fileObj);
+
+//           // });
+
+//           const results = jsonParse(payload);
+
+//           if (results.error) {
+//             console.log(chalkError(getTimeStamp()
+//               + " | *** LOAD FILE FROM DROPBOX ERROR"
+//               + " | " + fullPath
+//               + " | " + results.error
+//             ));
+
+//             return reject(results.error);
+//           }
+
+//           const fileObjSizeMbytes = sizeof(results.value)/ONE_MEGABYTE;
+
+//           console.log(chalkInfo(getTimeStamp()
+//             + " | LOADED FILE FROM DROPBOX"
+//             + " | " + fileObjSizeMbytes.toFixed(2) + " MB"
+//             + " | " + fullPath
+//           ));
+
+//           return resolve(results.value);
+
+//         }
+//         else {
+//           resolve();
+//         }
+//       }).
+//       catch(function(err) {
+
+//         console.log(chalkError(MODULE_ID_PREFIX + " | *** DROPBOX loadFile ERROR: " + fullPath));
+        
+//         if ((err.status === 409) || (err.status === 404)) {
+//           if (noErrorNotFound) {
+//             if (configuration.verbose) { console.log(chalkLog(MODULE_ID_PREFIX + " | *** DROPBOX READ FILE " + fullPath + " NOT FOUND")); }
+//             return resolve(new Error("NOT FOUND"));
+//           }
+//           console.log(chalkAlert(MODULE_ID_PREFIX + " | *** DROPBOX READ FILE " + fullPath + " NOT FOUND ... SKIPPING ..."));
+//           return resolve(err);
+//         }
+        
+//         if (err.status === 0) {
+//           console.log(chalkError(MODULE_ID_PREFIX + " | *** DROPBOX NO RESPONSE"
+//             + " | NO INTERNET CONNECTION? SKIPPING ..."));
+//           return resolve(new Error("NO INTERNET"));
+//         }
+
+//         reject(err);
+
+//       });
+//     }
+//   });
+// }
+function loadFile(params) {
+
+  return new Promise(function(resolve, reject){
+
+    const noErrorNotFound = params.noErrorNotFound || false;
+
+    let fullPath = params.path || params.folder + "/" + params.file;
+
+    debug(chalkInfo("LOAD PATH " + params.path));
+    debug(chalkInfo("LOAD FOLDER " + params.folder));
+    debug(chalkInfo("LOAD FILE " + params.file));
+    debug(chalkInfo("FULL PATH " + fullPath));
+
+
+    if (configuration.offlineMode || params.loadLocalFile) {
+
+      fullPath = DROPBOX_ROOT_FOLDER + fullPath;
+
+      fs.readFile(fullPath, "utf8", function(err, data) {
+
+        if (err) {
+          console.log(chalkError("fs readFile ERROR: " + err));
+          return reject(err);
+        }
+
+        console.log(chalkInfo(getTimeStamp()
+          + " | LOADING FILE FROM DROPBOX"
+          + " | " + fullPath
+        ));
+
+        if (fullPath.match(/\.json$/gi)) {
+
+          const results = jsonParse(data);
+
+          if (results.error) {
+            console.log(chalkError(getTimeStamp()
+              + " | *** LOAD FILE FROM DROPBOX ERROR"
+              + " | " + fullPath
+              + " | " + results.error
+            ));
+
+            return reject(results.error);
+          }
+
+          const fileObjSizeMbytes = sizeof(results.value)/ONE_MEGABYTE;
+
+          console.log(chalkInfo(getTimeStamp()
+            + " | LOADED FILE FROM DROPBOX"
+            + " | " + fileObjSizeMbytes.toFixed(2) + " MB"
+            + " | " + fullPath
+          ));
+
+          return resolve(results.value);
+
+        }
+
+        console.log(chalkError(getTimeStamp()
+          + " | SKIP LOAD FILE FROM DROPBOX"
+          + " | " + fullPath
+        ));
+        resolve();
+
+      });
+
+     }
+    else {
+
+      dropboxClient.filesDownload({path: fullPath}).
+      then(function(data) {
+
+        debug(chalkLog(getTimeStamp()
+          + " | LOADING FILE FROM DROPBOX FILE: " + fullPath
+        ));
+
+        if (fullPath.match(/\.(json|txt)$/gi)) {
+
+          const payload = data.fileBinary;
+
+          if (!payload || (payload === undefined)) {
+            return reject(new Error(MODULE_ID_PREFIX + " LOAD FILE PAYLOAD UNDEFINED"));
+          }
+
+          let results = {};
+
+          if (fullPath.match(/\.json$/gi)) {
+            results = jsonParse(payload);
+          }
+          if (fullPath.match(/\.txt$/gi)) {
+            results.value = payload;
+          }
+
+
+          if (results.error) {
+            console.log(chalkError(getTimeStamp()
+              + " | *** LOAD FILE FROM DROPBOX ERROR"
+              + " | " + fullPath
+              + " | " + results.error
+            ));
+
+            return reject(results.error);
+          }
+
+          const fileObjSizeMbytes = sizeof(results.value)/ONE_MEGABYTE;
+
+          console.log(chalkInfo(getTimeStamp()
+            + " | LOADED FILE FROM DROPBOX"
+            + " | " + fileObjSizeMbytes.toFixed(2) + " MB"
+            + " | " + fullPath
+          ));
+
+          return resolve(results.value);
+        }
+        resolve();
+      }).
+      catch(function(err) {
+
+        console.log(chalkError(MODULE_ID_PREFIX + " | *** DROPBOX loadFile ERROR: " + fullPath));
+        
+        if ((err.status === 409) || (err.status === 404)) {
+          if (noErrorNotFound) {
+            if (configuration.verbose) { console.log(chalkLog(MODULE_ID_PREFIX + " | *** DROPBOX READ FILE " + fullPath + " NOT FOUND")); }
+            return resolve(new Error("NOT FOUND"));
+          }
+          console.log(chalkAlert(MODULE_ID_PREFIX + " | *** DROPBOX READ FILE " + fullPath + " NOT FOUND ... SKIPPING ..."));
+          return resolve(err);
+        }
+        
+        if (err.status === 0) {
+          console.log(chalkError(MODULE_ID_PREFIX + " | *** DROPBOX NO RESPONSE"
+            + " | NO INTERNET CONNECTION? SKIPPING ..."));
+          return resolve(new Error("NO INTERNET"));
+        }
+
+        reject(err);
+
+      });
+    }
+  });
 }
 
-function initStatsUpdate(cnf, callback){
 
-  console.log(chalkInfo("TSS | initStatsUpdate | INTERVAL: " + cnf.statsUpdateIntervalTime));
+// function initStatsUpdate(cnf, callback){
 
-  setInterval(async function() {
+//   console.log(chalkInfo("TSS | initStatsUpdate | INTERVAL: " + cnf.statsUpdateIntervalTime));
 
-    statsObj.elapsed = moment().valueOf() - statsObj.startTime;
-    statsObj.timeStamp = moment().format(defaultDateTimeFormat);
+//   setInterval(async function() {
 
-    showStats();
+//     statsObj.elapsed = moment().valueOf() - statsObj.startTime;
+//     statsObj.timeStamp = moment().format(defaultDateTimeFormat);
 
-    await checkTwitterRateLimit();
+//     showStats();
 
-  }, cnf.statsUpdateIntervalTime);
+//     await checkTwitterRateLimit();
+
+//   }, cnf.statsUpdateIntervalTime);
 
 
-  callback(null, cnf);
+//   callback(null, cnf);
+// }
+
+function initStatsUpdate(cnf){
+
+  return new Promise(function(resolve, reject){
+
+    console.log(chalkInfo("WAS | TSS | initStatsUpdate | INTERVAL: " + cnf.statsUpdateIntervalTime));
+
+    try{
+
+      setInterval(async function () {
+
+        statsObj.elapsed = moment().valueOf() - statsObj.startTime;
+        statsObj.timeStamp = moment().format(defaultDateTimeFormat);
+
+        saveFile(statsFolder, statsFile, statsObj, function(){
+          showStats();
+        });
+
+        try{
+          await checkTwitterRateLimit();
+        }
+        catch(err){
+           console.log(chalkError("WAS | TSS | *** CHECK RATE LIMIT ERROR: " + err));
+        }
+
+      }, cnf.statsUpdateIntervalTime);
+
+      resolve(cnf);
+    }
+    catch(err){
+      reject(err);
+    }
+
+  });
 }
 
-function printUserObj(title, user) {
+function printUserObj(title, u) {
 
-  user = userDefaults(user);
+  const user = userDefaults(u);
 
   console.log(chalkLog(title
     + " | U " + user.userId
@@ -622,7 +919,7 @@ const userDefaults = function (user){
 };
 
 
-function initTwit(params){
+function initTwit(){
 
   return new Promise(function(resolve, reject){
 
@@ -691,7 +988,6 @@ function initTwit(params){
     threeceeUserObj.twitStream.get("friends/ids", twitGetFriendsParams, function(err, data, response) {
 
       if (err){
-
         console.log(chalkError("TSS | *** TWITTER GET FRIENDS IDS ERROR | NOT AUTHENTICATED"
           + " | @" + threeceeUserObj.twitterConfig.screenName
           + " | " + getTimeStamp()
@@ -699,6 +995,10 @@ function initTwit(params){
           + " | STATUS CODE: " + err.statusCode
           + " | " + err.message
         ));
+
+        if (configuration.verbose) {
+          console.log("TSS | response\n" + jsonPrint(response));
+        }
 
         threeceeUserObj.stats.error = err;
         threeceeUserObj.stats.twitterErrors += 1;
@@ -745,13 +1045,9 @@ function initTwit(params){
               + " | CUR 3C @: " + threeceeUserObj.twitterConfig.screenName
             ));
 
-            const user = new global.User({userId: userId});
+            const user = new User({userId: userId});
 
             if (threeceeFollowingInHashMap < threeceeUserObj.twitterConfig.screenName) {
-
-              // threeceeUserObj.searchTermSet.delete("@" + user.screenName.toLowerCase());
-
-              // unfollowQueue.push({threeceeUser: threeceeUserObj.twitterConfig.screenName, user: user});
 
               console.log(chalkLog("TSS | > UNFOLLOW Q | ALREADY FOLLOWING"
                 + " [" + unfollowQueue.length + "]"
@@ -761,10 +1057,6 @@ function initTwit(params){
               ));
             }
             else {
-
-              // threeceeUserObj.searchTermSet.delete("@" + user.screenName.toLowerCase());
-
-              // unfollowQueue.push({threeceeUser: threeceeFollowingInHashMap, user: user});
 
               console.log(chalkLog("TSS | > UNFOLLOW Q"
                 + " [" + unfollowQueue.length + "]"
@@ -791,7 +1083,7 @@ function initTwit(params){
 
           followingUserIdHashMap.set(userId, threeceeUserObj.twitterConfig.screenName);
 
-          global.User.findOne({ userId: userId }, function (err, user) {
+          User.findOne({ userId: userId }, function (err, user) {
 
             if (err) { 
               console.log(chalkAlert("TSS | *** USER DB ERROR *** | " + err));
@@ -799,10 +1091,6 @@ function initTwit(params){
             }
 
             if (user) {
-
-              // if (threeceeUserObj.searchTermSet.size < TWITTER_MAX_TRACKING_NUMBER) {
-              //   threeceeUserObj.searchTermSet.add(user.screenName.toLowerCase());
-              // }
 
               threeceeUserObj.followUserScreenNameSet.add(user.screenName.toLowerCase());
 
@@ -866,38 +1154,7 @@ function initTwit(params){
   });
 }
 
-function threeceeUserUnfollowReady(threeceeUser){
-
-  if (!threeceeUserObj.stats.authenticated) { 
-    console.log("3C @" + threeceeUser + " | NOT READY | NOT AUTHENTICATED");
-    return false; 
-  }
-
-  if (threeceeUserObj.stats.error) { 
-    console.log("3C @" + threeceeUser + " | NOT READY | ERROR: " + threeceeUserObj.stats.error);
-    return false; 
-  }
-
-  if (threeceeUserObj.stats.twitterTokenErrorFlag) { 
-    console.log("3C @" + threeceeUser + " | NOT READY | TWITTER TOKEN ERROR: " + threeceeUserObj.stats.twitterTokenErrorFlag);
-    return false; 
-  }
-
-  if (threeceeUserObj.stats.twitterRateLimitExceptionFlag) { 
-    console.log("3C @" + threeceeUser + " | NOT READY | TWITTER RATE LIMIT"
-      + " | LIM: " + threeceeUserObj.stats.twitterRateLimit
-      + " | REM: " + threeceeUserObj.stats.twitterRateLimitRemaining
-      + " | RST: " + getTimeStamp(threeceeUserObj.stats.twitterRateLimitResetAt)
-      + " | NOW: " + moment().format(compactDateTimeFormat)
-      + " | IN " + msToTime(threeceeUserObj.stats.twitterRateLimitRemainingTime)
-    );
-    return false; 
-  }
-
-  return true;
-}
-
-function initTwitterUser(params){
+function initTwitterUser(){
 
   return new Promise(async function(resolve, reject){
 
@@ -919,28 +1176,33 @@ function initTwitterUser(params){
   });
 }
 
-function getFileMetadata(path, file, callback) {
+function getFileMetadata(params) {
 
-  const fullPath = path + "/" + file;
-  debug(chalkInfo("TSS | FOLDER " + path));
-  debug(chalkInfo("TSS | FILE " + file));
-  // console.log(chalkInfo("TSS | getFileMetadata FULL PATH: " + fullPath));
+  return new Promise(function(resolve, reject){
 
-  dropboxClient.filesGetMetadata({path: fullPath})
-    .then(function(response) {
-      debug(chalkInfo("TSS | FILE META\n" + jsonPrint(response)));
-      return(callback(null, response));
-    })
-    .catch(function(error) {
-      console.log(chalkError("TSS | GET FILE METADATA ERROR: " + error));
-      console.log(chalkError("TSS | GET FILE METADATA ERROR\n" + jsonPrint(error)));
-      return(callback(error, null));
-    });
+    if (dropboxClient === undefined) {
+      return reject(new Error("dropboxClient undefined"));
+    }
+
+    const fullPath = params.folder + "/" + params.file;
+    debug(chalkInfo("TSS | FOLDER " + params.folder));
+    debug(chalkInfo("TSS | FILE " + params.file));
+
+    dropboxClient.filesGetMetadata({path: fullPath}).
+      then(function(response) {
+        debug(chalkInfo("TSS | FILE META\n" + jsonPrint(response)));
+        resolve(response);
+      }).
+      catch(function(err) {
+        console.log(chalkError("TSS | GET FILE METADATA ERROR: " + err));
+        console.log(chalkError("TSS | GET FILE METADATA ERROR\n" + jsonPrint(err)));
+        reject(err);
+      });
+
+  });
 }
 
-const MAX_FOLLOW_USER_IDS = 5000;
-
-let followingUserIdHashMap = new HashMap();
+const followingUserIdHashMap = new HashMap();
 
 let prevFileModifiedMoment = moment("2010-01-01");
 
@@ -952,7 +1214,9 @@ function checkTwitterRateLimit(params){
       return reject(new Error("TWIT UNDEFINED", params));
     }
 
-    threeceeUserObj.twitStream.get("application/rate_limit_status", {screen_name: threeceeUserObj.screenName}, function(err, data, response) {
+    threeceeUserObj.twitStream.get("application/rate_limit_status", 
+      {screen_name: threeceeUserObj.screenName}, 
+      function(err, data, response) {
       
       if (err){
 
@@ -963,6 +1227,10 @@ function checkTwitterRateLimit(params){
           + " | STATUS CODE: " + err.statusCode
           + " | " + err.message
         ));
+
+        if (configuration.verbose) {
+          console.log("TSS | response\n" + jsonPrint(response));
+        }
 
         threeceeUserObj.stats.error = err;
         threeceeUserObj.stats.twitterErrors += 1;
@@ -1037,11 +1305,11 @@ function checkTwitterRateLimit(params){
   });
 }
 
-function initSearchStream(params){
+function initSearchStream(){
 
   return new Promise(function(resolve, reject){
 
-    let filter = {};
+    const filter = {};
     filter.track = [];
     filter.follow = [];
 
@@ -1316,7 +1584,7 @@ function initSearchStream(params){
         threeceeUserObj.stats.tweetsPerSecond = threeceeUserObj.rateMeter.toJSON().tweetsPerSecond["1MinuteRate"];
         threeceeUserObj.stats.tweetsPerMinute = threeceeUserObj.rateMeter.toJSON().tweetsPerMinute["1MinuteRate"];
 
-        statsObj.tweetsReceived+= 1 ;
+        statsObj.tweetsReceived+= 1;
         threeceeUserObj.stats.tweetsReceived += 1;
 
         if (tweetStatus.retweeted_status) {
@@ -1392,259 +1660,327 @@ function initSearchStream(params){
 
 function initSearchTerms(params){
 
-  return new Promise(function(resolve, reject){
+  return new Promise(async function(resolve, reject){
 
     console.log(chalkTwitter("TSS | INIT TERMS | @" + threeceeUserObj.screenName));
 
-    getFileMetadata(params.searchTermsDir, params.searchTermsFile, function(err, response){
+    let response;
 
-      if (err) {
-        return reject(err);
+    threeceeUserObj.searchTermSet.add("realdonaldtrump");
+    threeceeUserObj.searchTermSet.add("trump");
+    threeceeUserObj.searchTermSet.add("ivanka");
+    threeceeUserObj.searchTermSet.add("melania");
+    threeceeUserObj.searchTermSet.add("maga");
+    threeceeUserObj.searchTermSet.add("fbr");
+    threeceeUserObj.searchTermSet.add("aoc");
+    threeceeUserObj.searchTermSet.add("democrat");
+    threeceeUserObj.searchTermSet.add("republican");
+    threeceeUserObj.searchTermSet.add("bluewave");
+    threeceeUserObj.searchTermSet.add("uniteblue");
+    threeceeUserObj.searchTermSet.add("theresistence");
+
+    try{
+      response = await getFileMetadata({folder: params.searchTermsDir, file: params.searchTermsFile});
+    }
+    catch(err){
+      console.log(chalkError("TSS | *** GET FILE METADATA ERROR: " + err));
+      return reject(err);
+    }
+
+    const fileModifiedMoment = moment(new Date(response.client_modified));
+  
+    if (fileModifiedMoment.isSameOrBefore(prevFileModifiedMoment)){
+      console.log(chalkInfo("TSS | SEARCH TERMS FILE BEFORE OR EQUAL"
+        + " | PREV: " + prevFileModifiedMoment.format(compactDateTimeFormat)
+        + " | " + fileModifiedMoment.format(compactDateTimeFormat)
+      ));
+      configEvents.emit("SEARCH_TERM_CONFIG_COMPLETE");
+      return resolve(0);
+    }
+
+    console.log(chalkInfo("TSS | SEARCH TERMS FILE AFTER"));
+
+    prevFileModifiedMoment = moment(fileModifiedMoment);
+
+    try{
+      const data = await loadFileRetry({folder: params.searchTermsDir, file: params.searchTermsFile}); 
+
+      if (data === undefined){
+        console.log(chalkError("TSS | DROPBOX FILE DOWNLOAD DATA UNDEFINED"
+          + " | " + params.searchTermsDir + "/" + params.searchTermsFile
+        ));
+        return reject(new Error("DROPBOX FILE DOWNLOAD DATA UNDEFINED"));
       }
 
-      const fileModifiedMoment = moment(new Date(response.client_modified));
-    
-      if (fileModifiedMoment.isSameOrBefore(prevFileModifiedMoment)){
-        console.log(chalkInfo("TSS | SEARCH TERMS FILE BEFORE OR EQUAL"
-          + " | PREV: " + prevFileModifiedMoment.format(compactDateTimeFormat)
-          + " | " + fileModifiedMoment.format(compactDateTimeFormat)
-        ));
-        configEvents.emit("SEARCH_TERM_CONFIG_COMPLETE");
+      debug(chalkInfo("TSS | DROPBOX SEARCH TERMS FILE\n" + jsonPrint(data)));
+
+      const dataConvertAccent = data.toString().replace(/Ã©/g, "e");
+      const dataConvertTilde = dataConvertAccent.toString().replace(/Ã£/g, "a");
+      const totalDataArray = dataConvertTilde.toString().split("\n");
+
+      const totalDataArrayChunkArray = _.chunk(totalDataArray, TWITTER_MAX_TRACKING_NUMBER); // for althreecee[0:5] twitter accounts
+
+      let dataArray = [];
+
+      console.log(chalk.blue("TSS | FILE CONTAINS " + totalDataArray.length + " TOTAL SEARCH TERMS "));
+
+      console.log(chalk.blue("TSS | SEARCH TERM INIT | @" + threeceeUserObj.screenName));
+
+      switch (threeceeUserObj.screenName) {
+        case "altthreecee00":
+          dataArray = totalDataArrayChunkArray[0] || [];
+        break;
+        case "altthreecee01":
+          dataArray = totalDataArrayChunkArray[1] || [];
+        break;
+        case "altthreecee02":
+          dataArray = totalDataArrayChunkArray[2] || [];
+        break;
+        case "altthreecee03":
+          dataArray = totalDataArrayChunkArray[3] || [];
+        break;
+        case "altthreecee04":
+          dataArray = totalDataArrayChunkArray[4] || [];
+        break;
+        case "altthreecee05":
+          dataArray = totalDataArrayChunkArray[5] || [];
+        break;
+        default:
+          console.log(chalkError("TSS | *** UNKNOWN THREECEE USER: " + threeceeUserObj.screenName));
+          return reject(new Error("UNKNOWN THREECEE USER: " + threeceeUserObj.screenName));
+      }
+
+      if (dataArray.length < TWITTER_MAX_TRACKING_NUMBER) {
+
+        const screenNamesToAdd = TWITTER_MAX_TRACKING_NUMBER - dataArray.length;
+
+        console.log(chalkLog("TSS | ADDING " + screenNamesToAdd + " SCREEN NAMES TO TRACK SET"));
+
+        dataArray = _.concat(dataArray, [...threeceeUserObj.followUserScreenNameSet]);
+      }
+      if (dataArray === 0){
+        console.log(chalkAlert("TSS | ??? NO SEACH TERMS |@" + threeceeUserObj.screenName));
         return resolve(0);
       }
 
-      console.log(chalkInfo("TSS | SEARCH TERMS FILE AFTER"));
+      console.log(chalk.blue("TSS | SEACH TERM CHUNK START"
+        + " | @" + threeceeUserObj.screenName 
+        + " | " + dataArray[0] 
+        + " | " + dataArray.length + " SEACH TERMS"
+      ));
 
-      prevFileModifiedMoment = moment(fileModifiedMoment);
+      async.whilst( 
+        function(){ 
+          return ((threeceeUserObj.searchTermSet.size < TWITTER_MAX_TRACKING_NUMBER)
+            && (dataArray.length > 0));
+        },
+        function(cb){
 
-      loadFile(params.searchTermsDir, params.searchTermsFile, function(err, data){
+          let searchTerm = dataArray.shift();
 
-        if (err){
-          console.log(chalkError("TSS | LOAD FILE ERROR\n" + err));
-          return reject(err);
-        }
+          searchTerm = searchTerm.replace(/^\s+/g, "");
+          searchTerm = searchTerm.replace(/\s+$/g, "");
+          searchTerm = searchTerm.replace(/\s+/g, " ");
 
-        if (data  === undefined){
-          console.log(chalkError("TSS | DROPBOX FILE DOWNLOAD DATA UNDEFINED"
-            + " | " + params.searchTermsFile
-          ));
-          return reject(new Error("DROPBOX FILE DOWNLOAD DATA UNDEFINED"));
-        }
+          const searchTermString = new S(searchTerm);
 
-        debug(chalkInfo("TSS | DROPBOX SEARCH TERMS FILE\n" + jsonPrint(data)));
+          if (!searchTermHashMap.has(searchTerm) 
+            && !searchTermString.startsWith("#")
+            && !searchTermString.isEmpty()
+            && !searchTerm.match(mangledRegEx)
+          ){
 
-        const dataConvertAccent = data.toString().replace(/Ã©/g, "e");
-        const dataConvertTilde = dataConvertAccent.toString().replace(/Ã£/g, "a");
-        const totalDataArray = dataConvertTilde.toString().split("\n");
+            threeceeUserObj.searchTermSet.add(searchTerm);
+            searchTermHashMap.set(searchTerm, threeceeUserObj.screenName);
 
-        const totalDataArrayChunkArray = _.chunk(totalDataArray, TWITTER_MAX_TRACKING_NUMBER); // for althreecee[0:5] twitter accounts
+            debug(chalkInfo("TSS | +++ TRACK"
+              + " | @" + threeceeUserObj.screenName
+              + " | TRACKING: " + threeceeUserObj.searchTermSet.size 
+              + "/" + TWITTER_MAX_TRACKING_NUMBER + " MAX"
+              + " | SEARCH TERM: " + searchTerm
+            ));
 
-        let dataArray = [];
-
-        console.log(chalk.blue("TSS | FILE CONTAINS " + totalDataArray.length + " TOTAL SEARCH TERMS "));
-
-        console.log(chalk.blue("TSS | SEARCH TERM INIT | @" + threeceeUserObj.screenName));
-
-        switch (threeceeUserObj.screenName) {
-          case "altthreecee00":
-            dataArray = totalDataArrayChunkArray[0] || [];
-          break;
-          case "altthreecee01":
-            dataArray = totalDataArrayChunkArray[1] || [];
-          break;
-          case "altthreecee02":
-            dataArray = totalDataArrayChunkArray[2] || [];
-          break;
-          case "altthreecee03":
-            dataArray = totalDataArrayChunkArray[3] || [];
-          break;
-          case "altthreecee04":
-            dataArray = totalDataArrayChunkArray[4] || [];
-          break;
-          case "altthreecee05":
-            dataArray = totalDataArrayChunkArray[5] || [];
-          break;
-        }
-
-        if (dataArray.length < TWITTER_MAX_TRACKING_NUMBER) {
-
-          const screenNamesToAdd = TWITTER_MAX_TRACKING_NUMBER - dataArray.length;
-
-          console.log(chalkLog("TSS | ADDING " + screenNamesToAdd + " SCREEN NAMES TO TRACK SET"));
-
-          dataArray = _.concat(dataArray, [...threeceeUserObj.followUserScreenNameSet]);
-        }
-        if (dataArray === 0){
-          console.log(chalkAlert("TSS | ??? NO SEACH TERMS |@" + threeceeUserObj.screenName));
-          return resolve(0);
-        }
-
-        console.log(chalk.blue("TSS | SEACH TERM CHUNK START"
-          + " | @" + threeceeUserObj.screenName 
-          + " | " + dataArray[0] 
-          + " | " + dataArray.length + " SEACH TERMS"
-        ));
-
-        async.whilst( 
-          function(){ 
-            return ((threeceeUserObj.searchTermSet.size < TWITTER_MAX_TRACKING_NUMBER)
-              && (dataArray.length > 0));
-          },
-          function(cb){
-
-            let searchTerm = dataArray.shift();
-
-            searchTerm = searchTerm.replace(/^\s+/g, "");
-            searchTerm = searchTerm.replace(/\s+$/g, "");
-            searchTerm = searchTerm.replace(/\s+/g, " ");
-
-            const searchTermString = new S(searchTerm);
-
-            if (!searchTermHashMap.has(searchTerm) 
-              && !searchTermString.startsWith("#")
-              && !searchTermString.isEmpty()
-              && !searchTerm.match(mangledRegEx)
-            ){
-
-              threeceeUserObj.searchTermSet.add(searchTerm);
-              searchTermHashMap.set(searchTerm, threeceeUserObj.screenName);
-
-              debug(chalkInfo("TSS | +++ TRACK"
-                + " | @" + threeceeUserObj.screenName
-                + " | TRACKING: " + threeceeUserObj.searchTermSet.size 
-                + "/" + TWITTER_MAX_TRACKING_NUMBER + " MAX"
-                + " | SEARCH TERM: " + searchTerm
-              ));
-
-              cb();
-
-            }
-            else {
-              debug(chalkInfo("TSS | --- SKIP TRACK"
-                + " | @" + threeceeUserObj.screenName
-                + " | IN HM: " + searchTermHashMap.has(searchTerm)
-                + " | SEARCH TERM: " + searchTerm
-              ));
-              cb();
-            }
-          },
-          function(err){
-
-            if (err) {
-              console.log(chalkError("TSS | *** twitterTrack ERROR"
-                + " | @" + threeceeUserObj.screenName 
-                + " | ERROR: " + err
-              ));
-              return(cb(err));
-            }
-
-            initSearchStream()
-            .then(function(){
-              console.log(chalkLog("TSS | TRACK COMPLETE"
-                + " | @" + threeceeUserObj.screenName 
-                + " | TRACKING " + threeceeUserObj.searchTermSet.size + " SEARCH TERMS"
-              ));
-              resolve(threeceeUserObj.searchTermSet.size);
-            })
-            .catch(function(err){
-              console.log(chalkError("TSS | *** INIT SEARCH STREAM ERROR"
-                + " | @" + threeceeUserObj.screenName 
-                + " | ERROR: " + err
-              ));
-              return reject(err);
-            });
+            cb();
 
           }
-        );
+          else {
+            console.log(chalkInfo("TSS | --- SKIP TRACK"
+              + " | @" + threeceeUserObj.screenName
+              + " | IN HM: " + searchTermHashMap.has(searchTerm)
+              + " | SEARCH TERM: " + searchTerm
+            ));
+            cb();
+          }
+        },
+        function(err){
+
+          if (err) {
+            console.log(chalkError("TSS | *** twitterTrack ERROR"
+              + " | @" + threeceeUserObj.screenName 
+              + " | ERROR: " + err
+            ));
+            return(reject(err));
+          }
+
+          initSearchStream().
+          then(function(){
+            console.log(chalkLog("TSS | TRACK COMPLETE"
+              + " | @" + threeceeUserObj.screenName 
+              + " | TRACKING " + threeceeUserObj.searchTermSet.size + " SEARCH TERMS"
+            ));
+            resolve(threeceeUserObj.searchTermSet.size);
+          }).
+          catch(function(err){
+            console.log(chalkError("TSS | *** INIT SEARCH STREAM ERROR"
+              + " | @" + threeceeUserObj.screenName 
+              + " | ERROR: " + err
+            ));
+            return reject(err);
+          });
+
+        }
+      );
+    }
+    catch(e){
+      console.log(chalkError("TSS | LOAD FILE ERROR\n" + e));
+      return reject(e);
+    }
       
-      });
-    });
+  });
+}
+
+
+function loadFileRetry(params){
+
+  return new Promise(async function(resolve, reject){
+
+    const resolveOnNotFound = params.resolveOnNotFound || false;
+    const maxRetries = params.maxRetries || 5;
+    let retryNumber;
+    let backOffTime = params.initialBackOffTime || ONE_SECOND;
+    const path = params.path || params.folder + "/" + params.file;
+
+    for (retryNumber = 0;retryNumber < maxRetries;retryNumber++) {
+      try {
+        
+        const fileObj = await loadFile(params);
+
+        if (retryNumber > 0) { 
+          console.log(chalkAlert(MODULE_ID_PREFIX + " | FILE LOAD RETRY"
+            + " | " + path
+            + " | BACKOFF: " + msToTime(backOffTime)
+            + " | " + retryNumber + " OF " + maxRetries
+          )); 
+        }
+
+        return resolve(fileObj);
+        // break;
+      } 
+      catch(err) {
+        backOffTime *= 1.5;
+        setTimeout(function(){
+          console.log(chalkAlert(MODULE_ID_PREFIX + " | FILE LOAD ERROR ... RETRY"
+            + " | " + path
+            + " | BACKOFF: " + msToTime(backOffTime)
+            + " | " + retryNumber + " OF " + maxRetries
+            + " | ERROR: " + err
+          )); 
+        }, backOffTime);
+      }
+    }
+
+    if (resolveOnNotFound) {
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | resolve FILE LOAD FAILED | RETRY: " + retryNumber + " OF " + maxRetries));
+      return resolve(false);
+    }
+    console.log(chalkError(MODULE_ID_PREFIX + " | reject FILE LOAD FAILED | RETRY: " + retryNumber + " OF " + maxRetries));
+    reject(new Error("FILE LOAD ERROR | RETRIES " + maxRetries));
 
   });
 }
 
-function initialize(cnf, callback){
+function initialize(cnf){
 
-  console.log(chalkLog("WAS | TSS | INITIALIZE"
-    + " | @" + cnf.threeceeUser
-    // + "\n" + jsonPrint(cnf)
-  ));
+  return new Promise(async function(resolve, reject){
 
-  if (debug.enabled || debugCache.enabled || debugQ.enabled){
-    console.log("\nTSS | %%%%%%%%%%%%%%\nTSS | DEBUG ENABLED \nTSS | %%%%%%%%%%%%%%\n");
-  }
+    console.log(chalkLog("WAS | TSS | INITIALIZE"
+      + " | @" + cnf.threeceeUser
+      // + "\n" + jsonPrint(cnf)
+    ));
 
-  cnf.verbose = process.env.TSS_VERBOSE_MODE || false ;
-  cnf.globalTestMode = process.env.TSS_GLOBAL_TEST_MODE || false ;
-  cnf.testMode = process.env.TSS_TEST_MODE || false ;
-  cnf.quitOnError = process.env.TSS_QUIT_ON_ERROR || false ;
+    if (debug.enabled || debugCache.enabled || debugQ.enabled){
+      console.log("\nTSS | %%%%%%%%%%%%%%\nTSS | DEBUG ENABLED \nTSS | %%%%%%%%%%%%%%\n");
+    }
 
-  cnf.twitterQueueIntervalTime = process.env.TSS_TWITTER_QUEUE_INTERVAL || DEFAULT_TWITTER_QUEUE_INTERVAL ;
-  cnf.maxTweetQueue = process.env.TSS_MAX_TWEET_QUEUE || DEFAULT_MAX_TWEET_QUEUE ;
+    cnf.verbose = process.env.TSS_VERBOSE_MODE || false;
+    cnf.globalTestMode = process.env.TSS_GLOBAL_TEST_MODE || false;
+    cnf.testMode = process.env.TSS_TEST_MODE || false;
+    cnf.quitOnError = process.env.TSS_QUIT_ON_ERROR || false;
 
-  cnf.twitterConfigFolder = process.env.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER || "/config/twitter"; 
-  cnf.twitterConfigFile = process.env.DROPBOX_TSS_DEFAULT_TWITTER_CONFIG_FILE 
-    || "altthreecee00.json";
+    cnf.twitterQueueIntervalTime = process.env.TSS_TWITTER_QUEUE_INTERVAL || DEFAULT_TWITTER_QUEUE_INTERVAL;
+    cnf.maxTweetQueue = process.env.TSS_MAX_TWEET_QUEUE || DEFAULT_MAX_TWEET_QUEUE;
 
-  cnf.statsUpdateIntervalTime = process.env.TSS_STATS_UPDATE_INTERVAL || 60000;
+    cnf.twitterConfigFolder = process.env.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER || "/config/twitter"; 
+    cnf.twitterConfigFile = process.env.DROPBOX_TSS_DEFAULT_TWITTER_CONFIG_FILE 
+      || "altthreecee00.json";
 
-  debug(chalkWarn("TSS | dropboxConfigFolder: " + dropboxConfigFolder));
-  debug(chalkWarn("TSS | dropboxConfigFile  : " + dropboxConfigFile));
+    cnf.statsUpdateIntervalTime = process.env.TSS_STATS_UPDATE_INTERVAL || 60000;
 
-  loadFile(dropboxConfigHostFolder, dropboxConfigFile, function(err, loadedConfigObj){
+    debug(chalkWarn("TSS | dropboxConfigFolder: " + dropboxConfigFolder));
+    debug(chalkWarn("TSS | dropboxConfigFile  : " + dropboxConfigFile));
 
-    // let commandLineConfigKeys;
-    let configArgs;
 
-    if (!err) {
+    try {
+      const loadedConfigObj = await loadFileRetry({folder: dropboxConfigHostFolder, file: dropboxConfigFile}); 
+
       debug(dropboxConfigFile + "\n" + jsonPrint(loadedConfigObj));
 
-      if (loadedConfigObj.TSS_VERBOSE_MODE  !== undefined){
+      if (loadedConfigObj.TSS_VERBOSE_MODE !== undefined){
         console.log("TSS | LOADED TSS_VERBOSE_MODE: " + loadedConfigObj.TSS_VERBOSE_MODE);
         cnf.verbose = loadedConfigObj.TSS_VERBOSE_MODE;
       }
 
-      if (loadedConfigObj.TSS_GLOBAL_TEST_MODE  !== undefined){
+      if (loadedConfigObj.TSS_GLOBAL_TEST_MODE !== undefined){
         console.log("TSS | LOADED TSS_GLOBAL_TEST_MODE: " + loadedConfigObj.TSS_GLOBAL_TEST_MODE);
         cnf.globalTestMode = loadedConfigObj.TSS_GLOBAL_TEST_MODE;
       }
 
-      if (loadedConfigObj.TSS_TEST_MODE  !== undefined){
+      if (loadedConfigObj.TSS_TEST_MODE !== undefined){
         console.log("TSS | LOADED TSS_TEST_MODE: " + loadedConfigObj.TSS_TEST_MODE);
         cnf.testMode = loadedConfigObj.TSS_TEST_MODE;
       }
 
-      if (loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER  !== undefined){
+      if (loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER !== undefined){
         console.log("TSS | LOADED DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER: " 
           + jsonPrint(loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER));
         cnf.twitterConfigFolder = loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER;
       }
 
-      if (loadedConfigObj.DROPBOX_DEFAULT_SEARCH_TERMS_DIR  !== undefined){
+      if (loadedConfigObj.DROPBOX_DEFAULT_SEARCH_TERMS_DIR !== undefined){
         console.log("TSS | LOADED DROPBOX_DEFAULT_SEARCH_TERMS_DIR: " 
           + jsonPrint(loadedConfigObj.DROPBOX_DEFAULT_SEARCH_TERMS_DIR));
         cnf.searchTermsDir = loadedConfigObj.DROPBOX_DEFAULT_SEARCH_TERMS_DIR;
       }
 
-      if (loadedConfigObj.DROPBOX_DEFAULT_SEARCH_TERMS_FILE  !== undefined){
+      if (loadedConfigObj.DROPBOX_DEFAULT_SEARCH_TERMS_FILE !== undefined){
         console.log("TSS | LOADED DROPBOX_DEFAULT_SEARCH_TERMS_FILE: " 
           + jsonPrint(loadedConfigObj.DROPBOX_DEFAULT_SEARCH_TERMS_FILE));
         cnf.searchTermsFile = loadedConfigObj.DROPBOX_DEFAULT_SEARCH_TERMS_FILE;
       }
 
-      if (loadedConfigObj.TSS_STATS_UPDATE_INTERVAL  !== undefined) {
+      if (loadedConfigObj.TSS_STATS_UPDATE_INTERVAL !== undefined) {
         console.log("TSS | LOADED TSS_STATS_UPDATE_INTERVAL: " + loadedConfigObj.TSS_STATS_UPDATE_INTERVAL);
         cnf.statsUpdateIntervalTime = loadedConfigObj.TSS_STATS_UPDATE_INTERVAL;
       }
 
-      if (loadedConfigObj.TSS_MAX_TWEET_QUEUE  !== undefined) {
+      if (loadedConfigObj.TSS_MAX_TWEET_QUEUE !== undefined) {
         console.log("TSS | LOADED TSS_MAX_TWEET_QUEUE: " + loadedConfigObj.TSS_MAX_TWEET_QUEUE);
         cnf.maxTweetQueue = loadedConfigObj.TSS_MAX_TWEET_QUEUE;
       }
 
       // OVERIDE CONFIG WITH COMMAND LINE ARGS
 
-      configArgs = Object.keys(cnf);
+      const configArgs = Object.keys(cnf);
 
       if (cnf.verbose) {
         configArgs.forEach(function(arg){
@@ -1652,228 +1988,21 @@ function initialize(cnf, callback){
         });
       }
 
-      return(callback(err, cnf));
+      await initStatsUpdate(cnf);
+
+      resolve(cnf);
 
     }
-    else {
-      console.error("TSS | *** ERROR LOAD DROPBOX CONFIG: " + dropboxConfigFile + "\n" + jsonPrint(err));
+    catch(err){
+      console.error("WAS | TSS | *** ERROR LOAD DROPBOX CONFIG: " + dropboxConfigFile + "\n" + jsonPrint(err));
+      return reject(err);
+    }
 
-      if (err.status === 404){
-
-        configArgs = Object.keys(cnf);
-
-        configArgs.forEach(function(arg){
-          console.log("TSS | FINAL CONFIG | " + arg + ": " + cnf[arg]);
-        });
-
-      }
-      return(callback(err, cnf));
-     }
   });
+
 }
 
-let followQueueReady = true;
-let followQueueInterval;
 let sendMessageTimeout;
-
-// function initFollowQueue(params){
-
-//   return new Promise(async function(resolve, reject){
-
-
-//     try {
-
-//       console.log(chalkTwitter("TSS"
-//         + " | 3C @" + threeceeUserObj.screenName 
-//         + " | FOLLOW QUEUE INTERVAL: " + params.interval
-//       ));
-
-//       clearInterval(followQueueInterval);
-
-//       let followObj;
-//       let createParams = {};
-//       createParams.follow = true;
-
-//       followQueueInterval = setInterval(function () {
-
-//         if (followQueueReady && (followQueue.length > 0)) {
-
-//           followQueueReady = false;
-
-//           followObj = followQueue.shift();
-
-//           createParams.screen_name = followObj.user.screenName || null;
-//           createParams.user_id = followObj.user.userId || null;
-
-//           statsObj.queues.followQueue.size = followQueue.length;
-
-
-//           console.log(chalkTwitter("TSS | --> TWITTER FOLLOW"
-//             + " | 3C @" + threeceeUserObj.screenName
-//             + " | @" + followObj.user.screenName
-//             + " | UID: " + followObj.user.userId
-//             // + "\nfollowObj\n" + jsonPrint(followObj)
-//             // + "\ncreateParams\n" + jsonPrint(createParams)
-//           ));
-
-
-//           threeceeUserObj.twitStream.post("friendships/create", createParams, function(err, data, response) {
-//             if (err){
-//               console.log(chalkError("TSS | *** TWITTER FOLLOW ERROR"
-//                 + " | @" + threeceeUserObj.screenName
-//                 + " | ERROR CODE: " + err.code
-//                 // + " | ERROR STATUS CODE: " + err.statusCode
-//                 + " | ERROR: " + err
-//                 // + "\ncreateParams\n" + jsonPrint(createParams)
-//                 // + "\nerr\n" + jsonPrint(err)
-//                 // + "\ndata\n" + jsonPrint(data)
-//               ));
-
-//               // followQueueReady = true;
-
-//               if (err.code === 161) {
-//                 followQueue.length = 0;
-//               }
-
-//               const errorType = (err.code === 161) ? "TWITTER_FOLLOW_LIMIT" : "TWITTER_FOLLOW";
-
-//               process.send({
-//                 op: "ERROR", 
-//                 threeceeUser: threeceeUserObj.screenName, 
-//                 stats: threeceeUserObj.stats, 
-//                 errorType: errorType, 
-//                 error: err
-//               });
-
-//             }
-//             else {
-//               console.log(chalk.green("TSS | +++ TWITTER FOLLOWING"
-//                 + " | 3C @" + threeceeUserObj.screenName
-//                 + " | @" + data.screen_name
-//                 + " | ID: " + data.id_str
-//                 + " | " + data.name
-//                 // + "\ndata\n" + jsonPrint(data)
-//               ));
-
-//               threeceeUserObj.followUserIdSet.add(data.id_str);
-
-//               followQueueReady = true;
-//             }
-//           });
-//         }
-
-//       }, params.interval);
-
-//       resolve();
-
-//     }
-//     catch(err){
-//       console.log(chalkError("TSS | *** TWIT INIT FOLLOW ERROR"
-//         + " | @" + threeceeUserObj.screenName
-//         + " | " + getTimeStamp()
-//         + " | " + err
-//       ));
-//       return reject(err);
-//     }
-
-//   });
-// }
-
-let unfollowQueueReady = true;
-let unfollowQueueInterval;
-
-// function initUnfollowQueue(params){
-
-//   return new Promise(async function(resolve, reject){
-
-//     try {
-
-//       console.log(chalkTwitter("TSS"
-//         + " | 3C @" + threeceeUserObj.screenName 
-//         + " | UNFOLLOW QUEUE INTERVAL: " + params.interval
-//       ));
-
-//       clearInterval(unfollowQueueInterval);
-
-//       let unfollowObj;
-//       let createParams = {};
-//       createParams.unfollow = true;
-
-//       unfollowQueueInterval = setInterval(function () {
-
-//         if (unfollowQueueReady && (unfollowQueue.length > 0)) {
-
-//           unfollowQueueReady = false;
-
-//           unfollowObj = unfollowQueue.shift();
-
-//           if (unfollowObj.user.userId) { createParams.user_id = unfollowObj.user.userId; }
-//           if (unfollowObj.user.screenName) { createParams.screen_name = unfollowObj.user.screenName; }
-
-//           statsObj.queues.unfollowQueue.size = unfollowQueue.length;
-
-//           if (configuration.verbose) {
-//             console.log(chalkTwitter("TSS | --> TWITTER UNFOLLOW"
-//               + " [ UFQ: " + unfollowQueue.length + " ]"
-//               + " | 3C @" + threeceeUserObj.screenName
-//               + " | @" + unfollowObj.user.screenName
-//               + " | UID: " + unfollowObj.user.userId
-//             ));
-//           }
-
-//           threeceeUserObj.twitStream.post("friendships/destroy", createParams, function(err, data, response) {
-//             if (err){
-//               console.log(chalkError("TSS | *** TWITTER UNFOLLOW ERROR"
-//                 + " [ UFQ: " + unfollowQueue.length + " ]"
-//                 + " | @" + threeceeUserObj.screenName
-//                 + " | ERROR CODE: " + err.code
-//                 + " | ERROR: " + err
-//                 + "\ncreateParams\n" + jsonPrint(createParams)
-//               ));
-
-//               unfollowQueue.length = 0;
-
-//               process.send({
-//                 op: "ERROR", 
-//                 threeceeUser: threeceeUserObj.screenName, 
-//                 stats: threeceeUserObj.stats, 
-//                 errorType: "TWITTER_UNFOLLOW", 
-//                 error: err
-//               });
-//               // unfollowQueueReady = true;
-//             }
-//             else {
-//               console.log(chalk.green("TSS | XXX TWITTER UNFOLLOW"
-//                 + " [ UFQ: " + unfollowQueue.length + " ]"
-//                 + " | 3C @" + threeceeUserObj.screenName
-//                 + " | @" + data.screen_name
-//                 + " | ID: " + data.id_str
-//                 + " | " + data.name
-//               ));
-
-//               threeceeUserObj.followUserIdSet.delete(data.id_str);
-
-//               unfollowQueueReady = true;
-//             }
-//           });
-//         }
-
-//       }, params.interval);
-
-//       resolve();
-
-//     }
-//     catch(err){
-//       console.log(chalkError("TSS | *** TWIT INIT UNFOLLOW ERROR"
-//         + " | @" + threeceeUserObj.screenName
-//         + " | " + getTimeStamp()
-//         + " | " + err
-//       ));
-//       return reject(err);
-//     }
-
-//   });
-// }
 
 function initTwitterQueue(cnf, callback){
 
@@ -1919,7 +2048,7 @@ function initTwitterQueue(cnf, callback){
         tweetSendReady = true;
         statsObj.queues.tweetQueue.ready = true;
 
-        statsObj.twitter.duplicateTweetsReceived += 1 ;
+        statsObj.twitter.duplicateTweetsReceived += 1;
 
         const dupPercent = 100 * statsObj.twitter.duplicateTweetsReceived / statsObj.tweetsReceived;
 
@@ -1939,7 +2068,7 @@ function initTwitterQueue(cnf, callback){
 
 function initTwitterSearch(cnf){
 
-  return new Promise(function(resolve, reject){
+  return new Promise(function(resolve){
 
     twitterSearchInit = true;
 
@@ -1963,6 +2092,10 @@ process.on("message", async function(m) {
   debug(chalkAlert("TSS | RX MESSAGE"
     + " | OP: " + m.op
   ));
+
+  let authObj;
+  let authObjNew;
+  let twitterConfigFile;
 
   switch (m.op) {
 
@@ -2023,13 +2156,13 @@ process.on("message", async function(m) {
         + " | TOKEN SECRET: " + m.tokenSecret
       ));
 
-      const authObj = threeceeUserObj.twitStream.getAuth();
+      authObj = threeceeUserObj.twitStream.getAuth();
 
       console.log(chalkLog("TSS | CURRENT AUTH\n" + jsonPrint(authObj)));
 
       threeceeUserObj.twitStream.setAuth({access_token: m.token, access_token_secret: m.tokenSecret});
 
-      const authObjNew = threeceeUserObj.twitStream.getAuth();
+      authObjNew = threeceeUserObj.twitStream.getAuth();
 
       threeceeUserObj.twitterConfig.access_token = authObjNew.access_token;
       threeceeUserObj.twitterConfig.access_token_secret = authObjNew.access_token_secret;
@@ -2038,7 +2171,7 @@ process.on("message", async function(m) {
 
       console.log(chalkError("TSS | UPDATED AUTH\n" + jsonPrint(authObjNew)));
 
-      const twitterConfigFile = threeceeUserObj.screenName + ".json";
+      twitterConfigFile = threeceeUserObj.screenName + ".json";
 
       saveFile(configuration.twitterConfigFolder, twitterConfigFile, threeceeUserObj.twitterConfig, function(){
         console.log(chalkLog("TSS | SAVED UPDATED AUTH " + configuration.twitterConfigFolder + "/" + twitterConfigFile));
@@ -2062,6 +2195,10 @@ process.on("message", async function(m) {
               + " | STATUS CODE: " + err.statusCode
               + " | " + err.message
             ));
+
+            if (configuration.verbose) {
+              console.log("TSS | response\n" + jsonPrint(response));
+            }
 
             threeceeUserObj.stats.twitterErrors += 1;
             threeceeUserObj.stats.authenticated = false;
@@ -2140,7 +2277,7 @@ process.on("message", async function(m) {
 
               followingUserIdHashMap.set(userId, threeceeUserObj.screenName);
 
-              global.User.findOne({ userId: userId }, function (err, user) {
+              User.findOne({ userId: userId }, function (err, user) {
 
                 if (err) { 
                   console.log(chalkAlert("TSS | *** USER DB ERROR *** | " + err));
@@ -2194,8 +2331,13 @@ process.on("message", async function(m) {
 
             }, function(err){
 
-              initSearchTerms(configuration)
-              .then(function(status){
+              if (err) {
+                console.log(chalkError("TSS | *** USER_AUTHENTICATED ERROR: " + err));
+                return;
+              }
+
+              initSearchTerms(configuration).
+              then(function(status){
 
                 console.log(chalkInfo("TSS | INIT SEARCH TERMS COMPLETE | 3C @" + threeceeUserObj.screenName));
                 debug("initSearchTerms status\n" + jsonPrint(status));
@@ -2210,8 +2352,8 @@ process.on("message", async function(m) {
                   twitterFriends: [...threeceeUserObj.followUserIdSet]
                 });
 
-              })
-              .catch(function(err){
+              }).
+              catch(function(err){
                 process.send({
                   op: "TWITTER_ERROR", 
                   threeceeUser: threeceeUserObj.screenName, 
@@ -2276,15 +2418,15 @@ process.on("message", async function(m) {
     case "UPDATE_SEARCH_TERMS":
       console.log(chalkLog("TSS | UPDATE SEARCH TERMS"));
 
-      initSearchTerms(configuration)
-      .then(function(status){
+      initSearchTerms(configuration).
+      then(function(status){
         console.log(chalkInfo("TSS | INIT SEARCH TERMS COMPLETE | 3C @" + threeceeUserObj.screenName));
         debug("initSearchTerms status\n" + jsonPrint(status));
         if (!twitterSearchInit) { 
           initTwitterSearch(configuration);
         }
-      })
-      .catch(function(err){
+      }).
+      catch(function(err){
         console.log(chalkError("TSS | *** INIT SEARCH TERMS ERROR | 3C @" + threeceeUserObj.screenName + " | " + err));
         quit();
         return;
@@ -2299,7 +2441,8 @@ process.on("message", async function(m) {
       setTimeout(function(){
 
         process.send({ 
-          op: "PONG", pongId: 
+          op: "PONG",
+pongId: 
           m.pingId
         });
 
@@ -2315,55 +2458,40 @@ process.on("message", async function(m) {
   }
 });
 
-setTimeout(function(){
+setTimeout(async function(){
 
-  initialize(configuration, function(err, cnf){
-
-    if (err && (err.status !== 404)) {
+  try{
+    configuration = await initialize(configuration);
+  }
+  catch(err){
+    if (err.status !== 404) {
       console.error(chalkError("TSS | *** INIT ERROR\n" + jsonPrint(err)));
       quit();
     }
+    console.log(chalkError("WAS | TSS | *** INIT ERROR | CONFIG FILE NOT FOUND? | ERROR: " + err));
+  }
 
-    configuration = cnf;
+  console.log("WAS | TSS | " + configuration.processName + " STARTED " + getTimeStamp() + "\n");
 
-    console.log(chalkLog("TSS | STARTED " + getTimeStamp() + "\n"));
+  try {
+    global.globalDbConnection = await connectDb();
+    dbConnectionReady = true;
+  }
+  catch(err){
+    dbConnectionReady = false;
+    console.log(chalkError("WAS | TSS | *** MONGO DB CONNECT ERROR: " + err + " | QUITTING ***"));
+    quit("MONGO DB CONNECT ERROR");
+  }
 
-    connectDb(function(err, db){
+  dbConnectionReadyInterval = setInterval(function() {
+    if (dbConnectionReady) {
+      clearInterval(dbConnectionReadyInterval);
+    }
+    else {
+      console.log(chalkInfo("WAS | TSS | WAIT DB CONNECTED ..."));
+    }
+  }, 1000);
 
-      if (err) {
-        dbConnectionReady = false;
-        console.log(chalkError("TSS | *** MONGO DB CONNECT ERROR: " + err + " | QUITTING ***"));
-        quit("MONGO DB CONNECT ERROR");
-      }
-
-      // UserServerController = require("@threeceelabs/user-server-controller");
-      // userServerController = new UserServerController("TSS_USC");
-
-      // userServerControllerReady = false;
-
-      // userServerController.on("ready", function(appname){
-      //   userServerControllerReady = true;
-      //   console.log(chalkLog("TSS | USC READY | " + appname));
-      // });
-
-      // User = mongoose.model("User", userModel.UserSchema);
-
-      dbConnectionReady = true;
-    });
-
-    dbConnectionReadyInterval = setInterval(function() {
-
-      if (dbConnectionReady) {
-
-        clearInterval(dbConnectionReadyInterval);
-
-      }
-      else {
-        console.log(chalkInfo("TSS | WAIT DB CONNECTED ..."));
-      }
-    }, 1000);
-
-  });
 }, 5*ONE_SECOND);
 
 

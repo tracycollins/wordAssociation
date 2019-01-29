@@ -81,7 +81,7 @@ let infoTwitterUserObj = {};
 const DEFAULT_GEOCODE_ENABLED = false;
 
 const DEFAULT_FILTER_DUPLICATE_TWEETS = true;
-const DEFAULT_AUTO_FOLLOW = true;
+const DEFAULT_AUTO_FOLLOW = false;
 const DEFAULT_FORCE_FOLLOW = false;
 const DEFAULT_FORCE_IMAGE_ANALYSIS = false;
 const DEFAULT_ENABLE_IMAGE_ANALYSIS = true;
@@ -104,12 +104,7 @@ const DEFAULT_FIND_CAT_HASHTAG_CURSOR_LIMIT = 100;
 const DEFAULT_CURSOR_BATCH_SIZE = 100;
 
 const DEFAULT_THREECEE_USERS = [
-  "altthreecee00", 
-  "altthreecee01", 
-  "altthreecee02", 
-  "altthreecee03", 
-  "altthreecee04", 
-  "altthreecee05"
+  "altthreecee00"
 ];
 const DEFAULT_THREECEE_INFO_USERS = ["threecee", "threeceeinfo", "ninjathreecee"];
 
@@ -132,7 +127,7 @@ DEFAULT_THREECEE_USERS.forEach(function(threeceeUser){
 });
 
 
-const DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER = "altthreecee05";
+const DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER = "altthreecee00";
 const DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER_FILE = DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER + ".json";
 
 const DEFAULT_TWITTER_CONFIG_THREECEE = "threecee";
@@ -1205,21 +1200,6 @@ function printUser(params) {
     + " | 3C " + user.threeceeFollowing 
     + " | LC " + user.location
     + " | C M " + user.category + " A " + user.categoryAuto;
-    // text = params.user.nodeId 
-    //   + " | @" + params.user.screenName 
-    //   + " | N: " + params.user.name 
-    //   + " | CR: " + getTimeStamp(params.user.createdAt)
-    //   + " | LS: " + getTimeStamp(params.user.lastSeen)
-    //   + " | ULS: " + params.user.updateLastSeen 
-    //   + " | LOC: " + params.user.location 
-    //   + "\nFLWg: " + params.user.following 
-    //   + " | 3C: " + params.user.threeceeFollowing 
-    //   + "\nTs: " + params.user.statusesCount 
-    //   + " | FRNDs: " + params.user.friendsCount 
-    //   + " | FLWRs: " + params.user.followersCount 
-    //   + " | LAd: " + params.user.languageAnalyzed 
-    //   + "\nCAT MAN: " + params.user.category
-    //   + " | CAT AUTO: " + params.user.categoryAuto;
     return text;
   }
 }
@@ -5156,76 +5136,77 @@ function initSocketHandler(socketObj) {
 
   socket.on("TWITTER_FOLLOW", function twitterFollow(user) {
 
-    if (!user || (user === undefined)) {
-      console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: NULL USER"));
-      return;
-    }
+    // if (!user || (user === undefined)) {
+    //   console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: NULL USER"));
+    //   return;
+    // }
 
-    const timeStamp = moment().valueOf();
+    // const timeStamp = moment().valueOf();
 
-    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
-    console.log(chalkSocket("R< TWITTER_FOLLOW"
-      + " | " + getTimeStamp(timeStamp)
-      + " | " + ipAddress
-      + " | " + socket.id
-      + " | NID: " + user.nodeId
-      + " | UID: " + user.userId
-      + " | @" + user.screenName
-    ));
+    // console.log(chalkSocket("R< TWITTER_FOLLOW"
+    //   + " | " + getTimeStamp(timeStamp)
+    //   + " | " + ipAddress
+    //   + " | " + socket.id
+    //   + " | NID: " + user.nodeId
+    //   + " | UID: " + user.userId
+    //   + " | @" + user.screenName
+    // ));
 
-    follow({user: user, forceFollow: true}, function(err, updatedUser){
-      if (err) {
-        console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: " + err));
-        return;
-      }
+    // follow({user: user, forceFollow: true}, function(err, updatedUser){
+    //   if (err) {
+    //     console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: " + err));
+    //     return;
+    //   }
 
-      if (!updatedUser) {
-        console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: NULL UPDATED USER"));
-        return;
-      }
+    //   if (!updatedUser) {
+    //     console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: NULL UPDATED USER"));
+    //     return;
+    //   }
 
-      console.log(chalk.blue("WAS | +++ TWITTER_FOLLOW"
-        + " | " + ipAddress
-        + " | " + socket.id
-        + " | UID" + updatedUser.nodeId
-        + " | @" + updatedUser.screenName
-      ));
+    //   console.log(chalk.blue("WAS | +++ TWITTER_FOLLOW"
+    //     + " | " + ipAddress
+    //     + " | " + socket.id
+    //     + " | UID" + updatedUser.nodeId
+    //     + " | @" + updatedUser.screenName
+    //   ));
 
-    });
+    // });
+    
   });
 
   socket.on("TWITTER_UNFOLLOW", function twitterUnfollow(user) {
 
-    const timeStamp = moment().valueOf();
+    // const timeStamp = moment().valueOf();
 
-    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
-    console.log(chalkSocket("R< TWITTER_UNFOLLOW"
-      + " | " + getTimeStamp(timeStamp)
-      + " | " + ipAddress
-      + " | " + socket.id
-      + " | UID: " + user.userId
-      + " | @" + user.screenName
-    ));
+    // console.log(chalkSocket("R< TWITTER_UNFOLLOW"
+    //   + " | " + getTimeStamp(timeStamp)
+    //   + " | " + ipAddress
+    //   + " | " + socket.id
+    //   + " | UID: " + user.userId
+    //   + " | @" + user.screenName
+    // ));
 
-    unfollow({user: user}, function(err, updatedUser){
-      if (err) {
-        console.log(chalkError("WAS | TWITTER_UNFOLLOW ERROR: " + err));
-        return;
-      }
+    // unfollow({user: user}, function(err, updatedUser){
+    //   if (err) {
+    //     console.log(chalkError("WAS | TWITTER_UNFOLLOW ERROR: " + err));
+    //     return;
+    //   }
       
-      if (!updatedUser) { return; }
+    //   if (!updatedUser) { return; }
 
-      adminNameSpace.emit("UNFOLLOW", updatedUser);
-      utilNameSpace.emit("UNFOLLOW", updatedUser);
+    //   adminNameSpace.emit("UNFOLLOW", updatedUser);
+    //   utilNameSpace.emit("UNFOLLOW", updatedUser);
 
-      console.log(chalk.blue("WAS | XXX TWITTER_UNFOLLOW"
-        + " | UID" + updatedUser.nodeId
-        + " | @" + updatedUser.screenName
-      ));
+    //   console.log(chalk.blue("WAS | XXX TWITTER_UNFOLLOW"
+    //     + " | UID" + updatedUser.nodeId
+    //     + " | @" + updatedUser.screenName
+    //   ));
 
-    });
+    // });
 
   });
 
@@ -6519,39 +6500,39 @@ function initTransmitNodeQueueInterval(interval){
             }
             else {
 
-              followable = userFollowable(n);
+              // followable = userFollowable(n);
               categorizeable = userCategorizeable(n);
 
-              if (followable) {
-                if (!n.category && !uncategorizedManualUserSet.has(n.nodeId)) { 
-                  uncategorizedManualUserSet.add(n.nodeId);
-                  if (uncategorizedManualUserSet.size % 100 === 0) {
-                    printUserObj("UNCAT MAN USER [" + uncategorizedManualUserSet.size + "]", n);
-                  }
-                }
-                if (!n.categoryAuto && !uncategorizedAutoUserSet.has(n.nodeId)) { 
-                  uncategorizedAutoUserSet.add(n.nodeId);
-                  if (uncategorizedAutoUserSet.size % 100 === 0) {
-                    printUserObj("UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", n);
-                  }
-                }
+              // if (followable) {
+              //   if (!n.category && !uncategorizedManualUserSet.has(n.nodeId)) { 
+              //     uncategorizedManualUserSet.add(n.nodeId);
+              //     if (uncategorizedManualUserSet.size % 100 === 0) {
+              //       printUserObj("UNCAT MAN USER [" + uncategorizedManualUserSet.size + "]", n);
+              //     }
+              //   }
+              //   if (!n.categoryAuto && !uncategorizedAutoUserSet.has(n.nodeId)) { 
+              //     uncategorizedAutoUserSet.add(n.nodeId);
+              //     if (uncategorizedAutoUserSet.size % 100 === 0) {
+              //       printUserObj("UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", n);
+              //     }
+              //   }
 
-                follow({user: n}, function(err, updatedUser){
-                  if (err) {
-                    console.log(chalkError("WAS | TWITTER AUTO FOLLOW ERROR: " + err));
-                  }
-                  else if (!updatedUser) {
-                    console.log(chalkError("WAS | TWITTER AUTO FOLLOW ERROR: NULL UPDATED USER"));
-                  }
-                  else {
-                    console.log(chalk.blue("WAS | +++ TWITTER AUTO FOLLOW"
-                      + " | UID" + updatedUser.nodeId
-                      + " | @" + updatedUser.screenName
-                    ));
-                  }
-                });
+              //   follow({user: n}, function(err, updatedUser){
+              //     if (err) {
+              //       console.log(chalkError("WAS | TWITTER AUTO FOLLOW ERROR: " + err));
+              //     }
+              //     else if (!updatedUser) {
+              //       console.log(chalkError("WAS | TWITTER AUTO FOLLOW ERROR: NULL UPDATED USER"));
+              //     }
+              //     else {
+              //       console.log(chalk.blue("WAS | +++ TWITTER AUTO FOLLOW"
+              //         + " | UID" + updatedUser.nodeId
+              //         + " | @" + updatedUser.screenName
+              //       ));
+              //     }
+              //   });
 
-              }
+              // }
 
               if (categorizeable) {
 

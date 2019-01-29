@@ -1,6 +1,5 @@
 /*jslint node: true */
 /*jshint sub:true*/
-"use strict";
 
 process.title = "wa_node_child_twp";
 
@@ -9,7 +8,6 @@ process.title = "wa_node_child_twp";
 const MAX_Q = 100;
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
-const os = require("os");
 const debug = require("debug")("twp");
 const moment = require("moment");
 const async = require("async");
@@ -23,7 +21,7 @@ const chalkAlert = chalk.red;
 const chalkError = chalk.bold.red;
 const chalkNetwork = chalk.blue;
 
-let statsObj = {};
+const statsObj = {};
 statsObj.dbConnectionReady = false;
 
 
@@ -33,48 +31,38 @@ const configEvents = new EventEmitter2({
   maxListeners: 20
 });
 
-configEvents.on("newListener", function configEventsNewListener(data) {
+configEvents.on("newListener", function(data) {
   debug("*** NEW CONFIG EVENT LISTENER: " + data);
 });
-
-const dbAppName = "WAS_" + process.pid;
-
-global.dbConnection = false;
-
-let dbConnectionReady = false;
-let dbConnectionReadyInterval;
 
 const mongoose = require("mongoose");
 mongoose.set("useFindAndModify", false);
 
-global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
-global.Emoji;
-global.Hashtag;
-global.Location;
-global.Media;
-global.NetworkInputs;
-global.NeuralNetwork;
-global.Place;
-global.Tweet;
-global.Url;
-global.User;
-global.Word;
+global.globalDbConnection = false;
 
-let TweetServerController;
+global.globalWordAssoDb = require("@threeceelabs/mongoose-twitter");
+
+const emojiModel = require("@threeceelabs/mongoose-twitter/models/emoji.server.model");
+const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
+const locationModel = require("@threeceelabs/mongoose-twitter/models/location.server.model");
+const mediaModel = require("@threeceelabs/mongoose-twitter/models/media.server.model");
+const neuralNetworkModel = require("@threeceelabs/mongoose-twitter/models/neuralNetwork.server.model");
+const placeModel = require("@threeceelabs/mongoose-twitter/models/place.server.model");
+const tweetModel = require("@threeceelabs/mongoose-twitter/models/tweet.server.model");
+const urlModel = require("@threeceelabs/mongoose-twitter/models/url.server.model");
+const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
+const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
+
+let dbConnectionReady = false;
+let dbConnectionReadyInterval;
+
+const TweetServerController = require("@threeceelabs/tweet-server-controller");
 let tweetServerController;
-let tweetServerControllerReady = false;
 
 const tweetParserQueue = [];
 
-let hostname = os.hostname();
-hostname = hostname.replace(/.local/g, "");
-hostname = hostname.replace(/.home/g, "");
-hostname = hostname.replace(/.fios-router.home/g, "");
-hostname = hostname.replace(/word0-instance-1/g, "google");
-hostname = hostname.replace(/word/g, "google");
-
-let configuration = {};
+const configuration = {};
 configuration.processName = process.env.TWP_PROCESS_NAME || "node_tweetParser";
 configuration.verbose = false;
 configuration.updateInterval = 5;
@@ -93,9 +81,9 @@ function jsonPrint(obj) {
 }
 
 function getTimeStamp(inputTime) {
-  let currentTimeStamp ;
+  let currentTimeStamp;
 
-  if (inputTime  === undefined) {
+  if (inputTime === undefined) {
     currentTimeStamp = moment().format(compactDateTimeFormat);
     return currentTimeStamp;
   }
@@ -134,8 +122,8 @@ function quit(message) {
     
   );
 
-  if ((global.dbConnection !== undefined) && (global.dbConnection.readyState > 0)) {
-    global.dbConnection.close(function () {
+  if ((global.globalDbConnection !== undefined) && (global.globalDbConnection.readyState > 0)) {
+    global.globalDbConnection.close(function () {
       
       console.log(chalkAlert(
             "TWP | =========================="
@@ -151,103 +139,124 @@ function quit(message) {
   }
 }
 
-process.on("SIGHUP", function processSigHup() {
+process.on("SIGHUP", function() {
   quit("SIGHUP");
 });
 
-process.on("SIGINT", function processSigInt() {
+process.on("SIGINT", function() {
   quit("SIGINT");
 });
 
-process.on("disconnect", function processDisconnect() {
+process.on("disconnect", function() {
   quit("DISCONNECT");
 });
 
+// function connectDb(){
+
+//   return new Promise(async function(resolve, reject){
+
+//     try {
+
+//       statsObj.status = "CONNECTING MONGO DB";
+
+//       console.log(chalk.green("TWP | MONGOOSE DEFAULT CONNECTION OPEN"));
+
+//       TweetServerController = require("@threeceelabs/tweet-server-controller");
+//       tweetServerController = new TweetServerController("TFE_TSC");
+
+//       tweetServerController.on("ready", function(err){
+//         statsObj.status = "MONGO DB CONNECTED";
+//         tweetServerControllerReady = true;
+//         console.log(chalk.green("TWP | TSC READY"));
+//         dbConnectionReady = true;
+//         resolve();
+//       });
+
+//       tweetServerController.on("error", function(err){
+//         statsObj.status = "MONGO DB ERROR";
+//         tweetServerControllerReady = false;
+//         dbConnectionReady = false;
+//         console.trace(chalkError("TWP | *** TSC ERROR | " + err));
+//       });
+
+//     }
+//     catch(err){
+//       console.log(chalkError("TWP | *** MONGO DB CONNECT ERROR: " + err));
+//       reject(err);
+//     }
+//   });
+// }
+
 function connectDb(){
 
-  return new Promise(async function(resolve, reject){
+  return new Promise(function(resolve, reject){
 
     try {
 
-      statsObj.status = "CONNECTING MONGO DB";
+      statsObj.status = "CONNECT DB";
 
-      global.wordAssoDb.connect("TWP_" + process.pid, function(err, db){
+      global.globalWordAssoDb.connect("TWP_" + process.pid, function(err, db){
 
         if (err) {
-          console.log(chalkError("TWP | *** MONGO DB CONNECTION ERROR: " + err));
-          callback(err, null);
+          console.log(chalkError("WAS | TWP | *** MONGO DB CONNECTION ERROR: " + err));
           statsObj.status = "MONGO CONNECTION ERROR";
           dbConnectionReady = false;
           quit(statsObj.status);
           return reject(err);
         }
 
-        db.on("error", async function(){
+        db.on("error", function(){
           statsObj.status = "MONGO ERROR";
-          console.error.bind(console, "TWP | *** MONGO DB CONNECTION ERROR ***");
-          console.log(chalkError("TWP | *** MONGO DB CONNECTION ERROR ***"));
+          console.error.bind(console, "WAS | TWP | *** MONGO DB CONNECTION ERROR ***");
+          console.log(chalkError("WAS | TWP | *** MONGO DB CONNECTION ERROR ***"));
           db.close();
           dbConnectionReady = false;
           quit(statsObj.status);
         });
 
-        db.on("disconnected", async function(){
+        db.on("disconnected", function(){
           statsObj.status = "MONGO DISCONNECTED";
-          console.error.bind(console, "TWP | *** MONGO DB DISCONNECTED ***");
-          console.log(chalkAlert("TWP | *** MONGO DB DISCONNECTED ***"));
+          console.error.bind(console, "WAS | TWP | *** MONGO DB DISCONNECTED ***");
+          console.log(chalkAlert("WAS | TWP | *** MONGO DB DISCONNECTED ***"));
           dbConnectionReady = false;
           quit(statsObj.status);
         });
 
+        global.globalDbConnection = db;
 
-        global.dbConnection = db;
+        console.log(chalk.green("WAS | TWP | MONGOOSE DEFAULT CONNECTION OPEN"));
 
-        console.log(chalk.green("TWP | MONGOOSE DEFAULT CONNECTION OPEN"));
+        global.globalEmoji = global.globalDbConnection.model("Emoji", emojiModel.EmojiSchema);
+        global.globalHashtag = global.globalDbConnection.model("Hashtag", hashtagModel.HashtagSchema);
+        global.globalLocation = global.globalDbConnection.model("Location", locationModel.LocationSchema);
+        global.globalMedia = global.globalDbConnection.model("Media", mediaModel.MediaSchema);
+        global.globalNeuralNetwork = global.globalDbConnection.model("NeuralNetwork", neuralNetworkModel.NeuralNetworkSchema);
+        global.globalPlace = global.globalDbConnection.model("Place", placeModel.PlaceSchema);
+        global.globalTweet = global.globalDbConnection.model("Tweet", tweetModel.TweetSchema);
+        global.globalUrl = global.globalDbConnection.model("Url", urlModel.UrlSchema);
+        global.globalUser = global.globalDbConnection.model("User", userModel.UserSchema);
+        global.globalWord = global.globalDbConnection.model("Word", wordModel.WordSchema);
 
-        const emojiModel = require("@threeceelabs/mongoose-twitter/models/emoji.server.model");
-        const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
-        const locationModel = require("@threeceelabs/mongoose-twitter/models/location.server.model");
-        const mediaModel = require("@threeceelabs/mongoose-twitter/models/media.server.model");
-        const neuralNetworkModel = require("@threeceelabs/mongoose-twitter/models/neuralNetwork.server.model");
-        const placeModel = require("@threeceelabs/mongoose-twitter/models/place.server.model");
-        const tweetModel = require("@threeceelabs/mongoose-twitter/models/tweet.server.model");
-        const urlModel = require("@threeceelabs/mongoose-twitter/models/url.server.model");
-        const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
-        const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
+        tweetServerController = new TweetServerController("TWP_TSC");
 
-        global.Emoji = global.dbConnection.model("Emoji", emojiModel.EmojiSchema);
-        global.Hashtag = global.dbConnection.model("Hashtag", hashtagModel.HashtagSchema);
-        global.Location = global.dbConnection.model("Location", locationModel.LocationSchema);
-        global.Media = global.dbConnection.model("Media", mediaModel.MediaSchema);
-        global.NeuralNetwork = global.dbConnection.model("NeuralNetwork", neuralNetworkModel.NeuralNetworkSchema);
-        global.Place = global.dbConnection.model("Place", placeModel.PlaceSchema);
-        global.Tweet = global.dbConnection.model("Tweet", tweetModel.TweetSchema);
-        global.Url = global.dbConnection.model("Url", urlModel.UrlSchema);
-        global.User = global.dbConnection.model("User", userModel.UserSchema);
-        global.Word = global.dbConnection.model("Word", wordModel.WordSchema);
-
-        TweetServerController = require("@threeceelabs/tweet-server-controller");
-        tweetServerController = new TweetServerController("TFE_TSC");
-
-        tweetServerController.on("ready", function(err){
+        tweetServerController.on("ready", function(appname){
           statsObj.status = "MONGO DB CONNECTED";
-          tweetServerControllerReady = true;
-          console.log(chalk.green("TWP | TSC READY"));
+
+          console.log(chalkLog("WAS | TWP | USC READY | " + appname));
           dbConnectionReady = true;
+
           resolve(db);
+
         });
 
         tweetServerController.on("error", function(err){
-          statsObj.status = "MONGO DB ERROR";
-          tweetServerControllerReady = false;
-          dbConnectionReady = false;
-          console.trace(chalkError("TWP | *** TSC ERROR | " + err));
+          console.trace(chalkError("WAS | TWP | *** TSC ERROR | " + err));
         });
 
       });
     }
     catch(err){
-      console.log(chalkError("TWP | *** MONGO DB CONNECT ERROR: " + err));
+      console.log(chalkError("WAS | TWP | *** MONGO DB CONNECT ERROR: " + err));
       reject(err);
     }
   });
@@ -276,18 +285,10 @@ function initTweetParserQueueInterval(cnf){
 
   let tweet;
   let tweetParserQueueReady = true;
-  let params = {
-    globalTestMode: cnf.globalTestMode,
-    testMode: cnf.testMode,
-    inc: cnf.inc
-    // twitterEvents: configEvents
-  };
-
-  // if (tweetServerControllerReady) { 
-  //   if (cnf.networkObj) { tweetServerController.loadNeuralNetwork({networkObj: cnf.networkObj}, function(){}); }
-  //   if (cnf.maxInputHashMap) { tweetServerController.loadMaxInputHashMap(cnf.maxInputHashMap, function(){}); }
-  //   if (cnf.normalization) { tweetServerController.loadNormalization(cnf.normalization, function(){}); }
-  // }
+  const params = {};
+  params.globalTestMode = cnf.globalTestMode;
+  params.testMode = cnf.testMode;
+  params.inc = cnf.inc;
 
   tweetParserQueueInterval = setInterval(function(){
 
@@ -317,8 +318,8 @@ function initTweetParserQueueInterval(cnf){
 
       params.tweetStatus = tweet;
 
-      tweetServerController.createStreamTweet(params)
-      .then(function(tweetObj){
+      tweetServerController.createStreamTweet(params).
+      then(function(tweetObj){
 
         if (cnf.globalTestMode){
 
@@ -361,8 +362,8 @@ function initTweetParserQueueInterval(cnf){
 
           // tweetParserQueueReady = true;
         }
-      })
-      .catch(function(err){
+      }).
+      catch(function(err){
         console.trace(chalkError("TWP | *** CREATE STREAM TWEET ERROR: ", err));
         console.trace(chalkError("TWP | *** CREATE STREAM TWEET ERROR\nTWEET\n", jsonPrint(tweet)));
         tweetParserQueueReady = true;

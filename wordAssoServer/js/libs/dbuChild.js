@@ -128,14 +128,14 @@ function getTimeStamp(inputTime) {
 
 // let User;
 
-global.dbConnection = false;
+global.globalDbConnection = false;
 const mongoose = require("mongoose");
 
-const wordAssoDb = require("@threeceelabs/mongoose-twitter");
+global.globalWordAssoDb = require("@threeceelabs/mongoose-twitter");
 
 const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
 
-global.User = mongoose.model("User", userModel.UserSchema);
+global.globalUser = mongoose.model("User", userModel.UserSchema);
 
 
 
@@ -220,7 +220,7 @@ function quit(options){
   showStats();
 
   setTimeout(function(){
-    global.dbConnection.close(function () {
+    global.globalDbConnection.close(function () {
       console.log(chalkAlert(
             "DBU | =========================="
         + "\nDBU | MONGO DB CONNECTION CLOSED"
@@ -247,7 +247,7 @@ function connectDb(){
 
     statsObj.status = "CONNECT DB";
 
-    wordAssoDb.connect("DBU_" + process.pid, function(err, db){
+    globalWordAssoDb.connect("DBU_" + process.pid, function(err, db){
       if (err) {
         console.log(chalkError("*** DBU | *** MONGO DB CONNECTION ERROR: " + err));
         statsObj.dbConnectionReady = false;
@@ -282,7 +282,7 @@ function connectDb(){
 
         // User = mongoose.model("User", userModel.UserSchema);
 
-        global.dbConnection = db;
+        global.globalDbConnection = db;
 
         UserServerController = require("@threeceelabs/user-server-controller");
         userServerController = new UserServerController("DBU_USC");
@@ -506,7 +506,7 @@ function userUpdateDb(tweetObj){
 
       if (err0) { return reject(err0); }
 
-      global.User.findOne({ nodeId: tweetObj.user.nodeId }).exec(async function(err, user) {
+      global.globalUser.findOne({ nodeId: tweetObj.user.nodeId }).exec(async function(err, user) {
 
         if (err) {
           console.log(chalkError("DBU | *** FIND USER DB: " + err));

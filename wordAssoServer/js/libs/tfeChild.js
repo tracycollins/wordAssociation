@@ -2,18 +2,6 @@
 /*jshint sub:true*/
 // "use strict";
 
-// global.Emoji;
-// global.Hashtag;
-// global.Location;
-// global.Media;
-// global.NetworkInputs;
-// global.NeuralNetwork;
-// global.Place;
-// global.Tweet;
-// const Url = global.Url;
-// const User = global.User;
-// global.Word;
-
 process.title = "wa_node_child_tfe";
 
 const MODULE_ID_PREFIX = "TFC";
@@ -93,9 +81,6 @@ const globalHistograms = {};
 //   userId: 1
 // };
 
-// const DEFAULT_MAX_TWEET_QUEUE = 500;
-// const DEFAULT_TWITTER_QUEUE_INTERVAL = 10;
-// const DEFAULT_CURSOR_BATCH_SIZE = 5000;
 const DEFAULT_INFO_TWITTER_USER = "threecee";
 const USER_CAT_QUEUE_MAX_LENGTH = 500;
 
@@ -112,15 +97,6 @@ const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
 const ONE_KILOBYTE = 1024;
 const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
-
-// const fieldsExclude = {
-//   histograms: 0,
-//   countHistory: 0,
-//   friends: 0
-// };
-
-
-// const mangledRegEx = /\u00C3.\u00C2|\u00B5/g;
 
 const os = require("os");
 const fs = require("fs");
@@ -161,21 +137,17 @@ const jsonParse = require("json-parse-safe");
 const sizeof = require("object-sizeof");
 
 const _ = require("lodash");
-// const S = require("string");
-// const util = require("util");
 const fetchDropbox = require("isomorphic-fetch");
 const Dropbox = require("dropbox").Dropbox;
 const async = require("async");
 const Twit = require("twit");
 const moment = require("moment");
 const treeify = require("../libs/treeify");
-// const Measured = require("measured");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const HashMap = require("hashmap").HashMap;
 const neataptic = require("neataptic");
 const networksHashMap = new HashMap();
 const arrayNormalize = require("array-normalize");
-// const deepcopy = require("deepcopy");
 const NodeCache = require("node-cache");
 
 const debug = require("debug")("tfe");
@@ -220,8 +192,6 @@ const configEvents = new EventEmitter2({
 });
 
 let infoTwitterUserObj = {}; // used for general twitter tasks
-
-// let stdin;
 
 let configuration = {};
 configuration.geoCodeEnabled = false;
@@ -381,16 +351,10 @@ statsObj.analyzer.analyzed = 0;
 statsObj.analyzer.skipped = 0;
 statsObj.analyzer.errors = 0;
 
-global.dbConnection = false;
-// const mongoose = require("mongoose");
+global.globalDbConnection = false;
+global.globalUser;
 
-const wordAssoDb = require("@threeceelabs/mongoose-twitter");
-
-// const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
-// const neuralNetworkModel = require("@threeceelabs/mongoose-twitter/models/neuralNetwork.server.model");
-// const networkInputsModel = require("@threeceelabs/mongoose-twitter/models/networkInputs.server.model");
-
-// global.User;
+global.globalWordAssoDb = require("@threeceelabs/mongoose-twitter");
 
 const emojiModel = require("@threeceelabs/mongoose-twitter/models/emoji.server.model");
 const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
@@ -407,12 +371,10 @@ let dbConnectionReady = false;
 let dbConnectionReadyInterval;
 
 const UserServerController = require("@threeceelabs/user-server-controller");
-// let UserServerController;
 let userServerController;
 let userServerControllerReady = false;
 
 const TweetServerController = require("@threeceelabs/tweet-server-controller");
-// let TweetServerController;
 let tweetServerController;
 
 // ==================================================================
@@ -458,7 +420,7 @@ function connectDb(){
 
       statsObj.status = "CONNECT DB";
 
-      wordAssoDb.connect("TFC_" + process.pid, function(err, db){
+      global.globalWordAssoDb.connect("TFC_" + process.pid, function(err, db){
 
         if (err) {
           console.log(chalkError("WAS | TFC | *** MONGO DB CONNECTION ERROR: " + err));
@@ -485,43 +447,27 @@ function connectDb(){
           quit(statsObj.status);
         });
 
-        global.dbConnection = db;
+        global.globalDbConnection = db;
 
         console.log(chalk.green("WAS | TFC | MONGOOSE DEFAULT CONNECTION OPEN"));
 
-        // const emojiModel = require("@threeceelabs/mongoose-twitter/models/emoji.server.model");
-        // const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
-        // const locationModel = require("@threeceelabs/mongoose-twitter/models/location.server.model");
-        // const mediaModel = require("@threeceelabs/mongoose-twitter/models/media.server.model");
-        // const neuralNetworkModel = require("@threeceelabs/mongoose-twitter/models/neuralNetwork.server.model");
-        // const placeModel = require("@threeceelabs/mongoose-twitter/models/place.server.model");
-        // const tweetModel = require("@threeceelabs/mongoose-twitter/models/tweet.server.model");
-        // const urlModel = require("@threeceelabs/mongoose-twitter/models/url.server.model");
-        // const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
-        // const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
+        global.globalEmoji = global.globalDbConnection.model("Emoji", emojiModel.EmojiSchema);
+        global.globalHashtag = global.globalDbConnection.model("Hashtag", hashtagModel.HashtagSchema);
+        global.globalLocation = global.globalDbConnection.model("Location", locationModel.LocationSchema);
+        global.globalMedia = global.globalDbConnection.model("Media", mediaModel.MediaSchema);
+        global.globalNeuralNetwork = global.globalDbConnection.model("NeuralNetwork", neuralNetworkModel.NeuralNetworkSchema);
+        global.globalPlace = global.globalDbConnection.model("Place", placeModel.PlaceSchema);
+        global.globalTweet = global.globalDbConnection.model("Tweet", tweetModel.TweetSchema);
+        global.globalUrl = global.globalDbConnection.model("Url", urlModel.UrlSchema);
+        global.globalUser = global.globalDbConnection.model("User", userModel.UserSchema);
+        global.globalWord = global.globalDbConnection.model("Word", wordModel.WordSchema);
 
-        global.Emoji = global.dbConnection.model("Emoji", emojiModel.EmojiSchema);
-        global.Hashtag = global.dbConnection.model("Hashtag", hashtagModel.HashtagSchema);
-        global.Location = global.dbConnection.model("Location", locationModel.LocationSchema);
-        global.Media = global.dbConnection.model("Media", mediaModel.MediaSchema);
-        global.NeuralNetwork = global.dbConnection.model("NeuralNetwork", neuralNetworkModel.NeuralNetworkSchema);
-        global.Place = global.dbConnection.model("Place", placeModel.PlaceSchema);
-        global.Tweet = global.dbConnection.model("Tweet", tweetModel.TweetSchema);
-        global.Url = global.dbConnection.model("Url", urlModel.UrlSchema);
-        global.User = global.dbConnection.model("User", userModel.UserSchema);
-        global.Word = global.dbConnection.model("Word", wordModel.WordSchema);
-
-        // UserServerController = require("@threeceelabs/user-server-controller");
         userServerController = new UserServerController("TFC_USC");
 
-        // TweetServerController = require("@threeceelabs/tweet-server-controller");
         tweetServerController = new TweetServerController("TFC_TSC");
 
-        tweetServerController.on("ready", function(err){
-          if (err) {
-            console.log(chalkError("TFC | TSC ERROR: " + err));
-          }
-          console.log(chalk.green("WAS | TFC | TSC READY"));
+        tweetServerController.on("ready", function(appname){
+          console.log(chalkLog("WAS | TFC | TSC READY | " + appname));
         });
 
         tweetServerController.on("error", function(err){
@@ -645,9 +591,9 @@ function quit(message) {
     
   );
 
-  if ((global.dbConnection !== undefined) && (global.dbConnection.readyState > 0)) {
+  if ((global.globalDbConnection !== undefined) && (global.globalDbConnection.readyState > 0)) {
 
-    global.dbConnection.close(function () {
+    global.globalDbConnection.close(function () {
       
       console.log(chalkAlert(
             "WAS | TFC | =========================="
@@ -842,57 +788,6 @@ function loadFile(params) {
   });
 }
 
-// function loadFileRetry(params){
-
-//   return new Promise(async function(resolve, reject){
-
-//     const resolveOnNotFound = params.resolveOnNotFound || false;
-//     const maxRetries = params.maxRetries || 5;
-//     let retryNumber;
-//     let backOffTime = params.initialBackOffTime || ONE_SECOND;
-//     const path = params.path || params.folder + "/" + params.file;
-
-//     function retryLog(err){
-//       console.log(chalkAlert(MODULE_ID_PREFIX + " | FILE LOAD ERROR ... RETRY"
-//         + " | " + path
-//         + " | BACKOFF: " + msToTime(backOffTime)
-//         + " | " + retryNumber + " OF " + maxRetries
-//         + " | ERROR: " + err
-//       )); 
-//     }
-
-//     for (retryNumber = 0;retryNumber < maxRetries;retryNumber++) {
-//       try {
-        
-//         const fileObj = await loadFile(params);
-
-//         if (retryNumber > 0) { 
-//           console.log(chalkAlert(MODULE_ID_PREFIX + " | FILE LOAD RETRY"
-//             + " | " + path
-//             + " | BACKOFF: " + msToTime(backOffTime)
-//             + " | " + retryNumber + " OF " + maxRetries
-//           )); 
-//         }
-
-//         return resolve(fileObj);
-//         // break;
-//       } 
-//       catch(err) {
-//         backOffTime *= 1.5;
-//         setTimeout(retryLog(err), backOffTime);
-//       }
-//     }
-
-//     if (resolveOnNotFound) {
-//       console.log(chalkAlert(MODULE_ID_PREFIX + " | resolve FILE LOAD FAILED | RETRY: " + retryNumber + " OF " + maxRetries));
-//       return resolve(false);
-//     }
-//     console.log(chalkError(MODULE_ID_PREFIX + " | reject FILE LOAD FAILED | RETRY: " + retryNumber + " OF " + maxRetries));
-//     reject(new Error("FILE LOAD ERROR | RETRIES " + maxRetries));
-
-//   });
-// }
-
 function loadFileRetry(params){
 
   return new Promise(async function(resolve, reject){
@@ -991,6 +886,15 @@ function printUserObj(title, u, chalkConfig) {
     + " | " + user.userId
     + " | IG: " + user.ignored 
     + " | 3C: " + user.threeceeFollowing 
+    // + " | L " + user.lang 
+    // + " | FWs " + user.followersCount
+    // + " | FDs " + user.friendsCount
+    // + " | T " + user.statusesCount
+    // + " | M  " + user.mentions
+    // + " | LS " + getTimeStamp(user.lastSeen)
+    // + " | FW " + user.following 
+    // + " | LHTID " + user.lastHistogramTweetId 
+    // + " | LHQID " + user.lastHistogramQuoteId 
   ));
 
   if (user.changes) {
@@ -2211,7 +2115,7 @@ function userProfileChangeHistogram(params) {
 
           try {
 
-            let locationDoc = await global.Location.findOne({nodeId: nodeId});
+            let locationDoc = await global.globalLocation.findOne({nodeId: nodeId});
 
             if (!locationDoc) {
 
@@ -2220,7 +2124,7 @@ function userProfileChangeHistogram(params) {
                 + " | N: " + name + " / " + userPropValue
               ));
 
-              locationDoc = new global.Location({
+              locationDoc = new global.globalLocation({
                 nodeId: nodeId,
                 name: name,
                 nameRaw: userPropValue,
@@ -2755,7 +2659,7 @@ function fetchUserTweets(params){
 
           try {
             await initRateLimitPause(infoTwitterUserObj.stats);
-            resolve();
+            resolve([]);
           }
           catch(e){
             console.log(chalkError("WAS | TFC | *** INIT RATE LIMIT PAUSE ERROR: " + e));
@@ -2815,10 +2719,10 @@ function updateUserHistograms(params) {
 
     try {
 
-      user = await global.User.findOne({nodeId: params.user.nodeId});
+      user = await global.globalUser.findOne({nodeId: params.user.nodeId});
 
       if (!user) {
-        user = global.User(params.user);
+        user = global.globalUser(params.user);
       }
 
       user.profileHistograms = user.profileHistograms || {};
@@ -3064,7 +2968,6 @@ function initialize(cnf){
 
     }
     catch(err){
-
       console.error("WAS | TFC | *** ERROR LOAD DROPBOX CONFIG: " + dropboxConfigFile + "\n" + jsonPrint(err));
       return reject(err);
     }
@@ -3284,7 +3187,7 @@ setTimeout(async function(){
   console.log("WAS | TFC | " + configuration.processName + " STARTED " + getTimeStamp() + "\n");
 
   try {
-    global.dbConnection = await connectDb();
+    global.globalDbConnection = await connectDb();
     dbConnectionReady = true;
   }
   catch(err){

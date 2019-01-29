@@ -157,7 +157,7 @@ configuration.forceFollow = false;
 configuration.globalTestMode = false;
 configuration.testMode = false; // per tweet test mode
 configuration.searchTermsUpdateInterval = 1*ONE_MINUTE;
-configuration.followQueueIntervalTime = ONE_MINUTE;
+configuration.followQueueIntervalTime = 5*ONE_MINUTE;
 configuration.ignoreQueueInterval = 15 * ONE_SECOND;
 configuration.maxTweetQueue = DEFAULT_MAX_TWEET_QUEUE;
 configuration.searchTermsDir = DROPBOX_DEFAULT_SEARCH_TERMS_DIR;
@@ -751,7 +751,7 @@ function initTwit(params){
 
               // threeceeUserObj.searchTermSet.delete("@" + user.screenName.toLowerCase());
 
-              unfollowQueue.push({threeceeUser: threeceeUserObj.twitterConfig.screenName, user: user});
+              // unfollowQueue.push({threeceeUser: threeceeUserObj.twitterConfig.screenName, user: user});
 
               console.log(chalkLog("TSS | > UNFOLLOW Q | ALREADY FOLLOWING"
                 + " [" + unfollowQueue.length + "]"
@@ -764,7 +764,7 @@ function initTwit(params){
 
               // threeceeUserObj.searchTermSet.delete("@" + user.screenName.toLowerCase());
 
-              unfollowQueue.push({threeceeUser: threeceeFollowingInHashMap, user: user});
+              // unfollowQueue.push({threeceeUser: threeceeFollowingInHashMap, user: user});
 
               console.log(chalkLog("TSS | > UNFOLLOW Q"
                 + " [" + unfollowQueue.length + "]"
@@ -1676,204 +1676,204 @@ let followQueueReady = true;
 let followQueueInterval;
 let sendMessageTimeout;
 
-function initFollowQueue(params){
+// function initFollowQueue(params){
 
-  return new Promise(async function(resolve, reject){
-
-
-    try {
-
-      console.log(chalkTwitter("TSS"
-        + " | 3C @" + threeceeUserObj.screenName 
-        + " | FOLLOW QUEUE INTERVAL: " + params.interval
-      ));
-
-      clearInterval(followQueueInterval);
-
-      let followObj;
-      let createParams = {};
-      createParams.follow = true;
-
-      followQueueInterval = setInterval(function () {
-
-        if (followQueueReady && (followQueue.length > 0)) {
-
-          followQueueReady = false;
-
-          followObj = followQueue.shift();
-
-          createParams.screen_name = followObj.user.screenName || null;
-          createParams.user_id = followObj.user.userId || null;
-
-          statsObj.queues.followQueue.size = followQueue.length;
+//   return new Promise(async function(resolve, reject){
 
 
-          console.log(chalkTwitter("TSS | --> TWITTER FOLLOW"
-            + " | 3C @" + threeceeUserObj.screenName
-            + " | @" + followObj.user.screenName
-            + " | UID: " + followObj.user.userId
-            // + "\nfollowObj\n" + jsonPrint(followObj)
-            // + "\ncreateParams\n" + jsonPrint(createParams)
-          ));
+//     try {
+
+//       console.log(chalkTwitter("TSS"
+//         + " | 3C @" + threeceeUserObj.screenName 
+//         + " | FOLLOW QUEUE INTERVAL: " + params.interval
+//       ));
+
+//       clearInterval(followQueueInterval);
+
+//       let followObj;
+//       let createParams = {};
+//       createParams.follow = true;
+
+//       followQueueInterval = setInterval(function () {
+
+//         if (followQueueReady && (followQueue.length > 0)) {
+
+//           followQueueReady = false;
+
+//           followObj = followQueue.shift();
+
+//           createParams.screen_name = followObj.user.screenName || null;
+//           createParams.user_id = followObj.user.userId || null;
+
+//           statsObj.queues.followQueue.size = followQueue.length;
 
 
-          threeceeUserObj.twitStream.post("friendships/create", createParams, function(err, data, response) {
-            if (err){
-              console.log(chalkError("TSS | *** TWITTER FOLLOW ERROR"
-                + " | @" + threeceeUserObj.screenName
-                + " | ERROR CODE: " + err.code
-                // + " | ERROR STATUS CODE: " + err.statusCode
-                + " | ERROR: " + err
-                // + "\ncreateParams\n" + jsonPrint(createParams)
-                // + "\nerr\n" + jsonPrint(err)
-                // + "\ndata\n" + jsonPrint(data)
-              ));
+//           console.log(chalkTwitter("TSS | --> TWITTER FOLLOW"
+//             + " | 3C @" + threeceeUserObj.screenName
+//             + " | @" + followObj.user.screenName
+//             + " | UID: " + followObj.user.userId
+//             // + "\nfollowObj\n" + jsonPrint(followObj)
+//             // + "\ncreateParams\n" + jsonPrint(createParams)
+//           ));
 
-              // followQueueReady = true;
 
-              if (err.code === 161) {
-                followQueue.length = 0;
-              }
+//           threeceeUserObj.twitStream.post("friendships/create", createParams, function(err, data, response) {
+//             if (err){
+//               console.log(chalkError("TSS | *** TWITTER FOLLOW ERROR"
+//                 + " | @" + threeceeUserObj.screenName
+//                 + " | ERROR CODE: " + err.code
+//                 // + " | ERROR STATUS CODE: " + err.statusCode
+//                 + " | ERROR: " + err
+//                 // + "\ncreateParams\n" + jsonPrint(createParams)
+//                 // + "\nerr\n" + jsonPrint(err)
+//                 // + "\ndata\n" + jsonPrint(data)
+//               ));
 
-              const errorType = (err.code === 161) ? "TWITTER_FOLLOW_LIMIT" : "TWITTER_FOLLOW";
+//               // followQueueReady = true;
 
-              process.send({
-                op: "ERROR", 
-                threeceeUser: threeceeUserObj.screenName, 
-                stats: threeceeUserObj.stats, 
-                errorType: errorType, 
-                error: err
-              });
+//               if (err.code === 161) {
+//                 followQueue.length = 0;
+//               }
 
-            }
-            else {
-              console.log(chalk.green("TSS | +++ TWITTER FOLLOWING"
-                + " | 3C @" + threeceeUserObj.screenName
-                + " | @" + data.screen_name
-                + " | ID: " + data.id_str
-                + " | " + data.name
-                // + "\ndata\n" + jsonPrint(data)
-              ));
+//               const errorType = (err.code === 161) ? "TWITTER_FOLLOW_LIMIT" : "TWITTER_FOLLOW";
 
-              threeceeUserObj.followUserIdSet.add(data.id_str);
+//               process.send({
+//                 op: "ERROR", 
+//                 threeceeUser: threeceeUserObj.screenName, 
+//                 stats: threeceeUserObj.stats, 
+//                 errorType: errorType, 
+//                 error: err
+//               });
 
-              followQueueReady = true;
-            }
-          });
-        }
+//             }
+//             else {
+//               console.log(chalk.green("TSS | +++ TWITTER FOLLOWING"
+//                 + " | 3C @" + threeceeUserObj.screenName
+//                 + " | @" + data.screen_name
+//                 + " | ID: " + data.id_str
+//                 + " | " + data.name
+//                 // + "\ndata\n" + jsonPrint(data)
+//               ));
 
-      }, params.interval);
+//               threeceeUserObj.followUserIdSet.add(data.id_str);
 
-      resolve();
+//               followQueueReady = true;
+//             }
+//           });
+//         }
 
-    }
-    catch(err){
-      console.log(chalkError("TSS | *** TWIT INIT FOLLOW ERROR"
-        + " | @" + threeceeUserObj.screenName
-        + " | " + getTimeStamp()
-        + " | " + err
-      ));
-      return reject(err);
-    }
+//       }, params.interval);
 
-  });
-}
+//       resolve();
+
+//     }
+//     catch(err){
+//       console.log(chalkError("TSS | *** TWIT INIT FOLLOW ERROR"
+//         + " | @" + threeceeUserObj.screenName
+//         + " | " + getTimeStamp()
+//         + " | " + err
+//       ));
+//       return reject(err);
+//     }
+
+//   });
+// }
 
 let unfollowQueueReady = true;
 let unfollowQueueInterval;
 
-function initUnfollowQueue(params){
+// function initUnfollowQueue(params){
 
-  return new Promise(async function(resolve, reject){
+//   return new Promise(async function(resolve, reject){
 
-    try {
+//     try {
 
-      console.log(chalkTwitter("TSS"
-        + " | 3C @" + threeceeUserObj.screenName 
-        + " | UNFOLLOW QUEUE INTERVAL: " + params.interval
-      ));
+//       console.log(chalkTwitter("TSS"
+//         + " | 3C @" + threeceeUserObj.screenName 
+//         + " | UNFOLLOW QUEUE INTERVAL: " + params.interval
+//       ));
 
-      clearInterval(unfollowQueueInterval);
+//       clearInterval(unfollowQueueInterval);
 
-      let unfollowObj;
-      let createParams = {};
-      createParams.unfollow = true;
+//       let unfollowObj;
+//       let createParams = {};
+//       createParams.unfollow = true;
 
-      unfollowQueueInterval = setInterval(function () {
+//       unfollowQueueInterval = setInterval(function () {
 
-        if (unfollowQueueReady && (unfollowQueue.length > 0)) {
+//         if (unfollowQueueReady && (unfollowQueue.length > 0)) {
 
-          unfollowQueueReady = false;
+//           unfollowQueueReady = false;
 
-          unfollowObj = unfollowQueue.shift();
+//           unfollowObj = unfollowQueue.shift();
 
-          if (unfollowObj.user.userId) { createParams.user_id = unfollowObj.user.userId; }
-          if (unfollowObj.user.screenName) { createParams.screen_name = unfollowObj.user.screenName; }
+//           if (unfollowObj.user.userId) { createParams.user_id = unfollowObj.user.userId; }
+//           if (unfollowObj.user.screenName) { createParams.screen_name = unfollowObj.user.screenName; }
 
-          statsObj.queues.unfollowQueue.size = unfollowQueue.length;
+//           statsObj.queues.unfollowQueue.size = unfollowQueue.length;
 
-          if (configuration.verbose) {
-            console.log(chalkTwitter("TSS | --> TWITTER UNFOLLOW"
-              + " [ UFQ: " + unfollowQueue.length + " ]"
-              + " | 3C @" + threeceeUserObj.screenName
-              + " | @" + unfollowObj.user.screenName
-              + " | UID: " + unfollowObj.user.userId
-            ));
-          }
+//           if (configuration.verbose) {
+//             console.log(chalkTwitter("TSS | --> TWITTER UNFOLLOW"
+//               + " [ UFQ: " + unfollowQueue.length + " ]"
+//               + " | 3C @" + threeceeUserObj.screenName
+//               + " | @" + unfollowObj.user.screenName
+//               + " | UID: " + unfollowObj.user.userId
+//             ));
+//           }
 
-          threeceeUserObj.twitStream.post("friendships/destroy", createParams, function(err, data, response) {
-            if (err){
-              console.log(chalkError("TSS | *** TWITTER UNFOLLOW ERROR"
-                + " [ UFQ: " + unfollowQueue.length + " ]"
-                + " | @" + threeceeUserObj.screenName
-                + " | ERROR CODE: " + err.code
-                + " | ERROR: " + err
-                + "\ncreateParams\n" + jsonPrint(createParams)
-              ));
+//           threeceeUserObj.twitStream.post("friendships/destroy", createParams, function(err, data, response) {
+//             if (err){
+//               console.log(chalkError("TSS | *** TWITTER UNFOLLOW ERROR"
+//                 + " [ UFQ: " + unfollowQueue.length + " ]"
+//                 + " | @" + threeceeUserObj.screenName
+//                 + " | ERROR CODE: " + err.code
+//                 + " | ERROR: " + err
+//                 + "\ncreateParams\n" + jsonPrint(createParams)
+//               ));
 
-              unfollowQueue.length = 0;
+//               unfollowQueue.length = 0;
 
-              process.send({
-                op: "ERROR", 
-                threeceeUser: threeceeUserObj.screenName, 
-                stats: threeceeUserObj.stats, 
-                errorType: "TWITTER_UNFOLLOW", 
-                error: err
-              });
-              // unfollowQueueReady = true;
-            }
-            else {
-              console.log(chalk.green("TSS | XXX TWITTER UNFOLLOW"
-                + " [ UFQ: " + unfollowQueue.length + " ]"
-                + " | 3C @" + threeceeUserObj.screenName
-                + " | @" + data.screen_name
-                + " | ID: " + data.id_str
-                + " | " + data.name
-              ));
+//               process.send({
+//                 op: "ERROR", 
+//                 threeceeUser: threeceeUserObj.screenName, 
+//                 stats: threeceeUserObj.stats, 
+//                 errorType: "TWITTER_UNFOLLOW", 
+//                 error: err
+//               });
+//               // unfollowQueueReady = true;
+//             }
+//             else {
+//               console.log(chalk.green("TSS | XXX TWITTER UNFOLLOW"
+//                 + " [ UFQ: " + unfollowQueue.length + " ]"
+//                 + " | 3C @" + threeceeUserObj.screenName
+//                 + " | @" + data.screen_name
+//                 + " | ID: " + data.id_str
+//                 + " | " + data.name
+//               ));
 
-              threeceeUserObj.followUserIdSet.delete(data.id_str);
+//               threeceeUserObj.followUserIdSet.delete(data.id_str);
 
-              unfollowQueueReady = true;
-            }
-          });
-        }
+//               unfollowQueueReady = true;
+//             }
+//           });
+//         }
 
-      }, params.interval);
+//       }, params.interval);
 
-      resolve();
+//       resolve();
 
-    }
-    catch(err){
-      console.log(chalkError("TSS | *** TWIT INIT UNFOLLOW ERROR"
-        + " | @" + threeceeUserObj.screenName
-        + " | " + getTimeStamp()
-        + " | " + err
-      ));
-      return reject(err);
-    }
+//     }
+//     catch(err){
+//       console.log(chalkError("TSS | *** TWIT INIT UNFOLLOW ERROR"
+//         + " | @" + threeceeUserObj.screenName
+//         + " | " + getTimeStamp()
+//         + " | " + err
+//       ));
+//       return reject(err);
+//     }
 
-  });
-}
+//   });
+// }
 
 function initTwitterQueue(cnf, callback){
 
@@ -1989,10 +1989,10 @@ process.on("message", async function(m) {
 
       try {
         await initTwitterUser();
-        await initSearchTerms(configuration)
+        await initSearchTerms(configuration);
         await initTwitterSearch(configuration);
-        await initFollowQueue({interval: configuration.followQueueIntervalTime});
-        await initUnfollowQueue({interval: configuration.followQueueIntervalTime});
+        // await initFollowQueue({interval: configuration.followQueueIntervalTime});
+        // await initUnfollowQueue({interval: configuration.followQueueIntervalTime});
       }
       catch(err){
         console.log(chalkError("TSS | *** INIT ERROR" 
@@ -2100,7 +2100,7 @@ process.on("message", async function(m) {
 
                   if (threeceeFollowingInHashMap < threeceeUserObj.screenName) {
 
-                    unfollowQueue.push({threeceeUser: threeceeUserObj.screenName, user: { userId: userId} });
+                    // unfollowQueue.push({threeceeUser: threeceeUserObj.screenName, user: { userId: userId} });
 
                     console.log(chalkLog("TSS | > UNFOLLOW Q"
                       + "[" + unfollowQueue.length + "]"
@@ -2111,7 +2111,7 @@ process.on("message", async function(m) {
                   }
                   else {
 
-                    unfollowQueue.push({threeceeUser: threeceeUserObj.screenName, user: { userId: userId} });
+                    // unfollowQueue.push({threeceeUser: threeceeUserObj.screenName, user: { userId: userId} });
 
                     console.log(chalkLog("TSS | > UNFOLLOW Q"
                       + "[" + unfollowQueue.length + "]"
@@ -2228,41 +2228,41 @@ process.on("message", async function(m) {
     break;
 
     case "FOLLOW":
-      console.log(chalkInfo("TSS | FOLLOW"
-        + " | 3C @" + threeceeUserObj.screenName
-        + " | UID " + m.user.userId
-        + " | @" + m.user.screenName
-        + " | FORCE FOLLOW: " + m.forceFollow
-      ));
+      // console.log(chalkInfo("TSS | FOLLOW"
+      //   + " | 3C @" + threeceeUserObj.screenName
+      //   + " | UID " + m.user.userId
+      //   + " | @" + m.user.screenName
+      //   + " | FORCE FOLLOW: " + m.forceFollow
+      // ));
 
-      if (m.forceFollow !== undefined) { configuration.forceFollow = m.forceFollow; }
+      // if (m.forceFollow !== undefined) { configuration.forceFollow = m.forceFollow; }
 
-      followQueue.push(m);
+      // followQueue.push(m);
     break;
 
     case "UNFOLLOW":
 
-      unfollowQueue.push({threeceeUser: threeceeUserObj.twitterConfig.screenName, user: m.user});
+      // unfollowQueue.push({threeceeUser: threeceeUserObj.twitterConfig.screenName, user: m.user});
 
-      console.log(chalkInfo("TSS | WAS > UNFOLLOW"
-        + " [Q: " + unfollowQueue.length + "]"
-        + " 3C @" + threeceeUserObj.screenName
-        + " | USER " + m.user.userId
-        + " | @" + m.user.screenName
-      ));
+      // console.log(chalkInfo("TSS | WAS > UNFOLLOW"
+      //   + " [Q: " + unfollowQueue.length + "]"
+      //   + " 3C @" + threeceeUserObj.screenName
+      //   + " | USER " + m.user.userId
+      //   + " | @" + m.user.screenName
+      // ));
     break;
 
     case "UNFOLLOW_ID_ARRAY":
 
-      m.userArray.forEach(function(userId){
-        unfollowQueue.push({threeceeUser: threeceeUserObj.twitterConfig.screenName, user: { userId: userId }});
-      });
+      // m.userArray.forEach(function(userId){
+      //   // unfollowQueue.push({threeceeUser: threeceeUserObj.twitterConfig.screenName, user: { userId: userId }});
+      // });
 
-      console.log(chalkInfo("TSS | WAS > UNFOLLOW_ID_ARRAY"
-        + " | 3C @" + threeceeUserObj.screenName
-        + " | Q: " + unfollowQueue.length
-        + " | USER ARRAY " + m.userArray.length
-      ));
+      // console.log(chalkInfo("TSS | WAS > UNFOLLOW_ID_ARRAY"
+      //   + " | 3C @" + threeceeUserObj.screenName
+      //   + " | Q: " + unfollowQueue.length
+      //   + " | USER ARRAY " + m.userArray.length
+      // ));
     break;
 
     case "IGNORE":

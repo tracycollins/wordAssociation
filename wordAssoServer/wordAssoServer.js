@@ -5125,77 +5125,77 @@ function initSocketHandler(socketObj) {
 
   socket.on("TWITTER_FOLLOW", function twitterFollow(user) {
 
-    // if (!user || (user === undefined)) {
-    //   console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: NULL USER"));
-    //   return;
-    // }
+    if (!user || (user === undefined)) {
+      console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: NULL USER"));
+      return;
+    }
 
-    // const timeStamp = moment().valueOf();
+    const timeStamp = moment().valueOf();
 
-    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
-    // console.log(chalkSocket("R< TWITTER_FOLLOW"
-    //   + " | " + getTimeStamp(timeStamp)
-    //   + " | " + ipAddress
-    //   + " | " + socket.id
-    //   + " | NID: " + user.nodeId
-    //   + " | UID: " + user.userId
-    //   + " | @" + user.screenName
-    // ));
+    console.log(chalkSocket("R< TWITTER_FOLLOW"
+      + " | " + getTimeStamp(timeStamp)
+      + " | " + ipAddress
+      + " | " + socket.id
+      + " | NID: " + user.nodeId
+      + " | UID: " + user.userId
+      + " | @" + user.screenName
+    ));
 
-    // follow({user: user, forceFollow: true}, function(err, updatedUser){
-    //   if (err) {
-    //     console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: " + err));
-    //     return;
-    //   }
+    follow({user: user, forceFollow: true}, function(err, updatedUser){
+      if (err) {
+        console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: " + err));
+        return;
+      }
 
-    //   if (!updatedUser) {
-    //     console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: NULL UPDATED USER"));
-    //     return;
-    //   }
+      if (!updatedUser) {
+        console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: NULL UPDATED USER"));
+        return;
+      }
 
-    //   console.log(chalk.blue("WAS | +++ TWITTER_FOLLOW"
-    //     + " | " + ipAddress
-    //     + " | " + socket.id
-    //     + " | UID" + updatedUser.nodeId
-    //     + " | @" + updatedUser.screenName
-    //   ));
+      console.log(chalk.blue("WAS | +++ TWITTER_FOLLOW"
+        + " | " + ipAddress
+        + " | " + socket.id
+        + " | UID" + updatedUser.nodeId
+        + " | @" + updatedUser.screenName
+      ));
 
-    // });
+    });
 
   });
 
   socket.on("TWITTER_UNFOLLOW", function twitterUnfollow(user) {
 
-    // const timeStamp = moment().valueOf();
+    const timeStamp = moment().valueOf();
 
-    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
-    // console.log(chalkSocket("R< TWITTER_UNFOLLOW"
-    //   + " | " + getTimeStamp(timeStamp)
-    //   + " | " + ipAddress
-    //   + " | " + socket.id
-    //   + " | UID: " + user.userId
-    //   + " | @" + user.screenName
-    // ));
+    console.log(chalkSocket("R< TWITTER_UNFOLLOW"
+      + " | " + getTimeStamp(timeStamp)
+      + " | " + ipAddress
+      + " | " + socket.id
+      + " | UID: " + user.userId
+      + " | @" + user.screenName
+    ));
 
-    // unfollow({user: user}, function(err, updatedUser){
-    //   if (err) {
-    //     console.log(chalkError("WAS | TWITTER_UNFOLLOW ERROR: " + err));
-    //     return;
-    //   }
+    unfollow({user: user}, function(err, updatedUser){
+      if (err) {
+        console.log(chalkError("WAS | TWITTER_UNFOLLOW ERROR: " + err));
+        return;
+      }
       
-    //   if (!updatedUser) { return; }
+      if (!updatedUser) { return; }
 
-    //   adminNameSpace.emit("UNFOLLOW", updatedUser);
-    //   utilNameSpace.emit("UNFOLLOW", updatedUser);
+      adminNameSpace.emit("UNFOLLOW", updatedUser);
+      utilNameSpace.emit("UNFOLLOW", updatedUser);
 
-    //   console.log(chalk.blue("WAS | XXX TWITTER_UNFOLLOW"
-    //     + " | UID" + updatedUser.nodeId
-    //     + " | @" + updatedUser.screenName
-    //   ));
+      console.log(chalk.blue("WAS | XXX TWITTER_UNFOLLOW"
+        + " | UID" + updatedUser.nodeId
+        + " | @" + updatedUser.screenName
+      ));
 
-    // });
+    });
 
   });
 

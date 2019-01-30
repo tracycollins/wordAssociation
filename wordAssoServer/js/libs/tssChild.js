@@ -1328,8 +1328,6 @@ function initSearchStream(){
       if (threeceeUserObj.searchStream) {
         console.log(chalkAlert("TSS | RESTARTING TWITTER SEARCH STREAM"));
         threeceeUserObj.searchStream.stop();
-        threeceeUserObj.searchStream = threeceeUserObj.twitStream.stream("statuses/filter", filter);
-        return resolve();
       }
 
       threeceeUserObj.searchStream = {};

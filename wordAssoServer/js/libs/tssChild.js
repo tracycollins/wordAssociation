@@ -973,7 +973,7 @@ function initTwit(){
     threeceeUserObj.twitStream = {};
     threeceeUserObj.twitStream = newTwitStream;
 
-    threeceeUserObj.searchStream = {};
+    threeceeUserObj.searchStream = false;
     threeceeUserObj.searchTermSet = new Set();
 
     console.log(chalkTwitter("TSS | INIT TWITTER USER"
@@ -1324,6 +1324,15 @@ function initSearchStream(){
     ));
 
     try {
+
+      if (threeceeUserObj.searchStream) {
+        console.log(chalkAlert("TSS | RESTARTING TWITTER SEARCH STREAM"));
+        threeceeUserObj.searchStream.stop();
+        threeceeUserObj.searchStream = threeceeUserObj.twitStream.stream("statuses/filter", filter);
+        return resolve();
+      }
+
+      threeceeUserObj.searchStream = {};
       threeceeUserObj.searchStream = threeceeUserObj.twitStream.stream("statuses/filter", filter);
 
       threeceeUserObj.searchStream.on("message", function(msg){
@@ -1620,7 +1629,6 @@ function initSearchStream(){
             + " | LOC " + tweetStatus.user.location
           ));
         }
-
       });
     }
     catch(err){
@@ -1664,8 +1672,6 @@ function initSearchTerms(params){
 
     console.log(chalkTwitter("TSS | INIT TERMS | @" + threeceeUserObj.screenName));
 
-    let response;
-
     threeceeUserObj.searchTermSet.add("realdonaldtrump");
     threeceeUserObj.searchTermSet.add("trump");
     threeceeUserObj.searchTermSet.add("ivanka");
@@ -1678,6 +1684,8 @@ function initSearchTerms(params){
     threeceeUserObj.searchTermSet.add("bluewave");
     threeceeUserObj.searchTermSet.add("uniteblue");
     threeceeUserObj.searchTermSet.add("theresistence");
+
+    let response;
 
     try{
       response = await getFileMetadata({folder: params.searchTermsDir, file: params.searchTermsFile});

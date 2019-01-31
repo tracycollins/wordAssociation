@@ -4108,7 +4108,7 @@ function follow(params, callback) {
   const randomThreeceeUser = _.sample([...threeceeAutoFollowUsersSet]);
 
   console.log(chalk.black.bold("WAS | FOLLOWING | @" + params.user.screenName 
-    + " | RANDOM 3C @" + randomThreeceeUser
+    + " | 3C @" + randomThreeceeUser
   ));
 
   let update = {};
@@ -6128,74 +6128,75 @@ function getCurrentThreeceeUser(params){
 
   return new Promise(function(resolve, reject){
 
-    try{
+    resolve("altthreecee00");
+    
+    // try{
 
-      debug(chalkTwitter("WAS | getCurrentThreeceeUser 3C USERS\n" + jsonPrint(threeceeTwitter)));
+    //   debug(chalkTwitter("WAS | getCurrentThreeceeUser 3C USERS\n" + jsonPrint(threeceeTwitter)));
 
-      if (!statsObj.threeceeUsersConfiguredFlag) {
-        if (configuration.verbose ){ console.log(chalkAlert("WAS | *** THREECEE_USERS NOT CONFIGURED")); }
-        statsObj.currentThreeceeUser = false;
-        return reject(false);
-      }
+    //   if (!statsObj.threeceeUsersConfiguredFlag) {
+    //     if (configuration.verbose ){ console.log(chalkAlert("WAS | *** THREECEE_USERS NOT CONFIGURED")); }
+    //     statsObj.currentThreeceeUser = false;
+    //     return reject(false);
+    //   }
 
-      if (configuration.threeceeUsers.length === 0){
-        console.log(chalkAlert("WAS | ??? NO THREECEE_USERS ???"));
-        statsObj.currentThreeceeUser = false;
-        return reject(false);
-      }
+    //   if (configuration.threeceeUsers.length === 0){
+    //     console.log(chalkAlert("WAS | ??? NO THREECEE_USERS ???"));
+    //     statsObj.currentThreeceeUser = false;
+    //     return reject(false);
+    //   }
 
-      async.eachSeries(configuration.threeceeUsers, function(threeceeUser, cb){
+    //   async.eachSeries(configuration.threeceeUsers, function(threeceeUser, cb){
 
-        if ((threeceeTwitter[threeceeUser] !== undefined) && threeceeTwitter[threeceeUser].ready) {
+    //     if ((threeceeTwitter[threeceeUser] !== undefined) && threeceeTwitter[threeceeUser].ready) {
 
-          debug(chalkTwitter("WAS | IN getCurrentThreeceeUser 3C USER"
-            + " | @" + threeceeUser + " READY"
-          ));
+    //       debug(chalkTwitter("WAS | IN getCurrentThreeceeUser 3C USER"
+    //         + " | @" + threeceeUser + " READY"
+    //       ));
 
-          return cb(threeceeUser);
-        }
+    //       return cb(threeceeUser);
+    //     }
 
-        debug(chalkTwitter("WAS | IN getCurrentThreeceeUser 3C USER"
-          + " | @" + threeceeUser + " NOT READY"
-        ));
+    //     debug(chalkTwitter("WAS | IN getCurrentThreeceeUser 3C USER"
+    //       + " | @" + threeceeUser + " NOT READY"
+    //     ));
 
-        cb();
+    //     cb();
 
-      }, function(threeceeUser){
+    //   }, function(threeceeUser){
 
-        if (threeceeUser) { 
+    //     if (threeceeUser) { 
 
-          statsObj.currentThreeceeUser = threeceeUser;
+    //       statsObj.currentThreeceeUser = threeceeUser;
 
-          debug(chalkTwitter("WAS | getCurrentThreeceeUser 3C USER"
-            + " | 3C USERS: " + configuration.threeceeUsers
-            + " | @" + statsObj.currentThreeceeUser
-          ));
+    //       debug(chalkTwitter("WAS | getCurrentThreeceeUser 3C USER"
+    //         + " | 3C USERS: " + configuration.threeceeUsers
+    //         + " | @" + statsObj.currentThreeceeUser
+    //       ));
 
-        }
-        else {
+    //     }
+    //     else {
 
 
-          if (statsObj.currentThreeceeUser) {
+    //       if (statsObj.currentThreeceeUser) {
 
-            statsObj.currentThreeceeUser = false;
+    //         statsObj.currentThreeceeUser = false;
 
-            console.log(chalkAlert("WAS | getCurrentThreeceeUser 3C USER"
-              + " | 3C USERS: " + configuration.threeceeUsers
-              + " | NONE READY"
-            ));
-          }
+    //         console.log(chalkAlert("WAS | getCurrentThreeceeUser 3C USER"
+    //           + " | 3C USERS: " + configuration.threeceeUsers
+    //           + " | NONE READY"
+    //         ));
+    //       }
 
-        }
+    //     }
 
-        resolve(statsObj.currentThreeceeUser);
+    //     resolve(statsObj.currentThreeceeUser);
 
-      });
-
-    }
-    catch(err){
-      reject(err);
-    }
+    //   });
+    // }
+    // catch(err){
+    //   reject(err);
+    // }
 
   });
 }

@@ -6051,9 +6051,15 @@ let categorizeableFlag = false;
 let userCategorizeable = function(user){
 
   if (user.nodeType !== "user") { return false; }
+  if (user.ignored) { return false; }
   if (ignoredUserSet.has(user.nodeId)) { return false; }
-  // if (user.categoryAuto !== undefined && user.categoryAuto) { return false; }
-  if (user.following) { 
+  if (user.lang !== undefined && user.lang !== "en") { 
+    ignoredUserSet.add(user.nodeId);
+    unfollowableUserSet.add(user.nodeId);
+    if (configuration.verbose) { console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LANG NOT ENGLISH: " + user.lang)); }
+    return false;
+  }
+  if (user.following || (!user.ignored && (user.followersCount !== undefined && (user.followersCount >= configuration.minFollowersAuto)))) { 
     if ((user.description === undefined) || !user.description) { user.description = ""; }
     if ((user.screenName === undefined) || !user.screenName) { user.screenName = ""; }
     if ((user.name === undefined) || !user.name) { user.name = ""; }
@@ -6061,12 +6067,6 @@ let userCategorizeable = function(user){
     return true;
   }
   if (user.followersCount !== undefined && (user.followersCount < configuration.minFollowersAuto)) { return false; }
-  if (user.lang !== undefined && user.lang !== "en") { 
-    ignoredUserSet.add(user.nodeId);
-    unfollowableUserSet.add(user.nodeId);
-    console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LANG NOT ENGLISH: " + user.lang));
-    return false;
-  }
 
   if ((user.description === undefined) || !user.description) { user.description = ""; }
   if ((user.screenName === undefined) || !user.screenName) { user.screenName = ""; }

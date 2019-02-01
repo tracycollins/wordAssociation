@@ -337,9 +337,7 @@ function ControlPanel() {
 
       twitterFeedPreviousUser = node;
 
-      // var screenName = node.screenName;
       nodeName = (node.name !== undefined) ? node.name : "---";
-      // var followersMentions = node.followersCount + node.mentions;
 
       category = node.category || "none";
       categoryAuto = node.categoryAuto || "none";
@@ -357,6 +355,7 @@ function ControlPanel() {
       document.getElementById("user3cFollowingText").innerHTML = node.threeceeFollowing;
       document.getElementById("userIgnoredText").innerHTML = node.ignored;
       document.getElementById("userDescriptionText").innerHTML = node.description;
+      document.getElementById("userLocationText").innerHTML = node.location;
 
       statsObj.user.nodeId = node.nodeId;
       statsObj.user.name = nodeName;
@@ -1576,6 +1575,31 @@ function ControlPanel() {
     userFollowersCountLabel.class = "userStatusText";
     userFollowersCountLabel.text = "FOLLOWERS";
 
+    var userLocationText = {};
+    userLocationText.type = "TEXT";
+    userLocationText.id = "userLocationText";
+    userLocationText.class = "userStatusText";
+    userLocationText.text = statsObj.user.location;
+
+    var userLocationLabel = {};
+    userLocationLabel.type = "TEXT";
+    userLocationLabel.id = "userLocationLabel";
+    userLocationLabel.class = "userStatusText";
+    userLocationLabel.text = "LOCATION";
+
+//-----------------------------------------------------------
+    var userLocationText = {
+      type: "TEXT",
+      id: "userLocationText",
+      class: "userStatusText",
+      text: statsObj.user.location
+    };
+
+    var userLocationLabel = {};
+    userLocationLabel.type = "TEXT";
+    userLocationLabel.id = "userLocationLabel";
+    userLocationLabel.class = "userStatusText";
+    userLocationLabel.text = "LOCATION";
 //-----------------------------------------------------------
     var userFriendsCountText = {
       type: "TEXT",
@@ -1716,6 +1740,7 @@ function ControlPanel() {
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userCreatedAtLabel, userCreatedAtText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userLastSeenLabel, userLastSeenText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userDescriptionLabel, userDescriptionText]);
+        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userLocationLabel, userLocationText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userCategoryLabel, userCategoryText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userFollowersCountLabel, userFollowersCountText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userFriendsCountLabel, userFriendsCountText]);

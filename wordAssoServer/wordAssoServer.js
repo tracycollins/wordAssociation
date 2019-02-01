@@ -6059,6 +6059,7 @@ let userCategorizeable = function(user){
     if (configuration.verbose) { console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LANG NOT ENGLISH: " + user.lang)); }
     return false;
   }
+  if (followableRegEx === undefined) { return false; }
   if (user.following || (!user.ignored && (user.followersCount !== undefined && (user.followersCount >= configuration.minFollowersAuto)))) { 
     if ((user.description === undefined) || !user.description) { user.description = ""; }
     if ((user.screenName === undefined) || !user.screenName) { user.screenName = ""; }
@@ -6072,7 +6073,6 @@ let userCategorizeable = function(user){
   if ((user.screenName === undefined) || !user.screenName) { user.screenName = ""; }
   if ((user.name === undefined) || !user.name) { user.name = ""; }
 
-  if (followableRegEx === undefined) { return false; }
 
   categorizeableFlag = followableRegEx.test(user.description)
     || followableRegEx.test(user.screenName) 
@@ -6129,7 +6129,7 @@ function getCurrentThreeceeUser(params){
   return new Promise(function(resolve, reject){
 
     resolve("altthreecee00");
-    
+
     // try{
 
     //   debug(chalkTwitter("WAS | getCurrentThreeceeUser 3C USERS\n" + jsonPrint(threeceeTwitter)));
@@ -6492,37 +6492,6 @@ function initTransmitNodeQueueInterval(interval){
 
               // followable = userFollowable(n);
               categorizeable = userCategorizeable(n);
-
-              // if (followable) {
-              //   if (!n.category && !uncategorizedManualUserSet.has(n.nodeId)) { 
-              //     uncategorizedManualUserSet.add(n.nodeId);
-              //     if (uncategorizedManualUserSet.size % 100 === 0) {
-              //       printUserObj("UNCAT MAN USER [" + uncategorizedManualUserSet.size + "]", n);
-              //     }
-              //   }
-              //   if (!n.categoryAuto && !uncategorizedAutoUserSet.has(n.nodeId)) { 
-              //     uncategorizedAutoUserSet.add(n.nodeId);
-              //     if (uncategorizedAutoUserSet.size % 100 === 0) {
-              //       printUserObj("UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", n);
-              //     }
-              //   }
-
-              //   follow({user: n}, function(err, updatedUser){
-              //     if (err) {
-              //       console.log(chalkError("WAS | TWITTER AUTO FOLLOW ERROR: " + err));
-              //     }
-              //     else if (!updatedUser) {
-              //       console.log(chalkError("WAS | TWITTER AUTO FOLLOW ERROR: NULL UPDATED USER"));
-              //     }
-              //     else {
-              //       console.log(chalk.blue("WAS | +++ TWITTER AUTO FOLLOW"
-              //         + " | UID" + updatedUser.nodeId
-              //         + " | @" + updatedUser.screenName
-              //       ));
-              //     }
-              //   });
-
-              // }
 
               if (categorizeable) {
 

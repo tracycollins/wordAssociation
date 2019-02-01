@@ -87,10 +87,9 @@ const DEFAULT_ENABLE_IMAGE_ANALYSIS = true;
 const DEFAULT_SAVE_FILE_QUEUE_INTERVAL = 5*ONE_SECOND;
 const DEFAULT_CHECK_TWITTER_RATE_LIMIT_INTERVAL = ONE_MINUTE;
 
+const DEFAULT_ENABLE_TWITTER_FOLLOW = false;
 const DEFAULT_TWITTER_SEARCH_NODE_QUEUE_INTERVAL = 100;
-
 const DEFAULT_MAX_TWIITER_SHOW_USER_TIMEOUT = 30*ONE_MINUTE;
-
 const DEFAULT_CONFIG_INIT_INTERVAL = ONE_MINUTE;
 
 const DEFAULT_TEST_INTERNET_CONNECTION_URL = "www.google.com";
@@ -407,6 +406,7 @@ configuration.verbose = false;
 configuration.maxQueue = DEFAULT_MAX_QUEUE;
 configuration.filterDuplicateTweets = DEFAULT_FILTER_DUPLICATE_TWEETS;
 configuration.forceFollow = DEFAULT_FORCE_FOLLOW;
+configuration.enableTwitterFollow = DEFAULT_ENABLE_TWITTER_FOLLOW;
 configuration.autoFollow = DEFAULT_AUTO_FOLLOW;
 configuration.enableImageAnalysis = DEFAULT_ENABLE_IMAGE_ANALYSIS;
 configuration.forceImageAnalysis = DEFAULT_FORCE_IMAGE_ANALYSIS;
@@ -4129,24 +4129,29 @@ function follow(params, callback) {
       console.log(chalkError("WAS | *** FOLLOW | USER FIND ONE ERROR: " + err));
     }
     else if (userUpdated){
-      if (tssChildren[randomThreeceeUser] !== undefined) {
 
-        console.log(chalkLog("WAS | +++ FOLLOW"
-          + " | " + printUser({user: userUpdated})
-        ));
+      console.log(chalkLog("WAS | +++ FOLLOW"
+        + " | " + printUser({user: userUpdated})
+      ));
 
-        tssChildren[randomThreeceeUser].child.send({
-          op: "FOLLOW", 
-          user: userUpdated,
-          forceFollow: configuration.forceFollow
-        });
-      }
-      else {
-        pendingFollowSet.add(userUpdated.userId);
-        console.log(chalkAlert("WAS | 000 CAN'T FOLLOW | NO AUTO FOLLOW USER"
-          + " | PENDING FOLLOWS: " + pendingFollowSet.size
-          + " | " + printUser({user: userUpdated})
-        ));
+      if (configuration.enableTwitterFollow){
+
+        if (tssChildren[randomThreeceeUser] !== undefined){
+
+          tssChildren[randomThreeceeUser].child.send({
+            op: "FOLLOW", 
+            user: userUpdated,
+            forceFollow: configuration.forceFollow
+          });
+        }
+        else {
+          pendingFollowSet.add(userUpdated.userId);
+          console.log(chalkAlert("WAS | 000 CAN'T FOLLOW | NO AUTO FOLLOW USER"
+            + " | PENDING FOLLOWS: " + pendingFollowSet.size
+            + " | " + printUser({user: userUpdated})
+          ));
+        }
+
       }
 
     }

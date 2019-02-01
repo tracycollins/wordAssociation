@@ -30,7 +30,7 @@
     "crypto": "^1.0.1",
     "deep-copy": "^1.4.2",
     "deep-equal": "^1.0.1",
-    "deepcopy": "^1.0.0",
+    "deepcopy": "^1.0.1",
     "deepmerge": "^3.1.0",
     "deepool": "^2.2.0",
     "dropbox": "^4.0.15",
@@ -88,7 +88,7 @@
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
-    "eslint": "^5.12.1",
+    "eslint": "^5.13.0",
     "jshint": "^2.9.7"
   },
   "scripts": {

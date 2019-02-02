@@ -12,7 +12,8 @@ const TWEET_ID_CACHE_CHECK_PERIOD = 5;
 // const TWITTER_MAX_TRACKING_NUMBER = process.env.TWITTER_MAX_TRACKING_NUMBER || 400;
 const TWITTER_MAX_TRACKING_NUMBER = 400;
 
-const DROPBOX_DEFAULT_SEARCH_TERMS_DIR = "/config/utiltiy/default";
+const DROPBOX_DEFAULT_CONFIG_FOLDER = "/config/utility/default";
+const DROPBOX_DEFAULT_SEARCH_TERMS_DIR = "/config/utility/default";
 const DROPBOX_DEFAULT_SEARCH_TERMS_FILE = "defaultSearchTerms.txt";
 
 const ONE_SECOND = 1000;
@@ -98,6 +99,8 @@ const searchTermHashMap = new HashMap();
 
 const unfollowQueue = [];
 
+const ignoreLocationsSet = new Set();
+
 process.on("SIGHUP", function() {
   quit("SIGHUP");
 });
@@ -143,6 +146,7 @@ configuration.searchTermsFile = DROPBOX_DEFAULT_SEARCH_TERMS_FILE;
 configuration.sendMessageTimeout = ONE_SECOND;
 configuration.twitterDownTimeout = 3*ONE_MINUTE;
 configuration.initSearchTermsTimeout = Number(ONE_MINUTE);
+configuration.initIgnoreLocationsTimeout = Number(ONE_MINUTE);
 configuration.twitterFollowLimitTimeout = 15*ONE_MINUTE;
 
 configuration.twitterConfig = {};
@@ -1194,7 +1198,7 @@ function getFileMetadata(params) {
         resolve(response);
       }).
       catch(function(err) {
-        console.log(chalkError("TSS | GET FILE METADATA ERROR: " + err));
+        console.log(chalkError("TSS | GET FILE METADATA ERROR | PATH: " + fullPath + " ERROR: " + err));
         console.log(chalkError("TSS | GET FILE METADATA ERROR\n" + jsonPrint(err)));
         reject(err);
       });
@@ -1552,6 +1556,17 @@ function initSearchStream(){
       
       threeceeUserObj.searchStream.on("tweet", function(tweetStatus){
 
+        if (tweetStatus.location && (tweetStatus.location !== undefined) && ignoreLocationsSet.has(tweetStatus.location)){
+          console.log(chalkLog("TSS | XXX IGNORE LOCATION | SKIPPING"
+            + " | TWID: " + tweetStatus.id_str
+            + " | LOC: " + tweetStatus.location
+            + " | UID: " + tweetStatus.user.id_str
+            + " | @" + tweetStatus.user.screen_name
+            + " | NAME: " + tweetStatus.user.name
+          ));
+          return;
+        }
+
         prevTweetUser = tweetIdCache.get(tweetStatus.id_str);
 
         if (prevTweetUser) {
@@ -1856,6 +1871,72 @@ function initSearchTerms(params){
 }
 
 
+function initIgnoreLocations(params){
+
+  return new Promise(async function(resolve, reject){
+
+    console.log(chalkTwitter("TSS | INIT IGNORE LOCATIONS | @" + threeceeUserObj.screenName));
+
+    ignoreLocationsSet.add("india");
+    ignoreLocationsSet.add("london");
+    ignoreLocationsSet.add("england");
+    ignoreLocationsSet.add("nigeria");
+
+    let response;
+
+    try{
+      response = await getFileMetadata({folder: DROPBOX_DEFAULT_CONFIG_FOLDER, file: "ignoreLocations.txt"});
+    }
+    catch(err){
+      console.log(chalkError("TSS | *** GET FILE METADATA ERROR: " + err));
+      return reject(err);
+    }
+
+    const fileModifiedMoment = moment(new Date(response.client_modified));
+  
+    if (fileModifiedMoment.isSameOrBefore(prevFileModifiedMoment)){
+      console.log(chalkInfo("TSS | IGNORE LOCATIONS FILE BEFORE OR EQUAL"
+        + " | PREV: " + prevFileModifiedMoment.format(compactDateTimeFormat)
+        + " | " + fileModifiedMoment.format(compactDateTimeFormat)
+      ));
+      return resolve(0);
+    }
+
+    console.log(chalkInfo("TSS | IGNORE LOCATIONS FILE AFTER"));
+
+    prevFileModifiedMoment = moment(fileModifiedMoment);
+
+    try{
+      const data = await loadFileRetry({folder: DROPBOX_DEFAULT_CONFIG_FOLDER, file: "ignoreLocations.txt"}); 
+
+      if (data === undefined){
+        console.log(chalkError("TSS | DROPBOX FILE DOWNLOAD DATA UNDEFINED"
+          + " | " + DROPBOX_DEFAULT_CONFIG_FOLDER + "/" + "ignoreLocations.txt"
+        ));
+        return reject(new Error("DROPBOX FILE DOWNLOAD DATA UNDEFINED"));
+      }
+
+      debug(chalkInfo("TSS | DROPBOX IGNORE LOCATIONS FILE\n" + jsonPrint(data)));
+
+      const dataArray = data.toString().toLowerCase().split("\n");
+
+      console.log(chalk.blue("TSS | FILE CONTAINS " + dataArray.length + " IGNORE LOCATIONS "));
+
+      dataArray.forEach(function(location){
+        ignoreLocationsSet.add(location);
+        console.log(chalkLog("TSS | +++ IGNORE LOCATION [" + ignoreLocationsSet.size + "] " + location));
+      })
+
+    }
+    catch(e){
+      console.log(chalkError("TSS | LOAD FILE ERROR\n" + e));
+      return reject(e);
+    }
+      
+  });
+}
+
+
 function loadFileRetry(params){
 
   return new Promise(async function(resolve, reject){
@@ -1994,7 +2075,7 @@ function initialize(cnf){
         });
       }
 
-      await initStatsUpdate(cnf);
+      // await initStatsUpdate(cnf);
 
       resolve(cnf);
 
@@ -2233,6 +2314,7 @@ process.on("message", async function(m) {
       ));
 
       try {
+        await initIgnoreLocations(configuration);
         await initTwitterUser();
         await initSearchTerms(configuration);
         await initTwitterSearch(configuration);
@@ -2528,6 +2610,21 @@ process.on("message", async function(m) {
       ));
     break;
 
+    case "UPDATE_IGNORE_LOCATIONS":
+      console.log(chalkLog("TSS | UPDATE IGNORE LOCATIONS"));
+
+      initIgnoreLocations(configuration).
+      then(function(status){
+        console.log(chalkInfo("TSS | INIT IGNORE LOCATIONS COMPLETE | 3C @" + threeceeUserObj.screenName));
+        debug("initIgnoreLocations status\n" + jsonPrint(status));
+      }).
+      catch(function(err){
+        console.log(chalkError("TSS | *** INIT IGNORE LOCATIONS ERROR | 3C @" + threeceeUserObj.screenName + " | " + err));
+        quit();
+        return;
+      });
+    break;
+
     case "UPDATE_SEARCH_TERMS":
       console.log(chalkLog("TSS | UPDATE SEARCH TERMS"));
 
@@ -2596,9 +2693,10 @@ setTimeout(async function(){
     quit("MONGO DB CONNECT ERROR");
   }
 
-  dbConnectionReadyInterval = setInterval(function() {
+  dbConnectionReadyInterval = setInterval(async function() {
     if (dbConnectionReady) {
       clearInterval(dbConnectionReadyInterval);
+      await initStatsUpdate(configuration);
     }
     else {
       console.log(chalkInfo("WAS | TSS | WAIT DB CONNECTED ..."));

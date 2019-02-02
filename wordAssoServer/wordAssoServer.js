@@ -6802,6 +6802,11 @@ function initAppRouting(callback) {
                       cb1();
                     }
 
+                    else if (entry.path_lower.endsWith("ignoreLocations.txt")){
+                      updateIgnoreLocationss();
+                      cb1();
+                    }
+
                     else if (entry.path_lower.endsWith("followablesearchterm.txt")){
                       initFollowableSearchTermSet();
                       cb1();
@@ -7710,6 +7715,12 @@ function updateSearchTerms(){
   console.log(chalk.green("WAS | WAS | UPDATE SEARCH TERMS"));
 
   tssSendAllChildren({op: "UPDATE_SEARCH_TERMS"});
+}
+
+function ignoreLocations(){
+  console.log(chalk.green("WAS | WAS | UPDATE IGNORE LOCATIONS"));
+
+  tssSendAllChildren({op: "UPDATE_IGNORE_LOCATIONS"});
 }
 
 function initTssChild(params){

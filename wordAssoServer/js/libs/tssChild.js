@@ -349,7 +349,7 @@ const DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKE
 const DROPBOX_TSS_CONFIG_FILE = process.env.DROPBOX_TSS_CONFIG_FILE || "twitterSearchStreamConfig.json";
 const DROPBOX_TSS_STATS_FILE = process.env.DROPBOX_TSS_STATS_FILE || "twitterSearchStreamStats.json";
 
-const statsFolder = "/stats/" + hostname + "/followerExplorer";
+const statsFolder = "/stats/" + hostname + "/tssChild";
 const statsFile = DROPBOX_TSS_STATS_FILE;
 
 const dropboxConfigFolder = "/config/utility";
@@ -1920,7 +1920,8 @@ function initIgnoreLocations(params){
 
       debug(chalkInfo("TSS | DROPBOX IGNORE LOCATIONS FILE\n" + jsonPrint(data)));
 
-      const dataArray = data.toString().toLowerCase().split("\n");
+      const dataArray = data.toString().toLowerCase().
+split("\n");
 
       console.log(chalk.blue("TSS | FILE CONTAINS " + dataArray.length + " IGNORE LOCATIONS "));
 
@@ -2077,7 +2078,7 @@ function initialize(cnf){
         });
       }
 
-      // await initStatsUpdate(cnf);
+      await initStatsUpdate(cnf);
 
       resolve(cnf);
 
@@ -2698,7 +2699,7 @@ setTimeout(async function(){
   dbConnectionReadyInterval = setInterval(async function() {
     if (dbConnectionReady) {
       clearInterval(dbConnectionReadyInterval);
-      await initStatsUpdate(configuration);
+      // await initStatsUpdate(configuration);
     }
     else {
       console.log(chalkInfo("WAS | TSS | WAIT DB CONNECTED ..."));

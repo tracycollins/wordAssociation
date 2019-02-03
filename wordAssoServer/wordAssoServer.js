@@ -6802,8 +6802,8 @@ function initAppRouting(callback) {
                       cb1();
                     }
 
-                    else if (entry.path_lower.endsWith("ignoreLocations.txt")){
-                      updateIgnoreLocationss();
+                    else if (entry.path_lower.endsWith("ignorelocations.txt")){
+                      ignoreLocations();
                       cb1();
                     }
 

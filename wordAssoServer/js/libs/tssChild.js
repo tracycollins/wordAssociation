@@ -185,6 +185,7 @@ threeceeUserObj.trackingNumber = 0;
 
 threeceeUserObj.followUserScreenNameSet = new Set();
 threeceeUserObj.followUserIdSet = new Set();
+threeceeUserObj.searchTermSet = new Set();
 
 const jsonPrint = function (obj){
   if (obj) {

@@ -1245,7 +1245,8 @@ function getFileMetadata(params) {
 
 const followingUserIdHashMap = new HashMap();
 
-let prevFileModifiedMoment = moment("2010-01-01");
+let prevIgnoredLocationsFileModifiedMoment = moment("2010-01-01");
+let prevSearchTermsFileModifiedMoment = moment("2010-01-01");
 
 function checkTwitterRateLimit(params){
 
@@ -1747,9 +1748,9 @@ function initSearchTerms(params){
 
     const fileModifiedMoment = moment(new Date(response.client_modified));
   
-    if (fileModifiedMoment.isSameOrBefore(prevFileModifiedMoment)){
+    if (fileModifiedMoment.isSameOrBefore(prevSearchTermsFileModifiedMoment)){
       console.log(chalkInfo("TSS | SEARCH TERMS FILE BEFORE OR EQUAL"
-        + " | PREV: " + prevFileModifiedMoment.format(compactDateTimeFormat)
+        + " | PREV: " + prevSearchTermsFileModifiedMoment.format(compactDateTimeFormat)
         + " | " + fileModifiedMoment.format(compactDateTimeFormat)
       ));
       configEvents.emit("SEARCH_TERM_CONFIG_COMPLETE");
@@ -1758,7 +1759,7 @@ function initSearchTerms(params){
 
     console.log(chalkInfo("TSS | SEARCH TERMS FILE AFTER"));
 
-    prevFileModifiedMoment = moment(fileModifiedMoment);
+    prevSearchTermsFileModifiedMoment = moment(fileModifiedMoment);
 
     try{
       const data = await loadFileRetry({folder: params.searchTermsDir, file: params.searchTermsFile}); 
@@ -1931,9 +1932,9 @@ function initIgnoreLocations(){
 
     const fileModifiedMoment = moment(new Date(response.client_modified));
   
-    if (fileModifiedMoment.isSameOrBefore(prevFileModifiedMoment)){
+    if (fileModifiedMoment.isSameOrBefore(prevIgnoredLocationsFileModifiedMoment)){
       console.log(chalkInfo("TSS | IGNORE LOCATIONS FILE BEFORE OR EQUAL"
-        + " | PREV: " + prevFileModifiedMoment.format(compactDateTimeFormat)
+        + " | PREV: " + prevIgnoredLocationsFileModifiedMoment.format(compactDateTimeFormat)
         + " | " + fileModifiedMoment.format(compactDateTimeFormat)
       ));
       return resolve(0);
@@ -1941,7 +1942,7 @@ function initIgnoreLocations(){
 
     console.log(chalkInfo("TSS | IGNORE LOCATIONS FILE AFTER"));
 
-    prevFileModifiedMoment = moment(fileModifiedMoment);
+    prevIgnoredLocationsFileModifiedMoment = moment(fileModifiedMoment);
 
     try{
       const data = await loadFileRetry({folder: DROPBOX_DEFAULT_CONFIG_FOLDER, file: "ignoreLocations.txt"}); 

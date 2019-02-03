@@ -1606,13 +1606,15 @@ function initSearchStream(){
         }
 
         if (tweetStatus.user.lang !== undefined && tweetStatus.user.lang !== "en") { 
-          console.log(chalkLog("TSS | XXX IGNORE LANG | SKIPPING"
-            + " | TWID: " + tweetStatus.id_str
-            + " | LANG: " + tweetStatus.user.lang
-            + " | UID: " + tweetStatus.user.id_str
-            + " | @" + tweetStatus.user.screen_name
-            + " | NAME: " + tweetStatus.user.name
-          ));
+          if (configuration.verbose) {
+            console.log(chalkLog("TSS | XXX IGNORE LANG | SKIPPING"
+              + " | TWID: " + tweetStatus.id_str
+              + " | LANG: " + tweetStatus.user.lang
+              + " | UID: " + tweetStatus.user.id_str
+              + " | @" + tweetStatus.user.screen_name
+              + " | NAME: " + tweetStatus.user.name
+            ));
+          }
           return;
         }
 

@@ -1766,6 +1766,7 @@ function ViewTreepack() {
       positive: {x: xFocusPositiveRatio*width, y: yFocusPositiveRatio*height}, 
       negative: {x: xFocusNeutralRatio*width, y: yFocusNegativeRatio*height},
       neutral: {x: xFocusNeutralRatio*width, y: yFocusNeutralRatio*height},
+      none: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height},
       default: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height}
     };
 

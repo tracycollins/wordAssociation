@@ -399,8 +399,8 @@ function showStats(options){
   statsObj.heap = process.memoryUsage().heapUsed/(1024*1024);
   statsObj.maxHeap = Math.max(statsObj.maxHeap, statsObj.heap);
 
-  statsObj.tweetsPerSecond = threeceeUserObj.stats.tweetsPerSecond;
-  statsObj.tweetsPerMinute = threeceeUserObj.stats.tweetsPerMinute;
+  statsObj.tweetsPerSecond = threeceeUserObj.stats.tweetsPerSecond || 0;
+  statsObj.tweetsPerMinute = threeceeUserObj.stats.tweetsPerMinute || 0;
 
   statsObj.elapsed = moment().valueOf() - statsObj.startTime;
 

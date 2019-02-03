@@ -6314,7 +6314,7 @@ function updateUserSets(params){
         );
       }
 
-      if (!uncategorizedManualUserSet.has(user.nodeId) && !user.category && !ignoredUserSet.has(user.nodeId)) { 
+      if (!uncategorizedManualUserSet.has(user.nodeId) && !user.category && !ignoredUserSet.has(user.nodeId) && !unfollowableUserSet.has(user.nodeId)) { 
 
         uncategorizedManualUserSet.add(user.nodeId);
 
@@ -6324,7 +6324,7 @@ function updateUserSets(params){
 
       }
 
-      if (!uncategorizedAutoUserSet.has(user.nodeId) && !user.categoryAuto && !ignoredUserSet.has(user.nodeId)) { 
+      if (!uncategorizedAutoUserSet.has(user.nodeId) && !user.categoryAuto && !ignoredUserSet.has(user.nodeId) && !unfollowableUserSet.has(user.nodeId)) { 
 
         uncategorizedAutoUserSet.add(user.nodeId);
 
@@ -6334,34 +6334,35 @@ function updateUserSets(params){
 
       }
       
-      if (!ignoredUserSet.has(user.nodeId) 
-        && ((user.category === "left") || (user.category === "neutral") || (user.category === "right"))
+      if (((user.category === "left") || (user.category === "neutral") || (user.category === "right"))
         && ((user.categoryAuto === "left") || (user.categoryAuto === "neutral") || (user.categoryAuto === "right"))
       ) { 
 
         uncategorizedManualUserSet.delete(user.nodeId); 
         uncategorizedAutoUserSet.delete(user.nodeId); 
 
-        categorizedManualUserSet.add(user.nodeId); 
-        categorizedAutoUserSet.add(user.nodeId); 
+        if (!ignoredUserSet.has(user.nodeId) && !unfollowableUserSet.has(user.nodeId)){
+          categorizedManualUserSet.add(user.nodeId); 
+          categorizedAutoUserSet.add(user.nodeId); 
 
-        if (!mismatchUserSet.has(user.nodeId) && (user.category !== user.categoryAuto)) {
+          if (!mismatchUserSet.has(user.nodeId) && (user.category !== user.categoryAuto)) {
 
-          mismatchUserSet.add(user.nodeId); 
-          matchUserSet.delete(user.nodeId); 
+            mismatchUserSet.add(user.nodeId); 
+            matchUserSet.delete(user.nodeId); 
 
-          if (mismatchUserSet.size % 100 === 0) {
-            printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "]", user);
+            if (mismatchUserSet.size % 100 === 0) {
+              printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "]", user);
+            }
           }
-        }
 
-        if (!matchUserSet.has(user.nodeId) && (user.category === user.categoryAuto)) {
+          if (!matchUserSet.has(user.nodeId) && (user.category === user.categoryAuto)) {
 
-          matchUserSet.add(user.nodeId); 
-          mismatchUserSet.delete(user.nodeId); 
+            matchUserSet.add(user.nodeId); 
+            mismatchUserSet.delete(user.nodeId); 
 
-          if (matchUserSet.size % 100 === 0) {
-            printUserObj("MATCHED USER [" + matchUserSet.size + "]", user);
+            if (matchUserSet.size % 100 === 0) {
+              printUserObj("MATCHED USER [" + matchUserSet.size + "]", user);
+            }
           }
         }
 

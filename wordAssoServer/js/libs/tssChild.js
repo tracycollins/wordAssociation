@@ -24,6 +24,29 @@ const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
 
 
 const threeceeUserObj = {};
+threeceeUserObj.stats = {};
+threeceeUserObj.stats.ready = false;
+threeceeUserObj.stats.error = false;
+threeceeUserObj.stats.connected = false;
+threeceeUserObj.stats.authenticated = false;
+threeceeUserObj.stats.twitterTokenErrorFlag = false;
+threeceeUserObj.stats.tweetsReceived = 0;
+threeceeUserObj.stats.retweetsReceived = 0;
+threeceeUserObj.stats.quotedTweetsReceived = 0;
+threeceeUserObj.stats.twitterConnects = 0;
+threeceeUserObj.stats.twitterReconnects = 0;
+threeceeUserObj.stats.twitterFollowLimit = false;
+threeceeUserObj.stats.twitterLimit = 0;
+threeceeUserObj.stats.twitterErrors = 0;
+threeceeUserObj.stats.rateLimited = false;
+threeceeUserObj.stats.tweetsPerSecond = 0;
+threeceeUserObj.stats.tweetsPerMinute = 0;
+
+threeceeUserObj.stats.twitterRateLimit = 0;
+threeceeUserObj.stats.twitterRateLimitRemaining = 0;
+threeceeUserObj.stats.twitterRateLimitResetAt = 0;
+threeceeUserObj.stats.twitterRateLimitRemainingTime = 0;
+threeceeUserObj.stats.twitterRateLimitExceptionFlag = false;
 
 const defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 const compactDateTimeFormat = "YYYYMMDD HHmmss";

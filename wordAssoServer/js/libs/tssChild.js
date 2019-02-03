@@ -881,7 +881,9 @@ function initStatsUpdate(cnf){
         });
 
         try{
-          await checkTwitterRateLimit();
+          if (threeceeUserObj.twitStream !== undefined) {
+            await checkTwitterRateLimit();
+          }
         }
         catch(err){
            console.log(chalkError("WAS | TSS | *** CHECK RATE LIMIT ERROR: " + err));

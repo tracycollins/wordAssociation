@@ -2659,16 +2659,15 @@ process.on("message", async function(m) {
     case "UPDATE_IGNORE_LOCATIONS":
       console.log(chalkLog("TSS | UPDATE IGNORE LOCATIONS"));
 
-      initIgnoreLocations(configuration).
-      then(function(status){
-        console.log(chalkInfo("TSS | INIT IGNORE LOCATIONS COMPLETE | 3C @" + threeceeUserObj.screenName));
-        debug("initIgnoreLocations status\n" + jsonPrint(status));
-      }).
-      catch(function(err){
-        console.log(chalkError("TSS | *** INIT IGNORE LOCATIONS ERROR | 3C @" + threeceeUserObj.screenName + " | " + err));
-        quit();
-        return;
-      });
+      try {
+        await initIgnoreLocations(configuration);
+      }
+      catch(err){
+        console.log(chalkError("TSS | *** UPDATE_IGNORE_LOCATIONS ERROR" 
+          + " | @" + m.threeceeUser
+          + " | ERROR: " + err
+        ));
+      }
     break;
 
     case "UPDATE_SEARCH_TERMS":

@@ -1130,11 +1130,8 @@ function checkTwitterRateLimitAll(){
   });
 }
 
-
 let userCategorizeQueueReady = true;
 let userCategorizeQueueInterval;
-
-// let generateNetworkInputBusy = false;
 
 function generateNetworkInputIndexed(params){
 
@@ -1526,38 +1523,6 @@ function updateGlobalHistograms(params) {
   });
 }
 
-// function enableAnalysis(user, languageAnalysis) {
-//   if (!configuration.enableLanguageAnalysis) { return false; }
-//   if (configuration.forceLanguageAnalysis) {
-//     debug(chalkAlert("enableAnalysis: configuration.forceLanguageAnalysis: "
-//       + configuration.forceLanguageAnalysis
-//     ));
-//     return true;
-//   }
-//   if (!user.languageAnalyzed) {
-//     debug(chalkAlert("enableAnalysis: user.languageAnalyzed: "
-//       + user.languageAnalyzed
-//     ));
-//     return true;
-//   }
-//   if (user.languageAnalysis.error !== undefined) {
-//     if ((user.languageAnalysis.error.code === 3)
-//       || (user.languageAnalysis.error.code === 8)) {
-//       debug(chalkAlert("enableAnalysis: user.languageAnalysis.error: "
-//         + user.languageAnalysis.error.code
-//       ));
-//       return true;
-//     }
-//   }
-//   if (user.languageAnalyzed && (languageAnalysis.magnitude === 0) && (languageAnalysis.score === 0)) {
-//     debug(chalkAlert("enableAnalysis: user.languageAnalyzed: "
-//       + user.languageAnalyzed
-//     ));
-//     return true;
-//   }
-//   return false;
-// }
-
 function parseImage(params){
 
   return new Promise(function(resolve, reject) {
@@ -1804,50 +1769,6 @@ function checkUserProfileChanged(params) {
   });
 }
 
-// function checkUserStatusChanged(params) {
-
-//   return new Promise(async function(resolve, reject){
-
-//     const user = params.user;
-
-//     let allHistogramsZero = false;
-
-//     try{
-//       allHistogramsZero = await allHistogramsZeroKeys(user.tweetHistograms);
-//     }
-//     catch(err){
-//       console.log(chalkError("WAS | TFC | *** ALL HISTOGRAMS ZERO ERROR: " + err));
-//       return reject(err);
-//     }
-
-//     if (!user.tweetHistograms 
-//       || (user.tweetHistograms === undefined) 
-//       || (user.tweetHistograms === {})
-//       || (Object.keys(user.tweetHistograms).length === 0)
-//       || allHistogramsZero
-//     ){
-
-//       console.log(chalkLog(
-//         "WAS | TFC | USER TWEET HISTOGRAMS UNDEFINED" 
-//         + " | RST PREV PROP VALUES" 
-//         + " | @" + user.screenName 
-//       ));
-
-//       user.previousStatusId = null;
-//       user.previousQuotedStatusId = null;
-//     }
-
-//     const results = [];
-
-//     if (checkPropertyChange(user, "statusId")) { results.push("statusId"); }
-//     if (checkPropertyChange(user, "quotedStatusId")) { results.push("quotedStatusId"); }
-
-//     if (results.length === 0) { return resolve(); }
-//     resolve(results);    
-
-//   });
-// }
-
 function processTweetObj(params){
 
   return new Promise(async function(resolve, reject){
@@ -2078,13 +1999,10 @@ function userProfileChangeHistogram(params) {
     let text = "";
     const urlsHistogram = {};
     urlsHistogram.urls = {};
-    // const profileUrl = false;
     const bannerImageUrl = false;
 
     const locationsHistogram = {};
     locationsHistogram.locations = {};
-
-    // const profileHistograms = {};
 
     async.each(userProfileChanges, async function(userProp){
 
@@ -2105,6 +2023,8 @@ function userProfileChangeHistogram(params) {
         case "location":
 
           lastSeen = Date.now();
+
+          text += userPropValue + "\n";
 
           name = userPropValue.trim();
           name = name.toLowerCase();
@@ -2351,187 +2271,6 @@ function userProfileChangeHistogram(params) {
 
   });
 }
-
-// function userStatusChangeHistogram(params) {
-
-//   return new Promise(async function(resolve, reject){
-
-//     let userStatusChanges = false;
-
-//     try {
-//       userStatusChanges = await checkUserStatusChanged(params);
-//     }
-//     catch(err){
-//       return reject(err);
-//     }
-
-//     if (!userStatusChanges) {
-//       return resolve();
-//     }
-
-//     const user = params.user;
-  
-//     const tweetHistograms = {};
-//     const text = "";
-
-//     async.eachSeries(userStatusChanges, function(userProp, cb){
-
-//       delete user._id; // fix for UnhandledPromiseRejectionWarning: RangeError: Maximum call stack size exceeded
-
-//       const prevUserProp = "previous" + _.upperFirst(userProp);
-
-//       if (configuration.verbose) {
-//         console.log(chalkLog("WAS | TFC | +++ USER STATUS CHANGE"
-//           + " | NODE ID: " + user.nodeId 
-//           + " | @" + user.screenName 
-//           + " | " + userProp 
-//           + " | " + user[userProp] + " <-- " + user[prevUserProp]
-//         ));
-//       }
-
-//       const tscParams = {
-//         globalTestMode: configuration.globalTestMode,
-//         testMode: configuration.testMode,
-//         inc: false,
-//         twitterEvents: configEvents
-//       };
-
-//       if ((userProp === "quotedStatusId") && user.quotedStatus && (user.quotedStatus !== undefined) && user.quotedStatus.text){
-
-//         const quotedStatus = deepcopy(user.quotedStatus); // avoid circular references
-
-//         user.quotedStatusId = user.quotedStatusId.toString();
-//         user.previousQuotedStatusId = user.quotedStatusId;
-
-//         tscParams.tweetStatus = {};
-//         tscParams.tweetStatus = quotedStatus;
-//         tscParams.tweetStatus.user = {};
-//         tscParams.tweetStatus.user = user;
-//         tscParams.tweetStatus.user.isNotRaw = true;
-//       }
-//       else if ((userProp === "statusId") && user.status && (user.status !== undefined) && user.status.text){
-
-//         const status = deepcopy(user.status); // avoid circular references
-
-//         user.statusId = user.statusId.toString();
-//         user.previousStatusId = user.statusId;
-
-//         tscParams.tweetStatus = {};
-//         tscParams.tweetStatus = status;
-//         tscParams.tweetStatus.user = {};
-//         tscParams.tweetStatus.user = user;
-//         tscParams.tweetStatus.user.isNotRaw = true;
-//       }
-//       else {
-//         printUserObj("WAS | TFC | *** NO STATUS NOR QUOTED STATUS ???", user, chalkAlert);
-//         return reject(new Error("NO STATUS NOR QUOTED STATUS"));
-//       }
-
-//       tweetServerController.createStreamTweet(tscParams).
-//       then(function(tweetObj){
-
-//         async.eachSeries(DEFAULT_INPUT_TYPES, function(entityType, cb0){
-
-//           if (!entityType || entityType === undefined) {
-//             console.log(chalkAlert("WAS | TFC | ??? UNDEFINED TWEET entityType: ", entityType));
-//             return cb0();
-//           }
-
-//           if (entityType === "user") { return cb0(); }
-//           if (!tweetObj[entityType] || tweetObj[entityType] === undefined) { return cb0(); }
-//           if (tweetObj[entityType].length === 0) { return cb0(); }
-
-//           async.eachSeries(tweetObj[entityType], function(entityObj, cb1){
-
-//             if (!entityObj) {
-//               debug(chalkInfo("WAS | TFC | !!! NULL entity? | ENTITY TYPE: " + entityType + " | entityObj: " + entityObj));
-//               return cb1();
-//             }
-
-//             let entity;
-
-//             switch (entityType) {
-//               case "hashtags":
-//                 entity = "#" + entityObj.nodeId.toLowerCase();
-//               break;
-//               case "mentions":
-//               case "userMentions":
-//                 entity = "@" + entityObj.screenName.toLowerCase();
-//               break;
-//               case "locations":
-//                 entity = entityObj.nodeId;
-//               break;
-//               case "images":
-//               case "media":
-//                 entity = entityObj.nodeId;
-//               break;
-//               case "emoji":
-//                 entity = entityObj.nodeId;
-//               break;
-//               case "urls":
-//                 if (entityObj.nodeId.includes(".")) { 
-//                   entity = btoa(entityObj.nodeId);
-//                 }
-//                 else{
-//                   entity = entityObj.nodeId;
-//                 }
-//               break;
-//               case "words":
-//                 entity = entityObj.nodeId.toLowerCase();
-//                 entity = entity.replace(/\./gi, "_")
-//               break;
-//               case "places":
-//                 entity = entityObj.nodeId;
-//               break;
-//             }
-
-//             if (!tweetHistograms[entityType] || (tweetHistograms[entityType] === undefined)){
-//               tweetHistograms[entityType] = {};
-//               tweetHistograms[entityType][entity] = 1;
-//             }
-
-//             if (!tweetHistograms[entityType][entity] || (tweetHistograms[entityType][entity] === undefined)){
-//               tweetHistograms[entityType][entity] = 1;
-//             }
-
-//             if (configuration.verbose) {
-//               console.log(chalkLog("WAS | TFC | +++ USER TWEET HIST"
-//                 + " | " + entityType.toUpperCase()
-//                 + " | " + entity
-//                 + " | " + tweetHistograms[entityType][entity]
-//               ));
-//             }
-
-//             async.setImmediate(function() { cb1(); });
-
-//           }, function(){
-
-//             async.setImmediate(function() { cb0(); });
-
-//           });
-//         }, function(err0){
-
-//           async.setImmediate(function() { cb(); });
-
-//         });
-//       }).
-//       catch(function(err){
-//         return cb(err);
-//       });
-
-//     }, function(err){
-
-//       if (err) {
-//         console.log(chalkError("WAS | TFC | USER STATUS HISTOGRAM ERROR: " + err));
-//         return reject(err);
-//       }
-
-//       resolve(tweetHistograms);
- 
-//     });
-
-//   });
-// }
 
 let infoRateLimitTimeout;
 let infoRateLimitStatusInterval;

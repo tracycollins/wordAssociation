@@ -151,42 +151,6 @@ process.on("disconnect", function() {
   quit("DISCONNECT");
 });
 
-// function connectDb(){
-
-//   return new Promise(async function(resolve, reject){
-
-//     try {
-
-//       statsObj.status = "CONNECTING MONGO DB";
-
-//       console.log(chalk.green("TWP | MONGOOSE DEFAULT CONNECTION OPEN"));
-
-//       TweetServerController = require("@threeceelabs/tweet-server-controller");
-//       tweetServerController = new TweetServerController("TFE_TSC");
-
-//       tweetServerController.on("ready", function(err){
-//         statsObj.status = "MONGO DB CONNECTED";
-//         tweetServerControllerReady = true;
-//         console.log(chalk.green("TWP | TSC READY"));
-//         dbConnectionReady = true;
-//         resolve();
-//       });
-
-//       tweetServerController.on("error", function(err){
-//         statsObj.status = "MONGO DB ERROR";
-//         tweetServerControllerReady = false;
-//         dbConnectionReady = false;
-//         console.trace(chalkError("TWP | *** TSC ERROR | " + err));
-//       });
-
-//     }
-//     catch(err){
-//       console.log(chalkError("TWP | *** MONGO DB CONNECT ERROR: " + err));
-//       reject(err);
-//     }
-//   });
-// }
-
 function connectDb(){
 
   return new Promise(function(resolve, reject){

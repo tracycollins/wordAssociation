@@ -10322,7 +10322,7 @@ function twitterSearchNode(params, callback) {
         console.log(chalkTwitter("WAS | TWITTER_SEARCH_NODE HASHTAG NOT FOUND: #" + searchNodeHashtag.nodeId));
         console.log(chalkTwitter("WAS | +++ CREATE NEW HASHTAG: #" + searchNodeHashtag.nodeId));
 
-        new Hashtag({
+        new global.globalHashtag({
           nodeId: searchNodeHashtag.nodeId.toLowerCase(), 
           text: searchNodeHashtag.nodeId.toLowerCase()})
         .save(function(err, newHt){

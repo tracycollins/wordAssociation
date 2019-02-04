@@ -6051,8 +6051,14 @@ let categorizeableFlag = false;
 let userCategorizeable = function(user){
 
   if (user.nodeType !== "user") { return false; }
+  if (user.following) { 
+    ignoredUserSet.delete(user.nodeId);
+    unfollowableUserSet.delete(user.nodeId);
+    return true;
+  }
   if (user.ignored) { return false; }
   if (ignoredUserSet.has(user.nodeId)) { return false; }
+  if (unfollowableUserSet.has(user.nodeId)) { return false; }
   if (user.lang !== undefined && user.lang !== "en") { 
     ignoredUserSet.add(user.nodeId);
     unfollowableUserSet.add(user.nodeId);
@@ -6060,27 +6066,23 @@ let userCategorizeable = function(user){
     return false;
   }
   if (followableRegEx === undefined) { return false; }
-  if (user.following || (!user.ignored && (user.followersCount !== undefined && (user.followersCount >= configuration.minFollowersAuto)))) { 
+  if (user.followersCount !== undefined && (user.followersCount < configuration.minFollowersAuto)) { return false; }
+
+  if (!user.ignored && (user.followersCount !== undefined && (user.followersCount >= configuration.minFollowersAuto))) { 
+
     if ((user.description === undefined) || !user.description) { user.description = ""; }
     if ((user.screenName === undefined) || !user.screenName) { user.screenName = ""; }
     if ((user.name === undefined) || !user.name) { user.name = ""; }
-    categorizeableUserSet.add(user.nodeId);
-    return true;
+
+    categorizeableFlag = followableRegEx.test(user.description) || followableRegEx.test(user.screenName) || followableRegEx.test(user.name);
+
+    if (categorizeableFlag) { categorizeableUserSet.add(user.nodeId); }
+
+    return categorizeableFlag;
   }
-  if (user.followersCount !== undefined && (user.followersCount < configuration.minFollowersAuto)) { return false; }
 
-  if ((user.description === undefined) || !user.description) { user.description = ""; }
-  if ((user.screenName === undefined) || !user.screenName) { user.screenName = ""; }
-  if ((user.name === undefined) || !user.name) { user.name = ""; }
+  return false;
 
-
-  categorizeableFlag = followableRegEx.test(user.description)
-    || followableRegEx.test(user.screenName) 
-    || followableRegEx.test(user.name);
-
-  if (categorizeableFlag) { categorizeableUserSet.add(user.nodeId); }
-
-  return categorizeableFlag;
 };
 
 let followableFlag = false;

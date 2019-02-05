@@ -8787,6 +8787,10 @@ function loadBestRuntimeNetwork(params){
             statsObj.bestNetwork = pick(bestNetworkObj, statsBestNetworkPickArray);
 
             if (statsObj.previousBestNetworkId !== bestNetworkObj.networkId) {
+              console.log(chalk.green.bold("WAS | >>> BEST NETWORK CHANGE"
+                + " | PREV: " + statsObj.previousBestNetworkId
+                + " > NEW: " + bestNetworkObj.networkId
+              ));
               statsObj.previousBestNetworkId = bestNetworkObj.networkId;
               configEvents.emit("NEW_BEST_NETWORK", bestNetworkObj.networkId);
             }
@@ -8816,6 +8820,10 @@ function loadBestRuntimeNetwork(params){
               statsObj.bestNetwork = pick(bestNetworkObj, statsBestNetworkPickArray);
 
               if (statsObj.previousBestNetworkId !== bestNetworkObj.networkId) {
+                console.log(chalk.green.bold("WAS | >>> BEST NETWORK CHANGE"
+                  + " | PREV: " + statsObj.previousBestNetworkId
+                  + " > NEW: " + bestNetworkObj.networkId
+                ));
                 statsObj.previousBestNetworkId = bestNetworkObj.networkId;
                 configEvents.emit("NEW_BEST_NETWORK", bestNetworkObj.networkId);
               }
@@ -8859,6 +8867,10 @@ function loadBestRuntimeNetwork(params){
 
           if (statsObj.previousBestNetworkId !== bestNetworkObj.networkId) {
             statsObj.previousBestNetworkId = bestNetworkObj.networkId;
+            console.log(chalk.green.bold("WAS | >>> BEST NETWORK CHANGE"
+              + " | PREV: " + statsObj.previousBestNetworkId
+              + " > NEW: " + bestNetworkObj.networkId
+            ));
             configEvents.emit("NEW_BEST_NETWORK", bestNetworkObj.networkId);
           }
 

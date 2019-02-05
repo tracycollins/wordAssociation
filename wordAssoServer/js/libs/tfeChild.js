@@ -146,7 +146,7 @@ const treeify = require("../libs/treeify");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const HashMap = require("hashmap").HashMap;
 const neataptic = require("neataptic");
-const networksHashMap = new HashMap();
+// const networksHashMap = new HashMap();
 const arrayNormalize = require("array-normalize");
 const NodeCache = require("node-cache");
 
@@ -2740,8 +2740,6 @@ process.on("message", function(m) {
       networkObj = m.networkObj;
       network = neataptic.Network.fromJSON(m.networkObj.network);
 
-      // networksHashMap.set(m.networkObj.networkId, m.networkObj);
-
       console.log(chalkInfo("WAS | TFC | INIT"
         + " | TITLE: " + process.title
         + " | NETWORK: " + networkObj.networkId
@@ -2755,16 +2753,14 @@ process.on("message", function(m) {
 
     case "NETWORK":
 
+      networkObj = m.networkObj;
       network = neataptic.Network.fromJSON(m.networkObj.network);
 
-      m.networkObj.network = {};
-      m.networkObj.network = network;
-
-      networksHashMap.set(m.networkObj.networkId, m.networkObj);
-
       console.log(chalkInfo("WAS | TFC | +++ NETWORK"
-        + " | NNs IN HM: " + networksHashMap.size
-        + " | NETWORK: " + networksHashMap.get(m.networkObj.networkId).networkId
+        // + " | NNs IN HM: " + networksHashMap.size
+        + " | NETWORK: " + networkObj.networkId
+        + " | INPUTS: " + networkObj.inputsObj.meta.numInputs
+        + " | INPUTS ID: " + networkObj.inputsId
       ));
       
     break;

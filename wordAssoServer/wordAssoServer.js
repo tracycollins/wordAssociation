@@ -58,7 +58,7 @@ let userServerControllerReady = false;
 let neuralNetworkChangeStream;
 let userChangeStream;
 
-let userFollowingCursor;
+let userSearchCursor;
 
 let initCategoryHashmapsReady = true;
 let heartbeatInterval;
@@ -544,7 +544,7 @@ function quit(message) {
 
   console.log(chalkAlert("\nWAS | ... QUITTING ... " + getTimeStamp()));
 
-  if (userFollowingCursor !== undefined) { userFollowingCursor.close(); }
+  if (userSearchCursor !== undefined) { userSearchCursor.close(); }
   if (neuralNetworkChangeStream !== undefined) { neuralNetworkChangeStream.close(); }
   if (userChangeStream !== undefined) { userChangeStream.close(); }
 
@@ -6299,11 +6299,12 @@ function updateUserSets(params){
       console.log(chalkBlue("WAS | TOTAL UNCATEGORIZED AUTO USERS IN DB: " + statsObj.user.uncategorizedAuto));
     });
 
-    const followingSearchQuery = { following: true, ignored: false };
+    // const userSearchQuery = { following: true, ignored: false };
+    const userSearchQuery = { ignored: false };
     
-    userFollowingCursor = global.globalUser.find(followingSearchQuery).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
+    userSearchCursor = global.globalUser.find(userSearchQuery).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
 
-    userFollowingCursor.on("data", function(user) {
+    userSearchCursor.on("data", function(user) {
 
       if (!ignoredUserSet.has(user.nodeId) && !unfollowableUserSet.has(user.nodeId) && user.lang && (user.lang !== undefined) && (user.lang !== "en")){
         ignoredUserSet.add(user.nodeId);
@@ -6373,7 +6374,7 @@ function updateUserSets(params){
 
     });
 
-    userFollowingCursor.on("end", function() {
+    userSearchCursor.on("end", function() {
 
       uncategorizedManualUserArray = [...uncategorizedManualUserSet];
       mismatchUserArray = mismatchUserSet.keys();
@@ -6391,7 +6392,7 @@ function updateUserSets(params){
       }
     });
 
-    userFollowingCursor.on("error", function(err) {
+    userSearchCursor.on("error", function(err) {
 
       uncategorizedManualUserArray = [...uncategorizedManualUserSet];
       mismatchUserArray = mismatchUserSet.keys();
@@ -6400,7 +6401,7 @@ function updateUserSets(params){
       statsObj.user.matched = matchUserSet.size;
       statsObj.user.mismatched = mismatchUserSet.size;
 
-      console.error(chalkError("*** ERROR userFollowingCursor: " + err));
+      console.error(chalkError("*** ERROR userSearchCursor: " + err));
       console.log(chalkAlert("WAS | USER DB STATS\n" + jsonPrint(statsObj.user)));
 
       if (!calledBack) { 
@@ -6409,7 +6410,7 @@ function updateUserSets(params){
       }
     });
 
-    userFollowingCursor.on("close", function() {
+    userSearchCursor.on("close", function() {
 
       uncategorizedManualUserArray = [...uncategorizedManualUserSet];
       mismatchUserArray = mismatchUserSet.keys();

@@ -357,7 +357,20 @@ const Dropbox = require("dropbox").Dropbox;
 const HashMap = require("hashmap").HashMap;
 
 const ignoreIpSet = new Set();
+
 const ignoreLocationsSet = new Set();
+ignoreLocationsSet.add("india");
+ignoreLocationsSet.add("africa");
+ignoreLocationsSet.add("canada");
+ignoreLocationsSet.add("britain");
+ignoreLocationsSet.add("mumbai");
+ignoreLocationsSet.add("london");
+ignoreLocationsSet.add("england");
+ignoreLocationsSet.add("nigeria");
+ignoreLocationsSet.add("lagos");
+let ignoreLocationsArray = Array.from(ignoreLocationsSet);
+let ignoreLocationsString = ignoreLocationsArray.join("|");
+let ignoreLocationsRegEx = new RegExp(ignoreLocationsString, "gi");
 
 const NodeCache = require("node-cache");
 const commandLineArgs = require("command-line-args");
@@ -6263,11 +6276,6 @@ function initIgnoreLocations(){
 
     console.log(chalkTwitter("WAS | INIT IGNORE LOCATIONS"));
 
-    ignoreLocationsSet.add("india");
-    ignoreLocationsSet.add("london");
-    ignoreLocationsSet.add("england");
-    ignoreLocationsSet.add("nigeria");
-
     let response;
 
     try{
@@ -6309,9 +6317,17 @@ function initIgnoreLocations(){
       console.log(chalk.blue("WAS | FILE CONTAINS " + dataArray.length + " IGNORE LOCATIONS "));
 
       dataArray.forEach(function(location){
-        ignoreLocationsSet.add(location);
-        console.log(chalkLog("WAS | +++ IGNORE LOCATION [" + ignoreLocationsSet.size + "] " + location));
+        location = location.trim();
+        location = location.replace(/\s|\n/gim, "");
+        if (location.length > 1) { 
+          ignoreLocationsSet.add(location);
+          console.log(chalkLog("WAS | +++ IGNORE LOCATION [" + ignoreLocationsSet.size + "] " + location));
+        }
       });
+
+      ignoreLocationsArray = Array.from(ignoreLocationsSet);
+      ignoreLocationsString = ignoreLocationsArray.join("|");
+      ignoreLocationsRegEx = new RegExp(ignoreLocationsString, "gi");
 
       resolve();
 
@@ -6442,7 +6458,7 @@ function updateUserSets(params){
         && !user.category 
         && !user.ignored 
         && !ignoredUserSet.has(user.nodeId) 
-        && (user.location && user.location !== undefined && !ignoreLocationsSet.has(user.location.toLowerCase())) 
+        && (user.location && user.location !== undefined && !ignoreLocationsRegEx.test(user.location)) 
         && !unfollowableUserSet.has(user.nodeId)) { 
 
         uncategorizedManualUserSet.add(user.nodeId);

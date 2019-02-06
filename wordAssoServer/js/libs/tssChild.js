@@ -98,6 +98,18 @@ const searchTermHashMap = new HashMap();
 const unfollowQueue = [];
 
 const ignoreLocationsSet = new Set();
+ignoreLocationsSet.add("india");
+ignoreLocationsSet.add("africa");
+ignoreLocationsSet.add("canada");
+ignoreLocationsSet.add("britain");
+ignoreLocationsSet.add("mumbai");
+ignoreLocationsSet.add("london");
+ignoreLocationsSet.add("england");
+ignoreLocationsSet.add("nigeria");
+ignoreLocationsSet.add("lagos");
+let ignoreLocationsArray = Array.from(ignoreLocationsSet);
+let ignoreLocationsString = ignoreLocationsArray.join("|");
+let ignoreLocationsRegEx = new RegExp(ignoreLocationsString, "gi");
 
 process.on("SIGHUP", function() {
   quit("SIGHUP");
@@ -1974,9 +1986,17 @@ function initIgnoreLocations(){
       console.log(chalk.blue("TSS | FILE CONTAINS " + dataArray.length + " IGNORE LOCATIONS "));
 
       dataArray.forEach(function(location){
-        ignoreLocationsSet.add(location);
-        console.log(chalkLog("TSS | +++ IGNORE LOCATION [" + ignoreLocationsSet.size + "] " + location));
+        location = location.trim();
+        location = location.replace(/\s|\n/gim, "");
+        if (location.length > 1) { 
+          ignoreLocationsSet.add(location);
+          console.log(chalkLog("WAS | +++ IGNORE LOCATION [" + ignoreLocationsSet.size + "] " + location));
+        }
       });
+
+      ignoreLocationsArray = Array.from(ignoreLocationsSet);
+      ignoreLocationsString = ignoreLocationsArray.join("|");
+      ignoreLocationsRegEx = new RegExp(ignoreLocationsString, "gi");
 
       resolve();
 

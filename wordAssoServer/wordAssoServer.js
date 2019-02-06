@@ -6442,7 +6442,7 @@ function updateUserSets(params){
         && !user.category 
         && !user.ignored 
         && !ignoredUserSet.has(user.nodeId) 
-        && !ignoreLocationsSet.has(user.location.toLowerCase()) 
+        && (user.location && user.location !== undefined && !ignoreLocationsSet.has(user.location.toLowerCase())) 
         && !unfollowableUserSet.has(user.nodeId)) { 
 
         uncategorizedManualUserSet.add(user.nodeId);

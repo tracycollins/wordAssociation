@@ -16,6 +16,7 @@ hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
 
+
 const TWITTER_WEBHOOK_URL = "/webhooks/twitter";
 const TWITTER_WEBHOOK_URL_FULL = "https://api.twitter.com/1.1/account_activity/all/dev/webhooks.json?url=https%3A%2F%word.threeceelabs.com%2Fwebhooks%2Ftwitter";
 
@@ -241,6 +242,9 @@ const moment = require("moment");
 // const treeify = require("treeify");
 const treeify = require(__dirname + "/js/libs/treeify");
 
+let prevIgnoredLocationsFileModifiedMoment = moment("2010-01-01");
+let prevSearchTermsFileModifiedMoment = moment("2010-01-01");
+
 const request_options = {
   url: "https://api.twitter.com/oauth2/token",
   method: "POST",
@@ -353,6 +357,7 @@ const Dropbox = require("dropbox").Dropbox;
 const HashMap = require("hashmap").HashMap;
 
 const ignoreIpSet = new Set();
+const ignoreLocationsSet = new Set();
 
 const NodeCache = require("node-cache");
 const commandLineArgs = require("command-line-args");
@@ -6203,6 +6208,122 @@ function getCurrentThreeceeUser(params){
   });
 }
 
+function loadFileRetry(params){
+
+  return new Promise(async function(resolve, reject){
+
+    const resolveOnNotFound = params.resolveOnNotFound || false;
+    const maxRetries = params.maxRetries || 5;
+    let retryNumber;
+    let backOffTime = params.initialBackOffTime || ONE_SECOND;
+    const path = params.path || params.folder + "/" + params.file;
+
+    for (retryNumber = 0;retryNumber < maxRetries;retryNumber++) {
+      try {
+        
+        const fileObj = await loadFile(params);
+
+        if (retryNumber > 0) { 
+          console.log(chalkAlert(MODULE_ID_PREFIX + " | FILE LOAD RETRY"
+            + " | " + path
+            + " | BACKOFF: " + msToTime(backOffTime)
+            + " | " + retryNumber + " OF " + maxRetries
+          )); 
+        }
+
+        return resolve(fileObj);
+        // break;
+      } 
+      catch(err) {
+        backOffTime *= 1.5;
+        setTimeout(function(){
+          console.log(chalkAlert(MODULE_ID_PREFIX + " | FILE LOAD ERROR ... RETRY"
+            + " | " + path
+            + " | BACKOFF: " + msToTime(backOffTime)
+            + " | " + retryNumber + " OF " + maxRetries
+            + " | ERROR: " + err
+          )); 
+        }, backOffTime);
+      }
+    }
+
+    if (resolveOnNotFound) {
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | resolve FILE LOAD FAILED | RETRY: " + retryNumber + " OF " + maxRetries));
+      return resolve(false);
+    }
+    console.log(chalkError(MODULE_ID_PREFIX + " | reject FILE LOAD FAILED | RETRY: " + retryNumber + " OF " + maxRetries));
+    reject(new Error("FILE LOAD ERROR | RETRIES " + maxRetries));
+
+  });
+}
+
+function initIgnoreLocations(){
+
+  return new Promise(async function(resolve, reject){
+
+    console.log(chalkTwitter("WAS | INIT IGNORE LOCATIONS"));
+
+    ignoreLocationsSet.add("india");
+    ignoreLocationsSet.add("london");
+    ignoreLocationsSet.add("england");
+    ignoreLocationsSet.add("nigeria");
+
+    let response;
+
+    try{
+      response = await getFileMetadata({folder: dropboxConfigDefaultFolder, file: "ignoreLocations.txt"});
+    }
+    catch(err){
+      console.log(chalkError("WAS | *** GET FILE METADATA ERROR: " + err));
+      return reject(err);
+    }
+
+    const fileModifiedMoment = moment(new Date(response.client_modified));
+  
+    if (fileModifiedMoment.isSameOrBefore(prevIgnoredLocationsFileModifiedMoment)){
+      console.log(chalkInfo("WAS | IGNORE LOCATIONS FILE BEFORE OR EQUAL"
+        + " | PREV: " + prevIgnoredLocationsFileModifiedMoment.format(compactDateTimeFormat)
+        + " | " + fileModifiedMoment.format(compactDateTimeFormat)
+      ));
+      return resolve(0);
+    }
+
+    console.log(chalkInfo("WAS | IGNORE LOCATIONS FILE AFTER"));
+
+    prevIgnoredLocationsFileModifiedMoment = moment(fileModifiedMoment);
+
+    try{
+      const data = await loadFileRetry({folder: dropboxConfigDefaultFolder, file: "ignoreLocations.txt"}); 
+
+      if (data === undefined){
+        console.log(chalkError("TSS | DROPBOX FILE DOWNLOAD DATA UNDEFINED"
+          + " | " + DROPBOX_DEFAULT_CONFIG_FOLDER + "/" + "ignoreLocations.txt"
+        ));
+        return reject(new Error("DROPBOX FILE DOWNLOAD DATA UNDEFINED"));
+      }
+
+      debug(chalkInfo("WAS | DROPBOX IGNORE LOCATIONS FILE\n" + jsonPrint(data)));
+
+      const dataArray = data.toString().toLowerCase().split("\n");
+
+      console.log(chalk.blue("WAS | FILE CONTAINS " + dataArray.length + " IGNORE LOCATIONS "));
+
+      dataArray.forEach(function(location){
+        ignoreLocationsSet.add(location);
+        console.log(chalkLog("WAS | +++ IGNORE LOCATION [" + ignoreLocationsSet.size + "] " + location));
+      });
+
+      resolve();
+
+    }
+    catch(e){
+      console.log(chalkError("TSS | LOAD FILE ERROR\n" + e));
+      return reject(e);
+    }
+      
+  });
+}
+
 function updateUserSets(params){
 
   return new Promise(function(resolve, reject){
@@ -6317,7 +6438,11 @@ function updateUserSets(params){
         );
       }
 
-      if (!uncategorizedManualUserSet.has(user.nodeId) && !user.category && !ignoredUserSet.has(user.nodeId) && !unfollowableUserSet.has(user.nodeId)) { 
+      if (!uncategorizedManualUserSet.has(user.nodeId) 
+        && !user.category 
+        && !ignoredUserSet.has(user.nodeId) 
+        && !ignoreLocationsSet.has(user.nodeId) 
+        && !unfollowableUserSet.has(user.nodeId)) { 
 
         uncategorizedManualUserSet.add(user.nodeId);
 
@@ -6327,7 +6452,11 @@ function updateUserSets(params){
 
       }
 
-      if (!uncategorizedAutoUserSet.has(user.nodeId) && !user.categoryAuto && !ignoredUserSet.has(user.nodeId) && !unfollowableUserSet.has(user.nodeId)) { 
+      if (!uncategorizedAutoUserSet.has(user.nodeId) 
+        && !user.categoryAuto 
+        && !ignoredUserSet.has(user.nodeId) 
+        && !ignoreLocationsSet.has(user.nodeId) 
+        && !unfollowableUserSet.has(user.nodeId)) { 
 
         uncategorizedAutoUserSet.add(user.nodeId);
 
@@ -6344,7 +6473,9 @@ function updateUserSets(params){
         uncategorizedManualUserSet.delete(user.nodeId); 
         uncategorizedAutoUserSet.delete(user.nodeId); 
 
-        if (!ignoredUserSet.has(user.nodeId) && !unfollowableUserSet.has(user.nodeId)){
+        if (!ignoredUserSet.has(user.nodeId) 
+          && !ignoreLocationsSet.has(user.nodeId) 
+          && !unfollowableUserSet.has(user.nodeId)){
           categorizedManualUserSet.add(user.nodeId); 
           categorizedAutoUserSet.add(user.nodeId); 
 
@@ -7721,9 +7852,14 @@ function updateSearchTerms(){
   tssSendAllChildren({op: "UPDATE_SEARCH_TERMS"});
 }
 
-function ignoreLocations(){
+async function ignoreLocations(){
   console.log(chalk.green("WAS | WAS | UPDATE IGNORE LOCATIONS"));
-
+  try{
+    await initIgnoreLocations();
+  }
+  catch(err){
+    console.log(chalkError("WAS | *** INIT IGNORE LOCATIONS ERROR: " + err));
+  }
   tssSendAllChildren({op: "UPDATE_IGNORE_LOCATIONS"});
 }
 
@@ -9606,7 +9742,6 @@ function initDbUserChangeStream(params){
 
 function initCategoryHashmaps(){
 
-
   return new Promise(function(resolve, reject){
 
     console.log(chalk.bold.black("WAS | INIT CATEGORIZED USER + HASHTAG HASHMAPS FROM DB"));
@@ -10615,6 +10750,7 @@ setTimeout(function(){
               await addAccountActivitySubscription();
               await initKeySortInterval(configuration.keySortInterval);
               await initSaveFileQueue(configuration);
+              await initIgnoreLocations();
               await updateUserSets();
               await loadBestRuntimeNetwork();
               await loadMaxInputHashMap();

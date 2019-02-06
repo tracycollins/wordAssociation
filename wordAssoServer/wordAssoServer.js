@@ -6427,7 +6427,7 @@ function updateUserSets(params){
 
     userSearchCursor.on("data", function(user) {
 
-      if (!ignoredUserSet.has(user.nodeId) && !unfollowableUserSet.has(user.nodeId) && user.lang && (user.lang !== undefined) && (user.lang !== "en")){
+      if (user.lang && (user.lang !== undefined) && (user.lang !== "en")){
         ignoredUserSet.add(user.nodeId);
         unfollowableUserSet.add(user.nodeId);
         printUserObj(
@@ -6440,8 +6440,9 @@ function updateUserSets(params){
 
       if (!uncategorizedManualUserSet.has(user.nodeId) 
         && !user.category 
+        && !user.ignored 
         && !ignoredUserSet.has(user.nodeId) 
-        && !ignoreLocationsSet.has(user.nodeId) 
+        && !ignoreLocationsSet.has(user.location.toLowerCase()) 
         && !unfollowableUserSet.has(user.nodeId)) { 
 
         uncategorizedManualUserSet.add(user.nodeId);

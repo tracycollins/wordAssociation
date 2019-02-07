@@ -6345,6 +6345,7 @@ function updateUserSets(params){
   return new Promise(function(resolve, reject){
 
     let calledBack = false;
+    let categorizeable = false;
 
     if (!statsObj.dbConnectionReady) {
       console.log(chalkAlert("WAS | ABORT updateUserSets: DB CONNECTION NOT READY"));
@@ -6454,7 +6455,10 @@ function updateUserSets(params){
         );
       }
 
-      if (!uncategorizedManualUserSet.has(user.nodeId) 
+      categorizeable = userCategorizeable(user);
+
+      if (categorizeable
+        && !uncategorizedManualUserSet.has(user.nodeId) 
         && !user.category 
         && !user.ignored 
         && !ignoredUserSet.has(user.nodeId) 

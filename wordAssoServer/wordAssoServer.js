@@ -6066,24 +6066,39 @@ function initFollowableSearchTerms(){
 }
 
 let categorizeableFlag = false;
+
 let userCategorizeable = function(user){
 
   if (user.nodeType !== "user") { return false; }
+
   if (user.following) { 
     ignoredUserSet.delete(user.nodeId);
     unfollowableUserSet.delete(user.nodeId);
     return true;
   }
+
   if (user.ignored) { return false; }
+
   if (ignoredUserSet.has(user.nodeId)) { return false; }
+
   if (unfollowableUserSet.has(user.nodeId)) { return false; }
+
   if (user.lang !== undefined && user.lang !== "en") { 
     ignoredUserSet.add(user.nodeId);
     unfollowableUserSet.add(user.nodeId);
     if (configuration.verbose) { console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LANG NOT ENGLISH: " + user.lang)); }
     return false;
   }
+
+  if ((ignoreLocationsRegEx !== undefined) 
+    && user.location 
+    && (user.location !== undefined) 
+    && ignoreLocationsRegEx.test(user.location)){
+    return false;
+  }
+
   if (followableRegEx === undefined) { return false; }
+  
   if (user.followersCount !== undefined && (user.followersCount < configuration.minFollowersAuto)) { return false; }
 
   if (!user.ignored && (user.followersCount !== undefined && (user.followersCount >= configuration.minFollowersAuto))) { 
@@ -6325,7 +6340,7 @@ function initIgnoreLocations(){
         }
       });
 
-      ignoreLocationsArray = Array.from(ignoreLocationsSet);
+      ignoreLocationsArray = [...ignoreLocationsSet];
       ignoreLocationsString = ignoreLocationsArray.join("|");
       ignoreLocationsRegEx = new RegExp(ignoreLocationsString, "gi");
 
@@ -6462,7 +6477,7 @@ function updateUserSets(params){
         && !user.category 
         && !user.ignored 
         && !ignoredUserSet.has(user.nodeId) 
-        && (user.location && user.location !== undefined && !ignoreLocationsRegEx.test(user.location)) 
+        // && (user.location && (user.location !== undefined) && !ignoreLocationsRegEx.test(user.location)) 
         && !unfollowableUserSet.has(user.nodeId)) { 
 
         uncategorizedManualUserSet.add(user.nodeId);

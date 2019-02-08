@@ -1994,7 +1994,7 @@ function initIgnoreLocations(){
         }
       });
 
-      ignoreLocationsArray = Array.from(ignoreLocationsSet);
+      ignoreLocationsArray = [...ignoreLocationsSet];
       ignoreLocationsString = ignoreLocationsArray.join("|");
       ignoreLocationsRegEx = new RegExp(ignoreLocationsString, "gi");
 

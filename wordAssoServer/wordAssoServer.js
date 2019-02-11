@@ -10345,8 +10345,11 @@ function twitterGetUserUpdateDb(user, callback){
 
             if (nCacheObj) {
               user.mentions = Math.max(user.mentions, nCacheObj.mentions);
-              user.setMentions = true;
             }
+            else {
+              user.mentions = 0;
+            }
+            user.setMentions = true;
 
             try{
               const updatedUser = await userServerController.findOneUserV2({user: user, mergeHistograms: false, noInc: true});
@@ -10390,8 +10393,13 @@ function twitterGetUserUpdateDb(user, callback){
 
         if (nCacheObj) {
           user.mentions = Math.max(user.mentions, nCacheObj.mentions);
-          user.setMentions = true;
         }
+        else {
+          user.mentions = 0;
+        }
+
+        user.setMentions = true;
+        
       }
 
       if (!userServerControllerReady || !statsObj.dbConnectionReady) {

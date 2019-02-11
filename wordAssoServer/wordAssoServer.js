@@ -1528,7 +1528,6 @@ function connectDb(){
         userServerController.on("ready", function(appname){
 
           statsObj.status = "MONGO DB CONNECTED";
-          // slackSendMessage(hostname + " | WAS | " + statsObj.status);
 
           userServerControllerReady = true;
           console.log(chalk.green("WAS | USC READY | " + appname));
@@ -5976,7 +5975,7 @@ function updateNodeMeter(node, callback){
       globalNodeMeter.mark();
       
       nodeObj.rate = parseFloat(newMeter.toJSON()[metricsRate]);
-      nodeObj.mentions += 1;
+      nodeObj.mentions = nodeObj.mentions ? nodeObj.mentions+1 : 1;
 
       node.rate = nodeObj.rate;
       node.mentions = nodeObj.mentions;
@@ -6026,7 +6025,7 @@ function updateNodeMeter(node, callback){
         nodeObj.mentions = Math.max(nodeObj.mentions, nCacheObj.mentions);
       }
 
-      nodeObj.mentions += 1;
+      nodeObj.mentions = nodeObj.mentions ? nodeObj.mentions+1 : 1;
       node.mentions = nodeObj.mentions;
 
       nodeCache.set(meterNodeId, nodeObj);
@@ -10340,6 +10339,7 @@ function twitterGetUserUpdateDb(user, callback){
             user.url = cUser.url;
             user.userId = cUser.userId;
             user.verified = cUser.verified;
+            user.mentions = 0;
 
             let nCacheObj = nodeCache.get(user.nodeId);
 
@@ -10361,7 +10361,7 @@ function twitterGetUserUpdateDb(user, callback){
               callback(null, updatedUser);
             }
             catch(err){
-              console.log(chalkError("WAS | *** findOneUser ERROR: " + err));
+              console.log(chalkError("WAS | *** findOneUserV2 ERROR: " + err));
               return callback("NO DB UPDATE", user);
             }
           });
@@ -10399,7 +10399,7 @@ function twitterGetUserUpdateDb(user, callback){
         }
 
         user.setMentions = true;
-        
+
       }
 
       if (!userServerControllerReady || !statsObj.dbConnectionReady) {
@@ -10420,7 +10420,7 @@ function twitterGetUserUpdateDb(user, callback){
 
       }
       catch(err){
-        console.log(chalkError("WAS | *** findOneUser ERROR: " + err));
+        console.log(chalkError("WAS | *** findOneUserV2 ERROR: " + err));
         return callback("NO DB OR TWITTER UPDATE", user);
       }
 

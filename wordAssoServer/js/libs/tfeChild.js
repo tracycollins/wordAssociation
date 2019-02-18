@@ -329,6 +329,11 @@ statsObj.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
 statsObj.startTime = moment().valueOf();
 statsObj.elapsed = moment().valueOf() - statsObj.startTime;
 
+statsObj.autoChangeMatch = 0;
+statsObj.autoChangeMismatch = 0;
+statsObj.autoChangeTotal = 0;
+statsObj.autoChangeMatchRate = 0;
+
 statsObj.user = {};
 statsObj.user.changes = 0;
 
@@ -569,6 +574,10 @@ function showStats(options){
       + " | UC$: " + userChangeCache.getStats().keys
       + " | UCDBQ: " + userChangeDbQueue.length
       + " | UCATQ: " + userCategorizeQueue.length
+      + " | AUTO CHG M " + statsObj.autoChangeMatch
+      + " MM: " + statsObj.autoChangeMismatch
+      + " TOT: " + statsObj.autoChangeTotal
+      + " RATE: " + statsObj.autoChangeMatchRate.toFixed(2)
     ));
   }
 }
@@ -2564,14 +2573,24 @@ function initUserCategorizeQueueInterval(cnf){
         }
         else if (matchFlag){
           chalkType = chalkGreen;
+          statsObj.autoChangeTotal += 1;
+          statsObj.autoChangeMatch += 1;
         }
         else {
           chalkType = chalk.yellow;
+          statsObj.autoChangeTotal += 1;
+          statsObj.autoChangeMismatch += 1;
         }
+
+        statsObj.autoChangeMatchRate = 100*(statsObj.autoChangeMatch/statsObj.autoChangeTotal);
         
         // chalkType = (matchFlag) ? chalkGreen : chalk.yellow;
 
         console.log(chalkType("WAS | TFC | >>> NN AUTO CHG"
+          + " | AUTO CHG M " + statsObj.autoChangeMatch
+          + " MM: " + statsObj.autoChangeMismatch
+          + " TOT: " + statsObj.autoChangeTotal
+          + " RATE: " + statsObj.autoChangeMatchRate.toFixed(2)
           + " | UC$ " + userChangeCache.getStats().keys
           + " UCQ " + userCategorizeQueue.length
           + " NN " + networkObj.networkId
@@ -2756,13 +2775,17 @@ process.on("message", function(m) {
       networkObj = m.networkObj;
       network = neataptic.Network.fromJSON(m.networkObj.network);
 
+      statsObj.autoChangeTotal = 0;
+      statsObj.autoChangeMatchRate = 0;
+      statsObj.autoChangeMatch = 0;
+      statsObj.autoChangeMismatch = 0;
+
       console.log(chalkInfo("WAS | TFC | +++ NETWORK"
         // + " | NNs IN HM: " + networksHashMap.size
         + " | NETWORK: " + networkObj.networkId
         + " | INPUTS: " + networkObj.inputsObj.meta.numInputs
         + " | INPUTS ID: " + networkObj.inputsId
       ));
-      
     break;
 
     case "FORCE_IMAGE_ANALYSIS":
@@ -2772,7 +2795,6 @@ process.on("message", function(m) {
       console.log(chalkInfo("WAS | TFC | +++ FORCE_IMAGE_ANALYSIS"
         + " | FORCE IMAGE ANALYSIS: " + configuration.forceImageAnalysis
       ));
-      
     break;
 
     case "MAX_INPUT_HASHMAP":
@@ -2782,7 +2804,6 @@ process.on("message", function(m) {
       console.log(chalkInfo("WAS | TFC | +++ MAX_INPUT_HASHMAP"
         + " | MAX INPUT HM KEYS: " + Object.keys(maxInputHashMap)
       ));
-      
     break;
 
     case "NORMALIZATION":
@@ -2792,7 +2813,6 @@ process.on("message", function(m) {
       console.log(chalkInfo("WAS | TFC | +++ NORMALIZATION"
         + " | NORMALIZATION: " + Object.keys(normalization)
       ));
-      
     break;
 
     case "USER_AUTHENTICATED":
@@ -2885,7 +2905,6 @@ process.on("message", function(m) {
           ));
         }
       }
-
     break;
 
     case "PING":

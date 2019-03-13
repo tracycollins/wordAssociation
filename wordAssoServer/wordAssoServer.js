@@ -1034,8 +1034,8 @@ let trainingSetsUsersFolderLocal = (hostname === "google")
 let usersZipUpdateFlagFile = trainingSetsUsersFolderLocal + "/usersZipUpdateFlag.txt";
 
 let categorizedFolder = dropboxConfigDefaultFolder + "/categorized";
-let categorizedUsersFile = "categorizedUsers.json";
-let categorizedHashtagsFile = "categorizedHashtags.json";
+// let categorizedUsersFile = "categorizedUsers.json";
+// let categorizedHashtagsFile = "categorizedHashtags.json";
 
 let statsFolder = "/stats/" + hostname;
 let statsFile = "wordAssoServerStats_" + moment().format(tinyDateTimeFormat) + ".json";
@@ -1407,13 +1407,12 @@ function connectDb(){
                   user: updatedUser
                 });
 
-
-                saveFileQueue.push({
-                  localFlag: false, 
-                  folder: categorizedFolder, 
-                  file: categorizedUsersFile, 
-                  obj: categorizedUserHashMap.entries()
-                });
+                // saveFileQueue.push({
+                //   localFlag: false, 
+                //   folder: categorizedFolder, 
+                //   file: categorizedUsersFile, 
+                //   obj: categorizedUserHashMap.entries()
+                // });
 
                 adminNameSpace.emit("USER_AUTHENTICATED", updatedUser);
                 viewNameSpace.emit("USER_AUTHENTICATED", updatedUser);
@@ -3868,13 +3867,13 @@ function categorizeNode(categorizeObj, callback) {
           if (updatedUser.category) { uncategorizedManualUserSet.delete(updatedUser.nodeId); }
           if (updatedUser.categoryAuto) { uncategorizedAutoUserSet.delete(updatedUser.nodeId); }
 
-          saveFileQueue.push(
-            {
-              localFlag: false, 
-              folder: categorizedFolder, 
-              file: categorizedUsersFile, 
-              obj: categorizedUserHashMap.entries()
-            });
+          // saveFileQueue.push(
+          //   {
+          //     localFlag: false, 
+          //     folder: categorizedFolder, 
+          //     file: categorizedUsersFile, 
+          //     obj: categorizedUserHashMap.entries()
+          //   });
 
           // slackSendMessage("CATEGORIZE" + "\n@" + categorizeObj.node.screenName + ": " + categorizeObj.category );
 
@@ -3907,13 +3906,13 @@ function categorizeNode(categorizeObj, callback) {
         categorizeObj.node.mentions = Math.max(categorizeObj.node.mentions, nCacheObj.mentions);
       }
 
-      saveFileQueue.push(
-        {
-          localFlag: false, 
-          folder: categorizedFolder, 
-          file: categorizedHashtagsFile, 
-          obj: categorizedHashtagHashMap.entries()
-        });
+      // saveFileQueue.push(
+      //   {
+      //     localFlag: false, 
+      //     folder: categorizedFolder, 
+      //     file: categorizedHashtagsFile, 
+      //     obj: categorizedHashtagHashMap.entries()
+      //   });
 
       hashtagServerController.updateCategory(
         { hashtag: categorizeObj.node, category: categorizeObj.category }, 

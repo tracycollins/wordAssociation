@@ -21,11 +21,11 @@ ProgressBar
 
 "use strict";
 
-// var DEFAULT_SOURCE = "http://localhost:9997";
-var DEFAULT_SOURCE = "https://word.threeceelabs.com";
+var DEFAULT_SOURCE = "http://localhost:9997";
+// var DEFAULT_SOURCE = "https://word.threeceelabs.com";
 
-var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
-// var DEFAULT_AUTH_URL = "http://localhost:9997/auth/twitter";
+// var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
+var DEFAULT_AUTH_URL = "http://localhost:9997/auth/twitter";
 // var DEFAULT_AUTH_URL = DEFAULT_SOURCE + "/login";
 
 var MAX_RX_QUEUE = 250;
@@ -1065,9 +1065,12 @@ function controlPanelComm(event) {
             + " | C: " + event.data.category
           );
           socket.emit("TWITTER_CATEGORIZE_NODE", 
-            { twitterUser: config.twitterUser,
-            category: event.data.category,
-            node: event.data.node}
+            { 
+              twitterUser: config.twitterUser,
+              category: event.data.category,
+              follow: true,
+              node: event.data.node
+            }
           );
         }
         else if (event.data.node.nodeType === "hashtag"){

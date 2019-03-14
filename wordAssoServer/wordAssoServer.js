@@ -3830,6 +3830,7 @@ function categorizeNode(categorizeObj, callback) {
         + " | NID: " + categorizeObj.node.nodeId
         + " | @" + categorizeObj.node.screenName
         + " | C: " + categorizeObj.category
+        + " | FLW: " + categorizeObj.follow
       ));
 
       cObj.manual = categorizeObj.category;
@@ -3862,24 +3863,48 @@ function categorizeNode(categorizeObj, callback) {
         }
         else {
 
-          categorizedUserHashMap.set(updatedUser.nodeId, {manual: updatedUser.category, auto: updatedUser.categoryAuto});
+          if (categorizeObj.follow) {
+            follow({user: updatedUser, forceFollow: true}, function(err, updatedFollowUser){
+              if (err) {
+                console.log(chalkError("WAS | TWITTER FOLLOW ERROR: " + err));
+                return;
+              }
 
-          if (updatedUser.category) { uncategorizedManualUserSet.delete(updatedUser.nodeId); }
-          if (updatedUser.categoryAuto) { uncategorizedAutoUserSet.delete(updatedUser.nodeId); }
+              if (!updatedFollowUser) {
+                console.log(chalkError("WAS | TWITTER FOLLOW ERROR: NULL UPDATED USER"));
+                return;
+              }
 
-          // saveFileQueue.push(
-          //   {
-          //     localFlag: false, 
-          //     folder: categorizedFolder, 
-          //     file: categorizedUsersFile, 
-          //     obj: categorizedUserHashMap.entries()
-          //   });
+              categorizedUserHashMap.set(updatedFollowUser.nodeId, {manual: updatedFollowUser.category, auto: updatedFollowUser.categoryAuto});
 
-          // slackSendMessage("CATEGORIZE" + "\n@" + categorizeObj.node.screenName + ": " + categorizeObj.category );
+              if (updatedFollowUser.category) { uncategorizedManualUserSet.delete(updatedFollowUser.nodeId); }
+              if (updatedFollowUser.categoryAuto) { uncategorizedAutoUserSet.delete(updatedFollowUser.nodeId); }
 
-          debug(chalkLog("UPDATE_CATEGORY USER | @" + updatedUser.screenName ));
-          if (callback !== undefined) {
-            callback(null, updatedUser);
+
+              console.log(chalk.blue("WAS | +++ TWITTER_FOLLOW"
+                + " | UID" + updatedFollowUser.nodeId
+                + " | @" + updatedFollowUser.screenName
+              ));
+
+              debug(chalkLog("UPDATE_CATEGORY USER | @" + updatedFollowUser.screenName ));
+              if (callback !== undefined) {
+                callback(null, updatedFollowUser);
+              }
+
+            });
+          }
+          else {
+
+            categorizedUserHashMap.set(updatedUser.nodeId, {manual: updatedUser.category, auto: updatedUser.categoryAuto});
+
+            if (updatedUser.category) { uncategorizedManualUserSet.delete(updatedUser.nodeId); }
+            if (updatedUser.categoryAuto) { uncategorizedAutoUserSet.delete(updatedUser.nodeId); }
+
+            debug(chalkLog("UPDATE_CATEGORY USER | @" + updatedUser.screenName ));
+            if (callback !== undefined) {
+              callback(null, updatedUser);
+            }
+
           }
         }
       });
@@ -5313,6 +5338,7 @@ function initSocketHandler(socketObj) {
         + " | " + socket.id
         + " | @" + dataObj.node.screenName
         + " | CAT: " + dataObj.category
+        + " | FOLLOW: " + dataObj.follow
       ));
     }
     if (dataObj.node.nodeType === "hashtag") {

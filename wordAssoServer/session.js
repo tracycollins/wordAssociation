@@ -21,11 +21,11 @@ ProgressBar
 
 "use strict";
 
-var DEFAULT_SOURCE = "http://localhost:9997";
-// var DEFAULT_SOURCE = "https://word.threeceelabs.com";
+// var DEFAULT_SOURCE = "http://localhost:9997";
+var DEFAULT_SOURCE = "https://word.threeceelabs.com";
 
-// var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
-var DEFAULT_AUTH_URL = "http://localhost:9997/auth/twitter";
+var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
+// var DEFAULT_AUTH_URL = "http://localhost:9997/auth/twitter";
 // var DEFAULT_AUTH_URL = DEFAULT_SOURCE + "/login";
 
 var MAX_RX_QUEUE = 250;

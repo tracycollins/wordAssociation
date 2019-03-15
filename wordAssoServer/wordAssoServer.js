@@ -75,6 +75,8 @@ const ONE_KILOBYTE = 1024;
 const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
 
 const DEFAULT_INFO_TWITTER_USER = "threecee";
+const DEFAULT_IGNORE_CATEGORY_RIGHT = false;
+
 let infoTwitterUserObj = {};
 
 const DEFAULT_GEOCODE_ENABLED = false;
@@ -421,6 +423,7 @@ let defaultConfiguration = {}; // general configuration
 let hostConfiguration = {}; // host-specific configuration
 
 configuration.verbose = false;
+configuration.ignoreCategoryRight = DEFAULT_IGNORE_CATEGORY_RIGHT;
 configuration.maxQueue = DEFAULT_MAX_QUEUE;
 configuration.filterDuplicateTweets = DEFAULT_FILTER_DUPLICATE_TWEETS;
 configuration.forceFollow = DEFAULT_FORCE_FOLLOW;
@@ -6499,6 +6502,7 @@ function updateUserSets(params){
       if (categorizeable
         && !uncategorizedManualUserSet.has(user.nodeId) 
         && !user.category 
+        && (configuration.ignoreCategoryRight && (!user.categoryAuto || (user.categoryAuto !== "right")))
         && !user.ignored 
         && !ignoredUserSet.has(user.nodeId) 
         // && (user.location && (user.location !== undefined) && !ignoreLocationsRegEx.test(user.location)) 
@@ -9201,6 +9205,20 @@ function loadConfigFile(params) {
           }
         }
 
+        if (loadedConfigObj.IGNORE_CATEGORY_RIGHT  !== undefined){
+          console.log("WAS | LOADED IGNORE_CATEGORY_RIGHT: " + loadedConfigObj.IGNORE_CATEGORY_RIGHT);
+
+          if ((loadedConfigObj.IGNORE_CATEGORY_RIGHT === false) || (loadedConfigObj.IGNORE_CATEGORY_RIGHT === "false")) {
+            newConfiguration.ignoreCategoryRight = false;
+          }
+          else if ((loadedConfigObj.IGNORE_CATEGORY_RIGHT === true) || (loadedConfigObj.IGNORE_CATEGORY_RIGHT === "true")) {
+            newConfiguration.ignoreCategoryRight = true;
+          }
+          else {
+            newConfiguration.ignoreCategoryRight = false;
+          }
+        }
+
         if (loadedConfigObj.GEOCODE_ENABLED  !== undefined){
           console.log("WAS | LOADED GEOCODE_ENABLED: " + loadedConfigObj.GEOCODE_ENABLED);
 
@@ -10633,6 +10651,9 @@ function twitterSearchNode(params, callback) {
             uncategorizedManualUserSet.delete(user.nodeId);
           }
           else {
+
+            viewNameSpace.emit("TWITTER_SEARCH_NODE_NOT_FOUND", uncategorizedUserId);
+
             console.log(chalkAlert("WAS | --- TWITTER_SEARCH_NODE NOT FOUND"
               + "[ UC USER ARRAY: " + uncategorizedManualUserArray.length + "]"
               + " | " + getTimeStamp()
@@ -10640,6 +10661,8 @@ function twitterSearchNode(params, callback) {
               + " | UID: " + uncategorizedUserId
               + " | ERROR: " + err
             ));
+
+            uncategorizedManualUserSet.delete(user.nodeId);
           }
           callback(err, user);
         });

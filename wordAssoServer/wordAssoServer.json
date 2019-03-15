@@ -11,6 +11,7 @@
       "FORCE_COLOR": 1,
       "NODE_ENV": "production",
       "THREECEE_USERS": ["altthreecee00"],
+      "IGNORE_CATEGORY_RIGHT": false,
       "CATEGORY_HASHMAPS_UPDATE_INTERVAL": 300000,
       "CHECK_TWITTER_RATE_LIMIT_INTERVAL": 60000,
       "HEAPDUMP_ENABLED": false,

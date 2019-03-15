@@ -2227,7 +2227,7 @@ function dropboxFolderGetLastestCursor(folder, callback) {
         console.log(chalkLog("WAS | DROPBOX LONG POLL RESULTS\n" + jsonPrint(results))); 
       }
 
-      if (results.changes) {
+      if ((results !== undefined) && results && results.changes) {
 
         dropboxClient.filesListFolderContinue({ cursor: last_cursor.cursor})
         .then(function(response){

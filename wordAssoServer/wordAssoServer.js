@@ -412,6 +412,27 @@ statsObj.tfeChildReady = false;
 
 statsObj.tssChildren = {};
 
+statsObj.user = {};
+statsObj.user.manual = {};
+statsObj.user.manual.right = 0;
+statsObj.user.manual.left = 0;
+statsObj.user.manual.neutral = 0;
+statsObj.user.manual.positive = 0;
+statsObj.user.manual.negative = 0;
+statsObj.user.manual.none = 0;
+statsObj.user.total = 0;
+statsObj.user.following = 0;
+statsObj.user.notFollowing = 0;
+statsObj.user.categorizedTotal = 0;
+statsObj.user.categorizedManual = 0;
+statsObj.user.categorizedAuto = 0;
+statsObj.user.uncategorizedTotal = 0;
+statsObj.user.uncategorizedManual = 0;
+statsObj.user.uncategorizedAuto = 0;
+statsObj.user.matched = 0;
+statsObj.user.mismatched = 0;
+statsObj.user.uncategorizedManualUserArray = 0;
+
 DEFAULT_THREECEE_USERS.forEach(function(threeceeUser){
   statsObj.tssChildren[threeceeUser] = {};
   statsObj.tssChildren[threeceeUser].ready = false;
@@ -634,6 +655,13 @@ let adminNameSpace;
 let utilNameSpace;
 let userNameSpace;
 let viewNameSpace;
+
+let userRightSet = new Set();
+let userLeftSet = new Set();
+let userNeutralSet = new Set();
+let userPositiveSet = new Set();
+let userNegativeSet = new Set();
+let userNoneSet = new Set();
 
 let ignoredUserFile = "ignoredUser.json";
 let unfollowableUserFile = "unfollowableUser.json";
@@ -1495,6 +1523,13 @@ function connectDb(){
         });
 
         statsObj.user = {};
+        statsObj.user.manual = {};
+        statsObj.user.manual.right = 0;
+        statsObj.user.manual.left = 0;
+        statsObj.user.manual.neutral = 0;
+        statsObj.user.manual.positive = 0;
+        statsObj.user.manual.negative = 0;
+        statsObj.user.manual.none = 0;
         statsObj.user.total = 0;
         statsObj.user.following = 0;
         statsObj.user.notFollowing = 0;
@@ -6183,7 +6218,6 @@ let userFollowable = function(user){
   }
 
   return false;
-
 };
 
 function getCurrentThreeceeUser(params){
@@ -6486,6 +6520,56 @@ function updateUserSets(params){
 
     userSearchCursor.on("data", function(user) {
 
+      switch (user.category) {
+        case "right":
+          userRightSet.add(user.nodeId);
+          userLeftSet.delete(user.nodeId);
+          userNeutralSet.delete(user.nodeId);
+          userPositiveSet.delete(user.nodeId);
+          userNegativeSet.delete(user.nodeId);
+          userNoneSet.delete(user.nodeId);
+        break;
+        case "left":
+          userRightSet.delete(user.nodeId);
+          userLeftSet.add(user.nodeId);
+          userNeutralSet.delete(user.nodeId);
+          userPositiveSet.delete(user.nodeId);
+          userNegativeSet.delete(user.nodeId);
+          userNoneSet.delete(user.nodeId);
+        break;
+        case "neutral":
+          userRightSet.delete(user.nodeId);
+          userLeftSet.delete(user.nodeId);
+          userNeutralSet.add(user.nodeId);
+          userPositiveSet.delete(user.nodeId);
+          userNegativeSet.delete(user.nodeId);
+          userNoneSet.delete(user.nodeId);
+        break;
+        case "positive":
+          userRightSet.delete(user.nodeId);
+          userLeftSet.delete(user.nodeId);
+          userNeutralSet.delete(user.nodeId);
+          userPositiveSet.add(user.nodeId);
+          userNegativeSet.delete(user.nodeId);
+          userNoneSet.delete(user.nodeId);
+        break;
+        case "negative":
+          userRightSet.delete(user.nodeId);
+          userLeftSet.delete(user.nodeId);
+          userNeutralSet.delete(user.nodeId);
+          userPositiveSet.delete(user.nodeId);
+          userNegativeSet.add(user.nodeId);
+          userNoneSet.delete(user.nodeId);
+        break;
+        default:
+          userRightSet.delete(user.nodeId);
+          userLeftSet.delete(user.nodeId);
+          userNeutralSet.delete(user.nodeId);
+          userPositiveSet.delete(user.nodeId);
+          userNegativeSet.delete(user.nodeId);
+          userNoneSet.add(user.nodeId);
+      }
+
       if (user.lang && (user.lang !== undefined) && (user.lang !== "en")){
         ignoredUserSet.add(user.nodeId);
         unfollowableUserSet.add(user.nodeId);
@@ -6575,8 +6659,16 @@ function updateUserSets(params){
       mismatchUserArray = mismatchUserSet.keys();
 
       statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
+
       statsObj.user.matched = matchUserSet.size;
       statsObj.user.mismatched = mismatchUserSet.size;
+
+      statsObj.user.manual.right = userRightSet.size;
+      statsObj.user.manual.left = userLeftSet.size;
+      statsObj.user.manual.neutral = userNeutralSet.size;
+      statsObj.user.manual.positive = userPositiveSet.size;
+      statsObj.user.manual.negative = userNegativeSet.size;
+      statsObj.user.manual.none = userNoneSet.size;
 
       console.log(chalkBlue("WAS | END FOLLOWING CURSOR | FOLLOWING USER SET"));
       console.log(chalkBlue("WAS | USER DB STATS\n" + jsonPrint(statsObj.user)));
@@ -6593,8 +6685,16 @@ function updateUserSets(params){
       mismatchUserArray = mismatchUserSet.keys();
 
       statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
+
       statsObj.user.matched = matchUserSet.size;
       statsObj.user.mismatched = mismatchUserSet.size;
+
+      statsObj.user.manual.right = userRightSet.size;
+      statsObj.user.manual.left = userLeftSet.size;
+      statsObj.user.manual.neutral = userNeutralSet.size;
+      statsObj.user.manual.positive = userPositiveSet.size;
+      statsObj.user.manual.negative = userNegativeSet.size;
+      statsObj.user.manual.none = userNoneSet.size;
 
       console.error(chalkError("*** ERROR userSearchCursor: " + err));
       console.log(chalkAlert("WAS | USER DB STATS\n" + jsonPrint(statsObj.user)));
@@ -6611,8 +6711,16 @@ function updateUserSets(params){
       mismatchUserArray = mismatchUserSet.keys();
 
       statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
+
       statsObj.user.matched = matchUserSet.size;
       statsObj.user.mismatched = mismatchUserSet.size;
+
+      statsObj.user.manual.right = userRightSet.size;
+      statsObj.user.manual.left = userLeftSet.size;
+      statsObj.user.manual.neutral = userNeutralSet.size;
+      statsObj.user.manual.positive = userPositiveSet.size;
+      statsObj.user.manual.negative = userNegativeSet.size;
+      statsObj.user.manual.none = userNoneSet.size;
 
       console.log(chalkBlue("WAS | CLOSE FOLLOWING CURSOR"));
       console.log(chalkBlue("WAS | USER DB STATS\n" + jsonPrint(statsObj.user)));

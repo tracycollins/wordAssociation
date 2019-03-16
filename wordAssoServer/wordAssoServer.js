@@ -6809,23 +6809,15 @@ function initTransmitNodeQueueInterval(interval){
                     && (configuration.ignoreCategoryRight && (!n.categoryAuto || (n.categoryAuto !== "right")))
                     && !n.ignored 
                     && !ignoredUserSet.has(n.nodeId) 
-                    // && (user.location && (user.location !== undefined) && !ignoreLocationsRegEx.test(user.location)) 
                     && !unfollowableUserSet.has(n.nodeId)) { 
 
                     uncategorizedManualUserSet.add(n.nodeId);
 
                     if (uncategorizedManualUserSet.size % 100 === 0) {
-                      printUserObj("UNCAT MAN USER  [" + uncategorizedManualUserSet.size + "]", user);
+                      printUserObj("UNCAT MAN USER  [" + uncategorizedManualUserSet.size + "]", n);
                     }
 
                   }
-
-                  // if (!n.category && !uncategorizedManualUserSet.has(n.nodeId)) { 
-                  //   uncategorizedManualUserSet.add(n.nodeId);
-                  //   if (uncategorizedManualUserSet.size % 100 === 0) {
-                  //     printUserObj("UNCAT MAN USER [" + uncategorizedManualUserSet.size + "]", n);
-                  //   }
-                  // }
 
                   if (!n.categoryAuto && !uncategorizedAutoUserSet.has(n.nodeId)) { 
                     uncategorizedAutoUserSet.add(n.nodeId);

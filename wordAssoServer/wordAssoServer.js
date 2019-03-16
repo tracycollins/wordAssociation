@@ -1226,6 +1226,23 @@ function printUserObj(title, user, chalkFormat) {
     + " | C M " + user.category + " A " + user.categoryAuto
   ));
 }
+
+function printHashtag(params) {
+  let text;
+  const hashtag = params.hashtag;
+
+  if (params.verbose) {
+    return jsonPrint(params.hashtag);
+  } 
+  else {
+    text = "#" + hashtag.hashtagId
+    + " | M  " + hashtag.mentions
+    + " | LS " + getTimeStamp(hashtag.lastSeen)
+    + " | C M " + hashtag.category + " A " + hashtag.categoryAuto;
+    return text;
+  }
+}
+
 function printUser(params) {
   let text;
   const user = params.user;

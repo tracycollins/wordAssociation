@@ -663,6 +663,7 @@ let userPositiveSet = new Set();
 let userNegativeSet = new Set();
 let userNoneSet = new Set();
 
+let ignoredHashtagFile = "ignoredHashtag.json";
 let ignoredUserFile = "ignoredUser.json";
 let unfollowableUserFile = "unfollowableUser.json";
 let followableSearchTermFile = "followableSearchTerm.txt";
@@ -791,6 +792,7 @@ let defaultTwitterUser = twitterUserThreecee;
 let followedUserSet = new Set();
 let unfollowableUserSet = new Set();
 let ignoredUserSet = new Set();
+let ignoredHashtagSet = new Set();
 
 process.title = "node_wordAssoServer";
 console.log(chalkBlue("\n\nWAS | ============== START ==============\n\n"));
@@ -3680,9 +3682,21 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
 
     },
     
-    ignoredInit: function(cb){
+    ignoredUserInit: function(cb){
 
       initIgnoredUserSet()
+      .then(function(){
+        cb();
+      })
+      .catch(function(err){
+        return cb(err);
+      });
+
+    },
+    
+    ignoredHashtagInit: function(cb){
+
+      initIgnoredHashtagSet()
       .then(function(){
         cb();
       })
@@ -4544,6 +4558,103 @@ function initFollowableSearchTermSet(){
     })
     .catch(function(err){
       console.log(chalkError("WAS | *** INIT FOLLOWABLE SEARCH TERM SET ERROR: " + err));
+      return reject(err);
+    });
+
+  });
+}
+
+function initIgnoredHashtagSet(){
+
+  console.log(chalkLog("WAS | INIT IGNORE HASHTAG SET"));
+
+  return new Promise(function(resolve, reject) {
+
+    loadFile({folder: dropboxConfigDefaultFolder, file: ignoredHashtagFile})
+    .then(function(ignoredHashtagSetObj){
+
+      if (!ignoredHashtagSetObj || ignoredHashtagSetObj === undefined) {
+        console.log(chalkAlert("WAS | ??? LOAD IGNORED HASHTAGS EMPTY SET???"));
+        return resolve();
+      }
+
+      console.log(chalkLog("WAS | LOADED IGNORED HASHTAGS FILE"
+        + " | " + ignoredHashtagSetObj.hashtagIds.length + " HASHTAGS"
+        + " | " + dropboxConfigDefaultFolder + "/" + ignoredHashtagFile
+      ));
+
+      let query;
+      let update;
+      let numIgnored = 0;
+      let numAlreadyIgnored = 0;
+
+      async.eachSeries(ignoredHashtagSetObj.hashtagIds, function(hashtagId, cb){
+
+        ignoredHashtagSet.add(hashtagId);
+
+        query = { nodeId: hashtagId, ignored: {"$in": [ false, "false", null ]} };
+
+        update = {};
+        update["$set"] = { ignored: true, following: false, threeceeFollowing: false };
+
+        const options = {
+          new: true,
+          upsert: false
+        };
+
+        global.globalHashtag.findOneAndUpdate(query, update, options, function(err, hashtagUpdated){
+
+          if (err) {
+            console.log(chalkError("WAS | *** initIgnoredHashtagSet | HASHTAG FIND ONE ERROR: " + err));
+            return cb(err, hashtagId);
+          }
+          
+          if (hashtagUpdated){
+
+            numIgnored += 1;
+            console.log(chalkLog("WAS | XXX IGNORE"
+              + " [" + numIgnored + "/" + numAlreadyIgnored + "/" + ignoredHashtagSetObj.hashtagIds.length + "]"
+              + " | " + printHashtag({hashtag: hashtagUpdated})
+            ));
+
+            cb(null, hashtagUpdated);
+          }
+          else {
+            numAlreadyIgnored += 1;
+            if (configuration.verbose){
+              console.log(chalkLog("WAS | ... ALREADY IGNORED"
+                + " [" + numIgnored + "/" + numAlreadyIgnored + "/" + ignoredHashtagSetObj.hashtagIds.length + "]"
+                + " | ID: " + hashtagId
+              ));
+            }
+            cb(null, null);
+          }
+        });
+      }, function(err){
+
+        if (err) {
+          return reject(err);
+        }
+        console.log(chalkBlue("WAS | INIT IGNORED HASHTAGS"
+          + " | " + numIgnored + " NEW IGNORED"
+          + " | " + numAlreadyIgnored + " ALREADY IGNORED"
+          + " | " + ignoredHashtagSet.size + " HASHTAGS IN SET"
+          + " | " + ignoredHashtagSetObj.hashtagIds.length + " HASHTAGS IN FILE"
+          + " | " + dropboxConfigDefaultFolder + "/" + ignoredHashtagFile
+        ));
+        resolve();
+      });
+
+    })
+    .catch(function(err){
+      if ((err.code === "ENOTFOUND") || (err.status === 409)) {
+        console.log(chalkError("WAS | *** LOAD IGNORED HASHTAGS ERROR: FILE NOT FOUND:  " 
+          + dropboxConfigDefaultFolder + "/" + ignoredHashtagFile
+        ));
+        return resolve();
+      }
+      
+      console.log(chalkError("WAS | *** LOAD IGNORED HASHTAGS ERROR: " + err));
       return reject(err);
     });
 
@@ -6938,7 +7049,9 @@ function transmitNodes(tw, callback){
     },
     hashtags: function(cb){
       tw.hashtags.forEach(function hashtagsTxNodeQueue(hashtag){
-        if (hashtag && configuration.enableTransmitHashtag) { transmitNodeQueue.push(hashtag); }
+        if (hashtag && !ignoredHashtagSet.has(hashtag.nodeId) && configuration.enableTransmitHashtag) { 
+          transmitNodeQueue.push(hashtag);
+        }
       });
       cb();
     }

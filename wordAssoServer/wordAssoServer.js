@@ -4588,6 +4588,8 @@ function initIgnoredHashtagSet(){
       let numIgnored = 0;
       let numAlreadyIgnored = 0;
 
+      ignoredHashtagSet.clear();
+
       async.eachSeries(ignoredHashtagSetObj.hashtagIds, function(hashtagId, cb){
 
         ignoredHashtagSet.add(hashtagId);
@@ -7227,6 +7229,11 @@ function initAppRouting(callback) {
 
                     else if (entry.path_lower.endsWith("defaultsearchterms.txt")){
                       updateSearchTerms();
+                      cb1();
+                    }
+
+                    else if (entry.path_lower.endsWith(ignoredHashtagFile)){
+                      initIgnoredHashtagSet();
                       cb1();
                     }
 

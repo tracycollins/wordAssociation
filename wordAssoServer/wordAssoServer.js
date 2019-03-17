@@ -7250,7 +7250,7 @@ function initAppRouting(callback) {
                       cb1();
                     }
 
-                    else if (entry.path_lower.endsWith(ignoredHashtagFile)){
+                    else if (entry.path_lower.endsWith(ignoredHashtagFile.toLowerCase())){
                       initIgnoredHashtagSet();
                       cb1();
                     }

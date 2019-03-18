@@ -2540,14 +2540,21 @@ function loadFile(params) {
             return reject(new Error("WAS LOAD FILE PAYLOAD UNDEFINED"));
           }
 
-          const fileObj = JSONParse(payload);
+          let fileObj;
 
-          if (fileObj.value) {
-            return resolve(fileObj.value);
+          try {
+            fileObj = JSONParse(payload);
+
+            if (fileObj.value) {
+              return resolve(fileObj.value);
+            }
+            return null;
+          }
+          catch(err){
+            console.log(chalkError("WAS | DROPBOX loadFile ERROR: " + fullPath));
+            return reject(fileObj.error);
           }
 
-          console.log(chalkError("WAS | DROPBOX loadFile ERROR: " + fullPath));
-          return reject(fileObj.error);
         }
         else if (params.file.match(/\.txt$/gi)) {
 

@@ -1562,7 +1562,7 @@ function connectDb(){
         statsObj.user.mismatched = 0;
         statsObj.user.uncategorizedManualUserArray = 0;
 
-        initUpdateUserSetsInterval(ONE_MINUTE);
+        // initUpdateUserSetsInterval(ONE_MINUTE);
 
         HashtagServerController = require("@threeceelabs/hashtag-server-controller");
         hashtagServerController = new HashtagServerController("WAS_HSC");
@@ -10360,39 +10360,44 @@ let updateUserSetsIntervalReady = true;
 
 function initUpdateUserSetsInterval(interval){
 
-  clearInterval(updateUserSetsInterval);
+  return new Promise(function(resolve, reject){
 
-  console.log(chalk.bold.black("WAS | INIT USER SETS INTERVAL | " + msToTime(interval) ));
+    clearInterval(updateUserSetsInterval);
 
-  updateUserSetsInterval = setInterval(function() {
+    console.log(chalk.bold.black("WAS | INIT USER SETS INTERVAL | " + msToTime(interval) ));
 
-    try {
+    updateUserSetsInterval = setInterval(function() {
 
-      uncategorizedManualUserArray = [...uncategorizedManualUserSet];
-      statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
+      try {
 
-      if (statsObj.dbConnectionReady && updateUserSetsIntervalReady && (uncategorizedManualUserArray.length < 10)) {
+        uncategorizedManualUserArray = [...uncategorizedManualUserSet];
+        statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
 
-        updateUserSetsIntervalReady = false;
+        if (statsObj.dbConnectionReady && updateUserSetsIntervalReady && (uncategorizedManualUserArray.length < 10)) {
 
-        updateUserSets()
-        .then(function(){
-          updateUserSetsIntervalReady = true;
-        })
-        .catch(function(err){
-          console.log(chalkError("WAS | UPDATE USER SETS ERROR: " + err));
-          updateUserSetsIntervalReady = true;
-        });
+          updateUserSetsIntervalReady = false;
+
+          updateUserSets()
+          .then(function(){
+            updateUserSetsIntervalReady = true;
+          })
+          .catch(function(err){
+            console.log(chalkError("WAS | UPDATE USER SETS ERROR: " + err));
+            updateUserSetsIntervalReady = true;
+          });
+        }
+      }
+      catch(err){
+        console.log(chalkError("WAS | UPDATE USER SETS ERROR: " + err));
+        updateUserSetsIntervalReady = true;
       }
 
-    }
-    catch(err){
-      console.log(chalkError("WAS | UPDATE USER SETS ERROR: " + err));
-      updateUserSetsIntervalReady = true;
-    }
+    }, interval);
 
+    resolve();
 
-  }, interval);
+  });
+
 }
 
 let memStatsInterval;
@@ -11131,6 +11136,7 @@ setTimeout(function(){
               await initTfeChild({childId: DEFAULT_TFE_CHILD_ID});
               await initDbUserChangeStream();
               await initTssChildren();
+              await initUpdateUserSetsInterval(ONE_MINUTE);
 
             }
             catch(err){

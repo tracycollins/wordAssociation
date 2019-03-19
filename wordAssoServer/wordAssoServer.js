@@ -10620,6 +10620,7 @@ function twitterGetUserUpdateDb(user, callback){
               followableUserSet.delete(user.nodeId);
               uncategorizedManualUserSet.delete(user.nodeId);
               uncategorizedAutoUserSet.delete(user.nodeId);
+              categorizedUserHashMap.delete(user.nodeId);
             }
             if (user.screenName !== undefined) { 
               console.log(chalkAlert("WAS | XXX DELETING USER IN DB | @" + user.screenName + " | NID: " + user.nodeId));
@@ -10628,6 +10629,7 @@ function twitterGetUserUpdateDb(user, callback){
               followableUserSet.delete(user.nodeId);
               uncategorizedManualUserSet.delete(user.nodeId);
               uncategorizedAutoUserSet.delete(user.nodeId);
+              categorizedUserHashMap.delete(user.nodeId);
             }
           }
 

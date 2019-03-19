@@ -6653,7 +6653,7 @@ function updateUserSets(params){
     });
 
     // const userSearchQuery = { following: true, ignored: false };
-    const userSearchQuery = { ignored: false };
+    const userSearchQuery = { ignored: { "$in": [ false, "false", null ]  } };
     
     userSearchCursor = global.globalUser.find(userSearchQuery).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
 
@@ -6723,12 +6723,11 @@ function updateUserSets(params){
       categorizeable = userCategorizeable(user);
 
       if (categorizeable
-        && !uncategorizedManualUserSet.has(user.nodeId) 
-        && !user.category 
+        && ((user.category === undefined) || !user.category) 
+        && ((user.ignored === undefined) || !user.ignored) 
         && (configuration.ignoreCategoryRight && user.categoryAuto && (user.categoryAuto !== "right"))
-        && !user.ignored 
         && !ignoredUserSet.has(user.nodeId) 
-        // && (user.location && (user.location !== undefined) && !ignoreLocationsRegEx.test(user.location)) 
+        && !uncategorizedManualUserSet.has(user.nodeId) 
         && !unfollowableUserSet.has(user.nodeId)) { 
 
         uncategorizedManualUserSet.add(user.nodeId);
@@ -6943,11 +6942,18 @@ function initTransmitNodeQueueInterval(interval){
 
                 if (categorizeable) {
 
+      // if (categorizeable
+      //   && ((user.category === undefined) || !user.category) 
+      //   && ((user.ignored === undefined) || !user.ignored) 
+      //   && (configuration.ignoreCategoryRight && user.categoryAuto && (user.categoryAuto !== "right"))
+      //   && !ignoredUserSet.has(user.nodeId) 
+      //   && !uncategorizedManualUserSet.has(user.nodeId) 
+      //   && !unfollowableUserSet.has(user.nodeId)) { 
+
                   if (!uncategorizedManualUserSet.has(n.nodeId) 
-                    && !n.category 
-                    // && (configuration.ignoreCategoryRight && (!n.categoryAuto || (n.categoryAuto !== "right")))
+                    && ((n.category === undefined) || !n.category) 
+                    && ((n.ignored === undefined) || !n.ignored) 
                     && (configuration.ignoreCategoryRight && n.categoryAuto && (n.categoryAuto !== "right"))
-                    && !n.ignored 
                     && !ignoredUserSet.has(n.nodeId) 
                     && !unfollowableUserSet.has(n.nodeId)) { 
 

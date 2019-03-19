@@ -6940,18 +6940,9 @@ function initTransmitNodeQueueInterval(interval){
               }
               else {
 
-                // followable = userFollowable(n);
                 categorizeable = userCategorizeable(n);
 
                 if (categorizeable) {
-
-      // if (categorizeable
-      //   && ((user.category === undefined) || !user.category) 
-      //   && ((user.ignored === undefined) || !user.ignored) 
-      //   && (configuration.ignoreCategoryRight && user.categoryAuto && (user.categoryAuto !== "right"))
-      //   && !ignoredUserSet.has(user.nodeId) 
-      //   && !uncategorizedManualUserSet.has(user.nodeId) 
-      //   && !unfollowableUserSet.has(user.nodeId)) { 
 
                   if (!uncategorizedManualUserSet.has(n.nodeId) 
                     && ((n.category === undefined) || !n.category) 
@@ -10621,9 +10612,15 @@ function twitterGetUserUpdateDb(user, callback){
             + "\ntwitQuery\n" + jsonPrint(twitQuery)
           ));
 
-          if (err.code === 63) { // USER SUSPENDED
-            if (user.nodeId !== undefined) { ignoredUserSet.add(user.nodeId); }
-            if (user.screenName !== undefined) { ignoredUserSet.add(user.screenName.toLowerCase()); }
+          if ((err.code === 63) || (err.code === 50)) { // USER SUSPENDED or NOT FOUND
+            if (user.nodeId !== undefined) { 
+              globalUser.deleteOne({ 'nodeId': user.nodeId });
+              ignoredUserSet.add(user.nodeId);
+            }
+            if (user.screenName !== undefined) { 
+              globalUser.deleteOne({ 'screenName': user.screenName });
+              ignoredUserSet.add(user.screenName.toLowerCase());
+            }
           }
 
           return callback("NO TWITTER UPDATE", user);

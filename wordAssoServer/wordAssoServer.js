@@ -10378,9 +10378,11 @@ function initUpdateUserSetsInterval(interval){
         updateUserSets()
         .then(function(){
           updateUserSetsIntervalReady = true;
+        })
+        .catch(function(err){
+          console.log(chalkError("WAS | UPDATE USER SETS ERROR: " + err));
+          updateUserSetsIntervalReady = true;
         });
-
-
       }
 
     }

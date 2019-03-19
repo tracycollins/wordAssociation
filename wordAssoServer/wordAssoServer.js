@@ -4197,6 +4197,7 @@ function enableFollow(params){
   if (params.forceFollow) { return true; }
   if (followedUserSet.has(params.user.nodeId)) { return false; }
   if (ignoredUserSet.has(params.user.nodeId)) { return false; }
+  if ((params.user.screenName !== undefined) && ignoredUserSet.has(params.user.screenName)) { return false; }
   if (unfollowableUserSet.has(params.user.nodeId)) { return false; }
   return true;
 }
@@ -4219,7 +4220,9 @@ function follow(params, callback) {
 
   followedUserSet.add(params.user.nodeId);
   ignoredUserSet.delete(params.user.nodeId);
+  ignoredUserSet.delete(params.user.screenName);
   unfollowableUserSet.delete(params.user.nodeId);
+  unfollowableUserSet.delete(params.user.screenName);
 
   const query = { nodeId: params.user.nodeId };
   const randomThreeceeUser = _.sample([...threeceeAutoFollowUsersSet]);
@@ -10617,6 +10620,11 @@ function twitterGetUserUpdateDb(user, callback){
             + "\nerr\n" + jsonPrint(err)
             + "\ntwitQuery\n" + jsonPrint(twitQuery)
           ));
+
+          if (err.code === 63) { // USER SUSPENDED
+            if (user.nodeId !== undefined) { ignoredUserSet.add(user.nodeId); }
+            if (user.screenName !== undefined) { ignoredUserSet.add(user.screenName.toLowerCase()); }
+          }
 
           return callback("NO TWITTER UPDATE", user);
         }

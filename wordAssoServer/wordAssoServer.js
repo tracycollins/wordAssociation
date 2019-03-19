@@ -10617,11 +10617,17 @@ function twitterGetUserUpdateDb(user, callback){
               console.log(chalkAlert("WAS | XXX DELETING USER IN DB | @" + user.screenName + " | NID: " + user.nodeId));
               globalUser.deleteOne({ 'nodeId': user.nodeId });
               ignoredUserSet.add(user.nodeId);
+              followableUserSet.delete(user.nodeId);
+              uncategorizedManualUserSet.delete(user.nodeId);
+              uncategorizedAutoUserSet.delete(user.nodeId);
             }
             if (user.screenName !== undefined) { 
               console.log(chalkAlert("WAS | XXX DELETING USER IN DB | @" + user.screenName + " | NID: " + user.nodeId));
               globalUser.deleteOne({ 'screenName': user.screenName });
               ignoredUserSet.add(user.screenName.toLowerCase());
+              followableUserSet.delete(user.nodeId);
+              uncategorizedManualUserSet.delete(user.nodeId);
+              uncategorizedAutoUserSet.delete(user.nodeId);
             }
           }
 

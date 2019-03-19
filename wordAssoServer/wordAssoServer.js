@@ -6270,19 +6270,19 @@ let userCategorizeable = function(user){
 
   if (user.nodeType !== "user") { return false; }
 
-  if (user.following) { 
+  if ((user.following !== undefined) && user.following) { 
     ignoredUserSet.delete(user.nodeId);
     unfollowableUserSet.delete(user.nodeId);
     return true;
   }
 
-  if (user.ignored) { return false; }
+  if ((user.ignored !== undefined) && user.ignored) { return false; }
 
   if (ignoredUserSet.has(user.nodeId)) { return false; }
 
   if (unfollowableUserSet.has(user.nodeId)) { return false; }
 
-  if (user.lang !== undefined && user.lang !== "en") { 
+  if ((user.lang !== undefined) && (user.lang !== "en")) { 
     ignoredUserSet.add(user.nodeId);
     unfollowableUserSet.add(user.nodeId);
     if (configuration.verbose) { console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LANG NOT ENGLISH: " + user.lang)); }
@@ -6293,6 +6293,7 @@ let userCategorizeable = function(user){
     && user.location 
     && (user.location !== undefined) 
     && ignoreLocationsRegEx.test(user.location)){
+    if (configuration.verbose) { console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LOCATION: " + user.location)); }
     return false;
   }
 
@@ -6300,7 +6301,8 @@ let userCategorizeable = function(user){
   
   if (user.followersCount !== undefined && (user.followersCount < configuration.minFollowersAuto)) { return false; }
 
-  if (!user.ignored && (user.followersCount !== undefined && (user.followersCount >= configuration.minFollowersAuto))) { 
+  if ((user.ignored === undefined || !user.ignored )
+    && (user.followersCount !== undefined && (user.followersCount >= configuration.minFollowersAuto))) { 
 
     if ((user.description === undefined) || !user.description) { user.description = ""; }
     if ((user.screenName === undefined) || !user.screenName) { user.screenName = ""; }

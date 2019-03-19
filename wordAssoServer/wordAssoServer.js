@@ -10614,10 +10614,12 @@ function twitterGetUserUpdateDb(user, callback){
 
           if ((err.code === 63) || (err.code === 50)) { // USER SUSPENDED or NOT FOUND
             if (user.nodeId !== undefined) { 
+              console.log(chalkAlert("WAS | XXX DELETING USER IN DB | @" + user.screenName + " | NID: " + user.nodeId));
               globalUser.deleteOne({ 'nodeId': user.nodeId });
               ignoredUserSet.add(user.nodeId);
             }
             if (user.screenName !== undefined) { 
+              console.log(chalkAlert("WAS | XXX DELETING USER IN DB | @" + user.screenName + " | NID: " + user.nodeId));
               globalUser.deleteOne({ 'screenName': user.screenName });
               ignoredUserSet.add(user.screenName.toLowerCase());
             }

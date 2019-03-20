@@ -1606,7 +1606,11 @@ function initSearchStream(){
       
       threeceeUserObj.searchStream.on("tweet", function(tweetStatus){
 
-        if (tweetStatus.user.location && (tweetStatus.user.location !== undefined) && ignoreLocationsSet.has(tweetStatus.user.location)){
+        // if (tweetStatus.user.location && (tweetStatus.user.location !== undefined) && ignoreLocationsSet.has(tweetStatus.user.location)){
+        if (tweetStatus.user.location 
+          && (tweetStatus.user.location !== undefined) 
+          && ignoreLocationsRegEx.test(tweetStatus.user.location))
+        {
           console.log(chalkLog("TSS | XXX IGNORE LOCATION | SKIPPING"
             + " | TWID: " + tweetStatus.id_str
             + " | LOC: " + tweetStatus.user.location

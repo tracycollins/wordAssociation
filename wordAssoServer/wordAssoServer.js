@@ -6298,7 +6298,10 @@ let userCategorizeable = function(user){
     && ignoreLocationsRegEx.test(user.location)){
     
     console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LOCATION: " + user.location));
-  
+
+    unfollowableUserSet.add(user.nodeId);
+    ignoredUserSet.add(user.nodeId);
+
     return false;
   }
 

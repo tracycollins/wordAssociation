@@ -6288,7 +6288,9 @@ let userCategorizeable = function(user){
   if ((user.lang !== undefined) && (user.lang !== "en")) { 
     ignoredUserSet.add(user.nodeId);
     unfollowableUserSet.add(user.nodeId);
-    if (configuration.verbose) { console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LANG NOT ENGLISH: " + user.lang)); }
+    if (configuration.verbose) { 
+      console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LANG NOT ENGLISH: " + user.lang));
+    }
     return false;
   }
 
@@ -6297,12 +6299,28 @@ let userCategorizeable = function(user){
     && (user.location !== undefined) 
     && ignoreLocationsRegEx.test(user.location)){
     
-    console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LOCATION: " + user.location));
+    console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LOCATION" 
+      + " | " + user.nodeId
+      + " | @" + user.screenName
+      + " | " + user.location
+    ));
 
     unfollowableUserSet.add(user.nodeId);
     ignoredUserSet.add(user.nodeId);
 
-    return false;
+    globalUser.deleteOne({ "nodeId" : user.nodeId }, function(err){
+      if (err) {
+        console.log(chalkError("WAS | *** DB DELETE USER ERROR: " + err));
+        return false;
+      }
+      console.log(chalkAlert("WAS | XXX UNCATEGORIZEABLE | USER LOCATION | DELETING" 
+        + " | " + user.nodeId
+        + " | @" + user.screenName
+        + " | " + user.location
+      ));
+      return false;
+    });
+
   }
 
   if (followableRegEx === undefined) { return false; }
@@ -10620,12 +10638,22 @@ function twitterGetUserUpdateDb(user, callback){
           if ((err.code === 63) || (err.code === 50)) { // USER SUSPENDED or NOT FOUND
             if (user.nodeId !== undefined) { 
               console.log(chalkAlert("WAS | XXX DELETING USER IN DB | @" + user.screenName + " | NID: " + user.nodeId));
-              globalUser.deleteOne({ 'nodeId': user.nodeId });
-              ignoredUserSet.add(user.nodeId);
-              followableUserSet.delete(user.nodeId);
-              uncategorizedManualUserSet.delete(user.nodeId);
-              uncategorizedAutoUserSet.delete(user.nodeId);
-              categorizedUserHashMap.delete(user.nodeId);
+              globalUser.deleteOne({ 'nodeId': user.nodeId }, function(err){
+                if (err) {
+                  console.log(chalkError("WAS | *** DB DELETE USER ERROR: " + err));
+                  return false;
+                }
+                console.log(chalkAlert("WAS | XXX UNCATEGORIZEABLE | USER LOCATION | DELETING" 
+                  + " | " + user.nodeId
+                  + " | @" + user.screenName
+                  + " | " + user.location
+                ));
+                ignoredUserSet.add(user.nodeId);
+                followableUserSet.delete(user.nodeId);
+                uncategorizedManualUserSet.delete(user.nodeId);
+                uncategorizedAutoUserSet.delete(user.nodeId);
+                categorizedUserHashMap.delete(user.nodeId);
+              });
             }
             if (user.screenName !== undefined) { 
               console.log(chalkAlert("WAS | XXX DELETING USER IN DB | @" + user.screenName + " | NID: " + user.nodeId));

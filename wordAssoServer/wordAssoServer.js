@@ -244,6 +244,7 @@ const moment = require("moment");
 // const treeify = require("treeify");
 const treeify = require(__dirname + "/js/libs/treeify");
 
+let prevAllowLocationsFileModifiedMoment = moment("2010-01-01");
 let prevIgnoredLocationsFileModifiedMoment = moment("2010-01-01");
 let prevSearchTermsFileModifiedMoment = moment("2010-01-01");
 
@@ -360,6 +361,13 @@ const HashMap = require("hashmap").HashMap;
 
 const ignoreIpSet = new Set();
 
+const allowLocationsSet = new Set();
+allowLocationsSet.add("new england");
+let allowLocationsArray = Array.from(allowLocationsSet);
+let allowLocationsString = allowLocationsArray.join('\\b|\\b');
+allowLocationsString = '\\b' + allowLocationsString + '\\b';
+let allowLocationsRegEx = new RegExp(allowLocationsString, "gi");
+
 const ignoreLocationsSet = new Set();
 ignoreLocationsSet.add("india");
 ignoreLocationsSet.add("africa");
@@ -373,7 +381,6 @@ ignoreLocationsSet.add("lagos");
 let ignoreLocationsArray = Array.from(ignoreLocationsSet);
 let ignoreLocationsString = ignoreLocationsArray.join('\\b|\\b');
 ignoreLocationsString = '\\b' + ignoreLocationsString + '\\b';
-
 let ignoreLocationsRegEx = new RegExp(ignoreLocationsString, "gi");
 
 const NodeCache = require("node-cache");
@@ -6300,6 +6307,7 @@ let userCategorizeable = function(user){
   if ((ignoreLocationsRegEx !== undefined) 
     && user.location 
     && (user.location !== undefined) 
+    && !allowLocationsRegEx.test(user.location)
     && ignoreLocationsRegEx.test(user.location)){
     
     // console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LOCATION" 
@@ -6516,6 +6524,78 @@ function loadFileRetry(params){
     console.log(chalkError(MODULE_ID_PREFIX + " | reject FILE LOAD FAILED | RETRY: " + retryNumber + " OF " + maxRetries));
     reject(new Error("FILE LOAD ERROR | RETRIES " + maxRetries));
 
+  });
+}
+
+function initAllowLocations(){
+
+  return new Promise(async function(resolve, reject){
+
+    console.log(chalkTwitter("WAS | INIT ALLOW LOCATIONS"));
+
+    let response;
+
+    try{
+      response = await getFileMetadata({folder: dropboxConfigDefaultFolder, file: "allowLocations.txt"});
+    }
+    catch(err){
+      console.log(chalkError("WAS | *** GET FILE METADATA ERROR: " + err));
+      return reject(err);
+    }
+
+    const fileModifiedMoment = moment(new Date(response.client_modified));
+  
+    if (fileModifiedMoment.isSameOrBefore(prevAllowLocationsFileModifiedMoment)){
+      console.log(chalkInfo("WAS | ALLOW LOCATIONS FILE BEFORE OR EQUAL"
+        + " | PREV: " + prevAllowLocationsFileModifiedMoment.format(compactDateTimeFormat)
+        + " | " + fileModifiedMoment.format(compactDateTimeFormat)
+      ));
+      return resolve(0);
+    }
+
+    console.log(chalkInfo("WAS | ALLOW LOCATIONS FILE AFTER"));
+
+    prevAllowLocationsFileModifiedMoment = moment(fileModifiedMoment);
+
+    try{
+      const data = await loadFileRetry({folder: dropboxConfigDefaultFolder, file: "allowLocations.txt"}); 
+
+      if (data === undefined){
+        console.log(chalkError("TSS | DROPBOX FILE DOWNLOAD DATA UNDEFINED"
+          + " | " + DROPBOX_DEFAULT_CONFIG_FOLDER + "/" + "allowLocations.txt"
+        ));
+        return reject(new Error("DROPBOX FILE DOWNLOAD DATA UNDEFINED"));
+      }
+
+      debug(chalkInfo("WAS | DROPBOX ALLOW LOCATIONS FILE\n" + jsonPrint(data)));
+
+      const dataArray = data.toString().toLowerCase().split("\n");
+
+      console.log(chalk.blue("WAS | FILE CONTAINS " + dataArray.length + " ALLOW LOCATIONS "));
+
+      dataArray.forEach(function(location){
+        location = location.trim();
+        // location = location.replace(/\s|\n/gim, "");
+        location = location.replace(/^\s+|\s+$|\n/gim, "");
+        if (location.length > 1) { 
+          allowLocationsSet.add(location);
+          console.log(chalkLog("WAS | +++ ALLOW LOCATION [" + allowLocationsSet.size + "] " + location));
+        }
+      });
+
+      allowLocationsArray = [...allowLocationsSet];
+      allowLocationsString = allowLocationsArray.join('\\b|\\b');
+      allowLocationsString = '\\b' + allowLocationsString + '\\b';
+      allowLocationsRegEx = new RegExp(allowLocationsString, "gi");
+
+      resolve();
+
+    }
+    catch(e){
+      console.log(chalkError("TSS | LOAD FILE ERROR\n" + e));
+      return reject(e);
+    }
+      
   });
 }
 
@@ -7293,6 +7373,11 @@ function initAppRouting(callback) {
 
                     else if (entry.path_lower.endsWith(ignoredHashtagFile.toLowerCase())){
                       initIgnoredHashtagSet();
+                      cb1();
+                    }
+
+                    else if (entry.path_lower.endsWith("allowLocations.txt")){
+                      allowLocations();
                       cb1();
                     }
 
@@ -8209,6 +8294,17 @@ function updateSearchTerms(){
   console.log(chalk.green("WAS | WAS | UPDATE SEARCH TERMS"));
 
   tssSendAllChildren({op: "UPDATE_SEARCH_TERMS"});
+}
+
+async function allowLocations(){
+  console.log(chalk.green("WAS | WAS | UPDATE ALLOW LOCATIONS"));
+  try{
+    await initAllowLocations();
+  }
+  catch(err){
+    console.log(chalkError("WAS | *** INIT ALLOW LOCATIONS ERROR: " + err));
+  }
+  tssSendAllChildren({op: "UPDATE_ALLOW_LOCATIONS"});
 }
 
 async function ignoreLocations(){
@@ -11178,6 +11274,7 @@ setTimeout(function(){
               await addAccountActivitySubscription();
               await initKeySortInterval(configuration.keySortInterval);
               await initSaveFileQueue(configuration);
+              await initAllowLocations();
               await initIgnoreLocations();
               await updateUserSets();
               await loadBestRuntimeNetwork();

@@ -6296,7 +6296,9 @@ let userCategorizeable = function(user){
     && user.location 
     && (user.location !== undefined) 
     && ignoreLocationsRegEx.test(user.location)){
-    if (configuration.verbose) { console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LOCATION: " + user.location)); }
+    
+    console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LOCATION: " + user.location));
+  
     return false;
   }
 

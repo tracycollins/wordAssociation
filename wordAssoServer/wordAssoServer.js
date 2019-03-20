@@ -371,7 +371,9 @@ ignoreLocationsSet.add("england");
 ignoreLocationsSet.add("nigeria");
 ignoreLocationsSet.add("lagos");
 let ignoreLocationsArray = Array.from(ignoreLocationsSet);
-let ignoreLocationsString = ignoreLocationsArray.join("|");
+let ignoreLocationsString = ignoreLocationsArray.join('\\b|\\b');
+ignoreLocationsString = '\\b' + ignoreLocationsString + '\\b';
+
 let ignoreLocationsRegEx = new RegExp(ignoreLocationsString, "gi");
 
 const NodeCache = require("node-cache");
@@ -716,7 +718,8 @@ followableSearchTermSet.add("specialcounsel");
 followableSearchTermSet.add("special counsel");
 
 let followableSearchTermsArray = Array.from(followableSearchTermSet);
-let followableSearchTermString = followableSearchTermsArray.join("|");
+let followableSearchTermString = followableSearchTermsArray.join('\\b|\\b');
+followableSearchTermString = '\\b' + followableSearchTermString + '\\b';
 let followableRegEx = new RegExp(followableSearchTermString, "gi");
 
 const DEFAULT_BEST_NETWORK_FOLDER = "/config/utility/best/neuralNetworks";
@@ -6252,8 +6255,8 @@ function initFollowableSearchTerms(){
 
     const termsArray = Array.from(followableSearchTermSet);
 
-    followableSearchTermString = termsArray.join("|");
-
+    followableSearchTermString = termsArray.join('\\b|\\b');
+    followableSearchTermString = '\\b' + followableSearchTermString + '\\b';
     followableRegEx = new RegExp(followableSearchTermString, "gi");
 
     debug(chalkInfo("followableRegEx: " + followableRegEx));
@@ -6567,7 +6570,8 @@ function initIgnoreLocations(){
       });
 
       ignoreLocationsArray = [...ignoreLocationsSet];
-      ignoreLocationsString = ignoreLocationsArray.join("|");
+      ignoreLocationsString = ignoreLocationsArray.join('\\b|\\b');
+      ignoreLocationsString = '\\b' + ignoreLocationsString + '\\b';
       ignoreLocationsRegEx = new RegExp(ignoreLocationsString, "gi");
 
       resolve();

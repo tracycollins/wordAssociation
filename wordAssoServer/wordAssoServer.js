@@ -6299,11 +6299,11 @@ let userCategorizeable = function(user){
     && (user.location !== undefined) 
     && ignoreLocationsRegEx.test(user.location)){
     
-    console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LOCATION" 
-      + " | " + user.nodeId
-      + " | @" + user.screenName
-      + " | " + user.location
-    ));
+    // console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LOCATION" 
+    //   + " | " + user.nodeId
+    //   + " | @" + user.screenName
+    //   + " | " + user.location
+    // ));
 
     unfollowableUserSet.add(user.nodeId);
     ignoredUserSet.add(user.nodeId);
@@ -6313,7 +6313,7 @@ let userCategorizeable = function(user){
         console.log(chalkError("WAS | *** DB DELETE USER ERROR: " + err));
         return false;
       }
-      console.log(chalkAlert("WAS | XXX UNCATEGORIZEABLE | USER LOCATION | DELETING" 
+      console.log(chalkAlert("WAS | XXX UNCATEGORIZEABLE | USER LOCATION | DELETED" 
         + " | " + user.nodeId
         + " | @" + user.screenName
         + " | " + user.location

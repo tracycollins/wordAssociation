@@ -97,6 +97,14 @@ const searchTermHashMap = new HashMap();
 
 const unfollowQueue = [];
 
+
+const allowLocationsSet = new Set();
+allowLocationsSet.add("new england");
+let allowLocationsArray = Array.from(allowLocationsSet);
+let allowLocationsString = allowLocationsArray.join('\\b|\\b');
+allowLocationsString = '\\b' + allowLocationsString + '\\b';
+let allowLocationsRegEx = new RegExp(allowLocationsString, "gi");
+
 const ignoreLocationsSet = new Set();
 ignoreLocationsSet.add("india");
 ignoreLocationsSet.add("africa");
@@ -1259,6 +1267,7 @@ function getFileMetadata(params) {
 
 const followingUserIdHashMap = new HashMap();
 
+let prevAllowLocationsFileModifiedMoment = moment("2010-01-01");
 let prevIgnoredLocationsFileModifiedMoment = moment("2010-01-01");
 let prevSearchTermsFileModifiedMoment = moment("2010-01-01");
 
@@ -1942,6 +1951,79 @@ function initSearchTerms(params){
 }
 
 
+function initAllowLocations(){
+
+  return new Promise(async function(resolve, reject){
+
+    console.log(chalkTwitter("TSS | INIT ALLOW LOCATIONS | @" + threeceeUserObj.screenName));
+
+    allowLocationsSet.add("new england");
+
+    let response;
+
+    try{
+      response = await getFileMetadata({folder: DROPBOX_DEFAULT_CONFIG_FOLDER, file: "allowLocations.txt"});
+    }
+    catch(err){
+      console.log(chalkError("TSS | *** GET FILE METADATA ERROR: " + err));
+      return reject(err);
+    }
+
+    const fileModifiedMoment = moment(new Date(response.client_modified));
+  
+    if (fileModifiedMoment.isSameOrBefore(prevAllowLocationsFileModifiedMoment)){
+      console.log(chalkInfo("TSS | ALLOW LOCATIONS FILE BEFORE OR EQUAL"
+        + " | PREV: " + prevAllowLocationsFileModifiedMoment.format(compactDateTimeFormat)
+        + " | " + fileModifiedMoment.format(compactDateTimeFormat)
+      ));
+      return resolve(0);
+    }
+
+    console.log(chalkInfo("TSS | ALLOW LOCATIONS FILE AFTER"));
+
+    prevAllowLocationsFileModifiedMoment = moment(fileModifiedMoment);
+
+    try{
+      const data = await loadFileRetry({folder: DROPBOX_DEFAULT_CONFIG_FOLDER, file: "allowLocations.txt"}); 
+
+      if (data === undefined){
+        console.log(chalkError("TSS | DROPBOX FILE DOWNLOAD DATA UNDEFINED"
+          + " | " + DROPBOX_DEFAULT_CONFIG_FOLDER + "/" + "allowLocations.txt"
+        ));
+        return reject(new Error("DROPBOX FILE DOWNLOAD DATA UNDEFINED"));
+      }
+
+      debug(chalkInfo("TSS | DROPBOX ALLOW LOCATIONS FILE\n" + jsonPrint(data)));
+
+      const dataArray = data.toString().toLowerCase().split("\n");
+
+      console.log(chalk.blue("TSS | FILE CONTAINS " + dataArray.length + " ALLOW LOCATIONS "));
+
+      dataArray.forEach(function(location){
+        location = location.trim();
+        location = location.replace(/^\s+|\s+$|\n/gim, "");
+        if (location.length > 1) { 
+          allowLocationsSet.add(location);
+          console.log(chalkLog("WAS | +++ ALLOW LOCATION [" + allowLocationsSet.size + "] " + location));
+        }
+      });
+
+      allowLocationsArray = [...allowLocationsSet];
+      allowLocationsString = allowLocationsArray.join('\\b|\\b');
+      allowLocationsString = '\\b' + allowLocationsString + '\\b';
+      allowLocationsRegEx = new RegExp(allowLocationsString, "gi");
+
+      resolve();
+
+    }
+    catch(e){
+      console.log(chalkError("TSS | LOAD FILE ERROR\n" + e));
+      return reject(e);
+    }
+      
+  });
+}
+
 function initIgnoreLocations(){
 
   return new Promise(async function(resolve, reject){
@@ -2393,6 +2475,7 @@ process.on("message", async function(m) {
       ));
 
       try {
+        await initAllowLocations(configuration);
         await initIgnoreLocations(configuration);
         await initTwitterUser();
         await initSearchTerms(configuration);
@@ -2683,6 +2766,20 @@ process.on("message", async function(m) {
         + " | USER " + m.user.userId
         + " | @" + m.user.screenName
       ));
+    break;
+
+    case "UPDATE_ALLOW_LOCATIONS":
+      console.log(chalkLog("TSS | UPDATE ALLOW LOCATIONS"));
+
+      try {
+        await initAllowLocations(configuration);
+      }
+      catch(err){
+        console.log(chalkError("TSS | *** UPDATE_ALLOW_LOCATIONS ERROR" 
+          + " | @" + m.threeceeUser
+          + " | ERROR: " + err
+        ));
+      }
     break;
 
     case "UPDATE_IGNORE_LOCATIONS":

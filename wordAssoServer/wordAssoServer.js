@@ -6311,16 +6311,21 @@ let userCategorizeable = function(user){
     unfollowableUserSet.add(user.nodeId);
     ignoredUserSet.add(user.nodeId);
 
-    globalUser.deleteOne({ "nodeId" : user.nodeId }, function(err){
+    globalUser.deleteOne({ "nodeId" : user.nodeId }, function(err, delUser){
       if (err) {
         console.log(chalkError("WAS | *** DB DELETE USER ERROR: " + err));
         return false;
       }
-      console.log(chalkAlert("WAS | XXX UNCATEGORIZEABLE | USER LOCATION | DELETED" 
-        + " | " + user.nodeId
-        + " | @" + user.screenName
-        + " | " + user.location
-      ));
+      if (delUser){
+
+        console.log(chalkAlert("WAS | XXX UNCATEGORIZEABLE | USER LOCATION | DELETED" 
+          + " | " + user.nodeId
+          + " | @" + user.screenName
+          + " | " + user.location
+        ));
+
+      }
+
       return false;
     });
 
@@ -10642,16 +10647,19 @@ function twitterGetUserUpdateDb(user, callback){
           if ((err.code === 63) || (err.code === 50)) { // USER SUSPENDED or NOT FOUND
             if (user.nodeId !== undefined) { 
               console.log(chalkAlert("WAS | XXX DELETING USER IN DB | @" + user.screenName + " | NID: " + user.nodeId));
-              globalUser.deleteOne({ 'nodeId': user.nodeId }, function(err){
+              globalUser.deleteOne({ 'nodeId': user.nodeId }, function(err, delUser){
                 if (err) {
                   console.log(chalkError("WAS | *** DB DELETE USER ERROR: " + err));
                   return false;
                 }
-                console.log(chalkAlert("WAS | XXX UNCATEGORIZEABLE | USER LOCATION | DELETING" 
-                  + " | " + user.nodeId
-                  + " | @" + user.screenName
-                  + " | " + user.location
-                ));
+                if (delUser) {
+                  console.log(chalkAlert("WAS | XXX UNCATEGORIZEABLE | USER LOCATION | DELETING" 
+                    + " | " + user.nodeId
+                    + " | @" + user.screenName
+                    + " | " + user.location
+                  ));
+                }
+                
                 ignoredUserSet.add(user.nodeId);
                 followableUserSet.delete(user.nodeId);
                 uncategorizedManualUserSet.delete(user.nodeId);

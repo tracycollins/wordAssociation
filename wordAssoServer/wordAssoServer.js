@@ -6316,7 +6316,7 @@ let userCategorizeable = function(user){
         console.log(chalkError("WAS | *** DB DELETE USER ERROR: " + err));
         return false;
       }
-      if (delUser){
+      if (delUser.deletedCount > 0){
 
         console.log(chalkAlert("WAS | XXX UNCATEGORIZEABLE | USER LOCATION | DELETED" 
           + " | " + user.nodeId
@@ -10652,14 +10652,14 @@ function twitterGetUserUpdateDb(user, callback){
                   console.log(chalkError("WAS | *** DB DELETE USER ERROR: " + err));
                   return false;
                 }
-                if (delUser) {
+                if (delUser.deletedCount > 0) {
                   console.log(chalkAlert("WAS | XXX UNCATEGORIZEABLE | USER LOCATION | DELETING" 
                     + " | " + user.nodeId
                     + " | @" + user.screenName
                     + " | " + user.location
                   ));
                 }
-                
+
                 ignoredUserSet.add(user.nodeId);
                 followableUserSet.delete(user.nodeId);
                 uncategorizedManualUserSet.delete(user.nodeId);

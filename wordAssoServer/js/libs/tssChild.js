@@ -107,8 +107,10 @@ ignoreLocationsSet.add("london");
 ignoreLocationsSet.add("england");
 ignoreLocationsSet.add("nigeria");
 ignoreLocationsSet.add("lagos");
-let ignoreLocationsArray = Array.from(ignoreLocationsSet);
-let ignoreLocationsString = ignoreLocationsArray.join("|");
+
+let ignoreLocationsArray = [...ignoreLocationsSet];
+let ignoreLocationsString = ignoreLocationsArray.join('\\b|\\b');
+ignoreLocationsString = '\\b' + ignoreLocationsString + '\\b';
 let ignoreLocationsRegEx = new RegExp(ignoreLocationsString, "gi");
 
 process.on("SIGHUP", function() {
@@ -2001,7 +2003,8 @@ function initIgnoreLocations(){
       });
 
       ignoreLocationsArray = [...ignoreLocationsSet];
-      ignoreLocationsString = ignoreLocationsArray.join("|");
+      ignoreLocationsString = ignoreLocationsArray.join('\\b|\\b');
+      ignoreLocationsString = '\\b' + ignoreLocationsString + '\\b';
       ignoreLocationsRegEx = new RegExp(ignoreLocationsString, "gi");
 
       resolve();

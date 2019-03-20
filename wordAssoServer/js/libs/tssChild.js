@@ -1611,13 +1611,15 @@ function initSearchStream(){
           && (tweetStatus.user.location !== undefined) 
           && ignoreLocationsRegEx.test(tweetStatus.user.location))
         {
-          console.log(chalkLog("TSS | XXX IGNORE LOCATION | SKIPPING"
-            + " | TWID: " + tweetStatus.id_str
-            + " | LOC: " + tweetStatus.user.location
-            + " | UID: " + tweetStatus.user.id_str
-            + " | @" + tweetStatus.user.screen_name
-            + " | NAME: " + tweetStatus.user.name
-          ));
+          if (configuration.verbose) {
+            console.log(chalkLog("TSS | XXX IGNORE LOCATION | SKIPPING"
+              + " | TWID: " + tweetStatus.id_str
+              + " | LOC: " + tweetStatus.user.location
+              + " | UID: " + tweetStatus.user.id_str
+              + " | @" + tweetStatus.user.screen_name
+              + " | NAME: " + tweetStatus.user.name
+            ));
+          }
           return;
         }
 

@@ -87,6 +87,7 @@ const DEFAULT_FORCE_FOLLOW = false;
 const DEFAULT_FORCE_IMAGE_ANALYSIS = false;
 const DEFAULT_ENABLE_IMAGE_ANALYSIS = true;
 
+const DEFAULT_UPDATE_USER_SETS_INTERVAL = 5*ONE_MINUTE;
 const DEFAULT_SAVE_FILE_QUEUE_INTERVAL = 5*ONE_SECOND;
 const DEFAULT_CHECK_TWITTER_RATE_LIMIT_INTERVAL = ONE_MINUTE;
 
@@ -472,6 +473,7 @@ configuration.dropboxWebhookChangeTimeout = DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEO
 
 configuration.tweetParserMessageRxQueueInterval = DEFAULT_TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL;
 configuration.tweetParserInterval = DEFAULT_TWEET_PARSER_INTERVAL;
+configuration.updateUserSetsInterval = DEFAULT_UPDATE_USER_SETS_INTERVAL;
 configuration.sorterMessageRxQueueInterval = DEFAULT_SORTER_INTERVAL;
 configuration.transmitNodeQueueInterval = DEFAULT_TRANSMIT_NODE_QUEUE_INTERVAL;
 configuration.rateQueueInterval = DEFAULT_RATE_QUEUE_INTERVAL;
@@ -9625,6 +9627,11 @@ function loadConfigFile(params) {
           newConfiguration.updateTrendsInterval = loadedConfigObj.UPDATE_TRENDS_INTERVAL;
         }
 
+        if (loadedConfigObj.UPDATE_USER_SETS_INTERVAL !== undefined){
+          console.log("WAS | LOADED UPDATE_USER_SETS_INTERVAL: " + loadedConfigObj.UPDATE_USER_SETS_INTERVAL);
+          newConfiguration.updateUserSetsInterval = loadedConfigObj.UPDATE_USER_SETS_INTERVAL;
+        }
+
         if (loadedConfigObj.KEEPALIVE_INTERVAL !== undefined){
           console.log("WAS | LOADED KEEPALIVE_INTERVAL: " + loadedConfigObj.KEEPALIVE_INTERVAL);
           newConfiguration.keepaliveInterval = loadedConfigObj.KEEPALIVE_INTERVAL;
@@ -11060,7 +11067,7 @@ setTimeout(function(){
               await initTfeChild({childId: DEFAULT_TFE_CHILD_ID});
               await initDbUserChangeStream();
               await initTssChildren();
-              await initUpdateUserSetsInterval(ONE_MINUTE);
+              await initUpdateUserSetsInterval(configuration.updateUserSetsInterval);
 
             }
             catch(err){

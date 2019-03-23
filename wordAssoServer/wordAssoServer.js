@@ -4095,6 +4095,7 @@ function follow(params, callback) {
 
   const options = {
     new: true,
+    returnOriginal: false,
     upsert: false
   };
 
@@ -4225,6 +4226,7 @@ function ignore(params, callback) {
 
   const options = {
     new: true,
+    returnOriginal: false,
     upsert: false
   };
 
@@ -4278,6 +4280,7 @@ function unignore(params, callback) {
 
   const options = {
     new: true,
+    returnOriginal: false,
     upsert: false
   };
 
@@ -4349,6 +4352,7 @@ function unfollow(params, callback) {
 
   const options = {
     new: true,
+    returnOriginal: false,
     upsert: false
   };
 
@@ -4483,6 +4487,7 @@ function initIgnoredHashtagSet(){
 
         const options = {
           new: true,
+          returnOriginal: false,
           upsert: false
         };
 
@@ -4580,6 +4585,7 @@ function initIgnoredUserSet(){
 
         const options = {
           new: true,
+          returnOriginal: false,
           upsert: false
         };
 
@@ -4678,6 +4684,7 @@ function initUnfollowableUserSet(){
 
         const options = {
           new: true,
+          returnOriginal: false,
           upsert: false
         };
 

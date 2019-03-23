@@ -2589,16 +2589,16 @@ function initUserCategorizeQueueInterval(cnf){
       if (updatedUser.categoryAuto !== networkOutput.output) {
         console.log(chalkType("WAS | TFC | >>> NN AUTO CHG"
           + " | " + statsObj.autoChangeMatchRate.toFixed(2) + "%"
-          + " | AUTO CHG M " + statsObj.autoChangeMatch
+          + " | M: " + statsObj.autoChangeMatch
           + " MM: " + statsObj.autoChangeMismatch
           + " TOT: " + statsObj.autoChangeTotal
           + " | UC$ " + userChangeCache.getStats().keys
           + " UCQ " + userCategorizeQueue.length
           + " NN " + networkObj.networkId
-          + " MATCH " + matchFlag
-          + " CM " + updatedUser.category
-          + " CA " + updatedUser.categoryAuto + " > " + networkOutput.output
-          + " NID " + updatedUser.nodeId
+          + " MTCH " + matchFlag
+          + " | C M: " + updatedUser.category
+          + " A: " + updatedUser.categoryAuto + " > " + networkOutput.output
+          + " | NID " + updatedUser.nodeId
           + " @" + updatedUser.screenName
         ));
       }

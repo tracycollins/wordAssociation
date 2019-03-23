@@ -516,7 +516,8 @@ configuration.threeceeUsers = [];
 configuration.threeceeUsers = DEFAULT_THREECEE_USERS;
 statsObj.currentThreeceeUser = configuration.threeceeUsers[0];
 
-const threeceeAutoFollowUsersSet = new Set(configuration.threeceeUsers);
+const threeceeAutoFollowUser = "altthreecee00";
+
 
 const Twit = require(__dirname + "/js/libs/twit");
 
@@ -4235,10 +4236,10 @@ function follow(params, callback) {
   unfollowableUserSet.delete(params.user.screenName);
 
   const query = { nodeId: params.user.nodeId };
-  const randomThreeceeUser = _.sample([...threeceeAutoFollowUsersSet]);
+  // const randomThreeceeUser = _.sample([...threeceeAutoFollowUsersSet]);
 
   console.log(chalk.black.bold("WAS | FOLLOWING | @" + params.user.screenName 
-    + " | 3C @" + randomThreeceeUser
+    + " | 3C @" + threeceeAutoFollowUser
   ));
 
   let update = {};
@@ -8366,7 +8367,7 @@ function initTssChild(params){
             threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
 
             console.log(chalkError("WAS | <TSS | ERROR | TWITTER_UNFOLLOW"
-              + " | AUTUO FOLLOW SET: " + [...threeceeAutoFollowUsersSet]
+              + " | AUTUO FOLLOW USER: @" + threeceeAutoFollowUser
               + " | ERROR TYPE: " + m.errorType
               + " | ERROR MESSAGE: " + m.error.message
               // + "\n" + jsonPrint(m.error)
@@ -8375,14 +8376,12 @@ function initTssChild(params){
           }
           else if ((m.errorType === "TWITTER_FOLLOW_LIMIT") || (m.error.code === 161)) {
 
-            threeceeAutoFollowUsersSet.delete(m.threeceeUser);
-
             threeceeTwitter[m.threeceeUser].twitterErrors += 1;
             threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
             threeceeTwitter[m.threeceeUser].twitterAuthorizationErrorFlag = m.error;
 
             console.log(chalkError("WAS | <TSS | ERROR | TWITTER_FOLLOW_LIMIT"
-              + " | AUTUO FOLLOW SET: " + [...threeceeAutoFollowUsersSet]
+              + " | AUTUO FOLLOW USER: @" + threeceeAutoFollowUser
               + " | ERROR TYPE: " + m.errorType
               + " | ERROR MESSAGE: " + m.error.message
               // + "\n" + jsonPrint(m.error)
@@ -8391,16 +8390,12 @@ function initTssChild(params){
           }
           else if ((m.errorType === "TWITTER_UNAUTHORIZED") || (m.error.statusCode === 401)) {
 
-            threeceeAutoFollowUsersSet.delete(m.threeceeUser);
-
             threeceeTwitter[m.threeceeUser].twitterErrors += 1;
             threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
             threeceeTwitter[m.threeceeUser].twitterAuthorizationErrorFlag = m.error;
 
           }
           else if (m.errorType === "TWITTER_TOKEN") {
-
-            threeceeAutoFollowUsersSet.delete(m.threeceeUser);
 
             threeceeTwitter[m.threeceeUser].twitterErrors += 1;
             threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
@@ -8447,10 +8442,6 @@ function initTssChild(params){
           threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
           threeceeTwitter[m.threeceeUser].twitterFriends = m.twitterFriends;
 
-          if (threeceeTwitter[m.threeceeUser].twitterFollowing >= 5000) {
-            threeceeAutoFollowUsersSet.delete(m.threeceeUser);
-          }
-
           try{
             childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});
           }
@@ -8474,8 +8465,6 @@ function initTssChild(params){
           threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
           threeceeTwitter[m.threeceeUser].twitterFriends = m.twitterFriends;
           threeceeTwitter[m.threeceeUser].twitterFollowLimit = true;
-
-          threeceeAutoFollowUsersSet.delete(m.threeceeUser);
 
           try{
             childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});
@@ -8697,10 +8686,6 @@ function initTfeChild(params){
 
           threeceeHashMap[m.threeceeUser].twitterFollowing = m.twitterFollowing;
           threeceeHashMap[m.threeceeUser].twitterFriends = m.twitterFriends;
-
-          if (threeceeTwitter[m.threeceeUser].twitterFollowing >= 5000) {
-            threeceeAutoFollowUsersSet.delete(m.threeceeUser);
-          }
 
           try{
             childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});

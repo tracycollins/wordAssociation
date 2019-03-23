@@ -127,8 +127,8 @@ DEFAULT_THREECEE_USERS.forEach(function(threeceeUser){
 });
 
 
-const DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER = "altthreecee00";
-const DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER_FILE = DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER + ".json";
+const DEFAULT_TWITTER_THREECEE_USER = "altthreecee00";
+const DEFAULT_TWITTER_THREECEE_USER_FILE = DEFAULT_TWITTER_THREECEE_USER + ".json";
 
 const DEFAULT_TWITTER_CONFIG_THREECEE = "threecee";
 const DEFAULT_TWITTER_CONFIG_THREECEE_FILE = DEFAULT_TWITTER_CONFIG_THREECEE + ".json";
@@ -137,7 +137,7 @@ const DEFAULT_DROPBOX_LIST_FOLDER_LIMIT = 50;
 const DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT = 1*ONE_SECOND;
 
 const DEFAULT_INTERVAL = 5;
-const DEFAULT_MIN_FOLLOWERS_AUTO = 9000;
+const DEFAULT_MIN_FOLLOWERS_AUTO = 8500;
 
 const DEFAULT_TWEET_PARSER_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_SORTER_INTERVAL = DEFAULT_INTERVAL;
@@ -463,7 +463,7 @@ configuration.enableImageAnalysis = DEFAULT_ENABLE_IMAGE_ANALYSIS;
 configuration.forceImageAnalysis = DEFAULT_FORCE_IMAGE_ANALYSIS;
 configuration.geoCodeEnabled = DEFAULT_GEOCODE_ENABLED;
 
-configuration.twitterThreeceeAutoFollowUser = DEFAULT_TWITTER_THREECEE_AUTO_FOLLOW_USER;
+configuration.threeceeUser = DEFAULT_TWITTER_THREECEE_USER;
 
 configuration.threeceeInfoUsersArray = DEFAULT_THREECEE_INFO_USERS;
 
@@ -516,7 +516,7 @@ configuration.threeceeUsers = [];
 configuration.threeceeUsers = DEFAULT_THREECEE_USERS;
 statsObj.currentThreeceeUser = configuration.threeceeUsers[0];
 
-const threeceeAutoFollowUser = "altthreecee00";
+const threeceeUser = "altthreecee00";
 
 
 const Twit = require(__dirname + "/js/libs/twit");
@@ -4236,17 +4236,16 @@ function follow(params, callback) {
   unfollowableUserSet.delete(params.user.screenName);
 
   const query = { nodeId: params.user.nodeId };
-  // const randomThreeceeUser = _.sample([...threeceeAutoFollowUsersSet]);
 
   console.log(chalk.black.bold("WAS | FOLLOWING | @" + params.user.screenName 
-    + " | 3C @" + threeceeAutoFollowUser
+    + " | 3C @" + threeceeUser
   ));
 
   let update = {};
 
   update["$set"] = { 
     following: true, 
-    threeceeFollowing: randomThreeceeUser
+    threeceeFollowing: threeceeUser
   };
 
   const options = {
@@ -4267,9 +4266,9 @@ function follow(params, callback) {
 
       if (configuration.enableTwitterFollow){
 
-        if (tssChildren[randomThreeceeUser] !== undefined){
+        if (tssChildren[threeceeUser] !== undefined){
 
-          tssChildren[randomThreeceeUser].child.send({
+          tssChildren[threeceeUser].child.send({
             op: "FOLLOW", 
             user: userUpdated,
             forceFollow: configuration.forceFollow
@@ -8367,7 +8366,7 @@ function initTssChild(params){
             threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
 
             console.log(chalkError("WAS | <TSS | ERROR | TWITTER_UNFOLLOW"
-              + " | AUTUO FOLLOW USER: @" + threeceeAutoFollowUser
+              + " | AUTUO FOLLOW USER: @" + threeceeUser
               + " | ERROR TYPE: " + m.errorType
               + " | ERROR MESSAGE: " + m.error.message
               // + "\n" + jsonPrint(m.error)
@@ -8381,7 +8380,7 @@ function initTssChild(params){
             threeceeTwitter[m.threeceeUser].twitterAuthorizationErrorFlag = m.error;
 
             console.log(chalkError("WAS | <TSS | ERROR | TWITTER_FOLLOW_LIMIT"
-              + " | AUTUO FOLLOW USER: @" + threeceeAutoFollowUser
+              + " | AUTUO FOLLOW USER: @" + threeceeUser
               + " | ERROR TYPE: " + m.errorType
               + " | ERROR MESSAGE: " + m.error.message
               // + "\n" + jsonPrint(m.error)
@@ -9723,9 +9722,9 @@ function loadConfigFile(params) {
           newConfiguration.threeceeInfoUsersArray = loadedConfigObj.TWITTER_THREECEE_INFO_USERS;
         }
 
-        if (loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW_USER !== undefined){
-          console.log("WAS | LOADED TWITTER_THREECEE_AUTO_FOLLOW_USER: " + loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW_USER);
-          newConfiguration.twitterThreeceeAutoFollowUser = loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW_USER;
+        if (loadedConfigObj.TWITTER_THREECEE_USER !== undefined){
+          console.log("WAS | LOADED TWITTER_THREECEE_USER: " + loadedConfigObj.TWITTER_THREECEE_USER);
+          newConfiguration.threeceeUser = loadedConfigObj.TWITTER_THREECEE_USER;
         }
 
         if (loadedConfigObj.CURSOR_BATCH_SIZE !== undefined){

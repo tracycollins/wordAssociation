@@ -2560,7 +2560,7 @@ function initUserCategorizeQueueInterval(cnf){
         return;
       }
 
-      if (updatedUser.categoryAuto !== networkOutput.output) {
+      // if (updatedUser.categoryAuto !== networkOutput.output) {
 
         matchFlag = updatedUser.category 
           && (updatedUser.category !== undefined) 
@@ -2586,11 +2586,12 @@ function initUserCategorizeQueueInterval(cnf){
         
         // chalkType = (matchFlag) ? chalkGreen : chalk.yellow;
 
+      if (updatedUser.categoryAuto !== networkOutput.output) {
         console.log(chalkType("WAS | TFC | >>> NN AUTO CHG"
+          + " | " + statsObj.autoChangeMatchRate.toFixed(2) + "%"
           + " | AUTO CHG M " + statsObj.autoChangeMatch
           + " MM: " + statsObj.autoChangeMismatch
           + " TOT: " + statsObj.autoChangeTotal
-          + " RATE: " + statsObj.autoChangeMatchRate.toFixed(2)
           + " | UC$ " + userChangeCache.getStats().keys
           + " UCQ " + userCategorizeQueue.length
           + " NN " + networkObj.networkId
@@ -2601,6 +2602,7 @@ function initUserCategorizeQueueInterval(cnf){
           + " @" + updatedUser.screenName
         ));
       }
+
 
       updatedUser.categoryAuto = networkOutput.output;
       updatedUser.lastHistogramTweetId = updatedUser.statusId;

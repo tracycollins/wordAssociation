@@ -6844,7 +6844,7 @@ function initTransmitNodeQueueInterval(interval){
                   if (!uncategorizedManualUserSet.has(n.nodeId) 
                     && ((n.category === undefined) || !n.category) 
                     && ((n.ignored === undefined) || !n.ignored) 
-                    && (configuration.ignoreCategoryRight && n.categoryAuto && (n.categoryAuto !== "right"))
+                    && (configuration.ignoreCategoryRight && (!n.categoryAuto ||(n.categoryAuto && (n.categoryAuto !== "right"))))
                     && !ignoredUserSet.has(n.nodeId) 
                     && !unfollowableUserSet.has(n.nodeId)) { 
 

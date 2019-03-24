@@ -6625,7 +6625,7 @@ function updateUserSets(params){
       if (categorizeable
         && ((user.category === undefined) || !user.category) 
         && ((user.ignored === undefined) || !user.ignored) 
-        && (configuration.ignoreCategoryRight && user.categoryAuto && (user.categoryAuto !== "right"))
+        && (configuration.ignoreCategoryRight && (!user.categoryAuto ||(user.categoryAuto && (user.categoryAuto !== "right"))))
         && !ignoredUserSet.has(user.nodeId) 
         && !uncategorizedManualUserSet.has(user.nodeId) 
         && !unfollowableUserSet.has(user.nodeId)) { 

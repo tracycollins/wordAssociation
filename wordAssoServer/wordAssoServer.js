@@ -6713,7 +6713,7 @@ function updateUserSets(params){
       if (categorizeable
         && ((user.category === undefined) || !user.category) 
         && ((user.ignored === undefined) || !user.ignored) 
-        && (configuration.ignoreCategoryRight && (!user.categoryAuto || (user.categoryAuto === undefined) ||(user.categoryAuto && (user.categoryAuto !== "right"))))
+        && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && user.categoryAuto && (user.categoryAuto !== "right")))
         && !ignoredUserSet.has(user.nodeId) 
         && !uncategorizedManualUserSet.has(user.nodeId) 
         && !unfollowableUserSet.has(user.nodeId)) { 
@@ -6954,7 +6954,7 @@ function initTransmitNodeQueueInterval(interval){
                   if (!uncategorizedManualUserSet.has(n.nodeId) 
                     && ((n.category === undefined) || !n.category) 
                     && ((n.ignored === undefined) || !n.ignored) 
-                    && (configuration.ignoreCategoryRight && (!n.categoryAuto || (n.categoryAuto === undefined) ||(n.categoryAuto && (n.categoryAuto !== "right"))))
+                    && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && n.categoryAuto && (n.categoryAuto !== "right")))
                     && !ignoredUserSet.has(n.nodeId) 
                     && !unfollowableUserSet.has(n.nodeId)) { 
 

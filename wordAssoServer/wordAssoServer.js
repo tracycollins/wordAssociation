@@ -1,6 +1,6 @@
 /*jslint node: true */
 /*jshint sub:true*/
-"use strict";
+
 
 let saveSampleTweetFlag = true;
 
@@ -18,12 +18,12 @@ hostname = hostname.replace(/word/g, "google");
 
 
 const TWITTER_WEBHOOK_URL = "/webhooks/twitter";
-const TWITTER_WEBHOOK_URL_FULL = "https://api.twitter.com/1.1/account_activity/all/dev/webhooks.json?url=https%3A%2F%word.threeceelabs.com%2Fwebhooks%2Ftwitter";
+// const TWITTER_WEBHOOK_URL_FULL = "https://api.twitter.com/1.1/account_activity/all/dev/webhooks.json?url=https%3A%2F%word.threeceelabs.com%2Fwebhooks%2Ftwitter";
 
 const TWITTER_AUTH_CALLBACK_URL = "https://word.threeceelabs.com/auth/twitter/callback";
 // const TWITTER_AUTH_CALLBACK_URL = "http://localhost:9997/auth/twitter/callback";
 
-const dbAppName = "WAS_" + process.pid;
+// const dbAppName = "WAS_" + process.pid;
 
 global.globalDbConnection = false;
 
@@ -35,22 +35,33 @@ mongoose.set("useFindAndModify", false);
 
 global.globalWordAssoDb = require("@threeceelabs/mongoose-twitter");
 
-global.globalEmoji;
-global.globalHashtag;
-global.globalLocation;
-global.globalMedia;
-global.globalNetworkInputs;
-global.globalNeuralNetwork;
-global.globalPlace;
-global.globalTweet;
-global.globalUrl;
-global.globalUser;
-global.globalWord;
+const emojiModel = require("@threeceelabs/mongoose-twitter/models/emoji.server.model");
+const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
+const locationModel = require("@threeceelabs/mongoose-twitter/models/location.server.model");
+const mediaModel = require("@threeceelabs/mongoose-twitter/models/media.server.model");
+const neuralNetworkModel = require("@threeceelabs/mongoose-twitter/models/neuralNetwork.server.model");
+const placeModel = require("@threeceelabs/mongoose-twitter/models/place.server.model");
+const tweetModel = require("@threeceelabs/mongoose-twitter/models/tweet.server.model");
+const urlModel = require("@threeceelabs/mongoose-twitter/models/url.server.model");
+const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
+const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
+
+// global.globalEmoji;
+// global.globalHashtag;
+// global.globalLocation;
+// global.globalMedia;
+// global.globalNetworkInputs;
+// global.globalNeuralNetwork;
+// global.globalPlace;
+// global.globalTweet;
+// global.globalUrl;
+// global.globalUser;
+// global.globalWord;
 
 
 let HashtagServerController;
 let hashtagServerController;
-let hashtagServerControllerReady = false;
+// let hashtagServerControllerReady = false;
 
 let UserServerController;
 let userServerController;
@@ -61,7 +72,7 @@ let userChangeStream;
 
 let userSearchCursor;
 
-let initCategoryHashmapsReady = true;
+// const initCategoryHashmapsReady = true;
 let heartbeatInterval;
 
 process.env.NODE_ENV = process.env.NODE_ENV || "development";
@@ -74,10 +85,10 @@ const ONE_DAY = 24 * ONE_HOUR;
 const ONE_KILOBYTE = 1024;
 const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
 
-const DEFAULT_INFO_TWITTER_USER = "threecee";
+// const DEFAULT_INFO_TWITTER_USER = "threecee";
 const DEFAULT_IGNORE_CATEGORY_RIGHT = false;
 
-let infoTwitterUserObj = {};
+// const infoTwitterUserObj = {};
 
 const DEFAULT_GEOCODE_ENABLED = false;
 
@@ -89,18 +100,18 @@ const DEFAULT_ENABLE_IMAGE_ANALYSIS = true;
 
 const DEFAULT_UPDATE_USER_SETS_INTERVAL = 5*ONE_MINUTE;
 const DEFAULT_SAVE_FILE_QUEUE_INTERVAL = 5*ONE_SECOND;
-const DEFAULT_CHECK_TWITTER_RATE_LIMIT_INTERVAL = ONE_MINUTE;
+// const DEFAULT_CHECK_TWITTER_RATE_LIMIT_INTERVAL = ONE_MINUTE;
 
 const DEFAULT_ENABLE_TWITTER_FOLLOW = false;
 const DEFAULT_TWITTER_SEARCH_NODE_QUEUE_INTERVAL = 100;
-const DEFAULT_MAX_TWIITER_SHOW_USER_TIMEOUT = 30*ONE_MINUTE;
-const DEFAULT_CONFIG_INIT_INTERVAL = ONE_MINUTE;
+// const DEFAULT_MAX_TWIITER_SHOW_USER_TIMEOUT = 30*ONE_MINUTE;
+// const DEFAULT_CONFIG_INIT_INTERVAL = ONE_MINUTE;
 
 const DEFAULT_TEST_INTERNET_CONNECTION_URL = "www.google.com";
 
-const DEFAULT_FIND_CAT_USER_CURSOR_LIMIT = 100;
-const DEFAULT_FIND_CAT_WORD_CURSOR_LIMIT = 100;
-const DEFAULT_FIND_CAT_HASHTAG_CURSOR_LIMIT = 100;
+// const DEFAULT_FIND_CAT_USER_CURSOR_LIMIT = 100;
+// const DEFAULT_FIND_CAT_WORD_CURSOR_LIMIT = 100;
+// const DEFAULT_FIND_CAT_HASHTAG_CURSOR_LIMIT = 100;
 
 const DEFAULT_CURSOR_BATCH_SIZE = 100;
 
@@ -118,9 +129,9 @@ const DEFAULT_TSS_CHILD_ID = DEFAULT_CHILD_ID_PREFIX + "tss";
 
 let dbuChild;
 let tfeChild;
-let parserChild;
+// let parserChild;
 
-let tssChildren = {};
+const tssChildren = {};
 
 DEFAULT_THREECEE_USERS.forEach(function(threeceeUser){
   tssChildren[threeceeUser] = {};
@@ -129,13 +140,13 @@ DEFAULT_THREECEE_USERS.forEach(function(threeceeUser){
 
 
 const DEFAULT_TWITTER_THREECEE_USER = "altthreecee00";
-const DEFAULT_TWITTER_THREECEE_USER_FILE = DEFAULT_TWITTER_THREECEE_USER + ".json";
+// const DEFAULT_TWITTER_THREECEE_USER_FILE = DEFAULT_TWITTER_THREECEE_USER + ".json";
 
-const DEFAULT_TWITTER_CONFIG_THREECEE = "threecee";
-const DEFAULT_TWITTER_CONFIG_THREECEE_FILE = DEFAULT_TWITTER_CONFIG_THREECEE + ".json";
+// const DEFAULT_TWITTER_CONFIG_THREECEE = "threecee";
+// const DEFAULT_TWITTER_CONFIG_THREECEE_FILE = DEFAULT_TWITTER_CONFIG_THREECEE + ".json";
 
 const DEFAULT_DROPBOX_LIST_FOLDER_LIMIT = 50;
-const DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT = 1*ONE_SECOND;
+const DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT = Number(ONE_SECOND);
 
 const DEFAULT_INTERVAL = 5;
 const DEFAULT_MIN_FOLLOWERS_AUTO = 8500;
@@ -145,17 +156,17 @@ const DEFAULT_SORTER_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_TWITTER_RX_QUEUE_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_TRANSMIT_NODE_QUEUE_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = DEFAULT_INTERVAL;
-const DEFAULT_HASHTAG_LOOKUP_QUEUE_INTERVAL = DEFAULT_INTERVAL;
+// const DEFAULT_HASHTAG_LOOKUP_QUEUE_INTERVAL = DEFAULT_INTERVAL;
 
-const DEFAULT_PING_INTERVAL = ONE_MINUTE;
+// const DEFAULT_PING_INTERVAL = ONE_MINUTE;
 const TWP_PING_INTERVAL = 10*ONE_MINUTE;
-const TSS_PING_INTERVAL = 10*ONE_MINUTE;
+// const TSS_PING_INTERVAL = 10*ONE_MINUTE;
 const DBU_PING_INTERVAL = 10*ONE_MINUTE;
 const TFE_PING_INTERVAL = 10*ONE_MINUTE;
 
 const DEFAULT_RATE_QUEUE_INTERVAL = ONE_SECOND; // 1 second
 const DEFAULT_RATE_QUEUE_INTERVAL_MODULO = 60; // modulo RATE_QUEUE_INTERVAL
-const DEFAULT_UPDATE_TRENDS_INTERVAL = 15*ONE_MINUTE;
+// const DEFAULT_UPDATE_TRENDS_INTERVAL = 15*ONE_MINUTE;
 const DEFAULT_STATS_UPDATE_INTERVAL = ONE_MINUTE;
 const DEFAULT_CATEGORY_HASHMAPS_UPDATE_INTERVAL = 5*ONE_MINUTE;
 
@@ -181,8 +192,8 @@ const SERVER_CACHE_CHECK_PERIOD = 15;
 const VIEWER_CACHE_DEFAULT_TTL = 300; // seconds
 const VIEWER_CACHE_CHECK_PERIOD = 15;
 
-const ADMIN_CACHE_DEFAULT_TTL = 300; // seconds
-const ADMIN_CACHE_CHECK_PERIOD = 15;
+// const ADMIN_CACHE_DEFAULT_TTL = 300; // seconds
+// const ADMIN_CACHE_CHECK_PERIOD = 15;
 
 const AUTH_SOCKET_CACHE_DEFAULT_TTL = 600;
 const AUTH_SOCKET_CACHE_CHECK_PERIOD = 10;
@@ -210,8 +221,8 @@ const chalkUser = chalk.blue;
 const chalkNetwork = chalk.black;
 const chalkTwitter = chalk.blue;
 const chalkConnect = chalk.black;
-const chalkSession = chalk.black;
-const chalkDisconnect = chalk.black;
+// const chalkSession = chalk.black;
+// const chalkDisconnect = chalk.black;
 const chalkSocket = chalk.black;
 const chalkInfo = chalk.black;
 const chalkAlert = chalk.red;
@@ -219,12 +230,12 @@ const chalkWarn = chalk.bold.yellow;
 const chalkError = chalk.bold.red;
 const chalkLog = chalk.gray;
 const chalkBlue = chalk.blue;
-const chalkBlueBold = chalk.blue.bold;
+// const chalkBlueBold = chalk.blue.bold;
 
 const btoa = require("btoa");
 const crypto = require("crypto");
-const objectPath = require("object-path");
-const util = require("util");
+// const objectPath = require("object-path");
+// const util = require("util");
 const request = require("request");
 const _ = require("lodash");
 const touch = require("touch");
@@ -243,65 +254,67 @@ const debugCache = require("debug")("cache");
 const debugCategory = require("debug")("kw");
 const moment = require("moment");
 // const treeify = require("treeify");
-const treeify = require(__dirname + "/js/libs/treeify");
+
+const treeify = require("treeify");
+// const treeify = require(__dirname + "/js/libs/treeify");
 
 let prevAllowLocationsFileModifiedMoment = moment("2010-01-01");
 let prevIgnoredLocationsFileModifiedMoment = moment("2010-01-01");
-let prevSearchTermsFileModifiedMoment = moment("2010-01-01");
+// const prevSearchTermsFileModifiedMoment = moment("2010-01-01");
 
-const request_options = {
-  url: "https://api.twitter.com/oauth2/token",
-  method: "POST",
-  auth: {
-    user: "ex0jSXayxMOjNm4DZIiic9Nc0",
-    pass: "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa"
-  },
-  form: {
-    "grant_type": "client_credentials"
-  }
-};
+// const request_options = {
+//   url: "https://api.twitter.com/oauth2/token",
+//   method: "POST",
+//   auth: {
+//     user: "ex0jSXayxMOjNm4DZIiic9Nc0",
+//     pass: "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa"
+//   },
+//   form: {
+//     "grant_type": "client_credentials"
+//   }
+// };
 
-function bearerTokenRequest(request_options){
+// function bearerTokenRequest(request_options){
+//   return new Promise(function(resolve, reject){
+//     request(request_options, function(error, response) {
+//       if (error) {
+//         reject(error);
+//       }
+//       else {
+
+//         var json_body = JSON.parse(response.body);
+
+//         console.log(chalk.green("WAS | TWITTER BEARER TOKEN | " + json_body.access_token));
+
+//         const twitter_bearer_token = json_body.access_token;
+
+//         // request options
+//         var req_options = {
+//           url: TWITTER_WEBHOOK_URL_FULL,
+//           method: "POST",
+//           resolveWithFullResponse: true,
+//           auth: { "bearer": twitter_bearer_token }
+//         };
+
+//         // PUT request to retrieve webhook config
+//         request(req_options, function(error, response) {
+//           if (error) {
+//             console.log(chalkError("WAS | *** TWITTER WEBHOOK CONFIG REQ ERROR: " + error));
+//             return reject(twitter_bearer_token);
+//           }
+//           console.log(chalk.green("WAS | +++ TWITTER WEBHOOK VALID"));
+//           resolve(twitter_bearer_token);
+//         });
+//       }
+//     });
+//   });
+// }
+
+function addAccountActivitySubscription(){
+
   return new Promise(function(resolve, reject){
-    request(request_options, function(error, response) {
-      if (error) {
-        reject(error);
-      }
-      else {
 
-        var json_body = JSON.parse(response.body);
-
-        console.log(chalk.green("WAS | TWITTER BEARER TOKEN | " + json_body.access_token));
-
-        let twitter_bearer_token = json_body.access_token;
-
-        // request options
-        var req_options = {
-          url: TWITTER_WEBHOOK_URL_FULL,
-          method: "POST",
-          resolveWithFullResponse: true,
-          auth: { "bearer" : twitter_bearer_token }
-        };
-
-        // PUT request to retrieve webhook config
-        request(req_options, function(error, response) {
-          if (error) {
-            console.log(chalkError("WAS | *** TWITTER WEBHOOK CONFIG REQ ERROR: " + error));
-            return reject(twitter_bearer_token);
-          }
-          console.log(chalk.green("WAS | +++ TWITTER WEBHOOK VALID"));
-          resolve(twitter_bearer_token);
-        });
-      }
-    });
-  });
-}
-
-function addAccountActivitySubscription(params){
-
-  return new Promise(function(resolve, reject){
-
-    let options = {
+    const options = {
       url: "https://api.twitter.com/1.1/account_activity/all/dev/subscriptions.json",
       method: "POST",
       resolveWithFullResponse: true,
@@ -340,10 +353,10 @@ app.set("trust proxy", 1); // trust first proxy
 const expressSession = require("express-session");
 const MongoStore = require("connect-mongo")(expressSession);
 const passport = require("passport");
-const LocalStrategy = require("passport-local").Strategy;
+// const LocalStrategy = require("passport-local").Strategy;
 const TwitterStrategy = require("passport-twitter").Strategy;
 
-app.use(require("serve-static")(__dirname + "/public"));
+app.use(require("serve-static")(path.join(__dirname, "public")));
 app.use(require("body-parser").urlencoded({ extended: true }));
 
 const threeceeConfig = {
@@ -387,7 +400,7 @@ let ignoreLocationsRegEx = new RegExp(ignoreLocationsString, "gi");
 const NodeCache = require("node-cache");
 const commandLineArgs = require("command-line-args");
 
-let metricsRate = "5MinuteRate";
+const metricsRate = "5MinuteRate";
 
 const shell = require("shelljs");
 const JSONParse = require("json-parse-safe");
@@ -397,20 +410,20 @@ const deepcopy = require("deep-copy");
 const sizeof = require("object-sizeof");
 const writeJsonFile = require("write-json-file");
 
-const MongoDBStore = require("express-session-mongo");
+// const MongoDBStore = require("express-session-mongo");
 
-let configEvents = new EventEmitter2({
+const configEvents = new EventEmitter2({
   wildcard: true,
   newListener: true,
   maxListeners: 20
 });
 
-configEvents.on("newListener", function configEventsNewListener(data) {
+configEvents.on("newListener", function(data) {
   debug("*** NEW CONFIG EVENT LISTENER: " + data);
 });
 
 
-let statsObj = {};
+const statsObj = {};
 statsObj.commandLineArgsLoaded = false;
 statsObj.currentThreeceeUserIndex = 0;
 statsObj.currentThreeceeUser = "altthreecee00";
@@ -458,7 +471,7 @@ DEFAULT_THREECEE_USERS.forEach(function(threeceeUser){
   statsObj.tssChildren[threeceeUser].ready = false;
 });
 
-let previousConfiguration = {};
+// let previousConfiguration = {};
 let configuration = {};
 let defaultConfiguration = {}; // general configuration
 let hostConfiguration = {}; // host-specific configuration
@@ -491,8 +504,8 @@ configuration.rateQueueIntervalModulo = DEFAULT_RATE_QUEUE_INTERVAL_MODULO;
 configuration.statsUpdateInterval = DEFAULT_STATS_UPDATE_INTERVAL;
 
 configuration.DROPBOX = {};
-configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN ;
-configuration.DROPBOX.DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY ;
+configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN;
+configuration.DROPBOX.DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY;
 configuration.DROPBOX.DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
 configuration.DROPBOX.DROPBOX_WAS_CONFIG_FILE = process.env.DROPBOX_CONFIG_FILE || "wordAssoServerConfig.json";
 configuration.DROPBOX.DROPBOX_WAS_STATS_FILE = process.env.DROPBOX_STATS_FILE || "wordAssoServerStats.json";
@@ -531,12 +544,12 @@ statsObj.currentThreeceeUser = configuration.threeceeUsers[0];
 const threeceeUser = "altthreecee00";
 
 
-const Twit = require(__dirname + "/js/libs/twit");
+const Twit = require(path.join(__dirname, "/js/libs/twit"));
 
-let threeceeTwitter = {};
+const threeceeTwitter = {};
 threeceeTwitter.config = {};
 
-let threeceeInfoTwitter = {};
+const threeceeInfoTwitter = {};
 threeceeInfoTwitter.config = {};
 
 if (process.env.MIN_FOLLOWERS_AUTO !== undefined) {
@@ -559,7 +572,7 @@ let prevHostConfigFileModifiedMoment = moment("2010-01-01");
 let prevDefaultConfigFileModifiedMoment = moment("2010-01-01");
 let prevConfigFileModifiedMoment = moment("2010-01-01");
 
-previousConfiguration = deepcopy(configuration);
+// previousConfiguration = deepcopy(configuration);
 
 const help = { name: "help", alias: "h", type: Boolean};
 
@@ -580,7 +593,7 @@ const optionDefinitions = [
 
 function getTimeStamp(inputTime) {
 
-  let currentTimeStamp ;
+  let currentTimeStamp;
 
   if (inputTime === undefined) {
     currentTimeStamp = moment().format(compactDateTimeFormat);
@@ -635,7 +648,7 @@ function quit(message) {
   clearInterval(twitterSearchNodeQueueInterval);
 
   let msg = "";
-  if (message) {msg = message;}
+  if (message) { msg = message; }
 
   console.log(chalkAlert("WAS | ... QUITTING ..."));
   console.log(chalkAlert("WAS | QUIT MESSAGE: " + msg));
@@ -678,31 +691,31 @@ let utilNameSpace;
 let userNameSpace;
 let viewNameSpace;
 
-let userRightSet = new Set();
-let userLeftSet = new Set();
-let userNeutralSet = new Set();
-let userPositiveSet = new Set();
-let userNegativeSet = new Set();
-let userNoneSet = new Set();
+const userRightSet = new Set();
+const userLeftSet = new Set();
+const userNeutralSet = new Set();
+const userPositiveSet = new Set();
+const userNegativeSet = new Set();
+const userNoneSet = new Set();
 
-let userAutoRightSet = new Set();
-let userAutoLeftSet = new Set();
-let userAutoNeutralSet = new Set();
-let userAutoPositiveSet = new Set();
-let userAutoNegativeSet = new Set();
-let userAutoNoneSet = new Set();
+const userAutoRightSet = new Set();
+const userAutoLeftSet = new Set();
+const userAutoNeutralSet = new Set();
+const userAutoPositiveSet = new Set();
+const userAutoNegativeSet = new Set();
+const userAutoNoneSet = new Set();
 
-let ignoredHashtagFile = "ignoredHashtag.json";
-let ignoredUserFile = "ignoredUser.json";
-let unfollowableUserFile = "unfollowableUser.json";
-let followableSearchTermFile = "followableSearchTerm.txt";
+const ignoredHashtagFile = "ignoredHashtag.json";
+const ignoredUserFile = "ignoredUser.json";
+const unfollowableUserFile = "unfollowableUser.json";
+const followableSearchTermFile = "followableSearchTerm.txt";
 
-let pendingFollowSet = new Set();
+const pendingFollowSet = new Set();
 
-let followableUserSet = new Set();
-let categorizeableUserSet = new Set();
+const followableUserSet = new Set();
+const categorizeableUserSet = new Set();
 
-let followableSearchTermSet = new Set();
+const followableSearchTermSet = new Set();
 
 followableSearchTermSet.add("potus");
 followableSearchTermSet.add("trump");
@@ -744,7 +757,7 @@ followableSearchTermSet.add("livesmatter");
 followableSearchTermSet.add("specialcounsel");
 followableSearchTermSet.add("special counsel");
 
-let followableSearchTermsArray = Array.from(followableSearchTermSet);
+const followableSearchTermsArray = Array.from(followableSearchTermSet);
 let followableSearchTermString = followableSearchTermsArray.join('\\b|\\b');
 followableSearchTermString = '\\b' + followableSearchTermString + '\\b';
 let followableRegEx = new RegExp(followableSearchTermString, "gi");
@@ -757,14 +770,14 @@ const bestRuntimeNetworkFileName = DEFAULT_BEST_NETWORK_FILE;
 
 
 const DEFAULT_MAX_INPUT_HASHMAP_FILE = "maxInputHashMap.json";
-let maxInputHashMapFile = DEFAULT_MAX_INPUT_HASHMAP_FILE;
+const maxInputHashMapFile = DEFAULT_MAX_INPUT_HASHMAP_FILE;
 
-let nodeSearchType = false;
-let nodeSearchBy = "lastSeen";
-let previousUserUncategorizedId = "1";
-let previousUserUncategorizedCreated = moment();
-let previousUserUncategorizedLastSeen = moment();
-let previousUserMismatchedId = "1";
+// let nodeSearchType = false;
+// const nodeSearchBy = "lastSeen";
+// const previousUserUncategorizedId = "1";
+const previousUserUncategorizedCreated = moment();
+// const previousUserUncategorizedLastSeen = moment();
+// const previousUserMismatchedId = "1";
 
 const fieldsExclude = {
   histograms: 0,
@@ -802,27 +815,27 @@ let maxInputHashMap = false;
 let normalization = false;
 
 
-let twitterUserThreecee = {
-    nodeId : "14607119",
+const twitterUserThreecee = {
+    nodeId: "14607119",
     // userId : "14607119",
-    profileImageUrl : "http://pbs.twimg.com/profile_images/780466729692659712/p6RcVjNK.jpg",
-    profileUrl : "http://twitter.com/threecee",
-    url : "http://threeCeeMedia.com",
-    name : "Tracy Collins",
-    screenName : "threecee",
-    nodeType : "user",
-    following : null,
-    description : "photography + animation + design",
-    isTwitterUser : true,
-    screenNameLower : "threecee"
+    profileImageUrl: "http://pbs.twimg.com/profile_images/780466729692659712/p6RcVjNK.jpg",
+    profileUrl: "http://twitter.com/threecee",
+    url: "http://threeCeeMedia.com",
+    name: "Tracy Collins",
+    screenName: "threecee",
+    nodeType: "user",
+    following: null,
+    description: "photography + animation + design",
+    isTwitterUser: true,
+    screenNameLower: "threecee"
 };
 
-let defaultTwitterUser = twitterUserThreecee;
+const defaultTwitterUser = twitterUserThreecee;
 
-let followedUserSet = new Set();
-let unfollowableUserSet = new Set();
-let ignoredUserSet = new Set();
-let ignoredHashtagSet = new Set();
+const followedUserSet = new Set();
+const unfollowableUserSet = new Set();
+const ignoredUserSet = new Set();
+const ignoredHashtagSet = new Set();
 
 process.title = "node_wordAssoServer";
 console.log(chalkBlue("\n\nWAS | ============== START ==============\n\n"));
@@ -836,7 +849,7 @@ console.log(chalkBlue("WAS | ENVIRONMENT:   " + process.env.NODE_ENV));
 // ==================================================================
 
 
-let ignoreWordsArray = [
+const ignoreWordsArray = [
   "r",
   "y",
   "se",
@@ -990,39 +1003,39 @@ let ignoreWordsArray = [
 ];
 
 const categorizedUserHashMap = new HashMap();
-const categorizedWordHashMap = new HashMap();
+// const categorizedWordHashMap = new HashMap();
 const categorizedHashtagHashMap = new HashMap();
-const metricsHashmap = new HashMap();
+// const metricsHashmap = new HashMap();
 
 
 const tweetMeter = new Measured.Meter({rateUnit: 60000});
 
-let languageServer = {};
+// const languageServer = {};
 
 
-let adminHashMap = new HashMap();
+const adminHashMap = new HashMap();
 // let viewerHashMap = new HashMap();
 
 const globalNodeMeter = new Measured.Meter({rateUnit: 60000});
 
 let nodeMeter = {};
-let nodeMeterType = {};
+const nodeMeterType = {};
 
 DEFAULT_NODE_TYPES.forEach(function(nodeType){
   nodeMeterType[nodeType] = {};
 });
 
 let tweetRxQueueInterval;
-let tweetParserQueue = [];
-let tweetParserMessageRxQueue = [];
-let tweetRxQueue = [];
+const tweetParserQueue = [];
+const tweetParserMessageRxQueue = [];
+const tweetRxQueue = [];
 
-let hashtagLookupQueueInterval;
-let hashtagLookupQueue = [];
+// let hashtagLookupQueueInterval;
+// const hashtagLookupQueue = [];
 
-let keySortQueue = [];
+const keySortQueue = [];
 
-let twitterSearchNodeQueue = [];
+const twitterSearchNodeQueue = [];
 let twitterSearchNodeQueueInterval;
 let twitterSearchNodeQueueReady = false;
 
@@ -1032,9 +1045,9 @@ let dbuPongReceived = false;
 let dbuPingId = false;
 
 let tssPingInterval;
-let tssPingSent = false;
-let tssPongReceived = false;
-let tssPingId = false;
+// const tssPingSent = false;
+// let tssPongReceived = false;
+// const tssPingId = false;
 
 let tfePingInterval;
 let tfePingSent = false;
@@ -1050,17 +1063,17 @@ let tweetParserPingId = false;
 let categoryHashmapsInterval;
 let statsInterval;
 
-let categorizedManualUserSet = new Set();
-let categorizedAutoUserSet = new Set();
+const categorizedManualUserSet = new Set();
+const categorizedAutoUserSet = new Set();
 
-let uncategorizedManualUserSet = new Set();
-let uncategorizedAutoUserSet = new Set();
+const uncategorizedManualUserSet = new Set();
+const uncategorizedAutoUserSet = new Set();
 
 let uncategorizedManualUserArray = [];
-let uncategorizedAutoUserArray = [];
+// const uncategorizedAutoUserArray = [];
 
-let matchUserSet = new Set();
-let mismatchUserSet = new Set();
+const matchUserSet = new Set();
+const mismatchUserSet = new Set();
 let mismatchUserArray = [];
 
 
@@ -1071,39 +1084,39 @@ const DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKE
 const DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY;
 const DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
 
-let dropboxConfigSearchTermsFolder = "/config/searchTerms";
+// const dropboxConfigSearchTermsFolder = "/config/searchTerms";
 
-let dropboxConfigTwitterFolder = "/config/twitter";
+const dropboxConfigTwitterFolder = "/config/twitter";
 
-let dropboxConfigFolder = "/config/utility";
-let dropboxConfigDefaultFolder = "/config/utility/default";
-let dropboxConfigHostFolder = "/config/utility/" + hostname;
+// const dropboxConfigFolder = "/config/utility";
+const dropboxConfigDefaultFolder = "/config/utility/default";
+const dropboxConfigHostFolder = "/config/utility/" + hostname;
 
-let dropboxConfigDefaultFile = "default_" + configuration.DROPBOX.DROPBOX_WAS_CONFIG_FILE;
-let dropboxConfigHostFile = hostname + "_" + configuration.DROPBOX.DROPBOX_WAS_CONFIG_FILE;
+const dropboxConfigDefaultFile = "default_" + configuration.DROPBOX.DROPBOX_WAS_CONFIG_FILE;
+const dropboxConfigHostFile = hostname + "_" + configuration.DROPBOX.DROPBOX_WAS_CONFIG_FILE;
 
-let childPidFolderLocal = (hostname === "google") 
+const childPidFolderLocal = (hostname === "google") 
   ? "/home/tc/Dropbox/Apps/wordAssociation/config/utility/google/children" 
   : "/Users/tc/Dropbox/Apps/wordAssociation/config/utility/" + hostname + "/children";
 
-let dropboxConfigDefaultTrainingSetsFolder = dropboxConfigDefaultFolder + "/trainingSets";
-let trainingSetsUsersFolder = dropboxConfigDefaultTrainingSetsFolder + "/users";
+const dropboxConfigDefaultTrainingSetsFolder = dropboxConfigDefaultFolder + "/trainingSets";
+const trainingSetsUsersFolder = dropboxConfigDefaultTrainingSetsFolder + "/users";
 
 // need local version for "touch"
-let trainingSetsUsersFolderLocal = (hostname === "google") 
+const trainingSetsUsersFolderLocal = (hostname === "google") 
   ? "/home/tc/Dropbox/Apps/wordAssociation/config/utility/default/trainingSets/users" 
   : "/Users/tc/Dropbox/Apps/wordAssociation/config/utility/default/trainingSets/users";
 
-let usersZipUpdateFlagFile = trainingSetsUsersFolderLocal + "/usersZipUpdateFlag.txt";
+const usersZipUpdateFlagFile = trainingSetsUsersFolderLocal + "/usersZipUpdateFlag.txt";
 
-let categorizedFolder = dropboxConfigDefaultFolder + "/categorized";
+// const categorizedFolder = dropboxConfigDefaultFolder + "/categorized";
 // let categorizedUsersFile = "categorizedUsers.json";
 // let categorizedHashtagsFile = "categorizedHashtags.json";
 
-let statsFolder = "/stats/" + hostname;
-let statsFile = "wordAssoServerStats_" + moment().format(tinyDateTimeFormat) + ".json";
+const statsFolder = "/stats/" + hostname;
+const statsFile = "wordAssoServerStats_" + moment().format(tinyDateTimeFormat) + ".json";
 
-let testDataFolder = dropboxConfigDefaultFolder + "/test/testData/tweets";
+const testDataFolder = dropboxConfigDefaultFolder + "/test/testData/tweets";
 
 
 configuration.dropboxChangeFolderArray = [ 
@@ -1131,7 +1144,7 @@ function filesListFolderLocal(options){
       }
       else {
 
-        let itemArray = [];
+        const itemArray = [];
 
         async.each(items, function(item, cb){
 
@@ -1146,6 +1159,11 @@ function filesListFolderLocal(options){
           cb();
 
         }, function(err){
+
+          if (err) {
+            console.log(chalkError("WAS | *** ERROR filesListFolderLocal"));
+            return reject(err);
+          }
 
           const response = {
             cursor: false,
@@ -1183,12 +1201,12 @@ function filesGetMetadataLocal(options){
   });
 }
 
-let dropboxRemoteClient = new Dropbox({ 
+const dropboxRemoteClient = new Dropbox({ 
   accessToken: configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN,
   fetch: fetch
 });
 
-let dropboxLocalClient = {  // offline mode
+const dropboxLocalClient = { // offline mode
   filesListFolder: filesListFolderLocal,
   filesUpload: function(){ console.log(chalkInfo("WAS | filesUpload")); },
   filesDownload: function(){ console.log(chalkInfo("WAS | filesDownload")); },
@@ -1198,10 +1216,13 @@ let dropboxLocalClient = {  // offline mode
 
 let dropboxClient = dropboxRemoteClient;
 
-const configFolder = "/config/utility/" + hostname;
-const deletedMetricsFile = "deletedMetrics.json";
+// const configFolder = "/config/utility/" + hostname;
+// const deletedMetricsFile = "deletedMetrics.json";
 
-const networkDefaults = function (networkObj){
+const networkDefaults = function (netObj){
+
+  let networkObj = {};
+  networkObj = netObj;
 
   if (networkObj.betterChild === undefined) { networkObj.betterChild = false; }
   if (networkObj.testCycles === undefined) { networkObj.testCycles = 0; }
@@ -1213,8 +1234,10 @@ const networkDefaults = function (networkObj){
   return networkObj;
 };
 
-function printNetworkObj(title, networkObj) {
+function printNetworkObj(title, netObj) {
 
+  let networkObj = {};
+  networkObj = netObj;
   networkObj = networkDefaults(networkObj);
 
   console.log(chalkNetwork(title
@@ -1234,11 +1257,11 @@ const userDefaults = function (user){
   return user;
 };
 
-function printUserObj(title, user, chalkFormat) {
+function printUserObj(title, u, chalkFormat) {
 
   const chlk = chalkFormat || chalkUser;
 
-  user = userDefaults(user);
+  const user = userDefaults(u);
 
   console.log(chlk(title
     + " | " + user.userId
@@ -1355,16 +1378,16 @@ function connectDb(){
 
         console.log(chalk.green("WAS | MONGOOSE DEFAULT CONNECTION OPEN"));
 
-        const emojiModel = require("@threeceelabs/mongoose-twitter/models/emoji.server.model");
-        const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
-        const locationModel = require("@threeceelabs/mongoose-twitter/models/location.server.model");
-        const mediaModel = require("@threeceelabs/mongoose-twitter/models/media.server.model");
-        const neuralNetworkModel = require("@threeceelabs/mongoose-twitter/models/neuralNetwork.server.model");
-        const placeModel = require("@threeceelabs/mongoose-twitter/models/place.server.model");
-        const tweetModel = require("@threeceelabs/mongoose-twitter/models/tweet.server.model");
-        const urlModel = require("@threeceelabs/mongoose-twitter/models/url.server.model");
-        const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
-        const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
+        // const emojiModel = require("@threeceelabs/mongoose-twitter/models/emoji.server.model");
+        // const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
+        // const locationModel = require("@threeceelabs/mongoose-twitter/models/location.server.model");
+        // const mediaModel = require("@threeceelabs/mongoose-twitter/models/media.server.model");
+        // const neuralNetworkModel = require("@threeceelabs/mongoose-twitter/models/neuralNetwork.server.model");
+        // const placeModel = require("@threeceelabs/mongoose-twitter/models/place.server.model");
+        // const tweetModel = require("@threeceelabs/mongoose-twitter/models/tweet.server.model");
+        // const urlModel = require("@threeceelabs/mongoose-twitter/models/url.server.model");
+        // const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
+        // const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
 
         global.globalEmoji = global.globalDbConnection.model("Emoji", emojiModel.EmojiSchema);
         global.globalHashtag = global.globalDbConnection.model("Hashtag", hashtagModel.HashtagSchema);
@@ -1397,10 +1420,10 @@ function connectDb(){
         neuralNetworkChangeStream.on("change", function(change){
           if (change && change.fullDocument) { 
             const nn = networkDefaults(change.fullDocument); 
-            printNetworkObj("WAS | --> NN   CHANGE | " +  change.operationType, nn);
+            printNetworkObj("WAS | --> NN   CHANGE | " + change.operationType, nn);
           }
           else {
-            console.log(chalkLog("WAS | --> NN   CHANGE | " +  change.operationType));
+            console.log(chalkLog("WAS | --> NN   CHANGE | " + change.operationType));
           }
         });
 
@@ -1431,13 +1454,13 @@ function connectDb(){
 
             if (configuration.verbose) { console.log(chalk.green("WAS | PASSPORT TWITTER AUTH\nprofile\n" + jsonPrint(profile))); }
 
-            const rawUser = profile["_json"];
+            const rawUser = profile._json;
 
             if (!userServerControllerReady || !statsObj.dbConnectionReady) {
               return cb(new Error("userServerController not ready"), null);
             }
 
-            userServerController.convertRawUser({user:rawUser}, function(err, user){
+            userServerController.convertRawUser({user: rawUser}, function(err, user){
 
               if (err) {
                 console.log(chalkError("WAS | *** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
@@ -1456,7 +1479,7 @@ function connectDb(){
                 console.log(chalk.blue("WAS | UPDATED updatedUser"
                   + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
                   + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
-                  + "\nWAS | " + printUser({user:updatedUser})
+                  + "\nWAS | " + printUser({user: updatedUser})
                 ));
 
 
@@ -1555,8 +1578,8 @@ function connectDb(){
 
         passport.serializeUser(function(user, done) { 
 
-          let sessionUser = { 
-            "_id": user["_id"], 
+          const sessionUser = { 
+            "_id": user._id, 
             nodeId: user.nodeId, 
             screenName: user.screenName, 
             name: user.name
@@ -1649,13 +1672,13 @@ dbConnectInterval = setInterval(function(){
 
     statsObj.dbConnectBusy = true;
 
-    connectDb()
-    .then(function(){
+    connectDb().
+    then(function(){
       statsObj.dbConnectBusy = false;
       statsObj.dbConnectionReady = true;
       dbConnectionReady = true;
-    })
-    .catch(function(err){
+    }).
+    catch(function(err){
       console.log(chalkError("WAS | *** CONNECT DB INTERVAL ERROR: " + err));
       statsObj.dbConnectionReady = false;
       dbConnectionReady = false;
@@ -1720,12 +1743,12 @@ function touchChildPidFile(params){
 // TWEET ID CACHE
 // ==================================================================
 let tweetIdCacheTtl = process.env.TWEET_ID_CACHE_DEFAULT_TTL;
-if (tweetIdCacheTtl === undefined) { tweetIdCacheTtl = TWEET_ID_CACHE_DEFAULT_TTL;}
+if (tweetIdCacheTtl === undefined) { tweetIdCacheTtl = TWEET_ID_CACHE_DEFAULT_TTL; }
 
 console.log("WAS | TWEET ID CACHE TTL: " + tweetIdCacheTtl + " SECONDS");
 
 let tweetIdCacheCheckPeriod = process.env.TWEET_ID_CACHE_CHECK_PERIOD;
-if (tweetIdCacheCheckPeriod === undefined) { tweetIdCacheCheckPeriod = TWEET_ID_CACHE_CHECK_PERIOD;}
+if (tweetIdCacheCheckPeriod === undefined) { tweetIdCacheCheckPeriod = TWEET_ID_CACHE_CHECK_PERIOD; }
 
 console.log("WAS | TWEET ID CACHE CHECK PERIOD: " + tweetIdCacheCheckPeriod + " SECONDS");
 
@@ -1738,12 +1761,12 @@ const tweetIdCache = new NodeCache({
 // VIEWER CACHE
 // ==================================================================
 let viewerCacheTtl = process.env.VIEWER_CACHE_DEFAULT_TTL;
-if (viewerCacheTtl === undefined) { viewerCacheTtl = VIEWER_CACHE_DEFAULT_TTL;}
+if (viewerCacheTtl === undefined) { viewerCacheTtl = VIEWER_CACHE_DEFAULT_TTL; }
 
 console.log("WAS | VIEWER CACHE TTL: " + viewerCacheTtl + " SECONDS");
 
 let viewerCacheCheckPeriod = process.env.VIEWER_CACHE_CHECK_PERIOD;
-if (viewerCacheCheckPeriod === undefined) { viewerCacheCheckPeriod = VIEWER_CACHE_CHECK_PERIOD;}
+if (viewerCacheCheckPeriod === undefined) { viewerCacheCheckPeriod = VIEWER_CACHE_CHECK_PERIOD; }
 
 console.log("WAS | VIEWER CACHE CHECK PERIOD: " + viewerCacheCheckPeriod + " SECONDS");
 
@@ -1774,11 +1797,11 @@ viewerCache.on("expired", viewerCacheExpired);
 // SERVER CACHE
 // ==================================================================
 let serverCacheTtl = process.env.SERVER_CACHE_DEFAULT_TTL;
-if (serverCacheTtl === undefined) { serverCacheTtl = SERVER_CACHE_DEFAULT_TTL;}
+if (serverCacheTtl === undefined) { serverCacheTtl = SERVER_CACHE_DEFAULT_TTL; }
 console.log("WAS | SERVER CACHE TTL: " + serverCacheTtl + " SECONDS");
 
 let serverCacheCheckPeriod = process.env.SERVER_CACHE_CHECK_PERIOD;
-if (serverCacheCheckPeriod === undefined) { serverCacheCheckPeriod = SERVER_CACHE_CHECK_PERIOD;}
+if (serverCacheCheckPeriod === undefined) { serverCacheCheckPeriod = SERVER_CACHE_CHECK_PERIOD; }
 console.log("WAS | SERVER CACHE CHECK PERIOD: " + serverCacheCheckPeriod + " SECONDS");
 
 const serverCache = new NodeCache({
@@ -1942,11 +1965,11 @@ authInProgressTwitterUserCache.on("expired", function(nodeId, userObj){
 // NODE CACHE
 // ==================================================================
 let nodeCacheTtl = process.env.NODE_CACHE_DEFAULT_TTL;
-if (nodeCacheTtl === undefined) { nodeCacheTtl = NODE_CACHE_DEFAULT_TTL;}
+if (nodeCacheTtl === undefined) { nodeCacheTtl = NODE_CACHE_DEFAULT_TTL; }
 console.log("WAS | NODE CACHE TTL: " + nodeCacheTtl + " SECONDS");
 
 let nodeCacheCheckPeriod = process.env.NODE_CACHE_CHECK_PERIOD;
-if (nodeCacheCheckPeriod === undefined) { nodeCacheCheckPeriod = NODE_CACHE_CHECK_PERIOD;}
+if (nodeCacheCheckPeriod === undefined) { nodeCacheCheckPeriod = NODE_CACHE_CHECK_PERIOD; }
 console.log("WAS | NODE CACHE CHECK PERIOD: " + nodeCacheCheckPeriod + " SECONDS");
 
 
@@ -1955,7 +1978,7 @@ const nodeCache = new NodeCache({
   checkperiod: nodeCacheCheckPeriod
 });
 
-let nodeCacheDeleteQueue = [];
+const nodeCacheDeleteQueue = [];
 
 function nodeCacheExpired(nodeObj, callback) {
 
@@ -2026,7 +2049,7 @@ nodeCacheInterval = setInterval(function(){
 let updateTrendsInterval;
 
 let trendingCacheTtl = process.env.TRENDING_CACHE_DEFAULT_TTL;
-if (trendingCacheTtl === undefined) {trendingCacheTtl = TRENDING_CACHE_DEFAULT_TTL;}
+if (trendingCacheTtl === undefined) { trendingCacheTtl = TRENDING_CACHE_DEFAULT_TTL; }
 console.log("WAS | TRENDING CACHE TTL: " + trendingCacheTtl + " SECONDS");
 
 const trendingCache = new NodeCache({
@@ -2035,7 +2058,7 @@ const trendingCache = new NodeCache({
 });
 
 let nodesPerMinuteTopTermTtl = process.env.TOPTERMS_CACHE_DEFAULT_TTL;
-if (nodesPerMinuteTopTermTtl === undefined) {nodesPerMinuteTopTermTtl = TOPTERMS_CACHE_DEFAULT_TTL;}
+if (nodesPerMinuteTopTermTtl === undefined) { nodesPerMinuteTopTermTtl = TOPTERMS_CACHE_DEFAULT_TTL; }
 console.log("WAS | TOP TERMS WPM CACHE TTL: " + nodesPerMinuteTopTermTtl + " SECONDS");
 
 let nodesPerMinuteTopTermCheckPeriod = process.env.TOPTERMS_CACHE_CHECK_PERIOD;
@@ -2049,7 +2072,7 @@ const nodesPerMinuteTopTermCache = new NodeCache({
   checkperiod: TOPTERMS_CACHE_CHECK_PERIOD
 });
 
-let nodesPerMinuteTopTermNodeTypeCache = {};
+const nodesPerMinuteTopTermNodeTypeCache = {};
 
 DEFAULT_NODE_TYPES.forEach(function(nodeType){
   nodesPerMinuteTopTermNodeTypeCache[nodeType] = new NodeCache({
@@ -2059,7 +2082,7 @@ DEFAULT_NODE_TYPES.forEach(function(nodeType){
 });
 
 
-let cacheObj = {};
+const cacheObj = {};
 cacheObj.nodeCache = nodeCache;
 cacheObj.serverCache = serverCache;
 cacheObj.viewerCache = viewerCache;
@@ -2077,7 +2100,7 @@ DEFAULT_NODE_TYPES.forEach(function(nodeType){
 let cacheObjKeys = Object.keys(cacheObj);
 
 let updateMetricsInterval;
-let saveFileQueue = [];
+const saveFileQueue = [];
 
 let internetCheckInterval;
 
@@ -2096,12 +2119,12 @@ const net = require("net");
 
 const cp = require("child_process");
 let sorter;
-let sorterMessageRxQueue = [];
+const sorterMessageRxQueue = [];
 
 const ignoreWordHashMap = new HashMap();
 const localHostHashMap = new HashMap();
 
-let statsBestNetworkPickArray = [
+const statsBestNetworkPickArray = [
   "networkId",
   "successRate",
   "matchRate",
@@ -2280,11 +2303,11 @@ function initStats(callback){
 }
 
 function dropboxLongPoll(last_cursor, callback) {
-  dropboxClient.filesListFolderLongpoll({cursor: last_cursor, timeout: 30})
-    .then(function(results){
+  dropboxClient.filesListFolderLongpoll({cursor: last_cursor, timeout: 30}).
+    then(function(results){
       callback(null, results);
-    })
-    .catch(function(err){
+    }).
+    catch(function(err){
       console.log(err);
       callback(err, null);
     });
@@ -2294,7 +2317,7 @@ function dropboxFolderGetLastestCursor(folder, callback) {
 
   let lastCursorTruncated = "";
 
-  let optionsGetLatestCursor = {
+  const optionsGetLatestCursor = {
     path: folder,
     recursive: true,
     include_media_info: false,
@@ -2306,8 +2329,8 @@ function dropboxFolderGetLastestCursor(folder, callback) {
     console.log(chalkLog("WAS | dropboxFolderGetLastestCursor FOLDER: " + folder)); 
   }
 
-  dropboxClient.filesListFolderGetLatestCursor(optionsGetLatestCursor)
-  .then(function(last_cursor) {
+  dropboxClient.filesListFolderGetLatestCursor(optionsGetLatestCursor).
+  then(function(last_cursor) {
 
     lastCursorTruncated = last_cursor.cursor.substring(0,20);
 
@@ -2323,8 +2346,8 @@ function dropboxFolderGetLastestCursor(folder, callback) {
 
       if ((results !== undefined) && results && results.changes) {
 
-        dropboxClient.filesListFolderContinue({ cursor: last_cursor.cursor})
-        .then(function(response){
+        dropboxClient.filesListFolderContinue({ cursor: last_cursor.cursor}).
+        then(function(response){
 
           if (configuration.verbose) { 
             console.log(chalkLog("WAS | DROPBOX FILE LIST FOLDER CONTINUE"
@@ -2334,8 +2357,8 @@ function dropboxFolderGetLastestCursor(folder, callback) {
 
           callback(null, response);
 
-        })
-        .catch(function(err){
+        }).
+        catch(function(err){
 
           if (err.status === 429){
             console.log(chalkError("WAS | *** dropboxFolderGetLastestCursor filesListFolder"
@@ -2360,8 +2383,8 @@ function dropboxFolderGetLastestCursor(folder, callback) {
         callback(null, null);
       }
     });
-  })
-  .catch(function(err){
+  }).
+  catch(function(err){
     console.log(chalkError("WAS | *** ERROR DROPBOX FOLDER | " + folder + " | " + err));
     callback(err, folder);
   });
@@ -2437,12 +2460,12 @@ function getFileMetadata(params) {
       dropboxClient = dropboxRemoteClient;
     }
 
-    dropboxClient.filesGetMetadata({path: fullPath})
-    .then(function(response) {
+    dropboxClient.filesGetMetadata({path: fullPath}).
+    then(function(response) {
       debug(chalkInfo("FILE META\n" + jsonPrint(response)));
       resolve(response);
-    })
-    .catch(function(err) {
+    }).
+    catch(function(err) {
       console.log(chalkError("WAS | *** DROPBOX getFileMetadata ERROR: " + fullPath));
       console.log(chalkError("WAS | *** ERROR\n" + jsonPrint(err.error)));
 
@@ -2464,7 +2487,7 @@ function getFileMetadataRetry(params, callback) {
 
   debug(chalkAlert("WAS | getFileMetadataRetry | PARAMS\n" + jsonPrint(params)));
 
-  let operation = retry.operation();
+  const operation = retry.operation();
  
   operation.attempt(function(currentAttempt) {
 
@@ -2562,8 +2585,8 @@ function loadFile(params) {
      }
     else {
 
-      dropboxClient.filesDownload({path: fullPath})
-      .then(function(data) {
+      dropboxClient.filesDownload({path: fullPath}).
+      then(function(data) {
 
         debug(chalkLog(getTimeStamp()
           + " | LOADING FILE FROM DROPBOX FILE: " + fullPath
@@ -2571,7 +2594,7 @@ function loadFile(params) {
 
         if (params.file.match(/\.json$/gi)) {
 
-          let payload = data.fileBinary;
+          const payload = data.fileBinary;
 
           if (!payload || (payload === undefined)) {
             return reject(new Error("WAS LOAD FILE PAYLOAD UNDEFINED"));
@@ -2595,7 +2618,7 @@ function loadFile(params) {
         }
         else if (params.file.match(/\.txt$/gi)) {
 
-          let payload = data.fileBinary;
+          const payload = data.fileBinary;
 
           if (!payload || (payload === undefined)) {
             return reject(new Error("WAS LOAD FILE PAYLOAD UNDEFINED"));
@@ -2609,8 +2632,8 @@ function loadFile(params) {
         else {
           resolve();
         }
-      })
-      .catch(function(error) {
+      }).
+      catch(function(error) {
 
         console.log(chalkError("WAS | DROPBOX loadFile ERROR: " + fullPath));
         
@@ -2650,8 +2673,8 @@ function loadMaxInputHashMap(params){
 
       // let dataObj = await loadFile(params);
 
-      loadFile(params)
-      .then(function(dataObj){
+      loadFile(params).
+      then(function(dataObj){
         if (dataObj.maxInputHashMap === undefined) {
           console.log(chalkError("WAS | *** ERROR: loadMaxInputHashMap: loadFile: maxInputHashMap UNDEFINED"));
         }
@@ -2663,8 +2686,8 @@ function loadMaxInputHashMap(params){
         normalization = dataObj.normalization || {};
 
         resolve();
-      })
-      .catch(function(err){
+      }).
+      catch(function(err){
         if (err.code === "ENOTFOUND") {
           console.log(chalkError("WAS | *** LOAD MAX INPUT: FILE NOT FOUND"
             + " | " + params.folder + "/" + params.file
@@ -2694,12 +2717,12 @@ function loadYamlConfig(yamlFile, callback){
   console.log(chalkInfo("WAS | LOADING YAML CONFIG FILE: " + yamlFile));
   fs.exists(yamlFile, function yamlCheckFileExists(exists) {
     if (exists) {
-      let cnf = yaml.load(yamlFile);
+      const cnf = yaml.load(yamlFile);
       console.log(chalkInfo("WAS | FOUND FILE " + yamlFile));
       callback(null, cnf);
     }
     else {
-      let err = "FILE DOES NOT EXIST: " + yamlFile ;
+      const err = "FILE DOES NOT EXIST: " + yamlFile;
       callback(err, null);
     }
   });
@@ -2713,7 +2736,7 @@ function saveFile (params, callback){
   debug(chalkInfo("LOAD FILE " + params.file));
   debug(chalkInfo("FULL PATH " + fullPath));
 
-  let options = {};
+  const options = {};
 
   if (params.localFlag) {
 
@@ -2732,8 +2755,8 @@ function saveFile (params, callback){
       + " | " + objSizeMBytes.toFixed(2) + " MB | " + fullPath
     ));
 
-    writeJsonFile(fullPath, params.obj)
-    .then(function() {
+    writeJsonFile(fullPath, params.obj).
+    then(function() {
 
       console.log(chalk.blue("WAS | SAVED LOCALLY"
         + " | " + objSizeMBytes.toFixed(2) + " MB | " + fullPath
@@ -2764,8 +2787,8 @@ function saveFile (params, callback){
           token: configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN
         });
 
-        let localReadStream = fs.createReadStream(fullPath);
-        let remoteWriteStream = drbx.file(options.destination).createWriteStream();
+        const localReadStream = fs.createReadStream(fullPath);
+        const remoteWriteStream = drbx.file(options.destination).createWriteStream();
 
 
         let bytesRead = 0;
@@ -2822,8 +2845,8 @@ function saveFile (params, callback){
 
       }, 5000);
 
-    })
-    .catch(function(error){
+    }).
+    catch(function(error){
       console.log(chalkError("WAS | *** " + getTimeStamp() 
         + " | *** ERROR DROBOX JSON WRITE | FILE: " + fullPath 
         + " | ERROR: " + error
@@ -2842,12 +2865,12 @@ function saveFile (params, callback){
 
     const dbFileUpload = function () {
 
-      dropboxClient.filesUpload(options)
-      .then(function(){
+      dropboxClient.filesUpload(options).
+      then(function(){
         debug(chalkLog("SAVED DROPBOX JSON | " + options.path));
         if (callback !== undefined) { return callback(null); }
-      })
-      .catch(function(error){
+      }).
+      catch(function(error){
         if (error.status === 413){
           console.log(chalkError("WAS | " + getTimeStamp() 
             + " | *** ERROR DROBOX JSON WRITE | FILE: " + fullPath 
@@ -2882,8 +2905,8 @@ function saveFile (params, callback){
 
     if (options.mode === "add") {
 
-      dropboxClient.filesListFolder({path: params.folder, limit: configuration.dropboxListFolderLimit})
-      .then(function(response){
+      dropboxClient.filesListFolder({path: params.folder, limit: configuration.dropboxListFolderLimit}).
+      then(function(response){
 
         debug(chalkLog("WAS | DROPBOX LIST FOLDER"
           + " | ENTRIES: " + response.entries.length
@@ -2925,8 +2948,8 @@ function saveFile (params, callback){
             dbFileUpload();
           }
         });
-      })
-      .catch(function(err){
+      }).
+      catch(function(err){
         console.log(chalkError("WAS | *** DROPBOX FILES LIST FOLDER ERROR: " + err));
         console.log(chalkError("WAS | *** DROPBOX FILES LIST FOLDER ERROR\n" + jsonPrint(err)));
         if (callback !== undefined) { callback(err, null); }
@@ -2978,7 +3001,7 @@ function initSaveFileQueue(cnf){
 
 function saveStats(statsFile, statsObj, callback) {
 
-  let fullPath = statsFolder + "/" + statsFile;
+  const fullPath = statsFolder + "/" + statsFile;
 
   if (configuration.offlineMode) {
 
@@ -3009,21 +3032,21 @@ function saveStats(statsFile, statsObj, callback) {
   } 
   else {
 
-  let options = {};
+  const options = {};
 
   options.contents = JSON.stringify(statsObj, null, 2);
   options.path = fullPath;
   options.mode = "overwrite";
   options.autorename = false;
 
-  dropboxClient.filesUpload(options)
-    .then(function dropboxFilesUpload(){
+  dropboxClient.filesUpload(options).
+    then(function dropboxFilesUpload(){
       debug(chalkLog(getTimeStamp()
         + " | SAVED DROPBOX JSON | " + options.path
       ));
       callback("OK");
-    })
-    .catch(function dropboxFilesUploadError(err){
+    }).
+    catch(function dropboxFilesUploadError(err){
       console.log(chalkError(getTimeStamp() 
         + " | !!! ERROR DROBOX STATS WRITE | FILE: " + options.path 
         // + "\nERROR\n" + jsonPrint(err)
@@ -3116,8 +3139,8 @@ function getChildProcesses(params){
     let command;
     let pid;
     let childId;
-    let numChildren = 0;
-    let childPidArray = [];
+    const numChildren = 0;
+    const childPidArray = [];
 
     // DEFAULT_CHILD_ID_PREFIX_XXX=[pid] 
 
@@ -3220,19 +3243,19 @@ function killAll(callback){
   return new Promise(function(resolve, reject){
 
     // let childPidArray = await getChildProcesses({searchTerm: "ALL"});
-    getChildProcesses({searchTerm: "ALL"})
-    .then(function(childPidArray){
+    getChildProcesses({searchTerm: "ALL"}).
+    then(function(childPidArray){
       console.log(chalk.green("getChildProcesses childPidArray\n" + jsonPrint(childPidArray)));
       if (childPidArray && (childPidArray.length > 0)) {
 
         async.eachSeries(childPidArray, function(childObj, cb){
 
-          killChild({pid: childObj.pid})
-          .then(function(){
+          killChild({pid: childObj.pid}).
+          then(function(){
             console.log(chalkAlert("WAS | KILL ALL | KILLED | PID: " + childObj.pid + " | CH ID: " + childObj.childId));
             cb();
-          })
-          .catch(function(err){
+          }).
+          catch(function(err){
             console.log(chalkError("WAS | *** KILL CHILD ERROR"
               + " | PID: " + childObj.pid
               + " | ERROR: " + err
@@ -3255,8 +3278,8 @@ function killAll(callback){
         console.log(chalkBlue("WAS | KILL ALL | NO CHILDREN"));
         resolve(childPidArray);
       }
-    })
-    .catch(function(err){
+    }).
+    catch(function(err){
 
     });
 
@@ -3274,11 +3297,11 @@ process.on("exit", function processExit() {
 
   console.log(chalkAlert("\nWAS | MAIN PROCESS EXITING ...\n"));
 
-  killAll()
-  .then(function(){
+  killAll().
+  then(function(){
     console.log(chalkAlert("\nWAS | *** MAIN PROCESS EXIT *** \n"));
-  })
-  .catch(function(err){
+  }).
+  catch(function(err){
     console.log(chalkError("WAS | *** MAIN PROCESS EXIT ERROR: " + err));
   });
 });
@@ -3351,9 +3374,7 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
       console.log(chalkError("WAS | *** KILL TWEET PARSER"));
 
       killChild({childId: DEFAULT_TWP_CHILD_ID}, function(err, numKilled){
-        initTweetParser({childId: DEFAULT_TWP_CHILD_ID}, function(err, twp){
-          if (!err) { parserChild = twp; }
-        });
+        initTweetParser({childId: DEFAULT_TWP_CHILD_ID});
       });
 
     break;
@@ -3420,7 +3441,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
     memoryTotalMB = (statsObj.memory.memoryTotal/(1024*1024));
     memoryAvailablePercent = (statsObj.memory.memoryAvailable/statsObj.memory.memoryTotal);
 
-    let heartbeatObj = {};
+    const heartbeatObj = {};
 
     heartbeatObj.admins = [];
     heartbeatObj.servers = [];
@@ -3566,11 +3587,11 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
 
     socketInit: function(cb){
 
-      initSocketNamespaces()
-      .then(function(){
+      initSocketNamespaces().
+      then(function(){
         cb();
-      })
-      .catch(function(err){
+      }).
+      catch(function(err){
         return cb(err);
       });
 
@@ -3578,11 +3599,11 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
     
     unfollowableInit: function(cb){
 
-      initUnfollowableUserSet()
-      .then(function(){
+      initUnfollowableUserSet().
+      then(function(){
         cb();
-      })
-      .catch(function(err){
+      }).
+      catch(function(err){
         return cb(err);
       });
 
@@ -3590,11 +3611,11 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
     
     ignoredUserInit: function(cb){
 
-      initIgnoredUserSet()
-      .then(function(){
+      initIgnoredUserSet().
+      then(function(){
         cb();
-      })
-      .catch(function(err){
+      }).
+      catch(function(err){
         return cb(err);
       });
 
@@ -3602,11 +3623,11 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
     
     ignoredHashtagInit: function(cb){
 
-      initIgnoredHashtagSet()
-      .then(function(){
+      initIgnoredHashtagSet().
+      then(function(){
         cb();
-      })
-      .catch(function(err){
+      }).
+      catch(function(err){
         return cb(err);
       });
 
@@ -3614,11 +3635,11 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
     
     followSearchInit: function(cb){
 
-      initFollowableSearchTermSet()
-      .then(function(){
+      initFollowableSearchTermSet().
+      then(function(){
         cb();
-      })
-      .catch(function(err){
+      }).
+      catch(function(err){
         return cb(err);
       });
 
@@ -3626,11 +3647,11 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
 
     categoryHashmapsInit: function(cb){
 
-      initCategoryHashmaps()
-      .then(function(){
+      initCategoryHashmaps().
+      then(function(){
         cb();
-      })
-      .catch(function(err){
+      }).
+      catch(function(err){
         return cb(err);
       });
 
@@ -3756,7 +3777,7 @@ function categorizeNode(categorizeObj, callback) {
 
   if (categorizeObj.twitterUser && categorizeObj.twitterUser.nodeId) {
 
-    let user = authenticatedTwitterUserCache.get(categorizeObj.twitterUser.nodeId);
+    const user = authenticatedTwitterUserCache.get(categorizeObj.twitterUser.nodeId);
 
     if (!user 
       && (categorizeObj.twitterUser.nodeId !== "14607119") 
@@ -3775,7 +3796,7 @@ function categorizeNode(categorizeObj, callback) {
     + " | categorizeObj\n" + jsonPrint(categorizeObj)
   ));
 
-  let cObj = {};
+  const cObj = {};
   cObj.manual = false;
   cObj.auto = false;
 
@@ -4112,9 +4133,9 @@ function follow(params, callback) {
     + " | 3C @" + threeceeUser
   ));
 
-  let update = {};
+  const update = {};
 
-  update["$set"] = { 
+  update.$set = { 
     following: true, 
     threeceeFollowing: threeceeUser
   };
@@ -4231,7 +4252,7 @@ function ignore(params, callback) {
     ignoredUserSet.add(params.user.nodeId);
 
     const ob = {
-      userIds : [...ignoredUserSet]
+      userIds: [...ignoredUserSet]
     };
 
     saveFileQueue.push({
@@ -4247,8 +4268,8 @@ function ignore(params, callback) {
 
   const query = { nodeId: params.user.nodeId };
 
-  let update = {};
-  update["$set"] = { ignored: true };
+  const update = {};
+  update.$set = { ignored: true };
 
   const options = {
     new: true,
@@ -4287,7 +4308,7 @@ function unignore(params, callback) {
     ignoredUserSet.delete(params.user.nodeId);
 
     const ob = {
-      userIds : [...ignoredUserSet]
+      userIds: [...ignoredUserSet]
     };
 
     saveFileQueue.push({
@@ -4301,8 +4322,8 @@ function unignore(params, callback) {
 
   const query = { nodeId: params.user.nodeId };
 
-  let update = {};
-  update["$set"] = { ignored: false };
+  const update = {};
+  update.$set = { ignored: false };
 
   const options = {
     new: true,
@@ -4345,7 +4366,7 @@ function unfollow(params, callback) {
       ignoredUserSet.add(params.user.nodeId);
 
       const ob = {
-        userIds : [...ignoredUserSet]
+        userIds: [...ignoredUserSet]
       };
 
       saveFileQueue.push({
@@ -4357,7 +4378,7 @@ function unfollow(params, callback) {
     }
 
     const obj = {
-      userIds : [...unfollowableUserSet]
+      userIds: [...unfollowableUserSet]
     };
 
     saveFileQueue.push({
@@ -4373,8 +4394,8 @@ function unfollow(params, callback) {
 
   const query = { nodeId: params.user.nodeId, following: true };
 
-  let update = {};
-  update["$set"] = { following: false, threeceeFollowing: false };
+  const update = {};
+  update.$set = { following: false, threeceeFollowing: false };
 
   const options = {
     new: true,
@@ -4414,8 +4435,8 @@ function initFollowableSearchTermSet(){
 
   return new Promise(function(resolve, reject) {
 
-    loadFile({folder: dropboxConfigDefaultFolder, file: followableSearchTermFile})
-    .then(function(dataObj){
+    loadFile({folder: dropboxConfigDefaultFolder, file: followableSearchTermFile}).
+    then(function(dataObj){
 
       if (!dataObj || dataObj === undefined) {
 
@@ -4423,11 +4444,11 @@ function initFollowableSearchTermSet(){
           + " | " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
         ));
 
-        initFollowableSearchTerms()
-        .then(function(){
+        initFollowableSearchTerms().
+        then(function(){
           return resolve();
-        })
-        .catch(function(err){
+        }).
+        catch(function(err){
           console.log(chalkError("WAS | *** INIT FOLLOWABLE SEARCH TERM SET ERROR: " + err));
           return reject(err);
         });
@@ -4435,7 +4456,8 @@ function initFollowableSearchTermSet(){
       }
       else{
 
-        const dataArray = dataObj.toString().toLowerCase().split("\n");
+        const dataArray = dataObj.toString().toLowerCase().
+split("\n");
 
         console.log(chalkLog("WAS | LOADED FOLLOWABLE SEARCH TERM FILE"
           + " | " + dataArray.length + " SEARCH TERMS"
@@ -4455,11 +4477,11 @@ function initFollowableSearchTermSet(){
             + " | " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
           ));
 
-          initFollowableSearchTerms()
-          .then(function(){
+          initFollowableSearchTerms().
+          then(function(){
             return resolve();
-          })
-          .catch(function(err){
+          }).
+          catch(function(err){
             console.log(chalkError("WAS | *** INIT FOLLOWABLE SEARCH TERM SET ERROR: " + err));
             return reject(err);
           });
@@ -4467,8 +4489,8 @@ function initFollowableSearchTermSet(){
         });
       }
 
-    })
-    .catch(function(err){
+    }).
+    catch(function(err){
       console.log(chalkError("WAS | *** INIT FOLLOWABLE SEARCH TERM SET ERROR: " + err));
       return reject(err);
     });
@@ -4482,8 +4504,8 @@ function initIgnoredHashtagSet(){
 
   return new Promise(function(resolve, reject) {
 
-    loadFile({folder: dropboxConfigDefaultFolder, file: ignoredHashtagFile})
-    .then(function(ignoredHashtagSetObj){
+    loadFile({folder: dropboxConfigDefaultFolder, file: ignoredHashtagFile}).
+    then(function(ignoredHashtagSetObj){
 
       if (!ignoredHashtagSetObj || ignoredHashtagSetObj === undefined) {
         console.log(chalkAlert("WAS | ??? LOAD IGNORED HASHTAGS EMPTY SET???"));
@@ -4506,10 +4528,10 @@ function initIgnoredHashtagSet(){
 
         ignoredHashtagSet.add(hashtagId);
 
-        query = { nodeId: hashtagId, ignored: {"$in": [ false, "false", null ]} };
+        query = { nodeId: hashtagId, ignored: {"$in": [false, "false", null]} };
 
         update = {};
-        update["$set"] = { ignored: true, following: false, threeceeFollowing: false };
+        update.$set = { ignored: true, following: false, threeceeFollowing: false };
 
         const options = {
           new: true,
@@ -4559,8 +4581,8 @@ function initIgnoredHashtagSet(){
         resolve();
       });
 
-    })
-    .catch(function(err){
+    }).
+    catch(function(err){
       if ((err.code === "ENOTFOUND") || (err.status === 409)) {
         console.log(chalkError("WAS | *** LOAD IGNORED HASHTAGS ERROR: FILE NOT FOUND:  " 
           + dropboxConfigDefaultFolder + "/" + ignoredHashtagFile
@@ -4582,8 +4604,8 @@ function initIgnoredUserSet(){
   return new Promise(function(resolve, reject) {
 
 
-    loadFile({folder: dropboxConfigDefaultFolder, file: ignoredUserFile})
-    .then(function(ignoredUserSetObj){
+    loadFile({folder: dropboxConfigDefaultFolder, file: ignoredUserFile}).
+    then(function(ignoredUserSetObj){
 
       if (!ignoredUserSetObj || ignoredUserSetObj === undefined) {
         console.log(chalkAlert("WAS | ??? LOAD IGNORED USERS EMPTY SET???"));
@@ -4604,10 +4626,10 @@ function initIgnoredUserSet(){
 
         ignoredUserSet.add(userId);
 
-        query = { nodeId: userId, ignored: {"$in": [ false, "false", null ]} };
+        query = { nodeId: userId, ignored: {"$in": [false, "false", null]} };
 
         update = {};
-        update["$set"] = { ignored: true, following: false, threeceeFollowing: false };
+        update.$set = { ignored: true, following: false, threeceeFollowing: false };
 
         const options = {
           new: true,
@@ -4658,8 +4680,8 @@ function initIgnoredUserSet(){
         resolve();
       });
 
-    })
-    .catch(function(err){
+    }).
+    catch(function(err){
       if ((err.code === "ENOTFOUND") || (err.status === 409)) {
         console.log(chalkError("WAS | *** LOAD IGNORED USERS ERROR: FILE NOT FOUND:  " 
           + dropboxConfigDefaultFolder + "/" + ignoredUserFile
@@ -4681,8 +4703,8 @@ function initUnfollowableUserSet(){
   return new Promise(function(resolve, reject) {
 
 
-    loadFile({folder: dropboxConfigDefaultFolder, file: unfollowableUserFile})
-    .then(function(unfollowableUserSetObj){
+    loadFile({folder: dropboxConfigDefaultFolder, file: unfollowableUserFile}).
+    then(function(unfollowableUserSetObj){
 
       if (!unfollowableUserSetObj || unfollowableUserSetObj === undefined) {
         console.log(chalkAlert("WAS | ??? LOAD UNFOLLOWABLE USERS EMPTY SET???"));
@@ -4706,7 +4728,7 @@ function initUnfollowableUserSet(){
         query = { nodeId: userId, following: true };
 
         update = {};
-        update["$set"] = { following: false, threeceeFollowing: false };
+        update.$set = { following: false, threeceeFollowing: false };
 
         const options = {
           new: true,
@@ -4761,8 +4783,8 @@ function initUnfollowableUserSet(){
         return resolve();
       });
 
-    })
-    .catch(function(err){
+    }).
+    catch(function(err){
       if (err.code === "ENOTFOUND") {
         console.log(chalkError("WAS | *** LOAD UNFOLLOWABLE USERS ERROR: FILE NOT FOUND:  " 
           + dropboxConfigDefaultFolder + "/" + unfollowableUserFile
@@ -4868,7 +4890,7 @@ function initSocketHandler(socketObj) {
     console.log(chalkError(getTimeStamp(timeStamp) 
       + " | *** SOCKET ERROR" + " | " + socketId + " | " + error));
 
-    let currentServer = serverCache.get(socketId);
+    const currentServer = serverCache.get(socketId);
 
     if (currentServer) { 
 
@@ -4891,7 +4913,7 @@ function initSocketHandler(socketObj) {
     }
 
 
-    let currentViewer = viewerCache.get(socketId);
+    const currentViewer = viewerCache.get(socketId);
 
     if (currentViewer) { 
 
@@ -4944,7 +4966,7 @@ function initSocketHandler(socketObj) {
       adminHashMap.delete(socketId);
     }
 
-    let currentServer = serverCache.get(socketId);
+    const currentServer = serverCache.get(socketId);
 
     if (currentServer) { 
 
@@ -4962,7 +4984,7 @@ function initSocketHandler(socketObj) {
 
     }
 
-    let currentViewer = viewerCache.get(socketId);
+    const currentViewer = viewerCache.get(socketId);
     if (currentViewer) { 
 
       currentViewer.status = "DISCONNECTED";
@@ -5041,7 +5063,7 @@ function initSocketHandler(socketObj) {
 
     statsObj.socket.keepalives += 1;
 
-    if (keepAliveObj.user.stats) {statsObj.utilities[keepAliveObj.user.userId] = keepAliveObj.user.stats;}
+    if (keepAliveObj.user.stats) { statsObj.utilities[keepAliveObj.user.userId] = keepAliveObj.user.stats; }
 
 
     const currentSessionType = serverRegex.exec(keepAliveObj.user.userId) ? serverRegex.exec(keepAliveObj.user.userId)[1].toUpperCase() : "NULL";
@@ -5547,8 +5569,8 @@ function initSocketHandler(socketObj) {
 
     ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
-    let serverObj = serverCache.get(socket.id);
-    let viewerObj = viewerCache.get(socket.id);
+    const serverObj = serverCache.get(socket.id);
+    const viewerObj = viewerCache.get(socket.id);
 
     if (serverObj) {
 
@@ -5605,7 +5627,7 @@ function initSocketNamespaces(params){
 
         console.log(chalk.blue("WAS | ADMIN CONNECT " + socket.id));
 
-        let ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+        const ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
         authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
 
@@ -5648,7 +5670,7 @@ function initSocketNamespaces(params){
 
         console.log(chalk.blue("WAS | UTIL CONNECT " + socket.id));
 
-        let ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+        const ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
         authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
           if (authenticatedSocketObj){
@@ -5689,7 +5711,7 @@ function initSocketNamespaces(params){
       userNameSpace.on("connect", function userConnect(socket) {
         console.log(chalk.blue("WAS | USER CONNECT " + socket.id));
 
-        let ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+        const ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
         authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
           if (authenticatedSocketObj){
@@ -5706,7 +5728,7 @@ function initSocketNamespaces(params){
 
       viewNameSpace.on("connect", function viewConnect(socket) {
 
-        let ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+        const ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
         console.log(chalk.blue("WAS | VIEWER CONNECT " + socket.id));
 
@@ -5973,7 +5995,7 @@ async function initUpdateTrendsInterval(interval){
 
     clearInterval(updateTrendsInterval);
 
-    let currentThreeceeUser = await getCurrentThreeceeUser();
+    const currentThreeceeUser = await getCurrentThreeceeUser();
 
     if (currentThreeceeUser 
       && (threeceeTwitter[currentThreeceeUser] !== undefined) 
@@ -5984,7 +6006,7 @@ async function initUpdateTrendsInterval(interval){
     updateTrendsInterval = setInterval(async function updateTrendsIntervalCall () {
 
       try {
-        let c3user = await getCurrentThreeceeUser();
+        const c3user = await getCurrentThreeceeUser();
 
         if (c3user && (threeceeTwitter[c3user] !== undefined) && threeceeTwitter[c3user].ready) { 
           updateTrends(c3user); 
@@ -6016,9 +6038,9 @@ function updateNodeMeter(node, callback){
 
   let nodeObj = {};
 
-  nodeObj = pick(node, ["nodeId", "nodeType", "isServer",  "isIgnored", "rate", "mentions"]);
+  nodeObj = pick(node, ["nodeId", "nodeType", "isServer", "isIgnored", "rate", "mentions"]);
 
-  let meterNodeId = nodeObj.nodeId;
+  const meterNodeId = nodeObj.nodeId;
 
   if (nodeMeterType[nodeType] === undefined) {
     nodeMeterType[nodeType] = {};
@@ -6046,7 +6068,7 @@ function updateNodeMeter(node, callback){
     if (callback !== undefined) { callback(null, node); }
   }
   else {
-    if (/TSS_/.test(meterNodeId) || nodeObj.isServer){
+    if ((/TSS_/).test(meterNodeId) || nodeObj.isServer){
       debug(chalkLog("updateNodeMeter\n" + jsonPrint(nodeObj)));
       if (callback !== undefined) { callback(null, node); }
     }
@@ -6109,7 +6131,7 @@ function updateNodeMeter(node, callback){
       nodeObj.rate = parseFloat(nodeMeter[meterNodeId].toJSON()[metricsRate]);
       node.rate = nodeObj.rate;
 
-      let nCacheObj = nodeCache.get(meterNodeId);
+      const nCacheObj = nodeCache.get(meterNodeId);
 
       if (nCacheObj) {
         nodeObj.mentions = Math.max(nodeObj.mentions, nCacheObj.mentions);
@@ -6127,11 +6149,11 @@ function updateNodeMeter(node, callback){
 
 let transmitNodeQueueReady = true;
 let transmitNodeQueueInterval;
-let transmitNodeQueue = [];
+const transmitNodeQueue = [];
 
-let twitUserShowReady = true;
+const twitUserShowReady = true;
 
-let startTwitUserShowRateLimitTimeoutDuration = ONE_MINUTE;
+const startTwitUserShowRateLimitTimeoutDuration = ONE_MINUTE;
 
 function initFollowableSearchTerms(){
 
@@ -6156,7 +6178,7 @@ function initFollowableSearchTerms(){
 
 let categorizeableFlag = false;
 
-let userCategorizeable = function(user){
+const userCategorizeable = function(user){
 
   if (user.nodeType !== "user") { return false; }
 
@@ -6196,7 +6218,7 @@ let userCategorizeable = function(user){
     unfollowableUserSet.add(user.nodeId);
     ignoredUserSet.add(user.nodeId);
 
-    globalUser.deleteOne({ "nodeId" : user.nodeId }, function(err, delUser){
+    globalUser.deleteOne({ "nodeId": user.nodeId }, function(err, delUser){
       if (err) {
         console.log(chalkError("WAS | *** DB DELETE USER ERROR: " + err));
         return false;
@@ -6239,7 +6261,7 @@ let userCategorizeable = function(user){
 };
 
 let followableFlag = false;
-let userFollowable = function(user){
+const userFollowable = function(user){
 
   if (user.nodeType !== "user") { return false; }
   if (user.ignored !== undefined && user.ignored) { return false; }
@@ -6378,7 +6400,8 @@ function initAllowLocations(){
 
       debug(chalkInfo("WAS | DROPBOX ALLOW LOCATIONS FILE\n" + jsonPrint(data)));
 
-      const dataArray = data.toString().toLowerCase().split("\n");
+      const dataArray = data.toString().toLowerCase().
+split("\n");
 
       console.log(chalk.blue("WAS | FILE CONTAINS " + dataArray.length + " ALLOW LOCATIONS "));
 
@@ -6450,7 +6473,8 @@ function initIgnoreLocations(){
 
       debug(chalkInfo("WAS | DROPBOX IGNORE LOCATIONS FILE\n" + jsonPrint(data)));
 
-      const dataArray = data.toString().toLowerCase().split("\n");
+      const dataArray = data.toString().toLowerCase().
+split("\n");
 
       console.log(chalk.blue("WAS | FILE CONTAINS " + dataArray.length + " IGNORE LOCATIONS "));
 
@@ -6536,7 +6560,7 @@ function updateUserSets(params){
       console.log(chalkBlue("WAS | TOTAL NOT FOLLOWING USERS IN DB: " + statsObj.user.notFollowing));
     });
 
-    userCollection.countDocuments({category: { "$nin": [ false, "false", null ] }}, function(err, count){
+    userCollection.countDocuments({category: { "$nin": [false, "false", null] }}, function(err, count){
       if (err) { 
         console.log(chalkError("UPDATE USER SETS COUNT CAT MAN ERROR: " + err));
         calledBack = true;
@@ -6546,7 +6570,7 @@ function updateUserSets(params){
       console.log(chalkBlue("WAS | TOTAL CATEGORIZED MANUAL USERS IN DB: " + statsObj.user.categorizedManual));
     });
 
-    userCollection.countDocuments({category: { "$in": [ false, "false", null ] }}, function(err, count){
+    userCollection.countDocuments({category: { "$in": [false, "false", null] }}, function(err, count){
       if (err) { 
         console.log(chalkError("UPDATE USER SETS COUNT UNCAT MAN ERROR: " + err));
         calledBack = true;
@@ -6556,7 +6580,7 @@ function updateUserSets(params){
       console.log(chalkBlue("WAS | TOTAL UNCATEGORIZED MANUAL USERS IN DB: " + statsObj.user.uncategorizedManual));
     });
 
-    userCollection.countDocuments({categoryAuto: { "$nin": [ false, "false", null ] }}, function(err, count){
+    userCollection.countDocuments({categoryAuto: { "$nin": [false, "false", null] }}, function(err, count){
       if (err) { 
         console.log(chalkError("UPDATE USER SETS COUNT CAT AUTO ERROR: " + err));
         calledBack = true;
@@ -6566,7 +6590,7 @@ function updateUserSets(params){
       console.log(chalkBlue("WAS | TOTAL CATEGORIZED AUTO USERS IN DB: " + statsObj.user.categorizedAuto));
     });
 
-    userCollection.countDocuments({categoryAuto: { "$in": [ false, "false", null ] }}, function(err, count){
+    userCollection.countDocuments({categoryAuto: { "$in": [false, "false", null] }}, function(err, count){
       if (err) { 
         console.log(chalkError("UPDATE USER SETS COUNT UNCAT AUTO ERROR: " + err));
         calledBack = true;
@@ -6577,9 +6601,10 @@ function updateUserSets(params){
     });
 
     // const userSearchQuery = { following: true, ignored: false };
-    const userSearchQuery = { ignored: { "$in": [ false, "false", null ]  } };
+    const userSearchQuery = { ignored: { "$in": [false, "false", null] } };
     
-    userSearchCursor = global.globalUser.find(userSearchQuery).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
+    userSearchCursor = global.globalUser.find(userSearchQuery).lean().
+cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
 
     userRightSet.clear();
     userLeftSet.clear();
@@ -6938,8 +6963,8 @@ function initTransmitNodeQueueInterval(interval){
                   + " | TYPE: " + node.nodeType
                   + " | NID: " + node.nodeId
                 ));
-                delete node["_id"];
-                delete node["userId"];
+                delete node._id;
+                delete node.userId;
                 viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
 
                 transmitNodeQueueReady = true;
@@ -6997,13 +7022,13 @@ function initTransmitNodeQueueInterval(interval){
                   userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit}, function(err, updatedUser){
                     if (err) {
                       console.log(chalkError("WAS | findOneUser ERROR" + jsonPrint(err)));
-                      delete n["_id"];
-                      delete n["userId"];
+                      delete n._id;
+                      delete n.userId;
                       viewNameSpace.volatile.emit("node", n);
                     }
                     else {
-                      delete n["_id"];
-                      delete n["userId"];
+                      delete n._id;
+                      delete n.userId;
                       viewNameSpace.volatile.emit("node", updatedUser);
                     }
 
@@ -7012,8 +7037,8 @@ function initTransmitNodeQueueInterval(interval){
                   });
                 }
                 else if (n.nodeType === "user") {
-                  delete n["_id"];
-                  delete n["userId"];
+                  delete n._id;
+                  delete n.userId;
                   viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
 
                   transmitNodeQueueReady = true;
@@ -7026,18 +7051,18 @@ function initTransmitNodeQueueInterval(interval){
                   hashtagServerController.findOneHashtag(n, {noInc: false}, function(err, updatedHashtag){
                     if (err) {
                       console.log(chalkError("WAS | updatedHashtag ERROR\n" + jsonPrint(err)));
-                      delete n["_id"];
-                      delete n["userId"];
+                      delete n._id;
+                      delete n.userId;
                       viewNameSpace.volatile.emit("node", n);
                     }
                     else if (updatedHashtag) {
-                      delete n["_id"];
-                      delete n["userId"];
+                      delete n._id;
+                      delete n.userId;
                       viewNameSpace.volatile.emit("node", updatedHashtag);
                     }
                     else {
-                      delete n["_id"];
-                      delete n["userId"];
+                      delete n._id;
+                      delete n.userId;
                       viewNameSpace.volatile.emit("node", n);
                     }
 
@@ -7046,8 +7071,8 @@ function initTransmitNodeQueueInterval(interval){
                   });
                 }
                 else if (n.nodeType === "hashtag") {
-                  delete n["_id"];
-                  delete n["userId"];
+                  delete n._id;
+                  delete n.userId;
                   viewNameSpace.volatile.emit("node", n);
                   transmitNodeQueueReady = true;
 
@@ -7126,7 +7151,8 @@ function logHeartbeat() {
 let dropboxFolderGetLastestCursorReady = true;
 
 function getChallengeResponse(crc_token, consumer_secret) {
-  const hmac = crypto.createHmac("sha256", consumer_secret).update(crc_token).digest("base64");
+  const hmac = crypto.createHmac("sha256", consumer_secret).update(crc_token).
+digest("base64");
   return hmac;
 }
 
@@ -7154,7 +7180,7 @@ function initAppRouting(callback) {
       + " | " + response_token
     ));
 
-    const response = { "response_token" : response_token };
+    const response = { "response_token": response_token };
 
     res.send(response);
   });
@@ -7195,7 +7221,7 @@ function initAppRouting(callback) {
 
       next();
 
-      let dropboxCursorFolderArray = configuration.dropboxChangeFolderArray;
+      const dropboxCursorFolderArray = configuration.dropboxChangeFolderArray;
 
       if (dropboxFolderGetLastestCursorReady) {
 
@@ -7236,11 +7262,11 @@ function initAppRouting(callback) {
                     }
 
                     else if (entry.path_lower.endsWith(bestRuntimeNetworkFileName.toLowerCase())){
-                      loadBestRuntimeNetwork()
-                      .then(function(){
+                      loadBestRuntimeNetwork().
+                      then(function(){
                         cb1();
-                      })
-                      .catch(function(err){
+                      }).
+                      catch(function(err){
                         cb1(err);
                       });
                     }
@@ -7249,12 +7275,12 @@ function initAppRouting(callback) {
 
                       setTimeout(function(){
 
-                        loadMaxInputHashMap()
-                        .then(function(){
+                        loadMaxInputHashMap().
+                        then(function(){
                           configEvents.emit("NEW_MAX_INPUT_HASHMAP");
                           cb1();
-                        })
-                        .catch(function(err){
+                        }).
+                        catch(function(err){
                           cb1(err);
                         });
 
@@ -7289,12 +7315,12 @@ function initAppRouting(callback) {
                     else if ((entry.path_lower.endsWith("google_twittersearchstreamconfig.json"))
                       || (entry.path_lower.endsWith("default_twittersearchstreamconfig.json"))){
 
-                      killTssChildren()
-                      .then(function(){
+                      killTssChildren().
+                      then(function(){
                         initTssChildren();
                         cb1();
-                      })
-                      .catch(function(err){
+                      }).
+                      catch(function(err){
                         cb1(err);
                       });
                     }
@@ -7509,12 +7535,12 @@ function initAppRouting(callback) {
 
   app.get("/account", ensureAuthenticated, function(req, res){
 
-    console.log(chalkError("WAS | PASSPORT TWITTER AUTH USER\n" + jsonPrint(req.session.passport.user)));  // handle errors
+    console.log(chalkError("WAS | PASSPORT TWITTER AUTH USER\n" + jsonPrint(req.session.passport.user))); // handle errors
     console.log(chalkError("WAS | PASSPORT TWITTER AUTH USER"
       + " | IP: " + req.ip
       + " | @" + req.session.passport.user.screenName
       + " | UID" + req.session.passport.user.nodeId
-    ));  // handle errors
+    )); // handle errors
 
     // slackSendMessage("PASSPORT TWITTER AUTH USER: @" + req.session.passport.user.screenName);
     if (!userServerControllerReady || !statsObj.dbConnectionReady) {
@@ -7523,11 +7549,11 @@ function initAppRouting(callback) {
 
     userServerController.findOne({ user: req.session.passport.user}, function(err, user) {
       if(err) {
-        console.log(chalkError("WAS | *** ERROR TWITTER AUTHENTICATION: " + jsonPrint(err)));  // handle errors
+        console.log(chalkError("WAS | *** ERROR TWITTER AUTHENTICATION: " + jsonPrint(err))); // handle errors
         res.redirect("/504.html");
       } 
       else if (user) {
-        console.log(chalk.green("TWITTER USER AUTHENTICATED: @" + user.screenName));  // handle errors
+        console.log(chalk.green("TWITTER USER AUTHENTICATED: @" + user.screenName)); // handle errors
         // slackSendMessage("USER AUTH: @" + user.screenName);
         authenticatedTwitterUserCache.set(user.nodeId, user);
         res.redirect("/after-auth.html");
@@ -7558,7 +7584,7 @@ function testInternetConnection(params, callback) {
     return callback(null, true);
   }
 
-  let testClient = net.createConnection(80, params.url);
+  const testClient = net.createConnection(80, params.url);
 
   testClient.on("connect", function testConnect() {
 
@@ -7606,7 +7632,7 @@ function initInternetCheckInterval(interval){
 
     clearInterval(internetCheckInterval);
 
-    let params = {url: configuration.testInternetConnectionUrl};
+    const params = {url: configuration.testInternetConnectionUrl};
 
     testInternetConnection(params, function(err, internetReady){
     });
@@ -7876,11 +7902,11 @@ function keySort(params, callback){
     + " | KEYS: " + Object.keys(params.obj).length
   ));
 
-  sortedObjectValues(params)
-  .then(function(results){
+  sortedObjectValues(params).
+  then(function(results){
     callback(null, results);
-  })
-  .catch(function(err){
+  }).
+  catch(function(err){
     callback(err, params);
   });
 }
@@ -8112,7 +8138,7 @@ function unfollowDuplicates(params){
     const threeceeUserTarget = params.threeceeUser;
     const threeceeUsersArray = Object.keys(threeceeTwitter).sort();
 
-    let unfollowArrarys = {};
+    const unfollowArrarys = {};
 
     async.eachSeries(threeceeUsersArray, function(threeceeUserTarget, cb0){
 
@@ -8307,7 +8333,7 @@ function initTssChild(params){
             ));
 
             const obj = {
-              userIds : [...unfollowableUserSet]
+              userIds: [...unfollowableUserSet]
             };
 
             saveFileQueue.push({
@@ -8496,7 +8522,7 @@ function initTfeChild(params){
 
       const isInfoUser = m.isInfoUser || false;
 
-      const threeceeHashMap = (isInfoUser) ? threeceeInfoTwitter : threeceeTwitter ;
+      const threeceeHashMap = (isInfoUser) ? threeceeInfoTwitter : threeceeTwitter;
 
       switch (m.op) {
 
@@ -9232,8 +9258,8 @@ function loadBestRuntimeNetwork(params){
     const folder = params.folder || bestNetworkFolder;
     let file = params.file || bestRuntimeNetworkFileName;
 
-    loadFile({folder: folder, file: file, noErrorNotFoundFlag: true})
-    .then(function(bRtNnObj){
+    loadFile({folder: folder, file: file, noErrorNotFoundFlag: true}).
+    then(function(bRtNnObj){
       if (bRtNnObj) {
 
         bRtNnObj.matchRate = (bRtNnObj.matchRate !== undefined) ? bRtNnObj.matchRate : 0;
@@ -9246,8 +9272,8 @@ function loadBestRuntimeNetwork(params){
 
         file = bRtNnObj.networkId + ".json";
 
-        loadFile({folder: folder, file: file, noErrorNotFoundFlag: true})
-        .then(function(nnObj){
+        loadFile({folder: folder, file: file, noErrorNotFoundFlag: true}).
+        then(function(nnObj){
           if (nnObj) { 
 
             nnObj.matchRate = (nnObj.matchRate !== undefined) ? nnObj.matchRate : 0;
@@ -9271,7 +9297,9 @@ function loadBestRuntimeNetwork(params){
           }
           else {
 
-            global.globalNeuralNetwork.find({}).sort({"matchRate": -1}).limit(1).exec(function(err, nnArray){
+            global.globalNeuralNetwork.find({}).sort({"matchRate": -1}).
+limit(1).
+exec(function(err, nnArray){
               if (err){
                 console.log(chalkError("WAS | *** NEURAL NETWORK FIND ERROR: " + err));
                 return reject(err);
@@ -9310,14 +9338,16 @@ function loadBestRuntimeNetwork(params){
             });
 
           }
-        })
-        .catch(function(err){
+        }).
+        catch(function(err){
           console.log(chalkError("WAS | *** LOAD BEST NETWORK RUNTIME ID ERROR: ", err));
           return reject(err);
         });
       }
       else {
-        global.globalNeuralNetwork.find({}).sort({"matchRate": -1}).limit(1).exec(function(err, nnArray){
+        global.globalNeuralNetwork.find({}).sort({"matchRate": -1}).
+limit(1).
+exec(function(err, nnArray){
           if (err){
             console.log(chalkError("WAS | *** NEURAL NETWORK FIND ERROR: " + err));
             return reject(err);
@@ -9355,8 +9385,8 @@ function loadBestRuntimeNetwork(params){
           resolve(bestNetworkObj.networkId);
         });
       }
-    })
-    .catch(function(err){
+    }).
+    catch(function(err){
       if (err.code === "ETIMEDOUT") {
         console.log(chalkError("WAS | *** LOAD BEST NETWORK ERROR: NETWORK TIMEOUT:  " 
           + folder + "/" + file
@@ -9395,17 +9425,17 @@ function loadConfigFile(params) {
     }
 
     if (configuration.offlineMode) {
-      loadCommandLineArgs()
-      .then(function(){
+      loadCommandLineArgs().
+      then(function(){
         return resolve();
-      })
-      .catch(function(err){
+      }).
+      catch(function(err){
         return reject(err);
       });
     }
 
-    getFileMetadata({folder: params.folder, file: params.file})
-    .then(function(response){
+    getFileMetadata({folder: params.folder, file: params.file}).
+    then(function(response){
       const fileModifiedMoment = moment(new Date(response.client_modified));
       
       if (fileModifiedMoment.isSameOrBefore(prevConfigFileModifiedMoment)){
@@ -9433,8 +9463,8 @@ function loadConfigFile(params) {
         prevHostConfigFileModifiedMoment = moment(fileModifiedMoment);
       }
 
-      loadFile({folder: params.folder, file: params.file})
-      .then(function(loadedConfigObj){
+      loadFile({folder: params.folder, file: params.file}).
+      then(function(loadedConfigObj){
 
         if ((loadedConfigObj === undefined) || !loadedConfigObj) {
           console.log(chalkError("WAS | DROPBOX CONFIG LOAD FILE ERROR | JSON UNDEFINED ??? "));
@@ -9443,11 +9473,11 @@ function loadConfigFile(params) {
 
         console.log(chalkInfo("WAS | LOADED CONFIG FILE: " + params.file + "\n" + jsonPrint(loadedConfigObj)));
 
-        let newConfiguration = {};
+        const newConfiguration = {};
         newConfiguration.metrics = {};
         newConfiguration.threeceeUsers = {};
 
-        if (loadedConfigObj.WAS_TEST_MODE  !== undefined){
+        if (loadedConfigObj.WAS_TEST_MODE !== undefined){
           console.log("WAS | LOADED WAS_TEST_MODE: " + loadedConfigObj.WAS_TEST_MODE);
 
           if ((loadedConfigObj.WAS_TEST_MODE === false) || (loadedConfigObj.WAS_TEST_MODE === "false")) {
@@ -9461,7 +9491,7 @@ function loadConfigFile(params) {
           }
         }
 
-        if (loadedConfigObj.VERBOSE  !== undefined){
+        if (loadedConfigObj.VERBOSE !== undefined){
           console.log("WAS | LOADED VERBOSE: " + loadedConfigObj.VERBOSE);
 
           if ((loadedConfigObj.VERBOSE === false) || (loadedConfigObj.VERBOSE === "false")) {
@@ -9475,7 +9505,7 @@ function loadConfigFile(params) {
           }
         }
 
-        if (loadedConfigObj.IGNORE_CATEGORY_RIGHT  !== undefined){
+        if (loadedConfigObj.IGNORE_CATEGORY_RIGHT !== undefined){
           console.log("WAS | LOADED IGNORE_CATEGORY_RIGHT: " + loadedConfigObj.IGNORE_CATEGORY_RIGHT);
 
           if ((loadedConfigObj.IGNORE_CATEGORY_RIGHT === false) || (loadedConfigObj.IGNORE_CATEGORY_RIGHT === "false")) {
@@ -9489,7 +9519,7 @@ function loadConfigFile(params) {
           }
         }
 
-        if (loadedConfigObj.GEOCODE_ENABLED  !== undefined){
+        if (loadedConfigObj.GEOCODE_ENABLED !== undefined){
           console.log("WAS | LOADED GEOCODE_ENABLED: " + loadedConfigObj.GEOCODE_ENABLED);
 
           if ((loadedConfigObj.GEOCODE_ENABLED === false) || (loadedConfigObj.GEOCODE_ENABLED === "false")) {
@@ -9503,7 +9533,7 @@ function loadConfigFile(params) {
           }
         }
 
-        if (loadedConfigObj.FILTER_DUPLICATE_TWEETS  !== undefined){
+        if (loadedConfigObj.FILTER_DUPLICATE_TWEETS !== undefined){
           console.log("WAS | LOADED FILTER_DUPLICATE_TWEETS: " + loadedConfigObj.FILTER_DUPLICATE_TWEETS);
 
           if ((loadedConfigObj.FILTER_DUPLICATE_TWEETS === false) || (loadedConfigObj.FILTER_DUPLICATE_TWEETS === "false")) {
@@ -9517,7 +9547,7 @@ function loadConfigFile(params) {
           }
         }
 
-        if (loadedConfigObj.ENABLE_IMAGE_ANALYSIS  !== undefined){
+        if (loadedConfigObj.ENABLE_IMAGE_ANALYSIS !== undefined){
           console.log("WAS | LOADED ENABLE_IMAGE_ANALYSIS: " + loadedConfigObj.ENABLE_IMAGE_ANALYSIS);
 
           if ((loadedConfigObj.ENABLE_IMAGE_ANALYSIS === false) || (loadedConfigObj.ENABLE_IMAGE_ANALYSIS === "false")) {
@@ -9531,7 +9561,7 @@ function loadConfigFile(params) {
           }
         }
 
-        if (loadedConfigObj.FORCE_IMAGE_ANALYSIS  !== undefined){
+        if (loadedConfigObj.FORCE_IMAGE_ANALYSIS !== undefined){
           console.log("WAS | LOADED FORCE_IMAGE_ANALYSIS: " + loadedConfigObj.FORCE_IMAGE_ANALYSIS);
 
           if ((loadedConfigObj.FORCE_IMAGE_ANALYSIS === false) || (loadedConfigObj.FORCE_IMAGE_ANALYSIS === "false")) {
@@ -9545,7 +9575,7 @@ function loadConfigFile(params) {
           }
         }
 
-        if (loadedConfigObj.AUTO_FOLLOW  !== undefined){
+        if (loadedConfigObj.AUTO_FOLLOW !== undefined){
           console.log("WAS | LOADED AUTO_FOLLOW: " + loadedConfigObj.AUTO_FOLLOW);
 
           if ((loadedConfigObj.AUTO_FOLLOW === false) || (loadedConfigObj.AUTO_FOLLOW === "false")) {
@@ -9559,7 +9589,7 @@ function loadConfigFile(params) {
           }
         }
 
-        if (loadedConfigObj.FORCE_FOLLOW  !== undefined){
+        if (loadedConfigObj.FORCE_FOLLOW !== undefined){
           console.log("WAS | LOADED FORCE_FOLLOW: " + loadedConfigObj.FORCE_FOLLOW);
 
           if ((loadedConfigObj.FORCE_FOLLOW === false) || (loadedConfigObj.FORCE_FOLLOW === "false")) {
@@ -9573,7 +9603,7 @@ function loadConfigFile(params) {
           }
         }
 
-        if (loadedConfigObj.WAS_ENABLE_STDIN  !== undefined){
+        if (loadedConfigObj.WAS_ENABLE_STDIN !== undefined){
           console.log("WAS | LOADED WAS_ENABLE_STDIN: " + loadedConfigObj.WAS_ENABLE_STDIN);
 
           if ((loadedConfigObj.WAS_ENABLE_STDIN === false) || (loadedConfigObj.WAS_ENABLE_STDIN === "false")) {
@@ -9750,8 +9780,8 @@ function loadConfigFile(params) {
         resolve(newConfiguration);
 
       });
-    })
-    .catch(function(err){
+    }).
+    catch(function(err){
       console.error(chalkError("WAS | ERROR LOAD DROPBOX CONFIG: " + fullPath
         + "\n" + jsonPrint(err)
       ));
@@ -9769,34 +9799,34 @@ function loadAllConfigFiles(){
 
     statsObj.status = "LOAD CONFIG";
 
-    loadConfigFile({folder: dropboxConfigDefaultFolder, file: dropboxConfigDefaultFile})
-    .then(function(defaultConfig){
+    loadConfigFile({folder: dropboxConfigDefaultFolder, file: dropboxConfigDefaultFile}).
+    then(function(defaultConfig){
 
       if (defaultConfig) {
         defaultConfiguration = defaultConfig;
         console.log(chalk.green("WAS | +++ RELOADED DEFAULT CONFIG " + dropboxConfigDefaultFolder + "/" + dropboxConfigDefaultFile));
       }
 
-      loadConfigFile({folder: dropboxConfigHostFolder, file: dropboxConfigHostFile})
-      .then(function(hostConfig){
+      loadConfigFile({folder: dropboxConfigHostFolder, file: dropboxConfigHostFile}).
+      then(function(hostConfig){
 
         if (hostConfig) {
           hostConfiguration = hostConfig;
           console.log(chalk.green("WAS | +++ RELOADED HOST CONFIG " + dropboxConfigHostFolder + "/" + dropboxConfigHostFile));
         }
 
-        let defaultAndHostConfig = merge(defaultConfiguration, hostConfiguration); // host settings override defaults
-        let tempConfig = merge(configuration, defaultAndHostConfig); // any new settings override existing config
+        const defaultAndHostConfig = merge(defaultConfiguration, hostConfiguration); // host settings override defaults
+        const tempConfig = merge(configuration, defaultAndHostConfig); // any new settings override existing config
 
         configuration = tempConfig;
-        configuration.threeceeUsers = _.uniq(configuration.threeceeUsers);  // merge concats arrays!
+        configuration.threeceeUsers = _.uniq(configuration.threeceeUsers); // merge concats arrays!
 
         resolve();
 
       });
 
-    })
-    .catch(function(err){
+    }).
+    catch(function(err){
       reject(err);
     });
 
@@ -9837,10 +9867,10 @@ function initStatsUpdate(cnf) {
 
       statsInterval = setInterval(function updateStats() {
 
-        getChildProcesses({searchTerm: "ALL"})
-        .then(function(childArray){
+        getChildProcesses({searchTerm: "ALL"}).
+        then(function(childArray){
 
-          if (configuration.verbose)  { 
+          if (configuration.verbose) { 
             console.log(chalkLog("WAS | FOUND " + childArray.length + " CHILDREN"));
           }
           
@@ -9902,8 +9932,8 @@ function initStatsUpdate(cnf) {
 
           statsUpdated += 1;
 
-        })
-        .catch(function(err){
+        }).
+        catch(function(err){
 
         });
 
@@ -9925,9 +9955,9 @@ function initConfig() {
     statsObj.status = "INIT CONFIG";
 
     configuration.processName = process.env.PROCESS_NAME || "node_wordAssoServer";
-    configuration.verbose = process.env.VERBOSE || false ;
-    configuration.quitOnError = process.env.QUIT_ON_ERROR || false ;
-    configuration.enableStdin = process.env.ENABLE_STDIN || true ;
+    configuration.verbose = process.env.VERBOSE || false;
+    configuration.quitOnError = process.env.QUIT_ON_ERROR || false;
+    configuration.enableStdin = process.env.ENABLE_STDIN || true;
     configuration.statsUpdateIntervalTime = process.env.TFE_STATS_UPDATE_INTERVAL || ONE_MINUTE;
 
     debug(chalkTwitter("WAS | THREECEE USERS\n" + jsonPrint(configuration.threeceeUsers)));
@@ -9972,11 +10002,11 @@ function initConfig() {
       debug(chalkTwitter("WAS | THREECEE INFO USER @" + user + "\n" + jsonPrint(threeceeInfoTwitter[user])));
     });
 
-    loadAllConfigFiles()
-    .then(function(){
+    loadAllConfigFiles().
+    then(function(){
 
-      loadCommandLineArgs()
-      .then(function(){
+      loadCommandLineArgs().
+      then(function(){
 
         const configArgs = Object.keys(configuration);
 
@@ -9995,15 +10025,15 @@ function initConfig() {
           initStdIn().then(function(){});
         }
 
-        initStatsUpdate(configuration)
-        .then(function(){
+        initStatsUpdate(configuration).
+        then(function(){
           resolve(configuration);
         });
 
       });
 
-    })
-    .catch(function(err){
+    }).
+    catch(function(err){
       console.log(chalkLog("WAS | *** INIT CONFIG ERROR: " + err));
       return reject(err);
     });
@@ -10103,7 +10133,7 @@ function initCategoryHashmaps(){
 
       user: function(cb){
 
-        let p = {};
+        const p = {};
 
         p.skip = 0;
         p.batchSize = configuration.cursorBatchSize;
@@ -10191,7 +10221,7 @@ function initCategoryHashmaps(){
 
       hashtag: function(cb){
 
-        let p = {};
+        const p = {};
 
         p.skip = 0;
         p.batchSize = configuration.cursorBatchSize;
@@ -10297,7 +10327,7 @@ function initStdIn(params){
 
     stdin = process.stdin;
 
-    if(stdin.setRawMode  !== undefined) {
+    if(stdin.setRawMode !== undefined) {
       stdin.setRawMode( true );
     }
     stdin.resume();
@@ -10383,11 +10413,11 @@ function initUpdateUserSetsInterval(interval){
 
           updateUserSetsIntervalReady = false;
 
-          updateUserSets()
-          .then(function(){
+          updateUserSets().
+          then(function(){
             updateUserSetsIntervalReady = true;
-          })
-          .catch(function(err){
+          }).
+          catch(function(err){
             console.log(chalkError("WAS | UPDATE USER SETS ERROR: " + err));
             updateUserSetsIntervalReady = true;
           });
@@ -10443,7 +10473,7 @@ function initStatsInterval(interval){
 
     getChildProcesses({searchTerm: "ALL"}, function(err, childArray){
 
-      if (configuration.verbose)  { console.log(chalkLog("WAS | FOUND " + childArray.length + " CHILDREN")); }
+      if (configuration.verbose) { console.log(chalkLog("WAS | FOUND " + childArray.length + " CHILDREN")); }
       
       childArray.forEach(function(childObj){
         console.log(chalkLog("WAS | CHILD | PID: " + childObj.pid + " | " + childObj.childId + " | " + childrenHashMap[childObj.childId].status));
@@ -10519,8 +10549,8 @@ function initThreeceeTwitterUsers(params){
 
       try {
 
-        loadFile({folder: dropboxConfigTwitterFolder, file: configFile})
-        .then(function(twitterConfig){
+        loadFile({folder: dropboxConfigTwitterFolder, file: configFile}).
+        then(function(twitterConfig){
 
           console.log(chalkTwitter("WAS | LOADED TWITTER CONFIG"
             + " | 3C @" + user
@@ -10530,7 +10560,7 @@ function initThreeceeTwitterUsers(params){
 
           if (!configuration.threeceeUsers.includes(twitterConfig.screenName)) {
             console.log(chalkAlert("WAS | SKIP CONFIG @" + twitterConfig.screenName + " | NOT IN 3C USERS: " + configuration.threeceeUsers));
-            return cb() ;
+            return cb();
           }
 
           threeceeTwitter[user].twitterConfig = {};
@@ -10538,7 +10568,7 @@ function initThreeceeTwitterUsers(params){
 
           threeceeTwitter[user].twit = new Twit({
             consumer_key: twitterConfig.consumer_key, 
-            consumer_secret:twitterConfig.consumer_secret,
+            consumer_secret: twitterConfig.consumer_secret,
             app_only_auth: true
           });
 
@@ -10578,7 +10608,7 @@ function initThreeceeTwitterUsers(params){
       }
 
       try{
-        let currentThreeceeUser = await getCurrentThreeceeUser();
+        const currentThreeceeUser = await getCurrentThreeceeUser();
         console.log(chalkInfo("WAS | CURRENT 3C TWITTER USER: @" + currentThreeceeUser));
         resolve(currentThreeceeUser);
       }
@@ -10596,8 +10626,8 @@ function twitterGetUserUpdateDb(user, callback){
 
   if (!user.userId && !user.nodeId && !user.screenName) { return callback("NO USER PROPS", null); }
 
-  getCurrentThreeceeUser()
-  .then(async function(currentThreeceeUser){
+  getCurrentThreeceeUser().
+  then(async function(currentThreeceeUser){
 
     if ( currentThreeceeUser
       && (threeceeTwitter[currentThreeceeUser] !== undefined)
@@ -10605,7 +10635,7 @@ function twitterGetUserUpdateDb(user, callback){
 
       printUserObj("WAS | GET USER TWITTER DATA", user);
 
-      let twitQuery = {};
+      const twitQuery = {};
 
       twitQuery.include_entities = true;
 
@@ -10667,7 +10697,7 @@ function twitterGetUserUpdateDb(user, callback){
             return callback(new Error("userServerController not ready"), null);
           }
 
-          userServerController.convertRawUser({user:rawUser}, async function(err, cUser){
+          userServerController.convertRawUser({user: rawUser}, async function(err, cUser){
 
             if (err) {
               console.log(chalkError("WAS | *** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
@@ -10700,7 +10730,7 @@ function twitterGetUserUpdateDb(user, callback){
             user.verified = cUser.verified;
             user.mentions = 0;
 
-            let nCacheObj = nodeCache.get(user.nodeId);
+            const nCacheObj = nodeCache.get(user.nodeId);
 
             if (nCacheObj) {
               user.mentions = Math.max(user.mentions, nCacheObj.mentions);
@@ -10715,7 +10745,7 @@ function twitterGetUserUpdateDb(user, callback){
               console.log(chalk.blue("WAS | UPDATED updatedUser"
                 + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
                 + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
-                + "\n" + printUser({user:updatedUser})
+                + "\n" + printUser({user: updatedUser})
               ));
               callback(null, updatedUser);
             }
@@ -10735,7 +10765,7 @@ function twitterGetUserUpdateDb(user, callback){
       console.log(chalkTwitter("WAS | XXX TWITTER_SEARCH_NODE USER FAIL"
         + " | 3C @" + currentThreeceeUser
         + " | 3C READY: " + threeceeTwitter[currentThreeceeUser].ready
-        + "\n" + printUser({user:user})
+        + "\n" + printUser({user: user})
       ));
       callback("TWITTER NOT READY", user);
     }
@@ -10743,12 +10773,12 @@ function twitterGetUserUpdateDb(user, callback){
       console.log(chalkTwitter("WAS | XXX TWITTER_SEARCH_NODE USER FAIL"
         + " | threeceeTwitter[currentThreeceeUser] UNDEFINED"
         + " | 3C @" + currentThreeceeUser
-        + "\n" + printUser({user:user})
+        + "\n" + printUser({user: user})
       ));
 
       if (user.nodeId){
 
-        let nCacheObj = nodeCache.get(user.nodeId);
+        const nCacheObj = nodeCache.get(user.nodeId);
 
         if (nCacheObj) {
           user.mentions = Math.max(user.mentions, nCacheObj.mentions);
@@ -10772,7 +10802,7 @@ function twitterGetUserUpdateDb(user, callback){
         console.log(chalk.blue("WAS | UPDATED updatedUser"
           + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
           + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
-          + "\n" + printUser({user:updatedUser})
+          + "\n" + printUser({user: updatedUser})
         ));
 
         callback(null, updatedUser);
@@ -10784,8 +10814,8 @@ function twitterGetUserUpdateDb(user, callback){
       }
 
     }
-  })
-  .catch(function(err){
+  }).
+  catch(function(err){
     console.log(chalkError("WAS | *** GET CURRENT 3C USER ERROR: " + err));
     return callback(err, null);
   });
@@ -10832,7 +10862,7 @@ function twitterSearchUserNode(searchQuery, callback){
 
 function twitterSearchNode(params, callback) {
 
-  let searchNode = params.searchNode.toLowerCase().trim();
+  const searchNode = params.searchNode.toLowerCase().trim();
   let searchNodeHashtag;
   let searchNodeUser;
   let searchQuery = {};
@@ -10859,11 +10889,11 @@ function twitterSearchNode(params, callback) {
         viewNameSpace.emit("SET_TWITTER_HASHTAG", hashtag);
 
         if (hashtag.category) { 
-          let htCatObj = {};
+          const htCatObj = {};
           htCatObj.manual = hashtag.category;
           htCatObj.auto = false;
           if (categorizedHashtagHashMap.has(hashtag.nodeId.toLowerCase())) {
-            htCatObj.auto = categorizedHashtagHashMap.get(hashtag.nodeId.toLowerCase()).auto || false ;
+            htCatObj.auto = categorizedHashtagHashMap.get(hashtag.nodeId.toLowerCase()).auto || false;
           }
           categorizedHashtagHashMap.set(hashtag.nodeId.toLowerCase(), htCatObj);
         }
@@ -10875,8 +10905,8 @@ function twitterSearchNode(params, callback) {
 
         new global.globalHashtag({
           nodeId: searchNodeHashtag.nodeId.toLowerCase(), 
-          text: searchNodeHashtag.nodeId.toLowerCase()})
-        .save(function(err, newHt){
+          text: searchNodeHashtag.nodeId.toLowerCase()}).
+        save(function(err, newHt){
           if (err) {
             console.log(chalkError("WAS | *** ERROR:  SAVE NEW HASHTAG"
               + " | #" + searchNodeHashtag.nodeId.toLowerCase()
@@ -11085,7 +11115,7 @@ function initTwitterSearchNodeQueueInterval(interval){
 
         searchNodeParams = twitterSearchNodeQueue.shift();
 
-        let searchTimeout = setTimeout(function(){
+        const searchTimeout = setTimeout(function(){
 
           console.log(chalkAlert(
             "WAS | *** SEARCH NODE TIMEOUT\nsearchNodeParams\n" + jsonPrint(searchNodeParams)
@@ -11123,8 +11153,8 @@ setTimeout(function(){
 
   try {
 
-    initConfig()
-    .then(function(cnf){
+    initConfig().
+    then(function(cnf){
 
       configuration = deepcopy(cnf);
 

@@ -103,7 +103,7 @@ allowLocationsSet.add("new england");
 let allowLocationsArray = Array.from(allowLocationsSet);
 let allowLocationsString = allowLocationsArray.join('\\b|\\b');
 allowLocationsString = '\\b' + allowLocationsString + '\\b';
-let allowLocationsRegEx = new RegExp(allowLocationsString, "gi");
+// let allowLocationsRegEx = new RegExp(allowLocationsString, "gi");
 
 const ignoreLocationsSet = new Set();
 ignoreLocationsSet.add("india");
@@ -1995,12 +1995,15 @@ function initAllowLocations(){
 
       debug(chalkInfo("TSS | DROPBOX ALLOW LOCATIONS FILE\n" + jsonPrint(data)));
 
-      const dataArray = data.toString().toLowerCase().split("\n");
+      const dataArray = data.toString().toLowerCase().
+split("\n");
 
       console.log(chalk.blue("TSS | FILE CONTAINS " + dataArray.length + " ALLOW LOCATIONS "));
 
-      dataArray.forEach(function(location){
-        location = location.trim();
+      let location;
+
+      dataArray.forEach(function(loc){
+        location = loc.trim();
         location = location.replace(/^\s+|\s+$|\n/gim, "");
         if (location.length > 1) { 
           allowLocationsSet.add(location);
@@ -2011,7 +2014,7 @@ function initAllowLocations(){
       allowLocationsArray = [...allowLocationsSet];
       allowLocationsString = allowLocationsArray.join('\\b|\\b');
       allowLocationsString = '\\b' + allowLocationsString + '\\b';
-      allowLocationsRegEx = new RegExp(allowLocationsString, "gi");
+      // allowLocationsRegEx = new RegExp(allowLocationsString, "gi");
 
       resolve();
 
@@ -2071,12 +2074,16 @@ function initIgnoreLocations(){
 
       debug(chalkInfo("TSS | DROPBOX IGNORE LOCATIONS FILE\n" + jsonPrint(data)));
 
-      const dataArray = data.toString().toLowerCase().split("\n");
+      const dataArray = data.toString().toLowerCase().
+split("\n");
 
       console.log(chalk.blue("TSS | FILE CONTAINS " + dataArray.length + " IGNORE LOCATIONS "));
 
-      dataArray.forEach(function(location){
-        location = location.trim();
+
+      let location;
+
+      dataArray.forEach(function(loc){
+        location = loc.trim();
         location = location.replace(/\s|\n/gim, "");
         if (location.length > 1) { 
           ignoreLocationsSet.add(location);

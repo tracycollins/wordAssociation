@@ -1,10 +1,9 @@
 /*jslint node: true */
 /*jshint sub:true*/
-"use strict";
 
 process.title = "wa_node_child_dbu";
 
-let inputTypes = [
+const inputTypes = [
   "emoji", 
   "hashtags", 
   "images", 
@@ -24,29 +23,29 @@ const DEFAULT_USER_UPDATE_QUEUE_INTERVAL = 100;
 const DEFAULT_MAX_UPDATE_QUEUE = 500;
 
 const ONE_SECOND = 1000;
-const ONE_MINUTE = 60 * ONE_SECOND;
-const ONE_HOUR = 60 * ONE_MINUTE;
+// const ONE_MINUTE = 60 * ONE_SECOND;
+// const ONE_HOUR = 60 * ONE_MINUTE;
 
-const ONE_KILOBYTE = 1024;
-const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
+// const ONE_KILOBYTE = 1024;
+// const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
 
 const compactDateTimeFormat = "YYYYMMDD_HHmmss";
 
 const os = require("os");
 const moment = require("moment");
 const treeify = require("treeify");
-const util = require("util");
+// const util = require("util");
 const debug = require("debug")("dbu");
 const debugCache = require("debug")("cache");
 const debugQ = require("debug")("queue");
 const async = require("async");
-const merge = require("merge");
+// const merge = require("merge");
 const _ = require("lodash");
 
 const chalk = require("chalk");
 const chalkAlert = chalk.red;
 const chalkError = chalk.bold.red;
-const chalkWarn = chalk.red;
+// const chalkWarn = chalk.red;
 const chalkLog = chalk.gray;
 const chalkInfo = chalk.black;
 const chalkUser = chalk.black;
@@ -60,7 +59,7 @@ hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
 
-let statsObj = {};
+const statsObj = {};
 
 statsObj.status = "LOAD";
 statsObj.hostname = hostname;
@@ -81,15 +80,15 @@ process.on("unhandledRejection", function(err, promise) {
   process.exit();
 });
 
-process.on("SIGHUP", function processSigHup() {
+process.on("SIGHUP", function() {
   quit("SIGHUP");
 });
 
-process.on("SIGINT", function processSigInt() {
+process.on("SIGINT", function() {
   quit("SIGINT");
 });
 
-process.on("disconnect", function processDisconnect() {
+process.on("disconnect", function() {
   quit("DISCONNECT");
 });
 
@@ -103,9 +102,9 @@ function jsonPrint(obj) {
 }
 
 function getTimeStamp(inputTime) {
-  let currentTimeStamp ;
+  let currentTimeStamp;
 
-  if (inputTime  === undefined) {
+  if (inputTime === undefined) {
     currentTimeStamp = moment().format(compactDateTimeFormat);
     return currentTimeStamp;
   }
@@ -137,21 +136,23 @@ const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.mod
 
 global.globalUser = mongoose.model("User", userModel.UserSchema);
 
+const UserServerController = require("@threeceelabs/user-server-controller");
 
-
-let UserServerController;
+// let UserServerController;
 let userServerController;
 
-let userServerControllerReady = false;
+// let userServerControllerReady = false;
 
-let configuration = {}; // merge of defaultConfiguration & hostConfiguration
+const configuration = {}; // merge of defaultConfiguration & hostConfiguration
 configuration.processName = process.env.DBU_PROCESS_NAME || "node_databaseUpdate";
 configuration.verbose = DEFAULT_VERBOSE;
 configuration.testMode = DEFAULT_TEST_MODE; // per tweet test mode
 configuration.maxUserUpdateQueue = DEFAULT_MAX_UPDATE_QUEUE;
 configuration.inputTypes = inputTypes;
 
-function msToTime(duration) {
+function msToTime(d) {
+
+  let duration = d;
 
   let sign = 1;
 
@@ -247,7 +248,7 @@ function connectDb(){
 
     statsObj.status = "CONNECT DB";
 
-    globalWordAssoDb.connect("DBU_" + process.pid, function(err, db){
+    global.globalWordAssoDb.connect("DBU_" + process.pid, function(err, db){
       if (err) {
         console.log(chalkError("*** DBU | *** MONGO DB CONNECTION ERROR: " + err));
         statsObj.dbConnectionReady = false;
@@ -255,7 +256,7 @@ function connectDb(){
       }
       else {
 
-        db.on("close", function(err){
+        db.on("close", function(){
           console.error.bind(console, "DBU | *** MONGO DB CONNECTION CLOSED ***");
           console.log(chalkAlert("DBU | *** MONGO DB CONNECTION CLOSED ***"));
           statsObj.dbConnectionReady = false;
@@ -270,8 +271,8 @@ function connectDb(){
         });
 
         db.on("disconnected", function(){
-          console.error.bind(console, "TFE | *** MONGO DB DISCONNECTED ****");
-          console.log(chalkAlert("TFE | *** MONGO DB DISCONNECTED ***"));
+          console.error.bind(console, "DBU | *** MONGO DB DISCONNECTED ****");
+          console.log(chalkAlert("DBU | *** MONGO DB DISCONNECTED ***"));
           statsObj.dbConnectionReady = false;
           quit("MONGO DB DISCONNECTED");
         });
@@ -280,21 +281,18 @@ function connectDb(){
 
         statsObj.dbConnectionReady = true;
 
-        // User = mongoose.model("User", userModel.UserSchema);
-
         global.globalDbConnection = db;
 
-        UserServerController = require("@threeceelabs/user-server-controller");
+        // UserServerController = require("@threeceelabs/user-server-controller");
         userServerController = new UserServerController("DBU_USC");
 
 
-        userServerControllerReady = false;
+        // userServerControllerReady = false;
 
         userServerController.on("ready", function(appname){
-          userServerControllerReady = true;
+          // userServerControllerReady = true;
           console.log(chalkLog("DBU | USC READY | " + appname));
         });
-
 
         resolve(db);
 
@@ -307,7 +305,7 @@ function connectDb(){
 
 function initialize(){
 
-  return new Promise(function(resolve, reject){
+  return new Promise(function(resolve){
 
     statsObj.status = "INITIALIZE";
 
@@ -325,47 +323,52 @@ function mergeHistograms(params){
 
   return new Promise(function(resolve, reject){
 
-    let histA = params.histogramA;
-    let histB = params.histogramB;
+    try {
+      const histA = params.histogramA;
+      const histB = params.histogramB;
 
-    let histogramMerged = {};
+      const histogramMerged = {};
 
-    const entityTypeArray = _.union(Object.keys(histA), Object.keys(histB));
+      const entityTypeArray = _.union(Object.keys(histA), Object.keys(histB));
 
-    entityTypeArray.forEach(function(entityType){
+      entityTypeArray.forEach(function(entityType){
 
-      histogramMerged[entityType] = {};
+        histogramMerged[entityType] = {};
 
-      if (!histA[entityType] || histA[entityType] === undefined || histA[entityType] === null) { histA[entityType] = {}; }
-      if (!histB[entityType] || histB[entityType] === undefined || histB[entityType] === null) { histB[entityType] = {}; }
+        if (!histA[entityType] || histA[entityType] === undefined || histA[entityType] === null) { histA[entityType] = {}; }
+        if (!histB[entityType] || histB[entityType] === undefined || histB[entityType] === null) { histB[entityType] = {}; }
 
-      // console.log(chalkLog("histogramMerged | histA[entityType]: " + jsonPrint(histA[entityType])));
-      // console.log(chalkLog("histogramMerged | histB[entityType]: " + jsonPrint(histB[entityType])));
+        // console.log(chalkLog("histogramMerged | histA[entityType]: " + jsonPrint(histA[entityType])));
+        // console.log(chalkLog("histogramMerged | histB[entityType]: " + jsonPrint(histB[entityType])));
 
-      const entityArray = _.union(Object.keys(histA[entityType]), Object.keys(histB[entityType]));
+        const entityArray = _.union(Object.keys(histA[entityType]), Object.keys(histB[entityType]));
 
-      // console.log(chalkLog("histogramMerged | entityArray: " + entityArray));
+        // console.log(chalkLog("histogramMerged | entityArray: " + entityArray));
 
-      entityArray.forEach(function(e){
+        entityArray.forEach(function(e){
 
-        let entity = e.trim();
+          const entity = e.trim();
 
-        if (!entity || entity === "" || entity === " " || entity === null || entity === undefined || entity === "-") { return; }
+          if (!entity || entity === "" || entity === " " || entity === null || entity === undefined || entity === "-") { return; }
 
-        histogramMerged[entityType][entity] = 0;
+          histogramMerged[entityType][entity] = 0;
 
-        if (histA[entityType][entity] && histA[entityType][entity] !== undefined) {  histogramMerged[entityType][entity] += histA[entityType][entity]; }
-        if (histB[entityType][entity] && histB[entityType][entity] !== undefined) {  histogramMerged[entityType][entity] += histB[entityType][entity]; }
+          if (histA[entityType][entity] && histA[entityType][entity] !== undefined) { histogramMerged[entityType][entity] += histA[entityType][entity]; }
+          if (histB[entityType][entity] && histB[entityType][entity] !== undefined) { histogramMerged[entityType][entity] += histB[entityType][entity]; }
 
-        // console.log(chalkLog("histogramMerged | " + entityType + " | " + entity + ": " + histogramMerged[entityType][entity]));
+          // console.log(chalkLog("histogramMerged | " + entityType + " | " + entity + ": " + histogramMerged[entityType][entity]));
 
+        });
       });
 
-    });
+      debug(chalkLog("histogramMerged\n" + jsonPrint(histogramMerged)));
 
-    debug(chalkLog("histogramMerged\n" + jsonPrint(histogramMerged)));
-
-    resolve(histogramMerged);
+      resolve(histogramMerged);
+    }
+    catch(err){
+      console.log(chalkError("DBU | *** MERGE HISTOGRAMS ERROR", err));
+      reject(err);
+    }
 
   });
 
@@ -391,9 +394,7 @@ function printUserObj(title, user) {
 
 let userUpdateQueueInterval;
 let userUpdateQueueReady = false;
-let userUpdateQueue = [];
-let tweetObj = {};
-// let user;
+const userUpdateQueue = [];
 
 function getNumKeys(obj){
   if (!obj || obj === undefined || typeof obj !== "object" || obj === null) { return 0; }
@@ -403,20 +404,9 @@ function getNumKeys(obj){
 function userUpdateDb(tweetObj){
   return new Promise(function(resolve, reject){
 
-    // tweetObj.user = results.user;
-    // tweetObj.userMentions = results.userMentions || [];
-    // tweetObj.hashtags = results.hashtags || [];
-    // tweetObj.urls = results.urls || [];
-    // tweetObj.media = results.media || [];
-    // tweetObj.emoji = results.emoji || [];
-    // tweetObj.words = results.words || [];
-    // tweetObj.places = results.places;
-
     debug(chalkLog("DBU | USER UPDATE DB"
       + "\n" + jsonPrint(tweetObj)
     ));
-
-    let userHistograms = [];
 
     async.each(Object.keys(tweetObj), function(entityType, cb0){
 
@@ -459,7 +449,7 @@ function userUpdateDb(tweetObj){
           break;
           case "urls":
             // entity = (entityObj.expandedUrl && entityObj.expandedUrl !== undefined) ? entityObj.expandedUrl.toLowerCase() : entityObj.nodeId;
-            entity = entityObj.nodeId;  // should already be b64 encoded by tweetServerController
+            entity = entityObj.nodeId; // should already be b64 encoded by tweetServerController
           break;
           case "words":
             entity = entityObj.nodeId.toLowerCase();
@@ -467,6 +457,9 @@ function userUpdateDb(tweetObj){
           case "places":
             entity = entityObj.nodeId;
           break;
+          default:
+            console.log(chalkError("DBU | *** userUpdateDb ERROR: UNKNOWN ENTITY TYPE: " + entityType));
+            return reject(new Error("UNKNOWN ENTITY TYPE: " + entityType));
         }
 
         if (!tweetObj.user.histograms || (tweetObj.user.histograms === undefined)){
@@ -574,29 +567,20 @@ function userUpdateDb(tweetObj){
 
           debug(chalkLog("DBU | USER MERGED TWEET HISTOGRAMS\n" + jsonPrint(tweetHistogramMerged)));
 
-          user.save()
-          .then(function() {
+          user.save().
+          then(function() {
             resolve(user);
-          })
-          .catch(function(err) {
-            console.log(chalkError("DBU | *** ERROR USER SAVE: @" + user.screenName + " | " + err));
-            reject(err);
+          }).
+          catch(function(e) {
+            console.log(chalkError("DBU | *** ERROR USER SAVE: @" + user.screenName + " | " + e));
+            reject(e);
           });
 
         }
-        catch(err){
-          console.log(chalkError("DBU | *** ERROR mergeHistograms: @" + user.screenName + " | " + err));
-          return reject(err);
+        catch(err2){
+          console.log(chalkError("DBU | *** ERROR mergeHistograms: @" + user.screenName + " | " + err2));
+          return reject(err2);
         }
-
-        // user.save()
-        // .then(function() {
-        //   resolve(user);
-        // })
-        // .catch(function(err) {
-        //   console.log(chalkError("DBU | *** ERROR USER SAVE: @" + user.screenName + " | " + err));
-        //   reject(err);
-        // });
 
       });
 
@@ -609,32 +593,38 @@ function initUserUpdateQueueInterval(interval){
 
   return new Promise(function(resolve, reject){
 
-    clearInterval(userUpdateQueueInterval);
+    try {
 
-    userUpdateQueueReady = true;
+      clearInterval(userUpdateQueueInterval);
 
-    userUpdateQueueInterval = setInterval(async function(){
+      userUpdateQueueReady = true;
 
-      if (userUpdateQueueReady && (userUpdateQueue.length > 0)) {
+      userUpdateQueueInterval = setInterval(async function(){
 
-        userUpdateQueueReady = false;
+        if (userUpdateQueueReady && (userUpdateQueue.length > 0)) {
 
-        try {
-          const twObj = userUpdateQueue.shift();
-          let updatedUser = await userUpdateDb(twObj);
-          userUpdateQueueReady = true;
+          userUpdateQueueReady = false;
+
+          try {
+            const twObj = userUpdateQueue.shift();
+            await userUpdateDb(twObj);
+            userUpdateQueueReady = true;
+          }
+          catch(e){
+            console.log(chalkError("DBU | *** USER UPDATE DB ERROR: " + e));
+            userUpdateQueueReady = true;
+          }
+
         }
-        catch(err){
-          console.log(chalkError("DBU | *** USER UPDATE DB ERROR: " + err));
-          userUpdateQueueReady = true;
-        }
 
+      }, interval);
 
-      }
-
-    }, interval);
-
-    resolve();
+      resolve();
+    }
+    catch(err){
+      console.log(chalkError("DBU | *** INIT USER UPDATE QUEUE INTERVAL ERROR: ", err));
+      reject(err);
+    }
 
   });
 
@@ -690,7 +680,8 @@ process.on("message", function(m) {
       setTimeout(function(){
 
         process.send({ 
-          op: "PONG", pongId: 
+          op: "PONG",
+pongId: 
           m.pingId
         });
 

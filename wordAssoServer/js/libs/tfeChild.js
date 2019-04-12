@@ -38,8 +38,6 @@ DEFAULT_INPUT_TYPES.forEach(function(type){
 
 });
 
-let mongoDbConnection;
-
 let networkObj = {};
 let network;
 
@@ -193,26 +191,26 @@ const configEvents = new EventEmitter2({
   verboseMemoryLeak: true
 });
 
-const errorEvents = new EventEmitter2({
-  wildcard: true,
-  newListener: true,
-  maxListeners: 20,
-  verboseMemoryLeak: true
-});
+// const errorEvents = new EventEmitter2({
+//   wildcard: true,
+//   newListener: true,
+//   maxListeners: 20,
+//   verboseMemoryLeak: true
+// });
 
-errorEvents.on("newListener", function (data) {
-  console.log(chalkInfo("WAS | TFC | +++ NEW ERROR EVENT LISTENER: " + data));
-});
+// errorEvents.on("newListener", function (data) {
+//   console.log(chalkInfo("WAS | TFC | +++ NEW ERROR EVENT LISTENER: " + data));
+// });
 
-errorEvents.on("ERROR", function(errorObj){
-  // errorEvents.emit("ERROR", { source: "mongoDbConnection", err: err });
-  console.log(chalkError("WAS | TFC | *** ERROR EVENT\n", errorObj));
-  process.send({
-    op: "ERROR", 
-    errorType: errorObj.source,
-    error: errorObj.err
-  });
-});
+// errorEvents.on("ERROR", function(errorObj){
+//   // errorEvents.emit("ERROR", { source: "mongoDbConnection", err: err });
+//   console.log(chalkError("WAS | TFC | *** ERROR EVENT\n", errorObj));
+//   process.send({
+//     op: "ERROR", 
+//     errorType: errorObj.source,
+//     error: errorObj.err
+//   });
+// });
 
 let infoTwitterUserObj = {}; // used for general twitter tasks
 
@@ -380,7 +378,7 @@ statsObj.analyzer.skipped = 0;
 statsObj.analyzer.errors = 0;
 
 global.globalDbConnection = false;
-global.globalUser;
+// global.globalUser;
 
 global.globalWordAssoDb = require("@threeceelabs/mongoose-twitter");
 
@@ -514,14 +512,6 @@ function connectDb(){
           resolve(db);
 
         });
-      });
-
-      mongoDbConnection = global.globalWordAssoDb.connection;
-
-      mongoDbConnection.on("error", function(err){
-        console.error.bind(console, "WAS | TFC *** MONGO DB ERROR: ", err);
-        console.log(chalkError("WAS | TFC *** MONGO DB ERROR", err));
-        errorEvents.emit("ERROR", { source: "mongoDbConnection", err: err });
       });
 
     }

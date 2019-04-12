@@ -38,6 +38,8 @@ DEFAULT_INPUT_TYPES.forEach(function(type){
 
 });
 
+let mongoDbConnection;
+
 let networkObj = {};
 let network;
 
@@ -189,6 +191,27 @@ const configEvents = new EventEmitter2({
   newListener: true,
   maxListeners: 20,
   verboseMemoryLeak: true
+});
+
+const errorEvents = new EventEmitter2({
+  wildcard: true,
+  newListener: true,
+  maxListeners: 20,
+  verboseMemoryLeak: true
+});
+
+errorEvents.on("newListener", function (data) {
+  console.log(chalkInfo("WAS | TFC | +++ NEW ERROR EVENT LISTENER: " + data));
+});
+
+errorEvents.on("ERROR", function(errorObj){
+  // errorEvents.emit("ERROR", { source: "mongoDbConnection", err: err });
+  console.log(chalkError("WAS | TFC | *** ERROR EVENT\n", errorObj));
+  process.send({
+    op: "ERROR", 
+    errorType: errorObj.source,
+    error: errorObj.err
+  });
 });
 
 let infoTwitterUserObj = {}; // used for general twitter tasks
@@ -491,8 +514,16 @@ function connectDb(){
           resolve(db);
 
         });
-
       });
+
+      mongoDbConnection = global.globalWordAssoDb.connection;
+
+      mongoDbConnection.on("error", function(err){
+        console.error.bind(console, "WAS | TFC *** MONGO DB ERROR: ", err);
+        console.log(chalkError("WAS | TFC *** MONGO DB ERROR", err));
+        errorEvents.emit("ERROR", { source: "mongoDbConnection", err: err });
+      });
+
     }
     catch(err){
       console.log(chalkError("WAS | TFC | *** MONGO DB CONNECT ERROR: " + err));
@@ -639,10 +670,11 @@ function saveFile (path, file, jsonObj, callback){
       callback(null, response);
     }).
     catch(function(error){
-      console.error(chalkError("WAS | TFC | " + moment().format(defaultDateTimeFormat) 
-        + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
-        + "\nTFE | ERROR: ", error
+      console.error(chalkError("WAS | TFC | " + moment().format(defaultDateTimeFormat)
+        + " | !!! ERROR DROBOX FILE UPLOAD | FILE: " + fullPath 
       ));
+      console.log("*** WAS | TFC DROPBOX FILE UPLOAD ERROR", error);
+      console.error("*** WAS | TFC DROPBOX FILE UPLOAD ERROR", error);
       callback(error.error, null);
     });
 }
@@ -659,7 +691,6 @@ function loadFile(params) {
     debug(chalkInfo("LOAD FOLDER " + params.folder));
     debug(chalkInfo("LOAD FILE " + params.file));
     debug(chalkInfo("FULL PATH " + fullPath));
-
 
     if (configuration.offlineMode || params.loadLocalFile) {
 

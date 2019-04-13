@@ -3151,6 +3151,10 @@ function getChildProcesses(params){
 
     const childPidFileNameArray = shell.ls(DEFAULT_CHILD_ID_PREFIX + "*");
 
+    if (!childPidFileNameArray || childPidFileNameArray.length === 0) {
+      return resolve(childPidArray);
+    }
+
     async.eachSeries(childPidFileNameArray, function (childPidFileName, cb) {
 
       debug("SHELL: childPidFileName: " + childPidFileName);
@@ -11218,7 +11222,7 @@ setTimeout(function(){
           else {
             console.log(chalkLog("WAS | WAIT DB CONNECTED ..."));
           }
-        }, 1000);
+        }, 5000);
 
       });
 

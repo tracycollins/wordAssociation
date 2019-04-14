@@ -18,12 +18,7 @@ hostname = hostname.replace(/word/g, "google");
 
 
 const TWITTER_WEBHOOK_URL = "/webhooks/twitter";
-// const TWITTER_WEBHOOK_URL_FULL = "https://api.twitter.com/1.1/account_activity/all/dev/webhooks.json?url=https%3A%2F%word.threeceelabs.com%2Fwebhooks%2Ftwitter";
-
 const TWITTER_AUTH_CALLBACK_URL = "https://word.threeceelabs.com/auth/twitter/callback";
-// const TWITTER_AUTH_CALLBACK_URL = "http://localhost:9997/auth/twitter/callback";
-
-// const dbAppName = "WAS_" + process.pid;
 
 global.globalDbConnection = false;
 
@@ -46,22 +41,8 @@ const urlModel = require("@threeceelabs/mongoose-twitter/models/url.server.model
 const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
 const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
 
-// global.globalEmoji;
-// global.globalHashtag;
-// global.globalLocation;
-// global.globalMedia;
-// global.globalNetworkInputs;
-// global.globalNeuralNetwork;
-// global.globalPlace;
-// global.globalTweet;
-// global.globalUrl;
-// global.globalUser;
-// global.globalWord;
-
-
 let HashtagServerController;
 let hashtagServerController;
-// let hashtagServerControllerReady = false;
 
 let UserServerController;
 let userServerController;
@@ -72,7 +53,6 @@ let userChangeStream;
 
 let userSearchCursor;
 
-// const initCategoryHashmapsReady = true;
 let heartbeatInterval;
 
 process.env.NODE_ENV = process.env.NODE_ENV || "development";
@@ -85,34 +65,18 @@ const ONE_DAY = 24 * ONE_HOUR;
 const ONE_KILOBYTE = 1024;
 const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
 
-// const DEFAULT_INFO_TWITTER_USER = "threecee";
 const DEFAULT_IGNORE_CATEGORY_RIGHT = false;
-
-// const infoTwitterUserObj = {};
-
 const DEFAULT_GEOCODE_ENABLED = false;
-
 const DEFAULT_FILTER_DUPLICATE_TWEETS = true;
 const DEFAULT_AUTO_FOLLOW = false;
 const DEFAULT_FORCE_FOLLOW = false;
 const DEFAULT_FORCE_IMAGE_ANALYSIS = false;
 const DEFAULT_ENABLE_IMAGE_ANALYSIS = true;
-
 const DEFAULT_UPDATE_USER_SETS_INTERVAL = 5*ONE_MINUTE;
 const DEFAULT_SAVE_FILE_QUEUE_INTERVAL = 5*ONE_SECOND;
-// const DEFAULT_CHECK_TWITTER_RATE_LIMIT_INTERVAL = ONE_MINUTE;
-
 const DEFAULT_ENABLE_TWITTER_FOLLOW = false;
 const DEFAULT_TWITTER_SEARCH_NODE_QUEUE_INTERVAL = 100;
-// const DEFAULT_MAX_TWIITER_SHOW_USER_TIMEOUT = 30*ONE_MINUTE;
-// const DEFAULT_CONFIG_INIT_INTERVAL = ONE_MINUTE;
-
 const DEFAULT_TEST_INTERNET_CONNECTION_URL = "www.google.com";
-
-// const DEFAULT_FIND_CAT_USER_CURSOR_LIMIT = 100;
-// const DEFAULT_FIND_CAT_WORD_CURSOR_LIMIT = 100;
-// const DEFAULT_FIND_CAT_HASHTAG_CURSOR_LIMIT = 100;
-
 const DEFAULT_CURSOR_BATCH_SIZE = 100;
 
 const DEFAULT_THREECEE_USERS = [
@@ -140,11 +104,6 @@ DEFAULT_THREECEE_USERS.forEach(function(threeceeUser){
 
 
 const DEFAULT_TWITTER_THREECEE_USER = "altthreecee00";
-// const DEFAULT_TWITTER_THREECEE_USER_FILE = DEFAULT_TWITTER_THREECEE_USER + ".json";
-
-// const DEFAULT_TWITTER_CONFIG_THREECEE = "threecee";
-// const DEFAULT_TWITTER_CONFIG_THREECEE_FILE = DEFAULT_TWITTER_CONFIG_THREECEE + ".json";
-
 const DEFAULT_DROPBOX_LIST_FOLDER_LIMIT = 50;
 const DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT = Number(ONE_SECOND);
 
@@ -156,17 +115,12 @@ const DEFAULT_SORTER_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_TWITTER_RX_QUEUE_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_TRANSMIT_NODE_QUEUE_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = DEFAULT_INTERVAL;
-// const DEFAULT_HASHTAG_LOOKUP_QUEUE_INTERVAL = DEFAULT_INTERVAL;
-
-// const DEFAULT_PING_INTERVAL = ONE_MINUTE;
 const TWP_PING_INTERVAL = 10*ONE_MINUTE;
-// const TSS_PING_INTERVAL = 10*ONE_MINUTE;
 const DBU_PING_INTERVAL = 10*ONE_MINUTE;
 const TFE_PING_INTERVAL = 10*ONE_MINUTE;
 
 const DEFAULT_RATE_QUEUE_INTERVAL = ONE_SECOND; // 1 second
 const DEFAULT_RATE_QUEUE_INTERVAL_MODULO = 60; // modulo RATE_QUEUE_INTERVAL
-// const DEFAULT_UPDATE_TRENDS_INTERVAL = 15*ONE_MINUTE;
 const DEFAULT_STATS_UPDATE_INTERVAL = ONE_MINUTE;
 const DEFAULT_CATEGORY_HASHMAPS_UPDATE_INTERVAL = 5*ONE_MINUTE;
 
@@ -191,9 +145,6 @@ const SERVER_CACHE_CHECK_PERIOD = 15;
 
 const VIEWER_CACHE_DEFAULT_TTL = 300; // seconds
 const VIEWER_CACHE_CHECK_PERIOD = 15;
-
-// const ADMIN_CACHE_DEFAULT_TTL = 300; // seconds
-// const ADMIN_CACHE_CHECK_PERIOD = 15;
 
 const AUTH_SOCKET_CACHE_DEFAULT_TTL = 600;
 const AUTH_SOCKET_CACHE_CHECK_PERIOD = 10;
@@ -221,8 +172,6 @@ const chalkUser = chalk.blue;
 const chalkNetwork = chalk.black;
 const chalkTwitter = chalk.blue;
 const chalkConnect = chalk.black;
-// const chalkSession = chalk.black;
-// const chalkDisconnect = chalk.black;
 const chalkSocket = chalk.black;
 const chalkInfo = chalk.black;
 const chalkAlert = chalk.red;
@@ -230,12 +179,9 @@ const chalkWarn = chalk.bold.yellow;
 const chalkError = chalk.bold.red;
 const chalkLog = chalk.gray;
 const chalkBlue = chalk.blue;
-// const chalkBlueBold = chalk.blue.bold;
 
 const btoa = require("btoa");
 const crypto = require("crypto");
-// const objectPath = require("object-path");
-// const util = require("util");
 const request = require("request");
 const _ = require("lodash");
 const touch = require("touch");
@@ -253,62 +199,10 @@ const debug = require("debug")("wa");
 const debugCache = require("debug")("cache");
 const debugCategory = require("debug")("kw");
 const moment = require("moment");
-// const treeify = require("treeify");
-
 const treeify = require("treeify");
-// const treeify = require(__dirname + "/js/libs/treeify");
 
 let prevAllowLocationsFileModifiedMoment = moment("2010-01-01");
 let prevIgnoredLocationsFileModifiedMoment = moment("2010-01-01");
-// const prevSearchTermsFileModifiedMoment = moment("2010-01-01");
-
-// const request_options = {
-//   url: "https://api.twitter.com/oauth2/token",
-//   method: "POST",
-//   auth: {
-//     user: "ex0jSXayxMOjNm4DZIiic9Nc0",
-//     pass: "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa"
-//   },
-//   form: {
-//     "grant_type": "client_credentials"
-//   }
-// };
-
-// function bearerTokenRequest(request_options){
-//   return new Promise(function(resolve, reject){
-//     request(request_options, function(error, response) {
-//       if (error) {
-//         reject(error);
-//       }
-//       else {
-
-//         var json_body = JSON.parse(response.body);
-
-//         console.log(chalk.green("WAS | TWITTER BEARER TOKEN | " + json_body.access_token));
-
-//         const twitter_bearer_token = json_body.access_token;
-
-//         // request options
-//         var req_options = {
-//           url: TWITTER_WEBHOOK_URL_FULL,
-//           method: "POST",
-//           resolveWithFullResponse: true,
-//           auth: { "bearer": twitter_bearer_token }
-//         };
-
-//         // PUT request to retrieve webhook config
-//         request(req_options, function(error, response) {
-//           if (error) {
-//             console.log(chalkError("WAS | *** TWITTER WEBHOOK CONFIG REQ ERROR: " + error));
-//             return reject(twitter_bearer_token);
-//           }
-//           console.log(chalk.green("WAS | +++ TWITTER WEBHOOK VALID"));
-//           resolve(twitter_bearer_token);
-//         });
-//       }
-//     });
-//   });
-// }
 
 function addAccountActivitySubscription(){
 
@@ -572,8 +466,6 @@ let prevHostConfigFileModifiedMoment = moment("2010-01-01");
 let prevDefaultConfigFileModifiedMoment = moment("2010-01-01");
 let prevConfigFileModifiedMoment = moment("2010-01-01");
 
-// previousConfiguration = deepcopy(configuration);
-
 const help = { name: "help", alias: "h", type: Boolean};
 
 const enableStdin = { name: "enableStdin", alias: "S", type: Boolean };
@@ -772,12 +664,7 @@ const bestRuntimeNetworkFileName = DEFAULT_BEST_NETWORK_FILE;
 const DEFAULT_MAX_INPUT_HASHMAP_FILE = "maxInputHashMap.json";
 const maxInputHashMapFile = DEFAULT_MAX_INPUT_HASHMAP_FILE;
 
-// let nodeSearchType = false;
-// const nodeSearchBy = "lastSeen";
-// const previousUserUncategorizedId = "1";
 const previousUserUncategorizedCreated = moment();
-// const previousUserUncategorizedLastSeen = moment();
-// const previousUserMismatchedId = "1";
 
 const fieldsExclude = {
   histograms: 0,
@@ -1003,18 +890,11 @@ const ignoreWordsArray = [
 ];
 
 const categorizedUserHashMap = new HashMap();
-// const categorizedWordHashMap = new HashMap();
 const categorizedHashtagHashMap = new HashMap();
-// const metricsHashmap = new HashMap();
-
 
 const tweetMeter = new Measured.Meter({rateUnit: 60000});
 
-// const languageServer = {};
-
-
 const adminHashMap = new HashMap();
-// let viewerHashMap = new HashMap();
 
 const globalNodeMeter = new Measured.Meter({rateUnit: 60000});
 
@@ -1030,9 +910,6 @@ const tweetParserQueue = [];
 const tweetParserMessageRxQueue = [];
 const tweetRxQueue = [];
 
-// let hashtagLookupQueueInterval;
-// const hashtagLookupQueue = [];
-
 const keySortQueue = [];
 
 const twitterSearchNodeQueue = [];
@@ -1045,9 +922,6 @@ let dbuPongReceived = false;
 let dbuPingId = false;
 
 let tssPingInterval;
-// const tssPingSent = false;
-// let tssPongReceived = false;
-// const tssPingId = false;
 
 let tfePingInterval;
 let tfePingSent = false;
@@ -1070,7 +944,6 @@ const uncategorizedManualUserSet = new Set();
 const uncategorizedAutoUserSet = new Set();
 
 let uncategorizedManualUserArray = [];
-// const uncategorizedAutoUserArray = [];
 
 const matchUserSet = new Set();
 const mismatchUserSet = new Set();
@@ -1084,11 +957,7 @@ const DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKE
 const DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY;
 const DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
 
-// const dropboxConfigSearchTermsFolder = "/config/searchTerms";
-
 const dropboxConfigTwitterFolder = "/config/twitter";
-
-// const dropboxConfigFolder = "/config/utility";
 const dropboxConfigDefaultFolder = "/config/utility/default";
 const dropboxConfigHostFolder = "/config/utility/" + hostname;
 
@@ -1108,10 +977,6 @@ const trainingSetsUsersFolderLocal = (hostname === "google")
   : "/Users/tc/Dropbox/Apps/wordAssociation/config/utility/default/trainingSets/users";
 
 const usersZipUpdateFlagFile = trainingSetsUsersFolderLocal + "/usersZipUpdateFlag.txt";
-
-// const categorizedFolder = dropboxConfigDefaultFolder + "/categorized";
-// let categorizedUsersFile = "categorizedUsers.json";
-// let categorizedHashtagsFile = "categorizedHashtags.json";
 
 const statsFolder = "/stats/" + hostname;
 const statsFile = "wordAssoServerStats_" + moment().format(tinyDateTimeFormat) + ".json";
@@ -1216,8 +1081,6 @@ const dropboxLocalClient = { // offline mode
 
 let dropboxClient = dropboxRemoteClient;
 
-// const configFolder = "/config/utility/" + hostname;
-// const deletedMetricsFile = "deletedMetrics.json";
 
 const networkDefaults = function (netObj){
 
@@ -2659,7 +2522,6 @@ function loadFile(params) {
     }
   });
 }
-
 
 function loadMaxInputHashMap(params){
 
@@ -7682,9 +7544,7 @@ function initTwitterRxQueueInterval(interval){
     resolve();
 
   });
-
 }
-
 
 function findChildByPid(pid, callback){
 
@@ -9301,9 +9161,7 @@ function loadBestRuntimeNetwork(params){
           }
           else {
 
-            global.globalNeuralNetwork.find({}).sort({"matchRate": -1}).
-limit(1).
-exec(function(err, nnArray){
+            global.globalNeuralNetwork.find({}).sort({"matchRate": -1}).limit(1).exec(function(err, nnArray){
               if (err){
                 console.log(chalkError("WAS | *** NEURAL NETWORK FIND ERROR: " + err));
                 return reject(err);
@@ -9795,7 +9653,6 @@ function loadConfigFile(params) {
 
   });
 }
-
 
 function loadAllConfigFiles(){
 
@@ -10437,7 +10294,6 @@ function initUpdateUserSetsInterval(interval){
     resolve();
 
   });
-
 }
 
 let memStatsInterval;

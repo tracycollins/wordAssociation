@@ -33,10 +33,8 @@ const defaultUserTweetHistograms = {};
 const defaultUserProfileHistograms = {};
 
 DEFAULT_INPUT_TYPES.forEach(function(type){
-
   defaultUserTweetHistograms[type] = {};
   defaultUserProfileHistograms[type] = {};
-
 });
 
 let networkObj = {};
@@ -46,49 +44,11 @@ let maxInputHashMap = {};
 let normalization = {};
 const globalHistograms = {};
 
-// let langAnalyzer; // undefined for now
-
-// const fieldsTransmit = {
-//   bannerImageUrl: 1,
-//   category: 1,
-//   categoryAuto: 1,
-//   description: 1,
-//   followersCount: 1,
-//   following: 1,
-//   friendsCount: 1,
-//   ignored: 1,
-//   isTopTerm: 1,
-//   lastTweetId: 1,
-//   location: 1,
-//   mentions: 1,
-//   name: 1,
-//   nodeId: 1,
-//   nodeType: 1,
-//   previousBannerImageUrl: 1,
-//   previousDescription: 1,
-//   previousLocation: 1,
-//   previousName: 1,
-//   previousProfileUrl: 1,
-//   previousScreenName: 1,
-//   previousStatusId: 1,
-//   profileUrl: 1,
-//   rate: 1,
-//   screenName: 1,
-//   screenNameLower: 1,
-//   status: 1,
-//   statusesCount: 1,
-//   statusId: 1,
-//   threeceeFollowing: 1,
-//   userId: 1
-// };
-
 const DEFAULT_INFO_TWITTER_USER = "threecee";
 const USER_CAT_QUEUE_MAX_LENGTH = 500;
 
 const USER_CHANGE_CACHE_DEFAULT_TTL = 30;
 const USER_CHANGE_CACHE_CHECK_PERIOD = 5;
-
-// const MAX_READY_ACK_WAIT_COUNT = 10;
 
 const ONE_SECOND = 1000;
 const ONE_MINUTE = ONE_SECOND*60;
@@ -1932,10 +1892,13 @@ function updateUserTweets(params){
       tscParams.tweetStatus.user.isNotRaw = true;
 
       if (user.tweets.tweetIds.length > DEFAULT_MAX_USER_TWEETIDS) {
-        console.log(chalkAlert("WAS | TFC | !!! USER TWEETS > DEFAULT_MAX_USER_TWEETIDS: " + user.tweets.tweetIds.length));
+        console.log(chalkAlert("WAS | TFC | !!! USER TWEETS > DEFAULT_MAX_USER_TWEETIDS"
+          + " | " + user.nodeId
+          + " | @" + user.screenName
+          + " | " + user.tweets.tweetIds.length + " TWEETS"
+        ));
         user.tweets.tweetIds.shift();
       }
-
 
       if (tweet.id_str > user.tweets.maxId) {
         user.tweets.maxId = tweet.id_str;

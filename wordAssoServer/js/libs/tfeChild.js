@@ -6,6 +6,7 @@ process.title = "wa_node_child_tfe";
 
 const MODULE_ID_PREFIX = "TFC";
 
+const DEFAULT_MAX_USER_TWEETIDS = 500;
 const DEFAULT_TWEET_FETCH_COUNT = 10;
 const DEFAULT_TWEET_FETCH_EXCLUDE_REPLIES = true;
 const DEFAULT_TWEET_FETCH_INCLUDE_RETWEETS = false;
@@ -1930,6 +1931,12 @@ function updateUserTweets(params){
       tscParams.tweetStatus.user = user;
       tscParams.tweetStatus.user.isNotRaw = true;
 
+      if (user.tweets.tweetIds.length > DEFAULT_MAX_USER_TWEETIDS) {
+        console.log(chalkAlert("WAS | TFC | !!! USER TWEETS > DEFAULT_MAX_USER_TWEETIDS: " + user.tweets.tweetIds.length));
+        user.tweets.tweetIds.shift();
+      }
+
+
       if (tweet.id_str > user.tweets.maxId) {
         user.tweets.maxId = tweet.id_str;
       }
@@ -1945,7 +1952,7 @@ function updateUserTweets(params){
           const tweetObj = await tweetServerController.createStreamTweet(tscParams);
 
           user.tweetHistograms = await processTweetObj({tweetObj: tweetObj, histograms: user.tweetHistograms});
-          user.tweets.tweetIds.push(tweet.id_str); 
+          user.tweets.tweetIds.push(tweet.id_str);
 
           tweetsProcessed += 1;
           statsObj.twitter.tweetsProcessed += 1;

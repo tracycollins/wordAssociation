@@ -2618,7 +2618,11 @@ function initUserCategorizeQueueInterval(cnf){
         userChangeCache.del(dbUser.nodeId);
       }
       catch(err){
-        console.log(chalkError("WAS | TFC | *** USER FIND ONE ERROR: " + err));
+        console.log(chalkError("WAS | TFC | *** USER FIND ONE ERROR"
+          + " | " + updatedUser.userId
+          + " | @" + updatedUser.screenName
+          + " | " + err
+        ));
       }
 
       clearTimeout(uscTimeout);

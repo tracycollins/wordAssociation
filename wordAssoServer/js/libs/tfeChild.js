@@ -1884,6 +1884,21 @@ function updateUserTweets(params){
 
     let tweetsProcessed = 0;
 
+    if (user.tweets.tweetIds.length > DEFAULT_MAX_USER_TWEETIDS) {
+
+      const length = user.tweets.tweetIds.length;
+      const removeNumber = length - DEFAULT_MAX_USER_TWEETIDS;
+
+      console.log(chalkAlert("WAS | TFC | !!! USER TWEETS > DEFAULT_MAX_USER_TWEETIDS"
+        + " | " + user.nodeId
+        + " | @" + user.screenName
+        + " | " + length + " TWEETS"
+        + " | REMOVE: " + removeNumber
+      ));
+
+      user.tweets.tweetIds.splice(0,removeNumber);
+    }
+
     async.eachSeries(params.tweets, async function(tweet){
 
       tscParams.tweetStatus = tweet;
@@ -1892,20 +1907,6 @@ function updateUserTweets(params){
       tscParams.tweetStatus.user.isNotRaw = true;
 
 
-      if (user.tweets.tweetIds.length > DEFAULT_MAX_USER_TWEETIDS) {
-
-        const length = user.tweets.tweetIds.length;
-        const removeNumber = length - DEFAULT_MAX_USER_TWEETIDS;
-
-        console.log(chalkAlert("WAS | TFC | !!! USER TWEETS > DEFAULT_MAX_USER_TWEETIDS"
-          + " | " + user.nodeId
-          + " | @" + user.screenName
-          + " | " + length + " TWEETS"
-          + " | REMOVE: " + removeNumber
-        ));
-
-        user.tweets.tweetIds.splice(0,removeNumber);
-      }
 
       if (tweet.id_str > user.tweets.maxId) {
         user.tweets.maxId = tweet.id_str;

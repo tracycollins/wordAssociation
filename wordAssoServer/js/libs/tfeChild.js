@@ -13,7 +13,8 @@ const DEFAULT_TWEET_FETCH_INCLUDE_RETWEETS = false;
 
 const DEFAULT_WORD_MIN_LENGTH = 3;
 const DEFAULT_INPUT_TYPES = [
-  "emoji", 
+  "emoji",
+  "friends",
   "hashtags",  
   "images", 
   "locations", 
@@ -1121,6 +1122,24 @@ function checkTwitterRateLimitAll(){
   });
 }
 
+function generateObjFromArray(params){
+
+  return new Promise(async function(resolve, reject){
+
+    const keys = params.keys || [];
+    const value = params.value || 0;
+    let result = {};
+
+    async.each(keys, function(key, cb){
+      result[key.toString()] = value;
+      cb();
+    }, function(){
+      resolve(result);
+    });
+
+  });
+}
+
 let userCategorizeQueueReady = true;
 let userCategorizeQueueInterval;
 
@@ -1367,15 +1386,20 @@ function activateNetwork(params){
 
     if (!params.user || params.user === undefined) { return reject(new Error("user undefined")); }
 
-    const user = params.user;
+    let user = params.user;
 
+    user.friends = user.friends || [];
     user.profileHistograms = user.profileHistograms || {};
     user.tweetHistograms = user.tweetHistograms || {};
     user.languageAnalysis = user.languageAnalysis || {};
 
+    let mergedUserHistograms = {};
+    mergedUserHistograms.friends = {};
+
     try {
 
-      const mergedUserHistograms = await mergeHistograms.merge({ histogramA: user.profileHistograms, histogramB: user.tweetHistograms });
+      mergedUserHistograms = await mergeHistograms.merge({ histogramA: user.profileHistograms, histogramB: user.tweetHistograms });
+      mergedUserHistograms.friends = await generateObjFromArray({ keys: user.friends, value:1 }); // [ 1,2,3... ] => { 1:1, 2:1, 3:1, ... }
 
       if (networkObj.inputsObj.inputs === undefined) {
         console.log(chalkError("UNDEFINED NETWORK INPUTS OBJ | NETWORK OBJ KEYS: " + Object.keys(networkObj)));
@@ -1451,6 +1475,7 @@ function updateGlobalHistograms(params) {
 
     try {
       mergedHistograms = await mergeHistograms.merge({ histogramA: params.user.profileHistograms, histogramB: params.user.tweetHistograms });
+      mergedHistograms.friends = await generateObjFromArray({ keys: params.user.friends, value:1 }); // [ 1,2,3... ] => { 1:1, 2:1, 3:1, ... }
     }
     catch(err){
       console.log(chalkError("WAS | TFC | *** UPDATE GLOBAL HISTOGRAMS ERROR: " + err));
@@ -1889,7 +1914,7 @@ function updateUserTweets(params){
       const length = user.tweets.tweetIds.length;
       const removeNumber = length - DEFAULT_MAX_USER_TWEETIDS;
 
-      console.log(chalkAlert("WAS | TFC | !!! USER TWEETS > DEFAULT_MAX_USER_TWEETIDS"
+      console.log(chalkLog("WAS | TFC | --- USER TWEETS > DEFAULT_MAX_USER_TWEETIDS"
         + " | " + user.nodeId
         + " | @" + user.screenName
         + " | " + length + " TWEETS"

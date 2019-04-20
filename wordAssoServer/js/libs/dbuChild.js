@@ -5,6 +5,7 @@ process.title = "wa_node_child_dbu";
 
 const inputTypes = [
   "emoji", 
+  "friends",
   "hashtags", 
   "images", 
   "locations", 

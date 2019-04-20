@@ -2233,8 +2233,8 @@ function dropboxFolderGetLastestCursor(folder, callback) {
           else {
             console.log(chalkError("WAS | *** dropboxFolderGetLastestCursor filesListFolder"
               + " *** DROPBOX FILES LIST FOLDER ERROR"
-              + "\nERROR: " + err 
-              + "\nERROR: " + jsonPrint(err)
+              + "\nERROR:", err 
+              // + "\nERROR: " + jsonPrint(err)
             ));
           }
           callback(err, last_cursor.cursor);

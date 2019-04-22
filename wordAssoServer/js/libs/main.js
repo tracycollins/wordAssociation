@@ -1,4 +1,10 @@
+var DEFAULT_SOURCE = "https:{//word.threeceelabs.com";
+
 var parentWindow = window.opener;
+console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);
+var self = this;
+
+var compactDateTimeFormat = "YYYYMMDD HH}mmss";
 
 var control = require("control-panel");
 

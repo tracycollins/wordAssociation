@@ -1817,7 +1817,9 @@ function initSearchTerms(params){
 
       const dataConvertAccent = data.toString().replace(/Ã©/g, "e");
       const dataConvertTilde = dataConvertAccent.toString().replace(/Ã£/g, "a");
-      const totalDataArray = dataConvertTilde.toString().split("\n");
+      let totalDataArray = dataConvertTilde.toString().split("\n");
+
+      totalDataArray = _.shuffle(totalDataArray); // mix up eventual subset of search terms
 
       const totalDataArrayChunkArray = _.chunk(totalDataArray, TWITTER_MAX_TRACKING_NUMBER); // for althreecee[0:5] twitter accounts
 

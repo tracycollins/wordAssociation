@@ -1037,11 +1037,9 @@ function ControlPanel() {
 
       callback();
     }
-
   };
 
   this.createControlPanel = function(callback) {
-
 
     dashboardMain = document.getElementById("dashboardMain");
     infoTable = document.getElementById("infoTable");

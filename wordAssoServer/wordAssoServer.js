@@ -6468,8 +6468,7 @@ function updateUserSets(params){
     // const userSearchQuery = { following: true, ignored: false };
     const userSearchQuery = { ignored: { "$in": [false, "false", null] } };
     
-    userSearchCursor = global.globalUser.find(userSearchQuery).lean().
-cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
+    userSearchCursor = global.globalUser.find(userSearchQuery).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
 
     userRightSet.clear();
     userLeftSet.clear();
@@ -6606,6 +6605,7 @@ cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
         && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && user.categoryAuto && (user.categoryAuto !== "right")))
         && !ignoredUserSet.has(user.nodeId) 
         && !uncategorizedManualUserSet.has(user.nodeId) 
+        && (user.followersCount >= configuration.minFollowersAuto) 
         && !unfollowableUserSet.has(user.nodeId)) { 
 
         uncategorizedManualUserSet.add(user.nodeId);
@@ -6620,6 +6620,7 @@ cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
         && !user.categoryAuto 
         && !ignoredUserSet.has(user.nodeId) 
         && !ignoreLocationsSet.has(user.nodeId) 
+        && (user.followersCount >= configuration.minFollowersAuto) 
         && !unfollowableUserSet.has(user.nodeId)) { 
 
         uncategorizedAutoUserSet.add(user.nodeId);
@@ -6846,6 +6847,7 @@ function initTransmitNodeQueueInterval(interval){
                     && ((n.ignored === undefined) || !n.ignored) 
                     && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && n.categoryAuto && (n.categoryAuto !== "right")))
                     && !ignoredUserSet.has(n.nodeId) 
+                    && (n.followersCount >= configuration.minFollowersAuto) 
                     && !unfollowableUserSet.has(n.nodeId)) { 
 
                     uncategorizedManualUserSet.add(n.nodeId);
@@ -6856,7 +6858,9 @@ function initTransmitNodeQueueInterval(interval){
 
                   }
 
-                  if (!n.categoryAuto && !uncategorizedAutoUserSet.has(n.nodeId)) { 
+                  if (!n.categoryAuto 
+                    && (n.followersCount >= configuration.minFollowersAuto) 
+                    && !uncategorizedAutoUserSet.has(n.nodeId)) { 
                     uncategorizedAutoUserSet.add(n.nodeId);
                     if (uncategorizedAutoUserSet.size % 100 === 0) {
                       printUserObj("UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", n);

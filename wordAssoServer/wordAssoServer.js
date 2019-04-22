@@ -4322,8 +4322,7 @@ function initFollowableSearchTermSet(){
       }
       else{
 
-        const dataArray = dataObj.toString().toLowerCase().
-split("\n");
+        const dataArray = dataObj.toString().toLowerCase().split("\n");
 
         console.log(chalkLog("WAS | LOADED FOLLOWABLE SEARCH TERM FILE"
           + " | " + dataArray.length + " SEARCH TERMS"

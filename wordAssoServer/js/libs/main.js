@@ -20,8 +20,9 @@ window.ControlPanel = function ControlPanel() {
   var nodeTypesSet = new Set();
   nodeTypesSet.add("emoji");
   nodeTypesSet.add("hashtag");
-  nodeTypesSet.add("place");
+  nodeTypesSet.add("location");
   nodeTypesSet.add("media");
+  nodeTypesSet.add("place");
   nodeTypesSet.add("url");
   nodeTypesSet.add("user");
   nodeTypesSet.add("word");
@@ -480,6 +481,13 @@ window.ControlPanel = function ControlPanel() {
 
 	var nodeDisplayPanel = control([
 		{type: "checkbox", label: "EMOJI", initial: false},
+		{type: "checkbox", label: "HASHTAG", initial: false},
+		{type: "checkbox", label: "LOCATION", initial: false},
+		{type: "checkbox", label: "MEDIA", initial: false},
+		{type: "checkbox", label: "PLACE", initial: false},
+		{type: "checkbox", label: "URL", initial: false},
+		{type: "checkbox", label: "USER", initial: false},
+		{type: "checkbox", label: "WORD", initial: false}
 	], 
 	  {root: document.getElementById("nodeDisplayDiv"), theme: "dark"}
 	);

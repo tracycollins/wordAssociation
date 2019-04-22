@@ -22721,7 +22721,7 @@ exports.createContext = Script.createContext = function (context) {
 window.ControlPanel = function ControlPanel() {
   "use strict";
 
-	var DEFAULT_SOURCE = "https:{//word.threeceelabs.com";
+	var DEFAULT_SOURCE = "https://word.threeceelabs.com";
   // var DEFAULT_SOURCE = "http://localhost:9997";
 
 	var parentWindow = window.opener;
@@ -22732,7 +22732,7 @@ window.ControlPanel = function ControlPanel() {
   var twitterFeedPreviousUser;
   var twitterFeedHashtag;
 
-	var compactDateTimeFormat = "YYYYMMDD HH}mmss";
+	var compactDateTimeFormat = "YYYYMMDD HHmmss";
 
   var timelineDiv = document.getElementById("timelineDiv");
   var hashtagDiv =document.getElementById("hashtagDiv");

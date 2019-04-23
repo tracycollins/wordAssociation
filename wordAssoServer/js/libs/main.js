@@ -695,19 +695,56 @@ window.ControlPanel = function ControlPanel() {
 			  guiUser.add(userText, 'border');
 			  guiUser.add(userText, 'fontFamily',["sans-serif", "serif", "cursive", "monospace"]);
 
+	// var DisplayConfig = function() {
+
+	//   this.maxNodesMin = config.maxNodesMin;
+	//   this.maxNodesMax = config.maxNodesMax;
+	//   this.maxNodes = config.maxNodes;
+
+	//   this.maxAgeMin = config.maxAgeMin;
+	//   this.maxAgeMax = config.maxAgeMax;
+	//   this.maxAge = config.maxAge;
+
+	//   this.transitionDurationMin = config.transitionDurationMin;
+	//   this.transitionDurationMax = config.transitionDurationMax;
+	//   this.transitionDuration = config.transitionDuration;
+
+	//   this.gravityMin = config.gravityMin;
+	//   this.gravityMax = config.gravityMax;
+	//   this.gravity = config.gravity;
+
+	//   this.chargeMin = config.chargeMin;
+	//   this.chargeMax = config.chargeMax;
+	//   this.charge = config.charge;
+
+	//   this.nodeRadiusRatioMin = config.nodeRadiusRatioMin;
+	//   this.nodeRadiusRatioMax = config.nodeRadiusRatioMax;
+	//   this.nodeRadius = config.nodeRadiusRatio;
+
+	//   this.velocityDecayMin = config.velocityDecayMin;
+	//   this.velocityDecayMax = config.velocityDecayMax;
+	//   this.velocityDecay = config.velocityDecay;
+
+	//   this.fontSizeRatioMin = config.fontSizeRatioMin;
+	//   this.fontSizeRatioMax = config.fontSizeRatioMax;
+	//   this.fontSizeRatio = config.fontSizeRatio;
+
+	//   this.color = "#ffffff";
+	//   this.fontSize = 16;
+	//   this.border = false;
+	//   this.fontFamily = "monospace";
+	// };
+
 			  guiDisplay = new dat.GUI();
 			  guiDisplay.width = 400;
-			  guiDisplay.add(displayConfig, 'screenName').listen();
-			  guiDisplay.add(displayConfig, 'name').listen();
-			  guiDisplay.add(displayConfig, 'location').listen();
-			  guiDisplay.add(displayConfig, 'ignored').listen();
-			  guiDisplay.add(displayConfig, 'description').listen();
-			  guiDisplay.add(displayConfig, 'category', [ 'L', 'N', 'R', '+', '-', '0' ]).listen();
-			  guiDisplay.add(displayConfig, 'categoryAuto', [ 'L', 'N', 'R', '+', '-', '0' ]).listen();
-			  guiDisplay.add(displayConfig, 'followersCount').listen();
-			  guiDisplay.add(displayConfig, 'friendsCount').listen();
-			  guiDisplay.add(displayConfig, 'statusesCount').listen();
-			  guiDisplay.add(displayConfig, 'threeceeFollowing').listen();
+			  guiDisplay.add(displayConfig, 'maxNodes').listen();
+			  guiDisplay.add(displayConfig, 'maxAge').listen();
+			  guiDisplay.add(displayConfig, 'transitionDuration').listen();
+			  guiDisplay.add(displayConfig, 'gravity').listen();
+			  guiDisplay.add(displayConfig, 'charge').listen();
+			  guiDisplay.add(displayConfig, 'nodeRadius').listen();
+			  guiDisplay.add(displayConfig, 'velocityDecay').listen();
+			  guiDisplay.add(displayConfig, 'fontSizeRatio').listen();
 			  guiDisplay.addColor(displayConfig, 'color');
 			  guiDisplay.add(displayConfig, 'fontSize', 6, 48);
 			  guiDisplay.add(displayConfig, 'border');

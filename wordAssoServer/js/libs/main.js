@@ -781,12 +781,12 @@ window.ControlPanel = function ControlPanel() {
 			    parentWindow.postMessage({op:"UPDATE", id: "maxNodes", value: value}, DEFAULT_SOURCE);
 				});
 
-				guiDisplayHashMap['fontSizeRatioMin'].onFinishChange(function(value) {
+				guiDisplayHashMap['fontSizeRatioMin'].onChange(function(value) {
 					console.debug("GUI DisplayConfig NODE FONT SIZE RATIO MIN CHANGE\n", value);
 			    parentWindow.postMessage({op:"UPDATE", id: "fontSizeRatioMin", value: value}, DEFAULT_SOURCE);
 				});
 
-				guiDisplayHashMap['fontSizeRatioMax'].onFinishChange(function(value) {
+				guiDisplayHashMap['fontSizeRatioMax'].onChange(function(value) {
 					console.debug("GUI DisplayConfig NODE FONT SIZE RATIO MAX CHANGE\n", value);
 			    parentWindow.postMessage({op:"UPDATE", id: "fontSizeRatioMax", value: value}, DEFAULT_SOURCE);
 				});
@@ -816,7 +816,7 @@ window.ControlPanel = function ControlPanel() {
 			    parentWindow.postMessage({op:"UPDATE", id: "charge", value: value}, DEFAULT_SOURCE);
 				});
 
-				guiDisplayHashMap['velocityDecay'].onFinishChange(function(value) {
+				guiDisplayHashMap['velocityDecay'].onChange(function(value) {
 					console.debug("GUI DisplayConfig VELOCITY DECAY CHANGE\n", value);
 			    parentWindow.postMessage({op:"UPDATE", id: "velocityDecay", value: value}, DEFAULT_SOURCE);
 				});

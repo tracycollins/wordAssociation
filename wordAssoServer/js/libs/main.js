@@ -611,8 +611,15 @@ function ControlPanel() {
 				const description = (twitterFeedUser) ? twitterFeedUser.description : "";
 				twitterProfile.addTextArea("DESCRIPTION", description);
 
-				const profileImageUrl = (twitterFeedUser) ? twitterFeedUser.profileImageUrl.replace("_normal", "") : null;
-				twitterProfile.addImage("PROFILE", profileImageUrl);
+				if (twitterFeedUser) {
+					var profileImageUrl = twitterFeedUser.profileImageUrl.replace("http:", "https:");
+					profileImageUrl = twitterFeedUser.profileImageUrl.replace("_normal", "");
+					twitterProfile.addImage("PROFILE", profileImageUrl);
+				}
+				else {
+
+				}
+
 
 				twitterTimeLine = QuickSettings.create(400, 	0, "TWITTER USER TIMELINE", userCategorizeDiv);
 				twitterTimeLine.setWidth(400);

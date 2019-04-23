@@ -2018,11 +2018,11 @@ function loadViewType(svt, callback) {
   storedConfig = store.get(storedConfigName);
 
   if (storedConfig) {
-    console.debug("STORED CONFIG"
-      + " | " + storedConfigName
-      + "\nCURRENT CONFIG\n" + jsonPrint(config)
-      + "\nSTORED CONFIG\n" + jsonPrint(storedConfig)
-    );
+    // console.debug("STORED CONFIG"
+    //   + " | " + storedConfigName
+    //   + "\nCURRENT CONFIG\n" + jsonPrint(config)
+    //   + "\nSTORED CONFIG\n" + jsonPrint(storedConfig)
+    // );
 
     var storedConfigArgs = Object.keys(storedConfig);
 

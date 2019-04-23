@@ -291,7 +291,9 @@ function ViewTreepack() {
   maxRateMentions.x = 100;
   maxRateMentions.y = 100;
 
-  console.warn("TREEPACK CONFIG\n" + jsonPrint(config));
+  console.warn("TREEPACK CONFIG"
+    // + "\n" + jsonPrint(config)
+  );
 
   var testMode = false;
   var freezeFlag = false;

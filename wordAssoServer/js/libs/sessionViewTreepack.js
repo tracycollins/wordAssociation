@@ -594,14 +594,14 @@ function ViewTreepack() {
     return;
   };
 
-  self.updateVelocityDecay = function(value) {
+  self.setVelocityDecay = function(value) {
     console.debug("UPDATE VEL DECAY: " + value.toFixed(sliderPercision));
     config.defaultVelocityDecay = value;
     velocityDecay = value;
     simulation.velocityDecay(velocityDecay);
   };
 
-  self.updateGravity = function(value) {
+  self.setGravity = function(value) {
     console.debug("UPDATE GRAVITY: " + value.toFixed(5));
     config.defaultGravity = value;
     gravity = value;
@@ -629,20 +629,20 @@ function ViewTreepack() {
       }));
   };
 
-  self.updateTransitionDuration = function(value) {
+  self.setTransitionDuration = function(value) {
     console.debug("UPDATE TRANSITION DURATION: " + value);
     // transitionDuration = value;
     config.defaultTransitionDuration = value;
   };
 
-  self.updateCharge = function(value) {
+  self.setCharge = function(value) {
     console.debug("UPDATE CHARGE: " + value);
     config.defaultCharge = value;
     charge = value;
     simulation.force("charge", d3.forceManyBody().strength(value));
   };
 
-  self.updateNodeRadiusMinRatio = function(value) {
+  self.setNodeRadiusMinRatio = function(value) {
     console.debug("UPDATE NODE RADIUS MIN RATIO: " + value);
     config.defaultNodeRadiusMinRatio = value;
     nodeRadiusMinRatio = value;
@@ -653,7 +653,7 @@ function ViewTreepack() {
       clamp(true);
   };
 
-  self.updateNodeRadiusMaxRatio = function(value) {
+  set.getNodeRadiusMaxRatio = function(value) {
     console.debug("UPDATE NODE RADIUS MAX RATIO: " + value);
     config.defaultNodeRadiusMaxRatio = value;
     nodeRadiusMaxRatio = value;
@@ -664,7 +664,7 @@ function ViewTreepack() {
       clamp(true);
   };
 
-  self.updateFontSizeMinRatio = function(value) {
+  set.getFontSizeMinRatio = function(value) {
     console.debug("UPDATE FONT MIN SIZE: " + value);
     config.defaultFontSizeMinRatio = value;
 
@@ -677,7 +677,7 @@ function ViewTreepack() {
       clamp(true);
   };
 
-  self.updateFontSizeMaxRatio = function(value) {
+  set.getFontSizeMaxRatio = function(value) {
     console.debug("UPDATE FONT MAX SIZE: " + value);
     config.defaultFontSizeMaxRatio = value;
 
@@ -692,11 +692,11 @@ function ViewTreepack() {
 
   self.resetDefaultForce = function() {
     console.warn("RESET TREEPACK DEFAULT FORCE");
-    self.updateTransitionDuration(config.defaultTransitionDuration);
+    self.setTransitionDuration(config.defaultTransitionDuration);
     self.setNodeMaxAge(config.defaultMaxAge);
-    self.updateCharge(config.defaultCharge);
-    self.updateVelocityDecay(config.defaultVelocityDecay);
-    self.updateGravity(config.defaultGravity);
+    self.setCharge(config.defaultCharge);
+    self.setVelocityDecay(config.defaultVelocityDecay);
+    self.setGravity(config.defaultGravity);
   };
 
   var tempNodeCirle;

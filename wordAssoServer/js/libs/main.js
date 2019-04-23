@@ -737,7 +737,7 @@ window.ControlPanel = function ControlPanel() {
 			  guiDisplay.add(displayConfig, 'border');
 			  guiDisplay.add(displayConfig, 'fontFamily',["sans-serif", "serif", "cursive", "monospace"]);
 
-				guiDisplayHashMap['maxNodes'].onChange(function(value) {
+				guiDisplayHashMap['maxNodes'].onFinishChange(function(value) {
 					console.debug("GUI DisplayConfig MAX NODES CHANGE\n", value);
 				});
 

@@ -64,6 +64,8 @@ window.ControlPanel = function ControlPanel() {
   const DEFAULT_NODE_RADIUS_RATIO_MIN = 0.0075;
   const DEFAULT_NODE_RADIUS_RATIO_MAX = 0.1;
 
+  const DEFAULT_FONT_SIZE_RATIO_MIN = 16;
+  const DEFAULT_FONT_SIZE_RATIO_MAX = 60;
 
   const DEFAULT_MAX_AGE = 30*ONE_SECOND;
   const DEFAULT_MAX_AGE_MIN = ONE_SECOND;
@@ -80,6 +82,9 @@ window.ControlPanel = function ControlPanel() {
   const DEFAULT_VELOCITY_DECAY = 0.50;
   const DEFAULT_VELOCITY_DECAY_MIN = 0.0;
   const DEFAULT_VELOCITY_DECAY_MAX = 1.0;
+
+  config.fontSizeRatioMin = config.fontSizeRatioMin || DEFAULT_FONT_SIZE_RATIO_MIN;
+  config.fontSizeRatioMax = config.fontSizeRatioMax || DEFAULT_FONT_SIZE_RATIO_MAX;
 
   config.maxNodes = config.maxNodes || DEFAULT_MAX_NODES;
   config.maxNodesMin = config.maxNodesMin || DEFAULT_MAX_NODES_MIN;
@@ -752,9 +757,29 @@ window.ControlPanel = function ControlPanel() {
 			    parentWindow.postMessage({op:"UPDATE", id: "maxNodes", value: value}, DEFAULT_SOURCE);
 				});
 
-				guiDisplayHashMap['nodeRadiusRatio'].onFinishChange(function(value) {
-					console.debug("GUI DisplayConfig NODE RADIUS RATIO CHANGE\n", value);
-			    parentWindow.postMessage({op:"UPDATE", id: "nodeRadiusRatio", value: value}, DEFAULT_SOURCE);
+				guiDisplayHashMap['fontSizeRatioMin'].onFinishChange(function(value) {
+					console.debug("GUI DisplayConfig NODE FONT SIZE RATIO MIN CHANGE\n", value);
+			    parentWindow.postMessage({op:"UPDATE", id: "fontSizeRatioMin", value: value}, DEFAULT_SOURCE);
+				});
+
+				guiDisplayHashMap['fontSizeRatioMax'].onFinishChange(function(value) {
+					console.debug("GUI DisplayConfig NODE FONT SIZE RATIO MAX CHANGE\n", value);
+			    parentWindow.postMessage({op:"UPDATE", id: "fontSizeRatioMax", value: value}, DEFAULT_SOURCE);
+				});
+
+				guiDisplayHashMap['nodeRadiusRatioMax'].onFinishChange(function(value) {
+					console.debug("GUI DisplayConfig NODE RADIUS RATIO MAX CHANGE\n", value);
+			    parentWindow.postMessage({op:"UPDATE", id: "nodeRadiusRatioMax", value: value}, DEFAULT_SOURCE);
+				});
+
+				guiDisplayHashMap['nodeRadiusRatioMin'].onFinishChange(function(value) {
+					console.debug("GUI DisplayConfig NODE RADIUS RATIO MIN CHANGE\n", value);
+			    parentWindow.postMessage({op:"UPDATE", id: "nodeRadiusRatioMin", value: value}, DEFAULT_SOURCE);
+				});
+
+				guiDisplayHashMap['nodeRadiusRatioMax'].onFinishChange(function(value) {
+					console.debug("GUI DisplayConfig NODE RADIUS RATIO MAX CHANGE\n", value);
+			    parentWindow.postMessage({op:"UPDATE", id: "nodeRadiusRatioMax", value: value}, DEFAULT_SOURCE);
 				});
 
 				guiDisplayHashMap['maxAge'].onFinishChange(function(value) {

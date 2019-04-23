@@ -22721,8 +22721,8 @@ exports.createContext = Script.createContext = function (context) {
 window.ControlPanel = function ControlPanel() {
   "use strict";
 
-	// var DEFAULT_SOURCE = "https://word.threeceelabs.com";
-  var DEFAULT_SOURCE = "http://localhost:9997";
+	var DEFAULT_SOURCE = "https://word.threeceelabs.com";
+  // var DEFAULT_SOURCE = "http://localhost:9997";
 
 	var parentWindow = window.opener;
 	console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);
@@ -23368,20 +23368,20 @@ window.ControlPanel = function ControlPanel() {
     if (callback) { callback(); }
   };
 
-	function setValue() {
-	  userData.innerHTML = userText.screenName;
-	  userData.style.color = userText.color;
-	  userData.style.fontSize = userText.fontSize+"px";
-	  userData.style.fontFamily = userText.fontFamily;
-	  if(userText.border) {
-	    userData.style.border = "solid 1px black";
-	    userData.style.padding = "10px";
-	  }
-	  else {
-	    userData.style.border = "none";
-	    userData.style.padding = "0px";
-	  }
-	}
+	// function setValue() {
+	//   userData.innerHTML = userText.screenName;
+	//   userData.style.color = userText.color;
+	//   userData.style.fontSize = userText.fontSize+"px";
+	//   userData.style.fontFamily = userText.fontFamily;
+	//   if(userText.border) {
+	//     userData.style.border = "solid 1px black";
+	//     userData.style.padding = "10px";
+	//   }
+	//   else {
+	//     userData.style.border = "none";
+	//     userData.style.padding = "0px";
+	//   }
+	// }
 
   $( document ).ready(function() {
 

@@ -55,9 +55,33 @@ window.ControlPanel = function ControlPanel() {
   const DEFAULT_MAX_NODES_MIN = 10;
   const DEFAULT_MAX_NODES_MAX = 500;
 
+  const DEFAULT_GRAVITY = 0.001;
+  const DEFAULT_GRAVITY_MIN = 10;
+  const DEFAULT_GRAVITY_MAX = 500;
+
+  const DEFAULT_CHARGE = -50.0;
+  const DEFAULT_CHARGE_MIN = -100.0;
+  const DEFAULT_CHARGE_MAX = 100.0;
+
+  const DEFAULT_VELOCITY_DECAY = 0.50;
+  const DEFAULT_VELOCITY_DECAY_MIN = 0.0;
+  const DEFAULT_VELOCITY_DECAY_MAX = 1.0;
+
   config.maxNodes = config.maxNodes || DEFAULT_MAX_NODES;
   config.maxNodesMin = config.maxNodesMin || DEFAULT_MAX_NODES_MIN;
   config.maxNodesMax = config.maxNodesMax || DEFAULT_MAX_NODES_MAX;
+
+  config.gravity = config.gravity || DEFAULT_GRAVITY;
+  config.gravityMin = config.gravityMin || DEFAULT_GRAVITY_MIN;
+  config.gravityMax = config.gravityMax || DEFAULT_GRAVITY_MAX;
+
+  config.charge = config.charge || DEFAULT_CHARGE;
+  config.chargeMin = config.chargeMin || DEFAULT_GRAVITY_MIN;
+  config.chargeMax = config.chargeMax || DEFAULT_GRAVITY_MAX;
+
+  config.velocityDecay = config.velocityDecay || DEFAULT_VELOCITY_DECAY;
+  config.velocityDecayMin = config.velocityDecayMin || DEFAULT_VELOCITY_DECAY_MIN;
+  config.velocityDecayMax = config.velocityDecayMax || DEFAULT_VELOCITY_DECAY_MAX;
 
   delete config.twitterUser.histograms;
   delete config.twitterUser.countHistory;
@@ -105,37 +129,14 @@ window.ControlPanel = function ControlPanel() {
 
 	var DisplayConfig = function() {
 
-	  // this.maxNodesMin = config.maxNodesMin;
-	  // this.maxNodesMax = config.maxNodesMax;
 	  this.maxNodes = config.maxNodes;
-
-	  // this.maxAgeMin = config.maxAgeMin;
-	  // this.maxAgeMax = config.maxAgeMax;
-	  // this.maxAge = config.maxAge;
-
-	  // this.transitionDurationMin = config.transitionDurationMin;
-	  // this.transitionDurationMax = config.transitionDurationMax;
-	  // this.transitionDuration = config.transitionDuration;
-
-	  // this.gravityMin = config.gravityMin;
-	  // this.gravityMax = config.gravityMax;
-	  // this.gravity = config.gravity;
-
-	  // this.chargeMin = config.chargeMin;
-	  // this.chargeMax = config.chargeMax;
-	  // this.charge = config.charge;
-
-	  // this.nodeRadiusRatioMin = config.nodeRadiusRatioMin;
-	  // this.nodeRadiusRatioMax = config.nodeRadiusRatioMax;
-	  // this.nodeRadius = config.nodeRadiusRatio;
-
-	  // this.velocityDecayMin = config.velocityDecayMin;
-	  // this.velocityDecayMax = config.velocityDecayMax;
-	  // this.velocityDecay = config.velocityDecay;
-
-	  // this.fontSizeRatioMin = config.fontSizeRatioMin;
-	  // this.fontSizeRatioMax = config.fontSizeRatioMax;
-	  // this.fontSizeRatio = config.fontSizeRatio;
+	  this.maxAge = config.maxAge;
+	  this.gravity = config.gravity;
+	  this.charge = config.charge;
+	  this.nodeRadius = config.nodeRadiusRatio;
+	  this.velocityDecay = config.velocityDecay;
+	  this.fontSizeRatio = config.fontSizeRatio;
+	  this.transitionDuration = config.transitionDuration;
 
 	  this.color = "#ffffff";
 	  this.fontSize = 16;
@@ -704,56 +705,15 @@ window.ControlPanel = function ControlPanel() {
 			  guiUser.add(userText, 'border');
 			  guiUser.add(userText, 'fontFamily',["sans-serif", "serif", "cursive", "monospace"]);
 
-	// var DisplayConfig = function() {
-
-	//   this.maxNodesMin = config.maxNodesMin;
-	//   this.maxNodesMax = config.maxNodesMax;
-	//   this.maxNodes = config.maxNodes;
-
-	//   this.maxAgeMin = config.maxAgeMin;
-	//   this.maxAgeMax = config.maxAgeMax;
-	//   this.maxAge = config.maxAge;
-
-	//   this.transitionDurationMin = config.transitionDurationMin;
-	//   this.transitionDurationMax = config.transitionDurationMax;
-	//   this.transitionDuration = config.transitionDuration;
-
-	//   this.gravityMin = config.gravityMin;
-	//   this.gravityMax = config.gravityMax;
-	//   this.gravity = config.gravity;
-
-	//   this.chargeMin = config.chargeMin;
-	//   this.chargeMax = config.chargeMax;
-	//   this.charge = config.charge;
-
-	//   this.nodeRadiusRatioMin = config.nodeRadiusRatioMin;
-	//   this.nodeRadiusRatioMax = config.nodeRadiusRatioMax;
-	//   this.nodeRadius = config.nodeRadiusRatio;
-
-	//   this.velocityDecayMin = config.velocityDecayMin;
-	//   this.velocityDecayMax = config.velocityDecayMax;
-	//   this.velocityDecay = config.velocityDecay;
-
-	//   this.fontSizeRatioMin = config.fontSizeRatioMin;
-	//   this.fontSizeRatioMax = config.fontSizeRatioMax;
-	//   this.fontSizeRatio = config.fontSizeRatio;
-
-	//   this.color = "#ffffff";
-	//   this.fontSize = 16;
-	//   this.border = false;
-	//   this.fontFamily = "monospace";
-	// };
-
 			  guiDisplay = new dat.GUI();
 			  guiDisplay.width = 400;
+
 			  guiDisplay.add(displayConfig, 'maxNodes', config.maxNodesMin, config.maxNodesMax).listen();
-			  // guiDisplay.add(displayConfig, 'maxAge').listen();
-			  // guiDisplay.add(displayConfig, 'transitionDuration').listen();
-			  // guiDisplay.add(displayConfig, 'gravity').listen();
-			  // guiDisplay.add(displayConfig, 'charge').listen();
-			  // guiDisplay.add(displayConfig, 'nodeRadius').listen();
-			  // guiDisplay.add(displayConfig, 'velocityDecay').listen();
-			  // guiDisplay.add(displayConfig, 'fontSizeRatio').listen();
+			  guiDisplay.add(displayConfig, 'maxAge', config.maxNodesMin, config.maxNodesMax).listen();
+			  guiDisplay.add(displayConfig, 'gravity', config.gravityMin, config.gravityMax).listen();
+			  guiDisplay.add(displayConfig, 'charge', config.chargeMin, config.chargeMax).listen();
+			  guiDisplay.add(displayConfig, 'velocityDecay', config.velocityDecayMin, config.velocityDecayMax).listen();
+
 			  guiDisplay.addColor(displayConfig, 'color');
 			  guiDisplay.add(displayConfig, 'fontSize', 6, 48);
 			  guiDisplay.add(displayConfig, 'border');

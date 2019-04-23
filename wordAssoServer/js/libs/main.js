@@ -291,9 +291,10 @@ function ControlPanel() {
       twitterFeedPreviousUser = twitterFeedUser;
       twitterFeedUser = node;
 
-    	twitterProfile.setValue("SCREENNAME", "@"+twitterFeedUser.screenName);
-			twitterProfile.setValue("PROFILE", twitterFeedUser.profileImageUrl.replace("_normal", ""));
-			twitterProfile.setValue("DESCRIPTION", twitterFeedUser.description);
+    	twitterProfile.setValue("SCREENNAME", "@"+node.screenName);
+			twitterProfile.setValue("PROFILE", node.profileImageUrl.replace("_normal", ""));
+			twitterProfile.setValue("DESCRIPTION", node.description);
+			twitterProfile.setValue("CATEGORY AUTO", node.categoryAuto);
 
       console.debug("loadTwitterFeed"
         + " | TYPE: " + node.nodeType
@@ -580,7 +581,10 @@ function ControlPanel() {
 				twitterProfile = QuickSettings.create(0, 0, "TWITTER USER PROFILE", userCategorizeDiv);
 				twitterProfile.setWidth(400);
 
-				twitterProfile.addElement("CATEGORY", radioUserCategoryDiv);
+				twitterProfile.addElement("CATEGORY MAN", radioUserCategoryDiv);
+
+				const categoryAuto = (twitterFeedUser) ? twitterFeedUser.categoryAuto : "";
+				twitterProfile.addText("CATEGORY AUTO", categoryAuto);
 
 				const screenName = (twitterFeedUser) ? "@"+twitterFeedUser.screenName : "@";
 				twitterProfile.addText("SCREENNAME", screenName, function(data){

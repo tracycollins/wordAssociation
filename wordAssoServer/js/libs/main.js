@@ -106,8 +106,8 @@ window.ControlPanel = function ControlPanel() {
 	var DisplayConfig = function() {
 
 	  this.maxNodesMin = config.maxNodesMin;
-	  this.maxNodesMax = config.maxNodesMax;
-	  this.maxNodes = config.maxNodes;
+	  // this.maxNodesMax = config.maxNodesMax;
+	  // this.maxNodes = config.maxNodes;
 
 	  // this.maxAgeMin = config.maxAgeMin;
 	  // this.maxAgeMax = config.maxAgeMax;
@@ -746,9 +746,7 @@ window.ControlPanel = function ControlPanel() {
 
 			  guiDisplay = new dat.GUI();
 			  guiDisplay.width = 400;
-			  guiDisplay.add(displayConfig, 'maxNodes').listen();
-			  guiDisplay.add(displayConfig, 'maxNodesMin').listen();
-			  guiDisplay.add(displayConfig, 'maxNodesMax').listen();
+			  guiDisplay.add(displayConfig, 'maxNodes', config.maxNodesMin, config.maxNodesMax).listen();
 			  // guiDisplay.add(displayConfig, 'maxAge').listen();
 			  // guiDisplay.add(displayConfig, 'transitionDuration').listen();
 			  // guiDisplay.add(displayConfig, 'gravity').listen();

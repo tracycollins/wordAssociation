@@ -22871,8 +22871,8 @@ window.ControlPanel = function ControlPanel() {
   statsObj.user.ignored = "---";
 
 	var UserText = function() {
-		this.nextUncat = function(e){
-	    console.debug("NEXT UNCAT\n", e);
+		this.nextUncat = function(){
+	    console.debug("NEXT UNCAT");
 	    if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: "@?"}, DEFAULT_SOURCE); }
 		}
 	  this.nodeId = statsObj.user.nodeId;
@@ -23459,7 +23459,11 @@ window.ControlPanel = function ControlPanel() {
 
 			  guiUser = new dat.GUI();
 			  guiUser.width = 400;
-			  guiUser.add(userText, 'nextUncat');
+			  const nextUncat = guiUser.add(userText, 'nextUncat');
+			  nextUncat.onFinishChange(function(value){
+					console.debug("GUI DisplayConfig MAX NODES CHANGE\n", value);
+			    if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: "@?"}, DEFAULT_SOURCE); }
+			  });
 			  guiUser.add(userText, 'screenName').listen();
 			  guiUser.add(userText, 'name').listen();
 			  guiUser.add(userText, 'location').listen();

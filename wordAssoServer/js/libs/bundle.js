@@ -23462,6 +23462,26 @@ window.ControlPanel = function ControlPanel() {
 			    parentWindow.postMessage({op:"UPDATE", id: "maxNodes", value: value}, DEFAULT_SOURCE);
 				});
 
+				guiDisplayHashMap['maxAge'].onFinishChange(function(value) {
+					console.debug("GUI DisplayConfig MAX AGE CHANGE\n", value);
+			    parentWindow.postMessage({op:"UPDATE", id: " maxAge", value: value}, DEFAULT_SOURCE);
+				});
+
+				guiDisplayHashMap['gravity'].onFinishChange(function(value) {
+					console.debug("GUI DisplayConfig GRAVITY CHANGE\n", value);
+			    parentWindow.postMessage({op:"UPDATE", id: "gravity", value: value}, DEFAULT_SOURCE);
+				});
+
+				guiDisplayHashMap['charge'].onFinishChange(function(value) {
+					console.debug("GUI DisplayConfig CHARGE CHANGE\n", value);
+			    parentWindow.postMessage({op:"UPDATE", id: "charge", value: value}, DEFAULT_SOURCE);
+				});
+
+				guiDisplayHashMap['velocityDecay'].onFinishChange(function(value) {
+					console.debug("GUI DisplayConfig VELOCITY DECAY CHANGE\n", value);
+			    parentWindow.postMessage({op:"UPDATE", id: "velocityDecay", value: value}, DEFAULT_SOURCE);
+				});
+
         self.updateControlPanel(config, function(){
           if (parentWindow !== undefined) {
             window.addEventListener("message", receiveMessage, false);

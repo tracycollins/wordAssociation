@@ -23467,12 +23467,12 @@ window.ControlPanel = function ControlPanel() {
 			    parentWindow.postMessage({op:"UPDATE", id: "maxAge", value: value}, DEFAULT_SOURCE);
 				});
 
-				guiDisplayHashMap['gravity'].onFinishChange(function(value) {
+				guiDisplayHashMap['gravity'].onChange(function(value) {
 					console.debug("GUI DisplayConfig GRAVITY CHANGE\n", value);
 			    parentWindow.postMessage({op:"UPDATE", id: "gravity", value: value}, DEFAULT_SOURCE);
 				});
 
-				guiDisplayHashMap['charge'].onFinishChange(function(value) {
+				guiDisplayHashMap['charge'].onChange(function(value) {
 					console.debug("GUI DisplayConfig CHARGE CHANGE\n", value);
 			    parentWindow.postMessage({op:"UPDATE", id: "charge", value: value}, DEFAULT_SOURCE);
 				});

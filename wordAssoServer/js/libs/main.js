@@ -600,6 +600,9 @@ function ControlPanel() {
 				twitterProfile.addButton("NEXT UNCAT", function(){
 					nextUncatHandler("any");
 				});
+				twitterProfile.addButton("NEXT UNCAT LEFT", function(){
+					nextUncatHandler("left");
+				});
 				twitterProfile.addButton("NEXT UNCAT RIGHT", function(){
 					nextUncatHandler("right");
 				});

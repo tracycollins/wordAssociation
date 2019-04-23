@@ -22721,6 +22721,9 @@ exports.createContext = Script.createContext = function (context) {
 window.ControlPanel = function ControlPanel() {
   "use strict";
 
+  const ONE_SECOND = 1000;
+  const ONE_MINUTE = 60*ONE_MINUTE;
+
 	var DEFAULT_SOURCE = "https://word.threeceelabs.com";
   // var DEFAULT_SOURCE = "http://localhost:9997";
 
@@ -22775,6 +22778,10 @@ window.ControlPanel = function ControlPanel() {
   const DEFAULT_MAX_NODES_MIN = 10;
   const DEFAULT_MAX_NODES_MAX = 500;
 
+  const DEFAULT_MAX_AGE = 30*ONE_SECOND;
+  const DEFAULT_MAX_AGE_MIN = ONE_SECOND;
+  const DEFAULT_MAX_AGE_MAX = ONE_MINUTE;
+
   const DEFAULT_GRAVITY = 0.001;
   const DEFAULT_GRAVITY_MIN = 10;
   const DEFAULT_GRAVITY_MAX = 500;
@@ -22790,6 +22797,10 @@ window.ControlPanel = function ControlPanel() {
   config.maxNodes = config.maxNodes || DEFAULT_MAX_NODES;
   config.maxNodesMin = config.maxNodesMin || DEFAULT_MAX_NODES_MIN;
   config.maxNodesMax = config.maxNodesMax || DEFAULT_MAX_NODES_MAX;
+
+  config.maxAge = config.maxAge || DEFAULT_MAX_AGE;
+  config.maxAgeMin = config.maxAgeMin || DEFAULT_MAX_AGE_MIN;
+  config.maxAgeMax = config.maxAgeMax || DEFAULT_MAX_AGE_MAX;
 
   config.gravity = config.gravity || DEFAULT_GRAVITY;
   config.gravityMin = config.gravityMin || DEFAULT_GRAVITY_MIN;

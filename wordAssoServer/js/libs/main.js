@@ -1,4 +1,4 @@
-window.ControlPanel = function ControlPanel() {
+function ControlPanel() {
   "use strict";
 
   const ONE_SECOND = 1000;
@@ -11,12 +11,6 @@ window.ControlPanel = function ControlPanel() {
 	console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);
 	var self = this;
 
-	var $ = require('jquery-browserify');
-	// var control = require("control-panel");
-	var dat = require('dat.gui');
-
-	// var canvas = document.getElementById("guiCanvas");
-
 	var guiDisplayHashMap = {};
 
   var guiUser;
@@ -26,7 +20,7 @@ window.ControlPanel = function ControlPanel() {
 	var displayConfig;
 
 	var userData = document.getElementById('userData');
-	var userText;
+	var userNode;
 
 
   var twitterFeedUser;
@@ -137,6 +131,8 @@ window.ControlPanel = function ControlPanel() {
   var statsObj = {};
   statsObj.socketId = "NOT SET";
   statsObj.user = {};
+  statsObj.user.nodeId = "---";
+  statsObj.user.userId = "---";
   statsObj.user.name = "---";
   statsObj.user.screenName = "@";
   statsObj.user.location = "---";
@@ -150,17 +146,31 @@ window.ControlPanel = function ControlPanel() {
   statsObj.user.threeceeFollowing = "---";
   statsObj.user.ignored = "---";
 
-	var UserText = function() {
-		this.nextUncat = function(){
-	    console.debug("NEXT UNCAT");
-	    if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: "@?"}, DEFAULT_SOURCE); }
-		}
+  var eventDetected = false;
+
+  var categories = {left: false, neutral: false, right: false, positive: false, negative: false, none: true };
+
+  var nextUncatHandler = function(){
+  	// need to debounce button click
+  	// if (eventDetected) {
+  	// 	return;
+  	// }
+  	// eventDetected = true;
+    console.debug("NEXT UNCAT");
+    // if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: "@?"}, DEFAULT_SOURCE); }
+  	// setTimeout(function(){
+  	// 	eventDetected = false;
+  	// }, 100);
+	};
+
+	var UserNode = function() {
+		this.nextUncat = nextUncatHandler;
+	  this.userId = statsObj.user.userId;
 	  this.nodeId = statsObj.user.nodeId;
 	  this.screenName = statsObj.user.screenName;
 	  this.name = statsObj.user.name;
 	  this.location = statsObj.user.location;
 	  this.description = statsObj.user.description;
-	  this.category = statsObj.user.category;
 	  this.categoryAuto = statsObj.user.categoryAuto;
 	  this.location = statsObj.user.location;
 	  this.followersCount = statsObj.user.followersCount;
@@ -244,50 +254,6 @@ window.ControlPanel = function ControlPanel() {
     }
 
     callback();
-
-    // var element;
-
-    // document.getElementById("categoryLeft").setAttribute("class", "radioUnchecked");
-    // document.getElementById("categoryRight").setAttribute("class", "radioUnchecked");
-    // document.getElementById("categoryNeutral").setAttribute("class", "radioUnchecked");
-    // document.getElementById("categoryPositive").setAttribute("class", "radioUnchecked");
-    // document.getElementById("categoryNegative").setAttribute("class", "radioUnchecked");
-    // document.getElementById("categoryNone").setAttribute("class", "radioUnchecked");
-
-    // switch(category) {
-    //   case "left":
-    //     element = document.getElementById("categoryLeft");
-    //     element.className = "radioChecked";
-    //     callback();
-    //   break;
-    //   case "right":
-    //     element = document.getElementById("categoryRight");
-    //     element.className = "radioChecked";
-    //     callback();
-    //   break;
-    //   case "neutral":
-    //     element = document.getElementById("categoryNeutral");
-    //     element.className = "radioChecked";
-    //     callback();
-    //   break;
-    //   case "positive":
-    //     element = document.getElementById("categoryPositive");
-    //     element.className = "radioChecked";
-    //     callback();
-    //   break;
-    //   case "negative":
-    //     element = document.getElementById("categoryNegative");
-    //     element.className = "radioChecked";
-    //     callback();
-    //   break;
-    //   case "none":
-    //     element = document.getElementById("categoryNone");
-    //     element.className = "radioChecked";
-    //     callback();
-    //   break;
-    //   default:
-    //     callback();
-    // }
   }
 
   function shortCategory(c) {
@@ -319,6 +285,7 @@ window.ControlPanel = function ControlPanel() {
       category = node.category || "none";
       categoryAuto = node.categoryAuto || "none";
 
+      statsObj.user.userId = node.userId;
       statsObj.user.nodeId = node.nodeId;
       statsObj.user.name = nodeName;
       statsObj.user.screenName = node.screenName;
@@ -333,19 +300,20 @@ window.ControlPanel = function ControlPanel() {
       statsObj.user.threeceeFollowing = node.threeceeFollowing;
       statsObj.user.mentions = node.mentions;
 
-			userText.nodeId = statsObj.user.nodeId;
-			userText.name = statsObj.user.name;
-			userText.location = statsObj.user.location;
-			userText.screenName = statsObj.user.screenName;
-			userText.category = shortCategory(statsObj.user.category);
-			userText.categoryAuto = shortCategory(statsObj.user.categoryAuto);
-			userText.followersCount = statsObj.user.followersCount;
-			userText.friendsCount = statsObj.user.friendsCount;
-			userText.statusesCount = statsObj.user.statusesCount;
-			userText.mentions = statsObj.user.mentions;
-			userText.ignored = statsObj.user.ignored;
-			userText.threeceeFollowing = statsObj.user.threeceeFollowing;
-			userText.description = statsObj.user.description;
+			userNode.userId = statsObj.user.userId;
+			userNode.nodeId = statsObj.user.nodeId;
+			userNode.name = statsObj.user.name;
+			userNode.location = statsObj.user.location;
+			userNode.screenName = statsObj.user.screenName;
+			userNode.category = shortCategory(statsObj.user.category);
+			userNode.categoryAuto = shortCategory(statsObj.user.categoryAuto);
+			userNode.followersCount = statsObj.user.followersCount;
+			userNode.friendsCount = statsObj.user.friendsCount;
+			userNode.statusesCount = statsObj.user.statusesCount;
+			userNode.mentions = statsObj.user.mentions;
+			userNode.ignored = statsObj.user.ignored;
+			userNode.threeceeFollowing = statsObj.user.threeceeFollowing;
+			userNode.description = statsObj.user.description;
 
       if (twttr && twttr.widgets) {
         // twttr.widgets.createFollowButton(
@@ -605,96 +573,6 @@ window.ControlPanel = function ControlPanel() {
     }
   }
 
-	// function buttonHandler(params) {
-
-	//   const user = (params.user) ? "@" + params.user : currentUser;
-
-	//   switch (params.id){
-	//   	case "previousUser":
-	// 	    console.debug("PREVIOUS USER: " + user);
-	// 	    if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: user }, DEFAULT_SOURCE); }
-	//   	break;
-	//   	case "follow":
-	// 	    console.debug("FOLLOW: " + user);
-	// 	    if (parentWindow) { parentWindow.postMessage({op: "FOLLOW", user: user}, DEFAULT_SOURCE); }
-	//   	break;
-	//   	case "unfollow":
-	// 	    console.debug("UNFOLLOW: " + user);
-	// 	    if (parentWindow) { parentWindow.postMessage({op: "UNFOLLOW", user: user}, DEFAULT_SOURCE); }
-	//   	break;
-	//   	case "ignore":
-	// 	    console.debug("IGNORE: " + user);
-	// 	    if (parentWindow) { parentWindow.postMessage({op: "IGNORE", user: user}, DEFAULT_SOURCE); }
-	//   	break;
-	//   	case "unignore":
-	// 	    console.debug("UNIGNORE: " + user);
-	// 	    if (parentWindow) { parentWindow.postMessage({op: "UNIGNORE", user: user}, DEFAULT_SOURCE); }
-	//   	break;
-	//   	case "nextMismatch":
-	// 	    console.debug("NEXT MISMATCH");
-	// 	    if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: "@?MM"}, DEFAULT_SOURCE); }
-	//   	break;
-	//   	case "nextUncat":
-	// 	    console.debug("NEXT UNCAT");
-	// 	    if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: "@?"}, DEFAULT_SOURCE); }
-	//   	break;
-	//   	case "nextUncatLeft":
-	// 	    console.debug("NEXT UNCAT LEFT");
-	// 	    if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: "@?LEFT"}, DEFAULT_SOURCE); }
-	//   	break;
-	//   	case "nextUncatNeutral":
-	// 	    console.debug("NEXT UNCAT NEUTRAL");
-	// 	    if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: "@?NEUTRAL"}, DEFAULT_SOURCE); }
-	//   	break;
-	//   	case "nextUncatRight":
-	// 	    console.debug("NEXT UNCAT RIGHT");
-	// 	    if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: "@?RIGHT"}, DEFAULT_SOURCE); }
-	//   	break;
-	//   	case "resetButton":
-	// 	    console.debug("RESET");
-	// 	    if (parentWindow) { parentWindow.postMessage({op: "RESET"}, DEFAULT_SOURCE); }
-	//   	break;
-	//   	default:
-	//   		console.error("UNKNOW BUTTON ID: " + params.id);
-	//   }
-	// }
-
-	// var nodeDisplayPanel = control([
-	// 	{type: "checkbox", label: "EMOJI", initial: false},
-	// 	{type: "checkbox", label: "HASHTAG", initial: false},
-	// 	{type: "checkbox", label: "LOCATION", initial: false},
-	// 	{type: "checkbox", label: "MEDIA", initial: false},
-	// 	{type: "checkbox", label: "PLACE", initial: false},
-	// 	{type: "checkbox", label: "URL", initial: false},
-	// 	{type: "checkbox", label: "USER", initial: false},
-	// 	{type: "checkbox", label: "WORD", initial: false}
-	// ], 
-	//   {root: document.getElementById("nodeDisplayDiv"), theme: "dark"}
-	// );
-
-	// nodeDisplayPanel.on("input", function(data){
-	// 	console.debug("NODE DISPLAY INPUT\n", data)
-	// });
-
-	// var userCategorizePanel = control([
-	// 	{type: "button", label: "PREV USER", action: function () { buttonHandler({id: "previousUser", name: "PREV USER", user: previousUser}); }},
-	// 	{type: "button", label: "FOLLOW", action: function () { buttonHandler({id: "follow", name: "FOLLOW", user: currentUser}); }},
-	// 	{type: "button", label: "UNFOLLOW", action: function () { buttonHandler({id: "unfollow", name: "UNFOLLOW", user: currentUser}); }},
-	// 	{type: "button", label: "IGNORE", action: function () { buttonHandler({id: "ignore", name: "IGNORE", user: currentUser}); }},
-	// 	{type: "button", label: "UNIGNORE", action: function () { buttonHandler({id: "unignore", name: "UNIGNORE", user: currentUser}); }},
-	// 	{type: "button", label: "NEXT MISMATCH", action: function () { buttonHandler({id: "nextMismatch", name: "NEXT MISMATCH"}); }},
-	// 	{type: "button", label: "NEXT UNCAT", action: function () { buttonHandler({id: "nextUncat", name: "NEXT UNCAT"}); }},
-	// 	{type: "button", label: "NEXT UNCAT LEFT", action: function () { buttonHandler({id: "nextUncatLeft", name: "NEXT UNCAT LEFT"}); }},
-	// 	{type: "button", label: "NEXT UNCAT NEUTRAL", action: function () { buttonHandler({id: "nextUncatNeutral", name: "NEXT UNCAT NEUTRAL"}); }},
-	// 	{type: "button", label: "NEXT UNCAT RIGHT", action: function () { buttonHandler({id: "nextUncatRight", name: "NEXT UNCAT RIGHT"}); }},
-	//   {type: "select", label: "CATEGORY", options: ["LEFT", "NEUTRAL", "RIGHT", "POSITIVE", "NEGATIVE", "NONE"], initial: "NONE"}
-	// ], 
-	//   {root: document.getElementById("userCategorizeDiv"), theme: "dark"}
-	// );
-
-	// userCategorizePanel.on("input", function(data){
-	// 	console.debug("USER CATEGORIZE INPUT\n", data)
-	// });
 
   this.createControlPanel = function(callback) {
 
@@ -709,20 +587,15 @@ window.ControlPanel = function ControlPanel() {
     if (callback) { callback(); }
   };
 
-	// function setValue() {
-	//   userData.innerHTML = userText.screenName;
-	//   userData.style.color = userText.color;
-	//   userData.style.fontSize = userText.fontSize+"px";
-	//   userData.style.fontFamily = userText.fontFamily;
-	//   if(userText.border) {
-	//     userData.style.border = "solid 1px black";
-	//     userData.style.padding = "10px";
-	//   }
-	//   else {
-	//     userData.style.border = "none";
-	//     userData.style.padding = "0px";
-	//   }
-	// }
+	function setChecked( prop ){
+	  for (let param in categories){
+	    categories[param] = false;
+	  }
+	  categories[prop] = true;
+    // if (parentWindow) {
+    // 	parentWindow.postMessage({op: "CATEGORIZE", node: userNode, category: prop}, DEFAULT_SOURCE);
+    // }
+	}
 
   $( document ).ready(function() {
 
@@ -735,26 +608,58 @@ window.ControlPanel = function ControlPanel() {
 
       setTimeout(function() {  // KLUDGE to insure table is created before update
 
-			  userText = new UserText();
+			  userNode = new UserNode();
 
 			  guiUser = new dat.GUI();
 			  guiUser.width = 400;
-			  guiUser.add(userText, 'nextUncat');
-			  guiUser.add(userText, 'screenName').listen();
-			  guiUser.add(userText, 'name').listen();
-			  guiUser.add(userText, 'location').listen();
-			  guiUser.add(userText, 'ignored').listen();
-			  guiUser.add(userText, 'description').listen();
-			  guiUser.add(userText, 'category', [ 'L', 'N', 'R', '+', '-', '0' ]).listen();
-			  guiUser.add(userText, 'categoryAuto', [ 'L', 'N', 'R', '+', '-', '0' ]).listen();
-			  guiUser.add(userText, 'followersCount').listen();
-			  guiUser.add(userText, 'friendsCount').listen();
-			  guiUser.add(userText, 'statusesCount').listen();
-			  guiUser.add(userText, 'threeceeFollowing').listen();
-			  guiUser.addColor(userText, 'color');
-			  guiUser.add(userText, 'fontSize', 6, 48);
-			  guiUser.add(userText, 'border');
-			  guiUser.add(userText, 'fontFamily',["sans-serif", "serif", "cursive", "monospace"]);
+			  var userCategory = guiUser.addFolder('category');
+
+				userCategory.add(categories, 'left').name('L').listen().onChange(function(){
+					setChecked("left");
+		    	parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: "left"}, DEFAULT_SOURCE);
+				});
+				userCategory.add(categories, 'neutral').name('N').listen().onChange(function(){setChecked("neutral")});
+				userCategory.add(categories, 'right').name('R').listen().onChange(function(){setChecked("right")});
+				userCategory.add(categories, 'none').name('0').listen().onChange(function(){setChecked("none")});
+
+				// userCategoryLeft.onChange(function(value){
+				// 	console.log("USER CATEGORY LEFT: " + value);
+				// });
+
+				// userCategoryNeutral.onChange(function(value){
+				// 	console.log("USER CATEGORY NEUTRAL: " + value);
+				// });
+
+				// userCategoryRight.onChange(function(value){
+				// 	console.log("USER CATEGORY RIGHT: " + value);
+				// });
+
+				// userCategoryNone.onChange(function(value){
+				// 	console.log("USER CATEGORY NONE: " + value);
+				// });
+
+			  guiUser.add(userNode, 'nextUncat');
+			  guiUser.add(userNode, 'nodeId').listen();
+			  guiUser.add(userNode, 'screenName').listen();
+			  guiUser.add(userNode, 'name').listen();
+			  guiUser.add(userNode, 'location').listen();
+			  guiUser.add(userNode, 'ignored').listen();
+			  guiUser.add(userNode, 'description').listen();
+			  // const categoryLeft = guiUser.add(userNode, 'left').name('L').listen().onChange(function(){setChecked("left")});
+			  // const categoryRight = guiUser.add(userNode, 'category', 'right').name('R').listen().onChange(function(){setChecked("right")});
+			  // const categoryNeutral = guiUser.add(userNode, 'category', 'neutral').name('N').listen().onChange(function(){setChecked("neutral")});
+			  // const categoryPositive = guiUser.add(userNode, 'category', 'positive').name('+').listen().onChange(function(){setChecked("positive")});
+			  // const categoryNegative = guiUser.add(userNode, 'category', 'negative').name('-').listen().onChange(function(){setChecked("negative")});
+			  // const categoryNone = guiUser.add(userNode, 'category', 'none').name('0').listen().onChange(function(){setChecked("none")});
+			  guiUser.add(userNode, 'categoryAuto', [ 'L', 'N', 'R', '+', '-', '0' ]).listen();
+			  guiUser.add(userNode, 'followersCount').listen();
+			  guiUser.add(userNode, 'friendsCount').listen();
+			  guiUser.add(userNode, 'statusesCount').listen();
+			  guiUser.add(userNode, 'threeceeFollowing').listen();
+			  guiUser.addColor(userNode, 'color');
+			  guiUser.add(userNode, 'fontSize', 6, 48);
+			  guiUser.add(userNode, 'border');
+			  guiUser.add(userNode, 'fontFamily',["sans-serif", "serif", "cursive", "monospace"]);
 
 			  displayConfig = new DisplayConfig();
 
@@ -822,7 +727,9 @@ window.ControlPanel = function ControlPanel() {
 				});
 
         self.updateControlPanel(config, function(){
+
           if (parentWindow !== undefined) {
+
             window.addEventListener("message", receiveMessage, false);
 
             setTimeout(function(){

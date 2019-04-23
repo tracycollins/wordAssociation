@@ -21,7 +21,7 @@ function ControlPanel() {
 
 	var userData = document.getElementById('userData');
 	var userNode;
-
+	var userCategory;
 
   var twitterFeedUser;
   var twitterFeedPreviousUser;
@@ -252,6 +252,8 @@ function ControlPanel() {
     if (category === undefined || !category) {
       category = "none";
     }
+
+	  setChecked(category);
 
     callback();
   }
@@ -612,7 +614,7 @@ function ControlPanel() {
 
 			  guiUser = new dat.GUI();
 			  guiUser.width = 400;
-			  var userCategory = guiUser.addFolder('category');
+			  userCategory = guiUser.addFolder('category');
 
 				userCategory.add(categories, 'left').name('L').listen().onChange(function(){
 					setChecked("left");

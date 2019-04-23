@@ -521,27 +521,6 @@ function ControlPanel() {
 		}
 	}
 
-  function catRadioButtonHandler(e){
-
-		e = e || event;
-
-		var cb = e.srcElement || e.target;
-
-		if (cb.type !== 'checkbox') {return true;}
-
-		console.log("CAT BUTTON: ", cb.id);
-
-		var cbxs = document.getElementById('radioUserCategoryDiv').getElementsByTagName('input'), i=cbxs.length;
-
-		while(i--) {
-			if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id !== cb.id) {
-				cbxs[i].checked = false;
-			}
-		}
-		cb.checked = true;
-    parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: cb.name}, DEFAULT_SOURCE);
-  }
-
 	var radioUserCategoryDiv = document.createElement("div");
 	radioUserCategoryDiv.id = "radioUserCategoryDiv";
 	radioUserCategoryDiv.style.backgroundColor = "white";
@@ -567,6 +546,28 @@ function ControlPanel() {
 		console.log("radioUserCategoryDiv BUTTON: ", e.srcElement.id);
 		catRadioButtonHandler(e);
 	}
+
+  function catRadioButtonHandler(e){
+
+		e = e || event;
+
+		var cb = e.srcElement || e.target;
+
+		if (cb.type !== 'checkbox') {return true;}
+
+		console.log("CAT BUTTON: ", cb.id);
+
+		var cbxs = radioUserCategoryDiv.getElementsByTagName('input');
+		var i = cbxs.length;
+
+		while(i--) {
+			if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id !== cb.id) {
+				cbxs[i].checked = false;
+			}
+		}
+		cb.checked = true;
+    parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: cb.name}, DEFAULT_SOURCE);
+  }
 
 
   $( document ).ready(function() {

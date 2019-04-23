@@ -503,24 +503,6 @@ function ControlPanel() {
     if (callback) { callback(); }
   };
 
-	function setChecked( categorySet ){
-
-		var categorySetButtonId = "category_" + categorySet;
-
-		var cbxs = document.getElementById('radioUserCategoryDiv').getElementsByTagName('input'), i=cbxs.length;
-
-		while(i--) {
-
-		  if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id === categorySetButtonId) {
-				cbxs[i].checked = true;
-		  }
-		  if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id !== categorySetButtonId) {
-				cbxs[i].checked = false;
-		  }
-
-		}
-	}
-
 	var radioUserCategoryDiv = document.createElement("div");
 	radioUserCategoryDiv.id = "radioUserCategoryDiv";
 	radioUserCategoryDiv.style.backgroundColor = "white";
@@ -545,6 +527,24 @@ function ControlPanel() {
 	radioUserCategoryDiv.onclick = function(e){
 		console.log("radioUserCategoryDiv BUTTON: ", e.srcElement.id);
 		catRadioButtonHandler(e);
+	}
+
+	function setChecked( categorySet ){
+
+		var categorySetButtonId = "category_" + categorySet;
+
+		var cbxs = radioUserCategoryDiv.getElementsByTagName('input'), i=cbxs.length;
+
+		while(i--) {
+
+		  if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id === categorySetButtonId) {
+				cbxs[i].checked = true;
+		  }
+		  if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id !== categorySetButtonId) {
+				cbxs[i].checked = false;
+		  }
+
+		}
 	}
 
   function catRadioButtonHandler(e){

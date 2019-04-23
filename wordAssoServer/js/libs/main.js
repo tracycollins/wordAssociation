@@ -638,6 +638,8 @@ function ControlPanel() {
 					setChecked("none");
 		    	parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: "none"}, DEFAULT_SOURCE);
 				});
+
+				userCategory.open();
 				
 
 			  guiUser.add(userNode, 'nextUncat');

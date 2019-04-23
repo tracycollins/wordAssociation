@@ -1014,35 +1014,35 @@ function controlPanelComm(event) {
     case "UPDATE" :
       console.warn("R< CONTROL PANEL UPDATE");
       switch (event.data.id) {
-        case "transitionDurationSlider" :
+        case "transitionDuration" :
           currentSessionView.setTransitionDuration(event.data.value);
           config.defaultTransitionDuration = event.data.value;
         break;
-        case "velocityDecaySlider" :
+        case "velocityDecay" :
           currentSessionView.setVelocityDecay(event.data.value);
         break;
-        case "gravitySlider" :
+        case "gravity" :
           currentSessionView.setGravity(event.data.value);
         break;
-        case "chargeSlider" :
+        case "charge" :
           currentSessionView.setCharge(event.data.value);
         break;
-        case "maxAgeSlider" :
+        case "maxAge" :
           currentSessionView.setNodeMaxAge(event.data.value);
         break;
-        case "maxNodesSlider" :
+        case "maxNodes" :
           currentSessionView.setMaxNodesLimit(event.data.value);
         break;
-        case "fontSizeMinRatioSlider" :
+        case "fontSizeMinRatio" :
           currentSessionView.setFontSizeMinRatio(event.data.value);
         break;
-        case "fontSizeMaxRatioSlider" :
+        case "fontSizeMaxRatio" :
           currentSessionView.setFontSizeMaxRatio(event.data.value);
         break;
-        case "nodeRadiusMinRatioSlider" :
+        case "nodeRadiusMinRatio" :
           currentSessionView.setNodeRadiusMinRatio(event.data.value);
         break;
-        case "nodeRadiusMaxRatioSlider" :
+        case "nodeRadiusMaxRatio" :
           currentSessionView.setNodeRadiusMaxRatio(event.data.value);
         break;
         default:

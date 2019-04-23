@@ -17,6 +17,8 @@ window.ControlPanel = function ControlPanel() {
 
 	// var canvas = document.getElementById("guiCanvas");
 
+	var guiDisplayHashMap = {};
+
   var guiUser;
   var guiDisplay;
 
@@ -728,19 +730,19 @@ window.ControlPanel = function ControlPanel() {
 			  guiDisplay = new dat.GUI();
 			  guiDisplay.width = 400;
 
-			  guiDisplay.add(displayConfig, 'maxNodes', config.maxNodesMin, config.maxNodesMax).listen();
-			  guiDisplay.add(displayConfig, 'maxAge', config.maxAgeMin, config.maxAgeMax).listen();
-			  guiDisplay.add(displayConfig, 'gravity', config.gravityMin, config.gravityMax).listen();
-			  guiDisplay.add(displayConfig, 'charge', config.chargeMin, config.chargeMax).listen();
-			  guiDisplay.add(displayConfig, 'velocityDecay', config.velocityDecayMin, config.velocityDecayMax).listen();
+			  guiDisplayHashMap['maxNodes'] = guiDisplay.add(displayConfig, 'maxNodes', config.maxNodesMin, config.maxNodesMax).listen();
+			  guiDisplayHashMap['maxAge'] = guiDisplay.add(displayConfig, 'maxAge', config.maxAgeMin, config.maxAgeMax).listen();
+			  guiDisplayHashMap['gravity'] = guiDisplay.add(displayConfig, 'gravity', config.gravityMin, config.gravityMax).listen();
+			  guiDisplayHashMap['charge'] = guiDisplay.add(displayConfig, 'charge', config.chargeMin, config.chargeMax).listen();
+			  guiDisplayHashMap['velocityDecay'] = guiDisplay.add(displayConfig, 'velocityDecay', config.velocityDecayMin, config.velocityDecayMax).listen();
 
 			  guiDisplay.addColor(displayConfig, 'color');
 			  guiDisplay.add(displayConfig, 'fontSize', 6, 48);
 			  guiDisplay.add(displayConfig, 'border');
 			  guiDisplay.add(displayConfig, 'fontFamily',["sans-serif", "serif", "cursive", "monospace"]);
 
-				guiDisplay.onChange(function(value) {
-					console.debug("GUI DISPLAY CHANGE\n", value);
+				guiDisplayHashMap['maxNodes'].onChange(function(value) {
+					console.debug("GUI DisplayConfig MAX NODES CHANGE\n", value);
 				});
 
         self.updateControlPanel(config, function(){

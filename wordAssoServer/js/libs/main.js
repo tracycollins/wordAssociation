@@ -306,9 +306,12 @@ function ControlPanel() {
       twitterFeedPreviousUser = twitterFeedUser;
       twitterFeedUser = node;
 
+    	twitterProfile.setValue("NAME", node.name);
     	twitterProfile.setValue("SCREENNAME", "@"+node.screenName);
+    	twitterProfile.setValue("LOCATION", node.location);
 			twitterProfile.setValue("PROFILE", node.profileImageUrl.replace("_normal", ""));
 			twitterProfile.setValue("DESCRIPTION", node.description);
+			twitterProfile.setValue("IGNORED", node.ignored);
 			twitterProfile.setValue("CATEGORY AUTO", node.categoryAuto);
 
       console.debug("loadTwitterFeed"
@@ -612,17 +615,22 @@ function ControlPanel() {
 				const categoryAuto = (twitterFeedUser) ? twitterFeedUser.categoryAuto : "";
 				twitterProfile.addText("CATEGORY AUTO", categoryAuto);
 
+				const name = (twitterFeedUser) ? twitterFeedUser.name : "";
+				twitterProfile.addText("NAME", name);
+
 				const screenName = (twitterFeedUser) ? "@"+twitterFeedUser.screenName : "@";
-				twitterProfile.addText("SCREENNAME", screenName, function(data){
-					console.warn("SCREENNAME " + data + " | data length: " + data.length);
-				});
+				twitterProfile.addText("SCREENNAME", screenName);
 
 				twitterProfile.addButton("SEARCH", function(data){
 					console.debug("NODE SEARCH: ", twitterProfile.getValue("SCREENNAME"));
 		      parentWindow.postMessage({op: "NODE_SEARCH", input: twitterProfile.getValue("SCREENNAME")}, DEFAULT_SOURCE);
 				});
 
-				const category = (twitterFeedUser) ? shortCategory(twitterFeedUser.category) : "";
+				const location = (twitterFeedUser) ? twitterFeedUser.location;
+				twitterProfile.addText("LOCATION", location);
+
+				const ignored = (twitterFeedUser) ? twitterFeedUser.location;
+				twitterProfile.addBoolean("IGNORED", ignored);
 
 				const description = (twitterFeedUser) ? twitterFeedUser.description : "";
 				twitterProfile.addTextArea("DESCRIPTION", description);

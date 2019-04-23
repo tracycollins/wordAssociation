@@ -311,7 +311,7 @@ function ControlPanel() {
     	twitterProfile.setValue("LOCATION", node.location);
 			twitterProfile.setValue("PROFILE", node.profileImageUrl.replace("_normal", ""));
 			twitterProfile.setValue("DESCRIPTION", node.description);
-			twitterProfile.setValue("IGNORED", node.ignored);
+			twitterProfile.setValue("IGNORED", node.ignored || false);
 			twitterProfile.setValue("CATEGORY AUTO", node.categoryAuto);
 
       console.debug("loadTwitterFeed"

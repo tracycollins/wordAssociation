@@ -642,7 +642,7 @@ function ViewTreepack() {
     simulation.force("charge", d3.forceManyBody().strength(value));
   };
 
-  self.setNodeRadiusMinRatio = function(value) {
+  self.setNodeRadiusRatioMin = function(value) {
     console.debug("UPDATE NODE RADIUS MIN RATIO: " + value);
     config.defaultNodeRadiusMinRatio = value;
     nodeRadiusMinRatio = value;
@@ -653,7 +653,7 @@ function ViewTreepack() {
       clamp(true);
   };
 
-  self.setNodeRadiusMaxRatio = function(value) {
+  self.setNodeRadiusRatioMax = function(value) {
     console.debug("UPDATE NODE RADIUS MAX RATIO: " + value);
     config.defaultNodeRadiusMaxRatio = value;
     nodeRadiusMaxRatio = value;

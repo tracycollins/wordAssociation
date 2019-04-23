@@ -23508,17 +23508,12 @@ window.ControlPanel = function ControlPanel() {
 			    parentWindow.postMessage({op:"UPDATE", id: "fontSizeRatioMax", value: value}, DEFAULT_SOURCE);
 				});
 
-				guiDisplayHashMap['nodeRadiusRatioMax'].onFinishChange(function(value) {
-					console.debug("GUI DisplayConfig NODE RADIUS RATIO MAX CHANGE\n", value);
-			    parentWindow.postMessage({op:"UPDATE", id: "nodeRadiusRatioMax", value: value}, DEFAULT_SOURCE);
-				});
-
-				guiDisplayHashMap['nodeRadiusRatioMin'].onFinishChange(function(value) {
+				guiDisplayHashMap['nodeRadiusRatioMin'].onChange(function(value) {
 					console.debug("GUI DisplayConfig NODE RADIUS RATIO MIN CHANGE\n", value);
 			    parentWindow.postMessage({op:"UPDATE", id: "nodeRadiusRatioMin", value: value}, DEFAULT_SOURCE);
 				});
 
-				guiDisplayHashMap['nodeRadiusRatioMax'].onFinishChange(function(value) {
+				guiDisplayHashMap['nodeRadiusRatioMax'].onChange(function(value) {
 					console.debug("GUI DisplayConfig NODE RADIUS RATIO MAX CHANGE\n", value);
 			    parentWindow.postMessage({op:"UPDATE", id: "nodeRadiusRatioMax", value: value}, DEFAULT_SOURCE);
 				});

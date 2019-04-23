@@ -765,9 +765,9 @@ var controlPanelInitWaitInterval;
 
 function toggleControlPanel(){
 
-  // var cnf = config;
-
-  console.warn("toggleControlPanel config\n" + jsonPrint(config));
+  console.warn("toggleControlPanel config"
+    // + "\n" + jsonPrint(config)
+  );
 
   if (controlPanelFlag){
     clearInterval(controlPanelInitWaitInterval);

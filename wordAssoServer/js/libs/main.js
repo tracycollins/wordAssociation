@@ -617,7 +617,7 @@ function ControlPanel() {
 					twitterProfile.addImage("PROFILE", profileImageUrl);
 				}
 				else {
-
+					twitterProfile.addImage("PROFILE", "https://word.threeceelabs.com/public/assets/images/twitterEgg.png");
 				}
 
 

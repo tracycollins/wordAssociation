@@ -153,7 +153,7 @@ function ControlPanel() {
   	"none",
   ];
 
-  var nextUncatHandler = function(){
+  var nextUncatHandler = function(params){
   	// need to debounce button click
   	if (eventDetected) {
   		return;

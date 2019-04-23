@@ -60,12 +60,21 @@ window.ControlPanel = function ControlPanel() {
   const DEFAULT_MAX_NODES_MIN = 10;
   const DEFAULT_MAX_NODES_MAX = 500;
 
-  const DEFAULT_NODE_RADIUS_RATIO = 0.0020;
-  const DEFAULT_NODE_RADIUS_RATIO_MIN = 0.0075;
-  const DEFAULT_NODE_RADIUS_RATIO_MAX = 0.1;
+  const DEFAULT_NODE_RADIUS_RATIO_MIN = 0.0020;
+  const DEFAULT_NODE_RADIUS_RATIO_MIN_MIN = 0.0010;
+  const DEFAULT_NODE_RADIUS_RATIO_MIN_MAX = 0.1;
+
+  const DEFAULT_NODE_RADIUS_RATIO_MAX = 0.2;
+  const DEFAULT_NODE_RADIUS_RATIO_MAX_MIN = 0.1;
+  const DEFAULT_NODE_RADIUS_RATIO_MAX_MAX = 0.5;
 
   const DEFAULT_FONT_SIZE_RATIO_MIN = 16;
+  const DEFAULT_FONT_SIZE_RATIO_MIN_MIN = 8;
+  const DEFAULT_FONT_SIZE_RATIO_MIN_MAX = 50;
+
   const DEFAULT_FONT_SIZE_RATIO_MAX = 60;
+  const DEFAULT_FONT_SIZE_RATIO_MAX_MIN = 50;
+  const DEFAULT_FONT_SIZE_RATIO_MAX_MAX = 100;
 
   const DEFAULT_MAX_AGE = 30*ONE_SECOND;
   const DEFAULT_MAX_AGE_MIN = ONE_SECOND;
@@ -84,15 +93,24 @@ window.ControlPanel = function ControlPanel() {
   const DEFAULT_VELOCITY_DECAY_MAX = 1.0;
 
   config.fontSizeRatioMin = config.fontSizeRatioMin || DEFAULT_FONT_SIZE_RATIO_MIN;
+  config.fontSizeRatioMinMin = config.fontSizeRatioMinMin || DEFAULT_FONT_SIZE_RATIO_MIN_MIN;
+  config.fontSizeRatioMinMax = config.fontSizeRatioMinMax || DEFAULT_FONT_SIZE_RATIO_MIN_MAX;
+
   config.fontSizeRatioMax = config.fontSizeRatioMax || DEFAULT_FONT_SIZE_RATIO_MAX;
+  config.fontSizeRatioMaxMin = config.fontSizeRatioMaxMin || DEFAULT_FONT_SIZE_RATIO_MAX_MIN;
+  config.fontSizeRatioMaxMax = config.fontSizeRatioMaxMax || DEFAULT_FONT_SIZE_RATIO_MAX_MAX;
 
   config.maxNodes = config.maxNodes || DEFAULT_MAX_NODES;
   config.maxNodesMin = config.maxNodesMin || DEFAULT_MAX_NODES_MIN;
   config.maxNodesMax = config.maxNodesMax || DEFAULT_MAX_NODES_MAX;
 
-  config.nodeRadiusRatio = config.nodeRadiusRatio || DEFAULT_NODE_RADIUS_RATIO;
   config.nodeRadiusRatioMin = config.nodeRadiusRatioMin || DEFAULT_NODE_RADIUS_RATIO_MIN;
+  config.nodeRadiusRatioMinMin = config.nodeRadiusRatioMinMin || DEFAULT_NODE_RADIUS_RATIO_MIN_MIN;
+  config.nodeRadiusRatioMinMax = config.nodeRadiusRatioMinMax || DEFAULT_NODE_RADIUS_RATIO_MIN_MAX;
+
   config.nodeRadiusRatioMax = config.nodeRadiusRatioMax || DEFAULT_NODE_RADIUS_RATIO_MAX;
+  config.nodeRadiusRatioMaxMin = config.nodeRadiusRatioMaxMin || DEFAULT_NODE_RADIUS_RATIO_MAX_MIN;
+  config.nodeRadiusRatioMaxMax = config.nodeRadiusRatioMaxMax || DEFAULT_NODE_RADIUS_RATIO_MAX_MAX;
 
   config.maxAge = config.maxAge || DEFAULT_MAX_AGE;
   config.maxAgeMin = config.maxAgeMin || DEFAULT_MAX_AGE_MIN;
@@ -741,7 +759,10 @@ window.ControlPanel = function ControlPanel() {
 			  guiDisplay.width = 400;
 
 			  guiDisplayHashMap['maxNodes'] = guiDisplay.add(displayConfig, 'maxNodes', config.maxNodesMin, config.maxNodesMax).listen();
-			  guiDisplayHashMap['nodeRadiusRatio'] = guiDisplay.add(displayConfig, 'nodeRadiusRatio', config.nodeRadiusRatioMin, config.nodeRadiusRatioMax).listen();
+			  guiDisplayHashMap['nodeRadiusRatioMin'] = guiDisplay.add(displayConfig, 'nodeRadiusRatioMin', config.nodeRadiusRatioMinMin, config.nodeRadiusRatioMinMax).listen();
+			  guiDisplayHashMap['nodeRadiusRatioMax'] = guiDisplay.add(displayConfig, 'nodeRadiusRatioMax', config.nodeRadiusRatioMaxMin, config.nodeRadiusRatioMaxMax).listen();
+			  guiDisplayHashMap['fontSizeRatioMin'] = guiDisplay.add(displayConfig, 'fontSizeRatioMin', config.fontSizeRatioMinMin, config.fontSizeRatioMinMax).listen();
+			  guiDisplayHashMap['fontSizeRatioMax'] = guiDisplay.add(displayConfig, 'fontSizeRatioMax', config.fontSizeRatioMaxMin, config.fontSizeRatioMaxMax).listen();
 			  guiDisplayHashMap['maxAge'] = guiDisplay.add(displayConfig, 'maxAge', config.maxAgeMin, config.maxAgeMax).listen();
 			  guiDisplayHashMap['gravity'] = guiDisplay.add(displayConfig, 'gravity', config.gravityMin, config.gravityMax).listen();
 			  guiDisplayHashMap['charge'] = guiDisplay.add(displayConfig, 'charge', config.chargeMin, config.chargeMax).listen();

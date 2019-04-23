@@ -581,18 +581,11 @@ function ControlPanel() {
 				twitterProfile = QuickSettings.create(0, 0, "TWITTER USER PROFILE", userCategorizeDiv);
 				twitterProfile.setWidth(400);
 
-				twitterProfile.addButton("NEXT UNCAT", function(){
-					nextUncatHandler({categoryAuto: "ANY"});
-				});
-				twitterProfile.addButton("NEXT UNCAT LEFT", function(){
-					nextUncatHandler({categoryAuto: "left"});
-				});
-				twitterProfile.addButton("NEXT UNCAT NEUTRAL", function(){
-					nextUncatHandler({categoryAuto: "neutral"});
-				});
-				twitterProfile.addButton("NEXT UNCAT RIGHT", function(){
-					nextUncatHandler({categoryAuto: "right"});
-				});
+				twitterProfile.addButton("NEXT UNCAT", nextUncatHandler);
+				twitterProfile.addButton("NEXT UNCAT LEFT", nextUncatHandler);
+				twitterProfile.addButton("NEXT UNCAT NEUTRAL", nextUncatHandler);
+				twitterProfile.addButton("NEXT UNCAT RIGHT", nextUncatHandler);
+				twitterProfile.addElement("CATEGORY MAN", radioUserCategoryDiv);
 
 				const categoryAuto = (twitterFeedUser) ? twitterFeedUser.categoryAuto : "";
 				twitterProfile.addText("CATEGORY AUTO", categoryAuto);

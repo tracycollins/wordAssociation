@@ -705,8 +705,8 @@ let normalization = false;
 const twitterUserThreecee = {
     nodeId: "14607119",
     // userId : "14607119",
-    profileImageUrl: "http://pbs.twimg.com/profile_images/780466729692659712/p6RcVjNK.jpg",
-    profileUrl: "http://twitter.com/threecee",
+    profileImageUrl: "https://pbs.twimg.com/profile_images/780466729692659712/p6RcVjNK.jpg",
+    profileUrl: "https://twitter.com/threecee",
     url: "http://threeCeeMedia.com",
     name: "Tracy Collins",
     screenName: "threecee",

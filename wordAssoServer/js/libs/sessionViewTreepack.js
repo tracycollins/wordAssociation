@@ -596,7 +596,7 @@ function ViewTreepack() {
 
   self.setVelocityDecay = function(value) {
     console.debug("UPDATE VEL DECAY: " + value.toFixed(sliderPercision));
-    config.defaultVelocityDecay = value;
+    config.defaultVelocityDecay = value;  
     velocityDecay = value;
     simulation.velocityDecay(velocityDecay);
   };

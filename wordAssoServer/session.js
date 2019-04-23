@@ -734,7 +734,9 @@ var controlPanelReadyFlag = false;
 
 function createPopUpControlPanel (cnf, callback) {
 
-  console.debug("createPopUpControlPanel\ncnf\n" + jsonPrint(cnf));
+  console.debug("createPopUpControlPanel"
+    // + "\ncnf\n" + jsonPrint(cnf)
+  );
 
   controlPanelWindow = window.open(
     DEFAULT_SOURCE + "/controlPanel.html", 

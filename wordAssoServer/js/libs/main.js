@@ -151,16 +151,16 @@ function ControlPanel() {
   var categories = {left: false, neutral: false, right: false, positive: false, negative: false, none: true };
 
   var nextUncatHandler = function(){
-  	// need to debounce button click
-  	// if (eventDetected) {
-  	// 	return;
-  	// }
-  	// eventDetected = true;
+  	need to debounce button click
+  	if (eventDetected) {
+  		return;
+  	}
+  	eventDetected = true;
     console.debug("NEXT UNCAT");
-    // if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: "@?"}, DEFAULT_SOURCE); }
-  	// setTimeout(function(){
-  	// 	eventDetected = false;
-  	// }, 100);
+    if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: "@?"}, DEFAULT_SOURCE); }
+  	setTimeout(function(){
+  		eventDetected = false;
+  	}, 100);
 	};
 
 	var UserNode = function() {

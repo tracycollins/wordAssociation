@@ -695,7 +695,6 @@ window.ControlPanel = function ControlPanel() {
 
       setTimeout(function() {  // KLUDGE to insure table is created before update
 
-			  displayConfig = new DisplayConfig();
 			  userText = new UserText();
 
 			  guiUser = new dat.GUI();
@@ -716,11 +715,13 @@ window.ControlPanel = function ControlPanel() {
 			  guiUser.add(userText, 'border');
 			  guiUser.add(userText, 'fontFamily',["sans-serif", "serif", "cursive", "monospace"]);
 
+			  displayConfig = new DisplayConfig();
+
 			  guiDisplay = new dat.GUI();
 			  guiDisplay.width = 400;
 
 			  guiDisplay.add(displayConfig, 'maxNodes', config.maxNodesMin, config.maxNodesMax).listen();
-			  guiDisplay.add(displayConfig, 'maxAge', config.maxNodesMin, config.maxNodesMax).listen();
+			  guiDisplay.add(displayConfig, 'maxAge', config.maxAgeMin, config.maxAgeMax).listen();
 			  guiDisplay.add(displayConfig, 'gravity', config.gravityMin, config.gravityMax).listen();
 			  guiDisplay.add(displayConfig, 'charge', config.chargeMin, config.chargeMax).listen();
 			  guiDisplay.add(displayConfig, 'velocityDecay', config.velocityDecayMin, config.velocityDecayMax).listen();

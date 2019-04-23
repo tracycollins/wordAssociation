@@ -22807,8 +22807,8 @@ window.ControlPanel = function ControlPanel() {
   config.gravityMax = config.gravityMax || DEFAULT_GRAVITY_MAX;
 
   config.charge = config.charge || DEFAULT_CHARGE;
-  config.chargeMin = config.chargeMin || DEFAULT_GRAVITY_MIN;
-  config.chargeMax = config.chargeMax || DEFAULT_GRAVITY_MAX;
+  config.chargeMin = config.chargeMin || DEFAULT_CHARGE_MIN;
+  config.chargeMax = config.chargeMax || DEFAULT_CHARGE_MAX;
 
   config.velocityDecay = config.velocityDecay || DEFAULT_VELOCITY_DECAY;
   config.velocityDecayMin = config.velocityDecayMin || DEFAULT_VELOCITY_DECAY_MIN;

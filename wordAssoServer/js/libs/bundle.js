@@ -23439,6 +23439,10 @@ window.ControlPanel = function ControlPanel() {
 			  guiUser.add(userText, 'border');
 			  guiUser.add(userText, 'fontFamily',["sans-serif", "serif", "cursive", "monospace"]);
 
+				guiUser.onChange(function(value) {
+					console.debug("GUI USER CHANGE\n", value);
+				});
+
 			  displayConfig = new DisplayConfig();
 
 			  guiDisplay = new dat.GUI();
@@ -23454,6 +23458,10 @@ window.ControlPanel = function ControlPanel() {
 			  guiDisplay.add(displayConfig, 'fontSize', 6, 48);
 			  guiDisplay.add(displayConfig, 'border');
 			  guiDisplay.add(displayConfig, 'fontFamily',["sans-serif", "serif", "cursive", "monospace"]);
+
+				guiDisplay.onChange(function(value) {
+					console.debug("GUI DISPLAY CHANGE\n", value);
+				});
 
         self.updateControlPanel(config, function(){
           if (parentWindow !== undefined) {

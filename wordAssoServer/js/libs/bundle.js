@@ -22825,9 +22825,9 @@ window.ControlPanel = function ControlPanel() {
 
 	var DisplayConfig = function() {
 
-	  this.maxNodesMin = config.maxNodesMin;
+	  // this.maxNodesMin = config.maxNodesMin;
 	  // this.maxNodesMax = config.maxNodesMax;
-	  // this.maxNodes = config.maxNodes;
+	  this.maxNodes = config.maxNodes;
 
 	  // this.maxAgeMin = config.maxAgeMin;
 	  // this.maxAgeMax = config.maxAgeMax;

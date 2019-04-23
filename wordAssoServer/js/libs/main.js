@@ -581,6 +581,7 @@ function ControlPanel() {
 				twitterProfile = QuickSettings.create(0, 0, "TWITTER USER PROFILE", userCategorizeDiv);
 				twitterProfile.setWidth(400);
 
+				twitterProfile.addButton("NEXT UNCAT", nextUncatHandler);
 				twitterProfile.addElement("CATEGORY MAN", radioUserCategoryDiv);
 
 				const categoryAuto = (twitterFeedUser) ? twitterFeedUser.categoryAuto : "";

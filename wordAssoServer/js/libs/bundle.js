@@ -22780,6 +22780,11 @@ window.ControlPanel = function ControlPanel() {
   const DEFAULT_MAX_NODES_MIN = 10;
   const DEFAULT_MAX_NODES_MAX = 500;
 
+  const DEFAULT_NODE_RADIUS_RATIO = 0.0020;
+  const DEFAULT_NODE_RADIUS_RATIO_MIN = 0.0075;
+  const DEFAULT_NODE_RADIUS_RATIO_MAX = 0.1;
+
+
   const DEFAULT_MAX_AGE = 30*ONE_SECOND;
   const DEFAULT_MAX_AGE_MIN = ONE_SECOND;
   const DEFAULT_MAX_AGE_MAX = ONE_MINUTE;
@@ -22799,6 +22804,10 @@ window.ControlPanel = function ControlPanel() {
   config.maxNodes = config.maxNodes || DEFAULT_MAX_NODES;
   config.maxNodesMin = config.maxNodesMin || DEFAULT_MAX_NODES_MIN;
   config.maxNodesMax = config.maxNodesMax || DEFAULT_MAX_NODES_MAX;
+
+  config.nodeRadiusRatio = config.nodeRadiusRatio || DEFAULT_NODE_RADIUS_RATIO;
+  config.nodeRadiusRatioMin = config.nodeRadiusRatioMin || DEFAULT_NODE_RADIUS_RATIO_MIN;
+  config.nodeRadiusRatioMax = config.nodeRadiusRatioMax || DEFAULT_NODE_RADIUS_RATIO_MAX;
 
   config.maxAge = config.maxAge || DEFAULT_MAX_AGE;
   config.maxAgeMin = config.maxAgeMin || DEFAULT_MAX_AGE_MIN;
@@ -22869,7 +22878,7 @@ window.ControlPanel = function ControlPanel() {
 	  this.maxAge = config.maxAge;
 	  this.gravity = config.gravity;
 	  this.charge = config.charge;
-	  this.nodeRadius = config.nodeRadiusRatio;
+	  this.nodeRadiusRatio = config.nodeRadiusRatio;
 	  this.velocityDecay = config.velocityDecay;
 	  this.fontSizeRatio = config.fontSizeRatio;
 	  this.transitionDuration = config.transitionDuration;
@@ -23447,6 +23456,7 @@ window.ControlPanel = function ControlPanel() {
 			  guiDisplay.width = 400;
 
 			  guiDisplayHashMap['maxNodes'] = guiDisplay.add(displayConfig, 'maxNodes', config.maxNodesMin, config.maxNodesMax).listen();
+			  guiDisplayHashMap['nodeRadiusRatio'] = guiDisplay.add(displayConfig, 'nodeRadiusRatio', config.nodeRadiusRatioMin, config.nodeRadiusRatioMax).listen();
 			  guiDisplayHashMap['maxAge'] = guiDisplay.add(displayConfig, 'maxAge', config.maxAgeMin, config.maxAgeMax).listen();
 			  guiDisplayHashMap['gravity'] = guiDisplay.add(displayConfig, 'gravity', config.gravityMin, config.gravityMax).listen();
 			  guiDisplayHashMap['charge'] = guiDisplay.add(displayConfig, 'charge', config.chargeMin, config.chargeMax).listen();
@@ -23460,6 +23470,11 @@ window.ControlPanel = function ControlPanel() {
 				guiDisplayHashMap['maxNodes'].onFinishChange(function(value) {
 					console.debug("GUI DisplayConfig MAX NODES CHANGE\n", value);
 			    parentWindow.postMessage({op:"UPDATE", id: "maxNodes", value: value}, DEFAULT_SOURCE);
+				});
+
+				guiDisplayHashMap['nodeRadiusRatio'].onFinishChange(function(value) {
+					console.debug("GUI DisplayConfig NODE RADIUS RATIO CHANGE\n", value);
+			    parentWindow.postMessage({op:"UPDATE", id: "nodeRadiusRatio", value: value}, DEFAULT_SOURCE);
 				});
 
 				guiDisplayHashMap['maxAge'].onFinishChange(function(value) {

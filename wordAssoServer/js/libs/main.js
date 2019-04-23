@@ -144,7 +144,8 @@ function ControlPanel() {
   statsObj.user.statusesCount = 0;
   statsObj.user.mentions = 0;
   statsObj.user.threeceeFollowing = "---";
-  statsObj.user.ignored = "---";
+  statsObj.user.following = false;
+  statsObj.user.ignored = false;
 
   var eventDetected = false;
 
@@ -178,6 +179,7 @@ function ControlPanel() {
 	  this.statusesCount = statsObj.user.statusesCount;
 	  this.mentions = statsObj.user.mentions;
 	  this.threeceeFollowing = statsObj.user.threeceeFollowing;
+	  this.following = statsObj.user.following;
 	  this.ignored = statsObj.user.ignored;
 	  this.color = "#ffffff";
 	  this.fontSize = 16;
@@ -315,6 +317,7 @@ function ControlPanel() {
 			userNode.mentions = statsObj.user.mentions;
 			userNode.ignored = statsObj.user.ignored;
 			userNode.threeceeFollowing = statsObj.user.threeceeFollowing;
+			userNode.following = statsObj.user.following;
 			userNode.description = statsObj.user.description;
 
       if (twttr && twttr.widgets) {
@@ -643,6 +646,7 @@ function ControlPanel() {
 			  guiUser.add(userNode, 'name').listen();
 			  guiUser.add(userNode, 'location').listen();
 			  guiUser.add(userNode, 'ignored').listen();
+			  guiUser.add(userNode, 'following').listen();
 			  guiUser.add(userNode, 'description').listen();
 			  guiUser.add(userNode, 'categoryAuto', [ 'L', 'N', 'R', '+', '-', '0' ]).listen();
 			  guiUser.add(userNode, 'followersCount').listen();

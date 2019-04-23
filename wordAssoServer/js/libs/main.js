@@ -153,7 +153,6 @@ window.ControlPanel = function ControlPanel() {
 	var UserText = function() {
 		this.nextUncat = function(){
 	    console.debug("NEXT UNCAT");
-	    if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: "@?"}, DEFAULT_SOURCE); }
 		}
 	  this.nodeId = statsObj.user.nodeId;
 	  this.screenName = statsObj.user.screenName;
@@ -741,7 +740,7 @@ window.ControlPanel = function ControlPanel() {
 			  guiUser.width = 400;
 			  const nextUncat = guiUser.add(userText, 'nextUncat');
 			  nextUncat.onFinishChange(function(value){
-					console.debug("GUI DisplayConfig MAX NODES CHANGE\n", value);
+					console.debug("GUI DisplayConfig NEXT UNCAT CHANGE");
 			    if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: "@?"}, DEFAULT_SOURCE); }
 			  });
 			  guiUser.add(userText, 'screenName').listen();

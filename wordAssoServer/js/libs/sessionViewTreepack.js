@@ -664,7 +664,7 @@ function ViewTreepack() {
       clamp(true);
   };
 
-  self.setFontSizeMinRatio = function(value) {
+  self.setFontSizeRatioMin = function(value) {
     console.debug("UPDATE FONT MIN SIZE: " + value);
     config.defaultFontSizeMinRatio = value;
 
@@ -677,7 +677,7 @@ function ViewTreepack() {
       clamp(true);
   };
 
-  self.setFontSizeMaxRatio = function(value) {
+  self.setFontSizeRatioMax = function(value) {
     console.debug("UPDATE FONT MAX SIZE: " + value);
     config.defaultFontSizeMaxRatio = value;
 

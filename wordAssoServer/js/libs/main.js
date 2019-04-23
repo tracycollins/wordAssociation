@@ -11,26 +11,23 @@ function ControlPanel() {
 	console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);
 	var self = this;
 
-	var guiDisplayHashMap = {};
+	var dashboardMainDiv = document.getElementById('dashboardMainDiv');
 
-  var guiUser;
-  var guiDisplay;
+	var twitterProfile;
+	var twitterProfileDiv = document.createElement("div");
+	twitterProfileDiv.id = "twitterProfileDiv";
 
-	var displayData = document.getElementById('displayData');
-	var displayConfig;
+	var twitterTimeLine;
+	var twitterTimeLineDiv = document.createElement("div");
+	twitterTimeLineDiv.id = "twitterTimeLineDiv";
 
-	var userData = document.getElementById('userData');
-	var userNode;
-	var userCategory;
+	var userCategorizeDiv = document.getElementById('userCategorizeDiv');
 
   var twitterFeedUser;
   var twitterFeedPreviousUser;
   var twitterFeedHashtag;
 
 	var compactDateTimeFormat = "YYYYMMDD HHmmss";
-
-  var timelineDiv = document.getElementById("timelineDiv");
-  var hashtagDiv =document.getElementById("hashtagDiv");
 
   var nodeTypesSet = new Set();
   nodeTypesSet.add("emoji");
@@ -126,8 +123,6 @@ function ControlPanel() {
   delete config.twitterUser.countHistory;
   delete config.twitterUser.status;
 
-  // console.log("config\n" + jsonPrint(config));
-
   var statsObj = {};
   statsObj.socketId = "NOT SET";
   statsObj.user = {};
@@ -149,7 +144,14 @@ function ControlPanel() {
 
   var eventDetected = false;
 
-  var categories = {left: false, neutral: false, right: false, positive: false, negative: false, none: true };
+  var categories = [
+  	"left",
+  	"neutral",
+  	"right",
+  	"positive",
+  	"negative",
+  	"none",
+  ];
 
   var nextUncatHandler = function(){
   	// need to debounce button click
@@ -164,49 +166,6 @@ function ControlPanel() {
   	}, 100);
 	};
 
-	var UserNode = function() {
-		this.nextUncat = nextUncatHandler;
-	  this.userId = statsObj.user.userId;
-	  this.nodeId = statsObj.user.nodeId;
-	  this.screenName = statsObj.user.screenName;
-	  this.name = statsObj.user.name;
-	  this.location = statsObj.user.location;
-	  this.description = statsObj.user.description;
-	  this.categoryAuto = statsObj.user.categoryAuto;
-	  this.location = statsObj.user.location;
-	  this.followersCount = statsObj.user.followersCount;
-	  this.friendsCount = statsObj.user.friendsCount;
-	  this.statusesCount = statsObj.user.statusesCount;
-	  this.mentions = statsObj.user.mentions;
-	  this.threeceeFollowing = statsObj.user.threeceeFollowing;
-	  this.following = statsObj.user.following;
-	  this.ignored = statsObj.user.ignored;
-	  // this.color = "#ffffff";
-	  // this.fontSize = 16;
-	  // this.border = false;
-	  // this.fontFamily = "monospace";
-	};
-
-	var DisplayConfig = function() {
-
-	  this.maxNodes = config.maxNodes;
-	  this.maxAge = config.maxAge;
-	  this.gravity = config.gravity;
-	  this.charge = config.charge;
-	  this.nodeRadiusRatioMin = config.nodeRadiusRatioMin;
-	  this.nodeRadiusRatioMax = config.nodeRadiusRatioMax;
-	  this.fontSizeRatioMin = config.fontSizeRatioMin;
-	  this.fontSizeRatioMax = config.fontSizeRatioMax;
-	  this.velocityDecay = config.velocityDecay;
-	  this.fontSizeRatio = config.fontSizeRatio;
-	  this.transitionDuration = config.transitionDuration;
-
-	  // this.color = "#ffffff";
-	  // this.fontSize = 16;
-	  // this.border = false;
-	  // this.fontFamily = "monospace";
-	};
-
 
   function jsonPrint(obj) {
     if ((obj) || (obj === 0)) {
@@ -216,31 +175,6 @@ function ControlPanel() {
       return "UNDEFINED";
     }
   }
-
-  var nodeSearchInput = document.createElement("input");
-  var nodeSearchLabel = document.createElement("label");
-  var nodeSearchValue = "";
-
-  nodeSearchLabel.setAttribute("id", "nodeSearchLabel");
-  nodeSearchLabel.innerHTML = "NODE SEARCH";
-
-  function nodeSearchHandler(e) {
-    if (e.keyCode === 13) { // 'ENTER' key
-      parentWindow.postMessage({op: "NODE_SEARCH", input: nodeSearchInput.value}, DEFAULT_SOURCE);
-    }
-  }
-
-  nodeSearchInput.setAttribute("class", "nodeSearch");
-  nodeSearchInput.setAttribute("type", "text");
-  nodeSearchInput.setAttribute("id", "nodeSearchInput");
-  nodeSearchInput.setAttribute("name", "nodeSearch");
-  nodeSearchInput.setAttribute("autofocus", true);
-  nodeSearchInput.setAttribute("autocapitalize", "none");
-  nodeSearchInput.setAttribute("value", nodeSearchValue);
-  nodeSearchInput.addEventListener("keydown", function(e){ nodeSearchHandler(e); }, false);
-
-  twitterCategorySearchDiv.appendChild(nodeSearchLabel);
-  twitterCategorySearchDiv.appendChild(nodeSearchInput);
 
   Element.prototype.removeAll = function () {
     while (this.firstChild) { this.removeChild(this.firstChild); }
@@ -304,31 +238,11 @@ function ControlPanel() {
       statsObj.user.threeceeFollowing = node.threeceeFollowing;
       statsObj.user.mentions = node.mentions;
 
-			userNode.userId = statsObj.user.userId;
-			userNode.nodeId = statsObj.user.nodeId;
-			userNode.name = statsObj.user.name;
-			userNode.location = statsObj.user.location;
-			userNode.screenName = statsObj.user.screenName;
-			userNode.category = shortCategory(statsObj.user.category);
-			userNode.categoryAuto = shortCategory(statsObj.user.categoryAuto);
-			userNode.followersCount = statsObj.user.followersCount;
-			userNode.friendsCount = statsObj.user.friendsCount;
-			userNode.statusesCount = statsObj.user.statusesCount;
-			userNode.mentions = statsObj.user.mentions;
-			userNode.ignored = statsObj.user.ignored;
-			userNode.threeceeFollowing = statsObj.user.threeceeFollowing;
-			userNode.following = statsObj.user.following;
-			userNode.description = statsObj.user.description;
-
       if (twttr && twttr.widgets) {
-        // twttr.widgets.createFollowButton(
-        //   node.screenName,
-        //   timelineDiv
-        // );
 
         twttr.widgets.createTimeline(
           { sourceType: "profile", screenName: node.screenName},
-          timelineDiv,
+          twitterTimeLineDiv,
           { width: "400", height: "600"}
         )
         .then(function (el) {
@@ -358,27 +272,28 @@ function ControlPanel() {
       + "C: M: " + node.category
       + "<br><br>";
 
-    hashtagDiv.removeAll();
-    timelineDiv.removeAll();
-    hashtagDiv.appendChild(hashtagText);
+    twitterTimeLineDiv.removeAll();
 
     callback();
   }
 
   function loadTwitterFeed(node, callback) {
 
-    if (!timelineDiv || !hashtagDiv || (twttr === undefined)) { 
-      console.error("loadTwitterFeed: timelineDiv OR hashtagDiv OR twttr UNDEFINED");
-      return callback("loadTwitterFeed: timelineDiv OR hashtagDiv OR twttr UNDEFINED");
+    if (!twitterTimeLineDiv || (twttr === undefined)) { 
+      console.error("loadTwitterFeed: twitterTimeLineDiv OR twttr UNDEFINED");
+      return callback("loadTwitterFeed: twitterTimeLineDiv OR twttr UNDEFINED");
     }
 
-    hashtagDiv.removeAll();
-    timelineDiv.removeAll();
+    twitterTimeLineDiv.removeAll();
 
     if (node.nodeType === "user"){
 
       twitterFeedPreviousUser = twitterFeedUser;
       twitterFeedUser = node;
+
+    	twitterProfile.setValue("SCREENNAME", "@"+twitterFeedUser.screenName);
+			twitterProfile.setValue("PROFILE", twitterFeedUser.profileImageUrl.replace("_normal", ""));
+			twitterProfile.setValue("DESCRIPTION", twitterFeedUser.description);
 
       console.debug("loadTwitterFeed"
         + " | TYPE: " + node.nodeType
@@ -402,8 +317,6 @@ function ControlPanel() {
             console.error("LOAD TWITTER FEED ERROR: " + err);
             return callback(err);
           }
-          var nsi =document.getElementById("nodeSearchInput");
-          nsi.value = "@" + node.screenName;
           callback(null);
         });
 
@@ -422,8 +335,6 @@ function ControlPanel() {
 
       updateCategoryRadioButtons(node.category, function(){
         twitterHashtagSearch(node, function(){
-          var nsi =document.getElementById("nodeSearchInput");
-          nsi.value = "#" + node.nodeId;
           callback(null);
         });
       });
@@ -467,7 +378,6 @@ function ControlPanel() {
           && (event.data["twttr.button"]["method"] === "twttr.private.resizeButton")){
           return;
         }
-        // console.log("TWITTER SOURCE: " + event.origin);
       }
       else {
         console.error("RX MESSAGE | NOT TRUSTED SOURCE"
@@ -543,7 +453,7 @@ function ControlPanel() {
           + " | LS: " + currentTwitterNode.lastSeen
           + " | C: " + currentTwitterNode.category
           + " | CA: " + currentTwitterNode.categoryAuto
-          // + jsonPrint(currentTwitterNode)
+			    + "\n profileImageUrl: " + currentTwitterNode.profileImageUrl
         );
         if (event.data.nodeSearch) {
           console.debug("NODE_SEARCH on SET_TWITTER_USER USER" 
@@ -592,138 +502,109 @@ function ControlPanel() {
     if (callback) { callback(); }
   };
 
-	function setChecked( prop ){
-	  for (let param in categories){
-	    categories[param] = false;
-	  }
-	  categories[prop] = true;
-    // if (parentWindow) {
-    // 	parentWindow.postMessage({op: "CATEGORIZE", node: userNode, category: prop}, DEFAULT_SOURCE);
-    // }
+	function setChecked( categorySet ){
+
+		var categorySetButtonId = "category_" + categorySet;
+
+		var cbxs = document.getElementById('radioUserCategoryDiv').getElementsByTagName('input'), i=cbxs.length;
+
+		while(i--) {
+
+		  if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id === categorySetButtonId) {
+				cbxs[i].checked = true;
+		  }
+		  if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id !== categorySetButtonId) {
+				cbxs[i].checked = false;
+		  }
+
+		}
 	}
+
+  function catRadioButtonHandler(e){
+
+		e = e || event;
+
+		var cb = e.srcElement || e.target;
+
+		if (cb.type !== 'checkbox') {return true;}
+
+		console.log("CAT BUTTON: ", cb.id);
+
+		var cbxs = document.getElementById('radioUserCategoryDiv').getElementsByTagName('input'), i=cbxs.length;
+
+		while(i--) {
+			if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id !== cb.id) {
+				cbxs[i].checked = false;
+			}
+		}
+		cb.checked = true;
+    parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: cb.name}, DEFAULT_SOURCE);
+  }
+
+	var radioUserCategoryDiv = document.createElement("div");
+	radioUserCategoryDiv.id = "radioUserCategoryDiv";
+	radioUserCategoryDiv.style.backgroundColor = "white";
+
+	["left", "neutral", "right", "positive", "negative", "none"].forEach(function(category){
+
+		var categoryLabel = document.createElement("label");
+		categoryLabel.setAttribute("class", "categoryButtonLabel");
+		categoryLabel.setAttribute("id", "categoryLabel_" + shortCategory(category));
+		categoryLabel.innerHTML = shortCategory(category);
+
+		var categoryButton = document.createElement("input");
+		categoryButton.id = "category_" + category; 
+		categoryButton.setAttribute("type", "checkbox");
+		categoryButton.name = category; 
+
+		categoryLabel.appendChild(categoryButton);
+		radioUserCategoryDiv.appendChild(categoryLabel);
+
+	});
+
+	radioUserCategoryDiv.onclick = function(e){
+		console.log("radioUserCategoryDiv BUTTON: ", e.srcElement.id);
+		catRadioButtonHandler(e);
+	}
+
 
   $( document ).ready(function() {
 
     console.log( "CONTROL PANEL DOCUMENT READY" );
-    console.log( "CONTROL PANEL CONFIG"
-    	// + "\n" + jsonPrint(config)
-    );
+    console.log( "CONTROL PANEL CONFIG");
 
     self.createControlPanel(function(){
 
       setTimeout(function() {  // KLUDGE to insure table is created before update
 
-			  userNode = new UserNode();
+				twitterProfile = QuickSettings.create(0, 0, "TWITTER USER PROFILE", userCategorizeDiv);
+				twitterProfile.setWidth(400);
 
-			  guiUser = new dat.GUI({domElement: 'userCategorizeDiv'});
-			  guiUser.width = 400;
-			  userCategory = guiUser.addFolder('category');
+				twitterProfile.addElement("CATEGORY", radioUserCategoryDiv);
 
-				userCategory.add(categories, 'left').name('L').listen().onChange(function(){
-					setChecked("left");
-		    	parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: "left"}, DEFAULT_SOURCE);
-				});
-				
-				userCategory.add(categories, 'neutral').name('N').listen().onChange(function(){
-					setChecked("neutral");
-		    	parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: "neutral"}, DEFAULT_SOURCE);
-				});
-				
-				userCategory.add(categories, 'right').name('R').listen().onChange(function(){
-					setChecked("right");
-		    	parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: "right"}, DEFAULT_SOURCE);
-				});
-				
-				userCategory.add(categories, 'none').name('0').listen().onChange(function(){
-					setChecked("none");
-		    	parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: "none"}, DEFAULT_SOURCE);
+				const screenName = (twitterFeedUser) ? "@"+twitterFeedUser.screenName : "@";
+				twitterProfile.addText("SCREENNAME", screenName, function(data){
+					console.warn("SCREENNAME " + data + " | data length: " + data.length);
 				});
 
-				userCategory.open();
-				
-
-			  guiUser.add(userNode, 'nextUncat');
-			  guiUser.add(userNode, 'nodeId').listen();
-			  guiUser.add(userNode, 'screenName').listen();
-			  guiUser.add(userNode, 'name').listen();
-			  guiUser.add(userNode, 'location').listen();
-			  guiUser.add(userNode, 'ignored').listen();
-			  guiUser.add(userNode, 'following').listen();
-			  guiUser.add(userNode, 'description').listen();
-			  guiUser.add(userNode, 'categoryAuto', [ 'L', 'N', 'R', '+', '-', '0' ]).listen();
-			  guiUser.add(userNode, 'followersCount').listen();
-			  guiUser.add(userNode, 'friendsCount').listen();
-			  guiUser.add(userNode, 'statusesCount').listen();
-			  guiUser.add(userNode, 'threeceeFollowing').listen();
-
-			  // guiUser.addColor(userNode, 'color');
-			  // guiUser.add(userNode, 'fontSize', 6, 48);
-			  // guiUser.add(userNode, 'border');
-			  // guiUser.add(userNode, 'fontFamily',["sans-serif", "serif", "cursive", "monospace"]);
-
-			  displayConfig = new DisplayConfig();
-
-			  guiDisplay = new dat.GUI();
-			  guiDisplay.width = 400;
-
-			  guiDisplayHashMap['maxNodes'] = guiDisplay.add(displayConfig, 'maxNodes', config.maxNodesMin, config.maxNodesMax).listen();
-			  guiDisplayHashMap['nodeRadiusRatioMin'] = guiDisplay.add(displayConfig, 'nodeRadiusRatioMin', config.nodeRadiusRatioMinMin, config.nodeRadiusRatioMinMax).listen();
-			  guiDisplayHashMap['nodeRadiusRatioMax'] = guiDisplay.add(displayConfig, 'nodeRadiusRatioMax', config.nodeRadiusRatioMaxMin, config.nodeRadiusRatioMaxMax).listen();
-			  guiDisplayHashMap['fontSizeRatioMin'] = guiDisplay.add(displayConfig, 'fontSizeRatioMin', config.fontSizeRatioMinMin, config.fontSizeRatioMinMax).listen();
-			  guiDisplayHashMap['fontSizeRatioMax'] = guiDisplay.add(displayConfig, 'fontSizeRatioMax', config.fontSizeRatioMaxMin, config.fontSizeRatioMaxMax).listen();
-			  guiDisplayHashMap['maxAge'] = guiDisplay.add(displayConfig, 'maxAge', config.maxAgeMin, config.maxAgeMax).listen();
-			  guiDisplayHashMap['gravity'] = guiDisplay.add(displayConfig, 'gravity', config.gravityMin, config.gravityMax).listen();
-			  guiDisplayHashMap['charge'] = guiDisplay.add(displayConfig, 'charge', config.chargeMin, config.chargeMax).listen();
-			  guiDisplayHashMap['velocityDecay'] = guiDisplay.add(displayConfig, 'velocityDecay', config.velocityDecayMin, config.velocityDecayMax).listen();
-
-			  // guiDisplay.addColor(displayConfig, 'color');
-			  // guiDisplay.add(displayConfig, 'fontSize', 6, 48);
-			  // guiDisplay.add(displayConfig, 'border');
-			  // guiDisplay.add(displayConfig, 'fontFamily',["sans-serif", "serif", "cursive", "monospace"]);
-
-				guiDisplayHashMap['maxNodes'].onFinishChange(function(value) {
-					console.debug("GUI DisplayConfig MAX NODES CHANGE\n", value);
-			    parentWindow.postMessage({op:"UPDATE", id: "maxNodes", value: value}, DEFAULT_SOURCE);
+				twitterProfile.addButton("SEARCH", function(data){
+					console.debug("NODE SEARCH: ", twitterProfile.getValue("SCREENNAME"));
+		      parentWindow.postMessage({op: "NODE_SEARCH", input: twitterProfile.getValue("SCREENNAME")}, DEFAULT_SOURCE);
 				});
 
-				guiDisplayHashMap['fontSizeRatioMin'].onChange(function(value) {
-					console.debug("GUI DisplayConfig NODE FONT SIZE RATIO MIN CHANGE\n", value);
-			    parentWindow.postMessage({op:"UPDATE", id: "fontSizeRatioMin", value: value}, DEFAULT_SOURCE);
-				});
+				const category = (twitterFeedUser) ? shortCategory(twitterFeedUser.category) : "";
 
-				guiDisplayHashMap['fontSizeRatioMax'].onChange(function(value) {
-					console.debug("GUI DisplayConfig NODE FONT SIZE RATIO MAX CHANGE\n", value);
-			    parentWindow.postMessage({op:"UPDATE", id: "fontSizeRatioMax", value: value}, DEFAULT_SOURCE);
-				});
+				const description = (twitterFeedUser) ? twitterFeedUser.description : "";
+				twitterProfile.addTextArea("DESCRIPTION", description);
 
-				guiDisplayHashMap['nodeRadiusRatioMin'].onChange(function(value) {
-					console.debug("GUI DisplayConfig NODE RADIUS RATIO MIN CHANGE\n", value);
-			    parentWindow.postMessage({op:"UPDATE", id: "nodeRadiusRatioMin", value: value}, DEFAULT_SOURCE);
-				});
+				const profileImageUrl = (twitterFeedUser) ? twitterFeedUser.profileImageUrl.replace("_normal", "") : null;
+				twitterProfile.addImage("PROFILE", profileImageUrl);
 
-				guiDisplayHashMap['nodeRadiusRatioMax'].onChange(function(value) {
-					console.debug("GUI DisplayConfig NODE RADIUS RATIO MAX CHANGE\n", value);
-			    parentWindow.postMessage({op:"UPDATE", id: "nodeRadiusRatioMax", value: value}, DEFAULT_SOURCE);
-				});
+				twitterTimeLine = QuickSettings.create(400, 	0, "TWITTER USER TIMELINE", userCategorizeDiv);
+				twitterTimeLine.setWidth(400);
+				twitterTimeLine.addElement("TWEETS", twitterTimeLineDiv);	
 
-				guiDisplayHashMap['maxAge'].onFinishChange(function(value) {
-					console.debug("GUI DisplayConfig MAX AGE CHANGE\n", value);
-			    parentWindow.postMessage({op:"UPDATE", id: "maxAge", value: value}, DEFAULT_SOURCE);
-				});
-
-				guiDisplayHashMap['gravity'].onChange(function(value) {
-					console.debug("GUI DisplayConfig GRAVITY CHANGE\n", value);
-			    parentWindow.postMessage({op:"UPDATE", id: "gravity", value: value}, DEFAULT_SOURCE);
-				});
-
-				guiDisplayHashMap['charge'].onChange(function(value) {
-					console.debug("GUI DisplayConfig CHARGE CHANGE\n", value);
-			    parentWindow.postMessage({op:"UPDATE", id: "charge", value: value}, DEFAULT_SOURCE);
-				});
-
-				guiDisplayHashMap['velocityDecay'].onChange(function(value) {
-					console.debug("GUI DisplayConfig VELOCITY DECAY CHANGE\n", value);
-			    parentWindow.postMessage({op:"UPDATE", id: "velocityDecay", value: value}, DEFAULT_SOURCE);
+				twitterProfile.setGlobalChangeHandler(function(data){
 				});
 
         self.updateControlPanel(config, function(){

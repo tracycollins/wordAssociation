@@ -905,7 +905,9 @@ function resetConfigUpdateTimeOut() {
 
   configUpdateTimeOut = setTimeout(function() {
 
-    console.debug("STORE CONFIG\n" + jsonPrint(config));
+    console.debug("STORE CONFIG"
+      // + "\n" + jsonPrint(config)
+    );
     saveConfig();
 
   }, configUpdateTimeOutInverval);
@@ -1447,7 +1449,9 @@ socket.on("VIEWER_READY_ACK", function(vSesKey) {
 
   config.VIEWER_OBJ = viewerObj;
 
-  console.debug("STORE CONFIG ON VIEWER_READY_ACK\n" + jsonPrint(config));
+  console.debug("STORE CONFIG ON VIEWER_READY_ACK"
+    // + "\n" + jsonPrint(config)
+  );
   saveConfig();
 
   initKeepalive(viewerObj, config.keepaliveInterval);

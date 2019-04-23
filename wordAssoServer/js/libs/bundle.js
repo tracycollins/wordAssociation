@@ -23441,10 +23441,6 @@ window.ControlPanel = function ControlPanel() {
 			  guiUser.add(userText, 'border');
 			  guiUser.add(userText, 'fontFamily',["sans-serif", "serif", "cursive", "monospace"]);
 
-				guiUser.onChange(function(value) {
-					console.debug("GUI USER CHANGE\n", value);
-				});
-
 			  displayConfig = new DisplayConfig();
 
 			  guiDisplay = new dat.GUI();

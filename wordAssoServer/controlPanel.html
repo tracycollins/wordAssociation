@@ -2,6 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8">
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> -->
     <meta http-equiv="Content-Security-Policy" content="
 
     default-src 'unsafe-inline' 'self' ws: https://*.twitter.com/ http://*.googleapis.com/ https://*.cloudflare.com/; 
@@ -18,9 +19,9 @@
 
     connect-src 'self' https://twitter.com/ http://twitter.com/ https://*.twitter.com/ http://*.twitter.com/; ">
 
-    <link rel="stylesheet" href="css/base.css">
+<!--     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/main.css">
-    <link rel="icon" type="image/png" href="favicon.png" />
+ -->    <link rel="icon" type="image/png" href="favicon.png" />
     <!-- <link href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/3.5.3/css/tabulator.min.css" rel="stylesheet"> -->
 
     <style>
@@ -187,11 +188,12 @@
 
     </style>
   </head>
-  <body>
+  <body>      
 
-
+    <p id="userData"></p>
 
     <div class="wrapper" id="dashboardMain">
+
 
       <div id="controlDiv" class="control">
         <table id='controlTable' class='controlTable'>
@@ -208,7 +210,6 @@
         </table>
       </div>
 
-
       <div id="nodeDisplayDiv" class="nodeDisplay">
       </div>
 
@@ -221,7 +222,6 @@
         <table id="categoryTable" class="controlTable"></table>
         <div id="twitterCategoryButtonsDiv"></div>
       </div>
-
 
       <div id="userStatsDiv" class="userStats">
         <table id="userStatsTable" class="userStatsTable">
@@ -256,7 +256,8 @@
       return t;
     }(document, "script", "twitter-wjs"));</script>
 
-  <script src="./js/libs/bundle.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.6/dat.gui.min.js"></script> -->
+    <script src="./js/libs/bundle.js"></script>
 
 
   </body>

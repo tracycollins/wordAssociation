@@ -626,10 +626,10 @@ function ControlPanel() {
 		      parentWindow.postMessage({op: "NODE_SEARCH", input: twitterProfile.getValue("SCREENNAME")}, DEFAULT_SOURCE);
 				});
 
-				const location = (twitterFeedUser) ? twitterFeedUser.location;
+				const location = (twitterFeedUser) ? twitterFeedUser.location : "";
 				twitterProfile.addText("LOCATION", location);
 
-				const ignored = (twitterFeedUser) ? twitterFeedUser.location;
+				const ignored = (twitterFeedUser) ? twitterFeedUser.ignored : false;
 				twitterProfile.addBoolean("IGNORED", ignored);
 
 				const description = (twitterFeedUser) ? twitterFeedUser.description : "";

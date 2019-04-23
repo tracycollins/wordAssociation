@@ -589,14 +589,14 @@ function ViewTreepack() {
     else { self.simulationControl("RESUME"); }
   };
 
-  self.updateParam = function(param, value) {
+  self.setParam = function(param, value) {
     console.log("updateParam: " + param + " = " + value);
     return;
   };
 
   self.setVelocityDecay = function(value) {
     console.debug("UPDATE VEL DECAY: " + value.toFixed(sliderPercision));
-    config.defaultVelocityDecay = value;  
+    config.defaultVelocityDecay = value;
     velocityDecay = value;
     simulation.velocityDecay(velocityDecay);
   };
@@ -653,7 +653,7 @@ function ViewTreepack() {
       clamp(true);
   };
 
-  set.getNodeRadiusMaxRatio = function(value) {
+  self.setNodeRadiusMaxRatio = function(value) {
     console.debug("UPDATE NODE RADIUS MAX RATIO: " + value);
     config.defaultNodeRadiusMaxRatio = value;
     nodeRadiusMaxRatio = value;
@@ -664,7 +664,7 @@ function ViewTreepack() {
       clamp(true);
   };
 
-  set.getFontSizeMinRatio = function(value) {
+  self.setFontSizeMinRatio = function(value) {
     console.debug("UPDATE FONT MIN SIZE: " + value);
     config.defaultFontSizeMinRatio = value;
 
@@ -677,7 +677,7 @@ function ViewTreepack() {
       clamp(true);
   };
 
-  set.getFontSizeMaxRatio = function(value) {
+  self.setFontSizeMaxRatio = function(value) {
     console.debug("UPDATE FONT MAX SIZE: " + value);
     config.defaultFontSizeMaxRatio = value;
 

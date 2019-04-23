@@ -21,8 +21,8 @@ ProgressBar
 
 "use strict";
 
-// var DEFAULT_SOURCE = "http://localhost:9997";
-var DEFAULT_SOURCE = "https://word.threeceelabs.com";
+var DEFAULT_SOURCE = "http://localhost:9997";
+// var DEFAULT_SOURCE = "https://word.threeceelabs.com";
 
 var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
 // var DEFAULT_AUTH_URL = "http://localhost:9997/auth/twitter";
@@ -1015,17 +1015,17 @@ function controlPanelComm(event) {
       console.warn("R< CONTROL PANEL UPDATE");
       switch (event.data.id) {
         case "transitionDurationSlider" :
-          currentSessionView.updateTransitionDuration(event.data.value);
+          currentSessionView.setTransitionDuration(event.data.value);
           config.defaultTransitionDuration = event.data.value;
         break;
         case "velocityDecaySlider" :
-          currentSessionView.updateVelocityDecay(event.data.value);
+          currentSessionView.setVelocityDecay(event.data.value);
         break;
         case "gravitySlider" :
-          currentSessionView.updateGravity(event.data.value);
+          currentSessionView.setGravity(event.data.value);
         break;
         case "chargeSlider" :
-          currentSessionView.updateCharge(event.data.value);
+          currentSessionView.setCharge(event.data.value);
         break;
         case "maxAgeSlider" :
           currentSessionView.setNodeMaxAge(event.data.value);
@@ -1034,16 +1034,16 @@ function controlPanelComm(event) {
           currentSessionView.setMaxNodesLimit(event.data.value);
         break;
         case "fontSizeMinRatioSlider" :
-          currentSessionView.updateFontSizeMinRatio(event.data.value);
+          currentSessionView.setFontSizeMinRatio(event.data.value);
         break;
         case "fontSizeMaxRatioSlider" :
-          currentSessionView.updateFontSizeMaxRatio(event.data.value);
+          currentSessionView.setFontSizeMaxRatio(event.data.value);
         break;
         case "nodeRadiusMinRatioSlider" :
-          currentSessionView.updateNodeRadiusMinRatio(event.data.value);
+          currentSessionView.setNodeRadiusMinRatio(event.data.value);
         break;
         case "nodeRadiusMaxRatioSlider" :
-          currentSessionView.updateNodeRadiusMaxRatio(event.data.value);
+          currentSessionView.setNodeRadiusMaxRatio(event.data.value);
         break;
         default:
           console.error("UNKNOWN CONTROL PANEL ID: " + event.data.id + "\n" + jsonPrint(event.data));

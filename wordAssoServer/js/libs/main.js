@@ -12,7 +12,7 @@ window.ControlPanel = function ControlPanel() {
 	var self = this;
 
 	var $ = require('jquery-browserify');
-	var control = require("control-panel");
+	// var control = require("control-panel");
 	var dat = require('dat.gui');
 
 	// var canvas = document.getElementById("guiCanvas");
@@ -659,22 +659,22 @@ window.ControlPanel = function ControlPanel() {
 	//   }
 	// }
 
-	var nodeDisplayPanel = control([
-		{type: "checkbox", label: "EMOJI", initial: false},
-		{type: "checkbox", label: "HASHTAG", initial: false},
-		{type: "checkbox", label: "LOCATION", initial: false},
-		{type: "checkbox", label: "MEDIA", initial: false},
-		{type: "checkbox", label: "PLACE", initial: false},
-		{type: "checkbox", label: "URL", initial: false},
-		{type: "checkbox", label: "USER", initial: false},
-		{type: "checkbox", label: "WORD", initial: false}
-	], 
-	  {root: document.getElementById("nodeDisplayDiv"), theme: "dark"}
-	);
+	// var nodeDisplayPanel = control([
+	// 	{type: "checkbox", label: "EMOJI", initial: false},
+	// 	{type: "checkbox", label: "HASHTAG", initial: false},
+	// 	{type: "checkbox", label: "LOCATION", initial: false},
+	// 	{type: "checkbox", label: "MEDIA", initial: false},
+	// 	{type: "checkbox", label: "PLACE", initial: false},
+	// 	{type: "checkbox", label: "URL", initial: false},
+	// 	{type: "checkbox", label: "USER", initial: false},
+	// 	{type: "checkbox", label: "WORD", initial: false}
+	// ], 
+	//   {root: document.getElementById("nodeDisplayDiv"), theme: "dark"}
+	// );
 
-	nodeDisplayPanel.on("input", function(data){
-		console.debug("NODE DISPLAY INPUT\n", data)
-	});
+	// nodeDisplayPanel.on("input", function(data){
+	// 	console.debug("NODE DISPLAY INPUT\n", data)
+	// });
 
 	// var userCategorizePanel = control([
 	// 	{type: "button", label: "PREV USER", action: function () { buttonHandler({id: "previousUser", name: "PREV USER", user: previousUser}); }},

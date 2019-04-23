@@ -22722,7 +22722,7 @@ window.ControlPanel = function ControlPanel() {
   "use strict";
 
   const ONE_SECOND = 1000;
-  const ONE_MINUTE = 60*ONE_MINUTE;
+  const ONE_MINUTE = 60*ONE_SECOND;
 
 	var DEFAULT_SOURCE = "https://word.threeceelabs.com";
   // var DEFAULT_SOURCE = "http://localhost:9997";

@@ -606,10 +606,8 @@ function ControlPanel() {
 				twitterProfile.addButton("NEXT UNCAT RIGHT", function(){
 					nextUncatHandler("right");
 				});
-				// twitterProfile.addButton("NEXT UNCAT LEFT", nextUncatHandler('left'));
-				// twitterProfile.addButton("NEXT UNCAT NEUTRAL", nextUncatHandler('neutral'));
-				// twitterProfile.addButton("NEXT UNCAT RIGHT", nextUncatHandler('right'));
-				// twitterProfile.addElement("CATEGORY MAN", radioUserCategoryDiv);
+
+				twitterProfile.addElement("CATEGORY MAN", radioUserCategoryDiv);
 
 				const categoryAuto = (twitterFeedUser) ? twitterFeedUser.categoryAuto : "";
 				twitterProfile.addText("CATEGORY AUTO", categoryAuto);

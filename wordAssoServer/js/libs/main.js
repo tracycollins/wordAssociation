@@ -63,8 +63,8 @@ window.ControlPanel = function ControlPanel() {
   const DEFAULT_MAX_AGE_MAX = ONE_MINUTE;
 
   const DEFAULT_GRAVITY = 0.001;
-  const DEFAULT_GRAVITY_MIN = 10;
-  const DEFAULT_GRAVITY_MAX = 500;
+  const DEFAULT_GRAVITY_MIN = 0.0;
+  const DEFAULT_GRAVITY_MAX = 5.0;
 
   const DEFAULT_CHARGE = -50.0;
   const DEFAULT_CHARGE_MIN = -100.0;

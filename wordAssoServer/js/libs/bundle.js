@@ -23464,7 +23464,7 @@ window.ControlPanel = function ControlPanel() {
 
 				guiDisplayHashMap['maxAge'].onFinishChange(function(value) {
 					console.debug("GUI DisplayConfig MAX AGE CHANGE\n", value);
-			    parentWindow.postMessage({op:"UPDATE", id: " maxAge", value: value}, DEFAULT_SOURCE);
+			    parentWindow.postMessage({op:"UPDATE", id: "maxAge", value: value}, DEFAULT_SOURCE);
 				});
 
 				guiDisplayHashMap['gravity'].onFinishChange(function(value) {

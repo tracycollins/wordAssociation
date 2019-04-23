@@ -181,10 +181,10 @@ function ControlPanel() {
 	  this.threeceeFollowing = statsObj.user.threeceeFollowing;
 	  this.following = statsObj.user.following;
 	  this.ignored = statsObj.user.ignored;
-	  this.color = "#ffffff";
-	  this.fontSize = 16;
-	  this.border = false;
-	  this.fontFamily = "monospace";
+	  // this.color = "#ffffff";
+	  // this.fontSize = 16;
+	  // this.border = false;
+	  // this.fontFamily = "monospace";
 	};
 
 	var DisplayConfig = function() {
@@ -201,10 +201,10 @@ function ControlPanel() {
 	  this.fontSizeRatio = config.fontSizeRatio;
 	  this.transitionDuration = config.transitionDuration;
 
-	  this.color = "#ffffff";
-	  this.fontSize = 16;
-	  this.border = false;
-	  this.fontFamily = "monospace";
+	  // this.color = "#ffffff";
+	  // this.fontSize = 16;
+	  // this.border = false;
+	  // this.fontFamily = "monospace";
 	};
 
 
@@ -653,10 +653,11 @@ function ControlPanel() {
 			  guiUser.add(userNode, 'friendsCount').listen();
 			  guiUser.add(userNode, 'statusesCount').listen();
 			  guiUser.add(userNode, 'threeceeFollowing').listen();
-			  guiUser.addColor(userNode, 'color');
-			  guiUser.add(userNode, 'fontSize', 6, 48);
-			  guiUser.add(userNode, 'border');
-			  guiUser.add(userNode, 'fontFamily',["sans-serif", "serif", "cursive", "monospace"]);
+
+			  // guiUser.addColor(userNode, 'color');
+			  // guiUser.add(userNode, 'fontSize', 6, 48);
+			  // guiUser.add(userNode, 'border');
+			  // guiUser.add(userNode, 'fontFamily',["sans-serif", "serif", "cursive", "monospace"]);
 
 			  displayConfig = new DisplayConfig();
 
@@ -673,10 +674,10 @@ function ControlPanel() {
 			  guiDisplayHashMap['charge'] = guiDisplay.add(displayConfig, 'charge', config.chargeMin, config.chargeMax).listen();
 			  guiDisplayHashMap['velocityDecay'] = guiDisplay.add(displayConfig, 'velocityDecay', config.velocityDecayMin, config.velocityDecayMax).listen();
 
-			  guiDisplay.addColor(displayConfig, 'color');
-			  guiDisplay.add(displayConfig, 'fontSize', 6, 48);
-			  guiDisplay.add(displayConfig, 'border');
-			  guiDisplay.add(displayConfig, 'fontFamily',["sans-serif", "serif", "cursive", "monospace"]);
+			  // guiDisplay.addColor(displayConfig, 'color');
+			  // guiDisplay.add(displayConfig, 'fontSize', 6, 48);
+			  // guiDisplay.add(displayConfig, 'border');
+			  // guiDisplay.add(displayConfig, 'fontFamily',["sans-serif", "serif", "cursive", "monospace"]);
 
 				guiDisplayHashMap['maxNodes'].onFinishChange(function(value) {
 					console.debug("GUI DisplayConfig MAX NODES CHANGE\n", value);

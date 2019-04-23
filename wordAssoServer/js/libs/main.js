@@ -151,8 +151,8 @@ window.ControlPanel = function ControlPanel() {
   statsObj.user.ignored = "---";
 
 	var UserText = function() {
-		this.nextUncat = function(){
-	    console.debug("NEXT UNCAT");
+		this.nextUncat = function(e){
+	    console.debug("NEXT UNCAT\n", e);
 	    if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: "@?"}, DEFAULT_SOURCE); }
 		}
 	  this.nodeId = statsObj.user.nodeId;

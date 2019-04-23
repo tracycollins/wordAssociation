@@ -615,7 +615,7 @@ function ControlPanel() {
 
 			  userNode = new UserNode();
 
-			  guiUser = new dat.GUI();
+			  guiUser = new dat.GUI({domElement: 'userCategorizeDiv'});
 			  guiUser.width = 400;
 			  userCategory = guiUser.addFolder('category');
 

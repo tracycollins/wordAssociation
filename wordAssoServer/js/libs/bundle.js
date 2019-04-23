@@ -23459,6 +23459,7 @@ window.ControlPanel = function ControlPanel() {
 
 				guiDisplayHashMap['maxNodes'].onFinishChange(function(value) {
 					console.debug("GUI DisplayConfig MAX NODES CHANGE\n", value);
+			    parentWindow.postMessage({op:"UPDATE", id: "maxNodes", value: value}, DEFAULT_SOURCE);
 				});
 
         self.updateControlPanel(config, function(){

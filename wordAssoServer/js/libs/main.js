@@ -151,7 +151,7 @@ function ControlPanel() {
   var categories = {left: false, neutral: false, right: false, positive: false, negative: false, none: true };
 
   var nextUncatHandler = function(){
-  	need to debounce button click
+  	// need to debounce button click
   	if (eventDetected) {
   		return;
   	}

@@ -561,7 +561,7 @@ function saveConfig(){
   store.set(storedConfigName, config);
   console.debug("STORED CONFIG"
     + " | " + storedConfigName
-    + "\n" + jsonPrint(store.get(storedConfigName))
+    // + "\n" + jsonPrint(store.get(storedConfigName))
   );
 }
 
@@ -2113,11 +2113,11 @@ function initialize(callback) {
 
             if (storedConfig) {
 
-              console.debug("STORED CONFIG"
-                + " | " + storedConfigName
-                + "\nCURRENT CONFIG\n" + jsonPrint(config)
-                + "\n" + jsonPrint(storedConfig)
-              );
+              // console.debug("STORED CONFIG"
+              //   + " | " + storedConfigName
+              //   + "\nCURRENT CONFIG\n" + jsonPrint(config)
+              //   + "\n" + jsonPrint(storedConfig)
+              // );
 
               var storedConfigArgs = Object.keys(storedConfig);
 
@@ -2177,11 +2177,11 @@ function initialize(callback) {
 
             if (storedConfig) {
 
-              console.debug("STORED CONFIG"
-                + " | " + storedConfigName
-                + "\nCURRENT CONFIG\n" + jsonPrint(config)
-                + "\n" + jsonPrint(storedConfig)
-              );
+              // console.debug("STORED CONFIG"
+              //   + " | " + storedConfigName
+              //   + "\nCURRENT CONFIG\n" + jsonPrint(config)
+              //   + "\n" + jsonPrint(storedConfig)
+              // );
 
               var storedConfigArgs = Object.keys(storedConfig);
 
@@ -2237,11 +2237,11 @@ function initialize(callback) {
 
             if (storedConfig) {
 
-              console.debug("STORED CONFIG"
-                + " | " + storedConfigName
-                + "\nCURRENT CONFIG\n" + jsonPrint(config)
-                + "\n" + jsonPrint(storedConfig)
-              );
+              // console.debug("STORED CONFIG"
+              //   + " | " + storedConfigName
+              //   + "\nCURRENT CONFIG\n" + jsonPrint(config)
+              //   + "\n" + jsonPrint(storedConfig)
+              // );
 
               var storedConfigArgs = Object.keys(storedConfig);
 

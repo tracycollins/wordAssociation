@@ -153,7 +153,7 @@ window.ControlPanel = function ControlPanel() {
 	var UserText = function() {
 		this.nextUncat = function(){
 	    console.debug("NEXT UNCAT");
-	    if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: "@?"}, DEFAULT_SOURCE); }
+	    // if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: "@?"}, DEFAULT_SOURCE); }
 		}
 	  this.nodeId = statsObj.user.nodeId;
 	  this.screenName = statsObj.user.screenName;
@@ -739,7 +739,7 @@ window.ControlPanel = function ControlPanel() {
 
 			  guiUser = new dat.GUI();
 			  guiUser.width = 400;
-			  guiUser.add(userText, 'nextUncat');
+			  const nextUncat = guiUser.add(userText, 'nextUncat');
 			  guiUser.add(userText, 'screenName').listen();
 			  guiUser.add(userText, 'name').listen();
 			  guiUser.add(userText, 'location').listen();
@@ -755,6 +755,11 @@ window.ControlPanel = function ControlPanel() {
 			  guiUser.add(userText, 'fontSize', 6, 48);
 			  guiUser.add(userText, 'border');
 			  guiUser.add(userText, 'fontFamily',["sans-serif", "serif", "cursive", "monospace"]);
+
+			  nextUncat.onFinishChange(function(value){
+					console.debug("GUI DisplayConfig NEXT UNCAT CHANGE");
+			    if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: "@?"}, DEFAULT_SOURCE); }
+			  });
 
 			  displayConfig = new DisplayConfig();
 

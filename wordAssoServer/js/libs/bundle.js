@@ -23477,7 +23477,7 @@ window.ControlPanel = function ControlPanel() {
 			  guiUser.add(userText, 'fontFamily',["sans-serif", "serif", "cursive", "monospace"]);
 
 			  nextUncat.onFinishChange(function(value){
-					console.debug("GUI DisplayConfig NEXT UNCAT CHANGE");
+					console.debug("GUI DisplayConfig NEXT UNCAT CHANGE\n", value);
 			    if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: "@?"}, DEFAULT_SOURCE); }
 			  });
 

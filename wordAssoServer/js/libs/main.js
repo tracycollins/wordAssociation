@@ -702,6 +702,7 @@ window.ControlPanel = function ControlPanel() {
 
 			  guiUser = new dat.GUI();
 			  guiUser.width = 400;
+			  guiUser.add(userText, 'nextUncat');
 			  guiUser.add(userText, 'screenName').listen();
 			  guiUser.add(userText, 'name').listen();
 			  guiUser.add(userText, 'location').listen();

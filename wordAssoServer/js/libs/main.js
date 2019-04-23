@@ -159,8 +159,23 @@ function ControlPanel() {
   		return;
   	}
   	eventDetected = true;
-    console.debug("NEXT UNCAT | CAT FILTER: " + cat);
-    if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: "@?"}, DEFAULT_SOURCE); }
+
+  	var searchFilter = "@?";
+
+
+    switch (cat){
+    	case "left":
+    	case "right":
+    	case "neutral":
+    	case "positive":
+    	case "negative":
+    	case "none":
+    		searchFilter += cat; 
+    }
+
+    console.debug("NEXT UNCAT | CAT FILTER: " + cat + " | searchFilter: " + searchFilter);
+
+    if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: searchFilter}, DEFAULT_SOURCE); }
   	setTimeout(function(){
   		eventDetected = false;
   	}, 100);

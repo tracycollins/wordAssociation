@@ -1,12 +1,28 @@
 window.ControlPanel = function ControlPanel() {
   "use strict";
 
-	var DEFAULT_SOURCE = "https://word.threeceelabs.com";
-  // var DEFAULT_SOURCE = "http://localhost:9997";
+	// var DEFAULT_SOURCE = "https://word.threeceelabs.com";
+  var DEFAULT_SOURCE = "http://localhost:9997";
 
 	var parentWindow = window.opener;
 	console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);
 	var self = this;
+
+	var $ = require('jquery-browserify');
+	var control = require("control-panel");
+	var dat = require('dat.gui');
+
+	// var canvas = document.getElementById("guiCanvas");
+
+  var guiUser;
+  var guiDisplay;
+
+	var displayData = document.getElementById('displayData');
+	var displayConfig;
+
+	var userData = document.getElementById('userData');
+	var userText;
+
 
   var twitterFeedUser;
   var twitterFeedPreviousUser;
@@ -27,9 +43,6 @@ window.ControlPanel = function ControlPanel() {
   nodeTypesSet.add("user");
   nodeTypesSet.add("word");
 
-	var $ = require('jquery-browserify');
-	var control = require("control-panel");
-
 	var currentUser = "threecee";
 	var previousUser = currentUser;
 
@@ -41,13 +54,15 @@ window.ControlPanel = function ControlPanel() {
   delete config.twitterUser.countHistory;
   delete config.twitterUser.status;
 
-  console.log("config\n" + jsonPrint(config));
+  // console.log("config\n" + jsonPrint(config));
 
   var statsObj = {};
   statsObj.socketId = "NOT SET";
   statsObj.user = {};
   statsObj.user.name = "---";
   statsObj.user.screenName = "@";
+  statsObj.user.location = "---";
+  statsObj.user.description = "---";
   statsObj.user.category = "---";
   statsObj.user.categoryAuto = "---";
   statsObj.user.followersCount = 0;
@@ -57,6 +72,69 @@ window.ControlPanel = function ControlPanel() {
   statsObj.user.threeceeFollowing = "---";
   statsObj.user.ignored = "---";
 
+	var UserText = function() {
+	  // this.message = "@threecee";
+	  this.nodeId = statsObj.user.nodeId;
+	  this.screenName = statsObj.user.screenName;
+	  this.name = statsObj.user.name;
+	  this.location = statsObj.user.location;
+	  this.description = statsObj.user.description;
+	  this.category = statsObj.user.category;
+	  this.categoryAuto = statsObj.user.categoryAuto;
+	  this.location = statsObj.user.location;
+	  this.followersCount = statsObj.user.followersCount;
+	  this.friendsCount = statsObj.user.friendsCount;
+	  this.statusesCount = statsObj.user.statusesCount;
+	  this.mentions = statsObj.user.mentions;
+	  this.threeceeFollowing = statsObj.user.threeceeFollowing;
+	  this.ignored = statsObj.user.ignored;
+	  this.color = "#ffffff";
+	  this.fontSize = 16;
+	  this.border = false;
+	  this.fontFamily = "monospace";
+	};
+
+	var DisplayConfig = function() {
+
+	  this.maxNodesMin = config.maxNodesMin;
+	  this.maxNodesMax = config.maxNodesMax;
+	  this.maxNodes = config.maxNodes;
+
+	  this.maxAgeMin = config.maxAgeMin;
+	  this.maxAgeMax = config.maxAgeMax;
+	  this.maxAge = config.maxAge;
+
+	  this.transitionDurationMin = config.transitionDurationMin;
+	  this.transitionDurationMax = config.transitionDurationMax;
+	  this.transitionDuration = config.transitionDuration;
+
+	  this.gravityMin = config.gravityMin;
+	  this.gravityMax = config.gravityMax;
+	  this.gravity = config.gravity;
+
+	  this.chargeMin = config.chargeMin;
+	  this.chargeMax = config.chargeMax;
+	  this.charge = config.charge;
+
+	  this.nodeRadiusRatioMin = config.nodeRadiusRatioMin;
+	  this.nodeRadiusRatioMax = config.nodeRadiusRatioMax;
+	  this.nodeRadius = config.nodeRadiusRatio;
+
+	  this.velocityDecayMin = config.velocityDecayMin;
+	  this.velocityDecayMax = config.velocityDecayMax;
+	  this.velocityDecay = config.velocityDecay;
+
+	  this.fontSizeRatioMin = config.fontSizeRatioMin;
+	  this.fontSizeRatioMax = config.fontSizeRatioMax;
+	  this.fontSizeRatio = config.fontSizeRatio;
+
+	  this.color = "#ffffff";
+	  this.fontSize = 16;
+	  this.border = false;
+	  this.fontFamily = "monospace";
+	};
+
+
   function jsonPrint(obj) {
     if ((obj) || (obj === 0)) {
       var jsonString = JSON.stringify(obj, null, 2);
@@ -65,6 +143,31 @@ window.ControlPanel = function ControlPanel() {
       return "UNDEFINED";
     }
   }
+
+  var nodeSearchInput = document.createElement("input");
+  var nodeSearchLabel = document.createElement("label");
+  var nodeSearchValue = "";
+
+  nodeSearchLabel.setAttribute("id", "nodeSearchLabel");
+  nodeSearchLabel.innerHTML = "NODE SEARCH";
+
+  function nodeSearchHandler(e) {
+    if (e.keyCode === 13) { // 'ENTER' key
+      parentWindow.postMessage({op: "NODE_SEARCH", input: nodeSearchInput.value}, DEFAULT_SOURCE);
+    }
+  }
+
+  nodeSearchInput.setAttribute("class", "nodeSearch");
+  nodeSearchInput.setAttribute("type", "text");
+  nodeSearchInput.setAttribute("id", "nodeSearchInput");
+  nodeSearchInput.setAttribute("name", "nodeSearch");
+  nodeSearchInput.setAttribute("autofocus", true);
+  nodeSearchInput.setAttribute("autocapitalize", "none");
+  nodeSearchInput.setAttribute("value", nodeSearchValue);
+  nodeSearchInput.addEventListener("keydown", function(e){ nodeSearchHandler(e); }, false);
+
+  twitterCategorySearchDiv.appendChild(nodeSearchLabel);
+  twitterCategorySearchDiv.appendChild(nodeSearchInput);
 
   Element.prototype.removeAll = function () {
     while (this.firstChild) { this.removeChild(this.firstChild); }
@@ -79,49 +182,51 @@ window.ControlPanel = function ControlPanel() {
       category = "none";
     }
 
-    var element;
+    callback();
 
-    document.getElementById("categoryLeft").setAttribute("class", "radioUnchecked");
-    document.getElementById("categoryRight").setAttribute("class", "radioUnchecked");
-    document.getElementById("categoryNeutral").setAttribute("class", "radioUnchecked");
-    document.getElementById("categoryPositive").setAttribute("class", "radioUnchecked");
-    document.getElementById("categoryNegative").setAttribute("class", "radioUnchecked");
-    document.getElementById("categoryNone").setAttribute("class", "radioUnchecked");
+    // var element;
 
-    switch(category) {
-      case "left":
-        element = document.getElementById("categoryLeft");
-        element.className = "radioChecked";
-        callback();
-      break;
-      case "right":
-        element = document.getElementById("categoryRight");
-        element.className = "radioChecked";
-        callback();
-      break;
-      case "neutral":
-        element = document.getElementById("categoryNeutral");
-        element.className = "radioChecked";
-        callback();
-      break;
-      case "positive":
-        element = document.getElementById("categoryPositive");
-        element.className = "radioChecked";
-        callback();
-      break;
-      case "negative":
-        element = document.getElementById("categoryNegative");
-        element.className = "radioChecked";
-        callback();
-      break;
-      case "none":
-        element = document.getElementById("categoryNone");
-        element.className = "radioChecked";
-        callback();
-      break;
-      default:
-        callback();
-    }
+    // document.getElementById("categoryLeft").setAttribute("class", "radioUnchecked");
+    // document.getElementById("categoryRight").setAttribute("class", "radioUnchecked");
+    // document.getElementById("categoryNeutral").setAttribute("class", "radioUnchecked");
+    // document.getElementById("categoryPositive").setAttribute("class", "radioUnchecked");
+    // document.getElementById("categoryNegative").setAttribute("class", "radioUnchecked");
+    // document.getElementById("categoryNone").setAttribute("class", "radioUnchecked");
+
+    // switch(category) {
+    //   case "left":
+    //     element = document.getElementById("categoryLeft");
+    //     element.className = "radioChecked";
+    //     callback();
+    //   break;
+    //   case "right":
+    //     element = document.getElementById("categoryRight");
+    //     element.className = "radioChecked";
+    //     callback();
+    //   break;
+    //   case "neutral":
+    //     element = document.getElementById("categoryNeutral");
+    //     element.className = "radioChecked";
+    //     callback();
+    //   break;
+    //   case "positive":
+    //     element = document.getElementById("categoryPositive");
+    //     element.className = "radioChecked";
+    //     callback();
+    //   break;
+    //   case "negative":
+    //     element = document.getElementById("categoryNegative");
+    //     element.className = "radioChecked";
+    //     callback();
+    //   break;
+    //   case "none":
+    //     element = document.getElementById("categoryNone");
+    //     element.className = "radioChecked";
+    //     callback();
+    //   break;
+    //   default:
+    //     callback();
+    // }
   }
 
   function shortCategory(c) {
@@ -133,6 +238,97 @@ window.ControlPanel = function ControlPanel() {
       case "negative": return "-";
       default: return "0";
     }
+  }
+
+  var nodeName;
+  var category;
+  var categoryAuto;
+
+  function twitterWidgetsCreateTimeline(node, callback){
+
+    if (node.notFound !== undefined) {
+      callback(null, null);
+    }
+    else {
+
+      twitterFeedPreviousUser = node;
+
+      nodeName = (node.name !== undefined) ? node.name : "---";
+
+      category = node.category || "none";
+      categoryAuto = node.categoryAuto || "none";
+
+      statsObj.user.nodeId = node.nodeId;
+      statsObj.user.name = nodeName;
+      statsObj.user.screenName = node.screenName;
+      statsObj.user.location = node.location;
+      statsObj.user.description = node.description;
+      statsObj.user.category = category;
+      statsObj.user.categoryAuto = categoryAuto;
+      statsObj.user.followersCount = node.followersCount;
+      statsObj.user.friendsCount = node.friendsCount;
+      statsObj.user.statusesCount = node.statusesCount;
+      statsObj.user.ignored = node.ignored;
+      statsObj.user.threeceeFollowing = node.threeceeFollowing;
+      statsObj.user.mentions = node.mentions;
+
+			userText.nodeId = statsObj.user.nodeId;
+			userText.name = statsObj.user.name;
+			userText.location = statsObj.user.location;
+			userText.screenName = statsObj.user.screenName;
+			userText.category = shortCategory(statsObj.user.category);
+			userText.categoryAuto = shortCategory(statsObj.user.categoryAuto);
+			userText.followersCount = statsObj.user.followersCount;
+			userText.friendsCount = statsObj.user.friendsCount;
+			userText.statusesCount = statsObj.user.statusesCount;
+			userText.mentions = statsObj.user.mentions;
+			userText.ignored = statsObj.user.ignored;
+			userText.threeceeFollowing = statsObj.user.threeceeFollowing;
+			userText.description = statsObj.user.description;
+
+      if (twttr && twttr.widgets) {
+        // twttr.widgets.createFollowButton(
+        //   node.screenName,
+        //   timelineDiv
+        // );
+
+        twttr.widgets.createTimeline(
+          { sourceType: "profile", screenName: node.screenName},
+          timelineDiv,
+          { width: "400", height: "600"}
+        )
+        .then(function (el) {
+          callback(null, el);
+        })
+        .catch(function(err){
+          console.error("TWITTER CREATE TIMELINE ERROR: " + err);
+          callback(err, null);
+        });
+      }
+      else {
+        callback(null, null);
+      }
+    }
+  }
+
+  function twitterHashtagSearch(node, callback){
+
+    var text = node.nodeId.toLowerCase();
+    var hashtagText = document.createElement("TEXT");
+
+    hashtagText.setAttribute("id", "hashtagText");
+    hashtagText.setAttribute("class", "hashtagText");
+    hashtagText.innerHTML = "<br><br>" 
+      + "#" + text
+      + "<br><br>"
+      + "C: M: " + node.category
+      + "<br><br>";
+
+    hashtagDiv.removeAll();
+    timelineDiv.removeAll();
+    hashtagDiv.appendChild(hashtagText);
+
+    callback();
   }
 
   function loadTwitterFeed(node, callback) {
@@ -203,110 +399,31 @@ window.ControlPanel = function ControlPanel() {
     }
   }
 
-  this.setDisplayNodeType = function(params, callback){
+  this.setDisplayNodeType = function(params, callback){};
 
-    if (!nodeTypesSet.has(params.displayNodeType)) {
-      console.error("UNKNOWN NODE TYPE: " + params.displayNodeType);
-      return callback("UNKNOWN NODE TYPE: " + params.displayNodeType);
-    }
+  this.setMaxNodes = function (value) {};
 
-    const id = params.id || "displayNodeType_" + params.displayNodeType.toLowerCase();
-    const value = params.value || "hide";
+  this.setNodeRadiusRatioMax = function (value) {};
+  this.setNodeRadiusRatioMin = function (value) {};
+  this.setNodeRadiusRatio = function (value) {};
 
-    console.log("SET DISPLAY NODE TYPE | " + params.displayNodeType + " | " + value);
+  this.setVelocityDecay = function (value) {};
 
-    var displayNodeType = document.getElementById(id);
-    if (displayNodeType) { displayNodeType.setAttribute("value", value); }
+  this.setLinkStrength = function (value) {};
 
-    if (callback !== undefined) { callback(); }
-  };
+  this.setLinkDistance = function (value) {};
 
-  this.setMaxNodesSliderValue = function (value) {
-    value = parseInt(value);
-    if (!document.getElementById("maxNodesSlider")) { return; }
-    console.log("setMaxNodesSliderValue: " + value);
-    document.getElementById("maxNodesSlider").value = parseInt(value * document.getElementById("maxNodesSlider").getAttribute("multiplier"));
-    document.getElementById("maxNodesSliderText").innerHTML = value;
-  };
+  this.setTransitionDuration = function (value) {};
 
-  this.setNodeRadiusMaxRatioSliderValue = function (value) {
-    if (!document.getElementById("nodeRadiusMaxRatioSlider")) { return; }
-    console.log("setNodeRadiusMaxRatioSliderValue: " + value);
-    document.getElementById("nodeRadiusMaxRatioSlider").value = (value * document.getElementById("nodeRadiusMaxRatioSlider").getAttribute("multiplier"));
-    document.getElementById("nodeRadiusMaxRatioSliderText").innerHTML = value.toFixed(3);
-  };
+  this.setGravity = function (value) {};
 
-  this.setNodeRadiusMinRatioSliderValue = function (value) {
-    if (!document.getElementById("nodeRadiusMinRatioSlider")) { return; }
-    console.log("setNodeRadiusMinRatioSliderValue: " + value);
-    document.getElementById("nodeRadiusMinRatioSlider").value = (value * document.getElementById("nodeRadiusMinRatioSlider").getAttribute("multiplier"));
-    document.getElementById("nodeRadiusMinRatioSliderText").innerHTML = value.toFixed(3);
-  };
+  this.setCharge = function (value) {};
 
-  this.setVelocityDecaySliderValue = function (value) {
-    if (!document.getElementById("velocityDecaySlider")) { return; }
-    console.log("setVelocityDecaySliderValue: " + value);
-    document.getElementById("velocityDecaySlider").value = (value * document.getElementById("velocityDecaySlider").getAttribute("multiplier"));
-    document.getElementById("velocityDecaySliderText").innerHTML = value.toFixed(3);
-  };
+  this.setMaxAge = function (value) {};
 
-  this.setLinkStrengthSliderValue = function (value) {
-    if (!document.getElementById("linkStrengthSlider")) { return; }
-    console.log("setLinkStrengthSliderValue: " + value);
-    document.getElementById("linkStrengthSlider").value = (value * document.getElementById("linkStrengthSlider").getAttribute("multiplier"));
-    document.getElementById("linkStrengthSliderText").innerHTML = value.toFixed(3);
-  };
-
-  this.setLinkDistanceSliderValue = function (value) {
-    if (!document.getElementById("linkDistanceSlider")) { return; }
-    console.log("setLinkDistanceSliderValue: " + value);
-    document.getElementById("linkDistanceSlider").value = (value * document.getElementById("linkDistanceSlider").getAttribute("multiplier"));
-    document.getElementById("linkDistanceSliderText").innerHTML = value.toFixed(3);
-  };
-
-  this.setTransitionDurationSliderValue = function (value) {
-    if (!document.getElementById("transitionDurationSlider")) { return; }
-    console.log("setTransitionDurationSliderValue: " + value);
-    document.getElementById("transitionDurationSlider").value = (value* document.getElementById("transitionDurationSlider").getAttribute("multiplier"));
-    document.getElementById("transitionDurationSliderText").innerHTML = value.toFixed(3);
-  };
-
-  this.setGravitySliderValue = function (value) {
-    if (!document.getElementById("gravitySlider")) { return; }
-    console.log("setGravitySliderValue: " + value);
-    document.getElementById("gravitySlider").value = (value* document.getElementById("gravitySlider").getAttribute("multiplier"));
-    document.getElementById("gravitySliderText").innerHTML = value.toFixed(5);
-  };
-
-  this.setChargeSliderValue = function (value) {
-    if (!document.getElementById("chargeSlider")) { return; }
-    console.log("setChargeSliderValue: " + value);
-    document.getElementById("chargeSlider").value = value;
-    document.getElementById("chargeSliderText").innerHTML = value.toFixed(0);
-  };
-
-  this.setMaxAgeSliderValue = function (value) {
-    if (!document.getElementById("maxAgeSlider")) { return; }
-    console.log("setMaxAgeSliderValue: " + value);
-    document.getElementById("maxAgeSlider").value = value;
-    document.getElementById("maxAgeSliderText").innerHTML = value.toFixed(0);
-  };
-
-  this.setFontSizeMinRatioSliderValue = function (value) {
-    if (!document.getElementById("fontSizeMinRatioSlider")) { return; }
-    console.log("setFontSizeMinRatioSliderValue: " + value);
-    document.getElementById("fontSizeMinRatioSlider").value = (value * document.getElementById("fontSizeMinRatioSlider").getAttribute("multiplier"));
-    var valuePercent = 100*value;
-    document.getElementById("fontSizeMinRatioSliderText").innerHTML = valuePercent.toFixed(1) + "% H";
-  };
-
-  this.setFontSizeMaxRatioSliderValue = function (value) {
-    if (!document.getElementById("fontSizeMaxRatioSlider")) { return; }
-    console.log("setFontSizeMaxRatioSliderValue: " + value);
-    document.getElementById("fontSizeMaxRatioSlider").value = (value * document.getElementById("fontSizeMaxRatioSlider").getAttribute("multiplier"));
-    var valuePercent = 100*value;
-    document.getElementById("fontSizeMaxRatioSliderText").innerHTML = valuePercent.toFixed(1) + "% H";
-  };
+  this.setFontSizeRatioMin = function (value) {};
+  this.setFontSizeRatioMax = function (value) {};
+  this.setFontSizeRatio = function (value) {};
 
   function receiveMessage(event){
     // Do we trust the sender of this message?
@@ -345,7 +462,9 @@ window.ControlPanel = function ControlPanel() {
         delete cnf.twitterUser.countHistory;
         delete cnf.twitterUser.status;
 
-        console.debug("CONTROL PANEL INIT\n" + jsonPrint(cnf));
+        console.debug("CONTROL PANEL INIT"
+        	// + "\n" + jsonPrint(cnf)
+        );
 
         Object.keys(cnf).forEach(function(prop){
           config[prop] = cnf[prop];
@@ -354,18 +473,18 @@ window.ControlPanel = function ControlPanel() {
           );
         });
 
-        self.setMaxNodesSliderValue(cnf.defaultMaxNodesLimit);
-        self.setTransitionDurationSliderValue(cnf.defaultTransitionDuration);
-        self.setLinkStrengthSliderValue(cnf.defaultLinkStrength);
-        self.setLinkDistanceSliderValue(cnf.defaultLinkDistance);
-        self.setGravitySliderValue(cnf.defaultGravity);
-        self.setChargeSliderValue(cnf.defaultCharge);
-        self.setNodeRadiusMinRatioSliderValue(cnf.defaultNodeRadiusMinRatio);
-        self.setNodeRadiusMaxRatioSliderValue(cnf.defaultNodeRadiusMaxRatio);
-        self.setVelocityDecaySliderValue(cnf.defaultVelocityDecay);
-        self.setMaxAgeSliderValue(cnf.defaultMaxAge);
-        self.setFontSizeMinRatioSliderValue(cnf.defaultFontSizeMinRatio);
-        self.setFontSizeMaxRatioSliderValue(cnf.defaultFontSizeMaxRatio);
+        self.setMaxNodes(cnf.defaultMaxNodesLimit);
+        self.setTransitionDuration(cnf.defaultTransitionDuration);
+        self.setLinkStrength(cnf.defaultLinkStrength);
+        self.setLinkDistance(cnf.defaultLinkDistance);
+        self.setGravity(cnf.defaultGravity);
+        self.setCharge(cnf.defaultCharge);
+        self.setNodeRadiusRatioMin(cnf.defaultNodeRadiusRatioMin);
+        self.setNodeRadiusRatioMax(cnf.defaultNodeRadiusRatioMax);
+        self.setVelocityDecay(cnf.defaultVelocityDecay);
+        self.setMaxAge(cnf.defaultMaxAge);
+        self.setFontSizeRatioMin(cnf.defaultFontSizeRatioMin);
+        self.setFontSizeRatioMax(cnf.defaultFontSizeRatioMax);
 
         if (cnf.displayNodeHashMap !== undefined) {
           Object.keys(cnf.displayNodeHashMap).forEach(function(displayNodeType){
@@ -529,14 +648,71 @@ window.ControlPanel = function ControlPanel() {
     if (callback) { callback(); }
   };
 
+	function setValue() {
+	  userData.innerHTML = userText.screenName;
+	  userData.style.color = userText.color;
+	  userData.style.fontSize = userText.fontSize+"px";
+	  userData.style.fontFamily = userText.fontFamily;
+	  if(userText.border) {
+	    userData.style.border = "solid 1px black";
+	    userData.style.padding = "10px";
+	  }
+	  else {
+	    userData.style.border = "none";
+	    userData.style.padding = "0px";
+	  }
+	}
+
   $( document ).ready(function() {
 
     console.log( "CONTROL PANEL DOCUMENT READY" );
-    console.log( "CONTROL PANEL CONFIG\n" + jsonPrint(config) );
+    console.log( "CONTROL PANEL CONFIG"
+    	// + "\n" + jsonPrint(config)
+    );
 
     self.createControlPanel(function(){
 
       setTimeout(function() {  // KLUDGE to insure table is created before update
+
+			  displayConfig = new DisplayConfig();
+			  userText = new UserText();
+
+			  guiUser = new dat.GUI();
+			  guiUser.width = 400;
+			  guiUser.add(userText, 'screenName').listen();
+			  guiUser.add(userText, 'name').listen();
+			  guiUser.add(userText, 'location').listen();
+			  guiUser.add(userText, 'ignored').listen();
+			  guiUser.add(userText, 'description').listen();
+			  guiUser.add(userText, 'category', [ 'L', 'N', 'R', '+', '-', '0' ]).listen();
+			  guiUser.add(userText, 'categoryAuto', [ 'L', 'N', 'R', '+', '-', '0' ]).listen();
+			  guiUser.add(userText, 'followersCount').listen();
+			  guiUser.add(userText, 'friendsCount').listen();
+			  guiUser.add(userText, 'statusesCount').listen();
+			  guiUser.add(userText, 'threeceeFollowing').listen();
+			  guiUser.addColor(userText, 'color');
+			  guiUser.add(userText, 'fontSize', 6, 48);
+			  guiUser.add(userText, 'border');
+			  guiUser.add(userText, 'fontFamily',["sans-serif", "serif", "cursive", "monospace"]);
+
+			  guiDisplay = new dat.GUI();
+			  guiDisplay.width = 400;
+			  guiDisplay.add(displayConfig, 'screenName').listen();
+			  guiDisplay.add(displayConfig, 'name').listen();
+			  guiDisplay.add(displayConfig, 'location').listen();
+			  guiDisplay.add(displayConfig, 'ignored').listen();
+			  guiDisplay.add(displayConfig, 'description').listen();
+			  guiDisplay.add(displayConfig, 'category', [ 'L', 'N', 'R', '+', '-', '0' ]).listen();
+			  guiDisplay.add(displayConfig, 'categoryAuto', [ 'L', 'N', 'R', '+', '-', '0' ]).listen();
+			  guiDisplay.add(displayConfig, 'followersCount').listen();
+			  guiDisplay.add(displayConfig, 'friendsCount').listen();
+			  guiDisplay.add(displayConfig, 'statusesCount').listen();
+			  guiDisplay.add(displayConfig, 'threeceeFollowing').listen();
+			  guiDisplay.addColor(displayConfig, 'color');
+			  guiDisplay.add(displayConfig, 'fontSize', 6, 48);
+			  guiDisplay.add(displayConfig, 'border');
+			  guiDisplay.add(displayConfig, 'fontFamily',["sans-serif", "serif", "cursive", "monospace"]);
+
         self.updateControlPanel(config, function(){
           if (parentWindow !== undefined) {
             window.addEventListener("message", receiveMessage, false);

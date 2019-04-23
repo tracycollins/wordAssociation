@@ -22789,8 +22789,8 @@ window.ControlPanel = function ControlPanel() {
   const DEFAULT_GRAVITY_MAX = 0.005;
 
   const DEFAULT_CHARGE = -50.0;
-  const DEFAULT_CHARGE_MIN = -100.0;
-  const DEFAULT_CHARGE_MAX = 100.0;
+  const DEFAULT_CHARGE_MIN = -1000.0;
+  const DEFAULT_CHARGE_MAX = 1000.0;
 
   const DEFAULT_VELOCITY_DECAY = 0.50;
   const DEFAULT_VELOCITY_DECAY_MIN = 0.0;

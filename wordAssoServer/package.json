@@ -29,6 +29,7 @@
     "cookie-parser": "^1.4.4",
     "cookie-session": "^2.0.0-beta.3",
     "crypto": "^1.0.1",
+    "dat.gui": "^0.7.6",
     "deep-copy": "^1.4.2",
     "deep-equal": "^1.0.1",
     "deepcopy": "^2.0.0",

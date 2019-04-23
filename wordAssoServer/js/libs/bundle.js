@@ -22770,6 +22770,15 @@ window.ControlPanel = function ControlPanel() {
   var currentTwitterNode;
 
   config = window.opener.config;
+
+  const DEFAULT_MAX_NODES = 100;
+  const DEFAULT_MAX_NODES_MIN = 10;
+  const DEFAULT_MAX_NODES_MAX = 500;
+
+  config.maxNodes = config.maxNodes || DEFAULT_MAX_NODES;
+  config.maxNodesMin = config.maxNodesMin || DEFAULT_MAX_NODES_MIN;
+  config.maxNodesMax = config.maxNodesMax || DEFAULT_MAX_NODES_MAX;
+
   delete config.twitterUser.histograms;
   delete config.twitterUser.countHistory;
   delete config.twitterUser.status;
@@ -22820,33 +22829,33 @@ window.ControlPanel = function ControlPanel() {
 	  this.maxNodesMax = config.maxNodesMax;
 	  this.maxNodes = config.maxNodes;
 
-	  this.maxAgeMin = config.maxAgeMin;
-	  this.maxAgeMax = config.maxAgeMax;
-	  this.maxAge = config.maxAge;
+	  // this.maxAgeMin = config.maxAgeMin;
+	  // this.maxAgeMax = config.maxAgeMax;
+	  // this.maxAge = config.maxAge;
 
-	  this.transitionDurationMin = config.transitionDurationMin;
-	  this.transitionDurationMax = config.transitionDurationMax;
-	  this.transitionDuration = config.transitionDuration;
+	  // this.transitionDurationMin = config.transitionDurationMin;
+	  // this.transitionDurationMax = config.transitionDurationMax;
+	  // this.transitionDuration = config.transitionDuration;
 
-	  this.gravityMin = config.gravityMin;
-	  this.gravityMax = config.gravityMax;
-	  this.gravity = config.gravity;
+	  // this.gravityMin = config.gravityMin;
+	  // this.gravityMax = config.gravityMax;
+	  // this.gravity = config.gravity;
 
-	  this.chargeMin = config.chargeMin;
-	  this.chargeMax = config.chargeMax;
-	  this.charge = config.charge;
+	  // this.chargeMin = config.chargeMin;
+	  // this.chargeMax = config.chargeMax;
+	  // this.charge = config.charge;
 
-	  this.nodeRadiusRatioMin = config.nodeRadiusRatioMin;
-	  this.nodeRadiusRatioMax = config.nodeRadiusRatioMax;
-	  this.nodeRadius = config.nodeRadiusRatio;
+	  // this.nodeRadiusRatioMin = config.nodeRadiusRatioMin;
+	  // this.nodeRadiusRatioMax = config.nodeRadiusRatioMax;
+	  // this.nodeRadius = config.nodeRadiusRatio;
 
-	  this.velocityDecayMin = config.velocityDecayMin;
-	  this.velocityDecayMax = config.velocityDecayMax;
-	  this.velocityDecay = config.velocityDecay;
+	  // this.velocityDecayMin = config.velocityDecayMin;
+	  // this.velocityDecayMax = config.velocityDecayMax;
+	  // this.velocityDecay = config.velocityDecay;
 
-	  this.fontSizeRatioMin = config.fontSizeRatioMin;
-	  this.fontSizeRatioMax = config.fontSizeRatioMax;
-	  this.fontSizeRatio = config.fontSizeRatio;
+	  // this.fontSizeRatioMin = config.fontSizeRatioMin;
+	  // this.fontSizeRatioMax = config.fontSizeRatioMax;
+	  // this.fontSizeRatio = config.fontSizeRatio;
 
 	  this.color = "#ffffff";
 	  this.fontSize = 16;
@@ -23458,13 +23467,15 @@ window.ControlPanel = function ControlPanel() {
 			  guiDisplay = new dat.GUI();
 			  guiDisplay.width = 400;
 			  guiDisplay.add(displayConfig, 'maxNodes').listen();
-			  guiDisplay.add(displayConfig, 'maxAge').listen();
-			  guiDisplay.add(displayConfig, 'transitionDuration').listen();
-			  guiDisplay.add(displayConfig, 'gravity').listen();
-			  guiDisplay.add(displayConfig, 'charge').listen();
-			  guiDisplay.add(displayConfig, 'nodeRadius').listen();
-			  guiDisplay.add(displayConfig, 'velocityDecay').listen();
-			  guiDisplay.add(displayConfig, 'fontSizeRatio').listen();
+			  guiDisplay.add(displayConfig, 'maxNodesMin').listen();
+			  guiDisplay.add(displayConfig, 'maxNodesMax').listen();
+			  // guiDisplay.add(displayConfig, 'maxAge').listen();
+			  // guiDisplay.add(displayConfig, 'transitionDuration').listen();
+			  // guiDisplay.add(displayConfig, 'gravity').listen();
+			  // guiDisplay.add(displayConfig, 'charge').listen();
+			  // guiDisplay.add(displayConfig, 'nodeRadius').listen();
+			  // guiDisplay.add(displayConfig, 'velocityDecay').listen();
+			  // guiDisplay.add(displayConfig, 'fontSizeRatio').listen();
 			  guiDisplay.addColor(displayConfig, 'color');
 			  guiDisplay.add(displayConfig, 'fontSize', 6, 48);
 			  guiDisplay.add(displayConfig, 'border');

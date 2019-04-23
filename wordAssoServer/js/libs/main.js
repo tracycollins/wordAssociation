@@ -618,25 +618,22 @@ function ControlPanel() {
 					setChecked("left");
 		    	parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: "left"}, DEFAULT_SOURCE);
 				});
-				userCategory.add(categories, 'neutral').name('N').listen().onChange(function(){setChecked("neutral")});
-				userCategory.add(categories, 'right').name('R').listen().onChange(function(){setChecked("right")});
-				userCategory.add(categories, 'none').name('0').listen().onChange(function(){setChecked("none")});
-
-				// userCategoryLeft.onChange(function(value){
-				// 	console.log("USER CATEGORY LEFT: " + value);
-				// });
-
-				// userCategoryNeutral.onChange(function(value){
-				// 	console.log("USER CATEGORY NEUTRAL: " + value);
-				// });
-
-				// userCategoryRight.onChange(function(value){
-				// 	console.log("USER CATEGORY RIGHT: " + value);
-				// });
-
-				// userCategoryNone.onChange(function(value){
-				// 	console.log("USER CATEGORY NONE: " + value);
-				// });
+				
+				userCategory.add(categories, 'neutral').name('N').listen().onChange(function(){
+					setChecked("neutral");
+		    	parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: "neutral"}, DEFAULT_SOURCE);
+				});
+				
+				userCategory.add(categories, 'right').name('R').listen().onChange(function(){
+					setChecked("right");
+		    	parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: "right"}, DEFAULT_SOURCE);
+				});
+				
+				userCategory.add(categories, 'none').name('0').listen().onChange(function(){
+					setChecked("none");
+		    	parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: "none"}, DEFAULT_SOURCE);
+				});
+				
 
 			  guiUser.add(userNode, 'nextUncat');
 			  guiUser.add(userNode, 'nodeId').listen();
@@ -645,12 +642,6 @@ function ControlPanel() {
 			  guiUser.add(userNode, 'location').listen();
 			  guiUser.add(userNode, 'ignored').listen();
 			  guiUser.add(userNode, 'description').listen();
-			  // const categoryLeft = guiUser.add(userNode, 'left').name('L').listen().onChange(function(){setChecked("left")});
-			  // const categoryRight = guiUser.add(userNode, 'category', 'right').name('R').listen().onChange(function(){setChecked("right")});
-			  // const categoryNeutral = guiUser.add(userNode, 'category', 'neutral').name('N').listen().onChange(function(){setChecked("neutral")});
-			  // const categoryPositive = guiUser.add(userNode, 'category', 'positive').name('+').listen().onChange(function(){setChecked("positive")});
-			  // const categoryNegative = guiUser.add(userNode, 'category', 'negative').name('-').listen().onChange(function(){setChecked("negative")});
-			  // const categoryNone = guiUser.add(userNode, 'category', 'none').name('0').listen().onChange(function(){setChecked("none")});
 			  guiUser.add(userNode, 'categoryAuto', [ 'L', 'N', 'R', '+', '-', '0' ]).listen();
 			  guiUser.add(userNode, 'followersCount').listen();
 			  guiUser.add(userNode, 'friendsCount').listen();

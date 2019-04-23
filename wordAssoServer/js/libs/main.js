@@ -153,13 +153,13 @@ function ControlPanel() {
   	"none",
   ];
 
-  var nextUncatHandler = function(params){
+  var nextUncatHandler = function(cat){
   	// need to debounce button click
   	if (eventDetected) {
   		return;
   	}
   	eventDetected = true;
-    console.debug("NEXT UNCAT");
+    console.debug("NEXT UNCAT | CAT FILTER: " + cat);
     if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: "@?"}, DEFAULT_SOURCE); }
   	setTimeout(function(){
   		eventDetected = false;
@@ -581,10 +581,10 @@ function ControlPanel() {
 				twitterProfile = QuickSettings.create(0, 0, "TWITTER USER PROFILE", userCategorizeDiv);
 				twitterProfile.setWidth(400);
 
-				twitterProfile.addButton("NEXT UNCAT", nextUncatHandler);
-				twitterProfile.addButton("NEXT UNCAT LEFT", nextUncatHandler);
-				twitterProfile.addButton("NEXT UNCAT NEUTRAL", nextUncatHandler);
-				twitterProfile.addButton("NEXT UNCAT RIGHT", nextUncatHandler);
+				twitterProfile.addButton("NEXT UNCAT", nextUncatHandler());
+				twitterProfile.addButton("NEXT UNCAT LEFT", nextUncatHandler('left'));
+				twitterProfile.addButton("NEXT UNCAT NEUTRAL", nextUncatHandler('neutral'));
+				twitterProfile.addButton("NEXT UNCAT RIGHT", nextUncatHandler('right'));
 				twitterProfile.addElement("CATEGORY MAN", radioUserCategoryDiv);
 
 				const categoryAuto = (twitterFeedUser) ? twitterFeedUser.categoryAuto : "";

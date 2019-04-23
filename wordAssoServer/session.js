@@ -1646,6 +1646,7 @@ socket.on("SET_TWITTER_USER", function(twitterUser) {
     + " | Ms: " + twitterUser.mentions 
     + " | C: " + twitterUser.category
     + " | CA: " + twitterUser.categoryAuto
+    + "\n profileUrl: " + twitterUser.profileUrl
   );
 
   if (twitterUser.nodeId === twitterUserThreecee.nodeId) {

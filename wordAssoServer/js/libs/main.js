@@ -117,7 +117,10 @@ window.ControlPanel = function ControlPanel() {
   statsObj.user.ignored = "---";
 
 	var UserText = function() {
-	  // this.message = "@threecee";
+		this.nextUncat = function(){
+	    console.debug("NEXT UNCAT");
+	    if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: "@?"}, DEFAULT_SOURCE); }
+		}
 	  this.nodeId = statsObj.user.nodeId;
 	  this.screenName = statsObj.user.screenName;
 	  this.name = statsObj.user.name;

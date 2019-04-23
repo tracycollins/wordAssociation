@@ -1037,17 +1037,17 @@ function controlPanelComm(event) {
         case "maxNodes" :
           currentSessionView.setMaxNodesLimit(event.data.value);
         break;
-        case "fontSizeMinRatio" :
-          currentSessionView.setFontSizeMinRatio(event.data.value);
+        case "fontSizeRatioMin" :
+          currentSessionView.setFontSizeRatioMin(event.data.value);
         break;
-        case "fontSizeMaxRatio" :
-          currentSessionView.setFontSizeMaxRatio(event.data.value);
+        case "fontSizeRatioMax" :
+          currentSessionView.setFontSizeRatioMax(event.data.value);
         break;
-        case "nodeRadiusMinRatio" :
-          currentSessionView.setNodeRadiusMinRatio(event.data.value);
+        case "nodeRadiusRatioMin" :
+          currentSessionView.setNodeRadiusRatioMin(event.data.value);
         break;
-        case "nodeRadiusMaxRatio" :
-          currentSessionView.setNodeRadiusMaxRatio(event.data.value);
+        case "nodeRadiusRatioMax" :
+          currentSessionView.setNodeRadiusRatioMax(event.data.value);
         break;
         default:
           console.error("UNKNOWN CONTROL PANEL ID: " + event.data.id + "\n" + jsonPrint(event.data));

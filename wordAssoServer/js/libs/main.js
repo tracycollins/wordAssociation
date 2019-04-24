@@ -250,6 +250,7 @@ function ControlPanel() {
       statsObj.user.friendsCount = node.friendsCount;
       statsObj.user.statusesCount = node.statusesCount;
       statsObj.user.ignored = node.ignored;
+      statsObj.user.following = node.following;
       statsObj.user.threeceeFollowing = node.threeceeFollowing;
       statsObj.user.mentions = node.mentions;
 
@@ -311,12 +312,16 @@ function ControlPanel() {
     	twitterProfile.setValue("LOCATION", node.location);
 			twitterProfile.setValue("PROFILE", node.profileImageUrl.replace("_normal", ""));
 			twitterProfile.setValue("DESCRIPTION", node.description);
-			twitterProfile.setValue("IGNORED", node.ignored || false);
+      twitterProfile.setValue("FOLLOWING", node.following || false);
+      twitterProfile.setValue("IGNORED", node.ignored || false);
 			twitterProfile.setValue("CATEGORY AUTO", node.categoryAuto);
 
       console.debug("loadTwitterFeed"
         + " | TYPE: " + node.nodeType
         + " | NID: " + node.nodeId
+        + " | IG: " + node.ignored
+        + " | FLWG: " + node.following
+        + " | 3CFLWG: " + node.threeceeFollowing
         + " | @" + node.screenName
         + " | " + node.name
         + " | CR: " + node.createdAt
@@ -611,6 +616,17 @@ function ControlPanel() {
 					nextUncatHandler("right");
 				});
 
+        let following = false;
+        if (twitterFeedUser && twitterFeedUser.following !== undefined) {
+          following = twitterFeedUser.following;
+        }
+
+        twitterProfile.addBoolean("FOLLOWING", following, function(data){
+          console.debug("USER FOLLOWING | " + twitterProfile.getValue("SCREENNAME") + " | FOLLOWING: " + data);
+          const op = (data) ? "FOLLOW" : "UNFOLLOW";
+          parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
+        });
+
         let ignored = false;
         if (twitterFeedUser && twitterFeedUser.ignored !== undefined) {
           ignored = twitterFeedUser.ignored;
@@ -621,7 +637,6 @@ function ControlPanel() {
           const op = (data) ? "IGNORE" : "UNIGNORE";
           parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
         });
-        // twitterProfile.overrideStyle("IGNORED", "position", null);
 
 				twitterProfile.addElement("CATEGORY MAN", radioUserCategoryDiv);
 

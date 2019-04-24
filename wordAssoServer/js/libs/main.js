@@ -610,7 +610,11 @@ function ControlPanel() {
 					nextUncatHandler("right");
 				});
 
-        const ignored = (twitterFeedUser) ? twitterFeedUser.ignored : false;
+        let ignored = false;
+        if (twitterFeedUser && twitterFeedUser.ignored !== undefined) {
+          ignored = twitterFeedUser.ignored;
+        }
+
         twitterProfile.addBoolean("IGNORED", ignored);
         twitterProfile.overrideStyle("IGNORED", "position", null);
 

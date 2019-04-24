@@ -196,7 +196,7 @@
   border: 1px inset #ffffff;
   background-color: #ffffff;
   color: #000000;
-  font-size: 12px;
+  font-size: 16px;
 }
 .qs_text_input:focus {
   outline: none;
@@ -217,10 +217,10 @@
   border-radius: 0;
   padding: 0 5px;
   -moz-outline: none;
-  font-size: 14px;
+  font-size: 16px;
 }
 .qs_select option {
-  font-size: 14px;
+  font-size: 16px;
 }
 .qs_select::-ms-expand {
   display: none;
@@ -257,7 +257,7 @@
   border: 1px inset #ffffff;
   background-color: #ffffff;
   color: #000000;
-  font-size: 12px;
+  font-size: 16px;
 }
 .qs_textarea:focus {
   outline: none;

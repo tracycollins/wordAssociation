@@ -1637,6 +1637,10 @@ socket.on("SET_TWITTER_USER", function(twitterUser) {
   }
 
   console.log("SET_TWITTER_USER" 
+    + " | IG: " + twitterUser.ignored 
+    + " | FLWG: " + twitterUser.following 
+    + " | 3CFLWG: " + twitterUser.threeceeFollowing 
+    + " | " + twitterUser.nodeId 
     + " | " + twitterUser.nodeId 
     + " | @" + twitterUser.screenName 
     + " | CR: " + twitterUser.createdAt 

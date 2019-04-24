@@ -545,6 +545,7 @@ function ControlPanel() {
 	var radioUserCategoryDiv = document.createElement("div");
 	radioUserCategoryDiv.id = "radioUserCategoryDiv";
   radioUserCategoryDiv.setAttribute("class", "radioCheckbox");
+  radioUserCategoryDiv.style.padding = "5px";
   radioUserCategoryDiv.style.fontSize = "16px";
 
 	["left", "neutral", "right", "positive", "negative", "none"].forEach(function(category){
@@ -559,8 +560,9 @@ function ControlPanel() {
 		categoryButton.id = "category_" + category; 
 		categoryButton.setAttribute("type", "checkbox");
 		categoryButton.name = category; 
-    categoryButton.style.width = "16px";
-    categoryButton.style.height = "16px";
+    categoryButton.style.boxSizing = "border-box";
+    categoryButton.style.width = "20px";
+    categoryButton.style.height = "20px";
 
 		categoryLabel.appendChild(categoryButton);
 		radioUserCategoryDiv.appendChild(categoryLabel);

@@ -631,7 +631,7 @@ function ControlPanel() {
 
 				const ignored = (twitterFeedUser) ? twitterFeedUser.ignored : false;
 				twitterProfile.addBoolean("IGNORED", ignored);
-				twitterProfile.overrideStyle("IGNORED", "position", "relative");
+				twitterProfile.overrideStyle("IGNORED", "position", null);
 
 				const description = (twitterFeedUser) ? twitterFeedUser.description : "";
 				twitterProfile.addTextArea("DESCRIPTION", description);

@@ -555,7 +555,6 @@ function ControlPanel() {
 		var categoryLabel = document.createElement("label");
 		categoryLabel.setAttribute("class", "categoryButtonLabel");
 		categoryLabel.setAttribute("id", "categoryLabel_" + shortCategory(category));
-    categoryLabel.style.position = "absolute";
     categoryLabel.style.fontSize = "16px";
     categoryLabel.style.padding = "5px";
 		categoryLabel.innerHTML = shortCategory(category);

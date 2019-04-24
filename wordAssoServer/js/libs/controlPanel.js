@@ -313,8 +313,9 @@ function ControlPanel() {
 
     if (node.nodeType === "user"){
 
+      node.categoryAuto = node.categoryAuto || "none";
+
       twitterFeedPreviousUser = twitterFeedUser;
-      twitterFeedUser = node;
 
     	twitterProfile.setValue("NAME", node.name);
     	twitterProfile.setValue("SCREENNAME", "@"+node.screenName);
@@ -327,7 +328,9 @@ function ControlPanel() {
 
       twitterControl.setValue("FOLLOWING", node.following || false);
       twitterControl.setValue("IGNORED", node.ignored || false);
-			twitterControl.setValue("CATEGORY AUTO", node.categoryAuto);
+			twitterControl.setValue("CATEGORY AUTO", node.categoryAuto.toUpperCase());
+
+      twitterFeedUser = node;
 
       console.debug("loadTwitterFeed"
         + " | TYPE: " + node.nodeType
@@ -561,7 +564,7 @@ function ControlPanel() {
 		categoryButton.setAttribute("type", "checkbox");
 		categoryButton.name = category; 
     categoryButton.style.webkitAppearance = "none";
-    categoryButton.style.backgroundColor = "gray";
+    categoryButton.style.backgroundColor = "lightgray";
     categoryButton.style.boxSizing = "border-box";
     categoryButton.style.width = "20px";
     categoryButton.style.height = "20px";
@@ -586,11 +589,11 @@ function ControlPanel() {
 
 		  if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id === categorySetButtonId) {
 				cbxs[i].checked = true;
-        cbxs[i].style.backgroundColor = "green";
+        cbxs[i].style.backgroundColor = "blue";
 		  }
 		  if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id !== categorySetButtonId) {
 				cbxs[i].checked = false;
-        cbxs[i].style.backgroundColor = "gray";
+        cbxs[i].style.backgroundColor = "lightgray";
 		  }
 
 		}
@@ -612,11 +615,11 @@ function ControlPanel() {
 		while(i--) {
 			if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id !== cb.id) {
 				cbxs[i].checked = false;
-        cbxs[i].style.backgroundColor = "gray";
+        cbxs[i].style.backgroundColor = "lightgray";
 			}
 		}
 		cb.checked = true;
-    cb.style.backgroundColor = "green";
+    cb.style.backgroundColor = "blue";
     parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: cb.name}, DEFAULT_SOURCE);
   }
 
@@ -660,7 +663,7 @@ function ControlPanel() {
 
         twitterFeedUser.categoryAuto = twitterFeedUser.categoryAuto || "none";
         const categoryAuto = (twitterFeedUser) ? twitterFeedUser.categoryAuto.toUpperCase() : "";
-        twitterControl.addText("CATEGORY AUTO", categoryAuto);
+        twitterControl.addText("CATEGORY AUTO", categoryAuto.toUpperCase());
 
         twitterControl.addButton("IGNORE", function(){
           parentWindow.postMessage({op: "IGNORE", user: twitterFeedUser}, DEFAULT_SOURCE);

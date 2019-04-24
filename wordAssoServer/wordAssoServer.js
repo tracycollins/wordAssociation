@@ -10826,6 +10826,20 @@ function twitterSearchNode(params, callback) {
     const userAutoRightArray = [...userAutoRightSet];
     const userAutoNeutralArray = [...userAutoNeutralSet];
 
+    statsObj.user.manual.right = userRightSet.size;
+    statsObj.user.manual.left = userLeftSet.size;
+    statsObj.user.manual.neutral = userNeutralSet.size;
+    statsObj.user.manual.positive = userPositiveSet.size;
+    statsObj.user.manual.negative = userNegativeSet.size;
+    statsObj.user.manual.none = userNoneSet.size;
+
+    statsObj.user.auto.right = userAutoRightSet.size;
+    statsObj.user.auto.left = userAutoLeftSet.size;
+    statsObj.user.auto.neutral = userAutoNeutralSet.size;
+    statsObj.user.auto.positive = userAutoPositiveSet.size;
+    statsObj.user.auto.negative = userAutoNegativeSet.size;
+    statsObj.user.auto.none = userAutoNoneSet.size;
+
     searchNodeUser = { screenName: searchNode.substring(1) };
 
     if (searchNodeUser.screenName.startsWith("?")) {

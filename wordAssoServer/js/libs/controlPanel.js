@@ -324,8 +324,8 @@ function ControlPanel() {
       twitterProfile.setValue("LOCATION", node.location);
 			twitterProfile.setValue("PROFILE", node.profileImageUrl.replace("_normal", ""));
 			twitterProfile.setValue("DESCRIPTION", node.description);
-      twitterProfile.setValue("FOLLOWING", node.following || false);
 
+      twitterControl.setValue("FOLLOWING", node.following || false);
       twitterControl.setValue("IGNORED", node.ignored || false);
 			twitterControl.setValue("CATEGORY AUTO", node.categoryAuto);
 

@@ -14,7 +14,7 @@ mark, audio, video {
     vertical-align: baseline;
     margin: 0;
     padding: 0;
-    background: blue;
+    background: white;
 }
 
 article, aside, details, figcaption, figure, footer, header, hgroup,
@@ -28,8 +28,8 @@ body {
     font-size: 100%;
     line-height: 100%;
     /*background: #ffffff;*/
-    background: blue;
-    color: blue;
+    background: white;
+    color: white;
     width: 100%;
     height: auto;
     /*max-width: 1000px;*/
@@ -98,7 +98,7 @@ table {
 hr {
     border: 0;
     height: 1px;
-    background: #aaaaaa;
+    background: white;
 }
 
 .admin, .tooltip {

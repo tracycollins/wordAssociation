@@ -633,6 +633,8 @@ function ControlPanel() {
 
       setTimeout(function() {  // KLUDGE to insure table is created before update
 
+        QuickSettings.useExtStyleSheet();
+        
         twitterControl = QuickSettings.create(800, 0, "TWITTER USER CONTROL", userCategorizeDiv);
 
         twitterControl.setWidth(400);

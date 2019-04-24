@@ -564,8 +564,8 @@ function ControlPanel() {
     categoryButton.style.webkitAppearance = "none";
     categoryButton.style.backgroundColor = "lightgray";
     categoryButton.style.boxSizing = "border-box";
-    categoryButton.style.width = "20px";
-    categoryButton.style.height = "20px";
+    categoryButton.style.width = "16px";
+    categoryButton.style.height = "16px";
 
 		categoryLabel.appendChild(categoryButton);
 		radioUserCategoryDiv.appendChild(categoryLabel);

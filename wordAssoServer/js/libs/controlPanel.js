@@ -586,9 +586,11 @@ function ControlPanel() {
 
 		  if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id === categorySetButtonId) {
 				cbxs[i].checked = true;
+        cbxs[i].style.backgroundColor = "green";
 		  }
 		  if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id !== categorySetButtonId) {
 				cbxs[i].checked = false;
+        cbxs[i].style.backgroundColor = "gray";
 		  }
 
 		}

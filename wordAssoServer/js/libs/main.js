@@ -610,6 +610,10 @@ function ControlPanel() {
 					nextUncatHandler("right");
 				});
 
+        const ignored = (twitterFeedUser) ? twitterFeedUser.ignored : false;
+        twitterProfile.addBoolean("IGNORED", ignored);
+        twitterProfile.overrideStyle("IGNORED", "position", null);
+
 				twitterProfile.addElement("CATEGORY MAN", radioUserCategoryDiv);
 
 				const categoryAuto = (twitterFeedUser) ? twitterFeedUser.categoryAuto : "";
@@ -628,10 +632,6 @@ function ControlPanel() {
 
 				const location = (twitterFeedUser) ? twitterFeedUser.location : "";
 				twitterProfile.addText("LOCATION", location);
-
-				const ignored = (twitterFeedUser) ? twitterFeedUser.ignored : false;
-				twitterProfile.addBoolean("IGNORED", ignored);
-				twitterProfile.overrideStyle("IGNORED", "position", null);
 
 				const description = (twitterFeedUser) ? twitterFeedUser.description : "";
 				twitterProfile.addTextArea("DESCRIPTION", description);

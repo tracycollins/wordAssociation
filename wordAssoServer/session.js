@@ -21,8 +21,10 @@ ProgressBar
 
 "use strict";
 
-// var DEFAULT_SOURCE = "http://localhost:9997";
-var DEFAULT_SOURCE = "https://word.threeceelabs.com";
+const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
+const LOCAL_SOURCE = "http://localhost:9997";
+
+const DEFAULT_SOURCE = REPLACE_SOURCE;
 
 var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
 // var DEFAULT_AUTH_URL = "http://localhost:9997/auth/twitter";

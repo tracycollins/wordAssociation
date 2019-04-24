@@ -149,7 +149,7 @@
 .qs_checkbox {
   cursor: pointer;
 }
-input[type="checkbox"]{
+.radioCheckbox input {
   /*margin-left: 0.5em;*/
   margin: none;
   padding: 0.5em;

@@ -545,7 +545,8 @@ function ControlPanel() {
 	var radioUserCategoryDiv = document.createElement("div");
 	radioUserCategoryDiv.id = "radioUserCategoryDiv";
   radioUserCategoryDiv.setAttribute("class", "radioCheckbox");
-	radioUserCategoryDiv.style.backgroundColor = "green";
+  radioUserCategoryDiv.style.backgroundColor = "green";
+  radioUserCategoryDiv.style.fontSize = "12px";
 
 	["left", "neutral", "right", "positive", "negative", "none"].forEach(function(category){
 

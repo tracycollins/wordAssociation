@@ -473,6 +473,8 @@ function ControlPanel() {
         console.debug("SET TWITTER USER" 
           + " | " + currentTwitterNode.nodeId
           + " | IG: " + currentTwitterNode.ignored
+          + " | FLWG: " + currentTwitterNode.following
+          + " | 3CFLWG: " + currentTwitterNode.threeceeFollowing
           + " | @" + currentTwitterNode.screenName
           + " | CR: " + currentTwitterNode.createdAt
           + " | LS: " + currentTwitterNode.lastSeen

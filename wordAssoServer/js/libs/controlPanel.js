@@ -608,9 +608,11 @@ function ControlPanel() {
 		while(i--) {
 			if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id !== cb.id) {
 				cbxs[i].checked = false;
+        cbxs[i].parentNode.style.color = "gray";
 			}
 		}
 		cb.checked = true;
+    cb.parentNode.style.color = "green";
     parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: cb.name}, DEFAULT_SOURCE);
   }
 

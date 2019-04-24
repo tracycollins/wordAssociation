@@ -615,7 +615,7 @@ function ControlPanel() {
 
       setTimeout(function() {  // KLUDGE to insure table is created before update
 
-        twitterControl = QuickSettings.create(0, 0, "TWITTER USER CONTROL", userCategorizeDiv);
+        twitterControl = QuickSettings.create(800, 0, "TWITTER USER CONTROL", userCategorizeDiv);
         twitterControl.setWidth(400);
         twitterControl.addButton("NEXT UNCAT", function(){
           nextUncatHandler("any");
@@ -628,7 +628,7 @@ function ControlPanel() {
         });
 
 
-        twitterProfile = QuickSettings.create(400, 0, "TWITTER USER PROFILE", userCategorizeDiv);
+        twitterProfile = QuickSettings.create(0, 0, "TWITTER USER PROFILE", userCategorizeDiv);
         twitterProfile.setWidth(400);
 
         let following = false;
@@ -688,7 +688,7 @@ function ControlPanel() {
 				}
 
 
-				twitterTimeLine = QuickSettings.create(800, 	0, "TWITTER USER TIMELINE", userCategorizeDiv);
+				twitterTimeLine = QuickSettings.create(400, 	0, "TWITTER USER TIMELINE", userCategorizeDiv);
 				twitterTimeLine.setWidth(400);
 				twitterTimeLine.addElement("TWEETS", twitterTimeLineDiv);	
 

@@ -561,6 +561,7 @@ function ControlPanel() {
 		categoryButton.setAttribute("type", "checkbox");
 		categoryButton.name = category; 
     categoryButton.style.webkitAppearance = "none";
+    categoryButton.style.backgroundColor = "gray";
     categoryButton.style.boxSizing = "border-box";
     categoryButton.style.width = "20px";
     categoryButton.style.height = "20px";
@@ -609,11 +610,11 @@ function ControlPanel() {
 		while(i--) {
 			if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id !== cb.id) {
 				cbxs[i].checked = false;
-        cbxs[i].style.color = "gray";
+        cbxs[i].style.backgroundColor = "gray";
 			}
 		}
 		cb.checked = true;
-    cb.style.color = "green";
+    cb.style.backgroundColor = "green";
     parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: cb.name}, DEFAULT_SOURCE);
   }
 

@@ -467,6 +467,7 @@ function ControlPanel() {
         currentTwitterNode = event.data.user;
         console.debug("SET TWITTER USER" 
           + " | " + currentTwitterNode.nodeId
+          + " | IG: " + currentTwitterNode.ignored
           + " | @" + currentTwitterNode.screenName
           + " | CR: " + currentTwitterNode.createdAt
           + " | LS: " + currentTwitterNode.lastSeen
@@ -616,7 +617,7 @@ function ControlPanel() {
         }
 
         twitterProfile.addBoolean("IGNORED", ignored, function(data){
-          console.debug("NODE IGNORED: @" + twitterProfile.getValue("SCREENNAME") + " | IGNORED: " + data);
+          console.debug("USER IGNORED | " + twitterProfile.getValue("SCREENNAME") + " | IGNORED: " + data);
           const op = (data) ? "IGNORE" : "UNIGNORE";
           parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
         });

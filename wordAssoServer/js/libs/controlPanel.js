@@ -15,6 +15,8 @@ function ControlPanel() {
 
 	var dashboardMainDiv = document.getElementById('dashboardMainDiv');
 
+  var displayControlHashMap = {};
+
   var displayControl;
   var displayControlDiv = document.createElement("div");
   displayControlDiv.id = "displayControlDiv";
@@ -57,12 +59,16 @@ function ControlPanel() {
 
   config = window.opener.config;
 
+  const DEFAULT_RANGE_STEPS = 1000;
+
+  config.defaultRangeSteps = DEFAULT_RANGE_STEPS;
+
   const DEFAULT_MAX_NODES = 100;
   const DEFAULT_MAX_NODES_MIN = 10;
   const DEFAULT_MAX_NODES_MAX = 500;
 
   const DEFAULT_NODE_RADIUS_RATIO_MIN = 0.0020;
-  const DEFAULT_NODE_RADIUS_RATIO_MIN_MIN = 0.0010;
+  const DEFAULT_NODE_RADIUS_RATIO_MIN_MIN = 0.0001;
   const DEFAULT_NODE_RADIUS_RATIO_MIN_MAX = 0.1;
 
   const DEFAULT_NODE_RADIUS_RATIO_MAX = 0.2;
@@ -93,41 +99,29 @@ function ControlPanel() {
   const DEFAULT_VELOCITY_DECAY_MIN = 0.0;
   const DEFAULT_VELOCITY_DECAY_MAX = 1.0;
 
-  config.fontSizeRatioMin = config.fontSizeRatioMin || DEFAULT_FONT_SIZE_RATIO_MIN;
-  config.fontSizeRatioMinMin = config.fontSizeRatioMinMin || DEFAULT_FONT_SIZE_RATIO_MIN_MIN;
-  config.fontSizeRatioMinMax = config.fontSizeRatioMinMax || DEFAULT_FONT_SIZE_RATIO_MIN_MAX;
+  config.range = {};
 
-  config.fontSizeRatioMax = config.fontSizeRatioMax || DEFAULT_FONT_SIZE_RATIO_MAX;
-  config.fontSizeRatioMaxMin = config.fontSizeRatioMaxMin || DEFAULT_FONT_SIZE_RATIO_MAX_MIN;
-  config.fontSizeRatioMaxMax = config.fontSizeRatioMaxMax || DEFAULT_FONT_SIZE_RATIO_MAX_MAX;
+  const rangeInputs =[
+    "charge",
+    "fontSizeRatioMax",
+    "fontSizeRatioMin",
+    "gravity", 
+    "maxAge",
+    "maxNodes", 
+    "nodeRadiusRatioMax",
+    "nodeRadiusRatioMin", 
+    "velocityDecay"
+  ];
 
-  config.maxNodes = config.maxNodes || DEFAULT_MAX_NODES;
-  config.maxNodesMin = config.maxNodesMin || DEFAULT_MAX_NODES_MIN;
-  config.maxNodesMax = config.maxNodesMax || DEFAULT_MAX_NODES_MAX;
+  rangeInputs.forEach(function(rangeInput){
+    config.range[rangeInput] = {};
+    config.range[rangeInput].name = rangeInput;
+    config.range[rangeInput].default = eval("DEFAULT_" + changeCase.constantCase(rangeInput));
+    config.range[rangeInput].min = eval("DEFAULT_" + changeCase.constantCase(rangeInput) + "_MIN");
+    config.range[rangeInput].max = eval("DEFAULT_" + changeCase.constantCase(rangeInput) + "_MAX");
+  });
 
-  config.nodeRadiusRatioMin = config.nodeRadiusRatioMin || DEFAULT_NODE_RADIUS_RATIO_MIN;
-  config.nodeRadiusRatioMinMin = config.nodeRadiusRatioMinMin || DEFAULT_NODE_RADIUS_RATIO_MIN_MIN;
-  config.nodeRadiusRatioMinMax = config.nodeRadiusRatioMinMax || DEFAULT_NODE_RADIUS_RATIO_MIN_MAX;
-
-  config.nodeRadiusRatioMax = config.nodeRadiusRatioMax || DEFAULT_NODE_RADIUS_RATIO_MAX;
-  config.nodeRadiusRatioMaxMin = config.nodeRadiusRatioMaxMin || DEFAULT_NODE_RADIUS_RATIO_MAX_MIN;
-  config.nodeRadiusRatioMaxMax = config.nodeRadiusRatioMaxMax || DEFAULT_NODE_RADIUS_RATIO_MAX_MAX;
-
-  config.maxAge = config.maxAge || DEFAULT_MAX_AGE;
-  config.maxAgeMin = config.maxAgeMin || DEFAULT_MAX_AGE_MIN;
-  config.maxAgeMax = config.maxAgeMax || DEFAULT_MAX_AGE_MAX;
-
-  config.gravity = config.gravity || DEFAULT_GRAVITY;
-  config.gravityMin = config.gravityMin || DEFAULT_GRAVITY_MIN;
-  config.gravityMax = config.gravityMax || DEFAULT_GRAVITY_MAX;
-
-  config.charge = config.charge || DEFAULT_CHARGE;
-  config.chargeMin = config.chargeMin || DEFAULT_CHARGE_MIN;
-  config.chargeMax = config.chargeMax || DEFAULT_CHARGE_MAX;
-
-  config.velocityDecay = config.velocityDecay || DEFAULT_VELOCITY_DECAY;
-  config.velocityDecayMin = config.velocityDecayMin || DEFAULT_VELOCITY_DECAY_MIN;
-  config.velocityDecayMax = config.velocityDecayMax || DEFAULT_VELOCITY_DECAY_MAX;
+  console.log("CONFIG RANGE INPUTS\n", config.range);
 
   delete config.twitterUser.histograms;
   delete config.twitterUser.countHistory;
@@ -603,6 +597,10 @@ function ControlPanel() {
 		}
 	}
 
+  function computeRangeStep(params){
+    return Math.abs((params.max-params.min)/config.defaultRangeSteps);
+  }
+
   function catRadioButtonHandler(e){
 
 		e = e || event;
@@ -627,6 +625,32 @@ function ControlPanel() {
     parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: cb.name}, DEFAULT_SOURCE);
   }
 
+  function createRangeInput(params){
+
+    console.log("createRangeInput\n", params);
+
+    let configObj = config.range[params.name];
+
+    configObj.title = changeCase.sentenceCase(configObj.name).toUpperCase();
+    configObj.step = configObj.step || computeRangeStep({ max: configObj.max, min: configObj.min });
+
+    console.log("configObj\n", configObj);
+
+    displayControl.addRange(
+      configObj.title, 
+      configObj.min, 
+      configObj.max, 
+      configObj.default, 
+      configObj.step, 
+      function(value){
+        console.debug(configObj.name + ": " + value);
+        parentWindow.postMessage({op: "UPDATE", id: configObj.name, value: value}, DEFAULT_SOURCE);
+      }
+    );
+
+    return;
+  }
+
 
   $( document ).ready(function() {
 
@@ -641,70 +665,13 @@ function ControlPanel() {
 
         // DISPLAY ==================================
 
-        displayControl = QuickSettings.create(900, 0, "CONTROL", userCategorizeDiv);
+        displayControl = QuickSettings.create(900, 0, "DISPLAY", userCategorizeDiv);
 
         displayControl.setWidth(300);
 
-        //     config.defaultTransitionDuration = event.data.value;
-        //     currentSessionView.setCharge(event.data.value);
-        //     currentSessionView.setFontSizeRatioMax(event.data.value);
-        //     currentSessionView.setFontSizeRatioMin(event.data.value);
-        //     currentSessionView.setGravity(event.data.value);
-        //     currentSessionView.setMaxNodesLimit(event.data.value);
-        //     currentSessionView.setNodeMaxAge(event.data.value);
-        //     currentSessionView.setNodeRadiusRatioMax(event.data.value);
-        //     currentSessionView.setNodeRadiusRatioMin(event.data.value);
-        //     currentSessionView.setTransitionDuration(event.data.value);
-        //     currentSessionView.setVelocityDecay(event.data.value);
-
-        displayControl.addRange(
-          "RADIUS MIN", 
-          config.nodeRadiusRatioMinMin, 
-          config.nodeRadiusRatioMinMax, 
-          config.nodeRadiusRatioMin, 
-          0.001, 
-          function(data){
-            console.debug("RADIUS MIN: " + data);
-            parentWindow.postMessage({op: "UPDATE", id: "nodeRadiusRatioMin", value: data}, DEFAULT_SOURCE);
-          }
-        );
-
-        displayControl.addRange(
-          "RADIUS MAX", 
-          config.nodeRadiusRatioMaxMin, 
-          config.nodeRadiusRatioMaxMax, 
-          config.nodeRadiusRatioMax, 
-          0.001, 
-          function(data){
-            console.debug("RADIUS MAX: " + data);
-            parentWindow.postMessage({op: "UPDATE", id: "nodeRadiusRatioMax", value: data}, DEFAULT_SOURCE);
-          }
-        );
-
-        displayControl.addRange(
-          "FONT MIN", 
-          config.fontSizeRatioMinMin, 
-          config.fontSizeRatioMinMax, 
-          config.fontSizeRatioMin, 
-          0.001, 
-          function(data){
-            console.debug("FONT MIN: " + data);
-            parentWindow.postMessage({op: "UPDATE", id: "fontSizeRatioMin", value: data}, DEFAULT_SOURCE);
-          }
-        );
-
-        displayControl.addRange(
-          "FONT MAX", 
-          config.fontSizeRatioMaxMin, 
-          config.fontSizeRatioMaxMax, 
-          config.fontSizeRatioMax, 
-          0.001, 
-          function(data){
-            console.debug("FONT MAX: " + data);
-            parentWindow.postMessage({op: "UPDATE", id: "fontSizeRatioMax", value: data}, DEFAULT_SOURCE);
-          }
-        );
-
+        rangeInputs.forEach(function(rangeInput){
+          createRangeInput({name: rangeInput});
+        });
 
         // TWITTER USER CONTROL ==================================
 

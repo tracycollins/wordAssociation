@@ -560,6 +560,7 @@ function ControlPanel() {
 		categoryButton.id = "category_" + category; 
 		categoryButton.setAttribute("type", "checkbox");
 		categoryButton.name = category; 
+    categoryButton.style.webkitAppearance = "none";
     categoryButton.style.boxSizing = "border-box";
     categoryButton.style.width = "20px";
     categoryButton.style.height = "20px";

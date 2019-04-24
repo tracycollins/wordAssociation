@@ -616,7 +616,7 @@ function ControlPanel() {
         }
 
         twitterProfile.addBoolean("IGNORED", ignored);
-        twitterProfile.overrideStyle("IGNORED", "position", null);
+        // twitterProfile.overrideStyle("IGNORED", "position", null);
 
 				twitterProfile.addElement("CATEGORY MAN", radioUserCategoryDiv);
 

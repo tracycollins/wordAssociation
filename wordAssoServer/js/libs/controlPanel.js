@@ -553,12 +553,15 @@ function ControlPanel() {
 		var categoryLabel = document.createElement("label");
 		categoryLabel.setAttribute("class", "categoryButtonLabel");
 		categoryLabel.setAttribute("id", "categoryLabel_" + shortCategory(category));
+    categoryLabel.style.fontSize = "16px";
 		categoryLabel.innerHTML = shortCategory(category);
 
 		var categoryButton = document.createElement("input");
 		categoryButton.id = "category_" + category; 
 		categoryButton.setAttribute("type", "checkbox");
 		categoryButton.name = category; 
+    categoryButton.style.width = "20px";
+    categoryButton.style.height = "20px";
 
 		categoryLabel.appendChild(categoryButton);
 		radioUserCategoryDiv.appendChild(categoryLabel);

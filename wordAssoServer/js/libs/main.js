@@ -27,9 +27,9 @@ function ControlPanel() {
 
 	var userCategorizeDiv = document.getElementById('userCategorizeDiv');
 
-  var twitterFeedUser;
-  var twitterFeedPreviousUser;
-  var twitterFeedHashtag;
+  var twitterFeedUser = {};
+  var twitterFeedPreviousUser = {};
+  var twitterFeedHashtag = {};
 
 	var compactDateTimeFormat = "YYYYMMDD HHmmss";
 
@@ -145,6 +145,8 @@ function ControlPanel() {
   statsObj.user.threeceeFollowing = "---";
   statsObj.user.following = false;
   statsObj.user.ignored = false;
+
+  twitterFeedUser = statsObj.user;
 
   var eventDetected = false;
 

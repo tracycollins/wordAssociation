@@ -544,18 +544,20 @@ function ControlPanel() {
 
 	var radioUserCategoryDiv = document.createElement("div");
 	radioUserCategoryDiv.id = "radioUserCategoryDiv";
-	radioUserCategoryDiv.style.backgroundColor = "white";
+  radioUserCategoryDiv.setAttribute("class", "qs_container");
+	// radioUserCategoryDiv.style.backgroundColor = "white";
 
 	["left", "neutral", "right", "positive", "negative", "none"].forEach(function(category){
 
 		var categoryLabel = document.createElement("label");
-		categoryLabel.setAttribute("class", "categoryButtonLabel");
+		categoryLabel.setAttribute("class", "qs_checkbox_label");
 		categoryLabel.setAttribute("id", "categoryLabel_" + shortCategory(category));
 		categoryLabel.innerHTML = shortCategory(category);
 
 		var categoryButton = document.createElement("input");
 		categoryButton.id = "category_" + category; 
 		categoryButton.setAttribute("type", "checkbox");
+    categoryButton.setAttribute("class", "qs_checkbox");
 		categoryButton.name = category; 
 
 		categoryLabel.appendChild(categoryButton);

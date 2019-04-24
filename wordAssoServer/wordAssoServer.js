@@ -7252,12 +7252,39 @@ function initAppRouting(callback) {
       console.log(chalkLog("WAS | R< REDIRECT /session")); 
       res.redirect("/session");
     }
-    else if (req.path === "/categorize"){
-      console.log(chalkLog("WAS | R< CATEGORIZE"
-        + " | req.query: " + jsonPrint(req.query)
-        + " | req.params: " + jsonPrint(req.params)
+    else if ((req.path === "/session.js") || (req.path === "/js/libs/controlPanel.js")) {
+
+      // const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
+      // const LOCAL_SOURCE = "http://localhost:9997";
+      // var DEFAULT_SOURCE = REPLACE_SOURCE;
+
+      const fullPath = __dirname + req.path;
+      const defaultSource = (hostname === "google") ? "PRODUCTION_SOURCE" : "LOCAL_SOURCE";
+
+      console.log(chalkAlert("WAS | !!! REPLACE DEFAULT SOURCE"
+        + " | REQ: " + req.path
+        + " | PATH: " + fullPath
+        + " | SOURCE: " + defaultSource
       ));
-      res.sendStatus(200);
+
+      fs.readFile(fullPath, "utf8", function(err, data) {
+
+        if (err) {
+          console.log(chalkError("fs readFile " + fullPath + " ERROR: " + err));
+          res.sendStatus(404);
+        }
+        else {
+          console.log(chalkInfo(getTimeStamp()
+            + "WAS | T> | FILE"
+            + " | " + fullPath
+          ));
+
+          const newFile = data.replace(/REPLACE_SOURCE/g, defaultSource);
+
+          res.send(newFile);
+        }
+
+      });
     }
     else {
       console.log(chalkInfo("WAS | R<"
@@ -7267,6 +7294,7 @@ function initAppRouting(callback) {
         + " | METHOD: " + req.method
         + " | PATH: " + req.path
       ));
+
       next();
     }
   });

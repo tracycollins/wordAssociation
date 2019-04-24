@@ -149,6 +149,17 @@
 .qs_checkbox {
   cursor: pointer;
 }
+input[type="checkbox"]{
+  /*margin-left: 0.5em;*/
+  margin: none;
+  padding: 0.5em;
+  /*border: 2px solid gray;*/
+  background-color:black;
+  color: yellow;
+  font-family: "Lucida Console", Monaco, monospace;
+  font-size: 1em;
+  line-height: 1em;
+}
 .qs_checkbox input {
   position: absolute;
   left: -99999px;

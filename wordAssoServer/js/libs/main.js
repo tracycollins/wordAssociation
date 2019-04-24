@@ -615,7 +615,11 @@ function ControlPanel() {
           ignored = twitterFeedUser.ignored;
         }
 
-        twitterProfile.addBoolean("IGNORED", ignored);
+        twitterProfile.addBoolean("IGNORED", ignored, function(data){
+          console.debug("NODE IGNORED: @" + twitterProfile.getValue("SCREENNAME") + " | IGNORED: " + data);
+          const op = (data) ? "IGNORE" : "UNIGNORE";
+          parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
+        });
         // twitterProfile.overrideStyle("IGNORED", "position", null);
 
 				twitterProfile.addElement("CATEGORY MAN", radioUserCategoryDiv);

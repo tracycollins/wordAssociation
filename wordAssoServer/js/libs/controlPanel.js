@@ -15,6 +15,10 @@ function ControlPanel() {
 
 	var dashboardMainDiv = document.getElementById('dashboardMainDiv');
 
+  var displayControl;
+  var displayControlDiv = document.createElement("div");
+  displayControlDiv.id = "displayControlDiv";
+
   var twitterControl;
   var twitterControlDiv = document.createElement("div");
   twitterControlDiv.id = "twitterControlDiv";
@@ -635,9 +639,78 @@ function ControlPanel() {
 
         QuickSettings.useExtStyleSheet();
 
-        twitterControl = QuickSettings.create(800, 0, "TWITTER USER CONTROL", userCategorizeDiv);
+        // DISPLAY ==================================
 
-        twitterControl.setWidth(400);
+        displayControl = QuickSettings.create(900, 0, "CONTROL", userCategorizeDiv);
+
+        displayControl.setWidth(300);
+
+        //     config.defaultTransitionDuration = event.data.value;
+        //     currentSessionView.setCharge(event.data.value);
+        //     currentSessionView.setFontSizeRatioMax(event.data.value);
+        //     currentSessionView.setFontSizeRatioMin(event.data.value);
+        //     currentSessionView.setGravity(event.data.value);
+        //     currentSessionView.setMaxNodesLimit(event.data.value);
+        //     currentSessionView.setNodeMaxAge(event.data.value);
+        //     currentSessionView.setNodeRadiusRatioMax(event.data.value);
+        //     currentSessionView.setNodeRadiusRatioMin(event.data.value);
+        //     currentSessionView.setTransitionDuration(event.data.value);
+        //     currentSessionView.setVelocityDecay(event.data.value);
+
+        displayControl.addRange(
+          "RADIUS MIN", 
+          config.nodeRadiusRatioMinMin, 
+          config.nodeRadiusRatioMinMax, 
+          config.nodeRadiusRatioMin, 
+          0.001, 
+          function(data){
+            console.debug("RADIUS MIN: " + data);
+            parentWindow.postMessage({op: "UPDATE", id: "nodeRadiusRatioMin", value: data}, DEFAULT_SOURCE);
+          }
+        );
+
+        displayControl.addRange(
+          "RADIUS MAX", 
+          config.nodeRadiusRatioMaxMin, 
+          config.nodeRadiusRatioMaxMax, 
+          config.nodeRadiusRatioMax, 
+          0.001, 
+          function(data){
+            console.debug("RADIUS MAX: " + data);
+            parentWindow.postMessage({op: "UPDATE", id: "nodeRadiusRatioMax", value: data}, DEFAULT_SOURCE);
+          }
+        );
+
+        displayControl.addRange(
+          "FONT MIN", 
+          config.fontSizeRatioMinMin, 
+          config.fontSizeRatioMinMax, 
+          config.fontSizeRatioMin, 
+          0.001, 
+          function(data){
+            console.debug("FONT MIN: " + data);
+            parentWindow.postMessage({op: "UPDATE", id: "fontSizeRatioMin", value: data}, DEFAULT_SOURCE);
+          }
+        );
+
+        displayControl.addRange(
+          "FONT MAX", 
+          config.fontSizeRatioMaxMin, 
+          config.fontSizeRatioMaxMax, 
+          config.fontSizeRatioMax, 
+          0.001, 
+          function(data){
+            console.debug("FONT MAX: " + data);
+            parentWindow.postMessage({op: "UPDATE", id: "fontSizeRatioMax", value: data}, DEFAULT_SOURCE);
+          }
+        );
+
+
+        // TWITTER USER CONTROL ==================================
+
+        twitterControl = QuickSettings.create(600, 0, "CONTROL", userCategorizeDiv);
+
+        twitterControl.setWidth(300);
 
         let following = false;
         if (twitterFeedUser && twitterFeedUser.following !== undefined) {
@@ -684,8 +757,10 @@ function ControlPanel() {
         });
 
 
-        twitterProfile = QuickSettings.create(0, 0, "TWITTER USER PROFILE", userCategorizeDiv);
-        twitterProfile.setWidth(400);
+        // TWITTER USER PROFILE ==================================
+
+        twitterProfile = QuickSettings.create(0, 0, "PROFILE", userCategorizeDiv);
+        twitterProfile.setWidth(300);
 
 
 				const name = (twitterFeedUser) ? twitterFeedUser.name : "";
@@ -718,12 +793,15 @@ function ControlPanel() {
 				}
 
 
-				twitterTimeLine = QuickSettings.create(400, 	0, "TWITTER USER TIMELINE", userCategorizeDiv);
-				twitterTimeLine.setWidth(400);
+        // TWITTER USER TIMELINE ==================================
+
+				twitterTimeLine = QuickSettings.create(300, 	0, "TIMELINE", userCategorizeDiv);
+				twitterTimeLine.setWidth(300);
 				twitterTimeLine.addElement("TWEETS", twitterTimeLineDiv);	
 
 				twitterProfile.setGlobalChangeHandler(function(data){
 				});
+
 
         self.updateControlPanel(config, function(){
 

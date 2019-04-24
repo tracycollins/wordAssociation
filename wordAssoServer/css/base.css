@@ -98,7 +98,7 @@ table {
 hr {
     border: 0;
     height: 1px;
-    background: white;
+    background: gray;
 }
 
 .admin, .tooltip {

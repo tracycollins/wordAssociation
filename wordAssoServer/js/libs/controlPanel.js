@@ -707,6 +707,12 @@ function ControlPanel() {
         const categoryAuto = (twitterFeedUser) ? twitterFeedUser.categoryAuto.toUpperCase() : "";
         twitterControl.addText("CATEGORY AUTO", categoryAuto.toUpperCase());
 
+        twitterControl.addButton("NEXT UNCAT LEFT", function(){
+          nextUncatHandler("left");
+        });
+        twitterControl.addButton("NEXT UNCAT RIGHT", function(){
+          nextUncatHandler("right");
+        });
         twitterControl.addButton("IGNORE", function(){
           parentWindow.postMessage({op: "IGNORE", user: twitterFeedUser}, DEFAULT_SOURCE);
         });
@@ -715,12 +721,6 @@ function ControlPanel() {
         });
         twitterControl.addButton("NEXT UNCAT", function(){
           nextUncatHandler("any");
-        });
-        twitterControl.addButton("NEXT UNCAT LEFT", function(){
-          nextUncatHandler("left");
-        });
-        twitterControl.addButton("NEXT UNCAT RIGHT", function(){
-          nextUncatHandler("right");
         });
 
 

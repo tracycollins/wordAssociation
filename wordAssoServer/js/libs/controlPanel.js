@@ -319,6 +319,9 @@ function ControlPanel() {
     	twitterProfile.setValue("SCREENNAME", "@"+node.screenName);
       twitterProfile.setValue("FOLLOWERS", node.followersCount);
       twitterProfile.setValue("FRIENDS", node.friendsCount);
+      twitterProfile.setValue("MENTIONS", node.mentions);
+      twitterProfile.setValue("RATE", node.rate);
+      twitterProfile.setValue("RATE MAX", node.rateMax);
       twitterProfile.setValue("LOCATION", node.location);
       twitterProfile.setValue("LOCATION", node.location);
 			twitterProfile.setValue("PROFILE", node.profileImageUrl.replace("_normal", ""));
@@ -743,6 +746,9 @@ function ControlPanel() {
 
         twitterProfile.addNumber("FOLLOWERS", twitterFeedUser.followersCount);
         twitterProfile.addNumber("FRIENDS", twitterFeedUser.friendsCount);
+        twitterProfile.addNumber("MENTIONS", twitterFeedUser.mentions);
+        twitterProfile.addNumber("RATE", twitterFeedUser.rate);
+        twitterProfile.addNumber("RATE MAX", twitterFeedUser.rateMax);
 
         const location = (twitterFeedUser) ? twitterFeedUser.location : "";
         twitterProfile.addText("LOCATION", location);

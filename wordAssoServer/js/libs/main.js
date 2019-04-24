@@ -145,6 +145,7 @@ function ControlPanel() {
   statsObj.user.threeceeFollowing = "---";
   statsObj.user.following = false;
   statsObj.user.ignored = false;
+  statsObj.user.profileImageUrl = null;
 
   twitterFeedUser = statsObj.user;
 

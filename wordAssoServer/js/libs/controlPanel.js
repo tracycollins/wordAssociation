@@ -319,6 +319,7 @@ function ControlPanel() {
     	twitterProfile.setValue("SCREENNAME", "@"+node.screenName);
       twitterProfile.setValue("FOLLOWERS", node.followersCount);
       twitterProfile.setValue("FRIENDS", node.friendsCount);
+      twitterProfile.setValue("TWEETS", node.statusesCount);
       twitterProfile.setValue("MENTIONS", node.mentions);
       twitterProfile.setValue("RATE", node.rate);
       twitterProfile.setValue("RATE MAX", node.rateMax);
@@ -746,6 +747,7 @@ function ControlPanel() {
 
         twitterProfile.addNumber("FOLLOWERS", twitterFeedUser.followersCount);
         twitterProfile.addNumber("FRIENDS", twitterFeedUser.friendsCount);
+        twitterProfile.addNumber("TWEETS", twitterFeedUser.statusesCount);
         twitterProfile.addNumber("MENTIONS", twitterFeedUser.mentions);
         twitterProfile.addNumber("RATE", twitterFeedUser.rate);
         twitterProfile.addNumber("RATE MAX", twitterFeedUser.rateMax);

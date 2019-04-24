@@ -13,9 +13,13 @@ function ControlPanel() {
 
 	var dashboardMainDiv = document.getElementById('dashboardMainDiv');
 
-	var twitterProfile;
-	var twitterProfileDiv = document.createElement("div");
-	twitterProfileDiv.id = "twitterProfileDiv";
+  var twitterControl;
+  var twitterControlDiv = document.createElement("div");
+  twitterControlDiv.id = "twitterControlDiv";
+
+  var twitterProfile;
+  var twitterProfileDiv = document.createElement("div");
+  twitterProfileDiv.id = "twitterProfileDiv";
 
 	var twitterTimeLine;
 	var twitterTimeLineDiv = document.createElement("div");
@@ -309,7 +313,10 @@ function ControlPanel() {
 
     	twitterProfile.setValue("NAME", node.name);
     	twitterProfile.setValue("SCREENNAME", "@"+node.screenName);
-    	twitterProfile.setValue("LOCATION", node.location);
+      twitterProfile.setValue("FOLLOWERS", node.followersCount);
+      twitterProfile.setValue("FRIENDS", node.friendsCount);
+      twitterProfile.setValue("LOCATION", node.location);
+      twitterProfile.setValue("LOCATION", node.location);
 			twitterProfile.setValue("PROFILE", node.profileImageUrl.replace("_normal", ""));
 			twitterProfile.setValue("DESCRIPTION", node.description);
       twitterProfile.setValue("FOLLOWING", node.following || false);
@@ -605,18 +612,21 @@ function ControlPanel() {
 
       setTimeout(function() {  // KLUDGE to insure table is created before update
 
-				twitterProfile = QuickSettings.create(0, 0, "TWITTER USER PROFILE", userCategorizeDiv);
-				twitterProfile.setWidth(400);
+        twitterControl = QuickSettings.create(0, 0, "TWITTER USER CONTROL", userCategorizeDiv);
+        twitterControl.setWidth(400);
+        twitterControl.addButton("NEXT UNCAT", function(){
+          nextUncatHandler("any");
+        });
+        twitterControl.addButton("NEXT UNCAT LEFT", function(){
+          nextUncatHandler("left");
+        });
+        twitterControl.addButton("NEXT UNCAT RIGHT", function(){
+          nextUncatHandler("right");
+        });
 
-				twitterProfile.addButton("NEXT UNCAT", function(){
-					nextUncatHandler("any");
-				});
-				twitterProfile.addButton("NEXT UNCAT LEFT", function(){
-					nextUncatHandler("left");
-				});
-				twitterProfile.addButton("NEXT UNCAT RIGHT", function(){
-					nextUncatHandler("right");
-				});
+
+        twitterProfile = QuickSettings.create(400, 0, "TWITTER USER PROFILE", userCategorizeDiv);
+        twitterProfile.setWidth(400);
 
         let following = false;
         if (twitterFeedUser && twitterFeedUser.following !== undefined) {
@@ -656,8 +666,11 @@ function ControlPanel() {
 		      parentWindow.postMessage({op: "NODE_SEARCH", input: twitterProfile.getValue("SCREENNAME")}, DEFAULT_SOURCE);
 				});
 
-				const location = (twitterFeedUser) ? twitterFeedUser.location : "";
-				twitterProfile.addText("LOCATION", location);
+        twitterProfile.addNumber("FOLLOWERS", twitterFeedUser.followersCount);
+        twitterProfile.addNumber("FRIENDS", twitterFeedUser.friendsCount);
+
+        const location = (twitterFeedUser) ? twitterFeedUser.location : "";
+        twitterProfile.addText("LOCATION", location);
 
 				const description = (twitterFeedUser) ? twitterFeedUser.description : "";
 				twitterProfile.addTextArea("DESCRIPTION", description);
@@ -672,7 +685,7 @@ function ControlPanel() {
 				}
 
 
-				twitterTimeLine = QuickSettings.create(400, 	0, "TWITTER USER TIMELINE", userCategorizeDiv);
+				twitterTimeLine = QuickSettings.create(800, 	0, "TWITTER USER TIMELINE", userCategorizeDiv);
 				twitterTimeLine.setWidth(400);
 				twitterTimeLine.addElement("TWEETS", twitterTimeLineDiv);	
 

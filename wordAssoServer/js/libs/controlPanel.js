@@ -555,6 +555,7 @@ function ControlPanel() {
 		var categoryLabel = document.createElement("label");
 		categoryLabel.setAttribute("class", "categoryButtonLabel");
 		categoryLabel.setAttribute("id", "categoryLabel_" + shortCategory(category));
+    categoryLabel.style.position = "absolute";
     categoryLabel.style.fontSize = "16px";
     categoryLabel.style.padding = "5px";
 		categoryLabel.innerHTML = shortCategory(category);
@@ -634,7 +635,7 @@ function ControlPanel() {
       setTimeout(function() {  // KLUDGE to insure table is created before update
 
         QuickSettings.useExtStyleSheet();
-        
+
         twitterControl = QuickSettings.create(800, 0, "TWITTER USER CONTROL", userCategorizeDiv);
 
         twitterControl.setWidth(400);

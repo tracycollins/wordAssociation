@@ -617,6 +617,12 @@ function ControlPanel() {
 
         twitterControl = QuickSettings.create(800, 0, "TWITTER USER CONTROL", userCategorizeDiv);
         twitterControl.setWidth(400);
+        twitterControl.addButton("IGNORE", function(){
+          parentWindow.postMessage({op: "IGNORE", user: twitterFeedUser}, DEFAULT_SOURCE);
+        });
+        twitterControl.addButton("UNIGNORE", function(){
+          parentWindow.postMessage({op: "UNIGNORE", user: twitterFeedUser}, DEFAULT_SOURCE);
+        });
         twitterControl.addButton("NEXT UNCAT", function(){
           nextUncatHandler("any");
         });

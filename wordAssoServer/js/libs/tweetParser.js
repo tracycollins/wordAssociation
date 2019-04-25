@@ -328,6 +328,8 @@ function initTweetParserQueueInterval(cnf){
         }
       }).
       catch(function(err){
+        console.log(chalkError("TWP | *** CREATE STREAM TWEET ERROR: " + getTimeStamp()));
+        console.log(chalkError("TWP | *** CREATE STREAM TWEET ERROR: ", err));
         console.trace(chalkError("TWP | *** CREATE STREAM TWEET ERROR: ", err));
         console.trace(chalkError("TWP | *** CREATE STREAM TWEET ERROR\nTWEET\n", jsonPrint(tweet)));
         tweetParserQueueReady = true;

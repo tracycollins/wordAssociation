@@ -208,6 +208,8 @@ function addAccountActivitySubscription(){
 
   return new Promise(function(resolve, reject){
 
+    statsObj.status = "ADD ACCOUNT ACTIVITY SUBSCRIPTION";
+
     const options = {
       url: "https://api.twitter.com/1.1/account_activity/all/dev/subscriptions.json",
       method: "POST",
@@ -323,6 +325,7 @@ statsObj.currentThreeceeUserIndex = 0;
 statsObj.currentThreeceeUser = "altthreecee00";
 statsObj.threeceeUsersConfiguredFlag = false;
 statsObj.twitNotReadyWarning = false;
+statsObj.initSetsComplete = false;
 
 statsObj.dbuChildReady = false;
 statsObj.tfeChildReady = false;
@@ -510,6 +513,8 @@ function getTimeStamp(inputTime) {
 }
 
 function quit(message) {
+
+  statsObj.status = "QUITTING";
 
   console.log(chalkAlert("\nWAS | ... QUITTING ... " + getTimeStamp()));
 
@@ -3254,7 +3259,6 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
         initTssChild({childId: childObj.childId, threeceeUser: childrenHashMap[childObj.childId].threeceeUser});
       });
   }
-
 });
 
 configEvents.on("INTERNET_READY", function internetReady() {
@@ -3447,7 +3451,13 @@ configEvents.on("INTERNET_NOT_READY", function internetNotReady() {
   }
 });
 
+configEvents.on("INIT_SETS_COMPLETE", function configEventDbConnect(){
+  statsObj.initSetsComplete = true;
+});
+
 configEvents.on("DB_CONNECT", function configEventDbConnect(){
+
+  statsObj.status = "DB_CONNECT";
 
   async.parallel({
 
@@ -3460,7 +3470,6 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
       catch(function(err){
         return cb(err);
       });
-
     },
     
     unfollowableInit: function(cb){
@@ -3472,7 +3481,6 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
       catch(function(err){
         return cb(err);
       });
-
     },
     
     ignoredUserInit: function(cb){
@@ -3484,7 +3492,6 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
       catch(function(err){
         return cb(err);
       });
-
     },
     
     ignoredHashtagInit: function(cb){
@@ -3496,7 +3503,6 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
       catch(function(err){
         return cb(err);
       });
-
     },
     
     followSearchInit: function(cb){
@@ -3508,7 +3514,6 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
       catch(function(err){
         return cb(err);
       });
-
     },
 
     categoryHashmapsInit: function(cb){
@@ -3520,7 +3525,6 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
       catch(function(err){
         return cb(err);
       });
-
     }
   },
   function(err, results){
@@ -3530,10 +3534,9 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
     }
     else {
       console.log(chalk.green("WAS | +++ MONGO DB CONNECTION READY"));
-      // dbConnectionReady = true;
+      configEvents.emit("INIT_SETS_COMPLETE");
     }
   });
- 
 });
 
 configEvents.on("NEW_BEST_NETWORK", function configEventDbConnect(bestNetworkId){
@@ -4295,6 +4298,8 @@ function unfollow(params, callback) {
 
 function initFollowableSearchTermSet(){
 
+  statsObj.status = "INIT FOLLOWABLE SEARCH TERM SET";
+
   console.log(chalkBlue("WAS | INIT FOLLOWABLE SEARCH TERM SET: " + dropboxConfigDefaultFolder 
     + "/" + followableSearchTermFile
   ));
@@ -4364,6 +4369,8 @@ function initFollowableSearchTermSet(){
 }
 
 function initIgnoredHashtagSet(){
+
+  statsObj.status = "INIT IGNORE HASHTAG SET";
 
   console.log(chalkLog("WAS | INIT IGNORE HASHTAG SET"));
 
@@ -4464,6 +4471,8 @@ function initIgnoredHashtagSet(){
 
 function initIgnoredUserSet(){
 
+  statsObj.status = "INIT IGNORED USER SET";
+
   console.log(chalkLog("WAS | INIT IGNORED USER SET"));
 
   return new Promise(function(resolve, reject) {
@@ -4562,6 +4571,8 @@ function initIgnoredUserSet(){
 }
 
 function initUnfollowableUserSet(){
+
+  statsObj.status = "INIT UNFOLLOWABLE USER SET";
 
   console.log(chalkLog("WAS | INIT UNFOLLOWABLE USER SET"));
 
@@ -6022,6 +6033,8 @@ const startTwitUserShowRateLimitTimeoutDuration = ONE_MINUTE;
 
 function initFollowableSearchTerms(){
 
+  statsObj.status = "INIT FOLLOWABLE SEARCH TERMS";
+
   return new Promise(function(resolve, reject){
 
     const termsArray = Array.from(followableSearchTermSet);
@@ -6122,7 +6135,6 @@ const userCategorizeable = function(user){
   }
 
   return false;
-
 };
 
 let followableFlag = false;
@@ -6225,6 +6237,8 @@ function loadFileRetry(params){
 
 function initAllowLocations(){
 
+  statsObj.status = "INIT ALLOW LOCATIONS SET";
+
   return new Promise(async function(resolve, reject){
 
     console.log(chalkTwitter("WAS | INIT ALLOW LOCATIONS"));
@@ -6298,6 +6312,8 @@ split("\n");
 
 function initIgnoreLocations(){
 
+  statsObj.status = "INIT IGNORE LOCATIONS SET";
+
   return new Promise(async function(resolve, reject){
 
     console.log(chalkTwitter("WAS | INIT IGNORE LOCATIONS"));
@@ -6369,6 +6385,8 @@ split("\n");
 }
 
 function updateUserSets(params){
+
+  statsObj.status = "UPDATE USER SETS";
 
   return new Promise(function(resolve, reject){
 
@@ -7544,7 +7562,6 @@ function initInternetCheckInterval(interval){
     resolve();
 
   });
-
 }
 
 function initTwitterRxQueueInterval(interval){
@@ -8136,6 +8153,8 @@ async function ignoreLocations(){
 
 function initTssChild(params){
 
+  statsObj.status = "INIT TSS CHILD";
+
   statsObj.tssChildren[params.threeceeUser].ready = false;
 
   console.log(chalk.bold.black("WAS | INIT TSS CHILD\n" + jsonPrint(params)));
@@ -8383,6 +8402,8 @@ function initTssChild(params){
 
 function initTfeChild(params){
 
+  statsObj.status = "INIT TFE CHILD";
+
   return new Promise(function(resolve, reject){
 
     statsObj.tfeChildReady = false;
@@ -8628,6 +8649,8 @@ function initTfeChild(params){
 
 function initDbuChild(params){
 
+  statsObj.status = "INIT DBU CHILD";
+
   return new Promise(function(resolve, reject){
 
     const childId = params.childId;
@@ -8840,6 +8863,8 @@ function initTweetParserPingInterval(interval){
 
 function initTweetParser(params){
 
+  statsObj.status = "INIT TWEET PARSER";
+
   return new Promise(function(resolve, reject){
 
     console.log(chalk.bold.black("WAS | INIT TWEET PARSER\n" + jsonPrint(params)));
@@ -8963,7 +8988,6 @@ function initTweetParser(params){
     resolve();
 
   });
-
 }
 
 function initRateQinterval(interval){
@@ -11101,7 +11125,7 @@ setTimeout(function(){
 
         dbConnectionReadyInterval = setInterval(async function() {
 
-          if (statsObj.dbConnectionReady) {
+          if (statsObj.dbConnectionReady && statsObj.initSetsComplete) {
 
             try {
 
@@ -11141,7 +11165,7 @@ setTimeout(function(){
             
           }
           else {
-            console.log(chalkLog("WAS | WAIT DB CONNECTED ..."));
+            console.log(chalkLog("WAS | STATUS: " + statsObj.status + " | WAIT DB CONNECTED ..."));
           }
         }, 5000);
 

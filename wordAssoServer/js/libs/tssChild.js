@@ -97,6 +97,7 @@ const searchTermHashMap = new HashMap();
 
 const unfollowQueue = [];
 
+const ignoreUserSet = new Set();
 
 const allowLocationsSet = new Set();
 allowLocationsSet.add("new england");
@@ -1618,6 +1619,21 @@ function initSearchStream(){
       threeceeUserObj.searchStream.on("tweet", function(tweetStatus){
 
         // if (tweetStatus.user.location && (tweetStatus.user.location !== undefined) && ignoreLocationsSet.has(tweetStatus.user.location)){
+        if (tweetStatus.user.userId 
+          && (tweetStatus.user.userId !== undefined) 
+          && ignoreUserSet.has(tweetStatus.user.userId))
+        {
+          if (configuration.verbose) {
+            console.log(chalkLog("TSS | XXX IGNORE USER | SKIPPING"
+              + " | TWID: " + tweetStatus.id_str
+              + " | UID: " + tweetStatus.user.id_str
+              + " | @" + tweetStatus.user.screen_name
+              + " | NAME: " + tweetStatus.user.name
+            ));
+          }
+          return;
+        }
+
         if (tweetStatus.user.location 
           && (tweetStatus.user.location !== undefined) 
           && ignoreLocationsRegEx.test(tweetStatus.user.location))
@@ -1772,6 +1788,14 @@ function initSearchTerms(params){
     threeceeUserObj.searchTermSet.add("maga");
     threeceeUserObj.searchTermSet.add("fbr");
     threeceeUserObj.searchTermSet.add("aoc");
+    threeceeUserObj.searchTermSet.add("bernie");
+    threeceeUserObj.searchTermSet.add("beto");
+    threeceeUserObj.searchTermSet.add("kamala");
+    threeceeUserObj.searchTermSet.add("elizabethwarren");
+    threeceeUserObj.searchTermSet.add("obama");
+    threeceeUserObj.searchTermSet.add("pence");
+    threeceeUserObj.searchTermSet.add("clinton");
+    threeceeUserObj.searchTermSet.add("biden");
     threeceeUserObj.searchTermSet.add("democrat");
     threeceeUserObj.searchTermSet.add("republican");
     threeceeUserObj.searchTermSet.add("bluewave");
@@ -2775,6 +2799,7 @@ process.on("message", async function(m) {
         + " | USER " + m.user.userId
         + " | @" + m.user.screenName
       ));
+      ignoreUserSet.add("m.user.userId");
     break;
 
     case "UPDATE_ALLOW_LOCATIONS":

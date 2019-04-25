@@ -2752,8 +2752,8 @@ function saveFile (params, callback){
         else {
           console.log(chalkError("WAS | " + getTimeStamp() 
             + " | *** ERROR DROBOX JSON WRITE | FILE: " + fullPath 
-            + " | ERROR: " + error
-            + " | ERROR\n" + jsonPrint(error)
+            + " | ERROR STATUS " + error.status
+            // + " | ERROR\n" + jsonPrint(error)
           ));
           if (callback !== undefined) { return callback(error); }
         }

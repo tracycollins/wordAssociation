@@ -1244,18 +1244,7 @@ function connectDb(){
 
         global.globalDbConnection = db;
 
-        console.log(chalk.green("WAS | MONGOOSE DEFAULT CONNECTION OPEN"));
-
-        // const emojiModel = require("@threeceelabs/mongoose-twitter/models/emoji.server.model");
-        // const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
-        // const locationModel = require("@threeceelabs/mongoose-twitter/models/location.server.model");
-        // const mediaModel = require("@threeceelabs/mongoose-twitter/models/media.server.model");
-        // const neuralNetworkModel = require("@threeceelabs/mongoose-twitter/models/neuralNetwork.server.model");
-        // const placeModel = require("@threeceelabs/mongoose-twitter/models/place.server.model");
-        // const tweetModel = require("@threeceelabs/mongoose-twitter/models/tweet.server.model");
-        // const urlModel = require("@threeceelabs/mongoose-twitter/models/url.server.model");
-        // const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
-        // const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
+        console.log(chalk.green("WAS | MONGO DB DEFAULT CONNECTION OPEN"));
 
         global.globalEmoji = global.globalDbConnection.model("Emoji", emojiModel.EmojiSchema);
         global.globalHashtag = global.globalDbConnection.model("Hashtag", hashtagModel.HashtagSchema);
@@ -1281,6 +1270,7 @@ function connectDb(){
             "$or": [{ operationType: "insert" },{ operationType: "delete" },{ operationType: "update" },{ operationType: "replace" }]
           }
         };
+        
         const optionsNetwork = { fullDocument: "updateLookup" };
 
         neuralNetworkChangeStream = neuralNetworkCollection.watch([filterNetwork], optionsNetwork);

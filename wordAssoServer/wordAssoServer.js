@@ -9769,7 +9769,7 @@ function initStatsUpdate(cnf) {
           ));
 
         }
-      }, 15000);
+      }, ONE_MINUTE);
 
       statsInterval = setInterval(function updateStats() {
 
@@ -9840,7 +9840,7 @@ function initStatsUpdate(cnf) {
 
         }).
         catch(function(err){
-
+          console.log(chalkError("WAS | getChildProcesses ERROR:", err));
         });
 
       }, cnf.statsUpdateIntervalTime);
@@ -10343,100 +10343,100 @@ function initUpdateUserSetsInterval(interval){
 
 let memStatsInterval;
 
-function initStatsInterval(interval){
+// function initStatsInterval(interval){
 
-  let statsUpdated = 0;
+//   let statsUpdated = 0;
 
-  console.log(chalk.bold.black("WAS | INIT STATS INTERVAL"
-    + " | " + msToTime(interval)
-    + " | FILE: " + statsFolder + "/" + statsFile
-  ));
+//   console.log(chalk.bold.black("WAS | INIT STATS INTERVAL"
+//     + " | " + msToTime(interval)
+//     + " | FILE: " + statsFolder + "/" + statsFile
+//   ));
 
-  showStats(true);
+//   showStats(true);
 
-  clearInterval(statsInterval);
-  clearInterval(memStatsInterval);
+//   clearInterval(statsInterval);
+//   clearInterval(memStatsInterval);
 
-  memStatsInterval = setInterval(function updateMemStats() {
+//   memStatsInterval = setInterval(function updateMemStats() {
 
-    statsObj.memory.rss = process.memoryUsage().rss/(1024*1024);
+//     statsObj.memory.rss = process.memoryUsage().rss/(1024*1024);
 
-    if (statsObj.memory.rss > statsObj.memory.maxRss) {
+//     if (statsObj.memory.rss > statsObj.memory.maxRss) {
 
-      statsObj.memory.maxRss = statsObj.memory.rss;
-      statsObj.memory.maxRssTime = moment().valueOf();
+//       statsObj.memory.maxRss = statsObj.memory.rss;
+//       statsObj.memory.maxRssTime = moment().valueOf();
 
-      console.log(chalkInfo("WAS | NEW MAX RSS"
-        + " | " + getTimeStamp()
-        + " | " + statsObj.memory.rss.toFixed(1) + " MB"
-      ));
+//       console.log(chalkInfo("WAS | NEW MAX RSS"
+//         + " | " + getTimeStamp()
+//         + " | " + statsObj.memory.rss.toFixed(1) + " MB"
+//       ));
 
-    }
-  }, 15000);
+//     }
+//   }, 15000);
 
-  statsInterval = setInterval(function updateStats() {
+//   statsInterval = setInterval(function updateStats() {
 
-    getChildProcesses({searchTerm: "ALL"}, function(err, childArray){
+//     getChildProcesses({searchTerm: "ALL"}, function(err, childArray){
 
-      if (configuration.verbose) { console.log(chalkLog("WAS | FOUND " + childArray.length + " CHILDREN")); }
+//       if (configuration.verbose) { console.log(chalkLog("WAS | FOUND " + childArray.length + " CHILDREN")); }
       
-      childArray.forEach(function(childObj){
-        console.log(chalkLog("WAS | CHILD | PID: " + childObj.pid + " | " + childObj.childId + " | " + childrenHashMap[childObj.childId].status));
-      });
-    });
+//       childArray.forEach(function(childObj){
+//         console.log(chalkLog("WAS | CHILD | PID: " + childObj.pid + " | " + childObj.childId + " | " + childrenHashMap[childObj.childId].status));
+//       });
+//     });
 
-    statsObj.serverTime = moment().valueOf();
-    statsObj.timeStamp = getTimeStamp();
-    statsObj.runTime = moment().valueOf() - statsObj.startTime;
-    statsObj.upTime = os.uptime() * 1000;
+//     statsObj.serverTime = moment().valueOf();
+//     statsObj.timeStamp = getTimeStamp();
+//     statsObj.runTime = moment().valueOf() - statsObj.startTime;
+//     statsObj.upTime = os.uptime() * 1000;
 
-    if (statsObj.twitter.tweetsPerMin > statsObj.twitter.maxTweetsPerMin){
-      statsObj.twitter.maxTweetsPerMin = statsObj.twitter.tweetsPerMin;
-      statsObj.twitter.maxTweetsPerMinTime = moment().valueOf();
-    }
+//     if (statsObj.twitter.tweetsPerMin > statsObj.twitter.maxTweetsPerMin){
+//       statsObj.twitter.maxTweetsPerMin = statsObj.twitter.tweetsPerMin;
+//       statsObj.twitter.maxTweetsPerMinTime = moment().valueOf();
+//     }
 
-    statsObj.nodeMeterEntries = Object.keys(nodeMeter).length;
+//     statsObj.nodeMeterEntries = Object.keys(nodeMeter).length;
 
-    if (statsObj.nodeMeterEntries > statsObj.nodeMeterEntriesMax) {
-      statsObj.nodeMeterEntriesMax = statsObj.nodeMeterEntries;
-      statsObj.nodeMeterEntriesMaxTime = moment().valueOf();
-      debug(chalkLog("NEW MAX NODE METER ENTRIES"
-        + " | " + getTimeStamp()
-        + " | " + statsObj.nodeMeterEntries.toFixed(0)
-      ));
-    }
+//     if (statsObj.nodeMeterEntries > statsObj.nodeMeterEntriesMax) {
+//       statsObj.nodeMeterEntriesMax = statsObj.nodeMeterEntries;
+//       statsObj.nodeMeterEntriesMaxTime = moment().valueOf();
+//       debug(chalkLog("NEW MAX NODE METER ENTRIES"
+//         + " | " + getTimeStamp()
+//         + " | " + statsObj.nodeMeterEntries.toFixed(0)
+//       ));
+//     }
 
-    statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
+//     statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
 
-    if (statsObj.memory.heap > statsObj.memory.maxHeap) {
-      statsObj.memory.maxHeap = statsObj.memory.heap;
-      statsObj.memory.maxHeapTime = moment().valueOf();
-      debug(chalkLog("NEW MAX HEAP"
-        + " | " + getTimeStamp()
-        + " | " + statsObj.memory.heap.toFixed(0) + " MB"
-      ));
-    }
+//     if (statsObj.memory.heap > statsObj.memory.maxHeap) {
+//       statsObj.memory.maxHeap = statsObj.memory.heap;
+//       statsObj.memory.maxHeapTime = moment().valueOf();
+//       debug(chalkLog("NEW MAX HEAP"
+//         + " | " + getTimeStamp()
+//         + " | " + statsObj.memory.heap.toFixed(0) + " MB"
+//       ));
+//     }
 
-    statsObj.memory.memoryAvailable = os.freemem();
-    statsObj.memory.memoryTotal = os.totalmem();
-    statsObj.memory.memoryUsage = process.memoryUsage();
+//     statsObj.memory.memoryAvailable = os.freemem();
+//     statsObj.memory.memoryTotal = os.totalmem();
+//     statsObj.memory.memoryUsage = process.memoryUsage();
 
-    if (adminNameSpace) { statsObj.admin.connected = Object.keys(adminNameSpace.connected).length; }// userNameSpace.sockets.length ;
-    if (utilNameSpace) { statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; } // userNameSpace.sockets.length ;
-    if (viewNameSpace) { statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; } // userNameSpace.sockets.length ;
+//     if (adminNameSpace) { statsObj.admin.connected = Object.keys(adminNameSpace.connected).length; }// userNameSpace.sockets.length ;
+//     if (utilNameSpace) { statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; } // userNameSpace.sockets.length ;
+//     if (viewNameSpace) { statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; } // userNameSpace.sockets.length ;
 
-    saveStats(statsFile, statsObj, function saveStatsComplete(status){
-      debug(chalkLog("SAVE STATS " + status));
-    });
+//     saveStats(statsFile, statsObj, function saveStatsComplete(status){
+//       debug(chalkLog("SAVE STATS " + status));
+//     });
 
-    showStats();
+//     showStats();
 
-    if (statsObj.twitNotReadyWarning) { statsObj.twitNotReadyWarning = false; }
+//     if (statsObj.twitNotReadyWarning) { statsObj.twitNotReadyWarning = false; }
 
-    statsUpdated += 1;
+//     statsUpdated += 1;
 
-  }, interval);
-}
+//   }, interval);
+// }
 
 function initThreeceeTwitterUsers(params){
 

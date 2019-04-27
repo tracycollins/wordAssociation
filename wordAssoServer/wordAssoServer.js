@@ -10315,7 +10315,7 @@ function initUpdateUserSetsInterval(interval){
         uncategorizedManualUserArray = [...uncategorizedManualUserSet];
         statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
 
-        if (statsObj.dbConnectionReady && updateUserSetsIntervalReady && (uncategorizedManualUserArray.length < 10)) {
+        if (statsObj.dbConnectionReady && updateUserSetsIntervalReady) {
 
           updateUserSetsIntervalReady = false;
 

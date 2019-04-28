@@ -310,11 +310,12 @@ function ControlPanel() {
 
     twitterTimeLineDiv.removeAll();
 
+    node.categoryAuto = node.categoryAuto || "none";
+
     if (node.nodeType === "user"){
 
-      node.categoryAuto = node.categoryAuto || "none";
-
       twitterFeedPreviousUser = twitterFeedUser;
+      twitterFeedUser = node;
 
       twitterEntity.setValue("NODE ID", node.nodeId);
     	twitterEntity.setValue("NAME", node.name);
@@ -332,8 +333,6 @@ function ControlPanel() {
       twitterControl.setValue("FOLLOWING", node.following || false);
       twitterControl.setValue("IGNORED", node.ignored || false);
 			twitterControl.setValue("CATEGORY AUTO", node.categoryAuto.toUpperCase() || "NONE");
-
-      twitterFeedUser = node;
 
       console.debug("loadTwitterFeed"
         + " | TYPE: " + node.nodeType
@@ -368,7 +367,7 @@ function ControlPanel() {
     else if (node.nodeType === "hashtag"){
 
       twitterFeedHashtag = node;
-      twitterFeedPreviousHashtag = twitterFeedUser;
+      twitterFeedPreviousHashtag = twitterFeedHashtag;
 
       twitterEntity.setValue("NODE ID", node.nodeId);
       twitterEntity.setValue("NAME", "");

@@ -714,6 +714,9 @@ function ControlPanel() {
         twitterControl.addButton("NEXT UNCAT LEFT", function(){
           nextUncatHandler("left");
         });
+        twitterControl.addButton("NEXT UNCAT NEUTRAL", function(){
+          nextUncatHandler("neutral");
+        });
         twitterControl.addButton("NEXT UNCAT RIGHT", function(){
           nextUncatHandler("right");
         });

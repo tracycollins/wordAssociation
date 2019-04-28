@@ -331,7 +331,7 @@ function ControlPanel() {
 
       twitterControl.setValue("FOLLOWING", node.following || false);
       twitterControl.setValue("IGNORED", node.ignored || false);
-			twitterControl.setValue("CATEGORY AUTO", node.categoryAuto.toUpperCase());
+			twitterControl.setValue("CATEGORY AUTO", node.categoryAuto.toUpperCase() || "NONE");
 
       twitterFeedUser = node;
 
@@ -382,6 +382,10 @@ function ControlPanel() {
       twitterEntity.setValue("LOCATION", "");
       twitterEntity.setValue("PROFILE IMAGE", "https://word.threeceelabs.com/public/assets/images/twitterEgg.png");
       twitterEntity.setValue("DESCRIPTION", "");
+
+      twitterControl.setValue("FOLLOWING", node.following || false);
+      twitterControl.setValue("IGNORED", node.ignored || false);
+      twitterControl.setValue("CATEGORY AUTO", node.categoryAuto.toUpperCase() || "NONE");
 
       console.debug("loadTwitterFeed"
         + " | TYPE: " + node.nodeType

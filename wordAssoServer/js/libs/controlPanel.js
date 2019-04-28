@@ -25,19 +25,20 @@ function ControlPanel() {
   var twitterControlDiv = document.createElement("div");
   twitterControlDiv.id = "twitterControlDiv";
 
-  var twitterProfile;
-  var twitterProfileDiv = document.createElement("div");
-  twitterProfileDiv.id = "twitterProfileDiv";
+  var twitterEntity;
+  var twitterEntityDiv = document.createElement("div");
+  twitterEntityDiv.id = "twitterEntityDiv";
 
 	var twitterTimeLine;
 	var twitterTimeLineDiv = document.createElement("div");
 	twitterTimeLineDiv.id = "twitterTimeLineDiv";
 
-	var userCategorizeDiv = document.getElementById('userCategorizeDiv');
+	var entityCategorizeDiv = document.getElementById('entityCategorizeDiv');
 
   var twitterFeedUser = {};
   var twitterFeedPreviousUser = {};
   var twitterFeedHashtag = {};
+  var twitterFeedPreviousHashtag = {};
 
 	var compactDateTimeFormat = "YYYYMMDD HHmmss";
 
@@ -238,7 +239,7 @@ function ControlPanel() {
     }
     else {
 
-      twitterFeedPreviousUser = node;
+      // twitterFeedPreviousUser = node;
 
       nodeName = (node.name !== undefined) ? node.name : "---";
 
@@ -315,18 +316,18 @@ function ControlPanel() {
 
       twitterFeedPreviousUser = twitterFeedUser;
 
-    	twitterProfile.setValue("NAME", node.name);
-    	twitterProfile.setValue("SCREENNAME", "@"+node.screenName);
-      twitterProfile.setValue("FOLLOWERS", node.followersCount);
-      twitterProfile.setValue("FRIENDS", node.friendsCount);
-      twitterProfile.setValue("TWEETS", node.statusesCount);
-      twitterProfile.setValue("MENTIONS", node.mentions);
-      twitterProfile.setValue("RATE", node.rate);
-      twitterProfile.setValue("RATE MAX", node.rateMax);
-      twitterProfile.setValue("LOCATION", node.location);
-      twitterProfile.setValue("LOCATION", node.location);
-			twitterProfile.setValue("PROFILE", node.profileImageUrl.replace("_normal", ""));
-			twitterProfile.setValue("DESCRIPTION", node.description);
+      twitterEntity.setValue("NODE ID", node.nodeId);
+    	twitterEntity.setValue("NAME", node.name);
+    	twitterEntity.setValue("SCREENNAME", "@"+node.screenName);
+      twitterEntity.setValue("FOLLOWERS", node.followersCount);
+      twitterEntity.setValue("FRIENDS", node.friendsCount);
+      twitterEntity.setValue("TWEETS", node.statusesCount);
+      twitterEntity.setValue("MENTIONS", node.mentions);
+      twitterEntity.setValue("RATE", node.rate);
+      twitterEntity.setValue("RATE MAX", node.rateMax);
+      twitterEntity.setValue("LOCATION", node.location);
+			twitterEntity.setValue("PROFILE IMAGE", node.profileImageUrl.replace("_normal", ""));
+			twitterEntity.setValue("DESCRIPTION", node.description);
 
       twitterControl.setValue("FOLLOWING", node.following || false);
       twitterControl.setValue("IGNORED", node.ignored || false);
@@ -367,6 +368,20 @@ function ControlPanel() {
     else if (node.nodeType === "hashtag"){
 
       twitterFeedHashtag = node;
+      twitterFeedPreviousHashtag = twitterFeedUser;
+
+      twitterEntity.setValue("NODE ID", node.nodeId);
+      twitterEntity.setValue("NAME", "");
+      twitterEntity.setValue("SCREENNAME", "");
+      twitterEntity.setValue("FOLLOWERS", "");
+      twitterEntity.setValue("FRIENDS", "");
+      twitterEntity.setValue("TWEETS", "");
+      twitterEntity.setValue("MENTIONS", node.mentions);
+      twitterEntity.setValue("RATE", node.rate);
+      twitterEntity.setValue("RATE MAX", node.rateMax);
+      twitterEntity.setValue("LOCATION", "");
+      twitterEntity.setValue("PROFILE IMAGE", "https://word.threeceelabs.com/public/assets/images/twitterEgg.png");
+      twitterEntity.setValue("DESCRIPTION", "");
 
       console.debug("loadTwitterFeed"
         + " | TYPE: " + node.nodeType
@@ -533,13 +548,10 @@ function ControlPanel() {
     }
   }
 
-
   this.createControlPanel = function(callback) {
 
     if (callback) { callback(); }
-
   };
-
 
   this.updateControlPanel = function (cfg, callback) {
 
@@ -655,7 +667,6 @@ function ControlPanel() {
     return;
   }
 
-
   $( document ).ready(function() {
 
     console.log( "CONTROL PANEL DOCUMENT READY" );
@@ -669,7 +680,7 @@ function ControlPanel() {
 
         // DISPLAY ==================================
 
-        displayControl = QuickSettings.create(900, 0, "DISPLAY", userCategorizeDiv);
+        displayControl = QuickSettings.create(900, 0, "DISPLAY", entityCategorizeDiv);
 
         displayControl.setWidth(300);
 
@@ -679,7 +690,7 @@ function ControlPanel() {
 
         // TWITTER USER CONTROL ==================================
 
-        twitterControl = QuickSettings.create(600, 0, "CONTROL", userCategorizeDiv);
+        twitterControl = QuickSettings.create(600, 0, "CONTROL", entityCategorizeDiv);
 
         twitterControl.setWidth(300);
 
@@ -689,7 +700,7 @@ function ControlPanel() {
         }
 
         twitterControl.addBoolean("FOLLOWING", following, function(data){
-          console.debug("USER FOLLOWING | " + twitterProfile.getValue("SCREENNAME") + " | FOLLOWING: " + data);
+          console.debug("USER FOLLOWING | " + twitterEntity.getValue("SCREENNAME") + " | FOLLOWING: " + data);
           const op = (data) ? "FOLLOW" : "UNFOLLOW";
           parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
         });
@@ -700,7 +711,7 @@ function ControlPanel() {
         }
 
         twitterControl.addBoolean("IGNORED", ignored, function(data){
-          console.debug("USER IGNORED | " + twitterProfile.getValue("SCREENNAME") + " | IGNORED: " + data);
+          console.debug("USER IGNORED | " + twitterEntity.getValue("SCREENNAME") + " | IGNORED: " + data);
           const op = (data) ? "IGNORE" : "UNIGNORE";
           parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
         });
@@ -731,53 +742,56 @@ function ControlPanel() {
         });
 
 
-        // TWITTER USER PROFILE ==================================
+        // TWITTER ENTITY ==================================
 
-        twitterProfile = QuickSettings.create(0, 0, "PROFILE", userCategorizeDiv);
-        twitterProfile.setWidth(300);
+        twitterEntity = QuickSettings.create(0, 0, "ENTITY", entityCategorizeDiv);
+        twitterEntity.setWidth(300);
 
 
-				const name = (twitterFeedUser) ? twitterFeedUser.name : "";
-				twitterProfile.addText("NAME", name);
+        const nodeId = (twitterFeedUser) ? twitterFeedUser.nodeId : "";
+        twitterEntity.addText("NODE ID", nodeId);
+
+        const name = (twitterFeedUser) ? twitterFeedUser.name : "";
+        twitterEntity.addText("NAME", name);
 
 				const screenName = (twitterFeedUser) ? "@"+twitterFeedUser.screenName : "@";
-				twitterProfile.addText("SCREENNAME", screenName);
+				twitterEntity.addText("SCREENNAME", screenName);
 
-				twitterProfile.addButton("SEARCH", function(data){
-					console.debug("NODE SEARCH: ", twitterProfile.getValue("SCREENNAME"));
-		      parentWindow.postMessage({op: "NODE_SEARCH", input: twitterProfile.getValue("SCREENNAME")}, DEFAULT_SOURCE);
+				twitterEntity.addButton("SEARCH", function(data){
+					console.debug("NODE SEARCH: ", twitterEntity.getValue("SCREENNAME"));
+		      parentWindow.postMessage({op: "NODE_SEARCH", input: twitterEntity.getValue("SCREENNAME")}, DEFAULT_SOURCE);
 				});
 
-        twitterProfile.addNumber("FOLLOWERS", twitterFeedUser.followersCount);
-        twitterProfile.addNumber("FRIENDS", twitterFeedUser.friendsCount);
-        twitterProfile.addNumber("TWEETS", twitterFeedUser.statusesCount);
-        twitterProfile.addNumber("MENTIONS", twitterFeedUser.mentions);
-        twitterProfile.addNumber("RATE", twitterFeedUser.rate);
-        twitterProfile.addNumber("RATE MAX", twitterFeedUser.rateMax);
+        twitterEntity.addNumber("FOLLOWERS", twitterFeedUser.followersCount);
+        twitterEntity.addNumber("FRIENDS", twitterFeedUser.friendsCount);
+        twitterEntity.addNumber("TWEETS", twitterFeedUser.statusesCount);
+        twitterEntity.addNumber("MENTIONS", twitterFeedUser.mentions);
+        twitterEntity.addNumber("RATE", twitterFeedUser.rate);
+        twitterEntity.addNumber("RATE MAX", twitterFeedUser.rateMax);
 
         const location = (twitterFeedUser) ? twitterFeedUser.location : "";
-        twitterProfile.addText("LOCATION", location);
+        twitterEntity.addText("LOCATION", location);
 
 				const description = (twitterFeedUser) ? twitterFeedUser.description : "";
-				twitterProfile.addTextArea("DESCRIPTION", description);
+				twitterEntity.addTextArea("DESCRIPTION", description);
 
 				if (twitterFeedUser) {
 					var profileImageUrl = twitterFeedUser.profileImageUrl.replace("http:", "https:");
 					profileImageUrl = twitterFeedUser.profileImageUrl.replace("_normal", "");
-					twitterProfile.addImage("PROFILE", profileImageUrl);
+					twitterEntity.addImage("PROFILE IMAGE", profileImageUrl);
 				}
 				else {
-					twitterProfile.addImage("PROFILE", "https://word.threeceelabs.com/public/assets/images/twitterEgg.png");
+					twitterEntity.addImage("PROFILE IMAGE", "https://word.threeceelabs.com/public/assets/images/twitterEgg.png");
 				}
 
 
         // TWITTER USER TIMELINE ==================================
 
-				twitterTimeLine = QuickSettings.create(300, 	0, "TIMELINE", userCategorizeDiv);
+				twitterTimeLine = QuickSettings.create(300, 	0, "TIMELINE", entityCategorizeDiv);
 				twitterTimeLine.setWidth(300);
 				twitterTimeLine.addElement("TWEETS", twitterTimeLineDiv);	
 
-				twitterProfile.setGlobalChangeHandler(function(data){
+				twitterEntity.setGlobalChangeHandler(function(data){
 				});
 
 

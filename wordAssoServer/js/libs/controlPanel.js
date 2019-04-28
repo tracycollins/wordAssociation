@@ -320,6 +320,7 @@ function ControlPanel() {
       twitterEntity.setValue("NODE ID", node.nodeId);
     	twitterEntity.setValue("NAME", node.name);
     	twitterEntity.setValue("SCREENNAME", "@"+node.screenName);
+      twitterEntity.setValue("HASHTAG", "");
       twitterEntity.setValue("FOLLOWERS", node.followersCount);
       twitterEntity.setValue("FRIENDS", node.friendsCount);
       twitterEntity.setValue("TWEETS", node.statusesCount);
@@ -372,6 +373,7 @@ function ControlPanel() {
       twitterEntity.setValue("NODE ID", node.nodeId);
       twitterEntity.setValue("NAME", "");
       twitterEntity.setValue("SCREENNAME", "");
+      twitterEntity.setValue("HASHTAG", "#" + node.nodeId);
       twitterEntity.setValue("FOLLOWERS", "");
       twitterEntity.setValue("FRIENDS", "");
       twitterEntity.setValue("TWEETS", "");
@@ -757,12 +759,20 @@ function ControlPanel() {
         const name = (twitterFeedUser) ? twitterFeedUser.name : "";
         twitterEntity.addText("NAME", name);
 
-				const screenName = (twitterFeedUser) ? "@"+twitterFeedUser.screenName : "@";
-				twitterEntity.addText("SCREENNAME", screenName);
+        const screenName = (twitterFeedUser) ? "@"+twitterFeedUser.screenName : "@";
+        twitterEntity.addText("SCREENNAME", screenName);
 
-				twitterEntity.addButton("SEARCH", function(data){
-					console.debug("NODE SEARCH: ", twitterEntity.getValue("SCREENNAME"));
-		      parentWindow.postMessage({op: "NODE_SEARCH", input: twitterEntity.getValue("SCREENNAME")}, DEFAULT_SOURCE);
+        twitterEntity.addButton("USER SEARCH", function(data){
+          console.debug("NODE SEARCH: ", twitterEntity.getValue("SCREENNAME"));
+          parentWindow.postMessage({op: "NODE_SEARCH", input: twitterEntity.getValue("SCREENNAME")}, DEFAULT_SOURCE);
+        });
+
+        const hashtag = (twitterFeedHashtag) ? "#"+twitterFeedHashtag.nodeId : "#";
+        twitterEntity.addText("HASHTAG", hashtag);
+
+				twitterEntity.addButton("HASHTAG SEARCH", function(data){
+					console.debug("NODE SEARCH: ", twitterEntity.getValue("HASHTAG"));
+		      parentWindow.postMessage({op: "NODE_SEARCH", input: twitterEntity.getValue("HASHTAG")}, DEFAULT_SOURCE);
 				});
 
         twitterEntity.addNumber("FOLLOWERS", twitterFeedUser.followersCount);

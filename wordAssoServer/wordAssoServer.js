@@ -2028,10 +2028,10 @@ function initStats(callback){
   statsObj.bestNetwork.testCycles = 0;
   statsObj.bestNetwork.betterChild = false;
 
-  statsObj.memwatch = {};
-  statsObj.memwatch.snapshotTaken = false;
-  statsObj.memwatch.leak = {};
-  statsObj.memwatch.stats = {};
+  // statsObj.memwatch = {};
+  // statsObj.memwatch.snapshotTaken = false;
+  // statsObj.memwatch.leak = {};
+  // statsObj.memwatch.stats = {};
 
   statsObj.errors = {};
   statsObj.errors.google = {};
@@ -2113,18 +2113,18 @@ function initStats(callback){
   statsObj.entity.viewer.connectedMax = 0.1;
   statsObj.entity.viewer.connectedMaxTime = moment().valueOf();
 
-  console.log("WAS | process.memoryUsage()\n"+ jsonPrint(process.memoryUsage()));
-  statsObj.memory = {};
-  statsObj.memory.rss = process.memoryUsage().rss/(1024*1024);
-  statsObj.memory.maxRss = process.memoryUsage().heapUsed/(1024*1024);
-  statsObj.memory.maxRssTime = moment().valueOf();
-  statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
-  statsObj.memory.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
-  statsObj.memory.maxHeapTime = moment().valueOf();
-  statsObj.memory.memoryAvailable = os.freemem();
-  statsObj.memory.memoryTotal = os.totalmem();
-  statsObj.memory.memoryUsage = {};
-  statsObj.memory.memoryUsage = process.memoryUsage();
+  // console.log("WAS | process.memoryUsage()\n"+ jsonPrint(process.memoryUsage()));
+  // statsObj.memory = {};
+  // statsObj.memory.rss = process.memoryUsage().rss/(1024*1024);
+  // statsObj.memory.maxRss = process.memoryUsage().heapUsed/(1024*1024);
+  // statsObj.memory.maxRssTime = moment().valueOf();
+  // statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
+  // statsObj.memory.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
+  // statsObj.memory.maxHeapTime = moment().valueOf();
+  // statsObj.memory.memoryAvailable = os.freemem();
+  // statsObj.memory.memoryTotal = os.totalmem();
+  // statsObj.memory.memoryUsage = {};
+  // statsObj.memory.memoryUsage = process.memoryUsage();
 
   statsObj.queues = {};
   statsObj.queues.metricsDataPointQueue = 0;
@@ -3297,9 +3297,9 @@ configEvents.on("INTERNET_READY", function internetReady() {
       }
     });
       
-    memoryAvailableMB = (statsObj.memory.memoryAvailable/(1024*1024));
-    memoryTotalMB = (statsObj.memory.memoryTotal/(1024*1024));
-    memoryAvailablePercent = (statsObj.memory.memoryAvailable/statsObj.memory.memoryTotal);
+    // memoryAvailableMB = (statsObj.memory.memoryAvailable/(1024*1024));
+    // memoryTotalMB = (statsObj.memory.memoryTotal/(1024*1024));
+    // memoryAvailablePercent = (statsObj.memory.memoryAvailable/statsObj.memory.memoryTotal);
 
     const heartbeatObj = {};
 
@@ -3325,9 +3325,9 @@ configEvents.on("INTERNET_READY", function internetReady() {
       statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
       statsObj.timeStamp = getTimeStamp();
       statsObj.upTime = os.uptime() * 1000;
-      statsObj.memory.memoryTotal = os.totalmem();
-      statsObj.memory.memoryAvailable = os.freemem();
-      statsObj.memory.memoryUsage = process.memoryUsage();
+      // statsObj.memory.memoryTotal = os.totalmem();
+      // statsObj.memory.memoryAvailable = os.freemem();
+      // statsObj.memory.memoryUsage = process.memoryUsage();
 
       heartbeatObj.bestNetwork = statsObj.bestNetwork;
 
@@ -3400,7 +3400,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
         heartbeatObj.upTime = statsObj.upTime;
         heartbeatObj.elapsed = statsObj.elapsed;
 
-        heartbeatObj.memory = statsObj.memory;
+        // heartbeatObj.memory = statsObj.memory;
 
         heartbeatObj.nodesPerMin = statsObj.nodesPerMin;
         heartbeatObj.maxNodesPerMin = statsObj.maxNodesPerMin;
@@ -7010,18 +7010,18 @@ let memoryAvailablePercent;
 
 function logHeartbeat() {
 
-  memoryAvailableMB = (statsObj.memory.memoryAvailable/(1024*1024));
-  memoryTotalMB = (statsObj.memory.memoryTotal/(1024*1024));
-  memoryAvailablePercent = (statsObj.memory.memoryAvailable/statsObj.memory.memoryTotal);
+  // memoryAvailableMB = (statsObj.memory.memoryAvailable/(1024*1024));
+  // memoryTotalMB = (statsObj.memory.memoryTotal/(1024*1024));
+  // memoryAvailablePercent = (statsObj.memory.memoryAvailable/statsObj.memory.memoryTotal);
 
   debug(chalkLog("HB " + heartbeatsSent 
     + " | " + getTimeStamp() 
     + " | ST: " + getTimeStamp(parseInt(statsObj.startTime)) 
     + " | UP: " + msToTime(statsObj.upTime) 
     + " | RN: " + msToTime(statsObj.runTime) 
-    + " | MEM: " + memoryAvailableMB.toFixed(0) + " AVAIL"
-    + " / " + memoryTotalMB.toFixed(0) + " TOTAL MB"
-    + " - " + memoryAvailablePercent.toFixed(3) + " %"
+    // + " | MEM: " + memoryAvailableMB.toFixed(0) + " AVAIL"
+    // + " / " + memoryTotalMB.toFixed(0) + " TOTAL MB"
+    // + " - " + memoryAvailablePercent.toFixed(3) + " %"
   ));
 }
 
@@ -9752,24 +9752,24 @@ function initStatsUpdate(cnf) {
       showStats(true);
 
       clearInterval(statsInterval);
-      clearInterval(memStatsInterval);
+      // clearInterval(memStatsInterval);
 
-      memStatsInterval = setInterval(function updateMemStats() {
+      // memStatsInterval = setInterval(function updateMemStats() {
 
-        statsObj.memory.rss = process.memoryUsage().rss/(1024*1024);
+      //   statsObj.memory.rss = process.memoryUsage().rss/(1024*1024);
 
-        if (statsObj.memory.rss > statsObj.memory.maxRss) {
+      //   if (statsObj.memory.rss > statsObj.memory.maxRss) {
 
-          statsObj.memory.maxRss = statsObj.memory.rss;
-          statsObj.memory.maxRssTime = moment().valueOf();
+      //     statsObj.memory.maxRss = statsObj.memory.rss;
+      //     statsObj.memory.maxRssTime = moment().valueOf();
 
-          console.log(chalkInfo("WAS | NEW MAX RSS"
-            + " | " + getTimeStamp()
-            + " | " + statsObj.memory.rss.toFixed(1) + " MB"
-          ));
+      //     console.log(chalkInfo("WAS | NEW MAX RSS"
+      //       + " | " + getTimeStamp()
+      //       + " | " + statsObj.memory.rss.toFixed(1) + " MB"
+      //     ));
 
-        }
-      }, ONE_MINUTE);
+      //   }
+      // }, ONE_MINUTE);
 
       statsInterval = setInterval(function updateStats() {
 
@@ -9809,20 +9809,20 @@ function initStatsUpdate(cnf) {
             ));
           }
 
-          statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
+          // statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
 
-          if (statsObj.memory.heap > statsObj.memory.maxHeap) {
-            statsObj.memory.maxHeap = statsObj.memory.heap;
-            statsObj.memory.maxHeapTime = moment().valueOf();
-            debug(chalkLog("NEW MAX HEAP"
-              + " | " + getTimeStamp()
-              + " | " + statsObj.memory.heap.toFixed(0) + " MB"
-            ));
-          }
+          // if (statsObj.memory.heap > statsObj.memory.maxHeap) {
+          //   statsObj.memory.maxHeap = statsObj.memory.heap;
+          //   statsObj.memory.maxHeapTime = moment().valueOf();
+          //   debug(chalkLog("NEW MAX HEAP"
+          //     + " | " + getTimeStamp()
+          //     + " | " + statsObj.memory.heap.toFixed(0) + " MB"
+          //   ));
+          // }
 
-          statsObj.memory.memoryAvailable = os.freemem();
-          statsObj.memory.memoryTotal = os.totalmem();
-          statsObj.memory.memoryUsage = process.memoryUsage();
+          // statsObj.memory.memoryAvailable = os.freemem();
+          // statsObj.memory.memoryTotal = os.totalmem();
+          // statsObj.memory.memoryUsage = process.memoryUsage();
 
           if (adminNameSpace) { statsObj.admin.connected = Object.keys(adminNameSpace.connected).length; }// userNameSpace.sockets.length ;
           if (utilNameSpace) { statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; } // userNameSpace.sockets.length ;

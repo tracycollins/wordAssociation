@@ -319,7 +319,9 @@ function ControlPanel() {
 
       twitterEntity.setValue("NODE ID", node.nodeId);
     	twitterEntity.setValue("NAME", node.name);
-    	twitterEntity.setValue("SCREENNAME", "@"+node.screenName);
+      twitterEntity.setValue("SCREENNAME", "@"+node.screenName);
+      twitterEntity.setValue("CREATED", node.createdAt);
+      twitterEntity.setValue("LAST SEEN", node.lastSeen);
       twitterEntity.setValue("HASHTAG", "");
       twitterEntity.setValue("FOLLOWERS", node.followersCount);
       twitterEntity.setValue("FRIENDS", node.friendsCount);
@@ -503,7 +505,6 @@ function ControlPanel() {
         }
 
         parentWindow.postMessage({op: "NODE_SEARCH", input: "@threecee"}, DEFAULT_SOURCE);
-
       break;
 
       case "SET_TWITTER_USER":
@@ -761,6 +762,12 @@ function ControlPanel() {
 
         const screenName = (twitterFeedUser) ? "@"+twitterFeedUser.screenName : "@";
         twitterEntity.addText("SCREENNAME", screenName);
+
+        const createdAt = (twitterFeedUser) ? twitterFeedUser.createdAt : "";
+        twitterEntity.addText("CREATED", createdAt);
+
+        const lastSeen = (twitterFeedUser) ? twitterFeedUser.lastSeen : "";
+        twitterEntity.addText("LAST SEEN", lastSeen);
 
         twitterEntity.addButton("USER SEARCH", function(data){
           console.debug("NODE SEARCH: ", twitterEntity.getValue("SCREENNAME"));

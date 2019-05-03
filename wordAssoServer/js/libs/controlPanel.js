@@ -40,9 +40,7 @@ function ControlPanel() {
   var twitterFeedPreviousUser = {};
   var twitterFeedHashtag = {};
   var twitterFeedPreviousHashtag = {};
-
-	var compactDateTimeFormat = "YYYYMMDD HHmmss";
-
+  
   var nodeTypesSet = new Set();
   nodeTypesSet.add("emoji");
   nodeTypesSet.add("hashtag");

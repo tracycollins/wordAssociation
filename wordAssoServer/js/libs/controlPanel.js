@@ -351,6 +351,11 @@ function ControlPanel() {
       twitterEntity.setValue("FOLLOWERS", node.followersCount);
       twitterEntity.setValue("FRIENDS", node.friendsCount);
       twitterEntity.setValue("TWEETS", node.statusesCount);
+
+      const ageMs = moment().diff(node.createdAt);
+      const tweetsPerHour = ONE_HOUR * (node.statusesCount/ageMs);
+      twitterEntity.setValue("TWEETS PER HOUR", tweetsPerHour.toFixed(3));
+
       twitterEntity.setValue("MENTIONS", node.mentions);
       twitterEntity.setValue("RATE", node.rate);
       twitterEntity.setValue("RATE MAX", node.rateMax);
@@ -789,6 +794,7 @@ function ControlPanel() {
         twitterEntity.addText("SCREENNAME", screenName);
 
         const createdAt = (twitterFeedUser) ? twitterFeedUser.createdAt : "";
+        const ageMs = (twitterFeedUser) ? moment().diff(createdAt) : 0;
         twitterEntity.addText("CREATED", getTimeStamp(createdAt));
 
         const lastSeen = (twitterFeedUser) ? twitterFeedUser.lastSeen : "";
@@ -809,7 +815,12 @@ function ControlPanel() {
 
         twitterEntity.addNumber("FOLLOWERS", twitterFeedUser.followersCount);
         twitterEntity.addNumber("FRIENDS", twitterFeedUser.friendsCount);
+
         twitterEntity.addNumber("TWEETS", twitterFeedUser.statusesCount);
+
+        const tweetsPerHour = (twitterFeedUser && ageMs) ? ONE_HOUR * (twitterFeedUser.statusesCount/ageMs) : 0;
+        twitterEntity.addNumber("TWEETS PER HOUR", tweetsPerHour.toFixed(3));
+
         twitterEntity.addNumber("MENTIONS", twitterFeedUser.mentions);
         twitterEntity.addNumber("RATE", twitterFeedUser.rate);
         twitterEntity.addNumber("RATE MAX", twitterFeedUser.rateMax);

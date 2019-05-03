@@ -40,7 +40,7 @@ function ControlPanel() {
   var twitterFeedPreviousUser = {};
   var twitterFeedHashtag = {};
   var twitterFeedPreviousHashtag = {};
-  
+
   var nodeTypesSet = new Set();
   nodeTypesSet.add("emoji");
   nodeTypesSet.add("hashtag");
@@ -346,7 +346,7 @@ function ControlPanel() {
     	twitterEntity.setValue("NAME", node.name);
       twitterEntity.setValue("SCREENNAME", "@"+node.screenName);
       twitterEntity.setValue("CREATED", getTimeStamp(node.createdAt));
-      twitterEntity.setValue("LAST SEEN", node.lastSeen);
+      twitterEntity.setValue("LAST SEEN", getTimeStamp(node.lastSeen));
       twitterEntity.setValue("HASHTAG", "");
       twitterEntity.setValue("FOLLOWERS", node.followersCount);
       twitterEntity.setValue("FRIENDS", node.friendsCount);
@@ -789,10 +789,10 @@ function ControlPanel() {
         twitterEntity.addText("SCREENNAME", screenName);
 
         const createdAt = (twitterFeedUser) ? twitterFeedUser.createdAt : "";
-        twitterEntity.addText("CREATED", createdAt);
+        twitterEntity.addText("CREATED", getTimeStamp(createdAt));
 
         const lastSeen = (twitterFeedUser) ? twitterFeedUser.lastSeen : "";
-        twitterEntity.addText("LAST SEEN", lastSeen);
+        twitterEntity.addText("LAST SEEN", getTimeStamp(lastSeen));
 
         twitterEntity.addButton("USER SEARCH", function(data){
           console.debug("NODE SEARCH: ", twitterEntity.getValue("SCREENNAME"));

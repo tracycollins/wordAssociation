@@ -4,7 +4,8 @@ function ControlPanel() {
   const ONE_SECOND = 1000;
   const ONE_MINUTE = 60*ONE_SECOND;
   const ONE_HOUR = 60*ONE_MINUTE;
-  
+  const ONE_DAY = 60*ONE_HOUR;
+
   const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
   const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
@@ -355,8 +356,8 @@ function ControlPanel() {
       twitterEntity.setValue("TWEETS", node.statusesCount);
 
       const ageMs = moment().diff(node.createdAt);
-      const tweetsPerHour = ONE_HOUR * (node.statusesCount/ageMs);
-      twitterEntity.setValue("TWEETS PER HOUR", tweetsPerHour.toFixed(3));
+      const tweetsPerDay = ONE_DAY * (node.statusesCount/ageMs);
+      twitterEntity.setValue("TWEETS PER DAY", tweetsPerDay.toFixed(3));
 
       twitterEntity.setValue("MENTIONS", node.mentions);
       twitterEntity.setValue("RATE", node.rate);
@@ -820,8 +821,8 @@ function ControlPanel() {
 
         twitterEntity.addNumber("TWEETS", twitterFeedUser.statusesCount);
 
-        const tweetsPerHour = (twitterFeedUser && ageMs) ? ONE_HOUR * (twitterFeedUser.statusesCount/ageMs) : 0;
-        twitterEntity.addNumber("TWEETS PER HOUR", tweetsPerHour.toFixed(3));
+        const tweetsPerDay = (twitterFeedUser && ageMs) ? ONE_DAY * (twitterFeedUser.statusesCount/ageMs) : 0;
+        twitterEntity.addNumber("TWEETS PER HOUR", tweetsPerDay.toFixed(3));
 
         twitterEntity.addNumber("MENTIONS", twitterFeedUser.mentions);
         twitterEntity.addNumber("RATE", twitterFeedUser.rate);

@@ -3,6 +3,7 @@ function ControlPanel() {
 
   const ONE_SECOND = 1000;
   const ONE_MINUTE = 60*ONE_SECOND;
+  const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
   const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
   const LOCAL_SOURCE = "http://localhost:9997";
@@ -160,6 +161,32 @@ function ControlPanel() {
   	"negative",
   	"none",
   ];
+
+  function getTimeStamp(inputTime) {
+
+    let currentTimeStamp;
+
+    if (inputTime === undefined) {
+      currentTimeStamp = moment().format(compactDateTimeFormat);
+      return currentTimeStamp;
+    }
+    else if (moment.isMoment(inputTime)) {
+      currentTimeStamp = moment(inputTime).format(compactDateTimeFormat);
+      return currentTimeStamp;
+    }
+    else if (moment(new Date(inputTime)).isValid()) {
+      currentTimeStamp = moment(new Date(inputTime)).format(compactDateTimeFormat);
+      return currentTimeStamp;
+    }
+    else if (moment(parseInt(inputTime)).isValid()) {
+      currentTimeStamp = moment(parseInt(inputTime)).format(compactDateTimeFormat);
+      return currentTimeStamp;
+    }
+    else {
+      console.log(chalkAlert("WAS | *** getTimeStamp INVALID DATE: " + inputTime));
+      return null;
+    }
+  }
 
   var nextUncatHandler = function(cat){
   	// need to debounce button click
@@ -320,7 +347,7 @@ function ControlPanel() {
       twitterEntity.setValue("NODE ID", node.nodeId);
     	twitterEntity.setValue("NAME", node.name);
       twitterEntity.setValue("SCREENNAME", "@"+node.screenName);
-      twitterEntity.setValue("CREATED", node.createdAt);
+      twitterEntity.setValue("CREATED", getTimeStamp(node.createdAt));
       twitterEntity.setValue("LAST SEEN", node.lastSeen);
       twitterEntity.setValue("HASHTAG", "");
       twitterEntity.setValue("FOLLOWERS", node.followersCount);

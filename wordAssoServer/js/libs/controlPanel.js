@@ -822,7 +822,7 @@ function ControlPanel() {
         twitterEntity.addNumber("TWEETS", twitterFeedUser.statusesCount);
 
         const tweetsPerDay = (twitterFeedUser && ageMs) ? ONE_DAY * (twitterFeedUser.statusesCount/ageMs) : 0;
-        twitterEntity.addNumber("TWEETS PER HOUR", tweetsPerDay.toFixed(3));
+        twitterEntity.addNumber("TWEETS PER DAY", tweetsPerDay.toFixed(3));
 
         twitterEntity.addNumber("MENTIONS", twitterFeedUser.mentions);
         twitterEntity.addNumber("RATE", twitterFeedUser.rate);

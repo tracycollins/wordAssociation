@@ -353,18 +353,18 @@ function ControlPanel() {
       twitterEntity.setValue("HASHTAG", "");
       twitterEntity.setValue("FOLLOWERS", node.followersCount);
       twitterEntity.setValue("FRIENDS", node.friendsCount);
-      twitterEntity.setValue("TWEETS", node.statusesCount);
+      twitterEntity.setValue("LOCATION", node.location);
+      twitterEntity.setValue("PROFILE IMAGE", node.profileImageUrl.replace("_normal", ""));
+      twitterEntity.setValue("DESCRIPTION", node.description);
 
       const ageMs = moment().diff(node.createdAt);
       const tweetsPerDay = ONE_DAY * (node.statusesCount/ageMs);
-      twitterEntity.setValue("TWEETS PER DAY", tweetsPerDay.toFixed(3));
 
-      twitterEntity.setValue("MENTIONS", node.mentions);
-      twitterEntity.setValue("RATE", node.rate);
-      twitterEntity.setValue("RATE MAX", node.rateMax);
-      twitterEntity.setValue("LOCATION", node.location);
-			twitterEntity.setValue("PROFILE IMAGE", node.profileImageUrl.replace("_normal", ""));
-			twitterEntity.setValue("DESCRIPTION", node.description);
+      twitterTimeLine.setValue("TWEETS", node.statusesCount);
+      twitterTimeLine.setValue("TWEETS PER DAY", tweetsPerDay.toFixed(3));
+      twitterTimeLine.setValue("MENTIONS", node.mentions);
+      twitterTimeLine.setValue("RATE", node.rate);
+      twitterTimeLine.setValue("RATE MAX", node.rateMax);
 
       twitterControl.setValue("FOLLOWING", node.following || false);
       twitterControl.setValue("IGNORED", node.ignored || false);
@@ -411,13 +411,14 @@ function ControlPanel() {
       twitterEntity.setValue("HASHTAG", "#" + node.nodeId);
       twitterEntity.setValue("FOLLOWERS", "");
       twitterEntity.setValue("FRIENDS", "");
-      twitterEntity.setValue("TWEETS", "");
-      twitterEntity.setValue("MENTIONS", node.mentions);
-      twitterEntity.setValue("RATE", node.rate);
-      twitterEntity.setValue("RATE MAX", node.rateMax);
       twitterEntity.setValue("LOCATION", "");
       twitterEntity.setValue("PROFILE IMAGE", "https://word.threeceelabs.com/public/assets/images/twitterEgg.png");
       twitterEntity.setValue("DESCRIPTION", "");
+
+      twitterTimeLine.setValue("TWEETS", "");
+      twitterTimeLine.setValue("MENTIONS", node.mentions);
+      twitterTimeLine.setValue("RATE", node.rate);
+      twitterTimeLine.setValue("RATE MAX", node.rateMax);
 
       twitterControl.setValue("FOLLOWING", node.following || false);
       twitterControl.setValue("IGNORED", node.ignored || false);
@@ -819,15 +820,6 @@ function ControlPanel() {
         twitterEntity.addNumber("FOLLOWERS", twitterFeedUser.followersCount);
         twitterEntity.addNumber("FRIENDS", twitterFeedUser.friendsCount);
 
-        twitterEntity.addNumber("TWEETS", twitterFeedUser.statusesCount);
-
-        const tweetsPerDay = (twitterFeedUser && ageMs) ? ONE_DAY * (twitterFeedUser.statusesCount/ageMs) : 0;
-        twitterEntity.addNumber("TWEETS PER DAY", tweetsPerDay.toFixed(3));
-
-        twitterEntity.addNumber("MENTIONS", twitterFeedUser.mentions);
-        twitterEntity.addNumber("RATE", twitterFeedUser.rate);
-        twitterEntity.addNumber("RATE MAX", twitterFeedUser.rateMax);
-
         const location = (twitterFeedUser) ? twitterFeedUser.location : "";
         twitterEntity.addText("LOCATION", location);
 
@@ -848,7 +840,15 @@ function ControlPanel() {
 
 				twitterTimeLine = QuickSettings.create(300, 	0, "TIMELINE", entityCategorizeDiv);
 				twitterTimeLine.setWidth(300);
-				twitterTimeLine.addElement("TWEETS", twitterTimeLineDiv);	
+
+        const tweetsPerDay = (twitterFeedUser && ageMs) ? ONE_DAY * (twitterFeedUser.statusesCount/ageMs) : 0;
+
+        twitterTimeLine.addNumber("TWEETS", twitterFeedUser.statusesCount);
+        twitterTimeLine.addNumber("TWEETS PER DAY", tweetsPerDay.toFixed(3));
+        twitterTimeLine.addNumber("MENTIONS", twitterFeedUser.mentions);
+        twitterTimeLine.addNumber("RATE", twitterFeedUser.rate);
+        twitterTimeLine.addNumber("RATE MAX", twitterFeedUser.rateMax);
+				twitterTimeLine.addElement("TIMELINE", twitterTimeLineDiv);	
 
 				twitterEntity.setGlobalChangeHandler(function(data){
 				});

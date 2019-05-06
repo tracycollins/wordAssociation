@@ -1618,7 +1618,6 @@ function initSearchStream(){
       
       threeceeUserObj.searchStream.on("tweet", function(tweetStatus){
 
-        // if (tweetStatus.user.location && (tweetStatus.user.location !== undefined) && ignoreLocationsSet.has(tweetStatus.user.location)){
         if (tweetStatus.user.userId 
           && (tweetStatus.user.userId !== undefined) 
           && ignoreUserSet.has(tweetStatus.user.userId))
@@ -2100,8 +2099,7 @@ function initIgnoreLocations(){
 
       debug(chalkInfo("TSS | DROPBOX IGNORE LOCATIONS FILE\n" + jsonPrint(data)));
 
-      const dataArray = data.toString().toLowerCase().
-split("\n");
+      const dataArray = data.toString().toLowerCase().split("\n");
 
       console.log(chalk.blue("TSS | FILE CONTAINS " + dataArray.length + " IGNORE LOCATIONS "));
 
@@ -2880,8 +2878,7 @@ process.on("message", async function(m) {
 
         process.send({ 
           op: "PONG",
-pongId: 
-          m.pingId
+          pongId: m.pingId
         });
 
       }, 1000);

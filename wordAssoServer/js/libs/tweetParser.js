@@ -328,12 +328,28 @@ function initTweetParserQueueInterval(cnf){
         }
       }).
       catch(function(err){
+
         console.log(chalkError("TWP | *** CREATE STREAM TWEET ERROR: " + getTimeStamp()));
         console.log(chalkError("TWP | *** CREATE STREAM TWEET ERROR: ", err));
-        console.trace(chalkError("TWP | *** CREATE STREAM TWEET ERROR: ", err));
-        console.trace(chalkError("TWP | *** CREATE STREAM TWEET ERROR\nTWEET\n", jsonPrint(tweet)));
-        tweetParserQueueReady = true;
-        // if (err.code !== 11000) { console.trace(chalkError("TWP | CREATE STREAM TWEET ERROR\n" + jsonPrint(err))); }
+
+        process.send({op: "error", err: err}, function(err){
+
+          tweetParserQueueReady = true;
+
+          if (err) {
+            console.trace(chalkError("TWP | *** PARSER SEND ERROR ERROR"
+              + " | " + moment().format(compactDateTimeFormat)
+              + " | " + err
+            ));
+          }
+          else {
+            debug(chalkInfo("TWP | PARSER SEND ERROR COMPLETE"
+              + " | " + moment().format(compactDateTimeFormat)
+              + " | " + tweetObj.tweetId
+            ));
+          }
+        });
+
       });
 
     }

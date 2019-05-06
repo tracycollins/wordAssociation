@@ -2036,6 +2036,7 @@ function initStats(callback){
   statsObj.errors = {};
   statsObj.errors.google = {};
   statsObj.errors.twitter = {};
+  statsObj.errors.twitter.parser = 0;
   statsObj.errors.twitter.maxRxQueue = 0;
 
   statsObj.nodeMeterEntries = 0;
@@ -2112,19 +2113,6 @@ function initStats(callback){
   statsObj.entity.viewer.connected = 0;
   statsObj.entity.viewer.connectedMax = 0.1;
   statsObj.entity.viewer.connectedMaxTime = moment().valueOf();
-
-  // console.log("WAS | process.memoryUsage()\n"+ jsonPrint(process.memoryUsage()));
-  // statsObj.memory = {};
-  // statsObj.memory.rss = process.memoryUsage().rss/(1024*1024);
-  // statsObj.memory.maxRss = process.memoryUsage().heapUsed/(1024*1024);
-  // statsObj.memory.maxRssTime = moment().valueOf();
-  // statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
-  // statsObj.memory.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
-  // statsObj.memory.maxHeapTime = moment().valueOf();
-  // statsObj.memory.memoryAvailable = os.freemem();
-  // statsObj.memory.memoryTotal = os.totalmem();
-  // statsObj.memory.memoryUsage = {};
-  // statsObj.memory.memoryUsage = process.memoryUsage();
 
   statsObj.queues = {};
   statsObj.queues.metricsDataPointQueue = 0;
@@ -7637,7 +7625,19 @@ function initTweetParserMessageRxQueueInterval(interval){
           // + "\n" + jsonPrint(m)
         ));
 
-        if (tweetParserMessage.op === "parsedTweet") {
+        if (tweetParserMessage.op === "error") {
+ 
+          statsObj.errors.twitter.parser += 1;
+
+          console.log(chalkError("WAS | *** ERROR PARSE TW"
+            + " | " + getTimeStamp()
+            + " | " + err
+          ));
+
+          tweetParserMessageRxQueueReady = true;
+
+        }
+        else if (tweetParserMessage.op === "parsedTweet") {
 
           tweetObj = tweetParserMessage.tweetObj;
 

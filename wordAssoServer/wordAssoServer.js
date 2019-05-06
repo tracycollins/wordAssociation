@@ -7631,7 +7631,8 @@ function initTweetParserMessageRxQueueInterval(interval){
 
           console.log(chalkError("WAS | *** ERROR PARSE TW"
             + " | " + getTimeStamp()
-            + " | " + err
+            + " | TWEET PARSER ERRORS: " + statsObj.errors.twitter.parser
+            + " | ERROR: " + tweetParserMessage.err
           ));
 
           tweetParserMessageRxQueueReady = true;

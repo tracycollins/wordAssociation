@@ -345,7 +345,6 @@ function initTweetParserQueueInterval(cnf){
           else {
             debug(chalkInfo("TWP | PARSER SEND ERROR COMPLETE"
               + " | " + moment().format(compactDateTimeFormat)
-              + " | " + tweetObj.tweetId
             ));
           }
         });

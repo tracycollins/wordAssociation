@@ -6021,7 +6021,7 @@ function initFollowableSearchTerms(){
     followableSearchTermString = '\\b' + followableSearchTermString + '\\b';
     followableRegEx = new RegExp(followableSearchTermString, "gi");
 
-    debug(chalkInfo("followableRegEx: " + followableRegEx));
+    debug(chalkInfo("followableRegEx: " + followableRegEx));  
 
     console.log(chalkLog("WAS | FOLLOWABLE SEARCH TERM REGEX INITIALIZED"
       + " | " + followableSearchTermSet.size + " SEARCH TERMS"

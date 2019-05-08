@@ -6015,19 +6015,27 @@ function initFollowableSearchTerms(){
 
   return new Promise(function(resolve, reject){
 
-    const termsArray = Array.from(followableSearchTermSet);
+    try {
+      const termsArray = Array.from(followableSearchTermSet);
 
-    followableSearchTermString = termsArray.join('\\b|\\b');
-    followableSearchTermString = '\\b' + followableSearchTermString + '\\b';
-    followableRegEx = new RegExp(followableSearchTermString, "gi");
+      followableSearchTermString = termsArray.join('\\b|\\b');
+      followableSearchTermString = '\\b' + followableSearchTermString + '\\b';
+      followableRegEx = new RegExp(followableSearchTermString, "gi");
 
-    debug(chalkInfo("followableRegEx: " + followableRegEx));  
+      debug(chalkInfo("followableRegEx: " + followableRegEx));  
 
-    console.log(chalkLog("WAS | FOLLOWABLE SEARCH TERM REGEX INITIALIZED"
-      + " | " + followableSearchTermSet.size + " SEARCH TERMS"
-    ));
+      console.log(chalkLog("WAS | FOLLOWABLE SEARCH TERM REGEX INITIALIZED"
+        + " | " + followableSearchTermSet.size + " SEARCH TERMS"
+      ));
 
-    resolve();
+      resolve();
+    }
+    catch(err){
+
+      console.log(chalkError("WAS | FOLLOWABLE SEARCH TERM REGEX ERROR: " + err));
+
+      return reject(err);
+    }
 
   });
 }
@@ -7173,8 +7181,13 @@ function initAppRouting(callback) {
                     }
 
                     else if (entry.path_lower.endsWith("followablesearchterm.txt")){
-                      initFollowableSearchTermSet();
-                      cb1();
+                      initFollowableSearchTermSet().
+                      then(function(){
+                        cb1();
+                      }).
+                      catch(function(err){
+                        return cb1(err);
+                      });
                     }
 
                     else if ((entry.path_lower.endsWith("google_twittersearchstreamconfig.json"))

@@ -4519,52 +4519,11 @@ function initUnfollowableUserSet(){
       let numUnfollowed = 0;
       let numAlreadyUnfollowed = 0;
 
-      async.eachSeries(unfollowableUserSetObj.userIds, function(userId, cb){
+      async.each(unfollowableUserSetObj.userIds, function(userId, cb){
 
         unfollowableUserSet.add(userId);
 
-        query = { nodeId: userId, following: true };
-
-        update = {};
-        update.$set = { following: false, threeceeFollowing: false };
-
-        const options = {
-          new: true,
-          returnOriginal: false,
-          upsert: false
-        };
-
-        global.globalUser.findOneAndUpdate(query, update, options, function(err, userUpdated){
-
-          if (err) {
-            console.log(chalkError("WAS | *** initUnfollowableUserSet | USER FIND ONE ERROR: " + err));
-            return cb(err);
-          }
-          
-          if (userUpdated){
-
-            numUnfollowed += 1;
-
-            debug(chalkLog("WAS | XXX UNFOLLOW"
-              + " [" + numUnfollowed + "/" + numAlreadyUnfollowed + "/" + unfollowableUserSetObj.userIds.length + "]"
-              + " | " + userUpdated.nodeId
-              + " | @" + userUpdated.screenName
-              + " | " + userUpdated.name
-            ));
-
-            cb();
-          }
-          else {
-            numAlreadyUnfollowed += 1;
-            if (configuration.verbose){
-              console.log(chalkLog("WAS | ... ALREADY UNFOLLOWED"
-                + " [" + numUnfollowed + "/" + numAlreadyUnfollowed + "/" + unfollowableUserSetObj.userIds.length + "]"
-                + " | ID: " + userId
-              ));
-            }
-            cb();
-          }
-        });
+        cb();
 
       }, function(err){
 
@@ -6026,23 +5985,7 @@ const userCategorizeable = function(user){
     unfollowableUserSet.add(user.nodeId);
     ignoredUserSet.add(user.nodeId);
 
-    globalUser.deleteOne({ "nodeId": user.nodeId }, function(err, delUser){
-      if (err) {
-        console.log(chalkError("WAS | *** DB DELETE USER ERROR: " + err));
-        return false;
-      }
-      if (delUser.deletedCount > 0){
-
-        console.log(chalkAlert("WAS | XXX UNCATEGORIZEABLE | USER LOCATION | DELETED" 
-          + " | " + user.nodeId
-          + " | @" + user.screenName
-          + " | " + user.location
-        ));
-
-      }
-
-      return false;
-    });
+    return false;
 
   }
 
@@ -6800,7 +6743,7 @@ function initTransmitNodeQueueInterval(interval){
                     uncategorizedManualUserSet.add(n.nodeId);
 
                     if (uncategorizedManualUserSet.size % 100 === 0) {
-                      printUserObj("UNCAT MAN USER  [" + uncategorizedManualUserSet.size + "]", n);
+                      printUserObj("TX | UNCAT MAN USER  [" + uncategorizedManualUserSet.size + "]", n);
                     }
 
                   }
@@ -6810,7 +6753,7 @@ function initTransmitNodeQueueInterval(interval){
                     && !uncategorizedAutoUserSet.has(n.nodeId)) { 
                     uncategorizedAutoUserSet.add(n.nodeId);
                     if (uncategorizedAutoUserSet.size % 100 === 0) {
-                      printUserObj("UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", n);
+                      printUserObj("TX | UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", n);
                     }
                   }
 

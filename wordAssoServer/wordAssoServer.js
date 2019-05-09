@@ -4113,37 +4113,20 @@ function ignore(params, callback) {
 
   tssSendAllChildren({op: "IGNORE", user: params.user});
 
-  const query = { nodeId: params.user.nodeId };
-
-  const update = {};
-  update.$set = { ignored: true };
-  update.$set = { following: false };
-
-  const options = {
-    new: true,
-    returnOriginal: false,
-    upsert: false
-  };
-
-  global.globalUser.findOneAndUpdate(query, update, options, function(err, userUpdated){
-
+  globalUser.deleteOne({"nodeId": params.user.nodeId }, function(err, delUser){
     if (err) {
-      console.log(chalkError("WAS | *** IGNORE | USER FIND ONE ERROR: " + err));
+      console.log(chalkError("WAS | *** DB DELETE IGNORED USER ERROR: " + err));
     }
-    else if (userUpdated){
-      console.log(chalkLog("WAS | XXX IGNORE"
-        + " | " + printUser({user: userUpdated})
+    else if (delUser.deletedCount > 0){
+
+      console.log(chalkAlert("WAS | XXX IGNORED USER | DELETED" 
+        + " | " + user.nodeId
+        + " | @" + user.screenName
       ));
-    }
-    else {
-      console.log(chalkLog("WAS | --- IGNORE USER NOT IN DB"
-        + " | ID: " + params.user.nodeId
-      ));
+
     }
 
-
-    if (callback !== undefined) { callback(err, userUpdated); }
-
+    if (callback !== undefined) { callback(err, delUser); }
   });
 }
 

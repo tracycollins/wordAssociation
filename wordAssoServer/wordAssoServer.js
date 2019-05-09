@@ -108,7 +108,7 @@ const DEFAULT_DROPBOX_LIST_FOLDER_LIMIT = 50;
 const DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT = Number(ONE_SECOND);
 
 const DEFAULT_INTERVAL = 5;
-const DEFAULT_MIN_FOLLOWERS_AUTO = 9000;
+const DEFAULT_MIN_FOLLOWERS_AUTO = 10000;
 
 const DEFAULT_TWEET_PARSER_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_SORTER_INTERVAL = DEFAULT_INTERVAL;
@@ -9910,7 +9910,7 @@ function initDbUserChangeStream(params){
 
             categorizedUserHashMap.set(catObj.nodeId, catObj);
 
-            console.log(chalkInfo("WAS | CHG"
+            debug(chalkInfo("WAS | CHG"
               + " | NID: " + catObj.nodeId
               + " | @" + catObj.screenName
               + " | CAT M: " + categoryChanges.manual + " | A: " + categoryChanges.auto

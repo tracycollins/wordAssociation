@@ -1083,6 +1083,7 @@ function ViewTreepack() {
           return nodeLabelOpacityScale(d.ageMaxRatio); 
         }).
         style("stroke", function (d) {
+          if (d.nodeType === "hashtag") { return palette.white; }
           if (d.categoryMismatch) { return palette.red; }
           if (d.categoryMatch) { return categoryMatchColor; }
           if (d.categoryAuto === "right") { return palette.yellow; }
@@ -1092,6 +1093,8 @@ function ViewTreepack() {
           return palette.white; 
         }).
         style("stroke-width", function (d) { 
+          if (d.nodeType === "hashtag" && d.isTopTerm) { return topTermStrokeWidth; }
+          if (d.nodeType === "hashtag") { return 0.5*defaultStrokeWidth; }
           if (d.categoryMismatch && d.following) { return categoryMismatchStrokeWidth; }
           if (d.categoryMismatch && !d.following) { return 0.5*categoryMismatchStrokeWidth; }
           if (d.categoryMatch && d.following) { return categoryMatchStrokeWidth; }
@@ -1146,6 +1149,7 @@ function ViewTreepack() {
         return d.categoryColor; 
       }).
       style("stroke", function (d) {
+        if (d.nodeType === "hashtag") { return palette.white; }
         if (d.categoryMismatch) { return palette.red; }
         if (d.categoryMatch) { return categoryMatchColor; }
         if (d.categoryAuto === "right") { return palette.yellow; }
@@ -1155,6 +1159,8 @@ function ViewTreepack() {
         return palette.white; 
       }).
       style("stroke-width", function (d) { 
+        if (d.nodeType === "hashtag" && d.isTopTerm) { return topTermStrokeWidth; }
+        if (d.nodeType === "hashtag") { return 0.5*defaultStrokeWidth; }
         if (d.categoryMismatch && d.following) { return categoryMismatchStrokeWidth; }
         if (d.categoryMismatch && !d.following) { return 0.5*categoryMismatchStrokeWidth; }
         if (d.categoryMatch && d.following) { return categoryMatchStrokeWidth; }
@@ -1201,6 +1207,7 @@ function ViewTreepack() {
         return d.categoryColor; 
       }).
       style("stroke", function nodeCirclesStroke (d) {
+        if (d.nodeType === "hashtag") { return palette.white; }
         if (d.categoryMismatch) { return palette.red; }
         if (d.categoryMatch) { return categoryMatchColor; }
         if (d.categoryAuto === "right") { return palette.yellow; }
@@ -1210,6 +1217,8 @@ function ViewTreepack() {
         return palette.white; 
       }).
       style("stroke-width", function nodeCirclesStrokeWidth(d) { 
+        if (d.nodeType === "hashtag" && d.isTopTerm) { return topTermStrokeWidth; }
+        if (d.nodeType === "hashtag") { return 0.5*defaultStrokeWidth; }
         if (d.categoryMismatch && d.following) { return categoryMismatchStrokeWidth; }
         if (d.categoryMismatch && !d.following) { return 0.5*categoryMismatchStrokeWidth; }
         if (d.categoryMatch && d.following) { return categoryMatchStrokeWidth; }

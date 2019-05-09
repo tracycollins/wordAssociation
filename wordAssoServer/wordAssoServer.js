@@ -4117,6 +4117,7 @@ function ignore(params, callback) {
 
   const update = {};
   update.$set = { ignored: true };
+  update.$set = { following: false };
 
   const options = {
     new: true,
@@ -6668,7 +6669,6 @@ function updateUserSets(params){
             }
           }
         }
-
 
       }
     });

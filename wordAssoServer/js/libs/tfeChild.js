@@ -1914,7 +1914,7 @@ function updateUserTweets(params){
       const length = user.tweets.tweetIds.length;
       const removeNumber = length - DEFAULT_MAX_USER_TWEETIDS;
 
-      console.log(chalkLog("WAS | TFC | --- USER TWEETS > DEFAULT_MAX_USER_TWEETIDS"
+      debug(chalkLog("WAS | TFC | --- USER TWEETS > DEFAULT_MAX_USER_TWEETIDS"
         + " | " + user.nodeId
         + " | @" + user.screenName
         + " | " + length + " TWEETS"
@@ -1995,11 +1995,11 @@ function updateUserTweets(params){
       }
 
       if (configuration.verbose || (tweetsProcessed > 0)) {
-        console.log(chalkLog("WAS | TFC | +++ TWEETS"
-          + " | NEW: " + tweetsProcessed
-          + " [ H/P/T " + statsObj.twitter.tweetsProcessed + "/" + statsObj.twitter.tweetsHits + "/" + statsObj.twitter.tweetsTotal + " ]"
+        console.log(chalkLog("WAS | TFC | +++ Ts"
+          + " | " + tweetsProcessed
+          + " [ P/H/T " + statsObj.twitter.tweetsProcessed + "/" + statsObj.twitter.tweetsHits + "/" + statsObj.twitter.tweetsTotal + " ]"
           + " | SINCE: " + user.tweets.sinceId
-          + " | Ts: " + user.tweets.tweetIds.length
+          + " | DB Ts: " + user.tweets.tweetIds.length
           + " | @" + user.screenName
         ));
       }

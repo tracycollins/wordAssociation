@@ -4120,8 +4120,8 @@ function ignore(params, callback) {
     else if (delUser.deletedCount > 0){
 
       console.log(chalkAlert("WAS | XXX IGNORED USER | DELETED" 
-        + " | " + user.nodeId
-        + " | @" + user.screenName
+        + " | " + delUser.nodeId
+        + " | @" + delUser.screenName
       ));
 
     }

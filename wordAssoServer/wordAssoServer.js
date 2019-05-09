@@ -4461,54 +4461,14 @@ function initIgnoredUserSet(){
       async.eachSeries(ignoredUserSetObj.userIds, function(userId, cb){
 
         ignoredUserSet.add(userId);
+        cb();
 
-        query = { nodeId: userId, ignored: {"$in": [false, "false", null]} };
-
-        update = {};
-        update.$set = { ignored: true, following: false, threeceeFollowing: false };
-
-        const options = {
-          new: true,
-          returnOriginal: false,
-          upsert: false
-        };
-
-        global.globalUser.findOneAndUpdate(query, update, options, function(err, userUpdated){
-
-          if (err) {
-            console.log(chalkError("WAS | *** initIgnoredUserSet | USER FIND ONE ERROR: " + err));
-            return cb(err);
-          }
-          
-          if (userUpdated){
-
-            numIgnored += 1;
-            console.log(chalkLog("WAS | XXX IGNORE"
-              + " [" + numIgnored + "/" + numAlreadyIgnored + "/" + ignoredUserSetObj.userIds.length + "]"
-              + " | " + printUser({user: userUpdated})
-            ));
-
-            cb();
-          }
-          else {
-            numAlreadyIgnored += 1;
-            if (configuration.verbose){
-              console.log(chalkLog("WAS | ... ALREADY IGNORED"
-                + " [" + numIgnored + "/" + numAlreadyIgnored + "/" + ignoredUserSetObj.userIds.length + "]"
-                + " | ID: " + userId
-              ));
-            }
-            cb();
-          }
-        });
       }, function(err){
 
         if (err) {
           return reject(err);
         }
         console.log(chalkBlue("WAS | INIT IGNORED USERS"
-          + " | " + numIgnored + " NEW IGNORED"
-          + " | " + numAlreadyIgnored + " ALREADY IGNORED"
           + " | " + ignoredUserSet.size + " USERS IN SET"
           + " | " + ignoredUserSetObj.userIds.length + " USERS IN FILE"
           + " | " + dropboxConfigDefaultFolder + "/" + ignoredUserFile

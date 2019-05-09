@@ -2401,6 +2401,10 @@ function fetchUserTweets(params){
           + " | " + err.message
         ));
 
+        if (err.code === 130){ // Over capacity
+          return resolve([]);
+        }
+
         if (err.code === 136){ // You have been blocked from viewing this user's profile.
           process.send({
             op: "ERROR", 
@@ -2431,13 +2435,12 @@ function fetchUserTweets(params){
 
           try {
             await initRateLimitPause(infoTwitterUserObj.stats);
-            resolve([]);
+            return resolve([]);
           }
           catch(e){
             console.log(chalkError("WAS | TFC | *** INIT RATE LIMIT PAUSE ERROR: " + e));
             return reject(e);
           }
-
         }
 
         if (err.code === 89){

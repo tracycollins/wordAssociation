@@ -10762,7 +10762,7 @@ function twitterSearchNode(params, callback) {
 
       switch (searchNodeUser.screenName) {
         case "?":
-          currentUncategorizedUserArray = [...uncategorizedManualUserSet];
+          currentUncategorizedUserArray = uncategorizedManualUserArray;
         break;
         case "?left":
           currentUncategorizedUserArray = _.intersection(userAutoLeftArray, uncategorizedManualUserArray);

@@ -276,7 +276,7 @@ allowLocationsSet.add("new england");
 let allowLocationsArray = Array.from(allowLocationsSet);
 let allowLocationsString = allowLocationsArray.join('\\b|\\b');
 allowLocationsString = '\\b' + allowLocationsString + '\\b';
-let allowLocationsRegEx = new RegExp(allowLocationsString, "gi");
+let allowLocationsRegEx = new RegExp(allowLocationsString, "i");
 
 const ignoreLocationsSet = new Set();
 ignoreLocationsSet.add("india");
@@ -291,7 +291,7 @@ ignoreLocationsSet.add("lagos");
 let ignoreLocationsArray = Array.from(ignoreLocationsSet);
 let ignoreLocationsString = ignoreLocationsArray.join('\\b|\\b');
 ignoreLocationsString = '\\b' + ignoreLocationsString + '\\b';
-let ignoreLocationsRegEx = new RegExp(ignoreLocationsString, "gi");
+let ignoreLocationsRegEx = new RegExp(ignoreLocationsString, "i");
 
 const NodeCache = require("node-cache");
 const commandLineArgs = require("command-line-args");
@@ -657,7 +657,7 @@ followableSearchTermSet.add("special counsel");
 const followableSearchTermsArray = Array.from(followableSearchTermSet);
 let followableSearchTermString = followableSearchTermsArray.join('\\b|\\b');
 followableSearchTermString = '\\b' + followableSearchTermString + '\\b';
-let followableRegEx = new RegExp(followableSearchTermString, "gi");
+let followableRegEx = new RegExp(followableSearchTermString, "i");
 
 const DEFAULT_BEST_NETWORK_FOLDER = "/config/utility/best/neuralNetworks";
 const bestNetworkFolder = DEFAULT_BEST_NETWORK_FOLDER;
@@ -5923,7 +5923,7 @@ function initFollowableSearchTerms(){
 
       followableSearchTermString = termsArray.join('\\b|\\b');
       followableSearchTermString = '\\b' + followableSearchTermString + '\\b';
-      followableRegEx = new RegExp(followableSearchTermString, "gi");
+      followableRegEx = new RegExp(followableSearchTermString, "i");
 
       debug(chalkInfo("followableRegEx: " + followableRegEx));  
 
@@ -6170,7 +6170,7 @@ split("\n");
       allowLocationsArray = [...allowLocationsSet];
       allowLocationsString = allowLocationsArray.join('\\b|\\b');
       allowLocationsString = '\\b' + allowLocationsString + '\\b';
-      allowLocationsRegEx = new RegExp(allowLocationsString, "gi");
+      allowLocationsRegEx = new RegExp(allowLocationsString, "i");
 
       resolve();
 
@@ -6244,7 +6244,7 @@ split("\n");
       ignoreLocationsArray = [...ignoreLocationsSet];
       ignoreLocationsString = ignoreLocationsArray.join('\\b|\\b');
       ignoreLocationsString = '\\b' + ignoreLocationsString + '\\b';
-      ignoreLocationsRegEx = new RegExp(ignoreLocationsString, "gi");
+      ignoreLocationsRegEx = new RegExp(ignoreLocationsString, "i");
 
       resolve();
 

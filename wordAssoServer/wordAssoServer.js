@@ -6356,11 +6356,6 @@ function updateUserSets(params){
       console.log(chalkBlue("WAS | TOTAL UNCATEGORIZED AUTO USERS IN DB: " + statsObj.user.uncategorizedAuto));
     });
 
-    // const userSearchQuery = { following: true, ignored: false };
-    const userSearchQuery = { ignored: { "$in": [false, "false", null] } };
-    
-    userSearchCursor = global.globalUser.find(userSearchQuery).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
-
     userRightSet.clear();
     userLeftSet.clear();
     userNeutralSet.clear();
@@ -6374,6 +6369,11 @@ function updateUserSets(params){
     userAutoPositiveSet.clear();
     userAutoNegativeSet.clear();
     userAutoNoneSet.clear();
+
+    // const userSearchQuery = { following: true, ignored: false };
+    const userSearchQuery = { ignored: { "$in": [false, "false", null] } };
+    
+    userSearchCursor = global.globalUser.find(userSearchQuery).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
 
     userSearchCursor.on("data", function(user) {
 

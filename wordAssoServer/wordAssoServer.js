@@ -5978,31 +5978,35 @@ const userCategorizeable = function(user){
   if (user.nodeType !== "user") { return false; }
 
   if ((user.following !== undefined) && user.following) { 
-    categorizeableUserSet.add(user.nodeId);
-    ignoredUserSet.delete(user.nodeId);
-    unfollowableUserSet.delete(user.nodeId);
+    // categorizeableUserSet.add(user.nodeId);
+    // ignoredUserSet.delete(user.nodeId);
+    // unfollowableUserSet.delete(user.nodeId);
     return true;
   }
 
   if ((user.ignored !== undefined) && user.ignored) { 
-    ignoredUserSet.add(user.nodeId);
-    categorizeableUserSet.delete(user.nodeId);
+    // ignoredUserSet.add(user.nodeId);
+    // unfollowableUserSet.add(user.nodeId);
+    // categorizeableUserSet.delete(user.nodeId);
     return false; 
   }
 
   if (ignoredUserSet.has(user.nodeId)) { 
-    unfollowableUserSet.add(user.nodeId);
+    // unfollowableUserSet.add(user.nodeId);
+    // categorizeableUserSet.delete(user.nodeId);
     return false; 
   }
 
   if (unfollowableUserSet.has(user.nodeId)) { 
-    ignoredUserSet.add(user.nodeId);
+    // ignoredUserSet.add(user.nodeId);
+    // categorizeableUserSet.delete(user.nodeId);
     return false;
   }
 
   if ((user.lang !== undefined) && (user.lang !== "en")) { 
-    ignoredUserSet.add(user.nodeId);
-    unfollowableUserSet.add(user.nodeId);
+    // ignoredUserSet.add(user.nodeId);
+    // unfollowableUserSet.add(user.nodeId);
+    // categorizeableUserSet.delete(user.nodeId);
     if (configuration.verbose) { 
       console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LANG NOT ENGLISH: " + user.lang));
     }
@@ -6015,8 +6019,8 @@ const userCategorizeable = function(user){
     && !allowLocationsRegEx.test(user.location)
     && ignoreLocationsRegEx.test(user.location)){
     
-    unfollowableUserSet.add(user.nodeId);
-    ignoredUserSet.add(user.nodeId);
+    // unfollowableUserSet.add(user.nodeId);
+    // ignoredUserSet.add(user.nodeId);
 
     return false;
 
@@ -6025,7 +6029,8 @@ const userCategorizeable = function(user){
   if (followableRegEx === undefined) { return false; }
   
   if (user.followersCount !== undefined && (user.followersCount < configuration.minFollowersAuto)) { 
-    unfollowableUserSet.add(user.nodeId);
+    // unfollowableUserSet.add(user.nodeId);
+    // categorizeableUserSet.add(user.nodeId);
     return false;
   }
 
@@ -6038,7 +6043,11 @@ const userCategorizeable = function(user){
 
     categorizeableFlag = followableRegEx.test(user.description) || followableRegEx.test(user.screenName) || followableRegEx.test(user.name);
 
-    if (categorizeableFlag) { categorizeableUserSet.add(user.nodeId); }
+    if (categorizeableFlag) { 
+      // categorizeableUserSet.add(user.nodeId);
+      // unfollowableUserSet.delete(user.nodeId);
+      // ignoredUserSet.delete(user.nodeId);
+    }
 
     return categorizeableFlag;
   }

@@ -685,7 +685,7 @@ followableSearchTermString = '\\b' + followableSearchTermString + '\\b';
 
 console.log("followableSearchTermString\n" + followableSearchTermString);
 
-let followableRegEx = new RegExp("'" + followableSearchTermString + "'", "i");
+let followableRegEx = new RegExp('/' + followableSearchTermString + '/', "i");
 
 const DEFAULT_BEST_NETWORK_FOLDER = "/config/utility/best/neuralNetworks";
 const bestNetworkFolder = DEFAULT_BEST_NETWORK_FOLDER;
@@ -5951,7 +5951,7 @@ function initFollowableSearchTerms(){
 
       followableSearchTermString = termsArray.join('\\b|\\b');
       followableSearchTermString = '\\b' + followableSearchTermString + '\\b';
-      followableRegEx = new RegExp("'" + followableSearchTermString + "'", "i");
+      followableRegEx = new RegExp('/' + followableSearchTermString + '/', "i");
 
       debug(chalkInfo("followableRegEx: " + followableRegEx));  
 
@@ -6046,52 +6046,9 @@ const userCategorizeable = function(user){
   return false;
 };
 
-// let followableFlag = false;
-// const userFollowable = function(user){
-
-//   if (user.nodeType !== "user") { return false; }
-//   if (user.ignored !== undefined && user.ignored) { return false; }
-//   if (user.following !== undefined && user.following) { return false; }
-//   if (followedUserSet.has(user.nodeId)) { return false; }
-//   if (ignoredUserSet.has(user.nodeId)) { return false; }
-//   if (unfollowableUserSet.has(user.nodeId)) { return false; }
-//   if (user.category !== undefined && user.category) { return false; }
-//   if (user.followersCount !== undefined && (user.followersCount < configuration.minFollowersAuto)) { return false; }
-//   if (user.lang !== undefined && user.lang !== "en") { 
-//     ignoredUserSet.add(user.nodeId);
-//     unfollowableUserSet.add(user.nodeId);
-//     printUserObj(
-//       "LANG NOT ENG: " + user.lang 
-//       + " [ IG: " + ignoredUserSet.size + " | UF: " + unfollowableUserSet.size + "]", 
-//       user, 
-//       chalkLog
-//     );
-//     return false;
-//   }
-
-//   if ((user.description === undefined) || !user.description) { user.description = ""; }
-//   if ((user.screenName === undefined) || !user.screenName) { user.screenName = ""; }
-//   if ((user.name === undefined) || !user.name) { user.name = ""; }
-
-//   if (followableRegEx !== undefined) {
-
-//     followableFlag = followableRegEx.test(user.description)
-//       || followableRegEx.test(user.screenName) 
-//       || followableRegEx.test(user.name);
-
-//     if (followableFlag) { followableUserSet.add(user.nodeId); }
-//     return followableFlag;
-//   }
-
-//   return false;
-// };
-
 function getCurrentThreeceeUser(params){
-
   return new Promise(function(resolve, reject){
-
     resolve("altthreecee00");
-
   });
 }
 

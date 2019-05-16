@@ -616,9 +616,13 @@ const followableSearchTermSet = new Set();
 
 followableSearchTermSet.add("potus");
 followableSearchTermSet.add("trump");
+followableSearchTermSet.add("trumps");
 followableSearchTermSet.add("obama");
+followableSearchTermSet.add("obamas");
 followableSearchTermSet.add("clinton");
+followableSearchTermSet.add("clintons");
 followableSearchTermSet.add("pence");
+followableSearchTermSet.add("pences");
 followableSearchTermSet.add("ivanka");
 followableSearchTermSet.add("mueller");
 followableSearchTermSet.add("reagan");
@@ -642,14 +646,35 @@ followableSearchTermSet.add("@gop");
 
 followableSearchTermSet.add("🌊");
 followableSearchTermSet.add("fbr");
+followableSearchTermSet.add("gop");
+followableSearchTermSet.add("dem");
 followableSearchTermSet.add("bluewave");
 followableSearchTermSet.add("bluetsunami");
 followableSearchTermSet.add("liberal");
+followableSearchTermSet.add("liberals");
+followableSearchTermSet.add("senate");
+followableSearchTermSet.add("senator");
+followableSearchTermSet.add("senators");
 followableSearchTermSet.add("democrat");
+followableSearchTermSet.add("democrats");
 followableSearchTermSet.add("congress");
 followableSearchTermSet.add("republican");
+followableSearchTermSet.add("republicans");
 followableSearchTermSet.add("conservative");
+followableSearchTermSet.add("conservatives");
 followableSearchTermSet.add("livesmatter");
+followableSearchTermSet.add("abortion");
+followableSearchTermSet.add("prochoice");
+followableSearchTermSet.add("pro choice");
+followableSearchTermSet.add("pro-choice");
+followableSearchTermSet.add("prolife");
+followableSearchTermSet.add("pro life");
+followableSearchTermSet.add("pro-life");
+
+followableSearchTermSet.add("election");
+followableSearchTermSet.add("elections");
+followableSearchTermSet.add("scotus");
+followableSearchTermSet.add("supreme court");
 
 followableSearchTermSet.add("specialcounsel");
 followableSearchTermSet.add("special counsel");
@@ -657,7 +682,10 @@ followableSearchTermSet.add("special counsel");
 const followableSearchTermsArray = Array.from(followableSearchTermSet);
 let followableSearchTermString = followableSearchTermsArray.join('\\b|\\b');
 followableSearchTermString = '\\b' + followableSearchTermString + '\\b';
-let followableRegEx = new RegExp(followableSearchTermString, "i");
+
+console.log("followableSearchTermString\n" + followableSearchTermString);
+
+let followableRegEx = new RegExp("'" + followableSearchTermString + "'", "i");
 
 const DEFAULT_BEST_NETWORK_FOLDER = "/config/utility/best/neuralNetworks";
 const bestNetworkFolder = DEFAULT_BEST_NETWORK_FOLDER;
@@ -5923,7 +5951,7 @@ function initFollowableSearchTerms(){
 
       followableSearchTermString = termsArray.join('\\b|\\b');
       followableSearchTermString = '\\b' + followableSearchTermString + '\\b';
-      followableRegEx = new RegExp(followableSearchTermString, "i");
+      followableRegEx = new RegExp("'" + followableSearchTermString + "'", "i");
 
       debug(chalkInfo("followableRegEx: " + followableRegEx));  
 
@@ -5950,16 +5978,27 @@ const userCategorizeable = function(user){
   if (user.nodeType !== "user") { return false; }
 
   if ((user.following !== undefined) && user.following) { 
+    categorizeableUserSet.add(user.nodeId);
     ignoredUserSet.delete(user.nodeId);
     unfollowableUserSet.delete(user.nodeId);
     return true;
   }
 
-  if ((user.ignored !== undefined) && user.ignored) { return false; }
+  if ((user.ignored !== undefined) && user.ignored) { 
+    ignoredUserSet.add(user.nodeId);
+    categorizeableUserSet.delete(user.nodeId);
+    return false; 
+  }
 
-  if (ignoredUserSet.has(user.nodeId)) { return false; }
+  if (ignoredUserSet.has(user.nodeId)) { 
+    unfollowableUserSet.add(user.nodeId);
+    return false; 
+  }
 
-  if (unfollowableUserSet.has(user.nodeId)) { return false; }
+  if (unfollowableUserSet.has(user.nodeId)) { 
+    ignoredUserSet.add(user.nodeId);
+    return false;
+  }
 
   if ((user.lang !== undefined) && (user.lang !== "en")) { 
     ignoredUserSet.add(user.nodeId);
@@ -5976,12 +6015,6 @@ const userCategorizeable = function(user){
     && !allowLocationsRegEx.test(user.location)
     && ignoreLocationsRegEx.test(user.location)){
     
-    // console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LOCATION" 
-    //   + " | " + user.nodeId
-    //   + " | @" + user.screenName
-    //   + " | " + user.location
-    // ));
-
     unfollowableUserSet.add(user.nodeId);
     ignoredUserSet.add(user.nodeId);
 
@@ -5991,9 +6024,12 @@ const userCategorizeable = function(user){
 
   if (followableRegEx === undefined) { return false; }
   
-  if (user.followersCount !== undefined && (user.followersCount < configuration.minFollowersAuto)) { return false; }
+  if (user.followersCount !== undefined && (user.followersCount < configuration.minFollowersAuto)) { 
+    unfollowableUserSet.add(user.nodeId);
+    return false;
+  }
 
-  if ((user.ignored === undefined || !user.ignored )
+  if (((user.ignored === undefined) || !user.ignored )
     && (user.followersCount !== undefined && (user.followersCount >= configuration.minFollowersAuto))) { 
 
     if ((user.description === undefined) || !user.description) { user.description = ""; }
@@ -6010,45 +6046,45 @@ const userCategorizeable = function(user){
   return false;
 };
 
-let followableFlag = false;
-const userFollowable = function(user){
+// let followableFlag = false;
+// const userFollowable = function(user){
 
-  if (user.nodeType !== "user") { return false; }
-  if (user.ignored !== undefined && user.ignored) { return false; }
-  if (user.following !== undefined && user.following) { return false; }
-  if (followedUserSet.has(user.nodeId)) { return false; }
-  if (ignoredUserSet.has(user.nodeId)) { return false; }
-  if (unfollowableUserSet.has(user.nodeId)) { return false; }
-  if (user.category !== undefined && user.category) { return false; }
-  if (user.followersCount !== undefined && (user.followersCount < configuration.minFollowersAuto)) { return false; }
-  if (user.lang !== undefined && user.lang !== "en") { 
-    ignoredUserSet.add(user.nodeId);
-    unfollowableUserSet.add(user.nodeId);
-    printUserObj(
-      "LANG NOT ENG: " + user.lang 
-      + " [ IG: " + ignoredUserSet.size + " | UF: " + unfollowableUserSet.size + "]", 
-      user, 
-      chalkLog
-    );
-    return false;
-  }
+//   if (user.nodeType !== "user") { return false; }
+//   if (user.ignored !== undefined && user.ignored) { return false; }
+//   if (user.following !== undefined && user.following) { return false; }
+//   if (followedUserSet.has(user.nodeId)) { return false; }
+//   if (ignoredUserSet.has(user.nodeId)) { return false; }
+//   if (unfollowableUserSet.has(user.nodeId)) { return false; }
+//   if (user.category !== undefined && user.category) { return false; }
+//   if (user.followersCount !== undefined && (user.followersCount < configuration.minFollowersAuto)) { return false; }
+//   if (user.lang !== undefined && user.lang !== "en") { 
+//     ignoredUserSet.add(user.nodeId);
+//     unfollowableUserSet.add(user.nodeId);
+//     printUserObj(
+//       "LANG NOT ENG: " + user.lang 
+//       + " [ IG: " + ignoredUserSet.size + " | UF: " + unfollowableUserSet.size + "]", 
+//       user, 
+//       chalkLog
+//     );
+//     return false;
+//   }
 
-  if ((user.description === undefined) || !user.description) { user.description = ""; }
-  if ((user.screenName === undefined) || !user.screenName) { user.screenName = ""; }
-  if ((user.name === undefined) || !user.name) { user.name = ""; }
+//   if ((user.description === undefined) || !user.description) { user.description = ""; }
+//   if ((user.screenName === undefined) || !user.screenName) { user.screenName = ""; }
+//   if ((user.name === undefined) || !user.name) { user.name = ""; }
 
-  if (followableRegEx !== undefined) {
+//   if (followableRegEx !== undefined) {
 
-    followableFlag = followableRegEx.test(user.description)
-      || followableRegEx.test(user.screenName) 
-      || followableRegEx.test(user.name);
+//     followableFlag = followableRegEx.test(user.description)
+//       || followableRegEx.test(user.screenName) 
+//       || followableRegEx.test(user.name);
 
-    if (followableFlag) { followableUserSet.add(user.nodeId); }
-    return followableFlag;
-  }
+//     if (followableFlag) { followableUserSet.add(user.nodeId); }
+//     return followableFlag;
+//   }
 
-  return false;
-};
+//   return false;
+// };
 
 function getCurrentThreeceeUser(params){
 

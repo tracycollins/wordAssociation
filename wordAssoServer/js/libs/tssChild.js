@@ -2622,29 +2622,6 @@ process.on("message", async function(m) {
                     + " | CUR 3C @: " + threeceeUserObj.screenName
                   ));
 
-                  if (threeceeFollowingInHashMap < threeceeUserObj.screenName) {
-
-                    // unfollowQueue.push({threeceeUser: threeceeUserObj.screenName, user: { userId: userId} });
-
-                    console.log(chalkLog("TSS | > UNFOLLOW Q"
-                      // + "[" + unfollowQueue.length + "]"
-                      + " | 3C @: " + threeceeUserObj.screenName
-                      + " | UID: " + userId
-                    ));
-
-                  }
-                  else {
-
-                    // unfollowQueue.push({threeceeUser: threeceeUserObj.screenName, user: { userId: userId} });
-
-                    console.log(chalkLog("TSS | > UNFOLLOW Q"
-                      // + "[" + unfollowQueue.length + "]"
-                      + " | 3C @: " + threeceeFollowingInHashMap
-                      + " | UID: " + userId
-                    ));
-
-                  }
-
                   return cb();
 
                 }

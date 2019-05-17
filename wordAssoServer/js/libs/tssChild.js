@@ -95,7 +95,7 @@ const chalkInfo = chalk.black;
 
 const searchTermHashMap = new HashMap();
 
-const unfollowQueue = [];
+// const unfollowQueue = [];
 
 const ignoreUserSet = new Set();
 
@@ -1109,25 +1109,25 @@ function initTwit(){
               + " | CUR 3C @: " + threeceeUserObj.twitterConfig.screenName
             ));
 
-            const user = new User({userId: userId});
+            // const user = new User({userId: userId});
 
-            if (threeceeFollowingInHashMap < threeceeUserObj.twitterConfig.screenName) {
+            // if (threeceeFollowingInHashMap < threeceeUserObj.twitterConfig.screenName) {
 
-              console.log(chalkLog("TSS | > UNFOLLOW Q | ALREADY FOLLOWING"
-                + " [" + unfollowQueue.length + "]"
-                + " | UID: " + user.userId
-                + " | 3C IN HM @: " + threeceeFollowingInHashMap
-                + " | 3C CUR @: " + threeceeUserObj.twitterConfig.screenName
-              ));
-            }
-            else {
+            //   console.log(chalkLog("TSS | > UNFOLLOW Q | ALREADY FOLLOWING"
+            //     // + " [" + unfollowQueue.length + "]"
+            //     + " | UID: " + user.userId
+            //     + " | 3C IN HM @: " + threeceeFollowingInHashMap
+            //     + " | 3C CUR @: " + threeceeUserObj.twitterConfig.screenName
+            //   ));
+            // }
+            // else {
 
-              console.log(chalkLog("TSS | > UNFOLLOW Q"
-                + " [" + unfollowQueue.length + "]"
-                + " | UID: " + user.userId
-                + " | 3C @" + threeceeFollowingInHashMap
-              ));
-            }
+            //   console.log(chalkLog("TSS | > UNFOLLOW Q"
+            //     + " [" + unfollowQueue.length + "]"
+            //     + " | UID: " + user.userId
+            //     + " | 3C @" + threeceeFollowingInHashMap
+            //   ));
+            // }
 
             return cb();
 
@@ -2624,10 +2624,10 @@ process.on("message", async function(m) {
 
                   if (threeceeFollowingInHashMap < threeceeUserObj.screenName) {
 
-                    unfollowQueue.push({threeceeUser: threeceeUserObj.screenName, user: { userId: userId} });
+                    // unfollowQueue.push({threeceeUser: threeceeUserObj.screenName, user: { userId: userId} });
 
                     console.log(chalkLog("TSS | > UNFOLLOW Q"
-                      + "[" + unfollowQueue.length + "]"
+                      // + "[" + unfollowQueue.length + "]"
                       + " | 3C @: " + threeceeUserObj.screenName
                       + " | UID: " + userId
                     ));
@@ -2635,10 +2635,10 @@ process.on("message", async function(m) {
                   }
                   else {
 
-                    unfollowQueue.push({threeceeUser: threeceeUserObj.screenName, user: { userId: userId} });
+                    // unfollowQueue.push({threeceeUser: threeceeUserObj.screenName, user: { userId: userId} });
 
                     console.log(chalkLog("TSS | > UNFOLLOW Q"
-                      + "[" + unfollowQueue.length + "]"
+                      // + "[" + unfollowQueue.length + "]"
                       + " | 3C @: " + threeceeFollowingInHashMap
                       + " | UID: " + userId
                     ));
@@ -2768,10 +2768,10 @@ process.on("message", async function(m) {
 
     case "UNFOLLOW":
 
-      unfollowQueue.push({threeceeUser: threeceeUserObj.twitterConfig.screenName, user: m.user});
+      // unfollowQueue.push({threeceeUser: threeceeUserObj.twitterConfig.screenName, user: m.user});
 
       console.log(chalkInfo("TSS | WAS > UNFOLLOW"
-        + " [Q: " + unfollowQueue.length + "]"
+        // + " [Q: " + unfollowQueue.length + "]"
         + " 3C @" + threeceeUserObj.screenName
         + " | USER " + m.user.userId
         + " | @" + m.user.screenName

@@ -2497,6 +2497,7 @@ process.on("message", async function(m) {
 
       console.log(chalkInfo("TSS | INIT"
         + " | TITLE: " + m.title
+        + "\nTWITTER CONFIG\n" + jsonPrint(m.twitterConfig)
       ));
 
       try {

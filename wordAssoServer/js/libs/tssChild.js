@@ -996,10 +996,45 @@ const userDefaults = function (user){
   return user;
 };
 
+function twitStreamPromise(params){
+
+  return new Promise(function(resolve, reject){
+
+    threeceeUserObj.twitStream.get(params.endpoint, params.twitParams, function(err, data, response) {
+
+      if (err){
+        console.log(chalkError("TSS | *** TWITTER STREAM ERROR"
+          + " | @" + threeceeUserObj.screenName
+          + " | " + getTimeStamp()
+          + " | CODE: " + err.code
+          + " | STATUS CODE: " + err.statusCode
+          + " | " + err.message
+        ));
+
+        if (configuration.verbose) {
+          console.log("TSS | response\n" + jsonPrint(response));
+        }
+
+        threeceeUserObj.stats.error = err;
+        threeceeUserObj.stats.twitterErrors += 1;
+
+        return reject(err);
+      }
+
+      threeceeUserObj.stats.error = false;
+      threeceeUserObj.stats.twitterTokenErrorFlag = false;
+
+      resolve(data);
+
+    });
+  });
+
+}
+
 
 function initTwit(){
 
-  return new Promise(function(resolve, reject){
+  return new Promise(async function(resolve, reject){
 
     console.log(chalkLog("TSS | INIT TWIT USER @" + threeceeUserObj.screenName));
 
@@ -1063,27 +1098,11 @@ function initTwit(){
       stringify_ids: true
     };
 
-    threeceeUserObj.twitStream.get("friends/ids", twitGetFriendsParams, function(err, data, response) {
+    try {
 
-      if (err){
-        console.log(chalkError("TSS | *** TWITTER GET FRIENDS IDS ERROR | NOT AUTHENTICATED"
-          + " | @" + threeceeUserObj.screenName
-          + " | " + getTimeStamp()
-          + " | CODE: " + err.code
-          + " | STATUS CODE: " + err.statusCode
-          + " | " + err.message
-        ));
+      const data = await twitStreamPromise({endpoint: "friends/ids", twitParams: twitGetFriendsParams});
 
-        if (configuration.verbose) {
-          console.log("TSS | response\n" + jsonPrint(response));
-        }
-
-        threeceeUserObj.stats.error = err;
-        threeceeUserObj.stats.twitterErrors += 1;
-        threeceeUserObj.stats.authenticated = false;
-
-        return reject(err);
-      }
+      threeceeUserObj.stats.authenticated = true;
 
       threeceeUserObj.stats.error = false;
       threeceeUserObj.stats.authenticated = true;
@@ -1208,7 +1227,23 @@ function initTwit(){
         resolve(threeceeUserObj);
 
       });
-    });
+    }
+    catch(err){
+      console.log(chalkError("TSS | *** TWITTER GET FRIENDS IDS ERROR | NOT AUTHENTICATED"
+        + " | @" + threeceeUserObj.screenName
+        + " | " + getTimeStamp()
+        + " | CODE: " + err.code
+        + " | STATUS CODE: " + err.statusCode
+        + " | " + err.message
+      ));
+
+      threeceeUserObj.stats.error = err;
+      threeceeUserObj.stats.twitterErrors += 1;
+      threeceeUserObj.stats.authenticated = false;
+
+      return reject(err);
+    }
+
   });
 }
 

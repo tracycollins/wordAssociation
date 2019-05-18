@@ -1109,26 +1109,6 @@ function initTwit(){
               + " | CUR 3C @: " + threeceeUserObj.twitterConfig.screenName
             ));
 
-            // const user = new User({userId: userId});
-
-            // if (threeceeFollowingInHashMap < threeceeUserObj.twitterConfig.screenName) {
-
-            //   console.log(chalkLog("TSS | > UNFOLLOW Q | ALREADY FOLLOWING"
-            //     // + " [" + unfollowQueue.length + "]"
-            //     + " | UID: " + user.userId
-            //     + " | 3C IN HM @: " + threeceeFollowingInHashMap
-            //     + " | 3C CUR @: " + threeceeUserObj.twitterConfig.screenName
-            //   ));
-            // }
-            // else {
-
-            //   console.log(chalkLog("TSS | > UNFOLLOW Q"
-            //     + " [" + unfollowQueue.length + "]"
-            //     + " | UID: " + user.userId
-            //     + " | 3C @" + threeceeFollowingInHashMap
-            //   ));
-            // }
-
             return cb();
 
           }

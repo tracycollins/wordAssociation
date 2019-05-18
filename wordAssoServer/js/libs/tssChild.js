@@ -174,6 +174,10 @@ configuration.twitterConfig = {};
 
 
 const threeceeUserObj = {};
+
+threeceeUserObj.twitterConfig = {};
+threeceeUserObj.twitterConfig.screenName = "altthreecee00";
+
 threeceeUserObj.stats = {};
 threeceeUserObj.stats.ready = false;
 threeceeUserObj.stats.error = false;

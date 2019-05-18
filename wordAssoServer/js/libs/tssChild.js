@@ -176,7 +176,7 @@ configuration.twitterConfig = {};
 const threeceeUserObj = {};
 
 threeceeUserObj.twitterConfig = {};
-threeceeUserObj.twitterConfig.screenName = "altthreecee00";
+threeceeUserObj.screenName = "altthreecee00";
 
 threeceeUserObj.stats = {};
 threeceeUserObj.stats.ready = false;
@@ -991,7 +991,7 @@ function initTwit(){
 
   return new Promise(function(resolve, reject){
 
-    console.log(chalkLog("TSS | INIT TWIT USER @" + threeceeUserObj.twitterConfig.screenName));
+    console.log(chalkLog("TSS | INIT TWIT USER @" + threeceeUserObj.screenName));
 
     debug(chalkInfo("TSS | INIT TWIT | TWITTER CONFIG " 
       + "\n" + jsonPrint(threeceeUserObj.twitterConfig)
@@ -1045,11 +1045,11 @@ function initTwit(){
     threeceeUserObj.searchTermSet = new Set();
 
     console.log(chalkTwitter("TSS | INIT TWITTER USER"
-      + " | NAME: " + threeceeUserObj.twitterConfig.screenName
+      + " | NAME: " + threeceeUserObj.screenName
     ));
 
     const twitGetFriendsParams = {
-      screen_name: threeceeUserObj.twitterConfig.screenName,
+      screen_name: threeceeUserObj.screenName,
       stringify_ids: true
     };
 
@@ -1057,7 +1057,7 @@ function initTwit(){
 
       if (err){
         console.log(chalkError("TSS | *** TWITTER GET FRIENDS IDS ERROR | NOT AUTHENTICATED"
-          + " | @" + threeceeUserObj.twitterConfig.screenName
+          + " | @" + threeceeUserObj.screenName
           + " | " + getTimeStamp()
           + " | CODE: " + err.code
           + " | STATUS CODE: " + err.statusCode
@@ -1083,7 +1083,7 @@ function initTwit(){
       threeceeUserObj.followUserIdSet = new Set(data.ids);
 
       console.log(chalkTwitter("TSS | TWITTER GET FRIENDS IDS"
-        + " | @" + threeceeUserObj.twitterConfig.screenName
+        + " | @" + threeceeUserObj.screenName
         + " | " + threeceeUserObj.followUserIdSet.size + " FRIENDS"
         // + " | DATA IDS: " + data.ids.length + " FRIENDS"
         // + " | PREV CURSOR: " + data.previous_cursor_str
@@ -1105,12 +1105,12 @@ function initTwit(){
 
           const threeceeFollowingInHashMap = followingUserIdHashMap.get(userId);
 
-          if (threeceeFollowingInHashMap !== threeceeUserObj.twitterConfig.screenName) {
+          if (threeceeFollowingInHashMap !== threeceeUserObj.screenName) {
 
             console.log(chalkLog("TSS | !!! TWITTER USER FOLLOW MISMATCH"
               + " | UID: " + userId
               + " | IN HM: 3C @" + threeceeFollowingInHashMap
-              + " | CUR 3C @: " + threeceeUserObj.twitterConfig.screenName
+              + " | CUR 3C @: " + threeceeUserObj.screenName
             ));
 
             return cb();
@@ -1120,7 +1120,7 @@ function initTwit(){
             console.log(chalkAlert("TSS | ??? TWITTER USER FOLLOW HM HIT"
               + " | UID: " + userId
               + " | IN HM: 3C @" + threeceeFollowingInHashMap
-              + " | CUR 3C @: " + threeceeUserObj.twitterConfig.screenName
+              + " | CUR 3C @: " + threeceeUserObj.screenName
             ));
 
             return cb();
@@ -1129,7 +1129,7 @@ function initTwit(){
         }
         else {
 
-          followingUserIdHashMap.set(userId, threeceeUserObj.twitterConfig.screenName);
+          followingUserIdHashMap.set(userId, threeceeUserObj.screenName);
 
           User.findOne({ userId: userId }, function (err, user) {
 
@@ -1143,13 +1143,13 @@ function initTwit(){
               threeceeUserObj.followUserScreenNameSet.add(user.screenName.toLowerCase());
 
               if (configuration.verbose || (userIndex % 100 === 0)) {
-                printString = "TSS | [ " + userIndex + "/" + threeceeUserObj.followUserIdSet.size + " ] @" + threeceeUserObj.twitterConfig.screenName + " | DB HIT";
+                printString = "TSS | [ " + userIndex + "/" + threeceeUserObj.followUserIdSet.size + " ] @" + threeceeUserObj.screenName + " | DB HIT";
                 printUserObj(printString, user);
               }
 
               if (!user.following) { 
                 user.following = true;
-                user.threeceeFollowing = threeceeUserObj.twitterConfig.screenName;
+                user.threeceeFollowing = threeceeUserObj.screenName;
                 user.markModified("following");
                 user.markModified("threeceeFollowing");
                 user.save(function(err){
@@ -1157,13 +1157,13 @@ function initTwit(){
                   cb();
                 });
               }
-              else if (user.following && (user.threeceeFollowing > threeceeUserObj.twitterConfig.screenName)) {
+              else if (user.following && (user.threeceeFollowing > threeceeUserObj.screenName)) {
                 console.log(chalk.black("TSS | -X- CHANGE 3C FOLLOWING"
                   + " | UID: " + user.userId
                   + " | @" + user.screenName
-                  + " | 3C @" + user.threeceeFollowing + " -> " + threeceeUserObj.twitterConfig.screenName
+                  + " | 3C @" + user.threeceeFollowing + " -> " + threeceeUserObj.screenName
                 ));
-                user.threeceeFollowing = threeceeUserObj.twitterConfig.screenName;
+                user.threeceeFollowing = threeceeUserObj.screenName;
                 user.markModified("threeceeFollowing");
                 user.save(function(err){
                   if (err) { console.log(chalkError("TSS | *** USER DB SAVE ERROR: " + err)); }
@@ -1189,7 +1189,7 @@ function initTwit(){
 
         process.send({
           op: "TWITTER_STATS", 
-          threeceeUser: threeceeUserObj.twitterConfig.screenName, 
+          threeceeUser: threeceeUserObj.screenName, 
           stats: threeceeUserObj.stats, 
           twitterFollowing: threeceeUserObj.followUserIdSet.size,
           twitterFriends: [...threeceeUserObj.followUserIdSet]
@@ -2729,7 +2729,7 @@ process.on("message", async function(m) {
 
     case "UNFOLLOW":
 
-      // unfollowQueue.push({threeceeUser: threeceeUserObj.twitterConfig.screenName, user: m.user});
+      // unfollowQueue.push({threeceeUser: threeceeUserObj.screenName, user: m.user});
 
       console.log(chalkInfo("TSS | WAS > UNFOLLOW"
         // + " [Q: " + unfollowQueue.length + "]"
@@ -2742,7 +2742,7 @@ process.on("message", async function(m) {
     case "UNFOLLOW_ID_ARRAY":
 
       // m.userArray.forEach(function(userId){
-      //   // unfollowQueue.push({threeceeUser: threeceeUserObj.twitterConfig.screenName, user: { userId: userId }});
+      //   // unfollowQueue.push({threeceeUser: threeceeUserObj.screenName, user: { userId: userId }});
       // });
 
       // console.log(chalkInfo("TSS | WAS > UNFOLLOW_ID_ARRAY"

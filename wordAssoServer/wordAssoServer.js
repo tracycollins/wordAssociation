@@ -9284,7 +9284,7 @@ function loadConfigFile(params) {
 
         const newConfiguration = {};
         newConfiguration.metrics = {};
-        newConfiguration.threeceeUsers = {};
+        newConfiguration.threeceeUsers = [];
 
         if (loadedConfigObj.WAS_TEST_MODE !== undefined){
           console.log("WAS | LOADED WAS_TEST_MODE: " + loadedConfigObj.WAS_TEST_MODE);

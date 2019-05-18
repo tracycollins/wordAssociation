@@ -1003,7 +1003,7 @@ function initTwit(){
 
     console.log(chalkLog("TSS | INIT TWIT USER @" + threeceeUserObj.screenName));
 
-    debug(chalkInfo("TSS | INIT TWIT | TWITTER CONFIG " 
+    console.log(chalkInfo("TSS | INIT TWIT | TWITTER CONFIG " 
       + "\n" + jsonPrint(threeceeUserObj.twitterConfig)
     ));
 

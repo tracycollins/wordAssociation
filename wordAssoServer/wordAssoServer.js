@@ -10356,8 +10356,8 @@ function initThreeceeTwitterUsers(params){
 
       try {
 
-        loadFile({folder: dropboxConfigTwitterFolder, file: configFile}).
-        then(function(twitterConfig){
+        loadFile({folder: dropboxConfigTwitterFolder, file: configFile})
+        .then(function(twitterConfig){
 
           console.log(chalkTwitter("WAS | LOADED TWITTER CONFIG"
             + " | 3C @" + user
@@ -10385,7 +10385,11 @@ function initThreeceeTwitterUsers(params){
           statsObj.threeceeUsersConfiguredFlag = true;
 
           cb();
-
+        })
+        .catch(function(err){
+          console.log(chalkError("WAS | *** INIT THREECEE TWITTER CONFIG ERROR: " + err
+          ));
+          return cb(err);
         });
       }
 

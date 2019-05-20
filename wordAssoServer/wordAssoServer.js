@@ -9960,8 +9960,8 @@ function initCategoryHashmaps(){
 
         async.whilst(
 
-          function() {
-            return (statsObj.dbConnectionReady && more);
+          function test(cbTest) {
+            cbTest(null, statsObj.dbConnectionReady && more);
           },
 
           function(cb0){
@@ -10048,8 +10048,8 @@ function initCategoryHashmaps(){
 
         async.whilst(
 
-          function() {
-            return (statsObj.dbConnectionReady && more);
+          function test(cbTest) {
+            cbTest(null, statsObj.dbConnectionReady && more);
           },
 
           function(cb0){

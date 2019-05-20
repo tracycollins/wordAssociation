@@ -1924,11 +1924,12 @@ function initSearchTerms(params){
         + " | " + dataArray.length + " SEACH TERMS"
       ));
 
-      async.whilst( 
-        function(){ 
-          return ((threeceeUserObj.searchTermSet.size < TWITTER_MAX_TRACKING_NUMBER)
-            && (dataArray.length > 0));
+      async.whilst(
+
+        function test(cbTest){ 
+          cbTest(null, (threeceeUserObj.searchTermSet.size < TWITTER_MAX_TRACKING_NUMBER) && (dataArray.length > 0));
         },
+        
         function(cb){
 
           let searchTerm = dataArray.shift();

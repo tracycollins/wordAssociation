@@ -224,7 +224,7 @@ function getAccountActivitySubscription(){
 
     console.log(chalkAlert("WAS | GET TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"
       + " | fullWebhookUrl: " + fullWebhookUrl
-      + "\nREQ OPTIONS\n" + jsonPrint(options)
+      // + "\nREQ OPTIONS\n" + jsonPrint(options)
     ));
 
     request(options, function(error, response, body) {

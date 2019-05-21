@@ -213,7 +213,7 @@ function addAccountActivitySubscription(){
 
     const fullWebhookUrl = encodeURI("https://word.threeceelabs.com" + TWITTER_WEBHOOK_URL);
 
-    const options = {
+    let options = {
       url: "https://api.twitter.com/1.1/account_activity/all/dev/webhooks.json",
       method: "POST",
       resolveWithFullResponse: true,
@@ -241,21 +241,60 @@ function addAccountActivitySubscription(){
           + " | ERROR: " + error
           + "\nBODY: " + response.body
         ));
-        reject(error);
+        return reject(error);
       }
-      else {
-        if (response.statusCode === 200) {
-          console.log(chalk.green("WAS | +++ TWITTER WEBHOOK SUBSCRIPTION ADDED"));
-          resolve(response.statusCode);
-        }
-        else {
-          console.log(chalkAlert("WAS | --- TWITTER WEBHOOK SUBSCRIPTION NOT ADDED"
-            + " | STATUS: " + response.statusCode
-            + "\nBODY: " + response.body
+
+      if (response.statusCode === 200) {
+        console.log(chalk.green("WAS | +++ TWITTER WEBHOOK SUBSCRIPTION ADDED"));
+        return resolve(response.statusCode);
+      }
+      
+      if (response.statusCode === 214) {
+        console.log(chalk.green("WAS | --- TWITTER WEBHOOK SUBSCRIPTION NOT ADDED ... TOO MANY RESOURCES ALREADY"));
+
+        let options = {
+          url: "https://api.twitter.com/1.1/account_activity/all/dev/subscriptions.json",
+          method: "POST",
+          resolveWithFullResponse: true,
+          headers: {
+            "Content-type": "application/x-www-form-urlencoded"
+          },      
+          form: { url: fullWebhookUrl },
+          oauth: {
+            consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",
+            consumer_secret: "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa",
+            token: "14607119-S5EIEw89NSC462IkX4GWT67K1zWzoLzuZF7wiurku",
+            token_secret: "3NI3s4sTILiqBilgEDBSlC6oSJYXcdLQP7lXp58TQMk0A"
+          } 
+        };
+
+        request(options, function(error2, response2) {
+
+          if (error2) {
+            console.log(chalkError("WAS | *** TWITTER ADD SUBSCRIPTION ERROR"
+              + " | ERROR: " + error2
+              + "\nBODY: " + response2.body
+            ));
+            return reject(error2);
+          }
+
+          console.log(chalkAlert("WAS | +++ TWITTER SUBSCRIPTION"
+            + " | STATUS: " + response2.statusCode
+            + "\nBODY: " + response2.body
           ));
-          resolve(response.statusCode);
-        }
+
+          return resolve(response2.statusCode);
+        });
+
       }
+
+      console.log(chalkAlert("WAS | XXX TWITTER WEBHOOK SUBSCRIPTION NOT ADDED"
+        + " | STATUS: " + response.statusCode
+        + "\nBODY: " + response.body
+      ));
+
+      resolve(response.statusCode);
+
     });
   });
 }

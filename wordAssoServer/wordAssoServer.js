@@ -211,7 +211,7 @@ function addAccountActivitySubscription(){
     statsObj.status = "ADD ACCOUNT ACTIVITY SUBSCRIPTION";
 
     const options = {
-      url: "https://api.twitter.com/1.1/account_activity/all/:dev/subscriptions.json",
+      url: "https://api.twitter.com/1.1/account_activity/all/dev/subscriptions.json",
       method: "POST",
       resolveWithFullResponse: true,
       form: { url: TWITTER_WEBHOOK_URL },

@@ -183,7 +183,7 @@ const chalkBlue = chalk.blue;
 const encodeUrl = require("encodeurl");
 const btoa = require("btoa");
 const crypto = require("crypto");
-const request = require("request");
+const request = require("request-promise");
 const _ = require("lodash");
 const touch = require("touch");
 const merge = require("deepmerge");
@@ -207,7 +207,7 @@ let prevIgnoredLocationsFileModifiedMoment = moment("2010-01-01");
 
 function getAccountActivitySubscription(){
 
-  return new Promise(function(resolve, reject){
+  return new Promise(async function(resolve, reject){
 
     statsObj.status = "GET ACCOUNT ACTIVITY SUBSCRIPTION";
 
@@ -227,19 +227,14 @@ function getAccountActivitySubscription(){
       // + "\nREQ OPTIONS\n" + jsonPrint(options)
     ));
 
-    request(options, function(error, response, body) {
-
-      if (error){
-        console.log(chalkError("WAS | *** GET TWITTER ACCOUNT ACTIVITY ERROR: " + err));
-        return reject(err);
-      }
-
+    try{
+      const body = await request(options);
       statsObj.twitterSubs = {};
 
       let bodyJson = JSON.parse(body);
 
-      debug(chalkAlert("WAS | +++ GET TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"
-        + " | STATUS: " + response.statusCode
+      console.log(chalkAlert("WAS | +++ GET TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"
+        // + " | STATUS: " + response.statusCode
         + "\nBODY\n" + jsonPrint(bodyJson)
       ));
 
@@ -255,16 +250,38 @@ function getAccountActivitySubscription(){
             + " | VALID: " + sub.valid
             + " | CREATED: " + sub.created_timestamp
           ));
+
+          let optionsSub = {
+            url: "https://api.twitter.com/1.1/account_activity/webhooks/" + sub.id + "/subscriptions/all/list.json",
+            method: "GET",
+            // resolveWithFullResponse: true,
+            headers: {
+              "authorization": "Bearer AAAAAAAAAAAAAAAAAAAAABrg8gAAAAAA%2B3D4G5ixne%2FhlBxyXKhFOjL1M4I%3DM4vjtsuRygTbcNyie9aQ3HgpdfsK7xsNWNt2eYFPA9NKliTPYc"
+            }    
+          };
+
+          const bodySub = await request(optionsSub);
+
+          console.log(chalkAlert("WAS | +++ GET TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"
+            + "\nBODY\n" + jsonPrint(bodySub)
+          ));
+
+          resolve();
+
         });
       }
       else {
         console.log(chalkAlert("WAS | ??? NO TWITTER SUBSCRIPTIONS"
         ));
+        resolve();
       }
 
-      resolve();
 
-    });
+    }
+    catch(err){
+      console.log(chalkError("WAS | *** GET TWITTER ACCOUNT ACTIVITY ERROR: " + err));
+      return reject(err);
+    }
 
   });
 }

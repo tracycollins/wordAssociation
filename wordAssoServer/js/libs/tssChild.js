@@ -2736,7 +2736,9 @@ process.on("message", async function(m) {
                 console.log(chalkInfo("TSS | INIT SEARCH TERMS COMPLETE | 3C @" + threeceeUserObj.screenName));
                 debug("initSearchTerms status\n" + jsonPrint(status));
 
-                if (!twitterSearchInit) { initTwitterSearch(configuration); }
+                if (!twitterSearchInit) { 
+                  await initTwitterSearch(configuration);
+                }
 
                 process.send({
                   op: "TWITTER_STATS", 
@@ -2844,7 +2846,7 @@ process.on("message", async function(m) {
         console.log(chalkInfo("TSS | INIT SEARCH TERMS COMPLETE | 3C @" + threeceeUserObj.screenName));
         debug("initSearchTerms status\n" + jsonPrint(status));
 
-        if (!twitterSearchInit) { initTwitterSearch(configuration); }
+        if (!twitterSearchInit) { await initTwitterSearch(configuration); }
 
         process.send({
           op: "TWITTER_STATS", 
@@ -2862,19 +2864,6 @@ process.on("message", async function(m) {
         });
       }
 
-      // initSearchTerms(configuration).
-      // then(function(status){
-      //   console.log(chalkInfo("TSS | INIT SEARCH TERMS COMPLETE | 3C @" + threeceeUserObj.screenName));
-      //   debug("initSearchTerms status\n" + jsonPrint(status));
-      //   if (!twitterSearchInit) { 
-      //     initTwitterSearch(configuration);
-      //   }
-      // }).
-      // catch(function(err){
-      //   console.log(chalkError("TSS | *** INIT SEARCH TERMS ERROR | 3C @" + threeceeUserObj.screenName + " | " + err));
-      //   quit();
-      //   return;
-      // });
     break;
 
     case "PING":

@@ -210,11 +210,13 @@ function addAccountActivitySubscription(){
 
     statsObj.status = "ADD ACCOUNT ACTIVITY SUBSCRIPTION";
 
+    const fullWebhookUrl = "https://word.threeceelabs.com" + TWITTER_WEBHOOK_URL;
+
     const options = {
       url: "https://api.twitter.com/1.1/account_activity/all/dev/subscriptions.json",
       method: "POST",
       resolveWithFullResponse: true,
-      form: { url: TWITTER_WEBHOOK_URL },
+      form: { url: fullWebhookUrl },
       oauth: {
         consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",
         consumer_secret: "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa",

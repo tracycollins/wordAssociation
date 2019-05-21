@@ -7050,21 +7050,28 @@ function initAppRouting(callback) {
 
   app.post(TWITTER_WEBHOOK_URL, function requestTwitterWebhook(req, res) {
 
-    console.log(chalk.bold.blue("WAS | R< TWITTER WEB HOOK | " + TWITTER_WEBHOOK_URL
-      + " | CRC TOKEN: " + req.query.crc_token
+    console.log(chalk.bold.blue("WAS | R< TWITTER WEB HOOK POST | " + TWITTER_WEBHOOK_URL
+      // + " | CRC TOKEN: " + req.query.crc_token
     ));
 
-    const hmac = getChallengeResponse(req.query.crc_token, threeceeConfig.consumer_secret);
+    console.log(chalkAlert("WAS | R< " + TWITTER_WEBHOOK_URL
+      + "\nreq.query\n" + jsonPrint(req.query)
+      + "\nreq.params\n" + jsonPrint(req.params)
+      + "\nreq.body\n" + jsonPrint(req.body)
+    )); 
 
-    const response_token = "sha256=" + Buffer.from(hmac).toString('base64');
+    // const hmac = getChallengeResponse(req.query.crc_token, threeceeConfig.consumer_secret);
 
-    console.log(chalkAlert("WAS | T> TWITTER WEB HOOK RES TOKEN"
-      + " | " + response_token
-    ));
+    // const response_token = "sha256=" + Buffer.from(hmac).toString('base64');
 
-    const response = { "response_token": response_token };
+    // console.log(chalkAlert("WAS | T> TWITTER WEB HOOK RES TOKEN"
+    //   + " | " + response_token
+    // ));
 
-    res.send(response);
+    // const response = { "response_token": response_token };
+
+    // res.send(response);
+
   });
 
   app.use(methodOverride());

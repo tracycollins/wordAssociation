@@ -221,8 +221,8 @@ function addAccountActivitySubscription(){
       oauth: {
         consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",
         consumer_secret: "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa",
-        token: "14607119-1VaZOqc1sgWOyANgO4jbD9SF7TzFhJvkiujQtkT4J",
-        token_secret: "ZmvfjYU0z0wgDslyESZQLIHPr4pcCizflg5Y2IxhvwVVf"
+        token: "14607119-S5EIEw89NSC462IkX4GWT67K1zWzoLzuZF7wiurku",
+        token_secret: "3NI3s4sTILiqBilgEDBSlC6oSJYXcdLQP7lXp58TQMk0A"
       } 
     };
 

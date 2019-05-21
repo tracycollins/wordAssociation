@@ -7108,14 +7108,16 @@ function initAppRouting(callback) {
       )); 
     }
     else if (req.path === TWITTER_WEBHOOK_URL) {
+
       console.log(chalkAlert("WAS | R< TWITTER WEB HOOK | " + TWITTER_WEBHOOK_URL
+        + " | " + getTimeStamp()
+        + " | IP: " + req.ip
+        + " | HOST: " + req.hostname
+        + " | METHOD: " + req.method
+        + " | PATH: " + req.path
       )); 
 
-      console.log(chalkAlert("WAS | R< " + TWITTER_WEBHOOK_URL
-        + "\nreq.query\n" + jsonPrint(req.query)
-        + "\nreq.params\n" + jsonPrint(req.params)
-        + "\nreq.body\n" + jsonPrint(req.body)
-      )); 
+      res.sendStatus(200);
 
     }
     else if (req.path === "/dropbox_webhook") {

@@ -240,12 +240,15 @@ function addAccountActivitySubscription(){
         reject(error);
       }
       else {
-        if (response.statusCode == 204) {
+        if (response.statusCode === 204) {
           console.log(chalk.green("WAS | +++ TWITTER WEBHOOK SUBSCRIPTION ADDED"));
           resolve(response.statusCode);
         }
         else {
-          console.log(chalkAlert("WAS | --- TWITTER WEBHOOK SUBSCRIPTION NOT ADDED: STATUS: " + response.statusCode));
+          console.log(chalkAlert("WAS | --- TWITTER WEBHOOK SUBSCRIPTION NOT ADDED"
+            + " | STATUS: " + response.statusCode
+            + "\nBODY: " + response.body
+          ));
           resolve(response.statusCode);
         }
       }

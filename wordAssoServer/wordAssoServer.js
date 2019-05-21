@@ -237,10 +237,14 @@ function addAccountActivitySubscription(){
     request(options, function(error, response) {
 
       if (error) {
+        console.log(chalkError("WAS | *** TWITTER WEBHOOK SUBSCRIPTION ERROR"
+          + " | ERROR: " + error
+          + "\nBODY: " + response.body
+        ));
         reject(error);
       }
       else {
-        if (response.statusCode === 204) {
+        if (response.statusCode === 200) {
           console.log(chalk.green("WAS | +++ TWITTER WEBHOOK SUBSCRIPTION ADDED"));
           resolve(response.statusCode);
         }

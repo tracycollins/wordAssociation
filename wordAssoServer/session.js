@@ -37,7 +37,7 @@ var MAX_READY_ACK_WAIT_COUNT = 10;
 var config = {};
 var previousConfig = {};
 
-config.keepaliveInterval = 10000;
+config.keepaliveInterval = 60000;
 
 config.displayNodeHashMap = {};
 config.displayNodeHashMap.emoji = "hide";

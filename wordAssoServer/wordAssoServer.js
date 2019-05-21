@@ -211,12 +211,15 @@ function addAccountActivitySubscription(){
 
     statsObj.status = "ADD ACCOUNT ACTIVITY SUBSCRIPTION";
 
-    const fullWebhookUrl = encodeUrl("https://word.threeceelabs.com" + TWITTER_WEBHOOK_URL);
+    const fullWebhookUrl = encodeURI("https://word.threeceelabs.com" + TWITTER_WEBHOOK_URL);
 
     const options = {
-      url: "https://api.twitter.com/1.1/account_activity/all/dev/subscriptions.json",
+      url: "https://api.twitter.com/1.1/account_activity/all/dev/webhooks.json",
       method: "POST",
       resolveWithFullResponse: true,
+      headers: {
+        "Content-type": "application/x-www-form-urlencoded"
+      },      
       form: { url: fullWebhookUrl },
       oauth: {
         consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",
@@ -225,6 +228,11 @@ function addAccountActivitySubscription(){
         token_secret: "3NI3s4sTILiqBilgEDBSlC6oSJYXcdLQP7lXp58TQMk0A"
       } 
     };
+
+    console.log(chalkAlert("WAS | ADD TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"
+      + " | fullWebhookUrl: " + fullWebhookUrl
+      + "\nREQ OPTIONS\n" + jsonPrint(options)
+    ));
 
     request(options, function(error, response) {
 
@@ -6916,8 +6924,7 @@ function logHeartbeat() {
 let dropboxFolderGetLastestCursorReady = true;
 
 function getChallengeResponse(crc_token, consumer_secret) {
-  const hmac = crypto.createHmac("sha256", consumer_secret).update(crc_token).
-digest("base64");
+  const hmac = crypto.createHmac("sha256", consumer_secret).update(crc_token).digest("base64");
   return hmac;
 }
 
@@ -6967,6 +6974,26 @@ function initAppRouting(callback) {
       }
       res.sendStatus(404);
     }
+    else if (req.path === "callbacks/addsub") {
+      console.log(chalkAlert("WAS | R< TWITTER WEB HOOK | callbacks/addsub"
+      )); 
+
+      console.log(chalkAlert("WAS | R< callbacks/addsub"
+        + "\nreq.query\n" + jsonPrint(req.query)
+        + "\nreq.params\n" + jsonPrint(req.params)
+        + "\nreq.body\n" + jsonPrint(req.body)
+      )); 
+    }
+    else if (req.path === "callbacks/removesub") {
+      console.log(chalkAlert("WAS | R< TWITTER WEB HOOK | callbacks/removesub"
+      )); 
+
+      console.log(chalkAlert("WAS | R< callbacks/removesub"
+        + "\nreq.query\n" + jsonPrint(req.query)
+        + "\nreq.params\n" + jsonPrint(req.params)
+        + "\nreq.body\n" + jsonPrint(req.body)
+      )); 
+    }
     else if (req.path === TWITTER_WEBHOOK_URL) {
       console.log(chalkAlert("WAS | R< TWITTER WEB HOOK | " + TWITTER_WEBHOOK_URL
       )); 
@@ -6976,6 +7003,24 @@ function initAppRouting(callback) {
         + "\nreq.params\n" + jsonPrint(req.params)
         + "\nreq.body\n" + jsonPrint(req.body)
       )); 
+
+      const crc_token = request.query.crc_token;
+
+      if (crc_token) {
+
+        const hash = getChallengeResponse(crc_token, threeceeConfig.consumer_secret);
+
+        response.status(200);
+
+        response.send({
+          response_token: 'sha256=' + hash
+        });
+
+      } else {
+        response.status(400);
+        response.send('Error: crc_token missing from request.');
+      }
+
     }
     else if (req.path === "/dropbox_webhook") {
 

@@ -237,7 +237,7 @@ function addAccountActivitySubscription(){
         }
         else {
           console.log(chalkAlert("WAS | --- TWITTER WEBHOOK SUBSCRIPTION NOT ADDED: STATUS: " + response.statusCode));
-          console.log(chalkAlert(response));
+          console.log(chalkAlert(jsonPrint(response)));
           resolve(response.statusCode);
         }
       }

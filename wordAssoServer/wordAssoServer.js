@@ -238,7 +238,7 @@ function getAccountActivitySubscription(){
 
       let bodyJson = JSON.parse(body);
 
-      console.log(chalkAlert("WAS | +++ GET TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"
+      debug(chalkAlert("WAS | +++ GET TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"
         + " | STATUS: " + response.statusCode
         + "\nBODY\n" + jsonPrint(bodyJson)
       ));

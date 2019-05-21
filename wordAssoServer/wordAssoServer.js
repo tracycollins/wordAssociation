@@ -213,10 +213,6 @@ function getAccountActivitySubscription(){
 
     const fullWebhookUrl = encodeURI("https://word.threeceelabs.com" + TWITTER_WEBHOOK_URL);
 
-    console.log(chalkAlert("WAS | ADD TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"
-      + " | fullWebhookUrl: " + fullWebhookUrl
-    ));
-
     let options = {
       url: "https://api.twitter.com/1.1/account_activity/all/dev/webhooks.json",
       method: "GET",
@@ -233,12 +229,38 @@ function getAccountActivitySubscription(){
 
     request(options, function(error, response, body) {
 
-      console.log('error:', error); // Print the error if one occurred
-      console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
+      if (error){
+        console.log(chalkError("WAS | *** GET TWITTER ACCOUNT ACTIVITY ERROR: " + err));
+        return reject(err);
+      }
+
+      statsObj.twitterSubs = {};
 
       let bodyJson = JSON.parse(body);
 
-      console.log('body:', bodyJson);
+      console.log(chalkAlert("WAS | +++ GET TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"
+        + " | STATUS: " + response.statusCode
+        + "\nBODY\n" + jsonPrint(bodyJson)
+      ));
+
+      if (bodyJson.length > 0){
+        bodyJson.forEach(function(sub){
+
+          statsObj.twitterSubs[sub.id.toString()] = {};
+          statsObj.twitterSubs[sub.id.toString()] = sub;
+
+          console.log(chalkAlert("WAS | TWITTER SUBSCRIPTION"
+            + " | ID: " + sub.id
+            + " | URL: " + sub.url
+            + " | VALID: " + sub.valid
+            + " | CREATED: " + sub.created_timestamp
+          ));
+        });
+      }
+      else {
+        console.log(chalkAlert("WAS | ??? NO TWITTER SUBSCRIPTIONS"
+        ));
+      }
 
       resolve();
 
@@ -7036,7 +7058,7 @@ function initAppRouting(callback) {
 
     const response_token = "sha256=" + Buffer.from(hmac).toString('base64');
 
-    console.log(chalk.bold.blue("WAS | T> TWITTER WEB HOOK RES TOKEN"
+    console.log(chalkAlert("WAS | T> TWITTER WEB HOOK RES TOKEN"
       + " | " + response_token
     ));
 
@@ -7272,6 +7294,7 @@ function initAppRouting(callback) {
         debug(chalkAlert("WAS | SKIP DROPBOX WEBHOOK ... NOT READY"));
         // next();
       }
+
     }
     else if (req.path === "/googleccd19766bea2dfd2.html") {
       console.log(chalk.green("WAS | R< googleccd19766bea2dfd2.html")); 

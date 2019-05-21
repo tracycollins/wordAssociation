@@ -7114,23 +7114,6 @@ function initAppRouting(callback) {
         + "\nreq.body\n" + jsonPrint(req.body)
       )); 
 
-      const crc_token = req.query.crc_token;
-
-      if (crc_token) {
-
-        const hash = getChallengeResponse(crc_token, threeceeConfig.consumer_secret);
-
-        res.status(200);
-
-        res.send({
-          response_token: 'sha256=' + hash
-        });
-
-      } else {
-        res.status(400);
-        res.send('Error: crc_token missing from request.');
-      }
-
     }
     else if (req.path === "/dropbox_webhook") {
 

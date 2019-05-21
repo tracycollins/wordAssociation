@@ -205,11 +205,53 @@ const treeify = require("treeify");
 let prevAllowLocationsFileModifiedMoment = moment("2010-01-01");
 let prevIgnoredLocationsFileModifiedMoment = moment("2010-01-01");
 
+function getAccountActivitySubscription(){
+
+  return new Promise(function(resolve, reject){
+
+    statsObj.status = "GET ACCOUNT ACTIVITY SUBSCRIPTION";
+
+    const fullWebhookUrl = encodeURI("https://word.threeceelabs.com" + TWITTER_WEBHOOK_URL);
+
+    console.log(chalkAlert("WAS | ADD TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"
+      + " | fullWebhookUrl: " + fullWebhookUrl
+    ));
+
+    let options = {
+      url: "https://api.twitter.com/1.1/account_activity/all/dev/webhooks.json",
+      method: "GET",
+      // resolveWithFullResponse: true,
+      headers: {
+        "authorization": "Bearer AAAAAAAAAAAAAAAAAAAAABrg8gAAAAAA%2B3D4G5ixne%2FhlBxyXKhFOjL1M4I%3DM4vjtsuRygTbcNyie9aQ3HgpdfsK7xsNWNt2eYFPA9NKliTPYc"
+      }    
+    };
+
+    console.log(chalkAlert("WAS | GET TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"
+      + " | fullWebhookUrl: " + fullWebhookUrl
+      + "\nREQ OPTIONS\n" + jsonPrint(options)
+    ));
+
+    request(options, function(error, response, body) {
+
+      console.log('error:', error); // Print the error if one occurred
+      console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
+
+      let bodyJson = JSON.parse(body);
+
+      console.log('body:', bodyJson);
+
+      resolve();
+
+    });
+
+  });
+}
+
 function addAccountActivitySubscription(){
 
   return new Promise(function(resolve, reject){
 
-    statsObj.status = "ADD ACCOUNT ACTIVITY SUBSCRIPTION";
+    statsObj.status = "GET ACCOUNT ACTIVITY SUBSCRIPTION";
 
     const fullWebhookUrl = encodeURI("https://word.threeceelabs.com" + TWITTER_WEBHOOK_URL);
 
@@ -11135,7 +11177,7 @@ setTimeout(function(){
               if (configuration.twitter === undefined) { configuration.twitter = {}; }
 
               await initInternetCheckInterval(ONE_MINUTE);
-              await addAccountActivitySubscription();
+              await getAccountActivitySubscription();
               await initKeySortInterval(configuration.keySortInterval);
               await initSaveFileQueue(configuration);
               await initAllowLocations();

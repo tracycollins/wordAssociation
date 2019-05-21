@@ -6967,6 +6967,16 @@ function initAppRouting(callback) {
       }
       res.sendStatus(404);
     }
+    else if (req.path === TWITTER_WEBHOOK_URL) {
+      console.log(chalkAlert("WAS | R< TWITTER WEB HOOK | " + TWITTER_WEBHOOK_URL
+      )); 
+
+      console.log(chalkAlert("WAS | R< " + TWITTER_WEBHOOK_URL
+        + "\nreq.query\n" + jsonPrint(req.query)
+        + "\nreq.params\n" + jsonPrint(req.params)
+        + "\nreq.body\n" + jsonPrint(req.body)
+      )); 
+    }
     else if (req.path === "/dropbox_webhook") {
 
       if (configuration.verbose) {

@@ -180,6 +180,7 @@ const chalkError = chalk.bold.red;
 const chalkLog = chalk.gray;
 const chalkBlue = chalk.blue;
 
+const encodeUrl = require("encodeurl");
 const btoa = require("btoa");
 const crypto = require("crypto");
 const request = require("request");
@@ -210,7 +211,7 @@ function addAccountActivitySubscription(){
 
     statsObj.status = "ADD ACCOUNT ACTIVITY SUBSCRIPTION";
 
-    const fullWebhookUrl = "https://word.threeceelabs.com" + TWITTER_WEBHOOK_URL;
+    const fullWebhookUrl = encodeUrl("https://word.threeceelabs.com" + TWITTER_WEBHOOK_URL);
 
     const options = {
       url: "https://api.twitter.com/1.1/account_activity/all/dev/subscriptions.json",
@@ -237,7 +238,6 @@ function addAccountActivitySubscription(){
         }
         else {
           console.log(chalkAlert("WAS | --- TWITTER WEBHOOK SUBSCRIPTION NOT ADDED: STATUS: " + response.statusCode));
-          console.log(chalkAlert(jsonPrint(response)));
           resolve(response.statusCode);
         }
       }

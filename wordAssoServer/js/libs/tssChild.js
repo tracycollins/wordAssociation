@@ -1682,7 +1682,10 @@ function initSearchStream(){
           return;
         }
 
-        if (tweetStatus.user.lang !== undefined && tweetStatus.user.lang !== "en") { 
+        if (tweetStatus.user.lang 
+          && (tweetStatus.user.lang !== undefined) 
+          && (tweetStatus.user.lang !== "en")) 
+        { 
           // if (configuration.verbose) {
             console.log(chalkLog("TSS | XXX IGNORE LANG | SKIPPING"
               + " | TWID: " + tweetStatus.id_str

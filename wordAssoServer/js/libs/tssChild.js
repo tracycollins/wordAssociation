@@ -57,10 +57,8 @@ const S = require("string");
 const fetch = require("isomorphic-fetch");
 const Dropbox = require("dropbox").Dropbox;
 const async = require("async");
-// const Twit = require("../libs/twit");
 const Twit = require("twit");
 const moment = require("moment");
-// const treeify = require("../libs/treeify");
 const treeify = require("treeify");
 const Measured = require("measured");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
@@ -1429,8 +1427,8 @@ function initSearchStream(){
 
       threeceeUserObj.searchStream = {};
 
-      // threeceeUserObj.searchStream = threeceeUserObj.twitStream.stream("statuses/filter", filter);
-      threeceeUserObj.searchStream = threeceeUserObj.twitStream.stream("statuses/filter", { track: "@realdonaldtrump" });
+      threeceeUserObj.searchStream = threeceeUserObj.twitStream.stream("statuses/filter", filter);
+      // threeceeUserObj.searchStream = threeceeUserObj.twitStream.stream("statuses/filter", { track: "@realdonaldtrump" });
 
       threeceeUserObj.searchStream.on("message", function(msg){
         if (msg.event) {

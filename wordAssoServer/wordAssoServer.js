@@ -7209,7 +7209,7 @@ function initAppRouting(callback) {
       console.log(req.body);
       console.log(jsonPrint(req.body));
 
-      const bodyJson = JSON.parse(req.body);
+      const bodyJson = req.body;
 
       console.log(jsonPrint(bodyJson));
 

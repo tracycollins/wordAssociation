@@ -7207,7 +7207,8 @@ function initAppRouting(callback) {
       )); 
 
       console.log(req.body);
-      
+      console.log(jsonPrint(req.body));
+
       res.sendStatus(200);
     }
     else if (req.path === "/dropbox_webhook") {

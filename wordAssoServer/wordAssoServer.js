@@ -7196,10 +7196,10 @@ function initAppRouting(callback) {
         + " | HOST: " + req.hostname
         + " | METHOD: " + req.method
         + " | PATH: " + req.path
+        + "\nreq.body\n" + jsonPrint(req.body)
       )); 
 
       res.sendStatus(200);
-
     }
     else if (req.path === "/dropbox_webhook") {
 
@@ -7363,7 +7363,6 @@ function initAppRouting(callback) {
         debug(chalkAlert("WAS | SKIP DROPBOX WEBHOOK ... NOT READY"));
         // next();
       }
-
     }
     else if (req.path === "/googleccd19766bea2dfd2.html") {
       console.log(chalk.green("WAS | R< googleccd19766bea2dfd2.html")); 

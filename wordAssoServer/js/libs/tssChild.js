@@ -22,12 +22,10 @@ const ONE_MINUTE = ONE_SECOND*60;
 const ONE_KILOBYTE = 1024;
 const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
 
-
 const defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
 const mangledRegEx = /\u00C3.\u00C2|\u00B5/g;
-
 
 const os = require("os");
 const fs = require("fs");
@@ -1556,12 +1554,15 @@ function initSearchStream(){
           statsObj.twitter.limitMaxTime = moment().valueOf();
         }
 
-        console.log(chalkTwitter("TSS | " + getTimeStamp()
-          + " | TWITTER LIMIT" 
-          + " | @" + threeceeUserObj.screenName
-          + " | USER LIMIT: " + statsObj.twitter.limit
-          + " | TOTAL LIMIT: " + threeceeUserObj.stats.twitterLimit
-        ));
+        if (configuration.verbose) {
+          console.log(chalkTwitter("TSS | " + getTimeStamp()
+            + " | TWITTER LIMIT" 
+            + " | @" + threeceeUserObj.screenName
+            + " | USER LIMIT: " + statsObj.twitter.limit
+            + " | TOTAL LIMIT: " + threeceeUserObj.stats.twitterLimit
+          ));
+        }
+
       });
 
       threeceeUserObj.searchStream.on("error", function(err){

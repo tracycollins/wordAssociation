@@ -455,8 +455,11 @@ const passport = require("passport");
 // const LocalStrategy = require("passport-local").Strategy;
 const TwitterStrategy = require("passport-twitter").Strategy;
 
+const bodyParser = require("body-parser");
+app.use(bodyParser.json());       // to support JSON-encoded bodies
+
 app.use(require("serve-static")(path.join(__dirname, "public")));
-app.use(require("body-parser").urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 const threeceeConfig = {
   consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",

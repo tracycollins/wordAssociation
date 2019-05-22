@@ -183,7 +183,7 @@ const chalkBlue = chalk.blue;
 const encodeUrl = require("encodeurl");
 const btoa = require("btoa");
 const crypto = require("crypto");
-const request = require("request-promise");
+const request = require("request-promise-native");
 const _ = require("lodash");
 const touch = require("touch");
 const merge = require("deepmerge");
@@ -227,48 +227,63 @@ function getAccountActivitySubscription(){
       // + "\nREQ OPTIONS\n" + jsonPrint(options)
     ));
 
-    try{
-      const body = await request(options);
+    try {
+
       statsObj.twitterSubs = {};
 
-      let bodyJson = JSON.parse(body);
+      const body = await request(options);
 
-      console.log(chalkAlert("WAS | +++ GET TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"
+      const bodyJson = JSON.parse(body);
+
+      console.log(chalkAlert("WAS | +++ GET TWITTER WEBHOOKS"
         // + " | STATUS: " + response.statusCode
         + "\nBODY\n" + jsonPrint(bodyJson)
       ));
 
       if (bodyJson.length > 0){
-        bodyJson.forEach(function(sub){
+
+        bodyJson.forEach(async function(sub){
 
           statsObj.twitterSubs[sub.id.toString()] = {};
           statsObj.twitterSubs[sub.id.toString()] = sub;
 
-          console.log(chalkAlert("WAS | TWITTER SUBSCRIPTION"
+          console.log(chalkAlert("WAS | TWITTER WEBHOOK"
             + " | ID: " + sub.id
             + " | URL: " + sub.url
             + " | VALID: " + sub.valid
             + " | CREATED: " + sub.created_timestamp
           ));
 
+          const url = "https://api.twitter.com/1.1/account_activity/all/dev/subscriptions/list.json";
+
           let optionsSub = {
-            url: "https://api.twitter.com/1.1/account_activity/webhooks/" + sub.id + "/subscriptions/all/list.json",
+            url: url,
             method: "GET",
-            // resolveWithFullResponse: true,
             headers: {
               "authorization": "Bearer AAAAAAAAAAAAAAAAAAAAABrg8gAAAAAA%2B3D4G5ixne%2FhlBxyXKhFOjL1M4I%3DM4vjtsuRygTbcNyie9aQ3HgpdfsK7xsNWNt2eYFPA9NKliTPYc"
             }    
           };
 
-          const bodySub = await request(optionsSub);
+          try {
 
-          console.log(chalkAlert("WAS | +++ GET TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"
-            + "\nBODY\n" + jsonPrint(bodySub)
-          ));
+            const bodySub = await request(optionsSub);
 
-          resolve();
+            const bodySubJson = JSON.parse(bodySub);
 
+            console.log(chalkAlert("WAS | TWITTER ACCOUNT ACTIVITY SUBSCRIPTIONS"
+              + "\nBODY\n" + jsonPrint(bodySubJson)
+            ));
+
+            // resolve();
+
+          }
+          catch(errSub){
+            console.log(chalkError("WAS | *** GET TWITTER ACCOUNT ACTIVITY SUB ERROR: " + errSub));
+            return reject(errSub);
+          }
         });
+
+        resolve();
       }
       else {
         console.log(chalkAlert("WAS | ??? NO TWITTER SUBSCRIPTIONS"
@@ -288,98 +303,147 @@ function getAccountActivitySubscription(){
 
 function addAccountActivitySubscription(){
 
-  return new Promise(function(resolve, reject){
+  return new Promise(async function(resolve, reject){
 
-    statsObj.status = "GET ACCOUNT ACTIVITY SUBSCRIPTION";
-
-    const fullWebhookUrl = encodeURI("https://word.threeceelabs.com" + TWITTER_WEBHOOK_URL);
+    statsObj.status = "ADD TWITTER ACCOUNT ACTIVITY SUBSCRIPTION";
 
     let options = {
-      url: "https://api.twitter.com/1.1/account_activity/all/dev/webhooks.json",
+      url: "https://api.twitter.com/1.1/account_activity/all/dev/subscriptions.json",
       method: "POST",
       resolveWithFullResponse: true,
       headers: {
         "Content-type": "application/x-www-form-urlencoded"
       },      
-      form: { url: fullWebhookUrl },
       oauth: {
         consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",
         consumer_secret: "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa",
-        token: "14607119-S5EIEw89NSC462IkX4GWT67K1zWzoLzuZF7wiurku",
-        token_secret: "3NI3s4sTILiqBilgEDBSlC6oSJYXcdLQP7lXp58TQMk0A"
+        token: "848591649575927810-2MYMejf0VeXwMkQELca6uDqXUkfxKow",
+        token_secret: "NL5UBvP2QFPH9fYe7MUZleH24RoMoErfbDTrJNglrEidB"
       } 
     };
 
     console.log(chalkAlert("WAS | ADD TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"
-      + " | fullWebhookUrl: " + fullWebhookUrl
       + "\nREQ OPTIONS\n" + jsonPrint(options)
     ));
 
-    request(options, function(error, response) {
+    try {
 
-      if (error) {
-        console.log(chalkError("WAS | *** TWITTER WEBHOOK SUBSCRIPTION ERROR"
-          + " | ERROR: " + error
-          + "\nBODY: " + response.body
-        ));
-        return reject(error);
-      }
+      const body = await request(options);
 
-      if (response.statusCode === 200) {
-        console.log(chalk.green("WAS | +++ TWITTER WEBHOOK SUBSCRIPTION ADDED"));
-        return resolve(response.statusCode);
-      }
-      
-      if (response.statusCode === 214) {
-        console.log(chalk.green("WAS | --- TWITTER WEBHOOK SUBSCRIPTION NOT ADDED ... TOO MANY RESOURCES ALREADY"));
+      const bodyJson = JSON.parse(body);
 
-        let options = {
-          url: "https://api.twitter.com/1.1/account_activity/all/dev/subscriptions.json",
-          method: "POST",
-          resolveWithFullResponse: true,
-          headers: {
-            "Content-type": "application/x-www-form-urlencoded"
-          },      
-          form: { url: fullWebhookUrl },
-          oauth: {
-            consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",
-            consumer_secret: "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa",
-            token: "14607119-S5EIEw89NSC462IkX4GWT67K1zWzoLzuZF7wiurku",
-            token_secret: "3NI3s4sTILiqBilgEDBSlC6oSJYXcdLQP7lXp58TQMk0A"
-          } 
-        };
-
-        request(options, function(error2, response2) {
-
-          if (error2) {
-            console.log(chalkError("WAS | *** TWITTER ADD SUBSCRIPTION ERROR"
-              + " | ERROR: " + error2
-              + "\nBODY: " + response2.body
-            ));
-            return reject(error2);
-          }
-
-          console.log(chalkAlert("WAS | +++ TWITTER SUBSCRIPTION"
-            + " | STATUS: " + response2.statusCode
-            + "\nBODY: " + response2.body
-          ));
-
-          return resolve(response2.statusCode);
-        });
-
-      }
-
-      console.log(chalkAlert("WAS | XXX TWITTER WEBHOOK SUBSCRIPTION NOT ADDED"
-        + " | STATUS: " + response.statusCode
-        + "\nBODY: " + response.body
+      console.log(chalkAlert("WAS | +++ ADDED TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"
+        + "\nBODY: " + jsonPrint(bodyJson)
       ));
 
-      resolve(response.statusCode);
+      resolve();
 
-    });
+    }
+    catch(err){
+
+      console.log(chalkError("WAS | *** ADD TWITTER ACCOUNT ACTIVITY SUBSCRIPTION ERROR"
+        + " | ERROR: " + err
+      ));
+
+      resolve();
+    }
+
   });
 }
 
+// function addAccountActivitySubscription(){
+
+//   return new Promise(function(resolve, reject){
+
+//     statsObj.status = "ADD ACCOUNT ACTIVITY WEBHOOK";
+
+//     const fullWebhookUrl = encodeURI("https://word.threeceelabs.com" + TWITTER_WEBHOOK_URL);
+
+//     let options = {
+//       url: "https://api.twitter.com/1.1/account_activity/all/dev/webhooks.json",
+//       method: "POST",
+//       resolveWithFullResponse: true,
+//       headers: {
+//         "Content-type": "application/x-www-form-urlencoded"
+//       },      
+//       form: { url: fullWebhookUrl },
+//       oauth: {
+//         consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",
+//         consumer_secret: "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa",
+//         token: "848591649575927810-2MYMejf0VeXwMkQELca6uDqXUkfxKow",
+//         token_secret: "NL5UBvP2QFPH9fYe7MUZleH24RoMoErfbDTrJNglrEidB"
+//       } 
+//     };
+
+//     console.log(chalkAlert("WAS | ADD TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"
+//       + " | fullWebhookUrl: " + fullWebhookUrl
+//       + "\nREQ OPTIONS\n" + jsonPrint(options)
+//     ));
+
+//     request(options, function(error, response) {
+
+//       if (error) {
+//         console.log(chalkError("WAS | *** TWITTER WEBHOOK SUBSCRIPTION ERROR"
+//           + " | ERROR: " + error
+//           + "\nBODY: " + response.body
+//         ));
+//         return reject(error);
+//       }
+
+//       if (response.statusCode === 200) {
+//         console.log(chalk.green("WAS | +++ TWITTER WEBHOOK SUBSCRIPTION ADDED"));
+//         return resolve(response.statusCode);
+//       }
+      
+//       if (response.statusCode === 214) {
+//         console.log(chalk.green("WAS | --- TWITTER WEBHOOK SUBSCRIPTION NOT ADDED ... TOO MANY RESOURCES ALREADY"));
+
+//         let options = {
+//           url: "https://api.twitter.com/1.1/account_activity/all/dev/subscriptions.json",
+//           method: "POST",
+//           resolveWithFullResponse: true,
+//           headers: {
+//             "Content-type": "application/x-www-form-urlencoded"
+//           },      
+//           // form: { url: fullWebhookUrl },
+//           oauth: {
+//             consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",
+//             consumer_secret: "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa",
+//             token: "848591649575927810-2MYMejf0VeXwMkQELca6uDqXUkfxKow",
+//             token_secret: "NL5UBvP2QFPH9fYe7MUZleH24RoMoErfbDTrJNglrEidB"
+//           } 
+//         };
+
+//         request(options, function(error2, response2) {
+
+//           if (error2) {
+//             console.log(chalkError("WAS | *** TWITTER ADD SUBSCRIPTION ERROR"
+//               + " | ERROR: " + error2
+//               + "\nBODY: " + response2.body
+//             ));
+//             return reject(error2);
+//           }
+
+//           console.log(chalkAlert("WAS | +++ TWITTER SUBSCRIPTION"
+//             + " | STATUS: " + response2.statusCode
+//             + "\nBODY: " + response2.body
+//           ));
+
+//           return resolve(response2.statusCode);
+//         });
+
+//       }
+
+//       console.log(chalkAlert("WAS | XXX TWITTER WEBHOOK SUBSCRIPTION NOT ADDED"
+//         + " | STATUS: " + response.statusCode
+//         + "\nBODY: " + response.body
+//       ));
+
+//       resolve(response.statusCode);
+
+//     });
+//   });
+// }
 
 const express = require("express");
 const app = express();
@@ -11206,6 +11270,7 @@ setTimeout(function(){
 
               await initInternetCheckInterval(ONE_MINUTE);
               await getAccountActivitySubscription();
+              await addAccountActivitySubscription();
               await initKeySortInterval(configuration.keySortInterval);
               await initSaveFileQueue(configuration);
               await initAllowLocations();

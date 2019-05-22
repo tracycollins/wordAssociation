@@ -1426,7 +1426,9 @@ function initSearchStream(){
       }
 
       threeceeUserObj.searchStream = {};
-      threeceeUserObj.searchStream = threeceeUserObj.twitStream.stream("statuses/filter", filter);
+
+      // threeceeUserObj.searchStream = threeceeUserObj.twitStream.stream("statuses/filter", filter);
+      threeceeUserObj.searchStream = threeceeUserObj.twitStream.stream("statuses/filter", { track: "realdonaldtrump" });
 
       threeceeUserObj.searchStream.on("message", function(msg){
         if (msg.event) {

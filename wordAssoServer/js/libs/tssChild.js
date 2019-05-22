@@ -1655,14 +1655,14 @@ function initSearchStream(){
           && (tweetStatus.user.userId !== undefined) 
           && ignoreUserSet.has(tweetStatus.user.userId))
         {
-          // if (configuration.verbose) {
+          if (configuration.verbose) {
             console.log(chalkLog("TSS | XXX IGNORE USER | SKIPPING"
               + " | TWID: " + tweetStatus.id_str
               + " | UID: " + tweetStatus.user.id_str
               + " | @" + tweetStatus.user.screen_name
               + " | NAME: " + tweetStatus.user.name
             ));
-          // }
+          }
           return;
         }
 
@@ -1670,7 +1670,7 @@ function initSearchStream(){
           && (tweetStatus.user.location !== undefined) 
           && ignoreLocationsRegEx.test(tweetStatus.user.location))
         {
-          // if (configuration.verbose) {
+          if (configuration.verbose) {
             console.log(chalkLog("TSS | XXX IGNORE LOCATION | SKIPPING"
               + " | TWID: " + tweetStatus.id_str
               + " | LOC: " + tweetStatus.user.location
@@ -1678,7 +1678,7 @@ function initSearchStream(){
               + " | @" + tweetStatus.user.screen_name
               + " | NAME: " + tweetStatus.user.name
             ));
-          // }
+          }
           return;
         }
 
@@ -1686,7 +1686,7 @@ function initSearchStream(){
           && (tweetStatus.user.lang !== undefined) 
           && (tweetStatus.user.lang !== "en")) 
         { 
-          // if (configuration.verbose) {
+          if (configuration.verbose) {
             console.log(chalkLog("TSS | XXX IGNORE LANG | SKIPPING"
               + " | TWID: " + tweetStatus.id_str
               + " | LANG: " + tweetStatus.user.lang
@@ -1694,7 +1694,7 @@ function initSearchStream(){
               + " | @" + tweetStatus.user.screen_name
               + " | NAME: " + tweetStatus.user.name
             ));
-          // }
+          }
           return;
         }
 

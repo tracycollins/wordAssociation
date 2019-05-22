@@ -7196,6 +7196,8 @@ function initAppRouting(callback) {
     }
     else if (req.path === TWITTER_WEBHOOK_URL) {
 
+      const bodyJson = req.body;
+
       console.log(chalkAlert("WAS | R< TWITTER WEB HOOK | " + TWITTER_WEBHOOK_URL
         + " | " + getTimeStamp()
         + " | IP: " + req.ip
@@ -7203,15 +7205,12 @@ function initAppRouting(callback) {
         + " | METHOD: " + req.method
         + " | PATH: " + req.path
         + " | ERROR: " + req.error
-        // + "\nreq.body\n" + req.body
+        + "\nreq.body\n" + jsonPrint(bodyJson)
       )); 
 
-      console.log(req.body);
-      console.log(jsonPrint(req.body));
-
-      const bodyJson = req.body;
-
-      console.log(jsonPrint(bodyJson));
+      // console.log(req.body);
+      // console.log(jsonPrint(req.body));
+      // console.log(jsonPrint(bodyJson));
 
       res.sendStatus(200);
     }

@@ -456,7 +456,7 @@ const passport = require("passport");
 const TwitterStrategy = require("passport-twitter").Strategy;
 
 app.use(require("serve-static")(path.join(__dirname, "public")));
-app.use(require("body-parser").urlencoded({ extended: true }));
+app.use(require("body-parser").urlencoded({ extended: false }));
 
 const threeceeConfig = {
   consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",

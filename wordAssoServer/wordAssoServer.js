@@ -7196,7 +7196,7 @@ function initAppRouting(callback) {
         + " | HOST: " + req.hostname
         + " | METHOD: " + req.method
         + " | PATH: " + req.path
-        + "\nreq.body\n" + jsonPrint(req.body)
+        + "\nreq.body\n" + jsonPrint(JSONParse(req.body))
       )); 
 
       res.sendStatus(200);

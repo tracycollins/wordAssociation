@@ -1428,7 +1428,7 @@ function initSearchStream(){
       threeceeUserObj.searchStream = {};
 
       // threeceeUserObj.searchStream = threeceeUserObj.twitStream.stream("statuses/filter", filter);
-      threeceeUserObj.searchStream = threeceeUserObj.twitStream.stream("statuses/filter", { track: "realdonaldtrump" });
+      threeceeUserObj.searchStream = threeceeUserObj.twitStream.stream("statuses/filter", { track: "@realdonaldtrump" });
 
       threeceeUserObj.searchStream.on("message", function(msg){
         if (msg.event) {
@@ -1478,10 +1478,6 @@ function initSearchStream(){
       });
 
       threeceeUserObj.searchStream.on("reconnect", function(data){
-        console.log(chalkTwitter("TSS | " + getTimeStamp()
-          + " | TWITTER RECONNECT"
-          + " | @" + threeceeUserObj.screenName
-        ));
 
         if (data.type === "rate-limit") {
           threeceeUserObj.stats.rateLimited = true;
@@ -1489,6 +1485,12 @@ function initSearchStream(){
         else {
           threeceeUserObj.stats.rateLimited = false;
         }
+
+        console.log(chalkTwitter("TSS | " + getTimeStamp()
+          + " | TWITTER RECONNECT"
+          + " | RATE LIMIT: " + threeceeUserObj.stats.rateLimited
+          + " | @" + threeceeUserObj.screenName
+        ));
 
         statsObj.twitter.reconnects+= 1;
 
@@ -1554,7 +1556,7 @@ function initSearchStream(){
           statsObj.twitter.limitMaxTime = moment().valueOf();
         }
 
-        debug(chalkTwitter("TSS | " + getTimeStamp()
+        console.log(chalkTwitter("TSS | " + getTimeStamp()
           + " | TWITTER LIMIT" 
           + " | @" + threeceeUserObj.screenName
           + " | USER LIMIT: " + statsObj.twitter.limit

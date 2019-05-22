@@ -1767,6 +1767,7 @@ function initSearchStream(){
           ));
         }
       });
+
     }
     catch(err){
       console.log(chalkError("TSS | CAUGHT ERROR | " + getTimeStamp()

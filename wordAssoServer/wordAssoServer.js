@@ -455,11 +455,14 @@ const passport = require("passport");
 // const LocalStrategy = require("passport-local").Strategy;
 const TwitterStrategy = require("passport-twitter").Strategy;
 
-const bodyParser = require("body-parser");
-app.use(bodyParser.json());       // to support JSON-encoded bodies
+// const bodyParser = require("body-parser");
+// app.use(bodyParser.json());       // to support JSON-encoded bodies
+
+app.use(express.urlencoded());
+app.use(express.json());
 
 app.use(require("serve-static")(path.join(__dirname, "public")));
-app.use(bodyParser.urlencoded({ extended: true }));
+// app.use(bodyParser.urlencoded({ extended: true }));
 
 const threeceeConfig = {
   consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",

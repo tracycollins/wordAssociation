@@ -6944,7 +6944,7 @@ function initAppRouting(callback) {
           console.log(chalkAlert("WAS | >>> TWITTER USER FOLLOW EVENT"
             + " | SOURCE: @" + followEvents[0].source.screen_name
             + " | TARGET: @" + followEvents[0].target.screen_name
-            + "\n" + jsonPrint(followEvents)
+            // + "\n" + jsonPrint(followEvents)
           ));
 
           const user = {
@@ -6977,7 +6977,7 @@ function initAppRouting(callback) {
           console.log(chalkAlert("WAS | >>> TWITTER USER UNFOLLOW EVENT"
             + " | SOURCE: @" + followEvents[0].source.screen_name
             + " | TARGET: @" + followEvents[0].target.screen_name
-            + "\n" + jsonPrint(followEvents)
+            // + "\n" + jsonPrint(followEvents)
           ));
 
           const user = {

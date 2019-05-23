@@ -4240,15 +4240,15 @@ function ignore(params, callback) {
 
   tssSendAllChildren({op: "IGNORE", user: params.user});
 
-  global.globalUser.deleteOne({"nodeId": params.user.nodeId }, function(err, delUser){
+  global.globalUser.deleteOne({"nodeId": params.user.nodeId }, function(err){
     if (err) {
       console.log(chalkError("WAS | *** DB DELETE IGNORED USER ERROR: " + err));
     }
     else if (delUser.deletedCount > 0){
 
       console.log(chalkAlert("WAS | XXX IGNORED USER | DELETED" 
-        + " | " + delUser.nodeId
-        + " | @" + delUser.screenName
+        + " | " + params.user.nodeId
+        + " | @" + params.user.screenName
       ));
 
     }

@@ -3570,6 +3570,7 @@ function updateTwitterWebhook(){
         + "\nBODY: " + body
       ));
 
+      await addAccountActivitySubscription();
       resolve();
     }
     catch(err){
@@ -6908,7 +6909,6 @@ function initAppRouting(callback) {
         + " | METHOD: " + req.method
         + " | PATH: " + req.path
         + " | ERROR: " + req.error
-        + "\nreq.body\n" + jsonPrint(bodyJson)
       )); 
 
       if (req.method === "GET") {

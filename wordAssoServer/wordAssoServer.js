@@ -6951,6 +6951,9 @@ function initAppRouting(callback) {
       else {
         // ACCOUNT EVENTS
 
+        console.log(body);
+        console.log(jsonPrint(body));
+
         const followEvents = req.body.follow_events;
         const unfollowEvents = req.body.unfollow_events;
 

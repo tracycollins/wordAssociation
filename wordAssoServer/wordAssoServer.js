@@ -248,6 +248,7 @@ let ignoreLocationsString = ignoreLocationsArray.join('\\b|\\b');
 ignoreLocationsString = '\\b' + ignoreLocationsString + '\\b';
 let ignoreLocationsRegEx = new RegExp(ignoreLocationsString, "i");
 
+const crypto = require("crypto");
 const NodeCache = require("node-cache");
 const commandLineArgs = require("command-line-args");
 const metricsRate = "5MinuteRate";
@@ -6910,11 +6911,34 @@ function initAppRouting(callback) {
         + "\nreq.body\n" + jsonPrint(bodyJson)
       )); 
 
-      // console.log(req.body);
-      // console.log(jsonPrint(req.body));
-      // console.log(jsonPrint(bodyJson));
+      if (req.method === "GET") {
 
-      res.sendStatus(200);
+        const crc_token = req.query.crc_token;
+
+        if (crc_token) {
+
+          console.log(chalkAlert("WAS | R< TWITTER WEB HOOK | CRC TOKEN: " + crc_token));
+
+          const hmac = crypto.createHmac("sha256", threeceeConfig.consumer_secret).update(crc_token).digest("base64");
+
+          console.log(chalkAlert("WAS | T> TWITTER WEB HOOK | CRC TOKEN > HASH: " + hmac));
+
+          res.status(200);
+
+          res.send({
+            response_token: "sha256=" + hmac
+          });
+
+        } 
+        else {
+          res.status(400);
+          res.send("Error: crc_token missing from request.")
+        }
+      }
+      else {
+        res.sendStatus(200);
+      }
+
     }
     else if (req.path === "/dropbox_webhook") {
 

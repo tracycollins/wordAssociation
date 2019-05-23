@@ -43,7 +43,7 @@ module.exports = {
         "consistent-this": "error",
         "curly": "off",
         "default-case": "error",
-        "dot-location": "error",
+        // "dot-location": "error",
         "dot-notation": [
             "error",
             {
@@ -52,10 +52,10 @@ module.exports = {
         ],
         "eol-last": "error",
         "eqeqeq": "off",
-        "func-names": [
-            "error",
-            "never"
-        ],
+        // "func-names": [
+        //     "error",
+        //     "never"
+        // ],
         "func-style": "off",
         "generator-star-spacing": "error",
         "global-require": "error",
@@ -86,7 +86,7 @@ module.exports = {
         "new-parens": "error",
         "newline-after-var": "off",
         "newline-before-return": "off",
-        "newline-per-chained-call": "error",
+        // "newline-per-chained-call": "error",
         "no-alert": "error",
         "no-array-constructor": "error",
         "no-bitwise": "error",
@@ -158,7 +158,7 @@ module.exports = {
         "no-trailing-spaces": "off",
         "no-undef-init": "error",
         // "no-undefined": "error",
-        "no-underscore-dangle": "error",
+        // "no-underscore-dangle": "error",
         "no-unmodified-loop-condition": "error",
         "no-unneeded-ternary": "error",
         "no-unused-expressions": "error",

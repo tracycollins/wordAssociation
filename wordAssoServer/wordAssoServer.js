@@ -6922,8 +6922,6 @@ function initAppRouting(callback) {
     }
     else if (req.path === TWITTER_WEBHOOK_URL) {
 
-      const bodyJson = req.body;
-
       console.log(chalkAlert("WAS | R< TWITTER WEB HOOK | " + TWITTER_WEBHOOK_URL
         + " | " + getTimeStamp()
         + " | IP: " + req.ip

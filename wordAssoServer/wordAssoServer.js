@@ -6953,9 +6953,9 @@ function initAppRouting(callback) {
             screenName: followEvents[0].target.screen_name
           }
 
-          follow({user: user}, function(err, updatedUser){
+          follow({user: user, forceFollow: true}, function(err, updatedUser){
             if (err) {
-              console.log(chalkError("WAS | TWITTER_UNFOLLOW ERROR: " + err));
+              console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: " + err));
               return;
             }
             

@@ -6951,6 +6951,8 @@ function initAppRouting(callback) {
       else {
         // ACCOUNT EVENTS
 
+        const body = req.body;
+        
         console.log(body);
         console.log(jsonPrint(body));
 

@@ -3688,7 +3688,7 @@ function getTwitterWebhooks(){
       }
     }
     catch(err){
-      console.log(chalkError("WAS | *** GET TWITTER ACCOUNT ACTIVITY ERROR: " + err));
+      console.log(chalkError("WAS | *** GET TWITTER WEBHOOKS ERROR: " + err));
       return reject(err);
     }
 
@@ -8157,6 +8157,9 @@ function initTssChild(params){
 
           threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
           threeceeTwitter[m.threeceeUser].twitterFriends = m.twitterFriends;
+          if (m.twitterConfig) {
+            threeceeTwitter[m.threeceeUser].twitterConfig = m.twitterConfig;
+          }
 
           try{
             childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});

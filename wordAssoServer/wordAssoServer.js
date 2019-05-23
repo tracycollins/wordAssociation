@@ -6939,7 +6939,6 @@ function initAppRouting(callback) {
         // ACCOUNT EVENTS
 
         const followEvents = req.body.follow_events;
-        const unfollowEvents = req.body.unfollow_events;
 
         if (followEvents && (followEvents[0].type === "follow")) {
           console.log(chalkAlert("WAS | >>> TWITTER USER FOLLOW EVENT"
@@ -6973,17 +6972,17 @@ function initAppRouting(callback) {
 
         }
         
-        if (unfollowEvents && (unfollowEvents[0].type === "unfollow")) {
+        if (followEvents && (followEvents[0].type === "unfollow")) {
 
           console.log(chalkAlert("WAS | >>> TWITTER USER UNFOLLOW EVENT"
-            + " | SOURCE: @" + unfollowEvents[0].source.screen_name
-            + " | TARGET: @" + unfollowEvents[0].target.screen_name
-            + "\n" + jsonPrint(unfollowEvents)
+            + " | SOURCE: @" + followEvents[0].source.screen_name
+            + " | TARGET: @" + followEvents[0].target.screen_name
+            + "\n" + jsonPrint(followEvents)
           ));
 
           const user = {
-            nodeId: unfollowEvents[0].target.id.toString(),
-            screenName: unfollowEvents[0].target.id.screenName
+            nodeId: followEvents[0].target.id.toString(),
+            screenName: followEvents[0].target.id.screenName
           }
 
           unfollow({user: user}, function(err, updatedUser){

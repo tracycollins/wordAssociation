@@ -2375,8 +2375,12 @@ process.on("message", async function(m) {
 
       authObjNew = threeceeUserObj.twitStream.getAuth();
 
+      threeceeUserObj.twitterConfig.token = authObjNew.access_token;
+      threeceeUserObj.twitterConfig.token_secret = authObjNew.access_token_secret;
+
       threeceeUserObj.twitterConfig.access_token = authObjNew.access_token;
       threeceeUserObj.twitterConfig.access_token_secret = authObjNew.access_token_secret;
+      
       threeceeUserObj.twitterConfig.TOKEN = authObjNew.access_token;
       threeceeUserObj.twitterConfig.TOKEN_SECRET = authObjNew.access_token_secret;
 

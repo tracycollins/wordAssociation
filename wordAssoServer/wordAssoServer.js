@@ -3547,10 +3547,6 @@ function updateTwitterWebhook(){
       },      
       form: { url: fullWebhookUrl },
       oauth: {
-        // consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",
-        // consumer_secret: "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa",
-        // token: "14607119-S5EIEw89NSC462IkX4GWT67K1zWzoLzuZF7wiurku",
-        // token_secret: "3NI3s4sTILiqBilgEDBSlC6oSJYXcdLQP7lXp58TQMk0A"
         consumer_key: threeceeConfig.consumer_key,
         consumer_secret: threeceeConfig.consumer_secret,
         token: threeceeConfig.token,
@@ -3714,15 +3710,6 @@ function addAccountActivitySubscription(p){
         "Content-type": "application/x-www-form-urlencoded"
       },      
       oauth: {
-        // consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",
-        // consumer_secret: "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa",
-        // token: "848591649575927810-2MYMejf0VeXwMkQELca6uDqXUkfxKow",
-        // token_secret: "NL5UBvP2QFPH9fYe7MUZleH24RoMoErfbDTrJNglrEidB"
-        // 
-        // consumer_key: threeceeConfig.consumer_key,
-        // consumer_secret: threeceeConfig.consumer_secret,
-        // token: threeceeConfig.token,
-        // token_secret: threeceeConfig.token_secret
         consumer_key: threeceeTwitter[params.threeceeUser].twitterConfig.consumer_key,
         consumer_secret: threeceeTwitter[params.threeceeUser].twitterConfig.consumer_secret,
         token: threeceeTwitter[params.threeceeUser].twitterConfig.token,
@@ -6951,24 +6938,71 @@ function initAppRouting(callback) {
       else {
         // ACCOUNT EVENTS
 
-        const body = req.body;
-        
-        console.log(body);
-        console.log(jsonPrint(body));
-
         const followEvents = req.body.follow_events;
         const unfollowEvents = req.body.unfollow_events;
 
         if (followEvents) {
           console.log(chalkAlert("WAS | >>> TWITTER USER FOLLOW EVENT"
-            + "\n" + jsonPrint(followEvents)
+            + " | SOURCE: @" + followEvents[0].source.screen_name
+            + " | TARGET: @" + followEvents[0].target.screen_name
+            // + "\n" + jsonPrint(followEvents)
           ));
+
+          const user = {
+            nodeId: followEvents[0].target.id.toString(),
+            screenName: followEvents[0].target.screen_name
+          }
+
+          follow({user: user}, function(err, updatedUser){
+            if (err) {
+              console.log(chalkError("WAS | TWITTER_UNFOLLOW ERROR: " + err));
+              return;
+            }
+            
+            if (!updatedUser) { return; }
+
+            adminNameSpace.emit("UNFOLLOW", updatedUser);
+            utilNameSpace.emit("UNFOLLOW", updatedUser);
+
+            console.log(chalk.blue("WAS | XXX TWITTER_UNFOLLOW"
+              + " | UID" + updatedUser.nodeId
+              + " | @" + updatedUser.screenName
+            ));
+
+          });
+
         }
         
         if (unfollowEvents) {
+
           console.log(chalkAlert("WAS | >>> TWITTER USER UNFOLLOW EVENT"
-            + "\n" + jsonPrint(followEvents)
+            + " | SOURCE: @" + followEvents[0].source.screen_name
+            + " | TARGET: @" + followEvents[0].target.screen_name
+            // + "\n" + jsonPrint(followEvents)
           ));
+
+          const user = {
+            nodeId: followEvents[0].target.id.toString(),
+            screenName: followEvents[0].target.id.screenName
+          }
+
+          unfollow({user: user}, function(err, updatedUser){
+            if (err) {
+              console.log(chalkError("WAS | TWITTER_UNFOLLOW ERROR: " + err));
+              return;
+            }
+            
+            if (!updatedUser) { return; }
+
+            adminNameSpace.emit("UNFOLLOW", updatedUser);
+            utilNameSpace.emit("UNFOLLOW", updatedUser);
+
+            console.log(chalk.blue("WAS | XXX TWITTER_UNFOLLOW"
+              + " | UID" + updatedUser.nodeId
+              + " | @" + updatedUser.screenName
+            ));
+
+          });
         }
         
         res.sendStatus(200);

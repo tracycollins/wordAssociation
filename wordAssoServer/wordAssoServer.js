@@ -6951,8 +6951,8 @@ function initAppRouting(callback) {
       else {
         // ACCOUNT EVENTS
 
-        const followEvents = req.follow_events;
-        const unfollowEvents = req.unfollow_events;
+        const followEvents = req.body.follow_events;
+        const unfollowEvents = req.body.unfollow_events;
 
         if (followEvents) {
           console.log(chalkAlert("WAS | >>> TWITTER USER FOLLOW EVENT"

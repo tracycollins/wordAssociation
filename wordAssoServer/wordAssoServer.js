@@ -2394,13 +2394,9 @@ function loadFile(params) {
           }
 
           return resolve(payload);
-
-          // console.log(chalkError("WAS | DROPBOX loadFile ERROR: " + fullPath));
-          // return reject(fileObj.error);
         }
-        // else {
+
         resolve();
-        // }
       }).
       catch(function(error) {
 
@@ -10953,6 +10949,8 @@ setTimeout(async function(){
     await initKeySortInterval(configuration.keySortInterval);
     await initSaveFileQueue(configuration);
 
+    await initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
+
     try{
       await getTwitterWebhooks();
       await addAccountActivitySubscription();
@@ -10968,7 +10966,6 @@ setTimeout(async function(){
     await loadMaxInputHashMap();
     await initCategoryHashmaps();
     await initIgnoreWordsHashMap();
-    await initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
     await initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval);
     await initRateQinterval(configuration.rateQueueInterval);
     await initTwitterRxQueueInterval(configuration.twitterRxQueueInterval);

@@ -6941,11 +6941,11 @@ function initAppRouting(callback) {
         const followEvents = req.body.follow_events;
         const unfollowEvents = req.body.unfollow_events;
 
-        if (followEvents) {
+        if (followEvents && (followEvents[0].type === "follow")) {
           console.log(chalkAlert("WAS | >>> TWITTER USER FOLLOW EVENT"
             + " | SOURCE: @" + followEvents[0].source.screen_name
             + " | TARGET: @" + followEvents[0].target.screen_name
-            // + "\n" + jsonPrint(followEvents)
+            + "\n" + jsonPrint(followEvents)
           ));
 
           const user = {
@@ -6964,7 +6964,7 @@ function initAppRouting(callback) {
             adminNameSpace.emit("FOLLOW", updatedUser);
             utilNameSpace.emit("FOLLOW", updatedUser);
 
-            console.log(chalk.blue("WAS | XXX TWITTER_FOLLOW"
+            debug(chalk.blue("WAS | +++ TWITTER FOLLOW"
               + " | UID" + updatedUser.nodeId
               + " | @" + updatedUser.screenName
             ));
@@ -6973,12 +6973,12 @@ function initAppRouting(callback) {
 
         }
         
-        if (unfollowEvents) {
+        if (unfollowEvents && (unfollowEvents[0].type === "unfollow")) {
 
           console.log(chalkAlert("WAS | >>> TWITTER USER UNFOLLOW EVENT"
             + " | SOURCE: @" + unfollowEvents[0].source.screen_name
             + " | TARGET: @" + unfollowEvents[0].target.screen_name
-            // + "\n" + jsonPrint(followEvents)
+            + "\n" + jsonPrint(unfollowEvents)
           ));
 
           const user = {
@@ -6997,7 +6997,7 @@ function initAppRouting(callback) {
             adminNameSpace.emit("UNFOLLOW", updatedUser);
             utilNameSpace.emit("UNFOLLOW", updatedUser);
 
-            console.log(chalk.blue("WAS | XXX TWITTER_UNFOLLOW"
+            debug(chalk.blue("WAS | XXX TWITTER UNFOLLOW"
               + " | UID" + updatedUser.nodeId
               + " | @" + updatedUser.screenName
             ));

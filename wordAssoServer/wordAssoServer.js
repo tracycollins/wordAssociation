@@ -6961,10 +6961,10 @@ function initAppRouting(callback) {
             
             if (!updatedUser) { return; }
 
-            adminNameSpace.emit("UNFOLLOW", updatedUser);
-            utilNameSpace.emit("UNFOLLOW", updatedUser);
+            adminNameSpace.emit("FOLLOW", updatedUser);
+            utilNameSpace.emit("FOLLOW", updatedUser);
 
-            console.log(chalk.blue("WAS | XXX TWITTER_UNFOLLOW"
+            console.log(chalk.blue("WAS | XXX TWITTER_FOLLOW"
               + " | UID" + updatedUser.nodeId
               + " | @" + updatedUser.screenName
             ));
@@ -6976,14 +6976,14 @@ function initAppRouting(callback) {
         if (unfollowEvents) {
 
           console.log(chalkAlert("WAS | >>> TWITTER USER UNFOLLOW EVENT"
-            + " | SOURCE: @" + followEvents[0].source.screen_name
-            + " | TARGET: @" + followEvents[0].target.screen_name
+            + " | SOURCE: @" + unfollowEvents[0].source.screen_name
+            + " | TARGET: @" + unfollowEvents[0].target.screen_name
             // + "\n" + jsonPrint(followEvents)
           ));
 
           const user = {
-            nodeId: followEvents[0].target.id.toString(),
-            screenName: followEvents[0].target.id.screenName
+            nodeId: unfollowEvents[0].target.id.toString(),
+            screenName: unfollowEvents[0].target.id.screenName
           }
 
           unfollow({user: user}, function(err, updatedUser){

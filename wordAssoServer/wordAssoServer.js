@@ -3737,11 +3737,8 @@ function addAccountActivitySubscription(p){
 
       const body = await request(options);
 
-      const bodyJson = JSON.parse(body);
-
-      console.log(chalkAlert("WAS | +++ ADDED TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"
-        + "\nBODY: " + jsonPrint(bodyJson)
-      ));
+      console.log(chalkGreen("WAS | +++ ADDED TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"));
+      console.log(body);
 
       resolve();
 
@@ -10260,7 +10257,7 @@ function initThreeceeTwitterUsers(params){
           console.log(chalkTwitter("WAS | LOADED TWITTER CONFIG"
             + " | 3C @" + user
             + " | " + dropboxConfigTwitterFolder + "/" + configFile
-            // + "\nCONFIG\n" + jsonPrint(twitterConfig)
+            + "\nCONFIG\n" + jsonPrint(twitterConfig)
           ));
 
           if (!configuration.threeceeUsers.includes(twitterConfig.screenName)) {

@@ -3695,9 +3695,18 @@ function getTwitterWebhooks(){
   });
 }
 
-function addAccountActivitySubscription(){
+function addAccountActivitySubscription(p){
 
   return new Promise(async function(resolve, reject){
+
+    const params = p || {};
+
+    params.threeceeUser = params.threeceeUser || "altthreecee00";
+
+    if (!threeceeTwitter[params.threeceeUser] || !threeceeTwitter[params.threeceeUser].twitterConfig) {
+      console.log(chalkError("WAS | *** ADD ACCOUNT ACTIVITY SUBSCRIPTION ERROR | UNDEFINED TWITTER CONFIG | " + params.threeceeUser));
+      return reject(new Error("threeceeUser twitter configuration undefined"));
+    }
 
     statsObj.status = "ADD TWITTER ACCOUNT ACTIVITY SUBSCRIPTION";
 
@@ -3713,10 +3722,15 @@ function addAccountActivitySubscription(){
         // consumer_secret: "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa",
         // token: "848591649575927810-2MYMejf0VeXwMkQELca6uDqXUkfxKow",
         // token_secret: "NL5UBvP2QFPH9fYe7MUZleH24RoMoErfbDTrJNglrEidB"
-        consumer_key: threeceeConfig.consumer_key,
-        consumer_secret: threeceeConfig.consumer_secret,
-        token: threeceeConfig.token,
-        token_secret: threeceeConfig.token_secret
+        // 
+        // consumer_key: threeceeConfig.consumer_key,
+        // consumer_secret: threeceeConfig.consumer_secret,
+        // token: threeceeConfig.token,
+        // token_secret: threeceeConfig.token_secret
+        consumer_key: threeceeTwitter[params.threeceeUser].twitterConfig.consumer_key,
+        consumer_secret: threeceeTwitter[params.threeceeUser].twitterConfig.consumer_secret,
+        token: threeceeTwitter[params.threeceeUser].twitterConfig.token,
+        token_secret: threeceeTwitter[params.threeceeUser].twitterConfig.token_secret
       } 
     };
 

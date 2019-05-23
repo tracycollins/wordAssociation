@@ -6949,6 +6949,23 @@ function initAppRouting(callback) {
         }
       }
       else {
+        // ACCOUNT EVENTS
+
+        const followEvents = req.follow_events;
+        const unfollowEvents = req.unfollow_events;
+
+        if (followEvents) {
+          console.log(chalkAlert("WAS | >>> TWITTER USER FOLLOW EVENT"
+            + "\n" + jsonPrint(followEvents)
+          ));
+        }
+        
+        if (unfollowEvents) {
+          console.log(chalkAlert("WAS | >>> TWITTER USER UNFOLLOW EVENT"
+            + "\n" + jsonPrint(followEvents)
+          ));
+        }
+        
         res.sendStatus(200);
       }
 

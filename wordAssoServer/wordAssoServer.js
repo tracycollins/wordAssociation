@@ -3724,7 +3724,7 @@ function addAccountActivitySubscription(p){
 
       const body = await request(options);
 
-      console.log(chalkGreen("WAS | +++ ADDED TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"));
+      console.log(chalk.green("WAS | +++ ADDED TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"));
       console.log(body);
 
       resolve();

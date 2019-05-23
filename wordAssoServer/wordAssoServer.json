@@ -8,6 +8,7 @@
     "node_args"   : "--max-old-space-size=10240",
     "env": {
       "WA_VERBOSE_MODE": false,
+      "TWITTER_BEARER_TOKEN": "AAAAAAAAAAAAAAAAAAAAABrg8gAAAAAA%2B3D4G5ixne%2FhlBxyXKhFOjL1M4I%3DM4vjtsuRygTbcNyie9aQ3HgpdfsK7xsNWNt2eYFPA9NKliTPYc",
       "FORCE_COLOR": 1,
       "NODE_ENV": "production",
       "IGNORE_CATEGORY_RIGHT": false,

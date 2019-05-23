@@ -10929,6 +10929,15 @@ setTimeout(async function(){
     await initInternetCheckInterval(ONE_MINUTE);
     await initKeySortInterval(configuration.keySortInterval);
     await initSaveFileQueue(configuration);
+
+    try{
+      await getTwitterWebhooks();
+      await addAccountActivitySubscription();
+    }
+    catch(err){
+      console.log(chalkError("WAS | *** TWITTER ACTIVITY ACCOUNT ERROR: " + err));
+    }
+
     await initAllowLocations();
     await initIgnoreLocations();
     await updateUserSets();
@@ -10949,14 +10958,6 @@ setTimeout(async function(){
     await initDbUserChangeStream();
     await initTssChildren();
     await initUpdateUserSetsInterval(configuration.updateUserSetsInterval);
-
-    try{
-      getTwitterWebhooks();
-      await addAccountActivitySubscription();
-    }
-    catch(err){
-      console.log(chalkError("WAS | *** TWITTER ACTIVITY ACCOUNT ERROR: " + err));
-    }
 
   }
   catch(err){

@@ -2751,7 +2751,8 @@ process.on("message", async function(m) {
 
                 process.send({
                   op: "TWITTER_STATS", 
-                  threeceeUser: threeceeUserObj.screenName, 
+                  threeceeUser: threeceeUserObj.screenName,
+                  twitterConfig: threeceeUserObj.twitterConfig,
                   stats: threeceeUserObj.stats, 
                   twitterFollowing: threeceeUserObj.followUserIdSet.size,
                   twitterFriends: [...threeceeUserObj.followUserIdSet]

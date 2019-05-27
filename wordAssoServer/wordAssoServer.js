@@ -9,7 +9,8 @@ const ONE_KILOBYTE = 1024;
 const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
 
 
-const DEFAULT_START_TIMEOUT = ONE_MINUTE;
+// const DEFAULT_START_TIMEOUT = ONE_MINUTE;
+const DEFAULT_START_TIMEOUT = 5000;
 
 let saveSampleTweetFlag = true;
 
@@ -29,8 +30,6 @@ const TWITTER_WEBHOOK_URL = "/webhooks/twitter";
 const TWITTER_AUTH_CALLBACK_URL = "https://word.threeceelabs.com/auth/twitter/callback";
 
 global.globalDbConnection = false;
-
-let dbConnectionReady = false;  
 
 const mongoose = require("mongoose");
 mongoose.set("useFindAndModify", false);
@@ -507,7 +506,6 @@ function quit(message) {
     global.globalDbConnection.close(function () {
 
       statsObj.dbConnectionReady = false;
-      dbConnectionReady = false;
 
       console.log(chalkAlert(
             "WAS | =========================="
@@ -1166,20 +1164,17 @@ function connectDb(){
         if (err) {
           console.log(chalkError("WAS | *** MONGO DB CONNECTION ERROR: " + err));
           statsObj.status = "MONGO CONNECTION ERROR";
-          // slackSendMessage(hostname + " | WAS | " + statsObj.status);
-          dbConnectionReady = false;
           statsObj.dbConnectionReady = false;
           quit(statsObj.status);
           return reject(err);
         }
 
+        console.log(chalk.green("WAS | MONGO DB DEFAULT CONNECTION OPEN"));
+
         db.on("close", function(){
           statsObj.status = "MONGO CLOSED";
           console.error.bind(console, "WAS | *** MONGO DB CONNECTION CLOSED ***\n");
           console.log(chalkAlert("WAS | *** MONGO DB CONNECTION CLOSED ***\n"));
-          // slackSendMessage(hostname + " | WAS | " + statsObj.status);
-          // db.close();
-          dbConnectionReady = false;
           statsObj.dbConnectionReady = false;
           quit(statsObj.status);
         });
@@ -1188,9 +1183,7 @@ function connectDb(){
           statsObj.status = "MONGO ERROR";
           console.error.bind(console, "WAS | *** MONGO DB CONNECTION ERROR ***\n");
           console.log(chalkError("WAS | *** MONGO DB CONNECTION ERROR ***\n"));
-          // slackSendMessage(hostname + " | WAS | " + statsObj.status);
           db.close();
-          dbConnectionReady = false;
           statsObj.dbConnectionReady = false;
           quit(statsObj.status);
         });
@@ -1198,16 +1191,12 @@ function connectDb(){
         db.on("disconnected", function(){
           statsObj.status = "MONGO DISCONNECTED";
           console.error.bind(console, "WAS | *** MONGO DB DISCONNECTED ***\n");
-          // slackSendMessage(hostname + " | WAS | " + statsObj.status);
           console.log(chalkAlert("WAS | *** MONGO DB DISCONNECTED ***\n"));
-          dbConnectionReady = false;
           statsObj.dbConnectionReady = false;
           quit(statsObj.status);
         });
 
         global.globalDbConnection = db;
-
-        console.log(chalk.green("WAS | MONGO DB DEFAULT CONNECTION OPEN"));
 
         global.globalEmoji = global.globalDbConnection.model("Emoji", emojiModel.EmojiSchema);
         global.globalHashtag = global.globalDbConnection.model("Hashtag", hashtagModel.HashtagSchema);
@@ -1260,7 +1249,6 @@ function connectDb(){
         }));
 
         app.use(passport.initialize());
-        // app.use(passport.session());
 
         passport.use(new TwitterStrategy({
             consumerKey: threeceeConfig.consumer_key,
@@ -1331,13 +1319,6 @@ function connectDb(){
                   user: updatedUser
                 });
 
-                // saveFileQueue.push({
-                //   localFlag: false, 
-                //   folder: categorizedFolder, 
-                //   file: categorizedUsersFile, 
-                //   obj: categorizedUserHashMap.entries()
-                // });
-
                 adminNameSpace.emit("USER_AUTHENTICATED", updatedUser);
                 viewNameSpace.emit("USER_AUTHENTICATED", updatedUser);
 
@@ -1353,45 +1334,14 @@ function connectDb(){
         app.get("/auth/twitter/callback", 
           passport.authenticate("twitter", 
             { 
-              // successReturnToOrRedirect: "/session",
               successReturnToOrRedirect: "/after-auth.html",
               failureRedirect: "/login" 
             }
           )
         );
 
-        // passport.use(new LocalStrategy(
-        //   function(username, password, done) {
-
-        //     console.log(chalkAlert("WAS | *** LOGIN *** | " + username));
-
-        //     User.findOne({ screenName: username.toLowerCase() }, function (err, user) {
-        //       if (err) { 
-        //         console.log(chalkAlert("WAS | *** LOGIN USER DB ERROR *** | " + err));
-        //         return done(err);
-        //       }
-        //       if (!user) {
-        //         console.log(chalkAlert("WAS | *** LOGIN FAILED | USER NOT FOUND *** | " + username));
-        //         return done(null, false, { message: "Incorrect username." });
-        //       }
-        //       if ((user.screenName.toLowerCase().startsWith("altthreecee")) && (password === "okay!")) {
-        //         console.log(chalkAlert("WAS | *** LOGIN FAILED | INVALID PASSWORD *** | " + username));
-        //         return done(null, false, { message: "Incorrect password." });
-        //       }
-        //       if ((user.screenName !== "threecee") || (password !== "what")) {
-        //         console.log(chalkAlert("WAS | *** LOGIN FAILED | INVALID PASSWORD *** | " + username));
-        //         return done(null, false, { message: "Incorrect password." });
-        //       }
-        //       adminNameSpace.emit("USER_AUTHENTICATED", user);
-        //       viewNameSpace.emit("USER_AUTHENTICATED", user);
-        //       return done(null, user);
-        //     });
-        //   }
-        // ));
-
         app.get("/login_auth",
           passport.authenticate("local", { 
-            // successReturnToOrRedirect: "/session",
             successReturnToOrRedirect: "/after-auth.html",
             failureRedirect: "/login"
           })
@@ -1494,15 +1444,15 @@ const dbConnectInterval = setInterval(function(){
     then(function(){
       statsObj.dbConnectBusy = false;
       statsObj.dbConnectionReady = true;
-      dbConnectionReady = true;
+      console.log(chalk.green("WAS | +++ MONGO DB CONNECTED"));
     }).
     catch(function(err){
       console.log(chalkError("WAS | *** CONNECT DB INTERVAL ERROR: " + err));
       statsObj.dbConnectionReady = false;
-      dbConnectionReady = false;
       statsObj.dbConnectBusy = false;
     });
   }
+
 }, 10*ONE_SECOND);
 
 function jsonPrint(obj) {
@@ -1950,13 +1900,12 @@ const statsBestNetworkPickArray = [
 function initStats(callback){
 
   console.log(chalk.bold.black("WAS | INIT STATS"));
-  // statsObj = {};
 
   statsObj.ioReady = false;
   statsObj.internetReady = false;
   statsObj.internetTestError = false;
 
-  statsObj.dbConnectionReady = dbConnectionReady;
+  statsObj.dbConnectionReady = false;
 
   statsObj.tweetParserReady = false;
   statsObj.tweetParserSendReady = false;
@@ -1979,11 +1928,6 @@ function initStats(callback){
   statsObj.bestNetwork.seedNetworkRes = 0;
   statsObj.bestNetwork.testCycles = 0;
   statsObj.bestNetwork.betterChild = false;
-
-  // statsObj.memwatch = {};
-  // statsObj.memwatch.snapshotTaken = false;
-  // statsObj.memwatch.leak = {};
-  // statsObj.memwatch.stats = {};
 
   statsObj.errors = {};
   statsObj.errors.google = {};
@@ -7133,7 +7077,7 @@ function initAppRouting(callback) {
 
                     if ((entry.path_lower.endsWith("google_wordassoserverconfig.json"))
                       || (entry.path_lower.endsWith("default_wordassoserverconfig.json"))){
-                      await initConfig(configuration);
+                      await initConfig();
                       return;
                     }
 
@@ -9785,24 +9729,6 @@ function initStatsUpdate(cnf) {
       showStats(true);
 
       clearInterval(statsInterval);
-      // clearInterval(memStatsInterval);
-
-      // memStatsInterval = setInterval(function updateMemStats() {
-
-      //   statsObj.memory.rss = process.memoryUsage().rss/(1024*1024);
-
-      //   if (statsObj.memory.rss > statsObj.memory.maxRss) {
-
-      //     statsObj.memory.maxRss = statsObj.memory.rss;
-      //     statsObj.memory.maxRssTime = moment().valueOf();
-
-      //     console.log(chalkInfo("WAS | NEW MAX RSS"
-      //       + " | " + getTimeStamp()
-      //       + " | " + statsObj.memory.rss.toFixed(1) + " MB"
-      //     ));
-
-      //   }
-      // }, ONE_MINUTE);
 
       statsInterval = setInterval(function updateStats() {
 
@@ -11058,10 +10984,33 @@ function allTrue(p){
   });
 }
 
+let dbConnectionReadyInterval;
+
+function waitDbConnectionReady(){
+
+  return new Promise(function(resolve){
+
+    dbConnectionReadyInterval = setInterval(function(){
+
+      console.log(chalkAlert("WAS | WAIT DB CONNECTION | " + getTimeStamp() ));
+
+      if (statsObj.dbConnectionReady) {
+        clearInterval(dbConnectionReadyInterval);
+        return resolve();
+      }
+
+    }, 5000);
+
+  });
+}
+
 setTimeout(async function(){
+
+  console.log(chalkError("WAS | WAIT START TIMEOUT: " + msToTime(DEFAULT_START_TIMEOUT)));
 
   try {
 
+    await waitDbConnectionReady();
     const cnf = await initConfig();
 
     configuration = deepcopy(cnf);
@@ -11111,7 +11060,6 @@ setTimeout(async function(){
     await initDbUserChangeStream();
     await initTssChildren();
     await initUpdateUserSetsInterval(configuration.updateUserSetsInterval);
-
   }
   catch(err){
     console.log(chalkError("WAS | **** INIT CONFIG ERROR: " + err + "\n" + jsonPrint(err)));

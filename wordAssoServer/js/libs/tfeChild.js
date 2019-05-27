@@ -2492,6 +2492,8 @@ function updateUserHistograms(p) {
 
     if (!params.user.nodeId || (params.user.nodeId === undefined)) {
 
+      console.log(chalkWarn("WAS | TFC | !!! updateUserHistograms USER NODE ID UNDEFINED\n" + jsonPrint(params.user)));
+
       if (!params.user.userId || (params.user.userId === undefined)){
         console.log(chalkError("WAS | TFC | *** updateUserHistograms USER NODE & USER IDs UNDEFINED"
           + "\n" + jsonPrint(params.user)
@@ -2507,6 +2509,8 @@ function updateUserHistograms(p) {
     }
 
     if (!params.user.userId || (params.user.userId === undefined)) {
+
+      console.log(chalkWarn("WAS | TFC | !!! updateUserHistograms USER USER ID UNDEFINED\n" + jsonPrint(params.user)));
 
       if (!params.user.nodeId || (params.user.nodeId === undefined)){
         console.log(chalkError("WAS | TFC | *** updateUserHistograms USER NODE & USER IDs UNDEFINED"

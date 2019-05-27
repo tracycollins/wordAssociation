@@ -2483,11 +2483,39 @@ function updateUserHistograms(p) {
 
     let params = p || {};
     
-    if ((params.user === undefined) || !params.user || !params.user.nodeId || (params.user.nodeId === undefined)) {
+    if ((params.user === undefined) || !params.user) {
       console.log(chalkError("WAS | TFC | *** updateUserHistograms USER UNDEFINED"));
       const err = new Error("WAS | TFC | *** updateUserHistograms USER UNDEFINED");
       console.error(err);
       return reject(err);
+    }
+
+    if (!params.user.nodeId || (params.user.nodeId === undefined)) {
+
+      if (!params.user.userId || (params.user.userId === undefined)){
+        console.log(chalkError("WAS | TFC | *** updateUserHistograms USER NODE & USER IDs UNDEFINED"));
+        const err = new Error("WAS | TFC | *** updateUserHistograms USER NODE & USER IDs UNDEFINED");
+        console.error(err);
+        return reject(err);
+      }
+      else {
+        params.user.nodeId = params.user.userId;
+        console.log(chalkWarn("WAS | TFC | !!! updateUserHistograms USER NODE ID UNDEFINED | @" + params.user.screenName));
+      }
+    }
+
+    if (!params.user.userId || (params.user.userId === undefined)) {
+
+      if (!params.user.nodeId || (params.user.nodeId === undefined)){
+        console.log(chalkError("WAS | TFC | *** updateUserHistograms USER NODE & USER IDs UNDEFINED"));
+        const err = new Error("WAS | TFC | *** updateUserHistograms USER NODE & USER IDs UNDEFINED");
+        console.error(err);
+        return reject(err);
+      }
+      else {
+        params.user.userId = params.user.nodeId;
+        console.log(chalkWarn("WAS | TFC | !!! updateUserHistograms USER USER ID UNDEFINED | @" + params.user.screenName));
+      }
     }
 
     let user;

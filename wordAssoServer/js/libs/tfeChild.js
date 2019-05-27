@@ -2587,32 +2587,28 @@ function initUserCategorizeQueueInterval(cnf){
         return;
       }
 
-      // if (updatedUser.categoryAuto !== networkOutput.output) {
+      matchFlag = updatedUser.category 
+        && (updatedUser.category !== undefined) 
+        && (updatedUser.category !== false) 
+        && (updatedUser.category !== "false") 
+        && (updatedUser.category === networkOutput.output);
 
-        matchFlag = updatedUser.category 
-          && (updatedUser.category !== undefined) 
-          && (updatedUser.category !== false) 
-          && (updatedUser.category !== "false") 
-          && (updatedUser.category === networkOutput.output);
+      if (!updatedUser.category || updatedUser.category === undefined) {
+        chalkType = chalkLog;
+      }
+      else if (matchFlag){
+        chalkType = chalkGreen;
+        statsObj.autoChangeTotal += 1;
+        statsObj.autoChangeMatch += 1;
+      }
+      else {
+        chalkType = chalk.yellow;
+        statsObj.autoChangeTotal += 1;
+        statsObj.autoChangeMismatch += 1;
+      }
 
-        if (!updatedUser.category || updatedUser.category === undefined) {
-          chalkType = chalkLog;
-        }
-        else if (matchFlag){
-          chalkType = chalkGreen;
-          statsObj.autoChangeTotal += 1;
-          statsObj.autoChangeMatch += 1;
-        }
-        else {
-          chalkType = chalk.yellow;
-          statsObj.autoChangeTotal += 1;
-          statsObj.autoChangeMismatch += 1;
-        }
-
-        statsObj.autoChangeMatchRate = 100*(statsObj.autoChangeMatch/statsObj.autoChangeTotal);
+      statsObj.autoChangeMatchRate = 100*(statsObj.autoChangeMatch/statsObj.autoChangeTotal);
         
-        // chalkType = (matchFlag) ? chalkGreen : chalk.yellow;
-
       if (updatedUser.categoryAuto !== networkOutput.output) {
         console.log(chalkType("WAS | TFC | >>> NN AUTO CHG"
           + " | " + statsObj.autoChangeMatchRate.toFixed(2) + "%"
@@ -2629,7 +2625,6 @@ function initUserCategorizeQueueInterval(cnf){
           + " @" + updatedUser.screenName
         ));
       }
-
 
       updatedUser.categoryAuto = networkOutput.output;
       updatedUser.lastHistogramTweetId = updatedUser.statusId;

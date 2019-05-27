@@ -508,7 +508,7 @@ function userUpdateDb(tweetObj){
         }
 
         if (!user) {
-          console.log(chalkLog("DBU | --- USER DB MISS: @" + tweetObj.user.screenName));
+          debug(chalkLog("DBU | --- USER DB MISS: @" + tweetObj.user.screenName));
           return resolve(null);
         }
 

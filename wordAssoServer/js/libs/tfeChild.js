@@ -2477,11 +2477,13 @@ function fetchUserTweets(params){
   });
 }
 
-function updateUserHistograms(params) {
+function updateUserHistograms(p) {
 
   return new Promise(async function(resolve, reject){
+
+    let params = p || {};
     
-    if ((params.user === undefined) || !params.user) {
+    if ((params.user === undefined) || !params.user || !params.user.nodeId || (params.user.nodeId === undefined)) {
       console.log(chalkError("WAS | TFC | *** updateUserHistograms USER UNDEFINED"));
       const err = new Error("WAS | TFC | *** updateUserHistograms USER UNDEFINED");
       console.error(err);
@@ -2490,7 +2492,9 @@ function updateUserHistograms(params) {
 
     let user;
 
-    params.user.userId = (params.user.nodeId && !params.user.userId) ? params.user.nodeId : params.user.userId;
+    if (!params.user.userId || (params.user.userId === undefined)){
+      params.user.userId = params.user.nodeId;
+    }
 
     try {
 
@@ -2639,6 +2643,8 @@ function initUserCategorizeQueueInterval(cnf){
         dbUser = await userServerController.findOneUserV2({user: updatedUser, mergeHistograms: false, noInc: true});
         if (configuration.verbose) { printUserObj("WAS | TFC | DB", dbUser, chalkLog); }
         userChangeCache.del(dbUser.nodeId);
+        clearTimeout(uscTimeout);
+        userCategorizeQueueReady = true;
       }
       catch(err){
         console.log(chalkError("WAS | TFC | *** USER FIND ONE ERROR"
@@ -2646,10 +2652,12 @@ function initUserCategorizeQueueInterval(cnf){
           + " | @" + updatedUser.screenName
           + " | " + err
         ));
+        clearTimeout(uscTimeout);
+        userCategorizeQueueReady = true;
       }
 
-      clearTimeout(uscTimeout);
-      userCategorizeQueueReady = true;
+      // clearTimeout(uscTimeout);
+      // userCategorizeQueueReady = true;
     }
 
   }, cnf.userCategorizeQueueInterval);

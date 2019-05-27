@@ -2919,18 +2919,23 @@ process.on("message", function(m) {
           ));
         }
         catch(err){
-          userChangeCache.set(m.user.nodeId, {user: m.user, timeStamp: moment().valueOf()});
-          userCategorizeQueue.push(m.user);
 
-          debug(chalkInfo("WAS | TFC | USER_CATEGORIZE"
-            + " [ USQ: " + userCategorizeQueue.length + "]"
-            + " | FLWRs: " + m.user.followersCount
-            + " | FRNDs: " + m.user.friendsCount
-            + " | USER " + m.user.userId
-            + " | @" + m.user.screenName
-            + " | " + m.user.name
-            + "\nTFE | USER_SHOW | DESC: " + m.user.description
+          console.log(chalkError("WAS | TFC | *** USER_CATEGORIZE ERROR"
+            + " | " + err
+            + "\n" + jsonPrint(m.user)
           ));
+          //   + " [ USQ: " + userCategorizeQueue.length + "]"
+          //   + " | FLWRs: " + m.user.followersCount
+          //   + " | FRNDs: " + m.user.friendsCount
+          //   + " | USER " + m.user.userId
+          //   + " | @" + m.user.screenName
+          //   + " | " + m.user.name
+          //   + "\nTFE | USER_SHOW | DESC: " + m.user.description
+          // ));
+
+          // userChangeCache.set(m.user.nodeId, {user: m.user, timeStamp: moment().valueOf()});
+          // userCategorizeQueue.push(m.user);
+
         }
       }
     break;

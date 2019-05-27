@@ -1994,7 +1994,7 @@ function updateUserTweets(params){
         return reject(err);
       }
 
-      if (configuration.verbose || (tweetsProcessed > 0)) {
+      if (configuration.verbose && (tweetsProcessed > 0)) {
         console.log(chalkLog("WAS | TFC | +++ Ts"
           + " | " + tweetsProcessed
           + " [ P/H/T " + statsObj.twitter.tweetsProcessed + "/" + statsObj.twitter.tweetsHits + "/" + statsObj.twitter.tweetsTotal + " ]"

@@ -577,202 +577,6 @@ function saveFile (path, file, jsonObj, callback){
     });
 }
 
-// function loadFile(path, file, callback) {
-
-//   // console.log(chalkInfo("TSS | LOAD FOLDER " + path));
-//   // console.log(chalkInfo("TSS | LOAD FILE " + file));
-//   // console.log(chalkInfo("TSS | FULL PATH " + path + "/" + file));
-
-//   dropboxClient.filesDownload({path: path + "/" + file}).
-//     then(function(data) {
-//       console.log("TSS | " + chalkLog(getTimeStamp()
-//         + " | LOADING FILE FROM DROPBOX FILE: " + path + "/" + file
-//       ));
-
-//       const payload = data.fileBinary;
-//       debug(payload);
-
-//       if (file.match(/\.json$/gi)) {
-//         const fileObj = JSON.parse(payload);
-//         return(callback(null, fileObj));
-//       }
-//       else {
-//         return(callback(null, payload));
-//       }
-//     }).
-//     catch(function(error) {
-//       console.log(chalkError("TSS | *** DROPBOX loadFile ERROR: " + file + " | " + error));
-//       console.log(chalkError("TSS | *** DROPBOX READ " + file + " ERROR"));
-
-//       if ((error.response.status === 404) || (error.response.status === 409)) {
-//         console.error(chalkError("TSS | *** DROPBOX READ FILE " + file + " NOT FOUND"
-//           + " ... SKIPPING ...")
-//         );
-//         return(callback(null, null));
-//       }
-//       if (error.status === 0) {
-//         console.error(chalkError("TSS | *** DROPBOX NO RESPONSE"
-//           + " ... NO INTERNET CONNECTION? ... SKIPPING ..."));
-//         return(callback(null, null));
-//       }
-//       console.log(chalkError(jsonPrint(error)));
-//       return(callback(error, null));
-//     }).
-//     catch(function(err) {
-//       console.log(chalkError("TSS | *** ERROR DROPBOX LOAD FILE\n" + err));
-//       callback(err, null);
-//     });
-// }
-
-// function loadFile(params) {
-
-//   return new Promise(function(resolve, reject){
-
-//     const noErrorNotFound = params.noErrorNotFound || false;
-
-//     let fullPath = params.path || params.folder + "/" + params.file;
-
-//     debug(chalkInfo("LOAD PATH " + params.path));
-//     debug(chalkInfo("LOAD FOLDER " + params.folder));
-//     debug(chalkInfo("LOAD FILE " + params.file));
-//     debug(chalkInfo("FULL PATH " + fullPath));
-
-
-//     if (configuration.offlineMode || params.loadLocalFile) {
-
-//       fullPath = DROPBOX_ROOT_FOLDER + fullPath;
-
-//       fs.readFile(fullPath, "utf8", function(err, data) {
-
-//         if (err) {
-//           console.log(chalkError("fs readFile ERROR: " + err));
-//           return reject(err);
-//         }
-
-//         console.log(chalkInfo(getTimeStamp()
-//           + " | LOADING FILE FROM DROPBOX"
-//           + " | " + fullPath
-//         ));
-
-//         if (fullPath.match(/\.json$/gi)) {
-
-//           const results = jsonParse(data);
-
-//           if (results.error) {
-//             console.log(chalkError(getTimeStamp()
-//               + " | *** LOAD FILE FROM DROPBOX ERROR"
-//               + " | " + fullPath
-//               + " | " + results.error
-//             ));
-
-//             return reject(results.error);
-//           }
-
-//           const fileObjSizeMbytes = sizeof(results.value)/ONE_MEGABYTE;
-
-//           console.log(chalkInfo(getTimeStamp()
-//             + " | LOADED FILE FROM DROPBOX"
-//             + " | " + fileObjSizeMbytes.toFixed(2) + " MB"
-//             + " | " + fullPath
-//           ));
-
-//           return resolve(results.value);
-
-//         }
-
-//         console.log(chalkError(getTimeStamp()
-//           + " | SKIP LOAD FILE FROM DROPBOX"
-//           + " | " + fullPath
-//         ));
-//         resolve();
-
-//       });
-
-//      }
-//     else {
-
-//       dropboxClient.filesDownload({path: fullPath}).
-//       then(function(data) {
-
-//         debug(chalkLog(getTimeStamp()
-//           + " | LOADING FILE FROM DROPBOX FILE: " + fullPath
-//         ));
-
-//         if (fullPath.match(/\.json$/gi)) {
-
-//           const payload = data.fileBinary;
-
-//           if (!payload || (payload === undefined)) {
-//             return reject(new Error(MODULE_ID_PREFIX + " LOAD FILE PAYLOAD UNDEFINED"));
-//           }
-
-//           // jsonParse(payload, function(err, fileObj){
-//           //   if (err) {
-//           //     console.log(chalkError(getTimeStamp()
-//           //       + " | *** LOAD FILE FROM DROPBOX ERROR"
-//           //       + " | " + fullPath
-//           //       + " | " + err
-//           //     ));
-
-//           //     return reject(err);
-//           //   }
-
-//           //   return resolve(fileObj);
-
-//           // });
-
-//           const results = jsonParse(payload);
-
-//           if (results.error) {
-//             console.log(chalkError(getTimeStamp()
-//               + " | *** LOAD FILE FROM DROPBOX ERROR"
-//               + " | " + fullPath
-//               + " | " + results.error
-//             ));
-
-//             return reject(results.error);
-//           }
-
-//           const fileObjSizeMbytes = sizeof(results.value)/ONE_MEGABYTE;
-
-//           console.log(chalkInfo(getTimeStamp()
-//             + " | LOADED FILE FROM DROPBOX"
-//             + " | " + fileObjSizeMbytes.toFixed(2) + " MB"
-//             + " | " + fullPath
-//           ));
-
-//           return resolve(results.value);
-
-//         }
-//         else {
-//           resolve();
-//         }
-//       }).
-//       catch(function(err) {
-
-//         console.log(chalkError(MODULE_ID_PREFIX + " | *** DROPBOX loadFile ERROR: " + fullPath));
-        
-//         if ((err.status === 409) || (err.status === 404)) {
-//           if (noErrorNotFound) {
-//             if (configuration.verbose) { console.log(chalkLog(MODULE_ID_PREFIX + " | *** DROPBOX READ FILE " + fullPath + " NOT FOUND")); }
-//             return resolve(new Error("NOT FOUND"));
-//           }
-//           console.log(chalkAlert(MODULE_ID_PREFIX + " | *** DROPBOX READ FILE " + fullPath + " NOT FOUND ... SKIPPING ..."));
-//           return resolve(err);
-//         }
-        
-//         if (err.status === 0) {
-//           console.log(chalkError(MODULE_ID_PREFIX + " | *** DROPBOX NO RESPONSE"
-//             + " | NO INTERNET CONNECTION? SKIPPING ..."));
-//           return resolve(new Error("NO INTERNET"));
-//         }
-
-//         reject(err);
-
-//       });
-//     }
-//   });
-// }
 function loadFile(params) {
 
   return new Promise(function(resolve, reject){
@@ -912,26 +716,6 @@ function loadFile(params) {
     }
   });
 }
-
-
-// function initStatsUpdate(cnf, callback){
-
-//   console.log(chalkInfo("TSS | initStatsUpdate | INTERVAL: " + cnf.statsUpdateIntervalTime));
-
-//   setInterval(async function() {
-
-//     statsObj.elapsed = moment().valueOf() - statsObj.startTime;
-//     statsObj.timeStamp = moment().format(defaultDateTimeFormat);
-
-//     showStats();
-
-//     await checkTwitterRateLimit();
-
-//   }, cnf.statsUpdateIntervalTime);
-
-
-//   callback(null, cnf);
-// }
 
 function initStatsUpdate(cnf){
 
@@ -2591,8 +2375,12 @@ process.on("message", async function(m) {
 
       authObjNew = threeceeUserObj.twitStream.getAuth();
 
+      threeceeUserObj.twitterConfig.token = authObjNew.access_token;
+      threeceeUserObj.twitterConfig.token_secret = authObjNew.access_token_secret;
+
       threeceeUserObj.twitterConfig.access_token = authObjNew.access_token;
       threeceeUserObj.twitterConfig.access_token_secret = authObjNew.access_token_secret;
+      
       threeceeUserObj.twitterConfig.TOKEN = authObjNew.access_token;
       threeceeUserObj.twitterConfig.TOKEN_SECRET = authObjNew.access_token_secret;
 

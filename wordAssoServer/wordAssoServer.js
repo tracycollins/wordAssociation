@@ -5950,32 +5950,34 @@ function userCategorizeable(user){
 
   return new Promise(async function(resolve, reject){
 
-    if (user.nodeType !== "user") { resolve(false); }
+    if (user.nodeType !== "user") { 
+      return resolve(false); 
+    }
 
     if (user.following && (user.following !== undefined)) { 
       categorizeableUserSet.add(user.nodeId);
       ignoredUserSet.delete(user.nodeId);
       unfollowableUserSet.delete(user.nodeId);
-      resolve(true); 
+      return resolve(true); 
     }
 
     if (user.ignored && (user.ignored !== undefined)) { 
       ignoredUserSet.add(user.nodeId);
       unfollowableUserSet.add(user.nodeId);
       categorizeableUserSet.delete(user.nodeId);
-      resolve(false); 
+      return resolve(false); 
     }
 
     if (ignoredUserSet.has(user.nodeId)) { 
       unfollowableUserSet.add(user.nodeId);
       categorizeableUserSet.delete(user.nodeId);
-      resolve(false); 
+      return resolve(false); 
     }
 
     if (unfollowableUserSet.has(user.nodeId)) { 
       ignoredUserSet.add(user.nodeId);
       categorizeableUserSet.delete(user.nodeId);
-      resolve(false);
+      return resolve(false);
     }
 
     if (user.lang && (user.lang !== undefined) && (user.lang !== "en")) { 
@@ -5985,7 +5987,7 @@ function userCategorizeable(user){
       if (configuration.verbose) { 
         console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LANG NOT ENGLISH: " + user.lang));
       }
-      resolve(false);
+      return resolve(false);
     }
 
     if (ignoreLocationsRegEx
@@ -5998,15 +6000,13 @@ function userCategorizeable(user){
       unfollowableUserSet.add(user.nodeId);
       ignoredUserSet.add(user.nodeId);
 
-      resolve(false);
+      return resolve(false);
     }
-
-    // if (!followableRegEx || (followableRegEx === undefined)) { resolve(false); }
     
     if (user.followersCount && (user.followersCount !== undefined) && (user.followersCount < configuration.minFollowersAuto)) { 
       unfollowableUserSet.add(user.nodeId);
       categorizeableUserSet.add(user.nodeId);
-      resolve(false);
+      return resolve(false);
     }
 
     if (!user.ignored || (user.ignored === undefined)){
@@ -6592,7 +6592,7 @@ function updateUserSets(){
       statsObj.user.auto.none = userAutoNoneSet.size;
 
       console.log(chalkBlue("WAS | END FOLLOWING CURSOR | FOLLOWING USER SET"));
-      console.log(chalkBlue("WAS | USER DB STATS\n" + jsonPrint(statsObj.user)));
+      console.log(chalkLog("WAS | USER DB STATS\n" + jsonPrint(statsObj.user)));
 
       if (!calledBack) { 
         calledBack = true;
@@ -10035,7 +10035,7 @@ function initCategoryHashmaps(){
 
   return new Promise(function(resolve, reject){
 
-    console.log(chalk.bold.black("WAS | INIT CATEGORIZED USER + HASHTAG HASHMAPS FROM DB"));
+    console.log(chalkBlue("WAS | INIT CATEGORIZED USER + HASHTAG HASHMAPS FROM DB"));
   
     async.series({
 

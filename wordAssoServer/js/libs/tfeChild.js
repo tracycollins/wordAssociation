@@ -2481,7 +2481,7 @@ function updateUserHistograms(p) {
 
   return new Promise(async function(resolve, reject){
 
-    let params = p || {};
+    const params = p || {};
     
     if ((params.user === undefined) || !params.user) {
       console.log(chalkError("WAS | TFC | *** updateUserHistograms USER UNDEFINED"));
@@ -2493,7 +2493,9 @@ function updateUserHistograms(p) {
     if (!params.user.nodeId || (params.user.nodeId === undefined)) {
 
       if (!params.user.userId || (params.user.userId === undefined)){
-        console.log(chalkError("WAS | TFC | *** updateUserHistograms USER NODE & USER IDs UNDEFINED"));
+        console.log(chalkError("WAS | TFC | *** updateUserHistograms USER NODE & USER IDs UNDEFINED"
+          + "\n" + jsonPrint(params.user)
+        ));
         const err = new Error("WAS | TFC | *** updateUserHistograms USER NODE & USER IDs UNDEFINED");
         console.error(err);
         return reject(err);
@@ -2507,7 +2509,9 @@ function updateUserHistograms(p) {
     if (!params.user.userId || (params.user.userId === undefined)) {
 
       if (!params.user.nodeId || (params.user.nodeId === undefined)){
-        console.log(chalkError("WAS | TFC | *** updateUserHistograms USER NODE & USER IDs UNDEFINED"));
+        console.log(chalkError("WAS | TFC | *** updateUserHistograms USER NODE & USER IDs UNDEFINED"
+          + "\n" + jsonPrint(params.user)
+        ));
         const err = new Error("WAS | TFC | *** updateUserHistograms USER NODE & USER IDs UNDEFINED");
         console.error(err);
         return reject(err);
@@ -2604,7 +2608,15 @@ function initUserCategorizeQueueInterval(cnf){
         return;
       }
 
-      user.nodeId = user.userId;
+      if (user.userId && (user.userId !== undefined) && (!user.nodeId || (user.nodeId === undefined))){
+        console.log(chalkWarn("WAS | TFC | !!! USER CAT ERROR: USER NODE ID UNDEFINED\n" + jsonPrint(user)));
+        user.nodeId = user.userId;
+      }
+
+      if (user.nodeId && (user.nodeId !== undefined) && (!user.userId || (user.userId === undefined))){
+        console.log(chalkWarn("WAS | TFC | !!! USER CAT ERROR: USER USER ID UNDEFINED\n" + jsonPrint(user)));
+        user.userId = user.nodeId;
+      }
 
       if (configuration.verbose) { printUserObj("WAS | TFC | USER CAT [ UCATQ: " + userCategorizeQueue.length + " ]", user, chalkLog); }
 

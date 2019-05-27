@@ -8,9 +8,7 @@ const ONE_DAY = 24 * ONE_HOUR;
 const ONE_KILOBYTE = 1024;
 const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
 
-
-// const DEFAULT_START_TIMEOUT = ONE_MINUTE;
-const DEFAULT_START_TIMEOUT = 5000;
+const DEFAULT_START_TIMEOUT = ONE_MINUTE;
 
 let saveSampleTweetFlag = true;
 

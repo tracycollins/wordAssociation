@@ -2394,13 +2394,9 @@ function loadFile(params) {
           }
 
           return resolve(payload);
-
-          // console.log(chalkError("WAS | DROPBOX loadFile ERROR: " + fullPath));
-          // return reject(fileObj.error);
         }
-        // else {
+
         resolve();
-        // }
       }).
       catch(function(error) {
 
@@ -3551,10 +3547,6 @@ function updateTwitterWebhook(){
       },      
       form: { url: fullWebhookUrl },
       oauth: {
-        // consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",
-        // consumer_secret: "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa",
-        // token: "14607119-S5EIEw89NSC462IkX4GWT67K1zWzoLzuZF7wiurku",
-        // token_secret: "3NI3s4sTILiqBilgEDBSlC6oSJYXcdLQP7lXp58TQMk0A"
         consumer_key: threeceeConfig.consumer_key,
         consumer_secret: threeceeConfig.consumer_secret,
         token: threeceeConfig.token,
@@ -3718,15 +3710,6 @@ function addAccountActivitySubscription(p){
         "Content-type": "application/x-www-form-urlencoded"
       },      
       oauth: {
-        // consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",
-        // consumer_secret: "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa",
-        // token: "848591649575927810-2MYMejf0VeXwMkQELca6uDqXUkfxKow",
-        // token_secret: "NL5UBvP2QFPH9fYe7MUZleH24RoMoErfbDTrJNglrEidB"
-        // 
-        // consumer_key: threeceeConfig.consumer_key,
-        // consumer_secret: threeceeConfig.consumer_secret,
-        // token: threeceeConfig.token,
-        // token_secret: threeceeConfig.token_secret
         consumer_key: threeceeTwitter[params.threeceeUser].twitterConfig.consumer_key,
         consumer_secret: threeceeTwitter[params.threeceeUser].twitterConfig.consumer_secret,
         token: threeceeTwitter[params.threeceeUser].twitterConfig.token,
@@ -3741,11 +3724,8 @@ function addAccountActivitySubscription(p){
 
       const body = await request(options);
 
-      const bodyJson = JSON.parse(body);
-
-      console.log(chalkAlert("WAS | +++ ADDED TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"
-        + "\nBODY: " + jsonPrint(bodyJson)
-      ));
+      console.log(chalk.green("WAS | +++ ADDED TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"));
+      console.log(body);
 
       resolve();
 
@@ -4260,20 +4240,18 @@ function ignore(params, callback) {
 
   tssSendAllChildren({op: "IGNORE", user: params.user});
 
-  global.globalUser.deleteOne({"nodeId": params.user.nodeId }, function(err, delUser){
+  global.globalUser.deleteOne({"nodeId": params.user.nodeId}, function(err){
     if (err) {
       console.log(chalkError("WAS | *** DB DELETE IGNORED USER ERROR: " + err));
     }
-    else if (delUser.deletedCount > 0){
-
+    else {
       console.log(chalkAlert("WAS | XXX IGNORED USER | DELETED" 
-        + " | " + delUser.nodeId
-        + " | @" + delUser.screenName
+        + " | " + params.user.nodeId
+        + " | @" + params.user.screenName
       ));
-
     }
 
-    if (callback !== undefined) { callback(err, delUser); }
+    if (callback !== undefined) { callback(err); }
   });
 }
 
@@ -6956,6 +6934,74 @@ function initAppRouting(callback) {
         }
       }
       else {
+        // ACCOUNT EVENTS
+
+        const followEvents = req.body.follow_events;
+
+        if (followEvents && (followEvents[0].type === "follow")) {
+          console.log(chalkAlert("WAS | >>> TWITTER USER FOLLOW EVENT"
+            + " | SOURCE: @" + followEvents[0].source.screen_name
+            + " | TARGET: @" + followEvents[0].target.screen_name
+            // + "\n" + jsonPrint(followEvents)
+          ));
+
+          const user = {
+            nodeId: followEvents[0].target.id.toString(),
+            screenName: followEvents[0].target.screen_name
+          }
+
+          follow({user: user, forceFollow: true}, function(err, updatedUser){
+            if (err) {
+              console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: " + err));
+              return;
+            }
+            
+            if (!updatedUser) { return; }
+
+            adminNameSpace.emit("FOLLOW", updatedUser);
+            utilNameSpace.emit("FOLLOW", updatedUser);
+
+            debug(chalk.blue("WAS | +++ TWITTER FOLLOW"
+              + " | UID" + updatedUser.nodeId
+              + " | @" + updatedUser.screenName
+            ));
+
+          });
+
+        }
+        
+        if (followEvents && (followEvents[0].type === "unfollow")) {
+
+          console.log(chalkAlert("WAS | >>> TWITTER USER UNFOLLOW EVENT"
+            + " | SOURCE: @" + followEvents[0].source.screen_name
+            + " | TARGET: @" + followEvents[0].target.screen_name
+            // + "\n" + jsonPrint(followEvents)
+          ));
+
+          const user = {
+            nodeId: followEvents[0].target.id.toString(),
+            screenName: followEvents[0].target.id.screenName
+          }
+
+          unfollow({user: user}, function(err, updatedUser){
+            if (err) {
+              console.log(chalkError("WAS | TWITTER_UNFOLLOW ERROR: " + err));
+              return;
+            }
+            
+            if (!updatedUser) { return; }
+
+            adminNameSpace.emit("UNFOLLOW", updatedUser);
+            utilNameSpace.emit("UNFOLLOW", updatedUser);
+
+            debug(chalk.blue("WAS | XXX TWITTER UNFOLLOW"
+              + " | UID" + updatedUser.nodeId
+              + " | @" + updatedUser.screenName
+            ));
+
+          });
+        }
+        
         res.sendStatus(200);
       }
 
@@ -10264,7 +10310,7 @@ function initThreeceeTwitterUsers(params){
           console.log(chalkTwitter("WAS | LOADED TWITTER CONFIG"
             + " | 3C @" + user
             + " | " + dropboxConfigTwitterFolder + "/" + configFile
-            // + "\nCONFIG\n" + jsonPrint(twitterConfig)
+            + "\nCONFIG\n" + jsonPrint(twitterConfig)
           ));
 
           if (!configuration.threeceeUsers.includes(twitterConfig.screenName)) {
@@ -10953,6 +10999,8 @@ setTimeout(async function(){
     await initKeySortInterval(configuration.keySortInterval);
     await initSaveFileQueue(configuration);
 
+    await initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
+
     try{
       await getTwitterWebhooks();
       await addAccountActivitySubscription();
@@ -10968,7 +11016,6 @@ setTimeout(async function(){
     await loadMaxInputHashMap();
     await initCategoryHashmaps();
     await initIgnoreWordsHashMap();
-    await initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
     await initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval);
     await initRateQinterval(configuration.rateQueueInterval);
     await initTwitterRxQueueInterval(configuration.twitterRxQueueInterval);

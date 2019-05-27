@@ -6740,7 +6740,7 @@ function initTransmitNodeQueueInterval(interval){
                 if (categorizeable) {
 
                   if (n.nodeType !== "user"){
-                    console.log(chalkError("WAS | *** CATEGORIZED NOT USER: " + n.nodeType));
+                    console.log(chalkError("WAS | *** CATEGORIZED NOT USER: CAT: " + categorizeable + " | TYPE: " + n.nodeType));
                   }
 
                   if (!uncategorizedManualUserSet.has(n.nodeId) 

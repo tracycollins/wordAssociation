@@ -6808,7 +6808,6 @@ function initTransmitNodeQueueInterval(interval){
                   viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
 
                   transmitNodeQueueReady = true;
-
                 }
                 else if ((n.nodeType === "hashtag") && n.category){
 

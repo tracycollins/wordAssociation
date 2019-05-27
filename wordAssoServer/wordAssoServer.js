@@ -6739,6 +6739,10 @@ function initTransmitNodeQueueInterval(interval){
 
                 if (categorizeable) {
 
+                  if (n.nodeType !== "user"){
+                    console.log(chalkError("WAS | *** CATEGORIZED NOT USER: " + u.nodeType));
+                  }
+
                   if (!uncategorizedManualUserSet.has(n.nodeId) 
                     && ((n.category === undefined) || !n.category) 
                     && ((n.ignored === undefined) || !n.ignored) 
@@ -6768,7 +6772,6 @@ function initTransmitNodeQueueInterval(interval){
                     tfeChild.send({op: "USER_CATEGORIZE", user: n});
                   }
                 }
-
                 if ((n.nodeType === "user") && (n.category || n.categoryAuto || n.following || n.threeceeFollowing)){
 
                   nCacheObj = nodeCache.get(n.nodeId);

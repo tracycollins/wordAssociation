@@ -3792,6 +3792,8 @@ function categorizeNode(categorizeObj, callback) {
 
       if (nCacheObj) {
         categorizeObj.node.mentions = Math.max(categorizeObj.node.mentions, nCacheObj.mentions);
+        nCacheObj.mentions = categorizeObj.node.mentions;
+        nodeCache.set(nCacheObj.nodeId, nCacheObj);
       }
 
       if (!userServerControllerReady || !statsObj.dbConnectionReady) {
@@ -3876,6 +3878,8 @@ function categorizeNode(categorizeObj, callback) {
 
       if (nCacheObj) {
         categorizeObj.node.mentions = Math.max(categorizeObj.node.mentions, nCacheObj.mentions);
+        nCacheObj.mentions = categorizeObj.node.mentions;
+        nodeCache.set(nCacheObj.nodeId, nCacheObj);
       }
 
       hashtagServerController.updateCategory(
@@ -5923,14 +5927,14 @@ const userCategorizeable = function(user){
 
   if (user.nodeType !== "user") { return false; }
 
-  if ((user.following !== undefined) && user.following) { 
+  if (user.following && (user.following !== undefined)) { 
     categorizeableUserSet.add(user.nodeId);
     ignoredUserSet.delete(user.nodeId);
     unfollowableUserSet.delete(user.nodeId);
     return true;
   }
 
-  if ((user.ignored !== undefined) && user.ignored) { 
+  if (user.ignored && (user.ignored !== undefined)) { 
     ignoredUserSet.add(user.nodeId);
     unfollowableUserSet.add(user.nodeId);
     categorizeableUserSet.delete(user.nodeId);
@@ -5949,7 +5953,7 @@ const userCategorizeable = function(user){
     return false;
   }
 
-  if ((user.lang !== undefined) && (user.lang !== "en")) { 
+  if (user.lang && (user.lang !== undefined) && (user.lang !== "en")) { 
     ignoredUserSet.add(user.nodeId);
     unfollowableUserSet.add(user.nodeId);
     categorizeableUserSet.delete(user.nodeId);
@@ -5959,7 +5963,8 @@ const userCategorizeable = function(user){
     return false;
   }
 
-  if ((ignoreLocationsRegEx !== undefined) 
+  if (ignoreLocationsRegEx
+    && (ignoreLocationsRegEx !== undefined) 
     && user.location 
     && (user.location !== undefined) 
     && !allowLocationsRegEx.test(user.location)
@@ -5972,16 +5977,16 @@ const userCategorizeable = function(user){
 
   }
 
-  if (followableRegEx === undefined) { return false; }
+  if (!followableRegEx || (followableRegEx === undefined)) { return false; }
   
-  if (user.followersCount !== undefined && (user.followersCount < configuration.minFollowersAuto)) { 
+  if (user.followersCount && (user.followersCount !== undefined) && (user.followersCount < configuration.minFollowersAuto)) { 
     unfollowableUserSet.add(user.nodeId);
     categorizeableUserSet.add(user.nodeId);
     return false;
   }
 
-  if (((user.ignored === undefined) || !user.ignored )
-    && (user.followersCount !== undefined && (user.followersCount >= configuration.minFollowersAuto))) { 
+  if ( ((user.ignored === undefined) || !user.ignored)
+    && (user.followersCount !== undefined) && (user.followersCount >= configuration.minFollowersAuto)) { 
 
     if ((user.description === undefined) || !user.description) { user.description = ""; }
     if ((user.screenName === undefined) || !user.screenName) { user.screenName = ""; }
@@ -10487,16 +10492,16 @@ function twitterGetUserUpdateDb(user, callback){
             user.url = cUser.url;
             user.userId = cUser.userId;
             user.verified = cUser.verified;
-            user.mentions = 0;
+            // user.mentions = 0;
 
             const nCacheObj = nodeCache.get(user.nodeId);
 
             if (nCacheObj) {
               user.mentions = Math.max(user.mentions, nCacheObj.mentions);
             }
-            else {
-              user.mentions = 0;
-            }
+            // else {
+            //   user.mentions = 0;
+            // }
             user.setMentions = true;
 
             try{
@@ -10541,6 +10546,7 @@ function twitterGetUserUpdateDb(user, callback){
 
         if (nCacheObj) {
           user.mentions = Math.max(user.mentions, nCacheObj.mentions);
+          nodeCache.set(user.nodeId, user);
         }
         else {
           user.mentions = 0;

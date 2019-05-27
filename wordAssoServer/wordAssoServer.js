@@ -1,5 +1,15 @@
 /*jslint node: true */
 /*jshint sub:true*/
+const ONE_SECOND = 1000;
+const ONE_MINUTE = 60 * ONE_SECOND;
+const ONE_HOUR = 60 * ONE_MINUTE;
+const ONE_DAY = 24 * ONE_HOUR;
+
+const ONE_KILOBYTE = 1024;
+const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
+
+
+const DEFAULT_START_TIMEOUT = ONE_MINUTE;
 
 let saveSampleTweetFlag = true;
 
@@ -53,14 +63,6 @@ let userSearchCursor;
 let heartbeatInterval;
 
 process.env.NODE_ENV = process.env.NODE_ENV || "development";
-
-const ONE_SECOND = 1000;
-const ONE_MINUTE = 60 * ONE_SECOND;
-const ONE_HOUR = 60 * ONE_MINUTE;
-const ONE_DAY = 24 * ONE_HOUR;
-
-const ONE_KILOBYTE = 1024;
-const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
 
 const DEFAULT_IGNORE_CATEGORY_RIGHT = false;
 const DEFAULT_GEOCODE_ENABLED = false;
@@ -7125,93 +7127,91 @@ function initAppRouting(callback) {
                   ));
 
                   // response.entries.forEach(function(entry){
-                  async.eachSeries(response.entries, function(entry, cb1){
+                  async.eachSeries(response.entries, async function(entry){
 
                     console.log(chalk.green("WAS | >>> DROPBOX CHANGE | PATH LOWER: " + entry.path_lower));
 
                     if ((entry.path_lower.endsWith("google_wordassoserverconfig.json"))
                       || (entry.path_lower.endsWith("default_wordassoserverconfig.json"))){
-                      initConfig(configuration);
-                      cb1();
+                      await initConfig(configuration);
+                      return;
                     }
 
-                    else if (entry.path_lower.endsWith("users.zip")){
+                    if (entry.path_lower.endsWith("users.zip")){
                       touchUsersZipUpdateFlag();
-                      cb1();
+                      return;
                     }
 
-                    else if (entry.path_lower.endsWith(bestRuntimeNetworkFileName.toLowerCase())){
+                    if (entry.path_lower.endsWith(bestRuntimeNetworkFileName.toLowerCase())){
                       loadBestRuntimeNetwork().
                       then(function(){
-                        cb1();
+                        return;
                       }).
                       catch(function(err){
-                        cb1(err);
+                        return err;
                       });
                     }
 
-                    else if (entry.path_lower.endsWith(maxInputHashMapFile)){
+                    if (entry.path_lower.endsWith(maxInputHashMapFile)){
 
                       setTimeout(function(){
 
                         loadMaxInputHashMap().
                         then(function(){
                           configEvents.emit("NEW_MAX_INPUT_HASHMAP");
-                          cb1();
+                          return;
                         }).
                         catch(function(err){
-                          cb1(err);
+                          return err;
                         });
 
                       }, 10*ONE_SECOND);
                     }
 
-                    else if (entry.path_lower.endsWith("defaultsearchterms.txt")){
+                    if (entry.path_lower.endsWith("defaultsearchterms.txt")){
                       updateSearchTerms();
-                      cb1();
+                      return;
                     }
 
-                    else if (entry.path_lower.endsWith(ignoredHashtagFile.toLowerCase())){
+                    if (entry.path_lower.endsWith(ignoredHashtagFile.toLowerCase())){
                       initIgnoredHashtagSet();
-                      cb1();
+                      return;
                     }
 
-                    else if (entry.path_lower.endsWith("allowLocations.txt")){
+                    if (entry.path_lower.endsWith("allowLocations.txt")){
                       allowLocations();
-                      cb1();
+                      return;
                     }
 
-                    else if (entry.path_lower.endsWith("ignorelocations.txt")){
+                    if (entry.path_lower.endsWith("ignorelocations.txt")){
                       ignoreLocations();
-                      cb1();
+                      return;
                     }
 
-                    else if (entry.path_lower.endsWith("followablesearchterm.txt")){
+                    if (entry.path_lower.endsWith("followablesearchterm.txt")){
                       initFollowableSearchTermSet().
                       then(function(){
-                        cb1();
+                        return;
                       }).
                       catch(function(err){
-                        return cb1(err);
+                        return err;
                       });
                     }
 
-                    else if ((entry.path_lower.endsWith("google_twittersearchstreamconfig.json"))
+                    if ((entry.path_lower.endsWith("google_twittersearchstreamconfig.json"))
                       || (entry.path_lower.endsWith("default_twittersearchstreamconfig.json"))){
 
                       killTssChildren().
                       then(function(){
                         initTssChildren();
-                        cb1();
+                        return;
                       }).
                       catch(function(err){
-                        cb1(err);
+                        return err;
                       });
                     }
 
-                    else {
-                      cb1();
-                    }
+                    return;
 
                   }, function(err){
                     if (err) {
@@ -11121,7 +11121,7 @@ setTimeout(async function(){
     }
   }
 
-}, 1000);
+}, DEFAULT_START_TIMEOUT);
 
 
 module.exports = {

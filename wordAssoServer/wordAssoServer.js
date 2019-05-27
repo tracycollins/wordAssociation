@@ -6272,7 +6272,7 @@ function updateUserSets(){
   return new Promise(function(resolve, reject){
 
     let calledBack = false;
-    let categorizeable = false;
+    // let categorizeable = false;
 
     if (!statsObj.dbConnectionReady) {
       console.log(chalkAlert("WAS | ABORT updateUserSets: DB CONNECTION NOT READY"));
@@ -6383,7 +6383,7 @@ function updateUserSets(){
     
     userSearchCursor = global.globalUser.find(userSearchQuery).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
 
-    userSearchCursor.on("data", function(user) {
+    userSearchCursor.on("data", async function(user) {
 
       switch (user.category) {
         case "right":
@@ -6496,7 +6496,14 @@ function updateUserSets(){
         );
       }
 
-      categorizeable = userCategorizeable(user);
+      let categorizeable = false;
+
+      try {
+        categorizeable = await userCategorizeable(user);
+      }
+      catch(e){
+        categorizeable = false;
+      }
 
       if (categorizeable
         && ((user.category === undefined) || !user.category) 
@@ -6719,7 +6726,7 @@ function initTransmitNodeQueueInterval(interval){
               return; 
             }
 
-            updateNodeMeter(node, function updateNodeMeterCallback(err, n){
+            updateNodeMeter(node, async function updateNodeMeterCallback(err, n){
 
               if (err) {
                 console.log(chalkError("WAS | ERROR updateNodeMeter: " + err
@@ -6735,7 +6742,12 @@ function initTransmitNodeQueueInterval(interval){
               }
               else {
 
-                categorizeable = userCategorizeable(n);
+                try {
+                  categorizeable = await userCategorizeable(n);
+                }
+                catch(e){
+                  categorizeable = false;
+                }
 
                 if (categorizeable) {
 
@@ -10815,7 +10827,7 @@ function twitterSearchNode(params, callback) {
 
         searchQuery = {nodeId: uncategorizedUserId};
 
-        twitterSearchUserNode(searchQuery, function(err, user){
+        twitterSearchUserNode(searchQuery, async function(err, user){
           if (err){
             console.log(chalkError("WAS | *** TWITTER_SEARCH_NODE ERROR"
               + " [ UC USER ARRAY: " + currentUncategorizedUserArray.length + "]"
@@ -10831,7 +10843,14 @@ function twitterSearchNode(params, callback) {
           else if (user) {
             if (tfeChild !== undefined) { 
 
-              const categorizeable = userCategorizeable(user);
+              let categorizeable = false;
+
+              try {
+                categorizeable = await userCategorizeable(user);
+              }
+              catch(e){
+                categorizeable = false;
+              }
 
               if (categorizeable) { 
                 if (user.toObject && (typeof user.toObject === "function")) {

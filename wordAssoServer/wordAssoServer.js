@@ -626,13 +626,13 @@ followableSearchTermSet.add("supreme court");
 followableSearchTermSet.add("specialcounsel");
 followableSearchTermSet.add("special counsel");
 
-const followableSearchTermsArray = Array.from(followableSearchTermSet);
-let followableSearchTermString = followableSearchTermsArray.join('\\b|\\b');
-followableSearchTermString = '\\b' + followableSearchTermString + '\\b';
+let followableSearchTermsArray = [...followableSearchTermSet];
+// let followableSearchTermString = followableSearchTermsArray.join('\\b|\\b');
+// followableSearchTermString = '\\b' + followableSearchTermString + '\\b';
 
-console.log("followableSearchTermString\n" + followableSearchTermString);
+// console.log("followableSearchTermString\n" + followableSearchTermString);
 
-let followableRegEx = new RegExp('/' + followableSearchTermString + '/', "i");
+// let followableRegEx = new RegExp('/' + followableSearchTermString + '/', "i");
 
 const DEFAULT_BEST_NETWORK_FOLDER = "/config/utility/best/neuralNetworks";
 const bestNetworkFolder = DEFAULT_BEST_NETWORK_FOLDER;
@@ -5897,16 +5897,17 @@ function initFollowableSearchTerms(){
   return new Promise(function(resolve, reject){
 
     try {
-      const termsArray = Array.from(followableSearchTermSet);
 
-      followableSearchTermString = termsArray.join('\\b|\\b');
-      followableSearchTermString = '\\b' + followableSearchTermString + '\\b';
-      followableRegEx = new RegExp('/' + followableSearchTermString + '/', "i");
+      followableSearchTermsArray = [...followableSearchTermSet];
 
-      debug(chalkInfo("followableRegEx: " + followableRegEx));  
+      // followableSearchTermString = termsArray.join('\\b|\\b');
+      // followableSearchTermString = '\\b' + followableSearchTermString + '\\b';
+      // followableRegEx = new RegExp('/' + followableSearchTermString + '/', "i");
 
-      console.log(chalkLog("WAS | FOLLOWABLE SEARCH TERM REGEX INITIALIZED"
-        + " | " + followableSearchTermSet.size + " SEARCH TERMS"
+      // debug(chalkInfo("followableRegEx: " + followableRegEx));  
+
+      console.log(chalkLog("WAS | FOLLOWABLE SEARCH TERMS INITIALIZED"
+        + " | " + followableSearchTermsArray.length + " SEARCH TERMS"
       ));
 
       resolve();
@@ -5921,90 +5922,145 @@ function initFollowableSearchTerms(){
   });
 }
 
-let categorizeableFlag = false;
 
-const userCategorizeable = function(user){
+function followable(text){
 
-  if (user.nodeType !== "user") { return false; }
+  return new Promise(function(resolve, reject){
 
-  if (user.following && (user.following !== undefined)) { 
-    categorizeableUserSet.add(user.nodeId);
-    ignoredUserSet.delete(user.nodeId);
-    unfollowableUserSet.delete(user.nodeId);
-    return true;
-  }
+    let hitSearchTerm = false;
 
-  if (user.ignored && (user.ignored !== undefined)) { 
-    ignoredUserSet.add(user.nodeId);
-    unfollowableUserSet.add(user.nodeId);
-    categorizeableUserSet.delete(user.nodeId);
-    return false; 
-  }
+    const flag = followableSearchTermsArray.some(function(searchTerm){
+      if (new RegExp("\\b" + searchTerm + "\\b", "i").test(text)) {
+        hitSearchTerm = searchTerm;
+        return true;
+      }
+      return false;
+    });
 
-  if (ignoredUserSet.has(user.nodeId)) { 
-    unfollowableUserSet.add(user.nodeId);
-    categorizeableUserSet.delete(user.nodeId);
-    return false; 
-  }
+    resolve(hitSearchTerm);
 
-  if (unfollowableUserSet.has(user.nodeId)) { 
-    ignoredUserSet.add(user.nodeId);
-    categorizeableUserSet.delete(user.nodeId);
-    return false;
-  }
+  });
 
-  if (user.lang && (user.lang !== undefined) && (user.lang !== "en")) { 
-    ignoredUserSet.add(user.nodeId);
-    unfollowableUserSet.add(user.nodeId);
-    categorizeableUserSet.delete(user.nodeId);
-    if (configuration.verbose) { 
-      console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LANG NOT ENGLISH: " + user.lang));
-    }
-    return false;
-  }
+}
 
-  if (ignoreLocationsRegEx
-    && (ignoreLocationsRegEx !== undefined) 
-    && user.location 
-    && (user.location !== undefined) 
-    && !allowLocationsRegEx.test(user.location)
-    && ignoreLocationsRegEx.test(user.location)){
-    
-    unfollowableUserSet.add(user.nodeId);
-    ignoredUserSet.add(user.nodeId);
 
-    return false;
+let hitSearchTerm = false;
 
-  }
+function userCategorizeable(user){
 
-  if (!followableRegEx || (followableRegEx === undefined)) { return false; }
-  
-  if (user.followersCount && (user.followersCount !== undefined) && (user.followersCount < configuration.minFollowersAuto)) { 
-    unfollowableUserSet.add(user.nodeId);
-    categorizeableUserSet.add(user.nodeId);
-    return false;
-  }
+  return new Promise(async function(resolve, reject){
 
-  if ( ((user.ignored === undefined) || !user.ignored)
-    && (user.followersCount !== undefined) && (user.followersCount >= configuration.minFollowersAuto)) { 
+    if (user.nodeType !== "user") { resolve(false); }
 
-    if ((user.description === undefined) || !user.description) { user.description = ""; }
-    if ((user.screenName === undefined) || !user.screenName) { user.screenName = ""; }
-    if ((user.name === undefined) || !user.name) { user.name = ""; }
-
-    categorizeableFlag = followableRegEx.test(user.description) || followableRegEx.test(user.screenName) || followableRegEx.test(user.name);
-
-    if (categorizeableFlag) { 
+    if (user.following && (user.following !== undefined)) { 
       categorizeableUserSet.add(user.nodeId);
-      // unfollowableUserSet.delete(user.nodeId);
-      // ignoredUserSet.delete(user.nodeId);
+      ignoredUserSet.delete(user.nodeId);
+      unfollowableUserSet.delete(user.nodeId);
+      resolve(true); 
     }
 
-    return categorizeableFlag;
-  }
+    if (user.ignored && (user.ignored !== undefined)) { 
+      ignoredUserSet.add(user.nodeId);
+      unfollowableUserSet.add(user.nodeId);
+      categorizeableUserSet.delete(user.nodeId);
+      resolve(false); 
+    }
 
-  return false;
-};
+    if (ignoredUserSet.has(user.nodeId)) { 
+      unfollowableUserSet.add(user.nodeId);
+      categorizeableUserSet.delete(user.nodeId);
+      resolve(false); 
+    }
+
+    if (unfollowableUserSet.has(user.nodeId)) { 
+      ignoredUserSet.add(user.nodeId);
+      categorizeableUserSet.delete(user.nodeId);
+      resolve(false);
+    }
+
+    if (user.lang && (user.lang !== undefined) && (user.lang !== "en")) { 
+      ignoredUserSet.add(user.nodeId);
+      unfollowableUserSet.add(user.nodeId);
+      categorizeableUserSet.delete(user.nodeId);
+      if (configuration.verbose) { 
+        console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LANG NOT ENGLISH: " + user.lang));
+      }
+      resolve(false);
+    }
+
+    if (ignoreLocationsRegEx
+      && (ignoreLocationsRegEx !== undefined) 
+      && user.location 
+      && (user.location !== undefined) 
+      && !allowLocationsRegEx.test(user.location)
+      && ignoreLocationsRegEx.test(user.location)){
+      
+      unfollowableUserSet.add(user.nodeId);
+      ignoredUserSet.add(user.nodeId);
+
+      resolve(false);
+    }
+
+    // if (!followableRegEx || (followableRegEx === undefined)) { resolve(false); }
+    
+    if (user.followersCount && (user.followersCount !== undefined) && (user.followersCount < configuration.minFollowersAuto)) { 
+      unfollowableUserSet.add(user.nodeId);
+      categorizeableUserSet.add(user.nodeId);
+      resolve(false);
+    }
+
+    if (!user.ignored || (user.ignored === undefined)){
+
+      if ((user.description === undefined) || !user.description) { user.description = ""; }
+      if ((user.screenName === undefined) || !user.screenName) { user.screenName = ""; }
+      if ((user.name === undefined) || !user.name) { user.name = ""; }
+
+      // categorizeableFlag = followableRegEx.test(user.description) || followableRegEx.test(user.screenName) || followableRegEx.test(user.name);
+
+      hitSearchTerm = await followable(user.description);
+
+      if (hitSearchTerm) { 
+        // console.log(chalkLog("WAS | +++ FOLLOWABLE USER DESCRIPTION HIT"
+        //   + " | SEARCH TERM: " + hitSearchTerm
+        //   + " | @" + user.screenName 
+        //   + " | NAME: " + user.name
+        //   + " | DESC: " + user.description
+        // ));
+        categorizeableUserSet.add(user.nodeId);
+        return resolve(true); 
+      }
+
+      hitSearchTerm = await followable(user.screenName);
+
+      if (hitSearchTerm) { 
+        // console.log(chalkLog("WAS | +++ FOLLOWABLE USER SCREEN NAME HIT"
+        //   + " | SEARCH TERM: " + hitSearchTerm
+        //   + " | @" + user.screenName 
+        //   + " | NAME: " + user.name
+        // ));
+        categorizeableUserSet.add(user.nodeId);
+        return resolve(true); 
+      }
+
+      hitSearchTerm = await followable(user.name);
+
+      if (hitSearchTerm) { 
+        // console.log(chalkLog("WAS | +++ FOLLOWABLE USER NAME HIT"
+        //   + " | SEARCH TERM: " + hitSearchTerm
+        //   + " | @" + user.screenName 
+        //   + " | NAME: " + user.name
+        // ));
+        categorizeableUserSet.add(user.nodeId);
+        return resolve(true); 
+      }
+
+      return resolve(false);
+    }
+
+    resolve(false);
+
+  });
+}
 
 function getCurrentThreeceeUser(){
   return new Promise(function(resolve){

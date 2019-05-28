@@ -6330,14 +6330,42 @@ function updateUserSets(){
     userSearchCursor.on("data", async function(user) {
 
       if (user.lang && (user.lang !== undefined) && (user.lang !== "en")){
+
         ignoredUserSet.add(user.nodeId);
         unfollowableUserSet.add(user.nodeId);
-        printUserObj(
-          "LANG NOT ENGLISH: " + user.lang 
-          + " | IGNORE+UNFOLLOW [ IG: " + ignoredUserSet.size + " | UF: " + unfollowableUserSet.size + "]", 
-          user, 
-          chalkAlert
-        );
+
+        global.globalUser.deleteOne({"nodeId": user.nodeId}, function(err){
+          if (err) {
+            console.log(chalkError("WAS | *** DB DELETE USER LANG NOT ENG | ERROR: " + err));
+          }
+          else {
+            printUserObj(
+              "XXX USER | LANG NOT ENGLISH: " + user.lang,
+              user, 
+              chalkAlert
+            );
+          }
+        });
+
+      }
+      else if (user.followersCount < configuration.minFollowersAuto){
+
+        ignoredUserSet.add(user.nodeId);
+        unfollowableUserSet.add(user.nodeId);
+
+        global.globalUser.deleteOne({"nodeId": user.nodeId}, function(err){
+          if (err) {
+            console.log(chalkError("WAS | *** DB DELETE USER LESS THAN MIN FOLLOWERS | ERROR: " + err));
+          }
+          else {
+            printUserObj(
+              "XXX USER | LT MIN FOLLOWERS: " + user.followersCount,
+              user, 
+              chalkAlert
+            );
+          }
+        });
+
       }
       else {
 

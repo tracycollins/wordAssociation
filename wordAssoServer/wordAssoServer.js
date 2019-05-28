@@ -6348,7 +6348,7 @@ function updateUserSets(){
         });
 
       }
-      else if (((user.category === "false" || !user.category) || !user.following) && (user.followersCount < configuration.minFollowersAuto)){
+      else if ((user.category === "false" || !user.category) && !user.following && (user.followersCount < configuration.minFollowersAuto)){
 
         ignoredUserSet.add(user.nodeId);
         unfollowableUserSet.add(user.nodeId);

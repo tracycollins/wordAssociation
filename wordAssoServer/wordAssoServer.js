@@ -4457,7 +4457,7 @@ function initIgnoredHashtagSet(){
             return cb(err);
           }
           
-          if (hashtagUpdated){
+          if (hashtagUpdated && (hashtagUpdated !== undefined)){
 
             numIgnored += 1;
             console.log(chalkLog("WAS | XXX IGNORE"

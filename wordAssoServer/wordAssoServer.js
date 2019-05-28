@@ -10486,7 +10486,7 @@ function twitterGetUserUpdateDb(user, callback){
             user.url = cUser.url;
             user.userId = cUser.userId;
             user.verified = cUser.verified;
-            // user.mentions = 0;
+            user.mentions = 0;
 
             const nCacheObj = nodeCache.get(user.nodeId);
 
@@ -10496,6 +10496,7 @@ function twitterGetUserUpdateDb(user, callback){
             // else {
             //   user.mentions = 0;
             // }
+            
             user.setMentions = true;
 
             try{

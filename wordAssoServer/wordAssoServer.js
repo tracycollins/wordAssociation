@@ -6348,25 +6348,25 @@ function updateUserSets(){
         });
 
       }
-      else if ((user.category === "false" || !user.category) && !user.following && (user.followersCount < configuration.minFollowersAuto)){
+      // else if ((user.category === "false" || !user.category) && !user.following && (user.followersCount < configuration.minFollowersAuto)){
 
-        ignoredUserSet.add(user.nodeId);
-        unfollowableUserSet.add(user.nodeId);
+      //   ignoredUserSet.add(user.nodeId);
+      //   unfollowableUserSet.add(user.nodeId);
 
-        global.globalUser.deleteOne({"nodeId": user.nodeId}, function(err){
-          if (err) {
-            console.log(chalkError("WAS | *** DB DELETE USER LESS THAN MIN FOLLOWERS | ERROR: " + err));
-          }
-          else {
-            printUserObj(
-              "XXX USER | LT MIN FOLLOWERS: " + user.followersCount,
-              user, 
-              chalkAlert
-            );
-          }
-        });
+      //   global.globalUser.deleteOne({"nodeId": user.nodeId}, function(err){
+      //     if (err) {
+      //       console.log(chalkError("WAS | *** DB DELETE USER LESS THAN MIN FOLLOWERS | ERROR: " + err));
+      //     }
+      //     else {
+      //       printUserObj(
+      //         "XXX USER | LT MIN FOLLOWERS: " + user.followersCount,
+      //         user, 
+      //         chalkAlert
+      //       );
+      //     }
+      //   });
 
-      }
+      // }
       else {
 
         switch (user.category) {

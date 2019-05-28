@@ -6329,106 +6329,6 @@ function updateUserSets(){
 
     userSearchCursor.on("data", async function(user) {
 
-      switch (user.category) {
-        case "right":
-          userRightSet.add(user.nodeId);
-          userLeftSet.delete(user.nodeId);
-          userNeutralSet.delete(user.nodeId);
-          userPositiveSet.delete(user.nodeId);
-          userNegativeSet.delete(user.nodeId);
-          userNoneSet.delete(user.nodeId);
-        break;
-        case "left":
-          userRightSet.delete(user.nodeId);
-          userLeftSet.add(user.nodeId);
-          userNeutralSet.delete(user.nodeId);
-          userPositiveSet.delete(user.nodeId);
-          userNegativeSet.delete(user.nodeId);
-          userNoneSet.delete(user.nodeId);
-        break;
-        case "neutral":
-          userRightSet.delete(user.nodeId);
-          userLeftSet.delete(user.nodeId);
-          userNeutralSet.add(user.nodeId);
-          userPositiveSet.delete(user.nodeId);
-          userNegativeSet.delete(user.nodeId);
-          userNoneSet.delete(user.nodeId);
-        break;
-        case "positive":
-          userRightSet.delete(user.nodeId);
-          userLeftSet.delete(user.nodeId);
-          userNeutralSet.delete(user.nodeId);
-          userPositiveSet.add(user.nodeId);
-          userNegativeSet.delete(user.nodeId);
-          userNoneSet.delete(user.nodeId);
-        break;
-        case "negative":
-          userRightSet.delete(user.nodeId);
-          userLeftSet.delete(user.nodeId);
-          userNeutralSet.delete(user.nodeId);
-          userPositiveSet.delete(user.nodeId);
-          userNegativeSet.add(user.nodeId);
-          userNoneSet.delete(user.nodeId);
-        break;
-        default:
-          userRightSet.delete(user.nodeId);
-          userLeftSet.delete(user.nodeId);
-          userNeutralSet.delete(user.nodeId);
-          userPositiveSet.delete(user.nodeId);
-          userNegativeSet.delete(user.nodeId);
-          userNoneSet.add(user.nodeId);
-      }
-
-      switch (user.categoryAuto) {
-        case "right":
-          userAutoRightSet.add(user.nodeId);
-          userAutoLeftSet.delete(user.nodeId);
-          userAutoNeutralSet.delete(user.nodeId);
-          userAutoPositiveSet.delete(user.nodeId);
-          userAutoNegativeSet.delete(user.nodeId);
-          userAutoNoneSet.delete(user.nodeId);
-        break;
-        case "left":
-          userAutoRightSet.delete(user.nodeId);
-          userAutoLeftSet.add(user.nodeId);
-          userAutoNeutralSet.delete(user.nodeId);
-          userAutoPositiveSet.delete(user.nodeId);
-          userAutoNegativeSet.delete(user.nodeId);
-          userAutoNoneSet.delete(user.nodeId);
-        break;
-        case "neutral":
-          userAutoRightSet.delete(user.nodeId);
-          userAutoLeftSet.delete(user.nodeId);
-          userAutoNeutralSet.add(user.nodeId);
-          userAutoPositiveSet.delete(user.nodeId);
-          userAutoNegativeSet.delete(user.nodeId);
-          userAutoNoneSet.delete(user.nodeId);
-        break;
-        case "positive":
-          userAutoRightSet.delete(user.nodeId);
-          userAutoLeftSet.delete(user.nodeId);
-          userAutoNeutralSet.delete(user.nodeId);
-          userAutoPositiveSet.add(user.nodeId);
-          userAutoNegativeSet.delete(user.nodeId);
-          userAutoNoneSet.delete(user.nodeId);
-        break;
-        case "negative":
-          userAutoRightSet.delete(user.nodeId);
-          userAutoLeftSet.delete(user.nodeId);
-          userAutoNeutralSet.delete(user.nodeId);
-          userAutoPositiveSet.delete(user.nodeId);
-          userAutoNegativeSet.add(user.nodeId);
-          userAutoNoneSet.delete(user.nodeId);
-        break;
-        default:
-          userAutoRightSet.delete(user.nodeId);
-          userAutoLeftSet.delete(user.nodeId);
-          userAutoNeutralSet.delete(user.nodeId);
-          userAutoPositiveSet.delete(user.nodeId);
-          userAutoNegativeSet.delete(user.nodeId);
-          userAutoNoneSet.add(user.nodeId);
-      }
-
       if (user.lang && (user.lang !== undefined) && (user.lang !== "en")){
         ignoredUserSet.add(user.nodeId);
         unfollowableUserSet.add(user.nodeId);
@@ -6439,83 +6339,185 @@ function updateUserSets(){
           chalkAlert
         );
       }
+      else {
 
-      let categorizeable = false;
-
-      try {
-        categorizeable = await userCategorizeable(user);
-      }
-      catch(e){
-        categorizeable = false;
-      }
-
-      if (categorizeable
-        && ((user.category === undefined) || !user.category) 
-        && ((user.ignored === undefined) || !user.ignored) 
-        && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && user.categoryAuto && (user.categoryAuto !== "right")))
-        && !ignoredUserSet.has(user.nodeId) 
-        && !uncategorizedManualUserSet.has(user.nodeId) 
-        && (user.followersCount >= configuration.minFollowersAuto) 
-        && !unfollowableUserSet.has(user.nodeId)) { 
-
-        uncategorizedManualUserSet.add(user.nodeId);
-
-        if (uncategorizedManualUserSet.size % 100 === 0) {
-          printUserObj("UNCAT MAN USER  [" + uncategorizedManualUserSet.size + "]", user);
+        switch (user.category) {
+          case "right":
+            userRightSet.add(user.nodeId);
+            userLeftSet.delete(user.nodeId);
+            userNeutralSet.delete(user.nodeId);
+            userPositiveSet.delete(user.nodeId);
+            userNegativeSet.delete(user.nodeId);
+            userNoneSet.delete(user.nodeId);
+          break;
+          case "left":
+            userRightSet.delete(user.nodeId);
+            userLeftSet.add(user.nodeId);
+            userNeutralSet.delete(user.nodeId);
+            userPositiveSet.delete(user.nodeId);
+            userNegativeSet.delete(user.nodeId);
+            userNoneSet.delete(user.nodeId);
+          break;
+          case "neutral":
+            userRightSet.delete(user.nodeId);
+            userLeftSet.delete(user.nodeId);
+            userNeutralSet.add(user.nodeId);
+            userPositiveSet.delete(user.nodeId);
+            userNegativeSet.delete(user.nodeId);
+            userNoneSet.delete(user.nodeId);
+          break;
+          case "positive":
+            userRightSet.delete(user.nodeId);
+            userLeftSet.delete(user.nodeId);
+            userNeutralSet.delete(user.nodeId);
+            userPositiveSet.add(user.nodeId);
+            userNegativeSet.delete(user.nodeId);
+            userNoneSet.delete(user.nodeId);
+          break;
+          case "negative":
+            userRightSet.delete(user.nodeId);
+            userLeftSet.delete(user.nodeId);
+            userNeutralSet.delete(user.nodeId);
+            userPositiveSet.delete(user.nodeId);
+            userNegativeSet.add(user.nodeId);
+            userNoneSet.delete(user.nodeId);
+          break;
+          default:
+            userRightSet.delete(user.nodeId);
+            userLeftSet.delete(user.nodeId);
+            userNeutralSet.delete(user.nodeId);
+            userPositiveSet.delete(user.nodeId);
+            userNegativeSet.delete(user.nodeId);
+            userNoneSet.add(user.nodeId);
+            uncategorizedManualUserSet.add(user.nodeId);
         }
 
-      }
-
-      if (!uncategorizedAutoUserSet.has(user.nodeId) 
-        && !user.categoryAuto 
-        && !ignoredUserSet.has(user.nodeId) 
-        && !ignoreLocationsSet.has(user.nodeId) 
-        && (user.followersCount >= configuration.minFollowersAuto) 
-        && !unfollowableUserSet.has(user.nodeId)) { 
-
-        uncategorizedAutoUserSet.add(user.nodeId);
-
-        if (uncategorizedAutoUserSet.size % 100 === 0) {
-          printUserObj("UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", user);
+        switch (user.categoryAuto) {
+          case "right":
+            userAutoRightSet.add(user.nodeId);
+            userAutoLeftSet.delete(user.nodeId);
+            userAutoNeutralSet.delete(user.nodeId);
+            userAutoPositiveSet.delete(user.nodeId);
+            userAutoNegativeSet.delete(user.nodeId);
+            userAutoNoneSet.delete(user.nodeId);
+          break;
+          case "left":
+            userAutoRightSet.delete(user.nodeId);
+            userAutoLeftSet.add(user.nodeId);
+            userAutoNeutralSet.delete(user.nodeId);
+            userAutoPositiveSet.delete(user.nodeId);
+            userAutoNegativeSet.delete(user.nodeId);
+            userAutoNoneSet.delete(user.nodeId);
+          break;
+          case "neutral":
+            userAutoRightSet.delete(user.nodeId);
+            userAutoLeftSet.delete(user.nodeId);
+            userAutoNeutralSet.add(user.nodeId);
+            userAutoPositiveSet.delete(user.nodeId);
+            userAutoNegativeSet.delete(user.nodeId);
+            userAutoNoneSet.delete(user.nodeId);
+          break;
+          case "positive":
+            userAutoRightSet.delete(user.nodeId);
+            userAutoLeftSet.delete(user.nodeId);
+            userAutoNeutralSet.delete(user.nodeId);
+            userAutoPositiveSet.add(user.nodeId);
+            userAutoNegativeSet.delete(user.nodeId);
+            userAutoNoneSet.delete(user.nodeId);
+          break;
+          case "negative":
+            userAutoRightSet.delete(user.nodeId);
+            userAutoLeftSet.delete(user.nodeId);
+            userAutoNeutralSet.delete(user.nodeId);
+            userAutoPositiveSet.delete(user.nodeId);
+            userAutoNegativeSet.add(user.nodeId);
+            userAutoNoneSet.delete(user.nodeId);
+          break;
+          default:
+            userAutoRightSet.delete(user.nodeId);
+            userAutoLeftSet.delete(user.nodeId);
+            userAutoNeutralSet.delete(user.nodeId);
+            userAutoPositiveSet.delete(user.nodeId);
+            userAutoNegativeSet.delete(user.nodeId);
+            userAutoNoneSet.add(user.nodeId);
         }
 
-      }
-      
-      if (((user.category === "left") || (user.category === "neutral") || (user.category === "right"))
-        && ((user.categoryAuto === "left") || (user.categoryAuto === "neutral") || (user.categoryAuto === "right"))
-      ) { 
+        let categorizeable = false;
 
-        uncategorizedManualUserSet.delete(user.nodeId); 
-        uncategorizedAutoUserSet.delete(user.nodeId); 
+        try {
+          categorizeable = await userCategorizeable(user);
+        }
+        catch(e){
+          categorizeable = false;
+        }
 
-        if (!ignoredUserSet.has(user.nodeId) 
+        if (categorizeable
+          && ((user.category === undefined) || !user.category) 
+          && ((user.ignored === undefined) || !user.ignored) 
+          && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && user.categoryAuto && (user.categoryAuto !== "right")))
+          && !ignoredUserSet.has(user.nodeId) 
+          && !uncategorizedManualUserSet.has(user.nodeId) 
+          && (user.followersCount >= configuration.minFollowersAuto) 
+          && !unfollowableUserSet.has(user.nodeId)) { 
+
+          uncategorizedManualUserSet.add(user.nodeId);
+
+          if (uncategorizedManualUserSet.size % 100 === 0) {
+            printUserObj("UNCAT MAN USER  [" + uncategorizedManualUserSet.size + "]", user);
+          }
+        }
+
+        if (!uncategorizedAutoUserSet.has(user.nodeId) 
+          && !user.categoryAuto 
+          && !ignoredUserSet.has(user.nodeId) 
           && !ignoreLocationsSet.has(user.nodeId) 
-          && !unfollowableUserSet.has(user.nodeId)){
-          categorizedManualUserSet.add(user.nodeId); 
-          categorizedAutoUserSet.add(user.nodeId); 
+          && (user.followersCount >= configuration.minFollowersAuto) 
+          && !unfollowableUserSet.has(user.nodeId)) { 
 
-          if (!mismatchUserSet.has(user.nodeId) && (user.category !== user.categoryAuto)) {
+          uncategorizedAutoUserSet.add(user.nodeId);
 
-            mismatchUserSet.add(user.nodeId); 
-            matchUserSet.delete(user.nodeId); 
-
-            if (mismatchUserSet.size % 100 === 0) {
-              printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "]", user);
-            }
+          if (uncategorizedAutoUserSet.size % 100 === 0) {
+            printUserObj("UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", user);
           }
+        }
+        
+        if (((user.category === "left") || (user.category === "neutral") || (user.category === "right"))
+          && ((user.categoryAuto === "left") || (user.categoryAuto === "neutral") || (user.categoryAuto === "right"))
+        ) { 
 
-          if (!matchUserSet.has(user.nodeId) && (user.category === user.categoryAuto)) {
+          uncategorizedManualUserSet.delete(user.nodeId); 
+          uncategorizedAutoUserSet.delete(user.nodeId); 
 
-            matchUserSet.add(user.nodeId); 
-            mismatchUserSet.delete(user.nodeId); 
+          if (!ignoredUserSet.has(user.nodeId) 
+            && !ignoreLocationsSet.has(user.nodeId) 
+            && !unfollowableUserSet.has(user.nodeId)){
+            categorizedManualUserSet.add(user.nodeId); 
+            categorizedAutoUserSet.add(user.nodeId); 
 
-            if (matchUserSet.size % 100 === 0) {
-              printUserObj("MATCHED USER [" + matchUserSet.size + "]", user);
+            if (!mismatchUserSet.has(user.nodeId) && (user.category !== user.categoryAuto)) {
+
+              mismatchUserSet.add(user.nodeId); 
+              matchUserSet.delete(user.nodeId); 
+
+              if (mismatchUserSet.size % 100 === 0) {
+                printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "]", user);
+              }
+            }
+
+            if (!matchUserSet.has(user.nodeId) && (user.category === user.categoryAuto)) {
+
+              matchUserSet.add(user.nodeId); 
+              mismatchUserSet.delete(user.nodeId); 
+
+              if (matchUserSet.size % 100 === 0) {
+                printUserObj("MATCHED USER [" + matchUserSet.size + "]", user);
+              }
             }
           }
         }
 
       }
+
     });
 
     userSearchCursor.on("end", function() {
@@ -10496,7 +10498,7 @@ function twitterGetUserUpdateDb(user, callback){
             // else {
             //   user.mentions = 0;
             // }
-            
+
             user.setMentions = true;
 
             try{

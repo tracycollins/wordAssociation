@@ -43,6 +43,7 @@
     "encodeurl": "^1.0.2",
     "es6-promise": "^4.2.6",
     "eventemitter2": "^5.0.1",
+    "eventemitter3": "^3.1.2",
     "express": "^4.17.1",
     "express-session": "^1.16.1",
     "express-session-mongo": "^0.1.0",

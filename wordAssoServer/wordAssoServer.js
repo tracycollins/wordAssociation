@@ -2760,50 +2760,6 @@ function killChild(params){
 
     });
 
-
-    // let pid = false;
-    // let command;
-
-    // if (params.title !== undefined) {
-    //   command = "pkill -f " + params.title;
-    // }
-    // else if (params.pid !== undefined) {
-    //   pid = params.pid;
-    //   command = "kill " + pid;
-    // }
-    // else if (params.childId !== undefined) {
-    //   if (childrenHashMap[params.childId] === undefined) {
-    //     console.log(chalkError("WAS | KILL CHILD ERROR: CHILD NOT IN HM: " + params.childId));
-    //     return reject(new Error("ERROR: CHILD NOT IN HM: " + params.childId));
-    //   }
-    //   pid = childrenHashMap[params.childId].pid;
-    //   command = "kill " + pid;
-    // }
-
-
-    // shell.exec(command, function(code, stdout, stderr){
-
-    //   console.log(chalkAlert("WAS | KILL CHILD"
-    //     + "\nPARAMS\n " + jsonPrint(params)
-    //     + "\nCOMMAND: " + command
-    //     + "\nCODE:    " + code
-    //     + "\nSTDOUT:  " + stdout
-    //     + "\nSTDERR:  " + stderr
-    //   )); 
-
-    //   // slackSendMessage(
-    //   //   "\n*KILL CHILD*"
-    //   //   + "\nPARAMS\n " + jsonPrint(params)
-    //   //   + "\nCOMMAND: " + command
-    //   //   + "\nCODE:    " + code
-    //   //   + "\nSTDOUT:  " + stdout
-    //   //   + "\nSTDERR:  " + stderr
-    //   // );
-
-    //   resolve({stderr: stderr, code: code, stdout: stdout });
-
-    // });
-
   });
 }
 
@@ -2811,13 +2767,7 @@ function getChildProcesses(){
 
   return new Promise(function(resolve, reject){
 
-    // let command;
-    // let pid;
-    // let childId;
-    // const numChildren = 0;
     const childPidArray = [];
-
-    // DEFAULT_CHILD_ID_PREFIX_XXX=[pid] 
 
     shell.mkdir("-p", childPidFolderLocal);
 
@@ -3022,9 +2972,6 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
     childrenHashMap[childObj.childId].errors += 1;
     childrenHashMap[childObj.childId].status = "UNKNOWN";
   }
-
-
-  // slackSendMessage("\n*CHILD ERROR*\n" + childObj.childId + "\n" + childObj.err);
 
   switch(childObj.childId){
 
@@ -7393,11 +7340,9 @@ function initAppRouting(callback) {
   function ensureAuthenticated(req, res, next) {
     if (req.isAuthenticated()) { 
       console.log(chalk.green("WAS | PASSPORT TWITTER AUTHENTICATED"));
-      // slackSendMessage("PASSPORT TWITTER AUTHENTICATED");
       return next();
     }
     console.log(chalkAlert("WAS | *** PASSPORT TWITTER *NOT* AUTHENTICATED ***"));
-    // slackSendMessage("PASSPORT TWITTER AUTHENTICATION FAILED");
   }
 
   app.get("/account", ensureAuthenticated, function(req, res){
@@ -7409,7 +7354,6 @@ function initAppRouting(callback) {
       + " | UID" + req.session.passport.user.nodeId
     )); // handle errors
 
-    // slackSendMessage("PASSPORT TWITTER AUTH USER: @" + req.session.passport.user.screenName);
     if (!userServerControllerReady || !statsObj.dbConnectionReady) {
       return callback(new Error("userServerController not ready"), null);
     }
@@ -7421,7 +7365,6 @@ function initAppRouting(callback) {
       } 
       else if (user) {
         console.log(chalk.green("TWITTER USER AUTHENTICATED: @" + user.screenName)); // handle errors
-        // slackSendMessage("USER AUTH: @" + user.screenName);
         authenticatedTwitterUserCache.set(user.nodeId, user);
         res.redirect("/after-auth.html");
       }
@@ -7907,7 +7850,6 @@ function initDbuPingInterval(interval){
           + " | ELAPSED: " + msToTime(moment().valueOf() - dbuPingId)
         ));
         
-        // slackSendMessage("\n*CHILD ERROR*\nTWEET_PARSER\nPONG TIMEOUT");
       }
     }, interval);
 

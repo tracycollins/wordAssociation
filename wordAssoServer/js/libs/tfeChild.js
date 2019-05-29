@@ -701,21 +701,6 @@ function loadFile(params) {
             return reject(new Error(MODULE_ID_PREFIX + " LOAD FILE PAYLOAD UNDEFINED"));
           }
 
-          // jsonParse(payload, function(err, fileObj){
-          //   if (err) {
-          //     console.log(chalkError(getTimeStamp()
-          //       + " | *** LOAD FILE FROM DROPBOX ERROR"
-          //       + " | " + fullPath
-          //       + " | " + err
-          //     ));
-
-          //     return reject(err);
-          //   }
-
-          //   return resolve(fileObj);
-
-          // });
-
           const results = jsonParse(payload);
 
           if (results.error) {
@@ -793,7 +778,6 @@ function loadFileRetry(params){
         }
 
         return resolve(fileObj);
-        // break;
       } 
       catch(err) {
         backOffTime *= 1.5;
@@ -867,15 +851,6 @@ function printUserObj(title, u, chalkConfig) {
     + " | " + user.userId
     + " | IG: " + user.ignored 
     + " | 3C: " + user.threeceeFollowing 
-    // + " | L " + user.lang 
-    // + " | FWs " + user.followersCount
-    // + " | FDs " + user.friendsCount
-    // + " | T " + user.statusesCount
-    // + " | M  " + user.mentions
-    // + " | LS " + getTimeStamp(user.lastSeen)
-    // + " | FW " + user.following 
-    // + " | LHTID " + user.lastHistogramTweetId 
-    // + " | LHQID " + user.lastHistogramQuoteId 
   ));
 
   if (user.changes) {
@@ -926,7 +901,6 @@ function initInfoTwit(params){
       console.error(chalkLog("WAS | TFC | *** TWITTER CONFIG FILE LOAD ERROR\n" + err));
       return reject(err);
     }
-
 
     debug(chalkTwitter("WAS | TFC | INFO TWITTER USER CONFIG\n" + jsonPrint(twitterConfig)));
 
@@ -1102,12 +1076,6 @@ function checkTwitterRateLimitAll(){
       resolve();
     });
 
-    // twitterUserHashMap.forEach(function(twitterUserObj, threeceeUser){
-    //   checkTwitterRateLimit({twitterUserObj: twitterUserObj}, function(err, tuObj){
-    //     if (!err && (tuObj !== undefined)) { twitterUserHashMap.set(tuObj.screenName, tuObj); }
-    //   });
-    // });
-
   });
 }
 
@@ -1135,8 +1103,6 @@ let userCategorizeQueueInterval;
 function generateNetworkInputIndexed(params){
 
   return new Promise(function(resolve, reject){
-
-    // generateNetworkInputBusy = true;
 
     const maxInputHashMap = params.maxInputHashMap;
 
@@ -1252,11 +1218,7 @@ function generateNetworkInputIndexed(params){
       });
 
     }, function(err){
-
       if (err) { return reject(err); }
-
-      // generateNetworkInputBusy = false;
-
       resolve(networkInput);
     });
 
@@ -1290,9 +1252,7 @@ function indexOfMax (arr) {
       async.setImmediate(function() { cb(); });
 
     }, function(){
-
       resolve(maxIndex); 
-
     });
 
   });
@@ -2270,10 +2230,6 @@ function userProfileChangeHistogram(params) {
 
             parseImage({
               user: user,
-              // screenName: user.screenName, 
-              // category: user.category, 
-              // imageUrl: user.bannerImageUrl, 
-              // histograms: user.profileHistograms,
               updateGlobalHistograms: true
             }).
             then(function(imageParseResults){
@@ -2370,12 +2326,6 @@ let infoRateLimitTimeout;
 let infoRateLimitStatusInterval;
 
 function initRateLimitPause(params){
-
-  // infoTwitterUserObj.stats.twitterRateLimitExceptionFlag = true;
-  // infoTwitterUserObj.stats.twitterRateLimit = response.headers["x-rate-limit-limit"];
-  // infoTwitterUserObj.stats.twitterRateLimitRemaining = response.headers["x-rate-limit-remaining"];
-  // infoTwitterUserObj.stats.twitterRateLimitResetAt = moment.unix(response.headers["x-rate-limit-reset"]);
-  // infoTwitterUserObj.stats.twitterRateLimitRemainingTime = moment.unix(response.headers["x-rate-limit-reset"]).diff(moment());
 
   return new Promise(async function(resolve, reject){
 
@@ -2491,7 +2441,6 @@ function fetchUserTweets(params){
             + " | REM: " + infoTwitterUserObj.stats.twitterRateLimitRemaining
             + " | RESET AT: " + infoTwitterUserObj.stats.twitterRateLimitResetAt.format(compactDateTimeFormat)
             + " | REMAINING: " + msToTime(infoTwitterUserObj.stats.twitterRateLimitRemainingTime)
-            // + "\n" + jsonPrint(response.headers)
           ));
 
           try {
@@ -2760,9 +2709,6 @@ function initUserCategorizeQueueInterval(cnf){
         clearTimeout(uscTimeout);
         userCategorizeQueueReady = true;
       }
-
-      // clearTimeout(uscTimeout);
-      // userCategorizeQueueReady = true;
     }
 
   }, cnf.userCategorizeQueueInterval);
@@ -2922,7 +2868,6 @@ process.on("message", function(m) {
       statsObj.autoChangeMismatch = 0;
 
       console.log(chalkInfo("WAS | TFC | +++ NETWORK"
-        // + " | NNs IN HM: " + networksHashMap.size
         + " | NETWORK: " + networkObj.networkId
         + " | INPUTS: " + networkObj.inputsObj.meta.numInputs
         + " | INPUTS ID: " + networkObj.inputsId

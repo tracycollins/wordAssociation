@@ -2252,7 +2252,7 @@ function userProfileChangeHistogram(params) {
             parseImage({
               screenName: user.screenName, 
               category: user.category, 
-              imageUrl: bannerImageUrl, 
+              imageUrl: user.bannerImageUrl, 
               histograms: user.profileHistograms,
               updateGlobalHistograms: true
             }).
@@ -2260,7 +2260,7 @@ function userProfileChangeHistogram(params) {
               cb(null, imageParseResults);
             }).
             catch(function(err){
-              console.log(chalkError("WAS | TFC | USER PROFILE CHANGE HISTOGRAM ERROR: " + err));
+              console.log(chalkError("WAS | TFC | USER PROFILE CHANGE HISTOGRAM PARSE IMAGE ERROR: " + err));
               cb(err, null);
             });
 
@@ -2282,7 +2282,7 @@ function userProfileChangeHistogram(params) {
             }).
             catch(function(err){
               if (err) {
-                console.log(chalkError("WAS | TFC | USER PROFILE CHANGE HISTOGRAM ERROR: " + err));
+                console.log(chalkError("WAS | TFC | USER PROFILE CHANGE HISTOGRAM PARSE TEXT ERROR: " + err));
               }
               cb(err, null);
             });
@@ -2304,7 +2304,7 @@ function userProfileChangeHistogram(params) {
           resolve(histogramsMerged);
         }).
         catch(function(err){
-          console.log(chalkError("WAS | TFC | USER PROFILE CHANGE HISTOGRAM ERROR: " + err));
+          console.log(chalkError("WAS | TFC | USER PROFILE MERGE HISTOGRAMS ERROR: " + err));
           return reject(err);
         });
       });

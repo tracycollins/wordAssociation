@@ -2239,7 +2239,12 @@ function userProfileChangeHistogram(params) {
 
         imageHist: function(cb) {
 
-          if (configuration.enableImageAnalysis && bannerImageUrl){
+          if (configuration.enableImageAnalysis 
+            && (
+              bannerImageUrl 
+              || (!user.bannerImageAnalyzed && user.bannerImageUrl && (user.bannerImageUrl !== undefined))
+            )
+          ){
 
             parseImage({
               screenName: user.screenName, 

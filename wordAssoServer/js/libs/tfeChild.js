@@ -1539,9 +1539,11 @@ function updateGlobalHistograms(params) {
   });
 }
 
-function parseImage(params){
+function parseImage(p){
 
   return new Promise(function(resolve, reject) {
+
+    let params = p;
 
     params.updateGlobalHistograms = (params.updateGlobalHistograms !== undefined) ? params.updateGlobalHistograms : false;
     params.category = params.user.category || "none";
@@ -2250,10 +2252,11 @@ function userProfileChangeHistogram(params) {
           ){
 
             parseImage({
-              screenName: user.screenName, 
-              category: user.category, 
-              imageUrl: user.bannerImageUrl, 
-              histograms: user.profileHistograms,
+              user: user,
+              // screenName: user.screenName, 
+              // category: user.category, 
+              // imageUrl: user.bannerImageUrl, 
+              // histograms: user.profileHistograms,
               updateGlobalHistograms: true
             }).
             then(function(imageParseResults){

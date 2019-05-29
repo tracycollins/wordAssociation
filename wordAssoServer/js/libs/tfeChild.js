@@ -6,6 +6,10 @@ process.title = "wa_node_child_tfe";
 
 const MODULE_ID_PREFIX = "TFC";
 
+const ONE_SECOND = 1000;
+const ONE_MINUTE = ONE_SECOND*60;
+
+const DEFAULT_IMAGE_QUOTA_TIMEOUT = ONE_MINUTE;
 const DEFAULT_MAX_USER_TWEETIDS = 500;
 const DEFAULT_TWEET_FETCH_COUNT = 10;
 const DEFAULT_TWEET_FETCH_EXCLUDE_REPLIES = true;
@@ -50,9 +54,6 @@ const USER_CAT_QUEUE_MAX_LENGTH = 500;
 
 const USER_CHANGE_CACHE_DEFAULT_TTL = 30;
 const USER_CHANGE_CACHE_CHECK_PERIOD = 5;
-
-const ONE_SECOND = 1000;
-const ONE_MINUTE = ONE_SECOND*60;
 
 const defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
@@ -120,15 +121,18 @@ const chalk = require("chalk");
 const chalkAlert = chalk.red;
 const chalkTwitter = chalk.blue;
 const chalkGreen = chalk.green;
-// const chalkRed = chalk.red;
-// const chalkRedBold = chalk.bold.red;
 const chalkError = chalk.bold.red;
 const chalkWarn = chalk.yellow;
 const chalkLog = chalk.gray;
 const chalkInfo = chalk.black;
-// const chalkConnect = chalk.green;
 
 const twitterUserHashMap = new HashMap();
+
+const EventEmitter = require("eventemitter3");
+
+class ChildEvents extends EventEmitter {}
+
+const childEvents = new ChildEvents();
 
 const userCategorizeQueue = [];
 const userChangeDbQueue = [];
@@ -153,26 +157,6 @@ const configEvents = new EventEmitter2({
   verboseMemoryLeak: true
 });
 
-// const errorEvents = new EventEmitter2({
-//   wildcard: true,
-//   newListener: true,
-//   maxListeners: 20,
-//   verboseMemoryLeak: true
-// });
-
-// errorEvents.on("newListener", function (data) {
-//   console.log(chalkInfo("WAS | TFC | +++ NEW ERROR EVENT LISTENER: " + data));
-// });
-
-// errorEvents.on("ERROR", function(errorObj){
-//   // errorEvents.emit("ERROR", { source: "mongoDbConnection", err: err });
-//   console.log(chalkError("WAS | TFC | *** ERROR EVENT\n", errorObj));
-//   process.send({
-//     op: "ERROR", 
-//     errorType: errorObj.source,
-//     error: errorObj.err
-//   });
-// });
 
 let infoTwitterUserObj = {}; // used for general twitter tasks
 
@@ -311,6 +295,8 @@ statsObj.heap = process.memoryUsage().heapUsed/(1024*1024);
 statsObj.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
 statsObj.startTime = moment().valueOf();
 statsObj.elapsed = moment().valueOf() - statsObj.startTime;
+
+statsObj.imageAnalysisQuotaFlag = false;
 
 statsObj.autoChangeMatch = 0;
 statsObj.autoChangeMismatch = 0;
@@ -2015,6 +2001,30 @@ function updateUserTweets(params){
 
   });
 }
+function delayEvent(p) {
+
+  const params = p || {};
+  const delayEventName = params.delayEventName;
+  const period = params.period || 10*ONE_SECOND;
+  const verbose = params.verbose || false;
+
+  if (verbose) {
+    console.log(chalkLog(MODULE_ID_PREFIX + " | +++ DELAY START | NOW: " + getTimeStamp() + " | PERIOD: " + msToTime(period)));
+  }
+
+  const delayTimout = setTimeout(function(){
+
+    if (verbose) {
+      console.log(chalkLog(MODULE_ID_PREFIX + " | XXX DELAY END | NOW: " + getTimeStamp() + " | PERIOD: " + msToTime(period)));
+    }
+
+    childEvents.emit(delayEventName); 
+
+  }, period);
+
+  return(delayTimout);
+
+}
 
 function userProfileChangeHistogram(params) {
 
@@ -2245,7 +2255,7 @@ function userProfileChangeHistogram(params) {
 
         imageHist: function(cb) {
 
-          if (configuration.enableImageAnalysis 
+          if (configuration.enableImageAnalysis && !statsObj.imageAnalysisQuotaFlag
             && (
               bannerImageUrl 
               || (
@@ -2267,8 +2277,24 @@ function userProfileChangeHistogram(params) {
               cb(null, imageParseResults);
             }).
             catch(function(err){
+
               if (err.code === 8) {
-                console.log(chalkAlert("*** TWITTER IMAGE PARSER QUOTA ERROR"));
+
+                console.log(chalkAlert("*** GOOGLE IMAGE PARSER QUOTA ERROR"));
+                statsObj.imageAnalysisQuotaFlag = true;
+
+                childEvents.once("imageAnalysisQuotaExpired", function(){
+
+                  statsObj.imageAnalysisQuotaFlag = false;
+
+                  console.log(chalkGreen(MODULE_ID_PREFIX
+                    + " | XXX GOOGLE IMAGE PARSER QUOTA"
+                  ));
+
+                });
+
+                delayEvent({delayEventName: "imageAnalysisQuotaExpired", period: DEFAULT_IMAGE_QUOTA_TIMEOUT, verbose: true});
+
                 cb(null, {});
               }
               else{

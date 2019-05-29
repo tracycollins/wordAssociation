@@ -2242,7 +2242,10 @@ function userProfileChangeHistogram(params) {
           if (configuration.enableImageAnalysis 
             && (
               bannerImageUrl 
-              || (!user.bannerImageAnalyzed && user.bannerImageUrl && (user.bannerImageUrl !== undefined))
+              || (
+                (!user.bannerImageAnalyzed || (user.bannerImageAnalyzed === undefined)) 
+                && user.bannerImageUrl && (user.bannerImageUrl !== undefined)
+              )
             )
           ){
 

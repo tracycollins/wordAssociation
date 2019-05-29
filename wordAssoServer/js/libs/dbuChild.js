@@ -24,29 +24,21 @@ const DEFAULT_USER_UPDATE_QUEUE_INTERVAL = 100;
 const DEFAULT_MAX_UPDATE_QUEUE = 500;
 
 const ONE_SECOND = 1000;
-// const ONE_MINUTE = 60 * ONE_SECOND;
-// const ONE_HOUR = 60 * ONE_MINUTE;
-
-// const ONE_KILOBYTE = 1024;
-// const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
 
 const compactDateTimeFormat = "YYYYMMDD_HHmmss";
 
 const os = require("os");
 const moment = require("moment");
 const treeify = require("treeify");
-// const util = require("util");
 const debug = require("debug")("dbu");
 const debugCache = require("debug")("cache");
 const debugQ = require("debug")("queue");
 const async = require("async");
-// const merge = require("merge");
 const _ = require("lodash");
 
 const chalk = require("chalk");
 const chalkAlert = chalk.red;
 const chalkError = chalk.bold.red;
-// const chalkWarn = chalk.red;
 const chalkLog = chalk.gray;
 const chalkInfo = chalk.black;
 const chalkUser = chalk.black;
@@ -126,8 +118,6 @@ function getTimeStamp(inputTime) {
   }
 }
 
-// let User;
-
 global.globalDbConnection = false;
 const mongoose = require("mongoose");
 
@@ -138,11 +128,7 @@ const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.mod
 global.globalUser = mongoose.model("User", userModel.UserSchema);
 
 const UserServerController = require("@threeceelabs/user-server-controller");
-
-// let UserServerController;
 let userServerController;
-
-// let userServerControllerReady = false;
 
 const configuration = {}; // merge of defaultConfiguration & hostConfiguration
 configuration.processName = process.env.DBU_PROCESS_NAME || "node_databaseUpdate";
@@ -284,14 +270,9 @@ function connectDb(){
 
         global.globalDbConnection = db;
 
-        // UserServerController = require("@threeceelabs/user-server-controller");
         userServerController = new UserServerController("DBU_USC");
 
-
-        // userServerControllerReady = false;
-
         userServerController.on("ready", function(appname){
-          // userServerControllerReady = true;
           console.log(chalkLog("DBU | USC READY | " + appname));
         });
 
@@ -302,7 +283,6 @@ function connectDb(){
 
   });
 }
-
 
 function initialize(){
 
@@ -317,7 +297,6 @@ function initialize(){
     resolve();
 
   });
-
 }
 
 function mergeHistograms(params){
@@ -339,12 +318,7 @@ function mergeHistograms(params){
         if (!histA[entityType] || histA[entityType] === undefined || histA[entityType] === null) { histA[entityType] = {}; }
         if (!histB[entityType] || histB[entityType] === undefined || histB[entityType] === null) { histB[entityType] = {}; }
 
-        // console.log(chalkLog("histogramMerged | histA[entityType]: " + jsonPrint(histA[entityType])));
-        // console.log(chalkLog("histogramMerged | histB[entityType]: " + jsonPrint(histB[entityType])));
-
         const entityArray = _.union(Object.keys(histA[entityType]), Object.keys(histB[entityType]));
-
-        // console.log(chalkLog("histogramMerged | entityArray: " + entityArray));
 
         entityArray.forEach(function(e){
 
@@ -356,8 +330,6 @@ function mergeHistograms(params){
 
           if (histA[entityType][entity] && histA[entityType][entity] !== undefined) { histogramMerged[entityType][entity] += histA[entityType][entity]; }
           if (histB[entityType][entity] && histB[entityType][entity] !== undefined) { histogramMerged[entityType][entity] += histB[entityType][entity]; }
-
-          // console.log(chalkLog("histogramMerged | " + entityType + " | " + entity + ": " + histogramMerged[entityType][entity]));
 
         });
       });
@@ -372,7 +344,6 @@ function mergeHistograms(params){
     }
 
   });
-
 }
 
 function printUserObj(title, user) {
@@ -449,7 +420,6 @@ function userUpdateDb(tweetObj){
             entity = entityObj.nodeId;
           break;
           case "urls":
-            // entity = (entityObj.expandedUrl && entityObj.expandedUrl !== undefined) ? entityObj.expandedUrl.toLowerCase() : entityObj.nodeId;
             entity = entityObj.nodeId; // should already be b64 encoded by tweetServerController
           break;
           case "words":
@@ -679,13 +649,7 @@ process.on("message", function(m) {
       ));
 
       setTimeout(function(){
-
-        process.send({ 
-          op: "PONG",
-pongId: 
-          m.pingId
-        });
-
+        process.send({ op: "PONG", pongId: m.pingId });
       }, 1000);
     break;
 

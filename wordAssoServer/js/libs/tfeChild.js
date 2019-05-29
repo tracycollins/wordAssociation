@@ -109,7 +109,6 @@ const treeify = require("treeify");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const HashMap = require("hashmap").HashMap;
 const neataptic = require("neataptic");
-// const networksHashMap = new HashMap();
 const arrayNormalize = require("array-normalize");
 const NodeCache = require("node-cache");
 
@@ -296,7 +295,11 @@ statsObj.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
 statsObj.startTime = moment().valueOf();
 statsObj.elapsed = moment().valueOf() - statsObj.startTime;
 
-statsObj.imageAnalysisQuotaFlag = false;
+statsObj.google = {};
+statsObj.google.vision = {};
+statsObj.google.vision.imagesParsed = 0;
+statsObj.google.vision.errors = 0;
+statsObj.google.vision.imageAnalysisQuotaFlag = false;
 
 statsObj.autoChangeMatch = 0;
 statsObj.autoChangeMismatch = 0;
@@ -1543,10 +1546,10 @@ function parseImage(p){
     }).
     catch(function(err){
       if (err.code === 8) {
-        console.log(chalkAlert("*** TWITTER IMAGE PARSER QUOTA ERROR"));
+        console.log(chalkAlert("*** parseImage | GOOGLE VISION IMAGE PARSER QUOTA ERROR"));
       }
       else{
-        console.log(chalkError("*** TWITTER IMAGE PARSER ERROR: " + err));
+        console.log(chalkError("*** parseImage | GOOGLE VISION IMAGE PARSER ERROR: " + err));
       }
       reject(err);
     });
@@ -2255,7 +2258,7 @@ function userProfileChangeHistogram(params) {
 
         imageHist: function(cb) {
 
-          if (configuration.enableImageAnalysis && !statsObj.imageAnalysisQuotaFlag
+          if (configuration.enableImageAnalysis && !statsObj.google.vision.imageAnalysisQuotaFlag
             && (
               bannerImageUrl 
               || (
@@ -2274,6 +2277,7 @@ function userProfileChangeHistogram(params) {
               updateGlobalHistograms: true
             }).
             then(function(imageParseResults){
+              statsObj.google.vision.imagesParsed += 1;
               cb(null, imageParseResults);
             }).
             catch(function(err){
@@ -2281,11 +2285,21 @@ function userProfileChangeHistogram(params) {
               if (err.code === 8) {
 
                 console.log(chalkAlert("*** GOOGLE IMAGE PARSER QUOTA ERROR"));
-                statsObj.imageAnalysisQuotaFlag = true;
+
+                statsObj.google.vision.imageAnalysisQuotaFlag = true;
+                statsObj.google.vision.errors += 1;
+
+                const quotaResetAtMoment = moment().eod();
+                const quotaTimeoutPeriod = quotaResetAtMoment.diff(moment());
+
+                console.log(chalkAlert("*** GOOGLE IMAGE PARSER QUOTA RESET AT"
+                  + " | " + quotaResetAtMoment.format(compactDateTimeFormat)
+                  + " | " + msToTime(quotaTimeoutPeriod)
+                ));
 
                 childEvents.once("imageAnalysisQuotaExpired", function(){
 
-                  statsObj.imageAnalysisQuotaFlag = false;
+                  statsObj.google.vision.imageAnalysisQuotaFlag = false;
 
                   console.log(chalkGreen(MODULE_ID_PREFIX
                     + " | XXX GOOGLE IMAGE PARSER QUOTA"
@@ -2293,7 +2307,7 @@ function userProfileChangeHistogram(params) {
 
                 });
 
-                delayEvent({delayEventName: "imageAnalysisQuotaExpired", period: DEFAULT_IMAGE_QUOTA_TIMEOUT, verbose: true});
+                delayEvent({delayEventName: "imageAnalysisQuotaExpired", period: quotaTimeoutPeriod, verbose: true});
 
                 cb(null, {});
               }

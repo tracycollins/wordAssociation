@@ -1556,8 +1556,12 @@ function parseImage(p){
       resolve(hist);
     }).
     catch(function(err){
-      console.log(chalkError("*** TWITTER IMAGE PARSER ERROR: " + err));
-      console.error(err);
+      if (err.code === 8) {
+        console.log(chalkAlert("*** TWITTER IMAGE PARSER QUOTA ERROR"));
+      }
+      else{
+        console.log(chalkError("*** TWITTER IMAGE PARSER ERROR: " + err));
+      }
       reject(err);
     });
 
@@ -2263,8 +2267,14 @@ function userProfileChangeHistogram(params) {
               cb(null, imageParseResults);
             }).
             catch(function(err){
-              console.log(chalkError("WAS | TFC | USER PROFILE CHANGE HISTOGRAM PARSE IMAGE ERROR: " + err));
-              cb(err, null);
+              if (err.code === 8) {
+                console.log(chalkAlert("*** TWITTER IMAGE PARSER QUOTA ERROR"));
+                cb(null, {});
+              }
+              else{
+                console.log(chalkError("*** USER PROFILE CHANGE ERROR: " + err));
+                cb(err, null);
+              }
             });
 
           }

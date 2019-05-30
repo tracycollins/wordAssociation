@@ -305,6 +305,13 @@ statsObj.user.notFollowing = 0;
 statsObj.user.categorizedTotal = 0;
 statsObj.user.categorizedManual = 0;
 statsObj.user.categorizedAuto = 0;
+
+statsObj.user.uncategorized = {};
+statsObj.user.uncategorized.all = 0;
+statsObj.user.uncategorized.left = 0;
+statsObj.user.uncategorized.right = 0;
+statsObj.user.uncategorized.neutral = 0;
+
 statsObj.user.uncategorizedTotal = 0;
 statsObj.user.uncategorizedManual = 0;
 statsObj.user.uncategorizedAuto = 0;
@@ -919,8 +926,6 @@ let uncategorizedManualUserArray = [];
 
 const matchUserSet = new Set();
 const mismatchUserSet = new Set();
-let mismatchUserArray = [];
-
 
 // ==================================================================
 // DROPBOX
@@ -5820,7 +5825,7 @@ function followable(text){
 
     let hitSearchTerm = false;
 
-    const flag = followableSearchTermsArray.some(function(searchTerm){
+    followableSearchTermsArray.some(function(searchTerm){
       if (new RegExp("\\b" + searchTerm + "\\b", "i").test(text)) {
         hitSearchTerm = searchTerm;
         return true;
@@ -5906,17 +5911,9 @@ function userCategorizeable(user){
       if ((user.screenName === undefined) || !user.screenName) { user.screenName = ""; }
       if ((user.name === undefined) || !user.name) { user.name = ""; }
 
-      // categorizeableFlag = followableRegEx.test(user.description) || followableRegEx.test(user.screenName) || followableRegEx.test(user.name);
-
       hitSearchTerm = await followable(user.description);
 
       if (hitSearchTerm) { 
-        // console.log(chalkLog("WAS | +++ FOLLOWABLE USER DESCRIPTION HIT"
-        //   + " | SEARCH TERM: " + hitSearchTerm
-        //   + " | @" + user.screenName 
-        //   + " | NAME: " + user.name
-        //   + " | DESC: " + user.description
-        // ));
         categorizeableUserSet.add(user.nodeId);
         return resolve(true); 
       }
@@ -5924,11 +5921,6 @@ function userCategorizeable(user){
       hitSearchTerm = await followable(user.screenName);
 
       if (hitSearchTerm) { 
-        // console.log(chalkLog("WAS | +++ FOLLOWABLE USER SCREEN NAME HIT"
-        //   + " | SEARCH TERM: " + hitSearchTerm
-        //   + " | @" + user.screenName 
-        //   + " | NAME: " + user.name
-        // ));
         categorizeableUserSet.add(user.nodeId);
         return resolve(true); 
       }
@@ -5936,11 +5928,6 @@ function userCategorizeable(user){
       hitSearchTerm = await followable(user.name);
 
       if (hitSearchTerm) { 
-        // console.log(chalkLog("WAS | +++ FOLLOWABLE USER NAME HIT"
-        //   + " | SEARCH TERM: " + hitSearchTerm
-        //   + " | @" + user.screenName 
-        //   + " | NAME: " + user.name
-        // ));
         categorizeableUserSet.add(user.nodeId);
         return resolve(true); 
       }
@@ -6481,7 +6468,6 @@ function updateUserSets(){
     userSearchCursor.on("end", function() {
 
       uncategorizedManualUserArray = [...uncategorizedManualUserSet];
-      mismatchUserArray = mismatchUserSet.keys();
 
       statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
 
@@ -6514,7 +6500,6 @@ function updateUserSets(){
     userSearchCursor.on("error", function(err) {
 
       uncategorizedManualUserArray = [...uncategorizedManualUserSet];
-      mismatchUserArray = mismatchUserSet.keys();
 
       statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
 
@@ -6548,7 +6533,6 @@ function updateUserSets(){
     userSearchCursor.on("close", function() {
 
       uncategorizedManualUserArray = [...uncategorizedManualUserSet];
-      mismatchUserArray = mismatchUserSet.keys();
 
       statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
 
@@ -10335,17 +10319,13 @@ function initThreeceeTwitterUsers(params){
   });
 }
 
-function twitterGetUserUpdateDb(user, callback){
+function twitterGetUserUpdateDb(user){
 
-  if (!user.userId && !user.nodeId && !user.screenName) { return callback("NO USER PROPS", null); }
+  return new Promise(async function(resolve, reject){
 
-  getCurrentThreeceeUser().
-  then(async function(currentThreeceeUser){
+    if (!user.userId && !user.nodeId && !user.screenName) { return reject(new Error("NO USER PROPS")); }
 
-    if ( currentThreeceeUser
-      && (threeceeTwitter[currentThreeceeUser] !== undefined)
-      && threeceeTwitter[currentThreeceeUser].ready) {
-
+    try{
       printUserObj("WAS | GET USER TWITTER DATA", user);
 
       const twitQuery = {};
@@ -10356,7 +10336,7 @@ function twitterGetUserUpdateDb(user, callback){
       if (user.userId !== undefined) { twitQuery.user_id = user.userId; }
       if (user.screenName !== undefined) { twitQuery.screen_name = user.screenName; }
 
-      threeceeTwitter[currentThreeceeUser].twit.get("users/show", twitQuery, function usersShow (err, rawUser){
+      threeceeTwitter[threeceeUser].twit.get("users/show", twitQuery, async function usersShow (err, rawUser){
 
         if (err) {
 
@@ -10368,359 +10348,280 @@ function twitterGetUserUpdateDb(user, callback){
           ));
 
           if ((err.code === 63) || (err.code === 50)) { // USER SUSPENDED or NOT FOUND
-            if (user.nodeId !== undefined) { 
-              console.log(chalkAlert("WAS | XXX DELETING USER IN DB | @" + user.screenName + " | NID: " + user.nodeId));
-              global.globalUser.deleteOne({ 'nodeId': user.nodeId }, function(err, delUser){
-                if (err) {
-                  console.log(chalkError("WAS | *** DB DELETE USER ERROR: " + err));
-                  return false;
-                }
-                if (delUser.deletedCount > 0) {
-                  console.log(chalkAlert("WAS | XXX UNCATEGORIZEABLE | USER LOCATION | DELETING" 
-                    + " | " + user.nodeId
-                    + " | @" + user.screenName
-                    + " | " + user.location
-                  ));
-                }
+
+            try {
+              if (user.nodeId !== undefined) { 
+
+                console.log(chalkAlert("WAS | XXX DELETING USER IN DB | @" + user.screenName + " | NID: " + user.nodeId));
+
+                await global.globalUser.deleteOne({ 'nodeId': user.nodeId });
 
                 ignoredUserSet.add(user.nodeId);
                 followableUserSet.delete(user.nodeId);
                 uncategorizedManualUserSet.delete(user.nodeId);
                 uncategorizedAutoUserSet.delete(user.nodeId);
                 categorizedUserHashMap.delete(user.nodeId);
-              });
+
+                return resolve();
+              }
+
+              if (user.screenName !== undefined) { 
+
+                console.log(chalkAlert("WAS | XXX DELETING USER IN DB | @" + user.screenName + " | NID: " + user.nodeId));
+                
+                await global.globalUser.deleteOne({ 'screenName': user.screenName });
+                
+                ignoredUserSet.add(user.screenName.toLowerCase());
+                followableUserSet.delete(user.nodeId);
+                uncategorizedManualUserSet.delete(user.nodeId);
+                uncategorizedAutoUserSet.delete(user.nodeId);
+                categorizedUserHashMap.delete(user.nodeId);
+
+                return resolve();
+              }
             }
-            if (user.screenName !== undefined) { 
-              console.log(chalkAlert("WAS | XXX DELETING USER IN DB | @" + user.screenName + " | NID: " + user.nodeId));
-              global.globalUser.deleteOne({ 'screenName': user.screenName });
-              ignoredUserSet.add(user.screenName.toLowerCase());
-              followableUserSet.delete(user.nodeId);
-              uncategorizedManualUserSet.delete(user.nodeId);
-              uncategorizedAutoUserSet.delete(user.nodeId);
-              categorizedUserHashMap.delete(user.nodeId);
+            catch(err1){
+              return reject(err1);
             }
+
           }
 
-          return callback("NO TWITTER UPDATE", user);
+          return reject(err);
         }
 
         if (rawUser && (rawUser !== undefined)) {
 
           if (!userServerControllerReady || !statsObj.dbConnectionReady) {
-            return callback(new Error("userServerController not ready"), null);
+            return reject(new Error("userServerController not ready"));
           }
 
-          userServerController.convertRawUser({user: rawUser}, async function(err, cUser){
+          let cUser;
 
-            if (err) {
-              console.log(chalkError("WAS | *** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
-              return callback("RAW USER", rawUser);
-            }
+          try{
+            cUser = await userServerController.convertRawUserPromise({user: rawUser});
+          }
+          catch(err1){
+            console.log(chalkError("WAS | *** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
+            return reject(err1);
+          }
 
-            printUserObj("FOUND users/show rawUser", cUser);
+          printUserObj("FOUND users/show rawUser", cUser);
 
-            user.bannerImageUrl = cUser.bannerImageUrl;
-            user.createdAt = cUser.createdAt;
-            user.description = cUser.description;
-            user.followersCount = cUser.followersCount;
-            user.friendsCount = cUser.friendsCount;
-            user.ignored = cUser.ignored;
-            user.lang = cUser.lang;
-            user.lastSeen = (cUser.status && (cUser.status !== undefined)) ? cUser.status.created_at : Date.now();
-            user.lastTweetId = cUser.lastTweetId;
-            user.location = cUser.location;
-            user.name = cUser.name;
-            user.nodeId = cUser.nodeId;
-            user.profileImageUrl = cUser.profileImageUrl;
-            user.profileUrl = cUser.profileUrl;
-            user.screenName = cUser.screenName;
-            user.status = cUser.status;
-            user.statusesCount = cUser.statusesCount;
-            user.statusId = cUser.statusId;
-            user.updateLastSeen = true;
-            user.url = cUser.url;
-            user.userId = cUser.userId;
-            user.verified = cUser.verified;
-            user.mentions = 0;
+          user.bannerImageUrl = cUser.bannerImageUrl;
+          user.createdAt = cUser.createdAt;
+          user.description = cUser.description;
+          user.followersCount = cUser.followersCount;
+          user.friendsCount = cUser.friendsCount;
+          user.ignored = cUser.ignored;
+          user.lang = cUser.lang;
+          user.lastSeen = (cUser.status && (cUser.status !== undefined)) ? cUser.status.created_at : Date.now();
+          user.lastTweetId = cUser.lastTweetId;
+          user.location = cUser.location;
+          user.name = cUser.name;
+          user.nodeId = cUser.nodeId;
+          user.profileImageUrl = cUser.profileImageUrl;
+          user.profileUrl = cUser.profileUrl;
+          user.screenName = cUser.screenName;
+          user.status = cUser.status;
+          user.statusesCount = cUser.statusesCount;
+          user.statusId = cUser.statusId;
+          user.updateLastSeen = true;
+          user.url = cUser.url;
+          user.userId = cUser.userId;
+          user.verified = cUser.verified;
+          user.mentions = 0;
 
-            const nCacheObj = nodeCache.get(user.nodeId);
+          const nCacheObj = nodeCache.get(user.nodeId);
 
-            if (nCacheObj) {
-              user.mentions = Math.max(user.mentions, nCacheObj.mentions);
-            }
-            // else {
-            //   user.mentions = 0;
-            // }
+          if (nCacheObj) {
+            user.mentions = Math.max(user.mentions, nCacheObj.mentions);
+          }
+          // else {
+          //   user.mentions = 0;
+          // }
 
-            user.setMentions = true;
+          user.setMentions = true;
 
-            try{
-              const updatedUser = await userServerController.findOneUserV2({user: user, mergeHistograms: false, noInc: true});
-              console.log(chalk.blue("WAS | UPDATED updatedUser"
-                + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
-                + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
-                + "\n" + printUser({user: updatedUser})
-              ));
-              callback(null, updatedUser);
-            }
-            catch(err1){
-              console.log(chalkError("WAS | *** findOneUserV2 ERROR: " + err1));
-              return callback("NO DB UPDATE", user);
-            }
-          });
+          try{
+            const updatedUser = await userServerController.findOneUserV2({user: user, mergeHistograms: false, noInc: true});
+            console.log(chalk.blue("WAS | UPDATED updatedUser"
+              + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
+              + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
+              + "\n" + printUser({user: updatedUser})
+            ));
+            return resolve(updatedUser);
+          }
+          catch(err1){
+            console.log(chalkError("WAS | *** findOneUserV2 ERROR: " + err1));
+            return reject(err1);
+          }
         }
         else {
           console.log(chalkTwitter("WAS | NOT FOUND users/show data"));
-          callback("TWITTER NOT FOUND", user);
+          return reject(new Error("TWITTER NOT FOUND"));
         }
       });
     }
-    else if (threeceeTwitter[currentThreeceeUser] !== undefined) {
-      console.log(chalkTwitter("WAS | XXX TWITTER_SEARCH_NODE USER FAIL"
-        + " | 3C @" + currentThreeceeUser
-        + " | 3C READY: " + threeceeTwitter[currentThreeceeUser].ready
-        + "\n" + printUser({user: user})
-      ));
-      callback("TWITTER NOT READY", user);
-    }
-    else {
+    catch(err){
       console.log(chalkTwitter("WAS | XXX TWITTER_SEARCH_NODE USER FAIL"
         + " | threeceeTwitter[currentThreeceeUser] UNDEFINED"
-        + " | 3C @" + currentThreeceeUser
+        + " | 3C @" + threeceeUser
         + "\n" + printUser({user: user})
       ));
-
-      if (user.nodeId){
-
-        const nCacheObj = nodeCache.get(user.nodeId);
-
-        if (nCacheObj) {
-          user.mentions = Math.max(user.mentions, nCacheObj.mentions);
-          nodeCache.set(user.nodeId, user);
-        }
-        else {
-          user.mentions = 0;
-        }
-
-        user.setMentions = true;
-
-      }
-
-      if (!userServerControllerReady || !statsObj.dbConnectionReady) {
-        return callback(new Error("userServerController not ready"), user);
-      }
-
-      try{
-
-        const updatedUser = await userServerController.findOneUserV2({user: user, mergeHistograms: false, noInc: true});
-
-        console.log(chalk.blue("WAS | UPDATED updatedUser"
-          + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
-          + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
-          + "\n" + printUser({user: updatedUser})
-        ));
-
-        callback(null, updatedUser);
-
-      }
-      catch(err){
-        console.log(chalkError("WAS | *** findOneUserV2 ERROR: " + err));
-        return callback("NO DB OR TWITTER UPDATE", user);
-      }
-
     }
-  }).
-  catch(function(err){
-    console.log(chalkError("WAS | *** GET CURRENT 3C USER ERROR: " + err));
-    return callback(err, null);
+
   });
 }
 
-function twitterSearchUserNode(searchQuery, callback){
+function twitterSearchUserNode(searchQuery){
 
-  global.globalUser.findOne(searchQuery, function(err, user){
+  return new Promise(async function(resolve, reject){
 
-    if (err) {
-      console.log(chalkError("WAS | *** TWITTER SEARCH NODE USER ERROR"
-        + "searchQuery\n" + jsonPrint(searchQuery)
-        + "ERROR\n" + jsonPrint(err)
-      ));
-      callback("DB ERROR", null);
-    }
-    
-    else if (user) {
+    try {
+      const user = await global.globalUser.findOne(searchQuery);
 
-      printUserObj("WAS | TWITTER SEARCH DB | FOUND USER", user);
+      if (user) {
 
-      twitterGetUserUpdateDb(user, function(err, updatedUser){
-        if (err) { callback(err, null); }
-        else if (updatedUser) { callback(err, updatedUser); }
-        else { callback(null, null); }
-      });
+        printUserObj("WAS | TWITTER SEARCH DB | FOUND USER", user);
 
-    }
-    else {
+        const updatedUser = await twitterGetUserUpdateDb(user);
+
+        if (updatedUser) { 
+          return resolve(updatedUser);
+        }
+
+        return resolve(null);
+
+      }
 
       console.log(chalkLog("WAS | TWITTER SEARCH DB USER NOT FOUND"
         + "\nsearchQuery\n" + jsonPrint(searchQuery)
       ));
 
-      twitterGetUserUpdateDb(searchQuery, function(err, updatedUser){
-        if (err) { callback(err, null); }
-        else if (updatedUser) { callback(err, updatedUser); }
-        else { callback(null, null); }
-      });
+      const newUser = await twitterGetUserUpdateDb(searchQuery);
+
+      if (newUser) { return resolve(newUser); }
+
+      return resolve(null);
+
+    }
+    catch(err){
+      console.log(chalkError("WAS | *** TWITTER SEARCH NODE USER ERROR"
+        + "searchQuery\n" + jsonPrint(searchQuery)
+        + "ERROR\n" + jsonPrint(err)
+      ));
+      return reject(err);
     }
 
   });
 }
 
-function twitterSearchNode(params, callback) {
+function twitterSearchUser(params) {
 
-  const searchNode = params.searchNode.toLowerCase().trim();
-  let searchNodeHashtag;
-  let searchNodeUser;
-  let searchQuery = {};
+  return new Promise(async function(resolve, reject){
 
-  console.log(chalkSocket("TWITTER_SEARCH_NODE"
-    + " | " + getTimeStamp()
-    + " | " + searchNode
-  ));
+    try {
 
-  if (searchNode.startsWith("#")) {
+      const searchNode = params.searchNode;
+      const searchNodeUser = { screenName: searchNode.substring(1) };
 
-    searchNodeHashtag = { nodeId: searchNode.substring(1) };
+      let searchUserId;
+      let searchMode;
+      let searchUserArray = [];
 
-    hashtagServerController.findOne({hashtag: searchNodeHashtag}, function(err, hashtag){
-      if (err) {
-        console.log(chalkError("WAS | *** TWITTER_SEARCH_NODE HASHTAG ERROR\n" + jsonPrint(err)));
-        callback(err, null);
-      }
-      else if (hashtag) { 
-        console.log(chalkTwitter("WAS | TWITTER_SEARCH_NODE HASHTAG FOUND\n" + jsonPrint(hashtag)));
+      const userAutoLeftArray = [...userAutoLeftSet];
+      const userAutoRightArray = [...userAutoRightSet];
+      const userAutoNeutralArray = [...userAutoNeutralSet];
 
-        viewNameSpace.emit("SET_TWITTER_HASHTAG", hashtag);
+      uncategorizedManualUserArray = [...uncategorizedManualUserSet];
 
-        if (hashtag.category) { 
-          const htCatObj = {};
-          htCatObj.manual = hashtag.category;
-          htCatObj.auto = false;
-          if (categorizedHashtagHashMap.has(hashtag.nodeId.toLowerCase())) {
-            htCatObj.auto = categorizedHashtagHashMap.get(hashtag.nodeId.toLowerCase()).auto || false;
-          }
-          categorizedHashtagHashMap.set(hashtag.nodeId.toLowerCase(), htCatObj);
+      statsObj.user.uncategorized.all = uncategorizedManualUserArray.length;
+      statsObj.user.uncategorized.left = _.intersection(userAutoLeftArray, uncategorizedManualUserArray).length;
+      statsObj.user.uncategorized.right = _.intersection(userAutoRightArray, uncategorizedManualUserArray).length;
+      statsObj.user.uncategorized.neutral = _.intersection(userAutoNeutralArray, uncategorizedManualUserArray).length;
+
+      statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
+
+      statsObj.user.mismatched = mismatchUserSet.size;
+
+      statsObj.user.manual.right = userRightSet.size;
+      statsObj.user.manual.left = userLeftSet.size;
+      statsObj.user.manual.neutral = userNeutralSet.size;
+      statsObj.user.manual.positive = userPositiveSet.size;
+      statsObj.user.manual.negative = userNegativeSet.size;
+      statsObj.user.manual.none = userNoneSet.size;
+
+      statsObj.user.auto.right = userAutoRightSet.size;
+      statsObj.user.auto.left = userAutoLeftSet.size;
+      statsObj.user.auto.neutral = userAutoNeutralSet.size;
+      statsObj.user.auto.positive = userAutoPositiveSet.size;
+      statsObj.user.auto.negative = userAutoNegativeSet.size;
+      statsObj.user.auto.none = userAutoNoneSet.size;
+
+      if (searchNodeUser.screenName.startsWith("?")) {
+
+        switch (searchNodeUser.screenName) {
+          case "?":
+            searchMode = "UNCAT";
+            searchUserArray = uncategorizedManualUserArray;
+          break;
+          case "?mm":
+            searchMode = "MISMATCH";
+            searchUserArray = _.shuffle([...mismatchUserSet]);
+          break;
+          case "?left":
+            searchMode = "UNCAT_LEFT";
+            searchUserArray = _.intersection(userAutoLeftArray, uncategorizedManualUserArray);
+          break;
+          case "?right":
+            searchMode = "UNCAT_RIGHT";
+            searchUserArray = _.intersection(userAutoRightArray, uncategorizedManualUserArray);
+          break;
+          case "?neutral":
+            searchMode = "UNCAT_NEUTRAL";
+            searchUserArray = _.intersection(userAutoNeutralArray, uncategorizedManualUserArray);
+          break;
+          default:
+            console.log(chalkError("WAS | *** UNKNOWN searchNodeUser.screenName: " + searchNodeUser.screenName));
+            return reject(new Error("UNKNOWN searchNodeUser.screenName"));
         }
-        callback(null, hashtag);
-      }
-      else {
-        console.log(chalkTwitter("WAS | TWITTER_SEARCH_NODE HASHTAG NOT FOUND: #" + searchNodeHashtag.nodeId));
-        console.log(chalkTwitter("WAS | +++ CREATE NEW HASHTAG: #" + searchNodeHashtag.nodeId));
 
-        new global.globalHashtag({
-          nodeId: searchNodeHashtag.nodeId.toLowerCase(), 
-          text: searchNodeHashtag.nodeId.toLowerCase()}).
-        save(function(err, newHt){
-          if (err) {
-            console.log(chalkError("WAS | *** ERROR:  SAVE NEW HASHTAG"
-              + " | #" + searchNodeHashtag.nodeId.toLowerCase()
-              + " | ERROR: " + err
-            ));
-            return callback(err, null);
-          }
+        if (searchUserArray.length === 0) {
+          viewNameSpace.emit("TWITTER_SEARCH_NODE_EMPTY_QUEUE", { searchNode: searchNode, stats: statsObj.user.uncategorized });
+          return resolve();
+        }
 
-          console.log(chalk.blue("WAS | +++ SAVED NEW HASHTAG"
-            + " | #" + newHt.nodeId
-          ));
-
-          viewNameSpace.emit("SET_TWITTER_HASHTAG", newHt);
-
-          callback(null, newHt);
-        });
-      }
-    });
-  }
-  else if (searchNode.startsWith("@")) {
-
-    let uncategorizedUserId;
-
-    uncategorizedManualUserArray = [...uncategorizedManualUserSet];
-    statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
-
-    const userAutoLeftArray = [...userAutoLeftSet];
-    const userAutoRightArray = [...userAutoRightSet];
-    const userAutoNeutralArray = [...userAutoNeutralSet];
-
-    statsObj.user.manual.right = userRightSet.size;
-    statsObj.user.manual.left = userLeftSet.size;
-    statsObj.user.manual.neutral = userNeutralSet.size;
-    statsObj.user.manual.positive = userPositiveSet.size;
-    statsObj.user.manual.negative = userNegativeSet.size;
-    statsObj.user.manual.none = userNoneSet.size;
-
-    statsObj.user.auto.right = userAutoRightSet.size;
-    statsObj.user.auto.left = userAutoLeftSet.size;
-    statsObj.user.auto.neutral = userAutoNeutralSet.size;
-    statsObj.user.auto.positive = userAutoPositiveSet.size;
-    statsObj.user.auto.negative = userAutoNegativeSet.size;
-    statsObj.user.auto.none = userAutoNoneSet.size;
-
-    searchNodeUser = { screenName: searchNode.substring(1) };
-
-    if (searchNodeUser.screenName.startsWith("?")) {
-
-      let currentUncategorizedUserArray = [];
-
-      switch (searchNodeUser.screenName) {
-        case "?":
-          currentUncategorizedUserArray = uncategorizedManualUserArray;
-        break;
-        case "?left":
-          currentUncategorizedUserArray = _.intersection(userAutoLeftArray, uncategorizedManualUserArray);
-        break;
-        case "?right":
-          currentUncategorizedUserArray = _.intersection(userAutoRightArray, uncategorizedManualUserArray);
-        break;
-        case "?neutral":
-          currentUncategorizedUserArray = _.intersection(userAutoNeutralArray, uncategorizedManualUserArray);
-        break;
-        default:
-          console.log(chalkError("WAS | *** UNKNOWN searchNodeUser.screenName: " + searchNodeUser.screenName));
-          return callback(new Error("UNKNOWN searchNodeUser.screenName"), null);
-      }
-
-      console.log(chalkSocket("TWITTER_SEARCH_NODE: " + searchNodeUser.screenName
-        + " [ UC USER ARRAY: " + currentUncategorizedUserArray.length + "]"
-        + " | " + getTimeStamp()
-        + " | SEARCH UNCATEGORIZED USER"
-      ));
-
-      if (currentUncategorizedUserArray.length > 0) {
-
-        uncategorizedUserId = currentUncategorizedUserArray.shift();
+        searchUserId = searchUserArray.shift();
 
         console.log(chalkSocket("TWITTER_SEARCH_NODE"
-          + "[ UC USER ARRAY: " + currentUncategorizedUserArray.length + "]"
           + " | " + getTimeStamp()
-          + " | SEARCH UNCATEGORIZED USER"
-          + " | UID: " + uncategorizedUserId
+          + " | MODE: " + searchMode
+          + " [ SEARCH USER ARRAY: " + searchUserArray.length + "]"
+          + " | USER NID: " + searchUserId
         ));
 
-        searchQuery = {nodeId: uncategorizedUserId};
+        searchQuery = {nodeId: searchUserId};
 
-        twitterSearchUserNode(searchQuery, async function(err, user){
-          if (err){
-            console.log(chalkError("WAS | *** TWITTER_SEARCH_NODE ERROR"
-              + " [ UC USER ARRAY: " + currentUncategorizedUserArray.length + "]"
+        try {
+          const user = await twitterSearchUserNode(searchQuery);
+
+          if (user) {
+
+            console.log(chalkBlue("WAS | T> TWITTER_SEARCH_NODE"
               + " | " + getTimeStamp()
-              + " | SEARCH UNCATEGORIZED USER"
-              + " | UID: " + uncategorizedUserId
-              + " | ERROR: " + err
+              + " | MODE: " + searchMode
+              + " [ SEARCH USER ARRAY: " + searchUserArray.length + "]"
+              + " | NID: " + user.nodeId
+              + " | @" + user.screenName
             ));
 
-            uncategorizedManualUserSet.delete(uncategorizedUserId);
-            ignoredUserSet.add(uncategorizedUserId);
-          }
-          else if (user) {
+            if (user.toObject && (typeof user.toObject === "function")) {
+              viewNameSpace.emit("SET_TWITTER_USER", { user: user.toObject, stats: statsObj.user.uncategorized });
+            }
+            else{
+              viewNameSpace.emit("SET_TWITTER_USER", { user: user, stats: statsObj.user.uncategorized });
+            }
+
             if (tfeChild !== undefined) { 
 
               let categorizeable = false;
@@ -10735,123 +10636,215 @@ function twitterSearchNode(params, callback) {
               if (categorizeable) { 
                 if (user.toObject && (typeof user.toObject === "function")) {
                   tfeChild.send({op: "USER_CATEGORIZE", user: user.toObject()});
-                }
+               }
                 else {
                   tfeChild.send({op: "USER_CATEGORIZE", user: user});
                 }
               }
-
             }
 
-            viewNameSpace.emit("SET_TWITTER_USER", user.toObject());
-
-            console.log(chalkBlue("WAS | T> TWITTER_SEARCH_NODE"
-              + " | " + params.socketId
-              + "[ UC USER ARRAY: " + currentUncategorizedUserArray.length + "]"
-              + " | " + getTimeStamp()
-              + " | @" + user.screenName
-              + " | NID: " + user.nodeId
-            ));
-
-            uncategorizedManualUserSet.delete(user.nodeId);
+            return resolve(user);
           }
-          else {
 
-            viewNameSpace.emit("TWITTER_SEARCH_NODE_NOT_FOUND", uncategorizedUserId);
+          console.log(chalkAlert("WAS | *** TWITTER_SEARCH_NODE | NOT FOUND"
+            + " | " + getTimeStamp()
+            + " | MODE: " + searchMode
+            + " [ SEARCH USER ARRAY: " + searchUserArray.length + "]"
+            + " | NID: " + user.nodeId
+            + " | @" + user.screenName
+          ));
 
-            console.log(chalkAlert("WAS | --- TWITTER_SEARCH_NODE NOT FOUND"
-              + "[ UC USER ARRAY: " + currentUncategorizedUserArray.length + "]"
-              + " | " + getTimeStamp()
-              + " | SEARCH UNCATEGORIZED USER"
-              + " | UID: " + uncategorizedUserId
-              + " | ERROR: " + err
-            ));
+          viewNameSpace.emit("TWITTER_SEARCH_NODE_NOT_FOUND", { searchNode: searchNode, stats: statsObj.user.uncategorized });
 
-            uncategorizedManualUserSet.delete(user.nodeId);
+          return resolve();
+        }
+        catch(err){
+          console.log(chalkError("WAS | *** TWITTER_SEARCH_NODE ERROR"
+            + " [ UC USER ARRAY: " + searchUserArray.length + "]"
+            + " | " + getTimeStamp()
+            + " | SEARCH UNCATEGORIZED USER"
+            + " | UID: " + searchUserId
+            + " | ERROR: " + err
+          ));
+
+          viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", { searchNode: searchNode, stats: statsObj.user.uncategorized });
+          uncategorizedManualUserSet.delete(searchUserId);
+          ignoredUserSet.add(searchUserId);
+          return reject(err);
+        }
+      }      
+
+      console.log(chalkInfo("WAS | SEARCH FOR SPECIFIC USER | " + jsonPrint(searchNodeUser)));
+
+      try {
+        const user = await twitterSearchUserNode(searchNodeUser);
+
+        if (user) {
+
+          console.log(chalkBlue("WAS | T> TWITTER_SEARCH_NODE"
+            + " | " + getTimeStamp()
+            + " | NID: " + user.nodeId
+            + " | @" + user.screenName
+          ));
+
+          if (user.toObject && (typeof user.toObject === "function")) {
+            viewNameSpace.emit("SET_TWITTER_USER", { user: user.toObject, stats: statsObj.user.uncategorized });
           }
-          callback(err, user);
-        });
+          else{
+            viewNameSpace.emit("SET_TWITTER_USER", { user: user, stats: statsObj.user.uncategorized });
+          }
+
+          if (tfeChild !== undefined) { 
+
+            let categorizeable = false;
+
+            try {
+              categorizeable = await userCategorizeable(user);
+            }
+            catch(e){
+              categorizeable = false;
+            }
+
+            if (categorizeable) { 
+              if (user.toObject && (typeof user.toObject === "function")) {
+                tfeChild.send({op: "USER_CATEGORIZE", user: user.toObject()});
+             }
+              else {
+                tfeChild.send({op: "USER_CATEGORIZE", user: user});
+              }
+            }
+          }
+
+          return resolve(user);
+        }
+
+        console.log(chalkAlert("WAS | *** TWITTER_SEARCH_NODE | NOT FOUND"
+          + " | " + getTimeStamp()
+          + " | NID: " + user.nodeId
+          + " | @" + user.screenName
+        ));
+
+        viewNameSpace.emit("TWITTER_SEARCH_NODE_NOT_FOUND", { searchNode: searchNode, stats: statsObj.user.uncategorized });
+
+        return resolve();
       }
-      else {
-        callback(null, null);
+      catch(err){
+        console.log(chalkError("WAS | *** TWITTER_SEARCH_NODE ERROR"
+          + " | " + getTimeStamp()
+          + " | SEARCH UNCATEGORIZED USER"
+          + " | searchNodeUser: " + searchNodeUser
+          + " | ERROR: " + err
+        ));
+
+        viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", { searchNode: searchNode, stats: statsObj.user.uncategorized });
+        uncategorizedManualUserSet.delete(searchUserId);
+        ignoredUserSet.add(searchUserId);
+        return reject(err);
       }
-    }      
-    else if (searchNodeUser.screenName === "?mm") {
+
+    }
+    catch(err){
+      return reject(err);
+    }
+  });
+}
+
+function twitterSearchHashtag(params) {
+
+  return new Promise(async function(resolve, reject){
+
+    try {
+
+      const searchNode = params.searchNode.toLowerCase().trim();
+      const searchNodeHashtag = { nodeId: searchNode.substring(1) };
+
+      try {
+
+        let hashtag = await global.globalHashtag.findOne({hashtag: searchNodeHashtag});
+
+        if (hashtag) { 
+
+          console.log(chalkTwitter("WAS | TWITTER_SEARCH_NODE HASHTAG FOUND\n" + jsonPrint(hashtag)));
+
+          viewNameSpace.emit("SET_TWITTER_HASHTAG", { hashtag: hashtag });
+
+          if (hashtag.category) { 
+
+            const htCatObj = {};
+            htCatObj.manual = hashtag.category;
+            htCatObj.auto = false;
+
+            if (categorizedHashtagHashMap.has(hashtag.nodeId.toLowerCase())) {
+              htCatObj.auto = categorizedHashtagHashMap.get(hashtag.nodeId.toLowerCase()).auto || false;
+            }
+
+            categorizedHashtagHashMap.set(hashtag.nodeId.toLowerCase(), htCatObj);
+
+          }
+          return resolve(hashtag);
+        }
+
+        console.log(chalkTwitter("WAS | TWITTER_SEARCH_NODE HASHTAG NOT FOUND: #" + searchNodeHashtag.nodeId));
+        console.log(chalkTwitter("WAS | +++ CREATE NEW HASHTAG: #" + searchNodeHashtag.nodeId));
+
+        hashtag = new global.globalHashtag({ nodeId: searchNodeHashtag.nodeId.toLowerCase(), text: searchNodeHashtag.nodeId.toLowerCase()});
+
+        const newHashtag = await hashtag.save();
+
+        console.log(chalk.blue("WAS | +++ SAVED NEW HASHTAG"
+          + " | #" + newHashtag.nodeId
+        ));
+
+        viewNameSpace.emit("SET_TWITTER_HASHTAG", newHashtag);
+
+        return resolve(newHashtag);
+
+      }
+      catch(err){
+        console.log(chalkError("WAS | *** TWITTER_SEARCH_NODE HASHTAG ERROR\n" + jsonPrint(err)));
+        return reject(err);
+      }
+    }
+    catch(err){
+      return reject(err);
+    }
+
+  });
+
+}
+
+function twitterSearchNode(params) {
+
+  return new Promise(async function(resolve, reject){
+
+    try {
+
+      const searchNode = params.searchNode.toLowerCase().trim();
 
       console.log(chalkSocket("TWITTER_SEARCH_NODE"
         + " | " + getTimeStamp()
-        + " | SEARCH MISMATCHED USER"
+        + " | " + searchNode
       ));
 
-      mismatchUserArray = _.shuffle([...mismatchUserSet]);
-
-      if (mismatchUserArray.length > 0) {
-
-        const mismatchedUserId = mismatchUserArray.shift();
-
-        searchQuery = {nodeId: mismatchedUserId};
-
-        twitterSearchUserNode(searchQuery, function(err, user){
-          if (err){
-            console.log(chalkError("WAS | *** TWITTER_SEARCH_NODE ERROR"
-              + " [ UC MISMATCHED ARRAY: " + mismatchUserArray.length + "]"
-              + " | " + getTimeStamp()
-              + " | SEARCH MISMATCHED USER"
-              + " | UID: " + mismatchedUserId
-              + " | ERROR: " + err
-            ));
-          }
-          else if (user) {
-            viewNameSpace.emit("SET_TWITTER_USER", user.toObject());
-          }
-          else {
-            console.log(chalkAlert("WAS | --- TWITTER_SEARCH_NODE NOT FOUND"
-              + " [ UC USER ARRAY: " + uncategorizedManualUserArray.length + "]"
-              + " | " + getTimeStamp()
-              + " | SEARCH MISMATCHED USER"
-              + " | UID: " + uncategorizedUserId
-              + " | ERROR: " + err
-            ));
-          }
-          callback(err, user);
-        });
+      if (searchNode.startsWith("#")) {
+        await twitterSearchHashtag({searchNode: searchNode});
+        return resolve();
       }
-      else {
-        callback(null, null);
-      }
-    }
-    else {
-      console.log(chalkInfo("WAS | SEARCH FOR SPECIFIC USER | " + jsonPrint(searchNodeUser)));
 
-      twitterSearchUserNode(searchNodeUser, function(err, user){
-        if (err){
-          console.log(chalkError("WAS | *** TWITTER_SEARCH_NODE ERROR"
-            + " | " + getTimeStamp()
-            + " | SEARCH USER_SPECIFIC"
-            + " | USER: " + searchNodeUser
-            + " | ERROR: " + err
-          ));
-        }
-        else if (user) {
-          viewNameSpace.emit("SET_TWITTER_USER", user.toObject());
-        }
-        else {
-          console.log(chalkAlert("WAS | --- TWITTER_SEARCH_NODE NOT FOUND"
-            + "[ UC USER ARRAY: " + uncategorizedManualUserArray.length + "]"
-            + " | " + getTimeStamp()
-            + " | SEARCH USER_SPECIFIC USER"
-            + " | UID: " + uncategorizedUserId
-            + " | ERROR: " + err
-          ));
-        }
-        callback(err, user);
-      });
+      if (searchNode.startsWith("@")) {
+        await twitterSearchUser({searchNode: searchNode});
+        return resolve();
+      }
+
+      viewNameSpace.emit("TWITTER_SEARCH_NODE_UNKNOWN_MODE", { searchNode: searchNode, stats: statsObj.user.uncategorized });
+      reject(new Error("UNKNOWN SEARCH MODE: " + searchNode));
 
     }
-  }
-  else {
-    callback(null, null);
-  }
+    catch(err){
+      reject(err);
+    }
+
+  });
 }
 
 function initTwitterSearchNodeQueueInterval(interval){
@@ -11022,9 +11015,7 @@ setTimeout(async function(){
       quit();
     }
   }
-
 }, DEFAULT_START_TIMEOUT);
-
 
 module.exports = {
   app: app,

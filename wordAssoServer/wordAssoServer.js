@@ -1396,7 +1396,12 @@ function connectDb(){
         statsObj.user.mismatched = 0;
         statsObj.user.uncategorizedManualUserArray = 0;
 
-        // initUpdateUserSetsInterval(ONE_MINUTE);
+        statsObj.user.uncategorized = {};
+        statsObj.user.uncategorized.all = 0;
+        statsObj.user.uncategorized.left = 0;
+        statsObj.user.uncategorized.right = 0;
+        statsObj.user.uncategorized.neutral = 0;
+
 
         HashtagServerController = require("@threeceelabs/hashtag-server-controller");
         hashtagServerController = new HashtagServerController("WAS_HSC");
@@ -1914,11 +1919,41 @@ function initStats(callback){
   statsObj.tweetParserSendReady = false;
   statsObj.previousBestNetworkId = "";
 
-  statsObj.nodes = {};
-  statsObj.nodes.user = {};
-  statsObj.nodes.user.total = 0;
-  statsObj.nodes.user.categorized = 0;
-  statsObj.nodes.user.uncategorized = 0;
+  statsObj.user.manual = {};
+  statsObj.user.manual.right = 0;
+  statsObj.user.manual.left = 0;
+  statsObj.user.manual.neutral = 0;
+  statsObj.user.manual.positive = 0;
+  statsObj.user.manual.negative = 0;
+  statsObj.user.manual.none = 0;
+
+  statsObj.user.auto = {};
+  statsObj.user.auto.right = 0;
+  statsObj.user.auto.left = 0;
+  statsObj.user.auto.neutral = 0;
+  statsObj.user.auto.positive = 0;
+  statsObj.user.auto.negative = 0;
+  statsObj.user.auto.none = 0;
+
+  statsObj.user.total = 0;
+  statsObj.user.following = 0;
+  statsObj.user.notFollowing = 0;
+  statsObj.user.categorizedTotal = 0;
+  statsObj.user.categorizedManual = 0;
+  statsObj.user.categorizedAuto = 0;
+
+  statsObj.user.uncategorized = {};
+  statsObj.user.uncategorized.all = 0;
+  statsObj.user.uncategorized.left = 0;
+  statsObj.user.uncategorized.right = 0;
+  statsObj.user.uncategorized.neutral = 0;
+
+  statsObj.user.uncategorizedTotal = 0;
+  statsObj.user.uncategorizedManual = 0;
+  statsObj.user.uncategorizedAuto = 0;
+  statsObj.user.matched = 0;
+  statsObj.user.mismatched = 0;
+  statsObj.user.uncategorizedManualUserArray = 0;
 
   statsObj.bestNetwork = {};
   statsObj.bestNetwork.networkId = false;
@@ -2020,14 +2055,6 @@ function initStats(callback){
   statsObj.queues.tweetParserMessageRxQueue = 0;
   statsObj.queues.tweetParserQueue = 0;
   statsObj.queues.tweetRxQueue = 0;
-
-  statsObj.session = {};
-  statsObj.session.errors = 0;
-  statsObj.session.numberSessions = 0;
-  statsObj.session.previousPromptNotFound = 0;
-  statsObj.session.totalCreated = 0;
-  statsObj.session.wordError = 0;
-  statsObj.session.wordErrorType = {};
 
   statsObj.socket = {};
   statsObj.socket.testClient = {};
@@ -10886,6 +10913,7 @@ function initTwitterSearchNodeQueueInterval(interval){
           clearTimeout(searchTimeout);
 
           twitterSearchNodeQueueReady = true;
+
         });
       }
     }, interval);

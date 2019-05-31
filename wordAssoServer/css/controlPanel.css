@@ -1,3 +1,7 @@
+.button {
+  -webkit-transition-duration: 0.4s; /* Safari */
+  transition-duration: 0.4s;
+}
 .qs_main {
   background-color: #dddddd;
   text-align: left;

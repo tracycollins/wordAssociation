@@ -5232,7 +5232,7 @@ function initSocketHandler(socketObj) {
       }
       else if (updatedNodeObj) {
         if (updatedNodeObj.nodeType === "user") {
-          socket.emit("SET_TWITTER_USER", updatedNodeObj);
+          socket.emit("SET_TWITTER_USER", {user: updatedNodeObj, stats: statsObj.user.uncategorized });
           console.log(chalkSocket("TX> SET_TWITTER_USER"
             + " | " + getTimeStamp(timeStamp)
             + " | SID: " + socket.id
@@ -5318,7 +5318,7 @@ function initSocketHandler(socketObj) {
         else {
 
           if (user) {
-            socket.emit("SET_TWITTER_USER", user);
+            socket.emit("SET_TWITTER_USER", {user: user, stats: statsObj.user.uncategorized });
           }
 
           socket.emit("VIEWER_READY_ACK", 

@@ -1650,7 +1650,7 @@ socket.on("SET_TWITTER_USER", function(message) {
     config.twitterUser = message.user;
   }
 
-  currentSessionView.setTwitterUser(message.user);
+  currentSessionView.setTwitterUser(message);
 
 });
 

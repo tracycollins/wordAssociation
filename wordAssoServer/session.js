@@ -1643,7 +1643,7 @@ socket.on("SET_TWITTER_USER", function(message) {
     + "\n profileUrl: " + message.user.profileUrl
   );
 
-  console.log("SET_TWITTER_USER STATS\n" + jsonPrint(message.stats); 
+  console.log("SET_TWITTER_USER STATS\n" + jsonPrint(message.stats)); 
 
   if (message.user.nodeId === twitterUserThreecee.nodeId) {
     twitterUserThreecee = message.user;

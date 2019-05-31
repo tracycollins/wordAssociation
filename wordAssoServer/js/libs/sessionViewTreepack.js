@@ -514,13 +514,24 @@ function ViewTreepack() {
     console.debug("SET ANTONYM: " + antonymFlag);
   };
 
-  this.setTwitterUser = function(user) {
+  this.setTwitterUser = function(message) {
 
-    if (user.notFound !== undefined) { console.log("setTwitterUser | NOT FOUND: @" + user.screenName); }
-    else { console.log("setTwitterUser | " + user.nodeId + " | @" + user.screenName); }
+    if (message.user.notFound !== undefined) { 
+      console.log("setTwitterUser"
+        + " | NOT FOUND: SEARCH NODE: " + message.searchNode
+        + "\nSTATS\n" + jsonPrint(message.stats)
+      ); 
+    }
+    else { 
+      console.log("setTwitterUser"
+        + " | NID: " + message.user.nodeId
+        + " | @" + message.user.screenName
+        + "\nSTATS\n" + jsonPrint(message.stats)
+      ); 
+    }
 
     if (controlPanelReadyFlag){ 
-      controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: user}, DEFAULT_SOURCE);
+      controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: message.user, stats: message.stats }, DEFAULT_SOURCE);
     }
   };
 

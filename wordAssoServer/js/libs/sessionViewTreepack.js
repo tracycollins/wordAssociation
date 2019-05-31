@@ -535,7 +535,7 @@ function ViewTreepack() {
         {
           op: "SET_TWITTER_USER", 
           user: message.user, 
-          searchNodea: message.searchNodea, 
+          searchNode: message.searchNode, 
           stats: message.stats
         }, 
         DEFAULT_SOURCE

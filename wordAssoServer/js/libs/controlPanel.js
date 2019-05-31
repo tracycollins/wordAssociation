@@ -132,6 +132,12 @@ function ControlPanel() {
 
   var statsObj = {};
   statsObj.socketId = "NOT SET";
+  statsObj.uncategorized = {};
+  statsObj.uncategorized.all = 0;
+  statsObj.uncategorized.left = 0;
+  statsObj.uncategorized.right = 0;
+  statsObj.uncategorized.neutral = 0;
+
   statsObj.user = {};
   statsObj.user.nodeId = "---";
   statsObj.user.userId = "---";
@@ -552,6 +558,8 @@ function ControlPanel() {
             + " | " + event.data.searchNode
             + "\nSTATS\n" + jsonPrint(event.data.stats)
           );
+
+          statsObj.uncategorized = event.data.stats;
 
           break;
         }

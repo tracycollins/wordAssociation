@@ -198,7 +198,6 @@ function ControlPanel() {
 
   	var searchFilter = "@?";
 
-
     switch (cat){
     	case "left":
     	case "right":
@@ -366,9 +365,13 @@ function ControlPanel() {
       twitterTimeLine.setValue("RATE", node.rate);
       twitterTimeLine.setValue("RATE MAX", node.rateMax);
 
-      twitterControl.setValue("FOLLOWING", node.following || false);
-      twitterControl.setValue("IGNORED", node.ignored || false);
-			twitterControl.setValue("CATEGORY AUTO", node.categoryAuto.toUpperCase() || "NONE");
+      const following = node.following || false;
+      const ignored = node.ignored || false;
+      const categoryAuto = node.categoryAuto.toUpperCase() || "NONE";
+
+      twitterControl.setValue("FOLLOWING", following);
+      twitterControl.setValue("IGNORED", ignored);
+			twitterControl.setValue("CATEGORY AUTO", categoryAuto);
 
       console.debug("loadTwitterFeed"
         + " | TYPE: " + node.nodeType
@@ -542,7 +545,9 @@ function ControlPanel() {
       break;
 
       case "SET_TWITTER_USER":
+
         currentTwitterNode = event.data.user;
+
         console.debug("SET TWITTER USER" 
           + " | " + currentTwitterNode.nodeId
           + " | IG: " + currentTwitterNode.ignored
@@ -555,12 +560,14 @@ function ControlPanel() {
           + " | CA: " + currentTwitterNode.categoryAuto
 			    + "\n profileImageUrl: " + currentTwitterNode.profileImageUrl
         );
+
         if (event.data.nodeSearch) {
           console.debug("NODE_SEARCH on SET_TWITTER_USER USER" 
             + " | @" + currentTwitterNode.screenName
           );
           parentWindow.postMessage({op: "NODE_SEARCH", input: "@" + currentTwitterNode.screenName}, DEFAULT_SOURCE);
         }
+
         loadTwitterFeed(currentTwitterNode, function(err){
           if (err) {
             setTimeout(function(){
@@ -570,6 +577,7 @@ function ControlPanel() {
             }, 1000);
           }
         });
+
       break;
 
       case "SET_TWITTER_HASHTAG":

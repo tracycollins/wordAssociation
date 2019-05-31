@@ -219,6 +219,7 @@ function ControlPanel() {
     if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: searchFilter}, DEFAULT_SOURCE); }
   	setTimeout(function(){
   		eventDetected = false;
+      document.getElementById("NEXT UNCAT").style.background='#ffffff';
   	}, 100);
 	};
 

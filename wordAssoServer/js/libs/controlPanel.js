@@ -590,7 +590,9 @@ function ControlPanel() {
           statsObj.uncategorized = event.data.stats;
 
           if (statsObj.uncategorized.left !== undefined) {
-            document.getElementById("NEXT UNCAT LEFT").value = statsObj.uncategorized.left + " | NEXT UNCAT LEFT";
+
+            const currentButton = document.getElementById("NEXT UNCAT LEFT");
+            currentButton.value = statsObj.uncategorized.left.toString() + " | NEXT UNCAT LEFT";
           }
 
           break;

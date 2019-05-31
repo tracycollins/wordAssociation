@@ -531,7 +531,15 @@ function ViewTreepack() {
     }
 
     if (controlPanelReadyFlag){ 
-      controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: message.user, stats: message.stats }, DEFAULT_SOURCE);
+      controlPanelWindow.postMessage(
+        {
+          op: "SET_TWITTER_USER", 
+          user: message.user, 
+          searchNodea: message.searchNodea, 
+          stats: message.stats
+        }, 
+        DEFAULT_SOURCE
+      );
     }
   };
 

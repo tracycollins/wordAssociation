@@ -1622,45 +1622,36 @@ socket.on("CONFIG_CHANGE", function(rxConfig) {
   }
 });
 
-socket.on("SET_TWITTER_USER", function(twitterUser) {
+socket.on("SET_TWITTER_USER", function(message) {
 
   statsObj.serverConnected = true;
   statsObj.socket.connected = true;
 
-  if (!twitterUser) { return; }
-  if (!twitterUser || (twitterUser.notFound !== undefined)) {
-
-    console.log("SET_TWITTER_USER | NOT FOUND" 
-      + " | @" + twitterUser.screenName 
-    );
-    
-    // currentSessionView.setTwitterUser(twitterUser);
-    return;
-  }
-
   console.log("SET_TWITTER_USER" 
-    + " | IG: " + twitterUser.ignored 
-    + " | FLWG: " + twitterUser.following 
-    + " | 3CFLWG: " + twitterUser.threeceeFollowing 
-    + " | " + twitterUser.nodeId 
-    + " | " + twitterUser.nodeId 
-    + " | @" + twitterUser.screenName 
-    + " | CR: " + twitterUser.createdAt 
-    + " | FLWRs: " + twitterUser.followersCount 
-    + " | FRNDs: " + twitterUser.friendsCount 
-    + " | Ts: " + twitterUser.statusesCount 
-    + " | Ms: " + twitterUser.mentions 
-    + " | C: " + twitterUser.category
-    + " | CA: " + twitterUser.categoryAuto
-    + "\n profileUrl: " + twitterUser.profileUrl
+    + " | IG: " + message.user.ignored 
+    + " | FLWG: " + message.user.following 
+    + " | 3CFLWG: " + message.user.threeceeFollowing 
+    + " | " + message.user.nodeId 
+    + " | @" + message.user.screenName 
+    + " | CR: " + message.user.createdAt 
+    + " | FLWRs: " + message.user.followersCount 
+    + " | FRNDs: " + message.user.friendsCount 
+    + " | Ts: " + message.user.statusesCount 
+    + " | Ms: " + message.user.mentions 
+    + " | C: " + message.user.category
+    + " | CA: " + message.user.categoryAuto
+    + "\n profileUrl: " + message.user.profileUrl
   );
 
-  if (twitterUser.nodeId === twitterUserThreecee.nodeId) {
-    twitterUserThreecee = twitterUser;
-    config.twitterUser = twitterUser;
+  console.log("SET_TWITTER_USER STATS\n" + jsonPrint(message.stats); 
+
+  if (message.user.nodeId === twitterUserThreecee.nodeId) {
+    twitterUserThreecee = message.user;
+    config.twitterUser = message.user;
   }
 
-  currentSessionView.setTwitterUser(twitterUser);
+  currentSessionView.setTwitterUser(message.user);
+
 });
 
 socket.on("SET_TWITTER_HASHTAG", function(twitterHashtag) {

@@ -10504,6 +10504,7 @@ function twitterSearchUserNode(searchQuery){
   return new Promise(async function(resolve, reject){
 
     try {
+
       const user = await global.globalUser.findOne(searchQuery);
 
       if (user) {
@@ -10613,13 +10614,28 @@ function twitterSearchUser(params) {
         }
 
         if (searchUserArray.length === 0) {
-          viewNameSpace.emit("TWITTER_SEARCH_NODE_EMPTY_QUEUE", { searchNode: searchNode, stats: statsObj.user.uncategorized });
+
+          console.log(chalkLog("WAS | --- TWITTER_SEARCH_NODE | NO USERS FOUND"
+            + " | " + getTimeStamp()
+            + " | MODE: " + searchMode
+            + " [ SEARCH USER ARRAY: " + searchUserArray.length + "]"
+          ));
+
+          const message = {};
+          
+          message.user = {};
+          message.user.notFound = true;
+          message.searchNode = searchNode;
+          message.stats = statsObj.user.uncategorized;
+
+          viewNameSpace.emit("TWITTER_SEARCH_NODE_EMPTY_QUEUE", message);
+
           return resolve();
         }
 
         searchUserId = searchUserArray.shift();
 
-        console.log(chalkSocket("TWITTER_SEARCH_NODE"
+        console.log(chalkSocket("WAS | TWITTER_SEARCH_NODE"
           + " | " + getTimeStamp()
           + " | MODE: " + searchMode
           + " [ SEARCH USER ARRAY: " + searchUserArray.length + "]"

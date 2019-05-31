@@ -1622,12 +1622,30 @@ socket.on("CONFIG_CHANGE", function(rxConfig) {
   }
 });
 
+
+socket.on("TWITTER_SEARCH_NODE_EMPTY_QUEUE", function(message) {
+
+  // message = { searchNode: searchNode, stats: statsObj.user.uncategorized }
+
+  statsObj.serverConnected = true;
+  statsObj.socket.connected = true;
+
+  console.log("<R TWITTER_SEARCH_NODE_EMPTY_QUEUE" 
+    + " | SEARCH NODE: " + message.searchNode
+  );
+
+  console.log("<R STATS\n" + jsonPrint(message.stats)); 
+
+  currentSessionView.setTwitterUser(message);
+
+});
+
 socket.on("SET_TWITTER_USER", function(message) {
 
   statsObj.serverConnected = true;
   statsObj.socket.connected = true;
 
-  console.log("SET_TWITTER_USER" 
+  console.log("<R SET_TWITTER_USER" 
     + " | IG: " + message.user.ignored 
     + " | FLWG: " + message.user.following 
     + " | 3CFLWG: " + message.user.threeceeFollowing 

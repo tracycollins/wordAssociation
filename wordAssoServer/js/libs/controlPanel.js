@@ -435,6 +435,7 @@ function ControlPanel() {
         });
 
       });
+
     }
     else if (node.nodeType === "hashtag"){
 
@@ -809,11 +810,11 @@ function ControlPanel() {
           parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
         });
 
-        twitterControl.addElement("CATEGORY MAN", radioUserCategoryDiv);
-
         twitterFeedUser.categoryAuto = twitterFeedUser.categoryAuto || "none";
         const categoryAuto = (twitterFeedUser) ? twitterFeedUser.categoryAuto.toUpperCase() : "";
         twitterControl.addText("CATEGORY AUTO", categoryAuto.toUpperCase());
+
+        twitterControl.addElement("CATEGORY MAN", radioUserCategoryDiv);
 
         twitterControl.addButton("NEXT UNCAT", function(){
           nextUncatHandler("NEXT UNCAT");

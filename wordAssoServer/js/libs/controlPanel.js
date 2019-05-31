@@ -804,6 +804,7 @@ function ControlPanel() {
           parentWindow.postMessage({op: "UNIGNORE", user: twitterFeedUser}, DEFAULT_SOURCE);
         });
         twitterControl.addButton("NEXT UNCAT", function(){
+          document.getElementById("NEXT UNCAT").style.background='#0000ff';
           nextUncatHandler("any");
         });
 

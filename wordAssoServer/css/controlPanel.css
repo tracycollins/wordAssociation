@@ -139,7 +139,7 @@
   font: 12px sans-serif;
 }
 .qs_button:active {
-  background-color: #ffffff;
+  background-color: red;
   border: 1px solid #aaaaaa;
 }
 .qs_button:focus {

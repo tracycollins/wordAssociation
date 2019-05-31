@@ -10641,7 +10641,7 @@ function twitterSearchUser(params) {
             ));
 
             if (user.toObject && (typeof user.toObject === "function")) {
-              viewNameSpace.emit("SET_TWITTER_USER", { user: user.toObject, stats: statsObj.user.uncategorized });
+              viewNameSpace.emit("SET_TWITTER_USER", { user: user.toObject(), stats: statsObj.user.uncategorized });
             }
             else{
               viewNameSpace.emit("SET_TWITTER_USER", { user: user, stats: statsObj.user.uncategorized });
@@ -10713,7 +10713,7 @@ function twitterSearchUser(params) {
           ));
 
           if (user.toObject && (typeof user.toObject === "function")) {
-            viewNameSpace.emit("SET_TWITTER_USER", { user: user.toObject, stats: statsObj.user.uncategorized });
+            viewNameSpace.emit("SET_TWITTER_USER", { user: user.toObject(), stats: statsObj.user.uncategorized });
           }
           else{
             viewNameSpace.emit("SET_TWITTER_USER", { user: user, stats: statsObj.user.uncategorized });

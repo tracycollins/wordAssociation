@@ -6283,7 +6283,6 @@ function updateUserSets(){
     userAutoNegativeSet.clear();
     userAutoNoneSet.clear();
 
-    // const userSearchQuery = { following: true, ignored: false };
     const userSearchQuery = { ignored: { "$in": [false, "false", null] } };
     
     userSearchCursor = global.globalUser.find(userSearchQuery).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
@@ -10627,10 +10626,9 @@ function twitterSearchUser(params) {
           + " | USER NID: " + searchUserId
         ));
 
-        searchQuery = {nodeId: searchUserId};
 
         try {
-          const user = await twitterSearchUserNode(searchQuery);
+          const user = await twitterSearchUserNode({nodeId: searchUserId});
 
           if (user) {
 
@@ -10885,7 +10883,7 @@ function initTwitterSearchNodeQueueInterval(interval){
 
     clearInterval(twitterSearchNodeQueueInterval);
 
-    twitterSearchNodeQueueInterval = setInterval(function txSearchNodeQueue () {
+    twitterSearchNodeQueueInterval = setInterval(async function txSearchNodeQueue () {
 
       if (twitterSearchNodeQueueReady && (twitterSearchNodeQueue.length > 0)) {
 
@@ -10901,20 +10899,25 @@ function initTwitterSearchNodeQueueInterval(interval){
 
         }, 5000);
 
-        twitterSearchNode(searchNodeParams, function(err, node){
 
-          if (err) {
-            console.log(chalkError("WAS | *** TWITTER SEARCH NODE ERROR: " + err));
-          }
-          else if (node) {
-            console.log(chalk.green("WAS | TWITTER SEARCH NODE FOUND | NID: " + node.nodeId));
-          }
+        try {
+          const node = await twitterSearchNode(searchNodeParams);
 
           clearTimeout(searchTimeout);
 
-          twitterSearchNodeQueueReady = true;
+          if (node) {
+            console.log(chalk.green("WAS | TWITTER SEARCH NODE FOUND | NID: " + node.nodeId));
+          }
 
-        });
+
+          twitterSearchNodeQueueReady = true;
+        }
+        catch(err){
+          clearTimeout(searchTimeout);
+          console.log(chalkError("WAS | *** TWITTER SEARCH NODE ERROR: " + err));
+          twitterSearchNodeQueueReady = true;
+        }
+
       }
     }, interval);
 

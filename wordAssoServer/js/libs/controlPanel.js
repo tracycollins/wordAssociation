@@ -589,6 +589,10 @@ function ControlPanel() {
 
           statsObj.uncategorized = event.data.stats;
 
+          if (statsObj.uncategorized.left !== undefined) {
+            document.getElementById("NEXT UNCAT LEFT").value = statsObj.uncategorized.left + " | NEXT UNCAT LEFT";
+          }
+
           break;
         }
 

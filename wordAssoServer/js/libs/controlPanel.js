@@ -195,46 +195,59 @@ function ControlPanel() {
     }
   }
 
-  var nextUncatHandler = function(cat){
-  	// need to debounce button click
-  	if (eventDetected) {
-  		return;
-  	}
-  	eventDetected = true;
+  var nextUncatHandler = function(op){
+    // need to debounce button click
+    if (eventDetected) {
+      return;
+    }
+    eventDetected = true;
 
-  	var searchFilter = "@?";
+    var searchFilter = "@?";
 
-    switch (cat){
-      case "any":
-        document.getElementById("NEXT UNCAT").style.background='#0000ff';
-        searchFilter += cat; 
+    document.getElementById(op).style.background='#0000ff';
+
+    switch (op){
+      case "NEXT UNCAT":
+        searchFilter += "any"; 
         break;
-      case "left":
-        document.getElementById("NEXT UNCAT LEFT").style.background='#0000ff';
-        searchFilter += cat; 
+      case "NEXT UNCAT LEFT":
+        searchFilter += "left"; 
         break;
-    	case "right":
-        document.getElementById("NEXT UNCAT RIGHT").style.background='#0000ff';
-        searchFilter += cat; 
+      case "NEXT UNCAT RIGHT":
+        searchFilter += "right"; 
         break;
-    	case "neutral":
-        document.getElementById("NEXT UNCAT NEUTRAL").style.background='#0000ff';
-        searchFilter += cat; 
+      case "NEXT UNCAT NEUTRAL":
+        searchFilter += "neutral"; 
         break;
       default:
     }
 
-    console.debug("NEXT UNCAT | CAT FILTER: " + cat + " | searchFilter: " + searchFilter);
+    console.debug("BUTTON: " + op + " | searchFilter: " + searchFilter);
 
     if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: searchFilter}, DEFAULT_SOURCE); }
-  	setTimeout(function(){
-  		eventDetected = false;
-      document.getElementById("NEXT UNCAT").style.background='#ffffff';
-      document.getElementById("NEXT UNCAT LEFT").style.background='#ffffff';
-      document.getElementById("NEXT UNCAT NEUTRAL").style.background='#ffffff';
-      document.getElementById("NEXT UNCAT RIGHT").style.background='#ffffff';
-  	}, 100);
-	};
+
+    setTimeout(function(){
+      eventDetected = false;
+      document.getElementById(op).style.background='#ffffff';
+    }, 100);
+  };
+
+  var ignoreHandler = function(op){
+
+    if (eventDetected) {
+      return;
+    }
+    eventDetected = true;
+
+    document.getElementById(op).style.background='#0000ff';
+    if (parentWindow) { parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE); }
+
+    setTimeout(function(){
+      eventDetected = false;
+      document.getElementById(op).style.background='#ffffff';
+    }, 100);
+
+  };
 
 
   function jsonPrint(obj) {
@@ -803,22 +816,22 @@ function ControlPanel() {
         twitterControl.addText("CATEGORY AUTO", categoryAuto.toUpperCase());
 
         twitterControl.addButton("NEXT UNCAT", function(){
-          nextUncatHandler("any");
+          nextUncatHandler("NEXT UNCAT");
         });
         twitterControl.addButton("NEXT UNCAT LEFT", function(){
-          nextUncatHandler("left");
+          nextUncatHandler("NEXT UNCAT LEFT");
         });
         twitterControl.addButton("NEXT UNCAT NEUTRAL", function(){
-          nextUncatHandler("neutral");
+          nextUncatHandler("NEXT UNCAT NEUTRAL");
         });
         twitterControl.addButton("NEXT UNCAT RIGHT", function(){
-          nextUncatHandler("right");
+          nextUncatHandler("NEXT UNCAT RIGHT");
         });
         twitterControl.addButton("IGNORE", function(){
-          parentWindow.postMessage({op: "IGNORE", user: twitterFeedUser}, DEFAULT_SOURCE);
+          ignoreHandler("IGNORE");
         });
         twitterControl.addButton("UNIGNORE", function(){
-          parentWindow.postMessage({op: "UNIGNORE", user: twitterFeedUser}, DEFAULT_SOURCE);
+          ignoreHandler("UNIGNORE");
         });
 
         // TWITTER ENTITY ==================================

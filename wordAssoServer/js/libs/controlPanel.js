@@ -546,6 +546,14 @@ function ControlPanel() {
 
       case "SET_TWITTER_USER":
 
+        if (event.data.user.notFound) {
+
+          console.debug("SET TWITTER USER | USER NOT FOUND" 
+            + " | " + event.data.searchNode
+            + "\nSTATS\n" + jsonPrint(event.data.stats)
+          );
+        }
+
         currentTwitterNode = event.data.user;
 
         console.debug("SET TWITTER USER" 

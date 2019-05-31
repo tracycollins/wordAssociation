@@ -552,6 +552,8 @@ function ControlPanel() {
             + " | " + event.data.searchNode
             + "\nSTATS\n" + jsonPrint(event.data.stats)
           );
+
+          break;
         }
 
         currentTwitterNode = event.data.user;

@@ -593,7 +593,7 @@ function ControlPanel() {
             if (statsObj.uncategorized[cat] !== undefined) {
               const currentButton = document.getElementById("NEXT UNCAT " + cat.toUpperCase());
               currentButton.value = statsObj.uncategorized[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
-              console.debug("NET UNCAT " + cat.toUpperCase()" | value: " + currentButton.value); 
+              console.debug("NET UNCAT " + cat.toUpperCase() + " | value: " + currentButton.value); 
             }
           })
 

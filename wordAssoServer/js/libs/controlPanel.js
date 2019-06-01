@@ -130,7 +130,7 @@ function ControlPanel() {
   delete config.twitterUser.countHistory;
   delete config.twitterUser.status;
 
-  var statsObj = {};
+  let statsObj = {};
   statsObj.socketId = "NOT SET";
   statsObj.uncategorized = {};
   statsObj.uncategorized.all = 0;
@@ -587,6 +587,7 @@ function ControlPanel() {
             + "\nSTATS\n" + jsonPrint(event.data.stats)
           );
 
+          statsObj.uncategorized = {};
           statsObj.uncategorized = event.data.stats;
 
           break;

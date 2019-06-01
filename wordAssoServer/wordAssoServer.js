@@ -6308,7 +6308,11 @@ function updateUserSets(){
         });
 
       }
-      else if (!user.category && !user.following && (user.followersCount < configuration.minFollowersAuto)){
+      else if (!user.category 
+        && !user.following 
+        && (user.followersCount > 0)
+        && (user.followersCount < configuration.minFollowersAuto)
+      ){
 
         global.globalUser.deleteOne({"nodeId": user.nodeId}, function(err){
           if (err) {

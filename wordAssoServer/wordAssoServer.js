@@ -6371,16 +6371,21 @@ function updateUserSets(){
             userNegativeSet.add(user.nodeId);
             userNoneSet.delete(user.nodeId);
           break;
-          default:
+          case "none":
             userRightSet.delete(user.nodeId);
             userLeftSet.delete(user.nodeId);
             userNeutralSet.delete(user.nodeId);
             userPositiveSet.delete(user.nodeId);
             userNegativeSet.delete(user.nodeId);
             userNoneSet.add(user.nodeId);
-            if ((user.followersCount >= configuration.minFollowersAuto)) {
-              uncategorizedManualUserSet.add(user.nodeId);
-            }
+          break;
+          default:
+            userRightSet.delete(user.nodeId);
+            userLeftSet.delete(user.nodeId);
+            userNeutralSet.delete(user.nodeId);
+            userPositiveSet.delete(user.nodeId);
+            userNegativeSet.delete(user.nodeId);
+            userNoneSet.delete(user.nodeId);
         }
 
         switch (user.categoryAuto) {
@@ -6565,7 +6570,6 @@ function updateUserSets(){
       statsObj.user.auto.positive = userAutoPositiveSet.size;
       statsObj.user.auto.negative = userAutoNegativeSet.size;
       statsObj.user.auto.none = userAutoNoneSet.size;
-
 
       console.error(chalkError("*** ERROR userSearchCursor: " + err));
       console.log(chalkAlert("WAS | USER DB STATS\n" + jsonPrint(statsObj.user)));

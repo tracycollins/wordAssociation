@@ -589,7 +589,7 @@ function ControlPanel() {
 
           statsObj.uncategorized = event.data.stats;
 
-          ["left", "right", "neutral", "any"]forEach(function(cat){
+          ["left", "right", "neutral", "any"].forEach(function(cat){
             if (statsObj.uncategorized[cat] !== undefined) {
               const currentButton = document.getElementById("NEXT UNCAT " + cat.toUpperCase());
               currentButton.value = statsObj.uncategorized[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();

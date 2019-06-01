@@ -587,8 +587,10 @@ function ControlPanel() {
             + "\nSTATS\n" + jsonPrint(event.data.stats)
           );
 
-          statsObj.uncategorized = {};
-          statsObj.uncategorized = event.data.stats;
+          if (event.data.stats) {
+            statsObj.uncategorized = {};
+            statsObj.uncategorized = event.data.stats;
+          }
 
           break;
         }
@@ -608,15 +610,18 @@ function ControlPanel() {
 			    + "\n profileImageUrl: " + currentTwitterNode.profileImageUrl
         );
 
-        console.debug("SET TWITTER USER\nstats" + jsonPrint(event.data.stats));
+        if (event.data.stats) {
+          
+          console.debug("SET TWITTER USER\nstats" + jsonPrint(event.data.stats));
 
-        ["left", "right", "neutral", "all"].forEach(function(cat){
-          if (event.data.stats[cat] !== undefined) {
-            const currentButton = document.getElementById("NEXT UNCAT " + cat.toUpperCase());
-            currentButton.value = event.data.stats[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
-            console.debug("NET UNCAT " + cat.toUpperCase() + " | value: " + currentButton.value); 
-          }
-        });
+          ["left", "right", "neutral", "all"].forEach(function(cat){
+            if (event.data.stats[cat] !== undefined) {
+              const currentButton = document.getElementById("NEXT UNCAT " + cat.toUpperCase());
+              currentButton.value = event.data.stats[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
+              console.debug("NET UNCAT " + cat.toUpperCase() + " | value: " + currentButton.value); 
+            }
+          });
+        }
 
         if (event.data.nodeSearch) {
           console.debug("NODE_SEARCH on SET_TWITTER_USER USER" 

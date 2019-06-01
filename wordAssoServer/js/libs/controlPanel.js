@@ -589,14 +589,6 @@ function ControlPanel() {
 
           statsObj.uncategorized = event.data.stats;
 
-          ["left", "right", "neutral", "any"].forEach(function(cat){
-            if (statsObj.uncategorized[cat] !== undefined) {
-              const currentButton = document.getElementById("NEXT UNCAT " + cat.toUpperCase());
-              currentButton.value = statsObj.uncategorized[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
-              console.debug("NET UNCAT " + cat.toUpperCase() + " | value: " + currentButton.value); 
-            }
-          })
-
           break;
         }
 
@@ -614,6 +606,14 @@ function ControlPanel() {
           + " | CA: " + currentTwitterNode.categoryAuto
 			    + "\n profileImageUrl: " + currentTwitterNode.profileImageUrl
         );
+
+        ["left", "right", "neutral", "any"].forEach(function(cat){
+          if (statsObj.uncategorized[cat] !== undefined) {
+            const currentButton = document.getElementById("NEXT UNCAT " + cat.toUpperCase());
+            currentButton.value = statsObj.uncategorized[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
+            console.debug("NET UNCAT " + cat.toUpperCase() + " | value: " + currentButton.value); 
+          }
+        });
 
         if (event.data.nodeSearch) {
           console.debug("NODE_SEARCH on SET_TWITTER_USER USER" 

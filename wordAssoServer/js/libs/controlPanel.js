@@ -592,7 +592,7 @@ function ControlPanel() {
           if (statsObj.uncategorized.left !== undefined) {
             const currentButton = document.getElementById("NEXT UNCAT LEFT");
             currentButton.value = statsObj.uncategorized.left.toString() + " | NEXT UNCAT LEFT";
-            console.debug("NET UNCAT LEFT | value: " + currentButton.value; 
+            console.debug("NET UNCAT LEFT | value: " + currentButton.value); 
           }
 
           break;

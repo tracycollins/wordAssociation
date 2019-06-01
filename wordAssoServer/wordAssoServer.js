@@ -6308,6 +6308,22 @@ function updateUserSets(){
         });
 
       }
+      else if (!user.category && !user.following && (user.followersCount < configuration.minFollowersAuto)){
+
+        global.globalUser.deleteOne({"nodeId": user.nodeId}, function(err){
+          if (err) {
+            console.log(chalkError("WAS | *** DB DELETE USER LESS THAN MIN FOLLOWERS | ERROR: " + err));
+          }
+          else {
+            printUserObj(
+              "XXX USER | < MIN FOLLOWERS: " + user.followersCount,
+              user, 
+              chalkAlert
+            );
+          }
+        });
+
+      }
       else {
 
         switch (user.category) {

@@ -6310,7 +6310,7 @@ function updateUserSets(){
       }
       else if (!user.category 
         && !user.following 
-        && (user.followersCount > 0)
+        // && (user.followersCount > 0)
         && (user.followersCount < configuration.minFollowersAuto)
       ){
 

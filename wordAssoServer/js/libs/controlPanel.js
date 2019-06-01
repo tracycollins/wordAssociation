@@ -608,7 +608,7 @@ function ControlPanel() {
 			    + "\n profileImageUrl: " + currentTwitterNode.profileImageUrl
         );
 
-        console.debug("SET TWITTER USER\nstats" + jsonPrint(stats));
+        console.debug("SET TWITTER USER\nstats" + jsonPrint(event.data.stats));
 
         ["left", "right", "neutral", "any"].forEach(function(cat){
           if (event.data.stats[cat] !== undefined) {

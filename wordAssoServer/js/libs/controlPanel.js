@@ -207,7 +207,7 @@ function ControlPanel() {
     document.getElementById(op).style.background='#0000ff';
 
     switch (op){
-      case "NEXT UNCAT":
+      case "NEXT UNCAT ANY":
         searchFilter += "any"; 
         break;
       case "NEXT UNCAT LEFT":
@@ -589,11 +589,13 @@ function ControlPanel() {
 
           statsObj.uncategorized = event.data.stats;
 
-          if (statsObj.uncategorized.left !== undefined) {
-            const currentButton = document.getElementById("NEXT UNCAT LEFT");
-            currentButton.value = statsObj.uncategorized.left.toString() + " | NEXT UNCAT LEFT";
-            console.debug("NET UNCAT LEFT | value: " + currentButton.value); 
-          }
+          ["left", "right", "neutral", "any"]forEach(function(cat){
+            if (statsObj.uncategorized[cat] !== undefined) {
+              const currentButton = document.getElementById("NEXT UNCAT " + cat.toUpperCase());
+              currentButton.value = statsObj.uncategorized[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
+              console.debug("NET UNCAT " + cat.toUpperCase()" | value: " + currentButton.value); 
+            }
+          })
 
           break;
         }
@@ -822,8 +824,8 @@ function ControlPanel() {
 
         twitterControl.addElement("CATEGORY MAN", radioUserCategoryDiv);
 
-        twitterControl.addButton("NEXT UNCAT", function(){
-          nextUncatHandler("NEXT UNCAT");
+        twitterControl.addButton("NEXT UNCAT ANY", function(){
+          nextUncatHandler("NEXT UNCAT ANY");
         });
         twitterControl.addButton("NEXT UNCAT LEFT", function(){
           nextUncatHandler("NEXT UNCAT LEFT");

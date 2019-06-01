@@ -609,9 +609,9 @@ function ControlPanel() {
         );
 
         ["left", "right", "neutral", "any"].forEach(function(cat){
-          if (statsObj.uncategorized[cat] !== undefined) {
+          if (event.data.stats[cat] !== undefined) {
             const currentButton = document.getElementById("NEXT UNCAT " + cat.toUpperCase());
-            currentButton.value = statsObj.uncategorized[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
+            currentButton.value = event.data.stats[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
             console.debug("NET UNCAT " + cat.toUpperCase() + " | value: " + currentButton.value); 
           }
         });

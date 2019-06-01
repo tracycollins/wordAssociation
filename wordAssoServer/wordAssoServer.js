@@ -6445,10 +6445,10 @@ function updateUserSets(){
         if (categorizeable
           && ((user.category === undefined) || !user.category) 
           && ((user.ignored === undefined) || !user.ignored) 
+          && (user.following || (user.followersCount >= configuration.minFollowersAuto)) 
           && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && user.categoryAuto && (user.categoryAuto !== "right")))
           && !ignoredUserSet.has(user.nodeId) 
           && !uncategorizedManualUserSet.has(user.nodeId) 
-          && (user.followersCount >= configuration.minFollowersAuto) 
           && !unfollowableUserSet.has(user.nodeId)) { 
 
           uncategorizedManualUserSet.add(user.nodeId);

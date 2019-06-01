@@ -207,8 +207,8 @@ function ControlPanel() {
     document.getElementById(op).style.background='#0000ff';
 
     switch (op){
-      case "NEXT UNCAT ANY":
-        searchFilter += "any"; 
+      case "NEXT UNCAT ALL":
+        searchFilter += "all"; 
         break;
       case "NEXT UNCAT LEFT":
         searchFilter += "left"; 
@@ -610,7 +610,7 @@ function ControlPanel() {
 
         console.debug("SET TWITTER USER\nstats" + jsonPrint(event.data.stats));
 
-        ["left", "right", "neutral", "any"].forEach(function(cat){
+        ["left", "right", "neutral", "all"].forEach(function(cat){
           if (event.data.stats[cat] !== undefined) {
             const currentButton = document.getElementById("NEXT UNCAT " + cat.toUpperCase());
             currentButton.value = event.data.stats[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
@@ -827,8 +827,8 @@ function ControlPanel() {
 
         twitterControl.addElement("CATEGORY MAN", radioUserCategoryDiv);
 
-        twitterControl.addButton("NEXT UNCAT ANY", function(){
-          nextUncatHandler("NEXT UNCAT ANY");
+        twitterControl.addButton("NEXT UNCAT ALL", function(){
+          nextUncatHandler("NEXT UNCAT ALL");
         });
         twitterControl.addButton("NEXT UNCAT LEFT", function(){
           nextUncatHandler("NEXT UNCAT LEFT");

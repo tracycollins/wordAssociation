@@ -10588,7 +10588,7 @@ function twitterSearchUser(params) {
       if (searchNodeUser.screenName.startsWith("?")) {
 
         switch (searchNodeUser.screenName) {
-          case "?any":
+          case "?all":
             searchMode = "UNCAT";
             searchUserArray = uncategorizedManualUserArray;
           break;

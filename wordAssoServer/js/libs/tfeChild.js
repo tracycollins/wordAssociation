@@ -169,7 +169,7 @@ configuration.enableImageAnalysis = true;
 configuration.testMode = false; // per tweet test mode
 configuration.userCategorizeQueueInterval = 100;
 
-configuration.enableLanguageAnalysis = false;
+configuration.enableLanguageAnalysis = true;
 configuration.forceLanguageAnalysis = false;
 
 configuration.inputTypes = DEFAULT_INPUT_TYPES;
@@ -2818,7 +2818,6 @@ function initialize(cnf){
     }
 
   });
-
 }
 
 process.on("message", function(m) {

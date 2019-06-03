@@ -202,7 +202,7 @@ function ControlPanel() {
     }
     eventDetected = true;
 
-    var searchFilter = "mm?";
+    var searchFilter = "@?mm";
 
     document.getElementById(op).style.background='#0000ff';
 

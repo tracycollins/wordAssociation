@@ -195,7 +195,7 @@ function ControlPanel() {
     }
   }
 
-  var nextMismatchHandler = function(){
+  var nextMismatchHandler = function(op){
     // need to debounce button click
     if (eventDetected) {
       return;
@@ -214,7 +214,7 @@ function ControlPanel() {
       eventDetected = false;
       document.getElementById(op).style.background='#ffffff';
     }, 100);
-    
+
   };
 
   var nextUncatHandler = function(op){
@@ -867,7 +867,7 @@ function ControlPanel() {
           nextUncatHandler("NEXT UNCAT RIGHT");
         });
         twitterControl.addButton("NEXT MISMATCH", function(){
-          nextMismatchHandler();
+          nextMismatchHandler("NEXT MISMATCH");
         });
         twitterControl.addButton("IGNORE", function(){
           ignoreHandler("IGNORE");

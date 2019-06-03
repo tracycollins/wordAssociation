@@ -195,6 +195,28 @@ function ControlPanel() {
     }
   }
 
+  var nextMismatchHandler = function(){
+    // need to debounce button click
+    if (eventDetected) {
+      return;
+    }
+    eventDetected = true;
+
+    var searchFilter = "mm?";
+
+    document.getElementById(op).style.background='#0000ff';
+
+    console.debug("BUTTON: NEXT MISMATCH | searchFilter: " + searchFilter);
+
+    if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: searchFilter}, DEFAULT_SOURCE); }
+
+    setTimeout(function(){
+      eventDetected = false;
+      document.getElementById(op).style.background='#ffffff';
+    }, 100);
+    
+  };
+
   var nextUncatHandler = function(op){
     // need to debounce button click
     if (eventDetected) {
@@ -843,6 +865,9 @@ function ControlPanel() {
         });
         twitterControl.addButton("NEXT UNCAT RIGHT", function(){
           nextUncatHandler("NEXT UNCAT RIGHT");
+        });
+        twitterControl.addButton("NEXT MISMATCH", function(){
+          nextMismatchHandler();
         });
         twitterControl.addButton("IGNORE", function(){
           ignoreHandler("IGNORE");

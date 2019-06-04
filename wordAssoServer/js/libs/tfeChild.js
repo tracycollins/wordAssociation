@@ -1019,7 +1019,7 @@ function checkTwitterRateLimit(params){
             + " | CONTEXT: " + data.rate_limit_context.access_token
             + " | LIM: " + twitterUserObj.stats.twitterRateLimit
             + " | REM: " + twitterUserObj.stats.twitterRateLimitRemaining
-            + " | EXP: " + twitterUserObj.stats.twitterRateLimitException.format(compactDateTimeFormat)
+            // + " | EXP: " + twitterUserObj.stats.twitterRateLimitException.format(compactDateTimeFormat)
             + " | NOW: " + moment().format(compactDateTimeFormat)
           ));
         }
@@ -1041,7 +1041,7 @@ function checkTwitterRateLimit(params){
         + " | CONTEXT: " + data.rate_limit_context.access_token
         + " | LIM: " + twitterUserObj.stats.twitterRateLimit
         + " | REM: " + twitterUserObj.stats.twitterRateLimitRemaining
-        + " | EXP: " + twitterUserObj.stats.twitterRateLimitException.format(compactDateTimeFormat)
+        // + " | EXP: " + twitterUserObj.stats.twitterRateLimitException.format(compactDateTimeFormat)
         + " | RST: " + moment(twitterUserObj.stats.twitterRateLimitResetAt).format(compactDateTimeFormat)
         + " | NOW: " + moment().format(compactDateTimeFormat)
         + " | IN " + msToTime(twitterUserObj.stats.twitterRateLimitRemainingTime)

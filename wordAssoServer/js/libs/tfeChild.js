@@ -2656,10 +2656,19 @@ function initUserCategorizeQueueInterval(cnf){
 
       try {
         updatedUser = await updateUserHistograms({user: user});
-        networkOutput = await activateNetwork({user: updatedUser});
       }
       catch (err) {
         console.log(chalkError("WAS | TFC | *** UPDATE USER HISTOGRAMS ERROR: " + err));
+        userChangeCache.del(user.nodeId);
+        userCategorizeQueueReady = true;
+        return;
+      }
+
+      try {
+        networkOutput = await activateNetwork({user: updatedUser});
+      }
+      catch (err) {
+        console.log(chalkError("WAS | TFC | *** ACTIVATE NETWORK ERROR: " + err));
         userChangeCache.del(user.nodeId);
         userCategorizeQueueReady = true;
         return;

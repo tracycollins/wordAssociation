@@ -2412,6 +2412,8 @@ function fetchUserTweets(params){
           + " | " + err.message
         ));
 
+        console.log(err);
+
         if (err.code === 130){ // Over capacity
           return resolve([]);
         }
@@ -2556,7 +2558,9 @@ function updateUserHistograms(p) {
       let latestTweets = [];
 
       if (!infoTwitterUserObj.stats.twitterRateLimitExceptionFlag) {
+
         latestTweets = await fetchUserTweets({userId: user.userId});
+
       }
 
       user = await updateUserTweets({user: user, tweets: latestTweets});

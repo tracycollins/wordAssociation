@@ -612,6 +612,15 @@ function ControlPanel() {
           if (event.data.stats) {
             statsObj.uncategorized = {};
             statsObj.uncategorized = event.data.stats;
+
+            ["left", "right", "neutral", "all"].forEach(function(cat){
+              if (event.data.stats[cat] !== undefined) {
+                const currentButton = document.getElementById("NEXT UNCAT " + cat.toUpperCase());
+                currentButton.value = event.data.stats[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
+                console.debug("NET UNCAT " + cat.toUpperCase() + " | value: " + currentButton.value); 
+              }
+            });
+
           }
 
           break;
@@ -633,7 +642,10 @@ function ControlPanel() {
         );
 
         if (event.data.stats) {
-          
+        
+          statsObj.uncategorized = {};
+          statsObj.uncategorized = event.data.stats;
+
           console.debug("SET TWITTER USER\nstats" + jsonPrint(event.data.stats));
 
           ["left", "right", "neutral", "all"].forEach(function(cat){
@@ -661,7 +673,6 @@ function ControlPanel() {
             }, 1000);
           }
         });
-
       break;
 
       case "SET_TWITTER_HASHTAG":

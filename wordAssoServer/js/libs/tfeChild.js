@@ -2575,7 +2575,12 @@ function updateUserHistograms(p) {
 
       if (!infoTwitterUserObj.stats.twitterRateLimitExceptionFlag) {
 
-        latestTweets = await fetchUserTweets({ userId: user.userId, screenName: user.screenName });
+        try{
+          latestTweets = await fetchUserTweets({ userId: user.userId, screenName: user.screenName });
+        }
+        catch(e){
+          return reject(e);
+        }
 
       }
 

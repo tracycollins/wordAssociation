@@ -1627,6 +1627,7 @@ socket.on("TWITTER_SEARCH_NODE_EMPTY_QUEUE", function(message) {
 
   // message = { searchNode: searchNode, stats: statsObj.user.uncategorized }
 
+  message.result = "TWITTER_SEARCH_NODE_EMPTY_QUEUE";
   statsObj.serverConnected = true;
   statsObj.socket.connected = true;
 

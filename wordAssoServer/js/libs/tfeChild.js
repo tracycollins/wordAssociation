@@ -2479,7 +2479,7 @@ function fetchUserTweets(params){
           ));
 
           try {
-            await global.globalUser.deleteOne({nodeId: params.user.userId});
+            await global.globalUser.deleteOne({nodeId: params.userId});
             return reject(err);
           }
           catch(e){

@@ -2408,11 +2408,10 @@ function fetchUserTweets(params){
           + " | @" + configuration.threeceeUser 
           + " | FETCH USER ID: " + params.userId
           + " | " + getTimeStamp() 
+          + " | STATUS CODE: " + err.statusCode
           + " | ERR CODE: " + err.code
-          + " | " + err.message
+          + " | MESSAGE: " + err.message
         ));
-
-        console.log(err);
 
         if (err.code === 130){ // Over capacity
           return resolve([]);
@@ -2469,6 +2468,23 @@ function fetchUserTweets(params){
 
           process.send({op: "ERROR", errorType: "TWITTER_TOKEN", isInfoUser: true, threeceeUser: configuration.threeceeUser, error: err});
           return reject(err);
+        }
+
+        if (err.statusCode === 401){ // twitter user not authorized, suspended
+
+          console.log(chalkAlert("TFC | *** TWITTER FETCH USER TWEETS ERROR | USER NOT AUTHORIZED (SUSPENDED?) ... DELETING" 
+            + " | " + getTimeStamp() 
+            + " | UID: " + params.userId 
+            + " | @" + params.screenName 
+          ));
+
+          try {
+            await global.globalUser.deleteOne({nodeId: params.user.userId});
+            return reject(err);
+          }
+          catch(e){
+            return reject(e);
+          }
         }
         
         return reject(err);
@@ -2559,7 +2575,7 @@ function updateUserHistograms(p) {
 
       if (!infoTwitterUserObj.stats.twitterRateLimitExceptionFlag) {
 
-        latestTweets = await fetchUserTweets({userId: user.userId});
+        latestTweets = await fetchUserTweets({ userId: user.userId, screenName: user.screenName });
 
       }
 

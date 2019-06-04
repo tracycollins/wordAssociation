@@ -778,11 +778,75 @@ const userDefaults = function (user){
   return user;
 };
 
+let rateLimitTimeout;
+let rateLimitStatusInterval;
+
+function initRateLimitPause(params){
+
+  return new Promise(async function(resolve, reject){
+
+    if (!params) {
+      return reject(new Error("params undefined"));
+    }
+
+    console.log(chalkAlert("WAS | TSS"
+      + " | RATE LIMIT PAUSE"
+      + " | @" + configuration.threeceeUser
+      + " | NOW: " + moment().format(compactDateTimeFormat)
+      + " | RESET AT: " + params.twitterRateLimitResetAt.format(compactDateTimeFormat)
+      + " | REMAINING: " + msToTime(params.twitterRateLimitRemainingTime)
+    ));
+
+    clearInterval(rateLimitStatusInterval);
+    clearTimeout(rateLimitTimeout);
+
+    let remainingTime = params.twitterRateLimitRemainingTime;
+    const resetAt = params.twitterRateLimitResetAt;
+    const timeout = params.twitterRateLimitRemainingTime + ONE_MINUTE;
+
+    rateLimitStatusInterval = setInterval(function(){
+
+      remainingTime = resetAt.diff(moment());
+
+      console.log(chalkAlert("WAS | TFC"
+        + " | RATE LIMIT PAUSE"
+        + " | @" + configuration.threeceeUser
+        + " | NOW: " + moment().format(compactDateTimeFormat)
+        + " | RESET AT: " + resetAt.format(compactDateTimeFormat)
+        + " | REMAINING: " + msToTime(remainingTime)
+      ));
+
+    }, ONE_MINUTE);
+
+    rateLimitTimeout = setTimeout(function(){
+
+      remainingTime = resetAt.diff(moment());
+
+      console.log(chalkAlert("WAS | TFC | XXX RATE LIMIT EXPIRED"
+        + " | @" + configuration.threeceeUser
+        + " | NOW: " + moment().format(compactDateTimeFormat)
+        + " | RESET AT: " + resetAt.format(compactDateTimeFormat)
+        + " | REMAINING: " + msToTime(remainingTime)
+      ));
+
+      threeceeUserObj.stats.twitterRateLimitExceptionFlag = false;
+
+      clearInterval(rateLimitStatusInterval);
+
+    }, timeout);
+
+    resolve();
+
+  });
+}
+
+
+
 function twitStreamPromise(params){
 
   return new Promise(function(resolve, reject){
 
-    threeceeUserObj.twitStream.get(params.endpoint, params.twitParams, function(err, data, response) {
+    threeceeUserObj.twitStream.get(params.endpoint, params.twitParams, async function(err, data, response) {
 
       if (err){
         console.log(chalkError("TSS | *** TWITTER STREAM ERROR"
@@ -792,6 +856,30 @@ function twitStreamPromise(params){
           + " | STATUS CODE: " + err.statusCode
           + " | " + err.message
         ));
+
+        if (err.code === 88){
+          threeceeUserObj.stats.twitterRateLimitExceptionFlag = true;
+          threeceeUserObj.stats.twitterRateLimit = response.headers["x-rate-limit-limit"];
+          threeceeUserObj.stats.twitterRateLimitRemaining = response.headers["x-rate-limit-remaining"];
+          threeceeUserObj.stats.twitterRateLimitResetAt = moment.unix(response.headers["x-rate-limit-reset"]);
+          threeceeUserObj.stats.twitterRateLimitRemainingTime = moment.unix(response.headers["x-rate-limit-reset"]).diff(moment());
+
+          console.log(chalkLog("TFC | RATE LIMIT"
+            + " | LIM: " + threeceeUserObj.stats.twitterRateLimit
+            + " | REM: " + threeceeUserObj.stats.twitterRateLimitRemaining
+            + " | RESET AT: " + threeceeUserObj.stats.twitterRateLimitResetAt.format(compactDateTimeFormat)
+            + " | REMAINING: " + msToTime(threeceeUserObj.stats.twitterRateLimitRemainingTime)
+          ));
+
+          try {
+            await initRateLimitPause(threeceeUserObj.stats);
+            return resolve([]);
+          }
+          catch(e){
+            console.log(chalkError("WAS | TFC | *** INIT RATE LIMIT PAUSE ERROR: " + e));
+            return reject(e);
+          }
+        }
 
         if (configuration.verbose) {
           console.log("TSS | response\n" + jsonPrint(response));

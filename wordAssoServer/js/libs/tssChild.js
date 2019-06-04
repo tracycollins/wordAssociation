@@ -204,6 +204,7 @@ threeceeUserObj.stats.rateLimited = false;
 threeceeUserObj.stats.tweetsPerSecond = 0;
 threeceeUserObj.stats.tweetsPerMinute = 0;
 
+// threeceeUserObj.stats.twitterRateLimitException = false
 threeceeUserObj.stats.twitterRateLimit = 0;
 threeceeUserObj.stats.twitterRateLimitRemaining = 0;
 threeceeUserObj.stats.twitterRateLimitResetAt = 0;
@@ -864,7 +865,7 @@ function twitStreamPromise(params){
           threeceeUserObj.stats.twitterRateLimitResetAt = moment.unix(response.headers["x-rate-limit-reset"]);
           threeceeUserObj.stats.twitterRateLimitRemainingTime = moment.unix(response.headers["x-rate-limit-reset"]).diff(moment());
 
-          console.log(chalkLog("TFC | RATE LIMIT"
+          console.log(chalkLog(MODULE_ID_PREFIX + " | RATE LIMIT"
             + " | LIM: " + threeceeUserObj.stats.twitterRateLimit
             + " | REM: " + threeceeUserObj.stats.twitterRateLimitRemaining
             + " | RESET AT: " + threeceeUserObj.stats.twitterRateLimitResetAt.format(compactDateTimeFormat)
@@ -1235,7 +1236,7 @@ function checkTwitterRateLimit(params){
             + " | CONTEXT: " + data.rate_limit_context.access_token
             + " | LIM: " + threeceeUserObj.stats.twitterRateLimit
             + " | REM: " + threeceeUserObj.stats.twitterRateLimitRemaining
-            + " | EXP: " + threeceeUserObj.stats.twitterRateLimitException.format(compactDateTimeFormat)
+            // + " | EXP: " + threeceeUserObj.stats.twitterRateLimitException.format(compactDateTimeFormat)
             + " | NOW: " + moment().format(compactDateTimeFormat)
           ));
         }
@@ -1257,7 +1258,7 @@ function checkTwitterRateLimit(params){
         + " | CONTEXT: " + data.rate_limit_context.access_token
         + " | LIM: " + threeceeUserObj.stats.twitterRateLimit
         + " | REM: " + threeceeUserObj.stats.twitterRateLimitRemaining
-        + " | EXP: " + threeceeUserObj.stats.twitterRateLimitException.format(compactDateTimeFormat)
+        // + " | EXP: " + threeceeUserObj.stats.twitterRateLimitException.format(compactDateTimeFormat)
         + " | RST: " + moment(threeceeUserObj.stats.twitterRateLimitResetAt).format(compactDateTimeFormat)
         + " | NOW: " + moment().format(compactDateTimeFormat)
         + " | IN " + msToTime(threeceeUserObj.stats.twitterRateLimitRemainingTime)

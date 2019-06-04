@@ -317,7 +317,6 @@ statsObj.user.uncategorizedManual = 0;
 statsObj.user.uncategorizedAuto = 0;
 statsObj.user.matched = 0;
 statsObj.user.mismatched = 0;
-statsObj.user.uncategorizedManualUserArray = 0;
 
 DEFAULT_THREECEE_USERS.forEach(function(threeceeUser){
   statsObj.tssChildren[threeceeUser] = {};
@@ -1394,7 +1393,6 @@ function connectDb(){
         statsObj.user.uncategorizedAuto = 0;
         statsObj.user.matched = 0;
         statsObj.user.mismatched = 0;
-        statsObj.user.uncategorizedManualUserArray = 0;
 
         statsObj.user.uncategorized = {};
         statsObj.user.uncategorized.all = 0;
@@ -1953,7 +1951,6 @@ function initStats(callback){
   statsObj.user.uncategorizedAuto = 0;
   statsObj.user.matched = 0;
   statsObj.user.mismatched = 0;
-  statsObj.user.uncategorizedManualUserArray = 0;
 
   statsObj.bestNetwork = {};
   statsObj.bestNetwork.networkId = false;
@@ -6520,8 +6517,6 @@ function updateUserSets(){
 
       uncategorizedManualUserArray = [...uncategorizedManualUserSet];
 
-      statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
-
       statsObj.user.matched = matchUserSet.size;
       statsObj.user.mismatched = mismatchUserSet.size;
 
@@ -6552,8 +6547,6 @@ function updateUserSets(){
 
       uncategorizedManualUserArray = [...uncategorizedManualUserSet];
 
-      statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
-
       statsObj.user.matched = matchUserSet.size;
       statsObj.user.mismatched = mismatchUserSet.size;
 
@@ -6583,8 +6576,6 @@ function updateUserSets(){
     userSearchCursor.on("close", function() {
 
       uncategorizedManualUserArray = [...uncategorizedManualUserSet];
-
-      statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
 
       statsObj.user.matched = matchUserSet.size;
       statsObj.user.mismatched = mismatchUserSet.size;
@@ -10246,7 +10237,6 @@ function initUpdateUserSetsInterval(interval){
       try {
 
         uncategorizedManualUserArray = [...uncategorizedManualUserSet];
-        statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
 
         if (statsObj.dbConnectionReady && updateUserSetsIntervalReady) {
 
@@ -10591,8 +10581,6 @@ function twitterSearchUser(params) {
       statsObj.user.uncategorized.right = _.intersection(userAutoRightArray, uncategorizedManualUserArray).length;
       statsObj.user.uncategorized.neutral = _.intersection(userAutoNeutralArray, uncategorizedManualUserArray).length;
 
-      statsObj.user.uncategorizedManualUserArray = uncategorizedManualUserArray.length;
-
       statsObj.user.mismatched = mismatchUserSet.size;
 
       statsObj.user.manual.right = userRightSet.size;
@@ -10651,6 +10639,7 @@ function twitterSearchUser(params) {
           message.user.notFound = true;
           message.searchNode = searchNode;
           message.stats = statsObj.user.uncategorized;
+          message.stats.mismatched = mismatchUserSet.size;
 
           viewNameSpace.emit("TWITTER_SEARCH_NODE_EMPTY_QUEUE", message);
 
@@ -10681,10 +10670,10 @@ function twitterSearchUser(params) {
             ));
 
             if (user.toObject && (typeof user.toObject === "function")) {
-              viewNameSpace.emit("SET_TWITTER_USER", { user: user.toObject(), stats: statsObj.user.uncategorized });
+              viewNameSpace.emit("SET_TWITTER_USER", { user: user.toObject(), stats: statsObj.user });
             }
             else{
-              viewNameSpace.emit("SET_TWITTER_USER", { user: user, stats: statsObj.user.uncategorized });
+              viewNameSpace.emit("SET_TWITTER_USER", { user: user, stats: statsObj.user });
             }
 
             if (tfeChild !== undefined) { 
@@ -10719,7 +10708,7 @@ function twitterSearchUser(params) {
             + " | @" + user.screenName
           ));
 
-          viewNameSpace.emit("TWITTER_SEARCH_NODE_NOT_FOUND", { searchNode: searchNode, stats: statsObj.user.uncategorized });
+          viewNameSpace.emit("TWITTER_SEARCH_NODE_NOT_FOUND", { searchNode: searchNode, stats: statsObj.user });
 
           return resolve();
         }
@@ -10732,7 +10721,7 @@ function twitterSearchUser(params) {
             + " | ERROR: " + err
           ));
 
-          viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", { searchNode: searchNode, stats: statsObj.user.uncategorized });
+          viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", { searchNode: searchNode, stats: statsObj.user });
           uncategorizedManualUserSet.delete(searchUserId);
           ignoredUserSet.add(searchUserId);
           return reject(err);
@@ -10753,10 +10742,10 @@ function twitterSearchUser(params) {
           ));
 
           if (user.toObject && (typeof user.toObject === "function")) {
-            viewNameSpace.emit("SET_TWITTER_USER", { user: user.toObject(), stats: statsObj.user.uncategorized });
+            viewNameSpace.emit("SET_TWITTER_USER", { user: user.toObject(), stats: statsObj.user });
           }
           else{
-            viewNameSpace.emit("SET_TWITTER_USER", { user: user, stats: statsObj.user.uncategorized });
+            viewNameSpace.emit("SET_TWITTER_USER", { user: user, stats: statsObj.user });
           }
 
           if (tfeChild !== undefined) { 
@@ -10789,7 +10778,7 @@ function twitterSearchUser(params) {
           + " | @" + user.screenName
         ));
 
-        viewNameSpace.emit("TWITTER_SEARCH_NODE_NOT_FOUND", { searchNode: searchNode, stats: statsObj.user.uncategorized });
+        viewNameSpace.emit("TWITTER_SEARCH_NODE_NOT_FOUND", { searchNode: searchNode, stats: statsObj.user });
 
         return resolve();
       }
@@ -10801,7 +10790,7 @@ function twitterSearchUser(params) {
           + " | ERROR: " + err
         ));
 
-        viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", { searchNode: searchNode, stats: statsObj.user.uncategorized });
+        viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", { searchNode: searchNode, stats: statsObj.user });
         uncategorizedManualUserSet.delete(searchUserId);
         ignoredUserSet.add(searchUserId);
         return reject(err);
@@ -10901,7 +10890,7 @@ function twitterSearchNode(params) {
         return resolve();
       }
 
-      viewNameSpace.emit("TWITTER_SEARCH_NODE_UNKNOWN_MODE", { searchNode: searchNode, stats: statsObj.user.uncategorized });
+      viewNameSpace.emit("TWITTER_SEARCH_NODE_UNKNOWN_MODE", { searchNode: searchNode, stats: statsObj.user });
       reject(new Error("UNKNOWN SEARCH MODE: " + searchNode));
 
     }

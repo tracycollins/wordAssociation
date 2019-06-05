@@ -131,12 +131,16 @@ function ControlPanel() {
   delete config.twitterUser.status;
 
   let statsObj = {};
+
   statsObj.socketId = "NOT SET";
+
   statsObj.uncategorized = {};
   statsObj.uncategorized.all = 0;
   statsObj.uncategorized.left = 0;
   statsObj.uncategorized.right = 0;
   statsObj.uncategorized.neutral = 0;
+
+  statsObj.mismatched = 0;
 
   statsObj.user = {};
   statsObj.user.nodeId = "---";
@@ -609,14 +613,15 @@ function ControlPanel() {
             + "\nSTATS\n" + jsonPrint(event.data.stats)
           );
 
-          if (event.data.stats) {
+          if (event.data.stats.uncategorized) {
             statsObj.uncategorized = {};
-            statsObj.uncategorized = event.data.stats;
+            statsObj.uncategorized = event.data.stats.uncategorized;
+            statsObj.mismatched = event.data.stats.mismatched;
 
             ["left", "right", "neutral", "all"].forEach(function(cat){
-              if (event.data.stats[cat] !== undefined) {
+              if (event.data.stats.uncategorized[cat] !== undefined) {
                 const currentButton = document.getElementById("NEXT UNCAT " + cat.toUpperCase());
-                currentButton.value = event.data.stats[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
+                currentButton.value = event.data.stats.uncategorized[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
                 console.debug("NET UNCAT " + cat.toUpperCase() + " | value: " + currentButton.value); 
               }
             });
@@ -641,17 +646,18 @@ function ControlPanel() {
 			    + "\n profileImageUrl: " + currentTwitterNode.profileImageUrl
         );
 
-        if (event.data.stats) {
+        if (event.data.stats.uncategorized) {
         
           statsObj.uncategorized = {};
-          statsObj.uncategorized = event.data.stats;
+          statsObj.uncategorized = event.data.stats.uncategorized;
+          statsObj.mismatched = event.data.stats.mismatched;
 
           console.debug("SET TWITTER USER\nstats" + jsonPrint(event.data.stats));
 
           ["left", "right", "neutral", "all"].forEach(function(cat){
-            if (event.data.stats[cat] !== undefined) {
+            if (event.data.stats.uncategorized[cat] !== undefined) {
               const currentButton = document.getElementById("NEXT UNCAT " + cat.toUpperCase());
-              currentButton.value = event.data.stats[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
+              currentButton.value = event.data.stats.uncategorized[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
               console.debug("NET UNCAT " + cat.toUpperCase() + " | value: " + currentButton.value); 
             }
           });

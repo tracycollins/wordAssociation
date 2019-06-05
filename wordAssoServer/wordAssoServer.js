@@ -6327,6 +6327,8 @@ function updateUserSets(){
       }
       else {
 
+        let categorizeable = false;
+
         switch (user.category) {
           case "right":
             userRightSet.add(user.nodeId);
@@ -6335,6 +6337,7 @@ function updateUserSets(){
             userPositiveSet.delete(user.nodeId);
             userNegativeSet.delete(user.nodeId);
             userNoneSet.delete(user.nodeId);
+            categorizeable = true;
           break;
           case "left":
             userRightSet.delete(user.nodeId);
@@ -6343,6 +6346,7 @@ function updateUserSets(){
             userPositiveSet.delete(user.nodeId);
             userNegativeSet.delete(user.nodeId);
             userNoneSet.delete(user.nodeId);
+            categorizeable = true;
           break;
           case "neutral":
             userRightSet.delete(user.nodeId);
@@ -6351,6 +6355,7 @@ function updateUserSets(){
             userPositiveSet.delete(user.nodeId);
             userNegativeSet.delete(user.nodeId);
             userNoneSet.delete(user.nodeId);
+            categorizeable = true;
           break;
           case "positive":
             userRightSet.delete(user.nodeId);
@@ -6359,6 +6364,7 @@ function updateUserSets(){
             userPositiveSet.add(user.nodeId);
             userNegativeSet.delete(user.nodeId);
             userNoneSet.delete(user.nodeId);
+            categorizeable = true;
           break;
           case "negative":
             userRightSet.delete(user.nodeId);
@@ -6367,6 +6373,7 @@ function updateUserSets(){
             userPositiveSet.delete(user.nodeId);
             userNegativeSet.add(user.nodeId);
             userNoneSet.delete(user.nodeId);
+            categorizeable = true;
           break;
           case "none":
             userRightSet.delete(user.nodeId);
@@ -6435,13 +6442,13 @@ function updateUserSets(){
             userAutoNoneSet.add(user.nodeId);
         }
 
-        let categorizeable = false;
-
-        try {
-          categorizeable = await userCategorizeable(user);
-        }
-        catch(e){
-          categorizeable = false;
+        if (!categorizeable) {
+          try {
+            categorizeable = await userCategorizeable(user);
+          }
+          catch(e){
+            categorizeable = false;
+          }
         }
 
         if (categorizeable

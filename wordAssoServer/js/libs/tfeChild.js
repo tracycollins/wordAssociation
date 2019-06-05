@@ -2576,7 +2576,17 @@ function updateUserHistograms(p) {
       if (!infoTwitterUserObj.stats.twitterRateLimitExceptionFlag) {
 
         try{
-          latestTweets = await fetchUserTweets({ userId: user.userId, screenName: user.screenName });
+          if (!user.tweets || user.tweets === undefined) {
+            user.tweets = {};
+            user.tweets.tweetIds = [];
+            user.tweets.sinceId = false;
+            user.tweets.maxId = false;
+          }
+          if (!user.tweets.sinceId || user.tweets.sinceId === undefined) {
+            user.tweets.sinceId = false;
+            user.tweets.maxId = false;
+          }
+          latestTweets = await fetchUserTweets({ userId: user.userId, screenName: user.screenName, sinceId: user.tweets.sinceId });
         }
         catch(e){
           return reject(e);

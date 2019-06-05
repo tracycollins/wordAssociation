@@ -1120,7 +1120,7 @@ function printHashtag(params) {
     return jsonPrint(params.hashtag);
   } 
   else {
-    text = "#" + hashtag.hashtagId
+    text = "#" + hashtag.nodeId
     + " | M  " + hashtag.mentions
     + " | LS " + getTimeStamp(hashtag.lastSeen)
     + " | C M " + hashtag.category + " A " + hashtag.categoryAuto;

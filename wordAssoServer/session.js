@@ -1675,19 +1675,23 @@ socket.on("SET_TWITTER_USER", function(message) {
 
 });
 
-socket.on("SET_TWITTER_HASHTAG", function(twitterHashtag) {
+socket.on("SET_TWITTER_HASHTAG", function(message) {
 
   statsObj.serverConnected = true;
   statsObj.socket.connected = true;
 
-  console.log("SET_TWITTER_HASHTAG" 
-    + " | " + twitterHashtag.hashtagId 
-    + " | #" + twitterHashtag.text 
-    + " | C: " + twitterHashtag.category
-    + " | CA: " + twitterHashtag.categoryAuto
+  console.log("<R SET_TWITTER_HASHTAG" 
+    + " | #" + message.hashtag.nodeId 
+    + " | CR: " + message.hashtag.createdAt 
+    + " | Ms: " + message.hashtag.mentions 
+    + " | C: " + message.hashtag.category
+    + " | CA: " + message.hashtag.categoryAuto
   );
 
-  currentSessionView.setTwitterHashtag(twitterHashtag);
+  console.log("SET_TWITTER_HASHTAG STATS\n" + jsonPrint(message.stats)); 
+
+  currentSessionView.setTwitterHashtag(message);
+
 });
 
 socket.on("TWITTER_TOPTERM_1MIN", function(top10obj) {

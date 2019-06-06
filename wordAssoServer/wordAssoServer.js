@@ -281,6 +281,43 @@ statsObj.tfeChildReady = false;
 
 statsObj.tssChildren = {};
 
+statsObj.hashtag = {};
+statsObj.hashtag.manual = {};
+statsObj.hashtag.manual.right = 0;
+statsObj.hashtag.manual.left = 0;
+statsObj.hashtag.manual.neutral = 0;
+statsObj.hashtag.manual.positive = 0;
+statsObj.hashtag.manual.negative = 0;
+statsObj.hashtag.manual.none = 0;
+
+statsObj.hashtag.auto = {};
+statsObj.hashtag.auto.right = 0;
+statsObj.hashtag.auto.left = 0;
+statsObj.hashtag.auto.neutral = 0;
+statsObj.hashtag.auto.positive = 0;
+statsObj.hashtag.auto.negative = 0;
+statsObj.hashtag.auto.none = 0;
+
+statsObj.hashtag.total = 0;
+statsObj.hashtag.categorizedTotal = 0;
+statsObj.hashtag.categorizedManual = 0;
+statsObj.hashtag.categorizedAuto = 0;
+
+statsObj.hashtag.uncategorized = {};
+statsObj.hashtag.uncategorized.all = 0;
+statsObj.hashtag.uncategorized.left = 0;
+statsObj.hashtag.uncategorized.right = 0;
+statsObj.hashtag.uncategorized.neutral = 0;
+statsObj.hashtag.uncategorized.positive = 0;
+statsObj.hashtag.uncategorized.negative = 0;
+statsObj.hashtag.uncategorized.none = 0;
+
+statsObj.hashtag.uncategorizedTotal = 0;
+statsObj.hashtag.uncategorizedManual = 0;
+statsObj.hashtag.uncategorizedAuto = 0;
+statsObj.hashtag.matched = 0;
+statsObj.hashtag.mismatched = 0;
+
 statsObj.user = {};
 
 statsObj.user.manual = {};
@@ -10645,8 +10682,7 @@ function twitterSearchUser(params) {
           message.user = {};
           message.user.notFound = true;
           message.searchNode = searchNode;
-          message.stats = statsObj.user.uncategorized;
-          message.stats.mismatched = mismatchUserSet.size;
+          message.stats = statsObj.user;
 
           viewNameSpace.emit("TWITTER_SEARCH_NODE_EMPTY_QUEUE", message);
 
@@ -10827,7 +10863,7 @@ function twitterSearchHashtag(params) {
 
           console.log(chalkTwitter("WAS | TWITTER_SEARCH_NODE HASHTAG FOUND\n" + jsonPrint(hashtag)));
 
-          viewNameSpace.emit("SET_TWITTER_HASHTAG", { hashtag: hashtag });
+          viewNameSpace.emit("SET_TWITTER_HASHTAG", { hashtag: hashtag, stats: statsObj.hashtag });
 
           if (hashtag.category) { 
 
@@ -10856,7 +10892,7 @@ function twitterSearchHashtag(params) {
           + " | #" + newHashtag.nodeId
         ));
 
-        viewNameSpace.emit("SET_TWITTER_HASHTAG", newHashtag);
+        viewNameSpace.emit("SET_TWITTER_HASHTAG", { hashtag: newHashtag, stats: statsObj.hashtag });
 
         return resolve(newHashtag);
 

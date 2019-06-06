@@ -543,12 +543,39 @@ function ViewTreepack() {
     }
   };
 
-  this.setTwitterHashtag = function(hashtag) {
-    console.log("setTwitterHashtag | HTID: " + hashtag.hashtagId + " | #" + hashtag.text);
-    
-    if (controlPanelReadyFlag){
-      controlPanelWindow.postMessage({op: "SET_TWITTER_HASHTAG", hashtag: hashtag}, DEFAULT_SOURCE);
+  this.setTwitterHashtag = function(message) {
+
+
+    if (message.hashtag.notFound !== undefined) { 
+      console.log("setTwitterHashtag"
+        + " | NOT FOUND: SEARCH NODE: " + message.searchNode
+        + "\nSTATS\n" + jsonPrint(message.stats)
+      ); 
     }
+    else { 
+      console.log("setTwitterHashtag"
+        + " | #" + message.hashtag.nodeId
+        + "\nSTATS\n" + jsonPrint(message.stats)
+      ); 
+    }
+
+    if (controlPanelReadyFlag){ 
+      controlPanelWindow.postMessage(
+        {
+          op: "SET_TWITTER_HASHTAG", 
+          hashtag: message.hashtag, 
+          searchNode: message.searchNode, 
+          stats: message.stats
+        }, 
+        DEFAULT_SOURCE
+      );
+    }
+
+    // console.log("setTwitterHashtag | HTID: " + hashtag.hashtagId + " | #" + hashtag.text);
+    
+    // if (controlPanelReadyFlag){
+    //   controlPanelWindow.postMessage({op: "SET_TWITTER_HASHTAG", hashtag: hashtag}, DEFAULT_SOURCE);
+    // }
   };
 
   this.setMetricMode = function(mode) {

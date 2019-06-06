@@ -684,9 +684,17 @@ function ControlPanel() {
       case "SET_TWITTER_HASHTAG":
 
         currentTwitterNode = event.data.hashtag;
-        currentTwitterNode.nodeType = "hashtag";
 
-        console.debug("SET TWITTER HASHTAG\n" + jsonPrint(currentTwitterNode));
+        console.debug("SET TWITTER HASHTAG" 
+          + " | " + currentTwitterNode.nodeId
+          + " | #" + currentTwitterNode.nodeId
+          + " | CR: " + currentTwitterNode.createdAt
+          + " | LS: " + currentTwitterNode.lastSeen
+          + " | C: " + currentTwitterNode.category
+          + " | CA: " + currentTwitterNode.categoryAuto
+        );
+
+        console.debug("SET TWITTER HASHTAG\nstats" + jsonPrint(event.data.stats));
 
         loadTwitterFeed(currentTwitterNode, function(err){
           if (err) {

@@ -30,6 +30,8 @@ var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
 // var DEFAULT_AUTH_URL = "http://localhost:9997/auth/twitter";
 // var DEFAULT_AUTH_URL = DEFAULT_SOURCE + "/login";
 
+const DEFAULT_KEEPALIVE_INTERVAL = 6000;
+
 var MAX_RX_QUEUE = 250;
 
 var MAX_READY_ACK_WAIT_COUNT = 10;
@@ -1458,7 +1460,7 @@ socket.on("VIEWER_READY_ACK", function(vSesKey) {
   );
   saveConfig();
 
-  initKeepalive(viewerObj, config.keepaliveInterval);
+  initKeepalive(viewerObj, DEFAULT_KEEPALIVE_INTERVAL);
 });
 
 socket.on("USER_AUTHENTICATED", function(userObj) {

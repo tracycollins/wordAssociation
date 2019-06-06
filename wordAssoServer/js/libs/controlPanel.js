@@ -413,6 +413,7 @@ function ControlPanel() {
       twitterEntity.setValue("FRIENDS", node.friendsCount);
       twitterEntity.setValue("LOCATION", node.location);
       twitterEntity.setValue("PROFILE IMAGE", node.profileImageUrl.replace("_normal", ""));
+      twitterEntity.setValue("BANNER IMAGE", node.bannerImageUrl.replace("_normal", ""));
       twitterEntity.setValue("DESCRIPTION", node.description);
 
       const ageMs = moment().diff(node.createdAt);
@@ -476,6 +477,7 @@ function ControlPanel() {
       twitterEntity.setValue("FRIENDS", "");
       twitterEntity.setValue("LOCATION", "");
       twitterEntity.setValue("PROFILE IMAGE", "https://word.threeceelabs.com/public/assets/images/twitterEgg.png");
+      twitterEntity.setValue("BANNER IMAGE", "https://word.threeceelabs.com/public/assets/images/twitterEgg.png");
       twitterEntity.setValue("DESCRIPTION", "");
 
       twitterTimeLine.setValue("TWEETS", "");
@@ -949,14 +951,23 @@ function ControlPanel() {
 				const description = (twitterFeedUser) ? twitterFeedUser.description : "";
 				twitterEntity.addTextArea("DESCRIPTION", description);
 
-				if (twitterFeedUser) {
-					var profileImageUrl = twitterFeedUser.profileImageUrl.replace("http:", "https:");
-					profileImageUrl = twitterFeedUser.profileImageUrl.replace("_normal", "");
-					twitterEntity.addImage("PROFILE IMAGE", profileImageUrl);
-				}
-				else {
-					twitterEntity.addImage("PROFILE IMAGE", "https://word.threeceelabs.com/public/assets/images/twitterEgg.png");
-				}
+        if (twitterFeedUser) {
+          var profileImageUrl = twitterFeedUser.profileImageUrl.replace("http:", "https:");
+          profileImageUrl = twitterFeedUser.profileImageUrl.replace("_normal", "");
+          twitterEntity.addImage("PROFILE IMAGE", profileImageUrl);
+        }
+        else {
+          twitterEntity.addImage("PROFILE IMAGE", "https://word.threeceelabs.com/public/assets/images/twitterEgg.png");
+        }
+
+        if (twitterFeedUser) {
+          var bannerImageUrl = twitterFeedUser.bannerImageUrl.replace("http:", "https:");
+          bannerImageUrl = twitterFeedUser.bannerImageUrl.replace("_normal", "");
+          twitterEntity.addImage("BANNER IMAGE", bannerImageUrl);
+        }
+        else {
+          twitterEntity.addImage("BANNER IMAGE", "https://word.threeceelabs.com/public/assets/images/twitterEgg.png");
+        }
 
 
         // TWITTER USER TIMELINE ==================================

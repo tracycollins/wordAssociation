@@ -5352,7 +5352,7 @@ function initSocketHandler(socketObj) {
         else {
 
           if (user) {
-            socket.emit("SET_TWITTER_USER", {user: user, stats: statsObj.user.uncategorized });
+            socket.emit("SET_TWITTER_USER", {user: user, stats: statsObj.user });
           }
 
           socket.emit("VIEWER_READY_ACK", 
@@ -10863,7 +10863,12 @@ function twitterSearchHashtag(params) {
 
           console.log(chalkTwitter("WAS | TWITTER_SEARCH_NODE HASHTAG FOUND\n" + jsonPrint(hashtag)));
 
-          viewNameSpace.emit("SET_TWITTER_HASHTAG", { hashtag: hashtag, stats: statsObj.hashtag });
+          if (hashtag.toObject && (typeof hashtag.toObject === "function")) {
+            viewNameSpace.emit("SET_TWITTER_HASHTAG", { hashtag: hashtag.toObject(), stats: statsObj.hashtag });
+          }
+          else{
+            viewNameSpace.emit("SET_TWITTER_HASHTAG", { hashtag: hashtag, stats: statsObj.hashtag });
+          }
 
           if (hashtag.category) { 
 
@@ -10892,7 +10897,13 @@ function twitterSearchHashtag(params) {
           + " | #" + newHashtag.nodeId
         ));
 
-        viewNameSpace.emit("SET_TWITTER_HASHTAG", { hashtag: newHashtag, stats: statsObj.hashtag });
+
+        if (hashtag.toObject && (typeof hashtag.toObject === "function")) {
+          viewNameSpace.emit("SET_TWITTER_HASHTAG", { hashtag: hashtag.toObject(), stats: statsObj.hashtag });
+        }
+        else{
+          viewNameSpace.emit("SET_TWITTER_HASHTAG", { hashtag: hashtag, stats: statsObj.hashtag });
+        }
 
         return resolve(newHashtag);
 

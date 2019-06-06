@@ -2240,15 +2240,15 @@ function userProfileChangeHistogram(params) {
 
               if (err.code === 8) {
 
-                console.log(chalkAlert("*** GOOGLE IMAGE PARSER QUOTA ERROR"));
+                console.log(chalkAlert(MODULE_ID_PREFIX + " | *** GOOGLE IMAGE PARSER QUOTA ERROR"));
 
                 statsObj.google.vision.imageAnalysisQuotaFlag = true;
                 statsObj.google.vision.errors += 1;
 
-                const quotaResetAtMoment = moment().eod();
+                const quotaResetAtMoment = moment().endOf("day");
                 const quotaTimeoutPeriod = quotaResetAtMoment.diff(moment());
 
-                console.log(chalkAlert("*** GOOGLE IMAGE PARSER QUOTA RESET AT"
+                console.log(chalkAlert(MODULE_ID_PREFIX + " | *** GOOGLE IMAGE PARSER QUOTA RESET AT"
                   + " | " + quotaResetAtMoment.format(compactDateTimeFormat)
                   + " | " + msToTime(quotaTimeoutPeriod)
                 ));

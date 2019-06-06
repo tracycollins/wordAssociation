@@ -682,13 +682,18 @@ function ControlPanel() {
       break;
 
       case "SET_TWITTER_HASHTAG":
+
         currentTwitterNode = event.data.hashtag;
+        currentTwitterNode.nodeType = "hashtag";
+
         console.debug("SET TWITTER HASHTAG\n" + jsonPrint(currentTwitterNode));
+
         loadTwitterFeed(currentTwitterNode, function(err){
           if (err) {
+            console.error("loadTwitterFeed SET_TWITTER_HASHTAG FAIL: " + err);
             setTimeout(function(){
               loadTwitterFeed(currentTwitterNode, function(err2){
-                if (err2) { console.error("loadTwitterFeed SET_TWITTER_HASHTAG FAIL"); }
+                if (err2) { console.error("loadTwitterFeed SET_TWITTER_HASHTAG FAIL: " + err2); }
               });
             }, 1000);
           }

@@ -686,7 +686,6 @@ function ControlPanel() {
         currentTwitterNode = event.data.hashtag;
 
         console.debug("SET TWITTER HASHTAG" 
-          + " | " + currentTwitterNode.nodeId
           + " | #" + currentTwitterNode.nodeId
           + " | CR: " + currentTwitterNode.createdAt
           + " | LS: " + currentTwitterNode.lastSeen

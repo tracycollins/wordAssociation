@@ -13,6 +13,8 @@ function ControlPanel() {
 
   const DEFAULT_SOURCE = REPLACE_SOURCE;
 
+  const DEFAULT_TWITTER_IMAGE = "https://word.threeceelabs.com/public/assets/images/twitterEgg.png";
+
 	var parentWindow = window.opener;
 	console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);
 	var self = this;
@@ -413,8 +415,13 @@ function ControlPanel() {
       twitterEntity.setValue("FRIENDS", node.friendsCount);
       twitterEntity.setValue("LOCATION", node.location);
       twitterEntity.setValue("PROFILE IMAGE", node.profileImageUrl.replace("_normal", ""));
-      twitterEntity.setValue("BANNER IMAGE", node.bannerImageUrl.replace("_normal", ""));
       twitterEntity.setValue("DESCRIPTION", node.description);
+
+      if (node.bannerImageUrl === undefined) {
+        node.bannerImageUrl = DEFAULT_TWITTER_IMAGE;
+      }
+      twitterEntity.setValue("BANNER IMAGE", node.bannerImageUrl.replace("_normal", ""));
+
 
       const ageMs = moment().diff(node.createdAt);
       const tweetsPerDay = ONE_DAY * (node.statusesCount/ageMs);
@@ -476,8 +483,8 @@ function ControlPanel() {
       twitterEntity.setValue("FOLLOWERS", "");
       twitterEntity.setValue("FRIENDS", "");
       twitterEntity.setValue("LOCATION", "");
-      twitterEntity.setValue("PROFILE IMAGE", "https://word.threeceelabs.com/public/assets/images/twitterEgg.png");
-      twitterEntity.setValue("BANNER IMAGE", "https://word.threeceelabs.com/public/assets/images/twitterEgg.png");
+      twitterEntity.setValue("PROFILE IMAGE", DEFAULT_TWITTER_IMAGE);
+      twitterEntity.setValue("BANNER IMAGE", DEFAULT_TWITTER_IMAGE);
       twitterEntity.setValue("DESCRIPTION", "");
 
       twitterTimeLine.setValue("TWEETS", "");
@@ -957,16 +964,16 @@ function ControlPanel() {
           twitterEntity.addImage("PROFILE IMAGE", profileImageUrl);
         }
         else {
-          twitterEntity.addImage("PROFILE IMAGE", "https://word.threeceelabs.com/public/assets/images/twitterEgg.png");
+          twitterEntity.addImage("PROFILE IMAGE", DEFAULT_TWITTER_IMAGE);
         }
 
-        if (twitterFeedUser) {
+        if (twitterFeedUser && twitterFeedUser.bannerImageUrl) {
           var bannerImageUrl = twitterFeedUser.bannerImageUrl.replace("http:", "https:");
           bannerImageUrl = twitterFeedUser.bannerImageUrl.replace("_normal", "");
           twitterEntity.addImage("BANNER IMAGE", bannerImageUrl);
         }
         else {
-          twitterEntity.addImage("BANNER IMAGE", "https://word.threeceelabs.com/public/assets/images/twitterEgg.png");
+          twitterEntity.addImage("BANNER IMAGE", DEFAULT_TWITTER_IMAGE);
         }
 
 

@@ -5266,7 +5266,7 @@ function initSocketHandler(socketObj) {
       }
       else if (updatedNodeObj) {
         if (updatedNodeObj.nodeType === "user") {
-          socket.emit("SET_TWITTER_USER", {user: updatedNodeObj, stats: statsObj.user.uncategorized });
+          socket.emit("SET_TWITTER_USER", {user: updatedNodeObj, stats: statsObj.user });
           console.log(chalkSocket("TX> SET_TWITTER_USER"
             + " | " + getTimeStamp(timeStamp)
             + " | SID: " + socket.id
@@ -5283,7 +5283,7 @@ function initSocketHandler(socketObj) {
           ));
         }
         if (updatedNodeObj.nodeType === "hashtag") {
-          socket.emit("SET_TWITTER_HASHTAG", updatedNodeObj);
+          socket.emit("SET_TWITTER_HASHTAG", {hashtag: updatedNodeObj, stats: statsObj.hashtag });
           console.log(chalkSocket("TX> SET_TWITTER_HASHTAG"
             + " | " + getTimeStamp(timeStamp)
             + " | SID: " + socket.id

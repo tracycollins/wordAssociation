@@ -405,22 +405,26 @@ function ControlPanel() {
       twitterFeedPreviousUser = twitterFeedUser;
       twitterFeedUser = node;
 
-      twitterEntity.setValue("NODE ID", node.nodeId);
-    	twitterEntity.setValue("NAME", node.name);
-      twitterEntity.setValue("SCREENNAME", "@"+node.screenName);
-      twitterEntity.setValue("CREATED", getTimeStamp(node.createdAt));
-      twitterEntity.setValue("LAST SEEN", getTimeStamp(node.lastSeen));
+      twitterEntity.setValue("NODE ID", twitterFeedUser.nodeId);
+    	twitterEntity.setValue("NAME", twitterFeedUser.name);
+      twitterEntity.setValue("SCREENNAME", "@"+twitterFeedUser.screenName);
+      twitterEntity.setValue("CREATED", getTimeStamp(twitterFeedUser.createdAt));
+      twitterEntity.setValue("LAST SEEN", getTimeStamp(twitterFeedUser.lastSeen));
       twitterEntity.setValue("HASHTAG", "");
-      twitterEntity.setValue("FOLLOWERS", node.followersCount);
-      twitterEntity.setValue("FRIENDS", node.friendsCount);
-      twitterEntity.setValue("LOCATION", node.location);
-      twitterEntity.setValue("PROFILE IMAGE", node.profileImageUrl.replace("_normal", ""));
-      twitterEntity.setValue("DESCRIPTION", node.description);
+      twitterEntity.setValue("FOLLOWERS", twitterFeedUser.followersCount);
+      twitterEntity.setValue("FRIENDS", twitterFeedUser.friendsCount);
+      twitterEntity.setValue("LOCATION", twitterFeedUser.location);
+      twitterEntity.setValue("DESCRIPTION", twitterFeedUser.description);
 
-      if (node.bannerImageUrl === undefined) {
-        node.bannerImageUrl = DEFAULT_TWITTER_IMAGE;
+      if (!twitterFeedUser.profileImageUrl || (twitterFeedUser.profileImageUrl === undefined)){
+        twitterFeedUser.profileImageUrl = DEFAULT_TWITTER_IMAGE;
       }
-      twitterEntity.setValue("BANNER IMAGE", node.bannerImageUrl.replace("_normal", ""));
+      twitterEntity.setValue("PROFILE IMAGE", twitterFeedUser.profileImageUrl.replace("_normal", ""));
+
+      if (!twitterFeedUser.bannerImageUrl || (twitterFeedUser.bannerImageUrl === undefined)) {
+        twitterFeedUser.bannerImageUrl = DEFAULT_TWITTER_IMAGE;
+      }
+      twitterEntity.setValue("BANNER IMAGE", twitterFeedUser.bannerImageUrl.replace("_normal", ""));
 
 
       const ageMs = moment().diff(node.createdAt);
@@ -641,6 +645,10 @@ function ControlPanel() {
         }
 
         currentTwitterNode = event.data.user;
+
+        if (!currentTwitterNode.profileImageUrl || (currentTwitterNode.profileImageUrl === undefined)){
+          currentTwitterNode.profileImageUrl = DEFAULT_TWITTER_IMAGE;
+        }
 
         console.debug("SET TWITTER USER" 
           + " | " + currentTwitterNode.nodeId

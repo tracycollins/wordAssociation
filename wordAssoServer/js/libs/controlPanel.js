@@ -622,7 +622,7 @@ function ControlPanel() {
             + "\nSTATS\n" + jsonPrint(event.data.stats)
           );
 
-          if (event.data.stats.uncategorized) {
+          if (event.data.stats && event.data.stats.uncategorized) {
             statsObj.uncategorized = {};
             statsObj.uncategorized = event.data.stats.uncategorized;
             statsObj.mismatched = event.data.stats.mismatched;
@@ -655,7 +655,7 @@ function ControlPanel() {
 			    + "\n profileImageUrl: " + currentTwitterNode.profileImageUrl
         );
 
-        if (event.data.stats.uncategorized) {
+        if (event.data.stats && event.data.stats.uncategorized) {
         
           statsObj.uncategorized = {};
           statsObj.uncategorized = event.data.stats.uncategorized;

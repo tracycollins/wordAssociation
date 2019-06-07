@@ -6849,20 +6849,26 @@ function initTransmitNodeQueueInterval(interval){
 
 function transmitNodes(tw, callback){
 
+  if (!tw.user || ignoredUserSet.has(tw.user.nodeId)) {
+    return callback();
+  }
+
   async.parallel({
     user: function(cb){
-      if (tw.user && !ignoredUserSet.has(tw.user.nodeId)) { transmitNodeQueue.push(tw.user); }
+      transmitNodeQueue.push(tw.user);
       cb();
     },
     userMentions: function(cb){
       tw.userMentions.forEach(function userMentionsTxNodeQueue(user){
-        if (user && configuration.enableTransmitUser && !ignoredUserSet.has(user.nodeId)) { transmitNodeQueue.push(user); }
+        if (user && configuration.enableTransmitUser && !ignoredUserSet.has(user.nodeId)) { 
+          transmitNodeQueue.push(user); 
+        }
       });
       cb();
     },
     hashtags: function(cb){
       tw.hashtags.forEach(function hashtagsTxNodeQueue(hashtag){
-        if (hashtag && !ignoredHashtagSet.has(hashtag.nodeId) && configuration.enableTransmitHashtag) { 
+        if (hashtag  && configuration.enableTransmitHashtag && !ignoredHashtagSet.has(hashtag.nodeId)) { 
           transmitNodeQueue.push(hashtag);
         }
       });

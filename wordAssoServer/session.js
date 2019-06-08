@@ -30,7 +30,10 @@ var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
 // var DEFAULT_AUTH_URL = "http://localhost:9997/auth/twitter";
 // var DEFAULT_AUTH_URL = DEFAULT_SOURCE + "/login";
 
-const DEFAULT_KEEPALIVE_INTERVAL = 6000;
+const ONE_SECOND = 1000;
+const ONE_MINUTE = 60*ONE_SECOND;
+
+const DEFAULT_KEEPALIVE_INTERVAL = ONE_MINUTE;
 
 var MAX_RX_QUEUE = 250;
 

@@ -347,7 +347,6 @@ function connectDb(){
           statsObj.status = "MONGO CLOSED";
           console.log(chalkAlert("TSS | @" + threeceeUserObj.screenName + " | *** MONGO DB CONNECTION CLOSED"));
           dbConnectionReady = false;
-          quit(statsObj.status);
         });
 
         db.on("error", function(err){
@@ -355,14 +354,12 @@ function connectDb(){
           console.log(chalkAlert("TSS | @" + threeceeUserObj.screenName + " | *** MONGO DB CONNECTION ERROR: " + err));
           db.close();
           dbConnectionReady = false;
-          quit(statsObj.status);
         });
 
         db.on("disconnected", function(){
           statsObj.status = "MONGO DISCONNECTED";
           console.log(chalkAlert("TSS | @" + threeceeUserObj.screenName + " | *** MONGO DB DISCONNECTED ***"));
           dbConnectionReady = false;
-          quit(statsObj.status);
         });
 
         dbConnectionReady = true;

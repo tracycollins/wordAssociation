@@ -244,24 +244,24 @@ function connectDb(){
       else {
 
         db.on("close", function(){
+          statsObj.status = "MONGO CONNECTION CLOSED";
           console.error.bind(console, "DBU | *** MONGO DB CONNECTION CLOSED ***");
           console.log(chalkAlert("DBU | *** MONGO DB CONNECTION CLOSED ***"));
           statsObj.dbConnectionReady = false;
         });
 
         db.on("error", function(err){
+          statsObj.status = "MONGO CONNECTION ERROR";
           console.error.bind(console, "DBU | *** MONGO DB CONNECTION ERROR: " + err);
           console.log(chalkError("DBU | *** MONGO DB CONNECTION ERROR: " + err));
-          db.close();
           statsObj.dbConnectionReady = false;
-          quit(err);
         });
 
         db.on("disconnected", function(){
+          statsObj.status = "MONGO DISCONNECTED";
           console.error.bind(console, "DBU | *** MONGO DB DISCONNECTED ****");
           console.log(chalkAlert("DBU | *** MONGO DB DISCONNECTED ***"));
           statsObj.dbConnectionReady = false;
-          quit("MONGO DB DISCONNECTED");
         });
 
         console.log(chalkLog("DBU | MONGOOSE DEFAULT CONNECTION OPEN"));

@@ -1215,7 +1215,7 @@ function connectDb(){
           console.error.bind(console, "WAS | *** MONGO DB CONNECTION CLOSED ***\n");
           console.log(chalkAlert("WAS | *** MONGO DB CONNECTION CLOSED ***\n"));
           statsObj.dbConnectionReady = false;
-          quit(statsObj.status);
+          // quit(statsObj.status);
         });
 
         db.on("error", function(){
@@ -1224,7 +1224,7 @@ function connectDb(){
           console.log(chalkError("WAS | *** MONGO DB CONNECTION ERROR ***\n"));
           db.close();
           statsObj.dbConnectionReady = false;
-          quit(statsObj.status);
+          // quit(statsObj.status);
         });
 
         db.on("disconnected", function(){
@@ -1232,7 +1232,7 @@ function connectDb(){
           console.error.bind(console, "WAS | *** MONGO DB DISCONNECTED ***\n");
           console.log(chalkAlert("WAS | *** MONGO DB DISCONNECTED ***\n"));
           statsObj.dbConnectionReady = false;
-          quit(statsObj.status);
+          // quit(statsObj.status);
         });
 
         global.globalDbConnection = db;

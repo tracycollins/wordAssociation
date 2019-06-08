@@ -407,13 +407,18 @@ function connectDb(){
           return reject(err);
         }
 
+        db.on("close", function(){
+          statsObj.status = "MONGO ERROR";
+          console.error.bind(console, "WAS | TFC | *** MONGO DB CONNECTION CLOSED ***");
+          console.log(chalkError("WAS | TFC | *** MONGO DB CONNECTION CLOSED ***"));
+          dbConnectionReady = false;
+        });
+
         db.on("error", function(){
           statsObj.status = "MONGO ERROR";
           console.error.bind(console, "WAS | TFC | *** MONGO DB CONNECTION ERROR ***");
           console.log(chalkError("WAS | TFC | *** MONGO DB CONNECTION ERROR ***"));
-          db.close();
           dbConnectionReady = false;
-          quit(statsObj.status);
         });
 
         db.on("disconnected", function(){
@@ -421,7 +426,6 @@ function connectDb(){
           console.error.bind(console, "WAS | TFC | *** MONGO DB DISCONNECTED ***");
           console.log(chalkAlert("WAS | TFC | *** MONGO DB DISCONNECTED ***"));
           dbConnectionReady = false;
-          quit(statsObj.status);
         });
 
         global.globalDbConnection = db;

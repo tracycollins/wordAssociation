@@ -6317,9 +6317,24 @@ function updateUserSets(){
     userAutoNegativeSet.clear();
     userAutoNoneSet.clear();
 
-    const userSearchQuery = { ignored: { "$in": [false, "false", null] } };
+    // const userSearchQuery = { ignored: { "$in": [false, "false", null] } };
+    const userSearchQuery = { ignored: "false" };
     
-    userSearchCursor = global.globalUser.find(userSearchQuery).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
+    //     + " | " + user.userId
+    // + " | @" + user.screenName
+    // + " | " + user.name 
+    // + " | LG " + user.lang
+    // + " | FW " + user.followersCount
+    // + " | FD " + user.friendsCount
+    // + " | T " + user.statusesCount
+    // + " | M  " + user.mentions
+    // + " | LS " + getTimeStamp(user.lastSeen)
+    // + " | FWG " + user.following 
+    // + " | 3C " + user.threeceeFollowing 
+    // + " | LC " + user.location
+    // + " | C M " + user.category + " A " + user.categoryAuto
+
+    userSearchCursor = global.globalUser.find(userSearchQuery).select({friends: 0, tweets: 0, tweetHistograms: 0, profileHistograms: 0}).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
 
     userSearchCursor.on("data", async function(user) {
 

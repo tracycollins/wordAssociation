@@ -205,7 +205,8 @@ const MongoStore = require("connect-mongo")(expressSession);
 const passport = require("passport");
 const TwitterStrategy = require("passport-twitter").Strategy;
 
-app.use(express.urlencoded());
+// app.use(express.urlencoded());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(require("serve-static")(path.join(__dirname, "public")));
 

@@ -10014,7 +10014,7 @@ function initCategoryHashmaps(){
 
         const p = {};
 
-        p.projection = "nodeId userId screenName category categoryAuto"
+        p.projection = "nodeId userId screenName category categoryAuto";
 
         p.skip = 0;
         p.batchSize = configuration.cursorBatchSize;

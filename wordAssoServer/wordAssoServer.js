@@ -6319,23 +6319,11 @@ function updateUserSets(){
     userAutoNoneSet.clear();
 
     // const userSearchQuery = { ignored: { "$in": [false, "false", null] } };
-    const userSearchQuery = { ignored: "false" };
+    const userSearchQuery = { ignored: false };
     
-    //     + " | " + user.userId
-    // + " | @" + user.screenName
-    // + " | " + user.name 
-    // + " | LG " + user.lang
-    // + " | FW " + user.followersCount
-    // + " | FD " + user.friendsCount
-    // + " | T " + user.statusesCount
-    // + " | M  " + user.mentions
-    // + " | LS " + getTimeStamp(user.lastSeen)
-    // + " | FWG " + user.following 
-    // + " | 3C " + user.threeceeFollowing 
-    // + " | LC " + user.location
-    // + " | C M " + user.category + " A " + user.categoryAuto
-
     userSearchCursor = global.globalUser.find(userSearchQuery).select({friends: 0, tweets: 0, tweetHistograms: 0, profileHistograms: 0}).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
+
+    const cursorStartTime = moment().valueOf();
 
     userSearchCursor.on("data", async function(user) {
 
@@ -6570,7 +6558,6 @@ function updateUserSets(){
         }
 
       }
-
     });
 
     userSearchCursor.on("end", function() {
@@ -6594,7 +6581,7 @@ function updateUserSets(){
       statsObj.user.auto.negative = userAutoNegativeSet.size;
       statsObj.user.auto.none = userAutoNoneSet.size;
 
-      console.log(chalkBlue("WAS | END FOLLOWING CURSOR | FOLLOWING USER SET"));
+      console.log(chalkBlue("WAS | END FOLLOWING CURSOR | FOLLOWING USER SET | RUN TIME: " + msToTime(moment().valueOf() - cursorStartTime)));
       console.log(chalkLog("WAS | USER DB STATS\n" + jsonPrint(statsObj.user)));
 
       if (!calledBack) { 

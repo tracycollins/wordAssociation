@@ -9906,6 +9906,9 @@ function initConfig() {
 
         initStatsUpdate(configuration).
         then(function(){
+
+          statsObj.configuration = configuration;
+
           resolve(configuration);
         });
 

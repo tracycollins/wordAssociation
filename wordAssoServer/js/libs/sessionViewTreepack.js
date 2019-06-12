@@ -866,6 +866,7 @@ function ViewTreepack() {
 
         if (nNode.isValid) {
           nNode.isValid = false;
+          localNodeHashMap.remove(nPoolId);
           resetNode(nNode, function nodeReset(n){
             nodePool.recycle(n);
             localNodeHashMap.set(nPoolId, n);

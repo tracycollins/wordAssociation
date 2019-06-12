@@ -515,8 +515,6 @@ var ignoreWordsArray = [
 ignoreWordsArray.push("'");
 ignoreWordsArray.push("`");
 
-// var hashtagHashMap = new HashMap();
-// var ignoreWordHashMap = new HashMap();
 var categoryColorHashMap = new HashMap();
 
 categoryColorHashMap.set("positive", palette.green);
@@ -525,28 +523,16 @@ categoryColorHashMap.set("neutral", palette.lightgray);
 categoryColorHashMap.set("left", palette.blue);
 categoryColorHashMap.set("right", palette.yellow);
 
-
-// var rxSessionUpdateQueue = [];
-// var rxSessionDeleteQueue = [];
-// var nodeCreateQueue = [];
-
-// var urlRoot = DEFAULT_SOURCE + "/session?session=";
-
-// var sessionId;
-// var namespace;
-// var sessionMode = false;
 var monitorMode = false;
 
 var socket = io("/view");
 
-// var milliseconds;
 var seconds;
 var minutes;
 var hours;
 var days;
 
 function msToTime(duration) {
-  // milliseconds = parseInt((duration % 1000) / 1000);
   seconds = parseInt((duration / 1000) % 60);
   minutes = parseInt((duration / (1000 * 60)) % 60);
   hours = parseInt((duration / (1000 * 60 * 60)) % 24);
@@ -561,30 +547,16 @@ function msToTime(duration) {
 }
 
 function saveConfig(){
-  // if (currentSessionView !== undefined) {
-  //   config.panzoomTransform = currentSessionView.getPanzoomTransform();
-  // }
   storedConfigName = "config_" + config.sessionViewType;
   store.set(storedConfigName, config);
   console.debug("STORED CONFIG"
     + " | " + storedConfigName
-    // + "\n" + jsonPrint(store.get(storedConfigName))
   );
 }
 
 var controlDivElement = document.getElementById("controlDiv");
-// var topTermsDivElement = document.getElementById("topTermsDiv");
-
 var statsDivElement = document.getElementById("statsDiv");
-
 var statsText = document.getElementById("stats-text");
-
-// var statsLeftBarText = document.getElementById("left-bar-text");
-// var statsRightBarText = document.getElementById("right-bar-text");
-// var statsNeutralBarText = document.getElementById("neutral-bar-text");
-// var statsPositiveBarText = document.getElementById("positive-bar-text");
-// var statsNegativeBarText = document.getElementById("negative-bar-text");
-// var statsNoneBarText = document.getElementById("none-bar-text");
 
 var statsLeftBarDiv = document.getElementById("left-bar");
 var statsRightBarDiv = document.getElementById("right-bar");
@@ -941,7 +913,6 @@ function controlPanelComm(event) {
     case "FOLLOW" :
       console.warn("R< CONTROL FOLLOW"
         + " | NID: " + event.data.user.nodeId
-        // + " | UID: " + event.data.user.userId
         + " | @" + event.data.user.screenName
       );
       socket.emit("TWITTER_FOLLOW", event.data.user);

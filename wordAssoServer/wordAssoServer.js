@@ -8116,11 +8116,11 @@ async function allowLocations(){
   console.log(chalk.green("WAS | WAS | UPDATE ALLOW LOCATIONS"));
   try{
     await initAllowLocations();
+    tssSendAllChildren({op: "UPDATE_ALLOW_LOCATIONS"});
   }
   catch(err){
     console.log(chalkError("WAS | *** INIT ALLOW LOCATIONS ERROR: " + err));
   }
-  tssSendAllChildren({op: "UPDATE_ALLOW_LOCATIONS"});
 }
 
 async function ignoreLocations(){

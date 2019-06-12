@@ -226,6 +226,8 @@ const HashMap = require("hashmap").HashMap;
 
 const ignoreIpSet = new Set();
 
+const ignoredHashtagRegex = new RegExp(/[^\u0000-\u007F]+/, "i");
+
 const allowLocationsSet = new Set();
 allowLocationsSet.add("new england");
 let allowLocationsArray = Array.from(allowLocationsSet);
@@ -669,12 +671,6 @@ followableSearchTermSet.add("specialcounsel");
 followableSearchTermSet.add("special counsel");
 
 let followableSearchTermsArray = [...followableSearchTermSet];
-// let followableSearchTermString = followableSearchTermsArray.join('\\b|\\b');
-// followableSearchTermString = '\\b' + followableSearchTermString + '\\b';
-
-// console.log("followableSearchTermString\n" + followableSearchTermString);
-
-// let followableRegEx = new RegExp('/' + followableSearchTermString + '/', "i");
 
 const DEFAULT_BEST_NETWORK_FOLDER = "/config/utility/best/neuralNetworks";
 const bestNetworkFolder = DEFAULT_BEST_NETWORK_FOLDER;
@@ -5858,12 +5854,6 @@ function initFollowableSearchTerms(){
 
       followableSearchTermsArray = [...followableSearchTermSet];
 
-      // followableSearchTermString = termsArray.join('\\b|\\b');
-      // followableSearchTermString = '\\b' + followableSearchTermString + '\\b';
-      // followableRegEx = new RegExp('/' + followableSearchTermString + '/', "i");
-
-      // debug(chalkInfo("followableRegEx: " + followableRegEx));  
-
       console.log(chalkLog("WAS | FOLLOWABLE SEARCH TERMS INITIALIZED"
         + " | " + followableSearchTermsArray.length + " SEARCH TERMS"
       ));
@@ -6871,7 +6861,7 @@ function transmitNodes(tw, callback){
     },
     hashtags: function(cb){
       tw.hashtags.forEach(function hashtagsTxNodeQueue(hashtag){
-        if (hashtag  && configuration.enableTransmitHashtag && !ignoredHashtagSet.has(hashtag.nodeId)) { 
+        if (hashtag  && configuration.enableTransmitHashtag && !ignoredHashtagSet.has(hashtag.nodeId) && !ignoredHashtagRegex.test(hashtag.nodeId)) { 
           transmitNodeQueue.push(hashtag);
         }
       });

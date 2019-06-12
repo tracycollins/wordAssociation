@@ -927,7 +927,6 @@ function ControlPanel() {
         twitterEntity = QuickSettings.create(0, 0, "ENTITY", entityCategorizeDiv);
         twitterEntity.setWidth(300);
 
-
         const nodeId = (twitterFeedUser) ? twitterFeedUser.nodeId : "";
         twitterEntity.addText("NODE ID", nodeId);
 

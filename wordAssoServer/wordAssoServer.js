@@ -6996,6 +6996,7 @@ function initAppRouting(callback) {
         const followEvents = req.body.follow_events;
 
         if (followEvents && (followEvents[0].type === "follow")) {
+
           console.log(chalkAlert("WAS | >>> TWITTER USER FOLLOW EVENT"
             + " | SOURCE: @" + followEvents[0].source.screen_name
             + " | TARGET: @" + followEvents[0].target.screen_name
@@ -7004,6 +7005,7 @@ function initAppRouting(callback) {
 
           const user = {
             nodeId: followEvents[0].target.id.toString(),
+            userId: followEvents[0].target.id.toString(),
             screenName: followEvents[0].target.screen_name
           }
 
@@ -7037,7 +7039,8 @@ function initAppRouting(callback) {
 
           const user = {
             nodeId: followEvents[0].target.id.toString(),
-            screenName: followEvents[0].target.id.screenName
+            userId: followEvents[0].target.id.toString(),
+            screenName: followEvents[0].target.screen_name
           }
 
           unfollow({user: user}, function(err, updatedUser){

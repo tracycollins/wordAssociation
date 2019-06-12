@@ -2383,7 +2383,7 @@ function initFollowQueue(params){
 
 process.on("message", async function(m) {
 
-  debug(chalkAlert("TSS | RX MESSAGE"
+  console.log(chalkLog("TSS | RX MESSAGE"
     + " | OP: " + m.op
   ));
 

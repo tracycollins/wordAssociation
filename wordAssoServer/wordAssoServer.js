@@ -8127,11 +8127,11 @@ async function ignoreLocations(){
   console.log(chalk.green("WAS | WAS | UPDATE IGNORE LOCATIONS"));
   try{
     await initIgnoreLocations();
+    tssSendAllChildren({op: "UPDATE_IGNORE_LOCATIONS"});
   }
   catch(err){
     console.log(chalkError("WAS | *** INIT IGNORE LOCATIONS ERROR: " + err));
   }
-  tssSendAllChildren({op: "UPDATE_IGNORE_LOCATIONS"});
 }
 
 function initTssChild(params){

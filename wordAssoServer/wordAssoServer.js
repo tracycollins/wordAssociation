@@ -1095,11 +1095,11 @@ const networkDefaults = function (netObj){
   networkObj = netObj;
 
   if (networkObj.betterChild === undefined) { networkObj.betterChild = false; }
-  if (networkObj.testCycles === undefined) { networkObj.testCycles = 0; }
-  if (networkObj.testCycleHistory === undefined) { networkObj.testCycleHistory = []; }
-  if (networkObj.overallMatchRate === undefined) { networkObj.overallMatchRate = 0; }
-  if (networkObj.matchRate === undefined) { networkObj.matchRate = 0; }
-  if (networkObj.successRate === undefined) { networkObj.successRate = 0; }
+  if (!networkObj.testCycles || networkObj.testCycles === undefined) { networkObj.testCycles = 0; }
+  if (!networkObj.testCycleHistory || networkObj.testCycleHistory === undefined) { networkObj.testCycleHistory = []; }
+  if (!networkObj.overallMatchRate || networkObj.overallMatchRate === undefined) { networkObj.overallMatchRate = 0; }
+  if (!networkObj.matchRate || networkObj.matchRate === undefined) { networkObj.matchRate = 0; }
+  if (!networkObj.successRate || networkObj.successRate === undefined) { networkObj.successRate = 0; }
 
   return networkObj;
 };

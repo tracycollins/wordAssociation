@@ -2430,7 +2430,6 @@ process.on("message", async function(m) {
           + " | ERROR: " + err
         ));
       }
-
     break;
 
     case "USER_AUTHENTICATED":

@@ -33,6 +33,7 @@ const mongoose = require("mongoose");
 mongoose.set("useFindAndModify", false);
 
 global.globalWordAssoDb = require("@threeceelabs/mongoose-twitter");
+// global.globalWordAssoDb = require("../../mongooseTwitter");
 
 const emojiModel = require("@threeceelabs/mongoose-twitter/models/emoji.server.model");
 const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");

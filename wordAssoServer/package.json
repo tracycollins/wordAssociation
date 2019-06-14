@@ -50,7 +50,7 @@
     "hashmap": "^2.3.0",
     "isomorphic-fetch": "^2.2.1",
     "jquery-browserify": "^1.8.1",
-    "json-parse-safe": "^1.0.5",
+    "json-parse-safe": "^2.0.0",
     "json-schema": "^0.2.3",
     "measured": "^1.1.0",
     "merge": "^1.2.1",

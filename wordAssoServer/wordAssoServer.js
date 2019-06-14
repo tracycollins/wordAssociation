@@ -956,7 +956,7 @@ const categorizedManualUserSet = new Set();
 const categorizedAutoUserSet = new Set();
 const uncategorizedManualUserSet = new Set();
 const uncategorizedAutoUserSet = new Set();
-let uncategorizedManualUserArray = [];
+// let uncategorizedManualUserArray = [];
 
 const matchUserSet = new Set();
 const mismatchUserSet = new Set();
@@ -6553,7 +6553,7 @@ function updateUserSets(){
 
     userSearchCursor.on("end", function() {
 
-      uncategorizedManualUserArray = [...uncategorizedManualUserSet];
+      // uncategorizedManualUserArray = [...uncategorizedManualUserSet];
 
       statsObj.user.matched = matchUserSet.size;
       statsObj.user.mismatched = mismatchUserSet.size;
@@ -6583,7 +6583,7 @@ function updateUserSets(){
 
     userSearchCursor.on("error", function(err) {
 
-      uncategorizedManualUserArray = [...uncategorizedManualUserSet];
+      // uncategorizedManualUserArray = [...uncategorizedManualUserSet];
 
       statsObj.user.matched = matchUserSet.size;
       statsObj.user.mismatched = mismatchUserSet.size;
@@ -6613,7 +6613,7 @@ function updateUserSets(){
 
     userSearchCursor.on("close", function() {
 
-      uncategorizedManualUserArray = [...uncategorizedManualUserSet];
+      // uncategorizedManualUserArray = [...uncategorizedManualUserSet];
 
       statsObj.user.matched = matchUserSet.size;
       statsObj.user.mismatched = mismatchUserSet.size;
@@ -10304,7 +10304,7 @@ function initUpdateUserSetsInterval(interval){
 
       try {
 
-        uncategorizedManualUserArray = [...uncategorizedManualUserSet];
+        // uncategorizedManualUserArray = [...uncategorizedManualUserSet];
 
         if (statsObj.dbConnectionReady && updateUserSetsIntervalReady) {
 
@@ -10642,7 +10642,7 @@ function twitterSearchUser(params) {
       const userAutoRightArray = [...userAutoRightSet];
       const userAutoNeutralArray = [...userAutoNeutralSet];
 
-      uncategorizedManualUserArray = [...uncategorizedManualUserSet];
+      const uncategorizedManualUserArray = [...uncategorizedManualUserSet];
 
       statsObj.user.uncategorized.all = uncategorizedManualUserArray.length;
       statsObj.user.uncategorized.left = _.intersection(userAutoLeftArray, uncategorizedManualUserArray).length;

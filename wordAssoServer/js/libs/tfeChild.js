@@ -2730,9 +2730,13 @@ function initUserCategorizeQueueInterval(cnf){
           + " | NID " + updatedUser.nodeId
           + " @" + updatedUser.screenName
         ));
+
+        updatedUser.categoryAuto = networkOutput.output;
+        process.send({ op: "USER_CATEGORIZED", user: updatedUser });
+
       }
 
-      updatedUser.categoryAuto = networkOutput.output;
+      // updatedUser.categoryAuto = networkOutput.output;
       updatedUser.lastHistogramTweetId = updatedUser.statusId;
       updatedUser.lastHistogramQuoteId = updatedUser.quotedStatusId;
 

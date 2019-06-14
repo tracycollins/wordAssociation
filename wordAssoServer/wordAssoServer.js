@@ -8539,6 +8539,22 @@ function initTfeChild(params){
           socketRxTweet(m.tweet);
         break;
 
+        case "USER_CATEGORIZED":
+           // if (configuration.verbose) {
+            printUserObj("WAS | <<< USER CAT'D", m.user);
+
+            categorizedUserHashMap.set(
+              m.user.nodeId, 
+              { 
+                nodeId: m.user.nodeId, 
+                screenName: m.user.screenName, 
+                manual: m.user.category, 
+                auto: m.user.categoryAuto
+              }
+            );
+           // }
+        break;
+
         case "PONG":
           tfePongReceived = m.pongId;
           childrenHashMap[params.childId].status = "RUNNING";

@@ -496,8 +496,8 @@ function ControlPanel() {
       twitterTimeLine.setValue("RATE", node.rate);
       twitterTimeLine.setValue("RATE MAX", node.rateMax);
 
-      twitterControl.setValue("FOLLOWING", node.following || false);
-      twitterControl.setValue("IGNORED", node.ignored || false);
+      // twitterControl.setValue("FOLLOWING", node.following || false);
+      // twitterControl.setValue("IGNORED", node.ignored || false);
       twitterControl.setValue("CATEGORY AUTO", node.categoryAuto.toUpperCase() || "NONE");
 
       console.debug("loadTwitterFeed"
@@ -710,7 +710,7 @@ function ControlPanel() {
           + " | CA: " + currentTwitterNode.categoryAuto
         );
 
-        console.debug("SET TWITTER HASHTAG\nstats" + jsonPrint(event.data.stats));
+        console.debug("SET TWITTER HASHTAG\nstats\n" + jsonPrint(event.data.stats));
 
         loadTwitterFeed(currentTwitterNode, function(err){
           if (err) {
@@ -889,7 +889,8 @@ function ControlPanel() {
         }
 
         twitterControl.addBoolean("IGNORED", ignored, function(data){
-          console.debug("USER IGNORED | " + twitterEntity.getValue("SCREENNAME") + " | IGNORED: " + data);
+          // console.debug("USER IGNORED | " + twitterEntity.getValue("SCREENNAME") + " | IGNORED: " + data);
+          console.debug("NODE IGNORED | " + twitterEntity.getValue("SCREENNAME") + " | IGNORED: " + data);
           const op = (data) ? "IGNORE" : "UNIGNORE";
           parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
         });

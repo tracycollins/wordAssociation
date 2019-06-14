@@ -485,6 +485,14 @@ function userUpdateDb(tweetObj){
 
         let tweetHistogramMerged = {};
 
+        if (!tweetObj.user.histograms || tweetObj.user.histograms === undefined || tweetObj.user.histograms === null) { 
+          console.log(chalkLog("DBU | TWEETOBJ USER HISTOGRAMS UNDEFINED"
+            + " | " + tweetObj.user.nodeId
+            + " | @" + tweetObj.user.screenName
+          ));
+          tweetObj.user.histograms = {};
+        }
+
         if (!user.tweetHistograms || user.tweetHistograms === undefined || user.tweetHistograms === null) { 
           console.log(chalkLog("DBU | TWEET HISTOGRAMS UNDEFINED"
             + " | " + user.nodeId

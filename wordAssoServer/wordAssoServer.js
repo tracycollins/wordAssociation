@@ -4188,12 +4188,12 @@ function ignore(params, callback) {
       userIds: [...ignoredUserSet]
     };
 
-    saveFileQueue.push({
-      localFlag: false, 
-      folder: dropboxConfigDefaultFolder, 
-      file: ignoredUserFile, 
-      obj: ob
-    });
+    // saveFileQueue.push({
+    //   localFlag: false, 
+    //   folder: dropboxConfigDefaultFolder, 
+    //   file: ignoredUserFile, 
+    //   obj: ob
+    // });
 
   }
 
@@ -4226,12 +4226,12 @@ function unignore(params, callback) {
       userIds: [...ignoredUserSet]
     };
 
-    saveFileQueue.push({
-      localFlag: false, 
-      folder: dropboxConfigDefaultFolder, 
-      file: ignoredUserFile, 
-      obj: ob
-    });
+    // saveFileQueue.push({
+    //   localFlag: false, 
+    //   folder: dropboxConfigDefaultFolder, 
+    //   file: ignoredUserFile, 
+    //   obj: ob
+    // });
 
   } 
 
@@ -4280,28 +4280,28 @@ function unfollow(params, callback) {
     if (params.ignored) {
       ignoredUserSet.add(params.user.nodeId);
 
-      const ob = {
-        userIds: [...ignoredUserSet]
-      };
+      // const ob = {
+      //   userIds: [...ignoredUserSet]
+      // };
 
-      saveFileQueue.push({
-        localFlag: false, 
-        folder: dropboxConfigDefaultFolder, 
-        file: ignoredUserFile, 
-        obj: ob
-      });
+      // saveFileQueue.push({
+      //   localFlag: false, 
+      //   folder: dropboxConfigDefaultFolder, 
+      //   file: ignoredUserFile, 
+      //   obj: ob
+      // });
     }
 
-    const obj = {
-      userIds: [...unfollowableUserSet]
-    };
+    // const obj = {
+    //   userIds: [...unfollowableUserSet]
+    // };
 
-    saveFileQueue.push({
-      localFlag: false, 
-      folder: dropboxConfigDefaultFolder, 
-      file: unfollowableUserFile, 
-      obj: obj
-    });
+    // saveFileQueue.push({
+    //   localFlag: false, 
+    //   folder: dropboxConfigDefaultFolder, 
+    //   file: unfollowableUserFile, 
+    //   obj: obj
+    // });
 
   } 
 
@@ -8230,16 +8230,16 @@ function initTssChild(params){
               + " | UNFOLLOWABLE SET SIZE: " + unfollowableUserSet.size
             ));
 
-            const obj = {
-              userIds: [...unfollowableUserSet]
-            };
+            // const obj = {
+            //   userIds: [...unfollowableUserSet]
+            // };
 
-            saveFileQueue.push({
-              localFlag: false, 
-              folder: dropboxConfigDefaultFolder, 
-              file: unfollowableUserFile, 
-              obj: obj
-            });
+            // saveFileQueue.push({
+            //   localFlag: false, 
+            //   folder: dropboxConfigDefaultFolder, 
+            //   file: unfollowableUserFile, 
+            //   obj: obj
+            // });
 
           }
           else {

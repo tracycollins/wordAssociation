@@ -376,6 +376,8 @@ function getNumKeys(obj){
 function userUpdateDb(tweetObj){
   return new Promise(function(resolve, reject){
 
+    statsObj.status = "USER UPDATE DB";
+
     debug(chalkLog("DBU | USER UPDATE DB"
       + "\n" + jsonPrint(tweetObj)
     ));
@@ -606,7 +608,6 @@ function initUserUpdateQueueInterval(interval){
     }
 
   });
-
 }
 
 console.log(chalkInfo("DBU | " + getTimeStamp() 

@@ -2183,7 +2183,7 @@ function dropboxFolderGetLastestCursor(folder, callback) {
         });
       }
       else {
-        console.log(chalkLog("WAS | DROPBOX | FOLDER NO CHANGE | " + folder));
+        debug(chalkLog("WAS | DROPBOX | FOLDER NO CHANGE | " + folder));
         callback(null, null);
       }
     });

@@ -7095,7 +7095,7 @@ function initAppRouting(callback) {
 
                 setTimeout(function(){
 
-                  console.log(chalk.bold.black("WAS | >>> DROPBOX CHANGE"
+                  debug(chalk.bold.black("WAS | >>> DROPBOX CHANGE"
                     + " | " + getTimeStamp()
                     + " | FOLDER: " + folder
                   ));
@@ -7208,7 +7208,7 @@ function initAppRouting(callback) {
           if (err) {
             console.log(chalkError("WAS | *** DROPBOX WEBHOOK ERROR: " + err));
           }
-          console.log(chalkLog("WAS | END DROPBOX WEBHOOK"));
+          debug(chalkLog("WAS | END DROPBOX WEBHOOK"));
           dropboxFolderGetLastestCursorReady = true;
           // next();
         });
@@ -8540,19 +8540,15 @@ function initTfeChild(params){
         break;
 
         case "USER_CATEGORIZED":
-           // if (configuration.verbose) {
-            printUserObj("WAS | <<< USER CAT'D", m.user);
-
-            categorizedUserHashMap.set(
-              m.user.nodeId, 
-              { 
-                nodeId: m.user.nodeId, 
-                screenName: m.user.screenName, 
-                manual: m.user.category, 
-                auto: m.user.categoryAuto
-              }
-            );
-           // }
+          categorizedUserHashMap.set(
+            m.user.nodeId, 
+            { 
+              nodeId: m.user.nodeId, 
+              screenName: m.user.screenName, 
+              manual: m.user.category, 
+              auto: m.user.categoryAuto
+            }
+          );
         break;
 
         case "PONG":

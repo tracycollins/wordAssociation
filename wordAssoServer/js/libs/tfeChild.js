@@ -483,8 +483,8 @@ function connectDb(){
 // ==================================================================
 
 const DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN;
-const DROPBOX_TFE_CONFIG_FILE = process.env.DROPBOX_TFE_CONFIG_FILE || "twitterFollowerExplorerConfig.json";
-const DROPBOX_TFE_STATS_FILE = process.env.DROPBOX_TFE_STATS_FILE || "twitterFollowerExplorerStats.json";
+const DROPBOX_TFE_CONFIG_FILE = process.env.DROPBOX_TFE_CONFIG_FILE || "tfeChildConfig.json";
+const DROPBOX_TFE_STATS_FILE = process.env.DROPBOX_TFE_STATS_FILE || "tfeChildStats.json";
 
 const dropboxConfigFolder = "/config/utility";
 const dropboxConfigHostFolder = "/config/utility/" + hostname;

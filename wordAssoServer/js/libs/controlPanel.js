@@ -640,7 +640,7 @@ function ControlPanel() {
             });
 
             if (event.data.stats.mismatched !== undefined) {
-              const currentButton = document.getElementById("NEXT MISMATCH";
+              const currentButton = document.getElementById("NEXT MISMATCH)";
               currentButton.value = event.data.stats.mismatched.toString() + " | NEXT MISMATCH";
               console.debug("NEXT UNCAT MISMATCH | value: " + currentButton.value); 
             }
@@ -686,7 +686,7 @@ function ControlPanel() {
           });
 
           if (event.data.stats.mismatched !== undefined) {
-            const currentButton = document.getElementById("NEXT MISMATCH";
+            const currentButton = document.getElementById("NEXT MISMATCH)";
             currentButton.value = event.data.stats.mismatched.toString() + " | NEXT MISMATCH";
             console.debug("NEXT UNCAT MISMATCH | value: " + currentButton.value); 
           }

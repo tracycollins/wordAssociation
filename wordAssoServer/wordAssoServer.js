@@ -1144,6 +1144,7 @@ function printUserObj(title, u, chalkFormat) {
     + " | 3C " + user.threeceeFollowing 
     + " | LC " + user.location
     + " | C M " + user.category + " A " + user.categoryAuto
+    + " | PRI " + user.priorityFlag
   ));
 }
 
@@ -8558,7 +8559,7 @@ function initTfeChild(params){
           else {
             printUserObj("WAS | <TFE | CAT", m.user);
           }
-          
+
         break;
 
         case "PONG":

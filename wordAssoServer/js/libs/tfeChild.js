@@ -855,6 +855,7 @@ function printUserObj(title, u, chalkConfig) {
     + " | " + user.userId
     + " | IG: " + user.ignored 
     + " | 3C: " + user.threeceeFollowing 
+    + " | PRIORITY: " + user.priorityFlag 
   ));
 
   if (user.changes) {
@@ -2729,6 +2730,7 @@ function initUserCategorizeQueueInterval(cnf){
           + " A: " + updatedUser.categoryAuto + " > " + networkOutput.output
           + " | NID " + updatedUser.nodeId
           + " @" + updatedUser.screenName
+          + " | PRIORITY: " + updatedUser.priorityFlag
         ));
 
         updatedUser.categoryAuto = networkOutput.output;
@@ -3009,7 +3011,7 @@ process.on("message", function(m) {
 
       cacheObj = userChangeCache.get(m.user.nodeId);
 
-      if (configuration.verbose && (cacheObj === undefined)) { 
+      if (m.priorityFlag || (configuration.verbose && (cacheObj === undefined))) { 
         console.log(chalkInfo("WAS | TFC | USER CAT $ MISS"
           + " [UC$: " + userChangeCache.getStats().keys + "]"
           + " [UCATQ: " + userCategorizeQueue.length + "]"

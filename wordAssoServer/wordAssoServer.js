@@ -8553,6 +8553,9 @@ function initTfeChild(params){
             printUserObj("WAS | <TFE | PRIORITY CAT", m.user);
             viewNameSpace.emit("SET_TWITTER_USER", { user: m.user, stats: statsObj.user });
           }
+          else {
+            printUserObj("WAS | <TFE | CAT", m.user);
+          }
         break;
 
         case "PONG":

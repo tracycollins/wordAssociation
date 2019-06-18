@@ -9,7 +9,7 @@ const MODULE_ID_PREFIX = "TFC";
 const ONE_SECOND = 1000;
 const ONE_MINUTE = ONE_SECOND*60;
 
-const DEFAULT_IMAGE_QUOTA_TIMEOUT = ONE_MINUTE;
+// const DEFAULT_IMAGE_QUOTA_TIMEOUT = ONE_MINUTE;
 const DEFAULT_MAX_USER_TWEETIDS = 500;
 const DEFAULT_TWEET_FETCH_COUNT = 10;
 const DEFAULT_TWEET_FETCH_EXCLUDE_REPLIES = true;
@@ -1085,11 +1085,11 @@ function checkTwitterRateLimitAll(){
 
 function generateObjFromArray(params){
 
-  return new Promise(async function(resolve, reject){
+  return new Promise(async function(resolve){
 
     const keys = params.keys || [];
     const value = params.value || 0;
-    let result = {};
+    const result = {};
 
     async.each(keys, function(key, cb){
       result[key.toString()] = value;
@@ -1339,7 +1339,7 @@ function activateNetwork(params){
 
     if (!params.user || params.user === undefined) { return reject(new Error("user undefined")); }
 
-    let user = params.user;
+    const user = params.user;
 
     user.friends = user.friends || [];
     user.profileHistograms = user.profileHistograms || {};
@@ -1352,7 +1352,7 @@ function activateNetwork(params){
     try {
 
       mergedUserHistograms = await mergeHistograms.merge({ histogramA: user.profileHistograms, histogramB: user.tweetHistograms });
-      mergedUserHistograms.friends = await generateObjFromArray({ keys: user.friends, value:1 }); // [ 1,2,3... ] => { 1:1, 2:1, 3:1, ... }
+      mergedUserHistograms.friends = await generateObjFromArray({ keys: user.friends, value: 1 }); // [ 1,2,3... ] => { 1:1, 2:1, 3:1, ... }
 
       if (networkObj.inputsObj.inputs === undefined) {
         console.log(chalkError("UNDEFINED NETWORK INPUTS OBJ | NETWORK OBJ KEYS: " + Object.keys(networkObj)));
@@ -1428,7 +1428,7 @@ function updateGlobalHistograms(params) {
 
     try {
       mergedHistograms = await mergeHistograms.merge({ histogramA: params.user.profileHistograms, histogramB: params.user.tweetHistograms });
-      mergedHistograms.friends = await generateObjFromArray({ keys: params.user.friends, value:1 }); // [ 1,2,3... ] => { 1:1, 2:1, 3:1, ... }
+      mergedHistograms.friends = await generateObjFromArray({ keys: params.user.friends, value: 1 }); // [ 1,2,3... ] => { 1:1, 2:1, 3:1, ... }
     }
     catch(err){
       console.log(chalkError("WAS | TFC | *** UPDATE GLOBAL HISTOGRAMS ERROR: " + err));
@@ -1496,7 +1496,7 @@ function parseImage(p){
 
   return new Promise(function(resolve, reject) {
 
-    let params = p;
+    const params = p;
 
     params.updateGlobalHistograms = (params.updateGlobalHistograms !== undefined) ? params.updateGlobalHistograms : false;
     params.category = params.user.category || "none";
@@ -1889,8 +1889,6 @@ function updateUserTweets(params){
       tscParams.tweetStatus.user = {};
       tscParams.tweetStatus.user = user;
       tscParams.tweetStatus.user.isNotRaw = true;
-
-
 
       if (tweet.id_str > user.tweets.maxId) {
         user.tweets.maxId = tweet.id_str;
@@ -2618,6 +2616,8 @@ function updateUserHistograms(p) {
       user.previousUrl = user.url;
 
       await updateGlobalHistograms({user: user});
+
+      user.priorityFlag = params.user.priorityFlag;
       resolve(user);
 
     }
@@ -2671,7 +2671,7 @@ function initUserCategorizeQueueInterval(cnf){
         user.userId = user.nodeId;
       }
 
-      if (configuration.verbose) { printUserObj("WAS | TFC | USER CAT [ UCATQ: " + userCategorizeQueue.length + " ]", user, chalkLog); }
+      if (configuration.verbose || user.priorityFlag) { printUserObj("WAS | TFC | USER CAT [ UCATQ: " + userCategorizeQueue.length + " ]", user, chalkLog); }
 
       try {
         updatedUser = await updateUserHistograms({user: user});
@@ -2736,7 +2736,6 @@ function initUserCategorizeQueueInterval(cnf){
 
       }
 
-      // updatedUser.categoryAuto = networkOutput.output;
       updatedUser.lastHistogramTweetId = updatedUser.statusId;
       updatedUser.lastHistogramQuoteId = updatedUser.quotedStatusId;
 
@@ -2747,7 +2746,9 @@ function initUserCategorizeQueueInterval(cnf){
 
       try {
         dbUser = await userServerController.findOneUserV2({user: updatedUser, mergeHistograms: false, noInc: true});
-        if (configuration.verbose) { printUserObj("WAS | TFC | DB", dbUser, chalkLog); }
+
+        if (user.priorityFlag || configuration.verbose) { printUserObj("WAS | TFC | DB", dbUser, chalkLog); }
+
         userChangeCache.del(dbUser.nodeId);
         clearTimeout(uscTimeout);
         userCategorizeQueueReady = true;
@@ -2758,6 +2759,7 @@ function initUserCategorizeQueueInterval(cnf){
           + " | @" + updatedUser.screenName
           + " | " + err
         ));
+
         clearTimeout(uscTimeout);
         userCategorizeQueueReady = true;
       }
@@ -2990,6 +2992,13 @@ process.on("message", function(m) {
 
     case "USER_CATEGORIZE":
 
+      if (m.priorityFlag) {
+        console.log(chalkError("WAS | TFC | *** PRIORITY USER_CATEGORIZE"
+          + " | UID: " + m.user.userId
+          + " | @" + m.user.screenName
+        ));
+      }
+
       if (!m.user.nodeId || (m.user.nodeId === undefined)) { 
         console.log(chalkError("WAS | TFC | ??? USER NODE ID UNDEFINED ... SET TO USER ID"
           + " | UID: " + m.user.userId
@@ -3009,13 +3018,21 @@ process.on("message", function(m) {
         ));
       }
 
-      if ((cacheObj === undefined) && (userCategorizeQueue.length < USER_CAT_QUEUE_MAX_LENGTH)){
+      if (m.priorityFlag || ((cacheObj === undefined) && (userCategorizeQueue.length < USER_CAT_QUEUE_MAX_LENGTH))){
+
         try {
 
           const user = m.user.toObject();
 
+          if (m.priorityFlag) {
+            user.priorityFlag = true;
+            userCategorizeQueue.unshift(user);
+          }
+          else {
+            userCategorizeQueue.push(user);
+          }
+
           userChangeCache.set(user.nodeId, {user: user, timeStamp: moment().valueOf()});
-          userCategorizeQueue.push(user);
 
           debug(chalkInfo("WAS | TFC | USER_CATEGORIZE"
             + " [ USQ: " + userCategorizeQueue.length + "]"
@@ -3027,10 +3044,18 @@ process.on("message", function(m) {
             + "\nTFE | USER_SHOW | DESC: " + user.description
           ));
         }
-        catch(err){  // not a user doc
+        catch(err){  
+          // not a user doc
+
+          if (m.priorityFlag) {
+            m.user.priorityFlag = true;
+            userCategorizeQueue.unshift(m.user);
+          }
+          else {
+            userCategorizeQueue.push(m.user);
+          }
 
           userChangeCache.set(m.user.nodeId, {user: m.user, timeStamp: moment().valueOf()});
-          userCategorizeQueue.push(m.user);
 
           debug(chalkInfo("WAS | TFC | USER_CATEGORIZE"
             + " [ USQ: " + userCategorizeQueue.length + "]"
@@ -3043,6 +3068,7 @@ process.on("message", function(m) {
           ));
         }
       }
+
     break;
 
     case "PING":

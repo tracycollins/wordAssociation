@@ -2716,7 +2716,7 @@ function initUserCategorizeQueueInterval(cnf){
 
       statsObj.autoChangeMatchRate = 100*(statsObj.autoChangeMatch/statsObj.autoChangeTotal);
         
-      if (updatedUser.categoryAuto !== networkOutput.output) {
+      if (updatedUser.priorityFlag || (updatedUser.categoryAuto !== networkOutput.output)) {
         console.log(chalkType("WAS | TFC | >>> NN AUTO CHG"
           + " | " + statsObj.autoChangeMatchRate.toFixed(2) + "%"
           + " | M: " + statsObj.autoChangeMatch
@@ -2747,6 +2747,7 @@ function initUserCategorizeQueueInterval(cnf){
       }, 5000);
 
       try {
+
         dbUser = await userServerController.findOneUserV2({user: updatedUser, mergeHistograms: false, noInc: true});
 
         if (user.priorityFlag || configuration.verbose) { printUserObj("WAS | TFC | DB", dbUser, chalkLog); }

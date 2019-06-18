@@ -8540,6 +8540,7 @@ function initTfeChild(params){
         break;
 
         case "USER_CATEGORIZED":
+
           categorizedUserHashMap.set(
             m.user.nodeId, 
             { 
@@ -8549,6 +8550,7 @@ function initTfeChild(params){
               auto: m.user.categoryAuto
             }
           );
+
           if (m.user.priorityFlag){
             printUserObj("WAS | <TFE | PRIORITY CAT", m.user);
             viewNameSpace.emit("SET_TWITTER_USER", { user: m.user, stats: statsObj.user });
@@ -8556,6 +8558,7 @@ function initTfeChild(params){
           else {
             printUserObj("WAS | <TFE | CAT", m.user);
           }
+          
         break;
 
         case "PONG":

@@ -635,9 +635,15 @@ function ControlPanel() {
               if (event.data.stats.uncategorized[cat] !== undefined) {
                 const currentButton = document.getElementById("NEXT UNCAT " + cat.toUpperCase());
                 currentButton.value = event.data.stats.uncategorized[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
-                console.debug("NET UNCAT " + cat.toUpperCase() + " | value: " + currentButton.value); 
+                console.debug("NEXT UNCAT " + cat.toUpperCase() + " | value: " + currentButton.value); 
               }
             });
+
+            if (event.data.stats.mismatched !== undefined) {
+              const currentButton = document.getElementById("NEXT MISMATCH";
+              currentButton.value = event.data.stats.mismatched.toString() + " | NEXT MISMATCH";
+              console.debug("NEXT UNCAT MISMATCH | value: " + currentButton.value); 
+            }
 
           }
 
@@ -678,6 +684,13 @@ function ControlPanel() {
               console.debug("NET UNCAT " + cat.toUpperCase() + " | value: " + currentButton.value); 
             }
           });
+
+          if (event.data.stats.mismatched !== undefined) {
+            const currentButton = document.getElementById("NEXT MISMATCH";
+            currentButton.value = event.data.stats.mismatched.toString() + " | NEXT MISMATCH";
+            console.debug("NEXT UNCAT MISMATCH | value: " + currentButton.value); 
+          }
+
         }
 
         if (event.data.nodeSearch) {

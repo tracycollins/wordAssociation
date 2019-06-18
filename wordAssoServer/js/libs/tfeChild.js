@@ -2737,7 +2737,16 @@ function initUserCategorizeQueueInterval(cnf){
         ));
 
         updatedUser.categoryAuto = networkOutput.output;
-        process.send({ op: "USER_CATEGORIZED", user: updatedUser, stats: statsObj.user });
+
+        const messageObj = {};
+
+        messageObj.op = "USER_CATEGORIZED";
+        messageObj.user = {};
+        messageObj.user = updatedUser;
+        messageObj.stats = {};
+        messageObj.stats = statsObj.user;
+
+        process.send(messageObj);
 
       }
 

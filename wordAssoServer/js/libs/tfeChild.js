@@ -2743,6 +2743,7 @@ function initUserCategorizeQueueInterval(cnf){
         messageObj.op = "USER_CATEGORIZED";
         messageObj.user = {};
         messageObj.user = updatedUser;
+        messageObj.user.priorityFlag = updatedUser.priorityFlag;
         messageObj.stats = {};
         messageObj.stats = statsObj.user;
 

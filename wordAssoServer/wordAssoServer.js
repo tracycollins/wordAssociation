@@ -4184,9 +4184,9 @@ function ignore(params, callback) {
 
     ignoredUserSet.add(params.user.nodeId);
 
-    const ob = {
-      userIds: [...ignoredUserSet]
-    };
+    // const ob = {
+    //   userIds: [...ignoredUserSet]
+    // };
 
     // saveFileQueue.push({
     //   localFlag: false, 
@@ -4222,9 +4222,9 @@ function unignore(params, callback) {
 
     ignoredUserSet.delete(params.user.nodeId);
 
-    const ob = {
-      userIds: [...ignoredUserSet]
-    };
+    // const ob = {
+    //   userIds: [...ignoredUserSet]
+    // };
 
     // saveFileQueue.push({
     //   localFlag: false, 
@@ -5874,7 +5874,7 @@ function initFollowableSearchTerms(){
 
 function followable(text){
 
-  return new Promise(function(resolve, reject){
+  return new Promise(function(resolve){
 
     let hitSearchTerm = false;
 
@@ -5897,7 +5897,7 @@ let hitSearchTerm = false;
 
 function userCategorizeable(user){
 
-  return new Promise(async function(resolve, reject){
+  return new Promise(async function(resolve){
 
     if (user.nodeType !== "user") { 
       return resolve(false); 
@@ -6862,7 +6862,7 @@ function transmitNodes(tw, callback){
     },
     hashtags: function(cb){
       tw.hashtags.forEach(function hashtagsTxNodeQueue(hashtag){
-        if (hashtag  && configuration.enableTransmitHashtag && !ignoredHashtagSet.has(hashtag.nodeId) && !ignoredHashtagRegex.test(hashtag.nodeId)) { 
+        if (hashtag && configuration.enableTransmitHashtag && !ignoredHashtagSet.has(hashtag.nodeId) && !ignoredHashtagRegex.test(hashtag.nodeId)) { 
           transmitNodeQueue.push(hashtag);
         }
       });
@@ -8549,6 +8549,9 @@ function initTfeChild(params){
               auto: m.user.categoryAuto
             }
           );
+          if (m.user.priorityFlag){
+            viewNameSpace.emit("SET_TWITTER_USER", { user: m.user, stats: statsObj.user });
+          }
         break;
 
         case "PONG":
@@ -10621,6 +10624,73 @@ function twitterSearchUserNode(searchQuery){
   });
 }
 
+function processTwitterSearchNode(params) {
+
+  return new Promise(async function(resolve, reject){
+
+    try {
+
+      if (params.user) {
+
+        console.log(chalkBlue("WAS | T> TWITTER_SEARCH_NODE"
+          + " | " + getTimeStamp()
+          + " | NID: " + params.user.nodeId
+          + " | @" + params.user.screenName
+        ));
+
+        if (tfeChild !== undefined) { 
+
+          let categorizeable = false;
+
+          try {
+            categorizeable = await userCategorizeable(params.user);
+          }
+          catch(e){
+            categorizeable = false;
+          }
+
+          if (categorizeable) { 
+            if (params.user.toObject && (typeof params.user.toObject === "function")) {
+              tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, user: params.user.toObject()});
+           }
+            else {
+              tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, user: params.user});
+            }
+
+            return resolve(params.user);
+          }
+
+        }
+
+        if (params.user.toObject && (typeof params.user.toObject === "function")) {
+          viewNameSpace.emit("SET_TWITTER_USER", { user: params.user.toObject(), stats: statsObj.user });
+        }
+        else{
+          viewNameSpace.emit("SET_TWITTER_USER", { user: params.user, stats: statsObj.user });
+        }
+
+        return resolve(params.user);
+      }
+
+      console.log(chalkAlert("WAS | *** TWITTER_SEARCH_NODE | NOT FOUND"
+        + " | " + getTimeStamp()
+        + " | NID: " + params.user.nodeId
+        + " | @" + params.user.screenName
+      ));
+
+      viewNameSpace.emit("TWITTER_SEARCH_NODE_NOT_FOUND", { searchNode: params.searchNode, stats: statsObj.user });
+
+      return resolve();
+
+    }
+    catch(err){
+      reject(err);
+    }
+
+  });
+}
+
+
 function twitterSearchUser(params) {
 
   return new Promise(async function(resolve, reject){
@@ -10711,6 +10781,35 @@ function twitterSearchUser(params) {
 
         searchUserId = searchUserArray.shift();
 
+        switch (searchMode) {
+          case "MISMATCH":
+            mismatchUserSet.delete(searchUserId);
+            statsObj.user.mismatched = mismatchUserSet.size;
+          break;
+          case "UNCAT":
+            uncategorizedManualUserSet.delete(searchUserId);
+            statsObj.user.uncategorized.all = uncategorizedManualUserSet.size;
+          break;
+          case "UNCAT_LEFT":
+            uncategorizedManualUserSet.delete(searchUserId);
+            userAutoLeftSet.delete(searchUserId);
+            statsObj.user.uncategorized.left = _.intersection([...userAutoLeftSet], [...uncategorizedManualUserSet]).length;
+          break;
+          case "UNCAT_RIGHT":
+            uncategorizedManualUserSet.delete(searchUserId);
+            userAutoRightSet.delete(searchUserId);
+            statsObj.user.uncategorized.right = _.intersection([...userAutoRightSet], [...uncategorizedManualUserSet]).length;
+          break;
+          case "UNCAT_NEUTRAL":
+            uncategorizedManualUserSet.delete(searchUserId);
+            userAutoNeutralSet.delete(searchUserId);
+            statsObj.user.uncategorized.neutral = _.intersection([...userAutoNeutralSet], [...uncategorizedManualUserSet]).length;
+          break;
+          default:
+            console.log(chalkError("WAS | *** UNKNOWN searchNodeUser.screenName: " + searchNodeUser.screenName));
+            return reject(new Error("UNKNOWN searchNodeUser.screenName"));
+        }
+
         console.log(chalkSocket("WAS | TWITTER_SEARCH_NODE"
           + " | " + getTimeStamp()
           + " | MODE: " + searchMode
@@ -10721,58 +10820,7 @@ function twitterSearchUser(params) {
 
         try {
           const user = await twitterSearchUserNode({nodeId: searchUserId});
-
-          if (user) {
-
-            console.log(chalkBlue("WAS | T> TWITTER_SEARCH_NODE"
-              + " | " + getTimeStamp()
-              + " | MODE: " + searchMode
-              + " [ SEARCH USER ARRAY: " + searchUserArray.length + "]"
-              + " | NID: " + user.nodeId
-              + " | @" + user.screenName
-            ));
-
-            if (user.toObject && (typeof user.toObject === "function")) {
-              viewNameSpace.emit("SET_TWITTER_USER", { user: user.toObject(), stats: statsObj.user });
-            }
-            else{
-              viewNameSpace.emit("SET_TWITTER_USER", { user: user, stats: statsObj.user });
-            }
-
-            if (tfeChild !== undefined) { 
-
-              let categorizeable = false;
-
-              try {
-                categorizeable = await userCategorizeable(user);
-              }
-              catch(e){
-                categorizeable = false;
-              }
-
-              if (categorizeable) { 
-                if (user.toObject && (typeof user.toObject === "function")) {
-                  tfeChild.send({op: "USER_CATEGORIZE", user: user.toObject()});
-               }
-                else {
-                  tfeChild.send({op: "USER_CATEGORIZE", user: user});
-                }
-              }
-            }
-
-            return resolve(user);
-          }
-
-          console.log(chalkAlert("WAS | *** TWITTER_SEARCH_NODE | NOT FOUND"
-            + " | " + getTimeStamp()
-            + " | MODE: " + searchMode
-            + " [ SEARCH USER ARRAY: " + searchUserArray.length + "]"
-            + " | NID: " + user.nodeId
-            + " | @" + user.screenName
-          ));
-
-          viewNameSpace.emit("TWITTER_SEARCH_NODE_NOT_FOUND", { searchNode: searchNode, stats: statsObj.user });
-
+          await processTwitterSearchNode({searchNode: searchNode, user: user});
           return resolve();
         }
         catch(err){
@@ -10794,55 +10842,9 @@ function twitterSearchUser(params) {
       console.log(chalkInfo("WAS | SEARCH FOR SPECIFIC USER | " + jsonPrint(searchNodeUser)));
 
       try {
+
         const user = await twitterSearchUserNode(searchNodeUser);
-
-        if (user) {
-
-          console.log(chalkBlue("WAS | T> TWITTER_SEARCH_NODE"
-            + " | " + getTimeStamp()
-            + " | NID: " + user.nodeId
-            + " | @" + user.screenName
-          ));
-
-          if (user.toObject && (typeof user.toObject === "function")) {
-            viewNameSpace.emit("SET_TWITTER_USER", { user: user.toObject(), stats: statsObj.user });
-          }
-          else{
-            viewNameSpace.emit("SET_TWITTER_USER", { user: user, stats: statsObj.user });
-          }
-
-          if (tfeChild !== undefined) { 
-
-            let categorizeable = false;
-
-            try {
-              categorizeable = await userCategorizeable(user);
-            }
-            catch(e){
-              categorizeable = false;
-            }
-
-            if (categorizeable) { 
-              if (user.toObject && (typeof user.toObject === "function")) {
-                tfeChild.send({op: "USER_CATEGORIZE", user: user.toObject()});
-             }
-              else {
-                tfeChild.send({op: "USER_CATEGORIZE", user: user});
-              }
-            }
-          }
-
-          return resolve(user);
-        }
-
-        console.log(chalkAlert("WAS | *** TWITTER_SEARCH_NODE | NOT FOUND"
-          + " | " + getTimeStamp()
-          + " | NID: " + user.nodeId
-          + " | @" + user.screenName
-        ));
-
-        viewNameSpace.emit("TWITTER_SEARCH_NODE_NOT_FOUND", { searchNode: searchNode, stats: statsObj.user });
-
+        await processTwitterSearchNode({searchNode: searchNode, user: user});
         return resolve();
       }
       catch(err){

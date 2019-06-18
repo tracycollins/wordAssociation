@@ -2719,7 +2719,7 @@ function initUserCategorizeQueueInterval(cnf){
       updatedUser.lastHistogramTweetId = updatedUser.statusId;
       updatedUser.lastHistogramQuoteId = updatedUser.quotedStatusId;
 
-      if (user.priorityFlag || (updatedUser.categoryAuto !== networkOutput.output)) {
+      if (updatedUser.priorityFlag || (updatedUser.categoryAuto !== networkOutput.output)) {
         console.log(chalkType("WAS | TFC | >>> NN AUTO CHG"
           + " | " + statsObj.autoChangeMatchRate.toFixed(2) + "%"
           + " | M: " + statsObj.autoChangeMatch
@@ -2737,7 +2737,7 @@ function initUserCategorizeQueueInterval(cnf){
         ));
 
         updatedUser.categoryAuto = networkOutput.output;
-        process.send({ op: "USER_CATEGORIZED", user: updatedUser });
+        process.send({ op: "USER_CATEGORIZED", user: updatedUser, stats: statsObj.user });
 
       }
 
@@ -2750,7 +2750,9 @@ function initUserCategorizeQueueInterval(cnf){
 
         dbUser = await userServerController.findOneUserV2({user: updatedUser, mergeHistograms: false, noInc: true});
 
-        if (user.priorityFlag || configuration.verbose) { printUserObj("WAS | TFC | DB", dbUser, chalkLog); }
+        dbUser.priorityFlag = updatedUser.priorityFlag;
+
+        if (dbUser.priorityFlag || configuration.verbose) { printUserObj("WAS | TFC | DB", dbUser, chalkLog); }
 
         userChangeCache.del(dbUser.nodeId);
         clearTimeout(uscTimeout);

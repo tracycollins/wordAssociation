@@ -194,9 +194,6 @@ const debugCategory = require("debug")("kw");
 const moment = require("moment");
 const treeify = require("treeify");
 
-let prevAllowLocationsFileModifiedMoment = moment("2010-01-01");
-let prevIgnoredLocationsFileModifiedMoment = moment("2010-01-01");
-
 const express = require("express");
 const app = express();
 app.set("trust proxy", 1); // trust first proxy
@@ -369,6 +366,7 @@ let configuration = {};
 let defaultConfiguration = {}; // general configuration
 let hostConfiguration = {}; // host-specific configuration
 
+configuration.filterVerifiedUsers = true;
 configuration.twitterBearerToken = process.env.TWITTER_BEARER_TOKEN;
 configuration.verbose = false;
 configuration.ignoreCategoryRight = DEFAULT_IGNORE_CATEGORY_RIGHT;
@@ -460,10 +458,6 @@ if (process.env.NODE_METER_ENABLED !== undefined) {
     configuration.metrics.nodeMeterEnabled = true;
   }
 }
-
-let prevHostConfigFileModifiedMoment = moment("2010-01-01");
-let prevDefaultConfigFileModifiedMoment = moment("2010-01-01");
-let prevConfigFileModifiedMoment = moment("2010-01-01");
 
 const help = { name: "help", alias: "h", type: Boolean};
 
@@ -1003,90 +997,90 @@ console.log(chalkLog("WAS | DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASS
 console.log(chalkLog("WAS | DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY));
 console.log(chalkLog("WAS | DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET));
 
-function filesListFolderLocal(options){
-  return new Promise(function(resolve, reject) {
+// function filesListFolderLocal(options){
+//   return new Promise(function(resolve, reject) {
 
-    debug("filesListFolderLocal options\n" + jsonPrint(options));
+//     debug("filesListFolderLocal options\n" + jsonPrint(options));
 
-    const fullPath = "/Users/tc/Dropbox/Apps/wordAssociation" + options.path;
+//     const fullPath = "/Users/tc/Dropbox/Apps/wordAssociation" + options.path;
 
-    fs.readdir(fullPath, function(err, items){
-      if (err) {
-        reject(err);
-      }
-      else {
+//     fs.readdir(fullPath, function(err, items){
+//       if (err) {
+//         reject(err);
+//       }
+//       else {
 
-        const itemArray = [];
+//         const itemArray = [];
 
-        async.each(items, function(item, cb){
+//         async.each(items, function(item, cb){
 
-          itemArray.push(
-            {
-              name: item, 
-              client_modified: false,
-              content_hash: false,
-              path_display: fullPath + "/" + item
-            }
-          );
-          cb();
+//           itemArray.push(
+//             {
+//               name: item, 
+//               client_modified: false,
+//               content_hash: false,
+//               path_display: fullPath + "/" + item
+//             }
+//           );
+//           cb();
 
-        }, function(err){
+//         }, function(err){
 
-          if (err) {
-            console.log(chalkError("WAS | *** ERROR filesListFolderLocal"));
-            return reject(err);
-          }
+//           if (err) {
+//             console.log(chalkError("WAS | *** ERROR filesListFolderLocal"));
+//             return reject(err);
+//           }
 
-          const response = {
-            cursor: false,
-            has_more: false,
-            entries: itemArray
-          };
+//           const response = {
+//             cursor: false,
+//             has_more: false,
+//             entries: itemArray
+//           };
 
-          resolve(response);
-        });
-        }
-    });
-  });
-}
+//           resolve(response);
+//         });
+//         }
+//     });
+//   });
+// }
 
-function filesGetMetadataLocal(options){
+// function filesGetMetadataLocal(options){
 
-  return new Promise(function(resolve, reject) {
+//   return new Promise(function(resolve, reject) {
 
-    console.log(chalkLog("WAS | filesGetMetadataLocal options\n" + jsonPrint(options)));
+//     console.log(chalkLog("WAS | filesGetMetadataLocal options\n" + jsonPrint(options)));
 
-    const fullPath = "/Users/tc/Dropbox/Apps/wordAssociation" + options.path;
+//     const fullPath = "/Users/tc/Dropbox/Apps/wordAssociation" + options.path;
 
-    fs.stat(fullPath, function(err, stats){
-      if (err) {
-        reject(err);
-      }
-      else {
-        const response = {
-          client_modified: stats.mtimeMs
-        };
+//     fs.stat(fullPath, function(err, stats){
+//       if (err) {
+//         reject(err);
+//       }
+//       else {
+//         const response = {
+//           client_modified: stats.mtimeMs
+//         };
         
-        resolve(response);
-      }
-    });
-  });
-}
+//         resolve(response);
+//       }
+//     });
+//   });
+// }
 
 const dropboxRemoteClient = new Dropbox({ 
   accessToken: configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN,
   fetch: fetch
 });
 
-const dropboxLocalClient = { // offline mode
-  filesListFolder: filesListFolderLocal,
-  filesUpload: function(){ console.log(chalkInfo("WAS | filesUpload")); },
-  filesDownload: function(){ console.log(chalkInfo("WAS | filesDownload")); },
-  filesGetMetadata: filesGetMetadataLocal,
-  filesDelete: function(){ console.log(chalkInfo("WAS | filesDelete")); }
-};
+// const dropboxLocalClient = { // offline mode
+//   filesListFolder: filesListFolderLocal,
+//   filesUpload: function(){ console.log(chalkInfo("WAS | filesUpload")); },
+//   filesDownload: function(){ console.log(chalkInfo("WAS | filesDownload")); },
+//   filesGetMetadata: filesGetMetadataLocal,
+//   filesDelete: function(){ console.log(chalkInfo("WAS | filesDelete")); }
+// };
 
-let dropboxClient = dropboxRemoteClient;
+const dropboxClient = dropboxRemoteClient;
 
 const networkDefaults = function (netObj){
 
@@ -2279,43 +2273,43 @@ function loadCommandLineArgs(){
   });
 }
 
-function getFileMetadata(params) {
+// function getFileMetadata(params) {
 
-  return new Promise(async function(resolve, reject){
+//   return new Promise(async function(resolve, reject){
 
-    const fullPath = params.folder + "/" + params.file;
-    debug(chalkInfo("FOLDER " + params.folder));
-    debug(chalkInfo("FILE " + params.file));
-    debug(chalkInfo("getFileMetadata FULL PATH: " + fullPath));
+//     const fullPath = params.folder + "/" + params.file;
+//     debug(chalkInfo("FOLDER " + params.folder));
+//     debug(chalkInfo("FILE " + params.file));
+//     debug(chalkInfo("getFileMetadata FULL PATH: " + fullPath));
 
-    if (configuration.offlineMode) {
-      dropboxClient = dropboxLocalClient;
-    }
-    else {
-      dropboxClient = dropboxRemoteClient;
-    }
+//     if (configuration.offlineMode) {
+//       dropboxClient = dropboxLocalClient;
+//     }
+//     else {
+//       dropboxClient = dropboxRemoteClient;
+//     }
 
-    try{
-      const response = await dropboxClient.filesGetMetadata({path: fullPath});
-      debug(chalkInfo("FILE META\n" + jsonPrint(response)));
-      resolve();
-    }
-    catch(err){
-      console.log(chalkError("WAS | *** DROPBOX getFileMetadata ERROR: " + fullPath));
-      console.log(chalkError("WAS | *** ERROR\n" + jsonPrint(err.error)));
+//     try{
+//       const response = await dropboxClient.filesGetMetadata({path: fullPath});
+//       debug(chalkInfo("FILE META\n" + jsonPrint(response)));
+//       resolve();
+//     }
+//     catch(err){
+//       console.log(chalkError("WAS | *** DROPBOX getFileMetadata ERROR: " + fullPath));
+//       console.log(chalkError("WAS | *** ERROR\n" + jsonPrint(err.error)));
 
-      if ((err.status === 404) || (err.status === 409)) {
-        console.error(chalkError("WAS | *** DROPBOX READ FILE " + fullPath + " NOT FOUND"));
-      }
-      if (err.status === 0) {
-        console.error(chalkError("WAS | *** DROPBOX NO RESPONSE"));
-      }
+//       if ((err.status === 404) || (err.status === 409)) {
+//         console.error(chalkError("WAS | *** DROPBOX READ FILE " + fullPath + " NOT FOUND"));
+//       }
+//       if (err.status === 0) {
+//         console.error(chalkError("WAS | *** DROPBOX NO RESPONSE"));
+//       }
 
-      reject(err);
-    }
+//       reject(err);
+//     }
 
-  });
-}
+//   });
+// }
 
 function loadFile(params) {
 
@@ -6458,16 +6452,20 @@ function updateUserSets(){
           if (!ignoredUserSet.has(user.nodeId) 
             && !ignoreLocationsSet.has(user.nodeId) 
             && !unfollowableUserSet.has(user.nodeId)){
+
             categorizedManualUserSet.add(user.nodeId); 
             categorizedAutoUserSet.add(user.nodeId); 
 
             if (!mismatchUserSet.has(user.nodeId) && (user.category !== user.categoryAuto)) {
 
-              mismatchUserSet.add(user.nodeId); 
+              if (!configuration.filterVerifiedUsers || !verifiedCategorizedUsersSet.has(user.screenName)){
+                mismatchUserSet.add(user.nodeId);
+              }
+
               matchUserSet.delete(user.nodeId); 
 
               if (mismatchUserSet.size % 100 === 0) {
-                printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "]", user);
+                printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "] | VCU: " + verifiedCategorizedUsersSet.has(user.screenName), user);
               }
             }
 
@@ -7061,7 +7059,7 @@ function initAppRouting(callback) {
                   return;
                 }
 
-                if (entry.path_lower.endsWith("verifiedCategorizedUsers.txt")){
+                if (entry.path_lower.endsWith(verifiedCategorizedUsersFile.toLowerCase())){
                   await initVerifiedCategorizedUsersSet();
                   return;
                 }
@@ -7076,7 +7074,7 @@ function initAppRouting(callback) {
                   return;
                 }
 
-                if (entry.path_lower.endsWith("allowLocations.txt")){
+                if (entry.path_lower.endsWith("allowlocations.txt")){
                   allowLocations();
                   return;
                 }

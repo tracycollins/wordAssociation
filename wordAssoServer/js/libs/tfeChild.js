@@ -1510,12 +1510,14 @@ function parseImage(p){
       resolve(hist);
     }).
     catch(function(err){
+
       if (err.code === 8) {
-        console.log(chalkAlert("*** parseImage | GOOGLE VISION IMAGE PARSER QUOTA ERROR"));
+        console.log(chalkAlert("WAS | TFC | GOOGLE VISION IMAGE PARSER QUOTA ERROR"));
       }
       else{
-        console.log(chalkError("*** parseImage | GOOGLE VISION IMAGE PARSER ERROR: " + err));
+        console.log(chalkError("WAS | TFC | GOOGLE VISION IMAGE PARSER ERROR: " + err));
       }
+
       reject(err);
     });
 

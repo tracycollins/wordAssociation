@@ -225,6 +225,7 @@ const Dropbox = require("dropbox").Dropbox;
 
 const HashMap = require("hashmap").HashMap;
 
+let verifiedCategorizedUsersSet = new Set();
 const ignoreIpSet = new Set();
 
 const ignoredHashtagRegex = new RegExp(/[^\u0000-\u007F]+/, "i");
@@ -596,6 +597,7 @@ const userAutoPositiveSet = new Set();
 const userAutoNegativeSet = new Set();
 const userAutoNoneSet = new Set();
 
+const verifiedCategorizedUsersFile = "verifiedCategorizedUsers.txt";
 const ignoredHashtagFile = "ignoredHashtag.json";
 const ignoredUserFile = "ignoredUser.json";
 const unfollowableUserFile = "unfollowableUser.json";
@@ -604,7 +606,7 @@ const followableSearchTermFile = "followableSearchTerm.txt";
 const pendingFollowSet = new Set();
 const followableUserSet = new Set();
 const categorizeableUserSet = new Set();
-const followableSearchTermSet = new Set();
+let followableSearchTermSet = new Set();
 
 followableSearchTermSet.add("potus");
 followableSearchTermSet.add("trump");
@@ -671,7 +673,7 @@ followableSearchTermSet.add("supreme court");
 followableSearchTermSet.add("specialcounsel");
 followableSearchTermSet.add("special counsel");
 
-let followableSearchTermsArray = [...followableSearchTermSet];
+const followableSearchTermsArray = [...followableSearchTermSet];
 
 const DEFAULT_BEST_NETWORK_FOLDER = "/config/utility/best/neuralNetworks";
 const bestNetworkFolder = DEFAULT_BEST_NETWORK_FOLDER;
@@ -738,8 +740,8 @@ const twitterUserThreecee = {
 const defaultTwitterUser = twitterUserThreecee;
 
 const followedUserSet = new Set();
-const unfollowableUserSet = new Set();
-const ignoredUserSet = new Set();
+let unfollowableUserSet = new Set();
+let ignoredUserSet = new Set();
 const ignoredHashtagSet = new Set();
 
 process.title = "node_wordAssoServer";
@@ -1476,23 +1478,23 @@ function connectDb(){
 
 statsObj.dbConnectBusy = false;
 
-const dbConnectInterval = setInterval(function(){
+const dbConnectInterval = setInterval(async function(){
 
   if (!statsObj.dbConnectionReady && !statsObj.dbConnectBusy) {
 
     statsObj.dbConnectBusy = true;
 
-    connectDb().
-    then(function(){
+    try{
+      await connectDb();
       statsObj.dbConnectBusy = false;
       statsObj.dbConnectionReady = true;
       console.log(chalk.green("WAS | +++ MONGO DB CONNECTED"));
-    }).
-    catch(function(err){
+    }
+    catch(err){
       console.log(chalkError("WAS | *** CONNECT DB INTERVAL ERROR: " + err));
       statsObj.dbConnectionReady = false;
       statsObj.dbConnectBusy = false;
-    });
+    }
   }
 
 }, 10*ONE_SECOND);
@@ -1729,7 +1731,6 @@ function authenticatedTwitterUserCacheExpired(nodeId, userObj) {
     + " | LS: " + userObj.lastSeen
     + " | @" + userObj.screenName
   ));
-
 }
 
 authenticatedTwitterUserCache.on("expired", authenticatedTwitterUserCacheExpired);
@@ -1939,6 +1940,35 @@ const statsBestNetworkPickArray = [
   "betterChild"
 ];
 
+function delay(p) {
+
+  const params = p || {};
+  const period = params.period || 10*ONE_SECOND;
+  const verbose = params.verbose || false;
+
+  return new Promise(function(resolve, reject){
+
+    try {
+      if (verbose) {
+        console.log(chalkLog("WAS | +++ DELAY START | NOW: " + getTimeStamp() + " | PERIOD: " + msToTime(period)));
+      }
+
+      setTimeout(function(){
+        if (verbose) {
+          console.log(chalkLog("WAS | XXX DELAY END | NOW: " + getTimeStamp() + " | PERIOD: " + msToTime(period)));
+        }
+        resolve();
+      }, period);
+    }
+    catch(err){
+      console.log(chalkError("WAS | *** delay ERROR:", err));
+      reject(err);
+    }
+
+  });
+}
+
+
 function initStats(callback){
 
   console.log(chalk.bold.black("WAS | INIT STATS"));
@@ -2107,92 +2137,92 @@ function initStats(callback){
   callback();
 }
 
-function dropboxLongPoll(last_cursor, callback) {
-  dropboxClient.filesListFolderLongpoll({cursor: last_cursor, timeout: 30}).
-    then(function(results){
-      callback(null, results);
-    }).
-    catch(function(err){
+function dropboxLongPoll(last_cursor) {
+
+  return new Promise(async function(resolve, reject){
+
+    try{
+      const results = await dropboxClient.filesListFolderLongpoll({cursor: last_cursor, timeout: 30});
+      resolve(results);
+    }
+    catch(err){
       console.log(err);
-      callback(err, null);
-    });
+      reject(err);
+    }
+
+  });
 }
 
-function dropboxFolderGetLastestCursor(folder, callback) {
+function dropboxFolderGetLastestCursor(folder) {
 
-  // let lastCursorTruncated = "";
+  return new Promise(async function(resolve, reject){
 
-  const optionsGetLatestCursor = {
-    path: folder,
-    recursive: true,
-    include_media_info: false,
-    include_deleted: true,
-    include_has_explicit_shared_members: false
-  };
+    try {
 
-  if (configuration.verbose) { 
-    console.log(chalkLog("WAS | dropboxFolderGetLastestCursor FOLDER: " + folder)); 
-  }
+    const optionsGetLatestCursor = {
+      path: folder,
+      recursive: true,
+      include_media_info: false,
+      include_deleted: true,
+      include_has_explicit_shared_members: false
+    };
 
-  dropboxClient.filesListFolderGetLatestCursor(optionsGetLatestCursor).
-  then(function(last_cursor) {
+    if (configuration.verbose) { 
+      console.log(chalkLog("WAS | dropboxFolderGetLastestCursor FOLDER: " + folder)); 
+    }
 
-    // lastCursorTruncated = last_cursor.cursor.substring(0,20);
+    const last_cursor = await dropboxClient.filesListFolderGetLatestCursor(optionsGetLatestCursor);
 
     if (configuration.verbose) { 
       console.log(chalkLog("WAS | DROPBOX LAST CURSOR\n" + jsonPrint(last_cursor))); 
     }
 
-    dropboxLongPoll(last_cursor.cursor, function(err, results){
+    const results = await dropboxLongPoll(last_cursor.cursor);
+
+    if (configuration.verbose) { 
+      console.log(chalkLog("WAS | DROPBOX LONG POLL RESULTS\n" + jsonPrint(results))); 
+    }
+
+    if ((results !== undefined) && results && results.changes) {
+
+      const response = await dropboxClient.filesListFolderContinue({ cursor: last_cursor.cursor});
 
       if (configuration.verbose) { 
-        console.log(chalkLog("WAS | DROPBOX LONG POLL RESULTS\n" + jsonPrint(results))); 
+        console.log(chalkLog("WAS | DROPBOX FILE LIST FOLDER CONTINUE"
+          + "\n" + jsonPrint(response)
+        ));
       }
 
-      if ((results !== undefined) && results && results.changes) {
+      return resolve(response);
 
-        dropboxClient.filesListFolderContinue({ cursor: last_cursor.cursor}).
-        then(function(response){
+    }
 
-          if (configuration.verbose) { 
-            console.log(chalkLog("WAS | DROPBOX FILE LIST FOLDER CONTINUE"
-              + "\n" + jsonPrint(response)
-            ));
-          }
+    debug(chalkLog("WAS | DROPBOX | FOLDER NO CHANGE | " + folder));
+      resolve();
+    }
+    catch(err){
 
-          callback(null, response);
+      console.log(chalkError("WAS | *** ERROR DROPBOX FOLDER | " + folder + " | " + err));
 
-        }).
-        catch(function(err){
-
-          if (err.status === 429){
-            console.log(chalkError("WAS | *** dropboxFolderGetLastestCursor filesListFolder"
-              + " | *** DROPBOX FILES LIST FOLDER ERROR"
-              + " | TOO MANY REQUESTS" 
-              + " | FOLDER: " + folder 
-            ));
-          }
-          else {
-            console.log(chalkError("WAS | *** dropboxFolderGetLastestCursor filesListFolder"
-              + " *** DROPBOX FILES LIST FOLDER ERROR"
-              + "\nERROR:", err 
-              // + "\nERROR: " + jsonPrint(err)
-            ));
-          }
-          callback(err, last_cursor.cursor);
-
-        });
+      if (err.status === 429){
+        console.log(chalkError("WAS | *** dropboxFolderGetLastestCursor filesListFolder"
+          + " | *** DROPBOX FILES LIST FOLDER ERROR"
+          + " | TOO MANY REQUESTS" 
+          + " | FOLDER: " + folder 
+        ));
       }
       else {
-        debug(chalkLog("WAS | DROPBOX | FOLDER NO CHANGE | " + folder));
-        callback(null, null);
+        console.log(chalkError("WAS | *** dropboxFolderGetLastestCursor filesListFolder"
+          + " *** DROPBOX FILES LIST FOLDER ERROR"
+          + "\nERROR:", err 
+          // + "\nERROR: " + jsonPrint(err)
+        ));
       }
-    });
-  }).
-  catch(function(err){
-    console.log(chalkError("WAS | *** ERROR DROPBOX FOLDER | " + folder + " | " + err));
-    callback(err, folder);
+      reject(err);
+    }
+
   });
+
 }
 
 function showStats(options){
@@ -2251,7 +2281,7 @@ function loadCommandLineArgs(){
 
 function getFileMetadata(params) {
 
-  return new Promise(function(resolve, reject){
+  return new Promise(async function(resolve, reject){
 
     const fullPath = params.folder + "/" + params.file;
     debug(chalkInfo("FOLDER " + params.folder));
@@ -2265,12 +2295,12 @@ function getFileMetadata(params) {
       dropboxClient = dropboxRemoteClient;
     }
 
-    dropboxClient.filesGetMetadata({path: fullPath}).
-    then(function(response) {
+    try{
+      const response = await dropboxClient.filesGetMetadata({path: fullPath});
       debug(chalkInfo("FILE META\n" + jsonPrint(response)));
-      resolve(response);
-    }).
-    catch(function(err) {
+      resolve();
+    }
+    catch(err){
       console.log(chalkError("WAS | *** DROPBOX getFileMetadata ERROR: " + fullPath));
       console.log(chalkError("WAS | *** ERROR\n" + jsonPrint(err.error)));
 
@@ -2282,15 +2312,14 @@ function getFileMetadata(params) {
       }
 
       reject(err);
-
-    });
+    }
 
   });
 }
 
 function loadFile(params) {
 
-  return new Promise(function(resolve, reject){
+  return new Promise(async function(resolve, reject){
 
     let fullPath = params.folder + "/" + params.file;
     const noErrorNotFoundFlag = params.noErrorNotFoundFlag || false;
@@ -2312,12 +2341,8 @@ function loadFile(params) {
         console.log(chalkInfo("OFFLINE_MODE: FULL PATH " + fullPath));
       }
 
-      fs.readFile(fullPath, "utf8", function(err, data) {
-
-        if (err) {
-          console.log(chalkError("fs readFile ERROR: " + err));
-          return reject(err);
-        }
+      try{
+        const data = await fs.readFile(fullPath, "utf8");
 
         console.log(chalkInfo(getTimeStamp()
           + " | LOADING FILE FROM DROPBOX"
@@ -2355,15 +2380,21 @@ function loadFile(params) {
           + " | ... SKIP LOAD FILE FROM DROPBOX"
           + " | " + fullPath
         ));
+
         resolve();
 
-      });
+      }
+      catch(err){
+        console.log(chalkError("fs readFile ERROR: " + err));
+        return reject(err);
+      }
 
-     }
+    }
     else {
 
-      dropboxClient.filesDownload({path: fullPath}).
-      then(function(data) {
+      try{
+
+        const data = await dropboxClient.filesDownload({path: fullPath});
 
         debug(chalkLog(getTimeStamp()
           + " | LOADING FILE FROM DROPBOX FILE: " + fullPath
@@ -2388,7 +2419,7 @@ function loadFile(params) {
             return null;
           }
           catch(err){
-            console.log(chalkError("WAS | DROPBOX loadFile ERROR: " + fullPath));
+            console.log(chalkError("WAS | DROPBOX loadFile JSON PARSE ERROR: " + fullPath));
             return reject(fileObj.error);
           }
 
@@ -2406,8 +2437,8 @@ function loadFile(params) {
         }
 
         resolve();
-      }).
-      catch(function(error) {
+      }
+      catch(error) {
 
         console.log(chalkError("WAS | DROPBOX loadFile ERROR: " + fullPath));
         
@@ -2429,21 +2460,22 @@ function loadFile(params) {
 
         reject(error);
 
-      });
+      }
     }
   });
 }
 
 function loadMaxInputHashMap(p){
 
-  return new Promise(function(resolve, reject) {
+  return new Promise(async function(resolve, reject) {
 
     const params = p || {};
     params.folder = params.folder || dropboxConfigDefaultTrainingSetsFolder;
     params.file = params.file || maxInputHashMapFile;
 
-    loadFile(params).
-    then(function(dataObj){
+    try{
+      const dataObj = await loadFileRetry(params);
+
       if (dataObj.maxInputHashMap === undefined) {
         console.log(chalkError("WAS | *** ERROR: loadMaxInputHashMap: loadFile: maxInputHashMap UNDEFINED"));
       }
@@ -2455,58 +2487,61 @@ function loadMaxInputHashMap(p){
       normalization = dataObj.normalization || {};
 
       resolve();
-    }).
-    catch(function(err){
+    }
+    catch(err){
       if (err.code === "ENOTFOUND") {
         console.log(chalkError("WAS | *** LOAD MAX INPUT: FILE NOT FOUND"
           + " | " + params.folder + "/" + params.file
         ));
       }
 
-      return reject(err);
-    });
+      reject(err);
+    }
 
   });
 }
 
-function saveFile (params, callback){
+function saveFile(params){
 
-  const fullPath = params.folder + "/" + params.file;
+  return new Promise(async function(resolve, reject){
 
-  debug(chalkInfo("LOAD FOLDER " + params.folder));
-  debug(chalkInfo("LOAD FILE " + params.file));
-  debug(chalkInfo("FULL PATH " + fullPath));
+    const fullPath = params.folder + "/" + params.file;
 
-  const options = {};
+    debug(chalkInfo("LOAD FOLDER " + params.folder));
+    debug(chalkInfo("LOAD FILE " + params.file));
+    debug(chalkInfo("FULL PATH " + fullPath));
 
-  if (params.localFlag) {
+    const options = {};
 
-    options.access_token = configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN;
-    options.file_size = sizeof(params.obj);
-    options.destination = params.dropboxFolder + "/" + params.file;
-    options.autorename = true;
-    options.mode = params.mode || "overwrite";
-    options.mode = "overwrite";
+    if (params.localFlag) {
 
-    const objSizeMBytes = options.file_size/ONE_MEGABYTE;
+      options.access_token = configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN;
+      options.file_size = sizeof(params.obj);
+      options.destination = params.dropboxFolder + "/" + params.file;
+      options.autorename = true;
+      options.mode = params.mode || "overwrite";
+      options.mode = "overwrite";
 
-    showStats();
+      const objSizeMBytes = options.file_size/ONE_MEGABYTE;
 
-    console.log(chalk.blue("WAS | ... SAVING LOCALLY"
-      + " | " + objSizeMBytes.toFixed(2) + " MB | " + fullPath
-    ));
+      showStats();
 
-    writeJsonFile(fullPath, params.obj).
-    then(function() {
-
-      console.log(chalk.blue("WAS | SAVED LOCALLY"
+      console.log(chalk.blue("WAS | ... SAVING LOCALLY"
         + " | " + objSizeMBytes.toFixed(2) + " MB | " + fullPath
       ));
-      console.log(chalk.blue("WAS | ... PAUSE 5 SEC TO FINISH FILE SAVE"
-        + " | " + objSizeMBytes.toFixed(2) + " MB | " + fullPath
+
+      try{
+
+        await writeJsonFile(fullPath, params.obj);
+
+        console.log(chalk.blue("WAS | SAVED LOCALLY"
+          + " | " + objSizeMBytes.toFixed(2) + " MB | " + fullPath
+        ));
+        console.log(chalk.blue("WAS | ... PAUSE 5 SEC TO FINISH FILE SAVE"
+          + " | " + objSizeMBytes.toFixed(2) + " MB | " + fullPath
         ));
 
-      setTimeout(function(){
+        await delay({period: 5*ONE_SECOND});
 
         console.log(chalk.blue("WAS | ... DROPBOX UPLOADING"
           + " | " + objSizeMBytes.toFixed(2) + " MB | " 
@@ -2530,7 +2565,6 @@ function saveFile (params, callback){
 
         const localReadStream = fs.createReadStream(fullPath);
         const remoteWriteStream = drbx.file(options.destination).createWriteStream();
-
 
         let bytesRead = 0;
         let chunksRead = 0;
@@ -2571,134 +2605,132 @@ function saveFile (params, callback){
 
         localReadStream.on("error", function(err){
           console.log(chalkError("WAS | *** LOCAL STREAM READ ERROR | " + err));
-          if (callback !== undefined) { return callback(err); }
+          return reject(err);
         });
 
         remoteWriteStream.on("end", function(){
           console.log(chalkLog("WAS | REMOTE STREAM WRITE END | DEST: " + options.destination));
-          if (callback !== undefined) { return callback(null); }
+          return resolve();
         });
 
         remoteWriteStream.on("error", function(err){
           console.log(chalkError("WAS | *** REMOTE STREAM WRITE ERROR | DEST: " + options.destination + "\n" + err));
-          if (callback !== undefined) { return callback(err); }
+          return reject(err);
         });
 
-      }, 5000);
-
-    }).
-    catch(function(error){
-      console.log(chalkError("WAS | *** " + getTimeStamp() 
-        + " | *** ERROR DROBOX JSON WRITE | FILE: " + fullPath 
-        + " | ERROR: " + error
-        + " | ERROR\n" + jsonPrint(error)
-        // + " ERROR\n" + jsonPrint(params)
-      ));
-      if (callback !== undefined) { return callback(error); }
-    });
-  }
-  else {
-
-    options.contents = JSON.stringify(params.obj, null, 2);
-    options.autorename = params.autorename || false;
-    options.mode = params.mode || "overwrite";
-    options.path = fullPath;
-
-    const dbFileUpload = function () {
-
-      dropboxClient.filesUpload(options).
-      then(function(){
-        debug(chalkLog("SAVED DROPBOX JSON | " + options.path));
-        if (callback !== undefined) { return callback(null); }
-      }).
-      catch(function(error){
-        if (error.status === 413){
-          console.log(chalkError("WAS | " + getTimeStamp() 
-            + " | *** ERROR DROBOX JSON WRITE | FILE: " + fullPath 
-            + " | ERROR: 413"
-          ));
-          if (callback !== undefined) { return callback(error); }
-        }
-        else if (error.status === 429){
-          console.log(chalkError("WAS | " + getTimeStamp() 
-            + " | *** ERROR DROBOX JSON WRITE | FILE: " + fullPath 
-            + " | ERROR: TOO MANY WRITES"
-          ));
-          if (callback !== undefined) { return callback(error); }
-        }
-        else if (error.status === 500){
-          console.log(chalkError("WAS | " + getTimeStamp() 
-            + " | *** ERROR DROBOX JSON WRITE | FILE: " + fullPath 
-            + " | ERROR: DROPBOX SERVER ERROR"
-          ));
-          if (callback !== undefined) { return callback(error); }
-        }
-        else {
-          console.log(chalkError("WAS | " + getTimeStamp() 
-            + " | *** ERROR DROBOX JSON WRITE | FILE: " + fullPath 
-            + " | ERROR STATUS " + error.status
-          ));
-          if (callback !== undefined) { return callback(error); }
-        }
-      });
-    };
-
-    if (options.mode === "add") {
-
-      dropboxClient.filesListFolder({path: params.folder, limit: configuration.dropboxListFolderLimit}).
-      then(function(response){
-
-        debug(chalkLog("WAS | DROPBOX LIST FOLDER"
-          + " | ENTRIES: " + response.entries.length
-          + " | CURSOR (trunc): " + response.cursor.substr(-10)
-          + " | MORE: " + response.has_more
-          + " | PATH:" + options.path
+      }
+      catch(err){
+        console.log(chalkError("WAS | *** " + getTimeStamp() 
+          + " | *** ERROR DROBOX JSON WRITE | FILE: " + fullPath 
+          + " | ERROR: " + err
+          + " | ERROR\n" + jsonPrint(err)
         ));
-
-        let fileExits = false;
-
-        async.each(response.entries, function(entry, cb){
-
-          console.log(chalkInfo("WAS | DROPBOX FILE"
-            + " | " + params.folder
-            + " | LAST MOD: " + getTimeStamp(new Date(entry.client_modified))
-            + " | " + entry.name
-          ));
-
-          if (entry.name === params.file) {
-            fileExits = true;
-          }
-
-          cb();
-
-        }, function(err){
-          if (err) {
-            console.log(chalkError("WAS | *** ERROR DROPBOX SAVE FILE: " + err));
-            if (callback !== undefined) { 
-              return(callback(err, null));
-            }
-            return;
-          }
-          if (fileExits) {
-            console.log(chalk.blue("WAS | ... DROPBOX FILE EXISTS ... SKIP SAVE | " + fullPath));
-            if (callback !== undefined) { callback(err, null); }
-          }
-          else {
-            console.log(chalk.blue("WAS | ... DROPBOX DOES NOT FILE EXIST ... SAVING | " + fullPath));
-            dbFileUpload();
-          }
-        });
-      }).
-      catch(function(err){
-        console.log(chalkError("WAS | *** DROPBOX FILES LIST FOLDER ERROR: " + err));
-        console.log(chalkError("WAS | *** DROPBOX FILES LIST FOLDER ERROR\n" + jsonPrint(err)));
-        if (callback !== undefined) { callback(err, null); }
-      });
+        return reject(err);
+      }
     }
     else {
-      dbFileUpload();
+
+      options.contents = JSON.stringify(params.obj, null, 2);
+      options.autorename = params.autorename || false;
+      options.mode = params.mode || "overwrite";
+      options.path = fullPath;
+
+      const dbFileUpload = async function () {
+
+        try{
+          await dropboxClient.filesUpload(options);
+
+          debug(chalkLog("SAVED DROPBOX JSON | " + options.path));
+          return resolve();
+        }
+
+        catch(err){
+          if (err.status === 413){
+            console.log(chalkError("WAS | " + getTimeStamp() 
+              + " | *** ERROR DROBOX JSON WRITE | FILE: " + fullPath 
+              + " | ERROR: 413"
+            ));
+          }
+          if (err.status === 429){
+            console.log(chalkError("WAS | " + getTimeStamp() 
+              + " | *** ERROR DROBOX JSON WRITE | FILE: " + fullPath 
+              + " | ERROR: TOO MANY WRITES"
+            ));
+          }
+          if (err.status === 500){
+            console.log(chalkError("WAS | " + getTimeStamp() 
+              + " | *** ERROR DROBOX JSON WRITE | FILE: " + fullPath 
+              + " | ERROR: DROPBOX SERVER ERROR"
+            ));
+          }
+          console.log(chalkError("WAS | " + getTimeStamp() 
+            + " | *** ERROR DROBOX JSON WRITE | FILE: " + fullPath 
+            + " | ERROR STATUS " + err.status
+          ));
+          return reject(err);
+        }
+
+      };
+
+      if (options.mode === "add") {
+
+        try{
+          const response = await dropboxClient.filesListFolder({path: params.folder, limit: configuration.dropboxListFolderLimit});
+
+          debug(chalkLog("WAS | DROPBOX LIST FOLDER"
+            + " | ENTRIES: " + response.entries.length
+            + " | CURSOR (trunc): " + response.cursor.substr(-10)
+            + " | MORE: " + response.has_more
+            + " | PATH:" + options.path
+          ));
+
+          let fileExits = false;
+
+          async.each(response.entries, async function(entry){
+
+            console.log(chalkInfo("WAS | DROPBOX FILE"
+              + " | " + params.folder
+              + " | LAST MOD: " + getTimeStamp(new Date(entry.client_modified))
+              + " | " + entry.name
+            ));
+
+            if (entry.name === params.file) {
+              fileExits = true;
+            }
+
+            return;
+
+          }, function(err){
+
+            if (err) {
+              console.log(chalkError("WAS | *** ERROR DROPBOX SAVE FILE: " + err));
+              return reject(err);
+            }
+            if (fileExits) {
+              console.log(chalk.blue("WAS | ... DROPBOX FILE EXISTS ... SKIP SAVE | " + fullPath));
+              return reject(err);
+            }
+
+            console.log(chalk.blue("WAS | ... DROPBOX DOES NOT FILE EXIST ... SAVING | " + fullPath));
+            dbFileUpload();
+
+          });
+
+        }
+        catch(err){
+          console.log(chalkError("WAS | *** DROPBOX FILES LIST FOLDER ERROR: " + err));
+          console.log(chalkError("WAS | *** DROPBOX FILES LIST FOLDER ERROR\n" + jsonPrint(err)));
+          return reject(err);
+        }
+
+      }
+      else {
+        dbFileUpload();
+      }
     }
-  }
+
+  });
+
 }
 
 let saveFileQueueInterval;
@@ -2712,7 +2744,7 @@ function initSaveFileQueue(cnf){
 
     clearInterval(saveFileQueueInterval);
 
-    saveFileQueueInterval = setInterval(function () {
+    saveFileQueueInterval = setInterval(async function () {
 
       if (!saveFileBusy && saveFileQueue.length > 0) {
 
@@ -2720,16 +2752,17 @@ function initSaveFileQueue(cnf){
 
         const saveFileObj = saveFileQueue.shift();
 
-        saveFile(saveFileObj, function(err){
-          if (err) {
-            console.log(chalkError("WAS | *** SAVE FILE ERROR ... RETRY | " + saveFileObj.folder + "/" + saveFileObj.file));
-            saveFileQueue.push(saveFileObj);
-          }
-          else {
-            console.log(chalkInfo("WAS | SAVED FILE | " + saveFileObj.folder + "/" + saveFileObj.file));
-          }
+        try{
+          await saveFile(saveFileObj);
+          console.log(chalkInfo("WAS | SAVED FILE | " + saveFileObj.folder + "/" + saveFileObj.file));
           saveFileBusy = false;
-        });
+        }
+        catch(err){
+          console.log(chalkError("WAS | *** SAVE FILE ERROR ... RETRY | " + saveFileObj.folder + "/" + saveFileObj.file));
+          saveFileQueue.push(saveFileObj);
+          saveFileBusy = false;
+        }
+
       }
 
     }, cnf.saveFileQueueInterval);
@@ -2739,65 +2772,72 @@ function initSaveFileQueue(cnf){
   });
 }
 
-function saveStats(statsFile, statsObj, callback) {
+function saveStats(params) {
 
-  const fullPath = statsFolder + "/" + statsFile;
+  return new Promise(async function(resolve, reject){
 
-  if (configuration.offlineMode) {
+    const fullPath = statsFolder + "/" + params.statsFile;
 
-    fs.exists(fullPath, function saveStatsCheckFileExists (exists) {
-      if (exists) {
-        fs.stat(fullPath, function saveStatsFileStats(error, stats) {
-          if (error) { 
-            return(callback(error, stats)); 
+    if (configuration.offlineMode) {
+
+      try{
+        const exists = await fs.exists(fullPath);
+
+        if (exists) {
+
+          await fs.stat(fullPath);
+
+          let fd;
+
+          try{
+            fd = await fs.open(fullPath, "w");
+            await fs.writeFile(fullPath, params.statsObj);
+            fs.close(fd);
+            return resolve(fullPath); 
           }
-          fs.open(fullPath, "w", function saveStatsFileOpen(error, fd) {
-            if (error) { 
-              fs.close(fd);
-              return(callback(error, fd));
-            }
-            fs.writeFile(path, statsObj, function saveStatsFileWrite(error) {
-              if (error) { 
-                fs.close(fd);
-                return(callback(error, path)); 
-              }
-              callback("OK");
-              fs.close(fd);
-              return(callback(null, path)); 
-            });
-          });
-        });
+          catch(err){
+            fs.close(fd);
+            return reject(err);
+          }
+        }
+
+        return resolve(fullPath); 
+
       }
-    });
-  } 
-  else {
+      catch(err){
+        return reject(err);
+      }
+    } 
+    else {
 
-  const options = {};
+      const options = {};
 
-  options.contents = JSON.stringify(statsObj, null, 2);
-  options.path = fullPath;
-  options.mode = "overwrite";
-  options.autorename = false;
+      options.contents = JSON.stringify(params.statsObj, null, 2);
+      options.path = fullPath;
+      options.mode = "overwrite";
+      options.autorename = false;
 
-  dropboxClient.filesUpload(options).
-    then(function dropboxFilesUpload(){
-      debug(chalkLog(getTimeStamp()
-        + " | SAVED DROPBOX JSON | " + options.path
-      ));
-      callback("OK");
-    }).
-    catch(function dropboxFilesUploadError(err){
-      console.log(chalkError(getTimeStamp() 
-        + " | !!! ERROR DROBOX STATS WRITE | FILE: " + options.path 
-        // + "\nERROR\n" + jsonPrint(err)
-      ));
+      try{
+        await dropboxClient.filesUpload(options);
+        debug(chalkLog(getTimeStamp()
+          + " | SAVED DROPBOX JSON | " + options.path
+        ));
+        resolve("OK");
+      }
+      catch(err){
+        console.log(chalkError(getTimeStamp() 
+          + " | !!! ERROR DROBOX STATS WRITE | FILE: " + options.path 
+          // + "\nERROR\n" + jsonPrint(err)
+        ));
 
-      console.log(chalkError(err)); 
+        console.log(chalkError(err)); 
 
-      callback(err);
-    });
+        reject(err);
+      }
+    }
 
-  }
+  });
+
 }
 
 function killChild(params){
@@ -2934,28 +2974,30 @@ function getChildProcesses(){
 
 function killAll(){
 
-  return new Promise(function(resolve, reject){
+  return new Promise(async function(resolve, reject){
 
-    // let childPidArray = await getChildProcesses({searchTerm: "ALL"});
-    getChildProcesses({searchTerm: "ALL"}).
-    then(function(childPidArray){
+    try{
+
+      const childPidArray = await getChildProcesses({searchTerm: "ALL"});
+
       console.log(chalk.green("getChildProcesses childPidArray\n" + jsonPrint(childPidArray)));
+
       if (childPidArray && (childPidArray.length > 0)) {
 
-        async.eachSeries(childPidArray, function(childObj, cb){
+        async.eachSeries(childPidArray, async function(childObj){
 
-          killChild({pid: childObj.pid}).
-          then(function(){
+          try{
+            await killChild({pid: childObj.pid});
             console.log(chalkAlert("WAS | KILL ALL | KILLED | PID: " + childObj.pid + " | CH ID: " + childObj.childId));
-            cb();
-          }).
-          catch(function(err){
+            return;
+          }
+          catch(err){
             console.log(chalkError("WAS | *** KILL CHILD ERROR"
               + " | PID: " + childObj.pid
               + " | ERROR: " + err
             ));
-            return cb(err);
-          });
+            return err;
+          }
 
         }, function(err){
 
@@ -2963,20 +3005,19 @@ function killAll(){
             return reject(err);
           }
 
-          resolve(childPidArray);
+          return resolve(childPidArray);
 
         });
       }
-      else {
 
-        console.log(chalkBlue("WAS | KILL ALL | NO CHILDREN"));
-        resolve(childPidArray);
-      }
-    }).
-    catch(function(err){
+      console.log(chalkBlue("WAS | KILL ALL | NO CHILDREN"));
+      resolve(childPidArray);
+
+    }
+    catch(err){
       console.log(chalkError("WAS | *** killAll ERROR: " + err));
-    });
-
+      return reject(err);
+    }
 
   });
 }
@@ -2987,20 +3028,20 @@ process.on("unhandledRejection", function(err, promise) {
   process.exit(1);
 });
 
-process.on("exit", function processExit() {
+process.on("exit", async function processExit() {
 
   console.log(chalkAlert("\nWAS | MAIN PROCESS EXITING ...\n"));
 
-  killAll().
-  then(function(){
-    console.log(chalkAlert("\nWAS | *** MAIN PROCESS EXIT *** \n"));
-  }).
-  catch(function(err){
+  try{
+    await killAll();
+  }
+  catch(err){
     console.log(chalkError("WAS | *** MAIN PROCESS EXIT ERROR: " + err));
-  });
+  }
+
 });
 
-process.on("message", function processMessageRx(msg) {
+process.on("message", async function processMessageRx(msg) {
 
   if ((msg === "SIGINT") || (msg === "shutdown")) {
 
@@ -3010,19 +3051,18 @@ process.on("message", function processMessageRx(msg) {
 
     clearInterval(internetCheckInterval);
 
-    saveStats(statsFile, statsObj, function processMessageSaveStats(status) {
-      if (status !=="OK") {
-        debug("!!! ERROR: saveStats " + status);
-      } 
-      else {
-        debug(chalkLog("UPDATE STATUS OK"));
-      }
-    });
+    try{
+      await saveStats({statsFile: statsFile, statsObj: statsObj});
+    }
+    catch(err){
+      console.log(chalkError("WAS | *** SAVE STATS ERROR: " + err));
+    }
 
     setTimeout(function quitTimeout() {
       showStats(true);
       quit(msg);
     }, 1000);
+
   }
 });
 
@@ -3348,6 +3388,17 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
       });
     },
     
+    verifiedCategorizedUsersInit: function(cb){
+
+      initVerifiedCategorizedUsersSet().
+      then(function(){
+        cb();
+      }).
+      catch(function(err){
+        return cb(err);
+      });
+    },
+
     followSearchInit: function(cb){
 
       initFollowableSearchTermSet().
@@ -4184,18 +4235,6 @@ function ignore(params, callback) {
   if (params.user.nodeId !== undefined){
 
     ignoredUserSet.add(params.user.nodeId);
-
-    // const ob = {
-    //   userIds: [...ignoredUserSet]
-    // };
-
-    // saveFileQueue.push({
-    //   localFlag: false, 
-    //   folder: dropboxConfigDefaultFolder, 
-    //   file: ignoredUserFile, 
-    //   obj: ob
-    // });
-
   }
 
   tssSendAllChildren({op: "IGNORE", user: params.user});
@@ -4222,17 +4261,6 @@ function unignore(params, callback) {
   if (params.user.nodeId !== undefined){
 
     ignoredUserSet.delete(params.user.nodeId);
-
-    // const ob = {
-    //   userIds: [...ignoredUserSet]
-    // };
-
-    // saveFileQueue.push({
-    //   localFlag: false, 
-    //   folder: dropboxConfigDefaultFolder, 
-    //   file: ignoredUserFile, 
-    //   obj: ob
-    // });
 
   } 
 
@@ -4270,8 +4298,6 @@ function unignore(params, callback) {
 
 function unfollow(params, callback) {
 
-  // console.log(chalk.blue("WAS | XXX UNFOLLOW | @" + params.user.screenName));
-
   if (params.user.nodeId !== undefined){
 
     unfollowableUserSet.add(params.user.nodeId);
@@ -4280,30 +4306,7 @@ function unfollow(params, callback) {
 
     if (params.ignored) {
       ignoredUserSet.add(params.user.nodeId);
-
-      // const ob = {
-      //   userIds: [...ignoredUserSet]
-      // };
-
-      // saveFileQueue.push({
-      //   localFlag: false, 
-      //   folder: dropboxConfigDefaultFolder, 
-      //   file: ignoredUserFile, 
-      //   obj: ob
-      // });
     }
-
-    // const obj = {
-    //   userIds: [...unfollowableUserSet]
-    // };
-
-    // saveFileQueue.push({
-    //   localFlag: false, 
-    //   folder: dropboxConfigDefaultFolder, 
-    //   file: unfollowableUserFile, 
-    //   obj: obj
-    // });
-
   } 
 
   tssSendAllChildren({op: "UNFOLLOW", user: params.user});
@@ -4337,84 +4340,7 @@ function unfollow(params, callback) {
       ));
     }
 
-
     if (callback !== undefined) { callback(err, userUpdated); }
-
-  });
-}
-
-function initFollowableSearchTermSet(){
-
-  statsObj.status = "INIT FOLLOWABLE SEARCH TERM SET";
-
-  console.log(chalkBlue("WAS | INIT FOLLOWABLE SEARCH TERM SET: " + dropboxConfigDefaultFolder 
-    + "/" + followableSearchTermFile
-  ));
-
-  return new Promise(function(resolve, reject) {
-
-    loadFile({folder: dropboxConfigDefaultFolder, file: followableSearchTermFile}).
-    then(function(dataObj){
-
-      if (!dataObj || dataObj === undefined) {
-
-       console.log(chalkAlert("WAS | ??? NO FOLLOWABLE SEARCH TERMS ERROR ???"
-          + " | " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
-        ));
-
-        initFollowableSearchTerms().
-        then(function(){
-          return resolve();
-        }).
-        catch(function(err){
-          console.log(chalkError("WAS | *** INIT FOLLOWABLE SEARCH TERM SET ERROR: " + err));
-          return reject(err);
-        });
-
-      }
-      else{
-
-        const dataArray = dataObj.toString().toLowerCase().split("\n");
-
-        console.log(chalkLog("WAS | LOADED FOLLOWABLE SEARCH TERM FILE"
-          + " | " + dataArray.length + " SEARCH TERMS"
-          + " | " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
-        ));
-
-        async.each(dataArray, function(searchTerm, cb){
-
-          followableSearchTermSet.add(searchTerm);
-          cb();
-
-        }, function(err){
-
-          if (err) {
-            console.log(chalkError("WAS | *** INIT FOLLOWABLE SEARCH TERM SET ERROR: " + err));
-            return reject(err);
-          }
-          console.log(chalkLog("WAS | FOLLOWABLE SEARCH TERM SET"
-            + " | " + followableSearchTermSet.size + " SEARCH TERMS"
-            + " | " + dataArray.length + " SEARCH TERMS IN FILE"
-            + " | " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
-          ));
-
-          initFollowableSearchTerms().
-          then(function(){
-            return resolve();
-          }).
-          catch(function(err){
-            console.log(chalkError("WAS | *** INIT FOLLOWABLE SEARCH TERM SET ERROR: " + err));
-            return reject(err);
-          });
-
-        });
-      }
-
-    }).
-    catch(function(err){
-      console.log(chalkError("WAS | *** INIT FOLLOWABLE SEARCH TERM SET ERROR: " + err));
-      return reject(err);
-    });
 
   });
 }
@@ -4425,10 +4351,11 @@ function initIgnoredHashtagSet(){
 
   console.log(chalkLog("WAS | INIT IGNORE HASHTAG SET"));
 
-  return new Promise(function(resolve, reject) {
+  return new Promise(async function(resolve, reject) {
 
-    loadFile({folder: dropboxConfigDefaultFolder, file: ignoredHashtagFile}).
-    then(function(ignoredHashtagSetObj){
+
+    try{
+      const ignoredHashtagSetObj = await loadFileRetry({folder: dropboxConfigDefaultFolder, file: ignoredHashtagFile});
 
       if (!ignoredHashtagSetObj || ignoredHashtagSetObj === undefined) {
         console.log(chalkAlert("WAS | ??? LOAD IGNORED HASHTAGS EMPTY SET???"));
@@ -4447,7 +4374,7 @@ function initIgnoredHashtagSet(){
 
       ignoredHashtagSet.clear();
 
-      async.eachSeries(ignoredHashtagSetObj.hashtagIds, function(hashtagId, cb){
+      async.eachSeries(ignoredHashtagSetObj.hashtagIds, async function(hashtagId){
 
         ignoredHashtagSet.add(hashtagId);
 
@@ -4462,13 +4389,10 @@ function initIgnoredHashtagSet(){
           upsert: false
         };
 
-        global.globalHashtag.findOneAndUpdate(query, update, options, function(err, hashtagUpdated){
+        try {
 
-          if (err) {
-            console.log(chalkError("WAS | *** initIgnoredHashtagSet | HASHTAG FIND ONE ERROR: " + err));
-            return cb(err);
-          }
-          
+          const hashtagUpdated = await global.globalHashtag.findOneAndUpdate(query, update, options);
+
           if (hashtagUpdated && (hashtagUpdated !== undefined)){
 
             numIgnored += 1;
@@ -4477,18 +4401,22 @@ function initIgnoredHashtagSet(){
               + " | " + printHashtag({hashtag: hashtagUpdated})
             ));
 
-            cb();
+            return;
           }
-          else {
-            numAlreadyIgnored += 1;
-            console.log(chalkLog("WAS | ... ALREADY IGNORED"
-              + " [" + numIgnored + "/" + numAlreadyIgnored + "/" + ignoredHashtagSetObj.hashtagIds.length + "]"
-              + " | ID: " + hashtagId
-            ));
-            cb();
-          }
-        });
 
+          numAlreadyIgnored += 1;
+          console.log(chalkLog("WAS | ... ALREADY IGNORED"
+            + " [" + numIgnored + "/" + numAlreadyIgnored + "/" + ignoredHashtagSetObj.hashtagIds.length + "]"
+            + " | ID: " + hashtagId
+          ));
+          return;
+
+        }
+        catch(err){
+          console.log(chalkError("WAS | *** initIgnoredHashtagSet | HASHTAG FIND ONE ERROR: " + err));
+          return err;
+        }
+          
       }, function(err){
 
         if (err) {
@@ -4504,8 +4432,8 @@ function initIgnoredHashtagSet(){
         resolve();
       });
 
-    }).
-    catch(function(err){
+    }
+    catch(err){
       if ((err.code === "ENOTFOUND") || (err.status === 409)) {
         console.log(chalkError("WAS | *** LOAD IGNORED HASHTAGS ERROR: FILE NOT FOUND:  " 
           + dropboxConfigDefaultFolder + "/" + ignoredHashtagFile
@@ -4515,63 +4443,168 @@ function initIgnoredHashtagSet(){
       
       console.log(chalkError("WAS | *** LOAD IGNORED HASHTAGS ERROR: " + err));
       return reject(err);
-    });
+    }
 
   });
 }
+
+function initSetFromFile(params){
+
+  statsObj.status = "INIT SET FROM FILE";
+
+  console.log(chalkBlue("WAS | INIT SET FROM FILE: " + params.folder + "/" + params.file));
+
+  return new Promise(async function(resolve, reject) {
+
+    try{
+
+      const setObj = await loadFileRetry({folder: params.folder, file: params.file, resolveOnNotFound: params.resolveOnNotFound});
+
+      if (!setObj || setObj === undefined) {
+       console.log(chalkAlert("WAS | ??? NO ITEMS IN FILE ERROR ???"
+          + " | " + params.folder + "/" + params.file
+        ));
+
+        if (params.errorOnNoItems) {
+          return reject(new Error("NO ITEMS IN FILE: " + params.folder + "/" + params.file));
+        }
+        return resolve();
+      }
+
+      let fileSet;
+
+      if (params.objArrayKey) {
+        fileSet = new Set(setObj[params.objArrayKey]);
+      }
+      else{
+        const itemArray = setObj.toString().toLowerCase().split("\n");
+        fileSet = new Set(itemArray);
+      }
+
+      console.log(chalkLog("WAS | LOADED SET FROM FILE"
+        + " | OBJ ARRAY KEY: " + params.objArrayKey
+        + " | " + fileSet.size + " ITEMS"
+        + " | " + params.folder + "/" + params.file
+      ));
+
+      resolve(fileSet);
+    }
+    catch(err){
+      console.log(chalkError("WAS | *** INIT SET FROM FILE ERROR: " + err));
+      if (params.noErrorNotFoundFlag) {
+        return resolve();
+      }
+      return reject(err);
+    }
+
+  });
+}
+
+function initVerifiedCategorizedUsersSet(){
+
+  statsObj.status = "INIT VERIFIED CATEGORIZED USERS SET";
+
+  console.log(chalkBlue("WAS | INIT VERIFIED CATEGORIZED USERS SET: " + dropboxConfigDefaultFolder 
+    + "/" + verifiedCategorizedUsersFile
+  ));
+
+  return new Promise(async function(resolve, reject) {
+
+    try {
+
+      const result = await initSetFromFile({folder: dropboxConfigDefaultFolder, file: verifiedCategorizedUsersFile, resolveOnNotFound: true});
+
+      if (result) {
+        verifiedCategorizedUsersSet = result;
+        verifiedCategorizedUsersSet.delete("");
+        verifiedCategorizedUsersSet.delete(" ");
+      }
+
+      console.log(chalkLog("WAS | LOADED VERIFIED CATEGORIZED USERS FILE"
+        + " | " + verifiedCategorizedUsersSet.size + " USERS"
+        + " | " + dropboxConfigDefaultFolder + "/" + verifiedCategorizedUsersFile
+      ));
+
+      resolve();
+
+    }
+    catch(err){
+      console.log(chalkError("WAS | *** INIT VERIFIED CATEGORIZED USERS SET ERROR: " + err));
+      return reject(err);
+    }
+
+  });
+}
+
+
+function initFollowableSearchTermSet(){
+
+  statsObj.status = "INIT FOLLOWABLE SEARCH TERM SET";
+
+  console.log(chalkBlue("WAS | INIT FOLLOWABLE SEARCH TERM SET: " + dropboxConfigDefaultFolder 
+    + "/" + followableSearchTermFile
+  ));
+
+  return new Promise(async function(resolve, reject) {
+
+    try{
+
+      const result = await initSetFromFile({folder: dropboxConfigDefaultFolder, file: followableSearchTermFile, resolveOnNotFound: true});
+
+      if (result) {
+        followableSearchTermSet = result;
+        followableSearchTermSet.delete("");
+        followableSearchTermSet.delete(" ");
+      }
+
+      console.log(chalkLog("WAS | LOADED FOLLOWABLE SEARCH TERMS FILE"
+        + " | " + followableSearchTermSet.size + " SEARCH TERMS"
+        + " | " + dropboxConfigDefaultFolder + "/" + followableSearchTermFile
+      ));
+
+      resolve();
+
+    }
+    catch(err){
+      console.log(chalkError("WAS | *** INIT FOLLOWABLE SEARCH TERM SET ERROR: " + err));
+      return reject(err);
+    }
+
+  });
+}
+
 
 function initIgnoredUserSet(){
 
   statsObj.status = "INIT IGNORED USER SET";
 
-  console.log(chalkLog("WAS | INIT IGNORED USER SET"));
+  console.log(chalkBlue("WAS | INIT IGNORED USER SET: " + dropboxConfigDefaultFolder 
+    + "/" + ignoredUserFile
+  ));
 
-  return new Promise(function(resolve, reject) {
+  return new Promise(async function(resolve, reject) {
 
+    try{
 
-    loadFile({folder: dropboxConfigDefaultFolder, file: ignoredUserFile}).
-    then(function(ignoredUserSetObj){
+      const result = await initSetFromFile({folder: dropboxConfigDefaultFolder, file: ignoredUserFile, objArrayKey: "userIds", resolveOnNotFound: true});
 
-      if (!ignoredUserSetObj || ignoredUserSetObj === undefined) {
-        console.log(chalkAlert("WAS | ??? LOAD IGNORED USERS EMPTY SET???"));
-        return resolve();
+      if (result) {
+        ignoredUserSet = result;
+        ignoredUserSet.delete("");
+        ignoredUserSet.delete(" ");
       }
 
       console.log(chalkLog("WAS | LOADED IGNORED USERS FILE"
-        + " | " + ignoredUserSetObj.userIds.length + " USERS"
+        + " | " + ignoredUserSet.size + " USERS"
         + " | " + dropboxConfigDefaultFolder + "/" + ignoredUserFile
       ));
 
-      async.eachSeries(ignoredUserSetObj.userIds, function(userId, cb){
-
-        ignoredUserSet.add(userId);
-        cb();
-
-      }, function(err){
-
-        if (err) {
-          return reject(err);
-        }
-        console.log(chalkBlue("WAS | INIT IGNORED USERS"
-          + " | " + ignoredUserSet.size + " USERS IN SET"
-          + " | " + ignoredUserSetObj.userIds.length + " USERS IN FILE"
-          + " | " + dropboxConfigDefaultFolder + "/" + ignoredUserFile
-        ));
-        resolve();
-      });
-
-    }).
-    catch(function(err){
-      if ((err.code === "ENOTFOUND") || (err.status === 409)) {
-        console.log(chalkError("WAS | *** LOAD IGNORED USERS ERROR: FILE NOT FOUND:  " 
-          + dropboxConfigDefaultFolder + "/" + ignoredUserFile
-        ));
-        return resolve();
-      }
-      
-      console.log(chalkError("WAS | *** LOAD IGNORED USERS ERROR: " + err));
+      resolve();
+    }
+    catch(err){
+      console.log(chalkError("WAS | *** INIT IGNORED USERS SET ERROR: " + err));
       return reject(err);
-    });
+    }
 
   });
 }
@@ -4582,55 +4615,29 @@ function initUnfollowableUserSet(){
 
   console.log(chalkLog("WAS | INIT UNFOLLOWABLE USER SET"));
 
-  return new Promise(function(resolve, reject) {
+  return new Promise(async function(resolve, reject) {
 
+    try{
 
-    loadFile({folder: dropboxConfigDefaultFolder, file: unfollowableUserFile}).
-    then(function(unfollowableUserSetObj){
+      const result = await initSetFromFile({folder: dropboxConfigDefaultFolder, file: unfollowableUserFile, objArrayKey: "userIds", resolveOnNotFound: true});
 
-      if (!unfollowableUserSetObj || unfollowableUserSetObj === undefined) {
-        console.log(chalkAlert("WAS | ??? LOAD UNFOLLOWABLE USERS EMPTY SET???"));
-        return resolve();
+      if (result) {
+        unfollowableUserSet = result;
+        unfollowableUserSet.delete("");
+        unfollowableUserSet.delete(" ");
       }
 
       console.log(chalkLog("WAS | LOADED UNFOLLOWABLE USERS FILE"
-        + " | " + unfollowableUserSetObj.userIds.length + " USERS"
+        + " | " + unfollowableUserSet.size + " USERS"
         + " | " + dropboxConfigDefaultFolder + "/" + unfollowableUserFile
       ));
 
-      async.each(unfollowableUserSetObj.userIds, function(userId, cb){
-
-        unfollowableUserSet.add(userId);
-
-        cb();
-
-      }, function(err){
-
-        if (err) {
-          return reject(err);
-        }
-        console.log(chalkBlue("WAS | INIT UNFOLLOWABLE USERS"
-          + " | " + unfollowableUserSet.size + " USERS IN SET"
-          + " | " + unfollowableUserSetObj.userIds.length + " USERS IN FILE"
-          + " | " + dropboxConfigDefaultFolder + "/" + unfollowableUserFile
-        ));
-        return resolve();
-      });
-
-    }).
-    catch(function(err){
-      if (err.code === "ENOTFOUND") {
-        console.log(chalkError("WAS | *** LOAD UNFOLLOWABLE USERS ERROR: FILE NOT FOUND:  " 
-          + dropboxConfigDefaultFolder + "/" + unfollowableUserFile
-        ));
-      }
-      else {
-        console.log(chalkError("WAS | *** LOAD UNFOLLOWABLE USERS ERROR: " + err));
-      }
-      console.error(err);
-      reject(err);
-
-    });
+      resolve();
+    }
+    catch(err){
+      console.log(chalkError("WAS | *** INIT UNFOLLOWABLE USERS SET ERROR: " + err));
+      return reject(err);
+    }
 
   });
 }
@@ -5846,33 +5853,6 @@ let transmitNodeQueueReady = true;
 let transmitNodeQueueInterval;
 const transmitNodeQueue = [];
 
-function initFollowableSearchTerms(){
-
-  statsObj.status = "INIT FOLLOWABLE SEARCH TERMS";
-
-  return new Promise(function(resolve, reject){
-
-    try {
-
-      followableSearchTermsArray = [...followableSearchTermSet];
-
-      console.log(chalkLog("WAS | FOLLOWABLE SEARCH TERMS INITIALIZED"
-        + " | " + followableSearchTermsArray.length + " SEARCH TERMS"
-      ));
-
-      resolve();
-    }
-    catch(err){
-
-      console.log(chalkError("WAS | FOLLOWABLE SEARCH TERM REGEX ERROR: " + err));
-
-      return reject(err);
-    }
-
-  });
-}
-
-
 function followable(text){
 
   return new Promise(function(resolve){
@@ -5890,9 +5870,7 @@ function followable(text){
     resolve(hitSearchTerm);
 
   });
-
 }
-
 
 let hitSearchTerm = false;
 
@@ -6015,8 +5993,8 @@ function loadFileRetry(params){
         + " | " + path
         + " | BACKOFF: " + msToTime(backOffTime)
         + " | " + retryNumber + " OF " + maxRetries
-        + " | ERROR: " + e
-      )); 
+      ));
+      console.log(chalkAlert(e));
     };
 
     for (retryNumber = 0;retryNumber < maxRetries;retryNumber++) {
@@ -6036,6 +6014,10 @@ function loadFileRetry(params){
         // break;
       } 
       catch(err) {
+        if (resolveOnNotFound) {
+          console.log(chalkAlert("WAS | resolve FILE LOAD FAILED | RETRY: " + retryNumber + " OF " + maxRetries));
+          return resolve(false);
+        }
         backOffTime *= 1.5;
         setTimeout(backOffLog(err), backOffTime);
       }
@@ -6058,30 +6040,6 @@ function initAllowLocations(){
   return new Promise(async function(resolve, reject){
 
     console.log(chalkTwitter("WAS | INIT ALLOW LOCATIONS"));
-
-    let response;
-
-    try{
-      response = await getFileMetadata({folder: dropboxConfigDefaultFolder, file: "allowLocations.txt"});
-    }
-    catch(err){
-      console.log(chalkError("WAS | *** GET FILE METADATA ERROR: " + err));
-      return reject(err);
-    }
-
-    const fileModifiedMoment = moment(new Date(response.client_modified));
-  
-    if (fileModifiedMoment.isSameOrBefore(prevAllowLocationsFileModifiedMoment)){
-      console.log(chalkInfo("WAS | ALLOW LOCATIONS FILE BEFORE OR EQUAL"
-        + " | PREV: " + prevAllowLocationsFileModifiedMoment.format(compactDateTimeFormat)
-        + " | " + fileModifiedMoment.format(compactDateTimeFormat)
-      ));
-      return resolve(0);
-    }
-
-    console.log(chalkInfo("WAS | ALLOW LOCATIONS FILE AFTER"));
-
-    prevAllowLocationsFileModifiedMoment = moment(fileModifiedMoment);
 
     try{
       const data = await loadFileRetry({folder: dropboxConfigDefaultFolder, file: "allowLocations.txt"}); 
@@ -6131,30 +6089,6 @@ function initIgnoreLocations(){
   return new Promise(async function(resolve, reject){
 
     console.log(chalkTwitter("WAS | INIT IGNORE LOCATIONS"));
-
-    let response;
-
-    try{
-      response = await getFileMetadata({folder: dropboxConfigDefaultFolder, file: "ignoreLocations.txt"});
-    }
-    catch(err){
-      console.log(chalkError("WAS | *** GET FILE METADATA ERROR: " + err));
-      return reject(err);
-    }
-
-    const fileModifiedMoment = moment(new Date(response.client_modified));
-  
-    if (fileModifiedMoment.isSameOrBefore(prevIgnoredLocationsFileModifiedMoment)){
-      console.log(chalkInfo("WAS | IGNORE LOCATIONS FILE BEFORE OR EQUAL"
-        + " | PREV: " + prevIgnoredLocationsFileModifiedMoment.format(compactDateTimeFormat)
-        + " | " + fileModifiedMoment.format(compactDateTimeFormat)
-      ));
-      return resolve(0);
-    }
-
-    console.log(chalkInfo("WAS | IGNORE LOCATIONS FILE AFTER"));
-
-    prevIgnoredLocationsFileModifiedMoment = moment(fileModifiedMoment);
 
     try{
       const data = await loadFileRetry({folder: dropboxConfigDefaultFolder, file: "ignoreLocations.txt"}); 
@@ -6901,9 +6835,12 @@ function logHeartbeat() {
 let dropboxFolderGetLastestCursorReady = true;
 
 function touchUsersZipUpdateFlag(){
-  console.log(chalkLog("WAS | TOUCH FILE: " + usersZipUpdateFlagFile));
-  touch.sync(usersZipUpdateFlagFile, { force: true });
-  return;
+
+  return new Promise(function(resolve){
+    console.log(chalkLog("WAS | TOUCH FILE: " + usersZipUpdateFlagFile));
+    touch.sync(usersZipUpdateFlagFile, { force: true });
+    resolve();
+  });
 }
 
 function initAppRouting(callback) {
@@ -7083,143 +7020,112 @@ function initAppRouting(callback) {
 
         dropboxFolderGetLastestCursorReady = false;
 
-        async.each(dropboxCursorFolderArray, function(folder, cb){
+        async.each(dropboxCursorFolderArray, async function(folder){
 
-            dropboxFolderGetLastestCursor(folder, function(err, response){
+          try {
 
-              if (err) {
-                console.log(chalkError("WAS | *** DROPBOX GET LATEST CURSOR ERROR: " + err));
-                return cb(err);
-              }
+            const response = await dropboxFolderGetLastestCursor(folder);
+
+            if (response && (response.entries.length > 0)) {
+
+              await delay({period: configuration.dropboxWebhookChangeTimeout});
+
+              debug(chalk.bold.black("WAS | >>> DROPBOX CHANGE"
+                + " | " + getTimeStamp()
+                + " | FOLDER: " + folder
+              ));
+
+              async.eachSeries(response.entries, async function(entry){
+
+                console.log(chalk.green("WAS | >>> DROPBOX CHANGE | PATH LOWER: " + entry.path_lower));
+
+                if ((entry.path_lower.endsWith("google_wordassoserverconfig.json"))
+                  || (entry.path_lower.endsWith("default_wordassoserverconfig.json"))){
+                  await initConfig();
+                  return;
+                }
+
+                if (entry.path_lower.endsWith("users.zip")){
+                  await touchUsersZipUpdateFlag();
+                  return;
+                }
+
+                if (entry.path_lower.endsWith(bestRuntimeNetworkFileName.toLowerCase())){
+                  await loadBestRuntimeNetwork();
+                  return;
+                }
+
+                if (entry.path_lower.endsWith(maxInputHashMapFile)){
+                  await loadMaxInputHashMap();
+                  configEvents.emit("NEW_MAX_INPUT_HASHMAP");
+                  return;
+                }
+
+                if (entry.path_lower.endsWith("verifiedCategorizedUsers.txt")){
+                  await initVerifiedCategorizedUsersSet();
+                  return;
+                }
+
+                if (entry.path_lower.endsWith("defaultsearchterms.txt")){
+                  await updateSearchTerms();
+                  return;
+                }
+
+                if (entry.path_lower.endsWith(ignoredHashtagFile.toLowerCase())){
+                  await initIgnoredHashtagSet();
+                  return;
+                }
+
+                if (entry.path_lower.endsWith("allowLocations.txt")){
+                  allowLocations();
+                  return;
+                }
+
+                if (entry.path_lower.endsWith("ignorelocations.txt")){
+                  await ignoreLocations();
+                  return;
+                }
+
+                if (entry.path_lower.endsWith("followablesearchterm.txt")){
+                  await initFollowableSearchTermSet();
+                }
+
+                if ((entry.path_lower.endsWith("google_twittersearchstreamconfig.json"))
+                  || (entry.path_lower.endsWith("default_twittersearchstreamconfig.json"))){
+
+                  await killTssChildren();
+                  await initTssChildren();
+                  return;
+                }
+
+                return;
+              }, function(err){
+                if (err) { return err; }
+                return;
+              });
+            }
+
+            return;
+          }
+          catch(err){
+            console.log(chalkError("WAS | *** DROPBOX GET LATEST CURSOR ERROR: " + err));
+            return err;
+          }
               
-              if (response && (response.entries.length > 0)) {
-
-                setTimeout(function(){
-
-                  debug(chalk.bold.black("WAS | >>> DROPBOX CHANGE"
-                    + " | " + getTimeStamp()
-                    + " | FOLDER: " + folder
-                  ));
-
-                  // response.entries.forEach(function(entry){
-                  async.eachSeries(response.entries, async function(entry){
-
-                    console.log(chalk.green("WAS | >>> DROPBOX CHANGE | PATH LOWER: " + entry.path_lower));
-
-                    if ((entry.path_lower.endsWith("google_wordassoserverconfig.json"))
-                      || (entry.path_lower.endsWith("default_wordassoserverconfig.json"))){
-                      await initConfig();
-                      return;
-                    }
-
-                    if (entry.path_lower.endsWith("users.zip")){
-                      touchUsersZipUpdateFlag();
-                      return;
-                    }
-
-                    if (entry.path_lower.endsWith(bestRuntimeNetworkFileName.toLowerCase())){
-                      loadBestRuntimeNetwork().
-                      then(function(){
-                        return;
-                      }).
-                      catch(function(err){
-                        return err;
-                      });
-                    }
-
-                    if (entry.path_lower.endsWith(maxInputHashMapFile)){
-
-                      setTimeout(function(){
-
-                        loadMaxInputHashMap().
-                        then(function(){
-                          configEvents.emit("NEW_MAX_INPUT_HASHMAP");
-                          return;
-                        }).
-                        catch(function(err){
-                          return err;
-                        });
-
-                      }, 10*ONE_SECOND);
-                    }
-
-                    if (entry.path_lower.endsWith("defaultsearchterms.txt")){
-                      updateSearchTerms();
-                      return;
-                    }
-
-                    if (entry.path_lower.endsWith(ignoredHashtagFile.toLowerCase())){
-                      initIgnoredHashtagSet();
-                      return;
-                    }
-
-                    if (entry.path_lower.endsWith("allowLocations.txt")){
-                      allowLocations();
-                      return;
-                    }
-
-                    if (entry.path_lower.endsWith("ignorelocations.txt")){
-                      ignoreLocations();
-                      return;
-                    }
-
-                    if (entry.path_lower.endsWith("followablesearchterm.txt")){
-                      initFollowableSearchTermSet().
-                      then(function(){
-                        return;
-                      }).
-                      catch(function(err){
-                        return err;
-                      });
-                    }
-
-                    if ((entry.path_lower.endsWith("google_twittersearchstreamconfig.json"))
-                      || (entry.path_lower.endsWith("default_twittersearchstreamconfig.json"))){
-
-                      killTssChildren().
-                      then(function(){
-                        initTssChildren();
-                        return;
-                      }).
-                      catch(function(err){
-                        return err;
-                      });
-                    }
-
-                    return;
-
-                  }, function(err){
-                    if (err) {
-                      return cb(err);
-                    }
-                    cb();
-                  });
-
-                }, configuration.dropboxWebhookChangeTimeout);
-
-              }
-              else {
-                setTimeout(function(){ 
-                  cb(); 
-                }, configuration.dropboxWebhookChangeTimeout);
-              }
-            });
-
         }, function(err){
           if (err) {
             console.log(chalkError("WAS | *** DROPBOX WEBHOOK ERROR: " + err));
           }
           debug(chalkLog("WAS | END DROPBOX WEBHOOK"));
           dropboxFolderGetLastestCursorReady = true;
-          // next();
         });
       }
       else {
         debug(chalkAlert("WAS | SKIP DROPBOX WEBHOOK ... NOT READY"));
-        // next();
       }
     }
     else if (req.path === "/googleccd19766bea2dfd2.html") {
+
       console.log(chalk.green("WAS | R< googleccd19766bea2dfd2.html")); 
 
       const googleVerification = path.join(__dirname, "/googleccd19766bea2dfd2.html");
@@ -9189,15 +9095,17 @@ function initRateQinterval(interval){
 
 function loadBestRuntimeNetwork(p){
 
-  return new Promise(function(resolve, reject){
+  return new Promise(async function(resolve, reject){
 
     const params = p || {};
 
     const folder = params.folder || bestNetworkFolder;
     let file = params.file || bestRuntimeNetworkFileName;
 
-    loadFile({folder: folder, file: file, noErrorNotFoundFlag: true})
-    .then(function(bRtNnObj){
+    try {
+
+      const bRtNnObj = await loadFileRetry({folder: folder, file: file, noErrorNotFoundFlag: true});
+
       if (bRtNnObj) {
 
         bRtNnObj.matchRate = (bRtNnObj.matchRate !== undefined) ? bRtNnObj.matchRate : 0;
@@ -9210,117 +9118,66 @@ function loadBestRuntimeNetwork(p){
 
         file = bRtNnObj.networkId + ".json";
 
-        loadFile({folder: folder, file: file, noErrorNotFoundFlag: true}).
-        then(function(nnObj){
-          if (nnObj) { 
+        const nnObj = await loadFileRetry({folder: folder, file: file, noErrorNotFoundFlag: true});
 
-            nnObj.matchRate = (nnObj.matchRate !== undefined) ? nnObj.matchRate : 0;
-            bestNetworkObj = {};
-            bestNetworkObj = deepcopy(nnObj);
-            console.log(chalk.green.bold("WAS | +++ LOADED BEST NETWORK: " + bestNetworkObj.networkId));
+        if (nnObj) { 
 
-            statsObj.bestNetwork = pick(bestNetworkObj, statsBestNetworkPickArray);
-
-            if (statsObj.previousBestNetworkId !== bestNetworkObj.networkId) {
-              console.log(chalk.green.bold("WAS | >>> BEST NETWORK CHANGE"
-                + " | PREV: " + statsObj.previousBestNetworkId
-                + " > NEW: " + bestNetworkObj.networkId
-              ));
-              statsObj.previousBestNetworkId = bestNetworkObj.networkId;
-              configEvents.emit("NEW_BEST_NETWORK", bestNetworkObj.networkId);
-            }
-
-            resolve(bestNetworkObj.networkId);
-
-          }
-          else {
-
-            global.globalNeuralNetwork.find({}).sort({"matchRate": -1}).limit(1).exec(function(err, nnArray){
-              if (err){
-                console.log(chalkError("WAS | *** NEURAL NETWORK FIND ERROR: " + err));
-                return reject(err);
-              }
-              
-              if (nnArray === 0){
-                console.log(chalkError("WAS | *** NEURAL NETWORK NOT FOUND"));
-                return resolve(null);
-              }
-
-              bestNetworkObj = {};
-              bestNetworkObj = nnArray[0];
-              
-              if (bestNetworkObj.matchRate === undefined) { bestNetworkObj.matchRate = 0; }
-              if (bestNetworkObj.overallMatchRate === undefined) { bestNetworkObj.overallMatchRate = 0; }
-              
-              statsObj.bestNetwork = pick(bestNetworkObj, statsBestNetworkPickArray);
-
-              if (statsObj.previousBestNetworkId !== bestNetworkObj.networkId) {
-                console.log(chalk.green.bold("WAS | >>> BEST NETWORK CHANGE"
-                  + " | PREV: " + statsObj.previousBestNetworkId
-                  + " > NEW: " + bestNetworkObj.networkId
-                ));
-                statsObj.previousBestNetworkId = bestNetworkObj.networkId;
-                configEvents.emit("NEW_BEST_NETWORK", bestNetworkObj.networkId);
-              }
-
-              console.log(chalk.blue.bold("WAS | +++ BEST NEURAL NETWORK LOADED FROM DB"
-                + " | " + bestNetworkObj.networkId
-                + " | SR: " + bestNetworkObj.successRate.toFixed(2) + "%"
-                + " | MR: " + bestNetworkObj.matchRate.toFixed(2) + "%"
-                + " | OAMR: " + bestNetworkObj.overallMatchRate.toFixed(2) + "%"
-              ));
-
-              resolve(bestNetworkObj.networkId);
-            });
-
-          }
-        }).
-        catch(function(err){
-          console.log(chalkError("WAS | *** LOAD BEST NETWORK RUNTIME ID ERROR: ", err));
-          return reject(err);
-        });
-      }
-      else {
-        global.globalNeuralNetwork.find({}).sort({"matchRate": -1}).limit(1).exec(function(err, nnArray){
-          if (err){
-            console.log(chalkError("WAS | *** NEURAL NETWORK FIND ERROR: " + err));
-            return reject(err);
-          }
-          
-          if (nnArray === 0){
-            console.log(chalkError("WAS | *** NEURAL NETWORK NOT FOUND"));
-            return resolve(null);
-          }
-
+          nnObj.matchRate = (nnObj.matchRate !== undefined) ? nnObj.matchRate : 0;
           bestNetworkObj = {};
-          bestNetworkObj = nnArray[0];
-          
-          if (bestNetworkObj.matchRate === undefined) { bestNetworkObj.matchRate = 0; }
-          if (bestNetworkObj.overallMatchRate === undefined) { bestNetworkObj.overallMatchRate = 0; }
-          
+          bestNetworkObj = deepcopy(nnObj);
+
+          console.log(chalk.green.bold("WAS | +++ LOADED BEST NETWORK: " + bestNetworkObj.networkId));
+
           statsObj.bestNetwork = pick(bestNetworkObj, statsBestNetworkPickArray);
 
           if (statsObj.previousBestNetworkId !== bestNetworkObj.networkId) {
-            statsObj.previousBestNetworkId = bestNetworkObj.networkId;
             console.log(chalk.green.bold("WAS | >>> BEST NETWORK CHANGE"
               + " | PREV: " + statsObj.previousBestNetworkId
               + " > NEW: " + bestNetworkObj.networkId
             ));
+            statsObj.previousBestNetworkId = bestNetworkObj.networkId;
             configEvents.emit("NEW_BEST_NETWORK", bestNetworkObj.networkId);
           }
 
-          console.log(chalk.blue.bold("WAS | +++ BEST NEURAL NETWORK LOADED FROM DB"
-            + " | " + bestNetworkObj.networkId
-            + " | SR: " + bestNetworkObj.successRate.toFixed(2) + "%"
-            + " | MR: " + bestNetworkObj.matchRate.toFixed(2) + "%"
-            + " | OAMR: " + bestNetworkObj.overallMatchRate.toFixed(2) + "%"
-          ));
-
-          resolve(bestNetworkObj.networkId);
-        });
+          return resolve(bestNetworkObj.networkId);
+        }
       }
-    })
-    .catch(function(err){
+
+      const nnArray = await global.globalNeuralNetwork.find({}).sort({"matchRate": -1}).limit(1).exec();
+
+      if (nnArray.length === 0){
+        console.log(chalkError("WAS | *** NEURAL NETWORK NOT FOUND"));
+        return resolve(null);
+      }
+
+      bestNetworkObj = {};
+      bestNetworkObj = nnArray[0];
+      
+      if (bestNetworkObj.matchRate === undefined) { bestNetworkObj.matchRate = 0; }
+      if (bestNetworkObj.overallMatchRate === undefined) { bestNetworkObj.overallMatchRate = 0; }
+      
+      statsObj.bestNetwork = pick(bestNetworkObj, statsBestNetworkPickArray);
+
+      if (statsObj.previousBestNetworkId !== bestNetworkObj.networkId) {
+        console.log(chalk.green.bold("WAS | >>> BEST NETWORK CHANGE"
+          + " | PREV: " + statsObj.previousBestNetworkId
+          + " > NEW: " + bestNetworkObj.networkId
+        ));
+        statsObj.previousBestNetworkId = bestNetworkObj.networkId;
+        configEvents.emit("NEW_BEST_NETWORK", bestNetworkObj.networkId);
+      }
+
+      console.log(chalk.blue.bold("WAS | +++ BEST NEURAL NETWORK LOADED FROM DB"
+        + " | " + bestNetworkObj.networkId
+        + " | SR: " + bestNetworkObj.successRate.toFixed(2) + "%"
+        + " | MR: " + bestNetworkObj.matchRate.toFixed(2) + "%"
+        + " | OAMR: " + bestNetworkObj.overallMatchRate.toFixed(2) + "%"
+      ));
+
+      return resolve(bestNetworkObj.networkId);
+
+    }
+    catch(err){
       if (err.code === "ETIMEDOUT") {
         console.log(chalkError("WAS | *** LOAD BEST NETWORK ERROR: NETWORK TIMEOUT:  " 
           + folder + "/" + file
@@ -9340,429 +9197,389 @@ function loadBestRuntimeNetwork(p){
 
       console.log(err);
       return reject(err);
-    });
+    }
 
   });
 }
 
 function loadConfigFile(params) {
 
-  return new Promise(function(resolve, reject){
+  return new Promise(async function(resolve, reject){
 
     const fullPath = params.folder + "/" + params.file;
 
-    if (params.file === dropboxConfigDefaultFile) {
-      prevConfigFileModifiedMoment = moment(prevDefaultConfigFileModifiedMoment);
-    }
-    else {
-      prevConfigFileModifiedMoment = moment(prevHostConfigFileModifiedMoment);
-    }
-
     if (configuration.offlineMode) {
-      loadCommandLineArgs().
-      then(function(){
+      try{
+        await loadCommandLineArgs();
         return resolve();
-      }).
-      catch(function(err){
+      }
+      catch(err){
         return reject(err);
-      });
+      }
     }
 
-    getFileMetadata({folder: params.folder, file: params.file}).
-    then(function(response){
-      const fileModifiedMoment = moment(new Date(response.client_modified));
-      
-      if (fileModifiedMoment.isSameOrBefore(prevConfigFileModifiedMoment)){
+    try{
+      const loadedConfigObj = await loadFileRetry({folder: params.folder, file: params.file});
 
-        console.log(chalkInfo("WAS | CONFIG FILE BEFORE OR EQUAL"
-          + " | " + fullPath
-          + " | PREV: " + prevConfigFileModifiedMoment.format(compactDateTimeFormat)
-          + " | " + fileModifiedMoment.format(compactDateTimeFormat)
-        ));
-        return resolve();
+      if ((loadedConfigObj === undefined) || !loadedConfigObj) {
+        console.log(chalkError("WAS | DROPBOX CONFIG LOAD FILE ERROR | JSON UNDEFINED ??? "));
+        return reject(new Error("JSON UNDEFINED"));
       }
 
-      console.log(chalk.green("WAS | +++ CONFIG FILE AFTER ... LOADING"
-        + " | " + fullPath
-        + " | PREV: " + prevConfigFileModifiedMoment.format(compactDateTimeFormat)
-        + " | " + fileModifiedMoment.format(compactDateTimeFormat)
-      ));
+      console.log(chalkInfo("WAS | LOADED CONFIG FILE: " + params.file + "\n" + jsonPrint(loadedConfigObj)));
 
-      prevConfigFileModifiedMoment = moment(fileModifiedMoment);
+      const newConfiguration = {};
+      newConfiguration.metrics = {};
+      newConfiguration.threeceeUsers = [];
 
-      if (params.file === dropboxConfigDefaultFile) {
-        prevDefaultConfigFileModifiedMoment = moment(fileModifiedMoment);
+      if (loadedConfigObj.WAS_TEST_MODE !== undefined){
+        console.log("WAS | LOADED WAS_TEST_MODE: " + loadedConfigObj.WAS_TEST_MODE);
+
+        if ((loadedConfigObj.WAS_TEST_MODE === false) || (loadedConfigObj.WAS_TEST_MODE === "false")) {
+          newConfiguration.testMode = false;
+        }
+        else if ((loadedConfigObj.WAS_TEST_MODE === true) || (loadedConfigObj.WAS_TEST_MODE === "true")) {
+          newConfiguration.testMode = true;
+        }
+        else {
+          newConfiguration.testMode = false;
+        }
       }
-      else {
-        prevHostConfigFileModifiedMoment = moment(fileModifiedMoment);
+
+      if (loadedConfigObj.VERBOSE !== undefined){
+        console.log("WAS | LOADED VERBOSE: " + loadedConfigObj.VERBOSE);
+
+        if ((loadedConfigObj.VERBOSE === false) || (loadedConfigObj.VERBOSE === "false")) {
+          newConfiguration.verbose = false;
+        }
+        else if ((loadedConfigObj.VERBOSE === true) || (loadedConfigObj.VERBOSE === "true")) {
+          newConfiguration.verbose = true;
+        }
+        else {
+          newConfiguration.verbose = false;
+        }
       }
 
-      loadFile({folder: params.folder, file: params.file}).
-      then(function(loadedConfigObj){
+      if (loadedConfigObj.IGNORE_CATEGORY_RIGHT !== undefined){
+        console.log("WAS | LOADED IGNORE_CATEGORY_RIGHT: " + loadedConfigObj.IGNORE_CATEGORY_RIGHT);
 
-        if ((loadedConfigObj === undefined) || !loadedConfigObj) {
-          console.log(chalkError("WAS | DROPBOX CONFIG LOAD FILE ERROR | JSON UNDEFINED ??? "));
-          return reject(new Error("JSON UNDEFINED"));
+        if ((loadedConfigObj.IGNORE_CATEGORY_RIGHT === false) || (loadedConfigObj.IGNORE_CATEGORY_RIGHT === "false")) {
+          newConfiguration.ignoreCategoryRight = false;
         }
-
-        console.log(chalkInfo("WAS | LOADED CONFIG FILE: " + params.file + "\n" + jsonPrint(loadedConfigObj)));
-
-        const newConfiguration = {};
-        newConfiguration.metrics = {};
-        newConfiguration.threeceeUsers = [];
-
-        if (loadedConfigObj.WAS_TEST_MODE !== undefined){
-          console.log("WAS | LOADED WAS_TEST_MODE: " + loadedConfigObj.WAS_TEST_MODE);
-
-          if ((loadedConfigObj.WAS_TEST_MODE === false) || (loadedConfigObj.WAS_TEST_MODE === "false")) {
-            newConfiguration.testMode = false;
-          }
-          else if ((loadedConfigObj.WAS_TEST_MODE === true) || (loadedConfigObj.WAS_TEST_MODE === "true")) {
-            newConfiguration.testMode = true;
-          }
-          else {
-            newConfiguration.testMode = false;
-          }
+        else if ((loadedConfigObj.IGNORE_CATEGORY_RIGHT === true) || (loadedConfigObj.IGNORE_CATEGORY_RIGHT === "true")) {
+          newConfiguration.ignoreCategoryRight = true;
         }
-
-        if (loadedConfigObj.VERBOSE !== undefined){
-          console.log("WAS | LOADED VERBOSE: " + loadedConfigObj.VERBOSE);
-
-          if ((loadedConfigObj.VERBOSE === false) || (loadedConfigObj.VERBOSE === "false")) {
-            newConfiguration.verbose = false;
-          }
-          else if ((loadedConfigObj.VERBOSE === true) || (loadedConfigObj.VERBOSE === "true")) {
-            newConfiguration.verbose = true;
-          }
-          else {
-            newConfiguration.verbose = false;
-          }
+        else {
+          newConfiguration.ignoreCategoryRight = false;
         }
+      }
 
-        if (loadedConfigObj.IGNORE_CATEGORY_RIGHT !== undefined){
-          console.log("WAS | LOADED IGNORE_CATEGORY_RIGHT: " + loadedConfigObj.IGNORE_CATEGORY_RIGHT);
+      if (loadedConfigObj.GEOCODE_ENABLED !== undefined){
+        console.log("WAS | LOADED GEOCODE_ENABLED: " + loadedConfigObj.GEOCODE_ENABLED);
 
-          if ((loadedConfigObj.IGNORE_CATEGORY_RIGHT === false) || (loadedConfigObj.IGNORE_CATEGORY_RIGHT === "false")) {
-            newConfiguration.ignoreCategoryRight = false;
-          }
-          else if ((loadedConfigObj.IGNORE_CATEGORY_RIGHT === true) || (loadedConfigObj.IGNORE_CATEGORY_RIGHT === "true")) {
-            newConfiguration.ignoreCategoryRight = true;
-          }
-          else {
-            newConfiguration.ignoreCategoryRight = false;
-          }
+        if ((loadedConfigObj.GEOCODE_ENABLED === false) || (loadedConfigObj.GEOCODE_ENABLED === "false")) {
+          newConfiguration.geoCodeEnabled = false;
         }
-
-        if (loadedConfigObj.GEOCODE_ENABLED !== undefined){
-          console.log("WAS | LOADED GEOCODE_ENABLED: " + loadedConfigObj.GEOCODE_ENABLED);
-
-          if ((loadedConfigObj.GEOCODE_ENABLED === false) || (loadedConfigObj.GEOCODE_ENABLED === "false")) {
-            newConfiguration.geoCodeEnabled = false;
-          }
-          else if ((loadedConfigObj.GEOCODE_ENABLED === true) || (loadedConfigObj.GEOCODE_ENABLED === "true")) {
-            newConfiguration.geoCodeEnabled = true;
-          }
-          else {
-            newConfiguration.geoCodeEnabled = false;
-          }
+        else if ((loadedConfigObj.GEOCODE_ENABLED === true) || (loadedConfigObj.GEOCODE_ENABLED === "true")) {
+          newConfiguration.geoCodeEnabled = true;
         }
-
-        if (loadedConfigObj.FILTER_DUPLICATE_TWEETS !== undefined){
-          console.log("WAS | LOADED FILTER_DUPLICATE_TWEETS: " + loadedConfigObj.FILTER_DUPLICATE_TWEETS);
-
-          if ((loadedConfigObj.FILTER_DUPLICATE_TWEETS === false) || (loadedConfigObj.FILTER_DUPLICATE_TWEETS === "false")) {
-            newConfiguration.filterDuplicateTweets = false;
-          }
-          else if ((loadedConfigObj.FILTER_DUPLICATE_TWEETS === true) || (loadedConfigObj.FILTER_DUPLICATE_TWEETS === "true")) {
-            newConfiguration.filterDuplicateTweets = true;
-          }
-          else {
-            newConfiguration.filterDuplicateTweets = true;
-          }
+        else {
+          newConfiguration.geoCodeEnabled = false;
         }
+      }
 
-        if (loadedConfigObj.ENABLE_IMAGE_ANALYSIS !== undefined){
-          console.log("WAS | LOADED ENABLE_IMAGE_ANALYSIS: " + loadedConfigObj.ENABLE_IMAGE_ANALYSIS);
+      if (loadedConfigObj.FILTER_DUPLICATE_TWEETS !== undefined){
+        console.log("WAS | LOADED FILTER_DUPLICATE_TWEETS: " + loadedConfigObj.FILTER_DUPLICATE_TWEETS);
 
-          if ((loadedConfigObj.ENABLE_IMAGE_ANALYSIS === false) || (loadedConfigObj.ENABLE_IMAGE_ANALYSIS === "false")) {
-            newConfiguration.enableImageAnalysis = false;
-          }
-          else if ((loadedConfigObj.ENABLE_IMAGE_ANALYSIS === true) || (loadedConfigObj.ENABLE_IMAGE_ANALYSIS === "true")) {
-            newConfiguration.enableImageAnalysis = true;
-          }
-          else {
-            newConfiguration.enableImageAnalysis = false;
-          }
+        if ((loadedConfigObj.FILTER_DUPLICATE_TWEETS === false) || (loadedConfigObj.FILTER_DUPLICATE_TWEETS === "false")) {
+          newConfiguration.filterDuplicateTweets = false;
         }
-
-        if (loadedConfigObj.FORCE_IMAGE_ANALYSIS !== undefined){
-          console.log("WAS | LOADED FORCE_IMAGE_ANALYSIS: " + loadedConfigObj.FORCE_IMAGE_ANALYSIS);
-
-          if ((loadedConfigObj.FORCE_IMAGE_ANALYSIS === false) || (loadedConfigObj.FORCE_IMAGE_ANALYSIS === "false")) {
-            newConfiguration.forceImageAnalysis = false;
-          }
-          else if ((loadedConfigObj.FORCE_IMAGE_ANALYSIS === true) || (loadedConfigObj.FORCE_IMAGE_ANALYSIS === "true")) {
-            newConfiguration.forceImageAnalysis = true;
-          }
-          else {
-            newConfiguration.forceImageAnalysis = false;
-          }
+        else if ((loadedConfigObj.FILTER_DUPLICATE_TWEETS === true) || (loadedConfigObj.FILTER_DUPLICATE_TWEETS === "true")) {
+          newConfiguration.filterDuplicateTweets = true;
         }
-
-        if (loadedConfigObj.AUTO_FOLLOW !== undefined){
-          console.log("WAS | LOADED AUTO_FOLLOW: " + loadedConfigObj.AUTO_FOLLOW);
-
-          if ((loadedConfigObj.AUTO_FOLLOW === false) || (loadedConfigObj.AUTO_FOLLOW === "false")) {
-            newConfiguration.autoFollow = false;
-          }
-          else if ((loadedConfigObj.AUTO_FOLLOW === true) || (loadedConfigObj.AUTO_FOLLOW === "true")) {
-            newConfiguration.autoFollow = true;
-          }
-          else {
-            newConfiguration.autoFollow = false;
-          }
+        else {
+          newConfiguration.filterDuplicateTweets = true;
         }
+      }
 
-        if (loadedConfigObj.FORCE_FOLLOW !== undefined){
-          console.log("WAS | LOADED FORCE_FOLLOW: " + loadedConfigObj.FORCE_FOLLOW);
+      if (loadedConfigObj.ENABLE_IMAGE_ANALYSIS !== undefined){
+        console.log("WAS | LOADED ENABLE_IMAGE_ANALYSIS: " + loadedConfigObj.ENABLE_IMAGE_ANALYSIS);
 
-          if ((loadedConfigObj.FORCE_FOLLOW === false) || (loadedConfigObj.FORCE_FOLLOW === "false")) {
-            newConfiguration.forceFollow = false;
-          }
-          else if ((loadedConfigObj.FORCE_FOLLOW === true) || (loadedConfigObj.FORCE_FOLLOW === "true")) {
-            newConfiguration.forceFollow = true;
-          }
-          else {
-            newConfiguration.forceFollow = false;
-          }
+        if ((loadedConfigObj.ENABLE_IMAGE_ANALYSIS === false) || (loadedConfigObj.ENABLE_IMAGE_ANALYSIS === "false")) {
+          newConfiguration.enableImageAnalysis = false;
         }
-
-        if (loadedConfigObj.WAS_ENABLE_STDIN !== undefined){
-          console.log("WAS | LOADED WAS_ENABLE_STDIN: " + loadedConfigObj.WAS_ENABLE_STDIN);
-
-          if ((loadedConfigObj.WAS_ENABLE_STDIN === false) || (loadedConfigObj.WAS_ENABLE_STDIN === "false")) {
-            newConfiguration.enableStdin = false;
-          }
-          else if ((loadedConfigObj.WAS_ENABLE_STDIN === true) || (loadedConfigObj.WAS_ENABLE_STDIN === "true")) {
-            newConfiguration.enableStdin = true;
-          }
-          else {
-            newConfiguration.enableStdin = false;
-          }
+        else if ((loadedConfigObj.ENABLE_IMAGE_ANALYSIS === true) || (loadedConfigObj.ENABLE_IMAGE_ANALYSIS === "true")) {
+          newConfiguration.enableImageAnalysis = true;
         }
-
-        if (loadedConfigObj.NODE_METER_ENABLED !== undefined){
-
-          console.log("WAS | LOADED NODE_METER_ENABLED: " + loadedConfigObj.NODE_METER_ENABLED);
-
-          if (loadedConfigObj.NODE_METER_ENABLED === "true") {
-            newConfiguration.metrics.nodeMeterEnabled = true;
-          }
-          else if (loadedConfigObj.NODE_METER_ENABLED === "false") {
-            newConfiguration.metrics.nodeMeterEnabled = false;
-          }
-          else {
-            newConfiguration.metrics.nodeMeterEnabled = true;
-          }
+        else {
+          newConfiguration.enableImageAnalysis = false;
         }
+      }
 
-        if (loadedConfigObj.PROCESS_NAME !== undefined){
-          console.log("WAS | LOADED PROCESS_NAME: " + loadedConfigObj.PROCESS_NAME);
-          newConfiguration.processName = loadedConfigObj.PROCESS_NAME;
+      if (loadedConfigObj.FORCE_IMAGE_ANALYSIS !== undefined){
+        console.log("WAS | LOADED FORCE_IMAGE_ANALYSIS: " + loadedConfigObj.FORCE_IMAGE_ANALYSIS);
+
+        if ((loadedConfigObj.FORCE_IMAGE_ANALYSIS === false) || (loadedConfigObj.FORCE_IMAGE_ANALYSIS === "false")) {
+          newConfiguration.forceImageAnalysis = false;
         }
-
-        if (loadedConfigObj.THREECEE_USERS !== undefined){
-          console.log("WAS | LOADED THREECEE_USERS: " + loadedConfigObj.THREECEE_USERS);
-          newConfiguration.threeceeUsers = loadedConfigObj.THREECEE_USERS;
+        else if ((loadedConfigObj.FORCE_IMAGE_ANALYSIS === true) || (loadedConfigObj.FORCE_IMAGE_ANALYSIS === "true")) {
+          newConfiguration.forceImageAnalysis = true;
         }
-
-        if (loadedConfigObj.TWITTER_THREECEE_INFO_USERS !== undefined){
-          console.log("WAS | LOADED TWITTER_THREECEE_INFO_USERS: " + loadedConfigObj.TWITTER_THREECEE_INFO_USERS);
-          newConfiguration.threeceeInfoUsersArray = loadedConfigObj.TWITTER_THREECEE_INFO_USERS;
+        else {
+          newConfiguration.forceImageAnalysis = false;
         }
+      }
 
-        if (loadedConfigObj.TWITTER_THREECEE_USER !== undefined){
-          console.log("WAS | LOADED TWITTER_THREECEE_USER: " + loadedConfigObj.TWITTER_THREECEE_USER);
-          newConfiguration.threeceeUser = loadedConfigObj.TWITTER_THREECEE_USER;
+      if (loadedConfigObj.AUTO_FOLLOW !== undefined){
+        console.log("WAS | LOADED AUTO_FOLLOW: " + loadedConfigObj.AUTO_FOLLOW);
+
+        if ((loadedConfigObj.AUTO_FOLLOW === false) || (loadedConfigObj.AUTO_FOLLOW === "false")) {
+          newConfiguration.autoFollow = false;
         }
-
-        if (loadedConfigObj.CURSOR_BATCH_SIZE !== undefined){
-          console.log("WAS | LOADED CURSOR_BATCH_SIZE: " + loadedConfigObj.CURSOR_BATCH_SIZE);
-          newConfiguration.cursorBatchSize = loadedConfigObj.CURSOR_BATCH_SIZE;
+        else if ((loadedConfigObj.AUTO_FOLLOW === true) || (loadedConfigObj.AUTO_FOLLOW === "true")) {
+          newConfiguration.autoFollow = true;
         }
-
-        if (loadedConfigObj.DROPBOX_WEBHOOK_CHANGE_TIMEOUT !== undefined){
-          console.log("WAS | LOADED DROPBOX_WEBHOOK_CHANGE_TIMEOUT: " + loadedConfigObj.DROPBOX_WEBHOOK_CHANGE_TIMEOUT);
-          newConfiguration.dropboxWebhookChangeTimeout = loadedConfigObj.DROPBOX_WEBHOOK_CHANGE_TIMEOUT;
+        else {
+          newConfiguration.autoFollow = false;
         }
+      }
 
-        if (loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT !== undefined){
-          console.log("WAS | LOADED FIND_CAT_USER_CURSOR_LIMIT: " + loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT);
-          newConfiguration.findCatUserLimit = loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT;
+      if (loadedConfigObj.FORCE_FOLLOW !== undefined){
+        console.log("WAS | LOADED FORCE_FOLLOW: " + loadedConfigObj.FORCE_FOLLOW);
+
+        if ((loadedConfigObj.FORCE_FOLLOW === false) || (loadedConfigObj.FORCE_FOLLOW === "false")) {
+          newConfiguration.forceFollow = false;
         }
-
-        if (loadedConfigObj.FIND_CAT_HASHTAG_CURSOR_LIMIT !== undefined){
-          console.log("WAS | LOADED FIND_CAT_HASHTAG_CURSOR_LIMIT: " + loadedConfigObj.FIND_CAT_HASHTAG_CURSOR_LIMIT);
-          newConfiguration.findCatHashtagLimit = loadedConfigObj.FIND_CAT_HASHTAG_CURSOR_LIMIT;
+        else if ((loadedConfigObj.FORCE_FOLLOW === true) || (loadedConfigObj.FORCE_FOLLOW === "true")) {
+          newConfiguration.forceFollow = true;
         }
-
-        if (loadedConfigObj.HEAPDUMP_ENABLED !== undefined){
-          console.log("WAS | LOADED HEAPDUMP_ENABLED: " + loadedConfigObj.HEAPDUMP_ENABLED);
-          newConfiguration.heapDumpEnabled = loadedConfigObj.HEAPDUMP_ENABLED;
+        else {
+          newConfiguration.forceFollow = false;
         }
+      }
 
-        if (loadedConfigObj.HEAPDUMP_MODULO !== undefined){
-          console.log("WAS | LOADED HEAPDUMP_MODULO: " + loadedConfigObj.HEAPDUMP_MODULO);
-          newConfiguration.heapDumpModulo = loadedConfigObj.HEAPDUMP_MODULO;
+      if (loadedConfigObj.WAS_ENABLE_STDIN !== undefined){
+        console.log("WAS | LOADED WAS_ENABLE_STDIN: " + loadedConfigObj.WAS_ENABLE_STDIN);
+
+        if ((loadedConfigObj.WAS_ENABLE_STDIN === false) || (loadedConfigObj.WAS_ENABLE_STDIN === "false")) {
+          newConfiguration.enableStdin = false;
         }
-
-        if (loadedConfigObj.HEAPDUMP_THRESHOLD !== undefined){
-          console.log("WAS | LOADED HEAPDUMP_THRESHOLD: " + loadedConfigObj.HEAPDUMP_THRESHOLD);
-          newConfiguration.heapDumpThreshold = loadedConfigObj.HEAPDUMP_THRESHOLD;
+        else if ((loadedConfigObj.WAS_ENABLE_STDIN === true) || (loadedConfigObj.WAS_ENABLE_STDIN === "true")) {
+          newConfiguration.enableStdin = true;
         }
-
-        if (loadedConfigObj.NODE_CACHE_CHECK_PERIOD !== undefined){
-          console.log("WAS | LOADED NODE_CACHE_CHECK_PERIOD: " + loadedConfigObj.NODE_CACHE_CHECK_PERIOD);
-          newConfiguration.nodeCacheCheckPeriod = loadedConfigObj.NODE_CACHE_CHECK_PERIOD;
+        else {
+          newConfiguration.enableStdin = false;
         }
+      }
 
-        if (loadedConfigObj.NODE_CACHE_DEFAULT_TTL !== undefined){
-          console.log("WAS | LOADED NODE_CACHE_DEFAULT_TTL: " + loadedConfigObj.NODE_CACHE_DEFAULT_TTL);
-          newConfiguration.nodeCacheTtl = loadedConfigObj.NODE_CACHE_DEFAULT_TTL;
+      if (loadedConfigObj.NODE_METER_ENABLED !== undefined){
+
+        console.log("WAS | LOADED NODE_METER_ENABLED: " + loadedConfigObj.NODE_METER_ENABLED);
+
+        if (loadedConfigObj.NODE_METER_ENABLED === "true") {
+          newConfiguration.metrics.nodeMeterEnabled = true;
         }
-
-        if (loadedConfigObj.SOCKET_IDLE_TIMEOUT !== undefined){
-          console.log("WAS | LOADED SOCKET_IDLE_TIMEOUT: " + loadedConfigObj.SOCKET_IDLE_TIMEOUT);
-          newConfiguration.socketIdleTimeout = loadedConfigObj.SOCKET_IDLE_TIMEOUT;
+        else if (loadedConfigObj.NODE_METER_ENABLED === "false") {
+          newConfiguration.metrics.nodeMeterEnabled = false;
         }
-
-        if (loadedConfigObj.TOPTERMS_CACHE_CHECK_PERIOD !== undefined){
-          console.log("WAS | LOADED TOPTERMS_CACHE_CHECK_PERIOD: " + loadedConfigObj.TOPTERMS_CACHE_CHECK_PERIOD);
-          newConfiguration.topTermsCacheCheckPeriod = loadedConfigObj.TOPTERMS_CACHE_CHECK_PERIOD;
+        else {
+          newConfiguration.metrics.nodeMeterEnabled = true;
         }
+      }
 
-        if (loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL !== undefined){
-          console.log("WAS | LOADED TOPTERMS_CACHE_DEFAULT_TTL: " + loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL);
-          newConfiguration.topTermsCacheTtl = loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL;
-        }
+      if (loadedConfigObj.PROCESS_NAME !== undefined){
+        console.log("WAS | LOADED PROCESS_NAME: " + loadedConfigObj.PROCESS_NAME);
+        newConfiguration.processName = loadedConfigObj.PROCESS_NAME;
+      }
 
-        if (loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD !== undefined){
-          console.log("WAS | LOADED TRENDING_CACHE_CHECK_PERIOD: " + loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD);
-          newConfiguration.trendingCacheCheckPeriod = loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD;
-        }
+      if (loadedConfigObj.THREECEE_USERS !== undefined){
+        console.log("WAS | LOADED THREECEE_USERS: " + loadedConfigObj.THREECEE_USERS);
+        newConfiguration.threeceeUsers = loadedConfigObj.THREECEE_USERS;
+      }
 
-        if (loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL !== undefined){
-          console.log("WAS | LOADED TRENDING_CACHE_DEFAULT_TTL: " + loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL);
-          newConfiguration.trendingCacheTtl = loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL;
-        }
+      if (loadedConfigObj.TWITTER_THREECEE_INFO_USERS !== undefined){
+        console.log("WAS | LOADED TWITTER_THREECEE_INFO_USERS: " + loadedConfigObj.TWITTER_THREECEE_INFO_USERS);
+        newConfiguration.threeceeInfoUsersArray = loadedConfigObj.TWITTER_THREECEE_INFO_USERS;
+      }
 
-        if (loadedConfigObj.MIN_FOLLOWERS_AUTO !== undefined){
-          console.log("WAS | LOADED MIN_FOLLOWERS_AUTO: " + loadedConfigObj.MIN_FOLLOWERS_AUTO);
-          newConfiguration.minFollowersAuto = loadedConfigObj.MIN_FOLLOWERS_AUTO;
-        }
+      if (loadedConfigObj.TWITTER_THREECEE_USER !== undefined){
+        console.log("WAS | LOADED TWITTER_THREECEE_USER: " + loadedConfigObj.TWITTER_THREECEE_USER);
+        newConfiguration.threeceeUser = loadedConfigObj.TWITTER_THREECEE_USER;
+      }
 
-        if (loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL !== undefined){
-          console.log("WAS | LOADED CATEGORY_HASHMAPS_UPDATE_INTERVAL: " + loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL);
-          newConfiguration.categoryHashmapsUpdateInterval = loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL;
-        }
+      if (loadedConfigObj.CURSOR_BATCH_SIZE !== undefined){
+        console.log("WAS | LOADED CURSOR_BATCH_SIZE: " + loadedConfigObj.CURSOR_BATCH_SIZE);
+        newConfiguration.cursorBatchSize = loadedConfigObj.CURSOR_BATCH_SIZE;
+      }
 
-        if (loadedConfigObj.STATS_UPDATE_INTERVAL !== undefined){
-          console.log("WAS | LOADED STATS_UPDATE_INTERVAL: " + loadedConfigObj.STATS_UPDATE_INTERVAL);
-          newConfiguration.statsUpdateInterval = loadedConfigObj.STATS_UPDATE_INTERVAL;
-        }
+      if (loadedConfigObj.DROPBOX_WEBHOOK_CHANGE_TIMEOUT !== undefined){
+        console.log("WAS | LOADED DROPBOX_WEBHOOK_CHANGE_TIMEOUT: " + loadedConfigObj.DROPBOX_WEBHOOK_CHANGE_TIMEOUT);
+        newConfiguration.dropboxWebhookChangeTimeout = loadedConfigObj.DROPBOX_WEBHOOK_CHANGE_TIMEOUT;
+      }
 
-        if (loadedConfigObj.TRANSMIT_NODE_QUEUE_INTERVAL !== undefined){
-          console.log("WAS | LOADED TRANSMIT_NODE_QUEUE_INTERVAL: " + loadedConfigObj.TRANSMIT_NODE_QUEUE_INTERVAL);
-          newConfiguration.transmitNodeQueueInterval = loadedConfigObj.TRANSMIT_NODE_QUEUE_INTERVAL;
-        }
+      if (loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT !== undefined){
+        console.log("WAS | LOADED FIND_CAT_USER_CURSOR_LIMIT: " + loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT);
+        newConfiguration.findCatUserLimit = loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT;
+      }
 
-        if (loadedConfigObj.RATE_QUEUE_INTERVAL !== undefined){
-          console.log("WAS | LOADED RATE_QUEUE_INTERVAL: " + loadedConfigObj.RATE_QUEUE_INTERVAL);
-          newConfiguration.rateQueueInterval = loadedConfigObj.RATE_QUEUE_INTERVAL;
-        }
+      if (loadedConfigObj.FIND_CAT_HASHTAG_CURSOR_LIMIT !== undefined){
+        console.log("WAS | LOADED FIND_CAT_HASHTAG_CURSOR_LIMIT: " + loadedConfigObj.FIND_CAT_HASHTAG_CURSOR_LIMIT);
+        newConfiguration.findCatHashtagLimit = loadedConfigObj.FIND_CAT_HASHTAG_CURSOR_LIMIT;
+      }
 
-        if (loadedConfigObj.RATE_QUEUE_INTERVAL_MODULO !== undefined){
-          console.log("WAS | LOADED RATE_QUEUE_INTERVAL_MODULO: " + loadedConfigObj.RATE_QUEUE_INTERVAL_MODULO);
-          newConfiguration.rateQueueIntervalModulo = loadedConfigObj.RATE_QUEUE_INTERVAL_MODULO;
-        }
+      if (loadedConfigObj.HEAPDUMP_ENABLED !== undefined){
+        console.log("WAS | LOADED HEAPDUMP_ENABLED: " + loadedConfigObj.HEAPDUMP_ENABLED);
+        newConfiguration.heapDumpEnabled = loadedConfigObj.HEAPDUMP_ENABLED;
+      }
 
-        if (loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW !== undefined){
-          console.log("WAS | LOADED TWITTER_THREECEE_AUTO_FOLLOW: " + loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW);
-          newConfiguration.twitterThreeceeAutoFollowConfigFile = loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW + ".json";
-        }
+      if (loadedConfigObj.HEAPDUMP_MODULO !== undefined){
+        console.log("WAS | LOADED HEAPDUMP_MODULO: " + loadedConfigObj.HEAPDUMP_MODULO);
+        newConfiguration.heapDumpModulo = loadedConfigObj.HEAPDUMP_MODULO;
+      }
 
-        if (loadedConfigObj.TWEET_PARSER_INTERVAL !== undefined){
-          console.log("WAS | LOADED TWEET_PARSER_INTERVAL: " + loadedConfigObj.TWEET_PARSER_INTERVAL);
-          newConfiguration.tweetParserInterval = loadedConfigObj.TWEET_PARSER_INTERVAL;
-        }
+      if (loadedConfigObj.HEAPDUMP_THRESHOLD !== undefined){
+        console.log("WAS | LOADED HEAPDUMP_THRESHOLD: " + loadedConfigObj.HEAPDUMP_THRESHOLD);
+        newConfiguration.heapDumpThreshold = loadedConfigObj.HEAPDUMP_THRESHOLD;
+      }
 
-        if (loadedConfigObj.UPDATE_TRENDS_INTERVAL !== undefined){
-          console.log("WAS | LOADED UPDATE_TRENDS_INTERVAL: " + loadedConfigObj.UPDATE_TRENDS_INTERVAL);
-          newConfiguration.updateTrendsInterval = loadedConfigObj.UPDATE_TRENDS_INTERVAL;
-        }
+      if (loadedConfigObj.NODE_CACHE_CHECK_PERIOD !== undefined){
+        console.log("WAS | LOADED NODE_CACHE_CHECK_PERIOD: " + loadedConfigObj.NODE_CACHE_CHECK_PERIOD);
+        newConfiguration.nodeCacheCheckPeriod = loadedConfigObj.NODE_CACHE_CHECK_PERIOD;
+      }
 
-        if (loadedConfigObj.UPDATE_USER_SETS_INTERVAL !== undefined){
-          console.log("WAS | LOADED UPDATE_USER_SETS_INTERVAL: " + loadedConfigObj.UPDATE_USER_SETS_INTERVAL);
-          newConfiguration.updateUserSetsInterval = loadedConfigObj.UPDATE_USER_SETS_INTERVAL;
-        }
+      if (loadedConfigObj.NODE_CACHE_DEFAULT_TTL !== undefined){
+        console.log("WAS | LOADED NODE_CACHE_DEFAULT_TTL: " + loadedConfigObj.NODE_CACHE_DEFAULT_TTL);
+        newConfiguration.nodeCacheTtl = loadedConfigObj.NODE_CACHE_DEFAULT_TTL;
+      }
 
-        if (loadedConfigObj.KEEPALIVE_INTERVAL !== undefined){
-          console.log("WAS | LOADED KEEPALIVE_INTERVAL: " + loadedConfigObj.KEEPALIVE_INTERVAL);
-          newConfiguration.keepaliveInterval = loadedConfigObj.KEEPALIVE_INTERVAL;
-        }
+      if (loadedConfigObj.SOCKET_IDLE_TIMEOUT !== undefined){
+        console.log("WAS | LOADED SOCKET_IDLE_TIMEOUT: " + loadedConfigObj.SOCKET_IDLE_TIMEOUT);
+        newConfiguration.socketIdleTimeout = loadedConfigObj.SOCKET_IDLE_TIMEOUT;
+      }
 
-        resolve(newConfiguration);
+      if (loadedConfigObj.TOPTERMS_CACHE_CHECK_PERIOD !== undefined){
+        console.log("WAS | LOADED TOPTERMS_CACHE_CHECK_PERIOD: " + loadedConfigObj.TOPTERMS_CACHE_CHECK_PERIOD);
+        newConfiguration.topTermsCacheCheckPeriod = loadedConfigObj.TOPTERMS_CACHE_CHECK_PERIOD;
+      }
 
-      });
-    }).
-    catch(function(err){
+      if (loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL !== undefined){
+        console.log("WAS | LOADED TOPTERMS_CACHE_DEFAULT_TTL: " + loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL);
+        newConfiguration.topTermsCacheTtl = loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL;
+      }
+
+      if (loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD !== undefined){
+        console.log("WAS | LOADED TRENDING_CACHE_CHECK_PERIOD: " + loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD);
+        newConfiguration.trendingCacheCheckPeriod = loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD;
+      }
+
+      if (loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL !== undefined){
+        console.log("WAS | LOADED TRENDING_CACHE_DEFAULT_TTL: " + loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL);
+        newConfiguration.trendingCacheTtl = loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL;
+      }
+
+      if (loadedConfigObj.MIN_FOLLOWERS_AUTO !== undefined){
+        console.log("WAS | LOADED MIN_FOLLOWERS_AUTO: " + loadedConfigObj.MIN_FOLLOWERS_AUTO);
+        newConfiguration.minFollowersAuto = loadedConfigObj.MIN_FOLLOWERS_AUTO;
+      }
+
+      if (loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL !== undefined){
+        console.log("WAS | LOADED CATEGORY_HASHMAPS_UPDATE_INTERVAL: " + loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL);
+        newConfiguration.categoryHashmapsUpdateInterval = loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL;
+      }
+
+      if (loadedConfigObj.STATS_UPDATE_INTERVAL !== undefined){
+        console.log("WAS | LOADED STATS_UPDATE_INTERVAL: " + loadedConfigObj.STATS_UPDATE_INTERVAL);
+        newConfiguration.statsUpdateInterval = loadedConfigObj.STATS_UPDATE_INTERVAL;
+      }
+
+      if (loadedConfigObj.TRANSMIT_NODE_QUEUE_INTERVAL !== undefined){
+        console.log("WAS | LOADED TRANSMIT_NODE_QUEUE_INTERVAL: " + loadedConfigObj.TRANSMIT_NODE_QUEUE_INTERVAL);
+        newConfiguration.transmitNodeQueueInterval = loadedConfigObj.TRANSMIT_NODE_QUEUE_INTERVAL;
+      }
+
+      if (loadedConfigObj.RATE_QUEUE_INTERVAL !== undefined){
+        console.log("WAS | LOADED RATE_QUEUE_INTERVAL: " + loadedConfigObj.RATE_QUEUE_INTERVAL);
+        newConfiguration.rateQueueInterval = loadedConfigObj.RATE_QUEUE_INTERVAL;
+      }
+
+      if (loadedConfigObj.RATE_QUEUE_INTERVAL_MODULO !== undefined){
+        console.log("WAS | LOADED RATE_QUEUE_INTERVAL_MODULO: " + loadedConfigObj.RATE_QUEUE_INTERVAL_MODULO);
+        newConfiguration.rateQueueIntervalModulo = loadedConfigObj.RATE_QUEUE_INTERVAL_MODULO;
+      }
+
+      if (loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW !== undefined){
+        console.log("WAS | LOADED TWITTER_THREECEE_AUTO_FOLLOW: " + loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW);
+        newConfiguration.twitterThreeceeAutoFollowConfigFile = loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW + ".json";
+      }
+
+      if (loadedConfigObj.TWEET_PARSER_INTERVAL !== undefined){
+        console.log("WAS | LOADED TWEET_PARSER_INTERVAL: " + loadedConfigObj.TWEET_PARSER_INTERVAL);
+        newConfiguration.tweetParserInterval = loadedConfigObj.TWEET_PARSER_INTERVAL;
+      }
+
+      if (loadedConfigObj.UPDATE_TRENDS_INTERVAL !== undefined){
+        console.log("WAS | LOADED UPDATE_TRENDS_INTERVAL: " + loadedConfigObj.UPDATE_TRENDS_INTERVAL);
+        newConfiguration.updateTrendsInterval = loadedConfigObj.UPDATE_TRENDS_INTERVAL;
+      }
+
+      if (loadedConfigObj.UPDATE_USER_SETS_INTERVAL !== undefined){
+        console.log("WAS | LOADED UPDATE_USER_SETS_INTERVAL: " + loadedConfigObj.UPDATE_USER_SETS_INTERVAL);
+        newConfiguration.updateUserSetsInterval = loadedConfigObj.UPDATE_USER_SETS_INTERVAL;
+      }
+
+      if (loadedConfigObj.KEEPALIVE_INTERVAL !== undefined){
+        console.log("WAS | LOADED KEEPALIVE_INTERVAL: " + loadedConfigObj.KEEPALIVE_INTERVAL);
+        newConfiguration.keepaliveInterval = loadedConfigObj.KEEPALIVE_INTERVAL;
+      }
+
+      resolve(newConfiguration);
+
+    }
+    catch(err){
       console.error(chalkError("WAS | ERROR LOAD DROPBOX CONFIG: " + fullPath
         + "\n" + jsonPrint(err)
       ));
       reject(err);
 
-    });
+    }
 
   });
 }
 
 function loadAllConfigFiles(){
 
-  return new Promise(function(resolve, reject){
+  return new Promise(async function(resolve, reject){
 
     statsObj.status = "LOAD CONFIG";
 
-    loadConfigFile({folder: dropboxConfigDefaultFolder, file: dropboxConfigDefaultFile}).
-    then(function(defaultConfig){
+    try {
+
+      const defaultConfig = await loadConfigFile({folder: dropboxConfigDefaultFolder, file: dropboxConfigDefaultFile});
 
       if (defaultConfig) {
         defaultConfiguration = defaultConfig;
         console.log(chalk.green("WAS | +++ RELOADED DEFAULT CONFIG " + dropboxConfigDefaultFolder + "/" + dropboxConfigDefaultFile));
       }
 
-      loadConfigFile({folder: dropboxConfigHostFolder, file: dropboxConfigHostFile}).
-      then(function(hostConfig){
+      const hostConfig = await loadConfigFile({folder: dropboxConfigHostFolder, file: dropboxConfigHostFile});
 
-        if (hostConfig) {
-          hostConfiguration = hostConfig;
-          console.log(chalk.green("WAS | +++ RELOADED HOST CONFIG " + dropboxConfigHostFolder + "/" + dropboxConfigHostFile));
-        }
+      if (hostConfig) {
+        hostConfiguration = hostConfig;
+        console.log(chalk.green("WAS | +++ RELOADED HOST CONFIG " + dropboxConfigHostFolder + "/" + dropboxConfigHostFile));
+      }
 
-        const defaultAndHostConfig = merge(defaultConfiguration, hostConfiguration); // host settings override defaults
-        const tempConfig = merge(configuration, defaultAndHostConfig); // any new settings override existing config
+      const defaultAndHostConfig = merge(defaultConfiguration, hostConfiguration); // host settings override defaults
+      const tempConfig = merge(configuration, defaultAndHostConfig); // any new settings override existing config
 
-        configuration = tempConfig;
-        configuration.threeceeUsers = _.uniq(configuration.threeceeUsers); // merge concats arrays!
+      configuration = tempConfig;
+      configuration.threeceeUsers = _.uniq(configuration.threeceeUsers); // merge concats arrays!
 
-        resolve();
+      resolve();
 
-      });
-
-    }).
-    catch(function(err){
+    }
+    catch(err){
       reject(err);
-    });
-
+    }
 
   });
 }
@@ -9778,10 +9595,10 @@ function initStatsUpdate(cnf) {
 
       clearInterval(statsInterval);
 
-      statsInterval = setInterval(function updateStats() {
+      statsInterval = setInterval(async function updateStats() {
 
-        getChildProcesses({searchTerm: "ALL"}).
-        then(function(childArray){
+        try{
+          const childArray = await getChildProcesses({searchTerm: "ALL"});
 
           if (configuration.verbose) { 
             console.log(chalkLog("WAS | FOUND " + childArray.length + " CHILDREN"));
@@ -9820,19 +9637,17 @@ function initStatsUpdate(cnf) {
           if (utilNameSpace) { statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; } // userNameSpace.sockets.length ;
           if (viewNameSpace) { statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; } // userNameSpace.sockets.length ;
 
-          saveStats(statsFile, statsObj, function saveStatsComplete(status){
-            debug(chalkLog("SAVE STATS " + status));
-          });
+          await saveStats({statsFile: statsFile, statsObj: statsObj });
 
           showStats();
 
           if (statsObj.twitNotReadyWarning) { statsObj.twitNotReadyWarning = false; }
 
-        }).
-        catch(function(err){
-          console.log(chalkError("WAS | getChildProcesses ERROR:", err));
-        });
-
+        }
+        catch(err){
+          console.log(chalkError("WAS | *** STATS UPDATE ERROR: " + err));
+        }
+         
       }, cnf.statsUpdateIntervalTime);
 
       resolve();
@@ -9846,7 +9661,7 @@ function initStatsUpdate(cnf) {
 
 function initConfig() {
 
-  return new Promise(function(resolve, reject){
+  return new Promise(async function(resolve, reject){
 
     statsObj.status = "INIT CONFIG";
 
@@ -9898,44 +9713,36 @@ function initConfig() {
       debug(chalkTwitter("WAS | THREECEE INFO USER @" + user + "\n" + jsonPrint(threeceeInfoTwitter[user])));
     });
 
-    loadAllConfigFiles().
-    then(function(){
+    try {
 
-      loadCommandLineArgs().
-      then(function(){
+      await loadAllConfigFiles();
+      await loadCommandLineArgs();
 
-        const configArgs = Object.keys(configuration);
+      const configArgs = Object.keys(configuration);
 
-        configArgs.forEach(function(arg){
-          if (_.isObject(configuration[arg])) {
-            console.log("WAS | _FINAL CONFIG | " + arg + "\n" + jsonPrint(configuration[arg]));
-          }
-          else {
-            console.log("WAS | _FINAL CONFIG | " + arg + ": " + configuration[arg]);
-          }
-        });
-        
-        statsObj.commandLineArgsLoaded = true;
-
-        if (configuration.enableStdin) {
-          initStdIn().then(function(){});
+      configArgs.forEach(function(arg){
+        if (_.isObject(configuration[arg])) {
+          console.log("WAS | _FINAL CONFIG | " + arg + "\n" + jsonPrint(configuration[arg]));
         }
-
-        initStatsUpdate(configuration).
-        then(function(){
-
-          statsObj.configuration = configuration;
-
-          resolve(configuration);
-        });
-
+        else {
+          console.log("WAS | _FINAL CONFIG | " + arg + ": " + configuration[arg]);
+        }
       });
+      
+      statsObj.commandLineArgsLoaded = true;
 
-    }).
-    catch(function(err){
+      if (configuration.enableStdin) { await initStdIn(); }
+
+      await initStatsUpdate(configuration);
+
+      statsObj.configuration = configuration;
+      resolve(configuration);
+
+    }
+    catch(err){
       console.log(chalkLog("WAS | *** INIT CONFIG ERROR: " + err));
       return reject(err);
-    });
+    }
 
   });
 }
@@ -10307,24 +10114,13 @@ function initUpdateUserSetsInterval(interval){
 
     console.log(chalk.bold.black("WAS | INIT USER SETS INTERVAL | " + msToTime(interval) ));
 
-    updateUserSetsInterval = setInterval(function() {
+    updateUserSetsInterval = setInterval(async function() {
 
       try {
-
-        // uncategorizedManualUserArray = [...uncategorizedManualUserSet];
-
         if (statsObj.dbConnectionReady && updateUserSetsIntervalReady) {
-
           updateUserSetsIntervalReady = false;
-
-          updateUserSets().
-          then(function(){
-            updateUserSetsIntervalReady = true;
-          }).
-          catch(function(err){
-            console.log(chalkError("WAS | UPDATE USER SETS ERROR: " + err));
-            updateUserSetsIntervalReady = true;
-          });
+          await updateUserSets();
+          updateUserSetsIntervalReady = true;
         }
       }
       catch(err){
@@ -10349,7 +10145,7 @@ function initThreeceeTwitterUsers(params){
 
     console.log(chalkTwitter("WAS | INIT THREECEE TWITTER USERS\n" + jsonPrint(threeceeUsers)));
 
-    async.eachSeries(threeceeUsers, function(user, cb){
+    async.eachSeries(threeceeUsers, async function(user){
 
       console.log(chalkTwitter("WAS | LOADING TWITTER CONFIG | @" + user));
 
@@ -10357,41 +10153,35 @@ function initThreeceeTwitterUsers(params){
 
       try {
 
-        loadFile({folder: dropboxConfigTwitterFolder, file: configFile})
-        .then(function(twitterConfig){
+        const twitterConfig = await loadFileRetry({folder: dropboxConfigTwitterFolder, file: configFile});
 
-          console.log(chalkTwitter("WAS | LOADED TWITTER CONFIG"
-            + " | 3C @" + user
-            + " | " + dropboxConfigTwitterFolder + "/" + configFile
-            + "\nCONFIG\n" + jsonPrint(twitterConfig)
-          ));
+        console.log(chalkTwitter("WAS | LOADED TWITTER CONFIG"
+          + " | 3C @" + user
+          + " | " + dropboxConfigTwitterFolder + "/" + configFile
+          + "\nCONFIG\n" + jsonPrint(twitterConfig)
+        ));
 
-          if (!configuration.threeceeUsers.includes(twitterConfig.screenName)) {
-            console.log(chalkAlert("WAS | SKIP CONFIG @" + twitterConfig.screenName + " | NOT IN 3C USERS: " + configuration.threeceeUsers));
-            return cb();
-          }
+        if (!configuration.threeceeUsers.includes(twitterConfig.screenName)) {
+          console.log(chalkAlert("WAS | SKIP CONFIG @" + twitterConfig.screenName + " | NOT IN 3C USERS: " + configuration.threeceeUsers));
+          return;
+        }
 
-          threeceeTwitter[user].twitterConfig = {};
-          threeceeTwitter[user].twitterConfig = twitterConfig;
+        threeceeTwitter[user].twitterConfig = {};
+        threeceeTwitter[user].twitterConfig = twitterConfig;
 
-          threeceeTwitter[user].twit = new Twit({
-            consumer_key: twitterConfig.consumer_key, 
-            consumer_secret: twitterConfig.consumer_secret,
-            app_only_auth: true
-          });
-
-          threeceeTwitter[user].ready = true;
-          threeceeTwitter[user].status = false;
-          threeceeTwitter[user].error = false;
-          statsObj.threeceeUsersConfiguredFlag = true;
-
-          cb();
-        })
-        .catch(function(err){
-          console.log(chalkError("WAS | *** INIT THREECEE TWITTER CONFIG ERROR: " + err
-          ));
-          return cb(err);
+        threeceeTwitter[user].twit = new Twit({
+          consumer_key: twitterConfig.consumer_key, 
+          consumer_secret: twitterConfig.consumer_secret,
+          app_only_auth: true
         });
+
+        threeceeTwitter[user].ready = true;
+        threeceeTwitter[user].status = false;
+        threeceeTwitter[user].error = false;
+        statsObj.threeceeUsersConfiguredFlag = true;
+
+        return;
+
       }
 
       catch(err) {
@@ -10410,7 +10200,7 @@ function initThreeceeTwitterUsers(params){
         threeceeTwitter[user].twit = false;
         threeceeTwitter[user].status = false;
 
-        return cb(err);
+        return err;
       }
 
     }, async function(err){

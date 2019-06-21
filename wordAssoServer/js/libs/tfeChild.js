@@ -1495,7 +1495,7 @@ function updateGlobalHistograms(params) {
 
 function parseImage(p){
 
-  return new Promise(function(resolve, reject) {
+  return new Promise(async function(resolve, reject) {
 
     const params = p;
 
@@ -1504,20 +1504,29 @@ function parseImage(p){
     params.histograms = params.user.histograms;
     params.screenName = params.user.screenName;
 
-    twitterImageParser.parseImage(params).
-    then(function(hist){
+    try{
+      const hist = await twitterImageParser.parseImage(params);
+      console.log(chalkLog("WAS | TFE | +++ IMAGE PARSE" 
+        + " | CAT: " + params.category
+        + " | @" + params.screenName
+        + " | " + params.imageUrl
+        + "\n" + jsonPrint(hist)
+      ));
       resolve(hist);
-    }).
-    catch(function(err){
-
+    }
+    catch(err){
       if (err.code === 8) {
         console.log(chalkAlert("WAS | TFC | GOOGLE VISION IMAGE PARSER QUOTA ERROR"));
       }
       else{
         console.log(chalkError("WAS | TFC | GOOGLE VISION IMAGE PARSER ERROR: " + err));
       }
-
       reject(err);
+    }
+
+    then(function(hist){
+    }).
+    catch(function(err){
     });
 
   });

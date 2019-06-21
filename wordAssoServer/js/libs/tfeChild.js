@@ -2372,7 +2372,7 @@ function userProfileChangeHistogram(params) {
           return reject(err);
         }
 
-        mergeHistogramsArray( {histogramArray: [results.textHist, results.imageHist, urlsHistogram, locationsHistogram]} ).
+        mergeHistogramsArray( {histogramArray: [results.textHist, results.bannerImageHist, results.profileImageHist, urlsHistogram, locationsHistogram]} ).
         then(function(histogramsMerged){
           resolve(histogramsMerged);
         }).

@@ -1524,11 +1524,6 @@ function parseImage(p){
       reject(err);
     }
 
-    then(function(hist){
-    }).
-    catch(function(err){
-    });
-
   });
 }
 

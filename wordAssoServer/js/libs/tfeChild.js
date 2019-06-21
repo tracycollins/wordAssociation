@@ -1501,7 +1501,6 @@ function parseImage(p){
 
     params.updateGlobalHistograms = (params.updateGlobalHistograms !== undefined) ? params.updateGlobalHistograms : false;
     params.category = params.user.category || "none";
-    params.imageUrl = params.user.bannerImageUrl;
     params.histograms = params.user.histograms;
     params.screenName = params.user.screenName;
 
@@ -1721,6 +1720,7 @@ function checkUserProfileChanged(params) {
         ));
       }
 
+      user.previousProfileImageUrl = null;
       user.previousBannerImageUrl = null;
       user.previousDescription = null;
       user.previousExpandedUrl = null;
@@ -1733,6 +1733,7 @@ function checkUserProfileChanged(params) {
 
     const results = [];
 
+    if (checkPropertyChange(user, "profileImageUrl")) { results.push("profileImageUrl"); }
     if (checkPropertyChange(user, "bannerImageUrl")) { results.push("bannerImageUrl"); }
     if (checkPropertyChange(user, "description")) { results.push("description"); }
     if (checkPropertyChange(user, "expandedUrl")) { results.push("expandedUrl"); }
@@ -2016,6 +2017,8 @@ function userProfileChangeHistogram(params) {
     let text = "";
     const urlsHistogram = {};
     urlsHistogram.urls = {};
+
+    const profileImageUrl = false;
     const bannerImageUrl = false;
 
     const locationsHistogram = {};
@@ -2191,6 +2194,7 @@ function userProfileChangeHistogram(params) {
         case "url":
         case "profileUrl":
         case "expandedUrl":
+        case "profileImageUrl":
         case "bannerImageUrl":
 
           domain = urlParse(userPropValue.toLowerCase()).hostname;
@@ -2221,19 +2225,74 @@ function userProfileChangeHistogram(params) {
 
       async.parallel({
 
-        imageHist: function(cb) {
+        profileImageHist: function(cb) {
 
           if (configuration.enableImageAnalysis && !statsObj.google.vision.imageAnalysisQuotaFlag
-            && (
-              bannerImageUrl 
-              || (
-                (!user.bannerImageAnalyzed || (user.bannerImageAnalyzed === undefined)) 
-                && user.bannerImageUrl && (user.bannerImageUrl !== undefined)
-              )
+            && (profileImageUrl || ( (!user.profileImageAnalyzed || (user.profileImageAnalyzed === undefined)) && user.profileImageUrl && (user.profileImageUrl !== undefined))
             )
           ){
 
             parseImage({
+              imageUrl: user.profileImageUrl,
+              user: user,
+              updateGlobalHistograms: true
+            }).
+            then(function(imageParseResults){
+              statsObj.google.vision.imagesParsed += 1;
+              cb(null, imageParseResults);
+            }).
+            catch(function(err){
+
+              if (err.code === 8) {
+
+                console.log(chalkAlert(MODULE_ID_PREFIX + " | *** GOOGLE IMAGE PARSER QUOTA ERROR"));
+
+                statsObj.google.vision.imageAnalysisQuotaFlag = true;
+                statsObj.google.vision.errors += 1;
+
+                const quotaResetAtMoment = moment().endOf("day");
+                const quotaTimeoutPeriod = quotaResetAtMoment.diff(moment());
+
+                console.log(chalkAlert(MODULE_ID_PREFIX + " | *** GOOGLE IMAGE PARSER QUOTA RESET AT"
+                  + " | " + quotaResetAtMoment.format(compactDateTimeFormat)
+                  + " | " + msToTime(quotaTimeoutPeriod)
+                ));
+
+                childEvents.once("imageAnalysisQuotaExpired", function(){
+
+                  statsObj.google.vision.imageAnalysisQuotaFlag = false;
+
+                  console.log(chalkGreen(MODULE_ID_PREFIX
+                    + " | XXX GOOGLE IMAGE PARSER QUOTA"
+                  ));
+
+                });
+
+                delayEvent({delayEventName: "imageAnalysisQuotaExpired", period: quotaTimeoutPeriod, verbose: true});
+
+                cb(null, {});
+              }
+              else{
+                console.log(chalkError("*** USER PROFILE CHANGE ERROR: " + err));
+                cb(err, null);
+              }
+            });
+
+          }
+          else {
+            cb(null, null);
+          }
+        }, 
+
+        bannerImageHist: function(cb) {
+
+          if (configuration.enableImageAnalysis && !statsObj.google.vision.imageAnalysisQuotaFlag
+            && (bannerImageUrl || ( (!user.bannerImageAnalyzed || (user.bannerImageAnalyzed === undefined)) && user.bannerImageUrl && (user.bannerImageUrl !== undefined))
+            )
+          ){
+
+            parseImage({
+              imageUrl: user.bannerImageUrl,
               user: user,
               updateGlobalHistograms: true
             }).
@@ -2607,6 +2666,7 @@ function updateUserHistograms(p) {
         user.profileHistograms = await mergeHistograms.merge({ histogramA: user.profileHistograms, histogramB: profileHistogramChanges });
       }
 
+      user.previousProfileImageUrl = user.profileImageUrl;
       user.previousBannerImageUrl = user.bannerImageUrl;
       user.previousDescription = user.description;
       user.previousExpandedUrl = user.expandedUrl;

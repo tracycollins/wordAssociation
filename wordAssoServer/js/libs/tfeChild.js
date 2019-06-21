@@ -1499,10 +1499,14 @@ function parseImage(p){
 
     const params = p;
 
+    // params.updateGlobalHistograms = (params.updateGlobalHistograms !== undefined) ? params.updateGlobalHistograms : false;
+    // params.category = params.user.category || "none";
+    // params.histograms = {};
+    // params.histograms = params.user.histograms;
+    // params.screenName = params.user.screenName;
+
     params.updateGlobalHistograms = (params.updateGlobalHistograms !== undefined) ? params.updateGlobalHistograms : false;
-    params.category = params.user.category || "none";
-    params.histograms = params.user.histograms;
-    params.screenName = params.user.screenName;
+    params.category = params.category || "none";
 
     try{
       const hist = await twitterImageParser.parseImage(params);
@@ -2237,8 +2241,13 @@ function userProfileChangeHistogram(params) {
           ){
 
             parseImage({
-              imageUrl: user.profileImageUrl,
-              user: user,
+              // imageUrl: user.profileImageUrl,
+              // user: user,
+              // updateGlobalHistograms: true
+              screenName: user.screenName, 
+              category: user.category, 
+              imageUrl: user.profileImageUrl, 
+              histograms: user.profileHistograms,
               updateGlobalHistograms: true
             }).
             then(function(imageParseResults){
@@ -2296,8 +2305,13 @@ function userProfileChangeHistogram(params) {
           ){
 
             parseImage({
-              imageUrl: user.bannerImageUrl,
-              user: user,
+              // imageUrl: user.bannerImageUrl,
+              // user: user,
+              // updateGlobalHistograms: true
+              screenName: user.screenName, 
+              category: user.category, 
+              imageUrl: user.bannerImageUrl, 
+              histograms: user.profileHistograms,
               updateGlobalHistograms: true
             }).
             then(function(imageParseResults){

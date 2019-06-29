@@ -926,6 +926,14 @@ function controlPanelComm(event) {
       socket.emit("TWITTER_UNFOLLOW", event.data.user);
     break;
 
+    case "CATEGORY_VERIFIED" :
+      console.warn("R< CONTROL CATEGORY_VERIFIED"
+        + " | UID: " + event.data.user.nodeId
+        + " | @" + event.data.user.screenName
+      );
+      socket.emit("TWITTER_CATEGORY_VERIFIED", event.data.user);
+    break;
+
     case "IGNORE" :
       console.warn("R< CONTROL IGNORE"
         + " | UID: " + event.data.user.nodeId
@@ -1077,9 +1085,11 @@ function controlPanelComm(event) {
         window.open(config.authenticationUrl, "_blank");
       }
     break;
+
     case "SET_TWITTER_USER":
       // console.info("R< CONTROL PANEL LOOPBACK? | SET_TWITTER_USER ... IGNORING ...");
     break;
+
     case "SET_TWITTER_HASHTAG":
       // console.info("R< CONTROL PANEL LOOPBACK? | SET_TWITTER_HASHTAG ... IGNORING ...");
     break;

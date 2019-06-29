@@ -1139,7 +1139,7 @@ function printUserObj(title, u, chalkFormat) {
     + " | FWG " + user.following 
     + " | 3C " + user.threeceeFollowing 
     + " | LC " + user.location
-    + " | C M " + user.category + " A " + user.categoryAuto
+    + " | CV " + user.categoryVerified + " M " + user.category + " A " + user.categoryAuto
     + " | PRI " + user.priorityFlag
   ));
 }
@@ -4222,6 +4222,45 @@ function tssSendAllChildren(params){
   });
 }
 
+function categoryVerified(params) {
+
+  return new Promise(async function(resolve, reject){
+
+    if (params.user.screenName !== undefined){
+
+      console.log(chalk.blue("WAS | +++ CAT_VERFIED | @" + params.user.screenName));
+
+      verifiedCategorizedUsersSet.add(params.user.screenName.toLowerCase());
+
+      try{
+
+        const dbUser = await global.globalUser.findOne({screenName: params.user.screenName});
+
+        if (!dbUser || dbUser === undefined) {
+          console.log(chalkAlert("WAS | ??? UPDATE VERIFIED | USER NOT FOUND: " + params.user.screenName));
+          return reject(new Error("USER NOT FOUND"));
+        }
+
+        dbUser.categoryVerified = true;
+
+        const dbUpdatedUser = await dbUser.save();
+
+        printUserObj(
+          "+++ USER | VERIFIED",
+          dbUpdatedUser, 
+          chalkLog
+        );
+
+        resolve(dbUpdatedUser);
+      }
+      catch(err){
+        reject(err);
+      }
+    }
+
+  });
+}
+
 function ignore(params, callback) {
 
   console.log(chalk.blue("WAS | XXX IGNORE | @" + params.user.screenName));
@@ -4494,6 +4533,64 @@ function initSetFromFile(params){
   });
 }
 
+function updateDbVerifiedUsers(){
+
+  statsObj.status = "UPDATE VERIFIED CATEGORIZED USERS IN DB";
+
+  console.log(chalkBlue("WAS | UPDATE VERIFIED VERIFIED USERS DB" 
+  ));
+
+  return new Promise(async function(resolve, reject) {
+
+
+      async.forEachSeries([...verifiedCategorizedUsersSet], async function(screenName){
+
+        try {
+
+          const dbUser = await global.globalUser.findOne({screenName: screenName});
+
+          if (!dbUser || dbUser === undefined) {
+            console.log(chalkAlert("WAS | ??? UPDATE VERIFIED | USER NOT FOUND: " + screenName));
+            return;
+          }
+
+          dbUser.categoryVerified = true;
+
+          const dbUpdatedUser = await dbUser.save();
+
+          printUserObj(
+            "+++ USER | VERIFIED",
+            dbUpdatedUser, 
+            chalkLog
+          );
+
+          return;
+
+       }
+        catch(err){
+          console.log(chalkError("WAS | *** UPDATE VERIFIED USERS DB ERROR: " + err));
+          return err;
+        }
+
+      }, function(err){
+
+        if (err){
+          return reject(err);
+        }
+
+        console.log(chalkLog("WAS | UPDATED VERIFIED USERS DB"
+          + " | " + verifiedCategorizedUsersSet.size + " USERS"
+        ));
+
+        resolve();
+
+      });
+
+ 
+  });
+}
+
+
 function initVerifiedCategorizedUsersSet(){
 
   statsObj.status = "INIT VERIFIED CATEGORIZED USERS SET";
@@ -4512,6 +4609,7 @@ function initVerifiedCategorizedUsersSet(){
         verifiedCategorizedUsersSet = result;
         verifiedCategorizedUsersSet.delete("");
         verifiedCategorizedUsersSet.delete(" ");
+        await updateDbVerifiedUsers();
       }
 
       console.log(chalkLog("WAS | LOADED VERIFIED CATEGORIZED USERS FILE"
@@ -5147,6 +5245,46 @@ function initSocketHandler(socketObj) {
       ));
 
     });
+
+  });
+
+  socket.on("TWITTER_CATEGORY_VERIFIED", async function twitterIgnore(user) {
+
+    const timeStamp = moment().valueOf();
+
+    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
+    console.log(chalkSocket("R< TWITTER_CATEGORY_VERIFIED"
+      + " | " + getTimeStamp(timeStamp)
+      + " | " + ipAddress
+      + " | " + socket.id
+      + " | UID: " + user.userId
+      + " | @" + user.screenName
+    ));
+
+    try{
+
+      const updatedUser = await categoryVerified({user: user});
+
+      if (err) {
+        console.log(chalkError("WAS | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
+        return;
+      }
+      
+      if (!updatedUser) { return; }
+
+      adminNameSpace.emit("CAT_VERFIED", updatedUser);
+      utilNameSpace.emit("CAT_VERFIED", updatedUser);
+
+      console.log(chalk.blue("WAS | +++ TWITTER_CATEGORY_VERIFIED"
+        + " | SID: " + socket.id
+        + " | UID" + updatedUser.nodeId
+        + " | @" + updatedUser.screenName
+      ));
+    }
+    catch(err){
+      console.log(chalkError("WAS | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
+    }
 
   });
 

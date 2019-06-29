@@ -5266,11 +5266,6 @@ function initSocketHandler(socketObj) {
 
       const updatedUser = await categoryVerified({user: user});
 
-      if (err) {
-        console.log(chalkError("WAS | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
-        return;
-      }
-      
       if (!updatedUser) { return; }
 
       adminNameSpace.emit("CAT_VERFIED", updatedUser);

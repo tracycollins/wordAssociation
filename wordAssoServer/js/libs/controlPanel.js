@@ -277,6 +277,23 @@ function ControlPanel() {
 
   };
 
+  var catVerifiedHandler = function(op){
+
+    if (eventDetected) {
+      return;
+    }
+    eventDetected = true;
+
+    document.getElementById(op).style.background='#0000ff';
+    if (parentWindow) { parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE); }
+
+    setTimeout(function(){
+      eventDetected = false;
+      document.getElementById(op).style.background='#ffffff';
+    }, 100);
+
+  };
+
 
   function jsonPrint(obj) {
     if ((obj) || (obj === 0)) {
@@ -914,6 +931,9 @@ function ControlPanel() {
 
         twitterControl.addElement("CATEGORY MAN", radioUserCategoryDiv);
 
+        twitterControl.addButton("CAT VERIFIED", function(){
+          catVerifiedHandler("CAT VERIFIED");
+        });
         twitterControl.addButton("NEXT UNCAT ALL", function(){
           nextUncatHandler("NEXT UNCAT ALL");
         });

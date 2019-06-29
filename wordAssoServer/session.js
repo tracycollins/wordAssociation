@@ -926,7 +926,7 @@ function controlPanelComm(event) {
       socket.emit("TWITTER_UNFOLLOW", event.data.user);
     break;
 
-    case "CATEGORY_VERIFIED" :
+    case "CAT VERIFIED" :
       console.warn("R< CONTROL CATEGORY_VERIFIED"
         + " | UID: " + event.data.user.nodeId
         + " | @" + event.data.user.screenName

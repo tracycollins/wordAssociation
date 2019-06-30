@@ -948,8 +948,8 @@ function ControlPanel() {
 
         twitterControl.addElement("CATEGORY MAN", radioUserCategoryDiv);
 
-        twitterControl.addButton("CAT VERIFIED", function(){
-          catVerifiedHandler("CAT VERIFIED");
+        twitterControl.addButton("CAT VERIFY", function(){
+          catVerifiedHandler("CAT VERIFY");
         });
         twitterControl.addButton("NEXT UNCAT ALL", function(){
           nextUncatHandler("NEXT UNCAT ALL");

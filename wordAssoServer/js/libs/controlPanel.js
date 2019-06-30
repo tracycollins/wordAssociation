@@ -334,6 +334,7 @@ function ControlPanel() {
   }
 
   var nodeName;
+  var categoryVerified;
   var category;
   var categoryAuto;
 
@@ -348,6 +349,7 @@ function ControlPanel() {
 
       nodeName = (node.name !== undefined) ? node.name : "---";
 
+      categoryVerified = node.categoryVerified || "none";
       category = node.category || "none";
       categoryAuto = node.categoryAuto || "none";
 
@@ -357,6 +359,7 @@ function ControlPanel() {
       statsObj.user.screenName = node.screenName;
       statsObj.user.location = node.location;
       statsObj.user.description = node.description;
+      statsObj.user.categoryVerified = categoryVerified;
       statsObj.user.category = category;
       statsObj.user.categoryAuto = categoryAuto;
       statsObj.user.followersCount = node.followersCount;
@@ -453,10 +456,12 @@ function ControlPanel() {
       twitterTimeLine.setValue("RATE", node.rate);
       twitterTimeLine.setValue("RATE MAX", node.rateMax);
 
+      const categoryVerified = node.categoryVerified || false;
       const following = node.following || false;
       const ignored = node.ignored || false;
       const categoryAuto = node.categoryAuto.toUpperCase() || "NONE";
 
+      twitterControl.setValue("CAT VERIFIED", categoryVerified);
       twitterControl.setValue("FOLLOWING", following);
       twitterControl.setValue("IGNORED", ignored);
 			twitterControl.setValue("CATEGORY AUTO", categoryAuto);
@@ -471,8 +476,9 @@ function ControlPanel() {
         + " | " + node.name
         + " | CR: " + node.createdAt
         + " | LS: " + node.lastSeen
-        + " | CAT M: " + node.category
-        + " | CAT A: " + node.categoryAuto
+        + " | CV: " + node.categoryVerified
+        + " | C: " + node.category
+        + " | CA: " + node.categoryAuto
         + " | Ms: " + node.mentions
         + " | Ts: " + node.statusesCount
         + " | FRNDs: " + node.friendsCount
@@ -513,8 +519,6 @@ function ControlPanel() {
       twitterTimeLine.setValue("RATE", node.rate);
       twitterTimeLine.setValue("RATE MAX", node.rateMax);
 
-      // twitterControl.setValue("FOLLOWING", node.following || false);
-      // twitterControl.setValue("IGNORED", node.ignored || false);
       twitterControl.setValue("CATEGORY AUTO", node.categoryAuto.toUpperCase() || "NONE");
 
       console.debug("loadTwitterFeed"
@@ -681,6 +685,7 @@ function ControlPanel() {
           + " | @" + currentTwitterNode.screenName
           + " | CR: " + currentTwitterNode.createdAt
           + " | LS: " + currentTwitterNode.lastSeen
+          + " | CV: " + currentTwitterNode.categoryVerified
           + " | C: " + currentTwitterNode.category
           + " | CA: " + currentTwitterNode.categoryAuto
 			    + "\n profileImageUrl: " + currentTwitterNode.profileImageUrl
@@ -922,6 +927,18 @@ function ControlPanel() {
           // console.debug("USER IGNORED | " + twitterEntity.getValue("SCREENNAME") + " | IGNORED: " + data);
           console.debug("NODE IGNORED | " + twitterEntity.getValue("SCREENNAME") + " | IGNORED: " + data);
           const op = (data) ? "IGNORE" : "UNIGNORE";
+          parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
+        });
+
+        let categoryVerified = false;
+        if (twitterFeedUser && twitterFeedUser.categoryVerified !== undefined) {
+          categoryVerified = twitterFeedUser.categoryVerified;
+        }
+
+        twitterControl.addBoolean("CAT VERIFIED", categoryVerified, function(data){
+          console.debug("USER VERIFIED | " + twitterEntity.getValue("SCREENNAME") + " | categoryVerified: " + data);
+          const op = (data) ? "CAT VERIFIED" : "CAT UNVERIFIED";
+          catVerifiedHandler("CAT VERIFIED");
           parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
         });
 

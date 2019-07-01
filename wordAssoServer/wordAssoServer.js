@@ -717,21 +717,21 @@ let maxInputHashMap = false;
 let normalization = false;
 
 
-const twitterUserThreecee = {
-  nodeId: "14607119",
-  profileImageUrl: "https://pbs.twimg.com/profile_images/780466729692659712/p6RcVjNK.jpg",
-  profileUrl: "https://twitter.com/threecee",
-  url: "http://threeCeeMedia.com",
-  name: "Tracy Collins",
-  screenName: "threecee",
-  nodeType: "user",
-  following: null,
-  description: "photography + animation + design",
-  isTwitterUser: true,
-  screenNameLower: "threecee"
-};
+// const twitterUserThreecee = {
+//   nodeId: "14607119",
+//   profileImageUrl: "https://pbs.twimg.com/profile_images/780466729692659712/p6RcVjNK.jpg",
+//   profileUrl: "https://twitter.com/threecee",
+//   url: "http://threeCeeMedia.com",
+//   name: "Tracy Collins",
+//   screenName: "threecee",
+//   nodeType: "user",
+//   following: null,
+//   description: "photography + animation + design",
+//   isTwitterUser: true,
+//   screenNameLower: "threecee"
+// };
 
-const defaultTwitterUser = twitterUserThreecee;
+const defaultTwitterUserScreenName = "threecee";
 
 const followedUserSet = new Set();
 let unfollowableUserSet = new Set();
@@ -5408,11 +5408,14 @@ function initSocketHandler(socketObj) {
             + " | @" + updatedNodeObj.screenName
             + " | NAME: " + updatedNodeObj.name
             + " | LANG: " + updatedNodeObj.lang
+            + " | IG: " + updatedNodeObj.ignored
             + "\nFLWRs: " + updatedNodeObj.followersCount
             + " | FRNDs: " + updatedNodeObj.friendsCount
             + " | Ms: " + updatedNodeObj.mentions
             + " | Ts: " + updatedNodeObj.statusesCount
-            + " | CAT: M: " + updatedNodeObj.category + " | A: " + updatedNodeObj.categoryAuto
+            + " | CV: " + updatedNodeObj.categoryVerified
+            + " | CM: " + updatedNodeObj.category
+            + " | CA: " + updatedNodeObj.categoryAuto
           ));
         }
         if (updatedNodeObj.nodeType === "hashtag") {
@@ -5453,7 +5456,7 @@ function initSocketHandler(socketObj) {
     });
   });
 
-  socket.on("VIEWER_READY", function viewerReady(viewerObj) {
+  socket.on("VIEWER_READY", async function viewerReady(viewerObj) {
 
     const timeStamp = moment().valueOf();
 
@@ -5471,32 +5474,32 @@ function initSocketHandler(socketObj) {
       console.log(chalkError("WAS | *** userServerController OR dbConnection NOT READY ERROR"));
     }
     else{
-      userServerController.findOne({user: defaultTwitterUser}, function(err, user){
+      try{
+        const user = await global.globalUser.findOne({screenName: defaultTwitterUserScreenName});
 
-        if (err) {
-          console.log(chalkError("WAS | *** ERROR | VIEWER READY FIND USER"
-            + " | " + getTimeStamp(timeStamp)
-            + " | " + ipAddress
-            + " | " + socket.id
-            + " | " + viewerObj.viewerId
-            + " | ERROR: " + err
-          ));
+        if (user) {
+          socket.emit("SET_TWITTER_USER", {user: user, stats: statsObj.user });
         }
-        else {
 
-          if (user) {
-            socket.emit("SET_TWITTER_USER", {user: user, stats: statsObj.user });
+        socket.emit("VIEWER_READY_ACK", 
+          {
+            nodeId: viewerObj.viewerId,
+            timeStamp: moment().valueOf(),
+            viewerSessionKey: moment().valueOf()
           }
+        );
 
-          socket.emit("VIEWER_READY_ACK", 
-            {
-              nodeId: viewerObj.viewerId,
-              timeStamp: moment().valueOf(),
-              viewerSessionKey: moment().valueOf()
-            }
-          );
-        }
-      });
+      }
+      catch(err){
+        console.log(chalkError("WAS | *** ERROR | VIEWER READY FIND USER"
+          + " | " + getTimeStamp(timeStamp)
+          + " | " + ipAddress
+          + " | " + socket.id
+          + " | " + viewerObj.viewerId
+          + " | ERROR: " + err
+        ));
+      }
+
     }
 
   });

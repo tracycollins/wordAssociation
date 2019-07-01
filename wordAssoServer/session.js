@@ -130,10 +130,13 @@ var twitterUserThreecee = {
   name: "Tracy Collins",
   screenName: "threecee",
   nodeType: "user",
-  following: null,
+  threeceeFollowing: "altthreecee00",
+  following: true,
+  ignored: false,
   description: "photography + animation + design",
   isTwitterUser: true,
   screenNameLower: "threecee",
+  categoryVerified: true,
   category: "left"
 };
 

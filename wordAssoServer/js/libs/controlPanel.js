@@ -1074,6 +1074,8 @@ function ControlPanel() {
                   if (twttr && twttr.widgets){
                     clearInterval(waitTwitterWidgetsInterval);
                     twttr.widgets.load();              
+
+                    parentWindow.postMessage({op: "NODE_SEARCH", input: "@threecee"}, DEFAULT_SOURCE);
                   }
 
                 }, 100);
@@ -1081,6 +1083,7 @@ function ControlPanel() {
               }
               else {
                 twttr.widgets.load();              
+                parentWindow.postMessage({op: "NODE_SEARCH", input: "@threecee"}, DEFAULT_SOURCE);
               }
             }, 1000);
           }
@@ -1090,8 +1093,6 @@ function ControlPanel() {
 
         });
       }, 2000);
-
-      parentWindow.postMessage({op: "NODE_SEARCH", input: "@threecee"}, DEFAULT_SOURCE);
 
     });
   });

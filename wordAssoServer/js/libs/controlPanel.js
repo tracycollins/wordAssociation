@@ -349,7 +349,7 @@ function ControlPanel() {
 
       nodeName = (node.name !== undefined) ? node.name : "---";
 
-      categoryVerified = node.categoryVerified || "none";
+      categoryVerified = node.categoryVerified || false;
       category = node.category || "none";
       categoryAuto = node.categoryAuto || "none";
 

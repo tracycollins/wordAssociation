@@ -6619,8 +6619,6 @@ function updateUserSets(){
 
     userSearchCursor.on("end", function() {
 
-      // uncategorizedManualUserArray = [...uncategorizedManualUserSet];
-
       statsObj.user.matched = matchUserSet.size;
       statsObj.user.mismatched = mismatchUserSet.size;
 
@@ -6649,8 +6647,6 @@ function updateUserSets(){
 
     userSearchCursor.on("error", function(err) {
 
-      // uncategorizedManualUserArray = [...uncategorizedManualUserSet];
-
       statsObj.user.matched = matchUserSet.size;
       statsObj.user.mismatched = mismatchUserSet.size;
 
@@ -6678,8 +6674,6 @@ function updateUserSets(){
     });
 
     userSearchCursor.on("close", function() {
-
-      // uncategorizedManualUserArray = [...uncategorizedManualUserSet];
 
       statsObj.user.matched = matchUserSet.size;
       statsObj.user.mismatched = mismatchUserSet.size;
@@ -10592,9 +10586,24 @@ function processTwitterSearchNode(params) {
         }
 
         if (params.user.toObject && (typeof params.user.toObject === "function")) {
-          viewNameSpace.emit("SET_TWITTER_USER", { user: params.user.toObject(), stats: statsObj.user });
+          const u = params.user.toObject();
+          if (ignoredUserSet.has(u.nodeId)){
+            u.ignored = true;
+          }
+          if (followedUserSet.has(u.nodeId)){
+            u.following = true;
+            u.threeceeFollowing = "altthreecee00";
+          }
+          viewNameSpace.emit("SET_TWITTER_USER", { user: u, stats: statsObj.user });
         }
         else{
+          if (ignoredUserSet.has(params.user.nodeId)){
+            params.user.ignored = true;
+          }
+          if (followedUserSet.has(params.user.nodeId)){
+            params.user.following = true;
+            params.user.threeceeFollowing = "altthreecee00";
+          }
           viewNameSpace.emit("SET_TWITTER_USER", { user: params.user, stats: statsObj.user });
         }
 

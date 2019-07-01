@@ -492,7 +492,7 @@ function ControlPanel() {
             console.error("LOAD TWITTER FEED ERROR: " + err);
             return callback(err);
           }
-          callback(null);
+          callback();
         });
 
       });
@@ -530,7 +530,7 @@ function ControlPanel() {
 
       updateCategoryRadioButtons(node.category, function(){
         twitterHashtagSearch(node, function(){
-          callback(null);
+          callback();
         });
       });
     }

@@ -1083,13 +1083,15 @@ function ControlPanel() {
                 twttr.widgets.load();              
               }
             }, 1000);
-
           }
           else {
             console.error("PARENT WINDOW UNDEFINED??");
           }
+
         });
       }, 2000);
+
+      parentWindow.postMessage({op: "NODE_SEARCH", input: "@threecee"}, DEFAULT_SOURCE);
 
     });
   });

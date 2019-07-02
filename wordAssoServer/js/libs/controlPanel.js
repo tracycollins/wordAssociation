@@ -665,7 +665,6 @@ function ControlPanel() {
               currentButton.value = event.data.stats.mismatched.toString() + " | NEXT MISMATCH";
               console.debug("NEXT UNCAT MISMATCH | value: " + currentButton.value); 
             }
-
           }
 
           break;
@@ -712,7 +711,6 @@ function ControlPanel() {
             currentButton.value = event.data.stats.mismatched.toString() + " | NEXT MISMATCH";
             console.debug("NEXT UNCAT MISMATCH | value: " + currentButton.value); 
           }
-
         }
 
         if (event.data.nodeSearch) {
@@ -731,6 +729,7 @@ function ControlPanel() {
             }, 1000);
           }
         });
+
       break;
 
       case "SET_TWITTER_HASHTAG":

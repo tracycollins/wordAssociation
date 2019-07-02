@@ -10760,7 +10760,21 @@ function twitterSearchUser(params) {
 
 
         try {
-          const user = await twitterSearchUserNode({nodeId: searchUserId});
+          let user = await twitterSearchUserNode({nodeId: searchUserId});
+          if (
+               (searchMode === "MISMATCH") 
+            && user.category 
+            && (user.category !== undefined) 
+            && (user.category === user.categoryAuto) 
+            && (user.category !== "none")
+            && (searchUserArray.length > 0)
+            )
+          {
+            searchUserId = searchUserArray.shift();
+            mismatchUserSet.delete(searchUserId);
+            statsObj.user.mismatched = mismatchUserSet.size;
+            user = await twitterSearchUserNode({nodeId: searchUserId});
+          }
           await processTwitterSearchNode({searchNode: searchNode, user: user});
           return resolve();
         }

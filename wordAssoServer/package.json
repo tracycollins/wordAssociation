@@ -38,7 +38,7 @@
     "deepcopy": "^2.0.0",
     "deepmerge": "^3.3.0",
     "deepool": "^2.2.0",
-    "dropbox": "^4.0.27",
+    "dropbox": "^4.0.28",
     "dropbox-streaming-upload": "^1.0.4",
     "encodeurl": "^1.0.2",
     "es6-promise": "^4.2.8",
@@ -95,7 +95,7 @@
     "uniq": "^1.0.1",
     "update": "^0.7.4",
     "url-parse": "^1.4.7",
-    "write-json-file": "^4.1.0",
+    "write-json-file": "^4.1.1",
     "yamljs": "^0.3.0"
   },
   "devDependencies": {

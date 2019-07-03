@@ -936,6 +936,14 @@ function controlPanelComm(event) {
       socket.emit("TWITTER_CATEGORY_VERIFIED", event.data.user);
     break;
 
+    case "CAT UNVERIFIED" :
+      console.warn("R< CONTROL CATEGORY_UNVERIFIED"
+        + " | UID: " + event.data.user.nodeId
+        + " | @" + event.data.user.screenName
+      );
+      socket.emit("TWITTER_CATEGORY_UNVERIFIED", event.data.user);
+    break;
+
     case "IGNORE" :
       console.warn("R< CONTROL IGNORE"
         + " | UID: " + event.data.user.nodeId

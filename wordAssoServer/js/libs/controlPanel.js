@@ -947,7 +947,7 @@ function ControlPanel() {
         twitterControl.addBoolean("CAT VERIFIED", categoryVerified, function(data){
           console.debug("USER VERIFIED | " + twitterEntity.getValue("SCREENNAME") + " | categoryVerified: " + data);
           const op = (data) ? "CAT VERIFIED" : "CAT UNVERIFIED";
-          catVerifiedHandler("CAT VERIFIED");
+          catVerifiedHandler(op);
           // if (!loadingTwitterFeedFlag){
           //   parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
           // }

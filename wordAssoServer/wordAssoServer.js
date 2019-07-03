@@ -4228,9 +4228,19 @@ function categoryVerified(params) {
 
     if (params.user.screenName !== undefined){
 
-      console.log(chalk.blue("WAS | +++ CAT_VERFIED | @" + params.user.screenName));
+      console.log(chalk.blue("WAS | UPDATE CAT_VERFIED"
+        + " | @" + params.user.screenName
+        + " | CV: " + params.user.categoryVerified
+        + " | C: " + params.user.category
+        + " | CA: " + params.user.categoryAuto
+      ));
 
-      verifiedCategorizedUsersSet.add(params.user.screenName.toLowerCase());
+      if (params.user.categoryVerified) {
+        verifiedCategorizedUsersSet.add(params.user.screenName.toLowerCase());
+      }
+      else {
+        verifiedCategorizedUsersSet.delete(params.user.screenName.toLowerCase());
+      }
 
       try{
 
@@ -4241,12 +4251,12 @@ function categoryVerified(params) {
           return reject(new Error("USER NOT FOUND"));
         }
 
-        dbUser.categoryVerified = true;
+        dbUser.categoryVerified = params.user.categoryVerified;
 
         const dbUpdatedUser = await dbUser.save();
 
         printUserObj(
-          "+++ USER | VERIFIED",
+          "UPDATE DB USER | CAT VERIFIED",
           dbUpdatedUser, 
           chalkLog
         );
@@ -5264,6 +5274,8 @@ function initSocketHandler(socketObj) {
 
     try{
 
+      user.categoryVerified = true;
+
       const updatedUser = await categoryVerified({user: user});
 
       if (!updatedUser) { return; }
@@ -5280,7 +5292,42 @@ function initSocketHandler(socketObj) {
     catch(err){
       console.log(chalkError("WAS | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
     }
+  });
 
+  socket.on("TWITTER_CATEGORY_UNVERIFIED", async function twitterIgnore(user) {
+
+    const timeStamp = moment().valueOf();
+
+    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
+    console.log(chalkSocket("R< TWITTER_CATEGORY_UNVERIFIED"
+      + " | " + getTimeStamp(timeStamp)
+      + " | " + ipAddress
+      + " | " + socket.id
+      + " | UID: " + user.userId
+      + " | @" + user.screenName
+    ));
+
+    try{
+
+      user.categoryVerified = false;
+
+      const updatedUser = await categoryVerified({user: user});
+
+      if (!updatedUser) { return; }
+
+      adminNameSpace.emit("CAT_UNVERFIED", updatedUser);
+      utilNameSpace.emit("CAT_UNVERFIED", updatedUser);
+
+      console.log(chalk.blue("WAS | --- TWITTER_CATEGORY_UNVERIFIED"
+        + " | SID: " + socket.id
+        + " | UID" + updatedUser.nodeId
+        + " | @" + updatedUser.screenName
+      ));
+    }
+    catch(err){
+      console.log(chalkError("WAS | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
+    }
   });
 
   socket.on("TWITTER_IGNORE", function twitterIgnore(user) {

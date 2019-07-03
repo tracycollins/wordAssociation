@@ -10716,6 +10716,7 @@ function getNextMismatchedUser(params){
             && user.category 
             && (user.category !== undefined) 
             && (user.category !== "none")
+            && !user.categoryVerified
             && (user.category === user.categoryAuto) 
             && (params.searchUserArray.length > 0)
             )

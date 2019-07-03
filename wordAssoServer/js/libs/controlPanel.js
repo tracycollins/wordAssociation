@@ -960,7 +960,7 @@ function ControlPanel() {
         twitterControl.addElement("CATEGORY MAN", radioUserCategoryDiv);
 
         twitterControl.addButton("CAT VERIFY", function(){
-          catVerifiedHandler("CAT VERIFY");
+          catVerifiedHandler("CAT VERIFIED");
         });
         twitterControl.addButton("NEXT UNCAT ALL", function(){
           nextUncatHandler("NEXT UNCAT ALL");

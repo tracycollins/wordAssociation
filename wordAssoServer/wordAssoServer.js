@@ -10711,12 +10711,19 @@ function getNextMismatchedUser(params){
             return;
           }
 
-          if (
-            user 
+          if (user && user.categoryVerified){
+            printUserObj("WAS | ... SKIP MM USER", user);
+            searchUserId = params.searchUserArray.shift();
+            mismatchUserSet.delete(searchUserId);
+            statsObj.user.mismatched = mismatchUserSet.size;
+            notFoundAndMore = true;
+            return;
+          }
+
+          if ( user 
             && user.category 
             && (user.category !== undefined) 
             && (user.category !== "none")
-            && !user.categoryVerified
             && (user.category === user.categoryAuto) 
             && (params.searchUserArray.length > 0)
             )

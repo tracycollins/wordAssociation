@@ -4234,10 +4234,10 @@ function categoryVerified(params) {
 
       try{
 
-        const dbUser = await global.globalUser.findOne({screenName: params.user.screenName});
+        const dbUser = await global.globalUser.findOne({screenName: params.user.screenName.toLowerCase()});
 
         if (!dbUser || dbUser === undefined) {
-          console.log(chalkAlert("WAS | ??? UPDATE VERIFIED | USER NOT FOUND: " + params.user.screenName));
+          console.log(chalkAlert("WAS | ??? UPDATE VERIFIED | USER NOT FOUND: " + params.user.screenName.toLowerCase()));
           return reject(new Error("USER NOT FOUND"));
         }
 
@@ -4547,10 +4547,10 @@ function updateDbVerifiedUsers(){
 
         try {
 
-          const dbUser = await global.globalUser.findOne({screenName: screenName});
+          const dbUser = await global.globalUser.findOne({screenName: screenName.toLowerCase()});
 
           if (!dbUser || dbUser === undefined) {
-            console.log(chalkAlert("WAS | ??? UPDATE VERIFIED | USER NOT FOUND: " + screenName));
+            console.log(chalkAlert("WAS | ??? UPDATE VERIFIED | USER NOT FOUND: " + screenName.toLowerCase()));
             return;
           }
 
@@ -6594,14 +6594,14 @@ function updateUserSets(){
 
             if (!mismatchUserSet.has(user.nodeId) && (user.category !== user.categoryAuto)) {
 
-              if (!configuration.filterVerifiedUsers || !verifiedCategorizedUsersSet.has(user.screenName)){
+              if (!configuration.filterVerifiedUsers || !verifiedCategorizedUsersSet.has(user.screenName.toLowerCase())){
                 mismatchUserSet.add(user.nodeId);
               }
 
               matchUserSet.delete(user.nodeId); 
 
               if (mismatchUserSet.size % 100 === 0) {
-                printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "] | VCU: " + verifiedCategorizedUsersSet.has(user.screenName), user);
+                printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "] | VCU: " + verifiedCategorizedUsersSet.has(user.screenName.toLowerCase()), user);
               }
             }
 
@@ -10631,6 +10631,81 @@ function processTwitterSearchNode(params) {
   });
 }
 
+function getNextMismatchedUser(params){
+
+  return new Promise(async function(resolve, reject){
+
+    if (params.searchUserArray.length === 0){
+      return resolve();
+    }
+
+    let notFoundAndMore = true;
+    let searchUserId;
+
+    async.whilst(
+
+      function test(cbTest) {
+        cbTest(null, notFoundAndMore);
+      },
+
+      async function(){
+
+        try {
+
+          searchUserId = params.searchUserArray.shift();
+
+          const user = await twitterSearchUserNode({nodeId: searchUserId});
+
+          if (!user || user === undefined){
+            if (params.searchUserArray.length > 0) {
+              notFoundAndMore = true;
+            }
+            console.log(chalkAlert("WAS | ??? MM USER NOT FOUND | " + searchUserId));
+            return;
+          }
+
+          if (
+            user 
+            && user.category 
+            && (user.category !== undefined) 
+            && (user.category !== "none")
+            && (user.category === user.categoryAuto) 
+            && (params.searchUserArray.length > 0)
+            )
+          {
+            printUserObj("WAS | ... SKIP MM USER", user);
+            searchUserId = params.searchUserArray.shift();
+            mismatchUserSet.delete(searchUserId);
+            statsObj.user.mismatched = mismatchUserSet.size;
+            notFoundAndMore = true;
+            return;
+          }
+
+          printUserObj("WAS | --> MM USER", user);
+          await processTwitterSearchNode({searchNode: params.searchNode, user: user});
+          notFoundAndMore = false;
+          return;
+        }
+        catch(err){
+          return err;
+        }
+
+      },
+
+      function(err){
+        if (err) {
+          console.log(chalkError("WAS | *** getNextMismatchedUser ERROR: " + err + "\n" + jsonPrint(err)));
+          return reject(err);
+        }
+        
+        resolve();
+      }
+    );
+
+
+  });
+}
+
 
 function twitterSearchUser(params) {
 
@@ -10760,23 +10835,28 @@ function twitterSearchUser(params) {
 
 
         try {
-          let user = await twitterSearchUserNode({nodeId: searchUserId});
-          if (
-               (searchMode === "MISMATCH") 
-            && user.category 
-            && (user.category !== undefined) 
-            && (user.category === user.categoryAuto) 
-            && (user.category !== "none")
-            && (searchUserArray.length > 0)
-            )
-          {
-            searchUserId = searchUserArray.shift();
-            mismatchUserSet.delete(searchUserId);
-            statsObj.user.mismatched = mismatchUserSet.size;
-            user = await twitterSearchUserNode({nodeId: searchUserId});
-          }
-          await processTwitterSearchNode({searchNode: searchNode, user: user});
+
+          // let user = await twitterSearchUserNode({nodeId: searchUserId});
+          // if (
+          //      (searchMode === "MISMATCH") 
+          //   && user.category 
+          //   && (user.category !== undefined) 
+          //   && (user.category === user.categoryAuto) 
+          //   && (user.category !== "none")
+          //   && (searchUserArray.length > 0)
+          //   )
+          // {
+          //   searchUserId = searchUserArray.shift();
+          //   mismatchUserSet.delete(searchUserId);
+          //   statsObj.user.mismatched = mismatchUserSet.size;
+          //   user = await twitterSearchUserNode({nodeId: searchUserId});
+          // }
+          // await processTwitterSearchNode({searchNode: searchNode, user: user});
+          // return resolve();
+
+          await getNextMismatchedUser({searchNode: searchNode, searchUserArray: searchUserArray});
           return resolve();
+
         }
         catch(err){
           console.log(chalkError("WAS | *** TWITTER_SEARCH_NODE ERROR"

@@ -269,7 +269,7 @@ function ControlPanel() {
     eventDetected = true;
 
     document.getElementById(op).style.background='#0000ff';
-    if (parentWindow) { parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE); }
+    if (parentWindow && !loadingTwitterFeedFlag) { parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE); }
 
     setTimeout(function(){
       eventDetected = false;
@@ -286,7 +286,7 @@ function ControlPanel() {
     eventDetected = true;
 
     document.getElementById(op).style.background='#0000ff';
-    if (parentWindow) { parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE); }
+    if (parentWindow && !loadingTwitterFeedFlag) { parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE); }
 
     setTimeout(function(){
       eventDetected = false;
@@ -854,7 +854,9 @@ function ControlPanel() {
 		}
 		cb.checked = true;
     cb.style.backgroundColor = "blue";
-    parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: cb.name}, DEFAULT_SOURCE);
+    if (!loadingTwitterFeedFlag){
+      parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: cb.name}, DEFAULT_SOURCE);
+    }
   }
 
   function createRangeInput(params){

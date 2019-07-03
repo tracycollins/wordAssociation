@@ -948,9 +948,9 @@ function ControlPanel() {
           console.debug("USER VERIFIED | " + twitterEntity.getValue("SCREENNAME") + " | categoryVerified: " + data);
           const op = (data) ? "CAT VERIFIED" : "CAT UNVERIFIED";
           catVerifiedHandler("CAT VERIFIED");
-          if (!loadingTwitterFeedFlag){
-            parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
-          }
+          // if (!loadingTwitterFeedFlag){
+          //   parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
+          // }
         });
 
         twitterFeedUser.categoryAuto = twitterFeedUser.categoryAuto || "none";

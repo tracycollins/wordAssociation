@@ -45,6 +45,7 @@ function ControlPanel() {
   var twitterFeedPreviousUser = {};
   var twitterFeedHashtag = {};
   var twitterFeedPreviousHashtag = {};
+  var loadingTwitterFeedFlag = false;
 
   var nodeTypesSet = new Set();
   nodeTypesSet.add("emoji");
@@ -345,8 +346,6 @@ function ControlPanel() {
     }
     else {
 
-      // twitterFeedPreviousUser = node;
-
       nodeName = (node.name !== undefined) ? node.name : "---";
 
       categoryVerified = node.categoryVerified || false;
@@ -416,6 +415,8 @@ function ControlPanel() {
       return callback("loadTwitterFeed: twitterTimeLineDiv OR twttr UNDEFINED");
     }
 
+    loadingTwitterFeedFlag = true;
+
     twitterTimeLineDiv.removeAll();
 
     node.categoryAuto = node.categoryAuto || "none";
@@ -445,7 +446,6 @@ function ControlPanel() {
         twitterFeedUser.bannerImageUrl = DEFAULT_TWITTER_IMAGE;
       }
       twitterEntity.setValue("BANNER IMAGE", twitterFeedUser.bannerImageUrl.replace("_normal", ""));
-
 
       const ageMs = moment().diff(node.createdAt);
       const tweetsPerDay = ONE_DAY * (node.statusesCount/ageMs);
@@ -488,6 +488,9 @@ function ControlPanel() {
       updateCategoryRadioButtons(node.category, function(){
 
         twitterWidgetsCreateTimeline(node, function(err, el){
+
+          loadingTwitterFeedFlag = false;
+
           if (err){
             console.error("LOAD TWITTER FEED ERROR: " + err);
             return callback(err);
@@ -496,7 +499,6 @@ function ControlPanel() {
         });
 
       });
-
     }
     else if (node.nodeType === "hashtag"){
 
@@ -530,11 +532,13 @@ function ControlPanel() {
 
       updateCategoryRadioButtons(node.category, function(){
         twitterHashtagSearch(node, function(){
+          loadingTwitterFeedFlag = false;
           callback();
         });
       });
     }
     else {
+      loadingTwitterFeedFlag = false;
       callback("ILLEGAL NODE TYPE: " + node.nodeType);
     }
   }
@@ -938,7 +942,9 @@ function ControlPanel() {
           console.debug("USER VERIFIED | " + twitterEntity.getValue("SCREENNAME") + " | categoryVerified: " + data);
           const op = (data) ? "CAT VERIFIED" : "CAT UNVERIFIED";
           catVerifiedHandler("CAT VERIFIED");
-          parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
+          if (!loadingTwitterFeedFlag){
+            parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
+          }
         });
 
         twitterFeedUser.categoryAuto = twitterFeedUser.categoryAuto || "none";

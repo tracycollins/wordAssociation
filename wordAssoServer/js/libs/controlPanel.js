@@ -918,7 +918,9 @@ function ControlPanel() {
         twitterControl.addBoolean("FOLLOWING", following, function(data){
           console.debug("USER FOLLOWING | " + twitterEntity.getValue("SCREENNAME") + " | FOLLOWING: " + data);
           const op = (data) ? "FOLLOW" : "UNFOLLOW";
-          parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
+          if (!loadingTwitterFeedFlag){
+            parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
+          }
         });
 
         let ignored = false;
@@ -930,7 +932,9 @@ function ControlPanel() {
           // console.debug("USER IGNORED | " + twitterEntity.getValue("SCREENNAME") + " | IGNORED: " + data);
           console.debug("NODE IGNORED | " + twitterEntity.getValue("SCREENNAME") + " | IGNORED: " + data);
           const op = (data) ? "IGNORE" : "UNIGNORE";
-          parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
+          if (!loadingTwitterFeedFlag){
+            parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
+          }
         });
 
         let categoryVerified = false;

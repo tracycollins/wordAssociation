@@ -592,7 +592,7 @@ const userAutoNegativeSet = new Set();
 const userAutoNoneSet = new Set();
 
 const verifiedCategorizedUsersFile = "verifiedCategorizedUsers.txt";
-const ignoredHashtagFile = "ignoredHashtag.json";
+const ignoredHashtagFile = "ignoredHashtag.txt";
 const ignoredUserFile = "ignoredUser.json";
 const unfollowableUserFile = "unfollowableUser.json";
 const followableSearchTermFile = "followableSearchTerm.txt";
@@ -736,7 +736,7 @@ const defaultTwitterUserScreenName = "threecee";
 const followedUserSet = new Set();
 let unfollowableUserSet = new Set();
 let ignoredUserSet = new Set();
-const ignoredHashtagSet = new Set();
+let ignoredHashtagSet = new Set();
 
 process.title = "node_wordAssoServer";
 console.log(chalkBlue("\n\nWAS | ============== START ==============\n\n"));
@@ -4388,6 +4388,61 @@ function unfollow(params, callback) {
   });
 }
 
+function updateDbIgnoredHashtags(){
+
+  statsObj.status = "UPDATE IGNORED HASHTAGS IN DB";
+
+  console.log(chalkBlue("WAS | UPDATE IGNORED HASHTAGS DB" 
+  ));
+
+  return new Promise(async function(resolve, reject) {
+
+    async.forEachSeries([...ignoredHashtagSet], async function(hashtag){
+
+      try {
+
+        const dbHashtag = await global.globalHashtag.findOne({nodeId: hashtag.toLowerCase()});
+
+        if (!dbHashtag || dbHashtag === undefined) {
+          console.log(chalkAlert("WAS | ??? UPDATE IGNORED | HASHTAG NOT FOUND: " + hashtag.toLowerCase()));
+          return;
+        }
+
+        dbHashtag.ignored = true;
+
+        const dbUpdatedHashtag = await dbHashtag.save();
+
+        console.log(chalkLog("WAS | XXX IGNORE"
+          + " [" + ignoredHashtagSet.size + "]"
+          + " | " + printHashtag({hashtag: dbUpdatedHashtag})
+        ));
+
+        return;
+
+     }
+      catch(err){
+        console.log(chalkError("WAS | *** UPDATE IGNORED HASHTAG DB ERROR: " + err));
+        return err;
+      }
+
+    }, function(err){
+
+      if (err){
+        return reject(err);
+      }
+
+      console.log(chalkLog("WAS | UPDATED IGNORED HASHTAGS DB"
+        + " | " + ignoredHashtagSet.size + " HASHTAGS"
+      ));
+
+      resolve();
+
+    });
+
+  });
+}
+
+
 function initIgnoredHashtagSet(){
 
   statsObj.status = "INIT IGNORE HASHTAG SET";
@@ -4398,92 +4453,25 @@ function initIgnoredHashtagSet(){
 
 
     try{
-      const ignoredHashtagSetObj = await loadFileRetry({folder: dropboxConfigDefaultFolder, file: ignoredHashtagFile});
 
-      if (!ignoredHashtagSetObj || ignoredHashtagSetObj === undefined) {
-        console.log(chalkAlert("WAS | ??? LOAD IGNORED HASHTAGS EMPTY SET???"));
-        return resolve();
+      const result = await initSetFromFile({folder: dropboxConfigDefaultFolder, file: ignoredHashtagFile, resolveOnNotFound: true});
+
+      if (result) {
+        ignoredHashtagSet = result;
+        ignoredHashtagSet.delete("");
+        ignoredHashtagSet.delete(" ");
+        updateDbIgnoredHashtags();
       }
 
       console.log(chalkLog("WAS | LOADED IGNORED HASHTAGS FILE"
-        + " | " + ignoredHashtagSetObj.hashtagIds.length + " HASHTAGS"
+        + " | " + ignoredHashtagSet.size + " HASHTAGS"
         + " | " + dropboxConfigDefaultFolder + "/" + ignoredHashtagFile
       ));
 
-      let query;
-      let update;
-      let numIgnored = 0;
-      let numAlreadyIgnored = 0;
-
-      ignoredHashtagSet.clear();
-
-      async.eachSeries(ignoredHashtagSetObj.hashtagIds, async function(hashtagId){
-
-        ignoredHashtagSet.add(hashtagId);
-
-        query = { nodeId: hashtagId, ignored: {"$in": [false, "false", null]} };
-
-        update = {};
-        update.$set = { ignored: true, following: false, threeceeFollowing: false };
-
-        const options = {
-          new: true,
-          returnOriginal: false,
-          upsert: false
-        };
-
-        try {
-
-          const hashtagUpdated = await global.globalHashtag.findOneAndUpdate(query, update, options);
-
-          if (hashtagUpdated && (hashtagUpdated !== undefined)){
-
-            numIgnored += 1;
-            console.log(chalkLog("WAS | XXX IGNORE"
-              + " [" + numIgnored + "/" + numAlreadyIgnored + "/" + ignoredHashtagSetObj.hashtagIds.length + "]"
-              + " | " + printHashtag({hashtag: hashtagUpdated})
-            ));
-
-            return;
-          }
-
-          numAlreadyIgnored += 1;
-          console.log(chalkLog("WAS | ... ALREADY IGNORED"
-            + " [" + numIgnored + "/" + numAlreadyIgnored + "/" + ignoredHashtagSetObj.hashtagIds.length + "]"
-            + " | ID: " + hashtagId
-          ));
-          return;
-
-        }
-        catch(err){
-          console.log(chalkError("WAS | *** initIgnoredHashtagSet | HASHTAG FIND ONE ERROR: " + err));
-          return err;
-        }
-          
-      }, function(err){
-
-        if (err) {
-          return reject(err);
-        }
-        console.log(chalkBlue("WAS | INIT IGNORED HASHTAGS"
-          + " | " + numIgnored + " NEW IGNORED"
-          + " | " + numAlreadyIgnored + " ALREADY IGNORED"
-          + " | " + ignoredHashtagSet.size + " HASHTAGS IN SET"
-          + " | " + ignoredHashtagSetObj.hashtagIds.length + " HASHTAGS IN FILE"
-          + " | " + dropboxConfigDefaultFolder + "/" + ignoredHashtagFile
-        ));
-        resolve();
-      });
+      resolve();
 
     }
     catch(err){
-      if ((err.code === "ENOTFOUND") || (err.status === 409)) {
-        console.log(chalkError("WAS | *** LOAD IGNORED HASHTAGS ERROR: FILE NOT FOUND:  " 
-          + dropboxConfigDefaultFolder + "/" + ignoredHashtagFile
-        ));
-        return resolve();
-      }
-      
       console.log(chalkError("WAS | *** LOAD IGNORED HASHTAGS ERROR: " + err));
       return reject(err);
     }

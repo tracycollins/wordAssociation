@@ -4497,7 +4497,7 @@ function initSetFromFile(params){
         ));
 
         if (params.errorOnNoItems) {
-          return reject(new Error("NO ITEMS IN FILE: " + params.folder + "/" + params.file));
+          return reject(new Error("NO ITEMS IN FILE: " + params.folder + "/" + params.file)); 
         }
         return resolve();
       }

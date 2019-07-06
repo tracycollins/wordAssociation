@@ -14,7 +14,7 @@ const TWITTER_MAX_TRACKING_NUMBER = 400;
 
 const DROPBOX_DEFAULT_CONFIG_FOLDER = "/config/utility/default";
 const DROPBOX_DEFAULT_SEARCH_TERMS_DIR = "/config/utility/default";
-const DROPBOX_DEFAULT_SEARCH_TERMS_FILE = "defaultSearchTerms.txt";
+const DROPBOX_DEFAULT_SEARCH_TERMS_FILE = "followableSearchTerm.txt";
 
 const ONE_SECOND = 1000;
 const ONE_MINUTE = ONE_SECOND*60;

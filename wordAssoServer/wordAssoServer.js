@@ -7241,11 +7241,6 @@ function initAppRouting(callback) {
                   return;
                 }
 
-                if (entry.path_lower.endsWith("defaultsearchterms.txt")){
-                  await updateSearchTerms();
-                  return;
-                }
-
                 if (entry.path_lower.endsWith(ignoredHashtagFile.toLowerCase())){
                   await initIgnoredHashtagSet();
                   return;
@@ -7263,6 +7258,8 @@ function initAppRouting(callback) {
 
                 if (entry.path_lower.endsWith("followablesearchterm.txt")){
                   await initFollowableSearchTermSet();
+                  tssSendAllChildren({op: "UPDATE_SEARCH_TERMS"});
+                  return;
                 }
 
                 if ((entry.path_lower.endsWith("google_twittersearchstreamconfig.json"))
@@ -8189,11 +8186,11 @@ function unfollowDuplicates(params){
   });
 }
 
-function updateSearchTerms(){
-  console.log(chalk.green("WAS | WAS | UPDATE SEARCH TERMS"));
+// function updateSearchTerms(){
+//   console.log(chalk.green("WAS | WAS | UPDATE SEARCH TERMS"));
 
-  tssSendAllChildren({op: "UPDATE_SEARCH_TERMS"});
-}
+//   tssSendAllChildren({op: "UPDATE_SEARCH_TERMS"});
+// }
 
 async function allowLocations(){
   console.log(chalk.green("WAS | WAS | UPDATE ALLOW LOCATIONS"));

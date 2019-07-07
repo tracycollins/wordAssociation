@@ -10696,7 +10696,13 @@ function getNextMismatchedUser(params){
             return;
           }
 
-          if (user && user.categoryVerified){
+          if ( user 
+            && user.category 
+            && (user.category !== undefined) 
+            && (user.category !== "none")
+            && user.categoryVerified
+            && (params.searchUserArray.length > 0)
+          ){
             printUserObj("WAS | ... SKIP MM USER", user);
             searchUserId = params.searchUserArray.shift();
             mismatchUserSet.delete(searchUserId);

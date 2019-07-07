@@ -10573,8 +10573,8 @@ function twitterSearchUserNode(searchQuery){
     }
     catch(err){
       console.log(chalkError("WAS | *** TWITTER SEARCH NODE USER ERROR"
-        + "searchQuery\n" + jsonPrint(searchQuery)
-        + "ERROR\n" + jsonPrint(err)
+        + "\nsearchQuery\n" + jsonPrint(searchQuery)
+        + "ERROR", err
       ));
       return reject(err);
     }
@@ -10876,24 +10876,6 @@ function twitterSearchUser(params) {
 
         try {
 
-          // let user = await twitterSearchUserNode({nodeId: searchUserId});
-          // if (
-          //      (searchMode === "MISMATCH") 
-          //   && user.category 
-          //   && (user.category !== undefined) 
-          //   && (user.category === user.categoryAuto) 
-          //   && (user.category !== "none")
-          //   && (searchUserArray.length > 0)
-          //   )
-          // {
-          //   searchUserId = searchUserArray.shift();
-          //   mismatchUserSet.delete(searchUserId);
-          //   statsObj.user.mismatched = mismatchUserSet.size;
-          //   user = await twitterSearchUserNode({nodeId: searchUserId});
-          // }
-          // await processTwitterSearchNode({searchNode: searchNode, user: user});
-          // return resolve();
-
           await getNextMismatchedUser({searchNode: searchNode, searchUserArray: searchUserArray});
           return resolve();
 
@@ -10918,7 +10900,7 @@ function twitterSearchUser(params) {
 
       try {
 
-        const user = await twitterSearchUserNode(searchNodeUser);
+        const user = await twitterSearchUserNode({screenName: searchNodeUser.screenName});
         await processTwitterSearchNode({searchNode: searchNode, user: user});
         return resolve();
       }

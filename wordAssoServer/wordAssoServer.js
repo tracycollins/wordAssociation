@@ -10844,8 +10844,6 @@ function twitterSearchUser(params) {
           return resolve();
         }
 
-        // searchUserId = searchUserArray.shift();
-
         switch (searchMode) {
           case "MISMATCH":
 
@@ -10871,8 +10869,6 @@ function twitterSearchUser(params) {
               return reject(err);
             }
 
-            // mismatchUserSet.delete(searchUserId);
-            // statsObj.user.mismatched = mismatchUserSet.size;
           break;
           case "UNCAT":
             searchUserId = searchUserArray.shift();

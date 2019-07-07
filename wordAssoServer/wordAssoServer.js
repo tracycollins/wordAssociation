@@ -10666,28 +10666,6 @@ function getNextMismatchedUser(params){
 
   return new Promise(async function(resolve, reject){
 
-    // if (params.searchUserArray.length === 0){
-
-    //   statsObj.user.mismatched = mismatchUserSet.size;
-
-    //   console.log(chalkLog("WAS | --- TWITTER_SEARCH_NODE | NO USERS FOUND"
-    //     + " | " + getTimeStamp()
-    //     + " | MODE: " + searchMode
-    //     + " [ SEARCH USER ARRAY: " + searchUserArray.length + "]"
-    //   ));
-
-    //   const message = {};
-      
-    //   message.user = {};
-    //   message.user.notFound = true;
-    //   message.searchNode = searchNode;
-    //   message.stats = statsObj.user;
-
-    //   viewNameSpace.emit("TWITTER_SEARCH_NODE_EMPTY_QUEUE", message);
-
-    //   return resolve();
-    // }
-
     let notFoundAndMore = true;
     let searchUserId;
 
@@ -10708,6 +10686,8 @@ function getNextMismatchedUser(params){
           }
 
           searchUserId = params.searchUserArray.shift();
+          mismatchUserSet.delete(searchUserId);
+          statsObj.user.mismatched = mismatchUserSet.size;
 
           const user = await twitterSearchUserNode({nodeId: searchUserId});
 
@@ -10934,26 +10914,6 @@ function twitterSearchUser(params) {
         await processTwitterSearchNode({searchNode: searchNode, user: user});
         return resolve();
 
-        // try {
-
-        //   await getNextMismatchedUser({searchNode: searchNode, searchUserArray: searchUserArray});
-        //   return resolve();
-
-        // }
-        // catch(err){
-        //   console.log(chalkError("WAS | *** TWITTER_SEARCH_NODE ERROR"
-        //     + " [ UC USER ARRAY: " + searchUserArray.length + "]"
-        //     + " | " + getTimeStamp()
-        //     + " | SEARCH UNCATEGORIZED USER"
-        //     + " | UID: " + searchUserId
-        //     + " | ERROR: " + err
-        //   ));
-
-        //   viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", { searchNode: searchNode, stats: statsObj.user });
-        //   uncategorizedManualUserSet.delete(searchUserId);
-        //   ignoredUserSet.add(searchUserId);
-        //   return reject(err);
-        // }
       }      
 
       console.log(chalkInfo("WAS | SEARCH FOR SPECIFIC USER | @" + searchNodeUser.screenName));

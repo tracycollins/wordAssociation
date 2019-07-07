@@ -10929,6 +10929,10 @@ function twitterSearchUser(params) {
           + " | USER NID: " + searchUserId
         ));
 
+        const user = await twitterSearchUserNode({nodeId: searchUserId});
+
+        await processTwitterSearchNode({searchNode: searchNode, user: user});
+        return resolve();
 
         // try {
 
@@ -10952,7 +10956,7 @@ function twitterSearchUser(params) {
         // }
       }      
 
-      console.log(chalkInfo("WAS | SEARCH FOR SPECIFIC USER | " + jsonPrint(searchNodeUser)));
+      console.log(chalkInfo("WAS | SEARCH FOR SPECIFIC USER | @" + searchNodeUser.screenName));
 
       try {
 

@@ -980,7 +980,8 @@ const trainingSetsUsersFolder = dropboxConfigDefaultTrainingSetsFolder + "/users
 const trainingSetsUsersFolderLocal = (hostname === "google") 
   ? "/home/tc/Dropbox/Apps/wordAssociation/config/utility/default/trainingSets/users" 
   : "/Users/tc/Dropbox/Apps/wordAssociation/config/utility/default/trainingSets/users";
-const usersZipUpdateFlagFile = trainingSetsUsersFolderLocal + "/usersZipUpdateFlag.txt";
+  
+// const usersZipUpdateFlagFile = trainingSetsUsersFolderLocal + "/usersZipUpdateFlag.txt";
 const statsFolder = "/stats/" + hostname;
 const statsFile = "wordAssoServerStats_" + moment().format(tinyDateTimeFormat) + ".json";
 const testDataFolder = dropboxConfigDefaultFolder + "/test/testData/tweets";
@@ -6997,14 +6998,14 @@ function logHeartbeat() {
 
 let dropboxFolderGetLastestCursorReady = true;
 
-function touchUsersZipUpdateFlag(){
+// function touchUsersZipUpdateFlag(){
 
-  return new Promise(function(resolve){
-    console.log(chalkLog("WAS | TOUCH FILE: " + usersZipUpdateFlagFile));
-    touch.sync(usersZipUpdateFlagFile, { force: true });
-    resolve();
-  });
-}
+//   return new Promise(function(resolve){
+//     console.log(chalkLog("WAS | TOUCH FILE: " + usersZipUpdateFlagFile));
+//     touch.sync(usersZipUpdateFlagFile, { force: true });
+//     resolve();
+//   });
+// }
 
 function initAppRouting(callback) {
 
@@ -7208,10 +7209,10 @@ function initAppRouting(callback) {
                   return;
                 }
 
-                if (entry.path_lower.endsWith("users.zip")){
-                  await touchUsersZipUpdateFlag();
-                  return;
-                }
+                // if (entry.path_lower.endsWith("users.zip")){
+                //   await touchUsersZipUpdateFlag();
+                //   return;
+                // }
 
                 if (entry.path_lower.endsWith(bestRuntimeNetworkFileName.toLowerCase())){
                   await loadBestRuntimeNetwork();

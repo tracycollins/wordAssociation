@@ -58,7 +58,7 @@
     "mocha": "^6.1.4",
     "moment": "^2.24.0",
     "mongodb-core": "^3.2.7",
-    "mongoose": "^5.6.3",
+    "mongoose": "^5.6.4",
     "multer": "^1.4.1",
     "neataptic": "^1.4.7",
     "node-cache": "^4.2.0",

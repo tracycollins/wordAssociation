@@ -962,6 +962,9 @@ function ControlPanel() {
         twitterControl.addButton("CAT VERIFY", function(){
           catVerifiedHandler("CAT VERIFIED");
         });
+        twitterControl.addButton("IGNORE", function(){
+          ignoreHandler("IGNORE");
+        });
         twitterControl.addButton("NEXT UNCAT ALL", function(){
           nextUncatHandler("NEXT UNCAT ALL");
         });
@@ -976,9 +979,6 @@ function ControlPanel() {
         });
         twitterControl.addButton("NEXT MISMATCH", function(){
           nextMismatchHandler("NEXT MISMATCH");
-        });
-        twitterControl.addButton("IGNORE", function(){
-          ignoreHandler("IGNORE");
         });
         twitterControl.addButton("UNIGNORE", function(){
           ignoreHandler("UNIGNORE");

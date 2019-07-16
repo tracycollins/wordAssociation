@@ -285,12 +285,12 @@ function ControlPanel() {
     }
     eventDetected = true;
 
-    document.getElementById("CAT VERIFY").style.background='#0000ff';
+    // document.getElementById("CAT VERIFY").style.background='#0000ff';
     if (parentWindow && !loadingTwitterFeedFlag) { parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE); }
 
     setTimeout(function(){
       eventDetected = false;
-      document.getElementById("CAT VERIFY").style.background='#ffffff';
+      // document.getElementById("CAT VERIFY").style.background='#ffffff';
     }, 100);
 
   };
@@ -960,8 +960,13 @@ function ControlPanel() {
         twitterControl.addElement("CATEGORY MAN", radioUserCategoryDiv);
 
         twitterControl.addButton("CAT VERIFY", function(){
+          document.getElementById("CAT VERIFY").style.background='#0000ff';
           catVerifiedHandler("CAT VERIFIED");
+          setTimeout(function(){
+            document.getElementById("CAT VERIFY").style.background='#ffffff';
+          }, 100);
         });
+
         twitterControl.addButton("IGNORE", function(){
           ignoreHandler("IGNORE");
         });

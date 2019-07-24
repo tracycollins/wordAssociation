@@ -2709,7 +2709,6 @@ function initUserCategorizeQueueInterval(cnf){
   let dbUser;
   let matchFlag = false;
   let chalkType = chalkLog;
-  let messageObj;
 
   userCategorizeQueueInterval = setInterval(async function(){
 
@@ -2775,10 +2774,7 @@ function initUserCategorizeQueueInterval(cnf){
           expectedCategory: activateResults.user.category
         });
 
-        messageObj.op = "NETWORK_STATS";
-        messageObj.stats = currentBestNetworkStats;
-
-        process.send(messageObj);
+        process.send({op: "NETWORK_STATS", stats: currentBestNetworkStats});
 
         userCategorizeQueueReady = false;
       }

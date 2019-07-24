@@ -2789,7 +2789,7 @@ function initUserCategorizeQueueInterval(cnf){
         && (updatedUser.category !== undefined) 
         && (updatedUser.category !== false) 
         && (updatedUser.category !== "false") 
-        && (updatedUser.category === activateResults.networkOutput.output);
+        && (updatedUser.category === activateResults.categoryAuto);
 
       if (!updatedUser.category || updatedUser.category === undefined) {
         chalkType = chalkLog;
@@ -2810,7 +2810,7 @@ function initUserCategorizeQueueInterval(cnf){
       updatedUser.lastHistogramTweetId = updatedUser.statusId;
       updatedUser.lastHistogramQuoteId = updatedUser.quotedStatusId;
 
-      if (updatedUser.priorityFlag || (updatedUser.categoryAuto !== networkOutput.output)) {
+      if (updatedUser.priorityFlag || (updatedUser.categoryAuto !== activateResults.categoryAuto)) {
         console.log(chalkType("WAS | TFC | >>> NN AUTO CHG"
           + " | " + statsObj.autoChangeMatchRate.toFixed(2) + "%"
           + " | M: " + statsObj.autoChangeMatch
@@ -2821,13 +2821,13 @@ function initUserCategorizeQueueInterval(cnf){
           + " NN " + networkObj.networkId
           + " MTCH " + matchFlag
           + " | C M: " + updatedUser.category
-          + " A: " + updatedUser.categoryAuto + " > " + networkOutput.output
+          + " A: " + updatedUser.categoryAuto + " > " + activateResults.categoryAuto
           + " | NID " + updatedUser.nodeId
           + " @" + updatedUser.screenName
           + " | PRIORITY: " + updatedUser.priorityFlag
         ));
 
-        updatedUser.categoryAuto = networkOutput.output;
+        updatedUser.categoryAuto = activateResults.categoryAuto;
 
         process.send({ op: "USER_CATEGORIZED", priorityFlag: updatedUser.priorityFlag, user: updatedUser, stats: statsObj.user });
 

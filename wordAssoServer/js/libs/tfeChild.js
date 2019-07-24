@@ -43,10 +43,10 @@ DEFAULT_INPUT_TYPES.forEach(function(type){
 });
 
 let networkObj = {};
-let network;
+// let network;
 
-let maxInputHashMap = {};
-let normalization = {};
+// let maxInputHashMap = {};
+// let normalization = {};
 const globalHistograms = {};
 
 const DEFAULT_INFO_TWITTER_USER = "threecee";
@@ -82,6 +82,8 @@ else {
   DROPBOX_ROOT_FOLDER = "/Users/tc/Dropbox/Apps/wordAssociation";
 }
 
+const NeuralNetworkTools = require("@threeceelabs/neural-network-tools");
+const nnTools = new NeuralNetworkTools("WA_TFE_NNT");
 
 const googleMapsClient = require("@google/maps").createClient({
   key: "AIzaSyDBxA6RmuBcyj-t7gfvK61yp8CDNnRLUlc"
@@ -108,8 +110,8 @@ const moment = require("moment");
 const treeify = require("treeify");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const HashMap = require("hashmap").HashMap;
-const neataptic = require("neataptic");
-const arrayNormalize = require("array-normalize");
+// const neataptic = require("neataptic");
+// const arrayNormalize = require("array-normalize");
 const NodeCache = require("node-cache");
 
 const debug = require("debug")("tfe");
@@ -758,9 +760,9 @@ function loadFile(params) {
   });
 }
 
-function loadFileRetry(params){
+async function loadFileRetry(params){
 
-  return new Promise(async function(resolve, reject){
+  // return new Promise(function(resolve, reject){
 
     const resolveOnNotFound = params.resolveOnNotFound || false;
     const maxRetries = params.maxRetries || 5;
@@ -781,7 +783,7 @@ function loadFileRetry(params){
           )); 
         }
 
-        return resolve(fileObj);
+        return fileObj;
       } 
       catch(err) {
         backOffTime *= 1.5;
@@ -798,12 +800,12 @@ function loadFileRetry(params){
 
     if (resolveOnNotFound) {
       console.log(chalkAlert(MODULE_ID_PREFIX + " | resolve FILE LOAD FAILED | RETRY: " + retryNumber + " OF " + maxRetries));
-      return resolve(false);
+      return false;
     }
     console.log(chalkError(MODULE_ID_PREFIX + " | reject FILE LOAD FAILED | RETRY: " + retryNumber + " OF " + maxRetries));
-    reject(new Error("FILE LOAD ERROR | RETRIES " + maxRetries));
+    throw new Error("FILE LOAD ERROR | RETRIES " + maxRetries);
 
-  });
+  // });
 }
 
 function initStatsUpdate(cnf){
@@ -882,9 +884,9 @@ const userDefaults = function (user){
   return user;
 };
 
-function initInfoTwit(params){
+async function initInfoTwit(params){
 
-  return new Promise(async function(resolve, reject){
+  // return new Promise(function(resolve, reject){
 
     console.log(chalkTwitter("WAS | TFC | INIT INFO USER @" + params.screenName));
 
@@ -899,12 +901,12 @@ function initInfoTwit(params){
         console.error(chalkLog("WAS | TFC | *** TWITTER CONFIG FILE LOAD ERROR | NOT FOUND?"
           + " | " + configuration.twitterConfigFolder + "/" + twitterConfigFile
         ));
-        return reject(new Error("TWITTER CONFIG FILE NOT FOUND"));
+        throw new Error("TWITTER CONFIG FILE NOT FOUND");
       }
     }
     catch (err){
       console.error(chalkLog("WAS | TFC | *** TWITTER CONFIG FILE LOAD ERROR\n" + err));
-      return reject(err);
+      throw err;
     }
 
     debug(chalkTwitter("WAS | TFC | INFO TWITTER USER CONFIG\n" + jsonPrint(twitterConfig)));
@@ -950,14 +952,14 @@ function initInfoTwit(params){
 
     try {
       const tuObj = await checkTwitterRateLimit({twitterUserObj: twitterUserObj});
-      resolve(tuObj);
+      return tuObj;
     }
     catch(err){
       console.log(chalkTwitter("WAS | TFC | *** INIT INFO TWITTER USER | checkTwitterRateLimit ERROR: " + err));
-      reject(err);
+      throw err;
     }
 
-  });
+  // });
 }
 
 function checkTwitterRateLimit(params){
@@ -1086,7 +1088,7 @@ function checkTwitterRateLimitAll(){
 
 function generateObjFromArray(params){
 
-  return new Promise(async function(resolve){
+  return new Promise(function(resolve){
 
     const keys = params.keys || [];
     const value = params.value || 0;
@@ -1105,225 +1107,250 @@ function generateObjFromArray(params){
 let userCategorizeQueueReady = true;
 let userCategorizeQueueInterval;
 
-function generateNetworkInputIndexed(params){
+// function generateNetworkInputIndexed(params){
 
-  return new Promise(function(resolve, reject){
+//   return new Promise(function(resolve, reject){
 
-    const maxInputHashMap = params.maxInputHashMap;
+//     const maxInputHashMap = params.maxInputHashMap;
 
-    const inputTypes = Object.keys(params.inputsObj.inputs).sort();
-    const networkInput = [];
+//     const inputTypes = Object.keys(params.inputsObj.inputs).sort();
+//     const networkInput = [];
 
-    let indexOffset = 0;
+//     let indexOffset = 0;
 
-    async.eachSeries(inputTypes, function(inputType, cb0){
+//     async.eachSeries(inputTypes, function(inputType, cb0){
 
-      debug("RNT | GENERATE NET INPUT | TYPE: " + inputType);
+//       debug("RNT | GENERATE NET INPUT | TYPE: " + inputType);
 
-      const histogramObj = params.histograms[inputType];
-      const networkInputTypeNames = params.inputsObj.inputs[inputType];
+//       const histogramObj = params.histograms[inputType];
+//       const networkInputTypeNames = params.inputsObj.inputs[inputType];
 
-      async.eachOf(networkInputTypeNames, function(inputName, index, cb1){
+//       async.eachOf(networkInputTypeNames, function(inputName, index, cb1){
 
-        if (histogramObj && (histogramObj[inputName] !== undefined)) {
+//         if (histogramObj && (histogramObj[inputName] !== undefined)) {
 
-          if (configuration.inputsBinaryMode) {
+//           if (configuration.inputsBinaryMode) {
 
-            networkInput[indexOffset + index] = 1;
+//             networkInput[indexOffset + index] = 1;
 
-            return cb1();
-          }
+//             return cb1();
+//           }
 
-          if (maxInputHashMap[inputType] === undefined) {
+//           if (maxInputHashMap[inputType] === undefined) {
 
-            maxInputHashMap[inputType] = {};
-            maxInputHashMap[inputType][inputName] = histogramObj[inputName];
+//             maxInputHashMap[inputType] = {};
+//             maxInputHashMap[inputType][inputName] = histogramObj[inputName];
 
-            networkInput[indexOffset + index] = 1;
+//             networkInput[indexOffset + index] = 1;
 
-            console.log(chalkLog("RNT | MAX INPUT TYPE UNDEFINED"
-              + " | IN ID: " + params.inputsObj.inputsId
-              + " | IN LENGTH: " + networkInput.length
-              + " | @" + params.userScreenName
-              + " | TYPE: " + inputType
-              + " | " + inputName
-              + " | " + histogramObj[inputName]
-            ));
+//             console.log(chalkLog("RNT | MAX INPUT TYPE UNDEFINED"
+//               + " | IN ID: " + params.inputsObj.inputsId
+//               + " | IN LENGTH: " + networkInput.length
+//               + " | @" + params.userScreenName
+//               + " | TYPE: " + inputType
+//               + " | " + inputName
+//               + " | " + histogramObj[inputName]
+//             ));
 
-            async.setImmediate(function() { 
-              cb1(); 
-            });
+//             async.setImmediate(function() { 
+//               cb1(); 
+//             });
 
-          }
-          else {
+//           }
+//           else {
 
-            // generate maxInputHashMap on the fly if needed
-            // should backfill previous input values when new max is found
+//             // generate maxInputHashMap on the fly if needed
+//             // should backfill previous input values when new max is found
 
-            if (maxInputHashMap[inputType][inputName] === undefined) {
+//             if (maxInputHashMap[inputType][inputName] === undefined) {
 
-              maxInputHashMap[inputType][inputName] = histogramObj[inputName];
+//               maxInputHashMap[inputType][inputName] = histogramObj[inputName];
 
-              console.log(chalkLog("RNT | MAX INPUT NAME UNDEFINED"
-                + " | IN ID: " + params.inputsObj.inputsId
-                + " | IN LENGTH: " + networkInput.length
-                + " | @" + params.userScreenName
-                + " | TYPE: " + inputType
-                + " | " + inputName
-                + " | " + histogramObj[inputName]
-              ));
-            }
-            else if (histogramObj[inputName] > maxInputHashMap[inputType][inputName]) {
+//               console.log(chalkLog("RNT | MAX INPUT NAME UNDEFINED"
+//                 + " | IN ID: " + params.inputsObj.inputsId
+//                 + " | IN LENGTH: " + networkInput.length
+//                 + " | @" + params.userScreenName
+//                 + " | TYPE: " + inputType
+//                 + " | " + inputName
+//                 + " | " + histogramObj[inputName]
+//               ));
+//             }
+//             else if (histogramObj[inputName] > maxInputHashMap[inputType][inputName]) {
 
-              const previousMaxInput = maxInputHashMap[inputType][inputName]; 
+//               const previousMaxInput = maxInputHashMap[inputType][inputName]; 
 
-              maxInputHashMap[inputType][inputName] = histogramObj[inputName];
+//               maxInputHashMap[inputType][inputName] = histogramObj[inputName];
 
-              console.log(chalkLog("RNT | MAX INPUT VALUE UPDATED"
-                + " | IN ID: " + params.inputsObj.inputsId
-                + " | CURR IN INDEX: " + networkInput.length + "/" + params.inputsObj.meta.numInputs
-                + " | @" + params.userScreenName
-                + " | TYPE: " + inputType
-                + " | " + inputName
-                + " | PREV MAX: " + previousMaxInput
-                + " | CURR MAX: " + maxInputHashMap[inputType][inputName]
-              ));
-            }
+//               console.log(chalkLog("RNT | MAX INPUT VALUE UPDATED"
+//                 + " | IN ID: " + params.inputsObj.inputsId
+//                 + " | CURR IN INDEX: " + networkInput.length + "/" + params.inputsObj.meta.numInputs
+//                 + " | @" + params.userScreenName
+//                 + " | TYPE: " + inputType
+//                 + " | " + inputName
+//                 + " | PREV MAX: " + previousMaxInput
+//                 + " | CURR MAX: " + maxInputHashMap[inputType][inputName]
+//               ));
+//             }
 
-            networkInput[indexOffset + index] = (maxInputHashMap[inputType][inputName] > 0) 
-              ? histogramObj[inputName]/maxInputHashMap[inputType][inputName] 
-              : 1;
+//             networkInput[indexOffset + index] = (maxInputHashMap[inputType][inputName] > 0) 
+//               ? histogramObj[inputName]/maxInputHashMap[inputType][inputName] 
+//               : 1;
 
-            async.setImmediate(function() {
-              cb1();
-            });
-          }
-        }
-        else {
+//             async.setImmediate(function() {
+//               cb1();
+//             });
+//           }
+//         }
+//         else {
 
-          networkInput[indexOffset + index] = 0;
+//           networkInput[indexOffset + index] = 0;
    
-          async.setImmediate(function() { 
-            cb1(); 
-          });
-        }
+//           async.setImmediate(function() { 
+//             cb1(); 
+//           });
+//         }
 
-      }, function(err){
+//       }, function(err){
 
-        if (err) {
-          console.log(chalkError("TFC | generateNetworkInputIndexed ERROR: " + err));
-          return cb0(err);
-        }
+//         if (err) {
+//           console.log(chalkError("TFC | generateNetworkInputIndexed ERROR: " + err));
+//           return cb0(err);
+//         }
 
-        async.setImmediate(function() { 
-          indexOffset += networkInputTypeNames.length;
-          cb0(); 
-        });
+//         async.setImmediate(function() { 
+//           indexOffset += networkInputTypeNames.length;
+//           cb0(); 
+//         });
 
-      });
+//       });
 
-    }, function(err){
-      if (err) { return reject(err); }
-      resolve(networkInput);
-    });
+//     }, function(err){
+//       if (err) { return reject(err); }
+//       resolve(networkInput);
+//     });
 
-  });
-}
+//   });
+// }
 
-function indexOfMax (arr) {
+// function indexOfMax (arr) {
 
-  return new Promise(function(resolve, reject){
+//   return new Promise(function(resolve, reject){
 
-    if (arr.length === 0) {
-      console.log(chalkAlert("RNT | indexOfMax: 0 LENG ARRAY: -1"));
-      return reject(new Error("0 LENG ARRAY"));
+//     if (arr.length === 0) {
+//       console.log(chalkAlert("RNT | indexOfMax: 0 LENG ARRAY: -1"));
+//       return reject(new Error("0 LENG ARRAY"));
+//     }
+//     if ((arr[0] === arr[1]) && (arr[1] === arr[2])){
+//       return resolve(-1);
+//     }
+
+//     arrayNormalize(arr);
+
+//     let max = arr[0];
+//     let maxIndex = 0;
+
+//     async.eachOfSeries(arr, function(val, index, cb){
+
+//       if (val > max) {
+//         maxIndex = index;
+//         max = val;
+//       }
+
+//       async.setImmediate(function() { cb(); });
+
+//     }, function(){
+//       resolve(maxIndex); 
+//     });
+
+//   });
+// }
+
+function delayEvent(p) {
+
+  const params = p || {};
+  const delayEventName = params.delayEventName;
+  const period = params.period || 10*ONE_SECOND;
+  const verbose = params.verbose || false;
+
+  if (verbose) {
+    console.log(chalkLog(MODULE_ID_PREFIX + " | +++ DELAY START | NOW: " + getTimeStamp() + " | PERIOD: " + msToTime(period)));
+  }
+
+  const delayTimout = setTimeout(function(){
+
+    if (verbose) {
+      console.log(chalkLog(MODULE_ID_PREFIX + " | XXX DELAY END | NOW: " + getTimeStamp() + " | PERIOD: " + msToTime(period)));
     }
-    if ((arr[0] === arr[1]) && (arr[1] === arr[2])){
-      return resolve(-1);
-    }
 
-    arrayNormalize(arr);
+    childEvents.emit(delayEventName); 
 
-    let max = arr[0];
-    let maxIndex = 0;
+  }, period);
 
-    async.eachOfSeries(arr, function(val, index, cb){
-
-      if (val > max) {
-        maxIndex = index;
-        max = val;
-      }
-
-      async.setImmediate(function() { cb(); });
-
-    }, function(){
-      resolve(maxIndex); 
-    });
-
-  });
+  return(delayTimout);
 }
 
-function printNetworkInput(params){
 
-  return new Promise(function(resolve, reject){
+// function printNetworkInput(params){
 
-    const inputArray = params.inputsObj.input;
-    const nameArray = params.inputsObj.name;
-    const columns = params.columns || 100;
+//   return new Promise(function(resolve, reject){
 
-    let col = 0;
+//     const inputArray = params.inputsObj.input;
+//     const nameArray = params.inputsObj.name;
+//     const columns = params.columns || 100;
 
-    let hitRowArray = [];
+//     let col = 0;
 
-    let inputText = ".";
-    let text = "";
-    let textRow = "";
-    let hits = 0;
-    let hitRate = 0;
-    const inputArraySize = inputArray.length;
+//     let hitRowArray = [];
 
-    async.eachOfSeries(inputArray, function(input, index, cb){
+//     let inputText = ".";
+//     let text = "";
+//     let textRow = "";
+//     let hits = 0;
+//     let hitRate = 0;
+//     const inputArraySize = inputArray.length;
 
-      if (input) {
-        inputText = "X";
-        hits += 1;
-        hitRate = 100 * hits / inputArraySize;
-        hitRowArray.push(nameArray[index]);
-      }
-      else {
-        inputText = ".";
-      }
+//     async.eachOfSeries(inputArray, function(input, index, cb){
 
-      textRow += inputText;
-      col += 1;
+//       if (input) {
+//         inputText = "X";
+//         hits += 1;
+//         hitRate = 100 * hits / inputArraySize;
+//         hitRowArray.push(nameArray[index]);
+//       }
+//       else {
+//         inputText = ".";
+//       }
 
-      if ((col === columns) || ((index+1) === inputArraySize)){
+//       textRow += inputText;
+//       col += 1;
 
-        text += textRow;
-        text += " | " + hitRowArray;
-        text += "\n";
+//       if ((col === columns) || ((index+1) === inputArraySize)){
 
-        textRow = "";
-        col = 0;
-        hitRowArray = [];
-      }
+//         text += textRow;
+//         text += " | " + hitRowArray;
+//         text += "\n";
 
-      cb();
+//         textRow = "";
+//         col = 0;
+//         hitRowArray = [];
+//       }
 
-    }, function(err){
-      if (err) {
-        return reject(err);
-      }
-      resolve();
-      console.log(chalkLog(
-        "______________________________________________________________________________________________________________________________________"
-        + "\n" + hits + " / " + inputArraySize + " | HIT RATE: " + hitRate.toFixed(2) + "% | " + params.title
-        + "\n" + text
-        ));
-    });
+//       cb();
 
-  });
-}
+//     }, function(err){
+//       if (err) {
+//         return reject(err);
+//       }
+//       resolve();
+//       console.log(chalkLog(
+//         "______________________________________________________________________________________________________________________________________"
+//         + "\n" + hits + " / " + inputArraySize + " | HIT RATE: " + hitRate.toFixed(2) + "% | " + params.title
+//         + "\n" + text
+//         ));
+//     });
+
+//   });
+// }
 
 const networkOutput = {};
 networkOutput.output = [];
@@ -1334,94 +1361,94 @@ networkOutput.none = 0;
 networkOutput.positive = 0;
 networkOutput.negative = 0;
 
-function activateNetwork(params){
+// function activateNetwork(params){
 
-  return new Promise(async function(resolve, reject) {
+//   return new Promise(async function(resolve, reject) {
 
-    if (!params.user || params.user === undefined) { return reject(new Error("user undefined")); }
+//     if (!params.user || params.user === undefined) { return reject(new Error("user undefined")); }
 
-    const user = params.user;
+//     const user = params.user;
 
-    user.friends = user.friends || [];
-    user.profileHistograms = user.profileHistograms || {};
-    user.tweetHistograms = user.tweetHistograms || {};
-    user.languageAnalysis = user.languageAnalysis || {};
+//     user.friends = user.friends || [];
+//     user.profileHistograms = user.profileHistograms || {};
+//     user.tweetHistograms = user.tweetHistograms || {};
+//     user.languageAnalysis = user.languageAnalysis || {};
 
-    let mergedUserHistograms = {};
-    mergedUserHistograms.friends = {};
+//     let mergedUserHistograms = {};
+//     mergedUserHistograms.friends = {};
 
-    try {
+//     try {
 
-      mergedUserHistograms = await mergeHistograms.merge({ histogramA: user.profileHistograms, histogramB: user.tweetHistograms });
-      mergedUserHistograms.friends = await generateObjFromArray({ keys: user.friends, value: 1 }); // [ 1,2,3... ] => { 1:1, 2:1, 3:1, ... }
+//       mergedUserHistograms = await mergeHistograms.merge({ histogramA: user.profileHistograms, histogramB: user.tweetHistograms });
+//       mergedUserHistograms.friends = await generateObjFromArray({ keys: user.friends, value: 1 }); // [ 1,2,3... ] => { 1:1, 2:1, 3:1, ... }
 
-      if (networkObj.inputsObj.inputs === undefined) {
-        console.log(chalkError("UNDEFINED NETWORK INPUTS OBJ | NETWORK OBJ KEYS: " + Object.keys(networkObj)));
-        const err = new Error("UNDEFINED NETWORK INPUTS OBJ");
-        console.error(err);
-        return reject(err);
-      }
+//       if (networkObj.inputsObj.inputs === undefined) {
+//         console.log(chalkError("UNDEFINED NETWORK INPUTS OBJ | NETWORK OBJ KEYS: " + Object.keys(networkObj)));
+//         const err = new Error("UNDEFINED NETWORK INPUTS OBJ");
+//         console.error(err);
+//         return reject(err);
+//       }
 
-      const generateNetworkInputIndexedParams = {
-        networkId: networkObj.networkId,
-        userScreenName: user.screenName,
-        histograms: mergedUserHistograms,
-        languageAnalysis: user.languageAnalysis,
-        inputsObj: networkObj.inputsObj,
-        maxInputHashMap: maxInputHashMap
-      };
+//       const generateNetworkInputIndexedParams = {
+//         networkId: networkObj.networkId,
+//         userScreenName: user.screenName,
+//         histograms: mergedUserHistograms,
+//         languageAnalysis: user.languageAnalysis,
+//         inputsObj: networkObj.inputsObj,
+//         maxInputHashMap: maxInputHashMap
+//       };
 
-      const networkInput = await generateNetworkInputIndexed(generateNetworkInputIndexedParams);
+//       const networkInput = await generateNetworkInputIndexed(generateNetworkInputIndexedParams);
 
-      const output = network.activate(networkInput);
+//       const output = network.activate(networkInput);
 
-      if (output.length !== 3) {
-        console.log(chalkError("RNT | *** ZERO LENGTH NETWORK OUTPUT | " + networkObj.networkId ));
-        return reject(new Error("ZERO LENGTH NETWORK OUTPUT"));
-      }
+//       if (output.length !== 3) {
+//         console.log(chalkError("RNT | *** ZERO LENGTH NETWORK OUTPUT | " + networkObj.networkId ));
+//         return reject(new Error("ZERO LENGTH NETWORK OUTPUT"));
+//       }
 
-      const maxOutputIndex = await indexOfMax(output);
+//       const maxOutputIndex = await indexOfMax(output);
 
-      let categoryAuto;
+//       let categoryAuto;
 
-      switch (maxOutputIndex) {
-        case 0:
-          categoryAuto = "left";
-          networkOutput.left += 1;
-        break;
-        case 1:
-          categoryAuto = "neutral";
-          networkOutput.neutral += 1;
-        break;
-        case 2:
-          categoryAuto = "right";
-          networkOutput.right += 1;
-        break;
-        default:
-          categoryAuto = "none";
-          networkOutput.none += 1;
-      }
+//       switch (maxOutputIndex) {
+//         case 0:
+//           categoryAuto = "left";
+//           networkOutput.left += 1;
+//         break;
+//         case 1:
+//           categoryAuto = "neutral";
+//           networkOutput.neutral += 1;
+//         break;
+//         case 2:
+//           categoryAuto = "right";
+//           networkOutput.right += 1;
+//         break;
+//         default:
+//           categoryAuto = "none";
+//           networkOutput.none += 1;
+//       }
 
-      networkOutput.output = categoryAuto;
+//       networkOutput.output = categoryAuto;
 
-      if (configuration.verbose) {
-        printNetworkInput({title: params.user.screenName + " | C: " + params.user.category + " | A: " + categoryAuto , inputArray: networkInput});
-      }
+//       if (configuration.verbose) {
+//         printNetworkInput({title: params.user.screenName + " | C: " + params.user.category + " | A: " + categoryAuto , inputArray: networkInput});
+//       }
 
-      resolve(networkOutput);
+//       resolve(networkOutput);
 
-    }
-    catch(err){
-      console.log(chalkError("RNT | *** ERROR ACTIVATE NETWORK: " + err));
-      return reject(err);
-    }
+//     }
+//     catch(err){
+//       console.log(chalkError("RNT | *** ERROR ACTIVATE NETWORK: " + err));
+//       return reject(err);
+//     }
 
-  });
-}
+//   });
+// }
 
-function updateGlobalHistograms(params) {
+async function updateGlobalHistograms(params) {
 
-  return new Promise(async function(resolve, reject){
+  // return new Promise(function(resolve, reject){
 
     statsObj.status = "UPDATE GLOBAL HISTOGRAMS";
 
@@ -1433,7 +1460,7 @@ function updateGlobalHistograms(params) {
     }
     catch(err){
       console.log(chalkError("WAS | TFC | *** UPDATE GLOBAL HISTOGRAMS ERROR: " + err));
-      return reject(err);
+      throw err;
     }
 
     async.each(DEFAULT_INPUT_TYPES, function(inputType, cb0) {
@@ -1476,7 +1503,7 @@ function updateGlobalHistograms(params) {
 
       }, function(err) {
 
-        if (err) { return reject(err); }
+        if (err) { throw err; }
 
         cb0();
 
@@ -1484,52 +1511,52 @@ function updateGlobalHistograms(params) {
 
     }, function(err) {
 
-      if (err) { return reject(err); }
+      if (err) { throw err; }
 
-      resolve();
+      return;
 
     });
 
-  });
+  // });
 }
 
-function parseImage(p){
+// function parseImage(p){
 
-  return new Promise(async function(resolve, reject) {
+//   return new Promise(function(resolve, reject) {
 
-    const params = p;
+//     const params = p;
 
-    // params.updateGlobalHistograms = (params.updateGlobalHistograms !== undefined) ? params.updateGlobalHistograms : false;
-    // params.category = params.user.category || "none";
-    // params.histograms = {};
-    // params.histograms = params.user.histograms;
-    // params.screenName = params.user.screenName;
+//     // params.updateGlobalHistograms = (params.updateGlobalHistograms !== undefined) ? params.updateGlobalHistograms : false;
+//     // params.category = params.user.category || "none";
+//     // params.histograms = {};
+//     // params.histograms = params.user.histograms;
+//     // params.screenName = params.user.screenName;
 
-    params.updateGlobalHistograms = (params.updateGlobalHistograms !== undefined) ? params.updateGlobalHistograms : false;
-    params.category = params.category || "none";
+//     params.updateGlobalHistograms = (params.updateGlobalHistograms !== undefined) ? params.updateGlobalHistograms : false;
+//     params.category = params.category || "none";
 
-    try{
-      const hist = await twitterImageParser.parseImage(params);
-      console.log(chalkLog("WAS | TFE | +++ IMAGE PARSE" 
-        + " | CAT: " + params.category
-        + " | @" + params.screenName
-        + " | " + params.imageUrl
-        + "\n" + jsonPrint(hist)
-      ));
-      resolve(hist);
-    }
-    catch(err){
-      if (err.code === 8) {
-        console.log(chalkAlert("WAS | TFC | GOOGLE VISION IMAGE PARSER QUOTA ERROR"));
-      }
-      else{
-        console.log(chalkError("WAS | TFC | GOOGLE VISION IMAGE PARSER ERROR: " + err));
-      }
-      reject(err);
-    }
+//     try{
+//       const hist = await twitterImageParser.parseImage(params);
+//       console.log(chalkLog("WAS | TFE | +++ IMAGE PARSE" 
+//         + " | CAT: " + params.category
+//         + " | @" + params.screenName
+//         + " | " + params.imageUrl
+//         + "\n" + jsonPrint(hist)
+//       ));
+//       resolve(hist);
+//     }
+//     catch(err){
+//       if (err.code === 8) {
+//         console.log(chalkAlert("WAS | TFC | GOOGLE VISION IMAGE PARSER QUOTA ERROR"));
+//       }
+//       else{
+//         console.log(chalkError("WAS | TFC | GOOGLE VISION IMAGE PARSER ERROR: " + err));
+//       }
+//       reject(err);
+//     }
 
-  });
-}
+//   });
+// }
 
 function parseText(params){
 
@@ -1697,11 +1724,12 @@ function allHistogramsZeroKeys(histogram){
   });
 }
 
-function checkUserProfileChanged(params) {
+async function checkUserProfileChanged(params) {
 
-  return new Promise(async function(resolve, reject){
+  // return new Promise(async function(resolve, reject){
 
     const user = params.user;
+    user.profileHistograms = user.profileHistograms || {};
 
     let allHistogramsZero = false;
 
@@ -1710,7 +1738,7 @@ function checkUserProfileChanged(params) {
     }
     catch(err){
       console.log(chalkError("WAS | TFC | *** ALL HISTOGRAMS ZERO ERROR: " + err));
-      return reject(err);
+      throw err;
     }
 
     if (!user.profileHistograms 
@@ -1751,14 +1779,14 @@ function checkUserProfileChanged(params) {
     if (checkPropertyChange(user, "screenName")) { results.push("screenName"); }
     if (checkPropertyChange(user, "url")) { results.push("url"); }
 
-    if (results.length === 0) { return resolve(); }
-    resolve(results);    
-  });
+    if (results.length === 0) { return; }
+    return results;
+  // });
 }
 
 function processTweetObj(params){
 
-  return new Promise(async function(resolve, reject){
+  return new Promise(function(resolve, reject){
 
     const tweetObj = params.tweetObj;
     const histograms = params.histograms;
@@ -1978,48 +2006,14 @@ function updateUserTweets(params){
 
   });
 }
-function delayEvent(p) {
-
-  const params = p || {};
-  const delayEventName = params.delayEventName;
-  const period = params.period || 10*ONE_SECOND;
-  const verbose = params.verbose || false;
-
-  if (verbose) {
-    console.log(chalkLog(MODULE_ID_PREFIX + " | +++ DELAY START | NOW: " + getTimeStamp() + " | PERIOD: " + msToTime(period)));
-  }
-
-  const delayTimout = setTimeout(function(){
-
-    if (verbose) {
-      console.log(chalkLog(MODULE_ID_PREFIX + " | XXX DELAY END | NOW: " + getTimeStamp() + " | PERIOD: " + msToTime(period)));
-    }
-
-    childEvents.emit(delayEventName); 
-
-  }, period);
-
-  return(delayTimout);
-
-}
 
 function userProfileChangeHistogram(params) {
 
-  return new Promise(async function(resolve, reject){
+  return new Promise(function(resolve, reject){
 
-    let userProfileChanges = false;
+    if (!params.userProfileChanges) { resolve(false); }
 
-    try {
-      userProfileChanges = await checkUserProfileChanged(params);
-    }
-    catch(err){
-      return reject(err);
-    }
-
-    if (!userProfileChanges) {
-      return resolve();
-    }
-
+    const userProfileChanges = params.userProfileChanges;
     const user = params.user;
 
     let text = "";
@@ -2240,10 +2234,7 @@ function userProfileChangeHistogram(params) {
             )
           ){
 
-            parseImage({
-              // imageUrl: user.profileImageUrl,
-              // user: user,
-              // updateGlobalHistograms: true
+            twitterImageParser.parseImage({
               screenName: user.screenName, 
               category: user.category, 
               imageUrl: user.profileImageUrl, 
@@ -2304,10 +2295,7 @@ function userProfileChangeHistogram(params) {
             )
           ){
 
-            parseImage({
-              // imageUrl: user.bannerImageUrl,
-              // user: user,
-              // updateGlobalHistograms: true
+            twitterImageParser.parseImage({
               screenName: user.screenName, 
               category: user.category, 
               imageUrl: user.bannerImageUrl, 
@@ -2409,7 +2397,7 @@ let infoRateLimitStatusInterval;
 
 function initRateLimitPause(params){
 
-  return new Promise(async function(resolve, reject){
+  return new Promise(function(resolve, reject){
 
     if (!params) {
       return reject(new Error("params undefined"));
@@ -2468,7 +2456,7 @@ function initRateLimitPause(params){
 
 function fetchUserTweets(params){
 
-  return new Promise(async function(resolve, reject){
+  return new Promise(function(resolve, reject){
 
     const fetchUserTweetsParams = {};
 
@@ -2587,9 +2575,9 @@ function fetchUserTweets(params){
   });
 }
 
-function updateUserHistograms(p) {
+async function updateUserHistograms(p) {
 
-  return new Promise(async function(resolve, reject){
+  // return new Promise(async function(resolve, reject){
 
     const params = p || {};
     
@@ -2597,7 +2585,7 @@ function updateUserHistograms(p) {
       console.log(chalkError("WAS | TFC | *** updateUserHistograms USER UNDEFINED"));
       const err = new Error("WAS | TFC | *** updateUserHistograms USER UNDEFINED");
       console.error(err);
-      return reject(err);
+      throw err;
     }
 
     if (!params.user.nodeId || (params.user.nodeId === undefined)) {
@@ -2610,7 +2598,7 @@ function updateUserHistograms(p) {
         ));
         const err = new Error("WAS | TFC | *** updateUserHistograms USER NODE & USER IDs UNDEFINED");
         console.error(err);
-        return reject(err);
+        throw err;
       }
       else {
         params.user.nodeId = params.user.userId;
@@ -2628,7 +2616,7 @@ function updateUserHistograms(p) {
         ));
         const err = new Error("WAS | TFC | *** updateUserHistograms USER NODE & USER IDs UNDEFINED");
         console.error(err);
-        return reject(err);
+        throw err;
       }
       else {
         params.user.userId = params.user.nodeId;
@@ -2657,7 +2645,6 @@ function updateUserHistograms(p) {
 
       if (!infoTwitterUserObj.stats.twitterRateLimitExceptionFlag) {
 
-        try{
           if (!user.tweets || user.tweets === undefined) {
             user.tweets = {};
             user.tweets.tweetIds = [];
@@ -2669,16 +2656,11 @@ function updateUserHistograms(p) {
             user.tweets.maxId = false;
           }
           latestTweets = await fetchUserTweets({ userId: user.userId, screenName: user.screenName, sinceId: user.tweets.sinceId });
-        }
-        catch(e){
-          return reject(e);
-        }
-
       }
 
       user = await updateUserTweets({user: user, tweets: latestTweets});
-
-      const profileHistogramChanges = await userProfileChangeHistogram({user: user});
+      const userProfileChanges = await checkUserProfileChanged(params);
+      const profileHistogramChanges = await userProfileChangeHistogram({user: user, userProfileChanges: userProfileChanges});
 
       if (profileHistogramChanges) {
         user.profileHistograms = await mergeHistograms.merge({ histogramA: user.profileHistograms, histogramB: profileHistogramChanges });
@@ -2699,7 +2681,7 @@ function updateUserHistograms(p) {
       await updateGlobalHistograms({user: user});
 
       user.priorityFlag = params.user.priorityFlag;
-      resolve(user);
+      return user;
 
     }
     catch(err){
@@ -2707,10 +2689,10 @@ function updateUserHistograms(p) {
         + " | NID: " + params.user.nodeId
         + " | @" + params.user.screenName
       ));
-      return reject(err);
+      throw err;
     }
 
-  });
+  // });
 }
 
 let uscTimeout;
@@ -2722,11 +2704,12 @@ function initUserCategorizeQueueInterval(cnf){
   clearInterval(userCategorizeQueueInterval);
 
   let updatedUser;
-  let networkOutput;
+  let activateResults;
   let user;
   let dbUser;
   let matchFlag = false;
   let chalkType = chalkLog;
+  let messageObj;
 
   userCategorizeQueueInterval = setInterval(async function(){
 
@@ -2765,7 +2748,39 @@ function initUserCategorizeQueueInterval(cnf){
       }
 
       try {
-        networkOutput = await activateNetwork({user: updatedUser});
+
+        activateResults = await nnTools.activateSingleNetwork({ user: updatedUser});
+
+        if (configuration.verbose || configuration.testMode) {
+          console.log("TFC | >>> ACTIVATE activateResults\n" + jsonPrint(activateResults));
+        }
+
+        // const networkOutput = {};
+        // activateResults.nnId = nnId;
+        // activateResults.user = {};
+        // activateResults.user.nodeId = params.user.nodeId;
+        // activateResults.user.screenName = params.user.screenName;
+        // activateResults.user.category = params.user.category;
+        // activateResults.user.categoryAuto = params.user.categoryAuto;
+        // activateResults.outputRaw = [];
+        // activateResults.outputRaw = outputRaw;
+        // activateResults.output = [];
+        // activateResults.categoryAuto = "none";
+        // activateResults.matchFlag = "MISS";
+
+        const currentBestNetworkStats = await nnTools.updateNetworkStats({
+          user: updatedUser,
+          primaryNetwork: true,
+          networkOutput: activateResults, 
+          expectedCategory: activateResults.user.category
+        });
+
+        messageObj.op = "NETWORK_STATS";
+        messageObj.stats = currentBestNetworkStats;
+
+        process.send(messageObj);
+
+        userCategorizeQueueReady = false;
       }
       catch (err) {
         console.log(chalkError("WAS | TFC | *** ACTIVATE NETWORK ERROR: " + err));
@@ -2778,7 +2793,7 @@ function initUserCategorizeQueueInterval(cnf){
         && (updatedUser.category !== undefined) 
         && (updatedUser.category !== false) 
         && (updatedUser.category !== "false") 
-        && (updatedUser.category === networkOutput.output);
+        && (updatedUser.category === activateResults.networkOutput.output);
 
       if (!updatedUser.category || updatedUser.category === undefined) {
         chalkType = chalkLog;
@@ -2854,9 +2869,9 @@ function initUserCategorizeQueueInterval(cnf){
   }, cnf.userCategorizeQueueInterval);
 }
 
-function initialize(cnf){
+async function initialize(cnf){
 
-  return new Promise(async function(resolve, reject){
+  // return new Promise(function(resolve, reject){
 
     console.log(chalkLog("WAS | TFC | INITIALIZE"));
 
@@ -2949,18 +2964,18 @@ function initialize(cnf){
         + "\n" + jsonPrint(cnf.twitterConfig )
       ));
 
-      return(resolve(cnf));
+      return cnf;
 
     }
     catch(err){
       console.error("WAS | TFC | *** ERROR LOAD DROPBOX CONFIG: " + dropboxConfigFile + "\n" + jsonPrint(err));
-      return reject(err);
+      throw err;
     }
 
-  });
+  // });
 }
 
-process.on("message", function(m) {
+process.on("message", async function(m) {
 
   debug(chalkAlert("TFC RX MESSAGE"
     + " | OP: " + m.op
@@ -2979,11 +2994,17 @@ process.on("message", function(m) {
       configuration.geoCodeEnabled = m.geoCodeEnabled || false;
       configuration.enableImageAnalysis = m.enableImageAnalysis || false;
       configuration.forceImageAnalysis = m.forceImageAnalysis || false;
-      maxInputHashMap = m.maxInputHashMap;
-      normalization = m.normalization;
+      // maxInputHashMap = m.maxInputHashMap;
+      // normalization = m.normalization;
 
       networkObj = m.networkObj;
-      network = neataptic.Network.fromJSON(m.networkObj.network);
+
+      await nnTools.loadNetwork({networkObj: m.networkObj});
+      nnTools.setPrimaryNeuralNetwork(m.networkObj.networkId);
+
+      await nnTools.setMaxInputHashMap(m.maxInputHashMap);
+      await nnTools.setNormalization(m.normalization);
+
 
       console.log(chalkInfo("WAS | TFC | INIT"
         + " | TITLE: " + process.title
@@ -2991,15 +3012,16 @@ process.on("message", function(m) {
         + " | ENABLE GEOCODE: " + configuration.geoCodeEnabled
         + " | ENABLE IMAGE ANALYSIS: " + configuration.enableImageAnalysis
         + " | FORCE IMAGE ANALYSIS: " + configuration.forceImageAnalysis
-        + " | MAX INPUT HM KEYS: " + Object.keys(maxInputHashMap)
-        + " | NORMALIZATION: " + Object.keys(normalization)
+        + " | MAX INPUT HM KEYS: " + Object.keys(nnTools.getMaxInputHashMap())
+        + " | NORMALIZATION: " + Object.keys(nnTools.getNormalization())
       ));
     break;
 
     case "NETWORK":
 
       networkObj = m.networkObj;
-      network = neataptic.Network.fromJSON(m.networkObj.network);
+      await nnTools.loadNetwork({networkObj: m.networkObj});
+      nnTools.setPrimaryNeuralNetwork(m.networkObj.networkId);
 
       statsObj.autoChangeTotal = 0;
       statsObj.autoChangeMatchRate = 0;
@@ -3024,19 +3046,21 @@ process.on("message", function(m) {
 
     case "MAX_INPUT_HASHMAP":
 
-      maxInputHashMap = m.maxInputHashMap;
+      // maxInputHashMap = m.maxInputHashMap;
+      await nnTools.setMaxInputHashMap(m.maxInputHashMap);
 
       console.log(chalkInfo("WAS | TFC | +++ MAX_INPUT_HASHMAP"
-        + " | MAX INPUT HM KEYS: " + Object.keys(maxInputHashMap)
+        + " | MAX INPUT HM KEYS: " + Object.keys(nnTools.getMaxInputHashMap())
       ));
     break;
 
     case "NORMALIZATION":
 
-      normalization = m.normalization;
+      // normalization = m.normalization;
+      await nnTools.setNormalization(m.normalization);
 
       console.log(chalkInfo("WAS | TFC | +++ NORMALIZATION"
-        + " | NORMALIZATION: " + Object.keys(normalization)
+        + " | NORMALIZATION: " + Object.keys(nnTools.getNormalization())
       ));
     break;
 

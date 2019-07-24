@@ -8607,6 +8607,10 @@ function initTfeChild(params){
           socketRxTweet(m.tweet);
         break;
 
+        case "NETWORK_STATS":
+          console.log(chalkInfo("TFE | R< NET STATS\n" + jsonPrint(m.stats)));
+        break;
+
         case "USER_CATEGORIZED":
 
           categorizedUserHashMap.set(

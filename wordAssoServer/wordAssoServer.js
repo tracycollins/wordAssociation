@@ -8608,7 +8608,7 @@ function initTfeChild(params){
         break;
 
         case "NETWORK_STATS":
-          console.log(chalkInfo("TFE | R< NET STATS\n" + jsonPrint(m.stats)));
+          debug(chalkInfo("TFE | R< NET STATS\n" + jsonPrint(m.stats)));
         break;
 
         case "USER_CATEGORIZED":

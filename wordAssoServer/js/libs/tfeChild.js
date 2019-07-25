@@ -2026,7 +2026,7 @@ function userProfileChangeHistogram(params) {
     const locationsHistogram = {};
     locationsHistogram.locations = {};
 
-    async.each(userProfileChanges, async function(userProp){
+    async.each(userProfileChanges, function(userProp, cb){
 
       const userPropValue = user[userProp].toLowerCase();
 
@@ -2055,142 +2055,147 @@ function userProfileChangeHistogram(params) {
 
           locationsHistogram.locations[nodeId] = (locationsHistogram.locations[nodeId] === undefined) ? 1 : locationsHistogram.locations[nodeId] + 1;
 
-          try {
+          // try {
+            // let locationDoc = await global.globalLocation.findOne({nodeId: nodeId});
+            global.globalLocation.findOne({nodeId: nodeId})
+            .then(async function(lDoc){
+              if (!lDoc) {
 
-            let locationDoc = await global.globalLocation.findOne({nodeId: nodeId});
-
-            if (!locationDoc) {
-
-              debug(chalkInfo("WAS | TFC | --- LOC DB MISS"
-                + " | NID: " + nodeId
-                + " | N: " + name + " / " + userPropValue
-              ));
-
-              locationDoc = new global.globalLocation({
-                nodeId: nodeId,
-                name: name,
-                nameRaw: userPropValue,
-                geoSearch: false,
-                geoValid: false,
-                lastSeen: lastSeen,
-                mentions: 0
-              });
-
-              let geoCodeResults;
-
-              if (configuration.geoCodeEnabled) {
-                geoCodeResults = await geoCode({address: name});
-                locationDoc.geoSearch = true;
-              }
-
-              if (geoCodeResults && geoCodeResults.placeId) {
-
-                locationDoc.geoValid = true;
-                locationDoc.geo = geoCodeResults;
-                locationDoc.placeId = geoCodeResults.placeId;
-                locationDoc.formattedAddress = geoCodeResults.formattedAddress;
-
-                await locationDoc.save();
-
-                statsObj.geo.hits += 1;
-                statsObj.geo.total += 1;
-                statsObj.geo.hitRate = 100*(statsObj.geo.hits/statsObj.geo.total);
-
-                debug(chalk.blue("WAS | TFC | +++ LOC GEO HIT "
-                  + " | GEO: " + locationDoc.geoValid
-                  + "  H " + statsObj.geo.hits
-                  + "  M " + statsObj.geo.misses
-                  + "  T " + statsObj.geo.total
-                  + " HR: " + statsObj.geo.hitRate.toFixed(2)
-                  + " | PID: " + locationDoc.placeId 
-                  + " | NID: " + locationDoc.nodeId
-                  + " | N: " + locationDoc.name + " / " + locationDoc.nameRaw
-                  + " | A: " + locationDoc.formattedAddress
+                debug(chalkInfo("WAS | TFC | --- LOC DB MISS"
+                  + " | NID: " + nodeId
+                  + " | N: " + name + " / " + userPropValue
                 ));
 
-                user.geoValid = geoCodeResults.geoValid;
-                user.geo = geoCodeResults;
+                const locationDoc = new global.globalLocation({
+                  nodeId: nodeId,
+                  name: name,
+                  nameRaw: userPropValue,
+                  geoSearch: false,
+                  geoValid: false,
+                  lastSeen: lastSeen,
+                  mentions: 0
+                });
 
-                locationsHistogram.locations[geoCodeResults.placeId] = (locationsHistogram.locations[geoCodeResults.placeId] === undefined) 
-                  ? 1 
-                  : locationsHistogram.locations[geoCodeResults.placeId] + 1;
+                let geoCodeResults;
 
-
-                user[prevUserProp] = user[userProp];
-
-              } else {
-
-                await locationDoc.save();
-
-                statsObj.geo.misses += 1;
-                statsObj.geo.total += 1;
-                statsObj.geo.hitRate = 100*(statsObj.geo.hits/statsObj.geo.total);
-
-                debug(chalkLog("WAS | TFC | --- LOC GEO MISS"
-                  + " | GEO: " + locationDoc.geoValid
-                  + "  H " + statsObj.geo.hits
-                  + "  M " + statsObj.geo.misses
-                  + "  T " + statsObj.geo.total
-                  + " HR: " + statsObj.geo.hitRate.toFixed(2)
-                  + " | NID: " + locationDoc.nodeId
-                  + " | N: " + locationDoc.name + " / " + locationDoc.nameRaw
-                ));
-
-                user[prevUserProp] = user[userProp];
-              }
-
-            }
-            else {
-
-              locationDoc.mentions += 1;
-              locationDoc.lastSeen = lastSeen;
-
-
-              debug(chalk.green("WAS | TFC | +++ LOC DB HIT "
-                + " | GEO: " + locationDoc.geoValid
-                + "  H " + statsObj.geo.hits
-                + "  M " + statsObj.geo.misses
-                + "  T " + statsObj.geo.total
-                + " HR: " + statsObj.geo.hitRate.toFixed(2)
-                + " | PID: " + locationDoc.placeId 
-                + " | NID: " + locationDoc.nodeId
-                + " | N: " + locationDoc.name + " / " + locationDoc.nameRaw
-                + " | A: " + locationDoc.formattedAddress
-              ));
-
-              if (locationDoc.geoValid) {
-                if (configuration.geoCodeEnabled 
-                  && (!locationDoc.geoSearch || !locationDoc.geo || locationDoc.geo === undefined)) {
-                  locationDoc.geo = await geoCode({address: locationDoc.name});
+                if (configuration.geoCodeEnabled) {
+                  geoCodeResults = await geoCode({address: name});
+                  locationDoc.geoSearch = true;
                 }
-                user.geoValid = true;
-                user.geo = locationDoc.geo;
+
+                if (geoCodeResults && geoCodeResults.placeId) {
+
+                  locationDoc.geoValid = true;
+                  locationDoc.geo = geoCodeResults;
+                  locationDoc.placeId = geoCodeResults.placeId;
+                  locationDoc.formattedAddress = geoCodeResults.formattedAddress;
+
+                  await locationDoc.save();
+
+                  statsObj.geo.hits += 1;
+                  statsObj.geo.total += 1;
+                  statsObj.geo.hitRate = 100*(statsObj.geo.hits/statsObj.geo.total);
+
+                  debug(chalk.blue("WAS | TFC | +++ LOC GEO HIT "
+                    + " | GEO: " + locationDoc.geoValid
+                    + "  H " + statsObj.geo.hits
+                    + "  M " + statsObj.geo.misses
+                    + "  T " + statsObj.geo.total
+                    + " HR: " + statsObj.geo.hitRate.toFixed(2)
+                    + " | PID: " + locationDoc.placeId 
+                    + " | NID: " + locationDoc.nodeId
+                    + " | N: " + locationDoc.name + " / " + locationDoc.nameRaw
+                    + " | A: " + locationDoc.formattedAddress
+                  ));
+
+                  user.geoValid = geoCodeResults.geoValid;
+                  user.geo = geoCodeResults;
+
+                  locationsHistogram.locations[geoCodeResults.placeId] = (locationsHistogram.locations[geoCodeResults.placeId] === undefined) 
+                    ? 1 
+                    : locationsHistogram.locations[geoCodeResults.placeId] + 1;
+
+
+                  user[prevUserProp] = user[userProp];
+
+                } 
+                else {
+
+                  await locationDoc.save();
+
+                  statsObj.geo.misses += 1;
+                  statsObj.geo.total += 1;
+                  statsObj.geo.hitRate = 100*(statsObj.geo.hits/statsObj.geo.total);
+
+                  debug(chalkLog("WAS | TFC | --- LOC GEO MISS"
+                    + " | GEO: " + locationDoc.geoValid
+                    + "  H " + statsObj.geo.hits
+                    + "  M " + statsObj.geo.misses
+                    + "  T " + statsObj.geo.total
+                    + " HR: " + statsObj.geo.hitRate.toFixed(2)
+                    + " | NID: " + locationDoc.nodeId
+                    + " | N: " + locationDoc.name + " / " + locationDoc.nameRaw
+                  ));
+
+                  user[prevUserProp] = user[userProp];
+                }
               }
+              else {
 
-              await locationDoc.save();
+                lDoc.mentions += 1;
+                lDoc.lastSeen = lastSeen;
 
-              const key = (locationDoc.placeId && locationDoc.placeId !== undefined) ? locationDoc.placeId : locationDoc.nodeId;
+                debug(chalk.green("WAS | TFC | +++ LOC DB HIT "
+                  + " | GEO: " + lDoc.geoValid
+                  + "  H " + statsObj.geo.hits
+                  + "  M " + statsObj.geo.misses
+                  + "  T " + statsObj.geo.total
+                  + " HR: " + statsObj.geo.hitRate.toFixed(2)
+                  + " | PID: " + lDoc.placeId 
+                  + " | NID: " + lDoc.nodeId
+                  + " | N: " + lDoc.name + " / " + lDoc.nameRaw
+                  + " | A: " + lDoc.formattedAddress
+                ));
 
-              locationsHistogram.locations[key] = (locationsHistogram.locations[key] === undefined) ? 1 : locationsHistogram.locations[key] + 1;
+                if (lDoc.geoValid) {
+                  if (configuration.geoCodeEnabled 
+                    && (!lDoc.geoSearch || !lDoc.geo || lDoc.geo === undefined)) {
+                    lDoc.geo = await geoCode({address: lDoc.name});
+                  }
+                  user.geoValid = true;
+                  user.geo = lDoc.geo;
+                }
 
-              user[prevUserProp] = user[userProp];
-            }
+                await lDoc.save();
 
-          }
-          catch(err){
-            console.log(chalkError("TCS | *** GEOCODE ERROR", err));
-          }
+                const key = (lDoc.placeId && lDoc.placeId !== undefined) ? lDoc.placeId : lDoc.nodeId;
+
+                locationsHistogram.locations[key] = (locationsHistogram.locations[key] === undefined) ? 1 : locationsHistogram.locations[key] + 1;
+
+                user[prevUserProp] = user[userProp];
+                cb();
+              }
+            })
+            .catch(function(err){
+              return cb(err);
+            });
+          // }
+          // catch(err){
+          //   console.log(chalkError("TCS | *** GEOCODE ERROR", err));
+          // }
         break;
 
         case "name":
         case "description":
           text += userPropValue + "\n";
           user[prevUserProp] = user[userProp];
+          cb();
         break;
 
         case "screenName":
           text += "@" + userPropValue + "\n";
           user[prevUserProp] = user[userProp];
+          cb();
         break;
 
         case "url":
@@ -2209,15 +2214,14 @@ function userProfileChangeHistogram(params) {
           urlsHistogram.urls[nodeId] = (urlsHistogram.urls[nodeId] === undefined) ? 1 : urlsHistogram.urls[nodeId] + 1;
 
           user[prevUserProp] = user[userProp];
+          cb();
         break;
 
         default:
           console.log(chalkError("WAS | TFC | UNKNOWN USER PROPERTY: " + userProp));
-          return (new Error("UNKNOWN USER PROPERTY: " + userProp));
+          cb(new Error("UNKNOWN USER PROPERTY: " + userProp));
       }
       
-      return;
-
     }, function(err){
 
       if (err) {

@@ -1396,11 +1396,14 @@ function mergeHistogramsArray(params) {
 function checkPropertyChange(user, prop){
   const prevProp = "previous" + _.upperFirst(prop);
 
-  if (prop === "url") {
-    console.log("checkPropertyChange url | @" + user.screenName + " | url: " + user.url + " | prevProp: " + user[prevProp]);
-  }
 
-  if (user[prop] && (user[prop] !== undefined) && (user[prevProp] !== user[prop])) { return true; }
+  if (user[prop] && (user[prop] !== undefined) && (user[prevProp] !== user[prop])) { 
+
+    if (prop === "url") {
+      console.log("checkPropertyChange url | @" + user.screenName + " | url: " + user.url + " | prevProp: " + user[prevProp]);
+    }
+    return true;
+  }
 
   return false;
 }

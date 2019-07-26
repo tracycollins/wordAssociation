@@ -1469,8 +1469,9 @@ async function checkUserProfileChanged(params) {
 
     const results = [];
 
-    if (checkPropertyChange(user, "profileImageUrl")) { results.push("profileImageUrl"); }
-    if (checkPropertyChange(user, "bannerImageUrl")) { results.push("bannerImageUrl"); }
+    if (!user.bannerImageAnalyzed || checkPropertyChange(user, "bannerImageUrl")) { results.push("bannerImageUrl"); }
+    if (!user.profileImageAnalyzed || checkPropertyChange(user, "profileImageUrl")) { results.push("profileImageUrl"); }
+
     if (checkPropertyChange(user, "description")) { results.push("description"); }
     if (checkPropertyChange(user, "expandedUrl")) { results.push("expandedUrl"); }
     if (checkPropertyChange(user, "location")) { results.push("location"); }

@@ -2467,7 +2467,7 @@ function initUserCategorizeQueueInterval(cnf){
 
       try {
 
-        activateResults = await nnTools.activateSingleNetwork({ user: updatedUser});
+        activateResults = await nnTools.activateSingleNetwork({user: updatedUser});
 
         if (configuration.verbose || configuration.testMode) {
           console.log("TFC | >>> ACTIVATE activateResults\n" + jsonPrint(activateResults));

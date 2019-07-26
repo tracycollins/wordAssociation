@@ -1396,7 +1396,6 @@ function mergeHistogramsArray(params) {
 function checkPropertyChange(user, prop){
   const prevProp = "previous" + _.upperFirst(prop);
 
-
   if (user[prop] && (user[prop] !== undefined) && (user[prevProp] !== user[prop])) { 
 
     if (prop === "url") {
@@ -2385,17 +2384,17 @@ async function updateUserHistograms(p) {
         user.profileHistograms = await mergeHistograms.merge({ histogramA: user.profileHistograms, histogramB: profileHistogramChanges });
       }
 
-      user.previousProfileImageUrl = user.profileImageUrl;
-      user.previousBannerImageUrl = user.bannerImageUrl;
-      user.previousDescription = user.description;
-      user.previousExpandedUrl = user.expandedUrl;
-      user.previousLocation = user.location;
-      user.previousName = user.name;
-      user.previousProfileUrl = user.profileUrl;
-      user.previousQuotedStatusId = user.quotedStatusId;
-      user.previousScreenName = user.screenName;
-      user.previousStatusId = user.statusId;
-      user.previousUrl = user.url;
+      if (user.profileImageUrl && (user.profileImageUrl !== undefined)) { user.previousProfileImageUrl = user.profileImageUrl; }
+      if (user.bannerImageUrl && (user.bannerImageUrl !== undefined)) { user.previousBannerImageUrl = user.bannerImageUrl; }
+      if (user.description && (user.description !== undefined)) { user.previousDescription = user.description; }
+      if (user.expandedUrl && (user.expandedUrl !== undefined)) { user.previousExpandedUrl = user.expandedUrl; }
+      if (user.location && (user.location !== undefined)) { user.previousLocation = user.location; }
+      if (user.name && (user.name !== undefined)) { user.previousName = user.name; }
+      if (user.profileUrl && (user.profileUrl !== undefined)) { user.previousProfileUrl = user.profileUrl; }
+      if (user.quotedStatusId && (user.quotedStatusId !== undefined)) { user.previousQuotedStatusId = user.quotedStatusId; }
+      if (user.screenName && (user.screenName !== undefined)) { user.previousScreenName = user.screenName; }
+      if (user.statusId && (user.statusId !== undefined)) { user.previousStatusId = user.statusId; }
+      if (user.url && (user.url !== undefined)) { user.previousUrl = user.url; }
 
       await updateGlobalHistograms({user: user});
 

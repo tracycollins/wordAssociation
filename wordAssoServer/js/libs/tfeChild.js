@@ -2343,18 +2343,21 @@ async function updateUserHistograms(p) {
       }
     }
 
-    let user;
-
     if (!params.user.userId || (params.user.userId === undefined)){
       params.user.userId = params.user.nodeId;
     }
 
     try {
 
-      user = await global.globalUser.findOne({nodeId: params.user.nodeId});
+      let user;
 
-      if (!user) {
+      const dbUser = await global.globalUser.findOne({nodeId: params.user.nodeId});
+
+      if (!dbUser) {
         user = global.globalUser(params.user);
+      }
+      else {
+        user = dbUser;
       }
 
       user.profileHistograms = user.profileHistograms || {};
@@ -2377,30 +2380,30 @@ async function updateUserHistograms(p) {
         latestTweets = await fetchUserTweets({ userId: user.userId, screenName: user.screenName, sinceId: user.tweets.sinceId });
       }
 
-      user = await updateUserTweets({user: user, tweets: latestTweets});
-      const userProfileChanges = await checkUserProfileChanged(params);
-      const profileHistogramChanges = await userProfileChangeHistogram({user: user, userProfileChanges: userProfileChanges});
+      const updatedUser = await updateUserTweets({user: user, tweets: latestTweets});
+      const userProfileChanges = await checkUserProfileChanged({user: updatedUser});
+      const profileHistogramChanges = await userProfileChangeHistogram({user: updatedUser, userProfileChanges: userProfileChanges});
 
       if (profileHistogramChanges) {
-        user.profileHistograms = await mergeHistograms.merge({ histogramA: user.profileHistograms, histogramB: profileHistogramChanges });
+        updatedUser.profileHistograms = await mergeHistograms.merge({ histogramA: user.profileHistograms, histogramB: profileHistogramChanges });
       }
 
-      if (user.profileImageUrl && (user.profileImageUrl !== undefined)) { user.previousProfileImageUrl = user.profileImageUrl; }
-      if (user.bannerImageUrl && (user.bannerImageUrl !== undefined)) { user.previousBannerImageUrl = user.bannerImageUrl; }
-      if (user.description && (user.description !== undefined)) { user.previousDescription = user.description; }
-      if (user.expandedUrl && (user.expandedUrl !== undefined)) { user.previousExpandedUrl = user.expandedUrl; }
-      if (user.location && (user.location !== undefined)) { user.previousLocation = user.location; }
-      if (user.name && (user.name !== undefined)) { user.previousName = user.name; }
-      if (user.profileUrl && (user.profileUrl !== undefined)) { user.previousProfileUrl = user.profileUrl; }
-      if (user.quotedStatusId && (user.quotedStatusId !== undefined)) { user.previousQuotedStatusId = user.quotedStatusId; }
-      if (user.screenName && (user.screenName !== undefined)) { user.previousScreenName = user.screenName; }
-      if (user.statusId && (user.statusId !== undefined)) { user.previousStatusId = user.statusId; }
-      if (user.url && (user.url !== undefined)) { user.previousUrl = user.url; }
+      if (updatedUser.profileImageUrl && (updatedUser.profileImageUrl !== undefined)) { updatedUser.previousProfileImageUrl = updatedUser.profileImageUrl; }
+      if (updatedUser.bannerImageUrl && (updatedUser.bannerImageUrl !== undefined)) { updatedUser.previousBannerImageUrl = updatedUser.bannerImageUrl; }
+      if (updatedUser.description && (updatedUser.description !== undefined)) { updatedUser.previousDescription = updatedUser.description; }
+      if (updatedUser.expandedUrl && (updatedUser.expandedUrl !== undefined)) { updatedUser.previousExpandedUrl = updatedUser.expandedUrl; }
+      if (updatedUser.location && (updatedUser.location !== undefined)) { updatedUser.previousLocation = updatedUser.location; }
+      if (updatedUser.name && (updatedUser.name !== undefined)) { updatedUser.previousName = updatedUser.name; }
+      if (updatedUser.profileUrl && (updatedUser.profileUrl !== undefined)) { updatedUser.previousProfileUrl = updatedUser.profileUrl; }
+      if (updatedUser.quotedStatusId && (updatedUser.quotedStatusId !== undefined)) { updatedUser.previousQuotedStatusId = updatedUser.quotedStatusId; }
+      if (updatedUser.screenName && (updatedUser.screenName !== undefined)) { updatedUser.previousScreenName = updatedUser.screenName; }
+      if (updatedUser.statusId && (updatedUser.statusId !== undefined)) { updatedUser.previousStatusId = updatedUser.statusId; }
+      if (updatedUser.url && (updatedUser.url !== undefined)) { updatedUser.previousUrl = updatedUser.url; }
 
-      await updateGlobalHistograms({user: user});
+      await updateGlobalHistograms({user: updatedUser});
 
-      user.priorityFlag = params.user.priorityFlag;
-      return user;
+      updatedUser.priorityFlag = params.user.priorityFlag;
+      return updatedUser;
 
     }
     catch(err){

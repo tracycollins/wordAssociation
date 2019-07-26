@@ -1813,10 +1813,16 @@ function processTweetObj(params){
 
         switch (entityType) {
           case "hashtags":
+            if (!entityObj.nodeId || entityObj.nodeId === undefined) {
+              return cb1(new Error("UNDEFINED NODE ID"));
+            }
             entity = "#" + entityObj.nodeId.toLowerCase();
           break;
           case "mentions":
           case "userMentions":
+            if (!entityObj.screenName || entityObj.screenName === undefined) {
+              return cb1(new Error("UNDEFINED SCREEN NAME"));
+            }
             entity = "@" + entityObj.screenName.toLowerCase();
           break;
           case "locations":
@@ -1838,6 +1844,9 @@ function processTweetObj(params){
             }
           break;
           case "words":
+            if (!entityObj.nodeId || entityObj.nodeId === undefined) {
+              return cb1(new Error("UNDEFINED NODE ID"));
+            }
             entity = entityObj.nodeId.toLowerCase();
             entity = entity.replace(/\./gi, "_")
           break;
@@ -2027,6 +2036,10 @@ function userProfileChangeHistogram(params) {
     locationsHistogram.locations = {};
 
     async.each(userProfileChanges, function(userProp, cb){
+
+      if (!user[userProp] || user[userProp] === undefined) {
+        return cb(new Error("UNDEFINED user userProp: " + userProp));
+      }
 
       const userPropValue = user[userProp].toLowerCase();
 
@@ -2649,17 +2662,17 @@ async function updateUserHistograms(p) {
 
       if (!infoTwitterUserObj.stats.twitterRateLimitExceptionFlag) {
 
-          if (!user.tweets || user.tweets === undefined) {
-            user.tweets = {};
-            user.tweets.tweetIds = [];
-            user.tweets.sinceId = false;
-            user.tweets.maxId = false;
-          }
-          if (!user.tweets.sinceId || user.tweets.sinceId === undefined) {
-            user.tweets.sinceId = false;
-            user.tweets.maxId = false;
-          }
-          latestTweets = await fetchUserTweets({ userId: user.userId, screenName: user.screenName, sinceId: user.tweets.sinceId });
+        if (!user.tweets || user.tweets === undefined) {
+          user.tweets = {};
+          user.tweets.tweetIds = [];
+          user.tweets.sinceId = false;
+          user.tweets.maxId = false;
+        }
+        if (!user.tweets.sinceId || user.tweets.sinceId === undefined) {
+          user.tweets.sinceId = false;
+          user.tweets.maxId = false;
+        }
+        latestTweets = await fetchUserTweets({ userId: user.userId, screenName: user.screenName, sinceId: user.tweets.sinceId });
       }
 
       user = await updateUserTweets({user: user, tweets: latestTweets});

@@ -1738,7 +1738,7 @@ function userProfileChangeHistogram(params) {
 
     async.each(userProfileChanges, function(userProp, cb){
 
-      if (!user[userProp] || user[userProp] === undefined) {
+      if (!user[userProp] && user[userProp] === undefined) {
         return cb(new Error("UNDEFINED user userProp: " + userProp));
       }
 
@@ -2407,6 +2407,7 @@ async function updateUserHistograms(p) {
       console.log(chalkError("WAS | TFC | *** updateUserHistograms ERROR"
         + " | NID: " + params.user.nodeId
         + " | @" + params.user.screenName
+        + " | ERROR: " + err
       ));
       throw err;
     }

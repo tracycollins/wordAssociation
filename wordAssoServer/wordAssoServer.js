@@ -1866,33 +1866,33 @@ const statsBestNetworkPickArray = [
   "betterChild"
 ];
 
-function delay(p) {
+// function delay(p) {
 
-  const params = p || {};
-  const period = params.period || 10*ONE_SECOND;
-  const verbose = params.verbose || false;
+//   const params = p || {};
+//   const period = params.period || 10*ONE_SECOND;
+//   const verbose = params.verbose || false;
 
-  return new Promise(function(resolve, reject){
+//   return new Promise(function(resolve, reject){
 
-    try {
-      if (verbose) {
-        console.log(chalkLog("WAS | +++ DELAY START | NOW: " + getTimeStamp() + " | PERIOD: " + msToTime(period)));
-      }
+//     try {
+//       if (verbose) {
+//         console.log(chalkLog("WAS | +++ DELAY START | NOW: " + getTimeStamp() + " | PERIOD: " + msToTime(period)));
+//       }
 
-      setTimeout(function(){
-        if (verbose) {
-          console.log(chalkLog("WAS | XXX DELAY END | NOW: " + getTimeStamp() + " | PERIOD: " + msToTime(period)));
-        }
-        resolve();
-      }, period);
-    }
-    catch(err){
-      console.log(chalkError("WAS | *** delay ERROR:", err));
-      reject(err);
-    }
+//       setTimeout(function(){
+//         if (verbose) {
+//           console.log(chalkLog("WAS | XXX DELAY END | NOW: " + getTimeStamp() + " | PERIOD: " + msToTime(period)));
+//         }
+//         resolve();
+//       }, period);
+//     }
+//     catch(err){
+//       console.log(chalkError("WAS | *** delay ERROR:", err));
+//       reject(err);
+//     }
 
-  });
-}
+//   });
+// }
 
 
 function initStats(callback){
@@ -2063,71 +2063,71 @@ function initStats(callback){
   callback();
 }
 
-async function dropboxFolderGetLastestCursor(folder) {
-  try {
+// async function dropboxFolderGetLastestCursor(folder) {
+//   try {
 
-    const optionsGetLatestCursor = {
-      path: folder,
-      recursive: true,
-      include_media_info: false,
-      include_deleted: true,
-      include_has_explicit_shared_members: false
-    };
+//     const optionsGetLatestCursor = {
+//       path: folder,
+//       recursive: true,
+//       include_media_info: false,
+//       include_deleted: true,
+//       include_has_explicit_shared_members: false
+//     };
 
-    if (configuration.verbose) { 
-      console.log(chalkLog("WAS | dropboxFolderGetLastestCursor FOLDER: " + folder)); 
-    }
+//     if (configuration.verbose) { 
+//       console.log(chalkLog("WAS | dropboxFolderGetLastestCursor FOLDER: " + folder)); 
+//     }
 
-    const last_cursor = await dropboxClient.filesListFolderGetLatestCursor(optionsGetLatestCursor);
+//     const last_cursor = await dropboxClient.filesListFolderGetLatestCursor(optionsGetLatestCursor);
 
-    if (configuration.verbose) { 
-      console.log(chalkLog("WAS | DROPBOX LAST CURSOR\n" + jsonPrint(last_cursor))); 
-    }
+//     if (configuration.verbose) { 
+//       console.log(chalkLog("WAS | DROPBOX LAST CURSOR\n" + jsonPrint(last_cursor))); 
+//     }
 
-    const results = await dropboxClient.filesListFolderLongpoll({cursor: last_cursor, timeout: 30});
+//     const results = await dropboxClient.filesListFolderLongpoll({cursor: last_cursor, timeout: 30});
 
-    if (configuration.verbose) { 
-      console.log(chalkLog("WAS | DROPBOX LONG POLL RESULTS\n" + jsonPrint(results))); 
-    }
+//     if (configuration.verbose) { 
+//       console.log(chalkLog("WAS | DROPBOX LONG POLL RESULTS\n" + jsonPrint(results))); 
+//     }
 
-    if ((results !== undefined) && results && results.changes) {
+//     if ((results !== undefined) && results && results.changes) {
 
-      const response = await dropboxClient.filesListFolderContinue({ cursor: last_cursor.cursor});
+//       const response = await dropboxClient.filesListFolderContinue({ cursor: last_cursor.cursor});
 
-      if (configuration.verbose) { 
-        console.log(chalkLog("WAS | DROPBOX FILE LIST FOLDER CONTINUE"
-          + "\n" + jsonPrint(response)
-        ));
-      }
+//       if (configuration.verbose) { 
+//         console.log(chalkLog("WAS | DROPBOX FILE LIST FOLDER CONTINUE"
+//           + "\n" + jsonPrint(response)
+//         ));
+//       }
 
-      return response;
+//       return response;
 
-    }
+//     }
 
-    debug(chalkLog("WAS | DROPBOX | FOLDER NO CHANGE | " + folder));
-    return;
-  }
-  catch(err){
+//     debug(chalkLog("WAS | DROPBOX | FOLDER NO CHANGE | " + folder));
+//     return;
+//   }
+//   catch(err){
 
-    console.log(chalkError("WAS | *** ERROR DROPBOX FOLDER | " + folder + " | " + err));
+//     console.log(chalkError("WAS | *** ERROR DROPBOX FOLDER | " + folder + " | " + err));
 
-    if (err.status === 429){
-      console.log(chalkError("WAS | *** dropboxFolderGetLastestCursor filesListFolder"
-        + " | *** DROPBOX FILES LIST FOLDER ERROR"
-        + " | TOO MANY REQUESTS" 
-        + " | FOLDER: " + folder 
-      ));
-    }
-    else {
-      console.log(chalkError("WAS | *** dropboxFolderGetLastestCursor filesListFolder"
-        + " *** DROPBOX FILES LIST FOLDER ERROR"
-        + "\nERROR:", err 
-        // + "\nERROR: " + jsonPrint(err)
-      ));
-    }
-    throw err;
-  }
-}
+//     if (err.status === 429){
+//       console.log(chalkError("WAS | *** dropboxFolderGetLastestCursor filesListFolder"
+//         + " | *** DROPBOX FILES LIST FOLDER ERROR"
+//         + " | TOO MANY REQUESTS" 
+//         + " | FOLDER: " + folder 
+//       ));
+//     }
+//     else {
+//       console.log(chalkError("WAS | *** dropboxFolderGetLastestCursor filesListFolder"
+//         + " *** DROPBOX FILES LIST FOLDER ERROR"
+//         + "\nERROR:", err 
+//         // + "\nERROR: " + jsonPrint(err)
+//       ));
+//     }
+//     throw err;
+//   }
+// }
 
 function showStats(options){
 
@@ -6546,7 +6546,7 @@ function logHeartbeat() {
   ));
 }
 
-let dropboxFolderGetLastestCursorReady = true;
+// let dropboxFolderGetLastestCursorReady = true;
 
 // function touchUsersZipUpdateFlag(){
 
@@ -6714,7 +6714,7 @@ function initAppRouting(callback) {
       if (configuration.verbose) {
 
         console.log(chalkInfo("WAS | R< DROPBOX WEB HOOK | /dropbox_webhook"
-          + " | DB CURSOR READY: " + dropboxFolderGetLastestCursorReady
+          // + " | DB CURSOR READY: " + dropboxFolderGetLastestCursorReady
         )); 
 
         debug(chalkInfo("WAS | R< dropbox_webhook"
@@ -6728,112 +6728,112 @@ function initAppRouting(callback) {
 
       next();
 
-      const dropboxCursorFolderArray = configuration.dropboxChangeFolderArray;
+      // const dropboxCursorFolderArray = configuration.dropboxChangeFolderArray;
 
-      if (dropboxFolderGetLastestCursorReady) {
+      // if (dropboxFolderGetLastestCursorReady) {
 
-        dropboxFolderGetLastestCursorReady = false;
+      //   dropboxFolderGetLastestCursorReady = false;
 
-        async.each(dropboxCursorFolderArray, async function(folder){
+      //   async.each(dropboxCursorFolderArray, async function(folder){
 
-          try {
+      //     try {
 
-            const response = await dropboxFolderGetLastestCursor(folder);
+      //       const response = await dropboxFolderGetLastestCursor(folder);
 
-            if (response && (response.entries.length > 0)) {
+      //       if (response && (response.entries.length > 0)) {
 
-              await delay({period: configuration.dropboxWebhookChangeTimeout});
+      //         await delay({period: configuration.dropboxWebhookChangeTimeout});
 
-              debug(chalk.bold.black("WAS | >>> DROPBOX CHANGE"
-                + " | " + getTimeStamp()
-                + " | FOLDER: " + folder
-              ));
+      //         debug(chalk.bold.black("WAS | >>> DROPBOX CHANGE"
+      //           + " | " + getTimeStamp()
+      //           + " | FOLDER: " + folder
+      //         ));
 
-              async.eachSeries(response.entries, async function(entry){
+      //         async.eachSeries(response.entries, async function(entry){
 
-                console.log(chalk.green("WAS | >>> DROPBOX CHANGE | PATH LOWER: " + entry.path_lower));
+      //           console.log(chalk.green("WAS | >>> DROPBOX CHANGE | PATH LOWER: " + entry.path_lower));
 
-                if ((entry.path_lower.endsWith("google_wordassoserverconfig.json"))
-                  || (entry.path_lower.endsWith("default_wordassoserverconfig.json"))){
-                  await initConfig();
-                  return;
-                }
+      //           if ((entry.path_lower.endsWith("google_wordassoserverconfig.json"))
+      //             || (entry.path_lower.endsWith("default_wordassoserverconfig.json"))){
+      //             await initConfig();
+      //             return;
+      //           }
 
-                // if (entry.path_lower.endsWith("users.zip")){
-                //   await touchUsersZipUpdateFlag();
-                //   return;
-                // }
+      //           // if (entry.path_lower.endsWith("users.zip")){
+      //           //   await touchUsersZipUpdateFlag();
+      //           //   return;
+      //           // }
 
-                if (entry.path_lower.endsWith(bestRuntimeNetworkFileName.toLowerCase())){
-                  await loadBestRuntimeNetwork();
-                  return;
-                }
+      //           if (entry.path_lower.endsWith(bestRuntimeNetworkFileName.toLowerCase())){
+      //             await loadBestRuntimeNetwork();
+      //             return;
+      //           }
 
-                if (entry.path_lower.endsWith(maxInputHashMapFile)){
-                  await loadMaxInputHashMap();
-                  configEvents.emit("NEW_MAX_INPUT_HASHMAP");
-                  return;
-                }
+      //           if (entry.path_lower.endsWith(maxInputHashMapFile)){
+      //             await loadMaxInputHashMap();
+      //             configEvents.emit("NEW_MAX_INPUT_HASHMAP");
+      //             return;
+      //           }
 
-                if (entry.path_lower.endsWith(verifiedCategorizedUsersFile.toLowerCase())){
-                  await initVerifiedCategorizedUsersSet();
-                  return;
-                }
+      //           if (entry.path_lower.endsWith(verifiedCategorizedUsersFile.toLowerCase())){
+      //             await initVerifiedCategorizedUsersSet();
+      //             return;
+      //           }
 
-                if (entry.path_lower.endsWith(ignoredHashtagFile.toLowerCase())){
-                  await initIgnoredHashtagSet();
-                  return;
-                }
+      //           if (entry.path_lower.endsWith(ignoredHashtagFile.toLowerCase())){
+      //             await initIgnoredHashtagSet();
+      //             return;
+      //           }
 
-                if (entry.path_lower.endsWith("allowlocations.txt")){
-                  allowLocations();
-                  return;
-                }
+      //           if (entry.path_lower.endsWith("allowlocations.txt")){
+      //             allowLocations();
+      //             return;
+      //           }
 
-                if (entry.path_lower.endsWith("ignorelocations.txt")){
-                  await ignoreLocations();
-                  return;
-                }
+      //           if (entry.path_lower.endsWith("ignorelocations.txt")){
+      //             await ignoreLocations();
+      //             return;
+      //           }
 
-                if (entry.path_lower.endsWith("followablesearchterm.txt")){
-                  await initFollowableSearchTermSet();
-                  tssSendAllChildren({op: "UPDATE_SEARCH_TERMS"});
-                  return;
-                }
+      //           if (entry.path_lower.endsWith("followablesearchterm.txt")){
+      //             await initFollowableSearchTermSet();
+      //             tssSendAllChildren({op: "UPDATE_SEARCH_TERMS"});
+      //             return;
+      //           }
 
-                if ((entry.path_lower.endsWith("google_twittersearchstreamconfig.json"))
-                  || (entry.path_lower.endsWith("default_twittersearchstreamconfig.json"))){
+      //           if ((entry.path_lower.endsWith("google_twittersearchstreamconfig.json"))
+      //             || (entry.path_lower.endsWith("default_twittersearchstreamconfig.json"))){
 
-                  await killTssChildren();
-                  await initTssChildren();
-                  return;
-                }
+      //             await killTssChildren();
+      //             await initTssChildren();
+      //             return;
+      //           }
 
-                return;
-              }, function(err){
-                if (err) { return err; }
-                return;
-              });
-            }
+      //           return;
+      //         }, function(err){
+      //           if (err) { return err; }
+      //           return;
+      //         });
+      //       }
 
-            return;
-          }
-          catch(err){
-            console.log(chalkError("WAS | *** DROPBOX GET LATEST CURSOR ERROR: " + err));
-            return err;
-          }
+      //       return;
+      //     }
+      //     catch(err){
+      //       console.log(chalkError("WAS | *** DROPBOX GET LATEST CURSOR ERROR: " + err));
+      //       return err;
+      //     }
               
-        }, function(err){
-          if (err) {
-            console.log(chalkError("WAS | *** DROPBOX WEBHOOK ERROR: " + err));
-          }
-          debug(chalkLog("WAS | END DROPBOX WEBHOOK"));
-          dropboxFolderGetLastestCursorReady = true;
-        });
-      }
-      else {
-        debug(chalkAlert("WAS | SKIP DROPBOX WEBHOOK ... NOT READY"));
-      }
+      //   }, function(err){
+      //     if (err) {
+      //       console.log(chalkError("WAS | *** DROPBOX WEBHOOK ERROR: " + err));
+      //     }
+      //     debug(chalkLog("WAS | END DROPBOX WEBHOOK"));
+      //     dropboxFolderGetLastestCursorReady = true;
+      //   });
+      // }
+      // else {
+      //   debug(chalkAlert("WAS | SKIP DROPBOX WEBHOOK ... NOT READY"));
+      // }
     }
     else if (req.path === "/googleccd19766bea2dfd2.html") {
 
@@ -7732,27 +7732,27 @@ function unfollowDuplicates(params){
 //   tssSendAllChildren({op: "UPDATE_SEARCH_TERMS"});
 // }
 
-async function allowLocations(){
-  console.log(chalk.green("WAS | WAS | UPDATE ALLOW LOCATIONS"));
-  try{
-    await initAllowLocations();
-    tssSendAllChildren({op: "UPDATE_ALLOW_LOCATIONS"});
-  }
-  catch(err){
-    console.log(chalkError("WAS | *** INIT ALLOW LOCATIONS ERROR: " + err));
-  }
-}
+// async function allowLocations(){
+//   console.log(chalk.green("WAS | WAS | UPDATE ALLOW LOCATIONS"));
+//   try{
+//     await initAllowLocations();
+//     tssSendAllChildren({op: "UPDATE_ALLOW_LOCATIONS"});
+//   }
+//   catch(err){
+//     console.log(chalkError("WAS | *** INIT ALLOW LOCATIONS ERROR: " + err));
+//   }
+// }
 
-async function ignoreLocations(){
-  console.log(chalk.green("WAS | WAS | UPDATE IGNORE LOCATIONS"));
-  try{
-    await initIgnoreLocations();
-    tssSendAllChildren({op: "UPDATE_IGNORE_LOCATIONS"});
-  }
-  catch(err){
-    console.log(chalkError("WAS | *** INIT IGNORE LOCATIONS ERROR: " + err));
-  }
-}
+// async function ignoreLocations(){
+//   console.log(chalk.green("WAS | WAS | UPDATE IGNORE LOCATIONS"));
+//   try{
+//     await initIgnoreLocations();
+//     tssSendAllChildren({op: "UPDATE_IGNORE_LOCATIONS"});
+//   }
+//   catch(err){
+//     console.log(chalkError("WAS | *** INIT IGNORE LOCATIONS ERROR: " + err));
+//   }
+// }
 
 function initTssChild(params){
 

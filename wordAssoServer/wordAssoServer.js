@@ -8821,28 +8821,33 @@ async function loadBestRuntimeNetwork(p){
 
       file = bRtNnObj.networkId + ".json";
 
-      const nnObj = await tcUtils.loadFileRetry({folder: folder, file: file, noErrorNotFoundFlag: true});
+      try{
+        const nnObj = await tcUtils.loadFileRetry({folder: folder, file: file, noErrorNotFoundFlag: true});
 
-      if (nnObj) { 
+        if (nnObj) { 
 
-        nnObj.matchRate = (nnObj.matchRate !== undefined) ? nnObj.matchRate : 0;
-        bestNetworkObj = {};
-        bestNetworkObj = deepcopy(nnObj);
+          nnObj.matchRate = (nnObj.matchRate !== undefined) ? nnObj.matchRate : 0;
+          bestNetworkObj = {};
+          bestNetworkObj = deepcopy(nnObj);
 
-        console.log(chalk.green.bold("WAS | +++ LOADED BEST NETWORK: " + bestNetworkObj.networkId));
+          console.log(chalk.green.bold("WAS | +++ LOADED BEST NETWORK: " + bestNetworkObj.networkId));
 
-        statsObj.bestNetwork = pick(bestNetworkObj, statsBestNetworkPickArray);
+          statsObj.bestNetwork = pick(bestNetworkObj, statsBestNetworkPickArray);
 
-        if (statsObj.previousBestNetworkId !== bestNetworkObj.networkId) {
-          console.log(chalk.green.bold("WAS | >>> BEST NETWORK CHANGE"
-            + " | PREV: " + statsObj.previousBestNetworkId
-            + " > NEW: " + bestNetworkObj.networkId
-          ));
-          statsObj.previousBestNetworkId = bestNetworkObj.networkId;
-          configEvents.emit("NEW_BEST_NETWORK", bestNetworkObj.networkId);
+          if (statsObj.previousBestNetworkId !== bestNetworkObj.networkId) {
+            console.log(chalk.green.bold("WAS | >>> BEST NETWORK CHANGE"
+              + " | PREV: " + statsObj.previousBestNetworkId
+              + " > NEW: " + bestNetworkObj.networkId
+            ));
+            statsObj.previousBestNetworkId = bestNetworkObj.networkId;
+            configEvents.emit("NEW_BEST_NETWORK", bestNetworkObj.networkId);
+          }
+
+          return bestNetworkObj.networkId;
         }
-
-        return bestNetworkObj.networkId;
+      }
+      catch(e){
+        console.log(chalkError("WAS | *** ERROR LOAD BEST NETWORK RUNTIME ID: " +e));
       }
     }
 

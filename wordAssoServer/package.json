@@ -98,7 +98,7 @@
     "uniq": "^1.0.1",
     "update": "^0.7.4",
     "url-parse": "^1.4.7",
-    "write-json-file": "^4.1.1",
+    "write-json-file": "^4.2.0",
     "yamljs": "^0.3.0"
   },
   "devDependencies": {

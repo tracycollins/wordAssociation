@@ -43,10 +43,6 @@ DEFAULT_INPUT_TYPES.forEach(function(type){
 });
 
 let networkObj = {};
-// let network;
-
-// let maxInputHashMap = {};
-// let normalization = {};
 const globalHistograms = {};
 
 const DEFAULT_INFO_TWITTER_USER = "threecee";

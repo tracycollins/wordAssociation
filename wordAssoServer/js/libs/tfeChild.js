@@ -1207,44 +1207,6 @@ async function updateGlobalHistograms(params) {
   // });
 }
 
-// function parseImage(p){
-
-//   return new Promise(function(resolve, reject) {
-
-//     const params = p;
-
-//     // params.updateGlobalHistograms = (params.updateGlobalHistograms !== undefined) ? params.updateGlobalHistograms : false;
-//     // params.category = params.user.category || "none";
-//     // params.histograms = {};
-//     // params.histograms = params.user.histograms;
-//     // params.screenName = params.user.screenName;
-
-//     params.updateGlobalHistograms = (params.updateGlobalHistograms !== undefined) ? params.updateGlobalHistograms : false;
-//     params.category = params.category || "none";
-
-//     try{
-//       const hist = await twitterImageParser.parseImage(params);
-//       console.log(chalkLog("WAS | TFE | +++ IMAGE PARSE" 
-//         + " | CAT: " + params.category
-//         + " | @" + params.screenName
-//         + " | " + params.imageUrl
-//         + "\n" + jsonPrint(hist)
-//       ));
-//       resolve(hist);
-//     }
-//     catch(err){
-//       if (err.code === 8) {
-//         console.log(chalkAlert("WAS | TFC | GOOGLE VISION IMAGE PARSER QUOTA ERROR"));
-//       }
-//       else{
-//         console.log(chalkError("WAS | TFC | GOOGLE VISION IMAGE PARSER ERROR: " + err));
-//       }
-//       reject(err);
-//     }
-
-//   });
-// }
-
 function parseText(params){
 
   return new Promise(function(resolve, reject) {
@@ -2414,7 +2376,6 @@ async function updateUserHistograms(p) {
     ));
     throw err;
   }
-
 }
 
 let uscTimeout;

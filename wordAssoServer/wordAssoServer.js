@@ -5069,6 +5069,7 @@ function initSocketHandler(socketObj) {
             + " | @" + updatedNodeObj.screenName
             + " | NAME: " + updatedNodeObj.name
             + " | LANG: " + updatedNodeObj.lang
+            + " | LANG ANZD: " + updatedNodeObj.languageAnalyzed
             + " | IG: " + updatedNodeObj.ignored
             + "\nFLWRs: " + updatedNodeObj.followersCount
             + " | FRNDs: " + updatedNodeObj.friendsCount

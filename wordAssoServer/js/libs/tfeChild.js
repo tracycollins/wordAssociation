@@ -575,22 +575,24 @@ function quit(message) {
     
   );
 
-  if ((global.globalDbConnection !== undefined) && (global.globalDbConnection.readyState > 0)) {
+  process.exit(exitCode);
 
-    global.globalDbConnection.close(function () {
+  // if ((global.globalDbConnection !== undefined) && (global.globalDbConnection.readyState > 0)) {
+
+  //   global.globalDbConnection.close(function () {
       
-      console.log(chalkAlert(
-            "WAS | TFC | =========================="
-        + "\nTFE | MONGO DB CONNECTION CLOSED"
-        + "\nTFE | =========================="
-      ));
+  //     console.log(chalkAlert(
+  //           "WAS | TFC | =========================="
+  //       + "\nTFE | MONGO DB CONNECTION CLOSED"
+  //       + "\nTFE | =========================="
+  //     ));
 
-      process.exit(exitCode);
-    });
-  }
-  else {
-    process.exit(exitCode);
-  }
+  //     process.exit(exitCode);
+  //   });
+  // }
+  // else {
+  //   process.exit(exitCode);
+  // }
 }
 
 function saveFile (path, file, jsonObj, callback){

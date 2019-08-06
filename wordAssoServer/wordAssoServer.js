@@ -552,21 +552,21 @@ function quit(message) {
   console.log(chalkAlert("WAS | QUIT MESSAGE: " + msg));
   console.error(chalkAlert("WAS | QUIT MESSAGE: " + msg));
 
-  if (global.globalDbConnection) {
+  // if (global.globalDbConnection) {
 
-    global.globalDbConnection.close(function () {
+  //   global.globalDbConnection.close(function () {
 
-      statsObj.dbConnectionReady = false;
+  //     statsObj.dbConnectionReady = false;
 
-      console.log(chalkAlert(
-            "WAS | =========================="
-        + "\nWAS | MONGO DB CONNECTION CLOSED"
-        + "\nWAS | =========================="
-      ));
+  //     console.log(chalkAlert(
+  //           "WAS | =========================="
+  //       + "\nWAS | MONGO DB CONNECTION CLOSED"
+  //       + "\nWAS | =========================="
+  //     ));
 
-    });
+  //   });
 
-  }
+  // }
 
   setTimeout(function() {
 

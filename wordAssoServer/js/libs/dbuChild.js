@@ -211,14 +211,15 @@ function quit(options){
   showStats();
 
   setTimeout(function(){
-    global.globalDbConnection.close(function () {
-      console.log(chalkAlert(
-            "DBU | =========================="
-        + "\nDBU | MONGO DB CONNECTION CLOSED"
-        + "\nDBU | =========================="
-      ));
-      process.exit();
-    });
+    process.exit();
+    // global.globalDbConnection.close(function () {
+    //   console.log(chalkAlert(
+    //         "DBU | =========================="
+    //     + "\nDBU | MONGO DB CONNECTION CLOSED"
+    //     + "\nDBU | =========================="
+    //   ));
+    //   process.exit();
+    // });
   }, 1000);
 }
 
@@ -301,53 +302,6 @@ function initialize(){
 
   });
 }
-
-// function mergeHistograms(params){
-
-//   return new Promise(function(resolve, reject){
-
-//     try {
-//       const histA = params.histogramA;
-//       const histB = params.histogramB;
-
-//       const histogramMerged = {};
-
-//       const entityTypeArray = _.union(Object.keys(histA), Object.keys(histB));
-
-//       entityTypeArray.forEach(function(entityType){
-
-//         histogramMerged[entityType] = {};
-
-//         if (!histA[entityType] || histA[entityType] === undefined || histA[entityType] === null) { histA[entityType] = {}; }
-//         if (!histB[entityType] || histB[entityType] === undefined || histB[entityType] === null) { histB[entityType] = {}; }
-
-//         const entityArray = _.union(Object.keys(histA[entityType]), Object.keys(histB[entityType]));
-
-//         entityArray.forEach(function(e){
-
-//           const entity = e.trim();
-
-//           if (!entity || entity === "" || entity === " " || entity === null || entity === undefined || entity === "-") { return; }
-
-//           histogramMerged[entityType][entity] = 0;
-
-//           if (histA[entityType][entity] && histA[entityType][entity] !== undefined) { histogramMerged[entityType][entity] += histA[entityType][entity]; }
-//           if (histB[entityType][entity] && histB[entityType][entity] !== undefined) { histogramMerged[entityType][entity] += histB[entityType][entity]; }
-
-//         });
-//       });
-
-//       debug(chalkLog("histogramMerged\n" + jsonPrint(histogramMerged)));
-
-//       resolve(histogramMerged);
-//     }
-//     catch(err){
-//       console.log(chalkError("DBU | *** MERGE HISTOGRAMS ERROR", err));
-//       reject(err);
-//     }
-
-//   });
-// }
 
 function printUserObj(title, user) {
   console.log(chalkUser(title

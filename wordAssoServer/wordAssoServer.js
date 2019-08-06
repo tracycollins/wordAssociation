@@ -3864,32 +3864,6 @@ function initTssChildren(){
   });
 }
 
-function killTssChildren(){
-  return new Promise(function(resolve, reject){
-
-    Object.keys(tssChildren).forEach(function(threeceeUser){
-      const childId = DEFAULT_TSS_CHILD_ID + "_" + threeceeUser.toLowerCase();
-      killChild({childId: childId}, async function(err){
-        if (err) {
-          return reject(err);
-        }
-        tssChildren[threeceeUser].childId = childId;
-        tssChildren[threeceeUser].pongReceived = false;
-        try{
-          await initTssChild({childId: childId, threeceeUser: threeceeUser});
-        }
-        catch(e){
-          console.log(chalkError("WAS | *** INIT TSS CHILD ERROR: " + err));
-          return reject(e);
-        }
-      });
-    });
-
-    resolve();
-
-  });
-}
-
 function tssSendAllChildren(params){
   return new Promise(function(resolve, reject){
 

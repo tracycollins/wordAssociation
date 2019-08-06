@@ -1236,7 +1236,7 @@ async function processLocationChange(params){
 
   locations[nodeId] = (locations[nodeId] === undefined) ? 1 : locations[nodeId] + 1;
 
-  let locationDoc = await global.globalLocation.findOne({nodeId: nodeId});
+  let locationDoc = await global.globalLocation.findOne({nodeId: nodeId}).exec();
 
   if (!locationDoc) {
 

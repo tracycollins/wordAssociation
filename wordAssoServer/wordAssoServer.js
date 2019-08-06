@@ -2063,72 +2063,6 @@ function initStats(callback){
   callback();
 }
 
-// async function dropboxFolderGetLastestCursor(folder) {
-//   try {
-
-//     const optionsGetLatestCursor = {
-//       path: folder,
-//       recursive: true,
-//       include_media_info: false,
-//       include_deleted: true,
-//       include_has_explicit_shared_members: false
-//     };
-
-//     if (configuration.verbose) { 
-//       console.log(chalkLog("WAS | dropboxFolderGetLastestCursor FOLDER: " + folder)); 
-//     }
-
-//     const last_cursor = await dropboxClient.filesListFolderGetLatestCursor(optionsGetLatestCursor);
-
-//     if (configuration.verbose) { 
-//       console.log(chalkLog("WAS | DROPBOX LAST CURSOR\n" + jsonPrint(last_cursor))); 
-//     }
-
-//     const results = await dropboxClient.filesListFolderLongpoll({cursor: last_cursor, timeout: 30});
-
-//     if (configuration.verbose) { 
-//       console.log(chalkLog("WAS | DROPBOX LONG POLL RESULTS\n" + jsonPrint(results))); 
-//     }
-
-//     if ((results !== undefined) && results && results.changes) {
-
-//       const response = await dropboxClient.filesListFolderContinue({ cursor: last_cursor.cursor});
-
-//       if (configuration.verbose) { 
-//         console.log(chalkLog("WAS | DROPBOX FILE LIST FOLDER CONTINUE"
-//           + "\n" + jsonPrint(response)
-//         ));
-//       }
-
-//       return response;
-
-//     }
-
-//     debug(chalkLog("WAS | DROPBOX | FOLDER NO CHANGE | " + folder));
-//     return;
-//   }
-//   catch(err){
-
-//     console.log(chalkError("WAS | *** ERROR DROPBOX FOLDER | " + folder + " | " + err));
-
-//     if (err.status === 429){
-//       console.log(chalkError("WAS | *** dropboxFolderGetLastestCursor filesListFolder"
-//         + " | *** DROPBOX FILES LIST FOLDER ERROR"
-//         + " | TOO MANY REQUESTS" 
-//         + " | FOLDER: " + folder 
-//       ));
-//     }
-//     else {
-//       console.log(chalkError("WAS | *** dropboxFolderGetLastestCursor filesListFolder"
-//         + " *** DROPBOX FILES LIST FOLDER ERROR"
-//         + "\nERROR:", err 
-//         // + "\nERROR: " + jsonPrint(err)
-//       ));
-//     }
-//     throw err;
-//   }
-// }
-
 function showStats(options){
 
   statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
@@ -2210,229 +2144,9 @@ async function loadMaxInputHashMap(p){
         + " | " + params.folder + "/" + params.file
       ));
     }
-
     throw err;
   }
-
 }
-
-// async function saveFile(params){
-
-//   const fullPath = params.folder + "/" + params.file;
-
-//   debug(chalkInfo("LOAD FOLDER " + params.folder));
-//   debug(chalkInfo("LOAD FILE " + params.file));
-//   debug(chalkInfo("FULL PATH " + fullPath));
-
-//   const options = {};
-
-//   if (params.localFlag) {
-
-//     options.access_token = configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN;
-//     options.file_size = sizeof(params.obj);
-//     options.destination = params.dropboxFolder + "/" + params.file;
-//     options.autorename = true;
-//     options.mode = params.mode || "overwrite";
-//     options.mode = "overwrite";
-
-//     const objSizeMBytes = options.file_size/ONE_MEGABYTE;
-
-//     showStats();
-
-//     console.log(chalk.blue("WAS | ... SAVING LOCALLY"
-//       + " | " + objSizeMBytes.toFixed(2) + " MB | " + fullPath
-//     ));
-
-//     try{
-
-//       await writeJsonFile(fullPath, params.obj);
-
-//       console.log(chalk.blue("WAS | SAVED LOCALLY"
-//         + " | " + objSizeMBytes.toFixed(2) + " MB | " + fullPath
-//       ));
-//       console.log(chalk.blue("WAS | ... PAUSE 5 SEC TO FINISH FILE SAVE"
-//         + " | " + objSizeMBytes.toFixed(2) + " MB | " + fullPath
-//       ));
-
-//       await delay({period: 5*ONE_SECOND});
-
-//       console.log(chalk.blue("WAS | ... DROPBOX UPLOADING"
-//         + " | " + objSizeMBytes.toFixed(2) + " MB | " 
-//         + fullPath + " > " + options.destination
-//       ));
-
-//       const stats = fs.statSync(fullPath);
-//       const fileSizeInBytes = stats.size;
-//       const savedSize = fileSizeInBytes/ONE_MEGABYTE;
-
-//       console.log(chalkLog("WAS | ... SAVING DROPBOX JSON"
-//         + " | " + getTimeStamp()
-//         + " | " + savedSize.toFixed(2) + " MBYTES"
-//         + "\n SRC: " + fullPath
-//         + "\n DST: " + options.destination
-//       ));
-
-//       const drbx = require("@davvo/drbx")({
-//         token: configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN
-//       });
-
-//       const localReadStream = fs.createReadStream(fullPath);
-//       const remoteWriteStream = drbx.file(options.destination).createWriteStream();
-
-//       let bytesRead = 0;
-//       let chunksRead = 0;
-//       let mbytesRead = 0;
-//       let percentRead = 0;
-
-//       localReadStream.pipe(remoteWriteStream);
-
-//       localReadStream.on("data", function(chunk){
-//         bytesRead += chunk.length;
-//         mbytesRead = bytesRead/ONE_MEGABYTE;
-//         percentRead = 100 * bytesRead/fileSizeInBytes;
-//         chunksRead += 1;
-//         if (chunksRead % 100 === 0){
-//           console.log(chalkInfo("WAS | LOCAL READ"
-//             + " | " + mbytesRead.toFixed(2) + " / " + savedSize.toFixed(2) + " MB"
-//             + " (" + percentRead.toFixed(2) + "%)"
-//           ));
-//         }
-//       });
-
-//       localReadStream.on("close", function(){
-//         console.log(chalkLog("WAS | LOCAL STREAM READ CLOSED | SOURCE: " + fullPath));
-//       });
-
-//       remoteWriteStream.on("close", function(){
-//         console.log(chalkLog("WAS | REMOTE STREAM WRITE CLOSED | DEST: " + options.destination));
-//       });
-
-//       localReadStream.on("end", function(){
-//         console.log(chalkInfo("WAS | LOCAL READ COMPLETE"
-//           + " | SOURCE: " + fullPath
-//           + " | " + mbytesRead.toFixed(2) + " / " + savedSize.toFixed(2) + " MB"
-//           + " (" + percentRead.toFixed(2) + "%)"
-//         ));
-//         localReadStream.close();
-//       });
-
-//       localReadStream.on("error", function(err){
-//         console.log(chalkError("WAS | *** LOCAL STREAM READ ERROR | " + err));
-//         throw err;
-//       });
-
-//       remoteWriteStream.on("end", function(){
-//         console.log(chalkLog("WAS | REMOTE STREAM WRITE END | DEST: " + options.destination));
-//         return;
-//       });
-
-//       remoteWriteStream.on("error", function(err){
-//         console.log(chalkError("WAS | *** REMOTE STREAM WRITE ERROR | DEST: " + options.destination + "\n" + err));
-//         throw err;
-//       });
-
-//     }
-//     catch(err){
-//       console.log(chalkError("WAS | *** " + getTimeStamp() 
-//         + " | *** ERROR DROBOX JSON WRITE | FILE: " + fullPath 
-//         + " | ERROR: " + err
-//         + " | ERROR\n" + jsonPrint(err)
-//       ));
-//       throw err;
-//     }
-//   }
-//   else {
-
-//     options.contents = JSON.stringify(params.obj, null, 2);
-//     options.autorename = params.autorename || false;
-//     options.mode = params.mode || "overwrite";
-//     options.path = fullPath;
-
-//     const dbFileUpload = async function () {
-
-//       try{
-//         await dropboxClient.filesUpload(options);
-
-//         debug(chalkLog("SAVED DROPBOX JSON | " + options.path));
-//         return;
-//       }
-
-//       catch(err){
-//         if (err.status === 413){
-//           console.log(chalkError("WAS | " + getTimeStamp() 
-//             + " | *** ERROR DROBOX JSON WRITE | FILE: " + fullPath 
-//             + " | ERROR: 413"
-//           ));
-//         }
-//         if (err.status === 429){
-//           console.log(chalkError("WAS | " + getTimeStamp() 
-//             + " | *** ERROR DROBOX JSON WRITE | FILE: " + fullPath 
-//             + " | ERROR: TOO MANY WRITES"
-//           ));
-//         }
-//         if (err.status === 500){
-//           console.log(chalkError("WAS | " + getTimeStamp() 
-//             + " | *** ERROR DROBOX JSON WRITE | FILE: " + fullPath 
-//             + " | ERROR: DROPBOX SERVER ERROR"
-//           ));
-//         }
-//         console.log(chalkError("WAS | " + getTimeStamp() 
-//           + " | *** ERROR DROBOX JSON WRITE | FILE: " + fullPath 
-//           + " | ERROR STATUS " + err.status
-//         ));
-//         throw err;
-//       }
-
-//     };
-
-//     if (options.mode === "add") {
-
-//       try{
-//         const response = await dropboxClient.filesListFolder({path: params.folder, limit: configuration.dropboxListFolderLimit});
-
-//         debug(chalkLog("WAS | DROPBOX LIST FOLDER"
-//           + " | ENTRIES: " + response.entries.length
-//           + " | CURSOR (trunc): " + response.cursor.substr(-10)
-//           + " | MORE: " + response.has_more
-//           + " | PATH:" + options.path
-//         ));
-
-//         let fileExits = false;
-
-//         response.entries.forEach(function(entry){
-//           console.log(chalkInfo("WAS | DROPBOX FILE"
-//             + " | " + params.folder
-//             + " | LAST MOD: " + getTimeStamp(new Date(entry.client_modified))
-//             + " | " + entry.name
-//           ));
-
-//           if (entry.name === params.file) {
-//             fileExits = true;
-//           }
-//         });
-
-//         if (fileExits) {
-//           console.log(chalk.blue("WAS | ... DROPBOX FILE EXISTS ... SKIP SAVE | " + fullPath));
-//           throw new Error("FILE EXISTS: " + fullPath);
-//         }
-
-//         console.log(chalk.blue("WAS | ... DROPBOX DOES NOT FILE EXIST ... SAVING | " + fullPath));
-//         dbFileUpload();
-
-//       }
-//       catch(err){
-//         console.log(chalkError("WAS | *** DROPBOX FILES LIST FOLDER ERROR: " + err));
-//         console.log(chalkError("WAS | *** DROPBOX FILES LIST FOLDER ERROR\n" + jsonPrint(err)));
-//         throw err;
-//       }
-
-//     }
-//     else {
-//       dbFileUpload();
-//     }
-//   }
-
-// }
 
 let saveFileQueueInterval;
 let saveFileBusy = false;
@@ -2527,7 +2241,6 @@ async function saveStats(params) {
       throw err;
     }
   }
-
 }
 
 function killChild(params){
@@ -2698,7 +2411,6 @@ async function killAll(){
     console.log(chalkError("WAS | *** killAll ERROR: " + err));
     throw err;
   }
-
 }
 
 process.on("unhandledRejection", function(err, promise) {
@@ -2717,7 +2429,6 @@ process.on("exit", async function processExit() {
   catch(err){
     console.log(chalkError("WAS | *** MAIN PROCESS EXIT ERROR: " + err));
   }
-
 });
 
 process.on("message", async function processMessageRx(msg) {
@@ -3421,7 +3132,6 @@ async function addAccountActivitySubscription(p){
 
     throw err;
   }
-
 }
 
 function categorizeNode(categorizeObj, callback) {
@@ -3902,7 +3612,7 @@ async function categoryVerified(params) {
       verifiedCategorizedUsersSet.delete(params.user.screenName.toLowerCase());
     }
 
-    const dbUser = await global.globalUser.findOne({screenName: params.user.screenName.toLowerCase()});
+    const dbUser = await global.globalUser.findOne({screenName: params.user.screenName.toLowerCase()}).exec();
 
     if (empty(dbUser)) {
       console.log(chalkWarn("WAS | ??? UPDATE VERIFIED | USER NOT FOUND: " + params.user.screenName.toLowerCase()));
@@ -3924,7 +3634,6 @@ async function categoryVerified(params) {
   else {
     throw new Error("USER SCREENNAME UNDEFINED");
   }
-
 }
 
 function ignore(params, callback) {
@@ -4055,7 +3764,7 @@ async function updateDbIgnoredHashtags(){
 
     try {
 
-        const dbHashtag = await global.globalHashtag.findOne({nodeId: hashtag.toLowerCase()});
+        const dbHashtag = await global.globalHashtag.findOne({nodeId: hashtag.toLowerCase()}).exec();
 
         if (empty(dbHashtag)) {
           console.log(chalkWarn("WAS | ??? UPDATE IGNORED | HASHTAG NOT FOUND: " + hashtag.toLowerCase()));
@@ -4177,7 +3886,7 @@ async function updateDbVerifiedUsers(){
 
     try {
 
-      const dbUser = await global.globalUser.findOne({screenName: screenName.toLowerCase()});
+      const dbUser = await global.globalUser.findOne({screenName: screenName.toLowerCase()}).exec();
 
       if (empty(dbUser)) {
         console.log(chalkWarn("WAS | ??? UPDATE VERIFIED | USER NOT FOUND: " + screenName.toLowerCase()));
@@ -5111,7 +4820,7 @@ function initSocketHandler(socketObj) {
     }
     else{
       try{
-        const user = await global.globalUser.findOne({screenName: defaultTwitterUserScreenName});
+        const user = await global.globalUser.findOne({screenName: defaultTwitterUserScreenName}).exec();
 
         if (user) {
           socket.emit("SET_TWITTER_USER", {user: user, stats: statsObj.user });
@@ -10044,7 +9753,7 @@ async function twitterSearchUserNode(searchQuery){
 
   try {
 
-    const user = await global.globalUser.findOne(searchQuery);
+    const user = await global.globalUser.findOne(searchQuery).exec();
 
     if (user) {
 
@@ -10417,7 +10126,7 @@ async function twitterSearchHashtag(params) {
 
   try {
 
-    let hashtag = await global.globalHashtag.findOne({hashtag: searchNodeHashtag});
+    let hashtag = await global.globalHashtag.findOne({hashtag: searchNodeHashtag}).exec();
 
     if (hashtag) { 
 

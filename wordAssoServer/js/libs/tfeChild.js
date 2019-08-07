@@ -2665,6 +2665,20 @@ async function generateAutoCategory(params) {
 
     const networkOutput = await nnTools.activateSingleNetwork({user: user});
 
+    if (user.categoryAuto !== networkOutput.categoryAuto) {
+      if (networkOutput.categoryAuto === user.category) {
+        console.log(chalk.green(MODULE_ID_PREFIX + " | +++ UPDATE CAT AUTO MATCH"
+          + " | @" + user.screenName
+          + " | CAT M: " + user.category + " A: " + networkOutput.categoryAuto
+        ));
+      }
+      else {
+        console.log(chalk.yellow(MODULE_ID_PREFIX + " | XXX UPDATE CAT AUTO MISMATCH"
+          + " | @" + user.screenName
+          + " | CAT M: " + user.category + " A: " + networkOutput.categoryAuto
+        ));
+      }
+    }
     user.categoryAuto = networkOutput.categoryAuto;
 
     // const networkOutput = {};

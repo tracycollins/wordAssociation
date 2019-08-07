@@ -3096,7 +3096,11 @@ async function addTwitterAccountActivitySubscription(p){
 
     return;
   }
-  catch(err){
+  catch(e){
+
+    const err = JSON.parse(e);
+
+    console.log()
 
     if (err.errors && ((err.errors.code === 355) || (err.StatusCodeError === 409))) {
       console.log(chalkInfo("WAS | ... TWITTER ACCOUNT ACTIVITY SUBSCRIPTION ALREADY EXISTS"));

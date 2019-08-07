@@ -2097,7 +2097,16 @@ async function fetchUserTweets(params){
           + " | UID: " + params.user.userId
           + " | @" + params.user.screenName
         ));
-        throw err;
+
+        process.send({
+          op: "ERROR", 
+          threeceeUser: configuration.threeceeUser, 
+          userId: user.userId, 
+          errorType: "TWITTER_UNAUTHORIZED", 
+          error: err
+        });
+
+        return user;
       }
       
       console.log(chalkError("TFC | *** TWITTER FETCH USER TWEETS ERROR"
@@ -2115,7 +2124,7 @@ async function fetchUserTweets(params){
     }
 
     user.latestTweets = _.union(userTweetsArray);
-    return userTweetsArray;
+    return user;
 
   });
 }

@@ -187,7 +187,7 @@ configuration.twitterDownTimeout = 3*ONE_MINUTE;
 configuration.initTwitterUsersTimeout = Number(ONE_MINUTE);
 
 configuration.twitterConfig = {};
-configuration.threeceeUser = "UNDEFINED";
+configuration.threeceeUser = "altthreecee00";
 
 const threeceeUserDefaults = {};
 
@@ -2855,32 +2855,29 @@ function twitterUsersShow(){
 
 async function twitterUserUpdate(){
 
-  // return new Promise(function(resolve, reject){
+  if (statsObj.threeceeUser.twitterRateLimit.users.exceptionFlag || statsObj.threeceeUser.twitterRateLimit.friends.exceptionFlag) {
+    console.log(chalkAlert("TFC | twitterUserUpdate | SKIPPING ... RATE LIMIT | @" + configuration.threeceeUser));
+    return;
+  }
 
-    if (statsObj.threeceeUser.twitterRateLimit.users.exceptionFlag || statsObj.threeceeUser.twitterRateLimit.friends.exceptionFlag) {
-      console.log(chalkAlert("TFC | twitterUserUpdate | SKIPPING ... RATE LIMIT | @" + configuration.threeceeUser));
+  try {
+    await twitterUsersShow();
+    return;
+  }
+  catch(err){
+    console.log(chalkError("TFC | *** TWITTER SHOW USER ERROR"
+      + " | @" + configuration.threeceeUser 
+      + " | " + getTimeStamp() 
+      + " | ERR CODE: " + err.code
+      + " | " + err.message
+    ));
+
+    if (err.code === 88) {
       return;
     }
+    return err;
+  }
 
-    try {
-      await twitterUsersShow();
-      return;
-    }
-    catch(err){
-      console.log(chalkError("TFC | *** TWITTER SHOW USER ERROR"
-        + " | @" + configuration.threeceeUser 
-        + " | " + getTimeStamp() 
-        + " | ERR CODE: " + err.code
-        + " | " + err.message
-      ));
-
-      if (err.code === 88) {
-        return;
-      }
-      return err;
-    }
-
-  // });
 }
 
 function initTwitter(twitterConfig){
@@ -2891,8 +2888,8 @@ function initTwitter(twitterConfig){
 
       console.log(chalkTwitter("TFC | INITIALIZING TWITTER" 
         + " | " + getTimeStamp() 
-        + " | @" + configuration.threeceeUser 
-        + "\ntwitterConfig\n" + jsonPrint(twitterConfig)
+        + " | @" + twitterConfig.screenName 
+        // + "\ntwitterConfig\n" + jsonPrint(twitterConfig)
       ));
 
       twitClient = new Twit(twitterConfig);
@@ -2902,7 +2899,7 @@ function initTwitter(twitterConfig){
 
       console.log(chalkLog("TFC | TWITTER ALREADY INITIALIZED" 
         + " | " + getTimeStamp() 
-        + " | @" + configuration.threeceeUser 
+        + " | @" + twitterConfig.screenName 
       ));
 
       return resolve();
@@ -2925,7 +2922,7 @@ function initTwitter(twitterConfig){
         else if (err.code === 89){
 
           console.log(chalkAlert("TFC | *** TWITTER ACCOUNT SETTINGS ERROR | INVALID OR EXPIRED TOKEN" 
-            + " | @" + configuration.threeceeUser 
+            + " | @" + twitterConfig.screenName 
             + " | " + getTimeStamp() 
             + " | ERR CODE: " + err.code
           ));
@@ -2933,14 +2930,14 @@ function initTwitter(twitterConfig){
           statsObj.threeceeUser = Object.assign({}, threeceeUserDefaults, statsObj.threeceeUser);  
           statsObj.threeceeUser.err = err;
 
-          process.send({op: "ERROR", type: "INVALID_TOKEN", threeceeUser: configuration.threeceeUser, error: err});
+          process.send({op: "ERROR", type: "INVALID_TOKEN", threeceeUser: twitterConfig.screenName, error: err});
           return reject(err);
         }
 
         else {
 
           console.log(chalkError("TFC | *** TWITTER ACCOUNT SETTINGS ERROR"
-            + " | @" + configuration.threeceeUser 
+            + " | @" + twitterConfig.screenName 
             + " | " + getTimeStamp() 
             + " | ERR CODE: " + err.code
             + " | " + err.message

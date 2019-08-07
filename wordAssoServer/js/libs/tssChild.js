@@ -1014,7 +1014,7 @@ function initTwit(){
 
           }
           else {
-            console.log(chalkAlert("TSS | ??? TWITTER USER FOLLOW HM HIT"
+            console.log(chalkLog("TSS | ??? TWITTER USER FOLLOW HM HIT"
               + " | UID: " + userId
               + " | IN HM: 3C @" + threeceeFollowingInHashMap
               + " | CUR 3C @: " + threeceeUserObj.screenName
@@ -2565,9 +2565,8 @@ process.on("message", async function(m) {
 
                   if (configuration.verbose || (userIndex % 100 === 0)){
                     printString = "TSS | [ " + userIndex + "/" + threeceeUserObj.followUserIdSet.size + " ] @" + threeceeUserObj.screenName + " | DB HIT";
+                    printUserObj(printString, user);
                   }
-
-                  printUserObj(printString, user);
 
                   if (!user.following) {
                     user.following = true;

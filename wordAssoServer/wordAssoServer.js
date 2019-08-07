@@ -7941,7 +7941,7 @@ async function initTfeChild(params){
 
   tfeChild = tfe;
 
-  const twitterConfig = await initTwitterConfig({threeceeUser: threeceeUser});
+  const twitterConfig = await initTwitterConfig({threeceeUser: "altthreecee00"});
 
   tfeChild.send({
     op: "INIT",

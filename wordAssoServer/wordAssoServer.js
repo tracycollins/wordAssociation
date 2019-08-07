@@ -5,9 +5,6 @@ const ONE_MINUTE = 60 * ONE_SECOND;
 const ONE_HOUR = 60 * ONE_MINUTE;
 const ONE_DAY = 24 * ONE_HOUR;
 
-// const ONE_KILOBYTE = 1024;
-// const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
-
 const DEFAULT_START_TIMEOUT = ONE_MINUTE;
 
 let saveSampleTweetFlag = true;
@@ -448,10 +445,10 @@ const threeceeUser = "altthreecee00";
 const Twit = require(path.join(__dirname, "/js/libs/twit"));
 
 const threeceeTwitter = {};
-threeceeTwitter.config = {};
+threeceeTwitter.twitterConfig = {};
 
 const threeceeInfoTwitter = {};
-threeceeInfoTwitter.config = {};
+threeceeInfoTwitter.twitterConfig = {};
 
 if (process.env.MIN_FOLLOWERS_AUTO !== undefined) {
   configuration.minFollowersAuto = parseInt(process.env.MIN_FOLLOWERS_AUTO);
@@ -679,12 +676,8 @@ followableSearchTermSet.add("special counsel");
 
 const followableSearchTermsArray = [...followableSearchTermSet];
 
-// const DEFAULT_BEST_NETWORK_FOLDER = "/config/utility/best/neuralNetworks";
-// const bestNetworkFolder = DEFAULT_BEST_NETWORK_FOLDER;
-
 const DEFAULT_BEST_NETWORK_FILE = "bestRuntimeNetwork.json";
 const bestRuntimeNetworkFileName = DEFAULT_BEST_NETWORK_FILE;
-
 
 const DEFAULT_MAX_INPUT_HASHMAP_FILE = "maxInputHashMap.json";
 const maxInputHashMapFile = DEFAULT_MAX_INPUT_HASHMAP_FILE;
@@ -725,21 +718,6 @@ let childrenHashMap = {};
 let bestNetworkObj = false;
 let maxInputHashMap = false;
 let normalization = false;
-
-
-// const twitterUserThreecee = {
-//   nodeId: "14607119",
-//   profileImageUrl: "https://pbs.twimg.com/profile_images/780466729692659712/p6RcVjNK.jpg",
-//   profileUrl: "https://twitter.com/threecee",
-//   url: "http://threeCeeMedia.com",
-//   name: "Tracy Collins",
-//   screenName: "threecee",
-//   nodeType: "user",
-//   following: null,
-//   description: "photography + animation + design",
-//   isTwitterUser: true,
-//   screenNameLower: "threecee"
-// };
 
 const defaultTwitterUserScreenName = "threecee";
 
@@ -1865,35 +1843,6 @@ const statsBestNetworkPickArray = [
   "betterChild"
 ];
 
-// function delay(p) {
-
-//   const params = p || {};
-//   const period = params.period || 10*ONE_SECOND;
-//   const verbose = params.verbose || false;
-
-//   return new Promise(function(resolve, reject){
-
-//     try {
-//       if (verbose) {
-//         console.log(chalkLog("WAS | +++ DELAY START | NOW: " + getTimeStamp() + " | PERIOD: " + msToTime(period)));
-//       }
-
-//       setTimeout(function(){
-//         if (verbose) {
-//           console.log(chalkLog("WAS | XXX DELAY END | NOW: " + getTimeStamp() + " | PERIOD: " + msToTime(period)));
-//         }
-//         resolve();
-//       }, period);
-//     }
-//     catch(err){
-//       console.log(chalkError("WAS | *** delay ERROR:", err));
-//       reject(err);
-//     }
-
-//   });
-// }
-
-
 function initStats(callback){
 
   console.log(chalk.bold.black("WAS | INIT STATS"));
@@ -2802,18 +2751,18 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
       catch(function(err){
         return cb(err);
       });
-    },
-
-    categoryHashmapsInit: function(cb){
-
-      initCategoryHashmaps().
-      then(function(){
-        cb();
-      }).
-      catch(function(err){
-        return cb(err);
-      });
     }
+
+    // categoryHashmapsInit: function(cb){
+
+    //   initCategoryHashmaps().
+    //   then(function(){
+    //     cb();
+    //   }).
+    //   catch(function(err){
+    //     return cb(err);
+    //   });
+    // }
   },
   function(err, results){
     if (err){
@@ -2979,105 +2928,103 @@ async function updateTwitterWebhook(){
 
 async function getTwitterWebhooks(){
 
-    statsObj.status = "GET ACCOUNT ACTIVITY SUBSCRIPTION";
+  statsObj.status = "GET ACCOUNT ACTIVITY SUBSCRIPTION";
 
-    const fullWebhookUrl = encodeURI("https://word.threeceelabs.com" + TWITTER_WEBHOOK_URL);
+  const fullWebhookUrl = encodeURI("https://word.threeceelabs.com" + TWITTER_WEBHOOK_URL);
 
-    const options = {
-      url: "https://api.twitter.com/1.1/account_activity/all/dev/webhooks.json",
-      method: "GET",
-      headers: {
-        "authorization": "Bearer " + configuration.twitterBearerToken
-      }    
-    };
+  const options = {
+    url: "https://api.twitter.com/1.1/account_activity/all/dev/webhooks.json",
+    method: "GET",
+    headers: {
+      "authorization": "Bearer " + configuration.twitterBearerToken
+    }    
+  };
 
-    console.log(chalkLog("WAS | GET TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"
-      + " | fullWebhookUrl: " + fullWebhookUrl
-    ));
+  console.log(chalkLog("WAS | GET TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"
+    + " | fullWebhookUrl: " + fullWebhookUrl
+  ));
 
-    try {
+  try {
 
-      statsObj.twitterSubs = {};
+    statsObj.twitterSubs = {};
 
-      const body = await request(options);
+    const body = await request(options);
 
-      const bodyJson = JSON.parse(body);
+    const bodyJson = JSON.parse(body);
 
-      console.log(chalkLog("WAS | +++ GET TWITTER WEBHOOKS"
-        // + "\nBODY\n" + jsonPrint(bodyJson)
-      ));
+    console.log(chalkLog("WAS | GET TWITTER WEBHOOKS"));
 
-      if (bodyJson.length > 0){
+    if (bodyJson.length > 0){
 
-        bodyJson.forEach(async function(sub){
+      bodyJson.forEach(async function(sub){
 
-          statsObj.twitterSubs[sub.id.toString()] = {};
-          statsObj.twitterSubs[sub.id.toString()] = sub;
+        statsObj.twitterSubs[sub.id.toString()] = {};
+        statsObj.twitterSubs[sub.id.toString()] = sub;
 
-          console.log(chalkLog("WAS | TWITTER WEBHOOK"
+        console.log(chalkLog("WAS | TWITTER WEBHOOK"
+          + " | ID: " + sub.id
+          + " | URL: " + sub.url
+          + " | VALID: " + sub.valid
+          + " | CREATED: " + sub.created_timestamp
+        ));
+
+        if (!sub.valid) {
+
+          console.log(chalkAlert("WAS | TWITTER WEBHOOK INVALID ... UPDATING ..."
             + " | ID: " + sub.id
             + " | URL: " + sub.url
             + " | VALID: " + sub.valid
             + " | CREATED: " + sub.created_timestamp
           ));
 
-          if (!sub.valid) {
-
-            console.log(chalkAlert("WAS | TWITTER WEBHOOK INVALID ... UPDATING ..."
-              + " | ID: " + sub.id
-              + " | URL: " + sub.url
-              + " | VALID: " + sub.valid
-              + " | CREATED: " + sub.created_timestamp
-            ));
-
-            try{
-              await updateTwitterWebhook();
-            }
-            catch(err){
-              console.log(chalkError("WAS | *** UPDATE TWITTER WEBHOOK ERROR"));
-              throw err;
-            }
+          try{
+            await updateTwitterWebhook();
           }
-
-          const url = "https://api.twitter.com/1.1/account_activity/all/dev/subscriptions/list.json";
-
-          const optionsSub = {
-            url: url,
-            method: "GET",
-            headers: {
-              "authorization": "Bearer " + configuration.twitterBearerToken
-            }    
-          };
-
-          try {
-
-            const bodySub = await request(optionsSub);
-
-            const bodySubJson = JSON.parse(bodySub);
-
-            console.log(chalkAlert("WAS | TWITTER ACCOUNT ACTIVITY SUBSCRIPTIONS"
-              + "\nBODY\n" + jsonPrint(bodySubJson)
-            ));
-
+          catch(err){
+            console.log(chalkError("WAS | *** UPDATE TWITTER WEBHOOK ERROR"));
+            throw err;
           }
-          catch(errSub){
-            console.log(chalkError("WAS | *** GET TWITTER ACCOUNT ACTIVITY SUB ERROR: " + errSub));
-            throw errSub;
-          }
-        });
+        }
 
-        return;
-      }
-      else {
-        console.log(chalkAlert("WAS | ??? NO TWITTER WEBHOOKS"
-        ));
-        return;
-      }
+        const url = "https://api.twitter.com/1.1/account_activity/all/dev/subscriptions/list.json";
+
+        const optionsSub = {
+          url: url,
+          method: "GET",
+          headers: {
+            "authorization": "Bearer " + configuration.twitterBearerToken
+          }    
+        };
+
+        try {
+
+          const bodySub = await request(optionsSub);
+
+          const bodySubJson = JSON.parse(bodySub);
+
+          console.log(chalkAlert("WAS | TWITTER ACCOUNT ACTIVITY SUBSCRIPTIONS"
+            + "\nBODY\n" + jsonPrint(bodySubJson)
+          ));
+
+        }
+        catch(errSub){
+          console.log(chalkError("WAS | *** GET TWITTER ACCOUNT ACTIVITY SUB ERROR: " + errSub));
+          throw errSub;
+        }
+      });
+
+      return;
     }
-    catch(err){
-      console.log(chalkError("WAS | *** GET TWITTER WEBHOOKS ERROR: " + err));
-      throw err;
+    else {
+      console.log(chalkAlert("WAS | ??? NO TWITTER WEBHOOKS"
+      ));
+      return;
     }
+  }
+  catch(err){
+    console.log(chalkError("WAS | *** GET TWITTER WEBHOOKS ERROR: " + err));
+    throw err;
+  }
 }
 
 async function addAccountActivitySubscription(p){
@@ -3086,8 +3033,14 @@ async function addAccountActivitySubscription(p){
 
   params.threeceeUser = params.threeceeUser || "altthreecee00";
 
-  if (!threeceeTwitter[params.threeceeUser] || !threeceeTwitter[params.threeceeUser].twitterConfig) {
-    console.log(chalkError("WAS | *** ADD ACCOUNT ACTIVITY SUBSCRIPTION ERROR | UNDEFINED TWITTER CONFIG | " + params.threeceeUser));
+  if (!threeceeTwitter[params.threeceeUser]) {
+    console.log(chalkError("WAS | *** ADD ACCOUNT ACTIVITY SUBSCRIPTION ERROR | UNDEFINED threeceeTwitter[params.threeceeUser] | " + params.threeceeUser));
+    console.log("threeceeTwitter\n" + jsonPrint(threeceeTwitter));
+    throw new Error("threeceeUser twitter configuration undefined");
+  }
+
+  if (!threeceeTwitter[params.threeceeUser].twitterConfig) {
+    console.log(chalkError("WAS | *** ADD ACCOUNT ACTIVITY SUBSCRIPTION ERROR | UNDEFINED threeceeTwitter[params.threeceeUser].twitterConfig | " + params.threeceeUser));
     throw new Error("threeceeUser twitter configuration undefined");
   }
 
@@ -3122,12 +3075,11 @@ async function addAccountActivitySubscription(p){
   }
   catch(err){
 
-    if (err.errors && (err.errors.code === 355)) {
+    if (err.errors && ((err.errors.code === 355) || (err.StatusCodeError === 409))) {
       console.log(chalkInfo("WAS | ... TWITTER ACCOUNT ACTIVITY SUBSCRIPTION ALREADY EXISTS"));
       return;
     }
-    console.log(chalkError("WAS | *** ADD TWITTER ACCOUNT ACTIVITY SUBSCRIPTION ERROR"
-    ));
+    console.log(chalkError("WAS | *** ADD TWITTER ACCOUNT ACTIVITY SUBSCRIPTION ERROR: ", err));
 
     throw err;
   }
@@ -3789,9 +3741,7 @@ async function updateDbIgnoredHashtags(){
   });
 
   return;
-
 }
-
 
 async function initIgnoredHashtagSet(){
 
@@ -3822,7 +3772,6 @@ async function initIgnoredHashtagSet(){
     console.log(chalkError("WAS | *** LOAD IGNORED HASHTAGS ERROR: " + err));
     throw err;
   }
-
 }
 
 async function initSetFromFile(params){
@@ -3871,46 +3820,58 @@ async function initSetFromFile(params){
     }
     throw err;
   }
-
 }
 
-async function updateDbVerifiedUsers(){
+function updateDbVerifiedUsers(){
 
-  statsObj.status = "UPDATE VERIFIED CATEGORIZED USERS IN DB";
+  return new Promise(function(resolve, reject){
 
-  console.log(chalkBlue("WAS | UPDATE VERIFIED VERIFIED USERS DB" 
-  ));
+    statsObj.status = "UPDATE VERIFIED CATEGORIZED USERS IN DB";
 
-  [...verifiedCategorizedUsersSet].forEach(async function(screenName){
+    console.log(chalkBlue("WAS | ... UPDATING VERIFIED VERIFIED USERS DB" 
+    ));
 
-    try {
+    // for(const screenName of [...verifiedCategorizedUsersSet]){
+    async.eachSeries([...verifiedCategorizedUsersSet], async function(screenName){
 
-      const dbUser = await global.globalUser.findOne({screenName: screenName.toLowerCase()}).exec();
+      try {
 
-      if (empty(dbUser)) {
-        console.log(chalkWarn("WAS | ??? UPDATE VERIFIED | USER NOT FOUND: " + screenName.toLowerCase()));
-        return;
+        const dbUser = await global.globalUser.findOne({screenName: screenName.toLowerCase()}).exec();
+
+        if (empty(dbUser)) {
+          console.log(chalkWarn("WAS | ??? UPDATE VERIFIED | USER NOT FOUND: " + screenName.toLowerCase()));
+          return;
+        }
+
+        dbUser.categoryVerified = true;
+
+        const dbUpdatedUser = await dbUser.save();
+
+        if (configuration.verbose || configuration.testMode){
+          printUserObj(
+            "+++ USER | VERIFIED",
+            dbUpdatedUser, 
+            chalkLog
+          );
+        }
+
+      }
+      catch(err){
+        return err;
       }
 
-      dbUser.categoryVerified = true;
+    }, function(err){
+      if (err) { 
+        console.log(chalkError("WAS | *** UPDATE VERIFIED USERS DB ERROR: " + err));
+        return reject(err);
+      }
+      console.log(chalkBlue("WAS | +++ UPDATED VERIFIED VERIFIED USERS DB" 
+      ));
+      resolve();
+    });
 
-      const dbUpdatedUser = await dbUser.save();
-
-      printUserObj(
-        "+++ USER | VERIFIED",
-        dbUpdatedUser, 
-        chalkLog
-      );
-    }
-    catch(err){
-      console.log(chalkError("WAS | *** UPDATE VERIFIED USERS DB ERROR: " + err));
-      return err;
-    }
   });
-
-  return;
 }
-
 
 async function initVerifiedCategorizedUsersSet(){
 
@@ -3943,9 +3904,7 @@ async function initVerifiedCategorizedUsersSet(){
     console.log(chalkError("WAS | *** INIT VERIFIED CATEGORIZED USERS SET ERROR: " + err));
     throw err;
   }
-
 }
-
 
 async function initFollowableSearchTermSet(){
 
@@ -3976,9 +3935,7 @@ async function initFollowableSearchTermSet(){
     console.log(chalkError("WAS | *** INIT FOLLOWABLE SEARCH TERM SET ERROR: " + err));
     throw err;
   }
-
 }
-
 
 async function initIgnoredUserSet(){
 
@@ -4009,7 +3966,6 @@ async function initIgnoredUserSet(){
     console.log(chalkError("WAS | *** INIT IGNORED USERS SET ERROR: " + err));
     throw err;
   }
-
 }
 
 async function initUnfollowableUserSet(){
@@ -4039,7 +3995,6 @@ async function initUnfollowableUserSet(){
     console.log(chalkError("WAS | *** INIT UNFOLLOWABLE USERS SET ERROR: " + err));
     throw err;
   }
-
 }
 
 const serverRegex = /^(.+)_/i;
@@ -5070,7 +5025,6 @@ async function initSocketNamespaces(){
     console.log(chalkError("WAS | *** INIT SOCKET NAME SPACES ERROR: " + err));
     throw err;
   }
-
 }
 
 function processCheckCategory(nodeObj, callback){
@@ -5441,7 +5395,6 @@ function getCurrentThreeceeUser(){
   });
 }
 
-
 async function initAllowLocations(){
 
   statsObj.status = "INIT ALLOW LOCATIONS SET";
@@ -5484,7 +5437,6 @@ async function initAllowLocations(){
     console.log(chalkError("TSS | LOAD FILE ERROR\n" + e));
     throw e;
   }
-      
 }
 
 async function initIgnoreLocations(){
@@ -5529,7 +5481,7 @@ async function initIgnoreLocations(){
     console.log(chalkError("TSS | LOAD FILE ERROR\n" + e));
     throw e;
   }
-    
+   
 }
 
 function updateUserSets(){
@@ -6229,17 +6181,6 @@ function logHeartbeat() {
   ));
 }
 
-// let dropboxFolderGetLastestCursorReady = true;
-
-// function touchUsersZipUpdateFlag(){
-
-//   return new Promise(function(resolve){
-//     console.log(chalkLog("WAS | TOUCH FILE: " + usersZipUpdateFlagFile));
-//     touch.sync(usersZipUpdateFlagFile, { force: true });
-//     resolve();
-//   });
-// }
-
 function initAppRouting(callback) {
 
   console.log(chalkInfo(getTimeStamp() + " | INIT APP ROUTING"));
@@ -6411,112 +6352,6 @@ function initAppRouting(callback) {
 
       next();
 
-      // const dropboxCursorFolderArray = configuration.dropboxChangeFolderArray;
-
-      // if (dropboxFolderGetLastestCursorReady) {
-
-      //   dropboxFolderGetLastestCursorReady = false;
-
-      //   async.each(dropboxCursorFolderArray, async function(folder){
-
-      //     try {
-
-      //       const response = await dropboxFolderGetLastestCursor(folder);
-
-      //       if (response && (response.entries.length > 0)) {
-
-      //         await delay({period: configuration.dropboxWebhookChangeTimeout});
-
-      //         debug(chalk.bold.black("WAS | >>> DROPBOX CHANGE"
-      //           + " | " + getTimeStamp()
-      //           + " | FOLDER: " + folder
-      //         ));
-
-      //         async.eachSeries(response.entries, async function(entry){
-
-      //           console.log(chalk.green("WAS | >>> DROPBOX CHANGE | PATH LOWER: " + entry.path_lower));
-
-      //           if ((entry.path_lower.endsWith("google_wordassoserverconfig.json"))
-      //             || (entry.path_lower.endsWith("default_wordassoserverconfig.json"))){
-      //             await initConfig();
-      //             return;
-      //           }
-
-      //           // if (entry.path_lower.endsWith("users.zip")){
-      //           //   await touchUsersZipUpdateFlag();
-      //           //   return;
-      //           // }
-
-      //           if (entry.path_lower.endsWith(bestRuntimeNetworkFileName.toLowerCase())){
-      //             await loadBestRuntimeNetwork();
-      //             return;
-      //           }
-
-      //           if (entry.path_lower.endsWith(maxInputHashMapFile)){
-      //             await loadMaxInputHashMap();
-      //             configEvents.emit("NEW_MAX_INPUT_HASHMAP");
-      //             return;
-      //           }
-
-      //           if (entry.path_lower.endsWith(verifiedCategorizedUsersFile.toLowerCase())){
-      //             await initVerifiedCategorizedUsersSet();
-      //             return;
-      //           }
-
-      //           if (entry.path_lower.endsWith(ignoredHashtagFile.toLowerCase())){
-      //             await initIgnoredHashtagSet();
-      //             return;
-      //           }
-
-      //           if (entry.path_lower.endsWith("allowlocations.txt")){
-      //             allowLocations();
-      //             return;
-      //           }
-
-      //           if (entry.path_lower.endsWith("ignorelocations.txt")){
-      //             await ignoreLocations();
-      //             return;
-      //           }
-
-      //           if (entry.path_lower.endsWith("followablesearchterm.txt")){
-      //             await initFollowableSearchTermSet();
-      //             tssSendAllChildren({op: "UPDATE_SEARCH_TERMS"});
-      //             return;
-      //           }
-
-      //           if ((entry.path_lower.endsWith("google_twittersearchstreamconfig.json"))
-      //             || (entry.path_lower.endsWith("default_twittersearchstreamconfig.json"))){
-
-      //             await killTssChildren();
-      //             await initTssChildren();
-      //             return;
-      //           }
-
-      //           return;
-      //         }, function(err){
-      //           if (err) { return err; }
-      //           return;
-      //         });
-      //       }
-
-      //       return;
-      //     }
-      //     catch(err){
-      //       console.log(chalkError("WAS | *** DROPBOX GET LATEST CURSOR ERROR: " + err));
-      //       return err;
-      //     }
-              
-      //   }, function(err){
-      //     if (err) {
-      //       console.log(chalkError("WAS | *** DROPBOX WEBHOOK ERROR: " + err));
-      //     }
-      //     debug(chalkLog("WAS | END DROPBOX WEBHOOK"));
-      //     dropboxFolderGetLastestCursorReady = true;
-      //   });
-      // }
-      // else {
-      //   debug(chalkAlert("WAS | SKIP DROPBOX WEBHOOK ... NOT READY"));
-      // }
     }
     else if (req.path === "/googleccd19766bea2dfd2.html") {
 
@@ -6543,10 +6378,6 @@ function initAppRouting(callback) {
       res.redirect("/session");
     }
     else if ((req.path === "/session.js") || (req.path === "/js/libs/controlPanel.js")) {
-
-      // const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
-      // const LOCAL_SOURCE = "http://localhost:9997";
-      // var DEFAULT_SOURCE = REPLACE_SOURCE;
 
       const fullPath = path.join(__dirname, req.path);
       const defaultSource = (hostname === "google") ? "PRODUCTION_SOURCE" : "LOCAL_SOURCE";
@@ -7409,34 +7240,6 @@ function unfollowDuplicates(params){
   });
 }
 
-// function updateSearchTerms(){
-//   console.log(chalk.green("WAS | WAS | UPDATE SEARCH TERMS"));
-
-//   tssSendAllChildren({op: "UPDATE_SEARCH_TERMS"});
-// }
-
-// async function allowLocations(){
-//   console.log(chalk.green("WAS | WAS | UPDATE ALLOW LOCATIONS"));
-//   try{
-//     await initAllowLocations();
-//     tssSendAllChildren({op: "UPDATE_ALLOW_LOCATIONS"});
-//   }
-//   catch(err){
-//     console.log(chalkError("WAS | *** INIT ALLOW LOCATIONS ERROR: " + err));
-//   }
-// }
-
-// async function ignoreLocations(){
-//   console.log(chalk.green("WAS | WAS | UPDATE IGNORE LOCATIONS"));
-//   try{
-//     await initIgnoreLocations();
-//     tssSendAllChildren({op: "UPDATE_IGNORE_LOCATIONS"});
-//   }
-//   catch(err){
-//     console.log(chalkError("WAS | *** INIT IGNORE LOCATIONS ERROR: " + err));
-//   }
-// }
-
 function initTssChild(params){
 
   statsObj.status = "INIT TSS CHILD";
@@ -7458,10 +7261,7 @@ function initTssChild(params){
     childrenHashMap[params.childId].errors = 0;
     childrenHashMap[params.childId].unfollowArrary = [];
 
-    touchChildPidFile({ 
-      childId: params.childId, 
-      pid: childrenHashMap[params.childId].pid
-    });
+    touchChildPidFile({ childId: params.childId, pid: childrenHashMap[params.childId].pid });
 
     tss.on("message", async function tssMessageRx(m){
 
@@ -7612,7 +7412,6 @@ function initTssChild(params){
         default:
           console.log(chalkError("WAS | TSS | *** ERROR *** UNKNOWN OP: " + m.op));
       }
-
     });
 
     tss.on("error", function tssError(err){
@@ -7678,37 +7477,6 @@ function initTssChild(params){
   });
 }
 
-async function initTwitterConfig(params) {
-
-  statsObj.status = "INIT TWITTER | @" + params.threeceeUser;
-
-  const twitterConfigFile = params.threeceeUser + ".json";
-
-  debug(chalkInfo("INIT TWITTER USER @" + params.threeceeUser + " | " + twitterConfigFile));
-
-  const folder = path.join(DROPBOX_ROOT_FOLDER, configuration.twitterConfigFolder);
-
-  try {
-    const twitterConfig = await tcUtils.loadFile({folder: folder, file: twitterConfigFile});
-
-    twitterConfig.threeceeUser = params.threeceeUser;
-
-    console.log(chalkTwitter("TFE | LOADED TWITTER CONFIG"
-      + " | @" + params.threeceeUser
-      + " | CONFIG FILE: " + folder + "/" + twitterConfigFile
-    ));
-
-    return twitterConfig;
-  }
-  catch(err){
-    console.log(chalkError("TFE | *** LOADED TWITTER CONFIG ERROR: FILE:  " 
-      + folder + "/" + twitterConfigFile
-    ));
-    console.log(chalkError("TFE | *** LOADED TWITTER CONFIG ERROR: ERROR: " + err));
-    throw err;
-  }
-}
-
 async function initTfeChild(params){
 
   statsObj.status = "INIT TFE CHILD";
@@ -7730,10 +7498,7 @@ async function initTfeChild(params){
   childrenHashMap[params.childId].status = "NEW";
   childrenHashMap[params.childId].errors = 0;
 
-  touchChildPidFile({ 
-    childId: params.childId, 
-    pid: childrenHashMap[params.childId].pid
-  });
+  touchChildPidFile({ childId: params.childId, pid: childrenHashMap[params.childId].pid });
 
   tfe.on("message", async function tfeMessageRx(m){
 
@@ -7941,13 +7706,11 @@ async function initTfeChild(params){
 
   tfeChild = tfe;
 
-  const twitterConfig = await initTwitterConfig({threeceeUser: "altthreecee00"});
-
   tfeChild.send({
     op: "INIT",
     title: "wa_node_child_tfe",
     networkObj: bestNetworkObj,
-    twitterConfig: twitterConfig,
+    twitterConfig: threeceeTwitter.altthreecee00.twitterConfig,
     maxInputHashMap: maxInputHashMap,
     normalization: normalization,
     interval: configuration.tfeInterval,
@@ -7979,7 +7742,6 @@ async function initTfeChild(params){
       return;
     }
   });
-
 }
 
 function initDbuChild(params){
@@ -9067,11 +8829,12 @@ async function initConfig() {
   configuration.enableStdin = process.env.ENABLE_STDIN || true;
   configuration.statsUpdateIntervalTime = process.env.TFE_STATS_UPDATE_INTERVAL || ONE_MINUTE;
 
-  debug(chalkTwitter("WAS | THREECEE USERS\n" + jsonPrint(configuration.threeceeUsers)));
+  console.log(chalkTwitter("WAS | THREECEE USERS\n" + jsonPrint(configuration.threeceeUsers)));
 
-  configuration.threeceeUsers.forEach(function(user){
+  for (const user of configuration.threeceeUsers){
     threeceeTwitter[user] = {};
     threeceeTwitter[user].twit = {};
+    threeceeTwitter[user].twitterConfig = {};
     threeceeTwitter[user].ready = false;
     threeceeTwitter[user].status = "UNCONFIGURED";
     threeceeTwitter[user].error = false;
@@ -9087,11 +8850,13 @@ async function initConfig() {
     threeceeTwitter[user].twitterRateLimitResetAt = false;
 
     debug(chalkTwitter("WAS | THREECEE USER @" + user + "\n" + jsonPrint(threeceeTwitter[user])));
-  });
+  }
 
-  configuration.threeceeInfoUsersArray.forEach(function(user){
+  // configuration.threeceeInfoUsersArray.forEach(function(user){
+  for (const user of configuration.threeceeInfoUsersArray){
     threeceeInfoTwitter[user] = {};
     threeceeInfoTwitter[user].twit = {};
+    threeceeInfoTwitter[user].twitterConfig = {};
     threeceeInfoTwitter[user].ready = false;
     threeceeInfoTwitter[user].status = "UNCONFIGURED";
     threeceeInfoTwitter[user].error = false;
@@ -9107,7 +8872,7 @@ async function initConfig() {
     threeceeInfoTwitter[user].twitterRateLimitResetAt = false;
 
     debug(chalkTwitter("WAS | THREECEE INFO USER @" + user + "\n" + jsonPrint(threeceeInfoTwitter[user])));
-  });
+  }
 
   try {
 
@@ -9130,6 +8895,8 @@ async function initConfig() {
     if (configuration.enableStdin) { await initStdIn(); }
 
     await initStatsUpdate(configuration);
+
+    // await initTwitterConfig({threeceeUser: "altthreecee00"});
 
     statsObj.configuration = configuration;
     return configuration;
@@ -9259,11 +9026,9 @@ function initCategoryHashmaps(){
           },
 
           function(cb0){
-
             if (!userServerControllerReady || !statsObj.dbConnectionReady) {
               return cb0(new Error("userServerController not ready"), null);
             }
-
             userServerController.findCategorizedUsersCursor(p, function(err, results){
 
               if (err) {
@@ -9283,9 +9048,9 @@ function initCategoryHashmaps(){
 
                 totalMatchRate = 100*(totalMatched/(totalMatched+totalMismatched));
 
-                Object.keys(results.obj).forEach(function(nodeId){
+                for (const nodeId of Object.keys(results.obj)){
                   categorizedUserHashMap.set(nodeId, results.obj[nodeId]);
-                });
+                }
 
                 p.skip += results.count;
 
@@ -9295,7 +9060,7 @@ function initCategoryHashmaps(){
 
                 more = false;
 
-                console.log(chalk.bold.blue("WAS | LOADED CATEGORIZED USERS FROM DB"
+                console.log(chalk.bold.blue("WAS | +++ LOADED CATEGORIZED USERS FROM DB"
                   + " | TOTAL USERS: " + statsObj.db.totalUsers
                   + " | TOTAL CATEGORIZED: " + totalCount
                   + " | LIMIT: " + p.limit
@@ -9347,7 +9112,6 @@ function initCategoryHashmaps(){
           },
 
           function(cb0){
-
             hashtagServerController.findCategorizedHashtagsCursor(p, function(err, results){
 
               if (err) {
@@ -9537,11 +9301,11 @@ function initThreeceeTwitterUsers(params){
 
     const threeceeUsers = params.threeceeUsers;
 
-    console.log(chalkTwitter("WAS | INIT THREECEE TWITTER USERS\n" + jsonPrint(threeceeUsers)));
+    console.log(chalkTwitter("WAS | ... INIT THREECEE TWITTER USERS\n" + jsonPrint(threeceeUsers)));
 
     async.eachSeries(threeceeUsers, async function(user){
 
-      console.log(chalkTwitter("WAS | LOADING TWITTER CONFIG | @" + user));
+      console.log(chalkTwitter("WAS | ... LOADING TWITTER CONFIG | @" + user));
 
       const configFile = user + ".json";
 
@@ -9549,7 +9313,7 @@ function initThreeceeTwitterUsers(params){
 
         const twitterConfig = await tcUtils.loadFileRetry({folder: twitterConfigFolder, file: configFile});
 
-        console.log(chalkTwitter("WAS | LOADED TWITTER CONFIG"
+        console.log(chalkTwitter("WAS | +++ LOADED TWITTER CONFIG"
           + " | 3C @" + user
           + " | " + twitterConfigFolder + "/" + configFile
           + "\nCONFIG\n" + jsonPrint(twitterConfig)
@@ -10353,6 +10117,7 @@ setTimeout(async function(){
 
   try {
 
+
     await waitDbConnectionReady();
     const cnf = await initConfig();
 
@@ -10363,33 +10128,29 @@ setTimeout(async function(){
 
     statsObj.status = "START";
 
+    // await initTwitterConfig({threeceeUser: "altthreecee00"});
+
     console.log(chalkTwitter("WAS" 
       + " | " + configuration.processName 
     ));
 
     await killAll();
     await allTrue();
-
     await initInternetCheckInterval(ONE_MINUTE);
+    // await addAccountActivitySubscription();
     await initKeySortInterval(configuration.keySortInterval);
     await initSaveFileQueue(configuration);
-
     await initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
-
-    try{
-      await getTwitterWebhooks();
+    if (hostname === "google") { 
       await addAccountActivitySubscription();
+      await getTwitterWebhooks();
     }
-    catch(err){
-      console.log(chalkError("WAS | *** TWITTER ACTIVITY ACCOUNT ERROR: " + err));
-    }
-
     await initAllowLocations();
     await initIgnoreLocations();
     await updateUserSets();
     await loadBestRuntimeNetwork();
     await loadMaxInputHashMap();
-    await initCategoryHashmaps();
+    // await initCategoryHashmaps();
     await initIgnoreWordsHashMap();
     await initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval);
     await initRateQinterval(configuration.rateQueueInterval);
@@ -10407,7 +10168,7 @@ setTimeout(async function(){
   catch(err){
     console.log(chalkError("WAS | **** INIT CONFIG ERROR: " + err + "\n" + jsonPrint(err)));
     if (err.code !== 404) {
-      console.log("WAS | *** INIT CONFIG ERROR | err.status: " + err.status);
+      console.log("WAS | *** INIT CONFIG ERROR | err.code: " + err.code);
       quit();
     }
   }

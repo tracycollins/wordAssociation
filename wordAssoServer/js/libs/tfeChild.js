@@ -54,7 +54,8 @@ DEFAULT_INPUT_TYPES.forEach(function(type){
 let networkObj = {};
 
 // const DEFAULT_INFO_TWITTER_USER = "threecee";
-const USER_CAT_QUEUE_MAX_LENGTH = 500;
+// const USER_CAT_QUEUE_MAX_LENGTH = 500;
+const USER_PROCESS_QUEUE_MAX_LENGTH = 500;
 
 const USER_CHANGE_CACHE_DEFAULT_TTL = 30;
 const USER_CHANGE_CACHE_CHECK_PERIOD = 5;
@@ -143,7 +144,6 @@ const tcUtils = new ThreeceeUtilities(tcuChildName);
 
 
 const processUserQueue = [];
-const userCategorizeQueue = [];
 const userChangeDbQueue = [];
 
 process.on("SIGHUP", function() {
@@ -558,7 +558,7 @@ function showStats(options){
       + " | START " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
       + " | UC$: " + userChangeCache.getStats().keys
       + " | UCDBQ: " + userChangeDbQueue.length
-      + " | UCATQ: " + userCategorizeQueue.length
+      + " | UCATQ: " + processUserQueue.length
       + " | AUTO CHG M " + statsObj.autoChangeMatch
       + " MM: " + statsObj.autoChangeMismatch
       + " TOT: " + statsObj.autoChangeTotal
@@ -3073,13 +3073,13 @@ process.on("message", async function(m) {
       if (m.priorityFlag || (configuration.verbose && (cacheObj === undefined))) { 
         console.log(chalkInfo("WAS | TFC | USER CAT $ MISS"
           + " [UC$: " + userChangeCache.getStats().keys + "]"
-          + " [UCATQ: " + userCategorizeQueue.length + "]"
+          + " [PUQ: " + processUserQueue.length + "]"
           + " | NID: " + m.user.nodeId
           + " | @" + m.user.screenName
         ));
       }
 
-      if (m.priorityFlag || ((cacheObj === undefined) && (userCategorizeQueue.length < USER_CAT_QUEUE_MAX_LENGTH))){
+      if (m.priorityFlag || ((cacheObj === undefined) && (processUserQueue.length < USER_PROCESS_QUEUE_MAX_LENGTH))){
 
         try {
 
@@ -3087,16 +3087,16 @@ process.on("message", async function(m) {
 
           if (m.priorityFlag) {
             user.priorityFlag = true;
-            userCategorizeQueue.unshift(user);
+            processUserQueue.unshift(user);
           }
           else {
-            userCategorizeQueue.push(user);
+            processUserQueue.push(user);
           }
 
           userChangeCache.set(user.nodeId, {user: user, timeStamp: moment().valueOf()});
 
           debug(chalkInfo("WAS | TFC | USER_CATEGORIZE"
-            + " [ USQ: " + userCategorizeQueue.length + "]"
+            + " [ USQ: " + processUserQueue.length + "]"
             + " | FLWRs: " + user.followersCount
             + " | FRNDs: " + user.friendsCount
             + " | USER " + user.userId
@@ -3110,16 +3110,16 @@ process.on("message", async function(m) {
 
           if (m.priorityFlag) {
             m.user.priorityFlag = true;
-            userCategorizeQueue.unshift(m.user);
+            processUserQueue.unshift(m.user);
           }
           else {
-            userCategorizeQueue.push(m.user);
+            processUserQueue.push(m.user);
           }
 
           userChangeCache.set(m.user.nodeId, {user: m.user, timeStamp: moment().valueOf()});
 
           debug(chalkInfo("WAS | TFC | USER_CATEGORIZE"
-            + " [ USQ: " + userCategorizeQueue.length + "]"
+            + " [ USQ: " + processUserQueue.length + "]"
             + " | FLWRs: " + m.user.followersCount
             + " | FRNDs: " + m.user.friendsCount
             + " | USER " + m.user.userId

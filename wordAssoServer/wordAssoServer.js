@@ -2957,7 +2957,8 @@ async function getTwitterWebhooks(){
 
     if (bodyJson.length > 0){
 
-      bodyJson.forEach(async function(sub){
+      // bodyJson.forEach(async function(sub){
+      for(const sub of bodyJson){
 
         statsObj.twitterSubs[sub.id.toString()] = {};
         statsObj.twitterSubs[sub.id.toString()] = sub;
@@ -2978,13 +2979,7 @@ async function getTwitterWebhooks(){
             + " | CREATED: " + sub.created_timestamp
           ));
 
-          try{
-            await updateTwitterWebhook();
-          }
-          catch(err){
-            console.log(chalkError("WAS | *** UPDATE TWITTER WEBHOOK ERROR"));
-            throw err;
-          }
+          await updateTwitterWebhook();
         }
 
         const url = "https://api.twitter.com/1.1/account_activity/all/dev/subscriptions/list.json";
@@ -2997,45 +2992,36 @@ async function getTwitterWebhooks(){
           }    
         };
 
-        // try {
+        const bodySub = await request(optionsSub);
 
-          const bodySub = await request(optionsSub);
+        const aaSubs = JSON.parse(bodySub);
 
-          const aaSubs = JSON.parse(bodySub);
+        // aaSubs
+        //  ├─ environment: dev
+        //  ├─ application_id: 15917082
+        //  └─ subscriptions
+        //     ├─ 0
+        //     │  └─ user_id: 14607119
+        //     └─ 1
+        //        └─ user_id: 848591649575927810
 
-          // aaSubs
-          //  ├─ environment: dev
-          //  ├─ application_id: 15917082
-          //  └─ subscriptions
-          //     ├─ 0
-          //     │  └─ user_id: 14607119
-          //     └─ 1
-          //        └─ user_id: 848591649575927810
+        console.log(chalkTwitter("aaSubs"
+          + "\n" + jsonPrint(aaSubs)
+        ));
 
-          console.log(chalkTwitter("aaSubs"
-            + "\n" + jsonPrint(aaSubs)
+        if ((aaSubs.application_id === "15917082") && (aaSubs.subscriptions.length > 0)){
+          statsObj.twitter.aaSubs = {};
+          statsObj.twitter.aaSubs = aaSubs;
+          console.log(chalkTwitter("WAS | +++ TWITTER ACCOUNT ACTIVITY SUBSCRIPTIONS"
+            + "\n" + jsonPrint(statsObj.twitter.aaSubs)
           ));
+        }
+        else {
+          console.log(chalkInfo("WAS | --- NO TWITTER ACCOUNT ACTIVITY SUBSCRIPTIONS"));
+        }
+      }
 
-          if ((aaSubs.application_id === "15917082") && (aaSubs.subscriptions.length > 0)){
-            statsObj.twitter.aaSubs = {};
-            statsObj.twitter.aaSubs = aaSubs;
-            console.log(chalkTwitter("WAS | +++ TWITTER ACCOUNT ACTIVITY SUBSCRIPTIONS"
-              + "\n" + jsonPrint(statsObj.twitter.aaSubs)
-            ));
-            return aaSubs;
-          }
-          else {
-            console.log(chalkInfo("WAS | --- NO TWITTER ACCOUNT ACTIVITY SUBSCRIPTIONS"));
-            return;
-          }
-
-
-        // }
-        // catch(errSub){
-        //   console.log(chalkError("WAS | *** GET TWITTER ACCOUNT ACTIVITY SUB ERROR: " + errSub));
-        //   throw errSub;
-        // }
-      });
+      return;
 
     }
     else {
@@ -10166,14 +10152,13 @@ setTimeout(async function(){
     await killAll();
     await allTrue();
     await initInternetCheckInterval(ONE_MINUTE);
-    // await addTwitterAccountActivitySubscription();
     await initKeySortInterval(configuration.keySortInterval);
     await initSaveFileQueue(configuration);
     await initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
     if (hostname === "google") { 
       const aaSubs = await getTwitterWebhooks();
       if (aaSubs) { console.log(chalkLog("WAS | TWITTER AA SUBSCRIPTIONS ... SKIP ADD SUBS")); }
-      if (!aaSubs) { await addTwitterAccountActivitySubscription(); }
+      if (!aaSubs) { await addTwitterAccountActivitySubscription({threeceeUser: "altthreecee00"}); }
     }
     await initAllowLocations();
     await initIgnoreLocations();

@@ -2957,7 +2957,6 @@ async function getTwitterWebhooks(){
 
     if (bodyJson.length > 0){
 
-      // bodyJson.forEach(async function(sub){
       for(const sub of bodyJson){
 
         statsObj.twitterSubs[sub.id.toString()] = {};
@@ -10156,18 +10155,15 @@ setTimeout(async function(){
     await initSaveFileQueue(configuration);
     await initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
     if (hostname === "google") { 
-      // const aaSubs = await getTwitterWebhooks();
-      getTwitterWebhooks().then(async function(aaSubs){
-        if (aaSubs) { console.log(chalkLog("WAS | TWITTER AA SUBSCRIPTIONS ... SKIP ADD SUBS")); }
-        if (!aaSubs) { await addTwitterAccountActivitySubscription({threeceeUser: "altthreecee00"}); }
-      });
+      await getTwitterWebhooks();
+      if (statsObj.twitter.aaSubs) { console.log(chalkLog("WAS | TWITTER AA SUBSCRIPTIONS ... SKIP ADD SUBS")); }
+      if (!statsObj.twitter.aaSubs) { await addTwitterAccountActivitySubscription({threeceeUser: "altthreecee00"}); }
     }
     await initAllowLocations();
     await initIgnoreLocations();
     await updateUserSets();
     await loadBestRuntimeNetwork();
     await loadMaxInputHashMap();
-    // await initCategoryHashmaps();
     await initIgnoreWordsHashMap();
     await initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval);
     await initRateQinterval(configuration.rateQueueInterval);

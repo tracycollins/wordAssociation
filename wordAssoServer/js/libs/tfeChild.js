@@ -2692,7 +2692,7 @@ async function initProcessUserQueueInterval(interval) {
       }
       catch(err){
         console.trace(chalkError(MODULE_ID_PREFIX + " | *** ERROR processUser"
-          + " | USER ID: " + user.userId
+          + " | USER ID: " + userQueueObj.userId
           + " | ", err
         ));
         console.log(err);

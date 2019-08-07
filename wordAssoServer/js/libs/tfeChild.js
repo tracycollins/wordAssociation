@@ -2610,16 +2610,16 @@ async function initProcessUserQueueInterval(interval) {
 
       processUserQueueBusy = true;
 
-      const user = processUserQueue.shift();
+      const userQueueObj = processUserQueue.shift();
       
       try {
 
-        const u = await global.globalUser.findOne({nodeId: user.nodeId}).exec();
+        const u = await global.globalUser.findOne({nodeId: userQueueObj.nodeId}).exec();
 
         if (!u) {
           console.log(chalkAlert(MODULE_ID_PREFIX + " | ??? USER NOT FOUND IN DB"
-            + " | NID: " + user.nodeId
-            + " | @" + user.screenName
+            + " | NID: " + userQueueObj.nodeId
+            + " | @" + userQueueObj.screenName
           ));
           processUserQueueBusy = false;
           return;

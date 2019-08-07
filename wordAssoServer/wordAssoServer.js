@@ -1924,6 +1924,7 @@ function initStats(callback){
   statsObj.twitter.tweetsPerMin = 0;
   statsObj.twitter.maxTweetsPerMin = 0;
   statsObj.twitter.maxTweetsPerMinTime = moment().valueOf();
+  statsObj.twitter.aaSubs = {};
 
   statsObj.hostname = hostname;
   statsObj.name = "Word Association Server Status";
@@ -2914,7 +2915,7 @@ async function updateTwitterWebhook(){
       + "\nBODY: " + body
     ));
 
-    // await addAccountActivitySubscription();
+    // await addTwitterAccountActivitySubscription();
     return;
   }
   catch(err){
@@ -3000,11 +3001,30 @@ async function getTwitterWebhooks(){
 
           const bodySub = await request(optionsSub);
 
-          const bodySubJson = JSON.parse(bodySub);
+          const aaSubs = JSON.parse(bodySub);
 
-          console.log(chalkAlert("WAS | TWITTER ACCOUNT ACTIVITY SUBSCRIPTIONS"
-            + "\nBODY\n" + jsonPrint(bodySubJson)
-          ));
+          // aaSubs
+          //  ├─ environment: dev
+          //  ├─ application_id: 15917082
+          //  └─ subscriptions
+          //     ├─ 0
+          //     │  └─ user_id: 14607119
+          //     └─ 1
+          //        └─ user_id: 848591649575927810
+
+          if ((aaSubs.application_id === 15917082) && (aaSubs.subscriptions.length > 0)){
+            statsObj.twitter.aaSubs = {};
+            statsObj.twitter.aaSubs = aaSubs;
+            console.log(chalkTwitter("WAS | +++ TWITTER ACCOUNT ACTIVITY SUBSCRIPTIONS"
+              + "\n" + jsonPrint(statsObj.twitter.aaSubs)
+            ));
+            return aaSubs;
+          }
+          else {
+            console.log(chalkInfo("WAS | --- NO TWITTER ACCOUNT ACTIVITY SUBSCRIPTIONS"));
+            return;
+          }
+
 
         }
         catch(errSub){
@@ -3013,7 +3033,6 @@ async function getTwitterWebhooks(){
         }
       });
 
-      return;
     }
     else {
       console.log(chalkAlert("WAS | ??? NO TWITTER WEBHOOKS"
@@ -3027,7 +3046,7 @@ async function getTwitterWebhooks(){
   }
 }
 
-async function addAccountActivitySubscription(p){
+async function addTwitterAccountActivitySubscription(p){
 
   const params = p || {};
 
@@ -10137,13 +10156,13 @@ setTimeout(async function(){
     await killAll();
     await allTrue();
     await initInternetCheckInterval(ONE_MINUTE);
-    // await addAccountActivitySubscription();
+    // await addTwitterAccountActivitySubscription();
     await initKeySortInterval(configuration.keySortInterval);
     await initSaveFileQueue(configuration);
     await initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
     if (hostname === "google") { 
-      await getTwitterWebhooks();
-      await addAccountActivitySubscription();
+      const aaSubs = await getTwitterWebhooks();
+      if (!aaSubs) { await addTwitterAccountActivitySubscription(); }
     }
     await initAllowLocations();
     await initIgnoreLocations();

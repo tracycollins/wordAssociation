@@ -2997,7 +2997,7 @@ async function getTwitterWebhooks(){
           }    
         };
 
-        try {
+        // try {
 
           const bodySub = await request(optionsSub);
 
@@ -3030,11 +3030,11 @@ async function getTwitterWebhooks(){
           }
 
 
-        }
-        catch(errSub){
-          console.log(chalkError("WAS | *** GET TWITTER ACCOUNT ACTIVITY SUB ERROR: " + errSub));
-          throw errSub;
-        }
+        // }
+        // catch(errSub){
+        //   console.log(chalkError("WAS | *** GET TWITTER ACCOUNT ACTIVITY SUB ERROR: " + errSub));
+        //   throw errSub;
+        // }
       });
 
     }
@@ -3054,9 +3054,9 @@ async function addTwitterAccountActivitySubscription(p){
 
   statsObj.status = "ADD TWITTER ACCOUNT ACTIVITY SUBSCRIPTION";
 
-  console.log(chalkTwitter("WAS | ... ADD ACCOUNT ACTIVITY SUBSCRIPTION | " + params.threeceeUser));
-
   const params = p || {};
+
+  console.log(chalkTwitter("WAS | ... ADD ACCOUNT ACTIVITY SUBSCRIPTION | " + params.threeceeUser));
 
   params.threeceeUser = params.threeceeUser || "altthreecee00";
 
@@ -5511,7 +5511,6 @@ async function initIgnoreLocations(){
     console.log(chalkError("TSS | LOAD FILE ERROR\n" + e));
     throw e;
   }
-   
 }
 
 function updateUserSets(){
@@ -10173,6 +10172,7 @@ setTimeout(async function(){
     await initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
     if (hostname === "google") { 
       const aaSubs = await getTwitterWebhooks();
+      if (aaSubs) { console.log(chalkLog("WAS | TWITTER AA SUBSCRIPTIONS ... SKIP ADD SUBS")); }
       if (!aaSubs) { await addTwitterAccountActivitySubscription(); }
     }
     await initAllowLocations();

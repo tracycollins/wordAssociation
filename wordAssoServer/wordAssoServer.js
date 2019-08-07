@@ -10156,9 +10156,11 @@ setTimeout(async function(){
     await initSaveFileQueue(configuration);
     await initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
     if (hostname === "google") { 
-      const aaSubs = await getTwitterWebhooks();
-      if (aaSubs) { console.log(chalkLog("WAS | TWITTER AA SUBSCRIPTIONS ... SKIP ADD SUBS")); }
-      if (!aaSubs) { await addTwitterAccountActivitySubscription({threeceeUser: "altthreecee00"}); }
+      // const aaSubs = await getTwitterWebhooks();
+      getTwitterWebhooks().then(async function(aaSubs){
+        if (aaSubs) { console.log(chalkLog("WAS | TWITTER AA SUBSCRIPTIONS ... SKIP ADD SUBS")); }
+        if (!aaSubs) { await addTwitterAccountActivitySubscription({threeceeUser: "altthreecee00"}); }
+      });
     }
     await initAllowLocations();
     await initIgnoreLocations();

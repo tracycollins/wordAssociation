@@ -46,7 +46,6 @@ const mongoose = require("mongoose");
 mongoose.set("useFindAndModify", false);
 
 global.globalWordAssoDb = require("@threeceelabs/mongoose-twitter");
-// global.globalWordAssoDb = require("../../mongooseTwitter");
 
 const emojiModel = require("@threeceelabs/mongoose-twitter/models/emoji.server.model");
 const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
@@ -7679,244 +7678,246 @@ function initTssChild(params){
   });
 }
 
-function initTfeChild(params){
+async function initTfeChild(params){
 
   statsObj.status = "INIT TFE CHILD";
 
-  return new Promise(function(resolve, reject){
+  statsObj.tfeChildReady = false;
 
-    statsObj.tfeChildReady = false;
+  console.log(chalk.bold.black("WAS | INIT TFE CHILD\n" + jsonPrint(params)));
 
-    console.log(chalk.bold.black("WAS | INIT TFE CHILD\n" + jsonPrint(params)));
+  console.log(chalkInfo("WAS | LOADED MAX INPUT HASHMAP + NORMALIZATION"));
+  console.log(chalkInfo("WAS | MAX INPUT HASHMAP INPUT TYPES: " + Object.keys(maxInputHashMap)));
+  console.log(chalkInfo("WAS | NORMALIZATION INPUT TYPES: " + Object.keys(normalization)));
 
-    console.log(chalkInfo("WAS | LOADED MAX INPUT HASHMAP + NORMALIZATION"));
-    console.log(chalkInfo("WAS | MAX INPUT HASHMAP INPUT TYPES: " + Object.keys(maxInputHashMap)));
-    console.log(chalkInfo("WAS | NORMALIZATION INPUT TYPES: " + Object.keys(normalization)));
+  const tfe = cp.fork(`${__dirname}/js/libs/tfeChild.js`);
 
-    const tfe = cp.fork(`${__dirname}/js/libs/tfeChild.js`);
+  childrenHashMap[params.childId] = {};
+  childrenHashMap[params.childId].pid = tfe.pid;
+  childrenHashMap[params.childId].childId = params.childId;
+  childrenHashMap[params.childId].title = params.childId;
+  childrenHashMap[params.childId].status = "NEW";
+  childrenHashMap[params.childId].errors = 0;
 
-    childrenHashMap[params.childId] = {};
-    childrenHashMap[params.childId].pid = tfe.pid;
-    childrenHashMap[params.childId].childId = params.childId;
-    childrenHashMap[params.childId].title = params.childId;
-    childrenHashMap[params.childId].status = "NEW";
-    childrenHashMap[params.childId].errors = 0;
+  touchChildPidFile({ 
+    childId: params.childId, 
+    pid: childrenHashMap[params.childId].pid
+  });
 
-    touchChildPidFile({ 
-      childId: params.childId, 
-      pid: childrenHashMap[params.childId].pid
-    });
+  tfe.on("message", async function tfeMessageRx(m){
 
-    tfe.on("message", async function tfeMessageRx(m){
+    childrenHashMap[params.childId].status = "RUNNING";  
 
-      childrenHashMap[params.childId].status = "RUNNING";  
+    debug(chalkLog("TFE RX MESSAGE"
+      + " | OP: " + m.op
+    ));
 
-      debug(chalkLog("TFE RX MESSAGE"
-        + " | OP: " + m.op
-      ));
+    const isInfoUser = m.isInfoUser || false;
 
-      const isInfoUser = m.isInfoUser || false;
+    const threeceeHashMap = (isInfoUser) ? threeceeInfoTwitter : threeceeTwitter;
 
-      const threeceeHashMap = (isInfoUser) ? threeceeInfoTwitter : threeceeTwitter;
+    switch (m.op) {
 
-      switch (m.op) {
+      case "ERROR":
 
-        case "ERROR":
+        console.log(chalkError("WAS | <TFE | ERROR"
+          + " | 3C @" + m.threeceeUser
+          + " | INFO 3C: " + isInfoUser
+          + " | ERROR TYPE: " + m.errorType
+          // + "\n" + jsonPrint(m.error)
+        ));
+
+        if (m.errorType === "TWITTER_UNAUTHORIZED") {
+
+          threeceeHashMap[m.threeceeUser].twitterErrors += 1;
+          threeceeHashMap[m.threeceeUser].twitterErrorFlag = m.error;
+          threeceeHashMap[m.threeceeUser].twitterAuthorizationErrorFlag = m.error;
+
+        }
+        else if (m.errorType === "TWITTER_TOKEN") {
+
+          threeceeHashMap[m.threeceeUser].twitterErrors += 1;
+          threeceeHashMap[m.threeceeUser].twitterErrorFlag = m.error;
+          threeceeHashMap[m.threeceeUser].twitterTokenErrorFlag = m.error;
+
+        }
+        else if (m.errorType === "BLOCKED") {
+
+          threeceeHashMap[m.threeceeUser].twitterErrors += 1;
+          threeceeHashMap[m.threeceeUser].twitterErrorFlag = m.error;
+          threeceeHashMap[m.threeceeUser].twitterTokenErrorFlag = m.error;
+
+          ignoredUserSet.add(m.userId);
+          unfollowableUserSet.add(m.userId);
+
+          const user = {
+            nodeId: m.userId,
+            userId: m.userId
+          }
+
+          unfollow({user: user}, function(err, updatedUser){
+            if (err) {
+              console.log(chalkError("WAS | TWITTER_UNFOLLOW ERROR: " + err));
+              return;
+            }
+            
+            if (!updatedUser) { return; }
+
+            adminNameSpace.emit("UNFOLLOW", updatedUser);
+            utilNameSpace.emit("UNFOLLOW", updatedUser);
+
+            console.log(chalk.blue("WAS | XXX TWITTER_UNFOLLOW"
+              + " | UID" + updatedUser.nodeId
+              + " | @" + updatedUser.screenName
+            ));
+
+          });
+
+        }
+        else {
 
           console.log(chalkError("WAS | <TFE | ERROR"
             + " | 3C @" + m.threeceeUser
             + " | INFO 3C: " + isInfoUser
             + " | ERROR TYPE: " + m.errorType
-            // + "\n" + jsonPrint(m.error)
+            + "\n" + jsonPrint(m.error)
           ));
 
-          if (m.errorType === "TWITTER_UNAUTHORIZED") {
+          threeceeHashMap[m.threeceeUser].twitterErrors += 1;
+          threeceeHashMap[m.threeceeUser].twitterErrorFlag = m.error;
 
-            threeceeHashMap[m.threeceeUser].twitterErrors += 1;
-            threeceeHashMap[m.threeceeUser].twitterErrorFlag = m.error;
-            threeceeHashMap[m.threeceeUser].twitterAuthorizationErrorFlag = m.error;
+        }
+      break;
 
-          }
-          else if (m.errorType === "TWITTER_TOKEN") {
+      case "TWITTER_STATS":
 
-            threeceeHashMap[m.threeceeUser].twitterErrors += 1;
-            threeceeHashMap[m.threeceeUser].twitterErrorFlag = m.error;
-            threeceeHashMap[m.threeceeUser].twitterTokenErrorFlag = m.error;
+        console.log(chalkInfo("WAS | <TFE | TWITTER STATS"
+          + " | 3C @" + m.threeceeUser
+          + " | FOLLOWING: " + m.twitterFollowing
+        ));
 
-          }
-          else if (m.errorType === "BLOCKED") {
+        threeceeHashMap[m.threeceeUser].twitterFollowing = m.twitterFollowing;
+        threeceeHashMap[m.threeceeUser].twitterFriends = m.twitterFriends;
 
-            threeceeHashMap[m.threeceeUser].twitterErrors += 1;
-            threeceeHashMap[m.threeceeUser].twitterErrorFlag = m.error;
-            threeceeHashMap[m.threeceeUser].twitterTokenErrorFlag = m.error;
-
-            ignoredUserSet.add(m.userId);
-            unfollowableUserSet.add(m.userId);
-
-            const user = {
-              nodeId: m.userId,
-              userId: m.userId
-            }
-
-            unfollow({user: user}, function(err, updatedUser){
-              if (err) {
-                console.log(chalkError("WAS | TWITTER_UNFOLLOW ERROR: " + err));
-                return;
-              }
-              
-              if (!updatedUser) { return; }
-
-              adminNameSpace.emit("UNFOLLOW", updatedUser);
-              utilNameSpace.emit("UNFOLLOW", updatedUser);
-
-              console.log(chalk.blue("WAS | XXX TWITTER_UNFOLLOW"
-                + " | UID" + updatedUser.nodeId
-                + " | @" + updatedUser.screenName
-              ));
-
-            });
-
-          }
-          else {
-
-            console.log(chalkError("WAS | <TFE | ERROR"
-              + " | 3C @" + m.threeceeUser
-              + " | INFO 3C: " + isInfoUser
-              + " | ERROR TYPE: " + m.errorType
-              + "\n" + jsonPrint(m.error)
-            ));
-
-            threeceeHashMap[m.threeceeUser].twitterErrors += 1;
-            threeceeHashMap[m.threeceeUser].twitterErrorFlag = m.error;
-
-          }
-        break;
-
-        case "TWITTER_STATS":
-
-          console.log(chalkInfo("WAS | <TFE | TWITTER STATS"
+        try{
+          childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});
+        }
+        catch(err){
+          console.log(chalkError("WAS | <TSS | *** UNFOLLOW DUPLICATES ERROR"
             + " | 3C @" + m.threeceeUser
-            + " | FOLLOWING: " + m.twitterFollowing
+            + " | ERR: " + err
           ));
+        }
+      break;
 
-          threeceeHashMap[m.threeceeUser].twitterFollowing = m.twitterFollowing;
-          threeceeHashMap[m.threeceeUser].twitterFriends = m.twitterFriends;
+      case "FOLLOW_LIMIT":
 
-          try{
-            childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});
+        console.log(chalkInfo("WAS | <TFE | FOLLOW LIMIT"
+          + " | 3C @" + m.threeceeUser
+          + " | LIMIT: " + getTimeStamp(m.twitterFollowLimit)
+          + " | NOW: " + getTimeStamp()
+        ));
+
+        threeceeHashMap[m.threeceeUser].twitterFollowing = m.twitterFollowing;
+        threeceeHashMap[m.threeceeUser].twitterFriends = m.twitterFriends;
+        threeceeHashMap[m.threeceeUser].twitterFollowLimit = true;
+      break;
+
+      case "TWEET":
+         if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + m.tweet.id_str + " | @" + m.tweet.user.screen_name)); }
+        socketRxTweet(m.tweet);
+      break;
+
+      case "NETWORK_STATS":
+        debug(chalkInfo("TFE | R< NET STATS\n" + jsonPrint(m.stats)));
+      break;
+
+      case "USER_CATEGORIZED":
+
+        categorizedUserHashMap.set(
+          m.user.nodeId, 
+          { 
+            nodeId: m.user.nodeId, 
+            screenName: m.user.screenName, 
+            manual: m.user.category, 
+            auto: m.user.categoryAuto
           }
-          catch(err){
-            console.log(chalkError("WAS | <TSS | *** UNFOLLOW DUPLICATES ERROR"
-              + " | 3C @" + m.threeceeUser
-              + " | ERR: " + err
-            ));
-          }
-        break;
+        );
 
-        case "FOLLOW_LIMIT":
+        if (m.priorityFlag){
+          printUserObj("WAS | <TFE | PRIORITY CAT", m.user);
+          viewNameSpace.emit("SET_TWITTER_USER", { user: m.user, stats: statsObj.user });
+        }
+        else {
+          printUserObj("WAS | <TFE | CAT", m.user);
+        }
 
-          console.log(chalkInfo("WAS | <TFE | FOLLOW LIMIT"
-            + " | 3C @" + m.threeceeUser
-            + " | LIMIT: " + getTimeStamp(m.twitterFollowLimit)
+      break;
+
+      case "PONG":
+        tfePongReceived = m.pongId;
+        childrenHashMap[params.childId].status = "RUNNING";
+        if (configuration.verbose) {
+          console.log(chalkInfo("WAS | <TFE | PONG"
             + " | NOW: " + getTimeStamp()
+            + " | PONG ID: " + getTimeStamp(m.pongId)
+            + " | RESPONSE TIME: " + msToTime(moment().valueOf() - m.pongId)
           ));
+        }
+      break;
 
-          threeceeHashMap[m.threeceeUser].twitterFollowing = m.twitterFollowing;
-          threeceeHashMap[m.threeceeUser].twitterFriends = m.twitterFriends;
-          threeceeHashMap[m.threeceeUser].twitterFollowLimit = true;
-        break;
+      default:
+        console.log(chalkError("WAS | TFE | *** ERROR *** UNKNOWN OP: " + m.op));
+    }
+  });
 
-        case "TWEET":
-           if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + m.tweet.id_str + " | @" + m.tweet.user.screen_name)); }
-          socketRxTweet(m.tweet);
-        break;
+  tfe.on("error", function tfeError(err){
+    console.log(chalkError(getTimeStamp()
+      + " | *** TFE ERROR ***"
+      + " \n" + jsonPrint(err)
+    ));
+    statsObj.tfeSendReady = false;
+    statsObj.tfeChildReady = false;
+    clearInterval(tfePingInterval);
+    childrenHashMap[params.childId].status = "ERROR";
+  });
 
-        case "NETWORK_STATS":
-          debug(chalkInfo("TFE | R< NET STATS\n" + jsonPrint(m.stats)));
-        break;
+  tfe.on("exit", function tfeExit(code){
+    console.log(chalkError(getTimeStamp()
+      + " | *** TFE EXIT ***"
+      + " | EXIT CODE: " + code
+    ));
+    statsObj.tfeSendReady = false;
+    statsObj.tfeChildReady = false;
+    clearInterval(tfePingInterval);
+    childrenHashMap[params.childId].status = "EXIT";
+  });
 
-        case "USER_CATEGORIZED":
+  tfe.on("close", function tfeClose(code){
+    console.log(chalkError(getTimeStamp()
+      + " | *** TFE CLOSE ***"
+      + " | EXIT CODE: " + code
+    ));
+    statsObj.tfeSendReady = false;
+    statsObj.tfeChildReady = false;
+    clearInterval(tfePingInterval);
+    childrenHashMap[params.childId].status = "CLOSE";
+  });
 
-          categorizedUserHashMap.set(
-            m.user.nodeId, 
-            { 
-              nodeId: m.user.nodeId, 
-              screenName: m.user.screenName, 
-              manual: m.user.category, 
-              auto: m.user.categoryAuto
-            }
-          );
+  childrenHashMap[params.childId].child = tfe;
 
-          if (m.priorityFlag){
-            printUserObj("WAS | <TFE | PRIORITY CAT", m.user);
-            viewNameSpace.emit("SET_TWITTER_USER", { user: m.user, stats: statsObj.user });
-          }
-          else {
-            printUserObj("WAS | <TFE | CAT", m.user);
-          }
+  statsObj.tfeChildReady = true;
 
-        break;
+  tfeChild = tfe;
 
-        case "PONG":
-          tfePongReceived = m.pongId;
-          childrenHashMap[params.childId].status = "RUNNING";
-          if (configuration.verbose) {
-            console.log(chalkInfo("WAS | <TFE | PONG"
-              + " | NOW: " + getTimeStamp()
-              + " | PONG ID: " + getTimeStamp(m.pongId)
-              + " | RESPONSE TIME: " + msToTime(moment().valueOf() - m.pongId)
-            ));
-          }
-        break;
-
-        default:
-          console.log(chalkError("WAS | TFE | *** ERROR *** UNKNOWN OP: " + m.op));
-      }
-    });
-
-    tfe.on("error", function tfeError(err){
-      console.log(chalkError(getTimeStamp()
-        + " | *** TFE ERROR ***"
-        + " \n" + jsonPrint(err)
-      ));
-      statsObj.tfeSendReady = false;
-      statsObj.tfeChildReady = false;
-      clearInterval(tfePingInterval);
-      childrenHashMap[params.childId].status = "ERROR";
-    });
-
-    tfe.on("exit", function tfeExit(code){
-      console.log(chalkError(getTimeStamp()
-        + " | *** TFE EXIT ***"
-        + " | EXIT CODE: " + code
-      ));
-      statsObj.tfeSendReady = false;
-      statsObj.tfeChildReady = false;
-      clearInterval(tfePingInterval);
-      childrenHashMap[params.childId].status = "EXIT";
-    });
-
-    tfe.on("close", function tfeClose(code){
-      console.log(chalkError(getTimeStamp()
-        + " | *** TFE CLOSE ***"
-        + " | EXIT CODE: " + code
-      ));
-      statsObj.tfeSendReady = false;
-      statsObj.tfeChildReady = false;
-      clearInterval(tfePingInterval);
-      childrenHashMap[params.childId].status = "CLOSE";
-    });
-
-    childrenHashMap[params.childId].child = tfe;
-
-    statsObj.tfeChildReady = true;
-
-    tfeChild = tfe;
+  try{
+    const twitterConfig = await initTwitterConfig({threeceeUser: threeceeUser});
 
     tfeChild.send({
       op: "INIT",
       title: "wa_node_child_tfe",
       networkObj: bestNetworkObj,
+      twitterConfig: twitterConfig,
       maxInputHashMap: maxInputHashMap,
       normalization: normalization,
       interval: configuration.tfeInterval,
@@ -7935,7 +7936,7 @@ function initTfeChild(params){
         statsObj.tfeChildReady = false;
         clearInterval(tfePingInterval);
         childrenHashMap[params.childId].status = "ERROR";
-        reject(err);
+        throw err;
       }
       else {
         statsObj.tfeSendReady = true;
@@ -7945,11 +7946,14 @@ function initTfeChild(params){
         setTimeout(function(){
           initTfePingInterval(TFE_PING_INTERVAL);
         }, 1000);
-        resolve();
+        return;
       }
     });
 
-  });
+  }
+  catch(err){
+    throw err;
+  }
 }
 
 function initDbuChild(params){

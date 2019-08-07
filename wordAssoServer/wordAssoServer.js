@@ -3052,6 +3052,10 @@ async function getTwitterWebhooks(){
 
 async function addTwitterAccountActivitySubscription(p){
 
+  statsObj.status = "ADD TWITTER ACCOUNT ACTIVITY SUBSCRIPTION";
+
+  console.log(chalkTwitter("WAS | ... ADD ACCOUNT ACTIVITY SUBSCRIPTION | " + params.threeceeUser));
+
   const params = p || {};
 
   params.threeceeUser = params.threeceeUser || "altthreecee00";
@@ -3067,7 +3071,6 @@ async function addTwitterAccountActivitySubscription(p){
     throw new Error("threeceeUser twitter configuration undefined");
   }
 
-  statsObj.status = "ADD TWITTER ACCOUNT ACTIVITY SUBSCRIPTION";
 
   const options = {
     url: "https://api.twitter.com/1.1/account_activity/all/dev/subscriptions.json",
@@ -10193,7 +10196,7 @@ setTimeout(async function(){
     await initUpdateUserSetsInterval(configuration.updateUserSetsInterval);
   }
   catch(err){
-    console.log(chalkError("WAS | **** INIT CONFIG ERROR: " + err + "\n" + jsonPrint(err)));
+    console.trace(chalkError("WAS | **** INIT CONFIG ERROR: " + err + "\n" + jsonPrint(err)));
     if (err.code !== 404) {
       console.log("WAS | *** INIT CONFIG ERROR | err.code: " + err.code);
       quit();

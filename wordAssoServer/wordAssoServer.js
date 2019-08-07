@@ -3012,7 +3012,11 @@ async function getTwitterWebhooks(){
           //     └─ 1
           //        └─ user_id: 848591649575927810
 
-          if ((aaSubs.application_id === 15917082) && (aaSubs.subscriptions.length > 0)){
+          console.log(chalkTwitter("aaSubs"
+            + "\n" + jsonPrint(aaSubs)
+          ));
+
+          if ((aaSubs.application_id === "15917082") && (aaSubs.subscriptions.length > 0)){
             statsObj.twitter.aaSubs = {};
             statsObj.twitter.aaSubs = aaSubs;
             console.log(chalkTwitter("WAS | +++ TWITTER ACCOUNT ACTIVITY SUBSCRIPTIONS"

@@ -2752,18 +2752,18 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
       catch(function(err){
         return cb(err);
       });
+    },
+
+    categoryHashmapsInit: function(cb){
+
+      initCategoryHashmaps().
+      then(function(){
+        cb();
+      }).
+      catch(function(err){
+        return cb(err);
+      });
     }
-
-    // categoryHashmapsInit: function(cb){
-
-    //   initCategoryHashmaps().
-    //   then(function(){
-    //     cb();
-    //   }).
-    //   catch(function(err){
-    //     return cb(err);
-    //   });
-    // }
   },
   function(err, results){
     if (err){

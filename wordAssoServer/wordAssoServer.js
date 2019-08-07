@@ -7678,6 +7678,37 @@ function initTssChild(params){
   });
 }
 
+async function initTwitterConfig(params) {
+
+  statsObj.status = "INIT TWITTER | @" + params.threeceeUser;
+
+  const twitterConfigFile = params.threeceeUser + ".json";
+
+  debug(chalkInfo("INIT TWITTER USER @" + params.threeceeUser + " | " + twitterConfigFile));
+
+  const folder = path.join(DROPBOX_ROOT_FOLDER, configuration.twitterConfigFolder);
+
+  try {
+    const twitterConfig = await tcUtils.loadFile({folder: folder, file: twitterConfigFile});
+
+    twitterConfig.threeceeUser = params.threeceeUser;
+
+    console.log(chalkTwitter("TFE | LOADED TWITTER CONFIG"
+      + " | @" + params.threeceeUser
+      + " | CONFIG FILE: " + folder + "/" + twitterConfigFile
+    ));
+
+    return twitterConfig;
+  }
+  catch(err){
+    console.log(chalkError("TFE | *** LOADED TWITTER CONFIG ERROR: FILE:  " 
+      + folder + "/" + twitterConfigFile
+    ));
+    console.log(chalkError("TFE | *** LOADED TWITTER CONFIG ERROR: ERROR: " + err));
+    throw err;
+  }
+}
+
 async function initTfeChild(params){
 
   statsObj.status = "INIT TFE CHILD";
@@ -7910,50 +7941,45 @@ async function initTfeChild(params){
 
   tfeChild = tfe;
 
-  try{
-    const twitterConfig = await initTwitterConfig({threeceeUser: threeceeUser});
+  const twitterConfig = await initTwitterConfig({threeceeUser: threeceeUser});
 
-    tfeChild.send({
-      op: "INIT",
-      title: "wa_node_child_tfe",
-      networkObj: bestNetworkObj,
-      twitterConfig: twitterConfig,
-      maxInputHashMap: maxInputHashMap,
-      normalization: normalization,
-      interval: configuration.tfeInterval,
-      geoCodeEnabled: configuration.geoCodeEnabled,
-      enableImageAnalysis: configuration.enableImageAnalysis,
-      forceImageAnalysis: configuration.forceImageAnalysis,
-      testMode: configuration.testMode,
-      verbose: configuration.verbose
-    }, function tfeMessageRxError(err){
-      if (err) {
-        console.log(chalkError("WAS | *** TFE SEND ERROR"
-          + " | " + err
-        ));
-        console.error(err);
-        statsObj.tfeSendReady = false;
-        statsObj.tfeChildReady = false;
-        clearInterval(tfePingInterval);
-        childrenHashMap[params.childId].status = "ERROR";
-        throw err;
-      }
-      else {
-        statsObj.tfeSendReady = true;
-        statsObj.tfeChildReady = true;
-        childrenHashMap[params.childId].status = "INIT";
-        clearInterval(tfePingInterval);
-        setTimeout(function(){
-          initTfePingInterval(TFE_PING_INTERVAL);
-        }, 1000);
-        return;
-      }
-    });
+  tfeChild.send({
+    op: "INIT",
+    title: "wa_node_child_tfe",
+    networkObj: bestNetworkObj,
+    twitterConfig: twitterConfig,
+    maxInputHashMap: maxInputHashMap,
+    normalization: normalization,
+    interval: configuration.tfeInterval,
+    geoCodeEnabled: configuration.geoCodeEnabled,
+    enableImageAnalysis: configuration.enableImageAnalysis,
+    forceImageAnalysis: configuration.forceImageAnalysis,
+    testMode: configuration.testMode,
+    verbose: configuration.verbose
+  }, function tfeMessageRxError(err){
+    if (err) {
+      console.log(chalkError("WAS | *** TFE SEND ERROR"
+        + " | " + err
+      ));
+      console.error(err);
+      statsObj.tfeSendReady = false;
+      statsObj.tfeChildReady = false;
+      clearInterval(tfePingInterval);
+      childrenHashMap[params.childId].status = "ERROR";
+      throw err;
+    }
+    else {
+      statsObj.tfeSendReady = true;
+      statsObj.tfeChildReady = true;
+      childrenHashMap[params.childId].status = "INIT";
+      clearInterval(tfePingInterval);
+      setTimeout(function(){
+        initTfePingInterval(TFE_PING_INTERVAL);
+      }, 1000);
+      return;
+    }
+  });
 
-  }
-  catch(err){
-    throw err;
-  }
 }
 
 function initDbuChild(params){

@@ -2914,7 +2914,7 @@ async function updateTwitterWebhook(){
       + "\nBODY: " + body
     ));
 
-    await addAccountActivitySubscription();
+    // await addAccountActivitySubscription();
     return;
   }
   catch(err){
@@ -10142,8 +10142,8 @@ setTimeout(async function(){
     await initSaveFileQueue(configuration);
     await initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
     if (hostname === "google") { 
-      await addAccountActivitySubscription();
       await getTwitterWebhooks();
+      await addAccountActivitySubscription();
     }
     await initAllowLocations();
     await initIgnoreLocations();

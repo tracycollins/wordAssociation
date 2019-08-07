@@ -40,7 +40,7 @@
     "deepcopy": "^2.0.0",
     "deepmerge": "^4.0.0",
     "deepool": "^2.2.0",
-    "dropbox": "^4.0.28",
+    "dropbox": "^4.0.30",
     "dropbox-streaming-upload": "^1.0.4",
     "encodeurl": "^1.0.2",
     "es6-promise": "^4.2.8",

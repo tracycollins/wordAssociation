@@ -7,6 +7,8 @@ process.title = "wa_node_child_tfe";
 const MODULE_ID_PREFIX = "TFC";
 
 const MIN_TWEET_ID = 1000000;
+const DEFAULT_TWEET_FETCH_EXCLUDE_REPLIES = true;
+const DEFAULT_TWEET_FETCH_INCLUDE_RETWEETS = false;
 
 const ONE_SECOND = 1000;
 const ONE_MINUTE = ONE_SECOND*60;
@@ -51,6 +53,10 @@ DEFAULT_INPUT_TYPES.forEach(function(type){
   defaultUserProfileHistograms[type] = {};
 });
 
+const Twit = require("twit");
+
+let twitClient;
+
 let networkObj = {};
 
 // const DEFAULT_INFO_TWITTER_USER = "threecee";
@@ -68,6 +74,8 @@ const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
 
 const os = require("os");
 const fs = require("fs");
+const omit = require("object.omit");
+const path = require("path");
 
 let hostname = os.hostname();
 hostname = hostname.replace(/.local/g, "");
@@ -142,6 +150,7 @@ const tcuChildName = MODULE_ID_PREFIX + "_TCU";
 const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
 const tcUtils = new ThreeceeUtilities(tcuChildName);
 
+const userTweetFetchSet = new Set();
 
 const processUserQueue = [];
 const userChangeDbQueue = [];
@@ -2070,83 +2079,334 @@ function processTweetObj(params){
   });
 }
 
-function updateUserTweets(params){
+// function updateUserTweets(params){
+
+//   return new Promise(function(resolve, reject){
+
+//     if (params.tweets.length === 0) { return resolve(params.user); }
+
+//     const user = params.user;
+//     if (user.tweetHistograms === undefined) { user.tweetHistograms = {}; }
+//     if (user.tweets === undefined) { 
+//       user.tweets = {};
+//       user.tweets.maxId = "0";
+//       user.tweets.sinceId = "0";
+//       user.tweets.tweetIds = [];
+//     }
+
+//     user.tweets.maxId = user.tweets.maxId || "0";
+//     user.tweets.sinceId = user.tweets.sinceId || "0";
+//     user.tweets.tweetIds = user.tweets.tweetIds || [];
+
+//     if (user.tweetHistograms === undefined) { user.tweetHistograms = {}; }
+
+//     const tscParams = {};
+
+//     tscParams.globalTestMode = configuration.globalTestMode;
+//     tscParams.testMode = configuration.testMode;
+//     tscParams.inc = false;
+//     tscParams.twitterEvents = configEvents;
+//     tscParams.tweetStatus = {};
+
+//     let tweetsProcessed = 0;
+
+//     if (user.tweets.tweetIds.length > DEFAULT_MAX_USER_TWEETIDS) {
+
+//       const length = user.tweets.tweetIds.length;
+//       const removeNumber = length - DEFAULT_MAX_USER_TWEETIDS;
+
+//       debug(chalkLog("WAS | TFC | --- USER TWEETS > DEFAULT_MAX_USER_TWEETIDS"
+//         + " | " + user.nodeId
+//         + " | @" + user.screenName
+//         + " | " + length + " TWEETS"
+//         + " | REMOVE: " + removeNumber
+//       ));
+
+//       user.tweets.tweetIds.splice(0,removeNumber);
+//     }
+
+//     async.eachSeries(params.tweets, async function(tweet){
+
+//       tscParams.tweetStatus = tweet;
+//       tscParams.tweetStatus.user = {};
+//       tscParams.tweetStatus.user = user;
+//       tscParams.tweetStatus.user.isNotRaw = true;
+
+//       if (tweet.id_str > user.tweets.maxId) {
+//         user.tweets.maxId = tweet.id_str;
+//       }
+
+//       if (tweet.id_str > user.tweets.sinceId) {
+//         user.tweets.sinceId = tweet.id_str;
+//       }
+
+//       if (!user.tweets.tweetIds.includes(tweet.id_str)) { 
+
+//         try {
+
+//           const tweetObj = await tweetServerController.createStreamTweet(tscParams);
+
+//           user.tweetHistograms = await processTweetObj({tweetObj: tweetObj, histograms: user.tweetHistograms});
+//           user.tweets.tweetIds.push(tweet.id_str);
+
+//           tweetsProcessed += 1;
+//           statsObj.twitter.tweetsProcessed += 1;
+//           statsObj.twitter.tweetsTotal += 1;
+
+//           if (configuration.verbose) {
+//             console.log(chalkTwitter("WAS | TFC | +++ PROCESSED TWEET"
+//               + " [ H/P/T " + statsObj.twitter.tweetsProcessed + "/" + statsObj.twitter.tweetsHits + "/" + statsObj.twitter.tweetsTotal + "]"
+//               + " | TW: " + tweet.id_str
+//               + " | SINCE: " + user.tweets.sinceId
+//               + " | TWs: " + user.tweets.tweetIds.length
+//               + " | @" + user.screenName
+//             ));
+//           }
+
+//           return;
+//         }
+//         catch(err){
+//           console.log(chalkError("WAS | TFC | updateUserTweets ERROR: " + err));
+//           return err;
+//         }
+//       }
+//       else {
+
+//         statsObj.twitter.tweetsHits += 1;
+//         statsObj.twitter.tweetsTotal += 1;
+
+//         if (configuration.verbose) {
+//           console.log(chalkInfo("WAS | TFC | ... TWEET ALREADY PROCESSED"
+//             + " [ H/P/T " + statsObj.twitter.tweetsProcessed + "/" + statsObj.twitter.tweetsHits + "/" + statsObj.twitter.tweetsTotal + "]"
+//             + " | TW: " + tweet.id_str
+//             + " | TWs: " + user.tweets.tweetIds.length
+//             + " | @" + user.screenName
+//           ));
+//         }
+
+//         return;
+//       }
+
+//     }, function(err){
+//       if (err) {
+//         console.log(chalkError("WAS | TFC | updateUserTweets ERROR: " + err));
+//         return reject(err);
+//       }
+
+//       if (configuration.verbose && (tweetsProcessed > 0)) {
+//         console.log(chalkLog("WAS | TFC | +++ Ts"
+//           + " | " + tweetsProcessed
+//           + " [ P/H/T " + statsObj.twitter.tweetsProcessed + "/" + statsObj.twitter.tweetsHits + "/" + statsObj.twitter.tweetsTotal + " ]"
+//           + " | SINCE: " + user.tweets.sinceId
+//           + " | DB Ts: " + user.tweets.tweetIds.length
+//           + " | @" + user.screenName
+//         ));
+//       }
+
+//       resolve(user);
+//     });
+
+//   });
+// }
+function histogramIncomplete(histogram){
+
+  return new Promise(function(resolve){
+
+    if (!histogram) { return resolve(true); }
+    if (histogram === undefined) { return resolve(true); }
+    if (histogram === {}) { return resolve(true); }
+
+    async.each(Object.values(histogram), function(value, cb){
+
+      if (value === {}) { return cb(); }
+      if ((value !== undefined) && (Object.keys(value).length > 0)) { return cb("valid"); }
+
+      cb();
+
+    }, function(valid){
+
+      if (valid) { return resolve(false); }
+
+      // console.log("histogramIncomplete\n" + jsonPrint(histogram));
+      return resolve(true);
+    });
+
+  });
+}
+
+async function fetchUserTweets(params){
+
+  const user = params.user;
+
+  if (!user.tweetHistograms || (user.tweetHistograms === undefined) || (user.tweetHistograms === {})) { 
+
+    console.log(chalkAlert("TFE | fetchUserTweets | *** USER tweetHistograms UNDEFINED"
+      + " | @" + user.screenName
+    ));
+    
+    user.tweetHistograms = {};
+  }
+
+  if (params.force) {
+    delete user.tweets;
+    user.tweets = {};
+  }
+
+  defaults(user.tweets, userTweetsDefault);
+
+  if (!twitClient || (twitClient === undefined)) {
+    console.log(chalkAlert("TFC | fetchUserTweets | twitClient UNDEFINED | @" + configuration.threeceeUser));
+    return new Error("twitClient UNDEFINED");
+  }
+
+  if (statsObj.threeceeUser.twitterRateLimit.statuses.exceptionFlag) {
+    console.log(chalkAlert("TFC | fetchUserTweets | SKIPPING ... RATE LIMIT | RESOURCE: STATUSES | @" + configuration.threeceeUser));
+    return;
+  }
+
+  const fetchUserTweetsParams = {};
+
+  fetchUserTweetsParams.user_id = user.userId;
+  fetchUserTweetsParams.trim_user = false;
+
+  if (params.excludeUser) { fetchUserTweetsParams.trim_user = true; } 
+
+  fetchUserTweetsParams.count = params.tweetFetchCount || configuration.tweetFetchCount;
+  fetchUserTweetsParams.exclude_replies = params.excludeReplies || DEFAULT_TWEET_FETCH_EXCLUDE_REPLIES;
+  fetchUserTweetsParams.include_rts = params.includeRetweets || DEFAULT_TWEET_FETCH_INCLUDE_RETWEETS;
+
+  debug(chalkError("TFC | ... TWITTER FETCH USER TWEETS"
+    + " | " + getTimeStamp() 
+    + " | 3C @" + configuration.threeceeUser 
+    + " | UID: " + user.userId
+    + " | @" + user.screenName
+    + "\nfetchUserTweetsParams\n" + jsonPrint(fetchUserTweetsParams)
+  ));
+
+  twitClient.get("statuses/user_timeline", fetchUserTweetsParams, function(err, userTweetsArray, response) {
+
+    if (configuration.verbose) {
+      debug("TFC | TWITTER USER TIMELINE response\n", response);
+    }
+
+    if (err){
+
+      if (err.code === 88){
+        statsObj.threeceeUser.twitterRateLimit.statuses.user_timeline.exceptionAt = moment();
+        statsObj.threeceeUser.twitterRateLimit.statuses.user_timeline.exceptionFlag = true;
+
+        console.log(chalkAlert("TFC | *** TWITTER FETCH USER TWEETS ERROR | RATE LIMIT" 
+          + " | " + getTimeStamp() 
+          + " | @" + configuration.threeceeUser 
+        ));
+
+        throw err;
+      }
+
+      if (err.code === 89){
+
+        console.log(chalkAlert("TFC | *** TWITTER FETCH USER TWEETS ERROR | INVALID OR EXPIRED TOKEN" 
+          + " | " + getTimeStamp() 
+          + " | @" + configuration.threeceeUser 
+        ));
+
+        statsObj.threeceeUser = Object.assign({}, threeceeUserDefaults, statsObj.threeceeUser);  
+        statsObj.threeceeUser.err = err;
+        throw err;
+      }
+
+      if (err.code === 34){
+        console.log(chalkError("TFC | *** TWITTER FETCH USER TWEETS ERROR | USER NOT FOUND"
+          + " | " + getTimeStamp() 
+          + " | @" + configuration.threeceeUser 
+          + " | UID: " + params.user.userId
+          + " | @" + params.user.screenName
+        ));
+        throw err;
+      }
+      
+      if (err.code === 136){
+        console.log(chalkError("TFC | *** TWITTER FETCH USER TWEETS ERROR | USER BLOCKED"
+          + " | " + getTimeStamp() 
+          + " | @" + configuration.threeceeUser 
+          + " | UID: " + user.userId
+          + " | @" + user.screenName
+        ));
+        throw err;
+      }
+      
+      if (err.statusCode === 401){
+        console.log(chalkError("TFC | *** TWITTER FETCH USER TWEETS ERROR | NOT AUTHORIZED"
+          + " | " + getTimeStamp() 
+          + " | @" + configuration.threeceeUser 
+          + " | UID: " + params.user.userId
+          + " | @" + params.user.screenName
+        ));
+        throw err;
+      }
+      
+      console.log(chalkError("TFC | *** TWITTER FETCH USER TWEETS ERROR"
+        + " | " + getTimeStamp() 
+        + " | 3C @" + configuration.threeceeUser 
+        + " | UID: " + user.userId
+        + " | @" + user.screenName
+        + " | ERR CODE: " + err.code
+        + " | " + err.message
+        + "\n" + jsonPrint(err)
+        + "\nfetchUserTweetsParams\n" + jsonPrint(fetchUserTweetsParams)
+      ));
+
+      throw err;
+    }
+
+    user.latestTweets = _.union(userTweetsArray);
+    return userTweetsArray;
+
+  });
+}
+
+function processUserTweetArray(params){
 
   return new Promise(function(resolve, reject){
 
-    if (params.tweets.length === 0) { return resolve(params.user); }
-
+    const tscParams = params.tscParams;
     const user = params.user;
-    if (user.tweetHistograms === undefined) { user.tweetHistograms = {}; }
-    if (user.tweets === undefined) { 
-      user.tweets = {};
-      user.tweets.maxId = "0";
-      user.tweets.sinceId = "0";
-      user.tweets.tweetIds = [];
-    }
+    const tweets = params.tweets;
+    const forceFetch = params.forceFetch;
 
-    user.tweets.maxId = user.tweets.maxId || "0";
-    user.tweets.sinceId = user.tweets.sinceId || "0";
-    user.tweets.tweetIds = user.tweets.tweetIds || [];
-
-    if (user.tweetHistograms === undefined) { user.tweetHistograms = {}; }
-
-    const tscParams = {};
-
-    tscParams.globalTestMode = configuration.globalTestMode;
-    tscParams.testMode = configuration.testMode;
-    tscParams.inc = false;
-    tscParams.twitterEvents = configEvents;
-    tscParams.tweetStatus = {};
-
-    let tweetsProcessed = 0;
-
-    if (user.tweets.tweetIds.length > DEFAULT_MAX_USER_TWEETIDS) {
-
-      const length = user.tweets.tweetIds.length;
-      const removeNumber = length - DEFAULT_MAX_USER_TWEETIDS;
-
-      debug(chalkLog("WAS | TFC | --- USER TWEETS > DEFAULT_MAX_USER_TWEETIDS"
-        + " | " + user.nodeId
-        + " | @" + user.screenName
-        + " | " + length + " TWEETS"
-        + " | REMOVE: " + removeNumber
-      ));
-
-      user.tweets.tweetIds.splice(0,removeNumber);
-    }
-
-    async.eachSeries(params.tweets, async function(tweet){
+    async.eachSeries(tweets, async function(tweet){
 
       tscParams.tweetStatus = tweet;
       tscParams.tweetStatus.user = {};
       tscParams.tweetStatus.user = user;
       tscParams.tweetStatus.user.isNotRaw = true;
 
-      if (tweet.id_str > user.tweets.maxId) {
-        user.tweets.maxId = tweet.id_str;
+      if (tweet.id_str.toString() > user.tweets.maxId.toString()) {
+        user.tweets.maxId = tweet.id_str.toString();
       }
 
-      if (tweet.id_str > user.tweets.sinceId) {
-        user.tweets.sinceId = tweet.id_str;
+      if (tweet.id_str.toString() > user.tweets.sinceId.toString()) {
+        user.tweets.sinceId = tweet.id_str.toString();
       }
 
-      if (!user.tweets.tweetIds.includes(tweet.id_str)) { 
+      if (forceFetch || !user.tweets.tweetIds.includes(tweet.id_str.toString())) { 
 
         try {
 
           const tweetObj = await tweetServerController.createStreamTweet(tscParams);
 
-          user.tweetHistograms = await processTweetObj({tweetObj: tweetObj, histograms: user.tweetHistograms});
-          user.tweets.tweetIds.push(tweet.id_str);
+          if (!user.tweetHistograms || (user.tweetHistograms === undefined)) { user.tweetHistograms = {}; }
 
-          tweetsProcessed += 1;
+          user.tweetHistograms = await processTweetObj({tweetObj: tweetObj, histograms: user.tweetHistograms});
+          user.tweets.tweetIds = _.union(user.tweets.tweetIds, [tweet.id_str]); 
+
           statsObj.twitter.tweetsProcessed += 1;
           statsObj.twitter.tweetsTotal += 1;
 
-          if (configuration.verbose) {
-            console.log(chalkTwitter("WAS | TFC | +++ PROCESSED TWEET"
-              + " [ H/P/T " + statsObj.twitter.tweetsProcessed + "/" + statsObj.twitter.tweetsHits + "/" + statsObj.twitter.tweetsTotal + "]"
+          if (forceFetch || configuration.testMode || configuration.verbose || (statsObj.twitter.tweetsTotal % 100 === 0)) {
+            console.log(chalkTwitter("TFE | +++ PROCESSED TWEET"
+              + " | FORCE: " + forceFetch
+              + " [ P/H/T " + statsObj.twitter.tweetsProcessed + "/" + statsObj.twitter.tweetsHits + "/" + statsObj.twitter.tweetsTotal + "]"
               + " | TW: " + tweet.id_str
               + " | SINCE: " + user.tweets.sinceId
               + " | TWs: " + user.tweets.tweetIds.length
@@ -2157,7 +2417,7 @@ function updateUserTweets(params){
           return;
         }
         catch(err){
-          console.log(chalkError("WAS | TFC | updateUserTweets ERROR: " + err));
+          console.log(chalkError("TFE | updateUserTweets ERROR: " + err));
           return err;
         }
       }
@@ -2166,9 +2426,9 @@ function updateUserTweets(params){
         statsObj.twitter.tweetsHits += 1;
         statsObj.twitter.tweetsTotal += 1;
 
-        if (configuration.verbose) {
-          console.log(chalkInfo("WAS | TFC | ... TWEET ALREADY PROCESSED"
-            + " [ H/P/T " + statsObj.twitter.tweetsProcessed + "/" + statsObj.twitter.tweetsHits + "/" + statsObj.twitter.tweetsTotal + "]"
+        if (configuration.testMode || configuration.verbose) {
+          console.log(chalkInfo("TFE | ... TWEET ALREADY PROCESSED"
+            + " [ P/H/T " + statsObj.twitter.tweetsProcessed + "/" + statsObj.twitter.tweetsHits + "/" + statsObj.twitter.tweetsTotal + "]"
             + " | TW: " + tweet.id_str
             + " | TWs: " + user.tweets.tweetIds.length
             + " | @" + user.screenName
@@ -2177,27 +2437,135 @@ function updateUserTweets(params){
 
         return;
       }
-
     }, function(err){
       if (err) {
-        console.log(chalkError("WAS | TFC | updateUserTweets ERROR: " + err));
+        console.log(chalkError("TFE | updateUserTweets ERROR: " + err));
         return reject(err);
       }
 
-      if (configuration.verbose && (tweetsProcessed > 0)) {
-        console.log(chalkLog("WAS | TFC | +++ Ts"
-          + " | " + tweetsProcessed
-          + " [ P/H/T " + statsObj.twitter.tweetsProcessed + "/" + statsObj.twitter.tweetsHits + "/" + statsObj.twitter.tweetsTotal + " ]"
-          + " | SINCE: " + user.tweets.sinceId
-          + " | DB Ts: " + user.tweets.tweetIds.length
+      if (forceFetch || configuration.testMode || configuration.verbose) {
+        console.log(chalkLog("TFE | +++ Ts"
+          + " | FORCE: " + forceFetch
+          + " [ P/H/T " + statsObj.twitter.tweetsProcessed + "/" + statsObj.twitter.tweetsHits + "/" + statsObj.twitter.tweetsTotal + "]"
+          + " | Ts: " + user.tweets.tweetIds.length
           + " | @" + user.screenName
+          // + "\nTFE | THG\n" + jsonPrint(user.tweetHistograms)
         ));
       }
+
+      // user.markModified("tweets");
+      // user.markModified("tweetHistograms");
 
       resolve(user);
     });
 
   });
+}
+
+async function processUserTweets(params){
+
+  // return new Promise(function(resolve, reject){
+
+    let user = {};
+    user = params.user;
+
+    const tweets = params.tweets;
+
+    const tscParams = {};
+
+    tscParams.globalTestMode = configuration.globalTestMode;
+    tscParams.testMode = configuration.testMode;
+    tscParams.inc = false;
+    tscParams.twitterEvents = configEvents;
+    tscParams.tweetStatus = {};
+
+    let tweetHistogramsEmpty = false;
+
+    try{
+      tweetHistogramsEmpty = await emptyHistogram(user.tweetHistograms);
+
+      const processedUser = await processUserTweetArray({user: user, forceFetch: tweetHistogramsEmpty, tweets: tweets, tscParams: tscParams});
+
+      if (tweetHistogramsEmpty) {
+        console.log(chalkLog("TFE | >>> processUserTweetArray USER"
+          + " | " + printUser({user: processedUser})
+        ));
+        debug(chalkLog("TFE | >>> processUserTweetArray USER TWEETS"
+          + " | SINCE: " + processedUser.tweets.sinceId
+          + " | TWEETS: " + processedUser.tweets.tweetIds.length
+        ));
+        debug(chalkLog("TFE | >>> processUserTweetArray USER TWEET HISTOGRAMS"
+          + "\n" + jsonPrint(processedUser.tweetHistograms)
+        ));
+        debug(chalkLog("TFE | >>> processUserTweetArray USER PROFILE HISTOGRAMS"
+          + "\n" + jsonPrint(processedUser.profileHistograms)
+        ));
+      }
+
+      return processedUser;
+    }
+    catch(err){
+      console.log(chalkError("TFE | *** processUserTweetArray ERROR: " + err));
+      throw err;
+    }
+
+  // });
+}
+
+async function updateUserTweets(params){
+
+  let user = params.user;
+
+  const histogramIncompleteFlag = await histogramIncomplete(user.tweetHistograms);
+
+  if (configuration.testFetchTweetsMode || (!userTweetFetchSet.has(user.nodeId) && histogramIncompleteFlag)) { 
+
+    if (configuration.testFetchTweetsMode) {
+      console.log(chalkAlert("TFE | updateUserTweets | !!! TEST MODE FETCH TWEETS"
+        + " | @" + user.screenName
+      ));
+    }
+    else{
+      console.log(chalkInfo("TFE | >>> PRIORITY FETCH TWEETS"
+        + " | @" + user.screenName
+      ));
+    }
+
+    user.tweetHistograms = {};
+    // user.markModified("tweetHistograms");
+    user = await fetchUserTweets({user: user, force: true});
+    userTweetFetchSet.add(user.nodeId);
+  }
+
+  if (user.latestTweets.length === 0) { 
+    delete user.latestTweets;
+    return user;
+  }
+
+  const latestTweets = user.latestTweets;
+  
+  delete user.latestTweets;
+
+  defaults(user.tweets, userTweetsDefault);
+
+  if (user.tweets.tweetIds.length > DEFAULT_MAX_USER_TWEETIDS) {
+
+    const length = user.tweets.tweetIds.length;
+    const removeNumber = length - DEFAULT_MAX_USER_TWEETIDS;
+
+    debug(chalkLog("TFE | ---  TWEETS > MAX TWEETIDS"
+      + " | " + user.nodeId
+      + " | @" + user.screenName
+      + " | " + length + " TWEETS"
+      + " | REMOVE: " + removeNumber
+    ));
+
+    user.tweets.tweetIds.splice(0,removeNumber);
+  }
+
+  const processedUser = await processUserTweets({tweets: latestTweets, user: user});
+
+  return processedUser;
 }
 
 // let infoRateLimitTimeout;
@@ -2669,7 +3037,7 @@ async function initProcessUserQueueInterval(interval) {
 
         if (!user.latestTweets || (user.latestTweets === undefined)) { user.latestTweets = []; }
 
-        user.latestTweets = _.union(user.latestTweets, user.latestTweets);
+        user.latestTweets = _.union(userQueueObj.latestTweets, user.latestTweets);
 
         const processedUser = await processUser({user: user});
 
@@ -2933,6 +3301,201 @@ async function processUser(params) {
   }
 }
 
+function twitterUsersShow(){
+
+  return new Promise(function(resolve, reject){
+
+    if (!twitClient || (twitClient === undefined)) {
+      console.log(chalkAlert("TFC | twitterUsersShow | twitClient UNDEFINED | @" + configuration.threeceeUser));
+      return reject(new Error("twitClient UNDEFINED"));
+    }
+
+    if (statsObj.threeceeUser.twitterRateLimit.users.exceptionFlag) {
+      console.log(chalkAlert("TFC | twitterUsersShow | SKIPPING ... RATE LIMIT | @" + configuration.threeceeUser));
+      return resolve(null);
+    }
+
+    twitClient.get("users/show", {screen_name: configuration.threeceeUser}, function(err, userShowData, response) {
+
+      if (configuration.verbose) {
+        debug("TFC | TWITTER USER SHOW response\n", response);
+      }
+
+      if (err){
+
+        if (err.code === 88){
+          statsObj.threeceeUser.twitterRateLimit.users.show.exceptionAt = moment();
+          statsObj.threeceeUser.twitterRateLimit.users.show.exceptionFlag = true;
+          return reject(err);
+        }
+
+        if (err.code === 89){
+
+          console.log(chalkAlert("TFC | *** TWITTER SHOW USER ERROR | INVALID OR EXPIRED TOKEN" 
+            + " | " + getTimeStamp() 
+            + " | @" + configuration.threeceeUser 
+          ));
+
+          statsObj.threeceeUser = Object.assign({}, threeceeUserDefaults, statsObj.threeceeUser);
+          statsObj.threeceeUser.err = err;
+          return reject(err);
+
+        }
+
+        console.log(chalkError("TFC | *** TWITTER SHOW USER ERROR"
+          + " | @" + configuration.threeceeUser 
+          + " | " + getTimeStamp() 
+          + " | ERR CODE: " + err.code
+          + " | " + err.message
+          // + "\nRESPONSE\n", response
+        ));
+
+        return reject(err);
+      }
+
+      statsObj.threeceeUser.id = userShowData.id_str;
+      statsObj.threeceeUser.name = (userShowData.name !== undefined) ? userShowData.name : "";
+      statsObj.threeceeUser.screenName = (userShowData.screen_name !== undefined) ? userShowData.screen_name.toLowerCase() : "";
+      statsObj.threeceeUser.description = userShowData.description;
+      statsObj.threeceeUser.url = userShowData.url;
+      statsObj.threeceeUser.statusesCount = userShowData.statuses_count;
+      statsObj.threeceeUser.friendsCount = userShowData.friends_count;
+      statsObj.threeceeUser.followersCount = userShowData.followers_count;
+      statsObj.threeceeUser.fetchCount = configuration.fetchCount;
+      statsObj.threeceeUser.tweetFetchCount = configuration.tweetFetchCount;
+
+      process.send({op: "THREECEE_USER", childId: configuration.childId, threeceeUser: omit(statsObj.threeceeUser, ["friends"])});
+
+      resolve();
+
+    });
+
+  });
+}
+
+async function twitterUserUpdate(){
+
+  // return new Promise(function(resolve, reject){
+
+    if (statsObj.threeceeUser.twitterRateLimit.users.exceptionFlag || statsObj.threeceeUser.twitterRateLimit.friends.exceptionFlag) {
+      console.log(chalkAlert("TFC | twitterUserUpdate | SKIPPING ... RATE LIMIT | @" + configuration.threeceeUser));
+      return;
+    }
+
+    try {
+      await twitterUsersShow();
+      return;
+    }
+    catch(err){
+      console.log(chalkError("TFC | *** TWITTER SHOW USER ERROR"
+        + " | @" + configuration.threeceeUser 
+        + " | " + getTimeStamp() 
+        + " | ERR CODE: " + err.code
+        + " | " + err.message
+      ));
+
+      if (err.code === 88) {
+        return;
+      }
+      return err;
+    }
+
+  // });
+}
+
+function initTwitter(twitterConfig){
+
+  return new Promise(function(resolve, reject){
+
+    if (!twitClient || (twitClient === undefined)){
+
+      console.log(chalkTwitter("TFC | INITIALIZING TWITTER" 
+        + " | " + getTimeStamp() 
+        + " | @" + configuration.threeceeUser 
+        + "\ntwitterConfig\n" + jsonPrint(twitterConfig)
+      ));
+
+      twitClient = new Twit(twitterConfig);
+
+    }
+    else {
+
+      console.log(chalkLog("TFC | TWITTER ALREADY INITIALIZED" 
+        + " | " + getTimeStamp() 
+        + " | @" + configuration.threeceeUser 
+      ));
+
+      return resolve();
+    }
+
+    twitClient.get("account/settings", async function(err, accountSettings, response) {
+
+      if (configuration.verbose) {
+        debug("TFC | TWITTER ACCOUNT SETTINGS response\n", response);
+      }
+
+      if (err){
+
+        if (err.code === 88){
+
+          statsObj.threeceeUser.twitterRateLimit.account.settings.exceptionAt = moment();
+          statsObj.threeceeUser.twitterRateLimit.account.settings.exceptionFlag = true;
+          return resolve(err);
+        }
+        else if (err.code === 89){
+
+          console.log(chalkAlert("TFC | *** TWITTER ACCOUNT SETTINGS ERROR | INVALID OR EXPIRED TOKEN" 
+            + " | @" + configuration.threeceeUser 
+            + " | " + getTimeStamp() 
+            + " | ERR CODE: " + err.code
+          ));
+
+          statsObj.threeceeUser = Object.assign({}, threeceeUserDefaults, statsObj.threeceeUser);  
+          statsObj.threeceeUser.err = err;
+
+          process.send({op: "ERROR", type: "INVALID_TOKEN", threeceeUser: configuration.threeceeUser, error: err});
+          return reject(err);
+        }
+
+        else {
+
+          console.log(chalkError("TFC | *** TWITTER ACCOUNT SETTINGS ERROR"
+            + " | @" + configuration.threeceeUser 
+            + " | " + getTimeStamp() 
+            + " | ERR CODE: " + err.code
+            + " | " + err.message
+          ));
+          return reject(err);
+
+        }
+      }
+
+      const userScreenName = accountSettings.screen_name.toLowerCase();
+
+      debug(chalkInfo(getTimeStamp() + " | TWITTER ACCOUNT: @" + userScreenName));
+
+      try {
+        await twitterUserUpdate();
+        resolve();
+      }
+      catch(e){
+        e.user = userScreenName;
+
+        if (e.code === 88) {
+          return resolve(err);
+        }
+
+        console.log(chalkError("TFC | *** TWITTER USER UPDATE ERROR" 
+          + " | " + getTimeStamp() 
+          + " | @" + userScreenName 
+          + "\n" + jsonPrint(e)
+        ));
+        return reject(e);
+      }
+    });
+
+  });
+}
 
 process.on("message", async function(m) {
 
@@ -2964,6 +3527,7 @@ process.on("message", async function(m) {
       await nnTools.setMaxInputHashMap(m.maxInputHashMap);
       await nnTools.setNormalization(m.normalization);
 
+      await initTwitter(m.twitterConfig);
 
       console.log(chalkInfo("WAS | TFC | INIT"
         + " | TITLE: " + process.title

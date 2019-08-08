@@ -2532,8 +2532,9 @@ async function initProcessUserQueueInterval(interval) {
 
         debug("PROCESSED USER\n" + jsonPrint(processedUser));
 
-        if (configuration.verbose) {
+        if (configuration.verbose || processUser.priorityFlag) {
           console.log(chalkAlert(MODULE_ID_PREFIX + " | PROCESSED USER"
+            + " | PRIORITY: " + processedUser.priorityFlag
             + " | UID: " + processedUser.userId
             + " | @" + processedUser.screenName
             + " | Ts SINCE: " + processedUser.tweets.sinceId

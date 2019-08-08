@@ -3183,7 +3183,15 @@ function categorizeNode(categorizeObj, callback) {
                 return;
               }
 
-              categorizedUserHashMap.set(updatedFollowUser.nodeId, {manual: updatedFollowUser.category, auto: updatedFollowUser.categoryAuto});
+              categorizedUserHashMap.set(
+                updatedFollowUser.nodeId, 
+                { 
+                  nodeId: updatedFollowUser.nodeId, 
+                  screenName: updatedFollowUser.screenName, 
+                  manual: updatedFollowUser.category, 
+                  auto: updatedFollowUser.categoryAuto
+                }
+              );
 
               if (updatedFollowUser.category) { uncategorizedManualUserSet.delete(updatedFollowUser.nodeId); }
               if (updatedFollowUser.categoryAuto) { uncategorizedAutoUserSet.delete(updatedFollowUser.nodeId); }
@@ -3203,7 +3211,15 @@ function categorizeNode(categorizeObj, callback) {
           }
           else {
 
-            categorizedUserHashMap.set(updatedUser.nodeId, {manual: updatedUser.category, auto: updatedUser.categoryAuto});
+            categorizedUserHashMap.set(
+              updatedUser.nodeId, 
+              { 
+                nodeId: updatedUser.nodeId, 
+                screenName: updatedUser.screenName, 
+                manual: updatedUser.category, 
+                auto: updatedUser.categoryAuto
+              }
+            );
 
             if (updatedUser.category) { uncategorizedManualUserSet.delete(updatedUser.nodeId); }
             if (updatedUser.categoryAuto) { uncategorizedAutoUserSet.delete(updatedUser.nodeId); }
@@ -5133,7 +5149,7 @@ function processCheckCategory(nodeObj, callback){
   }
 }
 
-function checkCategory(nodeObj, callback) {
+async function checkCategory(nodeObj) {
 
   debugCategory(chalkLog("checkCategory"
     + " | " + nodeObj.nodeType
@@ -5150,21 +5166,19 @@ function checkCategory(nodeObj, callback) {
     case "url":
     case "place":
     case "word":
-      callback(null, nodeObj);
-    break;
+      return nodeObj;
 
     case "hashtag":
     case "user":
-      processCheckCategory(nodeObj, function(err, updatedNodeObj){
-        if (err) { return callback(err, null); }
-        callback(null, updatedNodeObj);
-      });
-    break;
+
+      const updatedNodeObj = await processCheckCategory(nodeObj);
+      return updatedNodeObj;
 
     default:
       console.log(chalk.blue("WAS | DEFAULT | checkCategory\n" + jsonPrint(nodeObj)));
-      callback(null, nodeObj);
+      return nodeObj;
   }
+
 }
 
 function updateNodeMeter(node, callback){
@@ -5777,12 +5791,7 @@ function updateUserSets(){
         }
 
         if (!categorizeable) {
-          try {
-            categorizeable = await userCategorizeable(user);
-          }
-          catch(e){
-            categorizeable = false;
-          }
+          categorizeable = await userCategorizeable(user);
         }
 
         if (categorizeable
@@ -5957,9 +5966,13 @@ function initTransmitNodeQueueInterval(interval){
     let categorizeable;
     let nCacheObj;
 
-    transmitNodeQueueInterval = setInterval(function txNodeQueue () {
+    transmitNodeQueueInterval = setInterval(async function() {
 
-      if (transmitNodeQueueReady && (transmitNodeQueue.length > 0)) {
+      try {
+
+        if (!transmitNodeQueueReady || (transmitNodeQueue.length === 0)) {
+          return;
+        }
 
         transmitNodeQueueReady = false;
 
@@ -5968,170 +5981,165 @@ function initTransmitNodeQueueInterval(interval){
         if (!nodeObj) {
           console.log(chalkError(new Error("transmitNodeQueue: NULL NODE OBJ DE-Q")));
           transmitNodeQueueReady = true;
+          return;
         }
-        else {
 
-          nodeObj.updateLastSeen = true;
+        nodeObj.updateLastSeen = true;
 
-          if (empty(nodeObj.category)) { nodeObj.category = false; }
-          if (empty(nodeObj.categoryAuto)) { nodeObj.categoryAuto = false; }
+        if (empty(nodeObj.category)) { nodeObj.category = false; }
+        if (empty(nodeObj.categoryAuto)) { nodeObj.categoryAuto = false; }
 
-          if (configuration.verbose) {
-            debug(chalkInfo("TX NODE DE-Q"
-              + " | NID: " + nodeObj.nodeId
-              + " | " + nodeObj.nodeType
-              + " | CAT: " + nodeObj.category
-              + " | CATA: " + nodeObj.categoryAuto
-            ));
+        if (configuration.verbose) {
+          debug(chalkInfo("TX NODE DE-Q"
+            + " | NID: " + nodeObj.nodeId
+            + " | " + nodeObj.nodeType
+            + " | CAT: " + nodeObj.category
+            + " | CATA: " + nodeObj.categoryAuto
+          ));
+        }
+
+        const node = await checkCategory(nodeObj);
+
+        // if (err) { 
+        //   transmitNodeQueueReady = true;
+        //   console.log(chalkError("WAS | *** CHECK CATEGORY ERROR: " + err));
+        //   return; 
+        // }
+
+        const n = await updateNodeMeter(node);
+
+        // if (err) {
+        //   console.log(chalkError("WAS | ERROR updateNodeMeter: " + err
+        //     + " | TYPE: " + node.nodeType
+        //     + " | NID: " + node.nodeId
+        //   ));
+        //   delete node._id;
+        //   delete node.userId;
+        //   viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
+
+        //   transmitNodeQueueReady = true;
+
+        // }
+
+        categorizeable = await userCategorizeable(n);
+ 
+        if (categorizeable) {
+
+          if (n.nodeType !== "user"){
+            console.log(chalkError("WAS | *** CATEGORIZED NOT USER: CAT: " + categorizeable + " | TYPE: " + n.nodeType));
           }
 
-          checkCategory(nodeObj, function checkCategoryCallback(err, node){
+          if (!uncategorizedManualUserSet.has(n.nodeId) 
+            && empty(n.category) 
+            && empty(n.ignored) 
+            && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && n.categoryAuto && (n.categoryAuto !== "right")))
+            && !ignoredUserSet.has(n.nodeId) 
+            && (n.followersCount >= configuration.minFollowersAuto) 
+            && !unfollowableUserSet.has(n.nodeId)) { 
 
-            if (err) { 
-              transmitNodeQueueReady = true;
-              console.log(chalkError("WAS | *** CHECK CATEGORY ERROR: " + err));
-              return; 
+            uncategorizedManualUserSet.add(n.nodeId);
+
+            if (uncategorizedManualUserSet.size % 100 === 0) {
+              printUserObj("TX | UNCAT MAN USER  [" + uncategorizedManualUserSet.size + "]", n);
             }
 
-            updateNodeMeter(node, async function updateNodeMeterCallback(err, n){
+          }
 
-              if (err) {
-                console.log(chalkError("WAS | ERROR updateNodeMeter: " + err
-                  + " | TYPE: " + node.nodeType
-                  + " | NID: " + node.nodeId
-                ));
-                delete node._id;
-                delete node.userId;
-                viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
+          if (!n.categoryAuto 
+            && (n.followersCount >= configuration.minFollowersAuto) 
+            && !uncategorizedAutoUserSet.has(n.nodeId)) { 
+            uncategorizedAutoUserSet.add(n.nodeId);
+            if (uncategorizedAutoUserSet.size % 100 === 0) {
+              printUserObj("TX | UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", n);
+            }
+          }
 
-                transmitNodeQueueReady = true;
+          if (tfeChild !== undefined) { 
+            tfeChild.send({op: "USER_CATEGORIZE", user: n});
+          }
+        }
+        if ((n.nodeType === "user") && (n.category || n.categoryAuto || n.following || n.threeceeFollowing)){
 
-              }
-              else {
+          nCacheObj = nodeCache.get(n.nodeId);
 
-                try {
-                  categorizeable = await userCategorizeable(n);
-                }
-                catch(e){
-                  categorizeable = false;
-                }
+          if (nCacheObj) {
+            n.mentions = Math.max(n.mentions, nCacheObj.mentions);
+            n.setMentions = true;
+          }
 
-                if (categorizeable) {
+          n.updateLastSeen = true;
 
-                  if (n.nodeType !== "user"){
-                    console.log(chalkError("WAS | *** CATEGORIZED NOT USER: CAT: " + categorizeable + " | TYPE: " + n.nodeType));
-                  }
+          if (!userServerControllerReady || !statsObj.dbConnectionReady) {
+            console.log(chalkError("WAS | *** userServerController OR DB CONNECTION NOT READY"));
+            transmitNodeQueueReady = true;
+          }
 
-                  if (!uncategorizedManualUserSet.has(n.nodeId) 
-                    && empty(n.category) 
-                    && empty(n.ignored) 
-                    && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && n.categoryAuto && (n.categoryAuto !== "right")))
-                    && !ignoredUserSet.has(n.nodeId) 
-                    && (n.followersCount >= configuration.minFollowersAuto) 
-                    && !unfollowableUserSet.has(n.nodeId)) { 
+          userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit}, function(err, updatedUser){
+            if (err) {
+              console.log(chalkError("WAS | findOneUser ERROR" + jsonPrint(err)));
+              delete n._id;
+              delete n.userId;
+              viewNameSpace.volatile.emit("node", n);
+            }
+            else {
+              delete n._id;
+              delete n.userId;
+              viewNameSpace.volatile.emit("node", updatedUser);
+            }
 
-                    uncategorizedManualUserSet.add(n.nodeId);
+            transmitNodeQueueReady = true;
+          });
+        }
+        else if (n.nodeType === "user") {
+          delete n._id;
+          delete n.userId;
+          viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
 
-                    if (uncategorizedManualUserSet.size % 100 === 0) {
-                      printUserObj("TX | UNCAT MAN USER  [" + uncategorizedManualUserSet.size + "]", n);
-                    }
+          transmitNodeQueueReady = true;
+        }
+        else if ((n.nodeType === "hashtag") && n.category){
 
-                  }
+          n.updateLastSeen = true;
 
-                  if (!n.categoryAuto 
-                    && (n.followersCount >= configuration.minFollowersAuto) 
-                    && !uncategorizedAutoUserSet.has(n.nodeId)) { 
-                    uncategorizedAutoUserSet.add(n.nodeId);
-                    if (uncategorizedAutoUserSet.size % 100 === 0) {
-                      printUserObj("TX | UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", n);
-                    }
-                  }
+          hashtagServerController.findOneHashtag(n, {noInc: false}, function(err, updatedHashtag){
+            if (err) {
+              console.log(chalkError("WAS | updatedHashtag ERROR\n" + jsonPrint(err)));
+              delete n._id;
+              delete n.userId;
+              viewNameSpace.volatile.emit("node", n);
+            }
+            else if (updatedHashtag) {
+              delete n._id;
+              delete n.userId;
+              viewNameSpace.volatile.emit("node", updatedHashtag);
+            }
+            else {
+              delete n._id;
+              delete n.userId;
+              viewNameSpace.volatile.emit("node", n);
+            }
 
-                  if (tfeChild !== undefined) { 
-                    tfeChild.send({op: "USER_CATEGORIZE", user: n});
-                  }
-                }
-                if ((n.nodeType === "user") && (n.category || n.categoryAuto || n.following || n.threeceeFollowing)){
-
-                  nCacheObj = nodeCache.get(n.nodeId);
-
-                  if (nCacheObj) {
-                    n.mentions = Math.max(n.mentions, nCacheObj.mentions);
-                    n.setMentions = true;
-                  }
-
-                  n.updateLastSeen = true;
-
-                  if (!userServerControllerReady || !statsObj.dbConnectionReady) {
-                    console.log(chalkError("WAS | *** userServerController OR DB CONNECTION NOT READY"));
-                    transmitNodeQueueReady = true;
-                  }
-
-                  userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit}, function(err, updatedUser){
-                    if (err) {
-                      console.log(chalkError("WAS | findOneUser ERROR" + jsonPrint(err)));
-                      delete n._id;
-                      delete n.userId;
-                      viewNameSpace.volatile.emit("node", n);
-                    }
-                    else {
-                      delete n._id;
-                      delete n.userId;
-                      viewNameSpace.volatile.emit("node", updatedUser);
-                    }
-
-                    transmitNodeQueueReady = true;
-                  });
-                }
-                else if (n.nodeType === "user") {
-                  delete n._id;
-                  delete n.userId;
-                  viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
-
-                  transmitNodeQueueReady = true;
-                }
-                else if ((n.nodeType === "hashtag") && n.category){
-
-                  n.updateLastSeen = true;
-
-                  hashtagServerController.findOneHashtag(n, {noInc: false}, function(err, updatedHashtag){
-                    if (err) {
-                      console.log(chalkError("WAS | updatedHashtag ERROR\n" + jsonPrint(err)));
-                      delete n._id;
-                      delete n.userId;
-                      viewNameSpace.volatile.emit("node", n);
-                    }
-                    else if (updatedHashtag) {
-                      delete n._id;
-                      delete n.userId;
-                      viewNameSpace.volatile.emit("node", updatedHashtag);
-                    }
-                    else {
-                      delete n._id;
-                      delete n.userId;
-                      viewNameSpace.volatile.emit("node", n);
-                    }
-
-                    transmitNodeQueueReady = true;
-
-                  });
-                }
-                else if (n.nodeType === "hashtag") {
-                  delete n._id;
-                  delete n.userId;
-                  viewNameSpace.volatile.emit("node", n);
-                  transmitNodeQueueReady = true;
-                }
-                else {
-                  transmitNodeQueueReady = true;
-                }
-
-              }
-            });
+            transmitNodeQueueReady = true;
 
           });
         }
+        else if (n.nodeType === "hashtag") {
+          delete n._id;
+          delete n.userId;
+          viewNameSpace.volatile.emit("node", n);
+          transmitNodeQueueReady = true;
+        }
+        else {
+          transmitNodeQueueReady = true;
+        }
+
       }
+      catch(err){
+        transmitNodeQueueReady = true;
+        console.log(chalkError("WAS | *** TRANSMIT NODE QUEUE ERROR: " + err));
+      }
+
+
     }, interval);
 
     resolve();
@@ -9062,7 +9070,16 @@ function initCategoryHashmaps(){
                 totalMatchRate = 100*(totalMatched/(totalMatched+totalMismatched));
 
                 for (const nodeId of Object.keys(results.obj)){
-                  categorizedUserHashMap.set(nodeId, results.obj[nodeId]);
+
+                  categorizedUserHashMap.set(
+                    results.obj[nodeId].nodeId, 
+                    { 
+                      nodeId: results.obj[nodeId].nodeId, 
+                      screenName: results.obj[nodeId].screenName, 
+                      manual: results.obj[nodeId].category, 
+                      auto: results.obj[nodeId].categoryAuto
+                    }
+                  );
                 }
 
                 p.skip += results.count;

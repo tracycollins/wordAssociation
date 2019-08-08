@@ -7672,7 +7672,7 @@ async function initTfeChild(params){
           viewNameSpace.emit("SET_TWITTER_USER", { user: m.user, stats: statsObj.user });
         }
         else {
-          printUserObj("WAS | <TFE | CAT", m.user);
+          printUserObj("WAS | <TFE | CAT", m.user, chalkLog);
         }
 
       break;

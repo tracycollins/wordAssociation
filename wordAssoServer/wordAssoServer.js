@@ -5058,95 +5058,99 @@ async function initSocketNamespaces(){
   }
 }
 
-function processCheckCategory(nodeObj, callback){
+function processCheckCategory(nodeObj){
 
-  let categorizedNodeHashMap;
+  return new Promise(function(resolve, reject){
 
-  switch (nodeObj.nodeType) {
+    let categorizedNodeHashMap;
 
-    case "hashtag":
-      categorizedNodeHashMap = categorizedHashtagHashMap;
-    break;
+    switch (nodeObj.nodeType) {
 
-    case "user":
-      categorizedNodeHashMap = categorizedUserHashMap;
-    break;
+      case "hashtag":
+        categorizedNodeHashMap = categorizedHashtagHashMap;
+      break;
 
-    default:
-      return callback("NO CATEGORY HASHMAP: " + nodeObj.nodeType, null);
-  }
+      case "user":
+        categorizedNodeHashMap = categorizedUserHashMap;
+      break;
 
-  if (categorizedNodeHashMap.has(nodeObj.nodeId)) {
+      default:
+        return callback("NO CATEGORY HASHMAP: " + nodeObj.nodeType, null);
+    }
 
-    nodeObj.category = categorizedNodeHashMap.get(nodeObj.nodeId).manual;
-    nodeObj.categoryAuto = categorizedNodeHashMap.get(nodeObj.nodeId).auto;
+    if (categorizedNodeHashMap.has(nodeObj.nodeId)) {
 
-    debugCategory(chalk.blue("WAS | KW HIT WORD NODEID"
-      + " | " + nodeObj.nodeId
-      + " | CAT: " + nodeObj.category
-      + " | CATA: " + nodeObj.categoryAuto
-    ));
+      nodeObj.category = categorizedNodeHashMap.get(nodeObj.nodeId).manual;
+      nodeObj.categoryAuto = categorizedNodeHashMap.get(nodeObj.nodeId).auto;
 
-    async.parallel({
-      overall: function(cb){
-        nodesPerMinuteTopTermCache.get(nodeObj.nodeId, function topTermNodeId(err, nodeRate) {
-          if (err){
-            console.log(chalkError("WAS | nodesPerMinuteTopTermCache GET ERR: " + err));
-            return cb(err);
-          }
-          if (nodeRate !== undefined) {
+      debugCategory(chalk.blue("WAS | KW HIT WORD NODEID"
+        + " | " + nodeObj.nodeId
+        + " | CAT: " + nodeObj.category
+        + " | CATA: " + nodeObj.categoryAuto
+      ));
 
-            debugCategory(chalkLog("WAS | TOP TERM"
-              + " | " + nodeObj.nodeId 
-              + " | " + nodeRate.toFixed(3)
-            ));
+      async.parallel({
+        overall: function(cb){
+          nodesPerMinuteTopTermCache.get(nodeObj.nodeId, function topTermNodeId(err, nodeRate) {
+            if (err){
+              console.log(chalkError("WAS | nodesPerMinuteTopTermCache GET ERR: " + err));
+              return cb(err);
+            }
+            if (nodeRate !== undefined) {
 
-            nodeObj.isTopTerm = true;
-          }
-          else {
-            nodeObj.isTopTerm = false;
-          }
+              debugCategory(chalkLog("WAS | TOP TERM"
+                + " | " + nodeObj.nodeId 
+                + " | " + nodeRate.toFixed(3)
+              ));
 
-          cb();
+              nodeObj.isTopTerm = true;
+            }
+            else {
+              nodeObj.isTopTerm = false;
+            }
 
-        });
+            cb();
+
+          });
+        },
+        nodeType: function(cb){
+          nodesPerMinuteTopTermNodeTypeCache[nodeObj.nodeType].get(nodeObj.nodeId, function topTermNodeId(err, nodeRate) {
+            if (err){
+              console.log(chalkError("WAS | nodesPerMinuteTopTermNodeTypeCache" + nodeObj.nodeType + " GET ERR: " + err));
+              return cb(err);
+            }
+            if (nodeRate !== undefined) {
+
+              debugCategory(chalkLog("TOP TERM NODE TYPE"
+                + " | " + nodeObj.nodeType 
+                + " | " + nodeObj.nodeId 
+                + " | " + nodeRate.toFixed(3)
+              ));
+              
+              nodeObj.isTopTermNodeType = true;
+            }
+            else {
+              nodeObj.isTopTermNodeType = false;
+            }
+
+            cb();        
+
+          });    
+        }
       },
-      nodeType: function(cb){
-        nodesPerMinuteTopTermNodeTypeCache[nodeObj.nodeType].get(nodeObj.nodeId, function topTermNodeId(err, nodeRate) {
-          if (err){
-            console.log(chalkError("WAS | nodesPerMinuteTopTermNodeTypeCache" + nodeObj.nodeType + " GET ERR: " + err));
-            return cb(err);
-          }
-          if (nodeRate !== undefined) {
+      function(err){
+        if (err) {
+          console.log(chalkError("WAS | *** processCheckCategory ERROR: " + err));
+          return reject(err);
+        }
+        resolve(nodeObj);
+      });   
+    }
+    else {
+      resolve(nodeObj);
+    }
 
-            debugCategory(chalkLog("TOP TERM NODE TYPE"
-              + " | " + nodeObj.nodeType 
-              + " | " + nodeObj.nodeId 
-              + " | " + nodeRate.toFixed(3)
-            ));
-            
-            nodeObj.isTopTermNodeType = true;
-          }
-          else {
-            nodeObj.isTopTermNodeType = false;
-          }
-
-          cb();        
-
-        });    
-      }
-    },
-    function(err){
-      if (err) {
-        console.log(chalkError("WAS | *** processCheckCategory ERROR: " + err));
-        return callback(err, null);
-      }
-      callback(null, nodeObj);
-    });   
-  }
-  else {
-    callback(null, nodeObj);
-  }
+  });
 }
 
 async function checkCategory(nodeObj) {
@@ -5181,15 +5185,15 @@ async function checkCategory(nodeObj) {
 
 }
 
-function updateNodeMeter(node, callback){
+async function updateNodeMeter(node){
 
   const nodeType = node.nodeType;
 
-  if (!configuration.metrics.nodeMeterEnabled) { return callback(null, node); }
+  if (!configuration.metrics.nodeMeterEnabled) { return node; }
 
   if (empty(node.nodeId)) {
     console.log(chalkError("WAS | NODE ID UNDEFINED\n" + jsonPrint(node)));
-    return callback("NODE ID UNDEFINED", node);
+    throw new Error("NODE ID UNDEFINED", node);
   }
 
   let nodeObj = {};
@@ -5221,12 +5225,12 @@ function updateNodeMeter(node, callback){
     delete nodeMeter[meterNodeId];
     delete nodeMeterType[nodeType][meterNodeId];
 
-    if (callback !== undefined) { callback(null, node); }
+    return node;
   }
   else {
     if ((/TSS_/).test(meterNodeId) || nodeObj.isServer){
       debug(chalkLog("updateNodeMeter\n" + jsonPrint(nodeObj)));
-      if (callback !== undefined) { callback(null, node); }
+      return node;
     }
     else if (empty(nodeMeter[meterNodeId])){
 
@@ -5262,7 +5266,7 @@ function updateNodeMeter(node, callback){
         ));
       }
 
-      if (callback !== undefined) { callback(null, node); }
+      return node;
     }
     else {
 
@@ -5294,7 +5298,7 @@ function updateNodeMeter(node, callback){
 
       nodeCache.set(meterNodeId, nodeObj);
 
-      if (callback !== undefined) { callback(null, node); }
+      return node;
     }
   }
 }
@@ -6047,8 +6051,10 @@ function initTransmitNodeQueueInterval(interval){
 
           if (!n.categoryAuto 
             && (n.followersCount >= configuration.minFollowersAuto) 
-            && !uncategorizedAutoUserSet.has(n.nodeId)) { 
+            && !uncategorizedAutoUserSet.has(n.nodeId)) {
+
             uncategorizedAutoUserSet.add(n.nodeId);
+
             if (uncategorizedAutoUserSet.size % 100 === 0) {
               printUserObj("TX | UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", n);
             }

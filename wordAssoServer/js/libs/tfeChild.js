@@ -2543,7 +2543,12 @@ async function initProcessUserQueueInterval(interval) {
           ));
         }
 
-        process.send({ op: "USER_CATEGORIZED", priorityFlag: processedUser.priorityFlag, user: processedUser, stats: statsObj.user });
+        process.send({ 
+          op: "USER_CATEGORIZED", 
+          priorityFlag: processedUser.priorityFlag, 
+          user: processedUser, 
+          stats: statsObj.user 
+        });
 
         processUserQueueBusy = false;
       }
@@ -2678,16 +2683,26 @@ async function generateAutoCategory(params) {
       if (networkOutput.categoryAuto === user.category) {
         console.log(chalk.green(MODULE_ID_PREFIX + " | +++ UPDATE CAT AUTO MATCH"
           + " | @" + user.screenName
-          + " | CAT M: " + user.category + " A: " + networkOutput.categoryAuto
+          + " | CAT M: " + user.category
+          + " | CAT A: " + user.categoryAuto + " --> " + networkOutput.categoryAuto
         ));
       }
       else {
         console.log(chalk.yellow(MODULE_ID_PREFIX + " | XXX UPDATE CAT AUTO MISMATCH"
           + " | @" + user.screenName
-          + " | CAT M: " + user.category + " A: " + networkOutput.categoryAuto
+          + " | CAT M: " + user.category
+          + " | CAT A: " + user.categoryAuto + " --> " + networkOutput.categoryAuto
         ));
       }
     }
+    else {
+      console.log(chalkLog(MODULE_ID_PREFIX + " | -+- CAT AUTO MATCH"
+        + " | @" + user.screenName
+        + " | CAT M: " + user.category
+        + " | CAT A: " + user.categoryAuto + " --> " + networkOutput.categoryAuto
+      ));
+    }
+
     user.categoryAuto = networkOutput.categoryAuto;
 
     // const networkOutput = {};
@@ -2777,7 +2792,7 @@ async function processUser(params) {
     prevPropsUser.markModified("tweets");
     prevPropsUser.markModified("latestTweets");
 
-    const savedUser = await prevPropsUser.save();
+    const savedUser = await prevPropsUser.save().exec();
 
     if (configuration.verbose){
       console.log(chalkLog(MODULE_ID_PREFIX + " | >>> SAVED USER"

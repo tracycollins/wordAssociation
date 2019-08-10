@@ -9060,9 +9060,10 @@ function initCategoryHashmaps(){
 
               if (err) {
                 console.log(chalkError("WAS | ERROR: initCategorizedUserHashmap: userServerController: findCategorizedUsersCursor: " + err));
-                cb0(err);
+                return cb0(err);
               }
-              else if (results) {
+              
+              if (results) {
 
                 statsObj.db.totalUsers = results.totalUsers;
 

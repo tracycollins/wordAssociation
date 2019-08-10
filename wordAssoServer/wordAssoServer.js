@@ -1209,6 +1209,10 @@ function connectDb(){
             const rawUser = profile._json;
 
             if (!userServerControllerReady || !statsObj.dbConnectionReady) {
+              console.log(chalkAlert("WAS | *** NOT READY"
+                + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
+                + " | userServerControllerReady: " + userServerControllerReady
+              ));
               return cb(new Error("userServerController not ready"), null);
             }
 
@@ -3158,6 +3162,10 @@ function categorizeNode(categorizeObj, callback) {
       }
 
       if (!userServerControllerReady || !statsObj.dbConnectionReady) {
+        console.log(chalkAlert("WAS | *** NOT READY"
+          + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
+          + " | userServerControllerReady: " + userServerControllerReady
+        ));
         return callback(new Error("userServerController not ready"), null);
       }
 
@@ -4803,7 +4811,11 @@ function initSocketHandler(socketObj) {
     ));
 
     if (!userServerControllerReady || !statsObj.dbConnectionReady) {
-      console.log(chalkError("WAS | *** userServerController OR dbConnection NOT READY ERROR"));
+      console.log(chalkAlert("WAS | *** NOT READY"
+        + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
+        + " | userServerControllerReady: " + userServerControllerReady
+      ));
+      // console.log(chalkError("WAS | *** userServerController OR dbConnection NOT READY ERROR"));
     }
     else{
       try{
@@ -6078,7 +6090,11 @@ function initTransmitNodeQueueInterval(interval){
           n.updateLastSeen = true;
 
           if (!userServerControllerReady || !statsObj.dbConnectionReady) {
-            console.log(chalkError("WAS | *** userServerController OR DB CONNECTION NOT READY"));
+            console.log(chalkAlert("WAS | *** NOT READY"
+              + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
+              + " | userServerControllerReady: " + userServerControllerReady
+            ));
+            // console.log(chalkError("WAS | *** userServerController OR DB CONNECTION NOT READY"));
             transmitNodeQueueReady = true;
           }
 
@@ -6589,6 +6605,10 @@ function initAppRouting(callback) {
     )); // handle errors
 
     if (!userServerControllerReady || !statsObj.dbConnectionReady) {
+      console.log(chalkAlert("WAS | *** NOT READY"
+        + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
+        + " | userServerControllerReady: " + userServerControllerReady
+      ));
       return callback(new Error("userServerController not ready"), null);
     }
 
@@ -9057,6 +9077,10 @@ function initCategoryHashmaps(){
 
           function(cb0){
             if (!userServerControllerReady || !statsObj.dbConnectionReady) {
+            console.log(chalkAlert("WAS | *** NOT READY"
+              + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
+              + " | userServerControllerReady: " + userServerControllerReady
+            ));
               return cb0(new Error("userServerController not ready"), null);
             }
             userServerController.findCategorizedUsersCursor(p, function(err, results){
@@ -9497,6 +9521,10 @@ function twitUserShow(params){
       if (rawUser && (rawUser !== undefined)) {
 
         if (!userServerControllerReady || !statsObj.dbConnectionReady) {
+          console.log(chalkAlert("WAS | *** NOT READY"
+            + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
+            + " | userServerControllerReady: " + userServerControllerReady
+          ));
           return reject(new Error("userServerController not ready"));
         }
 

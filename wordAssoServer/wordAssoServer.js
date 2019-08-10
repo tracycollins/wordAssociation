@@ -9021,7 +9021,7 @@ function initCategoryHashmaps(){
 
   return new Promise(function(resolve, reject){
 
-    console.log(chalkBlue("WAS | INIT CATEGORIZED USER + HASHTAG HASHMAPS FROM DB"));
+    console.log(chalkBlue("WAS | ... INITIALIZING CATEGORIZED USER + HASHTAG HASHMAPS FROM DB"));
   
     async.series({
 
@@ -9044,7 +9044,7 @@ function initCategoryHashmaps(){
         let totalMismatched = 0;
         let totalMatchRate = 0;
 
-        debug(chalkInfo("WAS | LOADING CATEGORIZED USERS FROM DB ..."));
+        console.log(chalkInfo("WAS | LOADING CATEGORIZED USERS FROM DB ..."));
 
         async.whilst(
 
@@ -9103,7 +9103,7 @@ function initCategoryHashmaps(){
 
                 p.skip += results.count;
 
-                cb0();
+                cb0(null, null);
               }
               else {
 
@@ -9121,7 +9121,7 @@ function initCategoryHashmaps(){
                   + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
                 ));
 
-                cb0();
+                cb0(null, null);
               }
             });
           },
@@ -9152,7 +9152,7 @@ function initCategoryHashmaps(){
         let totalMismatched = 0;
         let totalMatchRate = 0;
 
-        debug(chalkInfo("WAS | LOADING CATEGORIZED HASHTAGS FROM DB ..."));
+        console.log(chalkInfo("WAS | LOADING CATEGORIZED HASHTAGS FROM DB ..."));
 
         async.whilst(
 
@@ -9186,7 +9186,7 @@ function initCategoryHashmaps(){
 
                 p.skip += results.count;
 
-                cb0();
+                cb0(null, null);
               }
               else {
 
@@ -9204,7 +9204,7 @@ function initCategoryHashmaps(){
                   + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
                 ));
 
-                cb0();
+                cb0(null, null);
               }
             });
           },
@@ -9219,6 +9219,7 @@ function initCategoryHashmaps(){
       }
 
     }, function(err){
+
       if (err) {
         console.log(chalkError("WAS | *** ERROR: initCategoryHashmaps: " + err));
         return reject(err);

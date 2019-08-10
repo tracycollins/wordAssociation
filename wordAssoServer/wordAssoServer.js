@@ -9693,7 +9693,7 @@ async function processTwitterSearchNode(params) {
           tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, user: params.user});
         }
 
-        return params.user;
+        // return params.user;
       }
 
     }
@@ -9708,6 +9708,7 @@ async function processTwitterSearchNode(params) {
         u.threeceeFollowing = "altthreecee00";
       }
       viewNameSpace.emit("SET_TWITTER_USER", { user: u, stats: statsObj.user });
+      return params.user;
     }
     else{
       if (ignoredUserSet.has(params.user.nodeId)){
@@ -9718,19 +9719,22 @@ async function processTwitterSearchNode(params) {
         params.user.threeceeFollowing = "altthreecee00";
       }
       viewNameSpace.emit("SET_TWITTER_USER", { user: params.user, stats: statsObj.user });
+      return params.user;
     }
 
-    return params.user;
   }
+  else {
 
-  console.log(chalkAlert("WAS | *** TWITTER_SEARCH_NODE | NOT FOUND"
-    + " | " + getTimeStamp()
-    + " | SEARCH NODE: " + params.searchNode
-  ));
+    console.log(chalkAlert("WAS | *** TWITTER_SEARCH_NODE | NOT FOUND"
+      + " | " + getTimeStamp()
+      + " | SEARCH NODE: " + params.searchNode
+    ));
 
-  viewNameSpace.emit("TWITTER_SEARCH_NODE_NOT_FOUND", { searchNode: params.searchNode, stats: statsObj.user });
+    viewNameSpace.emit("TWITTER_SEARCH_NODE_NOT_FOUND", { searchNode: params.searchNode, stats: statsObj.user });
 
-  return;
+    return;
+
+  }
 }
 
 function getNextMismatchedUser(params){

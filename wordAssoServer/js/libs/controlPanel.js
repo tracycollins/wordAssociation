@@ -733,7 +733,6 @@ function ControlPanel() {
             }, 1000);
           }
         });
-
       break;
 
       case "SET_TWITTER_HASHTAG":

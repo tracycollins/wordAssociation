@@ -9076,6 +9076,18 @@ function initCategoryHashmaps(){
 
                 totalMatchRate = 100*(totalMatched/(totalMatched+totalMismatched));
 
+                console.log(chalkLog("WAS | ... LOADING CATEGORIZED USERS FROM DB"
+                  + " | TOTAL USERS: " + statsObj.db.totalUsers
+                  + " | TOTAL CATEGORIZED: " + totalCount
+                  + " | LIMIT: " + p.limit
+                  + " | SKIP: " + p.skip
+                  + " | " + totalManual + " MAN"
+                  + " | " + totalAuto + " AUTO"
+                  + " | " + totalMatched + " MATCHED"
+                  + " / " + totalMismatched + " MISMATCHED"
+                  + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
+                ));
+
                 for (const nodeId of Object.keys(results.obj)){
 
                   categorizedUserHashMap.set(

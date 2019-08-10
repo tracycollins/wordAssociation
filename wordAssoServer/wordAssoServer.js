@@ -1141,6 +1141,8 @@ function connectDb(){
 
         global.globalDbConnection = db;
 
+        statsObj.dbConnectionReady = true;
+
         global.globalEmoji = global.globalDbConnection.model("Emoji", emojiModel.EmojiSchema);
         global.globalHashtag = global.globalDbConnection.model("Hashtag", hashtagModel.HashtagSchema);
         global.globalLocation = global.globalDbConnection.model("Location", locationModel.LocationSchema);

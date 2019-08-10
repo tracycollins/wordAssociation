@@ -2686,6 +2686,8 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
 
   statsObj.status = "DB_CONNECT";
 
+  console.log(chalk.green("WAS | >>> DB CONNECT EVENT"));
+
   async.parallel({
 
     socketInit: function(cb){
@@ -9049,7 +9051,8 @@ function initCategoryHashmaps(){
         async.whilst(
 
           function test(cbTest) {
-            cbTest(null, statsObj.dbConnectionReady && more);
+            // cbTest(null, statsObj.dbConnectionReady && more);
+            cbTest(null, more);
           },
 
           function(cb0){
@@ -9157,7 +9160,8 @@ function initCategoryHashmaps(){
         async.whilst(
 
           function test(cbTest) {
-            cbTest(null, statsObj.dbConnectionReady && more);
+            // cbTest(null, statsObj.dbConnectionReady && more);
+            cbTest(null, more);
           },
 
           function(cb0){
@@ -10152,6 +10156,7 @@ function waitDbConnectionReady(){
       console.log(chalkAlert("WAS | WAIT DB CONNECTION | " + getTimeStamp() ));
 
       if (statsObj.dbConnectionReady) {
+        console.log(chalkAlert("WAS | +++ DB CONNECTION | " + getTimeStamp() ));
         clearInterval(dbConnectionReadyInterval);
         return resolve();
       }

@@ -2923,7 +2923,7 @@ async function updateTwitterWebhook(){
       + " | STATUS: " + err.statusCode
     ));
     console.log(err.error);
-    throw err;
+    return;
   }
 }
 

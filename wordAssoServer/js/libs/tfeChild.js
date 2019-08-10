@@ -1803,7 +1803,7 @@ function processUserProfileChanges(params){
             || (user.profileHistograms.sentiment === undefined)
             || (user.profileHistograms.sentiment == {});
 
-          if (configuration.enableLanguageAnalysis && !statsObj.languageQuotaFlag && userProfileSentimentChanges){
+          if (user.following && configuration.enableLanguageAnalysis && !statsObj.languageQuotaFlag && userProfileSentimentChanges){
             userLanguageSentiment({user: user}).
             then(function(sentiment){
               cb(null, sentiment);

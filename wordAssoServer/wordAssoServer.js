@@ -997,11 +997,11 @@ const networkDefaults = function (netObj){
   networkObj = netObj;
 
   if (empty(networkObj.betterChild)) { networkObj.betterChild = false; }
-  if (empty(!networkObj.testCycles)) { networkObj.testCycles = 0; }
-  if (empty(!networkObj.testCycleHistory)) { networkObj.testCycleHistory = []; }
-  if (empty(!networkObj.overallMatchRate)) { networkObj.overallMatchRate = 0; }
-  if (empty(!networkObj.matchRate)) { networkObj.matchRate = 0; }
-  if (empty(!networkObj.successRate)) { networkObj.successRate = 0; }
+  if (empty(networkObj.testCycles)) { networkObj.testCycles = 0; }
+  if (empty(networkObj.testCycleHistory)) { networkObj.testCycleHistory = []; }
+  if (empty(networkObj.overallMatchRate)) { networkObj.overallMatchRate = 0; }
+  if (empty(networkObj.matchRate)) { networkObj.matchRate = 0; }
+  if (empty(networkObj.successRate)) { networkObj.successRate = 0; }
 
   return networkObj;
 };
@@ -5091,7 +5091,7 @@ function processCheckCategory(nodeObj){
       break;
 
       default:
-        return callback("NO CATEGORY HASHMAP: " + nodeObj.nodeType, null);
+        return reject(new Error("NO CATEGORY HASHMAP: " + nodeObj.nodeType));
     }
 
     if (categorizedNodeHashMap.has(nodeObj.nodeId)) {
@@ -5405,11 +5405,11 @@ async function userCategorizeable(user){
     return false;
   }
 
-  if (empty(user.ignored)){
+  if (!user.ignored || (user.ignored === undefined)){
 
-    if (empty(user.description)) { user.description = ""; }
-    if (empty(user.screenName)) { user.screenName = ""; }
-    if (empty(user.name)) { user.name = ""; }
+    if (!user.description || (user.description === undefined)) { user.description = ""; }
+    if (!user.screenName || (user.screenName === undefined)) { user.screenName = ""; }
+    if (!user.name || (user.name === undefined)) { user.name = ""; }
 
     hitSearchTerm = await followable(user.description);
 
@@ -5815,8 +5815,8 @@ function updateUserSets(){
         }
 
         if (categorizeable
-          && empty(user.category)
-          && empty(user.ignored)
+          && (!user.category || (user.category === undefined))
+          && (!user.ignored || (user.ignored === undefined))
           && (user.following || (user.followersCount >= configuration.minFollowersAuto)) 
           && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && user.categoryAuto && (user.categoryAuto !== "right")))
           && !ignoredUserSet.has(user.nodeId) 
@@ -6019,27 +6019,7 @@ function initTransmitNodeQueueInterval(interval){
         }
 
         const node = await checkCategory(nodeObj);
-
-        // if (err) { 
-        //   transmitNodeQueueReady = true;
-        //   console.log(chalkError("WAS | *** CHECK CATEGORY ERROR: " + err));
-        //   return; 
-        // }
-
         const n = await updateNodeMeter(node);
-
-        // if (err) {
-        //   console.log(chalkError("WAS | ERROR updateNodeMeter: " + err
-        //     + " | TYPE: " + node.nodeType
-        //     + " | NID: " + node.nodeId
-        //   ));
-        //   delete node._id;
-        //   delete node.userId;
-        //   viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
-
-        //   transmitNodeQueueReady = true;
-
-        // }
 
         categorizeable = await userCategorizeable(n);
  
@@ -6050,8 +6030,8 @@ function initTransmitNodeQueueInterval(interval){
           }
 
           if (!uncategorizedManualUserSet.has(n.nodeId) 
-            && empty(n.category) 
-            && empty(n.ignored) 
+            && (!n.category || (n.category === undefined))
+            && (!n.ignored || (n.ignored === undefined))
             && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && n.categoryAuto && (n.categoryAuto !== "right")))
             && !ignoredUserSet.has(n.nodeId) 
             && (n.followersCount >= configuration.minFollowersAuto) 
@@ -6096,7 +6076,6 @@ function initTransmitNodeQueueInterval(interval){
               + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
               + " | userServerControllerReady: " + userServerControllerReady
             ));
-            // console.log(chalkError("WAS | *** userServerController OR DB CONNECTION NOT READY"));
             transmitNodeQueueReady = true;
           }
 

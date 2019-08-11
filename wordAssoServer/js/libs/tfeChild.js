@@ -2132,7 +2132,7 @@ async function fetchUserTweets(params){
       throw err;
     }
 
-    user.latestTweets = _.union(userTweetsArray);
+    user.latestTweets = _.union(userTweetsArray, user.latestTweets);
     return user;
 
   });
@@ -2306,7 +2306,8 @@ async function updateUserTweets(params){
 
     user.tweetHistograms = {};
     // user.markModified("tweetHistograms");
-    user = await fetchUserTweets({user: user, force: true});
+    // user = await fetchUserTweets({user: user, force: true});
+    user = await fetchUserTweets({user: user});
     userTweetFetchSet.add(user.nodeId);
   }
 

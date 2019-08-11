@@ -8378,7 +8378,7 @@ async function loadBestRuntimeNetwork(p){
       }
     }
 
-    const nnArray = await global.globalNeuralNetwork.find({}).sort({"matchRate": -1}).limit(1).exec();
+    const nnArray = await global.globalNeuralNetwork.find({"matchRate": { $lt: 100 }}).sort({"matchRate": -1}).limit(1).exec();
 
     if (nnArray.length === 0){
       console.log(chalkError("WAS | *** NEURAL NETWORK NOT FOUND"));

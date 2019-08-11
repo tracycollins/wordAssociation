@@ -1036,9 +1036,10 @@ function printUserObj(title, u, chalkFormat) {
   const user = userDefaults(u);
 
   console.log(chlk(title
-    + " | " + user.userId
+    + " | NID: " + user.nodeId
+    + " | UID: " + user.userId
     + " | @" + user.screenName
-    + " | " + user.name 
+    + " | NAME: " + user.name 
     + " | LG " + user.lang
     + " | FW " + user.followersCount
     + " | FD " + user.friendsCount
@@ -7323,7 +7324,6 @@ function initTssChild(params){
               + " | ERROR MESSAGE: " + m.error.message
               // + "\n" + jsonPrint(m.error)
             ));
-
           }
           else if ((m.errorType === "TWITTER_FOLLOW_LIMIT") || (m.error.code === 161)) {
 
@@ -7337,21 +7337,28 @@ function initTssChild(params){
               + " | ERROR MESSAGE: " + m.error.message
               // + "\n" + jsonPrint(m.error)
             ));
-
           }
           else if ((m.errorType === "TWITTER_UNAUTHORIZED") || (m.error.statusCode === 401)) {
 
             threeceeTwitter[m.threeceeUser].twitterErrors += 1;
             threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
             threeceeTwitter[m.threeceeUser].twitterAuthorizationErrorFlag = m.error;
-
           }
           else if (m.errorType === "TWITTER_TOKEN") {
 
             threeceeTwitter[m.threeceeUser].twitterErrors += 1;
             threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
             threeceeTwitter[m.threeceeUser].twitterTokenErrorFlag = m.error;
+          }
+          else if (m.errorType === "USER_NOT_FOUND") {
 
+            unfollowableUserSet.add(m.userId);
+
+            console.log(chalkLog("WAS | XXX TWITTER USER NOT FOUND"
+              + " | UID: " + m.userId
+              + " | @" + m.screenName
+              + " | UNFOLLOWABLE SET SIZE: " + unfollowableUserSet.size
+            ));
           }
           else if (m.errorType === "TWITTER_FOLLOW_BLOCK") {
 
@@ -7362,7 +7369,6 @@ function initTssChild(params){
               + " | @" + m.screenName
               + " | UNFOLLOWABLE SET SIZE: " + unfollowableUserSet.size
             ));
-
           }
           else {
 

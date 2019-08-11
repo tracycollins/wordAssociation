@@ -2087,7 +2087,16 @@ async function fetchUserTweets(params){
           + " | UID: " + user.userId
           + " | @" + user.screenName
         ));
-        throw err;
+
+        process.send({
+          op: "ERROR", 
+          threeceeUser: configuration.threeceeUser, 
+          userId: user.userId, 
+          errorType: "TWITTER_UNAUTHORIZED", 
+          error: err
+        });
+
+        return user;
       }
       
       if (err.statusCode === 401){
@@ -2102,7 +2111,7 @@ async function fetchUserTweets(params){
           op: "ERROR", 
           threeceeUser: configuration.threeceeUser, 
           userId: user.userId, 
-          errorType: "TWITTER_UNAUTHORIZED", 
+          errorType: "TWITTER_FOLLOW_BLOCK", 
           error: err
         });
 

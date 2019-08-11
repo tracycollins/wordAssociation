@@ -2011,12 +2011,12 @@ async function fetchUserTweets(params){
 
   if (!twitClient || (twitClient === undefined)) {
     console.log(chalkAlert("TFC | fetchUserTweets | twitClient UNDEFINED | @" + configuration.threeceeUser));
-    return new Error("twitClient UNDEFINED");
+    throw new Error("twitClient UNDEFINED");
   }
 
   if (statsObj.threeceeUser.twitterRateLimit.statuses.exceptionFlag) {
     console.log(chalkAlert("TFC | fetchUserTweets | SKIPPING ... RATE LIMIT | RESOURCE: STATUSES | @" + configuration.threeceeUser));
-    return;
+    return user;
   }
 
   const fetchUserTweetsParams = {};

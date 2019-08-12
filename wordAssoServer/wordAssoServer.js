@@ -8363,7 +8363,7 @@ async function loadBestRuntimeNetwork(p){
         console.log(chalkError("WAS | *** ERROR LOAD BEST NETWORK RUNTIME ID: " +e));
         console.log(chalkAlert("WAS | ... SEARCH DB FOR BEST RUNTIME NETWORK: " + bRtNnObj.networkId));
 
-        const nnObj = await global.globalNeuralNetwork.findOne({networkId: bRtNnObj.networkId}).exec();
+        const nnObj = await global.globalNeuralNetwork.findOne({networkId: bRtNnObj.networkId}).lean().exec();
 
         bestNetworkObj = {};
         bestNetworkObj = deepcopy(nnObj);

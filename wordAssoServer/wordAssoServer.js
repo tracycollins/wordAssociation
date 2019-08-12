@@ -8363,27 +8363,27 @@ async function loadBestRuntimeNetwork(p){
         console.log(chalkError("WAS | *** ERROR LOAD BEST NETWORK RUNTIME ID: " +e));
         console.log(chalkAlert("WAS | ... SEARCH DB FOR BEST RUNTIME NETWORK: " + bRtNnObj.networkId));
 
-        const nnObj = await global.globalNeuralNetwork.findOne({networkId: bRtNnObj.networkId}).lean().exec();
+        // const nnObj = await global.globalNeuralNetwork.findOne({networkId: bRtNnObj.networkId}).lean().exec();
 
-        // const nnObj = nn.toObject();
+        // // const nnObj = nn.toObject();
 
-        bestNetworkObj = {};
-        bestNetworkObj = deepcopy(nnObj);
+        // bestNetworkObj = {};
+        // bestNetworkObj = deepcopy(nnObj);
 
-        console.log(chalk.green.bold("WAS | +++ LOADED BEST RUNTIME NETWORK FROM DB: " + bestNetworkObj.networkId));
+        // console.log(chalk.green.bold("WAS | +++ LOADED BEST RUNTIME NETWORK FROM DB: " + bestNetworkObj.networkId));
 
-        statsObj.bestNetwork = pick(bestNetworkObj, statsBestNetworkPickArray);
+        // statsObj.bestNetwork = pick(bestNetworkObj, statsBestNetworkPickArray);
 
-        if (statsObj.previousBestNetworkId !== bestNetworkObj.networkId) {
-          console.log(chalk.green.bold("WAS | >>> BEST NETWORK CHANGE"
-            + " | PREV: " + statsObj.previousBestNetworkId
-            + " > NEW: " + bestNetworkObj.networkId
-          ));
-          statsObj.previousBestNetworkId = bestNetworkObj.networkId;
-          configEvents.emit("NEW_BEST_NETWORK", bestNetworkObj.networkId);
-        }
+        // if (statsObj.previousBestNetworkId !== bestNetworkObj.networkId) {
+        //   console.log(chalk.green.bold("WAS | >>> BEST NETWORK CHANGE"
+        //     + " | PREV: " + statsObj.previousBestNetworkId
+        //     + " > NEW: " + bestNetworkObj.networkId
+        //   ));
+        //   statsObj.previousBestNetworkId = bestNetworkObj.networkId;
+        //   configEvents.emit("NEW_BEST_NETWORK", bestNetworkObj.networkId);
+        // }
 
-        return bestNetworkObj.networkId;
+        // return bestNetworkObj.networkId;
       }
     }
 

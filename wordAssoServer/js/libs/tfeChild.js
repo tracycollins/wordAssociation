@@ -2722,6 +2722,7 @@ async function generateAutoCategory(params) {
     statsObj.autoChangeTotal += 1;
 
     if (user.categoryAuto !== networkOutput.categoryAuto) {
+
       if (networkOutput.categoryAuto === user.category) {
 
         statsObj.autoChangeMatch += 1;
@@ -2753,20 +2754,22 @@ async function generateAutoCategory(params) {
         ));
       }
     }
-    else if (configuration.verbose) {
+    else {
 
       statsObj.autoChangeMatch += 1;
       statsObj.autoChangeMatchRate = 100*(statsObj.autoChangeMatch/statsObj.autoChangeTotal);
 
-      console.log(chalkLog(MODULE_ID_PREFIX + " | -+- CAT AUTO MATCH"
-        + " | AUTO CHG M " + statsObj.autoChangeMatch
-        + " MM: " + statsObj.autoChangeMismatch
-        + " TOT: " + statsObj.autoChangeTotal
-        + " RATE: " + statsObj.autoChangeMatchRate.toFixed(2)
-        + " | @" + user.screenName
-        + " | CAT M: " + user.category
-        + " | CAT A: " + user.categoryAuto + " --> " + networkOutput.categoryAuto
-      ));
+      if (configuration.verbose){
+        console.log(chalkLog(MODULE_ID_PREFIX + " | -+- CAT AUTO MATCH"
+          + " | AUTO CHG M " + statsObj.autoChangeMatch
+          + " MM: " + statsObj.autoChangeMismatch
+          + " TOT: " + statsObj.autoChangeTotal
+          + " RATE: " + statsObj.autoChangeMatchRate.toFixed(2)
+          + " | @" + user.screenName
+          + " | CAT M: " + user.category
+          + " | CAT A: " + user.categoryAuto + " --> " + networkOutput.categoryAuto
+        ));
+      }
     }
 
     user.categoryAuto = networkOutput.categoryAuto;

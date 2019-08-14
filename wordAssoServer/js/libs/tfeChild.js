@@ -2724,56 +2724,32 @@ async function generateAutoCategory(params) {
     const networkOutput = await nnTools.activateSingleNetwork({user: user});
 
     statsObj.autoChangeTotal += 1;
+    let text;
+    let chalkVar;
 
-    if (user.categoryAuto !== networkOutput.categoryAuto) {
-
-      if (networkOutput.categoryAuto == user.category) {
-
-        statsObj.autoChangeMatch += 1;
-        statsObj.autoChangeMatchRate = 100*(statsObj.autoChangeMatch/statsObj.autoChangeTotal);
-
-        console.log(chalk.green(MODULE_ID_PREFIX + " | +++ UPDATE CAT AUTO MATCH"
-          + " | AUTO CHG M " + statsObj.autoChangeMatch
-          + " MM: " + statsObj.autoChangeMismatch
-          + " TOT: " + statsObj.autoChangeTotal
-          + " RATE: " + statsObj.autoChangeMatchRate.toFixed(2)
-          + " | @" + user.screenName
-          + " | CAT M: " + user.category
-          + " | CAT A: " + user.categoryAuto + " --> " + networkOutput.categoryAuto
-        ));
-      }
-      else {
-
-        statsObj.autoChangeMismatch += 1;
-        statsObj.autoChangeMatchRate = 100*(statsObj.autoChangeMatch/statsObj.autoChangeTotal);
-
-        console.log(chalk.yellow(MODULE_ID_PREFIX + " | XXX UPDATE CAT AUTO MISMATCH"
-          + " | AUTO CHG M " + statsObj.autoChangeMatch
-          + " MM: " + statsObj.autoChangeMismatch
-          + " TOT: " + statsObj.autoChangeTotal
-          + " RATE: " + statsObj.autoChangeMatchRate.toFixed(2)
-          + " | @" + user.screenName
-          + " | CAT M: " + user.category
-          + " | CAT A: " + user.categoryAuto + " --> " + networkOutput.categoryAuto
-        ));
-      }
+    if (networkOutput.categoryAuto == user.category) {
+      statsObj.autoChangeMatch += 1;
+      text = MODULE_ID_PREFIX + " | +++ CAT AUTO MATCH"
+      chalkVar = chalk.green;
     }
     else {
+      statsObj.autoChangeMismatch += 1;
+      text = MODULE_ID_PREFIX + " | --- CAT AUTO MISMATCH"
+      chalkVar = chalk.yellow;
+    }
 
-      statsObj.autoChangeMatch += 1;
-      statsObj.autoChangeMatchRate = 100*(statsObj.autoChangeMatch/statsObj.autoChangeTotal);
+    statsObj.autoChangeMatchRate = 100*(statsObj.autoChangeMatch/statsObj.autoChangeTotal);
 
-      if (configuration.verbose){
-        console.log(chalkLog(MODULE_ID_PREFIX + " | -+- CAT AUTO MATCH"
-          + " | AUTO CHG M " + statsObj.autoChangeMatch
-          + " MM: " + statsObj.autoChangeMismatch
-          + " TOT: " + statsObj.autoChangeTotal
-          + " RATE: " + statsObj.autoChangeMatchRate.toFixed(2)
-          + " | @" + user.screenName
-          + " | CAT M: " + user.category
-          + " | CAT A: " + user.categoryAuto + " --> " + networkOutput.categoryAuto
-        ));
-      }
+    if (configuration.verbose || (user.categoryAuto != networkOutput.categoryAuto)) {
+      console.log(chalkVar(text
+        + " | AUTO CHG M " + statsObj.autoChangeMatch
+        + " MM: " + statsObj.autoChangeMismatch
+        + " TOT: " + statsObj.autoChangeTotal
+        + " RATE: " + statsObj.autoChangeMatchRate.toFixed(2)
+        + " | @" + user.screenName
+        + " | CAT M: " + user.category
+        + " | CAT A: " + user.categoryAuto + " --> " + networkOutput.categoryAuto
+      ));
     }
 
     user.categoryAuto = networkOutput.categoryAuto;

@@ -3631,41 +3631,46 @@ async function categoryVerified(params) {
   }
 }
 
-function ignore(params, callback) {
+async function ignore(params) {
 
   console.log(chalk.blue("WAS | XXX IGNORE | @" + params.user.screenName));
 
-  if (params.user.nodeId !== undefined){
+  if (params.user.nodeId && (params.user.nodeId !== undefined)){
+    ignoredUserSet.add(params.user.nodeId);
+  }
 
+  if (params.user.userId && (params.user.userId !== undefined)){
     ignoredUserSet.add(params.user.nodeId);
   }
 
   tssSendAllChildren({op: "IGNORE", user: params.user});
 
-  global.globalUser.deleteOne({"nodeId": params.user.nodeId}, function(err){
-    if (err) {
-      console.log(chalkError("WAS | *** DB DELETE IGNORED USER ERROR: " + err));
-    }
-    else {
-      console.log(chalkAlert("WAS | XXX IGNORED USER | DELETED" 
-        + " | " + params.user.nodeId
-        + " | @" + params.user.screenName
-      ));
-    }
+  try{
+    const deletedUser = await global.globalUser.deleteOne({"nodeId": params.user.nodeId});
+    console.log(chalkAlert("WAS | XXX IGNORED USER | DELETED" 
+      + " | " + deletedUser.nodeId
+      + " | @" + deletedUser.screenName
+    ));
+    return;
+  }
+  catch(err){
+    console.log(chalkError("WAS | *** DB DELETE IGNORED USER ERROR: " + err));
+    throw err;
+  }
 
-    if (callback !== undefined) { callback(err); }
-  });
 }
 
-function unignore(params, callback) {
+async function unignore(params) {
 
   console.log(chalk.blue("WAS | +++ UNIGNORE | @" + params.user.screenName));
 
   if (params.user.nodeId !== undefined){
-
     ignoredUserSet.delete(params.user.nodeId);
-
   } 
+
+  if (params.user.userId && (params.user.userId !== undefined)){
+    ignoredUserSet.delete(params.user.userId);
+  }
 
   const query = { nodeId: params.user.nodeId };
 
@@ -3682,19 +3687,21 @@ function unignore(params, callback) {
 
     if (err) {
       console.log(chalkError("WAS | *** UNIGNORE | USER FIND ONE ERROR: " + err));
+      throw err;
     }
-    else if (userUpdated){
+    
+    if (userUpdated){
       console.log(chalkLog("WAS | +++ UNIGNORE"
         + " | " + printUser({user: userUpdated})
       ));
-    }
-    else {
-      console.log(chalkLog("WAS | --- UNIGNORE USER NOT IN DB"
-        + " | ID: " + params.user.nodeId
-      ));
+      return userUpdated;
     }
 
-    if (callback !== undefined) { callback(err, userUpdated); }
+    console.log(chalkLog("WAS | --- UNIGNORE USER NOT IN DB"
+      + " | ID: " + params.user.nodeId
+    ));
+
+    return;
 
   });
 }
@@ -3991,7 +3998,12 @@ async function initIgnoredUserSet(){
 
   try{
 
-    const result = await initSetFromFile({folder: configDefaultFolder, file: ignoredUserFile, objArrayKey: "userIds", resolveOnNotFound: true});
+    const result = await initSetFromFile({
+      folder: configDefaultFolder, 
+      file: ignoredUserFile, 
+      objArrayKey: "userIds", 
+      resolveOnNotFound: true
+    });
 
     if (result) {
       ignoredUserSet = result;
@@ -4020,7 +4032,12 @@ async function initUnfollowableUserSet(){
 
   try{
 
-    const result = await initSetFromFile({folder: configDefaultFolder, file: unfollowableUserFile, objArrayKey: "userIds", resolveOnNotFound: true});
+    const result = await initSetFromFile({
+      folder: configDefaultFolder, 
+      file: unfollowableUserFile, 
+      objArrayKey: "userIds", 
+      resolveOnNotFound: true
+    });
 
     if (result) {
       unfollowableUserSet = result;
@@ -4387,7 +4404,6 @@ function initSocketHandler(socketObj) {
           sessionObj.isAdmin = false;
           sessionObj.isServer = true;
           sessionObj.isViewer = false;
-          // sessionObj.stats = keepAliveObj.stats;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
           console.log(chalk.green("+++ ADD " + currentSessionType + " SERVER" 
@@ -4479,7 +4495,7 @@ function initSocketHandler(socketObj) {
     }
   });
 
-  socket.on("TWITTER_FOLLOW", function twitterFollow(user) {
+  socket.on("TWITTER_FOLLOW", function(user) {
 
     if (empty(user)) {
       console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: NULL USER"));
@@ -4520,7 +4536,7 @@ function initSocketHandler(socketObj) {
     });
   });
 
-  socket.on("TWITTER_UNFOLLOW", function twitterUnfollow(user) {
+  socket.on("TWITTER_UNFOLLOW", function(user) {
 
     const timeStamp = moment().valueOf();
 
@@ -4553,7 +4569,7 @@ function initSocketHandler(socketObj) {
     });
   });
 
-  socket.on("TWITTER_CATEGORY_VERIFIED", async function twitterIgnore(user) {
+  socket.on("TWITTER_CATEGORY_VERIFIED", async function(user) {
 
     const timeStamp = moment().valueOf();
 
@@ -4589,7 +4605,7 @@ function initSocketHandler(socketObj) {
     }
   });
 
-  socket.on("TWITTER_CATEGORY_UNVERIFIED", async function twitterIgnore(user) {
+  socket.on("TWITTER_CATEGORY_UNVERIFIED", async function(user) {
 
     const timeStamp = moment().valueOf();
 
@@ -4625,26 +4641,24 @@ function initSocketHandler(socketObj) {
     }
   });
 
-  socket.on("TWITTER_IGNORE", function twitterIgnore(user) {
+  socket.on("TWITTER_IGNORE", async function(user) {
 
-    const timeStamp = moment().valueOf();
+    try{
 
-    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+      const timeStamp = moment().valueOf();
 
-    console.log(chalkSocket("R< TWITTER_IGNORE"
-      + " | " + getTimeStamp(timeStamp)
-      + " | " + ipAddress
-      + " | " + socket.id
-      + " | UID: " + user.userId
-      + " | @" + user.screenName
-    ));
+      ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
-    ignore({user: user, socketId: socket.id}, function(err, updatedUser){
-      if (err) {
-        console.log(chalkError("WAS | TWITTER_IGNORE ERROR: " + err));
-        return;
-      }
-      
+      console.log(chalkSocket("R< TWITTER_IGNORE"
+        + " | " + getTimeStamp(timeStamp)
+        + " | " + ipAddress
+        + " | " + socket.id
+        + " | UID: " + user.userId
+        + " | @" + user.screenName
+      ));
+
+      const updatedUser = await ignore({user: user, socketId: socket.id});
+
       if (!updatedUser) { return; }
 
       adminNameSpace.emit("IGNORE", updatedUser);
@@ -4655,29 +4669,30 @@ function initSocketHandler(socketObj) {
         + " | UID" + updatedUser.nodeId
         + " | @" + updatedUser.screenName
       ));
+    }
+    catch(err){
+      console.log(chalkError("WAS | *** IGNORE USER ERROR: " + err));
+    }
 
-    });
   });
 
-  socket.on("TWITTER_UNIGNORE", function twitterUnignore(user) {
+  socket.on("TWITTER_UNIGNORE", async function(user) {
 
-    const timeStamp = moment().valueOf();
+    try{
 
-    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+      const timeStamp = moment().valueOf();
 
-    console.log(chalkSocket("R< TWITTER_UNIGNORE"
-      + " | " + getTimeStamp(timeStamp)
-      + " | " + ipAddress
-      + " | " + socket.id
-      + " | UID: " + user.userId
-      + " | @" + user.screenName
-    ));
+      ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
-    unignore({user: user, socketId: socket.id}, function(err, updatedUser){
-      if (err) {
-        console.log(chalkError("WAS | TWITTER_UNIGNORE ERROR: " + err));
-        return;
-      }
+      console.log(chalkSocket("R< TWITTER_UNIGNORE"
+        + " | " + getTimeStamp(timeStamp)
+        + " | " + ipAddress
+        + " | " + socket.id
+        + " | UID: " + user.userId
+        + " | @" + user.screenName
+      ));
+
+      const updatedUser = await unignore({user: user, socketId: socket.id});
       
       if (!updatedUser) { return; }
 
@@ -4690,7 +4705,12 @@ function initSocketHandler(socketObj) {
         + " | @" + updatedUser.screenName
       ));
 
-    });
+    }
+    catch(err){
+      console.log(chalkError("WAS | TWITTER_UNIGNORE ERROR: " + err));
+      throw err;
+    }
+
   });
 
   socket.on("TWITTER_SEARCH_NODE", function (sn) {
@@ -6153,59 +6173,38 @@ function initTransmitNodeQueueInterval(interval){
   });
 }
 
-function transmitNodes(tw, callback){
+async function transmitNodes(tw){
 
-  if (!tw.user || ignoredUserSet.has(tw.user.nodeId)) {
-    return callback();
+  if (!tw.user || ignoredUserSet.has(tw.user.nodeId) || ignoredUserSet.has(tw.user.userId)) {
+    return;
   }
 
-  async.parallel({
-    user: function(cb){
-      transmitNodeQueue.push(tw.user);
-      cb();
-    },
-    userMentions: function(cb){
-      tw.userMentions.forEach(function userMentionsTxNodeQueue(user){
-        if (user && configuration.enableTransmitUser && !ignoredUserSet.has(user.nodeId)) { 
-          transmitNodeQueue.push(user); 
-        }
-      });
-      cb();
-    },
-    hashtags: function(cb){
-      tw.hashtags.forEach(function hashtagsTxNodeQueue(hashtag){
-        if (hashtag && configuration.enableTransmitHashtag && !ignoredHashtagSet.has(hashtag.nodeId) && !ignoredHashtagRegex.test(hashtag.nodeId)) { 
-          transmitNodeQueue.push(hashtag);
-        }
-      });
-      cb();
+  transmitNodeQueue.push(tw.user);
+
+  for(const user of tw.userMentions){
+    if (user && configuration.enableTransmitUser && !ignoredUserSet.has(user.nodeId)) { 
+      transmitNodeQueue.push(user); 
     }
-  },
-  function(err){
-    if (err) {
-      console.log(chalkError("WAS | *** TRANSMIT NODES ERROR: " + err));
-      return callback(err);
+  }
+
+  for(const hashtag of tw.hashtags){
+    if (hashtag && configuration.enableTransmitHashtag && !ignoredHashtagSet.has(hashtag.nodeId) && !ignoredHashtagRegex.test(hashtag.nodeId)) { 
+      transmitNodeQueue.push(hashtag);
     }
-    callback();
-  });   
+  }
+
+  return;
 }
 
 let heartbeatsSent = 0;
 
 function logHeartbeat() {
 
-  // memoryAvailableMB = (statsObj.memory.memoryAvailable/(1024*1024));
-  // memoryTotalMB = (statsObj.memory.memoryTotal/(1024*1024));
-  // memoryAvailablePercent = (statsObj.memory.memoryAvailable/statsObj.memory.memoryTotal);
-
   debug(chalkLog("HB " + heartbeatsSent 
     + " | " + getTimeStamp() 
     + " | ST: " + getTimeStamp(parseInt(statsObj.startTime)) 
     + " | UP: " + msToTime(statsObj.upTime) 
     + " | RN: " + msToTime(statsObj.runTime) 
-    // + " | MEM: " + memoryAvailableMB.toFixed(0) + " AVAIL"
-    // + " / " + memoryTotalMB.toFixed(0) + " TOTAL MB"
-    // + " - " + memoryAvailablePercent.toFixed(3) + " %"
   ));
 }
 
@@ -6734,107 +6733,103 @@ function initTwitterRxQueueInterval(interval){
 let tweetParserMessageRxQueueReady = true;
 let tweetParserMessageRxQueueInterval;
 
-function initTweetParserMessageRxQueueInterval(interval){
+async function initTweetParserMessageRxQueueInterval(interval){
 
-  return new Promise(function(resolve, reject) {
+  if (typeof interval !== "number") {
+    throw new Error("initTweetParserMessageRxQueueInterval interval NOT a NUMBER: " + interval);
+  }
 
-    if (typeof interval !== "number") {
-      return reject(new Error("initTweetParserMessageRxQueueInterval interval NOT a NUMBER: " + interval));
-    }
+  console.log(chalk.bold.black("WAS | INIT TWEET PARSER MESSAGE RX QUEUE INTERVAL | " + msToTime(interval)));
 
-    console.log(chalk.bold.black("WAS | INIT TWEET PARSER MESSAGE RX QUEUE INTERVAL | " + msToTime(interval)));
+  clearInterval(tweetParserMessageRxQueueInterval);
 
-    clearInterval(tweetParserMessageRxQueueInterval);
+  let tweetParserMessage = {};
+  let tweetObj = {};
 
-    let tweetParserMessage = {};
-    let tweetObj = {};
+  tweetParserMessageRxQueueInterval = setInterval(async function() {
 
-    tweetParserMessageRxQueueInterval = setInterval(function tweetParserMessageRxQueueDequeue() {
+    if ((tweetParserMessageRxQueue.length > 0) && tweetParserMessageRxQueueReady) {
 
-      if ((tweetParserMessageRxQueue.length > 0) && tweetParserMessageRxQueueReady) {
+      tweetParserMessageRxQueueReady = false;
 
-        tweetParserMessageRxQueueReady = false;
+      tweetParserMessage = tweetParserMessageRxQueue.shift();
 
-        tweetParserMessage = tweetParserMessageRxQueue.shift();
+      debug(chalkLog("TWEET PARSER RX MESSAGE"
+        + " | OP: " + tweetParserMessage.op
+      ));
 
-        debug(chalkLog("TWEET PARSER RX MESSAGE"
-          + " | OP: " + tweetParserMessage.op
-          // + "\n" + jsonPrint(m)
+      if (tweetParserMessage.op === "error") {
+
+        statsObj.errors.twitter.parser += 1;
+
+        console.log(chalkError("WAS | *** ERROR PARSE TW"
+          + " | " + getTimeStamp()
+          + " | TWEET PARSER ERRORS: " + statsObj.errors.twitter.parser
+          + " | ERROR: " + tweetParserMessage.err
         ));
 
-        if (tweetParserMessage.op === "error") {
- 
-          statsObj.errors.twitter.parser += 1;
+        tweetParserMessageRxQueueReady = true;
 
-          console.log(chalkError("WAS | *** ERROR PARSE TW"
-            + " | " + getTimeStamp()
-            + " | TWEET PARSER ERRORS: " + statsObj.errors.twitter.parser
-            + " | ERROR: " + tweetParserMessage.err
+      }
+      else if (tweetParserMessage.op === "parsedTweet") {
+
+        tweetObj = tweetParserMessage.tweetObj;
+
+        if (!tweetObj.user) {
+          console.log(chalkAlert("WAS | parsedTweet -- TW USER UNDEFINED"
+            + " | " + tweetObj.tweetId
+          ));
+          tweetParserMessageRxQueueReady = true;
+        }
+        else {
+
+          debug(chalkInfo("WAS | PARSED TW"
+            + " [ TPMRQ: " + tweetParserMessageRxQueue.length + "]"
+            + " | " + tweetObj.tweetId
+            + " | USR: " + tweetObj.user.screenName
+            + " | EJs: " + tweetObj.emoji.length
+            + " | Hs: " + tweetObj.hashtags.length
+            + " | Hs: " + tweetObj.images.length
+            + " | LCs: " + tweetObj.locations.length
+            + " | Ms: " + tweetObj.mentions.length
+            + " | PLs: " + tweetObj.places.length
+            + " | ULs: " + tweetObj.urls.length
+            + " | UMs: " + tweetObj.userMentions.length
+            + " | WDs: " + tweetObj.words.length
           ));
 
-          tweetParserMessageRxQueueReady = true;
 
-        }
-        else if (tweetParserMessage.op === "parsedTweet") {
-
-          tweetObj = tweetParserMessage.tweetObj;
-
-          if (!tweetObj.user) {
-            console.log(chalkAlert("WAS | parsedTweet -- TW USER UNDEFINED"
-              + " | " + tweetObj.tweetId
-            ));
-            tweetParserMessageRxQueueReady = true;
+          if (dbuChild && statsObj.dbuChildReady 
+            && (followableUserSet.has(tweetObj.user.nodeId) || categorizeableUserSet.has(tweetObj.user.nodeId))) {
+            dbuChild.send({op: "TWEET", tweetObj: tweetObj});
           }
-          else {
 
-            debug(chalkInfo("WAS | PARSED TW"
-              + " [ TPMRQ: " + tweetParserMessageRxQueue.length + "]"
-              + " | " + tweetObj.tweetId
-              + " | USR: " + tweetObj.user.screenName
-              + " | EJs: " + tweetObj.emoji.length
-              + " | Hs: " + tweetObj.hashtags.length
-              + " | Hs: " + tweetObj.images.length
-              + " | LCs: " + tweetObj.locations.length
-              + " | Ms: " + tweetObj.mentions.length
-              + " | PLs: " + tweetObj.places.length
-              + " | ULs: " + tweetObj.urls.length
-              + " | UMs: " + tweetObj.userMentions.length
-              + " | WDs: " + tweetObj.words.length
-            ));
+          if (transmitNodeQueue.length < configuration.maxQueue) {
 
-
-            if (dbuChild && statsObj.dbuChildReady 
-              && (followableUserSet.has(tweetObj.user.nodeId) || categorizeableUserSet.has(tweetObj.user.nodeId))) {
-              dbuChild.send({op: "TWEET", tweetObj: tweetObj});
+            try{
+              await transmitNodes(tweetObj);
+              tweetParserMessageRxQueueReady = true;
             }
-
-            if (transmitNodeQueue.length < configuration.maxQueue) {
-
-              transmitNodes(tweetObj, function transmitNode(err){
-                if (err) {
-                  console.log(chalkError("WAS | TRANSMIT NODES ERROR\n" + err));
-                }
-                tweetParserMessageRxQueueReady = true;
-              });
-
-            }
-            else {
+            catch(e){
               tweetParserMessageRxQueueReady = true;
             }
           }
+          else {
+            tweetParserMessageRxQueueReady = true;
+          }
         }
-        else {
-          console.log(chalkError("WAS | *** TWEET PARSER UNKNOWN OP"
-            + " | INTERVAL: " + tweetParserMessage.op
-          ));
-          tweetParserMessageRxQueueReady = true;
-        }
-
       }
-    }, interval);
+      else {
+        console.log(chalkError("WAS | *** TWEET PARSER UNKNOWN OP"
+          + " | INTERVAL: " + tweetParserMessage.op
+        ));
+        tweetParserMessageRxQueueReady = true;
+      }
 
-    resolve();
-  });
+    }
+  }, interval);
+
+  return;
 }
 
 let sorterMessageRxReady = true; 
@@ -8363,27 +8358,6 @@ async function loadBestRuntimeNetwork(p){
         console.log(chalkError("WAS | *** ERROR LOAD BEST NETWORK RUNTIME ID: " +e));
         console.log(chalkAlert("WAS | ... SEARCH DB FOR BEST RUNTIME NETWORK: " + bRtNnObj.networkId));
 
-        // const nnObj = await global.globalNeuralNetwork.findOne({networkId: bRtNnObj.networkId}).lean().exec();
-
-        // // const nnObj = nn.toObject();
-
-        // bestNetworkObj = {};
-        // bestNetworkObj = deepcopy(nnObj);
-
-        // console.log(chalk.green.bold("WAS | +++ LOADED BEST RUNTIME NETWORK FROM DB: " + bestNetworkObj.networkId));
-
-        // statsObj.bestNetwork = pick(bestNetworkObj, statsBestNetworkPickArray);
-
-        // if (statsObj.previousBestNetworkId !== bestNetworkObj.networkId) {
-        //   console.log(chalk.green.bold("WAS | >>> BEST NETWORK CHANGE"
-        //     + " | PREV: " + statsObj.previousBestNetworkId
-        //     + " > NEW: " + bestNetworkObj.networkId
-        //   ));
-        //   statsObj.previousBestNetworkId = bestNetworkObj.networkId;
-        //   configEvents.emit("NEW_BEST_NETWORK", bestNetworkObj.networkId);
-        // }
-
-        // return bestNetworkObj.networkId;
       }
     }
 

@@ -3640,17 +3640,30 @@ async function ignore(params) {
   }
 
   if (params.user.userId && (params.user.userId !== undefined)){
-    ignoredUserSet.add(params.user.nodeId);
+    ignoredUserSet.add(params.user.userId);
+  }
+
+  if (params.user.screenName && (params.user.screenName !== undefined)){
+    ignoredUserSet.add(params.user.screenName);
   }
 
   tssSendAllChildren({op: "IGNORE", user: params.user});
 
   try{
-    const deletedUser = await global.globalUser.deleteOne({"nodeId": params.user.nodeId});
-    console.log(chalkAlert("WAS | XXX IGNORED USER | DELETED" 
-      + " | " + deletedUser.nodeId
-      + " | @" + deletedUser.screenName
-    ));
+    const deletedUser = await global.globalUser.deleteOne({nodeId: params.user.nodeId});
+
+    if (deletedUser && (deletedUser !== undefined)){
+      console.log(chalkAlert("WAS | XXX IGNORED USER | -*- DB HIT" 
+        + " | " + deletedUser.nodeId
+        + " | @" + deletedUser.screenName
+      ));
+    }
+    else{
+      console.log(chalkAlert("WAS | XXX IGNORED USER | --- DB MISS" 
+        + " | " + params.user.nodeId
+        + " | @" + params.user.screenName
+      ));
+    }
 
     const obj = {};
     obj.userIds = [...ignoredUserSet];

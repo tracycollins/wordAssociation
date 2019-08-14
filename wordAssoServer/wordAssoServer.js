@@ -3650,10 +3650,13 @@ async function ignore(params) {
   tssSendAllChildren({op: "IGNORE", user: params.user});
 
   try{
-    const deletedUser = await global.globalUser.deleteOne({nodeId: params.user.nodeId});
+    const results = await global.globalUser.deleteOne({nodeId: params.user.nodeId});
 
-    if (deletedUser && (deletedUser !== undefined)){
-      console.log(chalkAlert("WAS | XXX IGNORED USER | -*- DB HIT", deletedUser));
+    if (results.deletedCount > 0){
+      console.log(chalkAlert("WAS | XXX IGNORED USER | -*- DB HIT"
+        + " | " + params.user.nodeId
+        + " | @" + params.user.screenName
+      ));
     }
     else{
       console.log(chalkAlert("WAS | XXX IGNORED USER | --- DB MISS" 

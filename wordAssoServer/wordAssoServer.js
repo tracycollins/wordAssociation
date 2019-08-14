@@ -3653,10 +3653,7 @@ async function ignore(params) {
     const deletedUser = await global.globalUser.deleteOne({nodeId: params.user.nodeId});
 
     if (deletedUser && (deletedUser !== undefined)){
-      console.log(chalkAlert("WAS | XXX IGNORED USER | -*- DB HIT" 
-        + " | " + deletedUser.nodeId
-        + " | @" + deletedUser.screenName
-      ));
+      console.log(chalkAlert("WAS | XXX IGNORED USER | -*- DB HIT", deletedUser));
     }
     else{
       console.log(chalkAlert("WAS | XXX IGNORED USER | --- DB MISS" 

@@ -2729,7 +2729,7 @@ async function generateAutoCategory(params) {
 
     if (networkOutput.categoryAuto == user.category) {
       statsObj.autoChangeMatch += 1;
-      text = MODULE_ID_PREFIX + " | +++ CAT AUTO MATCH"
+      text = MODULE_ID_PREFIX + " | +++ CAT AUTO MATCH   "
       chalkVar = chalk.green;
     }
     else {

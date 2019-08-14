@@ -7552,7 +7552,6 @@ async function initTfeChild(params){
           + " | 3C @" + m.threeceeUser
           + " | INFO 3C: " + isInfoUser
           + " | ERROR TYPE: " + m.errorType
-          // + "\n" + jsonPrint(m.error)
         ));
 
         if (m.errorType === "TWITTER_UNAUTHORIZED") {
@@ -7675,7 +7674,7 @@ async function initTfeChild(params){
           printUserObj("WAS | <TFE | PRIORITY CAT", m.user);
           viewNameSpace.emit("SET_TWITTER_USER", { user: m.user, stats: statsObj.user });
         }
-        else {
+        else if (configuration.verbose) {
           printUserObj("WAS | <TFE | CAT", m.user, chalkLog);
         }
 

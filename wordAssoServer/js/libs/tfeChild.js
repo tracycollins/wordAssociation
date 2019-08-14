@@ -2727,7 +2727,7 @@ async function generateAutoCategory(params) {
 
     if (user.categoryAuto !== networkOutput.categoryAuto) {
 
-      if (networkOutput.categoryAuto === user.category) {
+      if (networkOutput.categoryAuto == user.category) {
 
         statsObj.autoChangeMatch += 1;
         statsObj.autoChangeMatchRate = 100*(statsObj.autoChangeMatch/statsObj.autoChangeTotal);

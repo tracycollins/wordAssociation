@@ -2744,9 +2744,9 @@ async function generateAutoCategory(params) {
       console.log(chalkVar(text
         + " | AUTO CHG M/MM/TOT: " + statsObj.autoChangeMatch + "/" + statsObj.autoChangeMismatch + "/" + statsObj.autoChangeTotal
         + " | " + statsObj.autoChangeMatchRate.toFixed(2) + "%"
+        + " | M: " + user.category
+        + " | A: " + user.categoryAuto + " --> " + networkOutput.categoryAuto
         + " | @" + user.screenName
-        + " | CAT M: " + user.category
-        + " | CAT A: " + user.categoryAuto + " --> " + networkOutput.categoryAuto
       ));
     }
 

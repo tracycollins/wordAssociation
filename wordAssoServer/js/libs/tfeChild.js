@@ -2742,10 +2742,8 @@ async function generateAutoCategory(params) {
 
     if (configuration.verbose || (user.categoryAuto != networkOutput.categoryAuto)) {
       console.log(chalkVar(text
-        + " | AUTO CHG M " + statsObj.autoChangeMatch
-        + " MM: " + statsObj.autoChangeMismatch
-        + " TOT: " + statsObj.autoChangeTotal
-        + " RATE: " + statsObj.autoChangeMatchRate.toFixed(2)
+        + " | AUTO CHG M/MM/TOT: " + statsObj.autoChangeMatch + "/" + statsObj.autoChangeMismatch + "/" + statsObj.autoChangeTotal
+        + " | " + statsObj.autoChangeMatchRate.toFixed(2) + "%"
         + " | @" + user.screenName
         + " | CAT M: " + user.category
         + " | CAT A: " + user.categoryAuto + " --> " + networkOutput.categoryAuto

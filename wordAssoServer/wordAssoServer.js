@@ -10220,10 +10220,10 @@ function waitDbConnectionReady(){
 
     dbConnectionReadyInterval = setInterval(function(){
 
-      console.log(chalkAlert("WAS | WAIT DB CONNECTION | " + getTimeStamp() ));
+      console.log(chalkBlue("WAS | ... WAIT DB CONNECTION | " + getTimeStamp() ));
 
       if (statsObj.dbConnectionReady) {
-        console.log(chalkAlert("WAS | +++ DB CONNECTION | " + getTimeStamp() ));
+        console.log(chalk.green("WAS | +++ DB CONNECTION | " + getTimeStamp() ));
         clearInterval(dbConnectionReadyInterval);
         return resolve();
       }
@@ -10235,7 +10235,7 @@ function waitDbConnectionReady(){
 
 setTimeout(async function(){
 
-  console.log(chalkError("WAS | WAIT START TIMEOUT: " + msToTime(DEFAULT_START_TIMEOUT)));
+  console.log(chalkBlue("WAS | ... WAIT START TIMEOUT: " + msToTime(DEFAULT_START_TIMEOUT)));
 
   try {
 

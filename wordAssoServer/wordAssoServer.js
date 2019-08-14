@@ -3651,13 +3651,25 @@ async function ignore(params) {
       + " | " + deletedUser.nodeId
       + " | @" + deletedUser.screenName
     ));
+
+    const obj = {};
+    obj.userIds = [...ignoredUserSet];
+
+    const saveFileObj = {
+      localFlag: false, 
+      folder: configDefaultFolder, 
+      file: ignoredUserFile, 
+      obj: obj
+    }
+
+    saveFileQueue.push(saveFileObj);
+
     return;
   }
   catch(err){
     console.log(chalkError("WAS | *** DB DELETE IGNORED USER ERROR: " + err));
     throw err;
   }
-
 }
 
 async function unignore(params) {
@@ -3798,11 +3810,15 @@ async function initIgnoredHashtagSet(){
 
   statsObj.status = "INIT IGNORE HASHTAG SET";
 
-  console.log(chalkLog("WAS | INIT IGNORE HASHTAG SET"));
+  console.log(chalkLog("WAS | ... INIT IGNORE HASHTAG SET"));
 
   try{
 
-    const result = await initSetFromFile({folder: configDefaultFolder, file: ignoredHashtagFile, resolveOnNotFound: true});
+    const result = await initSetFromFile({
+      folder: configDefaultFolder, 
+      file: ignoredHashtagFile, 
+      resolveOnNotFound: true
+    });
 
     if (result) {
       ignoredHashtagSet = result;
@@ -3829,7 +3845,7 @@ async function initSetFromFile(params){
 
   statsObj.status = "INIT SET FROM FILE";
 
-  console.log(chalkBlue("WAS | INIT SET FROM FILE: " + params.folder + "/" + params.file));
+  console.log(chalkBlue("WAS | ... INIT SET FROM FILE: " + params.folder + "/" + params.file));
 
   try{
 
@@ -3872,6 +3888,37 @@ async function initSetFromFile(params){
     throw err;
   }
 }
+
+// async function saveSetToFile(params){
+
+//   statsObj.status = "SAVE SET TO FILE";
+
+//   console.log(chalkBlue("WAS | ... SAVE SET TO FILE: " + params.folder + "/" + params.file));
+
+//   const setObj = {};
+
+//   setObj[params.objArrayKey] = [...params.set];
+
+//   try{
+
+//     await tcUtils.saveFile({
+//       localFlag: true,
+//       folder: params.folder, 
+//       file: params.file, 
+//       obj: setObj
+//     });
+
+//     console.log(chalkLog("WAS | SAVED SET TO FILE"
+//       + " | " + params.folder + "/" + params.file
+//     ));
+
+//     return;
+//   }
+//   catch(err){
+//     console.log(chalkError("WAS | *** SAVE SET TO FILE ERROR: " + err));
+//     throw err;
+//   }
+// }
 
 function updateDbVerifiedUsers(){
 
@@ -5385,7 +5432,7 @@ async function userCategorizeable(user){
     return false; 
   }
 
-  if (ignoredUserSet.has(user.nodeId)) { 
+  if (ignoredUserSet.has(user.nodeId) || ignoredUserSet.has(user.screenName.toLowerCase())) { 
     unfollowableUserSet.add(user.nodeId);
     categorizeableUserSet.delete(user.nodeId);
     return false; 
@@ -5841,6 +5888,7 @@ function updateUserSets(){
           && (user.following || (user.followersCount >= configuration.minFollowersAuto)) 
           && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && user.categoryAuto && (user.categoryAuto !== "right")))
           && !ignoredUserSet.has(user.nodeId) 
+          && !ignoredUserSet.has(user.screenName.toLowerCase()) 
           && !uncategorizedManualUserSet.has(user.nodeId) 
           && !unfollowableUserSet.has(user.nodeId)) { 
 
@@ -5854,6 +5902,7 @@ function updateUserSets(){
         if (!uncategorizedAutoUserSet.has(user.nodeId) 
           && !user.categoryAuto 
           && !ignoredUserSet.has(user.nodeId) 
+          && !ignoredUserSet.has(user.screenName.toLowerCase()) 
           && !ignoreLocationsSet.has(user.nodeId) 
           && (user.followersCount >= configuration.minFollowersAuto) 
           && !unfollowableUserSet.has(user.nodeId)) { 
@@ -5873,6 +5922,7 @@ function updateUserSets(){
           uncategorizedAutoUserSet.delete(user.nodeId); 
 
           if (!ignoredUserSet.has(user.nodeId) 
+            && !ignoredUserSet.has(user.screenName.toLowerCase()) 
             && !ignoreLocationsSet.has(user.nodeId) 
             && !unfollowableUserSet.has(user.nodeId)){
 
@@ -6055,6 +6105,7 @@ function initTransmitNodeQueueInterval(interval){
             && (!n.ignored || (n.ignored === undefined))
             && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && n.categoryAuto && (n.categoryAuto !== "right")))
             && !ignoredUserSet.has(n.nodeId) 
+            && !ignoredUserSet.has(n.screenName.toLowerCase()) 
             && (n.followersCount >= configuration.minFollowersAuto) 
             && !unfollowableUserSet.has(n.nodeId)) { 
 
@@ -6175,14 +6226,14 @@ function initTransmitNodeQueueInterval(interval){
 
 async function transmitNodes(tw){
 
-  if (!tw.user || ignoredUserSet.has(tw.user.nodeId) || ignoredUserSet.has(tw.user.userId)) {
+  if (!tw.user || ignoredUserSet.has(tw.user.nodeId) || ignoredUserSet.has(tw.user.userId) || ignoredUserSet.has(tw.user.screenName.toLowerCase())) {
     return;
   }
 
   transmitNodeQueue.push(tw.user);
 
   for(const user of tw.userMentions){
-    if (user && configuration.enableTransmitUser && !ignoredUserSet.has(user.nodeId)) { 
+    if (user && configuration.enableTransmitUser && !ignoredUserSet.has(user.nodeId) && !ignoredUserSet.has(user.screenName.toLowerCase())) { 
       transmitNodeQueue.push(user); 
     }
   }
@@ -9682,7 +9733,7 @@ async function processTwitterSearchNode(params) {
 
     if (params.user.toObject && (typeof params.user.toObject === "function")) {
       const u = params.user.toObject();
-      if (ignoredUserSet.has(u.nodeId)){
+      if (ignoredUserSet.has(u.nodeId) || ignoredUserSet.has(u.screenName.toLowerCase())){
         u.ignored = true;
       }
       if (followedUserSet.has(u.nodeId)){
@@ -9693,7 +9744,7 @@ async function processTwitterSearchNode(params) {
       return params.user;
     }
     else{
-      if (ignoredUserSet.has(params.user.nodeId)){
+      if (ignoredUserSet.has(params.user.nodeId) || ignoredUserSet.has(params.user.screenName.toLowerCase())){
         params.user.ignored = true;
       }
       if (followedUserSet.has(params.user.nodeId)){

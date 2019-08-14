@@ -12,6 +12,9 @@ const DEFAULT_TWEET_FETCH_INCLUDE_RETWEETS = false;
 
 const ONE_SECOND = 1000;
 const ONE_MINUTE = ONE_SECOND*60;
+const ONE_HOUR = ONE_MINUTE*60;
+
+const DEFAULT_QUOTA_TIMEOUT_DURATION = ONE_HOUR;
 
 const DEFAULT_MAX_USER_TWEETIDS = 500;
 
@@ -167,6 +170,7 @@ const configEvents = new EventEmitter2({
 });
 
 let configuration = {};
+configuration.quotaTimoutDuration = DEFAULT_QUOTA_TIMEOUT_DURATION;
 configuration.processUserQueueInterval = 10;
 configuration.geoCodeEnabled = false;
 configuration.inputsBinaryMode = true;
@@ -1494,13 +1498,13 @@ function startQuotaTimeOutTimer(p){
 
   const params = p || {};
 
-  params.duration = params.duration || configuration.languageQuotaTimoutDuration;
+  params.duration = params.duration || configuration.quotaTimoutDuration;
 
   clearTimeout(startQuotaTimeOut);
 
   console.log(chalkAlert(MODULE_ID_PREFIX + " | *** START LANG QUOTA TIMEOUT"
     + " | " + getTimeStamp()
-    + " | DURATION: " + msToTime(configuration.languageQuotaTimoutDuration)
+    + " | DURATION: " + msToTime(params.duration)
   ));
 
   startQuotaTimeOut = setTimeout(function(){
@@ -1509,7 +1513,7 @@ function startQuotaTimeOutTimer(p){
 
     console.log(chalkAlert(MODULE_ID_PREFIX + " | *** END LANG QUOTA TIMEOUT"
       + " | " + getTimeStamp()
-      + " | DURATION: " + msToTime(configuration.languageQuotaTimoutDuration)
+      + " | DURATION: " + msToTime(params.duration)
     ));
 
   }, params.duration);

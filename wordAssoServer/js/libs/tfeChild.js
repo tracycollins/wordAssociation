@@ -3101,7 +3101,7 @@ process.on("message", async function(m) {
 
       console.log(chalkInfo("WAS | TFC | +++ NETWORK"
         + " | NETWORK: " + networkObj.networkId
-        + " | INPUTS: " + networkObj.inputsObj.meta.numInputs
+        // + " | INPUTS: " + networkObj.inputsObj.meta.numInputs
         + " | INPUTS ID: " + networkObj.inputsId
       ));
     break;

@@ -1,5 +1,6 @@
 /*jslint node: true */
 /*jshint sub:true*/
+const MODULE_ID_PREFIX = "WAS";
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
 const ONE_HOUR = 60 * ONE_MINUTE;
@@ -12,6 +13,7 @@ let saveSampleTweetFlag = true;
 const os = require("os");
 const kill = require("tree-kill");
 const empty = require("is-empty");
+const watch = require("watch");
 
 let hostname = os.hostname();
 hostname = hostname.replace(/.local/g, "");
@@ -264,8 +266,6 @@ const metricsRate = "5MinuteRate";
 const shell = require("shelljs");
 const methodOverride = require("method-override");
 const deepcopy = require("deep-copy");
-// const sizeof = require("object-sizeof");
-// const writeJsonFile = require("write-json-file");
 
 const configEvents = new EventEmitter2({
   wildcard: true,
@@ -1567,8 +1567,6 @@ const authenticatedSocketCache = new NodeCache({
 
 function authenticatedSocketCacheExpired(socketId, authSocketObj) {
 
-  // const ttl = authenticatedSocketCache.getTtl(socketId);
-
   console.log(chalkInfo("WAS | XXX AUTH SOCKET CACHE EXPIRED"
     + " | TTL: " + msToTime(authenticatedSocketCacheTtl*1000)
     + " | NSP: " + authSocketObj.namespace.toUpperCase()
@@ -2541,10 +2539,6 @@ configEvents.on("INTERNET_READY", function internetReady() {
       }
     });
       
-    // memoryAvailableMB = (statsObj.memory.memoryAvailable/(1024*1024));
-    // memoryTotalMB = (statsObj.memory.memoryTotal/(1024*1024));
-    // memoryAvailablePercent = (statsObj.memory.memoryAvailable/statsObj.memory.memoryTotal);
-
     const heartbeatObj = {};
 
     heartbeatObj.admins = [];
@@ -2569,9 +2563,6 @@ configEvents.on("INTERNET_READY", function internetReady() {
       statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
       statsObj.timeStamp = getTimeStamp();
       statsObj.upTime = os.uptime() * 1000;
-      // statsObj.memory.memoryTotal = os.totalmem();
-      // statsObj.memory.memoryAvailable = os.freemem();
-      // statsObj.memory.memoryUsage = process.memoryUsage();
 
       heartbeatObj.bestNetwork = statsObj.bestNetwork;
 
@@ -10109,7 +10100,6 @@ async function twitterSearchHashtag(params) {
     console.log(chalkError("WAS | *** TWITTER_SEARCH_NODE HASHTAG ERROR\n" + jsonPrint(err)));
     throw err;
   }
-
 }
 
 async function twitterSearchNode(params) {
@@ -10246,6 +10236,76 @@ function waitDbConnectionReady(){
   });
 }
 
+const watchOptions = {
+  ignoreDotFiles: true,
+  ignoreUnreadableDir: true,
+  ignoreNotPermitted: true,
+}
+
+async function initWatchConfig(){
+
+  statsObj.status = "INIT WATCH CONFIG";
+
+  console.log(chalkLog(MODULE_ID_PREFIX + " | ... INIT WATCH"));
+
+  const loadConfig = async function(f){
+
+    try{
+
+      console.log(chalkInfo(MODULE_ID_PREFIX + " | +++ FILE CREATED or CHANGED | " + getTimeStamp() + " | " + f));
+
+      if (f.endsWith("wordAssoServerConfig.json")){
+
+        await loadAllConfigFiles();
+
+        const configArgs = Object.keys(configuration);
+
+        for (const arg of configArgs){
+          if (_.isObject(configuration[arg])) {
+            console.log(MODULE_ID_PREFIX + " | _FINAL CONFIG | " + arg + "\n" + jsonPrint(configuration[arg]));
+          }
+          else {
+            console.log(MODULE_ID_PREFIX + " | _FINAL CONFIG | " + arg + ": " + configuration[arg]);
+          }
+        }
+      }
+
+      if (f.endsWith("bestRuntimeNetwork.json")){
+        await loadBestRuntimeNetwork();
+      }
+
+    }
+    catch(err){
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD ALL CONFIGS ON CREATE ERROR: " + err));
+    }
+  }
+
+  watch.createMonitor(configDefaultFolder, watchOptions, function (monitor) {
+
+    monitor.on("created", loadConfig);
+
+    monitor.on("changed", loadConfig);
+
+    monitor.on("removed", function (f) {
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX FILE DELETED | " + getTimeStamp() + " | " + f));
+    });
+  });
+
+  watch.createMonitor(bestNetworkFolder, watchOptions, function (monitor) {
+
+    monitor.on("created", loadConfig);
+
+    monitor.on("changed", loadConfig);
+
+    monitor.on("removed", function (f) {
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX FILE DELETED | " + getTimeStamp() + " | " + f));
+    });
+  });
+
+  return;
+}
+
+
 setTimeout(async function(){
 
   console.log(chalkBlue("WAS | ... WAIT START TIMEOUT: " + msToTime(DEFAULT_START_TIMEOUT)));
@@ -10298,6 +10358,7 @@ setTimeout(async function(){
     await initDbUserChangeStream();
     await initTssChildren();
     await initUpdateUserSetsInterval(configuration.updateUserSetsInterval);
+    await initWatchConfig();
   }
   catch(err){
     console.trace(chalkError("WAS | **** INIT CONFIG ERROR: " + err + "\n" + jsonPrint(err)));

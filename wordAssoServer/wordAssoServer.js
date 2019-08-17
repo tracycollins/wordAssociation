@@ -364,6 +364,8 @@ statsObj.user.uncategorizedAuto = 0;
 statsObj.user.matched = 0;
 statsObj.user.mismatched = 0;
 
+statsObj.user.categoryVerified = 0;
+
 DEFAULT_THREECEE_USERS.forEach(function(threeceeUser){
   statsObj.tssChildren[threeceeUser] = {};
   statsObj.tssChildren[threeceeUser].ready = false;
@@ -3610,7 +3612,7 @@ async function categoryVerified(params) {
     const dbUpdatedUser = await dbUser.save();
 
     printUserObj(
-      "UPDATE DB USER | CAT VERIFIED",
+      "UPDATE DB USER | CAT VERIFIED [" + verifiedCategorizedUsersSet.size + "]",
       dbUpdatedUser, 
       chalkLog
     );
@@ -3893,37 +3895,6 @@ async function initSetFromFile(params){
   }
 }
 
-// async function saveSetToFile(params){
-
-//   statsObj.status = "SAVE SET TO FILE";
-
-//   console.log(chalkBlue("WAS | ... SAVE SET TO FILE: " + params.folder + "/" + params.file));
-
-//   const setObj = {};
-
-//   setObj[params.objArrayKey] = [...params.set];
-
-//   try{
-
-//     await tcUtils.saveFile({
-//       localFlag: true,
-//       folder: params.folder, 
-//       file: params.file, 
-//       obj: setObj
-//     });
-
-//     console.log(chalkLog("WAS | SAVED SET TO FILE"
-//       + " | " + params.folder + "/" + params.file
-//     ));
-
-//     return;
-//   }
-//   catch(err){
-//     console.log(chalkError("WAS | *** SAVE SET TO FILE ERROR: " + err));
-//     throw err;
-//   }
-// }
-
 function updateDbVerifiedUsers(){
 
   return new Promise(function(resolve, reject){
@@ -3933,7 +3904,6 @@ function updateDbVerifiedUsers(){
     console.log(chalkBlue("WAS | ... UPDATING VERIFIED VERIFIED USERS DB" 
     ));
 
-    // for(const screenName of [...verifiedCategorizedUsersSet]){
     async.eachSeries([...verifiedCategorizedUsersSet], async function(screenName){
 
       try {
@@ -3967,7 +3937,7 @@ function updateDbVerifiedUsers(){
         console.log(chalkError("WAS | *** UPDATE VERIFIED USERS DB ERROR: " + err));
         return reject(err);
       }
-      console.log(chalkBlue("WAS | +++ UPDATED VERIFIED VERIFIED USERS DB" 
+      console.log(chalkBlue("WAS | +++ UPDATED VERIFIED USERS DB" 
       ));
       resolve();
     });
@@ -5651,6 +5621,16 @@ function updateUserSets(){
       }
       statsObj.user.ignored = count;
       console.log(chalkBlue("WAS | TOTAL IGNORED USERS IN DB: " + statsObj.user.ignored));
+    });
+
+    userCollection.countDocuments({"categoryVerified": true}, function(err, count){
+      if (err) { 
+        console.log(chalkError("UPDATE USER SETS COUNT CAT VERIFIED ERROR: " + err));
+        calledBack = true;
+        return reject(err);
+      }
+      statsObj.user.categoryVerified = count;
+      console.log(chalkBlue("WAS | TOTAL CAT VERIFIED USERS IN DB: " + statsObj.user.categoryVerified));
     });
 
     userCollection.countDocuments({"following": false}, function(err, count){

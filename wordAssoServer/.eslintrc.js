@@ -10,6 +10,8 @@ module.exports = {
         "sourceType": "module"
     },
     "rules": {
+        "no-control-regex": "off",
+        "no-case-declarations": "off",
         "require-atomic-updates": "off",
         "no-console": "off",
         "accessor-pairs": "error",
@@ -35,7 +37,7 @@ module.exports = {
             "error",
             "last"
         ],
-        "complexity": "error",
+        "complexity": "off",
         "computed-property-spacing": [
             "error",
             "never"
@@ -59,7 +61,7 @@ module.exports = {
         // ],
         "func-style": "off",
         "generator-star-spacing": "error",
-        "global-require": "error",
+        "global-require": "off",
         "guard-for-in": "error",
         "handle-callback-err": "off",
         "id-blacklist": "error",
@@ -75,7 +77,7 @@ module.exports = {
             "unix"
         ],
         "lines-around-comment": "error",
-        "max-depth": "error",
+        "max-depth": "off",
         "max-len": "off",
         "max-lines": "off",
         "max-nested-callbacks": "error",
@@ -83,7 +85,7 @@ module.exports = {
         "max-statements": "off",
         // "max-statements-per-line": "error",
         "multiline-ternary": "off",
-        "new-cap": "error",
+        "new-cap": "off",
         "new-parens": "error",
         "newline-after-var": "off",
         "newline-before-return": "off",

@@ -4619,6 +4619,7 @@ function initSocketHandler(socketObj) {
         + " | SID: " + socket.id
         + " | UID" + updatedUser.nodeId
         + " | @" + updatedUser.screenName
+        + " | C M: " + updatedUser.category + " A: " + updatedUser.categoryAuto
       ));
     }
     catch(err){

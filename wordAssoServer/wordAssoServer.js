@@ -7226,94 +7226,94 @@ function initTfePingInterval(interval){
   }
 }
 
-function unfollowDuplicates(params){
+// function unfollowDuplicates(params){
 
-  console.log(chalk.bold.black("WAS | UNFOLLOW DUPLICATES"
-    + " | " + params.threeceeUser
-  ));
+//   console.log(chalk.bold.black("WAS | UNFOLLOW DUPLICATES"
+//     + " | " + params.threeceeUser
+//   ));
 
-  return new Promise(function(resolve, reject){
+//   return new Promise(function(resolve, reject){
 
-    const threeceeUserTarget = params.threeceeUser;
-    const threeceeUsersArray = Object.keys(threeceeTwitter).sort();
+//     const threeceeUserTarget = params.threeceeUser;
+//     const threeceeUsersArray = Object.keys(threeceeTwitter).sort();
 
-    const unfollowArrarys = {};
+//     const unfollowArrarys = {};
 
-    async.eachSeries(threeceeUsersArray, function(threeceeUserTarget, cb0){
+//     async.eachSeries(threeceeUsersArray, function(threeceeUserTarget, cb0){
 
-      unfollowArrarys[threeceeUserTarget] = [];
+//       unfollowArrarys[threeceeUserTarget] = [];
 
-      if (
-        !threeceeTwitter[threeceeUserTarget].twitterFriends 
-        || empty(threeceeTwitter[threeceeUserTarget]) 
-        || empty(threeceeTwitter[threeceeUserTarget].twitterFriends)
-      ){
-        return cb0();
-      }
+//       if (
+//         !threeceeTwitter[threeceeUserTarget].twitterFriends 
+//         || empty(threeceeTwitter[threeceeUserTarget]) 
+//         || empty(threeceeTwitter[threeceeUserTarget].twitterFriends)
+//       ){
+//         return cb0();
+//       }
 
-      debug(chalkLog("WAS | UNFOLLOW DUPLICATES ARRAY" 
-        + " | 3C TARGET @" + threeceeUserTarget + " | " + threeceeTwitter[threeceeUserTarget].twitterFriends.length + " FRNDs"
-        + " | UNFOLLOW ARRAY: " + unfollowArrarys[threeceeUserTarget].length + " USERS =============="
-      ));
+//       debug(chalkLog("WAS | UNFOLLOW DUPLICATES ARRAY" 
+//         + " | 3C TARGET @" + threeceeUserTarget + " | " + threeceeTwitter[threeceeUserTarget].twitterFriends.length + " FRNDs"
+//         + " | UNFOLLOW ARRAY: " + unfollowArrarys[threeceeUserTarget].length + " USERS =============="
+//       ));
 
-      async.eachSeries(threeceeUsersArray, function(threeceeUserSource, cb1){
-        if (threeceeUserSource < threeceeUserTarget 
-            && (threeceeTwitter[threeceeUserTarget].twitterFriends !== undefined)
-            && (threeceeTwitter[threeceeUserSource].twitterFriends !== undefined)
-          ) { // altthreecee00 < altthreecee01
+//       async.eachSeries(threeceeUsersArray, function(threeceeUserSource, cb1){
+//         if (threeceeUserSource < threeceeUserTarget 
+//             && (threeceeTwitter[threeceeUserTarget].twitterFriends !== undefined)
+//             && (threeceeTwitter[threeceeUserSource].twitterFriends !== undefined)
+//           ) { // altthreecee00 < altthreecee01
 
-          unfollowArrarys[threeceeUserTarget] = _.concat(unfollowArrarys[threeceeUserTarget], _.intersection(threeceeTwitter[threeceeUserTarget].twitterFriends, threeceeTwitter[threeceeUserSource].twitterFriends));
-          unfollowArrarys[threeceeUserTarget] = _.concat(unfollowArrarys[threeceeUserTarget], _.intersection(threeceeTwitter[threeceeUserTarget].twitterFriends, [...unfollowableUserSet]));
+//           unfollowArrarys[threeceeUserTarget] = _.concat(unfollowArrarys[threeceeUserTarget], _.intersection(threeceeTwitter[threeceeUserTarget].twitterFriends, threeceeTwitter[threeceeUserSource].twitterFriends));
+//           unfollowArrarys[threeceeUserTarget] = _.concat(unfollowArrarys[threeceeUserTarget], _.intersection(threeceeTwitter[threeceeUserTarget].twitterFriends, [...unfollowableUserSet]));
 
-          debug(chalkLog("WAS | UNFOLLOW DUPLICATES ARRAY" 
-            + " | 3C TARGET @" + threeceeUserTarget + " | " + threeceeTwitter[threeceeUserTarget].twitterFriends.length + " FRNDs"
-            + " | 3C SOURCE @" + threeceeUserSource + " | " + threeceeTwitter[threeceeUserSource].twitterFriends.length + " FRNDs"
-            + " | UNFOLLOW ARRAY: " + unfollowArrarys[threeceeUserTarget].length + " USERS"
-          ));
+//           debug(chalkLog("WAS | UNFOLLOW DUPLICATES ARRAY" 
+//             + " | 3C TARGET @" + threeceeUserTarget + " | " + threeceeTwitter[threeceeUserTarget].twitterFriends.length + " FRNDs"
+//             + " | 3C SOURCE @" + threeceeUserSource + " | " + threeceeTwitter[threeceeUserSource].twitterFriends.length + " FRNDs"
+//             + " | UNFOLLOW ARRAY: " + unfollowArrarys[threeceeUserTarget].length + " USERS"
+//           ));
 
-          return cb1();
-        }
+//           return cb1();
+//         }
 
-        cb1();
+//         cb1();
 
-      }, function(err1){
+//       }, function(err1){
 
-        if (err1) {
-          console.log(chalkError("WAS | *** UNFOLLOW DUPLICATES ERROR: " + err1));
-          return cb0();
-        }
+//         if (err1) {
+//           console.log(chalkError("WAS | *** UNFOLLOW DUPLICATES ERROR: " + err1));
+//           return cb0();
+//         }
 
-        console.log(chalkLog("WAS | UNFOLLOW DUPLICATES ARRAY" 
-          + " | 3C TARGET @" + threeceeUserTarget + " | " + threeceeTwitter[threeceeUserTarget].twitterFriends.length + " FRNDs"
-          + " | UNFOLLOW ARRAY: " + unfollowArrarys[threeceeUserTarget].length + " USERS"
-        ));
+//         console.log(chalkLog("WAS | UNFOLLOW DUPLICATES ARRAY" 
+//           + " | 3C TARGET @" + threeceeUserTarget + " | " + threeceeTwitter[threeceeUserTarget].twitterFriends.length + " FRNDs"
+//           + " | UNFOLLOW ARRAY: " + unfollowArrarys[threeceeUserTarget].length + " USERS"
+//         ));
 
-        if (unfollowArrarys[threeceeUserTarget].length > 0) {
-          tssChildren[threeceeUserTarget].child.send({op: "UNFOLLOW_ID_ARRAY", userArray: unfollowArrarys[threeceeUserTarget]});
-        }
+//         if (unfollowArrarys[threeceeUserTarget].length > 0) {
+//           tssChildren[threeceeUserTarget].child.send({op: "UNFOLLOW_ID_ARRAY", userArray: unfollowArrarys[threeceeUserTarget]});
+//         }
 
-        cb0();
+//         cb0();
 
-      });
+//       });
 
-    }, function(err){
+//     }, function(err){
 
-      if (err) {
-        console.log(chalkError("WAS | *** UNFOLLOW DUPLICATES ERROR: " + err
-          + " | 3C USER TARGET: " + threeceeUserTarget
-          // + " | 3C USER SOURCE: " + threeceeUserSource
-          + " | NOW: " + getTimeStamp()
-          + " | PING ID: " + getTimeStamp(tfePingId)
-          + " | ELAPSED: " + msToTime(moment().valueOf() - tfePingId)
-        ));
-        return reject(err);
-      }
+//       if (err) {
+//         console.log(chalkError("WAS | *** UNFOLLOW DUPLICATES ERROR: " + err
+//           + " | 3C USER TARGET: " + threeceeUserTarget
+//           // + " | 3C USER SOURCE: " + threeceeUserSource
+//           + " | NOW: " + getTimeStamp()
+//           + " | PING ID: " + getTimeStamp(tfePingId)
+//           + " | ELAPSED: " + msToTime(moment().valueOf() - tfePingId)
+//         ));
+//         return reject(err);
+//       }
 
-      resolve(unfollowArrarys);
+//       resolve(unfollowArrarys);
 
-    });
-  });
-}
+//     });
+//   });
+// }
 
 function initTssChild(params){
 
@@ -7434,15 +7434,15 @@ function initTssChild(params){
             threeceeTwitter[m.threeceeUser].twitterConfig = m.twitterConfig;
           }
 
-          try{
-            childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});
-          }
-          catch(err){
-            console.log(chalkError("WAS | <TSS | *** UNFOLLOW DUPLICATES ERROR"
-              + " | 3C @" + m.threeceeUser
-              + " | ERR: " + err
-            ));
-          }
+          // try{
+          //   childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});
+          // }
+          // catch(err){
+          //   console.log(chalkError("WAS | <TSS | *** UNFOLLOW DUPLICATES ERROR"
+          //     + " | 3C @" + m.threeceeUser
+          //     + " | ERR: " + err
+          //   ));
+          // }
 
         break;
 
@@ -7458,22 +7458,19 @@ function initTssChild(params){
           threeceeTwitter[m.threeceeUser].twitterFriends = m.twitterFriends;
           threeceeTwitter[m.threeceeUser].twitterFollowLimit = true;
 
-          try{
-            childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});
-          }
-          catch(err){
-            console.log(chalkError("WAS | <TSS | *** UNFOLLOW DUPLICATES ERROR"
-              + " | 3C @" + m.threeceeUser
-              + " | ERR: " + err
-            ));
-          }
+          // try{
+          //   childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});
+          // }
+          // catch(err){
+          //   console.log(chalkError("WAS | <TSS | *** UNFOLLOW DUPLICATES ERROR"
+          //     + " | 3C @" + m.threeceeUser
+          //     + " | ERR: " + err
+          //   ));
+          // }
 
         break;
 
         case "TWEET":
-          // deltaTssMessage = process.hrtime(deltaTssMessageStart);
-          // if (deltaTssMessage[0] > 0) { console.log(chalkAlert("WAS | *** TSS RX DELTA: " + deltaTssMessage[0] + "." + deltaTssMessage[1])); }
-          // deltaTssMessageStart = process.hrtime();
           if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + m.tweet.id_str + " | @" + m.tweet.user.screen_name)); }
           socketRxTweet(m.tweet);
         break;
@@ -7673,15 +7670,15 @@ async function initTfeChild(params){
         threeceeHashMap[m.threeceeUser].twitterFollowing = m.twitterFollowing;
         threeceeHashMap[m.threeceeUser].twitterFriends = m.twitterFriends;
 
-        try{
-          childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});
-        }
-        catch(err){
-          console.log(chalkError("WAS | <TSS | *** UNFOLLOW DUPLICATES ERROR"
-            + " | 3C @" + m.threeceeUser
-            + " | ERR: " + err
-          ));
-        }
+        // try{
+        //   childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});
+        // }
+        // catch(err){
+        //   console.log(chalkError("WAS | <TSS | *** UNFOLLOW DUPLICATES ERROR"
+        //     + " | 3C @" + m.threeceeUser
+        //     + " | ERR: " + err
+        //   ));
+        // }
       break;
 
       case "FOLLOW_LIMIT":

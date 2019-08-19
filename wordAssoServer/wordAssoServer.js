@@ -951,7 +951,6 @@ const DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKE
 const DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY;
 const DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
 
-
 const configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/default");
 const configHostFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility",hostname);
 
@@ -10259,6 +10258,10 @@ async function initWatchConfig(){
 
       if (f.endsWith("bestRuntimeNetwork.json")){
         await loadBestRuntimeNetwork();
+      }
+
+      if (f.endsWith(followableSearchTermFile)){
+        await initFollowableSearchTermSet();
       }
 
     }

@@ -4,8 +4,6 @@
 const MODULE_ID_PREFIX = "TSS";
 
 const ignoredHashtagFile = "ignoredHashtag.txt";
-// const ignoredUserFile = "ignoredUser.json";
-// const unfollowableUserFile = "unfollowableUser.json";
 const followableSearchTermFile = "followableSearchTerm.txt";
 const ignoreLocationsFile = "ignoreLocations.txt";
 const allowLocationsFile = "allowLocations.txt";
@@ -16,11 +14,12 @@ const DEFAULT_TWITTER_QUEUE_INTERVAL = 10;
 const TWEET_ID_CACHE_DEFAULT_TTL = 20;
 const TWEET_ID_CACHE_CHECK_PERIOD = 5;
 
-// const TWITTER_MAX_TRACKING_NUMBER = process.env.TWITTER_MAX_TRACKING_NUMBER || 400;
 const TWITTER_MAX_TRACKING_NUMBER = 400;
 
 const ONE_SECOND = 1000;
 const ONE_MINUTE = ONE_SECOND*60;
+
+const DEFAULT_SEARCH_TERM_UPDATE_INTERVAL = 15*ONE_MINUTE;
 
 const defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
@@ -157,7 +156,7 @@ configuration.verbose = false;
 configuration.forceFollow = false;
 configuration.globalTestMode = false;
 configuration.testMode = false; // per tweet test mode
-configuration.searchTermsUpdateInterval = Number(ONE_MINUTE);
+configuration.searchTermsUpdateInterval = DEFAULT_SEARCH_TERM_UPDATE_INTERVAL;
 configuration.followQueueIntervalTime = 5*ONE_SECOND;
 configuration.ignoreQueueInterval = 15 * ONE_SECOND;
 configuration.maxTweetQueue = DEFAULT_MAX_TWEET_QUEUE;
@@ -1158,7 +1157,7 @@ function initSearchStream(){
     try {
 
       if (threeceeUserObj.searchStream) {
-        console.log(chalkAlert("TSS | RESTARTING TWITTER SEARCH STREAM"));
+        console.log(chalkAlert("TSS | !!! RESTARTING TWITTER SEARCH STREAM"));
         threeceeUserObj.searchStream.stop();
       }
 
@@ -1735,6 +1734,22 @@ async function initFollowableSearchTermSet(){
   }
 }
 
+let searchTermsUpdateInterval;
+
+async function initSearchTermsUpdateInterval(){
+
+  clearInterval(searchTermsUpdateInterval);
+
+  const interval = configuration.searchTermsUpdateInterval || DEFAULT_SEARCH_TERM_UPDATE_INTERVAL;
+
+  searchTermsUpdateInterval = setInterval(async function(){
+    console.log(chalkInfo("TSS | ... SEARCH TERM UPDATE | INTERVAL: " + msToTime(interval)));
+    await initSearchTerms(configuration);
+    await initSearchStream();
+
+  }, interval);
+}
+
 const watchOptions = {
   ignoreDotFiles: true,
   ignoreUnreadableDir: true,
@@ -1755,6 +1770,8 @@ async function initWatchConfig(){
 
       if (f.endsWith(followableSearchTermFile)){
         await initFollowableSearchTermSet();
+        await initSearchTerms(configuration);
+        await initSearchStream();
       }
 
       if (f.endsWith(allowLocationsFile)){
@@ -2304,9 +2321,11 @@ process.on("message", async function(m) {
               }
 
               try{
-                const status = await initSearchTerms(configuration);
+
+                await initSearchTerms(configuration);
+                await initSearchStream();
+
                 console.log(chalkInfo("TSS | INIT SEARCH TERMS COMPLETE | 3C @" + threeceeUserObj.screenName));
-                debug("initSearchTerms status\n" + jsonPrint(status));
 
                 if (!twitterSearchInit) { 
                   await initTwitterSearch(configuration);
@@ -2415,9 +2434,11 @@ process.on("message", async function(m) {
       console.log(chalkLog("TSS | UPDATE SEARCH TERMS"));
 
       try{
-        const status = await initSearchTerms(configuration);
+
+        await initSearchTerms(configuration);
+        await initSearchStream();
+
         console.log(chalkInfo("TSS | INIT SEARCH TERMS COMPLETE | 3C @" + threeceeUserObj.screenName));
-        debug("initSearchTerms status\n" + jsonPrint(status));
 
         if (!twitterSearchInit) { await initTwitterSearch(configuration); }
 
@@ -2492,6 +2513,7 @@ setTimeout(async function(){
     if (dbConnectionReady) {
       clearInterval(dbConnectionReadyInterval);
       await initWatchConfig();
+      await initSearchTermsUpdateInterval();
       // await initStatsUpdate(configuration);
     }
     else {

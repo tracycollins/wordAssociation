@@ -2915,8 +2915,6 @@ function twitterUsersShow(){
       statsObj.threeceeUser.fetchCount = configuration.fetchCount;
       statsObj.threeceeUser.tweetFetchCount = configuration.tweetFetchCount;
 
-      // process.send({op: "THREECEE_USER", childId: configuration.childId, threeceeUser: omit(statsObj.threeceeUser, ["friends"])});
-
       resolve();
 
     });

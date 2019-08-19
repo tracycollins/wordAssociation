@@ -1485,7 +1485,7 @@ async function analyzeLanguage(params){
     return sentimentHistogram;
   }
   catch(err){
-    console.log(chalkError("*** LANGUAGE ANALYZER ERROR", err));
+    console.log(chalkError("TFC | *** LANGUAGE ANALYZER ERROR: " + err));
     statsObj.analyzer.errors += 1;
     statsObj.analyzer.total += 1;
     throw err;
@@ -1566,7 +1566,7 @@ async function userLanguageSentiment(params){
       else {
         console.error(chalkError(MODULE_ID_PREFIX + " | *** userLanguageSentiment LANGUAGE TEXT ERROR"
           + " | " + err
-          + "\n" + jsonPrint(err)
+          // + "\n" + jsonPrint(err)
         ));
       }
       throw err;

@@ -2517,7 +2517,7 @@ async function initProcessUserQueueInterval(interval) {
         const u = await global.globalUser.findOne({nodeId: userQueueObj.nodeId}).exec();
 
         if (!u) {
-          console.log(chalkAlert(MODULE_ID_PREFIX + " | ??? USER NOT FOUND IN DB"
+          console.log(chalkLog(MODULE_ID_PREFIX + " | ??? USER DB MISS ... SKIP PROCESS"
             + " | NID: " + userQueueObj.nodeId
             + " | @" + userQueueObj.screenName
           ));

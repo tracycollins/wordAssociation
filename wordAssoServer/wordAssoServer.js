@@ -389,10 +389,8 @@ configuration.forceImageAnalysis = DEFAULT_FORCE_IMAGE_ANALYSIS;
 configuration.geoCodeEnabled = DEFAULT_GEOCODE_ENABLED;
 
 configuration.threeceeUser = DEFAULT_TWITTER_THREECEE_USER;
-
 configuration.threeceeInfoUsersArray = DEFAULT_THREECEE_INFO_USERS;
 
-// configuration.dropboxListFolderLimit = DEFAULT_DROPBOX_LIST_FOLDER_LIMIT;
 configuration.dropboxWebhookChangeTimeout = DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT;
 
 configuration.tweetParserMessageRxQueueInterval = DEFAULT_TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL;
@@ -2701,27 +2699,27 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
       });
     },
     
-    unfollowableInit: function(cb){
+    // unfollowableInit: function(cb){
 
-      initUnfollowableUserSet().
-      then(function(){
-        cb();
-      }).
-      catch(function(err){
-        return cb(err);
-      });
-    },
+    //   initUnfollowableUserSet().
+    //   then(function(){
+    //     cb();
+    //   }).
+    //   catch(function(err){
+    //     return cb(err);
+    //   });
+    // },
     
-    ignoredUserInit: function(cb){
+    // ignoredUserInit: function(cb){
 
-      initIgnoredUserSet().
-      then(function(){
-        cb();
-      }).
-      catch(function(err){
-        return cb(err);
-      });
-    },
+    //   initIgnoredUserSet().
+    //   then(function(){
+    //     cb();
+    //   }).
+    //   catch(function(err){
+    //     return cb(err);
+    //   });
+    // },
     
     ignoredHashtagInit: function(cb){
 
@@ -5594,7 +5592,6 @@ function updateUserSets(){
   return new Promise(function(resolve, reject){
 
     let calledBack = false;
-    // let categorizeable = false;
 
     if (!statsObj.dbConnectionReady) {
       console.log(chalkAlert("WAS | ABORT updateUserSets: DB CONNECTION NOT READY"));
@@ -5721,8 +5718,8 @@ function updateUserSets(){
 
       if (user.lang && (user.lang !== undefined) && (user.lang !== "en")){
 
-        ignoredUserSet.add(user.nodeId);
-        unfollowableUserSet.add(user.nodeId);
+        // ignoredUserSet.add(user.nodeId);
+        // unfollowableUserSet.add(user.nodeId);
 
         global.globalUser.deleteOne({"nodeId": user.nodeId}, function(err){
           if (err) {
@@ -10295,7 +10292,6 @@ async function initWatchConfig(){
   return;
 }
 
-
 setTimeout(async function(){
 
   console.log(chalkBlue("WAS | ... WAIT START TIMEOUT: " + msToTime(DEFAULT_START_TIMEOUT)));
@@ -10312,8 +10308,6 @@ setTimeout(async function(){
     console.log("WAS | " + chalkTwitter(configuration.processName + " STARTED " + getTimeStamp() ));
 
     statsObj.status = "START";
-
-    // await initTwitterConfig({threeceeUser: "altthreecee00"});
 
     console.log(chalkTwitter("WAS" 
       + " | " + configuration.processName 

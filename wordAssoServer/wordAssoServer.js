@@ -114,7 +114,7 @@ const DEFAULT_TWITTER_THREECEE_USER = "altthreecee00";
 const DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT = Number(ONE_SECOND);
 
 const DEFAULT_INTERVAL = 5;
-const DEFAULT_MIN_FOLLOWERS_AUTO = 10000;
+const DEFAULT_MIN_FOLLOWERS_AUTO = 5000;
 
 const DEFAULT_TWEET_PARSER_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_SORTER_INTERVAL = DEFAULT_INTERVAL;
@@ -5394,34 +5394,34 @@ async function userCategorizeable(user){
   }
 
   if (user.following && (user.following !== undefined)) { 
-    categorizeableUserSet.add(user.nodeId);
-    ignoredUserSet.delete(user.nodeId);
+    // categorizeableUserSet.add(user.nodeId);
+    // ignoredUserSet.delete(user.nodeId);
     unfollowableUserSet.delete(user.nodeId);
     return true; 
   }
 
   if (user.ignored && (user.ignored !== undefined)) { 
     ignoredUserSet.add(user.nodeId);
-    unfollowableUserSet.add(user.nodeId);
-    categorizeableUserSet.delete(user.nodeId);
+    // unfollowableUserSet.add(user.nodeId);
+    // categorizeableUserSet.delete(user.nodeId);
     return false; 
   }
 
   if (ignoredUserSet.has(user.nodeId) || ignoredUserSet.has(user.screenName.toLowerCase())) { 
-    unfollowableUserSet.add(user.nodeId);
-    categorizeableUserSet.delete(user.nodeId);
+    // unfollowableUserSet.add(user.nodeId);
+    // categorizeableUserSet.delete(user.nodeId);
     return false; 
   }
 
   if (unfollowableUserSet.has(user.nodeId)) { 
-    ignoredUserSet.add(user.nodeId);
-    categorizeableUserSet.delete(user.nodeId);
+    // ignoredUserSet.add(user.nodeId);
+    // categorizeableUserSet.delete(user.nodeId);
     return false;
   }
 
   if (user.lang && (user.lang !== undefined) && (user.lang !== "en")) { 
-    ignoredUserSet.add(user.nodeId);
-    unfollowableUserSet.add(user.nodeId);
+    // ignoredUserSet.add(user.nodeId);
+    // unfollowableUserSet.add(user.nodeId);
     categorizeableUserSet.delete(user.nodeId);
     if (configuration.verbose) { 
       console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LANG NOT ENGLISH: " + user.lang));
@@ -5436,7 +5436,7 @@ async function userCategorizeable(user){
     && !allowLocationsRegEx.test(user.location)
     && ignoreLocationsRegEx.test(user.location)){
     
-    unfollowableUserSet.add(user.nodeId);
+    // unfollowableUserSet.add(user.nodeId);
     ignoredUserSet.add(user.nodeId);
 
     return false;
@@ -5444,7 +5444,7 @@ async function userCategorizeable(user){
   
   if (user.followersCount && (user.followersCount !== undefined) && (user.followersCount < configuration.minFollowersAuto)) { 
     unfollowableUserSet.add(user.nodeId);
-    categorizeableUserSet.add(user.nodeId);
+    // categorizeableUserSet.delete(user.nodeId);
     return false;
   }
 
@@ -5458,6 +5458,8 @@ async function userCategorizeable(user){
 
     if (hitSearchTerm) { 
       categorizeableUserSet.add(user.nodeId);
+      ignoredUserSet.delete(user.nodeId);
+      unfollowableUserSet.delete(user.nodeId);
       return true; 
     }
 
@@ -5465,6 +5467,8 @@ async function userCategorizeable(user){
 
     if (hitSearchTerm) { 
       categorizeableUserSet.add(user.nodeId);
+      ignoredUserSet.delete(user.nodeId);
+      unfollowableUserSet.delete(user.nodeId);
       return true; 
     }
 
@@ -5472,12 +5476,20 @@ async function userCategorizeable(user){
 
     if (hitSearchTerm) { 
       categorizeableUserSet.add(user.nodeId);
+      ignoredUserSet.delete(user.nodeId);
+      unfollowableUserSet.delete(user.nodeId);
       return true; 
     }
 
+    // ignoredUserSet.add(user.nodeId);
+    // unfollowableUserSet.add(user.nodeId);
+    categorizeableUserSet.delete(user.nodeId);
     return false;
   }
 
+  // ignoredUserSet.add(user.nodeId);
+  // unfollowableUserSet.add(user.nodeId);
+  categorizeableUserSet.delete(user.nodeId);
   return false;
 }
 

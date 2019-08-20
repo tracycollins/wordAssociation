@@ -776,7 +776,7 @@ function initFollowUserIdSet(){
 
         const threeceeFollowingInHashMap = followingUserIdHashMap.get(userId);
 
-        if (threeceeFollowingInHashMap !== threeceeUserObj.screenName) {
+        if (threeceeFollowingInHashMap != threeceeUserObj.screenName) {
 
           console.log(chalkLog("TSS | !!! TWITTER USER FOLLOW MISMATCH"
             + " | UID: " + userId
@@ -1422,7 +1422,7 @@ function initSearchStream(){
 
         if (tweetStatus.user.lang 
           && (tweetStatus.user.lang !== undefined) 
-          && (tweetStatus.user.lang !== "en")) 
+          && (tweetStatus.user.lang != "en")) 
         { 
           if (configuration.verbose) {
             console.log(chalkLog("TSS | XXX IGNORE LANG | SKIPPING"
@@ -1922,7 +1922,7 @@ function initTwitterQueue(cnf, callback){
       tweetStatus = tweetQueue.shift();
       statsObj.queues.tweetQueue.size = tweetQueue.length;
 
-      if (tweetStatus.id_str !== prevTweetId) {
+      if (tweetStatus.id_str != prevTweetId) {
 
         debug(chalkTwitter("TSS [" + tweetQueue.length + "] " + tweetStatus.id_str));
 
@@ -2142,7 +2142,7 @@ process.on("message", async function(m) {
 
     case "USER_AUTHENTICATED":
 
-      if (m.user.screenName !== threeceeUserObj.screenName) {
+      if (m.user.screenName != threeceeUserObj.screenName) {
         console.log(chalkInfo("TSS | USER_AUTHENTICATED | USER MISS"
           + " | CHILD 3C @" + threeceeUserObj.screenName
           + " | AUTH USER @" + m.user.screenName
@@ -2235,7 +2235,7 @@ process.on("message", async function(m) {
 
                 const threeceeFollowingInHashMap = followingUserIdHashMap.get(userId);
 
-                if (threeceeFollowingInHashMap !== threeceeUserObj.screenName) {
+                if (threeceeFollowingInHashMap != threeceeUserObj.screenName) {
 
                   console.log(chalkLog("TSS | !!! TWITTER USER FOLLOW MISMATCH"
                     + " | UID: " + userId
@@ -2490,7 +2490,7 @@ setTimeout(async function(){
     configuration = await initialize(configuration);
   }
   catch(err){
-    if (err.status !== 404) {
+    if (err.status != 404) {
       console.error(chalkError("TSS | *** INIT ERROR\n" + jsonPrint(err)));
       quit();
     }

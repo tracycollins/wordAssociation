@@ -9204,7 +9204,7 @@ function initCategoryHashmaps(){
         let totalMismatched = 0;
         let totalMatchRate = 0;
 
-        console.log(chalkInfo("WAS | LOADING CATEGORIZED HASHTAGS FROM DB ..."));
+        console.log(chalkLog("WAS | ... LOADING CATEGORIZED HASHTAGS FROM DB"));
 
         async.whilst(
 

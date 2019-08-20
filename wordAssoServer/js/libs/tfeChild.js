@@ -2717,22 +2717,23 @@ async function generateAutoCategory(params) {
 
     const networkOutput = await nnTools.activateSingleNetwork({user: user});
 
-    statsObj.autoChangeTotal += 1;
     let text;
     let chalkVar;
 
-    if (networkOutput.categoryAuto == user.category) {
+    if (user.category && (networkOutput.categoryAuto == user.category)) {
+      statsObj.autoChangeTotal += 1;
       statsObj.autoChangeMatch += 1;
+      statsObj.autoChangeMatchRate = 100*(statsObj.autoChangeMatch/statsObj.autoChangeTotal);
       text = MODULE_ID_PREFIX + " | +++ CAT AUTO MATCH   ";
       chalkVar = chalk.green;
     }
-    else {
+    else if (user.category) {
+      statsObj.autoChangeTotal += 1;
       statsObj.autoChangeMismatch += 1;
+      statsObj.autoChangeMatchRate = 100*(statsObj.autoChangeMatch/statsObj.autoChangeTotal);
       text = MODULE_ID_PREFIX + " | --- CAT AUTO MISMATCH";
       chalkVar = chalk.yellow;
     }
-
-    statsObj.autoChangeMatchRate = 100*(statsObj.autoChangeMatch/statsObj.autoChangeTotal);
 
     if (configuration.verbose || (user.categoryAuto != networkOutput.categoryAuto)) {
       console.log(chalkVar(text

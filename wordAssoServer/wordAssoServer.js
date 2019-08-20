@@ -3106,8 +3106,8 @@ function categorizeNode(categorizeObj, callback) {
     const user = authenticatedTwitterUserCache.get(categorizeObj.twitterUser.nodeId);
 
     if (!user 
-      && (categorizeObj.twitterUser.nodeId !== "14607119") 
-      && (categorizeObj.twitterUser.nodeId !== "848591649575927810")) 
+      && (categorizeObj.twitterUser.nodeId != "14607119") 
+      && (categorizeObj.twitterUser.nodeId != "848591649575927810")) 
     {
       console.log(chalkAlert("WAS | *** AUTH USER NOT IN CACHE\n" + jsonPrint(categorizeObj.twitterUser)));
 
@@ -5386,7 +5386,7 @@ let hitSearchTerm = false;
 
 async function userCategorizeable(user){
 
-  if (user.nodeType !== "user") { 
+  if (user.nodeType != "user") { 
     return false; 
   }
 
@@ -5416,7 +5416,7 @@ async function userCategorizeable(user){
     return false;
   }
 
-  if (user.lang && (user.lang !== undefined) && (user.lang !== "en")) { 
+  if (user.lang && (user.lang !== undefined) && (user.lang != "en")) { 
     // ignoredUserSet.add(user.nodeId);
     // unfollowableUserSet.add(user.nodeId);
     categorizeableUserSet.delete(user.nodeId);
@@ -5715,7 +5715,7 @@ function updateUserSets(){
 
     userSearchCursor.on("data", async function(user) {
 
-      if (user.lang && (user.lang !== undefined) && (user.lang !== "en")){
+      if (user.lang && (user.lang !== undefined) && (user.lang != "en")){
 
         // ignoredUserSet.add(user.nodeId);
         // unfollowableUserSet.add(user.nodeId);
@@ -5879,7 +5879,7 @@ function updateUserSets(){
           && (!user.category || (user.category === undefined))
           && (!user.ignored || (user.ignored === undefined))
           && (user.following || (user.followersCount >= configuration.minFollowersAuto)) 
-          && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && user.categoryAuto && (user.categoryAuto !== "right")))
+          && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && user.categoryAuto && (user.categoryAuto != "right")))
           && !ignoredUserSet.has(user.nodeId) 
           && !ignoredUserSet.has(user.screenName.toLowerCase()) 
           && !uncategorizedManualUserSet.has(user.nodeId) 
@@ -6089,14 +6089,14 @@ function initTransmitNodeQueueInterval(interval){
  
         if (categorizeable) {
 
-          if (n.nodeType !== "user"){
+          if (n.nodeType != "user"){
             console.log(chalkError("WAS | *** CATEGORIZED NOT USER: CAT: " + categorizeable + " | TYPE: " + n.nodeType));
           }
 
           if (!uncategorizedManualUserSet.has(n.nodeId) 
             && (!n.category || (n.category === undefined))
             && (!n.ignored || (n.ignored === undefined))
-            && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && n.categoryAuto && (n.categoryAuto !== "right")))
+            && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && n.categoryAuto && (n.categoryAuto != "right")))
             && !ignoredUserSet.has(n.nodeId) 
             && !ignoredUserSet.has(n.screenName.toLowerCase()) 
             && (n.followersCount >= configuration.minFollowersAuto) 
@@ -6693,7 +6693,7 @@ function testInternetConnection(params, callback) {
   testClient.on("error", function testError(err) {
 
     if (err) {
-      if (err.code !== "ENOTFOUND") {
+      if (err.code != "ENOTFOUND") {
         console.log(chalkError("WAS | testClient ERROR " + jsonPrint(err)));
       }
     }
@@ -6750,7 +6750,7 @@ function initTwitterRxQueueInterval(interval){
 
     let tweet = {};
 
-    if (typeof interval !== "number") {
+    if (typeof interval != "number") {
       return reject(new Error("initTwitterRxQueueInterval interval NOT a NUMBER: " + interval));
     }
 
@@ -6779,7 +6779,7 @@ let tweetParserMessageRxQueueInterval;
 
 async function initTweetParserMessageRxQueueInterval(interval){
 
-  if (typeof interval !== "number") {
+  if (typeof interval != "number") {
     throw new Error("initTweetParserMessageRxQueueInterval interval NOT a NUMBER: " + interval);
   }
 
@@ -8381,7 +8381,7 @@ async function loadBestRuntimeNetwork(p){
 
           statsObj.bestNetwork = pick(bestNetworkObj, statsBestNetworkPickArray);
 
-          if (statsObj.previousBestNetworkId !== bestNetworkObj.networkId) {
+          if (statsObj.previousBestNetworkId != bestNetworkObj.networkId) {
             console.log(chalk.green.bold("WAS | >>> BEST NETWORK CHANGE"
               + " | PREV: " + statsObj.previousBestNetworkId
               + " > NEW: " + bestNetworkObj.networkId
@@ -8416,7 +8416,7 @@ async function loadBestRuntimeNetwork(p){
     
     statsObj.bestNetwork = pick(bestNetworkObj, statsBestNetworkPickArray);
 
-    if (statsObj.previousBestNetworkId !== bestNetworkObj.networkId) {
+    if (statsObj.previousBestNetworkId != bestNetworkObj.networkId) {
       console.log(chalk.green.bold("WAS | >>> BEST NETWORK CHANGE"
         + " | PREV: " + statsObj.previousBestNetworkId
         + " > NEW: " + bestNetworkObj.networkId
@@ -9209,7 +9209,6 @@ function initCategoryHashmaps(){
         async.whilst(
 
           function test(cbTest) {
-            // cbTest(null, statsObj.dbConnectionReady && more);
             cbTest(null, more);
           },
 
@@ -9800,7 +9799,7 @@ function getNextMismatchedUser(params){
           if ( user 
             && user.category 
             && (user.category !== undefined) 
-            && (user.category !== "none")
+            && (user.category != "none")
             && user.categoryVerified
             && (params.searchUserArray.length > 0)
           ){
@@ -9815,7 +9814,7 @@ function getNextMismatchedUser(params){
           if ( user 
             && user.category 
             && (user.category !== undefined) 
-            && (user.category !== "none")
+            && (user.category != "none")
             && (user.category === user.categoryAuto) 
             && (params.searchUserArray.length > 0)
             )
@@ -10349,7 +10348,7 @@ setTimeout(async function(){
   }
   catch(err){
     console.trace(chalkError("WAS | **** INIT CONFIG ERROR: " + err + "\n" + jsonPrint(err)));
-    if (err.code !== 404) {
+    if (err.code != 404) {
       console.log("WAS | *** INIT CONFIG ERROR | err.code: " + err.code);
       quit();
     }

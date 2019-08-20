@@ -26,7 +26,7 @@ hostname = hostname.replace(/word/g, "google");
 
 let DROPBOX_ROOT_FOLDER;
 
-if (hostname === "google") {
+if (hostname == "google") {
   DROPBOX_ROOT_FOLDER = "/home/tc/Dropbox/Apps/wordAssociation";
 }
 else {
@@ -455,10 +455,10 @@ if (process.env.MIN_FOLLOWERS_AUTO !== undefined) {
 }
 
 if (process.env.NODE_METER_ENABLED !== undefined) {
-  if (process.env.NODE_METER_ENABLED === "true") {
+  if (process.env.NODE_METER_ENABLED == "true") {
     configuration.metrics.nodeMeterEnabled = true;
   }
-  else if (process.env.NODE_METER_ENABLED === "false") {
+  else if (process.env.NODE_METER_ENABLED == "false") {
     configuration.metrics.nodeMeterEnabled = false;
   }
   else {
@@ -727,7 +727,7 @@ let ignoredUserSet = new Set();
 let ignoredHashtagSet = new Set();
 
 process.title = "node_wordAssoServer";
-console.log(chalkBlue("\n\nWAS | ============== START ==============\n\n"));
+console.log(chalkBlue("\n\nWAS | ============= START ==============\n\n"));
 
 console.log(chalkBlue("WAS | PROCESS PID:   " + process.pid));
 console.log(chalkBlue("WAS | PROCESS TITLE: " + process.title));
@@ -2092,7 +2092,7 @@ async function loadMaxInputHashMap(p){
     return;
   }
   catch(err){
-    if (err.code === "ENOTFOUND") {
+    if (err.code == "ENOTFOUND") {
       console.log(chalkError("WAS | *** LOAD MAX INPUT: FILE NOT FOUND"
         + " | " + params.folder + "/" + params.file
       ));
@@ -2237,7 +2237,7 @@ function getChildProcesses(){
 
     const childPidFileNameArray = shell.ls(DEFAULT_CHILD_ID_PREFIX + "*");
 
-    if (!childPidFileNameArray || childPidFileNameArray.length === 0) {
+    if (!childPidFileNameArray || childPidFileNameArray.length == 0) {
       return resolve(childPidArray);
     }
 
@@ -2265,7 +2265,7 @@ function getChildProcesses(){
         debug("CHILD HM MISS | ID: " + childId + " | PID: " + childPid + " | STATUS: UNKNOWN");
       }
 
-      if ((childrenHashMap[childId] !== undefined) && (childrenHashMap[childId].pid === childPid)) {
+      if ((childrenHashMap[childId] !== undefined) && (childrenHashMap[childId].pid == childPid)) {
         // cool kid
         childPidArray.push({ pid: childPid, childId: childId});
 
@@ -2386,7 +2386,7 @@ process.on("exit", async function processExit() {
 
 process.on("message", async function processMessageRx(msg) {
 
-  if ((msg === "SIGINT") || (msg === "shutdown")) {
+  if ((msg == "SIGINT") || (msg == "shutdown")) {
 
     console.log(chalkAlert("\nWAS | =============================\nWAS"
       + " | *** SHUTDOWN OR SIGINT ***\nWAS | =============================\n"
@@ -2526,7 +2526,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
 
       debug(chalkError("WAS | *** HTTP ERROR | " + getTimeStamp() + "\n" + err));
 
-      if (err.code === "EADDRINUSE") {
+      if (err.code == "EADDRINUSE") {
 
         debug(chalkError("WAS | *** HTTP ADDRESS IN USE: " + config.port + " ... RETRYING..."));
 
@@ -2648,11 +2648,11 @@ configEvents.on("INTERNET_READY", function internetReady() {
         viewNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
 
         heartbeatsSent += 1;
-        if (heartbeatsSent % 60 === 0) { logHeartbeat(); }
+        if (heartbeatsSent % 60 == 0) { logHeartbeat(); }
 
       } 
       else {
-        if (moment().seconds() % 10 === 0) {
+        if (moment().seconds() % 10 == 0) {
           debug(chalkError("!!!! INTERNET DOWN?? !!!!! " 
             + getTimeStamp()
             + " | INTERNET READY: " + statsObj.internetReady
@@ -3007,7 +3007,7 @@ async function getTwitterWebhooks(){
           + "\n" + jsonPrint(aaSubs)
         ));
 
-        if ((aaSubs.application_id === "15917082") && (aaSubs.subscriptions.length > 0)){
+        if ((aaSubs.application_id == "15917082") && (aaSubs.subscriptions.length > 0)){
           statsObj.twitter.aaSubs = {};
           statsObj.twitter.aaSubs = aaSubs;
           console.log(chalkTwitter("WAS | +++ TWITTER ACCOUNT ACTIVITY SUBSCRIPTIONS"
@@ -3089,7 +3089,7 @@ async function addTwitterAccountActivitySubscription(p){
 
     console.log()
 
-    if (err.errors && ((err.errors.code === 355) || (err.StatusCodeError === 409))) {
+    if (err.errors && ((err.errors.code == 355) || (err.StatusCodeError == 409))) {
       console.log(chalkInfo("WAS | ... TWITTER ACCOUNT ACTIVITY SUBSCRIPTION ALREADY EXISTS"));
       return;
     }
@@ -3302,7 +3302,7 @@ function socketRxTweet(tw) {
 
     statsObj.twitter.duplicateTweetsReceived += 1;
 
-    if (statsObj.twitter.duplicateTweetsReceived % 1000 === 0){
+    if (statsObj.twitter.duplicateTweetsReceived % 1000 == 0){
       console.log(chalkLog("WAS"
         + " | ??? DUP TWEET"
         + " | FILTER: " + configuration.filterDuplicateTweets
@@ -3342,7 +3342,7 @@ function socketRxTweet(tw) {
 
     statsObj.errors.twitter.maxRxQueue += 1;
 
-    if (statsObj.errors.twitter.maxRxQueue % 1000 === 0) {
+    if (statsObj.errors.twitter.maxRxQueue % 1000 == 0) {
       console.log(chalkLog("WAS | !!! TW RX MAX Q [" + tweetRxQueue.length + "]"
         + " | " + getTimeStamp()
         + " | TWP RDY: " + statsObj.tweetParserReady
@@ -3421,7 +3421,7 @@ function socketRxTweet(tw) {
       + " | " + tw.user.name
     ));
 
-    if (statsObj.twitter.tweetsReceived % 1000 === 0) {
+    if (statsObj.twitter.tweetsReceived % 1000 == 0) {
       console.log(chalkTwitter("WAS | <T"
         + " | RXQ: " + tweetRxQueue.length
         + " [ T/R/Q " + statsObj.twitter.tweetsReceived 
@@ -4755,7 +4755,7 @@ function initSocketHandler(socketObj) {
 
     ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
-    if (dataObj.node.nodeType === "user") {
+    if (dataObj.node.nodeType == "user") {
       console.log(chalkSocket("TWITTER_CATEGORIZE_NODE"
         + " | " + getTimeStamp(timeStamp)
         + " | " + ipAddress
@@ -4765,7 +4765,7 @@ function initSocketHandler(socketObj) {
         + " | FOLLOW: " + dataObj.follow
       ));
     }
-    if (dataObj.node.nodeType === "hashtag") {
+    if (dataObj.node.nodeType == "hashtag") {
       console.log(chalkSocket("TWITTER_CATEGORIZE_NODE"
         + " | " + getTimeStamp(timeStamp)
         + " | SID: " + socket.id
@@ -4779,7 +4779,7 @@ function initSocketHandler(socketObj) {
         console.log(chalkError("WAS | CAT NODE ERROR: " + err));
       }
       else if (updatedNodeObj) {
-        if (updatedNodeObj.nodeType === "user") {
+        if (updatedNodeObj.nodeType == "user") {
           socket.emit("SET_TWITTER_USER", {user: updatedNodeObj, stats: statsObj.user });
           console.log(chalkSocket("TX> SET_TWITTER_USER"
             + " | " + getTimeStamp(timeStamp)
@@ -4800,7 +4800,7 @@ function initSocketHandler(socketObj) {
             + " | CA: " + updatedNodeObj.categoryAuto
           ));
         }
-        if (updatedNodeObj.nodeType === "hashtag") {
+        if (updatedNodeObj.nodeType == "hashtag") {
           socket.emit("SET_TWITTER_HASHTAG", {hashtag: updatedNodeObj, stats: statsObj.hashtag });
           console.log(chalkSocket("TX> SET_TWITTER_HASHTAG"
             + " | " + getTimeStamp(timeStamp)
@@ -5887,7 +5887,7 @@ function updateUserSets(){
 
           uncategorizedManualUserSet.add(user.nodeId);
 
-          if (uncategorizedManualUserSet.size % 100 === 0) {
+          if (uncategorizedManualUserSet.size % 100 == 0) {
             printUserObj("UNCAT MAN USER  [" + uncategorizedManualUserSet.size + "]", user);
           }
         }
@@ -5902,13 +5902,13 @@ function updateUserSets(){
 
           uncategorizedAutoUserSet.add(user.nodeId);
 
-          if (uncategorizedAutoUserSet.size % 100 === 0) {
+          if (uncategorizedAutoUserSet.size % 100 == 0) {
             printUserObj("UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", user);
           }
         }
         
-        if (((user.category === "left") || (user.category === "neutral") || (user.category === "right"))
-          && ((user.categoryAuto === "left") || (user.categoryAuto === "neutral") || (user.categoryAuto === "right"))
+        if (((user.category == "left") || (user.category == "neutral") || (user.category == "right"))
+          && ((user.categoryAuto == "left") || (user.categoryAuto == "neutral") || (user.categoryAuto == "right"))
         ) { 
 
           uncategorizedManualUserSet.delete(user.nodeId); 
@@ -5930,7 +5930,7 @@ function updateUserSets(){
 
               matchUserSet.delete(user.nodeId); 
 
-              if (mismatchUserSet.size % 100 === 0) {
+              if (mismatchUserSet.size % 100 == 0) {
                 printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "] | VCU: " + verifiedCategorizedUsersSet.has(user.screenName.toLowerCase()), user);
               }
             }
@@ -5940,7 +5940,7 @@ function updateUserSets(){
               matchUserSet.add(user.nodeId); 
               mismatchUserSet.delete(user.nodeId); 
 
-              if (matchUserSet.size % 100 === 0) {
+              if (matchUserSet.size % 100 == 0) {
                 printUserObj("MATCHED USER [" + matchUserSet.size + "]", user);
               }
             }
@@ -6054,7 +6054,7 @@ function initTransmitNodeQueueInterval(interval){
 
       try {
 
-        if (!transmitNodeQueueReady || (transmitNodeQueue.length === 0)) {
+        if (!transmitNodeQueueReady || (transmitNodeQueue.length == 0)) {
           return;
         }
 
@@ -6104,7 +6104,7 @@ function initTransmitNodeQueueInterval(interval){
 
             uncategorizedManualUserSet.add(n.nodeId);
 
-            if (uncategorizedManualUserSet.size % 100 === 0) {
+            if (uncategorizedManualUserSet.size % 100 == 0) {
               printUserObj("TX | UNCAT MAN USER  [" + uncategorizedManualUserSet.size + "]", n);
             }
 
@@ -6116,7 +6116,7 @@ function initTransmitNodeQueueInterval(interval){
 
             uncategorizedAutoUserSet.add(n.nodeId);
 
-            if (uncategorizedAutoUserSet.size % 100 === 0) {
+            if (uncategorizedAutoUserSet.size % 100 == 0) {
               printUserObj("TX | UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", n);
             }
           }
@@ -6125,7 +6125,7 @@ function initTransmitNodeQueueInterval(interval){
             tfeChild.send({op: "USER_CATEGORIZE", user: n});
           }
         }
-        if ((n.nodeType === "user") && (n.category || n.categoryAuto || n.following || n.threeceeFollowing)){
+        if ((n.nodeType == "user") && (n.category || n.categoryAuto || n.following || n.threeceeFollowing)){
 
           nCacheObj = nodeCache.get(n.nodeId);
 
@@ -6160,14 +6160,14 @@ function initTransmitNodeQueueInterval(interval){
             transmitNodeQueueReady = true;
           });
         }
-        else if (n.nodeType === "user") {
+        else if (n.nodeType == "user") {
           delete n._id;
           delete n.userId;
           viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
 
           transmitNodeQueueReady = true;
         }
-        else if ((n.nodeType === "hashtag") && n.category){
+        else if ((n.nodeType == "hashtag") && n.category){
 
           n.updateLastSeen = true;
 
@@ -6193,7 +6193,7 @@ function initTransmitNodeQueueInterval(interval){
 
           });
         }
-        else if (n.nodeType === "hashtag") {
+        else if (n.nodeType == "hashtag") {
           delete n._id;
           delete n.userId;
           viewNameSpace.volatile.emit("node", n);
@@ -6260,7 +6260,7 @@ function initAppRouting(callback) {
 
   app.use(function requestLog(req, res, next) {
 
-    if (req.path === "/json") {
+    if (req.path == "/json") {
       if (!ignoreIpSet.has(req.ip)) {
         console.log(chalkInfo("WAS | R< REJECT: /json"
           + " | " + getTimeStamp()
@@ -6273,7 +6273,7 @@ function initAppRouting(callback) {
       }
       res.sendStatus(404);
     }
-    else if (req.path === "callbacks/addsub") {
+    else if (req.path == "callbacks/addsub") {
       console.log(chalkAlert("WAS | R< TWITTER WEB HOOK | callbacks/addsub"
       )); 
 
@@ -6283,7 +6283,7 @@ function initAppRouting(callback) {
         + "\nreq.body\n" + jsonPrint(req.body)
       )); 
     }
-    else if (req.path === "callbacks/removesub") {
+    else if (req.path == "callbacks/removesub") {
       console.log(chalkAlert("WAS | R< TWITTER WEB HOOK | callbacks/removesub"
       )); 
 
@@ -6293,7 +6293,7 @@ function initAppRouting(callback) {
         + "\nreq.body\n" + jsonPrint(req.body)
       )); 
     }
-    else if (req.path === TWITTER_WEBHOOK_URL) {
+    else if (req.path == TWITTER_WEBHOOK_URL) {
 
       console.log(chalkAlert("WAS | R< TWITTER WEB HOOK | " + TWITTER_WEBHOOK_URL
         + " | " + getTimeStamp()
@@ -6304,7 +6304,7 @@ function initAppRouting(callback) {
         + " | ERROR: " + req.error
       )); 
 
-      if (req.method === "GET") {
+      if (req.method == "GET") {
 
         const crc_token = req.query.crc_token;
 
@@ -6333,7 +6333,7 @@ function initAppRouting(callback) {
 
         const followEvents = req.body.follow_events;
 
-        if (followEvents && (followEvents[0].type === "follow")) {
+        if (followEvents && (followEvents[0].type == "follow")) {
 
           console.log(chalkAlert("WAS | >>> TWITTER USER FOLLOW EVENT"
             + " | SOURCE: @" + followEvents[0].source.screen_name
@@ -6367,7 +6367,7 @@ function initAppRouting(callback) {
 
         }
         
-        if (followEvents && (followEvents[0].type === "unfollow")) {
+        if (followEvents && (followEvents[0].type == "unfollow")) {
 
           console.log(chalkAlert("WAS | >>> TWITTER USER UNFOLLOW EVENT"
             + " | SOURCE: @" + followEvents[0].source.screen_name
@@ -6404,7 +6404,7 @@ function initAppRouting(callback) {
       }
 
     }
-    else if (req.path === "/dropbox_webhook") {
+    else if (req.path == "/dropbox_webhook") {
 
       if (configuration.verbose) {
 
@@ -6424,7 +6424,7 @@ function initAppRouting(callback) {
       next();
 
     }
-    else if (req.path === "/googleccd19766bea2dfd2.html") {
+    else if (req.path == "/googleccd19766bea2dfd2.html") {
 
       console.log(chalk.green("WAS | R< googleccd19766bea2dfd2.html")); 
 
@@ -6444,14 +6444,14 @@ function initAppRouting(callback) {
         }
       });
     }
-    else if (req.path === "/") {
+    else if (req.path == "/") {
       console.log(chalkLog("WAS | R< REDIRECT /session")); 
       res.redirect("/session");
     }
-    else if ((req.path === "/session.js") || (req.path === "/js/libs/controlPanel.js")) {
+    else if ((req.path == "/session.js") || (req.path == "/js/libs/controlPanel.js")) {
 
       const fullPath = path.join(__dirname, req.path);
-      const defaultSource = (hostname === "google") ? "PRODUCTION_SOURCE" : "LOCAL_SOURCE";
+      const defaultSource = (hostname == "google") ? "PRODUCTION_SOURCE" : "LOCAL_SOURCE";
 
       console.log(chalkAlert("WAS | !!! REPLACE DEFAULT SOURCE"
         + " | REQ: " + req.path
@@ -6802,7 +6802,7 @@ async function initTweetParserMessageRxQueueInterval(interval){
         + " | OP: " + tweetParserMessage.op
       ));
 
-      if (tweetParserMessage.op === "error") {
+      if (tweetParserMessage.op == "error") {
 
         statsObj.errors.twitter.parser += 1;
 
@@ -6815,7 +6815,7 @@ async function initTweetParserMessageRxQueueInterval(interval){
         tweetParserMessageRxQueueReady = true;
 
       }
-      else if (tweetParserMessage.op === "parsedTweet") {
+      else if (tweetParserMessage.op == "parsedTweet") {
 
         tweetObj = tweetParserMessage.tweetObj;
 
@@ -6942,7 +6942,7 @@ function initSorterMessageRxQueueInterval(interval){
 
               nodeId = sortedKeys[index].toLowerCase();
 
-              if (empty(nodeType) || (nodeType === "overall")) {
+              if (empty(nodeType) || (nodeType == "overall")) {
                 if (nodeMeter[nodeId]) {
                   nodeRate = parseFloat(nodeMeter[nodeId].toJSON()[metricsRate]);
                   nodesPerMinuteTopTermCache.set(nodeId, nodeRate);
@@ -7352,7 +7352,7 @@ function initTssChild(params){
             // + "\n" + jsonPrint(m.error)
           ));
 
-          if (m.errorType === "TWITTER_UNFOLLOW") {
+          if (m.errorType == "TWITTER_UNFOLLOW") {
 
             threeceeTwitter[m.threeceeUser].twitterErrors += 1;
             threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
@@ -7364,7 +7364,7 @@ function initTssChild(params){
               // + "\n" + jsonPrint(m.error)
             ));
           }
-          else if ((m.errorType === "TWITTER_FOLLOW_LIMIT") || (m.error.code === 161)) {
+          else if ((m.errorType == "TWITTER_FOLLOW_LIMIT") || (m.error.code == 161)) {
 
             threeceeTwitter[m.threeceeUser].twitterErrors += 1;
             threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
@@ -7377,19 +7377,19 @@ function initTssChild(params){
               // + "\n" + jsonPrint(m.error)
             ));
           }
-          else if ((m.errorType === "TWITTER_UNAUTHORIZED") || (m.error.statusCode === 401)) {
+          else if ((m.errorType == "TWITTER_UNAUTHORIZED") || (m.error.statusCode == 401)) {
 
             threeceeTwitter[m.threeceeUser].twitterErrors += 1;
             threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
             threeceeTwitter[m.threeceeUser].twitterAuthorizationErrorFlag = m.error;
           }
-          else if (m.errorType === "TWITTER_TOKEN") {
+          else if (m.errorType == "TWITTER_TOKEN") {
 
             threeceeTwitter[m.threeceeUser].twitterErrors += 1;
             threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
             threeceeTwitter[m.threeceeUser].twitterTokenErrorFlag = m.error;
           }
-          else if (m.errorType === "USER_NOT_FOUND") {
+          else if (m.errorType == "USER_NOT_FOUND") {
 
             unfollowableUserSet.add(m.userId);
 
@@ -7399,7 +7399,7 @@ function initTssChild(params){
               + " | UNFOLLOWABLE SET SIZE: " + unfollowableUserSet.size
             ));
           }
-          else if (m.errorType === "TWITTER_FOLLOW_BLOCK") {
+          else if (m.errorType == "TWITTER_FOLLOW_BLOCK") {
 
             unfollowableUserSet.add(m.userId);
 
@@ -7595,21 +7595,21 @@ async function initTfeChild(params){
           + " | ERROR TYPE: " + m.errorType
         ));
 
-        if (m.errorType === "TWITTER_UNAUTHORIZED") {
+        if (m.errorType == "TWITTER_UNAUTHORIZED") {
 
           threeceeHashMap[m.threeceeUser].twitterErrors += 1;
           threeceeHashMap[m.threeceeUser].twitterErrorFlag = m.error;
           threeceeHashMap[m.threeceeUser].twitterAuthorizationErrorFlag = m.error;
 
         }
-        else if (m.errorType === "TWITTER_TOKEN") {
+        else if (m.errorType == "TWITTER_TOKEN") {
 
           threeceeHashMap[m.threeceeUser].twitterErrors += 1;
           threeceeHashMap[m.threeceeUser].twitterErrorFlag = m.error;
           threeceeHashMap[m.threeceeUser].twitterTokenErrorFlag = m.error;
 
         }
-        else if (m.errorType === "BLOCKED") {
+        else if (m.errorType == "BLOCKED") {
 
           threeceeHashMap[m.threeceeUser].twitterErrors += 1;
           threeceeHashMap[m.threeceeUser].twitterErrorFlag = m.error;
@@ -8080,7 +8080,7 @@ function initTweetParser(params){
         + " | OP: " + m.op
       ));
 
-      if (m.op === "PONG"){
+      if (m.op == "PONG"){
 
         tweetParserPongReceived = m.pongId;
 
@@ -8210,10 +8210,10 @@ function initRateQinterval(interval){
 
       updateTimeSeriesCount += 1;
 
-      if (updateTimeSeriesCount % configuration.rateQueueIntervalModulo === 0){
+      if (updateTimeSeriesCount % configuration.rateQueueIntervalModulo == 0){
 
         cacheObjKeys.forEach(function statsCachesUpdate(cacheName){
-          if (cacheName === "nodesPerMinuteTopTermNodeTypeCache") {
+          if (cacheName == "nodesPerMinuteTopTermNodeTypeCache") {
             DEFAULT_NODE_TYPES.forEach(function(nodeType){
               statsObj.caches[cacheName][nodeType].stats.keys = cacheObj[cacheName][nodeType].getStats().keys;
 
@@ -8403,7 +8403,7 @@ async function loadBestRuntimeNetwork(p){
 
     const nnArray = await global.globalNeuralNetwork.find({"matchRate": { $lt: 100 }}).sort({"matchRate": -1}).limit(1).exec();
 
-    if (nnArray.length === 0){
+    if (nnArray.length == 0){
       console.log(chalkError("WAS | *** NEURAL NETWORK NOT FOUND"));
       return;
     }
@@ -8435,12 +8435,12 @@ async function loadBestRuntimeNetwork(p){
     return bestNetworkObj.networkId;
   }
   catch(err){
-    if (err.code === "ETIMEDOUT") {
+    if (err.code == "ETIMEDOUT") {
       console.log(chalkError("WAS | *** LOAD BEST NETWORK ERROR: NETWORK TIMEOUT:  " 
         + folder + "/" + file
       ));
     }
-    else if (err.code === "ENOTFOUND") {
+    else if (err.code == "ENOTFOUND") {
       console.log(chalkError("WAS | *** LOAD BEST NETWORK ERROR: FILE NOT FOUND:  " 
         + folder + "/" + file
       ));
@@ -8483,10 +8483,10 @@ async function loadConfigFile(params) {
     if (loadedConfigObj.WAS_TEST_MODE !== undefined){
       console.log("WAS | LOADED WAS_TEST_MODE: " + loadedConfigObj.WAS_TEST_MODE);
 
-      if ((loadedConfigObj.WAS_TEST_MODE === false) || (loadedConfigObj.WAS_TEST_MODE === "false")) {
+      if ((loadedConfigObj.WAS_TEST_MODE == false) || (loadedConfigObj.WAS_TEST_MODE == "false")) {
         newConfiguration.testMode = false;
       }
-      else if ((loadedConfigObj.WAS_TEST_MODE === true) || (loadedConfigObj.WAS_TEST_MODE === "true")) {
+      else if ((loadedConfigObj.WAS_TEST_MODE == true) || (loadedConfigObj.WAS_TEST_MODE == "true")) {
         newConfiguration.testMode = true;
       }
       else {
@@ -8497,10 +8497,10 @@ async function loadConfigFile(params) {
     if (loadedConfigObj.VERBOSE !== undefined){
       console.log("WAS | LOADED VERBOSE: " + loadedConfigObj.VERBOSE);
 
-      if ((loadedConfigObj.VERBOSE === false) || (loadedConfigObj.VERBOSE === "false")) {
+      if ((loadedConfigObj.VERBOSE == false) || (loadedConfigObj.VERBOSE == "false")) {
         newConfiguration.verbose = false;
       }
-      else if ((loadedConfigObj.VERBOSE === true) || (loadedConfigObj.VERBOSE === "true")) {
+      else if ((loadedConfigObj.VERBOSE == true) || (loadedConfigObj.VERBOSE == "true")) {
         newConfiguration.verbose = true;
       }
       else {
@@ -8511,10 +8511,10 @@ async function loadConfigFile(params) {
     if (loadedConfigObj.IGNORE_CATEGORY_RIGHT !== undefined){
       console.log("WAS | LOADED IGNORE_CATEGORY_RIGHT: " + loadedConfigObj.IGNORE_CATEGORY_RIGHT);
 
-      if ((loadedConfigObj.IGNORE_CATEGORY_RIGHT === false) || (loadedConfigObj.IGNORE_CATEGORY_RIGHT === "false")) {
+      if ((loadedConfigObj.IGNORE_CATEGORY_RIGHT == false) || (loadedConfigObj.IGNORE_CATEGORY_RIGHT == "false")) {
         newConfiguration.ignoreCategoryRight = false;
       }
-      else if ((loadedConfigObj.IGNORE_CATEGORY_RIGHT === true) || (loadedConfigObj.IGNORE_CATEGORY_RIGHT === "true")) {
+      else if ((loadedConfigObj.IGNORE_CATEGORY_RIGHT == true) || (loadedConfigObj.IGNORE_CATEGORY_RIGHT == "true")) {
         newConfiguration.ignoreCategoryRight = true;
       }
       else {
@@ -8525,10 +8525,10 @@ async function loadConfigFile(params) {
     if (loadedConfigObj.GEOCODE_ENABLED !== undefined){
       console.log("WAS | LOADED GEOCODE_ENABLED: " + loadedConfigObj.GEOCODE_ENABLED);
 
-      if ((loadedConfigObj.GEOCODE_ENABLED === false) || (loadedConfigObj.GEOCODE_ENABLED === "false")) {
+      if ((loadedConfigObj.GEOCODE_ENABLED == false) || (loadedConfigObj.GEOCODE_ENABLED == "false")) {
         newConfiguration.geoCodeEnabled = false;
       }
-      else if ((loadedConfigObj.GEOCODE_ENABLED === true) || (loadedConfigObj.GEOCODE_ENABLED === "true")) {
+      else if ((loadedConfigObj.GEOCODE_ENABLED == true) || (loadedConfigObj.GEOCODE_ENABLED == "true")) {
         newConfiguration.geoCodeEnabled = true;
       }
       else {
@@ -8539,10 +8539,10 @@ async function loadConfigFile(params) {
     if (loadedConfigObj.FILTER_DUPLICATE_TWEETS !== undefined){
       console.log("WAS | LOADED FILTER_DUPLICATE_TWEETS: " + loadedConfigObj.FILTER_DUPLICATE_TWEETS);
 
-      if ((loadedConfigObj.FILTER_DUPLICATE_TWEETS === false) || (loadedConfigObj.FILTER_DUPLICATE_TWEETS === "false")) {
+      if ((loadedConfigObj.FILTER_DUPLICATE_TWEETS == false) || (loadedConfigObj.FILTER_DUPLICATE_TWEETS == "false")) {
         newConfiguration.filterDuplicateTweets = false;
       }
-      else if ((loadedConfigObj.FILTER_DUPLICATE_TWEETS === true) || (loadedConfigObj.FILTER_DUPLICATE_TWEETS === "true")) {
+      else if ((loadedConfigObj.FILTER_DUPLICATE_TWEETS == true) || (loadedConfigObj.FILTER_DUPLICATE_TWEETS == "true")) {
         newConfiguration.filterDuplicateTweets = true;
       }
       else {
@@ -8553,10 +8553,10 @@ async function loadConfigFile(params) {
     if (loadedConfigObj.ENABLE_IMAGE_ANALYSIS !== undefined){
       console.log("WAS | LOADED ENABLE_IMAGE_ANALYSIS: " + loadedConfigObj.ENABLE_IMAGE_ANALYSIS);
 
-      if ((loadedConfigObj.ENABLE_IMAGE_ANALYSIS === false) || (loadedConfigObj.ENABLE_IMAGE_ANALYSIS === "false")) {
+      if ((loadedConfigObj.ENABLE_IMAGE_ANALYSIS == false) || (loadedConfigObj.ENABLE_IMAGE_ANALYSIS == "false")) {
         newConfiguration.enableImageAnalysis = false;
       }
-      else if ((loadedConfigObj.ENABLE_IMAGE_ANALYSIS === true) || (loadedConfigObj.ENABLE_IMAGE_ANALYSIS === "true")) {
+      else if ((loadedConfigObj.ENABLE_IMAGE_ANALYSIS == true) || (loadedConfigObj.ENABLE_IMAGE_ANALYSIS == "true")) {
         newConfiguration.enableImageAnalysis = true;
       }
       else {
@@ -8567,10 +8567,10 @@ async function loadConfigFile(params) {
     if (loadedConfigObj.FORCE_IMAGE_ANALYSIS !== undefined){
       console.log("WAS | LOADED FORCE_IMAGE_ANALYSIS: " + loadedConfigObj.FORCE_IMAGE_ANALYSIS);
 
-      if ((loadedConfigObj.FORCE_IMAGE_ANALYSIS === false) || (loadedConfigObj.FORCE_IMAGE_ANALYSIS === "false")) {
+      if ((loadedConfigObj.FORCE_IMAGE_ANALYSIS == false) || (loadedConfigObj.FORCE_IMAGE_ANALYSIS == "false")) {
         newConfiguration.forceImageAnalysis = false;
       }
-      else if ((loadedConfigObj.FORCE_IMAGE_ANALYSIS === true) || (loadedConfigObj.FORCE_IMAGE_ANALYSIS === "true")) {
+      else if ((loadedConfigObj.FORCE_IMAGE_ANALYSIS == true) || (loadedConfigObj.FORCE_IMAGE_ANALYSIS == "true")) {
         newConfiguration.forceImageAnalysis = true;
       }
       else {
@@ -8581,10 +8581,10 @@ async function loadConfigFile(params) {
     if (loadedConfigObj.AUTO_FOLLOW !== undefined){
       console.log("WAS | LOADED AUTO_FOLLOW: " + loadedConfigObj.AUTO_FOLLOW);
 
-      if ((loadedConfigObj.AUTO_FOLLOW === false) || (loadedConfigObj.AUTO_FOLLOW === "false")) {
+      if ((loadedConfigObj.AUTO_FOLLOW == false) || (loadedConfigObj.AUTO_FOLLOW == "false")) {
         newConfiguration.autoFollow = false;
       }
-      else if ((loadedConfigObj.AUTO_FOLLOW === true) || (loadedConfigObj.AUTO_FOLLOW === "true")) {
+      else if ((loadedConfigObj.AUTO_FOLLOW == true) || (loadedConfigObj.AUTO_FOLLOW == "true")) {
         newConfiguration.autoFollow = true;
       }
       else {
@@ -8595,10 +8595,10 @@ async function loadConfigFile(params) {
     if (loadedConfigObj.FORCE_FOLLOW !== undefined){
       console.log("WAS | LOADED FORCE_FOLLOW: " + loadedConfigObj.FORCE_FOLLOW);
 
-      if ((loadedConfigObj.FORCE_FOLLOW === false) || (loadedConfigObj.FORCE_FOLLOW === "false")) {
+      if ((loadedConfigObj.FORCE_FOLLOW == false) || (loadedConfigObj.FORCE_FOLLOW == "false")) {
         newConfiguration.forceFollow = false;
       }
-      else if ((loadedConfigObj.FORCE_FOLLOW === true) || (loadedConfigObj.FORCE_FOLLOW === "true")) {
+      else if ((loadedConfigObj.FORCE_FOLLOW == true) || (loadedConfigObj.FORCE_FOLLOW == "true")) {
         newConfiguration.forceFollow = true;
       }
       else {
@@ -8609,10 +8609,10 @@ async function loadConfigFile(params) {
     if (loadedConfigObj.WAS_ENABLE_STDIN !== undefined){
       console.log("WAS | LOADED WAS_ENABLE_STDIN: " + loadedConfigObj.WAS_ENABLE_STDIN);
 
-      if ((loadedConfigObj.WAS_ENABLE_STDIN === false) || (loadedConfigObj.WAS_ENABLE_STDIN === "false")) {
+      if ((loadedConfigObj.WAS_ENABLE_STDIN == false) || (loadedConfigObj.WAS_ENABLE_STDIN == "false")) {
         newConfiguration.enableStdin = false;
       }
-      else if ((loadedConfigObj.WAS_ENABLE_STDIN === true) || (loadedConfigObj.WAS_ENABLE_STDIN === "true")) {
+      else if ((loadedConfigObj.WAS_ENABLE_STDIN == true) || (loadedConfigObj.WAS_ENABLE_STDIN == "true")) {
         newConfiguration.enableStdin = true;
       }
       else {
@@ -8624,10 +8624,10 @@ async function loadConfigFile(params) {
 
       console.log("WAS | LOADED NODE_METER_ENABLED: " + loadedConfigObj.NODE_METER_ENABLED);
 
-      if (loadedConfigObj.NODE_METER_ENABLED === "true") {
+      if (loadedConfigObj.NODE_METER_ENABLED == "true") {
         newConfiguration.metrics.nodeMeterEnabled = true;
       }
-      else if (loadedConfigObj.NODE_METER_ENABLED === "false") {
+      else if (loadedConfigObj.NODE_METER_ENABLED == "false") {
         newConfiguration.metrics.nodeMeterEnabled = false;
       }
       else {
@@ -9447,7 +9447,7 @@ function initThreeceeTwitterUsers(params){
 
       catch(err) {
 
-        if (err.code === "ENOTFOUND") {
+        if (err.code == "ENOTFOUND") {
           console.log(chalkError("WAS | *** LOAD TWITTER CONFIG ERROR: FILE NOT FOUND"
             + " | " + twitterConfigFolder + "/" + configFile
           ));
@@ -9502,7 +9502,7 @@ function twitUserShow(params){
           + "\ntwitQuery\n" + jsonPrint(params.twitQuery)
         ));
 
-        if ((err.code === 63) || (err.code === 50)) { // USER SUSPENDED or NOT FOUND
+        if ((err.code == 63) || (err.code == 50)) { // USER SUSPENDED or NOT FOUND
 
           try {
             if (user.nodeId !== undefined) { 
@@ -9709,7 +9709,7 @@ async function processTwitterSearchNode(params) {
       }
 
       if (categorizeable) { 
-        if (params.user.toObject && (typeof params.user.toObject === "function")) {
+        if (params.user.toObject && (typeof params.user.toObject == "function")) {
           tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, user: params.user.toObject()});
        }
         else {
@@ -9721,7 +9721,7 @@ async function processTwitterSearchNode(params) {
 
     }
 
-    if (params.user.toObject && (typeof params.user.toObject === "function")) {
+    if (params.user.toObject && (typeof params.user.toObject == "function")) {
       const u = params.user.toObject();
       if (ignoredUserSet.has(u.nodeId) || ignoredUserSet.has(u.screenName.toLowerCase())){
         u.ignored = true;
@@ -9777,7 +9777,7 @@ function getNextMismatchedUser(params){
 
         try {
 
-          if (params.searchUserArray.length === 0){
+          if (params.searchUserArray.length == 0){
             notFoundAndMore = false;
             await processTwitterSearchNode({searchNode: params.searchNode});
             return;
@@ -9915,7 +9915,7 @@ async function twitterSearchUser(params) {
         throw new Error("UNKNOWN searchNodeUser.screenName");
     }
 
-    if (searchUserArray.length === 0) {
+    if (searchUserArray.length == 0) {
 
       console.log(chalkLog("WAS | --- TWITTER_SEARCH_NODE | NO USERS FOUND"
         + " | " + getTimeStamp()
@@ -10037,7 +10037,7 @@ async function twitterSearchHashtag(params) {
 
       console.log(chalkTwitter("WAS | TWITTER_SEARCH_NODE HASHTAG FOUND\n" + jsonPrint(hashtag)));
 
-      if (hashtag.toObject && (typeof hashtag.toObject === "function")) {
+      if (hashtag.toObject && (typeof hashtag.toObject == "function")) {
         viewNameSpace.emit("SET_TWITTER_HASHTAG", { hashtag: hashtag.toObject(), stats: statsObj.hashtag });
       }
       else{
@@ -10072,7 +10072,7 @@ async function twitterSearchHashtag(params) {
     ));
 
 
-    if (hashtag.toObject && (typeof hashtag.toObject === "function")) {
+    if (hashtag.toObject && (typeof hashtag.toObject == "function")) {
       viewNameSpace.emit("SET_TWITTER_HASHTAG", { hashtag: hashtag.toObject(), stats: statsObj.hashtag });
     }
     else{
@@ -10322,7 +10322,7 @@ setTimeout(async function(){
     await initKeySortInterval(configuration.keySortInterval);
     await initSaveFileQueue(configuration);
     await initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
-    if (hostname === "google") { 
+    if (hostname == "google") { 
       await getTwitterWebhooks();
       if (statsObj.twitter.aaSubs) { console.log(chalkLog("WAS | TWITTER AA SUBSCRIPTIONS ... SKIP ADD SUBS")); }
       if (!statsObj.twitter.aaSubs) { await addTwitterAccountActivitySubscription({threeceeUser: "altthreecee00"}); }

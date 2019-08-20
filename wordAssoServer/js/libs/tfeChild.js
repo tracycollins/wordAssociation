@@ -85,7 +85,7 @@ hostname = hostname.replace(/word/g, "google");
 
 let DROPBOX_ROOT_FOLDER;
 
-if (hostname === "google") {
+if (hostname == "google") {
   DROPBOX_ROOT_FOLDER = "/home/tc/Dropbox/Apps/wordAssociation";
 }
 else {
@@ -326,7 +326,7 @@ statsObj.autoChangeTotal = 0;
 statsObj.autoChangeMatchRate = 0;
 
 statsObj.user = {};
-statsObj.user.changes = 0;
+statsObj.user.processed = 0;
 
 statsObj.queues = {};
 
@@ -755,7 +755,7 @@ function loadFile(params) {
 
         console.log(chalkError(MODULE_ID_PREFIX + " | *** DROPBOX loadFile ERROR: " + fullPath));
         
-        if ((err.status === 409) || (err.status === 404)) {
+        if ((err.status == 409) || (err.status == 404)) {
           if (noErrorNotFound) {
             if (configuration.verbose) { console.log(chalkLog(MODULE_ID_PREFIX + " | *** DROPBOX READ FILE " + fullPath + " NOT FOUND")); }
             return resolve(new Error("NOT FOUND"));
@@ -764,7 +764,7 @@ function loadFile(params) {
           return resolve(err);
         }
         
-        if (err.status === 0) {
+        if (err.status == 0) {
           console.log(chalkError(MODULE_ID_PREFIX + " | *** DROPBOX NO RESPONSE"
             + " | NO INTERNET CONNECTION? SKIPPING ..."));
           return resolve(new Error("NO INTERNET"));
@@ -989,7 +989,7 @@ function checkTwitterRateLimitAll(){
 
   return new Promise(function(resolve, reject){
 
-    if (twitterUserHashMap.size === 0) { return resolve(); }
+    if (twitterUserHashMap.size == 0) { return resolve(); }
 
     async.eachSeries(twitterUserHashMap.values(), async function(twitterUserObj){
 
@@ -1048,7 +1048,7 @@ function geoCode(params) {
 
         async.each(response.json.results[0].address_components, function(addressComponent, cb0){
 
-          if (!addressComponent.types || addressComponent.types === undefined || addressComponent.types.length === 0){
+          if (!addressComponent.types || addressComponent.types === undefined || addressComponent.types.length == 0){
             async.setImmediate(function() { return cb0(); });
           }
 
@@ -1345,7 +1345,7 @@ function checkPropertyChange(user, prop){
 
   if (!empty(user[prop]) && (user[prevProp] !== user[prop])) { 
 
-    if (prop === "url") {
+    if (prop == "url") {
       console.log("checkPropertyChange url | @" + user.screenName + " | url: " + user.url + " | prevProp: " + user[prevProp]);
     }
     return true;
@@ -1421,7 +1421,6 @@ async function checkUserProfileChanged(params) {
     if (checkPropertyChange(user, "screenName")) { results.push("screenName"); }
     if (checkPropertyChange(user, "url")) { results.push("url"); }
 
-    // if (results.length === 0) { return; }
     return results;
 
   }
@@ -1437,7 +1436,7 @@ function emptyHistogram(histogram){
 
     if (!histogram) { return resolve(true); }
     if (histogram === undefined) { return resolve(true); }
-    if (histogram === {}) { return resolve(true); }
+    if (histogram == {}) { return resolve(true); }
 
     for (const histogramType of Object.keys(histogram)){
       if (Object.keys(histogram[histogramType]).length > 0) { return resolve(false); }
@@ -1545,14 +1544,14 @@ async function userLanguageSentiment(params){
       return sentiment;
     }
     catch(err){
-      if (err.code === 3) {
+      if (err.code == 3) {
         console.log(chalkAlert(MODULE_ID_PREFIX + " | userLanguageSentiment | UNSUPPORTED LANG"
           + " | NID: " + user.nodeId
           + " | @" + user.screenName
           + " | " + err
         ));
       }
-      else if (err.code === 8) {
+      else if (err.code == 8) {
         console.error(chalkAlert(MODULE_ID_PREFIX + " | userLanguageSentiment"
           + " | " + getTimeStamp()
           + " | LANGUAGE QUOTA"
@@ -1587,7 +1586,7 @@ function processUserProfileChanges(params){
       return resolve(user);
     }
 
-    if (params.userProfileChanges.length === 0) {
+    if (params.userProfileChanges.length == 0) {
       return resolve(user);
     }
 
@@ -1664,7 +1663,7 @@ function processUserProfileChanges(params){
         case "bannerImageUrl":
         case "profileImageUrl":
 
-          if (userPropValue && (typeof userPropValue === "string")){
+          if (userPropValue && (typeof userPropValue == "string")){
             domain = urlParse(userPropValue.toLowerCase()).hostname;
             nodeId = btoa(userPropValue.toLowerCase());
 
@@ -1877,9 +1876,9 @@ function processTweetObj(params){
         return cb0();
       }
 
-      if (entityType === "user") { return cb0(); }
+      if (entityType == "user") { return cb0(); }
       if (!tweetObj[entityType] || tweetObj[entityType] === undefined) { return cb0(); }
-      if (tweetObj[entityType].length === 0) { return cb0(); }
+      if (tweetObj[entityType].length == 0) { return cb0(); }
 
       async.eachSeries(tweetObj[entityType], function(entityObj, cb1){
 
@@ -1971,20 +1970,17 @@ function histogramIncomplete(histogram){
 
     if (!histogram) { return resolve(true); }
     if (histogram === undefined) { return resolve(true); }
-    if (histogram === {}) { return resolve(true); }
+    if (histogram == {}) { return resolve(true); }
 
     async.each(Object.values(histogram), function(value, cb){
 
-      if (value === {}) { return cb(); }
+      if (value == {}) { return cb(); }
       if ((value !== undefined) && (Object.keys(value).length > 0)) { return cb("valid"); }
 
       cb();
 
     }, function(valid){
-
       if (valid) { return resolve(false); }
-
-      // console.log("histogramIncomplete\n" + jsonPrint(histogram));
       return resolve(true);
     });
 
@@ -1997,7 +1993,7 @@ function fetchUserTweets(params){
 
     const user = params.user;
 
-    if (!user.tweetHistograms || (user.tweetHistograms === undefined) || (user.tweetHistograms === {})) { 
+    if (!user.tweetHistograms || (user.tweetHistograms === undefined) || (user.tweetHistograms == {})) { 
 
       console.log(chalkAlert("TFE | fetchUserTweets | *** USER tweetHistograms UNDEFINED"
         + " | @" + user.screenName
@@ -2050,7 +2046,7 @@ function fetchUserTweets(params){
 
       if (err){
 
-        if (err.code === 88){
+        if (err.code == 88){
           statsObj.threeceeUser.twitterRateLimit.statuses.user_timeline.exceptionAt = moment();
           statsObj.threeceeUser.twitterRateLimit.statuses.user_timeline.exceptionFlag = true;
 
@@ -2062,7 +2058,7 @@ function fetchUserTweets(params){
           return resolve(user);
         }
 
-        if (err.code === 89){
+        if (err.code == 89){
 
           console.log(chalkAlert("TFC | *** TWITTER FETCH USER TWEETS ERROR | INVALID OR EXPIRED TOKEN" 
             + " | " + getTimeStamp() 
@@ -2083,7 +2079,7 @@ function fetchUserTweets(params){
           return resolve(user);
         }
 
-        if (err.code === 34){
+        if (err.code == 34){
           console.log(chalkError("TFC | *** TWITTER FETCH USER TWEETS ERROR | USER NOT FOUND"
             + " | " + getTimeStamp() 
             + " | @" + configuration.threeceeUser 
@@ -2102,7 +2098,7 @@ function fetchUserTweets(params){
           return resolve(user);
         }
         
-        if (err.code === 136){
+        if (err.code == 136){
           console.log(chalkError("TFC | *** TWITTER FETCH USER TWEETS ERROR | USER BLOCKED"
             + " | " + getTimeStamp() 
             + " | @" + configuration.threeceeUser 
@@ -2121,7 +2117,7 @@ function fetchUserTweets(params){
           return resolve(user);
         }
         
-        if (err.statusCode === 401){
+        if (err.statusCode == 401){
           console.log(chalkError("TFC | *** TWITTER FETCH USER TWEETS ERROR | NOT AUTHORIZED"
             + " | " + getTimeStamp() 
             + " | @" + configuration.threeceeUser 
@@ -2209,7 +2205,7 @@ function processUserTweetArray(params){
           statsObj.twitter.tweetsProcessed += 1;
           statsObj.twitter.tweetsTotal += 1;
 
-          if (forceFetch || configuration.testMode || configuration.verbose || (statsObj.twitter.tweetsTotal % 100 === 0)) {
+          if (forceFetch || configuration.testMode || configuration.verbose || (statsObj.twitter.tweetsTotal % 100 == 0)) {
             console.log(chalkTwitter("TFE | +++ PROCESSED TWEET"
               + " | FORCE: " + forceFetch
               + " [ P/H/T " + statsObj.twitter.tweetsProcessed + "/" + statsObj.twitter.tweetsHits + "/" + statsObj.twitter.tweetsTotal + "]"
@@ -2344,7 +2340,7 @@ async function updateUserTweets(params){
     userTweetFetchSet.add(user.nodeId);
   }
 
-  if (user.latestTweets.length === 0) { 
+  if (user.latestTweets.length == 0) { 
     delete user.latestTweets;
     return user;
   }
@@ -2435,7 +2431,7 @@ function parseImage(params){
     }).
     catch(function(err){
 
-      if (err.code === 8){
+      if (err.code == 8){
         console.log(chalkError(MODULE_ID_PREFIX + " | *** IMAGE PARSER | RATE LIMIT: " + err));
         statsObj.imageParser.rateLimitFlag = true;
 
@@ -2573,17 +2569,21 @@ async function initProcessUserQueueInterval(interval) {
 
         const processedUser = await processUser({user: user});
 
+        statsObj.user.processed += 1;
+
         debug("PROCESSED USER\n" + jsonPrint(processedUser));
 
         if (configuration.verbose || userQueueObj.priorityFlag) {
           console.log(chalkAlert(MODULE_ID_PREFIX + " | PROCESSED USER"
+            + " [ " + statsObj.user.processed + "]"
             + " | PRIORITY: " + userQueueObj.priorityFlag
-            + " | UID: " + processedUser.userId
-            + " | @" + processedUser.screenName
-            + " | Ts SINCE: " + processedUser.tweets.sinceId
-            + " MAX: " + processedUser.tweets.maxId
-            + " Ts: " + processedUser.tweets.tweetIds.length
-            // + "\ntweets\n" + jsonPrint(user.tweets)
+            + " | " + printUser({user: processedUser})
+            // + " | UID: " + processedUser.userId
+            // + " | @" + processedUser.screenName
+            // + " | Ts SINCE: " + processedUser.tweets.sinceId
+            // + " MAX: " + processedUser.tweets.maxId
+            // + " Ts: " + processedUser.tweets.tweetIds.length
+            // // + "\ntweets\n" + jsonPrint(user.tweets)
           ));
         }
 
@@ -2874,13 +2874,13 @@ function twitterUsersShow(){
 
       if (err){
 
-        if (err.code === 88){
+        if (err.code == 88){
           statsObj.threeceeUser.twitterRateLimit.users.show.exceptionAt = moment();
           statsObj.threeceeUser.twitterRateLimit.users.show.exceptionFlag = true;
           return reject(err);
         }
 
-        if (err.code === 89){
+        if (err.code == 89){
 
           console.log(chalkAlert("TFC | *** TWITTER SHOW USER ERROR | INVALID OR EXPIRED TOKEN" 
             + " | " + getTimeStamp() 
@@ -2941,7 +2941,7 @@ async function twitterUserUpdate(){
       + " | " + err.message
     ));
 
-    if (err.code === 88) {
+    if (err.code == 88) {
       return;
     }
     return err;
@@ -2982,13 +2982,13 @@ function initTwitter(twitterConfig){
 
       if (err){
 
-        if (err.code === 88){
+        if (err.code == 88){
 
           statsObj.threeceeUser.twitterRateLimit.account.settings.exceptionAt = moment();
           statsObj.threeceeUser.twitterRateLimit.account.settings.exceptionFlag = true;
           return resolve(err);
         }
-        else if (err.code === 89){
+        else if (err.code == 89){
 
           console.log(chalkAlert("TFC | *** TWITTER ACCOUNT SETTINGS ERROR | INVALID OR EXPIRED TOKEN" 
             + " | @" + twitterConfig.screenName 
@@ -3027,7 +3027,7 @@ function initTwitter(twitterConfig){
       catch(e){
         e.user = userScreenName;
 
-        if (e.code === 88) {
+        if (e.code == 88) {
           return resolve(err);
         }
 

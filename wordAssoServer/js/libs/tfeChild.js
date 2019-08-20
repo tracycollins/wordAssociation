@@ -2718,7 +2718,7 @@ async function generateAutoCategory(params) {
     const networkOutput = await nnTools.activateSingleNetwork({user: user});
 
     let text;
-    let chalkVar;
+    let chalkVar = chalkLog;
 
     if (user.category && (networkOutput.categoryAuto == user.category)) {
       statsObj.autoChangeTotal += 1;

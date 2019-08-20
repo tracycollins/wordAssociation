@@ -9714,8 +9714,6 @@ async function processTwitterSearchNode(params) {
         else {
           tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, user: params.user});
         }
-
-        // return params.user;
       }
 
     }

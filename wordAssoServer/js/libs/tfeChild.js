@@ -2251,13 +2251,8 @@ function processUserTweetArray(params){
           + " [ P/H/T " + statsObj.twitter.tweetsProcessed + "/" + statsObj.twitter.tweetsHits + "/" + statsObj.twitter.tweetsTotal + "]"
           + " | Ts: " + user.tweets.tweetIds.length
           + " | @" + user.screenName
-          // + "\nTFE | THG\n" + jsonPrint(user.tweetHistograms)
         ));
       }
-
-      // user.markModified("tweets");
-      // user.markModified("tweetHistograms");
-
       resolve(user);
     });
 
@@ -2266,52 +2261,48 @@ function processUserTweetArray(params){
 
 async function processUserTweets(params){
 
-  // return new Promise(function(resolve, reject){
+  let user = {};
+  user = params.user;
 
-    let user = {};
-    user = params.user;
+  const tweets = params.tweets;
 
-    const tweets = params.tweets;
+  const tscParams = {};
 
-    const tscParams = {};
+  tscParams.globalTestMode = configuration.globalTestMode;
+  tscParams.testMode = configuration.testMode;
+  tscParams.inc = false;
+  tscParams.twitterEvents = configEvents;
+  tscParams.tweetStatus = {};
 
-    tscParams.globalTestMode = configuration.globalTestMode;
-    tscParams.testMode = configuration.testMode;
-    tscParams.inc = false;
-    tscParams.twitterEvents = configEvents;
-    tscParams.tweetStatus = {};
+  let tweetHistogramsEmpty = false;
 
-    let tweetHistogramsEmpty = false;
+  try{
+    tweetHistogramsEmpty = await emptyHistogram(user.tweetHistograms);
 
-    try{
-      tweetHistogramsEmpty = await emptyHistogram(user.tweetHistograms);
+    const processedUser = await processUserTweetArray({user: user, forceFetch: tweetHistogramsEmpty, tweets: tweets, tscParams: tscParams});
 
-      const processedUser = await processUserTweetArray({user: user, forceFetch: tweetHistogramsEmpty, tweets: tweets, tscParams: tscParams});
-
-      if (tweetHistogramsEmpty) {
-        console.log(chalkLog("TFE | >>> processUserTweetArray USER"
-          + " | " + printUser({user: processedUser})
-        ));
-        debug(chalkLog("TFE | >>> processUserTweetArray USER TWEETS"
-          + " | SINCE: " + processedUser.tweets.sinceId
-          + " | TWEETS: " + processedUser.tweets.tweetIds.length
-        ));
-        debug(chalkLog("TFE | >>> processUserTweetArray USER TWEET HISTOGRAMS"
-          + "\n" + jsonPrint(processedUser.tweetHistograms)
-        ));
-        debug(chalkLog("TFE | >>> processUserTweetArray USER PROFILE HISTOGRAMS"
-          + "\n" + jsonPrint(processedUser.profileHistograms)
-        ));
-      }
-
-      return processedUser;
-    }
-    catch(err){
-      console.log(chalkError("TFE | *** processUserTweetArray ERROR: " + err));
-      throw err;
+    if (tweetHistogramsEmpty) {
+      console.log(chalkLog("TFE | >>> processUserTweetArray USER"
+        + " | " + printUser({user: processedUser})
+      ));
+      debug(chalkLog("TFE | >>> processUserTweetArray USER TWEETS"
+        + " | SINCE: " + processedUser.tweets.sinceId
+        + " | TWEETS: " + processedUser.tweets.tweetIds.length
+      ));
+      debug(chalkLog("TFE | >>> processUserTweetArray USER TWEET HISTOGRAMS"
+        + "\n" + jsonPrint(processedUser.tweetHistograms)
+      ));
+      debug(chalkLog("TFE | >>> processUserTweetArray USER PROFILE HISTOGRAMS"
+        + "\n" + jsonPrint(processedUser.profileHistograms)
+      ));
     }
 
-  // });
+    return processedUser;
+  }
+  catch(err){
+    console.log(chalkError("TFE | *** processUserTweetArray ERROR: " + err));
+    throw err;
+  }
 }
 
 async function updateUserTweets(params){
@@ -2334,8 +2325,6 @@ async function updateUserTweets(params){
     }
 
     user.tweetHistograms = {};
-    // user.markModified("tweetHistograms");
-    // user = await fetchUserTweets({user: user, force: true});
     user = await fetchUserTweets({user: user});
     userTweetFetchSet.add(user.nodeId);
   }
@@ -2578,12 +2567,6 @@ async function initProcessUserQueueInterval(interval) {
             + " [ " + statsObj.user.processed + "]"
             + " | PRIORITY: " + userQueueObj.priorityFlag
             + " | " + printUser({user: processedUser})
-            // + " | UID: " + processedUser.userId
-            // + " | @" + processedUser.screenName
-            // + " | Ts SINCE: " + processedUser.tweets.sinceId
-            // + " MAX: " + processedUser.tweets.maxId
-            // + " Ts: " + processedUser.tweets.tweetIds.length
-            // // + "\ntweets\n" + jsonPrint(user.tweets)
           ));
         }
 
@@ -3266,7 +3249,7 @@ setTimeout(async function(){
     configuration = await initialize(configuration);
   }
   catch(err){
-    if (err.status !== 404){
+    if (err.status != 404){
       console.error(chalkLog("WAS | TFC | *** INIT ERROR \n" + jsonPrint(err)));
       quit();
     }

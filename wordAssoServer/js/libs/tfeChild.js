@@ -2158,6 +2158,12 @@ function fetchUserTweets(params){
         return reject(err);
       }
 
+      console.log(chalkLog("TFC | <<< FETCH TWEETS"
+        + " | " + user.userId
+        + " | @" + user.screenName
+        + " | " + userTweetsArray.length + " Ts"
+      ));
+
       user.latestTweets = _.union(userTweetsArray, user.latestTweets);
 
       return resolve(user);
@@ -2311,7 +2317,10 @@ async function updateUserTweets(params){
 
   const histogramIncompleteFlag = await histogramIncomplete(user.tweetHistograms);
 
-  if (configuration.testFetchTweetsMode || (!userTweetFetchSet.has(user.nodeId) && histogramIncompleteFlag)) { 
+  if (configuration.testFetchTweetsMode 
+    || (!userTweetFetchSet.has(user.nodeId) && (histogramIncompleteFlag || user.priorityFlag))) { 
+
+    userTweetFetchSet.add(user.nodeId);
 
     if (configuration.testFetchTweetsMode) {
       console.log(chalkAlert("TFE | updateUserTweets | !!! TEST MODE FETCH TWEETS"
@@ -2324,9 +2333,9 @@ async function updateUserTweets(params){
       ));
     }
 
-    user.tweetHistograms = {};
+    if (histogramIncompleteFlag) { user.tweetHistograms = {}; }
     user = await fetchUserTweets({user: user});
-    userTweetFetchSet.add(user.nodeId);
+    userTweetFetchSet.delete(user.nodeId);
   }
 
   if (user.latestTweets.length == 0) { 
@@ -2511,6 +2520,8 @@ async function initProcessUserQueueInterval(interval) {
         }
 
         const user = await tcUtils.encodeHistogramUrls({user: u});
+
+        user.priorityFlag = userQueueObj.priorityFlag || false;
 
         if (!user.latestTweets || (user.latestTweets === undefined)) { 
           user.latestTweets = [];
@@ -3183,6 +3194,7 @@ process.on("message", async function(m) {
             processUserQueue.unshift(user);
           }
           else {
+            user.priorityFlag = false;
             processUserQueue.push(user);
           }
 
@@ -3206,6 +3218,7 @@ process.on("message", async function(m) {
             processUserQueue.unshift(m.user);
           }
           else {
+            m.user.priorityFlag = false;
             processUserQueue.push(m.user);
           }
 

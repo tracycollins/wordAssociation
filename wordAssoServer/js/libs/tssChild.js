@@ -54,7 +54,7 @@ const NodeCache = require("node-cache");
 
 let DROPBOX_ROOT_FOLDER;
 
-if (hostname === "google") {
+if (hostname == "google") {
   DROPBOX_ROOT_FOLDER = "/home/tc/Dropbox/Apps/wordAssociation";
 }
 else {
@@ -714,7 +714,7 @@ function twitStreamPromise(params){
           + " | " + err.message
         ));
 
-        if (err.code === 88){
+        if (err.code == 88){
           threeceeUserObj.stats.twitterRateLimitExceptionFlag = true;
           threeceeUserObj.stats.twitterRateLimit = response.headers["x-rate-limit-limit"];
           threeceeUserObj.stats.twitterRateLimitRemaining = response.headers["x-rate-limit-remaining"];
@@ -813,7 +813,7 @@ function initFollowUserIdSet(){
 
             threeceeUserObj.followUserScreenNameSet.add(user.screenName.toLowerCase());
 
-            if (configuration.verbose || (userIndex % 100 === 0)) {
+            if (configuration.verbose || (userIndex % 100 == 0)) {
               const printString = "TSS | [ " + userIndex + "/" + threeceeUserObj.followUserIdSet.size + " ] @" + threeceeUserObj.screenName + " | DB HIT";
               printUserObj(printString, user);
             }
@@ -1214,7 +1214,7 @@ function initSearchStream(){
 
       threeceeUserObj.searchStream.on("reconnect", function(data){
 
-        if (data.type === "rate-limit") {
+        if (data.type == "rate-limit") {
           threeceeUserObj.stats.rateLimited = true;
         }
         else {
@@ -1320,7 +1320,7 @@ function initSearchStream(){
         threeceeUserObj.stats.authenticated = false;
         threeceeUserObj.stats.twitterTokenErrorFlag = true;
 
-        const errorType = (err.statusCode === 401) ? "TWITTER_UNAUTHORIZED" : "TWITTER";
+        const errorType = (err.statusCode == 401) ? "TWITTER_UNAUTHORIZED" : "TWITTER";
 
         process.send({
           op: "ERROR", 
@@ -1344,7 +1344,7 @@ function initSearchStream(){
         statsObj.twitter.errors += 1;
         threeceeUserObj.stats.twitterErrors += 1;
 
-        if (err.statusCode === 401) {
+        if (err.statusCode == 401) {
           process.send({
             op: "ERROR", 
             threeceeUser: threeceeUserObj.screenName, 
@@ -1442,7 +1442,7 @@ function initSearchStream(){
 
           statsObj.twitter.duplicateTweetsReceived += 1;
 
-          if (statsObj.twitter.duplicateTweetsReceived % 1000 === 0){
+          if (statsObj.twitter.duplicateTweetsReceived % 1000 == 0){
             console.log(chalkLog("TSS"
               + " | @" + threeceeUserObj.screenName
               + " | ??? DUP TWEET"
@@ -1496,7 +1496,7 @@ function initSearchStream(){
           statsObj.queues.tweetQueue.fullEvents += 1;
         }
 
-        if ((threeceeUserObj.stats.tweetsReceived % 1000 === 0) || (statsObj.tweetsReceived % 1000 === 0)) {
+        if ((threeceeUserObj.stats.tweetsReceived % 1000 == 0) || (statsObj.tweetsReceived % 1000 == 0)) {
           console.log(chalkTwitter("TSS | <T"
             + " | 3C " + threeceeUserObj.screenName
             + " | " + threeceeUserObj.stats.tweetsPerMinute.toFixed(3) + " TPM"
@@ -1530,7 +1530,7 @@ function initSearchStream(){
       threeceeUserObj.stats.authenticated = false;
       threeceeUserObj.stats.twitterTokenErrorFlag = true;
 
-      const errorType = (err.statusCode === 401) ? "TWITTER_UNAUTHORIZED" : "TWITTER";
+      const errorType = (err.statusCode == 401) ? "TWITTER_UNAUTHORIZED" : "TWITTER";
 
       process.send({
         op: "ERROR", 
@@ -1616,7 +1616,7 @@ async function initSearchTerms(params){
 
     threeceeUserObj.searchTermSet = new Set([...threeceeUserObj.searchTermSet, ...threeceeUserObj.followUserScreenNameSet]);
 
-    if (threeceeUserObj.searchTermSet.size === 0){
+    if (threeceeUserObj.searchTermSet.size == 0){
       console.log(chalkAlert("TSS | ??? NO SEACH TERMS |@" + threeceeUserObj.screenName));
       throw new Error("NO SEARCH TERMS");
     }
@@ -2041,11 +2041,11 @@ async function initFollowQueue(params){
               ));
             }
 
-            if (err.code === 161) {
+            if (err.code == 161) {
               followQueue.length = 0;
             }
 
-            const errorType = (err.code === 161) ? "TWITTER_FOLLOW_LIMIT" : "TWITTER_FOLLOW";
+            const errorType = (err.code == 161) ? "TWITTER_FOLLOW_LIMIT" : "TWITTER_FOLLOW";
 
             process.send({
               op: "ERROR", 
@@ -2271,7 +2271,7 @@ process.on("message", async function(m) {
 
                 if (user) {
 
-                  if (configuration.verbose || (userIndex % 100 === 0)){
+                  if (configuration.verbose || (userIndex % 100 == 0)){
                     printString = "TSS | [ " + userIndex + "/" + threeceeUserObj.followUserIdSet.size + " ] @" + threeceeUserObj.screenName + " | DB HIT";
                     printUserObj(printString, user);
                   }

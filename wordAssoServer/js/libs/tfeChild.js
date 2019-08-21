@@ -1354,24 +1354,24 @@ function checkPropertyChange(user, prop){
   return false;
 }
 
-function allHistogramsZeroKeys(histogram){
+// function allHistogramsZeroKeys(histogram){
 
-  return new Promise(function(resolve){
+//   return new Promise(function(resolve){
 
-    if (empty(histogram)) {
-      resolve(true);
-    }
+//     if (empty(histogram)) {
+//       resolve(true);
+//     }
 
-    for (const histogramType of Object.keys(histogram)){
-      if (Object.keys(histogram[histogramType]).length > 0) { 
-        return resolve(false);
-      }
-    }
+//     for (const histogramType of Object.keys(histogram)){
+//       if (Object.keys(histogram[histogramType]).length > 0) { 
+//         return resolve(false);
+//       }
+//     }
 
-    resolve(true);
+//     resolve(true);
 
-  });
-}
+//   });
+// }
 
 // async function checkUserProfileChanged(params) {
 

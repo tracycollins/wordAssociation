@@ -1373,61 +1373,112 @@ function allHistogramsZeroKeys(histogram){
   });
 }
 
+// async function checkUserProfileChanged(params) {
+
+//   try{
+
+//     const user = params.user;
+
+//     user.profileHistograms = user.profileHistograms || {};
+
+//     let allHistogramsZero = false;
+
+//     allHistogramsZero = await allHistogramsZeroKeys(user.profileHistograms);
+
+//     if (empty(user.profileHistograms) || allHistogramsZero){
+
+//       if (user.profileHistograms === undefined) { user.profileHistograms = {}; }
+
+//       if (configuration.verbose) {
+//         console.log(chalkLog(
+//           "WAS | TFC | USER PROFILE HISTOGRAMS UNDEFINED" 
+//           + " | RST PREV PROP VALUES" 
+//           + " | @" + user.screenName 
+//         ));
+//       }
+
+//       user.previousProfileImageUrl = null;
+//       user.previousBannerImageUrl = null;
+//       user.previousDescription = null;
+//       user.previousExpandedUrl = null;
+//       user.previousLocation = null;
+//       user.previousName = null;
+//       user.previousProfileUrl = null;
+//       user.previousScreenName = null;
+//       user.previousUrl = null;
+//     }
+
+//     const results = [];
+
+//     if ((!user.bannerImageAnalyzed && user.bannerImageUrl) || checkPropertyChange(user, "bannerImageUrl")) { results.push("bannerImageUrl"); }
+//     if ((!user.profileImageAnalyzed && user.profileImageUrl) || checkPropertyChange(user, "profileImageUrl")) { results.push("profileImageUrl"); }
+
+//     if (checkPropertyChange(user, "description")) { results.push("description"); }
+//     if (checkPropertyChange(user, "expandedUrl")) { results.push("expandedUrl"); }
+//     if (checkPropertyChange(user, "location")) { results.push("location"); }
+//     if (checkPropertyChange(user, "name")) { results.push("name"); }
+//     if (checkPropertyChange(user, "profileUrl")) { results.push("profileUrl"); }
+//     if (checkPropertyChange(user, "screenName")) { results.push("screenName"); }
+//     if (checkPropertyChange(user, "url")) { results.push("url"); }
+
+//     return results;
+
+//   }
+//   catch(err){
+//     console.log(chalkError("WAS | TFC | *** ALL HISTOGRAMS ZERO ERROR: " + err));
+//     throw err;
+//   }
+// }
+
 async function checkUserProfileChanged(params) {
 
+  const user = params.user;
+
+  let profileHistogramsEmpty = false;
+
   try{
-
-    const user = params.user;
-
-    user.profileHistograms = user.profileHistograms || {};
-
-    let allHistogramsZero = false;
-
-    allHistogramsZero = await allHistogramsZeroKeys(user.profileHistograms);
-
-    if (empty(user.profileHistograms) || allHistogramsZero){
-
-      if (user.profileHistograms === undefined) { user.profileHistograms = {}; }
-
-      if (configuration.verbose) {
-        console.log(chalkLog(
-          "WAS | TFC | USER PROFILE HISTOGRAMS UNDEFINED" 
-          + " | RST PREV PROP VALUES" 
-          + " | @" + user.screenName 
-        ));
-      }
-
-      user.previousProfileImageUrl = null;
-      user.previousBannerImageUrl = null;
-      user.previousDescription = null;
-      user.previousExpandedUrl = null;
-      user.previousLocation = null;
-      user.previousName = null;
-      user.previousProfileUrl = null;
-      user.previousScreenName = null;
-      user.previousUrl = null;
-    }
-
-    const results = [];
-
-    if ((!user.bannerImageAnalyzed && user.bannerImageUrl) || checkPropertyChange(user, "bannerImageUrl")) { results.push("bannerImageUrl"); }
-    if ((!user.profileImageAnalyzed && user.profileImageUrl) || checkPropertyChange(user, "profileImageUrl")) { results.push("profileImageUrl"); }
-
-    if (checkPropertyChange(user, "description")) { results.push("description"); }
-    if (checkPropertyChange(user, "expandedUrl")) { results.push("expandedUrl"); }
-    if (checkPropertyChange(user, "location")) { results.push("location"); }
-    if (checkPropertyChange(user, "name")) { results.push("name"); }
-    if (checkPropertyChange(user, "profileUrl")) { results.push("profileUrl"); }
-    if (checkPropertyChange(user, "screenName")) { results.push("screenName"); }
-    if (checkPropertyChange(user, "url")) { results.push("url"); }
-
-    return results;
-
+    profileHistogramsEmpty = await emptyHistogram(user.profileHistograms);
   }
   catch(err){
-    console.log(chalkError("WAS | TFC | *** ALL HISTOGRAMS ZERO ERROR: " + err));
+    console.log(chalkError("TFE | *** ALL HISTOGRAMS profileHistogramsEmpty ERROR: " + err));
     throw err;
   }
+
+  if (profileHistogramsEmpty){
+
+    console.log(chalkInfo(
+      "TFE | USER PROFILE HISTOGRAMS EMPTY" 
+      + " | RST PREV PROP VALUES" 
+      + " | @" + user.screenName 
+      + "\nTFE | PROFILE HISTOGRAMS\n" + jsonPrint(user.profileHistograms) 
+    ));
+
+    user.previousBannerImageUrl = null;
+    user.previousProfileImageUrl = null;
+
+    user.previousDescription = null;
+    user.previousExpandedUrl = null;
+    user.previousLocation = null;
+    user.previousName = null;
+    user.previousProfileUrl = null;
+    user.previousScreenName = null;
+    user.previousUrl = null;
+  }
+
+  const results = [];
+
+  if (!user.bannerImageAnalyzed || checkPropertyChange(user, "bannerImageUrl")) { results.push("bannerImageUrl"); }
+  if (!user.profileImageAnalyzed || checkPropertyChange(user, "profileImageUrl")) { results.push("profileImageUrl"); }
+
+  if (checkPropertyChange(user, "description")) { results.push("description"); }
+  if (checkPropertyChange(user, "expandedUrl")) { results.push("expandedUrl"); }
+  if (checkPropertyChange(user, "location")) { results.push("location"); }
+  if (checkPropertyChange(user, "name")) { results.push("name"); }
+  if (checkPropertyChange(user, "profileUrl")) { results.push("profileUrl"); }
+  if (checkPropertyChange(user, "screenName")) { results.push("screenName"); }
+  if (checkPropertyChange(user, "url")) { results.push("url"); }
+
+  return results;
 }
 
 function emptyHistogram(histogram){
@@ -1578,10 +1629,10 @@ async function userLanguageSentiment(params){
 
 function processUserProfileChanges(params){
 
-  const user = params.user;
-
   return new Promise(function(resolve, reject){
 
+    const user = params.user;
+  
     if (!params.userProfileChanges || params.userProfileChanges === undefined) {
       return resolve(user);
     }

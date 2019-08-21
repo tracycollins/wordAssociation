@@ -2889,7 +2889,9 @@ async function processUser(params) {
       ));
     }
 
-    return prevPropsUser;
+    const u = prevPropsUser.toObject();
+
+    return u;
 
   }
   catch(err) {

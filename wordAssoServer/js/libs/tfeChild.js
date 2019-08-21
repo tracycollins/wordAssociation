@@ -2820,25 +2820,25 @@ async function processUser(params) {
     prevPropsUser.markModified("tweets");
     prevPropsUser.markModified("latestTweets");
 
-    const savedUser = await prevPropsUser.save();
+    await prevPropsUser.save();
 
     if (configuration.verbose){
       console.log(chalkLog(MODULE_ID_PREFIX + " | >>> SAVED USER"
-        + " | " + printUser({user: savedUser})
+        + " | " + printUser({user: prevPropsUser})
       ));
       console.log(chalkLog(MODULE_ID_PREFIX + " | >>> SAVED USER TWEETS"
-        + " | SINCE: " + savedUser.tweets.sinceId
-        + " | TWEETS: " + savedUser.tweets.tweetIds.length
+        + " | SINCE: " + prevPropsUser.tweets.sinceId
+        + " | TWEETS: " + prevPropsUser.tweets.tweetIds.length
       ));
       console.log(chalkLog(MODULE_ID_PREFIX + " | >>> SAVED USER TWEET HISTOGRAMS"
-        + "\n" + jsonPrint(savedUser.tweetHistograms)
+        + "\n" + jsonPrint(prevPropsUser.tweetHistograms)
       ));
       console.log(chalkLog(MODULE_ID_PREFIX + " | >>> SAVED USER PROFILE HISTOGRAMS"
-        + "\n" + jsonPrint(savedUser.profileHistograms)
+        + "\n" + jsonPrint(prevPropsUser.profileHistograms)
       ));
     }
 
-    return savedUser;
+    return prevPropsUser;
 
   }
   catch(err) {

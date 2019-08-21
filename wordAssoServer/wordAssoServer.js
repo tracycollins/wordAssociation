@@ -1036,7 +1036,7 @@ function printUserObj(title, u, chalkFormat) {
 
   console.log(chlk(title
     + " | NID: " + user.nodeId
-    + " | UID: " + user.userId
+    // + " | UID: " + user.userId
     + " | @" + user.screenName
     + " | NAME: " + user.name 
     + " | LG " + user.lang
@@ -1044,9 +1044,9 @@ function printUserObj(title, u, chalkFormat) {
     + " | FD " + user.friendsCount
     + " | T " + user.statusesCount
     + " | M  " + user.mentions
-    + " | LS " + getTimeStamp(user.lastSeen)
+    // + " | LS " + getTimeStamp(user.lastSeen)
     + " | FWG " + user.following 
-    + " | 3C " + user.threeceeFollowing 
+    // + " | 3C " + user.threeceeFollowing 
     + " | LC " + user.location
     + " | CV " + user.categoryVerified + " M " + user.category + " A " + user.categoryAuto
     + " | PRI " + user.priorityFlag

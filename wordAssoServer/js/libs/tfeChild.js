@@ -2521,8 +2521,6 @@ async function updateUserHistograms(params) {
   try {
 
     const processedUser = await userProfileChangeHistogram({user: user});
-
-    // await updateGlobalHistograms({user: processedUser});
     return processedUser;
 
   }

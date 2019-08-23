@@ -92,25 +92,10 @@ else {
   DROPBOX_ROOT_FOLDER = "/Users/tc/Dropbox/Apps/wordAssociation";
 }
 
-const urlParse = require("url-parse");
-
 const NeuralNetworkTools = require("@threeceelabs/neural-network-tools");
 const nnTools = new NeuralNetworkTools("WA_TFE_NNT");
 
-const googleMapsClient = require("@google/maps").createClient({
-  key: "AIzaSyDBxA6RmuBcyj-t7gfvK61yp8CDNnRLUlc"
-});
-
 const defaults = require("object.defaults");
-const Language = require("@google-cloud/language");
-const languageClient = new Language.LanguageServiceClient();
-
-const MergeHistograms = require("@threeceelabs/mergehistograms");
-const mergeHistograms = new MergeHistograms();
-
-const twitterTextParser = require("@threeceelabs/twitter-text-parser");
-const twitterImageParser = require("@threeceelabs/twitter-image-parser");
-
 const btoa = require("btoa");
 const empty = require("is-empty");
 
@@ -1020,339 +1005,339 @@ networkOutput.positive = 0;
 networkOutput.negative = 0;
 
 
-function geoCode(params) {
-
-  return new Promise(function(resolve, reject){
-
-    const components = {};
-    let placeId = false;
-    let formattedAddress;
-    let geoValid = false;
-
-    googleMapsClient.geocode({ address: params.address }, function(err, response) {
-      if (err) {
-        console.log(chalkError("TCS | *** GEOCODE ERROR\n", jsonPrint(err)));
-        return reject(err);
-      }
-      if (response.json.results.length > 0) {
-
-        geoValid = true;
-        placeId = response.json.results[0].place_id;
-        formattedAddress = response.json.results[0].formatted_address;
-
-        debug(chalkLog("TCS | GEOCODE"
-          + " | " + params.address
-          + " | PLACE ID: " + placeId
-          + " | FORMATTED: " + response.json.results[0].formatted_address
-        ));
-
-        async.each(response.json.results[0].address_components, function(addressComponent, cb0){
-
-          if (!addressComponent.types || addressComponent.types === undefined || addressComponent.types.length == 0){
-            async.setImmediate(function() { return cb0(); });
-          }
-
-          async.eachOf(addressComponent.types, function(addressComponentType, index, cb1){
-            switch(addressComponentType){
-              case "country":
-              case "locality":
-              case "sublocality":
-              case "sublocality_level_1":
-              case "administrative_area_level_1":
-              case "administrative_area_level_2":
-              case "administrative_area_level_3":
-                components[addressComponentType] = addressComponent.long_name;
-
-                debug(chalkInfo("TCS | GEOCODE | +++ ADDRESS COMPONENT"
-                  + " | " + params.address
-                  + " | FORMATTED: " + response.json.results[0].formatted_address
-                  + " | TYPE: " + addressComponentType
-                  + " | " + components[addressComponentType]
-                ));
-
-              break;
-              default:
-            }
-            cb1();
-          }, function(){
-            async.setImmediate(function() { cb0(); });
-          });
-
-        }, function(err){
-          if (err) {
-
-            console.log(chalkError("TCS | *** GEOCODE ERROR: " + err));
-            return reject(err);
-          }
-
-          debug(chalkLog("TCS | GEOCODE"
-            + " | " + params.address
-            + " | PLACE ID: " + placeId
-            + " | FORMATTED: " + response.json.results[0].formatted_address
-            // + "\n" + jsonPrint(response.json)
-          ));
-
-          resolve({
-            address: params.address,
-            geoValid: geoValid,
-            placeId: placeId, 
-            formattedAddress: formattedAddress, 
-            components: components, 
-            raw: response.json 
-          });
-        });
-      }
-      else {
-        resolve({ 
-          geoValid: geoValid,
-          address: params.address,
-          placeId: placeId, 
-          formattedAddress: formattedAddress, 
-          components: components, 
-          raw: response.json 
-        });
-      }
-
-    });
-
-  });
-}
-
-async function processLocationChange(params){
-
-  const locations = params.locations || {};
-  const user = params.user;
-  const userPropValue = params.userPropValue;
+// function geoCode(params) {
+
+//   return new Promise(function(resolve, reject){
+
+//     const components = {};
+//     let placeId = false;
+//     let formattedAddress;
+//     let geoValid = false;
+
+//     googleMapsClient.geocode({ address: params.address }, function(err, response) {
+//       if (err) {
+//         console.log(chalkError("TCS | *** GEOCODE ERROR\n", jsonPrint(err)));
+//         return reject(err);
+//       }
+//       if (response.json.results.length > 0) {
+
+//         geoValid = true;
+//         placeId = response.json.results[0].place_id;
+//         formattedAddress = response.json.results[0].formatted_address;
+
+//         debug(chalkLog("TCS | GEOCODE"
+//           + " | " + params.address
+//           + " | PLACE ID: " + placeId
+//           + " | FORMATTED: " + response.json.results[0].formatted_address
+//         ));
+
+//         async.each(response.json.results[0].address_components, function(addressComponent, cb0){
+
+//           if (!addressComponent.types || addressComponent.types === undefined || addressComponent.types.length == 0){
+//             async.setImmediate(function() { return cb0(); });
+//           }
+
+//           async.eachOf(addressComponent.types, function(addressComponentType, index, cb1){
+//             switch(addressComponentType){
+//               case "country":
+//               case "locality":
+//               case "sublocality":
+//               case "sublocality_level_1":
+//               case "administrative_area_level_1":
+//               case "administrative_area_level_2":
+//               case "administrative_area_level_3":
+//                 components[addressComponentType] = addressComponent.long_name;
+
+//                 debug(chalkInfo("TCS | GEOCODE | +++ ADDRESS COMPONENT"
+//                   + " | " + params.address
+//                   + " | FORMATTED: " + response.json.results[0].formatted_address
+//                   + " | TYPE: " + addressComponentType
+//                   + " | " + components[addressComponentType]
+//                 ));
+
+//               break;
+//               default:
+//             }
+//             cb1();
+//           }, function(){
+//             async.setImmediate(function() { cb0(); });
+//           });
+
+//         }, function(err){
+//           if (err) {
+
+//             console.log(chalkError("TCS | *** GEOCODE ERROR: " + err));
+//             return reject(err);
+//           }
+
+//           debug(chalkLog("TCS | GEOCODE"
+//             + " | " + params.address
+//             + " | PLACE ID: " + placeId
+//             + " | FORMATTED: " + response.json.results[0].formatted_address
+//             // + "\n" + jsonPrint(response.json)
+//           ));
+
+//           resolve({
+//             address: params.address,
+//             geoValid: geoValid,
+//             placeId: placeId, 
+//             formattedAddress: formattedAddress, 
+//             components: components, 
+//             raw: response.json 
+//           });
+//         });
+//       }
+//       else {
+//         resolve({ 
+//           geoValid: geoValid,
+//           address: params.address,
+//           placeId: placeId, 
+//           formattedAddress: formattedAddress, 
+//           components: components, 
+//           raw: response.json 
+//         });
+//       }
+
+//     });
+
+//   });
+// }
+
+// async function processLocationChange(params){
+
+//   const locations = params.locations || {};
+//   const user = params.user;
+//   const userPropValue = params.userPropValue;
 
-  let text = params.text;
-  text += userPropValue + "\n";
+//   let text = params.text;
+//   text += userPropValue + "\n";
 
-  let name = userPropValue.trim().toLowerCase();
-  name = name.replace(/\./gi, "");
-
-  const lastSeen = Date.now();
-
-  const nodeId = btoa(name);
-
-  locations[nodeId] = (locations[nodeId] === undefined) ? 1 : locations[nodeId] + 1;
-
-  let locationDoc = await global.globalLocation.findOne({nodeId: nodeId}).exec();
-
-  if (!locationDoc) {
-
-    debug(chalkInfo(MODULE_ID_PREFIX + " | --- LOC DB MISS"
-      + " | NID: " + nodeId
-      + " | N: " + name + " / " + userPropValue
-    ));
-
-    locationDoc = new global.globalLocation({
-      nodeId: nodeId,
-      name: name,
-      nameRaw: userPropValue,
-      geoSearch: false,
-      geoValid: false,
-      lastSeen: lastSeen,
-      mentions: 0
-    });
-
-    if (configuration.geoCodeEnabled) {
-
-      const geoCodeResults = await geoCode({address: name});
-
-      if (geoCodeResults && geoCodeResults.placeId) {
-
-        locationDoc.geoValid = true;
-        locationDoc.geo = geoCodeResults;
-        locationDoc.placeId = geoCodeResults.placeId;
-        locationDoc.formattedAddress = geoCodeResults.formattedAddress;
-
-        await locationDoc.save();
-
-        statsObj.geo.hits += 1;
-        statsObj.geo.total += 1;
-        statsObj.geo.hitRate = 100*(statsObj.geo.hits/statsObj.geo.total);
-
-        debug(chalk.blue(MODULE_ID_PREFIX + " | +++ LOC GEO HIT "
-          + " | GEO: " + locationDoc.geoValid
-          + "  H " + statsObj.geo.hits
-          + "  M " + statsObj.geo.misses
-          + "  T " + statsObj.geo.total
-          + " HR: " + statsObj.geo.hitRate.toFixed(2)
-          + " | PID: " + locationDoc.placeId 
-          + " | NID: " + locationDoc.nodeId
-          + " | N: " + locationDoc.name + " / " + locationDoc.nameRaw
-          + " | A: " + locationDoc.formattedAddress
-        ));
-
-        user.geoValid = geoCodeResults.geoValid;
-        user.geo = geoCodeResults;
-
-        locations[geoCodeResults.placeId] = (locations[geoCodeResults.placeId] === undefined) 
-          ? 1 
-          : locations[geoCodeResults.placeId] + 1;
-
-        user.previousLocation = user.location;
-        locationDoc.geoSearch = true;
-
-        return {user: user, locations: locations, text: text};
-
-      } 
-      else {
-
-        await locationDoc.save();
-
-        statsObj.geo.misses += 1;
-        statsObj.geo.total += 1;
-        statsObj.geo.hitRate = 100*(statsObj.geo.hits/statsObj.geo.total);
-
-        debug(chalkLog(MODULE_ID_PREFIX + " | --- LOC GEO MISS"
-          + " | GEO: " + locationDoc.geoValid
-          + "  H " + statsObj.geo.hits
-          + "  M " + statsObj.geo.misses
-          + "  T " + statsObj.geo.total
-          + " HR: " + statsObj.geo.hitRate.toFixed(2)
-          + " | NID: " + locationDoc.nodeId
-          + " | N: " + locationDoc.name + " / " + locationDoc.nameRaw
-        ));
-
-        user.previousLocation = user.location;
-        return {user: user, locations: locations, text: text};
-      }
-    }
-    return {user: user, locations: locations, text: text};
-  }
-  else {
-
-    locationDoc.mentions += 1;
-    locationDoc.lastSeen = lastSeen;
-
-    debug(chalk.green(MODULE_ID_PREFIX + " | +++ LOC DB HIT "
-      + " | GEO: " + locationDoc.geoValid
-      + "  H " + statsObj.geo.hits
-      + "  M " + statsObj.geo.misses
-      + "  T " + statsObj.geo.total
-      + " HR: " + statsObj.geo.hitRate.toFixed(2)
-      + " | PID: " + locationDoc.placeId 
-      + " | NID: " + locationDoc.nodeId
-      + " | N: " + locationDoc.name + " / " + locationDoc.nameRaw
-      + " | A: " + locationDoc.formattedAddress
-    ));
-
-    if (locationDoc.geoValid) {
-      if (configuration.geoCodeEnabled 
-        && (!locationDoc.geoSearch || !locationDoc.geo || locationDoc.geo === undefined)) {
-
-        const geoCodeResults = await geoCode({address: name});
-
-        if (geoCodeResults && geoCodeResults.placeId) {
-
-          locationDoc.geoValid = true;
-          locationDoc.geo = geoCodeResults;
-          locationDoc.placeId = geoCodeResults.placeId;
-          locationDoc.formattedAddress = geoCodeResults.formattedAddress;
-
-          statsObj.geo.hits += 1;
-          statsObj.geo.total += 1;
-          statsObj.geo.hitRate = 100*(statsObj.geo.hits/statsObj.geo.total);
-
-          debug(chalk.blue(MODULE_ID_PREFIX + " | +++ LOC GEO HIT "
-            + " | GEO: " + locationDoc.geoValid
-            + "  H " + statsObj.geo.hits
-            + "  M " + statsObj.geo.misses
-            + "  T " + statsObj.geo.total
-            + " HR: " + statsObj.geo.hitRate.toFixed(2)
-            + " | PID: " + locationDoc.placeId 
-            + " | NID: " + locationDoc.nodeId
-            + " | N: " + locationDoc.name + " / " + locationDoc.nameRaw
-            + " | A: " + locationDoc.formattedAddress
-          ));
-
-          user.geoValid = geoCodeResults.geoValid;
-          user.geo = geoCodeResults;
-
-          locations[geoCodeResults.placeId] = (locations[geoCodeResults.placeId] === undefined) 
-            ? 1 
-            : locations[geoCodeResults.placeId] + 1;
-
-          user.previousLocation = user.location;
-          locationDoc.geoSearch = true;
-
-          await locationDoc.save();
-          return {user: user, locations: locations, text: text};
-        } 
-        else {
-
-          await locationDoc.save();
-
-          statsObj.geo.misses += 1;
-          statsObj.geo.total += 1;
-          statsObj.geo.hitRate = 100*(statsObj.geo.hits/statsObj.geo.total);
-
-          debug(chalkLog(MODULE_ID_PREFIX + " | --- LOC GEO MISS"
-            + " | GEO: " + locationDoc.geoValid
-            + "  H " + statsObj.geo.hits
-            + "  M " + statsObj.geo.misses
-            + "  T " + statsObj.geo.total
-            + " HR: " + statsObj.geo.hitRate.toFixed(2)
-            + " | NID: " + locationDoc.nodeId
-            + " | N: " + locationDoc.name + " / " + locationDoc.nameRaw
-          ));
-
-          user.previousLocation = user.location;
-          return {user: user, locations: locations, text: text};
-        }
-      }
-    }
-
-    await locationDoc.save();
-
-    const key = (locationDoc.placeId && locationDoc.placeId !== undefined) ? locationDoc.placeId : locationDoc.nodeId;
-
-    locations[key] = (locations[key] === undefined) ? 1 : locations[key] + 1;
-
-    user.previousLocation = user.location;
-
-    return {user: user, locations: locations, text: text};
-  }
-}
-
-function mergeHistogramsArray(params) {
-  return new Promise(function(resolve, reject){
-
-    let resultHistogram = {};
-
-    async.eachSeries(params.histogramArray, async function(histogram){
+//   let name = userPropValue.trim().toLowerCase();
+//   name = name.replace(/\./gi, "");
+
+//   const lastSeen = Date.now();
+
+//   const nodeId = btoa(name);
+
+//   locations[nodeId] = (locations[nodeId] === undefined) ? 1 : locations[nodeId] + 1;
+
+//   let locationDoc = await global.globalLocation.findOne({nodeId: nodeId}).exec();
+
+//   if (!locationDoc) {
+
+//     debug(chalkInfo(MODULE_ID_PREFIX + " | --- LOC DB MISS"
+//       + " | NID: " + nodeId
+//       + " | N: " + name + " / " + userPropValue
+//     ));
+
+//     locationDoc = new global.globalLocation({
+//       nodeId: nodeId,
+//       name: name,
+//       nameRaw: userPropValue,
+//       geoSearch: false,
+//       geoValid: false,
+//       lastSeen: lastSeen,
+//       mentions: 0
+//     });
+
+//     if (configuration.geoCodeEnabled) {
+
+//       const geoCodeResults = await tcUtils.geoCode({address: name});
+
+//       if (geoCodeResults && geoCodeResults.placeId) {
+
+//         locationDoc.geoValid = true;
+//         locationDoc.geo = geoCodeResults;
+//         locationDoc.placeId = geoCodeResults.placeId;
+//         locationDoc.formattedAddress = geoCodeResults.formattedAddress;
+
+//         await locationDoc.save();
+
+//         statsObj.geo.hits += 1;
+//         statsObj.geo.total += 1;
+//         statsObj.geo.hitRate = 100*(statsObj.geo.hits/statsObj.geo.total);
+
+//         debug(chalk.blue(MODULE_ID_PREFIX + " | +++ LOC GEO HIT "
+//           + " | GEO: " + locationDoc.geoValid
+//           + "  H " + statsObj.geo.hits
+//           + "  M " + statsObj.geo.misses
+//           + "  T " + statsObj.geo.total
+//           + " HR: " + statsObj.geo.hitRate.toFixed(2)
+//           + " | PID: " + locationDoc.placeId 
+//           + " | NID: " + locationDoc.nodeId
+//           + " | N: " + locationDoc.name + " / " + locationDoc.nameRaw
+//           + " | A: " + locationDoc.formattedAddress
+//         ));
+
+//         user.geoValid = geoCodeResults.geoValid;
+//         user.geo = geoCodeResults;
+
+//         locations[geoCodeResults.placeId] = (locations[geoCodeResults.placeId] === undefined) 
+//           ? 1 
+//           : locations[geoCodeResults.placeId] + 1;
+
+//         user.previousLocation = user.location;
+//         locationDoc.geoSearch = true;
+
+//         return {user: user, locations: locations, text: text};
+
+//       } 
+//       else {
+
+//         await locationDoc.save();
+
+//         statsObj.geo.misses += 1;
+//         statsObj.geo.total += 1;
+//         statsObj.geo.hitRate = 100*(statsObj.geo.hits/statsObj.geo.total);
+
+//         debug(chalkLog(MODULE_ID_PREFIX + " | --- LOC GEO MISS"
+//           + " | GEO: " + locationDoc.geoValid
+//           + "  H " + statsObj.geo.hits
+//           + "  M " + statsObj.geo.misses
+//           + "  T " + statsObj.geo.total
+//           + " HR: " + statsObj.geo.hitRate.toFixed(2)
+//           + " | NID: " + locationDoc.nodeId
+//           + " | N: " + locationDoc.name + " / " + locationDoc.nameRaw
+//         ));
+
+//         user.previousLocation = user.location;
+//         return {user: user, locations: locations, text: text};
+//       }
+//     }
+//     return {user: user, locations: locations, text: text};
+//   }
+//   else {
+
+//     locationDoc.mentions += 1;
+//     locationDoc.lastSeen = lastSeen;
+
+//     debug(chalk.green(MODULE_ID_PREFIX + " | +++ LOC DB HIT "
+//       + " | GEO: " + locationDoc.geoValid
+//       + "  H " + statsObj.geo.hits
+//       + "  M " + statsObj.geo.misses
+//       + "  T " + statsObj.geo.total
+//       + " HR: " + statsObj.geo.hitRate.toFixed(2)
+//       + " | PID: " + locationDoc.placeId 
+//       + " | NID: " + locationDoc.nodeId
+//       + " | N: " + locationDoc.name + " / " + locationDoc.nameRaw
+//       + " | A: " + locationDoc.formattedAddress
+//     ));
+
+//     if (locationDoc.geoValid) {
+//       if (configuration.geoCodeEnabled 
+//         && (!locationDoc.geoSearch || !locationDoc.geo || locationDoc.geo === undefined)) {
+
+//         const geoCodeResults = await geoCode({address: name});
+
+//         if (geoCodeResults && geoCodeResults.placeId) {
+
+//           locationDoc.geoValid = true;
+//           locationDoc.geo = geoCodeResults;
+//           locationDoc.placeId = geoCodeResults.placeId;
+//           locationDoc.formattedAddress = geoCodeResults.formattedAddress;
+
+//           statsObj.geo.hits += 1;
+//           statsObj.geo.total += 1;
+//           statsObj.geo.hitRate = 100*(statsObj.geo.hits/statsObj.geo.total);
+
+//           debug(chalk.blue(MODULE_ID_PREFIX + " | +++ LOC GEO HIT "
+//             + " | GEO: " + locationDoc.geoValid
+//             + "  H " + statsObj.geo.hits
+//             + "  M " + statsObj.geo.misses
+//             + "  T " + statsObj.geo.total
+//             + " HR: " + statsObj.geo.hitRate.toFixed(2)
+//             + " | PID: " + locationDoc.placeId 
+//             + " | NID: " + locationDoc.nodeId
+//             + " | N: " + locationDoc.name + " / " + locationDoc.nameRaw
+//             + " | A: " + locationDoc.formattedAddress
+//           ));
+
+//           user.geoValid = geoCodeResults.geoValid;
+//           user.geo = geoCodeResults;
+
+//           locations[geoCodeResults.placeId] = (locations[geoCodeResults.placeId] === undefined) 
+//             ? 1 
+//             : locations[geoCodeResults.placeId] + 1;
+
+//           user.previousLocation = user.location;
+//           locationDoc.geoSearch = true;
+
+//           await locationDoc.save();
+//           return {user: user, locations: locations, text: text};
+//         } 
+//         else {
+
+//           await locationDoc.save();
+
+//           statsObj.geo.misses += 1;
+//           statsObj.geo.total += 1;
+//           statsObj.geo.hitRate = 100*(statsObj.geo.hits/statsObj.geo.total);
+
+//           debug(chalkLog(MODULE_ID_PREFIX + " | --- LOC GEO MISS"
+//             + " | GEO: " + locationDoc.geoValid
+//             + "  H " + statsObj.geo.hits
+//             + "  M " + statsObj.geo.misses
+//             + "  T " + statsObj.geo.total
+//             + " HR: " + statsObj.geo.hitRate.toFixed(2)
+//             + " | NID: " + locationDoc.nodeId
+//             + " | N: " + locationDoc.name + " / " + locationDoc.nameRaw
+//           ));
+
+//           user.previousLocation = user.location;
+//           return {user: user, locations: locations, text: text};
+//         }
+//       }
+//     }
+
+//     await locationDoc.save();
+
+//     const key = (locationDoc.placeId && locationDoc.placeId !== undefined) ? locationDoc.placeId : locationDoc.nodeId;
+
+//     locations[key] = (locations[key] === undefined) ? 1 : locations[key] + 1;
+
+//     user.previousLocation = user.location;
+
+//     return {user: user, locations: locations, text: text};
+//   }
+// }
+
+// function mergeHistogramsArray(params) {
+//   return new Promise(function(resolve, reject){
+
+//     let resultHistogram = {};
+
+//     async.eachSeries(params.histogramArray, async function(histogram){
       
-      try {
-        resultHistogram = await mergeHistograms.merge({ histogramA: resultHistogram, histogramB: histogram });
-        return;
-      }
-      catch(err){
-        return err;
-      }
+//       try {
+//         resultHistogram = await mergeHistograms.merge({ histogramA: resultHistogram, histogramB: histogram });
+//         return;
+//       }
+//       catch(err){
+//         return err;
+//       }
 
-    }, function(err){
-      if (err) {
-        return reject(err);
-      }
-      resolve(resultHistogram);
-    })
-  });
-}
+//     }, function(err){
+//       if (err) {
+//         return reject(err);
+//       }
+//       resolve(resultHistogram);
+//     })
+//   });
+// }
 
-function checkPropertyChange(user, prop){
-  const prevProp = "previous" + _.upperFirst(prop);
+// function checkPropertyChange(user, prop){
+//   const prevProp = "previous" + _.upperFirst(prop);
 
-  if (!empty(user[prop]) && (user[prevProp] !== user[prop])) { 
+//   if (!empty(user[prop]) && (user[prevProp] !== user[prop])) { 
 
-    if (prop == "url") {
-      console.log("checkPropertyChange url | @" + user.screenName + " | url: " + user.url + " | prevProp: " + user[prevProp]);
-    }
-    return true;
-  }
+//     if (prop == "url") {
+//       console.log("checkPropertyChange url | @" + user.screenName + " | url: " + user.url + " | prevProp: " + user[prevProp]);
+//     }
+//     return true;
+//   }
 
-  return false;
-}
+//   return false;
+// }
 
 // function allHistogramsZeroKeys(histogram){
 
@@ -1430,488 +1415,488 @@ function checkPropertyChange(user, prop){
 //   }
 // }
 
-async function checkUserProfileChanged(params) {
+// async function checkUserProfileChanged(params) {
 
-  const user = params.user;
+//   const user = params.user;
 
-  let profileHistogramsEmpty = false;
+//   let profileHistogramsEmpty = false;
 
-  try{
-    profileHistogramsEmpty = await emptyHistogram(user.profileHistograms);
-  }
-  catch(err){
-    console.log(chalkError("TFE | *** ALL HISTOGRAMS profileHistogramsEmpty ERROR: " + err));
-    throw err;
-  }
+//   try{
+//     profileHistogramsEmpty = await emptyHistogram(user.profileHistograms);
+//   }
+//   catch(err){
+//     console.log(chalkError("TFE | *** ALL HISTOGRAMS profileHistogramsEmpty ERROR: " + err));
+//     throw err;
+//   }
 
-  if (profileHistogramsEmpty){
+//   if (profileHistogramsEmpty){
 
-    console.log(chalkInfo(
-      "TFE | USER PROFILE HISTOGRAMS EMPTY" 
-      + " | RST PREV PROP VALUES" 
-      + " | @" + user.screenName 
-      + "\nTFE | PROFILE HISTOGRAMS\n" + jsonPrint(user.profileHistograms) 
-    ));
+//     console.log(chalkInfo(
+//       "TFE | USER PROFILE HISTOGRAMS EMPTY" 
+//       + " | RST PREV PROP VALUES" 
+//       + " | @" + user.screenName 
+//       + "\nTFE | PROFILE HISTOGRAMS\n" + jsonPrint(user.profileHistograms) 
+//     ));
 
-    user.previousBannerImageUrl = null;
-    user.previousProfileImageUrl = null;
+//     user.previousBannerImageUrl = null;
+//     user.previousProfileImageUrl = null;
 
-    user.previousDescription = null;
-    user.previousExpandedUrl = null;
-    user.previousLocation = null;
-    user.previousName = null;
-    user.previousProfileUrl = null;
-    user.previousScreenName = null;
-    user.previousUrl = null;
-  }
+//     user.previousDescription = null;
+//     user.previousExpandedUrl = null;
+//     user.previousLocation = null;
+//     user.previousName = null;
+//     user.previousProfileUrl = null;
+//     user.previousScreenName = null;
+//     user.previousUrl = null;
+//   }
 
-  const results = [];
+//   const results = [];
 
-  if (!user.bannerImageAnalyzed || checkPropertyChange(user, "bannerImageUrl")) { results.push("bannerImageUrl"); }
-  if (!user.profileImageAnalyzed || checkPropertyChange(user, "profileImageUrl")) { results.push("profileImageUrl"); }
+//   if (!user.bannerImageAnalyzed || checkPropertyChange(user, "bannerImageUrl")) { results.push("bannerImageUrl"); }
+//   if (!user.profileImageAnalyzed || checkPropertyChange(user, "profileImageUrl")) { results.push("profileImageUrl"); }
 
-  if (checkPropertyChange(user, "description")) { results.push("description"); }
-  if (checkPropertyChange(user, "expandedUrl")) { results.push("expandedUrl"); }
-  if (checkPropertyChange(user, "location")) { results.push("location"); }
-  if (checkPropertyChange(user, "name")) { results.push("name"); }
-  if (checkPropertyChange(user, "profileUrl")) { results.push("profileUrl"); }
-  if (checkPropertyChange(user, "screenName")) { results.push("screenName"); }
-  if (checkPropertyChange(user, "url")) { results.push("url"); }
+//   if (checkPropertyChange(user, "description")) { results.push("description"); }
+//   if (checkPropertyChange(user, "expandedUrl")) { results.push("expandedUrl"); }
+//   if (checkPropertyChange(user, "location")) { results.push("location"); }
+//   if (checkPropertyChange(user, "name")) { results.push("name"); }
+//   if (checkPropertyChange(user, "profileUrl")) { results.push("profileUrl"); }
+//   if (checkPropertyChange(user, "screenName")) { results.push("screenName"); }
+//   if (checkPropertyChange(user, "url")) { results.push("url"); }
 
-  return results;
-}
+//   return results;
+// }
 
-function emptyHistogram(histogram){
+// function emptyHistogram(histogram){
 
-  return new Promise(function(resolve){
+//   return new Promise(function(resolve){
 
-    if (!histogram) { return resolve(true); }
-    if (histogram === undefined) { return resolve(true); }
-    if (histogram == {}) { return resolve(true); }
+//     if (!histogram) { return resolve(true); }
+//     if (histogram === undefined) { return resolve(true); }
+//     if (histogram == {}) { return resolve(true); }
 
-    for (const histogramType of Object.keys(histogram)){
-      if (Object.keys(histogram[histogramType]).length > 0) { return resolve(false); }
-    }
+//     for (const histogramType of Object.keys(histogram)){
+//       if (Object.keys(histogram[histogramType]).length > 0) { return resolve(false); }
+//     }
 
-    resolve(true);
+//     resolve(true);
 
-  });
-}
+//   });
+// }
 
-async function analyzeLanguage(params){
+// async function analyzeLanguage(params){
 
-  debug(chalkAlert("analyzeLanguage\n" + jsonPrint(params)));
+//   debug(chalkAlert("analyzeLanguage\n" + jsonPrint(params)));
 
-  const document = {
-    "content": params.text,
-    type: "PLAIN_TEXT"
-  };
+//   const document = {
+//     "content": params.text,
+//     type: "PLAIN_TEXT"
+//   };
 
-  const sentimentHistogram = {};
+//   const sentimentHistogram = {};
 
-  let responses;
+//   let responses;
 
-  try {
+//   try {
 
-    responses = await languageClient.analyzeSentiment({document: document});
+//     responses = await languageClient.analyzeSentiment({document: document});
 
-    const sentiment = responses[0].documentSentiment;
+//     const sentiment = responses[0].documentSentiment;
 
-    sentimentHistogram.score = sentiment.score;
-    sentimentHistogram.magnitude = sentiment.magnitude;
-    sentimentHistogram.comp = 100*sentiment.score*sentiment.magnitude;
+//     sentimentHistogram.score = sentiment.score;
+//     sentimentHistogram.magnitude = sentiment.magnitude;
+//     sentimentHistogram.comp = 100*sentiment.score*sentiment.magnitude;
 
-    statsObj.analyzer.analyzed += 1;
-    statsObj.analyzer.total += 1;
+//     statsObj.analyzer.analyzed += 1;
+//     statsObj.analyzer.total += 1;
 
-    console.log(chalkInfo(MODULE_ID_PREFIX + " | +++ LANG SENTIMENT"
-      + " [" + statsObj.analyzer.analyzed + "]"
-      + " | M: " + sentimentHistogram.magnitude.toFixed(5)
-      + " | S: " + sentimentHistogram.score.toFixed(5)
-      + " | C: " + sentimentHistogram.comp.toFixed(5)
-      + " | @" + params.screenName
-    ));
+//     console.log(chalkInfo(MODULE_ID_PREFIX + " | +++ LANG SENTIMENT"
+//       + " [" + statsObj.analyzer.analyzed + "]"
+//       + " | M: " + sentimentHistogram.magnitude.toFixed(5)
+//       + " | S: " + sentimentHistogram.score.toFixed(5)
+//       + " | C: " + sentimentHistogram.comp.toFixed(5)
+//       + " | @" + params.screenName
+//     ));
 
-    return sentimentHistogram;
-  }
-  catch(err){
-    console.log(chalkError("TFC | *** LANGUAGE ANALYZER ERROR: " + err));
-    statsObj.analyzer.errors += 1;
-    statsObj.analyzer.total += 1;
-    throw err;
-  }
-}
+//     return sentimentHistogram;
+//   }
+//   catch(err){
+//     console.log(chalkError("TFC | *** LANGUAGE ANALYZER ERROR: " + err));
+//     statsObj.analyzer.errors += 1;
+//     statsObj.analyzer.total += 1;
+//     throw err;
+//   }
+// }
 
-let startQuotaTimeOut;
+// let startQuotaTimeOut;
 
-function startQuotaTimeOutTimer(p){
+// function startQuotaTimeOutTimer(p){
 
-  const params = p || {};
+//   const params = p || {};
 
-  params.duration = params.duration || configuration.quotaTimoutDuration;
+//   params.duration = params.duration || configuration.quotaTimoutDuration;
 
-  clearTimeout(startQuotaTimeOut);
+//   clearTimeout(startQuotaTimeOut);
 
-  console.log(chalkAlert(MODULE_ID_PREFIX + " | *** START LANG QUOTA TIMEOUT"
-    + " | " + getTimeStamp()
-    + " | DURATION: " + msToTime(params.duration)
-  ));
+//   console.log(chalkAlert(MODULE_ID_PREFIX + " | *** START LANG QUOTA TIMEOUT"
+//     + " | " + getTimeStamp()
+//     + " | DURATION: " + msToTime(params.duration)
+//   ));
 
-  startQuotaTimeOut = setTimeout(function(){
+//   startQuotaTimeOut = setTimeout(function(){
 
-    statsObj.languageQuotaFlag = false;
+//     statsObj.languageQuotaFlag = false;
 
-    console.log(chalkAlert(MODULE_ID_PREFIX + " | *** END LANG QUOTA TIMEOUT"
-      + " | " + getTimeStamp()
-      + " | DURATION: " + msToTime(params.duration)
-    ));
+//     console.log(chalkAlert(MODULE_ID_PREFIX + " | *** END LANG QUOTA TIMEOUT"
+//       + " | " + getTimeStamp()
+//       + " | DURATION: " + msToTime(params.duration)
+//     ));
 
-  }, params.duration);
-}
-async function userLanguageSentiment(params){
+//   }, params.duration);
+// }
+// async function userLanguageSentiment(params){
 
-  const user = params.user;
+//   const user = params.user;
 
-  const profileHistogramsEmpty = await emptyHistogram(user.profileHistograms);
+//   const profileHistogramsEmpty = await emptyHistogram(user.profileHistograms);
 
-  if (profileHistogramsEmpty) { user.profileHistograms = {}; }
+//   if (profileHistogramsEmpty) { user.profileHistograms = {}; }
 
-  const sentimentHistogramEmpty = await emptyHistogram(user.profileHistograms.sentiment);
+//   const sentimentHistogramEmpty = await emptyHistogram(user.profileHistograms.sentiment);
 
-  if (sentimentHistogramEmpty) { user.profileHistograms.sentiment = {}; }
+//   if (sentimentHistogramEmpty) { user.profileHistograms.sentiment = {}; }
 
-  if (configuration.enableLanguageAnalysis && !statsObj.languageQuotaFlag) {
+//   if (configuration.enableLanguageAnalysis && !statsObj.languageQuotaFlag) {
 
-    let profileText = "";
+//     let profileText = "";
 
-    if (user.name) { profileText = user.name; }
-    if (user.screenName) { profileText += "\n" + user.screenName; }
-    if (user.location) { profileText += "\n" + user.location; }
-    if (user.description) { profileText += "\n" + user.description; }
+//     if (user.name) { profileText = user.name; }
+//     if (user.screenName) { profileText += "\n" + user.screenName; }
+//     if (user.location) { profileText += "\n" + user.location; }
+//     if (user.description) { profileText += "\n" + user.description; }
 
-    try{
-      const sentiment = await analyzeLanguage({screenName: user.screenName, text: profileText});
-      statsObj.languageQuotaFlag = false;
-      return sentiment;
-    }
-    catch(err){
-      if (err.code == 3) {
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | userLanguageSentiment | UNSUPPORTED LANG"
-          + " | NID: " + user.nodeId
-          + " | @" + user.screenName
-          + " | " + err
-        ));
-      }
-      else if (err.code == 8) {
-        console.error(chalkAlert(MODULE_ID_PREFIX + " | userLanguageSentiment"
-          + " | " + getTimeStamp()
-          + " | LANGUAGE QUOTA"
-          + " | RESOURCE_EXHAUSTED"
-          + " | NID: " + user.nodeId
-          + " | @" + user.screenName
-        ));
-        statsObj.languageQuotaFlag = moment().valueOf();
-        startQuotaTimeOutTimer();
-      }
-      else {
-        console.error(chalkError(MODULE_ID_PREFIX + " | *** userLanguageSentiment LANGUAGE TEXT ERROR"
-          + " | " + err
-          // + "\n" + jsonPrint(err)
-        ));
-      }
-      throw err;
-    }
-  }
-  else {
-    return user;
-  }
-}
+//     try{
+//       const sentiment = await analyzeLanguage({screenName: user.screenName, text: profileText});
+//       statsObj.languageQuotaFlag = false;
+//       return sentiment;
+//     }
+//     catch(err){
+//       if (err.code == 3) {
+//         console.log(chalkAlert(MODULE_ID_PREFIX + " | userLanguageSentiment | UNSUPPORTED LANG"
+//           + " | NID: " + user.nodeId
+//           + " | @" + user.screenName
+//           + " | " + err
+//         ));
+//       }
+//       else if (err.code == 8) {
+//         console.error(chalkAlert(MODULE_ID_PREFIX + " | userLanguageSentiment"
+//           + " | " + getTimeStamp()
+//           + " | LANGUAGE QUOTA"
+//           + " | RESOURCE_EXHAUSTED"
+//           + " | NID: " + user.nodeId
+//           + " | @" + user.screenName
+//         ));
+//         statsObj.languageQuotaFlag = moment().valueOf();
+//         startQuotaTimeOutTimer();
+//       }
+//       else {
+//         console.error(chalkError(MODULE_ID_PREFIX + " | *** userLanguageSentiment LANGUAGE TEXT ERROR"
+//           + " | " + err
+//           // + "\n" + jsonPrint(err)
+//         ));
+//       }
+//       throw err;
+//     }
+//   }
+//   else {
+//     return user;
+//   }
+// }
 
-function processUserProfileChanges(params){
+// function processUserProfileChanges(params){
 
-  return new Promise(function(resolve, reject){
+//   return new Promise(function(resolve, reject){
 
-    const user = params.user;
+//     const user = params.user;
   
-    if (!params.userProfileChanges || params.userProfileChanges === undefined) {
-      return resolve(user);
-    }
+//     if (!params.userProfileChanges || params.userProfileChanges === undefined) {
+//       return resolve(user);
+//     }
 
-    if (params.userProfileChanges.length == 0) {
-      return resolve(user);
-    }
+//     if (params.userProfileChanges.length == 0) {
+//       return resolve(user);
+//     }
 
-    let text = "";
-    const urlsHistogram = {};
-    urlsHistogram.urls = {};
+//     let text = "";
+//     const urlsHistogram = {};
+//     urlsHistogram.urls = {};
 
-    const locationsHistogram = {};
-    locationsHistogram.locations = {};
+//     const locationsHistogram = {};
+//     locationsHistogram.locations = {};
 
-    async.eachSeries(params.userProfileChanges, function(userProp, cb){
+//     async.eachSeries(params.userProfileChanges, function(userProp, cb){
 
-      let userPropValue = false;
+//       let userPropValue = false;
 
-      if (user[userProp] && (user[userProp] !== undefined)) {
-        userPropValue = user[userProp].toLowerCase();
-      }
+//       if (user[userProp] && (user[userProp] !== undefined)) {
+//         userPropValue = user[userProp].toLowerCase();
+//       }
 
-      const prevUserProp = "previous" + _.upperFirst(userProp);
+//       const prevUserProp = "previous" + _.upperFirst(userProp);
 
-      let domain;
-      let domainNodeId;
-      let nodeId;
+//       let domain;
+//       let domainNodeId;
+//       let nodeId;
 
-      user[prevUserProp] = (user[prevUserProp] === undefined) ? null : user[prevUserProp];
+//       user[prevUserProp] = (user[prevUserProp] === undefined) ? null : user[prevUserProp];
 
-      if (!userPropValue && (userPropValue !== undefined)) {
-        console.log(chalkLog(MODULE_ID_PREFIX
-          + " | --- processUserProfileChanges USER PROP VALUE FALSE"
-          + " | @" + user.screenName
-          + " | PROP: " + userProp
-          + " | VALUE: " + userPropValue
-        ));
-        user[prevUserProp] = user[userProp];
-        return cb();
-      }
+//       if (!userPropValue && (userPropValue !== undefined)) {
+//         console.log(chalkLog(MODULE_ID_PREFIX
+//           + " | --- processUserProfileChanges USER PROP VALUE FALSE"
+//           + " | @" + user.screenName
+//           + " | PROP: " + userProp
+//           + " | VALUE: " + userPropValue
+//         ));
+//         user[prevUserProp] = user[userProp];
+//         return cb();
+//       }
 
-      switch (userProp) {
+//       switch (userProp) {
 
-        case "sentiment":
-          cb();
-        break;
+//         case "sentiment":
+//           cb();
+//         break;
 
-        case "location":
-          processLocationChange({user: user, userPropValue: userPropValue, text: text})
-          .then(function(results){
-            locationsHistogram.locations = results.locations;
-            user.location = results.user.location;
-            user.previousLocation = results.user.previousLocation;
-            text = results.text;
-            cb();
-          })
-          .catch(function(e0){
-            cb(e0);
-          });
-        break;
+//         case "location":
+//           tcUtils.processLocationChange({user: user, userPropValue: userPropValue, text: text})
+//           .then(function(results){
+//             locationsHistogram.locations = results.locations;
+//             user.location = results.user.location;
+//             user.previousLocation = results.user.previousLocation;
+//             text = results.text;
+//             cb();
+//           })
+//           .catch(function(e0){
+//             cb(e0);
+//           });
+//         break;
 
-        case "name":
-        case "description":
-          text += userPropValue + "\n";
-          user[prevUserProp] = user[userProp];
-          cb();
-        break;
+//         case "name":
+//         case "description":
+//           text += userPropValue + "\n";
+//           user[prevUserProp] = user[userProp];
+//           cb();
+//         break;
 
-        case "screenName":
-          text += "@" + userPropValue + "\n";
-          user[prevUserProp] = user[userProp];
-          cb();
-        break;
+//         case "screenName":
+//           text += "@" + userPropValue + "\n";
+//           user[prevUserProp] = user[userProp];
+//           cb();
+//         break;
 
-        case "url":
-        case "profileUrl":
-        case "expandedUrl":
-        case "bannerImageUrl":
-        case "profileImageUrl":
+//         case "url":
+//         case "profileUrl":
+//         case "expandedUrl":
+//         case "bannerImageUrl":
+//         case "profileImageUrl":
 
-          if (userPropValue && (typeof userPropValue == "string")){
-            domain = urlParse(userPropValue.toLowerCase()).hostname;
-            nodeId = btoa(userPropValue.toLowerCase());
+//           if (userPropValue && (typeof userPropValue == "string")){
+//             domain = urlParse(userPropValue.toLowerCase()).hostname;
+//             nodeId = btoa(userPropValue.toLowerCase());
 
-            if (userPropValue && domain) { 
-              domainNodeId = btoa(domain);
-              urlsHistogram.urls[domainNodeId] = (urlsHistogram.urls[domainNodeId] === undefined) ? 1 : urlsHistogram.urls[domainNodeId] + 1; 
-            }
-            urlsHistogram.urls[nodeId] = (urlsHistogram.urls[nodeId] === undefined) ? 1 : urlsHistogram.urls[nodeId] + 1;
-            user[prevUserProp] = user[userProp];
-            cb();
-          }
-          else{
-            cb();
-          }
-        break;
+//             if (userPropValue && domain) { 
+//               domainNodeId = btoa(domain);
+//               urlsHistogram.urls[domainNodeId] = (urlsHistogram.urls[domainNodeId] === undefined) ? 1 : urlsHistogram.urls[domainNodeId] + 1; 
+//             }
+//             urlsHistogram.urls[nodeId] = (urlsHistogram.urls[nodeId] === undefined) ? 1 : urlsHistogram.urls[nodeId] + 1;
+//             user[prevUserProp] = user[userProp];
+//             cb();
+//           }
+//           else{
+//             cb();
+//           }
+//         break;
 
-        default:
-          console.log(chalkError(MODULE_ID_PREFIX + " | UNKNOWN USER PROPERTY: " + userProp));
-          return cb(new Error("UNKNOWN USER PROPERTY: " + userProp));
-      }
-    }, function(err){
+//         default:
+//           console.log(chalkError(MODULE_ID_PREFIX + " | UNKNOWN USER PROPERTY: " + userProp));
+//           return cb(new Error("UNKNOWN USER PROPERTY: " + userProp));
+//       }
+//     }, function(err){
 
-      if (err) {
-        console.trace(chalkError(MODULE_ID_PREFIX + " | processUserProfileChanges USER PROFILE HISTOGRAM ERROR: " + err));
-        return reject(err);
-      }
+//       if (err) {
+//         console.trace(chalkError(MODULE_ID_PREFIX + " | processUserProfileChanges USER PROFILE HISTOGRAM ERROR: " + err));
+//         return reject(err);
+//       }
 
-      async.parallel({
+//       async.parallel({
 
-        bannerImageHist: function(cb) {
+//         bannerImageHist: function(cb) {
 
-          if(statsObj.imageParser.rateLimitFlag){
-            console.log(chalk.yellow(MODULE_ID_PREFIX + " | VISION RATE LIMITED | @" + user.screenName));
-            return cb(null);
-          }
+//           if(statsObj.imageParser.rateLimitFlag){
+//             console.log(chalk.yellow(MODULE_ID_PREFIX + " | VISION RATE LIMITED | @" + user.screenName));
+//             return cb(null);
+//           }
 
-          if (
-              (configuration.enableImageAnalysis && user.bannerImageUrl && (user.bannerImageUrl !== undefined) && (user.bannerImageUrl != user.bannerImageAnalyzed)
-            || (configuration.forceImageAnalysis && user.bannerImageUrl && (user.bannerImageUrl !== undefined))
-            )
-          ){
+//           if (
+//               (configuration.enableImageAnalysis && user.bannerImageUrl && (user.bannerImageUrl !== undefined) && (user.bannerImageUrl != user.bannerImageAnalyzed)
+//             || (configuration.forceImageAnalysis && user.bannerImageUrl && (user.bannerImageUrl !== undefined))
+//             )
+//           ){
 
-            parseImage({
-              screenName: user.screenName, 
-              category: user.category, 
-              imageUrl: user.bannerImageUrl, 
-              histograms: user.profileHistograms,
-              updateGlobalHistograms: false
-            }).
-            then(function(imageParseResults){
-              if (imageParseResults) { 
-                user.bannerImageAnalyzed = user.bannerImageUrl; 
-                // bannerImageAnalyzedFlag = true;
-                cb(null, imageParseResults);
-              }
-              else{
-                cb(null, {});
-              }
-            }).
-            catch(function(err){
-              console.log(chalkError(MODULE_ID_PREFIX + " | processUserProfileChanges USER PROFILE BANNER IMAGE HISTOGRAM ERROR: " + err));
-              cb(err, null);
-            });
+//             tcUtils.parseImage({
+//               screenName: user.screenName, 
+//               category: user.category, 
+//               imageUrl: user.bannerImageUrl, 
+//               histograms: user.profileHistograms,
+//               updateGlobalHistograms: false
+//             }).
+//             then(function(imageParseResults){
+//               if (imageParseResults) { 
+//                 user.bannerImageAnalyzed = user.bannerImageUrl; 
+//                 // bannerImageAnalyzedFlag = true;
+//                 cb(null, imageParseResults);
+//               }
+//               else{
+//                 cb(null, {});
+//               }
+//             }).
+//             catch(function(err){
+//               console.log(chalkError(MODULE_ID_PREFIX + " | processUserProfileChanges USER PROFILE BANNER IMAGE HISTOGRAM ERROR: " + err));
+//               cb(err, null);
+//             });
 
-          }
-          else {
-            cb(null, {});
-          }
-        }, 
+//           }
+//           else {
+//             cb(null, {});
+//           }
+//         }, 
 
-        profileImageHist: function(cb) {
+//         profileImageHist: function(cb) {
 
-          if(statsObj.imageParser.rateLimitFlag){
-            console.log(chalk.yellow(MODULE_ID_PREFIX + " | processUserProfileChanges VISION RATE LIMITED | @" + user.screenName));
-            return cb(null);
-          }
+//           if(statsObj.imageParser.rateLimitFlag){
+//             console.log(chalk.yellow(MODULE_ID_PREFIX + " | processUserProfileChanges VISION RATE LIMITED | @" + user.screenName));
+//             return cb(null);
+//           }
 
-          if (
-              (configuration.enableImageAnalysis && user.profileImageUrl && (user.profileImageUrl !== undefined) && (user.profileImageUrl != user.profileImageAnalyzed)
-            || (configuration.forceImageAnalysis && user.profileImageUrl && (user.profileImageUrl !== undefined))
-            )
-          ){
+//           if (
+//               (configuration.enableImageAnalysis && user.profileImageUrl && (user.profileImageUrl !== undefined) && (user.profileImageUrl != user.profileImageAnalyzed)
+//             || (configuration.forceImageAnalysis && user.profileImageUrl && (user.profileImageUrl !== undefined))
+//             )
+//           ){
 
-            parseImage({
-              screenName: user.screenName, 
-              category: user.category, 
-              imageUrl: user.profileImageUrl, 
-              histograms: user.profileHistograms,
-              updateGlobalHistograms: false
-            }).
-            then(function(imageParseResults){
-              if (imageParseResults) { 
-                user.profileImageAnalyzed = user.profileImageUrl; 
-                cb(null, imageParseResults);
-              }
-              else{
-                cb(null, {});
-              }
-            }).
-            catch(function(err){
-              console.log(chalkError(MODULE_ID_PREFIX + " | processUserProfileChanges USER PROFILE IMAGE HISTOGRAM ERROR: " + err));
-              cb(err, null);
-            });
+//             tcUtils.parseImage({
+//               screenName: user.screenName, 
+//               category: user.category, 
+//               imageUrl: user.profileImageUrl, 
+//               histograms: user.profileHistograms,
+//               updateGlobalHistograms: false
+//             }).
+//             then(function(imageParseResults){
+//               if (imageParseResults) { 
+//                 user.profileImageAnalyzed = user.profileImageUrl; 
+//                 cb(null, imageParseResults);
+//               }
+//               else{
+//                 cb(null, {});
+//               }
+//             }).
+//             catch(function(err){
+//               console.log(chalkError(MODULE_ID_PREFIX + " | processUserProfileChanges USER PROFILE IMAGE HISTOGRAM ERROR: " + err));
+//               cb(err, null);
+//             });
 
-          }
-          else {
-            cb(null, {});
-          }
-        }, 
+//           }
+//           else {
+//             cb(null, {});
+//           }
+//         }, 
 
-        profileTextHist: function(cb){
+//         profileTextHist: function(cb){
 
-          if (text && (text !== undefined)){
+//           if (text && (text !== undefined)){
 
-            parseText({ category: user.category, text: text, updateGlobalHistograms: false }).
-            then(function(textParseResults){
-              cb(null, textParseResults);
-            }).
-            catch(function(err){
-              if (err) {
-                console.log(chalkError(MODULE_ID_PREFIX + " | processUserProfileChanges USER PROFILE PARSE TEXT ERROR: " + err));
-              }
-              cb(err, null);
-            });
-          }
-          else {
-            cb(null, {});
-          }
-        },
+//             parseText({ category: user.category, text: text, updateGlobalHistograms: false }).
+//             then(function(textParseResults){
+//               cb(null, textParseResults);
+//             }).
+//             catch(function(err){
+//               if (err) {
+//                 console.log(chalkError(MODULE_ID_PREFIX + " | processUserProfileChanges USER PROFILE PARSE TEXT ERROR: " + err));
+//               }
+//               cb(err, null);
+//             });
+//           }
+//           else {
+//             cb(null, {});
+//           }
+//         },
 
-        sentimentHist: function(cb){
+//         sentimentHist: function(cb){
 
-          const userProfileSentimentChanges = params.userProfileChanges.includes("name") 
-            || params.userProfileChanges.includes("screenName")
-            || params.userProfileChanges.includes("location")
-            || params.userProfileChanges.includes("description")
-            || !user.profileHistograms.sentiment
-            || (user.profileHistograms.sentiment === undefined)
-            || (user.profileHistograms.sentiment == {});
+//           const userProfileSentimentChanges = params.userProfileChanges.includes("name") 
+//             || params.userProfileChanges.includes("screenName")
+//             || params.userProfileChanges.includes("location")
+//             || params.userProfileChanges.includes("description")
+//             || !user.profileHistograms.sentiment
+//             || (user.profileHistograms.sentiment === undefined)
+//             || (user.profileHistograms.sentiment == {});
 
-          if (user.following && configuration.enableLanguageAnalysis && !statsObj.languageQuotaFlag && userProfileSentimentChanges){
-            userLanguageSentiment({user: user}).
-            then(function(sentiment){
-              cb(null, sentiment);
-            }).
-            catch(function(err){
-              cb(err, null);
-            })
-          }
-          else{ cb(null, null); }
-        }
+//           if (user.following && configuration.enableLanguageAnalysis && !statsObj.languageQuotaFlag && userProfileSentimentChanges){
+//             userLanguageSentiment({user: user}).
+//             then(function(sentiment){
+//               cb(null, sentiment);
+//             }).
+//             catch(function(err){
+//               cb(err, null);
+//             })
+//           }
+//           else{ cb(null, null); }
+//         }
 
-      }, function(err, results){
+//       }, function(err, results){
 
-        if (err) {
-          console.log(chalkError(MODULE_ID_PREFIX + " | USER PROFILE CHANGE HISTOGRAM ERROR: " + err));
-          return reject(err);
-        }
+//         if (err) {
+//           console.log(chalkError(MODULE_ID_PREFIX + " | USER PROFILE CHANGE HISTOGRAM ERROR: " + err));
+//           return reject(err);
+//         }
 
-        mergeHistogramsArray( {
-          histogramArray: [
-            user.profileHistograms,
-            results.profileTextHist, 
-            results.bannerImageHist, 
-            results.profileImageHist, 
-            urlsHistogram,
-            locationsHistogram,
-          ]
-        } ).
-        then(function(histogramsMerged){
-          user.profileHistograms = histogramsMerged;
-          user.profileHistograms.sentiment = (results.sentimentHist) ? results.sentimentHist : {};
-          resolve(user);
-        }).
-        catch(function(err){
-          console.log(chalkError(MODULE_ID_PREFIX + " | USER PROFILE CHANGE HISTOGRAM ERROR: " + err));
-          return reject(err);
-        });
-      });
-    });
+//         mergeHistogramsArray( {
+//           histogramArray: [
+//             user.profileHistograms,
+//             results.profileTextHist, 
+//             results.bannerImageHist, 
+//             results.profileImageHist, 
+//             urlsHistogram,
+//             locationsHistogram,
+//           ]
+//         } ).
+//         then(function(histogramsMerged){
+//           user.profileHistograms = histogramsMerged;
+//           user.profileHistograms.sentiment = (results.sentimentHist) ? results.sentimentHist : {};
+//           resolve(user);
+//         }).
+//         catch(function(err){
+//           console.log(chalkError(MODULE_ID_PREFIX + " | USER PROFILE CHANGE HISTOGRAM ERROR: " + err));
+//           return reject(err);
+//         });
+//       });
+//     });
 
-  });
-}
+//   });
+// }
 
-async function userProfileChangeHistogram(params) {
+// async function userProfileChangeHistogram(params) {
 
-  try{
-    const user = params.user;
-    const userProfileChanges = await checkUserProfileChanged(params);
-    const processUser = await processUserProfileChanges({user: user, userProfileChanges: userProfileChanges});
-    return processUser;
-  }
-  catch(err){
-    console.trace(chalkError(MODULE_ID_PREFIX + " | *** userProfileChangeHistogram ERROR: " + err));
-    throw err;
-  }
-}
+//   try{
+//     const user = params.user;
+//     const userProfileChanges = await checkUserProfileChanged(params);
+//     const processUser = await tcUtils.processUserProfileChanges({user: user, userProfileChanges: userProfileChanges});
+//     return processUser;
+//   }
+//   catch(err){
+//     console.trace(chalkError(MODULE_ID_PREFIX + " | *** userProfileChangeHistogram ERROR: " + err));
+//     throw err;
+//   }
+// }
 
 function processTweetObj(params){
 
@@ -2334,7 +2319,7 @@ async function processUserTweets(params){
   let tweetHistogramsEmpty = false;
 
   try{
-    tweetHistogramsEmpty = await emptyHistogram(user.tweetHistograms);
+    tweetHistogramsEmpty = await tcUtils.emptyHistogram(user.tweetHistograms);
 
     const processedUser = await processUserTweetArray({user: user, forceFetch: tweetHistogramsEmpty, tweets: tweets, tscParams: tscParams});
 
@@ -2420,115 +2405,75 @@ async function updateUserTweets(params){
   return processedUser;
 }
 
-async function parseText(params){
+// function parseImage(params){
 
-  params.updateGlobalHistograms = (params.updateGlobalHistograms !== undefined) ? params.updateGlobalHistograms : false;
-  params.category = (params.category !== undefined) ? params.category : "none";
-  params.minWordLength = params.minWordLength || configuration.minWordLength;
+//   return new Promise(function(resolve, reject) {
 
-  try {
-    const hist = await twitterTextParser.parseText(params);
-    return hist;
-  }
-  catch(err){
-    console.log(chalkError("*** TWITTER TEXT PARSER ERROR: " + err));
-    console.error(err);
-    throw err;
-  }
-}
+//     params.updateGlobalHistograms = (params.updateGlobalHistograms !== undefined) ? params.updateGlobalHistograms : false;
+//     params.category = params.category || "none";
 
-let imageParserRateTimitTimeout;
+//     twitterImageParser.parseImage(params).
+//     then(function(hist){
+//       statsObj.imageParser.numberParsed += 1;
+//       console.log(chalkLog(MODULE_ID_PREFIX + " | +++ IMAGE PARSE" 
+//         + " [" + statsObj.imageParser.numberParsed + "]"
+//         + " | CAT: " + params.category
+//         + " | @" + params.screenName
+//         + " | " + params.imageUrl
+//       ));
+//       resolve(hist);
+//     }).
+//     catch(function(err){
 
+//       if (err.code == 8){
+//         console.log(chalkError(MODULE_ID_PREFIX + " | *** IMAGE PARSER | RATE LIMIT: " + err));
+//         statsObj.imageParser.rateLimitFlag = true;
 
-function startImageParserRateTimitTimeout(p) {
+//         startImageParserRateTimitTimeout(configuration.imageParserRateTimitTimeout);
 
-  const params = p || {};
-  const period = params.period || configuration.imageParserRateTimitTimeout;
-  const verbose = params.verbose || true;
+//         return resolve();
+//       }
+//       console.log(chalkError(MODULE_ID_PREFIX + " | *** IMAGE PARSER ERROR: " + err));
+//       console.error(err);
+//       reject(err);
+//     });
+//   });
+// }
 
-  clearTimeout(imageParserRateTimitTimeout);
+// async function updateUserHistograms(params) {
 
-  if (verbose) {
-    console.log(chalkLog(MODULE_ID_PREFIX + " | +++ RATE LIMIT TIMEOUT START | NOW: " + getTimeStamp() + " | PERIOD: " + msToTime(period)));
-  }
+//   if ((params.user === undefined) || !params.user) {
+//     console.log(chalkError(MODULE_ID_PREFIX + " | *** updateUserHistograms USER UNDEFINED"));
+//     const err = new Error(MODULE_ID_PREFIX + " | *** updateUserHistograms USER UNDEFINED");
+//     console.error(err);
+//     throw err;
+//   }
 
-  imageParserRateTimitTimeout = setTimeout(function(){
-    if (verbose) {
-      console.log(chalkLog(MODULE_ID_PREFIX + " | XXX RATE LIMIT TIMEOUT END | NOW: " + getTimeStamp() + " | PERIOD: " + msToTime(period)));
-      statsObj.imageParser.rateLimitFlag = false;
-    }
-  }, period);
-}
+//   const user = params.user;
 
-function parseImage(params){
+//   if (!user.profileHistograms || (user.profileHistograms === undefined)){ 
+//     user.profileHistograms = {};
+//   }
 
-  return new Promise(function(resolve, reject) {
+//   if (!user.tweetHistograms || (user.tweetHistograms === undefined)){ 
+//     user.tweetHistograms = {};
+//   }
 
-    params.updateGlobalHistograms = (params.updateGlobalHistograms !== undefined) ? params.updateGlobalHistograms : false;
-    params.category = params.category || "none";
+//   if (!user.friends || (user.friends === undefined)){ 
+//     user.friends = [];
+//   }
 
-    twitterImageParser.parseImage(params).
-    then(function(hist){
-      statsObj.imageParser.numberParsed += 1;
-      console.log(chalkLog(MODULE_ID_PREFIX + " | +++ IMAGE PARSE" 
-        + " [" + statsObj.imageParser.numberParsed + "]"
-        + " | CAT: " + params.category
-        + " | @" + params.screenName
-        + " | " + params.imageUrl
-      ));
-      resolve(hist);
-    }).
-    catch(function(err){
+//   try {
 
-      if (err.code == 8){
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** IMAGE PARSER | RATE LIMIT: " + err));
-        statsObj.imageParser.rateLimitFlag = true;
+//     const processedUser = await userProfileChangeHistogram({user: user});
+//     return processedUser;
 
-        startImageParserRateTimitTimeout(configuration.imageParserRateTimitTimeout);
-
-        return resolve();
-      }
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** IMAGE PARSER ERROR: " + err));
-      console.error(err);
-      reject(err);
-    });
-  });
-}
-
-async function updateUserHistograms(params) {
-
-  if ((params.user === undefined) || !params.user) {
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** updateUserHistograms USER UNDEFINED"));
-    const err = new Error(MODULE_ID_PREFIX + " | *** updateUserHistograms USER UNDEFINED");
-    console.error(err);
-    throw err;
-  }
-
-  const user = params.user;
-
-  if (!user.profileHistograms || (user.profileHistograms === undefined)){ 
-    user.profileHistograms = {};
-  }
-
-  if (!user.tweetHistograms || (user.tweetHistograms === undefined)){ 
-    user.tweetHistograms = {};
-  }
-
-  if (!user.friends || (user.friends === undefined)){ 
-    user.friends = [];
-  }
-
-  try {
-
-    const processedUser = await userProfileChangeHistogram({user: user});
-    return processedUser;
-
-  }
-  catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** updateUserHistograms ERROR: " + err));
-    throw err;
-  }
-}
+//   }
+//   catch(err){
+//     console.log(chalkError(MODULE_ID_PREFIX + " | *** updateUserHistograms ERROR: " + err));
+//     throw err;
+//   }
+// }
 
 const userTweetsDefault = {
   maxId: MIN_TWEET_ID,
@@ -2762,7 +2707,7 @@ async function generateAutoCategory(params) {
 
   try{
 
-    const user = await updateUserHistograms({user: params.user});
+    const user = await tcUtils.updateUserHistograms({user: params.user});
 
     const networkOutput = await nnTools.activateSingleNetwork({user: user});
 
@@ -2992,7 +2937,6 @@ async function twitterUserUpdate(){
     }
     return err;
   }
-
 }
 
 function initTwitter(twitterConfig){

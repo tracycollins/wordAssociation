@@ -1797,7 +1797,7 @@ function updatePreviousUserProps(params){
 
       const prevUserProp = "previous" + _.upperFirst(userProp);
 
-      if (user[userProp] && (user[userProp] !== undefined) && (user[prevUserProp] !== user[userProp])) {
+      if (user[userProp] && (user[userProp] !== undefined) && (user[prevUserProp] != user[userProp])) {
         debug(chalkLog("TFE | updatePreviousUserProps"
           + " | " + prevUserProp + ": " + user[prevUserProp] 
           + " <- " + userProp + ": " + user[userProp]
@@ -1810,11 +1810,11 @@ function updatePreviousUserProps(params){
 
     }, function(){
 
-      if (user.statusId && (user.statusId !== undefined) && (user.previousStatusId !== user.statusId)) {
+      if (user.statusId && (user.statusId !== undefined) && (user.previousStatusId != user.statusId)) {
         user.previousStatusId = user.statusId;
       }
 
-      if (user.quotedStatusId && (user.quotedStatusId !== undefined) && (user.previousQuotedStatusId !== user.quotedStatusId)) {
+      if (user.quotedStatusId && (user.quotedStatusId !== undefined) && (user.previousQuotedStatusId != user.quotedStatusId)) {
         user.previousQuotedStatusId = user.quotedStatusId;
       }
 
@@ -1843,6 +1843,7 @@ async function processUser(params) {
     const autoCategoryUser = await generateAutoCategory({user: updatedTweetsUser});
     const prevPropsUser = await updatePreviousUserProps({user: autoCategoryUser});
 
+    prevPropsUser.markModified("categoryAuto");
     prevPropsUser.markModified("tweetHistograms");
     prevPropsUser.markModified("profileHistograms");
     prevPropsUser.markModified("tweets");

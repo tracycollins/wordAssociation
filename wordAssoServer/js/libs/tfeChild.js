@@ -1620,11 +1620,130 @@ async function initProcessUserQueueInterval(interval) {
         processUserQueueBusy = false;
       }
       catch(err){
+        
         console.trace(chalkError(MODULE_ID_PREFIX + " | *** ERROR processUser"
           + " | USER ID: " + userQueueObj.userId
-          + " | ", err
+          + " | " + err
         ));
-        console.log(err);
+
+        if (err.code === 88){
+          console.log(chalkAlert(MODULE_ID_PREFIX + " | *** FETCH USER TWEETS ERROR | RATE LIMIT" 
+            + " | " + getTimeStamp() 
+            + " | @" + threeceeUser 
+          ));
+
+          process.send({ 
+            op: "ERROR", 
+            errorType: "RATE_LIMIT", 
+            user: user, 
+            stats: statsObj.user 
+          });
+
+          processUserQueueBusy = false;
+
+          return reject(err);
+        }
+
+        if (err.code === 89){
+          console.log(chalkAlert(MODULE_ID_PREFIX + " | *** FETCH USER TWEETS ERROR | INVALID OR EXPIRED TOKEN" 
+            + " | " + getTimeStamp() 
+            + " | @" + threeceeUser 
+          ));
+
+          statsObj.threeceeUser = Object.assign({}, threeceeUserDefaults, statsObj.threeceeUser);  
+          statsObj.threeceeUser.err = err;
+
+          process.send({ 
+            op: "ERROR", 
+            errorType: "TWITTER_TOKEN", 
+            user: user, 
+            stats: statsObj.user 
+          });
+
+          processUserQueueBusy = false;
+
+          return reject(err);
+        }
+
+        if (err.code === 34){
+          console.log(chalkError(MODULE_ID_PREFIX + " | *** FETCH USER TWEETS ERROR | USER NOT FOUND"
+            + " | " + getTimeStamp() 
+            + " | @" + threeceeUser 
+            + " | UID: " + user.userId
+            + " | @" + user.screenName
+          ));
+
+          process.send({ 
+            op: "ERROR", 
+            errorType: "USER_NOT_FOUND", 
+            user: user, 
+            stats: statsObj.user 
+          });
+
+          processUserQueueBusy = false;
+
+          return reject(err);
+        }
+        
+        if (err.code === 136){
+          console.log(chalkError(MODULE_ID_PREFIX + " | *** FETCH USER TWEETS ERROR | USER BLOCKED"
+            + " | " + getTimeStamp() 
+            + " | @" + threeceeUser 
+            + " | UID: " + user.userId
+            + " | @" + user.screenName
+          ));
+
+          process.send({ 
+            op: "ERROR", 
+            errorType: "USER_BLOCKED", 
+            user: user, 
+            stats: statsObj.user 
+          });
+
+          processUserQueueBusy = false;
+
+          return reject(err);
+        }
+        
+        if (err.statusCode === 401){
+          console.log(chalkError(MODULE_ID_PREFIX + " | *** FETCH USER TWEETS ERROR | NOT AUTHORIZED"
+            + " | " + getTimeStamp() 
+            + " | @" + threeceeUser 
+            + " | UID: " + user.userId
+            + " | @" + user.screenName
+          ));
+
+          process.send({ 
+            op: "ERROR", 
+            errorType: "TWITTER_UNAUTHORIZED", 
+            user: user, 
+            stats: statsObj.user 
+          });
+
+          processUserQueueBusy = false;
+
+          return reject(err);
+        }
+        
+        console.log(chalkError(MODULE_ID_PREFIX + " | *** FETCH USER TWEETS ERROR"
+          + " | " + getTimeStamp() 
+          + " | 3C @" + threeceeUser 
+          + " | UID: " + user.userId
+          + " | @" + user.screenName
+          + " | ERR CODE: " + err.code
+          + " | " + err.message
+          + "\n" + jsonPrint(err)
+          + "\nfetchUserTweetsParams\n" + jsonPrint(fetchUserTweetsParams)
+        ));
+
+        process.send({ 
+          op: "ERROR", 
+          errorType: "UNKNOWN ERROR TYPE", 
+          user: user, 
+          stats: statsObj.user 
+        });
+
+        return reject(err);
         processUserQueueBusy = false;
       }
 

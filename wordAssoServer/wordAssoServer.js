@@ -601,7 +601,7 @@ const userAutoNoneSet = new Set();
 const verifiedCategorizedUsersFile = "verifiedCategorizedUsers.txt";
 const ignoredHashtagFile = "ignoredHashtag.txt";
 const ignoredUserFile = "ignoredUser.json";
-const unfollowableUserFile = "unfollowableUser.json";
+// const unfollowableUserFile = "unfollowableUser.json";
 const followableSearchTermFile = "followableSearchTerm.txt";
 
 const pendingFollowSet = new Set();
@@ -722,8 +722,8 @@ let normalization = false;
 const defaultTwitterUserScreenName = "threecee";
 
 const followedUserSet = new Set();
-let unfollowableUserSet = new Set();
-let ignoredUserSet = new Set();
+const unfollowableUserSet = new Set();
+const ignoredUserSet = new Set();
 let ignoredHashtagSet = new Set();
 
 process.title = "node_wordAssoServer";
@@ -4006,75 +4006,75 @@ async function initFollowableSearchTermSet(){
   }
 }
 
-async function initIgnoredUserSet(){
+// async function initIgnoredUserSet(){
 
-  statsObj.status = "INIT IGNORED USER SET";
+//   statsObj.status = "INIT IGNORED USER SET";
 
-  console.log(chalkBlue("WAS | INIT IGNORED USER SET: " + configDefaultFolder 
-    + "/" + ignoredUserFile
-  ));
+//   console.log(chalkBlue("WAS | INIT IGNORED USER SET: " + configDefaultFolder 
+//     + "/" + ignoredUserFile
+//   ));
 
-  try{
+//   try{
 
-    const result = await initSetFromFile({
-      folder: configDefaultFolder, 
-      file: ignoredUserFile, 
-      objArrayKey: "userIds", 
-      resolveOnNotFound: true
-    });
+//     const result = await initSetFromFile({
+//       folder: configDefaultFolder, 
+//       file: ignoredUserFile, 
+//       objArrayKey: "userIds", 
+//       resolveOnNotFound: true
+//     });
 
-    if (result) {
-      ignoredUserSet = result;
-      ignoredUserSet.delete("");
-      ignoredUserSet.delete(" ");
-    }
+//     if (result) {
+//       ignoredUserSet = result;
+//       ignoredUserSet.delete("");
+//       ignoredUserSet.delete(" ");
+//     }
 
-    console.log(chalkLog("WAS | LOADED IGNORED USERS FILE"
-      + " | " + ignoredUserSet.size + " USERS"
-      + " | " + configDefaultFolder + "/" + ignoredUserFile
-    ));
+//     console.log(chalkLog("WAS | LOADED IGNORED USERS FILE"
+//       + " | " + ignoredUserSet.size + " USERS"
+//       + " | " + configDefaultFolder + "/" + ignoredUserFile
+//     ));
 
-    return;
-  }
-  catch(err){
-    console.log(chalkError("WAS | *** INIT IGNORED USERS SET ERROR: " + err));
-    throw err;
-  }
-}
+//     return;
+//   }
+//   catch(err){
+//     console.log(chalkError("WAS | *** INIT IGNORED USERS SET ERROR: " + err));
+//     throw err;
+//   }
+// }
 
-async function initUnfollowableUserSet(){
+// async function initUnfollowableUserSet(){
 
-  statsObj.status = "INIT UNFOLLOWABLE USER SET";
+//   statsObj.status = "INIT UNFOLLOWABLE USER SET";
 
-  console.log(chalkLog("WAS | INIT UNFOLLOWABLE USER SET"));
+//   console.log(chalkLog("WAS | INIT UNFOLLOWABLE USER SET"));
 
-  try{
+//   try{
 
-    const result = await initSetFromFile({
-      folder: configDefaultFolder, 
-      file: unfollowableUserFile, 
-      objArrayKey: "userIds", 
-      resolveOnNotFound: true
-    });
+//     const result = await initSetFromFile({
+//       folder: configDefaultFolder, 
+//       file: unfollowableUserFile, 
+//       objArrayKey: "userIds", 
+//       resolveOnNotFound: true
+//     });
 
-    if (result) {
-      unfollowableUserSet = result;
-      unfollowableUserSet.delete("");
-      unfollowableUserSet.delete(" ");
-    }
+//     if (result) {
+//       unfollowableUserSet = result;
+//       unfollowableUserSet.delete("");
+//       unfollowableUserSet.delete(" ");
+//     }
 
-    console.log(chalkLog("WAS | LOADED UNFOLLOWABLE USERS FILE"
-      + " | " + unfollowableUserSet.size + " USERS"
-      + " | " + configDefaultFolder + "/" + unfollowableUserFile
-    ));
+//     console.log(chalkLog("WAS | LOADED UNFOLLOWABLE USERS FILE"
+//       + " | " + unfollowableUserSet.size + " USERS"
+//       + " | " + configDefaultFolder + "/" + unfollowableUserFile
+//     ));
 
-    return;
-  }
-  catch(err){
-    console.log(chalkError("WAS | *** INIT UNFOLLOWABLE USERS SET ERROR: " + err));
-    throw err;
-  }
-}
+//     return;
+//   }
+//   catch(err){
+//     console.log(chalkError("WAS | *** INIT UNFOLLOWABLE USERS SET ERROR: " + err));
+//     throw err;
+//   }
+// }
 
 const serverRegex = /^(.+)_/i;
 
@@ -7511,16 +7511,14 @@ async function initTfeChild(params){
           threeceeHashMap[m.threeceeUser].twitterErrors += 1;
           threeceeHashMap[m.threeceeUser].twitterErrorFlag = m.error;
           threeceeHashMap[m.threeceeUser].twitterAuthorizationErrorFlag = m.error;
-
         }
         else if (m.errorType == "TWITTER_TOKEN") {
 
           threeceeHashMap[m.threeceeUser].twitterErrors += 1;
           threeceeHashMap[m.threeceeUser].twitterErrorFlag = m.error;
           threeceeHashMap[m.threeceeUser].twitterTokenErrorFlag = m.error;
-
         }
-        else if (m.errorType == "BLOCKED") {
+        else if (m.errorType == "USER_BLOCKED") {
 
           threeceeHashMap[m.threeceeUser].twitterErrors += 1;
           threeceeHashMap[m.threeceeUser].twitterErrorFlag = m.error;
@@ -7629,7 +7627,6 @@ async function initTfeChild(params){
         else if (configuration.verbose) {
           printUserObj("WAS | <TFE | CAT", m.user, chalkLog);
         }
-
       break;
 
       case "PONG":

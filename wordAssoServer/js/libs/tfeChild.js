@@ -1476,7 +1476,7 @@ async function updateUserTweets(params){
     if (histogramIncompleteFlag) { user.tweetHistograms = {}; }
     const latestTweets = await tcUtils.fetchUserTweets({user: user, force: true});
     if (latestTweets) { user.latestTweets = latestTweets; }
-    userTweetFetchSet.delete(user.nodeId);
+    // userTweetFetchSet.delete(user.nodeId);
   }
 
   if (user.latestTweets.length == 0) { 

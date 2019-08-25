@@ -5537,7 +5537,7 @@ async function initIgnoreLocations(){
     const data = await tcUtils.loadFileRetry({folder: configDefaultFolder, file: "ignoreLocations.txt"}); 
 
     if (empty(data)){
-      console.log(chalkError("TSS | DROPBOX FILE DOWNLOAD DATA UNDEFINED"
+      console.log(chalkError("WAS | DROPBOX FILE DOWNLOAD DATA UNDEFINED"
         + " | " + configDefaultFolder + "/" + "ignoreLocations.txt"
       ));
       throw new Error("DROPBOX FILE DOWNLOAD DATA UNDEFINED");
@@ -5566,7 +5566,7 @@ async function initIgnoreLocations(){
     return;
   }
   catch(e){
-    console.log(chalkError("TSS | LOAD FILE ERROR\n" + e));
+    console.log(chalkError("WAS | LOAD FILE ERROR\n" + e));
     throw e;
   }
 }
@@ -7538,15 +7538,6 @@ async function initTfeChild(params){
         threeceeTwitter.twitterFollowing = m.twitterFollowing;
         threeceeTwitter.twitterFriends = m.twitterFriends;
 
-        // try{
-        //   childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});
-        // }
-        // catch(err){
-        //   console.log(chalkError("WAS | <TSS | *** UNFOLLOW DUPLICATES ERROR"
-        //     + " | 3C @" + m.threeceeUser
-        //     + " | ERR: " + err
-        //   ));
-        // }
       break;
 
       case "FOLLOW_LIMIT":

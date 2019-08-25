@@ -7259,7 +7259,6 @@ function initTssChild(params){
               + " | AUTUO FOLLOW USER: @" + threeceeUser
               + " | ERROR TYPE: " + m.errorType
               + " | ERROR MESSAGE: " + m.error.message
-              // + "\n" + jsonPrint(m.error)
             ));
           }
           else if ((m.errorType == "TWITTER_FOLLOW_LIMIT") || (m.error.code == 161)) {
@@ -7272,7 +7271,6 @@ function initTssChild(params){
               + " | AUTUO FOLLOW USER: @" + threeceeUser
               + " | ERROR TYPE: " + m.errorType
               + " | ERROR MESSAGE: " + m.error.message
-              // + "\n" + jsonPrint(m.error)
             ));
           }
           else if ((m.errorType == "TWITTER_UNAUTHORIZED") || (m.error.statusCode == 401)) {
@@ -7461,8 +7459,6 @@ async function initTfeChild(params){
 
     const isInfoUser = m.isInfoUser || false;
 
-    const threeceeHashMap = (isInfoUser) ? threeceeInfoTwitter : threeceeTwitter;
-
     switch (m.op) {
 
       case "ERROR":
@@ -7475,21 +7471,21 @@ async function initTfeChild(params){
 
         if (m.errorType == "TWITTER_UNAUTHORIZED") {
 
-          threeceeHashMap[m.threeceeUser].twitterErrors += 1;
-          threeceeHashMap[m.threeceeUser].twitterErrorFlag = m.error;
-          threeceeHashMap[m.threeceeUser].twitterAuthorizationErrorFlag = m.error;
+          threeceeTwitter.twitterErrors += 1;
+          threeceeTwitter.twitterErrorFlag = m.error;
+          threeceeTwitter.twitterAuthorizationErrorFlag = m.error;
         }
         else if (m.errorType == "TWITTER_TOKEN") {
 
-          threeceeHashMap[m.threeceeUser].twitterErrors += 1;
-          threeceeHashMap[m.threeceeUser].twitterErrorFlag = m.error;
-          threeceeHashMap[m.threeceeUser].twitterTokenErrorFlag = m.error;
+          threeceeTwitter.twitterErrors += 1;
+          threeceeTwitter.twitterErrorFlag = m.error;
+          threeceeTwitter.twitterTokenErrorFlag = m.error;
         }
         else if (m.errorType == "USER_BLOCKED") {
 
-          threeceeHashMap[m.threeceeUser].twitterErrors += 1;
-          threeceeHashMap[m.threeceeUser].twitterErrorFlag = m.error;
-          threeceeHashMap[m.threeceeUser].twitterTokenErrorFlag = m.error;
+          threeceeTwitter.twitterErrors += 1;
+          threeceeTwitter.twitterErrorFlag = m.error;
+          threeceeTwitter.twitterTokenErrorFlag = m.error;
 
           ignoredUserSet.add(m.userId);
           unfollowableUserSet.add(m.userId);
@@ -7526,8 +7522,8 @@ async function initTfeChild(params){
             + "\n" + jsonPrint(m.error)
           ));
 
-          threeceeHashMap[m.threeceeUser].twitterErrors += 1;
-          threeceeHashMap[m.threeceeUser].twitterErrorFlag = m.error;
+          threeceeTwitter.twitterErrors += 1;
+          threeceeTwitter.twitterErrorFlag = m.error;
 
         }
       break;
@@ -7539,8 +7535,8 @@ async function initTfeChild(params){
           + " | FOLLOWING: " + m.twitterFollowing
         ));
 
-        threeceeHashMap[m.threeceeUser].twitterFollowing = m.twitterFollowing;
-        threeceeHashMap[m.threeceeUser].twitterFriends = m.twitterFriends;
+        threeceeTwitter.twitterFollowing = m.twitterFollowing;
+        threeceeTwitter.twitterFriends = m.twitterFriends;
 
         // try{
         //   childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});
@@ -7561,9 +7557,9 @@ async function initTfeChild(params){
           + " | NOW: " + getTimeStamp()
         ));
 
-        threeceeHashMap[m.threeceeUser].twitterFollowing = m.twitterFollowing;
-        threeceeHashMap[m.threeceeUser].twitterFriends = m.twitterFriends;
-        threeceeHashMap[m.threeceeUser].twitterFollowLimit = true;
+        threeceeTwitter.twitterFollowing = m.twitterFollowing;
+        threeceeTwitter.twitterFriends = m.twitterFriends;
+        threeceeTwitter.twitterFollowLimit = true;
       break;
 
       case "TWEET":

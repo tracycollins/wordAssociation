@@ -1669,7 +1669,7 @@ async function processUser(params) {
 
     let updatedFriendsUser = user;;
 
-    if (!user.friends || (user.friends.length === 0)){
+    if (!user.friends || (user.friends.length === undefined)|| (user.friends.length === 0)){
       updatedFriendsUser = await updateUserFriends({user: user});
     }
     const updatedTweetsUser = await updateUserTweets({user: updatedFriendsUser});

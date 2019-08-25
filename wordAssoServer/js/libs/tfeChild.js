@@ -855,7 +855,6 @@ function printUser(params) {
     + " | M  " + user.mentions
     + " | LS " + getTimeStamp(user.lastSeen)
     + " | FWG " + user.following 
-    + " | 3C " + user.threeceeFollowing 
     + " | LC " + user.location
     + " | C M " + user.category + " A " + user.categoryAuto;
 
@@ -2021,7 +2020,7 @@ process.on("message", async function(m) {
       await nnTools.setMaxInputHashMap(m.maxInputHashMap);
       await nnTools.setNormalization(m.normalization);
 
-      await tcUtils.initTwitter(m.twitterConfig);
+      await tcUtils.initTwitter({twitterConfig: m.twitterConfig});
 
       console.log(chalkInfo("WAS | TFC | INIT"
         + " | TITLE: " + process.title

@@ -1447,6 +1447,7 @@ function initProcessUserQueueInterval(interval) {
             process.send({ 
               op: "ERROR", 
               errorType: "RATE_LIMIT", 
+              threeceeUser: configuration.threeceeUser,
               user: userQueueObj, 
               stats: statsObj.user 
             });
@@ -1467,6 +1468,7 @@ function initProcessUserQueueInterval(interval) {
             process.send({ 
               op: "ERROR", 
               errorType: "TWITTER_TOKEN", 
+              threeceeUser: configuration.threeceeUser,
               user: userQueueObj, 
               stats: statsObj.user 
             });
@@ -1484,6 +1486,7 @@ function initProcessUserQueueInterval(interval) {
             process.send({ 
               op: "ERROR", 
               errorType: "USER_NOT_FOUND", 
+              threeceeUser: configuration.threeceeUser,
               user: userQueueObj, 
               stats: statsObj.user 
             });
@@ -1502,6 +1505,7 @@ function initProcessUserQueueInterval(interval) {
             process.send({ 
               op: "ERROR", 
               errorType: "USER_BLOCKED", 
+              threeceeUser: configuration.threeceeUser,
               user: userQueueObj, 
               stats: statsObj.user 
             });
@@ -1520,6 +1524,7 @@ function initProcessUserQueueInterval(interval) {
             process.send({ 
               op: "ERROR", 
               errorType: "TWITTER_UNAUTHORIZED", 
+              threeceeUser: configuration.threeceeUser,
               user: userQueueObj, 
               stats: statsObj.user 
             });
@@ -1529,6 +1534,7 @@ function initProcessUserQueueInterval(interval) {
           
           console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR processUser"
             + " | " + getTimeStamp() 
+            + " | 3C@" + configuration.threeceeUser
             + " | UID: " + userQueueObj.userId
             + " | @" + userQueueObj.screenName
             + " | ERR CODE: " + err.code
@@ -1538,6 +1544,7 @@ function initProcessUserQueueInterval(interval) {
           process.send({ 
             op: "ERROR", 
             errorType: "UNKNOWN ERROR TYPE", 
+            threeceeUser: configuration.threeceeUser,
             user: userQueueObj, 
             stats: statsObj.user 
           });

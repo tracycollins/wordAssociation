@@ -445,10 +445,7 @@ const threeceeUser = "altthreecee00";
 const Twit = require(path.join(__dirname, "/js/libs/twit"));
 
 const threeceeTwitter = {};
-threeceeTwitter.twitterConfig = {};
-
 const threeceeInfoTwitter = {};
-threeceeInfoTwitter.twitterConfig = {};
 
 if (process.env.MIN_FOLLOWERS_AUTO !== undefined) {
   configuration.minFollowersAuto = parseInt(process.env.MIN_FOLLOWERS_AUTO);
@@ -1242,22 +1239,18 @@ function connectDb(){
 
 
                 if (configuration.threeceeInfoUsersArray.includes(updatedUser.screenName)) {
-                  if (empty(threeceeInfoTwitter[updatedUser.screenName])) {
-                    threeceeInfoTwitter[updatedUser.screenName] = {};
-                  }
-                  threeceeInfoTwitter[updatedUser.screenName].twitterAuthorizationErrorFlag = false;
-                  threeceeInfoTwitter[updatedUser.screenName].twitterCredentialErrorFlag = false;
-                  threeceeInfoTwitter[updatedUser.screenName].twitterErrorFlag = false;
-                  threeceeInfoTwitter[updatedUser.screenName].twitterFollowLimit = false;
-                  threeceeInfoTwitter[updatedUser.screenName].twitterTokenErrorFlag = false;
+                  threeceeInfoTwitter.twitterAuthorizationErrorFlag = false;
+                  threeceeInfoTwitter.twitterCredentialErrorFlag = false;
+                  threeceeInfoTwitter.twitterErrorFlag = false;
+                  threeceeInfoTwitter.twitterFollowLimit = false;
+                  threeceeInfoTwitter.twitterTokenErrorFlag = false;
                 }
                 else {
-
-                  threeceeTwitter[updatedUser.screenName].twitterAuthorizationErrorFlag = false;
-                  threeceeTwitter[updatedUser.screenName].twitterCredentialErrorFlag = false;
-                  threeceeTwitter[updatedUser.screenName].twitterErrorFlag = false;
-                  threeceeTwitter[updatedUser.screenName].twitterFollowLimit = false;
-                  threeceeTwitter[updatedUser.screenName].twitterTokenErrorFlag = false;
+                  threeceeTwitter.twitterAuthorizationErrorFlag = false;
+                  threeceeTwitter.twitterCredentialErrorFlag = false;
+                  threeceeTwitter.twitterErrorFlag = false;
+                  threeceeTwitter.twitterFollowLimit = false;
+                  threeceeTwitter.twitterTokenErrorFlag = false;
 
                 }
 
@@ -3044,14 +3037,14 @@ async function addTwitterAccountActivitySubscription(p){
 
   params.threeceeUser = params.threeceeUser || "altthreecee00";
 
-  if (!threeceeTwitter[params.threeceeUser]) {
-    console.log(chalkError("WAS | *** ADD ACCOUNT ACTIVITY SUBSCRIPTION ERROR | UNDEFINED threeceeTwitter[params.threeceeUser] | " + params.threeceeUser));
+  if (!threeceeTwitter) {
+    console.log(chalkError("WAS | *** ADD ACCOUNT ACTIVITY SUBSCRIPTION ERROR | UNDEFINED threeceeTwitter | " + params.threeceeUser));
     console.log("threeceeTwitter\n" + jsonPrint(threeceeTwitter));
     throw new Error("threeceeUser twitter configuration undefined");
   }
 
-  if (!threeceeTwitter[params.threeceeUser].twitterConfig) {
-    console.log(chalkError("WAS | *** ADD ACCOUNT ACTIVITY SUBSCRIPTION ERROR | UNDEFINED threeceeTwitter[params.threeceeUser].twitterConfig | " + params.threeceeUser));
+  if (!threeceeTwitter.twitterConfig) {
+    console.log(chalkError("WAS | *** ADD ACCOUNT ACTIVITY SUBSCRIPTION ERROR | UNDEFINED threeceeTwitter.twitterConfig | " + params.threeceeUser));
     throw new Error("threeceeUser twitter configuration undefined");
   }
 
@@ -3064,10 +3057,10 @@ async function addTwitterAccountActivitySubscription(p){
       "Content-type": "application/x-www-form-urlencoded"
     },      
     oauth: {
-      consumer_key: threeceeTwitter[params.threeceeUser].twitterConfig.consumer_key,
-      consumer_secret: threeceeTwitter[params.threeceeUser].twitterConfig.consumer_secret,
-      token: threeceeTwitter[params.threeceeUser].twitterConfig.token,
-      token_secret: threeceeTwitter[params.threeceeUser].twitterConfig.token_secret
+      consumer_key: threeceeTwitter.twitterConfig.consumer_key,
+      consumer_secret: threeceeTwitter.twitterConfig.consumer_secret,
+      token: threeceeTwitter.twitterConfig.token,
+      token_secret: threeceeTwitter.twitterConfig.token_secret
     } 
   };
 
@@ -5490,12 +5483,6 @@ async function userCategorizeable(user){
   return false;
 }
 
-function getCurrentThreeceeUser(){
-  return new Promise(function(resolve){
-    resolve("altthreecee00");
-  });
-}
-
 async function initAllowLocations(){
 
   statsObj.status = "INIT ALLOW LOCATIONS SET";
@@ -7265,8 +7252,8 @@ function initTssChild(params){
 
           if (m.errorType == "TWITTER_UNFOLLOW") {
 
-            threeceeTwitter[m.threeceeUser].twitterErrors += 1;
-            threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
+            threeceeTwitter.twitterErrors += 1;
+            threeceeTwitter.twitterErrorFlag = m.error;
 
             console.log(chalkError("WAS | <TSS | ERROR | TWITTER_UNFOLLOW"
               + " | AUTUO FOLLOW USER: @" + threeceeUser
@@ -7277,9 +7264,9 @@ function initTssChild(params){
           }
           else if ((m.errorType == "TWITTER_FOLLOW_LIMIT") || (m.error.code == 161)) {
 
-            threeceeTwitter[m.threeceeUser].twitterErrors += 1;
-            threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
-            threeceeTwitter[m.threeceeUser].twitterAuthorizationErrorFlag = m.error;
+            threeceeTwitter.twitterErrors += 1;
+            threeceeTwitter.twitterErrorFlag = m.error;
+            threeceeTwitter.twitterAuthorizationErrorFlag = m.error;
 
             console.log(chalkError("WAS | <TSS | ERROR | TWITTER_FOLLOW_LIMIT"
               + " | AUTUO FOLLOW USER: @" + threeceeUser
@@ -7290,15 +7277,15 @@ function initTssChild(params){
           }
           else if ((m.errorType == "TWITTER_UNAUTHORIZED") || (m.error.statusCode == 401)) {
 
-            threeceeTwitter[m.threeceeUser].twitterErrors += 1;
-            threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
-            threeceeTwitter[m.threeceeUser].twitterAuthorizationErrorFlag = m.error;
+            threeceeTwitter.twitterErrors += 1;
+            threeceeTwitter.twitterErrorFlag = m.error;
+            threeceeTwitter.twitterAuthorizationErrorFlag = m.error;
           }
           else if (m.errorType == "TWITTER_TOKEN") {
 
-            threeceeTwitter[m.threeceeUser].twitterErrors += 1;
-            threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
-            threeceeTwitter[m.threeceeUser].twitterTokenErrorFlag = m.error;
+            threeceeTwitter.twitterErrors += 1;
+            threeceeTwitter.twitterErrorFlag = m.error;
+            threeceeTwitter.twitterTokenErrorFlag = m.error;
           }
           else if (m.errorType == "USER_NOT_FOUND") {
 
@@ -7322,8 +7309,8 @@ function initTssChild(params){
           }
           else {
 
-            threeceeTwitter[m.threeceeUser].twitterErrors += 1;
-            threeceeTwitter[m.threeceeUser].twitterErrorFlag = m.error;
+            threeceeTwitter.twitterErrors += 1;
+            threeceeTwitter.twitterErrorFlag = m.error;
 
           }
         break;
@@ -7335,10 +7322,10 @@ function initTssChild(params){
             + " | FOLLOWING: " + m.twitterFollowing
           ));
 
-          threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
-          threeceeTwitter[m.threeceeUser].twitterFriends = m.twitterFriends;
+          threeceeTwitter.twitterFollowing = m.twitterFollowing;
+          threeceeTwitter.twitterFriends = m.twitterFriends;
           if (m.twitterConfig) {
-            threeceeTwitter[m.threeceeUser].twitterConfig = m.twitterConfig;
+            threeceeTwitter.twitterConfig = m.twitterConfig;
           }
 
           // try{
@@ -7361,9 +7348,9 @@ function initTssChild(params){
             + " | NOW: " + getTimeStamp()
           ));
 
-          threeceeTwitter[m.threeceeUser].twitterFollowing = m.twitterFollowing;
-          threeceeTwitter[m.threeceeUser].twitterFriends = m.twitterFriends;
-          threeceeTwitter[m.threeceeUser].twitterFollowLimit = true;
+          threeceeTwitter.twitterFollowing = m.twitterFollowing;
+          threeceeTwitter.twitterFriends = m.twitterFriends;
+          threeceeTwitter.twitterFollowLimit = true;
 
           // try{
           //   childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});
@@ -7438,7 +7425,7 @@ function initTssChild(params){
       op: "INIT",
       title: params.childId,
       threeceeUser: params.threeceeUser,
-      twitterConfig: threeceeTwitter[params.threeceeUser].twitterConfig,
+      twitterConfig: threeceeTwitter.twitterConfig,
       interval: configuration.tssInterval,
       filterDuplicateTweets: configuration.filterDuplicateTweets,
       testMode: configuration.testMode,
@@ -8813,47 +8800,40 @@ async function initConfig() {
 
   console.log(chalkTwitter("WAS | THREECEE USERS\n" + jsonPrint(configuration.threeceeUsers)));
 
-  for (const user of configuration.threeceeUsers){
-    threeceeTwitter[user] = {};
-    threeceeTwitter[user].twit = {};
-    threeceeTwitter[user].twitterConfig = {};
-    threeceeTwitter[user].ready = false;
-    threeceeTwitter[user].status = "UNCONFIGURED";
-    threeceeTwitter[user].error = false;
-    threeceeTwitter[user].twitterFollowing = 0;
-    threeceeTwitter[user].twitterFriends = [];
-    threeceeTwitter[user].twitterFollowLimit = false;
-    threeceeTwitter[user].twitterAuthorizationErrorFlag = false;
-    threeceeTwitter[user].twitterErrorFlag = false;
-    threeceeTwitter[user].twitterTokenErrorFlag = false;
-    threeceeTwitter[user].twitterCredentialErrorFlag = false;
-    threeceeTwitter[user].twitterRateLimitException = false;
-    threeceeTwitter[user].twitterRateLimitExceptionFlag = false;
-    threeceeTwitter[user].twitterRateLimitResetAt = false;
+  threeceeTwitter.twit = {};
+  threeceeTwitter.twitterConfig = {};
+  threeceeTwitter.ready = false;
+  threeceeTwitter.status = "UNCONFIGURED";
+  threeceeTwitter.error = false;
+  threeceeTwitter.twitterFollowing = 0;
+  threeceeTwitter.twitterFriends = [];
+  threeceeTwitter.twitterFollowLimit = false;
+  threeceeTwitter.twitterAuthorizationErrorFlag = false;
+  threeceeTwitter.twitterErrorFlag = false;
+  threeceeTwitter.twitterTokenErrorFlag = false;
+  threeceeTwitter.twitterCredentialErrorFlag = false;
+  threeceeTwitter.twitterRateLimitException = false;
+  threeceeTwitter.twitterRateLimitExceptionFlag = false;
+  threeceeTwitter.twitterRateLimitResetAt = false;
 
-    debug(chalkTwitter("WAS | THREECEE USER @" + user + "\n" + jsonPrint(threeceeTwitter[user])));
-  }
-
-  // configuration.threeceeInfoUsersArray.forEach(function(user){
   for (const user of configuration.threeceeInfoUsersArray){
-    threeceeInfoTwitter[user] = {};
-    threeceeInfoTwitter[user].twit = {};
-    threeceeInfoTwitter[user].twitterConfig = {};
-    threeceeInfoTwitter[user].ready = false;
-    threeceeInfoTwitter[user].status = "UNCONFIGURED";
-    threeceeInfoTwitter[user].error = false;
-    threeceeInfoTwitter[user].twitterFollowing = 0;
-    threeceeInfoTwitter[user].twitterFriends = [];
-    threeceeInfoTwitter[user].twitterFollowLimit = false;
-    threeceeInfoTwitter[user].twitterAuthorizationErrorFlag = false;
-    threeceeInfoTwitter[user].twitterErrorFlag = false;
-    threeceeInfoTwitter[user].twitterTokenErrorFlag = false;
-    threeceeInfoTwitter[user].twitterCredentialErrorFlag = false;
-    threeceeInfoTwitter[user].twitterRateLimitException = false;
-    threeceeInfoTwitter[user].twitterRateLimitExceptionFlag = false;
-    threeceeInfoTwitter[user].twitterRateLimitResetAt = false;
+    threeceeInfoTwitter.twit = {};
+    threeceeInfoTwitter.twitterConfig = {};
+    threeceeInfoTwitter.ready = false;
+    threeceeInfoTwitter.status = "UNCONFIGURED";
+    threeceeInfoTwitter.error = false;
+    threeceeInfoTwitter.twitterFollowing = 0;
+    threeceeInfoTwitter.twitterFriends = [];
+    threeceeInfoTwitter.twitterFollowLimit = false;
+    threeceeInfoTwitter.twitterAuthorizationErrorFlag = false;
+    threeceeInfoTwitter.twitterErrorFlag = false;
+    threeceeInfoTwitter.twitterTokenErrorFlag = false;
+    threeceeInfoTwitter.twitterCredentialErrorFlag = false;
+    threeceeInfoTwitter.twitterRateLimitException = false;
+    threeceeInfoTwitter.twitterRateLimitExceptionFlag = false;
+    threeceeInfoTwitter.twitterRateLimitResetAt = false;
 
-    debug(chalkTwitter("WAS | THREECEE INFO USER @" + user + "\n" + jsonPrint(threeceeInfoTwitter[user])));
+    debug(chalkTwitter("WAS | THREECEE INFO USER @" + user + "\n" + jsonPrint(threeceeInfoTwitter)));
   }
 
   try {
@@ -8877,8 +8857,6 @@ async function initConfig() {
     if (configuration.enableStdin) { await initStdIn(); }
 
     await initStatsUpdate(configuration);
-
-    // await initTwitterConfig({threeceeUser: "altthreecee00"});
 
     statsObj.configuration = configuration;
     return configuration;
@@ -9305,91 +9283,56 @@ function initUpdateUserSetsInterval(interval){
 
 let memStatsInterval;
 
-function initThreeceeTwitterUsers(params){
+async function initThreeceeTwitterUser(threeceeUser){
 
-  return new Promise(function(resolve, reject){
+  console.log(chalkTwitter("WAS | ... INIT THREECEE TWITTER USER: " + threeceeUser));
 
-    const threeceeUsers = params.threeceeUsers;
+  console.log(chalkTwitter("WAS | ... LOADING TWITTER CONFIG | @" + threeceeUser));
 
-    console.log(chalkTwitter("WAS | ... INIT THREECEE TWITTER USERS\n" + jsonPrint(threeceeUsers)));
+  const configFile = threeceeUser + ".json";
 
-    async.eachSeries(threeceeUsers, async function(user){
+  try {
 
-      console.log(chalkTwitter("WAS | ... LOADING TWITTER CONFIG | @" + user));
+    threeceeTwitter.twitterConfig = {};
+    threeceeTwitter.twitterConfig = await tcUtils.loadFileRetry({folder: twitterConfigFolder, file: configFile});
 
-      const configFile = user + ".json";
+    console.log(chalkTwitter("WAS | +++ LOADED TWITTER CONFIG"
+      + " | 3C @" + threeceeUser
+      + " | " + twitterConfigFolder + "/" + configFile
+      + "\nCONFIG\n" + jsonPrint(threeceeTwitter.twitterConfig)
+    ));
 
-      try {
-
-        const twitterConfig = await tcUtils.loadFileRetry({folder: twitterConfigFolder, file: configFile});
-
-        console.log(chalkTwitter("WAS | +++ LOADED TWITTER CONFIG"
-          + " | 3C @" + user
-          + " | " + twitterConfigFolder + "/" + configFile
-          + "\nCONFIG\n" + jsonPrint(twitterConfig)
-        ));
-
-        if (!configuration.threeceeUsers.includes(twitterConfig.screenName)) {
-          console.log(chalkAlert("WAS | SKIP CONFIG @" + twitterConfig.screenName + " | NOT IN 3C USERS: " + configuration.threeceeUsers));
-          return;
-        }
-
-        threeceeTwitter[user].twitterConfig = {};
-        threeceeTwitter[user].twitterConfig = twitterConfig;
-
-        threeceeTwitter[user].twit = new Twit({
-          consumer_key: twitterConfig.consumer_key, 
-          consumer_secret: twitterConfig.consumer_secret,
-          app_only_auth: true
-        });
-
-        threeceeTwitter[user].ready = true;
-        threeceeTwitter[user].status = false;
-        threeceeTwitter[user].error = false;
-        statsObj.threeceeUsersConfiguredFlag = true;
-
-        return;
-
-      }
-
-      catch(err) {
-
-        if (err.code == "ENOTFOUND") {
-          console.log(chalkError("WAS | *** LOAD TWITTER CONFIG ERROR: FILE NOT FOUND"
-            + " | " + twitterConfigFolder + "/" + configFile
-          ));
-        }
-        else {
-          console.log(chalkError("WAS | *** LOAD TWITTER CONFIG ERROR: " + err));
-        }
-
-        threeceeTwitter[user].error = "CONFIG LOAD ERROR: " + err;
-        threeceeTwitter[user].ready = false;
-        threeceeTwitter[user].twit = false;
-        threeceeTwitter[user].status = false;
-
-        return err;
-      }
-
-    }, async function(err){
-
-      if (err) {
-        return reject(err);
-      }
-
-      try{
-        const currentThreeceeUser = await getCurrentThreeceeUser();
-        console.log(chalkInfo("WAS | CURRENT 3C TWITTER USER: @" + currentThreeceeUser));
-        resolve(currentThreeceeUser);
-      }
-      catch(err1){
-        console.log(chalkInfo("WAS | *** CURRENT 3C TWITTER USER ERROR: " + err1));
-        return reject(err1);
-      }
-    
+    threeceeTwitter.twit = new Twit({
+      consumer_key: threeceeTwitter.twitterConfig.consumer_key, 
+      consumer_secret: threeceeTwitter.twitterConfig.consumer_secret,
+      app_only_auth: true
     });
 
-  });
+    threeceeTwitter.ready = true;
+    threeceeTwitter.status = false;
+    threeceeTwitter.error = false;
+    statsObj.threeceeUsersConfiguredFlag = true;
+    return threeceeUser;
+  }
+  catch(err) {
+
+    if (err.code == "ENOTFOUND") {
+      console.log(chalkError("WAS | *** LOAD TWITTER CONFIG ERROR: FILE NOT FOUND"
+        + " | " + twitterConfigFolder + "/" + configFile
+      ));
+    }
+    else {
+      console.log(chalkError("WAS | *** LOAD TWITTER CONFIG ERROR: " + err));
+    }
+
+    threeceeTwitter.error = "CONFIG LOAD ERROR: " + err;
+    threeceeTwitter.ready = false;
+    threeceeTwitter.twit = false;
+    threeceeTwitter.status = false;
+
+    throw err;
+  }
+
 }
 
 function twitUserShow(params){
@@ -9398,7 +9341,7 @@ function twitUserShow(params){
 
     const user = params.user;
 
-    threeceeTwitter[threeceeUser].twit.get("users/show", params.twitQuery, async function usersShow (err, rawUser){
+    threeceeTwitter.twit.get("users/show", params.twitQuery, async function usersShow (err, rawUser){
 
       if (err) {
 
@@ -9549,7 +9492,7 @@ async function twitterGetUserUpdateDb(user){
   }
   catch(err){
     console.log(chalkTwitter("WAS | XXX TWITTER_SEARCH_NODE USER FAIL"
-      + " | threeceeTwitter[currentThreeceeUser] UNDEFINED"
+      + " | threeceeTwitter UNDEFINED"
       + " | 3C @" + threeceeUser
       + "\n" + printUser({user: user})
     ));
@@ -10226,7 +10169,7 @@ setTimeout(async function(){
     await initInternetCheckInterval(ONE_MINUTE);
     await initKeySortInterval(configuration.keySortInterval);
     await initSaveFileQueue(configuration);
-    await initThreeceeTwitterUsers({threeceeUsers: configuration.threeceeUsers});
+    await initThreeceeTwitterUser("altthreecee00");
     if (hostname == "google") { 
       await getTwitterWebhooks();
       if (statsObj.twitter.aaSubs) { console.log(chalkLog("WAS | TWITTER AA SUBSCRIPTIONS ... SKIP ADD SUBS")); }

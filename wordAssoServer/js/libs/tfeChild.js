@@ -756,50 +756,47 @@ function loadFile(params) {
 
 async function loadFileRetry(params){
 
-  // return new Promise(function(resolve, reject){
+  const resolveOnNotFound = params.resolveOnNotFound || false;
+  const maxRetries = params.maxRetries || 5;
+  let retryNumber;
+  let backOffTime = params.initialBackOffTime || ONE_SECOND;
+  const path = params.path || params.folder + "/" + params.file;
 
-    const resolveOnNotFound = params.resolveOnNotFound || false;
-    const maxRetries = params.maxRetries || 5;
-    let retryNumber;
-    let backOffTime = params.initialBackOffTime || ONE_SECOND;
-    const path = params.path || params.folder + "/" + params.file;
+  for (retryNumber = 0;retryNumber < maxRetries;retryNumber++) {
+    try {
+      
+      const fileObj = await loadFile(params);
 
-    for (retryNumber = 0;retryNumber < maxRetries;retryNumber++) {
-      try {
-        
-        const fileObj = await loadFile(params);
-
-        if (retryNumber > 0) { 
-          console.log(chalkAlert(MODULE_ID_PREFIX + " | FILE LOAD RETRY"
-            + " | " + path
-            + " | BACKOFF: " + msToTime(backOffTime)
-            + " | " + retryNumber + " OF " + maxRetries
-          )); 
-        }
-
-        return fileObj;
-      } 
-      catch(err) {
-        backOffTime *= 1.5;
-        setTimeout(function(){
-          console.log(chalkAlert(MODULE_ID_PREFIX + " | FILE LOAD ERROR ... RETRY"
-            + " | " + path
-            + " | BACKOFF: " + msToTime(backOffTime)
-            + " | " + retryNumber + " OF " + maxRetries
-            + " | ERROR: " + err
-          )); 
-        }, backOffTime);
+      if (retryNumber > 0) { 
+        console.log(chalkAlert(MODULE_ID_PREFIX + " | FILE LOAD RETRY"
+          + " | " + path
+          + " | BACKOFF: " + msToTime(backOffTime)
+          + " | " + retryNumber + " OF " + maxRetries
+        )); 
       }
-    }
 
-    if (resolveOnNotFound) {
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | resolve FILE LOAD FAILED | RETRY: " + retryNumber + " OF " + maxRetries));
-      return false;
+      return fileObj;
+    } 
+    catch(err) {
+      backOffTime *= 1.5;
+      setTimeout(function(){
+        console.log(chalkAlert(MODULE_ID_PREFIX + " | FILE LOAD ERROR ... RETRY"
+          + " | " + path
+          + " | BACKOFF: " + msToTime(backOffTime)
+          + " | " + retryNumber + " OF " + maxRetries
+          + " | ERROR: " + err
+        )); 
+      }, backOffTime);
     }
-    console.log(chalkError(MODULE_ID_PREFIX + " | reject FILE LOAD FAILED | RETRY: " + retryNumber + " OF " + maxRetries));
-    throw new Error("FILE LOAD ERROR | RETRIES " + maxRetries);
+  }
 
-  // });
+  if (resolveOnNotFound) {
+    console.log(chalkAlert(MODULE_ID_PREFIX + " | resolve FILE LOAD FAILED | RETRY: " + retryNumber + " OF " + maxRetries));
+    return false;
+  }
+  console.log(chalkError(MODULE_ID_PREFIX + " | reject FILE LOAD FAILED | RETRY: " + retryNumber + " OF " + maxRetries));
+  throw new Error("FILE LOAD ERROR | RETRIES " + maxRetries);
+
 }
 
 function initStatsUpdate(cnf){
@@ -1120,192 +1117,6 @@ function histogramIncomplete(histogram){
   });
 }
 
-// function fetchUserTweets(params){
-
-//   return new Promise(function(resolve, reject){
-
-//     const user = params.user;
-
-//     if (!user.tweetHistograms || (user.tweetHistograms === undefined) || (user.tweetHistograms == {})) { 
-
-//       console.log(chalkAlert("TFE | fetchUserTweets | *** USER tweetHistograms UNDEFINED"
-//         + " | @" + user.screenName
-//       ));
-      
-//       user.tweetHistograms = {};
-//     }
-
-//     if (params.force) {
-//       delete user.tweets;
-//       user.tweets = {};
-//     }
-
-//     defaults(user.tweets, userTweetsDefault);
-
-//     if (!twitClient || (twitClient === undefined)) {
-//       console.log(chalkAlert("TFC | fetchUserTweets | twitClient UNDEFINED | @" + configuration.threeceeUser));
-//       return reject(new Error("twitClient UNDEFINED"));
-//     }
-
-//     if (statsObj.threeceeUser.twitterRateLimit.statuses.exceptionFlag) {
-//       console.log(chalkAlert("TFC | fetchUserTweets | SKIPPING ... RATE LIMIT | RESOURCE: STATUSES | @" + configuration.threeceeUser));
-//       return resolve(user);
-//     }
-
-//     const fetchUserTweetsParams = {};
-
-//     fetchUserTweetsParams.user_id = user.userId;
-//     fetchUserTweetsParams.trim_user = false;
-
-//     if (params.excludeUser) { fetchUserTweetsParams.trim_user = true; } 
-
-//     fetchUserTweetsParams.count = params.tweetFetchCount || configuration.tweetFetchCount;
-//     fetchUserTweetsParams.exclude_replies = params.excludeReplies || DEFAULT_TWEET_FETCH_EXCLUDE_REPLIES;
-//     fetchUserTweetsParams.include_rts = params.includeRetweets || DEFAULT_TWEET_FETCH_INCLUDE_RETWEETS;
-
-//     debug(chalkError("TFC | ... TWITTER FETCH USER TWEETS"
-//       + " | " + getTimeStamp() 
-//       + " | 3C @" + configuration.threeceeUser 
-//       + " | UID: " + user.userId
-//       + " | @" + user.screenName
-//       + "\nfetchUserTweetsParams\n" + jsonPrint(fetchUserTweetsParams)
-//     ));
-
-//     twitClient.get("statuses/user_timeline", fetchUserTweetsParams, function(err, userTweetsArray, response) {
-
-//       if (configuration.verbose) {
-//         debug("TFC | TWITTER USER TIMELINE response\n", response);
-//       }
-
-//       if (err){
-
-//         if (err.code == 88){
-//           statsObj.threeceeUser.twitterRateLimit.statuses.user_timeline.exceptionAt = moment();
-//           statsObj.threeceeUser.twitterRateLimit.statuses.user_timeline.exceptionFlag = true;
-
-//           console.log(chalkAlert("TFC | *** TWITTER FETCH USER TWEETS ERROR | RATE LIMIT" 
-//             + " | " + getTimeStamp() 
-//             + " | @" + configuration.threeceeUser 
-//           ));
-
-//           return resolve(user);
-//         }
-
-//         if (err.code == 89){
-
-//           console.log(chalkAlert("TFC | *** TWITTER FETCH USER TWEETS ERROR | INVALID OR EXPIRED TOKEN" 
-//             + " | " + getTimeStamp() 
-//             + " | @" + configuration.threeceeUser 
-//           ));
-
-//           statsObj.threeceeUser = Object.assign({}, threeceeUserDefaults, statsObj.threeceeUser);  
-//           statsObj.threeceeUser.err = err;
-
-//           process.send({
-//             op: "ERROR", 
-//             threeceeUser: configuration.threeceeUser, 
-//             userId: user.userId, 
-//             errorType: "TWITTER_TOKEN", 
-//             error: err
-//           });
-
-//           return resolve(user);
-//         }
-
-//         if (err.code == 34){
-//           console.log(chalkError("TFC | *** TWITTER FETCH USER TWEETS ERROR | USER NOT FOUND"
-//             + " | " + getTimeStamp() 
-//             + " | @" + configuration.threeceeUser 
-//             + " | UID: " + params.user.userId
-//             + " | @" + params.user.screenName
-//           ));
-
-//           process.send({
-//             op: "ERROR", 
-//             threeceeUser: configuration.threeceeUser, 
-//             userId: user.userId, 
-//             errorType: "USER_NOT_FOUND", 
-//             error: err
-//           });
-
-//           return resolve(user);
-//         }
-        
-//         if (err.code == 136){
-//           console.log(chalkError("TFC | *** TWITTER FETCH USER TWEETS ERROR | USER BLOCKED"
-//             + " | " + getTimeStamp() 
-//             + " | @" + configuration.threeceeUser 
-//             + " | UID: " + user.userId
-//             + " | @" + user.screenName
-//           ));
-
-//           process.send({
-//             op: "ERROR", 
-//             threeceeUser: configuration.threeceeUser, 
-//             userId: user.userId, 
-//             errorType: "TWITTER_UNAUTHORIZED", 
-//             error: err
-//           });
-
-//           return resolve(user);
-//         }
-        
-//         if (err.statusCode == 401){
-//           console.log(chalkError("TFC | *** TWITTER FETCH USER TWEETS ERROR | NOT AUTHORIZED"
-//             + " | " + getTimeStamp() 
-//             + " | @" + configuration.threeceeUser 
-//             + " | UID: " + params.user.userId
-//             + " | @" + params.user.screenName
-//           ));
-
-//           process.send({
-//             op: "ERROR", 
-//             threeceeUser: configuration.threeceeUser, 
-//             userId: user.userId, 
-//             errorType: "TWITTER_FOLLOW_BLOCK", 
-//             error: err
-//           });
-
-//           return resolve(user);
-//         }
-        
-//         console.log(chalkError("TFC | *** TWITTER FETCH USER TWEETS ERROR"
-//           + " | " + getTimeStamp() 
-//           + " | 3C @" + configuration.threeceeUser 
-//           + " | UID: " + user.userId
-//           + " | @" + user.screenName
-//           + " | ERR CODE: " + err.code
-//           + " | " + err.message
-//           + "\n" + jsonPrint(err)
-//           + "\nfetchUserTweetsParams\n" + jsonPrint(fetchUserTweetsParams)
-//         ));
-
-//         process.send({
-//           op: "ERROR", 
-//           threeceeUser: configuration.threeceeUser, 
-//           userId: user.userId, 
-//           errorType: "UNKNOWN", 
-//           error: err
-//         });
-
-//         return reject(err);
-//       }
-
-//       console.log(chalkLog("TFC | <<< FETCH TWEETS"
-//         + " | " + user.userId
-//         + " | @" + user.screenName
-//         + " | " + userTweetsArray.length + " Ts"
-//       ));
-
-//       user.latestTweets = _.union(userTweetsArray, user.latestTweets);
-
-//       return resolve(user);
-//     });
-
-//   });
-
-// }
-
 function processUserTweetArray(params){
 
   return new Promise(function(resolve, reject){
@@ -1523,7 +1334,7 @@ const userTweetsDefault = {
 let processUserQueueBusy = false;
 let processUserQueueInterval;
 
-async function initProcessUserQueueInterval(interval) {
+function initProcessUserQueueInterval(interval) {
 
   return new Promise(function(resolve){
 
@@ -1627,11 +1438,6 @@ async function initProcessUserQueueInterval(interval) {
         }
         catch(err){
           
-          console.trace(chalkError(MODULE_ID_PREFIX + " | *** ERROR processUser"
-            + " | USER ID: " + userQueueObj.userId
-            + " | " + err
-          ));
-
           if (err.code === 88){
             console.log(chalkAlert(MODULE_ID_PREFIX + " | *** FETCH USER TWEETS ERROR | RATE LIMIT" 
               + " | " + getTimeStamp() 
@@ -1646,6 +1452,7 @@ async function initProcessUserQueueInterval(interval) {
             });
 
             processUserQueueBusy = false;
+            return;
           }
 
           if (err.code === 89){
@@ -1665,6 +1472,7 @@ async function initProcessUserQueueInterval(interval) {
             });
 
             processUserQueueBusy = false;
+            return;
           }
 
           if (err.code === 34){
@@ -1681,6 +1489,7 @@ async function initProcessUserQueueInterval(interval) {
             });
 
             processUserQueueBusy = false;
+            return;
           }
           
           if (err.code === 136){
@@ -1698,6 +1507,7 @@ async function initProcessUserQueueInterval(interval) {
             });
 
             processUserQueueBusy = false;
+            return;
           }
           
           if (err.statusCode === 401){
@@ -1723,7 +1533,6 @@ async function initProcessUserQueueInterval(interval) {
             + " | @" + userQueueObj.screenName
             + " | ERR CODE: " + err.code
             + " | " + err.message
-            + "\n" + jsonPrint(err)
           ));
 
           process.send({ 
@@ -1734,13 +1543,13 @@ async function initProcessUserQueueInterval(interval) {
           });
 
           processUserQueueBusy = false;
+          return;
         }
 
       }
     }, interval);
 
     resolve();
-
   });
 }
 

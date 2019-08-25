@@ -982,81 +982,6 @@ function checkTwitterRateLimitAll(){
   });
 }
 
-function handleTwitterError(params){
-
-  return new Promise(function(resolve){
-
-    let errorType;
-
-    switch (params.err.code) {
-
-      case 88:
-        errorType = "RATE_LIMIT";
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | *** TWITTER RATE LIMIT"
-          + " | ERR CODE: " + params.err.code 
-          + " | " + getTimeStamp() 
-        ));
-      break;
-
-      case 89:
-        errorType = "TWITTER_TOKEN";
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | *** TWITTER TWITTER INVALID OR EXPIRED TOKEN"
-          + " | ERR CODE: " + params.err.code 
-          + " | " + getTimeStamp() 
-        ));
-      break;
-
-      case 34:
-        errorType = "USER_NOT_FOUND";
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER USER NOT FOUND"
-          + " | ERR CODE: " + params.err.code 
-          + " | " + getTimeStamp() 
-          + " | UID: " + params.user.userId
-        ));
-      break;
-
-      case 136:
-        errorType = "USER_BLOCKED";
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER USER BLOCKED"
-          + " | ERR CODE: " + params.err.code 
-          + " | " + getTimeStamp() 
-          + " | UID: " + params.user.userId
-        ));
-      break;
-
-      case 401:
-        errorType = "TWITTER_UNAUTHORIZED";
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER NOT AUTHORIZED"
-          + " | ERR CODE: " + params.err.code 
-          + " | " + getTimeStamp() 
-          + " | UID: " + params.user.userId
-        ));
-      break;
-
-      default:
-        errorType = "UNKNOWN";
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER ERROR"
-          + " | " + getTimeStamp() 
-          + " | 3C@" + configuration.threeceeUser
-          + " | UID: " + params.user.userId
-          + " | ERR CODE: " + params.err.code
-          + " | " + params.err.message
-        ));
-    }
-
-    process.send({ 
-      op: "ERROR", 
-      errorType: errorType, 
-      threeceeUser: configuration.threeceeUser,
-      user: params.user, 
-      stats: statsObj.user 
-    });
-
-    resolve();
-
-  });
-}
-
 const networkOutput = {};
 networkOutput.output = [];
 networkOutput.left = 0;
@@ -1358,7 +1283,7 @@ async function updateUserTweets(params){
       if (latestTweets) { user.latestTweets = latestTweets; }
     }
     catch(err){
-      await handleTwitterError({err: err, user: user});
+      // await tcUtils.handleTwitterError({err: err, user: user});
     }
   }
 
@@ -1397,11 +1322,14 @@ async function updateUserFriends(params){
 
   const user = params.user;
 
-  const friendsIdsObj = await tcUtils.fetchUserFriends({user: user});
-
-  user.friends = _.union(user.friends, friendsIdsObj.ids);
-
-  return user;
+  try{
+    const friendsIdsObj = await tcUtils.fetchUserFriends({user: user});
+    user.friends = _.union(user.friends, friendsIdsObj.ids);
+    return user;
+  }
+  catch(err){
+    return user;
+  }
 }
 
 const userTweetsDefault = {
@@ -1517,7 +1445,7 @@ function initProcessUserQueueInterval(interval) {
         }
         catch(err){
           if (err.code) { 
-            await handleTwitterError({err: err, user: userQueueObj});
+            await tcUtils.handleTwitterError({err: err, user: userQueueObj});
           }
           else {
             console.log(chalkError("*** ERROR initProcessUserQueueInterval: " + err));
@@ -1739,8 +1667,12 @@ async function processUser(params) {
     const user = params.user;
     user.following = true;
 
-    const updatedTweetsUser = await updateUserTweets({user: user});
-    const updatedFriendsUser = await updateUserFriends({user: updatedTweetsUser});
+    let updatedFriendsUser = user;;
+
+    if (!user.friends || (user.friends.length === 0)){
+      updatedFriendsUser = await updateUserFriends({user: user});
+    }
+    const updatedTweetsUser = await updateUserTweets({user: updatedFriendsUser});
     const autoCategoryUser = await generateAutoCategory({user: updatedFriendsUser});
     const prevPropsUser = await updatePreviousUserProps({user: autoCategoryUser});
 

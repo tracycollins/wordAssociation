@@ -7328,16 +7328,6 @@ function initTssChild(params){
             threeceeTwitter.twitterConfig = m.twitterConfig;
           }
 
-          // try{
-          //   childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});
-          // }
-          // catch(err){
-          //   console.log(chalkError("WAS | <TSS | *** UNFOLLOW DUPLICATES ERROR"
-          //     + " | 3C @" + m.threeceeUser
-          //     + " | ERR: " + err
-          //   ));
-          // }
-
         break;
 
         case "FOLLOW_LIMIT":
@@ -7351,16 +7341,6 @@ function initTssChild(params){
           threeceeTwitter.twitterFollowing = m.twitterFollowing;
           threeceeTwitter.twitterFriends = m.twitterFriends;
           threeceeTwitter.twitterFollowLimit = true;
-
-          // try{
-          //   childrenHashMap[params.childId].unfollowArrary = await unfollowDuplicates({threeceeUser: m.threeceeUser});
-          // }
-          // catch(err){
-          //   console.log(chalkError("WAS | <TSS | *** UNFOLLOW DUPLICATES ERROR"
-          //     + " | 3C @" + m.threeceeUser
-          //     + " | ERR: " + err
-          //   ));
-          // }
 
         break;
 
@@ -7676,7 +7656,7 @@ async function initTfeChild(params){
     op: "INIT",
     title: "wa_node_child_tfe",
     networkObj: bestNetworkObj,
-    twitterConfig: threeceeTwitter.altthreecee00.twitterConfig,
+    twitterConfig: threeceeTwitter.twitterConfig,
     maxInputHashMap: maxInputHashMap,
     normalization: normalization,
     interval: configuration.tfeInterval,

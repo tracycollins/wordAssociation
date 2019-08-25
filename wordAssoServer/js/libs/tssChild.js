@@ -667,7 +667,7 @@ function initRateLimitPause(params){
 
       remainingTime = resetAt.diff(moment());
 
-      console.log(chalkAlert("TSS | TFC"
+      console.log(chalkAlert("TSS"
         + " | RATE LIMIT PAUSE"
         + " | @" + configuration.threeceeUser
         + " | NOW: " + moment().format(compactDateTimeFormat)
@@ -681,7 +681,7 @@ function initRateLimitPause(params){
 
       remainingTime = resetAt.diff(moment());
 
-      console.log(chalkAlert("TSS | TFC | XXX RATE LIMIT EXPIRED"
+      console.log(chalkAlert("TSS | XXX RATE LIMIT EXPIRED"
         + " | @" + configuration.threeceeUser
         + " | NOW: " + moment().format(compactDateTimeFormat)
         + " | RESET AT: " + resetAt.format(compactDateTimeFormat)
@@ -733,7 +733,7 @@ function twitStreamPromise(params){
             return resolve([]);
           }
           catch(e){
-            console.log(chalkError("TSS | TFC | *** INIT RATE LIMIT PAUSE ERROR: " + e));
+            console.log(chalkError("TSS | *** INIT RATE LIMIT PAUSE ERROR: " + e));
             return reject(e);
           }
         }

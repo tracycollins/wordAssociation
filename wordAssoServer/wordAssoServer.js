@@ -5719,7 +5719,6 @@ function updateUserSets(){
             );
           }
         });
-
       }
       else if (!user.category 
         && !user.following 
@@ -5739,7 +5738,6 @@ function updateUserSets(){
             );
           }
         });
-
       }
       else {
 
@@ -5874,13 +5872,17 @@ function updateUserSets(){
 
           uncategorizedManualUserSet.add(user.nodeId);
 
+          if (tfeChild !== undefined) { 
+            tfeChild.send({op: "USER_CATEGORIZE", user: user});
+          }
+
           if (uncategorizedManualUserSet.size % 100 == 0) {
             printUserObj("UNCAT MAN USER  [" + uncategorizedManualUserSet.size + "]", user);
           }
         }
 
         if (!uncategorizedAutoUserSet.has(user.nodeId) 
-          && !user.categoryAuto 
+          && (!user.categoryAuto || (user.categoryAuto === undefined))
           && !ignoredUserSet.has(user.nodeId) 
           && !ignoredUserSet.has(user.screenName.toLowerCase()) 
           && !ignoreLocationsSet.has(user.nodeId) 

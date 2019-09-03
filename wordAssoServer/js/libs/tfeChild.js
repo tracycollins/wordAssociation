@@ -1730,8 +1730,6 @@ process.on("message", async function(m) {
       configuration.geoCodeEnabled = m.geoCodeEnabled || false;
       configuration.enableImageAnalysis = m.enableImageAnalysis || false;
       configuration.forceImageAnalysis = m.forceImageAnalysis || false;
-      // maxInputHashMap = m.maxInputHashMap;
-      // normalization = m.normalization;
 
       networkObj = m.networkObj;
 
@@ -1740,7 +1738,6 @@ process.on("message", async function(m) {
 
       await nnTools.setMaxInputHashMap(m.maxInputHashMap);
       await nnTools.setNormalization(m.normalization);
-
       await tcUtils.initTwitter({twitterConfig: m.twitterConfig});
 
       console.log(chalkInfo("WAS | TFC | INIT"

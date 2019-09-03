@@ -1033,7 +1033,6 @@ function printUserObj(title, u, chalkFormat) {
 
   console.log(chlk(title
     + " | NID: " + user.nodeId
-    // + " | UID: " + user.userId
     + " | @" + user.screenName
     + " | NAME: " + user.name 
     + " | LG " + user.lang
@@ -1041,9 +1040,7 @@ function printUserObj(title, u, chalkFormat) {
     + " | FD " + user.friendsCount
     + " | T " + user.statusesCount
     + " | M  " + user.mentions
-    // + " | LS " + getTimeStamp(user.lastSeen)
     + " | FWG " + user.following 
-    // + " | 3C " + user.threeceeFollowing 
     + " | LC " + user.location
     + " | CV " + user.categoryVerified + " M " + user.category + " A " + user.categoryAuto
     + " | PRI " + user.priorityFlag
@@ -5384,34 +5381,24 @@ async function userCategorizeable(user){
   }
 
   if (user.following && (user.following !== undefined)) { 
-    // categorizeableUserSet.add(user.nodeId);
-    // ignoredUserSet.delete(user.nodeId);
     unfollowableUserSet.delete(user.nodeId);
     return true; 
   }
 
   if (user.ignored && (user.ignored !== undefined)) { 
     ignoredUserSet.add(user.nodeId);
-    // unfollowableUserSet.add(user.nodeId);
-    // categorizeableUserSet.delete(user.nodeId);
     return false; 
   }
 
   if (ignoredUserSet.has(user.nodeId) || ignoredUserSet.has(user.screenName.toLowerCase())) { 
-    // unfollowableUserSet.add(user.nodeId);
-    // categorizeableUserSet.delete(user.nodeId);
     return false; 
   }
 
   if (unfollowableUserSet.has(user.nodeId)) { 
-    // ignoredUserSet.add(user.nodeId);
-    // categorizeableUserSet.delete(user.nodeId);
     return false;
   }
 
   if (user.lang && (user.lang !== undefined) && (user.lang != "en")) { 
-    // ignoredUserSet.add(user.nodeId);
-    // unfollowableUserSet.add(user.nodeId);
     categorizeableUserSet.delete(user.nodeId);
     if (configuration.verbose) { 
       console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LANG NOT ENGLISH: " + user.lang));
@@ -5426,7 +5413,6 @@ async function userCategorizeable(user){
     && !allowLocationsRegEx.test(user.location)
     && ignoreLocationsRegEx.test(user.location)){
     
-    // unfollowableUserSet.add(user.nodeId);
     ignoredUserSet.add(user.nodeId);
 
     return false;
@@ -5434,7 +5420,6 @@ async function userCategorizeable(user){
   
   if (user.followersCount && (user.followersCount !== undefined) && (user.followersCount < configuration.minFollowersAuto)) { 
     unfollowableUserSet.add(user.nodeId);
-    // categorizeableUserSet.delete(user.nodeId);
     return false;
   }
 
@@ -5471,14 +5456,10 @@ async function userCategorizeable(user){
       return true; 
     }
 
-    // ignoredUserSet.add(user.nodeId);
-    // unfollowableUserSet.add(user.nodeId);
     categorizeableUserSet.delete(user.nodeId);
     return false;
   }
 
-  // ignoredUserSet.add(user.nodeId);
-  // unfollowableUserSet.add(user.nodeId);
   categorizeableUserSet.delete(user.nodeId);
   return false;
 }
@@ -5693,7 +5674,6 @@ function updateUserSets(){
     userAutoNegativeSet.clear();
     userAutoNoneSet.clear();
 
-    // const userSearchQuery = { ignored: { "$in": [false, "false", null] } };
     const userSearchQuery = { ignored: false };
     
     userSearchCursor = global.globalUser.find(userSearchQuery).select({friends: 0, tweets: 0, tweetHistograms: 0, profileHistograms: 0}).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
@@ -5703,9 +5683,6 @@ function updateUserSets(){
     userSearchCursor.on("data", async function(user) {
 
       if (user.lang && (user.lang !== undefined) && (user.lang != "en")){
-
-        // ignoredUserSet.add(user.nodeId);
-        // unfollowableUserSet.add(user.nodeId);
 
         global.globalUser.deleteOne({"nodeId": user.nodeId}, function(err){
           if (err) {

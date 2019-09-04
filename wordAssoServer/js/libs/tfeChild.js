@@ -1749,9 +1749,11 @@ process.on("message", async function(m) {
 
       await nnTools.setMaxInputHashMap(m.maxInputHashMap);
       await nnTools.setNormalization(m.normalization);
+
       await tcUtils.setEnableLanguageAnalysis(configuration.enableLanguageAnalysis);
       await tcUtils.setEnableImageAnalysis(configuration.enableImageAnalysis);
       await tcUtils.setEnableGeoCode(configuration.enableGeoCode);
+      
       await tcUtils.initTwitter({twitterConfig: m.twitterConfig});
 
       console.log(chalkInfo("WAS | TFC | INIT"

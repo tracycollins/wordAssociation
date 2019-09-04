@@ -74,12 +74,19 @@ let heartbeatInterval;
 process.env.NODE_ENV = process.env.NODE_ENV || "development";
 
 const DEFAULT_IGNORE_CATEGORY_RIGHT = false;
-const DEFAULT_GEOCODE_ENABLED = false;
 const DEFAULT_FILTER_DUPLICATE_TWEETS = true;
 const DEFAULT_AUTO_FOLLOW = false;
 const DEFAULT_FORCE_FOLLOW = false;
+
 const DEFAULT_FORCE_IMAGE_ANALYSIS = false;
 const DEFAULT_ENABLE_IMAGE_ANALYSIS = true;
+
+const DEFAULT_FORCE_LANG_ANALYSIS = false;
+const DEFAULT_ENABLE_LANG_ANALYSIS = true;
+
+const DEFAULT_FORCE_GEOCODE = false;
+const DEFAULT_ENABLE_GEOCODE = true;
+
 const DEFAULT_UPDATE_USER_SETS_INTERVAL = 5*ONE_MINUTE;
 const DEFAULT_SAVE_FILE_QUEUE_INTERVAL = 5*ONE_SECOND;
 const DEFAULT_ENABLE_TWITTER_FOLLOW = false;
@@ -384,9 +391,15 @@ configuration.filterDuplicateTweets = DEFAULT_FILTER_DUPLICATE_TWEETS;
 configuration.forceFollow = DEFAULT_FORCE_FOLLOW;
 configuration.enableTwitterFollow = DEFAULT_ENABLE_TWITTER_FOLLOW;
 configuration.autoFollow = DEFAULT_AUTO_FOLLOW;
+
+configuration.enableLanguageAnalysis = DEFAULT_ENABLE_LANG_ANALYSIS;
+configuration.forceLanguageAnalysis = DEFAULT_FORCE_LANG_ANALYSIS;
+
 configuration.enableImageAnalysis = DEFAULT_ENABLE_IMAGE_ANALYSIS;
 configuration.forceImageAnalysis = DEFAULT_FORCE_IMAGE_ANALYSIS;
-configuration.geoCodeEnabled = DEFAULT_GEOCODE_ENABLED;
+
+configuration.enableGeoCode = DEFAULT_ENABLE_GEOCODE;
+configuration.forceGeoCode = DEFAULT_FORCE_GEOCODE;
 
 configuration.threeceeUser = DEFAULT_TWITTER_THREECEE_USER;
 configuration.threeceeInfoUsersArray = DEFAULT_THREECEE_INFO_USERS;
@@ -2721,16 +2734,16 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
       });
     },
     
-    verifiedCategorizedUsersInit: function(cb){
+    // verifiedCategorizedUsersInit: function(cb){
 
-      initVerifiedCategorizedUsersSet().
-      then(function(){
-        cb();
-      }).
-      catch(function(err){
-        return cb(err);
-      });
-    },
+    //   initVerifiedCategorizedUsersSet().
+    //   then(function(){
+    //     cb();
+    //   }).
+    //   catch(function(err){
+    //     return cb(err);
+    //   });
+    // },
 
     followSearchInit: function(cb){
 
@@ -3932,38 +3945,38 @@ function updateDbVerifiedUsers(){
   });
 }
 
-async function initVerifiedCategorizedUsersSet(){
+// async function initVerifiedCategorizedUsersSet(){
 
-  statsObj.status = "INIT VERIFIED CATEGORIZED USERS SET";
+//   statsObj.status = "INIT VERIFIED CATEGORIZED USERS SET";
 
-  console.log(chalkBlue("WAS | INIT VERIFIED CATEGORIZED USERS SET: " + configDefaultFolder 
-    + "/" + verifiedCategorizedUsersFile
-  ));
+//   console.log(chalkBlue("WAS | INIT VERIFIED CATEGORIZED USERS SET: " + configDefaultFolder 
+//     + "/" + verifiedCategorizedUsersFile
+//   ));
 
-  try {
+//   try {
 
-    const result = await initSetFromFile({folder: configDefaultFolder, file: verifiedCategorizedUsersFile, resolveOnNotFound: true});
+//     const result = await initSetFromFile({folder: configDefaultFolder, file: verifiedCategorizedUsersFile, resolveOnNotFound: true});
 
-    if (result) {
-      verifiedCategorizedUsersSet = result;
-      verifiedCategorizedUsersSet.delete("");
-      verifiedCategorizedUsersSet.delete(" ");
-      await updateDbVerifiedUsers();
-    }
+//     if (result) {
+//       verifiedCategorizedUsersSet = result;
+//       verifiedCategorizedUsersSet.delete("");
+//       verifiedCategorizedUsersSet.delete(" ");
+//       await updateDbVerifiedUsers();
+//     }
 
-    console.log(chalkLog("WAS | LOADED VERIFIED CATEGORIZED USERS FILE"
-      + " | " + verifiedCategorizedUsersSet.size + " USERS"
-      + " | " + configDefaultFolder + "/" + verifiedCategorizedUsersFile
-    ));
+//     console.log(chalkLog("WAS | LOADED VERIFIED CATEGORIZED USERS FILE"
+//       + " | " + verifiedCategorizedUsersSet.size + " USERS"
+//       + " | " + configDefaultFolder + "/" + verifiedCategorizedUsersFile
+//     ));
 
-    return;
+//     return;
 
-  }
-  catch(err){
-    console.log(chalkError("WAS | *** INIT VERIFIED CATEGORIZED USERS SET ERROR: " + err));
-    throw err;
-  }
-}
+//   }
+//   catch(err){
+//     console.log(chalkError("WAS | *** INIT VERIFIED CATEGORIZED USERS SET ERROR: " + err));
+//     throw err;
+//   }
+// }
 
 async function initFollowableSearchTermSet(){
 
@@ -4779,7 +4792,7 @@ function initSocketHandler(socketObj) {
             + " | @" + updatedNodeObj.screenName
             + " | NAME: " + updatedNodeObj.name
             + " | LANG: " + updatedNodeObj.lang
-            + " | LANG ANZD: " + updatedNodeObj.languageAnalyzed
+            // + " | LANG ANZD: " + updatedNodeObj.languageAnalyzed
             + " | IG: " + updatedNodeObj.ignored
             + "\nFLWRs: " + updatedNodeObj.followersCount
             + " | FRNDs: " + updatedNodeObj.friendsCount
@@ -7626,9 +7639,16 @@ async function initTfeChild(params){
     maxInputHashMap: maxInputHashMap,
     normalization: normalization,
     interval: configuration.tfeInterval,
-    geoCodeEnabled: configuration.geoCodeEnabled,
+
+    enableGeoCode: configuration.enableGeoCode,
+    forceGeoCode: configuration.forceGeoCode,
+
     enableImageAnalysis: configuration.enableImageAnalysis,
     forceImageAnalysis: configuration.forceImageAnalysis,
+    
+    enableLanguageAnalysis: configuration.enableImageAnalysis,
+    forceLanguageAnalysis: configuration.forceLanguageAnalysis,
+    
     testMode: configuration.testMode,
     verbose: configuration.verbose
   }, function tfeMessageRxError(err){
@@ -8363,17 +8383,17 @@ async function loadConfigFile(params) {
       }
     }
 
-    if (loadedConfigObj.GEOCODE_ENABLED !== undefined){
-      console.log("WAS | LOADED GEOCODE_ENABLED: " + loadedConfigObj.GEOCODE_ENABLED);
+    if (loadedConfigObj.ENABLE_GEOCODE !== undefined){
+      console.log("WAS | LOADED ENABLE_GEOCODE: " + loadedConfigObj.ENABLE_GEOCODE);
 
-      if ((loadedConfigObj.GEOCODE_ENABLED == false) || (loadedConfigObj.GEOCODE_ENABLED == "false")) {
-        newConfiguration.geoCodeEnabled = false;
+      if ((loadedConfigObj.ENABLE_GEOCODE == false) || (loadedConfigObj.ENABLE_GEOCODE == "false")) {
+        newConfiguration.enableGeoCode = false;
       }
-      else if ((loadedConfigObj.GEOCODE_ENABLED == true) || (loadedConfigObj.GEOCODE_ENABLED == "true")) {
-        newConfiguration.geoCodeEnabled = true;
+      else if ((loadedConfigObj.ENABLE_GEOCODE == true) || (loadedConfigObj.ENABLE_GEOCODE == "true")) {
+        newConfiguration.enableGeoCode = true;
       }
       else {
-        newConfiguration.geoCodeEnabled = false;
+        newConfiguration.enableGeoCode = false;
       }
     }
 
@@ -8805,6 +8825,7 @@ async function initConfig() {
     await initStatsUpdate(configuration);
 
     statsObj.configuration = configuration;
+
     return configuration;
 
   }

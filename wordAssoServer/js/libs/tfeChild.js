@@ -149,19 +149,24 @@ const configEvents = new EventEmitter2({
 });
 
 let configuration = {};
+
 configuration.quotaTimoutDuration = DEFAULT_QUOTA_TIMEOUT_DURATION;
 configuration.processUserQueueInterval = 10;
-configuration.geoCodeEnabled = false;
-configuration.inputsBinaryMode = true;
-configuration.verbose = false;
-configuration.globalTestMode = false;
+
+configuration.enableGeoCode = false;
+configuration.forceGeoCode = false;
+
 configuration.forceImageAnalysis = false;
 configuration.enableImageAnalysis = true;
-configuration.testMode = false; // per tweet test mode
-configuration.processUserQueueInterval = 100;
 
 configuration.enableLanguageAnalysis = true;
 configuration.forceLanguageAnalysis = false;
+
+configuration.inputsBinaryMode = true;
+configuration.verbose = false;
+configuration.globalTestMode = false;
+configuration.testMode = false; // per tweet test mode
+configuration.processUserQueueInterval = 100;
 
 configuration.inputTypes = DEFAULT_INPUT_TYPES;
 configuration.twitterDownTimeout = 3*ONE_MINUTE;
@@ -1506,9 +1511,9 @@ async function initialize(cnf){
       cnf.testMode = loadedConfigObj.TFE_TEST_MODE;
     }
 
-    if (loadedConfigObj.TFE_GEOCODE_ENABLED !== undefined){
-      console.log("WAS | TFC | LOADED TFE_GEOCODE_ENABLED: " + loadedConfigObj.TFE_GEOCODE_ENABLED);
-      cnf.geoCodeEnabled = loadedConfigObj.TFE_GEOCODE_ENABLED;
+    if (loadedConfigObj.TFE_ENABLE_GEOCODE !== undefined){
+      console.log("WAS | TFC | LOADED TFE_ENABLE_GEOCODE: " + loadedConfigObj.TFE_ENABLE_GEOCODE);
+      cnf.enableGeoCode = loadedConfigObj.TFE_ENABLE_GEOCODE;
     }
 
     if (loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER !== undefined){
@@ -1573,7 +1578,7 @@ async function generateAutoCategory(params) {
 
     const networkOutput = await nnTools.activateSingleNetwork({user: user});
 
-    let text;
+    let text = MODULE_ID_PREFIX + " | ... CAT AUTO MATCH   ";
     let chalkVar = chalkLog;
 
     if (user.category && (networkOutput.categoryAuto == user.category)) {
@@ -1667,13 +1672,13 @@ async function processUser(params) {
     const user = params.user;
     user.following = true;
 
-    let updatedFriendsUser = user;;
+    let updatedFriendsUser = user;
 
     if (!user.friends || (user.friends.length === undefined)|| (user.friends.length === 0)){
       updatedFriendsUser = await updateUserFriends({user: user});
     }
     const updatedTweetsUser = await updateUserTweets({user: updatedFriendsUser});
-    const autoCategoryUser = await generateAutoCategory({user: updatedFriendsUser});
+    const autoCategoryUser = await generateAutoCategory({user: updatedTweetsUser});
     const prevPropsUser = await updatePreviousUserProps({user: autoCategoryUser});
 
     prevPropsUser.markModified("categoryAuto");
@@ -1727,9 +1732,15 @@ process.on("message", async function(m) {
       process.title = m.title;
 
       configuration.verbose = m.verbose;
-      configuration.geoCodeEnabled = m.geoCodeEnabled || false;
-      configuration.enableImageAnalysis = m.enableImageAnalysis || false;
-      configuration.forceImageAnalysis = m.forceImageAnalysis || false;
+
+      configuration.enableGeoCode = configuration.enableGeoCode || m.enableGeoCode;
+      configuration.forceGeoCode = configuration.forceGeoCode || m.forceGeoCode;
+
+      configuration.enableImageAnalysis = configuration.enableImageAnalysis || m.enableImageAnalysis;
+      configuration.forceImageAnalysis = configuration.forceImageAnalysis || m.forceImageAnalysis;
+
+      configuration.enableLanguageAnalysis = configuration.enableLanguageAnalysis || m.enableLanguageAnalysis;
+      configuration.forceLanguageAnalysis = configuration.forceLanguageAnalysis || m.forceLanguageAnalysis;
 
       networkObj = m.networkObj;
 
@@ -1738,16 +1749,22 @@ process.on("message", async function(m) {
 
       await nnTools.setMaxInputHashMap(m.maxInputHashMap);
       await nnTools.setNormalization(m.normalization);
+      await tcUtils.setEnableLanguageAnalysis(configuration.enableLanguageAnalysis);
+      await tcUtils.setEnableImageAnalysis(configuration.enableImageAnalysis);
+      await tcUtils.setEnableGeoCode(configuration.enableGeoCode);
       await tcUtils.initTwitter({twitterConfig: m.twitterConfig});
 
       console.log(chalkInfo("WAS | TFC | INIT"
         + " | TITLE: " + process.title
         + " | NETWORK: " + networkObj.networkId
-        + " | ENABLE GEOCODE: " + configuration.geoCodeEnabled
+        + " | ENABLE GEOCODE: " + configuration.enableGeoCode
+        + " | FORCE GEOCODE: " + configuration.forceGeoCode
         + " | ENABLE IMAGE ANALYSIS: " + configuration.enableImageAnalysis
         + " | FORCE IMAGE ANALYSIS: " + configuration.forceImageAnalysis
-        + " | MAX INPUT HM KEYS: " + Object.keys(nnTools.getMaxInputHashMap())
-        + " | NORMALIZATION: " + Object.keys(nnTools.getNormalization())
+        + " | ENABLE LANG ANALYSIS: " + configuration.enableLanguageAnalysis
+        + " | FORCE LANG ANALYSIS: " + configuration.forceLanguageAnalysis
+        + "\nWAS | TFC | INIT | MAX INPUT HM KEYS: " + Object.keys(nnTools.getMaxInputHashMap())
+        + "\nWAS | TFC | INIT | NORMALIZATION: " + Object.keys(nnTools.getNormalization())
       ));
     break;
 

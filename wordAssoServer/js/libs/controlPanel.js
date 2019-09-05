@@ -415,7 +415,7 @@ function ControlPanel() {
 
     loadingTwitterFeedFlag = true;
 
-    twitterTimeLineDiv.removeAll();
+    // twitterTimeLineDiv.removeAll();
 
     node.categoryAuto = node.categoryAuto || "none";
 

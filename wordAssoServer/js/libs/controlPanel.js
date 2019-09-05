@@ -369,6 +369,8 @@ function ControlPanel() {
 
       if (twttr && twttr.widgets) {
 
+        twitterTimeLineDiv.removeAll();
+
         twttr.widgets.createTimeline(
           { sourceType: "profile", screenName: node.screenName},
           twitterTimeLineDiv
@@ -1096,7 +1098,7 @@ function ControlPanel() {
                 parentWindow.postMessage({op: "NODE_SEARCH", input: "@threecee"}, DEFAULT_SOURCE);
               }
             }, 2000);
-            
+
           }
           else {
             console.error("PARENT WINDOW UNDEFINED??");

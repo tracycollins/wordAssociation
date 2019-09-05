@@ -2399,7 +2399,7 @@ process.on("message", async function(m) {
         + " | USER " + m.user.userId
         + " | @" + m.user.screenName
       ));
-      ignoreUserSet.add("m.user.userId");
+      ignoreUserSet.add(m.user.userId);
     break;
 
     case "UPDATE_ALLOW_LOCATIONS":

@@ -1085,7 +1085,7 @@ function ControlPanel() {
 
                   if (twttr && twttr.widgets){
                     clearInterval(waitTwitterWidgetsInterval);
-                    twttr.widgets.load();              
+                    twttr.widgets.load(twitterTimeLineDiv);              
 
                     parentWindow.postMessage({op: "NODE_SEARCH", input: "@threecee"}, DEFAULT_SOURCE);
                   }
@@ -1094,7 +1094,7 @@ function ControlPanel() {
 
               }
               else {
-                twttr.widgets.load();              
+                twttr.widgets.load(twitterTimeLineDiv);              
                 parentWindow.postMessage({op: "NODE_SEARCH", input: "@threecee"}, DEFAULT_SOURCE);
               }
             }, 2000);

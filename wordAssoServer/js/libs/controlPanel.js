@@ -1058,11 +1058,10 @@ function ControlPanel() {
         twitterTimeLine.addNumber("MENTIONS", twitterFeedUser.mentions);
         twitterTimeLine.addNumber("RATE", twitterFeedUser.rate);
         twitterTimeLine.addNumber("RATE MAX", twitterFeedUser.rateMax);
-				twitterTimeLine.addElement("TIMELINE", twitterTimeLineDiv);	
+        twitterTimeLine.addElement("TIMELINE", twitterTimeLineDiv);	
 
-				twitterEntity.setGlobalChangeHandler(function(data){
-				});
-
+        twitterEntity.setGlobalChangeHandler(function(data){
+        });
 
         self.updateControlPanel(config, function(){
 

@@ -885,6 +885,25 @@ function ControlPanel() {
     console.log( "CONTROL PANEL DOCUMENT READY" );
     console.log( "CONTROL PANEL CONFIG");
 
+    twttr = (function(d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0],
+        t = window.twttr || {};
+      if (d.getElementById(id)) return t;
+      js = d.createElement(s);
+      js.id = id;
+      js.src = "https://platform.twitter.com/widgets.js";
+      fjs.parentNode.insertBefore(js, fjs);
+
+      t._e = [];
+      t.ready = function(f) {
+        t._e.push(f);
+      };
+
+      return t;
+
+    }(document, "script", "twitter-wjs"));
+
+
     self.createControlPanel(function(){
 
       setTimeout(function() {  // KLUDGE to insure table is created before update
@@ -1069,6 +1088,7 @@ function ControlPanel() {
 
             window.addEventListener("message", receiveMessage, false);
 
+
             setTimeout(function(){
 
               console.log("TX PARENT READY " + DEFAULT_SOURCE);
@@ -1096,6 +1116,7 @@ function ControlPanel() {
                 parentWindow.postMessage({op: "NODE_SEARCH", input: "@threecee"}, DEFAULT_SOURCE);
               }
             }, 2000);
+
           }
           else {
             console.error("PARENT WINDOW UNDEFINED??");

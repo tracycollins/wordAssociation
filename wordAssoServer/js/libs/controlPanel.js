@@ -158,7 +158,6 @@ function ControlPanel() {
   statsObj.user.friendsCount = 0;
   statsObj.user.statusesCount = 0;
   statsObj.user.mentions = 0;
-  statsObj.user.threeceeFollowing = "---";
   statsObj.user.following = false;
   statsObj.user.ignored = false;
   statsObj.user.profileImageUrl = "";
@@ -366,7 +365,6 @@ function ControlPanel() {
       statsObj.user.statusesCount = node.statusesCount;
       statsObj.user.ignored = node.ignored;
       statsObj.user.following = node.following;
-      statsObj.user.threeceeFollowing = node.threeceeFollowing;
       statsObj.user.mentions = node.mentions;
 
       if (twttr && twttr.widgets) {
@@ -471,7 +469,6 @@ function ControlPanel() {
         + " | NID: " + node.nodeId
         + " | IG: " + node.ignored
         + " | FLWG: " + node.following
-        + " | 3CFLWG: " + node.threeceeFollowing
         + " | @" + node.screenName
         + " | " + node.name
         + " | CR: " + node.createdAt
@@ -684,7 +681,6 @@ function ControlPanel() {
           + " | " + currentTwitterNode.nodeId
           + " | IG: " + currentTwitterNode.ignored
           + " | FLWG: " + currentTwitterNode.following
-          + " | 3CFLWG: " + currentTwitterNode.threeceeFollowing
           + " | @" + currentTwitterNode.screenName
           + " | CR: " + currentTwitterNode.createdAt
           + " | LS: " + currentTwitterNode.lastSeen

@@ -239,7 +239,7 @@ const Dropbox = require("dropbox").Dropbox;
 
 const HashMap = require("hashmap").HashMap;
 
-let verifiedCategorizedUsersSet = new Set();
+const verifiedCategorizedUsersSet = new Set();
 const ignoreIpSet = new Set();
 
 const ignoredHashtagRegex = new RegExp(/[^\u0000-\u007F]+/, "i");
@@ -608,7 +608,7 @@ const userAutoPositiveSet = new Set();
 const userAutoNegativeSet = new Set();
 const userAutoNoneSet = new Set();
 
-const verifiedCategorizedUsersFile = "verifiedCategorizedUsers.txt";
+// const verifiedCategorizedUsersFile = "verifiedCategorizedUsers.txt";
 const ignoredHashtagFile = "ignoredHashtag.txt";
 const ignoredUserFile = "ignoredUser.json";
 // const unfollowableUserFile = "unfollowableUser.json";
@@ -733,7 +733,7 @@ const defaultTwitterUserScreenName = "threecee";
 
 const followedUserSet = new Set();
 const unfollowableUserSet = new Set();
-const ignoredUserSet = new Set();
+let ignoredUserSet = new Set();
 let ignoredHashtagSet = new Set();
 
 process.title = "node_wordAssoServer";
@@ -2712,16 +2712,16 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
     //   });
     // },
     
-    // ignoredUserInit: function(cb){
+    ignoredUserInit: function(cb){
 
-    //   initIgnoredUserSet().
-    //   then(function(){
-    //     cb();
-    //   }).
-    //   catch(function(err){
-    //     return cb(err);
-    //   });
-    // },
+      initIgnoredUserSet().
+      then(function(){
+        cb();
+      }).
+      catch(function(err){
+        return cb(err);
+      });
+    },
     
     ignoredHashtagInit: function(cb){
 
@@ -3895,55 +3895,55 @@ async function initSetFromFile(params){
   }
 }
 
-function updateDbVerifiedUsers(){
+// function updateDbVerifiedUsers(){
 
-  return new Promise(function(resolve, reject){
+//   return new Promise(function(resolve, reject){
 
-    statsObj.status = "UPDATE VERIFIED CATEGORIZED USERS IN DB";
+//     statsObj.status = "UPDATE VERIFIED CATEGORIZED USERS IN DB";
 
-    console.log(chalkBlue("WAS | ... UPDATING VERIFIED VERIFIED USERS DB" 
-    ));
+//     console.log(chalkBlue("WAS | ... UPDATING VERIFIED VERIFIED USERS DB" 
+//     ));
 
-    async.eachSeries([...verifiedCategorizedUsersSet], async function(screenName){
+//     async.eachSeries([...verifiedCategorizedUsersSet], async function(screenName){
 
-      try {
+//       try {
 
-        const dbUser = await global.globalUser.findOne({screenName: screenName.toLowerCase()}).exec();
+//         const dbUser = await global.globalUser.findOne({screenName: screenName.toLowerCase()}).exec();
 
-        if (empty(dbUser)) {
-          console.log(chalkWarn("WAS | ??? UPDATE VERIFIED | USER NOT FOUND: " + screenName.toLowerCase()));
-          return;
-        }
+//         if (empty(dbUser)) {
+//           console.log(chalkWarn("WAS | ??? UPDATE VERIFIED | USER NOT FOUND: " + screenName.toLowerCase()));
+//           return;
+//         }
 
-        dbUser.categoryVerified = true;
+//         dbUser.categoryVerified = true;
 
-        const dbUpdatedUser = await dbUser.save();
+//         const dbUpdatedUser = await dbUser.save();
 
-        if (configuration.verbose || configuration.testMode){
-          printUserObj(
-            "+++ USER | VERIFIED",
-            dbUpdatedUser, 
-            chalkLog
-          );
-        }
+//         if (configuration.verbose || configuration.testMode){
+//           printUserObj(
+//             "+++ USER | VERIFIED",
+//             dbUpdatedUser, 
+//             chalkLog
+//           );
+//         }
 
-      }
-      catch(err){
-        return err;
-      }
+//       }
+//       catch(err){
+//         return err;
+//       }
 
-    }, function(err){
-      if (err) { 
-        console.log(chalkError("WAS | *** UPDATE VERIFIED USERS DB ERROR: " + err));
-        return reject(err);
-      }
-      console.log(chalkBlue("WAS | +++ UPDATED VERIFIED USERS DB" 
-      ));
-      resolve();
-    });
+//     }, function(err){
+//       if (err) { 
+//         console.log(chalkError("WAS | *** UPDATE VERIFIED USERS DB ERROR: " + err));
+//         return reject(err);
+//       }
+//       console.log(chalkBlue("WAS | +++ UPDATED VERIFIED USERS DB" 
+//       ));
+//       resolve();
+//     });
 
-  });
-}
+//   });
+// }
 
 // async function initVerifiedCategorizedUsersSet(){
 
@@ -4009,41 +4009,41 @@ async function initFollowableSearchTermSet(){
   }
 }
 
-// async function initIgnoredUserSet(){
+async function initIgnoredUserSet(){
 
-//   statsObj.status = "INIT IGNORED USER SET";
+  statsObj.status = "INIT IGNORED USER SET";
 
-//   console.log(chalkBlue("WAS | INIT IGNORED USER SET: " + configDefaultFolder 
-//     + "/" + ignoredUserFile
-//   ));
+  console.log(chalkBlue("WAS | INIT IGNORED USER SET: " + configDefaultFolder 
+    + "/" + ignoredUserFile
+  ));
 
-//   try{
+  try{
 
-//     const result = await initSetFromFile({
-//       folder: configDefaultFolder, 
-//       file: ignoredUserFile, 
-//       objArrayKey: "userIds", 
-//       resolveOnNotFound: true
-//     });
+    const result = await initSetFromFile({
+      folder: configDefaultFolder, 
+      file: ignoredUserFile, 
+      objArrayKey: "userIds", 
+      resolveOnNotFound: true
+    });
 
-//     if (result) {
-//       ignoredUserSet = result;
-//       ignoredUserSet.delete("");
-//       ignoredUserSet.delete(" ");
-//     }
+    if (result) {
+      ignoredUserSet = result;
+      ignoredUserSet.delete("");
+      ignoredUserSet.delete(" ");
+    }
 
-//     console.log(chalkLog("WAS | LOADED IGNORED USERS FILE"
-//       + " | " + ignoredUserSet.size + " USERS"
-//       + " | " + configDefaultFolder + "/" + ignoredUserFile
-//     ));
+    console.log(chalkLog("WAS | LOADED IGNORED USERS FILE"
+      + " | " + ignoredUserSet.size + " USERS"
+      + " | " + configDefaultFolder + "/" + ignoredUserFile
+    ));
 
-//     return;
-//   }
-//   catch(err){
-//     console.log(chalkError("WAS | *** INIT IGNORED USERS SET ERROR: " + err));
-//     throw err;
-//   }
-// }
+    return;
+  }
+  catch(err){
+    console.log(chalkError("WAS | *** INIT IGNORED USERS SET ERROR: " + err));
+    throw err;
+  }
+}
 
 // async function initUnfollowableUserSet(){
 

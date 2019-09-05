@@ -1088,14 +1088,14 @@ function ControlPanel() {
                     parentWindow.postMessage({op: "NODE_SEARCH", input: "@threecee"}, DEFAULT_SOURCE);
                   }
 
-                }, 100);
+                }, 1000);
 
               }
               else {
                 twttr.widgets.load();              
                 parentWindow.postMessage({op: "NODE_SEARCH", input: "@threecee"}, DEFAULT_SOURCE);
               }
-            }, 1000);
+            }, 2000);
           }
           else {
             console.error("PARENT WINDOW UNDEFINED??");

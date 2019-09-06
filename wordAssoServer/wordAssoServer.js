@@ -9846,7 +9846,7 @@ async function twitterSearchHashtag(params) {
 
   try {
 
-    let hashtag = await global.globalHashtag.findOne({hashtag: searchNodeHashtag}).exec();
+    let hashtag = await global.globalHashtag.findOne({nodeId: searchNodeHashtag}).exec();
 
     if (hashtag) { 
 

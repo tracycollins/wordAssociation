@@ -1467,7 +1467,7 @@ function touchChildPidFile(params){
 let uncatUserIdCacheTtl = process.env.UNCAT_USER_ID_CACHE_DEFAULT_TTL;
 if (empty(uncatUserIdCacheTtl)) { uncatUserIdCacheTtl = UNCAT_USER_ID_CACHE_DEFAULT_TTL; }
 
-console.log("WAS | TWEET ID CACHE TTL: " + tweetIdCacheTtl + " SECONDS");
+console.log("WAS | UNCAT USER ID CACHE TTL: " + uncatUserIdCacheTtl + " SECONDS");
 
 let uncatUserIdCacheCheckPeriod = process.env.UNCAT_USER_ID_CACHE_CHECK_PERIOD;
 if (empty(uncatUserIdCacheCheckPeriod)) { uncatUserIdCacheCheckPeriod = UNCAT_USER_ID_CACHE_CHECK_PERIOD; }

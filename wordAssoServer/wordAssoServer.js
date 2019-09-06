@@ -395,6 +395,9 @@ configuration.forceFollow = DEFAULT_FORCE_FOLLOW;
 configuration.enableTwitterFollow = DEFAULT_ENABLE_TWITTER_FOLLOW;
 configuration.autoFollow = DEFAULT_AUTO_FOLLOW;
 
+configuration.uncatUserIdCacheTtl = UNCAT_USER_ID_CACHE_DEFAULT_TTL;
+configuration.uncatUserIdCacheCheckPeriod = UNCAT_USER_ID_CACHE_CHECK_PERIOD;
+
 configuration.enableLanguageAnalysis = DEFAULT_ENABLE_LANG_ANALYSIS;
 configuration.forceLanguageAnalysis = DEFAULT_FORCE_LANG_ANALYSIS;
 
@@ -1464,26 +1467,20 @@ function touchChildPidFile(params){
 // ==================================================================
 // UNCAT USER ID CACHE
 // ==================================================================
-let uncatUserIdCacheTtl = process.env.UNCAT_USER_ID_CACHE_DEFAULT_TTL;
-if (empty(uncatUserIdCacheTtl)) { uncatUserIdCacheTtl = UNCAT_USER_ID_CACHE_DEFAULT_TTL; }
-
-console.log("WAS | UNCAT USER ID CACHE TTL: " + uncatUserIdCacheTtl + " SECONDS");
-
-let uncatUserIdCacheCheckPeriod = process.env.UNCAT_USER_ID_CACHE_CHECK_PERIOD;
-if (empty(uncatUserIdCacheCheckPeriod)) { uncatUserIdCacheCheckPeriod = UNCAT_USER_ID_CACHE_CHECK_PERIOD; }
-
-console.log("WAS | UNCAT USER ID CACHE CHECK PERIOD: " + uncatUserIdCacheCheckPeriod + " SECONDS");
+console.log("WAS | UNCAT USER ID CACHE TTL: " + configuration.uncatUserIdCacheTtl + " SECONDS");
+console.log("WAS | UNCAT USER ID CACHE CHECK PERIOD: " + configuration.uncatUserIdCacheCheckPeriod + " SECONDS");
 
 const uncatUserIdCache = new NodeCache({
-  stdTTL: uncatUserIdCacheTtl,
-  checkperiod: uncatUserIdCacheCheckPeriod
+  stdTTL: configuration.uncatUserIdCacheTtl,
+  checkperiod: configuration.uncatUserIdCacheCheckPeriod
 });
 
-function uncatUserIdCacheExpired(uncatUserId, uncatUserScreenName) {
+function uncatUserIdCacheExpired(uncatUserId, uncatUserObj) {
   console.log(chalkInfo("WAS | XXX UNCAT USER ID CACHE EXPIRED"
-    + " | TTL: " + uncatUserIdCacheTtl + " SECS"
+    + " | TTL: " + configuration.uncatUserIdCacheTtl + " SECS"
     + " | NODE ID: " + uncatUserId
-    + " | @" + uncatUserScreenName
+    + " | @" + uncatUserObj.screenName
+    + " | " + uncatUserObj.timeStamp
   ));
 }
 
@@ -5894,7 +5891,18 @@ function updateUserSets(){
           && !uncategorizedManualUserSet.has(user.nodeId) 
           && !unfollowableUserSet.has(user.nodeId)) { 
 
-          uncatUserIdCache.set(user.nodeId, user.screenName);
+          const uncatUserObj = {};
+          uncatUserObj.screenName = user.screenName;
+          uncatUserObj.timeStamp = getTimeStamp();
+
+          uncatUserIdCache.set(
+            user.nodeId, 
+            uncatUserObj,
+            configuration.uncatUserIdCacheTtl
+          );
+
+          console.log(chalkLog(MODULE_ID_PREFIX + " | UNCAT USER $\n" + jsonPrint(uncatUserIdCache.getStats())));
+
           uncategorizedManualUserSet.add(user.nodeId);
 
           if (tfeChild !== undefined) { 
@@ -8444,6 +8452,11 @@ async function loadConfigFile(params) {
       else {
         newConfiguration.filterDuplicateTweets = true;
       }
+    }
+
+    if (loadedConfigObj.UNCAT_USER_ID_CACHE_DEFAULT_TTL !== undefined){
+      console.log("WAS | LOADED UNCAT_USER_ID_CACHE_DEFAULT_TTL: " + loadedConfigObj.UNCAT_USER_ID_CACHE_DEFAULT_TTL);
+      newConfiguration.uncatUserIdCacheTtl = loadedConfigObj.UNCAT_USER_ID_CACHE_DEFAULT_TTL;
     }
 
     if (loadedConfigObj.ENABLE_IMAGE_ANALYSIS !== undefined){

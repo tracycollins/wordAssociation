@@ -5881,10 +5881,10 @@ function updateUserSets(){
           categorizeable = await userCategorizeable(user);
         }
 
-        const uncatUserIdCacheHit = uncatUserIdCache.get(user.nodeId);
+        const uncatUserScreenName = uncatUserIdCache.get(user.nodeId);
 
         if (categorizeable
-          && (uncatUserIdCacheHit === undefined)
+          && (uncatUserScreenName === undefined)
           && (!user.category || (user.category === undefined))
           && (!user.ignored || (user.ignored === undefined))
           && (user.following || (user.followersCount >= configuration.minFollowersAuto)) 

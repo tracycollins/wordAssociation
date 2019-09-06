@@ -1149,6 +1149,10 @@ function processUserTweetArray(params){
 
         try {
 
+          if (!user.tweets.tweetIds.includes(tweet.id_str.toString())) {
+            statsObj.twitter.tweetsHits += 1;
+          }
+
           const tweetObj = await tweetServerController.createStreamTweet(tscParams);
 
           if (!user.tweetHistograms || (user.tweetHistograms === undefined)) { user.tweetHistograms = {}; }

@@ -180,8 +180,8 @@ const NODE_CACHE_CHECK_PERIOD = 1;
 const TWEET_ID_CACHE_DEFAULT_TTL = 20;
 const TWEET_ID_CACHE_CHECK_PERIOD = 5;
 
-const UNCAT_USER_ID_CACHE_DEFAULT_TTL = 3600;
-const UNCAT_USER_ID_CACHE_CHECK_PERIOD = 60;
+const DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL = 3600;
+const DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD = 60;
 
 const chalk = require("chalk");
 const chalkUser = chalk.blue;
@@ -395,8 +395,8 @@ configuration.forceFollow = DEFAULT_FORCE_FOLLOW;
 configuration.enableTwitterFollow = DEFAULT_ENABLE_TWITTER_FOLLOW;
 configuration.autoFollow = DEFAULT_AUTO_FOLLOW;
 
-configuration.uncatUserIdCacheTtl = UNCAT_USER_ID_CACHE_DEFAULT_TTL;
-configuration.uncatUserIdCacheCheckPeriod = UNCAT_USER_ID_CACHE_CHECK_PERIOD;
+configuration.uncatUserIdCacheTtl = DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL;
+configuration.uncatUserIdCacheCheckPeriod = DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD;
 
 configuration.enableLanguageAnalysis = DEFAULT_ENABLE_LANG_ANALYSIS;
 configuration.forceLanguageAnalysis = DEFAULT_FORCE_LANG_ANALYSIS;

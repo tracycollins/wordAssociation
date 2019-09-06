@@ -5459,7 +5459,8 @@ async function userCategorizeable(user){
     return false;
   }
   
-  if (user.followersCount && (user.followersCount !== undefined) && (user.followersCount < configuration.minFollowersAuto)) { 
+  if (user.followersCount && (user.followersCount !== undefined) 
+    && (user.followersCount < configuration.minFollowersAuto)) { 
     unfollowableUserSet.add(user.nodeId);
     return false;
   }
@@ -5878,10 +5879,8 @@ function updateUserSets(){
           categorizeable = await userCategorizeable(user);
         }
 
-        const uncatUserScreenName = uncatUserIdCache.get(user.nodeId);
-
         if (categorizeable
-          && (uncatUserScreenName === undefined)
+          // && (uncatUserScreenName === undefined)
           && (!user.category || (user.category === undefined))
           && (!user.ignored || (user.ignored === undefined))
           && (user.following || (user.followersCount >= configuration.minFollowersAuto)) 
@@ -5890,18 +5889,6 @@ function updateUserSets(){
           && !ignoredUserSet.has(user.screenName.toLowerCase()) 
           && !uncategorizedManualUserSet.has(user.nodeId) 
           && !unfollowableUserSet.has(user.nodeId)) { 
-
-          const uncatUserObj = {};
-          uncatUserObj.screenName = user.screenName;
-          uncatUserObj.timeStamp = getTimeStamp();
-
-          uncatUserIdCache.set(
-            user.nodeId, 
-            uncatUserObj,
-            configuration.uncatUserIdCacheTtl
-          );
-
-          console.log(chalkLog(MODULE_ID_PREFIX + " | UNCAT USER $\n" + jsonPrint(uncatUserIdCache.getStats())));
 
           uncategorizedManualUserSet.add(user.nodeId);
 
@@ -9564,16 +9551,27 @@ async function processTwitterSearchNode(params) {
 
     if (tfeChild !== undefined) { 
 
-      let categorizeable = false;
+      const categorizeable = await userCategorizeable(params.user);
 
-      try {
-        categorizeable = await userCategorizeable(params.user);
-      }
-      catch(e){
-        categorizeable = false;
-      }
+      const uncatUserObj = uncatUserIdCache.get(params.user.nodeId);
 
-      if (categorizeable) { 
+      if (categorizeable && (uncatUserObj === undefined)) { 
+
+        const uncatUserObj = {};
+        uncatUserObj.screenName = params.user.screenName;
+        uncatUserObj.timeStamp = getTimeStamp();
+
+        uncatUserIdCache.set(
+          params.user.nodeId, 
+          uncatUserObj,
+          configuration.uncatUserIdCacheTtl
+        );
+
+        console.log(chalkLog(MODULE_ID_PREFIX
+          + " | UNCAT USER @" + params.user.screenName
+          + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserIdCache.getStats())
+        ));
+
         if (params.user.toObject && (typeof params.user.toObject == "function")) {
           tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, user: params.user.toObject()});
        }

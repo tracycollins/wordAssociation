@@ -180,6 +180,9 @@ const NODE_CACHE_CHECK_PERIOD = 1;
 const TWEET_ID_CACHE_DEFAULT_TTL = 20;
 const TWEET_ID_CACHE_CHECK_PERIOD = 5;
 
+const UNCAT_USER_ID_CACHE_DEFAULT_TTL = 60;
+const UNCAT_USER_ID_CACHE_CHECK_PERIOD = 10;
+
 const chalk = require("chalk");
 const chalkUser = chalk.blue;
 const chalkNetwork = chalk.black;
@@ -1457,6 +1460,34 @@ function touchChildPidFile(params){
 
   console.log(chalkBlue("WAS | TOUCH CHILD PID FILE: " + path));
 }
+
+// ==================================================================
+// UNCAT USER ID CACHE
+// ==================================================================
+let uncatUserIdCacheTtl = process.env.UNCAT_USER_ID_CACHE_DEFAULT_TTL;
+if (empty(uncatUserIdCacheTtl)) { uncatUserIdCacheTtl = UNCAT_USER_ID_CACHE_DEFAULT_TTL; }
+
+console.log("WAS | TWEET ID CACHE TTL: " + tweetIdCacheTtl + " SECONDS");
+
+let uncatUserIdCacheCheckPeriod = process.env.UNCAT_USER_ID_CACHE_CHECK_PERIOD;
+if (empty(uncatUserIdCacheCheckPeriod)) { uncatUserIdCacheCheckPeriod = UNCAT_USER_ID_CACHE_CHECK_PERIOD; }
+
+console.log("WAS | UNCAT USER ID CACHE CHECK PERIOD: " + uncatUserIdCacheCheckPeriod + " SECONDS");
+
+const uncatUserIdCache = new NodeCache({
+  stdTTL: uncatUserIdCacheTtl,
+  checkperiod: uncatUserIdCacheCheckPeriod
+});
+
+function uncatUserIdCacheExpired(uncatUserId, uncatUserScreenName) {
+  console.log(chalkInfo("WAS | XXX UNCAT USER ID CACHE EXPIRED"
+    + " | TTL: " + uncatUserIdCacheTtl + " SECS"
+    + " | NODE ID: " + uncatUserId
+    + " | @" + uncatUserScreenName
+  ));
+}
+
+uncatUserIdCache.on("expired", uncatUserIdCacheExpired);
 
 // ==================================================================
 // TWEET ID CACHE
@@ -5850,7 +5881,10 @@ function updateUserSets(){
           categorizeable = await userCategorizeable(user);
         }
 
+        const uncatUserIdCacheHit = uncatUserIdCache.get(user.nodeId);
+
         if (categorizeable
+          && (uncatUserIdCacheHit === undefined)
           && (!user.category || (user.category === undefined))
           && (!user.ignored || (user.ignored === undefined))
           && (user.following || (user.followersCount >= configuration.minFollowersAuto)) 
@@ -5860,6 +5894,7 @@ function updateUserSets(){
           && !uncategorizedManualUserSet.has(user.nodeId) 
           && !unfollowableUserSet.has(user.nodeId)) { 
 
+          uncatUserIdCache.set(user.nodeId, user.screenName);
           uncategorizedManualUserSet.add(user.nodeId);
 
           if (tfeChild !== undefined) { 

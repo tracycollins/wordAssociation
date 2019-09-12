@@ -9541,17 +9541,22 @@ async function twitterSearchUserNode(searchQuery){
   }
 }
 
-async function uncatUserIdCacheCheck(nodeId){
-  uncatUserIdCache.get(nodeId, function(err, uncatUserObj){
-    if (err){
-      throw err;
-    }
-    else if (!uncatUserObj || (uncatUserObj == undefined)){
-      return false;
-    }
-    else {
-      return uncatUserObj
-    }
+function uncatUserIdCacheCheck(nodeId){
+  return new Promise(function(resolve, reject){
+
+    uncatUserIdCache.get(nodeId, function(err, uncatUserObj){
+      if (err){
+        return reject(err);
+      }
+      
+      if (!uncatUserObj || (uncatUserObj == undefined)){
+        resolve(false);
+      }
+      else {
+        resolve(uncatUserObj);
+      }
+    });
+
   });
 }
 

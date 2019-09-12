@@ -9546,8 +9546,12 @@ async function uncatUserIdCacheCheck(nodeId){
     if (err){
       throw err;
     }
-
-    return uncatUserObj;
+    else if (!uncatUserObj || (uncatUserObj == undefined)){
+      return false;
+    }
+    else {
+      return uncatUserObj
+    }
   });
 }
 
@@ -9564,9 +9568,9 @@ async function processTwitterSearchNode(params) {
     if (tfeChild !== undefined) { 
 
       const categorizeable = await userCategorizeable(params.user);
-      const uncatUserObj = await uncatUserIdCacheCheck(params.user.nodeId);
+      const uuObj = await uncatUserIdCacheCheck(params.user.nodeId);
 
-      if (categorizeable && (uncatUserObj === undefined)) { 
+      if (categorizeable && !uuObj) { 
 
         const uncatUserObj = {};
         uncatUserObj.screenName = params.user.screenName;
@@ -9594,7 +9598,8 @@ async function processTwitterSearchNode(params) {
       else{
         console.log(chalkBlue(MODULE_ID_PREFIX
           + " | +++ HIT  | UNCAT USER $"
-          + " | @" + params.user.screenName
+          + " | @" + uuObj.screenName
+          + " | TS: " + uuObj.timeStamp
           + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserIdCache.getStats())
         ));
       }

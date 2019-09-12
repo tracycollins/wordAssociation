@@ -9572,17 +9572,17 @@ async function processTwitterSearchNode(params) {
         uncatUserObj.screenName = params.user.screenName;
         uncatUserObj.timeStamp = getTimeStamp();
 
+        console.log(chalk.yellow(MODULE_ID_PREFIX
+          + " | --- MISS | UNCAT USER $"
+          + " | @" + params.user.screenName
+          + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserIdCache.getStats())
+        ));
+
         uncatUserIdCache.set(
           params.user.nodeId, 
           uncatUserObj,
           configuration.uncatUserIdCacheTtl
         );
-
-        console.log(chalkBlue(MODULE_ID_PREFIX
-          + " | +++ HIT  | UNCAT USER $"
-          + " | @" + params.user.screenName
-          + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserIdCache.getStats())
-        ));
 
         if (params.user.toObject && (typeof params.user.toObject == "function")) {
           tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, user: params.user.toObject()});
@@ -9592,8 +9592,8 @@ async function processTwitterSearchNode(params) {
         }
       }
       else{
-        console.log(chalkLog(MODULE_ID_PREFIX
-          + " | --- MISS | UNCAT USER $"
+        console.log(chalkBlue(MODULE_ID_PREFIX
+          + " | +++ HIT  | UNCAT USER $"
           + " | @" + params.user.screenName
           + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserIdCache.getStats())
         ));

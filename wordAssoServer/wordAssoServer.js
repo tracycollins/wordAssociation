@@ -4811,7 +4811,7 @@ function initSocketHandler(socketObj) {
       }
       else if (updatedNodeObj) {
         if (updatedNodeObj.nodeType == "user") {
-          socket.emit("SET_TWITTER_USER", {user: updatedNodeObj, stats: statsObj.user });
+          // socket.emit("SET_TWITTER_USER", {user: updatedNodeObj, stats: statsObj.user });
           console.log(chalkSocket("TX> SET_TWITTER_USER"
             + " | " + getTimeStamp(timeStamp)
             + " | SID: " + socket.id
@@ -9616,7 +9616,7 @@ async function processTwitterSearchNode(params) {
         u.following = true;
         u.threeceeFollowing = "altthreecee00";
       }
-      if (!uuObj) { viewNameSpace.emit("SET_TWITTER_USER", { user: u, stats: statsObj.user }); }
+      // if (!uuObj) { viewNameSpace.emit("SET_TWITTER_USER", { user: u, stats: statsObj.user }); }
       return u;
     }
     else{
@@ -9627,7 +9627,7 @@ async function processTwitterSearchNode(params) {
         params.user.following = true;
         params.user.threeceeFollowing = "altthreecee00";
       }
-      if (!uuObj) { viewNameSpace.emit("SET_TWITTER_USER", { user: params.user, stats: statsObj.user }); }
+      // if (!uuObj) { viewNameSpace.emit("SET_TWITTER_USER", { user: params.user, stats: statsObj.user }); }
       return params.user;
     }
 
@@ -9825,13 +9825,10 @@ async function twitterSearchUser(params) {
       case "MISMATCH":
 
         try {
-
           await getNextMismatchedUser({searchNode: searchNode, searchUserArray: searchUserArray});
           return;
-
         }
         catch(err){
-
           console.log(chalkError("WAS | *** TWITTER_SEARCH_NODE ERROR"
             + " [ UC USER ARRAY: " + searchUserArray.length + "]"
             + " | " + getTimeStamp()

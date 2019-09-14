@@ -9566,6 +9566,7 @@ async function processTwitterSearchNode(params) {
 
     console.log(chalkBlue("WAS | T> TWITTER_SEARCH_NODE"
       + " | " + getTimeStamp()
+      + " | SPECIFIC USER: " + params.specificUserFlag
       + " | NID: " + params.user.nodeId
       + " | @" + params.user.screenName
     ));
@@ -9573,7 +9574,15 @@ async function processTwitterSearchNode(params) {
     const categorizeable = await userCategorizeable(params.user);
     const uuObj = await uncatUserIdCacheCheck(params.user.nodeId);
 
-    if (categorizeable && !uuObj) { 
+    if (params.specificUserFlag) {
+      if (tfeChild && params.user.toObject && (typeof params.user.toObject == "function")) {
+        tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, user: params.user.toObject()});
+      }
+      else if (tfeChild) {
+        tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, user: params.user});
+      }
+    }
+    else if (categorizeable && !uuObj) { 
 
       const uncatUserObj = {};
       uncatUserObj.screenName = params.user.screenName;
@@ -9889,7 +9898,7 @@ async function twitterSearchUser(params) {
   try {
 
     const user = await twitterSearchUserNode({screenName: searchNodeUser.screenName});
-    await processTwitterSearchNode({searchNode: searchNode, user: user});
+    await processTwitterSearchNode({specificUserFlag: true, searchNode: searchNode, user: user});
     return;
   }
   catch(err){

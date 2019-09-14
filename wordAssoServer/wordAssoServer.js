@@ -9787,7 +9787,7 @@ async function twitterSearchUser(params) {
     switch (searchNodeUser.screenName) {
       case "?all":
         searchMode = "UNCAT";
-        searchUserArray = uncategorizedManualUserArray;
+        searchUserArray = _.shuffle(uncategorizedManualUserArray);
       break;
       case "?mm":
         searchMode = "MISMATCH";

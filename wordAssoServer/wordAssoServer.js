@@ -5724,7 +5724,15 @@ function updateUserSets(){
 
     userSearchCursor.on("data", async function(user) {
 
-      if (user.lang && (user.lang !== undefined) && (user.lang != "en")){
+      const uncatUserObj = uncatUserIdCache.get(user.nodeId);
+
+      if (uncatUserObj != undefined){
+        debug("--- SKIP ADD USER TO SETS | UNCAT CACHE HIT"
+          + " | " + uncatUserObj.timeStamp
+          + " | @" + uncatUserObj.screenName
+        );
+      }
+      else if (user.lang && (user.lang !== undefined) && (user.lang != "en")){
 
         global.globalUser.deleteOne({"nodeId": user.nodeId}, function(err){
           if (err) {
@@ -5957,7 +5965,6 @@ function updateUserSets(){
             }
           }
         }
-
       }
     });
 

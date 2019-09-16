@@ -395,8 +395,8 @@ configuration.forceFollow = DEFAULT_FORCE_FOLLOW;
 configuration.enableTwitterFollow = DEFAULT_ENABLE_TWITTER_FOLLOW;
 configuration.autoFollow = DEFAULT_AUTO_FOLLOW;
 
-configuration.uncatUserIdCacheTtl = DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL;
-configuration.uncatUserIdCacheCheckPeriod = DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD;
+configuration.uncatUserCacheTtl = DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL;
+configuration.uncatUserCacheCheckPeriod = DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD;
 
 configuration.enableLanguageAnalysis = DEFAULT_ENABLE_LANG_ANALYSIS;
 configuration.forceLanguageAnalysis = DEFAULT_FORCE_LANG_ANALYSIS;
@@ -619,6 +619,7 @@ const ignoredHashtagFile = "ignoredHashtag.txt";
 const ignoredUserFile = "ignoredUser.json";
 // const unfollowableUserFile = "unfollowableUser.json";
 const followableSearchTermFile = "followableSearchTerm.txt";
+const uncatUserCacheFile = "uncatUserCache.json";
 
 const pendingFollowSet = new Set();
 const followableUserSet = new Set();
@@ -1467,24 +1468,24 @@ function touchChildPidFile(params){
 // ==================================================================
 // UNCAT USER ID CACHE
 // ==================================================================
-console.log("WAS | UNCAT USER ID CACHE TTL: " + configuration.uncatUserIdCacheTtl + " SECONDS");
-console.log("WAS | UNCAT USER ID CACHE CHECK PERIOD: " + configuration.uncatUserIdCacheCheckPeriod + " SECONDS");
+console.log("WAS | UNCAT USER ID CACHE TTL: " + configuration.uncatUserCacheTtl + " SECONDS");
+console.log("WAS | UNCAT USER ID CACHE CHECK PERIOD: " + configuration.uncatUserCacheCheckPeriod + " SECONDS");
 
-const uncatUserIdCache = new NodeCache({
-  stdTTL: configuration.uncatUserIdCacheTtl,
-  checkperiod: configuration.uncatUserIdCacheCheckPeriod
+const uncatUserCache = new NodeCache({
+  stdTTL: configuration.uncatUserCacheTtl,
+  checkperiod: configuration.uncatUserCacheCheckPeriod
 });
 
-function uncatUserIdCacheExpired(uncatUserId, uncatUserObj) {
-  console.log(chalkInfo("WAS | XXX UNCAT USER ID CACHE EXPIRED"
-    + " | TTL: " + configuration.uncatUserIdCacheTtl + " SECS"
-    + " | NODE ID: " + uncatUserId
+function uncatUserCacheExpired(uncatUserId, uncatUserObj) {
+  console.log(chalkInfo("WAS | XXX UNCAT USER CACHE EXPIRED"
+    + " | TTL: " + configuration.uncatUserCacheTtl + " SECS"
+    + " | NID: " + uncatUserId
     + " | @" + uncatUserObj.screenName
     + " | " + uncatUserObj.timeStamp
   ));
 }
 
-uncatUserIdCache.on("expired", uncatUserIdCacheExpired);
+uncatUserCache.on("expired", uncatUserCacheExpired);
 
 // ==================================================================
 // TWEET ID CACHE
@@ -2784,6 +2785,17 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
       });
     },
 
+    uncatUserCacheInit: function(cb){
+
+      initUncatUserCache().
+      then(function(){
+        cb();
+      }).
+      catch(function(err){
+        return cb(err);
+      });
+    },
+
     categoryHashmapsInit: function(cb){
 
       initCategoryHashmaps().
@@ -3916,7 +3928,7 @@ async function initSetFromFile(params){
   }
   catch(err){
     console.log(chalkError("WAS | *** INIT SET FROM FILE ERROR: " + err));
-    if (params.noErrorNotFoundFlag) {
+    if (params.noErrorNotFound) {
       return;
     }
     throw err;
@@ -4005,6 +4017,88 @@ async function initSetFromFile(params){
 //     throw err;
 //   }
 // }
+
+async function saveUncatUserCache(){
+
+  statsObj.status = "SAVE UNCAT USER ID CACHE";
+
+  console.log(chalkBlue("WAS | SAVE UNCAT USER CACHE: " + configDefaultFolder 
+    + "/" + uncatUserCacheFile
+  ));
+
+  const uncatUserCacheObj = {};
+
+  const uncatUserIdArray = uncatUserCache.keys();
+
+  for(const userId of uncatUserIdArray){
+    const uncatUserObj = uncatUserCache.get(userId);
+    uncatUserCacheObj[userId] = uncatUserObj;
+  }
+
+  console.log(chalkLog("WAS | ... SAVING UNCAT USER CACHE FILE"
+    + " | " + Object.keys(uncatUserCacheObj).length + " USERS"
+    + " | " + configDefaultFolder + "/" + uncatUserCacheFile
+  ));
+
+  saveFileQueue.push({
+    localFlag: false, 
+    folder: configDefaultFolder, 
+    file: uncatUserCacheFile, 
+    obj: uncatUserCacheObj
+  });
+
+  return;
+
+}
+
+async function initUncatUserCache(){
+
+  statsObj.status = "INIT UNCAT USER ID CACHE";
+
+  console.log(chalkBlue("WAS | INIT UNCAT USER CACHE: " + configDefaultFolder 
+    + "/" + uncatUserCacheFile
+  ));
+
+  try{
+
+    const uncatUserCacheObj = await tcUtils.loadFileRetry({
+      folder: configDefaultFolder, 
+      file: uncatUserCacheFile,
+      noErrorNotFound: true
+    });
+
+    if (!uncatUserCacheObj || uncatUserCacheObj == undefined) {
+      return;
+    }
+
+    const uncatUserIdArray = Object.keys(uncatUserCacheObj);
+
+    console.log(chalkLog("WAS | ... LOADING UNCAT USER CACHE FILE"
+      + " | " + uncatUserIdArray.length + " USERS"
+      + " | " + configDefaultFolder + "/" + uncatUserCacheFile
+    ));
+
+    for(const userId of uncatUserIdArray){
+      uncatUserCache.set(
+        userId, 
+        uncatUserCacheObj[userId],
+        configuration.uncatUserCacheTtl
+      );
+    }
+
+    console.log(chalkLog("WAS | +++ LOADED UNCAT USER CACHE FILE"
+      + " | " + uncatUserIdArray.length + " USERS"
+      + " | " + configDefaultFolder + "/" + uncatUserCacheFile
+      + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
+    ));
+
+    return;
+  }
+  catch(err){
+    console.log(chalkError("WAS | *** INIT UNCAT USER CACHE ERROR: " + err));
+    throw err;
+  }
+}
 
 async function initFollowableSearchTermSet(){
 
@@ -5724,15 +5818,16 @@ function updateUserSets(){
 
     userSearchCursor.on("data", async function(user) {
 
-      const uncatUserObj = uncatUserIdCache.get(user.nodeId);
+      // const uncatUserObj = uncatUserCache.get(user.nodeId);
 
-      if (uncatUserObj != undefined){
-        debug("--- SKIP ADD USER TO SETS | UNCAT CACHE HIT"
-          + " | " + uncatUserObj.timeStamp
-          + " | @" + uncatUserObj.screenName
-        );
-      }
-      else if (user.lang && (user.lang !== undefined) && (user.lang != "en")){
+      // if (!user.categoryVerified && (uncatUserObj != undefined)){
+      //   debug("--- SKIP ADD USER TO SETS | UNCAT CACHE HIT"
+      //     + " | " + uncatUserObj.timeStamp
+      //     + " | @" + uncatUserObj.screenName
+      //   );
+      // }
+      
+      if (user.lang && (user.lang !== undefined) && (user.lang != "en")){
 
         global.globalUser.deleteOne({"nodeId": user.nodeId}, function(err){
           if (err) {
@@ -5887,12 +5982,12 @@ function updateUserSets(){
           categorizeable = await userCategorizeable(user);
         }
 
-        const uncatUserObj = uncatUserIdCache.get(user.nodeId);
+        const uncatUserObj = await uncatUserCacheCheck(user.nodeId);
 
         if (categorizeable
-          && (uncatUserObj === undefined)
-          && (!user.category || (user.category === undefined))
-          && (!user.ignored || (user.ignored === undefined))
+          && (uncatUserObj == undefined)
+          && (!user.category || (user.category == undefined))
+          && (!user.ignored || (user.ignored == undefined))
           && (user.following || (user.followersCount >= configuration.minFollowersAuto)) 
           && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && user.categoryAuto && (user.categoryAuto != "right")))
           && !ignoredUserSet.has(user.nodeId) 
@@ -5912,7 +6007,7 @@ function updateUserSets(){
         }
 
         if (!uncategorizedAutoUserSet.has(user.nodeId) 
-          && (!user.categoryAuto || (user.categoryAuto === undefined))
+          && (!user.categoryAuto || (user.categoryAuto == undefined))
           && !ignoredUserSet.has(user.nodeId) 
           && !ignoredUserSet.has(user.screenName.toLowerCase()) 
           && !ignoreLocationsSet.has(user.nodeId) 
@@ -8254,7 +8349,7 @@ async function loadBestRuntimeNetwork(p){
 
   try {
 
-    const bRtNnObj = await tcUtils.loadFileRetry({folder: folder, file: file, noErrorNotFoundFlag: true});
+    const bRtNnObj = await tcUtils.loadFileRetry({folder: folder, file: file, noErrorNotFound: true});
 
     if (bRtNnObj) {
 
@@ -8269,7 +8364,7 @@ async function loadBestRuntimeNetwork(p){
       file = bRtNnObj.networkId + ".json";
 
       try{
-        const nnObj = await tcUtils.loadFileRetry({folder: folder, file: file, noErrorNotFoundFlag: true});
+        const nnObj = await tcUtils.loadFileRetry({folder: folder, file: file, noErrorNotFound: true});
 
         if (nnObj) { 
 
@@ -8452,7 +8547,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.UNCAT_USER_ID_CACHE_DEFAULT_TTL !== undefined){
       console.log("WAS | LOADED UNCAT_USER_ID_CACHE_DEFAULT_TTL: " + loadedConfigObj.UNCAT_USER_ID_CACHE_DEFAULT_TTL);
-      newConfiguration.uncatUserIdCacheTtl = loadedConfigObj.UNCAT_USER_ID_CACHE_DEFAULT_TTL;
+      newConfiguration.uncatUserCacheTtl = loadedConfigObj.UNCAT_USER_ID_CACHE_DEFAULT_TTL;
     }
 
     if (loadedConfigObj.ENABLE_IMAGE_ANALYSIS !== undefined){
@@ -8781,6 +8876,8 @@ function initStatsUpdate(cnf) {
           showStats();
 
           if (statsObj.twitNotReadyWarning) { statsObj.twitNotReadyWarning = false; }
+
+          await saveUncatUserCache();
 
         }
         catch(err){
@@ -9548,10 +9645,10 @@ async function twitterSearchUserNode(searchQuery){
   }
 }
 
-function uncatUserIdCacheCheck(nodeId){
+function uncatUserCacheCheck(nodeId){
   return new Promise(function(resolve, reject){
 
-    uncatUserIdCache.get(nodeId, function(err, uncatUserObj){
+    uncatUserCache.get(nodeId, function(err, uncatUserObj){
       if (err){
         return reject(err);
       }
@@ -9579,7 +9676,7 @@ async function processTwitterSearchNode(params) {
     ));
 
     const categorizeable = await userCategorizeable(params.user);
-    const uuObj = await uncatUserIdCacheCheck(params.user.nodeId);
+    const uuObj = await uncatUserCacheCheck(params.user.nodeId);
 
     if (params.specificUserFlag) {
       if (tfeChild && params.user.toObject && (typeof params.user.toObject == "function")) {
@@ -9592,19 +9689,21 @@ async function processTwitterSearchNode(params) {
     else if (categorizeable && !uuObj) { 
 
       const uncatUserObj = {};
+      uncatUserObj.nodeId = params.user.nodeId;
       uncatUserObj.screenName = params.user.screenName;
       uncatUserObj.timeStamp = getTimeStamp();
 
       console.log(chalk.yellow(MODULE_ID_PREFIX
         + " | --- MISS | UNCAT USER $"
+        + " | NID: " + params.user.nodeId
         + " | @" + params.user.screenName
-        + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserIdCache.getStats())
+        + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
       ));
 
-      uncatUserIdCache.set(
+      uncatUserCache.set(
         params.user.nodeId, 
         uncatUserObj,
-        configuration.uncatUserIdCacheTtl
+        configuration.uncatUserCacheTtl
       );
 
       if (tfeChild && params.user.toObject && (typeof params.user.toObject == "function")) {
@@ -9617,9 +9716,10 @@ async function processTwitterSearchNode(params) {
     else{
       console.log(chalkBlue(MODULE_ID_PREFIX
         + " | +++ HIT  | UNCAT USER $"
+        + " | NID: " + uuObj.nodeId
         + " | @" + uuObj.screenName
         + " | TS: " + uuObj.timeStamp
-        + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserIdCache.getStats())
+        + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
       ));
     }
 

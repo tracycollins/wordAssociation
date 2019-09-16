@@ -1132,8 +1132,10 @@ function initSearchStream(){
   return new Promise(function(resolve, reject){
 
     const filter = {};
+
+    filter.follow = [...threeceeUserObj.followUserIdSet];
+
     filter.track = [];
-    filter.follow = [];
 
     if (threeceeUserObj.searchTermSet.size > 0) {
       if (threeceeUserObj.searchTermSet.size <= TWITTER_MAX_TRACKING_NUMBER){
@@ -1144,8 +1146,6 @@ function initSearchStream(){
         filter.track = searchTermArray.slice(0,TWITTER_MAX_TRACKING_NUMBER);
       }
     }
-
-    if (threeceeUserObj.followUserIdSet.size > 0) { filter.follow = [...threeceeUserObj.followUserIdSet]; }
 
     console.log(chalkInfo("TSS | INIT SEARCH STREAM"
       + " | @" + threeceeUserObj.screenName

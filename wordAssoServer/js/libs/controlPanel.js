@@ -41,8 +41,10 @@ function ControlPanel() {
 
 	var entityCategorizeDiv = document.getElementById('entityCategorizeDiv');
 
+  var currentUser = "threecee";
+
   var twitterFeedUser = {};
-  var twitterFeedPreviousUser = {};
+  var twitterFeedPreviousUser = false;
   var twitterFeedHashtag = {};
   var twitterFeedPreviousHashtag = {};
   var loadingTwitterFeedFlag = false;
@@ -56,9 +58,6 @@ function ControlPanel() {
   nodeTypesSet.add("url");
   nodeTypesSet.add("user");
   nodeTypesSet.add("word");
-
-	var currentUser = "threecee";
-	var previousUser = currentUser;
 
   var config = {};
   var currentTwitterNode;
@@ -220,7 +219,6 @@ function ControlPanel() {
       eventDetected = false;
       document.getElementById(op).style.background='#ffffff';
     }, 100);
-
   };
 
   var nextUncatHandler = function(op){
@@ -260,6 +258,24 @@ function ControlPanel() {
     }, 100);
   };
 
+  var previousUserHandler = function(op){
+
+    if (eventDetected) {
+      return;
+    }
+    eventDetected = true;
+
+    document.getElementById(op).style.background='#0000ff';
+    if (parentWindow && !loadingTwitterFeedFlag && twitterFeedPreviousUser) { 
+      parentWindow.postMessage({op: "NODE_SEARCH", input: twitterFeedPreviousUser.screenName}, DEFAULT_SOURCE);
+    }
+
+    setTimeout(function(){
+      eventDetected = false;
+      document.getElementById(op).style.background='#ffffff';
+    }, 100);
+  };
+
   var ignoreHandler = function(op){
 
     if (eventDetected) {
@@ -274,7 +290,6 @@ function ControlPanel() {
       eventDetected = false;
       document.getElementById(op).style.background='#ffffff';
     }, 100);
-
   };
 
   var catVerifiedHandler = function(op){
@@ -283,17 +298,13 @@ function ControlPanel() {
       return;
     }
     eventDetected = true;
-
-    // document.getElementById("CAT VERIFY").style.background='#0000ff';
     if (parentWindow && !loadingTwitterFeedFlag) { parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE); }
 
     setTimeout(function(){
       eventDetected = false;
-      // document.getElementById("CAT VERIFY").style.background='#ffffff';
     }, 100);
 
   };
-
 
   function jsonPrint(obj) {
     if ((obj) || (obj === 0)) {
@@ -416,8 +427,6 @@ function ControlPanel() {
     }
 
     loadingTwitterFeedFlag = true;
-
-    // twitterTimeLineDiv.removeAll();
 
     node.categoryAuto = node.categoryAuto || "none";
 
@@ -964,6 +973,9 @@ function ControlPanel() {
           }, 100);
         });
 
+        twitterControl.addButton("PREV USER", function(){
+          previousUserHandler("PREV USER");
+        });
         twitterControl.addButton("IGNORE", function(){
           ignoreHandler("IGNORE");
         });

@@ -266,8 +266,9 @@ function ControlPanel() {
     eventDetected = true;
 
     document.getElementById(op).style.background='#0000ff';
-    if (parentWindow && !loadingTwitterFeedFlag && twitterFeedPreviousUser) { 
-      parentWindow.postMessage({op: "NODE_SEARCH", input: twitterFeedPreviousUser.screenName}, DEFAULT_SOURCE);
+    if (parentWindow && !loadingTwitterFeedFlag && twitterFeedPreviousUser) {
+      const userScreenName = "@" + twitterFeedPreviousUser.screenName;
+      parentWindow.postMessage({op: "NODE_SEARCH", input: userScreenName}, DEFAULT_SOURCE);
     }
 
     setTimeout(function(){

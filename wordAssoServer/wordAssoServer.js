@@ -1479,9 +1479,10 @@ const uncatUserCache = new NodeCache({
 function uncatUserCacheExpired(uncatUserId, uncatUserObj) {
   console.log(chalkInfo("WAS | XXX UNCAT USER CACHE EXPIRED"
     + " | TTL: " + msToTime(configuration.uncatUserCacheTtl*1000)
+    + " | NOW: " + getTimeStamp()
+    + " | IN $: " + uncatUserObj.timeStamp
     + " | NID: " + uncatUserId
     + " | @" + uncatUserObj.screenName
-    + " | " + uncatUserObj.timeStamp
   ));
 }
 
@@ -4079,11 +4080,15 @@ async function initUncatUserCache(){
     ));
 
     for(const userId of uncatUserIdArray){
+
+      uncatUserCacheObj[userId].timeStamp = getTimeStamp();
+
       uncatUserCache.set(
         userId, 
         uncatUserCacheObj[userId],
         configuration.uncatUserCacheTtl
       );
+
     }
 
     console.log(chalkLog("WAS | +++ LOADED UNCAT USER CACHE FILE"
@@ -9689,12 +9694,14 @@ async function processTwitterSearchNode(params) {
     else if (categorizeable && !uuObj) { 
 
       const uncatUserObj = {};
+
       uncatUserObj.nodeId = params.user.nodeId;
       uncatUserObj.screenName = params.user.screenName;
       uncatUserObj.timeStamp = getTimeStamp();
 
       console.log(chalk.yellow(MODULE_ID_PREFIX
         + " | --- MISS | UNCAT USER $"
+        + " | TTL: " + msToTime(configuration.uncatUserCacheTtl*1000)
         + " | NID: " + params.user.nodeId
         + " | @" + params.user.screenName
         + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
@@ -9714,13 +9721,24 @@ async function processTwitterSearchNode(params) {
       }
     }
     else{
+
+      uuObj.timeStamp = getTimeStamp();
+
+      uncatUserCache.set(
+        params.user.nodeId, 
+        uuObj,
+        configuration.uncatUserCacheTtl
+      );
+
       console.log(chalkBlue(MODULE_ID_PREFIX
         + " | +++ HIT  | UNCAT USER $"
+        + " | TTL: " + msToTime(configuration.uncatUserCacheTtl*1000)
         + " | NID: " + uuObj.nodeId
         + " | @" + uuObj.screenName
         + " | TS: " + uuObj.timeStamp
         + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
       ));
+
     }
 
     if (params.user.toObject && (typeof params.user.toObject == "function")) {

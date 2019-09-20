@@ -180,8 +180,8 @@ const NODE_CACHE_CHECK_PERIOD = 1;
 const TWEET_ID_CACHE_DEFAULT_TTL = 20;
 const TWEET_ID_CACHE_CHECK_PERIOD = 5;
 
-const DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL = 3600;
-const DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD = 60;
+const DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL = 604800; // 3600*24*7 sec/week
+const DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD = 3600;
 
 const chalk = require("chalk");
 const chalkUser = chalk.blue;
@@ -1468,8 +1468,8 @@ function touchChildPidFile(params){
 // ==================================================================
 // UNCAT USER ID CACHE
 // ==================================================================
-console.log("WAS | UNCAT USER ID CACHE TTL: " + configuration.uncatUserCacheTtl + " SECONDS");
-console.log("WAS | UNCAT USER ID CACHE CHECK PERIOD: " + configuration.uncatUserCacheCheckPeriod + " SECONDS");
+console.log("WAS | UNCAT USER ID CACHE TTL: " + msToTime(configuration.uncatUserCacheTtl*1000));
+console.log("WAS | UNCAT USER ID CACHE CHECK PERIOD: " + msToTime(configuration.uncatUserCacheCheckPeriod*1000));
 
 const uncatUserCache = new NodeCache({
   stdTTL: configuration.uncatUserCacheTtl,
@@ -1478,7 +1478,7 @@ const uncatUserCache = new NodeCache({
 
 function uncatUserCacheExpired(uncatUserId, uncatUserObj) {
   console.log(chalkInfo("WAS | XXX UNCAT USER CACHE EXPIRED"
-    + " | TTL: " + configuration.uncatUserCacheTtl + " SECS"
+    + " | TTL: " + msToTime(configuration.uncatUserCacheTtl*1000)
     + " | NID: " + uncatUserId
     + " | @" + uncatUserObj.screenName
     + " | " + uncatUserObj.timeStamp

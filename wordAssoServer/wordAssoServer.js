@@ -10014,7 +10014,9 @@ async function twitterSearchUser(params) {
 
     const user = await twitterSearchUserNode({nodeId: searchUserId});
 
-    await processTwitterSearchNode({searchNode: searchNode, user: user});
+    const specificUserFlag = (searchNodeUser.screenName == "?left") || (searchNodeUser.screenName == "?neutral"); 
+    await processTwitterSearchNode({specificUserFlag: specificUserFlag, searchNode: searchNode, user: user});
+
     return;
   }      
 

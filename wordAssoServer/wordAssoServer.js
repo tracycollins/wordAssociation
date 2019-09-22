@@ -4023,7 +4023,9 @@ async function saveUncatUserCache(){
 
   statsObj.status = "SAVE UNCAT USER ID CACHE";
 
-  console.log(chalkBlue("WAS | SAVE UNCAT USER CACHE: " + configDefaultFolder 
+  const folder = (hostname === "google") ? configDefaultFolder : configHostFolder;
+
+  console.log(chalkBlue("WAS | SAVE UNCAT USER CACHE: " + folder 
     + "/" + uncatUserCacheFile
   ));
 
@@ -4038,12 +4040,13 @@ async function saveUncatUserCache(){
 
   console.log(chalkLog("WAS | ... SAVING UNCAT USER CACHE FILE"
     + " | " + Object.keys(uncatUserCacheObj).length + " USERS"
-    + " | " + configDefaultFolder + "/" + uncatUserCacheFile
+    + " | " + folder + "/" + uncatUserCacheFile
   ));
+
 
   saveFileQueue.push({
     localFlag: false, 
-    folder: configDefaultFolder, 
+    folder: folder, 
     file: uncatUserCacheFile, 
     obj: uncatUserCacheObj
   });
@@ -4056,14 +4059,16 @@ async function initUncatUserCache(){
 
   statsObj.status = "INIT UNCAT USER ID CACHE";
 
-  console.log(chalkBlue("WAS | INIT UNCAT USER CACHE: " + configDefaultFolder 
+  const folder = (hostname === "google") ? configDefaultFolder : configHostFolder;
+
+  console.log(chalkBlue("WAS | INIT UNCAT USER CACHE: " + folder 
     + "/" + uncatUserCacheFile
   ));
 
   try{
 
     const uncatUserCacheObj = await tcUtils.loadFileRetry({
-      folder: configDefaultFolder, 
+      folder: folder, 
       file: uncatUserCacheFile,
       noErrorNotFound: true
     });
@@ -4076,7 +4081,7 @@ async function initUncatUserCache(){
 
     console.log(chalkLog("WAS | ... LOADING UNCAT USER CACHE FILE"
       + " | " + uncatUserIdArray.length + " USERS"
-      + " | " + configDefaultFolder + "/" + uncatUserCacheFile
+      + " | " + folder + "/" + uncatUserCacheFile
     ));
 
     for(const userId of uncatUserIdArray){
@@ -4093,7 +4098,7 @@ async function initUncatUserCache(){
 
     console.log(chalkLog("WAS | +++ LOADED UNCAT USER CACHE FILE"
       + " | " + uncatUserIdArray.length + " USERS"
-      + " | " + configDefaultFolder + "/" + uncatUserCacheFile
+      + " | " + folder + "/" + uncatUserCacheFile
       + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
     ));
 
@@ -4171,40 +4176,6 @@ async function initIgnoredUserSet(){
     throw err;
   }
 }
-
-// async function initUnfollowableUserSet(){
-
-//   statsObj.status = "INIT UNFOLLOWABLE USER SET";
-
-//   console.log(chalkLog("WAS | INIT UNFOLLOWABLE USER SET"));
-
-//   try{
-
-//     const result = await initSetFromFile({
-//       folder: configDefaultFolder, 
-//       file: unfollowableUserFile, 
-//       objArrayKey: "userIds", 
-//       resolveOnNotFound: true
-//     });
-
-//     if (result) {
-//       unfollowableUserSet = result;
-//       unfollowableUserSet.delete("");
-//       unfollowableUserSet.delete(" ");
-//     }
-
-//     console.log(chalkLog("WAS | LOADED UNFOLLOWABLE USERS FILE"
-//       + " | " + unfollowableUserSet.size + " USERS"
-//       + " | " + configDefaultFolder + "/" + unfollowableUserFile
-//     ));
-
-//     return;
-//   }
-//   catch(err){
-//     console.log(chalkError("WAS | *** INIT UNFOLLOWABLE USERS SET ERROR: " + err));
-//     throw err;
-//   }
-// }
 
 const serverRegex = /^(.+)_/i;
 

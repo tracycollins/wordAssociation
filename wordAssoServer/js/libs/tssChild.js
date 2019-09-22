@@ -27,9 +27,17 @@ const compactDateTimeFormat = "YYYYMMDD HHmmss";
 // const mangledRegEx = /\u00C3.\u00C2|\u00B5/g;
 
 const os = require("os");
+
+const request = require('request');
+const util = require('util');
+
+const get = util.promisify(request.get);
+const post = util.promisify(request.post);
+
 const path = require("path");
 const empty = require("is-empty");
 const watch = require("watch");
+const parseJson = require("parse-json");
 
 let hostname = os.hostname();
 hostname = hostname.replace(/.local/g, "");
@@ -45,6 +53,13 @@ const fetch = require("isomorphic-fetch");
 const Dropbox = require("dropbox").Dropbox;
 const async = require("async");
 const Twit = require("twit");
+
+// TWITTER LABS NEW STREAMING INTERFACE
+
+const bearerTokenURL = new URL("https://api.twitter.com/oauth2/token");
+// const streamURL = new URL("https://api.twitter.com/labs/1/tweets/stream/filter");
+const rulesURL = new URL("https://api.twitter.com/labs/1/tweets/stream/filter/rules");
+
 const moment = require("moment");
 const treeify = require("treeify");
 const Measured = require("measured");
@@ -97,7 +112,7 @@ const chalkBlue = chalk.blue;
 const chalkAlert = chalk.red;
 const chalkTwitter = chalk.blue;
 const chalkError = chalk.bold.red;
-const chalkWarn = chalk.red;
+const chalkWarn = chalk.yellow;
 const chalkLog = chalk.gray;
 const chalkInfo = chalk.black;
 
@@ -975,7 +990,6 @@ async function initTwit(){
 
     throw err;
   }
-
 }
 
 async function initTwitterUser(){
@@ -996,37 +1010,8 @@ async function initTwitterUser(){
   }
 }
 
-// function getFileMetadata(params) {
-
-//   return new Promise(function(resolve, reject){
-
-//     if (dropboxClient === undefined) {
-//       return reject(new Error("dropboxClient undefined"));
-//     }
-
-//     const fullPath = params.folder + "/" + params.file;
-//     debug(chalkInfo("TSS | FOLDER " + params.folder));
-//     debug(chalkInfo("TSS | FILE " + params.file));
-
-//     dropboxClient.filesGetMetadata({path: fullPath}).
-//       then(function(response) {
-//         debug(chalkInfo("TSS | FILE META\n" + jsonPrint(response)));
-//         resolve(response);
-//       }).
-//       catch(function(err) {
-//         console.log(chalkError("TSS | GET FILE METADATA ERROR | PATH: " + fullPath + " ERROR: " + err));
-//         console.log(chalkError("TSS | GET FILE METADATA ERROR\n" + jsonPrint(err)));
-//         reject(err);
-//       });
-
-//   });
-// }
 
 const followingUserIdHashMap = new HashMap();
-
-// let prevAllowLocationsFileModifiedMoment = moment("2010-01-01");
-// let prevIgnoredLocationsFileModifiedMoment = moment("2010-01-01");
-// let prevSearchTermsFileModifiedMoment = moment("2010-01-01");
 
 function checkTwitterRateLimit(params){
 
@@ -1125,6 +1110,519 @@ function checkTwitterRateLimit(params){
     });
 
   });
+}
+
+async function checkValidTweet(params){
+
+  if (ignoreUserSet.has(params.tweetObj.includes.users[0].id.toString())) {
+    if (configuration.verbose) {
+      console.log(chalkLog("TSS | XXX IGNORE USER | SKIPPING"
+        + " | TWID: " + params.tweetObj.data.id.toString()
+        + " | UID: " + params.tweetObj.includes.users[0].id.toString()
+        + " | @" + params.tweetObj.includes.users[0].username
+        + " | NAME: " + params.tweetObj.includes.users[0].name
+      ));
+    }
+    return false;
+  }
+
+  if (ignoreLocationsSet.has(params.tweetObj.includes.users[0].location)) {
+    if (configuration.verbose) {
+      console.log(chalkLog("TSS | XXX IGNORE LOCATION | SKIPPING"
+        + " | TWID: " + params.tweetObj.data.id.toString()
+        + " | UID: " + params.tweetObj.includes.users[0].id.toString()
+        + " | @" + params.tweetObj.includes.users[0].username
+        + " | NAME: " + params.tweetObj.includes.users[0].name
+        + " | LOC: " + params.tweetObj.includes.users[0].location
+      ));
+    }
+    return false;
+  }
+
+  if (params.tweetObj.data.lang && (params.tweetObj.data.lang != "en")) {
+    if (configuration.verbose) {
+      console.log(chalkLog("TSS | XXX IGNORE LANG | SKIPPING"
+        + " | TWID: " + params.tweetObj.data.id.toString()
+        + " | LANG: " + params.tweetObj.data.lang
+        + " | UID: " + params.tweetObj.includes.users[0].id.toString()
+        + " | @" + params.tweetObj.includes.users[0].username
+        + " | NAME: " + params.tweetObj.includes.users[0].name
+      ));
+    }
+    return false;
+  }
+
+  return true;
+
+}
+
+async function processTweet(params){
+
+  const tweetObj = params.tweetObj;
+
+  // ─ data
+  // │  ├─ id: 1175639968674455552
+  // │  ├─ created_at: 2019-09-22T05:16:25.000Z
+  // │  ├─ text: RT @AOC: At this point, the bigger national scandal isn’t the president’s lawbreaking behavior - it is the Democratic Party’s refusal to im…
+  // │  ├─ author_id: 229661564
+  // │  ├─ referenced_tweets
+  // │  │  └─ 0
+  // │  │     ├─ type: retweeted
+  // │  │     └─ id: 1175619319432196096
+  // │  ├─ entities
+  // │  │  └─ mentions
+  // │  │     └─ 0
+  // │  │        ├─ start: 3
+  // │  │        ├─ end: 7
+  // │  │        └─ username: AOC
+  // │  ├─ stats
+  // │  │  ├─ retweet_count: 9944
+  // │  │  ├─ reply_count: 0
+  // │  │  ├─ like_count: 0
+  // │  │  └─ quote_count: 0
+  // │  ├─ possibly_sensitive: false
+  // │  ├─ lang: en
+  // │  ├─ source: <a href="http://twitter.com/download/android" rel="nofollow">Twitter for Android</a>
+  // │  └─ format: detailed
+  // ├─ includes
+  // │  └─ users
+  // │     └─ 0
+  // │        ├─ id: 229661564
+  // │        ├─ created_at: 2010-12-23T00:30:07.000Z
+  // │        ├─ name: Allison Cattewoof
+  // │        ├─ username: AlphaShadow92
+  // │        ├─ protected: false
+  // │        ├─ location: In a small cardboard box
+  // │        ├─ url: https://t.co/BC1jaSnozN
+  // │        ├─ description: 27 | Demigirl, She/They | Ace/Panro | Art Demon | Polyam is Rad | Autistic punk | Big Soft Monster (aaa)
+  // │        ├─ verified: false
+  // │        ├─ entities
+  // │        │  └─ url
+  // │        │     └─ urls
+  // │        │        └─ 0
+  // │        │           ├─ start: 0
+  // │        │           ├─ end: 23
+  // │        │           ├─ url: https://t.co/BC1jaSnozN
+  // │        │           ├─ expanded_url: https://twitch.tv/alphashadow92/
+  // │        │           └─ display_url: twitch.tv/alphashadow92/
+  // │        ├─ profile_image_url: https://pbs.twimg.com/profile_images/1168919706226561024/YUUTkuFc_normal.jpg
+  // │        ├─ stats
+  // │        │  ├─ followers_count: 286
+  // │        │  ├─ following_count: 652
+  // │        │  ├─ tweet_count: 74988
+  // │        │  └─ listed_count: 3
+  // │        ├─ most_recent_tweet_id: 1175639968674455552
+  // │        ├─ pinned_tweet_id: 903805963416850432
+  // │        └─ format: detailed
+  // └─ matching_rules
+  //    └─ 0
+  //       ├─ id: 1175637227017318400
+  //       └─ tag: impeach
+
+  // + " | " + tweetObj.data.id
+  // + " | CR: " + tcUtils.getTimeStamp(tweetObj.created_at)
+  // + " | @" + tweetObj.includes.users[0].username
+  // + " | LOC: " + tweetObj.includes.users[0].location
+  // + " | FLWRs: " + tweetObj.includes.users[0].stats.followers_count
+  // + " | FRNDs: " + tweetObj.includes.users[0].stats.following_count
+  // + " | TWs: " + tweetObj.includes.users[0].stats.tweet_count
+
+  const processedTweetObj = {};
+
+  processedTweetObj.id_str = tweetObj.data.id.toString();
+  processedTweetObj.created_at = tweetObj.data.created_at;
+  processedTweetObj.text = tweetObj.data.text;
+  processedTweetObj.lang = tweetObj.data.lang;
+  processedTweetObj.entities = {};
+  processedTweetObj.entities = tweetObj.data.entities;
+  // processedTweetObj.entities.polls = [tweetObj.data.entities.polls;
+  // processedTweetObj.entities.symbols = tweetObj.data.entities.symbols;
+  // processedTweetObj.entities.urls = tweetObj.data.entities.urls;
+  // processedTweetObj.entities.hashtags = tweetObj.data.entities.hashtags;
+  // processedTweetObj.entities.mentions = tweetObj.data.entities.mentions;
+  // processedTweetObj.entities.cashtags = tweetObj.data.entities.cashtags;
+  // processedTweetObj.entities.urls = tweetObj.data.entities.urls;
+  // processedTweetObj.entities.urls = tweetObj.data.entities.urls;
+
+  processedTweetObj.user = {};
+  processedTweetObj.user.id_str = tweetObj.includes.users[0].id.toString();
+  processedTweetObj.user.created_at = tweetObj.includes.users[0].created_at;
+  processedTweetObj.user.screen_name = tweetObj.includes.users[0].username.toLowerCase();
+  processedTweetObj.user.name = tweetObj.includes.users[0].name;
+  processedTweetObj.user.lang = tweetObj.includes.users[0].name;
+  processedTweetObj.user.location = tweetObj.includes.users[0].location;
+  processedTweetObj.user.profile_image_url = tweetObj.includes.users[0].profile_image_url;
+  processedTweetObj.user.url = tweetObj.includes.users[0].url;
+  processedTweetObj.user.description = tweetObj.includes.users[0].description;
+  processedTweetObj.user.followers_count = tweetObj.includes.users[0].stats.followers_count;
+  processedTweetObj.user.friends_count = tweetObj.includes.users[0].stats.following_count;
+  processedTweetObj.user.statuses_count = tweetObj.includes.users[0].stats.tweet_count;
+  processedTweetObj.user.statusId = tweetObj.includes.users[0].most_recent_tweet_id;
+  processedTweetObj.user.verified = tweetObj.includes.users[0].verified;
+  processedTweetObj.user.entities = {};
+  processedTweetObj.user.entities = tweetObj.includes.users[0].entities;
+
+  const prevTweetUser = tweetIdCache.get(processedTweetObj.id_str);
+
+  if (prevTweetUser) {
+
+    statsObj.twitter.duplicateTweetsReceived += 1;
+
+    if (statsObj.twitter.duplicateTweetsReceived % 1000 == 0){
+      console.log(chalkLog("TSS"
+        + " | @" + threeceeUserObj.screenName
+        + " | ??? DUP TWEET"
+        + " | FILTER DUPs: " + configuration.filterDuplicateTweets
+        + " [ $: " + tweetIdCache.getStats().keys + " / " + statsObj.twitter.duplicateTweetsReceived + " DUPs ]"
+        + " | " + processedTweetObj.id_str 
+        + " | CURR @" + processedTweetObj.user.screen_name
+        + " | PREV @" + prevTweetUser
+      ));
+    }
+    
+    if (configuration.filterDuplicateTweets) { return; }
+  }
+
+  tweetIdCache.set(processedTweetObj.id_str, processedTweetObj.user.screen_name);
+
+  threeceeUserObj.stats.rateLimited = false;
+
+  twitterStats.meter("tweetsPerSecond").mark();
+  twitterStats.meter("tweetsPerMinute").mark();
+
+  threeceeUserObj.rateMeter.meter("tweetsPerSecond").mark();
+  threeceeUserObj.rateMeter.meter("tweetsPerMinute").mark();
+
+  threeceeUserObj.stats.tweetsPerSecond = threeceeUserObj.rateMeter.toJSON().tweetsPerSecond["1MinuteRate"];
+  threeceeUserObj.stats.tweetsPerMinute = threeceeUserObj.rateMeter.toJSON().tweetsPerMinute["1MinuteRate"];
+
+  statsObj.tweetsReceived+= 1;
+  threeceeUserObj.stats.tweetsReceived += 1;
+
+  if (processedTweetObj.retweeted_status) {
+    statsObj.retweetsReceived += 1;
+    threeceeUserObj.stats.retweetsReceived += 1;
+  }
+
+  if (processedTweetObj.quoted_status) {
+    statsObj.quotedTweetsReceived += 1;
+    threeceeUserObj.stats.quotedTweetsReceived += 1;
+  }
+
+  if (tweetQueue.length < configuration.maxTweetQueue ) {
+    tweetQueue.push(processedTweetObj);
+    statsObj.queues.tweetQueue.size = tweetQueue.length;
+  }
+  else {
+    statsObj.queues.tweetQueue.fullEvents += 1;
+  }
+
+  if ((threeceeUserObj.stats.tweetsReceived % 1000 == 0) || (statsObj.tweetsReceived % 1000 == 0)) {
+    console.log(chalkTwitter("TSS | <T"
+      + " | 3C " + threeceeUserObj.screenName
+      + " | " + threeceeUserObj.stats.tweetsPerMinute.toFixed(3) + " TPM"
+      + " | TQ " + tweetQueue.length
+      + " [ T/R/Q " + statsObj.tweetsReceived + "/" + statsObj.retweetsReceived + "/" + statsObj.quotedTweetsReceived + "]"
+      + " | TW " + processedTweetObj.id_str
+      + " | TLG " + processedTweetObj.lang
+      + " | U " + processedTweetObj.user.id_str
+      + " | @" + processedTweetObj.user.screen_name
+      + " | " + processedTweetObj.user.name
+      + " | ULG " + processedTweetObj.user.lang
+      + " | LOC " + processedTweetObj.user.location
+    ));
+  }
+
+  return processedTweetObj;
+}
+
+const consumer_key = 'ex0jSXayxMOjNm4DZIiic9Nc0'; // Add your API key here
+const consumer_secret = 'I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa'; // Add your API secret key here
+
+
+async function bearerToken () {
+  const requestConfig = {
+    url: bearerTokenURL,
+    auth: {
+      user: consumer_key,
+      pass: consumer_secret,
+    },
+    form: {
+      grant_type: 'client_credentials',
+    },
+  };
+
+  const response = await post(requestConfig);
+  return JSON.parse(response.body).access_token;
+}
+
+async function getAllRules(token) {
+  const requestConfig = {
+    url: rulesURL,
+    auth: {
+      bearer: token
+    }
+  };
+
+  const response = await get(requestConfig);
+  if (response.statusCode !== 200) {
+    throw new Error(response.body);
+  }
+
+  return JSON.parse(response.body);
+}
+
+async function deleteAllRules(rules, token) {
+  if (!Array.isArray(rules.data)) {
+    return null;
+  }
+
+  const ids = rules.data.map(rule => rule.id);
+
+  const requestConfig = {
+    url: rulesURL,
+    auth: {
+      bearer: token
+    },
+    json: {
+      delete: {
+        ids: ids
+      }
+    }
+  };
+
+  const response = await post(requestConfig);
+  if (response.statusCode !== 200) {
+    throw new Error(JSON.stringify(response.body));
+  }
+
+  return response.body;
+}
+
+async function setRules(rules, token) {
+  const requestConfig = {
+    url: rulesURL,
+    auth: {
+      bearer: token
+    },
+    json: {
+      add: rules  
+    }
+  };
+
+  const response = await post(requestConfig);
+  if (response.statusCode !== 201) {
+    throw new Error(JSON.stringify(response.body));
+  }
+
+  return response.body;
+}
+
+function streamConnect(token) {
+  // Listen to the stream
+  const config = {
+    url: 'https://api.twitter.com/labs/1/tweets/stream/filter',
+    auth: {
+      bearer: token,
+    },
+    qs: {
+      format: 'detailed',
+      'user.format': 'detailed',
+      'tweet.format': 'detailed',
+      'place.format': 'detailed',
+      expansions: 'author_id',
+    },
+    timeout: 20000,
+  };
+
+  const stream = request.get(config);
+
+  stream.on("data", async function(data){
+    try {
+
+      const tweetObj = parseJson(data);
+
+      if (configuration.verbose) {
+        console.log(chalkTwitter(MODULE_ID_PREFIX + " | TW"
+          + " | " + tweetObj.data.id
+          + " | CR: " + tcUtils.getTimeStamp(tweetObj.created_at)
+          + " | @" + tweetObj.includes.users[0].username
+          + " | LOC: " + tweetObj.includes.users[0].location
+          + " | FLWRs: " + tweetObj.includes.users[0].stats.followers_count
+          + " | FRNDs: " + tweetObj.includes.users[0].stats.following_count
+          + " | TWs: " + tweetObj.includes.users[0].stats.tweet_count
+          // + "\n" + tcUtils.jsonPrint(tweetObj)
+        ));
+      }
+
+      const validTweet = await checkValidTweet({tweetObj: tweetObj});
+
+      if (validTweet) {
+        const processedTweet = await processTweet({tweetObj: tweetObj});
+      }
+    }
+    catch(err){
+      statsObj.twitter.errors += 1;
+      console.log(chalkWarn(MODULE_ID_PREFIX + " | !!! TWEET JSON PARSE ERROR: " + err));
+    }
+  }).on('error', error => {
+    if (error.code === 'ETIMEDOUT') {
+      stream.emit('timeout');
+    }
+  });
+
+  return stream;
+}
+
+async function initSearchStreamLabs(){
+
+  // { 'value': 'impeach', 'tag': 'impeach'}
+  // { 'value': 'theresistance OR fbr OR followbackresistance', 'tag': 'theresistance' },
+
+  const rules = [];
+
+  let token;
+
+  threeceeUserObj.filter = {};
+  threeceeUserObj.filter.tags = {};
+  threeceeUserObj.filter.tags["trump"] = {};
+  threeceeUserObj.filter.tags["trump"].valuesSet = new Set();
+  threeceeUserObj.filter.tags["trump"].valuesSet.add("trump");
+  threeceeUserObj.filter.tags["trump"].valuesSet.add("donaldtrump");
+  threeceeUserObj.filter.tags["trump"].valuesSet.add("realdonaldtrump");
+  threeceeUserObj.filter.tags["trump"].valuesSet.add("melania");
+  threeceeUserObj.filter.tags["trump"].valuesSet.add("ivanka");
+  threeceeUserObj.filter.tags["trump"].valuesSet.add("melania");
+  threeceeUserObj.filter.tags["trump"].valuesSet.add("potus");
+  threeceeUserObj.filter.tags["trump"].valuesSet.add("drumpf");
+
+  threeceeUserObj.filter.tags["impeach"] = {};
+  threeceeUserObj.filter.tags["impeach"].valuesSet = new Set();
+  threeceeUserObj.filter.tags["impeach"].valuesSet.add("impeach");
+  threeceeUserObj.filter.tags["impeach"].valuesSet.add("impeach45");
+  threeceeUserObj.filter.tags["impeach"].valuesSet.add("impeachtrump");
+
+  threeceeUserObj.filter.tags["government"] = {};
+  threeceeUserObj.filter.tags["government"].valuesSet = new Set();
+  threeceeUserObj.filter.tags["government"].valuesSet.add("congress");
+  threeceeUserObj.filter.tags["government"].valuesSet.add("senate");
+  threeceeUserObj.filter.tags["government"].valuesSet.add("house of representatives");
+  threeceeUserObj.filter.tags["government"].valuesSet.add("the white house");
+  threeceeUserObj.filter.tags["government"].valuesSet.add("the supreme court");
+  threeceeUserObj.filter.tags["government"].valuesSet.add("scotus");
+  threeceeUserObj.filter.tags["government"].valuesSet.add("judiciary");
+  threeceeUserObj.filter.tags["government"].valuesSet.add("executive branch");
+
+  threeceeUserObj.filter.tags["democrats"] = {};
+  threeceeUserObj.filter.tags["democrats"].valuesSet = new Set();
+  threeceeUserObj.filter.tags["democrats"].valuesSet.add("democrats");
+  threeceeUserObj.filter.tags["democrats"].valuesSet.add("dnc");
+  threeceeUserObj.filter.tags["democrats"].valuesSet.add("dems");
+  threeceeUserObj.filter.tags["democrats"].valuesSet.add("democratic party");
+  threeceeUserObj.filter.tags["democrats"].valuesSet.add("pelosi");
+  threeceeUserObj.filter.tags["democrats"].valuesSet.add("aoc");
+  threeceeUserObj.filter.tags["democrats"].valuesSet.add("bernie");
+  threeceeUserObj.filter.tags["democrats"].valuesSet.add("berniesanders");
+  threeceeUserObj.filter.tags["democrats"].valuesSet.add("lizwarren");
+  threeceeUserObj.filter.tags["democrats"].valuesSet.add("warren");
+  threeceeUserObj.filter.tags["democrats"].valuesSet.add("kamala");
+  threeceeUserObj.filter.tags["democrats"].valuesSet.add("cory");
+  threeceeUserObj.filter.tags["democrats"].valuesSet.add("buttigieg");
+  threeceeUserObj.filter.tags["democrats"].valuesSet.add("yanggang");
+
+  threeceeUserObj.filter.tags["republicans"] = {};
+  threeceeUserObj.filter.tags["republicans"].valuesSet = new Set();
+  threeceeUserObj.filter.tags["republicans"].valuesSet.add("republicans");
+  threeceeUserObj.filter.tags["republicans"].valuesSet.add("republican party");
+  threeceeUserObj.filter.tags["republicans"].valuesSet.add("gop");
+  threeceeUserObj.filter.tags["republicans"].valuesSet.add("repub");
+  threeceeUserObj.filter.tags["republicans"].valuesSet.add("repubs");
+  threeceeUserObj.filter.tags["republicans"].valuesSet.add("vpotus");
+  threeceeUserObj.filter.tags["republicans"].valuesSet.add("pence");
+  threeceeUserObj.filter.tags["republicans"].valuesSet.add("mcconnell");
+  threeceeUserObj.filter.tags["republicans"].valuesSet.add("senatemajldr");
+
+  threeceeUserObj.filter.tags["resistance"] = {};
+  threeceeUserObj.filter.tags["resistance"].valuesSet = new Set();
+  threeceeUserObj.filter.tags["resistance"].valuesSet.add("theresistance");
+  threeceeUserObj.filter.tags["resistance"].valuesSet.add("voteblue");
+  threeceeUserObj.filter.tags["resistance"].valuesSet.add("votebluenomatterwho");
+  threeceeUserObj.filter.tags["resistance"].valuesSet.add("followbackresistance");
+  threeceeUserObj.filter.tags["resistance"].valuesSet.add("fbr");
+  threeceeUserObj.filter.tags["resistance"].valuesSet.add("geeksresist");
+  threeceeUserObj.filter.tags["resistance"].valuesSet.add("lawyersresist");
+  threeceeUserObj.filter.tags["resistance"].valuesSet.add("musiciansresist");
+  threeceeUserObj.filter.tags["resistance"].valuesSet.add("neverthelesssheresisted");
+  threeceeUserObj.filter.tags["resistance"].valuesSet.add("resistanceunited");
+  threeceeUserObj.filter.tags["resistance"].valuesSet.add("resisttrump");
+  threeceeUserObj.filter.tags["resistance"].valuesSet.add("resisttogether");
+  threeceeUserObj.filter.tags["resistance"].valuesSet.add("vetsresist");
+  threeceeUserObj.filter.tags["resistance"].valuesSet.add("vetsresistsquadron");
+  threeceeUserObj.filter.tags["resistance"].valuesSet.add("vetsresistsupportsquadron");
+  threeceeUserObj.filter.tags["resistance"].valuesSet.add("wearetheresistance");
+
+  for(const tag of Object.keys(threeceeUserObj.filter.tags)){
+    const value = [...threeceeUserObj.filter.tags[tag].valuesSet].join(" OR ");
+    rules.push({value: value, tag: tag});
+  }
+
+  console.log(chalkInfo("TSS | INIT SEARCH STREAM"
+    + " | @" + threeceeUserObj.screenName
+    + "\n" + jsonPrint(threeceeUserObj.filter)
+    + "\n" + jsonPrint(rules)
+  ));
+
+  try {
+    // Exchange your credentials for a Bearer token
+    token = await bearerToken({consumer_key, consumer_secret});
+  }
+  catch (e) {
+    console.error(`Could not generate a Bearer token. Please check that your credentials are correct and that the Filtered Stream preview is enabled in your Labs dashboard. (${e})`);
+    throw e;
+  }
+
+  try {
+    // Gets the complete list of rules currently applied to the stream
+    const currentRules = await getAllRules(token);
+    
+    // Delete all rules. Comment this line if you want to keep your existing rules.
+    if (currentRules) {
+      // console.log("currentRules: ", currentRules);
+      await deleteAllRules(currentRules, token);
+    }
+
+    // Add rules to the stream. Comment this line if you want to keep your existing rules.
+    await setRules(rules, token);
+    console.log("currentRules: ", currentRules);
+
+  }
+  catch (e) {
+    console.error(e);
+    throw e;
+  }
+
+  // Listen to the stream.
+  // This reconnection logic will attempt to reconnect when a disconnection is detected.
+  // To avoid rate limites, this logic implements exponential backoff, so the wait time
+  // will increase if the client cannot reconnect to the stream.
+
+  const stream = streamConnect(token);
+  let timeout = 0;
+
+  stream.on('timeout', () => {
+    // Reconnect on error
+    console.warn('A connection error occurred. Reconnecting…');
+
+    setTimeout(() => {
+      timeout++;
+      streamConnect(token);
+    }, 2 ** timeout);
+
+    streamConnect(token);
+
+  });
+
+  return;
 }
 
 function initSearchStream(){
@@ -1442,7 +1940,7 @@ function initSearchStream(){
 
           statsObj.twitter.duplicateTweetsReceived += 1;
 
-          if (statsObj.twitter.duplicateTweetsReceived % 1000 == 0){
+          if (statsObj.twitter.duplicateTweetsReceived % 100 == 0){
             console.log(chalkLog("TSS"
               + " | @" + threeceeUserObj.screenName
               + " | ??? DUP TWEET"
@@ -1496,7 +1994,7 @@ function initSearchStream(){
           statsObj.queues.tweetQueue.fullEvents += 1;
         }
 
-        if ((threeceeUserObj.stats.tweetsReceived % 1000 == 0) || (statsObj.tweetsReceived % 1000 == 0)) {
+        if ((threeceeUserObj.stats.tweetsReceived % 100 == 0) || (statsObj.tweetsReceived % 100 == 0)) {
           console.log(chalkTwitter("TSS | <T"
             + " | 3C " + threeceeUserObj.screenName
             + " | " + threeceeUserObj.stats.tweetsPerMinute.toFixed(3) + " TPM"
@@ -2101,6 +2599,11 @@ process.on("message", async function(m) {
     case "QUIT":
       console.log(chalkAlert("TSS | QUIT"));
       quit("PARENT QUIT");
+    break;
+
+    case "VERBOSE":
+      console.log(chalkAlert("TSS | VERBOSE"));
+      configuration.verbose = m.verbose;
     break;
 
     case "INIT":

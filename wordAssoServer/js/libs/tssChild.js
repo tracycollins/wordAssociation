@@ -1994,7 +1994,7 @@ function initSearchStream(){
           statsObj.queues.tweetQueue.fullEvents += 1;
         }
 
-        if ((threeceeUserObj.stats.tweetsReceived % 100 == 0) || (statsObj.tweetsReceived % 100 == 0)) {
+        if ((threeceeUserObj.stats.tweetsReceived % 1000 == 0) || (statsObj.tweetsReceived % 1000 == 0)) {
           console.log(chalkTwitter("TSS | <T"
             + " | 3C " + threeceeUserObj.screenName
             + " | " + threeceeUserObj.stats.tweetsPerMinute.toFixed(3) + " TPM"

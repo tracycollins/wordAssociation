@@ -1580,7 +1580,7 @@ async function generateAutoCategory(p) {
 
     const params = p || {};
 
-    params.binaryMode = params.binaryMode || configuration.binaryMode;
+    const binaryMode = params.binaryMode || configuration.binaryMode;
 
     const user = await tcUtils.updateUserHistograms({user: params.user});
 

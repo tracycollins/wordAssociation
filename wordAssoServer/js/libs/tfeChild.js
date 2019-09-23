@@ -162,7 +162,7 @@ configuration.enableImageAnalysis = true;
 configuration.enableLanguageAnalysis = true;
 configuration.forceLanguageAnalysis = false;
 
-configuration.inputsBinaryMode = true;
+configuration.binaryMode = true;
 configuration.verbose = false;
 configuration.globalTestMode = false;
 configuration.testMode = false; // per tweet test mode
@@ -1572,15 +1572,19 @@ async function initialize(cnf){
   }
 }
 
-async function generateAutoCategory(params) {
+async function generateAutoCategory(p) {
 
   statsObj.status = "GEN AUTO CAT";
 
   try{
 
+    const params = p || {};
+
+    params.binaryMode = params.binaryMode || configuration.binaryMode;
+
     const user = await tcUtils.updateUserHistograms({user: params.user});
 
-    const networkOutput = await nnTools.activateSingleNetwork({user: user});
+    const networkOutput = await nnTools.activateSingleNetwork({user: user, binaryMode: binaryMode});
 
     let text = MODULE_ID_PREFIX + " | ... CAT AUTO MATCH   ";
     let chalkVar = chalkLog;

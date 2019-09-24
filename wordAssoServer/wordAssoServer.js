@@ -9751,12 +9751,16 @@ async function processTwitterSearchNode(params) {
   }
 }
 
-function getNextMismatchedUser(params){
+function getNextSearchNode(params){
 
   return new Promise(function(resolve, reject){
 
     let notFoundAndMore = true;
     let searchUserId;
+
+    const searchNode = params.searchNode;
+    const searchMode = params.searchMode;
+    const searchUserArray = params.searchUserArray;
 
     async.whilst(
 
@@ -9768,61 +9772,120 @@ function getNextMismatchedUser(params){
 
         try {
 
-          if (params.searchUserArray.length == 0){
+          if (searchUserArray.length == 0){
             notFoundAndMore = false;
-            await processTwitterSearchNode({searchNode: params.searchNode});
+            await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode});
             return;
           }
 
-          searchUserId = params.searchUserArray.shift();
+          searchUserId = searchUserArray.shift();
+
+          uncategorizedManualUserSet.delete(searchUserId);
+
           mismatchUserSet.delete(searchUserId);
           statsObj.user.mismatched = mismatchUserSet.size;
+
+          userAutoLeftSet.delete(searchUserId);
+          userAutoNeutralSet.delete(searchUserId);
+          userAutoRightSet.delete(searchUserId);
+
+          statsObj.user.uncategorized.all = uncategorizedManualUserSet.size;
+          statsObj.user.uncategorized.left = _.intersection([...userAutoLeftSet], [...uncategorizedManualUserSet]).length;
+          statsObj.user.uncategorized.neutral = _.intersection([...userAutoNeutralSet], [...uncategorizedManualUserSet]).length;
+          statsObj.user.uncategorized.right = _.intersection([...userAutoRightSet], [...uncategorizedManualUserSet]).length;
 
           const user = await twitterSearchUserNode({nodeId: searchUserId});
 
           if (empty(user)){
+
             if (params.searchUserArray.length > 0) {
               notFoundAndMore = true;
             }
-            console.log(chalkAlert("WAS | ??? MM USER NOT FOUND | " + searchUserId));
+
+            console.log(chalkAlert("WAS | ??? USER NOT FOUND"
+              + " | SEACH MODE: " + searchMode
+              + " | " + searchUserId
+            ));
+
+            return;
+          }
+          else{
+
+            switch (searchMode){
+
+              case "UNCAT":
+                if (user.category && (user.category != "none")){
+                  printUserObj("WAS | ... SKIP SEACH USER | MODE: " + searchMode, user);
+                  notFoundAndMore = true;
+                  break;
+                }
+
+                printUserObj("WAS | --> UNCAT USER", user);
+                await processTwitterSearchNode({searchNode: searchNode, user: user});
+                notFoundAndMore = false;
+              break;
+
+              case "MISMATCH":
+                if ((user.category !== undefined) && (user.category != "none") && user.categoryVerified){
+                  printUserObj("WAS | ... SKIP SEACH USER | MODE: " + searchMode, user);
+                  notFoundAndMore = true;
+                  break;
+                }
+                else if ((user.category !== undefined) && (user.category != "none") && (user.category == user.categoryAuto)){
+                  printUserObj("WAS | ... SKIP SEACH USER | MODE: " + searchMode, user);
+                  notFoundAndMore = true;
+                  break;
+                }
+
+                printUserObj("WAS | --> MM USER", user);
+                await processTwitterSearchNode({searchNode: searchNode, user: user});
+                notFoundAndMore = false;
+              break;
+
+              case "UNCAT_LEFT":
+                if ((user.category && (user.category != "none")) || (user.categoryAuto != "left")){
+                  printUserObj("WAS | ... SKIP SEACH USER | MODE: " + searchMode, user);
+                  notFoundAndMore = true;
+                  break;
+                }
+
+                printUserObj("WAS | --> SEACH USER FOUND | MODE: " + searchMode, user);
+                await processTwitterSearchNode({searchNode: searchNode, user: user});
+                notFoundAndMore = false;
+              break;
+
+              case "UNCAT_NEUTRAL":
+                if ((user.category && (user.category != "none")) || (user.categoryAuto != "neutral")){
+                  printUserObj("WAS | ... SKIP SEACH USER | MODE: " + searchMode, user);
+                  notFoundAndMore = true;
+                  break;
+                }
+
+                printUserObj("WAS | --> SEACH USER FOUND | MODE: " + searchMode, user);
+                await processTwitterSearchNode({searchNode: searchNode, user: user});
+                notFoundAndMore = false;
+              break;
+
+              case "UNCAT_RIGHT":
+                if ((user.category && (user.category != "none")) || (user.categoryAuto != "right")){
+                  printUserObj("WAS | ... SKIP SEACH USER | MODE: " + searchMode, user);
+                  notFoundAndMore = true;
+                  break;
+                }
+
+                printUserObj("WAS | --> SEACH USER FOUND | MODE: " + searchMode, user);
+                await processTwitterSearchNode({searchNode: searchNode, user: user});
+                notFoundAndMore = false;
+              break;
+
+              default:
+                console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR: UNKNOWN SEACH MODE: " + searchMode));
+                quit({cause: "UNKNOWN SEACH MODE: " + searchMode});
+            }
+
             return;
           }
 
-          if ( user 
-            && user.category 
-            && (user.category !== undefined) 
-            && (user.category != "none")
-            && user.categoryVerified
-            && (params.searchUserArray.length > 0)
-          ){
-            printUserObj("WAS | ... SKIP MM USER", user);
-            searchUserId = params.searchUserArray.shift();
-            mismatchUserSet.delete(searchUserId);
-            statsObj.user.mismatched = mismatchUserSet.size;
-            notFoundAndMore = true;
-            return;
-          }
-
-          if ( user 
-            && user.category 
-            && (user.category !== undefined) 
-            && (user.category != "none")
-            && (user.category === user.categoryAuto) 
-            && (params.searchUserArray.length > 0)
-            )
-          {
-            printUserObj("WAS | ... SKIP MM USER", user);
-            searchUserId = params.searchUserArray.shift();
-            mismatchUserSet.delete(searchUserId);
-            statsObj.user.mismatched = mismatchUserSet.size;
-            notFoundAndMore = true;
-            return;
-          }
-
-          printUserObj("WAS | --> MM USER", user);
-          await processTwitterSearchNode({searchNode: params.searchNode, user: user});
-          notFoundAndMore = false;
-          return;
         }
         catch(err){
           return err;
@@ -9832,7 +9895,7 @@ function getNextMismatchedUser(params){
 
       function(err){
         if (err) {
-          console.log(chalkError("WAS | *** getNextMismatchedUser ERROR: " + err + "\n" + jsonPrint(err)));
+          console.log(chalkError("WAS | *** getNextSearchNode ERROR: " + err + "\n" + jsonPrint(err)));
           return reject(err);
         }
         
@@ -9926,75 +9989,74 @@ async function twitterSearchUser(params) {
       return;
     }
 
-    switch (searchMode) {
-      case "MISMATCH":
+    try {
+      await getNextSearchNode({searchMode: searchMode, searchNode: searchNode, searchUserArray: searchUserArray});
+      return;
+    }
+    catch(err){
+      console.log(chalkError("WAS | *** TWITTER_SEARCH_NODE ERROR"
+        + " [ UC USER ARRAY: " + searchUserArray.length + "]"
+        + " | " + getTimeStamp()
+        + " | SEARCH USER"
+        + " | SEARCH MODE: " + searchMode
+        + " | UID: " + searchUserId
+        + " | ERROR: " + err
+      ));
 
-        try {
-          await getNextMismatchedUser({searchNode: searchNode, searchUserArray: searchUserArray});
-          return;
-        }
-        catch(err){
-          console.log(chalkError("WAS | *** TWITTER_SEARCH_NODE ERROR"
-            + " [ UC USER ARRAY: " + searchUserArray.length + "]"
-            + " | " + getTimeStamp()
-            + " | SEARCH UNCATEGORIZED USER"
-            + " | UID: " + searchUserId
-            + " | ERROR: " + err
-          ));
-
-          viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", { searchNode: searchNode, stats: statsObj.user });
-          uncategorizedManualUserSet.delete(searchUserId);
-          ignoredUserSet.add(searchUserId);
-          throw err;
-        }
-
-      case "UNCAT":
-        searchUserId = searchUserArray.shift();
-        uncategorizedManualUserSet.delete(searchUserId);
-        statsObj.user.uncategorized.all = uncategorizedManualUserSet.size;
-      break;
-      case "UNCAT_LEFT":
-        searchUserId = searchUserArray.shift();
-        uncategorizedManualUserSet.delete(searchUserId);
-        userAutoLeftSet.delete(searchUserId);
-        statsObj.user.uncategorized.left = _.intersection([...userAutoLeftSet], [...uncategorizedManualUserSet]).length;
-      break;
-      case "UNCAT_RIGHT":
-        searchUserId = searchUserArray.shift();
-        uncategorizedManualUserSet.delete(searchUserId);
-        userAutoRightSet.delete(searchUserId);
-        statsObj.user.uncategorized.right = _.intersection([...userAutoRightSet], [...uncategorizedManualUserSet]).length;
-      break;
-      case "UNCAT_NEUTRAL":
-        searchUserId = searchUserArray.shift();
-        uncategorizedManualUserSet.delete(searchUserId);
-        userAutoNeutralSet.delete(searchUserId);
-        statsObj.user.uncategorized.neutral = _.intersection([...userAutoNeutralSet], [...uncategorizedManualUserSet]).length;
-      break;
-      default:
-        console.log(chalkError("WAS | *** UNKNOWN searchNodeUser.screenName: " + searchNodeUser.screenName));
-        throw new Error("UNKNOWN searchNodeUser.screenName");
+      viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", { searchNode: searchNode, stats: statsObj.user });
+      uncategorizedManualUserSet.delete(searchUserId);
+      ignoredUserSet.add(searchUserId);
+      throw err;
     }
 
-    console.log(chalkSocket("WAS | TWITTER_SEARCH_NODE"
-      + " | " + getTimeStamp()
-      + " | MODE: " + searchMode
-      + " [ SEARCH USER ARRAY: " + searchUserArray.length + "]"
-      + " | USER NID: " + searchUserId
-    ));
+    // switch (searchMode) {
+    //   case "MISMATCH":
+    //   case "UNCAT":
+    //     searchUserId = searchUserArray.shift();
+    //     uncategorizedManualUserSet.delete(searchUserId);
+    //     statsObj.user.uncategorized.all = uncategorizedManualUserSet.size;
+    //   break;
+    //   case "UNCAT_LEFT":
+    //     searchUserId = searchUserArray.shift();
+    //     uncategorizedManualUserSet.delete(searchUserId);
+    //     userAutoLeftSet.delete(searchUserId);
+    //     statsObj.user.uncategorized.left = _.intersection([...userAutoLeftSet], [...uncategorizedManualUserSet]).length;
+    //   break;
+    //   case "UNCAT_RIGHT":
+    //     searchUserId = searchUserArray.shift();
+    //     uncategorizedManualUserSet.delete(searchUserId);
+    //     userAutoRightSet.delete(searchUserId);
+    //     statsObj.user.uncategorized.right = _.intersection([...userAutoRightSet], [...uncategorizedManualUserSet]).length;
+    //   break;
+    //   case "UNCAT_NEUTRAL":
+    //     searchUserId = searchUserArray.shift();
+    //     uncategorizedManualUserSet.delete(searchUserId);
+    //     userAutoNeutralSet.delete(searchUserId);
+    //     statsObj.user.uncategorized.neutral = _.intersection([...userAutoNeutralSet], [...uncategorizedManualUserSet]).length;
+    //   break;
+    //   default:
+    //     console.log(chalkError("WAS | *** UNKNOWN searchNodeUser.screenName: " + searchNodeUser.screenName));
+    //     throw new Error("UNKNOWN searchNodeUser.screenName");
+    // }
 
-    const user = await twitterSearchUserNode({nodeId: searchUserId});
+    // console.log(chalkSocket("WAS | TWITTER_SEARCH_NODE"
+    //   + " | " + getTimeStamp()
+    //   + " | MODE: " + searchMode
+    //   + " [ SEARCH USER ARRAY: " + searchUserArray.length + "]"
+    //   + " | USER NID: " + searchUserId
+    // ));
 
-    const specificUserFlag = (searchNodeUser.screenName == "?left") || (searchNodeUser.screenName == "?neutral"); 
-    await processTwitterSearchNode({specificUserFlag: specificUserFlag, searchNode: searchNode, user: user});
+    // const user = await twitterSearchUserNode({nodeId: searchUserId});
 
-    return;
+    // const specificUserFlag = (searchNodeUser.screenName == "?left") || (searchNodeUser.screenName == "?neutral"); 
+    // await processTwitterSearchNode({specificUserFlag: specificUserFlag, searchNode: searchNode, user: user});
+
+    // return;
   }      
 
   console.log(chalkInfo("WAS | SEARCH FOR SPECIFIC USER | @" + searchNodeUser.screenName));
 
   try {
-
     const user = await twitterSearchUserNode({screenName: searchNodeUser.screenName});
     await processTwitterSearchNode({specificUserFlag: true, searchNode: searchNode, user: user});
     return;

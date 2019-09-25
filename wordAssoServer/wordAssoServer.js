@@ -9642,6 +9642,8 @@ function uncatUserCacheCheck(nodeId){
 
 async function processTwitterSearchNode(params) {
 
+  let uncatUserCacheHit = false;
+
   if (params.user) {
 
     console.log(chalkBlue("WAS | T> TWITTER_SEARCH_NODE"
@@ -9663,6 +9665,8 @@ async function processTwitterSearchNode(params) {
       }
     }
     else if (categorizeable && !uuObj) { 
+
+      uncatUserCacheHit = false;
 
       const uncatUserObj = {};
 
@@ -9693,6 +9697,8 @@ async function processTwitterSearchNode(params) {
     }
     else{
 
+      uncatUserCacheHit = true;
+
       uuObj.timeStamp = getTimeStamp();
 
       uncatUserCache.set(
@@ -9722,7 +9728,7 @@ async function processTwitterSearchNode(params) {
         u.threeceeFollowing = "altthreecee00";
       }
       // if (!uuObj) { viewNameSpace.emit("SET_TWITTER_USER", { user: u, stats: statsObj.user }); }
-      return u;
+      return {user: u, cacheHit: uncatUserCacheHit};
     }
     else{
       if (ignoredUserSet.has(params.user.nodeId) || ignoredUserSet.has(params.user.screenName.toLowerCase())){
@@ -9733,7 +9739,7 @@ async function processTwitterSearchNode(params) {
         params.user.threeceeFollowing = "altthreecee00";
       }
       // if (!uuObj) { viewNameSpace.emit("SET_TWITTER_USER", { user: params.user, stats: statsObj.user }); }
-      return params.user;
+      return {user: params.user, cacheHit: uncatUserCacheHit};
     }
 
   }
@@ -9746,7 +9752,7 @@ async function processTwitterSearchNode(params) {
 
     viewNameSpace.emit("TWITTER_SEARCH_NODE_NOT_FOUND", { searchNode: params.searchNode, stats: statsObj.user });
 
-    return;
+    return {user: false, cacheHit: uncatUserCacheHit};
 
   }
 }
@@ -9762,6 +9768,8 @@ function getNextSearchNode(params){
     const searchMode = params.searchMode;
     const searchUserArray = params.searchUserArray;
 
+    let searchResults;
+
     async.whilst(
 
       function test(cbTest) {
@@ -9774,7 +9782,7 @@ function getNextSearchNode(params){
 
           if (searchUserArray.length == 0){
             notFoundAndMore = false;
-            await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode});
+            searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode});
             return;
           }
 
@@ -9821,8 +9829,13 @@ function getNextSearchNode(params){
                 }
 
                 printUserObj("WAS | --> UNCAT USER", user);
-                await processTwitterSearchNode({searchNode: searchNode, user: user});
-                notFoundAndMore = false;
+                searchResults = await processTwitterSearchNode({searchNode: searchNode, user: user});
+                if (searchResults.cacheHit) {
+                  notFoundAndMore = true;
+                }
+                else{
+                  notFoundAndMore = false;
+                }
               break;
 
               case "MISMATCH":
@@ -9838,8 +9851,13 @@ function getNextSearchNode(params){
                 }
 
                 printUserObj("WAS | --> MM USER", user);
-                await processTwitterSearchNode({searchNode: searchNode, user: user});
-                notFoundAndMore = false;
+                searchResults = await processTwitterSearchNode({searchNode: searchNode, user: user});
+                if (searchResults.cacheHit) {
+                  notFoundAndMore = true;
+                }
+                else{
+                  notFoundAndMore = false;
+                }
               break;
 
               case "UNCAT_LEFT":
@@ -9850,7 +9868,7 @@ function getNextSearchNode(params){
                 }
 
                 printUserObj("WAS | --> SEACH USER FOUND | MODE: " + searchMode, user);
-                await processTwitterSearchNode({searchNode: searchNode, user: user});
+                searchResults = await processTwitterSearchNode({searchNode: searchNode, user: user});
                 notFoundAndMore = false;
               break;
 
@@ -9862,8 +9880,13 @@ function getNextSearchNode(params){
                 }
 
                 printUserObj("WAS | --> SEACH USER FOUND | MODE: " + searchMode, user);
-                await processTwitterSearchNode({searchNode: searchNode, user: user});
-                notFoundAndMore = false;
+                searchResults = await processTwitterSearchNode({searchNode: searchNode, user: user});
+                if (searchResults.cacheHit) {
+                  notFoundAndMore = true;
+                }
+                else{
+                  notFoundAndMore = false;
+                }
               break;
 
               case "UNCAT_RIGHT":
@@ -9874,8 +9897,13 @@ function getNextSearchNode(params){
                 }
 
                 printUserObj("WAS | --> SEACH USER FOUND | MODE: " + searchMode, user);
-                await processTwitterSearchNode({searchNode: searchNode, user: user});
-                notFoundAndMore = false;
+                searchResults = await processTwitterSearchNode({searchNode: searchNode, user: user});
+                if (searchResults.cacheHit) {
+                  notFoundAndMore = true;
+                }
+                else{
+                  notFoundAndMore = false;
+                }
               break;
 
               default:
@@ -9899,7 +9927,7 @@ function getNextSearchNode(params){
           return reject(err);
         }
         
-        resolve();
+        resolve(searchResults);
       }
     );
   });

@@ -10343,6 +10343,7 @@ async function initWatchConfig(){
 
       if (f.endsWith("bestRuntimeNetwork.json")){
         await loadBestRuntimeNetwork();
+        await updateUserSets();
       }
 
       if (f.endsWith(followableSearchTermFile)){
@@ -10414,8 +10415,8 @@ setTimeout(async function(){
     }
     await initAllowLocations();
     await initIgnoreLocations();
-    await updateUserSets();
     await loadBestRuntimeNetwork();
+    await updateUserSets();
     await loadMaxInputHashMap();
     await initIgnoreWordsHashMap();
     await initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval);

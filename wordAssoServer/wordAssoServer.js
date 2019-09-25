@@ -9869,7 +9869,12 @@ function getNextSearchNode(params){
 
                 printUserObj("WAS | --> SEACH USER FOUND | MODE: " + searchMode, user);
                 searchResults = await processTwitterSearchNode({searchNode: searchNode, user: user});
-                notFoundAndMore = false;
+                if (searchResults.cacheHit) {
+                  notFoundAndMore = true;
+                }
+                else{
+                  notFoundAndMore = false;
+                }
               break;
 
               case "UNCAT_NEUTRAL":

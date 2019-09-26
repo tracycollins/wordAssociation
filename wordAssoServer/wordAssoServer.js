@@ -388,6 +388,7 @@ let hostConfiguration = {}; // host-specific configuration
 configuration.filterVerifiedUsers = true;
 configuration.twitterBearerToken = process.env.TWITTER_BEARER_TOKEN;
 configuration.verbose = false;
+configuration.binaryMode = true;
 configuration.ignoreCategoryRight = DEFAULT_IGNORE_CATEGORY_RIGHT;
 configuration.maxQueue = DEFAULT_MAX_QUEUE;
 configuration.filterDuplicateTweets = DEFAULT_FILTER_DUPLICATE_TWEETS;
@@ -7747,6 +7748,7 @@ async function initTfeChild(params){
     networkObj: bestNetworkObj,
     twitterConfig: threeceeTwitter.twitterConfig,
     maxInputHashMap: maxInputHashMap,
+    binaryMode: configuration.binaryMode,
     normalization: normalization,
     interval: configuration.tfeInterval,
 

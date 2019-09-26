@@ -1740,6 +1740,7 @@ process.on("message", async function(m) {
       process.title = m.title;
 
       configuration.verbose = m.verbose;
+      configuration.binaryMode = configuration.binaryMode || m.binaryMode;
 
       configuration.enableGeoCode = configuration.enableGeoCode || m.enableGeoCode;
       configuration.forceGeoCode = configuration.forceGeoCode || m.forceGeoCode;
@@ -1757,6 +1758,7 @@ process.on("message", async function(m) {
 
       await nnTools.setMaxInputHashMap(m.maxInputHashMap);
       await nnTools.setNormalization(m.normalization);
+      await nnTools.setBinaryMode(configuration.binaryMode);
 
       await tcUtils.setEnableLanguageAnalysis(configuration.enableLanguageAnalysis);
       await tcUtils.setEnableImageAnalysis(configuration.enableImageAnalysis);
@@ -1767,6 +1769,7 @@ process.on("message", async function(m) {
       console.log(chalkInfo("WAS | TFC | INIT"
         + " | TITLE: " + process.title
         + " | NETWORK: " + networkObj.networkId
+        + " | BINARY MODE: " + configuration.binaryMode
         + " | ENABLE GEOCODE: " + configuration.enableGeoCode
         + " | FORCE GEOCODE: " + configuration.forceGeoCode
         + " | ENABLE IMAGE ANALYSIS: " + configuration.enableImageAnalysis

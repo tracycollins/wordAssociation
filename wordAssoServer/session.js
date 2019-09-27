@@ -1668,7 +1668,7 @@ socket.on("TWITTER_SEARCH_NODE_NOT_FOUND", function(message) {
 
   console.log("TWITTER_SEARCH_NODE_NOT_FOUND STATS\n" + jsonPrint(message.stats)); 
 
-  currentSessionView.setStats(message);
+  currentSessionView.setStats(message.stats);
 
 });
 

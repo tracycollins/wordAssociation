@@ -1134,7 +1134,6 @@ function connectDb(){
           console.error.bind(console, "WAS | *** MONGO DB CONNECTION CLOSED ***\n");
           console.log(chalkAlert("WAS | *** MONGO DB CONNECTION CLOSED ***\n"));
           statsObj.dbConnectionReady = false;
-          // quit(statsObj.status);
         });
 
         db.on("error", function(){
@@ -1143,7 +1142,6 @@ function connectDb(){
           console.log(chalkError("WAS | *** MONGO DB CONNECTION ERROR ***\n"));
           db.close();
           statsObj.dbConnectionReady = false;
-          // quit(statsObj.status);
         });
 
         db.on("disconnected", function(){
@@ -1151,7 +1149,6 @@ function connectDb(){
           console.error.bind(console, "WAS | *** MONGO DB DISCONNECTED ***\n");
           console.log(chalkAlert("WAS | *** MONGO DB DISCONNECTED ***\n"));
           statsObj.dbConnectionReady = false;
-          // quit(statsObj.status);
         });
 
         global.globalDbConnection = db;
@@ -1869,6 +1866,7 @@ const ignoreWordHashMap = new HashMap();
 const localHostHashMap = new HashMap();
 
 const statsBestNetworkPickArray = [
+  "networkTechnology",
   "networkId",
   "successRate",
   "matchRate",
@@ -1931,6 +1929,7 @@ function initStats(callback){
   statsObj.user.mismatched = 0;
 
   statsObj.bestNetwork = {};
+  statsObj.bestNetwork.networkTechnology = "";
   statsObj.bestNetwork.networkId = false;
   statsObj.bestNetwork.successRate = false;
   statsObj.bestNetwork.matchRate = false;
@@ -2680,6 +2679,8 @@ configEvents.on("INTERNET_READY", function internetReady() {
         adminNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
         utilNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
         viewNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
+
+        viewNameSpace.volatile.emit("STATS", statsObj.bestNetwork);
 
         heartbeatsSent += 1;
         if (heartbeatsSent % 60 == 0) { logHeartbeat(); }
@@ -6334,7 +6335,7 @@ let heartbeatsSent = 0;
 
 function logHeartbeat() {
 
-  debug(chalkLog("HB " + heartbeatsSent 
+  console.log(chalkLog("HB " + heartbeatsSent 
     + " | " + getTimeStamp() 
     + " | ST: " + getTimeStamp(parseInt(statsObj.startTime)) 
     + " | UP: " + msToTime(statsObj.upTime) 

@@ -19,7 +19,11 @@ function ControlPanel() {
 	console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);
 	var self = this;
 
-	var dashboardMainDiv = document.getElementById('dashboardMainDiv');
+  var dashboardMainDiv = document.getElementById('dashboardMainDiv');
+
+  var statsPanel;
+  var statsPanelDiv = document.createElement("div");
+  statsPanelDiv.id = "statsPanelDiv";
 
   var displayControlHashMap = {};
 
@@ -133,6 +137,9 @@ function ControlPanel() {
   delete config.twitterUser.status;
 
   let statsObj = {};
+
+  statsObj.bestNetwork = {};
+  statsObj.bestNetwork.networkId = false;
 
   statsObj.socketId = "NOT SET";
 
@@ -420,6 +427,15 @@ function ControlPanel() {
     callback();
   }
 
+  function updateStatsPanel(stats, callback){
+    if (!statsPanelDiv) { 
+      console.error("updateStatsPanel: statsPanelDiv UNDEFINED");
+      return callback("updateStatsPanel: statsPanelDiv UNDEFINED");
+    }
+
+    callback();
+  }
+
   function loadTwitterFeed(node, callback) {
 
     if (!twitterTimeLineDiv || (twttr === undefined)) { 
@@ -651,6 +667,21 @@ function ControlPanel() {
         parentWindow.postMessage({op: "NODE_SEARCH", input: "@threecee"}, DEFAULT_SOURCE);
       break;
 
+      case "STATS":
+        if (event.data.stats) {
+          console.debug("SET STATS" 
+            + "\nSTATS\n" + jsonPrint(event.data.stats)
+          );
+          for(const key of Object.keys(event.data.stats)){
+            statsObj[key] = event.data.stats[key];
+          }
+
+          if (statsObj.bestNetwork && statsObj.bestNetwork.networkId) {
+            statsPanel.setValue("NETWORK", statsObj.bestNetwork.networkId);
+          }
+        }
+      break;
+
       case "SET_TWITTER_USER":
 
         if (event.data.user.notFound) {
@@ -772,12 +803,10 @@ function ControlPanel() {
   }
 
   this.createControlPanel = function(callback) {
-
     if (callback) { callback(); }
   };
 
   this.updateControlPanel = function (cfg, callback) {
-
     console.log("UPDATE CONTROL PANEL");
     if (callback) { callback(); }
   };
@@ -808,7 +837,6 @@ function ControlPanel() {
 
 		categoryLabel.appendChild(categoryButton);
 		radioUserCategoryDiv.appendChild(categoryLabel);
-
 	});
 
 	radioUserCategoryDiv.onclick = function(e){
@@ -897,17 +925,29 @@ function ControlPanel() {
     console.log( "CONTROL PANEL DOCUMENT READY" );
     console.log( "CONTROL PANEL CONFIG");
 
+    var positionX = 0;
+    var subPanelWidth = 320;
+
     self.createControlPanel(function(){
 
       setTimeout(function() {  // KLUDGE to insure table is created before update
 
         QuickSettings.useExtStyleSheet();
 
+        // STATS ==================================
+
+        statsPanel = QuickSettings.create(positionX, 0, "STATS", entityCategorizeDiv);
+        positionX += subPanelWidth;
+
+        statsPanel.setWidth(subPanelWidth);
+        statsPanel.addText("NETWORK", statsObj.bestNetwork.networkId);
+
         // DISPLAY ==================================
 
-        displayControl = QuickSettings.create(900, 0, "DISPLAY", entityCategorizeDiv);
+        displayControl = QuickSettings.create(positionX, 0, "DISPLAY", entityCategorizeDiv);
+        positionX += subPanelWidth;
 
-        displayControl.setWidth(300);
+        displayControl.setWidth(subPanelWidth);
 
         rangeInputs.forEach(function(rangeInput){
           createRangeInput({name: rangeInput});
@@ -915,9 +955,10 @@ function ControlPanel() {
 
         // TWITTER USER CONTROL ==================================
 
-        twitterControl = QuickSettings.create(600, 0, "CONTROL", entityCategorizeDiv);
+        twitterControl = QuickSettings.create(positionX, 0, "CONTROL", entityCategorizeDiv);
+        positionX += subPanelWidth;
 
-        twitterControl.setWidth(300);
+        twitterControl.setWidth(subPanelWidth);
 
         let following = false;
         if (twitterFeedUser && twitterFeedUser.following !== undefined) {
@@ -1001,8 +1042,11 @@ function ControlPanel() {
 
         // TWITTER ENTITY ==================================
 
-        twitterEntity = QuickSettings.create(0, 0, "ENTITY", entityCategorizeDiv);
-        twitterEntity.setWidth(300);
+        twitterEntity = QuickSettings.create(positionX, 0, "ENTITY", entityCategorizeDiv);
+
+        positionX += subPanelWidth;
+
+        twitterEntity.setWidth(subPanelWidth);
 
         const nodeId = (twitterFeedUser) ? twitterFeedUser.nodeId : "";
         twitterEntity.addText("NODE ID", nodeId);
@@ -1063,7 +1107,10 @@ function ControlPanel() {
 
         // TWITTER USER TIMELINE ==================================
 
-				twitterTimeLine = QuickSettings.create(300, 	0, "TIMELINE", entityCategorizeDiv);
+				twitterTimeLine = QuickSettings.create(positionX, 	0, "TIMELINE", entityCategorizeDiv);
+
+        positionX += subPanelWidth;
+
 				twitterTimeLine.setWidth(300);
 
         const tweetsPerDay = (twitterFeedUser && ageMs) ? ONE_DAY * (twitterFeedUser.statusesCount/ageMs) : 0;

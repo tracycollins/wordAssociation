@@ -1655,6 +1655,20 @@ socket.on("TWITTER_SEARCH_NODE_EMPTY_QUEUE", function(message) {
   console.log("<R STATS\n" + jsonPrint(message.stats)); 
 
   currentSessionView.setTwitterUser(message);
+});
+
+socket.on("TWITTER_SEARCH_NODE_NOT_FOUND", function(message) {
+
+  statsObj.serverConnected = true;
+  statsObj.socket.connected = true;
+
+  console.log("<R TWITTER_SEARCH_NODE_NOT_FOUND" 
+    + "|  SEARCH NODE: " + message.searchNode
+  );
+
+  console.log("TWITTER_SEARCH_NODE_NOT_FOUND STATS\n" + jsonPrint(message.stats)); 
+
+  currentSessionView.setStats(message);
 
 });
 
@@ -1687,7 +1701,6 @@ socket.on("SET_TWITTER_USER", function(message) {
   }
 
   currentSessionView.setTwitterUser(message);
-
 });
 
 socket.on("SET_TWITTER_HASHTAG", function(message) {
@@ -1706,7 +1719,6 @@ socket.on("SET_TWITTER_HASHTAG", function(message) {
   console.log("SET_TWITTER_HASHTAG STATS\n" + jsonPrint(message.stats)); 
 
   currentSessionView.setTwitterHashtag(message);
-
 });
 
 socket.on("TWITTER_TOPTERM_1MIN", function(top10obj) {

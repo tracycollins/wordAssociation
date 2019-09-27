@@ -934,25 +934,6 @@ function ControlPanel() {
 
         QuickSettings.useExtStyleSheet();
 
-        // STATS ==================================
-
-        statsPanel = QuickSettings.create(positionX, 0, "STATS", entityCategorizeDiv);
-        positionX += subPanelWidth;
-
-        statsPanel.setWidth(subPanelWidth);
-        statsPanel.addText("NETWORK", statsObj.bestNetwork.networkId);
-
-        // DISPLAY ==================================
-
-        displayControl = QuickSettings.create(positionX, 0, "DISPLAY", entityCategorizeDiv);
-        positionX += subPanelWidth;
-
-        displayControl.setWidth(subPanelWidth);
-
-        rangeInputs.forEach(function(rangeInput){
-          createRangeInput({name: rangeInput});
-        });
-
         // TWITTER USER CONTROL ==================================
 
         twitterControl = QuickSettings.create(positionX, 0, "CONTROL", entityCategorizeDiv);
@@ -1124,6 +1105,26 @@ function ControlPanel() {
 
         twitterEntity.setGlobalChangeHandler(function(data){
         });
+
+        // STATS ==================================
+
+        statsPanel = QuickSettings.create(positionX, 0, "STATS", entityCategorizeDiv);
+        positionX += subPanelWidth;
+
+        statsPanel.setWidth(subPanelWidth);
+        statsPanel.addText("NETWORK", statsObj.bestNetwork.networkId);
+
+        // DISPLAY ==================================
+
+        displayControl = QuickSettings.create(positionX, 0, "DISPLAY", entityCategorizeDiv);
+        positionX += subPanelWidth;
+
+        displayControl.setWidth(subPanelWidth);
+
+        rangeInputs.forEach(function(rangeInput){
+          createRangeInput({name: rangeInput});
+        });
+
 
         self.updateControlPanel(config, function(){
 

@@ -1586,7 +1586,7 @@ async function generateAutoCategory(p) {
 
     const networkOutput = await nnTools.activateSingleNetwork({user: user, binaryMode: binaryMode});
 
-    let text = MODULE_ID_PREFIX + " | ... CAT AUTO MATCH   ";
+    let text = MODULE_ID_PREFIX + " | ->- CAT AUTO SET     ";
     let chalkVar = chalkLog;
 
     if (user.category && (networkOutput.categoryAuto == user.category)) {
@@ -1600,7 +1600,7 @@ async function generateAutoCategory(p) {
       statsObj.autoChangeTotal += 1;
       statsObj.autoChangeMismatch += 1;
       statsObj.autoChangeMatchRate = 100*(statsObj.autoChangeMatch/statsObj.autoChangeTotal);
-      text = MODULE_ID_PREFIX + " | --- CAT AUTO MISMATCH";
+      text = MODULE_ID_PREFIX + " | -X- CAT AUTO MISMATCH";
       chalkVar = chalk.yellow;
     }
 

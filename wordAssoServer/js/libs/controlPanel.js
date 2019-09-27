@@ -708,6 +708,8 @@ function ControlPanel() {
           if (statsObj.bestNetwork && statsObj.bestNetwork.networkId) {
             statsPanel.setValue("NETWORK", statsObj.bestNetwork.networkId);
           }
+
+          updateCategoryStats(event.data.stats);
         }
       break;
 

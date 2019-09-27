@@ -1563,6 +1563,9 @@ socket.on("authenticated", function() {
   initViewerReadyInterval(config.viewerReadyInterval);
 });
 
+const sSmall = {};
+sSmall.bestNetwork = {};
+
 socket.on("HEARTBEAT", function(hb) {
 
   resetServerActiveTimer();
@@ -1577,7 +1580,25 @@ socket.on("HEARTBEAT", function(hb) {
   statsObj.socket.connected = true;
   lastHeartbeatReceived = Date.now();
 
+  sSmall.bestNetwork = hb.bestNetwork;
+
+  if (currentSessionView) { currentSessionView.setStats(sSmall); }
+
 });
+
+socket.on("STATS", function(message) {
+
+  statsObj.serverConnected = true;
+  statsObj.socket.connected = true;
+
+  console.log("<R STATS" 
+    + "\n" + jsonPrint(message.stats)
+  );
+
+  if (currentSessionView) { currentSessionView.setStats(message); }
+
+});
+
 
 socket.on("CONFIG_CHANGE", function(rxConfig) {
 

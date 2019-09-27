@@ -473,7 +473,24 @@ function ViewTreepack() {
   };
 
   d3.select("body").style("cursor", "default");
-  
+
+  this.setStats = function(stats) {
+
+    console.log("setStats"
+      + "\nSTATS\n" + jsonPrint(stats)
+    ); 
+
+    if (controlPanelReadyFlag){ 
+      controlPanelWindow.postMessage(
+        {
+          op: "STATS", 
+          stats: stats
+        }, 
+        DEFAULT_SOURCE
+      );
+    }
+  };
+
   self.setEnableAgeNodes = function(enabled) {
     enableAgeNodes = enabled;
     config.enableAgeNodes = enabled;
@@ -544,7 +561,6 @@ function ViewTreepack() {
   };
 
   this.setTwitterHashtag = function(message) {
-
 
     if (message.hashtag.notFound !== undefined) { 
       console.log("setTwitterHashtag"

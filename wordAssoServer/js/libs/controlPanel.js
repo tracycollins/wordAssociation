@@ -594,6 +594,35 @@ function ControlPanel() {
   this.setFontSizeRatioMax = function (value) {};
   this.setFontSizeRatio = function (value) {};
 
+  function updateCategoryStats(stats){
+    if (stats && stats.uncategorized) {
+    
+      statsObj.uncategorized = {};
+      statsObj.uncategorized = stats.uncategorized;
+      statsObj.mismatched = stats.mismatched;
+
+      console.debug("SET TWITTER USER\nstats" + jsonPrint(stats));
+
+      ["left", "right", "neutral", "all"].forEach(function(cat){
+        if (stats.uncategorized[cat] !== undefined) {
+          const currentButton = document.getElementById("NEXT UNCAT " + cat.toUpperCase());
+          currentButton.value = stats.uncategorized[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
+          console.debug("NET UNCAT " + cat.toUpperCase() + " | value: " + currentButton.value); 
+        }
+      });
+
+      if (stats.mismatched !== undefined) {
+        const currentButton = document.getElementById("NEXT MISMATCH");
+        currentButton.value = stats.mismatched.toString() + " | NEXT MISMATCH";
+        console.debug("NEXT UNCAT MISMATCH | value: " + currentButton.value); 
+      }
+      return;
+    }
+    else{
+      return;
+    }
+  }
+
   function receiveMessage(event){
     // Do we trust the sender of this message?
     if (event.origin !== DEFAULT_SOURCE){
@@ -691,25 +720,26 @@ function ControlPanel() {
             + "\nSTATS\n" + jsonPrint(event.data.stats)
           );
 
-          if (event.data.stats && event.data.stats.uncategorized) {
-            statsObj.uncategorized = {};
-            statsObj.uncategorized = event.data.stats.uncategorized;
-            statsObj.mismatched = event.data.stats.mismatched;
+          updateCategoryStats(event.data.stats);
+          // if (event.data.stats && event.data.stats.uncategorized) {
+          //   statsObj.uncategorized = {};
+          //   statsObj.uncategorized = event.data.stats.uncategorized;
+          //   statsObj.mismatched = event.data.stats.mismatched;
 
-            ["left", "right", "neutral", "all"].forEach(function(cat){
-              if (event.data.stats.uncategorized[cat] !== undefined) {
-                const currentButton = document.getElementById("NEXT UNCAT " + cat.toUpperCase());
-                currentButton.value = event.data.stats.uncategorized[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
-                console.debug("NEXT UNCAT " + cat.toUpperCase() + " | value: " + currentButton.value); 
-              }
-            });
+          //   ["left", "right", "neutral", "all"].forEach(function(cat){
+          //     if (event.data.stats.uncategorized[cat] !== undefined) {
+          //       const currentButton = document.getElementById("NEXT UNCAT " + cat.toUpperCase());
+          //       currentButton.value = event.data.stats.uncategorized[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
+          //       console.debug("NEXT UNCAT " + cat.toUpperCase() + " | value: " + currentButton.value); 
+          //     }
+          //   });
 
-            if (event.data.stats.mismatched !== undefined) {
-              const currentButton = document.getElementById("NEXT MISMATCH");
-              currentButton.value = event.data.stats.mismatched.toString() + " | NEXT MISMATCH";
-              console.debug("NEXT UNCAT MISMATCH | value: " + currentButton.value); 
-            }
-          }
+          //   if (event.data.stats.mismatched !== undefined) {
+          //     const currentButton = document.getElementById("NEXT MISMATCH");
+          //     currentButton.value = event.data.stats.mismatched.toString() + " | NEXT MISMATCH";
+          //     console.debug("NEXT UNCAT MISMATCH | value: " + currentButton.value); 
+          //   }
+          // }
 
           break;
         }
@@ -733,28 +763,29 @@ function ControlPanel() {
 			    + "\n profileImageUrl: " + currentTwitterNode.profileImageUrl
         );
 
-        if (event.data.stats && event.data.stats.uncategorized) {
+        updateCategoryStats(event.data.stats);
+        // if (event.data.stats && event.data.stats.uncategorized) {
         
-          statsObj.uncategorized = {};
-          statsObj.uncategorized = event.data.stats.uncategorized;
-          statsObj.mismatched = event.data.stats.mismatched;
+        //   statsObj.uncategorized = {};
+        //   statsObj.uncategorized = event.data.stats.uncategorized;
+        //   statsObj.mismatched = event.data.stats.mismatched;
 
-          console.debug("SET TWITTER USER\nstats" + jsonPrint(event.data.stats));
+        //   console.debug("SET TWITTER USER\nstats" + jsonPrint(event.data.stats));
 
-          ["left", "right", "neutral", "all"].forEach(function(cat){
-            if (event.data.stats.uncategorized[cat] !== undefined) {
-              const currentButton = document.getElementById("NEXT UNCAT " + cat.toUpperCase());
-              currentButton.value = event.data.stats.uncategorized[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
-              console.debug("NET UNCAT " + cat.toUpperCase() + " | value: " + currentButton.value); 
-            }
-          });
+        //   ["left", "right", "neutral", "all"].forEach(function(cat){
+        //     if (event.data.stats.uncategorized[cat] !== undefined) {
+        //       const currentButton = document.getElementById("NEXT UNCAT " + cat.toUpperCase());
+        //       currentButton.value = event.data.stats.uncategorized[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
+        //       console.debug("NET UNCAT " + cat.toUpperCase() + " | value: " + currentButton.value); 
+        //     }
+        //   });
 
-          if (event.data.stats.mismatched !== undefined) {
-            const currentButton = document.getElementById("NEXT MISMATCH");
-            currentButton.value = event.data.stats.mismatched.toString() + " | NEXT MISMATCH";
-            console.debug("NEXT UNCAT MISMATCH | value: " + currentButton.value); 
-          }
-        }
+        //   if (event.data.stats.mismatched !== undefined) {
+        //     const currentButton = document.getElementById("NEXT MISMATCH");
+        //     currentButton.value = event.data.stats.mismatched.toString() + " | NEXT MISMATCH";
+        //     console.debug("NEXT UNCAT MISMATCH | value: " + currentButton.value); 
+        //   }
+        // }
 
         if (event.data.nodeSearch) {
           console.debug("NODE_SEARCH on SET_TWITTER_USER USER" 

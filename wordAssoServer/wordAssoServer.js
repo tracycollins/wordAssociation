@@ -9708,11 +9708,11 @@ async function processTwitterSearchNode(params) {
 
       uuObj.timeStamp = getTimeStamp();
 
-      uncatUserCache.set(
-        params.user.nodeId, 
-        uuObj,
-        configuration.uncatUserCacheTtl
-      );
+      // uncatUserCache.set(
+      //   params.user.nodeId, 
+      //   uuObj,
+      //   configuration.uncatUserCacheTtl
+      // );
 
       console.log(chalkBlue(MODULE_ID_PREFIX
         + " | +++ HIT  | UNCAT USER $"
@@ -9837,6 +9837,7 @@ function getNextSearchNode(params){
 
                 printUserObj("WAS | --> UNCAT USER", user);
                 searchResults = await processTwitterSearchNode({searchNode: searchNode, user: user});
+
                 if (searchResults.cacheHit) {
                   notFoundAndMore = true;
                 }
@@ -9876,12 +9877,12 @@ function getNextSearchNode(params){
 
                 printUserObj("WAS | --> SEACH USER FOUND | MODE: " + searchMode, user);
                 searchResults = await processTwitterSearchNode({searchNode: searchNode, user: user});
-                if (searchResults.cacheHit) {
-                  notFoundAndMore = true;
-                }
-                else{
+                // if (searchResults.cacheHit) {
+                //   notFoundAndMore = true;
+                // }
+                // else{
                   notFoundAndMore = false;
-                }
+                // }
               break;
 
               case "UNCAT_NEUTRAL":
@@ -9893,12 +9894,12 @@ function getNextSearchNode(params){
 
                 printUserObj("WAS | --> SEACH USER FOUND | MODE: " + searchMode, user);
                 searchResults = await processTwitterSearchNode({searchNode: searchNode, user: user});
-                if (searchResults.cacheHit) {
-                  notFoundAndMore = true;
-                }
-                else{
+                // if (searchResults.cacheHit) {
+                //   notFoundAndMore = true;
+                // }
+                // else{
                   notFoundAndMore = false;
-                }
+                // }
               break;
 
               case "UNCAT_RIGHT":
@@ -10048,50 +10049,6 @@ async function twitterSearchUser(params) {
       ignoredUserSet.add(searchUserId);
       throw err;
     }
-
-    // switch (searchMode) {
-    //   case "MISMATCH":
-    //   case "UNCAT":
-    //     searchUserId = searchUserArray.shift();
-    //     uncategorizedManualUserSet.delete(searchUserId);
-    //     statsObj.user.uncategorized.all = uncategorizedManualUserSet.size;
-    //   break;
-    //   case "UNCAT_LEFT":
-    //     searchUserId = searchUserArray.shift();
-    //     uncategorizedManualUserSet.delete(searchUserId);
-    //     userAutoLeftSet.delete(searchUserId);
-    //     statsObj.user.uncategorized.left = _.intersection([...userAutoLeftSet], [...uncategorizedManualUserSet]).length;
-    //   break;
-    //   case "UNCAT_RIGHT":
-    //     searchUserId = searchUserArray.shift();
-    //     uncategorizedManualUserSet.delete(searchUserId);
-    //     userAutoRightSet.delete(searchUserId);
-    //     statsObj.user.uncategorized.right = _.intersection([...userAutoRightSet], [...uncategorizedManualUserSet]).length;
-    //   break;
-    //   case "UNCAT_NEUTRAL":
-    //     searchUserId = searchUserArray.shift();
-    //     uncategorizedManualUserSet.delete(searchUserId);
-    //     userAutoNeutralSet.delete(searchUserId);
-    //     statsObj.user.uncategorized.neutral = _.intersection([...userAutoNeutralSet], [...uncategorizedManualUserSet]).length;
-    //   break;
-    //   default:
-    //     console.log(chalkError("WAS | *** UNKNOWN searchNodeUser.screenName: " + searchNodeUser.screenName));
-    //     throw new Error("UNKNOWN searchNodeUser.screenName");
-    // }
-
-    // console.log(chalkSocket("WAS | TWITTER_SEARCH_NODE"
-    //   + " | " + getTimeStamp()
-    //   + " | MODE: " + searchMode
-    //   + " [ SEARCH USER ARRAY: " + searchUserArray.length + "]"
-    //   + " | USER NID: " + searchUserId
-    // ));
-
-    // const user = await twitterSearchUserNode({nodeId: searchUserId});
-
-    // const specificUserFlag = (searchNodeUser.screenName == "?left") || (searchNodeUser.screenName == "?neutral"); 
-    // await processTwitterSearchNode({specificUserFlag: specificUserFlag, searchNode: searchNode, user: user});
-
-    // return;
   }      
 
   console.log(chalkInfo("WAS | SEARCH FOR SPECIFIC USER | @" + searchNodeUser.screenName));

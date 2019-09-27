@@ -196,11 +196,11 @@
   box-sizing: border-box;
   width: 100%;
   padding: 0 0 0 5px;
-  height: 14px;
+  height: 24px;
   border: 1px inset #ffffff;
   background-color: #ffffff;
   color: #000000;
-  font-size: 11px;
+  font-size: 14px;
 }
 .qs_text_input:focus {
   outline: none;

@@ -9883,6 +9883,7 @@ function getNextSearchNode(params){
                 // else{
                   notFoundAndMore = false;
                 // }
+                viewNameSpace.emit("SET_TWITTER_USER", { user: user, stats: statsObj.user });
               break;
 
               case "UNCAT_NEUTRAL":
@@ -9900,6 +9901,7 @@ function getNextSearchNode(params){
                 // else{
                   notFoundAndMore = false;
                 // }
+                viewNameSpace.emit("SET_TWITTER_USER", { user: user, stats: statsObj.user });
               break;
 
               case "UNCAT_RIGHT":

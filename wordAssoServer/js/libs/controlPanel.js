@@ -698,9 +698,9 @@ function ControlPanel() {
 
       case "STATS":
         if (event.data.stats) {
-          console.debug("SET STATS" 
-            + "\nSTATS\n" + jsonPrint(event.data.stats)
-          );
+          // console.debug("SET STATS" 
+          //   + "\nSTATS\n" + jsonPrint(event.data.stats)
+          // );
           for(const key of Object.keys(event.data.stats)){
             statsObj[key] = event.data.stats[key];
           }
@@ -721,25 +721,6 @@ function ControlPanel() {
           );
 
           updateCategoryStats(event.data.stats);
-          // if (event.data.stats && event.data.stats.uncategorized) {
-          //   statsObj.uncategorized = {};
-          //   statsObj.uncategorized = event.data.stats.uncategorized;
-          //   statsObj.mismatched = event.data.stats.mismatched;
-
-          //   ["left", "right", "neutral", "all"].forEach(function(cat){
-          //     if (event.data.stats.uncategorized[cat] !== undefined) {
-          //       const currentButton = document.getElementById("NEXT UNCAT " + cat.toUpperCase());
-          //       currentButton.value = event.data.stats.uncategorized[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
-          //       console.debug("NEXT UNCAT " + cat.toUpperCase() + " | value: " + currentButton.value); 
-          //     }
-          //   });
-
-          //   if (event.data.stats.mismatched !== undefined) {
-          //     const currentButton = document.getElementById("NEXT MISMATCH");
-          //     currentButton.value = event.data.stats.mismatched.toString() + " | NEXT MISMATCH";
-          //     console.debug("NEXT UNCAT MISMATCH | value: " + currentButton.value); 
-          //   }
-          // }
 
           break;
         }
@@ -764,28 +745,6 @@ function ControlPanel() {
         );
 
         updateCategoryStats(event.data.stats);
-        // if (event.data.stats && event.data.stats.uncategorized) {
-        
-        //   statsObj.uncategorized = {};
-        //   statsObj.uncategorized = event.data.stats.uncategorized;
-        //   statsObj.mismatched = event.data.stats.mismatched;
-
-        //   console.debug("SET TWITTER USER\nstats" + jsonPrint(event.data.stats));
-
-        //   ["left", "right", "neutral", "all"].forEach(function(cat){
-        //     if (event.data.stats.uncategorized[cat] !== undefined) {
-        //       const currentButton = document.getElementById("NEXT UNCAT " + cat.toUpperCase());
-        //       currentButton.value = event.data.stats.uncategorized[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
-        //       console.debug("NET UNCAT " + cat.toUpperCase() + " | value: " + currentButton.value); 
-        //     }
-        //   });
-
-        //   if (event.data.stats.mismatched !== undefined) {
-        //     const currentButton = document.getElementById("NEXT MISMATCH");
-        //     currentButton.value = event.data.stats.mismatched.toString() + " | NEXT MISMATCH";
-        //     console.debug("NEXT UNCAT MISMATCH | value: " + currentButton.value); 
-        //   }
-        // }
 
         if (event.data.nodeSearch) {
           console.debug("NODE_SEARCH on SET_TWITTER_USER USER" 

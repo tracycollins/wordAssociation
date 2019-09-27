@@ -2680,7 +2680,11 @@ configEvents.on("INTERNET_READY", function internetReady() {
         utilNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
         viewNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
 
-        viewNameSpace.volatile.emit("STATS", statsObj.bestNetwork);
+        const sObj = {};
+        sObj.user = statsObj.user;
+        sObj.bestNetwork = statsObj.bestNetwork;
+
+        viewNameSpace.volatile.emit("STATS", sObj);
 
         heartbeatsSent += 1;
         if (heartbeatsSent % 60 == 0) { logHeartbeat(); }
@@ -2695,7 +2699,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
           ));
         }
       }
-    }, 1000);
+    }, 15000);
   }
 
   initAppRouting(function initAppRoutingComplete() {

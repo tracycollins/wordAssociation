@@ -1676,7 +1676,7 @@ async function processUser(params) {
     prevPropsUser.markModified("tweets");
     prevPropsUser.markModified("latestTweets");
 
-    await prevPropsUser.save().exec();
+    await prevPropsUser.save();
 
     if (configuration.verbose){
       console.log(chalkLog(MODULE_ID_PREFIX + " | >>> SAVED USER"

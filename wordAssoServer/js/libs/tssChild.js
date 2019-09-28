@@ -186,7 +186,6 @@ configuration.twitterFollowLimitTimeout = 15*ONE_MINUTE;
 
 configuration.twitterConfig = {};
 
-
 const threeceeUserObj = {};
 
 threeceeUserObj.twitterConfig = {};

@@ -8,6 +8,8 @@ const ONE_DAY = 24 * ONE_HOUR;
 
 const DEFAULT_START_TIMEOUT = ONE_MINUTE;
 
+const DEFAULT_BINARY_MODE = true;
+
 let saveSampleTweetFlag = true;
 
 const os = require("os");
@@ -388,7 +390,7 @@ let hostConfiguration = {}; // host-specific configuration
 configuration.filterVerifiedUsers = true;
 configuration.twitterBearerToken = process.env.TWITTER_BEARER_TOKEN;
 configuration.verbose = false;
-configuration.binaryMode = true;
+configuration.binaryMode = DEFAULT_BINARY_MODE;
 configuration.ignoreCategoryRight = DEFAULT_IGNORE_CATEGORY_RIGHT;
 configuration.maxQueue = DEFAULT_MAX_QUEUE;
 configuration.filterDuplicateTweets = DEFAULT_FILTER_DUPLICATE_TWEETS;
@@ -1172,26 +1174,6 @@ function connectDb(){
         neuralNetworkCollection.countDocuments(function(err, count){
           if (err) { throw Error; }
           console.log(chalkInfo("WAS | NEURAL NETWORKS IN DB: " + count));
-        });
-
-        const filterNetwork = {
-          "$match": {
-            "$or": [{ operationType: "insert" },{ operationType: "delete" },{ operationType: "update" },{ operationType: "replace" }]
-          }
-        };
-        
-        const optionsNetwork = { fullDocument: "updateLookup" };
-
-        neuralNetworkChangeStream = neuralNetworkCollection.watch([filterNetwork], optionsNetwork);
-
-        neuralNetworkChangeStream.on("change", function(change){
-          if (change && change.fullDocument) { 
-            const nn = networkDefaults(change.fullDocument); 
-            printNetworkObj("WAS | --> NN   CHANGE | " + change.operationType, nn);
-          }
-          else {
-            console.log(chalkLog("WAS | --> NN   CHANGE | " + change.operationType));
-          }
         });
 
         const sessionId = btoa("threecee");
@@ -3656,7 +3638,7 @@ async function categoryVerified(params) {
 
     dbUser.categoryVerified = params.user.categoryVerified;
 
-    const dbUpdatedUser = await dbUser.save();
+    const dbUpdatedUser = await dbUser.save().exec();
 
     printUserObj(
       "UPDATE DB USER | CAT VERIFIED [" + verifiedCategorizedUsersSet.size + "]",
@@ -3840,7 +3822,7 @@ async function updateDbIgnoredHashtags(){
 
           dbHashtag.ignored = true;
 
-          const dbUpdatedHashtag = await dbHashtag.save();
+          const dbUpdatedHashtag = await dbHashtag.save().exec();
 
           console.log(chalkLog("WAS | XXX IGNORE"
             + " [" + ignoredHashtagSet.size + "]"
@@ -3941,89 +3923,6 @@ async function initSetFromFile(params){
     throw err;
   }
 }
-
-// function updateDbVerifiedUsers(){
-
-//   return new Promise(function(resolve, reject){
-
-//     statsObj.status = "UPDATE VERIFIED CATEGORIZED USERS IN DB";
-
-//     console.log(chalkBlue("WAS | ... UPDATING VERIFIED VERIFIED USERS DB" 
-//     ));
-
-//     async.eachSeries([...verifiedCategorizedUsersSet], async function(screenName){
-
-//       try {
-
-//         const dbUser = await global.globalUser.findOne({screenName: screenName.toLowerCase()}).exec();
-
-//         if (empty(dbUser)) {
-//           console.log(chalkWarn("WAS | ??? UPDATE VERIFIED | USER NOT FOUND: " + screenName.toLowerCase()));
-//           return;
-//         }
-
-//         dbUser.categoryVerified = true;
-
-//         const dbUpdatedUser = await dbUser.save();
-
-//         if (configuration.verbose || configuration.testMode){
-//           printUserObj(
-//             "+++ USER | VERIFIED",
-//             dbUpdatedUser, 
-//             chalkLog
-//           );
-//         }
-
-//       }
-//       catch(err){
-//         return err;
-//       }
-
-//     }, function(err){
-//       if (err) { 
-//         console.log(chalkError("WAS | *** UPDATE VERIFIED USERS DB ERROR: " + err));
-//         return reject(err);
-//       }
-//       console.log(chalkBlue("WAS | +++ UPDATED VERIFIED USERS DB" 
-//       ));
-//       resolve();
-//     });
-
-//   });
-// }
-
-// async function initVerifiedCategorizedUsersSet(){
-
-//   statsObj.status = "INIT VERIFIED CATEGORIZED USERS SET";
-
-//   console.log(chalkBlue("WAS | INIT VERIFIED CATEGORIZED USERS SET: " + configDefaultFolder 
-//     + "/" + verifiedCategorizedUsersFile
-//   ));
-
-//   try {
-
-//     const result = await initSetFromFile({folder: configDefaultFolder, file: verifiedCategorizedUsersFile, resolveOnNotFound: true});
-
-//     if (result) {
-//       verifiedCategorizedUsersSet = result;
-//       verifiedCategorizedUsersSet.delete("");
-//       verifiedCategorizedUsersSet.delete(" ");
-//       await updateDbVerifiedUsers();
-//     }
-
-//     console.log(chalkLog("WAS | LOADED VERIFIED CATEGORIZED USERS FILE"
-//       + " | " + verifiedCategorizedUsersSet.size + " USERS"
-//       + " | " + configDefaultFolder + "/" + verifiedCategorizedUsersFile
-//     ));
-
-//     return;
-
-//   }
-//   catch(err){
-//     console.log(chalkError("WAS | *** INIT VERIFIED CATEGORIZED USERS SET ERROR: " + err));
-//     throw err;
-//   }
-// }
 
 async function saveUncatUserCache(){
 
@@ -5799,15 +5698,6 @@ function updateUserSets(){
     const cursorStartTime = moment().valueOf();
 
     userSearchCursor.on("data", async function(user) {
-
-      // const uncatUserObj = uncatUserCache.get(user.nodeId);
-
-      // if (!user.categoryVerified && (uncatUserObj != undefined)){
-      //   debug("--- SKIP ADD USER TO SETS | UNCAT CACHE HIT"
-      //     + " | " + uncatUserObj.timeStamp
-      //     + " | @" + uncatUserObj.screenName
-      //   );
-      // }
       
       if (user.lang && (user.lang !== undefined) && (user.lang != "en")){
 
@@ -8379,7 +8269,7 @@ async function loadBestRuntimeNetwork(p){
       }
     }
 
-    const nnArray = await global.globalNeuralNetwork.find({"matchRate": { $lt: 100 }}).sort({"matchRate": -1}).limit(1).exec();
+    const nnArray = await global.globalNeuralNetwork.find({"overallMatchRate": { $lt: 100 }}).sort({"overallMatchRate": -1}).limit(1).exec();
 
     if (nnArray.length == 0){
       console.log(chalkError("WAS | *** NEURAL NETWORK NOT FOUND"));
@@ -8483,6 +8373,20 @@ async function loadConfigFile(params) {
       }
       else {
         newConfiguration.verbose = false;
+      }
+    }
+
+    if (loadedConfigObj.BINARY_MODE !== undefined){
+      console.log("WAS | LOADED BINARY_MODE: " + loadedConfigObj.BINARY_MODE);
+
+      if ((loadedConfigObj.BINARY_MODE == false) || (loadedConfigObj.BINARY_MODE == "false")) {
+        newConfiguration.binaryMode = false;
+      }
+      else if ((loadedConfigObj.BINARY_MODE == true) || (loadedConfigObj.BINARY_MODE == "true")) {
+        newConfiguration.binaryMode = true;
+      }
+      else {
+        newConfiguration.binaryMode = false;
       }
     }
 
@@ -10116,7 +10020,7 @@ async function twitterSearchHashtag(params) {
 
     hashtag = new global.globalHashtag({ nodeId: searchNodeHashtag.nodeId.toLowerCase(), text: searchNodeHashtag.nodeId.toLowerCase()});
 
-    const newHashtag = await hashtag.save();
+    const newHashtag = await hashtag.save().exec();
 
     console.log(chalk.blue("WAS | +++ SAVED NEW HASHTAG"
       + " | #" + newHashtag.nodeId

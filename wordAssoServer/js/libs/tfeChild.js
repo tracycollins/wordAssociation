@@ -455,12 +455,10 @@ function connectDb(){
           console.trace(chalkError("WAS | TFC | *** TSC ERROR | " + err));
         });
 
-        // userServerControllerReady = false;
         userServerController.on("ready", function(appname){
 
           statsObj.status = "MONGO DB CONNECTED";
 
-          // userServerControllerReady = true;
           console.log(chalkLog("WAS | TFC | USC READY | " + appname));
           dbConnectionReady = true;
 
@@ -576,23 +574,6 @@ function quit(message) {
   );
 
   process.exit(exitCode);
-
-  // if ((global.globalDbConnection !== undefined) && (global.globalDbConnection.readyState > 0)) {
-
-  //   global.globalDbConnection.close(function () {
-      
-  //     console.log(chalkAlert(
-  //           "WAS | TFC | =========================="
-  //       + "\nTFE | MONGO DB CONNECTION CLOSED"
-  //       + "\nTFE | =========================="
-  //     ));
-
-  //     process.exit(exitCode);
-  //   });
-  // }
-  // else {
-  //   process.exit(exitCode);
-  // }
 }
 
 function saveFile (path, file, jsonObj, callback){
@@ -1695,7 +1676,7 @@ async function processUser(params) {
     prevPropsUser.markModified("tweets");
     prevPropsUser.markModified("latestTweets");
 
-    await prevPropsUser.save();
+    await prevPropsUser.save().exec();
 
     if (configuration.verbose){
       console.log(chalkLog(MODULE_ID_PREFIX + " | >>> SAVED USER"

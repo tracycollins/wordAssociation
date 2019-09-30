@@ -2827,18 +2827,6 @@ configEvents.on("NEW_BEST_NETWORK", function configEventDbConnect(){
 
   }
 
-  if (childrenHashMap[DEFAULT_TWP_CHILD_ID] !== undefined) {
-
-    console.log(chalkBlue("WAS | UPDATE TWP CHILD NETWORK: " + bestNetworkObj.networkId));
-
-    childrenHashMap[DEFAULT_TWP_CHILD_ID].child.send({ op: "NETWORK", networkObj: bestNetworkObj }, function twpNetwork(err){
-      if (err) {
-        console.log(chalkError("WAS | *** TWEET PARSER SEND NETWORK ERROR"
-          + " | " + err
-        ));
-      }
-    });
-  }
 });
 
 configEvents.on("NEW_MAX_INPUT_HASHMAP", function configEventDbConnect(){
@@ -2857,21 +2845,6 @@ configEvents.on("NEW_MAX_INPUT_HASHMAP", function configEventDbConnect(){
       }
     });
 
-  }
-
-  if (childrenHashMap[DEFAULT_TWP_CHILD_ID] !== undefined) {
-
-    console.log(chalkBlue("WAS | UPDATE TWP CHILD MAX INPUT HASHMAP: " + Object.keys(maxInputHashMap)));
-
-    childrenHashMap[DEFAULT_TWP_CHILD_ID].child.send(
-      { op: "MAX_INPUT_HASHMAP", maxInputHashMap: maxInputHashMap }, 
-      function twpMaxInputHashMap(err){
-      if (err) {
-        console.log(chalkError("WAS | *** TWEET PARSER SEND MAX_INPUT_HASHMAP ERROR"
-          + " | " + err
-        ));
-      }
-    });
   }
 });
 
@@ -8009,9 +7982,9 @@ function initTweetParser(params){
     twp.send({
       op: "INIT",
       title: "wa_node_child_twp",
-      networkObj: bestNetworkObj,
-      maxInputHashMap: maxInputHashMap,
-      normalization: normalization,
+      // networkObj: bestNetworkObj,
+      // maxInputHashMap: maxInputHashMap,
+      // normalization: normalization,
       interval: configuration.tweetParserInterval,
       testMode: configuration.testMode,
       verbose: configuration.verbose

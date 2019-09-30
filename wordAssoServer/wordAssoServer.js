@@ -387,6 +387,8 @@ let configuration = {};
 let defaultConfiguration = {}; // general configuration
 let hostConfiguration = {}; // host-specific configuration
 
+configuration.heartbeatInterval = process.env.WAS_HEARTBEAT_INTERVAL || ONE_MINUTE;
+
 configuration.filterVerifiedUsers = true;
 configuration.twitterBearerToken = process.env.TWITTER_BEARER_TOKEN;
 configuration.verbose = false;
@@ -2511,6 +2513,8 @@ configEvents.on("INTERNET_READY", function internetReady() {
 
   console.log(chalkInfo(getTimeStamp() + " | SERVER_READY EVENT"));
 
+  clearInterval(heartbeatInterval);
+
   if (!httpServer.listening) {
 
     httpServer.on("reconnect", function serverReconnect() {
@@ -2658,8 +2662,8 @@ configEvents.on("INTERNET_READY", function internetReady() {
         heartbeatObj.twitter.maxTweetsPerMin = statsObj.twitter.maxTweetsPerMin;
         heartbeatObj.twitter.maxTweetsPerMinTime = statsObj.twitter.maxTweetsPerMinTime;
 
-        adminNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
-        utilNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
+        // adminNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
+        // utilNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
         viewNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
 
         const sObj = {};
@@ -2681,7 +2685,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
           ));
         }
       }
-    }, 15000);
+    }, configuration.heartbeatInterval);
   }
 
   initAppRouting(function initAppRoutingComplete() {

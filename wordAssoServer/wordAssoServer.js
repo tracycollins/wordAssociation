@@ -3638,7 +3638,7 @@ async function categoryVerified(params) {
 
     dbUser.categoryVerified = params.user.categoryVerified;
 
-    const dbUpdatedUser = await dbUser.save().exec();
+    const dbUpdatedUser = await dbUser.save();
 
     printUserObj(
       "UPDATE DB USER | CAT VERIFIED [" + verifiedCategorizedUsersSet.size + "]",
@@ -3822,7 +3822,7 @@ async function updateDbIgnoredHashtags(){
 
           dbHashtag.ignored = true;
 
-          const dbUpdatedHashtag = await dbHashtag.save().exec();
+          const dbUpdatedHashtag = await dbHashtag.save();
 
           console.log(chalkLog("WAS | XXX IGNORE"
             + " [" + ignoredHashtagSet.size + "]"
@@ -10020,7 +10020,7 @@ async function twitterSearchHashtag(params) {
 
     hashtag = new global.globalHashtag({ nodeId: searchNodeHashtag.nodeId.toLowerCase(), text: searchNodeHashtag.nodeId.toLowerCase()});
 
-    const newHashtag = await hashtag.save().exec();
+    const newHashtag = await hashtag.save();
 
     console.log(chalk.blue("WAS | +++ SAVED NEW HASHTAG"
       + " | #" + newHashtag.nodeId

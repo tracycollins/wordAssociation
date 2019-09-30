@@ -12,7 +12,7 @@
     "@threeceelabs/mongoose-twitter": "^1.0.264",
     "@threeceelabs/neural-network-tools": "^1.0.83",
     "@threeceelabs/socketio-auth": "^1.0.13",
-    "@threeceelabs/threecee-utilities": "^1.0.140",
+    "@threeceelabs/threecee-utilities": "^1.0.144",
     "@threeceelabs/tweet-server-controller": "^1.0.456",
     "@threeceelabs/twitter-image-parser": "^1.0.79",
     "@threeceelabs/twitter-text-parser": "^1.0.83",
@@ -59,7 +59,7 @@
     "measured": "^1.1.0",
     "merge": "^1.2.1",
     "method-override": "^3.0.0",
-    "mocha": "^6.2.0",
+    "mocha": "^6.2.1",
     "moment": "^2.24.0",
     "mongodb-core": "^3.2.7",
     "mongoose": "^5.7.1",
@@ -104,7 +104,7 @@
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
-    "eslint": "^6.4.0",
+    "eslint": "^6.5.0",
     "jshint": "^2.10.2"
   },
   "scripts": {

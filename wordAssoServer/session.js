@@ -1942,7 +1942,7 @@ function initSocketSessionUpdateRx(){
 
   socketSessionUpdateInterval = setInterval(function(){
 
-    if (rxNodeQueueReady && (rxNodeQueue.length > 0)) {
+    if (rxNodeQueueReady && (rxNodeQueue.length > 0) && (currentSessionView.getNodesLength() < 100)) {
 
       rxNodeQueueReady = false;
 

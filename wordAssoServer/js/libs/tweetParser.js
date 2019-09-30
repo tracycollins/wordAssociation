@@ -3,14 +3,11 @@
 
 process.title = "wa_node_child_twp";
 
-// let networkReady = false;
-
 const MAX_Q = 100;
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
 const debug = require("debug")("twp");
 const moment = require("moment");
-const async = require("async");
 const treeify = require("treeify");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 
@@ -19,7 +16,6 @@ const chalkLog = chalk.gray;
 const chalkInfo = chalk.black;
 const chalkAlert = chalk.red;
 const chalkError = chalk.bold.red;
-const chalkNetwork = chalk.blue;
 
 const statsObj = {};
 statsObj.dbConnectionReady = false;
@@ -37,7 +33,6 @@ configEvents.on("newListener", function(data) {
 
 const mongoose = require("mongoose");
 mongoose.set("useFindAndModify", false);
-
 
 global.globalDbConnection = false;
 
@@ -381,13 +376,13 @@ process.on("message", function(m) {
 
       configuration.verbose = m.verbose;
       configuration.updateInterval = m.interval;
-      configuration.networkObj = {};
-      configuration.networkObj = m.networkObj;
-      configuration.maxInputHashMap = {};
-      configuration.maxInputHashMap = m.maxInputHashMap;
-      configuration.normalization = {};
-      configuration.normalization = m.normalization;
-      configuration.inputArrays = {};
+      // configuration.networkObj = {};
+      // configuration.networkObj = m.networkObj;
+      // configuration.maxInputHashMap = {};
+      // configuration.maxInputHashMap = m.maxInputHashMap;
+      // configuration.normalization = {};
+      // configuration.normalization = m.normalization;
+      // configuration.inputArrays = {};
 
       console.log(chalkInfo("TWP | TWEET PARSER INIT"
         + " | TITLE: " + m.title
@@ -395,76 +390,77 @@ process.on("message", function(m) {
         // + "\nMESSAGE " + jsonPrint(m)
       ));
 
-      if (configuration.networkObj) {
-        console.log(chalkInfo("TWP | TWEET PARSER INIT"
-          + " | NN: " + m.networkObj.networkId
-        ));
+      initTweetParserQueueInterval(configuration);
 
-        async.eachSeries(Object.keys(m.networkObj.inputsObj.inputs), function(type, cb){
+      // if (configuration.networkObj) {
+      //   console.log(chalkInfo("TWP | TWEET PARSER INIT"
+      //     + " | NN: " + m.networkObj.networkId
+      //   ));
 
-          console.log(chalkNetwork("TWP | NN INPUTS TYPE" 
-            + " | " + type
-            + " | INPUTS: " + m.networkObj.inputsObj.inputs[type].length
-          ));
+      //   async.eachSeries(Object.keys(m.networkObj.inputsObj.inputs), function(type, cb){
 
-          configuration.inputArrays[type] = {};
-          configuration.inputArrays[type] = m.networkObj.inputsObj.inputs[type];
+      //     console.log(chalkNetwork("TWP | NN INPUTS TYPE" 
+      //       + " | " + type
+      //       + " | INPUTS: " + m.networkObj.inputsObj.inputs[type].length
+      //     ));
 
-          cb();
-        }, function(){
-          initTweetParserQueueInterval(configuration);
-          // networkReady = true;
-        });
+      //     configuration.inputArrays[type] = {};
+      //     configuration.inputArrays[type] = m.networkObj.inputsObj.inputs[type];
 
-      }
-      else {
-        initTweetParserQueueInterval(configuration);
+      //     cb();
+      //   }, function(){
+      //     initTweetParserQueueInterval(configuration);
+      //     // networkReady = true;
+      //   });
+      // }
+      // else {
+        // initTweetParserQueueInterval(configuration);
         // networkReady = false;
-      }
+      // }
       
-      if (configuration.maxInputHashMap) {
-        console.log(chalkInfo("TWP | TWEET PARSER INIT"
-          + " | MAX IN HM INPUT TYPES: " + Object.keys(configuration.maxInputHashMap)
-        ));
-      }
+      // if (configuration.maxInputHashMap) {
+      //   console.log(chalkInfo("TWP | TWEET PARSER INIT"
+      //     + " | MAX IN HM INPUT TYPES: " + Object.keys(configuration.maxInputHashMap)
+      //   ));
+      // }
       
-      if (configuration.normalization) {
-        console.log(chalkInfo("TWP | TWEET PARSER INIT"
-          + " | NORMALIZATION INPUT TYPES: " + Object.keys(configuration.normalization)
-        ));
-      }
+      // if (configuration.normalization) {
+      //   console.log(chalkInfo("TWP | TWEET PARSER INIT"
+      //     + " | NORMALIZATION INPUT TYPES: " + Object.keys(configuration.normalization)
+      //   ));
+      // }
     break;
 
-    case "NETWORK":
+    // case "NETWORK":
 
-      // networkReady = false;
+    //   // networkReady = false;
 
-      console.log(chalkInfo("TWP | TWEET PARSER NETWORK"
-        + " | NN: " + m.networkObj.networkId
-        + " | SUCCESS RATE: " + m.networkObj.successRate.toFixed(2)
-      ));
+    //   console.log(chalkInfo("TWP | TWEET PARSER NETWORK"
+    //     + " | NN: " + m.networkObj.networkId
+    //     + " | SUCCESS RATE: " + m.networkObj.successRate.toFixed(2)
+    //   ));
 
-      configuration.networkObj = {};
-      configuration.networkObj = m.networkObj;
+    //   configuration.networkObj = {};
+    //   configuration.networkObj = m.networkObj;
 
 
-      configuration.inputArrays = {};
+    //   configuration.inputArrays = {};
 
-      async.eachSeries(Object.keys(m.networkObj.inputsObj.inputs), function(type, cb){
+    //   async.eachSeries(Object.keys(m.networkObj.inputsObj.inputs), function(type, cb){
 
-        console.log(chalkNetwork("TWP | NN INPUTS TYPE" 
-          + " | " + type
-          + " | INPUTS: " + m.networkObj.inputsObj.inputs[type].length
-        ));
+    //     console.log(chalkNetwork("TWP | NN INPUTS TYPE" 
+    //       + " | " + type
+    //       + " | INPUTS: " + m.networkObj.inputsObj.inputs[type].length
+    //     ));
 
-        configuration.inputArrays[type] = {};
-        configuration.inputArrays[type] = m.networkObj.inputsObj.inputs[type];
+    //     configuration.inputArrays[type] = {};
+    //     configuration.inputArrays[type] = m.networkObj.inputsObj.inputs[type];
 
-        cb();
+    //     cb();
 
-      }, function(){
-      });
-    break;
+    //   }, function(){
+    //   });
+    // break;
 
     case "PING":
       debug(chalkLog("TWP | PING"

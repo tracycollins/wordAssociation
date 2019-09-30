@@ -345,9 +345,9 @@ else {
   }
 }
 
-var serverHeartbeatTimeout = 30000;
-var serverCheckInterval = 30000;
-var serverKeepaliveInteval = 30000;
+var serverHeartbeatTimeout = 120000;
+var serverCheckInterval = 120000;
+// var serverKeepaliveInteval = 60000;
 
 var palette = {
   "black": "#000000",

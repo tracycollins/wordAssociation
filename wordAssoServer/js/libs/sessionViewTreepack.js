@@ -79,9 +79,6 @@ function ViewTreepack() {
 
   var mouseMovingFlag = false;
 
-  // var currentTwitterUser = twitterUserThreecee;
-  // var currentTwitterHashtag = "resist";
-
   var self = this;
   var simulation;
 
@@ -1451,7 +1448,6 @@ function ViewTreepack() {
       mouseMovingFlag = isMoving;
     }
   };
-
 
   var focus = function(focalPoint){
     switch (focalPoint) {

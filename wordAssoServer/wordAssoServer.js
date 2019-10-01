@@ -5670,12 +5670,18 @@ function updateUserSets(){
 
     const userSearchQuery = { ignored: false };
     
-    userSearchCursor = global.globalUser.find(userSearchQuery).select({friends: 0, tweets: 0, tweetHistograms: 0, profileHistograms: 0}).lean().cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
+    userSearchCursor = global.globalUser
+      .find(userSearchQuery)
+      .select({friends: 0, tweets: 0, tweetHistograms: 0, profileHistograms: 0})
+      .lean()
+      .cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
 
     const cursorStartTime = moment().valueOf();
 
     userSearchCursor.on("data", async function(user) {
-      
+
+      const uncatUserObj = await uncatUserCache.(user.nodeId);
+
       if (user.lang && (user.lang !== undefined) && (user.lang != "en")){
 
         global.globalUser.deleteOne({"nodeId": user.nodeId}, function(err){
@@ -5710,7 +5716,7 @@ function updateUserSets(){
           }
         });
       }
-      else {
+      else if (!uncatUserObj) {
 
         let categorizeable = false;
 
@@ -5831,8 +5837,6 @@ function updateUserSets(){
           categorizeable = await userCategorizeable(user);
         }
 
-        const uncatUserObj = await uncatUserCacheCheck(user.nodeId);
-
         if (categorizeable
           && (uncatUserObj == undefined)
           && (!user.category || (user.category == undefined))
@@ -5910,6 +5914,7 @@ function updateUserSets(){
           }
         }
       }
+
     });
 
     userSearchCursor.on("end", function() {

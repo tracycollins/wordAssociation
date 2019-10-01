@@ -846,7 +846,7 @@ function ViewTreepack() {
 
     maxAgeRate = Math.max(ageRate, maxAgeRate);
 
-    async.each(nodeIdArray, function eachNodeIdArray(nodeId, cb){
+    async.eachOf(nodeIdArray, function eachNodeIdArray(nodeId, cb){
 
       nPoolId = nodeIdHashMap.get(nodeId);
       nNode = localNodeHashMap.get(nPoolId);
@@ -926,10 +926,11 @@ function ViewTreepack() {
 
         cb();
       }
-    }, function endAgeNodes(){
+    }, function endAgeNodes(err){
+      console.error("age node err" + err);
       resumeTimeStamp = 0;
       totalHashmap = tempTotalHashmap;
-      callback(null, tempNodeArray);
+      callback(err, tempNodeArray);
     });
 
   }

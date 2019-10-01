@@ -846,7 +846,7 @@ function ViewTreepack() {
 
     maxAgeRate = Math.max(ageRate, maxAgeRate);
 
-    async.eachOf(nodeIdArray, function eachNodeIdArray(nodeId, cb){
+    async.eachSeries(nodeIdArray, function eachNodeIdArray(nodeId, cb){
 
       nPoolId = nodeIdHashMap.get(nodeId);
       nNode = localNodeHashMap.get(nPoolId);

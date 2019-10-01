@@ -503,6 +503,7 @@ function ViewTreepack() {
   
   this.getMaxNodes = function() { return maxNodes; };
   
+  this.getNumNodes = function() { return nodeArray.length; };
   this.getNodeAddQlength = function() { return nodeAddQ.length; };
   
   this.getMaxNodeAddQ = function() { return maxNodeAddQ; };

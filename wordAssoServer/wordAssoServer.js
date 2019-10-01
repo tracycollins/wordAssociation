@@ -9728,13 +9728,13 @@ function getNextSearchNode(params){
 
                 printUserObj("WAS | --> SEACH USER FOUND | MODE: " + searchMode, user);
                 searchResults = await processTwitterSearchNode({searchNode: searchNode, user: user});
-                // if (searchResults.cacheHit) {
-                //   notFoundAndMore = true;
-                // }
-                // else{
+                if (searchResults.cacheHit) {
+                  notFoundAndMore = true;
+                }
+                else{
                   notFoundAndMore = false;
-                // }
-                viewNameSpace.emit("SET_TWITTER_USER", { user: user, stats: statsObj.user });
+                }
+                // viewNameSpace.emit("SET_TWITTER_USER", { user: user, stats: statsObj.user });
               break;
 
               case "UNCAT_NEUTRAL":
@@ -9746,13 +9746,13 @@ function getNextSearchNode(params){
 
                 printUserObj("WAS | --> SEACH USER FOUND | MODE: " + searchMode, user);
                 searchResults = await processTwitterSearchNode({searchNode: searchNode, user: user});
-                // if (searchResults.cacheHit) {
-                //   notFoundAndMore = true;
-                // }
-                // else{
+                if (searchResults.cacheHit) {
+                  notFoundAndMore = true;
+                }
+                else{
                   notFoundAndMore = false;
-                // }
-                viewNameSpace.emit("SET_TWITTER_USER", { user: user, stats: statsObj.user });
+                }
+                // viewNameSpace.emit("SET_TWITTER_USER", { user: user, stats: statsObj.user });
               break;
 
               case "UNCAT_RIGHT":

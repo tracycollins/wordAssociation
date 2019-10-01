@@ -685,7 +685,7 @@ function resetMouseMoveTimer() {
 var serverActiveTimeoutEventObj = new CustomEvent("serverActiveTimeoutEvent");
 var serverActiveTimeout;
 var serverActiveFlag = false;
-var serverActiveTimeoutInterval = 1000;
+var serverActiveTimeoutInterval = 90*ONE_SECOND;
 
 function resetServerActiveTimer() {
 

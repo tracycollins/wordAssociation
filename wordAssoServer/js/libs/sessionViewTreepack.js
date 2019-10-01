@@ -927,7 +927,9 @@ function ViewTreepack() {
         cb();
       }
     }, function endAgeNodes(err){
-      console.error("age node err" + err);
+      if (err) { 
+        console.error("age node err: " + err);
+      }
       resumeTimeStamp = 0;
       totalHashmap = tempTotalHashmap;
       callback(err, tempNodeArray);

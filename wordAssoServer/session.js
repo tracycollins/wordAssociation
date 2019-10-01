@@ -1938,6 +1938,7 @@ function initSocketSessionUpdateRx(){
   var newNode = {};
   var category;
 
+  var viewNumNodes = 0;
   var viewNodeAddQlength = 0;
 
   clearInterval(socketSessionUpdateInterval);
@@ -1945,8 +1946,9 @@ function initSocketSessionUpdateRx(){
   socketSessionUpdateInterval = setInterval(function(){
 
     viewNodeAddQlength = currentSessionView.getNodeAddQlength();
+    viewNumNodes = currentSessionView.getNumNodes();
 
-    if (rxNodeQueueReady && (rxNodeQueue.length > 0) && (viewNodeAddQlength < RX_NODE_QUEUE_MAX)) {
+    if (rxNodeQueueReady && (rxNodeQueue.length > 0) && (viewNumNodes < DEFAULT_MAX_NODES) && (viewNodeAddQlength < RX_NODE_QUEUE_MAX)) {
 
       rxNodeQueueReady = false;
 

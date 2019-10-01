@@ -1675,18 +1675,29 @@ function ViewTreepack() {
     });
   }
 
+  var updateSimulationReady = true;
+  
   function updateSimulation() {
 
-    processNodeAddQ(function(){
-      ageNodes(function(err, nArray){
-        nodeArray = nArray;
-        simulation.nodes(nodeArray);
+    if (updateSimulationReady) {
+
+      updateSimulationReady = false;
+
+      processNodeAddQ(function(){
+        ageNodes(function(err, nArray){
+          nodeArray = nArray;
+          simulation.nodes(nodeArray);
+          updateSimulationReady = true;
+        });
       });
-    });
+
+    }
   }
 
   function ticked() {
-    drawSimulation(function drawSimulationCallback() { updateSimulation(); });
+    drawSimulation(function() { 
+      updateSimulation(); 
+    });
   }
 
   this.setChargeSliderValue = function(value){

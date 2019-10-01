@@ -187,7 +187,6 @@ const DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD = 3600;
 
 const chalk = require("chalk");
 const chalkUser = chalk.blue;
-const chalkNetwork = chalk.black;
 const chalkTwitter = chalk.blue;
 const chalkConnect = chalk.black;
 const chalkSocket = chalk.black;
@@ -1011,40 +1010,6 @@ const dropboxRemoteClient = new Dropbox({
 });
 
 const dropboxClient = dropboxRemoteClient;
-
-const networkDefaults = function (netObj){
-
-  let networkObj = {};
-  networkObj = netObj;
-
-  if (empty(networkObj.betterChild)) { networkObj.betterChild = false; }
-  if (empty(networkObj.testCycles)) { networkObj.testCycles = 0; }
-  if (empty(networkObj.testCycleHistory)) { networkObj.testCycleHistory = []; }
-  if (empty(networkObj.overallMatchRate)) { networkObj.overallMatchRate = 0; }
-  if (empty(networkObj.matchRate)) { networkObj.matchRate = 0; }
-  if (empty(networkObj.successRate)) { networkObj.successRate = 0; }
-
-  return networkObj;
-};
-
-function printNetworkObj(title, netObj) {
-
-  let networkObj = {};
-  networkObj = netObj;
-  networkObj = networkDefaults(networkObj);
-
-  console.log(chalkNetwork(title
-    + " | OAMR: " + networkObj.overallMatchRate.toFixed(2) + "%"
-    + " | MR: " + networkObj.matchRate.toFixed(2) + "%"
-    + " | SR: " + networkObj.successRate.toFixed(2) + "%"
-    + " | CR: " + getTimeStamp(networkObj.createdAt)
-    + " | TC:  " + networkObj.testCycles
-    + " | TCH: " + networkObj.testCycleHistory.length
-    + " | INPUTS: " + networkObj.numInputs
-    + " | IN ID:  " + networkObj.inputsId
-    + " | " + networkObj.networkId
-  ));
-}
 
 const userDefaults = function (user){
   return user;
@@ -5680,7 +5645,7 @@ function updateUserSets(){
 
     userSearchCursor.on("data", async function(user) {
 
-      const uncatUserObj = await uncatUserCache.(user.nodeId);
+      const uncatUserObj = await uncatUserCache.get(user.nodeId);
 
       if (user.lang && (user.lang !== undefined) && (user.lang != "en")){
 

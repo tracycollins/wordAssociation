@@ -1948,7 +1948,7 @@ function initSocketSessionUpdateRx(){
     viewNodeAddQlength = currentSessionView.getNodeAddQlength();
     viewNumNodes = currentSessionView.getNumNodes();
 
-    if (rxNodeQueueReady && (rxNodeQueue.length > 0) && (viewNumNodes < DEFAULT_MAX_NODES) && (viewNodeAddQlength < RX_NODE_QUEUE_MAX)) {
+    if (rxNodeQueueReady && (rxNodeQueue.length > 0) && (viewNumNodes <= DEFAULT_MAX_NODES) && (viewNodeAddQlength <= RX_NODE_QUEUE_MAX)) {
 
       rxNodeQueueReady = false;
 

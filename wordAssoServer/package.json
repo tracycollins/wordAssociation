@@ -10,9 +10,9 @@
     "@threeceelabs/hashtag-server-controller": "^1.0.63",
     "@threeceelabs/mergehistograms": "^1.0.6",
     "@threeceelabs/mongoose-twitter": "^1.0.264",
-    "@threeceelabs/neural-network-tools": "^1.0.90",
+    "@threeceelabs/neural-network-tools": "^1.0.91",
     "@threeceelabs/socketio-auth": "^1.0.13",
-    "@threeceelabs/threecee-utilities": "^1.0.148",
+    "@threeceelabs/threecee-utilities": "^1.0.150",
     "@threeceelabs/tweet-server-controller": "^1.0.456",
     "@threeceelabs/twitter-image-parser": "^1.0.79",
     "@threeceelabs/twitter-text-parser": "^1.0.83",
@@ -62,7 +62,7 @@
     "mocha": "^6.2.1",
     "moment": "^2.24.0",
     "mongodb-core": "^3.2.7",
-    "mongoose": "^5.7.1",
+    "mongoose": "^5.7.3",
     "multer": "^1.4.2",
     "neataptic": "^1.4.7",
     "node-cache": "^4.2.1",
@@ -104,7 +104,7 @@
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
-    "eslint": "^6.5.0",
+    "eslint": "^6.5.1",
     "jshint": "^2.10.2"
   },
   "scripts": {

@@ -1565,7 +1565,7 @@ async function generateAutoCategory(p) {
 
     const user = await tcUtils.updateUserHistograms({user: params.user});
 
-    const networkOutput = await nnTools.activateSingleNetwork({user: user, binaryMode: binaryMode});
+    const networkOutput = await nnTools.activateSingleNetwork({user: user, convertDatumFlag: true, binaryMode: binaryMode, verbose: configuration.verbose}).
 
     let text = MODULE_ID_PREFIX + " | ->- CAT AUTO SET     ";
     let chalkVar = chalkLog;

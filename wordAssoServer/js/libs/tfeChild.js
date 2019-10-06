@@ -4,6 +4,7 @@
 
 process.title = "wa_node_child_tfe";
 
+const MODULE_NAME = "tfeChild";
 const MODULE_ID_PREFIX = "TFC";
 
 const MIN_TWEET_ID = 1000000;
@@ -13,8 +14,10 @@ const ONE_MINUTE = ONE_SECOND*60;
 const ONE_HOUR = ONE_MINUTE*60;
 
 const DEFAULT_QUOTA_TIMEOUT_DURATION = ONE_HOUR;
+const SAVE_FILE_QUEUE_INTERVAL = 5*ONE_SECOND;
 
 const DEFAULT_MAX_USER_TWEETIDS = 500;
+const SAVE_CACHE_DEFAULT_TTL = 60;
 
 const USER_PROFILE_PROPERTY_ARRAY = [
   "bannerImageUrl",
@@ -59,14 +62,10 @@ const USER_PROCESS_QUEUE_MAX_LENGTH = 500;
 const USER_CHANGE_CACHE_DEFAULT_TTL = 30;
 const USER_CHANGE_CACHE_CHECK_PERIOD = 5;
 
-const defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
-const ONE_KILOBYTE = 1024;
-const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
-
 const os = require("os");
-const fs = require("fs");
+const path = require("path");
 
 let hostname = os.hostname();
 hostname = hostname.replace(/.local/g, "");
@@ -92,13 +91,7 @@ const nnTools = new NeuralNetworkTools("WA_TFE_NNT");
 const defaults = require("object.defaults");
 const btoa = require("btoa");
 const empty = require("is-empty");
-
-const jsonParse = require("json-parse-safe");
-const sizeof = require("object-sizeof");
-
 const _ = require("lodash");
-const fetchDropbox = require("isomorphic-fetch");
-const Dropbox = require("dropbox").Dropbox;
 const async = require("async");
 const moment = require("moment");
 const treeify = require("treeify");
@@ -115,7 +108,6 @@ const chalkAlert = chalk.red;
 const chalkTwitter = chalk.blue;
 const chalkBlue = chalk.blue;
 const chalkError = chalk.bold.red;
-const chalkWarn = chalk.yellow;
 const chalkLog = chalk.gray;
 const chalkInfo = chalk.black;
 
@@ -206,6 +198,8 @@ const jsonPrint = function (obj){
     return "UNDEFINED";
   }
 };
+
+const startTimeMoment = moment();
 
 console.log(
   "\n\n====================================================================================================\n" 
@@ -475,34 +469,34 @@ function connectDb(){
   });
 }
 
+// // ==================================================================
+// // DROPBOX
+// // ==================================================================
+
+// const DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN;
+// const DROPBOX_TFE_CONFIG_FILE = process.env.DROPBOX_TFE_CONFIG_FILE || "tfeChildConfig.json";
+// const DROPBOX_TFE_STATS_FILE = process.env.DROPBOX_TFE_STATS_FILE || "tfeChildStats.json";
+
+// const statsFolder = "/stats/" + hostname + "/followerExplorer";
+// const statsFile = DROPBOX_TFE_STATS_FILE;
+
+
 // ==================================================================
 // DROPBOX
 // ==================================================================
+configuration.DROPBOX = {};
 
-const DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN;
-const DROPBOX_TFE_CONFIG_FILE = process.env.DROPBOX_TFE_CONFIG_FILE || "tfeChildConfig.json";
-const DROPBOX_TFE_STATS_FILE = process.env.DROPBOX_TFE_STATS_FILE || "tfeChildStats.json";
+configuration.DROPBOX.DROPBOX_CONFIG_FILE = process.env.DROPBOX_CONFIG_FILE || MODULE_NAME + "Config.json";
+configuration.DROPBOX.DROPBOX_STATS_FILE = process.env.DROPBOX_STATS_FILE || MODULE_NAME + "Stats.json";
 
-const dropboxConfigFolder = "/config/utility";
-const dropboxConfigHostFolder = "/config/utility/" + hostname;
+const configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/default");
+// const configHostFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility",hostname);
 
-const dropboxConfigFile = hostname + "_" + DROPBOX_TFE_CONFIG_FILE;
-const statsFolder = "/stats/" + hostname + "/followerExplorer";
-const statsFile = DROPBOX_TFE_STATS_FILE;
+const configDefaultFile = "default_" + configuration.DROPBOX.DROPBOX_CONFIG_FILE;
+// const configHostFile = hostname + "_" + configuration.DROPBOX.DROPBOX_CONFIG_FILE;
 
-console.log("WAS | TFC | DROPBOX_TFE_CONFIG_FILE: " + DROPBOX_TFE_CONFIG_FILE);
-console.log("WAS | TFC | DROPBOX_TFE_STATS_FILE : " + DROPBOX_TFE_STATS_FILE);
-
-debug("WAS | TFC | dropboxConfigFolder : " + dropboxConfigFolder);
-debug("WAS | TFC | dropboxConfigFile : " + dropboxConfigFile);
-
-debug("WAS | TFC | statsFolder : " + statsFolder);
-debug("WAS | TFC | statsFile : " + statsFile);
-
-const dropboxClient = new Dropbox({ 
-  accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN,
-  fetch: fetchDropbox
-});
+const statsFolder = path.join(DROPBOX_ROOT_FOLDER, "stats",hostname);
+const statsFile = configuration.DROPBOX.DROPBOX_STATS_FILE;
 
 function getTimeStamp(inputTime) {
 
@@ -576,246 +570,143 @@ function quit(message) {
   process.exit(exitCode);
 }
 
-function saveFile (path, file, jsonObj, callback){
+//=========================================================================
+// FILE SAVE
+//=========================================================================
 
-  const fullPath = path + "/" + file;
+let saveFileQueueInterval;
+const saveFileQueue = [];
+let statsUpdateInterval;
 
-  debug(chalkInfo("WAS | TFC | SAVE FOLDER " + path));
-  debug(chalkInfo("WAS | TFC | SAVE FILE " + file));
-  debug(chalkInfo("WAS | TFC | FULL PATH " + fullPath));
+configuration.saveFileQueueInterval = SAVE_FILE_QUEUE_INTERVAL;
 
-  const options = {};
+statsObj.queues.saveFileQueue = {};
+statsObj.queues.saveFileQueue.busy = false;
+statsObj.queues.saveFileQueue.size = 0;
 
-  options.contents = JSON.stringify(jsonObj, null, 2);
-  options.path = fullPath;
-  options.mode = "overwrite";
-  options.autorename = false;
 
-  dropboxClient.filesUpload(options).
-    then(function(response){
-      debug(chalkLog("WAS | TFC | ... SAVED DROPBOX JSON | " + options.path));
-      callback(null, response);
-    }).
-    catch(function(error){
-      console.error(chalkError("WAS | TFC | " + moment().format(defaultDateTimeFormat)
-        + " | !!! ERROR DROBOX FILE UPLOAD | FILE: " + fullPath 
-      ));
-      console.log("*** WAS | TFC DROPBOX FILE UPLOAD ERROR", error);
-      console.error("*** WAS | TFC DROPBOX FILE UPLOAD ERROR", error);
-      callback(error.error, null);
-    });
+let saveCacheTtl = process.env.SAVE_CACHE_DEFAULT_TTL;
+
+if(empty(saveCacheTtl)) { saveCacheTtl = SAVE_CACHE_DEFAULT_TTL; }
+
+console.log(MODULE_ID_PREFIX + " | SAVE CACHE TTL: " + saveCacheTtl + " SECONDS");
+
+let saveCacheCheckPeriod = process.env.SAVE_CACHE_CHECK_PERIOD;
+
+if(empty(saveCacheCheckPeriod)) { saveCacheCheckPeriod = 10; }
+
+console.log(MODULE_ID_PREFIX + " | SAVE CACHE CHECK PERIOD: " + saveCacheCheckPeriod + " SECONDS");
+
+const saveCache = new NodeCache({
+  stdTTL: saveCacheTtl,
+  checkperiod: saveCacheCheckPeriod
+});
+
+function saveCacheExpired(file, fileObj) {
+  debug(chalkLog("XXX $ SAVE"
+    + " [" + saveCache.getStats().keys + "]"
+    + " | " + file
+  ));
+  saveFileQueue.push(fileObj);
+  statsObj.queues.saveFileQueue.size = saveFileQueue.length;
 }
 
-function loadFile(params) {
+saveCache.on("expired", saveCacheExpired);
 
-  return new Promise(function(resolve, reject){
+saveCache.on("set", function(file, fileObj) {
+  debug(chalkLog(MODULE_ID_PREFIX + " | $$$ SAVE CACHE"
+    + " [" + saveCache.getStats().keys + "]"
+    + " | " + fileObj.folder + "/" + file
+  ));
+});
 
-    const noErrorNotFound = params.noErrorNotFound || false;
+function initSaveFileQueue(cnf) {
 
-    let fullPath = params.path || params.folder + "/" + params.file;
+  console.log(chalkLog(MODULE_ID_PREFIX + " | INIT DROPBOX SAVE FILE INTERVAL | " + msToTime(cnf.saveFileQueueInterval)));
 
-    debug(chalkInfo("LOAD PATH " + params.path));
-    debug(chalkInfo("LOAD FOLDER " + params.folder));
-    debug(chalkInfo("LOAD FILE " + params.file));
-    debug(chalkInfo("FULL PATH " + fullPath));
+  clearInterval(saveFileQueueInterval);
 
-    if (configuration.offlineMode || params.loadLocalFile) {
+  saveFileQueueInterval = setInterval(async function () {
 
-      fullPath = DROPBOX_ROOT_FOLDER + fullPath;
+    if (!statsObj.queues.saveFileQueue.busy && saveFileQueue.length > 0) {
 
-      fs.readFile(fullPath, "utf8", function(err, data) {
+      statsObj.queues.saveFileQueue.busy = true;
 
-        if (err) {
-          console.log(chalkError("fs readFile ERROR: " + err));
-          return reject(err);
-        }
+      const saveFileObj = saveFileQueue.shift();
+      saveFileObj.verbose = true;
 
-        console.log(chalkInfo(getTimeStamp()
-          + " | LOADING FILE FROM DROPBOX"
-          + " | " + fullPath
+      statsObj.queues.saveFileQueue.size = saveFileQueue.length;
+
+      try{
+        await tcUtils.saveFile(saveFileObj);
+        console.log(chalkLog(
+          MODULE_ID_PREFIX 
+          + " | SAVED FILE"
+          + " [Q: " + saveFileQueue.length + "] " 
+          + " [$: " + saveCache.getStats().keys + "] " 
+          + saveFileObj.folder + "/" + saveFileObj.file
         ));
-
-        if (fullPath.match(/\.json$/gi)) {
-
-          const results = jsonParse(data);
-
-          if (results.error) {
-            console.log(chalkError(getTimeStamp()
-              + " | *** LOAD FILE FROM DROPBOX ERROR"
-              + " | " + fullPath
-              + " | " + results.error
-            ));
-
-            return reject(results.error);
-          }
-
-          const fileObjSizeMbytes = sizeof(results.value)/ONE_MEGABYTE;
-
-          console.log(chalkInfo(getTimeStamp()
-            + " | LOADED FILE FROM DROPBOX"
-            + " | " + fileObjSizeMbytes.toFixed(2) + " MB"
-            + " | " + fullPath
-          ));
-
-          return resolve(results.value);
-
-        }
-
-        console.log(chalkError(getTimeStamp()
-          + " | SKIP LOAD FILE FROM DROPBOX"
-          + " | " + fullPath
+        statsObj.queues.saveFileQueue.busy = false;
+      }
+      catch(err){
+        console.log(chalkError(MODULE_ID_PREFIX 
+          + " | *** SAVE FILE ERROR ... RETRY"
+          + " | ERROR: " + err
+          + " | " + saveFileObj.folder + "/" + saveFileObj.file
         ));
-        resolve();
-
-      });
-
-     }
-    else {
-
-      dropboxClient.filesDownload({path: fullPath}).
-      then(function(data) {
-
-        debug(chalkLog(getTimeStamp()
-          + " | LOADING FILE FROM DROPBOX FILE: " + fullPath
-        ));
-
-        if (fullPath.match(/\.json$/gi)) {
-
-          const payload = data.fileBinary;
-
-          if (!payload || (payload === undefined)) {
-            return reject(new Error(MODULE_ID_PREFIX + " LOAD FILE PAYLOAD UNDEFINED"));
-          }
-
-          const results = jsonParse(payload);
-
-          if (results.error) {
-            console.log(chalkError(getTimeStamp()
-              + " | *** LOAD FILE FROM DROPBOX ERROR"
-              + " | " + fullPath
-              + " | " + results.error
-            ));
-
-            return reject(results.error);
-          }
-
-          const fileObjSizeMbytes = sizeof(results.value)/ONE_MEGABYTE;
-
-          console.log(chalkInfo(getTimeStamp()
-            + " | LOADED FILE FROM DROPBOX"
-            + " | " + fileObjSizeMbytes.toFixed(2) + " MB"
-            + " | " + fullPath
-          ));
-
-          return resolve(results.value);
-
-        }
-        else {
-          resolve();
-        }
-      }).
-      catch(function(err) {
-
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** DROPBOX loadFile ERROR: " + fullPath));
-        
-        if ((err.status == 409) || (err.status == 404)) {
-          if (noErrorNotFound) {
-            if (configuration.verbose) { console.log(chalkLog(MODULE_ID_PREFIX + " | *** DROPBOX READ FILE " + fullPath + " NOT FOUND")); }
-            return resolve(new Error("NOT FOUND"));
-          }
-          console.log(chalkAlert(MODULE_ID_PREFIX + " | *** DROPBOX READ FILE " + fullPath + " NOT FOUND ... SKIPPING ..."));
-          return resolve(err);
-        }
-        
-        if (err.status == 0) {
-          console.log(chalkError(MODULE_ID_PREFIX + " | *** DROPBOX NO RESPONSE"
-            + " | NO INTERNET CONNECTION? SKIPPING ..."));
-          return resolve(new Error("NO INTERNET"));
-        }
-
-        reject(err);
-
-      });
-    }
-  });
-}
-
-async function loadFileRetry(params){
-
-  const resolveOnNotFound = params.resolveOnNotFound || false;
-  const maxRetries = params.maxRetries || 5;
-  let retryNumber;
-  let backOffTime = params.initialBackOffTime || ONE_SECOND;
-  const path = params.path || params.folder + "/" + params.file;
-
-  for (retryNumber = 0;retryNumber < maxRetries;retryNumber++) {
-    try {
-      
-      const fileObj = await loadFile(params);
-
-      if (retryNumber > 0) { 
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | FILE LOAD RETRY"
-          + " | " + path
-          + " | BACKOFF: " + msToTime(backOffTime)
-          + " | " + retryNumber + " OF " + maxRetries
-        )); 
+        saveFileQueue.push(saveFileObj);
+        statsObj.queues.saveFileQueue.size = saveFileQueue.length;
+        statsObj.queues.saveFileQueue.busy = false;
       }
 
-      return fileObj;
-    } 
-    catch(err) {
-      backOffTime *= 1.5;
-      setTimeout(function(){
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | FILE LOAD ERROR ... RETRY"
-          + " | " + path
-          + " | BACKOFF: " + msToTime(backOffTime)
-          + " | " + retryNumber + " OF " + maxRetries
-          + " | ERROR: " + err
-        )); 
-      }, backOffTime);
     }
-  }
-
-  if (resolveOnNotFound) {
-    console.log(chalkAlert(MODULE_ID_PREFIX + " | resolve FILE LOAD FAILED | RETRY: " + retryNumber + " OF " + maxRetries));
-    return false;
-  }
-  console.log(chalkError(MODULE_ID_PREFIX + " | reject FILE LOAD FAILED | RETRY: " + retryNumber + " OF " + maxRetries));
-  throw new Error("FILE LOAD ERROR | RETRIES " + maxRetries);
+  }, cnf.saveFileQueueInterval);
 }
 
-function initStatsUpdate(cnf){
+function getElapsedTimeStamp(){
+  statsObj.elapsedMS = moment().valueOf() - startTimeMoment.valueOf();
+  return msToTime(statsObj.elapsedMS);
+}
+
+function initStatsUpdate() {
 
   return new Promise(function(resolve, reject){
 
-    console.log(chalkInfo("WAS | TFC | initStatsUpdate | INTERVAL: " + cnf.statsUpdateIntervalTime));
+    try {
 
-    try{
+      console.log(chalkLog(MODULE_ID_PREFIX + " | INIT STATS UPDATE INTERVAL | " + msToTime(configuration.statsUpdateIntervalTime)));
 
-      setInterval(async function () {
+      statsObj.elapsed = getElapsedTimeStamp();
+      statsObj.timeStamp = getTimeStamp();
 
-        statsObj.elapsed = moment().valueOf() - statsObj.startTime;
-        statsObj.timeStamp = moment().format(defaultDateTimeFormat);
+      tcUtils.saveFile({localFlag: false, folder: statsFolder, file: statsFile, obj: statsObj});
 
-        saveFile(statsFolder, statsFile, statsObj, function(){
-          showStats();
-        });
+      clearInterval(statsUpdateInterval);
+
+      statsUpdateInterval = setInterval(async function () {
+
+        statsObj.elapsed = getElapsedTimeStamp();
+        statsObj.timeStamp = getTimeStamp();
+
+        saveFileQueue.push({localFlag: false, folder: statsFolder, file: statsFile, obj: statsObj});
+        statsObj.queues.saveFileQueue.size = saveFileQueue.length;
 
         try{
-          await checkTwitterRateLimitAll();
+          await showStats();
         }
         catch(err){
-           console.log(chalkError("WAS | TFC | *** CHECK RATE LIMIT ERROR: " + err));
+          console.log(chalkError(MODULE_ID_PREFIX + " | *** SHOW STATS ERROR: " + err));
         }
+        
+      }, configuration.statsUpdateIntervalTime);
 
-      }, cnf.statsUpdateIntervalTime);
+      resolve();
 
-      resolve(cnf);
     }
     catch(err){
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** initStatsUpdate ERROR:", err));
       reject(err);
     }
-
   });
 }
 
@@ -842,130 +733,6 @@ function printUser(params) {
 
     return text;
   }
-}
-
-function checkTwitterRateLimit(params){
-
-  return new Promise(function(resolve, reject){
-
-    const twitterUserObj = params.twitterUserObj;
-
-    if ((twitterUserObj === undefined) || (twitterUserObj.twit === undefined)) {
-      return reject(new Error("INVALID PARAMS"));
-    }
-
-    twitterUserObj.twit.get("application/rate_limit_status", function(err, data, response) {
-      
-      if (err){
-
-        console.log(chalkError("WAS | TFC | *** TWITTER ACCOUNT ERROR"
-          + " | @" + twitterUserObj.screenName
-          + " | " + getTimeStamp()
-          + " | CODE: " + err.code
-          + " | STATUS CODE: " + err.statusCode
-          + " | " + err.message
-        ));
-
-        if (configuration.verbose) {
-          console.log(chalkError("WAS | TFC | *** TWITTER ACCOUNT ERROR\nresponse\n" + jsonPrint(response)));
-        }
-
-        twitterUserObj.stats.error = err;
-        twitterUserObj.stats.twitterErrors += 1;
-        twitterUserObj.stats.ready = false;
-
-        return reject(err);
-      }
-
-      twitterUserObj.stats.error = false;
-
-      if (configuration.verbose) {
-        console.log(chalkLog("WAS | TFC | TWITTER RATE LIMIT STATUS"
-          + " | @" + twitterUserObj.screenName
-          + " | LIM: " + twitterUserObj.stats.twitterRateLimit
-          + " | REM: " + twitterUserObj.stats.twitterRateLimitRemaining
-          + " | RST: " + getTimeStamp(twitterUserObj.stats.twitterRateLimitResetAt)
-          + " | NOW: " + moment().format(compactDateTimeFormat)
-          + " | IN " + msToTime(twitterUserObj.stats.twitterRateLimitRemainingTime)
-        ));
-      }
-
-      if (data.resources.users["/users/show/:id"].remaining > 0){
-
-        twitterUserObj.stats.ready = true;
-
-        twitterUserObj.stats.twitterRateLimit = data.resources.users["/users/show/:id"].limit;
-        twitterUserObj.stats.twitterRateLimitRemaining = data.resources.users["/users/show/:id"].remaining;
-        twitterUserObj.stats.twitterRateLimitResetAt = moment.unix(data.resources.users["/users/show/:id"].reset).valueOf();
-        twitterUserObj.stats.twitterRateLimitRemainingTime = moment(twitterUserObj.stats.twitterRateLimitResetAt).diff(moment());
-
-        if (twitterUserObj.stats.twitterRateLimitExceptionFlag) {
-
-          twitterUserObj.stats.twitterRateLimitExceptionFlag = false;
-          
-          console.log(chalkInfo("WAS | TFC | XXX RESET TWITTER RATE LIMIT"
-            + " | @" + twitterUserObj.screenName
-            + " | CONTEXT: " + data.rate_limit_context.access_token
-            + " | LIM: " + twitterUserObj.stats.twitterRateLimit
-            + " | REM: " + twitterUserObj.stats.twitterRateLimitRemaining
-            // + " | EXP: " + twitterUserObj.stats.twitterRateLimitException.format(compactDateTimeFormat)
-            + " | NOW: " + moment().format(compactDateTimeFormat)
-          ));
-        }
-
-        return resolve(twitterUserObj);
-
-      }
-
-      twitterUserObj.stats.ready = false;
-      twitterUserObj.stats.twitterRateLimitExceptionFlag = true;
-
-      twitterUserObj.stats.twitterRateLimit = data.resources.users["/users/show/:id"].limit;
-      twitterUserObj.stats.twitterRateLimitRemaining = data.resources.users["/users/show/:id"].remaining;
-      twitterUserObj.stats.twitterRateLimitResetAt = moment.unix(data.resources.users["/users/show/:id"].reset).valueOf();
-      twitterUserObj.stats.twitterRateLimitRemainingTime = moment(twitterUserObj.stats.twitterRateLimitResetAt).diff(moment());
-
-      console.log(chalkLog("WAS | TFC | --- TWITTER RATE LIMIT"
-        + " | @" + twitterUserObj.screenName
-        + " | CONTEXT: " + data.rate_limit_context.access_token
-        + " | LIM: " + twitterUserObj.stats.twitterRateLimit
-        + " | REM: " + twitterUserObj.stats.twitterRateLimitRemaining
-        // + " | EXP: " + twitterUserObj.stats.twitterRateLimitException.format(compactDateTimeFormat)
-        + " | RST: " + moment(twitterUserObj.stats.twitterRateLimitResetAt).format(compactDateTimeFormat)
-        + " | NOW: " + moment().format(compactDateTimeFormat)
-        + " | IN " + msToTime(twitterUserObj.stats.twitterRateLimitRemainingTime)
-      ));
-
-      resolve(twitterUserObj);
-
-    });
-
-  });
-}
-
-function checkTwitterRateLimitAll(){
-
-  return new Promise(function(resolve, reject){
-
-    if (twitterUserHashMap.size == 0) { return resolve(); }
-
-    async.eachSeries(twitterUserHashMap.values(), async function(twitterUserObj){
-
-      const tuObj = await checkTwitterRateLimit({twitterUserObj: twitterUserObj});
-      if (tuObj) { twitterUserHashMap.set(tuObj.screenName, tuObj); }
-      return;
-
-    }, function(err){
-
-      if (err){
-        console.log(chalkError("WAS | TFC | *** CHECK RATE LIMIT ERROR: " + err));
-        return reject(err);
-      }
-
-      resolve();
-    });
-
-  });
 }
 
 const networkOutput = {};
@@ -1273,7 +1040,7 @@ async function updateUserTweets(params){
       if (latestTweets) { user.latestTweets = latestTweets; }
     }
     catch(err){
-      // await tcUtils.handleTwitterError({err: err, user: user});
+      throw err;
     }
   }
 
@@ -1472,14 +1239,11 @@ async function initialize(cnf){
 
   cnf.statsUpdateIntervalTime = process.env.TFE_STATS_UPDATE_INTERVAL || 60000;
 
-  debug(chalkWarn("WAS | TFC | dropboxConfigFolder: " + dropboxConfigFolder));
-  debug(chalkWarn("WAS | TFC | dropboxConfigFile  : " + dropboxConfigFile));
-
   try{
 
-    const loadedConfigObj = await loadFileRetry({folder: dropboxConfigHostFolder, file: dropboxConfigFile}); 
+    const loadedConfigObj = await tcUtils.loadFileRetry({folder: configDefaultFolder, file: configDefaultFile}); 
 
-    console.log("WAS | TFC | " + dropboxConfigFile + "\n" + jsonPrint(loadedConfigObj));
+    console.log("WAS | TFC | " + configDefaultFolder + "/" + configDefaultFile + "\n" + jsonPrint(loadedConfigObj));
 
     if (loadedConfigObj.TFE_VERBOSE_MODE !== undefined){
       console.log("WAS | TFC | LOADED TFE_VERBOSE_MODE: " + loadedConfigObj.TFE_VERBOSE_MODE);
@@ -1531,9 +1295,9 @@ async function initialize(cnf){
       console.log("WAS | TFC | FINAL CONFIG | " + arg + ": " + cnf[arg]);
     });
 
-    await initStatsUpdate(cnf);
+    await initStatsUpdate();
 
-    const twitterConfig = await loadFileRetry({folder: cnf.twitterConfigFolder, file: cnf.twitterConfigFile});
+    const twitterConfig = await tcUtils.loadFileRetry({folder: cnf.twitterConfigFolder, file: cnf.twitterConfigFile});
 
     cnf.twitterConfig = {};
     cnf.twitterConfig = twitterConfig;
@@ -1548,7 +1312,7 @@ async function initialize(cnf){
 
   }
   catch(err){
-    console.error("WAS | TFC | *** ERROR LOAD DROPBOX CONFIG: " + dropboxConfigFile + "\n" + jsonPrint(err));
+    console.error("WAS | TFC | *** ERROR LOAD DROPBOX CONFIG: " + configDefaultFolder + "/" + configDefaultFile + "\n" + jsonPrint(err));
     throw err;
   }
 }
@@ -1973,6 +1737,7 @@ setTimeout(async function(){
   }, 1000);
 
   try {
+    initSaveFileQueue(configuration);
     const twitterParams = await tcUtils.initTwitterConfig();
     await tcUtils.initTwitter({twitterConfig: twitterParams});
     await tcUtils.getTwitterAccountSettings();

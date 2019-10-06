@@ -109,19 +109,13 @@ const DEFAULT_CHILD_ID_PREFIX = "wa_node_child_";
 
 const DEFAULT_DBU_CHILD_ID = DEFAULT_CHILD_ID_PREFIX + "dbu";
 const DEFAULT_TFE_CHILD_ID = DEFAULT_CHILD_ID_PREFIX + "tfe";
-const DEFAULT_TWP_CHILD_ID = DEFAULT_CHILD_ID_PREFIX + "twp";
 const DEFAULT_TSS_CHILD_ID = DEFAULT_CHILD_ID_PREFIX + "tss";
+const DEFAULT_TWP_CHILD_ID = DEFAULT_CHILD_ID_PREFIX + "twp";
 
 let dbuChild;
 let tfeChild;
-
-const tssChildren = {};
-
-DEFAULT_THREECEE_USERS.forEach(function(threeceeUser){
-  tssChildren[threeceeUser] = {};
-  tssChildren[threeceeUser].childId = DEFAULT_TSS_CHILD_ID + "_" + threeceeUser.toLowerCase();
-});
-
+let tssChild;
+let twpChild;
 
 const DEFAULT_TWITTER_THREECEE_USER = "altthreecee00";
 const DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT = Number(ONE_SECOND);
@@ -134,9 +128,11 @@ const DEFAULT_SORTER_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_TWITTER_RX_QUEUE_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_TRANSMIT_NODE_QUEUE_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = DEFAULT_INTERVAL;
+
 const TWP_PING_INTERVAL = 10*ONE_MINUTE;
 const DBU_PING_INTERVAL = 10*ONE_MINUTE;
 const TFE_PING_INTERVAL = 10*ONE_MINUTE;
+const TSS_PING_INTERVAL = 10*ONE_MINUTE;
 
 const DEFAULT_RATE_QUEUE_INTERVAL = ONE_SECOND; // 1 second
 const DEFAULT_RATE_QUEUE_INTERVAL_MODULO = 60; // modulo RATE_QUEUE_INTERVAL
@@ -301,8 +297,7 @@ statsObj.initSetsComplete = false;
 
 statsObj.dbuChildReady = false;
 statsObj.tfeChildReady = false;
-
-statsObj.tssChildren = {};
+statsObj.tssChildReady = false;
 
 statsObj.hashtag = {};
 statsObj.hashtag.manual = {};
@@ -379,11 +374,6 @@ statsObj.user.matched = 0;
 statsObj.user.mismatched = 0;
 
 statsObj.user.categoryVerified = 0;
-
-DEFAULT_THREECEE_USERS.forEach(function(threeceeUser){
-  statsObj.tssChildren[threeceeUser] = {};
-  statsObj.tssChildren[threeceeUser].ready = false;
-});
 
 let configuration = {};
 let defaultConfiguration = {}; // general configuration
@@ -902,6 +892,9 @@ let dbuPongReceived = false;
 let dbuPingId = false;
 
 let tssPingInterval;
+let tssPingSent = false;
+let tssPongReceived = false;
+let tssPingId = false;
 
 let tfePingInterval;
 let tfePingSent = false;
@@ -1177,12 +1170,9 @@ function connectDb(){
 
                 }
 
-                tssSendAllChildren({
-                  op: "USER_AUTHENTICATED",
-                  token: token,
-                  tokenSecret: tokenSecret,
-                  user: updatedUser
-                });
+                if (tssChild !== undefined) {
+                  tssChild.send({op: "USER_AUTHENTICATED", token: token, tokenSecret: tokenSecret,user: updatedUser});
+                }
 
                 adminNameSpace.emit("USER_AUTHENTICATED", updatedUser);
                 viewNameSpace.emit("USER_AUTHENTICATED", updatedUser);
@@ -2362,6 +2352,21 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
 
     break;
 
+    case DEFAULT_TSS_CHILD_ID:
+
+      console.log(chalkError("WAS | *** KILL TSS CHILD"));
+
+      killChild({childId: DEFAULT_TSS_CHILD_ID}, async function(err){
+        if (err){
+          console.log(chalkError("WAS | *** KILL CHILD ERROR: " + err));
+        }
+        else {
+          await initTssChild({childId: DEFAULT_TSS_CHILD_ID, threeceeUser: childrenHashMap[DEFAULT_TSS_CHILD_ID].threeceeUser});
+        }
+      });
+
+    break;
+
     case DEFAULT_TWP_CHILD_ID:
 
       console.log(chalkError("WAS | *** KILL TWEET PARSER"));
@@ -2382,23 +2387,6 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
 
   }
 
-  if (childObj.childId.startsWith(DEFAULT_TSS_CHILD_ID)){
-      console.log(chalkError("WAS | *** KILL TSS CHILD | " + childObj.childId));
-
-      killChild({childId: childObj.childId}, async function(err){
-        if (err){
-          console.log(chalkError("WAS | *** KILL CHILD ERROR: " + err));
-        }
-        else {
-          try{
-            await initTssChild({childId: childObj.childId, threeceeUser: childrenHashMap[childObj.childId].threeceeUser});
-          }
-          catch(e){
-            console.log(chalkError("WAS | *** INIT TSS CHILD ERR: " + e));
-          }
-        }
-      });
-  }
 });
 
 configEvents.on("INTERNET_READY", function internetReady() {
@@ -2544,9 +2532,6 @@ configEvents.on("INTERNET_READY", function internetReady() {
         heartbeatObj.runTime = statsObj.runTime;
         heartbeatObj.upTime = statsObj.upTime;
         heartbeatObj.elapsed = statsObj.elapsed;
-
-        // heartbeatObj.memory = statsObj.memory;
-
         heartbeatObj.nodesPerMin = statsObj.nodesPerMin;
         heartbeatObj.maxNodesPerMin = statsObj.maxNodesPerMin;
 
@@ -2554,8 +2539,6 @@ configEvents.on("INTERNET_READY", function internetReady() {
         heartbeatObj.twitter.maxTweetsPerMin = statsObj.twitter.maxTweetsPerMin;
         heartbeatObj.twitter.maxTweetsPerMinTime = statsObj.twitter.maxTweetsPerMinTime;
 
-        // adminNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
-        // utilNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
         viewNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
 
         const sObj = {};
@@ -2687,11 +2670,11 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
 
 configEvents.on("NEW_BEST_NETWORK", function configEventDbConnect(){
 
-  if (childrenHashMap[DEFAULT_TFE_CHILD_ID] !== undefined) {
+  if (tfeChild !== undefined) {
 
     console.log(chalkBlue("WAS | UPDATE TFE CHILD NETWORK: " + bestNetworkObj.networkId));
 
-    childrenHashMap[DEFAULT_TFE_CHILD_ID].child.send({ op: "NETWORK", networkObj: bestNetworkObj }, function tfeNetwork(err){
+    tfeChild.send({ op: "NETWORK", networkObj: bestNetworkObj }, function tfeNetwork(err){
       if (err) {
         console.log(chalkError("WAS | *** TFE CHILD SEND NETWORK ERROR"
           + " | " + err
@@ -2704,11 +2687,11 @@ configEvents.on("NEW_BEST_NETWORK", function configEventDbConnect(){
 
 configEvents.on("NEW_MAX_INPUT_HASHMAP", function configEventDbConnect(){
 
-  if (childrenHashMap[DEFAULT_TFE_CHILD_ID] !== undefined) {
+  if (tfeChild !== undefined) {
 
     console.log(chalkBlue("WAS | UPDATE TFE CHILD MAX INPUT HASHMAP: " + Object.keys(maxInputHashMap)));
 
-    childrenHashMap[DEFAULT_TFE_CHILD_ID].child.send(
+    tfeChild.send(
       { op: "MAX_INPUT_HASHMAP", maxInputHashMap: maxInputHashMap }, 
       function tfeMaxInputHashMap(err){
       if (err) {
@@ -3386,9 +3369,8 @@ function follow(params, callback) {
 
       if (configuration.enableTwitterFollow){
 
-        if (tssChildren[threeceeUser] !== undefined){
-
-          tssChildren[threeceeUser].child.send({
+        if (tssChild !== undefined){
+          tssChild.send({
             op: "FOLLOW", 
             user: userUpdated,
             forceFollow: configuration.forceFollow
@@ -3413,46 +3395,6 @@ function follow(params, callback) {
     }
 
     if (callback !== undefined) { callback(err, userUpdated); }
-
-  });
-}
-
-function initTssChildren(){
-  return new Promise(function(resolve, reject){
-
-    async.eachSeries(DEFAULT_THREECEE_USERS, function(threeceeUser, cb){
-      const childId = DEFAULT_TSS_CHILD_ID + "_" + threeceeUser.toLowerCase();
-      tssChildren[threeceeUser] = {};
-      tssChildren[threeceeUser].childId = childId;
-      initTssChild({childId: childId, threeceeUser: threeceeUser});
-      cb();
-    }, function(err){
-      if (err) {
-        return reject(err);
-      }
-      resolve();
-    });
-
-
-  });
-}
-
-function tssSendAllChildren(params){
-  return new Promise(function(resolve, reject){
-
-    Object.keys(tssChildren).forEach(function(threeceeUser){
-      if (tssChildren[threeceeUser] 
-        && (tssChildren[threeceeUser] !== undefined) 
-        && tssChildren[threeceeUser].child){
-        tssChildren[threeceeUser].child.send(params, function(err){
-          if (err) {
-            return reject(err); 
-          }
-        });
-      }
-    });
-
-    resolve();
 
   });
 }
@@ -3515,7 +3457,7 @@ async function ignore(params) {
     ignoredUserSet.add(params.user.screenName);
   }
 
-  tssSendAllChildren({op: "IGNORE", user: params.user});
+  tssChild.send({op: "IGNORE", user: params.user});
 
   try{
     const results = await global.globalUser.deleteOne({nodeId: params.user.nodeId});
@@ -3612,7 +3554,7 @@ function unfollow(params, callback) {
     }
   } 
 
-  tssSendAllChildren({op: "UNFOLLOW", user: params.user});
+  tssChild.send({op: "UNFOLLOW", user: params.user});
 
   const query = { nodeId: params.user.nodeId, following: true };
 
@@ -4249,7 +4191,6 @@ function initSocketHandler(socketObj) {
       case "LA" :
       case "TMP" :
 
-
         console.log(chalkInfo("WAS | R< KA"
           // + " | DELTA: " + deltaNS + " NS"
           + " | " + currentSessionType + " SERVER" 
@@ -4296,7 +4237,6 @@ function initSocketHandler(socketObj) {
           sessionObj.timeStamp = moment().valueOf();
           sessionObj.user = keepAliveObj.user;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
-          // sessionObj.stats = keepAliveObj.stats;
 
           serverCache.set(socket.id, sessionObj);
           adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
@@ -6603,7 +6543,7 @@ function initTwitterRxQueueInterval(interval){
 
         tweet = tweetRxQueue.shift();
 
-        childrenHashMap[DEFAULT_TWP_CHILD_ID].child.send({ op: "tweet", tweetStatus: tweet });
+        tssChild.send({ op: "tweet", tweetStatus: tweet });
 
       }
     }, interval);
@@ -6890,8 +6830,7 @@ function initDbuPingInterval(interval){
 
   dbuPingId = moment().valueOf();
 
-  if ((childrenHashMap[DEFAULT_DBU_CHILD_ID] !== undefined) 
-    && childrenHashMap[DEFAULT_DBU_CHILD_ID].child) {
+  if (dbuChild) {
 
     dbuPingInterval = setInterval(function(){
 
@@ -6899,7 +6838,7 @@ function initDbuPingInterval(interval){
 
         dbuPingId = moment().valueOf();
 
-        childrenHashMap[DEFAULT_DBU_CHILD_ID].child.send({op: "PING", pingId: dbuPingId}, function(err){
+        dbuChild.send({op: "PING", pingId: dbuPingId}, function(err){
 
           dbuPingSent = true; 
 
@@ -6931,7 +6870,7 @@ function initDbuPingInterval(interval){
         dbuPingSent = false; 
         dbuPongReceived = false;
 
-        childrenHashMap[DEFAULT_DBU_CHILD_ID].child.send({op: "PING", pingId: dbuPingId}, function(err){
+        dbuChild.send({op: "PING", pingId: dbuPingId}, function(err){
 
           if (err) {
 
@@ -6980,8 +6919,7 @@ function initTfePingInterval(interval){
 
   tfePingId = moment().valueOf();
 
-  if ((childrenHashMap[DEFAULT_TFE_CHILD_ID] !== undefined) 
-    && childrenHashMap[DEFAULT_TFE_CHILD_ID].child) {
+  if (tfeChild !== undefined) {
 
     tfePingInterval = setInterval(function(){
 
@@ -6989,7 +6927,7 @@ function initTfePingInterval(interval){
 
         tfePingId = moment().valueOf();
 
-        childrenHashMap[DEFAULT_TFE_CHILD_ID].child.send({op: "PING", pingId: tfePingId}, function(err){
+        tfeChild.send({op: "PING", pingId: tfePingId}, function(err){
 
           tfePingSent = true; 
 
@@ -7021,7 +6959,7 @@ function initTfePingInterval(interval){
         tfePingSent = false; 
         tfePongReceived = false;
 
-        childrenHashMap[DEFAULT_TFE_CHILD_ID].child.send({op: "PING", pingId: tfePingId}, function(err){
+        tfeChild.send({op: "PING", pingId: tfePingId}, function(err){
 
           if (err) {
 
@@ -7061,11 +6999,100 @@ function initTfePingInterval(interval){
   }
 }
 
+function initTssPingInterval(interval){
+
+  clearInterval(tssPingInterval);
+
+  tssPingSent = false;
+  tssPongReceived = false;
+
+  tssPingId = moment().valueOf();
+
+  if (tssChild !== undefined) {
+
+    tssPingInterval = setInterval(function(){
+
+      if (!tssPingSent) {
+
+        tssPingId = moment().valueOf();
+
+        tssChild.send({op: "PING", pingId: tssPingId}, function(err){
+
+          tssPingSent = true; 
+
+          if (err) {
+
+            console.log(chalkError("WAS | *** TSS SEND PING ERROR: " + err));
+
+            killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err){
+              if (err) {
+                console.log(chalkError("WAS | *** KILL CHILD ERROR: " + err));
+                return;
+              }
+              tssPongReceived = false;
+              initTssChild({childId: DEFAULT_TSS_CHILD_ID});
+            });
+
+            return;
+          }
+
+          console.log(chalkInfo("WAS | >PING | TSS | PING ID: " + getTimeStamp(tssPingId)));
+
+        });
+
+      }
+      else if (tssPingSent && tssPongReceived) {
+
+        tssPingId = moment().valueOf();
+
+        tssPingSent = false; 
+        tssPongReceived = false;
+
+        tssChild.send({op: "PING", pingId: tssPingId}, function(err){
+
+          if (err) {
+
+            console.log(chalkError("WAS | *** TSS SEND PING ERROR: " + err));
+
+            killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err){
+              if (err) {
+                console.log(chalkError("WAS | *** KILL CHILD ERROR: " + err));
+                return;
+              }
+              tssPongReceived = false;
+              initTssChild({childId: DEFAULT_TSS_CHILD_ID});
+            });
+
+            return;
+          }
+
+          if (configuration.verbose) { console.log(chalkInfo("WAS | >PING | TSS | PING ID: " + getTimeStamp(tssPingId))); }
+
+          tssPingSent = true; 
+
+        });
+
+      }
+      else {
+
+        console.log(chalkAlert("WAS | *** PONG TIMEOUT | TSS"
+          + " | TIMEOUT: " + interval
+          + " | NOW: " + getTimeStamp()
+          + " | PING ID: " + getTimeStamp(tssPingId)
+          + " | ELAPSED: " + msToTime(moment().valueOf() - tssPingId)
+        ));
+        
+      }
+    }, interval);
+
+  }
+}
+
 function initTssChild(params){
 
   statsObj.status = "INIT TSS CHILD";
 
-  statsObj.tssChildren[params.threeceeUser].ready = false;
+  statsObj.tssChild.ready = false;
 
   console.log(chalk.bold.black("WAS | INIT TSS CHILD\n" + jsonPrint(params)));
 
@@ -7245,11 +7272,9 @@ function initTssChild(params){
       configEvents.emit("CHILD_ERROR", {childId: params.childId});
     });
 
-    childrenHashMap[params.childId].child = tss;
+    tssChild = tss;
 
-    statsObj.tssChildren[params.threeceeUser].ready = true;
-
-    tssChildren[params.threeceeUser].child = tss;
+    statsObj.tssChild.ready = true;
 
     tss.send({
       op: "INIT",
@@ -7271,6 +7296,9 @@ function initTssChild(params){
       else {
         childrenHashMap[params.childId].status = "INIT";
         clearInterval(tssPingInterval);
+        setTimeout(function(){
+          initTssPingInterval(TSS_PING_INTERVAL);
+        }, 1000);
         resolve();
       }
     });
@@ -7485,8 +7513,6 @@ async function initTfeChild(params){
     childrenHashMap[params.childId].status = "CLOSE";
   });
 
-  childrenHashMap[params.childId].child = tfe;
-
   statsObj.tfeChildReady = true;
 
   tfeChild = tfe;
@@ -7531,7 +7557,7 @@ async function initTfeChild(params){
       clearInterval(tfePingInterval);
       setTimeout(function(){
         initTfePingInterval(TFE_PING_INTERVAL);
-      }, 1000);
+      }, 15*ONE_SECOND);
       return;
     }
   });
@@ -7630,8 +7656,6 @@ function initDbuChild(params){
       childrenHashMap[childId].status = "CLOSE";
     });
 
-    childrenHashMap[childId].child = dbu;
-
     statsObj.dbuChildReady = true;
 
     dbuChild = dbu;
@@ -7678,8 +7702,7 @@ function initTweetParserPingInterval(interval){
 
   tweetParserPingId = moment().valueOf();
 
-  if ((childrenHashMap[DEFAULT_TWP_CHILD_ID] !== undefined) 
-    && childrenHashMap[DEFAULT_TWP_CHILD_ID].child) {
+  if (twpChild) {
 
     tweetParserPingInterval = setInterval(function(){
 
@@ -7687,7 +7710,7 @@ function initTweetParserPingInterval(interval){
 
         tweetParserPingId = moment().valueOf();
 
-        childrenHashMap[DEFAULT_TWP_CHILD_ID].child.send({op: "PING", pingId: tweetParserPingId}, function(err){
+        twpChild.send({op: "PING", pingId: tweetParserPingId}, function(err){
 
           tweetParserPingSent = true; 
 
@@ -7719,7 +7742,7 @@ function initTweetParserPingInterval(interval){
         tweetParserPingSent = false; 
         tweetParserPongReceived = false;
 
-        childrenHashMap[DEFAULT_TWP_CHILD_ID].child.send({op: "PING", pingId: tweetParserPingId}, function(err){
+        twpChild.send({op: "PING", pingId: tweetParserPingId}, function(err){
 
           if (err) {
 
@@ -7856,16 +7879,13 @@ function initTweetParser(params){
       childrenHashMap[params.childId].status = "CLOSE";
     });
 
-    childrenHashMap[params.childId].child = twp;
+    twpChild = twp;
 
     statsObj.tweetParserReady = true;
 
     twp.send({
       op: "INIT",
       title: "wa_node_child_twp",
-      // networkObj: bestNetworkObj,
-      // maxInputHashMap: maxInputHashMap,
-      // normalization: normalization,
       interval: configuration.tweetParserInterval,
       testMode: configuration.testMode,
       verbose: configuration.verbose
@@ -9463,12 +9483,6 @@ async function processTwitterSearchNode(params) {
 
       uuObj.timeStamp = getTimeStamp();
 
-      // uncatUserCache.set(
-      //   params.user.nodeId, 
-      //   uuObj,
-      //   configuration.uncatUserCacheTtl
-      // );
-
       console.log(chalkBlue(MODULE_ID_PREFIX
         + " | +++ HIT  | UNCAT USER $"
         + " | TTL: " + msToTime(configuration.uncatUserCacheTtl*1000)
@@ -10149,8 +10163,8 @@ setTimeout(async function(){
     await initDbuChild({childId: DEFAULT_DBU_CHILD_ID});
     await initTweetParser({childId: DEFAULT_TWP_CHILD_ID});
     await initTfeChild({childId: DEFAULT_TFE_CHILD_ID});
+    await initTssChild({childId: DEFAULT_TSS_CHILD_ID});
     await initDbUserChangeStream();
-    await initTssChildren();
     await initUpdateUserSetsInterval(configuration.updateUserSetsInterval);
     await initWatchConfig();
   }

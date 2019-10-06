@@ -94,7 +94,6 @@ const empty = require("is-empty");
 const _ = require("lodash");
 const async = require("async");
 const moment = require("moment");
-const treeify = require("treeify");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const HashMap = require("hashmap").HashMap;
 const NodeCache = require("node-cache");
@@ -112,9 +111,14 @@ const chalkLog = chalk.gray;
 const chalkInfo = chalk.black;
 
 const twitterUserHashMap = new HashMap();
+
 const tcuChildName = MODULE_ID_PREFIX + "_TCU";
 const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
 const tcUtils = new ThreeceeUtilities(tcuChildName);
+
+const msToTime = tcUtils.msToTime;
+const jsonPrint = tcUtils.jsonPrint;
+const getTimeStamp = tcUtils.getTimeStamp;
 
 const userTweetFetchSet = new Set();
 
@@ -190,15 +194,6 @@ threeceeUserDefaults.percentFetched = 0;
 
 threeceeUserDefaults.twitterRateLimit = {};
 
-const jsonPrint = function (obj){
-  if (obj) {
-    return treeify.asTree(obj, true, true);
-  }
-  else {
-    return "UNDEFINED";
-  }
-};
-
 const startTimeMoment = moment();
 
 console.log(
@@ -212,29 +207,6 @@ console.log(
 
 if (debug.enabled) {
   console.log("*** WAS | TFC\n%%%%%%%%%%%%%%\n%%%%%%% DEBUG ENABLED %%%%%%%\n%%%%%%%%%%%%%%\n");
-}
-
-function msToTime(dur) {
-
-  let sign = 1;
-  let duration = dur;
-
-  if (duration < 0) {
-    sign = -1;
-    duration = -duration;
-  }
-
-  let seconds = parseInt((duration / 1000) % 60);
-  let minutes = parseInt((duration / (1000 * 60)) % 60);
-  let hours = parseInt((duration / (1000 * 60 * 60)) % 24);
-  let days = parseInt(duration / (1000 * 60 * 60 * 24));
-  days = (days < 10) ? "0" + days : days;
-  hours = (hours < 10) ? "0" + hours : hours;
-  minutes = (minutes < 10) ? "0" + minutes : minutes;
-  seconds = (seconds < 10) ? "0" + seconds : seconds;
-
-  if (sign > 0) return days + ":" + hours + ":" + minutes + ":" + seconds;
-  return "- " + days + ":" + hours + ":" + minutes + ":" + seconds;
 }
 
 const statsObj = {};
@@ -478,32 +450,6 @@ configuration.statsFile = MODULE_NAME + "Stats.json";
 
 configuration.twitterConfigFolder = path.join(DROPBOX_ROOT_FOLDER, "config/twitter");
 configuration.twitterConfigFile = "altthreecee00.json";
-
-function getTimeStamp(inputTime) {
-
-  let currentTimeStamp;
-
-  if (inputTime === undefined) {
-    currentTimeStamp = moment().format(compactDateTimeFormat);
-    return currentTimeStamp;
-  }
-  else if (moment.isMoment(inputTime)) {
-    currentTimeStamp = moment(inputTime).format(compactDateTimeFormat);
-    return currentTimeStamp;
-  }
-  else if (moment(new Date(inputTime)).isValid()) {
-    currentTimeStamp = moment(new Date(inputTime)).format(compactDateTimeFormat);
-    return currentTimeStamp;
-  }
-  else if (moment(parseInt(inputTime)).isValid()) {
-    currentTimeStamp = moment(parseInt(inputTime)).format(compactDateTimeFormat);
-    return currentTimeStamp;
-  }
-  else {
-    console.log(chalkAlert("WAS | TFC | *** getTimeStamp INVALID DATE: " + inputTime));
-    return null;
-  }
-}
 
 function showStats(options){
 

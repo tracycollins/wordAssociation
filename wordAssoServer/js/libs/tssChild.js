@@ -2632,7 +2632,6 @@ process.on("message", async function(m) {
         await initSearchStream();
         await initTwitterSearch(configuration);
         await initFollowQueue({interval: configuration.followQueueIntervalTime});
-        // await initUnfollowQueue({interval: configuration.followQueueIntervalTime});
       }
       catch(err){
         console.log(chalkError("TSS | *** INIT ERROR" 
@@ -2871,10 +2870,7 @@ process.on("message", async function(m) {
     break;
 
     case "UNFOLLOW":
-
-      // unfollowQueue.push({threeceeUser: threeceeUserObj.screenName, user: m.user});
-
-      console.log(chalkInfo("TSS | TSS > UNFOLLOW"
+      console.log(chalkInfo("TSS | UNFOLLOW"
         // + " [Q: " + unfollowQueue.length + "]"
         + " 3C @" + threeceeUserObj.screenName
         + " | USER " + m.user.userId
@@ -2883,16 +2879,6 @@ process.on("message", async function(m) {
     break;
 
     case "UNFOLLOW_ID_ARRAY":
-
-      // m.userArray.forEach(function(userId){
-      //   // unfollowQueue.push({threeceeUser: threeceeUserObj.screenName, user: { userId: userId }});
-      // });
-
-      // console.log(chalkInfo("TSS | TSS > UNFOLLOW_ID_ARRAY"
-      //   + " | 3C @" + threeceeUserObj.screenName
-      //   + " | Q: " + unfollowQueue.length
-      //   + " | USER ARRAY " + m.userArray.length
-      // ));
     break;
 
     case "IGNORE":
@@ -2959,7 +2945,6 @@ process.on("message", async function(m) {
           err: err
         });
       }
-
     break;
 
     case "PING":
@@ -2978,12 +2963,12 @@ process.on("message", async function(m) {
     break;
 
     default:
-      console.error(chalkError("TSS | TWP | *** TSS UNKNOWN OP"
+      console.error(chalkError("TSS | *** TSS UNKNOWN OP"
         + " | 3C @" + threeceeUserObj.screenName
         + " | INTERVAL: " + m.op
       ));
-
   }
+  
 });
 
 setTimeout(async function(){

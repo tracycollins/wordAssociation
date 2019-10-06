@@ -7201,7 +7201,6 @@ function initTssChild(params){
           if (m.twitterConfig) {
             threeceeTwitter.twitterConfig = m.twitterConfig;
           }
-
         break;
 
         case "FOLLOW_LIMIT":
@@ -7215,7 +7214,6 @@ function initTssChild(params){
           threeceeTwitter.twitterFollowing = m.twitterFollowing;
           threeceeTwitter.twitterFriends = m.twitterFriends;
           threeceeTwitter.twitterFollowLimit = true;
-
         break;
 
         case "TWEET":
@@ -7224,6 +7222,7 @@ function initTssChild(params){
         break;
 
         case "PONG":
+          tssPongReceived = m.pongId;
           childrenHashMap[params.childId].status = "RUNNING";
           if (configuration.verbose) {
             console.log(chalkInfo("WAS | <TSS | PONG"

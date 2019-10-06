@@ -6540,11 +6540,8 @@ function initTwitterRxQueueInterval(interval){
     tweetRxQueueInterval = setInterval(function tweetRxQueueDequeue() {
 
       if ((tweetRxQueue.length > 0) && statsObj.tweetParserReady) {
-
         tweet = tweetRxQueue.shift();
-
-        tssChild.send({ op: "tweet", tweetStatus: tweet });
-
+        twpChild.send({ op: "tweet", tweetStatus: tweet });
       }
     }, interval);
 

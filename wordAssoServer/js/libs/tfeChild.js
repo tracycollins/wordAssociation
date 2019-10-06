@@ -469,38 +469,15 @@ function connectDb(){
   });
 }
 
-// // ==================================================================
-// // DROPBOX
-// // ==================================================================
 
-// const DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN;
-// const DROPBOX_TFE_CONFIG_FILE = process.env.DROPBOX_TFE_CONFIG_FILE || "tfeChildConfig.json";
-// const DROPBOX_TFE_STATS_FILE = process.env.DROPBOX_TFE_STATS_FILE || "tfeChildStats.json";
+configuration.configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/default");
+configuration.configDefaultFile = "default_" + MODULE_NAME + "Config.json";
 
-// const statsFolder = "/stats/" + hostname + "/followerExplorer";
-// const statsFile = DROPBOX_TFE_STATS_FILE;
+configuration.statsFolder = path.join(DROPBOX_ROOT_FOLDER, "stats", hostname);
+configuration.statsFile = MODULE_NAME + "Stats.json";
 
-
-// ==================================================================
-// DROPBOX
-// ==================================================================
-configuration.DROPBOX = {};
-
-configuration.DROPBOX.DROPBOX_CONFIG_FILE = process.env.DROPBOX_CONFIG_FILE || MODULE_NAME + "Config.json";
-configuration.DROPBOX.DROPBOX_STATS_FILE = process.env.DROPBOX_STATS_FILE || MODULE_NAME + "Stats.json";
-
-const configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/default");
-// const configHostFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility",hostname);
-
-const configDefaultFile = configuration.DROPBOX.DROPBOX_CONFIG_FILE;
-// const configHostFile = hostname + "_" + configuration.DROPBOX.DROPBOX_CONFIG_FILE;
-
-const twitterConfigFolder = path.join(DROPBOX_ROOT_FOLDER, "twitter");
-const twitterConfigFile = configuration.twitterConfigFile || "altthreecee00.json";
-
-
-const statsFolder = path.join(DROPBOX_ROOT_FOLDER, "stats",hostname);
-const statsFile = configuration.DROPBOX.DROPBOX_STATS_FILE;
+configuration.twitterConfigFolder = path.join(DROPBOX_ROOT_FOLDER, "config/twitter");
+configuration.twitterConfigFile = "altthreecee00.json";
 
 function getTimeStamp(inputTime) {
 
@@ -683,7 +660,7 @@ function initStatsUpdate() {
       statsObj.elapsed = getElapsedTimeStamp();
       statsObj.timeStamp = getTimeStamp();
 
-      tcUtils.saveFile({localFlag: false, folder: statsFolder, file: statsFile, obj: statsObj});
+      tcUtils.saveFile({localFlag: false, folder: configuration.statsFolder, file: configuration.statsFile, obj: statsObj});
 
       clearInterval(statsUpdateInterval);
 
@@ -692,7 +669,7 @@ function initStatsUpdate() {
         statsObj.elapsed = getElapsedTimeStamp();
         statsObj.timeStamp = getTimeStamp();
 
-        saveFileQueue.push({localFlag: false, folder: statsFolder, file: statsFile, obj: statsObj});
+        saveFileQueue.push({localFlag: false, folder: configuration.statsFolder, file: configuration.statsFile, obj: statsObj});
         statsObj.queues.saveFileQueue.size = saveFileQueue.length;
 
         try{
@@ -1245,9 +1222,9 @@ async function initialize(cnf){
 
   try{
 
-    const loadedConfigObj = await tcUtils.loadFileRetry({folder: configDefaultFolder, file: configDefaultFile}); 
+    const loadedConfigObj = await tcUtils.loadFileRetry({folder: configuration.configDefaultFolder, file: configuration.configDefaultFile}); 
 
-    console.log("WAS | TFC | " + configDefaultFolder + "/" + configDefaultFile + "\n" + jsonPrint(loadedConfigObj));
+    console.log("WAS | TFC | " + configuration.configDefaultFolder + "/" + configuration.configDefaultFile + "\n" + jsonPrint(loadedConfigObj));
 
     if (loadedConfigObj.TFE_VERBOSE_MODE !== undefined){
       console.log("WAS | TFC | LOADED TFE_VERBOSE_MODE: " + loadedConfigObj.TFE_VERBOSE_MODE);
@@ -1289,14 +1266,14 @@ async function initialize(cnf){
 
     await initStatsUpdate();
 
-    const twitterConfig = await tcUtils.loadFileRetry({folder: twitterConfigFolder, file: twitterConfigFile});
+    const twitterConfig = await tcUtils.loadFileRetry({folder: configuration.twitterConfigFolder, file: configuration.twitterConfigFile});
 
     cnf.twitterConfig = {};
     cnf.twitterConfig = twitterConfig;
 
     console.log("WAS | TFC | " + chalkInfo(getTimeStamp() + " | TWITTER CONFIG FILE " 
-      + twitterConfigFolder
-      + twitterConfigFile
+      + configuration.twitterConfigFolder
+      + configuration.twitterConfigFile
       + "\n" + jsonPrint(cnf.twitterConfig )
     ));
 
@@ -1304,7 +1281,7 @@ async function initialize(cnf){
 
   }
   catch(err){
-    console.error("WAS | TFC | *** ERROR LOAD DROPBOX CONFIG: " + configDefaultFolder + "/" + configDefaultFile + "\n" + jsonPrint(err));
+    console.error("WAS | TFC | *** ERROR LOAD DROPBOX CONFIG: " + configuration.configDefaultFolder + "/" + configuration.configDefaultFile + "\n" + jsonPrint(err));
     throw err;
   }
 }

@@ -495,6 +495,10 @@ const configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/defau
 const configDefaultFile = configuration.DROPBOX.DROPBOX_CONFIG_FILE;
 // const configHostFile = hostname + "_" + configuration.DROPBOX.DROPBOX_CONFIG_FILE;
 
+const twitterConfigFolder = path.join(configDefaultFolder, "twitter");
+const twitterConfigFile = configuration.twitterConfigFile || "altthreecee00.json";
+
+
 const statsFolder = path.join(DROPBOX_ROOT_FOLDER, "stats",hostname);
 const statsFile = configuration.DROPBOX.DROPBOX_STATS_FILE;
 
@@ -1233,9 +1237,9 @@ async function initialize(cnf){
   cnf.testMode = process.env.TFE_TEST_MODE || false;
   cnf.quitOnError = process.env.TFE_QUIT_ON_ERROR || false;
 
-  cnf.twitterConfigFolder = process.env.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER || "/config/twitter"; 
-  cnf.twitterConfigFile = process.env.DROPBOX_TFE_DEFAULT_TWITTER_CONFIG_FILE 
-    || "altthreecee00.json";
+  // cnf.twitterConfigFolder = process.env.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER || "/config/twitter"; 
+  // cnf.twitterConfigFile = process.env.DROPBOX_TFE_DEFAULT_TWITTER_CONFIG_FILE 
+  //   || "altthreecee00.json";
 
   cnf.statsUpdateIntervalTime = process.env.TFE_STATS_UPDATE_INTERVAL || 60000;
 
@@ -1265,18 +1269,6 @@ async function initialize(cnf){
       cnf.enableGeoCode = loadedConfigObj.TFE_ENABLE_GEOCODE;
     }
 
-    if (loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER !== undefined){
-      console.log("WAS | TFC | LOADED DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER: " 
-        + jsonPrint(loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER));
-      cnf.twitterConfigFolder = loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER;
-    }
-
-    if (loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FILE !== undefined){
-      console.log("WAS | TFC | LOADED DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FILE: " 
-        + jsonPrint(loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FILE));
-      cnf.twitterConfigFile = loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FILE;
-    }
-
     if (loadedConfigObj.TFE_STATS_UPDATE_INTERVAL !== undefined) {
       console.log("WAS | TFC | LOADED TFE_STATS_UPDATE_INTERVAL: " + loadedConfigObj.TFE_STATS_UPDATE_INTERVAL);
       cnf.statsUpdateIntervalTime = loadedConfigObj.TFE_STATS_UPDATE_INTERVAL;
@@ -1297,14 +1289,14 @@ async function initialize(cnf){
 
     await initStatsUpdate();
 
-    const twitterConfig = await tcUtils.loadFileRetry({folder: cnf.twitterConfigFolder, file: cnf.twitterConfigFile});
+    const twitterConfig = await tcUtils.loadFileRetry({folder: twitterConfigFolder, file: twitterConfigFile});
 
     cnf.twitterConfig = {};
     cnf.twitterConfig = twitterConfig;
 
     console.log("WAS | TFC | " + chalkInfo(getTimeStamp() + " | TWITTER CONFIG FILE " 
-      + cnf.twitterConfigFolder
-      + cnf.twitterConfigFile
+      + twitterConfigFolder
+      + twitterConfigFile
       + "\n" + jsonPrint(cnf.twitterConfig )
     ));
 

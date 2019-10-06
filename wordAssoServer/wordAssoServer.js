@@ -7092,7 +7092,7 @@ function initTssChild(params){
 
   statsObj.status = "INIT TSS CHILD";
 
-  statsObj.tssChild.ready = false;
+  statsObj.tssChildReady = false;
 
   console.log(chalk.bold.black("WAS | INIT TSS CHILD\n" + jsonPrint(params)));
 
@@ -7243,6 +7243,7 @@ function initTssChild(params){
     });
 
     tss.on("error", function tssError(err){
+      statsObj.tssChildReady = false;
       console.log(chalkError(getTimeStamp()
         + " | *** TSS ERROR ***"
         + " \n" + jsonPrint(err)
@@ -7254,6 +7255,7 @@ function initTssChild(params){
     });
 
     tss.on("exit", function tssExit(code){
+      statsObj.tssChildReady = false;
       console.log(chalkError(getTimeStamp()
         + " | *** TSS EXIT ***"
         + " | EXIT CODE: " + code
@@ -7263,6 +7265,7 @@ function initTssChild(params){
     });
 
     tss.on("close", function tssClose(code){
+      statsObj.tssChildReady = false;
       console.log(chalkError(getTimeStamp()
         + " | *** TSS CLOSE ***"
         + " | EXIT CODE: " + code
@@ -7273,8 +7276,6 @@ function initTssChild(params){
     });
 
     tssChild = tss;
-
-    statsObj.tssChild.ready = true;
 
     tss.send({
       op: "INIT",
@@ -7287,6 +7288,7 @@ function initTssChild(params){
       verbose: configuration.verbose
     }, function tssMessageRxError(err){
       if (err) {
+        statsObj.tssChildReady = false;
         console.log(chalkError("WAS | *** TSS SEND ERROR: " + err));
         console.error(err);
         clearInterval(tssPingInterval);
@@ -7299,6 +7301,7 @@ function initTssChild(params){
         setTimeout(function(){
           initTssPingInterval(TSS_PING_INTERVAL);
         }, 1000);
+        statsObj.tssChildReady = true;
         resolve();
       }
     });
@@ -7513,8 +7516,6 @@ async function initTfeChild(params){
     childrenHashMap[params.childId].status = "CLOSE";
   });
 
-  statsObj.tfeChildReady = true;
-
   tfeChild = tfe;
 
   tfeChild.send({
@@ -7655,8 +7656,6 @@ function initDbuChild(params){
       clearInterval(dbuPingInterval);
       childrenHashMap[childId].status = "CLOSE";
     });
-
-    statsObj.dbuChildReady = true;
 
     dbuChild = dbu;
 

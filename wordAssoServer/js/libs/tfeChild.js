@@ -495,7 +495,7 @@ const configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/defau
 const configDefaultFile = configuration.DROPBOX.DROPBOX_CONFIG_FILE;
 // const configHostFile = hostname + "_" + configuration.DROPBOX.DROPBOX_CONFIG_FILE;
 
-const twitterConfigFolder = path.join(configDefaultFolder, "twitter");
+const twitterConfigFolder = path.join(DROPBOX_ROOT_FOLDER, "twitter");
 const twitterConfigFile = configuration.twitterConfigFile || "altthreecee00.json";
 
 

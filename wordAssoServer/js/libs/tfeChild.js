@@ -492,7 +492,7 @@ configuration.DROPBOX.DROPBOX_STATS_FILE = process.env.DROPBOX_STATS_FILE || MOD
 const configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/default");
 // const configHostFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility",hostname);
 
-const configDefaultFile = "default_" + configuration.DROPBOX.DROPBOX_CONFIG_FILE;
+const configDefaultFile = configuration.DROPBOX.DROPBOX_CONFIG_FILE;
 // const configHostFile = hostname + "_" + configuration.DROPBOX.DROPBOX_CONFIG_FILE;
 
 const statsFolder = path.join(DROPBOX_ROOT_FOLDER, "stats",hostname);

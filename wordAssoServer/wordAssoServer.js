@@ -38,6 +38,10 @@ else {
 const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
 const tcUtils = new ThreeceeUtilities("WAS_TCU");
 
+const msToTime = tcUtils.msToTime;
+const jsonPrint = tcUtils.jsonPrint;
+const getTimeStamp = tcUtils.getTimeStamp;
+
 const TWITTER_WEBHOOK_URL = "/webhooks/twitter";
 const TWITTER_AUTH_CALLBACK_URL = "https://word.threeceelabs.com/auth/twitter/callback";
 
@@ -213,7 +217,6 @@ const debug = require("debug")("wa");
 const debugCache = require("debug")("cache");
 const debugCategory = require("debug")("kw");
 const moment = require("moment");
-const treeify = require("treeify");
 
 const express = require("express");
 const app = express();
@@ -387,6 +390,8 @@ let defaultConfiguration = {}; // general configuration
 let hostConfiguration = {}; // host-specific configuration
 
 configuration.heartbeatInterval = process.env.WAS_HEARTBEAT_INTERVAL || ONE_MINUTE;
+configuration.statsUpdateIntervalTime = process.env.WAS_STATS_UPDATE_INTERVAL || 10*ONE_MINUTE;
+configuration.uncatUserCacheIntervalTime = process.env.WAS_UNCAT_USER_CACHE_INTERVAL || 15*ONE_MINUTE;
 
 configuration.filterVerifiedUsers = true;
 configuration.twitterBearerToken = process.env.TWITTER_BEARER_TOKEN;
@@ -503,32 +508,6 @@ const optionDefinitions = [
   help
 ];
 
-function getTimeStamp(inputTime) {
-
-  let currentTimeStamp;
-
-  if (empty(inputTime)) {
-    currentTimeStamp = moment().format(compactDateTimeFormat);
-    return currentTimeStamp;
-  }
-  else if (moment.isMoment(inputTime)) {
-    currentTimeStamp = moment(inputTime).format(compactDateTimeFormat);
-    return currentTimeStamp;
-  }
-  else if (moment(new Date(inputTime)).isValid()) {
-    currentTimeStamp = moment(new Date(inputTime)).format(compactDateTimeFormat);
-    return currentTimeStamp;
-  }
-  else if (moment(parseInt(inputTime)).isValid()) {
-    currentTimeStamp = moment(parseInt(inputTime)).format(compactDateTimeFormat);
-    return currentTimeStamp;
-  }
-  else {
-    console.log(chalkAlert("WAS | *** getTimeStamp INVALID DATE: " + inputTime));
-    return null;
-  }
-}
-
 function quit(message) {
 
   statsObj.status = "QUITTING";
@@ -568,26 +547,8 @@ function quit(message) {
   console.log(chalkAlert("WAS | QUIT MESSAGE: " + msg));
   console.error(chalkAlert("WAS | QUIT MESSAGE: " + msg));
 
-  // if (global.globalDbConnection) {
-
-  //   global.globalDbConnection.close(function () {
-
-  //     statsObj.dbConnectionReady = false;
-
-  //     console.log(chalkAlert(
-  //           "WAS | =========================="
-  //       + "\nWAS | MONGO DB CONNECTION CLOSED"
-  //       + "\nWAS | =========================="
-  //     ));
-
-  //   });
-
-  // }
-
   setTimeout(function() {
-
     process.exit();
-
   }, 5000);
 }
 
@@ -618,10 +579,8 @@ const userAutoPositiveSet = new Set();
 const userAutoNegativeSet = new Set();
 const userAutoNoneSet = new Set();
 
-// const verifiedCategorizedUsersFile = "verifiedCategorizedUsers.txt";
 const ignoredHashtagFile = "ignoredHashtag.txt";
 const ignoredUserFile = "ignoredUser.json";
-// const unfollowableUserFile = "unfollowableUser.json";
 const followableSearchTermFile = "followableSearchTerm.txt";
 const uncatUserCacheFile = "uncatUserCache.json";
 
@@ -1364,38 +1323,6 @@ const dbConnectInterval = setInterval(async function(){
   }
 
 }, 10*ONE_SECOND);
-
-function jsonPrint(obj) {
-  if (obj) {
-    return treeify.asTree(obj, true, true);
-  } 
-  else {
-    return obj;
-  }
-}
-
-function msToTime(d) {
-
-  let duration = d;
-  let sign = 1;
-
-  if (duration < 0) {
-    sign = -1;
-    duration = -duration;
-  }
-
-  let seconds = parseInt((duration / 1000) % 60);
-  let minutes = parseInt((duration / (1000 * 60)) % 60);
-  let hours = parseInt((duration / (1000 * 60 * 60)) % 24);
-  let days = parseInt(duration / (1000 * 60 * 60 * 24));
-  days = (days < 10) ? "0" + days : days;
-  hours = (hours < 10) ? "0" + hours : hours;
-  minutes = (minutes < 10) ? "0" + minutes : minutes;
-  seconds = (seconds < 10) ? "0" + seconds : seconds;
-
-  if (sign > 0) return days + ":" + hours + ":" + minutes + ":" + seconds;
-  return "- " + days + ":" + hours + ":" + minutes + ":" + seconds;
-}
 
 function touchChildPidFile(params){
 
@@ -2688,17 +2615,6 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
       });
     },
     
-    // unfollowableInit: function(cb){
-
-    //   initUnfollowableUserSet().
-    //   then(function(){
-    //     cb();
-    //   }).
-    //   catch(function(err){
-    //     return cb(err);
-    //   });
-    // },
-    
     ignoredUserInit: function(cb){
 
       initIgnoredUserSet().
@@ -2721,17 +2637,6 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
       });
     },
     
-    // verifiedCategorizedUsersInit: function(cb){
-
-    //   initVerifiedCategorizedUsersSet().
-    //   then(function(){
-    //     cb();
-    //   }).
-    //   catch(function(err){
-    //     return cb(err);
-    //   });
-    // },
-
     followSearchInit: function(cb){
 
       initFollowableSearchTermSet().
@@ -2793,7 +2698,6 @@ configEvents.on("NEW_BEST_NETWORK", function configEventDbConnect(){
         ));
       }
     });
-
   }
 
 });
@@ -3866,7 +3770,7 @@ async function initSetFromFile(params){
   }
 }
 
-async function saveUncatUserCache(){
+function saveUncatUserCache(){
 
   statsObj.status = "SAVE UNCAT USER ID CACHE";
 
@@ -3890,7 +3794,6 @@ async function saveUncatUserCache(){
     + " | " + folder + "/" + uncatUserCacheFile
   ));
 
-
   saveFileQueue.push({
     localFlag: false, 
     folder: folder, 
@@ -3899,8 +3802,9 @@ async function saveUncatUserCache(){
   });
 
   return;
-
 }
+
+let uncatUserCacheInterval;
 
 async function initUncatUserCache(){
 
@@ -3932,15 +3836,12 @@ async function initUncatUserCache(){
     ));
 
     for(const userId of uncatUserIdArray){
-
       uncatUserCacheObj[userId].timeStamp = getTimeStamp();
-
       uncatUserCache.set(
         userId, 
         uncatUserCacheObj[userId],
         configuration.uncatUserCacheTtl
       );
-
     }
 
     console.log(chalkLog("WAS | +++ LOADED UNCAT USER CACHE FILE"
@@ -3948,6 +3849,12 @@ async function initUncatUserCache(){
       + " | " + folder + "/" + uncatUserCacheFile
       + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
     ));
+
+    clearInterval(uncatUserCacheInterval);
+
+    uncatUserCacheInterval = setInterval(async function(){
+     saveUncatUserCache();
+    }, configuration.uncatUserCacheIntervalTime);
 
     return;
   }
@@ -8652,12 +8559,12 @@ async function loadAllConfigFiles(){
   return;
 }
 
-function initStatsUpdate(cnf) {
+function initStatsUpdate() {
 
   return new Promise(function(resolve, reject){
 
     try {
-      console.log(chalkTwitter("WAS | INIT STATS UPDATE INTERVAL | " + cnf.statsUpdateIntervalTime + " MS"));
+      console.log(chalkTwitter("WAS | INIT STATS UPDATE INTERVAL | " + msToTime(configuration.statsUpdateIntervalTime) + " MS"));
 
       showStats(true);
 
@@ -8710,15 +8617,12 @@ function initStatsUpdate(cnf) {
           showStats();
 
           if (statsObj.twitNotReadyWarning) { statsObj.twitNotReadyWarning = false; }
-
-          await saveUncatUserCache();
-
         }
         catch(err){
           console.log(chalkError("WAS | *** STATS UPDATE ERROR: " + err));
         }
          
-      }, cnf.statsUpdateIntervalTime);
+      }, configuration.statsUpdateIntervalTime);
 
       resolve();
     }
@@ -8737,7 +8641,7 @@ async function initConfig() {
   configuration.verbose = process.env.VERBOSE || false;
   configuration.quitOnError = process.env.QUIT_ON_ERROR || false;
   configuration.enableStdin = process.env.ENABLE_STDIN || true;
-  configuration.statsUpdateIntervalTime = process.env.TFE_STATS_UPDATE_INTERVAL || ONE_MINUTE;
+  configuration.statsUpdateIntervalTime = process.env.WAS_STATS_UPDATE_INTERVAL || 10*ONE_MINUTE;
 
   console.log(chalkTwitter("WAS | THREECEE USERS\n" + jsonPrint(configuration.threeceeUsers)));
 

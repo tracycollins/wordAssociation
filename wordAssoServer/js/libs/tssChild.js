@@ -2619,6 +2619,8 @@ process.on("message", async function(m) {
 
       console.log(chalkInfo("TSS | INIT"
         + " | TITLE: " + m.title
+        + " | 3C USER @" + configuration.threeceeUser
+        + "\nCONFIGURATION\n" + jsonPrint(configuration)
         + "\nTWITTER CONFIG\n" + jsonPrint(m.twitterConfig)
       ));
 
@@ -2968,7 +2970,7 @@ process.on("message", async function(m) {
         + " | INTERVAL: " + m.op
       ));
   }
-  
+
 });
 
 setTimeout(async function(){

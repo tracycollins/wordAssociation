@@ -7027,7 +7027,7 @@ function initTssPingInterval(interval){
                 return;
               }
               tssPongReceived = false;
-              initTssChild({childId: DEFAULT_TSS_CHILD_ID});
+              initTssChild({childId: DEFAULT_TSS_CHILD_ID, threeceeUser: threeceeUser});
             });
 
             return;
@@ -7057,7 +7057,7 @@ function initTssPingInterval(interval){
                 return;
               }
               tssPongReceived = false;
-              initTssChild({childId: DEFAULT_TSS_CHILD_ID});
+              initTssChild({childId: DEFAULT_TSS_CHILD_ID, threeceeUser: threeceeUser});
             });
 
             return;
@@ -10158,7 +10158,7 @@ setTimeout(async function(){
     await initDbuChild({childId: DEFAULT_DBU_CHILD_ID});
     await initTweetParser({childId: DEFAULT_TWP_CHILD_ID});
     await initTfeChild({childId: DEFAULT_TFE_CHILD_ID});
-    await initTssChild({childId: DEFAULT_TSS_CHILD_ID});
+    await initTssChild({childId: DEFAULT_TSS_CHILD_ID, threeceeUser: threeceeUser});
     await initDbUserChangeStream();
     await initUpdateUserSetsInterval(configuration.updateUserSetsInterval);
     await initWatchConfig();

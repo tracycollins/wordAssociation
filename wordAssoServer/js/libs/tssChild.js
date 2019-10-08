@@ -9,10 +9,10 @@ const ignoreLocationsFile = "ignoreLocations.txt";
 const allowLocationsFile = "allowLocations.txt";
 
 const DEFAULT_MAX_TWEET_QUEUE = 500;
-const DEFAULT_TWITTER_QUEUE_INTERVAL = 10;
+const DEFAULT_TWITTER_QUEUE_INTERVAL = 5;
 
-const TWEET_ID_CACHE_DEFAULT_TTL = 20;
-const TWEET_ID_CACHE_CHECK_PERIOD = 5;
+const TWEET_ID_CACHE_DEFAULT_TTL = 60;
+const TWEET_ID_CACHE_CHECK_PERIOD = 10;
 
 const TWITTER_MAX_TRACKING_NUMBER = 400;
 
@@ -2372,6 +2372,9 @@ function initTwitterQueue(cnf, callback){
 
   console.log(chalkTwitter("TSS | INIT TWITTER QUEUE INTERVAL: " + cnf.twitterQueueIntervalTime));
 
+  const interval = cnf.twitterQueueIntervalTime;
+  const sendMessageTimeout = configuration.sendMessageTimeout;
+
   clearInterval(tweetQueueInterval);
 
   let prevTweetId = "";
@@ -2382,50 +2385,41 @@ function initTwitterQueue(cnf, callback){
     if (tweetSendReady && (tweetQueue.length > 0)) {
 
       tweetSendReady = false;
-      statsObj.queues.tweetQueue.ready = false;
-
       tweetStatus = tweetQueue.shift();
-      statsObj.queues.tweetQueue.size = tweetQueue.length;
 
       if (tweetStatus.id_str != prevTweetId) {
 
-        debug(chalkTwitter("TSS [" + tweetQueue.length + "] " + tweetStatus.id_str));
+        // debug(chalkTwitter("TSS [" + tweetQueue.length + "] " + tweetStatus.id_str));
 
-        sendMessageTimeout = setTimeout(function(){
+        // sendMessageTimeout = setTimeout(function(){
 
-          console.log(chalkAlert("TSS | *** SEND TWEET TIMEOUT"
-            + " | " + msToTime(configuration.sendMessageTimeout)
-          ));
+        //   console.log(chalkAlert("TSS | *** SEND TWEET TIMEOUT"
+        //     + " | " + msToTime(sendMessageTimeout)
+        //   ));
 
-        }, configuration.sendMessageTimeout);
+        // }, sendMessageTimeout);
 
         process.send({op: "TWEET", tweet: tweetStatus});
 
-        clearTimeout(sendMessageTimeout);
+        // clearTimeout(sendMessageTimeout);
         prevTweetId = tweetStatus.id_str;
         tweetSendReady = true;
-        statsObj.queues.tweetQueue.ready = true;
-
       }
       else {
 
         tweetSendReady = true;
-        statsObj.queues.tweetQueue.ready = true;
+        // statsObj.twitter.duplicateTweetsReceived += 1;
 
-        statsObj.twitter.duplicateTweetsReceived += 1;
+        // const dupPercent = 100 * statsObj.twitter.duplicateTweetsReceived / statsObj.tweetsReceived;
 
-        const dupPercent = 100 * statsObj.twitter.duplicateTweetsReceived / statsObj.tweetsReceived;
-
-        debug(chalkAlert("TSS | DUP [ Q: " + tweetQueue.length + "]"
-          + " [ " + statsObj.twitter.duplicateTweetsReceived + "/" + statsObj.tweetsReceived
-          + " | " + dupPercent.toFixed(1) + "% ]"
-          + " | " + tweetStatus.id_str
-        ));
+        // debug(chalkAlert("TSS | DUP [ Q: " + tweetQueue.length + "]"
+        //   + " [ " + statsObj.twitter.duplicateTweetsReceived + "/" + statsObj.tweetsReceived
+        //   + " | " + dupPercent.toFixed(1) + "% ]"
+        //   + " | " + tweetStatus.id_str
+        // ));
       }
-
-
     }
-  }, cnf.twitterQueueIntervalTime);
+  }, interval);
 
   if (callback) { callback(); }
 }
@@ -2457,9 +2451,11 @@ async function initFollowQueue(params){
 
   try {
 
+    const interval = params.interval;
+
     console.log(chalkTwitter("TSS"
       + " | 3C @" + threeceeUserObj.screenName 
-      + " | FOLLOW QUEUE INTERVAL: " + params.interval
+      + " | FOLLOW QUEUE INTERVAL: " + interval
     ));
 
     clearInterval(followQueueInterval);
@@ -2536,7 +2532,7 @@ async function initFollowQueue(params){
         });
       }
 
-    }, params.interval);
+    }, interval);
 
     return;
 

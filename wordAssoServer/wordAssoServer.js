@@ -5,9 +5,8 @@ const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
 const ONE_HOUR = 60 * ONE_MINUTE;
 const ONE_DAY = 24 * ONE_HOUR;
-const ONE_WEEK = 24 * ONE_HOUR;
 
-const DEFAULT_START_TIMEOUT = ONE_MINUTE;
+const DEFAULT_START_TIMEOUT = 10*ONE_SECOND;
 
 const DEFAULT_BINARY_MODE = true;
 
@@ -49,12 +48,26 @@ const TWITTER_AUTH_CALLBACK_URL = "https://word.threeceelabs.com/auth/twitter/ca
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 let dbConnection;
 
-let HashtagServerController;
-let hashtagServerController;
+const HashtagServerController = require("@threeceelabs/hashtag-server-controller");
+const hashtagServerController = new HashtagServerController("WAS_HSC");
 
-let UserServerController;
-let userServerController;
+hashtagServerController.on("error", function(err){
+  console.log(chalkError("WAS | *** HSC ERROR | " + err));
+});
+
+const UserServerController = require("@threeceelabs/user-server-controller");
+const userServerController = new UserServerController("WAS_USC");
 let userServerControllerReady = false;
+
+userServerController.on("error", function(err){
+  userServerControllerReady = false;
+  console.log(chalkError("WAS | *** USC ERROR | " + err));
+});
+
+userServerController.on("ready", function(appname){
+  userServerControllerReady = true;
+  console.log(chalk.green("WAS | USC READY | " + appname));
+});
 
 let neuralNetworkChangeStream;
 let userChangeStream;
@@ -182,6 +195,7 @@ const chalkWarn = chalk.bold.yellow;
 const chalkError = chalk.bold.red;
 const chalkLog = chalk.gray;
 const chalkBlue = chalk.blue;
+const chalkBlueBold = chalk.blue.bold;
 
 const btoa = require("btoa");
 const request = require("request-promise-native");
@@ -495,7 +509,6 @@ function quit(message) {
   if (userChangeStream !== undefined) { userChangeStream.close(); }
 
   clearInterval(updateUserSetsInterval);
-  clearInterval(dbConnectInterval);
   clearInterval(nodeCacheInterval);
   clearInterval(saveFileQueueInterval);
   clearInterval(heartbeatInterval);
@@ -1024,7 +1037,7 @@ async function connectDb(){
 
     console.log(chalkBlueBold(MODULE_ID_PREFIX + " | CONNECT MONGO DB ..."));
 
-    const db = await wordAssoDb.connect(MODULE_ID + "_" + process.pid);
+    const db = await wordAssoDb.connect(MODULE_ID_PREFIX + "_" + process.pid);
 
     db.on("error", async function(err){
       statsObj.status = "MONGO ERROR";
@@ -1050,8 +1063,9 @@ async function connectDb(){
 
     console.log(chalk.green(MODULE_ID_PREFIX + " | MONGOOSE DEFAULT CONNECTION OPEN"));
 
-    return db;
+    statsObj.dbConnectionReady = true;
 
+    return db;
   }
   catch(err){
     console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECT ERROR: " + err));
@@ -1320,28 +1334,142 @@ async function connectDb(){
 //   });
 // }
 
+function initPassport(params){
+
+  return new Promise(function(resolve, reject){
+
+    const sessionId = btoa("threecee");
+    console.log(chalk.green("WAS | PASSPORT SESSION ID: " + sessionId ));
+
+    app.use(expressSession({
+      sessionId: sessionId,
+      secret: "three cee labs 47", 
+      resave: false, 
+      saveUninitialized: false,
+      store: new MongoStore({ mongooseConnection: dbConnection })
+    }));
+
+    app.use(passport.initialize());
+
+    passport.use(new TwitterStrategy({
+        consumerKey: threeceeConfig.consumer_key,
+        consumerSecret: threeceeConfig.consumer_secret,
+        callbackURL: TWITTER_AUTH_CALLBACK_URL
+      },
+      function(token, tokenSecret, profile, cb) {
+
+        console.log(chalk.green("WAS | PASSPORT TWITTER AUTH: token:       " + token));
+        console.log(chalk.green("WAS | PASSPORT TWITTER AUTH: tokenSecret: " + tokenSecret));
+        console.log(chalk.green("WAS | PASSPORT TWITTER AUTH USER | @" + profile.username + " | " + profile.id));
+
+        if (configuration.verbose) { console.log(chalk.green("WAS | PASSPORT TWITTER AUTH\nprofile\n" + jsonPrint(profile))); }
+
+        const rawUser = profile._json;
+
+        if (!userServerControllerReady || !statsObj.dbConnectionReady) {
+          console.log(chalkAlert("WAS | *** NOT READY"
+            + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
+            + " | userServerControllerReady: " + userServerControllerReady
+          ));
+          return cb(new Error("userServerController not ready"), null);
+        }
+
+        userServerController.convertRawUser({user: rawUser}, function(err, user){
+
+          if (err) {
+            console.log(chalkError("WAS | *** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
+            return cb("RAW USER", rawUser);
+          }
+
+          printUserObj("WAS | MONGO DB | TWITTER AUTH USER", user);
+
+          userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
+
+            if (err) {
+              console.log(chalkError("WAS | ***findOneUser ERROR: " + err));
+              return cb(err);
+            }
+
+            console.log(chalk.blue("WAS | UPDATED updatedUser"
+              + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
+              + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
+              + "\nWAS | " + printUser({user: updatedUser})
+            ));
+
+
+            if (configuration.threeceeInfoUsersArray.includes(updatedUser.screenName)) {
+              threeceeInfoTwitter.twitterAuthorizationErrorFlag = false;
+              threeceeInfoTwitter.twitterCredentialErrorFlag = false;
+              threeceeInfoTwitter.twitterErrorFlag = false;
+              threeceeInfoTwitter.twitterFollowLimit = false;
+              threeceeInfoTwitter.twitterTokenErrorFlag = false;
+            }
+            else {
+              threeceeTwitter.twitterAuthorizationErrorFlag = false;
+              threeceeTwitter.twitterCredentialErrorFlag = false;
+              threeceeTwitter.twitterErrorFlag = false;
+              threeceeTwitter.twitterFollowLimit = false;
+              threeceeTwitter.twitterTokenErrorFlag = false;
+
+            }
+
+            if (tssChild !== undefined) {
+              tssChild.send({op: "USER_AUTHENTICATED", token: token, tokenSecret: tokenSecret,user: updatedUser});
+            }
+
+            adminNameSpace.emit("USER_AUTHENTICATED", updatedUser);
+            viewNameSpace.emit("USER_AUTHENTICATED", updatedUser);
+
+            cb(null, updatedUser);
+
+          });
+        });
+      }
+    ));
+
+    app.get("/auth/twitter", passport.authenticate("twitter"));
+
+    app.get("/auth/twitter/callback", 
+      passport.authenticate("twitter", 
+        { 
+          successReturnToOrRedirect: "/after-auth.html",
+          failureRedirect: "/login" 
+        }
+      )
+    );
+
+    app.get("/login_auth",
+      passport.authenticate("local", { 
+        successReturnToOrRedirect: "/after-auth.html",
+        failureRedirect: "/login"
+      })
+    );
+
+    passport.serializeUser(function(user, done) { 
+
+      const sessionUser = { 
+        "_id": user._id, 
+        nodeId: user.nodeId, 
+        screenName: user.screenName, 
+        name: user.name
+      };
+
+      console.log(chalk.green("WAS | PASSPORT SERIALIZE USER | @" + user.screenName));
+
+      done(null, sessionUser); 
+    });
+
+    passport.deserializeUser(function(sessionUser, done) {
+      done(null, sessionUser);
+    });
+
+    resolve();
+
+  });
+
+}
+
 statsObj.dbConnectBusy = false;
-
-const dbConnectInterval = setInterval(async function(){
-
-  if (!statsObj.dbConnectionReady && !statsObj.dbConnectBusy) {
-
-    statsObj.dbConnectBusy = true;
-
-    try{
-      dbConnection = await connectDb();
-      statsObj.dbConnectBusy = false;
-      statsObj.dbConnectionReady = true;
-      console.log(chalk.green("WAS | +++ MONGO DB CONNECTED"));
-    }
-    catch(err){
-      console.log(chalkError("WAS | *** CONNECT DB INTERVAL ERROR: " + err));
-      statsObj.dbConnectionReady = false;
-      statsObj.dbConnectBusy = false;
-    }
-  }
-
-}, 10*ONE_SECOND);
 
 function touchChildPidFile(params){
 
@@ -3385,7 +3513,7 @@ function follow(params, callback) {
     upsert: false
   };
 
-  global.globalUser.findOneAndUpdate(query, update, options, function(err, userUpdated){
+  wordAssoDb.User.findOneAndUpdate(query, update, options, function(err, userUpdated){
 
     if (err) {
       console.log(chalkError("WAS | *** FOLLOW | USER FIND ONE ERROR: " + err));
@@ -3446,7 +3574,7 @@ async function categoryVerified(params) {
       verifiedCategorizedUsersSet.delete(params.user.screenName.toLowerCase());
     }
 
-    const dbUser = await global.globalUser.findOne({screenName: params.user.screenName.toLowerCase()}).exec();
+    const dbUser = await wordAssoDb.User.findOne({screenName: params.user.screenName.toLowerCase()}).exec();
 
     if (empty(dbUser)) {
       console.log(chalkWarn("WAS | ??? UPDATE VERIFIED | USER NOT FOUND: " + params.user.screenName.toLowerCase()));
@@ -3489,7 +3617,7 @@ async function ignore(params) {
   tssChild.send({op: "IGNORE", user: params.user});
 
   try{
-    const results = await global.globalUser.deleteOne({nodeId: params.user.nodeId});
+    const results = await wordAssoDb.User.deleteOne({nodeId: params.user.nodeId});
 
     if (results.deletedCount > 0){
       console.log(chalkAlert("WAS | XXX IGNORED USER | -*- DB HIT"
@@ -3547,7 +3675,7 @@ async function unignore(params) {
     upsert: false
   };
 
-  global.globalUser.findOneAndUpdate(query, update, options, function(err, userUpdated){
+  wordAssoDb.User.findOneAndUpdate(query, update, options, function(err, userUpdated){
 
     if (err) {
       console.log(chalkError("WAS | *** UNIGNORE | USER FIND ONE ERROR: " + err));
@@ -3596,7 +3724,7 @@ function unfollow(params, callback) {
     upsert: false
   };
 
-  global.globalUser.findOneAndUpdate(query, update, options, function(err, userUpdated){
+  wordAssoDb.User.findOneAndUpdate(query, update, options, function(err, userUpdated){
 
     if (err) {
       console.log(chalkError("WAS | *** UNFOLLOW | USER FIND ONE ERROR: " + err));
@@ -3630,7 +3758,7 @@ async function updateDbIgnoredHashtags(){
 
     try {
 
-        const dbHashtag = await global.globalHashtag.findOne({nodeId: hashtag.toLowerCase()}).exec();
+        const dbHashtag = await wordAssoDb.Hashtag.findOne({nodeId: hashtag.toLowerCase()}).exec();
 
         if (empty(dbHashtag)) {
           console.log(chalkWarn("WAS | ??? UPDATE IGNORED | HASHTAG NOT FOUND: " + hashtag.toLowerCase()));
@@ -4685,7 +4813,7 @@ function initSocketHandler(socketObj) {
     }
     else{
       try{
-        const user = await global.globalUser.findOne({screenName: defaultTwitterUserScreenName}).exec();
+        const user = await wordAssoDb.User.findOne({screenName: defaultTwitterUserScreenName}).exec();
 
         if (user) {
           socket.emit("SET_TWITTER_USER", {user: user, stats: statsObj.user });
@@ -5401,7 +5529,7 @@ function updateUserSets(){
       return reject(new Error("DB CONNECTION NOT READY"));
     }
 
-    const userCollection = global.globalDbConnection.collection("users");
+    const userCollection = dbConnection.collection("users");
 
     userCollection.countDocuments(function(err, count){
 
@@ -5511,7 +5639,7 @@ function updateUserSets(){
 
     const userSearchQuery = { ignored: false };
     
-    userSearchCursor = global.globalUser
+    userSearchCursor = wordAssoDb.User
       .find(userSearchQuery)
       .select({friends: 0, tweets: 0, tweetHistograms: 0, profileHistograms: 0})
       .lean()
@@ -5525,7 +5653,7 @@ function updateUserSets(){
 
       if (user.lang && (user.lang !== undefined) && (user.lang != "en")){
 
-        global.globalUser.deleteOne({"nodeId": user.nodeId}, function(err){
+        wordAssoDb.User.deleteOne({"nodeId": user.nodeId}, function(err){
           if (err) {
             console.log(chalkError("WAS | *** DB DELETE USER LANG NOT ENG | ERROR: " + err));
           }
@@ -5544,7 +5672,7 @@ function updateUserSets(){
         && (user.followersCount < configuration.minFollowersAuto)
       ){
 
-        global.globalUser.deleteOne({"nodeId": user.nodeId}, function(err){
+        wordAssoDb.User.deleteOne({"nodeId": user.nodeId}, function(err){
           if (err) {
             console.log(chalkError("WAS | *** DB DELETE USER LESS THAN MIN FOLLOWERS | ERROR: " + err));
           }
@@ -8167,7 +8295,7 @@ async function loadBestRuntimeNetwork(p){
       }
     }
 
-    const nnArray = await global.globalNeuralNetwork.find({"overallMatchRate": { $lt: 100 }}).sort({"overallMatchRate": -1}).limit(1).exec();
+    const nnArray = await wordAssoDb.NeuralNetwork.find({"overallMatchRate": { $lt: 100 }}).sort({"overallMatchRate": -1}).limit(1).exec();
 
     if (nnArray.length == 0){
       console.log(chalkError("WAS | *** NEURAL NETWORK NOT FOUND"));
@@ -8762,7 +8890,7 @@ function initDbUserChangeStream(){
 
   return new Promise(function(resolve, reject){
 
-    const userCollection = global.globalDbConnection.collection("users");
+    const userCollection = dbConnection.collection("users");
 
     userCollection.countDocuments(function(err, count){
 
@@ -9249,7 +9377,7 @@ function twitUserShow(params){
 
               console.log(chalkAlert("WAS | XXX DELETING USER IN DB | @" + user.screenName + " | NID: " + user.nodeId));
 
-              await global.globalUser.deleteOne({ 'nodeId': user.nodeId });
+              await wordAssoDb.User.deleteOne({ 'nodeId': user.nodeId });
 
               ignoredUserSet.add(user.nodeId);
               followableUserSet.delete(user.nodeId);
@@ -9264,7 +9392,7 @@ function twitUserShow(params){
 
               console.log(chalkAlert("WAS | XXX DELETING USER IN DB | @" + user.screenName + " | NID: " + user.nodeId));
               
-              await global.globalUser.deleteOne({ 'screenName': user.screenName });
+              await wordAssoDb.User.deleteOne({ 'screenName': user.screenName });
               
               ignoredUserSet.add(user.screenName.toLowerCase());
               followableUserSet.delete(user.nodeId);
@@ -9394,7 +9522,7 @@ async function twitterSearchUserNode(searchQuery){
 
   try {
 
-    const user = await global.globalUser.findOne(searchQuery).exec();
+    const user = await wordAssoDb.User.findOne(searchQuery).exec();
 
     if (user) {
 
@@ -9875,7 +10003,7 @@ async function twitterSearchHashtag(params) {
 
   try {
 
-    let hashtag = await global.globalHashtag.findOne(searchNodeHashtag).exec();
+    let hashtag = await wordAssoDb.Hashtag.findOne(searchNodeHashtag).exec();
 
     if (hashtag) { 
 
@@ -9907,7 +10035,7 @@ async function twitterSearchHashtag(params) {
     console.log(chalkTwitter("WAS | TWITTER_SEARCH_NODE HASHTAG NOT FOUND: #" + searchNodeHashtag.nodeId));
     console.log(chalkTwitter("WAS | +++ CREATE NEW HASHTAG: #" + searchNodeHashtag.nodeId));
 
-    hashtag = new global.globalHashtag({ nodeId: searchNodeHashtag.nodeId.toLowerCase(), text: searchNodeHashtag.nodeId.toLowerCase()});
+    hashtag = new wordAssoDb.Hashtag({ nodeId: searchNodeHashtag.nodeId.toLowerCase(), text: searchNodeHashtag.nodeId.toLowerCase()});
 
     const newHashtag = await hashtag.save();
 
@@ -10146,6 +10274,7 @@ setTimeout(async function(){
 
   try {
 
+    dbConnection = await connectDb();
 
     await waitDbConnectionReady();
     const cnf = await initConfig();
@@ -10166,6 +10295,7 @@ setTimeout(async function(){
     await initInternetCheckInterval(ONE_MINUTE);
     await initKeySortInterval(configuration.keySortInterval);
     await initSaveFileQueue(configuration);
+    await initPassport();
     await initThreeceeTwitterUser("altthreecee00");
     if (hostname == "google") { 
       await getTwitterWebhooks();

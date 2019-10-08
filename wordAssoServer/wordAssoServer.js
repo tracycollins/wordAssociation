@@ -10276,6 +10276,8 @@ setTimeout(async function(){
 
     dbConnection = await connectDb();
 
+    configEvents.emit("DB_CONNECT");
+
     await waitDbConnectionReady();
     const cnf = await initConfig();
 

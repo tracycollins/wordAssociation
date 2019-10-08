@@ -167,87 +167,31 @@ function initTweetParserQueueInterval(cnf){
 
   clearInterval(tweetParserQueueInterval);
 
-  let tweet;
   let tweetParserQueueReady = true;
+
   const params = {};
   params.globalTestMode = cnf.globalTestMode;
   params.testMode = cnf.testMode;
   params.inc = cnf.inc;
 
-  tweetParserQueueInterval = setInterval(function(){
+  const tweetObjMessage = {};
+  tweetObjMessage.op = "parsedTweet";
+  tweetObjMessage.tweetObj = {};
 
-    if (tweetServerController 
-      && (tweetParserQueue.length > 0) 
-      && tweetParserQueueReady)
-    {
+  tweetParserQueueInterval = setInterval(async function(){
+
+    if (tweetServerController && (tweetParserQueue.length > 0) && tweetParserQueueReady){
 
       tweetParserQueueReady = false;
 
-      tweet = tweetParserQueue.shift();
+      params.tweetStatus = tweetParserQueue.shift();
 
-      if (cnf.verbose) {
-        console.log(chalkInfo("TW PARSER TPQ>"
-          + " [" + tweetParserQueue.length + "]"
-          + " | " + tweet.id_str
-          + " | TWEET LANG: " + tweet.lang
-          + " | " + tweet.user.id_str
-          + " | @" + tweet.user.screen_name
-          + " | " + tweet.user.name
-          + " | USER LANG: " + tweet.user.lang
-          + " | Ts: " + tweet.user.statuses_count
-          + " | FLs: " + tweet.user.followers_count
-          + " | FRs: " + tweet.user.friends_count
-        ));
+      try{
+        tweetObjMessage.tweetObj = await tweetServerController.createStreamTweet(params);
+        process.send(tweetObjMessage);
+        tweetParserQueueReady = true;
       }
-
-      params.tweetStatus = tweet;
-
-      tweetServerController.createStreamTweet(params).
-      then(function(tweetObj){
-
-        if (cnf.globalTestMode){
-
-          tweetParserQueueReady = true;
-
-          if (cnf.verbose){
-            console.log(chalkAlert("TWP | t< GLOBAL TEST MODE"
-              + " | " + tweetObj.tweetId
-              + " | @" + tweetObj.user.screenName
-            ));
-          }
-        }
-        else {
-
-          if (cnf.verbose) {
-            console.log.bind(console, "TWP | TW PARSER [" + tweetParserQueue.length + "]"
-              + " | " + tweetObj.tweetId);
-            console.log(chalkInfo("TWP | TW PARSER [" + tweetParserQueue.length + "]"
-              + " | " + tweetObj.tweetId
-            ));
-          }
-
-          process.send({op: "parsedTweet", tweetObj: tweetObj}, function(err){
-
-            tweetParserQueueReady = true;
-
-            if (err) {
-              console.trace(chalkError("TWP | *** PARSER SEND TWEET ERROR"
-                + " | " + moment().format(compactDateTimeFormat)
-                + " | " + err
-              ));
-            }
-            else {
-              debug(chalkInfo("TWP | *** PARSER SEND COMPLETE"
-                + " | " + moment().format(compactDateTimeFormat)
-                + " | " + tweetObj.tweetId
-              ));
-            }
-          });
-
-          // tweetParserQueueReady = true;
-        }
-      }).
-      catch(function(err){
+      catch(err){
 
         console.log(chalkError("TWP | *** CREATE STREAM TWEET ERROR: " + getTimeStamp()));
         console.log(chalkError("TWP | *** CREATE STREAM TWEET ERROR: ", err));
@@ -269,7 +213,7 @@ function initTweetParserQueueInterval(cnf){
           }
         });
 
-      });
+      }
 
     }
 

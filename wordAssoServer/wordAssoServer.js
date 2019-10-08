@@ -116,6 +116,8 @@ let tfeChild;
 let tssChild;
 let twpChild;
 
+let filterDuplicateTweets = true;
+
 const DEFAULT_TWITTER_THREECEE_USER = "altthreecee00";
 const DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT = Number(ONE_SECOND);
 
@@ -388,8 +390,18 @@ configuration.twitterBearerToken = process.env.TWITTER_BEARER_TOKEN;
 configuration.verbose = false;
 configuration.binaryMode = DEFAULT_BINARY_MODE;
 configuration.ignoreCategoryRight = DEFAULT_IGNORE_CATEGORY_RIGHT;
+
 configuration.maxQueue = DEFAULT_MAX_QUEUE;
+let maxQueue = configuration.maxQueue;
+let maxRxQueue = 0;
+let tweetsReceived = 0;
+let retweetsReceived = 0;
+let quotedTweetsReceived = 0;
+
+
 configuration.filterDuplicateTweets = DEFAULT_FILTER_DUPLICATE_TWEETS;
+filterDuplicateTweets = configuration.filterDuplicateTweets;
+
 configuration.forceFollow = DEFAULT_FORCE_FOLLOW;
 configuration.enableTwitterFollow = DEFAULT_ENABLE_TWITTER_FOLLOW;
 configuration.autoFollow = DEFAULT_AUTO_FOLLOW;
@@ -1334,9 +1346,9 @@ async function connectDb(){
 //   });
 // }
 
-function initPassport(params){
+function initPassport(){
 
-  return new Promise(function(resolve, reject){
+  return new Promise(function(resolve){
 
     const sessionId = btoa("threecee");
     console.log(chalk.green("WAS | PASSPORT SESSION ID: " + sessionId ));
@@ -1902,6 +1914,8 @@ const statsBestNetworkPickArray = [
   "betterChild"
 ];
 
+let tweetParserReady = false;
+
 function initStats(callback){
 
   console.log(chalk.bold.black("WAS | INIT STATS"));
@@ -1913,6 +1927,8 @@ function initStats(callback){
   statsObj.dbConnectionReady = false;
 
   statsObj.tweetParserReady = false;
+  tweetParserReady = false;
+
   statsObj.tweetParserSendReady = false;
   statsObj.previousBestNetworkId = "";
 
@@ -1969,6 +1985,7 @@ function initStats(callback){
   statsObj.errors.twitter = {};
   statsObj.errors.twitter.parser = 0;
   statsObj.errors.twitter.maxRxQueue = 0;
+  maxRxQueue = 0;
 
   statsObj.nodeMeterEntries = 0;
   statsObj.nodeMeterEntriesMax = 0;
@@ -1977,10 +1994,18 @@ function initStats(callback){
   childrenHashMap = {};
 
   statsObj.twitter = {};
+
   statsObj.twitter.tweetsReceived = 0;
+  tweetsReceived = 0;
+
   statsObj.twitter.duplicateTweetsReceived = 0;
+
   statsObj.twitter.retweetsReceived = 0;
+  retweetsReceived = 0;
+
   statsObj.twitter.quotedTweetsReceived = 0;
+  quotedTweetsReceived = 0;
+
   statsObj.twitter.tweetsPerMin = 0;
   statsObj.twitter.maxTweetsPerMin = 0;
   statsObj.twitter.maxTweetsPerMinTime = moment().valueOf();
@@ -2073,6 +2098,11 @@ function initStats(callback){
 }
 
 function showStats(options){
+
+  statsObj.twitter.quotedTweetsReceived = quotedTweetsReceived;
+  statsObj.twitter.retweetsReceived = retweetsReceived;
+  statsObj.twitter.tweetsReceived = tweetsReceived;
+  statsObj.errors.twitter.maxRxQueue = maxRxQueue;
 
   statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
   statsObj.timeStamp = getTimeStamp();
@@ -3311,6 +3341,7 @@ function categorizeNode(categorizeObj, callback) {
 }
 
 let prevTweetUser;
+let screenName;
 
 function socketRxTweet(tw) {
 
@@ -3318,69 +3349,68 @@ function socketRxTweet(tw) {
 
   if (prevTweetUser) {
 
-    statsObj.twitter.duplicateTweetsReceived += 1;
+    // statsObj.twitter.duplicateTweetsReceived += 1;
 
-    if (statsObj.twitter.duplicateTweetsReceived % 1000 == 0){
-      console.log(chalkLog("WAS"
-        + " | ??? DUP TWEET"
-        + " | FILTER: " + configuration.filterDuplicateTweets
-        + " [ $: " + tweetIdCache.getStats().keys + " / " + statsObj.twitter.duplicateTweetsReceived + " DUPs ]"
-        + " | " + tw.id_str 
-      ));
-    }
+    // if (statsObj.twitter.duplicateTweetsReceived % 1000 == 0){
+    //   console.log(chalkLog("WAS"
+    //     + " | ??? DUP TWEET"
+    //     + " | FILTER: " + configuration.filterDuplicateTweets
+    //     + " [ $: " + tweetIdCache.getStats().keys + " / " + statsObj.twitter.duplicateTweetsReceived + " DUPs ]"
+    //     + " | " + tw.id_str 
+    //   ));
+    // }
     
-    if (configuration.filterDuplicateTweets) { return; }
+    if (filterDuplicateTweets) { return; }
   }
 
   tweetIdCache.set(tw.id_str, tw.user.screen_name);
 
   tweetMeter.mark();
 
-  statsObj.twitter.tweetsReceived += 1;
+  tweetsReceived += 1;
 
   if (tw.retweeted_status) {
-    statsObj.twitter.retweetsReceived += 1;
+    retweetsReceived += 1;
   }
 
   if (tw.quoted_status) {
-    statsObj.twitter.quotedTweetsReceived += 1;
+    quotedTweetsReceived += 1;
   }
 
-  debug(chalkSocket("tweet" 
-    + " [" + statsObj.twitter.tweetsReceived + "]"
-    + " | " + tw.id_str
-    + " | TW LANG: " + tw.lang
-    + " | " + tw.user.id_str
-    + " | " + tw.user.screen_name
-    + " | " + tw.user.name
-    + " | USER LANG: " + tw.user.lang
-  ));
+  // debug(chalkSocket("tweet" 
+  //   + " [" + tweetsReceived + "]"
+  //   + " | " + tw.id_str
+  //   + " | TW LANG: " + tw.lang
+  //   + " | " + tw.user.id_str
+  //   + " | " + tw.user.screen_name
+  //   + " | " + tw.user.name
+  //   + " | USER LANG: " + tw.user.lang
+  // ));
 
-  if (tweetRxQueue.length > configuration.maxQueue){
+  if (tweetRxQueue.length > maxQueue){
 
-    statsObj.errors.twitter.maxRxQueue += 1;
+    maxRxQueue += 1;
 
-    if (statsObj.errors.twitter.maxRxQueue % 1000 == 0) {
-      console.log(chalkLog("WAS | !!! TW RX MAX Q [" + tweetRxQueue.length + "]"
-        + " | " + getTimeStamp()
-        + " | TWP RDY: " + statsObj.tweetParserReady
-        + " | TWP SND RDY: " + statsObj.tweetParserSendReady
-        + " | MAX Qs " + statsObj.errors.twitter.maxRxQueue
-        + " | " + tw.id_str
-        + " | " + tw.user.screen_name
-      ));
-    }
+    // if (maxRxQueue % 1000 == 0) {
+    //   console.log(chalkLog("WAS | !!! TW RX MAX Q [" + tweetRxQueue.length + "]"
+    //     + " | " + getTimeStamp()
+    //     + " | TWP RDY: " + statsObj.tweetParserReady
+    //     + " | TWP SND RDY: " + statsObj.tweetParserSendReady
+    //     + " | MAX Qs " + maxRxQueue
+    //     + " | " + tw.id_str
+    //     + " | " + tw.user.screen_name
+    //   ));
+    // }
   }
   else if (tw.user) {
-
-    const sampleTweetFileName = "sampleTweet_" + getTimeStamp() + ".json";
 
     if (saveSampleTweetFlag) {
 
       saveSampleTweetFlag = false;
+      const sampleTweetFileName = "sampleTweet_" + getTimeStamp() + ".json";
 
       console.log(chalkLog("WAS | SAVING SAMPLE TWEET"
-        + " [" + statsObj.twitter.tweetsReceived + " RXd]"
+        + " [" + tweetsReceived + " RXd]"
         + " | " + getTimeStamp()
         + " | " + tw.id_str
         + " | " + tw.user.id_str
@@ -3397,6 +3427,8 @@ function socketRxTweet(tw) {
       });
     }
 
+    screenName = tw.user.screen_name.toLowerCase();
+
     tw.inc = true;
 
     tw.user.statusId = tw.id_str;
@@ -3411,10 +3443,10 @@ function socketRxTweet(tw) {
       tw.user.quotedStatus = tw.quoted_status;
     }
 
-    if (categorizedUserHashMap.has(tw.user.screen_name.toLowerCase())){
+    if (categorizedUserHashMap.has(screenName)){
 
-      tw.user.category = categorizedUserHashMap.get(tw.user.screen_name.toLowerCase()).manual;
-      tw.user.categoryAuto = categorizedUserHashMap.get(tw.user.screen_name.toLowerCase()).auto;
+      tw.user.category = categorizedUserHashMap.get(screenName).manual;
+      tw.user.categoryAuto = categorizedUserHashMap.get(screenName).auto;
 
       debug(chalkLog("T< HM HIT"
         + " [ RXQ: " + tweetRxQueue.length + "]"
@@ -3429,38 +3461,38 @@ function socketRxTweet(tw) {
 
     tweetRxQueue.push(tw);
 
-    statsObj.queues.tweetRxQueue = tweetRxQueue.length;
+    // statsObj.queues.tweetRxQueue = tweetRxQueue.length;
 
-    debug(chalkLog("T<"
-      + " [ RXQ: " + tweetRxQueue.length + "]"
-      + " [ TPQ: " + tweetParserQueue.length + "]"
-      + " | " + tw.id_str
-      + " | @" + tw.user.screen_name
-      + " | " + tw.user.name
-    ));
+    // debug(chalkLog("T<"
+    //   + " [ RXQ: " + tweetRxQueue.length + "]"
+    //   + " [ TPQ: " + tweetParserQueue.length + "]"
+    //   + " | " + tw.id_str
+    //   + " | @" + tw.user.screen_name
+    //   + " | " + tw.user.name
+    // ));
 
-    if (statsObj.twitter.tweetsReceived % 1000 == 0) {
-      console.log(chalkTwitter("WAS | <T"
-        + " | RXQ: " + tweetRxQueue.length
-        + " [ T/R/Q " + statsObj.twitter.tweetsReceived 
-        + "/" + statsObj.twitter.retweetsReceived 
-        + "/" + statsObj.twitter.quotedTweetsReceived + "]"
-        + " | TW " + tw.id_str
-        + " | @" + tw.user.screen_name
-        + " | " + tw.user.name
-      ));
-    }
+    // if (tweetsReceived % 1000 == 0) {
+    //   console.log(chalkTwitter("WAS | <T"
+    //     + " | RXQ: " + tweetRxQueue.length
+    //     + " [ T/R/Q " + tweetsReceived 
+    //     + "/" + retweetsReceived 
+    //     + "/" + quotedTweetsReceived + "]"
+    //     + " | TW " + tw.id_str
+    //     + " | @" + tw.user.screen_name
+    //     + " | " + tw.user.name
+    //   ));
+    // }
 
   }
-  else {
-    console.log(chalkAlert("WAS | NULL USER T*<"
-      + " [ RXQ: " + tweetRxQueue.length + "]"
-      + " [ TPQ: " + tweetParserQueue.length + "]"
-      + " | " + tw.id_str
-      + " | @" + tw.user.screen_name
-      + " | " + tw.user.name
-    ));
-  }
+  // else {
+  //   console.log(chalkAlert("WAS | NULL USER T*<"
+  //     + " [ RXQ: " + tweetRxQueue.length + "]"
+  //     + " [ TPQ: " + tweetParserQueue.length + "]"
+  //     + " | " + tw.id_str
+  //     + " | @" + tw.user.screen_name
+  //     + " | " + tw.user.name
+  //   ));
+  // }
 }
 
 function enableFollow(params){
@@ -6684,7 +6716,7 @@ function initTwitterRxQueueInterval(interval){
 
   return new Promise(function(resolve, reject){
 
-    let tweet = {};
+    const twpMessageObj = { op: "tweet", tweetStatus: {} };
 
     if (typeof interval != "number") {
       return reject(new Error("initTwitterRxQueueInterval interval NOT a NUMBER: " + interval));
@@ -6696,9 +6728,11 @@ function initTwitterRxQueueInterval(interval){
 
     tweetRxQueueInterval = setInterval(function tweetRxQueueDequeue() {
 
-      if ((tweetRxQueue.length > 0) && statsObj.tweetParserReady) {
-        tweet = tweetRxQueue.shift();
-        twpChild.send({ op: "tweet", tweetStatus: tweet });
+      if ((tweetRxQueue.length > 0) && tweetParserReady) {
+
+        twpMessageObj.tweet = tweetRxQueue.shift();
+        twpChild.send(twpMessageObj);
+
       }
     }, interval);
 
@@ -6781,7 +6815,7 @@ async function initTweetParserMessageRxQueueInterval(interval){
             dbuChild.send({op: "TWEET", tweetObj: tweetObj});
           }
 
-          if (transmitNodeQueue.length < configuration.maxQueue) {
+          if (transmitNodeQueue.length < maxQueue) {
 
             try{
               await transmitNodes(tweetObj);
@@ -7945,7 +7979,7 @@ function initTweetParser(params){
     clearInterval(tweetParserPingInterval);
     tweetParserPongReceived = false;
 
-    statsObj.tweetParserReady = false;
+    tweetParserReady = false;
 
     let twp;
 
@@ -7992,7 +8026,7 @@ function initTweetParser(params){
         }
       } 
 
-      else if (tweetParserMessageRxQueue.length < configuration.maxQueue){
+      else if (tweetParserMessageRxQueue.length < maxQueue){
         tweetParserMessageRxQueue.push(m);
       }
     });
@@ -8003,7 +8037,7 @@ function initTweetParser(params){
         + " \n" + jsonPrint(err)
       ));
       statsObj.tweetParserSendReady = false;
-      statsObj.tweetParserReady = false;
+      tweetParserReady = false;
       clearInterval(tweetParserPingInterval);
       childrenHashMap[params.childId].status = "ERROR";
       configEvents.emit("CHILD_ERROR", {childId: params.childId});
@@ -8015,7 +8049,7 @@ function initTweetParser(params){
         + " | EXIT CODE: " + code
       ));
       statsObj.tweetParserSendReady = false;
-      statsObj.tweetParserReady = false;
+      tweetParserReady = false;
       clearInterval(tweetParserPingInterval);
       childrenHashMap[params.childId].status = "EXIT";
     });
@@ -8026,14 +8060,14 @@ function initTweetParser(params){
         + " | EXIT CODE: " + code
       ));
       statsObj.tweetParserSendReady = false;
-      statsObj.tweetParserReady = false;
+      tweetParserReady = false;
       clearInterval(tweetParserPingInterval);
       childrenHashMap[params.childId].status = "CLOSE";
     });
 
     twpChild = twp;
 
-    statsObj.tweetParserReady = true;
+    tweetParserReady = true;
 
     twp.send({
       op: "INIT",
@@ -8047,13 +8081,13 @@ function initTweetParser(params){
           + " | " + err
         ));
         statsObj.tweetParserSendReady = false;
-        statsObj.tweetParserReady = false;
+        tweetParserReady = false;
         clearInterval(tweetParserPingInterval);
         childrenHashMap[params.childId].status = "ERROR";
       }
       else {
         statsObj.tweetParserSendReady = true;
-        statsObj.tweetParserReady = true;
+        tweetParserReady = true;
         childrenHashMap[params.childId].status = "INIT";
         clearInterval(tweetParserPingInterval);
         setTimeout(function(){
@@ -8727,6 +8761,9 @@ async function loadAllConfigFiles(){
 
   configuration = tempConfig;
   configuration.threeceeUsers = _.uniq(configuration.threeceeUsers); // merge concats arrays!
+
+  filterDuplicateTweets = configuration.filterDuplicateTweets;
+  maxQueue = configuration.maxQueue;
 
   return;
 }

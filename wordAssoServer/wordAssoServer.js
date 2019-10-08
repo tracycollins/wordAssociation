@@ -298,6 +298,7 @@ statsObj.twitNotReadyWarning = false;
 statsObj.initSetsComplete = false;
 
 statsObj.dbuChildReady = false;
+let dbuChildReady = false;
 statsObj.tfeChildReady = false;
 statsObj.tssChildReady = false;
 
@@ -2103,6 +2104,8 @@ function showStats(options){
   statsObj.twitter.retweetsReceived = retweetsReceived;
   statsObj.twitter.tweetsReceived = tweetsReceived;
   statsObj.errors.twitter.maxRxQueue = maxRxQueue;
+
+  statsObj.dbuChildReady = dbuChildReady;
 
   statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
   statsObj.timeStamp = getTimeStamp();
@@ -5236,9 +5239,7 @@ async function updateNodeMeter(node){
     throw new Error("NODE ID UNDEFINED", node);
   }
 
-  let nodeObj = {};
-
-  nodeObj = pick(node, ["nodeId", "nodeType", "isServer", "isIgnored", "rate", "mentions"]);
+  const nodeObj = pick(node, ["nodeId", "nodeType", "isServer", "isIgnored", "rate", "mentions"]);
 
   const meterNodeId = nodeObj.nodeId;
 
@@ -5274,37 +5275,37 @@ async function updateNodeMeter(node){
     }
     else if (empty(nodeMeter[meterNodeId])){
 
-      nodeMeter[meterNodeId] = null;
-      nodeMeterType[nodeType][meterNodeId] = null;
+      // nodeMeter[meterNodeId] = null;
+      // nodeMeterType[nodeType][meterNodeId] = null;
 
-      const newMeter = new Measured.Meter({rateUnit: 60000});
-      const newNodeTypeMeter = new Measured.Meter({rateUnit: 60000});
+      nodeMeter[meterNodeId] = new Measured.Meter({rateUnit: 60000});
+      nodeMeterType[nodeType][meterNodeId] = new Measured.Meter({rateUnit: 60000});
 
-      newMeter.mark();
-      newNodeTypeMeter.mark();
+      nodeMeter[meterNodeId].mark();
+      nodeMeterType[nodeType][meterNodeId].mark();
       globalNodeMeter.mark();
       
-      nodeObj.rate = parseFloat(newMeter.toJSON()[metricsRate]);
+      nodeObj.rate = parseFloat(nodeMeter[meterNodeId].toJSON()[metricsRate]);
       nodeObj.mentions = nodeObj.mentions ? nodeObj.mentions+1 : 1;
 
       node.rate = nodeObj.rate;
       node.mentions = nodeObj.mentions;
 
-      nodeMeter[meterNodeId] = newMeter;
-      nodeMeterType[nodeType][meterNodeId] = newNodeTypeMeter;
+      // nodeMeter[meterNodeId] = newMeter;
+      // nodeMeterType[nodeType][meterNodeId] = newNodeTypeMeter;
 
       nodeCache.set(meterNodeId, nodeObj);
 
-      statsObj.nodeMeterEntries = Object.keys(nodeMeter).length;
+      // statsObj.nodeMeterEntries = Object.keys(nodeMeter).length;
 
-      if (statsObj.nodeMeterEntries > statsObj.nodeMeterEntriesMax) {
-        statsObj.nodeMeterEntriesMax = statsObj.nodeMeterEntries;
-        statsObj.nodeMeterEntriesMaxTime = moment().valueOf();
-        debug(chalkLog("NEW MAX NODE METER ENTRIES"
-          + " | " + getTimeStamp()
-          + " | " + statsObj.nodeMeterEntries.toFixed(0)
-        ));
-      }
+      // if (statsObj.nodeMeterEntries > statsObj.nodeMeterEntriesMax) {
+      //   statsObj.nodeMeterEntriesMax = statsObj.nodeMeterEntries;
+      //   statsObj.nodeMeterEntriesMaxTime = moment().valueOf();
+      //   debug(chalkLog("NEW MAX NODE METER ENTRIES"
+      //     + " | " + getTimeStamp()
+      //     + " | " + statsObj.nodeMeterEntries.toFixed(0)
+      //   ));
+      // }
 
       return node;
     }
@@ -5315,13 +5316,13 @@ async function updateNodeMeter(node){
 
       if (empty(nodeMeterType[nodeType][meterNodeId])){
 
-        const ntMeter = new Measured.Meter({rateUnit: 60000});
-        ntMeter.mark();
-        nodeMeterType[nodeType][meterNodeId] = ntMeter;
+        nodeMeterType[nodeType][meterNodeId] = new Measured.Meter({rateUnit: 60000});
+        // nodeMeterType[nodeType][meterNodeId].mark();
+        // nodeMeterType[nodeType][meterNodeId] = ntMeter;
       }
-      else {
-        nodeMeterType[nodeType][meterNodeId].mark();
-      }
+      // else {
+      //   nodeMeterType[nodeType][meterNodeId].mark();
+      // }
 
 
       nodeObj.rate = parseFloat(nodeMeter[meterNodeId].toJSON()[metricsRate]);
@@ -6041,14 +6042,14 @@ function initTransmitNodeQueueInterval(interval){
         if (empty(nodeObj.category)) { nodeObj.category = false; }
         if (empty(nodeObj.categoryAuto)) { nodeObj.categoryAuto = false; }
 
-        if (configuration.verbose) {
-          debug(chalkInfo("TX NODE DE-Q"
-            + " | NID: " + nodeObj.nodeId
-            + " | " + nodeObj.nodeType
-            + " | CAT: " + nodeObj.category
-            + " | CATA: " + nodeObj.categoryAuto
-          ));
-        }
+        // if (configuration.verbose) {
+        //   debug(chalkInfo("TX NODE DE-Q"
+        //     + " | NID: " + nodeObj.nodeId
+        //     + " | " + nodeObj.nodeType
+        //     + " | CAT: " + nodeObj.category
+        //     + " | CATA: " + nodeObj.categoryAuto
+        //   ));
+        // }
 
         const node = await checkCategory(nodeObj);
         const n = await updateNodeMeter(node);
@@ -6071,11 +6072,9 @@ function initTransmitNodeQueueInterval(interval){
             && !unfollowableUserSet.has(n.nodeId)) { 
 
             uncategorizedManualUserSet.add(n.nodeId);
-
-            if (uncategorizedManualUserSet.size % 100 == 0) {
-              printUserObj("TX | UNCAT MAN USER  [" + uncategorizedManualUserSet.size + "]", n);
-            }
-
+            // if (uncategorizedManualUserSet.size % 100 == 0) {
+            //   printUserObj("TX | UNCAT MAN USER  [" + uncategorizedManualUserSet.size + "]", n);
+            // }
           }
 
           if (!n.categoryAuto 
@@ -6083,10 +6082,9 @@ function initTransmitNodeQueueInterval(interval){
             && !uncategorizedAutoUserSet.has(n.nodeId)) {
 
             uncategorizedAutoUserSet.add(n.nodeId);
-
-            if (uncategorizedAutoUserSet.size % 100 == 0) {
-              printUserObj("TX | UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", n);
-            }
+            // if (uncategorizedAutoUserSet.size % 100 == 0) {
+            //   printUserObj("TX | UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", n);
+            // }
           }
 
           if (tfeChild !== undefined) { 
@@ -6105,10 +6103,10 @@ function initTransmitNodeQueueInterval(interval){
           n.updateLastSeen = true;
 
           if (!userServerControllerReady || !statsObj.dbConnectionReady) {
-            console.log(chalkAlert("WAS | *** NOT READY"
-              + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
-              + " | userServerControllerReady: " + userServerControllerReady
-            ));
+            // console.log(chalkAlert("WAS | *** NOT READY"
+            //   + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
+            //   + " | userServerControllerReady: " + userServerControllerReady
+            // ));
             transmitNodeQueueReady = true;
           }
 
@@ -6780,7 +6778,6 @@ async function initTweetParserMessageRxQueueInterval(interval){
         ));
 
         tweetParserMessageRxQueueReady = true;
-
       }
       else if (tweetParserMessage.op == "parsedTweet") {
 
@@ -6794,24 +6791,22 @@ async function initTweetParserMessageRxQueueInterval(interval){
         }
         else {
 
-          debug(chalkInfo("WAS | PARSED TW"
-            + " [ TPMRQ: " + tweetParserMessageRxQueue.length + "]"
-            + " | " + tweetObj.tweetId
-            + " | USR: " + tweetObj.user.screenName
-            + " | EJs: " + tweetObj.emoji.length
-            + " | Hs: " + tweetObj.hashtags.length
-            + " | Hs: " + tweetObj.images.length
-            + " | LCs: " + tweetObj.locations.length
-            + " | Ms: " + tweetObj.mentions.length
-            + " | PLs: " + tweetObj.places.length
-            + " | ULs: " + tweetObj.urls.length
-            + " | UMs: " + tweetObj.userMentions.length
-            + " | WDs: " + tweetObj.words.length
-          ));
+          // debug(chalkInfo("WAS | PARSED TW"
+          //   + " [ TPMRQ: " + tweetParserMessageRxQueue.length + "]"
+          //   + " | " + tweetObj.tweetId
+          //   + " | USR: " + tweetObj.user.screenName
+          //   + " | EJs: " + tweetObj.emoji.length
+          //   + " | Hs: " + tweetObj.hashtags.length
+          //   + " | Hs: " + tweetObj.images.length
+          //   + " | LCs: " + tweetObj.locations.length
+          //   + " | Ms: " + tweetObj.mentions.length
+          //   + " | PLs: " + tweetObj.places.length
+          //   + " | ULs: " + tweetObj.urls.length
+          //   + " | UMs: " + tweetObj.userMentions.length
+          //   + " | WDs: " + tweetObj.words.length
+          // ));
 
-
-          if (dbuChild && statsObj.dbuChildReady 
-            && (followableUserSet.has(tweetObj.user.nodeId) || categorizeableUserSet.has(tweetObj.user.nodeId))) {
+          if (dbuChild && dbuChildReady && (followableUserSet.has(tweetObj.user.nodeId) || categorizeableUserSet.has(tweetObj.user.nodeId))) {
             dbuChild.send({op: "TWEET", tweetObj: tweetObj});
           }
 
@@ -7759,7 +7754,7 @@ function initDbuChild(params){
 
     const childId = params.childId;
 
-    statsObj.dbuChildReady = false;
+    // let dbuSendReady = false;
 
     console.log(chalk.bold.black("WAS | INIT DBU CHILD\n" + jsonPrint(params)));
 
@@ -7816,8 +7811,8 @@ function initDbuChild(params){
         + " | *** DBU ERROR ***"
         + " \n" + jsonPrint(err)
       ));
-      statsObj.dbuSendReady = false;
-      statsObj.dbuChildReady = false;
+      // dbuSendReady = false;
+      dbuChildReady = false;
       clearInterval(dbuPingInterval);
       childrenHashMap[childId].status = "ERROR";
     });
@@ -7827,8 +7822,8 @@ function initDbuChild(params){
         + " | *** DBU EXIT ***"
         + " | EXIT CODE: " + code
       ));
-      statsObj.dbuSendReady = false;
-      statsObj.dbuChildReady = false;
+      // dbuSendReady = false;
+      dbuChildReady = false;
       clearInterval(dbuPingInterval);
       childrenHashMap[childId].status = "EXIT";
     });
@@ -7838,8 +7833,8 @@ function initDbuChild(params){
         + " | *** DBU CLOSE ***"
         + " | EXIT CODE: " + code
       ));
-      statsObj.dbuSendReady = false;
-      statsObj.dbuChildReady = false;
+      // dbuSendReady = false;
+      dbuChildReady = false;
       clearInterval(dbuPingInterval);
       childrenHashMap[childId].status = "CLOSE";
     });
@@ -7858,15 +7853,15 @@ function initDbuChild(params){
           + " | " + err
         ));
         console.error(err);
-        statsObj.dbuSendReady = false;
-        statsObj.dbuChildReady = false;
+        // dbuSendReady = false;
+        dbuChildReady = false;
         clearInterval(dbuPingInterval);
         childrenHashMap[childId].status = "ERROR";
         reject(err);
       }
       else {
-        statsObj.dbuSendReady = true;
-        statsObj.dbuChildReady = true;
+        // dbuSendReady = true;
+        dbuChildReady = true;
         childrenHashMap[childId].status = "INIT";
         clearInterval(dbuPingInterval);
         setTimeout(function(){

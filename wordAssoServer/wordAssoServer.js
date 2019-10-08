@@ -6730,7 +6730,7 @@ function initTwitterRxQueueInterval(interval){
 
       if ((tweetRxQueue.length > 0) && tweetParserReady) {
 
-        twpMessageObj.tweet = tweetRxQueue.shift();
+        twpMessageObj.tweetStatus = tweetRxQueue.shift();
         twpChild.send(twpMessageObj);
 
       }

@@ -63,8 +63,6 @@ hostname = hostname.replace(/word0-instance-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
 
 const _ = require("lodash");
-const fetch = require("isomorphic-fetch");
-const Dropbox = require("dropbox").Dropbox;
 const async = require("async");
 const Twit = require("twit");
 
@@ -406,7 +404,6 @@ else {
   configuration.searchTermsFile = DROPBOX_DEFAULT_SEARCH_TERMS_FILE;
 }
 
-const DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN;
 const DROPBOX_TSS_CONFIG_FILE = process.env.DROPBOX_TSS_CONFIG_FILE || "twitterSearchStreamConfig.json";
 const DROPBOX_TSS_STATS_FILE = process.env.DROPBOX_TSS_STATS_FILE || "twitterSearchStreamStats.json";
 
@@ -422,12 +419,6 @@ console.log("TSS | DROPBOX_TSS_CONFIG_FILE: " + DROPBOX_TSS_CONFIG_FILE);
 
 debug("TSS | dropboxConfigFolder : " + dropboxConfigFolder);
 debug("TSS | dropboxConfigFile : " + dropboxConfigFile);
-
-
-const dropboxClient = new Dropbox({ 
-  accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN,
-  fetch: fetch
-});
 
 function getTimeStamp(inputTime) {
 
@@ -556,35 +547,6 @@ function quit(message) {
   }
 }
 
-function saveFile (path, file, jsonObj, callback){
-
-  const fullPath = path + "/" + file;
-
-  debug(chalkInfo("TSS | SAVE FOLDER " + path));
-  debug(chalkInfo("TSS | SAVE FILE " + file));
-  debug(chalkInfo("TSS | FULL PATH " + fullPath));
-
-  const options = {};
-
-  options.contents = JSON.stringify(jsonObj, null, 2);
-  options.path = fullPath;
-  options.mode = "overwrite";
-  options.autorename = false;
-
-  dropboxClient.filesUpload(options).
-    then(function(response){
-      debug(chalkLog("TSS | SAVED DROPBOX JSON | " + options.path));
-      callback(null, response);
-    }).
-    catch(function(error){
-      console.error(chalkError("TSS | " + moment().format(defaultDateTimeFormat) 
-        + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
-        + "\nERROR: " + error
-      ));
-      callback(error.error, null);
-    });
-}
-
 function initStatsUpdate(cnf){
 
   return new Promise(function(resolve, reject){
@@ -598,18 +560,7 @@ function initStatsUpdate(cnf){
         statsObj.elapsed = moment().valueOf() - statsObj.startTime;
         statsObj.timeStamp = moment().format(defaultDateTimeFormat);
 
-        saveFile(statsFolder, statsFile, statsObj, function(){
-          showStats();
-        });
-
-        // try{
-        //   if (threeceeUserObj.twitStream !== undefined) {
-        //     await checkTwitterRateLimit();
-        //   }
-        // }
-        // catch(err){
-        //    console.log(chalkError("TSS | TSS | *** CHECK RATE LIMIT ERROR: " + err));
-        // }
+        await tcUtils.saveFile({localFlag: false, folder: statsFolder, file: statsFile, obj: statsObj});
 
       }, cnf.statsUpdateIntervalTime);
 
@@ -2703,7 +2654,7 @@ process.on("message", async function(m) {
 
       twitterConfigFile = threeceeUserObj.screenName + ".json";
 
-      saveFile(configuration.twitterConfigFolder, twitterConfigFile, threeceeUserObj.twitterConfig, function(){
+      tcUtils.saveFile(configuration.twitterConfigFolder, twitterConfigFile, threeceeUserObj.twitterConfig, function(){
         console.log(chalkLog("TSS | SAVED UPDATED AUTH " + configuration.twitterConfigFolder + "/" + twitterConfigFile));
 
         threeceeUserObj.stats.connected = true;

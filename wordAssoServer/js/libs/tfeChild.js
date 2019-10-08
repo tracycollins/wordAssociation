@@ -85,6 +85,8 @@ else {
   DROPBOX_ROOT_FOLDER = "/Users/tc/Dropbox/Apps/wordAssociation";
 }
 
+const wordAssoDb = require("@threeceelabs/mongoose-twitter");
+
 const NeuralNetworkTools = require("@threeceelabs/neural-network-tools");
 const nnTools = new NeuralNetworkTools("WA_TFE_NNT");
 
@@ -105,10 +107,11 @@ const debugQ = require("debug")("queue");
 const chalk = require("chalk");
 const chalkAlert = chalk.red;
 const chalkTwitter = chalk.blue;
-const chalkBlue = chalk.blue;
 const chalkError = chalk.bold.red;
 const chalkLog = chalk.gray;
 const chalkInfo = chalk.black;
+const chalkBlue = chalk.blue;
+const chalkBlueBold = chalk.blue.bold;
 
 const twitterUserHashMap = new HashMap();
 
@@ -297,29 +300,31 @@ statsObj.analyzer.analyzed = 0;
 statsObj.analyzer.skipped = 0;
 statsObj.analyzer.errors = 0;
 
-global.globalDbConnection = false;
-
-global.globalWordAssoDb = require("@threeceelabs/mongoose-twitter");
-
-const emojiModel = require("@threeceelabs/mongoose-twitter/models/emoji.server.model");
-const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
-const locationModel = require("@threeceelabs/mongoose-twitter/models/location.server.model");
-const mediaModel = require("@threeceelabs/mongoose-twitter/models/media.server.model");
-const neuralNetworkModel = require("@threeceelabs/mongoose-twitter/models/neuralNetwork.server.model");
-const placeModel = require("@threeceelabs/mongoose-twitter/models/place.server.model");
-const tweetModel = require("@threeceelabs/mongoose-twitter/models/tweet.server.model");
-const urlModel = require("@threeceelabs/mongoose-twitter/models/url.server.model");
-const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
-const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
-
 let dbConnectionReady = false;
 let dbConnectionReadyInterval;
 
 const UserServerController = require("@threeceelabs/user-server-controller");
-let userServerController;
+const userServerController = new UserServerController(MODULE_ID_PREFIX + "_USC");
+
+userServerController.on("error", function(err){
+  console.log(chalkError(MODULE_ID_PREFIX + " | *** USC ERROR | " + err));
+});
+
+userServerController.on("ready", function(appname){
+  console.log(chalk.green(MODULE_ID_PREFIX + " | USC READY | " + appname));
+});
 
 const TweetServerController = require("@threeceelabs/tweet-server-controller");
-let tweetServerController;
+const tweetServerController = new TweetServerController(MODULE_ID_PREFIX + "_TSC");
+
+tweetServerController.on("error", function(err){
+  console.log(chalkError(MODULE_ID_PREFIX + " | *** TSC ERROR | " + err));
+});
+
+tweetServerController.on("ready", function(appname){
+  console.log(chalk.green(MODULE_ID_PREFIX + " | TSC READY | " + appname));
+});
+
 
 // ==================================================================
 // USER CHANGE CACHE
@@ -355,90 +360,48 @@ userChangeCache.on("expired", userChangeCacheExpired);
 // ==================================================================
 // MONGO DB
 // ==================================================================
-function connectDb(){
+async function connectDb(){
 
-  return new Promise(function(resolve, reject){
+  try {
 
-    try {
+    statsObj.status = "CONNECTING MONGO DB";
 
-      statsObj.status = "CONNECT DB";
+    console.log(chalkBlueBold(MODULE_ID_PREFIX + " | CONNECT MONGO DB ..."));
 
-      global.globalWordAssoDb.connect("TFC_" + process.pid, function(err, db){
+    const db = await wordAssoDb.connect(MODULE_ID_PREFIX + "_" + process.pid);
 
-        if (err) {
-          console.log(chalkError("WAS | TFC | *** MONGO DB CONNECTION ERROR: " + err));
-          statsObj.status = "MONGO CONNECTION ERROR";
-          dbConnectionReady = false;
-          quit(statsObj.status);
-          return reject(err);
-        }
+    db.on("error", async function(err){
+      statsObj.status = "MONGO ERROR";
+      statsObj.dbConnectionReady = false;
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION ERROR"));
+      db.close();
+      quit({cause: "MONGO DB ERROR: " + err});
+    });
 
-        db.on("close", function(){
-          statsObj.status = "MONGO ERROR";
-          console.error.bind(console, "WAS | TFC | *** MONGO DB CONNECTION CLOSED ***");
-          console.log(chalkError("WAS | TFC | *** MONGO DB CONNECTION CLOSED ***"));
-          dbConnectionReady = false;
-        });
+    db.on("close", async function(err){
+      statsObj.status = "MONGO CLOSED";
+      statsObj.dbConnectionReady = false;
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION CLOSED"));
+      quit({cause: "MONGO DB CLOSED: " + err});
+    });
 
-        db.on("error", function(){
-          statsObj.status = "MONGO ERROR";
-          console.error.bind(console, "WAS | TFC | *** MONGO DB CONNECTION ERROR ***");
-          console.log(chalkError("WAS | TFC | *** MONGO DB CONNECTION ERROR ***"));
-          dbConnectionReady = false;
-        });
+    db.on("disconnected", async function(){
+      statsObj.status = "MONGO DISCONNECTED";
+      statsObj.dbConnectionReady = false;
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | *** MONGO DB DISCONNECTED"));
+      quit({cause: "MONGO DB DISCONNECTED"});
+    });
 
-        db.on("disconnected", function(){
-          statsObj.status = "MONGO DISCONNECTED";
-          console.error.bind(console, "WAS | TFC | *** MONGO DB DISCONNECTED ***");
-          console.log(chalkAlert("WAS | TFC | *** MONGO DB DISCONNECTED ***"));
-          dbConnectionReady = false;
-        });
+    console.log(chalk.green(MODULE_ID_PREFIX + " | MONGOOSE DEFAULT CONNECTION OPEN"));
 
-        global.globalDbConnection = db;
+    statsObj.dbConnectionReady = true;
 
-        console.log(chalk.green("WAS | TFC | MONGOOSE DEFAULT CONNECTION OPEN"));
-
-        global.globalEmoji = global.globalDbConnection.model("Emoji", emojiModel.EmojiSchema);
-        global.globalHashtag = global.globalDbConnection.model("Hashtag", hashtagModel.HashtagSchema);
-        global.globalLocation = global.globalDbConnection.model("Location", locationModel.LocationSchema);
-        global.globalMedia = global.globalDbConnection.model("Media", mediaModel.MediaSchema);
-        global.globalNeuralNetwork = global.globalDbConnection.model("NeuralNetwork", neuralNetworkModel.NeuralNetworkSchema);
-        global.globalPlace = global.globalDbConnection.model("Place", placeModel.PlaceSchema);
-        global.globalTweet = global.globalDbConnection.model("Tweet", tweetModel.TweetSchema);
-        global.globalUrl = global.globalDbConnection.model("Url", urlModel.UrlSchema);
-        global.globalUser = global.globalDbConnection.model("User", userModel.UserSchema);
-        global.globalWord = global.globalDbConnection.model("Word", wordModel.WordSchema);
-
-        userServerController = new UserServerController("TFC_USC");
-
-        tweetServerController = new TweetServerController("TFC_TSC");
-
-        tweetServerController.on("ready", function(appname){
-          console.log(chalkLog("WAS | TFC | TSC READY | " + appname));
-        });
-
-        tweetServerController.on("error", function(err){
-          console.trace(chalkError("WAS | TFC | *** TSC ERROR | " + err));
-        });
-
-        userServerController.on("ready", function(appname){
-
-          statsObj.status = "MONGO DB CONNECTED";
-
-          console.log(chalkLog("WAS | TFC | USC READY | " + appname));
-          dbConnectionReady = true;
-
-          resolve(db);
-
-        });
-      });
-
-    }
-    catch(err){
-      console.log(chalkError("WAS | TFC | *** MONGO DB CONNECT ERROR: " + err));
-      reject(err);
-    }
-  });
+    return db;
+  }
+  catch(err){
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECT ERROR: " + err));
+    throw err;
+  }
 }
 
 
@@ -491,7 +454,6 @@ function quit(message) {
     + " | **** QUITTING"
     + " | CAUSE: " + msg
     + " | PID: " + process.pid
-    
   );
 
   process.exit(exitCode);
@@ -1045,7 +1007,7 @@ function initProcessUserQueueInterval(interval) {
         
         try {
 
-          const u = await global.globalUser.findOne({nodeId: userQueueObj.nodeId}).exec();
+          const u = await wordAssoDb.User.findOne({nodeId: userQueueObj.nodeId}).exec();
 
           if (!u) {
             debug(chalkLog(MODULE_ID_PREFIX + " | ??? USER DB MISS ... SKIP PROCESS"
@@ -1633,7 +1595,7 @@ setTimeout(async function(){
   console.log("WAS | TFC | " + configuration.processName + " STARTED " + getTimeStamp() + "\n");
 
   try {
-    global.globalDbConnection = await connectDb();
+    await connectDb();
     dbConnectionReady = true;
   }
   catch(err){

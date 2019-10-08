@@ -135,7 +135,7 @@ const DBU_PING_INTERVAL = 10*ONE_MINUTE;
 const TFE_PING_INTERVAL = 10*ONE_MINUTE;
 const TSS_PING_INTERVAL = 10*ONE_MINUTE;
 
-const DEFAULT_RATE_QUEUE_INTERVAL = ONE_SECOND; // 1 second
+const DEFAULT_RATE_QUEUE_INTERVAL = 5*ONE_SECOND; // 1 second
 const DEFAULT_RATE_QUEUE_INTERVAL_MODULO = 60; // modulo RATE_QUEUE_INTERVAL
 const DEFAULT_STATS_UPDATE_INTERVAL = ONE_MINUTE;
 const DEFAULT_CATEGORY_HASHMAPS_UPDATE_INTERVAL = 5*ONE_MINUTE;
@@ -6174,8 +6174,6 @@ function initTransmitNodeQueueInterval(interval){
         transmitNodeQueueReady = true;
         console.log(chalkError("WAS | *** TRANSMIT NODE QUEUE ERROR: " + err));
       }
-
-
     }, interval);
 
     resolve();

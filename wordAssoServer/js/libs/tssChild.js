@@ -27,6 +27,20 @@ const compactDateTimeFormat = "YYYYMMDD HHmmss";
 // const mangledRegEx = /\u00C3.\u00C2|\u00B5/g;
 
 const os = require("os");
+const debug = require("debug")("tss");
+const debugCache = require("debug")("cache");
+const debugQ = require("debug")("queue");
+
+const chalk = require("chalk");
+const chalkBlue = chalk.blue;
+const chalkBlueBold = chalk.blue.bold;
+const chalkAlert = chalk.red;
+const chalkTwitter = chalk.blue;
+const chalkError = chalk.bold.red;
+const chalkWarn = chalk.yellow;
+const chalkLog = chalk.gray;
+const chalkInfo = chalk.black;
+
 
 // const request = require('request');
 // const util = require('util');
@@ -63,9 +77,26 @@ const Twit = require("twit");
 const moment = require("moment");
 const treeify = require("treeify");
 const Measured = require("measured");
-const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const HashMap = require("hashmap").HashMap;
 const NodeCache = require("node-cache");
+
+const wordAssoDb = require("@threeceelabs/mongoose-twitter");
+let dbConnection;
+
+let dbConnectionReady = false;
+let dbConnectionReadyInterval;
+
+const UserServerController = require("@threeceelabs/user-server-controller");
+const userServerController = new UserServerController(MODULE_ID_PREFIX + "_USC");
+
+userServerController.on("error", function(err){
+  console.log(chalkError(MODULE_ID_PREFIX + " | *** USC ERROR | " + err));
+});
+
+userServerController.on("ready", function(appname){
+  console.log(chalk.green(MODULE_ID_PREFIX + " | USC READY | " + appname));
+});
+
 
 let DROPBOX_ROOT_FOLDER;
 
@@ -102,20 +133,6 @@ const tweetIdCache = new NodeCache({
 const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
 const tcUtils = new ThreeceeUtilities("WAS_TSS_TCU");
 
-const debug = require("debug")("tss");
-const debugCache = require("debug")("cache");
-const debugQ = require("debug")("queue");
-
-
-const chalk = require("chalk");
-const chalkBlue = chalk.blue;
-const chalkAlert = chalk.red;
-const chalkTwitter = chalk.blue;
-const chalkError = chalk.bold.red;
-const chalkWarn = chalk.yellow;
-const chalkLog = chalk.gray;
-const chalkInfo = chalk.black;
-
 const ignoreUserSet = new Set();
 let allowLocationsSet = new Set();
 let ignoredHashtagSet = new Set();
@@ -146,13 +163,6 @@ process.on("SIGINT", function() {
 
 process.on("disconnect", function() {
   quit("DISCONNECT");
-});
-
-const configEvents = new EventEmitter2({
-  wildcard: true,
-  newListener: true,
-  maxListeners: 20,
-  verboseMemoryLeak: true
 });
 
 const twitterStats = Measured.createCollection();
@@ -325,94 +335,53 @@ statsObj.twitter.userWithheld = 0;
 statsObj.twitter.limitMax = 0;
 statsObj.twitter.limitMaxTime = moment().valueOf();
 
-global.globalDbConnection = false;
-const mongoose = require("mongoose");
+async function connectDb(){
 
-global.globalWordAssoDb = require("@threeceelabs/mongoose-twitter");
-const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
+  try {
 
-global.globalUser = mongoose.model("User", userModel.UserSchema);
-const User = global.globalUser;
+    statsObj.status = "CONNECTING MONGO DB";
 
-let dbConnectionReady = false;
-let dbConnectionReadyInterval;
+    console.log(chalkBlueBold(MODULE_ID_PREFIX + " | CONNECT MONGO DB ..."));
 
-const UserServerController = require("@threeceelabs/user-server-controller");
-let userServerController;
+    const db = await wordAssoDb.connect(MODULE_ID_PREFIX + "_" + process.pid);
 
-function connectDb(){
+    db.on("error", async function(err){
+      statsObj.status = "MONGO ERROR";
+      statsObj.dbConnectionReady = false;
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION ERROR"));
+      db.close();
+      quit({cause: "MONGO DB ERROR: " + err});
+    });
 
-  return new Promise(function(resolve, reject){
+    db.on("close", async function(err){
+      statsObj.status = "MONGO CLOSED";
+      statsObj.dbConnectionReady = false;
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION CLOSED"));
+      quit({cause: "MONGO DB CLOSED: " + err});
+    });
 
-    try {
+    db.on("disconnected", async function(){
+      statsObj.status = "MONGO DISCONNECTED";
+      statsObj.dbConnectionReady = false;
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | *** MONGO DB DISCONNECTED"));
+      quit({cause: "MONGO DB DISCONNECTED"});
+    });
 
-      statsObj.status = "CONNECTING MONGO DB";
+    console.log(chalk.green(MODULE_ID_PREFIX + " | MONGOOSE DEFAULT CONNECTION OPEN"));
 
-      global.globalWordAssoDb.connect("TSS_" + process.pid, function(err, db){
+    statsObj.dbConnectionReady = true;
 
-        if (err) {
-          console.log(chalkAlert("TSS | @" + threeceeUserObj.screenName + " | *** MONGO DB CONNECTION ERROR: " + err));
-          statsObj.status = "MONGO CONNECTION ERROR";
-          dbConnectionReady = false;
-          quit(statsObj.status);
-          return reject(err);
-        }
-
-        db.on("close", function(){
-          statsObj.status = "MONGO CLOSED";
-          console.log(chalkAlert("TSS | @" + threeceeUserObj.screenName + " | *** MONGO DB CONNECTION CLOSED"));
-          dbConnectionReady = false;
-        });
-
-        db.on("error", function(err){
-          statsObj.status = "MONGO ERROR";
-          console.log(chalkAlert("TSS | @" + threeceeUserObj.screenName + " | *** MONGO DB CONNECTION ERROR: " + err));
-          db.close();
-          dbConnectionReady = false;
-        });
-
-        db.on("disconnected", function(){
-          statsObj.status = "MONGO DISCONNECTED";
-          console.log(chalkAlert("TSS | @" + threeceeUserObj.screenName + " | *** MONGO DB DISCONNECTED ***"));
-          dbConnectionReady = false;
-        });
-
-        dbConnectionReady = true;
-        statsObj.dbConnectionReady = true;
-
-        global.globalDbConnection = db;
-
-        console.log(chalk.green("TSS | @" + threeceeUserObj.screenName + " | MONGO DB CONNECTION OPEN"));
-
-        userServerController = new UserServerController("TSS_USC");
-
-        userServerController.on("ready", function(appname){
-
-          statsObj.status = "MONGO DB CONNECTED";
-
-          console.log(chalkLog("TSS | USC READY | " + appname));
-
-          resolve(db);
-          configEvents.emit("DB_CONNECT");
-
-        });
-
-      });
-
-    }
-    catch(err){
-      console.log(chalkError("TSS | *** MONGO DB CONNECT ERROR: " + err));
-      reject(err);
-    }
-
-  });
+    return db;
+  }
+  catch(err){
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECT ERROR: " + err));
+    throw err;
+  }
 }
-
 
 // ==================================================================
 // DROPBOX
 // ==================================================================
-
 
 if (process.env.DROPBOX_DEFAULT_SEARCH_TERMS_DIR !== undefined) {
   configuration.searchTermsDir = process.env.DROPBOX_DEFAULT_SEARCH_TERMS_DIR;
@@ -544,9 +513,9 @@ function quit(message) {
     
   );
 
-  if ((global.globalDbConnection !== undefined) && (global.globalDbConnection.readyState > 0)) {
+  if (dbConnection !== undefined) {
 
-    global.globalDbConnection.close(function () {
+    dbConnection.close(function () {
       console.log(chalkAlert(
             "TSS | =========================="
         + "\nTSS | MONGO DB CONNECTION CLOSED"
@@ -816,7 +785,7 @@ function initFollowUserIdSet(){
 
         followingUserIdHashMap.set(userId, threeceeUserObj.screenName);
 
-        User.findOne({ userId: userId }, function (err, user) {
+        wordAssoDb.User.findOne({ userId: userId }, function (err, user) {
 
           if (err) { 
             console.log(chalkAlert("TSS | *** USER DB ERROR *** | " + err));
@@ -2762,7 +2731,7 @@ process.on("message", async function(m) {
 
               followingUserIdHashMap.set(userId, threeceeUserObj.screenName);
 
-              User.findOne({ userId: userId }, function (err, user) {
+              wordAssoDb.User.findOne({ userId: userId }, function (err, user) {
 
                 if (err) { 
                   console.log(chalkAlert("TSS | *** USER DB ERROR *** | " + err));
@@ -2986,7 +2955,7 @@ setTimeout(async function(){
   console.log("TSS | TSS | " + configuration.processName + " STARTED " + getTimeStamp() + "\n");
 
   try {
-    global.globalDbConnection = await connectDb();
+    dbConnection = await connectDb();
     dbConnectionReady = true;
   }
   catch(err){

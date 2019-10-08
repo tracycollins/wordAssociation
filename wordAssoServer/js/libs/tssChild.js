@@ -2280,6 +2280,8 @@ async function initialize(cnf){
     console.log("\nTSS | %%%%%%%%%%%%%%\nTSS | DEBUG ENABLED \nTSS | %%%%%%%%%%%%%%\n");
   }
 
+  cnf.processName = process.env.TSS_PROCESS_NAME || "wa_node_tss";
+
   cnf.verbose = process.env.TSS_VERBOSE_MODE || false;
   cnf.globalTestMode = process.env.TSS_GLOBAL_TEST_MODE || false;
   cnf.testMode = process.env.TSS_TEST_MODE || false;

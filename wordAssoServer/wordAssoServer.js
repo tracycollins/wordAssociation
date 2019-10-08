@@ -3448,15 +3448,15 @@ function socketRxTweet(tw) {
       tw.user.category = categorizedUserHashMap.get(screenName).manual;
       tw.user.categoryAuto = categorizedUserHashMap.get(screenName).auto;
 
-      debug(chalkLog("T< HM HIT"
-        + " [ RXQ: " + tweetRxQueue.length + "]"
-        + " [ TPQ: " + tweetParserQueue.length + "]"
-        + " | C: " + tw.user.category
-        + " | " + tw.user.name
-        + " | " + tw.id_str
-        + " | @" + tw.user.screen_name
-        + " | " + tw.user.name
-      ));
+      // debug(chalkLog("T< HM HIT"
+      //   + " [ RXQ: " + tweetRxQueue.length + "]"
+      //   + " [ TPQ: " + tweetParserQueue.length + "]"
+      //   + " | C: " + tw.user.category
+      //   + " | " + tw.user.name
+      //   + " | " + tw.id_str
+      //   + " | @" + tw.user.screen_name
+      //   + " | " + tw.user.name
+      // ));
     }
 
     tweetRxQueue.push(tw);
@@ -7408,7 +7408,7 @@ function initTssChild(params){
         break;
 
         case "TWEET":
-          if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + m.tweet.id_str + " | @" + m.tweet.user.screen_name)); }
+          // if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + m.tweet.id_str + " | @" + m.tweet.user.screen_name)); }
           socketRxTweet(m.tweet);
         break;
 
@@ -7624,7 +7624,7 @@ async function initTfeChild(params){
       break;
 
       case "TWEET":
-         if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + m.tweet.id_str + " | @" + m.tweet.user.screen_name)); }
+         // if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + m.tweet.id_str + " | @" + m.tweet.user.screen_name)); }
         socketRxTweet(m.tweet);
       break;
 

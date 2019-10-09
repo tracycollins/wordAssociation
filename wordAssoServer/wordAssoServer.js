@@ -398,6 +398,7 @@ let maxRxQueue = 0;
 let tweetsReceived = 0;
 let retweetsReceived = 0;
 let quotedTweetsReceived = 0;
+let duplicateTweetsReceived = 0;
 
 
 configuration.filterDuplicateTweets = DEFAULT_FILTER_DUPLICATE_TWEETS;
@@ -2000,6 +2001,7 @@ function initStats(callback){
   tweetsReceived = 0;
 
   statsObj.twitter.duplicateTweetsReceived = 0;
+  duplicateTweetsReceived = 0;
 
   statsObj.twitter.retweetsReceived = 0;
   retweetsReceived = 0;
@@ -3351,6 +3353,8 @@ function socketRxTweet(tw) {
   prevTweetUser = tweetIdCache.get(tw.id_str);
 
   if (prevTweetUser) {
+
+    duplicateTweetsReceived += 1;
 
     // statsObj.twitter.duplicateTweetsReceived += 1;
 
@@ -6712,6 +6716,8 @@ function initTwitterRxQueueInterval(interval){
 
   return new Promise(function(resolve, reject){
 
+    let tweetRxQueueReady = true;
+
     const twpMessageObj = { op: "tweet", tweetStatus: {} };
 
     if (typeof interval != "number") {
@@ -6724,10 +6730,14 @@ function initTwitterRxQueueInterval(interval){
 
     tweetRxQueueInterval = setInterval(function tweetRxQueueDequeue() {
 
-      if ((tweetRxQueue.length > 0) && tweetParserReady) {
+      if ((tweetRxQueue.length > 0) && tweetParserReady && tweetRxQueueReady) {
+
+        tweetRxQueueReady = false;
 
         twpMessageObj.tweetStatus = tweetRxQueue.shift();
-        twpChild.send(twpMessageObj);
+        twpChild.send(twpMessageObj, function(){
+          tweetRxQueueReady = true;
+        });
 
       }
     }, interval);

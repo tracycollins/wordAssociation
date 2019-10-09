@@ -109,6 +109,7 @@ const configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/defau
 const configHostFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility", hostname);
 
 const statsHostFolder = path.join(DROPBOX_ROOT_FOLDER, "stats", hostname);
+const twitterConfigFolder = path.join(DROPBOX_ROOT_FOLDER, "config/twitter");
 
 // const DROPBOX_DEFAULT_CONFIG_FOLDER = "/config/utility/default";
 const DROPBOX_DEFAULT_SEARCH_TERMS_DIR = "/config/utility/default";
@@ -2699,9 +2700,9 @@ process.on("message", async function(m) {
 
       twitterConfigFile = threeceeUserObj.screenName + ".json";
 
-      await tcUtils.saveFile({localFlag: true, folder: configuration.twitterConfigFolder, file: twitterConfigFile, obj: threeceeUserObj.twitterConfig});
+      await tcUtils.saveFile({localFlag: true, folder: twitterConfigFolder, file: twitterConfigFile, obj: threeceeUserObj.twitterConfig});
 
-      console.log(chalkLog("TSS | SAVED UPDATED AUTH " + configuration.twitterConfigFolder + "/" + twitterConfigFile));
+      console.log(chalkLog("TSS | SAVED UPDATED AUTH " + twitterConfigFolder + "/" + twitterConfigFile));
 
       threeceeUserObj.stats.connected = true;
       threeceeUserObj.stats.twitterFollowLimit = false;

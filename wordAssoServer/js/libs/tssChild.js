@@ -108,6 +108,8 @@ else {
 const configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/default");
 const configHostFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility", hostname);
 
+const statsHostFolder = path.join(DROPBOX_ROOT_FOLDER, "stats", hostname);
+
 // const DROPBOX_DEFAULT_CONFIG_FOLDER = "/config/utility/default";
 const DROPBOX_DEFAULT_SEARCH_TERMS_DIR = "/config/utility/default";
 const DROPBOX_DEFAULT_SEARCH_TERMS_FILE = "followableSearchTerm.txt";
@@ -407,7 +409,7 @@ else {
 const DROPBOX_TSS_CONFIG_FILE = process.env.DROPBOX_TSS_CONFIG_FILE || "twitterSearchStreamConfig.json";
 const DROPBOX_TSS_STATS_FILE = process.env.DROPBOX_TSS_STATS_FILE || "twitterSearchStreamStats.json";
 
-const statsFolder = "/stats/" + hostname + "/tssChild";
+// const statsFolder = "/stats/" + hostname + "/tssChild";
 const statsFile = DROPBOX_TSS_STATS_FILE;
 
 const dropboxConfigFolder = "/config/utility";
@@ -560,7 +562,7 @@ function initStatsUpdate(cnf){
         statsObj.elapsed = moment().valueOf() - statsObj.startTime;
         statsObj.timeStamp = moment().format(defaultDateTimeFormat);
 
-        await tcUtils.saveFile({localFlag: false, folder: statsFolder, file: statsFile, obj: statsObj});
+        await tcUtils.saveFile({localFlag: true, folder: statsHostFolder, file: statsFile, obj: statsObj});
 
       }, cnf.statsUpdateIntervalTime);
 

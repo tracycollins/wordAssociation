@@ -605,15 +605,15 @@ const rateLimitHashMap = {};
 
   // return new Promise(function(resolve, reject){
 
-  //   if (!params.endpoint) {
-  //     return reject(new Error("params.endpoint undefined"));
+  //   if (!params.endPoint) {
+  //     return reject(new Error("params.endPoint undefined"));
   //   }
 
-  //   const endpoint = params.endpoint;
+  //   const endPoint = params.endPoint;
 
   //   console.log(chalkAlert(MODULE_ID_PREFIX
   //     + " | RATE LIMIT PAUSE"
-  //     + " | END POINT: " + params.endpoint
+  //     + " | END POINT: " + params.endPoint
   //     + " | @" + configuration.threeceeUser
   //     + " | NOW: " + moment().format(compactDateTimeFormat)
   //     + " | RESET AT: " +moment.unix(params.response.headers["x-rate-limit-reset"]).format(compactDateTimeFormat)
@@ -622,7 +622,7 @@ const rateLimitHashMap = {};
 
   //   tcUtils.checkEndPointRateLimit
 
-  //   if (rateLimitHashMap[endpoint] === undefined) {
+  //   if (rateLimitHashMap[endPoint] === undefined) {
   //     rateLimitHashMap[endpoint] = {};
   //     rateLimitHashMap[endpoint].exceptionFlag = true;
   //     rateLimitHashMap[endpoint].limit = params.response.headers["x-rate-limit-limit"];
@@ -680,8 +680,8 @@ function twitStreamPromise(params){
 
   return new Promise(function(resolve, reject){
 
-    const resource_endpoint = params.resource + "_" + params.endpoint;
-    const resourceEndpoint = params.resource + "/" + params.endpoint;
+    const resource_endpoint = params.resource + "_" + params.endPoint;
+    const resourceEndpoint = params.resource + "/" + params.endPoint;
 
     if (rateLimitHashMap[resource_endpoint] && rateLimitHashMap[resource_endpoint].exceptionFlag){
       return resolve();
@@ -712,7 +712,8 @@ function twitStreamPromise(params){
               rateLimitHashMap[resource_endpoint].exceptionFlag = false;
             });
           }
-          await tcUtils.handleTwitterError({err: err});
+          
+          await tcUtils.handleTwitterError({user: "altthreecee00", err: err, resource: params.resource, endPoint: params.endPoint});
         }
 
         if (configuration.verbose) {
@@ -919,7 +920,7 @@ async function initTwit(){
 
     await tcUtils.initTwitter(threeceeUserObj);
 
-    const data = await twitStreamPromise({resource: "friends", endpoint: "ids", twitParams: twitGetFriendsParams});
+    const data = await twitStreamPromise({resource: "friends", endPoint: "ids", twitParams: twitGetFriendsParams});
 
     threeceeUserObj.stats.error = false;
     threeceeUserObj.stats.authenticated = true;

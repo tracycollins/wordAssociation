@@ -706,13 +706,26 @@ function twitStreamPromise(params){
 
         if (err.code) {
           if (err.code == 88) {
+
             rateLimitHashMap[resource_endpoint].exceptionFlag = true;
+
             const rateLimitEndEvent = "rateLimitEnd_" + resource_endpoint;
+
             tcUtils.emitter.once(rateLimitEndEvent, function(){
-              rateLimitHashMap[resource_endpoint].exceptionFlag = false;
+
+              console.log(chalkError("TSS | -X- TWITTER STREAM RATE LIMIT END"
+                + " | @" + threeceeUserObj.screenName
+                + " | " + getTimeStamp()
+                + " | EVENT: " + rateLimitEndEvent
+              ));
+
+              const key = rateLimitEndEvent.replace("rateLimitEnd_", "");
+
+              rateLimitHashMap[key].exceptionFlag = false;
+
             });
           }
-          
+
           await tcUtils.handleTwitterError({user: "altthreecee00", err: err, resource: params.resource, endPoint: params.endPoint});
         }
 

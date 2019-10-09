@@ -212,8 +212,8 @@ const fs = require("fs");
 const path = require("path");
 const async = require("async");
 const debug = require("debug")("wa");
-const debugCache = require("debug")("cache");
-const debugCategory = require("debug")("kw");
+// const debugCache = require("debug")("cache");
+// const debugCategory = require("debug")("kw");
 const moment = require("moment");
 
 const express = require("express");
@@ -1087,267 +1087,6 @@ async function connectDb(){
   }
 }
 
-// function connectDb(){
-
-//   return new Promise(function(resolve, reject){
-
-//     try {
-
-//       statsObj.status = "CONNECTING MONGO DB";
-
-//       global.globalWordAssoDb.connect("WAS_" + process.pid, function(err, db){
-
-//         if (err) {
-//           console.log(chalkError("WAS | *** MONGO DB CONNECTION ERROR: " + err));
-//           statsObj.status = "MONGO CONNECTION ERROR";
-//           statsObj.dbConnectionReady = false;
-//           quit(statsObj.status);
-//           return reject(err);
-//         }
-
-//         console.log(chalk.green("WAS | MONGO DB DEFAULT CONNECTION OPEN"));
-
-//         db.on("close", function(){
-//           statsObj.status = "MONGO CLOSED";
-//           console.error.bind(console, "WAS | *** MONGO DB CONNECTION CLOSED ***\n");
-//           console.log(chalkAlert("WAS | *** MONGO DB CONNECTION CLOSED ***\n"));
-//           statsObj.dbConnectionReady = false;
-//         });
-
-//         db.on("error", function(){
-//           statsObj.status = "MONGO ERROR";
-//           console.error.bind(console, "WAS | *** MONGO DB CONNECTION ERROR ***\n");
-//           console.log(chalkError("WAS | *** MONGO DB CONNECTION ERROR ***\n"));
-//           db.close();
-//           statsObj.dbConnectionReady = false;
-//         });
-
-//         db.on("disconnected", function(){
-//           statsObj.status = "MONGO DISCONNECTED";
-//           console.error.bind(console, "WAS | *** MONGO DB DISCONNECTED ***\n");
-//           console.log(chalkAlert("WAS | *** MONGO DB DISCONNECTED ***\n"));
-//           statsObj.dbConnectionReady = false;
-//         });
-
-//         global.globalDbConnection = db;
-
-//         statsObj.dbConnectionReady = true;
-
-//         global.globalEmoji = global.globalDbConnection.model("Emoji", emojiModel.EmojiSchema);
-//         global.globalHashtag = global.globalDbConnection.model("Hashtag", hashtagModel.HashtagSchema);
-//         global.globalLocation = global.globalDbConnection.model("Location", locationModel.LocationSchema);
-//         global.globalMedia = global.globalDbConnection.model("Media", mediaModel.MediaSchema);
-//         global.globalNeuralNetwork = global.globalDbConnection.model("NeuralNetwork", neuralNetworkModel.NeuralNetworkSchema);
-//         global.globalPlace = global.globalDbConnection.model("Place", placeModel.PlaceSchema);
-//         global.globalTweet = global.globalDbConnection.model("Tweet", tweetModel.TweetSchema);
-//         global.globalUrl = global.globalDbConnection.model("Url", urlModel.UrlSchema);
-//         global.globalUser = global.globalDbConnection.model("User", userModel.UserSchema);
-//         global.globalWord = global.globalDbConnection.model("Word", wordModel.WordSchema);
-
-
-//         const neuralNetworkCollection = db.collection("neuralnetworks");
-
-//         neuralNetworkCollection.countDocuments(function(err, count){
-//           if (err) { throw Error; }
-//           console.log(chalkInfo("WAS | NEURAL NETWORKS IN DB: " + count));
-//         });
-
-//         const sessionId = btoa("threecee");
-//         console.log(chalk.green("WAS | PASSPORT SESSION ID: " + sessionId ));
-
-//         app.use(expressSession({
-//           sessionId: sessionId,
-//           secret: "three cee labs 47", 
-//           resave: false, 
-//           saveUninitialized: false,
-//           store: new MongoStore({ mongooseConnection: dbConnection })
-//         }));
-
-//         app.use(passport.initialize());
-
-//         passport.use(new TwitterStrategy({
-//             consumerKey: threeceeConfig.consumer_key,
-//             consumerSecret: threeceeConfig.consumer_secret,
-//             callbackURL: TWITTER_AUTH_CALLBACK_URL
-//           },
-//           function(token, tokenSecret, profile, cb) {
-
-//             console.log(chalk.green("WAS | PASSPORT TWITTER AUTH: token:       " + token));
-//             console.log(chalk.green("WAS | PASSPORT TWITTER AUTH: tokenSecret: " + tokenSecret));
-//             console.log(chalk.green("WAS | PASSPORT TWITTER AUTH USER | @" + profile.username + " | " + profile.id));
-
-//             if (configuration.verbose) { console.log(chalk.green("WAS | PASSPORT TWITTER AUTH\nprofile\n" + jsonPrint(profile))); }
-
-//             const rawUser = profile._json;
-
-//             if (!userServerControllerReady || !statsObj.dbConnectionReady) {
-//               console.log(chalkAlert("WAS | *** NOT READY"
-//                 + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
-//                 + " | userServerControllerReady: " + userServerControllerReady
-//               ));
-//               return cb(new Error("userServerController not ready"), null);
-//             }
-
-//             userServerController.convertRawUser({user: rawUser}, function(err, user){
-
-//               if (err) {
-//                 console.log(chalkError("WAS | *** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
-//                 return cb("RAW USER", rawUser);
-//               }
-
-//               printUserObj("WAS | MONGO DB | TWITTER AUTH USER", user);
-
-//               userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
-
-//                 if (err) {
-//                   console.log(chalkError("WAS | ***findOneUser ERROR: " + err));
-//                   return cb(err);
-//                 }
-
-//                 console.log(chalk.blue("WAS | UPDATED updatedUser"
-//                   + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
-//                   + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
-//                   + "\nWAS | " + printUser({user: updatedUser})
-//                 ));
-
-
-//                 if (configuration.threeceeInfoUsersArray.includes(updatedUser.screenName)) {
-//                   threeceeInfoTwitter.twitterAuthorizationErrorFlag = false;
-//                   threeceeInfoTwitter.twitterCredentialErrorFlag = false;
-//                   threeceeInfoTwitter.twitterErrorFlag = false;
-//                   threeceeInfoTwitter.twitterFollowLimit = false;
-//                   threeceeInfoTwitter.twitterTokenErrorFlag = false;
-//                 }
-//                 else {
-//                   threeceeTwitter.twitterAuthorizationErrorFlag = false;
-//                   threeceeTwitter.twitterCredentialErrorFlag = false;
-//                   threeceeTwitter.twitterErrorFlag = false;
-//                   threeceeTwitter.twitterFollowLimit = false;
-//                   threeceeTwitter.twitterTokenErrorFlag = false;
-
-//                 }
-
-//                 if (tssChild !== undefined) {
-//                   tssChild.send({op: "USER_AUTHENTICATED", token: token, tokenSecret: tokenSecret,user: updatedUser});
-//                 }
-
-//                 adminNameSpace.emit("USER_AUTHENTICATED", updatedUser);
-//                 viewNameSpace.emit("USER_AUTHENTICATED", updatedUser);
-
-//                 cb(null, updatedUser);
-
-//               });
-//             });
-//           }
-//         ));
-
-//         app.get("/auth/twitter", passport.authenticate("twitter"));
-
-//         app.get("/auth/twitter/callback", 
-//           passport.authenticate("twitter", 
-//             { 
-//               successReturnToOrRedirect: "/after-auth.html",
-//               failureRedirect: "/login" 
-//             }
-//           )
-//         );
-
-//         app.get("/login_auth",
-//           passport.authenticate("local", { 
-//             successReturnToOrRedirect: "/after-auth.html",
-//             failureRedirect: "/login"
-//           })
-//         );
-
-//         passport.serializeUser(function(user, done) { 
-
-//           const sessionUser = { 
-//             "_id": user._id, 
-//             nodeId: user.nodeId, 
-//             screenName: user.screenName, 
-//             name: user.name
-//           };
-
-//           console.log(chalk.green("WAS | PASSPORT SERIALIZE USER | @" + user.screenName));
-
-//           done(null, sessionUser); 
-//         });
-
-//         passport.deserializeUser(function(sessionUser, done) {
-//           done(null, sessionUser);
-//         });
-
-//         statsObj.user = {};
-//         statsObj.user.manual = {};
-//         statsObj.user.manual.right = 0;
-//         statsObj.user.manual.left = 0;
-//         statsObj.user.manual.neutral = 0;
-//         statsObj.user.manual.positive = 0;
-//         statsObj.user.manual.negative = 0;
-//         statsObj.user.manual.none = 0;
-//         statsObj.user.auto = {};
-//         statsObj.user.auto.right = 0;
-//         statsObj.user.auto.left = 0;
-//         statsObj.user.auto.neutral = 0;
-//         statsObj.user.auto.positive = 0;
-//         statsObj.user.auto.negative = 0;
-//         statsObj.user.auto.none = 0;
-//         statsObj.user.total = 0;
-//         statsObj.user.following = 0;
-//         statsObj.user.notFollowing = 0;
-//         statsObj.user.categorizedTotal = 0;
-//         statsObj.user.categorizedManual = 0;
-//         statsObj.user.categorizedAuto = 0;
-//         statsObj.user.uncategorizedTotal = 0;
-//         statsObj.user.uncategorizedManual = 0;
-//         statsObj.user.uncategorizedAuto = 0;
-//         statsObj.user.matched = 0;
-//         statsObj.user.mismatched = 0;
-
-//         statsObj.user.uncategorized = {};
-//         statsObj.user.uncategorized.all = 0;
-//         statsObj.user.uncategorized.left = 0;
-//         statsObj.user.uncategorized.right = 0;
-//         statsObj.user.uncategorized.neutral = 0;
-
-
-//         HashtagServerController = require("@threeceelabs/hashtag-server-controller");
-//         hashtagServerController = new HashtagServerController("WAS_HSC");
-
-//         hashtagServerController.on("error", function(err){
-//           console.log(chalkError("WAS | *** HSC ERROR | " + err));
-//         });
-
-//         UserServerController = require("@threeceelabs/user-server-controller");
-//         userServerController = new UserServerController("WAS_USC");
-
-//         userServerController.on("error", function(err){
-//           userServerControllerReady = false;
-//           console.log(chalkError("WAS | *** USC ERROR | " + err));
-//         });
-
-//         userServerController.on("ready", function(appname){
-
-//           statsObj.status = "MONGO DB CONNECTED";
-
-//           userServerControllerReady = true;
-//           console.log(chalk.green("WAS | USC READY | " + appname));
-
-//           configEvents.emit("DB_CONNECT");
-//           resolve(db);
-//         });
-
-//       });
-
-//     }
-//     catch(err){
-//       console.log(chalkError("WAS | *** MONGO DB CONNECT ERROR: " + err));
-//       reject(err);
-//     }
-
-//   });
-// }
-
 function initPassport(){
 
   return new Promise(function(resolve){
@@ -1480,7 +1219,6 @@ function initPassport(){
     resolve();
 
   });
-
 }
 
 statsObj.dbConnectBusy = false;
@@ -1513,6 +1251,7 @@ const uncatUserCache = new NodeCache({
 
 function uncatUserCacheExpired(uncatUserId, uncatUserObj) {
   console.log(chalkInfo("WAS | XXX UNCAT USER CACHE EXPIRED"
+    + " [" + uncatUserCache.getStats().keys + " KEYS]"
     + " | TTL: " + msToTime(configuration.uncatUserCacheTtl*1000)
     + " | NOW: " + getTimeStamp()
     + " | IN $: " + uncatUserObj.timeStamp
@@ -1562,6 +1301,7 @@ const viewerCache = new NodeCache({
 function viewerCacheExpired(viewerCacheId, viewerObj) {
 
   console.log(chalkInfo("WAS | XXX VIEWER CACHE EXPIRED"
+    + " [" + viewerCache.getStats().keys + " KEYS]"
     + " | TTL: " + viewerCacheTtl + " SECS"
     + " | TYPE: " + viewerObj.user.type.toUpperCase()
     + " | " + viewerCacheId
@@ -1595,9 +1335,8 @@ const serverCache = new NodeCache({
 
 function serverCacheExpired(serverCacheId, serverObj) {
 
-  // const ttl = serverCache.getTtl(serverCacheId);
-
   console.log(chalkInfo("WAS | XXX SERVER CACHE EXPIRED"
+    + " [" + serverCache.getStats().keys + " KEYS]"
     + " | TTL: " + serverCacheTtl + " SECS"
     + " | TYPE: " + serverObj.user.type.toUpperCase()
     + " | " + serverCacheId
@@ -1635,6 +1374,7 @@ const authenticatedSocketCache = new NodeCache({
 function authenticatedSocketCacheExpired(socketId, authSocketObj) {
 
   console.log(chalkInfo("WAS | XXX AUTH SOCKET CACHE EXPIRED"
+    + " [" + authenticatedSocketCache.getStats().keys + " KEYS]"
     + " | TTL: " + msToTime(authenticatedSocketCacheTtl*1000)
     + " | NSP: " + authSocketObj.namespace.toUpperCase()
     + " | " + socketId
@@ -1700,8 +1440,8 @@ const authenticatedTwitterUserCache = new NodeCache({
 });
 
 function authenticatedTwitterUserCacheExpired(nodeId, userObj) {
-
   console.log(chalkInfo("WAS | XXX AUTH TWITTER USER CACHE EXPIRED"
+    + " [" + authenticatedTwitterUserCache.getStats().keys + " KEYS]"
     + " | TTL: " + authenticatedTwitterUserCacheTtl + " SECS"
     + " | LS: " + userObj.lastSeen
     + " | @" + userObj.screenName
@@ -1734,6 +1474,7 @@ const authInProgressTwitterUserCache = new NodeCache({
 authInProgressTwitterUserCache.on("expired", function(nodeId, userObj){
 
   console.log(chalkInfo("WAS | XXX AUTH IN PROGRESS TWITTER USER CACHE EXPIRED"
+    + " [" + authInProgressTwitterUserCache.getStats().keys + " KEYS]"
     + " | TTL: " + authInProgressTwitterUserCacheTtl + " SECS"
     + " | NODE ID: " + nodeId
     + " | userObj\n" + jsonPrint(userObj)
@@ -1763,11 +1504,6 @@ const nodeCacheDeleteQueue = [];
 function nodeCacheExpired(nodeObj, callback) {
 
   const nodeCacheId = nodeObj.nodeId;
-
-  debugCache(chalkLog("XXX $ NODE"
-    + " | " + nodeObj.nodeType
-    + " | " + nodeCacheId
-  ));
 
   if (nodeMeter[nodeCacheId] || (nodeMeter[nodeCacheId] !== undefined)) {
 
@@ -1860,8 +1596,8 @@ DEFAULT_NODE_TYPES.forEach(function(nodeType){
   });
 });
 
-
 const cacheObj = {};
+cacheObj.uncatUserCache = uncatUserCache;
 cacheObj.nodeCache = nodeCache;
 cacheObj.serverCache = serverCache;
 cacheObj.viewerCache = viewerCache;
@@ -2105,6 +1841,7 @@ function showStats(options){
   statsObj.twitter.quotedTweetsReceived = quotedTweetsReceived;
   statsObj.twitter.retweetsReceived = retweetsReceived;
   statsObj.twitter.tweetsReceived = tweetsReceived;
+  statsObj.twitter.duplicateTweetsReceived = duplicateTweetsReceived;
   statsObj.errors.twitter.maxRxQueue = maxRxQueue;
 
   statsObj.dbuChildReady = dbuChildReady;
@@ -2269,9 +2006,9 @@ async function saveStats(params) {
 
     try{
       await dropboxClient.filesUpload(options);
-      debug(chalkLog(getTimeStamp()
-        + " | SAVED DROPBOX JSON | " + options.path
-      ));
+      // debug(chalkLog(getTimeStamp()
+      //   + " | SAVED DROPBOX JSON | " + options.path
+      // ));
       return "OK";
     }
     catch(err){
@@ -2304,12 +2041,9 @@ function killChild(params){
       pid = childrenHashMap[params.childId].pid;
     }
 
-
     kill(pid, function(err){
-
       if (err) { return reject(err); }
       resolve(params);
-
     });
 
   });
@@ -2756,7 +2490,6 @@ configEvents.on("INTERNET_READY", function internetReady() {
   }
 
   initAppRouting(function initAppRoutingComplete() {
-    // initLoadBestNetworkInterval(ONE_MINUTE+1);
   });
 });
 
@@ -2966,8 +2699,6 @@ async function updateTwitterWebhook(){
     console.log(chalkAlert("WAS | +++ TWITTER WEBHOOK UPDATED"
       + "\nBODY: " + body
     ));
-
-    // await addTwitterAccountActivitySubscription();
     return;
   }
   catch(err){
@@ -3171,9 +2902,9 @@ function categorizeNode(categorizeObj, callback) {
     }
   }
 
-  debug(chalkSocket("categorizeNode" 
-    + " | categorizeObj\n" + jsonPrint(categorizeObj)
-  ));
+  // debug(chalkSocket("categorizeNode" 
+  //   + " | categorizeObj\n" + jsonPrint(categorizeObj)
+  // ));
 
   const cObj = {};
   cObj.manual = false;
@@ -3181,29 +2912,32 @@ function categorizeNode(categorizeObj, callback) {
 
   let nCacheObj;
 
-  switch (categorizeObj.node.nodeType){
+  const node = categorizeObj.node;
+  const nodeId = categorizeObj.node.nodeId.toLowerCase();
+
+  switch (node.nodeType){
     case "user":
 
-      debug(chalkSocket("categorizeNode USER"
-        + " | NID: " + categorizeObj.node.nodeId
-        + " | @" + categorizeObj.node.screenName
-        + " | C: " + categorizeObj.category
-        + " | FLW: " + categorizeObj.follow
-      ));
+      // debug(chalkSocket("categorizeNode USER"
+      //   + " | NID: " + nodeId
+      //   + " | @" + node.screenName
+      //   + " | C: " + categorizeObj.category
+      //   + " | FLW: " + categorizeObj.follow
+      // ));
 
       cObj.manual = categorizeObj.category;
 
-      if (categorizedUserHashMap.has(categorizeObj.node.nodeId)){
-        cObj.auto = categorizedUserHashMap.get(categorizeObj.node.nodeId.toLowerCase()).auto || false;
+      if (categorizedUserHashMap.has(nodeId)){
+        cObj.auto = categorizedUserHashMap.get(nodeId).auto || false;
       }
 
-      categorizedHashtagHashMap.set(categorizeObj.node.nodeId.toLowerCase(), cObj);
+      categorizedHashtagHashMap.set(nodeId, cObj);
 
-      nCacheObj = nodeCache.get(categorizeObj.node.nodeId.toLowerCase());
+      nCacheObj = nodeCache.get(nodeId);
 
       if (nCacheObj) {
-        categorizeObj.node.mentions = Math.max(categorizeObj.node.mentions, nCacheObj.mentions);
-        nCacheObj.mentions = categorizeObj.node.mentions;
+        node.mentions = Math.max(node.mentions, nCacheObj.mentions);
+        nCacheObj.mentions = node.mentions;
         nodeCache.set(nCacheObj.nodeId, nCacheObj);
       }
 
@@ -3216,7 +2950,7 @@ function categorizeNode(categorizeObj, callback) {
       }
 
       userServerController.updateCategory(
-        {user: categorizeObj.node, category: categorizeObj.category}, 
+        {user: node, category: categorizeObj.category}, 
         function(err, updatedUser){
 
         if (err) {
@@ -3258,7 +2992,7 @@ function categorizeNode(categorizeObj, callback) {
                 + " | @" + updatedFollowUser.screenName
               ));
 
-              debug(chalkLog("UPDATE_CATEGORY USER | @" + updatedFollowUser.screenName ));
+              // debug(chalkLog("UPDATE_CATEGORY USER | @" + updatedFollowUser.screenName ));
               if (callback !== undefined) {
                 callback(null, updatedFollowUser);
               }
@@ -3280,7 +3014,7 @@ function categorizeNode(categorizeObj, callback) {
             if (updatedUser.category) { uncategorizedManualUserSet.delete(updatedUser.nodeId); }
             if (updatedUser.categoryAuto) { uncategorizedAutoUserSet.delete(updatedUser.nodeId); }
 
-            debug(chalkLog("UPDATE_CATEGORY USER | @" + updatedUser.screenName ));
+            // debug(chalkLog("UPDATE_CATEGORY USER | @" + updatedUser.screenName ));
             if (callback !== undefined) {
               callback(null, updatedUser);
             }
@@ -3292,29 +3026,29 @@ function categorizeNode(categorizeObj, callback) {
 
     case "hashtag":
 
-      debug(chalkSocket("categorizeNode HASHTAG"
-        + " | " + categorizeObj.node.nodeId
-        + " | " + categorizeObj.category
-      ));
+      // debug(chalkSocket("categorizeNode HASHTAG"
+      //   + " | " + nodeId
+      //   + " | " + categorizeObj.category
+      // ));
 
       cObj.manual = categorizeObj.category;
 
-      if (categorizedHashtagHashMap.has(categorizeObj.node.nodeId.toLowerCase())){
-        cObj.auto = categorizedHashtagHashMap.get(categorizeObj.node.nodeId.toLowerCase()).auto || false;
+      if (categorizedHashtagHashMap.has(nodeId)){
+        cObj.auto = categorizedHashtagHashMap.get(nodeId).auto || false;
       }
 
-      categorizedHashtagHashMap.set(categorizeObj.node.nodeId.toLowerCase(), cObj);
+      categorizedHashtagHashMap.set(nodeId, cObj);
 
-      nCacheObj = nodeCache.get(categorizeObj.node.nodeId.toLowerCase());
+      nCacheObj = nodeCache.get(nodeId);
 
       if (nCacheObj) {
-        categorizeObj.node.mentions = Math.max(categorizeObj.node.mentions, nCacheObj.mentions);
-        nCacheObj.mentions = categorizeObj.node.mentions;
+        node.mentions = Math.max(node.mentions, nCacheObj.mentions);
+        nCacheObj.mentions = node.mentions;
         nodeCache.set(nCacheObj.nodeId, nCacheObj);
       }
 
       hashtagServerController.updateCategory(
-        { hashtag: categorizeObj.node, category: categorizeObj.category }, 
+        { hashtag: node, category: categorizeObj.category }, 
         function(err, updatedHashtag){
         if (err) {
           console.log(chalkError("WAS | *** HASHTAG UPDATE CATEGORY ERROR: " + jsonPrint(err)));
@@ -3328,7 +3062,8 @@ function categorizeNode(categorizeObj, callback) {
             updatedHashtag.nodeId, 
             { manual: updatedHashtag.category, auto: updatedHashtag.categoryAuto });
 
-          debug(chalkLog("UPDATE_CATEGORY HASHTAG | #" + updatedHashtag.nodeId ));
+          // debug(chalkLog("UPDATE_CATEGORY HASHTAG | #" + updatedHashtag.nodeId ));
+
           if (callback !== undefined) {
             callback(null, updatedHashtag);
           }
@@ -3337,11 +3072,11 @@ function categorizeNode(categorizeObj, callback) {
     break;
 
     default:
-      debug(chalkSocket("categorizeNode TYPE: " + categorizeObj.node.nodeType
-        + " | " + categorizeObj.node.nodeId
-        + " | " + categorizeObj.category
-      ));
-      callback(new Error("categorizeNode TYPE: " + categorizeObj.node.nodeType), null);
+      // debug(chalkSocket("categorizeNode TYPE: " + node.nodeType
+      //   + " | " + nodeId
+      //   + " | " + categorizeObj.category
+      // ));
+      callback(new Error("categorizeNode TYPE: " + node.nodeType), null);
   }
 }
 
@@ -3355,17 +3090,6 @@ function socketRxTweet(tw) {
   if (prevTweetUser) {
 
     duplicateTweetsReceived += 1;
-
-    // statsObj.twitter.duplicateTweetsReceived += 1;
-
-    // if (statsObj.twitter.duplicateTweetsReceived % 1000 == 0){
-    //   console.log(chalkLog("WAS"
-    //     + " | ??? DUP TWEET"
-    //     + " | FILTER: " + configuration.filterDuplicateTweets
-    //     + " [ $: " + tweetIdCache.getStats().keys + " / " + statsObj.twitter.duplicateTweetsReceived + " DUPs ]"
-    //     + " | " + tw.id_str 
-    //   ));
-    // }
     
     if (filterDuplicateTweets) { return; }
   }
@@ -3384,30 +3108,8 @@ function socketRxTweet(tw) {
     quotedTweetsReceived += 1;
   }
 
-  // debug(chalkSocket("tweet" 
-  //   + " [" + tweetsReceived + "]"
-  //   + " | " + tw.id_str
-  //   + " | TW LANG: " + tw.lang
-  //   + " | " + tw.user.id_str
-  //   + " | " + tw.user.screen_name
-  //   + " | " + tw.user.name
-  //   + " | USER LANG: " + tw.user.lang
-  // ));
-
   if (tweetRxQueue.length > maxQueue){
-
     maxRxQueue += 1;
-
-    // if (maxRxQueue % 1000 == 0) {
-    //   console.log(chalkLog("WAS | !!! TW RX MAX Q [" + tweetRxQueue.length + "]"
-    //     + " | " + getTimeStamp()
-    //     + " | TWP RDY: " + statsObj.tweetParserReady
-    //     + " | TWP SND RDY: " + statsObj.tweetParserSendReady
-    //     + " | MAX Qs " + maxRxQueue
-    //     + " | " + tw.id_str
-    //     + " | " + tw.user.screen_name
-    //   ));
-    // }
   }
   else if (tw.user) {
 
@@ -3454,52 +3156,12 @@ function socketRxTweet(tw) {
 
       tw.user.category = categorizedUserHashMap.get(screenName).manual;
       tw.user.categoryAuto = categorizedUserHashMap.get(screenName).auto;
-
-      // debug(chalkLog("T< HM HIT"
-      //   + " [ RXQ: " + tweetRxQueue.length + "]"
-      //   + " [ TPQ: " + tweetParserQueue.length + "]"
-      //   + " | C: " + tw.user.category
-      //   + " | " + tw.user.name
-      //   + " | " + tw.id_str
-      //   + " | @" + tw.user.screen_name
-      //   + " | " + tw.user.name
-      // ));
     }
 
     tweetRxQueue.push(tw);
 
-    // statsObj.queues.tweetRxQueue = tweetRxQueue.length;
-
-    // debug(chalkLog("T<"
-    //   + " [ RXQ: " + tweetRxQueue.length + "]"
-    //   + " [ TPQ: " + tweetParserQueue.length + "]"
-    //   + " | " + tw.id_str
-    //   + " | @" + tw.user.screen_name
-    //   + " | " + tw.user.name
-    // ));
-
-    // if (tweetsReceived % 1000 == 0) {
-    //   console.log(chalkTwitter("WAS | <T"
-    //     + " | RXQ: " + tweetRxQueue.length
-    //     + " [ T/R/Q " + tweetsReceived 
-    //     + "/" + retweetsReceived 
-    //     + "/" + quotedTweetsReceived + "]"
-    //     + " | TW " + tw.id_str
-    //     + " | @" + tw.user.screen_name
-    //     + " | " + tw.user.name
-    //   ));
-    // }
-
   }
-  // else {
-  //   console.log(chalkAlert("WAS | NULL USER T*<"
-  //     + " [ RXQ: " + tweetRxQueue.length + "]"
-  //     + " [ TPQ: " + tweetParserQueue.length + "]"
-  //     + " | " + tw.id_str
-  //     + " | @" + tw.user.screen_name
-  //     + " | " + tw.user.name
-  //   ));
-  // }
+
 }
 
 function enableFollow(params){
@@ -3613,7 +3275,7 @@ async function categoryVerified(params) {
       verifiedCategorizedUsersSet.delete(params.user.screenName.toLowerCase());
     }
 
-    const dbUser = await wordAssoDb.User.findOne({screenName: params.user.screenName.toLowerCase()}).exec();
+    const dbUser = await wordAssoDb.User.findOne({screenName: params.user.screenName.toLowerCase()});
 
     if (empty(dbUser)) {
       console.log(chalkWarn("WAS | ??? UPDATE VERIFIED | USER NOT FOUND: " + params.user.screenName.toLowerCase()));
@@ -3797,7 +3459,7 @@ async function updateDbIgnoredHashtags(){
 
     try {
 
-        const dbHashtag = await wordAssoDb.Hashtag.findOne({nodeId: hashtag.toLowerCase()}).exec();
+        const dbHashtag = await wordAssoDb.Hashtag.findOne({nodeId: hashtag.toLowerCase()});
 
         if (empty(dbHashtag)) {
           console.log(chalkWarn("WAS | ??? UPDATE IGNORED | HASHTAG NOT FOUND: " + hashtag.toLowerCase()));
@@ -4095,8 +3757,13 @@ function initSocketHandler(socketObj) {
     viewerCache.del(socketId);
 
     statsObj.socket.errors.reconnect_errors += 1;
-    debug(chalkError(getTimeStamp(timeStamp) 
-      + " | SOCKET RECONNECT ERROR: " + socketId + "\nerrorObj\n" + jsonPrint(errorObj)));
+    statsObj.socket.errors.errorObj = errorObj;
+
+    console.log(chalkError(getTimeStamp(timeStamp) 
+      + " | SOCKET RECONNECT ERROR: " + socketId 
+      + "\nerrorObj\n" + jsonPrint(errorObj)
+    ));
+
   });
 
   socket.on("reconnect_failed", function reconnectFailed(errorObj) {
@@ -4852,7 +4519,7 @@ function initSocketHandler(socketObj) {
     }
     else{
       try{
-        const user = await wordAssoDb.User.findOne({screenName: defaultTwitterUserScreenName}).exec();
+        const user = await wordAssoDb.User.findOne({screenName: defaultTwitterUserScreenName});
 
         if (user) {
           socket.emit("SET_TWITTER_USER", {user: user, stats: statsObj.user });
@@ -5130,11 +4797,11 @@ function processCheckCategory(nodeObj){
       nodeObj.category = categorizedNodeHashMap.get(nodeObj.nodeId).manual;
       nodeObj.categoryAuto = categorizedNodeHashMap.get(nodeObj.nodeId).auto;
 
-      debugCategory(chalk.blue("WAS | KW HIT WORD NODEID"
-        + " | " + nodeObj.nodeId
-        + " | CAT: " + nodeObj.category
-        + " | CATA: " + nodeObj.categoryAuto
-      ));
+      // debugCategory(chalk.blue("WAS | KW HIT WORD NODEID"
+      //   + " | " + nodeObj.nodeId
+      //   + " | CAT: " + nodeObj.category
+      //   + " | CATA: " + nodeObj.categoryAuto
+      // ));
 
       async.parallel({
         overall: function(cb){
@@ -5145,10 +4812,10 @@ function processCheckCategory(nodeObj){
             }
             if (nodeRate !== undefined) {
 
-              debugCategory(chalkLog("WAS | TOP TERM"
-                + " | " + nodeObj.nodeId 
-                + " | " + nodeRate.toFixed(3)
-              ));
+              // debugCategory(chalkLog("WAS | TOP TERM"
+              //   + " | " + nodeObj.nodeId 
+              //   + " | " + nodeRate.toFixed(3)
+              // ));
 
               nodeObj.isTopTerm = true;
             }
@@ -5168,11 +4835,11 @@ function processCheckCategory(nodeObj){
             }
             if (nodeRate !== undefined) {
 
-              debugCategory(chalkLog("TOP TERM NODE TYPE"
-                + " | " + nodeObj.nodeType 
-                + " | " + nodeObj.nodeId 
-                + " | " + nodeRate.toFixed(3)
-              ));
+              // debugCategory(chalkLog("TOP TERM NODE TYPE"
+              //   + " | " + nodeObj.nodeType 
+              //   + " | " + nodeObj.nodeId 
+              //   + " | " + nodeRate.toFixed(3)
+              // ));
               
               nodeObj.isTopTermNodeType = true;
             }
@@ -5202,12 +4869,12 @@ function processCheckCategory(nodeObj){
 
 async function checkCategory(nodeObj) {
 
-  debugCategory(chalkLog("checkCategory"
-    + " | " + nodeObj.nodeType
-    + " | " + nodeObj.nodeId
-    + " | CAT: " + nodeObj.category
-    + " | CATA: " + nodeObj.categoryAuto
-  ));
+  // debugCategory(chalkLog("checkCategory"
+  //   + " | " + nodeObj.nodeType
+  //   + " | " + nodeObj.nodeId
+  //   + " | CAT: " + nodeObj.category
+  //   + " | CATA: " + nodeObj.categoryAuto
+  // ));
 
   switch (nodeObj.nodeType) {
 
@@ -5259,7 +4926,7 @@ async function updateNodeMeter(node){
 
   if (ignoreWordHashMap.has(meterNodeId)) {
 
-    debug(chalkLog("updateNodeMeter IGNORE " + meterNodeId));
+    // debug(chalkLog("updateNodeMeter IGNORE " + meterNodeId));
 
     nodeObj.isIgnored = true;
     node.isIgnored = true;
@@ -5274,7 +4941,7 @@ async function updateNodeMeter(node){
   }
   else {
     if ((/TSS_/).test(meterNodeId) || nodeObj.isServer){
-      debug(chalkLog("updateNodeMeter\n" + jsonPrint(nodeObj)));
+      // debug(chalkLog("updateNodeMeter\n" + jsonPrint(nodeObj)));
       return node;
     }
     else if (empty(nodeMeter[meterNodeId])){
@@ -5399,9 +5066,9 @@ async function userCategorizeable(user){
 
   if (user.lang && (user.lang !== undefined) && (user.lang != "en")) { 
     categorizeableUserSet.delete(user.nodeId);
-    if (configuration.verbose) { 
-      console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LANG NOT ENGLISH: " + user.lang));
-    }
+    // if (configuration.verbose) { 
+    //   console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LANG NOT ENGLISH: " + user.lang));
+    // }
     return false;
   }
 
@@ -5480,7 +5147,7 @@ async function initAllowLocations(){
       throw new Error("DROPBOX FILE DOWNLOAD DATA UNDEFINED");
     }
 
-    debug(chalkInfo("WAS | DROPBOX ALLOW LOCATIONS FILE\n" + jsonPrint(data)));
+    // debug(chalkInfo("WAS | DROPBOX ALLOW LOCATIONS FILE\n" + jsonPrint(data)));
 
     const dataArray = data.toString().toLowerCase().split("\n");
 
@@ -5524,7 +5191,7 @@ async function initIgnoreLocations(){
       throw new Error("DROPBOX FILE DOWNLOAD DATA UNDEFINED");
     }
 
-    debug(chalkInfo("WAS | DROPBOX IGNORE LOCATIONS FILE\n" + jsonPrint(data)));
+    // debug(chalkInfo("WAS | DROPBOX IGNORE LOCATIONS FILE\n" + jsonPrint(data)));
 
     const dataArray = data.toString().toLowerCase().split("\n");
 
@@ -5678,7 +5345,18 @@ function updateUserSets(){
     
     userSearchCursor = wordAssoDb.User
       .find(userSearchQuery)
-      .select({friends: 0, tweets: 0, tweetHistograms: 0, profileHistograms: 0})
+      // .select({friends: 0, tweets: 0, tweetHistograms: 0, profileHistograms: 0})
+      .select({
+        nodeId: 1, 
+        lang: 1, 
+        category: 1, 
+        categoryAuto: 1, 
+        following: 1, 
+        followersCount: 1, 
+        ignored: 1,
+        screenName: 1,
+        name: 1
+      })
       .lean()
       .cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
 
@@ -5686,11 +5364,16 @@ function updateUserSets(){
 
     userSearchCursor.on("data", async function(user) {
 
-      const uncatUserObj = await uncatUserCache.get(user.nodeId);
+      const nodeId = user.nodeId.toLowerCase();
+      const screenName = user.screenName.toLowerCase();
+      const category = user.category;
+      const categoryAuto = user.categoryAuto;
+
+      const uncatUserObj = await uncatUserCache.get(nodeId);
 
       if (user.lang && (user.lang !== undefined) && (user.lang != "en")){
 
-        wordAssoDb.User.deleteOne({"nodeId": user.nodeId}, function(err){
+        wordAssoDb.User.deleteOne({"nodeId": nodeId}, function(err){
           if (err) {
             console.log(chalkError("WAS | *** DB DELETE USER LANG NOT ENG | ERROR: " + err));
           }
@@ -5703,13 +5386,13 @@ function updateUserSets(){
           }
         });
       }
-      else if (!user.category 
+      else if (!category 
         && !user.following 
         && (user.followersCount > 0)
         && (user.followersCount < configuration.minFollowersAuto)
       ){
 
-        wordAssoDb.User.deleteOne({"nodeId": user.nodeId}, function(err){
+        wordAssoDb.User.deleteOne({"nodeId": nodeId}, function(err){
           if (err) {
             console.log(chalkError("WAS | *** DB DELETE USER LESS THAN MIN FOLLOWERS | ERROR: " + err));
           }
@@ -5726,117 +5409,117 @@ function updateUserSets(){
 
         let categorizeable = false;
 
-        switch (user.category) {
+        switch (category) {
           case "right":
-            userRightSet.add(user.nodeId);
-            userLeftSet.delete(user.nodeId);
-            userNeutralSet.delete(user.nodeId);
-            userPositiveSet.delete(user.nodeId);
-            userNegativeSet.delete(user.nodeId);
-            userNoneSet.delete(user.nodeId);
+            userRightSet.add(nodeId);
+            userLeftSet.delete(nodeId);
+            userNeutralSet.delete(nodeId);
+            userPositiveSet.delete(nodeId);
+            userNegativeSet.delete(nodeId);
+            userNoneSet.delete(nodeId);
             categorizeable = true;
           break;
           case "left":
-            userRightSet.delete(user.nodeId);
-            userLeftSet.add(user.nodeId);
-            userNeutralSet.delete(user.nodeId);
-            userPositiveSet.delete(user.nodeId);
-            userNegativeSet.delete(user.nodeId);
-            userNoneSet.delete(user.nodeId);
+            userRightSet.delete(nodeId);
+            userLeftSet.add(nodeId);
+            userNeutralSet.delete(nodeId);
+            userPositiveSet.delete(nodeId);
+            userNegativeSet.delete(nodeId);
+            userNoneSet.delete(nodeId);
             categorizeable = true;
           break;
           case "neutral":
-            userRightSet.delete(user.nodeId);
-            userLeftSet.delete(user.nodeId);
-            userNeutralSet.add(user.nodeId);
-            userPositiveSet.delete(user.nodeId);
-            userNegativeSet.delete(user.nodeId);
-            userNoneSet.delete(user.nodeId);
+            userRightSet.delete(nodeId);
+            userLeftSet.delete(nodeId);
+            userNeutralSet.add(nodeId);
+            userPositiveSet.delete(nodeId);
+            userNegativeSet.delete(nodeId);
+            userNoneSet.delete(nodeId);
             categorizeable = true;
           break;
           case "positive":
-            userRightSet.delete(user.nodeId);
-            userLeftSet.delete(user.nodeId);
-            userNeutralSet.delete(user.nodeId);
-            userPositiveSet.add(user.nodeId);
-            userNegativeSet.delete(user.nodeId);
-            userNoneSet.delete(user.nodeId);
+            userRightSet.delete(nodeId);
+            userLeftSet.delete(nodeId);
+            userNeutralSet.delete(nodeId);
+            userPositiveSet.add(nodeId);
+            userNegativeSet.delete(nodeId);
+            userNoneSet.delete(nodeId);
             categorizeable = true;
           break;
           case "negative":
-            userRightSet.delete(user.nodeId);
-            userLeftSet.delete(user.nodeId);
-            userNeutralSet.delete(user.nodeId);
-            userPositiveSet.delete(user.nodeId);
-            userNegativeSet.add(user.nodeId);
-            userNoneSet.delete(user.nodeId);
+            userRightSet.delete(nodeId);
+            userLeftSet.delete(nodeId);
+            userNeutralSet.delete(nodeId);
+            userPositiveSet.delete(nodeId);
+            userNegativeSet.add(nodeId);
+            userNoneSet.delete(nodeId);
             categorizeable = true;
           break;
           case "none":
-            userRightSet.delete(user.nodeId);
-            userLeftSet.delete(user.nodeId);
-            userNeutralSet.delete(user.nodeId);
-            userPositiveSet.delete(user.nodeId);
-            userNegativeSet.delete(user.nodeId);
-            userNoneSet.add(user.nodeId);
+            userRightSet.delete(nodeId);
+            userLeftSet.delete(nodeId);
+            userNeutralSet.delete(nodeId);
+            userPositiveSet.delete(nodeId);
+            userNegativeSet.delete(nodeId);
+            userNoneSet.add(nodeId);
           break;
           default:
-            userRightSet.delete(user.nodeId);
-            userLeftSet.delete(user.nodeId);
-            userNeutralSet.delete(user.nodeId);
-            userPositiveSet.delete(user.nodeId);
-            userNegativeSet.delete(user.nodeId);
-            userNoneSet.delete(user.nodeId);
+            userRightSet.delete(nodeId);
+            userLeftSet.delete(nodeId);
+            userNeutralSet.delete(nodeId);
+            userPositiveSet.delete(nodeId);
+            userNegativeSet.delete(nodeId);
+            userNoneSet.delete(nodeId);
         }
 
-        switch (user.categoryAuto) {
+        switch (categoryAuto) {
           case "right":
-            userAutoRightSet.add(user.nodeId);
-            userAutoLeftSet.delete(user.nodeId);
-            userAutoNeutralSet.delete(user.nodeId);
-            userAutoPositiveSet.delete(user.nodeId);
-            userAutoNegativeSet.delete(user.nodeId);
-            userAutoNoneSet.delete(user.nodeId);
+            userAutoRightSet.add(nodeId);
+            userAutoLeftSet.delete(nodeId);
+            userAutoNeutralSet.delete(nodeId);
+            userAutoPositiveSet.delete(nodeId);
+            userAutoNegativeSet.delete(nodeId);
+            userAutoNoneSet.delete(nodeId);
           break;
           case "left":
-            userAutoRightSet.delete(user.nodeId);
-            userAutoLeftSet.add(user.nodeId);
-            userAutoNeutralSet.delete(user.nodeId);
-            userAutoPositiveSet.delete(user.nodeId);
-            userAutoNegativeSet.delete(user.nodeId);
-            userAutoNoneSet.delete(user.nodeId);
+            userAutoRightSet.delete(nodeId);
+            userAutoLeftSet.add(nodeId);
+            userAutoNeutralSet.delete(nodeId);
+            userAutoPositiveSet.delete(nodeId);
+            userAutoNegativeSet.delete(nodeId);
+            userAutoNoneSet.delete(nodeId);
           break;
           case "neutral":
-            userAutoRightSet.delete(user.nodeId);
-            userAutoLeftSet.delete(user.nodeId);
-            userAutoNeutralSet.add(user.nodeId);
-            userAutoPositiveSet.delete(user.nodeId);
-            userAutoNegativeSet.delete(user.nodeId);
-            userAutoNoneSet.delete(user.nodeId);
+            userAutoRightSet.delete(nodeId);
+            userAutoLeftSet.delete(nodeId);
+            userAutoNeutralSet.add(nodeId);
+            userAutoPositiveSet.delete(nodeId);
+            userAutoNegativeSet.delete(nodeId);
+            userAutoNoneSet.delete(nodeId);
           break;
           case "positive":
-            userAutoRightSet.delete(user.nodeId);
-            userAutoLeftSet.delete(user.nodeId);
-            userAutoNeutralSet.delete(user.nodeId);
-            userAutoPositiveSet.add(user.nodeId);
-            userAutoNegativeSet.delete(user.nodeId);
-            userAutoNoneSet.delete(user.nodeId);
+            userAutoRightSet.delete(nodeId);
+            userAutoLeftSet.delete(nodeId);
+            userAutoNeutralSet.delete(nodeId);
+            userAutoPositiveSet.add(nodeId);
+            userAutoNegativeSet.delete(nodeId);
+            userAutoNoneSet.delete(nodeId);
           break;
           case "negative":
-            userAutoRightSet.delete(user.nodeId);
-            userAutoLeftSet.delete(user.nodeId);
-            userAutoNeutralSet.delete(user.nodeId);
-            userAutoPositiveSet.delete(user.nodeId);
-            userAutoNegativeSet.add(user.nodeId);
-            userAutoNoneSet.delete(user.nodeId);
+            userAutoRightSet.delete(nodeId);
+            userAutoLeftSet.delete(nodeId);
+            userAutoNeutralSet.delete(nodeId);
+            userAutoPositiveSet.delete(nodeId);
+            userAutoNegativeSet.add(nodeId);
+            userAutoNoneSet.delete(nodeId);
           break;
           default:
-            userAutoRightSet.delete(user.nodeId);
-            userAutoLeftSet.delete(user.nodeId);
-            userAutoNeutralSet.delete(user.nodeId);
-            userAutoPositiveSet.delete(user.nodeId);
-            userAutoNegativeSet.delete(user.nodeId);
-            userAutoNoneSet.add(user.nodeId);
+            userAutoRightSet.delete(nodeId);
+            userAutoLeftSet.delete(nodeId);
+            userAutoNeutralSet.delete(nodeId);
+            userAutoPositiveSet.delete(nodeId);
+            userAutoNegativeSet.delete(nodeId);
+            userAutoNoneSet.add(nodeId);
         }
 
         if (!categorizeable) {
@@ -5845,16 +5528,16 @@ function updateUserSets(){
 
         if (categorizeable
           && (uncatUserObj == undefined)
-          && (!user.category || (user.category == undefined))
+          && (!category || (category == undefined))
           && (!user.ignored || (user.ignored == undefined))
           && (user.following || (user.followersCount >= configuration.minFollowersAuto)) 
-          && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && user.categoryAuto && (user.categoryAuto != "right")))
-          && !ignoredUserSet.has(user.nodeId) 
-          && !ignoredUserSet.has(user.screenName.toLowerCase()) 
-          && !uncategorizedManualUserSet.has(user.nodeId) 
-          && !unfollowableUserSet.has(user.nodeId)) { 
+          && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && categoryAuto && (categoryAuto != "right")))
+          && !ignoredUserSet.has(nodeId) 
+          && !ignoredUserSet.has(screenName) 
+          && !uncategorizedManualUserSet.has(nodeId) 
+          && !unfollowableUserSet.has(nodeId)) { 
 
-          uncategorizedManualUserSet.add(user.nodeId);
+          uncategorizedManualUserSet.add(nodeId);
 
           if (tfeChild !== undefined) { 
             tfeChild.send({op: "USER_CATEGORIZE", user: user});
@@ -5865,53 +5548,53 @@ function updateUserSets(){
           }
         }
 
-        if (!uncategorizedAutoUserSet.has(user.nodeId) 
-          && (!user.categoryAuto || (user.categoryAuto == undefined))
-          && !ignoredUserSet.has(user.nodeId) 
-          && !ignoredUserSet.has(user.screenName.toLowerCase()) 
-          && !ignoreLocationsSet.has(user.nodeId) 
+        if (!uncategorizedAutoUserSet.has(nodeId) 
+          && (!categoryAuto || (categoryAuto == undefined))
+          && !ignoredUserSet.has(nodeId) 
+          && !ignoredUserSet.has(screenName) 
+          && !ignoreLocationsSet.has(nodeId) 
           && (user.followersCount >= configuration.minFollowersAuto) 
-          && !unfollowableUserSet.has(user.nodeId)) { 
+          && !unfollowableUserSet.has(nodeId)) { 
 
-          uncategorizedAutoUserSet.add(user.nodeId);
+          uncategorizedAutoUserSet.add(nodeId);
 
           if (uncategorizedAutoUserSet.size % 100 == 0) {
             printUserObj("UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", user);
           }
         }
         
-        if (((user.category == "left") || (user.category == "neutral") || (user.category == "right"))
-          && ((user.categoryAuto == "left") || (user.categoryAuto == "neutral") || (user.categoryAuto == "right"))
+        if (((category == "left") || (category == "neutral") || (category == "right"))
+          && ((categoryAuto == "left") || (categoryAuto == "neutral") || (categoryAuto == "right"))
         ) { 
 
-          uncategorizedManualUserSet.delete(user.nodeId); 
-          uncategorizedAutoUserSet.delete(user.nodeId); 
+          uncategorizedManualUserSet.delete(nodeId); 
+          uncategorizedAutoUserSet.delete(nodeId); 
 
-          if (!ignoredUserSet.has(user.nodeId) 
-            && !ignoredUserSet.has(user.screenName.toLowerCase()) 
-            && !ignoreLocationsSet.has(user.nodeId) 
-            && !unfollowableUserSet.has(user.nodeId)){
+          if (!ignoredUserSet.has(nodeId) 
+            && !ignoredUserSet.has(screenName) 
+            && !ignoreLocationsSet.has(nodeId) 
+            && !unfollowableUserSet.has(nodeId)){
 
-            categorizedManualUserSet.add(user.nodeId); 
-            categorizedAutoUserSet.add(user.nodeId); 
+            categorizedManualUserSet.add(nodeId); 
+            categorizedAutoUserSet.add(nodeId); 
 
-            if (!mismatchUserSet.has(user.nodeId) && (user.category !== user.categoryAuto)) {
+            if (!mismatchUserSet.has(nodeId) && (category !== categoryAuto)) {
 
-              if (!configuration.filterVerifiedUsers || !verifiedCategorizedUsersSet.has(user.screenName.toLowerCase())){
-                mismatchUserSet.add(user.nodeId);
+              if (!configuration.filterVerifiedUsers || !verifiedCategorizedUsersSet.has(screenName)){
+                mismatchUserSet.add(nodeId);
               }
 
-              matchUserSet.delete(user.nodeId); 
+              matchUserSet.delete(nodeId); 
 
               if (mismatchUserSet.size % 100 == 0) {
-                printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "] | VCU: " + verifiedCategorizedUsersSet.has(user.screenName.toLowerCase()), user);
+                printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "] | VCU: " + verifiedCategorizedUsersSet.has(screenName), user);
               }
             }
 
-            if (!matchUserSet.has(user.nodeId) && (user.category === user.categoryAuto)) {
+            if (!matchUserSet.has(nodeId) && (category === categoryAuto)) {
 
-              matchUserSet.add(user.nodeId); 
-              mismatchUserSet.delete(user.nodeId); 
+              matchUserSet.add(nodeId); 
+              mismatchUserSet.delete(nodeId); 
 
               if (matchUserSet.size % 100 == 0) {
                 printUserObj("MATCHED USER [" + matchUserSet.size + "]", user);
@@ -6326,10 +6009,10 @@ function initAppRouting(callback) {
             adminNameSpace.emit("FOLLOW", updatedUser);
             utilNameSpace.emit("FOLLOW", updatedUser);
 
-            debug(chalk.blue("WAS | +++ TWITTER FOLLOW"
-              + " | UID" + updatedUser.nodeId
-              + " | @" + updatedUser.screenName
-            ));
+            // debug(chalk.blue("WAS | +++ TWITTER FOLLOW"
+            //   + " | UID" + updatedUser.nodeId
+            //   + " | @" + updatedUser.screenName
+            // ));
 
           });
 
@@ -6360,10 +6043,10 @@ function initAppRouting(callback) {
             adminNameSpace.emit("UNFOLLOW", updatedUser);
             utilNameSpace.emit("UNFOLLOW", updatedUser);
 
-            debug(chalk.blue("WAS | XXX TWITTER UNFOLLOW"
-              + " | UID" + updatedUser.nodeId
-              + " | @" + updatedUser.screenName
-            ));
+            // debug(chalk.blue("WAS | XXX TWITTER UNFOLLOW"
+            //   + " | UID" + updatedUser.nodeId
+            //   + " | @" + updatedUser.screenName
+            // ));
 
           });
         }
@@ -6380,11 +6063,11 @@ function initAppRouting(callback) {
           // + " | DB CURSOR READY: " + dropboxFolderGetLastestCursorReady
         )); 
 
-        debug(chalkInfo("WAS | R< dropbox_webhook"
-          + "\nreq.query\n" + jsonPrint(req.query)
-          + "\nreq.params\n" + jsonPrint(req.params)
-          + "\nreq.body\n" + jsonPrint(req.body)
-        )); 
+        // debug(chalkInfo("WAS | R< dropbox_webhook"
+        //   + "\nreq.query\n" + jsonPrint(req.query)
+        //   + "\nreq.params\n" + jsonPrint(req.params)
+        //   + "\nreq.body\n" + jsonPrint(req.body)
+        // )); 
       }
 
       res.send(req.query.challenge);
@@ -6469,7 +6152,7 @@ function initAppRouting(callback) {
 
   app.get("/admin", function requestAdmin(req, res) {
 
-    debug(chalkInfo("get req\n" + req));
+    // debug(chalkInfo("get req\n" + req));
 
     console.log(chalkLog("WAS | LOADING PAGE"
       + " | IP: " + req.ip
@@ -6487,9 +6170,9 @@ function initAppRouting(callback) {
           + " | " + err
         ));
       } 
-      else {
-        debug(chalkInfo("SENT:", adminHtml));
-      }
+      // else {
+      //   // debug(chalkInfo("SENT:", adminHtml));
+      // }
     });
   });
 
@@ -6552,8 +6235,8 @@ function initAppRouting(callback) {
 
     debug(chalkInfo("get next\n" + next));
 
-    debug("req");
-    debug(req);
+    // debug("req");
+    // debug(req);
 
     console.log(chalkLog("WAS | LOADING PAGE"
       // + " [ VIEWS: " + req.session.views + "]"
@@ -6684,8 +6367,8 @@ function initInternetCheckInterval(interval){
 
   return new Promise(function(resolve){
 
-    debug(chalkInfo(getTimeStamp() 
-      + " | INIT INTERNET CHECK INTERVAL | " + interval + " MS"));
+    // debug(chalkInfo(getTimeStamp() 
+    //   + " | INIT INTERNET CHECK INTERVAL | " + interval + " MS"));
 
     clearInterval(internetCheckInterval);
 
@@ -6763,6 +6446,12 @@ async function initTweetParserMessageRxQueueInterval(interval){
   let tweetParserMessage = {};
   let tweetObj = {};
 
+  const dbUserMessage = {};
+  dbUserMessage.op = "TWEET";
+  dbUserMessage.tweetObj = {};
+
+  // {op: "TWEET", tweetObj: tweetObj}
+
   tweetParserMessageRxQueueInterval = setInterval(async function() {
 
     if ((tweetParserMessageRxQueue.length > 0) && tweetParserMessageRxQueueReady) {
@@ -6771,9 +6460,9 @@ async function initTweetParserMessageRxQueueInterval(interval){
 
       tweetParserMessage = tweetParserMessageRxQueue.shift();
 
-      debug(chalkLog("TWEET PARSER RX MESSAGE"
-        + " | OP: " + tweetParserMessage.op
-      ));
+      // debug(chalkLog("TWEET PARSER RX MESSAGE"
+      //   + " | OP: " + tweetParserMessage.op
+      // ));
 
       if (tweetParserMessage.op == "error") {
 
@@ -6815,7 +6504,8 @@ async function initTweetParserMessageRxQueueInterval(interval){
           // ));
 
           if (dbuChild && dbuChildReady && (followableUserSet.has(tweetObj.user.nodeId) || categorizeableUserSet.has(tweetObj.user.nodeId))) {
-            dbuChild.send({op: "TWEET", tweetObj: tweetObj});
+            dbUserMessage.tweetObj = tweetObj;
+            dbuChild.send(dbUserMessage);
           }
 
           if (transmitNodeQueue.length < maxQueue) {
@@ -6889,6 +6579,8 @@ function initSorterMessageRxQueueInterval(interval){
     let sorterObj;
     let nodeType;
 
+    const maxTopTerms = configuration.maxTopTerms;
+
     sorterMessageRxQueueInterval = setInterval(function sorterMessageRxQueueDequeue() {
 
       if (sorterMessageRxReady && (sorterMessageRxQueue.length > 0)) {
@@ -6903,10 +6595,10 @@ function initSorterMessageRxQueueInterval(interval){
 
           case "SORTED":
 
-            debug(chalkLog("SORT ---------------------"));
+            // debug(chalkLog("SORT ---------------------"));
 
             sortedKeys = sorterObj.sortedKeys;
-            endIndex = Math.min(configuration.maxTopTerms, sortedKeys.length);
+            endIndex = Math.min(maxTopTerms, sortedKeys.length);
 
             async.times(endIndex, function(index, next) {
 
@@ -6948,9 +6640,9 @@ function initSorterMessageRxQueueInterval(interval){
 
 function keySort(params, callback){
 
-  debug(chalkLog("KEY SORT"
-    + " | KEYS: " + Object.keys(params.obj).length
-  ));
+  // debug(chalkLog("KEY SORT"
+  //   + " | KEYS: " + Object.keys(params.obj).length
+  // ));
 
   sortedObjectValues(params).
   then(function(results){
@@ -7306,9 +6998,9 @@ function initTssChild(params){
 
       childrenHashMap[params.childId].status = "RUNNING";  
 
-      debug(chalkLog("TSS RX MESSAGE"
-        + " | OP: " + m.op
-      ));
+      // debug(chalkLog("TSS RX MESSAGE"
+      //   + " | OP: " + m.op
+      // ));
 
       switch (m.op) {
 
@@ -7526,9 +7218,9 @@ async function initTfeChild(params){
 
     childrenHashMap[params.childId].status = "RUNNING";  
 
-    debug(chalkLog("TFE RX MESSAGE"
-      + " | OP: " + m.op
-    ));
+    // debug(chalkLog("TFE RX MESSAGE"
+    //   + " | OP: " + m.op
+    // ));
 
     const isInfoUser = m.isInfoUser || false;
 
@@ -7610,7 +7302,6 @@ async function initTfeChild(params){
 
         threeceeTwitter.twitterFollowing = m.twitterFollowing;
         threeceeTwitter.twitterFriends = m.twitterFriends;
-
       break;
 
       case "FOLLOW_LIMIT":
@@ -7632,7 +7323,7 @@ async function initTfeChild(params){
       break;
 
       case "NETWORK_STATS":
-        debug(chalkInfo("TFE | R< NET STATS\n" + jsonPrint(m.stats)));
+        // debug(chalkInfo("TFE | R< NET STATS\n" + jsonPrint(m.stats)));
       break;
 
       case "USER_CATEGORIZED":
@@ -7762,8 +7453,6 @@ function initDbuChild(params){
 
     const childId = params.childId;
 
-    // let dbuSendReady = false;
-
     console.log(chalk.bold.black("WAS | INIT DBU CHILD\n" + jsonPrint(params)));
 
     const dbu = cp.fork(`${__dirname}/js/libs/dbuChild.js`);
@@ -7784,9 +7473,9 @@ function initDbuChild(params){
 
       childrenHashMap[childId].status = "RUNNING";  
 
-      debug(chalkLog("DBU RX MESSAGE"
-        + " | OP: " + m.op
-      ));
+      // debug(chalkLog("DBU RX MESSAGE"
+      //   + " | OP: " + m.op
+      // ));
 
       switch (m.op) {
 
@@ -8010,9 +7699,9 @@ function initTweetParser(params){
 
       childrenHashMap[params.childId].status = "RUNNING";  
 
-      debug(chalkLog("TWEET PARSER RX MESSAGE"
-        + " | OP: " + m.op
-      ));
+      // debug(chalkLog("TWEET PARSER RX MESSAGE"
+      //   + " | OP: " + m.op
+      // ));
 
       if (m.op == "PONG"){
 
@@ -8332,7 +8021,7 @@ async function loadBestRuntimeNetwork(p){
       }
     }
 
-    const nnArray = await wordAssoDb.NeuralNetwork.find({"overallMatchRate": { $lt: 100 }}).sort({"overallMatchRate": -1}).limit(1).exec();
+    const nnArray = await wordAssoDb.NeuralNetwork.find({"overallMatchRate": { $lt: 100 }}).sort({"overallMatchRate": -1}).limit(1);
 
     if (nnArray.length == 0){
       console.log(chalkError("WAS | *** NEURAL NETWORK NOT FOUND"));
@@ -8814,10 +8503,10 @@ function initStatsUpdate() {
           if (statsObj.nodeMeterEntries > statsObj.nodeMeterEntriesMax) {
             statsObj.nodeMeterEntriesMax = statsObj.nodeMeterEntries;
             statsObj.nodeMeterEntriesMaxTime = moment().valueOf();
-            debug(chalkLog("NEW MAX NODE METER ENTRIES"
-              + " | " + getTimeStamp()
-              + " | " + statsObj.nodeMeterEntries.toFixed(0)
-            ));
+            // debug(chalkLog("NEW MAX NODE METER ENTRIES"
+            //   + " | " + getTimeStamp()
+            //   + " | " + statsObj.nodeMeterEntries.toFixed(0)
+            // ));
           }
 
           if (adminNameSpace) { statsObj.admin.connected = Object.keys(adminNameSpace.connected).length; }// userNameSpace.sockets.length ;
@@ -8879,6 +8568,7 @@ async function initConfig() {
     threeceeInfoTwitter.ready = false;
     threeceeInfoTwitter.status = "UNCONFIGURED";
     threeceeInfoTwitter.error = false;
+    threeceeInfoTwitter.screenName = user.screenName;
     threeceeInfoTwitter.twitterFollowing = 0;
     threeceeInfoTwitter.twitterFriends = [];
     threeceeInfoTwitter.twitterFollowLimit = false;
@@ -8890,7 +8580,7 @@ async function initConfig() {
     threeceeInfoTwitter.twitterRateLimitExceptionFlag = false;
     threeceeInfoTwitter.twitterRateLimitResetAt = false;
 
-    debug(chalkTwitter("WAS | THREECEE INFO USER @" + user + "\n" + jsonPrint(threeceeInfoTwitter)));
+    // debug(chalkTwitter("WAS | THREECEE INFO USER @" + user + "\n" + jsonPrint(threeceeInfoTwitter)));
   }
 
   try {
@@ -8989,11 +8679,11 @@ function initDbUserChangeStream(){
 
             categorizedUserHashMap.set(catObj.nodeId, catObj);
 
-            debug(chalkInfo("WAS | CHG"
-              + " | NID: " + catObj.nodeId
-              + " | @" + catObj.screenName
-              + " | CAT M: " + categoryChanges.manual + " | A: " + categoryChanges.auto
-            ));
+            // debug(chalkInfo("WAS | CHG"
+            //   + " | NID: " + catObj.nodeId
+            //   + " | @" + catObj.screenName
+            //   + " | CAT M: " + categoryChanges.manual + " | A: " + categoryChanges.auto
+            // ));
           }
         }
         // else {
@@ -9390,7 +9080,6 @@ async function initThreeceeTwitterUser(threeceeUser){
 
     throw err;
   }
-
 }
 
 function twitUserShow(params){
@@ -9562,7 +9251,7 @@ async function twitterSearchUserNode(searchQuery){
 
   try {
 
-    const user = await wordAssoDb.User.findOne(searchQuery).exec();
+    const user = await wordAssoDb.User.findOne(searchQuery);
 
     if (user) {
 
@@ -10043,7 +9732,7 @@ async function twitterSearchHashtag(params) {
 
   try {
 
-    let hashtag = await wordAssoDb.Hashtag.findOne(searchNodeHashtag).exec();
+    let hashtag = await wordAssoDb.Hashtag.findOne(searchNodeHashtag);
 
     if (hashtag) { 
 
@@ -10159,7 +9848,6 @@ function initTwitterSearchNodeQueueInterval(interval){
           if (node) {
             console.log(chalk.green("WAS | TWITTER SEARCH NODE FOUND | NID: " + node.nodeId));
           }
-
 
           twitterSearchNodeQueueReady = true;
         }

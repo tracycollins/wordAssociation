@@ -727,6 +727,8 @@ function twitStreamPromise(params){
           }
 
           await tcUtils.handleTwitterError({user: "altthreecee00", err: err, resource: params.resource, endPoint: params.endPoint});
+
+          resolve();
         }
 
         if (configuration.verbose) {

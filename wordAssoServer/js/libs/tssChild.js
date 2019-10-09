@@ -562,6 +562,32 @@ function initStatsUpdate(cnf){
         statsObj.elapsed = moment().valueOf() - statsObj.startTime;
         statsObj.timeStamp = moment().format(defaultDateTimeFormat);
 
+        threeceeUserObj.stats.rateLimited = rateLimited;
+
+        statsObj.heap = process.memoryUsage().heapUsed/(1024*1024);
+        statsObj.maxHeap = Math.max(statsObj.maxHeap, statsObj.heap);
+
+        statsObj.tweetsReceived = tweetsReceived;
+        statsObj.retweetsReceived = retweetsReceived;
+        statsObj.quotedTweetsReceived = quotedTweetsReceived;
+        statsObj.twitter.duplicateTweetsReceived = duplicateTweetsReceived;
+
+        statsObj.queues.tweetQueue.fullEvents = fullEvents;
+
+        statsObj.tweetsPerSecond = tweetsPerSecond || 0;
+        statsObj.tweetsPerMinute = tweetsPerMinute || 0;
+
+        statsObj.elapsed = moment().valueOf() - statsObj.startTime;
+
+        if (statsObj.tweetsPerMinute > statsObj.maxTweetsPerMinute) {
+          statsObj.maxTweetsPerMinute = statsObj.tweetsPerMinute;
+          statsObj.maxTweetsPerMinuteTime = moment().valueOf();
+          console.log(chalk.blue("TSS | NEW MAX TPM"
+            + " | " + moment().format(compactDateTimeFormat)
+            + " | " + statsObj.tweetsPerMinute.toFixed(0)
+          ));
+        }
+
         await tcUtils.saveFile({localFlag: true, folder: statsHostFolder, file: statsFile, obj: statsObj});
 
       }, cnf.statsUpdateIntervalTime);

@@ -344,17 +344,17 @@ const userChangeCache = new NodeCache({
   checkperiod: userChangeCacheCheckPeriod
 });
 
-function userChangeCacheExpired(userChangeCacheId, changeObj) {
+// function userChangeCacheExpired(userChangeCacheId, changeObj) {
 
-  debug(chalkLog("WAS | TFC | XXX USER CHANGE CACHE EXPIRED"
-    + " | TTL: " + userChangeCacheTtl + " SECS"
-    + " | " + userChangeCacheId
-    + " | UID: " + changeObj.user.userId
-    + " | @" + changeObj.user.screenName
-  ));
-}
+//   debug(chalkLog("WAS | TFC | XXX USER CHANGE CACHE EXPIRED"
+//     + " | TTL: " + userChangeCacheTtl + " SECS"
+//     + " | " + userChangeCacheId
+//     + " | UID: " + changeObj.user.userId
+//     + " | @" + changeObj.user.screenName
+//   ));
+// }
 
-userChangeCache.on("expired", userChangeCacheExpired);
+// userChangeCache.on("expired", userChangeCacheExpired);
 
 
 // ==================================================================
@@ -640,37 +640,43 @@ function processTweetObj(params){
     const tweetObj = params.tweetObj;
     const histograms = params.histograms;
 
-    async.eachSeries(DEFAULT_INPUT_TYPES, function(entityType, cb0){
+    for(const entityType of DEFAULT_INPUT_TYPES){
 
       if (!entityType || entityType === undefined) {
         console.log(chalkAlert("WAS | TFC | ??? UNDEFINED TWEET entityType: ", entityType));
-        return cb0();
+        continue;
       }
 
-      if (entityType == "user") { return cb0(); }
-      if (!tweetObj[entityType] || tweetObj[entityType] === undefined) { return cb0(); }
-      if (tweetObj[entityType].length == 0) { return cb0(); }
+      if (entityType == "user") { continue; }
+      if (empty(tweetObj[entityType])) { continue; }
+      if (tweetObj[entityType].length == 0) { continue; }
 
-      async.eachSeries(tweetObj[entityType], function(entityObj, cb1){
+      for(const entityObj of tweetObj[entityType]){
 
-        if (!entityObj) {
-          debug(chalkInfo("WAS | TFC | !!! NULL entity? | ENTITY TYPE: " + entityType + " | entityObj: " + entityObj));
-          return cb1();
+        if (empty(entityObj)) {
+          debug(chalkAlert("WAS | TFC | *** processTweetObj EMPTY ENTITY | ENTITY TYPE: " + entityType + " | entityObj: " + jsonPrint(entityObj)));
+          // return reject(new Error("EMPTY ENTITY"));
+          continue;
+        }
+
+        if (empty(entityObj.nodeId)) {
+          debug(chalkAlert("WAS | TFC | *** processTweetObj UNDEFINED NODE ID | ENTITY TYPE: " + entityType + " | entityObj: " + jsonPrint(entityObj)));
+          // return reject(new Error("UNDEFINED NODE ID"));
+          continue;
         }
 
         let entity;
 
         switch (entityType) {
           case "hashtags":
-            if (empty(entityObj.nodeId)) {
-              return cb1(new Error("UNDEFINED NODE ID"));
-            }
             entity = "#" + entityObj.nodeId.toLowerCase();
           break;
           case "mentions":
           case "userMentions":
             if (empty(entityObj.screenName)) {
-              return cb1(new Error("UNDEFINED SCREEN NAME"));
+              console.log(chalkAlert("WAS | TFC | *** processTweetObj UNDEFINED SCREEN NAME | ENTITY TYPE: " + entityType + " | entityObj: " + jsonPrint(entityObj)));
+              // return reject(new Error("UNDEFINED SCREEN NAME"));
+              continue;
             }
             entity = "@" + entityObj.screenName.toLowerCase();
           break;
@@ -693,9 +699,6 @@ function processTweetObj(params){
             }
           break;
           case "words":
-            if (empty(entityObj.nodeId)) {
-              return cb1(new Error("UNDEFINED NODE ID"));
-            }
             entity = entityObj.nodeId.toLowerCase();
             entity = entity.replace(/\./gi, "_")
           break;
@@ -703,34 +706,25 @@ function processTweetObj(params){
             entity = entityObj.nodeId;
           break;
           default:
-            console.log(chalkAlert("TFC | *** UNDEFINED ENTITY TYPE: " + entityType));
+            console.log(chalkError("WAS | TFC | *** processTweetObj UNKNOWN ENTITY TYPE: " + entityType));
+            continue;
+            // return reject(new Error("UNKNOWN ENTITY TYPE"));
         }
 
-        if (!histograms[entityType] || (histograms[entityType] === undefined)){
+        if (empty(histograms[entityType])){
           histograms[entityType] = {};
           histograms[entityType][entity] = 1;
         }
-
-        if (!histograms[entityType][entity] || (histograms[entityType][entity] === undefined)){
+        else if (empty(histograms[entityType][entity])){
           histograms[entityType][entity] = 1;
         }
-
-        async.setImmediate(function() { cb1(); });
-
-      }, function(){
-
-        async.setImmediate(function() { cb0(); });
-
-      });
-    }, function(err){
-
-      if (err) {
-        return reject(err);
+        else {
+          histograms[entityType][entity] += 1;
+        }
       }
+    }
 
-      resolve(histograms);
-
-    });
+    resolve(histograms);
 
   });
 }
@@ -902,66 +896,72 @@ async function processUserTweets(params){
 
 async function updateUserTweets(params){
 
-  const user = params.user;
+  try{
+    const user = params.user;
 
-  const histogramIncompleteFlag = await histogramIncomplete(user.tweetHistograms);
+    const histogramIncompleteFlag = await histogramIncomplete(user.tweetHistograms);
 
-  if (configuration.testFetchTweetsMode 
-    || (!userTweetFetchSet.has(user.nodeId) && (histogramIncompleteFlag || user.priorityFlag))) { 
+    if (configuration.testFetchTweetsMode 
+      || (!userTweetFetchSet.has(user.nodeId) && (histogramIncompleteFlag || user.priorityFlag))) { 
 
-    userTweetFetchSet.add(user.nodeId);
+      userTweetFetchSet.add(user.nodeId);
 
-    if (configuration.testFetchTweetsMode) {
-      console.log(chalkAlert("TFE | updateUserTweets | !!! TEST MODE FETCH TWEETS"
-        + " | @" + user.screenName
-      ));
+      if (configuration.testFetchTweetsMode) {
+        console.log(chalkAlert("TFE | updateUserTweets | !!! TEST MODE FETCH TWEETS"
+          + " | @" + user.screenName
+        ));
+      }
+      else{
+        console.log(chalkInfo("TFE | >>> PRIORITY FETCH TWEETS"
+          + " | @" + user.screenName
+        ));
+      }
+
+      if (histogramIncompleteFlag) { user.tweetHistograms = {}; }
+
+      try{
+        const latestTweets = await tcUtils.fetchUserTweets({user: user, force: true});
+        if (latestTweets) { user.latestTweets = latestTweets; }
+      }
+      catch(err){
+        throw err;
+      }
     }
-    else{
-      console.log(chalkInfo("TFE | >>> PRIORITY FETCH TWEETS"
-        + " | @" + user.screenName
-      ));
+
+    if (user.latestTweets.length == 0) { 
+      delete user.latestTweets;
+      return user;
     }
 
-    if (histogramIncompleteFlag) { user.tweetHistograms = {}; }
-
-    try{
-      const latestTweets = await tcUtils.fetchUserTweets({user: user, force: true});
-      if (latestTweets) { user.latestTweets = latestTweets; }
-    }
-    catch(err){
-      throw err;
-    }
-  }
-
-  if (user.latestTweets.length == 0) { 
+    const latestTweets = user.latestTweets;
+    
     delete user.latestTweets;
-    return user;
+
+    defaults(user.tweets, userTweetsDefault);
+
+    if (user.tweets.tweetIds.length > DEFAULT_MAX_USER_TWEETIDS) {
+
+      const length = user.tweets.tweetIds.length;
+      const removeNumber = length - DEFAULT_MAX_USER_TWEETIDS;
+
+      debug(chalkLog("TFE | ---  TWEETS > MAX TWEETIDS"
+        + " | " + user.nodeId
+        + " | @" + user.screenName
+        + " | " + length + " TWEETS"
+        + " | REMOVE: " + removeNumber
+      ));
+
+      user.tweets.tweetIds.splice(0,removeNumber);
+    }
+
+    const processedUser = await processUserTweets({tweets: latestTweets, user: user});
+
+    return processedUser;
   }
-
-  const latestTweets = user.latestTweets;
-  
-  delete user.latestTweets;
-
-  defaults(user.tweets, userTweetsDefault);
-
-  if (user.tweets.tweetIds.length > DEFAULT_MAX_USER_TWEETIDS) {
-
-    const length = user.tweets.tweetIds.length;
-    const removeNumber = length - DEFAULT_MAX_USER_TWEETIDS;
-
-    debug(chalkLog("TFE | ---  TWEETS > MAX TWEETIDS"
-      + " | " + user.nodeId
-      + " | @" + user.screenName
-      + " | " + length + " TWEETS"
-      + " | REMOVE: " + removeNumber
-    ));
-
-    user.tweets.tweetIds.splice(0,removeNumber);
+  catch(err){
+    console.log(chalkError("TFE | *** updateUserTweets ERROR: " + err));
+    throw err;
   }
-
-  const processedUser = await processUserTweets({tweets: latestTweets, user: user});
-
-  return processedUser;
 }
 
 async function updateUserFriends(params){
@@ -1007,87 +1007,76 @@ function initProcessUserQueueInterval(interval) {
         
         try {
 
-          const u = await wordAssoDb.User.findOne({nodeId: userQueueObj.nodeId}).exec();
+          const u = await wordAssoDb.User.findOne({nodeId: userQueueObj.nodeId});
 
           if (!u) {
-            debug(chalkLog(MODULE_ID_PREFIX + " | ??? USER DB MISS ... SKIP PROCESS"
-              + " | NID: " + userQueueObj.nodeId
-              + " | @" + userQueueObj.screenName
-            ));
             processUserQueueBusy = false;
-            return;
           }
+          else {
+            const user = await tcUtils.encodeHistogramUrls({user: u});
 
-          const user = await tcUtils.encodeHistogramUrls({user: u});
+            user.priorityFlag = userQueueObj.priorityFlag || false;
 
-          user.priorityFlag = userQueueObj.priorityFlag || false;
+            if (!user.latestTweets || (user.latestTweets === undefined)) { 
+              user.latestTweets = [];
+            }
+            if (!user.tweetHistograms || (user.tweetHistograms === undefined)) { 
+              user.tweetHistograms = {}; 
+            }
+            if (!user.profileHistograms || (user.profileHistograms === undefined)) { 
+              user.profileHistograms = {}; 
+            }
 
-          if (!user.latestTweets || (user.latestTweets === undefined)) { 
-            user.latestTweets = [];
-          }
-          if (!user.tweetHistograms || (user.tweetHistograms === undefined)) { 
-            user.tweetHistograms = {}; 
-          }
-          if (!user.profileHistograms || (user.profileHistograms === undefined)) { 
-            user.profileHistograms = {}; 
-          }
+            if (user.profileHistograms.sentiment && (user.profileHistograms.sentiment !== undefined)) {
 
-          if (user.profileHistograms.sentiment && (user.profileHistograms.sentiment !== undefined)) {
+              if (user.profileHistograms.sentiment.magnitude !== undefined){
+                if (user.profileHistograms.sentiment.magnitude < 0){
+                  console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! NORMALIZATION MAG LESS THAN 0 | CLAMPED: " + user.profileHistograms.sentiment.magnitude));
+                  user.profileHistograms.sentiment.magnitude = 0;
+                }
+              }
 
-            if (user.profileHistograms.sentiment.magnitude !== undefined){
-              if (user.profileHistograms.sentiment.magnitude < 0){
-                console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! NORMALIZATION MAG LESS THAN 0 | CLAMPED: " + user.profileHistograms.sentiment.magnitude));
-                user.profileHistograms.sentiment.magnitude = 0;
+              if (user.profileHistograms.sentiment.score !== undefined){
+                if (user.profileHistograms.sentiment.score < -1.0){
+                  console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! NORMALIZATION SCORE LESS THAN -1.0 | CLAMPED: " + user.profileHistograms.sentiment.score));
+                  user.profileHistograms.sentiment.score = -1.0;
+                }
+
+                if (user.profileHistograms.sentiment.score > 1.0){
+                  console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! NORMALIZATION SCORE GREATER THAN 1.0 | CLAMPED: " + user.profileHistograms.sentiment.score));
+                  user.profileHistograms.sentiment.score = 1.0;
+                }
               }
             }
 
-            if (user.profileHistograms.sentiment.score !== undefined){
-              if (user.profileHistograms.sentiment.score < -1.0){
-                console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! NORMALIZATION SCORE LESS THAN -1.0 | CLAMPED: " + user.profileHistograms.sentiment.score));
-                user.profileHistograms.sentiment.score = -1.0;
-              }
+            defaults(user.tweets, userTweetsDefault);
 
-              if (user.profileHistograms.sentiment.score > 1.0){
-                console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! NORMALIZATION SCORE GREATER THAN 1.0 | CLAMPED: " + user.profileHistograms.sentiment.score));
-                user.profileHistograms.sentiment.score = 1.0;
-              }
+            if (!user.latestTweets || (user.latestTweets === undefined)) { user.latestTweets = []; }
+
+            user.latestTweets = _.union(userQueueObj.latestTweets, user.latestTweets);
+
+            const processedUser = await processUser({user: user});
+
+            statsObj.user.processed += 1;
+
+            if (userQueueObj.priorityFlag) {
+              console.log(chalkAlert(MODULE_ID_PREFIX + " | PROCESSED USER"
+                + " [ " + statsObj.user.processed + "]"
+                + " | PRIORITY: " + userQueueObj.priorityFlag
+                + " | " + printUser({user: processedUser})
+              ));
             }
+
+            process.send({ 
+              op: "USER_CATEGORIZED", 
+              priorityFlag: userQueueObj.priorityFlag, 
+              user: processedUser, 
+              stats: statsObj.user 
+            });
+
+            processUserQueueBusy = false;
           }
 
-          if (configuration.verbose){
-            console.log(chalkLog(MODULE_ID_PREFIX + " | FOUND USER DB"
-              + " | " + printUser({user: user})
-            ));
-          }
-
-          defaults(user.tweets, userTweetsDefault);
-
-          if (!user.latestTweets || (user.latestTweets === undefined)) { user.latestTweets = []; }
-
-          user.latestTweets = _.union(userQueueObj.latestTweets, user.latestTweets);
-
-          const processedUser = await processUser({user: user});
-
-          statsObj.user.processed += 1;
-
-          debug("PROCESSED USER\n" + jsonPrint(processedUser));
-
-          if (configuration.verbose || userQueueObj.priorityFlag) {
-            console.log(chalkAlert(MODULE_ID_PREFIX + " | PROCESSED USER"
-              + " [ " + statsObj.user.processed + "]"
-              + " | PRIORITY: " + userQueueObj.priorityFlag
-              + " | " + printUser({user: processedUser})
-            ));
-          }
-
-          process.send({ 
-            op: "USER_CATEGORIZED", 
-            priorityFlag: userQueueObj.priorityFlag, 
-            user: processedUser, 
-            stats: statsObj.user 
-          });
-
-          processUserQueueBusy = false;
         }
         catch(err){
           if (err.code) { 
@@ -1097,7 +1086,6 @@ function initProcessUserQueueInterval(interval) {
             console.log(chalkError("*** ERROR initProcessUserQueueInterval: " + err));
           }
           processUserQueueBusy = false;
-          return;
         }
 
       }
@@ -1196,7 +1184,7 @@ async function initialize(cnf){
 
 async function generateAutoCategory(p) {
 
-  statsObj.status = "GEN AUTO CAT";
+  // statsObj.status = "GEN AUTO CAT";
 
   try{
 
@@ -1246,51 +1234,49 @@ async function generateAutoCategory(p) {
   }
 }
 
-function updatePreviousUserProps(params){
+async function updatePreviousUserProps(params){
 
-  return new Promise(function(resolve, reject){
+  try{
 
     if (!params.user) {
-      return reject(new Error("user UNDEFINED"));
+      throw new Error("user UNDEFINED");
     }
 
     const user = params.user;
 
-    async.each(USER_PROFILE_PROPERTY_ARRAY, function(userProp, cb){
+    let prevUserProp;
 
-      const prevUserProp = "previous" + _.upperFirst(userProp);
+    for(const userProp of USER_PROFILE_PROPERTY_ARRAY){
+
+      prevUserProp = "previous" + _.upperFirst(userProp);
 
       if (user[userProp] && (user[userProp] !== undefined) && (user[prevUserProp] != user[userProp])) {
-        debug(chalkLog("TFE | updatePreviousUserProps"
-          + " | " + prevUserProp + ": " + user[prevUserProp] 
-          + " <- " + userProp + ": " + user[userProp]
-        ));
-
         user[prevUserProp] = user[userProp];
-
       }
-      cb();
+    }
 
-    }, function(){
+    if (user.statusId && (user.statusId !== undefined) && (user.previousStatusId != user.statusId)) {
+      user.previousStatusId = user.statusId;
+    }
 
-      if (user.statusId && (user.statusId !== undefined) && (user.previousStatusId != user.statusId)) {
-        user.previousStatusId = user.statusId;
-      }
+    if (user.quotedStatusId && (user.quotedStatusId !== undefined) && (user.previousQuotedStatusId != user.quotedStatusId)) {
+      user.previousQuotedStatusId = user.quotedStatusId;
+    }
 
-      if (user.quotedStatusId && (user.quotedStatusId !== undefined) && (user.previousQuotedStatusId != user.quotedStatusId)) {
-        user.previousQuotedStatusId = user.quotedStatusId;
-      }
+    return user;
 
-      resolve(user);
-    });
-  });
+  }
+  catch(err){
+    console.log(chalkError("TFE | *** updatePreviousUserProps ERROR: " + err));
+    throw err;
+  }
 }
 
 async function processUser(params) {
 
-  statsObj.status = "PROCESS USER";
+  // statsObj.status = "PROCESS USER";
 
-  debug(chalkInfo("PROCESS USER\n" + jsonPrint(params.user)));
+  // debug(chalkInfo("PROCESS USER\n" + jsonPrint(params.user)));
 
   if (userServerController === undefined) {
     console.log(chalkError(MODULE_ID_PREFIX + " | *** processUser userServerController UNDEFINED"));
@@ -1307,6 +1293,7 @@ async function processUser(params) {
     if (!user.friends || (user.friends.length === undefined)|| (user.friends.length === 0)){
       updatedFriendsUser = await updateUserFriends({user: user});
     }
+
     const updatedTweetsUser = await updateUserTweets({user: updatedFriendsUser});
     const autoCategoryUser = await generateAutoCategory({user: updatedTweetsUser});
     const prevPropsUser = await updatePreviousUserProps({user: autoCategoryUser});
@@ -1319,21 +1306,21 @@ async function processUser(params) {
 
     await prevPropsUser.save();
 
-    if (configuration.verbose){
-      console.log(chalkLog(MODULE_ID_PREFIX + " | >>> SAVED USER"
-        + " | " + printUser({user: prevPropsUser})
-      ));
-      console.log(chalkLog(MODULE_ID_PREFIX + " | >>> SAVED USER TWEETS"
-        + " | SINCE: " + prevPropsUser.tweets.sinceId
-        + " | TWEETS: " + prevPropsUser.tweets.tweetIds.length
-      ));
-      console.log(chalkLog(MODULE_ID_PREFIX + " | >>> SAVED USER TWEET HISTOGRAMS"
-        + "\n" + jsonPrint(prevPropsUser.tweetHistograms)
-      ));
-      console.log(chalkLog(MODULE_ID_PREFIX + " | >>> SAVED USER PROFILE HISTOGRAMS"
-        + "\n" + jsonPrint(prevPropsUser.profileHistograms)
-      ));
-    }
+    // if (configuration.verbose){
+    //   console.log(chalkLog(MODULE_ID_PREFIX + " | >>> SAVED USER"
+    //     + " | " + printUser({user: prevPropsUser})
+    //   ));
+    //   console.log(chalkLog(MODULE_ID_PREFIX + " | >>> SAVED USER TWEETS"
+    //     + " | SINCE: " + prevPropsUser.tweets.sinceId
+    //     + " | TWEETS: " + prevPropsUser.tweets.tweetIds.length
+    //   ));
+    //   console.log(chalkLog(MODULE_ID_PREFIX + " | >>> SAVED USER TWEET HISTOGRAMS"
+    //     + "\n" + jsonPrint(prevPropsUser.tweetHistograms)
+    //   ));
+    //   console.log(chalkLog(MODULE_ID_PREFIX + " | >>> SAVED USER PROFILE HISTOGRAMS"
+    //     + "\n" + jsonPrint(prevPropsUser.profileHistograms)
+    //   ));
+    // }
 
     const u = prevPropsUser.toObject();
 
@@ -1347,10 +1334,6 @@ async function processUser(params) {
 }
 
 process.on("message", async function(m) {
-
-  debug(chalkAlert("TFC RX MESSAGE"
-    + " | OP: " + m.op
-  ));
 
   let twitterUserObj;
   let cacheObj;
@@ -1497,7 +1480,8 @@ process.on("message", async function(m) {
 
       cacheObj = userChangeCache.get(m.user.nodeId);
 
-      if (m.priorityFlag || (configuration.verbose && (cacheObj === undefined))) { 
+      // if (m.priorityFlag || (configuration.verbose && (cacheObj === undefined))) { 
+      if (m.priorityFlag) { 
         console.log(chalkInfo("WAS | TFC | USER CAT $ MISS"
           + " [UC$: " + userChangeCache.getStats().keys + "]"
           + " [PUQ: " + processUserQueue.length + "]"
@@ -1523,15 +1507,6 @@ process.on("message", async function(m) {
 
           userChangeCache.set(user.nodeId, {user: user, timeStamp: moment().valueOf()});
 
-          debug(chalkInfo("WAS | TFC | USER_CATEGORIZE"
-            + " [ USQ: " + processUserQueue.length + "]"
-            + " | FLWRs: " + user.followersCount
-            + " | FRNDs: " + user.friendsCount
-            + " | USER " + user.userId
-            + " | @" + user.screenName
-            + " | " + user.name
-            + "\nTFE | USER_SHOW | DESC: " + user.description
-          ));
         }
         catch(err){  
           // not a user doc
@@ -1546,26 +1521,12 @@ process.on("message", async function(m) {
           }
 
           userChangeCache.set(m.user.nodeId, {user: m.user, timeStamp: moment().valueOf()});
-
-          debug(chalkInfo("WAS | TFC | USER_CATEGORIZE"
-            + " [ USQ: " + processUserQueue.length + "]"
-            + " | FLWRs: " + m.user.followersCount
-            + " | FRNDs: " + m.user.friendsCount
-            + " | USER " + m.user.userId
-            + " | @" + m.user.screenName
-            + " | " + m.user.name
-            + "\nTFE | USER_SHOW | DESC: " + m.user.description
-          ));
         }
       }
 
     break;
 
     case "PING":
-      debug(chalkLog("WAS | TFC | PING"
-        + " | PING ID: " + moment(m.pingId).format(compactDateTimeFormat)
-      ));
-
       setTimeout(function(){
         process.send({ op: "PONG", pongId: m.pingId });
       }, 1000);
@@ -1575,7 +1536,6 @@ process.on("message", async function(m) {
       console.error(chalkLog("WAS | TFC | TWP | *** UNKNOWN OP"
         + " | INTERVAL: " + m.op
       ));
-
   }
 });
 

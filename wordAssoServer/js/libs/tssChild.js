@@ -597,7 +597,6 @@ function initStatsUpdate(cnf){
     catch(err){
       reject(err);
     }
-
   });
 }
 

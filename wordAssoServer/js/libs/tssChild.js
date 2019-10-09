@@ -915,6 +915,8 @@ async function initTwit(){
 
   try {
 
+    await tcUtils.initTwitter(threeceeUserObj);
+
     const data = await twitStreamPromise({resource: "friends", endpoint: "ids", twitParams: twitGetFriendsParams});
 
     threeceeUserObj.stats.error = false;

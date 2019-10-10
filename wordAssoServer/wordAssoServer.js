@@ -8573,86 +8573,69 @@ async function initConfig() {
   }
 }
 
-function initDbUserChangeStream(){
+async function initDbUserChangeStream(){
 
-  return new Promise(function(resolve, reject){
+  try{
 
     const userCollection = dbConnection.collection("users");
 
-    userCollection.countDocuments(function(err, count){
-
-      if (err) {
-        console.log(chalkError("WAS | *** DB USERS COUNTER ERROR: " + err));
-        return reject(err);
+    const userChangeFilter = {
+      "$match": {
+        "$or": [
+          { operationType: "insert" },
+          { operationType: "delete" },
+          { operationType: "update" },
+          { operationType: "replace" }
+        ]
       }
+    };
 
-      console.log(chalkInfo("WAS | USERS IN DB: " + count));
+    const userChangeOptions = { fullDocument: "updateLookup" };
 
-      const userChangeFilter = {
-        "$match": {
-          "$or": [
-            { operationType: "insert" },
-            { operationType: "delete" },
-            { operationType: "update" },
-            { operationType: "replace" }
-          ]
-        }
-      };
+    userChangeStream = userCollection.watch([userChangeFilter], userChangeOptions);
 
-      const userChangeOptions = { fullDocument: "updateLookup" };
+    let categoryChanges = {};
+    let catObj = {};
 
-      userChangeStream = userCollection.watch([userChangeFilter], userChangeOptions);
+    userChangeStream.on("change", function(change){
 
-      let categoryChanges = {};
-      let catObj = {};
+      if (change 
+        && change.fullDocument 
+        && change.updateDescription 
+        && change.updateDescription.updatedFields 
+        && (Object.keys(change.updateDescription.updatedFields).includes("category")
+          || Object.keys(change.updateDescription.updatedFields).includes("categoryAuto"))
+      ) { 
 
-      userChangeStream.on("change", function(change){
+        categoryChanges = {};
 
-        if (change 
-          && change.fullDocument 
-          && change.updateDescription 
-          && change.updateDescription.updatedFields 
-          && (Object.keys(change.updateDescription.updatedFields).includes("category")
-            || Object.keys(change.updateDescription.updatedFields).includes("categoryAuto"))
-        ) { 
+        categoryChanges.manual = change.fullDocument.category;
+        categoryChanges.auto = change.fullDocument.categoryAuto;
+        
+        if (categoryChanges.auto || categoryChanges.manual) {
 
-          categoryChanges = {};
+          catObj = categorizedUserHashMap.get(change.fullDocument.nodeId);
 
-          categoryChanges.manual = change.fullDocument.category;
-          categoryChanges.auto = change.fullDocument.categoryAuto;
-          
-          if (categoryChanges.auto || categoryChanges.manual) {
-
-            catObj = categorizedUserHashMap.get(change.fullDocument.nodeId);
-
-            if (empty(catObj)) {
-              catObj = {};
-              catObj.screenName = change.fullDocument.screenName;
-              catObj.nodeId = change.fullDocument.nodeId;
-            }
-
-            catObj.manual = categoryChanges.manual || catObj.manual;
-            catObj.auto = categoryChanges.auto || catObj.auto;
-
-            categorizedUserHashMap.set(catObj.nodeId, catObj);
-
-            // debug(chalkInfo("WAS | CHG"
-            //   + " | NID: " + catObj.nodeId
-            //   + " | @" + catObj.screenName
-            //   + " | CAT M: " + categoryChanges.manual + " | A: " + categoryChanges.auto
-            // ));
+          if (empty(catObj)) {
+            catObj = {};
+            catObj.screenName = change.fullDocument.screenName;
+            catObj.nodeId = change.fullDocument.nodeId;
           }
+
+          catObj.manual = categoryChanges.manual || catObj.manual;
+          catObj.auto = categoryChanges.auto || catObj.auto;
+
+          categorizedUserHashMap.set(catObj.nodeId, catObj);
         }
-        // else {
-        //   console.log(chalkLog("WAS | XX> USER CHANGE | " +  change.operationType));
-        // }
-      });
-
-      resolve();
-
+      }
     });
 
-  });
+    return;
+
+  }
+  catch(err){
+    throw err;
+  }
 }
 
 function initCategoryHashmaps(){

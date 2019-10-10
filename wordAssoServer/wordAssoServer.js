@@ -5214,118 +5214,72 @@ async function initIgnoreLocations(){
     return;
   }
   catch(e){
-    console.log(chalkError("WAS | LOAD FILE ERROR\n" + e));
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD FILE ERROR\n" + e));
     throw e;
   }
 }
 
-function updateUserSets(){
+async function countDocuments(params){
+
+  try{
+
+    const documentType = params.documentType;
+    const query = params.query;
+
+    const documentCollection = dbConnection.collection(documentType);
+
+    console.log(chalkLog(MODULE_ID_PREFIX + " | ... COUNTING DOCUMENTS: TYPE: " + documentType));
+
+    const count = await documentCollection.countDocuments(query);
+    return count;
+
+  }
+  catch(err){
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** DB COUNT DOCUMENTS ERROR\n" + err));
+    throw err;
+  }
+}
+
+async function updateUserSets(){
 
   statsObj.status = "UPDATE USER SETS";
 
-  return new Promise(function(resolve, reject){
+  try{
 
     let calledBack = false;
 
     if (!statsObj.dbConnectionReady) {
       console.log(chalkAlert("WAS | ABORT updateUserSets: DB CONNECTION NOT READY"));
       calledBack = true;
-      return reject(new Error("DB CONNECTION NOT READY"));
+      throw new Error("DB CONNECTION NOT READY");
     }
 
-    const userCollection = dbConnection.collection("users");
+    statsObj.user.total = await countDocuments({documentType: "users", query: {}});
+    console.log(chalkBlue(MODULE_ID_PREFIX + " | GRAND TOTAL USERS: " + statsObj.user.total));
 
-    userCollection.countDocuments(function(err, count){
+    statsObj.user.following = await countDocuments({documentType: "users", query: {"following": true}});
+    console.log(chalkBlue(MODULE_ID_PREFIX + " | FOLLOWING USERS: " + statsObj.user.following));
 
-      if (err) { 
-        console.log(chalkError("UPDATE USER SETS COUNT DOCS ERROR: " + err));
-        calledBack = true;
-        return reject(err);
-      }
+    statsObj.user.notFollowing = await countDocuments({documentType: "users", query: {"following": false}});
+    console.log(chalkBlue(MODULE_ID_PREFIX + " | NOT FOLLOWING USERS: " + statsObj.user.notFollowing));
 
-      statsObj.user.total = count;
-      console.log(chalkBlue("WAS | GRAND TOTAL USERS IN DB: " + statsObj.user.total));
-    });
+    statsObj.user.ignored = await countDocuments({documentType: "users", query: {"ignored": true}});
+    console.log(chalkBlue(MODULE_ID_PREFIX + " | IGNORED USERS: " + statsObj.user.ignored));
 
-    userCollection.countDocuments({"following": true}, function(err, count){
-      if (err) { 
-        console.log(chalkError("UPDATE USER SETS COUNT FOLLOWING ERROR: " + err));
-        calledBack = true;
-        return reject(err);
-      }
-      statsObj.user.following = count;
-      console.log(chalkBlue("WAS | TOTAL FOLLOWING USERS IN DB: " + statsObj.user.following));
-    });
+    statsObj.user.categoryVerified = await countDocuments({documentType: "users", query: {"categoryVerified": true}});
+    console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT VERIFIED USERS: " + statsObj.user.categoryVerified));
 
-    userCollection.countDocuments({"ignored": true}, function(err, count){
-      if (err) { 
-        console.log(chalkError("UPDATE USER SETS COUNT IGNORED ERROR: " + err));
-        calledBack = true;
-        return reject(err);
-      }
-      statsObj.user.ignored = count;
-      console.log(chalkBlue("WAS | TOTAL IGNORED USERS IN DB: " + statsObj.user.ignored));
-    });
+    statsObj.user.categorizedManual = await countDocuments({documentType: "users", query: {category: { "$nin": [false, "false", null] }}});
+    console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT MANUAL USERS: " + statsObj.user.categorizedManual));
 
-    userCollection.countDocuments({"categoryVerified": true}, function(err, count){
-      if (err) { 
-        console.log(chalkError("UPDATE USER SETS COUNT CAT VERIFIED ERROR: " + err));
-        calledBack = true;
-        return reject(err);
-      }
-      statsObj.user.categoryVerified = count;
-      console.log(chalkBlue("WAS | TOTAL CAT VERIFIED USERS IN DB: " + statsObj.user.categoryVerified));
-    });
+    statsObj.user.uncategorizedManual = await countDocuments({documentType: "users", query: {category: { "$in": [false, "false", null] }}});
+    console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT MANUAL USERS: " + statsObj.user.uncategorizedManual));
 
-    userCollection.countDocuments({"following": false}, function(err, count){
-      if (err) { 
-        console.log(chalkError("UPDATE USER SETS COUNT NOT FOLLOWING ERROR: " + err));
-        calledBack = true;
-        return reject(err);
-      }
-      statsObj.user.notFollowing = count;
-      console.log(chalkBlue("WAS | TOTAL NOT FOLLOWING USERS IN DB: " + statsObj.user.notFollowing));
-    });
+    statsObj.user.categorizedAuto = await countDocuments({documentType: "users", query: {categoryAuto: { "$nin": [false, "false", null] }}});
+    console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT AUTO USERS: " + statsObj.user.categorizedAuto));
 
-    userCollection.countDocuments({category: { "$nin": [false, "false", null] }}, function(err, count){
-      if (err) { 
-        console.log(chalkError("UPDATE USER SETS COUNT CAT MAN ERROR: " + err));
-        calledBack = true;
-        return reject(err);
-      }
-      statsObj.user.categorizedManual = count;
-      console.log(chalkBlue("WAS | TOTAL CATEGORIZED MANUAL USERS IN DB: " + statsObj.user.categorizedManual));
-    });
-
-    userCollection.countDocuments({category: { "$in": [false, "false", null] }}, function(err, count){
-      if (err) { 
-        console.log(chalkError("UPDATE USER SETS COUNT UNCAT MAN ERROR: " + err));
-        calledBack = true;
-        return reject(err);
-      }
-      statsObj.user.uncategorizedManual = count;
-      console.log(chalkBlue("WAS | TOTAL UNCATEGORIZED MANUAL USERS IN DB: " + statsObj.user.uncategorizedManual));
-    });
-
-    userCollection.countDocuments({categoryAuto: { "$nin": [false, "false", null] }}, function(err, count){
-      if (err) { 
-        console.log(chalkError("UPDATE USER SETS COUNT CAT AUTO ERROR: " + err));
-        calledBack = true;
-        return reject(err);
-      }
-      statsObj.user.categorizedAuto = count;
-      console.log(chalkBlue("WAS | TOTAL CATEGORIZED AUTO USERS IN DB: " + statsObj.user.categorizedAuto));
-    });
-
-    userCollection.countDocuments({categoryAuto: { "$in": [false, "false", null] }}, function(err, count){
-      if (err) { 
-        console.log(chalkError("UPDATE USER SETS COUNT UNCAT AUTO ERROR: " + err));
-        calledBack = true;
-        return reject(err);
-      }
-      statsObj.user.uncategorizedAuto = count;
-      console.log(chalkBlue("WAS | TOTAL UNCATEGORIZED AUTO USERS IN DB: " + statsObj.user.uncategorizedAuto));
-    });
+    statsObj.user.uncategorizedAuto = await countDocuments({documentType: "users", query: {categoryAuto: { "$in": [false, "false", null] }}});
+    console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT AUTO USERS: " + statsObj.user.uncategorizedAuto));
 
     userRightSet.clear();
     userLeftSet.clear();
@@ -5603,7 +5557,6 @@ function updateUserSets(){
           }
         }
       }
-
     });
 
     userSearchCursor.on("end", function() {
@@ -5630,7 +5583,7 @@ function updateUserSets(){
 
       if (!calledBack) { 
         calledBack = true;
-        return resolve();
+        return;
       }
     });
 
@@ -5658,7 +5611,7 @@ function updateUserSets(){
 
       if (!calledBack) { 
         calledBack = true;
-        return reject(err);
+        throw err;
       }
     });
 
@@ -5687,11 +5640,15 @@ function updateUserSets(){
 
       if (!calledBack) { 
         calledBack = true;
-        return resolve();
+        return;
       }
     });
 
-  });
+  }
+  catch(err){
+    throw err;
+  }
+
 }
 
 function initTransmitNodeQueueInterval(interval){

@@ -525,7 +525,7 @@ function userUpdateDb(tweetObj){
 
           user.save().
           then(function() {
-            resolve(user);
+            resolve();
           }).
           catch(function(e) {
             console.log(chalkError("DBU | *** ERROR USER SAVE: @" + user.screenName + " | " + e));

@@ -5499,7 +5499,9 @@ async function updateUserSets(){
 
           if (tfeChild !== undefined) { 
             tfeChild.send({op: "USER_CATEGORIZE", user: user});
-            uncatUserCache.del(user.nodeId);
+            if (user.category == "left" || user.category == "right" || user.category == "neutral") {
+              uncatUserCache.del(user.nodeId);
+            }
           }
 
           if (uncategorizedManualUserSet.size % 100 == 0) {
@@ -5741,7 +5743,9 @@ function initTransmitNodeQueueInterval(interval){
 
           if (tfeChild !== undefined) { 
             tfeChild.send({op: "USER_CATEGORIZE", user: n});
-            uncatUserCache.del(n.nodeId);
+            if (n.category == "left" || n.category == "right" || n.category == "neutral") {
+              uncatUserCache.del(n.nodeId);
+            }
           }
         }
         if ((n.nodeType == "user") && (n.category || n.categoryAuto || n.following || n.threeceeFollowing)){
@@ -7305,7 +7309,9 @@ async function initTfeChild(params){
           }
         );
 
-        uncatUserCache.del(m.user.nodeId);
+        if (m.user.category == "left" || m.user.category == "right" || m.user.category == "neutral") {
+          uncatUserCache.del(m.user.nodeId);
+        }
 
         if (m.priorityFlag){
           printUserObj("WAS | <TFE | PRIORITY CAT", m.user);
@@ -9274,11 +9280,16 @@ async function processTwitterSearchNode(params) {
     if (params.specificUserFlag) {
       if (tfeChild && params.user.toObject && (typeof params.user.toObject == "function")) {
         tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, user: params.user.toObject()});
-        uncatUserCache.del(params.user.nodeId);
+
+        if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
+          uncatUserCache.del(params.user.nodeId);
+        }
       }
       else if (tfeChild) {
         tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, user: params.user});
-        uncatUserCache.del(params.user.nodeId);
+        if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
+          uncatUserCache.del(params.user.nodeId);
+        }
       }
     }
     else if (categorizeable && !uuObj) { 
@@ -9299,19 +9310,25 @@ async function processTwitterSearchNode(params) {
         + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
       ));
 
-      uncatUserCache.set(
-        params.user.nodeId, 
-        uncatUserObj,
-        configuration.uncatUserCacheTtl
-      );
+      if (empty(params.user.category) || (params.user.category === "none")) {
+        uncatUserCache.set(
+          params.user.nodeId, 
+          uncatUserObj,
+          configuration.uncatUserCacheTtl
+        );
+      }
 
       if (tfeChild && params.user.toObject && (typeof params.user.toObject == "function")) {
         tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, user: params.user.toObject()});
-        uncatUserCache.del(params.user.nodeId);
+        if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
+          uncatUserCache.del(params.user.nodeId);
+        }
       }
       else if (tfeChild) {
         tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, user: params.user});
-        uncatUserCache.del(params.user.nodeId);
+        if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
+          uncatUserCache.del(params.user.nodeId);
+        }
       }
     }
     else{

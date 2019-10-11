@@ -4,7 +4,7 @@ const MODULE_ID_PREFIX = "TWP";
 
 process.title = "wa_node_child_twp";
 
-const MAX_Q = 100;
+const MAX_Q = 500;
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
 const debug = require("debug")("twp");
@@ -241,13 +241,6 @@ process.on("message", function(m) {
 
       configuration.verbose = m.verbose;
       configuration.updateInterval = m.interval;
-      // configuration.networkObj = {};
-      // configuration.networkObj = m.networkObj;
-      // configuration.maxInputHashMap = {};
-      // configuration.maxInputHashMap = m.maxInputHashMap;
-      // configuration.normalization = {};
-      // configuration.normalization = m.normalization;
-      // configuration.inputArrays = {};
 
       console.log(chalkInfo("TWP | TWEET PARSER INIT"
         + " | TITLE: " + m.title
@@ -256,76 +249,7 @@ process.on("message", function(m) {
       ));
 
       initTweetParserQueueInterval(configuration);
-
-      // if (configuration.networkObj) {
-      //   console.log(chalkInfo("TWP | TWEET PARSER INIT"
-      //     + " | NN: " + m.networkObj.networkId
-      //   ));
-
-      //   async.eachSeries(Object.keys(m.networkObj.inputsObj.inputs), function(type, cb){
-
-      //     console.log(chalkNetwork("TWP | NN INPUTS TYPE" 
-      //       + " | " + type
-      //       + " | INPUTS: " + m.networkObj.inputsObj.inputs[type].length
-      //     ));
-
-      //     configuration.inputArrays[type] = {};
-      //     configuration.inputArrays[type] = m.networkObj.inputsObj.inputs[type];
-
-      //     cb();
-      //   }, function(){
-      //     initTweetParserQueueInterval(configuration);
-      //     // networkReady = true;
-      //   });
-      // }
-      // else {
-        // initTweetParserQueueInterval(configuration);
-        // networkReady = false;
-      // }
-      
-      // if (configuration.maxInputHashMap) {
-      //   console.log(chalkInfo("TWP | TWEET PARSER INIT"
-      //     + " | MAX IN HM INPUT TYPES: " + Object.keys(configuration.maxInputHashMap)
-      //   ));
-      // }
-      
-      // if (configuration.normalization) {
-      //   console.log(chalkInfo("TWP | TWEET PARSER INIT"
-      //     + " | NORMALIZATION INPUT TYPES: " + Object.keys(configuration.normalization)
-      //   ));
-      // }
     break;
-
-    // case "NETWORK":
-
-    //   // networkReady = false;
-
-    //   console.log(chalkInfo("TWP | TWEET PARSER NETWORK"
-    //     + " | NN: " + m.networkObj.networkId
-    //     + " | SUCCESS RATE: " + m.networkObj.successRate.toFixed(2)
-    //   ));
-
-    //   configuration.networkObj = {};
-    //   configuration.networkObj = m.networkObj;
-
-
-    //   configuration.inputArrays = {};
-
-    //   async.eachSeries(Object.keys(m.networkObj.inputsObj.inputs), function(type, cb){
-
-    //     console.log(chalkNetwork("TWP | NN INPUTS TYPE" 
-    //       + " | " + type
-    //       + " | INPUTS: " + m.networkObj.inputsObj.inputs[type].length
-    //     ));
-
-    //     configuration.inputArrays[type] = {};
-    //     configuration.inputArrays[type] = m.networkObj.inputsObj.inputs[type];
-
-    //     cb();
-
-    //   }, function(){
-    //   });
-    // break;
 
     case "PING":
       debug(chalkLog("TWP | PING"
@@ -338,7 +262,7 @@ process.on("message", function(m) {
     break;
 
     case "tweet":
-      if (tweetParserQueue.length < MAX_Q) {
+      if (tweetParserQueue.length <= MAX_Q) {
 
         tweetParserQueue.push(m.tweetStatus);
 

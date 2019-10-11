@@ -1301,14 +1301,30 @@ async function checkValidTweet(params){
   return true;
 }
 
-async function processStreamTweet(tweet){
+async function processStreamData(data){
 
   try {
 
-    rateMeter.meter("tweetsPerSecond").mark();
-    rateMeter.meter("tweetsPerMinute").mark();
+    const dataObj = parseJson(data);
 
-    const tweetObj = parseJson(tweet);
+    // console.log(chalkAlert(MODULE_ID_PREFIX + " | tweetObj\n" + jsonPrint(tweetObj)));
+
+    // ├─ account_id: 993648075259437000
+    // ├─ product_name: stream-filter-product-preview
+    // ├─ type: https://api.twitter.com/labs/1/problems/usage-capped
+    // ├─ title: UsageCapExceeded
+    // ├─ period: Daily
+    // ├─ scope: Account
+    // └─ detail: Usage cap exceeded: Daily account cap
+
+    if (dataObj && dataObj.title && (dataObj.title === "UsageCapExceeded")){
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! TWITTER LABS USAGE CAP EXCEEDED"
+        + " | ACCOUNT: " + dataObj.account_id
+        + " | PRODUCT: " + dataObj.product_name
+        + " | PERIOD: " + dataObj.period
+      ));
+      throw new Error("DAILY USAGE CAP EXCEEDED");
+    }
 
     // if (configuration.verbose) {
       // console.log(chalkTwitter(MODULE_ID_PREFIX + " | TW"
@@ -1323,15 +1339,19 @@ async function processStreamTweet(tweet){
       // ));
     // }
 
+    rateMeter.meter("tweetsPerSecond").mark();
+    rateMeter.meter("tweetsPerMinute").mark();
+
     const validTweet = await checkValidTweet({tweetObj: tweetObj});
 
     if (validTweet) {
       await processTweet({tweetObj: tweetObj});
+      return;
     }
   }
   catch(err){
     statsObj.twitter.errors += 1;
-    console.log(chalkWarn(MODULE_ID_PREFIX + " | !!! TWEET JSON PARSE ERROR: " + err));
+    console.log(chalkError(MODULE_ID_PREFIX + " | !!! PROCESS STREAM DATA ERROR: " + err));
   }
 }
 
@@ -1346,18 +1366,24 @@ async function streamConnect(token) {
     },
     qs: {
       format: "detailed",
+      "user.format": "detailed",
+      "tweet.format": "detailed",
+      "place.format": "detailed",
       expansions: "author_id"
     },
     timeout: 20000,
   };
 
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | STREAM CONNECT | CONFIG\n"+ jsonPrint(config)));
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | ... CONNECTING STREAM ..."));
 
-  const stream = await get(config);
+  // const stream = await get(config);
+  const stream = request.get(config);
 
-  console.log(chalk.green(MODULE_ID_PREFIX + " | +++ STREAM CONNECTED | CONFIG"));
+  console.log(chalk.green(MODULE_ID_PREFIX + " | +++ STREAM CONNECTED | CONFIG\n" + jsonPrint(config)));
 
-  stream.on("data", processStreamTweet);
+  stream.on("data", async function(data){
+    await processStreamData(data);
+  });
 
   stream.on("error", function(err){
 

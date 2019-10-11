@@ -145,7 +145,7 @@ const DEFAULT_QUIT_ON_ERROR = false;
 const DEFAULT_MAX_TOP_TERMS = 100;
 const DEFAULT_METRICS_NODE_METER_ENABLED = true;
 
-const DEFAULT_MAX_QUEUE = 200;
+const DEFAULT_MAX_QUEUE = 500;
 const DEFAULT_OFFLINE_MODE = process.env.OFFLINE_MODE || false; 
 const DEFAULT_AUTO_OFFLINE_MODE = true; // if network connection is down, will auto switch to OFFLINE_MODE
 const DEFAULT_IO_PING_INTERVAL = ONE_MINUTE;
@@ -5359,7 +5359,8 @@ async function updateUserSets(){
           }
         });
       }
-      else if (!uncatUserObj) {
+      // else if (!uncatUserObj) {
+      else {
 
         let categorizeable = false;
 
@@ -5578,7 +5579,10 @@ async function updateUserSets(){
       statsObj.user.auto.negative = userAutoNegativeSet.size;
       statsObj.user.auto.none = userAutoNoneSet.size;
 
-      console.log(chalkBlue("WAS | END FOLLOWING CURSOR | FOLLOWING USER SET | RUN TIME: " + msToTime(moment().valueOf() - cursorStartTime)));
+      console.log(chalkBlue("WAS | END FOLLOWING CURSOR"
+        + " | " + getTimeStamp()
+        + " | FOLLOWING USER SET | RUN TIME: " + msToTime(moment().valueOf() - cursorStartTime)
+      ));
       console.log(chalkLog("WAS | USER DB STATS\n" + jsonPrint(statsObj.user)));
 
       if (!calledBack) { 
@@ -5827,7 +5831,11 @@ function initTransmitNodeQueueInterval(interval){
 
 async function transmitNodes(tw){
 
-  if (!tw.user || ignoredUserSet.has(tw.user.nodeId) || ignoredUserSet.has(tw.user.userId) || ignoredUserSet.has(tw.user.screenName.toLowerCase())) {
+  if (!tw.user 
+    || ignoredUserSet.has(tw.user.nodeId) 
+    || ignoredUserSet.has(tw.user.userId) 
+    || ignoredUserSet.has(tw.user.screenName.toLowerCase()))
+  {
     return;
   }
 
@@ -6460,12 +6468,12 @@ async function initTweetParserMessageRxQueueInterval(interval){
           //   + " | WDs: " + tweetObj.words.length
           // ));
 
-          if (dbuChild && dbuChildReady && (followableUserSet.has(tweetObj.user.nodeId) || categorizeableUserSet.has(tweetObj.user.nodeId))) {
+          if (dbuChild && dbuChildReady && categorizeableUserSet.has(tweetObj.user.nodeId)) {
             dbUserMessage.tweetObj = tweetObj;
             dbuChild.send(dbUserMessage);
           }
 
-          if (transmitNodeQueue.length < maxQueue) {
+          if (transmitNodeQueue.length <= maxQueue) {
 
             try{
               await transmitNodes(tweetObj);
@@ -6938,6 +6946,7 @@ function initTssChild(params){
 
   return new Promise(function(resolve, reject){
 
+    // const tss = cp.fork(`${__dirname}/js/libs/tssChildLabs.js`);
     const tss = cp.fork(`${__dirname}/js/libs/tssChild.js`);
 
     childrenHashMap[params.childId] = {};
@@ -6954,10 +6963,6 @@ function initTssChild(params){
     tss.on("message", async function tssMessageRx(m){
 
       childrenHashMap[params.childId].status = "RUNNING";  
-
-      // debug(chalkLog("TSS RX MESSAGE"
-      //   + " | OP: " + m.op
-      // ));
 
       switch (m.op) {
 
@@ -9169,8 +9174,8 @@ async function twitterGetUserUpdateDb(user){
     twitQuery.include_entities = true;
 
     if (user.nodeId !== undefined) { twitQuery.user_id = user.nodeId; }
-    if (user.userId !== undefined) { twitQuery.user_id = user.userId; }
-    if (user.screenName !== undefined) { twitQuery.screen_name = user.screenName; }
+    else if (user.userId !== undefined) { twitQuery.user_id = user.userId; }
+    else if (user.screenName !== undefined) { twitQuery.screen_name = user.screenName; }
 
     const updatedUser = await twitUserShow({user: user, twitQuery: twitQuery});
 

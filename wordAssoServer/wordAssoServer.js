@@ -3625,6 +3625,9 @@ async function initUncatUserCache(){
     });
 
     if (!uncatUserCacheObj || uncatUserCacheObj == undefined) {
+      console.log(chalkAlert("WAS | !!! UNCAT USER CACHE FILE NOT FOUND"
+        + " | " + folder + "/" + uncatUserCacheFile
+      ));
       return;
     }
 
@@ -5496,6 +5499,7 @@ async function updateUserSets(){
 
           if (tfeChild !== undefined) { 
             tfeChild.send({op: "USER_CATEGORIZE", user: user});
+            uncatUserCache.del(user.nodeId);
           }
 
           if (uncategorizedManualUserSet.size % 100 == 0) {
@@ -5737,6 +5741,7 @@ function initTransmitNodeQueueInterval(interval){
 
           if (tfeChild !== undefined) { 
             tfeChild.send({op: "USER_CATEGORIZE", user: n});
+            uncatUserCache.del(n.nodeId);
           }
         }
         if ((n.nodeType == "user") && (n.category || n.categoryAuto || n.following || n.threeceeFollowing)){
@@ -7299,6 +7304,8 @@ async function initTfeChild(params){
             auto: m.user.categoryAuto
           }
         );
+
+        uncatUserCache.del(m.user.nodeId);
 
         if (m.priorityFlag){
           printUserObj("WAS | <TFE | PRIORITY CAT", m.user);
@@ -9267,9 +9274,11 @@ async function processTwitterSearchNode(params) {
     if (params.specificUserFlag) {
       if (tfeChild && params.user.toObject && (typeof params.user.toObject == "function")) {
         tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, user: params.user.toObject()});
+        uncatUserCache.del(params.user.nodeId);
       }
       else if (tfeChild) {
         tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, user: params.user});
+        uncatUserCache.del(params.user.nodeId);
       }
     }
     else if (categorizeable && !uuObj) { 
@@ -9298,9 +9307,11 @@ async function processTwitterSearchNode(params) {
 
       if (tfeChild && params.user.toObject && (typeof params.user.toObject == "function")) {
         tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, user: params.user.toObject()});
+        uncatUserCache.del(params.user.nodeId);
       }
       else if (tfeChild) {
         tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, user: params.user});
+        uncatUserCache.del(params.user.nodeId);
       }
     }
     else{

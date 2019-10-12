@@ -9310,7 +9310,7 @@ async function processTwitterSearchNode(params) {
         + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
       ));
 
-      if (empty(params.user.category) || (params.user.category === "none")) {
+      if (empty(params.user.category) || (params.user.category === "none") || (params.user.category === "false")) {
         uncatUserCache.set(
           params.user.nodeId, 
           uncatUserObj,

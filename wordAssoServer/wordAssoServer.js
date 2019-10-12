@@ -9307,10 +9307,13 @@ async function processTwitterSearchNode(params) {
         + " | TTL: " + msToTime(configuration.uncatUserCacheTtl*1000)
         + " | NID: " + params.user.nodeId
         + " | @" + params.user.screenName
+        + " | CAT VERIFIED: " + params.user.categoryVerified
+        + " | CAT M: " + params.user.category
+        + " | CAT A: " + params.user.categoryAuto
         + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
       ));
 
-      if (empty(params.user.category) || (params.user.category === "none") || (params.user.category === "false")) {
+      if (empty(params.user.category) || (params.user.category === "none") || !params.user.category || (params.user.category === "false")) {
         uncatUserCache.set(
           params.user.nodeId, 
           uncatUserObj,

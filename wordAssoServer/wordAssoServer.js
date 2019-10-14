@@ -16,6 +16,10 @@ const os = require("os");
 const kill = require("tree-kill");
 const empty = require("is-empty");
 const watch = require("watch");
+// const {google} = require("googleapis");
+// let cloudDebugger = google.clouddebugger("v2");
+
+require("@google-cloud/debug-agent").start();
 
 let hostname = os.hostname();
 hostname = hostname.replace(/.local/g, "");

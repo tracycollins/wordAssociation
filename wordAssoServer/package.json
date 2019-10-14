@@ -4,6 +4,7 @@
   "description": "word",
   "main": "wordAssoServer.js",
   "dependencies": {
+    "@google-cloud/debug-agent": "^4.0.4",
     "@google-cloud/language": "^3.5.0",
     "@google/maps": "^1.0.1",
     "@slack/client": "^5.0.2",
@@ -50,6 +51,7 @@
     "express": "^4.17.1",
     "express-session": "^1.17.0",
     "express-session-mongo": "^0.1.0",
+    "googleapis": "^44.0.0",
     "hashmap": "^2.4.0",
     "is-empty": "^1.2.0",
     "isomorphic-fetch": "^2.2.1",
@@ -85,6 +87,7 @@
     "request-promise": "^4.2.4",
     "request-promise-native": "^1.0.7",
     "retry": "^0.12.0",
+    "set-value": "^3.0.1",
     "shelljs": "^0.8.3",
     "slack-node": "^0.1.8",
     "socket.io": "^2.3.0",

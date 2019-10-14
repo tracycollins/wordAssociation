@@ -2626,6 +2626,7 @@ process.on("message", async function(m) {
       threeceeUserObj.screenName = m.threeceeUser;
       configuration.filterDuplicateTweets = m.filterDuplicateTweets;
       filterDuplicateTweets = m.filterDuplicateTweets;
+      configuration.twitterQueueIntervalTime = m.interval;
       configuration.verbose = m.verbose;
       configuration.testMode = m.testMode;
 

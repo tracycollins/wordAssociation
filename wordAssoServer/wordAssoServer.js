@@ -19,7 +19,7 @@ const watch = require("watch");
 // const {google} = require("googleapis");
 // let cloudDebugger = google.clouddebugger("v2");
 
-require("@google-cloud/debug-agent").start();
+require("@google-cloud/debug-agent").start({ allowExpressions:true});
 
 let hostname = os.hostname();
 hostname = hostname.replace(/.local/g, "");

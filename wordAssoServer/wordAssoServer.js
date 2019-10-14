@@ -5249,417 +5249,410 @@ async function updateUserSets(){
 
   statsObj.status = "UPDATE USER SETS";
 
-  try{
+  let calledBack = false;
 
-    let calledBack = false;
+  if (!statsObj.dbConnectionReady) {
+    console.log(chalkAlert("WAS | ABORT updateUserSets: DB CONNECTION NOT READY"));
+    calledBack = true;
+    throw new Error("DB CONNECTION NOT READY");
+  }
 
-    if (!statsObj.dbConnectionReady) {
-      console.log(chalkAlert("WAS | ABORT updateUserSets: DB CONNECTION NOT READY"));
-      calledBack = true;
-      throw new Error("DB CONNECTION NOT READY");
+  statsObj.user.total = await countDocuments({documentType: "users", query: {}});
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | GRAND TOTAL USERS: " + statsObj.user.total));
+
+  statsObj.user.following = await countDocuments({documentType: "users", query: {"following": true}});
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | FOLLOWING USERS: " + statsObj.user.following));
+
+  statsObj.user.notFollowing = await countDocuments({documentType: "users", query: {"following": false}});
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | NOT FOLLOWING USERS: " + statsObj.user.notFollowing));
+
+  statsObj.user.ignored = await countDocuments({documentType: "users", query: {"ignored": true}});
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | IGNORED USERS: " + statsObj.user.ignored));
+
+  statsObj.user.categoryVerified = await countDocuments({documentType: "users", query: {"categoryVerified": true}});
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT VERIFIED USERS: " + statsObj.user.categoryVerified));
+
+  statsObj.user.categorizedManual = await countDocuments({documentType: "users", query: {category: { "$nin": [false, "false", null] }}});
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT MANUAL USERS: " + statsObj.user.categorizedManual));
+
+  statsObj.user.uncategorizedManual = await countDocuments({documentType: "users", query: {category: { "$in": [false, "false", null] }}});
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT MANUAL USERS: " + statsObj.user.uncategorizedManual));
+
+  statsObj.user.categorizedAuto = await countDocuments({documentType: "users", query: {categoryAuto: { "$nin": [false, "false", null] }}});
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT AUTO USERS: " + statsObj.user.categorizedAuto));
+
+  statsObj.user.uncategorizedAuto = await countDocuments({documentType: "users", query: {categoryAuto: { "$in": [false, "false", null] }}});
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT AUTO USERS: " + statsObj.user.uncategorizedAuto));
+
+  userRightSet.clear();
+  userLeftSet.clear();
+  userNeutralSet.clear();
+  userPositiveSet.clear();
+  userNegativeSet.clear();
+  userNoneSet.clear();
+
+  userAutoRightSet.clear();
+  userAutoLeftSet.clear();
+  userAutoNeutralSet.clear();
+  userAutoPositiveSet.clear();
+  userAutoNegativeSet.clear();
+  userAutoNoneSet.clear();
+
+  const userSearchQuery = { ignored: false };
+  
+  userSearchCursor = wordAssoDb.User
+    .find(userSearchQuery)
+    // .select({friends: 0, tweets: 0, tweetHistograms: 0, profileHistograms: 0})
+    .select({
+      nodeId: 1, 
+      lang: 1, 
+      category: 1, 
+      categoryAuto: 1, 
+      following: 1, 
+      followersCount: 1, 
+      ignored: 1,
+      screenName: 1,
+      name: 1
+    })
+    .lean()
+    .cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
+
+  const cursorStartTime = moment().valueOf();
+
+  userSearchCursor.on("data", async function(user) {
+
+    const nodeId = user.nodeId.toLowerCase();
+    const screenName = user.screenName.toLowerCase();
+    const category = user.category;
+    const categoryAuto = user.categoryAuto;
+
+    const uncatUserObj = await uncatUserCache.get(nodeId);
+
+    if (user.lang && (user.lang !== undefined) && (user.lang != "en")){
+
+      wordAssoDb.User.deleteOne({"nodeId": nodeId}, function(err){
+        if (err) {
+          console.log(chalkError("WAS | *** DB DELETE USER LANG NOT ENG | ERROR: " + err));
+        }
+        else {
+          printUserObj(
+            "XXX USER | LANG NOT ENGLISH: " + user.lang,
+            user, 
+            chalkAlert
+          );
+        }
+      });
     }
+    else if (!category 
+      && !user.following 
+      && (user.followersCount > 0)
+      && (user.followersCount < configuration.minFollowersAuto)
+    ){
 
-    statsObj.user.total = await countDocuments({documentType: "users", query: {}});
-    console.log(chalkBlue(MODULE_ID_PREFIX + " | GRAND TOTAL USERS: " + statsObj.user.total));
+      wordAssoDb.User.deleteOne({"nodeId": nodeId}, function(err){
+        if (err) {
+          console.log(chalkError("WAS | *** DB DELETE USER LESS THAN MIN FOLLOWERS | ERROR: " + err));
+        }
+        else {
+          printUserObj(
+            "XXX USER | < MIN FOLLOWERS: " + user.followersCount,
+            user, 
+            chalkAlert
+          );
+        }
+      });
+    }
+    // else if (!uncatUserObj) {
+    else {
 
-    statsObj.user.following = await countDocuments({documentType: "users", query: {"following": true}});
-    console.log(chalkBlue(MODULE_ID_PREFIX + " | FOLLOWING USERS: " + statsObj.user.following));
+      let categorizeable = false;
 
-    statsObj.user.notFollowing = await countDocuments({documentType: "users", query: {"following": false}});
-    console.log(chalkBlue(MODULE_ID_PREFIX + " | NOT FOLLOWING USERS: " + statsObj.user.notFollowing));
-
-    statsObj.user.ignored = await countDocuments({documentType: "users", query: {"ignored": true}});
-    console.log(chalkBlue(MODULE_ID_PREFIX + " | IGNORED USERS: " + statsObj.user.ignored));
-
-    statsObj.user.categoryVerified = await countDocuments({documentType: "users", query: {"categoryVerified": true}});
-    console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT VERIFIED USERS: " + statsObj.user.categoryVerified));
-
-    statsObj.user.categorizedManual = await countDocuments({documentType: "users", query: {category: { "$nin": [false, "false", null] }}});
-    console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT MANUAL USERS: " + statsObj.user.categorizedManual));
-
-    statsObj.user.uncategorizedManual = await countDocuments({documentType: "users", query: {category: { "$in": [false, "false", null] }}});
-    console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT MANUAL USERS: " + statsObj.user.uncategorizedManual));
-
-    statsObj.user.categorizedAuto = await countDocuments({documentType: "users", query: {categoryAuto: { "$nin": [false, "false", null] }}});
-    console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT AUTO USERS: " + statsObj.user.categorizedAuto));
-
-    statsObj.user.uncategorizedAuto = await countDocuments({documentType: "users", query: {categoryAuto: { "$in": [false, "false", null] }}});
-    console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT AUTO USERS: " + statsObj.user.uncategorizedAuto));
-
-    userRightSet.clear();
-    userLeftSet.clear();
-    userNeutralSet.clear();
-    userPositiveSet.clear();
-    userNegativeSet.clear();
-    userNoneSet.clear();
-
-    userAutoRightSet.clear();
-    userAutoLeftSet.clear();
-    userAutoNeutralSet.clear();
-    userAutoPositiveSet.clear();
-    userAutoNegativeSet.clear();
-    userAutoNoneSet.clear();
-
-    const userSearchQuery = { ignored: false };
-    
-    userSearchCursor = wordAssoDb.User
-      .find(userSearchQuery)
-      // .select({friends: 0, tweets: 0, tweetHistograms: 0, profileHistograms: 0})
-      .select({
-        nodeId: 1, 
-        lang: 1, 
-        category: 1, 
-        categoryAuto: 1, 
-        following: 1, 
-        followersCount: 1, 
-        ignored: 1,
-        screenName: 1,
-        name: 1
-      })
-      .lean()
-      .cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
-
-    const cursorStartTime = moment().valueOf();
-
-    userSearchCursor.on("data", async function(user) {
-
-      const nodeId = user.nodeId.toLowerCase();
-      const screenName = user.screenName.toLowerCase();
-      const category = user.category;
-      const categoryAuto = user.categoryAuto;
-
-      const uncatUserObj = await uncatUserCache.get(nodeId);
-
-      if (user.lang && (user.lang !== undefined) && (user.lang != "en")){
-
-        wordAssoDb.User.deleteOne({"nodeId": nodeId}, function(err){
-          if (err) {
-            console.log(chalkError("WAS | *** DB DELETE USER LANG NOT ENG | ERROR: " + err));
-          }
-          else {
-            printUserObj(
-              "XXX USER | LANG NOT ENGLISH: " + user.lang,
-              user, 
-              chalkAlert
-            );
-          }
-        });
+      switch (category) {
+        case "right":
+          userRightSet.add(nodeId);
+          userLeftSet.delete(nodeId);
+          userNeutralSet.delete(nodeId);
+          userPositiveSet.delete(nodeId);
+          userNegativeSet.delete(nodeId);
+          userNoneSet.delete(nodeId);
+          categorizeable = true;
+        break;
+        case "left":
+          userRightSet.delete(nodeId);
+          userLeftSet.add(nodeId);
+          userNeutralSet.delete(nodeId);
+          userPositiveSet.delete(nodeId);
+          userNegativeSet.delete(nodeId);
+          userNoneSet.delete(nodeId);
+          categorizeable = true;
+        break;
+        case "neutral":
+          userRightSet.delete(nodeId);
+          userLeftSet.delete(nodeId);
+          userNeutralSet.add(nodeId);
+          userPositiveSet.delete(nodeId);
+          userNegativeSet.delete(nodeId);
+          userNoneSet.delete(nodeId);
+          categorizeable = true;
+        break;
+        case "positive":
+          userRightSet.delete(nodeId);
+          userLeftSet.delete(nodeId);
+          userNeutralSet.delete(nodeId);
+          userPositiveSet.add(nodeId);
+          userNegativeSet.delete(nodeId);
+          userNoneSet.delete(nodeId);
+          categorizeable = true;
+        break;
+        case "negative":
+          userRightSet.delete(nodeId);
+          userLeftSet.delete(nodeId);
+          userNeutralSet.delete(nodeId);
+          userPositiveSet.delete(nodeId);
+          userNegativeSet.add(nodeId);
+          userNoneSet.delete(nodeId);
+          categorizeable = true;
+        break;
+        case "none":
+          userRightSet.delete(nodeId);
+          userLeftSet.delete(nodeId);
+          userNeutralSet.delete(nodeId);
+          userPositiveSet.delete(nodeId);
+          userNegativeSet.delete(nodeId);
+          userNoneSet.add(nodeId);
+        break;
+        default:
+          userRightSet.delete(nodeId);
+          userLeftSet.delete(nodeId);
+          userNeutralSet.delete(nodeId);
+          userPositiveSet.delete(nodeId);
+          userNegativeSet.delete(nodeId);
+          userNoneSet.delete(nodeId);
       }
-      else if (!category 
-        && !user.following 
-        && (user.followersCount > 0)
-        && (user.followersCount < configuration.minFollowersAuto)
-      ){
 
-        wordAssoDb.User.deleteOne({"nodeId": nodeId}, function(err){
-          if (err) {
-            console.log(chalkError("WAS | *** DB DELETE USER LESS THAN MIN FOLLOWERS | ERROR: " + err));
-          }
-          else {
-            printUserObj(
-              "XXX USER | < MIN FOLLOWERS: " + user.followersCount,
-              user, 
-              chalkAlert
-            );
-          }
-        });
+      switch (categoryAuto) {
+        case "right":
+          userAutoRightSet.add(nodeId);
+          userAutoLeftSet.delete(nodeId);
+          userAutoNeutralSet.delete(nodeId);
+          userAutoPositiveSet.delete(nodeId);
+          userAutoNegativeSet.delete(nodeId);
+          userAutoNoneSet.delete(nodeId);
+        break;
+        case "left":
+          userAutoRightSet.delete(nodeId);
+          userAutoLeftSet.add(nodeId);
+          userAutoNeutralSet.delete(nodeId);
+          userAutoPositiveSet.delete(nodeId);
+          userAutoNegativeSet.delete(nodeId);
+          userAutoNoneSet.delete(nodeId);
+        break;
+        case "neutral":
+          userAutoRightSet.delete(nodeId);
+          userAutoLeftSet.delete(nodeId);
+          userAutoNeutralSet.add(nodeId);
+          userAutoPositiveSet.delete(nodeId);
+          userAutoNegativeSet.delete(nodeId);
+          userAutoNoneSet.delete(nodeId);
+        break;
+        case "positive":
+          userAutoRightSet.delete(nodeId);
+          userAutoLeftSet.delete(nodeId);
+          userAutoNeutralSet.delete(nodeId);
+          userAutoPositiveSet.add(nodeId);
+          userAutoNegativeSet.delete(nodeId);
+          userAutoNoneSet.delete(nodeId);
+        break;
+        case "negative":
+          userAutoRightSet.delete(nodeId);
+          userAutoLeftSet.delete(nodeId);
+          userAutoNeutralSet.delete(nodeId);
+          userAutoPositiveSet.delete(nodeId);
+          userAutoNegativeSet.add(nodeId);
+          userAutoNoneSet.delete(nodeId);
+        break;
+        default:
+          userAutoRightSet.delete(nodeId);
+          userAutoLeftSet.delete(nodeId);
+          userAutoNeutralSet.delete(nodeId);
+          userAutoPositiveSet.delete(nodeId);
+          userAutoNegativeSet.delete(nodeId);
+          userAutoNoneSet.add(nodeId);
       }
-      // else if (!uncatUserObj) {
-      else {
 
-        let categorizeable = false;
+      if (!categorizeable) {
+        categorizeable = await userCategorizeable(user);
+      }
 
-        switch (category) {
-          case "right":
-            userRightSet.add(nodeId);
-            userLeftSet.delete(nodeId);
-            userNeutralSet.delete(nodeId);
-            userPositiveSet.delete(nodeId);
-            userNegativeSet.delete(nodeId);
-            userNoneSet.delete(nodeId);
-            categorizeable = true;
-          break;
-          case "left":
-            userRightSet.delete(nodeId);
-            userLeftSet.add(nodeId);
-            userNeutralSet.delete(nodeId);
-            userPositiveSet.delete(nodeId);
-            userNegativeSet.delete(nodeId);
-            userNoneSet.delete(nodeId);
-            categorizeable = true;
-          break;
-          case "neutral":
-            userRightSet.delete(nodeId);
-            userLeftSet.delete(nodeId);
-            userNeutralSet.add(nodeId);
-            userPositiveSet.delete(nodeId);
-            userNegativeSet.delete(nodeId);
-            userNoneSet.delete(nodeId);
-            categorizeable = true;
-          break;
-          case "positive":
-            userRightSet.delete(nodeId);
-            userLeftSet.delete(nodeId);
-            userNeutralSet.delete(nodeId);
-            userPositiveSet.add(nodeId);
-            userNegativeSet.delete(nodeId);
-            userNoneSet.delete(nodeId);
-            categorizeable = true;
-          break;
-          case "negative":
-            userRightSet.delete(nodeId);
-            userLeftSet.delete(nodeId);
-            userNeutralSet.delete(nodeId);
-            userPositiveSet.delete(nodeId);
-            userNegativeSet.add(nodeId);
-            userNoneSet.delete(nodeId);
-            categorizeable = true;
-          break;
-          case "none":
-            userRightSet.delete(nodeId);
-            userLeftSet.delete(nodeId);
-            userNeutralSet.delete(nodeId);
-            userPositiveSet.delete(nodeId);
-            userNegativeSet.delete(nodeId);
-            userNoneSet.add(nodeId);
-          break;
-          default:
-            userRightSet.delete(nodeId);
-            userLeftSet.delete(nodeId);
-            userNeutralSet.delete(nodeId);
-            userPositiveSet.delete(nodeId);
-            userNegativeSet.delete(nodeId);
-            userNoneSet.delete(nodeId);
-        }
+      if (categorizeable
+        && (uncatUserObj == undefined)
+        && (!category || (category == undefined))
+        && (!user.ignored || (user.ignored == undefined))
+        && (user.following || (user.followersCount >= configuration.minFollowersAuto)) 
+        && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && categoryAuto && (categoryAuto != "right")))
+        && !ignoredUserSet.has(nodeId) 
+        && !ignoredUserSet.has(screenName) 
+        && !uncategorizedManualUserSet.has(nodeId) 
+        && !unfollowableUserSet.has(nodeId)) { 
 
-        switch (categoryAuto) {
-          case "right":
-            userAutoRightSet.add(nodeId);
-            userAutoLeftSet.delete(nodeId);
-            userAutoNeutralSet.delete(nodeId);
-            userAutoPositiveSet.delete(nodeId);
-            userAutoNegativeSet.delete(nodeId);
-            userAutoNoneSet.delete(nodeId);
-          break;
-          case "left":
-            userAutoRightSet.delete(nodeId);
-            userAutoLeftSet.add(nodeId);
-            userAutoNeutralSet.delete(nodeId);
-            userAutoPositiveSet.delete(nodeId);
-            userAutoNegativeSet.delete(nodeId);
-            userAutoNoneSet.delete(nodeId);
-          break;
-          case "neutral":
-            userAutoRightSet.delete(nodeId);
-            userAutoLeftSet.delete(nodeId);
-            userAutoNeutralSet.add(nodeId);
-            userAutoPositiveSet.delete(nodeId);
-            userAutoNegativeSet.delete(nodeId);
-            userAutoNoneSet.delete(nodeId);
-          break;
-          case "positive":
-            userAutoRightSet.delete(nodeId);
-            userAutoLeftSet.delete(nodeId);
-            userAutoNeutralSet.delete(nodeId);
-            userAutoPositiveSet.add(nodeId);
-            userAutoNegativeSet.delete(nodeId);
-            userAutoNoneSet.delete(nodeId);
-          break;
-          case "negative":
-            userAutoRightSet.delete(nodeId);
-            userAutoLeftSet.delete(nodeId);
-            userAutoNeutralSet.delete(nodeId);
-            userAutoPositiveSet.delete(nodeId);
-            userAutoNegativeSet.add(nodeId);
-            userAutoNoneSet.delete(nodeId);
-          break;
-          default:
-            userAutoRightSet.delete(nodeId);
-            userAutoLeftSet.delete(nodeId);
-            userAutoNeutralSet.delete(nodeId);
-            userAutoPositiveSet.delete(nodeId);
-            userAutoNegativeSet.delete(nodeId);
-            userAutoNoneSet.add(nodeId);
-        }
+        uncategorizedManualUserSet.add(nodeId);
 
-        if (!categorizeable) {
-          categorizeable = await userCategorizeable(user);
-        }
-
-        if (categorizeable
-          && (uncatUserObj == undefined)
-          && (!category || (category == undefined))
-          && (!user.ignored || (user.ignored == undefined))
-          && (user.following || (user.followersCount >= configuration.minFollowersAuto)) 
-          && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && categoryAuto && (categoryAuto != "right")))
-          && !ignoredUserSet.has(nodeId) 
-          && !ignoredUserSet.has(screenName) 
-          && !uncategorizedManualUserSet.has(nodeId) 
-          && !unfollowableUserSet.has(nodeId)) { 
-
-          uncategorizedManualUserSet.add(nodeId);
-
-          if (tfeChild !== undefined) { 
-            tfeChild.send({op: "USER_CATEGORIZE", user: user});
-            if (user.category == "left" || user.category == "right" || user.category == "neutral") {
-              uncatUserCache.del(user.nodeId);
-            }
-          }
-
-          if (uncategorizedManualUserSet.size % 100 == 0) {
-            printUserObj("UNCAT MAN USER  [" + uncategorizedManualUserSet.size + "]", user);
+        if (tfeChild !== undefined) { 
+          tfeChild.send({op: "USER_CATEGORIZE", user: user});
+          if (user.category == "left" || user.category == "right" || user.category == "neutral") {
+            uncatUserCache.del(user.nodeId);
           }
         }
 
-        if (!uncategorizedAutoUserSet.has(nodeId) 
-          && (!categoryAuto || (categoryAuto == undefined))
-          && !ignoredUserSet.has(nodeId) 
+        if (uncategorizedManualUserSet.size % 100 == 0) {
+          printUserObj("UNCAT MAN USER  [" + uncategorizedManualUserSet.size + "]", user);
+        }
+      }
+
+      if (!uncategorizedAutoUserSet.has(nodeId) 
+        && (!categoryAuto || (categoryAuto == undefined))
+        && !ignoredUserSet.has(nodeId) 
+        && !ignoredUserSet.has(screenName) 
+        && !ignoreLocationsSet.has(nodeId) 
+        && (user.followersCount >= configuration.minFollowersAuto) 
+        && !unfollowableUserSet.has(nodeId)) { 
+
+        uncategorizedAutoUserSet.add(nodeId);
+
+        if (uncategorizedAutoUserSet.size % 100 == 0) {
+          printUserObj("UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", user);
+        }
+      }
+      
+      if (((category == "left") || (category == "neutral") || (category == "right"))
+        && ((categoryAuto == "left") || (categoryAuto == "neutral") || (categoryAuto == "right"))
+      ) { 
+
+        uncategorizedManualUserSet.delete(nodeId); 
+        uncategorizedAutoUserSet.delete(nodeId); 
+
+        if (!ignoredUserSet.has(nodeId) 
           && !ignoredUserSet.has(screenName) 
           && !ignoreLocationsSet.has(nodeId) 
-          && (user.followersCount >= configuration.minFollowersAuto) 
-          && !unfollowableUserSet.has(nodeId)) { 
+          && !unfollowableUserSet.has(nodeId)){
 
-          uncategorizedAutoUserSet.add(nodeId);
+          categorizedManualUserSet.add(nodeId); 
+          categorizedAutoUserSet.add(nodeId); 
 
-          if (uncategorizedAutoUserSet.size % 100 == 0) {
-            printUserObj("UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", user);
-          }
-        }
-        
-        if (((category == "left") || (category == "neutral") || (category == "right"))
-          && ((categoryAuto == "left") || (categoryAuto == "neutral") || (categoryAuto == "right"))
-        ) { 
+          if (!mismatchUserSet.has(nodeId) && (category !== categoryAuto)) {
 
-          uncategorizedManualUserSet.delete(nodeId); 
-          uncategorizedAutoUserSet.delete(nodeId); 
-
-          if (!ignoredUserSet.has(nodeId) 
-            && !ignoredUserSet.has(screenName) 
-            && !ignoreLocationsSet.has(nodeId) 
-            && !unfollowableUserSet.has(nodeId)){
-
-            categorizedManualUserSet.add(nodeId); 
-            categorizedAutoUserSet.add(nodeId); 
-
-            if (!mismatchUserSet.has(nodeId) && (category !== categoryAuto)) {
-
-              if (!configuration.filterVerifiedUsers || !verifiedCategorizedUsersSet.has(screenName)){
-                mismatchUserSet.add(nodeId);
-              }
-
-              matchUserSet.delete(nodeId); 
-
-              if (mismatchUserSet.size % 100 == 0) {
-                printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "] | VCU: " + verifiedCategorizedUsersSet.has(screenName), user);
-              }
+            if (!configuration.filterVerifiedUsers || !verifiedCategorizedUsersSet.has(screenName)){
+              mismatchUserSet.add(nodeId);
             }
 
-            if (!matchUserSet.has(nodeId) && (category === categoryAuto)) {
+            matchUserSet.delete(nodeId); 
 
-              matchUserSet.add(nodeId); 
-              mismatchUserSet.delete(nodeId); 
+            if (mismatchUserSet.size % 100 == 0) {
+              printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "] | VCU: " + verifiedCategorizedUsersSet.has(screenName), user);
+            }
+          }
 
-              if (matchUserSet.size % 100 == 0) {
-                printUserObj("MATCHED USER [" + matchUserSet.size + "]", user);
-              }
+          if (!matchUserSet.has(nodeId) && (category === categoryAuto)) {
+
+            matchUserSet.add(nodeId); 
+            mismatchUserSet.delete(nodeId); 
+
+            if (matchUserSet.size % 100 == 0) {
+              printUserObj("MATCHED USER [" + matchUserSet.size + "]", user);
             }
           }
         }
       }
-    });
+    }
+  });
 
-    userSearchCursor.on("end", function() {
+  userSearchCursor.on("end", function() {
 
-      statsObj.user.matched = matchUserSet.size;
-      statsObj.user.mismatched = mismatchUserSet.size;
+    statsObj.user.matched = matchUserSet.size;
+    statsObj.user.mismatched = mismatchUserSet.size;
 
-      statsObj.user.manual.right = userRightSet.size;
-      statsObj.user.manual.left = userLeftSet.size;
-      statsObj.user.manual.neutral = userNeutralSet.size;
-      statsObj.user.manual.positive = userPositiveSet.size;
-      statsObj.user.manual.negative = userNegativeSet.size;
-      statsObj.user.manual.none = userNoneSet.size;
+    statsObj.user.manual.right = userRightSet.size;
+    statsObj.user.manual.left = userLeftSet.size;
+    statsObj.user.manual.neutral = userNeutralSet.size;
+    statsObj.user.manual.positive = userPositiveSet.size;
+    statsObj.user.manual.negative = userNegativeSet.size;
+    statsObj.user.manual.none = userNoneSet.size;
 
-      statsObj.user.auto.right = userAutoRightSet.size;
-      statsObj.user.auto.left = userAutoLeftSet.size;
-      statsObj.user.auto.neutral = userAutoNeutralSet.size;
-      statsObj.user.auto.positive = userAutoPositiveSet.size;
-      statsObj.user.auto.negative = userAutoNegativeSet.size;
-      statsObj.user.auto.none = userAutoNoneSet.size;
+    statsObj.user.auto.right = userAutoRightSet.size;
+    statsObj.user.auto.left = userAutoLeftSet.size;
+    statsObj.user.auto.neutral = userAutoNeutralSet.size;
+    statsObj.user.auto.positive = userAutoPositiveSet.size;
+    statsObj.user.auto.negative = userAutoNegativeSet.size;
+    statsObj.user.auto.none = userAutoNoneSet.size;
 
-      console.log(chalkBlue("WAS | END FOLLOWING CURSOR"
-        + " | " + getTimeStamp()
-        + " | FOLLOWING USER SET | RUN TIME: " + msToTime(moment().valueOf() - cursorStartTime)
-      ));
-      console.log(chalkLog("WAS | USER DB STATS\n" + jsonPrint(statsObj.user)));
+    console.log(chalkBlue("WAS | END FOLLOWING CURSOR"
+      + " | " + getTimeStamp()
+      + " | FOLLOWING USER SET | RUN TIME: " + msToTime(moment().valueOf() - cursorStartTime)
+    ));
+    console.log(chalkLog("WAS | USER DB STATS\n" + jsonPrint(statsObj.user)));
 
-      if (!calledBack) { 
-        calledBack = true;
-        return;
-      }
-    });
+    if (!calledBack) { 
+      calledBack = true;
+      return;
+    }
+  });
 
-    userSearchCursor.on("error", function(err) {
+  userSearchCursor.on("error", function(err) {
 
-      statsObj.user.matched = matchUserSet.size;
-      statsObj.user.mismatched = mismatchUserSet.size;
+    statsObj.user.matched = matchUserSet.size;
+    statsObj.user.mismatched = mismatchUserSet.size;
 
-      statsObj.user.manual.right = userRightSet.size;
-      statsObj.user.manual.left = userLeftSet.size;
-      statsObj.user.manual.neutral = userNeutralSet.size;
-      statsObj.user.manual.positive = userPositiveSet.size;
-      statsObj.user.manual.negative = userNegativeSet.size;
-      statsObj.user.manual.none = userNoneSet.size;
+    statsObj.user.manual.right = userRightSet.size;
+    statsObj.user.manual.left = userLeftSet.size;
+    statsObj.user.manual.neutral = userNeutralSet.size;
+    statsObj.user.manual.positive = userPositiveSet.size;
+    statsObj.user.manual.negative = userNegativeSet.size;
+    statsObj.user.manual.none = userNoneSet.size;
 
-      statsObj.user.auto.right = userAutoRightSet.size;
-      statsObj.user.auto.left = userAutoLeftSet.size;
-      statsObj.user.auto.neutral = userAutoNeutralSet.size;
-      statsObj.user.auto.positive = userAutoPositiveSet.size;
-      statsObj.user.auto.negative = userAutoNegativeSet.size;
-      statsObj.user.auto.none = userAutoNoneSet.size;
+    statsObj.user.auto.right = userAutoRightSet.size;
+    statsObj.user.auto.left = userAutoLeftSet.size;
+    statsObj.user.auto.neutral = userAutoNeutralSet.size;
+    statsObj.user.auto.positive = userAutoPositiveSet.size;
+    statsObj.user.auto.negative = userAutoNegativeSet.size;
+    statsObj.user.auto.none = userAutoNoneSet.size;
 
-      console.error(chalkError("*** ERROR userSearchCursor: " + err));
-      console.log(chalkAlert("WAS | USER DB STATS\n" + jsonPrint(statsObj.user)));
+    console.error(chalkError("*** ERROR userSearchCursor: " + err));
+    console.log(chalkAlert("WAS | USER DB STATS\n" + jsonPrint(statsObj.user)));
 
-      if (!calledBack) { 
-        calledBack = true;
-        throw err;
-      }
-    });
+    if (!calledBack) { 
+      calledBack = true;
+      throw err;
+    }
+  });
 
-    userSearchCursor.on("close", function() {
+  userSearchCursor.on("close", function() {
 
-      statsObj.user.matched = matchUserSet.size;
-      statsObj.user.mismatched = mismatchUserSet.size;
+    statsObj.user.matched = matchUserSet.size;
+    statsObj.user.mismatched = mismatchUserSet.size;
 
-      statsObj.user.manual.right = userRightSet.size;
-      statsObj.user.manual.left = userLeftSet.size;
-      statsObj.user.manual.neutral = userNeutralSet.size;
-      statsObj.user.manual.positive = userPositiveSet.size;
-      statsObj.user.manual.negative = userNegativeSet.size;
-      statsObj.user.manual.none = userNoneSet.size;
+    statsObj.user.manual.right = userRightSet.size;
+    statsObj.user.manual.left = userLeftSet.size;
+    statsObj.user.manual.neutral = userNeutralSet.size;
+    statsObj.user.manual.positive = userPositiveSet.size;
+    statsObj.user.manual.negative = userNegativeSet.size;
+    statsObj.user.manual.none = userNoneSet.size;
 
-      statsObj.user.auto.right = userAutoRightSet.size;
-      statsObj.user.auto.left = userAutoLeftSet.size;
-      statsObj.user.auto.neutral = userAutoNeutralSet.size;
-      statsObj.user.auto.positive = userAutoPositiveSet.size;
-      statsObj.user.auto.negative = userAutoNegativeSet.size;
-      statsObj.user.auto.none = userAutoNoneSet.size;
+    statsObj.user.auto.right = userAutoRightSet.size;
+    statsObj.user.auto.left = userAutoLeftSet.size;
+    statsObj.user.auto.neutral = userAutoNeutralSet.size;
+    statsObj.user.auto.positive = userAutoPositiveSet.size;
+    statsObj.user.auto.negative = userAutoNegativeSet.size;
+    statsObj.user.auto.none = userAutoNoneSet.size;
 
 
-      console.log(chalkBlue("WAS | CLOSE FOLLOWING CURSOR"));
-      console.log(chalkBlue("WAS | USER DB STATS\n" + jsonPrint(statsObj.user)));
+    console.log(chalkBlue("WAS | CLOSE FOLLOWING CURSOR"));
+    console.log(chalkBlue("WAS | USER DB STATS\n" + jsonPrint(statsObj.user)));
 
-      if (!calledBack) { 
-        calledBack = true;
-        return;
-      }
-    });
-
-  }
-  catch(err){
-    throw err;
-  }
+    if (!calledBack) { 
+      calledBack = true;
+      return;
+    }
+  });
 
 }
 
@@ -8595,67 +8588,60 @@ async function initConfig() {
 
 async function initDbUserChangeStream(){
 
-  try{
+  const userCollection = dbConnection.collection("users");
 
-    const userCollection = dbConnection.collection("users");
+  const userChangeFilter = {
+    "$match": {
+      "$or": [
+        { operationType: "insert" },
+        { operationType: "delete" },
+        { operationType: "update" },
+        { operationType: "replace" }
+      ]
+    }
+  };
 
-    const userChangeFilter = {
-      "$match": {
-        "$or": [
-          { operationType: "insert" },
-          { operationType: "delete" },
-          { operationType: "update" },
-          { operationType: "replace" }
-        ]
-      }
-    };
+  const userChangeOptions = { fullDocument: "updateLookup" };
 
-    const userChangeOptions = { fullDocument: "updateLookup" };
+  userChangeStream = userCollection.watch([userChangeFilter], userChangeOptions);
 
-    userChangeStream = userCollection.watch([userChangeFilter], userChangeOptions);
+  let categoryChanges = {};
+  let catObj = {};
 
-    let categoryChanges = {};
-    let catObj = {};
+  userChangeStream.on("change", function(change){
 
-    userChangeStream.on("change", function(change){
+    if (change 
+      && change.fullDocument 
+      && change.updateDescription 
+      && change.updateDescription.updatedFields 
+      && (Object.keys(change.updateDescription.updatedFields).includes("category")
+        || Object.keys(change.updateDescription.updatedFields).includes("categoryAuto"))
+    ) { 
 
-      if (change 
-        && change.fullDocument 
-        && change.updateDescription 
-        && change.updateDescription.updatedFields 
-        && (Object.keys(change.updateDescription.updatedFields).includes("category")
-          || Object.keys(change.updateDescription.updatedFields).includes("categoryAuto"))
-      ) { 
+      categoryChanges = {};
 
-        categoryChanges = {};
+      categoryChanges.manual = change.fullDocument.category;
+      categoryChanges.auto = change.fullDocument.categoryAuto;
+      
+      if (categoryChanges.auto || categoryChanges.manual) {
 
-        categoryChanges.manual = change.fullDocument.category;
-        categoryChanges.auto = change.fullDocument.categoryAuto;
-        
-        if (categoryChanges.auto || categoryChanges.manual) {
+        catObj = categorizedUserHashMap.get(change.fullDocument.nodeId);
 
-          catObj = categorizedUserHashMap.get(change.fullDocument.nodeId);
-
-          if (empty(catObj)) {
-            catObj = {};
-            catObj.screenName = change.fullDocument.screenName;
-            catObj.nodeId = change.fullDocument.nodeId;
-          }
-
-          catObj.manual = categoryChanges.manual || catObj.manual;
-          catObj.auto = categoryChanges.auto || catObj.auto;
-
-          categorizedUserHashMap.set(catObj.nodeId, catObj);
+        if (empty(catObj)) {
+          catObj = {};
+          catObj.screenName = change.fullDocument.screenName;
+          catObj.nodeId = change.fullDocument.nodeId;
         }
+
+        catObj.manual = categoryChanges.manual || catObj.manual;
+        catObj.auto = categoryChanges.auto || catObj.auto;
+
+        categorizedUserHashMap.set(catObj.nodeId, catObj);
       }
-    });
+    }
+  });
 
-    return;
-
-  }
-  catch(err){
-    throw err;
-  }
+  return;
 }
 
 function initCategoryHashmaps(){
@@ -9207,7 +9193,10 @@ async function twitterGetUserUpdateDb(user){
   }
 }
 
-async function twitterSearchUserNode(searchQuery){
+async function twitterSearchUserNode(params){
+
+  const searchQuery = params.query;
+  const searchMode = params.searchMode;
 
   try {
 
@@ -9215,19 +9204,17 @@ async function twitterSearchUserNode(searchQuery){
 
     if (user) {
 
-      printUserObj("WAS | TWITTER SEARCH DB | FOUND USER", user);
+      printUserObj("WAS | TWITTER SEARCH DB | SEARCH MODE: " + searchMode + " | FOUND USER", user);
 
       const updatedUser = await twitterGetUserUpdateDb(user);
 
       if (updatedUser) { 
         return updatedUser;
       }
-
       return;
-
     }
 
-    console.log(chalkLog("WAS | TWITTER SEARCH DB USER NOT FOUND"
+    console.log(chalkLog("WAS | TWITTER SEARCH DB | SEARCH MODE: " + searchMode + " | USER NOT FOUND"
       + "\nsearchQuery\n" + jsonPrint(searchQuery)
     ));
 
@@ -9236,7 +9223,7 @@ async function twitterSearchUserNode(searchQuery){
     return;
   }
   catch(err){
-    console.log(chalkError("WAS | *** TWITTER SEARCH NODE USER ERROR"
+    console.log(chalkError("WAS | *** TWITTER SEARCH NODE USER ERROR | SEARCH MODE: " + searchMode
       + "\nsearchQuery\n" + jsonPrint(searchQuery)
       + "ERROR", err
     ));
@@ -9437,7 +9424,7 @@ function getNextSearchNode(params){
           statsObj.user.uncategorized.neutral = _.intersection([...userAutoNeutralSet], [...uncategorizedManualUserSet]).length;
           statsObj.user.uncategorized.right = _.intersection([...userAutoRightSet], [...uncategorizedManualUserSet]).length;
 
-          const user = await twitterSearchUserNode({nodeId: searchUserId});
+          const user = await twitterSearchUserNode({query: {nodeId: searchUserId}, searchMode: searchMode});
 
           if (empty(user)){
 
@@ -9476,12 +9463,12 @@ function getNextSearchNode(params){
 
               case "MISMATCH":
                 if ((user.category !== undefined) && (user.category != "none") && user.categoryVerified){
-                  printUserObj("WAS | ... SKIP SEACH USER | MODE: " + searchMode, user);
+                  printUserObj("WAS | ... SKIP SEACH USER | VERIFIED | MODE: " + searchMode, user);
                   notFoundAndMore = true;
                   break;
                 }
                 else if ((user.category !== undefined) && (user.category != "none") && (user.category == user.categoryAuto)){
-                  printUserObj("WAS | ... SKIP SEACH USER | MODE: " + searchMode, user);
+                  printUserObj("WAS | ... SKIP SEACH USER | MATCHED  | MODE: " + searchMode, user);
                   notFoundAndMore = true;
                   break;
                 }
@@ -9684,7 +9671,7 @@ async function twitterSearchUser(params) {
   console.log(chalkInfo("WAS | SEARCH FOR SPECIFIC USER | @" + searchNodeUser.screenName));
 
   try {
-    const user = await twitterSearchUserNode({screenName: searchNodeUser.screenName});
+    const user = await twitterSearchUserNode({query: {screenName: searchNodeUser.screenName}, searchMode: searchMode});
     await processTwitterSearchNode({specificUserFlag: true, searchNode: searchNode, user: user});
     return;
   }

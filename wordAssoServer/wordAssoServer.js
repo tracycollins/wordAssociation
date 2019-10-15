@@ -3661,7 +3661,7 @@ async function initUncatUserCache(){
 
     clearInterval(uncatUserCacheInterval);
 
-    uncatUserCacheInterval = setInterval(async function(){
+    uncatUserCacheInterval = setInterval(function(){
      saveUncatUserCache();
     }, configuration.uncatUserCacheIntervalTime);
 

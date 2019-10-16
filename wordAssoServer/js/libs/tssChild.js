@@ -590,7 +590,7 @@ function initStatsUpdate(cnf){
           ));
         }
 
-        await tcUtils.saveFile({localFlag: true, folder: statsHostFolder, file: statsFile, obj: statsObj});
+        await tcUtils.saveFile({folder: statsHostFolder, file: statsFile, obj: statsObj});
 
       }, cnf.statsUpdateIntervalTime);
 

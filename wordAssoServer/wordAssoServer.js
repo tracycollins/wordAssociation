@@ -3082,11 +3082,7 @@ function socketRxTweet(tw) {
         + " | " + sampleTweetFileName
       ));
 
-      saveFileQueue.push({
-        folder: testDataFolder, 
-        file: sampleTweetFileName, 
-        obj: tw
-      });
+      saveFileQueue.push({folder: testDataFolder, file: sampleTweetFileName, obj: tw});
     }
 
     screenName = tw.user.screen_name.toLowerCase();
@@ -3540,11 +3536,7 @@ function saveUncatUserCache(){
     + " | " + folder + "/" + uncatUserCacheFile
   ));
 
-  saveFileQueue.push({
-    folder: folder, 
-    file: uncatUserCacheFile, 
-    obj: uncatUserCacheObj
-  });
+  saveFileQueue.push({folder: folder, file: uncatUserCacheFile, obj: uncatUserCacheObj});
 
   return;
 }
@@ -8426,7 +8418,7 @@ function initStatsUpdate() {
           if (utilNameSpace) { statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; } // userNameSpace.sockets.length ;
           if (viewNameSpace) { statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; } // userNameSpace.sockets.length ;
 
-          saveFileQueue.push({folder: statsHostFolder, statsFile: statsFile, statsObj: statsObj});
+          saveFileQueue.push({folder: statsHostFolder, file: statsFile, statsObj: statsObj});
 
           showStats();
 

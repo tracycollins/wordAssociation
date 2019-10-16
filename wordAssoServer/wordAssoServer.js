@@ -8378,7 +8378,7 @@ function initStatsUpdate() {
   return new Promise(function(resolve, reject){
 
     try {
-      console.log(chalkTwitter("WAS | INIT STATS UPDATE INTERVAL | " + msToTime(configuration.statsUpdateIntervalTime) + " MS"));
+      console.log(chalkTwitter("WAS | INIT STATS UPDATE INTERVAL | " + msToTime(configuration.statsUpdateIntervalTime)));
 
       showStats(true);
 

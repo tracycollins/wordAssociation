@@ -19,7 +19,7 @@ const watch = require("watch");
 // const {google} = require("googleapis");
 // let cloudDebugger = google.clouddebugger("v2");
 
-require("@google-cloud/debug-agent").start({ allowExpressions:true});
+require("@google-cloud/debug-agent").start({allowExpressions: true});
 
 let hostname = os.hostname();
 hostname = hostname.replace(/.local/g, "");
@@ -10002,10 +10002,16 @@ setTimeout(async function(){
     await initSaveFileQueue(configuration);
     await initPassport();
     await initThreeceeTwitterUser("altthreecee00");
-    if (hostname == "google") { 
-      await getTwitterWebhooks();
-      if (statsObj.twitter.aaSubs) { console.log(chalkLog("WAS | TWITTER AA SUBSCRIPTIONS ... SKIP ADD SUBS")); }
-      if (!statsObj.twitter.aaSubs) { await addTwitterAccountActivitySubscription({threeceeUser: "altthreecee00"}); }
+    if (hostname == "google") {
+      try{
+
+        await getTwitterWebhooks();
+        if (statsObj.twitter.aaSubs) { console.log(chalkLog("WAS | TWITTER AA SUBSCRIPTIONS ... SKIP ADD SUBS")); }
+        if (!statsObj.twitter.aaSubs) { await addTwitterAccountActivitySubscription({threeceeUser: "altthreecee00"}); }
+      }
+      catch(err){
+        console.log(chalkError("WAS | **** TWITTER WEBHOOK ERROR: " + err));
+      }
     }
     await initAllowLocations();
     await initIgnoreLocations();

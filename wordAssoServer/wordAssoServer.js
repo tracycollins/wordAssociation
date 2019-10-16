@@ -29,6 +29,7 @@ hostname = hostname.replace(/.fios-router/g, "");
 hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
+hostname = hostname.replace(/word-1/g, "google");
 
 let DROPBOX_ROOT_FOLDER;
 
@@ -209,7 +210,8 @@ const request = require("request-promise-native");
 const _ = require("lodash");
 const touch = require("touch");
 const merge = require("deepmerge");
-const Measured = require("measured");
+// const Measured = require("measured");
+const Measured = require("measured-core");
 const omit = require("object.omit");
 const pick = require("object.pick");
 const config = require("./config/config");

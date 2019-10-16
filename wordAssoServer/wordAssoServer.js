@@ -1,5 +1,3 @@
-/*jslint node: true */
-/*jshint sub:true*/
 const MODULE_ID_PREFIX = "WAS";
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
@@ -560,7 +558,7 @@ function quit(message) {
 
   console.log(chalkAlert("WAS | ... QUITTING ..."));
   console.log(chalkAlert("WAS | QUIT MESSAGE: " + msg));
-  console.error(chalkAlert("WAS | QUIT MESSAGE: " + msg));
+  console.log(chalkAlert("WAS | QUIT MESSAGE: " + msg));
 
   setTimeout(function() {
     process.exit();
@@ -2593,7 +2591,7 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
   function(err, results){
     if (err){
       console.log(chalkError("WAS | *** ERROR: LOAD CATEGORY HASHMAPS: " + err));
-      console.error(err);
+      console.log(err);
     }
     else {
       console.log(chalk.green("WAS | +++ MONGO DB CONNECTION READY"));
@@ -5626,7 +5624,7 @@ async function updateUserSets(){
     statsObj.user.auto.negative = userAutoNegativeSet.size;
     statsObj.user.auto.none = userAutoNoneSet.size;
 
-    console.error(chalkError("*** ERROR userSearchCursor: " + err));
+    console.log(chalkError("*** ERROR userSearchCursor: " + err));
     console.log(chalkAlert("WAS | USER DB STATS\n" + jsonPrint(statsObj.user)));
 
     if (!calledBack) { 
@@ -7148,7 +7146,7 @@ function initTssChild(params){
       if (err) {
         statsObj.tssChildReady = false;
         console.log(chalkError("WAS | *** TSS SEND ERROR: " + err));
-        console.error(err);
+        console.log(err);
         clearInterval(tssPingInterval);
         childrenHashMap[params.childId].status = "ERROR";
         reject(err);
@@ -7405,7 +7403,7 @@ async function initTfeChild(params){
       console.log(chalkError("WAS | *** TFE SEND ERROR"
         + " | " + err
       ));
-      console.error(err);
+      console.log(err);
       statsObj.tfeSendReady = false;
       statsObj.tfeChildReady = false;
       clearInterval(tfePingInterval);
@@ -7529,7 +7527,7 @@ function initDbuChild(params){
         console.log(chalkError("WAS | *** DBU SEND ERROR"
           + " | " + err
         ));
-        console.error(err);
+        console.log(err);
         // dbuSendReady = false;
         dbuChildReady = false;
         clearInterval(dbuPingInterval);
@@ -8403,7 +8401,7 @@ async function loadConfigFile(params) {
 
   }
   catch(err){
-    console.error(chalkError("WAS | ERROR LOAD DROPBOX CONFIG: " + fullPath
+    console.log(chalkError("WAS | ERROR LOAD DROPBOX CONFIG: " + fullPath
       + "\n" + jsonPrint(err)
     ));
     throw err;

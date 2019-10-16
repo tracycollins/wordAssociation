@@ -2174,7 +2174,7 @@ process.on("message", async function processMessageRx(msg) {
     clearInterval(internetCheckInterval);
 
     try{
-      await tcUtils.saveFile({folder: statsHostFolder, statsFile: statsFile, statsObj: statsObj});
+      await tcUtils.saveFile({folder: statsHostFolder, statsFile: statsFile, obj: statsObj});
     }
     catch(err){
       console.log(chalkError("WAS | *** SAVE STATS ERROR: " + err));
@@ -8418,7 +8418,7 @@ function initStatsUpdate() {
           if (utilNameSpace) { statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; } // userNameSpace.sockets.length ;
           if (viewNameSpace) { statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; } // userNameSpace.sockets.length ;
 
-          saveFileQueue.push({folder: statsHostFolder, file: statsFile, statsObj: statsObj});
+          saveFileQueue.push({folder: statsHostFolder, file: statsFile, obj: statsObj});
 
           showStats();
 

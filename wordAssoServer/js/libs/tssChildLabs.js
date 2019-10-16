@@ -510,7 +510,7 @@ function quit(message) {
     exitCode = 1;
   }
 
-  console.error("TSS | " + process.argv[1]
+  console.log("TSS | " + process.argv[1]
     + " | " + moment().format(compactDateTimeFormat)
     + " | TSS CHILD: **** QUITTING"
     + " | CAUSE: " + msg
@@ -1541,7 +1541,7 @@ async function initSearchStreamLabs(){
 
   }
   catch (e) {
-    console.error(e);
+    console.log(e);
     throw e;
   }
 
@@ -1899,7 +1899,7 @@ async function initialize(cnf){
 
   }
   catch(err){
-    console.error("TSS | TSS | *** ERROR LOAD DROPBOX CONFIG: " + dropboxConfigFile + "\n" + jsonPrint(err));
+    console.log("TSS | TSS | *** ERROR LOAD DROPBOX CONFIG: " + dropboxConfigFile + "\n" + jsonPrint(err));
     throw err;
   }
 }
@@ -2462,7 +2462,7 @@ process.on("message", async function(m) {
     break;
 
     default:
-      console.error(chalkError("TSS | *** TSS UNKNOWN OP"
+      console.log(chalkError("TSS | *** TSS UNKNOWN OP"
         + " | 3C @" + threeceeUserObj.screenName
         + " | INTERVAL: " + m.op
       ));
@@ -2477,7 +2477,7 @@ setTimeout(async function(){
   }
   catch(err){
     if (err.status != 404) {
-      console.error(chalkError("TSS | *** INIT ERROR\n" + jsonPrint(err)));
+      console.log(chalkError("TSS | *** INIT ERROR\n" + jsonPrint(err)));
       quit();
     }
     console.log(chalkError("TSS | TSS | *** INIT ERROR | CONFIG FILE NOT FOUND? | ERROR: " + err));

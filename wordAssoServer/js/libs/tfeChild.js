@@ -569,7 +569,7 @@ function initStatsUpdate() {
       statsObj.elapsed = getElapsedTimeStamp();
       statsObj.timeStamp = getTimeStamp();
 
-      tcUtils.saveFile({localFlag: false, folder: configuration.statsFolder, file: configuration.statsFile, obj: statsObj});
+      saveFileQueue.push({folder: configuration.statsFolder, file: configuration.statsFile, obj: statsObj});
 
       clearInterval(statsUpdateInterval);
 
@@ -578,7 +578,7 @@ function initStatsUpdate() {
         statsObj.elapsed = getElapsedTimeStamp();
         statsObj.timeStamp = getTimeStamp();
 
-        saveFileQueue.push({localFlag: false, folder: configuration.statsFolder, file: configuration.statsFile, obj: statsObj});
+        saveFileQueue.push({folder: configuration.statsFolder, file: configuration.statsFile, obj: statsObj});
         statsObj.queues.saveFileQueue.size = saveFileQueue.length;
 
         try{

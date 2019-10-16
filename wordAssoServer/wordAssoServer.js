@@ -248,8 +248,8 @@ const threeceeConfig = {
 
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 
-const fetch = require("isomorphic-fetch"); // or another library of choice.
-const Dropbox = require("dropbox").Dropbox;
+// const fetch = require("isomorphic-fetch"); // or another library of choice.
+// const Dropbox = require("dropbox").Dropbox;
 
 const HashMap = require("hashmap").HashMap;
 
@@ -948,10 +948,13 @@ const DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY;
 const DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
 
 const configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/default");
-const configHostFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility",hostname);
-
+const configHostFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility", hostname);
 const configDefaultFile = "default_wordAssoServerConfig.json";
 const configHostFile = hostname + "_wordAssoServerConfig.json";
+
+// const statsDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "stats/default");
+const statsHostFolder = path.join(DROPBOX_ROOT_FOLDER, "stats", hostname);
+const statsFile = "wordAssoServerStats_" + moment().format(tinyDateTimeFormat) + ".json";
 
 const twitterConfigFolder = path.join(DROPBOX_ROOT_FOLDER, "config/twitter");
 
@@ -961,9 +964,6 @@ const childPidFolderLocal = path.join(DROPBOX_ROOT_FOLDER, "config/utility", hos
 
 const dropboxConfigDefaultTrainingSetsFolder = path.join(configDefaultFolder, "trainingSets");
 const trainingSetsUsersFolder = path.join(dropboxConfigDefaultTrainingSetsFolder, "users");
-
-const statsFolder = path.join("/stats" + hostname);
-const statsFile = "wordAssoServerStats_" + moment().format(tinyDateTimeFormat) + ".json";
 
 const testDataFolder = path.join(configDefaultFolder, "test/testData/tweets");
 
@@ -979,12 +979,12 @@ console.log(chalkLog("WAS | DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASS
 console.log(chalkLog("WAS | DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY));
 console.log(chalkLog("WAS | DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET));
 
-const dropboxRemoteClient = new Dropbox({ 
-  accessToken: configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN,
-  fetch: fetch
-});
+// const dropboxRemoteClient = new Dropbox({ 
+//   accessToken: configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN,
+//   fetch: fetch
+// });
 
-const dropboxClient = dropboxRemoteClient;
+// const dropboxClient = dropboxRemoteClient;
 
 const userDefaults = function (user){
   return user;
@@ -1978,62 +1978,6 @@ function initSaveFileQueue(cnf){
   });
 }
 
-async function saveStats(params) {
-
-  const fullPath = statsFolder + "/" + params.statsFile;
-
-  if (configuration.offlineMode) {
-    const exists = await fs.exists(fullPath);
-
-    if (exists) {
-
-      await fs.stat(fullPath);
-
-      let fd;
-
-      try{
-        fd = await fs.open(fullPath, "w");
-        await fs.writeFile(fullPath, params.statsObj);
-        fs.close(fd);
-        return fullPath;
-      }
-      catch(err){
-        fs.close(fd);
-        throw err;
-      }
-    }
-
-    return fullPath;
-  } 
-  else {
-
-    const options = {};
-
-    options.contents = JSON.stringify(params.statsObj, null, 2);
-    options.path = fullPath;
-    options.mode = "overwrite";
-    options.autorename = false;
-
-    try{
-      await dropboxClient.filesUpload(options);
-      // debug(chalkLog(getTimeStamp()
-      //   + " | SAVED DROPBOX JSON | " + options.path
-      // ));
-      return "OK";
-    }
-    catch(err){
-      console.log(chalkError(getTimeStamp() 
-        + " | !!! ERROR DROBOX STATS WRITE | FILE: " + options.path 
-        // + "\nERROR\n" + jsonPrint(err)
-      ));
-
-      console.log(chalkError(err)); 
-
-      throw err;
-    }
-  }
-}
-
 function killChild(params){
 
   return new Promise(function(resolve, reject){
@@ -2230,7 +2174,7 @@ process.on("message", async function processMessageRx(msg) {
     clearInterval(internetCheckInterval);
 
     try{
-      await saveStats({statsFile: statsFile, statsObj: statsObj});
+      await tcUtils.saveFile({folder: statsHostFolder, statsFile: statsFile, statsObj: statsObj});
     }
     catch(err){
       console.log(chalkError("WAS | *** SAVE STATS ERROR: " + err));
@@ -3139,7 +3083,6 @@ function socketRxTweet(tw) {
       ));
 
       saveFileQueue.push({
-        localFlag: false, 
         folder: testDataFolder, 
         file: sampleTweetFileName, 
         obj: tw
@@ -3346,14 +3289,7 @@ async function ignore(params) {
     const obj = {};
     obj.userIds = [...ignoredUserSet];
 
-    const saveFileObj = {
-      localFlag: false, 
-      folder: configDefaultFolder, 
-      file: ignoredUserFile, 
-      obj: obj
-    }
-
-    saveFileQueue.push(saveFileObj);
+    saveFileQueue.push({folder: configDefaultFolder, file: ignoredUserFile, obj: obj});
 
     return;
   }
@@ -3605,7 +3541,6 @@ function saveUncatUserCache(){
   ));
 
   saveFileQueue.push({
-    localFlag: false, 
     folder: folder, 
     file: uncatUserCacheFile, 
     obj: uncatUserCacheObj
@@ -8491,7 +8426,7 @@ function initStatsUpdate() {
           if (utilNameSpace) { statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; } // userNameSpace.sockets.length ;
           if (viewNameSpace) { statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; } // userNameSpace.sockets.length ;
 
-          await saveStats({statsFile: statsFile, statsObj: statsObj });
+          saveFileQueue.push({folder: statsHostFolder, statsFile: statsFile, statsObj: statsObj});
 
           showStats();
 

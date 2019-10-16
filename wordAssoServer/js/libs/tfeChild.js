@@ -74,8 +74,8 @@ hostname = hostname.replace(/.at.net/g, "");
 hostname = hostname.replace(/.fios-router/g, "");
 hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
-hostname = hostname.replace(/word/g, "google");
 hostname = hostname.replace(/word-1/g, "google");
+hostname = hostname.replace(/word/g, "google");
 
 let DROPBOX_ROOT_FOLDER;
 

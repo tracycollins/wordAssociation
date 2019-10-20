@@ -1,5 +1,3 @@
-/*jslint node: true */
-/*jshint sub:true*/
 const MODULE_ID_PREFIX = "TWP";
 
 process.title = "wa_node_child_twp";
@@ -71,7 +69,7 @@ function quit(message) {
     exitCode = 1;
   }
 
-  console.error("TWP | " + process.argv[1]
+  console.log("TWP | " + process.argv[1]
     + " | " + moment().format(compactDateTimeFormat)
     + " | TWEET PARSER: **** QUITTING"
     + " | CAUSE: " + msg

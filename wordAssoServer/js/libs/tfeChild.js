@@ -1190,7 +1190,7 @@ async function generateAutoCategory(p) {
 
     const params = p || {};
 
-    const binaryMode = params.binaryMode || configuration.binaryMode;
+    const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
 
     const user = await tcUtils.updateUserHistograms({user: params.user});
 
@@ -1345,16 +1345,16 @@ process.on("message", async function(m) {
       process.title = m.title;
 
       configuration.verbose = m.verbose;
-      configuration.binaryMode = configuration.binaryMode || m.binaryMode;
+      configuration.binaryMode = (m.binaryMode !== undefined) ? m.binaryMode : configuration.binaryMode;
 
-      configuration.enableGeoCode = configuration.enableGeoCode || m.enableGeoCode;
-      configuration.forceGeoCode = configuration.forceGeoCode || m.forceGeoCode;
+      configuration.enableGeoCode = (m.enableGeoCode !== undefined) ? m.enableGeoCode : configuration.enableGeoCode;
+      configuration.forceGeoCode = (m.forceGeoCode !== undefined) ? m.forceGeoCode : configuration.forceGeoCode;
 
-      configuration.enableImageAnalysis = configuration.enableImageAnalysis || m.enableImageAnalysis;
-      configuration.forceImageAnalysis = configuration.forceImageAnalysis || m.forceImageAnalysis;
+      configuration.enableImageAnalysis = (m.enableImageAnalysis !== undefined) ? m.enableImageAnalysis : configuration.enableImageAnalysis;
+      configuration.forceImageAnalysis = (m.forceImageAnalysis !== undefined) ? m.forceImageAnalysis : configuration.forceImageAnalysis;
 
-      configuration.enableLanguageAnalysis = configuration.enableLanguageAnalysis || m.enableLanguageAnalysis;
-      configuration.forceLanguageAnalysis = configuration.forceLanguageAnalysis || m.forceLanguageAnalysis;
+      configuration.enableLanguageAnalysis = (m.enableLanguageAnalysis !== undefined) ? m.enableLanguageAnalysis : configuration.enableLanguageAnalysis;
+      configuration.forceLanguageAnalysis = (m.forceLanguageAnalysis !== undefined) ? m.forceLanguageAnalysis : configuration.forceLanguageAnalysis;
 
       networkObj = m.networkObj;
 

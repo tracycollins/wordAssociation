@@ -9433,7 +9433,7 @@ function getNextSearchNode(params){
 
                 searchResults = await processTwitterSearchNode({searchNode: searchNode, user: user});
 
-                if (searchResults.cacheHit) {
+                if (searchResults.cacheHit || (user.category == user.categoryAuto)) {
                   notFoundAndMore = true;
                 }
                 else{

@@ -9258,7 +9258,7 @@ async function processTwitterSearchNode(params) {
         }
       }
     }
-    else{
+    else if (categorizeable && uuObj) { 
 
       uncatUserCacheHit = true;
 
@@ -9272,7 +9272,28 @@ async function processTwitterSearchNode(params) {
         + " | TS: " + uuObj.timeStamp
         + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
       ));
-
+    }
+    else if (uuObj) {
+      console.log(chalk.yellow(MODULE_ID_PREFIX
+        + " | +++ HIT (NOT CATEGORIZABLE)  | UNCAT USER $"
+        + " | TTL: " + msToTime(configuration.uncatUserCacheTtl*1000)
+        + " | NID: " + uuObj.nodeId
+        + " | @" + uuObj.screenName
+        + " | TS: " + uuObj.timeStamp
+        + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
+      ));
+    }
+    else {
+      console.log(chalkBlue(MODULE_ID_PREFIX
+        + " | --- MISS (NOT CATEGORIZABLE)  | UNCAT USER $"
+        + " | TTL: " + msToTime(configuration.uncatUserCacheTtl*1000)
+        + " | NID: " + params.user.nodeId
+        + " | @" + params.user.screenName
+        + " | CAT VERIFIED: " + params.user.categoryVerified
+        + " | CAT M: " + params.user.category
+        + " | CAT A: " + params.user.categoryAuto
+        + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
+      ));
     }
 
     if (params.user.toObject && (typeof params.user.toObject == "function")) {
@@ -9409,7 +9430,9 @@ function getNextSearchNode(params){
                 }
 
                 printUserObj("WAS | --> MM USER", user);
+
                 searchResults = await processTwitterSearchNode({searchNode: searchNode, user: user});
+
                 if (searchResults.cacheHit) {
                   notFoundAndMore = true;
                 }
@@ -9419,6 +9442,7 @@ function getNextSearchNode(params){
               break;
 
               case "UNCAT_LEFT":
+
                 if ((user.category && (user.category != "none")) || (user.categoryAuto != "left")){
                   printUserObj("WAS | ... SKIP SEACH USER | MODE: " + searchMode, user);
                   notFoundAndMore = true;
@@ -9426,17 +9450,20 @@ function getNextSearchNode(params){
                 }
 
                 printUserObj("WAS | --> SEACH USER FOUND | MODE: " + searchMode, user);
+
                 searchResults = await processTwitterSearchNode({searchNode: searchNode, user: user});
-                if (searchResults.cacheHit) {
+
+                if (searchResults.cacheHit || (user.categoryAuto !== "left")) {
                   notFoundAndMore = true;
                 }
                 else{
                   notFoundAndMore = false;
                 }
-                // viewNameSpace.emit("SET_TWITTER_USER", { user: user, stats: statsObj.user });
+
               break;
 
               case "UNCAT_NEUTRAL":
+
                 if ((user.category && (user.category != "none")) || (user.categoryAuto != "neutral")){
                   printUserObj("WAS | ... SKIP SEACH USER | MODE: " + searchMode, user);
                   notFoundAndMore = true;
@@ -9444,14 +9471,15 @@ function getNextSearchNode(params){
                 }
 
                 printUserObj("WAS | --> SEACH USER FOUND | MODE: " + searchMode, user);
+
                 searchResults = await processTwitterSearchNode({searchNode: searchNode, user: user});
-                if (searchResults.cacheHit) {
+
+                if (searchResults.cacheHit || (user.categoryAuto !== "neutral")) {
                   notFoundAndMore = true;
                 }
                 else{
                   notFoundAndMore = false;
                 }
-                // viewNameSpace.emit("SET_TWITTER_USER", { user: user, stats: statsObj.user });
               break;
 
               case "UNCAT_RIGHT":
@@ -9462,8 +9490,10 @@ function getNextSearchNode(params){
                 }
 
                 printUserObj("WAS | --> SEACH USER FOUND | MODE: " + searchMode, user);
+
                 searchResults = await processTwitterSearchNode({searchNode: searchNode, user: user});
-                if (searchResults.cacheHit) {
+
+                if (searchResults.cacheHit || (user.categoryAuto !== "right")) {
                   notFoundAndMore = true;
                 }
                 else{

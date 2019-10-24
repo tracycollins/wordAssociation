@@ -183,7 +183,7 @@ const TOPTERMS_CACHE_DEFAULT_TTL = 60;
 const TOPTERMS_CACHE_CHECK_PERIOD = 5;
 
 const TRENDING_CACHE_DEFAULT_TTL = 300;
-const TRENDING_CACHE_CHECK_PERIOD = 60;
+// const TRENDING_CACHE_CHECK_PERIOD = 60;
 
 const NODE_CACHE_DEFAULT_TTL = 60;
 const NODE_CACHE_CHECK_PERIOD = 1;
@@ -1401,7 +1401,7 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
 
         const authSocketObjCache = authenticatedSocketCache.get(socketId);
 
-        if (authSocketObjCache) {
+        if (authSocketObjCache !== undefined) {
 
           console.log(chalkInfo("WAS | AUTH SOCKET CACHE ENTRIES"
             + " | NSP: " + authSocketObjCache.namespace.toUpperCase()
@@ -1577,10 +1577,10 @@ let trendingCacheTtl = process.env.TRENDING_CACHE_DEFAULT_TTL;
 if (empty(trendingCacheTtl)) { trendingCacheTtl = TRENDING_CACHE_DEFAULT_TTL; }
 console.log("WAS | TRENDING CACHE TTL: " + trendingCacheTtl + " SECONDS");
 
-const trendingCache = new NodeCache({
-  stdTTL: trendingCacheTtl,
-  checkperiod: TRENDING_CACHE_CHECK_PERIOD
-});
+// const trendingCache = new NodeCache({
+//   stdTTL: trendingCacheTtl,
+//   checkperiod: TRENDING_CACHE_CHECK_PERIOD
+// });
 
 let nodesPerMinuteTopTermTtl = process.env.TOPTERMS_CACHE_DEFAULT_TTL;
 if (empty(nodesPerMinuteTopTermTtl)) { nodesPerMinuteTopTermTtl = TOPTERMS_CACHE_DEFAULT_TTL; }
@@ -1613,7 +1613,7 @@ cacheObj.serverCache = serverCache;
 cacheObj.viewerCache = viewerCache;
 cacheObj.nodesPerMinuteTopTermCache = nodesPerMinuteTopTermCache;
 cacheObj.nodesPerMinuteTopTermNodeTypeCache = {};
-cacheObj.trendingCache = trendingCache;
+// cacheObj.trendingCache = trendingCache;
 cacheObj.authenticatedTwitterUserCache = authenticatedTwitterUserCache;
 cacheObj.authInProgressTwitterUserCache = authInProgressTwitterUserCache;
 cacheObj.authenticatedSocketCache = authenticatedSocketCache;
@@ -2351,19 +2351,9 @@ configEvents.on("INTERNET_READY", function internetReady() {
 
       async.each(serverCache.keys(), function(serverCacheKey, cb){
 
-        serverCache.get(serverCacheKey, function(err, serverObj){
-
-          if (err) {
-            console.log(chalkError("WAS | *** SERVER CACHE ERROR: " + err));
-            return cb(err);
-          }
-
-          if (serverObj) { tempServerArray.push([serverCacheKey, serverObj]); }
-
-          cb();
-
-        });
-
+        const serverObj = serverCache.get(serverCacheKey);
+        if (serverObj !== undefined) { tempServerArray.push([serverCacheKey, serverObj]); }
+        cb();
       }, function(){
         heartbeatObj.servers = tempServerArray;
       });
@@ -2372,18 +2362,9 @@ configEvents.on("INTERNET_READY", function internetReady() {
 
       async.each(viewerCache.keys(), function(viewerCacheKey, cb){
 
-        viewerCache.get(viewerCacheKey, function(err, viewerObj){
-
-          if (err) {
-            console.log(chalkError("WAS | *** VIEWER CACHE ERROR: " + err));
-            return cb(err);
-          }
-
-          if (viewerObj) { tempViewerArray.push([viewerCacheKey, viewerObj]); }
-
-          cb();
-
-        });
+        const viewerObj = viewerCache.get(viewerCacheKey);
+        if (viewerObj !== undefined) { tempViewerArray.push([viewerCacheKey, viewerObj]); }
+        cb();
 
       }, function(){
         heartbeatObj.viewers = tempViewerArray;
@@ -2843,7 +2824,7 @@ function categorizeNode(categorizeObj, callback) {
 
     const user = authenticatedTwitterUserCache.get(categorizeObj.twitterUser.nodeId);
 
-    if (!user 
+    if ((user == undefined)
       && (categorizeObj.twitterUser.nodeId != "14607119") 
       && (categorizeObj.twitterUser.nodeId != "848591649575927810")) 
     {
@@ -2855,10 +2836,6 @@ function categorizeNode(categorizeObj, callback) {
       return;
     }
   }
-
-  // debug(chalkSocket("categorizeNode" 
-  //   + " | categorizeObj\n" + jsonPrint(categorizeObj)
-  // ));
 
   const cObj = {};
   cObj.manual = false;
@@ -2872,13 +2849,6 @@ function categorizeNode(categorizeObj, callback) {
   switch (node.nodeType){
     case "user":
 
-      // debug(chalkSocket("categorizeNode USER"
-      //   + " | NID: " + nodeId
-      //   + " | @" + node.screenName
-      //   + " | C: " + categorizeObj.category
-      //   + " | FLW: " + categorizeObj.follow
-      // ));
-
       cObj.manual = categorizeObj.category;
 
       if (categorizedUserHashMap.has(nodeId)){
@@ -2889,7 +2859,7 @@ function categorizeNode(categorizeObj, callback) {
 
       nCacheObj = nodeCache.get(nodeId);
 
-      if (nCacheObj) {
+      if (nCacheObj !== undefined) {
         node.mentions = Math.max(node.mentions, nCacheObj.mentions);
         nCacheObj.mentions = node.mentions;
         nodeCache.set(nCacheObj.nodeId, nCacheObj);
@@ -2979,12 +2949,6 @@ function categorizeNode(categorizeObj, callback) {
     break;
 
     case "hashtag":
-
-      // debug(chalkSocket("categorizeNode HASHTAG"
-      //   + " | " + nodeId
-      //   + " | " + categorizeObj.category
-      // ));
-
       cObj.manual = categorizeObj.category;
 
       if (categorizedHashtagHashMap.has(nodeId)){
@@ -2995,7 +2959,7 @@ function categorizeNode(categorizeObj, callback) {
 
       nCacheObj = nodeCache.get(nodeId);
 
-      if (nCacheObj) {
+      if (nCacheObj !== undefined) {
         node.mentions = Math.max(node.mentions, nCacheObj.mentions);
         nCacheObj.mentions = node.mentions;
         nodeCache.set(nCacheObj.nodeId, nCacheObj);
@@ -3016,8 +2980,6 @@ function categorizeNode(categorizeObj, callback) {
             updatedHashtag.nodeId, 
             { manual: updatedHashtag.category, auto: updatedHashtag.categoryAuto });
 
-          // debug(chalkLog("UPDATE_CATEGORY HASHTAG | #" + updatedHashtag.nodeId ));
-
           if (callback !== undefined) {
             callback(null, updatedHashtag);
           }
@@ -3026,10 +2988,6 @@ function categorizeNode(categorizeObj, callback) {
     break;
 
     default:
-      // debug(chalkSocket("categorizeNode TYPE: " + node.nodeType
-      //   + " | " + nodeId
-      //   + " | " + categorizeObj.category
-      // ));
       callback(new Error("categorizeNode TYPE: " + node.nodeType), null);
   }
 }
@@ -3041,10 +2999,8 @@ function socketRxTweet(tw) {
 
   prevTweetUser = tweetIdCache.get(tw.id_str);
 
-  if (prevTweetUser) {
-
+  if (prevTweetUser !== undefined) {
     duplicateTweetsReceived += 1;
-    
     if (filterDuplicateTweets) { return; }
   }
 
@@ -3755,7 +3711,7 @@ function initSocketHandler(socketObj) {
 
     const currentServer = serverCache.get(socketId);
 
-    if (currentServer) { 
+    if (currentServer !== undefined) { 
 
       currentServer.timeStamp = moment().valueOf();
       currentServer.ip = ipAddress;
@@ -3778,7 +3734,7 @@ function initSocketHandler(socketObj) {
 
     const currentViewer = viewerCache.get(socketId);
 
-    if (currentViewer) { 
+    if (currentViewer !== undefined) { 
 
       currentViewer.timeStamp = moment().valueOf();
       currentViewer.ip = ipAddress;
@@ -3831,7 +3787,7 @@ function initSocketHandler(socketObj) {
 
     const currentServer = serverCache.get(socketId);
 
-    if (currentServer) { 
+    if (currentServer !== undefined) { 
 
       currentServer.status = "DISCONNECTED";
 
@@ -3848,10 +3804,8 @@ function initSocketHandler(socketObj) {
     }
 
     const currentViewer = viewerCache.get(socketId);
-    if (currentViewer) { 
-
+    if (currentViewer !== undefined) { 
       currentViewer.status = "DISCONNECTED";
-
       viewerCache.del(socketId, function(err){
 
         if (err) { 
@@ -3890,34 +3844,33 @@ function initSocketHandler(socketObj) {
       return;
     }
 
-    authenticatedSocketCache.get(socket.id, function(err, authSocketObj){
+    const authSocketObj = authenticatedSocketCache.get(socket.id);
 
-      if (authSocketObj !== undefined) {
+    if (authSocketObj !== undefined) {
 
-        if (configuration.verbose) {
-          console.log(chalkLog("WAS | ... KEEPALIVE AUTHENTICATED SOCKET"
-            + " | " + socket.id
-            + " | NSP: " + authSocketObj.namespace.toUpperCase()
-            + " | USER ID: " + authSocketObj.userId
-          ));
-        }
-
-        authSocketObj.ipAddress = ipAddress;
-        authSocketObj.timeStamp = moment().valueOf();
-
-        authenticatedSocketCache.set(socket.id, authSocketObj);
-
-      }
-      else {
-        console.log(chalkAlert("WAS | *** KEEPALIVE UNAUTHENTICATED SOCKET | DISCONNECTING..."
+      if (configuration.verbose) {
+        console.log(chalkLog("WAS | ... KEEPALIVE AUTHENTICATED SOCKET"
           + " | " + socket.id
-          + " | NSP: " + socket.nsp.name.toUpperCase()
-          + " | " + keepAliveObj.user.userId
+          + " | NSP: " + authSocketObj.namespace.toUpperCase()
+          + " | USER ID: " + authSocketObj.userId
         ));
-        socket.disconnect();
-        serverCache.del(socket.id);
       }
-    });
+
+      authSocketObj.ipAddress = ipAddress;
+      authSocketObj.timeStamp = moment().valueOf();
+
+      authenticatedSocketCache.set(socket.id, authSocketObj);
+
+    }
+    else {
+      console.log(chalkAlert("WAS | *** KEEPALIVE UNAUTHENTICATED SOCKET | DISCONNECTING..."
+        + " | " + socket.id
+        + " | NSP: " + socket.nsp.name.toUpperCase()
+        + " | " + keepAliveObj.user.userId
+      ));
+      socket.disconnect();
+      serverCache.del(socket.id);
+    }
 
 
     if (empty(statsObj.utilities[keepAliveObj.user.userId])) {
@@ -4011,7 +3964,7 @@ function initSocketHandler(socketObj) {
 
         tempServerObj = serverCache.get(socket.id);
 
-        if (!tempServerObj) { 
+        if (tempServerObj == undefined) { 
 
           sessionObj.ip = ipAddress;
           sessionObj.socketId = socket.id;
@@ -4066,7 +4019,7 @@ function initSocketHandler(socketObj) {
 
         tempViewerObj = viewerCache.get(socket.id);
 
-        if (!tempViewerObj) { 
+        if (tempViewerObj == undefined) { 
 
           sessionObj.socketId = socket.id;
           sessionObj.ip = ipAddress;
@@ -4076,7 +4029,6 @@ function initSocketHandler(socketObj) {
           sessionObj.isAdmin = false;
           sessionObj.isServer = false;
           sessionObj.isViewer = true;
-          // sessionObj.stats = keepAliveObj.stats;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
           console.log(chalk.green("+++ ADD " + currentSessionType + " SESSION" 
@@ -4096,7 +4048,6 @@ function initSocketHandler(socketObj) {
           sessionObj.timeStamp = moment().valueOf();
           sessionObj.user = keepAliveObj.user;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
-          // sessionObj.stats = keepAliveObj.stats;
 
           viewerCache.set(socket.id, sessionObj);
           adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
@@ -4512,7 +4463,7 @@ function initSocketHandler(socketObj) {
     const serverObj = serverCache.get(socket.id);
     const viewerObj = viewerCache.get(socket.id);
 
-    if (serverObj) {
+    if (serverObj !== undefined) {
 
       serverObj.status = "STATS";
       serverObj.stats = statsObj;
@@ -4527,7 +4478,7 @@ function initSocketHandler(socketObj) {
       adminNameSpace.emit("SERVER_STATS", serverObj);
     }
 
-    if (viewerObj) {
+    if (viewerObj !== undefined) {
 
       viewerObj.status = "STATS";
       viewerObj.stats = statsObj;
@@ -4567,41 +4518,40 @@ async function initSocketNamespaces(){
 
       const ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
-      authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
+      const authenticatedSocketObj = authenticatedSocketCache.get(socket.id);
 
-        if (authenticatedSocketObj){
-          console.log(chalkAlert("WAS | ADMIN ALREADY AUTHENTICATED"
-            + " | " + socket.id
-            + " | " + authenticatedSocketObj.ipAddress
-            + "\n" + jsonPrint(authenticatedSocketObj)
-          ));
-        }
-        else {
-          socket.on("authentication", function(data) {
+      if (authenticatedSocketObj !== undefined){
+        console.log(chalkAlert("WAS | ADMIN ALREADY AUTHENTICATED"
+          + " | " + socket.id
+          + " | " + authenticatedSocketObj.ipAddress
+          + "\n" + jsonPrint(authenticatedSocketObj)
+        ));
+      }
+      else {
+        socket.on("authentication", function(data) {
 
-            if (configuration.verbose) {
-              console.log("WAS | RX SOCKET AUTHENTICATION"
-                + " | " + socket.nsp.name.toUpperCase()
-                + " | " + ipAddress
-                + " | " + socket.id
-                + " | USER ID: " + data.userId
-              );
-            }
+          if (configuration.verbose) {
+            console.log("WAS | RX SOCKET AUTHENTICATION"
+              + " | " + socket.nsp.name.toUpperCase()
+              + " | " + ipAddress
+              + " | " + socket.id
+              + " | USER ID: " + data.userId
+            );
+          }
 
-            data.ipAddress = ipAddress;
-            data.timeStamp = moment().valueOf();
+          data.ipAddress = ipAddress;
+          data.timeStamp = moment().valueOf();
 
-            authenticatedSocketCache.set(socket.id, data);
+          authenticatedSocketCache.set(socket.id, data);
 
-            statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
+          statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
 
-            initSocketHandler({namespace: "admin", socket: socket});
+          initSocketHandler({namespace: "admin", socket: socket});
 
-            socket.emit("authenticated", true);
+          socket.emit("authenticated", true);
 
-          });
-        }
-      });
+        });
+      }
     });
 
     utilNameSpace.on("connect", function utilConnect(socket) {
@@ -4610,54 +4560,53 @@ async function initSocketNamespaces(){
 
       const ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
-      authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
-        if (authenticatedSocketObj){
-          console.log(chalkAlert("WAS | UTIL ALREADY AUTHENTICATED"
-            + " | " + socket.id
-            + " | " + authenticatedSocketObj.ipAddress
-            + "\n" + jsonPrint(authenticatedSocketObj)
-          ));
-        }
-        else {
-          socket.on("authentication", function(data) {
+      const authenticatedSocketObj = authenticatedSocketCache.get(socket.id);
+      if (authenticatedSocketObj !== undefined){
+        console.log(chalkAlert("WAS | UTIL ALREADY AUTHENTICATED"
+          + " | " + socket.id
+          + " | " + authenticatedSocketObj.ipAddress
+          + "\n" + jsonPrint(authenticatedSocketObj)
+        ));
+      }
+      else {
+        socket.on("authentication", function(data) {
 
-            if (configuration.verbose) {
-              console.log("WAS | RX SOCKET AUTHENTICATION"
-                + " | " + socket.nsp.name.toUpperCase()
-                + " | " + ipAddress
-                + " | " + socket.id
-                + " | USER ID: " + data.userId
-              );
-            }
+          if (configuration.verbose) {
+            console.log("WAS | RX SOCKET AUTHENTICATION"
+              + " | " + socket.nsp.name.toUpperCase()
+              + " | " + ipAddress
+              + " | " + socket.id
+              + " | USER ID: " + data.userId
+            );
+          }
 
-            data.ipAddress = ipAddress;
-            data.timeStamp = moment().valueOf();
+          data.ipAddress = ipAddress;
+          data.timeStamp = moment().valueOf();
 
-            authenticatedSocketCache.set(socket.id, data);
+          authenticatedSocketCache.set(socket.id, data);
 
-            statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
+          statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
 
-            initSocketHandler({namespace: "util", socket: socket});
+          initSocketHandler({namespace: "util", socket: socket});
 
-            socket.emit("authenticated", true);
+          socket.emit("authenticated", true);
 
-          });
-        }
-      });
+        });
+      }
+
     });
 
     userNameSpace.on("connect", function userConnect(socket) {
       console.log(chalk.blue("WAS | USER CONNECT " + socket.id));
 
-      authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
-        if (authenticatedSocketObj){
-          console.log(chalkAlert("WAS | USER ALREADY AUTHENTICATED"
-            + " | " + socket.id
-            + " | " + authenticatedSocketObj.ipAddress
-            + "\n" + jsonPrint(authenticatedSocketObj)
-          ));
-        }
-      });
+      const authenticatedSocketObj = authenticatedSocketCache.get(socket.id);
+      if (authenticatedSocketObj !== undefined){
+        console.log(chalkAlert("WAS | USER ALREADY AUTHENTICATED"
+          + " | " + socket.id
+          + " | " + authenticatedSocketObj.ipAddress
+          + "\n" + jsonPrint(authenticatedSocketObj)
+        ));
+      }
 
       initSocketHandler({namespace: "user", socket: socket});
     });
@@ -4668,38 +4617,38 @@ async function initSocketNamespaces(){
 
       console.log(chalk.blue("WAS | VIEWER CONNECT " + socket.id));
 
-      authenticatedSocketCache.get(socket.id, function(err, authenticatedSocketObj){
-        if (authenticatedSocketObj){
-          console.log(chalkAlert("WAS | VIEWER ALREADY AUTHENTICATED"
+      const authenticatedSocketObj = authenticatedSocketCache.get(socket.id);
+      if (authenticatedSocketObj !== undefined){
+        console.log(chalkAlert("WAS | VIEWER ALREADY AUTHENTICATED"
+          + " | " + socket.id
+          + " | " + authenticatedSocketObj.ipAddress
+          + "\n" + jsonPrint(authenticatedSocketObj)
+        ));
+      }
+      else {
+        socket.on("authentication", function(data) {
+
+          console.log("WAS | RX SOCKET AUTHENTICATION"
+            + " | " + socket.nsp.name.toUpperCase()
+            + " | " + ipAddress
             + " | " + socket.id
-            + " | " + authenticatedSocketObj.ipAddress
-            + "\n" + jsonPrint(authenticatedSocketObj)
-          ));
-        }
-        else {
-          socket.on("authentication", function(data) {
+            + " | USER ID: " + data.userId
+          );
 
-            console.log("WAS | RX SOCKET AUTHENTICATION"
-              + " | " + socket.nsp.name.toUpperCase()
-              + " | " + ipAddress
-              + " | " + socket.id
-              + " | USER ID: " + data.userId
-            );
+          data.ipAddress = ipAddress;
+          data.timeStamp = moment().valueOf();
 
-            data.ipAddress = ipAddress;
-            data.timeStamp = moment().valueOf();
+          authenticatedSocketCache.set(socket.id, data);
 
-            authenticatedSocketCache.set(socket.id, data);
+          statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // viewNameSpace.sockets.length ;
 
-            statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // viewNameSpace.sockets.length ;
+          initSocketHandler({namespace: "view", socket: socket});
 
-            initSocketHandler({namespace: "view", socket: socket});
+          socket.emit("authenticated", true);
 
-            socket.emit("authenticated", true);
+        });
+      }
 
-          });
-        }
-      });
     });
 
     statsObj.ioReady = true;
@@ -4737,59 +4686,28 @@ function processCheckCategory(nodeObj){
       nodeObj.category = categorizedNodeHashMap.get(nodeObj.nodeId).manual;
       nodeObj.categoryAuto = categorizedNodeHashMap.get(nodeObj.nodeId).auto;
 
-      // debugCategory(chalk.blue("WAS | KW HIT WORD NODEID"
-      //   + " | " + nodeObj.nodeId
-      //   + " | CAT: " + nodeObj.category
-      //   + " | CATA: " + nodeObj.categoryAuto
-      // ));
-
       async.parallel({
         overall: function(cb){
-          nodesPerMinuteTopTermCache.get(nodeObj.nodeId, function topTermNodeId(err, nodeRate) {
-            if (err){
-              console.log(chalkError("WAS | nodesPerMinuteTopTermCache GET ERR: " + err));
-              return cb(err);
-            }
-            if (nodeRate !== undefined) {
+          const nodeRate = nodesPerMinuteTopTermCache.get(nodeObj.nodeId);
+          if (nodeRate !== undefined) {
+            nodeObj.isTopTerm = true;
+          }
+          else {
+            nodeObj.isTopTerm = false;
+          }
 
-              // debugCategory(chalkLog("WAS | TOP TERM"
-              //   + " | " + nodeObj.nodeId 
-              //   + " | " + nodeRate.toFixed(3)
-              // ));
+          cb();
 
-              nodeObj.isTopTerm = true;
-            }
-            else {
-              nodeObj.isTopTerm = false;
-            }
-
-            cb();
-
-          });
         },
         nodeType: function(cb){
-          nodesPerMinuteTopTermNodeTypeCache[nodeObj.nodeType].get(nodeObj.nodeId, function topTermNodeId(err, nodeRate) {
-            if (err){
-              console.log(chalkError("WAS | nodesPerMinuteTopTermNodeTypeCache" + nodeObj.nodeType + " GET ERR: " + err));
-              return cb(err);
-            }
-            if (nodeRate !== undefined) {
-
-              // debugCategory(chalkLog("TOP TERM NODE TYPE"
-              //   + " | " + nodeObj.nodeType 
-              //   + " | " + nodeObj.nodeId 
-              //   + " | " + nodeRate.toFixed(3)
-              // ));
-              
-              nodeObj.isTopTermNodeType = true;
-            }
-            else {
-              nodeObj.isTopTermNodeType = false;
-            }
-
-            cb();        
-
-          });    
+          const nodeRate = nodesPerMinuteTopTermNodeTypeCache[nodeObj.nodeType].get(nodeObj.nodeId);
+          if (nodeRate !== undefined) {
+            nodeObj.isTopTermNodeType = true;
+          }
+          else {
+            nodeObj.isTopTermNodeType = false;
+          }
+          cb();
         }
       },
       function(err){
@@ -4881,13 +4799,9 @@ async function updateNodeMeter(node){
   }
   else {
     if ((/TSS_/).test(meterNodeId) || nodeObj.isServer){
-      // debug(chalkLog("updateNodeMeter\n" + jsonPrint(nodeObj)));
       return node;
     }
     else if (empty(nodeMeter[meterNodeId])){
-
-      // nodeMeter[meterNodeId] = null;
-      // nodeMeterType[nodeType][meterNodeId] = null;
 
       nodeMeter[meterNodeId] = new Measured.Meter({rateUnit: 60000});
       nodeMeterType[nodeType][meterNodeId] = new Measured.Meter({rateUnit: 60000});
@@ -4902,21 +4816,7 @@ async function updateNodeMeter(node){
       node.rate = nodeObj.rate;
       node.mentions = nodeObj.mentions;
 
-      // nodeMeter[meterNodeId] = newMeter;
-      // nodeMeterType[nodeType][meterNodeId] = newNodeTypeMeter;
-
       nodeCache.set(meterNodeId, nodeObj);
-
-      // statsObj.nodeMeterEntries = Object.keys(nodeMeter).length;
-
-      // if (statsObj.nodeMeterEntries > statsObj.nodeMeterEntriesMax) {
-      //   statsObj.nodeMeterEntriesMax = statsObj.nodeMeterEntries;
-      //   statsObj.nodeMeterEntriesMaxTime = moment().valueOf();
-      //   debug(chalkLog("NEW MAX NODE METER ENTRIES"
-      //     + " | " + getTimeStamp()
-      //     + " | " + statsObj.nodeMeterEntries.toFixed(0)
-      //   ));
-      // }
 
       return node;
     }
@@ -4926,22 +4826,15 @@ async function updateNodeMeter(node){
       globalNodeMeter.mark();
 
       if (empty(nodeMeterType[nodeType][meterNodeId])){
-
         nodeMeterType[nodeType][meterNodeId] = new Measured.Meter({rateUnit: 60000});
-        // nodeMeterType[nodeType][meterNodeId].mark();
-        // nodeMeterType[nodeType][meterNodeId] = ntMeter;
       }
-      // else {
-      //   nodeMeterType[nodeType][meterNodeId].mark();
-      // }
-
 
       nodeObj.rate = parseFloat(nodeMeter[meterNodeId].toJSON()[metricsRate]);
       node.rate = nodeObj.rate;
 
       const nCacheObj = nodeCache.get(meterNodeId);
 
-      if (nCacheObj) {
+      if (nCacheObj !== undefined) {
         nodeObj.mentions = Math.max(nodeObj.mentions, nCacheObj.mentions);
       }
 
@@ -5666,9 +5559,6 @@ function initTransmitNodeQueueInterval(interval){
             && !uncategorizedAutoUserSet.has(n.nodeId)) {
 
             uncategorizedAutoUserSet.add(n.nodeId);
-            // if (uncategorizedAutoUserSet.size % 100 == 0) {
-            //   printUserObj("TX | UNCAT AUTO USER [" + uncategorizedAutoUserSet.size + "]", n);
-            // }
           }
 
           if (tfeChild !== undefined) { 
@@ -5682,7 +5572,7 @@ function initTransmitNodeQueueInterval(interval){
 
           nCacheObj = nodeCache.get(n.nodeId);
 
-          if (nCacheObj) {
+          if (nCacheObj !== undefined) {
             n.mentions = Math.max(n.mentions, nCacheObj.mentions);
             n.setMentions = true;
           }
@@ -5690,10 +5580,6 @@ function initTransmitNodeQueueInterval(interval){
           n.updateLastSeen = true;
 
           if (!userServerControllerReady || !statsObj.dbConnectionReady) {
-            // console.log(chalkAlert("WAS | *** NOT READY"
-            //   + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
-            //   + " | userServerControllerReady: " + userServerControllerReady
-            // ));
             transmitNodeQueueReady = true;
           }
 
@@ -8259,10 +8145,10 @@ async function loadConfigFile(params) {
       newConfiguration.topTermsCacheTtl = loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL;
     }
 
-    if (loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD !== undefined){
-      console.log("WAS | LOADED TRENDING_CACHE_CHECK_PERIOD: " + loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD);
-      newConfiguration.trendingCacheCheckPeriod = loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD;
-    }
+    // if (loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD !== undefined){
+    //   console.log("WAS | LOADED TRENDING_CACHE_CHECK_PERIOD: " + loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD);
+    //   newConfiguration.trendingCacheCheckPeriod = loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD;
+    // }
 
     if (loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL !== undefined){
       console.log("WAS | LOADED TRENDING_CACHE_DEFAULT_TTL: " + loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL);
@@ -9069,7 +8955,7 @@ function twitUserShow(params){
 
         const nCacheObj = nodeCache.get(user.nodeId);
 
-        if (nCacheObj) {
+        if (nCacheObj !== undefined) {
           user.mentions = Math.max(user.mentions, nCacheObj.mentions);
         }
 
@@ -9167,20 +9053,15 @@ async function twitterSearchUserNode(params){
 }
 
 function uncatUserCacheCheck(nodeId){
-  return new Promise(function(resolve, reject){
+  return new Promise(function(resolve){
 
-    uncatUserCache.get(nodeId, function(err, uncatUserObj){
-      if (err){
-        return reject(err);
-      }
-      
-      if (!uncatUserObj || (uncatUserObj == undefined)){
-        resolve(false);
-      }
-      else {
-        resolve(uncatUserObj);
-      }
-    });
+    const uncatUserObj = uncatUserCache.get(nodeId);
+    if (!uncatUserObj || (uncatUserObj == undefined)){
+      resolve(false);
+    }
+    else {
+      resolve(uncatUserObj);
+    }
 
   });
 }

@@ -962,7 +962,9 @@ function ControlPanel() {
 
 				twitterEntity.addButton("HASHTAG SEARCH", function(data){
 					console.debug("NODE SEARCH: ", twitterEntity.getValue("HASHTAG"));
-		      parentWindow.postMessage({op: "NODE_SEARCH", input: twitterEntity.getValue("HASHTAG")}, DEFAULT_SOURCE);
+          let input = twitterEntity.getValue("HASHTAG");
+          if (!input.startsWith("@")) { input = "#" + input; }
+		      parentWindow.postMessage({op: "NODE_SEARCH", input: input}, DEFAULT_SOURCE);
 				});
 
         twitterEntity.addNumber("FOLLOWERS", twitterFeedUser.followersCount);

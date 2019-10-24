@@ -952,7 +952,9 @@ function ControlPanel() {
 
         twitterEntity.addButton("USER SEARCH", function(data){
           console.debug("NODE SEARCH: ", twitterEntity.getValue("SCREENNAME"));
-          parentWindow.postMessage({op: "NODE_SEARCH", input: twitterEntity.getValue("SCREENNAME")}, DEFAULT_SOURCE);
+          let input = twitterEntity.getValue("SCREENNAME");
+          if (!input.startsWith("@")) { input = "@" + input; }
+          parentWindow.postMessage({op: "NODE_SEARCH", input: input}, DEFAULT_SOURCE);  
         });
 
         const hashtag = (twitterFeedHashtag) ? "#"+twitterFeedHashtag.nodeId : "#";

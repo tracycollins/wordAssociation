@@ -345,19 +345,6 @@ const userChangeCache = new NodeCache({
   checkperiod: userChangeCacheCheckPeriod
 });
 
-// function userChangeCacheExpired(userChangeCacheId, changeObj) {
-
-//   debug(chalkLog("WAS | TFC | XXX USER CHANGE CACHE EXPIRED"
-//     + " | TTL: " + userChangeCacheTtl + " SECS"
-//     + " | " + userChangeCacheId
-//     + " | UID: " + changeObj.user.userId
-//     + " | @" + changeObj.user.screenName
-//   ));
-// }
-
-// userChangeCache.on("expired", userChangeCacheExpired);
-
-
 // ==================================================================
 // MONGO DB
 // ==================================================================
@@ -636,7 +623,7 @@ networkOutput.negative = 0;
 
 function processTweetObj(params){
 
-  return new Promise(function(resolve, reject){
+  return new Promise(function(resolve){
 
     const tweetObj = params.tweetObj;
     const histograms = params.histograms;
@@ -656,13 +643,11 @@ function processTweetObj(params){
 
         if (empty(entityObj)) {
           debug(chalkAlert("WAS | TFC | *** processTweetObj EMPTY ENTITY | ENTITY TYPE: " + entityType + " | entityObj: " + jsonPrint(entityObj)));
-          // return reject(new Error("EMPTY ENTITY"));
           continue;
         }
 
         if (empty(entityObj.nodeId)) {
           debug(chalkAlert("WAS | TFC | *** processTweetObj UNDEFINED NODE ID | ENTITY TYPE: " + entityType + " | entityObj: " + jsonPrint(entityObj)));
-          // return reject(new Error("UNDEFINED NODE ID"));
           continue;
         }
 
@@ -676,7 +661,6 @@ function processTweetObj(params){
           case "userMentions":
             if (empty(entityObj.screenName)) {
               console.log(chalkAlert("WAS | TFC | *** processTweetObj UNDEFINED SCREEN NAME | ENTITY TYPE: " + entityType + " | entityObj: " + jsonPrint(entityObj)));
-              // return reject(new Error("UNDEFINED SCREEN NAME"));
               continue;
             }
             entity = "@" + entityObj.screenName.toLowerCase();
@@ -709,7 +693,6 @@ function processTweetObj(params){
           default:
             console.log(chalkError("WAS | TFC | *** processTweetObj UNKNOWN ENTITY TYPE: " + entityType));
             continue;
-            // return reject(new Error("UNKNOWN ENTITY TYPE"));
         }
 
         if (empty(histograms[entityType])){
@@ -920,13 +903,8 @@ async function updateUserTweets(params){
 
       if (histogramIncompleteFlag) { user.tweetHistograms = {}; }
 
-      try{
-        const latestTweets = await tcUtils.fetchUserTweets({user: user, force: true});
-        if (latestTweets) { user.latestTweets = latestTweets; }
-      }
-      catch(err){
-        throw err;
-      }
+      const latestTweets = await tcUtils.fetchUserTweets({user: user, force: true});
+      if (latestTweets) { user.latestTweets = latestTweets; }
     }
 
     if (user.latestTweets.length == 0) { 
@@ -1481,7 +1459,6 @@ process.on("message", async function(m) {
 
       cacheObj = userChangeCache.get(m.user.nodeId);
 
-      // if (m.priorityFlag || (configuration.verbose && (cacheObj === undefined))) { 
       if (m.priorityFlag) { 
         console.log(chalkInfo("WAS | TFC | USER CAT $ MISS"
           + " [UC$: " + userChangeCache.getStats().keys + "]"

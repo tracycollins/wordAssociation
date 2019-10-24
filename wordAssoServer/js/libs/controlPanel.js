@@ -963,7 +963,7 @@ function ControlPanel() {
 				twitterEntity.addButton("HASHTAG SEARCH", function(data){
 					console.debug("NODE SEARCH: ", twitterEntity.getValue("HASHTAG"));
           let input = twitterEntity.getValue("HASHTAG");
-          if (!input.startsWith("@")) { input = "#" + input; }
+          if (!input.startsWith("#")) { input = "#" + input; }
 		      parentWindow.postMessage({op: "NODE_SEARCH", input: input}, DEFAULT_SOURCE);
 				});
 

@@ -108,7 +108,7 @@
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
-    "eslint": "^6.5.1",
+    "eslint": "^6.6.0",
     "jshint": "^2.10.2"
   },
   "scripts": {

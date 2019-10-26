@@ -5353,8 +5353,7 @@ async function updateUserSets(){
       }
       
       if (((category == "left") || (category == "neutral") || (category == "right"))
-        && ((categoryAuto == "left") || (categoryAuto == "neutral") || (categoryAuto == "right"))
-      ) { 
+        && ((categoryAuto == "left") || (categoryAuto == "neutral") || (categoryAuto == "right"))) { 
 
         uncategorizedManualUserSet.delete(nodeId); 
         uncategorizedAutoUserSet.delete(nodeId); 
@@ -5391,6 +5390,7 @@ async function updateUserSets(){
           }
         }
       }
+
     }
   });
 
@@ -5519,15 +5519,6 @@ function initTransmitNodeQueueInterval(interval){
         if (empty(nodeObj.category)) { nodeObj.category = false; }
         if (empty(nodeObj.categoryAuto)) { nodeObj.categoryAuto = false; }
 
-        // if (configuration.verbose) {
-        //   debug(chalkInfo("TX NODE DE-Q"
-        //     + " | NID: " + nodeObj.nodeId
-        //     + " | " + nodeObj.nodeType
-        //     + " | CAT: " + nodeObj.category
-        //     + " | CATA: " + nodeObj.categoryAuto
-        //   ));
-        // }
-
         const node = await checkCategory(nodeObj);
         const n = await updateNodeMeter(node);
 
@@ -5539,7 +5530,14 @@ function initTransmitNodeQueueInterval(interval){
             console.log(chalkError("WAS | *** CATEGORIZED NOT USER: CAT: " + categorizeable + " | TYPE: " + n.nodeType));
           }
 
+          if (n.category == "left" || n.category == "right" || n.category == "neutral") {
+            uncatUserCache.del(n.nodeId);
+          }
+
+          const uncatUserObj = uncatUserCache.get(n.nodeId);
+
           if (!uncategorizedManualUserSet.has(n.nodeId) 
+            && (uncatUserObj == undefined)
             && (!n.category || (n.category === undefined))
             && (!n.ignored || (n.ignored === undefined))
             && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && n.categoryAuto && (n.categoryAuto != "right")))
@@ -5549,9 +5547,6 @@ function initTransmitNodeQueueInterval(interval){
             && !unfollowableUserSet.has(n.nodeId)) { 
 
             uncategorizedManualUserSet.add(n.nodeId);
-            // if (uncategorizedManualUserSet.size % 100 == 0) {
-            //   printUserObj("TX | UNCAT MAN USER  [" + uncategorizedManualUserSet.size + "]", n);
-            // }
           }
 
           if (!n.categoryAuto 
@@ -5568,6 +5563,7 @@ function initTransmitNodeQueueInterval(interval){
             }
           }
         }
+
         if ((n.nodeType == "user") && (n.category || n.categoryAuto || n.following || n.threeceeFollowing)){
 
           nCacheObj = nodeCache.get(n.nodeId);

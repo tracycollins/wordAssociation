@@ -5100,6 +5100,7 @@ async function updateUserSets(){
       lang: 1, 
       category: 1, 
       categoryAuto: 1, 
+      categoryVerified: 1, 
       following: 1, 
       followersCount: 1, 
       ignored: 1,

@@ -2024,93 +2024,99 @@ process.on("message", async function(m) {
         stringify_ids: true
       };
 
-      const data = await twitStreamPromise({resource: "friends", endPoint: "ids", twitParams: twitGetFriendsParams});
+      try{
+        const data = await twitStreamPromise({resource: "friends", endPoint: "ids", twitParams: twitGetFriendsParams});
 
-      threeceeUserObj.stats.error = false;
-      threeceeUserObj.stats.authenticated = true;
-      threeceeUserObj.followUserIdSet = new Set(data.ids);
+        if (!data || data == undefined) {
 
-      if (!data || data == undefined) {
+          threeceeUserObj.stats.error = false;
+          threeceeUserObj.stats.authenticated = true;
 
-        console.log(chalkAlert("TSS | !!! EMPTY TWITTER GET FRIENDS IDS"
+          console.log(chalkAlert("TSS | !!! EMPTY TWITTER GET FRIENDS IDS"
+            + " | @" + threeceeUserObj.screenName
+            + " | followUserIdSet: " + threeceeUserObj.followUserIdSet.size + " FRIENDS"
+          ));
+
+          if (threeceeUserObj.followUserIdSet.size === 0){
+            return;
+          }
+        }
+        else{
+          threeceeUserObj.stats.error = false;
+          threeceeUserObj.stats.authenticated = true;
+          threeceeUserObj.followUserIdSet = new Set(data.ids);
+        }
+
+        console.log(chalkTwitter("TSS | TWITTER GET FRIENDS IDS"
           + " | @" + threeceeUserObj.screenName
-          + " | followUserIdSet: " + threeceeUserObj.followUserIdSet.size + " FRIENDS"
+          + " | " + threeceeUserObj.followUserIdSet.size + " FRIENDS"
         ));
 
-        if (threeceeUserObj.followUserIdSet.size === 0){
-          return;
-        }
-      }
-      else{
-        threeceeUserObj.followUserIdSet = new Set(data.ids);
-      }
+        let userIndex = 0;
+        let printString = "";
 
-      console.log(chalkTwitter("TSS | TWITTER GET FRIENDS IDS"
-        + " | @" + threeceeUserObj.screenName
-        + " | " + threeceeUserObj.followUserIdSet.size + " FRIENDS"
-      ));
+        const followUserIdArray = [...threeceeUserObj.followUserIdSet];
 
-      let userIndex = 0;
-      let printString = "";
+        for(const userId of followUserIdArray){
 
-      const followUserIdArray = [...threeceeUserObj.followUserIdSet];
+          userIndex += 1;
 
-      for(const userId of followUserIdArray){
+          try{
 
-        userIndex += 1;
+            const user = await wordAssoDb.User.findOne({ userId: userId });
 
-        try{
+            if (user) {
 
-          const user = await wordAssoDb.User.findOne({ userId: userId });
+              if (configuration.verbose || (userIndex % 100 == 0)){
+                printString = "TSS | [ " + userIndex + "/" + threeceeUserObj.followUserIdSet.size + " ] @" + threeceeUserObj.screenName + " | DB HIT";
+                printUserObj(printString, user);
+              }
 
-          if (user) {
-
-            if (configuration.verbose || (userIndex % 100 == 0)){
-              printString = "TSS | [ " + userIndex + "/" + threeceeUserObj.followUserIdSet.size + " ] @" + threeceeUserObj.screenName + " | DB HIT";
-              printUserObj(printString, user);
+              if (!user.following) {
+                user.following = true;
+                user.threeceeFollowing = threeceeUserObj.screenName;
+                user.markModified("following");
+                user.markModified("threeceeFollowing");
+                user.save(function(err){
+                  if (err) { console.log(chalkError("TSS | *** USER DB SAVE ERROR: " + err)); }
+                });
+              }
             }
-
-            if (!user.following) {
-              user.following = true;
-              user.threeceeFollowing = threeceeUserObj.screenName;
-              user.markModified("following");
-              user.markModified("threeceeFollowing");
-              user.save(function(err){
-                if (err) { console.log(chalkError("TSS | *** USER DB SAVE ERROR: " + err)); }
-              });
+            else {
+              console.log(chalkLog("TSS | [ " + userIndex + "/" + threeceeUserObj.followUserIdSet.size + " ]"
+                + " 3C @" + threeceeUserObj.screenName 
+                + " | DB USER MISS  | UID: " + userId
+              ));
             }
           }
-          else {
-            console.log(chalkLog("TSS | [ " + userIndex + "/" + threeceeUserObj.followUserIdSet.size + " ]"
-              + " 3C @" + threeceeUserObj.screenName 
-              + " | DB USER MISS  | UID: " + userId
-            ));
+          catch(err){
+            console.log(chalkAlert("TSS | *** USER DB ERROR *** | " + err));
+            throw err;
           }
-
         }
-        catch(err){
-          console.log(chalkAlert("TSS | *** USER DB ERROR *** | " + err));
-          throw err;
+
+        await initSearchTerms(configuration);
+        await initSearchStream();
+
+        console.log(chalkInfo("TSS | INIT SEARCH TERMS COMPLETE | 3C @" + threeceeUserObj.screenName));
+
+        if (!twitterSearchInit) { 
+          await initTwitterSearch(configuration);
         }
+
+        process.send({
+          op: "TWITTER_STATS", 
+          threeceeUser: threeceeUserObj.screenName,
+          twitterConfig: threeceeUserObj.twitterConfig,
+          stats: threeceeUserObj.stats, 
+          twitterFollowing: threeceeUserObj.followUserIdSet.size,
+          twitterFriends: [...threeceeUserObj.followUserIdSet]
+        });
+
       }
-
-      await initSearchTerms(configuration);
-      await initSearchStream();
-
-      console.log(chalkInfo("TSS | INIT SEARCH TERMS COMPLETE | 3C @" + threeceeUserObj.screenName));
-
-      if (!twitterSearchInit) { 
-        await initTwitterSearch(configuration);
+      catch(err){
+        console.log(chalkError("TSS | *** USER AUTHENTICATE ERROR: " + err));
       }
-
-      process.send({
-        op: "TWITTER_STATS", 
-        threeceeUser: threeceeUserObj.screenName,
-        twitterConfig: threeceeUserObj.twitterConfig,
-        stats: threeceeUserObj.stats, 
-        twitterFollowing: threeceeUserObj.followUserIdSet.size,
-        twitterFriends: [...threeceeUserObj.followUserIdSet]
-      });
 
     break;
 

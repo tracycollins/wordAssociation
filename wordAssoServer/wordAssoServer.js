@@ -1029,26 +1029,26 @@ function printHashtag(params) {
 }
 
 function printUser(params) {
-  let text;
   const user = params.user;
 
   if (params.verbose) {
     return jsonPrint(params.user);
   } 
   else {
-    text = user.userId
+    const cat = (empty(user.category)) ? "-" : user.category.charAt(0).toUpperCase();
+    const catAuto = (empty(user.categoryAuto)) ? "-" : user.categoryAuto.charAt(0).toUpperCase();
+    const text = user.userId
     + " | @" + user.screenName
     + " | " + user.name 
     + " | LG " + user.lang
     + " | FW " + user.followersCount
-    + " | FD " + user.friendsCount
+    + " | FD " + user.friendsCountf
     + " | T " + user.statusesCount
     + " | M  " + user.mentions
     + " | LS " + getTimeStamp(user.lastSeen)
     + " | FWG " + user.following 
-    + " | 3C " + user.threeceeFollowing 
     + " | LC " + user.location
-    + " | C M " + user.category + " A " + user.categoryAuto;
+    + " | C M: " + cat + " A: " + catAuto;
     return text;
   }
 }
@@ -2818,7 +2818,7 @@ async function addTwitterAccountActivitySubscription(p){
   }
 }
 
-function categorizeNode(categorizeObj, callback) {
+async function categorizeNode(categorizeObj) {
 
   if (categorizeObj.twitterUser && categorizeObj.twitterUser.nodeId) {
 
@@ -2826,14 +2826,11 @@ function categorizeNode(categorizeObj, callback) {
 
     if ((user == undefined)
       && (categorizeObj.twitterUser.nodeId != "14607119") 
-      && (categorizeObj.twitterUser.nodeId != "848591649575927810")) 
-    {
+      && (categorizeObj.twitterUser.nodeId != "848591649575927810")) {
+
       console.log(chalkAlert("WAS | *** AUTH USER NOT IN CACHE\n" + jsonPrint(categorizeObj.twitterUser)));
 
-      if (callback !== undefined) {
-        return(callback("AUTH USER NOT IN CACHE", categorizeObj.twitterUser));
-      }
-      return;
+      return categorizeObj.twitterUser;
     }
   }
 
@@ -2846,7 +2843,12 @@ function categorizeNode(categorizeObj, callback) {
   const node = categorizeObj.node;
   const nodeId = categorizeObj.node.nodeId.toLowerCase();
 
+  const query = {nodeId: nodeId};
+  const update = {};
+  const options = {new: true, upsert: true};
+
   switch (node.nodeType){
+
     case "user":
 
       cObj.manual = categorizeObj.category;
@@ -2854,6 +2856,9 @@ function categorizeNode(categorizeObj, callback) {
       if (categorizedUserHashMap.has(nodeId)){
         cObj.auto = categorizedUserHashMap.get(nodeId).auto || false;
       }
+
+      update.category = categorizeObj.category;
+      if (cObj.auto) { update.categoryAuto = cObj.auto; }
 
       categorizedHashtagHashMap.set(nodeId, cObj);
 
@@ -2863,6 +2868,7 @@ function categorizeNode(categorizeObj, callback) {
         node.mentions = Math.max(node.mentions, nCacheObj.mentions);
         nCacheObj.mentions = node.mentions;
         nodeCache.set(nCacheObj.nodeId, nCacheObj);
+        update.mentions = node.mentions;
       }
 
       if (!userServerControllerReady || !statsObj.dbConnectionReady) {
@@ -2870,86 +2876,70 @@ function categorizeNode(categorizeObj, callback) {
           + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
           + " | userServerControllerReady: " + userServerControllerReady
         ));
-        return callback(new Error("userServerController not ready"), null);
+        throw new Error("userServerController not ready");
       }
 
-      userServerController.updateCategory(
-        {user: node, category: categorizeObj.category}, 
-        function(err, updatedUser){
+      try{
 
-        if (err) {
-          console.log(chalkError("WAS | *** USER UPDATE CATEGORY ERROR: " + jsonPrint(err)));
-          if (callback !== undefined) {
-            callback(err, categorizeObj);
+        const updatedUser = await wordAssoDb.User.findOneAndUpdate(query, update, options);
+
+        if (categorizeObj.follow) {
+
+          const updatedFollowUser = await follow({user: updatedUser, forceFollow: true});
+
+          if (!updatedFollowUser) {
+            console.log(chalkError("WAS | TWITTER FOLLOW ERROR: NULL UPDATED USER"));
+            return;
           }
+
+          categorizedUserHashMap.set(
+            updatedFollowUser.nodeId, 
+            { 
+              nodeId: updatedFollowUser.nodeId, 
+              screenName: updatedFollowUser.screenName, 
+              manual: updatedFollowUser.category, 
+              auto: updatedFollowUser.categoryAuto
+            }
+          );
+
+          if (updatedFollowUser.category) { uncategorizedManualUserSet.delete(updatedFollowUser.nodeId); }
+          if (updatedFollowUser.categoryAuto) { uncategorizedAutoUserSet.delete(updatedFollowUser.nodeId); }
+
+          console.log(chalk.blue("WAS | +++ TWITTER_FOLLOW"
+            + " | UID: " + updatedFollowUser.nodeId
+            + " | @" + updatedFollowUser.screenName
+          ));
+
+          return updatedFollowUser;
         }
         else {
 
-          if (categorizeObj.follow) {
-            follow({user: updatedUser, forceFollow: true}, function(err, updatedFollowUser){
-              if (err) {
-                console.log(chalkError("WAS | TWITTER FOLLOW ERROR: " + err));
-                return;
-              }
-
-              if (!updatedFollowUser) {
-                console.log(chalkError("WAS | TWITTER FOLLOW ERROR: NULL UPDATED USER"));
-                return;
-              }
-
-              categorizedUserHashMap.set(
-                updatedFollowUser.nodeId, 
-                { 
-                  nodeId: updatedFollowUser.nodeId, 
-                  screenName: updatedFollowUser.screenName, 
-                  manual: updatedFollowUser.category, 
-                  auto: updatedFollowUser.categoryAuto
-                }
-              );
-
-              if (updatedFollowUser.category) { uncategorizedManualUserSet.delete(updatedFollowUser.nodeId); }
-              if (updatedFollowUser.categoryAuto) { uncategorizedAutoUserSet.delete(updatedFollowUser.nodeId); }
-
-
-              console.log(chalk.blue("WAS | +++ TWITTER_FOLLOW"
-                + " | UID" + updatedFollowUser.nodeId
-                + " | @" + updatedFollowUser.screenName
-              ));
-
-              // debug(chalkLog("UPDATE_CATEGORY USER | @" + updatedFollowUser.screenName ));
-              if (callback !== undefined) {
-                callback(null, updatedFollowUser);
-              }
-
-            });
-          }
-          else {
-
-            categorizedUserHashMap.set(
-              updatedUser.nodeId, 
-              { 
-                nodeId: updatedUser.nodeId, 
-                screenName: updatedUser.screenName, 
-                manual: updatedUser.category, 
-                auto: updatedUser.categoryAuto
-              }
-            );
-
-            if (updatedUser.category) { uncategorizedManualUserSet.delete(updatedUser.nodeId); }
-            if (updatedUser.categoryAuto) { uncategorizedAutoUserSet.delete(updatedUser.nodeId); }
-
-            // debug(chalkLog("UPDATE_CATEGORY USER | @" + updatedUser.screenName ));
-            if (callback !== undefined) {
-              callback(null, updatedUser);
+          categorizedUserHashMap.set(
+            updatedUser.nodeId, 
+            { 
+              nodeId: updatedUser.nodeId, 
+              screenName: updatedUser.screenName, 
+              manual: updatedUser.category, 
+              auto: updatedUser.categoryAuto
             }
+          );
 
-          }
+          if (updatedUser.category) { uncategorizedManualUserSet.delete(updatedUser.nodeId); }
+          if (updatedUser.categoryAuto) { uncategorizedAutoUserSet.delete(updatedUser.nodeId); }
+
+          return updatedUser;
         }
-      });
-    break;
+      }
+      catch(err) {
+        console.log(chalkError("WAS | *** USER UPDATE CATEGORY ERROR: " + err));
+        throw err;
+      }
 
     case "hashtag":
+
       cObj.manual = categorizeObj.category;
+
+      update.category = categorizeObj.category;
 
       if (categorizedHashtagHashMap.has(nodeId)){
         cObj.auto = categorizedHashtagHashMap.get(nodeId).auto || false;
@@ -2963,32 +2953,25 @@ function categorizeNode(categorizeObj, callback) {
         node.mentions = Math.max(node.mentions, nCacheObj.mentions);
         nCacheObj.mentions = node.mentions;
         nodeCache.set(nCacheObj.nodeId, nCacheObj);
+        update.mentions = node.mentions;
       }
 
-      hashtagServerController.updateCategory(
-        { hashtag: node, category: categorizeObj.category }, 
-        function(err, updatedHashtag){
-        if (err) {
-          console.log(chalkError("WAS | *** HASHTAG UPDATE CATEGORY ERROR: " + jsonPrint(err)));
-          if (callback !== undefined) {
-            callback(err, categorizeObj);
-          }
-        }
-        else {
+      try{
+        const updatedHashtag = await wordAssoDb.Hashtag.findOneAndUpdate(query, update, options);
 
-          categorizedHashtagHashMap.set(
-            updatedHashtag.nodeId, 
-            { manual: updatedHashtag.category, auto: updatedHashtag.categoryAuto });
+        categorizedHashtagHashMap.set(
+          updatedHashtag.nodeId, 
+          { manual: updatedHashtag.category, auto: updatedHashtag.categoryAuto });
 
-          if (callback !== undefined) {
-            callback(null, updatedHashtag);
-          }
-        }
-      });
-    break;
+        return updatedHashtag;
+      }
+      catch(err){
+        console.log(chalkError("WAS | *** HASHTAG UPDATE CATEGORY ERROR: " + err));
+        throw err;
+      }
 
     default:
-      callback(new Error("categorizeNode TYPE: " + node.nodeType), null);
+      throw new Error("categorizeNode TYPE: " + node.isTopTermNodeType);
   }
 }
 
@@ -3078,7 +3061,7 @@ function enableFollow(params){
   return true;
 }
 
-function follow(params, callback) {
+async function follow(params) {
 
   if (!enableFollow(params)) { 
 
@@ -3086,12 +3069,7 @@ function follow(params, callback) {
       + " | IN UNFOLLOWABLE, FOLLOWED or IGNORED USER SET"
     ));
 
-    if (callback !== undefined) { 
-      return callback("XXX FOLLOW", null);
-    }
-    else {
-      return;
-    }
+    return;
   }
 
   followedUserSet.add(params.user.nodeId);
@@ -3119,12 +3097,10 @@ function follow(params, callback) {
     upsert: false
   };
 
-  wordAssoDb.User.findOneAndUpdate(query, update, options, function(err, userUpdated){
+  try{
+    const userUpdated = await wordAssoDb.User.findOneAndUpdate(query, update, options);
 
-    if (err) {
-      console.log(chalkError("WAS | *** FOLLOW | USER FIND ONE ERROR: " + err));
-    }
-    else if (userUpdated){
+    if (userUpdated){
 
       console.log(chalkLog("WAS | +++ FOLLOW"
         + " | " + printUser({user: userUpdated})
@@ -3146,8 +3122,9 @@ function follow(params, callback) {
             + " | " + printUser({user: userUpdated})
           ));
         }
-
       }
+
+      return userUpdated;
 
     }
     else {
@@ -3155,11 +3132,14 @@ function follow(params, callback) {
         + " | NID: " + params.user.nodeId
         + " | @" + params.user.screenName
       ));
+
+      return;
     }
 
-    if (callback !== undefined) { callback(err, userUpdated); }
-
-  });
+  }
+  catch(err) {
+    console.log(chalkError("WAS | *** FOLLOW | USER FIND ONE ERROR: " + err));
+  }
 }
 
 async function categoryVerified(params) {
@@ -4062,7 +4042,7 @@ function initSocketHandler(socketObj) {
     }
   });
 
-  socket.on("TWITTER_FOLLOW", function(user) {
+  socket.on("TWITTER_FOLLOW", async function(user) {
 
     if (empty(user)) {
       console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: NULL USER"));
@@ -4082,25 +4062,29 @@ function initSocketHandler(socketObj) {
       + " | @" + user.screenName
     ));
 
-    follow({user: user, forceFollow: true}, function(err, updatedUser){
-      if (err) {
-        console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: " + err));
-        return;
-      }
+    try{
+
+      const updatedUser = await follow({user: user, forceFollow: true});
 
       if (!updatedUser) {
         console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: NULL UPDATED USER"));
-        return;
+      }
+      else{
+        console.log(chalk.blue("WAS | +++ TWITTER_FOLLOW"
+          + " | " + ipAddress
+          + " | " + socket.id
+          + " | UID" + updatedUser.nodeId
+          + " | @" + updatedUser.screenName
+        ));
       }
 
-      console.log(chalk.blue("WAS | +++ TWITTER_FOLLOW"
-        + " | " + ipAddress
-        + " | " + socket.id
-        + " | UID" + updatedUser.nodeId
-        + " | @" + updatedUser.screenName
-      ));
+    }
+    catch(err) {
+      console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: " + err));
+      throw err;
+    }
 
-    });
+
   });
 
   socket.on("TWITTER_UNFOLLOW", function(user) {
@@ -4329,24 +4313,24 @@ function initSocketHandler(socketObj) {
       }
       else if (updatedNodeObj) {
         if (updatedNodeObj.nodeType == "user") {
-          // socket.emit("SET_TWITTER_USER", {user: updatedNodeObj, stats: statsObj.user });
-          console.log(chalkSocket("TX> SET_TWITTER_USER"
-            + " | " + getTimeStamp(timeStamp)
-            + " | SID: " + socket.id
-            + "\nNID: " + updatedNodeObj.nodeId
-            + " | UID: " + updatedNodeObj.userId
-            + " | @" + updatedNodeObj.screenName
-            + " | NAME: " + updatedNodeObj.name
-            + " | LANG: " + updatedNodeObj.lang
-            // + " | LANG ANZD: " + updatedNodeObj.languageAnalyzed
-            + " | IG: " + updatedNodeObj.ignored
-            + "\nFLWRs: " + updatedNodeObj.followersCount
-            + " | FRNDs: " + updatedNodeObj.friendsCount
-            + " | Ms: " + updatedNodeObj.mentions
-            + " | Ts: " + updatedNodeObj.statusesCount
-            + " | CV: " + updatedNodeObj.categoryVerified
-            + " | CM: " + updatedNodeObj.category
-            + " | CA: " + updatedNodeObj.categoryAuto
+
+          console.log(chalkSocket("TX> SET_USER"
+            + " | " + printUser({user: updatedNodeObj})
+            // + " | " + getTimeStamp(timeStamp)
+            // + " | SID: " + socket.id
+            // + "\nNID: " + updatedNodeObj.nodeId
+            // + " | UID: " + updatedNodeObj.userId
+            // + " | @" + updatedNodeObj.screenName
+            // + " | NAME: " + updatedNodeObj.name
+            // + " | LANG: " + updatedNodeObj.lang
+            // + " | IG: " + updatedNodeObj.ignored
+            // + "\nFLWRs: " + updatedNodeObj.followersCount
+            // + " | FRNDs: " + updatedNodeObj.friendsCount
+            // + " | Ms: " + updatedNodeObj.mentions
+            // + " | Ts: " + updatedNodeObj.statusesCount
+            // + " | CV: " + updatedNodeObj.categoryVerified
+            // + " | CM: " + updatedNodeObj.category
+            // + " | CA: " + updatedNodeObj.categoryAuto
           ));
         }
         if (updatedNodeObj.nodeType == "hashtag") {
@@ -5779,7 +5763,6 @@ function initAppRouting(callback) {
           console.log(chalkAlert("WAS | >>> TWITTER USER FOLLOW EVENT"
             + " | SOURCE: @" + followEvents[0].source.screen_name
             + " | TARGET: @" + followEvents[0].target.screen_name
-            // + "\n" + jsonPrint(followEvents)
           ));
 
           const user = {
@@ -5788,24 +5771,18 @@ function initAppRouting(callback) {
             screenName: followEvents[0].target.screen_name
           }
 
-          follow({user: user, forceFollow: true}, function(err, updatedUser){
-            if (err) {
-              console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: " + err));
-              return;
-            }
-            
+          follow({user: user, forceFollow: true})
+          .then(function(updatedUser){
             if (!updatedUser) { return; }
-
             adminNameSpace.emit("FOLLOW", updatedUser);
             utilNameSpace.emit("FOLLOW", updatedUser);
 
-            // debug(chalk.blue("WAS | +++ TWITTER FOLLOW"
-            //   + " | UID" + updatedUser.nodeId
-            //   + " | @" + updatedUser.screenName
-            // ));
-
+          })
+          .catch(function(err){
+            console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: " + err));
+            return;
           });
-
+        
         }
         
         if (followEvents && (followEvents[0].type == "unfollow")) {
@@ -5832,38 +5809,22 @@ function initAppRouting(callback) {
 
             adminNameSpace.emit("UNFOLLOW", updatedUser);
             utilNameSpace.emit("UNFOLLOW", updatedUser);
-
-            // debug(chalk.blue("WAS | XXX TWITTER UNFOLLOW"
-            //   + " | UID" + updatedUser.nodeId
-            //   + " | @" + updatedUser.screenName
-            // ));
-
           });
         }
         
         res.sendStatus(200);
       }
-
     }
     else if (req.path == "/dropbox_webhook") {
 
       if (configuration.verbose) {
-
         console.log(chalkInfo("WAS | R< DROPBOX WEB HOOK | /dropbox_webhook"
-          // + " | DB CURSOR READY: " + dropboxFolderGetLastestCursorReady
         )); 
-
-        // debug(chalkInfo("WAS | R< dropbox_webhook"
-        //   + "\nreq.query\n" + jsonPrint(req.query)
-        //   + "\nreq.params\n" + jsonPrint(req.params)
-        //   + "\nreq.body\n" + jsonPrint(req.body)
-        // )); 
       }
 
       res.send(req.query.challenge);
 
       next();
-
     }
     else if (req.path == "/googleccd19766bea2dfd2.html") {
 
@@ -7105,12 +7066,10 @@ async function initTfeChild(params){
       break;
 
       case "TWEET":
-         // if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + m.tweet.id_str + " | @" + m.tweet.user.screen_name)); }
         socketRxTweet(m.tweet);
       break;
 
       case "NETWORK_STATS":
-        // debug(chalkInfo("TFE | R< NET STATS\n" + jsonPrint(m.stats)));
       break;
 
       case "USER_CATEGORIZED":
@@ -9186,7 +9145,6 @@ async function processTwitterSearchNode(params) {
         u.following = true;
         u.threeceeFollowing = "altthreecee00";
       }
-      // if (!uuObj) { viewNameSpace.emit("SET_TWITTER_USER", { user: u, stats: statsObj.user }); }
       return {user: u, cacheHit: uncatUserCacheHit};
     }
     else{
@@ -9197,7 +9155,6 @@ async function processTwitterSearchNode(params) {
         params.user.following = true;
         params.user.threeceeFollowing = "altthreecee00";
       }
-      // if (!uuObj) { viewNameSpace.emit("SET_TWITTER_USER", { user: params.user, stats: statsObj.user }); }
       return {user: params.user, cacheHit: uncatUserCacheHit};
     }
 

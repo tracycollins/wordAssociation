@@ -1475,10 +1475,9 @@ process.on("message", async function(m) {
           }
           else {
             user.priorityFlag = false;
+            userChangeCache.set(user.nodeId, {user: user, timeStamp: moment().valueOf()});
             processUserQueue.push({user: user, searchMode: m.searchMode});
           }
-
-          userChangeCache.set(user.nodeId, {user: user, timeStamp: moment().valueOf()});
 
         }
         catch(err){  
@@ -1490,10 +1489,10 @@ process.on("message", async function(m) {
           }
           else {
             m.user.priorityFlag = false;
+            userChangeCache.set(m.user.nodeId, {user: m.user, timeStamp: moment().valueOf()});
             processUserQueue.push({user: m.user, searchMode: m.searchMode});
           }
 
-          userChangeCache.set(m.user.nodeId, {user: m.user, timeStamp: moment().valueOf()});
         }
       }
 

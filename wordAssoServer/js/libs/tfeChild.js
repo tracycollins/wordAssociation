@@ -1443,13 +1443,24 @@ process.on("message", async function(m) {
       cacheObj = userChangeCache.get(m.user.nodeId);
 
       if (m.priorityFlag) { 
-        console.log(chalkInfo("WAS | TFC | USER CAT $ MISS"
-          + " [UC$: " + userChangeCache.getStats().keys + "]"
-          + " [PUQ: " + processUserQueue.length + "]"
-          + " | MODE: " + m.searchMode
-          + " | NID: " + m.user.nodeId
-          + " | @" + m.user.screenName
-        ));
+        if (cacheObj){
+          console.log(chalk.yellow("WAS | TFC | USER CAT $ MISS"
+            + " [UC$: " + userChangeCache.getStats().keys + "]"
+            + " [PUQ: " + processUserQueue.length + "]"
+            + " | MODE: " + m.searchMode
+            + " | NID: " + m.user.nodeId
+            + " | @" + m.user.screenName
+          ));
+        }
+        else{
+          console.log(chalk.green("WAS | TFC | USER CAT $ HIT "
+            + " [UC$: " + userChangeCache.getStats().keys + "]"
+            + " [PUQ: " + processUserQueue.length + "]"
+            + " | MODE: " + m.searchMode
+            + " | NID: " + m.user.nodeId
+            + " | @" + m.user.screenName
+          ));
+        }
       }
 
       if (m.priorityFlag || ((cacheObj === undefined) && (processUserQueue.length < USER_PROCESS_QUEUE_MAX_LENGTH))){

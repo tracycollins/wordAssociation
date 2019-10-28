@@ -99,6 +99,7 @@ const DEFAULT_ENABLE_LANG_ANALYSIS = true;
 const DEFAULT_FORCE_GEOCODE = false;
 const DEFAULT_ENABLE_GEOCODE = true;
 
+const DEFAULT_DB_USER_MISS_QUEUE_INTERVAL = ONE_SECOND;
 const DEFAULT_UPDATE_USER_SETS_INTERVAL = 5*ONE_MINUTE;
 const DEFAULT_SAVE_FILE_QUEUE_INTERVAL = 5*ONE_SECOND;
 const DEFAULT_ENABLE_TWITTER_FOLLOW = false;
@@ -439,6 +440,7 @@ configuration.tweetParserMessageRxQueueInterval = DEFAULT_TWEET_PARSER_MESSAGE_R
 configuration.tweetParserInterval = DEFAULT_TWEET_PARSER_INTERVAL;
 configuration.updateUserSetsInterval = DEFAULT_UPDATE_USER_SETS_INTERVAL;
 configuration.sorterMessageRxQueueInterval = DEFAULT_SORTER_INTERVAL;
+configuration.dbUserMissQueueInterval = DEFAULT_DB_USER_MISS_QUEUE_INTERVAL;
 configuration.transmitNodeQueueInterval = DEFAULT_TRANSMIT_NODE_QUEUE_INTERVAL;
 configuration.rateQueueInterval = DEFAULT_RATE_QUEUE_INTERVAL;
 configuration.rateQueueIntervalModulo = DEFAULT_RATE_QUEUE_INTERVAL_MODULO;
@@ -543,6 +545,7 @@ function quit(message) {
   clearInterval(tweetParserMessageRxQueueInterval);
   clearInterval(sorterMessageRxQueueInterval);
   clearInterval(keySortInterval);
+  clearInterval(dbUserMissQueueInterval);
   clearInterval(dbuPingInterval);
   clearInterval(tfePingInterval);
   clearInterval(tssPingInterval);
@@ -6848,8 +6851,11 @@ function initTssChild(params){
         break;
 
         case "TWEET":
-          // if (configuration.verbose) { debug(chalkInfo("R< TWEET | " + m.tweet.id_str + " | @" + m.tweet.user.screen_name)); }
           socketRxTweet(m.tweet);
+        break;
+
+        case "DB_USER_MISS":
+          dbUserMissQueue.push(m);
         break;
 
         case "PONG":
@@ -9632,6 +9638,53 @@ function initTwitterSearchNodeQueueInterval(interval){
   });
 }
 
+let dbUserMissQueueReady = true;
+const dbUserMissQueue = [];
+let dbUserMissQueueInterval;
+
+function initDbUserMissQueueInterval(interval){
+
+  return new Promise(function(resolve){
+
+    dbUserMissQueueReady = true;
+    let dbMissObj;
+
+    console.log(chalk.bold.black("WAS | INIT TWITTER SEARCH NODE QUEUE INTERVAL: " + msToTime(interval)));
+
+    clearInterval(dbUserMissQueueInterval);
+
+    dbUserMissQueueInterval = setInterval(async function() {
+
+      if (dbUserMissQueueReady && (dbUserMissQueue.length > 0)) {
+
+        dbUserMissQueueReady = false;
+
+        dbMissObj = dbUserMissQueue.shift();
+
+        try {
+
+          const user = await twitterSearchUserNode({query: {nodeId: dbMissObj.nodeId}, searchMode: "SPECIFIC"});
+
+          if (user) {
+            console.log(chalk.green("WAS | DB MISS USER FOUND | NID: " + user.nodeId + " | @" + user.screenName));
+          }
+
+          dbUserMissQueueReady = true;
+        }
+        catch(err){
+          console.log(chalkError("WAS | *** DB MISS USER SEARCH ERROR: " + err));
+          dbUserMissQueueReady = true;
+        }
+
+      }
+    }, interval);
+
+    resolve();
+
+  });
+}
+
+
 initStats(function setCacheObjKeys(){
   cacheObjKeys = Object.keys(statsObj.caches);
 });
@@ -9811,6 +9864,7 @@ setTimeout(async function(){
     await updateUserSets();
     await loadMaxInputHashMap();
     await initIgnoreWordsHashMap();
+    await initDbUserMissQueueInterval(configuration.dbUserMissQueueInterval)
     await initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval);
     await initRateQinterval(configuration.rateQueueInterval);
     await initTwitterRxQueueInterval(configuration.twitterRxQueueInterval);

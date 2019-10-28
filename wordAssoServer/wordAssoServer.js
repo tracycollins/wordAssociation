@@ -7087,7 +7087,7 @@ async function initTfeChild(params){
 
         if (m.priorityFlag){
           printUserObj("WAS | <TFE | PRIORITY CAT", m.user);
-          viewNameSpace.emit("SET_TWITTER_USER", { user: m.user, stats: statsObj.user });
+          viewNameSpace.emit("SET_TWITTER_USER", { user: m.user, searchMode: m.searchMode, stats: statsObj.user });
         }
         else if (configuration.verbose) {
           printUserObj("WAS | <TFE | CAT", m.user, chalkLog);
@@ -9030,6 +9030,7 @@ async function processTwitterSearchNode(params) {
 
     console.log(chalkBlue("WAS | T> TWITTER_SEARCH_NODE"
       + " | " + getTimeStamp()
+      + " | SEARCH MODE: " + params.searchMode
       + " | SPECIFIC USER: " + params.specificUserFlag
       + " | NID: " + params.user.nodeId
       + " | @" + params.user.screenName
@@ -9040,14 +9041,14 @@ async function processTwitterSearchNode(params) {
 
     if (params.specificUserFlag) {
       if (tfeChild && params.user.toObject && (typeof params.user.toObject == "function")) {
-        tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, user: params.user.toObject()});
+        tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, searchMode: params.searchMode, user: params.user.toObject()});
 
         if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
           uncatUserCache.del(params.user.nodeId);
         }
       }
       else if (tfeChild) {
-        tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, user: params.user});
+        tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, searchMode: params.searchMode, user: params.user});
         if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
           uncatUserCache.del(params.user.nodeId);
         }
@@ -9083,13 +9084,13 @@ async function processTwitterSearchNode(params) {
       }
 
       if (tfeChild && params.user.toObject && (typeof params.user.toObject == "function")) {
-        tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, user: params.user.toObject()});
+        tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, searchMode: params.searchMode, user: params.user.toObject()});
         if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
           uncatUserCache.del(params.user.nodeId);
         }
       }
       else if (tfeChild) {
-        tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, user: params.user});
+        tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, searchMode: params.searchMode, user: params.user});
         if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
           uncatUserCache.del(params.user.nodeId);
         }
@@ -9142,7 +9143,7 @@ async function processTwitterSearchNode(params) {
         u.following = true;
         u.threeceeFollowing = "altthreecee00";
       }
-      return {user: u, cacheHit: uncatUserCacheHit};
+      return {user: u, searchMode: params.searchMode, cacheHit: uncatUserCacheHit};
     }
     else{
       if (ignoredUserSet.has(params.user.nodeId) || ignoredUserSet.has(params.user.screenName.toLowerCase())){
@@ -9152,7 +9153,7 @@ async function processTwitterSearchNode(params) {
         params.user.following = true;
         params.user.threeceeFollowing = "altthreecee00";
       }
-      return {user: params.user, cacheHit: uncatUserCacheHit};
+      return {user: params.user, searchMode: params.searchMode, cacheHit: uncatUserCacheHit};
     }
 
   }
@@ -9160,10 +9161,11 @@ async function processTwitterSearchNode(params) {
 
     console.log(chalkAlert("WAS | *** TWITTER_SEARCH_NODE | NOT FOUND"
       + " | " + getTimeStamp()
+      + " | SEARCH MODE: " + params.searchMode
       + " | SEARCH NODE: " + params.searchNode
     ));
 
-    viewNameSpace.emit("TWITTER_SEARCH_NODE_NOT_FOUND", { searchNode: params.searchNode, stats: statsObj.user });
+    viewNameSpace.emit("TWITTER_SEARCH_NODE_NOT_FOUND", { searchMode: params.searchMode, searchNode: params.searchNode, stats: statsObj.user });
 
     return {user: false, cacheHit: uncatUserCacheHit};
 

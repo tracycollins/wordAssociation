@@ -8891,6 +8891,10 @@ function twitUserShow(params){
 
         printUserObj("FOUND users/show rawUser", cUser);
 
+        if (params.following !== undefined){
+          user.following = params.following;
+        }
+
         user.bannerImageUrl = cUser.bannerImageUrl;
         user.createdAt = cUser.createdAt;
         user.description = cUser.description;
@@ -8946,7 +8950,10 @@ function twitUserShow(params){
   });
 }
 
-async function twitterGetUserUpdateDb(user){
+async function twitterGetUserUpdateDb(params){
+
+  const user = params.user;
+  const following = params.following;
 
   if (!user.userId && !user.nodeId && !user.screenName) { throw new Error("NO USER PROPS"); }
 
@@ -8961,7 +8968,7 @@ async function twitterGetUserUpdateDb(user){
     else if (user.userId !== undefined) { twitQuery.user_id = user.userId; }
     else if (user.screenName !== undefined) { twitQuery.screen_name = user.screenName; }
 
-    const updatedUser = await twitUserShow({user: user, twitQuery: twitQuery});
+    const updatedUser = await twitUserShow({user: user, twitQuery: twitQuery, following: following});
 
     return updatedUser;
 
@@ -8978,6 +8985,7 @@ async function twitterGetUserUpdateDb(user){
 
 async function twitterSearchUserNode(params){
 
+  const following = params.following;
   const searchQuery = params.query;
   const searchMode = params.searchMode;
 
@@ -8989,7 +8997,7 @@ async function twitterSearchUserNode(params){
 
       printUserObj("WAS | TWITTER SEARCH DB | SEARCH MODE: " + searchMode + " | FOUND USER", user);
 
-      const updatedUser = await twitterGetUserUpdateDb(user);
+      const updatedUser = await twitterGetUserUpdateDb({user: user});
 
       if (updatedUser) { 
         return updatedUser;
@@ -9001,7 +9009,7 @@ async function twitterSearchUserNode(params){
       + "\nsearchQuery\n" + jsonPrint(searchQuery)
     ));
 
-    const newUser = await twitterGetUserUpdateDb(searchQuery);
+    const newUser = await twitterGetUserUpdateDb({searchQuery: searchQuery, following: following});
     if (newUser) { return newUser; }
     return;
   }
@@ -9663,7 +9671,7 @@ function initDbUserMissQueueInterval(interval){
 
         try {
 
-          const user = await twitterSearchUserNode({query: {nodeId: dbMissObj.nodeId}, searchMode: "SPECIFIC"});
+          const user = await twitterSearchUserNode({query: {nodeId: dbMissObj.nodeId}, searchMode: "SPECIFIC", following: true});
 
           if (user) {
             console.log(chalk.green("WAS | DB MISS USER FOUND | NID: " + user.nodeId + " | @" + user.screenName));

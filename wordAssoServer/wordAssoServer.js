@@ -9176,7 +9176,6 @@ function getNextSearchNode(params){
   return new Promise(function(resolve, reject){
 
     let notFoundAndMore = true;
-    let searchUserId;
 
     const searchNode = params.searchNode;
     const searchMode = params.searchMode;
@@ -9200,7 +9199,7 @@ function getNextSearchNode(params){
             return;
           }
 
-          searchUserId = searchUserArray.shift();
+          const searchUserId = searchUserArray.shift();
 
           uncategorizedManualUserSet.delete(searchUserId);
 
@@ -9369,7 +9368,6 @@ async function twitterSearchUser(params) {
   const searchNode = params.searchNode;
   const searchNodeUser = { screenName: searchNode.substring(1) };
 
-  let searchUserId;
   let searchMode;
   let searchUserArray = [];
 
@@ -9457,14 +9455,10 @@ async function twitterSearchUser(params) {
         + " [ UC USER ARRAY: " + searchUserArray.length + "]"
         + " | " + getTimeStamp()
         + " | SEARCH USER"
-        + " | SEARCH MODE: " + searchMode
-        + " | UID: " + searchUserId
-        + " | ERROR: " + err
+        + " | SEARCH MODE: " + searchMode + " | ERROR: " + err
       ));
 
       viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", { searchNode: searchNode, stats: statsObj.user });
-      uncategorizedManualUserSet.delete(searchUserId);
-      ignoredUserSet.add(searchUserId);
       throw err;
     }
   }      
@@ -9485,8 +9479,6 @@ async function twitterSearchUser(params) {
     ));
 
     viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", { searchNode: searchNode, stats: statsObj.user });
-    uncategorizedManualUserSet.delete(searchUserId);
-    ignoredUserSet.add(searchUserId);
     throw err;
   }
 }

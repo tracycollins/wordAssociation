@@ -9215,7 +9215,7 @@ function getNextSearchNode(params){
           statsObj.user.uncategorized.neutral = _.intersection([...userAutoNeutralSet], [...uncategorizedManualUserSet]).length;
           statsObj.user.uncategorized.right = _.intersection([...userAutoRightSet], [...uncategorizedManualUserSet]).length;
 
-          const user = await twitterSearchUserNode({query: {nodeId: searchUserId}, searchMode: searchMode});
+          const user = await twitterSearchUserNode({user: {nodeId: searchUserId}, searchMode: searchMode});
 
           if (empty(user)){
 

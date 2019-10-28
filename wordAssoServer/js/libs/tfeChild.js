@@ -982,11 +982,11 @@ function initProcessUserQueueInterval(interval) {
 
         processUserQueueBusy = true;
 
-        const processUserObj = processUserQueue.shift();
+        const queueObj = processUserQueue.shift();
         
         try {
 
-          const u = await wordAssoDb.User.findOne({nodeId: processUserObj.user.nodeId});
+          const u = await wordAssoDb.User.findOne({nodeId: queueObj.user.nodeId});
 
           if (!u) {
             processUserQueueBusy = false;
@@ -1041,15 +1041,15 @@ function initProcessUserQueueInterval(interval) {
             if (user.priorityFlag) {
               console.log(chalkAlert(MODULE_ID_PREFIX + " | PROCESSED USER"
                 + " [ " + statsObj.user.processed + "]"
-                + " | PRIORITY: " + processUserObj.priorityFlag
+                + " | PRIORITY: " + queueObj.priorityFlag
                 + " | " + printUser({user: processedUser})
               ));
             }
 
             process.send({ 
               op: "USER_CATEGORIZED", 
-              priorityFlag: processUserObj.priorityFlag, 
-              searchMode: processUserObj.searchMode, 
+              priorityFlag: queueObj.priorityFlag, 
+              searchMode: queueObj.searchMode, 
               user: processedUser, 
               stats: statsObj.user 
             });
@@ -1060,7 +1060,7 @@ function initProcessUserQueueInterval(interval) {
         }
         catch(err){
           if (err.code) { 
-            await tcUtils.handleTwitterError({err: err, user: processUserObj.user});
+            await tcUtils.handleTwitterError({err: err, user: queueObj.user});
           }
           else {
             console.log(chalkError("*** ERROR initProcessUserQueueInterval: " + err));
@@ -1254,10 +1254,6 @@ async function updatePreviousUserProps(params){
 
 async function processUser(params) {
 
-  // statsObj.status = "PROCESS USER";
-
-  // debug(chalkInfo("PROCESS USER\n" + jsonPrint(params.user)));
-
   if (userServerController === undefined) {
     console.log(chalkError(MODULE_ID_PREFIX + " | *** processUser userServerController UNDEFINED"));
     throw new Error("processUser userServerController UNDEFINED");
@@ -1285,22 +1281,6 @@ async function processUser(params) {
     prevPropsUser.markModified("latestTweets");
 
     await prevPropsUser.save();
-
-    // if (configuration.verbose){
-    //   console.log(chalkLog(MODULE_ID_PREFIX + " | >>> SAVED USER"
-    //     + " | " + printUser({user: prevPropsUser})
-    //   ));
-    //   console.log(chalkLog(MODULE_ID_PREFIX + " | >>> SAVED USER TWEETS"
-    //     + " | SINCE: " + prevPropsUser.tweets.sinceId
-    //     + " | TWEETS: " + prevPropsUser.tweets.tweetIds.length
-    //   ));
-    //   console.log(chalkLog(MODULE_ID_PREFIX + " | >>> SAVED USER TWEET HISTOGRAMS"
-    //     + "\n" + jsonPrint(prevPropsUser.tweetHistograms)
-    //   ));
-    //   console.log(chalkLog(MODULE_ID_PREFIX + " | >>> SAVED USER PROFILE HISTOGRAMS"
-    //     + "\n" + jsonPrint(prevPropsUser.profileHistograms)
-    //   ));
-    // }
 
     const u = prevPropsUser.toObject();
 

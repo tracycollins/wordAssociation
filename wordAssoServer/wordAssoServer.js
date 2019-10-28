@@ -7086,11 +7086,11 @@ async function initTfeChild(params){
         }
 
         if (m.priorityFlag){
-          printUserObj("WAS | <TFE | PRIORITY CAT", m.user);
+          printUserObj("WAS | <TFE | PRIORITY CAT | SEARCH MODE: " + m.searchMode, m.user);
           viewNameSpace.emit("SET_TWITTER_USER", { user: m.user, searchMode: m.searchMode, stats: statsObj.user });
         }
         else if (configuration.verbose) {
-          printUserObj("WAS | <TFE | CAT", m.user, chalkLog);
+          printUserObj("WAS | <TFE | CAT | SEARCH MODE: " + m.searchMode, m.user, chalkLog);
         }
       break;
 
@@ -9244,7 +9244,7 @@ function getNextSearchNode(params){
                 }
 
                 printUserObj("WAS | --> UNCAT USER", user);
-                searchResults = await processTwitterSearchNode({searchNode: searchNode, user: user});
+                searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
 
                 if (searchResults.cacheHit) {
                   notFoundAndMore = true;
@@ -9268,7 +9268,7 @@ function getNextSearchNode(params){
 
                 printUserObj("WAS | --> MM USER", user);
 
-                searchResults = await processTwitterSearchNode({searchNode: searchNode, user: user});
+                searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
 
                 if (searchResults.cacheHit || (user.category == user.categoryAuto)) {
                   notFoundAndMore = true;
@@ -9288,7 +9288,7 @@ function getNextSearchNode(params){
 
                 printUserObj("WAS | --> SEACH USER FOUND | MODE: " + searchMode, user);
 
-                searchResults = await processTwitterSearchNode({searchNode: searchNode, user: user});
+                searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
 
                 if (searchResults.cacheHit || (user.categoryAuto !== "left")) {
                   notFoundAndMore = true;
@@ -9309,7 +9309,7 @@ function getNextSearchNode(params){
 
                 printUserObj("WAS | --> SEACH USER FOUND | MODE: " + searchMode, user);
 
-                searchResults = await processTwitterSearchNode({searchNode: searchNode, user: user});
+                searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
 
                 if (searchResults.cacheHit || (user.categoryAuto !== "neutral")) {
                   notFoundAndMore = true;
@@ -9328,7 +9328,7 @@ function getNextSearchNode(params){
 
                 printUserObj("WAS | --> SEACH USER FOUND | MODE: " + searchMode, user);
 
-                searchResults = await processTwitterSearchNode({searchNode: searchNode, user: user});
+                searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
 
                 if (searchResults.cacheHit || (user.categoryAuto !== "right")) {
                   notFoundAndMore = true;
@@ -9474,7 +9474,7 @@ async function twitterSearchUser(params) {
 
   try {
     const user = await twitterSearchUserNode({query: {screenName: searchNodeUser.screenName}, searchMode: searchMode});
-    await processTwitterSearchNode({specificUserFlag: true, searchNode: searchNode, user: user});
+    await processTwitterSearchNode({specificUserFlag: true, searchMode: "SPECIFIC", searchNode: searchNode, user: user});
     return;
   }
   catch(err){

@@ -5157,8 +5157,8 @@ async function updateUserSets(){
     // else if (!uncatUserObj) {
     else {
 
-      if (user.verified) {
-        verifiedCategorizedUsersSet.add(user.nodeId);
+      if (user.categoryVerified) {
+        verifiedCategorizedUsersSet.add(screenName);
       }
 
       let categorizeable = false;
@@ -5336,7 +5336,10 @@ async function updateUserSets(){
 
           if (!mismatchUserSet.has(nodeId) && (category !== categoryAuto)) {
 
-            if (!configuration.filterVerifiedUsers || !verifiedCategorizedUsersSet.has(screenName)){
+            if (configuration.filterVerifiedUsers && verifiedCategorizedUsersSet.has(screenName)){
+              mismatchUserSet.delete(nodeId);
+            }
+            else{
               mismatchUserSet.add(nodeId);
             }
 

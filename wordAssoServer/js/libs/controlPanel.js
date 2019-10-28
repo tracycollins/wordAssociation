@@ -226,6 +226,7 @@ function ControlPanel() {
       eventDetected = false;
       document.getElementById(op).style.background='#ffffff';
     }, 100);
+
   };
 
   var nextUncatHandler = function(op){
@@ -601,13 +602,13 @@ function ControlPanel() {
       statsObj.uncategorized = stats.uncategorized;
       statsObj.mismatched = stats.mismatched;
 
-      console.debug("SET TWITTER USER\nstats" + jsonPrint(stats));
+      console.debug("updateCategoryStats | SET TWITTER USER\nstats" + jsonPrint(stats));
 
       ["left", "right", "neutral", "all"].forEach(function(cat){
         if (stats.uncategorized[cat] !== undefined) {
           const currentButton = document.getElementById("NEXT UNCAT " + cat.toUpperCase());
           currentButton.value = stats.uncategorized[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
-          console.debug("NET UNCAT " + cat.toUpperCase() + " | value: " + currentButton.value); 
+          console.debug("NEXT UNCAT " + cat.toUpperCase() + " | value: " + currentButton.value); 
         }
       });
 
@@ -791,6 +792,12 @@ function ControlPanel() {
           }
         });
       break;
+
+      default:
+        console.error("*** ERROR | UNKNOWN MESSAGE OP" 
+          + " | OP: " + op
+          + "\nDATA\n" + jsonPrint(event.data)
+        );
     }
   }
 

@@ -1944,7 +1944,7 @@ process.on("message", async function(m) {
 
           try{
 
-            const user = await wordAssoDb.User.findOne({ userId: userId });
+            const user = await wordAssoDb.User.findOne({nodeId: userId});
 
             if (user) {
 

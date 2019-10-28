@@ -1495,7 +1495,7 @@ process.on("message", async function(m) {
 
           if (m.priorityFlag) {
             m.user.priorityFlag = true;
-            processUserQueue.unshift(m.user);
+            processUserQueue.unshift({user: m.user, searchMode: m.searchMode});
           }
           else {
             m.user.priorityFlag = false;

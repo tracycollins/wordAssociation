@@ -982,13 +982,6 @@ console.log(chalkLog("WAS | DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASS
 console.log(chalkLog("WAS | DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY));
 console.log(chalkLog("WAS | DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET));
 
-// const dropboxRemoteClient = new Dropbox({ 
-//   accessToken: configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN,
-//   fetch: fetch
-// });
-
-// const dropboxClient = dropboxRemoteClient;
-
 const userDefaults = function (user){
   return user;
 };
@@ -9244,7 +9237,7 @@ function getNextSearchNode(params){
 
               case "UNCAT":
                 if (user.category && (user.category != "none")){
-                  printUserObj("WAS | ... SKIP SEACH USER | MODE: " + searchMode, user);
+                  printUserObj("WAS | ... SKIP SEARCH | MODE: " + searchMode, user);
                   notFoundAndMore = true;
                   break;
                 }

@@ -7077,7 +7077,7 @@ async function initTfeChild(params){
         if (m.priorityFlag){
           if ( m.user.category && (m.user.category === m.user.categoryAuto)){
             printUserObj("WAS | <TFE | PRIORITY CAT | MISMATCH NOT FOUND" + m.searchMode, m.user);
-            await twitterSearchUser({searchNode: "@?all"});
+            await twitterSearchUser({searchNode: "@?mm"});
           }
           else{
             printUserObj("WAS | <TFE | PRIORITY CAT | SEARCH MODE: " + m.searchMode, m.user);

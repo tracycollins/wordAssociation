@@ -994,7 +994,8 @@ function initProcessUserQueueInterval(interval) {
           else {
             const user = await tcUtils.encodeHistogramUrls({user: u});
 
-            user.priorityFlag = user.priorityFlag || false;
+            // user.priorityFlag = user.priorityFlag || false;
+            user.priorityFlag = queueObj.priorityFlag;
 
             if (!user.latestTweets || (user.latestTweets === undefined)) { 
               user.latestTweets = [];
@@ -1038,7 +1039,7 @@ function initProcessUserQueueInterval(interval) {
 
             statsObj.user.processed += 1;
 
-            if (user.priorityFlag) {
+            if (queueObj.priorityFlag) {
               console.log(chalkAlert(MODULE_ID_PREFIX + " | PROCESSED USER"
                 + " [ " + statsObj.user.processed + "]"
                 + " | PRIORITY: " + queueObj.priorityFlag
@@ -1444,7 +1445,7 @@ process.on("message", async function(m) {
 
       if (m.priorityFlag) { 
         if (cacheObj){
-          console.log(chalk.yellow("WAS | TFC | USER CAT $ MISS"
+          console.log(chalk.green("WAS | TFC | USER CAT $ HIT"
             + " [UC$: " + userChangeCache.getStats().keys + "]"
             + " [PUQ: " + processUserQueue.length + "]"
             + " | MODE: " + m.searchMode
@@ -1453,7 +1454,7 @@ process.on("message", async function(m) {
           ));
         }
         else{
-          console.log(chalk.green("WAS | TFC | USER CAT $ HIT "
+          console.log(chalk.yellow("WAS | TFC | USER CAT $ MISS"
             + " [UC$: " + userChangeCache.getStats().keys + "]"
             + " [PUQ: " + processUserQueue.length + "]"
             + " | MODE: " + m.searchMode
@@ -1471,12 +1472,12 @@ process.on("message", async function(m) {
 
           if (m.priorityFlag) {
             user.priorityFlag = true;
-            processUserQueue.unshift({user: user, searchMode: m.searchMode});
+            processUserQueue.unshift({user: user, priorityFlag: m.priorityFlag, searchMode: m.searchMode});
           }
           else {
             user.priorityFlag = false;
             userChangeCache.set(user.nodeId, {user: user, timeStamp: moment().valueOf()});
-            processUserQueue.push({user: user, searchMode: m.searchMode});
+            processUserQueue.push({user: user, priorityFlag: m.priorityFlag, searchMode: m.searchMode});
           }
 
         }
@@ -1485,12 +1486,12 @@ process.on("message", async function(m) {
 
           if (m.priorityFlag) {
             m.user.priorityFlag = true;
-            processUserQueue.unshift({user: m.user, searchMode: m.searchMode});
+            processUserQueue.unshift({user: m.user, priorityFlag: m.priorityFlag, searchMode: m.searchMode});
           }
           else {
             m.user.priorityFlag = false;
             userChangeCache.set(m.user.nodeId, {user: m.user, timeStamp: moment().valueOf()});
-            processUserQueue.push({user: m.user, searchMode: m.searchMode});
+            processUserQueue.push({user: m.user, priorityFlag: m.priorityFlag, searchMode: m.searchMode});
           }
 
         }

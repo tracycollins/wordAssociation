@@ -1041,7 +1041,7 @@ function printUser(params) {
     const cat = (!user.category || user.category === undefined) ? "-" : user.category.charAt(0).toUpperCase();
     const catAuto = (!user.categoryAuto || user.categoryAuto === undefined) ? "-" : user.categoryAuto.charAt(0).toUpperCase();
 
-    const text = user.userId
+    const text = user.nodeId
     + " | @" + user.screenName
     + " | " + user.name 
     + " | LG " + user.lang
@@ -4320,21 +4320,6 @@ function initSocketHandler(socketObj) {
 
           console.log(chalkSocket("TX> SET_USER"
             + " | " + printUser({user: updatedNodeObj})
-            // + " | " + getTimeStamp(timeStamp)
-            // + " | SID: " + socket.id
-            // + "\nNID: " + updatedNodeObj.nodeId
-            // + " | UID: " + updatedNodeObj.userId
-            // + " | @" + updatedNodeObj.screenName
-            // + " | NAME: " + updatedNodeObj.name
-            // + " | LANG: " + updatedNodeObj.lang
-            // + " | IG: " + updatedNodeObj.ignored
-            // + "\nFLWRs: " + updatedNodeObj.followersCount
-            // + " | FRNDs: " + updatedNodeObj.friendsCount
-            // + " | Ms: " + updatedNodeObj.mentions
-            // + " | Ts: " + updatedNodeObj.statusesCount
-            // + " | CV: " + updatedNodeObj.categoryVerified
-            // + " | CM: " + updatedNodeObj.category
-            // + " | CA: " + updatedNodeObj.categoryAuto
           ));
         }
         if (updatedNodeObj.nodeType == "hashtag") {
@@ -8985,19 +8970,19 @@ async function twitterGetUserUpdateDb(params){
 
 async function twitterSearchUserNode(params){
 
+  const user = params.user;
   const following = params.following;
-  const searchQuery = params.query;
   const searchMode = params.searchMode;
 
   try {
 
-    const user = await wordAssoDb.User.findOne(searchQuery);
+    const dbUser = await wordAssoDb.User.findOne(user);
 
-    if (user) {
+    if (dbUser) {
 
-      printUserObj("WAS | TWITTER SEARCH DB | SEARCH MODE: " + searchMode + " | FOUND USER", user);
+      printUserObj("WAS | TWITTER SEARCH DB | SEARCH MODE: " + searchMode + " | FOUND USER", dbUser);
 
-      const updatedUser = await twitterGetUserUpdateDb({user: user});
+      const updatedUser = await twitterGetUserUpdateDb({user: dbUser, following: following});
 
       if (updatedUser) { 
         return updatedUser;
@@ -9006,16 +8991,16 @@ async function twitterSearchUserNode(params){
     }
 
     console.log(chalkLog("WAS | TWITTER SEARCH DB | SEARCH MODE: " + searchMode + " | USER NOT FOUND"
-      + "\nsearchQuery\n" + jsonPrint(searchQuery)
+      + "\nUSER\n" + jsonPrint(user)
     ));
 
-    const newUser = await twitterGetUserUpdateDb({searchQuery: searchQuery, following: following});
+    const newUser = await twitterGetUserUpdateDb({user: user, following: following});
     if (newUser) { return newUser; }
     return;
   }
   catch(err){
     console.log(chalkError("WAS | *** TWITTER SEARCH NODE USER ERROR | SEARCH MODE: " + searchMode
-      + "\nsearchQuery\n" + jsonPrint(searchQuery)
+      + "\nsearchQuery\n" + jsonPrint(user)
       + "ERROR", err
     ));
     throw err;
@@ -9487,7 +9472,7 @@ async function twitterSearchUser(params) {
   console.log(chalkInfo("WAS | SEARCH FOR SPECIFIC USER | @" + searchNodeUser.screenName));
 
   try {
-    const user = await twitterSearchUserNode({query: {screenName: searchNodeUser.screenName}, searchMode: searchMode});
+    const user = await twitterSearchUserNode({user: {screenName: searchNodeUser.screenName}, searchMode: searchMode});
     await processTwitterSearchNode({specificUserFlag: true, searchMode: "SPECIFIC", searchNode: searchNode, user: user});
     return;
   }
@@ -9671,7 +9656,7 @@ function initDbUserMissQueueInterval(interval){
 
         try {
 
-          const user = await twitterSearchUserNode({query: {nodeId: dbMissObj.nodeId}, searchMode: "SPECIFIC", following: true});
+          const user = await twitterSearchUserNode({user: {nodeId: dbMissObj.nodeId}, searchMode: "SPECIFIC", following: true});
 
           if (user) {
             console.log(chalk.green("WAS | DB MISS USER FOUND | NID: " + user.nodeId + " | @" + user.screenName));

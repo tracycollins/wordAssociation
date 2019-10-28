@@ -65,7 +65,7 @@
     "mocha": "^6.2.2",
     "moment": "^2.24.0",
     "mongodb-core": "^3.2.7",
-    "mongoose": "^5.7.6",
+    "mongoose": "^5.7.7",
     "multer": "^1.4.2",
     "neataptic": "^1.4.7",
     "node-cache": "^5.0.0",
@@ -108,7 +108,7 @@
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
-    "eslint": "^6.5.1",
+    "eslint": "^6.6.0",
     "jshint": "^2.10.2"
   },
   "scripts": {

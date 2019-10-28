@@ -3896,7 +3896,6 @@ function initSocketHandler(socketObj) {
           sessionObj.isAdmin = true;
           sessionObj.isServer = false;
           sessionObj.isViewer = false;
-          // sessionObj.stats = keepAliveObj.stats;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
           console.log(chalk.green("+++ ADD " + currentSessionType 
@@ -3916,7 +3915,6 @@ function initSocketHandler(socketObj) {
           sessionObj.timeStamp = moment().valueOf();
           sessionObj.user = keepAliveObj.user;
           sessionObj.status = keepAliveObj.status || "KEEPALIVE";
-          // sessionObj.stats = keepAliveObj.stats;
 
           adminHashMap.set(socket.id, sessionObj);
           adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
@@ -7077,8 +7075,14 @@ async function initTfeChild(params){
         }
 
         if (m.priorityFlag){
-          printUserObj("WAS | <TFE | PRIORITY CAT | SEARCH MODE: " + m.searchMode, m.user);
-          viewNameSpace.emit("SET_TWITTER_USER", { user: m.user, searchMode: m.searchMode, stats: statsObj.user });
+          if ( m.user.category && (m.user.category === m.user.categoryAuto)){
+            printUserObj("WAS | <TFE | PRIORITY CAT | MISMATCH NOT FOUND" + m.searchMode, m.user);
+            await twitterSearchUser({searchNode: "@?all"});
+          }
+          else{
+            printUserObj("WAS | <TFE | PRIORITY CAT | SEARCH MODE: " + m.searchMode, m.user);
+            viewNameSpace.emit("SET_TWITTER_USER", { user: m.user, searchMode: m.searchMode, stats: statsObj.user });
+          }
         }
         else if (configuration.verbose) {
           printUserObj("WAS | <TFE | CAT | SEARCH MODE: " + m.searchMode, m.user, chalkLog);
@@ -9294,7 +9298,6 @@ function getNextSearchNode(params){
                 else{
                   notFoundAndMore = false;
                 }
-
               break;
 
               case "UNCAT_NEUTRAL":

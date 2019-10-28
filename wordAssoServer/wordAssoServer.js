@@ -1035,8 +1035,9 @@ function printUser(params) {
     return jsonPrint(params.user);
   } 
   else {
-    const cat = (empty(user.category)) ? "-" : user.category.charAt(0).toUpperCase();
-    const catAuto = (empty(user.categoryAuto)) ? "-" : user.categoryAuto.charAt(0).toUpperCase();
+    const cat = (!user.category || user.category === undefined) ? "-" : user.category.charAt(0).toUpperCase();
+    const catAuto = (!user.categoryAuto || user.categoryAuto === undefined) ? "-" : user.categoryAuto.charAt(0).toUpperCase();
+
     const text = user.userId
     + " | @" + user.screenName
     + " | " + user.name 

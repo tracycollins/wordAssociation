@@ -5164,6 +5164,10 @@ async function updateUserSets(){
     // else if (!uncatUserObj) {
     else {
 
+      if (user.verified) {
+        verifiedCategorizedUsersSet.add(user.nodeId);
+      }
+
       let categorizeable = false;
 
       switch (category) {

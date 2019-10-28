@@ -613,7 +613,6 @@ function printUserObj(title, u) {
     + " | M  " + user.mentions
     + " | LS " + getTimeStamp(user.lastSeen)
     + " | FW " + user.following 
-    + " | 3C " + user.threeceeFollowing 
     + " | C M " + user.category + " A " + user.categoryAuto
   ));
 }
@@ -720,7 +719,7 @@ async function initFollowUserIdSet(){
       if (user) {
 
         if (configuration.verbose || (userIndex % 100 == 0)) {
-          const printString = "TSS | [ " + userIndex + "/" + threeceeUserObj.followUserIdSet.size + " ] @" + threeceeUserObj.screenName + " | DB HIT";
+          const printString = "TSS [ " + userIndex + "/" + threeceeUserObj.followUserIdSet.size + " ] DB HIT";
           printUserObj(printString, user);
         }
 
@@ -1236,27 +1235,10 @@ function initSearchStream(){
 
         if (tweetQueue.length < maxTweetQueue ) {
           tweetQueue.push(tweetStatus);
-          // statsObj.queues.tweetQueue.size = tweetQueue.length;
         }
         else {
           fullEvents += 1;
         }
-
-        // if ((threeceeUserObj.stats.tweetsReceived % 1000 == 0) || (statsObj.tweetsReceived % 1000 == 0)) {
-        //   console.log(chalkTwitter("TSS | <T"
-        //     + " | 3C " + threeceeUserObj.screenName
-        //     + " | " + threeceeUserObj.stats.tweetsPerMinute.toFixed(3) + " TPM"
-        //     + " | TQ " + tweetQueue.length
-        //     + " [ T/R/Q " + statsObj.tweetsReceived + "/" + statsObj.retweetsReceived + "/" + statsObj.quotedTweetsReceived + "]"
-        //     + " | TW " + tweetStatus.id_str
-        //     + " | TLG " + tweetStatus.lang
-        //     + " | U " + tweetStatus.user.id_str
-        //     + " | @" + tweetStatus.user.screen_name
-        //     + " | " + tweetStatus.user.name
-        //     + " | ULG " + tweetStatus.user.lang
-        //     + " | LOC " + tweetStatus.user.location
-        //   ));
-        // }
 
       });
 
@@ -1739,7 +1721,6 @@ async function initFollowQueue(params){
     const interval = params.interval;
 
     console.log(chalkTwitter("TSS"
-      + " | 3C @" + threeceeUserObj.screenName 
       + " | FOLLOW QUEUE INTERVAL: " + interval
     ));
 
@@ -1765,7 +1746,6 @@ async function initFollowQueue(params){
         statsObj.queues.followQueue.size = followQueue.length;
 
         console.log(chalkTwitter("TSS | --> TWITTER FOLLOW"
-          + " | 3C @" + threeceeUserObj.screenName
           + " | @" + followObj.user.screenName
           + " | UID: " + followObj.user.userId
         ));
@@ -1804,7 +1784,6 @@ async function initFollowQueue(params){
           }
           else {
             console.log(chalk.green("TSS | +++ TWITTER FOLLOWING"
-              + " | 3C @" + threeceeUserObj.screenName
               + " | @" + data.screen_name
               + " | ID: " + data.id_str
               + " | " + data.name
@@ -2009,7 +1988,6 @@ process.on("message", async function(m) {
             }
             else {
               console.log(chalkLog("TSS | [ " + userIndex + "/" + threeceeUserObj.followUserIdSet.size + " ]"
-                + " 3C @" + threeceeUserObj.screenName 
                 + " | DB USER MISS  | UID: " + userId
               ));
             }

@@ -982,11 +982,11 @@ function initProcessUserQueueInterval(interval) {
 
         processUserQueueBusy = true;
 
-        const userQueueObj = processUserQueue.shift();
+        const processUserObj = processUserQueue.shift();
         
         try {
 
-          const u = await wordAssoDb.User.findOne({nodeId: userQueueObj.nodeId});
+          const u = await wordAssoDb.User.findOne({nodeId: processUserObj.user.nodeId});
 
           if (!u) {
             processUserQueueBusy = false;
@@ -994,7 +994,7 @@ function initProcessUserQueueInterval(interval) {
           else {
             const user = await tcUtils.encodeHistogramUrls({user: u});
 
-            user.priorityFlag = userQueueObj.priorityFlag || false;
+            user.priorityFlag = user.priorityFlag || false;
 
             if (!user.latestTweets || (user.latestTweets === undefined)) { 
               user.latestTweets = [];
@@ -1032,23 +1032,24 @@ function initProcessUserQueueInterval(interval) {
 
             if (!user.latestTweets || (user.latestTweets === undefined)) { user.latestTweets = []; }
 
-            user.latestTweets = _.union(userQueueObj.latestTweets, user.latestTweets);
+            user.latestTweets = _.union(user.latestTweets, user.latestTweets);
 
             const processedUser = await processUser({user: user});
 
             statsObj.user.processed += 1;
 
-            if (userQueueObj.priorityFlag) {
+            if (user.priorityFlag) {
               console.log(chalkAlert(MODULE_ID_PREFIX + " | PROCESSED USER"
                 + " [ " + statsObj.user.processed + "]"
-                + " | PRIORITY: " + userQueueObj.priorityFlag
+                + " | PRIORITY: " + processUserObj.priorityFlag
                 + " | " + printUser({user: processedUser})
               ));
             }
 
             process.send({ 
               op: "USER_CATEGORIZED", 
-              priorityFlag: userQueueObj.priorityFlag, 
+              priorityFlag: processUserObj.priorityFlag, 
+              searchMode: processUserObj.searchMode, 
               user: processedUser, 
               stats: statsObj.user 
             });
@@ -1059,7 +1060,7 @@ function initProcessUserQueueInterval(interval) {
         }
         catch(err){
           if (err.code) { 
-            await tcUtils.handleTwitterError({err: err, user: userQueueObj});
+            await tcUtils.handleTwitterError({err: err, user: processUserObj.user});
           }
           else {
             console.log(chalkError("*** ERROR initProcessUserQueueInterval: " + err));
@@ -1444,6 +1445,7 @@ process.on("message", async function(m) {
 
       if (m.priorityFlag) {
         console.log(chalkError("WAS | TFC | *** PRIORITY USER_CATEGORIZE"
+          + " | MODE: " + m.searchMode
           + " | UID: " + m.user.userId
           + " | @" + m.user.screenName
         ));
@@ -1451,6 +1453,7 @@ process.on("message", async function(m) {
 
       if (!m.user.nodeId || (m.user.nodeId === undefined)) { 
         console.log(chalkError("WAS | TFC | ??? USER NODE ID UNDEFINED ... SET TO USER ID"
+          + " | MODE: " + m.searchMode
           + " | UID: " + m.user.userId
           + " | @" + m.user.screenName
         ));
@@ -1463,6 +1466,7 @@ process.on("message", async function(m) {
         console.log(chalkInfo("WAS | TFC | USER CAT $ MISS"
           + " [UC$: " + userChangeCache.getStats().keys + "]"
           + " [PUQ: " + processUserQueue.length + "]"
+          + " | MODE: " + m.searchMode
           + " | NID: " + m.user.nodeId
           + " | @" + m.user.screenName
         ));

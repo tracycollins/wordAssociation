@@ -1655,35 +1655,12 @@ function initTwitterQueue(cnf, callback){
       tweetStatus = tweetQueue.shift();
 
       if (tweetStatus.id_str != prevTweetId) {
-
-        // debug(chalkTwitter("TSS [" + tweetQueue.length + "] " + tweetStatus.id_str));
-
-        // sendMessageTimeout = setTimeout(function(){
-
-        //   console.log(chalkAlert("TSS | *** SEND TWEET TIMEOUT"
-        //     + " | " + msToTime(sendMessageTimeout)
-        //   ));
-
-        // }, sendMessageTimeout);
-
         process.send({op: "TWEET", tweet: tweetStatus});
-
-        // clearTimeout(sendMessageTimeout);
         prevTweetId = tweetStatus.id_str;
         tweetSendReady = true;
       }
       else {
-
         tweetSendReady = true;
-        // statsObj.twitter.duplicateTweetsReceived += 1;
-
-        // const dupPercent = 100 * statsObj.twitter.duplicateTweetsReceived / statsObj.tweetsReceived;
-
-        // debug(chalkAlert("TSS | DUP [ Q: " + tweetQueue.length + "]"
-        //   + " [ " + statsObj.twitter.duplicateTweetsReceived + "/" + statsObj.tweetsReceived
-        //   + " | " + dupPercent.toFixed(1) + "% ]"
-        //   + " | " + tweetStatus.id_str
-        // ));
       }
     }
   }, interval);
@@ -1987,9 +1964,15 @@ process.on("message", async function(m) {
               }
             }
             else {
+
               console.log(chalkLog("TSS | [ " + userIndex + "/" + threeceeUserObj.followUserIdSet.size + " ]"
                 + " | DB USER MISS  | UID: " + userId
               ));
+
+              process.send({
+                op: "DB_USER_MISS", 
+                nodeId: userId
+              });
             }
           }
           catch(err){

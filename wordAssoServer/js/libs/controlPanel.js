@@ -610,9 +610,7 @@ function ControlPanel() {
       statsObj.manual = {};
       statsObj.manual = stats.manual;
       statsObj.auto = stats.auto;
-
-      inputs id
-
+      
       statsObj.uncategorized = {};
       statsObj.uncategorized = stats.uncategorized;
       statsObj.mismatched = stats.mismatched;

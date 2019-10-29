@@ -612,8 +612,9 @@ function ControlPanel() {
       statsObj.auto = stats.auto;
 
       if (statsObj.manual) {
-        const t = console.table(statsObj.manual);
-        statsPanel.setValue("MANUAL", t);
+        statsPanel.setValue("MANUAL LEFT", statsObj.manual.left);
+        statsPanel.setValue("MANUAL RGHT", statsObj.manual.right);
+        statsPanel.setValue("MANUAL NEUT", statsObj.manual.neutral);
       }
 
       statsObj.uncategorized = {};
@@ -1141,8 +1142,9 @@ function ControlPanel() {
 
         statsPanel.addText("INPUTS ID", statsObj.bestNetwork.inputsId);
 
-        const t = console.table(statsObj.manual);
-        statsPanel.addText("MANUAL", t);
+        statsPanel.addText("MANUAL LEFT", "");
+        statsPanel.addText("MANUAL RGHT", "");
+        statsPanel.addText("MANUAL NEUT", "");
 
         // DISPLAY ==================================
 

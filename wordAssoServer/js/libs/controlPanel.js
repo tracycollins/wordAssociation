@@ -610,7 +610,11 @@ function ControlPanel() {
       statsObj.manual = {};
       statsObj.manual = stats.manual;
       statsObj.auto = stats.auto;
-      
+
+      if (statsObj.manual) {
+        statsPanel.setValue("MANUAL", jsonPrint(statsObj.manual));
+      }
+
       statsObj.uncategorized = {};
       statsObj.uncategorized = stats.uncategorized;
       statsObj.mismatched = stats.mismatched;
@@ -725,6 +729,10 @@ function ControlPanel() {
 
           if (statsObj.bestNetwork && statsObj.bestNetwork.inputsId) {
             statsPanel.setValue("INPUTS ID", statsObj.bestNetwork.inputsId);
+          }
+
+          if (statsObj.manual) {
+            statsPanel.setValue("MANUAL", jsonPrint(statsObj.manual));
           }
 
           updateCategoryStats(event.data.stats);

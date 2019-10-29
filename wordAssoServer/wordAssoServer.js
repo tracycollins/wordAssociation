@@ -2351,6 +2351,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
         const serverObj = serverCache.get(serverCacheKey);
         if (serverObj !== undefined) { tempServerArray.push([serverCacheKey, serverObj]); }
         cb();
+        
       }, function(){
         heartbeatObj.servers = tempServerArray;
       });

@@ -140,6 +140,9 @@ function ControlPanel() {
 
   statsObj.bestNetwork = {};
   statsObj.bestNetwork.networkId = false;
+  statsObj.bestNetwork.succesRate = false;
+  statsObj.bestNetwork.overallMatchRate = false;
+  statsObj.bestNetwork.inputsId = false;
 
   statsObj.socketId = "NOT SET";
 
@@ -148,6 +151,12 @@ function ControlPanel() {
   statsObj.uncategorized.left = 0;
   statsObj.uncategorized.right = 0;
   statsObj.uncategorized.neutral = 0;
+
+  statsObj.categorized = {};
+  statsObj.categorized.all = 0;
+  statsObj.categorized.left = 0;
+  statsObj.categorized.right = 0;
+  statsObj.categorized.neutral = 0;
 
   statsObj.mismatched = 0;
 
@@ -598,6 +607,12 @@ function ControlPanel() {
   function updateCategoryStats(stats){
     if (stats && stats.uncategorized) {
     
+      statsObj.manual = {};
+      statsObj.manual = stats.manual;
+      statsObj.auto = stats.auto;
+
+      inputs id
+
       statsObj.uncategorized = {};
       statsObj.uncategorized = stats.uncategorized;
       statsObj.mismatched = stats.mismatched;
@@ -708,6 +723,10 @@ function ControlPanel() {
 
           if (statsObj.bestNetwork && statsObj.bestNetwork.networkId) {
             statsPanel.setValue("NETWORK", statsObj.bestNetwork.networkId);
+          }
+
+          if (statsObj.bestNetwork && statsObj.bestNetwork.inputsId) {
+            statsPanel.setValue("INPUTS ID", statsObj.bestNetwork.inputsId);
           }
 
           updateCategoryStats(event.data.stats);
@@ -1116,6 +1135,10 @@ function ControlPanel() {
 
         statsPanel.setWidth(subPanelWidth);
         statsPanel.addText("NETWORK", statsObj.bestNetwork.networkId);
+
+        statsPanel.addText("INPUTS ID", statsObj.bestNetwork.inputsId);
+
+        statsPanel.addText("MANUAL", jsonPrint(statsObj.manual));
 
         // DISPLAY ==================================
 

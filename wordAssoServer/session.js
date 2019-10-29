@@ -726,7 +726,6 @@ function createPopUpControlPanel (cnf, callback) {
     "width=1200,height=800"
   );
 
-  // controlPanelWindow.addEventListener("message", controlPanelComm, false);
   window.addEventListener("message", controlPanelComm, false);
 
   controlPanelWindow.addEventListener("beforeunload", function(){

@@ -732,7 +732,8 @@ function ControlPanel() {
           }
 
           if (statsObj.manual) {
-            statsPanel.setValue("MANUAL", jsonPrint(statsObj.manual));
+            const t = console.table(statsObj.manual);
+            statsPanel.setValue("MANUAL", t);
           }
 
           updateCategoryStats(event.data.stats);

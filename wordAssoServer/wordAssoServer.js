@@ -1257,10 +1257,12 @@ const uncatUserCache = new NodeCache({
 });
 
 function uncatUserCacheExpired(uncatUserId, uncatUserObj) {
+  statsObj.caches.uncatUser.expired += 1;
   console.log(chalkInfo("WAS | XXX UNCAT USER CACHE EXPIRED"
     + " [" + uncatUserCache.getStats().keys + " KEYS]"
     + " | TTL: " + msToTime(configuration.uncatUserCacheTtl*1000)
     + " | NOW: " + getTimeStamp()
+    + " | $ EXPIRED: " + statsObj.caches.uncatUser.expired
     + " | IN $: " + uncatUserObj.timeStamp
     + " | NID: " + uncatUserId
     + " | @" + uncatUserObj.screenName
@@ -1789,6 +1791,9 @@ function initStats(callback){
     statsObj.caches.nodesPerMinuteTopTermNodeTypeCache[nodeType].stats.keys = 0;
     statsObj.caches.nodesPerMinuteTopTermNodeTypeCache[nodeType].stats.keysMax = 0;
   });
+
+  statsObj.caches.uncatUser = {};
+  statsObj.caches.uncatUser.expired = 0;
 
   statsObj.db = {};
   statsObj.db.errors = 0;

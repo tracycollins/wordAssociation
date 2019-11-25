@@ -1,4 +1,4 @@
-const MODULE_ID_PREFIX = "WAS";
+statsObj.cachesconst MODULE_ID_PREFIX = "WAS";
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
 const ONE_HOUR = 60 * ONE_MINUTE;
@@ -1793,6 +1793,9 @@ function initStats(callback){
   });
 
   statsObj.caches.uncatUser = {};
+  statsObj.caches.uncatUser.stats = {};
+  statsObj.caches.uncatUser.stats.keys = 0;
+  statsObj.caches.uncatUser.stats.keysMax = 0;
   statsObj.caches.uncatUser.expired = 0;
 
   statsObj.db = {};

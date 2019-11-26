@@ -1257,12 +1257,12 @@ const uncatUserCache = new NodeCache({
 });
 
 function uncatUserCacheExpired(uncatUserId, uncatUserObj) {
-  statsObj.caches.uncatUser.expired += 1;
+  statsObj.caches.uncatUserCache.expired += 1;
   console.log(chalkInfo("WAS | XXX UNCAT USER CACHE EXPIRED"
     + " [" + uncatUserCache.getStats().keys + " KEYS]"
     + " | TTL: " + msToTime(configuration.uncatUserCacheTtl*1000)
     + " | NOW: " + getTimeStamp()
-    + " | $ EXPIRED: " + statsObj.caches.uncatUser.expired
+    + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
     + " | IN $: " + uncatUserObj.timeStamp
     + " | NID: " + uncatUserId
     + " | @" + uncatUserObj.screenName
@@ -1792,11 +1792,11 @@ function initStats(callback){
     statsObj.caches.nodesPerMinuteTopTermNodeTypeCache[nodeType].stats.keysMax = 0;
   });
 
-  statsObj.caches.uncatUser = {};
-  statsObj.caches.uncatUser.stats = {};
-  statsObj.caches.uncatUser.stats.keys = 0;
-  statsObj.caches.uncatUser.stats.keysMax = 0;
-  statsObj.caches.uncatUser.expired = 0;
+  statsObj.caches.uncatUserCache = {};
+  statsObj.caches.uncatUserCache.stats = {};
+  statsObj.caches.uncatUserCache.stats.keys = 0;
+  statsObj.caches.uncatUserCache.stats.keysMax = 0;
+  statsObj.caches.uncatUserCache.expired = 0;
 
   statsObj.db = {};
   statsObj.db.errors = 0;
@@ -3529,7 +3529,7 @@ async function initUncatUserCache(){
     console.log(chalkLog("WAS | +++ LOADED UNCAT USER CACHE FILE"
       + " | " + uncatUserIdArray.length + " USERS"
       + " | " + folder + "/" + uncatUserCacheFile
-      + " | $ EXPIRED: " + statsObj.caches.uncatUser.expired
+      + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
       + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
     ));
 
@@ -9098,7 +9098,7 @@ async function processTwitterSearchNode(params) {
         + " | CAT VERIFIED: " + params.user.categoryVerified
         + " | CAT M: " + params.user.category
         + " | CAT A: " + params.user.categoryAuto
-        + " | $ EXPIRED: " + statsObj.caches.uncatUser.expired
+        + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
         + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
       ));
 
@@ -9135,7 +9135,7 @@ async function processTwitterSearchNode(params) {
         + " | NID: " + uuObj.nodeId
         + " | @" + uuObj.screenName
         + " | TS: " + uuObj.timeStamp
-        + " | $ EXPIRED: " + statsObj.caches.uncatUser.expired
+        + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
         + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
       ));
     }
@@ -9146,7 +9146,7 @@ async function processTwitterSearchNode(params) {
         + " | NID: " + uuObj.nodeId
         + " | @" + uuObj.screenName
         + " | TS: " + uuObj.timeStamp
-        + " | $ EXPIRED: " + statsObj.caches.uncatUser.expired
+        + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
         + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
       ));
     }
@@ -9159,7 +9159,7 @@ async function processTwitterSearchNode(params) {
         + " | CAT VERIFIED: " + params.user.categoryVerified
         + " | CAT M: " + params.user.category
         + " | CAT A: " + params.user.categoryAuto
-        + " | $ EXPIRED: " + statsObj.caches.uncatUser.expired
+        + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
         + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
       ));
     }

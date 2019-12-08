@@ -621,8 +621,8 @@ followableSearchTermSet.add("hanity");
 followableSearchTermSet.add("aoc");
 followableSearchTermSet.add("putin");
 
-followableSearchTermSet.add("#maga");
-followableSearchTermSet.add("#kag");
+// followableSearchTermSet.add("#maga");
+// followableSearchTermSet.add("#kag");
 followableSearchTermSet.add("#nra");
 followableSearchTermSet.add("#gop");
 followableSearchTermSet.add("#resist");
@@ -670,7 +670,7 @@ followableSearchTermSet.add("supreme court");
 followableSearchTermSet.add("specialcounsel");
 followableSearchTermSet.add("special counsel");
 
-const followableSearchTermsArray = [...followableSearchTermSet];
+let followableSearchTermsArray = [...followableSearchTermSet];
 
 const DEFAULT_BEST_NETWORK_FILE = "bestRuntimeNetwork.json";
 const bestRuntimeNetworkFileName = DEFAULT_BEST_NETWORK_FILE;
@@ -3563,6 +3563,7 @@ async function initFollowableSearchTermSet(){
       followableSearchTermSet = result;
       followableSearchTermSet.delete("");
       followableSearchTermSet.delete(" ");
+      followableSearchTermsArray = [...followableSearchTermSet];
     }
 
     console.log(chalkLog("WAS | LOADED FOLLOWABLE SEARCH TERMS FILE"

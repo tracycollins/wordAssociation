@@ -153,7 +153,7 @@ var DEFAULT_SESSION_VIEW = "treepack";
 var useStoredConfig = false;
 var globalStoredConfigName = "config_" + DEFAULT_SESSION_VIEW;
 
-var enableUserNodes = true;
+// var enableUserNodes = true;
 
 var d3;
 var controlPanel;
@@ -1979,26 +1979,11 @@ function initSocketSessionUpdateRx(){
         newNode.text = newNode.screenName.toLowerCase();
         newNode.screenName = newNode.screenName.toLowerCase();
       }
-      if (newNode.nodeType === "hashtag"){
-        newNode.nodeId = newNode.text;
-      }
 
       newNode.categoryMismatch = newNode.category && newNode.categoryAuto && (newNode.category !== newNode.categoryAuto);
       newNode.categoryMatch = newNode.category && newNode.categoryAuto && (newNode.category === newNode.categoryAuto);
 
-      if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
-        && ((newNode.nodeType !== "user") || (enableUserNodes && (newNode.nodeType === "user")))) {
-        currentSessionView.addNode(newNode);
-      }
-      else if ((config.sessionViewType === "histogram")
-        && ((newNode.nodeType !== "user") || (enableUserNodes && (newNode.nodeType === "user")))) {
-        currentSessionView.addNode(newNode);
-      }
-      else if ((config.sessionViewType !== "treemap") 
-        && (config.sessionViewType !== "treepack") 
-        && (config.sessionViewType !== "histogram")) {
-        currentSessionView.addNode(newNode);
-      }
+      currentSessionView.addNode(newNode);
       rxNodeQueueReady = true;
 
     }

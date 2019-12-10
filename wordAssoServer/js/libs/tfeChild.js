@@ -1358,7 +1358,7 @@ process.on("message", async function(m) {
       statsObj.autoChangeMatch = 0;
       statsObj.autoChangeMismatch = 0;
 
-      console.log(chalkInfo("WAS | TFC | +++ NETWORK"
+      console.log(chalkBlueBold("WAS | TFC | >>> SET NETWORK"
         + " | NETWORK: " + networkObj.networkId
         // + " | INPUTS: " + networkObj.inputsObj.meta.numInputs
         + " | INPUTS ID: " + networkObj.inputsId

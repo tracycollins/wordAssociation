@@ -57,10 +57,18 @@ let dbConnection;
 
 const HashtagServerController = require("@threeceelabs/hashtag-server-controller");
 const hashtagServerController = new HashtagServerController("WAS_HSC");
+let hashtagServerControllerReady = false;
 
 hashtagServerController.on("error", function(err){
+  hashtagServerControllerReady = false;
   console.log(chalkError("WAS | *** HSC ERROR | " + err));
 });
+
+hashtagServerController.on("ready", function(appname){
+  hashtagServerControllerReady = true;
+  console.log(chalk.green("WAS | HSC READY | " + appname));
+});
+
 
 const UserServerController = require("@threeceelabs/user-server-controller");
 const userServerController = new UserServerController("WAS_USC");
@@ -5564,22 +5572,24 @@ function initTransmitNodeQueueInterval(interval){
           if (!userServerControllerReady || !statsObj.dbConnectionReady) {
             transmitNodeQueueReady = true;
           }
+          else{
 
-          userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit}, function(err, updatedUser){
-            if (err) {
-              console.log(chalkError("WAS | findOneUser ERROR" + jsonPrint(err)));
-              delete n._id;
-              delete n.userId;
-              viewNameSpace.volatile.emit("node", n);
-            }
-            else {
-              delete n._id;
-              delete n.userId;
-              viewNameSpace.volatile.emit("node", updatedUser);
-            }
+            userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit}, function(err, updatedUser){
+              if (err) {
+                console.log(chalkError("WAS | findOneUser ERROR" + jsonPrint(err)));
+                delete n._id;
+                delete n.userId;
+                viewNameSpace.volatile.emit("node", n);
+              }
+              else {
+                delete updatedUser._id;
+                delete updatedUser.userId;
+                viewNameSpace.volatile.emit("node", updatedUser);
+              }
 
-            transmitNodeQueueReady = true;
-          });
+              transmitNodeQueueReady = true;
+            });
+          }
         }
         else if (n.nodeType == "user") {
           delete n._id;
@@ -5588,35 +5598,31 @@ function initTransmitNodeQueueInterval(interval){
 
           transmitNodeQueueReady = true;
         }
-        else if ((n.nodeType == "hashtag") && n.category){
+        else if ((n.nodeType == "hashtag") && n.category && hashtagServerControllerReady){
 
           n.updateLastSeen = true;
 
-          hashtagServerController.findOneHashtag(n, {noInc: false}, function(err, updatedHashtag){
-            if (err) {
-              console.log(chalkError("WAS | updatedHashtag ERROR\n" + jsonPrint(err)));
-              delete n._id;
-              delete n.userId;
-              viewNameSpace.volatile.emit("node", n);
-            }
-            else if (updatedHashtag) {
-              delete n._id;
-              delete n.userId;
-              viewNameSpace.volatile.emit("node", updatedHashtag);
-            }
-            else {
-              delete n._id;
-              delete n.userId;
-              viewNameSpace.volatile.emit("node", n);
-            }
-
+          if (!hashtagServerControllerReady || !statsObj.dbConnectionReady) {
             transmitNodeQueueReady = true;
+          }
+          else {
+            hashtagServerController.findOneHashtag(n, {noInc: false, lean: true}, function(err, updatedHashtag){
+              if (err) {
+                console.log(chalkError("WAS | updatedHashtag ERROR\n" + jsonPrint(err)));
+                delete n._id;
+                viewNameSpace.volatile.emit("node", n);
+              }
+              else {
+                delete updatedHashtag._id;
+                viewNameSpace.volatile.emit("node", updatedHashtag);
+              }
 
-          });
+              transmitNodeQueueReady = true;
+            });
+          }
         }
         else if (n.nodeType == "hashtag") {
           delete n._id;
-          delete n.userId;
           viewNameSpace.volatile.emit("node", n);
           transmitNodeQueueReady = true;
         }
@@ -8480,13 +8486,15 @@ function initCategoryHashmaps(){
           },
 
           function(cb0){
+
             if (!userServerControllerReady || !statsObj.dbConnectionReady) {
-            console.log(chalkAlert("WAS | *** NOT READY"
-              + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
-              + " | userServerControllerReady: " + userServerControllerReady
-            ));
+              console.log(chalkAlert("WAS | *** NOT READY"
+                + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
+                + " | userServerControllerReady: " + userServerControllerReady
+              ));
               return cb0(new Error("userServerController not ready"), null);
             }
+
             userServerController.findCategorizedUsersCursor(p, function(err, results){
 
               if (err) {
@@ -8592,6 +8600,15 @@ function initCategoryHashmaps(){
           },
 
           function(cb0){
+
+            if (!hashtagServerControllerReady || !statsObj.dbConnectionReady) {
+              console.log(chalkAlert("WAS | *** NOT READY"
+                + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
+                + " | hashtagServerControllerReady: " + hashtagServerControllerReady
+              ));
+              return cb0(new Error("hashtagServerController not ready"), null);
+            }
+
             hashtagServerController.findCategorizedHashtagsCursor(p, function(err, results){
 
               if (err) {

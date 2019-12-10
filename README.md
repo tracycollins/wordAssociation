@@ -3,7 +3,7 @@ This is the top-lever server. NOTE: wordAssoClient is not longer used
 
 ### MODULES:
  #### main directory
- - **wordAssoServer.js**: server for word.threeceelabs.com. Runs on Google Cloud
+ - **wordAssoServer.js**: server for https://word.threeceelabs.com. Runs on Google Cloud
  - **session.js**:           main client node/js; runs in browser
  - **sessionModular.html**:  main client html; runs in browser
  - **controlPanel.html**:    client controlPanel. Update data viz params, as well as update database users & hashtags

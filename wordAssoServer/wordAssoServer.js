@@ -2538,7 +2538,10 @@ configEvents.on("NEW_BEST_NETWORK", function configEventDbConnect(){
 
   if (tfeChild !== undefined) {
 
-    console.log(chalkBlue("WAS | UPDATE TFE CHILD NETWORK: " + bestNetworkObj.networkId));
+    console.log(chalkBlue("WAS | >>> UPDATE TFE CHILD NETWORK"
+      + " | " + getTimeStamp()
+      + " | " + bestNetworkObj.networkId
+    ));
 
     tfeChild.send({ op: "NETWORK", networkObj: bestNetworkObj }, function tfeNetwork(err){
       if (err) {

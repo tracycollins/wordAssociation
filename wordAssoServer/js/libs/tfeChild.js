@@ -1041,7 +1041,7 @@ function initProcessUserQueueInterval(interval) {
 
             if (queueObj.priorityFlag) {
               console.log(chalkAlert(MODULE_ID_PREFIX + " | PROCESSED USER"
-                + " [ " + statsObj.user.processed + "]"
+                + " [ PRCSSD: " + statsObj.user.processed + "/ PUQ: " processUserQueue.length + "]"
                 + " | PRIORITY: " + queueObj.priorityFlag
                 + " | " + printUser({user: processedUser})
               ));

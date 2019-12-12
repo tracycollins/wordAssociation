@@ -4885,9 +4885,6 @@ async function userCategorizeable(user){
 
   if (user.lang && (user.lang !== undefined) && (user.lang != "en")) { 
     categorizeableUserSet.delete(user.nodeId);
-    // if (configuration.verbose) { 
-    //   console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LANG NOT ENGLISH: " + user.lang));
-    // }
     return false;
   }
 
@@ -4909,7 +4906,7 @@ async function userCategorizeable(user){
     return false;
   }
 
-  if (!user.ignored || (user.ignored === undefined)){
+  // if (!user.ignored || (user.ignored === undefined)){
 
     if (!user.description || (user.description === undefined)) { user.description = ""; }
     if (!user.screenName || (user.screenName === undefined)) { user.screenName = ""; }
@@ -4944,10 +4941,10 @@ async function userCategorizeable(user){
 
     categorizeableUserSet.delete(user.nodeId);
     return false;
-  }
+  // }
 
-  categorizeableUserSet.delete(user.nodeId);
-  return false;
+  // categorizeableUserSet.delete(user.nodeId);
+  // return false;
 }
 
 async function initAllowLocations(){
@@ -5116,7 +5113,6 @@ async function updateUserSets(){
   
   userSearchCursor = wordAssoDb.User
     .find(userSearchQuery)
-    // .select({friends: 0, tweets: 0, tweetHistograms: 0, profileHistograms: 0})
     .select({
       nodeId: 1, 
       lang: 1, 
@@ -5140,6 +5136,7 @@ async function updateUserSets(){
     const screenName = user.screenName.toLowerCase();
     const category = user.category;
     const categoryAuto = user.categoryAuto;
+    const categoryVerified = user.categoryVerified;
 
     const uncatUserObj = await uncatUserCache.get(nodeId);
 
@@ -5177,7 +5174,6 @@ async function updateUserSets(){
         }
       });
     }
-    // else if (!uncatUserObj) {
     else {
 
       if (user.categoryVerified) {
@@ -5232,21 +5228,13 @@ async function updateUserSets(){
           userNoneSet.delete(nodeId);
           categorizeable = true;
         break;
-        case "none":
-          userRightSet.delete(nodeId);
-          userLeftSet.delete(nodeId);
-          userNeutralSet.delete(nodeId);
-          userPositiveSet.delete(nodeId);
-          userNegativeSet.delete(nodeId);
-          userNoneSet.add(nodeId);
-        break;
         default:
           userRightSet.delete(nodeId);
           userLeftSet.delete(nodeId);
           userNeutralSet.delete(nodeId);
           userPositiveSet.delete(nodeId);
           userNegativeSet.delete(nodeId);
-          userNoneSet.delete(nodeId);
+          userNoneSet.add(nodeId);
       }
 
       switch (categoryAuto) {
@@ -5318,9 +5306,9 @@ async function updateUserSets(){
 
         if (tfeChild !== undefined) { 
           tfeChild.send({op: "USER_CATEGORIZE", user: user});
-          if (user.category == "left" || user.category == "right" || user.category == "neutral") {
-            uncatUserCache.del(user.nodeId);
-          }
+          // if (user.category == "left" || user.category == "right" || user.category == "neutral") {
+          //   uncatUserCache.del(user.nodeId);
+          // }
         }
 
         if (uncategorizedManualUserSet.size % 100 == 0) {
@@ -5384,7 +5372,6 @@ async function updateUserSets(){
           }
         }
       }
-
     }
   });
 
@@ -6243,21 +6230,6 @@ async function initTweetParserMessageRxQueueInterval(interval){
         }
         else {
 
-          // debug(chalkInfo("WAS | PARSED TW"
-          //   + " [ TPMRQ: " + tweetParserMessageRxQueue.length + "]"
-          //   + " | " + tweetObj.tweetId
-          //   + " | USR: " + tweetObj.user.screenName
-          //   + " | EJs: " + tweetObj.emoji.length
-          //   + " | Hs: " + tweetObj.hashtags.length
-          //   + " | Hs: " + tweetObj.images.length
-          //   + " | LCs: " + tweetObj.locations.length
-          //   + " | Ms: " + tweetObj.mentions.length
-          //   + " | PLs: " + tweetObj.places.length
-          //   + " | ULs: " + tweetObj.urls.length
-          //   + " | UMs: " + tweetObj.userMentions.length
-          //   + " | WDs: " + tweetObj.words.length
-          // ));
-
           if (dbuChild && dbuChildReady && categorizeableUserSet.has(tweetObj.user.nodeId)) {
             dbUserMessage.tweetObj = tweetObj;
             dbuChild.send(dbUserMessage);
@@ -6270,6 +6242,8 @@ async function initTweetParserMessageRxQueueInterval(interval){
               tweetParserMessageRxQueueReady = true;
             }
             catch(e){
+              console.log(chalkError("WAS | *** TX NODES ERROR"));
+              console.log(e);
               tweetParserMessageRxQueueReady = true;
             }
           }

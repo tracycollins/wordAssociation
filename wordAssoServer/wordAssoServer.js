@@ -4722,6 +4722,12 @@ async function checkCategory(nodeObj) {
 
   switch (nodeObj.nodeType) {
 
+    case "hashtag":
+    case "user":
+
+      const updatedNodeObj = await processCheckCategory(nodeObj);
+      return updatedNodeObj;
+
     case "tweet":
     case "emoji":
     case "media":
@@ -4729,12 +4735,6 @@ async function checkCategory(nodeObj) {
     case "place":
     case "word":
       return nodeObj;
-
-    case "hashtag":
-    case "user":
-
-      const updatedNodeObj = await processCheckCategory(nodeObj);
-      return updatedNodeObj;
 
     default:
       console.log(chalk.blue("WAS | DEFAULT | checkCategory\n" + jsonPrint(nodeObj)));

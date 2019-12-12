@@ -5136,7 +5136,6 @@ async function updateUserSets(){
     const screenName = user.screenName.toLowerCase();
     const category = user.category;
     const categoryAuto = user.categoryAuto;
-    const categoryVerified = user.categoryVerified;
 
     const uncatUserObj = await uncatUserCache.get(nodeId);
 
@@ -9250,7 +9249,7 @@ function getNextSearchNode(params){
             }
 
             console.log(chalkAlert("WAS | ??? USER NOT FOUND"
-              + " | SEACH MODE: " + searchMode
+              + " | SEARCH MODE: " + searchMode
               + " | " + searchUserId
             ));
 
@@ -9280,12 +9279,12 @@ function getNextSearchNode(params){
 
               case "MISMATCH":
                 if ((user.category !== undefined) && (user.category != "none") && user.categoryVerified){
-                  printUserObj("WAS | ... SKIP SEACH USER | VERIFIED | MODE: " + searchMode, user);
+                  printUserObj("WAS | ... SKIP SEARCH USER | VERIFIED | MODE: " + searchMode, user);
                   notFoundAndMore = true;
                   break;
                 }
                 else if ((user.category !== undefined) && (user.category != "none") && (user.category == user.categoryAuto)){
-                  printUserObj("WAS | ... SKIP SEACH USER | MATCHED  | MODE: " + searchMode, user);
+                  printUserObj("WAS | ... SKIP SEARCH USER | MATCHED  | MODE: " + searchMode, user);
                   notFoundAndMore = true;
                   break;
                 }
@@ -9305,12 +9304,12 @@ function getNextSearchNode(params){
               case "UNCAT_LEFT":
 
                 if ((user.category && (user.category != "none")) || (user.categoryAuto != "left")){
-                  printUserObj("WAS | ... SKIP SEACH USER | MODE: " + searchMode, user);
+                  printUserObj("WAS | ... SKIP SEARCH USER | MODE: " + searchMode, user);
                   notFoundAndMore = true;
                   break;
                 }
 
-                printUserObj("WAS | --> SEACH USER FOUND | MODE: " + searchMode, user);
+                printUserObj("WAS | --> SEARCH USER FOUND | MODE: " + searchMode, user);
 
                 searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
 
@@ -9325,12 +9324,12 @@ function getNextSearchNode(params){
               case "UNCAT_NEUTRAL":
 
                 if ((user.category && (user.category != "none")) || (user.categoryAuto != "neutral")){
-                  printUserObj("WAS | ... SKIP SEACH USER | MODE: " + searchMode, user);
+                  printUserObj("WAS | ... SKIP SEARCH USER | MODE: " + searchMode, user);
                   notFoundAndMore = true;
                   break;
                 }
 
-                printUserObj("WAS | --> SEACH USER FOUND | MODE: " + searchMode, user);
+                printUserObj("WAS | --> SEARCH USER FOUND | MODE: " + searchMode, user);
 
                 searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
 
@@ -9344,12 +9343,12 @@ function getNextSearchNode(params){
 
               case "UNCAT_RIGHT":
                 if ((user.category && (user.category != "none")) || (user.categoryAuto != "right")){
-                  printUserObj("WAS | ... SKIP SEACH USER | MODE: " + searchMode, user);
+                  printUserObj("WAS | ... SKIP SEARCH USER | MODE: " + searchMode, user);
                   notFoundAndMore = true;
                   break;
                 }
 
-                printUserObj("WAS | --> SEACH USER FOUND | MODE: " + searchMode, user);
+                printUserObj("WAS | --> SEARCH USER FOUND | MODE: " + searchMode, user);
 
                 searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
 
@@ -9362,8 +9361,8 @@ function getNextSearchNode(params){
               break;
 
               default:
-                console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR: UNKNOWN SEACH MODE: " + searchMode));
-                quit({cause: "UNKNOWN SEACH MODE: " + searchMode});
+                console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR: UNKNOWN SEARCH MODE: " + searchMode));
+                quit({cause: "UNKNOWN SEARCH MODE: " + searchMode});
             }
 
             return;
@@ -9426,26 +9425,47 @@ async function twitterSearchUser(params) {
   if (searchNodeUser.screenName.startsWith("?")) {
 
     switch (searchNodeUser.screenName) {
-      case "?all":
-        searchMode = "UNCAT";
-        searchUserArray = _.shuffle(uncategorizedManualUserArray);
-      break;
+
       case "?mm":
         searchMode = "MISMATCH";
         searchUserArray = _.shuffle([...mismatchUserSet]);
       break;
+
+      case "?all":
+        searchMode = "UNCAT";
+        searchUserArray = _.shuffle(uncategorizedManualUserArray);
+      break;
       case "?left":
         searchMode = "UNCAT_LEFT";
-        searchUserArray = _.intersection(userAutoLeftArray, uncategorizedManualUserArray);
+        searchUserArray = _.shuffle(uncategorizedManualUserArray);
       break;
       case "?right":
         searchMode = "UNCAT_RIGHT";
-        searchUserArray = _.intersection(userAutoRightArray, uncategorizedManualUserArray);
+        searchUserArray = _.shuffle(uncategorizedManualUserArray);
       break;
       case "?neutral":
         searchMode = "UNCAT_NEUTRAL";
-        searchUserArray = _.intersection(userAutoNeutralArray, uncategorizedManualUserArray);
+        searchUserArray = _.shuffle(uncategorizedManualUserArray);
       break;
+
+
+      // case "?all":
+      //   searchMode = "UNCAT";
+      //   searchUserArray = _.shuffle(uncategorizedManualUserArray);
+      // break;
+      // case "?left":
+      //   searchMode = "UNCAT_LEFT";
+      //   searchUserArray = _.intersection(userAutoLeftArray, uncategorizedManualUserArray);
+      // break;
+      // case "?right":
+      //   searchMode = "UNCAT_RIGHT";
+      //   searchUserArray = _.intersection(userAutoRightArray, uncategorizedManualUserArray);
+      // break;
+      // case "?neutral":
+      //   searchMode = "UNCAT_NEUTRAL";
+      //   searchUserArray = _.intersection(userAutoNeutralArray, uncategorizedManualUserArray);
+      // break;
+
       default:
         console.log(chalkError("WAS | *** UNKNOWN searchNodeUser.screenName: " + searchNodeUser.screenName));
         throw new Error("UNKNOWN searchNodeUser.screenName");

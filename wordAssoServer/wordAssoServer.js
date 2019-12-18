@@ -8828,8 +8828,9 @@ function twitUserShow(params){
   return new Promise(function(resolve, reject){
 
     const user = params.user;
+    const resource_endpoint = "users/show";
 
-    threeceeTwitter.twit.get("users/show", params.twitQuery, async function usersShow (err, rawUser){
+    threeceeTwitter.twit.get(resource_endpoint, params.twitQuery, async function usersShow (err, rawUser){
 
       if (err) {
 
@@ -8840,7 +8841,27 @@ function twitUserShow(params){
           + "\ntwitQuery\n" + jsonPrint(params.twitQuery)
         ));
 
-        if ((err.code == 63) || (err.code == 50)) { // USER SUSPENDED or NOT FOUND
+        if (err.code == 88) { // RATE LIMIT EXCEEDED
+
+          threeceeTwitter.twitterRateLimitExceptionFlag.exceptionFlag = true;
+
+          const rateLimitEndEvent = "rateLimitEnd_" + resource_endpoint;
+
+          tcUtils.emitter.once(rateLimitEndEvent, function(){
+
+            console.log(chalkError("WAS | -X- TWITTER RATE LIMIT END"
+              + " | @altthreecee00"
+              + " | " + getTimeStamp()
+              + " | EVENT: " + rateLimitEndEvent
+            ));
+
+            threeceeTwitter.twitterRateLimitExceptionFlag.exceptionFlag = false;
+
+          });
+
+          await tcUtils.handleTwitterError({user: "altthreecee00", err: err, resource: "user", endPoint: "show"});
+        }
+        else if ((err.code == 63) || (err.code == 50)) { // USER SUSPENDED or NOT FOUND
 
           try {
             if (user.nodeId !== undefined) { 

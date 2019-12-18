@@ -778,7 +778,7 @@ function processUserTweetArray(params){
           statsObj.twitter.tweetsProcessed += 1;
           statsObj.twitter.tweetsTotal += 1;
 
-          if (forceFetch || configuration.testMode || configuration.verbose || (statsObj.twitter.tweetsTotal % 100 == 0)) {
+          if (configuration.testMode || configuration.verbose) {
             console.log(chalkTwitter("TFE | +++ PROCESSED TWEET"
               + " | FORCE: " + forceFetch
               + " [ P/H/T " + statsObj.twitter.tweetsProcessed + "/" + statsObj.twitter.tweetsHits + "/" + statsObj.twitter.tweetsTotal + "]"
@@ -997,9 +997,9 @@ function initProcessUserQueueInterval(interval) {
             // user.priorityFlag = user.priorityFlag || false;
             user.priorityFlag = queueObj.priorityFlag;
 
-            if (!user.latestTweets || (user.latestTweets === undefined)) { 
-              user.latestTweets = [];
-            }
+            // if (!user.latestTweets || (user.latestTweets === undefined)) { 
+            //   user.latestTweets = [];
+            // }
             if (!user.tweetHistograms || (user.tweetHistograms === undefined)) { 
               user.tweetHistograms = {}; 
             }
@@ -1033,7 +1033,7 @@ function initProcessUserQueueInterval(interval) {
 
             if (!user.latestTweets || (user.latestTweets === undefined)) { user.latestTweets = []; }
 
-            user.latestTweets = _.union(user.latestTweets, user.latestTweets);
+            user.latestTweets = _.union(u.latestTweets, user.latestTweets);
 
             const processedUser = await processUser({user: user});
 
@@ -1041,7 +1041,7 @@ function initProcessUserQueueInterval(interval) {
 
             if (queueObj.priorityFlag) {
               console.log(chalkAlert(MODULE_ID_PREFIX + " | PROCESSED USER"
-                + " [ " + statsObj.user.processed + "]"
+                + " [ PRCSSD: " + statsObj.user.processed + "/ PUQ: " processUserQueue.length + "]"
                 + " | PRIORITY: " + queueObj.priorityFlag
                 + " | " + printUser({user: processedUser})
               ));
@@ -1178,25 +1178,25 @@ async function generateAutoCategory(p) {
     const networkOutput = await nnTools.activateSingleNetwork({user: user, convertDatumFlag: true, binaryMode: binaryMode, verbose: configuration.verbose});
 
     let text = MODULE_ID_PREFIX + " | ->- CAT AUTO SET     ";
-    let chalkVar = chalkLog;
+    // let chalkVar = chalkLog;
 
     if (user.category && (networkOutput.categoryAuto == user.category)) {
       statsObj.autoChangeTotal += 1;
       statsObj.autoChangeMatch += 1;
       statsObj.autoChangeMatchRate = 100*(statsObj.autoChangeMatch/statsObj.autoChangeTotal);
       text = MODULE_ID_PREFIX + " | +++ CAT AUTO MATCH   ";
-      chalkVar = chalk.green;
+      // chalkVar = chalk.green;
     }
     else if (user.category) {
       statsObj.autoChangeTotal += 1;
       statsObj.autoChangeMismatch += 1;
       statsObj.autoChangeMatchRate = 100*(statsObj.autoChangeMatch/statsObj.autoChangeTotal);
       text = MODULE_ID_PREFIX + " | -X- CAT AUTO MISMATCH";
-      chalkVar = chalk.yellow;
+      // chalkVar = chalk.yellow;
     }
 
     if (configuration.verbose || (user.categoryAuto != networkOutput.categoryAuto)) {
-      console.log(chalkVar(text
+      console.log(chalkLog(text
         + " | AUTO CHG M/MM/TOT: " + statsObj.autoChangeMatch + "/" + statsObj.autoChangeMismatch + "/" + statsObj.autoChangeTotal
         + " | " + statsObj.autoChangeMatchRate.toFixed(2) + "%"
         + " | M: " + user.category
@@ -1358,7 +1358,7 @@ process.on("message", async function(m) {
       statsObj.autoChangeMatch = 0;
       statsObj.autoChangeMismatch = 0;
 
-      console.log(chalkInfo("WAS | TFC | +++ NETWORK"
+      console.log(chalkBlueBold("WAS | TFC | >>> SET NETWORK"
         + " | NETWORK: " + networkObj.networkId
         // + " | INPUTS: " + networkObj.inputsObj.meta.numInputs
         + " | INPUTS ID: " + networkObj.inputsId

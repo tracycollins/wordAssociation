@@ -9011,7 +9011,7 @@ async function twitterGetUserUpdateDb(params){
     else if (user.userId !== undefined) { twitQuery.user_id = user.userId; }
     else if (user.screenName !== undefined) { twitQuery.screen_name = user.screenName; }
 
-    const updatedUser = await tcUtils.twitUserShow({user: user, twitQuery: twitQuery, following: following});
+    const updatedUser = await tcUtils.twitterUsersShow({user: user, twitQuery: twitQuery, following: following});
 
     return updatedUser;
 

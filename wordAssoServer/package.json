@@ -38,7 +38,7 @@
     "crypto": "^1.0.1",
     "dat.gui": "^0.7.6",
     "deep-copy": "^1.4.2",
-    "deep-equal": "^1.1.1",
+    "deep-equal": "^2.0.1",
     "deepcopy": "^2.0.0",
     "deepmerge": "^4.2.2",
     "deepool": "^2.2.0",
@@ -51,7 +51,7 @@
     "express": "^4.17.1",
     "express-session": "^1.17.0",
     "express-session-mongo": "^0.1.0",
-    "googleapis": "^45.0.0",
+    "googleapis": "^46.0.0",
     "hashmap": "^2.4.0",
     "is-empty": "^1.2.0",
     "isomorphic-fetch": "^2.2.1",
@@ -108,7 +108,7 @@
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
-    "eslint": "^6.7.1",
+    "eslint": "^6.7.2",
     "jshint": "^2.10.3"
   },
   "scripts": {

@@ -9301,6 +9301,7 @@ function getNextSearchNode(params){
               case "UNCAT":
                 if (user.category && (user.category != "none")){
                   printUserObj("WAS | ... SKIP SEARCH | MODE: " + searchMode, user);
+                  userSkipCount += 1;
                   notFoundAndMore = true;
                   break;
                 }
@@ -9344,6 +9345,7 @@ function getNextSearchNode(params){
               case "UNCAT_LEFT":
 
                 if ((user.category && (user.category != "none")) || (user.categoryAuto != "left")){
+                  userSkipCount += 1;
                   printUserObj("WAS | ... SKIP SEARCH USER | MODE: " + searchMode + " | SKIP COUNT: " + userSkipCount, user);
                   notFoundAndMore = true;
                   break;
@@ -9364,6 +9366,7 @@ function getNextSearchNode(params){
               case "UNCAT_NEUTRAL":
 
                 if ((user.category && (user.category != "none")) || (user.categoryAuto != "neutral")){
+                  userSkipCount += 1;
                   printUserObj("WAS | ... SKIP SEARCH USER | MODE: " + searchMode + " | SKIP COUNT: " + userSkipCount, user);
                   notFoundAndMore = true;
                   break;
@@ -9383,6 +9386,7 @@ function getNextSearchNode(params){
 
               case "UNCAT_RIGHT":
                 if ((user.category && (user.category != "none")) || (user.categoryAuto != "right")){
+                  userSkipCount += 1;
                   printUserObj("WAS | ... SKIP SEARCH USER | MODE: " + searchMode + " | SKIP COUNT: " + userSkipCount, user);
                   notFoundAndMore = true;
                   break;

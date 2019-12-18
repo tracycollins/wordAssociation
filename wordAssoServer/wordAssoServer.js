@@ -57,10 +57,18 @@ let dbConnection;
 
 const HashtagServerController = require("@threeceelabs/hashtag-server-controller");
 const hashtagServerController = new HashtagServerController("WAS_HSC");
+let hashtagServerControllerReady = false;
 
 hashtagServerController.on("error", function(err){
+  hashtagServerControllerReady = false;
   console.log(chalkError("WAS | *** HSC ERROR | " + err));
 });
+
+hashtagServerController.on("ready", function(appname){
+  hashtagServerControllerReady = true;
+  console.log(chalk.green("WAS | HSC READY | " + appname));
+});
+
 
 const UserServerController = require("@threeceelabs/user-server-controller");
 const userServerController = new UserServerController("WAS_USC");
@@ -621,8 +629,8 @@ followableSearchTermSet.add("hanity");
 followableSearchTermSet.add("aoc");
 followableSearchTermSet.add("putin");
 
-followableSearchTermSet.add("#maga");
-followableSearchTermSet.add("#kag");
+// followableSearchTermSet.add("#maga");
+// followableSearchTermSet.add("#kag");
 followableSearchTermSet.add("#nra");
 followableSearchTermSet.add("#gop");
 followableSearchTermSet.add("#resist");
@@ -670,7 +678,7 @@ followableSearchTermSet.add("supreme court");
 followableSearchTermSet.add("specialcounsel");
 followableSearchTermSet.add("special counsel");
 
-const followableSearchTermsArray = [...followableSearchTermSet];
+let followableSearchTermsArray = [...followableSearchTermSet];
 
 const DEFAULT_BEST_NETWORK_FILE = "bestRuntimeNetwork.json";
 const bestRuntimeNetworkFileName = DEFAULT_BEST_NETWORK_FILE;
@@ -2538,7 +2546,10 @@ configEvents.on("NEW_BEST_NETWORK", function configEventDbConnect(){
 
   if (tfeChild !== undefined) {
 
-    console.log(chalkBlue("WAS | UPDATE TFE CHILD NETWORK: " + bestNetworkObj.networkId));
+    console.log(chalkBlue("WAS | >>> UPDATE TFE CHILD NETWORK"
+      + " | " + getTimeStamp()
+      + " | " + bestNetworkObj.networkId
+    ));
 
     tfeChild.send({ op: "NETWORK", networkObj: bestNetworkObj }, function tfeNetwork(err){
       if (err) {
@@ -3563,6 +3574,7 @@ async function initFollowableSearchTermSet(){
       followableSearchTermSet = result;
       followableSearchTermSet.delete("");
       followableSearchTermSet.delete(" ");
+      followableSearchTermsArray = [...followableSearchTermSet];
     }
 
     console.log(chalkLog("WAS | LOADED FOLLOWABLE SEARCH TERMS FILE"
@@ -4710,6 +4722,12 @@ async function checkCategory(nodeObj) {
 
   switch (nodeObj.nodeType) {
 
+    case "hashtag":
+    case "user":
+
+      const updatedNodeObj = await processCheckCategory(nodeObj);
+      return updatedNodeObj;
+
     case "tweet":
     case "emoji":
     case "media":
@@ -4717,12 +4735,6 @@ async function checkCategory(nodeObj) {
     case "place":
     case "word":
       return nodeObj;
-
-    case "hashtag":
-    case "user":
-
-      const updatedNodeObj = await processCheckCategory(nodeObj);
-      return updatedNodeObj;
 
     default:
       console.log(chalk.blue("WAS | DEFAULT | checkCategory\n" + jsonPrint(nodeObj)));
@@ -4873,9 +4885,6 @@ async function userCategorizeable(user){
 
   if (user.lang && (user.lang !== undefined) && (user.lang != "en")) { 
     categorizeableUserSet.delete(user.nodeId);
-    // if (configuration.verbose) { 
-    //   console.log(chalkBlue("WAS | XXX UNCATEGORIZEABLE | USER LANG NOT ENGLISH: " + user.lang));
-    // }
     return false;
   }
 
@@ -4897,7 +4906,7 @@ async function userCategorizeable(user){
     return false;
   }
 
-  if (!user.ignored || (user.ignored === undefined)){
+  // if (!user.ignored || (user.ignored === undefined)){
 
     if (!user.description || (user.description === undefined)) { user.description = ""; }
     if (!user.screenName || (user.screenName === undefined)) { user.screenName = ""; }
@@ -4932,10 +4941,10 @@ async function userCategorizeable(user){
 
     categorizeableUserSet.delete(user.nodeId);
     return false;
-  }
+  // }
 
-  categorizeableUserSet.delete(user.nodeId);
-  return false;
+  // categorizeableUserSet.delete(user.nodeId);
+  // return false;
 }
 
 async function initAllowLocations(){
@@ -5104,7 +5113,6 @@ async function updateUserSets(){
   
   userSearchCursor = wordAssoDb.User
     .find(userSearchQuery)
-    // .select({friends: 0, tweets: 0, tweetHistograms: 0, profileHistograms: 0})
     .select({
       nodeId: 1, 
       lang: 1, 
@@ -5165,7 +5173,6 @@ async function updateUserSets(){
         }
       });
     }
-    // else if (!uncatUserObj) {
     else {
 
       if (user.categoryVerified) {
@@ -5220,21 +5227,13 @@ async function updateUserSets(){
           userNoneSet.delete(nodeId);
           categorizeable = true;
         break;
-        case "none":
-          userRightSet.delete(nodeId);
-          userLeftSet.delete(nodeId);
-          userNeutralSet.delete(nodeId);
-          userPositiveSet.delete(nodeId);
-          userNegativeSet.delete(nodeId);
-          userNoneSet.add(nodeId);
-        break;
         default:
           userRightSet.delete(nodeId);
           userLeftSet.delete(nodeId);
           userNeutralSet.delete(nodeId);
           userPositiveSet.delete(nodeId);
           userNegativeSet.delete(nodeId);
-          userNoneSet.delete(nodeId);
+          userNoneSet.add(nodeId);
       }
 
       switch (categoryAuto) {
@@ -5306,9 +5305,9 @@ async function updateUserSets(){
 
         if (tfeChild !== undefined) { 
           tfeChild.send({op: "USER_CATEGORIZE", user: user});
-          if (user.category == "left" || user.category == "right" || user.category == "neutral") {
-            uncatUserCache.del(user.nodeId);
-          }
+          // if (user.category == "left" || user.category == "right" || user.category == "neutral") {
+          //   uncatUserCache.del(user.nodeId);
+          // }
         }
 
         if (uncategorizedManualUserSet.size % 100 == 0) {
@@ -5372,7 +5371,6 @@ async function updateUserSets(){
           }
         }
       }
-
     }
   });
 
@@ -5560,22 +5558,24 @@ function initTransmitNodeQueueInterval(interval){
           if (!userServerControllerReady || !statsObj.dbConnectionReady) {
             transmitNodeQueueReady = true;
           }
+          else{
 
-          userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit}, function(err, updatedUser){
-            if (err) {
-              console.log(chalkError("WAS | findOneUser ERROR" + jsonPrint(err)));
-              delete n._id;
-              delete n.userId;
-              viewNameSpace.volatile.emit("node", n);
-            }
-            else {
-              delete n._id;
-              delete n.userId;
-              viewNameSpace.volatile.emit("node", updatedUser);
-            }
+            userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit}, function(err, updatedUser){
+              if (err) {
+                console.log(chalkError("WAS | findOneUser ERROR" + jsonPrint(err)));
+                delete n._id;
+                delete n.userId;
+                viewNameSpace.volatile.emit("node", n);
+              }
+              else {
+                delete updatedUser._id;
+                delete updatedUser.userId;
+                viewNameSpace.volatile.emit("node", updatedUser);
+              }
 
-            transmitNodeQueueReady = true;
-          });
+              transmitNodeQueueReady = true;
+            });
+          }
         }
         else if (n.nodeType == "user") {
           delete n._id;
@@ -5584,35 +5584,31 @@ function initTransmitNodeQueueInterval(interval){
 
           transmitNodeQueueReady = true;
         }
-        else if ((n.nodeType == "hashtag") && n.category){
+        else if ((n.nodeType == "hashtag") && n.category && hashtagServerControllerReady){
 
           n.updateLastSeen = true;
 
-          hashtagServerController.findOneHashtag(n, {noInc: false}, function(err, updatedHashtag){
-            if (err) {
-              console.log(chalkError("WAS | updatedHashtag ERROR\n" + jsonPrint(err)));
-              delete n._id;
-              delete n.userId;
-              viewNameSpace.volatile.emit("node", n);
-            }
-            else if (updatedHashtag) {
-              delete n._id;
-              delete n.userId;
-              viewNameSpace.volatile.emit("node", updatedHashtag);
-            }
-            else {
-              delete n._id;
-              delete n.userId;
-              viewNameSpace.volatile.emit("node", n);
-            }
-
+          if (!hashtagServerControllerReady || !statsObj.dbConnectionReady) {
             transmitNodeQueueReady = true;
+          }
+          else {
+            hashtagServerController.findOneHashtag(n, {noInc: false, lean: true}, function(err, updatedHashtag){
+              if (err) {
+                console.log(chalkError("WAS | updatedHashtag ERROR\n" + jsonPrint(err)));
+                delete n._id;
+                viewNameSpace.volatile.emit("node", n);
+              }
+              else {
+                delete updatedHashtag._id;
+                viewNameSpace.volatile.emit("node", updatedHashtag);
+              }
 
-          });
+              transmitNodeQueueReady = true;
+            });
+          }
         }
         else if (n.nodeType == "hashtag") {
           delete n._id;
-          delete n.userId;
           viewNameSpace.volatile.emit("node", n);
           transmitNodeQueueReady = true;
         }
@@ -6233,21 +6229,6 @@ async function initTweetParserMessageRxQueueInterval(interval){
         }
         else {
 
-          // debug(chalkInfo("WAS | PARSED TW"
-          //   + " [ TPMRQ: " + tweetParserMessageRxQueue.length + "]"
-          //   + " | " + tweetObj.tweetId
-          //   + " | USR: " + tweetObj.user.screenName
-          //   + " | EJs: " + tweetObj.emoji.length
-          //   + " | Hs: " + tweetObj.hashtags.length
-          //   + " | Hs: " + tweetObj.images.length
-          //   + " | LCs: " + tweetObj.locations.length
-          //   + " | Ms: " + tweetObj.mentions.length
-          //   + " | PLs: " + tweetObj.places.length
-          //   + " | ULs: " + tweetObj.urls.length
-          //   + " | UMs: " + tweetObj.userMentions.length
-          //   + " | WDs: " + tweetObj.words.length
-          // ));
-
           if (dbuChild && dbuChildReady && categorizeableUserSet.has(tweetObj.user.nodeId)) {
             dbUserMessage.tweetObj = tweetObj;
             dbuChild.send(dbUserMessage);
@@ -6260,6 +6241,8 @@ async function initTweetParserMessageRxQueueInterval(interval){
               tweetParserMessageRxQueueReady = true;
             }
             catch(e){
+              console.log(chalkError("WAS | *** TX NODES ERROR"));
+              console.log(e);
               tweetParserMessageRxQueueReady = true;
             }
           }
@@ -8476,13 +8459,15 @@ function initCategoryHashmaps(){
           },
 
           function(cb0){
+
             if (!userServerControllerReady || !statsObj.dbConnectionReady) {
-            console.log(chalkAlert("WAS | *** NOT READY"
-              + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
-              + " | userServerControllerReady: " + userServerControllerReady
-            ));
+              console.log(chalkAlert("WAS | *** NOT READY"
+                + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
+                + " | userServerControllerReady: " + userServerControllerReady
+              ));
               return cb0(new Error("userServerController not ready"), null);
             }
+
             userServerController.findCategorizedUsersCursor(p, function(err, results){
 
               if (err) {
@@ -8588,6 +8573,15 @@ function initCategoryHashmaps(){
           },
 
           function(cb0){
+
+            if (!hashtagServerControllerReady || !statsObj.dbConnectionReady) {
+              console.log(chalkAlert("WAS | *** NOT READY"
+                + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
+                + " | hashtagServerControllerReady: " + hashtagServerControllerReady
+              ));
+              return cb0(new Error("hashtagServerController not ready"), null);
+            }
+
             hashtagServerController.findCategorizedHashtagsCursor(p, function(err, results){
 
               if (err) {
@@ -9276,7 +9270,7 @@ function getNextSearchNode(params){
             }
 
             console.log(chalkAlert("WAS | ??? USER NOT FOUND"
-              + " | SEACH MODE: " + searchMode
+              + " | SEARCH MODE: " + searchMode
               + " | " + searchUserId
             ));
 
@@ -9306,12 +9300,12 @@ function getNextSearchNode(params){
 
               case "MISMATCH":
                 if ((user.category !== undefined) && (user.category != "none") && user.categoryVerified){
-                  printUserObj("WAS | ... SKIP SEACH USER | VERIFIED | MODE: " + searchMode, user);
+                  printUserObj("WAS | ... SKIP SEARCH USER | VERIFIED | MODE: " + searchMode, user);
                   notFoundAndMore = true;
                   break;
                 }
                 else if ((user.category !== undefined) && (user.category != "none") && (user.category == user.categoryAuto)){
-                  printUserObj("WAS | ... SKIP SEACH USER | MATCHED  | MODE: " + searchMode, user);
+                  printUserObj("WAS | ... SKIP SEARCH USER | MATCHED  | MODE: " + searchMode, user);
                   notFoundAndMore = true;
                   break;
                 }
@@ -9331,12 +9325,12 @@ function getNextSearchNode(params){
               case "UNCAT_LEFT":
 
                 if ((user.category && (user.category != "none")) || (user.categoryAuto != "left")){
-                  printUserObj("WAS | ... SKIP SEACH USER | MODE: " + searchMode, user);
+                  printUserObj("WAS | ... SKIP SEARCH USER | MODE: " + searchMode, user);
                   notFoundAndMore = true;
                   break;
                 }
 
-                printUserObj("WAS | --> SEACH USER FOUND | MODE: " + searchMode, user);
+                printUserObj("WAS | --> SEARCH USER FOUND | MODE: " + searchMode, user);
 
                 searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
 
@@ -9351,12 +9345,12 @@ function getNextSearchNode(params){
               case "UNCAT_NEUTRAL":
 
                 if ((user.category && (user.category != "none")) || (user.categoryAuto != "neutral")){
-                  printUserObj("WAS | ... SKIP SEACH USER | MODE: " + searchMode, user);
+                  printUserObj("WAS | ... SKIP SEARCH USER | MODE: " + searchMode, user);
                   notFoundAndMore = true;
                   break;
                 }
 
-                printUserObj("WAS | --> SEACH USER FOUND | MODE: " + searchMode, user);
+                printUserObj("WAS | --> SEARCH USER FOUND | MODE: " + searchMode, user);
 
                 searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
 
@@ -9370,12 +9364,12 @@ function getNextSearchNode(params){
 
               case "UNCAT_RIGHT":
                 if ((user.category && (user.category != "none")) || (user.categoryAuto != "right")){
-                  printUserObj("WAS | ... SKIP SEACH USER | MODE: " + searchMode, user);
+                  printUserObj("WAS | ... SKIP SEARCH USER | MODE: " + searchMode, user);
                   notFoundAndMore = true;
                   break;
                 }
 
-                printUserObj("WAS | --> SEACH USER FOUND | MODE: " + searchMode, user);
+                printUserObj("WAS | --> SEARCH USER FOUND | MODE: " + searchMode, user);
 
                 searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
 
@@ -9388,8 +9382,8 @@ function getNextSearchNode(params){
               break;
 
               default:
-                console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR: UNKNOWN SEACH MODE: " + searchMode));
-                quit({cause: "UNKNOWN SEACH MODE: " + searchMode});
+                console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR: UNKNOWN SEARCH MODE: " + searchMode));
+                quit({cause: "UNKNOWN SEARCH MODE: " + searchMode});
             }
 
             return;
@@ -9452,26 +9446,47 @@ async function twitterSearchUser(params) {
   if (searchNodeUser.screenName.startsWith("?")) {
 
     switch (searchNodeUser.screenName) {
-      case "?all":
-        searchMode = "UNCAT";
-        searchUserArray = _.shuffle(uncategorizedManualUserArray);
-      break;
+
       case "?mm":
         searchMode = "MISMATCH";
         searchUserArray = _.shuffle([...mismatchUserSet]);
       break;
+
+      case "?all":
+        searchMode = "UNCAT";
+        searchUserArray = _.shuffle(uncategorizedManualUserArray);
+      break;
       case "?left":
         searchMode = "UNCAT_LEFT";
-        searchUserArray = _.intersection(userAutoLeftArray, uncategorizedManualUserArray);
+        searchUserArray = _.shuffle(uncategorizedManualUserArray);
       break;
       case "?right":
         searchMode = "UNCAT_RIGHT";
-        searchUserArray = _.intersection(userAutoRightArray, uncategorizedManualUserArray);
+        searchUserArray = _.shuffle(uncategorizedManualUserArray);
       break;
       case "?neutral":
         searchMode = "UNCAT_NEUTRAL";
-        searchUserArray = _.intersection(userAutoNeutralArray, uncategorizedManualUserArray);
+        searchUserArray = _.shuffle(uncategorizedManualUserArray);
       break;
+
+
+      // case "?all":
+      //   searchMode = "UNCAT";
+      //   searchUserArray = _.shuffle(uncategorizedManualUserArray);
+      // break;
+      // case "?left":
+      //   searchMode = "UNCAT_LEFT";
+      //   searchUserArray = _.intersection(userAutoLeftArray, uncategorizedManualUserArray);
+      // break;
+      // case "?right":
+      //   searchMode = "UNCAT_RIGHT";
+      //   searchUserArray = _.intersection(userAutoRightArray, uncategorizedManualUserArray);
+      // break;
+      // case "?neutral":
+      //   searchMode = "UNCAT_NEUTRAL";
+      //   searchUserArray = _.intersection(userAutoNeutralArray, uncategorizedManualUserArray);
+      // break;
+
       default:
         console.log(chalkError("WAS | *** UNKNOWN searchNodeUser.screenName: " + searchNodeUser.screenName));
         throw new Error("UNKNOWN searchNodeUser.screenName");

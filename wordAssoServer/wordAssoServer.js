@@ -8827,169 +8827,169 @@ async function initThreeceeTwitterUser(threeceeUser){
   }
 }
 
-function twitUserShow(params){
+// function twitUserShow(params){
 
-  return new Promise(function(resolve, reject){
+//   return new Promise(function(resolve, reject){
 
-    const user = params.user;
-    const resource_endpoint = "users/show";
+//     const user = params.user;
+//     const resource_endpoint = "users/show";
 
-    threeceeTwitter.twit.get(resource_endpoint, params.twitQuery, async function usersShow (err, rawUser){
+//     threeceeTwitter.twit.get(resource_endpoint, params.twitQuery, async function usersShow (err, rawUser){
 
-      if (err) {
+//       if (err) {
 
-        console.log(chalkError("WAS | *** ERROR twitUserShow rawUser"
-          + " | @" + user.screenName 
-          + " | " + err 
-          + "\nerr\n" + jsonPrint(err)
-          + "\ntwitQuery\n" + jsonPrint(params.twitQuery)
-        ));
+//         console.log(chalkError("WAS | *** ERROR twitUserShow rawUser"
+//           + " | @" + user.screenName 
+//           + " | " + err 
+//           + "\nerr\n" + jsonPrint(err)
+//           + "\ntwitQuery\n" + jsonPrint(params.twitQuery)
+//         ));
 
-        if (err.code == 88) { // RATE LIMIT EXCEEDED
+//         if (err.code == 88) { // RATE LIMIT EXCEEDED
 
-          threeceeTwitter.twitterRateLimitExceptionFlag.exceptionFlag = true;
+//           threeceeTwitter.twitterRateLimitExceptionFlag.exceptionFlag = true;
 
-          const rateLimitEndEvent = "rateLimitEnd_" + resource_endpoint;
+//           const rateLimitEndEvent = "rateLimitEnd_" + resource_endpoint;
 
-          tcUtils.emitter.once(rateLimitEndEvent, function(){
+//           tcUtils.emitter.once(rateLimitEndEvent, function(){
 
-            console.log(chalkError("WAS | -X- TWITTER RATE LIMIT END"
-              + " | @altthreecee00"
-              + " | " + getTimeStamp()
-              + " | EVENT: " + rateLimitEndEvent
-            ));
+//             console.log(chalkError("WAS | -X- TWITTER RATE LIMIT END"
+//               + " | @altthreecee00"
+//               + " | " + getTimeStamp()
+//               + " | EVENT: " + rateLimitEndEvent
+//             ));
 
-            threeceeTwitter.twitterRateLimitExceptionFlag.exceptionFlag = false;
+//             threeceeTwitter.twitterRateLimitExceptionFlag.exceptionFlag = false;
 
-          });
+//           });
 
-          await tcUtils.handleTwitterError({user: "altthreecee00", err: err, resource: "user", endPoint: "show"});
-        }
-        else if ((err.code == 63) || (err.code == 50)) { // USER SUSPENDED or NOT FOUND
+//           await tcUtils.handleTwitterError({user: "altthreecee00", err: err, resource: "user", endPoint: "show"});
+//         }
+//         else if ((err.code == 63) || (err.code == 50)) { // USER SUSPENDED or NOT FOUND
 
-          try {
-            if (user.nodeId !== undefined) { 
+//           try {
+//             if (user.nodeId !== undefined) { 
 
-              console.log(chalkAlert("WAS | XXX DELETING USER IN DB | @" + user.screenName + " | NID: " + user.nodeId));
+//               console.log(chalkAlert("WAS | XXX DELETING USER IN DB | @" + user.screenName + " | NID: " + user.nodeId));
 
-              await wordAssoDb.User.deleteOne({ 'nodeId': user.nodeId });
+//               await wordAssoDb.User.deleteOne({ 'nodeId': user.nodeId });
 
-              ignoredUserSet.add(user.nodeId);
-              followableUserSet.delete(user.nodeId);
-              uncategorizedManualUserSet.delete(user.nodeId);
-              uncategorizedAutoUserSet.delete(user.nodeId);
-              categorizedUserHashMap.delete(user.nodeId);
+//               ignoredUserSet.add(user.nodeId);
+//               followableUserSet.delete(user.nodeId);
+//               uncategorizedManualUserSet.delete(user.nodeId);
+//               uncategorizedAutoUserSet.delete(user.nodeId);
+//               categorizedUserHashMap.delete(user.nodeId);
 
-              return resolve();
-            }
+//               return resolve();
+//             }
 
-            if (user.screenName !== undefined) { 
+//             if (user.screenName !== undefined) { 
 
-              console.log(chalkAlert("WAS | XXX DELETING USER IN DB | @" + user.screenName + " | NID: " + user.nodeId));
+//               console.log(chalkAlert("WAS | XXX DELETING USER IN DB | @" + user.screenName + " | NID: " + user.nodeId));
               
-              await wordAssoDb.User.deleteOne({ 'screenName': user.screenName });
+//               await wordAssoDb.User.deleteOne({ 'screenName': user.screenName });
               
-              ignoredUserSet.add(user.screenName.toLowerCase());
-              followableUserSet.delete(user.nodeId);
-              uncategorizedManualUserSet.delete(user.nodeId);
-              uncategorizedAutoUserSet.delete(user.nodeId);
-              categorizedUserHashMap.delete(user.nodeId);
+//               ignoredUserSet.add(user.screenName.toLowerCase());
+//               followableUserSet.delete(user.nodeId);
+//               uncategorizedManualUserSet.delete(user.nodeId);
+//               uncategorizedAutoUserSet.delete(user.nodeId);
+//               categorizedUserHashMap.delete(user.nodeId);
 
-              return resolve();
-            }
-          }
-          catch(err1){
-            return reject(err1);
-          }
-        }
+//               return resolve();
+//             }
+//           }
+//           catch(err1){
+//             return reject(err1);
+//           }
+//         }
 
-        return reject(err);
-      }
+//         return reject(err);
+//       }
 
-      if (rawUser && (rawUser !== undefined)) {
+//       if (rawUser && (rawUser !== undefined)) {
 
-        if (!userServerControllerReady || !statsObj.dbConnectionReady) {
-          console.log(chalkAlert("WAS | *** NOT READY"
-            + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
-            + " | userServerControllerReady: " + userServerControllerReady
-          ));
-          return reject(new Error("userServerController not ready"));
-        }
+//         if (!userServerControllerReady || !statsObj.dbConnectionReady) {
+//           console.log(chalkAlert("WAS | *** NOT READY"
+//             + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
+//             + " | userServerControllerReady: " + userServerControllerReady
+//           ));
+//           return reject(new Error("userServerController not ready"));
+//         }
 
-        let cUser;
+//         let cUser;
 
-        try{
-          cUser = await userServerController.convertRawUserPromise({user: rawUser});
-        }
-        catch(err1){
-          console.log(chalkError("WAS | *** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
-          return reject(err1);
-        }
+//         try{
+//           cUser = await userServerController.convertRawUserPromise({user: rawUser});
+//         }
+//         catch(err1){
+//           console.log(chalkError("WAS | *** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
+//           return reject(err1);
+//         }
 
-        if (configuration.verbose) {
-          printUserObj("WAS | FOUND users/show rawUser", cUser);
-        }
+//         if (configuration.verbose) {
+//           printUserObj("WAS | FOUND users/show rawUser", cUser);
+//         }
 
-        if (params.following !== undefined){
-          user.following = params.following;
-        }
+//         if (params.following !== undefined){
+//           user.following = params.following;
+//         }
 
-        user.bannerImageUrl = cUser.bannerImageUrl;
-        user.createdAt = cUser.createdAt;
-        user.description = cUser.description;
-        user.followersCount = cUser.followersCount;
-        user.friendsCount = cUser.friendsCount;
-        user.ignored = cUser.ignored;
-        user.lang = cUser.lang;
-        user.lastSeen = (cUser.status && (cUser.status !== undefined)) ? cUser.status.created_at : Date.now();
-        user.lastTweetId = cUser.lastTweetId;
-        user.location = cUser.location;
-        user.name = cUser.name;
-        user.nodeId = cUser.nodeId;
-        user.profileImageUrl = cUser.profileImageUrl;
-        user.profileUrl = cUser.profileUrl;
-        user.screenName = cUser.screenName;
-        user.status = cUser.status;
-        user.statusesCount = cUser.statusesCount;
-        user.statusId = cUser.statusId;
-        user.updateLastSeen = true;
-        user.url = cUser.url;
-        user.userId = cUser.userId;
-        user.verified = cUser.verified;
-        user.mentions = 0;
+//         user.bannerImageUrl = cUser.bannerImageUrl;
+//         user.createdAt = cUser.createdAt;
+//         user.description = cUser.description;
+//         user.followersCount = cUser.followersCount;
+//         user.friendsCount = cUser.friendsCount;
+//         user.ignored = cUser.ignored;
+//         user.lang = cUser.lang;
+//         user.lastSeen = (cUser.status && (cUser.status !== undefined)) ? cUser.status.created_at : Date.now();
+//         user.lastTweetId = cUser.lastTweetId;
+//         user.location = cUser.location;
+//         user.name = cUser.name;
+//         user.nodeId = cUser.nodeId;
+//         user.profileImageUrl = cUser.profileImageUrl;
+//         user.profileUrl = cUser.profileUrl;
+//         user.screenName = cUser.screenName;
+//         user.status = cUser.status;
+//         user.statusesCount = cUser.statusesCount;
+//         user.statusId = cUser.statusId;
+//         user.updateLastSeen = true;
+//         user.url = cUser.url;
+//         user.userId = cUser.userId;
+//         user.verified = cUser.verified;
+//         user.mentions = 0;
 
-        const nCacheObj = nodeCache.get(user.nodeId);
+//         const nCacheObj = nodeCache.get(user.nodeId);
 
-        if (nCacheObj !== undefined) {
-          user.mentions = Math.max(user.mentions, nCacheObj.mentions);
-        }
+//         if (nCacheObj !== undefined) {
+//           user.mentions = Math.max(user.mentions, nCacheObj.mentions);
+//         }
 
-        user.setMentions = true;
+//         user.setMentions = true;
 
-        try{
-          const updatedUser = await userServerController.findOneUserV2({user: user, mergeHistograms: false, noInc: true});
-            if (configuration.verbose) {
-            console.log(chalk.blue("WAS | UPDATED updatedUser"
-              + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
-              + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
-              + "\n" + printUser({user: updatedUser})
-            ));
-          }
-          return resolve(updatedUser);
-        }
-        catch(err1){
-          console.log(chalkError("WAS | *** findOneUserV2 ERROR: " + err1));
-          return reject(err1);
-        }
-      }
-      else {
-        console.log(chalkTwitter("WAS | NOT FOUND users/show data"));
-        return reject(new Error("TWITTER NOT FOUND"));
-      }
-    });
+//         try{
+//           const updatedUser = await userServerController.findOneUserV2({user: user, mergeHistograms: false, noInc: true});
+//             if (configuration.verbose) {
+//             console.log(chalk.blue("WAS | UPDATED updatedUser"
+//               + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
+//               + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
+//               + "\n" + printUser({user: updatedUser})
+//             ));
+//           }
+//           return resolve(updatedUser);
+//         }
+//         catch(err1){
+//           console.log(chalkError("WAS | *** findOneUserV2 ERROR: " + err1));
+//           return reject(err1);
+//         }
+//       }
+//       else {
+//         console.log(chalkTwitter("WAS | NOT FOUND users/show data"));
+//         return reject(new Error("TWITTER NOT FOUND"));
+//       }
+//     });
 
-  });
-}
+//   });
+// }
 
 async function twitterGetUserUpdateDb(params){
 
@@ -9646,7 +9646,7 @@ async function twitterSearchNode(params) {
   }
 
   if (searchNode.startsWith("@")) {
-    await twitterSearchUser({searchNode: searchNode});
+    await twitterSearchUser({searchNode: searchNode, searchMode: "SPECIFIC"});
     return;
   }
 

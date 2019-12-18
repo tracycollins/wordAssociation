@@ -222,7 +222,6 @@ const request = require("request-promise-native");
 const _ = require("lodash");
 const touch = require("touch");
 const merge = require("deepmerge");
-// const Measured = require("measured");
 const Measured = require("measured-core");
 const omit = require("object.omit");
 const pick = require("object.pick");
@@ -495,8 +494,6 @@ configuration.threeceeUsers = DEFAULT_THREECEE_USERS;
 statsObj.currentThreeceeUser = configuration.threeceeUsers[0];
 
 const threeceeUser = "altthreecee00";
-
-// const Twit = require(path.join(__dirname, "/js/libs/twit"));
 
 const threeceeTwitter = {};
 const threeceeInfoTwitter = {};
@@ -9014,7 +9011,7 @@ async function twitterGetUserUpdateDb(params){
     else if (user.userId !== undefined) { twitQuery.user_id = user.userId; }
     else if (user.screenName !== undefined) { twitQuery.screen_name = user.screenName; }
 
-    const updatedUser = await twitUserShow({user: user, twitQuery: twitQuery, following: following});
+    const updatedUser = await tcUtils.twitUserShow({user: user, twitQuery: twitQuery, following: following});
 
     return updatedUser;
 

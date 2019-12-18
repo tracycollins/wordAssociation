@@ -9182,6 +9182,7 @@ async function processTwitterSearchNode(params) {
       ));
     }
     else {
+      uncatUserCacheHit = false;
       console.log(chalkBlue(MODULE_ID_PREFIX
         + " | --- MISS (NOT CATEGORIZABLE)  | UNCAT USER $"
         + " | TTL: " + msToTime(configuration.uncatUserCacheTtl*1000)

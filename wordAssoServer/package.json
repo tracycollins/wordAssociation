@@ -9,6 +9,7 @@
     "@threeceelabs/threecee-utilities": "^1.0.191",
     "@threeceelabs/tweet-server-controller": "^1.0.463",
     "@threeceelabs/user-server-controller": "^1.0.482",
+    "change-case-bundled": "^1.0.1",
     "command-line-args": "^5.1.1",
     "connect-mongo": "^3.2.0",
     "deepmerge": "^4.2.2",

@@ -5,6 +5,7 @@ const ONE_HOUR = 60 * ONE_MINUTE;
 const ONE_DAY = 24 * ONE_HOUR;
 
 const DEFAULT_START_TIMEOUT = 10*ONE_SECOND;
+const DEFAULT_MAX_USER_SEARCH_SKIP_COUNT = 25;
 
 const DEFAULT_BINARY_MODE = true;
 
@@ -404,6 +405,7 @@ configuration.heartbeatInterval = process.env.WAS_HEARTBEAT_INTERVAL || ONE_MINU
 configuration.statsUpdateIntervalTime = process.env.WAS_STATS_UPDATE_INTERVAL || 10*ONE_MINUTE;
 configuration.uncatUserCacheIntervalTime = process.env.WAS_UNCAT_USER_CACHE_INTERVAL || 15*ONE_MINUTE;
 
+configuration.maxUserSearchSkipCount = DEFAULT_MAX_USER_SEARCH_SKIP_COUNT;
 configuration.filterVerifiedUsers = true;
 configuration.twitterBearerToken = process.env.TWITTER_BEARER_TOKEN;
 configuration.verbose = false;
@@ -494,7 +496,7 @@ statsObj.currentThreeceeUser = configuration.threeceeUsers[0];
 
 const threeceeUser = "altthreecee00";
 
-const Twit = require(path.join(__dirname, "/js/libs/twit"));
+// const Twit = require(path.join(__dirname, "/js/libs/twit"));
 
 const threeceeTwitter = {};
 const threeceeInfoTwitter = {};
@@ -1158,11 +1160,13 @@ function initPassport(){
               return cb(err);
             }
 
-            console.log(chalk.blue("WAS | UPDATED updatedUser"
-              + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
-              + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
-              + "\nWAS | " + printUser({user: updatedUser})
-            ));
+            if (configuration.verbose) {
+              console.log(chalk.blue("WAS | UPDATED updatedUser"
+                + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
+                + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
+                + "\nWAS | " + printUser({user: updatedUser})
+              ));
+            }
 
 
             if (configuration.threeceeInfoUsersArray.includes(updatedUser.screenName)) {
@@ -2134,7 +2138,7 @@ async function killAll(){
 
         try{
           await killChild({pid: childObj.pid});
-          console.log(chalkAlert("WAS | KILL ALL | KILLED | PID: " + childObj.pid + " | CH ID: " + childObj.childId));
+          console.log(chalkAlert("WAS | XXX KILL ALL | KILLED | PID: " + childObj.pid + " | CH ID: " + childObj.childId));
         }
         catch(err){
           console.log(chalkError("WAS | *** KILL CHILD ERROR"
@@ -2148,7 +2152,7 @@ async function killAll(){
       return childPidArray;
     }
 
-    console.log(chalkBlue("WAS | KILL ALL | NO CHILDREN"));
+    console.log(chalkBlue("WAS | XXX KILL ALL | NO CHILDREN"));
     return childPidArray;
 
   }
@@ -7086,12 +7090,12 @@ async function initTfeChild(params){
             await twitterSearchUser({searchNode: "@?right"});
           }
           else{
-            printUserObj("WAS | <TFE | PRIORITY CAT | SEARCH MODE: " + m.searchMode, m.user);
+            printUserObj("WAS | <TFE | PRIORITY CAT | MODE: " + m.searchMode, m.user);
             viewNameSpace.emit("SET_TWITTER_USER", { user: m.user, searchMode: m.searchMode, stats: statsObj.user });
           }
         }
         else if (configuration.verbose) {
-          printUserObj("WAS | <TFE | CAT | SEARCH MODE: " + m.searchMode, m.user, chalkLog);
+          printUserObj("WAS | <TFE | CAT | MODE: " + m.searchMode, m.user, chalkLog);
         }
       break;
 
@@ -8776,20 +8780,29 @@ async function initThreeceeTwitterUser(threeceeUser){
 
   try {
 
-    threeceeTwitter.twitterConfig = {};
-    threeceeTwitter.twitterConfig = await tcUtils.loadFileRetry({folder: twitterConfigFolder, file: configFile});
+    // threeceeTwitter.twitterConfig = {};
+    // threeceeTwitter.twitterConfig = await tcUtils.loadFileRetry({folder: twitterConfigFolder, file: configFile});
 
-    console.log(chalkTwitter("WAS | +++ LOADED TWITTER CONFIG"
+    // console.log(chalkTwitter("WAS | +++ LOADED TWITTER CONFIG"
+    //   + " | 3C @" + threeceeUser
+    //   + " | " + twitterConfigFolder + "/" + configFile
+    //   + "\nCONFIG\n" + jsonPrint(threeceeTwitter.twitterConfig)
+    // ));
+
+    threeceeTwitter.twitterConfig = await tcUtils.initTwitterConfig({folder: twitterConfigFolder, threeceeUser: threeceeUser});
+    await tcUtils.initTwitter({twitterConfig: threeceeTwitter.twitterConfig});
+    await tcUtils.getTwitterAccountSettings();
+
+    console.log(chalkTwitter("WAS | +++ TWITTER INITIALIZED"
       + " | 3C @" + threeceeUser
-      + " | " + twitterConfigFolder + "/" + configFile
       + "\nCONFIG\n" + jsonPrint(threeceeTwitter.twitterConfig)
     ));
 
-    threeceeTwitter.twit = new Twit({
-      consumer_key: threeceeTwitter.twitterConfig.consumer_key, 
-      consumer_secret: threeceeTwitter.twitterConfig.consumer_secret,
-      app_only_auth: true
-    });
+    // threeceeTwitter.twit = new Twit({
+    //   consumer_key: threeceeTwitter.twitterConfig.consumer_key, 
+    //   consumer_secret: threeceeTwitter.twitterConfig.consumer_secret,
+    //   app_only_auth: true
+    // });
 
     threeceeTwitter.ready = true;
     threeceeTwitter.status = false;
@@ -8895,7 +8908,9 @@ function twitUserShow(params){
           return reject(err1);
         }
 
-        printUserObj("FOUND users/show rawUser", cUser);
+        if (configuration.verbose) {
+          printUserObj("WAS | FOUND users/show rawUser", cUser);
+        }
 
         if (params.following !== undefined){
           user.following = params.following;
@@ -8935,11 +8950,13 @@ function twitUserShow(params){
 
         try{
           const updatedUser = await userServerController.findOneUserV2({user: user, mergeHistograms: false, noInc: true});
-          console.log(chalk.blue("WAS | UPDATED updatedUser"
-            + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
-            + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
-            + "\n" + printUser({user: updatedUser})
-          ));
+            if (configuration.verbose) {
+            console.log(chalk.blue("WAS | UPDATED updatedUser"
+              + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
+              + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
+              + "\n" + printUser({user: updatedUser})
+            ));
+          }
           return resolve(updatedUser);
         }
         catch(err1){
@@ -8964,7 +8981,9 @@ async function twitterGetUserUpdateDb(params){
   if (!user.userId && !user.nodeId && !user.screenName) { throw new Error("NO USER PROPS"); }
 
   try{
-    printUserObj("WAS | GET USER TWITTER DATA", user);
+    if (configuration.verbose) {
+      printUserObj("WAS | GET USER TWITTER DATA", user);
+    }
 
     const twitQuery = {};
 
@@ -9001,7 +9020,7 @@ async function twitterSearchUserNode(params){
 
     if (dbUser) {
 
-      printUserObj("WAS | TWITTER SEARCH DB | SEARCH MODE: " + searchMode + " | FOUND USER", dbUser);
+      printUserObj("WAS | SEARCH DB | MODE: " + searchMode + " | FOUND USER", dbUser);
 
       const updatedUser = await twitterGetUserUpdateDb({user: dbUser, following: following});
 
@@ -9011,7 +9030,7 @@ async function twitterSearchUserNode(params){
       return;
     }
 
-    console.log(chalkLog("WAS | TWITTER SEARCH DB | SEARCH MODE: " + searchMode + " | USER NOT FOUND"
+    console.log(chalkLog("WAS | SEARCH DB | MODE: " + searchMode + " | USER NOT FOUND | @" + user.screenName + " | NID: " + user.nodeId
       + "\nUSER\n" + jsonPrint(user)
     ));
 
@@ -9020,7 +9039,7 @@ async function twitterSearchUserNode(params){
     return;
   }
   catch(err){
-    console.log(chalkError("WAS | *** TWITTER SEARCH NODE USER ERROR | SEARCH MODE: " + searchMode
+    console.log(chalkError("WAS | *** TWITTER SEARCH NODE USER ERROR | MODE: " + searchMode
       + "\nsearchQuery\n" + jsonPrint(user)
       + "ERROR", err
     ));
@@ -9050,7 +9069,7 @@ async function processTwitterSearchNode(params) {
 
     console.log(chalkBlue("WAS | T> TWITTER_SEARCH_NODE"
       + " | " + getTimeStamp()
-      + " | SEARCH MODE: " + params.searchMode
+      + " | MODE: " + params.searchMode
       + " | SPECIFIC USER: " + params.specificUserFlag
       + " | NID: " + params.user.nodeId
       + " | @" + params.user.screenName
@@ -9185,8 +9204,8 @@ async function processTwitterSearchNode(params) {
 
     console.log(chalkAlert("WAS | *** TWITTER_SEARCH_NODE | NOT FOUND"
       + " | " + getTimeStamp()
-      + " | SEARCH MODE: " + params.searchMode
-      + " | SEARCH NODE: " + params.searchNode
+      + " | MODE: " + params.searchMode
+      + " | NODE: " + params.searchNode
     ));
 
     viewNameSpace.emit("TWITTER_SEARCH_NODE_NOT_FOUND", { searchMode: params.searchMode, searchNode: params.searchNode, stats: statsObj.user });
@@ -9207,6 +9226,7 @@ function getNextSearchNode(params){
     const searchUserArray = params.searchUserArray;
 
     let searchResults;
+    let userSkipCount = 0;
 
     async.whilst(
 
@@ -9218,7 +9238,8 @@ function getNextSearchNode(params){
 
         try {
 
-          if (searchUserArray.length == 0){
+
+          if ((searchUserArray.length == 0) || (userSkipCount >= configuration.maxUserSearchSkipCount)){
             notFoundAndMore = false;
             searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode});
             return;
@@ -9249,7 +9270,7 @@ function getNextSearchNode(params){
             }
 
             console.log(chalkAlert("WAS | ??? USER NOT FOUND"
-              + " | SEARCH MODE: " + searchMode
+              + " | MODE: " + searchMode
               + " | " + searchUserId
             ));
 
@@ -9279,12 +9300,13 @@ function getNextSearchNode(params){
 
               case "MISMATCH":
                 if ((user.category !== undefined) && (user.category != "none") && user.categoryVerified){
-                  printUserObj("WAS | ... SKIP SEARCH USER | VERIFIED | MODE: " + searchMode, user);
+                  userSkipCount += 1;
+                  printUserObj("WAS | ... SKIP SEARCH USER | VERIFIED | MODE: " + searchMode + " | SKIP COUNT: " + userSkipCount, user);
                   notFoundAndMore = true;
                   break;
                 }
                 else if ((user.category !== undefined) && (user.category != "none") && (user.category == user.categoryAuto)){
-                  printUserObj("WAS | ... SKIP SEARCH USER | MATCHED  | MODE: " + searchMode, user);
+                  printUserObj("WAS | ... SKIP SEARCH USER | MATCHED  | MODE: " + searchMode + " | SKIP COUNT: " + userSkipCount, user);
                   notFoundAndMore = true;
                   break;
                 }
@@ -9304,12 +9326,12 @@ function getNextSearchNode(params){
               case "UNCAT_LEFT":
 
                 if ((user.category && (user.category != "none")) || (user.categoryAuto != "left")){
-                  printUserObj("WAS | ... SKIP SEARCH USER | MODE: " + searchMode, user);
+                  printUserObj("WAS | ... SKIP SEARCH USER | MODE: " + searchMode + " | SKIP COUNT: " + userSkipCount, user);
                   notFoundAndMore = true;
                   break;
                 }
 
-                printUserObj("WAS | --> SEARCH USER FOUND | MODE: " + searchMode, user);
+                printUserObj("WAS | --> SEARCH USER FOUND | MODE: " + searchMode + " | SKIP COUNT: " + userSkipCount, user);
 
                 searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
 
@@ -9324,12 +9346,12 @@ function getNextSearchNode(params){
               case "UNCAT_NEUTRAL":
 
                 if ((user.category && (user.category != "none")) || (user.categoryAuto != "neutral")){
-                  printUserObj("WAS | ... SKIP SEARCH USER | MODE: " + searchMode, user);
+                  printUserObj("WAS | ... SKIP SEARCH USER | MODE: " + searchMode + " | SKIP COUNT: " + userSkipCount, user);
                   notFoundAndMore = true;
                   break;
                 }
 
-                printUserObj("WAS | --> SEARCH USER FOUND | MODE: " + searchMode, user);
+                printUserObj("WAS | --> SEARCH USER FOUND | MODE: " + searchMode + " | SKIP COUNT: " + userSkipCount, user);
 
                 searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
 
@@ -9343,12 +9365,12 @@ function getNextSearchNode(params){
 
               case "UNCAT_RIGHT":
                 if ((user.category && (user.category != "none")) || (user.categoryAuto != "right")){
-                  printUserObj("WAS | ... SKIP SEARCH USER | MODE: " + searchMode, user);
+                  printUserObj("WAS | ... SKIP SEARCH USER | MODE: " + searchMode + " | SKIP COUNT: " + userSkipCount, user);
                   notFoundAndMore = true;
                   break;
                 }
 
-                printUserObj("WAS | --> SEARCH USER FOUND | MODE: " + searchMode, user);
+                printUserObj("WAS | --> SEARCH USER FOUND | MODE: " + searchMode + " | SKIP COUNT: " + userSkipCount, user);
 
                 searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
 
@@ -9499,8 +9521,7 @@ async function twitterSearchUser(params) {
       console.log(chalkError("WAS | *** TWITTER_SEARCH_NODE ERROR"
         + " [ UC USER ARRAY: " + searchUserArray.length + "]"
         + " | " + getTimeStamp()
-        + " | SEARCH USER"
-        + " | SEARCH MODE: " + searchMode + " | ERROR: " + err
+        + " | MODE: " + searchMode + " | ERROR: " + err
       ));
 
       viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", { searchNode: searchNode, stats: statsObj.user });
@@ -9730,6 +9751,8 @@ function allTrue(p){
     params.interval = params.interval || 10*ONE_SECOND;
     params.maxIntervalWait = params.maxIntervalWait || ONE_MINUTE;
 
+    console.log(chalkLog("WAS | ... WAIT ALL TRUE TIMEOUT | " + msToTime(params.maxIntervalWait)));
+
     const waitInterval = setInterval(function() {
 
       if (statsObj.dbConnectionReady && statsObj.initSetsComplete) {
@@ -9877,6 +9900,7 @@ setTimeout(async function(){
     await initSaveFileQueue(configuration);
     await initPassport();
     await initThreeceeTwitterUser("altthreecee00");
+
     if (hostname == "google") {
       try{
 

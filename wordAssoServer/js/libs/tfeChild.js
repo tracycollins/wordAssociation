@@ -1040,7 +1040,7 @@ function initProcessUserQueueInterval(interval) {
             statsObj.user.processed += 1;
 
             if (queueObj.priorityFlag) {
-              console.log(chalkAlert(MODULE_ID_PREFIX + " | PROCESSED USER"
+              console.log(chalkInfo(MODULE_ID_PREFIX + " | >>> PROCESSED USER"
                 + " [ PRCSSD: " + statsObj.user.processed + "/ PUQ: " + processUserQueue.length + "]"
                 + " | PRIORITY: " + queueObj.priorityFlag
                 + " | " + printUser({user: processedUser})
@@ -1431,7 +1431,7 @@ process.on("message", async function(m) {
     case "USER_CATEGORIZE":
 
       if (m.priorityFlag) {
-        console.log(chalkError("WAS | TFC | *** PRIORITY USER_CATEGORIZE"
+        console.log(chalkInfo("WAS | TFC | *** PRIORITY USER_CATEGORIZE"
           + " | MODE: " + m.searchMode
           + " | UID: " + m.user.userId
           + " | @" + m.user.screenName

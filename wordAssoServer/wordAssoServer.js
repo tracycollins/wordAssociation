@@ -7119,7 +7119,7 @@ async function initTfeChild(params){
           }
           else{
             printUserObj("WAS | <TFE | PRIORITY CAT | *** UNCAT ERROR | " + m.searchMode, m.user);
-            await twitterSearchUser({searchNode: "@?"});
+            await twitterSearchUser({searchNode: "@?all"});
           }
         }
         else if (configuration.verbose) {

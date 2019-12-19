@@ -1057,11 +1057,17 @@ function initProcessUserQueueInterval(interval) {
 
             processUserQueueBusy = false;
           }
-
         }
         catch(err){
           if (err.code) { 
             await tcUtils.handleTwitterError({err: err, user: queueObj.user});
+            process.send({ 
+              op: "USER_CATEGORIZED_ERROR", 
+              priorityFlag: queueObj.priorityFlag, 
+              searchMode: queueObj.searchMode, 
+              user: user, 
+              stats: statsObj.user 
+            });
           }
           else {
             console.log(chalkError("*** ERROR initProcessUserQueueInterval: " + err));

@@ -9011,15 +9011,64 @@ async function twitterGetUserUpdateDb(params){
     else if (user.userId !== undefined) { twitQuery.user_id = user.userId; }
     else if (user.screenName !== undefined) { twitQuery.screen_name = user.screenName; }
 
-    const updatedUser = await tcUtils.twitterUsersShow({user: user, twitQuery: twitQuery, following: following});
+    const rawUser = await tcUtils.twitterUsersShow({user: user, twitQuery: twitQuery, following: following});
+    const cUser = await userServerController.convertRawUserPromise({user: rawUser});
+
+    if (configuration.verbose) {
+      printUserObj("WAS | FOUND users/show rawUser", cUser);
+    }
+
+    if (params.following !== undefined){
+      user.following = params.following;
+    }
+
+    user.bannerImageUrl = cUser.bannerImageUrl;
+    user.createdAt = cUser.createdAt;
+    user.description = cUser.description;
+    user.followersCount = cUser.followersCount;
+    user.friendsCount = cUser.friendsCount;
+    user.ignored = cUser.ignored;
+    user.lang = cUser.lang;
+    user.lastSeen = (cUser.status && (cUser.status !== undefined)) ? cUser.status.created_at : Date.now();
+    user.lastTweetId = cUser.lastTweetId;
+    user.location = cUser.location;
+    user.name = cUser.name;
+    user.nodeId = cUser.nodeId;
+    user.profileImageUrl = cUser.profileImageUrl;
+    user.profileUrl = cUser.profileUrl;
+    user.screenName = cUser.screenName;
+    user.status = cUser.status;
+    user.statusesCount = cUser.statusesCount;
+    user.statusId = cUser.statusId;
+    user.updateLastSeen = true;
+    user.url = cUser.url;
+    user.userId = cUser.userId;
+    user.verified = cUser.verified;
+    user.mentions = 0;
+
+    const nCacheObj = nodeCache.get(user.nodeId);
+
+    if (nCacheObj !== undefined) {
+      user.mentions = Math.max(user.mentions, nCacheObj.mentions);
+    }
+
+    user.setMentions = true;
+
+    const updatedUser = await userServerController.findOneUserV2({user: user, mergeHistograms: false, noInc: true});
+
+    if (configuration.verbose) {
+      console.log(chalk.blue("WAS | UPDATED updatedUser"
+        + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
+        + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
+        + "\n" + printUser({user: updatedUser})
+      ));
+    }
 
     return updatedUser;
 
   }
   catch(err){
-    console.log(chalkTwitter("WAS | XXX TWITTER_SEARCH_NODE USER FAIL"
-      + " | threeceeTwitter UNDEFINED"
-      + " | 3C @" + threeceeUser
+    console.log(chalkError("WAS | ***ERROR twitterGetUserUpdateDb"
       + "\n" + printUser({user: user})
     ));
     throw err;
@@ -9059,7 +9108,7 @@ async function twitterSearchUserNode(params){
   catch(err){
     console.log(chalkError("WAS | *** TWITTER SEARCH NODE USER ERROR | MODE: " + searchMode
       + "\nsearchQuery\n" + jsonPrint(user)
-      + "ERROR", err
+      + "ERROR: ", err
     ));
     throw err;
   }

@@ -1065,7 +1065,7 @@ function initProcessUserQueueInterval(interval) {
               op: "USER_CATEGORIZED_ERROR", 
               priorityFlag: queueObj.priorityFlag, 
               searchMode: queueObj.searchMode, 
-              user: user, 
+              user: queueObj.user, 
               stats: statsObj.user 
             });
           }

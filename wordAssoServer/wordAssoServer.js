@@ -7096,6 +7096,37 @@ async function initTfeChild(params){
         }
       break;
 
+      case "USER_CATEGORIZED_ERROR":
+        if (m.priorityFlag){
+
+          uncatUserCache.del(m.user.nodeId);
+
+          if (m.searchMode === "MISMATCH"){
+            printUserObj("WAS | <TFE | PRIORITY CAT | *** MISMATCH ERROR | " + m.searchMode, m.user);
+            await twitterSearchUser({searchNode: "@?mm"});
+          }
+          else if (m.searchMode === "UNCAT_LEFT"){
+            printUserObj("WAS | <TFE | PRIORITY CAT | *** UNCAT LEFT ERROR | " + m.searchMode, m.user);
+            await twitterSearchUser({searchNode: "@?left"});
+          }
+          else if (m.searchMode === "UNCAT_NEUTRAL"){
+            printUserObj("WAS | <TFE | PRIORITY CAT | *** UNCAT NEUTRAL ERROR | " + m.searchMode, m.user);
+            await twitterSearchUser({searchNode: "@?neutral"});
+          }
+          else if (m.searchMode === "UNCAT_RIGHT"){
+            printUserObj("WAS | <TFE | PRIORITY CAT | *** UNCAT RIGHT ERROR | " + m.searchMode, m.user);
+            await twitterSearchUser({searchNode: "@?right"});
+          }
+          else{
+            printUserObj("WAS | <TFE | PRIORITY CAT | *** UNCAT ERROR | " + m.searchMode, m.user);
+            await twitterSearchUser({searchNode: "@?"});
+          }
+        }
+        else if (configuration.verbose) {
+          printUserObj("WAS | <TFE | CAT | MODE: " + m.searchMode, m.user, chalkLog);
+        }
+      break;
+
       case "PONG":
         tfePongReceived = m.pongId;
         childrenHashMap[params.childId].status = "RUNNING";

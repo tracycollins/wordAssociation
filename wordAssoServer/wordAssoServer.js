@@ -1006,18 +1006,18 @@ function printUserObj(title, u, chalkFormat) {
   const user = userDefaults(u);
 
   console.log(chlk(title
-    + " | NID: " + user.nodeId
+    + " | " + user.nodeId
     + " | @" + user.screenName
-    + " | NAME: " + user.name 
-    + " | LG " + user.lang
-    + " | FW " + user.followersCount
+    + " | N " + user.name 
+    // + " | LG " + user.lang
+    + " | FC " + user.followersCount
     + " | FD " + user.friendsCount
     + " | T " + user.statusesCount
     + " | M  " + user.mentions
-    + " | FWG " + user.following 
-    + " | LC " + user.location
-    + " | CV " + user.categoryVerified + " M " + user.category + " A " + user.categoryAuto
-    + " | PRI " + user.priorityFlag
+    + " | FW " + user.following 
+    // + " | LC " + user.location
+    + " | V " + user.categoryVerified + " M " + user.category + " A " + user.categoryAuto
+    // + " | PRI " + user.priorityFlag
   ));
 }
 

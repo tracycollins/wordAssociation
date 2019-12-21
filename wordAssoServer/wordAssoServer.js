@@ -5522,6 +5522,7 @@ function initTransmitNodeQueueInterval(interval){
           }
 
           if (configuration.autoFollow 
+            && !(n.category == "left" || n.category == "right" || n.category == "neutral") 
             && !n.following 
             && (n.followersCount >= configuration.minFollowersAutoFollow))
           {

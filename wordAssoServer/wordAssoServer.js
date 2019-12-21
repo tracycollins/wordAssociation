@@ -96,7 +96,7 @@ process.env.NODE_ENV = process.env.NODE_ENV || "development";
 
 const DEFAULT_IGNORE_CATEGORY_RIGHT = false;
 const DEFAULT_FILTER_DUPLICATE_TWEETS = true;
-const DEFAULT_AUTO_FOLLOW = false;
+const DEFAULT_AUTO_FOLLOW = true;
 const DEFAULT_FORCE_FOLLOW = false;
 
 const DEFAULT_FORCE_IMAGE_ANALYSIS = false;
@@ -139,7 +139,8 @@ const DEFAULT_TWITTER_THREECEE_USER = "altthreecee00";
 const DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT = Number(ONE_SECOND);
 
 const DEFAULT_INTERVAL = 5;
-const DEFAULT_MIN_FOLLOWERS_AUTO = 5000;
+const DEFAULT_MIN_FOLLOWERS_AUTO_CATEGORIZE = 5000;
+const DEFAULT_MIN_FOLLOWERS_AUTO_FOLLOW = 20000;
 
 const DEFAULT_TSS_TWITTER_QUEUE_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_TWEET_PARSER_INTERVAL = DEFAULT_INTERVAL;
@@ -487,7 +488,8 @@ configuration.quitOnError = DEFAULT_QUIT_ON_ERROR;
 configuration.maxTopTerms = DEFAULT_MAX_TOP_TERMS;
 configuration.metrics = {};
 configuration.metrics.nodeMeterEnabled = DEFAULT_METRICS_NODE_METER_ENABLED;
-configuration.minFollowersAuto = DEFAULT_MIN_FOLLOWERS_AUTO;
+configuration.minFollowersAutoCategorize = DEFAULT_MIN_FOLLOWERS_AUTO_CATEGORIZE;
+configuration.minFollowersAutoFollow = DEFAULT_MIN_FOLLOWERS_AUTO_FOLLOW;
 
 configuration.threeceeUsers = [];
 configuration.threeceeUsers = DEFAULT_THREECEE_USERS;
@@ -498,8 +500,12 @@ const threeceeUser = "altthreecee00";
 const threeceeTwitter = {};
 const threeceeInfoTwitter = {};
 
-if (process.env.MIN_FOLLOWERS_AUTO !== undefined) {
-  configuration.minFollowersAuto = parseInt(process.env.MIN_FOLLOWERS_AUTO);
+if (process.env.MIN_FOLLOWERS_AUTO_CATEGORIZE !== undefined) {
+  configuration.minFollowersAutoCategorize = parseInt(process.env.MIN_FOLLOWERS_AUTO_CATEGORIZE);
+}
+
+if (process.env.MIN_FOLLOWERS_AUTO_FOLLOW !== undefined) {
+  configuration.minFollowersAutoFollow = parseInt(process.env.MIN_FOLLOWERS_AUTO_FOLLOW);
 }
 
 if (process.env.NODE_METER_ENABLED !== undefined) {
@@ -4902,7 +4908,7 @@ async function userCategorizeable(user){
   }
   
   if (user.followersCount && (user.followersCount !== undefined) 
-    && (user.followersCount < configuration.minFollowersAuto)) { 
+    && (user.followersCount < configuration.minFollowersAutoCategorize)) { 
     unfollowableUserSet.add(user.nodeId);
     return false;
   }
@@ -5158,7 +5164,7 @@ async function updateUserSets(){
     else if (!category 
       && !user.following 
       && (user.followersCount > 0)
-      && (user.followersCount < configuration.minFollowersAuto)
+      && (user.followersCount < configuration.minFollowersAutoCategorize)
     ){
 
       wordAssoDb.User.deleteOne({"nodeId": nodeId}, function(err){
@@ -5295,7 +5301,7 @@ async function updateUserSets(){
         && (uncatUserObj == undefined)
         && (!category || (category == undefined))
         && (!user.ignored || (user.ignored == undefined))
-        && (user.following || (user.followersCount >= configuration.minFollowersAuto)) 
+        && (user.following || (user.followersCount >= configuration.minFollowersAutoCategorize)) 
         && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && categoryAuto && (categoryAuto != "right")))
         && !ignoredUserSet.has(nodeId) 
         && !ignoredUserSet.has(screenName) 
@@ -5321,7 +5327,7 @@ async function updateUserSets(){
         && !ignoredUserSet.has(nodeId) 
         && !ignoredUserSet.has(screenName) 
         && !ignoreLocationsSet.has(nodeId) 
-        && (user.followersCount >= configuration.minFollowersAuto) 
+        && (user.followersCount >= configuration.minFollowersAutoCategorize) 
         && !unfollowableUserSet.has(nodeId)) { 
 
         uncategorizedAutoUserSet.add(nodeId);
@@ -5515,6 +5521,14 @@ function initTransmitNodeQueueInterval(interval){
             uncatUserCache.del(n.nodeId);
           }
 
+          if (configuration.autoFollow 
+            && !n.following 
+            && (n.followersCount >= configuration.minFollowersAutoFollow))
+          {
+            n.following = true;
+            printUserObj(MODULE_ID_PREFIX + " | +++ AUTO FOLLOW", n);
+          }
+
           const uncatUserObj = uncatUserCache.get(n.nodeId);
 
           if (!uncategorizedManualUserSet.has(n.nodeId) 
@@ -5524,14 +5538,14 @@ function initTransmitNodeQueueInterval(interval){
             && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && n.categoryAuto && (n.categoryAuto != "right")))
             && !ignoredUserSet.has(n.nodeId) 
             && !ignoredUserSet.has(n.screenName.toLowerCase()) 
-            && (n.followersCount >= configuration.minFollowersAuto) 
+            && (n.followersCount >= configuration.minFollowersAutoCategorize) 
             && !unfollowableUserSet.has(n.nodeId)) { 
 
             uncategorizedManualUserSet.add(n.nodeId);
           }
 
           if (!n.categoryAuto 
-            && (n.followersCount >= configuration.minFollowersAuto) 
+            && (n.followersCount >= configuration.minFollowersAutoCategorize) 
             && !uncategorizedAutoUserSet.has(n.nodeId)) {
 
             uncategorizedAutoUserSet.add(n.nodeId);
@@ -5552,6 +5566,7 @@ function initTransmitNodeQueueInterval(interval){
           if (nCacheObj !== undefined) {
             n.mentions = Math.max(n.mentions, nCacheObj.mentions);
             n.setMentions = true;
+            nodeCache.set(n.nodeId, n);
           }
 
           n.updateLastSeen = true;
@@ -8144,9 +8159,14 @@ async function loadConfigFile(params) {
       newConfiguration.trendingCacheTtl = loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL;
     }
 
-    if (loadedConfigObj.MIN_FOLLOWERS_AUTO !== undefined){
-      console.log("WAS | LOADED MIN_FOLLOWERS_AUTO: " + loadedConfigObj.MIN_FOLLOWERS_AUTO);
-      newConfiguration.minFollowersAuto = loadedConfigObj.MIN_FOLLOWERS_AUTO;
+    if (loadedConfigObj.MIN_FOLLOWERS_AUTO_FOLLOW !== undefined){
+      console.log("WAS | LOADED MIN_FOLLOWERS_AUTO_FOLLOW: " + loadedConfigObj.MIN_FOLLOWERS_AUTO_FOLLOW);
+      newConfiguration.minFollowersAutoFollow = loadedConfigObj.MIN_FOLLOWERS_AUTO_FOLLOW;
+    }
+
+    if (loadedConfigObj.MIN_FOLLOWERS_AUTO_CATEGORIZE !== undefined){
+      console.log("WAS | LOADED MIN_FOLLOWERS_AUTO_CATEGORIZE: " + loadedConfigObj.MIN_FOLLOWERS_AUTO_CATEGORIZE);
+      newConfiguration.minFollowersAutoCategorize = loadedConfigObj.MIN_FOLLOWERS_AUTO_CATEGORIZE;
     }
 
     if (loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL !== undefined){

@@ -737,6 +737,15 @@ function ControlPanel() {
         }
       break;
 
+      case "TWITTER_USER_NOT_FOUND":
+        console.debug("SET TWITTER USER | USER NOT FOUND" 
+          + " | " + event.data.searchNode
+          + "\nSTATS\n" + jsonPrint(event.data.stats)
+        );
+
+        updateCategoryStats(event.data.stats);
+      break;
+      
       case "SET_TWITTER_USER":
 
         if (event.data.user.notFound) {

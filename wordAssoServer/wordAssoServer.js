@@ -5075,6 +5075,8 @@ async function updateUserSets(){
     throw new Error("DB CONNECTION NOT READY");
   }
 
+  await wordAssoDb.User.deleteMany({lang: { $and: [ { $nin: [ false, null ] }, { $ne: "en" } ]} });
+
   statsObj.user.total = await countDocuments({documentType: "users", query: {}});
   console.log(chalkBlue(MODULE_ID_PREFIX + " | GRAND TOTAL USERS: " + statsObj.user.total));
 
@@ -5379,6 +5381,7 @@ async function updateUserSets(){
         }
       }
     }
+
   });
 
   userSearchCursor.on("end", function() {

@@ -15,10 +15,10 @@ module.exports = {
         "require-atomic-updates": "off",
         "no-console": "off",
         "accessor-pairs": "error",
-        "array-bracket-spacing": [
-            "error",
-            "never"
-        ],
+        // "array-bracket-spacing": [
+        //     "error",
+        //     "never"
+        // ],
         "array-callback-return": "error",
         "arrow-body-style": "error",
         "arrow-parens": "error",

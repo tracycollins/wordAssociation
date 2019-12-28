@@ -558,6 +558,27 @@ function ViewTreepack() {
     }
   };
 
+  this.twitterUserNotFound = function(message) {
+
+    console.log("TWITTER USER NOT FOUND"
+      + " | SEARCH MODE: " + message.searchMode 
+      + " | SEARCH NODE: " + message.searchNode
+    );    
+
+    if (controlPanelReadyFlag){ 
+      controlPanelWindow.postMessage(
+        {
+          op: "TWITTER_USER_NOT_FOUND", 
+          searchMode: message.searchMode,
+          searchNode: message.searchNode,
+          stats: stats
+        }, 
+        DEFAULT_SOURCE
+      );
+    }
+
+  };
+
   this.setTwitterHashtag = function(message) {
 
     if (message.hashtag.notFound !== undefined) { 

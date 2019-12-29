@@ -42,7 +42,7 @@ function ControlPanel() {
 	var twitterTimeLine;
 	var twitterTimeLineDiv = document.createElement("div");
 	twitterTimeLineDiv.id = "twitterTimeLineDiv";
-  twitterTimeLineDiv.setAttribute("style", "overflow:scroll");
+  twitterTimeLineDiv.style.overflow = "auto";
 
 
 	var entityCategorizeDiv = document.getElementById("entityCategorizeDiv");

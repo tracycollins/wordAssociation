@@ -42,8 +42,10 @@ function ControlPanel() {
 	var twitterTimeLine;
 	var twitterTimeLineDiv = document.createElement("div");
 	twitterTimeLineDiv.id = "twitterTimeLineDiv";
+  twitterTimeLineDiv.setAttribute("style", "overflow:scroll");
 
-	var entityCategorizeDiv = document.getElementById('entityCategorizeDiv');
+
+	var entityCategorizeDiv = document.getElementById("entityCategorizeDiv");
 
   var currentUser = "threecee";
 

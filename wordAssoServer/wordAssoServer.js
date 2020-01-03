@@ -9588,36 +9588,21 @@ async function twitterSearchUser(params) {
         searchMode = "UNCAT";
         searchUserArray = _.shuffle(uncategorizedManualUserArray);
       break;
+
       case "?left":
         searchMode = "UNCAT_LEFT";
         searchUserArray = _.shuffle(uncategorizedManualUserArray);
       break;
+
       case "?right":
         searchMode = "UNCAT_RIGHT";
         searchUserArray = _.shuffle(uncategorizedManualUserArray);
       break;
+
       case "?neutral":
         searchMode = "UNCAT_NEUTRAL";
         searchUserArray = _.shuffle(uncategorizedManualUserArray);
       break;
-
-
-      // case "?all":
-      //   searchMode = "UNCAT";
-      //   searchUserArray = _.shuffle(uncategorizedManualUserArray);
-      // break;
-      // case "?left":
-      //   searchMode = "UNCAT_LEFT";
-      //   searchUserArray = _.intersection(userAutoLeftArray, uncategorizedManualUserArray);
-      // break;
-      // case "?right":
-      //   searchMode = "UNCAT_RIGHT";
-      //   searchUserArray = _.intersection(userAutoRightArray, uncategorizedManualUserArray);
-      // break;
-      // case "?neutral":
-      //   searchMode = "UNCAT_NEUTRAL";
-      //   searchUserArray = _.intersection(userAutoNeutralArray, uncategorizedManualUserArray);
-      // break;
 
       default:
         console.log(chalkError("WAS | *** UNKNOWN searchNodeUser.screenName: " + searchNodeUser.screenName));
@@ -9691,12 +9676,12 @@ async function twitterSearchHashtag(params) {
 
     if (hashtag) { 
 
-      console.log(chalkTwitter("WAS | TWITTER_SEARCH_NODE HASHTAG FOUND\n" + jsonPrint(hashtag)));
-
       if (hashtag.toObject && (typeof hashtag.toObject == "function")) {
+        console.log(chalkTwitter("WAS | TWITTER_SEARCH_NODE HASHTAG FOUND\n" + jsonPrint(hashtag.toObject())));
         viewNameSpace.emit("SET_TWITTER_HASHTAG", { hashtag: hashtag.toObject(), stats: statsObj.hashtag });
       }
       else{
+        console.log(chalkTwitter("WAS | TWITTER_SEARCH_NODE HASHTAG FOUND\n" + jsonPrint(hashtag)));
         viewNameSpace.emit("SET_TWITTER_HASHTAG", { hashtag: hashtag, stats: statsObj.hashtag });
       }
 
@@ -9708,9 +9693,12 @@ async function twitterSearchHashtag(params) {
 
         if (categorizedHashtagHashMap.has(hashtag.nodeId.toLowerCase())) {
           htCatObj.auto = categorizedHashtagHashMap.get(hashtag.nodeId.toLowerCase()).auto || false;
+          categorizedHashtagHashMap.set(hashtag.nodeId.toLowerCase(), htCatObj);
+        }
+        else{
+          categorizedHashtagHashMap.set(hashtag.nodeId.toLowerCase(), htCatObj);
         }
 
-        categorizedHashtagHashMap.set(hashtag.nodeId.toLowerCase(), htCatObj);
 
       }
       return hashtag;

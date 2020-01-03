@@ -405,7 +405,7 @@ function ControlPanel() {
         twttr.widgets.createTimeline(
           { sourceType: "profile", screenName: node.screenName},
           twitterTimeLineDiv,
-          { height: 600 }
+          { height: 800 }
           // { width: "400", height: "600"}
         )
         .then(function (el) {

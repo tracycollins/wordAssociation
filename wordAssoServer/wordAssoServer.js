@@ -7128,7 +7128,13 @@ async function initTfeChild(params){
 
         if (m.user.category == "left" || m.user.category == "right" || m.user.category == "neutral") {
           uncatUserCache.del(m.user.nodeId);
+
+          if (m.user.category == m.user.categoryAuto) {
+            mismatchUserCache.del(m.user.nodeId);
+          }
+
         }
+
 
         if (m.priorityFlag){
           if ((m.searchMode === "MISMATCH") && m.user.category && (m.user.category === m.user.categoryAuto)){
@@ -8028,6 +8034,11 @@ async function loadConfigFile(params) {
     if (loadedConfigObj.UNCAT_USER_ID_CACHE_DEFAULT_TTL !== undefined){
       console.log("WAS | LOADED UNCAT_USER_ID_CACHE_DEFAULT_TTL: " + loadedConfigObj.UNCAT_USER_ID_CACHE_DEFAULT_TTL);
       newConfiguration.uncatUserCacheTtl = loadedConfigObj.UNCAT_USER_ID_CACHE_DEFAULT_TTL;
+    }
+
+    if (loadedConfigObj.MISMATCH_USER_ID_CACHE_DEFAULT_TTL !== undefined){
+      console.log("WAS | LOADED MISMATCH_USER_ID_CACHE_DEFAULT_TTL: " + loadedConfigObj.MISMATCH_USER_ID_CACHE_DEFAULT_TTL);
+      newConfiguration.mismatchUserCacheTtl = loadedConfigObj.MISMATCH_USER_ID_CACHE_DEFAULT_TTL;
     }
 
     if (loadedConfigObj.ENABLE_IMAGE_ANALYSIS !== undefined){
@@ -9288,6 +9299,34 @@ async function processTwitterSearchNode(params) {
           uncatUserObj,
           configuration.uncatUserCacheTtl
         );
+      }
+
+      if (!empty(params.user.category) && (params.user.category != params.user.categoryAuto)) {
+
+        const mismatchUserObj = {};
+
+        mismatchUserObj.nodeId = params.user.nodeId;
+        mismatchUserObj.screenName = params.user.screenName;
+        mismatchUserObj.timeStamp = getTimeStamp();
+
+        mismatchUserCache.set(
+          params.user.nodeId, 
+          mismatchUserObj,
+          configuration.mismatchUserCacheTtl
+        );
+
+        console.log(chalk.blue(MODULE_ID_PREFIX
+          + " | --- MISS | MISMATCH USER $"
+          + " | TTL: " + msToTime(configuration.mismatchUserCacheTtl*1000)
+          + " | NID: " + params.user.nodeId
+          + " | @" + params.user.screenName
+          + " | CAT VERIFIED: " + params.user.categoryVerified
+          + " | CAT M: " + params.user.category
+          + " | CAT A: " + params.user.categoryAuto
+          + " | $ EXPIRED: " + statsObj.caches.mismatchUserCache.expired
+          + "\nMISMATCH USER $ STATS\n" + jsonPrint(mismatchUserCache.getStats())
+        ));
+
       }
 
       if (tfeChild && params.user.toObject && (typeof params.user.toObject == "function")) {

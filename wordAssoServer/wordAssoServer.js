@@ -205,6 +205,9 @@ const TWEET_ID_CACHE_CHECK_PERIOD = 5;
 const DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL = 604800; // 3600*24*7 sec/week
 const DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD = 3600;
 
+const DEFAULT_MISMATCH_USER_ID_CACHE_DEFAULT_TTL = 604800; // 3600*24*7 sec/week
+const DEFAULT_MISMATCH_USER_ID_CACHE_CHECK_PERIOD = 3600;
+
 const chalk = require("chalk");
 const chalkUser = chalk.blue;
 const chalkTwitter = chalk.blue;
@@ -404,6 +407,7 @@ let hostConfiguration = {}; // host-specific configuration
 configuration.heartbeatInterval = process.env.WAS_HEARTBEAT_INTERVAL || ONE_MINUTE;
 configuration.statsUpdateIntervalTime = process.env.WAS_STATS_UPDATE_INTERVAL || 10*ONE_MINUTE;
 configuration.uncatUserCacheIntervalTime = process.env.WAS_UNCAT_USER_CACHE_INTERVAL || 15*ONE_MINUTE;
+configuration.mismatchUserCacheIntervalTime = process.env.WAS_MISMATCH_USER_CACHE_INTERVAL || 15*ONE_MINUTE;
 
 configuration.maxUserSearchSkipCount = DEFAULT_MAX_USER_SEARCH_SKIP_COUNT;
 configuration.filterVerifiedUsers = true;
@@ -427,6 +431,9 @@ filterDuplicateTweets = configuration.filterDuplicateTweets;
 configuration.forceFollow = DEFAULT_FORCE_FOLLOW;
 configuration.enableTwitterFollow = DEFAULT_ENABLE_TWITTER_FOLLOW;
 configuration.autoFollow = DEFAULT_AUTO_FOLLOW;
+
+configuration.mismatchUserCacheTtl = DEFAULT_MISMATCH_USER_ID_CACHE_DEFAULT_TTL;
+configuration.mismatchUserCacheCheckPeriod = DEFAULT_MISMATCH_USER_ID_CACHE_CHECK_PERIOD;
 
 configuration.uncatUserCacheTtl = DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL;
 configuration.uncatUserCacheCheckPeriod = DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD;
@@ -1287,6 +1294,32 @@ function uncatUserCacheExpired(uncatUserId, uncatUserObj) {
 uncatUserCache.on("expired", uncatUserCacheExpired);
 
 // ==================================================================
+// MISMATCH USER ID CACHE
+// ==================================================================
+console.log("WAS | MISMATCH USER ID CACHE TTL: " + msToTime(configuration.mismatchUserCacheTtl*1000));
+console.log("WAS | MISMATCH USER ID CACHE CHECK PERIOD: " + msToTime(configuration.mismatchUserCacheCheckPeriod*1000));
+
+const mismatchUserCache = new NodeCache({
+  stdTTL: configuration.mismatchUserCacheTtl,
+  checkperiod: configuration.mismatchUserCacheCheckPeriod
+});
+
+function mismatchUserCacheExpired(mismatchUserId, mismatchUserObj) {
+  statsObj.caches.mismatchUserCache.expired += 1;
+  console.log(chalkInfo("WAS | XXX MISMATCH USER CACHE EXPIRED"
+    + " [" + mismatchUserCache.getStats().keys + " KEYS]"
+    + " | TTL: " + msToTime(configuration.mismatchUserCacheTtl*1000)
+    + " | NOW: " + getTimeStamp()
+    + " | $ EXPIRED: " + statsObj.caches.mismatchUserCache.expired
+    + " | IN $: " + mismatchUserObj.timeStamp
+    + " | NID: " + mismatchUserId
+    + " | @" + mismatchUserObj.screenName
+  ));
+}
+
+mismatchUserCache.on("expired", mismatchUserCacheExpired);
+
+// ==================================================================
 // TWEET ID CACHE
 // ==================================================================
 let tweetIdCacheTtl = process.env.TWEET_ID_CACHE_DEFAULT_TTL;
@@ -1621,6 +1654,7 @@ DEFAULT_NODE_TYPES.forEach(function(nodeType){
 });
 
 const cacheObj = {};
+cacheObj.mismatchUserCache = mismatchUserCache;
 cacheObj.uncatUserCache = uncatUserCache;
 cacheObj.nodeCache = nodeCache;
 cacheObj.serverCache = serverCache;
@@ -1812,6 +1846,12 @@ function initStats(callback){
   statsObj.caches.uncatUserCache.stats.keys = 0;
   statsObj.caches.uncatUserCache.stats.keysMax = 0;
   statsObj.caches.uncatUserCache.expired = 0;
+
+  statsObj.caches.mismatchUserCache = {};
+  statsObj.caches.mismatchUserCache.stats = {};
+  statsObj.caches.mismatchUserCache.stats.keys = 0;
+  statsObj.caches.mismatchUserCache.stats.keysMax = 0;
+  statsObj.caches.mismatchUserCache.expired = 0;
 
   statsObj.db = {};
   statsObj.db.errors = 0;
@@ -5355,10 +5395,12 @@ async function updateUserSets(){
 
           if (!mismatchUserSet.has(nodeId) && (category !== categoryAuto)) {
 
+            const mismatchUserObj = await mismatchUserCache.get(nodeId);
+
             if (configuration.filterVerifiedUsers && verifiedCategorizedUsersSet.has(screenName)){
               mismatchUserSet.delete(nodeId);
             }
-            else{
+            else if (mismatchUserObj === undefined) {
               mismatchUserSet.add(nodeId);
             }
 
@@ -9237,6 +9279,8 @@ async function processTwitterSearchNode(params) {
         + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
         + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
       ));
+
+      mismatchUserSet.delete(params.user.nodeId);
 
       if (empty(params.user.category) || (params.user.category === "none") || !params.user.category || (params.user.category === "false")) {
         uncatUserCache.set(

@@ -5902,7 +5902,7 @@ function initAppRouting(callback) {
       console.log(chalkLog("WAS | R< REDIRECT /session")); 
       res.redirect("/session");
     }
-    else if ((req.path == "/session.js") || (req.path == "/js/libs/controlPanel.js")) {
+    else if ((req.path == "/session_template.js") || (req.path == "/session.js") || (req.path == "/js/libs/controlPanel.js")) {
 
       const fullPath = path.join(__dirname, req.path);
       const defaultSource = (hostname == "google") ? "PRODUCTION_SOURCE" : "LOCAL_SOURCE";
@@ -5951,11 +5951,29 @@ function initAppRouting(callback) {
   app.use(express.static(path.join(__dirname, "/node_modules")));
   app.use(express.static(path.join(__dirname, "/public/assets/images")));
 
+  app.get("/onload.js", function(req, res) {
+
+    console.log(chalkInfo("WAS | R< ONLOAD | /onload"));
+
+    const onloadFile = path.join(__dirname, "/onload.js");
+
+    res.sendFile(onloadFile, function(err) {
+      if (err) {
+        console.log(chalkError("WAS | GET /onload ERROR:"
+          + " | " + getTimeStamp()
+          + " | IP: " + req.ip
+          + " | " + req.url
+          + " | " + onloadFile
+          + " | " + err
+        ));
+      } 
+    });
+  });
+
+
   const adminHtml = path.join(__dirname, "/admin/admin.html");
 
   app.get("/admin", function requestAdmin(req, res) {
-
-    // debug(chalkInfo("get req\n" + req));
 
     console.log(chalkLog("WAS | LOADING PAGE"
       + " | IP: " + req.ip
@@ -6006,43 +6024,13 @@ function initAppRouting(callback) {
     });
   });
 
-  // const loginAuth = __dirname + "/login_auth.js";
-
-  // app.get("/login", function requestSession(req, res, next) {
-
-  //   debug(chalkInfo("get next\n" + next));
-
-  //   console.log(chalkLog("WAS | LOADING PAGE"
-  //     + " | REQ: " + req.url
-  //     + " | RES: " + loginAuth
-  //   ));
-
-  //   res.sendFile(loginAuth, function responseSession(err) {
-  //     if (err) {
-  //       console.log(chalkError("WAS | GET /login_auth ERROR:"
-  //         + " | " + getTimeStamp()
-  //         + " | " + req.url
-  //         + " | " + loginAuth
-  //         + " | " + err
-  //       ));
-  //     } 
-  //     else {
-  //       debug(chalkInfo("SENT:", loginHtml));
-  //     }
-  //   });
-  // });
-
   const sessionHtml = path.join(__dirname, "/sessionModular.html");
 
   app.get("/session", function requestSession(req, res, next) {
 
     debug(chalkInfo("get next\n" + next));
 
-    // debug("req");
-    // debug(req);
-
     console.log(chalkLog("WAS | LOADING PAGE"
-      // + " [ VIEWS: " + req.session.views + "]"
       + " | IP: " + req.ip
       + " | REQ: " + req.url
       + " | RES: " + sessionHtml
@@ -6061,6 +6049,36 @@ function initAppRouting(callback) {
       else {
         if (configuration.verbose) {
           console.log(chalkInfo("SENT:", sessionHtml));
+        }
+      }
+    });
+  });
+
+  const sessionTemplateHtml = path.join(__dirname, "/session_template.html");
+
+  app.get("/session_template", function requestSession(req, res, next) {
+
+    debug(chalkInfo("get next\n" + next));
+
+    console.log(chalkLog("WAS | LOADING PAGE"
+      + " | IP: " + req.ip
+      + " | REQ: " + req.url
+      + " | RES: " + sessionTemplateHtml
+    ));
+
+    res.sendFile(sessionTemplateHtml, function responseSession(err) {
+      if (err) {
+        console.log(chalkError("WAS | GET /session_template ERROR:"
+          + " | " + getTimeStamp()
+          + " | IP: " + req.ip
+          + " | " + req.url
+          + " | " + sessionTemplateHtml
+          + " | " + err
+        ));
+      } 
+      else {
+        if (configuration.verbose) {
+          console.log(chalkInfo("SENT:", sessionTemplateHtml));
         }
       }
     });
@@ -8934,170 +8952,6 @@ async function initThreeceeTwitterUser(threeceeUser){
     throw err;
   }
 }
-
-// function twitUserShow(params){
-
-//   return new Promise(function(resolve, reject){
-
-//     const user = params.user;
-//     const resource_endpoint = "users/show";
-
-//     threeceeTwitter.twit.get(resource_endpoint, params.twitQuery, async function usersShow (err, rawUser){
-
-//       if (err) {
-
-//         console.log(chalkError("WAS | *** ERROR twitUserShow rawUser"
-//           + " | @" + user.screenName 
-//           + " | " + err 
-//           + "\nerr\n" + jsonPrint(err)
-//           + "\ntwitQuery\n" + jsonPrint(params.twitQuery)
-//         ));
-
-//         if (err.code == 88) { // RATE LIMIT EXCEEDED
-
-//           threeceeTwitter.twitterRateLimitExceptionFlag.exceptionFlag = true;
-
-//           const rateLimitEndEvent = "rateLimitEnd_" + resource_endpoint;
-
-//           tcUtils.emitter.once(rateLimitEndEvent, function(){
-
-//             console.log(chalkError("WAS | -X- TWITTER RATE LIMIT END"
-//               + " | @altthreecee00"
-//               + " | " + getTimeStamp()
-//               + " | EVENT: " + rateLimitEndEvent
-//             ));
-
-//             threeceeTwitter.twitterRateLimitExceptionFlag.exceptionFlag = false;
-
-//           });
-
-//           await tcUtils.handleTwitterError({user: "altthreecee00", err: err, resource: "user", endPoint: "show"});
-//         }
-//         else if ((err.code == 63) || (err.code == 50)) { // USER SUSPENDED or NOT FOUND
-
-//           try {
-//             if (user.nodeId !== undefined) { 
-
-//               console.log(chalkAlert("WAS | XXX DELETING USER IN DB | @" + user.screenName + " | NID: " + user.nodeId));
-
-//               await wordAssoDb.User.deleteOne({ 'nodeId': user.nodeId });
-
-//               ignoredUserSet.add(user.nodeId);
-//               followableUserSet.delete(user.nodeId);
-//               uncategorizedManualUserSet.delete(user.nodeId);
-//               uncategorizedAutoUserSet.delete(user.nodeId);
-//               categorizedUserHashMap.delete(user.nodeId);
-
-//               return resolve();
-//             }
-
-//             if (user.screenName !== undefined) { 
-
-//               console.log(chalkAlert("WAS | XXX DELETING USER IN DB | @" + user.screenName + " | NID: " + user.nodeId));
-              
-//               await wordAssoDb.User.deleteOne({ 'screenName': user.screenName });
-              
-//               ignoredUserSet.add(user.screenName.toLowerCase());
-//               followableUserSet.delete(user.nodeId);
-//               uncategorizedManualUserSet.delete(user.nodeId);
-//               uncategorizedAutoUserSet.delete(user.nodeId);
-//               categorizedUserHashMap.delete(user.nodeId);
-
-//               return resolve();
-//             }
-//           }
-//           catch(err1){
-//             return reject(err1);
-//           }
-//         }
-
-//         return reject(err);
-//       }
-
-//       if (rawUser && (rawUser !== undefined)) {
-
-//         if (!userServerControllerReady || !statsObj.dbConnectionReady) {
-//           console.log(chalkAlert("WAS | *** NOT READY"
-//             + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
-//             + " | userServerControllerReady: " + userServerControllerReady
-//           ));
-//           return reject(new Error("userServerController not ready"));
-//         }
-
-//         let cUser;
-
-//         try{
-//           cUser = await userServerController.convertRawUserPromise({user: rawUser});
-//         }
-//         catch(err1){
-//           console.log(chalkError("WAS | *** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
-//           return reject(err1);
-//         }
-
-//         if (configuration.verbose) {
-//           printUserObj("WAS | FOUND users/show rawUser", cUser);
-//         }
-
-//         if (params.following !== undefined){
-//           user.following = params.following;
-//         }
-
-//         user.bannerImageUrl = cUser.bannerImageUrl;
-//         user.createdAt = cUser.createdAt;
-//         user.description = cUser.description;
-//         user.followersCount = cUser.followersCount;
-//         user.friendsCount = cUser.friendsCount;
-//         user.ignored = cUser.ignored;
-//         user.lang = cUser.lang;
-//         user.lastSeen = (cUser.status && (cUser.status !== undefined)) ? cUser.status.created_at : Date.now();
-//         user.lastTweetId = cUser.lastTweetId;
-//         user.location = cUser.location;
-//         user.name = cUser.name;
-//         user.nodeId = cUser.nodeId;
-//         user.profileImageUrl = cUser.profileImageUrl;
-//         user.profileUrl = cUser.profileUrl;
-//         user.screenName = cUser.screenName;
-//         user.status = cUser.status;
-//         user.statusesCount = cUser.statusesCount;
-//         user.statusId = cUser.statusId;
-//         user.updateLastSeen = true;
-//         user.url = cUser.url;
-//         user.userId = cUser.userId;
-//         user.verified = cUser.verified;
-//         user.mentions = 0;
-
-//         const nCacheObj = nodeCache.get(user.nodeId);
-
-//         if (nCacheObj !== undefined) {
-//           user.mentions = Math.max(user.mentions, nCacheObj.mentions);
-//         }
-
-//         user.setMentions = true;
-
-//         try{
-//           const updatedUser = await userServerController.findOneUserV2({user: user, mergeHistograms: false, noInc: true});
-//             if (configuration.verbose) {
-//             console.log(chalk.blue("WAS | UPDATED updatedUser"
-//               + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
-//               + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
-//               + "\n" + printUser({user: updatedUser})
-//             ));
-//           }
-//           return resolve(updatedUser);
-//         }
-//         catch(err1){
-//           console.log(chalkError("WAS | *** findOneUserV2 ERROR: " + err1));
-//           return reject(err1);
-//         }
-//       }
-//       else {
-//         console.log(chalkTwitter("WAS | NOT FOUND users/show data"));
-//         return reject(new Error("TWITTER NOT FOUND"));
-//       }
-//     });
-
-//   });
-// }
 
 async function twitterGetUserUpdateDb(params){
 

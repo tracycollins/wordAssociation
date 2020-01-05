@@ -589,7 +589,6 @@ function initRxNodeQueueInterval(){
       rxNodeQueueReady = true;
     }
   }, RX_NODE_QUEUE_INTERVAL);
-
 }
 
 //================================

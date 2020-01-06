@@ -618,22 +618,43 @@ var displayImageLeft = document.createElement("img");
 displayImageLeft.style.height = "100%";
 displayDivLeft.appendChild(displayImageLeft);
 
+var displayImageBannerLeft = document.createElement("img");
+displayImageBannerLeft.style.width = "100%";
+displayDivLeft.appendChild(displayImageBannerLeft);
+
 var displayImageNeutral = document.createElement("img");
 displayImageNeutral.style.height = "100%";
 displayDivNeutral.appendChild(displayImageNeutral);
+
+var displayImageBannerNeutral = document.createElement("img");
+displayImageBannerNeutral.style.width = "100%";
+displayDivNeutral.appendChild(displayImageBannerNeutral);
 
 var displayImageRight = document.createElement("img");
 displayImageRight.style.height = "100%";
 displayDivRight.appendChild(displayImageRight);
 
+var displayImageBannerRight = document.createElement("img");
+displayImageBannerRight.style.width = "100%";
+displayDivRight.appendChild(displayImageBannerRight);
+
 var displayImageNone = document.createElement("img");
 displayImageNone.style.height = "100%";
 displayDivNone.appendChild(displayImageNone);
 
+var displayImageBannerNone = document.createElement("img");
+displayImageBannerNone.style.width = "100%";
+displayDivNone.appendChild(displayImageBannerNone);
+
 var biggerProfileImageUrl;
+var bannerImageUrl300x100;
 
 function updateDisplay(node, callback) {
   if (!node.profileImageUrl || node.profileImageUrl === undefined) {
+    return callback();
+  }
+
+  if (!node.bannerImageUrl || node.bannerImageUrl === undefined) {
     return callback();
   }
 
@@ -642,24 +663,29 @@ function updateDisplay(node, callback) {
   }
 
   biggerProfileImageUrl = node.profileImageUrl;
+  bannerImageUrl300x100 = node.bannerImageUrl;
   // biggerProfileImageUrl = node.profileImageUrl.replace(".jpg", "_bigger.jpg");
   // biggerProfileImageUrl = biggerProfileImageUrl.replace(".png", "_bigger.png");
 
   switch (node.categoryAuto) {
     case "left":
       displayImageLeft.src = biggerProfileImageUrl;
+      displayImageBannerLeft.src = bannerImageUrl300x100;
       callback();
     break;
     case "neutral":
       displayImageNeutral.src = biggerProfileImageUrl;
+      displayImageBannerNeutral.src = bannerImageUrl300x100;
       callback();
     break;
     case "right":
       displayImageRight.src = biggerProfileImageUrl;      
+      displayImageBannerRight.src = bannerImageUrl300x100;
       callback();
     break;
     default:
       displayImageNone.src = biggerProfileImageUrl;      
+      displayImageBannerNone.src = bannerImageUrl300x100;
       callback();
   }
 }

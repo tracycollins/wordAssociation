@@ -582,17 +582,23 @@ var displayDivRight = document.createElement("div");
 
 displayDivLeft.setAttribute("id", "displayDivLeft");
 displayDivLeft.style.position = "absolute";
+displayDivLeft.style.width = "400px";
+displayDivLeft.style.height = "400px";
 displayDivLeft.style.left = "10px";
 displayDivLeft.style.top = "10px";
 document.body.appendChild(displayDivLeft);
 
 displayDivNeutral.setAttribute("id", "displayDivNeutral");
+displayDivNeutral.style.width = "400px";
+displayDivNeutral.style.height = "400px";
 displayDivNeutral.style.position = "absolute";
 displayDivNeutral.style.left = "400px";
 displayDivNeutral.style.top = "10px";
 document.body.appendChild(displayDivNeutral);
 
 displayDivRight.setAttribute("id", "displayDivRight");
+displayDivRight.style.width = "400px";
+displayDivRight.style.height = "400px";
 displayDivRight.style.position = "absolute";
 displayDivRight.style.left = "800px";
 displayDivRight.style.top = "10px";

@@ -3072,6 +3072,7 @@ function socketRxTweet(tw) {
 
   if (tw.quoted_status) {
     quotedTweetsReceived += 1;
+    if (filterRetweets) { return; }
   }
 
   if (tweetRxQueue.length > maxQueue){

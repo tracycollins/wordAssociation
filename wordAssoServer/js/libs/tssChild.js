@@ -73,7 +73,7 @@ const Twit = require("twit");
 
 const moment = require("moment");
 const treeify = require("treeify");
-const Measured = require("measured");
+const Measured = require("measured-core");
 // const HashMap = require("hashmap").HashMap;
 const NodeCache = require("node-cache");
 

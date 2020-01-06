@@ -20,9 +20,6 @@ var MAX_RX_QUEUE = 250;
 
 var MAX_READY_ACK_WAIT_COUNT = 10;
 
-var width;
-var height;
-
 var config = {};
 var previousConfig = {};
 
@@ -87,22 +84,23 @@ var PAGE_LOAD_TIMEOUT = 1000;
 
 var DEFAULT_SESSION_VIEW = "template";
 
-// requirejs(["/onload.js"], function() {
+requirejs(["/onload.js"], function() {
 
-//     console.log("LOADED");
+    console.log("LOADED");
 
-//     initialize(function(){
-//       PARENT_ID = config.sessionViewType;
-//       initRxNodeQueueInterval();
-//     });
+    initialize(function(){
+      PARENT_ID = config.sessionViewType;
+    });
 
-//   },
-//   function(error) {
-//     console.log("REQUIREJS ERROR handler", error);
-//     console.log(error.requireModules && error.requireModules[0]);
-//     console.log(error.message);
-//   }
-// );
+  },
+  function(error) {
+    console.log("REQUIREJS ERROR handler", error);
+    console.log(error.requireModules && error.requireModules[0]);
+    console.log(error.message);
+  }
+);
+
+var currentSessionView;
 
 var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 
@@ -167,6 +165,7 @@ function toggleTestMode() {
   config.testMode = !config.testMode;
   config.testModeEnabled = config.testMode;
   console.warn("TEST MODE: " + config.testModeEnabled);
+  currentSessionView.setTestMode(config.testModeEnabled);
 }
 
 
@@ -547,6 +546,7 @@ var visibilityEvent = getVisibilityEvent(prefix);
 
 function reset(){
   windowVisible = true;
+  if (currentSessionView !== undefined) { currentSessionView.reset(); }
 }
 
 document.addEventListener(visibilityEvent, function() {
@@ -559,82 +559,6 @@ document.addEventListener(visibilityEvent, function() {
     console.info("visibilityEvent: " + windowVisible);
   }
 });
-
-var getWindowDimensions = function (){
-
-  if (window.innerWidth !== "undefined") {
-    return { width: window.innerWidth, height: window.innerHeight };
-  }
-  // IE6 in standards compliant mode (i.e. with a valid doctype as the first line in the document)
-  
-  if (document.documentElement !== "undefined" 
-    && document.documentElement.clientWidth !== "undefined" 
-    && document.documentElement.clientWidth !== 0) {
-    return { width: document.documentElement.clientWidth, height: document.documentElement.clientHeight };
-  }
-  // older versions of IE
-  return { width: document.getElementsByTagName("body")[0].clientWidth, height: document.getElementsByTagName("body")[0].clientHeight };
-};
-
-var displayDivLeft = document.createElement("div");
-var displayDivNeutral = document.createElement("div");
-var displayDivRight = document.createElement("div");
-
-displayDivLeft.setAttribute("id", "displayDivLeft");
-displayDivLeft.style.position = "absolute";
-displayDivLeft.style.left = "10px";
-displayDivLeft.style.top = "10px";
-document.body.appendChild(displayDivLeft);
-
-displayDivNeutral.setAttribute("id", "displayDivNeutral");
-displayDivNeutral.style.position = "absolute";
-displayDivNeutral.style.left = "400px";
-displayDivNeutral.style.top = "10px";
-document.body.appendChild(displayDivNeutral);
-
-displayDivRight.setAttribute("id", "displayDivRight");
-displayDivRight.style.position = "absolute";
-displayDivRight.style.left = "800px";
-displayDivRight.style.top = "10px";
-document.body.appendChild(displayDivRight);
-
-
-var displayImageLeft = document.createElement("img");
-displayDivLeft.appendChild(displayImageLeft);
-
-var displayImageNeutral = document.createElement("img");
-displayDivNeutral.appendChild(displayImageNeutral);
-
-var displayImageRight = document.createElement("img");
-displayDivRight.appendChild(displayImageRight);
-
-var biggerProfileImageUrl;
-
-function updateDisplay(node, callback) {
-  if (!node.profileImageUrl || node.profileImageUrl === undefined) {
-    return callback();
-  }
-
-  biggerProfileImageUrl = node.profileImageUrl.replace(".jpg", "_bigger.jpg");
-  biggerProfileImageUrl = biggerProfileImageUrl.replace(".png", "_bigger.png");
-
-  switch (node.categoryAuto) {
-    case "left":
-      displayImageLeft.src = biggerProfileImageUrl;
-      callback();
-    break;
-    case "neutral":
-      displayImageNeutral.src = biggerProfileImageUrl;
-      callback();
-    break;
-    case "right":
-      displayImageRight.src = biggerProfileImageUrl;      
-      callback();
-    break;
-    default:
-      callback();
-  }
-}
 
 var rxNodeQueueReady = false;
 var rxNodeQueue = [];
@@ -654,19 +578,15 @@ function initRxNodeQueueInterval(){
   rxNodeQueueReady = true;
 
   var newNode = {};
-  // var url;
 
   clearInterval(rxNodeQueueInterval);
 
   rxNodeQueueInterval = setInterval(function(){
     if (rxNodeQueueReady && (rxNodeQueue.length > 0)) {
-
       rxNodeQueueReady = false;
       newNode = rxNodeQueue.shift();
-      // url = newNode.profileImageUrl;
-      updateDisplay(newNode, function(){
-        rxNodeQueueReady = true;
-      });
+      currentSessionView.addNode(newNode);
+      rxNodeQueueReady = true;
     }
   }, RX_NODE_QUEUE_INTERVAL);
 }
@@ -691,9 +611,10 @@ function loadViewType(svt, callback) {
 
   requirejs(["js/libs/sessionView_template"], function() {
 
+    currentSessionView = new View(config.sessionViewType);
     console.debug("sessionView_template LOADED | TYPE: " + config.sessionViewType);
 
-    // initRxNodeQueueInterval();
+    initRxNodeQueueInterval();
 
     callback();
   });
@@ -719,6 +640,8 @@ function initialize(callback) {
 
   loadViewType(config.sessionViewType, function() {
 
+    currentSessionView.resize();
+
     console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
 
     viewerObj.timeStamp = Date.now();
@@ -730,8 +653,6 @@ function initialize(callback) {
     setTimeout(function() {
       console.log("END PAGE LOAD TIMEOUT");
 
-      // initRxNodeQueueInterval();
-
       pageLoadedTimeIntervalFlag = false;
 
     }, PAGE_LOAD_TIMEOUT);
@@ -739,23 +660,3 @@ function initialize(callback) {
 
   callback();
 }
-
-requirejs(["/onload.js"], function() {
-
-    console.log("LOADED");
-
-    initialize(function(){
-      PARENT_ID = config.sessionViewType;
-      width = getWindowDimensions().width;
-      height = getWindowDimensions().height;
-      initRxNodeQueueInterval();
-    });
-
-  },
-  function(error) {
-    console.log("REQUIREJS ERROR handler", error);
-    console.log(error.requireModules && error.requireModules[0]);
-    console.log(error.message);
-  }
-);
-

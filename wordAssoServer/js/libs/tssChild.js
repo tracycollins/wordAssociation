@@ -8,6 +8,7 @@ const followableSearchTermFile = "followableSearchTerm.txt";
 const ignoreLocationsFile = "ignoreLocations.txt";
 const allowLocationsFile = "allowLocations.txt";
 
+const DEFAULT_FILTER_RETWEETS = false;
 const DEFAULT_MAX_TWEET_QUEUE = 500;
 const DEFAULT_TWITTER_QUEUE_INTERVAL = 5;
 
@@ -130,6 +131,8 @@ const tweetIdCache = new NodeCache({
 const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
 const tcUtils = new ThreeceeUtilities("WAS_TSS_TCU");
 
+let filterRetweets = false;
+
 const ignoreUserSet = new Set();
 let allowLocationsSet = new Set();
 let ignoredHashtagSet = new Set();
@@ -176,6 +179,7 @@ let configuration = {};
 configuration.filterDuplicateTweets = true;
 let filterDuplicateTweets = true;
 
+configuration.filterRetweets = DEFAULT_FILTER_RETWEETS;
 configuration.verbose = false;
 configuration.forceFollow = false;
 configuration.globalTestMode = false;
@@ -1153,6 +1157,18 @@ function initSearchStream(){
       
       threeceeUserObj.searchStream.on("tweet", function(tweetStatus){
 
+        if (filterRetweets && (tweetStatus.retweeted_status || tweetStatus.is_quote_status)){
+          if (configuration.verbose) {
+            console.log(chalkLog("TSS | XXX FILTER RETWEETS | SKIPPING"
+              + " | TWID: " + tweetStatus.id_str
+              + " | UID: " + tweetStatus.user.id_str
+              + " | @" + tweetStatus.user.screen_name
+              + " | NAME: " + tweetStatus.user.name
+            ));
+          }
+          return;
+        }
+
         if (tweetStatus.user.userId 
           && (tweetStatus.user.userId !== undefined) 
           && ignoreUserSet.has(tweetStatus.user.userId)){
@@ -1816,14 +1832,18 @@ process.on("message", async function(m) {
 
       configuration.threeceeUser = m.threeceeUser;
       threeceeUserObj.screenName = m.threeceeUser;
+
       configuration.filterDuplicateTweets = m.filterDuplicateTweets;
       filterDuplicateTweets = m.filterDuplicateTweets;
+      
+      configuration.filterRetweets = m.filterRetweets;
+      filterRetweets = m.filterRetweets;
+      
       configuration.twitterQueueIntervalTime = m.interval;
       configuration.verbose = m.verbose;
       configuration.testMode = m.testMode;
 
       threeceeUserObj.twitterConfig = m.twitterConfig;
-
 
       console.log(chalkInfo("TSS | INIT"
         + " | TITLE: " + m.title

@@ -3065,12 +3065,12 @@ function socketRxTweet(tw) {
 
   tweetsReceived += 1;
 
-  if (tw.retweeted_status) {
+  if (tw.retweeted_status && tw.retweeted_status !== undefined) {
     retweetsReceived += 1;
     if (filterRetweets) { return; }
   }
 
-  if (tw.quoted_status) {
+  if (tw.is_quote_status) {
     quotedTweetsReceived += 1;
     if (filterRetweets) { return; }
   }
@@ -6984,6 +6984,7 @@ function initTssChild(params){
       twitterConfig: threeceeTwitter.twitterConfig,
       interval: configuration.tssInterval,
       filterDuplicateTweets: configuration.filterDuplicateTweets,
+      filterRetweets: configuration.filterRetweets,
       testMode: configuration.testMode,
       verbose: configuration.verbose
     }, function tssMessageRxError(err){
@@ -8355,7 +8356,9 @@ async function loadAllConfigFiles(){
 
   filterDuplicateTweets = configuration.filterDuplicateTweets;
   filterRetweets = configuration.filterRetweets;
+
   if (filterRetweets) { console.log(chalkWarn(MODULE_ID_PREFIX + " | -X- FILTER RETWEETS: " + filterRetweets)); }
+
   maxQueue = configuration.maxQueue;
 
   return;

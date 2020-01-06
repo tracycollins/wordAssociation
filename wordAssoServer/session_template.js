@@ -624,6 +624,10 @@ function updateDisplay(node, callback) {
     return callback();
   }
 
+  if (!node.isTweetSource || node.isTweetSource === undefined) {
+    return callback();
+  }
+
   biggerProfileImageUrl = node.profileImageUrl;
   // biggerProfileImageUrl = node.profileImageUrl.replace(".jpg", "_bigger.jpg");
   // biggerProfileImageUrl = biggerProfileImageUrl.replace(".png", "_bigger.png");

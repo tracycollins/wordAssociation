@@ -579,6 +579,7 @@ var getWindowDimensions = function (){
 var displayDivLeft = document.createElement("div");
 var displayDivNeutral = document.createElement("div");
 var displayDivRight = document.createElement("div");
+var displayDivNone = document.createElement("div");
 
 displayDivLeft.setAttribute("id", "displayDivLeft");
 displayDivLeft.style.position = "absolute";
@@ -604,6 +605,14 @@ displayDivRight.style.left = "800px";
 displayDivRight.style.top = "10px";
 document.body.appendChild(displayDivRight);
 
+displayDivNone.setAttribute("id", "displayDivNone");
+displayDivNone.style.width = "400px";
+displayDivNone.style.height = "400px";
+displayDivNone.style.position = "absolute";
+displayDivNone.style.left = "400px";
+displayDivNone.style.top = "400px";
+document.body.appendChild(displayDivNone);
+
 
 var displayImageLeft = document.createElement("img");
 displayImageLeft.style.height = "100%";
@@ -616,6 +625,10 @@ displayDivNeutral.appendChild(displayImageNeutral);
 var displayImageRight = document.createElement("img");
 displayImageRight.style.height = "100%";
 displayDivRight.appendChild(displayImageRight);
+
+var displayImageNone = document.createElement("img");
+displayImageNone.style.height = "100%";
+displayDivNone.appendChild(displayImageNone);
 
 var biggerProfileImageUrl;
 
@@ -646,6 +659,7 @@ function updateDisplay(node, callback) {
       callback();
     break;
     default:
+      displayImageNone.src = biggerProfileImageUrl;      
       callback();
   }
 }

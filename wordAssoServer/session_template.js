@@ -658,9 +658,9 @@ function updateDisplay(node, callback) {
     return callback();
   }
 
-  if (!node.isTweetSource || node.isTweetSource === undefined) {
-    return callback();
-  }
+  // if (!node.isTweetSource || node.isTweetSource === undefined) {
+  //   return callback();
+  // }
 
   biggerProfileImageUrl = node.profileImageUrl;
   bannerImageUrl300x100 = node.bannerImageUrl;

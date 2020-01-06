@@ -600,12 +600,15 @@ document.body.appendChild(displayDivRight);
 
 
 var displayImageLeft = document.createElement("img");
+displayImageLeft.style.height = "100%";
 displayDivLeft.appendChild(displayImageLeft);
 
 var displayImageNeutral = document.createElement("img");
+displayImageNeutral.style.height = "100%";
 displayDivNeutral.appendChild(displayImageNeutral);
 
 var displayImageRight = document.createElement("img");
+displayImageRight.style.height = "100%";
 displayDivRight.appendChild(displayImageRight);
 
 var biggerProfileImageUrl;
@@ -615,8 +618,9 @@ function updateDisplay(node, callback) {
     return callback();
   }
 
-  biggerProfileImageUrl = node.profileImageUrl.replace(".jpg", "_bigger.jpg");
-  biggerProfileImageUrl = biggerProfileImageUrl.replace(".png", "_bigger.png");
+  biggerProfileImageUrl = node.profileImageUrl;
+  // biggerProfileImageUrl = node.profileImageUrl.replace(".jpg", "_bigger.jpg");
+  // biggerProfileImageUrl = biggerProfileImageUrl.replace(".png", "_bigger.png");
 
   switch (node.categoryAuto) {
     case "left":

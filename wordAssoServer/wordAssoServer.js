@@ -96,6 +96,7 @@ process.env.NODE_ENV = process.env.NODE_ENV || "development";
 
 const DEFAULT_IGNORE_CATEGORY_RIGHT = false;
 const DEFAULT_FILTER_DUPLICATE_TWEETS = true;
+const DEFAULT_FILTER_RETWEETS = false;
 const DEFAULT_AUTO_FOLLOW = true;
 const DEFAULT_FORCE_FOLLOW = false;
 
@@ -134,6 +135,7 @@ let tssChild;
 let twpChild;
 
 let filterDuplicateTweets = true;
+let filterRetweets = false;
 
 const DEFAULT_TWITTER_THREECEE_USER = "altthreecee00";
 const DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT = Number(ONE_SECOND);
@@ -426,7 +428,10 @@ let duplicateTweetsReceived = 0;
 
 
 configuration.filterDuplicateTweets = DEFAULT_FILTER_DUPLICATE_TWEETS;
+configuration.filterRetweets = DEFAULT_FILTER_RETWEETS;
+
 filterDuplicateTweets = configuration.filterDuplicateTweets;
+filterRetweets = configuration.filterRetweets;
 
 configuration.forceFollow = DEFAULT_FORCE_FOLLOW;
 configuration.enableTwitterFollow = DEFAULT_ENABLE_TWITTER_FOLLOW;
@@ -3062,6 +3067,7 @@ function socketRxTweet(tw) {
 
   if (tw.retweeted_status) {
     retweetsReceived += 1;
+    if (filterRetweets) { return; }
   }
 
   if (tw.quoted_status) {
@@ -8038,6 +8044,20 @@ async function loadConfigFile(params) {
       }
     }
 
+    if (loadedConfigObj.FILTER_RETWEETS !== undefined){
+      console.log("WAS | LOADED FILTER_RETWEETS: " + loadedConfigObj.FILTER_RETWEETS);
+
+      if ((loadedConfigObj.FILTER_RETWEETS == false) || (loadedConfigObj.FILTER_RETWEETS == "false")) {
+        newConfiguration.filterRetweets = false;
+      }
+      else if ((loadedConfigObj.FILTER_RETWEETS == true) || (loadedConfigObj.FILTER_RETWEETS == "true")) {
+        newConfiguration.filterRetweets = true;
+      }
+      else {
+        newConfiguration.filterRetweets = true;
+      }
+    }
+
     if (loadedConfigObj.FILTER_DUPLICATE_TWEETS !== undefined){
       console.log("WAS | LOADED FILTER_DUPLICATE_TWEETS: " + loadedConfigObj.FILTER_DUPLICATE_TWEETS);
 
@@ -8333,6 +8353,7 @@ async function loadAllConfigFiles(){
   configuration.threeceeUsers = _.uniq(configuration.threeceeUsers); // merge concats arrays!
 
   filterDuplicateTweets = configuration.filterDuplicateTweets;
+  filterRetweets = configuration.filterRetweets;
   maxQueue = configuration.maxQueue;
 
   return;

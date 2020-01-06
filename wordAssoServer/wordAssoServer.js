@@ -8357,7 +8357,9 @@ async function loadAllConfigFiles(){
   filterDuplicateTweets = configuration.filterDuplicateTweets;
   filterRetweets = configuration.filterRetweets;
 
-  if (filterRetweets) { console.log(chalkWarn(MODULE_ID_PREFIX + " | -X- FILTER RETWEETS: " + filterRetweets)); }
+  // if (filterRetweets) { 
+  console.log(chalkWarn(MODULE_ID_PREFIX + " | -X- FILTER RETWEETS: " + filterRetweets));
+  // }
 
   maxQueue = configuration.maxQueue;
 

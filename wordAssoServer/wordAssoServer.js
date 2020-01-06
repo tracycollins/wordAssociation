@@ -707,12 +707,15 @@ const fieldsExclude = {
 };
 
 const fieldsTransmit = {
+  bannerImageUrl: 1,
+  profileImageUrl: 1,
   category: 1,
   categoryAuto: 1,
   followersCount: 1,
   following: 1,
   friendsCount: 1,
   isTopTerm: 1,
+  isTweetSource: 1,
   lastTweetId: 1,
   mentions: 1,
   name: 1,

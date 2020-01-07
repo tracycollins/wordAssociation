@@ -20,8 +20,8 @@ var MAX_RX_QUEUE = 250;
 
 var MAX_READY_ACK_WAIT_COUNT = 10;
 
-var width;
-var height;
+// var width;
+// var height;
 
 var config = {};
 var previousConfig = {};
@@ -546,6 +546,9 @@ var getWindowDimensions = function (){
   // older versions of IE
   return { width: document.getElementsByTagName("body")[0].clientWidth, height: document.getElementsByTagName("body")[0].clientHeight };
 };
+
+var width = getWindowDimensions().width;
+var height = getWindowDimensions().height;
 
 const displayDivArray = {};
 const currentIndex = {};

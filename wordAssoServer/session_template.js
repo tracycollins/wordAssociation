@@ -606,10 +606,10 @@ const colSize = 4;
 
 for (let row = 0; row < rowSize; row++){
 
-  pos[index] = {};
-  pos[index].y = row*75;
-
   for (let col = 0; col < colSize; col++){
+    console.log("row: " + row + " | col: " + col);
+    pos[index] = {};
+    pos[index].y = row*75;
     pos[index].x = col*75;
     index++;
   }

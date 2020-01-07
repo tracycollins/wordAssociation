@@ -87,23 +87,6 @@ var PAGE_LOAD_TIMEOUT = 1000;
 
 var DEFAULT_SESSION_VIEW = "template";
 
-// requirejs(["/onload.js"], function() {
-
-//     console.log("LOADED");
-
-//     initialize(function(){
-//       PARENT_ID = config.sessionViewType;
-//       initRxNodeQueueInterval();
-//     });
-
-//   },
-//   function(error) {
-//     console.log("REQUIREJS ERROR handler", error);
-//     console.log(error.requireModules && error.requireModules[0]);
-//     console.log(error.message);
-//   }
-// );
-
 var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 
 var pageLoadedTimeIntervalFlag = true;
@@ -549,9 +532,16 @@ function reset(){
   windowVisible = true;
 }
 
+var resize = function(){
+  width = getWindowDimensions().width;
+  height = getWindowDimensions().height;
+  console.log("RESIZE | w: " + width + " | h: " + height);
+};
+
 document.addEventListener(visibilityEvent, function() {
   if (!document[hidden]) {
     windowVisible = true;
+    resize();
     console.info("visibilityEvent: " + windowVisible);
   } 
   else {
@@ -559,6 +549,8 @@ document.addEventListener(visibilityEvent, function() {
     console.info("visibilityEvent: " + windowVisible);
   }
 });
+
+document.addEventListener("resize", function () { resize(); }, true);
 
 var getWindowDimensions = function (){
 
@@ -579,21 +571,28 @@ var getWindowDimensions = function (){
 const displayDivArray = {};
 const currentIndex = {};
 
-let catXpos = 0;
+let mainDivXpos = 0;
+let mainDivYpos = 0;
 
-const pos = [];
+let mainDivWidth = 300;
+let mainDivHeight = 300;
+let margin = 20;
+let mainBannerHeight = 100;
+
+const subDivPos = [];
+let subDivWidth = 75;
 let index = 1;
 
-const rowSize = 4;
-const colSize = 4;
+const numRows = 4;
+const numCols = 4;
 
-for (let row = 0; row < rowSize; row++){
+for (let row = 0; row < numRows; row++){
 
-  for (let col = 0; col < colSize; col++){
+  for (let col = 0; col < numCols; col++){
     console.log("row: " + row + " | col: " + col);
-    pos[index] = {};
-    pos[index].y = row*75;
-    pos[index].x = col*75;
+    subDivPos[index] = {};
+    subDivPos[index].y = row*75;
+    subDivPos[index].x = col*75;
     index++;
   }
 
@@ -612,16 +611,16 @@ for (let row = 0; row < rowSize; row++){
     displayDivArray[cat][i].div.style.position = "absolute";
 
     if (i === 0){
-      displayDivArray[cat][i].div.style.width = "300px";
-      displayDivArray[cat][i].div.style.height = "300px";
-      displayDivArray[cat][i].div.style.left = catXpos + "px";
-      displayDivArray[cat][i].div.style.top = "0px";
+      displayDivArray[cat][i].div.style.width = mainDivWidth + "px";
+      displayDivArray[cat][i].div.style.height = mainDivHeight + "px";
+      displayDivArray[cat][i].div.style.left = mainDivXpos + "px";
+      displayDivArray[cat][i].div.style.top = mainDivYpos + "px";
     }
     else{
-      displayDivArray[cat][i].div.style.width = "75px";
-      displayDivArray[cat][i].div.style.height = "75px";
-      displayDivArray[cat][i].div.style.left = (pos[i].x + catXpos) + "px";
-      displayDivArray[cat][i].div.style.top = (pos[i].y + 420) + "px";
+      displayDivArray[cat][i].div.style.width = subDivWidth + "px";
+      displayDivArray[cat][i].div.style.height = subDivWidth + "px";
+      displayDivArray[cat][i].div.style.left = (subDivPos[i].x + mainDivXpos) + "px";
+      displayDivArray[cat][i].div.style.top = (subDivPos[i].y + mainDivHeight + mainBannerHeight + margin) + "px";
     }
 
     document.body.appendChild(displayDivArray[cat][i].div);
@@ -635,7 +634,7 @@ for (let row = 0; row < rowSize; row++){
     displayDivArray[cat][i].div.appendChild(displayDivArray[cat][i].banner);
   }
 
-  catXpos += 320;
+  mainDivXpos += 320;
 
 });
 

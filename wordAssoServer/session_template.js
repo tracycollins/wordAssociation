@@ -601,6 +601,9 @@ let catXpos = 0;
 const pos = [];
 let index = 1;
 
+const rowSize = 4;
+const colSize = 4;
+
 for (let row = 0; row < rowSize; row++){
 
   pos[index] = {};

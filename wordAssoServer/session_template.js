@@ -565,61 +565,125 @@ let index = 1;
 const numRows = 4;
 const numCols = 4;
 
-for (let row = 0; row < numRows; row++){
+// for (let row = 0; row < numRows; row++){
 
-  for (let col = 0; col < numCols; col++){
-    console.log("row: " + row + " | col: " + col);
-    subDivPos[index] = {};
-    subDivPos[index].y = row*75;
-    subDivPos[index].x = col*75;
-    index++;
-  }
-}
+//   for (let col = 0; col < numCols; col++){
+//     console.log("row: " + row + " | col: " + col);
+//     subDivPos[index] = {};
+//     subDivPos[index].y = row*75;
+//     subDivPos[index].x = col*75;
+//     index++;
+//   }
+// }
 
-["left", "neutral", "right", "none"].forEach(function(cat){
+// ["left", "neutral", "right", "none"].forEach(function(cat){
 
-  displayDivArray[cat] = [];
-  currentIndex[cat] = 1;
+//   displayDivArray[cat] = [];
+//   currentIndex[cat] = 1;
 
-  for (let i=0; i<17; i++){
+//   for (let i=0; i<17; i++){
 
-    displayDivArray[cat][i] = {};
-    displayDivArray[cat][i].div = document.createElement("div");
-    displayDivArray[cat][i].div.setAttribute("id", "displayDivArray" + cat + i);
-    displayDivArray[cat][i].div.style.position = "absolute";
+//     displayDivArray[cat][i] = {};
+//     displayDivArray[cat][i].div = document.createElement("div");
+//     displayDivArray[cat][i].div.setAttribute("id", "displayDivArray" + cat + i);
+//     displayDivArray[cat][i].div.style.position = "absolute";
 
-    if (i === 0){
-      displayDivArray[cat][i].div.style.width = mainDivWidth + "px";
-      displayDivArray[cat][i].div.style.height = mainDivHeight + "px";
-      displayDivArray[cat][i].div.style.left = mainDivXpos + "px";
-      displayDivArray[cat][i].div.style.top = mainDivYpos + "px";
-    }
-    else{
-      displayDivArray[cat][i].div.style.width = subDivWidth + "px";
-      displayDivArray[cat][i].div.style.height = subDivWidth + "px";
-      displayDivArray[cat][i].div.style.left = (subDivPos[i].x + mainDivXpos) + "px";
-      displayDivArray[cat][i].div.style.top = (subDivPos[i].y + mainDivHeight + mainBannerHeight + margin) + "px";
-    }
+//     if (i === 0){
+//       displayDivArray[cat][i].div.style.width = mainDivWidth + "px";
+//       displayDivArray[cat][i].div.style.height = mainDivHeight + "px";
+//       displayDivArray[cat][i].div.style.left = mainDivXpos + "px";
+//       displayDivArray[cat][i].div.style.top = mainDivYpos + "px";
+//     }
+//     else{
+//       displayDivArray[cat][i].div.style.width = subDivWidth + "px";
+//       displayDivArray[cat][i].div.style.height = subDivWidth + "px";
+//       displayDivArray[cat][i].div.style.left = (subDivPos[i].x + mainDivXpos) + "px";
+//       displayDivArray[cat][i].div.style.top = (subDivPos[i].y + mainDivHeight + mainBannerHeight + margin) + "px";
+//     }
 
-    document.body.appendChild(displayDivArray[cat][i].div);
+//     document.body.appendChild(displayDivArray[cat][i].div);
 
-    displayDivArray[cat][i].img = document.createElement("img");
-    displayDivArray[cat][i].img.style.height = "100%";
-    displayDivArray[cat][i].div.appendChild(displayDivArray[cat][i].img);
+//     displayDivArray[cat][i].img = document.createElement("img");
+//     displayDivArray[cat][i].img.style.height = "100%";
+//     displayDivArray[cat][i].div.appendChild(displayDivArray[cat][i].img);
 
-    displayDivArray[cat][i].banner = document.createElement("img");
-    displayDivArray[cat][i].banner.style.width = "100%";
-    displayDivArray[cat][i].div.appendChild(displayDivArray[cat][i].banner);
-  }
+//     displayDivArray[cat][i].banner = document.createElement("img");
+//     displayDivArray[cat][i].banner.style.width = "100%";
+//     displayDivArray[cat][i].div.appendChild(displayDivArray[cat][i].banner);
+//   }
 
-  mainDivXpos += 320;
+//   mainDivXpos += 320;
 
-});
-
-var biggerProfileImageUrl;
-var bannerImageUrl300x100;
+// });
 
 let cat;
+
+function initDivs(initializeFlag, callback) {
+
+  mainDivXpos = 0;
+  mainDivYpos = 0;
+
+  if (initializeFlag) {
+    displayDivArray[cat] = [];
+    currentIndex[cat] = 1;
+
+    for (let row = 0; row < numRows; row++){
+
+      for (let col = 0; col < numCols; col++){
+        console.log("row: " + row + " | col: " + col);
+        subDivPos[index] = {};
+        subDivPos[index].y = row*subDivWidth;
+        subDivPos[index].x = col*subDivWidth;
+        index++;
+      }
+    }
+
+  }
+
+  ["left", "neutral", "right", "none"].forEach(function(cat){
+
+    for (let i=0; i<((numRows * numCols)+1); i++){
+
+      if (initializeFlag) {
+        displayDivArray[cat][i] = {};
+        displayDivArray[cat][i].div = document.createElement("div");
+        displayDivArray[cat][i].div.setAttribute("id", "displayDivArray" + cat + i);
+        displayDivArray[cat][i].div.style.position = "absolute";
+      }
+
+      if (i === 0){
+        displayDivArray[cat][i].div.style.width = mainDivWidth + "px";
+        displayDivArray[cat][i].div.style.height = mainDivHeight + "px";
+        displayDivArray[cat][i].div.style.left = mainDivXpos + "px";
+        displayDivArray[cat][i].div.style.top = mainDivYpos + "px";
+      }
+      else{
+        displayDivArray[cat][i].div.style.width = subDivWidth + "px";
+        displayDivArray[cat][i].div.style.height = subDivWidth + "px";
+        displayDivArray[cat][i].div.style.left = (subDivPos[i].x + mainDivXpos) + "px";
+        displayDivArray[cat][i].div.style.top = (subDivPos[i].y + mainDivHeight + mainBannerHeight + margin) + "px";
+      }
+
+      if (initializeFlag) {
+        document.body.appendChild(displayDivArray[cat][i].div);
+
+        displayDivArray[cat][i].img = document.createElement("img");
+        displayDivArray[cat][i].img.style.height = "100%";
+        displayDivArray[cat][i].div.appendChild(displayDivArray[cat][i].img);
+
+        displayDivArray[cat][i].banner = document.createElement("img");
+        displayDivArray[cat][i].banner.style.width = "100%";
+        displayDivArray[cat][i].div.appendChild(displayDivArray[cat][i].banner);
+      }
+
+    }
+
+    mainDivXpos += (mainDivWidth + margin);
+
+  });
+
+  callback();
+}
 
 function updateDisplay(node, callback) {
   if (!node.profileImageUrl || node.profileImageUrl === undefined) {
@@ -630,7 +694,6 @@ function updateDisplay(node, callback) {
     return callback();
   }
 
-  biggerProfileImageUrl = node.profileImageUrl;
   bannerImageUrl300x100 = node.bannerImageUrl;
 
   cat = node.categoryAuto || "none";
@@ -646,15 +709,12 @@ function updateDisplay(node, callback) {
       }
       else{
         displayDivArray[cat][currentIndex[cat]].img.src = node.profileImageUrl.replace(".jpg", "_bigger.jpg");
-        // displayDivArray[cat][currentIndex[cat]].banner.src = bannerImageUrl300x100;
         currentIndex[cat] += 1;
         if (currentIndex[cat] > 16) { currentIndex[cat] = 1; }
       }
       callback();
     break;
     default:
-      // displayImageNone.src = biggerProfileImageUrl;      
-      // displayImageBannerNone.src = bannerImageUrl300x100;
       callback();
   }
 }
@@ -669,6 +729,10 @@ var resize = function(){
   margin = Math.floor(0.1*mainDivWidth);
   mainBannerHeight = Math.floor(0.33*mainDivWidth);
   subDivWidth = Math.floor(0.25*mainDivWidth);
+
+  initDivs(false, function(){
+    console.log("resizeDivs COMPLETE");
+  });
 };
 
 document.addEventListener(visibilityEvent, function() {

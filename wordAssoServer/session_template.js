@@ -553,13 +553,13 @@ const currentIndex = {};
 let mainDivXpos = 0;
 let mainDivYpos = 0;
 
-let mainDivWidth = 300;
-let mainDivHeight = 300;
-let margin = 20;
-let mainBannerHeight = 100;
+let mainDivWidth = Math.floor(0.225*width);
+let mainDivHeight = Math.floor(mainDivWidth);
+let margin = Math.floor(0.1*mainDivWidth);
+let mainBannerHeight = Math.floor(0.33*mainDivWidth);
 
 const subDivPos = [];
-let subDivWidth = 75;
+let subDivWidth = Math.floor(0.25*mainDivWidth);
 let index = 1;
 
 const numRows = 4;
@@ -727,7 +727,7 @@ var resize = function(){
   height = getWindowDimensions().height;
   console.log("RESIZE | w: " + width + " | h: " + height);
 
-  mainDivWidth = Math.floor(0.3*width);
+  mainDivWidth = Math.floor(0.225*width);
   mainDivHeight = Math.floor(mainDivWidth);
   margin = Math.floor(0.1*mainDivWidth);
   mainBannerHeight = Math.floor(0.33*mainDivWidth);

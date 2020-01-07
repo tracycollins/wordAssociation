@@ -20,9 +20,6 @@ var MAX_RX_QUEUE = 250;
 
 var MAX_READY_ACK_WAIT_COUNT = 10;
 
-// var width;
-// var height;
-
 var config = {};
 var previousConfig = {};
 
@@ -563,61 +560,9 @@ let mainBannerHeight = Math.floor(0.33*mainDivWidth);
 
 const subDivPos = [];
 let subDivWidth = Math.floor(0.25*mainDivWidth);
-let index = 1;
 
 const numRows = 4;
 const numCols = 4;
-
-// for (let row = 0; row < numRows; row++){
-
-//   for (let col = 0; col < numCols; col++){
-//     console.log("row: " + row + " | col: " + col);
-//     subDivPos[index] = {};
-//     subDivPos[index].y = row*75;
-//     subDivPos[index].x = col*75;
-//     index++;
-//   }
-// }
-
-// ["left", "neutral", "right", "none"].forEach(function(cat){
-
-//   displayDivArray[cat] = [];
-//   currentIndex[cat] = 1;
-
-//   for (let i=0; i<17; i++){
-
-//     displayDivArray[cat][i] = {};
-//     displayDivArray[cat][i].div = document.createElement("div");
-//     displayDivArray[cat][i].div.setAttribute("id", "displayDivArray" + cat + i);
-//     displayDivArray[cat][i].div.style.position = "absolute";
-
-//     if (i === 0){
-//       displayDivArray[cat][i].div.style.width = mainDivWidth + "px";
-//       displayDivArray[cat][i].div.style.height = mainDivHeight + "px";
-//       displayDivArray[cat][i].div.style.left = mainDivXpos + "px";
-//       displayDivArray[cat][i].div.style.top = mainDivYpos + "px";
-//     }
-//     else{
-//       displayDivArray[cat][i].div.style.width = subDivWidth + "px";
-//       displayDivArray[cat][i].div.style.height = subDivWidth + "px";
-//       displayDivArray[cat][i].div.style.left = (subDivPos[i].x + mainDivXpos) + "px";
-//       displayDivArray[cat][i].div.style.top = (subDivPos[i].y + mainDivHeight + mainBannerHeight + margin) + "px";
-//     }
-
-//     document.body.appendChild(displayDivArray[cat][i].div);
-
-//     displayDivArray[cat][i].img = document.createElement("img");
-//     displayDivArray[cat][i].img.style.height = "100%";
-//     displayDivArray[cat][i].div.appendChild(displayDivArray[cat][i].img);
-
-//     displayDivArray[cat][i].banner = document.createElement("img");
-//     displayDivArray[cat][i].banner.style.width = "100%";
-//     displayDivArray[cat][i].div.appendChild(displayDivArray[cat][i].banner);
-//   }
-
-//   mainDivXpos += 320;
-
-// });
 
 let cat;
 
@@ -625,8 +570,9 @@ function initDivs(initializeFlag, callback) {
 
   mainDivXpos = 0;
   mainDivYpos = 0;
+  let index = 1;
 
-  if (initializeFlag) {
+  // if (initializeFlag) {
 
     for (let row = 0; row < numRows; row++){
 
@@ -639,7 +585,7 @@ function initDivs(initializeFlag, callback) {
       }
     }
 
-  }
+  // }
 
   ["left", "neutral", "right", "none"].forEach(function(cat){
 

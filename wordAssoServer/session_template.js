@@ -694,8 +694,6 @@ function updateDisplay(node, callback) {
     return callback();
   }
 
-  bannerImageUrl300x100 = node.bannerImageUrl;
-
   cat = node.categoryAuto || "none";
 
   switch (cat) {

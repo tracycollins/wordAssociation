@@ -581,7 +581,7 @@ var getWindowDimensions = function (){
 // var displayDivLeft = document.createElement("div");
 // var displayDivNeutral = document.createElement("div");
 // var displayDivRight = document.createElement("div");
-var displayDivNone = document.createElement("div");
+// var displayDivNone = document.createElement("div");
 
 // displayDivLeft.setAttribute("id", "displayDivLeft");
 // displayDivLeft.style.position = "absolute";
@@ -616,7 +616,7 @@ for (let row = 0; row < rowSize; row++){
 
 }
 
-["left", "neutral", "right"].forEach(function(cat){
+["left", "neutral", "right", "none"].forEach(function(cat){
 
   displayDivArray[cat] = [];
   currentIndex[cat] = 1;
@@ -672,22 +672,22 @@ for (let row = 0; row < rowSize; row++){
 // displayDivRight.style.top = "0px";
 // document.body.appendChild(displayDivRight);
 
-displayDivNone.setAttribute("id", "displayDivNone");
-displayDivNone.style.width = "300px";
-displayDivNone.style.height = "300px";
-displayDivNone.style.position = "absolute";
-displayDivNone.style.left = "300px";
-displayDivNone.style.top = "500px";
-document.body.appendChild(displayDivNone);
+// displayDivNone.setAttribute("id", "displayDivNone");
+// displayDivNone.style.width = "300px";
+// displayDivNone.style.height = "300px";
+// displayDivNone.style.position = "absolute";
+// displayDivNone.style.left = "300px";
+// displayDivNone.style.top = "500px";
+// document.body.appendChild(displayDivNone);
 
 
-var displayImageNone = document.createElement("img");
-displayImageNone.style.height = "100%";
-displayDivNone.appendChild(displayImageNone);
+// var displayImageNone = document.createElement("img");
+// displayImageNone.style.height = "100%";
+// displayDivNone.appendChild(displayImageNone);
 
-var displayImageBannerNone = document.createElement("img");
-displayImageBannerNone.style.width = "100%";
-displayDivNone.appendChild(displayImageBannerNone);
+// var displayImageBannerNone = document.createElement("img");
+// displayImageBannerNone.style.width = "100%";
+// displayDivNone.appendChild(displayImageBannerNone);
 
 var biggerProfileImageUrl;
 var bannerImageUrl300x100;
@@ -712,6 +712,7 @@ function updateDisplay(node, callback) {
     case "left":
     case "neutral":
     case "right":
+    case "none":
       if (node.isTweetSource) {
         displayDivArray[cat][0].img.src = biggerProfileImageUrl;
         displayDivArray[cat][0].banner.src = bannerImageUrl300x100;
@@ -725,8 +726,8 @@ function updateDisplay(node, callback) {
       callback();
     break;
     default:
-      displayImageNone.src = biggerProfileImageUrl;      
-      displayImageBannerNone.src = bannerImageUrl300x100;
+      // displayImageNone.src = biggerProfileImageUrl;      
+      // displayImageBannerNone.src = bannerImageUrl300x100;
       callback();
   }
 }

@@ -576,67 +576,122 @@ var getWindowDimensions = function (){
   return { width: document.getElementsByTagName("body")[0].clientWidth, height: document.getElementsByTagName("body")[0].clientHeight };
 };
 
-var displayDivLeft = document.createElement("div");
-var displayDivNeutral = document.createElement("div");
-var displayDivRight = document.createElement("div");
+// var displayDivLeftArray = [];
+
+// var displayDivLeft = document.createElement("div");
+// var displayDivNeutral = document.createElement("div");
+// var displayDivRight = document.createElement("div");
 var displayDivNone = document.createElement("div");
 
-displayDivLeft.setAttribute("id", "displayDivLeft");
-displayDivLeft.style.position = "absolute";
-displayDivLeft.style.width = "300px";
-displayDivLeft.style.height = "300px";
-displayDivLeft.style.left = "0px";
-displayDivLeft.style.top = "0px";
-document.body.appendChild(displayDivLeft);
+// displayDivLeft.setAttribute("id", "displayDivLeft");
+// displayDivLeft.style.position = "absolute";
+// displayDivLeft.style.width = "300px";
+// displayDivLeft.style.height = "300px";
+// displayDivLeft.style.left = "0px";
+// displayDivLeft.style.top = "0px";
+// document.body.appendChild(displayDivLeft);
 
-displayDivNeutral.setAttribute("id", "displayDivNeutral");
-displayDivNeutral.style.width = "300px";
-displayDivNeutral.style.height = "300px";
-displayDivNeutral.style.position = "absolute";
-displayDivNeutral.style.left = "300px";
-displayDivNeutral.style.top = "0px";
-document.body.appendChild(displayDivNeutral);
+// displayDivLeftArray[0] = displayDivLeft;
 
-displayDivRight.setAttribute("id", "displayDivRight");
-displayDivRight.style.width = "300px";
-displayDivRight.style.height = "300px";
-displayDivRight.style.position = "absolute";
-displayDivRight.style.left = "600px";
-displayDivRight.style.top = "0px";
-document.body.appendChild(displayDivRight);
+const displayDivArray = {};
+const currentIndex = {};
+
+let catXpos = 0;
+
+["left", "neutral", "right"].forEach(function(cat){
+
+  displayDivArray[cat] = [];
+  currentIndex[cat] = 1;
+
+  let xPos = 0;
+
+  for (let i=0; i<5; i++){
+
+    displayDivArray[cat][i] = {};
+    displayDivArray[cat][i].div = document.createElement("div");
+    displayDivArray[cat][i].div.setAttribute("id", "displayDivArray" + cat + i);
+    displayDivArray[cat][i].div.style.position = "absolute";
+
+    if (i === 0){
+      displayDivArray[cat][i].div.style.width = "300px";
+      displayDivArray[cat][i].div.style.height = "300px";
+      displayDivArray[cat][i].div.style.left = catXpos + "px";
+      displayDivArray[cat][i].div.style.top = "0px";
+    }
+    else{
+      displayDivArray[cat][i].div.style.width = "75px";
+      displayDivArray[cat][i].div.style.height = "75px";
+      displayDivArray[cat][i].div.style.left = (catXpos+xPos) + "px";
+      displayDivArray[cat][i].div.style.top = "400px";
+      xPos += 75;
+    }
+
+    document.body.appendChild(displayDivArray[cat][i].div);
+
+    displayDivArray[cat][i].img = document.createElement("img");
+    displayDivArray[cat][i].img.style.height = "100%";
+    displayDivArray[cat][i].div.appendChild(displayDivArray[cat][i].img);
+
+    displayDivArray[cat][i].banner = document.createElement("img");
+    displayDivArray[cat][i].banner.style.width = "100%";
+    displayDivArray[cat][i].div.appendChild(displayDivArray[cat][i].banner);
+  }
+
+  catXpos += 300;
+
+});
+
+// displayDivNeutral.setAttribute("id", "displayDivNeutral");
+// displayDivNeutral.style.width = "300px";
+// displayDivNeutral.style.height = "300px";
+// displayDivNeutral.style.position = "absolute";
+// displayDivNeutral.style.left = "300px";
+// displayDivNeutral.style.top = "0px";
+// document.body.appendChild(displayDivNeutral);
+
+// displayDivRight.setAttribute("id", "displayDivRight");
+// displayDivRight.style.width = "300px";
+// displayDivRight.style.height = "300px";
+// displayDivRight.style.position = "absolute";
+// displayDivRight.style.left = "600px";
+// displayDivRight.style.top = "0px";
+// document.body.appendChild(displayDivRight);
 
 displayDivNone.setAttribute("id", "displayDivNone");
 displayDivNone.style.width = "300px";
 displayDivNone.style.height = "300px";
 displayDivNone.style.position = "absolute";
 displayDivNone.style.left = "300px";
-displayDivNone.style.top = "400px";
+displayDivNone.style.top = "500px";
 document.body.appendChild(displayDivNone);
 
 
-var displayImageLeft = document.createElement("img");
-displayImageLeft.style.height = "100%";
-displayDivLeft.appendChild(displayImageLeft);
+// var displayImageLeft = document.createElement("img");
+// displayImageLeft.style.height = "100%";
+// displayDivLeft.appendChild(displayImageLeft);
 
-var displayImageBannerLeft = document.createElement("img");
-displayImageBannerLeft.style.width = "100%";
-displayDivLeft.appendChild(displayImageBannerLeft);
+// var displayImageBannerLeft = document.createElement("img");
+// displayImageBannerLeft.style.width = "100%";
+// displayDivLeft.appendChild(displayImageBannerLeft);
 
-var displayImageNeutral = document.createElement("img");
-displayImageNeutral.style.height = "100%";
-displayDivNeutral.appendChild(displayImageNeutral);
 
-var displayImageBannerNeutral = document.createElement("img");
-displayImageBannerNeutral.style.width = "100%";
-displayDivNeutral.appendChild(displayImageBannerNeutral);
+// var displayImageNeutral = document.createElement("img");
+// displayImageNeutral.style.height = "100%";
+// displayDivNeutral.appendChild(displayImageNeutral);
 
-var displayImageRight = document.createElement("img");
-displayImageRight.style.height = "100%";
-displayDivRight.appendChild(displayImageRight);
+// var displayImageBannerNeutral = document.createElement("img");
+// displayImageBannerNeutral.style.width = "100%";
+// displayDivNeutral.appendChild(displayImageBannerNeutral);
 
-var displayImageBannerRight = document.createElement("img");
-displayImageBannerRight.style.width = "100%";
-displayDivRight.appendChild(displayImageBannerRight);
+
+// var displayImageRight = document.createElement("img");
+// displayImageRight.style.height = "100%";
+// displayDivRight.appendChild(displayImageRight);
+
+// var displayImageBannerRight = document.createElement("img");
+// displayImageBannerRight.style.width = "100%";
+// displayDivRight.appendChild(displayImageBannerRight);
+
 
 var displayImageNone = document.createElement("img");
 displayImageNone.style.height = "100%";
@@ -648,6 +703,7 @@ displayDivNone.appendChild(displayImageBannerNone);
 
 var biggerProfileImageUrl;
 var bannerImageUrl300x100;
+
 
 function updateDisplay(node, callback) {
   if (!node.profileImageUrl || node.profileImageUrl === undefined) {
@@ -664,23 +720,25 @@ function updateDisplay(node, callback) {
 
   biggerProfileImageUrl = node.profileImageUrl;
   bannerImageUrl300x100 = node.bannerImageUrl;
+
+  const cat = node.categoryAuto;
   // biggerProfileImageUrl = node.profileImageUrl.replace(".jpg", "_bigger.jpg");
   // biggerProfileImageUrl = biggerProfileImageUrl.replace(".png", "_bigger.png");
 
-  switch (node.categoryAuto) {
+  switch (cat) {
     case "left":
-      displayImageLeft.src = biggerProfileImageUrl;
-      displayImageBannerLeft.src = bannerImageUrl300x100;
-      callback();
-    break;
     case "neutral":
-      displayImageNeutral.src = biggerProfileImageUrl;
-      displayImageBannerNeutral.src = bannerImageUrl300x100;
-      callback();
-    break;
     case "right":
-      displayImageRight.src = biggerProfileImageUrl;      
-      displayImageBannerRight.src = bannerImageUrl300x100;
+      if (node.isTweetSource) {
+        displayDivArray[cat][0].img.src = biggerProfileImageUrl;
+        displayDivArray[cat][0].banner.src = bannerImageUrl300x100;
+      }
+      else{
+        displayDivArray[cat][currentIndex[cat]].img.src = biggerProfileImageUrl;
+        displayDivArray[cat][currentIndex[cat]].banner.src = bannerImageUrl300x100;
+        currentIndex[cat] += 1;
+        if (currentIndex[cat] > 4) { currentIndex[cat] = 1; }
+      }
       callback();
     break;
     default:

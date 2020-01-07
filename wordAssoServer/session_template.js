@@ -664,11 +664,11 @@ function updateDisplay(node, callback) {
     case "right":
     case "none":
       if (node.isTweetSource) {
-        displayDivArray[cat][0].img.src = biggerProfileImageUrl;
-        displayDivArray[cat][0].banner.src = bannerImageUrl300x100;
+        displayDivArray[cat][0].img.src = node.profileImageUrl;
+        displayDivArray[cat][0].banner.src = node.bannerImageUrl;
       }
       else{
-        displayDivArray[cat][currentIndex[cat]].img.src = biggerProfileImageUrl;
+        displayDivArray[cat][currentIndex[cat]].img.src = node.profileImageUrl.replace(".jpg", "_bigger.jpg");
         // displayDivArray[cat][currentIndex[cat]].banner.src = bannerImageUrl300x100;
         currentIndex[cat] += 1;
         if (currentIndex[cat] > 16) { currentIndex[cat] = 1; }

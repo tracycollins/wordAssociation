@@ -621,7 +621,7 @@ for (let row = 0; row < rowSize; row++){
       displayDivArray[cat][i].div.style.width = "75px";
       displayDivArray[cat][i].div.style.height = "75px";
       displayDivArray[cat][i].div.style.left = (pos[i].x + catXpos) + "px";
-      displayDivArray[cat][i].div.style.top = (pos[i].y + 400) + "px";
+      displayDivArray[cat][i].div.style.top = (pos[i].y + 420) + "px";
     }
 
     document.body.appendChild(displayDivArray[cat][i].div);

@@ -635,7 +635,7 @@ for (let row = 0; row < rowSize; row++){
     displayDivArray[cat][i].div.appendChild(displayDivArray[cat][i].banner);
   }
 
-  catXpos += 300;
+  catXpos += 320;
 
 });
 

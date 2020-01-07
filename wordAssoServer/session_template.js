@@ -624,8 +624,6 @@ function initDivs(initializeFlag, callback) {
   mainDivYpos = 0;
 
   if (initializeFlag) {
-    displayDivArray[cat] = [];
-    currentIndex[cat] = 1;
 
     for (let row = 0; row < numRows; row++){
 
@@ -641,6 +639,11 @@ function initDivs(initializeFlag, callback) {
   }
 
   ["left", "neutral", "right", "none"].forEach(function(cat){
+
+    if (initializeFlag) {
+      displayDivArray[cat] = [];
+      currentIndex[cat] = 1;
+    }
 
     for (let i=0; i<((numRows * numCols)+1); i++){
 

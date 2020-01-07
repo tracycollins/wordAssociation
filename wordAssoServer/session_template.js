@@ -576,23 +576,6 @@ var getWindowDimensions = function (){
   return { width: document.getElementsByTagName("body")[0].clientWidth, height: document.getElementsByTagName("body")[0].clientHeight };
 };
 
-// var displayDivLeftArray = [];
-
-// var displayDivLeft = document.createElement("div");
-// var displayDivNeutral = document.createElement("div");
-// var displayDivRight = document.createElement("div");
-// var displayDivNone = document.createElement("div");
-
-// displayDivLeft.setAttribute("id", "displayDivLeft");
-// displayDivLeft.style.position = "absolute";
-// displayDivLeft.style.width = "300px";
-// displayDivLeft.style.height = "300px";
-// displayDivLeft.style.left = "0px";
-// displayDivLeft.style.top = "0px";
-// document.body.appendChild(displayDivLeft);
-
-// displayDivLeftArray[0] = displayDivLeft;
-
 const displayDivArray = {};
 const currentIndex = {};
 
@@ -655,39 +638,6 @@ for (let row = 0; row < rowSize; row++){
   catXpos += 300;
 
 });
-
-// displayDivNeutral.setAttribute("id", "displayDivNeutral");
-// displayDivNeutral.style.width = "300px";
-// displayDivNeutral.style.height = "300px";
-// displayDivNeutral.style.position = "absolute";
-// displayDivNeutral.style.left = "300px";
-// displayDivNeutral.style.top = "0px";
-// document.body.appendChild(displayDivNeutral);
-
-// displayDivRight.setAttribute("id", "displayDivRight");
-// displayDivRight.style.width = "300px";
-// displayDivRight.style.height = "300px";
-// displayDivRight.style.position = "absolute";
-// displayDivRight.style.left = "600px";
-// displayDivRight.style.top = "0px";
-// document.body.appendChild(displayDivRight);
-
-// displayDivNone.setAttribute("id", "displayDivNone");
-// displayDivNone.style.width = "300px";
-// displayDivNone.style.height = "300px";
-// displayDivNone.style.position = "absolute";
-// displayDivNone.style.left = "300px";
-// displayDivNone.style.top = "500px";
-// document.body.appendChild(displayDivNone);
-
-
-// var displayImageNone = document.createElement("img");
-// displayImageNone.style.height = "100%";
-// displayDivNone.appendChild(displayImageNone);
-
-// var displayImageBannerNone = document.createElement("img");
-// displayImageBannerNone.style.width = "100%";
-// displayDivNone.appendChild(displayImageBannerNone);
 
 var biggerProfileImageUrl;
 var bannerImageUrl300x100;

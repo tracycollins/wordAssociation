@@ -753,7 +753,7 @@ document.addEventListener(visibilityEvent, function() {
   }
 });
 
-document.addEventListener("resize", function () { resize(); }, true);
+window.addEventListener("resize", function () { resize(); }, true);
 
 
 var rxNodeQueueReady = false;

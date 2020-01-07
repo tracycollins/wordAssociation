@@ -717,6 +717,8 @@ function updateDisplay(node, callback) {
   }
 }
 
+let initDivsFlag = true;
+
 var resize = function(){
   width = getWindowDimensions().width;
   height = getWindowDimensions().height;
@@ -728,10 +730,13 @@ var resize = function(){
   mainBannerHeight = Math.floor(0.33*mainDivWidth);
   subDivWidth = Math.floor(0.25*mainDivWidth);
 
-  initDivs(false, function(){
+  initDivs(initDivsFlag, function(){
+    initDivsFlag = false;
     console.log("resizeDivs COMPLETE");
   });
 };
+
+resize();
 
 document.addEventListener(visibilityEvent, function() {
   if (!document[hidden]) {

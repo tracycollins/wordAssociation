@@ -152,7 +152,6 @@ function toggleTestMode() {
   console.warn("TEST MODE: " + config.testModeEnabled);
 }
 
-
 var optionsTimeStamp = {
   weekday: "long",
   year: "numeric",
@@ -532,26 +531,6 @@ function reset(){
   windowVisible = true;
 }
 
-var resize = function(){
-  width = getWindowDimensions().width;
-  height = getWindowDimensions().height;
-  console.log("RESIZE | w: " + width + " | h: " + height);
-};
-
-document.addEventListener(visibilityEvent, function() {
-  if (!document[hidden]) {
-    windowVisible = true;
-    resize();
-    console.info("visibilityEvent: " + windowVisible);
-  } 
-  else {
-    windowVisible = false;
-    console.info("visibilityEvent: " + windowVisible);
-  }
-});
-
-document.addEventListener("resize", function () { resize(); }, true);
-
 var getWindowDimensions = function (){
 
   if (window.innerWidth !== "undefined") {
@@ -595,7 +574,6 @@ for (let row = 0; row < numRows; row++){
     subDivPos[index].x = col*75;
     index++;
   }
-
 }
 
 ["left", "neutral", "right", "none"].forEach(function(cat){
@@ -680,6 +658,33 @@ function updateDisplay(node, callback) {
       callback();
   }
 }
+
+var resize = function(){
+  width = getWindowDimensions().width;
+  height = getWindowDimensions().height;
+  console.log("RESIZE | w: " + width + " | h: " + height);
+
+  mainDivWidth = Math.floor(0.3*width);
+  mainDivHeight = Math.floor(mainDivWidth);
+  margin = Math.floor(0.1*mainDivWidth);
+  mainBannerHeight = Math.floor(0.33*mainDivWidth);
+  subDivWidth = Math.floor(0.25*mainDivWidth);
+};
+
+document.addEventListener(visibilityEvent, function() {
+  if (!document[hidden]) {
+    windowVisible = true;
+    resize();
+    console.info("visibilityEvent: " + windowVisible);
+  } 
+  else {
+    windowVisible = false;
+    console.info("visibilityEvent: " + windowVisible);
+  }
+});
+
+document.addEventListener("resize", function () { resize(); }, true);
+
 
 var rxNodeQueueReady = false;
 var rxNodeQueue = [];

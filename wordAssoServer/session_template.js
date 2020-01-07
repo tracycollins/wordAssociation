@@ -598,14 +598,27 @@ const currentIndex = {};
 
 let catXpos = 0;
 
+const pos = [];
+let index = 1;
+
+for (let row = 0; row < rowSize; row++){
+
+  pos[index] = {};
+  pos[index].y = row*75;
+
+  for (let col = 0; col < colSize; col++){
+    pos[index].x = col*75;
+    index++;
+  }
+
+}
+
 ["left", "neutral", "right"].forEach(function(cat){
 
   displayDivArray[cat] = [];
   currentIndex[cat] = 1;
 
-  let xPos = 0;
-
-  for (let i=0; i<5; i++){
+  for (let i=0; i<17; i++){
 
     displayDivArray[cat][i] = {};
     displayDivArray[cat][i].div = document.createElement("div");
@@ -621,9 +634,8 @@ let catXpos = 0;
     else{
       displayDivArray[cat][i].div.style.width = "75px";
       displayDivArray[cat][i].div.style.height = "75px";
-      displayDivArray[cat][i].div.style.left = (catXpos+xPos) + "px";
-      displayDivArray[cat][i].div.style.top = "400px";
-      xPos += 75;
+      displayDivArray[cat][i].div.style.left = pos[i].x + "px";
+      displayDivArray[cat][i].div.style.top = (pos[i].y + 400) "px";
     }
 
     document.body.appendChild(displayDivArray[cat][i].div);
@@ -703,9 +715,9 @@ function updateDisplay(node, callback) {
       }
       else{
         displayDivArray[cat][currentIndex[cat]].img.src = biggerProfileImageUrl;
-        displayDivArray[cat][currentIndex[cat]].banner.src = bannerImageUrl300x100;
+        // displayDivArray[cat][currentIndex[cat]].banner.src = bannerImageUrl300x100;
         currentIndex[cat] += 1;
-        if (currentIndex[cat] > 4) { currentIndex[cat] = 1; }
+        if (currentIndex[cat] > 16) { currentIndex[cat] = 1; }
       }
       callback();
     break;

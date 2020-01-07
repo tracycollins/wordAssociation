@@ -656,7 +656,7 @@ function updateDisplay(node, callback) {
   biggerProfileImageUrl = node.profileImageUrl;
   bannerImageUrl300x100 = node.bannerImageUrl;
 
-  cat = node.categoryAuto;
+  cat = node.categoryAuto || "none";
 
   switch (cat) {
     case "left":

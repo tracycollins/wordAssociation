@@ -544,6 +544,9 @@ var getWindowDimensions = function (){
   return { width: document.getElementsByTagName("body")[0].clientWidth, height: document.getElementsByTagName("body")[0].clientHeight };
 };
 
+const numRows = 8;
+const numCols = 8;
+
 var width = getWindowDimensions().width;
 var height = getWindowDimensions().height;
 
@@ -559,10 +562,7 @@ let margin = Math.floor(0.1*mainDivWidth);
 let mainBannerHeight = Math.floor(0.33*mainDivWidth);
 
 const subDivPos = [];
-let subDivWidth = Math.floor(0.25*mainDivWidth);
-
-const numRows = 8;
-const numCols = 8;
+let subDivWidth = Math.floor(mainDivWidth/numCols);
 
 let cat;
 
@@ -680,7 +680,7 @@ var resize = function(){
   mainDivHeight = Math.floor(mainDivWidth);
   margin = Math.floor(0.1*mainDivWidth);
   mainBannerHeight = Math.floor(0.33*mainDivWidth);
-  subDivWidth = Math.floor(0.25*mainDivWidth);
+  subDivWidth = Math.floor(mainDivWidth/numCols);
 
   initDivs(initDivsFlag, function(){
     initDivsFlag = false;

@@ -654,13 +654,13 @@ function updateDisplay(node, callback) {
         displayDivArray[cat][0].img.src = node.profileImageUrl;
         displayDivArray[cat][0].banner.src = node.bannerImageUrl;
         if (node.category && (node.category === node.categoryAuto)){
-          displayDivArray[cat][i].div.style.border = mainImageBorderWidth + "px solid #00FF00";
+          displayDivArray[cat][0].div.style.border = mainImageBorderWidth + "px solid #00FF00";
         }
         else if (node.category && node.categoryAuto && (node.category != node.categoryAuto)){
-          displayDivArray[cat][i].div.style.border = mainImageBorderWidth + "px solid #FF0000";
+          displayDivArray[cat][0].div.style.border = mainImageBorderWidth + "px solid #FF0000";
         }
         else{
-          displayDivArray[cat][i].div.style.border = mainImageBorderWidth + "px solid #000000";
+          displayDivArray[cat][0].div.style.border = mainImageBorderWidth + "px solid #000000";
         }
       }
       else{

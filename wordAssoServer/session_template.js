@@ -564,6 +564,7 @@ let mainImageBorderWidth = Math.floor(0.01*mainDivWidth);
 
 const subDivPos = [];
 let subDivWidth = Math.floor(mainDivWidth/numCols);
+let subImageBorderWidth = Math.floor(0.01*subDivWidth);
 
 let cat;
 
@@ -634,6 +635,9 @@ function initDivs(initializeFlag, callback) {
   callback();
 }
 
+let divIndex = 0;
+let borderWidth = 0;
+
 function updateDisplay(node, callback) {
   if (!node.profileImageUrl || node.profileImageUrl === undefined) {
     return callback();
@@ -651,31 +655,43 @@ function updateDisplay(node, callback) {
     case "right":
     case "none":
       if (node.isTweetSource) {
+
+        divIndex = 0;
+        borderWidth = mainImageBorderWidth;
+
         displayDivArray[cat][0].img.src = node.profileImageUrl;
         displayDivArray[cat][0].banner.src = node.bannerImageUrl;
-        if (node.category && (node.category === node.categoryAuto)){
-          displayDivArray[cat][0].div.style.outline = mainImageBorderWidth + "px solid #00FF00";
-          displayDivArray[cat][0].div.style.outlineOffset = -mainImageBorderWidth + "px";
-        }
-        else if (node.category && node.categoryAuto && (node.category != node.categoryAuto)){
-          displayDivArray[cat][0].div.style.outline = mainImageBorderWidth + "px solid #FF0000";
-          displayDivArray[cat][0].div.style.outlineOffset = -mainImageBorderWidth + "px";
-        }
-        else{
-          displayDivArray[cat][0].div.style.outline = mainImageBorderWidth + "px solid #000000";
-          displayDivArray[cat][0].div.style.outlineOffset = -mainImageBorderWidth + "px";
-        }
+
       }
       else{
-        displayDivArray[cat][currentIndex[cat]].img.src = node.profileImageUrl.replace(".jpg", "_bigger.jpg");
+
+        divIndex = currentIndex[cat];
+        borderWidth = subImageBorderWidth;
+
+        displayDivArray[cat][divIndex].img.src = node.profileImageUrl.replace(".jpg", "_bigger.jpg");
+
         currentIndex[cat] += 1;
         if (currentIndex[cat] > (numRows*numCols)) { currentIndex[cat] = 1; }
       }
-      callback();
     break;
     default:
       callback();
   }
+
+  if (node.category && (node.category === node.categoryAuto)){
+    displayDivArray[cat][divIndex].div.style.outline = borderWidth + "px solid #00FF00";
+    displayDivArray[cat][divIndex].div.style.outlineOffset = -borderWidth + "px";
+  }
+  else if (node.category && node.categoryAuto && (node.category != node.categoryAuto)){
+    displayDivArray[cat][divIndex].div.style.outline = borderWidth + "px solid #FF0000";
+    displayDivArray[cat][divIndex].div.style.outlineOffset = -borderWidth + "px";
+  }
+  else{
+    displayDivArray[cat][divIndex].div.style.outline = borderWidth + "px solid #000000";
+    displayDivArray[cat][divIndex].div.style.outlineOffset = -borderWidth + "px";
+  }
+
+  callback();
 }
 
 let initDivsFlag = true;

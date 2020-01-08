@@ -5192,7 +5192,7 @@ async function updateUserSets(){
   userSearchCursor.on("data", async function(user) {
 
     const nodeId = user.nodeId.toLowerCase();
-    const screenName = user.screenName.toLowerCase();
+    const screenName = (user.screenName && (user.screenName !== undefined)) ? user.screenName.toLowerCase() : "undefined_screen_name";
     const category = user.category;
     const categoryAuto = user.categoryAuto;
 

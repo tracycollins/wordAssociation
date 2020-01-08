@@ -570,8 +570,8 @@ let cat;
 
 function initDivs(initializeFlag, callback) {
 
-  mainDivXpos = 0;
-  mainDivYpos = 0;
+  mainDivXpos = margin;
+  mainDivYpos = margin;
   let index = 1;
 
   for (let row = 0; row < numRows; row++){

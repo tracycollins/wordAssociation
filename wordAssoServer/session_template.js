@@ -561,8 +561,8 @@ let mainBannerHeight = Math.floor(0.33*mainDivWidth);
 const subDivPos = [];
 let subDivWidth = Math.floor(0.25*mainDivWidth);
 
-const numRows = 4;
-const numCols = 4;
+const numRows = 8;
+const numCols = 8;
 
 let cat;
 

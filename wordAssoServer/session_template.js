@@ -693,7 +693,10 @@ resize();
 document.addEventListener(visibilityEvent, function() {
   if (!document[hidden]) {
     windowVisible = true;
+    rxNodeQueueReady = false;
+    rxNodeQueue = [];
     resize();
+    rxNodeQueueReady = true;
     console.info("visibilityEvent: " + windowVisible);
   } 
   else {
@@ -723,7 +726,6 @@ function initRxNodeQueueInterval(){
   rxNodeQueueReady = true;
 
   var newNode = {};
-  // var url;
 
   clearInterval(rxNodeQueueInterval);
 
@@ -732,7 +734,6 @@ function initRxNodeQueueInterval(){
 
       rxNodeQueueReady = false;
       newNode = rxNodeQueue.shift();
-      // url = newNode.profileImageUrl;
       updateDisplay(newNode, function(){
         rxNodeQueueReady = true;
       });

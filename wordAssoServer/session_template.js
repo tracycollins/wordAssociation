@@ -560,6 +560,7 @@ let mainDivWidth = Math.floor(0.225*width);
 let mainDivHeight = Math.floor(mainDivWidth);
 let margin = Math.floor(0.1*mainDivWidth);
 let mainBannerHeight = Math.floor(0.33*mainDivWidth);
+let mainImageBorderWidth = Math.floor(0.01*mainDivWidth);
 
 const subDivPos = [];
 let subDivWidth = Math.floor(mainDivWidth/numCols);
@@ -617,6 +618,7 @@ function initDivs(initializeFlag, callback) {
 
         displayDivArray[cat][i].img = document.createElement("img");
         displayDivArray[cat][i].img.style.height = "100%";
+        displayDivArray[cat][i].img.style.border = mainImageBorderWidth + "px solid #E8272C";
         displayDivArray[cat][i].div.appendChild(displayDivArray[cat][i].img);
 
         displayDivArray[cat][i].banner = document.createElement("img");

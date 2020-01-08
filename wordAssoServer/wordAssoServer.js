@@ -5912,7 +5912,7 @@ function initAppRouting(callback) {
       console.log(chalkLog("WAS | R< REDIRECT /session")); 
       res.redirect("/session");
     }
-    else if ((req.path == "/session_template.js") || (req.path == "/session.js") || (req.path == "/js/libs/controlPanel.js")) {
+    else if ((req.path == "/profiles.js") || (req.path == "/session.js") || (req.path == "/js/libs/controlPanel.js")) {
 
       const fullPath = path.join(__dirname, req.path);
       const defaultSource = (hostname == "google") ? "PRODUCTION_SOURCE" : "LOCAL_SOURCE";
@@ -6064,31 +6064,31 @@ function initAppRouting(callback) {
     });
   });
 
-  const sessionTemplateHtml = path.join(__dirname, "/session_template.html");
+  const profilesHtml = path.join(__dirname, "/profiles.html");
 
-  app.get("/session_template", function requestSession(req, res, next) {
+  app.get("/profiles", function requestSession(req, res, next) {
 
     debug(chalkInfo("get next\n" + next));
 
     console.log(chalkLog("WAS | LOADING PAGE"
       + " | IP: " + req.ip
       + " | REQ: " + req.url
-      + " | RES: " + sessionTemplateHtml
+      + " | RES: " + profilesHtml
     ));
 
-    res.sendFile(sessionTemplateHtml, function responseSession(err) {
+    res.sendFile(profilesHtml, function responseSession(err) {
       if (err) {
-        console.log(chalkError("WAS | GET /session_template ERROR:"
+        console.log(chalkError("WAS | GET /profiles ERROR:"
           + " | " + getTimeStamp()
           + " | IP: " + req.ip
           + " | " + req.url
-          + " | " + sessionTemplateHtml
+          + " | " + profilesHtml
           + " | " + err
         ));
       } 
       else {
         if (configuration.verbose) {
-          console.log(chalkInfo("SENT:", sessionTemplateHtml));
+          console.log(chalkInfo("SENT:", profilesHtml));
         }
       }
     });

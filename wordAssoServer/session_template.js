@@ -563,8 +563,8 @@ let mainBannerHeight = Math.floor(0.33*mainDivWidth);
 let mainImageBorderWidth = Math.floor(0.01*mainDivWidth);
 
 const subDivPos = [];
-let subDivWidth = Math.max(3, Math.floor(mainDivWidth/numCols));
-let subImageBorderWidth = Math.max(3, Math.floor(0.01*subDivWidth));
+let subDivWidth = Math.max(2, Math.floor(mainDivWidth/numCols));
+let subImageBorderWidth = Math.max(2, Math.floor(0.01*subDivWidth));
 
 let cat;
 
@@ -705,10 +705,10 @@ var resize = function(){
   mainDivHeight = Math.floor(mainDivWidth);
   margin = Math.floor(0.1*mainDivWidth);
   mainBannerHeight = Math.floor(0.33*mainDivWidth);
-  mainImageBorderWidth = Math.max(3, Math.floor(0.01*mainDivWidth));
+  mainImageBorderWidth = Math.max(2, Math.floor(0.01*mainDivWidth));
 
   subDivWidth = Math.floor(mainDivWidth/numCols);
-  subImageBorderWidth = Math.max(3, Math.floor(0.01*subDivWidth));
+  subImageBorderWidth = Math.max(2, Math.floor(0.01*subDivWidth));
 
   initDivs(initDivsFlag, function(){
     initDivsFlag = false;

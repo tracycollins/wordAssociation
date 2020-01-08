@@ -544,8 +544,8 @@ var getWindowDimensions = function (){
   return { width: document.getElementsByTagName("body")[0].clientWidth, height: document.getElementsByTagName("body")[0].clientHeight };
 };
 
-const numRows = 8;
-const numCols = 8;
+const numRows = 10;
+const numCols = 10;
 
 var width = getWindowDimensions().width;
 var height = getWindowDimensions().height;

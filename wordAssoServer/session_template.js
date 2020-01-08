@@ -572,20 +572,16 @@ function initDivs(initializeFlag, callback) {
   mainDivYpos = 0;
   let index = 1;
 
-  // if (initializeFlag) {
+  for (let row = 0; row < numRows; row++){
 
-    for (let row = 0; row < numRows; row++){
-
-      for (let col = 0; col < numCols; col++){
-        console.log("row: " + row + " | col: " + col);
-        subDivPos[index] = {};
-        subDivPos[index].y = row*subDivWidth;
-        subDivPos[index].x = col*subDivWidth;
-        index++;
-      }
+    for (let col = 0; col < numCols; col++){
+      console.log("row: " + row + " | col: " + col);
+      subDivPos[index] = {};
+      subDivPos[index].y = row*subDivWidth;
+      subDivPos[index].x = col*subDivWidth;
+      index++;
     }
-
-  // }
+  }
 
   ["left", "neutral", "right", "none"].forEach(function(cat){
 
@@ -660,7 +656,7 @@ function updateDisplay(node, callback) {
       else{
         displayDivArray[cat][currentIndex[cat]].img.src = node.profileImageUrl.replace(".jpg", "_bigger.jpg");
         currentIndex[cat] += 1;
-        if (currentIndex[cat] > 16) { currentIndex[cat] = 1; }
+        if (currentIndex[cat] > (numRows*numCols)) { currentIndex[cat] = 1; }
       }
       callback();
     break;
@@ -760,11 +756,7 @@ function loadViewType(svt, callback) {
   config.sessionViewType = "template";
 
   requirejs(["js/libs/sessionView_template"], function() {
-
     console.debug("sessionView_template LOADED | TYPE: " + config.sessionViewType);
-
-    // initRxNodeQueueInterval();
-
     callback();
   });
 }
@@ -799,11 +791,7 @@ function initialize(callback) {
 
     setTimeout(function() {
       console.log("END PAGE LOAD TIMEOUT");
-
-      // initRxNodeQueueInterval();
-
       pageLoadedTimeIntervalFlag = false;
-
     }, PAGE_LOAD_TIMEOUT);
   });
 

@@ -687,7 +687,7 @@ function updateDisplay(node, callback) {
     displayDivArray[cat][divIndex].div.style.outlineOffset = -borderWidth + "px";
   }
   else{
-    displayDivArray[cat][divIndex].div.style.outline = borderWidth + "px solid #000000";
+    displayDivArray[cat][divIndex].div.style.outline = borderWidth + "px solid #808080";
     displayDivArray[cat][divIndex].div.style.outlineOffset = -borderWidth + "px";
   }
 

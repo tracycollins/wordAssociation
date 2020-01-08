@@ -618,7 +618,6 @@ function initDivs(initializeFlag, callback) {
 
         displayDivArray[cat][i].img = document.createElement("img");
         displayDivArray[cat][i].img.style.height = "100%";
-        displayDivArray[cat][i].img.style.border = mainImageBorderWidth + "px solid #E8272C";
         displayDivArray[cat][i].div.appendChild(displayDivArray[cat][i].img);
 
         displayDivArray[cat][i].banner = document.createElement("img");
@@ -654,6 +653,15 @@ function updateDisplay(node, callback) {
       if (node.isTweetSource) {
         displayDivArray[cat][0].img.src = node.profileImageUrl;
         displayDivArray[cat][0].banner.src = node.bannerImageUrl;
+        if (node.category && (node.category === node.categoryAuto)){
+          displayDivArray[cat][i].div.style.border = mainImageBorderWidth + "px solid #00FF00";
+        }
+        else if (node.category && node.categoryAuto && (node.category != node.categoryAuto)){
+          displayDivArray[cat][i].div.style.border = mainImageBorderWidth + "px solid #FF0000";
+        }
+        else{
+          displayDivArray[cat][i].div.style.border = mainImageBorderWidth + "px solid #000000";
+        }
       }
       else{
         displayDivArray[cat][currentIndex[cat]].img.src = node.profileImageUrl.replace(".jpg", "_bigger.jpg");

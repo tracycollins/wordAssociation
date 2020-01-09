@@ -7,6 +7,8 @@
 const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
 const LOCAL_SOURCE = "http://localhost:9997";
 
+const DEFAULT_TWITTER_URL = "http://twitter.com";
+
 const DEFAULT_SOURCE = REPLACE_SOURCE;
 
 var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
@@ -577,7 +579,6 @@ function initDivs(initializeFlag, callback) {
   for (let row = 0; row < numRows; row++){
 
     for (let col = 0; col < numCols; col++){
-      // console.log("row: " + row + " | col: " + col);
       subDivPos[index] = {};
       subDivPos[index].y = row*subDivWidth;
       subDivPos[index].x = col*subDivWidth;
@@ -619,11 +620,20 @@ function initDivs(initializeFlag, callback) {
 
         displayDivArray[cat][i].img = document.createElement("img");
         displayDivArray[cat][i].img.style.height = "100%";
-        displayDivArray[cat][i].div.appendChild(displayDivArray[cat][i].img);
+
+        displayDivArray[cat][i].link = document.createElement("a");
+        displayDivArray[cat][i].link.href = DEFAULT_TWITTER_URL;
+        displayDivArray[cat][i].link.target = "_blank";
+        displayDivArray[cat][i].link.appendChild(displayDivArray[cat][i].img);
+
+        // displayDivArray[cat][i].div.appendChild(displayDivArray[cat][i].img);
 
         displayDivArray[cat][i].banner = document.createElement("img");
         displayDivArray[cat][i].banner.style.width = "100%";
-        displayDivArray[cat][i].div.appendChild(displayDivArray[cat][i].banner);
+        // displayDivArray[cat][i].div.appendChild(displayDivArray[cat][i].banner);
+        displayDivArray[cat][i].link.appendChild(displayDivArray[cat][i].banner);
+
+        displayDivArray[cat][i].div.appendChild(displayDivArray[cat][i].link);
       }
 
     }
@@ -639,6 +649,10 @@ let divIndex = 0;
 let borderWidth = 0;
 
 function updateDisplay(node, callback) {
+  if (!node.screenName || node.screenName === undefined) {
+    return callback();
+  }
+
   if (!node.profileImageUrl || node.profileImageUrl === undefined) {
     return callback();
   }
@@ -677,6 +691,8 @@ function updateDisplay(node, callback) {
     default:
       callback();
   }
+
+  displayDivArray[cat][divIndex].link.href = DEFAULT_TWITTER_URL + "/" + node.screenName;
 
   if (node.category && (node.category === node.categoryAuto)){
     displayDivArray[cat][divIndex].div.style.outline = borderWidth + "px solid #00FF00";

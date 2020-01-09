@@ -383,6 +383,7 @@ statsObj.user.auto.none = 0;
 
 statsObj.user.total = 0;
 statsObj.user.following = 0;
+statsObj.user.autoFollow = 0;
 statsObj.user.notFollowing = 0;
 statsObj.user.categorizedTotal = 0;
 statsObj.user.categorizedManual = 0;
@@ -5582,7 +5583,8 @@ function initTransmitNodeQueueInterval(interval){
             && (n.followersCount >= configuration.minFollowersAutoFollow))
           {
             n.following = true;
-            printUserObj(MODULE_ID_PREFIX + " | +++ AUTO FOLLOW", n);
+            statsObj.user.autoFollow += 1;
+            printUserObj(MODULE_ID_PREFIX + " | +++ AUTO FOLLOW [" + statsObj.user.autoFollow + "]", n);
           }
 
           const uncatUserObj = uncatUserCache.get(n.nodeId);

@@ -5129,7 +5129,7 @@ async function addMismatchUserSet(params){
 
     matchUserSet.delete(params.user.nodeId); 
 
-    if (mismatchUserSet.size % 100 == 0) {
+    if ((mismatchUserSet.size > 0) && (mismatchUserSet.size % 100 == 0)) {
       printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "] | VCU: " + verifiedCategorizedUsersSet.has(params.user.screenName), params.user);
     }
 

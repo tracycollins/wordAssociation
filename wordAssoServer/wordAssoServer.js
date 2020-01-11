@@ -7172,15 +7172,15 @@ async function initTfeChild(params){
             printUserObj("WAS | <TFE | PRIORITY CAT | MISMATCH NOT FOUND | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?mm"});
           }
-          else if ((m.searchMode === "UNCAT_LEFT") && m.user.category && (m.user.category !== "left")){
+          else if ((m.searchMode === "UNCAT_LEFT") && m.user.categoryAuto && (m.user.categoryAuto !== "left")){
             printUserObj("WAS | <TFE | PRIORITY CAT | UNCAT LEFT NOT FOUND | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?left"});
           }
-          else if ((m.searchMode === "UNCAT_NEUTRAL") && m.user.category && (m.user.category !== "neutral")){
+          else if ((m.searchMode === "UNCAT_NEUTRAL") && m.user.categoryAuto && (m.user.categoryAuto !== "neutral")){
             printUserObj("WAS | <TFE | PRIORITY CAT | UNCAT NEUTRAL NOT FOUND | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?neutral"});
           }
-          else if ((m.searchMode === "UNCAT_RIGHT") && m.user.category && (m.user.category !== "right")){
+          else if ((m.searchMode === "UNCAT_RIGHT") && m.user.categoryAuto && (m.user.categoryAuto !== "right")){
             printUserObj("WAS | <TFE | PRIORITY CAT | UNCAT RIGHT NOT FOUND | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?right"});
           }

@@ -5114,6 +5114,35 @@ async function countDocuments(params){
   }
 }
 
+async function addMismatchUserSet(params){
+
+  try{
+
+    if (!mismatchUserSet.has(params.user.nodeId) && (params.user.category !== params.user.categoryAuto)) {
+
+      const mismatchUserObj = await mismatchUserCache.get(params.user.nodeId);
+
+      if (configuration.filterVerifiedUsers && verifiedCategorizedUsersSet.has(params.user.screenName)){
+        mismatchUserSet.delete(params.user.nodeId);
+      }
+      else if (mismatchUserObj === undefined) {
+        mismatchUserSet.add(params.user.nodeId);
+      }
+
+      matchUserSet.delete(params.user.nodeId); 
+
+      if (mismatchUserSet.size % 100 == 0) {
+        printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "] | VCU: " + verifiedCategorizedUsersSet.has(params.user.screenName), params.user);
+      }
+
+      return;
+    }
+  }
+  catch(err){
+    throw err;
+  }
+}
+
 async function updateUserSets(){
 
   statsObj.status = "UPDATE USER SETS";
@@ -5404,23 +5433,25 @@ async function updateUserSets(){
           categorizedManualUserSet.add(nodeId); 
           categorizedAutoUserSet.add(nodeId); 
 
-          if (!mismatchUserSet.has(nodeId) && (category !== categoryAuto)) {
+          await addMismatchUserSet({user: user});
 
-            const mismatchUserObj = await mismatchUserCache.get(nodeId);
+          // if (!mismatchUserSet.has(nodeId) && (category !== categoryAuto)) {
 
-            if (configuration.filterVerifiedUsers && verifiedCategorizedUsersSet.has(screenName)){
-              mismatchUserSet.delete(nodeId);
-            }
-            else if (mismatchUserObj === undefined) {
-              mismatchUserSet.add(nodeId);
-            }
+          //   const mismatchUserObj = await mismatchUserCache.get(nodeId);
 
-            matchUserSet.delete(nodeId); 
+          //   if (configuration.filterVerifiedUsers && verifiedCategorizedUsersSet.has(screenName)){
+          //     mismatchUserSet.delete(nodeId);
+          //   }
+          //   else if (mismatchUserObj === undefined) {
+          //     mismatchUserSet.add(nodeId);
+          //   }
 
-            if (mismatchUserSet.size % 100 == 0) {
-              printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "] | VCU: " + verifiedCategorizedUsersSet.has(screenName), user);
-            }
-          }
+          //   matchUserSet.delete(nodeId); 
+
+          //   if (mismatchUserSet.size % 100 == 0) {
+          //     printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "] | VCU: " + verifiedCategorizedUsersSet.has(screenName), user);
+          //   }
+          // }
 
           if (!matchUserSet.has(nodeId) && (category === categoryAuto)) {
 
@@ -7169,6 +7200,7 @@ async function initTfeChild(params){
 
         if (m.priorityFlag){
           if ((m.searchMode === "MISMATCH") && m.user.category && (m.user.category === m.user.categoryAuto)){
+            await addMismatchUserSet.add(m.user);
             printUserObj("WAS | <TFE | PRIORITY CAT | MISMATCH NOT FOUND | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?mm"});
           }

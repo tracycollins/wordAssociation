@@ -7197,7 +7197,7 @@ async function initTfeChild(params){
 
         if (m.priorityFlag){
           if ((m.searchMode === "MISMATCH") && m.user.category && (m.user.category === m.user.categoryAuto)){
-            await addMismatchUserSet.add(m.user);
+            await addMismatchUserSet(m.user);
             printUserObj("WAS | <TFE | PRIORITY CAT | MISMATCH NOT FOUND | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?mm"});
           }

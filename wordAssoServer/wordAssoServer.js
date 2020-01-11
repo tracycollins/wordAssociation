@@ -5116,30 +5116,27 @@ async function countDocuments(params){
 
 async function addMismatchUserSet(params){
 
-  try{
+  if (!mismatchUserSet.has(params.user.nodeId) && (params.user.category !== params.user.categoryAuto)) {
 
-    if (!mismatchUserSet.has(params.user.nodeId) && (params.user.category !== params.user.categoryAuto)) {
+    const mismatchUserObj = await mismatchUserCache.get(params.user.nodeId);
 
-      const mismatchUserObj = await mismatchUserCache.get(params.user.nodeId);
-
-      if (configuration.filterVerifiedUsers && verifiedCategorizedUsersSet.has(params.user.screenName)){
-        mismatchUserSet.delete(params.user.nodeId);
-      }
-      else if (mismatchUserObj === undefined) {
-        mismatchUserSet.add(params.user.nodeId);
-      }
-
-      matchUserSet.delete(params.user.nodeId); 
-
-      if (mismatchUserSet.size % 100 == 0) {
-        printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "] | VCU: " + verifiedCategorizedUsersSet.has(params.user.screenName), params.user);
-      }
-
-      return;
+    if (configuration.filterVerifiedUsers && verifiedCategorizedUsersSet.has(params.user.screenName)){
+      mismatchUserSet.delete(params.user.nodeId);
     }
+    else if (mismatchUserObj === undefined) {
+      mismatchUserSet.add(params.user.nodeId);
+    }
+
+    matchUserSet.delete(params.user.nodeId); 
+
+    if (mismatchUserSet.size % 100 == 0) {
+      printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "] | VCU: " + verifiedCategorizedUsersSet.has(params.user.screenName), params.user);
+    }
+
+    return;
   }
-  catch(err){
-    throw err;
+  else {
+    return;
   }
 }
 

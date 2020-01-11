@@ -5432,24 +5432,6 @@ async function updateUserSets(){
 
           await addMismatchUserSet({user: user});
 
-          // if (!mismatchUserSet.has(nodeId) && (category !== categoryAuto)) {
-
-          //   const mismatchUserObj = await mismatchUserCache.get(nodeId);
-
-          //   if (configuration.filterVerifiedUsers && verifiedCategorizedUsersSet.has(screenName)){
-          //     mismatchUserSet.delete(nodeId);
-          //   }
-          //   else if (mismatchUserObj === undefined) {
-          //     mismatchUserSet.add(nodeId);
-          //   }
-
-          //   matchUserSet.delete(nodeId); 
-
-          //   if (mismatchUserSet.size % 100 == 0) {
-          //     printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "] | VCU: " + verifiedCategorizedUsersSet.has(screenName), user);
-          //   }
-          // }
-
           if (!matchUserSet.has(nodeId) && (category === categoryAuto)) {
 
             matchUserSet.add(nodeId); 
@@ -7197,7 +7179,7 @@ async function initTfeChild(params){
 
         if (m.priorityFlag){
           if ((m.searchMode === "MISMATCH") && m.user.category && (m.user.category === m.user.categoryAuto)){
-            await addMismatchUserSet(m.user);
+            await addMismatchUserSet({user: m.user});
             printUserObj("WAS | <TFE | PRIORITY CAT | MISMATCH NOT FOUND | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?mm"});
           }

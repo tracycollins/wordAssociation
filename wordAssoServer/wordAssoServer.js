@@ -5548,6 +5548,7 @@ function initTransmitNodeQueueInterval(interval){
     let nodeObj;
     let categorizeable;
     let nCacheObj;
+    let autoFollowFlag = false;
 
     transmitNodeQueueInterval = setInterval(async function() {
 
@@ -5558,6 +5559,7 @@ function initTransmitNodeQueueInterval(interval){
         }
 
         transmitNodeQueueReady = false;
+        autoFollowFlag = false;
 
         nodeObj = transmitNodeQueue.shift();
 
@@ -5593,6 +5595,7 @@ function initTransmitNodeQueueInterval(interval){
             && (n.followersCount >= configuration.minFollowersAutoFollow))
           {
             n.following = true;
+            autoFollowFlag = true;
             statsObj.user.autoFollow += 1;
             printUserObj(MODULE_ID_PREFIX + " | +++ AUTO FOLLOW [" + statsObj.user.autoFollow + "]", n);
           }
@@ -5620,7 +5623,7 @@ function initTransmitNodeQueueInterval(interval){
           }
 
           if (tfeChild !== undefined) { 
-            tfeChild.send({op: "USER_CATEGORIZE", user: n});
+            tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: autoFollowFlag, user: n});
             if (n.category == "left" || n.category == "right" || n.category == "neutral") {
               uncatUserCache.del(n.nodeId);
             }

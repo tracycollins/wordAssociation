@@ -1040,10 +1040,14 @@ function initProcessUserQueueInterval(interval) {
             statsObj.user.processed += 1;
 
             if (queueObj.priorityFlag) {
-              console.log(chalkInfo(MODULE_ID_PREFIX + " | >>> PROCESSED USER"
+              console.log(chalkInfo(MODULE_ID_PREFIX + " | >>> PROCESSED"
                 + " [ PRCSSD: " + statsObj.user.processed + "/ PUQ: " + processUserQueue.length + "]"
-                + " | PRIORITY: " + queueObj.priorityFlag
-                + " | " + printUser({user: processedUser})
+                + " | PRI: " + queueObj.priorityFlag
+                + " | NID: " + processedUser.nodeId
+                + " | @" + processedUser.screenName
+                + " | N: " + processedUser.name
+                + " | CAT M: " + processedUser.category + " A: " + processedUser.categoryAuto
+                // + " | " + printUser({user: processedUser})
               ));
             }
 

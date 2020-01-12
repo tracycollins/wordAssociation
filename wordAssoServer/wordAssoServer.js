@@ -268,6 +268,7 @@ const EventEmitter2 = require("eventemitter2").EventEmitter2;
 
 const HashMap = require("hashmap").HashMap;
 
+const autoFollowUserSet = new Set();
 const verifiedCategorizedUsersSet = new Set();
 const ignoreIpSet = new Set();
 
@@ -5589,13 +5590,16 @@ function initTransmitNodeQueueInterval(interval){
             uncatUserCache.del(n.nodeId);
           }
 
-          if (configuration.autoFollow 
+          if (configuration.autoFollow
             && !(n.category == "left" || n.category == "right" || n.category == "neutral") 
             && !n.following 
-            && (n.followersCount >= configuration.minFollowersAutoFollow))
+            && (n.followersCount >= configuration.minFollowersAutoFollow)
+            && !autoFollowUserSet.has(n.nodeId)
+            )
           {
             n.following = true;
             autoFollowFlag = true;
+            autoFollowUserSet.add(n.nodeId);
             statsObj.user.autoFollow += 1;
             printUserObj(MODULE_ID_PREFIX + " | +++ AUTO FOLLOW [" + statsObj.user.autoFollow + "]", n);
           }
@@ -7179,7 +7183,6 @@ async function initTfeChild(params){
 
         }
 
-
         if (m.priorityFlag){
           if ((m.searchMode === "MISMATCH") && m.user.category && (m.user.category === m.user.categoryAuto)){
             await addMismatchUserSet({user: m.user});
@@ -7198,7 +7201,11 @@ async function initTfeChild(params){
             printUserObj("WAS | <TFE | PRI CAT | UNCAT RIGHT NOT FOUND | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?right"});
           }
-          else{
+          else if (autoFollowUserSet.has(m.user.nodeId)){
+            printUserObj("WAS | <TFE | PRI CAT | AUTO FOLLOW", m.user);
+            autoFollowUserSet.delete(m.user.nodeId);
+          }
+          else {
             printUserObj("WAS | <TFE | PRI CAT | MODE: " + m.searchMode, m.user);
             viewNameSpace.emit("SET_TWITTER_USER", { user: m.user, searchMode: m.searchMode, stats: statsObj.user });
           }

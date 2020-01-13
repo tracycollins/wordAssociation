@@ -5591,10 +5591,13 @@ function initTransmitNodeQueueInterval(interval){
           }
 
           if (configuration.autoFollow
-            && !(n.category == "left" || n.category == "right" || n.category == "neutral") 
-            && !n.following 
+            && (!n.category || (n.category === undefined))
+            && (!n.ignored || (n.ignored === undefined))
+            && (!n.following || (n.following === undefined))
             && (n.followersCount >= configuration.minFollowersAutoFollow)
             && !autoFollowUserSet.has(n.nodeId)
+            && !ignoredUserSet.has(n.nodeId) 
+            && !ignoredUserSet.has(n.screenName.toLowerCase()) 
             )
           {
             n.following = true;

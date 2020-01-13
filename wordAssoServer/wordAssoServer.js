@@ -7206,7 +7206,7 @@ async function initTfeChild(params){
           }
           else if (autoFollowUserSet.has(m.user.nodeId)){
             printUserObj("WAS | <TFE | PRI CAT | AUTO FOLLOW", m.user);
-            autoFollowUserSet.delete(m.user.nodeId);
+            // autoFollowUserSet.delete(m.user.nodeId);
           }
           else {
             printUserObj("WAS | <TFE | PRI CAT | MODE: " + m.searchMode, m.user);

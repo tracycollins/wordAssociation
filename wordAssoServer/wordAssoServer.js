@@ -7204,13 +7204,17 @@ async function initTfeChild(params){
             printUserObj("WAS | <TFE | PRI CAT | UNCAT RIGHT NOT FOUND | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?right"});
           }
+          else if ((m.searchMode === "UNCAT") && m.user.category){
+            printUserObj("WAS | <TFE | PRI CAT | UNCAT NOT FOUND | " + m.searchMode, m.user);
+            await twitterSearchUser({searchNode: "@?all"});
+          }
+          else if (m.searchMode === "UNCAT"){
+            printUserObj("WAS | <TFE | PRI CAT | MODE: " + m.searchMode, m.user);
+            viewNameSpace.emit("SET_TWITTER_USER", { user: m.user, searchMode: m.searchMode, stats: statsObj.user });
+          }
           else if (autoFollowUserSet.has(m.user.nodeId)){
             printUserObj("WAS | <TFE | PRI CAT | AUTO FOLLOW", m.user);
             // autoFollowUserSet.delete(m.user.nodeId);
-          }
-          else {
-            printUserObj("WAS | <TFE | PRI CAT | MODE: " + m.searchMode, m.user);
-            viewNameSpace.emit("SET_TWITTER_USER", { user: m.user, searchMode: m.searchMode, stats: statsObj.user });
           }
         }
         else if (configuration.verbose) {

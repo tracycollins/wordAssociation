@@ -7187,7 +7187,11 @@ async function initTfeChild(params){
         }
 
         if (m.priorityFlag){
-          if ((m.searchMode === "MISMATCH") && m.user.category && (m.user.category === m.user.categoryAuto)){
+          if (m.searchMode === "SPECIFIC"){
+            printUserObj("WAS | <TFE | PRI CAT | MODE: " + m.searchMode, m.user);
+            viewNameSpace.emit("SET_TWITTER_USER", { user: m.user, searchMode: m.searchMode, stats: statsObj.user });
+          }
+          else if ((m.searchMode === "MISMATCH") && m.user.category && (m.user.category === m.user.categoryAuto)){
             await addMismatchUserSet({user: m.user});
             printUserObj("WAS | <TFE | PRI CAT | MISMATCH NOT FOUND | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?mm"});

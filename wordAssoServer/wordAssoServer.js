@@ -7212,7 +7212,7 @@ async function initTfeChild(params){
             printUserObj("WAS | <TFE | PRI CAT | UNCAT NOT FOUND | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?all"});
           }
-          else if (m.searchMode === "UNCAT"){
+          else if (m.searchMode && m.searchMode !== undefined){
             printUserObj("WAS | <TFE | PRI CAT | MODE: " + m.searchMode, m.user);
             viewNameSpace.emit("SET_TWITTER_USER", { user: m.user, searchMode: m.searchMode, stats: statsObj.user });
           }

@@ -9431,12 +9431,12 @@ function getNextSearchNode(params){
               case "MISMATCH":
                 if ((user.category !== undefined) && (user.category != "none") && user.categoryVerified){
                   userSkipCount += 1;
-                  printUserObj("WAS | ... SKIP SEARCH USER | VERIFIED | MODE: " + searchMode + " | SKIP COUNT: " + userSkipCount, user);
+                  printUserObj("WAS | ... SKIP SRCH | VRFD | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
                   notFoundAndMore = true;
                   break;
                 }
                 else if ((user.category !== undefined) && (user.category != "none") && (user.category == user.categoryAuto)){
-                  printUserObj("WAS | ... SKIP SEARCH USER | MATCHED  | MODE: " + searchMode + " | SKIP COUNT: " + userSkipCount, user);
+                  printUserObj("WAS | ... SKIP SRCH | MTCHD  | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
                   notFoundAndMore = true;
                   break;
                 }

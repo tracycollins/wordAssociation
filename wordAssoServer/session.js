@@ -21,6 +21,7 @@ ProgressBar
 
 "use strict";
 
+const DEFAULT_USE_STORED_CONFIG = false;
 const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
 const LOCAL_SOURCE = "http://localhost:9997";
 
@@ -150,7 +151,7 @@ var PAGE_LOAD_TIMEOUT = 1000;
 var DEFAULT_FORCEVIEW_MODE = "web";
 var DEFAULT_SESSION_VIEW = "treepack";
 
-var useStoredConfig = false;
+var useStoredConfig = DEFAULT_USE_STORED_CONFIG;
 var globalStoredConfigName = "config_" + DEFAULT_SESSION_VIEW;
 
 // var enableUserNodes = true;
@@ -2064,22 +2065,22 @@ function loadViewType(svt, callback) {
   storedConfigName = "config_" + svt;
   storedConfig = store.get(storedConfigName);
 
-  if (storedConfig) {
-    // console.debug("STORED CONFIG"
-    //   + " | " + storedConfigName
-    //   + "\nCURRENT CONFIG\n" + jsonPrint(config)
-    //   + "\nSTORED CONFIG\n" + jsonPrint(storedConfig)
-    // );
+  // if (storedConfig) {
+  //   // console.debug("STORED CONFIG"
+  //   //   + " | " + storedConfigName
+  //   //   + "\nCURRENT CONFIG\n" + jsonPrint(config)
+  //   //   + "\nSTORED CONFIG\n" + jsonPrint(storedConfig)
+  //   // );
 
-    var storedConfigArgs = Object.keys(storedConfig);
+  //   var storedConfigArgs = Object.keys(storedConfig);
 
-    storedConfigArgs.forEach(function(arg){
-      config[arg] = storedConfig[arg];
-      if (arg === "VIEWER_OBJ") {
-      }
-      console.log("--> STORED CONFIG | " + arg + ": ", config[arg]);
-    });
-  }
+  //   storedConfigArgs.forEach(function(arg){
+  //     config[arg] = storedConfig[arg];
+  //     if (arg === "VIEWER_OBJ") {
+  //     }
+  //     console.log("--> STORED CONFIG | " + arg + ": ", config[arg]);
+  //   });
+  // }
 
   config.sessionViewType = "treepack";
   requirejs(["js/libs/sessionViewTreepack"], function() {
@@ -2158,7 +2159,7 @@ function initialize(callback) {
             storedConfigName = "config_" + config.sessionViewType;
             storedConfig = store.get(storedConfigName);
 
-            if (storedConfig) {
+            if (storedConfig && useStoredConfig) {
 
               // console.debug("STORED CONFIG"
               //   + " | " + storedConfigName
@@ -2222,7 +2223,7 @@ function initialize(callback) {
             storedConfigName = "config_" + config.sessionViewType;
             storedConfig = store.get(storedConfigName);
 
-            if (storedConfig) {
+            if (storedConfig && useStoredConfig) {
 
               // console.debug("STORED CONFIG"
               //   + " | " + storedConfigName
@@ -2282,7 +2283,7 @@ function initialize(callback) {
             storedConfigName = "config_" + config.sessionViewType;
             storedConfig = store.get(storedConfigName);
 
-            if (storedConfig) {
+            if (storedConfig &&  useStoredConfig) {
 
               // console.debug("STORED CONFIG"
               //   + " | " + storedConfigName

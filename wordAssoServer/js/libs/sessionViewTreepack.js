@@ -1866,6 +1866,8 @@ function ViewTreepack() {
     width = getWindowDimensions().width;
     height = getWindowDimensions().height;
 
+    console.log("RESIZE: " + width + "x" + height);
+
     foci = {
       left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 
       right: {x: xFocusRightRatio*width, y: yFocusRightRatio*height}, 

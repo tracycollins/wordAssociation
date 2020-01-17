@@ -1882,9 +1882,9 @@ function ViewTreepack() {
     nodeRadiusMax = nodeRadiusMaxRatio * width;
 
     defaultRadiusScale = d3.scaleLinear().
-    domain([0, currentMetricModeDomainMaxSqrt]).
-    range([nodeRadiusMin, nodeRadiusMax]).
-    clamp(true);
+      domain([0, currentMetricModeDomainMaxSqrt]).
+      range([nodeRadiusMin, nodeRadiusMax]).
+      clamp(true);
 
     fontSizeMin = fontSizeMinRatio * height;
     fontSizeMax = fontSizeMaxRatio * height;
@@ -1951,8 +1951,8 @@ function ViewTreepack() {
     nodeIdHashMap.clear();
     nodeArray.length = 0;
     self.toolTipVisibility(false);
-    self.resize();
     self.resetDefaultForce();
+    self.resize();
   };
 
 }

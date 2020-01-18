@@ -428,16 +428,22 @@ function ViewTreepack() {
     detail: { transform: () => config.panzoomTransform } 
   });
 
-  panzoomInstance.on("panend", function(e){
-    config.panzoomTransform = e.getTransform();
-    document.dispatchEvent(panzoomEvent);
-    console.log("panzoomTransform pan end\n", jsonPrint(config.panzoomTransform));
-  });
+  // panzoomInstance.on("panend", function(e){
+  //   config.panzoomTransform = e.getTransform();
+  //   document.dispatchEvent(panzoomEvent);
+  //   console.log("panzoomTransform pan end\n", jsonPrint(config.panzoomTransform));
+  // });
 
-  panzoomInstance.on("zoomend", function(e){
-    config.panzoomTransform = e.getTransform();
-    document.dispatchEvent(panzoomEvent);
-    console.log("panzoomTransform zoom end\n", jsonPrint(config.panzoomTransform));
+  // panzoomInstance.on("zoomend", function(e){
+  //   config.panzoomTransform = e.getTransform();
+  //   document.dispatchEvent(panzoomEvent);
+  //   console.log("panzoomTransform zoom end\n", jsonPrint(config.panzoomTransform));
+  // });
+
+  panzoomInstance.on("transform", function(e){
+    // config.panzoomTransform = e.getTransform();
+    resetZoomEndTimeout();
+    // console.log("panzoomTransform transform end\n", jsonPrint(config.panzoomTransform));
   });
 
   var zoomEndTimeout;
@@ -446,18 +452,21 @@ function ViewTreepack() {
     clearTimeout(zoomEndTimeout);
 
     zoomEndTimeout = setTimeout(function() {
+      config.panzoomTransform = e.getTransform();
       document.dispatchEvent(panzoomEvent);
-      // console.log("panzoomTransform zoom end\n", jsonPrint(config.panzoomTransform));
+      console.log("panzoomTransform transform end\n", jsonPrint(config.panzoomTransform));
     }, 2000);
 
   };
-  panzoomInstance.on("zoom", function(e){
-    config.panzoomTransform = e.getTransform();
-    resetZoomEndTimeout();
-    console.log("panzoomTransform zoom\n", jsonPrint(config.panzoomTransform));
-  });
+
+  // panzoomInstance.on("zoom", function(e){
+  //   config.panzoomTransform = e.getTransform();
+  //   resetZoomEndTimeout();
+  //   console.log("panzoomTransform zoom\n", jsonPrint(config.panzoomTransform));
+  // });
 
   console.log("panzoomInstance zoomAbs\n", jsonPrint(config.panzoomTransform));
+
   panzoomInstance.zoomAbs(config.panzoomTransform.x, config.panzoomTransform.y, config.panzoomTransform.scale);
 
   var nodeSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");

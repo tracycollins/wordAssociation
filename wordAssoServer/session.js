@@ -1920,7 +1920,8 @@ var rxNode = function(node){
 
   if ((rxNodeQueue.length < RX_NODE_QUEUE_MAX)
   ){
-    if (config.displayNodeHashMap[node.nodeType] === "show") {
+    // if (config.displayNodeHashMap[node.nodeType] === "show") {
+    if (node.nodeType === "user" || node.nodeType === "hashtag") {
       if ((node.threeceeFollowing !== undefined) && node.threeceeFollowing) { node.following = true; }
       rxNodeQueue.push(node);
     }

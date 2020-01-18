@@ -431,7 +431,13 @@ function ViewTreepack() {
   panzoomInstance.on("panend", function(e){
     config.panzoomTransform = e.getTransform();
     document.dispatchEvent(panzoomEvent);
-    // console.log("panzoomTransform pan end\n", jsonPrint(config.panzoomTransform));
+    console.log("panzoomTransform pan end\n", jsonPrint(config.panzoomTransform));
+  });
+
+  panzoomInstance.on("zoomend", function(e){
+    config.panzoomTransform = e.getTransform();
+    document.dispatchEvent(panzoomEvent);
+    console.log("panzoomTransform zoom end\n", jsonPrint(config.panzoomTransform));
   });
 
   var zoomEndTimeout;

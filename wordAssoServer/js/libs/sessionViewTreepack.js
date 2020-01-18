@@ -440,7 +440,10 @@ function ViewTreepack() {
   //   console.log("panzoomTransform zoom end\n", jsonPrint(config.panzoomTransform));
   // });
 
+  var panzoomCurrentEvent;
+
   panzoomInstance.on("transform", function(e){
+    panzoomCurrentEvent = e;
     // config.panzoomTransform = e.getTransform();
     resetZoomEndTimeout();
     // console.log("panzoomTransform transform end\n", jsonPrint(config.panzoomTransform));
@@ -452,7 +455,7 @@ function ViewTreepack() {
     clearTimeout(zoomEndTimeout);
 
     zoomEndTimeout = setTimeout(function() {
-      config.panzoomTransform = e.getTransform();
+      config.panzoomTransform = panzoomCurrentEvent.getTransform();
       document.dispatchEvent(panzoomEvent);
       console.log("panzoomTransform transform end\n", jsonPrint(config.panzoomTransform));
     }, 2000);

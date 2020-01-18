@@ -78,7 +78,7 @@ statsObj.socket.connected = true;
 statsObj.socket.connects = 0;
 statsObj.socket.reconnects = 0;
 
-var RX_NODE_QUEUE_INTERVAL = 10;
+var RX_NODE_QUEUE_INTERVAL = 5;
 var RX_NODE_QUEUE_MAX = 100;
 
 var STATS_UPDATE_INTERVAL = 1000;

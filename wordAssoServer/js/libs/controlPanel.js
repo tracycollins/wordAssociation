@@ -693,7 +693,7 @@ function ControlPanel() {
           );
         });
 
-        self.setMaxNodes(cnf.defaultMaxNodesLimit);
+        self.setMaxNodes(cnf.defaultMaxNodes);
         self.setTransitionDuration(cnf.defaultTransitionDuration);
         self.setLinkStrength(cnf.defaultLinkStrength);
         self.setLinkDistance(cnf.defaultLinkDistance);

@@ -1417,7 +1417,6 @@ socket.on("connect", function() {
   if (currentSessionView !== undefined) { currentSessionView.setEnableAgeNodes(true); }
   console.log("CONNECTED TO HOST | SOCKET ID: " + socket.id);
 
-  // statsObj.socket.connectMoment = moment();
   statsObj.socket.connects += 1;
 
   viewerObj.timeStamp = Date.now();
@@ -1437,7 +1436,6 @@ socket.on("VIEWER_READY_ACK", function(vSesKey) {
   statsObj.socket.connected = true;
   statsObj.viewerReadyAck = true;
 
-
   console.log("RX VIEWER_READY_ACK | SESSION KEY: " + vSesKey);
 
   statsObj.viewerSessionKey = vSesKey;
@@ -1450,7 +1448,6 @@ socket.on("VIEWER_READY_ACK", function(vSesKey) {
   config.VIEWER_OBJ = viewerObj;
 
   console.debug("STORE CONFIG ON VIEWER_READY_ACK"
-    // + "\n" + jsonPrint(config)
   );
   saveConfig();
 
@@ -1470,7 +1467,6 @@ socket.on("reconnect", function() {
   statsObj.serverConnected = true;
   console.log("RECONNECTED TO HOST | SOCKET ID: " + socket.id);
 
-  // statsObj.socket.reconnectMoment = moment();
   statsObj.socket.reconnects += 1;
   statsObj.socket.connected = true;
 
@@ -1487,7 +1483,6 @@ socket.on("reconnect", function() {
 socket.on("disconnect", function() {
 
   statsObj.serverConnected = false;
-
   statsObj.socket.connected = false;
 
   if (currentSessionView !== undefined) { currentSessionView.setEnableAgeNodes(false); }
@@ -1728,6 +1723,20 @@ socket.on("TWITTER_TOPTERM_1MIN", function(top10obj) {
   console.debug("TWITTER_TOPTERM_1MIN\n" + jsonPrint(top10obj));
 });
 
+var rxNodeQueueReady = false;
+var rxNodeQueue = [];
+
+var rxNode = function(node){
+
+  if (rxNodeQueue.length >= RX_NODE_QUEUE_MAX){ return; }
+
+  if (node.nodeType != "user" && node.nodeType != "hashtag") { return; }
+
+  rxNodeQueue.push(node);
+  
+};
+
+socket.on("node", rxNode);
 
 var windowVisible = true;
 
@@ -1910,30 +1919,9 @@ function initStatsUpdate(interval){
   }, interval);
 }
 
-var rxNodeQueueReady = false;
-var rxNodeQueue = [];
-
-var rxNode = function(node){
-
-  // statsObj.serverConnected = true;
-  // statsObj.socket.connected = true;
-
-  if ((rxNodeQueue.length < RX_NODE_QUEUE_MAX)
-  ){
-    // if (config.displayNodeHashMap[node.nodeType] === "show") {
-    if (node.nodeType === "user" || node.nodeType === "hashtag") {
-      // if ((node.threeceeFollowing !== undefined) && node.threeceeFollowing) { node.following = true; }
-      rxNodeQueue.push(node);
-    }
-  }
-  
-};
-
 var socketSessionUpdateInterval;
 
 function initSocketSessionUpdateRx(){
-
-  socket.on("node", rxNode);
 
   rxNodeQueueReady = true;
 

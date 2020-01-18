@@ -456,8 +456,8 @@ function ViewTreepack() {
 
     zoomEndTimeout = setTimeout(function() {
       config.panzoomTransform = panzoomCurrentEvent.getTransform();
-      document.dispatchEvent(panzoomEvent);
       console.log("panzoomTransform transform end\n", jsonPrint(config.panzoomTransform));
+      document.dispatchEvent(panzoomEvent);
     }, 2000);
 
   };

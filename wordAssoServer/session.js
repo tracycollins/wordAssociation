@@ -21,7 +21,7 @@ ProgressBar
 
 "use strict";
 
-const DEFAULT_USE_STORED_CONFIG = false;
+const DEFAULT_USE_STORED_CONFIG = true;
 const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
 const LOCAL_SOURCE = "http://localhost:9997";
 
@@ -214,13 +214,13 @@ var pageLoadedTimeIntervalFlag = true;
 var DEFAULT_ZOOM_FACTOR = 0.5;
 
 var DEFAULT_METRIC_MODE = "rate";
-var DEFAULT_MAX_NODES = 100;
-var DEFAULT_MAX_AGE = 60000;
+var DEFAULT_MAX_NODES = 50;
+var DEFAULT_MAX_AGE = 15000;
 
-var TREEMAP_MAX_NODES = 100;
+var TREEMAP_MAX_NODES = 50;
 var TREEMAP_MAX_AGE = 15000;
 
-var TREEPACK_MAX_NODES = 100;
+var TREEPACK_MAX_NODES = 50;
 var TREEPACK_MAX_AGE = 15000;
 
 var DEFAULT_AGE_RATE = 1.0;

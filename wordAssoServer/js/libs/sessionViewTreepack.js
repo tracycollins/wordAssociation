@@ -448,7 +448,7 @@ function ViewTreepack() {
   panzoomInstance.on("zoom", function(e){
     config.panzoomTransform = e.getTransform();
     resetZoomEndTimeout();
-    // console.log("panzoomTransform zoom\n", jsonPrint(config.panzoomTransform));
+    console.log("panzoomTransform zoom\n", jsonPrint(config.panzoomTransform));
   });
 
   console.log("panzoomInstance zoomAbs\n", jsonPrint(config.panzoomTransform));

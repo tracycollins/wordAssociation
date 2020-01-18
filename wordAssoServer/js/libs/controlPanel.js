@@ -74,7 +74,7 @@ function ControlPanel() {
 
   config.defaultRangeSteps = DEFAULT_RANGE_STEPS;
 
-  const DEFAULT_MAX_NODES = 100;
+  const DEFAULT_MAX_NODES = 50;
   const DEFAULT_MAX_NODES_MIN = 10;
   const DEFAULT_MAX_NODES_MAX = 500;
 
@@ -94,7 +94,7 @@ function ControlPanel() {
   const DEFAULT_FONT_SIZE_RATIO_MAX_MIN = 0.050;
   const DEFAULT_FONT_SIZE_RATIO_MAX_MAX = 0.250;
 
-  const DEFAULT_MAX_AGE = 30*ONE_SECOND;
+  const DEFAULT_MAX_AGE = 15*ONE_SECOND;
   const DEFAULT_MAX_AGE_MIN = ONE_SECOND;
   const DEFAULT_MAX_AGE_MAX = ONE_MINUTE;
 

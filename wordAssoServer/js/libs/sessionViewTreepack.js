@@ -406,12 +406,6 @@ function ViewTreepack() {
     attr("x", 1e-6).
     attr("y", 1e-6);
 
-
-  // if (config.panzoomTransform === undefined) { config.panzoomTransform = {}; }
-  // config.panzoomTransform.x = config.panzoomTransform.x || (width * 0.5);
-  // config.panzoomTransform.y = config.panzoomTransform.y || (height * 0.5);
-  // config.panzoomTransform.scale = config.panzoomTransform.scale || config.defaultZoomFactor;
-
   var panzoomElement = document.getElementById("svgTreemapLayoutArea");
 
   var panzoomInstance = panzoom(
@@ -428,25 +422,11 @@ function ViewTreepack() {
     detail: { transform: () => config.panzoomTransform } 
   });
 
-  // panzoomInstance.on("panend", function(e){
-  //   config.panzoomTransform = e.getTransform();
-  //   document.dispatchEvent(panzoomEvent);
-  //   console.log("panzoomTransform pan end\n", jsonPrint(config.panzoomTransform));
-  // });
-
-  // panzoomInstance.on("zoomend", function(e){
-  //   config.panzoomTransform = e.getTransform();
-  //   document.dispatchEvent(panzoomEvent);
-  //   console.log("panzoomTransform zoom end\n", jsonPrint(config.panzoomTransform));
-  // });
-
   var panzoomCurrentEvent;
 
   panzoomInstance.on("transform", function(e){
     panzoomCurrentEvent = e;
-    // config.panzoomTransform = e.getTransform();
     resetZoomEndTimeout();
-    // console.log("panzoomTransform transform end\n", jsonPrint(config.panzoomTransform));
   });
 
   var zoomEndTimeout;
@@ -461,12 +441,6 @@ function ViewTreepack() {
     }, 2000);
 
   };
-
-  // panzoomInstance.on("zoom", function(e){
-  //   config.panzoomTransform = e.getTransform();
-  //   resetZoomEndTimeout();
-  //   console.log("panzoomTransform zoom\n", jsonPrint(config.panzoomTransform));
-  // });
 
   console.log("panzoomInstance zoomAbs\n", jsonPrint(config.panzoomTransform));
 
@@ -624,11 +598,6 @@ function ViewTreepack() {
       );
     }
 
-    // console.log("setTwitterHashtag | HTID: " + hashtag.hashtagId + " | #" + hashtag.text);
-    
-    // if (controlPanelReadyFlag){
-    //   controlPanelWindow.postMessage({op: "SET_TWITTER_HASHTAG", hashtag: hashtag}, DEFAULT_SOURCE);
-    // }
   };
 
   this.setMetricMode = function(mode) {

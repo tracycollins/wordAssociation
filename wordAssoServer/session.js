@@ -2065,22 +2065,22 @@ function loadViewType(svt, callback) {
   storedConfigName = "config_" + svt;
   storedConfig = store.get(storedConfigName);
 
-  // if (storedConfig) {
-  //   // console.debug("STORED CONFIG"
-  //   //   + " | " + storedConfigName
-  //   //   + "\nCURRENT CONFIG\n" + jsonPrint(config)
-  //   //   + "\nSTORED CONFIG\n" + jsonPrint(storedConfig)
-  //   // );
+  if (storedConfig && useStoredConfig) {
+    // console.debug("STORED CONFIG"
+    //   + " | " + storedConfigName
+    //   + "\nCURRENT CONFIG\n" + jsonPrint(config)
+    //   + "\nSTORED CONFIG\n" + jsonPrint(storedConfig)
+    // );
 
-  //   var storedConfigArgs = Object.keys(storedConfig);
+    var storedConfigArgs = Object.keys(storedConfig);
 
-  //   storedConfigArgs.forEach(function(arg){
-  //     config[arg] = storedConfig[arg];
-  //     if (arg === "VIEWER_OBJ") {
-  //     }
-  //     console.log("--> STORED CONFIG | " + arg + ": ", config[arg]);
-  //   });
-  // }
+    storedConfigArgs.forEach(function(arg){
+      config[arg] = storedConfig[arg];
+      if (arg === "VIEWER_OBJ") {
+      }
+      console.log("--> STORED CONFIG | " + arg + ": ", config[arg]);
+    });
+  }
 
   config.sessionViewType = "treepack";
   requirejs(["js/libs/sessionViewTreepack"], function() {

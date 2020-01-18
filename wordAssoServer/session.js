@@ -1915,14 +1915,14 @@ var rxNodeQueue = [];
 
 var rxNode = function(node){
 
-  statsObj.serverConnected = true;
-  statsObj.socket.connected = true;
+  // statsObj.serverConnected = true;
+  // statsObj.socket.connected = true;
 
   if ((rxNodeQueue.length < RX_NODE_QUEUE_MAX)
   ){
     // if (config.displayNodeHashMap[node.nodeType] === "show") {
     if (node.nodeType === "user" || node.nodeType === "hashtag") {
-      if ((node.threeceeFollowing !== undefined) && node.threeceeFollowing) { node.following = true; }
+      // if ((node.threeceeFollowing !== undefined) && node.threeceeFollowing) { node.following = true; }
       rxNodeQueue.push(node);
     }
   }

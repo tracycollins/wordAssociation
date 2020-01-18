@@ -1951,8 +1951,8 @@ function ViewTreepack() {
     nodeIdHashMap.clear();
     nodeArray.length = 0;
     self.toolTipVisibility(false);
-    self.resize();
     self.resetDefaultForce();
+    self.resize();
   };
 
 }

@@ -190,8 +190,9 @@ requirejs(["https://d3js.org/d3.v5.min.js"], function(d3Loaded) {
         }
       }, true);
 
-      document.addEventListener("panzoomEvent", function(e) {
-        if (currentSessionView) { 
+      document.addEventListener("panzoomEvent", function() {
+        if (currentSessionView) {
+          config.panzoomTransform = currentSessionView.getPanzoomTransform();
           saveConfig();
         }
       }, true);
@@ -888,9 +889,7 @@ function resetConfigUpdateTimeOut() {
 
   configUpdateTimeOut = setTimeout(function() {
 
-    console.debug("STORE CONFIG"
-      // + "\n" + jsonPrint(config)
-    );
+    console.debug("STORE CONFIG");
     saveConfig();
 
   }, configUpdateTimeOutInverval);
@@ -2056,11 +2055,6 @@ function loadViewType(svt, callback) {
   storedConfig = store.get(storedConfigName);
 
   if (storedConfig && useStoredConfig) {
-    // console.debug("STORED CONFIG"
-    //   + " | " + storedConfigName
-    //   + "\nCURRENT CONFIG\n" + jsonPrint(config)
-    //   + "\nSTORED CONFIG\n" + jsonPrint(storedConfig)
-    // );
 
     var storedConfigArgs = Object.keys(storedConfig);
 
@@ -2151,12 +2145,6 @@ function initialize(callback) {
 
             if (storedConfig && useStoredConfig) {
 
-              // console.debug("STORED CONFIG"
-              //   + " | " + storedConfigName
-              //   + "\nCURRENT CONFIG\n" + jsonPrint(config)
-              //   + "\n" + jsonPrint(storedConfig)
-              // );
-
               var storedConfigArgs = Object.keys(storedConfig);
 
               storedConfigArgs.forEach(function(arg){
@@ -2215,12 +2203,6 @@ function initialize(callback) {
 
             if (storedConfig && useStoredConfig) {
 
-              // console.debug("STORED CONFIG"
-              //   + " | " + storedConfigName
-              //   + "\nCURRENT CONFIG\n" + jsonPrint(config)
-              //   + "\n" + jsonPrint(storedConfig)
-              // );
-
               var storedConfigArgs = Object.keys(storedConfig);
 
               storedConfigArgs.forEach(function(arg){
@@ -2274,12 +2256,6 @@ function initialize(callback) {
             storedConfig = store.get(storedConfigName);
 
             if (storedConfig &&  useStoredConfig) {
-
-              // console.debug("STORED CONFIG"
-              //   + " | " + storedConfigName
-              //   + "\nCURRENT CONFIG\n" + jsonPrint(config)
-              //   + "\n" + jsonPrint(storedConfig)
-              // );
 
               var storedConfigArgs = Object.keys(storedConfig);
 

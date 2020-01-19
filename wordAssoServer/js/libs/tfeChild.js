@@ -163,6 +163,7 @@ configuration.enableLanguageAnalysis = true;
 configuration.forceLanguageAnalysis = false;
 
 configuration.binaryMode = true;
+configuration.userProfileOnlyFlag = false
 configuration.verbose = false;
 configuration.globalTestMode = false;
 configuration.testMode = false; // per tweet test mode
@@ -1181,11 +1182,18 @@ async function generateAutoCategory(p) {
 
     const params = p || {};
 
+    const userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
     const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
 
     const user = await tcUtils.updateUserHistograms({user: params.user});
 
-    const networkOutput = await nnTools.activateSingleNetwork({user: user, convertDatumFlag: true, binaryMode: binaryMode, verbose: configuration.verbose});
+    const networkOutput = await nnTools.activateSingleNetwork({
+      user: user,
+      userProfileOnlyFlag: userProfileOnlyFlag,
+      convertDatumFlag: true, 
+      binaryMode: binaryMode, 
+      verbose: configuration.verbose
+    });
 
     let text = MODULE_ID_PREFIX + " | ->- CAT AUTO SET     ";
     // let chalkVar = chalkLog;
@@ -1316,6 +1324,7 @@ process.on("message", async function(m) {
       process.title = m.title;
 
       configuration.verbose = m.verbose;
+      configuration.userProfileOnlyFlag = (m.userProfileOnlyFlag !== undefined) ? m.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
       configuration.binaryMode = (m.binaryMode !== undefined) ? m.binaryMode : configuration.binaryMode;
 
       configuration.enableGeoCode = (m.enableGeoCode !== undefined) ? m.enableGeoCode : configuration.enableGeoCode;
@@ -1345,6 +1354,7 @@ process.on("message", async function(m) {
       console.log(chalkInfo("WAS | TFC | INIT"
         + " | TITLE: " + process.title
         + " | NETWORK: " + networkObj.networkId
+        + " | USER PROFILE ONLY FLAG: " + configuration.userProfileOnlyFlag
         + " | BINARY MODE: " + configuration.binaryMode
         + " | ENABLE GEOCODE: " + configuration.enableGeoCode
         + " | FORCE GEOCODE: " + configuration.forceGeoCode

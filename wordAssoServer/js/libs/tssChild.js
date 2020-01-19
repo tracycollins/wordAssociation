@@ -1510,7 +1510,7 @@ async function initWatchConfig(){
 
     try{
 
-      console.log(chalkInfo(MODULE_ID_PREFIX + " | +++ FILE CREATED or CHANGED | " + getTimeStamp() + " | " + f));
+      debug(chalkInfo(MODULE_ID_PREFIX + " | +++ FILE CREATED or CHANGED | " + getTimeStamp() + " | " + f));
 
       if (f.endsWith(followableSearchTermFile)){
         await initFollowableSearchTermSet();

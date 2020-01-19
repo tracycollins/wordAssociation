@@ -7,6 +7,7 @@ const ONE_DAY = 24 * ONE_HOUR;
 const DEFAULT_START_TIMEOUT = 10*ONE_SECOND;
 const DEFAULT_MAX_USER_SEARCH_SKIP_COUNT = 25;
 
+const DEFAULT_USER_PROFILE_ONLY_FLAG = false;
 const DEFAULT_BINARY_MODE = true;
 
 let saveSampleTweetFlag = true;
@@ -417,6 +418,7 @@ configuration.maxUserSearchSkipCount = DEFAULT_MAX_USER_SEARCH_SKIP_COUNT;
 configuration.filterVerifiedUsers = true;
 configuration.twitterBearerToken = process.env.TWITTER_BEARER_TOKEN;
 configuration.verbose = false;
+configuration.userProfileOnlyFlag = DEFAULT_USER_PROFILE_ONLY_FLAG;
 configuration.binaryMode = DEFAULT_BINARY_MODE;
 configuration.ignoreCategoryRight = DEFAULT_IGNORE_CATEGORY_RIGHT;
 
@@ -7059,10 +7061,6 @@ async function initTfeChild(params){
 
     childrenHashMap[params.childId].status = "RUNNING";  
 
-    // debug(chalkLog("TFE RX MESSAGE"
-    //   + " | OP: " + m.op
-    // ));
-
     const isInfoUser = m.isInfoUser || false;
 
     switch (m.op) {
@@ -7315,6 +7313,7 @@ async function initTfeChild(params){
     networkObj: bestNetworkObj,
     twitterConfig: threeceeTwitter.twitterConfig,
     maxInputHashMap: maxInputHashMap,
+    userProfileOnlyFlag: configuration.userProfileOnlyFlag,
     binaryMode: configuration.binaryMode,
     normalization: normalization,
     interval: configuration.tfeInterval,
@@ -8009,6 +8008,20 @@ async function loadConfigFile(params) {
     const newConfiguration = {};
     newConfiguration.metrics = {};
     newConfiguration.threeceeUsers = [];
+
+    if (loadedConfigObj.WAS_USER_PROFILE_ONLY_FLAG !== undefined){
+      console.log("WAS | LOADED WAS_USER_PROFILE_ONLY_FLAG: " + loadedConfigObj.WAS_USER_PROFILE_ONLY_FLAG);
+
+      if ((loadedConfigObj.WAS_USER_PROFILE_ONLY_FLAG == false) || (loadedConfigObj.WAS_USER_PROFILE_ONLY_FLAG == "false")) {
+        newConfiguration.userProfileOnlyFlag = false;
+      }
+      else if ((loadedConfigObj.WAS_USER_PROFILE_ONLY_FLAG == true) || (loadedConfigObj.WAS_USER_PROFILE_ONLY_FLAG == "true")) {
+        newConfiguration.userProfileOnlyFlag = true;
+      }
+      else {
+        newConfiguration.userProfileOnlyFlag = false;
+      }
+    }
 
     if (loadedConfigObj.WAS_TEST_MODE !== undefined){
       console.log("WAS | LOADED WAS_TEST_MODE: " + loadedConfigObj.WAS_TEST_MODE);

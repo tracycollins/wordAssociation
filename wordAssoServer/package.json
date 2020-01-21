@@ -5,7 +5,7 @@
   "main": "wordAssoServer.js",
   "dependencies": {
     "@threeceelabs/hashtag-server-controller": "^1.0.68",
-    "@threeceelabs/neural-network-tools": "^1.0.159",
+    "@threeceelabs/neural-network-tools": "^1.0.160",
     "@threeceelabs/threecee-utilities": "^1.0.204",
     "@threeceelabs/tweet-server-controller": "^1.0.468",
     "@threeceelabs/user-server-controller": "^1.0.486",

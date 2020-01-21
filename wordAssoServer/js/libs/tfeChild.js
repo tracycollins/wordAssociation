@@ -1422,31 +1422,52 @@ process.on("message", async function(m) {
       configuration.enableLanguageAnalysis = (m.enableLanguageAnalysis !== undefined) ? m.enableLanguageAnalysis : configuration.enableLanguageAnalysis;
       configuration.forceLanguageAnalysis = (m.forceLanguageAnalysis !== undefined) ? m.forceLanguageAnalysis : configuration.forceLanguageAnalysis;
 
-      networkObj = m.networkObj;
+      const nnObj = m.networkObj;
 
-      await nnTools.loadNetwork({networkObj: m.networkObj});
-      nnTools.setPrimaryNeuralNetwork(m.networkObj.networkId);
+      if (nnObj.testCycleHistory && nnObj.testCycleHistory !== undefined && nnObj.testCycleHistory.length > 0) {
+
+        nnObj.previousRank = nnObj.testCycleHistory[nnObj.testCycleHistory.length-1].rank;
+
+        console.log(chalkLog(MODULE_ID_PREFIX
+          + " | PREV RANK " + nnObj.previousRank
+          + " | " + nnObj.networkId 
+        ));
+      } 
+
+      networkObj = await nnTools.convertNetwork({networkObj: nnObj});
+
+      await nnTools.loadNetwork({networkObj: networkObj});
+      nnTools.setPrimaryNeuralNetwork(networkObj.networkId);
 
       await nnTools.setMaxInputHashMap(m.maxInputHashMap);
       await nnTools.setNormalization(m.normalization);
       await nnTools.setBinaryMode(configuration.binaryMode);
 
-      console.log(chalkLog("TFE | ... LOADING BEST NETWORKS FROM " + configuration.configDefaultFolder + "/" + configuration.bestNetworkIdArrayFile));
+      console.log(chalkLog(MODULE_ID_PREFIX + " | ... LOADING BEST NETWORKS FROM " + configuration.configDefaultFolder + "/" + configuration.bestNetworkIdArrayFile));
 
       configuration.bestNetworkIdArray = await tcUtils.loadFileRetry({folder: configuration.configDefaultFolder, file: configuration.bestNetworkIdArrayFile});
 
-      console.log(chalkLog("TFE | ... LOADING BEST NETWORKS: " + configuration.bestNetworkIdArray.length));
+      console.log(chalkLog(MODULE_ID_PREFIX + " | ... LOADING BEST NETWORKS: " + configuration.bestNetworkIdArray.length));
 
       if (configuration.bestNetworkIdArray && configuration.bestNetworkIdArray.length > 0){
         for (const nnId of configuration.bestNetworkIdArray){
-          const nnDoc = await wordAssoDb.NeuralNetwork.findOne({networkId: nnId}).lean();
-          if (nnDoc) {
-            await nnTools.loadNetwork({networkObj: nnDoc});
+          const nn = await wordAssoDb.NeuralNetwork.findOne({networkId: nnId}).lean();
+
+          if (nn) {
+
+            if (nn.testCycleHistory && nn.testCycleHistory !== undefined && nn.testCycleHistory.length > 0) {
+
+              nn.previousRank = nn.testCycleHistory[nn.testCycleHistory.length-1].rank;
+
+              console.log(chalkLog(MODULE_ID_PREFIX
+                + " | PREV RANK " + nn.previousRank
+                + " | " + nn.networkId 
+              ));
+            } 
+
+            await nnTools.loadNetwork({networkObj: nn});
           }
-        }
-        configuration.bestNetworkIdArray.forEach(function(nnId){
-          await
-        })
+        }        
       }
 
       await tcUtils.setEnableLanguageAnalysis(configuration.enableLanguageAnalysis);

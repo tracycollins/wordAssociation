@@ -1445,7 +1445,7 @@ process.on("message", async function(m) {
     case "USER_CATEGORIZE":
 
       if (m.priorityFlag) {
-        console.log(chalkInfo("WAS | TFC | *** PRIORITY USER_CATEGORIZE"
+        console.log(chalkInfo("WAS | TFC | *** PRI USER_CATEGORIZE"
           + " | MODE: " + m.searchMode
           + " | UID: " + m.user.userId
           + " | @" + m.user.screenName

@@ -7,6 +7,7 @@ const ignoredHashtagFile = "ignoredHashtag.txt";
 const followableSearchTermFile = "followableSearchTerm.txt";
 const ignoreLocationsFile = "ignoreLocations.txt";
 const allowLocationsFile = "allowLocations.txt";
+const currentTwitterFilterTrackFile = "tss_currentTwitterFilterTrack.json"
 
 const DEFAULT_FILTER_RETWEETS = false;
 const DEFAULT_MAX_TWEET_QUEUE = 500;
@@ -929,6 +930,10 @@ function initSearchStream(){
       threeceeUserObj.searchStream = {};
 
       threeceeUserObj.searchStream = threeceeUserObj.twitStream.stream("statuses/filter", filter);
+
+      const file = currentTwitterFilterTrackFile.replace(".json", "_" + getTimeStamp() + ".json");
+
+      tcUtils.saveFile({folder: statsHostFolder, file: file, obj: filter.track});
 
       threeceeUserObj.searchStream.on("message", function(msg){
         if (msg.event) {

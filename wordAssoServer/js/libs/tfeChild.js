@@ -19,6 +19,8 @@ const SAVE_FILE_QUEUE_INTERVAL = 5*ONE_SECOND;
 const DEFAULT_MAX_USER_TWEETIDS = 500;
 const SAVE_CACHE_DEFAULT_TTL = 60;
 
+let currentBestNetwork = {};
+
 const USER_PROFILE_PROPERTY_ARRAY = [
   "bannerImageUrl",
   "description",
@@ -149,6 +151,9 @@ const configEvents = new EventEmitter2({
 });
 
 let configuration = {};
+
+configuration.bestNetworkIdArray = [];
+configuration.bestNetworkIdArrayFile = "bestNetworkIdArray.json";
 
 configuration.quotaTimoutDuration = DEFAULT_QUOTA_TIMEOUT_DURATION;
 configuration.processUserQueueInterval = 10;
@@ -301,6 +306,22 @@ statsObj.analyzer.total = 0;
 statsObj.analyzer.analyzed = 0;
 statsObj.analyzer.skipped = 0;
 statsObj.analyzer.errors = 0;
+
+statsObj.currentBestNetwork = {};
+statsObj.currentBestNetwork.networkId = false;
+statsObj.currentBestNetwork.rank = Infinity;
+statsObj.currentBestNetwork.successRate = 0;
+statsObj.currentBestNetwork.matchRate = 0;
+statsObj.currentBestNetwork.overallMatchRate = 0;
+statsObj.currentBestNetwork.testCycles = 0;
+statsObj.currentBestNetwork.total = 0;
+statsObj.currentBestNetwork.match = 0;
+statsObj.currentBestNetwork.mismatch = 0;
+statsObj.currentBestNetwork.left = 0;
+statsObj.currentBestNetwork.neutral = 0;
+statsObj.currentBestNetwork.right = 0;
+statsObj.currentBestNetwork.positive = 0;
+statsObj.currentBestNetwork.negative = 0;
 
 let dbConnectionReady = false;
 let dbConnectionReadyInterval;
@@ -611,6 +632,32 @@ function printUser(params) {
 
     return text;
   }
+}
+
+function printNetworkObj(title, nn, format) {
+
+  const chalkFormat = (format !== undefined) ? format : chalk.blue;
+  const rank = (nn.rank !== undefined) ? nn.rank : Infinity;
+  const previousRank = (nn.previousRank !== undefined) ? nn.previousRank : Infinity;
+  const overallMatchRate = nn.overallMatchRate || 0;
+  const matchRate = nn.matchRate || 0;
+  const successRate = nn.successRate || 0;
+  const testCycleHistory = nn.testCycleHistory || [];
+
+  console.log(chalkFormat(title
+    + " | RK: " + rank
+    + " | PREV RK: " + previousRank
+    + " | OR: " + overallMatchRate.toFixed(2) + "%"
+    + " | MR: " + matchRate.toFixed(2) + "%"
+    + " | SR: " + successRate.toFixed(2) + "%"
+    + " | CR: " + tcUtils.getTimeStamp(nn.createdAt)
+    + " | TC:  " + nn.testCycles
+    + " | TH: " + testCycleHistory.length
+    + " |  " + nn.inputsId
+    + " | " + nn.networkId
+  ));
+
+  return;
 }
 
 const networkOutput = {};
@@ -1187,7 +1234,7 @@ async function generateAutoCategory(p) {
 
     const user = await tcUtils.updateUserHistograms({user: params.user});
 
-    const networkOutput = await nnTools.activateSingleNetwork({
+    const activateNetworkResults = await nnTools.activate({
       user: user,
       userProfileOnlyFlag: userProfileOnlyFlag,
       convertDatumFlag: true, 
@@ -1195,10 +1242,48 @@ async function generateAutoCategory(p) {
       verbose: configuration.verbose
     });
 
+    currentBestNetwork = await nnTools.updateNetworkStats({
+      sortBy: "matchRate",
+      user: user,
+      networkOutput: activateNetworkResults.networkOutput, 
+      expectedCategory: user.category
+    });
+
+    if (statsObj.currentBestNetwork.rank < currentBestNetwork.rank){
+      printNetworkObj("RNT | +++ UPDATE BEST NETWORK"
+        + " | @" + user.screenName 
+        + " | CM: " + user.category, currentBestNetwork, chalk.black
+      );
+      await nnTools.printNetworkResults();
+    }
+    else if (configuration.testMode || (currentBestNetwork.meta.total % 100 === 0)) {
+      printNetworkObj("RNT | NETWORK STATS"
+        + " | @" + user.screenName 
+        + " | CM: " + user.category, currentBestNetwork, chalk.black
+      );
+      await nnTools.printNetworkResults();
+    }
+
+    if (configuration.verbose
+      || (statsObj.currentBestNetwork.rank < currentBestNetwork.rank)
+    ) {
+      console.log("TFE | BEST NN"
+        + " | RANK: " + currentBestNetwork.rank
+        + " | MR: " + currentBestNetwork.matchRate.toFixed(2) + "%"
+        + " | " + currentBestNetwork.meta.match + "/" + currentBestNetwork.meta.total
+        + " | MATCH: " + currentBestNetwork.meta.matchFlag
+        + " | " + currentBestNetwork.networkId
+        + " | IN: " + currentBestNetwork.inputsId
+        + " | OUT: " + currentBestNetwork.meta.output
+      );
+    }
+
+    statsObj.currentBestNetwork = currentBestNetwork;
+
     let text = MODULE_ID_PREFIX + " | ->- CAT AUTO SET     ";
     // let chalkVar = chalkLog;
 
-    if (user.category && (networkOutput.categoryAuto == user.category)) {
+    if (user.category && (currentBestNetwork.meta.categoryAuto == user.category)) {
       statsObj.autoChangeTotal += 1;
       statsObj.autoChangeMatch += 1;
       statsObj.autoChangeMatchRate = 100*(statsObj.autoChangeMatch/statsObj.autoChangeTotal);
@@ -1213,17 +1298,17 @@ async function generateAutoCategory(p) {
       // chalkVar = chalk.yellow;
     }
 
-    if (configuration.verbose || (user.categoryAuto != networkOutput.categoryAuto)) {
+    if (configuration.verbose || (user.categoryAuto != currentBestNetwork.meta.categoryAuto)) {
       console.log(chalkLog(text
         + " | AUTO CHG M/MM/TOT: " + statsObj.autoChangeMatch + "/" + statsObj.autoChangeMismatch + "/" + statsObj.autoChangeTotal
         + " | " + statsObj.autoChangeMatchRate.toFixed(2) + "%"
         + " | M: " + user.category
-        + " | A: " + user.categoryAuto + " --> " + networkOutput.categoryAuto
+        + " | A: " + user.categoryAuto + " --> " + currentBestNetwork.meta.categoryAuto
         + " | @" + user.screenName
       ));
     }
 
-    user.categoryAuto = networkOutput.categoryAuto;
+    user.categoryAuto = currentBestNetwork.meta.categoryAuto;
     return user;
 
   }
@@ -1324,6 +1409,7 @@ process.on("message", async function(m) {
       process.title = m.title;
 
       configuration.verbose = m.verbose;
+      configuration.bestNetworkIdArrayFile = (m.bestNetworkIdArrayFile !== undefined) ? m.bestNetworkIdArrayFile : configuration.bestNetworkIdArrayFile;
       configuration.userProfileOnlyFlag = (m.userProfileOnlyFlag !== undefined) ? m.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
       configuration.binaryMode = (m.binaryMode !== undefined) ? m.binaryMode : configuration.binaryMode;
 
@@ -1344,6 +1430,24 @@ process.on("message", async function(m) {
       await nnTools.setMaxInputHashMap(m.maxInputHashMap);
       await nnTools.setNormalization(m.normalization);
       await nnTools.setBinaryMode(configuration.binaryMode);
+
+      console.log(chalkLog("TFE | ... LOADING BEST NETWORKS FROM " + configuration.configDefaultFolder + "/" + configuration.bestNetworkIdArrayFile));
+
+      configuration.bestNetworkIdArray = await tcUtils.loadFileRetry({folder: configuration.configDefaultFolder, file: configuration.bestNetworkIdArrayFile});
+
+      console.log(chalkLog("TFE | ... LOADING BEST NETWORKS: " + configuration.bestNetworkIdArray.length));
+
+      if (configuration.bestNetworkIdArray && configuration.bestNetworkIdArray.length > 0){
+        for (const nnId of configuration.bestNetworkIdArray){
+          const nnDoc = await wordAssoDb.NeuralNetwork.findOne({networkId: nnId}).lean();
+          if (nnDoc) {
+            await nnTools.loadNetwork({networkObj: nnDoc});
+          }
+        }
+        configuration.bestNetworkIdArray.forEach(function(nnId){
+          await
+        })
+      }
 
       await tcUtils.setEnableLanguageAnalysis(configuration.enableLanguageAnalysis);
       await tcUtils.setEnableImageAnalysis(configuration.enableImageAnalysis);

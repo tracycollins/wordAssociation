@@ -102,6 +102,7 @@ const moment = require("moment");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const HashMap = require("hashmap").HashMap;
 const NodeCache = require("node-cache");
+const watch = require("watch");
 
 const debug = require("debug")("tfe");
 const debugCache = require("debug")("cache");
@@ -1134,6 +1135,49 @@ function initProcessUserQueueInterval(interval) {
   });
 }
 
+const watchOptions = {
+  ignoreDotFiles: true,
+  ignoreUnreadableDir: true,
+  ignoreNotPermitted: true,
+}
+
+async function initWatchConfig(){
+
+  statsObj.status = "INIT WATCH CONFIG";
+
+  console.log(chalkLog(MODULE_ID_PREFIX + " | ... INIT WATCH"));
+
+  const loadConfig = async function(f){
+
+    try{
+
+      debug(chalkInfo(MODULE_ID_PREFIX + " | +++ FILE CREATED or CHANGED | " + getTimeStamp() + " | " + f));
+
+      if (f.endsWith(configuration.bestNetworkIdArrayFile)){
+        console.log(chalkInfo(MODULE_ID_PREFIX + " | +++ FILE CREATED or CHANGED | " + getTimeStamp() + " | " + f));
+        await loadNetworks();
+      }
+
+    }
+    catch(err){
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD ALL CONFIGS ON CREATE ERROR: " + err));
+    }
+  }
+
+  watch.createMonitor(configuration.configDefaultFolder, watchOptions, function (monitor) {
+
+    monitor.on("created", loadConfig);
+
+    monitor.on("changed", loadConfig);
+
+    // monitor.on("removed", function (f) {
+    //   console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX FILE DELETED | " + getTimeStamp() + " | " + f));
+    // });
+  });
+
+  return;
+}
+
 async function initialize(cnf){
 
   console.log(chalkLog("WAS | TFC | INITIALIZE"));
@@ -1397,6 +1441,40 @@ async function processUser(params) {
   }
 }
 
+async function loadNetworks(){
+  console.log(chalkLog(MODULE_ID_PREFIX + " | ... LOADING BEST NETWORKS FROM " + configuration.configDefaultFolder + "/" + configuration.bestNetworkIdArrayFile));
+
+  configuration.bestNetworkIdArray = await tcUtils.loadFileRetry({folder: configuration.configDefaultFolder, file: configuration.bestNetworkIdArrayFile});
+
+  if (configuration.bestNetworkIdArray && configuration.bestNetworkIdArray.length > 0){
+
+    console.log(chalkLog(MODULE_ID_PREFIX + " | ... LOADING BEST NETWORKS: " + configuration.bestNetworkIdArray.length));
+
+    for (const nnId of configuration.bestNetworkIdArray){
+      const nn = await wordAssoDb.NeuralNetwork.findOne({networkId: nnId}).lean();
+
+      if (nn) {
+
+        if (nn.testCycleHistory && nn.testCycleHistory !== undefined && nn.testCycleHistory.length > 0) {
+
+          nn.previousRank = nn.testCycleHistory[nn.testCycleHistory.length-1].rank;
+
+          console.log(chalkLog(MODULE_ID_PREFIX
+            + " | PREV RANK " + nn.previousRank
+            + " | " + nn.networkId 
+          ));
+        } 
+
+        await nnTools.loadNetwork({networkObj: nn});
+      }
+    }        
+    return;
+  }
+  else{
+    return;
+  }
+}
+
 process.on("message", async function(m) {
 
   let twitterUserObj;
@@ -1443,32 +1521,35 @@ process.on("message", async function(m) {
       await nnTools.setNormalization(m.normalization);
       await nnTools.setBinaryMode(configuration.binaryMode);
 
-      console.log(chalkLog(MODULE_ID_PREFIX + " | ... LOADING BEST NETWORKS FROM " + configuration.configDefaultFolder + "/" + configuration.bestNetworkIdArrayFile));
+      // console.log(chalkLog(MODULE_ID_PREFIX + " | ... LOADING BEST NETWORKS FROM " + configuration.configDefaultFolder + "/" + configuration.bestNetworkIdArrayFile));
 
-      configuration.bestNetworkIdArray = await tcUtils.loadFileRetry({folder: configuration.configDefaultFolder, file: configuration.bestNetworkIdArrayFile});
+      // configuration.bestNetworkIdArray = await tcUtils.loadFileRetry({folder: configuration.configDefaultFolder, file: configuration.bestNetworkIdArrayFile});
 
-      console.log(chalkLog(MODULE_ID_PREFIX + " | ... LOADING BEST NETWORKS: " + configuration.bestNetworkIdArray.length));
+      // console.log(chalkLog(MODULE_ID_PREFIX + " | ... LOADING BEST NETWORKS: " + configuration.bestNetworkIdArray.length));
 
-      if (configuration.bestNetworkIdArray && configuration.bestNetworkIdArray.length > 0){
-        for (const nnId of configuration.bestNetworkIdArray){
-          const nn = await wordAssoDb.NeuralNetwork.findOne({networkId: nnId}).lean();
+      // if (configuration.bestNetworkIdArray && configuration.bestNetworkIdArray.length > 0){
+      //   for (const nnId of configuration.bestNetworkIdArray){
+      //     const nn = await wordAssoDb.NeuralNetwork.findOne({networkId: nnId}).lean();
 
-          if (nn) {
+      //     if (nn) {
 
-            if (nn.testCycleHistory && nn.testCycleHistory !== undefined && nn.testCycleHistory.length > 0) {
+      //       if (nn.testCycleHistory && nn.testCycleHistory !== undefined && nn.testCycleHistory.length > 0) {
 
-              nn.previousRank = nn.testCycleHistory[nn.testCycleHistory.length-1].rank;
+      //         nn.previousRank = nn.testCycleHistory[nn.testCycleHistory.length-1].rank;
 
-              console.log(chalkLog(MODULE_ID_PREFIX
-                + " | PREV RANK " + nn.previousRank
-                + " | " + nn.networkId 
-              ));
-            } 
+      //         console.log(chalkLog(MODULE_ID_PREFIX
+      //           + " | PREV RANK " + nn.previousRank
+      //           + " | " + nn.networkId 
+      //         ));
+      //       } 
 
-            await nnTools.loadNetwork({networkObj: nn});
-          }
-        }        
-      }
+      //       await nnTools.loadNetwork({networkObj: nn});
+      //     }
+      //   }        
+      // }
+
+      await nnTools.deleteAllNetworks();
+      await loadNetworks();
 
       await tcUtils.setEnableLanguageAnalysis(configuration.enableLanguageAnalysis);
       await tcUtils.setEnableImageAnalysis(configuration.enableImageAnalysis);
@@ -1696,6 +1777,7 @@ setTimeout(async function(){
     const twitterParams = await tcUtils.initTwitterConfig();
     await tcUtils.initTwitter({twitterConfig: twitterParams});
     await tcUtils.getTwitterAccountSettings();
+    await initWatchConfig();
 
     initProcessUserQueueInterval(configuration.processUserQueueInterval);
   }

@@ -1043,12 +1043,8 @@ function initProcessUserQueueInterval(interval) {
           else {
             const user = await tcUtils.encodeHistogramUrls({user: u});
 
-            // user.priorityFlag = user.priorityFlag || false;
             user.priorityFlag = queueObj.priorityFlag;
 
-            // if (!user.latestTweets || (user.latestTweets === undefined)) { 
-            //   user.latestTweets = [];
-            // }
             if (!user.tweetHistograms || (user.tweetHistograms === undefined)) { 
               user.tweetHistograms = {}; 
             }
@@ -1170,9 +1166,6 @@ async function initWatchConfig(){
 
     monitor.on("changed", loadConfig);
 
-    // monitor.on("removed", function (f) {
-    //   console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX FILE DELETED | " + getTimeStamp() + " | " + f));
-    // });
   });
 
   return;

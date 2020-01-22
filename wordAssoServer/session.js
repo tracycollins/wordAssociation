@@ -271,7 +271,8 @@ config.twitterUser.userId = "";
 config.fullscreenMode = false;
 
 console.debug("LOADING STORED CONFIG: " + globalStoredConfigName);
-const storedConfig = store.get(globalStoredConfigName);
+
+storedConfig = store.get(globalStoredConfigName);
 
 if (useStoredConfig && storedConfig) {
   config = storedConfig;

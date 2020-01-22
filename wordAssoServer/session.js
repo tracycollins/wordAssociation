@@ -270,9 +270,11 @@ config.twitterUser = {};
 config.twitterUser.userId = "";
 config.fullscreenMode = false;
 
-if (useStoredConfig) {
-  console.debug("LOADING STORED CONFIG: " + globalStoredConfigName);
-  config = store.get(globalStoredConfigName);
+console.debug("LOADING STORED CONFIG: " + globalStoredConfigName);
+const storedConfig = store.get(globalStoredConfigName);
+
+if (useStoredConfig && storedConfig) {
+  config = storedConfig;
   config.fullscreenMode = false;
   config.pauseFlag = false;
   config.pauseOnMouseMove = true;

@@ -1857,7 +1857,7 @@ function ViewTreepack() {
 
     console.log("RESIZE: " + width + "x" + height);
 
-    if (panzoomInstance) {
+    if (panzoomElement) {
       panzoomInstance = panzoom(
         panzoomElement, 
         {

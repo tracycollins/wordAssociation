@@ -8,6 +8,7 @@ function ViewTreepack() {
 
   var initialXposition = 0.5;
   var initialYposition = 0.9;
+  var defaultInitialZoom = 0.2;
 
   var DEFAULT_ZOOM_FACTOR = 0.5;
   var minRateMetricChange = 0.5;
@@ -1868,6 +1869,7 @@ function ViewTreepack() {
       ).zoomAbs(
         0.5*width,
         0.5*height,
+        defaultInitialZoom
       );
     }
 

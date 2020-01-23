@@ -1298,7 +1298,7 @@ async function generateAutoCategory(p) {
       );
       await nnTools.printNetworkResults();
     }
-    else if (configuration.testMode || (currentBestNetwork.meta.total % 100 === 0)) {
+    else if (configuration.testMode || (currentBestNetwork.meta.total % 1000 === 0)) {
       printNetworkObj("RNT | NETWORK STATS"
         + " | @" + user.screenName 
         + " | CM: " + user.category, currentBestNetwork, chalk.black

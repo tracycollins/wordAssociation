@@ -1848,12 +1848,28 @@ function ViewTreepack() {
 
   this.resize = function() {
 
+    panzoom
+
     d3image = d3.select("#d3group");
 
     width = getWindowDimensions().width;
     height = getWindowDimensions().height;
 
     console.log("RESIZE: " + width + "x" + height);
+
+    if (panzoomInstance) {
+      panzoomInstance = panzoom(
+        panzoomElement, 
+        {
+          maxZoom: 2, 
+          minZoom: 0.1,
+          zoomSpeed: 0.02
+        }
+      ).zoomAbs(
+        0.5*width,
+        0.5*height,
+      );
+    }
 
     foci = {
       left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 

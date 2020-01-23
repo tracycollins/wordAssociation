@@ -1151,7 +1151,12 @@ async function initWatchConfig(){
 
       if (f.endsWith(configuration.bestNetworkIdArrayFile)){
         console.log(chalkInfo(MODULE_ID_PREFIX + " | +++ FILE CREATED or CHANGED | " + getTimeStamp() + " | " + f));
+        await nnTools.deleteAllNetworks();
         await loadNetworks();
+        statsObj.autoChangeTotal = 0;
+        statsObj.autoChangeMatchRate = 0;
+        statsObj.autoChangeMatch = 0;
+        statsObj.autoChangeMismatch = 0;
       }
 
     }
@@ -1514,35 +1519,13 @@ process.on("message", async function(m) {
       await nnTools.setNormalization(m.normalization);
       await nnTools.setBinaryMode(configuration.binaryMode);
 
-      // console.log(chalkLog(MODULE_ID_PREFIX + " | ... LOADING BEST NETWORKS FROM " + configuration.configDefaultFolder + "/" + configuration.bestNetworkIdArrayFile));
-
-      // configuration.bestNetworkIdArray = await tcUtils.loadFileRetry({folder: configuration.configDefaultFolder, file: configuration.bestNetworkIdArrayFile});
-
-      // console.log(chalkLog(MODULE_ID_PREFIX + " | ... LOADING BEST NETWORKS: " + configuration.bestNetworkIdArray.length));
-
-      // if (configuration.bestNetworkIdArray && configuration.bestNetworkIdArray.length > 0){
-      //   for (const nnId of configuration.bestNetworkIdArray){
-      //     const nn = await wordAssoDb.NeuralNetwork.findOne({networkId: nnId}).lean();
-
-      //     if (nn) {
-
-      //       if (nn.testCycleHistory && nn.testCycleHistory !== undefined && nn.testCycleHistory.length > 0) {
-
-      //         nn.previousRank = nn.testCycleHistory[nn.testCycleHistory.length-1].rank;
-
-      //         console.log(chalkLog(MODULE_ID_PREFIX
-      //           + " | PREV RANK " + nn.previousRank
-      //           + " | " + nn.networkId 
-      //         ));
-      //       } 
-
-      //       await nnTools.loadNetwork({networkObj: nn});
-      //     }
-      //   }        
-      // }
-
       await nnTools.deleteAllNetworks();
       await loadNetworks();
+
+      statsObj.autoChangeTotal = 0;
+      statsObj.autoChangeMatchRate = 0;
+      statsObj.autoChangeMatch = 0;
+      statsObj.autoChangeMismatch = 0;
 
       await tcUtils.setEnableLanguageAnalysis(configuration.enableLanguageAnalysis);
       await tcUtils.setEnableImageAnalysis(configuration.enableImageAnalysis);

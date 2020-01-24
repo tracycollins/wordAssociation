@@ -6826,8 +6826,14 @@ function initTssChild(params){
 
   return new Promise(function(resolve, reject){
 
-    const tss = cp.fork(`${__dirname}/js/libs/tssChildLabs.js`);
-    // const tss = cp.fork(`${__dirname}/js/libs/tssChild.js`);
+    let tss;
+    
+    if (params.tweetVersion2) {
+      tss = cp.fork(`${__dirname}/js/libs/tssChildLabs.js`);
+    }
+    else{
+      tss = cp.fork(`${__dirname}/js/libs/tssChild.js`);
+    }
 
     childrenHashMap[params.childId] = {};
     childrenHashMap[params.childId].pid = tss.pid;

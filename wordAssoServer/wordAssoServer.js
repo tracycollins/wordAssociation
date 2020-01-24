@@ -141,6 +141,8 @@ let filterRetweets = false;
 const DEFAULT_TWITTER_THREECEE_USER = "altthreecee00";
 const DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT = Number(ONE_SECOND);
 
+const DEFAULT_TWEET_VERSION_2 = true;
+
 const DEFAULT_INTERVAL = 5;
 const DEFAULT_MIN_FOLLOWERS_AUTO_CATEGORIZE = 5000;
 const DEFAULT_MIN_FOLLOWERS_AUTO_FOLLOW = 20000;
@@ -463,6 +465,7 @@ configuration.dropboxWebhookChangeTimeout = DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEO
 
 configuration.tssInterval = DEFAULT_TSS_TWITTER_QUEUE_INTERVAL;
 configuration.tweetParserMessageRxQueueInterval = DEFAULT_TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL;
+configuration.tweetVersion2 = DEFAULT_TWEET_VERSION_2;
 configuration.tweetParserInterval = DEFAULT_TWEET_PARSER_INTERVAL;
 configuration.updateUserSetsInterval = DEFAULT_UPDATE_USER_SETS_INTERVAL;
 configuration.sorterMessageRxQueueInterval = DEFAULT_SORTER_INTERVAL;
@@ -6823,8 +6826,8 @@ function initTssChild(params){
 
   return new Promise(function(resolve, reject){
 
-    // const tss = cp.fork(`${__dirname}/js/libs/tssChildLabs.js`);
-    const tss = cp.fork(`${__dirname}/js/libs/tssChild.js`);
+    const tss = cp.fork(`${__dirname}/js/libs/tssChildLabs.js`);
+    // const tss = cp.fork(`${__dirname}/js/libs/tssChild.js`);
 
     childrenHashMap[params.childId] = {};
     childrenHashMap[params.childId].pid = tss.pid;
@@ -7674,6 +7677,7 @@ function initTweetParser(params){
       op: "INIT",
       title: "wa_node_child_twp",
       interval: configuration.tweetParserInterval,
+      tweetVersion2: configuration.tweetVersion2,
       testMode: configuration.testMode,
       verbose: configuration.verbose
     }, function tweetParserMessageRxError(err){
@@ -8344,6 +8348,11 @@ async function loadConfigFile(params) {
     if (loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW !== undefined){
       console.log("WAS | LOADED TWITTER_THREECEE_AUTO_FOLLOW: " + loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW);
       newConfiguration.twitterThreeceeAutoFollowConfigFile = loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW + ".json";
+    }
+
+    if (loadedConfigObj.TWEET_VERSION_2 !== undefined){
+      console.log("WAS | LOADED TWEET_VERSION_2: " + loadedConfigObj.TWEET_VERSION_2);
+      newConfiguration.tweetVersion2 = loadedConfigObj.TWEET_VERSION_2;
     }
 
     if (loadedConfigObj.TWEET_PARSER_INTERVAL !== undefined){
@@ -9883,7 +9892,7 @@ function allTrue(p){
     let waitTime = 0;
 
     params.interval = params.interval || 10*ONE_SECOND;
-    params.maxIntervalWait = params.maxIntervalWait || ONE_MINUTE;
+    params.maxIntervalWait = params.maxIntervalWait || 15*ONE_SECOND;
 
     console.log(chalkLog("WAS | ... WAIT ALL TRUE TIMEOUT | " + msToTime(params.maxIntervalWait)));
 

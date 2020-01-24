@@ -8027,6 +8027,20 @@ async function loadConfigFile(params) {
       }
     }
 
+    if (loadedConfigObj.TWEET_VERSION_2 !== undefined){
+      console.log("WAS | LOADED TWEET_VERSION_2: " + loadedConfigObj.TWEET_VERSION_2);
+
+      if ((loadedConfigObj.TWEET_VERSION_2 == false) || (loadedConfigObj.TWEET_VERSION_2 == "false")) {
+        newConfiguration.tweetVersion2 = false;
+      }
+      else if ((loadedConfigObj.TWEET_VERSION_2 == true) || (loadedConfigObj.TWEET_VERSION_2 == "true")) {
+        newConfiguration.tweetVersion2 = true;
+      }
+      else {
+        newConfiguration.tweetVersion2 = false;
+      }
+    }
+
     if (loadedConfigObj.WAS_TEST_MODE !== undefined){
       console.log("WAS | LOADED WAS_TEST_MODE: " + loadedConfigObj.WAS_TEST_MODE);
 
@@ -8348,11 +8362,6 @@ async function loadConfigFile(params) {
     if (loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW !== undefined){
       console.log("WAS | LOADED TWITTER_THREECEE_AUTO_FOLLOW: " + loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW);
       newConfiguration.twitterThreeceeAutoFollowConfigFile = loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW + ".json";
-    }
-
-    if (loadedConfigObj.TWEET_VERSION_2 !== undefined){
-      console.log("WAS | LOADED TWEET_VERSION_2: " + loadedConfigObj.TWEET_VERSION_2);
-      newConfiguration.tweetVersion2 = loadedConfigObj.TWEET_VERSION_2;
     }
 
     if (loadedConfigObj.TWEET_PARSER_INTERVAL !== undefined){

@@ -1334,6 +1334,15 @@ async function processStreamData(data){
         throw new Error("DAILY USAGE CAP EXCEEDED");
       }
 
+      if (dataObj && dataObj.title && (dataObj.title === "ConnectionException")){
+        console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! TWITTER LABS CONNECTION EXCEPTION"
+          + " | ISSUE: " + dataObj.connection_issue
+          + " | TYPE: " + dataObj.type
+          + " | DETAIL: " + dataObj.detail
+        ));
+        throw new Error("CONNECTION EXCEPTION");
+      }
+
       const validTweet = await checkValidTweet({tweetObj: dataObj});
 
       if (validTweet) {
@@ -1949,8 +1958,14 @@ async function initStreamDataQueue(){
 
       streamDataQueueReady = false;
       dataBuffer = streamDataQueue.shift();
-      await processStreamData(dataBuffer);
-      streamDataQueueReady = true;
+      try{
+        await processStreamData(dataBuffer);
+        streamDataQueueReady = true;
+      }
+      catch(err){
+        console.error("TSS | *** processStreamData ERROR",err);
+        streamDataQueueReady = true;
+      }
     }
   }, interval);
 

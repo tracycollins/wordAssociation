@@ -56,6 +56,7 @@ configuration.processName = process.env.TWP_PROCESS_NAME || "node_tweetParser";
 configuration.verbose = false;
 configuration.updateInterval = 5;
 configuration.globalTestMode = false;
+configuration.tweetVersion2 = false;
 configuration.testMode = false;
 configuration.inc = true;
 
@@ -168,6 +169,7 @@ function initTweetParserQueueInterval(cnf){
   let tweetParserQueueReady = true;
 
   const params = {};
+  params.tweetVersion2 = cnf.tweetVersion2;
   params.globalTestMode = cnf.globalTestMode;
   params.testMode = cnf.testMode;
   params.inc = cnf.inc;
@@ -239,6 +241,7 @@ process.on("message", function(m) {
 
       configuration.verbose = m.verbose;
       configuration.updateInterval = m.interval;
+      configuration.tweetVersion2 = m.tweetVersion2;
 
       console.log(chalkInfo("TWP | TWEET PARSER INIT"
         + " | TITLE: " + m.title

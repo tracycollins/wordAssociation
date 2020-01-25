@@ -17,7 +17,7 @@ const os = require("os");
 const kill = require("tree-kill");
 const empty = require("is-empty");
 const watch = require("watch");
-const whois = require("whois");
+const whois = require("whois-json");
 
 // const {google} = require("googleapis");
 // let cloudDebugger = google.clouddebugger("v2");
@@ -268,16 +268,17 @@ const threeceeConfig = {
 };
 
 async function whoisAsync(params){
-  whois.lookup(params.ipAddress, function(err, data) {
-    if (err) { 
-      throw err;
-    }
-    console.log(chalkLog(MODULE_ID_PREFIX + " | WHOIS"
-      + " | IP: " + params.ipAddress 
-      + "\ndata\n" + data
-    ));
-    return data;
-  });
+
+  const whoisResults = await whois(params.ipAddress);
+
+  console.log(chalkLog(MODULE_ID_PREFIX + " | WHOIS"
+    + " | IP: " + params.ipAddress 
+    + " | DOMAIN: " + whoisResults.domainName 
+    + "\nwhoisResults\n" + jsonPrint(whoisResults)
+  ));
+
+  return whoisResults.domainName;
+
 }
 
 
@@ -3823,15 +3824,18 @@ async function initIgnoredUserSet(){
 
 const serverRegex = /^(.+)_/i;
 
-function initSocketHandler(socketObj) {
+async function initSocketHandler(socketObj) {
 
   const socket = socketObj.socket;
   const socketId = socket.id;
 
   let ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
+  const domainName = await whoisAsync({ipAddress: ipAddress});
+
   console.log(chalk.blue("WAS | SOCKET CONNECT"
     + " | " + ipAddress
+    + " | DOMAIN: " + domainName
     + " | " + socketObj.namespace
     + " | " + socket.id
     + " | AD: " + statsObj.admin.connected
@@ -3853,7 +3857,6 @@ function initSocketHandler(socketObj) {
       + " | SOCKET RECONNECT ERROR: " + socketId 
       + "\nerrorObj\n" + jsonPrint(errorObj)
     ));
-
   });
 
   socket.on("reconnect_failed", function reconnectFailed(errorObj) {
@@ -4294,8 +4297,6 @@ function initSocketHandler(socketObj) {
       console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: " + err));
       throw err;
     }
-
-
   });
 
   socket.on("TWITTER_UNFOLLOW", function(user) {
@@ -4436,7 +4437,6 @@ function initSocketHandler(socketObj) {
     catch(err){
       console.log(chalkError("WAS | *** IGNORE USER ERROR: " + err));
     }
-
   });
 
   socket.on("TWITTER_UNIGNORE", async function(user) {
@@ -4616,7 +4616,6 @@ function initSocketHandler(socketObj) {
       }
 
     }
-
   });
 
   socket.on("categorize", categorizeNode);
@@ -4625,18 +4624,20 @@ function initSocketHandler(socketObj) {
 
     ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
-    const hostname = await whoisAsync({ipAddress: ipAddress});
+    const domainName = await whoisAsync({ipAddress: ipAddress});
 
     viewerObj.timeStamp = moment().valueOf();
 
     console.log(chalkAlert("WAS | LOGIN"
-      + " | " + ipAddress
       + " | " + socket.id
+      + " | IP: " + ipAddress
+      + " | DOMAIN: " + domainName
       + "\n" + jsonPrint(viewerObj)
     ));
 
     slackText = "*LOADING PAGE | TWITTER LOGIN*";
     slackText = slackText + " | IP: " + ipAddress;
+    slackText = slackText + " | DOMAIN: " + domainName;
     slackText = slackText + " | @" + viewerObj.screenName;
 
     await slackSendWebMessage({ channel: slackChannel, text: slackText});
@@ -6117,11 +6118,11 @@ function initAppRouting(callback) {
 
       if (req.path.includes("controlPanel")){        
 
-        const hostname = await whoisAsync({ipAddress: req.ip});
+        const domainName = await whoisAsync({ipAddress: req.ip});
 
         slackText = "*LOADING PAGE | CONTROL PANEL*";
         slackText = slackText + " | IP: " + req.ip;
-        slackText = slackText + " | HOST: " + req.hostname;
+        slackText = slackText + " | DOMAIN: " + domainName;
         slackText = slackText + " | URL: " + req.url;
         slackText = slackText + "\nFILE: " + adminHtml;
 
@@ -6162,7 +6163,7 @@ function initAppRouting(callback) {
 
   app.get("/admin", async function requestAdmin(req, res) {
 
-    const hostname = await whoisAsync({ipAddress: req.ip});
+    const domainName = await whoisAsync({ipAddress: req.ip});
 
     console.log(chalkLog("WAS | LOADING PAGE"
       + " | IP: " + req.ip
@@ -6173,7 +6174,7 @@ function initAppRouting(callback) {
     slackText = "*LOADING PAGE | ADMIN*";
     slackText = slackText + " | IP: " + req.ip;
     slackText = slackText + " | URL: " + req.url;
-    slackText = slackText + " | HOST: " + req.hostname;
+    slackText = slackText + " | DOMAIN: " + domainName;
     slackText = slackText + "\nFILE: " + adminHtml;
 
     await slackSendWebMessage({ channel: slackChannelAdmin, text: slackText});
@@ -6197,7 +6198,7 @@ function initAppRouting(callback) {
 
     debug(chalkInfo("get next\n" + next));
 
-    const hostname = await whoisAsync({ipAddress: req.ip});
+    const domainName = await whoisAsync({ipAddress: req.ip});
 
     console.log(chalkAlert("WAS | LOADING PAGE | LOGIN"
       + " | IP: " + req.ip
@@ -6207,7 +6208,7 @@ function initAppRouting(callback) {
 
     slackText = "*LOADING PAGE | TWITTER LOGIN*";
     slackText = slackText + " | IP: " + req.ip;
-    slackText = slackText + " | HOST: " + req.hostname;
+    slackText = slackText + " | DOMAIN: " + domainName;
     slackText = slackText + " | URL: " + req.url;
     slackText = slackText + "\nFILE: " + loginHtml;
 
@@ -6234,7 +6235,7 @@ function initAppRouting(callback) {
 
     debug(chalkInfo("get next\n" + next));
 
-    const hostname = await whoisAsync({ipAddress: req.ip});
+    const domainName = await whoisAsync({ipAddress: req.ip});
 
     console.log(chalkLog("WAS | LOADING PAGE"
       + " | IP: " + req.ip
@@ -6244,7 +6245,7 @@ function initAppRouting(callback) {
 
     slackText = "*LOADING PAGE*";
     slackText = slackText + " | IP: " + req.ip;
-    slackText = slackText + " | HOST: " + req.hostname;
+    slackText = slackText + " | DOMAIN: " + domainName;
     slackText = slackText + " | URL: " + req.url;
     slackText = slackText + "\nFILE: " + sessionHtml;
 
@@ -6274,7 +6275,7 @@ function initAppRouting(callback) {
 
     debug(chalkInfo("get next\n" + next));
 
-    const hostname = await whoisAsync({ipAddress: req.ip});
+    const domainName = await whoisAsync({ipAddress: req.ip});
 
     console.log(chalkLog("WAS | LOADING PAGE"
       + " | IP: " + req.ip
@@ -6284,7 +6285,7 @@ function initAppRouting(callback) {
 
     slackText = "*LOADING PAGE*";
     slackText = slackText + " | IP: " + req.ip;
-    slackText = slackText + " | HOST: " + req.hostname;
+    slackText = slackText + " | DOMAIN: " + domainName;
     slackText = slackText + " | URL: " + req.url;
     slackText = slackText + "\nFILE: " + profilesHtml;
 
@@ -6310,7 +6311,7 @@ function initAppRouting(callback) {
 
   async function ensureAuthenticated(req, res, next) {
 
-    const hostname = await whoisAsync({ipAddress: req.ip});
+    const domainName = await whoisAsync({ipAddress: req.ip});
 
     if (req.isAuthenticated()) { 
 
@@ -6318,7 +6319,7 @@ function initAppRouting(callback) {
 
       slackText = "*PASSPORT TWITTER AUTHENTICATED*";
       slackText = slackText + " | IP: " + req.ip;
-      slackText = slackText + " | HOST: " + req.hostname;
+      slackText = slackText + " | DOMAIN: " + domainName;
       slackText = slackText + " | URL: " + req.url;
       slackText = slackText + " | @" + req.session.passport.user.screenName;
 
@@ -6331,7 +6332,7 @@ function initAppRouting(callback) {
 
     slackText = "*PASSPORT TWITTER AUTHENTICATION FAILED*";
     slackText = slackText + " | IP: " + req.ip;
-    slackText = slackText + " | HOST: " + req.hostname;
+    slackText = slackText + " | DOMAIN: " + domainName;
     slackText = slackText + " | URL: " + req.url;
     slackText = slackText + " | @" + req.session.passport.user.screenName;
 
@@ -6340,7 +6341,7 @@ function initAppRouting(callback) {
 
   app.get("/account", ensureAuthenticated, async function(req, res){
 
-    const hostname = await whoisAsync({ipAddress: req.ip});
+    const domainName = await whoisAsync({ipAddress: req.ip});
 
     console.log(chalkError("WAS | PASSPORT TWITTER AUTH USER\n" + jsonPrint(req.session.passport.user))); // handle errors
     console.log(chalkError("WAS | PASSPORT TWITTER AUTH USER"
@@ -6351,7 +6352,7 @@ function initAppRouting(callback) {
 
     slackText = "*LOADING PAGE | PASSPORT TWITTER AUTH*";
     slackText = slackText + " | IP: " + req.ip;
-    slackText = slackText + " | HOST: " + req.hostname;
+    slackText = slackText + " | DOMAIN: " + domainName;
     slackText = slackText + " | URL: " + req.url;
     slackText = slackText + " | @" + req.session.passport.user.screenName;
 
@@ -6385,13 +6386,13 @@ function initAppRouting(callback) {
 
   app.get("/auth/twitter/error", async function(req){
 
-    const hostname = await whoisAsync({ipAddress: req.ip});
+    const domainName = await whoisAsync({ipAddress: req.ip});
 
     console.log(chalkAlert("WAS | PASSPORT AUTH TWITTER ERROR"));
 
     slackText = "*LOADING PAGE | PASSPORT AUTH TWITTER ERROR*";
     slackText = slackText + " | IP: " + req.ip;
-    slackText = slackText + " | HOST: " + req.hostname;
+    slackText = slackText + " | DOMAIN: " + domainName;
     slackText = slackText + " | URL: " + req.url;
 
     await slackSendWebMessage({ channel: slackChannelUserAuth, text: slackText});

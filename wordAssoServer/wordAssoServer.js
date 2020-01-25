@@ -2316,7 +2316,11 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
           console.log(chalkError("WAS | *** KILL CHILD ERROR: " + err));
         }
         else {
-          await initTssChild({childId: DEFAULT_TSS_CHILD_ID, threeceeUser: childrenHashMap[DEFAULT_TSS_CHILD_ID].threeceeUser});
+          await initTssChild({
+            childId: DEFAULT_TSS_CHILD_ID,
+            tweetVersion2: configuration.tweetVersion2,
+            threeceeUser: childrenHashMap[DEFAULT_TSS_CHILD_ID].threeceeUser
+          });
         }
       });
 
@@ -6758,7 +6762,11 @@ function initTssPingInterval(interval){
                 return;
               }
               tssPongReceived = false;
-              initTssChild({childId: DEFAULT_TSS_CHILD_ID, threeceeUser: threeceeUser});
+              initTssChild({
+                childId: DEFAULT_TSS_CHILD_ID, 
+                tweetVersion2: configuration.tweetVersion2,
+                threeceeUser: threeceeUser
+              });
             });
 
             return;
@@ -6788,7 +6796,11 @@ function initTssPingInterval(interval){
                 return;
               }
               tssPongReceived = false;
-              initTssChild({childId: DEFAULT_TSS_CHILD_ID, threeceeUser: threeceeUser});
+              initTssChild({
+                childId: DEFAULT_TSS_CHILD_ID, 
+                tweetVersion2: configuration.tweetVersion2,
+                threeceeUser: threeceeUser
+              });
             });
 
             return;
@@ -6827,7 +6839,7 @@ function initTssChild(params){
   return new Promise(function(resolve, reject){
 
     let tss;
-    
+
     if (params.tweetVersion2) {
       tss = cp.fork(`${__dirname}/js/libs/tssChildLabs.js`);
     }
@@ -9907,7 +9919,7 @@ function allTrue(p){
     let waitTime = 0;
 
     params.interval = params.interval || 10*ONE_SECOND;
-    params.maxIntervalWait = params.maxIntervalWait || 15*ONE_SECOND;
+    params.maxIntervalWait = params.maxIntervalWait || 5*ONE_SECOND;
 
     console.log(chalkLog("WAS | ... WAIT ALL TRUE TIMEOUT | " + msToTime(params.maxIntervalWait)));
 
@@ -10086,7 +10098,7 @@ setTimeout(async function(){
     await initDbuChild({childId: DEFAULT_DBU_CHILD_ID});
     await initTweetParser({childId: DEFAULT_TWP_CHILD_ID});
     await initTfeChild({childId: DEFAULT_TFE_CHILD_ID});
-    await initTssChild({childId: DEFAULT_TSS_CHILD_ID, threeceeUser: threeceeUser});
+    await initTssChild({childId: DEFAULT_TSS_CHILD_ID, tweetVersion2: configuration.tweetVersion2, threeceeUser: threeceeUser});
     await initDbUserChangeStream();
     await initUpdateUserSetsInterval(configuration.updateUserSetsInterval);
     await initWatchConfig();

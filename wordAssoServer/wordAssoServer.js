@@ -17,7 +17,8 @@ const os = require("os");
 const kill = require("tree-kill");
 const empty = require("is-empty");
 const watch = require("watch");
-const whois = require("whois-promise");
+// const whois = require("whois-promise");
+const dns = require("dns");
 
 // const {google} = require("googleapis");
 // let cloudDebugger = google.clouddebugger("v2");
@@ -267,20 +268,32 @@ const threeceeConfig = {
   token_secret: "3NI3s4sTILiqBilgEDBSlC6oSJYXcdLQP7lXp58TQMk0A"
 };
 
-async function whoisAsync(params){
+async function dnsReverse(params){
 
-  const whoisResults = await whois.json(params.ipAddress);
+  dns.reverse(params.ipAddress, function(err, hostnames){
 
-  console.log(chalkLog(MODULE_ID_PREFIX + " | WHOIS"
-    + " | IP: " + params.ipAddress 
-    + " | DOMAIN: " + whoisResults.domainName 
-    + "\nwhoisResults\n" + jsonPrint(whoisResults)
-  ));
+    if (err) {
+      throw err;
+    }
 
-  return whoisResults.domainName;
+    console.log(chalkLog(MODULE_ID_PREFIX + " | DNS REVERSE"
+      + " | IP: " + params.ipAddress 
+      + " | " + hostnames.length + " HOST NAMES"
+      + "\nhostnames\n" + jsonPrint(hostnames)
+    ));
+
+    return hostnames[0];
+  });
+
+  // const whoisResults = await whois.json(params.ipAddress);
+
+  // console.log(chalkLog(MODULE_ID_PREFIX + " | WHOIS"
+  //   + " | IP: " + params.ipAddress 
+  //   + " | DOMAIN: " + whoisResults.domainName 
+  //   + "\nwhoisResults\n" + jsonPrint(whoisResults)
+  // ));
 
 }
-
 
 //=========================================================================
 // SLACK
@@ -3831,7 +3844,7 @@ async function initSocketHandler(socketObj) {
 
   let ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
-  const domainName = await whoisAsync({ipAddress: ipAddress});
+  const domainName = await dnsReverse({ipAddress: ipAddress});
 
   console.log(chalk.blue("WAS | SOCKET CONNECT"
     + " | " + ipAddress
@@ -4624,7 +4637,7 @@ async function initSocketHandler(socketObj) {
 
     ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
-    const domainName = await whoisAsync({ipAddress: ipAddress});
+    const domainName = await dnsReverse({ipAddress: ipAddress});
 
     viewerObj.timeStamp = moment().valueOf();
 
@@ -6118,7 +6131,7 @@ function initAppRouting(callback) {
 
       if (req.path.includes("controlPanel")){        
 
-        const domainName = await whoisAsync({ipAddress: req.ip});
+        const domainName = await dnsReverse({ipAddress: req.ip});
 
         slackText = "*LOADING PAGE | CONTROL PANEL*";
         slackText = slackText + " | IP: " + req.ip;
@@ -6163,7 +6176,7 @@ function initAppRouting(callback) {
 
   app.get("/admin", async function requestAdmin(req, res) {
 
-    const domainName = await whoisAsync({ipAddress: req.ip});
+    const domainName = await dnsReverse({ipAddress: req.ip});
 
     console.log(chalkLog("WAS | LOADING PAGE"
       + " | IP: " + req.ip
@@ -6198,7 +6211,7 @@ function initAppRouting(callback) {
 
     debug(chalkInfo("get next\n" + next));
 
-    const domainName = await whoisAsync({ipAddress: req.ip});
+    const domainName = await dnsReverse({ipAddress: req.ip});
 
     console.log(chalkAlert("WAS | LOADING PAGE | LOGIN"
       + " | IP: " + req.ip
@@ -6235,7 +6248,7 @@ function initAppRouting(callback) {
 
     debug(chalkInfo("get next\n" + next));
 
-    const domainName = await whoisAsync({ipAddress: req.ip});
+    const domainName = await dnsReverse({ipAddress: req.ip});
 
     console.log(chalkLog("WAS | LOADING PAGE"
       + " | IP: " + req.ip
@@ -6275,7 +6288,7 @@ function initAppRouting(callback) {
 
     debug(chalkInfo("get next\n" + next));
 
-    const domainName = await whoisAsync({ipAddress: req.ip});
+    const domainName = await dnsReverse({ipAddress: req.ip});
 
     console.log(chalkLog("WAS | LOADING PAGE"
       + " | IP: " + req.ip
@@ -6311,7 +6324,7 @@ function initAppRouting(callback) {
 
   async function ensureAuthenticated(req, res, next) {
 
-    const domainName = await whoisAsync({ipAddress: req.ip});
+    const domainName = await dnsReverse({ipAddress: req.ip});
 
     if (req.isAuthenticated()) { 
 
@@ -6341,7 +6354,7 @@ function initAppRouting(callback) {
 
   app.get("/account", ensureAuthenticated, async function(req, res){
 
-    const domainName = await whoisAsync({ipAddress: req.ip});
+    const domainName = await dnsReverse({ipAddress: req.ip});
 
     console.log(chalkError("WAS | PASSPORT TWITTER AUTH USER\n" + jsonPrint(req.session.passport.user))); // handle errors
     console.log(chalkError("WAS | PASSPORT TWITTER AUTH USER"
@@ -6386,7 +6399,7 @@ function initAppRouting(callback) {
 
   app.get("/auth/twitter/error", async function(req){
 
-    const domainName = await whoisAsync({ipAddress: req.ip});
+    const domainName = await dnsReverse({ipAddress: req.ip});
 
     console.log(chalkAlert("WAS | PASSPORT AUTH TWITTER ERROR"));
 
@@ -10314,6 +10327,9 @@ setTimeout(async function(){
         console.log(chalkError("WAS | **** TWITTER WEBHOOK ERROR: " + err));
       }
     }
+
+    await dnsReverse({ipAddress: "35.240.151.105"});
+
     await initAllowLocations();
     await initIgnoreLocations();
     await loadBestRuntimeNetwork();

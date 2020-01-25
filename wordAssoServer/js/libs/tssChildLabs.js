@@ -3,6 +3,8 @@
 
 const MODULE_ID_PREFIX = "TSS";
 
+let twitterSearchStream;
+
 const ignoredHashtagFile = "ignoredHashtag.txt";
 const followableSearchTermFile = "followableSearchTerm.txt";
 const ignoreLocationsFile = "ignoreLocations.txt";
@@ -19,8 +21,10 @@ const TWEET_ID_CACHE_CHECK_PERIOD = 10;
 
 const ONE_SECOND = 1000;
 const ONE_MINUTE = ONE_SECOND*60;
+const ONE_HOUR = ONE_MINUTE*60;
+const ONE_DAY = ONE_HOUR*24;
 
-const DEFAULT_SEARCH_TERM_UPDATE_INTERVAL = 15*ONE_MINUTE;
+const DEFAULT_SEARCH_TERM_UPDATE_INTERVAL = ONE_DAY;
 
 const defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
@@ -187,6 +191,7 @@ configuration.forceFollow = false;
 configuration.globalTestMode = false;
 configuration.testMode = false; // per tweet test mode
 configuration.searchTermsUpdateInterval = DEFAULT_SEARCH_TERM_UPDATE_INTERVAL;
+configuration.twitterQueueIntervalTime = DEFAULT_TWITTER_QUEUE_INTERVAL;
 configuration.followQueueIntervalTime = 5*ONE_SECOND;
 configuration.ignoreQueueInterval = 15 * ONE_SECOND;
 configuration.maxTweetQueue = DEFAULT_MAX_TWEET_QUEUE;
@@ -1270,52 +1275,58 @@ async function setRules(rules, token) {
 
 async function checkValidTweet(params){
 
-  if (ignoreUserSet.has(params.tweetObj.includes.users[0].id.toString())) {
-    if (configuration.verbose) {
-      console.log(chalkLog("TSS | XXX IGNORE USER | SKIPPING"
-        + " | TWID: " + params.tweetObj.data.id.toString()
-        + " | UID: " + params.tweetObj.includes.users[0].id.toString()
-        + " | @" + params.tweetObj.includes.users[0].username
-        + " | NAME: " + params.tweetObj.includes.users[0].name
-      ));
+  try{
+    if (params.tweetObj.includes 
+      && params.tweetObj.includes.users 
+      && ignoreUserSet.has(params.tweetObj.includes.users[0].id.toString())
+    ) {
+      if (configuration.verbose) {
+        console.log(chalkLog("TSS | XXX IGNORE USER | SKIPPING"
+          + " | TWID: " + params.tweetObj.data.id.toString()
+          + " | UID: " + params.tweetObj.includes.users[0].id.toString()
+          + " | @" + params.tweetObj.includes.users[0].username
+          + " | NAME: " + params.tweetObj.includes.users[0].name
+        ));
+      }
+      return false;
     }
-    return false;
-  }
 
-  if (ignoreLocationsSet.has(params.tweetObj.includes.users[0].location)) {
-    if (configuration.verbose) {
-      console.log(chalkLog("TSS | XXX IGNORE LOCATION | SKIPPING"
-        + " | TWID: " + params.tweetObj.data.id.toString()
-        + " | UID: " + params.tweetObj.includes.users[0].id.toString()
-        + " | @" + params.tweetObj.includes.users[0].username
-        + " | NAME: " + params.tweetObj.includes.users[0].name
-        + " | LOC: " + params.tweetObj.includes.users[0].location
-      ));
+    if (ignoreLocationsSet.has(params.tweetObj.includes.users[0].location)) {
+      if (configuration.verbose) {
+        console.log(chalkLog("TSS | XXX IGNORE LOCATION | SKIPPING"
+          + " | TWID: " + params.tweetObj.data.id.toString()
+          + " | UID: " + params.tweetObj.includes.users[0].id.toString()
+          + " | @" + params.tweetObj.includes.users[0].username
+          + " | NAME: " + params.tweetObj.includes.users[0].name
+          + " | LOC: " + params.tweetObj.includes.users[0].location
+        ));
+      }
+      return false;
     }
-    return false;
-  }
 
-  if (params.tweetObj.data.lang && (params.tweetObj.data.lang != "en")) {
-    if (configuration.verbose) {
-      console.log(chalkLog("TSS | XXX IGNORE LANG | SKIPPING"
-        + " | TWID: " + params.tweetObj.data.id.toString()
-        + " | LANG: " + params.tweetObj.data.lang
-        + " | UID: " + params.tweetObj.includes.users[0].id.toString()
-        + " | @" + params.tweetObj.includes.users[0].username
-        + " | NAME: " + params.tweetObj.includes.users[0].name
-      ));
+    if (params.tweetObj.data.lang && (params.tweetObj.data.lang != "en")) {
+      if (configuration.verbose) {
+        console.log(chalkLog("TSS | XXX IGNORE LANG | SKIPPING"
+          + " | TWID: " + params.tweetObj.data.id.toString()
+          + " | LANG: " + params.tweetObj.data.lang
+          + " | UID: " + params.tweetObj.includes.users[0].id.toString()
+          + " | @" + params.tweetObj.includes.users[0].username
+          + " | NAME: " + params.tweetObj.includes.users[0].name
+        ));
+      }
+      return false;
     }
-    return false;
-  }
 
-  return true;
+    return true;
+  }
+  catch(err){
+    throw err;
+  }
 }
 
 async function processStreamData(data){
 
   try {
-
-    // const dataObj = parseJson(data);
 
     yj.parseAsync(data, async function(err, dataObj){
 
@@ -1325,13 +1336,22 @@ async function processStreamData(data){
         return;
       }
 
+      if (dataObj && dataObj.title && (dataObj.title === "Invalid Request")){
+        console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! TWITTER LABS INVALID REQUEST"
+          + " | " + dataObj.title
+          + " | TYPE: " + dataObj.type
+          + " | DETAIL: " + dataObj.detail
+        ));
+        return;
+      }
+
       if (dataObj && dataObj.title && (dataObj.title === "UsageCapExceeded")){
         console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! TWITTER LABS USAGE CAP EXCEEDED"
           + " | ACCOUNT: " + dataObj.account_id
           + " | PRODUCT: " + dataObj.product_name
           + " | PERIOD: " + dataObj.period
         ));
-        throw new Error("DAILY USAGE CAP EXCEEDED");
+        return;
       }
 
       if (dataObj && dataObj.title && (dataObj.title === "ConnectionException")){
@@ -1340,8 +1360,17 @@ async function processStreamData(data){
           + " | TYPE: " + dataObj.type
           + " | DETAIL: " + dataObj.detail
         ));
-        throw new Error("CONNECTION EXCEPTION");
+        return;
       }
+
+      if (dataObj.errors) {
+        console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! TWITTER LABS STREAM ERROR"
+          + " | TYPE: " + dataObj.type
+          + " | DETAIL: " + dataObj.detail
+        ));
+        return;
+      }
+
 
       const validTweet = await checkValidTweet({tweetObj: dataObj});
 
@@ -1360,22 +1389,22 @@ async function processStreamData(data){
   }
 }
 
-async function streamConnect(token) {
+function streamConnect(token) {
 
-  // Listen to the stream
+  const qs = {
+    "format": "detailed",
+    "user.format": "detailed",
+    "tweet.format": "detailed",
+    "place.format": "detailed",
+    "expansions": "author_id,attachments.media_keys,in_reply_to_user_id,geo.place_id"
+  };
+
+  const auth = { bearer: token };
+
   const config = {
-    // url: "https://api.twitter.com/labs/1/tweets/stream/filter",
     url: streamURL,
-    auth: {
-      bearer: token,
-    },
-    qs: {
-      format: "detailed",
-      "user.format": "detailed",
-      "tweet.format": "detailed",
-      "place.format": "detailed",
-      expansions: "author_id"
-    },
+    auth: auth,
+    qs: qs,
     timeout: 20000,
   };
 
@@ -1384,6 +1413,7 @@ async function streamConnect(token) {
   const stream = request.get(config);
 
   console.log(chalk.green(MODULE_ID_PREFIX + " | +++ STREAM CONNECTED | CONFIG\n" + jsonPrint(config)));
+  console.log(chalk.green(MODULE_ID_PREFIX + " | +++ STREAM CONNECTED | RESPONSE HEADERS\n" + jsonPrint(stream.headers)));
 
   return stream;
 }
@@ -1540,7 +1570,8 @@ async function initSearchStreamLabs(){
     // To avoid rate limites, this logic implements exponential backoff, so the wait time
     // will increase if the client cannot reconnect to the stream.
 
-    const stream = await streamConnect(token);
+    let stream = streamConnect(token);
+
     let timeout = 0;
 
     stream.on("timeout", async function(){
@@ -1551,11 +1582,10 @@ async function initSearchStreamLabs(){
 
         timeout++;
 
-        await streamConnect(token);
+        stream = streamConnect(token);
 
       }, 2 ** timeout);
 
-      // await streamConnect(token);
     });
 
     stream.on("data", function(data){
@@ -1576,12 +1606,12 @@ async function initSearchStreamLabs(){
       }
     });
 
-    return;
+    return stream;
 
   }
-  catch (e) {
-    console.log(e);
-    throw e;
+  catch (err) {
+    console.log(err);
+    throw err;
   }
 }
 
@@ -1781,7 +1811,7 @@ async function initSearchTermsUpdateInterval(){
   searchTermsUpdateInterval = setInterval(async function(){
     console.log(chalkInfo("TSS | ... SEARCH TERM UPDATE | INTERVAL: " + msToTime(interval)));
     await initSearchTerms(configuration);
-    await initSearchStreamLabs();
+    twitterSearchStream = await initSearchStreamLabs();
 
   }, interval);
 }
@@ -1807,7 +1837,7 @@ async function initWatchConfig(){
       if (f.endsWith(followableSearchTermFile)){
         await initFollowableSearchTermSet();
         await initSearchTerms(configuration);
-        await initSearchStreamLabs();
+        twitterSearchStream = await initSearchStreamLabs();
       }
 
       if (f.endsWith(allowLocationsFile)){
@@ -1869,7 +1899,7 @@ async function initialize(cnf){
   cnf.twitterConfigFile = process.env.DROPBOX_TSS_DEFAULT_TWITTER_CONFIG_FILE 
     || "altthreecee00.json";
 
-  cnf.statsUpdateIntervalTime = process.env.TSS_STATS_UPDATE_INTERVAL || 60000;
+  cnf.statsUpdateIntervalTime = process.env.TSS_STATS_UPDATE_INTERVAL || 10*ONE_MINUTE;
 
   debug(chalkWarn("TSS | dropboxConfigFolder: " + dropboxConfigFolder));
   debug(chalkWarn("TSS | dropboxConfigFile  : " + dropboxConfigFile));
@@ -1972,7 +2002,7 @@ async function initStreamDataQueue(){
   return;
 }
 
-function initTwitterQueue(cnf, callback){
+function initTwitterQueue(cnf){
 
   console.log(chalkTwitter("TSS | INIT TWITTER QUEUE INTERVAL: " + cnf.twitterQueueIntervalTime));
 
@@ -2005,7 +2035,6 @@ function initTwitterQueue(cnf, callback){
     }
   }, interval);
 
-  if (callback) { callback(); }
 }
 
 function initTwitterSearch(cnf){
@@ -2182,7 +2211,7 @@ process.on("message", async function(m) {
         await initIgnoreHashtags();
         await initTwitterUser();
         await initSearchTerms(configuration);
-        await initSearchStreamLabs();
+        twitterSearchStream = await initSearchStreamLabs();
         await initTwitterSearch(configuration);
         await initFollowQueue({interval: configuration.followQueueIntervalTime});
       }
@@ -2372,7 +2401,7 @@ process.on("message", async function(m) {
         try{
 
           await initSearchTerms(configuration);
-          await initSearchStreamLabs();
+          twitterSearchStream = await initSearchStreamLabs();
 
           console.log(chalkInfo("TSS | INIT SEARCH TERMS COMPLETE | 3C @" + threeceeUserObj.screenName));
 
@@ -2469,7 +2498,7 @@ process.on("message", async function(m) {
       try{
 
         await initSearchTerms(configuration);
-        await initSearchStreamLabs();
+        twitterSearchStream = await initSearchStreamLabs();
 
         console.log(chalkInfo("TSS | INIT SEARCH TERMS COMPLETE | 3C @" + threeceeUserObj.screenName));
 

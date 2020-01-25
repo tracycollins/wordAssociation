@@ -17,6 +17,8 @@ const os = require("os");
 const kill = require("tree-kill");
 const empty = require("is-empty");
 const watch = require("watch");
+const whois = require("whois");
+
 // const {google} = require("googleapis");
 // let cloudDebugger = google.clouddebugger("v2");
 
@@ -264,6 +266,20 @@ const threeceeConfig = {
   token: "14607119-S5EIEw89NSC462IkX4GWT67K1zWzoLzuZF7wiurku",
   token_secret: "3NI3s4sTILiqBilgEDBSlC6oSJYXcdLQP7lXp58TQMk0A"
 };
+
+async function whoisAsync(params){
+  whois.lookup(params.ipAddress, function(err, data) {
+    if (err) { 
+      throw err;
+    }
+    console.log(chalkLog(MODULE_ID_PREFIX + " | WHOIS"
+      + " | IP: " + params.ipAddress 
+      + "\ndata\n" + data
+      + "\ndata\n" + jsonPrint(data)
+    ));
+    return data;
+  });
+}
 
 
 //=========================================================================
@@ -4610,6 +4626,8 @@ function initSocketHandler(socketObj) {
 
     ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
+    const hostname = await whoisAsync({ipAddress: ipAddress});
+
     viewerObj.timeStamp = moment().valueOf();
 
     console.log(chalkAlert("WAS | LOGIN"
@@ -6099,6 +6117,9 @@ function initAppRouting(callback) {
       ));
 
       if (req.path.includes("controlPanel")){        
+
+        const hostname = await whoisAsync({ipAddress: req.ip});
+
         slackText = "*LOADING PAGE | CONTROL PANEL*";
         slackText = slackText + " | IP: " + req.ip;
         slackText = slackText + " | HOST: " + req.hostname;
@@ -6142,6 +6163,8 @@ function initAppRouting(callback) {
 
   app.get("/admin", async function requestAdmin(req, res) {
 
+    const hostname = await whoisAsync({ipAddress: req.ip});
+
     console.log(chalkLog("WAS | LOADING PAGE"
       + " | IP: " + req.ip
       + " | REQ: " + req.url
@@ -6174,6 +6197,8 @@ function initAppRouting(callback) {
   app.get("/login", async function requestSession(req, res, next) {
 
     debug(chalkInfo("get next\n" + next));
+
+    const hostname = await whoisAsync({ipAddress: req.ip});
 
     console.log(chalkAlert("WAS | LOADING PAGE | LOGIN"
       + " | IP: " + req.ip
@@ -6209,6 +6234,8 @@ function initAppRouting(callback) {
   app.get("/session", async function requestSession(req, res, next) {
 
     debug(chalkInfo("get next\n" + next));
+
+    const hostname = await whoisAsync({ipAddress: req.ip});
 
     console.log(chalkLog("WAS | LOADING PAGE"
       + " | IP: " + req.ip
@@ -6248,6 +6275,8 @@ function initAppRouting(callback) {
 
     debug(chalkInfo("get next\n" + next));
 
+    const hostname = await whoisAsync({ipAddress: req.ip});
+
     console.log(chalkLog("WAS | LOADING PAGE"
       + " | IP: " + req.ip
       + " | REQ: " + req.url
@@ -6281,7 +6310,11 @@ function initAppRouting(callback) {
   });
 
   async function ensureAuthenticated(req, res, next) {
+
+    const hostname = await whoisAsync({ipAddress: req.ip});
+
     if (req.isAuthenticated()) { 
+
       console.log(chalk.green("WAS | PASSPORT TWITTER AUTHENTICATED"));
 
       slackText = "*PASSPORT TWITTER AUTHENTICATED*";
@@ -6294,6 +6327,7 @@ function initAppRouting(callback) {
 
       return next();
     }
+
     console.log(chalkAlert("WAS | *** PASSPORT TWITTER *NOT* AUTHENTICATED ***"));
 
     slackText = "*PASSPORT TWITTER AUTHENTICATION FAILED*";
@@ -6306,6 +6340,8 @@ function initAppRouting(callback) {
   }
 
   app.get("/account", ensureAuthenticated, async function(req, res){
+
+    const hostname = await whoisAsync({ipAddress: req.ip});
 
     console.log(chalkError("WAS | PASSPORT TWITTER AUTH USER\n" + jsonPrint(req.session.passport.user))); // handle errors
     console.log(chalkError("WAS | PASSPORT TWITTER AUTH USER"
@@ -6349,6 +6385,9 @@ function initAppRouting(callback) {
   });
 
   app.get("/auth/twitter/error", async function(req){
+
+    const hostname = await whoisAsync({ipAddress: req.ip});
+
     console.log(chalkAlert("WAS | PASSPORT AUTH TWITTER ERROR"));
 
     slackText = "*LOADING PAGE | PASSPORT AUTH TWITTER ERROR*";

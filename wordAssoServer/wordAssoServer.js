@@ -1,3 +1,4 @@
+const MODULE_NAME = "wordAssoServer";
 const MODULE_ID_PREFIX = "WAS";
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
@@ -226,6 +227,9 @@ const chalkLog = chalk.gray;
 const chalkBlue = chalk.blue;
 const chalkBlueBold = chalk.blue.bold;
 
+const EventEmitter2 = require("eventemitter2").EventEmitter2;
+const HashMap = require("hashmap").HashMap;
+
 const btoa = require("btoa");
 const request = require("request-promise-native");
 const _ = require("lodash");
@@ -239,8 +243,6 @@ const fs = require("fs");
 const path = require("path");
 const async = require("async");
 const debug = require("debug")("wa");
-// const debugCache = require("debug")("cache");
-// const debugCategory = require("debug")("kw");
 const moment = require("moment");
 
 const express = require("express");
@@ -252,7 +254,6 @@ const MongoStore = require("connect-mongo")(expressSession);
 const passport = require("passport");
 const TwitterStrategy = require("passport-twitter").Strategy;
 
-// app.use(express.urlencoded());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(require("serve-static")(path.join(__dirname, "public")));
@@ -264,12 +265,117 @@ const threeceeConfig = {
   token_secret: "3NI3s4sTILiqBilgEDBSlC6oSJYXcdLQP7lXp58TQMk0A"
 };
 
-const EventEmitter2 = require("eventemitter2").EventEmitter2;
 
-// const fetch = require("isomorphic-fetch"); // or another library of choice.
-// const Dropbox = require("dropbox").Dropbox;
+//=========================================================================
+// SLACK
+//=========================================================================
 
-const HashMap = require("hashmap").HashMap;
+const slackChannel = "was";
+const slackChannelUserAuth = "was-user-auth";
+const slackChannelAdmin = "was-admin";
+
+let slackText = "";
+const channelsHashMap = new HashMap();
+
+const slackOAuthAccessToken = "xoxp-3708084981-3708084993-206468961315-ec62db5792cd55071a51c544acf0da55";
+const slackRtmToken = "xoxb-209434353623-bNIoT4Dxu1vv8JZNgu7CDliy";
+
+let slackRtmClient;
+let slackWebClient;
+
+async function slackSendWebMessage(msgObj){
+  try{
+    const token = msgObj.token || slackOAuthAccessToken;
+    const channel = msgObj.channel || configuration.slackChannel.id;
+    const text = msgObj.text || msgObj;
+
+    const message = {
+      token: token, 
+      channel: channel,
+      text: text
+    };
+
+    if (msgObj.attachments !== undefined) {
+      message.attachments = msgObj.attachments;
+    }
+
+    if (slackWebClient && slackWebClient !== undefined) {
+      const sendResponse = await slackWebClient.chat.postMessage(message);
+      return sendResponse;
+    }
+    else {
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | SLACK WEB NOT CONFIGURED | SKIPPING SEND SLACK MESSAGE\n" + jsonPrint(message)));
+      return;
+    }
+  }
+  catch(err){
+    console.log(chalkAlert(MODULE_ID_PREFIX + " | *** slackSendWebMessage ERROR: " + err));
+    throw err;
+  }
+}
+
+async function initSlackWebClient(){
+  try {
+
+    const { WebClient } = require("@slack/client");
+    slackWebClient = new WebClient(slackRtmToken);
+
+    const conversationsListResponse = await slackWebClient.conversations.list({token: slackOAuthAccessToken});
+
+    conversationsListResponse.channels.forEach(async function(channel){
+
+      debug(chalkLog(MODULE_ID_PREFIX + " | SLACK CHANNEL | " + channel.id + " | " + channel.name));
+
+      if (channel.name === slackChannel) {
+        configuration.slackChannel = channel;
+
+        const message = {
+          token: slackOAuthAccessToken, 
+          channel: configuration.slackChannel.id,
+          text: "OP"
+        };
+
+        message.attachments = [];
+        message.attachments.push({
+          text: "INIT", 
+          fields: [ 
+            { title: "SRC", value: hostname + "_" + process.pid }, 
+            { title: "MOD", value: MODULE_NAME }, 
+            { title: "DST", value: "ALL" } 
+          ]
+        });
+
+        await slackWebClient.chat.postMessage(message);
+      }
+
+      channelsHashMap.set(channel.id, channel);
+
+    });
+
+    return;
+  }
+  catch(err){
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT SLACK WEB CLIENT ERROR: " + err));
+    throw err;
+  }
+}
+
+async function initSlackRtmClient(){
+
+  const { RTMClient } = require("@slack/client");
+  slackRtmClient = new RTMClient(slackRtmToken);
+
+  await slackRtmClient.start();
+
+  slackRtmClient.on("slack_event", async function(eventType, event){
+    switch (eventType) {
+      case "pong":
+        debug(chalkLog(MODULE_ID_PREFIX + " | SLACK RTM PONG | " + getTimeStamp() + " | " + event.reply_to));
+      break;
+      default: debug(chalkInfo(MODULE_ID_PREFIX + " | SLACK RTM EVENT | " + getTimeStamp() + " | " + eventType + "\n" + jsonPrint(event)));
+    }
+  });
+}
 
 const autoFollowUserSet = new Set();
 const verifiedCategorizedUsersSet = new Set();
@@ -410,6 +516,8 @@ statsObj.user.categoryVerified = 0;
 let configuration = {};
 let defaultConfiguration = {}; // general configuration
 let hostConfiguration = {}; // host-specific configuration
+
+configuration.slackChannel = {};
 
 configuration.heartbeatInterval = process.env.WAS_HEARTBEAT_INTERVAL || ONE_MINUTE;
 configuration.statsUpdateIntervalTime = process.env.WAS_STATS_UPDATE_INTERVAL || 10*ONE_MINUTE;
@@ -1178,7 +1286,7 @@ function initPassport(){
 
           printUserObj("WAS | MONGO DB | TWITTER AUTH USER", user);
 
-          userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
+          userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, async function(err, updatedUser){
 
             if (err) {
               console.log(chalkError("WAS | ***findOneUser ERROR: " + err));
@@ -1216,6 +1324,10 @@ function initPassport(){
 
             adminNameSpace.emit("USER_AUTHENTICATED", updatedUser);
             viewNameSpace.emit("USER_AUTHENTICATED", updatedUser);
+
+            slackText = "*USER_AUTHENTICATED | @" + updatedUser.screenName + "*";
+
+            await slackSendWebMessage({ channel: slackChannelUserAuth, text: slackText});
 
             cb(null, updatedUser);
 
@@ -4013,7 +4125,6 @@ function initSocketHandler(socketObj) {
       case "TMP" :
 
         console.log(chalkInfo("WAS | R< KA"
-          // + " | DELTA: " + deltaNS + " NS"
           + " | " + currentSessionType + " SERVER" 
           + " | " + getTimeStamp(timeStamp)
           + " | " + keepAliveObj.user.userId
@@ -4495,7 +4606,7 @@ function initSocketHandler(socketObj) {
 
   socket.on("categorize", categorizeNode);
 
-  socket.on("login", function socketLogin(viewerObj){
+  socket.on("login", async function socketLogin(viewerObj){
 
     ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
@@ -4506,6 +4617,12 @@ function initSocketHandler(socketObj) {
       + " | " + socket.id
       + "\n" + jsonPrint(viewerObj)
     ));
+
+    slackText = "*LOADING PAGE | TWITTER LOGIN*";
+    slackText = slackText + " | IP: " + ipAddress;
+    slackText = slackText + " | @" + viewerObj.screenName;
+
+    await slackSendWebMessage({ channel: slackChannel, text: slackText});
 
     authInProgressTwitterUserCache.set(viewerObj.nodeId, viewerObj);
   });
@@ -6014,13 +6131,20 @@ function initAppRouting(callback) {
 
   const adminHtml = path.join(__dirname, "/admin/admin.html");
 
-  app.get("/admin", function requestAdmin(req, res) {
+  app.get("/admin", async function requestAdmin(req, res) {
 
     console.log(chalkLog("WAS | LOADING PAGE"
       + " | IP: " + req.ip
       + " | REQ: " + req.url
-      + " | RES: " + adminHtml
+      + " | FILE: " + adminHtml
     ));
+
+    slackText = "*LOADING PAGE | ADMIN*";
+    slackText = slackText + " | IP: " + req.ip;
+    slackText = slackText + " | URL: " + req.url;
+    slackText = slackText + "\nFILE: " + adminHtml;
+
+    await slackSendWebMessage({ channel: slackChannelAdmin, text: slackText});
 
     res.sendFile(adminHtml, function responseAdmin(err) {
       if (err) {
@@ -6032,23 +6156,27 @@ function initAppRouting(callback) {
           + " | " + err
         ));
       } 
-      // else {
-      //   // debug(chalkInfo("SENT:", adminHtml));
-      // }
     });
   });
 
   const loginHtml = path.join(__dirname, "/login.html");
 
-  app.get("/login", function requestSession(req, res, next) {
+  app.get("/login", async function requestSession(req, res, next) {
 
     debug(chalkInfo("get next\n" + next));
 
-    console.log(chalkAlert("WAS | LOADING PAGE"
+    console.log(chalkAlert("WAS | LOADING PAGE | LOGIN"
       + " | IP: " + req.ip
       + " | REQ: " + req.url
       + " | RES: " + loginHtml
     ));
+
+    slackText = "*LOADING PAGE | TWITTER LOGIN*";
+    slackText = slackText + " | IP: " + req.ip;
+    slackText = slackText + " | URL: " + req.url;
+    slackText = slackText + "\nFILE: " + loginHtml;
+
+    await slackSendWebMessage({ channel: slackChannel, text: slackText});
 
     res.sendFile(loginHtml, function responseSession(err) {
       if (err) {
@@ -6067,15 +6195,22 @@ function initAppRouting(callback) {
 
   const sessionHtml = path.join(__dirname, "/sessionModular.html");
 
-  app.get("/session", function requestSession(req, res, next) {
+  app.get("/session", async function requestSession(req, res, next) {
 
     debug(chalkInfo("get next\n" + next));
 
     console.log(chalkLog("WAS | LOADING PAGE"
       + " | IP: " + req.ip
       + " | REQ: " + req.url
-      + " | RES: " + sessionHtml
+      + " | FILE: " + sessionHtml
     ));
+
+    slackText = "*LOADING PAGE*";
+    slackText = slackText + " | IP: " + req.ip;
+    slackText = slackText + " | URL: " + req.url;
+    slackText = slackText + "\nFILE: " + sessionHtml;
+
+    await slackSendWebMessage({ channel: slackChannel, text: slackText});
 
     res.sendFile(sessionHtml, function responseSession(err) {
       if (err) {
@@ -6097,15 +6232,22 @@ function initAppRouting(callback) {
 
   const profilesHtml = path.join(__dirname, "/profiles.html");
 
-  app.get("/profiles", function requestSession(req, res, next) {
+  app.get("/profiles", async function requestSession(req, res, next) {
 
     debug(chalkInfo("get next\n" + next));
 
     console.log(chalkLog("WAS | LOADING PAGE"
       + " | IP: " + req.ip
       + " | REQ: " + req.url
-      + " | RES: " + profilesHtml
+      + " | FILE: " + profilesHtml
     ));
+
+    slackText = "*LOADING PAGE*";
+    slackText = slackText + " | IP: " + req.ip;
+    slackText = slackText + " | URL: " + req.url;
+    slackText = slackText + "\nFILE: " + profilesHtml;
+
+    await slackSendWebMessage({ channel: slackChannel, text: slackText});
 
     res.sendFile(profilesHtml, function responseSession(err) {
       if (err) {
@@ -6125,15 +6267,30 @@ function initAppRouting(callback) {
     });
   });
 
-  function ensureAuthenticated(req, res, next) {
+  async function ensureAuthenticated(req, res, next) {
     if (req.isAuthenticated()) { 
       console.log(chalk.green("WAS | PASSPORT TWITTER AUTHENTICATED"));
+
+      slackText = "*PASSPORT TWITTER AUTHENTICATED*";
+      slackText = slackText + " | IP: " + req.ip;
+      slackText = slackText + " | URL: " + req.url;
+      slackText = slackText + " | @" + req.session.passport.user.screenName;
+
+      await slackSendWebMessage({ channel: slackChannelUserAuth, text: slackText});
+
       return next();
     }
     console.log(chalkAlert("WAS | *** PASSPORT TWITTER *NOT* AUTHENTICATED ***"));
+
+    slackText = "*PASSPORT TWITTER AUTHENTICATION FAILED*";
+    slackText = slackText + " | IP: " + req.ip;
+    slackText = slackText + " | URL: " + req.url;
+    slackText = slackText + " | @" + req.session.passport.user.screenName;
+
+    await slackSendWebMessage({ channel: slackChannelUserAuth, text: slackText});
   }
 
-  app.get("/account", ensureAuthenticated, function(req, res){
+  app.get("/account", ensureAuthenticated, async function(req, res){
 
     console.log(chalkError("WAS | PASSPORT TWITTER AUTH USER\n" + jsonPrint(req.session.passport.user))); // handle errors
     console.log(chalkError("WAS | PASSPORT TWITTER AUTH USER"
@@ -6141,6 +6298,13 @@ function initAppRouting(callback) {
       + " | @" + req.session.passport.user.screenName
       + " | UID" + req.session.passport.user.nodeId
     )); // handle errors
+
+    slackText = "*LOADING PAGE | PASSPORT TWITTER AUTH*";
+    slackText = slackText + " | IP: " + req.ip;
+    slackText = slackText + " | URL: " + req.url;
+    slackText = slackText + " | @" + req.session.passport.user.screenName;
+
+    await slackSendWebMessage({ channel: slackChannelUserAuth, text: slackText});
 
     if (!userServerControllerReady || !statsObj.dbConnectionReady) {
       console.log(chalkAlert("WAS | *** NOT READY"
@@ -6168,8 +6332,14 @@ function initAppRouting(callback) {
     });
   });
 
-  app.get("/auth/twitter/error", function(){
+  app.get("/auth/twitter/error", async function(req){
     console.log(chalkAlert("WAS | PASSPORT AUTH TWITTER ERROR"));
+
+    slackText = "*LOADING PAGE | PASSPORT AUTH TWITTER ERROR*";
+    slackText = slackText + " | IP: " + req.ip;
+    slackText = slackText + " | URL: " + req.url;
+
+    await slackSendWebMessage({ channel: slackChannelUserAuth, text: slackText});
   });
 
   app.get("/logout", function(req, res){
@@ -8901,7 +9071,7 @@ function initStdIn(){
 
   return new Promise(function(resolve){
 
-    console.log("TNN | STDIN ENABLED");
+    console.log(MODULE_ID_PREFIX + " | STDIN ENABLED");
 
     stdin = process.stdin;
 
@@ -9905,7 +10075,6 @@ function initDbUserMissQueueInterval(interval){
   });
 }
 
-
 initStats(function setCacheObjKeys(){
   cacheObjKeys = Object.keys(statsObj.caches);
 });
@@ -10045,6 +10214,9 @@ setTimeout(async function(){
 
   try {
 
+    await initSlackRtmClient();
+    await initSlackWebClient();
+
     dbConnection = await connectDb();
 
     configEvents.emit("DB_CONNECT");
@@ -10062,6 +10234,10 @@ setTimeout(async function(){
     console.log(chalkTwitter("WAS" 
       + " | " + configuration.processName 
     ));
+
+    slackText = "*WAS START*";
+
+    await slackSendWebMessage({ channel: slackChannel, text: slackText});
 
     await killAll();
     await allTrue();

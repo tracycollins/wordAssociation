@@ -4,6 +4,7 @@
   "description": "word",
   "main": "wordAssoServer.js",
   "dependencies": {
+    "@slack/client": "^5.0.2",
     "@threeceelabs/hashtag-server-controller": "^1.0.68",
     "@threeceelabs/neural-network-tools": "^1.0.160",
     "@threeceelabs/threecee-utilities": "^1.0.204",
@@ -30,6 +31,7 @@
     "passport-twitter": "^1.0.4",
     "request-promise-native": "^1.0.8",
     "shelljs": "^0.8.3",
+    "slack": "^11.0.2",
     "socket.io": "^2.3.0",
     "touch": "^3.1.0",
     "tree-kill": "^1.2.2",

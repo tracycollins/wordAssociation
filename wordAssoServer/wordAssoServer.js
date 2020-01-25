@@ -279,20 +279,12 @@ async function dnsReverse(params){
     console.log(chalkLog(MODULE_ID_PREFIX + " | DNS REVERSE"
       + " | IP: " + params.ipAddress 
       + " | " + hostnames.length + " HOST NAMES"
+      + " | HOST: " + hostnames[0]
       + "\nhostnames\n" + jsonPrint(hostnames)
     ));
 
     return hostnames[0];
   });
-
-  // const whoisResults = await whois.json(params.ipAddress);
-
-  // console.log(chalkLog(MODULE_ID_PREFIX + " | WHOIS"
-  //   + " | IP: " + params.ipAddress 
-  //   + " | DOMAIN: " + whoisResults.domainName 
-  //   + "\nwhoisResults\n" + jsonPrint(whoisResults)
-  // ));
-
 }
 
 //=========================================================================
@@ -3842,19 +3834,24 @@ async function initSocketHandler(socketObj) {
   const socket = socketObj.socket;
   const socketId = socket.id;
 
-  let ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+  const ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
-  const domainName = await dnsReverse({ipAddress: ipAddress});
+  dnsReverse({ipAddress: ipAddress})
+  .then(function(domainName){
+    console.log(chalk.blue("WAS | SOCKET CONNECT"
+      + " | " + ipAddress
+      + " | DOMAIN: " + domainName
+      + " | " + socketObj.namespace
+      + " | " + socket.id
+      + " | AD: " + statsObj.admin.connected
+      + " | UT: " + statsObj.entity.util.connected
+      + " | VW: " + statsObj.entity.viewer.connected
+    ));
+  })
+  .catch(function(err){
 
-  console.log(chalk.blue("WAS | SOCKET CONNECT"
-    + " | " + ipAddress
-    + " | DOMAIN: " + domainName
-    + " | " + socketObj.namespace
-    + " | " + socket.id
-    + " | AD: " + statsObj.admin.connected
-    + " | UT: " + statsObj.entity.util.connected
-    + " | VW: " + statsObj.entity.viewer.connected
-  ));
+  });
+
 
   socket.on("reconnect_error", function reconnectError(errorObj) {
 
@@ -3912,7 +3909,7 @@ async function initSocketHandler(socketObj) {
 
     const timeStamp = moment().valueOf();
 
-    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
     statsObj.socket.errors.errors += 1;
 
@@ -4042,7 +4039,7 @@ async function initSocketHandler(socketObj) {
 
     const timeStamp = moment().valueOf();
 
-    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
     if (empty(keepAliveObj.user)) {
       console.log(chalkAlert("WAS | SESSION_KEEPALIVE USER UNDEFINED ??"
@@ -4278,7 +4275,7 @@ async function initSocketHandler(socketObj) {
 
     const timeStamp = moment().valueOf();
 
-    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
     console.log(chalkSocket("R< TWITTER_FOLLOW"
       + " | " + getTimeStamp(timeStamp)
@@ -4316,7 +4313,7 @@ async function initSocketHandler(socketObj) {
 
     const timeStamp = moment().valueOf();
 
-    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
     console.log(chalkSocket("R< TWITTER_UNFOLLOW"
       + " | " + getTimeStamp(timeStamp)
@@ -4349,7 +4346,7 @@ async function initSocketHandler(socketObj) {
 
     const timeStamp = moment().valueOf();
 
-    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
     console.log(chalkSocket("R< TWITTER_CATEGORY_VERIFIED"
       + " | " + getTimeStamp(timeStamp)
@@ -4386,7 +4383,7 @@ async function initSocketHandler(socketObj) {
 
     const timeStamp = moment().valueOf();
 
-    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
     console.log(chalkSocket("R< TWITTER_CATEGORY_UNVERIFIED"
       + " | " + getTimeStamp(timeStamp)
@@ -4424,7 +4421,7 @@ async function initSocketHandler(socketObj) {
 
       const timeStamp = moment().valueOf();
 
-      ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+      // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
       console.log(chalkSocket("R< TWITTER_IGNORE"
         + " | " + getTimeStamp(timeStamp)
@@ -4458,7 +4455,7 @@ async function initSocketHandler(socketObj) {
 
       const timeStamp = moment().valueOf();
 
-      ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+      // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
       console.log(chalkSocket("R< TWITTER_UNIGNORE"
         + " | " + getTimeStamp(timeStamp)
@@ -4486,14 +4483,13 @@ async function initSocketHandler(socketObj) {
       console.log(chalkError("WAS | TWITTER_UNIGNORE ERROR: " + err));
       throw err;
     }
-
   });
 
   socket.on("TWITTER_SEARCH_NODE", function (sn) {
 
     const timeStamp = moment().valueOf();
 
-    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
     twitterSearchNodeQueue.push({searchNode: sn, socketId: socket.id});
 
@@ -4510,7 +4506,7 @@ async function initSocketHandler(socketObj) {
 
     const timeStamp = moment().valueOf();
 
-    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
     if (dataObj.node.nodeType == "user") {
       console.log(chalkSocket("TWITTER_CATEGORIZE_NODE"
@@ -4560,7 +4556,7 @@ async function initSocketHandler(socketObj) {
 
     const timeStamp = moment().valueOf();
 
-    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
     console.log(chalkSocket("R< USER READY"
       + " | " + getTimeStamp(timeStamp)
@@ -4584,7 +4580,7 @@ async function initSocketHandler(socketObj) {
 
     const timeStamp = moment().valueOf();
 
-    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
     console.log(chalkSocket("VIEWER READY"
       + " | " + getTimeStamp(timeStamp)
@@ -4635,7 +4631,7 @@ async function initSocketHandler(socketObj) {
 
   socket.on("login", async function socketLogin(viewerObj){
 
-    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
     const domainName = await dnsReverse({ipAddress: ipAddress});
 
@@ -4660,7 +4656,7 @@ async function initSocketHandler(socketObj) {
 
   socket.on("STATS", function socketStats(statsObj){
 
-    ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
     const serverObj = serverCache.get(socket.id);
     const viewerObj = viewerCache.get(socket.id);
@@ -4730,7 +4726,7 @@ async function initSocketNamespaces(){
         ));
       }
       else {
-        socket.on("authentication", function(data) {
+        socket.on("authentication", async function(data) {
 
           if (configuration.verbose) {
             console.log("WAS | RX SOCKET AUTHENTICATION"
@@ -4748,7 +4744,7 @@ async function initSocketNamespaces(){
 
           statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
 
-          initSocketHandler({namespace: "admin", socket: socket});
+          await initSocketHandler({namespace: "admin", socket: socket});
 
           socket.emit("authenticated", true);
 
@@ -4771,7 +4767,7 @@ async function initSocketNamespaces(){
         ));
       }
       else {
-        socket.on("authentication", function(data) {
+        socket.on("authentication", async function(data) {
 
           if (configuration.verbose) {
             console.log("WAS | RX SOCKET AUTHENTICATION"
@@ -4789,17 +4785,19 @@ async function initSocketNamespaces(){
 
           statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
 
-          initSocketHandler({namespace: "util", socket: socket});
+          await initSocketHandler({namespace: "util", socket: socket});
 
           socket.emit("authenticated", true);
 
         });
       }
-
     });
 
-    userNameSpace.on("connect", function userConnect(socket) {
+    userNameSpace.on("connect", async function userConnect(socket) {
+
       console.log(chalk.blue("WAS | USER CONNECT " + socket.id));
+
+      // const ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
       const authenticatedSocketObj = authenticatedSocketCache.get(socket.id);
       if (authenticatedSocketObj !== undefined){
@@ -4810,7 +4808,7 @@ async function initSocketNamespaces(){
         ));
       }
 
-      initSocketHandler({namespace: "user", socket: socket});
+      await initSocketHandler({namespace: "user", socket: socket});
     });
 
     viewNameSpace.on("connect", function viewConnect(socket) {
@@ -4828,7 +4826,7 @@ async function initSocketNamespaces(){
         ));
       }
       else {
-        socket.on("authentication", function(data) {
+        socket.on("authentication", async function(data) {
 
           console.log("WAS | RX SOCKET AUTHENTICATION"
             + " | " + socket.nsp.name.toUpperCase()
@@ -4844,13 +4842,12 @@ async function initSocketNamespaces(){
 
           statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // viewNameSpace.sockets.length ;
 
-          initSocketHandler({namespace: "view", socket: socket});
+          await initSocketHandler({namespace: "view", socket: socket});
 
           socket.emit("authenticated", true);
 
         });
       }
-
     });
 
     statsObj.ioReady = true;

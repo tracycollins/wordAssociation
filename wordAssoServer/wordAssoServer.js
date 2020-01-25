@@ -17,7 +17,7 @@ const os = require("os");
 const kill = require("tree-kill");
 const empty = require("is-empty");
 const watch = require("watch");
-const whois = require("whois-json");
+const whois = require("whois-promise");
 
 // const {google} = require("googleapis");
 // let cloudDebugger = google.clouddebugger("v2");
@@ -269,7 +269,7 @@ const threeceeConfig = {
 
 async function whoisAsync(params){
 
-  const whoisResults = await whois(params.ipAddress);
+  const whoisResults = await whois.json(params.ipAddress);
 
   console.log(chalkLog(MODULE_ID_PREFIX + " | WHOIS"
     + " | IP: " + params.ipAddress 

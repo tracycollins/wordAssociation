@@ -275,7 +275,6 @@ async function whoisAsync(params){
     console.log(chalkLog(MODULE_ID_PREFIX + " | WHOIS"
       + " | IP: " + params.ipAddress 
       + "\ndata\n" + data
-      + "\ndata\n" + jsonPrint(data)
     ));
     return data;
   });

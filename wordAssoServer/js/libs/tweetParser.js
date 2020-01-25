@@ -162,7 +162,10 @@ let tweetParserQueueInterval;
 
 function initTweetParserQueueInterval(cnf){
 
-  console.log(chalkInfo("TWP | initTweetParserQueueInterval | " + cnf.updateInterval + " MS"));
+  console.log(chalkInfo("TWP | initTweetParserQueueInterval"
+    + " | TWEET VERSION 2: " + cnf.tweetVersion2
+    + " | " + cnf.updateInterval + " MS"
+  ));
 
   clearInterval(tweetParserQueueInterval);
 

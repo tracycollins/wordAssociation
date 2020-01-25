@@ -6118,17 +6118,19 @@ function initAppRouting(callback) {
       });
     }
     else {
+
+      const domainName = await dnsReverse({ipAddress: req.ip});
+
       console.log(chalkInfo("WAS | R<"
         + " | " + getTimeStamp()
         + " | IP: " + req.ip
+        + " | DOMAIN: " + domainName
         + " | HOST: " + req.hostname
         + " | METHOD: " + req.method
         + " | PATH: " + req.path
       ));
 
       if (req.path.includes("controlPanel")){        
-
-        const domainName = await dnsReverse({ipAddress: req.ip});
 
         slackText = "*LOADING PAGE | CONTROL PANEL*";
         slackText = slackText + " | IP: " + req.ip;

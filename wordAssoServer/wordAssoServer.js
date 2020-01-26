@@ -1877,6 +1877,7 @@ DEFAULT_NODE_TYPES.forEach(function(nodeType){
 });
 
 const cacheObj = {};
+cacheObj.ipCache = ipCache;
 cacheObj.mismatchUserCache = mismatchUserCache;
 cacheObj.uncatUserCache = uncatUserCache;
 cacheObj.nodeCache = nodeCache;
@@ -1884,7 +1885,6 @@ cacheObj.serverCache = serverCache;
 cacheObj.viewerCache = viewerCache;
 cacheObj.nodesPerMinuteTopTermCache = nodesPerMinuteTopTermCache;
 cacheObj.nodesPerMinuteTopTermNodeTypeCache = {};
-// cacheObj.trendingCache = trendingCache;
 cacheObj.authenticatedTwitterUserCache = authenticatedTwitterUserCache;
 cacheObj.authInProgressTwitterUserCache = authInProgressTwitterUserCache;
 cacheObj.authenticatedSocketCache = authenticatedSocketCache;

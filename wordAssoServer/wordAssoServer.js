@@ -293,7 +293,7 @@ function dnsReverse(params){
         ipCacheTtl
       );
 
-      resolve(ipCacheObj.domainName);
+      return resolve(ipCacheObj.domainName);
     }
 
     dns.reverse(params.ipAddress, function(err, hostnames){

@@ -277,6 +277,16 @@ function dnsReverse(params){
 
   return new Promise(function(resolve, reject){
 
+    const domainName = ipCache.get(params.ipAddress);
+
+    if (domainName) {
+      console.log(chalkLog(MODULE_ID_PREFIX + " | DNS REVERSE | $ HIT"
+        + " | IP: " + params.ipAddress 
+        + " | HOST: " + domainName
+      ));
+      resolve(domainName);
+    }
+
     dns.reverse(params.ipAddress, function(err, hostnames){
 
       if (err) {
@@ -293,7 +303,7 @@ function dnsReverse(params){
         ipCacheTtl
       );
 
-      console.log(chalkLog(MODULE_ID_PREFIX + " | DNS REVERSE"
+      console.log(chalkLog(MODULE_ID_PREFIX + " | DNS REVERSE | $ MISS"
         + " | IP: " + params.ipAddress 
         + " | " + hostnames.length + " HOST NAMES"
         + " | HOST: " + hostnames[0]

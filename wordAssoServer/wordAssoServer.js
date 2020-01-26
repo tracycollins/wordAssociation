@@ -538,6 +538,8 @@ statsObj.hashtag.mismatched = 0;
 
 statsObj.user = {};
 
+statsObj.user.manualCategorized = 0;
+
 statsObj.user.manual = {};
 statsObj.user.manual.right = 0;
 statsObj.user.manual.left = 0;
@@ -4590,7 +4592,11 @@ async function initSocketHandler(socketObj) {
       // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
       if (dataObj.node.nodeType == "user") {
+
+        statsObj.user.manualCategorized += 1;
+
         console.log(chalkSocket("TWITTER_CATEGORIZE_NODE"
+          + " [" + statsObj.user.manualCategorized + "]"
           + " | " + getTimeStamp(timeStamp)
           + " | " + ipAddress
           + " | " + socket.id

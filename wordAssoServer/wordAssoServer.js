@@ -299,7 +299,10 @@ function dnsReverse(params){
     dns.reverse(params.ipAddress, function(err, hostnames){
 
       if (err) {
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** DNS REVERSE ERROR: " + err));
+        console.log(chalkError(MODULE_ID_PREFIX 
+          + " | *** DNS REVERSE ERROR | IP: " + params.ipAddress
+          + " | " + err
+        ));
         return reject(err);
       }
 
@@ -4769,7 +4772,6 @@ async function initSocketHandler(socketObj) {
         console.log(chalkSocket("R< STATS | " + socket.id));
       }
     });
-
   }
   catch(err){
     console.log(chalkError(MODULE_ID_PREFIX + " | *** initSocketHandler DNS REVERSE ERROR: " + err));
@@ -5998,6 +6000,8 @@ function initAppRouting(callback) {
 
   console.log(chalkInfo(getTimeStamp() + " | INIT APP ROUTING"));
 
+  let domainName;
+
   app.use(methodOverride());
 
   app.use(async function requestLog(req, res, next) {
@@ -6199,29 +6203,35 @@ function initAppRouting(callback) {
     }
     else {
 
-      const domainName = await dnsReverse({ipAddress: req.ip});
+      try{
 
-      console.log(chalkInfo("WAS | R<"
-        + " | " + getTimeStamp()
-        + " | IP: " + req.ip
-        + " | DOMAIN: " + domainName
-        + " | HOST: " + req.hostname
-        + " | METHOD: " + req.method
-        + " | PATH: " + req.path
-      ));
+        domainName = await dnsReverse({ipAddress: req.ip});
 
-      if (req.path.includes("controlPanel")){        
+        console.log(chalkInfo("WAS | R<"
+          + " | " + getTimeStamp()
+          + " | IP: " + req.ip
+          + " | DOMAIN: " + domainName
+          + " | HOST: " + req.hostname
+          + " | METHOD: " + req.method
+          + " | PATH: " + req.path
+        ));
 
-        slackText = "*LOADING PAGE | CONTROL PANEL*";
-        slackText = slackText + " | IP: " + req.ip;
-        slackText = slackText + " | DOMAIN: " + domainName;
-        slackText = slackText + " | URL: " + req.url;
-        slackText = slackText + "\nFILE: " + adminHtml;
+        if (req.path.includes("controlPanel")){        
 
-        await slackSendWebMessage({ channel: slackChannelAdmin, text: slackText});
+          slackText = "*LOADING PAGE | CONTROL PANEL*";
+          slackText = slackText + " | IP: " + req.ip;
+          slackText = slackText + " | DOMAIN: " + domainName;
+          slackText = slackText + " | URL: " + req.url;
+          slackText = slackText + "\nFILE: " + adminHtml;
+
+          await slackSendWebMessage({ channel: slackChannelAdmin, text: slackText});
+
+          next();
+        }
       }
-
-      next();
+      catch(err){
+        console.log(chalkError(MODULE_ID_PREFIX + " | *** initAppRouting ERROR: " + err));
+      }
     }
   });
 
@@ -6254,7 +6264,12 @@ function initAppRouting(callback) {
 
   app.get("/admin", async function requestAdmin(req, res) {
 
-    const domainName = await dnsReverse({ipAddress: req.ip});
+    try{
+      domainName = await dnsReverse({ipAddress: req.ip});
+    }
+    catch(err){
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** initAppRouting /admin ERROR: " + err));
+    }
 
     console.log(chalkLog("WAS | LOADING PAGE"
       + " | IP: " + req.ip
@@ -6282,6 +6297,7 @@ function initAppRouting(callback) {
         ));
       } 
     });
+
   });
 
   const loginHtml = path.join(__dirname, "/login.html");
@@ -6290,7 +6306,12 @@ function initAppRouting(callback) {
 
     debug(chalkInfo("get next\n" + next));
 
-    const domainName = await dnsReverse({ipAddress: req.ip});
+    try{
+      domainName = await dnsReverse({ipAddress: req.ip});
+    }
+    catch(err){
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** initAppRouting /login ERROR: " + err));
+    }
 
     console.log(chalkAlert("WAS | LOADING PAGE | LOGIN"
       + " | IP: " + req.ip
@@ -6328,7 +6349,12 @@ function initAppRouting(callback) {
 
     debug(chalkInfo("get next\n" + next));
 
-    const domainName = await dnsReverse({ipAddress: req.ip});
+    try{
+      domainName = await dnsReverse({ipAddress: req.ip});
+    }
+    catch(err){
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** initAppRouting /session ERROR: " + err));
+    }
 
     console.log(chalkLog("WAS | LOADING PAGE"
       + " | IP: " + req.ip
@@ -6369,7 +6395,12 @@ function initAppRouting(callback) {
 
     debug(chalkInfo("get next\n" + next));
 
-    const domainName = await dnsReverse({ipAddress: req.ip});
+    try{
+      domainName = await dnsReverse({ipAddress: req.ip});
+    }
+    catch(err){
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** initAppRouting /profiles ERROR: " + err));
+    }
 
     console.log(chalkLog("WAS | LOADING PAGE"
       + " | IP: " + req.ip
@@ -6406,7 +6437,12 @@ function initAppRouting(callback) {
 
   async function ensureAuthenticated(req, res, next) {
 
-    const domainName = await dnsReverse({ipAddress: req.ip});
+    try{
+      domainName = await dnsReverse({ipAddress: req.ip});
+    }
+    catch(err){
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** ensureAuthenticated DNS REVERSE ERROR: " + err));
+    }
 
     if (req.isAuthenticated()) { 
 
@@ -6436,7 +6472,12 @@ function initAppRouting(callback) {
 
   app.get("/account", ensureAuthenticated, async function(req, res){
 
-    const domainName = await dnsReverse({ipAddress: req.ip});
+    try{
+      domainName = await dnsReverse({ipAddress: req.ip});
+    }
+    catch(err){
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** /account DNS REVERSE ERROR: " + err));
+    }
 
     console.log(chalkError("WAS | PASSPORT TWITTER AUTH USER\n" + jsonPrint(req.session.passport.user))); // handle errors
     console.log(chalkError("WAS | PASSPORT TWITTER AUTH USER"
@@ -6482,7 +6523,12 @@ function initAppRouting(callback) {
 
   app.get("/auth/twitter/error", async function(req){
 
-    const domainName = await dnsReverse({ipAddress: req.ip});
+    try{
+      domainName = await dnsReverse({ipAddress: req.ip});
+    }
+    catch(err){
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** /auth/twitter/error DNS REVERSE ERROR: " + err));
+    }
 
     console.log(chalkAlert("WAS | PASSPORT AUTH TWITTER ERROR"));
 

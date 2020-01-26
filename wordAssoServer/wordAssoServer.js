@@ -4722,9 +4722,9 @@ async function initSocketHandler(socketObj) {
       ));
 
       slackText = "*LOADING PAGE | TWITTER LOGIN*";
-      slackText = slackText + " | IP: " + ipAddress;
-      slackText = slackText + " | DOMAIN: " + domainName;
-      slackText = slackText + " | @" + viewerObj.screenName;
+      slackText = slackText + "\nIP: " + ipAddress;
+      slackText = slackText + "\nDOMAIN: " + domainName;
+      slackText = slackText + "\n@" + viewerObj.screenName;
 
       await slackSendWebMessage({ channel: slackChannel, text: slackText});
 
@@ -6219,9 +6219,9 @@ function initAppRouting(callback) {
         if (req.path.includes("controlPanel")){        
 
           slackText = "*LOADING PAGE | CONTROL PANEL*";
-          slackText = slackText + " | IP: " + req.ip;
-          slackText = slackText + " | DOMAIN: " + domainName;
-          slackText = slackText + " | URL: " + req.url;
+          slackText = slackText + "\nIP: " + req.ip;
+          slackText = slackText + "\nDOMAIN: " + domainName;
+          slackText = slackText + "\nURL: " + req.url;
           slackText = slackText + "\nFILE: " + adminHtml;
 
           await slackSendWebMessage({ channel: slackChannelAdmin, text: slackText});
@@ -6279,9 +6279,9 @@ function initAppRouting(callback) {
     ));
 
     slackText = "*LOADING PAGE | ADMIN*";
-    slackText = slackText + " | IP: " + req.ip;
-    slackText = slackText + " | URL: " + req.url;
-    slackText = slackText + " | DOMAIN: " + domainName;
+    slackText = slackText + "\nIP: " + req.ip;
+    slackText = slackText + "\nURL: " + req.url;
+    slackText = slackText + "\nDOMAIN: " + domainName;
     slackText = slackText + "\nFILE: " + adminHtml;
 
     await slackSendWebMessage({ channel: slackChannelAdmin, text: slackText});
@@ -6364,9 +6364,9 @@ function initAppRouting(callback) {
     ));
 
     slackText = "*LOADING PAGE*";
-    slackText = slackText + " | IP: " + req.ip;
-    slackText = slackText + " | DOMAIN: " + domainName;
-    slackText = slackText + " | URL: " + req.url;
+    slackText = slackText + "\nIP: " + req.ip;
+    slackText = slackText + "\nDOMAIN: " + domainName;
+    slackText = slackText + "\nURL: " + req.url;
     slackText = slackText + "\nFILE: " + sessionHtml;
 
     await slackSendWebMessage({ channel: slackChannel, text: slackText});
@@ -6410,9 +6410,9 @@ function initAppRouting(callback) {
     ));
 
     slackText = "*LOADING PAGE*";
-    slackText = slackText + " | IP: " + req.ip;
-    slackText = slackText + " | DOMAIN: " + domainName;
-    slackText = slackText + " | URL: " + req.url;
+    slackText = slackText + "\nIP: " + req.ip;
+    slackText = slackText + "\nDOMAIN: " + domainName;
+    slackText = slackText + "\nURL: " + req.url;
     slackText = slackText + "\nFILE: " + profilesHtml;
 
     await slackSendWebMessage({ channel: slackChannel, text: slackText});
@@ -6449,10 +6449,10 @@ function initAppRouting(callback) {
       console.log(chalk.green("WAS | PASSPORT TWITTER AUTHENTICATED"));
 
       slackText = "*PASSPORT TWITTER AUTHENTICATED*";
-      slackText = slackText + " | IP: " + req.ip;
-      slackText = slackText + " | DOMAIN: " + domainName;
-      slackText = slackText + " | URL: " + req.url;
-      slackText = slackText + " | @" + req.session.passport.user.screenName;
+      slackText = slackText + "\nIP: " + req.ip;
+      slackText = slackText + "\nDOMAIN: " + domainName;
+      slackText = slackText + "\nURL: " + req.url;
+      slackText = slackText + "\n@" + req.session.passport.user.screenName;
 
       await slackSendWebMessage({ channel: slackChannelUserAuth, text: slackText});
 
@@ -6462,10 +6462,10 @@ function initAppRouting(callback) {
     console.log(chalkAlert("WAS | *** PASSPORT TWITTER *NOT* AUTHENTICATED ***"));
 
     slackText = "*PASSPORT TWITTER AUTHENTICATION FAILED*";
-    slackText = slackText + " | IP: " + req.ip;
-    slackText = slackText + " | DOMAIN: " + domainName;
-    slackText = slackText + " | URL: " + req.url;
-    slackText = slackText + " | @" + req.session.passport.user.screenName;
+    slackText = slackText + "\nIP: " + req.ip;
+    slackText = slackText + "\nDOMAIN: " + domainName;
+    slackText = slackText + "\nURL: " + req.url;
+    slackText = slackText + "\n@" + req.session.passport.user.screenName;
 
     await slackSendWebMessage({ channel: slackChannelUserAuth, text: slackText});
   }
@@ -6488,10 +6488,10 @@ function initAppRouting(callback) {
     )); // handle errors
 
     slackText = "*LOADING PAGE | PASSPORT TWITTER AUTH*";
-    slackText = slackText + " | IP: " + req.ip;
-    slackText = slackText + " | DOMAIN: " + domainName;
-    slackText = slackText + " | URL: " + req.url;
-    slackText = slackText + " | @" + req.session.passport.user.screenName;
+    slackText = slackText + "\nIP: " + req.ip;
+    slackText = slackText + "\nDOMAIN: " + domainName;
+    slackText = slackText + "\nURL: " + req.url;
+    slackText = slackText + "\n@" + req.session.passport.user.screenName;
 
     await slackSendWebMessage({ channel: slackChannelUserAuth, text: slackText});
 
@@ -6533,9 +6533,9 @@ function initAppRouting(callback) {
     console.log(chalkAlert("WAS | PASSPORT AUTH TWITTER ERROR"));
 
     slackText = "*LOADING PAGE | PASSPORT AUTH TWITTER ERROR*";
-    slackText = slackText + " | IP: " + req.ip;
-    slackText = slackText + " | DOMAIN: " + domainName;
-    slackText = slackText + " | URL: " + req.url;
+    slackText = slackText + "\nIP: " + req.ip;
+    slackText = slackText + "\nDOMAIN: " + domainName;
+    slackText = slackText + "\nURL: " + req.url;
 
     await slackSendWebMessage({ channel: slackChannelUserAuth, text: slackText});
   });

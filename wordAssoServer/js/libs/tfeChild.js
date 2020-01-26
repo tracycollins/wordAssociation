@@ -988,6 +988,8 @@ async function updateUserTweets(params){
   }
   catch(err){
     console.log(chalkError("TFE | *** updateUserTweets ERROR: " + err));
+    console.log(chalkError("TFE | *** updateUserTweets ERROR CODE: " + err.code));
+    console.log(chalkError("TFE | *** updateUserTweets ERROR STATUS CODE: " + err.statusCode));
     throw err;
   }
 }

@@ -2051,6 +2051,7 @@ function initStats(callback){
   statsObj.caches.ipCache.stats = {};
   statsObj.caches.ipCache.stats.keys = 0;
   statsObj.caches.ipCache.stats.keysMax = 0;
+  statsObj.caches.ipCache.expired = 0;
 
   statsObj.caches.nodeCache = {};
   statsObj.caches.nodeCache.stats = {};

@@ -1487,7 +1487,7 @@ function ipCacheExpired(ip, ipCacheObj) {
     + " | $ EXPIRED: " + statsObj.caches.ipCache.expired
     + " | IN $: " + ipCacheObj.timeStamp
     + " | IP: " + ip
-    + " | DOMAIN" + ipCacheObj.domainName
+    + " | DOMAIN: " + ipCacheObj.domainName
   ));
 }
 

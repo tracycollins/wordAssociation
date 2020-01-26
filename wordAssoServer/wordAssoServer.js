@@ -184,6 +184,9 @@ const DEFAULT_NODE_TYPES = ["hashtag", "user"];
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 const tinyDateTimeFormat = "YYYYMMDDHHmmss";
 
+const IP_CACHE_DEFAULT_TTL = 300; // seconds
+const IP_CACHE_CHECK_PERIOD = 15;
+
 const SERVER_CACHE_DEFAULT_TTL = 300; // seconds
 const SERVER_CACHE_CHECK_PERIOD = 15;
 
@@ -268,22 +271,38 @@ const threeceeConfig = {
   token_secret: "3NI3s4sTILiqBilgEDBSlC6oSJYXcdLQP7lXp58TQMk0A"
 };
 
-async function dnsReverse(params){
 
-  dns.reverse(params.ipAddress, function(err, hostnames){
+const ipCacheObj = {};
+function dnsReverse(params){
 
-    if (err) {
-      throw err;
-    }
+  return new Promise(function(resolve, reject){
 
-    console.log(chalkLog(MODULE_ID_PREFIX + " | DNS REVERSE"
-      + " | IP: " + params.ipAddress 
-      + " | " + hostnames.length + " HOST NAMES"
-      + " | HOST: " + hostnames[0]
-      + "\nhostnames\n" + jsonPrint(hostnames)
-    ));
+    dns.reverse(params.ipAddress, function(err, hostnames){
 
-    return hostnames[0];
+      if (err) {
+        console.log(chalkError(MODULE_ID_PREFIX + " | *** DNS REVERSE ERROR: " + err));
+        return reject(err);
+      }
+
+      ipCacheObj.domainName = hostnames[0];
+      ipCacheObj.timeStamp = getTimeStamp();
+
+      ipCache.set(
+        params.ipAddress, 
+        ipCacheObj,
+        ipCacheTtl
+      );
+
+      console.log(chalkLog(MODULE_ID_PREFIX + " | DNS REVERSE"
+        + " | IP: " + params.ipAddress 
+        + " | " + hostnames.length + " HOST NAMES"
+        + " | HOST: " + hostnames[0]
+        // + "\nhostnames\n" + jsonPrint(hostnames)
+      ));
+
+      resolve(hostnames[0]);
+    });
+
   });
 }
 
@@ -1416,6 +1435,42 @@ function touchChildPidFile(params){
 }
 
 // ==================================================================
+// IP CACHE
+// ==================================================================
+
+let ipCacheTtl = process.env.IP_CACHE_DEFAULT_TTL;
+if (empty(ipCacheTtl)) { ipCacheTtl = IP_CACHE_DEFAULT_TTL; }
+
+console.log("WAS | IP CACHE TTL: " + ipCacheTtl + " SECONDS");
+
+let ipCacheCheckPeriod = process.env.IP_CACHE_CHECK_PERIOD;
+if (empty(ipCacheCheckPeriod)) { ipCacheCheckPeriod = IP_CACHE_CHECK_PERIOD; }
+
+console.log("WAS | IP CACHE CHECK PERIOD: " + ipCacheCheckPeriod + " SECONDS");
+
+const ipCache = new NodeCache({
+  stdTTL: ipCacheTtl,
+  checkperiod: ipCacheCheckPeriod
+});
+
+function ipCacheExpired(ip, ipObj) {
+
+  statsObj.caches.ipCache.expired += 1;
+
+  console.log(chalkInfo("WAS | XXX IP CACHE EXPIRED"
+    + " [" + ipCache.getStats().keys + " KEYS]"
+    + " | TTL: " + msToTime(ipCacheTtl*1000)
+    + " | NOW: " + getTimeStamp()
+    + " | $ EXPIRED: " + statsObj.caches.ipCache.expired
+    + " | IN $: " + ipObj.timeStamp
+    + " | IP: " + ip
+    + " | DOMAIN" + ipObj.domainName
+  ));
+}
+
+ipCache.on("expired", ipCacheExpired);
+
+// ==================================================================
 // UNCAT USER ID CACHE
 // ==================================================================
 console.log("WAS | UNCAT USER ID CACHE TTL: " + msToTime(configuration.uncatUserCacheTtl*1000));
@@ -1971,10 +2026,17 @@ function initStats(callback){
   statsObj.maxNodesPerMinTime = moment().valueOf();
 
   statsObj.caches = {};
+
+  statsObj.caches.ipCache = {};
+  statsObj.caches.ipCache.stats = {};
+  statsObj.caches.ipCache.stats.keys = 0;
+  statsObj.caches.ipCache.stats.keysMax = 0;
+
   statsObj.caches.nodeCache = {};
   statsObj.caches.nodeCache.stats = {};
   statsObj.caches.nodeCache.stats.keys = 0;
   statsObj.caches.nodeCache.stats.keysMax = 0;
+
   statsObj.caches.nodesPerMinuteTopTermCache = {};
   statsObj.caches.nodesPerMinuteTopTermCache.stats = {};
   statsObj.caches.nodesPerMinuteTopTermCache.stats.keys = 0;
@@ -3836,8 +3898,8 @@ async function initSocketHandler(socketObj) {
 
   const ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
-  dnsReverse({ipAddress: ipAddress})
-  .then(function(domainName){
+  try{
+    const domainName = await dnsReverse({ipAddress: ipAddress});
     console.log(chalk.blue("WAS | SOCKET CONNECT"
       + " | " + ipAddress
       + " | DOMAIN: " + domainName
@@ -3847,854 +3909,851 @@ async function initSocketHandler(socketObj) {
       + " | UT: " + statsObj.entity.util.connected
       + " | VW: " + statsObj.entity.viewer.connected
     ));
-  })
-  .catch(function(err){
 
-  });
+    socket.on("reconnect_error", function reconnectError(errorObj) {
 
-
-  socket.on("reconnect_error", function reconnectError(errorObj) {
-
-    const timeStamp = moment().valueOf();
-
-    serverCache.del(socketId);
-    viewerCache.del(socketId);
-
-    statsObj.socket.errors.reconnect_errors += 1;
-    statsObj.socket.errors.errorObj = errorObj;
-
-    console.log(chalkError(getTimeStamp(timeStamp) 
-      + " | SOCKET RECONNECT ERROR: " + socketId 
-      + "\nerrorObj\n" + jsonPrint(errorObj)
-    ));
-  });
-
-  socket.on("reconnect_failed", function reconnectFailed(errorObj) {
-
-    const timeStamp = moment().valueOf();
-
-    serverCache.del(socketId);
-    viewerCache.del(socketId);
-
-    statsObj.socket.errors.reconnect_fails += 1;
-    console.log(chalkError(getTimeStamp(timeStamp) 
-      + " | SOCKET RECONNECT FAILED: " + socketId + "\nerrorObj\n" + jsonPrint(errorObj)));
-  });
-
-  socket.on("connect_error", function connectError(errorObj) {
-
-    const timeStamp = moment().valueOf();
-
-    serverCache.del(socketId);
-    viewerCache.del(socketId);
-
-    statsObj.socket.errors.connect_errors += 1;
-    console.log(chalkError(getTimeStamp(timeStamp) 
-      + " | SOCKET CONNECT ERROR: " + socketId + "\nerrorObj\n" + jsonPrint(errorObj)));
-  });
-
-  socket.on("connect_timeout", function connectTimeout(errorObj) {
-
-    const timeStamp = moment().valueOf();
-
-    serverCache.del(socketId);
-    viewerCache.del(socketId);
-
-    statsObj.socket.errors.connect_timeouts += 1;
-    console.log(chalkError(getTimeStamp(timeStamp) 
-      + " | SOCKET CONNECT TIMEOUT: " + socketId + "\nerrorObj\n" + jsonPrint(errorObj)));
-  });
-
-  socket.on("error", function socketError(error) {
-
-    const timeStamp = moment().valueOf();
-
-    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
-
-    statsObj.socket.errors.errors += 1;
-
-    console.log(chalkError(getTimeStamp(timeStamp) 
-      + " | *** SOCKET ERROR" + " | " + socketId + " | " + error));
-
-    const currentServer = serverCache.get(socketId);
-
-    if (currentServer !== undefined) { 
-
-      currentServer.timeStamp = moment().valueOf();
-      currentServer.ip = ipAddress;
-      currentServer.status = "ERROR";
-
-      console.log(chalkError("WAS | SERVER ERROR" 
-        + " | " + getTimeStamp(currentServer.timeStamp)
-        + " | " + currentServer.user.type.toUpperCase()
-        + " | " + currentServer.user.nodeId
-        + " | " + currentServer.status
-        + " | " + currentServer.ip
-        + " | " + socketId
-      ));
+      const timeStamp = moment().valueOf();
 
       serverCache.del(socketId);
-
-      adminNameSpace.emit("SERVER_ERROR", currentServer);
-    }
-
-
-    const currentViewer = viewerCache.get(socketId);
-
-    if (currentViewer !== undefined) { 
-
-      currentViewer.timeStamp = moment().valueOf();
-      currentViewer.ip = ipAddress;
-      currentViewer.status = "ERROR";
-
-      console.log(chalkError("WAS | VIEWER ERROR" 
-        + " | " + getTimeStamp(currentViewer.timeStamp)
-        + " | " + currentViewer.user.type.toUpperCase()
-        + " | " + currentViewer.user.nodeId
-        + " | " + currentViewer.status
-        + " | " + currentViewer.ip
-        + " | " + socketId
-      ));
-
       viewerCache.del(socketId);
 
-      adminNameSpace.emit("VIEWER_ERROR", currentViewer);
-    }
-  });
+      statsObj.socket.errors.reconnect_errors += 1;
+      statsObj.socket.errors.errorObj = errorObj;
 
-  socket.on("reconnect", function socketReconnect() {
-
-    const timeStamp = moment().valueOf();
-
-    statsObj.socket.reconnects += 1;
-    console.log(chalkConnect(getTimeStamp(timeStamp) + " | SOCKET RECONNECT: " + socket.id));
-  });
-
-  socket.on("disconnect", function socketDisconnect(reason) {
-
-    const timeStamp = moment().valueOf();
-
-    statsObj.socket.disconnects += 1;
-
-    console.log(chalkAlert("WAS | XXX SOCKET DISCONNECT"
-      + " | " + socketId
-      + " | REASON: " + reason
-    ));
-
-    if (adminHashMap.has(socketId)) { 
-      console.log(chalkAlert("WAS | XXX DELETED ADMIN" 
-        + " | " + getTimeStamp(timeStamp)
-        + " | " + adminHashMap.get(socketId).user.type.toUpperCase()
-        + " | " + adminHashMap.get(socketId).user.nodeId
-        + " | " + socketId
+      console.log(chalkError(getTimeStamp(timeStamp) 
+        + " | SOCKET RECONNECT ERROR: " + socketId 
+        + "\nerrorObj\n" + jsonPrint(errorObj)
       ));
-      adminNameSpace.emit("ADMIN_DELETE", {socketId: socketId, nodeId: adminHashMap.get(socketId).user.nodeId});
-      adminHashMap.delete(socketId);
-    }
+    });
 
-    const currentServer = serverCache.get(socketId);
+    socket.on("reconnect_failed", function reconnectFailed(errorObj) {
 
-    if (currentServer !== undefined) { 
+      const timeStamp = moment().valueOf();
 
-      currentServer.status = "DISCONNECTED";
-
-      console.log(chalkAlert("WAS | XXX SERVER DISCONNECTED" 
-        + " | " + getTimeStamp(timeStamp)
-        + " | " + currentServer.user.type.toUpperCase()
-        + " | " + currentServer.user.nodeId
-        + " | " + socketId
-      ));
- 
-      adminNameSpace.emit("SERVER_DISCONNECT", currentServer);
       serverCache.del(socketId);
+      viewerCache.del(socketId);
 
-    }
+      statsObj.socket.errors.reconnect_fails += 1;
+      console.log(chalkError(getTimeStamp(timeStamp) 
+        + " | SOCKET RECONNECT FAILED: " + socketId + "\nerrorObj\n" + jsonPrint(errorObj)));
+    });
 
-    const currentViewer = viewerCache.get(socketId);
-    if (currentViewer !== undefined) { 
-      currentViewer.status = "DISCONNECTED";
-      viewerCache.del(socketId, function(err){
+    socket.on("connect_error", function connectError(errorObj) {
 
-        if (err) { 
-          console.log(chalkError("WAS | VIEWER CA ENTRY DELETE ERROR"
-            + " | " + err
-            + " | " + err
-          ));
-        }
+      const timeStamp = moment().valueOf();
 
-        console.log(chalkAlert("WAS | -X- VIEWER DISCONNECTED" 
+      serverCache.del(socketId);
+      viewerCache.del(socketId);
+
+      statsObj.socket.errors.connect_errors += 1;
+      console.log(chalkError(getTimeStamp(timeStamp) 
+        + " | SOCKET CONNECT ERROR: " + socketId + "\nerrorObj\n" + jsonPrint(errorObj)));
+    });
+
+    socket.on("connect_timeout", function connectTimeout(errorObj) {
+
+      const timeStamp = moment().valueOf();
+
+      serverCache.del(socketId);
+      viewerCache.del(socketId);
+
+      statsObj.socket.errors.connect_timeouts += 1;
+      console.log(chalkError(getTimeStamp(timeStamp) 
+        + " | SOCKET CONNECT TIMEOUT: " + socketId + "\nerrorObj\n" + jsonPrint(errorObj)));
+    });
+
+    socket.on("error", function socketError(error) {
+
+      const timeStamp = moment().valueOf();
+
+      // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
+      statsObj.socket.errors.errors += 1;
+
+      console.log(chalkError(getTimeStamp(timeStamp) 
+        + " | *** SOCKET ERROR" + " | " + socketId + " | " + error));
+
+      const currentServer = serverCache.get(socketId);
+
+      if (currentServer !== undefined) { 
+
+        currentServer.timeStamp = moment().valueOf();
+        currentServer.ip = ipAddress;
+        currentServer.status = "ERROR";
+
+        console.log(chalkError("WAS | SERVER ERROR" 
+          + " | " + getTimeStamp(currentServer.timeStamp)
+          + " | " + currentServer.user.type.toUpperCase()
+          + " | " + currentServer.user.nodeId
+          + " | " + currentServer.status
+          + " | " + currentServer.ip
+          + " | " + socketId
+        ));
+
+        serverCache.del(socketId);
+
+        adminNameSpace.emit("SERVER_ERROR", currentServer);
+      }
+
+
+      const currentViewer = viewerCache.get(socketId);
+
+      if (currentViewer !== undefined) { 
+
+        currentViewer.timeStamp = moment().valueOf();
+        currentViewer.ip = ipAddress;
+        currentViewer.status = "ERROR";
+
+        console.log(chalkError("WAS | VIEWER ERROR" 
           + " | " + getTimeStamp(currentViewer.timeStamp)
           + " | " + currentViewer.user.type.toUpperCase()
           + " | " + currentViewer.user.nodeId
+          + " | " + currentViewer.status
           + " | " + currentViewer.ip
           + " | " + socketId
         ));
 
-        adminNameSpace.emit("VIEWER_DISCONNECT", currentViewer);
-      });
-    }
-  });
+        viewerCache.del(socketId);
 
-  socket.on("SESSION_KEEPALIVE", function sessionKeepalive(keepAliveObj) {
+        adminNameSpace.emit("VIEWER_ERROR", currentViewer);
+      }
+    });
 
-    const timeStamp = moment().valueOf();
+    socket.on("reconnect", function socketReconnect() {
 
-    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+      const timeStamp = moment().valueOf();
 
-    if (empty(keepAliveObj.user)) {
-      console.log(chalkAlert("WAS | SESSION_KEEPALIVE USER UNDEFINED ??"
-        + " | NSP: " + socket.nsp.name.toUpperCase()
-        + " | " + socket.id
+      statsObj.socket.reconnects += 1;
+      console.log(chalkConnect(getTimeStamp(timeStamp) + " | SOCKET RECONNECT: " + socket.id));
+    });
+
+    socket.on("disconnect", function socketDisconnect(reason) {
+
+      const timeStamp = moment().valueOf();
+
+      statsObj.socket.disconnects += 1;
+
+      console.log(chalkAlert("WAS | XXX SOCKET DISCONNECT"
+        + " | " + socketId
+        + " | REASON: " + reason
+      ));
+
+      if (adminHashMap.has(socketId)) { 
+        console.log(chalkAlert("WAS | XXX DELETED ADMIN" 
+          + " | " + getTimeStamp(timeStamp)
+          + " | " + adminHashMap.get(socketId).user.type.toUpperCase()
+          + " | " + adminHashMap.get(socketId).user.nodeId
+          + " | " + socketId
+        ));
+        adminNameSpace.emit("ADMIN_DELETE", {socketId: socketId, nodeId: adminHashMap.get(socketId).user.nodeId});
+        adminHashMap.delete(socketId);
+      }
+
+      const currentServer = serverCache.get(socketId);
+
+      if (currentServer !== undefined) { 
+
+        currentServer.status = "DISCONNECTED";
+
+        console.log(chalkAlert("WAS | XXX SERVER DISCONNECTED" 
+          + " | " + getTimeStamp(timeStamp)
+          + " | " + currentServer.user.type.toUpperCase()
+          + " | " + currentServer.user.nodeId
+          + " | " + socketId
+        ));
+   
+        adminNameSpace.emit("SERVER_DISCONNECT", currentServer);
+        serverCache.del(socketId);
+
+      }
+
+      const currentViewer = viewerCache.get(socketId);
+      if (currentViewer !== undefined) { 
+        currentViewer.status = "DISCONNECTED";
+        viewerCache.del(socketId, function(err){
+
+          if (err) { 
+            console.log(chalkError("WAS | VIEWER CA ENTRY DELETE ERROR"
+              + " | " + err
+              + " | " + err
+            ));
+          }
+
+          console.log(chalkAlert("WAS | -X- VIEWER DISCONNECTED" 
+            + " | " + getTimeStamp(currentViewer.timeStamp)
+            + " | " + currentViewer.user.type.toUpperCase()
+            + " | " + currentViewer.user.nodeId
+            + " | " + currentViewer.ip
+            + " | " + socketId
+          ));
+
+          adminNameSpace.emit("VIEWER_DISCONNECT", currentViewer);
+        });
+      }
+    });
+
+    socket.on("SESSION_KEEPALIVE", function sessionKeepalive(keepAliveObj) {
+
+      const timeStamp = moment().valueOf();
+
+      // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
+      if (empty(keepAliveObj.user)) {
+        console.log(chalkAlert("WAS | SESSION_KEEPALIVE USER UNDEFINED ??"
+          + " | NSP: " + socket.nsp.name.toUpperCase()
+          + " | " + socket.id
+          + " | " + ipAddress
+          + "\n" + jsonPrint(keepAliveObj)
+        ));
+        return;
+      }
+
+      const authSocketObj = authenticatedSocketCache.get(socket.id);
+
+      if (authSocketObj !== undefined) {
+
+        if (configuration.verbose) {
+          console.log(chalkLog("WAS | ... KEEPALIVE AUTHENTICATED SOCKET"
+            + " | " + socket.id
+            + " | NSP: " + authSocketObj.namespace.toUpperCase()
+            + " | USER ID: " + authSocketObj.userId
+          ));
+        }
+
+        authSocketObj.ipAddress = ipAddress;
+        authSocketObj.timeStamp = moment().valueOf();
+
+        authenticatedSocketCache.set(socket.id, authSocketObj);
+
+      }
+      else {
+        console.log(chalkAlert("WAS | *** KEEPALIVE UNAUTHENTICATED SOCKET | DISCONNECTING..."
+          + " | " + socket.id
+          + " | NSP: " + socket.nsp.name.toUpperCase()
+          + " | " + keepAliveObj.user.userId
+        ));
+        socket.disconnect();
+        serverCache.del(socket.id);
+      }
+
+
+      if (empty(statsObj.utilities[keepAliveObj.user.userId])) {
+        statsObj.utilities[keepAliveObj.user.userId] = {};
+      }
+
+      statsObj.socket.keepalives += 1;
+
+      if (keepAliveObj.user.stats) { statsObj.utilities[keepAliveObj.user.userId] = keepAliveObj.user.stats; }
+
+
+      const currentSessionType = serverRegex.exec(keepAliveObj.user.userId) ? serverRegex.exec(keepAliveObj.user.userId)[1].toUpperCase() : "NULL";
+
+      let sessionObj = {};
+      let tempServerObj;
+      let tempViewerObj;
+
+      switch (currentSessionType) {
+
+        case "ADMIN" :
+
+          console.log(chalkInfo("WAS | R< KA"
+            + " | " + "ADMIN" 
+            + " | " + getTimeStamp(timeStamp)
+            + " | " + keepAliveObj.user.userId
+            + " | " + ipAddress
+            + " | " + socket.id
+          ));
+
+          sessionObj.status = keepAliveObj.status || "KEEPALIVE";
+
+          if (!adminHashMap.has(socket.id)) { 
+
+            sessionObj.ip = ipAddress;
+            sessionObj.socketId = socket.id;
+            sessionObj.type = currentSessionType;
+            sessionObj.timeStamp = moment().valueOf();
+            sessionObj.user = keepAliveObj.user;
+            sessionObj.isAdmin = true;
+            sessionObj.isServer = false;
+            sessionObj.isViewer = false;
+            sessionObj.status = keepAliveObj.status || "KEEPALIVE";
+
+            console.log(chalk.green("+++ ADD " + currentSessionType 
+              + " | " + getTimeStamp(timeStamp)
+              + " | " + keepAliveObj.user.userId
+              + " | " + sessionObj.ip
+              + " | " + socket.id
+            ));
+
+            adminHashMap.set(socket.id, sessionObj);
+            adminNameSpace.emit("ADMIN_ADD", sessionObj);
+
+          }
+          else {
+            sessionObj = adminHashMap.get(socket.id);
+
+            sessionObj.timeStamp = moment().valueOf();
+            sessionObj.user = keepAliveObj.user;
+            sessionObj.status = keepAliveObj.status || "KEEPALIVE";
+
+            adminHashMap.set(socket.id, sessionObj);
+            adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
+          }
+        break;
+
+        case "GIS" :
+        case "TFE" :
+        case "TNN" :
+        case "TSS" :
+        case "TUS" :
+        case "LA" :
+        case "TMP" :
+
+          console.log(chalkInfo("WAS | R< KA"
+            + " | " + currentSessionType + " SERVER" 
+            + " | " + getTimeStamp(timeStamp)
+            + " | " + keepAliveObj.user.userId
+            + " | " + ipAddress
+            + " | " + socket.id
+          ));
+
+          sessionObj.socketId = socket.id;
+          sessionObj.ip = ipAddress;
+          sessionObj.type = currentSessionType;
+          sessionObj.timeStamp = moment().valueOf();
+          sessionObj.user = keepAliveObj.user;
+
+          tempServerObj = serverCache.get(socket.id);
+
+          if (tempServerObj == undefined) { 
+
+            sessionObj.ip = ipAddress;
+            sessionObj.socketId = socket.id;
+            sessionObj.type = currentSessionType;
+            sessionObj.timeStamp = moment().valueOf();
+            sessionObj.user = keepAliveObj.user;
+            sessionObj.isAdmin = false;
+            sessionObj.isServer = true;
+            sessionObj.isViewer = false;
+            sessionObj.status = keepAliveObj.status || "KEEPALIVE";
+
+            console.log(chalk.green("+++ ADD " + currentSessionType + " SERVER" 
+              + " | " + getTimeStamp(timeStamp)
+              + " | " + keepAliveObj.user.userId
+              + " | " + sessionObj.ip
+              + " | " + socket.id
+            ));
+
+            serverCache.set(socket.id, sessionObj);
+            adminNameSpace.emit("SERVER_ADD", sessionObj);
+          }
+          else {
+
+            sessionObj = tempServerObj;
+
+            sessionObj.timeStamp = moment().valueOf();
+            sessionObj.user = keepAliveObj.user;
+            sessionObj.status = keepAliveObj.status || "KEEPALIVE";
+
+            serverCache.set(socket.id, sessionObj);
+            adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
+            socket.emit("GET_STATS");
+          }
+
+        break;
+
+        case "VIEWER" :
+
+          console.log(chalkInfo("WAS | R< KA"
+            + " | " + "VIEWER"
+            + " | " + getTimeStamp(timeStamp)
+            + " | " + keepAliveObj.user.userId
+            + " | " + ipAddress
+            + " | " + socket.id
+          ));
+
+          sessionObj.socketId = socket.id;
+          sessionObj.ip = ipAddress;
+          sessionObj.type = currentSessionType;
+          sessionObj.timeStamp = moment().valueOf();
+          sessionObj.user = keepAliveObj.user;
+
+          tempViewerObj = viewerCache.get(socket.id);
+
+          if (tempViewerObj == undefined) { 
+
+            sessionObj.socketId = socket.id;
+            sessionObj.ip = ipAddress;
+            sessionObj.type = currentSessionType;
+            sessionObj.timeStamp = moment().valueOf();
+            sessionObj.user = keepAliveObj.user;
+            sessionObj.isAdmin = false;
+            sessionObj.isServer = false;
+            sessionObj.isViewer = true;
+            sessionObj.status = keepAliveObj.status || "KEEPALIVE";
+
+            console.log(chalk.green("+++ ADD " + currentSessionType + " SESSION" 
+              + " | " + getTimeStamp(timeStamp)
+              + " | " + keepAliveObj.user.userId
+              + " | " + sessionObj.ip
+              + " | " + socket.id
+            ));
+
+            viewerCache.set(socket.id, sessionObj);
+            adminNameSpace.emit("VIEWER_ADD", sessionObj);
+          }
+          else {
+
+            sessionObj = tempViewerObj;
+
+            sessionObj.timeStamp = moment().valueOf();
+            sessionObj.user = keepAliveObj.user;
+            sessionObj.status = keepAliveObj.status || "KEEPALIVE";
+
+            viewerCache.set(socket.id, sessionObj);
+            adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
+          }
+        break;
+
+        default:
+          console.log(chalkAlert("WAS | **** NOT SERVER ****"
+            + " | SESSION TYPE: " + currentSessionType
+            + "\n" + jsonPrint(keepAliveObj.user)
+          ));
+      }
+    });
+
+    socket.on("TWITTER_FOLLOW", async function(user) {
+
+      if (empty(user)) {
+        console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: NULL USER"));
+        return;
+      }
+
+      const timeStamp = moment().valueOf();
+
+      // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
+      console.log(chalkSocket("R< TWITTER_FOLLOW"
+        + " | " + getTimeStamp(timeStamp)
         + " | " + ipAddress
-        + "\n" + jsonPrint(keepAliveObj)
-      ));
-      return;
-    }
-
-    const authSocketObj = authenticatedSocketCache.get(socket.id);
-
-    if (authSocketObj !== undefined) {
-
-      if (configuration.verbose) {
-        console.log(chalkLog("WAS | ... KEEPALIVE AUTHENTICATED SOCKET"
-          + " | " + socket.id
-          + " | NSP: " + authSocketObj.namespace.toUpperCase()
-          + " | USER ID: " + authSocketObj.userId
-        ));
-      }
-
-      authSocketObj.ipAddress = ipAddress;
-      authSocketObj.timeStamp = moment().valueOf();
-
-      authenticatedSocketCache.set(socket.id, authSocketObj);
-
-    }
-    else {
-      console.log(chalkAlert("WAS | *** KEEPALIVE UNAUTHENTICATED SOCKET | DISCONNECTING..."
         + " | " + socket.id
-        + " | NSP: " + socket.nsp.name.toUpperCase()
-        + " | " + keepAliveObj.user.userId
+        + " | NID: " + user.nodeId
+        + " | UID: " + user.userId
+        + " | @" + user.screenName
       ));
-      socket.disconnect();
-      serverCache.del(socket.id);
-    }
 
+      try{
 
-    if (empty(statsObj.utilities[keepAliveObj.user.userId])) {
-      statsObj.utilities[keepAliveObj.user.userId] = {};
-    }
+        const updatedUser = await follow({user: user, forceFollow: true});
 
-    statsObj.socket.keepalives += 1;
-
-    if (keepAliveObj.user.stats) { statsObj.utilities[keepAliveObj.user.userId] = keepAliveObj.user.stats; }
-
-
-    const currentSessionType = serverRegex.exec(keepAliveObj.user.userId) ? serverRegex.exec(keepAliveObj.user.userId)[1].toUpperCase() : "NULL";
-
-    let sessionObj = {};
-    let tempServerObj;
-    let tempViewerObj;
-
-    switch (currentSessionType) {
-
-      case "ADMIN" :
-
-        console.log(chalkInfo("WAS | R< KA"
-          + " | " + "ADMIN" 
-          + " | " + getTimeStamp(timeStamp)
-          + " | " + keepAliveObj.user.userId
-          + " | " + ipAddress
-          + " | " + socket.id
-        ));
-
-        sessionObj.status = keepAliveObj.status || "KEEPALIVE";
-
-        if (!adminHashMap.has(socket.id)) { 
-
-          sessionObj.ip = ipAddress;
-          sessionObj.socketId = socket.id;
-          sessionObj.type = currentSessionType;
-          sessionObj.timeStamp = moment().valueOf();
-          sessionObj.user = keepAliveObj.user;
-          sessionObj.isAdmin = true;
-          sessionObj.isServer = false;
-          sessionObj.isViewer = false;
-          sessionObj.status = keepAliveObj.status || "KEEPALIVE";
-
-          console.log(chalk.green("+++ ADD " + currentSessionType 
-            + " | " + getTimeStamp(timeStamp)
-            + " | " + keepAliveObj.user.userId
-            + " | " + sessionObj.ip
+        if (!updatedUser) {
+          console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: NULL UPDATED USER"));
+        }
+        else{
+          console.log(chalk.blue("WAS | +++ TWITTER_FOLLOW"
+            + " | " + ipAddress
             + " | " + socket.id
+            + " | UID" + updatedUser.nodeId
+            + " | @" + updatedUser.screenName
           ));
-
-          adminHashMap.set(socket.id, sessionObj);
-          adminNameSpace.emit("ADMIN_ADD", sessionObj);
-
-        }
-        else {
-          sessionObj = adminHashMap.get(socket.id);
-
-          sessionObj.timeStamp = moment().valueOf();
-          sessionObj.user = keepAliveObj.user;
-          sessionObj.status = keepAliveObj.status || "KEEPALIVE";
-
-          adminHashMap.set(socket.id, sessionObj);
-          adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
-        }
-      break;
-
-      case "GIS" :
-      case "TFE" :
-      case "TNN" :
-      case "TSS" :
-      case "TUS" :
-      case "LA" :
-      case "TMP" :
-
-        console.log(chalkInfo("WAS | R< KA"
-          + " | " + currentSessionType + " SERVER" 
-          + " | " + getTimeStamp(timeStamp)
-          + " | " + keepAliveObj.user.userId
-          + " | " + ipAddress
-          + " | " + socket.id
-        ));
-
-        sessionObj.socketId = socket.id;
-        sessionObj.ip = ipAddress;
-        sessionObj.type = currentSessionType;
-        sessionObj.timeStamp = moment().valueOf();
-        sessionObj.user = keepAliveObj.user;
-
-        tempServerObj = serverCache.get(socket.id);
-
-        if (tempServerObj == undefined) { 
-
-          sessionObj.ip = ipAddress;
-          sessionObj.socketId = socket.id;
-          sessionObj.type = currentSessionType;
-          sessionObj.timeStamp = moment().valueOf();
-          sessionObj.user = keepAliveObj.user;
-          sessionObj.isAdmin = false;
-          sessionObj.isServer = true;
-          sessionObj.isViewer = false;
-          sessionObj.status = keepAliveObj.status || "KEEPALIVE";
-
-          console.log(chalk.green("+++ ADD " + currentSessionType + " SERVER" 
-            + " | " + getTimeStamp(timeStamp)
-            + " | " + keepAliveObj.user.userId
-            + " | " + sessionObj.ip
-            + " | " + socket.id
-          ));
-
-          serverCache.set(socket.id, sessionObj);
-          adminNameSpace.emit("SERVER_ADD", sessionObj);
-        }
-        else {
-
-          sessionObj = tempServerObj;
-
-          sessionObj.timeStamp = moment().valueOf();
-          sessionObj.user = keepAliveObj.user;
-          sessionObj.status = keepAliveObj.status || "KEEPALIVE";
-
-          serverCache.set(socket.id, sessionObj);
-          adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
-          socket.emit("GET_STATS");
         }
 
-      break;
-
-      case "VIEWER" :
-
-        console.log(chalkInfo("WAS | R< KA"
-          + " | " + "VIEWER"
-          + " | " + getTimeStamp(timeStamp)
-          + " | " + keepAliveObj.user.userId
-          + " | " + ipAddress
-          + " | " + socket.id
-        ));
-
-        sessionObj.socketId = socket.id;
-        sessionObj.ip = ipAddress;
-        sessionObj.type = currentSessionType;
-        sessionObj.timeStamp = moment().valueOf();
-        sessionObj.user = keepAliveObj.user;
-
-        tempViewerObj = viewerCache.get(socket.id);
-
-        if (tempViewerObj == undefined) { 
-
-          sessionObj.socketId = socket.id;
-          sessionObj.ip = ipAddress;
-          sessionObj.type = currentSessionType;
-          sessionObj.timeStamp = moment().valueOf();
-          sessionObj.user = keepAliveObj.user;
-          sessionObj.isAdmin = false;
-          sessionObj.isServer = false;
-          sessionObj.isViewer = true;
-          sessionObj.status = keepAliveObj.status || "KEEPALIVE";
-
-          console.log(chalk.green("+++ ADD " + currentSessionType + " SESSION" 
-            + " | " + getTimeStamp(timeStamp)
-            + " | " + keepAliveObj.user.userId
-            + " | " + sessionObj.ip
-            + " | " + socket.id
-          ));
-
-          viewerCache.set(socket.id, sessionObj);
-          adminNameSpace.emit("VIEWER_ADD", sessionObj);
-        }
-        else {
-
-          sessionObj = tempViewerObj;
-
-          sessionObj.timeStamp = moment().valueOf();
-          sessionObj.user = keepAliveObj.user;
-          sessionObj.status = keepAliveObj.status || "KEEPALIVE";
-
-          viewerCache.set(socket.id, sessionObj);
-          adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
-        }
-      break;
-
-      default:
-        console.log(chalkAlert("WAS | **** NOT SERVER ****"
-          + " | SESSION TYPE: " + currentSessionType
-          + "\n" + jsonPrint(keepAliveObj.user)
-        ));
-    }
-  });
-
-  socket.on("TWITTER_FOLLOW", async function(user) {
-
-    if (empty(user)) {
-      console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: NULL USER"));
-      return;
-    }
-
-    const timeStamp = moment().valueOf();
-
-    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
-
-    console.log(chalkSocket("R< TWITTER_FOLLOW"
-      + " | " + getTimeStamp(timeStamp)
-      + " | " + ipAddress
-      + " | " + socket.id
-      + " | NID: " + user.nodeId
-      + " | UID: " + user.userId
-      + " | @" + user.screenName
-    ));
-
-    try{
-
-      const updatedUser = await follow({user: user, forceFollow: true});
-
-      if (!updatedUser) {
-        console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: NULL UPDATED USER"));
       }
-      else{
-        console.log(chalk.blue("WAS | +++ TWITTER_FOLLOW"
-          + " | " + ipAddress
-          + " | " + socket.id
+      catch(err) {
+        console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: " + err));
+        throw err;
+      }
+    });
+
+    socket.on("TWITTER_UNFOLLOW", function(user) {
+
+      const timeStamp = moment().valueOf();
+
+      // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
+      console.log(chalkSocket("R< TWITTER_UNFOLLOW"
+        + " | " + getTimeStamp(timeStamp)
+        + " | " + ipAddress
+        + " | " + socket.id
+        + " | UID: " + user.userId
+        + " | @" + user.screenName
+      ));
+
+      unfollow({user: user}, function(err, updatedUser){
+        if (err) {
+          console.log(chalkError("WAS | TWITTER_UNFOLLOW ERROR: " + err));
+          return;
+        }
+        
+        if (!updatedUser) { return; }
+
+        adminNameSpace.emit("UNFOLLOW", updatedUser);
+        utilNameSpace.emit("UNFOLLOW", updatedUser);
+
+        console.log(chalk.blue("WAS | XXX TWITTER_UNFOLLOW"
+          + " | UID" + updatedUser.nodeId
+          + " | @" + updatedUser.screenName
+        ));
+
+      });
+    });
+
+    socket.on("TWITTER_CATEGORY_VERIFIED", async function(user) {
+
+      const timeStamp = moment().valueOf();
+
+      // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
+      console.log(chalkSocket("R< TWITTER_CATEGORY_VERIFIED"
+        + " | " + getTimeStamp(timeStamp)
+        + " | " + ipAddress
+        + " | " + socket.id
+        + " | UID: " + user.userId
+        + " | @" + user.screenName
+      ));
+
+      try{
+
+        user.categoryVerified = true;
+
+        const updatedUser = await categoryVerified({user: user});
+
+        if (!updatedUser) { return; }
+
+        adminNameSpace.emit("CAT_VERFIED", updatedUser);
+        utilNameSpace.emit("CAT_VERFIED", updatedUser);
+
+        console.log(chalk.blue("WAS | +++ TWITTER_CATEGORY_VERIFIED"
+          + " | SID: " + socket.id
+          + " | UID" + updatedUser.nodeId
+          + " | @" + updatedUser.screenName
+          + " | C M: " + updatedUser.category + " A: " + updatedUser.categoryAuto
+        ));
+      }
+      catch(err){
+        console.log(chalkError("WAS | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
+      }
+    });
+
+    socket.on("TWITTER_CATEGORY_UNVERIFIED", async function(user) {
+
+      const timeStamp = moment().valueOf();
+
+      // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
+      console.log(chalkSocket("R< TWITTER_CATEGORY_UNVERIFIED"
+        + " | " + getTimeStamp(timeStamp)
+        + " | " + ipAddress
+        + " | " + socket.id
+        + " | UID: " + user.userId
+        + " | @" + user.screenName
+      ));
+
+      try{
+
+        user.categoryVerified = false;
+
+        const updatedUser = await categoryVerified({user: user});
+
+        if (!updatedUser) { return; }
+
+        adminNameSpace.emit("CAT_UNVERFIED", updatedUser);
+        utilNameSpace.emit("CAT_UNVERFIED", updatedUser);
+
+        console.log(chalk.blue("WAS | --- TWITTER_CATEGORY_UNVERIFIED"
+          + " | SID: " + socket.id
           + " | UID" + updatedUser.nodeId
           + " | @" + updatedUser.screenName
         ));
       }
-
-    }
-    catch(err) {
-      console.log(chalkError("WAS | TWITTER_FOLLOW ERROR: " + err));
-      throw err;
-    }
-  });
-
-  socket.on("TWITTER_UNFOLLOW", function(user) {
-
-    const timeStamp = moment().valueOf();
-
-    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
-
-    console.log(chalkSocket("R< TWITTER_UNFOLLOW"
-      + " | " + getTimeStamp(timeStamp)
-      + " | " + ipAddress
-      + " | " + socket.id
-      + " | UID: " + user.userId
-      + " | @" + user.screenName
-    ));
-
-    unfollow({user: user}, function(err, updatedUser){
-      if (err) {
-        console.log(chalkError("WAS | TWITTER_UNFOLLOW ERROR: " + err));
-        return;
-      }
-      
-      if (!updatedUser) { return; }
-
-      adminNameSpace.emit("UNFOLLOW", updatedUser);
-      utilNameSpace.emit("UNFOLLOW", updatedUser);
-
-      console.log(chalk.blue("WAS | XXX TWITTER_UNFOLLOW"
-        + " | UID" + updatedUser.nodeId
-        + " | @" + updatedUser.screenName
-      ));
-
-    });
-  });
-
-  socket.on("TWITTER_CATEGORY_VERIFIED", async function(user) {
-
-    const timeStamp = moment().valueOf();
-
-    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
-
-    console.log(chalkSocket("R< TWITTER_CATEGORY_VERIFIED"
-      + " | " + getTimeStamp(timeStamp)
-      + " | " + ipAddress
-      + " | " + socket.id
-      + " | UID: " + user.userId
-      + " | @" + user.screenName
-    ));
-
-    try{
-
-      user.categoryVerified = true;
-
-      const updatedUser = await categoryVerified({user: user});
-
-      if (!updatedUser) { return; }
-
-      adminNameSpace.emit("CAT_VERFIED", updatedUser);
-      utilNameSpace.emit("CAT_VERFIED", updatedUser);
-
-      console.log(chalk.blue("WAS | +++ TWITTER_CATEGORY_VERIFIED"
-        + " | SID: " + socket.id
-        + " | UID" + updatedUser.nodeId
-        + " | @" + updatedUser.screenName
-        + " | C M: " + updatedUser.category + " A: " + updatedUser.categoryAuto
-      ));
-    }
-    catch(err){
-      console.log(chalkError("WAS | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
-    }
-  });
-
-  socket.on("TWITTER_CATEGORY_UNVERIFIED", async function(user) {
-
-    const timeStamp = moment().valueOf();
-
-    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
-
-    console.log(chalkSocket("R< TWITTER_CATEGORY_UNVERIFIED"
-      + " | " + getTimeStamp(timeStamp)
-      + " | " + ipAddress
-      + " | " + socket.id
-      + " | UID: " + user.userId
-      + " | @" + user.screenName
-    ));
-
-    try{
-
-      user.categoryVerified = false;
-
-      const updatedUser = await categoryVerified({user: user});
-
-      if (!updatedUser) { return; }
-
-      adminNameSpace.emit("CAT_UNVERFIED", updatedUser);
-      utilNameSpace.emit("CAT_UNVERFIED", updatedUser);
-
-      console.log(chalk.blue("WAS | --- TWITTER_CATEGORY_UNVERIFIED"
-        + " | SID: " + socket.id
-        + " | UID" + updatedUser.nodeId
-        + " | @" + updatedUser.screenName
-      ));
-    }
-    catch(err){
-      console.log(chalkError("WAS | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
-    }
-  });
-
-  socket.on("TWITTER_IGNORE", async function(user) {
-
-    try{
-
-      const timeStamp = moment().valueOf();
-
-      // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
-
-      console.log(chalkSocket("R< TWITTER_IGNORE"
-        + " | " + getTimeStamp(timeStamp)
-        + " | " + ipAddress
-        + " | " + socket.id
-        + " | UID: " + user.userId
-        + " | @" + user.screenName
-      ));
-
-      const updatedUser = await ignore({user: user, socketId: socket.id});
-
-      if (!updatedUser) { return; }
-
-      adminNameSpace.emit("IGNORE", updatedUser);
-      utilNameSpace.emit("IGNORE", updatedUser);
-
-      console.log(chalk.blue("WAS | XXX TWITTER_IGNORE"
-        + " | SID: " + socket.id
-        + " | UID" + updatedUser.nodeId
-        + " | @" + updatedUser.screenName
-      ));
-    }
-    catch(err){
-      console.log(chalkError("WAS | *** IGNORE USER ERROR: " + err));
-    }
-  });
-
-  socket.on("TWITTER_UNIGNORE", async function(user) {
-
-    try{
-
-      const timeStamp = moment().valueOf();
-
-      // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
-
-      console.log(chalkSocket("R< TWITTER_UNIGNORE"
-        + " | " + getTimeStamp(timeStamp)
-        + " | " + ipAddress
-        + " | " + socket.id
-        + " | UID: " + user.userId
-        + " | @" + user.screenName
-      ));
-
-      const updatedUser = await unignore({user: user, socketId: socket.id});
-      
-      if (!updatedUser) { return; }
-
-      adminNameSpace.emit("UNIGNORE", updatedUser);
-      utilNameSpace.emit("UNIGNORE", updatedUser);
-
-      console.log(chalk.blue("WAS | +++ TWITTER_UNIGNORE"
-        + " | SID: " + socket.id
-        + " | UID" + updatedUser.nodeId
-        + " | @" + updatedUser.screenName
-      ));
-
-    }
-    catch(err){
-      console.log(chalkError("WAS | TWITTER_UNIGNORE ERROR: " + err));
-      throw err;
-    }
-  });
-
-  socket.on("TWITTER_SEARCH_NODE", function (sn) {
-
-    const timeStamp = moment().valueOf();
-
-    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
-
-    twitterSearchNodeQueue.push({searchNode: sn, socketId: socket.id});
-
-    console.log(chalkSocket("R< TWITTER_SEARCH_NODE"
-      + " [ TSNQ: " + twitterSearchNodeQueue.length + "]"
-      + " | " + getTimeStamp(timeStamp)
-      + " | " + ipAddress
-      + " | " + socket.id
-      + " | " + sn
-    ));
-  });
-
-  socket.on("TWITTER_CATEGORIZE_NODE", function twitterCategorizeNode(dataObj) {
-
-    const timeStamp = moment().valueOf();
-
-    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
-
-    if (dataObj.node.nodeType == "user") {
-      console.log(chalkSocket("TWITTER_CATEGORIZE_NODE"
-        + " | " + getTimeStamp(timeStamp)
-        + " | " + ipAddress
-        + " | " + socket.id
-        + " | @" + dataObj.node.screenName
-        + " | CAT: " + dataObj.category
-        + " | FOLLOW: " + dataObj.follow
-      ));
-    }
-    if (dataObj.node.nodeType == "hashtag") {
-      console.log(chalkSocket("TWITTER_CATEGORIZE_NODE"
-        + " | " + getTimeStamp(timeStamp)
-        + " | SID: " + socket.id
-        + " | #" + dataObj.node.nodeId
-        + " | CAT: " + dataObj.category
-      ));
-    }
-
-    categorizeNode(dataObj, function(err, updatedNodeObj){
-      if (err) {
-        console.log(chalkError("WAS | CAT NODE ERROR: " + err));
-      }
-      else if (updatedNodeObj) {
-        if (updatedNodeObj.nodeType == "user") {
-
-          console.log(chalkSocket("TX> SET_USER"
-            + " | " + printUser({user: updatedNodeObj})
-          ));
-        }
-        if (updatedNodeObj.nodeType == "hashtag") {
-          socket.emit("SET_TWITTER_HASHTAG", {hashtag: updatedNodeObj, stats: statsObj.hashtag });
-          console.log(chalkSocket("TX> SET_TWITTER_HASHTAG"
-            + " | " + getTimeStamp(timeStamp)
-            + " | SID: " + socket.id
-            + " | #" + updatedNodeObj.nodeId
-            + " | Ms: " + updatedNodeObj.mentions
-            + " | CAT: M: " + updatedNodeObj.category + " | A: " + updatedNodeObj.categoryAuto
-          ));
-        }
-      }
-    });
-  });
-
-  socket.on("USER_READY", function userReady(userObj) {
-
-    const timeStamp = moment().valueOf();
-
-    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
-
-    console.log(chalkSocket("R< USER READY"
-      + " | " + getTimeStamp(timeStamp)
-      + " | " + ipAddress
-      + " | " + socket.id
-      + " | " + userObj.userId
-      + " | SENT " + getTimeStamp(parseInt(userObj.timeStamp))
-    ));
-
-    socket.emit("USER_READY_ACK", { userId: userObj.userId, timeStamp: moment().valueOf() }, function(err){
-      if (err) {
-        console.log(chalkError("WAS | *** USER_READY_ACK SEND ERROR | " + userObj.userId));
-      }
-      else {
-        console.log(chalkError("WAS | TXD> USER_READY_ACK | " + userObj.userId));
-      }
-    });
-  });
-
-  socket.on("VIEWER_READY", async function viewerReady(viewerObj) {
-
-    const timeStamp = moment().valueOf();
-
-    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
-
-    console.log(chalkSocket("VIEWER READY"
-      + " | " + getTimeStamp(timeStamp)
-      + " | " + ipAddress
-      + " | " + socket.id
-      + " | " + viewerObj.viewerId
-      + " | SENT AT " + getTimeStamp(parseInt(viewerObj.timeStamp))
-    ));
-
-    if (!userServerControllerReady || !statsObj.dbConnectionReady) {
-      console.log(chalkAlert("WAS | *** NOT READY"
-        + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
-        + " | userServerControllerReady: " + userServerControllerReady
-      ));
-      // console.log(chalkError("WAS | *** userServerController OR dbConnection NOT READY ERROR"));
-    }
-    else{
-      try{
-        const user = await wordAssoDb.User.findOne({screenName: defaultTwitterUserScreenName});
-
-        if (user) {
-          socket.emit("SET_TWITTER_USER", {user: user, stats: statsObj.user });
-        }
-
-        socket.emit("VIEWER_READY_ACK", 
-          {
-            nodeId: viewerObj.viewerId,
-            timeStamp: moment().valueOf(),
-            viewerSessionKey: moment().valueOf()
-          }
-        );
-
-      }
       catch(err){
-        console.log(chalkError("WAS | *** ERROR | VIEWER READY FIND USER"
+        console.log(chalkError("WAS | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
+      }
+    });
+
+    socket.on("TWITTER_IGNORE", async function(user) {
+
+      try{
+
+        const timeStamp = moment().valueOf();
+
+        // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
+        console.log(chalkSocket("R< TWITTER_IGNORE"
           + " | " + getTimeStamp(timeStamp)
           + " | " + ipAddress
           + " | " + socket.id
-          + " | " + viewerObj.viewerId
-          + " | ERROR: " + err
+          + " | UID: " + user.userId
+          + " | @" + user.screenName
+        ));
+
+        const updatedUser = await ignore({user: user, socketId: socket.id});
+
+        if (!updatedUser) { return; }
+
+        adminNameSpace.emit("IGNORE", updatedUser);
+        utilNameSpace.emit("IGNORE", updatedUser);
+
+        console.log(chalk.blue("WAS | XXX TWITTER_IGNORE"
+          + " | SID: " + socket.id
+          + " | UID" + updatedUser.nodeId
+          + " | @" + updatedUser.screenName
+        ));
+      }
+      catch(err){
+        console.log(chalkError("WAS | *** IGNORE USER ERROR: " + err));
+      }
+    });
+
+    socket.on("TWITTER_UNIGNORE", async function(user) {
+
+      try{
+
+        const timeStamp = moment().valueOf();
+
+        // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
+        console.log(chalkSocket("R< TWITTER_UNIGNORE"
+          + " | " + getTimeStamp(timeStamp)
+          + " | " + ipAddress
+          + " | " + socket.id
+          + " | UID: " + user.userId
+          + " | @" + user.screenName
+        ));
+
+        const updatedUser = await unignore({user: user, socketId: socket.id});
+        
+        if (!updatedUser) { return; }
+
+        adminNameSpace.emit("UNIGNORE", updatedUser);
+        utilNameSpace.emit("UNIGNORE", updatedUser);
+
+        console.log(chalk.blue("WAS | +++ TWITTER_UNIGNORE"
+          + " | SID: " + socket.id
+          + " | UID" + updatedUser.nodeId
+          + " | @" + updatedUser.screenName
+        ));
+
+      }
+      catch(err){
+        console.log(chalkError("WAS | TWITTER_UNIGNORE ERROR: " + err));
+        throw err;
+      }
+    });
+
+    socket.on("TWITTER_SEARCH_NODE", function (sn) {
+
+      const timeStamp = moment().valueOf();
+
+      // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
+      twitterSearchNodeQueue.push({searchNode: sn, socketId: socket.id});
+
+      console.log(chalkSocket("R< TWITTER_SEARCH_NODE"
+        + " [ TSNQ: " + twitterSearchNodeQueue.length + "]"
+        + " | " + getTimeStamp(timeStamp)
+        + " | " + ipAddress
+        + " | " + socket.id
+        + " | " + sn
+      ));
+    });
+
+    socket.on("TWITTER_CATEGORIZE_NODE", function twitterCategorizeNode(dataObj) {
+
+      const timeStamp = moment().valueOf();
+
+      // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
+      if (dataObj.node.nodeType == "user") {
+        console.log(chalkSocket("TWITTER_CATEGORIZE_NODE"
+          + " | " + getTimeStamp(timeStamp)
+          + " | " + ipAddress
+          + " | " + socket.id
+          + " | @" + dataObj.node.screenName
+          + " | CAT: " + dataObj.category
+          + " | FOLLOW: " + dataObj.follow
+        ));
+      }
+      if (dataObj.node.nodeType == "hashtag") {
+        console.log(chalkSocket("TWITTER_CATEGORIZE_NODE"
+          + " | " + getTimeStamp(timeStamp)
+          + " | SID: " + socket.id
+          + " | #" + dataObj.node.nodeId
+          + " | CAT: " + dataObj.category
         ));
       }
 
-    }
-  });
+      categorizeNode(dataObj, function(err, updatedNodeObj){
+        if (err) {
+          console.log(chalkError("WAS | CAT NODE ERROR: " + err));
+        }
+        else if (updatedNodeObj) {
+          if (updatedNodeObj.nodeType == "user") {
 
-  socket.on("categorize", categorizeNode);
+            console.log(chalkSocket("TX> SET_USER"
+              + " | " + printUser({user: updatedNodeObj})
+            ));
+          }
+          if (updatedNodeObj.nodeType == "hashtag") {
+            socket.emit("SET_TWITTER_HASHTAG", {hashtag: updatedNodeObj, stats: statsObj.hashtag });
+            console.log(chalkSocket("TX> SET_TWITTER_HASHTAG"
+              + " | " + getTimeStamp(timeStamp)
+              + " | SID: " + socket.id
+              + " | #" + updatedNodeObj.nodeId
+              + " | Ms: " + updatedNodeObj.mentions
+              + " | CAT: M: " + updatedNodeObj.category + " | A: " + updatedNodeObj.categoryAuto
+            ));
+          }
+        }
+      });
+    });
 
-  socket.on("login", async function socketLogin(viewerObj){
+    socket.on("USER_READY", function userReady(userObj) {
 
-    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+      const timeStamp = moment().valueOf();
 
-    const domainName = await dnsReverse({ipAddress: ipAddress});
+      // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
-    viewerObj.timeStamp = moment().valueOf();
+      console.log(chalkSocket("R< USER READY"
+        + " | " + getTimeStamp(timeStamp)
+        + " | " + ipAddress
+        + " | " + socket.id
+        + " | " + userObj.userId
+        + " | SENT " + getTimeStamp(parseInt(userObj.timeStamp))
+      ));
 
-    console.log(chalkAlert("WAS | LOGIN"
-      + " | " + socket.id
-      + " | IP: " + ipAddress
-      + " | DOMAIN: " + domainName
-      + "\n" + jsonPrint(viewerObj)
-    ));
+      socket.emit("USER_READY_ACK", { userId: userObj.userId, timeStamp: moment().valueOf() }, function(err){
+        if (err) {
+          console.log(chalkError("WAS | *** USER_READY_ACK SEND ERROR | " + userObj.userId));
+        }
+        else {
+          console.log(chalkError("WAS | TXD> USER_READY_ACK | " + userObj.userId));
+        }
+      });
+    });
 
-    slackText = "*LOADING PAGE | TWITTER LOGIN*";
-    slackText = slackText + " | IP: " + ipAddress;
-    slackText = slackText + " | DOMAIN: " + domainName;
-    slackText = slackText + " | @" + viewerObj.screenName;
+    socket.on("VIEWER_READY", async function viewerReady(viewerObj) {
 
-    await slackSendWebMessage({ channel: slackChannel, text: slackText});
+      const timeStamp = moment().valueOf();
 
-    authInProgressTwitterUserCache.set(viewerObj.nodeId, viewerObj);
-  });
+      // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
-  socket.on("STATS", function socketStats(statsObj){
+      console.log(chalkSocket("VIEWER READY"
+        + " | " + getTimeStamp(timeStamp)
+        + " | " + ipAddress
+        + " | " + socket.id
+        + " | " + viewerObj.viewerId
+        + " | SENT AT " + getTimeStamp(parseInt(viewerObj.timeStamp))
+      ));
 
-    // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
-
-    const serverObj = serverCache.get(socket.id);
-    const viewerObj = viewerCache.get(socket.id);
-
-    if (serverObj !== undefined) {
-
-      serverObj.status = "STATS";
-      serverObj.stats = statsObj;
-      serverObj.timeStamp = moment().valueOf();
-
-      serverCache.set(socket.id, serverObj);
-
-      if (configuration.verbose) {
-        console.log(chalkSocket("R< STATS | " + serverObj.user.userId));
+      if (!userServerControllerReady || !statsObj.dbConnectionReady) {
+        console.log(chalkAlert("WAS | *** NOT READY"
+          + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
+          + " | userServerControllerReady: " + userServerControllerReady
+        ));
+        // console.log(chalkError("WAS | *** userServerController OR dbConnection NOT READY ERROR"));
       }
+      else{
+        try{
+          const user = await wordAssoDb.User.findOne({screenName: defaultTwitterUserScreenName});
 
-      adminNameSpace.emit("SERVER_STATS", serverObj);
-    }
+          if (user) {
+            socket.emit("SET_TWITTER_USER", {user: user, stats: statsObj.user });
+          }
 
-    if (viewerObj !== undefined) {
+          socket.emit("VIEWER_READY_ACK", 
+            {
+              nodeId: viewerObj.viewerId,
+              timeStamp: moment().valueOf(),
+              viewerSessionKey: moment().valueOf()
+            }
+          );
 
-      viewerObj.status = "STATS";
-      viewerObj.stats = statsObj;
+        }
+        catch(err){
+          console.log(chalkError("WAS | *** ERROR | VIEWER READY FIND USER"
+            + " | " + getTimeStamp(timeStamp)
+            + " | " + ipAddress
+            + " | " + socket.id
+            + " | " + viewerObj.viewerId
+            + " | ERROR: " + err
+          ));
+        }
+
+      }
+    });
+
+    socket.on("categorize", categorizeNode);
+
+    socket.on("login", async function socketLogin(viewerObj){
+
       viewerObj.timeStamp = moment().valueOf();
 
-      viewerCache.set(socket.id, viewerObj);
+      console.log(chalkAlert("WAS | LOGIN"
+        + " | " + socket.id
+        + " | IP: " + ipAddress
+        + " | DOMAIN: " + domainName
+        + "\n" + jsonPrint(viewerObj)
+      ));
 
-      if (configuration.verbose) {
-        console.log(chalkSocket("R< STATS | " + viewerObj.user.userId));
+      slackText = "*LOADING PAGE | TWITTER LOGIN*";
+      slackText = slackText + " | IP: " + ipAddress;
+      slackText = slackText + " | DOMAIN: " + domainName;
+      slackText = slackText + " | @" + viewerObj.screenName;
+
+      await slackSendWebMessage({ channel: slackChannel, text: slackText});
+
+      authInProgressTwitterUserCache.set(viewerObj.nodeId, viewerObj);
+    });
+
+    socket.on("STATS", function socketStats(statsObj){
+
+      // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
+      const serverObj = serverCache.get(socket.id);
+      const viewerObj = viewerCache.get(socket.id);
+
+      if (serverObj !== undefined) {
+
+        serverObj.status = "STATS";
+        serverObj.stats = statsObj;
+        serverObj.timeStamp = moment().valueOf();
+
+        serverCache.set(socket.id, serverObj);
+
+        if (configuration.verbose) {
+          console.log(chalkSocket("R< STATS | " + serverObj.user.userId));
+        }
+
+        adminNameSpace.emit("SERVER_STATS", serverObj);
       }
 
-      adminNameSpace.emit("SERVER_STATS", viewerObj);
-    }
+      if (viewerObj !== undefined) {
 
-    if (configuration.verbose) {
-      console.log(chalkSocket("R< STATS | " + socket.id));
-    }
-  });
+        viewerObj.status = "STATS";
+        viewerObj.stats = statsObj;
+        viewerObj.timeStamp = moment().valueOf();
+
+        viewerCache.set(socket.id, viewerObj);
+
+        if (configuration.verbose) {
+          console.log(chalkSocket("R< STATS | " + viewerObj.user.userId));
+        }
+
+        adminNameSpace.emit("SERVER_STATS", viewerObj);
+      }
+
+      if (configuration.verbose) {
+        console.log(chalkSocket("R< STATS | " + socket.id));
+      }
+    });
+
+  }
+  catch(err){
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** initSocketHandler DNS REVERSE ERROR: " + err));
+  }
+
 }
 
 async function initSocketNamespaces(){
@@ -6170,7 +6229,6 @@ function initAppRouting(callback) {
     });
   });
 
-
   const adminHtml = path.join(__dirname, "/admin/admin.html");
 
   app.get("/admin", async function requestAdmin(req, res) {
@@ -6179,6 +6237,7 @@ function initAppRouting(callback) {
 
     console.log(chalkLog("WAS | LOADING PAGE"
       + " | IP: " + req.ip
+      + " | DOMAIN: " + domainName
       + " | REQ: " + req.url
       + " | FILE: " + adminHtml
     ));
@@ -6214,6 +6273,7 @@ function initAppRouting(callback) {
 
     console.log(chalkAlert("WAS | LOADING PAGE | LOGIN"
       + " | IP: " + req.ip
+      + " | DOMAIN: " + domainName
       + " | REQ: " + req.url
       + " | RES: " + loginHtml
     ));
@@ -6251,6 +6311,7 @@ function initAppRouting(callback) {
 
     console.log(chalkLog("WAS | LOADING PAGE"
       + " | IP: " + req.ip
+      + " | DOMAIN: " + domainName
       + " | REQ: " + req.url
       + " | FILE: " + sessionHtml
     ));
@@ -6291,6 +6352,7 @@ function initAppRouting(callback) {
 
     console.log(chalkLog("WAS | LOADING PAGE"
       + " | IP: " + req.ip
+      + " | DOMAIN: " + domainName
       + " | REQ: " + req.url
       + " | FILE: " + profilesHtml
     ));
@@ -6358,6 +6420,7 @@ function initAppRouting(callback) {
     console.log(chalkError("WAS | PASSPORT TWITTER AUTH USER\n" + jsonPrint(req.session.passport.user))); // handle errors
     console.log(chalkError("WAS | PASSPORT TWITTER AUTH USER"
       + " | IP: " + req.ip
+      + " | DOMAIN: " + domainName
       + " | @" + req.session.passport.user.screenName
       + " | UID" + req.session.passport.user.nodeId
     )); // handle errors

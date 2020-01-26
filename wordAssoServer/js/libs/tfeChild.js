@@ -13,6 +13,12 @@ const ONE_SECOND = 1000;
 const ONE_MINUTE = ONE_SECOND*60;
 const ONE_HOUR = ONE_MINUTE*60;
 
+const twitterDeleteUserErrorCodesArray = [];
+twitterDeleteUserErrorCodesArray.push(34);
+twitterDeleteUserErrorCodesArray.push(136);
+twitterDeleteUserErrorCodesArray.push(401);
+twitterDeleteUserErrorCodesArray.push(401);
+
 const DEFAULT_QUOTA_TIMEOUT_DURATION = ONE_HOUR;
 const SAVE_FILE_QUEUE_INTERVAL = 5*ONE_SECOND;
 
@@ -990,6 +996,11 @@ async function updateUserTweets(params){
     console.log(chalkError("TFE | *** updateUserTweets ERROR: " + err));
     console.log(chalkError("TFE | *** updateUserTweets ERROR CODE: " + err.code));
     console.log(chalkError("TFE | *** updateUserTweets ERROR STATUS CODE: " + err.statusCode));
+
+    if (twitterDeleteUserErrorCodesArray.includes(err.code)){
+      console.log(chalkError("TFE | XXX DELETE USER: " + err.statusCode));
+      await wordAssoDb.User.deleteOne({nodeId: params.user.nodeId});
+    }
     throw err;
   }
 }

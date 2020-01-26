@@ -998,7 +998,11 @@ async function updateUserTweets(params){
     console.log(chalkError("TFE | *** updateUserTweets ERROR STATUS CODE: " + err.statusCode));
 
     if (twitterDeleteUserErrorCodesArray.includes(err.code)){
-      console.log(chalkError("TFE | XXX DELETE USER: " + err.statusCode));
+      console.log(chalkError("TFE | XXX DELETE USER"
+        + " | ERROR STATUS CODE: " + err.statusCode
+        + " | NID: " + params.user.nodeId
+        + " | @" + params.user.screenName
+      ));
       await wordAssoDb.User.deleteOne({nodeId: params.user.nodeId});
     }
     throw err;

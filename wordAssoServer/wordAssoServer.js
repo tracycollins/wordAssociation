@@ -6204,34 +6204,33 @@ function initAppRouting(callback) {
     else {
 
       try{
-
         domainName = await dnsReverse({ipAddress: req.ip});
-
-        console.log(chalkInfo("WAS | R<"
-          + " | " + getTimeStamp()
-          + " | IP: " + req.ip
-          + " | DOMAIN: " + domainName
-          + " | HOST: " + req.hostname
-          + " | METHOD: " + req.method
-          + " | PATH: " + req.path
-        ));
-
-        if (req.path.includes("controlPanel")){        
-
-          slackText = "*LOADING PAGE | CONTROL PANEL*";
-          slackText = slackText + "\nIP: " + req.ip;
-          slackText = slackText + "\nDOMAIN: " + domainName;
-          slackText = slackText + "\nURL: " + req.url;
-          slackText = slackText + "\nFILE: " + adminHtml;
-
-          await slackSendWebMessage({ channel: slackChannelAdmin, text: slackText});
-
-          next();
-        }
       }
       catch(err){
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** initAppRouting ERROR: " + err));
+        console.log(chalkError(MODULE_ID_PREFIX + " | *** initAppRouting DNS ERROR: " + err));
       }
+
+      console.log(chalkInfo("WAS | R<"
+        + " | " + getTimeStamp()
+        + " | IP: " + req.ip
+        + " | DOMAIN: " + domainName
+        + " | HOST: " + req.hostname
+        + " | METHOD: " + req.method
+        + " | PATH: " + req.path
+      ));
+
+      if (req.path.includes("controlPanel")){        
+
+        slackText = "*LOADING PAGE | CONTROL PANEL*";
+        slackText = slackText + "\nIP: " + req.ip;
+        slackText = slackText + "\nDOMAIN: " + domainName;
+        slackText = slackText + "\nURL: " + req.url;
+        slackText = slackText + "\nFILE: " + adminHtml;
+
+        await slackSendWebMessage({ channel: slackChannelAdmin, text: slackText});
+      }
+
+      next();
     }
   });
 

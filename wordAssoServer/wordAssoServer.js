@@ -272,19 +272,29 @@ const threeceeConfig = {
 };
 
 
-const ipCacheObj = {};
+let ipCacheObj = {};
 function dnsReverse(params){
 
   return new Promise(function(resolve, reject){
 
-    const domainName = ipCache.get(params.ipAddress);
+    ipCacheObj = ipCache.get(params.ipAddress);
 
-    if (domainName) {
+    if (ipCacheObj) {
       console.log(chalkLog(MODULE_ID_PREFIX + " | DNS REVERSE | $ HIT"
         + " | IP: " + params.ipAddress 
-        + " | HOST: " + domainName
+        + " | LS: " + ipCacheObj.timeStamp
+        + " | HOST: " + ipCacheObj.domainName
       ));
-      resolve(domainName);
+
+      ipCacheObj.timeStamp = getTimeStamp();
+      
+      ipCache.set(
+        params.ipAddress, 
+        ipCacheObj,
+        ipCacheTtl
+      );
+
+      resolve(ipCacheObj.domainName);
     }
 
     dns.reverse(params.ipAddress, function(err, hostnames){

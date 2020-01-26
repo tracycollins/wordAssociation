@@ -272,12 +272,11 @@ const threeceeConfig = {
 };
 
 
-let ipCacheObj = {};
 function dnsReverse(params){
 
   return new Promise(function(resolve, reject){
 
-    ipCacheObj = ipCache.get(params.ipAddress);
+    let ipCacheObj = ipCache.get(params.ipAddress);
 
     if (ipCacheObj) {
       console.log(chalkLog(MODULE_ID_PREFIX + " | DNS REVERSE | $ HIT"
@@ -304,6 +303,7 @@ function dnsReverse(params){
         return reject(err);
       }
 
+      ipCacheObj = {};
       ipCacheObj.domainName = hostnames[0];
       ipCacheObj.timeStamp = getTimeStamp();
 
@@ -1473,7 +1473,7 @@ const ipCache = new NodeCache({
   checkperiod: ipCacheCheckPeriod
 });
 
-function ipCacheExpired(ip, ipObj) {
+function ipCacheExpired(ip, ipCacheObj) {
 
   statsObj.caches.ipCache.expired += 1;
 
@@ -1482,9 +1482,9 @@ function ipCacheExpired(ip, ipObj) {
     + " | TTL: " + msToTime(ipCacheTtl*1000)
     + " | NOW: " + getTimeStamp()
     + " | $ EXPIRED: " + statsObj.caches.ipCache.expired
-    + " | IN $: " + ipObj.timeStamp
+    + " | IN $: " + ipCacheObj.timeStamp
     + " | IP: " + ip
-    + " | DOMAIN" + ipObj.domainName
+    + " | DOMAIN" + ipCacheObj.domainName
   ));
 }
 

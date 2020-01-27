@@ -5160,32 +5160,73 @@ function followable(text){
 
 let hitSearchTerm = false;
 
-async function userCategorizeable(user){
+async function userCategorizeable(user, verbose){
 
   if (user.nodeType != "user") { 
+    if (verbose) { 
+      console.log(chalkInfo(MODULE_ID_PREFIX 
+        + " | userCategorizeable | FALSE | NODE TYPE !== USER"
+        + " | NODE TYPE: " + user.nodeType
+        + " | @" + user.screenName
+      ));
+    }
     return false; 
   }
 
   if (user.following && (user.following !== undefined)) { 
     unfollowableUserSet.delete(user.nodeId);
+    if (verbose) { 
+      console.log(chalkInfo(MODULE_ID_PREFIX 
+        + " | userCategorizeable | TRUE | FOLLOWING"
+        + " | FOLLOWING: " + user.following
+        + " | @" + user.screenName
+      ));
+    }
     return true; 
   }
 
   if (user.ignored && (user.ignored !== undefined)) { 
     ignoredUserSet.add(user.nodeId);
+    if (verbose) { 
+      console.log(chalkInfo(MODULE_ID_PREFIX 
+        + " | userCategorizeable | FALSE | IGNORED"
+        + " | FOLLOWING: " + user.ignored
+        + " | @" + user.screenName
+      ));
+    }
     return false; 
   }
 
   if (ignoredUserSet.has(user.nodeId) || ignoredUserSet.has(user.screenName.toLowerCase())) { 
+    if (verbose) { 
+      console.log(chalkInfo(MODULE_ID_PREFIX 
+        + " | userCategorizeable | FALSE | IGNORED"
+        + " | FOLLOWING: " + user.ignored
+        + " | @" + user.screenName
+      ));
+    }
     return false; 
   }
 
   if (unfollowableUserSet.has(user.nodeId)) { 
+    if (verbose) { 
+      console.log(chalkInfo(MODULE_ID_PREFIX 
+        + " | userCategorizeable | FALSE | UNFOLLOWABLE SET"
+        + " | @" + user.screenName
+      ));
+    }
     return false;
   }
 
   if (user.lang && (user.lang !== undefined) && (user.lang != "en")) { 
     categorizeableUserSet.delete(user.nodeId);
+    if (verbose) { 
+      console.log(chalkInfo(MODULE_ID_PREFIX 
+        + " | userCategorizeable | FALSE | LANG NOT ENG"
+        + " | LANG: " + user.lang
+        + " | @" + user.screenName
+      ));
+    }
     return false;
   }
 
@@ -5198,54 +5239,88 @@ async function userCategorizeable(user){
     
     ignoredUserSet.add(user.nodeId);
 
+    if (verbose) { 
+      console.log(chalkInfo(MODULE_ID_PREFIX 
+        + " | userCategorizeable | FALSE | IGNORED LOCATION"
+        + " | LANG: " + user.location
+        + " | @" + user.screenName
+      ));
+    }
+
     return false;
   }
   
   if (user.followersCount && (user.followersCount !== undefined) 
     && (user.followersCount < configuration.minFollowersAutoCategorize)) { 
+
     unfollowableUserSet.add(user.nodeId);
+
+    console.log(chalkInfo(MODULE_ID_PREFIX 
+      + " | userCategorizeable | FALSE | LOW FOLLOWERS"
+      + " | FOLLOWERS: " + user.followersCount
+      + " | @" + user.screenName
+    ));
+
     return false;
   }
 
-  // if (!user.ignored || (user.ignored === undefined)){
+  if (!user.description || (user.description === undefined)) { user.description = ""; }
+  if (!user.screenName || (user.screenName === undefined)) { user.screenName = ""; }
+  if (!user.name || (user.name === undefined)) { user.name = ""; }
 
-    if (!user.description || (user.description === undefined)) { user.description = ""; }
-    if (!user.screenName || (user.screenName === undefined)) { user.screenName = ""; }
-    if (!user.name || (user.name === undefined)) { user.name = ""; }
+  hitSearchTerm = await followable(user.description);
 
-    hitSearchTerm = await followable(user.description);
+  if (hitSearchTerm) { 
+    categorizeableUserSet.add(user.nodeId);
 
-    if (hitSearchTerm) { 
-      categorizeableUserSet.add(user.nodeId);
-      ignoredUserSet.delete(user.nodeId);
-      unfollowableUserSet.delete(user.nodeId);
-      return true; 
-    }
+    ignoredUserSet.delete(user.nodeId);
+    unfollowableUserSet.delete(user.nodeId);
 
-    hitSearchTerm = await followable(user.screenName);
+    console.log(chalkInfo(MODULE_ID_PREFIX 
+      + " | userCategorizeable | TRUE | DESCRIPTION SEARCH TERM HIT"
+      + " | @" + user.screenName
+      + " | DESCRIPTION: " + user.description
+    ));
 
-    if (hitSearchTerm) { 
-      categorizeableUserSet.add(user.nodeId);
-      ignoredUserSet.delete(user.nodeId);
-      unfollowableUserSet.delete(user.nodeId);
-      return true; 
-    }
+    return true; 
+  }
 
-    hitSearchTerm = await followable(user.name);
+  hitSearchTerm = await followable(user.screenName);
 
-    if (hitSearchTerm) { 
-      categorizeableUserSet.add(user.nodeId);
-      ignoredUserSet.delete(user.nodeId);
-      unfollowableUserSet.delete(user.nodeId);
-      return true; 
-    }
+  if (hitSearchTerm) { 
+    categorizeableUserSet.add(user.nodeId);
+    ignoredUserSet.delete(user.nodeId);
+    unfollowableUserSet.delete(user.nodeId);
 
-    categorizeableUserSet.delete(user.nodeId);
-    return false;
-  // }
+    console.log(chalkInfo(MODULE_ID_PREFIX 
+      + " | userCategorizeable | TRUE | SCREENNAME SEARCH TERM HIT"
+      + " | @" + user.screenName
+    ));
 
-  // categorizeableUserSet.delete(user.nodeId);
-  // return false;
+    return true; 
+  }
+
+  hitSearchTerm = await followable(user.name);
+
+  if (hitSearchTerm) { 
+    categorizeableUserSet.add(user.nodeId);
+    ignoredUserSet.delete(user.nodeId);
+    unfollowableUserSet.delete(user.nodeId);
+
+    console.log(chalkInfo(MODULE_ID_PREFIX 
+      + " | userCategorizeable | TRUE | NAME SEARCH TERM HIT"
+      + " | @" + user.screenName
+      + " | NAME: " + user.name
+    ));
+
+    return true; 
+  }
+
+  categorizeableUserSet.delete(user.nodeId);
+
+  printUserObj("userCategorizeable | FALSE", user);
+
+  return false;
 }
 
 async function initAllowLocations(){
@@ -9592,7 +9667,7 @@ async function processTwitterSearchNode(params) {
       + " | @" + params.user.screenName
     ));
 
-    const categorizeable = await userCategorizeable(params.user);
+    const categorizeable = await userCategorizeable(params.user, true);
     const uuObj = await uncatUserCacheCheck(params.user.nodeId);
 
     if (params.specificUserFlag) {

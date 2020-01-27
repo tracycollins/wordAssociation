@@ -5160,11 +5160,14 @@ function followable(text){
 
 let hitSearchTerm = false;
 
-async function userCategorizeable(user, verbose){
+async function userCategorizeable(params){
+
+  const user = params.user;
+  const verbose = (params.verbose && params.verbose !== undefined) ? params.verbose : false;
 
   if (user.nodeType != "user") { 
     if (verbose) { 
-      console.log(chalkInfo(MODULE_ID_PREFIX 
+      console.log(chalkLog(MODULE_ID_PREFIX 
         + " | userCategorizeable | FALSE | NODE TYPE !== USER"
         + " | NODE TYPE: " + user.nodeType
         + " | @" + user.screenName
@@ -5177,7 +5180,7 @@ async function userCategorizeable(user, verbose){
     unfollowableUserSet.delete(user.nodeId);
     if (verbose) { 
       console.log(chalkInfo(MODULE_ID_PREFIX 
-        + " | userCategorizeable | TRUE | FOLLOWING"
+        + " | userCategorizeable | TRUE  | FOLLOWING"
         + " | FOLLOWING: " + user.following
         + " | @" + user.screenName
       ));
@@ -5188,7 +5191,7 @@ async function userCategorizeable(user, verbose){
   if (user.ignored && (user.ignored !== undefined)) { 
     ignoredUserSet.add(user.nodeId);
     if (verbose) { 
-      console.log(chalkInfo(MODULE_ID_PREFIX 
+      console.log(chalkLog(MODULE_ID_PREFIX 
         + " | userCategorizeable | FALSE | IGNORED"
         + " | FOLLOWING: " + user.ignored
         + " | @" + user.screenName
@@ -5199,7 +5202,7 @@ async function userCategorizeable(user, verbose){
 
   if (ignoredUserSet.has(user.nodeId) || ignoredUserSet.has(user.screenName.toLowerCase())) { 
     if (verbose) { 
-      console.log(chalkInfo(MODULE_ID_PREFIX 
+      console.log(chalkLog(MODULE_ID_PREFIX 
         + " | userCategorizeable | FALSE | IGNORED"
         + " | FOLLOWING: " + user.ignored
         + " | @" + user.screenName
@@ -5210,7 +5213,7 @@ async function userCategorizeable(user, verbose){
 
   if (unfollowableUserSet.has(user.nodeId)) { 
     if (verbose) { 
-      console.log(chalkInfo(MODULE_ID_PREFIX 
+      console.log(chalkLog(MODULE_ID_PREFIX 
         + " | userCategorizeable | FALSE | UNFOLLOWABLE SET"
         + " | @" + user.screenName
       ));
@@ -5221,7 +5224,7 @@ async function userCategorizeable(user, verbose){
   if (user.lang && (user.lang !== undefined) && (user.lang != "en")) { 
     categorizeableUserSet.delete(user.nodeId);
     if (verbose) { 
-      console.log(chalkInfo(MODULE_ID_PREFIX 
+      console.log(chalkLog(MODULE_ID_PREFIX 
         + " | userCategorizeable | FALSE | LANG NOT ENG"
         + " | LANG: " + user.lang
         + " | @" + user.screenName
@@ -5240,7 +5243,7 @@ async function userCategorizeable(user, verbose){
     ignoredUserSet.add(user.nodeId);
 
     if (verbose) { 
-      console.log(chalkInfo(MODULE_ID_PREFIX 
+      console.log(chalkLog(MODULE_ID_PREFIX 
         + " | userCategorizeable | FALSE | IGNORED LOCATION"
         + " | LANG: " + user.location
         + " | @" + user.screenName
@@ -5255,11 +5258,13 @@ async function userCategorizeable(user, verbose){
 
     unfollowableUserSet.add(user.nodeId);
 
-    console.log(chalkInfo(MODULE_ID_PREFIX 
-      + " | userCategorizeable | FALSE | LOW FOLLOWERS"
-      + " | FOLLOWERS: " + user.followersCount
-      + " | @" + user.screenName
-    ));
+    if (verbose) { 
+      console.log(chalkLog(MODULE_ID_PREFIX 
+        + " | userCategorizeable | FALSE | LOW FOLLOWERS"
+        + " | FOLLOWERS: " + user.followersCount
+        + " | @" + user.screenName
+      ));
+    }
 
     return false;
   }
@@ -5276,11 +5281,13 @@ async function userCategorizeable(user, verbose){
     ignoredUserSet.delete(user.nodeId);
     unfollowableUserSet.delete(user.nodeId);
 
-    console.log(chalkInfo(MODULE_ID_PREFIX 
-      + " | userCategorizeable | TRUE | DESCRIPTION SEARCH TERM HIT"
-      + " | @" + user.screenName
-      + " | DESCRIPTION: " + user.description
-    ));
+    if (verbose) { 
+      console.log(chalkInfo(MODULE_ID_PREFIX 
+        + " | userCategorizeable | TRUE  | DESCRIPTION SEARCH TERM HIT"
+        + " | @" + user.screenName
+        + " | DESCRIPTION: " + user.description
+      ));
+    }
 
     return true; 
   }
@@ -5292,10 +5299,12 @@ async function userCategorizeable(user, verbose){
     ignoredUserSet.delete(user.nodeId);
     unfollowableUserSet.delete(user.nodeId);
 
-    console.log(chalkInfo(MODULE_ID_PREFIX 
-      + " | userCategorizeable | TRUE | SCREENNAME SEARCH TERM HIT"
-      + " | @" + user.screenName
-    ));
+    if (verbose) { 
+      console.log(chalkInfo(MODULE_ID_PREFIX 
+        + " | userCategorizeable | TRUE  | SCREENNAME SEARCH TERM HIT"
+        + " | @" + user.screenName
+      ));
+    }
 
     return true; 
   }
@@ -5307,18 +5316,27 @@ async function userCategorizeable(user, verbose){
     ignoredUserSet.delete(user.nodeId);
     unfollowableUserSet.delete(user.nodeId);
 
-    console.log(chalkInfo(MODULE_ID_PREFIX 
-      + " | userCategorizeable | TRUE | NAME SEARCH TERM HIT"
-      + " | @" + user.screenName
-      + " | NAME: " + user.name
-    ));
+    if (verbose) { 
+      console.log(chalkInfo(MODULE_ID_PREFIX 
+        + " | userCategorizeable | TRUE  | NAME SEARCH TERM HIT"
+        + " | @" + user.screenName
+        + " | NAME: " + user.name
+      ));
+    }
 
     return true; 
   }
 
   categorizeableUserSet.delete(user.nodeId);
 
-  printUserObj("userCategorizeable | FALSE", user);
+  if (verbose) { 
+    console.log(chalkLog(MODULE_ID_PREFIX 
+      + " | userCategorizeable | FALSE"
+      + " | NID: " + user.nodeId
+      + " | @" + user.screenName
+      + " | NAME: " + user.name
+    ));
+  }
 
   return false;
 }
@@ -5691,7 +5709,7 @@ async function updateUserSets(){
       }
 
       if (!categorizeable) {
-        categorizeable = await userCategorizeable(user);
+        categorizeable = await userCategorizeable({user: user});
       }
 
       if (categorizeable
@@ -5894,7 +5912,7 @@ function initTransmitNodeQueueInterval(interval){
         const node = await checkCategory(nodeObj);
         const n = await updateNodeMeter(node);
 
-        categorizeable = await userCategorizeable(n);
+        categorizeable = await userCategorizeable({user: n});
  
         if (categorizeable) {
 
@@ -9667,7 +9685,7 @@ async function processTwitterSearchNode(params) {
       + " | @" + params.user.screenName
     ));
 
-    const categorizeable = await userCategorizeable(params.user, true);
+    const categorizeable = await userCategorizeable({user: params.user, verbose: true});
     const uuObj = await uncatUserCacheCheck(params.user.nodeId);
 
     if (params.specificUserFlag) {
@@ -9824,7 +9842,6 @@ async function processTwitterSearchNode(params) {
       }
       return {user: params.user, searchMode: params.searchMode, cacheHit: uncatUserCacheHit, uncategorizable: uncategorizable};
     }
-
   }
   else {
 

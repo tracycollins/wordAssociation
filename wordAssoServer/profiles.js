@@ -7,7 +7,7 @@
 const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
 const LOCAL_SOURCE = "http://localhost:9997";
 
-const DEFAULT_TWITTER_URL = "http://twitter.com";
+const DEFAULT_TWITTER_URL = "https://twitter.com";
 
 const DEFAULT_SOURCE = REPLACE_SOURCE;
 

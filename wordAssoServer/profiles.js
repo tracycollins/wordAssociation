@@ -663,6 +663,9 @@ function updateDisplay(node, callback) {
 
   cat = node.categoryAuto || "none";
 
+  node.profileImageUrl = node.profileImageUrl.replace("http:", "https:");
+  node.bannerImageUrl = node.bannerImageUrl.replace("http:", "https:");
+
   switch (cat) {
     case "left":
     case "neutral":

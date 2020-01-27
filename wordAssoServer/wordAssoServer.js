@@ -10478,6 +10478,17 @@ async function initWatchConfig(){
     }
   }
 
+  watch.createMonitor(configHostFolder, watchOptions, function (monitor) {
+
+    monitor.on("created", loadConfig);
+
+    monitor.on("changed", loadConfig);
+
+    monitor.on("removed", function (f) {
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX FILE DELETED | " + getTimeStamp() + " | " + f));
+    });
+  });
+
   watch.createMonitor(configDefaultFolder, watchOptions, function (monitor) {
 
     monitor.on("created", loadConfig);

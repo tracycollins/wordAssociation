@@ -994,7 +994,7 @@ function ControlPanel() {
 
         twitterEntity.addButton("USER SEARCH", function(data){
           console.debug("NODE SEARCH: ", twitterEntity.getValue("SCREENNAME"));
-          let input = twitterEntity.getValue("SCREENNAME");
+          let input = twitterEntity.getValue("SCREENNAME").replace(/\s/g, "");
           if (!input.startsWith("@")) { input = "@" + input; }
           parentWindow.postMessage({op: "NODE_SEARCH", input: input}, DEFAULT_SOURCE);  
         });

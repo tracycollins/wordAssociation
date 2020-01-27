@@ -1210,6 +1210,7 @@ function printUserObj(title, u, chalkFormat) {
     + " | T " + user.statusesCount
     + " | M  " + user.mentions
     + " | FW " + user.following 
+    + " | LS " + getTimeStamp(user.lastSeen)
     // + " | LC " + user.location
     + " | V " + user.categoryVerified + " M " + user.category + " A " + user.categoryAuto
     // + " | PRI " + user.priorityFlag
@@ -9760,7 +9761,6 @@ async function processTwitterSearchNode(params) {
           + " | $ EXPIRED: " + statsObj.caches.mismatchUserCache.expired
           + "\nMISMATCH USER $ STATS\n" + jsonPrint(mismatchUserCache.getStats())
         ));
-
       }
 
       if (tfeChild && params.user.toObject && (typeof params.user.toObject == "function")) {

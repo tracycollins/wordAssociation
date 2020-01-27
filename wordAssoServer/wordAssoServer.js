@@ -10058,7 +10058,7 @@ function getNextSearchNode(params){
 
 async function twitterSearchUser(params) {
 
-  const searchNode = params.searchNode;
+  const searchNode = params.searchNode.replace(/\s/g, "");
   const searchNodeUser = { screenName: searchNode.substring(1) };
 
   let searchMode;

@@ -7,19 +7,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content=
 
-  "default-src 'unsafe-inline' 'self' ws: https://*.twitter.com/ http://*.googleapis.com/ https://*.cloudflare.com/;
+  "default-src 'unsafe-inline' 'self' ws: https://*.twitter.com/ https://*.googleapis.com/ http://*.googleapis.com/ https://*.cloudflare.com/;
 
-  script-src 'unsafe-eval' 'unsafe-inline' 'self' about: https://word.threeceelabs.com/ https://cdn.rawgit.com/ http://*.googleapis.com/ https://*.twimg.com/ https://d3js.org http://*.google-analytics.com/ https://*.cloudflare.com/ https://*.twimg.com/ https://*.unpkg.com/ https://unpkg.com/ https://*.twitter.com/ https://*.googletagmanager.com/ ;
+  script-src 'unsafe-eval' 'unsafe-inline' 'self' about: https://word.threeceelabs.com/ https://cdn.rawgit.com/ https://*.googleapis.com/ http://*.googleapis.com/ https://*.twimg.com/ https://d3js.org https://*.google-analytics.com/ http://*.google-analytics.com/ https://*.cloudflare.com/ https://*.twimg.com/ https://*.unpkg.com/ https://unpkg.com/ https://*.twitter.com/ https://*.googletagmanager.com/ ;
 
-  font-src 'unsafe-inline' 'self' data: about: http://fonts.gstatic.com/;
+  font-src 'unsafe-inline' 'self' data: about: https://fonts.gstatic.com/ http://fonts.gstatic.com/;
 
-  img-src 'self' data: http://localhost/ https://*.threeceelabs.com/ http://*.threeceelabs.com/ https://cdn.rawgit.com/ https://stats.g.doubleclick.net/ http://*.google-analytics.com/ https://*.unpkg.com/ https://unpkg.com/ https://api.twitter.com/favicon.ico http://*.twitter.com/ https://*.twitter.com/ http://*.twimg.com/ https://*.twimg.com/;
+  img-src 'self' data: http://localhost/ https://*.threeceelabs.com/ http://*.threeceelabs.com/ https://cdn.rawgit.com/ https://stats.g.doubleclick.net/ https://*.google-analytics.com/ http://*.google-analytics.com/ https://*.unpkg.com/ https://unpkg.com/ https://api.twitter.com/favicon.ico http://*.twitter.com/ https://*.twitter.com/ http://*.twimg.com/ https://*.twimg.com/;
 
   object-src https://*.unpkg.com/ https://unpkg.com/ https://twitter.com/;
 
   frame-src https://*.unpkg.com/ https://unpkg.com/ https://*.twitter.com/ https://twitter.com/;
 
-  style-src 'self' 'unsafe-inline' http://*.twimg.com/ https://*.twimg.com/ http://*.googleapis.com/ https://*.unpkg.com/ https://unpkg.com/ https://*.twitter.com/ http://*.twitter.com/">
+  style-src 'self' 'unsafe-inline' http://*.twimg.com/ https://*.twimg.com/ https://*.googleapis.com/ http://*.googleapis.com/ https://*.unpkg.com/ https://unpkg.com/ https://*.twitter.com/ http://*.twitter.com/">
 
   <link rel="stylesheet" href="/css/profiles.css">
   <link rel="icon" type="image/png" href="favicon.png" />

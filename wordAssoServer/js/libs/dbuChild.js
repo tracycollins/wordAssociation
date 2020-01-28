@@ -11,6 +11,7 @@ const inputTypes = [
   "locations", 
   "media", 
   "mentions", 
+  "ngrams", 
   "places", 
   "sentiment", 
   "urls", 
@@ -375,23 +376,15 @@ function userUpdateDb(tweetObj){
             entity = "@" + entityObj.screenName.toLowerCase();
           break;
           case "locations":
-            entity = entityObj.nodeId;
-          break;
           case "images":
           case "media":
-            entity = entityObj.nodeId;
-          break;
+          case "places":
           case "emoji":
-            entity = entityObj.nodeId;
-          break;
           case "urls":
             entity = entityObj.nodeId; // should already be b64 encoded by tweetServerController
           break;
           case "words":
             entity = entityObj.nodeId.toLowerCase();
-          break;
-          case "places":
-            entity = entityObj.nodeId;
           break;
           default:
             console.log(chalkError("DBU | *** userUpdateDb ERROR: UNKNOWN ENTITY TYPE: " + entityType));
@@ -509,6 +502,7 @@ function userUpdateDb(tweetObj){
             + " | LCs: " + getNumKeys(user.tweetHistograms.locations)
             + " | MEs: " + getNumKeys(user.tweetHistograms.media)
             + " | Ms: " + getNumKeys(user.tweetHistograms.mentions)
+            + " | NGs: " + getNumKeys(user.tweetHistograms.ngrams)
             + " | PLs: " + getNumKeys(user.tweetHistograms.places)
             + " | STs: " + getNumKeys(user.tweetHistograms.sentiment)
             + " | UMs: " + getNumKeys(user.tweetHistograms.userMentions)

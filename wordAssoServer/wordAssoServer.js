@@ -671,6 +671,7 @@ configuration.enableTransmitWord = false;
 configuration.enableTransmitPlace = false;
 configuration.enableTransmitHashtag = true;
 configuration.enableTransmitEmoji = false;
+configuration.enableTransmitNgram = false;
 configuration.enableTransmitUrl = false;
 configuration.enableTransmitMedia = false;
 
@@ -5033,6 +5034,7 @@ async function checkCategory(nodeObj) {
     case "tweet":
     case "emoji":
     case "media":
+    case "ngram":
     case "url":
     case "place":
     case "word":

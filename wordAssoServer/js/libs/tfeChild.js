@@ -46,6 +46,7 @@ const DEFAULT_INPUT_TYPES = [
   "locations", 
   "media", 
   "mentions", 
+  "ngrams", 
   "places", 
   "sentiment", 
   "urls", 
@@ -709,9 +710,11 @@ function processTweetObj(params){
         let entity;
 
         switch (entityType) {
+
           case "hashtags":
             entity = "#" + entityObj.nodeId.toLowerCase();
           break;
+
           case "mentions":
           case "userMentions":
             if (empty(entityObj.screenName)) {
@@ -720,16 +723,16 @@ function processTweetObj(params){
             }
             entity = "@" + entityObj.screenName.toLowerCase();
           break;
+
           case "locations":
-            entity = entityObj.nodeId;
-          break;
           case "images":
           case "media":
-            entity = entityObj.nodeId;
-          break;
+          case "ngrams":
+          case "places":
           case "emoji":
             entity = entityObj.nodeId;
           break;
+
           case "urls":
             if (entityObj.nodeId.includes(".")) { 
               entity = btoa(entityObj.nodeId);
@@ -738,13 +741,12 @@ function processTweetObj(params){
               entity = entityObj.nodeId;
             }
           break;
+
           case "words":
             entity = entityObj.nodeId.toLowerCase();
             entity = entity.replace(/\./gi, "_")
           break;
-          case "places":
-            entity = entityObj.nodeId;
-          break;
+          
           default:
             console.log(chalkError("WAS | TFC | *** processTweetObj UNKNOWN ENTITY TYPE: " + entityType));
             continue;

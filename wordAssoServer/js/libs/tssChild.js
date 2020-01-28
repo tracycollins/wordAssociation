@@ -42,12 +42,6 @@ const chalkLog = chalk.gray;
 const chalkInfo = chalk.black;
 
 
-// const request = require('request');
-// const util = require('util');
-
-// const get = util.promisify(request.get);
-// const post = util.promisify(request.post);
-
 const path = require("path");
 const empty = require("is-empty");
 const watch = require("watch");

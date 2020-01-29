@@ -189,7 +189,7 @@ function initTweetParserQueueInterval(cnf){
       params.tweetStatus = tweetParserQueue.shift();
 
       try{
-        tweetObjMessage.tweetObj = await tweetServerController.createStreamTweet(params);
+        tweetObjMessage.tweetObj = await tweetServerController.createStreamTweetAsync(params);
         process.send(tweetObjMessage);
         tweetParserQueueReady = true;
       }

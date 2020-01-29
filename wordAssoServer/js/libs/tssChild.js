@@ -927,8 +927,6 @@ function initSearchStream(){
 
       const file = currentTwitterFilterTrackFile.replace(".json", "_" + getTimeStamp() + ".json");
 
-      const sortedTracks = filter.track.sort();
-
       tcUtils.saveFile({folder: statsHostFolder, file: file, obj: filter.track});
 
       threeceeUserObj.searchStream.on("message", function(msg){

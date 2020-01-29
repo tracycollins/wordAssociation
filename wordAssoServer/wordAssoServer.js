@@ -2805,16 +2805,16 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
       });
     },
 
-    categoryHashmapsInit: function(cb){
+    // categoryHashmapsInit: function(cb){
 
-      initCategoryHashmaps().
-      then(function(){
-        cb();
-      }).
-      catch(function(err){
-        return cb(err);
-      });
-    }
+    //   initCategoryHashmaps().
+    //   then(function(){
+    //     cb();
+    //   }).
+    //   catch(function(err){
+    //     return cb(err);
+    //   });
+    // }
   },
   function(err, results){
     if (err){
@@ -10527,7 +10527,7 @@ setTimeout(async function(){
 
     dbConnection = await connectDb();
 
-    configEvents.emit("DB_CONNECT");
+    // configEvents.emit("DB_CONNECT");
 
     await waitDbConnectionReady();
     const cnf = await initConfig();
@@ -10569,10 +10569,11 @@ setTimeout(async function(){
 
     await dnsReverse({ipAddress: "35.240.151.105"});
 
+    configEvents.emit("DB_CONNECT");
+
     await initAllowLocations();
     await initIgnoreLocations();
     await loadBestRuntimeNetwork();
-    await updateUserSets();
     await loadMaxInputHashMap();
     await initIgnoreWordsHashMap();
     await initDbUserMissQueueInterval(configuration.dbUserMissQueueInterval)
@@ -10583,12 +10584,14 @@ setTimeout(async function(){
     await initTwitterSearchNodeQueueInterval(configuration.twitterSearchNodeQueueInterval);
     await initSorterMessageRxQueueInterval(configuration.sorterMessageRxQueueInterval);
     await initDbuChild({childId: DEFAULT_DBU_CHILD_ID});
-    await initTweetParser({childId: DEFAULT_TWP_CHILD_ID});
-    await initTfeChild({childId: DEFAULT_TFE_CHILD_ID});
-    await initTssChild({childId: DEFAULT_TSS_CHILD_ID, tweetVersion2: configuration.tweetVersion2, threeceeUser: threeceeUser});
     await initDbUserChangeStream();
+    await initTfeChild({childId: DEFAULT_TFE_CHILD_ID});
+    await initTweetParser({childId: DEFAULT_TWP_CHILD_ID});
     await initUpdateUserSetsInterval(configuration.updateUserSetsInterval);
     await initWatchConfig();
+    await initCategoryHashmaps();
+    await initTssChild({childId: DEFAULT_TSS_CHILD_ID, tweetVersion2: configuration.tweetVersion2, threeceeUser: threeceeUser});
+    await updateUserSets();
   }
   catch(err){
     console.trace(chalkError("WAS | **** INIT CONFIG ERROR: " + err + "\n" + jsonPrint(err)));

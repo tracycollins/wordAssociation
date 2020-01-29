@@ -378,6 +378,7 @@ function userUpdateDb(tweetObj){
           case "locations":
           case "images":
           case "media":
+          case "ngrams":
           case "places":
           case "emoji":
           case "urls":

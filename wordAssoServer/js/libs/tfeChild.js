@@ -825,7 +825,7 @@ function processUserTweetArray(params){
             statsObj.twitter.tweetsHits += 1;
           }
 
-          const tweetObj = await tweetServerController.createStreamTweet(tscParams);
+          const tweetObj = await tweetServerController.createStreamTweetAsync(tscParams);
 
           if (!user.tweetHistograms || (user.tweetHistograms === undefined)) { user.tweetHistograms = {}; }
 

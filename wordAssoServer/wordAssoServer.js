@@ -19,7 +19,7 @@ const os = require("os");
 const kill = require("tree-kill");
 const empty = require("is-empty");
 const watch = require("watch");
-// const whois = require("whois-promise");
+const whois = require("whois-json");
 const dns = require("dns");
 
 // const {google} = require("googleapis");
@@ -303,26 +303,62 @@ function dnsReverse(params){
       return resolve(ipCacheObj.domainName);
     }
 
-    dns.reverse(params.ipAddress, function(err, hostnames){
+    dns.reverse(params.ipAddress, async function(err, hostnames){
 
       if (err) {
+
         console.log(chalkError(MODULE_ID_PREFIX 
           + " | *** DNS REVERSE ERROR | IP: " + params.ipAddress
           + " | " + err
         ));
 
-        ipCacheObj = {};
-        ipCacheObj.domainName = "UNKNOWN_" + params.ipAddress;
-        ipCacheObj.timeStamp = getTimeStamp();
+        try{
 
-        ipCache.set(
-          params.ipAddress, 
-          ipCacheObj,
-          ipCacheTtl
-        );
+          console.log(chalkAlert(MODULE_ID_PREFIX 
+            + " | ... TRY WHOIS | IP: " + params.ipAddress
+          ));
 
-      return resolve(ipCacheObj.domainName);
-        // return reject(err);
+          const whoisResult = await whois(params.ipAddress);
+
+          console.log(chalkGreen(MODULE_ID_PREFIX + " | WHOIS"
+            + " | REAL IP: " + params.ipAddress
+            + " | NET NAME: " + whoisResult.netname
+            // + "\n" + jsonPrint(whoisResult)
+          ));
+
+          ipCacheObj = {};
+          ipCacheObj.domainName = whoisResult.netname
+          ipCacheObj.timeStamp = getTimeStamp();
+
+          ipCache.set(
+            params.ipAddress, 
+            ipCacheObj,
+            ipCacheTtl
+          );
+
+          return resolve(whoisResult.netname);
+
+        }
+        catch(err1){
+
+          console.log(chalkError(MODULE_ID_PREFIX 
+            + " | *** WHOIS ERROR | IP: " + params.ipAddress
+            + " | " + err1
+          ));
+
+          ipCacheObj = {};
+          ipCacheObj.domainName = "UNKNOWN_" + params.ipAddress;
+          ipCacheObj.timeStamp = getTimeStamp();
+
+          ipCache.set(
+            params.ipAddress, 
+            ipCacheObj,
+            ipCacheTtl
+          );
+
+          return resolve(ipCacheObj.domainName);
+        }
+
       }
 
 
@@ -330,21 +366,60 @@ function dnsReverse(params){
 
         const googleComputeEngineExternalIpAddress = hostnames[0].replace("."+DEFAULT_GOOGLE_COMPUTE_DOMAIN, "");
 
-        // if (configuration.verbose) {
-          console.log(chalk.black(MODULE_ID_PREFIX + " | GOOGLE CLOUD COMPUTE ENGINE DOMAIN | DNS REVERSE"
-            + " | GCP IP: " + params.ipAddress
-            + " | REAL IP: " + googleComputeEngineExternalIpAddress
-            + " | " + hostnames.length + " HOST NAMES"
-            + " | HOST: " + hostnames[0]
-          ));
-        // }
+        console.log(chalk.black(MODULE_ID_PREFIX + " | GOOGLE CLOUD COMPUTE ENGINE DOMAIN | DNS REVERSE"
+          + " | GCP IP: " + params.ipAddress
+          + " | REAL IP: " + googleComputeEngineExternalIpAddress
+          + " | " + hostnames.length + " HOST NAMES"
+          + " | HOST: " + hostnames[0]
+        ));
+
         dnsReverse({ipAddress: googleComputeEngineExternalIpAddress})
         .then(function(domainName){
           resolve(domainName);
         })
-        .catch(function(e){
-          reject(e);
-        })
+        .catch(async function(err0){
+
+          console.log(chalkError(MODULE_ID_PREFIX 
+            + " | *** DNS REVERSE ERROR | GOOGLE CLOUD COMPUTE ENGINE | IP: " + googleComputeEngineExternalIpAddress
+            + " | " + err0
+          ));
+
+          try{
+
+            console.log(chalkAlert(MODULE_ID_PREFIX 
+              + " | ... TRY WHOIS | IP: " + googleComputeEngineExternalIpAddress
+            ));
+
+            const whoisResult = await whois(googleComputeEngineExternalIpAddress);
+
+            console.log(chalk.black(MODULE_ID_PREFIX + " | GOOGLE CLOUD COMPUTE ENGINE DOMAIN | WHOIS"
+              + " | REAL IP: " + googleComputeEngineExternalIpAddress
+              + " | DOMAIN: " + whoisResult.domainName
+              + "\n" + jsonPrint(whoisResult)
+            ));
+
+            ipCacheObj = {};
+            ipCacheObj.domainName = whoisResult.domainName
+            ipCacheObj.timeStamp = getTimeStamp();
+
+            ipCache.set(
+              googleComputeEngineExternalIpAddress, 
+              ipCacheObj,
+              ipCacheTtl
+            );
+
+            resolve(whoisResult.domainName);
+
+          }
+          catch(err1){
+            console.log(chalkError(MODULE_ID_PREFIX 
+              + " | *** WHOIS ERROR | IP: " + googleComputeEngineExternalIpAddress
+              + " | " + err1
+            ));
+            reject(err1);
+          }
+
+        });
 
       }
       else{

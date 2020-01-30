@@ -5,6 +5,8 @@ const ONE_MINUTE = 60 * ONE_SECOND;
 const ONE_HOUR = 60 * ONE_MINUTE;
 const ONE_DAY = 24 * ONE_HOUR;
 
+const DEFAULT_GOOGLE_COMPUTE_DOMAIN = "bc.googleusercontent.com";
+
 const DEFAULT_START_TIMEOUT = 10*ONE_SECOND;
 const DEFAULT_MAX_USER_SEARCH_SKIP_COUNT = 25;
 
@@ -21,6 +23,9 @@ const watch = require("watch");
 const dns = require("dns");
 
 // const {google} = require("googleapis");
+// const googleSupportedAPIs = google.getSupportedAPIs();
+// console.log("GOOGLE SUPPORTED APIS\n", googleSupportedAPIs);
+// let googleIam = google.iam("v1");
 // let cloudDebugger = google.clouddebugger("v2");
 
 // require("@google-cloud/debug-agent").start({allowExpressions: true});
@@ -230,6 +235,7 @@ const chalkAlert = chalk.red;
 const chalkWarn = chalk.bold.yellow;
 const chalkError = chalk.bold.red;
 const chalkLog = chalk.gray;
+const chalkGreen = chalk.green;
 const chalkBlue = chalk.blue;
 const chalkBlueBold = chalk.blue.bold;
 
@@ -279,7 +285,8 @@ function dnsReverse(params){
     let ipCacheObj = ipCache.get(params.ipAddress);
 
     if (ipCacheObj) {
-      console.log(chalkLog(MODULE_ID_PREFIX + " | DNS REVERSE | $ HIT"
+
+      console.log(chalkGreen(MODULE_ID_PREFIX + " | DNS REVERSE | $ HIT"
         + " | IP: " + params.ipAddress 
         + " | LS: " + ipCacheObj.timeStamp
         + " | HOST: " + ipCacheObj.domainName
@@ -306,24 +313,49 @@ function dnsReverse(params){
         return reject(err);
       }
 
-      ipCacheObj = {};
-      ipCacheObj.domainName = hostnames[0];
-      ipCacheObj.timeStamp = getTimeStamp();
 
-      ipCache.set(
-        params.ipAddress, 
-        ipCacheObj,
-        ipCacheTtl
-      );
+      if (hostnames[0].endsWith(DEFAULT_GOOGLE_COMPUTE_DOMAIN)){  // i.e. 66.248.198.35.bc.googleusercontent.com
 
-      console.log(chalkLog(MODULE_ID_PREFIX + " | DNS REVERSE | $ MISS"
-        + " | IP: " + params.ipAddress 
-        + " | " + hostnames.length + " HOST NAMES"
-        + " | HOST: " + hostnames[0]
-        // + "\nhostnames\n" + jsonPrint(hostnames)
-      ));
+        const googleComputeEngineExternalIpAddress = hostnames[0].replace("."+DEFAULT_GOOGLE_COMPUTE_DOMAIN, "");
 
-      resolve(hostnames[0]);
+        // if (configuration.verbose) {
+          console.log(chalkGreen(MODULE_ID_PREFIX + " | *** GOOGLE CLOUD COMPUTE ENGINE DOMAIN *** | DNS REVERSE | $ MISS"
+            + " | GCP IP: " + params.ipAddress
+            + " | REAL IP: " + googleComputeEngineExternalIpAddress
+            + " | " + hostnames.length + " HOST NAMES"
+            + " | HOST: " + hostnames[0]
+          ));
+        // }
+        dnsReverse({ipAddress: googleComputeEngineExternalIpAddress})
+        .then(function(domainName){
+          resolve(domainName);
+        })
+        .catch(function(e){
+          reject(e);
+        })
+
+      }
+      else{
+
+        console.log(chalkGreen(MODULE_ID_PREFIX + " | DNS REVERSE | $ MISS"
+          + " | IP: " + params.ipAddress 
+          + " | " + hostnames.length + " HOST NAMES"
+          + " | HOST: " + hostnames[0]
+        ));
+
+        ipCacheObj = {};
+        ipCacheObj.domainName = hostnames[0];
+        ipCacheObj.timeStamp = getTimeStamp();
+
+        ipCache.set(
+          params.ipAddress, 
+          ipCacheObj,
+          ipCacheTtl
+        );
+
+        resolve(hostnames[0]);
+      }
+
     });
 
   });

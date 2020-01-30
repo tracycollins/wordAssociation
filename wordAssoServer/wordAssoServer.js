@@ -310,7 +310,19 @@ function dnsReverse(params){
           + " | *** DNS REVERSE ERROR | IP: " + params.ipAddress
           + " | " + err
         ));
-        return reject(err);
+
+        ipCacheObj = {};
+        ipCacheObj.domainName = "UNKNOWN_" + params.ipAddress;
+        ipCacheObj.timeStamp = getTimeStamp();
+
+        ipCache.set(
+          params.ipAddress, 
+          ipCacheObj,
+          ipCacheTtl
+        );
+
+      return resolve(ipCacheObj.domainName);
+        // return reject(err);
       }
 
 
@@ -3959,7 +3971,16 @@ async function initSocketHandler(socketObj) {
   const ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
   try{
-    const domainName = await dnsReverse({ipAddress: ipAddress});
+
+    let domainName;
+
+    try{
+      domainName = await dnsReverse({ipAddress: ipAddress});
+    }
+    catch(err){
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** initAppRouting DNS ERROR: " + err));
+    }
+
     console.log(chalk.blue("WAS | SOCKET CONNECT"
       + " | " + ipAddress
       + " | DOMAIN: " + domainName

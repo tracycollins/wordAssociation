@@ -10599,7 +10599,12 @@ setTimeout(async function(){
       }
     }
 
-    await dnsReverse({ipAddress: "35.240.151.105"});
+    try{
+      await dnsReverse({ipAddress: "35.240.151.105"});
+    }
+    catch(e){
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! DNS REVERSE TEST ERROR: " + e));
+    }
 
     configEvents.emit("DB_CONNECT");
 

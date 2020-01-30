@@ -319,7 +319,7 @@ function dnsReverse(params){
         const googleComputeEngineExternalIpAddress = hostnames[0].replace("."+DEFAULT_GOOGLE_COMPUTE_DOMAIN, "");
 
         // if (configuration.verbose) {
-          console.log(chalkGreen(MODULE_ID_PREFIX + " | *** GOOGLE CLOUD COMPUTE ENGINE DOMAIN *** | DNS REVERSE | $ MISS"
+          console.log(chalk.black(MODULE_ID_PREFIX + " | GOOGLE CLOUD COMPUTE ENGINE DOMAIN | DNS REVERSE"
             + " | GCP IP: " + params.ipAddress
             + " | REAL IP: " + googleComputeEngineExternalIpAddress
             + " | " + hostnames.length + " HOST NAMES"

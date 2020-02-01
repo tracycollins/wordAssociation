@@ -6253,7 +6253,7 @@ function initTransmitNodeQueueInterval(interval){
           }
           else{
 
-            statsObj.traffic.users.total++;
+            if (n.isTweeter) { statsObj.traffic.users.total++; }
 
             userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit}, function(err, updatedUser){
               if (err) {
@@ -6261,7 +6261,7 @@ function initTransmitNodeQueueInterval(interval){
                 delete n._id;
                 delete n.userId;
 
-                if (botNodeIdSet.has(n.nodeId)){
+                if (n.isTweeter && botNodeIdSet.has(n.nodeId)){
 
                   statsObj.traffic.users.bots++;
                   statsObj.traffic.users.percentBots = 100*(statsObj.traffic.users.bots/statsObj.traffic.users.total);
@@ -6283,7 +6283,7 @@ function initTransmitNodeQueueInterval(interval){
                 delete updatedUser._id;
                 delete updatedUser.userId;
 
-                if (botNodeIdSet.has(updatedUser.nodeId)){ 
+                if (updatedUser.isTweeter && botNodeIdSet.has(updatedUser.nodeId)){ 
 
                   statsObj.traffic.users.bots++;
                   statsObj.traffic.users.percentBots = 100*(statsObj.traffic.users.bots/statsObj.traffic.users.total);
@@ -6309,6 +6309,28 @@ function initTransmitNodeQueueInterval(interval){
         else if (n.nodeType == "user") {
           delete n._id;
           delete n.userId;
+
+          if (n.isTweeter) { 
+
+            statsObj.traffic.users.total++;
+
+            if (botNodeIdSet.has(n.nodeId)){
+
+              statsObj.traffic.users.bots++;
+              statsObj.traffic.users.percentBots = 100*(statsObj.traffic.users.bots/statsObj.traffic.users.total);
+
+              n.isBot = true;
+
+              console.log(chalkBot(MODULE_ID_PREFIX + "| ---> BOT <---"
+                + " [ " + statsObj.traffic.users.bots + "/" + statsObj.traffic.users.total 
+                + " | " + statsObj.traffic.users.percentBots.toFixed(2) + "% ]"
+                + " | " + printUser({user: n})
+              ));
+
+              botCache.set(n.nodeId, n);
+            }
+          }
+
           viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
 
           transmitNodeQueueReady = true;
@@ -6367,10 +6389,13 @@ async function transmitNodes(tw){
     return;
   }
 
+  tw.user.isTweeter = true;
+
   transmitNodeQueue.push(tw.user);
 
   for(const user of tw.userMentions){
     if (user && configuration.enableTransmitUser && !ignoredUserSet.has(user.nodeId) && !ignoredUserSet.has(user.screenName.toLowerCase())) { 
+      user.isTweeter = false;
       transmitNodeQueue.push(user); 
     }
   }

@@ -1945,7 +1945,9 @@ function ViewTreepack() {
 
   // ==========================================
 
-  document.addEventListener("resize", function resizeFunc() { self.resize(); }, true);
+  document.addEventListener("resize", function resizeFunc() { 
+    self.resize(); 
+  }, true);
 
   self.reset = function() {
     console.info("RESET");

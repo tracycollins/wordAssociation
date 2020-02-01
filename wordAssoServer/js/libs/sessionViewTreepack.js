@@ -570,7 +570,6 @@ function ViewTreepack() {
         DEFAULT_SOURCE
       );
     }
-
   };
 
   this.setTwitterHashtag = function(message) {
@@ -599,7 +598,6 @@ function ViewTreepack() {
         DEFAULT_SOURCE
       );
     }
-
   };
 
   this.setMetricMode = function(mode) {

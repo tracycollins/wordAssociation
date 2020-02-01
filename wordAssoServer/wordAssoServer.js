@@ -5585,13 +5585,19 @@ async function initBotSet(p){
 
       console.log(chalk.blue(MODULE_ID_PREFIX + " | FILE CONTAINS " + dataArray.length + " TWITTER BOT IDs"));
 
-      dataArray.forEach(function(nId){
+      for(const nId of dataArray{
+
         const nodeId = nId.trim();
+
         if (nodeId !== "") {
           botNodeIdSet.add(nodeId);
-          console.log(chalkLog(MODULE_ID_PREFIX + " | +++ BOT NODE ID [" + botNodeIdSet.size + "] " + nId.trim()));
+
+          if (configuration.verbose || botNodeIdSet.size % 100 === 0) {
+            console.log(chalkLog(MODULE_ID_PREFIX + " | +++ BOT NODE ID [" + botNodeIdSet.size + "] " + nId.trim()));
+          }
         }
-      });
+
+      }
 
     }
 

@@ -1931,7 +1931,7 @@ botCache.on("expired", function(nodeId, botUser){
   console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX BOT CACHE EXPIRED"
     + " [" + botCache.getStats().keys + " KEYS]"
     + " | TTL: " + botCacheTtl + " SECS"
-    + " | " + printUser(botUser)
+    + " | " + printUser({user: botUser})
     // + " | " + nodeId
     // + " | @" + botObj.screenName
     // + " | CAT M " + botObj.category
@@ -5554,6 +5554,8 @@ async function initBotSet(p){
     }
 
     console.log(chalkLog(MODULE_ID_PREFIX + " | ... FOUND " + csvFileArray.length + " FILES IN BOT FOLDERS"));
+
+    botNodeIdSet.clear();
 
     for (const fileObj of csvFileArray) {
 
@@ -10733,6 +10735,10 @@ const watchOptions = {
   ignoreNotPermitted: true,
 }
 
+let initBotSetTimeout;
+
+const botBlockListFileRegex = RegExp("block-list");
+
 async function initWatchConfig(){
 
   statsObj.status = "INIT WATCH CONFIG";
@@ -10770,6 +10776,15 @@ async function initWatchConfig(){
         await initFollowableSearchTermSet();
       }
 
+      // if (f.endsWith("block-list-nn.csv")){
+      if (botBlockListFileRegex.test(f)){
+        console.log(chalkAlert(MODULE_ID_PREFIX + " | BOT BLOCK FILE CHANGED | " + getTimeStamp() + " | " + f));
+        clearTimeout(initBotSetTimeout);
+        initBotSetTimeout = setTimeout(async function(){
+          await initBotSet();
+        }, ONE_MINUTE);
+      }
+
     }
     catch(err){
       console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD ALL CONFIGS ON CREATE ERROR: " + err));
@@ -10799,6 +10814,17 @@ async function initWatchConfig(){
   });
 
   watch.createMonitor(bestNetworkFolder, watchOptions, function (monitor) {
+
+    monitor.on("created", loadConfig);
+
+    monitor.on("changed", loadConfig);
+
+    monitor.on("removed", function (f) {
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX FILE DELETED | " + getTimeStamp() + " | " + f));
+    });
+  });
+
+  watch.createMonitor(botsFolder, watchOptions, function (monitor) {
 
     monitor.on("created", loadConfig);
 

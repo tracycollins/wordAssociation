@@ -944,7 +944,6 @@ function ViewTreepack() {
       totalHashmap = tempTotalHashmap;
       callback(err, tempNodeArray);
     });
-
   }
 
   var previousTwitterUserId;
@@ -1091,7 +1090,6 @@ function ViewTreepack() {
     return d.nodeId; 
   }
 
-  // var nodeUrl = "";
   function nodeClick(d) {
 
     switch (d.nodeType) {
@@ -1189,7 +1187,7 @@ function ViewTreepack() {
 
   var nodeCircles;
 
-  var updateNodeCircles = function(callback) {
+  function updateNodeCircles(callback) {
 
     nodeCircles = nodeSvgGroup.selectAll("circle").
       data(nodeArray.filter(
@@ -1319,7 +1317,7 @@ function ViewTreepack() {
       style("display", "none");
 
     callback();
-  };
+  }
 
   var nodeLabels;
   

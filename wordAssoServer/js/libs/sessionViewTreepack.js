@@ -1138,52 +1138,52 @@ function ViewTreepack() {
     }
   }
 
-  var updateChangedCircleNodes = function(d){
+  // var updateChangedCircleNodes = function(d){
 
-    if (d.newFlag && d.isValid) {
+  //   if (d.newFlag && d.isValid) {
 
-      d.newFlag = false;
+  //     d.newFlag = false;
 
-      d3.select(this).
-        style("display", "unset").
-        style("fill", function (d) { 
-          if (!d.category && !d.categoryAuto) { return palette.black; }
-          return d.categoryColor; 
-        }).
-        style("fill-opacity", function(d) { 
-          if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
-          return nodeLabelOpacityScale(d.ageMaxRatio); 
-        }).
-        style("stroke", function (d) {
-          if (d.nodeType === "hashtag") { return palette.white; }
-          if (d.categoryMismatch) { return palette.red; }
-          if (d.categoryMatch) { return categoryMatchColor; }
-          if (d.categoryAuto === "right") { return palette.yellow; }
-          if (d.categoryAuto === "left") { return palette.blue; }
-          if (d.categoryAuto === "positive") { return palette.green; }
-          if (d.categoryAuto ==="negative") { return palette.red; }
-          return palette.white; 
-        }).
-        style("stroke-width", function (d) { 
-          if (d.nodeType === "hashtag" && d.isTopTerm) { return topTermStrokeWidth; }
-          if (d.nodeType === "hashtag") { return 0.5*defaultStrokeWidth; }
-          if (d.categoryMismatch && d.following) { return categoryMismatchStrokeWidth; }
-          if (d.categoryMismatch && !d.following) { return 0.5*categoryMismatchStrokeWidth; }
-          if (d.categoryMatch && d.following) { return categoryMatchStrokeWidth; }
-          if (d.categoryMatch && !d.following) { return 0.5*categoryMatchStrokeWidth; }
-          if (d.isTopTerm && d.following) { return topTermStrokeWidth; }
-          if (d.isTopTerm && !d.following) { return 0.5*topTermStrokeWidth; }
-          if (d.categoryAuto && d.following) { return categoryAutoStrokeWidth; }
-          if (d.categoryAuto && !d.following) { return 0.5*categoryAutoStrokeWidth; }
-          if (d.following) { return defaultStrokeWidth; }
-          return 0.5*defaultStrokeWidth; 
-        }).
-        style("stroke-opacity", function(d) { 
-          if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
-          return nodeLabelOpacityScale(d.ageMaxRatio); 
-        });
-    }
-  };
+  //     d3.select(this).
+  //       style("display", "unset").
+  //       style("fill", function (d) { 
+  //         if (!d.category && !d.categoryAuto) { return palette.black; }
+  //         return d.categoryColor; 
+  //       }).
+  //       style("fill-opacity", function(d) { 
+  //         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
+  //         return nodeLabelOpacityScale(d.ageMaxRatio); 
+  //       }).
+  //       style("stroke", function (d) {
+  //         if (d.nodeType === "hashtag") { return palette.white; }
+  //         if (d.categoryMismatch) { return palette.red; }
+  //         if (d.categoryMatch) { return categoryMatchColor; }
+  //         if (d.categoryAuto === "right") { return palette.yellow; }
+  //         if (d.categoryAuto === "left") { return palette.blue; }
+  //         if (d.categoryAuto === "positive") { return palette.green; }
+  //         if (d.categoryAuto ==="negative") { return palette.red; }
+  //         return palette.white; 
+  //       }).
+  //       style("stroke-width", function (d) { 
+  //         if (d.nodeType === "hashtag" && d.isTopTerm) { return topTermStrokeWidth; }
+  //         if (d.nodeType === "hashtag") { return 0.5*defaultStrokeWidth; }
+  //         if (d.categoryMismatch && d.following) { return categoryMismatchStrokeWidth; }
+  //         if (d.categoryMismatch && !d.following) { return 0.5*categoryMismatchStrokeWidth; }
+  //         if (d.categoryMatch && d.following) { return categoryMatchStrokeWidth; }
+  //         if (d.categoryMatch && !d.following) { return 0.5*categoryMatchStrokeWidth; }
+  //         if (d.isTopTerm && d.following) { return topTermStrokeWidth; }
+  //         if (d.isTopTerm && !d.following) { return 0.5*topTermStrokeWidth; }
+  //         if (d.categoryAuto && d.following) { return categoryAutoStrokeWidth; }
+  //         if (d.categoryAuto && !d.following) { return 0.5*categoryAutoStrokeWidth; }
+  //         if (d.following) { return defaultStrokeWidth; }
+  //         return 0.5*defaultStrokeWidth; 
+  //       }).
+  //       style("stroke-opacity", function(d) { 
+  //         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
+  //         return nodeLabelOpacityScale(d.ageMaxRatio); 
+  //       });
+  //   }
+  // };
 
   var nodeCircles;
 
@@ -1861,21 +1861,6 @@ function ViewTreepack() {
 
       console.log("RESIZE: " + width + "x" + height);
 
-      if (panzoomElement) {
-        panzoomInstance = panzoom(
-          panzoomElement, 
-          {
-            maxZoom: 2, 
-            minZoom: 0.1,
-            zoomSpeed: 0.02
-          }
-        ).zoomAbs(
-          0.5*width,
-          0.5*height,
-          defaultInitialZoom
-        );
-      }
-
       foci = {
         left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 
         right: {x: xFocusRightRatio*width, y: yFocusRightRatio*height}, 
@@ -1947,12 +1932,26 @@ function ViewTreepack() {
           velocityDecay(velocityDecay);
       }
 
-      if (panzoomInstance) { 
-        panzoomInstance.zoomAbs(width*0.5, height*0.5, config.panzoomTransform.scale);
+      panzoomElement = document.getElementById("svgTreemapLayoutArea");
+
+      if (panzoomElement) {
+        panzoomInstance = panzoom(
+          panzoomElement, 
+          {
+            maxZoom: 2, 
+            minZoom: 0.1,
+            zoomSpeed: 0.02
+          }
+        ).zoomAbs(
+          0.5*width,
+          0.5*height,
+          defaultInitialZoom
+        );
       }
 
-    }, 200);
 
+
+    }, 200);
   };
 
   // ==========================================

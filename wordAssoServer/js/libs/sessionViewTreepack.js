@@ -1949,7 +1949,9 @@ function ViewTreepack() {
           velocityDecay(velocityDecay);
       }
 
-      panzoomInstance.zoomAbs(width*0.5, height*0.5, config.panzoomTransform.scale);
+      if (panzoomInstance) { 
+        panzoomInstance.zoomAbs(width*0.5, height*0.5, config.panzoomTransform.scale);
+      }
 
     }, 200);
 

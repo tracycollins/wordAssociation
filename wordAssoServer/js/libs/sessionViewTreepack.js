@@ -189,7 +189,7 @@ function ViewTreepack() {
   currentMax.mentions.mentions = 0.1;
   currentMax.mentions.timeStamp = Date.now();
 
-  function Node(nodePoolId, x, y){
+  function Node(nodePoolId){
     this.age = 1e-6;
     this.ageMaxRatio = 1e-6;
     this.ageUpdated = Date.now();
@@ -227,15 +227,15 @@ function ViewTreepack() {
     this.text = "";
     this.vx = 1e-6;
     this.vy = 1e-6;
-    this.x = x;
-    this.y = y;
+    this.x = initialXposition*width;
+    this.y = initialYposition*height;
   } 
 
   var nodePoolIndex = 0;
 
   var nodePool = deePool.create(function makeNode(){
     nodePoolIndex += 1;
-    return (new Node("nodePoolId_" + nodePoolIndex, initialXposition*width, initialYposition*height));
+    return (new Node("nodePoolId_" + nodePoolIndex));
   });
 
   var autoCategoryFlag = config.autoCategoryFlag;
@@ -598,6 +598,7 @@ function ViewTreepack() {
         DEFAULT_SOURCE
       );
     }
+
   };
 
   this.setMetricMode = function(mode) {
@@ -1947,7 +1948,7 @@ function ViewTreepack() {
         );
       }
 
-
+      this.setGravity(console.defaultGravity);
 
     }, 200);
   };

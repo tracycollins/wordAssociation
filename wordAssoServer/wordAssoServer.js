@@ -326,7 +326,7 @@ function dnsReverse(params){
             // + "\n" + jsonPrint(whoisResult)
           ));
 
-          if (configuration.verbose){
+          if (params.verbose || configuration.verbose){
             console.log(chalk.black(MODULE_ID_PREFIX + " | WHOIS"
               + " | REAL IP: " + params.ipAddress
               + " | NET NAME: " + whoisResult.netname
@@ -10704,7 +10704,7 @@ setTimeout(async function(){
     }
 
     try{
-      await dnsReverse({ipAddress: "35.240.151.105"});
+      await dnsReverse({ipAddress: "66.248.198.35", verbose: true});
     }
     catch(e){
       console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! DNS REVERSE TEST ERROR: " + e));

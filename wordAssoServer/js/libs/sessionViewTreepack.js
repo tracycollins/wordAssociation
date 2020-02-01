@@ -101,6 +101,7 @@ function ViewTreepack() {
   var xFocusPositiveRatio = 0.5;
   var yFocusPositiveRatio = 0.2;
 
+  var xFocusNegativeRatio = 0.5;
   var yFocusNegativeRatio = 0.7;
 
   var xFocusNeutralRatio = 0.5;
@@ -150,7 +151,7 @@ function ViewTreepack() {
     left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 
     right: {x: xFocusRightRatio*width, y: yFocusRightRatio*height}, 
     positive: {x: xFocusPositiveRatio*width, y: yFocusPositiveRatio*height}, 
-    negative: {x: xFocusNeutralRatio*width, y: yFocusNegativeRatio*height},
+    negative: {x: xFocusNegativeRatio*width, y: yFocusNegativeRatio*height},
     neutral: {x: xFocusNeutralRatio*width, y: yFocusNeutralRatio*height},
     none: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height},
     default: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height}
@@ -439,7 +440,7 @@ function ViewTreepack() {
       config.panzoomTransform = panzoomCurrentEvent.getTransform();
       console.log("panzoomTransform transform end\n", jsonPrint(config.panzoomTransform));
       document.dispatchEvent(panzoomEvent);
-    }, 100);
+    }, 1000);
 
   };
 
@@ -1861,14 +1862,19 @@ function ViewTreepack() {
       console.log("RESIZE: " + width + "x" + height);
 
       foci = {
-        left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 
+        left:  {x: xFocusLeftRatio*width,  y: yFocusLeftRatio*height}, 
         right: {x: xFocusRightRatio*width, y: yFocusRightRatio*height}, 
+
         positive: {x: xFocusPositiveRatio*width, y: yFocusPositiveRatio*height}, 
-        negative: {x: xFocusNeutralRatio*width, y: yFocusNegativeRatio*height},
+        negative: {x: xFocusNegativeRatio*width,  y: yFocusNegativeRatio*height},
+
         neutral: {x: xFocusNeutralRatio*width, y: yFocusNeutralRatio*height},
-        none: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height},
+        none:    {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height},
+
         default: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height}
       };
+
+      console.log("FOCI: " + jsonPrint(foci));
 
       nodeRadiusMin = nodeRadiusMinRatio * width;
       nodeRadiusMax = nodeRadiusMaxRatio * width;
@@ -1892,63 +1898,56 @@ function ViewTreepack() {
         attr("x", 1e-6).
         attr("y", 1e-6);
 
-      svgTreemapLayoutArea.
-        attr("width", width).
-        attr("height", height).
-        attr("x", 1e-6).
-        attr("y", 1e-6);
+      // svgTreemapLayoutArea.
+      //   attr("width", width).
+      //   attr("height", height).
+      //   attr("x", 1e-6).
+      //   attr("y", 1e-6);
 
-      // if (simulation){
-      //   simulation.
-      //     force("charge", d3.forceManyBody().strength(charge)).
-      //     force("forceX", d3.forceX().x(function forceXfunc(d) { 
-      //       if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)) {
-      //         return foci[d.categoryAuto].x;
-      //       }
-      //       if (d.category){ return foci[d.category].x; }
-      //       return foci.default.x;
-      //     }).
-      //     strength(function strengthFunc(){
-      //       return forceXmultiplier * gravity; 
-      //     })).
-      //     force("forceY", d3.forceY().y(function forceYfunc(d) { 
-      //       if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)){
-      //         return foci[d.categoryAuto].y;
-      //       }
-      //       if (d.category){ return foci[d.category].y; }
-      //       return foci.default.y;
-      //     }).
-      //     strength(function strengthFunc(){
-      //       return forceYmultiplier * gravity; 
-      //     })).
-      //     force("collide", d3.forceCollide().radius(function forceCollideFunc(d) { 
-      //       if (metricMode === "rate") { return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate)); }
-      //       if (metricMode === "mentions") {
-      //         return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions));
-      //       }
-      //     }).
-      //     iterations(collisionIterations)).
-      //     velocityDecay(velocityDecay);
-      // }
+      if (simulation){
+
+        simulation.
+          force("charge", d3.forceManyBody().strength(charge)).
+          force("forceX", d3.forceX().x(function forceXfunc(d) { 
+            if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)) {
+              return foci[d.categoryAuto].x;
+            }
+            if (d.category){ return foci[d.category].x; }
+            return foci.default.x;
+          }).
+          strength(function strengthFunc(){
+            return forceXmultiplier * gravity; 
+          })).
+          force("forceY", d3.forceY().y(function forceYfunc(d) { 
+            if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)){
+              return foci[d.categoryAuto].y;
+            }
+            if (d.category){ return foci[d.category].y; }
+            return foci.default.y;
+          }).
+          strength(function strengthFunc(){
+            return forceYmultiplier * gravity; 
+          })).
+          force("collide", d3.forceCollide().radius(function forceCollideFunc(d) { 
+            if (metricMode === "rate") { return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate)); }
+            if (metricMode === "mentions") {
+              return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions));
+            }
+          }).
+          iterations(collisionIterations)).
+          velocityDecay(velocityDecay);
+      }
 
       panzoomElement = document.getElementById("svgTreemapLayoutArea");
 
       if (panzoomElement) {
-        panzoomInstance = panzoom(
-          panzoomElement, 
-          {
-            maxZoom: 2, 
-            minZoom: 0.1,
-            zoomSpeed: 0.02
-          }
-        ).zoomAbs(
-          0.5*width,
-          0.5*height,
-          defaultInitialZoom
-        );
+        panzoomInstance.zoomAbs(width*0.5, height*0.5, config.panzoomTransform.scale);
       }
 
-      self.setGravity(config.defaultGravity);
+
+      // self.initD3timer();
+
+      // self.setGravity(config.defaultGravity);
 
     }, 200);
   };

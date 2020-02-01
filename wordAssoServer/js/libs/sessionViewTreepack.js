@@ -439,7 +439,7 @@ function ViewTreepack() {
       config.panzoomTransform = panzoomCurrentEvent.getTransform();
       console.log("panzoomTransform transform end\n", jsonPrint(config.panzoomTransform));
       document.dispatchEvent(panzoomEvent);
-    }, 2000);
+    }, 100);
 
   };
 
@@ -1947,7 +1947,7 @@ function ViewTreepack() {
           iterations(collisionIterations)).
           velocityDecay(velocityDecay);
       }
-      
+
     }, 200);
 
   };

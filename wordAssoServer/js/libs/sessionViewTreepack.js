@@ -384,7 +384,7 @@ function ViewTreepack() {
     
   var nodeLabelOpacityScaleTopTerm = d3.scaleLinear().
     domain([1e-6, 0.2, 1.0]).
-    range([1.0, 0.95, 0.9]).
+    range([1.0, 0.95, 0.75]).
     clamp(true);
     
   var adjustedAgeRateScale = d3.scaleLinear().

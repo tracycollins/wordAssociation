@@ -807,8 +807,8 @@ function ViewTreepack() {
     n.text = "";
     n.vx = 1e-6;
     n.vy = 1e-6;
-    n.x = 1e-6;
-    n.y = 1e-6;
+    n.x = initialXposition.width;
+    n.y = initialYposition.height;
 
     tempNodeCirle = document.getElementById(n.nodePoolId);
     tempNodeCirle.setAttribute("display", "none");

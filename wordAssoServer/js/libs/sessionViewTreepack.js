@@ -1849,8 +1849,6 @@ function ViewTreepack() {
 
   this.resize = function() {
 
-    panzoom
-
     d3image = d3.select("#d3group");
 
     width = getWindowDimensions().width;

@@ -1926,15 +1926,16 @@ const botCache = new NodeCache({
   checkperiod: botCacheCheckPeriod
 });
 
-botCache.on("expired", function(nodeId, botObj){
+botCache.on("expired", function(nodeId, botUser){
 
   console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX BOT CACHE EXPIRED"
     + " [" + botCache.getStats().keys + " KEYS]"
     + " | TTL: " + botCacheTtl + " SECS"
-    + " | " + nodeId
-    + " | @" + botObj.screenName
-    + " | CAT M " + botObj.category
-    + " | CAT A " + botObj.categoryAuto
+    + " | " + printUser(botUser)
+    // + " | " + nodeId
+    // + " | @" + botObj.screenName
+    // + " | CAT M " + botObj.category
+    // + " | CAT A " + botObj.categoryAuto
   ));
 
 });

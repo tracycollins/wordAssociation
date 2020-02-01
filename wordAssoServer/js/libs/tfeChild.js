@@ -1664,7 +1664,7 @@ process.on("message", async function(m) {
 
       cacheObj = userChangeCache.get(m.user.nodeId);
 
-      if (m.priorityFlag) { 
+      if (m.priorityFlag && configuration.verbose) { 
         if (cacheObj){
           console.log(chalk.green("WAS | TFC | USER CAT $ HIT"
             + " [UC$: " + userChangeCache.getStats().keys + "]"
@@ -1675,7 +1675,7 @@ process.on("message", async function(m) {
           ));
         }
         else{
-          console.log(chalk.yellow("WAS | TFC | USER CAT $ MISS"
+          console.log(chalk.gray("WAS | TFC | USER CAT $ MISS"
             + " [UC$: " + userChangeCache.getStats().keys + "]"
             + " [PUQ: " + processUserQueue.length + "]"
             + " | MODE: " + m.searchMode

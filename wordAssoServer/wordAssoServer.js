@@ -1931,8 +1931,10 @@ botCache.on("expired", function(nodeId, botObj){
   console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX BOT CACHE EXPIRED"
     + " [" + botCache.getStats().keys + " KEYS]"
     + " | TTL: " + botCacheTtl + " SECS"
-    + " | NODE ID: " + nodeId
-    + " | botObj\n" + jsonPrint(botObj)
+    + " | " + nodeId
+    + " | @" + botObj.screenName
+    + " | CAT M " + botObj.category
+    + " | CAT A " + botObj.categoryAuto
   ));
 
 });

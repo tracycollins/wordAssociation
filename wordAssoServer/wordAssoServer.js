@@ -10703,12 +10703,12 @@ setTimeout(async function(){
       }
     }
 
-    try{
-      await dnsReverse({ipAddress: "66.248.198.35", verbose: true});
-    }
-    catch(e){
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! DNS REVERSE TEST ERROR: " + e));
-    }
+    // try{
+    //   await dnsReverse({ipAddress: "66.248.198.35", verbose: true});
+    // }
+    // catch(e){
+    //   console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! DNS REVERSE TEST ERROR: " + e));
+    // }
 
     configEvents.emit("DB_CONNECT");
 

@@ -1847,100 +1847,109 @@ function ViewTreepack() {
     }
   };
 
+  var resizeTimeOut;
+
   this.resize = function() {
 
-    d3image = d3.select("#d3group");
+    clearTimeout(resizeTimeOut);
 
-    width = getWindowDimensions().width;
-    height = getWindowDimensions().height;
+    resizeTimeOut = setTimeout(function(){
 
-    console.log("RESIZE: " + width + "x" + height);
+      d3image = d3.select("#d3group");
 
-    if (panzoomElement) {
-      panzoomInstance = panzoom(
-        panzoomElement, 
-        {
-          maxZoom: 2, 
-          minZoom: 0.1,
-          zoomSpeed: 0.02
-        }
-      ).zoomAbs(
-        0.5*width,
-        0.5*height,
-        defaultInitialZoom
-      );
-    }
+      width = getWindowDimensions().width;
+      height = getWindowDimensions().height;
 
-    foci = {
-      left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 
-      right: {x: xFocusRightRatio*width, y: yFocusRightRatio*height}, 
-      positive: {x: xFocusPositiveRatio*width, y: yFocusPositiveRatio*height}, 
-      negative: {x: xFocusNeutralRatio*width, y: yFocusNegativeRatio*height},
-      neutral: {x: xFocusNeutralRatio*width, y: yFocusNeutralRatio*height},
-      none: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height},
-      default: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height}
-    };
+      console.log("RESIZE: " + width + "x" + height);
 
-    nodeRadiusMin = nodeRadiusMinRatio * width;
-    nodeRadiusMax = nodeRadiusMaxRatio * width;
-
-    defaultRadiusScale = d3.scaleLinear().
-      domain([0, currentMetricModeDomainMaxSqrt]).
-      range([nodeRadiusMin, nodeRadiusMax]).
-      clamp(true);
-
-    fontSizeMin = fontSizeMinRatio * height;
-    fontSizeMax = fontSizeMaxRatio * height;
-
-    nodeLabelSizeScale = d3.scaleLinear().
-      domain([1, currentMetricModeDomainMax]).
-      range([fontSizeMin, fontSizeMax]).
-      clamp(true);
-
-    svgMain.
-      attr("width", width).
-      attr("height", height).
-      attr("x", 1e-6).
-      attr("y", 1e-6);
-
-    svgTreemapLayoutArea.
-      attr("width", width).
-      attr("height", height).
-      attr("x", 1e-6).
-      attr("y", 1e-6);
-
-    if (simulation){
-      simulation.
-        force("charge", d3.forceManyBody().strength(charge)).
-        force("forceX", d3.forceX().x(function forceXfunc(d) { 
-          if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)) {
-            return foci[d.categoryAuto].x;
+      if (panzoomElement) {
+        panzoomInstance = panzoom(
+          panzoomElement, 
+          {
+            maxZoom: 2, 
+            minZoom: 0.1,
+            zoomSpeed: 0.02
           }
-          if (d.category){ return foci[d.category].x; }
-          return foci.default.x;
-        }).
-        strength(function strengthFunc(){
-          return forceXmultiplier * gravity; 
-        })).
-        force("forceY", d3.forceY().y(function forceYfunc(d) { 
-          if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)){
-            return foci[d.categoryAuto].y;
-          }
-          if (d.category){ return foci[d.category].y; }
-          return foci.default.y;
-        }).
-        strength(function strengthFunc(){
-          return forceYmultiplier * gravity; 
-        })).
-        force("collide", d3.forceCollide().radius(function forceCollideFunc(d) { 
-          if (metricMode === "rate") { return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate)); }
-          if (metricMode === "mentions") {
-            return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions));
-          }
-        }).
-        iterations(collisionIterations)).
-        velocityDecay(velocityDecay);
-    }
+        ).zoomAbs(
+          0.5*width,
+          0.5*height,
+          defaultInitialZoom
+        );
+      }
+
+      foci = {
+        left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 
+        right: {x: xFocusRightRatio*width, y: yFocusRightRatio*height}, 
+        positive: {x: xFocusPositiveRatio*width, y: yFocusPositiveRatio*height}, 
+        negative: {x: xFocusNeutralRatio*width, y: yFocusNegativeRatio*height},
+        neutral: {x: xFocusNeutralRatio*width, y: yFocusNeutralRatio*height},
+        none: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height},
+        default: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height}
+      };
+
+      nodeRadiusMin = nodeRadiusMinRatio * width;
+      nodeRadiusMax = nodeRadiusMaxRatio * width;
+
+      defaultRadiusScale = d3.scaleLinear().
+        domain([0, currentMetricModeDomainMaxSqrt]).
+        range([nodeRadiusMin, nodeRadiusMax]).
+        clamp(true);
+
+      fontSizeMin = fontSizeMinRatio * height;
+      fontSizeMax = fontSizeMaxRatio * height;
+
+      nodeLabelSizeScale = d3.scaleLinear().
+        domain([1, currentMetricModeDomainMax]).
+        range([fontSizeMin, fontSizeMax]).
+        clamp(true);
+
+      svgMain.
+        attr("width", width).
+        attr("height", height).
+        attr("x", 1e-6).
+        attr("y", 1e-6);
+
+      svgTreemapLayoutArea.
+        attr("width", width).
+        attr("height", height).
+        attr("x", 1e-6).
+        attr("y", 1e-6);
+
+      if (simulation){
+        simulation.
+          force("charge", d3.forceManyBody().strength(charge)).
+          force("forceX", d3.forceX().x(function forceXfunc(d) { 
+            if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)) {
+              return foci[d.categoryAuto].x;
+            }
+            if (d.category){ return foci[d.category].x; }
+            return foci.default.x;
+          }).
+          strength(function strengthFunc(){
+            return forceXmultiplier * gravity; 
+          })).
+          force("forceY", d3.forceY().y(function forceYfunc(d) { 
+            if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)){
+              return foci[d.categoryAuto].y;
+            }
+            if (d.category){ return foci[d.category].y; }
+            return foci.default.y;
+          }).
+          strength(function strengthFunc(){
+            return forceYmultiplier * gravity; 
+          })).
+          force("collide", d3.forceCollide().radius(function forceCollideFunc(d) { 
+            if (metricMode === "rate") { return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate)); }
+            if (metricMode === "mentions") {
+              return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions));
+            }
+          }).
+          iterations(collisionIterations)).
+          velocityDecay(velocityDecay);
+      }
+      
+    }, 200);
+
   };
 
   // ==========================================
@@ -1948,7 +1957,7 @@ function ViewTreepack() {
   document.defaultView.addEventListener("resize", function resizeFunc() { 
     self.resize(); 
   }, true);
-  
+
   document.addEventListener("resize", function resizeFunc() { 
     self.resize(); 
   }, true);

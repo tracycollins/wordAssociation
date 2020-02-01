@@ -1948,7 +1948,7 @@ function ViewTreepack() {
         );
       }
 
-      this.setGravity(console.defaultGravity);
+      self.setGravity(console.defaultGravity);
 
     }, 200);
   };

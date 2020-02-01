@@ -446,6 +446,7 @@ function ViewTreepack() {
   console.log("panzoomInstance zoomAbs\n", jsonPrint(config.panzoomTransform));
 
   panzoomInstance.zoomAbs(config.panzoomTransform.x, config.panzoomTransform.y, config.panzoomTransform.scale);
+  panzoomInstance.zoomAbs(width*0.5, height*0.5, config.panzoomTransform.scale);
 
   var nodeSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
   var nodeLabelSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");

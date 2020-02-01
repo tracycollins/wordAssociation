@@ -326,6 +326,14 @@ function dnsReverse(params){
             // + "\n" + jsonPrint(whoisResult)
           ));
 
+          if (configuration.verbose){
+            console.log(chalk.black(MODULE_ID_PREFIX + " | WHOIS"
+              + " | REAL IP: " + params.ipAddress
+              + " | NET NAME: " + whoisResult.netname
+              + "\n" + jsonPrint(whoisResult)
+            ));
+          }
+
           ipCacheObj = {};
           ipCacheObj.domainName = whoisResult.netname
           ipCacheObj.timeStamp = getTimeStamp();

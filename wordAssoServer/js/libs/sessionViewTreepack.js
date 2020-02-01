@@ -1898,38 +1898,38 @@ function ViewTreepack() {
         attr("x", 1e-6).
         attr("y", 1e-6);
 
-      if (simulation){
-        simulation.
-          force("charge", d3.forceManyBody().strength(charge)).
-          force("forceX", d3.forceX().x(function forceXfunc(d) { 
-            if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)) {
-              return foci[d.categoryAuto].x;
-            }
-            if (d.category){ return foci[d.category].x; }
-            return foci.default.x;
-          }).
-          strength(function strengthFunc(){
-            return forceXmultiplier * gravity; 
-          })).
-          force("forceY", d3.forceY().y(function forceYfunc(d) { 
-            if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)){
-              return foci[d.categoryAuto].y;
-            }
-            if (d.category){ return foci[d.category].y; }
-            return foci.default.y;
-          }).
-          strength(function strengthFunc(){
-            return forceYmultiplier * gravity; 
-          })).
-          force("collide", d3.forceCollide().radius(function forceCollideFunc(d) { 
-            if (metricMode === "rate") { return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate)); }
-            if (metricMode === "mentions") {
-              return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions));
-            }
-          }).
-          iterations(collisionIterations)).
-          velocityDecay(velocityDecay);
-      }
+      // if (simulation){
+      //   simulation.
+      //     force("charge", d3.forceManyBody().strength(charge)).
+      //     force("forceX", d3.forceX().x(function forceXfunc(d) { 
+      //       if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)) {
+      //         return foci[d.categoryAuto].x;
+      //       }
+      //       if (d.category){ return foci[d.category].x; }
+      //       return foci.default.x;
+      //     }).
+      //     strength(function strengthFunc(){
+      //       return forceXmultiplier * gravity; 
+      //     })).
+      //     force("forceY", d3.forceY().y(function forceYfunc(d) { 
+      //       if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)){
+      //         return foci[d.categoryAuto].y;
+      //       }
+      //       if (d.category){ return foci[d.category].y; }
+      //       return foci.default.y;
+      //     }).
+      //     strength(function strengthFunc(){
+      //       return forceYmultiplier * gravity; 
+      //     })).
+      //     force("collide", d3.forceCollide().radius(function forceCollideFunc(d) { 
+      //       if (metricMode === "rate") { return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate)); }
+      //       if (metricMode === "mentions") {
+      //         return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions));
+      //       }
+      //     }).
+      //     iterations(collisionIterations)).
+      //     velocityDecay(velocityDecay);
+      // }
 
       panzoomElement = document.getElementById("svgTreemapLayoutArea");
 

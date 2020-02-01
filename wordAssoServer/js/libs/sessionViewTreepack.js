@@ -1463,7 +1463,7 @@ function ViewTreepack() {
     }
   };
 
-  var focus = function(focalPoint){
+  function focus(focalPoint){
     switch (focalPoint) {
       case "left":
         return({
@@ -1496,7 +1496,7 @@ function ViewTreepack() {
           y: randomIntFromInterval(yMinRatioDefault*height, yMaxRatioDefault*height)
         });
     }
-  };
+  }
 
   var newNode = {};
   var nodeAddQReady = true;

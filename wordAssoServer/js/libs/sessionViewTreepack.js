@@ -189,7 +189,7 @@ function ViewTreepack() {
   currentMax.mentions.mentions = 0.1;
   currentMax.mentions.timeStamp = Date.now();
 
-  function Node(nodePoolId){
+  function Node(nodePoolId, x, y){
     this.age = 1e-6;
     this.ageMaxRatio = 1e-6;
     this.ageUpdated = Date.now();
@@ -227,15 +227,15 @@ function ViewTreepack() {
     this.text = "";
     this.vx = 1e-6;
     this.vy = 1e-6;
-    this.x = initialXposition*width;
-    this.y = initialYposition*height;
+    this.x = x;
+    this.y = y;
   } 
 
   var nodePoolIndex = 0;
 
   var nodePool = deePool.create(function makeNode(){
     nodePoolIndex += 1;
-    return (new Node("nodePoolId_" + nodePoolIndex));
+    return (new Node("nodePoolId_" + nodePoolIndex, initialXposition*width, initialYposition*height));
   });
 
   var autoCategoryFlag = config.autoCategoryFlag;

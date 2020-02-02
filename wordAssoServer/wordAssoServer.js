@@ -1041,6 +1041,8 @@ const fieldsTransmit = {
   following: 1,
   friendsCount: 1,
   isTopTerm: 1,
+  isBot: 1,
+  isTweeter: 1,
   isTweetSource: 1,
   lastTweetId: 1,
   mentions: 1,
@@ -2982,16 +2984,6 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
       });
     },
 
-    // categoryHashmapsInit: function(cb){
-
-    //   initCategoryHashmaps().
-    //   then(function(){
-    //     cb();
-    //   }).
-    //   catch(function(err){
-    //     return cb(err);
-    //   });
-    // }
   },
   function(err, results){
     if (err){
@@ -3326,9 +3318,9 @@ async function categorizeNode(categorizeObj) {
   const node = categorizeObj.node;
   const nodeId = categorizeObj.node.nodeId.toLowerCase();
 
-  const query = {nodeId: nodeId};
+  const query = { nodeId: nodeId };
   const update = {};
-  const options = {new: true, upsert: true};
+  const options = { useFindAndModify: false, returnOriginal: false, new: true, upsert: true };
 
   switch (node.nodeType){
 
@@ -3509,7 +3501,7 @@ function socketRxTweet(tw) {
       saveFileQueue.push({folder: testDataFolder, file: sampleTweetFileName, obj: tw});
     }
 
-    screenName = tw.user.screen_name.toLowerCase();
+    // screenName = tw.user.screen_name.toLowerCase();
 
     tw.inc = true;
 
@@ -3525,10 +3517,10 @@ function socketRxTweet(tw) {
       tw.user.quotedStatus = tw.quoted_status;
     }
 
-    if (categorizedUserHashMap.has(screenName)){
+    if (categorizedUserHashMap.has(tw.user.id_str)){
 
-      tw.user.category = categorizedUserHashMap.get(screenName).manual;
-      tw.user.categoryAuto = categorizedUserHashMap.get(screenName).auto;
+      tw.user.category = categorizedUserHashMap.get(tw.user.id_str).manual;
+      tw.user.categoryAuto = categorizedUserHashMap.get(tw.user.id_str).auto;
     }
 
     tweetRxQueue.push(tw);
@@ -3571,16 +3563,9 @@ async function follow(params) {
 
   const update = {};
 
-  update.$set = { 
-    following: true, 
-    threeceeFollowing: threeceeUser
-  };
+  update.$set = { following: true, threeceeFollowing: threeceeUser };
 
-  const options = {
-    new: true,
-    returnOriginal: false,
-    upsert: false
-  };
+  const options = { useFindAndModify: false, returnOriginal: false, new: true, upsert: true };
 
   try{
     const userUpdated = await wordAssoDb.User.findOneAndUpdate(query, update, options);
@@ -3733,11 +3718,7 @@ async function unignore(params) {
   const update = {};
   update.$set = { ignored: false };
 
-  const options = {
-    new: true,
-    returnOriginal: false,
-    upsert: false
-  };
+  const options = { useFindAndModify: false, returnOriginal: false, new: true, upsert: true };
 
   wordAssoDb.User.findOneAndUpdate(query, update, options, function(err, userUpdated){
 
@@ -3782,11 +3763,7 @@ function unfollow(params, callback) {
   const update = {};
   update.$set = { following: false, threeceeFollowing: false };
 
-  const options = {
-    new: true,
-    returnOriginal: false,
-    upsert: false
-  };
+  const options = { useFindAndModify: false, returnOriginal: false, new: true, upsert: true };
 
   wordAssoDb.User.findOneAndUpdate(query, update, options, function(err, userUpdated){
 
@@ -5585,22 +5562,22 @@ async function initBotSet(p){
 
       console.log(chalk.blue(MODULE_ID_PREFIX + " | FILE CONTAINS " + dataArray.length + " TWITTER BOT IDs"));
 
-      for(const nId of dataArray{
+      for(const nId of dataArray){
 
         const nodeId = nId.trim();
 
         if (nodeId !== "") {
           botNodeIdSet.add(nodeId);
 
-          if (configuration.verbose || botNodeIdSet.size % 100 === 0) {
+          if (configuration.verbose || botNodeIdSet.size % 1000 === 0) {
             console.log(chalkLog(MODULE_ID_PREFIX + " | +++ BOT NODE ID [" + botNodeIdSet.size + "] " + nId.trim()));
           }
         }
 
       }
-
     }
 
+    console.log(chalk.black(MODULE_ID_PREFIX + " | LOADED BOT NODE IDs [" + botNodeIdSet.size + "]"));
     statsObj.bots = statsObj.bots || {};
     statsObj.bots.numOfBots = botNodeIdSet.size;
 
@@ -5805,21 +5782,21 @@ async function updateUserSets(){
   const userSearchQuery = { ignored: false };
   
   userSearchCursor = wordAssoDb.User
-    .find(userSearchQuery)
-    .select({
-      nodeId: 1, 
-      lang: 1, 
-      category: 1, 
-      categoryAuto: 1, 
-      categoryVerified: 1, 
-      following: 1, 
-      followersCount: 1, 
-      ignored: 1,
-      screenName: 1,
-      name: 1
-    })
-    .lean()
-    .cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
+  .find(userSearchQuery)
+  .select({
+    nodeId: 1, 
+    lang: 1, 
+    category: 1, 
+    categoryAuto: 1, 
+    categoryVerified: 1, 
+    following: 1, 
+    followersCount: 1, 
+    ignored: 1,
+    screenName: 1,
+    name: 1
+  })
+  .lean()
+  .cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
 
   const cursorStartTime = moment().valueOf();
 
@@ -5850,8 +5827,7 @@ async function updateUserSets(){
     else if (!category 
       && !user.following 
       && (user.followersCount > 0)
-      && (user.followersCount < configuration.minFollowersAutoCategorize)
-    ){
+      && (user.followersCount < configuration.minFollowersAutoCategorize)){
 
       wordAssoDb.User.deleteOne({"nodeId": nodeId}, function(err){
         if (err) {
@@ -5870,6 +5846,17 @@ async function updateUserSets(){
 
       if (user.categoryVerified) {
         verifiedCategorizedUsersSet.add(screenName);
+      }
+
+      if (user.category && user.category !== undefined){
+        categorizedUserHashMap.set(user.nodeId, 
+          { 
+            nodeId: user.nodeId, 
+            screenName: user.screenName, 
+            manual: user.category, 
+            auto: user.categoryAuto
+          }
+        );
       }
 
       let categorizeable = false;
@@ -6050,8 +6037,8 @@ async function updateUserSets(){
           }
         }
       }
-    }
 
+    }
   });
 
   userSearchCursor.on("end", function() {
@@ -6310,6 +6297,8 @@ function initTransmitNodeQueueInterval(interval){
 
               transmitNodeQueueReady = true;
             });
+
+
           }
         }
         else if (n.nodeType == "user") {
@@ -9461,238 +9450,6 @@ async function initDbUserChangeStream(){
   return;
 }
 
-function initCategoryHashmaps(){
-
-  return new Promise(function(resolve, reject){
-
-    console.log(chalkBlue(MODULE_ID_PREFIX + " | ... INITIALIZING CATEGORIZED USER + HASHTAG HASHMAPS FROM DB"));
-  
-    async.series({
-
-      user: function(cb){
-
-        const p = {};
-
-        p.projection = "nodeId userId screenName category categoryAuto";
-
-        p.skip = 0;
-        p.batchSize = configuration.cursorBatchSize;
-        p.limit = configuration.findCatUserLimit;
-        p.verbose = false;
-
-        let more = true;
-        let totalCount = 0;
-        let totalManual = 0;
-        let totalAuto = 0;
-        let totalMatched = 0;
-        let totalMismatched = 0;
-        let totalMatchRate = 0;
-
-        console.log(chalkInfo(MODULE_ID_PREFIX + " | LOADING CATEGORIZED USERS FROM DB ..."));
-
-        async.whilst(
-
-          function test(cbTest) {
-            // cbTest(null, statsObj.dbConnectionReady && more);
-            cbTest(null, more);
-          },
-
-          function(cb0){
-
-            if (!userServerControllerReady || !statsObj.dbConnectionReady) {
-              console.log(chalkAlert(MODULE_ID_PREFIX + " | *** NOT READY"
-                + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
-                + " | userServerControllerReady: " + userServerControllerReady
-              ));
-              return cb0(new Error("userServerController not ready"), null);
-            }
-
-            userServerController.findCategorizedUsersCursor(p, function(err, results){
-
-              if (err) {
-                console.log(chalkError(MODULE_ID_PREFIX + " | ERROR: initCategorizedUserHashmap: userServerController: findCategorizedUsersCursor: " + err));
-                return cb0(err);
-              }
-              
-              if (results) {
-
-                statsObj.db.totalUsers = results.totalUsers;
-
-                more = true;
-                totalCount += results.count;
-                totalManual += results.manual;
-                totalAuto += results.auto;
-                totalMatched += results.matched;
-                totalMismatched += results.mismatched;
-
-                totalMatchRate = 100*(totalMatched/(totalMatched+totalMismatched));
-
-                console.log(chalkLog(MODULE_ID_PREFIX + " | ... LOADING CATEGORIZED USERS FROM DB"
-                  + " | TOTAL USERS: " + statsObj.db.totalUsers
-                  + " | TOTAL CATEGORIZED: " + totalCount
-                  + " | LIMIT: " + p.limit
-                  + " | SKIP: " + p.skip
-                  + " | " + totalManual + " MAN"
-                  + " | " + totalAuto + " AUTO"
-                  + " | " + totalMatched + " MATCHED"
-                  + " / " + totalMismatched + " MISMATCHED"
-                  + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
-                ));
-
-                for (const nodeId of Object.keys(results.obj)){
-
-                  categorizedUserHashMap.set(
-                    results.obj[nodeId].nodeId, 
-                    { 
-                      nodeId: results.obj[nodeId].nodeId, 
-                      screenName: results.obj[nodeId].screenName, 
-                      manual: results.obj[nodeId].category, 
-                      auto: results.obj[nodeId].categoryAuto
-                    }
-                  );
-                }
-
-                p.skip += results.count;
-
-                cb0(null, null);
-              }
-              else {
-
-                more = false;
-
-                console.log(chalk.bold.blue(MODULE_ID_PREFIX + " | +++ LOADED CATEGORIZED USERS FROM DB"
-                  + " | TOTAL USERS: " + statsObj.db.totalUsers
-                  + " | TOTAL CATEGORIZED: " + totalCount
-                  + " | LIMIT: " + p.limit
-                  + " | SKIP: " + p.skip
-                  + " | " + totalManual + " MAN"
-                  + " | " + totalAuto + " AUTO"
-                  + " | " + totalMatched + " MATCHED"
-                  + " / " + totalMismatched + " MISMATCHED"
-                  + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
-                ));
-
-                cb0(null, null);
-              }
-            });
-          },
-
-          function(err){
-            if (err) {
-              console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT CATEGORIZED USER HASHMAP ERROR: " + err + "\n" + jsonPrint(err)));
-            }
-            cb(err);
-          }
-        );
-      },
-
-      hashtag: function(cb){
-
-        const p = {};
-
-        p.skip = 0;
-        p.batchSize = configuration.cursorBatchSize;
-        p.limit = configuration.findCatHashtagLimit;
-        p.verbose = false;
-
-        let more = true;
-        let totalCount = 0;
-        let totalManual = 0;
-        let totalAuto = 0;
-        let totalMatched = 0;
-        let totalMismatched = 0;
-        let totalMatchRate = 0;
-
-        console.log(chalkLog(MODULE_ID_PREFIX + " | ... LOADING CATEGORIZED HASHTAGS FROM DB"));
-
-        async.whilst(
-
-          function test(cbTest) {
-            cbTest(null, more);
-          },
-
-          function(cb0){
-
-            if (!hashtagServerControllerReady || !statsObj.dbConnectionReady) {
-              console.log(chalkAlert(MODULE_ID_PREFIX + " | *** NOT READY"
-                + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
-                + " | hashtagServerControllerReady: " + hashtagServerControllerReady
-              ));
-              return cb0(new Error("hashtagServerController not ready"), null);
-            }
-
-            hashtagServerController.findCategorizedHashtagsCursor(p, function(err, results){
-
-              if (err) {
-                console.log(chalkError(MODULE_ID_PREFIX + " | ERROR: initCategorizedHashtagHashmap: hashtagServerController: findCategorizedHashtagsCursor" + err));
-                cb0(err);
-              }
-              else if (results) {
-
-                statsObj.db.totalHashtags = results.totalHashtags;
-
-                more = true;
-                totalCount += results.count;
-                totalManual += results.manual;
-                totalAuto += results.auto;
-                totalMatched += results.matched;
-                totalMismatched += results.mismatched;
-
-                totalMatchRate = 100*(totalMatched/(totalMatched+totalMismatched));
-
-                Object.keys(results.obj).forEach(function(nodeId){
-                  categorizedHashtagHashMap.set(nodeId, results.obj[nodeId]);
-                });
-
-                p.skip += results.count;
-
-                cb0(null, null);
-              }
-              else {
-
-                more = false;
-
-                console.log(chalk.bold.blue(MODULE_ID_PREFIX + " | LOADED CATEGORIZED HASHTAGS FROM DB"
-                  + " | TOTAL HASHTAGS: " + statsObj.db.totalHashtags
-                  + " | TOTAL CATEGORIZED: " + totalCount
-                  + " | LIMIT: " + p.limit
-                  + " | SKIP: " + p.skip
-                  + " | " + totalManual + " MAN"
-                  + " | " + totalAuto + " AUTO"
-                  + " | " + totalMatched + " MATCHED"
-                  + " / " + totalMismatched + " MISMATCHED"
-                  + " | " + totalMatchRate.toFixed(2) + "% MATCHRATE"
-                ));
-
-                cb0(null, null);
-              }
-            });
-          },
-
-          function(err){
-            if (err) {
-              console.log(chalkError(MODULE_ID_PREFIX + " | INIT CATEGORIZED HASHTAG HASHMAP ERROR: " + err + "\n" + jsonPrint(err)));
-            }
-            cb(err);
-          }
-        );
-      }
-
-    }, function(err){
-
-      if (err) {
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR: initCategoryHashmaps: " + err));
-        return reject(err);
-      }
-        
-      console.log(chalk.green(MODULE_ID_PREFIX + " | INIT CATEGORIZED HASHMAPS COMPLETE"));
-      resolve();
-
-    });
-
-  });
-}
-
 let stdin;
 
 function initStdIn(){
@@ -10882,8 +10639,6 @@ setTimeout(async function(){
 
     dbConnection = await connectDb();
 
-    // configEvents.emit("DB_CONNECT");
-
     await waitDbConnectionReady();
     const cnf = await initConfig();
 
@@ -10922,13 +10677,6 @@ setTimeout(async function(){
       }
     }
 
-    // try{
-    //   await dnsReverse({ipAddress: "66.248.198.35", verbose: true});
-    // }
-    // catch(e){
-    //   console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! DNS REVERSE TEST ERROR: " + e));
-    // }
-
     configEvents.emit("DB_CONNECT");
 
     await initAllowLocations();
@@ -10949,7 +10697,7 @@ setTimeout(async function(){
     await initTweetParser({childId: DEFAULT_TWP_CHILD_ID});
     await initUpdateUserSetsInterval(configuration.updateUserSetsInterval);
     await initWatchConfig();
-    await initCategoryHashmaps();
+    // await initCategoryHashmaps();
     await initTssChild({childId: DEFAULT_TSS_CHILD_ID, tweetVersion2: configuration.tweetVersion2, threeceeUser: threeceeUser});
     await updateUserSets();
   }

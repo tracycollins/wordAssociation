@@ -95,10 +95,9 @@ else {
   DROPBOX_ROOT_FOLDER = "/Users/tc/Dropbox/Apps/wordAssociation";
 }
 
-const wordAssoDb = require("@threeceelabs/mongoose-twitter");
+global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
 const NeuralNetworkTools = require("@threeceelabs/neural-network-tools");
-const nnTools = new NeuralNetworkTools("WA_TFE_NNT");
 
 const defaults = require("object.defaults");
 const btoa = require("btoa");
@@ -127,12 +126,6 @@ const chalkBlueBold = chalk.blue.bold;
 const twitterUserHashMap = new HashMap();
 
 const tcuChildName = MODULE_ID_PREFIX + "_TCU";
-const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
-const tcUtils = new ThreeceeUtilities(tcuChildName);
-
-const msToTime = tcUtils.msToTime;
-const jsonPrint = tcUtils.jsonPrint;
-const getTimeStamp = tcUtils.getTimeStamp;
 
 const userTweetFetchSet = new Set();
 
@@ -334,28 +327,6 @@ statsObj.currentBestNetwork.negative = 0;
 let dbConnectionReady = false;
 let dbConnectionReadyInterval;
 
-const UserServerController = require("@threeceelabs/user-server-controller");
-const userServerController = new UserServerController(MODULE_ID_PREFIX + "_USC");
-
-userServerController.on("error", function(err){
-  console.log(chalkError(MODULE_ID_PREFIX + " | *** USC ERROR | " + err));
-});
-
-userServerController.on("ready", function(appname){
-  console.log(chalk.green(MODULE_ID_PREFIX + " | USC READY | " + appname));
-});
-
-const TweetServerController = require("@threeceelabs/tweet-server-controller");
-const tweetServerController = new TweetServerController(MODULE_ID_PREFIX + "_TSC");
-
-tweetServerController.on("error", function(err){
-  console.log(chalkError(MODULE_ID_PREFIX + " | *** TSC ERROR | " + err));
-});
-
-tweetServerController.on("ready", function(appname){
-  console.log(chalk.green(MODULE_ID_PREFIX + " | TSC READY | " + appname));
-});
-
 
 // ==================================================================
 // USER CHANGE CACHE
@@ -378,6 +349,12 @@ const userChangeCache = new NodeCache({
 // ==================================================================
 // MONGO DB
 // ==================================================================
+
+let tcUtils;
+let nnTools;
+let tweetServerController;
+let userServerController;
+
 async function connectDb(){
 
   try {
@@ -386,7 +363,7 @@ async function connectDb(){
 
     console.log(chalkBlueBold(MODULE_ID_PREFIX + " | CONNECT MONGO DB ..."));
 
-    const db = await wordAssoDb.connect(MODULE_ID_PREFIX + "_" + process.pid);
+    const db = await global.wordAssoDb.connect(MODULE_ID_PREFIX + "_" + process.pid);
 
     db.on("error", async function(err){
       statsObj.status = "MONGO ERROR";
@@ -411,6 +388,35 @@ async function connectDb(){
     });
 
     console.log(chalk.green(MODULE_ID_PREFIX + " | MONGOOSE DEFAULT CONNECTION OPEN"));
+
+    const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
+    
+    tcUtils = new ThreeceeUtilities(tcuChildName);
+
+    nnTools = new NeuralNetworkTools("WA_TFE_NNT");
+
+    const UserServerController = require("@threeceelabs/user-server-controller");
+    
+    userServerController = new UserServerController(MODULE_ID_PREFIX + "_USC");
+
+    userServerController.on("error", function(err){
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** USC ERROR | " + err));
+    });
+
+    userServerController.on("ready", function(appname){
+      console.log(chalk.green(MODULE_ID_PREFIX + " | USC READY | " + appname));
+    });
+
+    const TweetServerController = require("@threeceelabs/tweet-server-controller");
+    tweetServerController = new TweetServerController(MODULE_ID_PREFIX + "_TSC");
+
+    tweetServerController.on("error", function(err){
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** TSC ERROR | " + err));
+    });
+
+    tweetServerController.on("ready", function(appname){
+      console.log(chalk.green(MODULE_ID_PREFIX + " | TSC READY | " + appname));
+    });
 
     statsObj.dbConnectionReady = true;
 
@@ -440,11 +446,11 @@ function showStats(options){
   statsObj.elapsed = moment().valueOf() - statsObj.startTime;
 
   if (options) {
-    console.log("WAS | TFC | STATS\n" + jsonPrint(statsObj));
+    console.log("WAS | TFC | STATS\n" + tcUtils.jsonPrint(statsObj));
   }
   else {
     console.log(chalkLog("WAS | TFC | S"
-      + " | ELPSD " + msToTime(statsObj.elapsed)
+      + " | ELPSD " + tcUtils.msToTime(statsObj.elapsed)
       + " | START " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
       + " | UC$: " + userChangeCache.getStats().keys
       + " | UCDBQ: " + userChangeDbQueue.length
@@ -529,7 +535,7 @@ saveCache.on("set", function(file, fileObj) {
 
 function initSaveFileQueue(cnf) {
 
-  console.log(chalkLog(MODULE_ID_PREFIX + " | INIT DROPBOX SAVE FILE INTERVAL | " + msToTime(cnf.saveFileQueueInterval)));
+  console.log(chalkLog(MODULE_ID_PREFIX + " | INIT DROPBOX SAVE FILE INTERVAL | " + tcUtils.msToTime(cnf.saveFileQueueInterval)));
 
   clearInterval(saveFileQueueInterval);
 
@@ -572,7 +578,7 @@ function initSaveFileQueue(cnf) {
 
 function getElapsedTimeStamp(){
   statsObj.elapsedMS = moment().valueOf() - startTimeMoment.valueOf();
-  return msToTime(statsObj.elapsedMS);
+  return tcUtils.msToTime(statsObj.elapsedMS);
 }
 
 function initStatsUpdate() {
@@ -581,10 +587,10 @@ function initStatsUpdate() {
 
     try {
 
-      console.log(chalkLog(MODULE_ID_PREFIX + " | INIT STATS UPDATE INTERVAL | " + msToTime(configuration.statsUpdateIntervalTime)));
+      console.log(chalkLog(MODULE_ID_PREFIX + " | INIT STATS UPDATE INTERVAL | " + tcUtils.msToTime(configuration.statsUpdateIntervalTime)));
 
       statsObj.elapsed = getElapsedTimeStamp();
-      statsObj.timeStamp = getTimeStamp();
+      statsObj.timeStamp = tcUtils.getTimeStamp();
 
       saveFileQueue.push({folder: configuration.statsFolder, file: configuration.statsFile, obj: statsObj});
 
@@ -593,7 +599,7 @@ function initStatsUpdate() {
       statsUpdateInterval = setInterval(async function () {
 
         statsObj.elapsed = getElapsedTimeStamp();
-        statsObj.timeStamp = getTimeStamp();
+        statsObj.timeStamp = tcUtils.getTimeStamp();
 
         saveFileQueue.push({folder: configuration.statsFolder, file: configuration.statsFile, obj: statsObj});
         statsObj.queues.saveFileQueue.size = saveFileQueue.length;
@@ -622,7 +628,7 @@ function printUser(params) {
   const user = params.user;
 
   if (params.verbose) {
-    return jsonPrint(params.user);
+    return tcUtils.jsonPrint(params.user);
   } 
   else {
     text = user.userId
@@ -633,7 +639,7 @@ function printUser(params) {
     + " | FD " + user.friendsCount
     + " | T " + user.statusesCount
     + " | M  " + user.mentions
-    + " | LS " + getTimeStamp(user.lastSeen)
+    + " | LS " + tcUtils.getTimeStamp(user.lastSeen)
     + " | FWG " + user.following 
     + " | LC " + user.location
     + " | C M " + user.category + " A " + user.categoryAuto;
@@ -698,12 +704,12 @@ function processTweetObj(params){
       for(const entityObj of tweetObj[entityType]){
 
         if (empty(entityObj)) {
-          debug(chalkAlert("WAS | TFC | *** processTweetObj EMPTY ENTITY | ENTITY TYPE: " + entityType + " | entityObj: " + jsonPrint(entityObj)));
+          debug(chalkAlert("WAS | TFC | *** processTweetObj EMPTY ENTITY | ENTITY TYPE: " + entityType + " | entityObj: " + tcUtils.jsonPrint(entityObj)));
           continue;
         }
 
         if (empty(entityObj.nodeId)) {
-          debug(chalkAlert("WAS | TFC | *** processTweetObj UNDEFINED NODE ID | ENTITY TYPE: " + entityType + " | entityObj: " + jsonPrint(entityObj)));
+          debug(chalkAlert("WAS | TFC | *** processTweetObj UNDEFINED NODE ID | ENTITY TYPE: " + entityType + " | entityObj: " + tcUtils.jsonPrint(entityObj)));
           continue;
         }
 
@@ -718,7 +724,7 @@ function processTweetObj(params){
           case "mentions":
           case "userMentions":
             if (empty(entityObj.screenName)) {
-              console.log(chalkAlert("WAS | TFC | *** processTweetObj UNDEFINED SCREEN NAME | ENTITY TYPE: " + entityType + " | entityObj: " + jsonPrint(entityObj)));
+              console.log(chalkAlert("WAS | TFC | *** processTweetObj UNDEFINED SCREEN NAME | ENTITY TYPE: " + entityType + " | entityObj: " + tcUtils.jsonPrint(entityObj)));
               continue;
             }
             entity = "@" + entityObj.screenName.toLowerCase();
@@ -920,10 +926,10 @@ async function processUserTweets(params){
         + " | TWEETS: " + processedUser.tweets.tweetIds.length
       ));
       debug(chalkLog("TFE | >>> processUserTweetArray USER TWEET HISTOGRAMS"
-        + "\n" + jsonPrint(processedUser.tweetHistograms)
+        + "\n" + tcUtils.jsonPrint(processedUser.tweetHistograms)
       ));
       debug(chalkLog("TFE | >>> processUserTweetArray USER PROFILE HISTOGRAMS"
-        + "\n" + jsonPrint(processedUser.profileHistograms)
+        + "\n" + tcUtils.jsonPrint(processedUser.profileHistograms)
       ));
     }
 
@@ -1005,7 +1011,7 @@ async function updateUserTweets(params){
         + " | NID: " + params.user.nodeId
         + " | @" + params.user.screenName
       ));
-      await wordAssoDb.User.deleteOne({nodeId: params.user.nodeId});
+      await global.wordAssoDb.User.deleteOne({nodeId: params.user.nodeId});
     }
     throw err;
   }
@@ -1054,7 +1060,7 @@ function initProcessUserQueueInterval(interval) {
         
         try {
 
-          const u = await wordAssoDb.User.findOne({nodeId: queueObj.user.nodeId});
+          const u = await global.wordAssoDb.User.findOne({nodeId: queueObj.user.nodeId});
 
           if (!u) {
             processUserQueueBusy = false;
@@ -1166,10 +1172,10 @@ async function initWatchConfig(){
 
     try{
 
-      debug(chalkInfo(MODULE_ID_PREFIX + " | +++ FILE CREATED or CHANGED | " + getTimeStamp() + " | " + f));
+      debug(chalkInfo(MODULE_ID_PREFIX + " | +++ FILE CREATED or CHANGED | " + tcUtils.getTimeStamp() + " | " + f));
 
       if (f.endsWith(configuration.bestNetworkIdArrayFile)){
-        console.log(chalkInfo(MODULE_ID_PREFIX + " | +++ FILE CREATED or CHANGED | " + getTimeStamp() + " | " + f));
+        console.log(chalkInfo(MODULE_ID_PREFIX + " | +++ FILE CREATED or CHANGED | " + tcUtils.getTimeStamp() + " | " + f));
         await nnTools.deleteAllNetworks();
         await loadNetworks();
         statsObj.autoChangeTotal = 0;
@@ -1220,7 +1226,7 @@ async function initialize(cnf){
 
     const loadedConfigObj = await tcUtils.loadFileRetry({folder: configuration.configDefaultFolder, file: configuration.configDefaultFile}); 
 
-    console.log("WAS | TFC | " + configuration.configDefaultFolder + "/" + configuration.configDefaultFile + "\n" + jsonPrint(loadedConfigObj));
+    console.log("WAS | TFC | " + configuration.configDefaultFolder + "/" + configuration.configDefaultFile + "\n" + tcUtils.jsonPrint(loadedConfigObj));
 
     if (loadedConfigObj.TFE_VERBOSE_MODE !== undefined){
       console.log("WAS | TFC | LOADED TFE_VERBOSE_MODE: " + loadedConfigObj.TFE_VERBOSE_MODE);
@@ -1267,17 +1273,17 @@ async function initialize(cnf){
     cnf.twitterConfig = {};
     cnf.twitterConfig = twitterConfig;
 
-    console.log("WAS | TFC | " + chalkInfo(getTimeStamp() + " | TWITTER CONFIG FILE " 
+    console.log("WAS | TFC | " + chalkInfo(tcUtils.getTimeStamp() + " | TWITTER CONFIG FILE " 
       + configuration.twitterConfigFolder
       + configuration.twitterConfigFile
-      + "\n" + jsonPrint(cnf.twitterConfig )
+      + "\n" + tcUtils.jsonPrint(cnf.twitterConfig )
     ));
 
     return cnf;
 
   }
   catch(err){
-    console.error("WAS | TFC | *** ERROR LOAD DROPBOX CONFIG: " + configuration.configDefaultFolder + "/" + configuration.configDefaultFile + "\n" + jsonPrint(err));
+    console.error("WAS | TFC | *** ERROR LOAD DROPBOX CONFIG: " + configuration.configDefaultFolder + "/" + configuration.configDefaultFile + "\n" + tcUtils.jsonPrint(err));
     throw err;
   }
 }
@@ -1468,7 +1474,7 @@ async function loadNetworks(){
     console.log(chalkLog(MODULE_ID_PREFIX + " | ... LOADING BEST NETWORKS: " + configuration.bestNetworkIdArray.length));
 
     for (const nnId of configuration.bestNetworkIdArray){
-      const nn = await wordAssoDb.NeuralNetwork.findOne({networkId: nnId}).lean();
+      const nn = await global.wordAssoDb.NeuralNetwork.findOne({networkId: nnId}).lean();
 
       if (nn) {
 
@@ -1517,6 +1523,11 @@ process.on("message", async function(m) {
       configuration.enableLanguageAnalysis = (m.enableLanguageAnalysis !== undefined) ? m.enableLanguageAnalysis : configuration.enableLanguageAnalysis;
       configuration.forceLanguageAnalysis = (m.forceLanguageAnalysis !== undefined) ? m.forceLanguageAnalysis : configuration.forceLanguageAnalysis;
 
+      statsObj.autoChangeTotal = 0;
+      statsObj.autoChangeMatchRate = 0;
+      statsObj.autoChangeMatch = 0;
+      statsObj.autoChangeMismatch = 0;
+
       const nnObj = m.networkObj;
 
       if (nnObj.testCycleHistory && nnObj.testCycleHistory !== undefined && nnObj.testCycleHistory.length > 0) {
@@ -1540,11 +1551,6 @@ process.on("message", async function(m) {
 
       await nnTools.deleteAllNetworks();
       await loadNetworks();
-
-      statsObj.autoChangeTotal = 0;
-      statsObj.autoChangeMatchRate = 0;
-      statsObj.autoChangeMatch = 0;
-      statsObj.autoChangeMismatch = 0;
 
       await tcUtils.setEnableLanguageAnalysis(configuration.enableLanguageAnalysis);
       await tcUtils.setEnableImageAnalysis(configuration.enableImageAnalysis);
@@ -1622,7 +1628,7 @@ process.on("message", async function(m) {
 
         const authObj = twitterUserObj.twit.getAuth();
 
-        console.log(chalkLog("WAS | TFC | CURRENT AUTH\n" + jsonPrint(authObj)));
+        console.log(chalkLog("WAS | TFC | CURRENT AUTH\n" + tcUtils.jsonPrint(authObj)));
 
         twitterUserObj.twit.setAuth({access_token: m.token, access_token_secret: m.tokenSecret});
 
@@ -1635,7 +1641,7 @@ process.on("message", async function(m) {
 
         twitterUserHashMap.set(m.user.screenName, twitterUserObj);
 
-        console.log(chalkError("WAS | TFC | UPDATED AUTH\n" + jsonPrint(authObjNew)));
+        console.log(chalkError("WAS | TFC | UPDATED AUTH\n" + tcUtils.jsonPrint(authObjNew)));
 
       }
       else {
@@ -1717,7 +1723,6 @@ process.on("message", async function(m) {
 
         }
       }
-
     break;
 
     case "PING":
@@ -1735,28 +1740,28 @@ process.on("message", async function(m) {
 
 setTimeout(async function(){
 
-  try{
-    configuration = await initialize(configuration);
-  }
-  catch(err){
-    if (err.status != 404){
-      console.error(chalkLog("WAS | TFC | *** INIT ERROR \n" + jsonPrint(err)));
-      quit();
-    }
-    console.log(chalkError("WAS | TFC | *** INIT ERROR | CONFIG FILE NOT FOUND? | ERROR: " + err));
-  }
-
-  console.log("WAS | TFC | " + configuration.processName + " STARTED " + getTimeStamp() + "\n");
-
   try {
     await connectDb();
     dbConnectionReady = true;
+
+    try{
+      configuration = await initialize(configuration);
+    }
+    catch(err){
+      if (err.status != 404){
+        console.error(chalkLog("WAS | TFC | *** INIT ERROR \n" + tcUtils.jsonPrint(err)));
+        quit();
+      }
+      console.log(chalkError("WAS | TFC | *** INIT ERROR | CONFIG FILE NOT FOUND? | ERROR: " + err));
+    }
   }
   catch(err){
     dbConnectionReady = false;
     console.log(chalkError("WAS | TFC | *** MONGO DB CONNECT ERROR: " + err + " | QUITTING ***"));
     quit("MONGO DB CONNECT ERROR");
   }
+
+  console.log("WAS | TFC | " + configuration.processName + " STARTED " + tcUtils.getTimeStamp() + "\n");
 
   dbConnectionReadyInterval = setInterval(function() {
     if (dbConnectionReady) {
@@ -1773,13 +1778,13 @@ setTimeout(async function(){
     await tcUtils.initTwitter({twitterConfig: twitterParams});
     await tcUtils.getTwitterAccountSettings();
     await initWatchConfig();
-
-    initProcessUserQueueInterval(configuration.processUserQueueInterval);
+    await initProcessUserQueueInterval(configuration.processUserQueueInterval);
+    process.send({ op: "READY"});
   }
   catch(err){
     console.log(chalkError("WAS | TFC | *** INIT INFO TWITTER ERROR: " + err));
   }
 
-}, 5*ONE_SECOND);
+}, ONE_SECOND);
 
 

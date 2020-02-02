@@ -1170,7 +1170,7 @@ function ViewTreepack() {
       attr("cy", function (d) { return d.y; }).
       style("fill", function (d) { 
         if (d.isTopTerm && !d.category && !d.categoryAuto) { return palette.white; }
-        if (d.isBot) { return palette.white; }
+        if (d.isBot) { return botFillColor; }
         if (!d.category && !d.categoryAuto) { return palette.black; }
         if (d.category) { return d.categoryColor; }
         if (d.categoryAuto === "right") { return palette.yellow; }
@@ -1229,7 +1229,7 @@ function ViewTreepack() {
       attr("cx", function nodeCircleCx(d) { return d.x; }).
       attr("cy", function nodeCircleCy(d) { return d.y; }).
       style("fill", function nodeCirclesFill(d) { 
-        if (d.isBot) { return palette.white; }
+        if (d.isBot) { return botFillColor; }
         if (d.isTopTerm && !d.category && !d.categoryAuto) { return palette.white; }
         if (!d.category && !d.categoryAuto) { return palette.black; }
         if (d.category) { return d.categoryColor; }

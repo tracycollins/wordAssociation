@@ -6225,7 +6225,7 @@ async function updateHashtagSets(){
   hashtagNegativeSet.clear();
   hashtagNoneSet.clear();
 
-  const hashtagSearchQuery = { ignored: false };
+  const hashtagSearchQuery = { };
   
   hashtagSearchCursor = global.wordAssoDb.Hashtag
   .find(hashtagSearchQuery)
@@ -6233,8 +6233,7 @@ async function updateHashtagSets(){
     nodeId: 1, 
     text: 1, 
     category: 1, 
-    categoryAuto: 1, 
-    ignored: 1
+    categoryAuto: 1
   })
   .lean()
   .cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });

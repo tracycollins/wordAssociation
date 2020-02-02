@@ -348,6 +348,9 @@ function ViewTreepack() {
   var defaultStrokeWidth = "1.1px";
   var topTermStrokeWidth = "2.0px";
 
+  var botStrokeWidth = "4.0px";
+  var botFillColor = palette.white;
+
   var categoryMatchColor = palette.green;
   var categoryMatchStrokeWidth = "4.0px";
   var categoryMismatchStrokeWidth = "7.0px";
@@ -1138,53 +1141,6 @@ function ViewTreepack() {
     }
   }
 
-  // var updateChangedCircleNodes = function(d){
-
-  //   if (d.newFlag && d.isValid) {
-
-  //     d.newFlag = false;
-
-  //     d3.select(this).
-  //       style("display", "unset").
-  //       style("fill", function (d) { 
-  //         if (!d.category && !d.categoryAuto) { return palette.black; }
-  //         return d.categoryColor; 
-  //       }).
-  //       style("fill-opacity", function(d) { 
-  //         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
-  //         return nodeLabelOpacityScale(d.ageMaxRatio); 
-  //       }).
-  //       style("stroke", function (d) {
-  //         if (d.nodeType === "hashtag") { return palette.white; }
-  //         if (d.categoryMismatch) { return palette.red; }
-  //         if (d.categoryMatch) { return categoryMatchColor; }
-  //         if (d.categoryAuto === "right") { return palette.yellow; }
-  //         if (d.categoryAuto === "left") { return palette.blue; }
-  //         if (d.categoryAuto === "positive") { return palette.green; }
-  //         if (d.categoryAuto ==="negative") { return palette.red; }
-  //         return palette.white; 
-  //       }).
-  //       style("stroke-width", function (d) { 
-  //         if (d.nodeType === "hashtag" && d.isTopTerm) { return topTermStrokeWidth; }
-  //         if (d.nodeType === "hashtag") { return 0.5*defaultStrokeWidth; }
-  //         if (d.categoryMismatch && d.following) { return categoryMismatchStrokeWidth; }
-  //         if (d.categoryMismatch && !d.following) { return 0.5*categoryMismatchStrokeWidth; }
-  //         if (d.categoryMatch && d.following) { return categoryMatchStrokeWidth; }
-  //         if (d.categoryMatch && !d.following) { return 0.5*categoryMatchStrokeWidth; }
-  //         if (d.isTopTerm && d.following) { return topTermStrokeWidth; }
-  //         if (d.isTopTerm && !d.following) { return 0.5*topTermStrokeWidth; }
-  //         if (d.categoryAuto && d.following) { return categoryAutoStrokeWidth; }
-  //         if (d.categoryAuto && !d.following) { return 0.5*categoryAutoStrokeWidth; }
-  //         if (d.following) { return defaultStrokeWidth; }
-  //         return 0.5*defaultStrokeWidth; 
-  //       }).
-  //       style("stroke-opacity", function(d) { 
-  //         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
-  //         return nodeLabelOpacityScale(d.ageMaxRatio); 
-  //       });
-  //   }
-  // };
-
   var nodeCircles;
 
   function updateNodeCircles(callback) {
@@ -1212,6 +1168,7 @@ function ViewTreepack() {
       attr("cy", function (d) { return d.y; }).
       style("fill", function (d) { 
         if (d.isTopTerm && !d.category && !d.categoryAuto) { return palette.white; }
+        if (d.isBot) { return palette.white; }
         if (!d.category && !d.categoryAuto) { return palette.black; }
         if (d.category) { return d.categoryColor; }
         if (d.categoryAuto === "right") { return palette.yellow; }
@@ -1233,6 +1190,7 @@ function ViewTreepack() {
       style("stroke-width", function (d) { 
         if (d.nodeType === "hashtag" && d.isTopTerm) { return topTermStrokeWidth; }
         if (d.nodeType === "hashtag") { return 0.5*defaultStrokeWidth; }
+        if (d.isBot) { return botStrokeWidth; }
         if (d.categoryMismatch && d.following) { return categoryMismatchStrokeWidth; }
         if (d.categoryMismatch && !d.following) { return 0.5*categoryMismatchStrokeWidth; }
         if (d.categoryMatch && d.following) { return categoryMatchStrokeWidth; }
@@ -1269,6 +1227,7 @@ function ViewTreepack() {
       attr("cx", function nodeCircleCx(d) { return d.x; }).
       attr("cy", function nodeCircleCy(d) { return d.y; }).
       style("fill", function nodeCirclesFill(d) { 
+        if (d.isBot) { return palette.white; }
         if (d.isTopTerm && !d.category && !d.categoryAuto) { return palette.white; }
         if (!d.category && !d.categoryAuto) { return palette.black; }
         if (d.category) { return d.categoryColor; }
@@ -1291,6 +1250,7 @@ function ViewTreepack() {
       style("stroke-width", function nodeCirclesStrokeWidth(d) { 
         if (d.nodeType === "hashtag" && d.isTopTerm) { return topTermStrokeWidth; }
         if (d.nodeType === "hashtag") { return 0.5*defaultStrokeWidth; }
+        if (d.isBot) { return botStrokeWidth; }
         if (d.categoryMismatch && d.following) { return categoryMismatchStrokeWidth; }
         if (d.categoryMismatch && !d.following) { return 0.5*categoryMismatchStrokeWidth; }
         if (d.categoryMatch && d.following) { return categoryMatchStrokeWidth; }
@@ -1354,6 +1314,7 @@ function ViewTreepack() {
       attr("x", function (d) { return d.x; }).
       attr("y", function (d) { return d.y; }).
       style("fill", function (d) { 
+        if (d.isBot) { return palette.red; }
         if (d.isTopTerm && (d.nodeType === "hashtag")) { return palette.white; }
         if (d.isTopTerm && (d.followersCount > minFollowers)) { return palette.white; }
         if (!d.isTopTerm && (d.followersCount > minFollowers)) { return palette.lightgray; }
@@ -1426,6 +1387,7 @@ function ViewTreepack() {
         return nodeLabelOpacityScale(d.ageMaxRatio);
       }).
       style("fill", function (d) { 
+        if (d.isBot) { return palette.red; }
         if (d.isTopTerm && (d.nodeType === "hashtag")) { return palette.white; }
         if (d.isTopTerm && (d.followersCount > minFollowers)) { return palette.white; }
         if (!d.isTopTerm && (d.followersCount > minFollowers)) { return palette.lightgray; }

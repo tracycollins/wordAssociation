@@ -128,13 +128,8 @@ function getTimeStamp(inputTime) {
 }
 
 global.globalDbConnection = false;
-const mongoose = require("mongoose");
 
-global.globalWordAssoDb = require("@threeceelabs/mongoose-twitter");
-
-const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
-
-global.globalUser = mongoose.model("User", userModel.UserSchema);
+global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
 const UserServerController = require("@threeceelabs/user-server-controller");
 let userServerController;
@@ -172,7 +167,7 @@ function msToTime(d) {
 
 console.log(
   "\n\nDBU | ====================================================================================================\n" 
-  + process.argv[1] 
+  + "\nDBU | " + process.argv[1] 
   + "\nDBU | PROCESS ID:    " + process.pid 
   + "\nDBU | PROCESS TITLE: " + process.title 
   + "\nDBU | " + "====================================================================================================\n" 
@@ -218,14 +213,6 @@ function quit(options){
 
   setTimeout(function(){
     process.exit();
-    // global.globalDbConnection.close(function () {
-    //   console.log(chalkAlert(
-    //         "DBU | =========================="
-    //     + "\nDBU | MONGO DB CONNECTION CLOSED"
-    //     + "\nDBU | =========================="
-    //   ));
-    //   process.exit();
-    // });
   }, 1000);
 }
 
@@ -245,7 +232,7 @@ function connectDb(){
 
     statsObj.status = "CONNECT DB";
 
-    global.globalWordAssoDb.connect("DBU_" + process.pid, function(err, db){
+    global.wordAssoDb.connect("DBU_" + process.pid, function(err, db){
       if (err) {
         console.log(chalkError("*** DBU | *** MONGO DB CONNECTION ERROR: " + err));
         statsObj.dbConnectionReady = false;
@@ -429,7 +416,7 @@ function userUpdateDb(tweetObj){
 
       if (err0) { return reject(err0); }
 
-      global.globalUser.findOne({ nodeId: tweetObj.user.nodeId }).exec(async function(err, user) {
+      global.wordAssoDb.User.findOne({ nodeId: tweetObj.user.nodeId }).exec(async function(err, user) {
 
         if (err) {
           console.log(chalkError("DBU | *** FIND USER DB: " + err));
@@ -589,7 +576,7 @@ console.log(chalkInfo("DBU | " + getTimeStamp()
   + " | WAIT 5 SEC FOR MONGO BEFORE INITIALIZE CONFIGURATION"
 ));
 
-process.on("message", function(m) {
+process.on("message", sync function(m) {
 
   debug(chalkAlert("DBU | RX MESSAGE"
     + " | OP: " + m.op
@@ -605,9 +592,12 @@ process.on("message", function(m) {
       configuration.testMode = m.testMode || DEFAULT_TEST_MODE;
       configuration.userUpdateQueueInterval = m.interval || DEFAULT_USER_UPDATE_QUEUE_INTERVAL;
 
-      console.log(chalkInfo("DBU | INIT"
+      await initUserUpdateQueueInterval(configuration.userUpdateQueueInterval);
+
+      console.log(chalkInfo("DBU | ==== INIT ====="
         + " | TITLE: " + process.title
       ));
+
     break;
 
     case "TWEET":
@@ -655,7 +645,8 @@ setTimeout(async function(){
 
     await connectDb();
 
-    await initUserUpdateQueueInterval(configuration.userUpdateQueueInterval);
+
+    process.send({ op: "READY"});
 
   }
   catch(err){

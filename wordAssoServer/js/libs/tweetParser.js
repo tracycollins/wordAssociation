@@ -28,25 +28,24 @@ configEvents.on("newListener", function(data) {
   debug("*** NEW CONFIG EVENT LISTENER: " + data);
 });
 
-const wordAssoDb = require("@threeceelabs/mongoose-twitter");
-let dbConnection;
+global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
-const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
-const tcUtils = new ThreeceeUtilities(MODULE_ID_PREFIX + "_TCU");
+// const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
+// const tcUtils = new ThreeceeUtilities(MODULE_ID_PREFIX + "_TCU");
 
-const jsonPrint = tcUtils.jsonPrint;
-const getTimeStamp = tcUtils.getTimeStamp;
+// const jsonPrint = tcUtils.jsonPrint;
+// const getTimeStamp = tcUtils.getTimeStamp;
 
-const TweetServerController = require("@threeceelabs/tweet-server-controller");
-const tweetServerController = new TweetServerController(MODULE_ID_PREFIX + "_TSC");
+// const TweetServerController = require("@threeceelabs/tweet-server-controller");
+// const tweetServerController = new TweetServerController(MODULE_ID_PREFIX + "_TSC");
 
-tweetServerController.on("error", function(err){
-  console.log(chalkError(MODULE_ID_PREFIX + " | *** TSC ERROR | " + err));
-});
+// tweetServerController.on("error", function(err){
+//   console.log(chalkError(MODULE_ID_PREFIX + " | *** TSC ERROR | " + err));
+// });
 
-tweetServerController.on("ready", function(appname){
-  console.log(chalk.green(MODULE_ID_PREFIX + " | TSC READY | " + appname));
-});
+// tweetServerController.on("ready", function(appname){
+//   console.log(chalk.green(MODULE_ID_PREFIX + " | TSC READY | " + appname));
+// });
 
 const tweetParserQueue = [];
 
@@ -77,8 +76,8 @@ function quit(message) {
     
   );
 
-  if (dbConnection) {
-    dbConnection.close(function () {
+  if (global.dbConnection) {
+    global.dbConnection.close(function () {
       
       console.log(chalkAlert(
             "TWP | =========================="
@@ -106,36 +105,49 @@ process.on("disconnect", function() {
   quit("DISCONNECT");
 });
 
+let tcUtils;
+let tweetServerController;
+
 async function connectDb(){
 
   try {
 
-    statsObj.status = "CONNECTING MONGO DB";
-
     console.log(chalkBlueBold(MODULE_ID_PREFIX + " | CONNECT MONGO DB ..."));
 
-    const db = await wordAssoDb.connect(MODULE_ID_PREFIX + "_" + process.pid);
+    const db = await global.wordAssoDb.connect(MODULE_ID_PREFIX + "_" + process.pid);
 
     db.on("error", async function(err){
-      statsObj.status = "MONGO ERROR";
       console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION ERROR"));
       db.close();
       quit({cause: "MONGO DB ERROR: " + err});
     });
 
     db.on("close", async function(err){
-      statsObj.status = "MONGO CLOSED";
       console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION CLOSED"));
       quit({cause: "MONGO DB CLOSED: " + err});
     });
 
     db.on("disconnected", async function(){
-      statsObj.status = "MONGO DISCONNECTED";
       console.log(chalkAlert(MODULE_ID_PREFIX + " | *** MONGO DB DISCONNECTED"));
       quit({cause: "MONGO DB DISCONNECTED"});
     });
 
     console.log(chalk.green(MODULE_ID_PREFIX + " | MONGOOSE DEFAULT CONNECTION OPEN"));
+
+    const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
+    tcUtils = new ThreeceeUtilities(MODULE_ID_PREFIX + "_TCU");
+
+    const TweetServerController = require("@threeceelabs/tweet-server-controller");
+    tweetServerController = new TweetServerController(MODULE_ID_PREFIX + "_TSC");
+
+    tweetServerController.on("error", function(err){
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** TSC ERROR | " + err));
+    });
+
+    tweetServerController.on("ready", function(appname){
+      console.log(chalk.green(MODULE_ID_PREFIX + " | TSC READY | " + appname));
+    });
+
     return db;
   }
   catch(err){
@@ -177,7 +189,7 @@ function initTweetParserQueueInterval(cnf){
   params.inc = cnf.inc;
 
   const tweetObjMessage = {};
-  tweetObjMessage.op = "parsedTweet";
+  tweetObjMessage.op = "PARSED_TWEET";
   tweetObjMessage.tweetObj = {};
 
   tweetParserQueueInterval = setInterval(async function(){
@@ -195,10 +207,10 @@ function initTweetParserQueueInterval(cnf){
       }
       catch(err){
 
-        console.log(chalkError("TWP | *** CREATE STREAM TWEET ERROR: " + getTimeStamp()));
+        console.log(chalkError("TWP | *** CREATE STREAM TWEET ERROR: " + tcUtils.getTimeStamp()));
         console.log(chalkError("TWP | *** CREATE STREAM TWEET ERROR: ", err));
 
-        process.send({op: "error", err: err}, function(err){
+        process.send({op: "ERROR", err: err}, function(err){
 
           tweetParserQueueReady = true;
 
@@ -249,7 +261,7 @@ process.on("message", function(m) {
         + " | TITLE: " + m.title
         + " | INTERVAL: " + m.interval
         + " | TWEET VERSION 2: " + m.tweetVersion2
-        // + "\nMESSAGE " + jsonPrint(m)
+        // + "\nMESSAGE " + tcUtils.jsonPrint(m)
       ));
 
       initTweetParserQueueInterval(configuration);
@@ -291,14 +303,13 @@ setTimeout(async function(){
 
   try {
 
-    console.log("TWP | " + chalk.blue(configuration.processName + " STARTED " + getTimeStamp() ));
+    console.log("TWP | " + chalk.blue(configuration.processName + " STARTED "));
 
     statsObj.status = "START";
 
-    debug("TWP | " + chalk.blue(configuration.processName + " CONFIGURATION\n" + jsonPrint(configuration)));
-
     try {
-      dbConnection = await connectDb();
+      global.dbConnection = await connectDb();
+      process.send({ op: "READY"});
     }
     catch(err){
       console.log(chalkError("TWP | *** MONGO DB CONNECT ERROR: " + err + " | QUITTING ***"));

@@ -1158,12 +1158,7 @@ function ViewTreepack() {
 
     // ENTER
     nodeCircles.
-      // enter().append("circle").
-      enter().
-      append(function (d){
-        if (d.isBot) { return "rect"; }
-        return "circle";
-      }).
+      enter().append("circle").
       attr("id", function (d) { return d.nodePoolId; }).
       attr("nodeId", function (d) { return d.nodeId; }).
       style("display", function (d) { 

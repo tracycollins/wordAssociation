@@ -86,6 +86,7 @@ let neuralNetworkChangeStream;
 let userChangeStream;
 
 let userSearchCursor;
+let hashtagSearchCursor;
 
 let heartbeatInterval;
 
@@ -704,6 +705,20 @@ statsObj.user.mismatched = 0;
 
 statsObj.user.categoryVerified = 0;
 
+statsObj.hashtag = {};
+statsObj.hashtag.total = 0;
+statsObj.hashtag.manualCategorized = 0;
+statsObj.hashtag.uncategorizedTotal = 0;
+
+statsObj.hashtag.manual = {};
+statsObj.hashtag.manual.right = 0;
+statsObj.hashtag.manual.left = 0;
+statsObj.hashtag.manual.neutral = 0;
+statsObj.hashtag.manual.positive = 0;
+statsObj.hashtag.manual.negative = 0;
+statsObj.hashtag.manual.none = 0;
+
+
 let configuration = {};
 let defaultConfiguration = {}; // general configuration
 let hostConfiguration = {}; // host-specific configuration
@@ -926,6 +941,14 @@ const userAutoNeutralSet = new Set();
 const userAutoPositiveSet = new Set();
 const userAutoNegativeSet = new Set();
 const userAutoNoneSet = new Set();
+
+const hashtagRightSet = new Set();
+const hashtagLeftSet = new Set();
+const hashtagNeutralSet = new Set();
+const hashtagPositiveSet = new Set();
+const hashtagNegativeSet = new Set();
+const hashtagNoneSet = new Set();
+
 
 const ignoredHashtagFile = "ignoredHashtag.txt";
 const ignoredUserFile = "ignoredUser.json";
@@ -2181,6 +2204,18 @@ function initStats(callback){
   statsObj.user.matched = 0;
   statsObj.user.mismatched = 0;
 
+  statsObj.hashtag.total = 0;
+  statsObj.hashtag.manualCategorized = 0;
+  statsObj.hashtag.uncategorizedTotal = 0;
+
+  statsObj.hashtag.manual = {};
+  statsObj.hashtag.manual.right = 0;
+  statsObj.hashtag.manual.left = 0;
+  statsObj.hashtag.manual.neutral = 0;
+  statsObj.hashtag.manual.positive = 0;
+  statsObj.hashtag.manual.negative = 0;
+  statsObj.hashtag.manual.none = 0;
+
   statsObj.bestNetwork = {};
   statsObj.bestNetwork.networkTechnology = "";
   statsObj.bestNetwork.networkId = false;
@@ -3349,7 +3384,7 @@ async function categorizeNode(categorizeObj) {
       update.category = categorizeObj.category;
       if (cObj.auto) { update.categoryAuto = cObj.auto; }
 
-      categorizedHashtagHashMap.set(nodeId, cObj);
+      categorizedUserHashMap.set(nodeId, cObj);
 
       nCacheObj = nodeCache.get(nodeId);
 
@@ -4785,6 +4820,9 @@ async function initSocketHandler(socketObj) {
         ));
       }
       if (dataObj.node.nodeType == "hashtag") {
+
+        statsObj.hashtag.manualCategorized += 1;
+
         console.log(chalkSocket("TWITTER_CATEGORIZE_NODE"
           + " | " + tcUtils.getTimeStamp(timeStamp)
           + " | SID: " + socket.id
@@ -5814,6 +5852,8 @@ async function updateUserSets(){
 
   const cursorStartTime = moment().valueOf();
 
+  let usersProcessed = 0;
+
   userSearchCursor.on("data", async function(user) {
 
     const nodeId = user.nodeId.toLowerCase();
@@ -6051,7 +6091,11 @@ async function updateUserSets(){
           }
         }
       }
+    }
 
+    usersProcessed++;
+    if (usersProcessed % 1000 === 0) {
+      console.log(chalkLog(MODULE_ID_PREFIX + " | USER SETS | " + usersProcessed + " USERS PROCESSED"));
     }
   });
 
@@ -6136,6 +6180,193 @@ async function updateUserSets(){
 
     console.log(chalkBlue(MODULE_ID_PREFIX + " | CLOSE FOLLOWING CURSOR"));
     console.log(chalkBlue(MODULE_ID_PREFIX + " | USER DB STATS\n" + tcUtils.jsonPrint(statsObj.user)));
+
+    if (!calledBack) { 
+      calledBack = true;
+      return;
+    }
+  });
+}
+
+async function updateHashtagSets(){
+
+  statsObj.status = "UPDATE HASHTAG SETS";
+
+  let calledBack = false;
+
+  if (!statsObj.dbConnectionReady) {
+    console.log(chalkAlert(MODULE_ID_PREFIX + " | ABORT updateHashtagSets: DB CONNECTION NOT READY"));
+    calledBack = true;
+    throw new Error("DB CONNECTION NOT READY");
+  }
+
+  statsObj.hashtag.total = await countDocuments({documentType: "hashtags", query: {}});
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | GRAND TOTAL HASHTAGS: " + statsObj.hashtag.total));
+
+  statsObj.hashtag.ignored = await countDocuments({documentType: "hashtags", query: {"ignored": true}});
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | IGNORED HASHTAGS: " + statsObj.hashtag.ignored));
+
+  statsObj.hashtag.categorizedManual = await countDocuments({documentType: "hashtags", query: {category: { "$nin": [false, "false", null] }}});
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT MANUAL HASHTAGS: " + statsObj.hashtag.categorizedManual));
+
+  statsObj.hashtag.uncategorizedManual = await countDocuments({documentType: "hashtags", query: {category: { "$in": [false, "false", null] }}});
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT MANUAL HASHTAGS: " + statsObj.hashtag.uncategorizedManual));
+
+  statsObj.hashtag.categorizedAuto = await countDocuments({documentType: "hashtags", query: {categoryAuto: { "$nin": [false, "false", null] }}});
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT AUTO HASHTAGS: " + statsObj.hashtag.categorizedAuto));
+
+  statsObj.hashtag.uncategorizedAuto = await countDocuments({documentType: "hashtags", query: {categoryAuto: { "$in": [false, "false", null] }}});
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT AUTO HASHTAGS: " + statsObj.hashtag.uncategorizedAuto));
+
+  hashtagRightSet.clear();
+  hashtagLeftSet.clear();
+  hashtagNeutralSet.clear();
+  hashtagPositiveSet.clear();
+  hashtagNegativeSet.clear();
+  hashtagNoneSet.clear();
+
+  const hashtagSearchQuery = { ignored: false };
+  
+  hashtagSearchCursor = global.wordAssoDb.Hashtag
+  .find(hashtagSearchQuery)
+  .select({
+    nodeId: 1, 
+    text: 1, 
+    category: 1, 
+    categoryAuto: 1, 
+    ignored: 1
+  })
+  .lean()
+  .cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
+
+  const cursorStartTime = moment().valueOf();
+
+  let hashtagsProcessed = 0;
+
+  hashtagSearchCursor.on("data", async function(hashtag) {
+
+    const nodeId = hashtag.nodeId.toLowerCase();
+    const text = (hashtag.text && (hashtag.text !== undefined)) ? hashtag.text.toLowerCase() : "undefined_text";
+    const category = hashtag.category;
+
+    if (hashtag.category && hashtag.category !== undefined){
+      categorizedHashtagHashMap.set(hashtag.nodeId, 
+        { 
+          nodeId: hashtag.nodeId, 
+          text: text, 
+          manual: category, 
+          auto: "none"
+        }
+      );
+    }
+
+    switch (category) {
+      case "right":
+        hashtagRightSet.add(nodeId);
+        hashtagLeftSet.delete(nodeId);
+        hashtagNeutralSet.delete(nodeId);
+        hashtagPositiveSet.delete(nodeId);
+        hashtagNegativeSet.delete(nodeId);
+        hashtagNoneSet.delete(nodeId);
+      break;
+      case "left":
+        hashtagRightSet.delete(nodeId);
+        hashtagLeftSet.add(nodeId);
+        hashtagNeutralSet.delete(nodeId);
+        hashtagPositiveSet.delete(nodeId);
+        hashtagNegativeSet.delete(nodeId);
+        hashtagNoneSet.delete(nodeId);
+      break;
+      case "neutral":
+        hashtagRightSet.delete(nodeId);
+        hashtagLeftSet.delete(nodeId);
+        hashtagNeutralSet.add(nodeId);
+        hashtagPositiveSet.delete(nodeId);
+        hashtagNegativeSet.delete(nodeId);
+        hashtagNoneSet.delete(nodeId);
+      break;
+      case "positive":
+        hashtagRightSet.delete(nodeId);
+        hashtagLeftSet.delete(nodeId);
+        hashtagNeutralSet.delete(nodeId);
+        hashtagPositiveSet.add(nodeId);
+        hashtagNegativeSet.delete(nodeId);
+        hashtagNoneSet.delete(nodeId);
+      break;
+      case "negative":
+        hashtagRightSet.delete(nodeId);
+        hashtagLeftSet.delete(nodeId);
+        hashtagNeutralSet.delete(nodeId);
+        hashtagPositiveSet.delete(nodeId);
+        hashtagNegativeSet.add(nodeId);
+        hashtagNoneSet.delete(nodeId);
+      break;
+      default:
+        hashtagRightSet.delete(nodeId);
+        hashtagLeftSet.delete(nodeId);
+        hashtagNeutralSet.delete(nodeId);
+        hashtagPositiveSet.delete(nodeId);
+        hashtagNegativeSet.delete(nodeId);
+        hashtagNoneSet.add(nodeId);
+    }
+
+    hashtagsProcessed++;
+    if (hashtagsProcessed % 1000 === 0) {
+      console.log(chalkLog(MODULE_ID_PREFIX + " | HASHTAG SETS | " + hashtagsProcessed + " HASHTAGS PROCESSED"));
+    }
+
+  });
+
+  hashtagSearchCursor.on("end", function() {
+
+    statsObj.hashtag.manual.right = hashtagRightSet.size;
+    statsObj.hashtag.manual.left = hashtagLeftSet.size;
+    statsObj.hashtag.manual.neutral = hashtagNeutralSet.size;
+    statsObj.hashtag.manual.positive = hashtagPositiveSet.size;
+    statsObj.hashtag.manual.negative = hashtagNegativeSet.size;
+    statsObj.hashtag.manual.none = hashtagNoneSet.size;
+
+    console.log(chalkBlue(MODULE_ID_PREFIX + " | END FOLLOWING CURSOR"
+      + " | " + tcUtils.getTimeStamp()
+      + " | FOLLOWING HASHTAG SET | RUN TIME: " + tcUtils.msToTime(moment().valueOf() - cursorStartTime)
+    ));
+    console.log(chalkLog(MODULE_ID_PREFIX + " | HASHTAG DB STATS\n" + tcUtils.jsonPrint(statsObj.hashtag)));
+
+    if (!calledBack) { 
+      calledBack = true;
+      return;
+    }
+  });
+
+  hashtagSearchCursor.on("error", function(err) {
+
+    statsObj.hashtag.manual.right = hashtagRightSet.size;
+    statsObj.hashtag.manual.left = hashtagLeftSet.size;
+    statsObj.hashtag.manual.neutral = hashtagNeutralSet.size;
+    statsObj.hashtag.manual.positive = hashtagPositiveSet.size;
+    statsObj.hashtag.manual.negative = hashtagNegativeSet.size;
+    statsObj.hashtag.manual.none = hashtagNoneSet.size;
+
+    console.log(chalkError("*** ERROR hashtagSearchCursor: " + err));
+    console.log(chalkAlert(MODULE_ID_PREFIX + " | HASHTAG DB STATS\n" + tcUtils.jsonPrint(statsObj.hashtag)));
+
+    if (!calledBack) { 
+      calledBack = true;
+      throw err;
+    }
+  });
+
+  hashtagSearchCursor.on("close", function() {
+
+    statsObj.hashtag.manual.right = hashtagRightSet.size;
+    statsObj.hashtag.manual.left = hashtagLeftSet.size;
+    statsObj.hashtag.manual.neutral = hashtagNeutralSet.size;
+    statsObj.hashtag.manual.positive = hashtagPositiveSet.size;
+    statsObj.hashtag.manual.negative = hashtagNegativeSet.size;
+    statsObj.hashtag.manual.none = hashtagNoneSet.size;
+
+    console.log(chalkBlue(MODULE_ID_PREFIX + " | CLOSE FOLLOWING CURSOR"));
+    console.log(chalkBlue(MODULE_ID_PREFIX + " | HASHTAG DB STATS\n" + tcUtils.jsonPrint(statsObj.hashtag)));
 
     if (!calledBack) { 
       calledBack = true;
@@ -6297,7 +6528,7 @@ function initTransmitNodeQueueInterval(interval){
 
                   updatedUser.isBot = true;
 
-                  console.log(chalkBot(MODULE_ID_PREFIX + "| ---> BOT <---"
+                  console.log(chalkBot(MODULE_ID_PREFIX + " | ---> BOT <---"
                     + " [ " + statsObj.traffic.users.bots + "/" + statsObj.traffic.users.total 
                     + " | " + statsObj.traffic.users.percentBots.toFixed(2) + "% ]"
                     + " | " + printUser({user: n})
@@ -9611,7 +9842,7 @@ function initUpdateUserSetsInterval(interval){
 
     clearInterval(updateUserSetsInterval);
 
-    console.log(chalk.bold.black(MODULE_ID_PREFIX + " | INIT USER SETS INTERVAL | " + tcUtils.msToTime(interval) ));
+    console.log(chalk.bold.black(MODULE_ID_PREFIX + " | INIT USER + HASHTAG SETS INTERVAL | " + tcUtils.msToTime(interval) ));
 
     updateUserSetsInterval = setInterval(async function() {
 
@@ -9619,11 +9850,12 @@ function initUpdateUserSetsInterval(interval){
         if (statsObj.dbConnectionReady && updateUserSetsIntervalReady) {
           updateUserSetsIntervalReady = false;
           await updateUserSets();
+          await updateHashtagSets();
           updateUserSetsIntervalReady = true;
         }
       }
       catch(err){
-        console.log(chalkError(MODULE_ID_PREFIX + " | UPDATE USER SETS ERROR: " + err));
+        console.log(chalkError(MODULE_ID_PREFIX + " | UPDATE USER + HASHTAG SETS ERROR: " + err));
         updateUserSetsIntervalReady = true;
       }
 
@@ -10632,6 +10864,7 @@ async function initWatchConfig(){
       if (f.endsWith("bestRuntimeNetwork.json")){
         await loadBestRuntimeNetwork();
         await updateUserSets();
+        await updateHashtagSets();
       }
 
       if (f.endsWith(followableSearchTermFile)){
@@ -10775,6 +11008,7 @@ setTimeout(async function(){
     // await initCategoryHashmaps();
     await initTssChild({childId: DEFAULT_TSS_CHILD_ID, tweetVersion2: configuration.tweetVersion2, threeceeUser: threeceeUser});
     await updateUserSets();
+    await updateHashtagSets();
   }
   catch(err){
     console.trace(chalkError(MODULE_ID_PREFIX + " | **** INIT CONFIG ERROR: " + err + "\n" + tcUtils.jsonPrint(err)));

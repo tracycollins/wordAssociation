@@ -206,6 +206,8 @@ function ViewTreepack() {
     this.fullName = 0;
     this.hashtagId = false;
     this.index = 0;
+    this.isBot = false;
+    this.isTweeter = false;
     this.isCategory = false;
     this.isDead = true;
     this.isIgnored = false;
@@ -1492,6 +1494,8 @@ function ViewTreepack() {
         currentNode.rank = newNode.rank;
         currentNode.rate = newNode.rate;
         currentNode.mentions = newNode.mentions;
+        currentNode.isBot = newNode.isBot;
+        currentNode.isTweeter = newNode.isTweeter;
         currentNode.isIgnored = newNode.isIgnored;
         currentNode.isTopTerm = newNode.isTopTerm;
         currentNode.isTrendingTopic = newNode.isTrendingTopic;
@@ -1535,6 +1539,8 @@ function ViewTreepack() {
         currentNode.isDead = false;
         currentNode.isIgnored = newNode.isIgnored;
         currentNode.isMaxNode = false;
+        currentNode.isBot = newNode.isBot || false;
+        currentNode.isTweeter = newNode.isTweeter || false;
         currentNode.isTopTerm = newNode.isTopTerm || false;
         currentNode.isTrendingTopic = newNode.isTrendingTopic || false;
         currentNode.isValid = true;

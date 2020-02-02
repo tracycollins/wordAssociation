@@ -1166,12 +1166,8 @@ function ViewTreepack() {
         return "unset"; 
       }).
       attr("r", 1e-6). 
-      attr("width", 1e-6). 
-      attr("height", 1e-6). 
       attr("cx", function (d) { return d.x; }).
       attr("cy", function (d) { return d.y; }).
-      attr("x", function (d) { return d.x; }).
-      attr("y", function (d) { return d.y; }).
       style("fill", function (d) { 
         if (d.isTopTerm && !d.category && !d.categoryAuto) { return palette.white; }
         if (d.isBot) { return botFillColor; }
@@ -1230,12 +1226,8 @@ function ViewTreepack() {
         if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate)); }
         if (metricMode === "mentions") { return defaultRadiusScale(Math.sqrt(d.mentions)); }
       }).
-      attr("width", function (d) { return defaultRadiusScale(Math.sqrt(d.rate)); }).
-      attr("height", function (d) { return defaultRadiusScale(Math.sqrt(d.rate)); }).
       attr("cx", function nodeCircleCx(d) { return d.x; }).
       attr("cy", function nodeCircleCy(d) { return d.y; }).
-      attr("x", function nodeCircleCx(d) { return d.x; }).
-      attr("y", function nodeCircleCy(d) { return d.y; }).
       style("fill", function nodeCirclesFill(d) { 
         if (d.isBot) { return botFillColor; }
         if (d.isTopTerm && !d.category && !d.categoryAuto) { return palette.white; }

@@ -576,7 +576,7 @@ console.log(chalkInfo("DBU | " + getTimeStamp()
   + " | WAIT 5 SEC FOR MONGO BEFORE INITIALIZE CONFIGURATION"
 ));
 
-process.on("message", sync function(m) {
+process.on("message", async function(m) {
 
   debug(chalkAlert("DBU | RX MESSAGE"
     + " | OP: " + m.op

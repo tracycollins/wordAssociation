@@ -1,6 +1,3 @@
-/*jslint node: true */
-/*jshint sub:true*/
-
 const MODULE_ID_PREFIX = "TSS";
 
 const ignoredHashtagFile = "ignoredHashtag.txt";
@@ -72,23 +69,10 @@ const Measured = require("measured-core");
 // const HashMap = require("hashmap").HashMap;
 const NodeCache = require("node-cache");
 
-const wordAssoDb = require("@threeceelabs/mongoose-twitter");
+global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
 let dbConnection;
 
-let dbConnectionReady = false;
-let dbConnectionReadyInterval;
-
-const UserServerController = require("@threeceelabs/user-server-controller");
-const userServerController = new UserServerController(MODULE_ID_PREFIX + "_USC");
-
-userServerController.on("error", function(err){
-  console.log(chalkError(MODULE_ID_PREFIX + " | *** USC ERROR | " + err));
-});
-
-userServerController.on("ready", function(appname){
-  console.log(chalk.green(MODULE_ID_PREFIX + " | USC READY | " + appname));
-});
-
+let userServerController;
 
 let DROPBOX_ROOT_FOLDER;
 
@@ -298,6 +282,8 @@ function msToTime(d) {
 
 const statsObj = {};
 
+statsObj.dbConnectionReady = false;
+
 statsObj.hostname = hostname;
 statsObj.pid = process.pid;
 statsObj.heap = process.memoryUsage().heapUsed/(1024*1024);
@@ -349,7 +335,7 @@ async function connectDb(){
 
     console.log(chalkBlueBold(MODULE_ID_PREFIX + " | CONNECT MONGO DB ..."));
 
-    const db = await wordAssoDb.connect(MODULE_ID_PREFIX + "_" + process.pid);
+    const db = await global.wordAssoDb.connect(MODULE_ID_PREFIX + "_" + process.pid);
 
     db.on("error", async function(err){
       statsObj.status = "MONGO ERROR";
@@ -376,6 +362,18 @@ async function connectDb(){
     console.log(chalk.green(MODULE_ID_PREFIX + " | MONGOOSE DEFAULT CONNECTION OPEN"));
 
     statsObj.dbConnectionReady = true;
+
+    const UserServerController = require("@threeceelabs/user-server-controller");
+    
+    userServerController = new UserServerController(MODULE_ID_PREFIX + "_USC");
+
+    userServerController.on("error", function(err){
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** USC ERROR | " + err));
+    });
+
+    userServerController.on("ready", function(appname){
+      console.log(chalk.green(MODULE_ID_PREFIX + " | USC READY | " + appname));
+    });
 
     return db;
   }
@@ -713,7 +711,7 @@ async function initFollowUserIdSet(){
 
     try{
 
-      const user = await wordAssoDb.User.findOne({ nodeId: userId });
+      const user = await global.wordAssoDb.User.findOne({ nodeId: userId });
 
       if (user) {
 
@@ -1963,7 +1961,7 @@ process.on("message", async function(m) {
 
           try{
 
-            const user = await wordAssoDb.User.findOne({nodeId: userId});
+            const user = await global.wordAssoDb.User.findOne({nodeId: userId});
 
             if (user) {
 
@@ -2142,39 +2140,31 @@ process.on("message", async function(m) {
 
 setTimeout(async function(){
 
-  try{
-    configuration = await initialize(configuration);
-  }
-  catch(err){
-    if (err.status != 404) {
-      console.log(chalkError("TSS | *** INIT ERROR\n" + jsonPrint(err)));
-      quit();
-    }
-    console.log(chalkError("TSS | TSS | *** INIT ERROR | CONFIG FILE NOT FOUND? | ERROR: " + err));
-  }
-
   console.log("TSS | TSS | " + configuration.processName + " STARTED " + getTimeStamp() + "\n");
 
   try {
+
+    try{
+      configuration = await initialize(configuration);
+    }
+    catch(err){
+      if (err.status != 404) {
+        console.log(chalkError("TSS | *** INIT ERROR\n" + jsonPrint(err)));
+        quit();
+      }
+      console.log(chalkError("TSS | TSS | *** INIT ERROR | CONFIG FILE NOT FOUND? | ERROR: " + err));
+    }
+
     dbConnection = await connectDb();
-    dbConnectionReady = true;
+    statsObj.dbConnectionReady = true;
+    await initWatchConfig();
+    await initSearchTermsUpdateInterval();
+    process.send({ op: "READY"});
   }
   catch(err){
-    dbConnectionReady = false;
+    statsObj.dbConnectionReady = false;
     console.log(chalkError("TSS | TSS | *** MONGO DB CONNECT ERROR: " + err + " | QUITTING ***"));
     quit("MONGO DB CONNECT ERROR");
   }
 
-  dbConnectionReadyInterval = setInterval(async function() {
-    if (dbConnectionReady) {
-      clearInterval(dbConnectionReadyInterval);
-      await initWatchConfig();
-      await initSearchTermsUpdateInterval();
-      // await initStatsUpdate(configuration);
-    }
-    else {
-      console.log(chalkInfo("TSS | TSS | WAIT DB CONNECTED ..."));
-    }
-  }, 1000);
-
-}, 5*ONE_SECOND);
+}, ONE_SECOND);

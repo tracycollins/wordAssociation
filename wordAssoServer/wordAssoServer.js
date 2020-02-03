@@ -361,8 +361,8 @@ function dnsReverse(params){
 
       }
 
-
-      if (hostnames[0].endsWith(DEFAULT_GOOGLE_COMPUTE_DOMAIN)){  // i.e. 66.248.198.35.bc.googleusercontent.com
+      // i.e. 66.248.198.35.bc.googleusercontent.com
+      if (hostnames[0].endsWith(DEFAULT_GOOGLE_COMPUTE_DOMAIN)){  
 
         const googleComputeEngineExternalIpAddress = hostnames[0].replace("."+DEFAULT_GOOGLE_COMPUTE_DOMAIN, "");
 
@@ -1965,17 +1965,23 @@ const botCache = new NodeCache({
   checkperiod: botCacheCheckPeriod
 });
 
+let botCacheExpiredCount = 0;
+
 botCache.on("expired", function(nodeId, botUser){
 
-  console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX BOT CACHE EXPIRED"
-    + " [" + botCache.getStats().keys + " KEYS]"
-    + " | TTL: " + botCacheTtl + " SECS"
-    + " | " + printUser({user: botUser})
-    // + " | " + nodeId
-    // + " | @" + botObj.screenName
-    // + " | CAT M " + botObj.category
-    // + " | CAT A " + botObj.categoryAuto
-  ));
+  botCacheExpiredCount++;
+
+  if (botCacheExpiredCount % 100 === 0){
+    console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX BOT CACHE EXPIRED"
+      + " [" + botCache.getStats().keys + " KEYS]"
+      + " | TTL: " + botCacheTtl + " SECS"
+      + " | " + printUser({user: botUser})
+      // + " | " + nodeId
+      // + " | @" + botObj.screenName
+      // + " | CAT M " + botObj.category
+      // + " | CAT A " + botObj.categoryAuto
+    ));
+  }
 
 });
 
@@ -6505,11 +6511,13 @@ function initTransmitNodeQueueInterval(interval){
 
                   n.isBot = true;
 
-                  console.log(chalkBot(MODULE_ID_PREFIX + " | ---> BOT <---"
-                    + " [ " + statsObj.traffic.users.bots + "/" + statsObj.traffic.users.total 
-                    + " | " + statsObj.traffic.users.percentBots.toFixed(2) + "% ]"
-                    + " | " + printUser({user: n})
-                  ));
+                  if (statsObj.traffic.users.bots % 100 === 0){
+                    console.log(chalkBot(MODULE_ID_PREFIX + " | ---> BOT <---"
+                      + " [ " + statsObj.traffic.users.bots + "/" + statsObj.traffic.users.total 
+                      + " | " + statsObj.traffic.users.percentBots.toFixed(2) + "% ]"
+                      + " | " + printUser({user: n})
+                    ));
+                  }
 
                   botCache.set(n.nodeId, n);
                 }

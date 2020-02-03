@@ -5746,7 +5746,7 @@ async function countDocuments(params){
 
     console.log(chalkLog(MODULE_ID_PREFIX + " | ... COUNTING DOCUMENTS: TYPE: " + documentType));
 
-    const count = await documentCollection.countDocuments(query);
+    const count = await documentCollection.estimatedDocumentCount(query);
     return count;
 
   }

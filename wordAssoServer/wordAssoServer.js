@@ -6380,6 +6380,16 @@ async function updateHashtagSets(){
   });
 }
 
+function printBotStats(params){
+  if (statsObj.traffic.users.bots % params.modulo === 0){
+    console.log(chalkBot(MODULE_ID_PREFIX + " | ---> BOT <---"
+      + " [ " + statsObj.traffic.users.bots + "/" + statsObj.traffic.users.total 
+      + " | " + statsObj.traffic.users.percentBots.toFixed(2) + "% ]"
+      + " | " + printUser({user: params.user})
+    ));
+  }
+}
+
 function initTransmitNodeQueueInterval(interval){
 
   return new Promise(function(resolve){
@@ -6511,13 +6521,7 @@ function initTransmitNodeQueueInterval(interval){
 
                   n.isBot = true;
 
-                  if (statsObj.traffic.users.bots % 100 === 0){
-                    console.log(chalkBot(MODULE_ID_PREFIX + " | ---> BOT <---"
-                      + " [ " + statsObj.traffic.users.bots + "/" + statsObj.traffic.users.total 
-                      + " | " + statsObj.traffic.users.percentBots.toFixed(2) + "% ]"
-                      + " | " + printUser({user: n})
-                    ));
-                  }
+                  printBotStats({user: n, modulo: 100});
 
                   botCache.set(n.nodeId, n);
                 }
@@ -6535,11 +6539,7 @@ function initTransmitNodeQueueInterval(interval){
 
                   updatedUser.isBot = true;
 
-                  console.log(chalkBot(MODULE_ID_PREFIX + " | ---> BOT <---"
-                    + " [ " + statsObj.traffic.users.bots + "/" + statsObj.traffic.users.total 
-                    + " | " + statsObj.traffic.users.percentBots.toFixed(2) + "% ]"
-                    + " | " + printUser({user: n})
-                  ));
+                  printBotStats({user: updatedUser, modulo: 100});
 
                   botCache.set(updatedUser.nodeId, updatedUser);
                 }
@@ -6568,11 +6568,7 @@ function initTransmitNodeQueueInterval(interval){
 
               n.isBot = true;
 
-              console.log(chalkBot(MODULE_ID_PREFIX + " | ---> BOT <---"
-                + " [ " + statsObj.traffic.users.bots + "/" + statsObj.traffic.users.total 
-                + " | " + statsObj.traffic.users.percentBots.toFixed(2) + "% ]"
-                + " | " + printUser({user: n})
-              ));
+              printBotStats({user: n, modulo: 100});
 
               botCache.set(n.nodeId, n);
             }

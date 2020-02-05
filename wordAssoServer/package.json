@@ -7,7 +7,7 @@
     "@slack/client": "^5.0.2",
     "@threeceelabs/hashtag-server-controller": "^1.0.70",
     "@threeceelabs/neural-network-tools": "^1.0.162",
-    "@threeceelabs/threecee-utilities": "^1.0.219",
+    "@threeceelabs/threecee-utilities": "^1.0.220",
     "@threeceelabs/tweet-server-controller": "^1.0.503",
     "@threeceelabs/user-server-controller": "^1.0.505",
     "change-case-bundled": "^1.0.1",

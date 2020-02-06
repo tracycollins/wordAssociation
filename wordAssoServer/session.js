@@ -21,6 +21,7 @@ ProgressBar
 
 "use strict";
 
+const STORED_CONFIG_VERSION = 0.004;
 const DEFAULT_USE_STORED_CONFIG = true;
 const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
 const LOCAL_SOURCE = "http://localhost:9997";
@@ -212,7 +213,7 @@ var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 
 var pageLoadedTimeIntervalFlag = true;
 
-var DEFAULT_ZOOM_FACTOR = 0.5;
+var DEFAULT_ZOOM_FACTOR = 0.75;
 
 var DEFAULT_METRIC_MODE = "rate";
 var DEFAULT_MAX_NODES = 50;
@@ -232,8 +233,8 @@ var DEFAULT_GRAVITY = 0.001;
 var DEFAULT_FORCEX_MULTIPLIER = 25.0;
 var DEFAULT_FORCEX_SESSION_MULTIPLIER = 50.0;
 var DEFAULT_FORCEY_MULTIPLIER = 25.0;
-var DEFAULT_NODE_RADIUS_MIN_RATIO = 0.0075;
-var DEFAULT_NODE_RADIUS_MAX_RATIO = 0.1000;
+var DEFAULT_NODE_RADIUS_MIN_RATIO = 0.01;
+var DEFAULT_NODE_RADIUS_MAX_RATIO = 0.1500;
 var DEFAULT_VELOCITY_DECAY = 0.35;
 var DEFAULT_LINK_DISTANCE = 100.0;
 var DEFAULT_LINK_STRENGTH = 0.50;
@@ -243,7 +244,7 @@ var DEFAULT_FONT_SIZE_MIN = 16;
 var DEFAULT_FONT_SIZE_MAX = 60;
 
 var DEFAULT_FONT_SIZE_MIN_RATIO = 0.01;
-var DEFAULT_FONT_SIZE_MAX_RATIO = 0.025;
+var DEFAULT_FONT_SIZE_MAX_RATIO = 0.1;
 var DEFAULT_FONT_SIZE_TOPTERM_RATIO = 0.026;
 
 var DEFAULT_NODE_RADIUS = 20.0;
@@ -274,7 +275,7 @@ console.debug("LOADING STORED CONFIG: " + globalStoredConfigName);
 
 storedConfig = store.get(globalStoredConfigName);
 
-if (useStoredConfig && storedConfig) {
+if (useStoredConfig && storedConfig && storedConfig.version === STORED_CONFIG_VERSION) {
   config = storedConfig;
   config.fullscreenMode = false;
   config.pauseFlag = false;
@@ -296,6 +297,7 @@ if (useStoredConfig && storedConfig) {
   }
 }
 else {
+  config.version = STORED_CONFIG_VERSION;
   config.authenticationUrl = DEFAULT_AUTH_URL;
   config.twitterUser = {};
   config.twitterUser.userId = "";
@@ -2054,20 +2056,20 @@ function loadViewType(svt, callback) {
 
   console.log("LOADING SESSION VIEW TYPE: " + svt);
 
-  storedConfigName = "config_" + svt;
-  storedConfig = store.get(storedConfigName);
+  // storedConfigName = "config_" + svt;
+  // storedConfig = store.get(storedConfigName);
 
-  if (storedConfig && useStoredConfig) {
+  // if (storedConfig && useStoredConfig) {
 
-    var storedConfigArgs = Object.keys(storedConfig);
+  //   var storedConfigArgs = Object.keys(storedConfig);
 
-    storedConfigArgs.forEach(function(arg){
-      config[arg] = storedConfig[arg];
-      if (arg === "VIEWER_OBJ") {
-      }
-      console.log("--> STORED CONFIG | " + arg + ": ", config[arg]);
-    });
-  }
+  //   storedConfigArgs.forEach(function(arg){
+  //     config[arg] = storedConfig[arg];
+  //     if (arg === "VIEWER_OBJ") {
+  //     }
+  //     console.log("--> STORED CONFIG | " + arg + ": ", config[arg]);
+  //   });
+  // }
 
   config.sessionViewType = "treepack";
   requirejs(["js/libs/sessionViewTreepack"], function() {
@@ -2143,35 +2145,35 @@ function initialize(callback) {
             console.warn("SESSION VIEW TYPE: " + config.sessionViewType);
             currentSessionView.resize();
 
-            storedConfigName = "config_" + config.sessionViewType;
-            storedConfig = store.get(storedConfigName);
+            // storedConfigName = "config_" + config.sessionViewType;
+            // storedConfig = store.get(storedConfigName);
 
-            if (storedConfig && useStoredConfig) {
+            // if (storedConfig && useStoredConfig) {
 
-              var storedConfigArgs = Object.keys(storedConfig);
+            //   var storedConfigArgs = Object.keys(storedConfig);
 
-              storedConfigArgs.forEach(function(arg){
-                config[arg] = storedConfig[arg];
-                if (arg === "VIEWER_OBJ") {
-                }
-                console.log("--> STORED CONFIG | " + arg + ": ", config[arg]);
-              });
+            //   storedConfigArgs.forEach(function(arg){
+            //     config[arg] = storedConfig[arg];
+            //     if (arg === "VIEWER_OBJ") {
+            //     }
+            //     console.log("--> STORED CONFIG | " + arg + ": ", config[arg]);
+            //   });
 
-              config.authenticationUrl = DEFAULT_AUTH_URL;
+            //   config.authenticationUrl = DEFAULT_AUTH_URL;
 
-              if (config.sessionViewType === "treepack") {
-                currentSessionView.setMaxNodesLimit(config.defaultMaxNodes);
-                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-              }
-            }
-            else {
-              console.debug("STORED CONFIG NOT FOUND: " + storedConfigName);
+            //   if (config.sessionViewType === "treepack") {
+            //     currentSessionView.setMaxNodesLimit(config.defaultMaxNodes);
+            //     currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+            //   }
+            // }
+            // else {
+            //   console.debug("STORED CONFIG NOT FOUND: " + storedConfigName);
 
-              if (config.sessionViewType === "treepack") {
-                currentSessionView.setMaxNodesLimit(DEFAULT_MAX_NODES);
-                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-              }
-            }
+            //   if (config.sessionViewType === "treepack") {
+            //     currentSessionView.setMaxNodesLimit(DEFAULT_MAX_NODES);
+            //     currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+            //   }
+            // }
 
             currentSessionView.initD3timer();
 
@@ -2201,28 +2203,28 @@ function initialize(callback) {
 
           loadViewType(config.sessionViewType, function() {
 
-            storedConfigName = "config_" + config.sessionViewType;
-            storedConfig = store.get(storedConfigName);
+            // storedConfigName = "config_" + config.sessionViewType;
+            // storedConfig = store.get(storedConfigName);
 
-            if (storedConfig && useStoredConfig) {
+            // if (storedConfig && useStoredConfig) {
 
-              var storedConfigArgs = Object.keys(storedConfig);
+            //   var storedConfigArgs = Object.keys(storedConfig);
 
-              storedConfigArgs.forEach(function(arg){
-                config[arg] = storedConfig[arg];
-                if (arg === "VIEWER_OBJ") {
-                }
-                console.log("--> STORED CONFIG | " + arg + ": ", config[arg]);
-              });
+            //   storedConfigArgs.forEach(function(arg){
+            //     config[arg] = storedConfig[arg];
+            //     if (arg === "VIEWER_OBJ") {
+            //     }
+            //     console.log("--> STORED CONFIG | " + arg + ": ", config[arg]);
+            //   });
 
-              config.authenticationUrl = DEFAULT_AUTH_URL;
-              currentSessionView.setMaxNodesLimit(config.defaultMaxNodes);
-              currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-            }
-            else {
-              currentSessionView.setMaxNodesLimit(DEFAULT_MAX_NODES);
-              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-            }
+            //   config.authenticationUrl = DEFAULT_AUTH_URL;
+            //   currentSessionView.setMaxNodesLimit(config.defaultMaxNodes);
+            //   currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+            // }
+            // else {
+            //   currentSessionView.setMaxNodesLimit(DEFAULT_MAX_NODES);
+            //   currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+            // }
 
             currentSessionView.simulationControl("START");
             currentSessionView.resize();
@@ -2255,29 +2257,29 @@ function initialize(callback) {
 
         loadViewType(config.sessionViewType, function() {
 
-            storedConfigName = "config_" + config.sessionViewType;
-            storedConfig = store.get(storedConfigName);
+          // storedConfigName = "config_" + config.sessionViewType;
+          // storedConfig = store.get(storedConfigName);
 
-            if (storedConfig &&  useStoredConfig) {
+          // if (storedConfig &&  useStoredConfig) {
 
-              var storedConfigArgs = Object.keys(storedConfig);
+          //   var storedConfigArgs = Object.keys(storedConfig);
 
-              storedConfigArgs.forEach(function(arg){
-                config[arg] = storedConfig[arg];
-                if (arg === "VIEWER_OBJ") {
-                }
-                console.log("--> STORED CONFIG | " + arg + ": ", config[arg]);
-              });
+          //   storedConfigArgs.forEach(function(arg){
+          //     config[arg] = storedConfig[arg];
+          //     if (arg === "VIEWER_OBJ") {
+          //     }
+          //     console.log("--> STORED CONFIG | " + arg + ": ", config[arg]);
+          //   });
 
-              config.authenticationUrl = DEFAULT_AUTH_URL;
+          //   config.authenticationUrl = DEFAULT_AUTH_URL;
 
-              currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-              currentSessionView.setMaxNodesLimit(config.defaultMaxNodes);
-            }
-            else {
-              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-              currentSessionView.setMaxNodesLimit(DEFAULT_MAX_NODES);
-            }
+          //   currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+          //   currentSessionView.setMaxNodesLimit(config.defaultMaxNodes);
+          // }
+          // else {
+          //   currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+          //   currentSessionView.setMaxNodesLimit(DEFAULT_MAX_NODES);
+          // }
 
           currentSessionView.initD3timer();
           currentSessionView.resize();

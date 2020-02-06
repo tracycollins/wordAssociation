@@ -362,7 +362,7 @@ function dnsReverse(params){
       }
 
       // i.e. 66.248.198.35.bc.googleusercontent.com
-      if (hostnames[0].endsWith(DEFAULT_GOOGLE_COMPUTE_DOMAIN)){  
+      if (hostnames && hostnames[0] && hostnames[0].endsWith(DEFAULT_GOOGLE_COMPUTE_DOMAIN)){  
 
         const googleComputeEngineExternalIpAddress = hostnames[0].replace("."+DEFAULT_GOOGLE_COMPUTE_DOMAIN, "");
 

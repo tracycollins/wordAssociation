@@ -8,7 +8,7 @@ function ViewTreepack() {
 
   var initialXposition = 0.5;
   var initialYposition = 0.9;
-  var defaultInitialZoom = 0.5;
+  var defaultInitialZoom = 1.0;
 
   var DEFAULT_ZOOM_FACTOR = 0.5;
   var minRateMetricChange = 0.5;
@@ -494,22 +494,16 @@ function ViewTreepack() {
   };
 
   this.getPanzoomTransform = function() { return config.panzoomTransform; };
-
   this.deleteNode = function() { return null; };
-
   this.getTotalHashMap = function() { return totalHashmap; };
-  
   this.getNodesLength = function() { return "NODES: " + nodeArray.length + " | POOL: " + nodePool.size(); };
-  
   this.getMaxNodes = function() { return maxNodes; };
-  
   this.getNumNodes = function() { return nodeArray.length; };
   this.getNodeAddQlength = function() { return nodeAddQ.length; };
-  
   this.getMaxNodeAddQ = function() { return maxNodeAddQ; };
-    
   this.getAgeRate = function() { return ageRate; };
-  
+  this.getMaxAgeRate = function() { return maxAgeRate; };
+
   this.setMaxNodesLimit = function(mNodesLimit) {
     maxNodesLimit = mNodesLimit;
     config.defaultMaxNodesLimit = mNodesLimit;
@@ -522,7 +516,6 @@ function ViewTreepack() {
     console.debug("SET NODE MAX AGE: " + nodeMaxAge);
   };
 
-  this.getMaxAgeRate = function() { return maxAgeRate; };
   
   this.setAntonym = function(flag) {
     antonymFlag = flag;
@@ -604,7 +597,6 @@ function ViewTreepack() {
         DEFAULT_SOURCE
       );
     }
-
   };
 
   this.setMetricMode = function(mode) {

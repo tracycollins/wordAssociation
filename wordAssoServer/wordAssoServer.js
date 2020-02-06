@@ -366,7 +366,7 @@ function dnsReverse(params){
 
         const googleComputeEngineExternalIpAddress = hostnames[0].replace("."+DEFAULT_GOOGLE_COMPUTE_DOMAIN, "");
 
-        console.log(chalk.black(MODULE_ID_PREFIX + " | GOOGLE CLOUD COMPUTE ENGINE DOMAIN | DNS REVERSE"
+        console.log(chalk.black(MODULE_ID_PREFIX + " | DOMAIN | DNS REVERSE"
           + " | GCP IP: " + params.ipAddress
           + " | REAL IP: " + googleComputeEngineExternalIpAddress
           + " | " + hostnames.length + " HOST NAMES"
@@ -380,7 +380,7 @@ function dnsReverse(params){
         .catch(async function(err0){
 
           console.log(chalkError(MODULE_ID_PREFIX 
-            + " | *** DNS REVERSE ERROR | GOOGLE CLOUD COMPUTE ENGINE | IP: " + googleComputeEngineExternalIpAddress
+            + " | *** DNS REVERSE ERROR | IP: " + googleComputeEngineExternalIpAddress
             + " | " + err0
           ));
 
@@ -392,7 +392,7 @@ function dnsReverse(params){
 
             const whoisResult = await whois(googleComputeEngineExternalIpAddress);
 
-            console.log(chalk.black(MODULE_ID_PREFIX + " | GOOGLE CLOUD COMPUTE ENGINE DOMAIN | WHOIS"
+            console.log(chalk.black(MODULE_ID_PREFIX + " | DOMAIN | WHOIS"
               + " | REAL IP: " + googleComputeEngineExternalIpAddress
               + " | DOMAIN: " + whoisResult.domainName
               + "\n" + tcUtils.jsonPrint(whoisResult)

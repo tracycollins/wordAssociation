@@ -5740,14 +5740,20 @@ async function countDocuments(params){
   try{
 
     const documentType = params.documentType;
-    const query = params.query;
+    const query = params.query || false;
 
     const documentCollection = global.dbConnection.collection(documentType);
 
     console.log(chalkLog(MODULE_ID_PREFIX + " | ... COUNTING DOCUMENTS: TYPE: " + documentType));
 
-    const count = await documentCollection.estimatedDocumentCount(query);
-    return count;
+    if (query){
+      const count = await documentCollection.countDocuments(query);
+      return count;
+    }
+    else{ // estimatedDocumentCount doesn't take query; always returns all docs in collection
+      const count = await documentCollection.estimatedDocumentCount();
+      return count;
+    }
 
   }
   catch(err){
@@ -5796,7 +5802,7 @@ async function updateUserSets(){
 
   await global.wordAssoDb.User.deleteMany({ "$and": [ {lang: { "$nin": [ false, null ] } }, { lang: { "$ne": "en" } } ]} );
 
-  statsObj.user.total = await countDocuments({documentType: "users", query: {}});
+  statsObj.user.total = await countDocuments({documentType: "users"});
   console.log(chalkBlue(MODULE_ID_PREFIX + " | GRAND TOTAL USERS: " + statsObj.user.total));
 
   statsObj.user.following = await countDocuments({documentType: "users", query: {"following": true}});
@@ -6206,7 +6212,7 @@ async function updateHashtagSets(){
     throw new Error("DB CONNECTION NOT READY");
   }
 
-  statsObj.hashtag.total = await countDocuments({documentType: "hashtags", query: {}});
+  statsObj.hashtag.total = await countDocuments({documentType: "hashtags"});
   console.log(chalkBlue(MODULE_ID_PREFIX + " | GRAND TOTAL HASHTAGS: " + statsObj.hashtag.total));
 
   statsObj.hashtag.ignored = await countDocuments({documentType: "hashtags", query: {"ignored": true}});

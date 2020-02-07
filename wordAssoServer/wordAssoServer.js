@@ -3798,6 +3798,90 @@ async function unignore(params) {
   });
 }
 
+async function bot(params) {
+
+  console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ BOT | @" + params.user.screenName));
+
+  if (params.user.nodeId !== undefined){
+    botNodeIdSet.add(params.user.userId);
+  } 
+
+  if (params.user.userId && (params.user.userId !== undefined)){
+    botNodeIdSet.add(params.user.userId);
+  }
+
+  const query = { nodeId: params.user.nodeId };
+
+  const update = {};
+  update.$set = { isBot: true };
+
+  const options = { useFindAndModify: false, returnOriginal: false, new: true, upsert: true };
+
+  global.wordAssoDb.User.findOneAndUpdate(query, update, options, function(err, userUpdated){
+
+    if (err) {
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** BOT | USER FIND ONE ERROR: " + err));
+      throw err;
+    }
+    
+    if (userUpdated){
+      console.log(chalkLog(MODULE_ID_PREFIX + " | XXX BOT"
+        + " | " + printUser({user: userUpdated})
+      ));
+      return userUpdated;
+    }
+
+    console.log(chalkLog(MODULE_ID_PREFIX + " | --- BOT USER NOT IN DB"
+      + " | ID: " + params.user.nodeId
+    ));
+
+    return;
+
+  });
+}
+
+async function unbot(params) {
+
+  console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ UNBOT | @" + params.user.screenName));
+
+  if (params.user.nodeId !== undefined){
+    botNodeIdSet.delete(params.user.userId);
+  } 
+
+  if (params.user.userId && (params.user.userId !== undefined)){
+    botNodeIdSet.delete(params.user.userId);
+  }
+
+  const query = { nodeId: params.user.nodeId };
+
+  const update = {};
+  update.$set = { isBot: false };
+
+  const options = { useFindAndModify: false, returnOriginal: false, new: true, upsert: true };
+
+  global.wordAssoDb.User.findOneAndUpdate(query, update, options, function(err, userUpdated){
+
+    if (err) {
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** UNBOT | USER FIND ONE ERROR: " + err));
+      throw err;
+    }
+    
+    if (userUpdated){
+      console.log(chalkLog(MODULE_ID_PREFIX + " | XXX UNBOT"
+        + " | " + printUser({user: userUpdated})
+      ));
+      return userUpdated;
+    }
+
+    console.log(chalkLog(MODULE_ID_PREFIX + " | --- UNBOT USER NOT IN DB"
+      + " | ID: " + params.user.nodeId
+    ));
+
+    return;
+
+  });
+}
+
 function unfollow(params, callback) {
 
   if (params.user.nodeId !== undefined){
@@ -4505,7 +4589,6 @@ async function initSocketHandler(socketObj) {
             adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
             socket.emit("GET_STATS");
           }
-
         break;
 
         case "VIEWER" :
@@ -4741,7 +4824,7 @@ async function initSocketHandler(socketObj) {
         adminNameSpace.emit("IGNORE", updatedUser);
         utilNameSpace.emit("IGNORE", updatedUser);
 
-        console.log(chalk.blue(MODULE_ID_PREFIX + " | XXX TWITTER_IGNORE"
+        console.log(chalk.blue(MODULE_ID_PREFIX + " |  TWITTER_IGNORE"
           + " | SID: " + socket.id
           + " | UID" + updatedUser.nodeId
           + " | @" + updatedUser.screenName
@@ -4784,6 +4867,74 @@ async function initSocketHandler(socketObj) {
       }
       catch(err){
         console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_UNIGNORE ERROR: " + err));
+        throw err;
+      }
+    });
+
+    socket.on("TWITTER_BOT", async function(user) {
+
+      try{
+
+        const timeStamp = moment().valueOf();
+
+        // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
+        console.log(chalkSocket("R< TWITTER_BOT"
+          + " | " + tcUtils.getTimeStamp(timeStamp)
+          + " | " + ipAddress
+          + " | " + socket.id
+          + " | UID: " + user.userId
+          + " | @" + user.screenName
+        ));
+
+        const updatedUser = await bot({user: user, socketId: socket.id});
+
+        if (!updatedUser) { return; }
+
+        adminNameSpace.emit("BOT", updatedUser);
+        utilNameSpace.emit("BOT", updatedUser);
+
+        console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ TWITTER_BOT"
+          + " | SID: " + socket.id
+          + " | UID" + updatedUser.nodeId
+          + " | @" + updatedUser.screenName
+        ));
+      }
+      catch(err){
+        console.log(chalkError(MODULE_ID_PREFIX + " | *** BOT USER ERROR: " + err));
+      }
+    });
+
+    socket.on("TWITTER_UNBOT", async function(user) {
+
+      try{
+
+        const timeStamp = moment().valueOf();
+
+        console.log(chalkSocket("R< TWITTER_UNBOT"
+          + " | " + tcUtils.getTimeStamp(timeStamp)
+          + " | " + ipAddress
+          + " | " + socket.id
+          + " | UID: " + user.userId
+          + " | @" + user.screenName
+        ));
+
+        const updatedUser = await unbot({user: user, socketId: socket.id});
+        
+        if (!updatedUser) { return; }
+
+        adminNameSpace.emit("UNBOT", updatedUser);
+        utilNameSpace.emit("UNBOT", updatedUser);
+
+        console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ TWITTER_UNBOT"
+          + " | SID: " + socket.id
+          + " | UID" + updatedUser.nodeId
+          + " | @" + updatedUser.screenName
+        ));
+
+      }
+      catch(err){
+        console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_UNBOT ERROR: " + err));
         throw err;
       }
     });

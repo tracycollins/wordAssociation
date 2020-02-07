@@ -949,6 +949,22 @@ function controlPanelComm(event) {
       socket.emit("TWITTER_CATEGORY_UNVERIFIED", event.data.user);
     break;
 
+    case "BOT" :
+      console.warn("R< CONTROL BOT"
+        + " | UID: " + event.data.user.nodeId
+        + " | @" + event.data.user.screenName
+      );
+      socket.emit("TWITTER_BOT", event.data.user);
+    break;
+
+    case "UNBOT" :
+      console.warn("R< CONTROL UNBOT"
+        + " | UID: " + event.data.user.nodeId
+        + " | @" + event.data.user.screenName
+      );
+      socket.emit("TWITTER_UNBOT", event.data.user);
+    break;
+
     case "IGNORE" :
       console.warn("R< CONTROL IGNORE"
         + " | UID: " + event.data.user.nodeId
@@ -1679,6 +1695,7 @@ socket.on("SET_TWITTER_USER", function(message) {
   statsObj.socket.connected = true;
 
   console.log("<R SET_TWITTER_USER" 
+    + " | BOT: " + message.user.isBot 
     + " | IG: " + message.user.ignored 
     + " | FLWG: " + message.user.following 
     + " | 3CFLWG: " + message.user.threeceeFollowing 

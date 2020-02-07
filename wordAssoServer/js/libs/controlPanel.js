@@ -1075,7 +1075,7 @@ function ControlPanel() {
           isBot = twitterFeedUser.isBot;
         }
 
-        twitterControl.addBoolean("isBot", isBot, function(data){
+        twitterControl.addBoolean("BOT", isBot, function(data){
           console.debug("USER BOT | " + twitterEntity.getValue("SCREENNAME") + " | BOT: " + data);
           const op = (data) ? "BOT" : "UNBOT";
           if (!loadingTwitterFeedFlag){

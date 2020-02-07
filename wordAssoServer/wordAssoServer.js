@@ -4954,6 +4954,7 @@ async function initSocketHandler(socketObj) {
         + " | " + socket.id
         + " | " + sn
       ));
+
     });
 
     socket.on("TWITTER_CATEGORIZE_NODE", function twitterCategorizeNode(dataObj) {
@@ -10151,6 +10152,12 @@ async function twitterGetUserUpdateDb(params){
 
     user.setMentions = true;
 
+    const botCacheObj = botCache.get(user.nodeId);
+
+    if (botCacheObj !== undefined) {
+      user.isBot = botCacheObj.isBot;
+    }
+
     const updatedUser = await userServerController.findOneUserV2({user: user, mergeHistograms: false, noInc: true});
 
     if (configuration.verbose) {
@@ -10199,6 +10206,7 @@ async function twitterSearchUserNode(params){
     ));
 
     const newUser = await twitterGetUserUpdateDb({user: user, following: following});
+
     if (newUser) { return newUser; }
     return;
   }

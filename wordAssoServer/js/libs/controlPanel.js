@@ -175,6 +175,7 @@ function ControlPanel() {
   statsObj.user.friendsCount = 0;
   statsObj.user.statusesCount = 0;
   statsObj.user.mentions = 0;
+  statsObj.user.isBot = false;
   statsObj.user.following = false;
   statsObj.user.ignored = false;
   statsObj.user.profileImageUrl = "";
@@ -396,6 +397,7 @@ function ControlPanel() {
       statsObj.user.statusesCount = node.statusesCount;
       statsObj.user.ignored = node.ignored;
       statsObj.user.following = node.following;
+      statsObj.user.isBot = node.isBot;
       statsObj.user.mentions = node.mentions;
 
       if (twttr && twttr.widgets) {
@@ -496,11 +498,13 @@ function ControlPanel() {
       twitterTimeLine.setValue("RATE MAX", node.rateMax);
 
       const categoryVerified = node.categoryVerified || false;
+      const isBot = node.isBot || false;
       const following = node.following || false;
       const ignored = node.ignored || false;
       const categoryAuto = node.categoryAuto.toUpperCase() || "NONE";
 
       twitterControl.setValue("CAT VERIFIED", categoryVerified);
+      twitterControl.setValue("BOT", isBot);
       twitterControl.setValue("FOLLOWING", following);
       twitterControl.setValue("IGNORED", ignored);
 			twitterControl.setValue("CATEGORY AUTO", categoryAuto);
@@ -509,6 +513,7 @@ function ControlPanel() {
         + " | TYPE: " + node.nodeType
         + " | NID: " + node.nodeId
         + " | IG: " + node.ignored
+        + " | BOT: " + node.isBot
         + " | FLWG: " + node.following
         + " | @" + node.screenName
         + " | " + node.name
@@ -772,6 +777,7 @@ function ControlPanel() {
         console.debug("SET TWITTER USER" 
           + " | " + currentTwitterNode.nodeId
           + " | IG: " + currentTwitterNode.ignored
+          + " | BOT: " + currentTwitterNode.isBot
           + " | FLWG: " + currentTwitterNode.following
           + " | @" + currentTwitterNode.screenName
           + " | CR: " + currentTwitterNode.createdAt
@@ -1063,6 +1069,19 @@ function ControlPanel() {
         positionX += subPanelWidth;
 
         twitterControl.setWidth(subPanelWidth);
+
+        let isBot = false;
+        if (twitterFeedUser && twitterFeedUser.isBot !== undefined) {
+          isBot = twitterFeedUser.isBot;
+        }
+
+        twitterControl.addBoolean("isBot", isBot, function(data){
+          console.debug("USER BOT | " + twitterEntity.getValue("SCREENNAME") + " | BOT: " + data);
+          const op = (data) ? "BOT" : "UNBOT";
+          if (!loadingTwitterFeedFlag){
+            parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
+          }
+        });
 
         let following = false;
         if (twitterFeedUser && twitterFeedUser.following !== undefined) {

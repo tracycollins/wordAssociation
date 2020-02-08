@@ -923,6 +923,9 @@ function ControlPanel() {
 
 		while(i--) {
 			if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id !== cb.id) {
+        if (cbxs[i].checked) {
+          previousCat = cbxs[i].name;
+        }
 				cbxs[i].checked = false;
         cbxs[i].style.backgroundColor = "lightgray";
 			}

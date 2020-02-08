@@ -916,7 +916,7 @@ function ControlPanel() {
 
 		if (cb.type !== 'checkbox') {return true;}
 
-		console.log("CAT BUTTON: ", cb.id);
+		console.log("CAT BUTTON | ID: " + cb.id + " | NAME: " + cb.name);
 
 		var cbxs = radioUserCategoryDiv.getElementsByTagName('input');
 		var i = cbxs.length;
@@ -931,6 +931,20 @@ function ControlPanel() {
     cb.style.backgroundColor = "blue";
     if (!loadingTwitterFeedFlag){
       parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: cb.name}, DEFAULT_SOURCE);
+      switch (cb.name) {
+        case "left":
+          statsObj.manual.left++;
+          statsPanel.setValue("MANUAL LEFT", statsObj.manual.left);
+        break;
+        case "neutral":
+          statsObj.manual.neutral++;
+          statsPanel.setValue("MANUAL NEUT", statsObj.manual.neutral);
+        break;
+        case "right":
+          statsObj.manual.right++;
+          statsPanel.setValue("MANUAL RIGHT", statsObj.manual.right);
+        break;
+      }
     }
   }
 

@@ -1201,7 +1201,7 @@ function ControlPanel() {
         statsPanel.addText("INPUTS ID", statsObj.bestNetwork.inputsId);
 
         statsPanel.addText("MANUAL LEFT", "");
-        statsPanel.addText("MANUAL RGIHT", "");
+        statsPanel.addText("MANUAL RIGHT", "");
         statsPanel.addText("MANUAL NEUTRAL", "");
 
         // DISPLAY ==================================

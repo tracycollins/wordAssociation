@@ -621,8 +621,8 @@ function ControlPanel() {
 
       if (statsObj.manual) {
         statsPanel.setValue("MANUAL LEFT", statsObj.manual.left);
-        statsPanel.setValue("MANUAL RGHT", statsObj.manual.right);
-        statsPanel.setValue("MANUAL NEUT", statsObj.manual.neutral);
+        statsPanel.setValue("MANUAL RIGHT", statsObj.manual.right);
+        statsPanel.setValue("MANUAL NEUTRAL", statsObj.manual.neutral);
       }
 
       statsObj.uncategorized = {};
@@ -1201,8 +1201,8 @@ function ControlPanel() {
         statsPanel.addText("INPUTS ID", statsObj.bestNetwork.inputsId);
 
         statsPanel.addText("MANUAL LEFT", "");
-        statsPanel.addText("MANUAL RGHT", "");
-        statsPanel.addText("MANUAL NEUT", "");
+        statsPanel.addText("MANUAL RGIHT", "");
+        statsPanel.addText("MANUAL NEUTRAL", "");
 
         // DISPLAY ==================================
 

@@ -621,8 +621,8 @@ function ControlPanel() {
 
       if (statsObj.manual) {
         statsPanel.setValue("MANUAL LEFT", statsObj.manual.left);
-        statsPanel.setValue("MANUAL RIGHT", statsObj.manual.right);
-        statsPanel.setValue("MANUAL NEUTRAL", statsObj.manual.neutral);
+        statsPanel.setValue("MANUAL RGHT", statsObj.manual.right);
+        statsPanel.setValue("MANUAL NEUT", statsObj.manual.neutral);
       }
 
       statsObj.uncategorized = {};
@@ -916,48 +916,21 @@ function ControlPanel() {
 
 		if (cb.type !== 'checkbox') {return true;}
 
-		console.log("CAT BUTTON | ID: " + cb.id + " | NAME: " + cb.name);
+		console.log("CAT BUTTON: ", cb.id);
 
 		var cbxs = radioUserCategoryDiv.getElementsByTagName('input');
 		var i = cbxs.length;
-    var previousCat;
 
 		while(i--) {
 			if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id !== cb.id) {
-        if (cbxs[i].checked) {
-          previousCat = cbxs[i].name;
-        }
 				cbxs[i].checked = false;
         cbxs[i].style.backgroundColor = "lightgray";
 			}
 		}
-
 		cb.checked = true;
     cb.style.backgroundColor = "blue";
-
     if (!loadingTwitterFeedFlag){
-
       parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: cb.name}, DEFAULT_SOURCE);
-
-      if (previousCat) { statsObj.manual[previousCat]--; }
-
-      statsObj.manual[cb.name]++;
-      statsPanel.setValue("MANUAL " + cb.name.toUpperCase(), statsObj.manual[cb.name]);
-
-      // switch (cb.name) {
-      //   case "left":
-      //     statsObj.manual.left++;
-      //     statsPanel.setValue("MANUAL LEFT", statsObj.manual.left);
-      //   break;
-      //   case "neutral":
-      //     statsObj.manual.neutral++;
-      //     statsPanel.setValue("MANUAL NEUT", statsObj.manual.neutral);
-      //   break;
-      //   case "right":
-      //     statsObj.manual.right++;
-      //     statsPanel.setValue("MANUAL RIGHT", statsObj.manual.right);
-      //   break;
-      // }
     }
   }
 
@@ -1201,8 +1174,8 @@ function ControlPanel() {
         statsPanel.addText("INPUTS ID", statsObj.bestNetwork.inputsId);
 
         statsPanel.addText("MANUAL LEFT", "");
-        statsPanel.addText("MANUAL RIGHT", "");
-        statsPanel.addText("MANUAL NEUTRAL", "");
+        statsPanel.addText("MANUAL RGHT", "");
+        statsPanel.addText("MANUAL NEUT", "");
 
         // DISPLAY ==================================
 

@@ -6,8 +6,8 @@
   "dependencies": {
     "@slack/client": "^5.0.2",
     "@threeceelabs/hashtag-server-controller": "^1.0.70",
-    "@threeceelabs/neural-network-tools": "^1.0.170",
-    "@threeceelabs/threecee-utilities": "^1.0.222",
+    "@threeceelabs/neural-network-tools": "^1.0.171",
+    "@threeceelabs/threecee-utilities": "^1.0.226",
     "@threeceelabs/tweet-server-controller": "^1.0.503",
     "@threeceelabs/user-server-controller": "^1.0.505",
     "change-case-bundled": "^1.0.1",

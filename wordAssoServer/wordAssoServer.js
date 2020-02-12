@@ -3723,20 +3723,23 @@ async function ignore(params) {
   tssChild.send({op: "IGNORE", user: params.user});
 
   try{
-    const results = await global.wordAssoDb.User.deleteOne({nodeId: params.user.nodeId});
 
-    if (results.deletedCount > 0){
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX IGNORED USER | -*- DB HIT"
-        + " | " + params.user.nodeId
-        + " | @" + params.user.screenName
-      ));
-    }
-    else{
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX IGNORED USER | --- DB MISS" 
-        + " | " + params.user.nodeId
-        + " | @" + params.user.screenName
-      ));
-    }
+    await deleteUser(params);
+
+    // const results = await global.wordAssoDb.User.deleteOne({nodeId: params.user.nodeId});
+
+    // if (results.deletedCount > 0){
+    //   console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX IGNORED USER | -*- DB HIT"
+    //     + " | " + params.user.nodeId
+    //     + " | @" + params.user.screenName
+    //   ));
+    // }
+    // else{
+    //   console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX IGNORED USER | --- DB MISS" 
+    //     + " | " + params.user.nodeId
+    //     + " | @" + params.user.screenName
+    //   ));
+    // }
 
     const obj = {};
     obj.userIds = [...ignoredUserSet];
@@ -6036,6 +6039,7 @@ async function updateUserSets(){
           );
         }
       });
+
     }
     else if (!category 
       && !user.following 
@@ -10184,6 +10188,24 @@ async function twitterGetUserUpdateDb(params){
   }
 }
 
+async function deleteUser(params){
+
+  const results = await global.wordAssoDb.User.deleteOne({nodeId: params.user.nodeId});
+
+  if (results.deletedCount > 0){
+    console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX USER | -*- DB HIT"
+      + " | " + params.user.nodeId
+      + " | @" + params.user.screenName
+    ));
+  }
+  else{
+    console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX USER | --- DB MISS" 
+      + " | " + params.user.nodeId
+      + " | @" + params.user.screenName
+    ));
+  }
+}
+
 async function twitterSearchUserNode(params){
 
   const user = params.user;
@@ -10231,7 +10253,9 @@ async function twitterSearchUserNode(params){
           + " | ERR TYPE: " + errorType
           + " | UID: " + user.nodeId
         ));
-        await global.wordAssoDb.User.deleteOne({nodeId: user.nodeId});
+
+        await deleteUser({user: user});
+
       break;
 
       case 63:
@@ -10242,8 +10266,11 @@ async function twitterSearchUserNode(params){
           + " | ERR TYPE: " + errorType
           + " | UID: " + user.nodeId
         ));
-        await global.wordAssoDb.User.deleteOne({nodeId: user.nodeId});
+
+        await deleteUser({user: user});
+
       break;
+
       default:
         console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER SEARCH NODE USER ERROR | MODE: " + searchMode
           + " | ERR CODE: " + errCode

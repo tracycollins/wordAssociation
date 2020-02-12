@@ -54,15 +54,10 @@ else {
   DROPBOX_ROOT_FOLDER = "/Users/tc/Dropbox/Apps/wordAssociation";
 }
 
-// const msToTime = tcUtils.msToTime;
-// const jsonPrint = tcUtils.jsonPrint;
-// const getTimeStamp = tcUtils.getTimeStamp;
-
 const TWITTER_WEBHOOK_URL = "/webhooks/twitter";
 const TWITTER_AUTH_CALLBACK_URL = "https://word.threeceelabs.com/auth/twitter/callback";
 
 global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
-// global.dbConnection;
 
 const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
 const tcUtils = new ThreeceeUtilities(MODULE_ID_PREFIX + "_TCU");
@@ -3974,7 +3969,7 @@ async function initIgnoredHashtagSet(){
 
   try{
 
-    const result = await initSetFromFile({
+    const result = await tcUtils.initSetFromFile({
       folder: configDefaultFolder, 
       file: ignoredHashtagFile, 
       resolveOnNotFound: true
@@ -4001,53 +3996,53 @@ async function initIgnoredHashtagSet(){
   }
 }
 
-async function initSetFromFile(params){
+// async function initSetFromFile(params){
 
-  statsObj.status = "INIT SET FROM FILE";
+//   statsObj.status = "INIT SET FROM FILE";
 
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | ... INIT SET FROM FILE: " + params.folder + "/" + params.file));
+//   console.log(chalkBlue(MODULE_ID_PREFIX + " | ... INIT SET FROM FILE: " + params.folder + "/" + params.file));
 
-  try{
+//   try{
 
-    const setObj = await tcUtils.loadFileRetry({folder: params.folder, file: params.file, resolveOnNotFound: params.resolveOnNotFound});
+//     const setObj = await tcUtils.loadFileRetry({folder: params.folder, file: params.file, resolveOnNotFound: params.resolveOnNotFound});
 
-    if (empty(setObj)) {
-     console.log(chalkAlert(MODULE_ID_PREFIX + " | ??? NO ITEMS IN FILE ERROR ???"
-        + " | " + params.folder + "/" + params.file
-      ));
+//     if (empty(setObj)) {
+//      console.log(chalkAlert(MODULE_ID_PREFIX + " | ??? NO ITEMS IN FILE ERROR ???"
+//         + " | " + params.folder + "/" + params.file
+//       ));
 
-      if (params.errorOnNoItems) {
-        throw new Error("NO ITEMS IN FILE: " + params.folder + "/" + params.file); 
-      }
-      return;
-    }
+//       if (params.errorOnNoItems) {
+//         throw new Error("NO ITEMS IN FILE: " + params.folder + "/" + params.file); 
+//       }
+//       return;
+//     }
 
-    let fileSet;
+//     let fileSet;
 
-    if (params.objArrayKey) {
-      fileSet = new Set(setObj[params.objArrayKey]);
-    }
-    else{
-      const itemArray = setObj.toString().toLowerCase().split("\n");
-      fileSet = new Set(itemArray);
-    }
+//     if (params.objArrayKey) {
+//       fileSet = new Set(setObj[params.objArrayKey]);
+//     }
+//     else{
+//       const itemArray = setObj.toString().toLowerCase().split("\n");
+//       fileSet = new Set(itemArray);
+//     }
 
-    console.log(chalkLog(MODULE_ID_PREFIX + " | LOADED SET FROM FILE"
-      + " | OBJ ARRAY KEY: " + params.objArrayKey
-      + " | " + fileSet.size + " ITEMS"
-      + " | " + params.folder + "/" + params.file
-    ));
+//     console.log(chalkLog(MODULE_ID_PREFIX + " | LOADED SET FROM FILE"
+//       + " | OBJ ARRAY KEY: " + params.objArrayKey
+//       + " | " + fileSet.size + " ITEMS"
+//       + " | " + params.folder + "/" + params.file
+//     ));
 
-    return fileSet;
-  }
-  catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT SET FROM FILE ERROR: " + err));
-    if (params.noErrorNotFound) {
-      return;
-    }
-    throw err;
-  }
-}
+//     return fileSet;
+//   }
+//   catch(err){
+//     console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT SET FROM FILE ERROR: " + err));
+//     if (params.noErrorNotFound) {
+//       return;
+//     }
+//     throw err;
+//   }
+// }
 
 function saveUncatUserCache(){
 
@@ -4152,7 +4147,7 @@ async function initFollowableSearchTermSet(){
 
   try{
 
-    const result = await initSetFromFile({folder: configDefaultFolder, file: followableSearchTermFile, resolveOnNotFound: true});
+    const result = await tcUtils.initSetFromFile({folder: configDefaultFolder, file: followableSearchTermFile, resolveOnNotFound: true});
 
     if (result) {
       followableSearchTermSet = result;
@@ -4184,7 +4179,7 @@ async function initIgnoredUserSet(){
 
   try{
 
-    const result = await initSetFromFile({
+    const result = await tcUtils.initSetFromFile({
       folder: configDefaultFolder, 
       file: ignoredUserFile, 
       objArrayKey: "userIds", 

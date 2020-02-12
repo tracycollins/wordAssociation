@@ -8127,6 +8127,16 @@ function initTssChild(params){
             threeceeTwitter.twitterErrorFlag = m.error;
             threeceeTwitter.twitterTokenErrorFlag = m.error;
           }
+          else if (m.errorType == "USER_SUSPENDED") {
+
+            unfollowableUserSet.add(m.userId);
+
+            console.log(chalkLog(MODULE_ID_PREFIX + " | XXX TWITTER USER SUSPENDED"
+              + " | UID: " + m.userId
+              + " | @" + m.screenName
+              + " | UNFOLLOWABLE SET SIZE: " + unfollowableUserSet.size
+            ));
+          }
           else if (m.errorType == "USER_NOT_FOUND") {
 
             unfollowableUserSet.add(m.userId);
@@ -10206,10 +10216,41 @@ async function twitterSearchUserNode(params){
     return;
   }
   catch(err){
+
+    const errCode = (err.code && (err.code != undefined)) ? err.code : err.statusCode;
+
     console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER SEARCH NODE USER ERROR | MODE: " + searchMode
+      + " | ERR CODE: " + errCode
       + "\nsearchQuery\n" + tcUtils.jsonPrint(user)
       + "ERROR: ", err
     ));
+
+    let errorType;
+
+    switch (errCode) {
+      case 34:
+      case 50:
+        errorType = "USER_NOT_FOUND";
+        console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER USER NOT FOUND"
+          + " | " + getTimeStamp() 
+          + " | ERR CODE: " + errCode 
+          + " | ERR TYPE: " + errorType
+          + " | UID: " + user.nodeId
+        ));
+        await global.wordAssoDb.User.deleteOne({nodeId: user.nodeId});
+      break;
+
+      case 63:
+        errorType = "USER_SUSPENDED";
+        console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER USER SUSPENDED"
+          + " | " + getTimeStamp() 
+          + " | ERR CODE: " + errCode 
+          + " | ERR TYPE: " + errorType
+          + " | UID: " + user.nodeId
+        ));
+        await global.wordAssoDb.User.deleteOne({nodeId: user.nodeId});
+      break;
+    }
     throw err;
   }
 }

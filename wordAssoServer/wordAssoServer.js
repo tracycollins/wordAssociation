@@ -1037,6 +1037,7 @@ const fieldsExclude = {
 };
 
 const fieldsTransmit = {
+  ageDays: 1,
   bannerImageUrl: 1,
   profileImageUrl: 1,
   category: 1,
@@ -1059,7 +1060,8 @@ const fieldsTransmit = {
   screenNameLower: 1,
   statusesCount: 1,
   statusId: 1,
-  threeceeFollowing: 1
+  threeceeFollowing: 1,
+  tweetsPerDay: 1
 };
 
 const fieldsTransmitKeys = Object.keys(fieldsTransmit);

@@ -1646,14 +1646,11 @@ async function initialize(cnf){
   }
 }
 
-// let sendMessageTimeout;
-
 function initTwitterQueue(cnf, callback){
 
   console.log(chalkTwitter("TSS | INIT TWITTER QUEUE INTERVAL: " + cnf.twitterQueueIntervalTime));
 
   const interval = cnf.twitterQueueIntervalTime;
-  // const sendMessageTimeout = configuration.sendMessageTimeout;
 
   clearInterval(tweetQueueInterval);
 
@@ -2135,7 +2132,6 @@ process.on("message", async function(m) {
         + " | INTERVAL: " + m.op
       ));
   }
-
 });
 
 setTimeout(async function(){
@@ -2166,5 +2162,4 @@ setTimeout(async function(){
     console.log(chalkError("TSS | TSS | *** MONGO DB CONNECT ERROR: " + err + " | QUITTING ***"));
     quit("MONGO DB CONNECT ERROR");
   }
-
 }, ONE_SECOND);

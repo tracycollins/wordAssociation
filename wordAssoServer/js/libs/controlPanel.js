@@ -488,11 +488,12 @@ function ControlPanel() {
       }
       twitterEntity.setValue("BANNER IMAGE", twitterFeedUser.bannerImageUrl.replace("_normal", ""));
 
-      const ageMs = moment().diff(node.createdAt);
-      const tweetsPerDay = ONE_DAY * (node.statusesCount/ageMs);
+      // const ageMs = moment().diff(node.createdAt);
+      // const tweetsPerDay = ONE_DAY * (node.statusesCount/ageMs);
 
+      twitterTimeLine.setValue("AGE", node.ageDays.toFixed(3));
       twitterTimeLine.setValue("TWEETS", node.statusesCount);
-      twitterTimeLine.setValue("TWEETS PER DAY", tweetsPerDay.toFixed(3));
+      twitterTimeLine.setValue("TWEETS PER DAY", node.tweetsPerDay.toFixed(3));
       twitterTimeLine.setValue("MENTIONS", node.mentions);
       twitterTimeLine.setValue("RATE", node.rate);
       twitterTimeLine.setValue("RATE MAX", node.rateMax);
@@ -1051,10 +1052,11 @@ function ControlPanel() {
 
 				twitterTimeLine.setWidth(subPanelWidth);
 
-        const tweetsPerDay = (twitterFeedUser && ageMs) ? ONE_DAY * (twitterFeedUser.statusesCount/ageMs) : 0;
+        // const tweetsPerDay = (twitterFeedUser && ageMs) ? ONE_DAY * (twitterFeedUser.statusesCount/ageMs) : 0;
 
+        twitterTimeLine.addNumber("AGE", twitterFeedUser.ageDays.toFixed(3));
         twitterTimeLine.addNumber("TWEETS", twitterFeedUser.statusesCount);
-        twitterTimeLine.addNumber("TWEETS PER DAY", tweetsPerDay.toFixed(3));
+        twitterTimeLine.addNumber("TWEETS PER DAY", twitterFeedUser.tweetsPerDay.toFixed(3));
         twitterTimeLine.addNumber("MENTIONS", twitterFeedUser.mentions);
         twitterTimeLine.addNumber("RATE", twitterFeedUser.rate);
         twitterTimeLine.addNumber("RATE MAX", twitterFeedUser.rateMax);

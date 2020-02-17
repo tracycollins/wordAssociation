@@ -1070,6 +1070,9 @@ function initProcessUserQueueInterval(interval) {
 
             user.priorityFlag = queueObj.priorityFlag;
 
+            user.ageDays = (user.ageDays && user.ageDays !== undefined) ? user.ageDays : 0;
+            user.tweetsPerDay = (user.tweetsPerDay && user.tweetsPerDay !== undefined) ? user.tweetsPerDay : 0;
+
             if (!user.tweetHistograms || (user.tweetHistograms === undefined)) { 
               user.tweetHistograms = {}; 
             }
@@ -1445,6 +1448,8 @@ async function processUser(params) {
     const autoCategoryUser = await generateAutoCategory({user: updatedTweetsUser});
     const prevPropsUser = await updatePreviousUserProps({user: autoCategoryUser});
 
+    prevPropsUser.markModified("ageDays");
+    prevPropsUser.markModified("tweetsPerDay");
     prevPropsUser.markModified("categoryAuto");
     prevPropsUser.markModified("tweetHistograms");
     prevPropsUser.markModified("profileHistograms");

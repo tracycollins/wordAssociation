@@ -1147,7 +1147,11 @@ function initProcessUserQueueInterval(interval) {
             });
           }
           else {
-            console.log(chalkError("*** ERROR initProcessUserQueueInterval: " + err));
+            console.log(chalkError("*** ERROR initProcessUserQueueInterval"
+              + " | NID: " + user.nodeId
+              + " | @" + user.screenName
+              + " | " + err
+            ));
           }
           processUserQueueBusy = false;
         }

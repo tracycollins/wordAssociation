@@ -981,6 +981,8 @@ function ViewTreepack() {
 
         tooltipString = "@" + d.screenName
           + "<br>" + d.name 
+          + "<br>AGE (DAYS): " + d.ageDays.toFixed(3)
+          + "<br>TPD: " + d.tweetsPerDay.toFixed(3)
           + "<br>FLWRs: " + d.followersCount
           + "<br>FRNDs: " + d.friendsCount
           + "<br>FMs: " + d.followersMentions
@@ -1483,6 +1485,8 @@ function ViewTreepack() {
         currentNode.mouseHoverFlag = false;
         currentNode.newFlag = true;
 
+        currentNode.ageDays = newNode.ageDays;
+        currentNode.tweetsPerDay = newNode.tweetsPerDay;
         currentNode.rank = newNode.rank;
         currentNode.rate = newNode.rate;
         currentNode.mentions = newNode.mentions;
@@ -1516,6 +1520,7 @@ function ViewTreepack() {
 
         nodeIdHashMap.set(newNode.nodeId, currentNode.nodePoolId);
 
+        currentNode.ageDays = newNode.ageDays;
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
         currentNode.ageUpdated = Date.now();
@@ -1547,6 +1552,7 @@ function ViewTreepack() {
         currentNode.rate = newNode.rate;
         currentNode.screenName = newNode.screenName;
         currentNode.statusesCount = newNode.statusesCount;
+        currentNode.tweetsPerDay = newNode.tweetsPerDay;
         currentNode.vx = 1e-6;
         currentNode.vy = 1e-6;
         currentNode.x = initialXposition*width;
@@ -1685,6 +1691,9 @@ function ViewTreepack() {
     n.following = (n.following !== undefined) ? n.following : false;
     n.followersCount = (n.followersCount) ? parseInt(n.followersCount) : 0;
     n.mentions = (n.mentions) ? parseInt(n.mentions) : 0;
+
+    n.ageDays = (n.ageDays) ? n.ageDays : 0;
+    n.tweetsPerDay = (n.tweetsPerDay) ? n.tweetsPerDay : 0;
 
     if (n.nodeType === "user") {
       n.followersMentions = n.mentions + n.followersCount;

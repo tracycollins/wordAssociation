@@ -9754,10 +9754,6 @@ function initStatsUpdate() {
           if (statsObj.nodeMeterEntries > statsObj.nodeMeterEntriesMax) {
             statsObj.nodeMeterEntriesMax = statsObj.nodeMeterEntries;
             statsObj.nodeMeterEntriesMaxTime = moment().valueOf();
-            // debug(chalkLog("NEW MAX NODE METER ENTRIES"
-            //   + " | " + tcUtils.getTimeStamp()
-            //   + " | " + statsObj.nodeMeterEntries.toFixed(0)
-            // ));
           }
 
           if (adminNameSpace) { statsObj.admin.connected = Object.keys(adminNameSpace.connected).length; }// userNameSpace.sockets.length ;

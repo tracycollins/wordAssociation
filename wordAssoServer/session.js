@@ -191,8 +191,6 @@ var DEFAULT_SESSION_VIEW = "treepack";
 var useStoredConfig = DEFAULT_USE_STORED_CONFIG;
 var globalStoredConfigName = "config_" + DEFAULT_SESSION_VIEW;
 
-// var enableUserNodes = true;
-
 var d3;
 var controlPanel;
 var controlPanelWindow; 
@@ -723,9 +721,7 @@ var controlPanelReadyFlag = false;
 
 function createPopUpControlPanel (cnf, callback) {
 
-  console.debug("createPopUpControlPanel"
-    // + "\ncnf\n" + jsonPrint(cnf)
-  );
+  console.debug("createPopUpControlPanel");
 
   controlPanelWindow = window.open(
     DEFAULT_SOURCE + "/controlPanel.html", 
@@ -753,9 +749,7 @@ var controlPanelInitWaitInterval;
 
 function toggleControlPanel(){
 
-  console.warn("toggleControlPanel config"
-    // + "\n" + jsonPrint(config)
-  );
+  console.warn("toggleControlPanel config");
 
   if (controlPanelFlag){
     clearInterval(controlPanelInitWaitInterval);
@@ -797,7 +791,6 @@ function toggleControlPanel(){
 }
 
 function updateControlButton(controlPanelFlag){
-  // var cpButtonElement = document.getElementById("controlPanelButton");
   document.getElementById("controlPanelButton").innerHTML = controlPanelFlag ? "HIDE CONTROL" : "SHOW CONTROL";
 }
 
@@ -1693,6 +1686,9 @@ socket.on("SET_TWITTER_USER", function(message) {
   statsObj.serverConnected = true;
   statsObj.socket.connected = true;
 
+  message.user.ageDays = (message.user.ageDays) ? message.user.ageDays : 0;
+  message.user.tweetsPerDay = (message.user.tweetsPerDay) ? message.user.tweetsPerDay : 0;
+
   console.log("<R SET_TWITTER_USER" 
     + " | BOT: " + message.user.isBot 
     + " | IG: " + message.user.ignored 
@@ -1700,6 +1696,8 @@ socket.on("SET_TWITTER_USER", function(message) {
     + " | 3CFLWG: " + message.user.threeceeFollowing 
     + " | " + message.user.nodeId 
     + " | @" + message.user.screenName 
+    + " | TPD: " + message.user.tweetsPerDay.toFixed(3) 
+    + " | AGE: " + message.user.ageDays.toFixed(3) 
     + " | CR: " + message.user.createdAt 
     + " | FLWRs: " + message.user.followersCount 
     + " | FRNDs: " + message.user.friendsCount 
@@ -2073,21 +2071,6 @@ function loadViewType(svt, callback) {
 
   console.log("LOADING SESSION VIEW TYPE: " + svt);
 
-  // storedConfigName = "config_" + svt;
-  // storedConfig = store.get(storedConfigName);
-
-  // if (storedConfig && useStoredConfig) {
-
-  //   var storedConfigArgs = Object.keys(storedConfig);
-
-  //   storedConfigArgs.forEach(function(arg){
-  //     config[arg] = storedConfig[arg];
-  //     if (arg === "VIEWER_OBJ") {
-  //     }
-  //     console.log("--> STORED CONFIG | " + arg + ": ", config[arg]);
-  //   });
-  // }
-
   config.sessionViewType = "treepack";
   requirejs(["js/libs/sessionViewTreepack"], function() {
     console.debug("sessionViewTreepack LOADED");
@@ -2120,10 +2103,6 @@ function onFullScreenChange() {
   console.log("FULLSCREEN: " + config.fullscreenMode);
   updateFullscreenButton();
 }
-
-// var loginCallBack = function(data) {
-//   console.warn("LOGIN CALLBACK\n" + jsonPrint(data));
-// };
 
 function initialize(callback) {
 
@@ -2162,36 +2141,6 @@ function initialize(callback) {
             console.warn("SESSION VIEW TYPE: " + config.sessionViewType);
             currentSessionView.resize();
 
-            // storedConfigName = "config_" + config.sessionViewType;
-            // storedConfig = store.get(storedConfigName);
-
-            // if (storedConfig && useStoredConfig) {
-
-            //   var storedConfigArgs = Object.keys(storedConfig);
-
-            //   storedConfigArgs.forEach(function(arg){
-            //     config[arg] = storedConfig[arg];
-            //     if (arg === "VIEWER_OBJ") {
-            //     }
-            //     console.log("--> STORED CONFIG | " + arg + ": ", config[arg]);
-            //   });
-
-            //   config.authenticationUrl = DEFAULT_AUTH_URL;
-
-            //   if (config.sessionViewType === "treepack") {
-            //     currentSessionView.setMaxNodesLimit(config.defaultMaxNodes);
-            //     currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-            //   }
-            // }
-            // else {
-            //   console.debug("STORED CONFIG NOT FOUND: " + storedConfigName);
-
-            //   if (config.sessionViewType === "treepack") {
-            //     currentSessionView.setMaxNodesLimit(DEFAULT_MAX_NODES);
-            //     currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-            //   }
-            // }
-
             currentSessionView.initD3timer();
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
@@ -2219,29 +2168,6 @@ function initialize(callback) {
           config.sessionViewType = DEFAULT_SESSION_VIEW;
 
           loadViewType(config.sessionViewType, function() {
-
-            // storedConfigName = "config_" + config.sessionViewType;
-            // storedConfig = store.get(storedConfigName);
-
-            // if (storedConfig && useStoredConfig) {
-
-            //   var storedConfigArgs = Object.keys(storedConfig);
-
-            //   storedConfigArgs.forEach(function(arg){
-            //     config[arg] = storedConfig[arg];
-            //     if (arg === "VIEWER_OBJ") {
-            //     }
-            //     console.log("--> STORED CONFIG | " + arg + ": ", config[arg]);
-            //   });
-
-            //   config.authenticationUrl = DEFAULT_AUTH_URL;
-            //   currentSessionView.setMaxNodesLimit(config.defaultMaxNodes);
-            //   currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-            // }
-            // else {
-            //   currentSessionView.setMaxNodesLimit(DEFAULT_MAX_NODES);
-            //   currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-            // }
 
             currentSessionView.simulationControl("START");
             currentSessionView.resize();
@@ -2274,33 +2200,8 @@ function initialize(callback) {
 
         loadViewType(config.sessionViewType, function() {
 
-          // storedConfigName = "config_" + config.sessionViewType;
-          // storedConfig = store.get(storedConfigName);
-
-          // if (storedConfig &&  useStoredConfig) {
-
-          //   var storedConfigArgs = Object.keys(storedConfig);
-
-          //   storedConfigArgs.forEach(function(arg){
-          //     config[arg] = storedConfig[arg];
-          //     if (arg === "VIEWER_OBJ") {
-          //     }
-          //     console.log("--> STORED CONFIG | " + arg + ": ", config[arg]);
-          //   });
-
-          //   config.authenticationUrl = DEFAULT_AUTH_URL;
-
-          //   currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-          //   currentSessionView.setMaxNodesLimit(config.defaultMaxNodes);
-          // }
-          // else {
-          //   currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-          //   currentSessionView.setMaxNodesLimit(DEFAULT_MAX_NODES);
-          // }
-
           currentSessionView.initD3timer();
           currentSessionView.resize();
-
 
           console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
 

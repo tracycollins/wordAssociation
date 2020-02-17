@@ -30,23 +30,6 @@ configEvents.on("newListener", function(data) {
 
 global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
-// const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
-// const tcUtils = new ThreeceeUtilities(MODULE_ID_PREFIX + "_TCU");
-
-// const jsonPrint = tcUtils.jsonPrint;
-// const getTimeStamp = tcUtils.getTimeStamp;
-
-// const TweetServerController = require("@threeceelabs/tweet-server-controller");
-// const tweetServerController = new TweetServerController(MODULE_ID_PREFIX + "_TSC");
-
-// tweetServerController.on("error", function(err){
-//   console.log(chalkError(MODULE_ID_PREFIX + " | *** TSC ERROR | " + err));
-// });
-
-// tweetServerController.on("ready", function(appname){
-//   console.log(chalk.green(MODULE_ID_PREFIX + " | TSC READY | " + appname));
-// });
-
 const tweetParserQueue = [];
 
 const configuration = {};

@@ -10154,6 +10154,9 @@ async function twitterGetUserUpdateDb(params){
     user.verified = cUser.verified;
     user.mentions = 0;
 
+    user.ageDays = (moment().diff(user.createdAt))/ONE_DAY;
+    user.tweetsPerDay = user.statusesCount/user.ageDays;
+
     const nCacheObj = nodeCache.get(user.nodeId);
 
     if (nCacheObj !== undefined) {

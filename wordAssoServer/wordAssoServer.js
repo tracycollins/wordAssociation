@@ -5,6 +5,8 @@ const ONE_MINUTE = 60 * ONE_SECOND;
 const ONE_HOUR = 60 * ONE_MINUTE;
 const ONE_DAY = 24 * ONE_HOUR;
 
+const twitterDateFormat = "ddd MMM DD HH:mm:ss Z YYYY"; // Wed Aug 27 13:08:45 +0000 2008
+
 const DEFAULT_GOOGLE_COMPUTE_DOMAIN = "bc.googleusercontent.com";
 
 const DEFAULT_START_TIMEOUT = 10*ONE_SECOND;
@@ -6666,7 +6668,7 @@ function initTransmitNodeQueueInterval(interval){
             nodeCache.set(n.nodeId, n);
           }
 
-          n.updateLastSeen = true;
+          if (n.isTweeter) { n.updateLastSeen = true; }
 
           if (!userServerControllerReady || !statsObj.dbConnectionReady) {
             transmitNodeQueueReady = true;
@@ -6677,7 +6679,10 @@ function initTransmitNodeQueueInterval(interval){
 
             try{
 
-              const updatedUser = await userServerController.findOneUserV2({user: n, mergeHistograms: false, noInc: true});
+              n.ageDays = (n.status && n.status.created_at) ? (moment(n.status.created_at).diff(n.createdAt))/ONE_DAY : (moment().diff(n.createdAt))/ONE_DAY;
+              n.tweetsPerDay = (n.ageDays > 0) ? n.statusesCount/n.ageDays : 0;
+
+              const updatedUser = await userServerController.findOneUserV2({user: n});
 
               delete updatedUser._id;
               delete updatedUser.userId;
@@ -6842,9 +6847,9 @@ async function transmitNodes(tw){
     return;
   }
 
-  tw.user.isTweeter = true;
-  tw.user.ageDays = (moment().diff(tw.user.createdAt))/ONE_DAY;
-  tw.user.tweetsPerDay = tw.user.statusesCount/tw.user.ageDays;
+  // tw.user.isTweeter = true;
+  // tw.user.ageDays = (moment().diff(tw.user.createdAt))/ONE_DAY;
+  // tw.user.tweetsPerDay = tw.user.statusesCount/tw.user.ageDays;
 
   transmitNodeQueue.push(tw.user);
 
@@ -10187,7 +10192,7 @@ async function twitterGetUserUpdateDb(params){
     user.friendsCount = cUser.friendsCount;
     user.ignored = cUser.ignored;
     user.lang = cUser.lang;
-    user.lastSeen = (cUser.status && (cUser.status !== undefined)) ? cUser.status.created_at : Date.now();
+    // user.lastSeen = (cUser.status && (cUser.status !== undefined)) ? cUser.status.created_at : Date.now();
     user.lastTweetId = cUser.lastTweetId;
     user.location = cUser.location;
     user.name = cUser.name;
@@ -10204,7 +10209,11 @@ async function twitterGetUserUpdateDb(params){
     user.verified = cUser.verified;
     user.mentions = 0;
 
-    user.ageDays = (moment().diff(user.createdAt))/ONE_DAY;
+    if (cUser.status && cUser.status !== undefined && cUser.status.created_at !== undefined) {
+      user.lastSeen = new Date(moment(cUser.status.created_at, twitterDateFormat, false).toISOString());
+    }
+
+    user.ageDays = (moment(user.lastSeen).diff(user.createdAt))/ONE_DAY;
     user.tweetsPerDay = (user.ageDays > 0) ? user.statusesCount/user.ageDays : 0;
 
     const nCacheObj = nodeCache.get(user.nodeId);
@@ -10221,7 +10230,7 @@ async function twitterGetUserUpdateDb(params){
       user.isBot = botCacheObj.isBot;
     }
 
-    const updatedUser = await userServerController.findOneUserV2({user: user, mergeHistograms: false, noInc: true});
+    const updatedUser = await userServerController.findOneUserV2({user: user});
 
     if (configuration.verbose) {
       console.log(chalk.blue(MODULE_ID_PREFIX + " | UPDATED updatedUser"

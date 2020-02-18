@@ -6550,6 +6550,68 @@ function printBotStats(params){
   }
 }
 
+async function categorize(params){
+
+  const n = params.user;
+  let autoFollowFlag = false;
+
+  if (n.nodeType != "user"){
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** CATEGORIZE NOT USER | TYPE: " + n.nodeType));
+    throw new Error("categorize NOT USER");
+  }
+
+  if (n.category == "left" || n.category == "right" || n.category == "neutral") {
+    uncatUserCache.del(n.nodeId);
+  }
+
+  if (configuration.autoFollow
+    && (!n.category || (n.category === undefined))
+    && (!n.ignored || (n.ignored === undefined))
+    && (!n.following || (n.following === undefined))
+    && (n.followersCount >= configuration.minFollowersAutoFollow)
+    && !autoFollowUserSet.has(n.nodeId)
+    && !ignoredUserSet.has(n.nodeId) 
+    && !ignoredUserSet.has(n.screenName.toLowerCase()) 
+    )
+  {
+    n.following = true;
+    autoFollowFlag = true;
+    autoFollowUserSet.add(n.nodeId);
+    statsObj.user.autoFollow += 1;
+    printUserObj(MODULE_ID_PREFIX + " | +++ AUTO FOLLOW [" + statsObj.user.autoFollow + "]", n);
+  }
+
+  const uncatUserObj = uncatUserCache.get(n.nodeId);
+
+  if (!uncategorizedManualUserSet.has(n.nodeId) 
+    && (uncatUserObj == undefined)
+    && (!n.category || (n.category === undefined))
+    && (!n.ignored || (n.ignored === undefined))
+    && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && n.categoryAuto && (n.categoryAuto != "right")))
+    && !ignoredUserSet.has(n.nodeId) 
+    && !ignoredUserSet.has(n.screenName.toLowerCase()) 
+    && (n.followersCount >= configuration.minFollowersAutoCategorize) 
+    && !unfollowableUserSet.has(n.nodeId)) { 
+
+    uncategorizedManualUserSet.add(n.nodeId);
+  }
+
+  if (!n.categoryAuto 
+    && (n.followersCount >= configuration.minFollowersAutoCategorize) 
+    && !uncategorizedAutoUserSet.has(n.nodeId)) {
+
+    uncategorizedAutoUserSet.add(n.nodeId);
+  }
+
+  if (tfeChild !== undefined) { 
+    tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: autoFollowFlag, user: n});
+    if (n.category == "left" || n.category == "right" || n.category == "neutral") {
+      uncatUserCache.del(n.nodeId);
+    }
+  }
+  return;
+}
+
 function initTransmitNodeQueueInterval(interval){
 
   return new Promise(function(resolve){
@@ -6592,62 +6654,7 @@ function initTransmitNodeQueueInterval(interval){
 
         categorizeable = await userCategorizeable({user: n});
  
-        if (categorizeable) {
-
-          if (n.nodeType != "user"){
-            console.log(chalkError(MODULE_ID_PREFIX + " | *** CATEGORIZED NOT USER: CAT: " + categorizeable + " | TYPE: " + n.nodeType));
-          }
-
-          if (n.category == "left" || n.category == "right" || n.category == "neutral") {
-            uncatUserCache.del(n.nodeId);
-          }
-
-          if (configuration.autoFollow
-            && (!n.category || (n.category === undefined))
-            && (!n.ignored || (n.ignored === undefined))
-            && (!n.following || (n.following === undefined))
-            && (n.followersCount >= configuration.minFollowersAutoFollow)
-            && !autoFollowUserSet.has(n.nodeId)
-            && !ignoredUserSet.has(n.nodeId) 
-            && !ignoredUserSet.has(n.screenName.toLowerCase()) 
-            )
-          {
-            n.following = true;
-            autoFollowFlag = true;
-            autoFollowUserSet.add(n.nodeId);
-            statsObj.user.autoFollow += 1;
-            printUserObj(MODULE_ID_PREFIX + " | +++ AUTO FOLLOW [" + statsObj.user.autoFollow + "]", n);
-          }
-
-          const uncatUserObj = uncatUserCache.get(n.nodeId);
-
-          if (!uncategorizedManualUserSet.has(n.nodeId) 
-            && (uncatUserObj == undefined)
-            && (!n.category || (n.category === undefined))
-            && (!n.ignored || (n.ignored === undefined))
-            && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && n.categoryAuto && (n.categoryAuto != "right")))
-            && !ignoredUserSet.has(n.nodeId) 
-            && !ignoredUserSet.has(n.screenName.toLowerCase()) 
-            && (n.followersCount >= configuration.minFollowersAutoCategorize) 
-            && !unfollowableUserSet.has(n.nodeId)) { 
-
-            uncategorizedManualUserSet.add(n.nodeId);
-          }
-
-          if (!n.categoryAuto 
-            && (n.followersCount >= configuration.minFollowersAutoCategorize) 
-            && !uncategorizedAutoUserSet.has(n.nodeId)) {
-
-            uncategorizedAutoUserSet.add(n.nodeId);
-          }
-
-          if (tfeChild !== undefined) { 
-            tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: autoFollowFlag, user: n});
-            if (n.category == "left" || n.category == "right" || n.category == "neutral") {
-              uncatUserCache.del(n.nodeId);
-            }
-          }
-        }
+        if (categorizeable) { await categorize({user: n, autoFollowFlag: autoFollowFlag}); }
 
         if ((n.nodeType == "user") && (n.category || n.categoryAuto || n.following || n.threeceeFollowing)){
 
@@ -6668,49 +6675,92 @@ function initTransmitNodeQueueInterval(interval){
 
             if (n.isTweeter) { statsObj.traffic.users.total++; }
 
-            userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit}, function(err, updatedUser){
-              if (err) {
-                console.log(chalkError(MODULE_ID_PREFIX + " | findOneUser ERROR" + tcUtils.jsonPrint(err)));
-                delete n._id;
-                delete n.userId;
+            try{
 
-                if (n.isTweeter && botNodeIdSet.has(n.nodeId)){
+              const updatedUser = await userServerController.findOneUserV2({user: n, mergeHistograms: false, noInc: true});
 
-                  statsObj.traffic.users.bots++;
-                  statsObj.traffic.users.percentBots = 100*(statsObj.traffic.users.bots/statsObj.traffic.users.total);
+              delete updatedUser._id;
+              delete updatedUser.userId;
 
-                  n.isBot = true;
+              if (updatedUser.isTweeter && botNodeIdSet.has(updatedUser.nodeId)){ 
 
-                  printBotStats({user: n, modulo: 100});
+                updatedUser.isBot = true;
+                botCache.set(updatedUser.nodeId, updatedUser);
 
-                  botCache.set(n.nodeId, n);
-                }
+                statsObj.traffic.users.bots++;
+                statsObj.traffic.users.percentBots = 100*(statsObj.traffic.users.bots/statsObj.traffic.users.total);
 
-                viewNameSpace.volatile.emit("node", n);
-              }
-              else {
-                delete updatedUser._id;
-                delete updatedUser.userId;
+                printBotStats({user: updatedUser, modulo: 100});
 
-                if (updatedUser.isTweeter && botNodeIdSet.has(updatedUser.nodeId)){ 
-
-                  statsObj.traffic.users.bots++;
-                  statsObj.traffic.users.percentBots = 100*(statsObj.traffic.users.bots/statsObj.traffic.users.total);
-
-                  updatedUser.isBot = true;
-
-                  printBotStats({user: updatedUser, modulo: 100});
-
-                  botCache.set(updatedUser.nodeId, updatedUser);
-                }
-
-                viewNameSpace.volatile.emit("node", updatedUser);
               }
 
+              viewNameSpace.volatile.emit("node", updatedUser);
               transmitNodeQueueReady = true;
-            });
+            }
+            catch(e){
 
+              console.log(chalkError(MODULE_ID_PREFIX + " | findOneUser ERROR" + tcUtils.jsonPrint(e)));
 
+              delete n._id;
+              delete n.userId;
+
+              if (n.isTweeter && botNodeIdSet.has(n.nodeId)){
+
+                statsObj.traffic.users.bots++;
+                statsObj.traffic.users.percentBots = 100*(statsObj.traffic.users.bots/statsObj.traffic.users.total);
+
+                n.isBot = true;
+
+                printBotStats({user: n, modulo: 100});
+
+                botCache.set(n.nodeId, n);
+              }
+
+              viewNameSpace.volatile.emit("node", n);
+              transmitNodeQueueReady = true;
+            }
+
+            // userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit}, function(err, updatedUser){
+            //   if (err) {
+            //     console.log(chalkError(MODULE_ID_PREFIX + " | findOneUser ERROR" + tcUtils.jsonPrint(err)));
+            //     delete n._id;
+            //     delete n.userId;
+
+            //     if (n.isTweeter && botNodeIdSet.has(n.nodeId)){
+
+            //       statsObj.traffic.users.bots++;
+            //       statsObj.traffic.users.percentBots = 100*(statsObj.traffic.users.bots/statsObj.traffic.users.total);
+
+            //       n.isBot = true;
+
+            //       printBotStats({user: n, modulo: 100});
+
+            //       botCache.set(n.nodeId, n);
+            //     }
+
+            //     viewNameSpace.volatile.emit("node", n);
+            //   }
+            //   else {
+            //     delete updatedUser._id;
+            //     delete updatedUser.userId;
+
+            //     if (updatedUser.isTweeter && botNodeIdSet.has(updatedUser.nodeId)){ 
+
+            //       statsObj.traffic.users.bots++;
+            //       statsObj.traffic.users.percentBots = 100*(statsObj.traffic.users.bots/statsObj.traffic.users.total);
+
+            //       updatedUser.isBot = true;
+
+            //       printBotStats({user: updatedUser, modulo: 100});
+
+            //       botCache.set(updatedUser.nodeId, updatedUser);
+            //     }
+
+            //     viewNameSpace.volatile.emit("node", updatedUser);
+            //   }
+
+            //   transmitNodeQueueReady = true;
+            // });
           }
         }
         else if (n.nodeType == "user") {
@@ -10155,7 +10205,7 @@ async function twitterGetUserUpdateDb(params){
     user.mentions = 0;
 
     user.ageDays = (moment().diff(user.createdAt))/ONE_DAY;
-    user.tweetsPerDay = user.statusesCount/user.ageDays;
+    user.tweetsPerDay = (user.ageDays > 0) ? user.statusesCount/user.ageDays : 0;
 
     const nCacheObj = nodeCache.get(user.nodeId);
 

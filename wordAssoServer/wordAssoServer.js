@@ -1042,6 +1042,7 @@ const fieldsTransmit = {
   profileImageUrl: 1,
   category: 1,
   categoryAuto: 1,
+  createdAt: 1,
   followersCount: 1,
   following: 1,
   friendsCount: 1,

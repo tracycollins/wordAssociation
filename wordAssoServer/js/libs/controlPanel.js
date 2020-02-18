@@ -175,6 +175,8 @@ function ControlPanel() {
   statsObj.user.friendsCount = 0;
   statsObj.user.statusesCount = 0;
   statsObj.user.mentions = 0;
+  statsObj.user.ageDays = 0;
+  statsObj.user.tweetsPerDay = 0;
   statsObj.user.isBot = false;
   statsObj.user.following = false;
   statsObj.user.ignored = false;

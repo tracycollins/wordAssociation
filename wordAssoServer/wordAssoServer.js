@@ -6792,6 +6792,8 @@ async function transmitNodes(tw){
   }
 
   tw.user.isTweeter = true;
+  tw.user.ageDays = (moment().diff(tw.user.createdAt))/ONE_DAY;
+  tw.user.tweetsPerDay = tw.user.statusesCount/tw.user.ageDays;
 
   transmitNodeQueue.push(tw.user);
 

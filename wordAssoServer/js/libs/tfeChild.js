@@ -12,6 +12,7 @@ const MIN_TWEET_ID = 1000000;
 const ONE_SECOND = 1000;
 const ONE_MINUTE = ONE_SECOND*60;
 const ONE_HOUR = ONE_MINUTE*60;
+const ONE_DAY = ONE_HOUR*24;
 
 const twitterDeleteUserErrorCodesArray = [];
 twitterDeleteUserErrorCodesArray.push(34);
@@ -1066,12 +1067,13 @@ function initProcessUserQueueInterval(interval) {
             processUserQueueBusy = false;
           }
           else {
+
             const user = await tcUtils.encodeHistogramUrls({user: u});
 
             user.priorityFlag = queueObj.priorityFlag;
 
-            user.ageDays = (user.ageDays && user.ageDays !== undefined) ? user.ageDays : 0;
-            user.tweetsPerDay = (user.tweetsPerDay && user.tweetsPerDay !== undefined) ? user.tweetsPerDay : 0;
+            user.ageDays = (moment().diff(user.createdAt))/ONE_DAY;
+            user.tweetsPerDay = user.statusesCount/user.ageDays;
 
             if (!user.tweetHistograms || (user.tweetHistograms === undefined)) { 
               user.tweetHistograms = {}; 
@@ -1148,8 +1150,8 @@ function initProcessUserQueueInterval(interval) {
           }
           else {
             console.log(chalkError("*** ERROR initProcessUserQueueInterval"
-              + " | NID: " + user.nodeId
-              + " | @" + user.screenName
+              + " | NID: " + queueObj.user.nodeId
+              + " | @" + queueObj.user.screenName
               + " | " + err
             ));
           }
@@ -1662,6 +1664,7 @@ process.on("message", async function(m) {
 
       if (m.priorityFlag) {
         console.log(chalkInfo("WAS | TFC | *** PRI USER_CATEGORIZE"
+          + " [PUQ: " + processUserQueue.length + "]"
           + " | MODE: " + m.searchMode
           + " | UID: " + m.user.userId
           + " | @" + m.user.screenName

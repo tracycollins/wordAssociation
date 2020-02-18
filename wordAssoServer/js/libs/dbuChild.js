@@ -25,6 +25,9 @@ const DEFAULT_USER_UPDATE_QUEUE_INTERVAL = 100;
 const DEFAULT_MAX_UPDATE_QUEUE = 500;
 
 const ONE_SECOND = 1000;
+const ONE_MINUTE = ONE_SECOND*60;
+const ONE_HOUR = ONE_MINUTE*60;
+const ONE_DAY = ONE_HOUR*24;
 
 const compactDateTimeFormat = "YYYYMMDD_HHmmss";
 
@@ -507,6 +510,8 @@ function userUpdateDb(tweetObj){
 
           debug(chalkLog("DBU | USER MERGED TWEET HISTOGRAMS\n" + jsonPrint(tweetHistogramMerged)));
 
+          user.ageDays = (moment().diff(user.createdAt))/ONE_DAY;
+          user.tweetsPerDay = user.statusesCount/user.ageDays;
           user.markModified("tweets");
           user.markModified("tweetHistograms");
 

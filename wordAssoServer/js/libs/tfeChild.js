@@ -1385,6 +1385,8 @@ async function generateAutoCategory(p) {
     }
 
     user.categoryAuto = currentBestNetwork.meta.categoryAuto;
+    user.ageDays = (moment().diff(user.createdAt))/ONE_DAY;
+    user.tweetsPerDay = user.statusesCount/user.ageDays;
     return user;
 
   }
@@ -1465,6 +1467,11 @@ async function processUser(params) {
     await prevPropsUser.save();
 
     const u = prevPropsUser.toObject();
+
+    // KLUDGE!! why these aren't passed thru in toObjec()?
+    u.ageDays = prevPropsUser.ageDays;
+    u.tweetsPerDay = prevPropsUser.tweetsPerDay;
+    // const u = prevPropsUser.toJSON();
 
     return u;
 

@@ -1403,7 +1403,7 @@ setInterval(function() {
       + " | AGO: " + msToTime(Date.now() - lastHeartbeatReceived
     ));
 
-    // socket.connect();
+    socket.connect();
 
     if (currentSessionView !== undefined) {
       // currentSessionView.setEnableAgeNodes(false);
@@ -1419,7 +1419,7 @@ setInterval(function() {
       + " | AGO: " + msToTime(Date.now() - lastHeartbeatReceived
     ));
 
-    // socket.connect();
+    socket.connect();
 
     if (currentSessionView !== undefined) {
       // currentSessionView.setEnableAgeNodes(false);

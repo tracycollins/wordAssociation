@@ -844,12 +844,18 @@ function ViewTreepack() {
     ageNodesLength = nodeIdArray.length;
     ageRate = DEFAULT_AGE_RATE;
 
-    if (ageNodesLength === 0) { ageRate = DEFAULT_AGE_RATE; } 
+    if (ageNodesLength === 0) { 
+      ageRate = DEFAULT_AGE_RATE; 
+    } 
     else if ((ageNodesLength > maxNodesLimit) && (nodeAddQ.length <= MAX_RX_QUEUE)) {
       ageRate = adjustedAgeRateScale(ageNodesLength - maxNodesLimit);
     } 
-    else if (nodeAddQ.length > MAX_RX_QUEUE) { ageRate = adjustedAgeRateScale(nodeAddQ.length - MAX_RX_QUEUE); } 
-    else { ageRate = DEFAULT_AGE_RATE; }
+    else if (nodeAddQ.length > MAX_RX_QUEUE) { 
+      ageRate = adjustedAgeRateScale(nodeAddQ.length - MAX_RX_QUEUE); 
+    } 
+    else { 
+      ageRate = DEFAULT_AGE_RATE; 
+    }
 
     maxAgeRate = Math.max(ageRate, maxAgeRate);
 

@@ -17,13 +17,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content=
 
-  "default-src 'unsafe-inline' 'self' ws: https://*.twitter.com/ http://*.googleapis.com/ https://*.cloudflare.com/;
+  "default-src 'unsafe-inline' 'self' ws: https://*.jsdelivr.net/ https://*.twitter.com/ http://*.googleapis.com/ https://*.cloudflare.com/;
 
-  script-src 'unsafe-eval' 'unsafe-inline' 'self' about: https://cdn.rawgit.com/ http://*.googleapis.com/ https://*.twimg.com/ https://d3js.org http://*.google-analytics.com/ https://*.cloudflare.com/ https://*.twimg.com/ https://*.unpkg.com/ https://unpkg.com/ https://*.twitter.com/ https://*.googletagmanager.com/ ;
+  script-src 'unsafe-eval' 'unsafe-inline' 'self' about: https://*.jsdelivr.net/ https://cdn.rawgit.com/ http://*.googleapis.com/ https://*.twimg.com/ https://d3js.org http://*.google-analytics.com/ https://*.cloudflare.com/ https://*.twimg.com/ https://*.unpkg.com/ https://unpkg.com/ https://*.twitter.com/ https://*.googletagmanager.com/ ;
+
+  script-src-elem 'unsafe-eval' 'unsafe-inline' 'self' about: https://*.jsdelivr.net/ http://*.googleapis.com/ https://d3js.org http://*.google-analytics.com/ https://*.googletagmanager.com/ https://*.cloudflare.com/ https://*.twimg.com/ https://*.twitter.com/; 
 
   font-src 'unsafe-inline' 'self' data: about: http://fonts.gstatic.com/;
 
-  img-src 'self' data: http://localhost/ https://*.threeceelabs.com/ http://*.threeceelabs.com/ https://cdn.rawgit.com/ https://stats.g.doubleclick.net/ http://*.google-analytics.com/ https://*.unpkg.com/ https://unpkg.com/ https://api.twitter.com/favicon.ico http://*.twitter.com/ https://*.twitter.com/ http://*.twimg.com/ https://*.twimg.com/;
+  img-src 'self' data: http://localhost/ https://*.threeceelabs.com/ http://*.threeceelabs.com/ https://*.jsdelivr.net/ https://cdn.rawgit.com/ https://stats.g.doubleclick.net/ http://*.google-analytics.com/ https://*.unpkg.com/ https://unpkg.com/ https://api.twitter.com/favicon.ico http://*.twitter.com/ https://*.twitter.com/ http://*.twimg.com/ https://*.twimg.com/;
 
   object-src https://*.unpkg.com/ https://unpkg.com/ https://twitter.com/;
 
@@ -344,17 +346,14 @@
     }
   </style>
 
-  <script src="https://cdn.jsdelivr.net/npm/jquery@latest/jquery.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/moment@latest/moment.min.js"></script>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/async/3.1.1/async.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/6.6.0/math.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/progressbar.js/1.1.0/progressbar.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
-  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script> -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/async/3.1.1/async.js"></script>
-  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script> -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/store.js/1.3.20/store.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/6.6.0/math.min.js"></script>
-  <!-- <script src="https://unpkg.com/panzoom@8.0.0/dist/panzoom.min.js"></script> -->
+
   <script src="node_modules/panzoom/dist/panzoom.min.js"></script>
   <script src="node_modules/hashmap/hashmap.js"></script>
   <script src="node_modules/deepool/deePool.js"></script>

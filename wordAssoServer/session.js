@@ -702,7 +702,7 @@ function resetServerActiveTimer() {
   serverActiveTimeout = setTimeout(function() {
 
     serverActiveFlag = false;
-    if (currentSessionView !== undefined) { currentSessionView.setEnableAgeNodes(false); }
+    // if (currentSessionView !== undefined) { currentSessionView.setEnableAgeNodes(false); }
 
     document.dispatchEvent(serverActiveTimeoutEventObj);
 
@@ -1399,7 +1399,7 @@ setInterval(function() {
       + " | AGO: " + msToTime(Date.now() - lastHeartbeatReceived));
     socket.connect();
     if (currentSessionView !== undefined) {
-      currentSessionView.setEnableAgeNodes(false);
+      // currentSessionView.setEnableAgeNodes(false);
     }
   }
   else if ((lastHeartbeatReceived > 0) && (lastHeartbeatReceived + serverHeartbeatTimeout) < moment()) {
@@ -1409,7 +1409,7 @@ setInterval(function() {
       + " | AGO: " + msToTime(Date.now() - lastHeartbeatReceived));
     // socket.connect();
     if (currentSessionView !== undefined) {
-      currentSessionView.setEnableAgeNodes(false);
+      // currentSessionView.setEnableAgeNodes(false);
     }
   }
   else {
@@ -1498,7 +1498,7 @@ socket.on("disconnect", function() {
   statsObj.serverConnected = false;
   statsObj.socket.connected = false;
 
-  if (currentSessionView !== undefined) { currentSessionView.setEnableAgeNodes(false); }
+  // if (currentSessionView !== undefined) { currentSessionView.setEnableAgeNodes(false); }
   console.log("*** DISCONNECTED FROM HOST ... DELETING ALL SESSIONS ...");
   if (currentSessionView !== undefined) { currentSessionView.resize(); }
 });
@@ -1958,7 +1958,7 @@ function initSocketSessionUpdateRx(){
     // viewNumNodes = currentSessionView.getNumNodes();
 
     // if (rxNodeQueueReady && (rxNodeQueue.length > 0) && (viewNumNodes <= 1.5*DEFAULT_MAX_NODES) && (viewNodeAddQlength <= 1.5*RX_NODE_QUEUE_MAX)) {
-    if (rxNodeQueueReady && (rxNodeQueue.length > 0) && (viewNodeAddQlength <= 1.5*RX_NODE_QUEUE_MAX)) {
+    if (!serverHeartbeatTimeout rxNodeQueueReady && (rxNodeQueue.length > 0) && (viewNodeAddQlength <= 1.5*RX_NODE_QUEUE_MAX)) {
 
       rxNodeQueueReady = false;
 

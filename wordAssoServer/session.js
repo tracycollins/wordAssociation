@@ -350,7 +350,8 @@ else {
   }
 }
 
-var serverHeartbeatTimeout = 300000;
+var serverHeartbeatTimeoutFlag = false;
+var serverHeartbeatTimeoutPeriod = 300000;
 var serverCheckInterval = 120000;
 // var serverKeepaliveInteval = 60000;
 
@@ -1393,26 +1394,39 @@ var lastHeartbeatReceived = 0;
 // CHECK FOR SERVER HEARTBEAT
 setInterval(function() {
   if (!statsObj.serverConnected) {
+
+    serverHeartbeatTimeoutFlag = true;
+
     console.error("\n????? SERVER DOWN ????? | | LAST HEARTBEAT: " 
       + getTimeStamp(lastHeartbeatReceived) 
       + " | " + moment().format(defaultDateTimeFormat) 
-      + " | AGO: " + msToTime(Date.now() - lastHeartbeatReceived));
-    socket.connect();
+      + " | AGO: " + msToTime(Date.now() - lastHeartbeatReceived
+    ));
+
+    // socket.connect();
+
     if (currentSessionView !== undefined) {
       // currentSessionView.setEnableAgeNodes(false);
     }
   }
-  else if ((lastHeartbeatReceived > 0) && (lastHeartbeatReceived + serverHeartbeatTimeout) < moment()) {
+  else if ((lastHeartbeatReceived > 0) && (lastHeartbeatReceived + serverHeartbeatTimeoutPeriod) < moment()) {
+
+    serverHeartbeatTimeoutFlag = true;
+
     console.error("\n????? SERVER DOWN ????? | LAST HEARTBEAT: " 
       + getTimeStamp(lastHeartbeatReceived) 
       + " | " + moment().format(defaultDateTimeFormat) 
-      + " | AGO: " + msToTime(Date.now() - lastHeartbeatReceived));
+      + " | AGO: " + msToTime(Date.now() - lastHeartbeatReceived
+    ));
+
     // socket.connect();
+
     if (currentSessionView !== undefined) {
       // currentSessionView.setEnableAgeNodes(false);
     }
   }
   else {
+    serverHeartbeatTimeoutFlag = false;
     currentSessionView.setEnableAgeNodes(true);
   }
 }, serverCheckInterval);
@@ -1958,7 +1972,7 @@ function initSocketSessionUpdateRx(){
     // viewNumNodes = currentSessionView.getNumNodes();
 
     // if (rxNodeQueueReady && (rxNodeQueue.length > 0) && (viewNumNodes <= 1.5*DEFAULT_MAX_NODES) && (viewNodeAddQlength <= 1.5*RX_NODE_QUEUE_MAX)) {
-    if (!serverHeartbeatTimeout rxNodeQueueReady && (rxNodeQueue.length > 0) && (viewNodeAddQlength <= 1.5*RX_NODE_QUEUE_MAX)) {
+    if (!serverHeartbeatTimeoutFlag && rxNodeQueueReady && (rxNodeQueue.length > 0) && (viewNodeAddQlength <= 1.5*RX_NODE_QUEUE_MAX)) {
 
       rxNodeQueueReady = false;
 
@@ -1998,6 +2012,7 @@ function initSocketSessionUpdateRx(){
       rxNodeQueueReady = true;
 
     }
+    
   }, RX_NODE_QUEUE_INTERVAL);
 
 }

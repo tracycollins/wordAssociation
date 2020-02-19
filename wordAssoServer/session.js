@@ -350,7 +350,7 @@ else {
   }
 }
 
-var serverHeartbeatTimeout = 120000;
+var serverHeartbeatTimeout = 300000;
 var serverCheckInterval = 120000;
 // var serverKeepaliveInteval = 60000;
 
@@ -1407,7 +1407,7 @@ setInterval(function() {
       + getTimeStamp(lastHeartbeatReceived) 
       + " | " + moment().format(defaultDateTimeFormat) 
       + " | AGO: " + msToTime(Date.now() - lastHeartbeatReceived));
-    socket.connect();
+    // socket.connect();
     if (currentSessionView !== undefined) {
       currentSessionView.setEnableAgeNodes(false);
     }

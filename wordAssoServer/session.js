@@ -21,7 +21,7 @@ ProgressBar
 
 "use strict";
 
-const STORED_CONFIG_VERSION = 0.009;
+const STORED_CONFIG_VERSION = 0.010;
 const DEFAULT_USE_STORED_CONFIG = true;
 const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
 const LOCAL_SOURCE = "http://localhost:9997";

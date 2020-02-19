@@ -395,7 +395,7 @@ function ViewTreepack() {
     
   var adjustedAgeRateScale = d3.scaleLinear().
     domain([1, maxNodesLimit]).
-    range([1.0, 20.0]);
+    range([1.0, 100.0]);
 
   var d3image = d3.select("#d3group");
 

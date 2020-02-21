@@ -8,7 +8,7 @@
     "@threeceelabs/hashtag-server-controller": "^1.0.70",
     "@threeceelabs/neural-network-tools": "^1.0.173",
     "@threeceelabs/threecee-utilities": "^1.0.232",
-    "@threeceelabs/tweet-server-controller": "^1.0.505",
+    "@threeceelabs/tweet-server-controller": "^1.0.507",
     "@threeceelabs/user-server-controller": "^1.0.516",
     "change-case-bundled": "^1.0.1",
     "command-line-args": "^5.1.1",

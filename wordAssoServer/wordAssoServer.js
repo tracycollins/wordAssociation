@@ -605,6 +605,7 @@ configEvents.on("newListener", function(data) {
 });
 
 const statsObj = {};
+
 statsObj.commandLineArgsLoaded = false;
 statsObj.currentThreeceeUserIndex = 0;
 statsObj.currentThreeceeUser = "altthreecee00";
@@ -613,108 +614,85 @@ statsObj.twitNotReadyWarning = false;
 statsObj.initSetsComplete = false;
 
 statsObj.dbuChildReady = false;
+
 let dbuChildReady = false;
 statsObj.tfeChildReady = false;
 statsObj.tssChildReady = false;
 
-statsObj.traffic = {};
-statsObj.traffic.users = {};
-statsObj.traffic.users.total = 0;
-statsObj.traffic.users.bots = 0;
-statsObj.traffic.users.percentBots = 0;
-
 statsObj.hashtag = {};
-statsObj.hashtag.manual = {};
-statsObj.hashtag.manual.right = 0;
-statsObj.hashtag.manual.left = 0;
-statsObj.hashtag.manual.neutral = 0;
-statsObj.hashtag.manual.positive = 0;
-statsObj.hashtag.manual.negative = 0;
-statsObj.hashtag.manual.none = 0;
-
 statsObj.hashtag.auto = {};
-statsObj.hashtag.auto.right = 0;
 statsObj.hashtag.auto.left = 0;
-statsObj.hashtag.auto.neutral = 0;
-statsObj.hashtag.auto.positive = 0;
 statsObj.hashtag.auto.negative = 0;
+statsObj.hashtag.auto.neutral = 0;
 statsObj.hashtag.auto.none = 0;
-
-statsObj.hashtag.total = 0;
-statsObj.hashtag.categorizedTotal = 0;
-statsObj.hashtag.categorizedManual = 0;
+statsObj.hashtag.auto.positive = 0;
+statsObj.hashtag.auto.right = 0;
 statsObj.hashtag.categorizedAuto = 0;
-
+statsObj.hashtag.categorizedManual = 0;
+statsObj.hashtag.categorizedTotal = 0;
+statsObj.hashtag.manual = {};
+statsObj.hashtag.manual.left = 0;
+statsObj.hashtag.manual.negative = 0;
+statsObj.hashtag.manual.neutral = 0;
+statsObj.hashtag.manual.none = 0;
+statsObj.hashtag.manual.positive = 0;
+statsObj.hashtag.manual.right = 0;
+statsObj.hashtag.manualCategorized = 0;
+statsObj.hashtag.matched = 0;
+statsObj.hashtag.mismatched = 0;
+statsObj.hashtag.total = 0;
 statsObj.hashtag.uncategorized = {};
 statsObj.hashtag.uncategorized.all = 0;
 statsObj.hashtag.uncategorized.left = 0;
-statsObj.hashtag.uncategorized.right = 0;
-statsObj.hashtag.uncategorized.neutral = 0;
-statsObj.hashtag.uncategorized.positive = 0;
 statsObj.hashtag.uncategorized.negative = 0;
+statsObj.hashtag.uncategorized.neutral = 0;
 statsObj.hashtag.uncategorized.none = 0;
-
-statsObj.hashtag.uncategorizedTotal = 0;
-statsObj.hashtag.uncategorizedManual = 0;
+statsObj.hashtag.uncategorized.positive = 0;
+statsObj.hashtag.uncategorized.right = 0;
 statsObj.hashtag.uncategorizedAuto = 0;
-statsObj.hashtag.matched = 0;
-statsObj.hashtag.mismatched = 0;
+statsObj.hashtag.uncategorizedManual = 0;
+statsObj.hashtag.uncategorizedTotal = 0;
+
+statsObj.traffic = {};
+statsObj.traffic.users = {};
+statsObj.traffic.users.bots = 0;
+statsObj.traffic.users.percentBots = 0;
+statsObj.traffic.users.total = 0;
 
 statsObj.user = {};
-
-statsObj.user.manualCategorized = 0;
-
-statsObj.user.manual = {};
-statsObj.user.manual.right = 0;
-statsObj.user.manual.left = 0;
-statsObj.user.manual.neutral = 0;
-statsObj.user.manual.positive = 0;
-statsObj.user.manual.negative = 0;
-statsObj.user.manual.none = 0;
-
 statsObj.user.auto = {};
-statsObj.user.auto.right = 0;
 statsObj.user.auto.left = 0;
-statsObj.user.auto.neutral = 0;
-statsObj.user.auto.positive = 0;
 statsObj.user.auto.negative = 0;
+statsObj.user.auto.neutral = 0;
 statsObj.user.auto.none = 0;
-
-statsObj.user.total = 0;
-statsObj.user.following = 0;
+statsObj.user.auto.positive = 0;
+statsObj.user.auto.right = 0;
 statsObj.user.autoFollow = 0;
-statsObj.user.notFollowing = 0;
-statsObj.user.categorizedTotal = 0;
-statsObj.user.categorizedManual = 0;
 statsObj.user.categorizedAuto = 0;
-
+statsObj.user.categorizedManual = 0;
+statsObj.user.categorizedTotal = 0;
+statsObj.user.categoryVerified = 0;
+statsObj.user.following = 0;
+statsObj.user.manual = {};
+statsObj.user.manual.left = 0;
+statsObj.user.manual.negative = 0;
+statsObj.user.manual.neutral = 0;
+statsObj.user.manual.none = 0;
+statsObj.user.manual.positive = 0;
+statsObj.user.manual.right = 0;
+statsObj.user.manualCategorized = 0;
+statsObj.user.matched = 0;
+statsObj.user.mismatched = 0;
+statsObj.user.notFollowing = 0;
+statsObj.user.total = 0;
 statsObj.user.uncategorized = {};
 statsObj.user.uncategorized.all = 0;
 statsObj.user.uncategorized.left = 0;
-statsObj.user.uncategorized.right = 0;
 statsObj.user.uncategorized.neutral = 0;
-
-statsObj.user.uncategorizedTotal = 0;
-statsObj.user.uncategorizedManual = 0;
+statsObj.user.uncategorized.right = 0;
 statsObj.user.uncategorizedAuto = 0;
-statsObj.user.matched = 0;
-statsObj.user.mismatched = 0;
-
-statsObj.user.categoryVerified = 0;
-
-statsObj.hashtag = {};
-statsObj.hashtag.total = 0;
-statsObj.hashtag.manualCategorized = 0;
-statsObj.hashtag.uncategorizedTotal = 0;
-
-statsObj.hashtag.manual = {};
-statsObj.hashtag.manual.right = 0;
-statsObj.hashtag.manual.left = 0;
-statsObj.hashtag.manual.neutral = 0;
-statsObj.hashtag.manual.positive = 0;
-statsObj.hashtag.manual.negative = 0;
-statsObj.hashtag.manual.none = 0;
-
+statsObj.user.uncategorizedManual = 0;
+statsObj.user.uncategorizedTotal = 0;
 
 let configuration = {};
 let defaultConfiguration = {}; // general configuration
@@ -3806,7 +3784,7 @@ async function bot(params) {
   console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ BOT | @" + params.user.screenName));
 
   if (params.user.nodeId !== undefined){
-    botNodeIdSet.add(params.user.userId);
+    botNodeIdSet.add(params.user.nodeId);
   } 
 
   if (params.user.userId && (params.user.userId !== undefined)){
@@ -6724,48 +6702,6 @@ function initTransmitNodeQueueInterval(interval){
               viewNameSpace.volatile.emit("node", n);
               transmitNodeQueueReady = true;
             }
-
-            // userServerController.findOneUser(n, {noInc: false, fields: fieldsTransmit}, function(err, updatedUser){
-            //   if (err) {
-            //     console.log(chalkError(MODULE_ID_PREFIX + " | findOneUser ERROR" + tcUtils.jsonPrint(err)));
-            //     delete n._id;
-            //     delete n.userId;
-
-            //     if (n.isTweeter && botNodeIdSet.has(n.nodeId)){
-
-            //       statsObj.traffic.users.bots++;
-            //       statsObj.traffic.users.percentBots = 100*(statsObj.traffic.users.bots/statsObj.traffic.users.total);
-
-            //       n.isBot = true;
-
-            //       printBotStats({user: n, modulo: 100});
-
-            //       botCache.set(n.nodeId, n);
-            //     }
-
-            //     viewNameSpace.volatile.emit("node", n);
-            //   }
-            //   else {
-            //     delete updatedUser._id;
-            //     delete updatedUser.userId;
-
-            //     if (updatedUser.isTweeter && botNodeIdSet.has(updatedUser.nodeId)){ 
-
-            //       statsObj.traffic.users.bots++;
-            //       statsObj.traffic.users.percentBots = 100*(statsObj.traffic.users.bots/statsObj.traffic.users.total);
-
-            //       updatedUser.isBot = true;
-
-            //       printBotStats({user: updatedUser, modulo: 100});
-
-            //       botCache.set(updatedUser.nodeId, updatedUser);
-            //     }
-
-            //     viewNameSpace.volatile.emit("node", updatedUser);
-            //   }
-
-            //   transmitNodeQueueReady = true;
-            // });
           }
         }
         else if (n.nodeType == "user") {
@@ -6846,10 +6782,6 @@ async function transmitNodes(tw){
   {
     return;
   }
-
-  // tw.user.isTweeter = true;
-  // tw.user.ageDays = (moment().diff(tw.user.createdAt))/ONE_DAY;
-  // tw.user.tweetsPerDay = tw.user.statusesCount/tw.user.ageDays;
 
   transmitNodeQueue.push(tw.user);
 
@@ -8737,13 +8669,11 @@ function initDbuChild(params){
                 + " | " + err
               ));
               console.log(err);
-              // dbuSendReady = false;
               dbuChildReady = false;
               clearInterval(dbuPingInterval);
               childrenHashMap[childId].status = "ERROR";
             }
             else {
-              // dbuSendReady = true;
               dbuChildReady = true;
               childrenHashMap[childId].status = "INIT";
               clearInterval(dbuPingInterval);
@@ -8784,7 +8714,6 @@ function initDbuChild(params){
         + " | *** DBU ERROR ***"
         + " \n" + tcUtils.jsonPrint(err)
       ));
-      // dbuSendReady = false;
       dbuChildReady = false;
       clearInterval(dbuPingInterval);
       childrenHashMap[childId].status = "ERROR";
@@ -8795,7 +8724,6 @@ function initDbuChild(params){
         + " | *** DBU EXIT ***"
         + " | EXIT CODE: " + code
       ));
-      // dbuSendReady = false;
       dbuChildReady = false;
       clearInterval(dbuPingInterval);
       childrenHashMap[childId].status = "EXIT";
@@ -8806,7 +8734,6 @@ function initDbuChild(params){
         + " | *** DBU CLOSE ***"
         + " | EXIT CODE: " + code
       ));
-      // dbuSendReady = false;
       dbuChildReady = false;
       clearInterval(dbuPingInterval);
       childrenHashMap[childId].status = "CLOSE";

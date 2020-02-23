@@ -8293,7 +8293,6 @@ async function initTfeChild(params){
           twitterConfig: threeceeTwitter.twitterConfig,
           maxInputHashMap: maxInputHashMap,
           userProfileOnlyFlag: configuration.userProfileOnlyFlag,
-          binaryMode: configuration.binaryMode,
           normalization: normalization,
           interval: configuration.tfeInterval,
 
@@ -8576,52 +8575,6 @@ async function initTfeChild(params){
   tfeChild = tfe;
 
   return;
-
-  // tfeChild.send({
-  //   op: "INIT",
-  //   title: "wa_node_child_tfe",
-  //   networkObj: bestNetworkObj,
-  //   twitterConfig: threeceeTwitter.twitterConfig,
-  //   maxInputHashMap: maxInputHashMap,
-  //   userProfileOnlyFlag: configuration.userProfileOnlyFlag,
-  //   binaryMode: configuration.binaryMode,
-  //   normalization: normalization,
-  //   interval: configuration.tfeInterval,
-
-  //   enableGeoCode: configuration.enableGeoCode,
-  //   forceGeoCode: configuration.forceGeoCode,
-
-  //   enableImageAnalysis: configuration.enableImageAnalysis,
-  //   forceImageAnalysis: configuration.forceImageAnalysis,
-    
-  //   enableLanguageAnalysis: configuration.enableImageAnalysis,
-  //   forceLanguageAnalysis: configuration.forceLanguageAnalysis,
-    
-  //   testMode: configuration.testMode,
-  //   verbose: configuration.verbose
-  // }, function tfeMessageRxError(err){
-  //   if (err) {
-  //     console.log(chalkError(MODULE_ID_PREFIX + " | *** TFE SEND ERROR"
-  //       + " | " + err
-  //     ));
-  //     console.log(err);
-  //     statsObj.tfeSendReady = false;
-  //     statsObj.tfeChildReady = false;
-  //     clearInterval(tfePingInterval);
-  //     childrenHashMap[params.childId].status = "ERROR";
-  //     throw err;
-  //   }
-  //   else {
-  //     statsObj.tfeSendReady = true;
-  //     statsObj.tfeChildReady = true;
-  //     childrenHashMap[params.childId].status = "INIT";
-  //     clearInterval(tfePingInterval);
-  //     setTimeout(function(){
-  //       initTfePingInterval(TFE_PING_INTERVAL);
-  //     }, 15*ONE_SECOND);
-  //     return;
-  //   }
-  // });
 
 }
 

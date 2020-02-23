@@ -169,7 +169,6 @@ configuration.enableImageAnalysis = true;
 configuration.enableLanguageAnalysis = true;
 configuration.forceLanguageAnalysis = false;
 
-configuration.binaryMode = true;
 configuration.userProfileOnlyFlag = false
 configuration.verbose = false;
 configuration.globalTestMode = false;
@@ -1299,14 +1298,12 @@ async function initialize(cnf){
 
 async function generateAutoCategory(p) {
 
-  // statsObj.status = "GEN AUTO CAT";
-
   try{
 
     const params = p || {};
 
     const userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
-    const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
+    // const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
 
     const user = await tcUtils.updateUserHistograms({user: params.user});
 
@@ -1314,7 +1311,7 @@ async function generateAutoCategory(p) {
       user: user,
       userProfileOnlyFlag: userProfileOnlyFlag,
       convertDatumFlag: true, 
-      binaryMode: binaryMode, 
+      // binaryMode: binaryMode, 
       verbose: configuration.verbose
     });
 
@@ -1530,7 +1527,7 @@ process.on("message", async function(m) {
       configuration.verbose = m.verbose;
       configuration.bestNetworkIdArrayFile = (m.bestNetworkIdArrayFile !== undefined) ? m.bestNetworkIdArrayFile : configuration.bestNetworkIdArrayFile;
       configuration.userProfileOnlyFlag = (m.userProfileOnlyFlag !== undefined) ? m.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
-      configuration.binaryMode = (m.binaryMode !== undefined) ? m.binaryMode : configuration.binaryMode;
+      // configuration.binaryMode = (m.binaryMode !== undefined) ? m.binaryMode : configuration.binaryMode;
 
       configuration.enableGeoCode = (m.enableGeoCode !== undefined) ? m.enableGeoCode : configuration.enableGeoCode;
       configuration.forceGeoCode = (m.forceGeoCode !== undefined) ? m.forceGeoCode : configuration.forceGeoCode;
@@ -1565,7 +1562,7 @@ process.on("message", async function(m) {
 
       await nnTools.setMaxInputHashMap(m.maxInputHashMap);
       await nnTools.setNormalization(m.normalization);
-      await nnTools.setBinaryMode(configuration.binaryMode);
+      // await nnTools.setBinaryMode(configuration.binaryMode);
 
       await nnTools.deleteAllNetworks();
       await loadNetworks();
@@ -1580,7 +1577,7 @@ process.on("message", async function(m) {
         + " | TITLE: " + process.title
         + " | NETWORK: " + networkObj.networkId
         + " | USER PROFILE ONLY FLAG: " + configuration.userProfileOnlyFlag
-        + " | BINARY MODE: " + configuration.binaryMode
+        // + " | BINARY MODE: " + configuration.binaryMode
         + " | ENABLE GEOCODE: " + configuration.enableGeoCode
         + " | FORCE GEOCODE: " + configuration.forceGeoCode
         + " | ENABLE IMAGE ANALYSIS: " + configuration.enableImageAnalysis

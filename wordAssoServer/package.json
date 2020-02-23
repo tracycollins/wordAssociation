@@ -6,7 +6,7 @@
   "dependencies": {
     "@slack/client": "^5.0.2",
     "@threeceelabs/hashtag-server-controller": "^1.0.70",
-    "@threeceelabs/neural-network-tools": "^1.0.174",
+    "@threeceelabs/neural-network-tools": "^1.0.175",
     "@threeceelabs/threecee-utilities": "^1.0.232",
     "@threeceelabs/tweet-server-controller": "^1.0.507",
     "@threeceelabs/user-server-controller": "^1.0.516",

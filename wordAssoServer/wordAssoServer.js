@@ -155,7 +155,7 @@ const TSS_PING_INTERVAL = 10*ONE_MINUTE;
 
 const DEFAULT_RATE_QUEUE_INTERVAL = 5*ONE_SECOND; // 1 second
 const DEFAULT_RATE_QUEUE_INTERVAL_MODULO = 60; // modulo RATE_QUEUE_INTERVAL
-const DEFAULT_STATS_UPDATE_INTERVAL = ONE_MINUTE;
+const DEFAULT_STATS_UPDATE_INTERVAL = 5*ONE_MINUTE;
 const DEFAULT_CATEGORY_HASHMAPS_UPDATE_INTERVAL = 5*ONE_MINUTE;
 
 const DEFAULT_SOCKET_AUTH_TIMEOUT = 30*ONE_SECOND;
@@ -701,7 +701,7 @@ let hostConfiguration = {}; // host-specific configuration
 configuration.slackChannel = {};
 
 configuration.heartbeatInterval = process.env.WAS_HEARTBEAT_INTERVAL || ONE_MINUTE;
-configuration.statsUpdateIntervalTime = process.env.WAS_STATS_UPDATE_INTERVAL || 10*ONE_MINUTE;
+// configuration.statsUpdateIntervalTime = process.env.WAS_STATS_UPDATE_INTERVAL || 10*ONE_MINUTE;
 configuration.uncatUserCacheIntervalTime = process.env.WAS_UNCAT_USER_CACHE_INTERVAL || 15*ONE_MINUTE;
 configuration.mismatchUserCacheIntervalTime = process.env.WAS_MISMATCH_USER_CACHE_INTERVAL || 15*ONE_MINUTE;
 
@@ -762,7 +762,7 @@ configuration.dbUserMissQueueInterval = DEFAULT_DB_USER_MISS_QUEUE_INTERVAL;
 configuration.transmitNodeQueueInterval = DEFAULT_TRANSMIT_NODE_QUEUE_INTERVAL;
 configuration.rateQueueInterval = DEFAULT_RATE_QUEUE_INTERVAL;
 configuration.rateQueueIntervalModulo = DEFAULT_RATE_QUEUE_INTERVAL_MODULO;
-configuration.statsUpdateInterval = DEFAULT_STATS_UPDATE_INTERVAL;
+configuration.statsUpdateIntervalTime = DEFAULT_STATS_UPDATE_INTERVAL;
 
 configuration.DROPBOX = {};
 configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN;
@@ -1240,7 +1240,7 @@ DEFAULT_NODE_TYPES.forEach(function(nodeType){
 });
 
 let tweetRxQueueInterval;
-const tweetParserQueue = [];
+// const tweetParserQueue = [];
 const tweetParserMessageRxQueue = [];
 const tweetRxQueue = [];
 
@@ -2335,7 +2335,7 @@ function initStats(callback){
   statsObj.queues.sorterMessageRxQueue = 0;
   statsObj.queues.transmitNodeQueue = 0;
   statsObj.queues.tweetParserMessageRxQueue = 0;
-  statsObj.queues.tweetParserQueue = 0;
+  // statsObj.queues.tweetParserQueue = 0;
   statsObj.queues.tweetRxQueue = 0;
 
   statsObj.socket = {};
@@ -2387,10 +2387,15 @@ function showStats(options){
     + " | AD: " + statsObj.admin.connected
     + " | UT: " + statsObj.entity.util.connected
     + " | VW: " + statsObj.entity.viewer.connected
+    + " | NPM: " + statsObj.nodesPerMin
     + " | TwRxPM: " + statsObj.twitter.tweetsPerMin
     + " | MaxTwRxPM: " + statsObj.twitter.maxTweetsPerMin
+    + " | MaxTwRxPM: " + statsObj.twitter.maxTweetsPerMin
     + " | TwRXQ: " + tweetRxQueue.length
-    + " | TwPRQ: " + tweetParserQueue.length
+    + " | Ts/RTs/QTs: " + statsObj.twitter.tweetsReceived + "/" + statsObj.twitter.retweetsReceived + "/" + statsObj.twitter.quotedTweetsReceived
+    + " | TNQ: " + transmitNodeQueue.length
+    + " | TNQ RDY: " + transmitNodeQueueReady
+    + " | USC RDY: " + userServerControllerReady
   ));
 }
 
@@ -6185,9 +6190,6 @@ async function updateUserSets(){
 
         if (tfeChild !== undefined) { 
           tfeChild.send({op: "USER_CATEGORIZE", user: user});
-          // if (user.category == "left" || user.category == "right" || user.category == "neutral") {
-          //   uncatUserCache.del(user.nodeId);
-          // }
         }
 
         if (uncategorizedManualUserSet.size % 100 == 0) {
@@ -8293,6 +8295,7 @@ async function initTfeChild(params){
           twitterConfig: threeceeTwitter.twitterConfig,
           maxInputHashMap: maxInputHashMap,
           userProfileOnlyFlag: configuration.userProfileOnlyFlag,
+          binaryMode: configuration.binaryMode,
           normalization: normalization,
           interval: configuration.tfeInterval,
 
@@ -9561,7 +9564,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.STATS_UPDATE_INTERVAL !== undefined){
       console.log(MODULE_ID_PREFIX + " | LOADED STATS_UPDATE_INTERVAL: " + loadedConfigObj.STATS_UPDATE_INTERVAL);
-      newConfiguration.statsUpdateInterval = loadedConfigObj.STATS_UPDATE_INTERVAL;
+      newConfiguration.statsUpdateIntervalTime = loadedConfigObj.STATS_UPDATE_INTERVAL;
     }
 
     if (loadedConfigObj.TRANSMIT_NODE_QUEUE_INTERVAL !== undefined){
@@ -9729,7 +9732,7 @@ async function initConfig() {
   configuration.verbose = process.env.VERBOSE || false;
   configuration.quitOnError = process.env.QUIT_ON_ERROR || false;
   configuration.enableStdin = process.env.ENABLE_STDIN || true;
-  configuration.statsUpdateIntervalTime = process.env.WAS_STATS_UPDATE_INTERVAL || 10*ONE_MINUTE;
+  // configuration.statsUpdateIntervalTime = process.env.WAS_STATS_UPDATE_INTERVAL || 10*ONE_MINUTE;
 
   console.log(chalkTwitter(MODULE_ID_PREFIX + " | THREECEE USERS\n" + tcUtils.jsonPrint(configuration.threeceeUsers)));
 

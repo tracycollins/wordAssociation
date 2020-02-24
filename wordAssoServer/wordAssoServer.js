@@ -1,13 +1,13 @@
 const MODULE_NAME = "wordAssoServer";
 const MODULE_ID_PREFIX = "WAS";
 
-// require("@google-cloud/debug-agent").start({
-//   allowExpressions: true,
-//   serviceContext: {
-//     service: MODULE_NAME,
-//     version: "1.0.30"
-//   }
-// });
+require("@google-cloud/debug-agent").start({
+  allowExpressions: true,
+  serviceContext: {
+    service: MODULE_NAME,
+    version: "1.0.30"
+  }
+});
 
 
 const ONE_SECOND = 1000;

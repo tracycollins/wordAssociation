@@ -158,7 +158,7 @@ configuration.bestNetworkIdArray = [];
 configuration.bestNetworkIdArrayFile = "bestNetworkIdArray.json";
 
 configuration.quotaTimoutDuration = DEFAULT_QUOTA_TIMEOUT_DURATION;
-configuration.processUserQueueInterval = 10;
+configuration.processUserQueueInterval = 100;
 
 configuration.enableGeoCode = false;
 configuration.forceGeoCode = false;
@@ -173,7 +173,6 @@ configuration.userProfileOnlyFlag = false
 configuration.verbose = false;
 configuration.globalTestMode = false;
 configuration.testMode = false; // per tweet test mode
-configuration.processUserQueueInterval = 100;
 
 configuration.inputTypes = DEFAULT_INPUT_TYPES;
 configuration.twitterDownTimeout = 3*ONE_MINUTE;

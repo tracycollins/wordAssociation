@@ -5513,6 +5513,13 @@ let transmitNodeQueueReady = true;
 let transmitNodeQueueInterval;
 const transmitNodeQueue = [];
 
+function checkFollowableSearchTerm(searchTerm, text){
+  if (new RegExp("\\b" + searchTerm + "\\b", "i").test(text)) {
+    return searchTerm;
+  }
+  return false;
+}
+
 function followable(text){
 
   return new Promise(function(resolve){
@@ -5520,11 +5527,14 @@ function followable(text){
     let hitSearchTerm = false;
 
     followableSearchTermsArray.some(function(searchTerm){
-      if (new RegExp("\\b" + searchTerm + "\\b", "i").test(text)) {
-        hitSearchTerm = searchTerm;
-        return true;
-      }
-      return false;
+
+     hitSearchTerm = checkFollowableSearchTerm(searchTerm, text);
+     return hitSearchTerm;
+      // if (new RegExp("\\b" + searchTerm + "\\b", "i").test(text)) {
+      //   hitSearchTerm = searchTerm;
+      //   return true;
+      // }
+      // return false;
     });
 
     resolve(hitSearchTerm);
@@ -5532,10 +5542,10 @@ function followable(text){
   });
 }
 
-let hitSearchTerm = false;
 
 async function userCategorizeable(params){
 
+  let hitSearchTerm = false;
   const user = params.user;
   const verbose = (params.verbose && params.verbose !== undefined) ? params.verbose : false;
 
@@ -5647,58 +5657,64 @@ async function userCategorizeable(params){
   if (!user.screenName || (user.screenName === undefined)) { user.screenName = ""; }
   if (!user.name || (user.name === undefined)) { user.name = ""; }
 
-  hitSearchTerm = await followable(user.description);
+  if (user.name !== ""){
+    hitSearchTerm = await followable(user.name);
 
-  if (hitSearchTerm) { 
-    categorizeableUserSet.add(user.nodeId);
+    if (hitSearchTerm) { 
+      categorizeableUserSet.add(user.nodeId);
+      ignoredUserSet.delete(user.nodeId);
+      unfollowableUserSet.delete(user.nodeId);
 
-    ignoredUserSet.delete(user.nodeId);
-    unfollowableUserSet.delete(user.nodeId);
+      if (verbose) { 
+        console.log(chalkInfo(MODULE_ID_PREFIX 
+          + " | userCategorizeable | TRUE  | NAME SEARCH TERM HIT"
+          + " | @" + user.screenName
+          + " | NAME: " + user.name
+        ));
+      }
 
-    if (verbose) { 
-      console.log(chalkInfo(MODULE_ID_PREFIX 
-        + " | userCategorizeable | TRUE  | DESCRIPTION SEARCH TERM HIT"
-        + " | @" + user.screenName
-        + " | DESCRIPTION: " + user.description
-      ));
+      return true; 
     }
-
-    return true; 
   }
 
-  hitSearchTerm = await followable(user.screenName);
+  if (user.description !== ""){
+    hitSearchTerm = await followable(user.description);
 
-  if (hitSearchTerm) { 
-    categorizeableUserSet.add(user.nodeId);
-    ignoredUserSet.delete(user.nodeId);
-    unfollowableUserSet.delete(user.nodeId);
+    if (hitSearchTerm) { 
+      categorizeableUserSet.add(user.nodeId);
 
-    if (verbose) { 
-      console.log(chalkInfo(MODULE_ID_PREFIX 
-        + " | userCategorizeable | TRUE  | SCREENNAME SEARCH TERM HIT"
-        + " | @" + user.screenName
-      ));
+      ignoredUserSet.delete(user.nodeId);
+      unfollowableUserSet.delete(user.nodeId);
+
+      if (verbose) { 
+        console.log(chalkInfo(MODULE_ID_PREFIX 
+          + " | userCategorizeable | TRUE  | DESCRIPTION SEARCH TERM HIT"
+          + " | @" + user.screenName
+          + " | DESCRIPTION: " + user.description
+        ));
+      }
+
+      return true; 
     }
-
-    return true; 
   }
 
-  hitSearchTerm = await followable(user.name);
+  if (user.screenName !== ""){
+    hitSearchTerm = await followable(user.screenName);
 
-  if (hitSearchTerm) { 
-    categorizeableUserSet.add(user.nodeId);
-    ignoredUserSet.delete(user.nodeId);
-    unfollowableUserSet.delete(user.nodeId);
+    if (hitSearchTerm) { 
+      categorizeableUserSet.add(user.nodeId);
+      ignoredUserSet.delete(user.nodeId);
+      unfollowableUserSet.delete(user.nodeId);
 
-    if (verbose) { 
-      console.log(chalkInfo(MODULE_ID_PREFIX 
-        + " | userCategorizeable | TRUE  | NAME SEARCH TERM HIT"
-        + " | @" + user.screenName
-        + " | NAME: " + user.name
-      ));
+      if (verbose) { 
+        console.log(chalkInfo(MODULE_ID_PREFIX 
+          + " | userCategorizeable | TRUE  | SCREENNAME SEARCH TERM HIT"
+          + " | @" + user.screenName
+        ));
+      }
+
+      return true; 
     }
-
-    return true; 
   }
 
   categorizeableUserSet.delete(user.nodeId);
@@ -6671,7 +6687,13 @@ function initTransmitNodeQueueInterval(interval){
 
             try{
 
-              n.ageDays = (n.status && n.status.created_at) ? (moment(n.status.created_at).diff(n.createdAt))/ONE_DAY : (moment().diff(n.createdAt))/ONE_DAY;
+              if (n.status && n.status.created_at) {
+                n.ageDays = (moment(n.status.created_at, twitterDateFormat).diff(n.createdAt))/ONE_DAY;
+              }
+              else{
+                n.ageDays = (moment().diff(n.createdAt))/ONE_DAY;
+              }
+              
               n.tweetsPerDay = (n.ageDays > 0) ? n.statusesCount/n.ageDays : 0;
 
               const updatedUser = await userServerController.findOneUserV2({user: n});

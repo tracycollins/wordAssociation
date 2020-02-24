@@ -5,7 +5,7 @@ require("@google-cloud/debug-agent").start({
   allowExpressions: true,
   serviceContext: {
     service: MODULE_NAME,
-    version: "1.0.27"
+    version: "1.0.28"
   }
 });
 

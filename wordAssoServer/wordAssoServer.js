@@ -1,5 +1,13 @@
 const MODULE_NAME = "wordAssoServer";
 const MODULE_ID_PREFIX = "WAS";
+
+require("@google-cloud/debug-agent").start({
+  serviceContext: {
+    service: MODULE_NAME,
+    version: "1.0.26"
+  }
+});
+
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
 const ONE_HOUR = 60 * ONE_MINUTE;

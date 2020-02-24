@@ -1,14 +1,15 @@
 const MODULE_NAME = "wordAssoServer";
 const MODULE_ID_PREFIX = "WAS";
 
-require("@google-cloud/debug-agent").start({
-  allowExpressions: true,
-  serviceContext: {
-    service: MODULE_NAME,
-    version: "1.0.30"
-  }
-});
+// const googleDebugAgent = require("@google-cloud/debug-agent");
 
+// googleDebugAgent.start({
+//   allowExpressions: true,
+//   serviceContext: {
+//     service: MODULE_NAME,
+//     version: "1.0.30"
+//   }
+// });
 
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
@@ -6693,7 +6694,7 @@ function initTransmitNodeQueueInterval(interval){
               else{
                 n.ageDays = (moment().diff(n.createdAt))/ONE_DAY;
               }
-              
+
               n.tweetsPerDay = (n.ageDays > 0) ? n.statusesCount/n.ageDays : 0;
 
               const updatedUser = await userServerController.findOneUserV2({user: n});

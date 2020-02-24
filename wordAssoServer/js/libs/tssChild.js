@@ -144,9 +144,9 @@ process.on("disconnect", function() {
   quit("DISCONNECT");
 });
 
-const twitterStats = Measured.createCollection();
-twitterStats.meter("tweetsPerSecond", {rateUnit: 1000, tickInterval: 1000});
-twitterStats.meter("tweetsPerMinute", {rateUnit: 60000, tickInterval: 1000});
+// const twitterStats = Measured.createCollection();
+// twitterStats.meter("tweetsPerSecond", {rateUnit: 1000, tickInterval: 1000});
+// twitterStats.meter("tweetsPerMinute", {rateUnit: 60000, tickInterval: 1000});
 
 let twitterSearchInit = false;
 
@@ -1227,8 +1227,8 @@ function initSearchStream(){
 
         rateLimited = false;
 
-        twitterStats.meter("tweetsPerSecond").mark();
-        twitterStats.meter("tweetsPerMinute").mark();
+        // twitterStats.meter("tweetsPerSecond").mark();
+        // twitterStats.meter("tweetsPerMinute").mark();
 
         rateMeter.meter("tweetsPerSecond").mark();
         rateMeter.meter("tweetsPerMinute").mark();

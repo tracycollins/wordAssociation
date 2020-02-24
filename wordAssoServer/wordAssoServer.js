@@ -151,6 +151,7 @@ const DEFAULT_INTERVAL = 5;
 const DEFAULT_MIN_FOLLOWERS_AUTO_CATEGORIZE = 5000;
 const DEFAULT_MIN_FOLLOWERS_AUTO_FOLLOW = 20000;
 
+const DEFAULT_NODE_CACHE_DELETE_QUEUE_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_TSS_TWITTER_QUEUE_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_TWEET_PARSER_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_SORTER_INTERVAL = DEFAULT_INTERVAL;
@@ -163,8 +164,8 @@ const DBU_PING_INTERVAL = 10*ONE_MINUTE;
 const TFE_PING_INTERVAL = 10*ONE_MINUTE;
 const TSS_PING_INTERVAL = 10*ONE_MINUTE;
 
-const DEFAULT_RATE_QUEUE_INTERVAL = 5*ONE_SECOND; // 1 second
-const DEFAULT_RATE_QUEUE_INTERVAL_MODULO = 60; // modulo RATE_QUEUE_INTERVAL
+const DEFAULT_RATE_QUEUE_INTERVAL = 10*ONE_SECOND; // 1 second
+const DEFAULT_RATE_QUEUE_INTERVAL_MODULO = 6; // modulo RATE_QUEUE_INTERVAL
 const DEFAULT_STATS_UPDATE_INTERVAL = 5*ONE_MINUTE;
 const DEFAULT_CATEGORY_HASHMAPS_UPDATE_INTERVAL = 5*ONE_MINUTE;
 
@@ -762,6 +763,7 @@ configuration.threeceeInfoUsersArray = DEFAULT_THREECEE_INFO_USERS;
 
 configuration.dropboxWebhookChangeTimeout = DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT;
 
+configuration.nodeCacheDeleteQueueInterval = DEFAULT_NODE_CACHE_DELETE_QUEUE_INTERVAL
 configuration.tssInterval = DEFAULT_TSS_TWITTER_QUEUE_INTERVAL;
 configuration.tweetParserMessageRxQueueInterval = DEFAULT_TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL;
 configuration.tweetVersion2 = DEFAULT_TWEET_VERSION_2;
@@ -867,7 +869,7 @@ function quit(message) {
   if (userChangeStream !== undefined) { userChangeStream.close(); }
 
   clearInterval(updateUserSetsInterval);
-  clearInterval(nodeCacheInterval);
+  clearInterval(nodeCacheDeleteQueueInterval);
   clearInterval(saveFileQueueInterval);
   clearInterval(heartbeatInterval);
   clearInterval(updateTrendsInterval);
@@ -2033,7 +2035,7 @@ nodeCache.on("expired", function(nodeCacheId, nodeObj){
 
 let nodeCacheDeleteReady = true;
 
-const nodeCacheInterval = setInterval(function(){
+const nodeCacheDeleteQueueInterval = setInterval(function(){
 
   if (nodeCacheDeleteReady && (nodeCacheDeleteQueue.length > 0)) {
 
@@ -2046,7 +2048,7 @@ const nodeCacheInterval = setInterval(function(){
     });
   }
 
-}, 1);
+}, configuration.nodeCacheDeleteQueueInterval);
 
 
 // ==================================================================

@@ -4,6 +4,7 @@
   "description": "word",
   "main": "wordAssoServer.js",
   "dependencies": {
+    "@google-cloud/debug-agent": "^4.2.2",
     "@slack/client": "^5.0.2",
     "@threeceelabs/hashtag-server-controller": "^1.0.70",
     "@threeceelabs/neural-network-tools": "^1.0.175",

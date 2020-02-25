@@ -155,7 +155,7 @@ const DEFAULT_MIN_FOLLOWERS_AUTO_FOLLOW = 20000;
 const DEFAULT_NODE_CACHE_DELETE_QUEUE_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_TSS_TWITTER_QUEUE_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_TWEET_PARSER_INTERVAL = DEFAULT_INTERVAL;
-const DEFAULT_SORTER_INTERVAL = DEFAULT_INTERVAL;
+const DEFAULT_SORTER_INTERVAL = 100;
 const DEFAULT_TWITTER_RX_QUEUE_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_TRANSMIT_NODE_QUEUE_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = DEFAULT_INTERVAL;
@@ -771,6 +771,7 @@ configuration.tweetVersion2 = DEFAULT_TWEET_VERSION_2;
 configuration.tweetParserInterval = DEFAULT_TWEET_PARSER_INTERVAL;
 configuration.updateUserSetsInterval = DEFAULT_UPDATE_USER_SETS_INTERVAL;
 configuration.sorterMessageRxQueueInterval = DEFAULT_SORTER_INTERVAL;
+configuration.keySortInterval = DEFAULT_SORTER_INTERVAL;
 configuration.dbUserMissQueueInterval = DEFAULT_DB_USER_MISS_QUEUE_INTERVAL;
 configuration.transmitNodeQueueInterval = DEFAULT_TRANSMIT_NODE_QUEUE_INTERVAL;
 configuration.rateQueueInterval = DEFAULT_RATE_QUEUE_INTERVAL;
@@ -793,7 +794,6 @@ configuration.autoOfflineMode = DEFAULT_AUTO_OFFLINE_MODE;
 
 configuration.batchSize = DEFAULT_CURSOR_BATCH_SIZE;
 
-configuration.keySortInterval = DEFAULT_INTERVAL;
 
 configuration.enableTransmitUser = true;
 configuration.enableTransmitWord = false;

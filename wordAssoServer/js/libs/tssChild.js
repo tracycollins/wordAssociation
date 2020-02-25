@@ -10,8 +10,8 @@ const DEFAULT_FILTER_RETWEETS = false;
 const DEFAULT_MAX_TWEET_QUEUE = 500;
 const DEFAULT_TWITTER_QUEUE_INTERVAL = 5;
 
-const TWEET_ID_CACHE_DEFAULT_TTL = 60;
-const TWEET_ID_CACHE_CHECK_PERIOD = 10;
+const TWEET_ID_CACHE_DEFAULT_TTL = 30;
+const TWEET_ID_CACHE_CHECK_PERIOD = 5;
 
 const TWITTER_MAX_TRACKING_NUMBER = 400;
 
@@ -161,7 +161,7 @@ configuration.globalTestMode = false;
 configuration.testMode = false; // per tweet test mode
 configuration.searchTermsUpdateInterval = DEFAULT_SEARCH_TERM_UPDATE_INTERVAL;
 configuration.followQueueIntervalTime = 5*ONE_SECOND;
-configuration.ignoreQueueInterval = 15 * ONE_SECOND;
+// configuration.ignoreQueueInterval = 15 * ONE_SECOND;
 configuration.maxTweetQueue = DEFAULT_MAX_TWEET_QUEUE;
 let maxTweetQueue = DEFAULT_MAX_TWEET_QUEUE;
 configuration.searchTermsDir = DROPBOX_DEFAULT_SEARCH_TERMS_DIR;
@@ -177,6 +177,7 @@ configuration.twitterConfig = {};
 
 const threeceeUserObj = {};
 
+// ??? KLUDGE: DON'T HARD CODE CREDENTIALS!! SECURITY RISK
 threeceeUserObj.twitterConfig = {};
 threeceeUserObj.twitterConfig.screenName = "altthreecee00";
 threeceeUserObj.twitterConfig.CONSUMER_KEY = "ex0jSXayxMOjNm4DZIiic9Nc0";
@@ -778,11 +779,6 @@ async function initTwit(){
   threeceeUserObj.stats.twitterRateLimitResetAt = 0;
   threeceeUserObj.stats.twitterRateLimitRemainingTime = 0;
   threeceeUserObj.stats.twitterRateLimitExceptionFlag = false;
-
-  // rateMeter = {};
-  // rateMeter = Measured.createCollection();
-  // rateMeter.meter("tweetsPerSecond", {rateUnit: 1000, tickInterval: 1000});
-  // rateMeter.meter("tweetsPerMinute", {rateUnit: 60000, tickInterval: 1000});
 
   threeceeUserObj.trackingNumber = 0;
 

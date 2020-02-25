@@ -1958,7 +1958,7 @@ const botCache = new NodeCache({
 
 let botCacheExpiredCount = 0;
 
-botCache.on("expired", function(nodeId, botUser){
+botCache.on("expired", function(nodeId, botUserScreenName){
 
   botCacheExpiredCount++;
 
@@ -1966,11 +1966,8 @@ botCache.on("expired", function(nodeId, botUser){
     console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX BOT CACHE EXPIRED"
       + " [" + botCache.getStats().keys + " KEYS]"
       + " | TTL: " + botCacheTtl + " SECS"
-      + " | " + printUser({user: botUser})
-      // + " | " + nodeId
-      // + " | @" + botObj.screenName
-      // + " | CAT M " + botObj.category
-      // + " | CAT A " + botObj.categoryAuto
+      + " | NID: " + nodeId
+      + " | @" + botUserScreenName
     ));
   }
 
@@ -6635,6 +6632,14 @@ function initTransmitNodeQueueInterval(interval){
     let categorizeable;
     let nCacheObj;
     let autoFollowFlag = false;
+    let node;
+
+    const userDbUpdateOptions = {
+      lean: true,
+      new: true,
+      setDefaultsOnInsert: true,
+      upsert: true
+    };
 
     transmitNodeQueueInterval = setInterval(async function() {
 
@@ -6660,44 +6665,46 @@ function initTransmitNodeQueueInterval(interval){
         if (empty(nodeObj.category)) { nodeObj.category = false; }
         if (empty(nodeObj.categoryAuto)) { nodeObj.categoryAuto = false; }
 
-        const node = await checkCategory(nodeObj);
-        const n = await updateNodeMeter(node);
+        // ??? PERFORMANCE: may parallelize checkCategory + updateNodeMeter + userCategorizeable
 
-        categorizeable = await userCategorizeable({user: n});
+        node = await checkCategory(nodeObj);
+        node = await updateNodeMeter(node);
+
+        categorizeable = await userCategorizeable({user: node});
  
-        if (categorizeable) { await categorize({user: n, autoFollowFlag: autoFollowFlag}); }
+        if (categorizeable) { await categorize({user: node, autoFollowFlag: autoFollowFlag}); }
 
-        if ((n.nodeType == "user") && (n.category || n.categoryAuto || n.following || n.threeceeFollowing)){
+        if ((node.nodeType == "user") && (node.category || node.categoryAuto || node.following || node.threeceeFollowing)){
 
-          nCacheObj = nodeCache.get(n.nodeId);
+          nCacheObj = nodeCache.get(node.nodeId);
 
           if (nCacheObj !== undefined) {
-            n.mentions = Math.max(n.mentions, nCacheObj.mentions);
-            n.setMentions = true;
-            nodeCache.set(n.nodeId, n);
+            node.mentions = Math.max(node.mentions, nCacheObj.mentions);
+            node.setMentions = true;
+            nodeCache.set(node.nodeId, node);
           }
 
-          if (n.isTweeter) { n.updateLastSeen = true; }
+          if (node.isTweeter) { node.updateLastSeen = true; }
 
           if (!userServerControllerReady || !statsObj.dbConnectionReady) {
             transmitNodeQueueReady = true;
           }
           else{
 
-            if (n.isTweeter) { statsObj.traffic.users.total++; }
+            if (node.isTweeter) { statsObj.traffic.users.total++; }
 
             try{
 
-              if (n.status && n.status.created_at) {
-                n.ageDays = (moment(n.status.created_at, twitterDateFormat).diff(n.createdAt))/ONE_DAY;
+              if (node.status && node.status.created_at) {
+                node.ageDays = (moment(node.status.created_at, twitterDateFormat).diff(node.createdAt))/ONE_DAY;
               }
               else{
-                n.ageDays = (moment().diff(n.createdAt))/ONE_DAY;
+                node.ageDays = (moment().diff(node.createdAt))/ONE_DAY;
               }
 
-              n.tweetsPerDay = (n.ageDays > 0) ? n.statusesCount/n.ageDays : 0;
+              node.tweetsPerDay = (node.ageDays > 0) ? node.statusesCount/node.ageDays : 0;
 
-              const updatedUser = await userServerController.findOneUserV2({user: n});
+              const updatedUser = await userServerController.findOneUserV2({user: node, options: userDbUpdateOptions});
 
               delete updatedUser._id;
               delete updatedUser.userId;
@@ -6705,7 +6712,7 @@ function initTransmitNodeQueueInterval(interval){
               if (updatedUser.isTweeter && botNodeIdSet.has(updatedUser.nodeId)){ 
 
                 updatedUser.isBot = true;
-                botCache.set(updatedUser.nodeId, updatedUser);
+                botCache.set(updatedUser.nodeId, updatedUser.screenName);
 
                 statsObj.traffic.users.bots++;
                 statsObj.traffic.users.percentBots = 100*(statsObj.traffic.users.bots/statsObj.traffic.users.total);
@@ -6721,64 +6728,64 @@ function initTransmitNodeQueueInterval(interval){
 
               console.log(chalkError(MODULE_ID_PREFIX + " | findOneUser ERROR" + tcUtils.jsonPrint(e)));
 
-              delete n._id;
-              delete n.userId;
+              delete node._id;
+              delete node.userId;
 
-              if (n.isTweeter && botNodeIdSet.has(n.nodeId)){
+              if (node.isTweeter && botNodeIdSet.has(node.nodeId)){
 
                 statsObj.traffic.users.bots++;
                 statsObj.traffic.users.percentBots = 100*(statsObj.traffic.users.bots/statsObj.traffic.users.total);
 
-                n.isBot = true;
+                node.isBot = true;
 
-                printBotStats({user: n, modulo: 100});
+                printBotStats({user: node, modulo: 100});
 
-                botCache.set(n.nodeId, n);
+                botCache.set(node.nodeId, node.screenName);
               }
 
-              viewNameSpace.volatile.emit("node", n);
+              viewNameSpace.volatile.emit("node", node);
               transmitNodeQueueReady = true;
             }
           }
         }
-        else if (n.nodeType == "user") {
-          delete n._id;
-          delete n.userId;
+        else if (node.nodeType == "user") {
+          delete node._id;
+          delete node.userId;
 
-          if (n.isTweeter) { 
+          if (node.isTweeter) { 
 
             statsObj.traffic.users.total++;
 
-            if (botNodeIdSet.has(n.nodeId)){
+            if (botNodeIdSet.has(node.nodeId)){
 
               statsObj.traffic.users.bots++;
               statsObj.traffic.users.percentBots = 100*(statsObj.traffic.users.bots/statsObj.traffic.users.total);
 
-              n.isBot = true;
+              node.isBot = true;
 
-              printBotStats({user: n, modulo: 100});
+              printBotStats({user: node, modulo: 100});
 
-              botCache.set(n.nodeId, n);
+              botCache.set(node.nodeId, node.screenName);
             }
           }
 
-          viewNameSpace.volatile.emit("node", pick(n, fieldsTransmitKeys));
+          viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
 
           transmitNodeQueueReady = true;
         }
-        else if ((n.nodeType == "hashtag") && n.category && hashtagServerControllerReady){
+        else if ((node.nodeType == "hashtag") && node.category && hashtagServerControllerReady){
 
-          n.updateLastSeen = true;
+          node.updateLastSeen = true;
 
           if (!hashtagServerControllerReady || !statsObj.dbConnectionReady) {
             transmitNodeQueueReady = true;
           }
           else {
-            hashtagServerController.findOneHashtag(n, {noInc: false, lean: true}, function(err, updatedHashtag){
+            hashtagServerController.findOneHashtag(node, {noInc: false, lean: true}, function(err, updatedHashtag){
               if (err) {
                 console.log(chalkError(MODULE_ID_PREFIX + " | updatedHashtag ERROR\n" + tcUtils.jsonPrint(err)));
-                delete n._id;
-                viewNameSpace.volatile.emit("node", n);
+                delete node._id;
+                viewNameSpace.volatile.emit("node", node);
               }
               else {
                 delete updatedHashtag._id;
@@ -6789,9 +6796,9 @@ function initTransmitNodeQueueInterval(interval){
             });
           }
         }
-        else if (n.nodeType == "hashtag") {
-          delete n._id;
-          viewNameSpace.volatile.emit("node", n);
+        else if (node.nodeType == "hashtag") {
+          delete node._id;
+          viewNameSpace.volatile.emit("node", node);
           transmitNodeQueueReady = true;
         }
         else {
@@ -10142,10 +10149,8 @@ async function twitterGetUserUpdateDb(params){
 
     user.setMentions = true;
 
-    const botCacheObj = botCache.get(user.nodeId);
-
-    if (botCacheObj !== undefined) {
-      user.isBot = botCacheObj.isBot;
+    if (botNodeIdSet.has(user.nodeId)) {
+      user.isBot = true;
     }
 
     const updatedUser = await userServerController.findOneUserV2({user: user});

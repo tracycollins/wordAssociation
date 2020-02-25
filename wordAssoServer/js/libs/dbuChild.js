@@ -134,8 +134,8 @@ global.globalDbConnection = false;
 
 global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
-const UserServerController = require("@threeceelabs/user-server-controller");
-let userServerController;
+// const UserServerController = require("@threeceelabs/user-server-controller");
+// let userServerController;
 
 const configuration = {}; // merge of defaultConfiguration & hostConfiguration
 configuration.processName = process.env.DBU_PROCESS_NAME || "node_databaseUpdate";
@@ -270,11 +270,11 @@ function connectDb(){
 
         global.globalDbConnection = db;
 
-        userServerController = new UserServerController("DBU_USC");
+        // userServerController = new UserServerController("DBU_USC");
 
-        userServerController.on("ready", function(appname){
-          console.log(chalkLog("DBU | USC READY | " + appname));
-        });
+        // userServerController.on("ready", function(appname){
+        //   console.log(chalkLog("DBU | USC READY | " + appname));
+        // });
 
         resolve(db);
 

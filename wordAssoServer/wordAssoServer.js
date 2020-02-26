@@ -569,6 +569,7 @@ async function initSlackRtmClient(){
   });
 }
 
+const deletedUsersSet = new Set();
 const botNodeIdSet = new Set();
 const autoFollowUserSet = new Set();
 const verifiedCategorizedUsersSet = new Set();
@@ -2397,6 +2398,7 @@ function showStats(options){
     + " | AD: " + statsObj.admin.connected
     + " | UT: " + statsObj.entity.util.connected
     + " | VW: " + statsObj.entity.viewer.connected
+    + " | XXX USERS: " + statsObj.deletedUsers
     + " | NPM: " + statsObj.nodesPerMin
     + " | TwRxPM: " + statsObj.twitter.tweetsPerMin
     + " | MaxTwRxPM: " + statsObj.twitter.maxTweetsPerMin
@@ -9872,7 +9874,16 @@ async function initDbUserChangeStream(){
 
   userChangeStream.on("change", function(change){
 
-    if (change 
+    if (change && change.operationType === "delete"){
+      // categorizedUserHashMap.delete(change.fullDocument.nodeId);
+      // change obj doesn't contain userDoc, so use DB BSON ID
+      deletedUsersSet.add(change._id._data);
+      statsObj.deletedUsers = deletedUsersSet.size;
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | DB CHANGE STREAM | XXX DB USER [" + statsObj.deletedUsers + "]"
+        + " | DB _id: " + change._id._data
+      ));
+    }
+    else if (change 
       && change.fullDocument 
       && change.updateDescription 
       && change.updateDescription.updatedFields 
@@ -9901,6 +9912,7 @@ async function initDbUserChangeStream(){
         categorizedUserHashMap.set(catObj.nodeId, catObj);
       }
     }
+
   });
 
   return;
@@ -10179,7 +10191,12 @@ async function deleteUser(params){
   const results = await global.wordAssoDb.User.deleteOne({nodeId: params.user.nodeId});
 
   if (results.deletedCount > 0){
+
+    deletedUsersSet.add(params.user.nodeId);
+    statsObj.deletedUsers = deletedUsersSet.size;
+
     console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX USER | -*- DB HIT"
+      + " [" + statsObj.deletedUsers + " DELETED USERS SET]"
       + " | " + params.user.nodeId
       + " | @" + params.user.screenName
     ));

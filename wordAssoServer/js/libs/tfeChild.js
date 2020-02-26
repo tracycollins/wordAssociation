@@ -160,6 +160,7 @@ configuration.bestNetworkIdArrayFile = "bestNetworkIdArray.json";
 configuration.quotaTimoutDuration = DEFAULT_QUOTA_TIMEOUT_DURATION;
 configuration.processUserQueueInterval = 100;
 
+configuration.enableFetchUserFriends = false;
 configuration.enableGeoCode = false;
 configuration.forceGeoCode = false;
 
@@ -1250,6 +1251,11 @@ async function initialize(cnf){
       cnf.testMode = loadedConfigObj.TFE_TEST_MODE;
     }
 
+    if (loadedConfigObj.TFE_ENABLE_FETCH_USER_FRIENDS !== undefined){
+      console.log("WAS | TFC | LOADED TFE_ENABLE_FETCH_USER_FRIENDS: " + loadedConfigObj.TFE_ENABLE_FETCH_USER_FRIENDS);
+      cnf.enableFetchUserFriends = loadedConfigObj.TFE_ENABLE_FETCH_USER_FRIENDS;
+    }
+
     if (loadedConfigObj.TFE_ENABLE_GEOCODE !== undefined){
       console.log("WAS | TFC | LOADED TFE_ENABLE_GEOCODE: " + loadedConfigObj.TFE_ENABLE_GEOCODE);
       cnf.enableGeoCode = loadedConfigObj.TFE_ENABLE_GEOCODE;
@@ -1444,7 +1450,7 @@ async function processUser(params) {
 
     let updatedFriendsUser = user;
 
-    if (!user.friends || (user.friends.length === undefined)|| (user.friends.length === 0)){
+    if (configuration.enableFetchUserFriends && (!user.friends || (user.friends.length === undefined)|| (user.friends.length === 0))){
       updatedFriendsUser = await updateUserFriends({user: user});
     }
 

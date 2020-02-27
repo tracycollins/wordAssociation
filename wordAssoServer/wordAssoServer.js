@@ -569,6 +569,7 @@ async function initSlackRtmClient(){
   });
 }
 
+const addedUsersSet = new Set();
 const deletedUsersSet = new Set();
 const botNodeIdSet = new Set();
 const autoFollowUserSet = new Set();
@@ -650,7 +651,6 @@ statsObj.hashtag.manual.neutral = 0;
 statsObj.hashtag.manual.none = 0;
 statsObj.hashtag.manual.positive = 0;
 statsObj.hashtag.manual.right = 0;
-statsObj.hashtag.manualCategorized = 0;
 statsObj.hashtag.matched = 0;
 statsObj.hashtag.mismatched = 0;
 statsObj.hashtag.total = 0;
@@ -673,6 +673,23 @@ statsObj.traffic.users.percentBots = 0;
 statsObj.traffic.users.total = 0;
 
 statsObj.user = {};
+
+statsObj.user.total = 0;
+
+statsObj.user.added = 0;
+statsObj.user.deleted = 0;
+
+statsObj.user.matched = 0;
+statsObj.user.mismatched = 0;
+statsObj.user.following = 0;
+statsObj.user.notFollowing = 0;
+statsObj.user.autoFollow = 0;
+
+statsObj.user.categorizedAuto = 0;
+statsObj.user.categorizedManual = 0;
+statsObj.user.categorizedTotal = 0;
+statsObj.user.categoryVerified = 0;
+
 statsObj.user.auto = {};
 statsObj.user.auto.left = 0;
 statsObj.user.auto.negative = 0;
@@ -680,12 +697,7 @@ statsObj.user.auto.neutral = 0;
 statsObj.user.auto.none = 0;
 statsObj.user.auto.positive = 0;
 statsObj.user.auto.right = 0;
-statsObj.user.autoFollow = 0;
-statsObj.user.categorizedAuto = 0;
-statsObj.user.categorizedManual = 0;
-statsObj.user.categorizedTotal = 0;
-statsObj.user.categoryVerified = 0;
-statsObj.user.following = 0;
+
 statsObj.user.manual = {};
 statsObj.user.manual.left = 0;
 statsObj.user.manual.negative = 0;
@@ -693,11 +705,7 @@ statsObj.user.manual.neutral = 0;
 statsObj.user.manual.none = 0;
 statsObj.user.manual.positive = 0;
 statsObj.user.manual.right = 0;
-statsObj.user.manualCategorized = 0;
-statsObj.user.matched = 0;
-statsObj.user.mismatched = 0;
-statsObj.user.notFollowing = 0;
-statsObj.user.total = 0;
+
 statsObj.user.uncategorized = {};
 statsObj.user.uncategorized.all = 0;
 statsObj.user.uncategorized.left = 0;
@@ -2200,7 +2208,7 @@ function initStats(callback){
   statsObj.user.mismatched = 0;
 
   statsObj.hashtag.total = 0;
-  statsObj.hashtag.manualCategorized = 0;
+  statsObj.hashtag.categorizedManual = 0;
   statsObj.hashtag.uncategorizedTotal = 0;
 
   statsObj.hashtag.manual = {};
@@ -2398,7 +2406,8 @@ function showStats(options){
     + " | AD: " + statsObj.admin.connected
     + " | UT: " + statsObj.entity.util.connected
     + " | VW: " + statsObj.entity.viewer.connected
-    + " | XXX USERS: " + statsObj.deletedUsers
+    + " | +++ USERS: " + statsObj.user.added
+    + " | XXX USERS: " + statsObj.user.deleted
     + " | NPM: " + statsObj.nodesPerMin
     + " | TwRxPM: " + statsObj.twitter.tweetsPerMin
     + " | MaxTwRxPM: " + statsObj.twitter.maxTweetsPerMin
@@ -4963,10 +4972,10 @@ async function initSocketHandler(socketObj) {
 
       if (dataObj.node.nodeType == "user") {
 
-        statsObj.user.manualCategorized += 1;
+        statsObj.user.categorizedManual += 1;
 
         console.log(chalkSocket("TWITTER_CATEGORIZE_NODE"
-          + " [" + statsObj.user.manualCategorized + "]"
+          + " [" + statsObj.user.categorizedManual + "]"
           + " | " + tcUtils.getTimeStamp(timeStamp)
           + " | " + ipAddress
           + " | " + socket.id
@@ -4977,7 +4986,7 @@ async function initSocketHandler(socketObj) {
       }
       if (dataObj.node.nodeType == "hashtag") {
 
-        statsObj.hashtag.manualCategorized += 1;
+        statsObj.hashtag.categorizedManual += 1;
 
         console.log(chalkSocket("TWITTER_CATEGORIZE_NODE"
           + " | " + tcUtils.getTimeStamp(timeStamp)
@@ -9874,16 +9883,33 @@ async function initDbUserChangeStream(){
 
   userChangeStream.on("change", function(change){
 
+    if (change && change.operationType === "insert"){
+
+      addedUsersSet.add(change.fullDocument.nodeId);
+
+      statsObj.user.added = addedUsersSet.size;
+
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | DB CHANGE STREAM | +++ DB USER [" + statsObj.user.added + "]"
+        + " | " + change.fullDocument.nodeId
+        + " | @" + change.fullDocument.screenName
+        + " | CAT M: " + change.fullDocument.category
+        + " | CAT A: " + change.fullDocument.categoryAuto
+      ));
+    }
+    
     if (change && change.operationType === "delete"){
+
       // categorizedUserHashMap.delete(change.fullDocument.nodeId);
       // change obj doesn't contain userDoc, so use DB BSON ID
+
       deletedUsersSet.add(change._id._data);
-      statsObj.deletedUsers = deletedUsersSet.size;
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | DB CHANGE STREAM | XXX DB USER [" + statsObj.deletedUsers + "]"
+      statsObj.user.deleted = deletedUsersSet.size;
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | DB CHANGE STREAM | XXX DB USER [" + statsObj.user.deleted + "]"
         + " | DB _id: " + change._id._data
       ));
     }
-    else if (change 
+    
+    if (change 
       && change.fullDocument 
       && change.updateDescription 
       && change.updateDescription.updatedFields 
@@ -10193,10 +10219,10 @@ async function deleteUser(params){
   if (results.deletedCount > 0){
 
     deletedUsersSet.add(params.user.nodeId);
-    statsObj.deletedUsers = deletedUsersSet.size;
+    statsObj.user.deleted = deletedUsersSet.size;
 
     console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX USER | -*- DB HIT"
-      + " [" + statsObj.deletedUsers + " DELETED USERS SET]"
+      + " [" + statsObj.user.deleted + " DELETED USERS SET]"
       + " | " + params.user.nodeId
       + " | @" + params.user.screenName
     ));

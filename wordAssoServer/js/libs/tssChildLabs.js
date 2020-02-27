@@ -85,6 +85,8 @@ const Measured = require("measured");
 const HashMap = require("hashmap").HashMap;
 const NodeCache = require("node-cache");
 
+const followingUserIdHashMap = new HashMap();
+
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 let dbConnection;
 
@@ -118,7 +120,6 @@ const configHostFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility", hostna
 const statsHostFolder = path.join(DROPBOX_ROOT_FOLDER, "stats", hostname);
 const twitterConfigFolder = path.join(DROPBOX_ROOT_FOLDER, "config/twitter");
 
-// const DROPBOX_DEFAULT_CONFIG_FOLDER = "/config/utility/default";
 const DROPBOX_DEFAULT_SEARCH_TERMS_DIR = "/config/utility/default";
 const DROPBOX_DEFAULT_SEARCH_TERMS_FILE = "followableSearchTerm.txt";
 
@@ -155,11 +156,6 @@ ignoreLocationsSet.add("england");
 ignoreLocationsSet.add("nigeria");
 ignoreLocationsSet.add("lagos");
 
-// let ignoreLocationsArray = [...ignoreLocationsSet];
-// let ignoreLocationsString = ignoreLocationsArray.join('\\b|\\b');
-// ignoreLocationsString = '\\b' + ignoreLocationsString + '\\b';
-// let ignoreLocationsRegEx = new RegExp(ignoreLocationsString, "gi");
-
 process.on("SIGHUP", function() {
   quit("SIGHUP");
 });
@@ -184,8 +180,6 @@ let streamDataQueueInterval;
 
 let configuration = {};
 configuration.filterDuplicateTweets = true;
-// let filterDuplicateTweets = true;
-
 configuration.verbose = false;
 configuration.forceFollow = false;
 configuration.globalTestMode = false;
@@ -229,9 +223,6 @@ threeceeUserObj.stats.connected = false;
 threeceeUserObj.stats.authenticated = false;
 threeceeUserObj.stats.twitterTokenErrorFlag = false;
 
-// let tweetsReceived = 0;
-// let retweetsReceived = 0;
-// let quotedTweetsReceived = 0;
 let rateLimited = false;
 
 threeceeUserObj.stats.twitterConnects = 0;
@@ -252,7 +243,6 @@ rateMeter.meter("tweetsPerSecond", {rateUnit: 1000, tickInterval: 1000});
 rateMeter.meter("tweetsPerMinute", {rateUnit: 60000, tickInterval: 1000});
 
 threeceeUserObj.trackingNumber = 0;
-
 threeceeUserObj.followUserScreenNameSet = new Set();
 threeceeUserObj.followUserIdSet = new Set();
 threeceeUserObj.searchTermSet = new Set();
@@ -273,7 +263,6 @@ console.log(
   + "\nTSS | PROCESS TITLE: " + process.title 
   + "\nTSS | " + "====================================================================================================\n" 
 );
-
 
 if (debug.enabled) {
   console.log("\nTSS | %%%%%%%%%%%%%%\nTSS | %%%%%%% DEBUG ENABLED %%%%%%%\nTSS | %%%%%%%%%%%%%%\n");
@@ -412,12 +401,9 @@ else {
 const DROPBOX_TSS_CONFIG_FILE = process.env.DROPBOX_TSS_CONFIG_FILE || "twitterSearchStreamConfig.json";
 const DROPBOX_TSS_STATS_FILE = process.env.DROPBOX_TSS_STATS_FILE || "twitterSearchStreamStats.json";
 
-// const statsFolder = "/stats/" + hostname + "/tssChild";
 const statsFile = DROPBOX_TSS_STATS_FILE;
 
 const dropboxConfigFolder = "/config/utility";
-// const dropboxConfigHostFolder = "/config/utility/" + hostname;
-
 const dropboxConfigFile = hostname + "_" + DROPBOX_TSS_CONFIG_FILE;
 
 console.log("TSS | DROPBOX_TSS_CONFIG_FILE: " + DROPBOX_TSS_CONFIG_FILE);
@@ -625,81 +611,6 @@ const userDefaults = function (user){
 
 const rateLimitHashMap = {};
 
-// async function initRateLimitPause(params){
-
-  // return new Promise(function(resolve, reject){
-
-  //   if (!params.endPoint) {
-  //     return reject(new Error("params.endPoint undefined"));
-  //   }
-
-  //   const endPoint = params.endPoint;
-
-  //   console.log(chalkAlert(MODULE_ID_PREFIX
-  //     + " | RATE LIMIT PAUSE"
-  //     + " | END POINT: " + params.endPoint
-  //     + " | @" + configuration.threeceeUser
-  //     + " | NOW: " + moment().format(compactDateTimeFormat)
-  //     + " | RESET AT: " +moment.unix(params.response.headers["x-rate-limit-reset"]).format(compactDateTimeFormat)
-  //     + " | REMAINING: " + msToTime(moment.unix(params.response.headers["x-rate-limit-reset"]).diff(moment()))
-  //   ));
-
-  //   tcUtils.checkEndPointRateLimit
-
-  //   if (rateLimitHashMap[endPoint] === undefined) {
-  //     rateLimitHashMap[endpoint] = {};
-  //     rateLimitHashMap[endpoint].exceptionFlag = true;
-  //     rateLimitHashMap[endpoint].limit = params.response.headers["x-rate-limit-limit"];
-  //     rateLimitHashMap[endpoint].remaining = params.response.headers["x-rate-limit-limit-remaining"];
-  //     rateLimitHashMap[endpoint].resetAt = moment.unix(params.response.headers["x-rate-limit-reset"]);
-  //     rateLimitHashMap[endpoint].remainingTime = moment.unix(params.response.headers["x-rate-limit-reset"]).diff(moment());
-  //     rateLimitHashMap[endpoint].timeout = rateLimitHashMap[endpoint].remainingTime + ONE_MINUTE;
-  //     rateLimitHashMap[endpoint].rateLimitStatusInterval = null;
-  //     rateLimitHashMap[endpoint].rateLimitTimeout = null;
-  //   }
-
-  //   clearInterval(rateLimitHashMap[endpoint].rateLimitStatusInterval);
-  //   clearTimeout(rateLimitHashMap[endpoint].rateLimitTimeout);
-
-  //   rateLimitHashMap[endpoint].rateLimitStatusInterval = setInterval(function(){
-
-  //     rateLimitHashMap[endpoint].remainingTime = rateLimitHashMap[endpoint].resetAt.diff(moment());
-
-  //     console.log(chalkAlert(MODULE_ID_PREFIX
-  //       + " | RATE LIMIT PAUSE"
-  //       + " | END POINT: " + params.endpoint
-  //       + " | @" + configuration.threeceeUser
-  //       + " | NOW: " + moment().format(compactDateTimeFormat)
-  //       + " | RESET AT: " + rateLimitHashMap[endpoint].resetAt.format(compactDateTimeFormat)
-  //       + " | REMAINING: " + msToTime(rateLimitHashMap[endpoint].remainingTime)
-  //     ));
-
-  //   }, ONE_MINUTE);
-
-  //   rateLimitHashMap[endpoint].rateLimitTimeout = setTimeout(function(){
-
-  //     rateLimitHashMap[endpoint].remainingTime = rateLimitHashMap[endpoint].resetAt.diff(moment());
-
-  //     console.log(chalkAlert(MODULE_ID_PREFIX
-  //       + " | XXX RATE LIMIT EXPIRED"
-  //       + " | END POINT: " + params.endpoint
-  //       + " | @" + configuration.threeceeUser
-  //       + " | NOW: " + moment().format(compactDateTimeFormat)
-  //       + " | RESET AT: " + rateLimitHashMap[endpoint].resetAt.format(compactDateTimeFormat)
-  //       + " | REMAINING: " + msToTime(rateLimitHashMap[endpoint].remainingTime)
-  //     ));
-
-  //     rateLimitHashMap[endpoint].exceptionFlag = false;
-
-  //     clearInterval(rateLimitHashMap[endpoint].rateLimitStatusInterval);
-
-  //   }, rateLimitHashMap[endpoint].timeout);
-
-  //   resolve();
-
-  // });
-// }
-
 function twitStreamPromise(params){
 
   return new Promise(function(resolve, reject){
@@ -772,7 +683,6 @@ function twitStreamPromise(params){
 
     });
   });
-
 }
 
 function initFollowUserIdSet(){
@@ -1018,10 +928,6 @@ async function initTwitterUser(){
   }
 }
 
-
-const followingUserIdHashMap = new HashMap();
-
-
 async function processTweet(params){
 
   const tweetObj = params.tweetObj;
@@ -1193,7 +1099,6 @@ async function processTweet(params){
 
 const consumer_key = "ex0jSXayxMOjNm4DZIiic9Nc0"; // Add your API key here
 const consumer_secret = "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa"; // Add your API secret key here
-
 
 async function bearerToken () {
   const requestConfig = {
@@ -2034,7 +1939,6 @@ function initTwitterQueue(cnf){
       }
     }
   }, interval);
-
 }
 
 function initTwitterSearch(cnf){
@@ -2542,7 +2446,6 @@ process.on("message", async function(m) {
         + " | INTERVAL: " + m.op
       ));
   }
-
 });
 
 setTimeout(async function(){
@@ -2582,5 +2485,4 @@ setTimeout(async function(){
       console.log(chalkInfo("TSS | TSS | WAIT DB CONNECTED ..."));
     }
   }, 1000);
-
 }, 5*ONE_SECOND);

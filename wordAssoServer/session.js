@@ -101,7 +101,7 @@ statsObj.bestNetwork.overallMatchRate = 0;
 statsObj.bestNetwork.inputsId = "";
 statsObj.bestNetwork.numInputs = 0;
 
-statsObj.isAuthenticated = false;
+statsObj.isAuthenticated = false || (LOCAL_SOURCE === DEFAULT_SOURCE);
 statsObj.maxNodes = 0;
 statsObj.maxNodeAddQ = 0;
 statsObj.serverConnected = false;
@@ -2139,12 +2139,15 @@ function initialize(callback) {
       console.log("ON LOAD getUrlVariables\n" + jsonPrint(urlVariablesObj));
 
       if (urlVariablesObj !== undefined) {
+        
         if (urlVariablesObj.sessionId) {
           sessionId = urlVariablesObj.sessionId;
         }
+
         if (urlVariablesObj.namespace) {
           namespace = urlVariablesObj.namespace;
         }
+
         if (urlVariablesObj.sessionViewType) {
 
           config.sessionViewType = urlVariablesObj.sessionViewType;
@@ -2171,6 +2174,10 @@ function initialize(callback) {
               pageLoadedTimeIntervalFlag = false;
               initStatsUpdate(STATS_UPDATE_INTERVAL);
               if (!config.showStatsFlag) { displayStats(false, palette.white); }
+
+              statsObj.isAuthenticated = (LOCAL_SOURCE === DEFAULT_SOURCE);
+              console.log("AUTHENTICATED: " + statsObj.isAuthenticated);
+
             }, PAGE_LOAD_TIMEOUT);
 
             callback();
@@ -2200,6 +2207,10 @@ function initialize(callback) {
               initStatsUpdate(STATS_UPDATE_INTERVAL);
               pageLoadedTimeIntervalFlag = false;
               if (!config.showStatsFlag) { displayStats(false, palette.white); }
+
+              statsObj.isAuthenticated = (LOCAL_SOURCE === DEFAULT_SOURCE);
+              console.log("AUTHENTICATED: " + statsObj.isAuthenticated);
+
             }, PAGE_LOAD_TIMEOUT);
 
             callback();
@@ -2227,11 +2238,15 @@ function initialize(callback) {
           }); 
 
           setTimeout(function() {
-            console.error("END PAGE LOAD TIMEOUT");
+            console.log("END PAGE LOAD TIMEOUT");
 
             initStatsUpdate(STATS_UPDATE_INTERVAL);
             pageLoadedTimeIntervalFlag = false;
             if (!config.showStatsFlag) { displayStats(false, palette.white); }
+
+            statsObj.isAuthenticated = (LOCAL_SOURCE === DEFAULT_SOURCE);
+            console.log("AUTHENTICATED: " + statsObj.isAuthenticated);
+
           }, PAGE_LOAD_TIMEOUT);
         });
 

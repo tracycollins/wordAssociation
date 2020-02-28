@@ -1409,7 +1409,7 @@ setInterval(function() {
       // currentSessionView.setEnableAgeNodes(false);
     }
   }
-  else if ((lastHeartbeatReceived > 0) && (lastHeartbeatReceived + serverHeartbeatTimeoutPeriod) < moment()) {
+  else if ((lastHeartbeatReceived > 0) && (lastHeartbeatReceived + serverHeartbeatTimeoutPeriod) < moment().valueOf()) {
 
     serverHeartbeatTimeoutFlag = true;
 

@@ -49,7 +49,28 @@ function ControlPanel() {
 
   var currentUser = "threecee";
 
-  var twitterFeedUser = {};
+  const defaultTwitterFeedUser = {};
+  defaultTwitterFeedUser.ageDays = 0;
+  defaultTwitterFeedUser.category = "---";
+  defaultTwitterFeedUser.categoryAuto = "---";
+  defaultTwitterFeedUser.description = "---";
+  defaultTwitterFeedUser.followersCount = 0;
+  defaultTwitterFeedUser.following = false;
+  defaultTwitterFeedUser.friendsCount = 0;
+  defaultTwitterFeedUser.ignored = false;
+  defaultTwitterFeedUser.isBot = false;
+  defaultTwitterFeedUser.location = "---";
+  defaultTwitterFeedUser.mentions = 0;
+  defaultTwitterFeedUser.name = "---";
+  defaultTwitterFeedUser.nodeId = "---";
+  defaultTwitterFeedUser.profileImageUrl = "";
+  defaultTwitterFeedUser.screenName = "@";
+  defaultTwitterFeedUser.statusesCount = 0;
+  defaultTwitterFeedUser.tweetsPerDay = 0;
+  defaultTwitterFeedUser.userId = "---";
+
+  var twitterFeedUser = Object.assign({}, defaultTwitterFeedUser);
+
   var twitterFeedPreviousUser = false;
   var twitterFeedHashtag = {};
   var twitterFeedPreviousHashtag = {};
@@ -162,27 +183,7 @@ function ControlPanel() {
 
   statsObj.mismatched = 0;
 
-  statsObj.user = {};
-  statsObj.user.nodeId = "---";
-  statsObj.user.userId = "---";
-  statsObj.user.name = "---";
-  statsObj.user.screenName = "@";
-  statsObj.user.location = "---";
-  statsObj.user.description = "---";
-  statsObj.user.category = "---";
-  statsObj.user.categoryAuto = "---";
-  statsObj.user.followersCount = 0;
-  statsObj.user.friendsCount = 0;
-  statsObj.user.statusesCount = 0;
-  statsObj.user.mentions = 0;
-  statsObj.user.ageDays = 0;
-  statsObj.user.tweetsPerDay = 0;
-  statsObj.user.isBot = false;
-  statsObj.user.following = false;
-  statsObj.user.ignored = false;
-  statsObj.user.profileImageUrl = "";
-
-  twitterFeedUser = statsObj.user;
+  statsObj.user = Object.assign({}, defaultTwitterFeedUser);
 
   var eventDetected = false;
 
@@ -467,7 +468,7 @@ function ControlPanel() {
     if (node.nodeType === "user"){
 
       twitterFeedPreviousUser = twitterFeedUser;
-      twitterFeedUser = node;
+      twitterFeedUser = Object.assign(defaultTwitterFeedUser, node);
 
       twitterEntity.setValue("NODE ID", twitterFeedUser.nodeId);
     	twitterEntity.setValue("NAME", twitterFeedUser.name);

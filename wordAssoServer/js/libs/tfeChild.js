@@ -351,6 +351,9 @@ const userChangeCache = new NodeCache({
 // ==================================================================
 
 let tcUtils;
+let formatCategory;
+let formatBoolean;
+
 let nnTools;
 let tweetServerController;
 let userServerController;
@@ -392,6 +395,8 @@ async function connectDb(){
     const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
     
     tcUtils = new ThreeceeUtilities(tcuChildName);
+    formatCategory = tcUtils.formatCategory;
+    formatBoolean = tcUtils.formatBoolean;
 
     nnTools = new NeuralNetworkTools("WA_TFE_NNT");
 
@@ -642,7 +647,7 @@ function printUser(params) {
     + " | LS " + tcUtils.getTimeStamp(user.lastSeen)
     + " | FWG " + user.following 
     + " | LC " + user.location
-    + " | C M " + user.category + " A " + user.categoryAuto;
+    + " | C M " + formatCategory(user.category) + " A " + formatCategory(user.categoryAuto);
 
     return text;
   }
@@ -1115,12 +1120,13 @@ function initProcessUserQueueInterval(interval) {
 
             if (queueObj.priorityFlag) {
               console.log(chalkInfo(MODULE_ID_PREFIX + " | >>> PROCESSED"
-                + " [ PRCSSD: " + statsObj.user.processed + "/ PUQ: " + processUserQueue.length + "]"
+                + " [ PRCSSD: " + statsObj.user.processed + " / PUQ: " + processUserQueue.length + "]"
                 + " | PRI: " + queueObj.priorityFlag
                 + " | NID: " + processedUser.nodeId
                 + " | @" + processedUser.screenName
                 + " | N: " + processedUser.name
-                + " | CAT M: " + processedUser.category + " A: " + processedUser.categoryAuto
+                + " | CAT M: " + formatCategory(processedUser.category)
+                + " A: " + formatCategory(processedUser.categoryAuto)
                 // + " | " + printUser({user: processedUser})
               ));
             }
@@ -1330,14 +1336,14 @@ async function generateAutoCategory(p) {
     if (statsObj.currentBestNetwork.rank < currentBestNetwork.rank){
       printNetworkObj("RNT | +++ UPDATE BEST NETWORK"
         + " | @" + user.screenName 
-        + " | CM: " + user.category, currentBestNetwork, chalk.black
+        + " | CM: " + formatCategory(user.category), currentBestNetwork, chalk.black
       );
       await nnTools.printNetworkResults();
     }
     else if (configuration.testMode || (currentBestNetwork.meta.total % 1000 === 0)) {
       printNetworkObj("RNT | NETWORK STATS"
         + " | @" + user.screenName 
-        + " | CM: " + user.category, currentBestNetwork, chalk.black
+        + " | CM: " + formatCategory(user.category), currentBestNetwork, chalk.black
       );
       await nnTools.printNetworkResults();
     }
@@ -1380,8 +1386,8 @@ async function generateAutoCategory(p) {
       console.log(chalkLog(text
         + " | AUTO CHG M/MM/TOT: " + statsObj.autoChangeMatch + "/" + statsObj.autoChangeMismatch + "/" + statsObj.autoChangeTotal
         + " | " + statsObj.autoChangeMatchRate.toFixed(2) + "%"
-        + " | M: " + user.category
-        + " | A: " + user.categoryAuto + " --> " + currentBestNetwork.meta.categoryAuto
+        + " | M: " + formatCategory(user.category)
+        + " | A: " + formatCategory(user.categoryAuto) + " --> " + formatCategory(currentBestNetwork.meta.categoryAuto)
         + " | @" + user.screenName
       ));
     }

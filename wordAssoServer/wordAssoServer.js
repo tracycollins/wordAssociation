@@ -191,16 +191,16 @@ const DEFAULT_NODE_TYPES = ["hashtag", "user"];
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 const tinyDateTimeFormat = "YYYYMMDDHHmmss";
 
-const BOT_CACHE_DEFAULT_TTL = 300;
+const BOT_CACHE_DEFAULT_TTL = 600;
 const BOT_CACHE_CHECK_PERIOD = 15;
 
-const IP_CACHE_DEFAULT_TTL = 300; // seconds
+const IP_CACHE_DEFAULT_TTL = 600; // seconds
 const IP_CACHE_CHECK_PERIOD = 15;
 
-const SERVER_CACHE_DEFAULT_TTL = 300; // seconds
+const SERVER_CACHE_DEFAULT_TTL = 600; // seconds
 const SERVER_CACHE_CHECK_PERIOD = 15;
 
-const VIEWER_CACHE_DEFAULT_TTL = 300; // seconds
+const VIEWER_CACHE_DEFAULT_TTL = 600; // seconds
 const VIEWER_CACHE_CHECK_PERIOD = 15;
 
 const AUTH_SOCKET_CACHE_DEFAULT_TTL = 600;
@@ -209,7 +209,7 @@ const AUTH_SOCKET_CACHE_CHECK_PERIOD = 10;
 const AUTH_USER_CACHE_DEFAULT_TTL = ONE_DAY/1000;
 const AUTH_USER_CACHE_CHECK_PERIOD = ONE_HOUR/1000; // seconds
 
-const AUTH_IN_PROGRESS_CACHE_DEFAULT_TTL = 300;
+const AUTH_IN_PROGRESS_CACHE_DEFAULT_TTL = 600;
 const AUTH_IN_PROGRESS_CACHE_CHECK_PERIOD = 5;
 
 const TOPTERMS_CACHE_DEFAULT_TTL = 60;
@@ -4653,6 +4653,8 @@ async function initSocketHandler(socketObj) {
 
             viewerCache.set(socket.id, sessionObj);
             adminNameSpace.emit("VIEWER_ADD", sessionObj);
+            socket.emit("KEEPALIVE", sessionObj);
+            // adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
           }
           else {
 
@@ -4663,7 +4665,8 @@ async function initSocketHandler(socketObj) {
             sessionObj.status = keepAliveObj.status || "KEEPALIVE";
 
             viewerCache.set(socket.id, sessionObj);
-            adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
+            socket.emit("KEEPALIVE", sessionObj);
+            // adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
           }
         break;
 

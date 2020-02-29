@@ -80,7 +80,7 @@ var MAX_READY_ACK_WAIT_COUNT = 10;
 var config = {};
 var previousConfig = {};
 
-config.keepaliveInterval = 60000;
+config.keepaliveInterval = DEFAULT_KEEPALIVE_INTERVAL;
 
 config.displayNodeHashMap = {};
 config.displayNodeHashMap.emoji = "hide";

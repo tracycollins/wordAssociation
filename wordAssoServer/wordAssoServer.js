@@ -20,7 +20,7 @@ const twitterDateFormat = "ddd MMM DD HH:mm:ss Z YYYY"; // Wed Aug 27 13:08:45 +
 
 const DEFAULT_GOOGLE_COMPUTE_DOMAIN = "bc.googleusercontent.com";
 
-const DEFAULT_START_TIMEOUT = 10*ONE_SECOND;
+const DEFAULT_START_TIMEOUT = 5*ONE_SECOND;
 const DEFAULT_MAX_USER_SEARCH_SKIP_COUNT = 25;
 
 const DEFAULT_USER_PROFILE_ONLY_FLAG = false;
@@ -1507,8 +1507,8 @@ function initPassport(){
       secret: "three cee labs 47", 
       resave: false, 
       saveUninitialized: false,
-      // store: new MongoStore({ mongooseConnection: global.dbConnection })
-      store: new MongoStore({ url: mongoConfig.wordAssoDb })
+      store: new MongoStore({ mongooseConnection: global.dbConnection })
+      // store: new MongoStore({ url: mongoConfig.wordAssoDb })
     }));
 
     app.use(passport.initialize());
@@ -3956,11 +3956,17 @@ async function updateDbIgnoredHashtags(){
     try {
 
       const dbHashtag = await global.wordAssoDb.Hashtag.findOne({nodeId: hashtag.toLowerCase()});
+      // const dbHashtag = await global.dbConnection.collection("hashtags").findOne({nodeId: hashtag.toLowerCase()});
 
       if (empty(dbHashtag)) {
         console.log(chalkWarn(MODULE_ID_PREFIX + " | ??? UPDATE IGNORED | HASHTAG NOT FOUND: " + hashtag.toLowerCase()));
       }
       else {
+
+        console.log(chalkLog(MODULE_ID_PREFIX + " | FOUND IGNORED HASHTAG"
+          + " [" + ignoredHashtagSet.size + "]"
+          + " | " + printHashtag({hashtag: dbHashtag})
+        ));
 
         dbHashtag.ignored = true;
 
@@ -11232,10 +11238,9 @@ setTimeout(async function(){
     await initSlackRtmClient();
     await initSlackWebClient();
 
-    await initBotSet({verbose: true});
-
-
     await waitDbConnectionReady();
+
+    await initBotSet({verbose: true});
     const cnf = await initConfig();
 
     configuration = deepcopy(cnf);

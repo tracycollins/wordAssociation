@@ -1314,7 +1314,6 @@ async function generateAutoCategory(p) {
     const params = p || {};
 
     const userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
-    // const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
 
     const user = await tcUtils.updateUserHistograms({user: params.user});
 
@@ -1322,7 +1321,6 @@ async function generateAutoCategory(p) {
       user: user,
       userProfileOnlyFlag: userProfileOnlyFlag,
       convertDatumFlag: true, 
-      // binaryMode: binaryMode, 
       verbose: configuration.verbose
     });
 

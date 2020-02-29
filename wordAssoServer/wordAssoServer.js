@@ -11263,6 +11263,8 @@ setTimeout(async function(){
     await initInternetCheckInterval(ONE_MINUTE);
     await initKeySortInterval(configuration.keySortInterval);
     await initSaveFileQueue(configuration);
+    await updateUserSets();
+    await updateHashtagSets();
     await initPassport();
     await initThreeceeTwitterUser("altthreecee00");
 
@@ -11300,8 +11302,6 @@ setTimeout(async function(){
     await initWatchConfig();
     // await initCategoryHashmaps();
     await initTssChild({childId: DEFAULT_TSS_CHILD_ID, tweetVersion2: configuration.tweetVersion2, threeceeUser: threeceeUser});
-    await updateUserSets();
-    await updateHashtagSets();
   }
   catch(err){
     console.trace(chalkError(MODULE_ID_PREFIX + " | **** INIT CONFIG ERROR: " + err + "\n" + jsonPrint(err)));

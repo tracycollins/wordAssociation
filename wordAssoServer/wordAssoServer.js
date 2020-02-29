@@ -70,8 +70,8 @@ else {
   TWITTER_AUTH_CALLBACK_URL = "http://localhost:9997/auth/twitter/callback";
 }
 
-// global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
-global.wordAssoDb = false;
+global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
+// global.wordAssoDb = false;
 
 const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
 const tcUtils = new ThreeceeUtilities(MODULE_ID_PREFIX + "_TCU");
@@ -1427,7 +1427,7 @@ async function connectDb(){
 
     console.log(chalkBlueBold(MODULE_ID_PREFIX + " | CONNECT MONGO DB ..."));
 
-    global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
+    // global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
     const db = await global.wordAssoDb.connect(MODULE_ID_PREFIX + "_" + process.pid);
 
@@ -11263,8 +11263,6 @@ setTimeout(async function(){
     await initInternetCheckInterval(ONE_MINUTE);
     await initKeySortInterval(configuration.keySortInterval);
     await initSaveFileQueue(configuration);
-    await updateUserSets();
-    await updateHashtagSets();
     await initPassport();
     await initThreeceeTwitterUser("altthreecee00");
 
@@ -11287,6 +11285,8 @@ setTimeout(async function(){
     await loadBestRuntimeNetwork();
     await loadMaxInputHashMap();
     await initIgnoreWordsHashMap();
+    await updateUserSets();
+    await updateHashtagSets();
     await initDbUserMissQueueInterval(configuration.dbUserMissQueueInterval)
     await initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval);
     await initRateQinterval(configuration.rateQueueInterval);

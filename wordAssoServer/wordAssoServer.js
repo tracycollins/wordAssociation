@@ -9945,12 +9945,12 @@ async function initDbUserChangeStream(){
           catObj.auto = false;
         }
 
-        if (formatCategory(catObj.manual) !== formatCategory(categoryChanges.manual)) {
+        if (categoryChanges.manual && formatCategory(catObj.manual) !== formatCategory(categoryChanges.manual)) {
           catChangeFlag = true;
           statsObj.user.categoryChanged++;
         }
 
-        if (formatCategory(catObj.auto) !== formatCategory(categoryChanges.auto)) {
+        if (categoryChanges.auto && formatCategory(catObj.auto) !== formatCategory(categoryChanges.auto)) {
           catChangeFlag = true;
           statsObj.user.categoryAutoChanged++;
         }

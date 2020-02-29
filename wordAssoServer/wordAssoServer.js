@@ -9904,7 +9904,7 @@ async function initDbUserChangeStream(){
         + " | " + change.fullDocument.nodeId
         + " | @" + change.fullDocument.screenName
         + " | CAT M: " + formatCategory(change.fullDocument.category)
-        + " | CAT A: " + formatCategory(change.fullDocument.categoryAuto)
+        + " A: " + formatCategory(change.fullDocument.categoryAuto)
       ));
     }
     
@@ -9961,7 +9961,7 @@ async function initDbUserChangeStream(){
             + " | " + change.fullDocument.nodeId
             + " | @" + change.fullDocument.screenName
             + " | CAT M: " + formatCategory(catObj.manual) + " --> " + formatCategory(categoryChanges.manual)
-            + " | CAT M: " + formatCategory(catObj.auto) + " --> " + formatCategory(categoryChanges.auto)
+            + " A: " + formatCategory(catObj.auto) + " --> " + formatCategory(categoryChanges.auto)
           ));
         }
 

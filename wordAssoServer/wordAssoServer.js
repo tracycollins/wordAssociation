@@ -70,7 +70,8 @@ else {
   TWITTER_AUTH_CALLBACK_URL = "http://localhost:9997/auth/twitter/callback";
 }
 
-global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
+// global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
+global.wordAssoDb = false;
 
 const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
 const tcUtils = new ThreeceeUtilities(MODULE_ID_PREFIX + "_TCU");
@@ -1426,6 +1427,8 @@ async function connectDb(){
 
     console.log(chalkBlueBold(MODULE_ID_PREFIX + " | CONNECT MONGO DB ..."));
 
+    global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
+
     const db = await global.wordAssoDb.connect(MODULE_ID_PREFIX + "_" + process.pid);
 
     db.on("error", async function(err){
@@ -1497,12 +1500,15 @@ function initPassport(){
     const sessionId = btoa("threecee");
     console.log(chalk.green(MODULE_ID_PREFIX + " | PASSPORT SESSION ID: " + sessionId ));
 
+    const mongoConfig = { wordAssoDb: "mongodb://mongo:NksWAF9HsmgPrD@127.0.0.1:27017/wordAsso?replicaSet=rs0" };
+
     app.use(expressSession({
       sessionId: sessionId,
       secret: "three cee labs 47", 
       resave: false, 
       saveUninitialized: false,
-      store: new MongoStore({ mongooseConnection: global.dbConnection })
+      // store: new MongoStore({ mongooseConnection: global.dbConnection })
+      store: new MongoStore({ url: mongoConfig.wordAssoDb })
     }));
 
     app.use(passport.initialize());
@@ -3949,23 +3955,23 @@ async function updateDbIgnoredHashtags(){
 
     try {
 
-        const dbHashtag = await global.wordAssoDb.Hashtag.findOne({nodeId: hashtag.toLowerCase()});
+      const dbHashtag = await global.wordAssoDb.Hashtag.findOne({nodeId: hashtag.toLowerCase()});
 
-        if (empty(dbHashtag)) {
-          console.log(chalkWarn(MODULE_ID_PREFIX + " | ??? UPDATE IGNORED | HASHTAG NOT FOUND: " + hashtag.toLowerCase()));
-        }
-        else {
+      if (empty(dbHashtag)) {
+        console.log(chalkWarn(MODULE_ID_PREFIX + " | ??? UPDATE IGNORED | HASHTAG NOT FOUND: " + hashtag.toLowerCase()));
+      }
+      else {
 
-          dbHashtag.ignored = true;
+        dbHashtag.ignored = true;
 
-          const dbUpdatedHashtag = await dbHashtag.save();
+        const dbUpdatedHashtag = await dbHashtag.save();
 
-          console.log(chalkLog(MODULE_ID_PREFIX + " | XXX IGNORE"
-            + " [" + ignoredHashtagSet.size + "]"
-            + " | " + printHashtag({hashtag: dbUpdatedHashtag})
-          ));
+        console.log(chalkLog(MODULE_ID_PREFIX + " | XXX IGNORE"
+          + " [" + ignoredHashtagSet.size + "]"
+          + " | " + printHashtag({hashtag: dbUpdatedHashtag})
+        ));
 
-        }
+      }
     }
     catch(err){
       console.log(chalkError(MODULE_ID_PREFIX + " | *** UPDATE IGNORED HASHTAG DB ERROR: " + err));

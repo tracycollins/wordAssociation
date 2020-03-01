@@ -1,22 +1,13 @@
 const MODULE_NAME = "archiveLoadChild";
 let MODULE_ID_PREFIX = "ALC";
 
-const ONE_SECOND = 1000;
-const ONE_MINUTE = 60*ONE_SECOND;
-const ONE_HOUR = 60*ONE_MINUTE;
-const QUIT_WAIT_INTERVAL = ONE_SECOND;
-
 const compactDateTimeFormat = "YYYYMMDD_HHmmss";
 
 const os = require("os");
 const _ = require("lodash");
-const omit = require("object.omit");
-const path = require("path");
 const fs = require("fs");
-const empty = require("is-empty");
-const HashMap = require("hashmap").HashMap;
 const yauzl = require("yauzl");
-
+const path = require("path");
 
 let hostname = os.hostname();
 if (hostname.startsWith("mbp3")){
@@ -31,6 +22,11 @@ hostname = hostname.replace(/word0-instance-1/g, "google");
 hostname = hostname.replace(/word-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
 
+const MODULE_ID = MODULE_ID_PREFIX + "_" + hostname;
+const PRIMARY_HOST = process.env.PRIMARY_HOST || "google";
+const HOST = (hostname === PRIMARY_HOST) ? "default" : "local";
+
+global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
 let DROPBOX_ROOT_FOLDER;
 
@@ -41,16 +37,16 @@ else {
   DROPBOX_ROOT_FOLDER = "/Users/tc/Dropbox/Apps/wordAssociation";
 }
 
-const MODULE_ID = MODULE_ID_PREFIX + "_" + hostname;
-const PRIMARY_HOST = process.env.PRIMARY_HOST || "google";
-const HOST = (hostname === PRIMARY_HOST) ? "default" : "local";
-
-global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
+const configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/default");
+// const configHostFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility",hostname);
 
 let configuration = {};
-configuration.userArchiveFileExistsMaxWaitTime = DEFAULT_USER_ARCHIVE_FILE_EXITS_MAX_WAIT_TIME;
 
-const configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/default");
+configuration.default = {};
+configuration.default.trainingSetsFolder = configDefaultFolder + "/trainingSets";
+configuration.default.userArchiveFolder = configDefaultFolder + "/trainingSets/users";
+configuration.userArchiveFolder = configuration.default.userArchiveFolder;
+configuration.defaultUserArchiveFlagFile = "usersZipUploadComplete.json";
 
 const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
 const tcUtils = new ThreeceeUtilities("NNC_TCU");
@@ -59,6 +55,11 @@ const CONSTANTS = tcUtils.constants;
 const msToTime = tcUtils.msToTime;
 const jsonPrint = tcUtils.jsonPrint;
 const getTimeStamp = tcUtils.getTimeStamp;
+const formatBoolean = tcUtils.formatBoolean;
+const formatCategory = tcUtils.formatCategory;
+
+const QUIT_WAIT_INTERVAL = CONSTANTS.ONE_SECOND;
+
 
 console.log("=========================================");
 console.log("=========================================");
@@ -77,7 +78,6 @@ const pick = require("object.pick");
 const debug = require("debug")("tfe");
 const util = require("util");
 const deepcopy = require("deep-copy");
-const async = require("async");
 
 const chalk = require("chalk");
 const chalkNetwork = chalk.blue;
@@ -280,26 +280,26 @@ function clearAllIntervals(){
   });
 }
 
-function processSend(message){
-  return new Promise(function(resolve, reject){
+// function processSend(message){
+//   return new Promise(function(resolve, reject){
 
-    if (configuration.verbose){
-      console.log(chalkGreen(MODULE_ID_PREFIX 
-        + " | >T MESSAGE | " + getTimeStamp() 
-        + " | OP: " + message.op
-      )); 
-    }
+//     if (configuration.verbose){
+//       console.log(chalkGreen(MODULE_ID_PREFIX 
+//         + " | >T MESSAGE | " + getTimeStamp() 
+//         + " | OP: " + message.op
+//       )); 
+//     }
 
-    try{
-      process.send(message);
-    }
-    catch(err){
-      return reject(err);
-    }
+//     try{
+//       process.send(message);
+//     }
+//     catch(err){
+//       return reject(err);
+//     }
 
-    resolve();
-  });
-}
+//     resolve();
+//   });
+// }
 
 //=========================================================================
 // QUIT + EXIT
@@ -320,15 +320,13 @@ async function quit(opts) {
 
   const forceQuitFlag = options.force || false;
 
-  fsm.fsm_exit();
-
   if (options) {
     console.log(MODULE_ID_PREFIX + " | QUIT INFO\n" + jsonPrint(options) );
   }
 
   showStats(true);
 
-  await processSend({op: "QUIT", childId: configuration.childId, fsmStatus: statsObj.fsmStatus});
+  // await processSend({op: "QUIT", childId: configuration.childId});
 
   setInterval(async function() {
 
@@ -356,17 +354,13 @@ async function quit(opts) {
 // EVOLVE
 //=========================================================================
 
-function unzipUsersToArray(params){
+function unzipUsers(params){
 
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | UNZIP USERS TO TRAINING SET: " + params.path));
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | UNZIP USERS | " + params.path));
 
   return new Promise(function(resolve, reject) {
 
     try {
-
-      trainingSetUsersHashMap.left.clear();
-      trainingSetUsersHashMap.neutral.clear();
-      trainingSetUsersHashMap.right.clear();
 
       let entryNumber = 0;
 
@@ -395,8 +389,6 @@ function unzipUsersToArray(params){
           resolve(true);
         });
 
-        let hmHit = MODULE_ID_PREFIX + " | --> UNZIP";
-
         zipfile.on("entry", function(entry) {
           
           if ((/\/$/).test(entry.fileName)) { 
@@ -420,46 +412,56 @@ function unzipUsersToArray(params){
                   const userObj = JSON.parse(userString);
 
                   if (entry.fileName.includes("maxInputHashMap")) {
-
-                    console.log(chalkLog(MODULE_ID_PREFIX + " | UNZIPPED MAX INPUT"));
-
-                    await nnTools.setMaxInputHashMap(userObj.maxInputHashMap);
-                    await nnTools.setNormalization(userObj.normalization);
-
+                    console.log(chalkLog(MODULE_ID_PREFIX + " | ... SKIP MAX INPUT"));
                     zipfile.readEntry();
                   }
                   else {
 
                     statsObj.users.unzipped += 1;
 
-                    hmHit = MODULE_ID_PREFIX + " | UNZIP";
-
-                    if ( trainingSetUsersHashMap.left.has(userObj.userId)
-                      || trainingSetUsersHashMap.neutral.has(userObj.userId) 
-                      || trainingSetUsersHashMap.right.has(userObj.userId)
-                      ) 
-                    {
-                      hmHit = MODULE_ID_PREFIX + " | **> UNZIP";
-                    }
-
                     if ((userObj.category === "left") || (userObj.category === "right") || (userObj.category === "neutral")) {
 
-                      trainingSetUsersHashMap[userObj.category].set(userObj.nodeId, userObj);
+                      let dbUser = await global.wordAssoDb.User.findOne({nodeId: userObj.nodeId});
+
+                      if (dbUser) {
+                        if (dbUser.category !== userObj.category) {
+                          console.log(chalkLog(MODULE_ID_PREFIX + " | DB CAT CHANGE"
+                            + " | " + formatCategory(dbUser.category) + " -> " + formatCategory(userObj.category)
+                            + " | NID: " + dbUser.nodeId
+                            + " | @" + dbUser.screenName
+                          ));
+
+                          dbUser.category = userObj.category;
+                          await dbUser.save();
+                        }
+                      }
+                      else{
+                        console.log(chalkAlert(MODULE_ID_PREFIX + " | DB USER MISS"
+                          + " | CAT M: " + formatCategory(userObj.category)
+                          + " | NID: " + userObj.nodeId
+                          + " | @" + userObj.screenName
+                        ));
+
+                        dbUser = new global.wordAssoDb.User(userObj);
+                        try{
+                          await dbUser.save();
+                        }
+                        catch(e){
+                          console.log(chalkError(MODULE_ID_PREFIX + " | *** DB SAVE ERROR: " + err));
+                        }
+                      }
 
                       if ((configuration.testMode && (statsObj.users.unzipped % 100 === 0)) || configuration.verbose || (statsObj.users.unzipped % 1000 === 0)) {
 
-                        console.log(chalkLog(hmHit
+                        console.log(chalkLog(MODULE_ID_PREFIX + " | UNZIP"
                           + " [" + statsObj.users.unzipped + "]"
-                          + " USERS - L: " + trainingSetUsersHashMap.left.size
-                          + " N: " + trainingSetUsersHashMap.neutral.size
-                          + " R: " + trainingSetUsersHashMap.right.size
-                          + " | " + userObj.userId
-                          + " | @" + userObj.screenName
-                          + " | " + userObj.name
-                          + " | FLWRs: " + userObj.followersCount
-                          + " | FRNDs: " + userObj.friendsCount
-                          + " | FRNDs DB: " + userObj.friends.length
-                          + " | CAT M: " + userObj.category + " A: " + userObj.categoryAuto
+                          + " | " + dbUser.nodeId
+                          + " | @" + dbUser.screenName
+                          + " | " + dbUser.name
+                          + " | FLWRs: " + dbUser.followersCount
+                          + " | FRNDs: " + dbUser.friendsCount
+                          + " | FRNDs DB: " + dbUser.friends.length
+                          + " | CAT M: " + dbUser.category + " A: " + dbUser.categoryAuto
                         ));
                       }
 
@@ -468,10 +470,7 @@ function unzipUsersToArray(params){
                     else{
                       console.log(chalkAlert(MODULE_ID_PREFIX + " | ??? UNCAT UNZIPPED USER"
                         + " [" + statsObj.users.unzipped + "]"
-                        + " USERS - L: " + trainingSetUsersHashMap.left.size
-                        + " N: " + trainingSetUsersHashMap.neutral.size
-                        + " R: " + trainingSetUsersHashMap.right.size
-                        + " | " + userObj.userId
+                        + " | " + userObj.nodeId
                         + " | @" + userObj.screenName
                         + " | " + userObj.name
                         + " | FLWRs: " + userObj.followersCount
@@ -520,107 +519,6 @@ function unzipUsersToArray(params){
   });
 }
 
-function updateTrainingSet(p){
-
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | UPDATE TRAINING SET"));
-
-  const params = p || {};
-
-  const equalCategoriesFlag = (params.equalCategoriesFlag !== undefined) ? params.equalCategoriesFlag : configuration.equalCategoriesFlag;
-
-  return new Promise(function(resolve, reject) {
-
-    try {
-
-      trainingSetObj = {};
-      trainingSetObj.meta = {};
-      trainingSetObj.meta.numInputs = 0;
-      trainingSetObj.meta.numOutputs = 3;
-      trainingSetObj.meta.setSize = 0;
-      trainingSetObj.data = [];
-
-      testSetObj = {};
-      testSetObj.meta = {};
-      testSetObj.meta.numInputs = 0;
-      testSetObj.meta.numOutputs = 3;
-      testSetObj.meta.setSize = 0;
-      testSetObj.data = [];
-
-      const minCategorySize = Math.min(
-        trainingSetUsersHashMap.left.size, 
-        trainingSetUsersHashMap.neutral.size, 
-        trainingSetUsersHashMap.right.size
-      );
-
-      async.eachSeries(["left", "neutral", "right"], function(category, cb){
-
-        const categorySize = (equalCategoriesFlag) ? minCategorySize : trainingSetUsersHashMap[category].size;
-
-        const trainingSetSize = parseInt((1 - configuration.testSetRatio) * categorySize);
-        const testSetSize = parseInt(configuration.testSetRatio * categorySize);
-
-        const shuffledTrainingSet = _.shuffle(trainingSetUsersHashMap[category].values());
-
-        const trainingSetData = shuffledTrainingSet.slice(0, trainingSetSize);
-        const testSetData = shuffledTrainingSet.slice(trainingSetSize, trainingSetSize+testSetSize);
-
-        trainingSetObj.data = trainingSetObj.data.concat(trainingSetData);
-        testSetObj.data = testSetObj.data.concat(testSetData);
-
-        console.log(chalkLog(MODULE_ID_PREFIX + " | TRAINING SET | " + category.toUpperCase()
-          + " | EQ CATEGORIES FLAG: " + equalCategoriesFlag
-          + " | MIN CAT SIZE: " + minCategorySize
-          + " | CAT SIZE: " + categorySize
-          + " | TRAIN SIZE: " + trainingSetSize
-          + " | TEST SIZE: " + testSetSize
-          + " | TRAIN SET DATA SIZE: " + trainingSetObj.data.length
-        ));
-
-        cb();
-
-      }, function(err){
-
-        if (err) {
-          console.log(chalkError(MODULE_ID_PREFIX + " | *** UPDATE TRAINING SET ERROR: " + err));
-          return reject(err);
-        }
-
-        trainingSetObj.data = _.shuffle(trainingSetObj.data);
-        testSetObj.data = _.shuffle(testSetObj.data);
-
-        trainingSetObj.meta.setSize = trainingSetObj.data.length;
-        testSetObj.meta.setSize = testSetObj.data.length;
-
-        if (nnTools.getMaxInputHashMap()) {
-          console.log(chalkLog(MODULE_ID_PREFIX + " | maxInputHashMap"
-            + "\n" + jsonPrint(Object.keys(nnTools.getMaxInputHashMap()))
-          ));
-        }
-
-        if (nnTools.getNormalization()) {
-          console.log(chalkLog(MODULE_ID_PREFIX + " | NORMALIZATION"
-            + "\n" + jsonPrint(nnTools.getNormalization())
-          ));
-        }
-
-        console.log(chalkLog(MODULE_ID_PREFIX + " | TRAINING SET"
-          + " | SIZE: " + trainingSetObj.meta.setSize
-          + " | TEST SIZE: " + testSetObj.meta.setSize
-        ));
-
-        resolve();
-
-      });
-
-    }
-    catch(err){
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** updateTrainingSet ERROR:", err));
-      reject(err);
-    }
-
-  });
-}
-
 let existsInterval;
 
 function waitFileExists(params){
@@ -629,7 +527,7 @@ function waitFileExists(params){
 
     clearInterval(existsInterval);
 
-    const interval = params.interval || 5*ONE_MINUTE;
+    const interval = params.interval || 5*CONSTANTS.ONE_MINUTE;
     const maxWaitTime = params.maxWaitTime || configuration.userArchiveFileExistsMaxWaitTime;
 
     const endWaitTimeMoment = moment().add(maxWaitTime, "ms");
@@ -640,9 +538,7 @@ function waitFileExists(params){
 
       console.log(chalkLog(MODULE_ID_PREFIX
         + " | FILE EXISTS"
-        // + " | MAX WAIT TIME: " + msToTime(maxWaitTime)
         + " | NOW: " + getTimeStamp()
-        // + " | END WAIT TIME: " + endWaitTimeMoment.format(compactDateTimeFormat)
         + " | PATH: " + params.path
       ));
 
@@ -706,7 +602,7 @@ function fileSize(params){
 
     clearInterval(sizeInterval);
 
-    const interval = params.interval || 10*ONE_SECOND;
+    const interval = params.interval || 10*CONSTANTS.ONE_SECOND;
 
     console.log(chalkLog(MODULE_ID_PREFIX + " | WAIT FILE SIZE: " + params.path + " | EXPECTED SIZE: " + params.size));
 
@@ -838,8 +734,7 @@ async function loadUsersArchive(params){
 
     await waitFileExists(params.archiveFlagObj);
     await fileSize(params.archiveFlagObj);
-    await unzipUsersToArray(params.archiveFlagObj);
-    await updateTrainingSet();
+    await unzipUsers(params.archiveFlagObj);
     return;
   }
   catch(err){
@@ -848,10 +743,10 @@ async function loadUsersArchive(params){
   }
 }
 
-async function loadArchiveFlagFile(){
+async function loadArchive(){
 
   try{
-    statsObj.status = "LOAD ARCHIVE FLAG FILE";
+    statsObj.status = "LOAD ARCHIVE";
 
     console.log(chalkLog(MODULE_ID_PREFIX
       + " | LOAD USERS ARCHIVE FLAG FILE: " + configuration.userArchiveFolder + "/" + configuration.defaultUserArchiveFlagFile
@@ -989,7 +884,7 @@ process.on("message", async function(m) {
 
       case "STATS":
         showStats();
-        await processSend({op: "STATS", childId: configuration.childId, stats: statsObj});
+        // await processSend({op: "STATS", childId: configuration.childId, stats: statsObj});
       break;
       
       case "QUIT":
@@ -1003,7 +898,7 @@ process.on("message", async function(m) {
             + " | PING ID: " + m.pingId
           ));
         }
-        await processSend({op: "PONG", pingId: m.pingId, childId: configuration.childId});
+        // await processSend({op: "PONG", pingId: m.pingId, childId: configuration.childId});
       break;
 
       default:
@@ -1075,7 +970,8 @@ setTimeout(async function(){
 
     try {
       await connectDb();
-      await initLoadUsersArchiveInterval();
+      await loadArchive();
+      quit({cause: "END"});
     }
     catch(err){
       console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION ERROR: " + err + " | QUITTING ***"));

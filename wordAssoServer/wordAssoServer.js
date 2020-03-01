@@ -5367,37 +5367,54 @@ function processCheckCategory(nodeObj){
       nodeObj.category = categorizedNodeHashMap.get(nodeObj.nodeId).manual;
       nodeObj.categoryAuto = categorizedNodeHashMap.get(nodeObj.nodeId).auto;
 
-      async.parallel({
-        overall: function(cb){
-          const nodeRate = nodesPerMinuteTopTermCache.get(nodeObj.nodeId);
-          if (nodeRate !== undefined) {
-            nodeObj.isTopTerm = true;
-          }
-          else {
-            nodeObj.isTopTerm = false;
-          }
+      if (nodesPerMinuteTopTermCache.get(nodeObj.nodeId) !== undefined) {
+        nodeObj.isTopTerm = true;
+      }
+      else {
+        nodeObj.isTopTerm = false;
+      }
 
-          cb();
+      if (nodesPerMinuteTopTermNodeTypeCache[nodeObj.nodeType].get(nodeObj.nodeId) !== undefined) {
+        nodeObj.isTopTermNodeType = true;
+      }
+      else {
+        nodeObj.isTopTermNodeType = false;
+      }
 
-        },
-        nodeType: function(cb){
-          const nodeRate = nodesPerMinuteTopTermNodeTypeCache[nodeObj.nodeType].get(nodeObj.nodeId);
-          if (nodeRate !== undefined) {
-            nodeObj.isTopTermNodeType = true;
-          }
-          else {
-            nodeObj.isTopTermNodeType = false;
-          }
-          cb();
-        }
-      },
-      function(err){
-        if (err) {
-          console.log(chalkError(MODULE_ID_PREFIX + " | *** processCheckCategory ERROR: " + err));
-          return reject(err);
-        }
-        resolve(nodeObj);
-      });   
+      resolve(nodeObj);
+
+      // async.parallel({
+      //   overall: function(cb){
+      //     const nodeRate = nodesPerMinuteTopTermCache.get(nodeObj.nodeId);
+      //     if (nodeRate !== undefined) {
+      //       nodeObj.isTopTerm = true;
+      //     }
+      //     else {
+      //       nodeObj.isTopTerm = false;
+      //     }
+
+      //     cb();
+
+      //   },
+      //   nodeType: function(cb){
+      //     const nodeRate = nodesPerMinuteTopTermNodeTypeCache[nodeObj.nodeType].get(nodeObj.nodeId);
+      //     if (nodeRate !== undefined) {
+      //       nodeObj.isTopTermNodeType = true;
+      //     }
+      //     else {
+      //       nodeObj.isTopTermNodeType = false;
+      //     }
+      //     cb();
+      //   }
+      // },
+      // function(err){
+      //   if (err) {
+      //     console.log(chalkError(MODULE_ID_PREFIX + " | *** processCheckCategory ERROR: " + err));
+      //     return reject(err);
+      //   }
+      //   resolve(nodeObj);
+      // });   
+      
     }
     else {
       resolve(nodeObj);

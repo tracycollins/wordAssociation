@@ -27,6 +27,9 @@ const os = require("os");
 const debug = require("debug")("tss");
 const debugCache = require("debug")("cache");
 const debugQ = require("debug")("queue");
+const path = require("path");
+const empty = require("is-empty");
+const watch = require("watch");
 
 const chalk = require("chalk");
 const chalkBlue = chalk.blue;
@@ -37,11 +40,6 @@ const chalkError = chalk.bold.red;
 const chalkWarn = chalk.yellow;
 const chalkLog = chalk.gray;
 const chalkInfo = chalk.black;
-
-
-const path = require("path");
-const empty = require("is-empty");
-const watch = require("watch");
 
 let hostname = os.hostname();
 hostname = hostname.replace(/.local/g, "");
@@ -54,19 +52,10 @@ hostname = hostname.replace(/word-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
 
 const _ = require("lodash");
-// const async = require("async");
 const Twit = require("twit");
 
-// TWITTER LABS NEW STREAMING INTERFACE
-
-// const bearerTokenURL = new URL("https://api.twitter.com/oauth2/token");
-// const streamURL = new URL("https://api.twitter.com/labs/1/tweets/stream/filter");
-// const rulesURL = new URL("https://api.twitter.com/labs/1/tweets/stream/filter/rules");
-
 const moment = require("moment");
-const treeify = require("treeify");
 const Measured = require("measured-core");
-// const HashMap = require("hashmap").HashMap;
 const NodeCache = require("node-cache");
 
 global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
@@ -109,6 +98,9 @@ const tweetIdCache = new NodeCache({
 
 const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
 const tcUtils = new ThreeceeUtilities("WAS_TSS_TCU");
+const jsonPrint = tcUtils.jsonPrint;
+const getTimeStamp = tcUtils.getTimeStamp;
+const msToTime = tcUtils.msToTime;
 
 let filterRetweets = false;
 
@@ -161,7 +153,6 @@ configuration.globalTestMode = false;
 configuration.testMode = false; // per tweet test mode
 configuration.searchTermsUpdateInterval = DEFAULT_SEARCH_TERM_UPDATE_INTERVAL;
 configuration.followQueueIntervalTime = 5*ONE_SECOND;
-// configuration.ignoreQueueInterval = 15 * ONE_SECOND;
 configuration.maxTweetQueue = DEFAULT_MAX_TWEET_QUEUE;
 let maxTweetQueue = DEFAULT_MAX_TWEET_QUEUE;
 configuration.searchTermsDir = DROPBOX_DEFAULT_SEARCH_TERMS_DIR;
@@ -232,15 +223,6 @@ threeceeUserObj.followUserScreenNameSet = new Set();
 threeceeUserObj.followUserIdSet = new Set();
 threeceeUserObj.searchTermSet = new Set();
 
-const jsonPrint = function (obj){
-  if (obj) {
-    return treeify.asTree(obj, true, true);
-  }
-  else {
-    return "UNDEFINED";
-  }
-};
-
 console.log(
   "\n\nTSS | ====================================================================================================\n" 
   + process.argv[1] 
@@ -249,32 +231,8 @@ console.log(
   + "\nTSS | " + "====================================================================================================\n" 
 );
 
-
 if (debug.enabled) {
   console.log("\nTSS | %%%%%%%%%%%%%%\nTSS | %%%%%%% DEBUG ENABLED %%%%%%%\nTSS | %%%%%%%%%%%%%%\n");
-}
-
-function msToTime(d) {
-
-  let duration = d;
-  let sign = 1;
-
-  if (duration < 0) {
-    sign = -1;
-    duration = -duration;
-  }
-
-  let seconds = parseInt((duration / 1000) % 60);
-  let minutes = parseInt((duration / (1000 * 60)) % 60);
-  let hours = parseInt((duration / (1000 * 60 * 60)) % 24);
-  let days = parseInt(duration / (1000 * 60 * 60 * 24));
-  days = (days < 10) ? "0" + days : days;
-  hours = (hours < 10) ? "0" + hours : hours;
-  minutes = (minutes < 10) ? "0" + minutes : minutes;
-  seconds = (seconds < 10) ? "0" + seconds : seconds;
-
-  if (sign > 0) return days + ":" + hours + ":" + minutes + ":" + seconds;
-  return "- " + days + ":" + hours + ":" + minutes + ":" + seconds;
 }
 
 const statsObj = {};
@@ -413,32 +371,6 @@ console.log("TSS | DROPBOX_TSS_CONFIG_FILE: " + DROPBOX_TSS_CONFIG_FILE);
 
 debug("TSS | dropboxConfigFolder : " + dropboxConfigFolder);
 debug("TSS | dropboxConfigFile : " + dropboxConfigFile);
-
-function getTimeStamp(inputTime) {
-
-  let currentTimeStamp;
-
-  if (inputTime === undefined) {
-    currentTimeStamp = moment().format(compactDateTimeFormat);
-    return currentTimeStamp;
-  }
-  else if (moment.isMoment(inputTime)) {
-    currentTimeStamp = moment(inputTime).format(compactDateTimeFormat);
-    return currentTimeStamp;
-  }
-  else if (moment(new Date(inputTime)).isValid()) {
-    currentTimeStamp = moment(new Date(inputTime)).format(compactDateTimeFormat);
-    return currentTimeStamp;
-  }
-  else if (moment(parseInt(inputTime)).isValid()) {
-    currentTimeStamp = moment(parseInt(inputTime)).format(compactDateTimeFormat);
-    return currentTimeStamp;
-  }
-  else {
-    console.log(chalkAlert("TSS | getTimeStamp INVALID DATE: " + inputTime));
-    return null;
-  }
-}
 
 function showStats(options){
 

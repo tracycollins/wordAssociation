@@ -1363,20 +1363,17 @@ function printUserObj(title, u, chalkFormat) {
 
   console.log(chlk(title
     + " | " + user.nodeId
-    + " | @" + user.screenName
-    + " | N " + user.name 
-    // + " | LG " + user.lang
-    + " | FC " + user.followersCount
-    + " | FD " + user.friendsCount
-    + " | T " + user.statusesCount
-    + " | M  " + user.mentions
-    + " | FW " + formatBoolean(user.following) 
-    + " | LS " + getTimeStamp(user.lastSeen)
-    // + " | LC " + user.location
-    + " | V " + formatBoolean(user.categoryVerified)
+    + " @" + user.screenName
+    + " N " + user.name 
+    + " FC " + user.followersCount
+    + " FD " + user.friendsCount
+    + " T " + user.statusesCount
+    + " M  " + user.mentions
+    + " FW " + formatBoolean(user.following) 
+    + " LS " + getTimeStamp(user.lastSeen)
+    + " V " + formatBoolean(user.categoryVerified)
     + " M " + formatCategory(user.category)
     + " A " + formatCategory(user.categoryAuto)
-    // + " | PRI " + user.priorityFlag
   ));
 }
 
@@ -1500,15 +1497,12 @@ function initPassport(){
     const sessionId = btoa("threecee");
     console.log(chalk.green(MODULE_ID_PREFIX + " | PASSPORT SESSION ID: " + sessionId ));
 
-    const mongoConfig = { wordAssoDb: "mongodb://mongo:NksWAF9HsmgPrD@127.0.0.1:27017/wordAsso?replicaSet=rs0" };
-
     app.use(expressSession({
       sessionId: sessionId,
       secret: "three cee labs 47", 
       resave: false, 
       saveUninitialized: false,
       store: new MongoStore({ mongooseConnection: global.dbConnection })
-      // store: new MongoStore({ url: mongoConfig.wordAssoDb })
     }));
 
     app.use(passport.initialize());
@@ -2412,22 +2406,20 @@ function showStats(options){
 
   console.log(chalkLog(MODULE_ID_PREFIX + " | S"
     + " | " + getTimeStamp()
-    + " | E: " + statsObj.elapsed
-    + " | S: " + getTimeStamp(parseInt(statsObj.startTime))
-    + " | AD: " + statsObj.admin.connected
-    + " | UT: " + statsObj.entity.util.connected
-    + " | VW: " + statsObj.entity.viewer.connected
-    + " | +++ USERS: " + statsObj.user.added
-    + " | XXX USERS: " + statsObj.user.deleted
-    + " | NPM: " + statsObj.nodesPerMin
-    + " | TwRxPM: " + statsObj.twitter.tweetsPerMin
-    + " | MaxTwRxPM: " + statsObj.twitter.maxTweetsPerMin
-    + " | MaxTwRxPM: " + statsObj.twitter.maxTweetsPerMin
-    + " | TwRXQ: " + tweetRxQueue.length
-    + " | Ts/RTs/QTs: " + statsObj.twitter.tweetsReceived + "/" + statsObj.twitter.retweetsReceived + "/" + statsObj.twitter.quotedTweetsReceived
-    + " | TNQ: " + transmitNodeQueue.length
-    + " | TNQ RDY: " + transmitNodeQueueReady
-    + " | USC RDY: " + userServerControllerReady
+    + " | E " + statsObj.elapsed
+    + " | S " + getTimeStamp(parseInt(statsObj.startTime))
+    + " | AD " + statsObj.admin.connected
+    + " | UT " + statsObj.entity.util.connected
+    + " | VW " + statsObj.entity.viewer.connected
+    + " | USRs + " + statsObj.user.added + " X " + statsObj.user.deleted
+    + " | NPM " + statsObj.nodesPerMin
+    + " | TPM " + statsObj.twitter.tweetsPerMin
+    + " | MTPM " + statsObj.twitter.maxTweetsPerMin + " @ " + getTimeStamp(statsObj.twitter.maxTweetsPerMinTime)
+    + " | TwRXQ " + tweetRxQueue.length
+    + " | T/RT/QT " + statsObj.twitter.tweetsReceived + "/" + statsObj.twitter.retweetsReceived + "/" + statsObj.twitter.quotedTweetsReceived
+    + " | TNQ " + transmitNodeQueue.length
+    + " | TNQ RDY " + transmitNodeQueueReady
+    + " | USC RDY " + userServerControllerReady
   ));
 }
 
@@ -5550,11 +5542,6 @@ function followable(text){
 
      hitSearchTerm = checkFollowableSearchTerm(searchTerm, text);
      return hitSearchTerm;
-      // if (new RegExp("\\b" + searchTerm + "\\b", "i").test(text)) {
-      //   hitSearchTerm = searchTerm;
-      //   return true;
-      // }
-      // return false;
     });
 
     resolve(hitSearchTerm);
@@ -6608,7 +6595,7 @@ async function categorize(params){
     autoFollowFlag = true;
     autoFollowUserSet.add(n.nodeId);
     statsObj.user.autoFollow += 1;
-    printUserObj(MODULE_ID_PREFIX + " | +++ AUTO FOLLOW [" + statsObj.user.autoFollow + "]", n);
+    printUserObj(MODULE_ID_PREFIX + " | AUTO FLW [" + statsObj.user.autoFollow + "]", n);
   }
 
   const uncatUserObj = uncatUserCache.get(n.nodeId);
@@ -8520,41 +8507,41 @@ async function initTfeChild(params){
 
         if (m.priorityFlag){
           if (m.searchMode === "SPECIFIC"){
-            printUserObj(MODULE_ID_PREFIX + " | <TFE | PRI CAT | MODE: " + m.searchMode, m.user);
+            printUserObj(MODULE_ID_PREFIX + " | TFE PRI | MODE: " + m.searchMode, m.user);
             viewNameSpace.emit("SET_TWITTER_USER", { user: m.user, searchMode: m.searchMode, stats: statsObj.user });
           }
           else if ((m.searchMode === "MISMATCH") && m.user.category && (m.user.category === m.user.categoryAuto)){
             await addMismatchUserSet({user: m.user});
-            printUserObj(MODULE_ID_PREFIX + " | <TFE | PRI CAT | MISMATCH NOT FOUND | " + m.searchMode, m.user);
+            printUserObj(MODULE_ID_PREFIX + " | TFE PRI | MISMATCH NOT FOUND | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?mm"});
           }
           else if ((m.searchMode === "UNCAT_LEFT") && m.user.categoryAuto && (m.user.categoryAuto !== "left")){
-            printUserObj(MODULE_ID_PREFIX + " | <TFE | PRI CAT | UNCAT LEFT NOT FOUND | " + m.searchMode, m.user);
+            printUserObj(MODULE_ID_PREFIX + " | TFE PRI | UNCAT LEFT NOT FOUND | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?left"});
           }
           else if ((m.searchMode === "UNCAT_NEUTRAL") && m.user.categoryAuto && (m.user.categoryAuto !== "neutral")){
-            printUserObj(MODULE_ID_PREFIX + " | <TFE | PRI CAT | UNCAT NEUTRAL NOT FOUND | " + m.searchMode, m.user);
+            printUserObj(MODULE_ID_PREFIX + " | TFE PRI | UNCAT NEUTRAL NOT FOUND | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?neutral"});
           }
           else if ((m.searchMode === "UNCAT_RIGHT") && m.user.categoryAuto && (m.user.categoryAuto !== "right")){
-            printUserObj(MODULE_ID_PREFIX + " | <TFE | PRI CAT | UNCAT RIGHT NOT FOUND | " + m.searchMode, m.user);
+            printUserObj(MODULE_ID_PREFIX + " | TFE PRI | UNCAT RIGHT NOT FOUND | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?right"});
           }
           else if ((m.searchMode === "UNCAT") && m.user.category){
-            printUserObj(MODULE_ID_PREFIX + " | <TFE | PRI CAT | UNCAT NOT FOUND | " + m.searchMode, m.user);
+            printUserObj(MODULE_ID_PREFIX + " | TFE PRI | UNCAT NOT FOUND | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?all"});
           }
           else if (m.searchMode && m.searchMode !== undefined){
-            printUserObj(MODULE_ID_PREFIX + " | <TFE | PRI CAT | MODE: " + m.searchMode, m.user);
+            printUserObj(MODULE_ID_PREFIX + " | TFE PRI | MODE: " + m.searchMode, m.user);
             viewNameSpace.emit("SET_TWITTER_USER", { user: m.user, searchMode: m.searchMode, stats: statsObj.user });
           }
           else if (autoFollowUserSet.has(m.user.nodeId)){
-            printUserObj(MODULE_ID_PREFIX + " | <TFE | PRI CAT | AUTO FOLLOW", m.user);
+            printUserObj(MODULE_ID_PREFIX + " | TFE PRI | AUTO FLW", m.user);
             // autoFollowUserSet.delete(m.user.nodeId);
           }
         }
         else if (configuration.verbose) {
-          printUserObj(MODULE_ID_PREFIX + " | <TFE | CAT | MODE: " + m.searchMode, m.user, chalkLog);
+          printUserObj(MODULE_ID_PREFIX + " | TFE CAT | MODE: " + m.searchMode, m.user, chalkLog);
         }
       break;
 
@@ -8564,23 +8551,23 @@ async function initTfeChild(params){
           uncatUserCache.del(m.user.nodeId);
 
           if (m.searchMode === "MISMATCH"){
-            printUserObj(MODULE_ID_PREFIX + " | <TFE | PRI CAT | *** MISMATCH ERROR | " + m.searchMode, m.user);
+            printUserObj(MODULE_ID_PREFIX + " | TFE PRI | *** MISMATCH ERROR | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?mm"});
           }
           else if (m.searchMode === "UNCAT_LEFT"){
-            printUserObj(MODULE_ID_PREFIX + " | <TFE | PRI CAT | *** UNCAT LEFT ERROR | " + m.searchMode, m.user);
+            printUserObj(MODULE_ID_PREFIX + " | TFE PRI | *** UNCAT LEFT ERROR | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?left"});
           }
           else if (m.searchMode === "UNCAT_NEUTRAL"){
-            printUserObj(MODULE_ID_PREFIX + " | <TFE | PRI CAT | *** UNCAT NEUTRAL ERROR | " + m.searchMode, m.user);
+            printUserObj(MODULE_ID_PREFIX + " | TFE PRI | *** UNCAT NEUTRAL ERROR | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?neutral"});
           }
           else if (m.searchMode === "UNCAT_RIGHT"){
-            printUserObj(MODULE_ID_PREFIX + " | <TFE | PRI CAT | *** UNCAT RIGHT ERROR | " + m.searchMode, m.user);
+            printUserObj(MODULE_ID_PREFIX + " | TFE PRI | *** UNCAT RIGHT ERROR | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?right"});
           }
           else{
-            printUserObj(MODULE_ID_PREFIX + " | <TFE | PRI CAT | *** UNCAT ERROR | " + m.searchMode, m.user);
+            printUserObj(MODULE_ID_PREFIX + " | TFE PRI | *** UNCAT ERROR | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?all"});
           }
         }
@@ -9903,22 +9890,21 @@ async function initDbUserChangeStream(){
 
       statsObj.user.added = addedUsersSet.size;
 
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | DB CHANGE | +++ DB USER [" + statsObj.user.added + "]"
+      console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | + USR [" + statsObj.user.added + "]"
         + " | " + change.fullDocument.nodeId
         + " | @" + change.fullDocument.screenName
-        + " | CAT M: " + formatCategory(change.fullDocument.category)
+        + " | C M: " + formatCategory(change.fullDocument.category)
         + " A: " + formatCategory(change.fullDocument.categoryAuto)
       ));
     }
     
     if (change && change.operationType === "delete"){
 
-      // categorizedUserHashMap.delete(change.fullDocument.nodeId);
       // change obj doesn't contain userDoc, so use DB BSON ID
 
       deletedUsersSet.add(change._id._data);
       statsObj.user.deleted = deletedUsersSet.size;
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | DB CHANGE | XXX DB USER [" + statsObj.user.deleted + "]"
+      console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | X USR [" + statsObj.user.deleted + "]"
         + " | DB _id: " + change._id._data
       ));
     }
@@ -9959,12 +9945,12 @@ async function initDbUserChangeStream(){
         }
 
         if (catChangeFlag) {
-          console.log(chalkAlert(MODULE_ID_PREFIX + " | DB CHANGE | CAT DB USER"
+          console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | CAT USR"
             + " [ M: " + statsObj.user.categoryChanged + " A: " + statsObj.user.categoryAutoChanged + "]"
             + " | " + change.fullDocument.nodeId
             + " | @" + change.fullDocument.screenName
-            + " | CAT M: " + formatCategory(catObj.manual) + " --> " + formatCategory(categoryChanges.manual)
-            + " A: " + formatCategory(catObj.auto) + " --> " + formatCategory(categoryChanges.auto)
+            + " | M: " + formatCategory(catObj.manual) + " -> " + formatCategory(categoryChanges.manual)
+            + " A: " + formatCategory(catObj.auto) + " -> " + formatCategory(categoryChanges.auto)
           ));
         }
 
@@ -10377,7 +10363,7 @@ async function processTwitterSearchNode(params) {
       + " | @" + params.user.screenName
     ));
 
-    const categorizeable = await userCategorizeable({user: params.user, verbose: true});
+    const categorizeable = await userCategorizeable({user: params.user});
     const uuObj = await uncatUserCacheCheck(params.user.nodeId);
 
     if (params.specificUserFlag) {
@@ -10617,12 +10603,12 @@ function getNextSearchNode(params){
               case "UNCAT":
                 if (user.category && (user.category != "none")){
                   userSkipCount += 1;
-                  printUserObj(MODULE_ID_PREFIX + " | ... SKIP SEARCH | MODE: " + searchMode + " | SKIP COUNT: " + userSkipCount, user);
+                  printUserObj(MODULE_ID_PREFIX + " | SKIP | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
                   notFoundAndMore = true;
                   break;
                 }
 
-                printUserObj(MODULE_ID_PREFIX + " | --> UNCAT USER", user);
+                printUserObj(MODULE_ID_PREFIX + " | UNCAT", user);
                 searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
 
                 if (searchResults.cacheHit || searchResults.uncategorizable) {
@@ -10636,17 +10622,17 @@ function getNextSearchNode(params){
               case "MISMATCH":
                 if ((user.category !== undefined) && (user.category != "none") && user.categoryVerified){
                   userSkipCount += 1;
-                  printUserObj(MODULE_ID_PREFIX + " | ... SKIP SRCH | VRFD | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
+                  printUserObj(MODULE_ID_PREFIX + " | SKIP | VRFD | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
                   notFoundAndMore = true;
                   break;
                 }
                 else if ((user.category !== undefined) && (user.category != "none") && (user.category == user.categoryAuto)){
-                  printUserObj(MODULE_ID_PREFIX + " | ... SKIP SRCH | MTCHD  | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
+                  printUserObj(MODULE_ID_PREFIX + " | SKIP | MTCHD  | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
                   notFoundAndMore = true;
                   break;
                 }
 
-                printUserObj(MODULE_ID_PREFIX + " | --> MM USER", user);
+                printUserObj(MODULE_ID_PREFIX + " | MM", user);
 
                 searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
 
@@ -10662,12 +10648,12 @@ function getNextSearchNode(params){
 
                 if ((user.category && (user.category != "none")) || (user.categoryAuto != "left")){
                   userSkipCount += 1;
-                  printUserObj(MODULE_ID_PREFIX + " | ... SKIP SEARCH USER | MODE: " + searchMode + " | SKIP COUNT: " + userSkipCount, user);
+                  printUserObj(MODULE_ID_PREFIX + " | SKIP | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
                   notFoundAndMore = true;
                   break;
                 }
 
-                printUserObj(MODULE_ID_PREFIX + " | --> SEARCH USER FOUND | MODE: " + searchMode + " | SKIP COUNT: " + userSkipCount, user);
+                printUserObj(MODULE_ID_PREFIX + " | FOUND | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
 
                 searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
 
@@ -10683,12 +10669,12 @@ function getNextSearchNode(params){
 
                 if ((user.category && (user.category != "none")) || (user.categoryAuto != "neutral")){
                   userSkipCount += 1;
-                  printUserObj(MODULE_ID_PREFIX + " | ... SKIP SEARCH USER | MODE: " + searchMode + " | SKIP COUNT: " + userSkipCount, user);
+                  printUserObj(MODULE_ID_PREFIX + " | SKIP | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
                   notFoundAndMore = true;
                   break;
                 }
 
-                printUserObj(MODULE_ID_PREFIX + " | --> SEARCH USER FOUND | MODE: " + searchMode + " | SKIP COUNT: " + userSkipCount, user);
+                printUserObj(MODULE_ID_PREFIX + " | FOUND | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
 
                 searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
 
@@ -10703,12 +10689,12 @@ function getNextSearchNode(params){
               case "UNCAT_RIGHT":
                 if ((user.category && (user.category != "none")) || (user.categoryAuto != "right")){
                   userSkipCount += 1;
-                  printUserObj(MODULE_ID_PREFIX + " | ... SKIP SEARCH USER | MODE: " + searchMode + " | SKIP COUNT: " + userSkipCount, user);
+                  printUserObj(MODULE_ID_PREFIX + " | SKIP | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
                   notFoundAndMore = true;
                   break;
                 }
 
-                printUserObj(MODULE_ID_PREFIX + " | --> SEARCH USER FOUND | MODE: " + searchMode + " | SKIP COUNT: " + userSkipCount, user);
+                printUserObj(MODULE_ID_PREFIX + " | FOUND | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
 
                 searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
 
@@ -10852,7 +10838,7 @@ async function twitterSearchUser(params) {
     }
   }      
 
-  console.log(chalkInfo(MODULE_ID_PREFIX + " | SEARCH FOR SPECIFIC USER | @" + searchNodeUser.screenName));
+  console.log(chalkInfo(MODULE_ID_PREFIX + " | SPECIFIC USR SEARCH | @" + searchNodeUser.screenName));
 
   try {
     const user = await twitterSearchUserNode({user: {screenName: searchNodeUser.screenName}, searchMode: searchMode});

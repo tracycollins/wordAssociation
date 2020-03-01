@@ -334,12 +334,12 @@ let dbConnectionReadyInterval;
 let userChangeCacheTtl = process.env.USER_CHANGE_CACHE_DEFAULT_TTL;
 if (userChangeCacheTtl === undefined) { userChangeCacheTtl = USER_CHANGE_CACHE_DEFAULT_TTL; }
 
-console.log("WAS | TFC | USER CHANGE CACHE TTL: " + userChangeCacheTtl + " SECONDS");
+console.log(MODULE_ID_PREFIX + " | USER CHANGE CACHE TTL: " + userChangeCacheTtl + " SECONDS");
 
 let userChangeCacheCheckPeriod = process.env.USER_CHANGE_CACHE_CHECK_PERIOD;
 if (userChangeCacheCheckPeriod === undefined) { userChangeCacheCheckPeriod = USER_CHANGE_CACHE_CHECK_PERIOD; }
 
-console.log("WAS | TFC | userChange CACHE CHECK PERIOD: " + userChangeCacheCheckPeriod + " SECONDS");
+console.log(MODULE_ID_PREFIX + " | userChange CACHE CHECK PERIOD: " + userChangeCacheCheckPeriod + " SECONDS");
 
 const userChangeCache = new NodeCache({
   stdTTL: userChangeCacheTtl,
@@ -352,7 +352,6 @@ const userChangeCache = new NodeCache({
 
 let tcUtils;
 let formatCategory;
-let formatBoolean;
 
 let nnTools;
 let tweetServerController;
@@ -396,7 +395,6 @@ async function connectDb(){
     
     tcUtils = new ThreeceeUtilities(tcuChildName);
     formatCategory = tcUtils.formatCategory;
-    formatBoolean = tcUtils.formatBoolean;
 
     nnTools = new NeuralNetworkTools("WA_TFE_NNT");
 
@@ -451,10 +449,10 @@ function showStats(options){
   statsObj.elapsed = moment().valueOf() - statsObj.startTime;
 
   if (options) {
-    console.log("WAS | TFC | STATS\n" + tcUtils.jsonPrint(statsObj));
+    console.log(MODULE_ID_PREFIX + " | STATS\n" + tcUtils.jsonPrint(statsObj));
   }
   else {
-    console.log(chalkLog("WAS | TFC | S"
+    console.log(chalkLog(MODULE_ID_PREFIX + " | S"
       + " | ELPSD " + tcUtils.msToTime(statsObj.elapsed)
       + " | START " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
       + " | UC$: " + userChangeCache.getStats().keys
@@ -478,7 +476,7 @@ function quit(message) {
     exitCode = 1;
   }
 
-  console.error("WAS | TFC | " + process.argv[1]
+  console.error(MODULE_ID_PREFIX + " | " + process.argv[1]
     + " | " + moment().format(compactDateTimeFormat)
     + " | **** QUITTING"
     + " | CAUSE: " + msg
@@ -698,7 +696,7 @@ function processTweetObj(params){
     for(const entityType of DEFAULT_INPUT_TYPES){
 
       if (!entityType || entityType === undefined) {
-        console.log(chalkAlert("WAS | TFC | ??? UNDEFINED TWEET entityType: ", entityType));
+        console.log(chalkAlert(MODULE_ID_PREFIX + " | ??? UNDEFINED TWEET entityType: ", entityType));
         continue;
       }
 
@@ -709,12 +707,12 @@ function processTweetObj(params){
       for(const entityObj of tweetObj[entityType]){
 
         if (empty(entityObj)) {
-          debug(chalkAlert("WAS | TFC | *** processTweetObj EMPTY ENTITY | ENTITY TYPE: " + entityType + " | entityObj: " + tcUtils.jsonPrint(entityObj)));
+          debug(chalkAlert(MODULE_ID_PREFIX + " | *** processTweetObj EMPTY ENTITY | ENTITY TYPE: " + entityType + " | entityObj: " + tcUtils.jsonPrint(entityObj)));
           continue;
         }
 
         if (empty(entityObj.nodeId)) {
-          debug(chalkAlert("WAS | TFC | *** processTweetObj UNDEFINED NODE ID | ENTITY TYPE: " + entityType + " | entityObj: " + tcUtils.jsonPrint(entityObj)));
+          debug(chalkAlert(MODULE_ID_PREFIX + " | *** processTweetObj UNDEFINED NODE ID | ENTITY TYPE: " + entityType + " | entityObj: " + tcUtils.jsonPrint(entityObj)));
           continue;
         }
 
@@ -729,7 +727,7 @@ function processTweetObj(params){
           case "mentions":
           case "userMentions":
             if (empty(entityObj.screenName)) {
-              console.log(chalkAlert("WAS | TFC | *** processTweetObj UNDEFINED SCREEN NAME | ENTITY TYPE: " + entityType + " | entityObj: " + tcUtils.jsonPrint(entityObj)));
+              console.log(chalkAlert(MODULE_ID_PREFIX + " | *** processTweetObj UNDEFINED SCREEN NAME | ENTITY TYPE: " + entityType + " | entityObj: " + tcUtils.jsonPrint(entityObj)));
               continue;
             }
             entity = "@" + entityObj.screenName.toLowerCase();
@@ -759,7 +757,7 @@ function processTweetObj(params){
           break;
           
           default:
-            console.log(chalkError("WAS | TFC | *** processTweetObj UNKNOWN ENTITY TYPE: " + entityType));
+            console.log(chalkError(MODULE_ID_PREFIX + " | *** processTweetObj UNKNOWN ENTITY TYPE: " + entityType));
             continue;
         }
 
@@ -847,7 +845,7 @@ function processUserTweetArray(params){
           statsObj.twitter.tweetsTotal += 1;
 
           if (configuration.testMode || configuration.verbose) {
-            console.log(chalkTwitter("TFE | +++ PROCESSED TWEET"
+            console.log(chalkTwitter(MODULE_ID_PREFIX + " | +++ PROCESSED TWEET"
               + " | FORCE: " + forceFetch
               + " [ P/H/T " + statsObj.twitter.tweetsProcessed + "/" + statsObj.twitter.tweetsHits + "/" + statsObj.twitter.tweetsTotal + "]"
               + " | TW: " + tweet.id_str
@@ -860,7 +858,7 @@ function processUserTweetArray(params){
           return;
         }
         catch(err){
-          console.log(chalkError("TFE | updateUserTweets ERROR: " + err));
+          console.log(chalkError(MODULE_ID_PREFIX + " | updateUserTweets ERROR: " + err));
           return err;
         }
       }
@@ -870,7 +868,7 @@ function processUserTweetArray(params){
         statsObj.twitter.tweetsTotal += 1;
 
         if (configuration.testMode || configuration.verbose) {
-          console.log(chalkInfo("TFE | ... TWEET ALREADY PROCESSED"
+          console.log(chalkInfo(MODULE_ID_PREFIX + " | ... TWEET ALREADY PROCESSED"
             + " [ P/H/T " + statsObj.twitter.tweetsProcessed + "/" + statsObj.twitter.tweetsHits + "/" + statsObj.twitter.tweetsTotal + "]"
             + " | TW: " + tweet.id_str
             + " | TWs: " + user.tweets.tweetIds.length
@@ -882,12 +880,12 @@ function processUserTweetArray(params){
       }
     }, function(err){
       if (err) {
-        console.log(chalkError("TFE | updateUserTweets ERROR: " + err));
+        console.log(chalkError(MODULE_ID_PREFIX + " | updateUserTweets ERROR: " + err));
         return reject(err);
       }
 
       if (forceFetch || configuration.testMode || configuration.verbose) {
-        console.log(chalkLog("TFE | +++ Ts"
+        console.log(chalkLog(MODULE_ID_PREFIX + " | +++ Ts"
           + " | FORCE: " + forceFetch
           + " [ P/H/T " + statsObj.twitter.tweetsProcessed + "/" + statsObj.twitter.tweetsHits + "/" + statsObj.twitter.tweetsTotal + "]"
           + " | Ts: " + user.tweets.tweetIds.length
@@ -923,17 +921,17 @@ async function processUserTweets(params){
     const processedUser = await processUserTweetArray({user: user, forceFetch: tweetHistogramsEmpty, tweets: tweets, tscParams: tscParams});
 
     if (tweetHistogramsEmpty) {
-      console.log(chalkLog("TFE | >>> processUserTweetArray USER"
+      console.log(chalkLog(MODULE_ID_PREFIX + " | USER Ts"
         + " | " + printUser({user: processedUser})
       ));
-      debug(chalkLog("TFE | >>> processUserTweetArray USER TWEETS"
+      debug(chalkLog(MODULE_ID_PREFIX + " | USER Ts"
         + " | SINCE: " + processedUser.tweets.sinceId
         + " | TWEETS: " + processedUser.tweets.tweetIds.length
       ));
-      debug(chalkLog("TFE | >>> processUserTweetArray USER TWEET HISTOGRAMS"
+      debug(chalkLog(MODULE_ID_PREFIX + " | >>> processUserTweetArray USER TWEET HISTOGRAMS"
         + "\n" + tcUtils.jsonPrint(processedUser.tweetHistograms)
       ));
-      debug(chalkLog("TFE | >>> processUserTweetArray USER PROFILE HISTOGRAMS"
+      debug(chalkLog(MODULE_ID_PREFIX + " | >>> processUserTweetArray USER PROFILE HISTOGRAMS"
         + "\n" + tcUtils.jsonPrint(processedUser.profileHistograms)
       ));
     }
@@ -941,7 +939,7 @@ async function processUserTweets(params){
     return processedUser;
   }
   catch(err){
-    console.log(chalkError("TFE | *** processUserTweetArray ERROR: " + err));
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** processUserTweetArray ERROR: " + err));
     throw err;
   }
 }
@@ -959,12 +957,12 @@ async function updateUserTweets(params){
       userTweetFetchSet.add(user.nodeId);
 
       if (configuration.testFetchTweetsMode) {
-        console.log(chalkAlert("TFE | updateUserTweets | !!! TEST MODE FETCH TWEETS"
+        console.log(chalkAlert(MODULE_ID_PREFIX + " | updateUserTweets | !!! TEST MODE FETCH TWEETS"
           + " | @" + user.screenName
         ));
       }
       else{
-        console.log(chalkInfo("TFE | >>> PRIORITY FETCH TWEETS"
+        debug(chalkInfo(MODULE_ID_PREFIX + " | PRI FETCH TWEETS"
           + " | @" + user.screenName
         ));
       }
@@ -991,7 +989,7 @@ async function updateUserTweets(params){
       const length = user.tweets.tweetIds.length;
       const removeNumber = length - DEFAULT_MAX_USER_TWEETIDS;
 
-      debug(chalkLog("TFE | ---  TWEETS > MAX TWEETIDS"
+      debug(chalkLog(MODULE_ID_PREFIX + " | ---  TWEETS > MAX TWEETIDS"
         + " | " + user.nodeId
         + " | @" + user.screenName
         + " | " + length + " TWEETS"
@@ -1006,12 +1004,12 @@ async function updateUserTweets(params){
     return processedUser;
   }
   catch(err){
-    console.log(chalkError("TFE | *** updateUserTweets ERROR: " + err));
-    console.log(chalkError("TFE | *** updateUserTweets ERROR CODE: " + err.code));
-    console.log(chalkError("TFE | *** updateUserTweets ERROR STATUS CODE: " + err.statusCode));
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** updateUserTweets ERROR: " + err));
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** updateUserTweets ERROR CODE: " + err.code));
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** updateUserTweets ERROR STATUS CODE: " + err.statusCode));
 
     if (twitterDeleteUserErrorCodesArray.includes(err.code)){
-      console.log(chalkError("TFE | XXX DELETE USER"
+      console.log(chalkError(MODULE_ID_PREFIX + " | XXX DELETE USER"
         + " | ERROR STATUS CODE: " + err.statusCode
         + " | NID: " + params.user.nodeId
         + " | @" + params.user.screenName
@@ -1119,7 +1117,7 @@ function initProcessUserQueueInterval(interval) {
             statsObj.user.processed += 1;
 
             if (queueObj.priorityFlag) {
-              console.log(chalkInfo(MODULE_ID_PREFIX + " | >>> PROCESSED"
+              console.log(chalkInfo(MODULE_ID_PREFIX + " | PRI PRCSSD"
                 + " [ PRCSSD: " + statsObj.user.processed + " / PUQ: " + processUserQueue.length + "]"
                 + " | PRI: " + queueObj.priorityFlag
                 + " | NID: " + processedUser.nodeId
@@ -1217,7 +1215,7 @@ async function initWatchConfig(){
 
 async function initialize(cnf){
 
-  console.log(chalkLog("WAS | TFC | INITIALIZE"));
+  console.log(chalkLog(MODULE_ID_PREFIX + " | INITIALIZE"));
 
   if (debug.enabled || debugCache.enabled || debugQ.enabled){
     console.log("\nWAS | TFC | %%%%%%%%%%%%%%\nWAS | TFC | DEBUG ENABLED \nWAS | TFC | %%%%%%%%%%%%%%\n");
@@ -1240,40 +1238,40 @@ async function initialize(cnf){
 
     const loadedConfigObj = await tcUtils.loadFileRetry({folder: configuration.configDefaultFolder, file: configuration.configDefaultFile}); 
 
-    console.log("WAS | TFC | " + configuration.configDefaultFolder + "/" + configuration.configDefaultFile + "\n" + tcUtils.jsonPrint(loadedConfigObj));
+    console.log(MODULE_ID_PREFIX + " | " + configuration.configDefaultFolder + "/" + configuration.configDefaultFile + "\n" + tcUtils.jsonPrint(loadedConfigObj));
 
     if (loadedConfigObj.TFE_VERBOSE_MODE !== undefined){
-      console.log("WAS | TFC | LOADED TFE_VERBOSE_MODE: " + loadedConfigObj.TFE_VERBOSE_MODE);
+      console.log(MODULE_ID_PREFIX + " | LOADED TFE_VERBOSE_MODE: " + loadedConfigObj.TFE_VERBOSE_MODE);
       cnf.verbose = loadedConfigObj.TFE_VERBOSE_MODE;
     }
 
     if (loadedConfigObj.TFE_GLOBAL_TEST_MODE !== undefined){
-      console.log("WAS | TFC | LOADED TFE_GLOBAL_TEST_MODE: " + loadedConfigObj.TFE_GLOBAL_TEST_MODE);
+      console.log(MODULE_ID_PREFIX + " | LOADED TFE_GLOBAL_TEST_MODE: " + loadedConfigObj.TFE_GLOBAL_TEST_MODE);
       cnf.globalTestMode = loadedConfigObj.TFE_GLOBAL_TEST_MODE;
     }
 
     if (loadedConfigObj.TFE_TEST_MODE !== undefined){
-      console.log("WAS | TFC | LOADED TFE_TEST_MODE: " + loadedConfigObj.TFE_TEST_MODE);
+      console.log(MODULE_ID_PREFIX + " | LOADED TFE_TEST_MODE: " + loadedConfigObj.TFE_TEST_MODE);
       cnf.testMode = loadedConfigObj.TFE_TEST_MODE;
     }
 
     if (loadedConfigObj.TFE_ENABLE_FETCH_USER_FRIENDS !== undefined){
-      console.log("WAS | TFC | LOADED TFE_ENABLE_FETCH_USER_FRIENDS: " + loadedConfigObj.TFE_ENABLE_FETCH_USER_FRIENDS);
+      console.log(MODULE_ID_PREFIX + " | LOADED TFE_ENABLE_FETCH_USER_FRIENDS: " + loadedConfigObj.TFE_ENABLE_FETCH_USER_FRIENDS);
       cnf.enableFetchUserFriends = loadedConfigObj.TFE_ENABLE_FETCH_USER_FRIENDS;
     }
 
     if (loadedConfigObj.TFE_ENABLE_GEOCODE !== undefined){
-      console.log("WAS | TFC | LOADED TFE_ENABLE_GEOCODE: " + loadedConfigObj.TFE_ENABLE_GEOCODE);
+      console.log(MODULE_ID_PREFIX + " | LOADED TFE_ENABLE_GEOCODE: " + loadedConfigObj.TFE_ENABLE_GEOCODE);
       cnf.enableGeoCode = loadedConfigObj.TFE_ENABLE_GEOCODE;
     }
 
     if (loadedConfigObj.TFE_STATS_UPDATE_INTERVAL !== undefined) {
-      console.log("WAS | TFC | LOADED TFE_STATS_UPDATE_INTERVAL: " + loadedConfigObj.TFE_STATS_UPDATE_INTERVAL);
+      console.log(MODULE_ID_PREFIX + " | LOADED TFE_STATS_UPDATE_INTERVAL: " + loadedConfigObj.TFE_STATS_UPDATE_INTERVAL);
       cnf.statsUpdateIntervalTime = loadedConfigObj.TFE_STATS_UPDATE_INTERVAL;
     }
 
     if (loadedConfigObj.TFE_MAX_TWEET_QUEUE !== undefined) {
-      console.log("WAS | TFC | LOADED TFE_MAX_TWEET_QUEUE: " + loadedConfigObj.TFE_MAX_TWEET_QUEUE);
+      console.log(MODULE_ID_PREFIX + " | LOADED TFE_MAX_TWEET_QUEUE: " + loadedConfigObj.TFE_MAX_TWEET_QUEUE);
       cnf.maxTweetQueue = loadedConfigObj.TFE_MAX_TWEET_QUEUE;
     }
 
@@ -1282,7 +1280,7 @@ async function initialize(cnf){
     const configArgs = Object.keys(cnf);
 
     configArgs.forEach(function(arg){
-      console.log("WAS | TFC | FINAL CONFIG | " + arg + ": " + cnf[arg]);
+      console.log(MODULE_ID_PREFIX + " | FINAL CONFIG | " + arg + ": " + cnf[arg]);
     });
 
     await initStatsUpdate();
@@ -1292,7 +1290,7 @@ async function initialize(cnf){
     cnf.twitterConfig = {};
     cnf.twitterConfig = twitterConfig;
 
-    console.log("WAS | TFC | " + chalkInfo(tcUtils.getTimeStamp() + " | TWITTER CONFIG FILE " 
+    console.log(MODULE_ID_PREFIX + " | " + chalkInfo(tcUtils.getTimeStamp() + " | TWITTER CONFIG FILE " 
       + configuration.twitterConfigFolder
       + configuration.twitterConfigFile
       + "\n" + tcUtils.jsonPrint(cnf.twitterConfig )
@@ -1302,7 +1300,7 @@ async function initialize(cnf){
 
   }
   catch(err){
-    console.error("WAS | TFC | *** ERROR LOAD DROPBOX CONFIG: " + configuration.configDefaultFolder + "/" + configuration.configDefaultFile + "\n" + tcUtils.jsonPrint(err));
+    console.error(MODULE_ID_PREFIX + " | *** ERROR LOAD DROPBOX CONFIG: " + configuration.configDefaultFolder + "/" + configuration.configDefaultFile + "\n" + tcUtils.jsonPrint(err));
     throw err;
   }
 }
@@ -1338,8 +1336,8 @@ async function generateAutoCategory(p) {
       );
       await nnTools.printNetworkResults();
     }
-    else if (configuration.testMode || (currentBestNetwork.meta.total % 1000 === 0)) {
-      printNetworkObj("RNT | NETWORK STATS"
+    else if (configuration.testMode || (currentBestNetwork.meta.total > 0 && currentBestNetwork.meta.total % 1000 === 0)) {
+      printNetworkObj(MODULE_ID_PREFIX + " | NN"
         + " | @" + user.screenName 
         + " | CM: " + formatCategory(user.category), currentBestNetwork, chalk.black
       );
@@ -1349,7 +1347,7 @@ async function generateAutoCategory(p) {
     if (configuration.verbose
       || (statsObj.currentBestNetwork.rank < currentBestNetwork.rank)
     ) {
-      console.log("TFE | BEST NN"
+      console.log(MODULE_ID_PREFIX + " | BEST NN"
         + " | RANK: " + currentBestNetwork.rank
         + " | MR: " + currentBestNetwork.matchRate.toFixed(2) + "%"
         + " | " + currentBestNetwork.meta.match + "/" + currentBestNetwork.meta.total
@@ -1397,7 +1395,7 @@ async function generateAutoCategory(p) {
 
   }
   catch(err){
-    console.log(chalkError("TFE | *** generateAutoCategory ERROR: " + err));
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** generateAutoCategory ERROR: " + err));
     throw err;
   }
 }
@@ -1435,7 +1433,7 @@ async function updatePreviousUserProps(params){
 
   }
   catch(err){
-    console.log(chalkError("TFE | *** updatePreviousUserProps ERROR: " + err));
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** updatePreviousUserProps ERROR: " + err));
     throw err;
   }
 }
@@ -1571,7 +1569,6 @@ process.on("message", async function(m) {
 
       await nnTools.setMaxInputHashMap(m.maxInputHashMap);
       await nnTools.setNormalization(m.normalization);
-      // await nnTools.setBinaryMode(configuration.binaryMode);
 
       await nnTools.deleteAllNetworks();
       await loadNetworks();
@@ -1582,7 +1579,7 @@ process.on("message", async function(m) {
       
       await tcUtils.initTwitter({twitterConfig: m.twitterConfig});
 
-      console.log(chalkInfo("WAS | TFC | INIT"
+      console.log(chalkInfo(MODULE_ID_PREFIX + " | INIT"
         + " | TITLE: " + process.title
         + " | NETWORK: " + networkObj.networkId
         + " | USER PROFILE ONLY FLAG: " + configuration.userProfileOnlyFlag
@@ -1609,37 +1606,36 @@ process.on("message", async function(m) {
       statsObj.autoChangeMatch = 0;
       statsObj.autoChangeMismatch = 0;
 
-      console.log(chalkBlueBold("WAS | TFC | >>> SET NETWORK"
+      console.log(chalkBlueBold(MODULE_ID_PREFIX + " | >>> SET NETWORK"
         + " | NETWORK: " + networkObj.networkId
-        // + " | INPUTS: " + networkObj.inputsObj.meta.numInputs
         + " | INPUTS ID: " + networkObj.inputsId
       ));
     break;
 
     case "FORCE_IMAGE_ANALYSIS":
       configuration.forceImageAnalysis = m.forceImageAnalysis;
-      console.log(chalkInfo("WAS | TFC | +++ FORCE_IMAGE_ANALYSIS"
+      console.log(chalkInfo(MODULE_ID_PREFIX + " | +++ FORCE_IMAGE_ANALYSIS"
         + " | FORCE IMAGE ANALYSIS: " + configuration.forceImageAnalysis
       ));
     break;
 
     case "MAX_INPUT_HASHMAP":
       await nnTools.setMaxInputHashMap(m.maxInputHashMap);
-      console.log(chalkInfo("WAS | TFC | +++ MAX_INPUT_HASHMAP"
+      console.log(chalkInfo(MODULE_ID_PREFIX + " | +++ MAX_INPUT_HASHMAP"
         + " | MAX INPUT HM KEYS: " + Object.keys(nnTools.getMaxInputHashMap())
       ));
     break;
 
     case "NORMALIZATION":
       await nnTools.setNormalization(m.normalization);
-      console.log(chalkInfo("WAS | TFC | +++ NORMALIZATION"
+      console.log(chalkInfo(MODULE_ID_PREFIX + " | +++ NORMALIZATION"
         + " | NORMALIZATION: " + Object.keys(nnTools.getNormalization())
       ));
     break;
 
     case "USER_AUTHENTICATED":
 
-      console.log(chalkInfo("WAS | TFC | USER_AUTHENTICATED"
+      console.log(chalkInfo(MODULE_ID_PREFIX + " | USER_AUTHENTICATED"
         + " | @" + m.user.screenName
         + " | UID: " + m.user.userId
         + " | TOKEN: " + m.token
@@ -1652,7 +1648,7 @@ process.on("message", async function(m) {
 
         const authObj = twitterUserObj.twit.getAuth();
 
-        console.log(chalkLog("WAS | TFC | CURRENT AUTH\n" + tcUtils.jsonPrint(authObj)));
+        console.log(chalkLog(MODULE_ID_PREFIX + " | CURRENT AUTH\n" + tcUtils.jsonPrint(authObj)));
 
         twitterUserObj.twit.setAuth({access_token: m.token, access_token_secret: m.tokenSecret});
 
@@ -1665,28 +1661,28 @@ process.on("message", async function(m) {
 
         twitterUserHashMap.set(m.user.screenName, twitterUserObj);
 
-        console.log(chalkError("WAS | TFC | UPDATED AUTH\n" + tcUtils.jsonPrint(authObjNew)));
+        console.log(chalkError(MODULE_ID_PREFIX + " | UPDATED AUTH\n" + tcUtils.jsonPrint(authObjNew)));
 
       }
       else {
-        console.log(chalkAlert("WAS | TFC | TWITTER USER OBJ UNDEFINED: " + m.user.screenName));
+        console.log(chalkAlert(MODULE_ID_PREFIX + " | TWITTER USER OBJ UNDEFINED: " + m.user.screenName));
       }
     break;
 
     case "USER_CATEGORIZE":
 
       if (m.priorityFlag) {
-        console.log(chalkInfo("WAS | TFC | *** PRI USER_CATEGORIZE"
+        console.log(chalkInfo(MODULE_ID_PREFIX + " | PRI CAT"
           + " [PUQ: " + processUserQueue.length + "]"
-          + " | MODE: " + m.searchMode
+          // + " | SEARCH mode: " + m.searchMode
           + " | UID: " + m.user.userId
           + " | @" + m.user.screenName
         ));
       }
 
       if (!m.user.nodeId || (m.user.nodeId === undefined)) { 
-        console.log(chalkError("WAS | TFC | ??? USER NODE ID UNDEFINED ... SET TO USER ID"
-          + " | MODE: " + m.searchMode
+        console.log(chalkError(MODULE_ID_PREFIX + " | ??? USER NODE ID UNDEFINED ... SET TO USER ID"
+          // + " | SEARCH MODE: " + m.searchMode
           + " | UID: " + m.user.userId
           + " | @" + m.user.screenName
         ));
@@ -1697,19 +1693,19 @@ process.on("message", async function(m) {
 
       if (m.priorityFlag && configuration.verbose) { 
         if (cacheObj){
-          console.log(chalk.green("WAS | TFC | USER CAT $ HIT"
+          console.log(chalk.green(MODULE_ID_PREFIX + " | CAT $ HIT"
             + " [UC$: " + userChangeCache.getStats().keys + "]"
             + " [PUQ: " + processUserQueue.length + "]"
-            + " | MODE: " + m.searchMode
+            + " | SEARCH: " + m.searchMode
             + " | NID: " + m.user.nodeId
             + " | @" + m.user.screenName
           ));
         }
         else{
-          console.log(chalk.gray("WAS | TFC | USER CAT $ MISS"
+          console.log(chalk.gray(MODULE_ID_PREFIX + " | CAT $ MISS"
             + " [UC$: " + userChangeCache.getStats().keys + "]"
             + " [PUQ: " + processUserQueue.length + "]"
-            + " | MODE: " + m.searchMode
+            + " | SEARCH: " + m.searchMode
             + " | NID: " + m.user.nodeId
             + " | @" + m.user.screenName
           ));
@@ -1757,7 +1753,7 @@ process.on("message", async function(m) {
     break;
 
     default:
-      console.error(chalkLog("WAS | TFC | TWP | *** UNKNOWN OP"
+      console.error(chalkLog(MODULE_ID_PREFIX + " | TWP | *** UNKNOWN OP"
         + " | INTERVAL: " + m.op
       ));
   }
@@ -1774,26 +1770,26 @@ setTimeout(async function(){
     }
     catch(err){
       if (err.status != 404){
-        console.error(chalkLog("WAS | TFC | *** INIT ERROR \n" + tcUtils.jsonPrint(err)));
+        console.error(chalkLog(MODULE_ID_PREFIX + " | *** INIT ERROR \n" + tcUtils.jsonPrint(err)));
         quit();
       }
-      console.log(chalkError("WAS | TFC | *** INIT ERROR | CONFIG FILE NOT FOUND? | ERROR: " + err));
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT ERROR | CONFIG FILE NOT FOUND? | ERROR: " + err));
     }
   }
   catch(err){
     dbConnectionReady = false;
-    console.log(chalkError("WAS | TFC | *** MONGO DB CONNECT ERROR: " + err + " | QUITTING ***"));
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECT ERROR: " + err + " | QUITTING ***"));
     quit("MONGO DB CONNECT ERROR");
   }
 
-  console.log("WAS | TFC | " + configuration.processName + " STARTED " + tcUtils.getTimeStamp() + "\n");
+  console.log(MODULE_ID_PREFIX + " | " + configuration.processName + " STARTED " + tcUtils.getTimeStamp() + "\n");
 
   dbConnectionReadyInterval = setInterval(function() {
     if (dbConnectionReady) {
       clearInterval(dbConnectionReadyInterval);
     }
     else {
-      console.log(chalkInfo("WAS | TFC | WAIT DB CONNECTED ..."));
+      console.log(chalkInfo(MODULE_ID_PREFIX + " | WAIT DB CONNECTED ..."));
     }
   }, 1000);
 
@@ -1807,7 +1803,7 @@ setTimeout(async function(){
     process.send({ op: "READY"});
   }
   catch(err){
-    console.log(chalkError("WAS | TFC | *** INIT INFO TWITTER ERROR: " + err));
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT INFO TWITTER ERROR: " + err));
   }
 
 }, ONE_SECOND);

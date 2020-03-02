@@ -6447,7 +6447,7 @@ async function updateHashtagSets(){
     const text = (hashtag.text && (hashtag.text !== undefined)) ? hashtag.text.toLowerCase() : "undefined_text";
     const category = hashtag.category;
 
-    if (hashtag.category && hashtag.category !== undefined){
+    if (hashtag.category && hashtag.category !== undefined && hashtag.category !== "none"){
       categorizedHashtagHashMap.set(hashtag.nodeId, 
         { 
           nodeId: hashtag.nodeId, 
@@ -6598,7 +6598,7 @@ async function categorize(params){
   }
 
   if (configuration.autoFollow
-    && (!n.category || (n.category === undefined))
+    && (!n.category || (n.category === "none") || (n.category === undefined))
     && (!n.ignored || (n.ignored === undefined))
     && (!n.following || (n.following === undefined))
     && (n.followersCount >= configuration.minFollowersAutoFollow)
@@ -6618,7 +6618,7 @@ async function categorize(params){
 
   if (!uncategorizedManualUserSet.has(n.nodeId) 
     && (uncatUserObj == undefined)
-    && (!n.category || (n.category === undefined))
+    && (!n.category || (n.category === "none") || (n.category === undefined))
     && (!n.ignored || (n.ignored === undefined))
     && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && n.categoryAuto && (n.categoryAuto != "right")))
     && !ignoredUserSet.has(n.nodeId) 
@@ -6687,8 +6687,8 @@ function initTransmitNodeQueueInterval(interval){
 
         nodeObj.updateLastSeen = true;
 
-        if (empty(nodeObj.category)) { nodeObj.category = false; }
-        if (empty(nodeObj.categoryAuto)) { nodeObj.categoryAuto = false; }
+        if (empty(nodeObj.category)) { nodeObj.category = "none"; }
+        if (empty(nodeObj.categoryAuto)) { nodeObj.categoryAuto = "none"; }
 
         // ??? PERFORMANCE: may parallelize checkCategory + updateNodeMeter + userCategorizeable
 
@@ -6699,7 +6699,14 @@ function initTransmitNodeQueueInterval(interval){
  
         if (categorizeable) { await categorize({user: node, autoFollowFlag: autoFollowFlag}); }
 
-        if ((node.nodeType == "user") && (node.category || node.categoryAuto || node.following || node.threeceeFollowing)){
+        if ((node.nodeType == "user") 
+          && (
+            (node.category && node.category !== "none") 
+            || (node.categoryAuto && node.categoryAuto !== "none") 
+            || node.following 
+            || node.threeceeFollowing
+          )
+        ){
 
           nCacheObj = nodeCache.get(node.nodeId);
 
@@ -6798,7 +6805,7 @@ function initTransmitNodeQueueInterval(interval){
 
           transmitNodeQueueReady = true;
         }
-        else if ((node.nodeType == "hashtag") && node.category && hashtagServerControllerReady){
+        else if ((node.nodeType == "hashtag") && node.category && node.category !== "none" && hashtagServerControllerReady){
 
           node.updateLastSeen = true;
 
@@ -8512,7 +8519,7 @@ async function initTfeChild(params){
           }
         );
 
-        if (m.user.category == "left" || m.user.category == "right" || m.user.category == "neutral") {
+        if (m.user.category === "left" || m.user.category === "right" || m.user.category === "neutral") {
           uncatUserCache.del(m.user.nodeId);
 
           if (m.user.category == m.user.categoryAuto) {
@@ -8526,24 +8533,24 @@ async function initTfeChild(params){
             printUserObj(MODULE_ID_PREFIX + " | TFE PRI | MODE: " + m.searchMode, m.user);
             viewNameSpace.emit("SET_TWITTER_USER", { user: m.user, searchMode: m.searchMode, stats: statsObj.user });
           }
-          else if ((m.searchMode === "MISMATCH") && m.user.category && (m.user.category === m.user.categoryAuto)){
+          else if ((m.searchMode === "MISMATCH") && m.user.category && m.user.category !== "none" && (m.user.category === m.user.categoryAuto)){
             await addMismatchUserSet({user: m.user});
             printUserObj(MODULE_ID_PREFIX + " | TFE PRI | MISMATCH NOT FOUND | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?mm"});
           }
-          else if ((m.searchMode === "UNCAT_LEFT") && m.user.categoryAuto && (m.user.categoryAuto !== "left")){
+          else if ((m.searchMode === "UNCAT_LEFT") && m.user.categoryAuto && m.user.categoryAuto !== "none" && (m.user.categoryAuto !== "left")){
             printUserObj(MODULE_ID_PREFIX + " | TFE PRI | UNCAT LEFT NOT FOUND | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?left"});
           }
-          else if ((m.searchMode === "UNCAT_NEUTRAL") && m.user.categoryAuto && (m.user.categoryAuto !== "neutral")){
+          else if ((m.searchMode === "UNCAT_NEUTRAL") && m.user.categoryAuto && m.user.categoryAuto !== "none" && (m.user.categoryAuto !== "neutral")){
             printUserObj(MODULE_ID_PREFIX + " | TFE PRI | UNCAT NEUTRAL NOT FOUND | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?neutral"});
           }
-          else if ((m.searchMode === "UNCAT_RIGHT") && m.user.categoryAuto && (m.user.categoryAuto !== "right")){
+          else if ((m.searchMode === "UNCAT_RIGHT") && m.user.categoryAuto && m.user.categoryAuto !== "none" && (m.user.categoryAuto !== "right")){
             printUserObj(MODULE_ID_PREFIX + " | TFE PRI | UNCAT RIGHT NOT FOUND | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?right"});
           }
-          else if ((m.searchMode === "UNCAT") && m.user.category){
+          else if ((m.searchMode === "UNCAT") && m.user.category && m.user.category !== "none" ){
             printUserObj(MODULE_ID_PREFIX + " | TFE PRI | UNCAT NOT FOUND | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?all"});
           }

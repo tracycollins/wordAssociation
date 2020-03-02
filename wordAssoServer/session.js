@@ -1594,7 +1594,7 @@ socket.on("HEARTBEAT", function(hb) {
   statsObj.maxNodes = ( currentSessionView === undefined) ? 0 : currentSessionView.getMaxNodes();
   statsObj.maxNodeAddQ = ( currentSessionView === undefined) ? 0 : currentSessionView.getMaxNodeAddQ();
 
-  heartBeatsReceived += 1;
+  // heartBeatsReceived += 1;
   statsObj.serverConnected = true;
   statsObj.socket.connected = true;
   // lastHeartbeatReceived = Date.now();

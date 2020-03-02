@@ -65,13 +65,15 @@ var DEFAULT_NODE_RADIUS = 20.0;
 const DEFAULT_SOURCE = REPLACE_SOURCE;
 
 var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
-// var DEFAULT_AUTH_URL = "http://localhost:9997/auth/twitter";
-// var DEFAULT_AUTH_URL = DEFAULT_SOURCE + "/login";
 
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60*ONE_SECOND;
 
 const DEFAULT_KEEPALIVE_INTERVAL = ONE_MINUTE;
+
+var serverHeartbeatTimeoutFlag = false;
+var serverHeartbeatTimeoutPeriod = 5*ONE_MINUTE;
+var serverCheckInterval = 5*ONE_MINUTE;
 
 var MAX_RX_QUEUE = 250;
 
@@ -349,11 +351,6 @@ else {
     config.disableLinks = false;
   }
 }
-
-var serverHeartbeatTimeoutFlag = false;
-var serverHeartbeatTimeoutPeriod = 300000;
-var serverCheckInterval = 120000;
-// var serverKeepaliveInteval = 60000;
 
 var palette = {
   "black": "#000000",

@@ -1363,14 +1363,14 @@ async function generateAutoCategory(p) {
     let text = MODULE_ID_PREFIX + " | ->- CAT AUTO SET     ";
     // let chalkVar = chalkLog;
 
-    if (user.category && (currentBestNetwork.meta.categoryAuto == user.category)) {
+    if (user.category && user.category !== "none" && (currentBestNetwork.meta.categoryAuto == user.category)) {
       statsObj.autoChangeTotal += 1;
       statsObj.autoChangeMatch += 1;
       statsObj.autoChangeMatchRate = 100*(statsObj.autoChangeMatch/statsObj.autoChangeTotal);
       text = MODULE_ID_PREFIX + " | +++ CAT AUTO MATCH   ";
       // chalkVar = chalk.green;
     }
-    else if (user.category) {
+    else if (user.category && user.category !== "none" ) {
       statsObj.autoChangeTotal += 1;
       statsObj.autoChangeMismatch += 1;
       statsObj.autoChangeMatchRate = 100*(statsObj.autoChangeMatch/statsObj.autoChangeTotal);

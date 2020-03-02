@@ -191,8 +191,8 @@ const DEFAULT_NODE_TYPES = ["hashtag", "user"];
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 const tinyDateTimeFormat = "YYYYMMDDHHmmss";
 
-const BOT_CACHE_DEFAULT_TTL = 600;
-const BOT_CACHE_CHECK_PERIOD = 15;
+// const BOT_CACHE_DEFAULT_TTL = 600;
+// const BOT_CACHE_CHECK_PERIOD = 15;
 
 const IP_CACHE_DEFAULT_TTL = 600; // seconds
 const IP_CACHE_CHECK_PERIOD = 15;
@@ -1957,35 +1957,34 @@ authInProgressTwitterUserCache.on("expired", function(nodeId, userObj){
 // ==================================================================
 // BOT CACHE
 // ==================================================================
-let botCacheTtl = process.env.BOT_CACHE_DEFAULT_TTL;
-if (empty(botCacheTtl)) { botCacheTtl = BOT_CACHE_DEFAULT_TTL; }
-console.log(MODULE_ID_PREFIX + " | BOT CACHE TTL: " + botCacheTtl + " SECONDS");
+// let botCacheTtl = process.env.BOT_CACHE_DEFAULT_TTL;
+// if (empty(botCacheTtl)) { botCacheTtl = BOT_CACHE_DEFAULT_TTL; }
+// console.log(MODULE_ID_PREFIX + " | BOT CACHE TTL: " + botCacheTtl + " SECONDS");
 
-let botCacheCheckPeriod = process.env.BOT_CACHE_CHECK_PERIOD;
-if (empty(botCacheCheckPeriod)) { botCacheCheckPeriod = BOT_CACHE_CHECK_PERIOD; }
-console.log(MODULE_ID_PREFIX + " | BOT CACHE CHECK PERIOD: " + botCacheCheckPeriod + " SECONDS");
+// let botCacheCheckPeriod = process.env.BOT_CACHE_CHECK_PERIOD;
+// if (empty(botCacheCheckPeriod)) { botCacheCheckPeriod = BOT_CACHE_CHECK_PERIOD; }
+// console.log(MODULE_ID_PREFIX + " | BOT CACHE CHECK PERIOD: " + botCacheCheckPeriod + " SECONDS");
 
-const botCache = new NodeCache({
-  stdTTL: botCacheTtl,
-  checkperiod: botCacheCheckPeriod
-});
+// const botCache = new NodeCache({
+//   stdTTL: botCacheTtl,
+//   checkperiod: botCacheCheckPeriod
+// });
 
-let botCacheExpiredCount = 0;
+// let botCacheExpiredCount = 0;
 
-botCache.on("expired", function(nodeId, botUserScreenName){
+// botCache.on("expired", function(nodeId, botUserScreenName){
 
-  botCacheExpiredCount++;
+//   botCacheExpiredCount++;
 
-  if (botCacheExpiredCount % 100 === 0){
-    console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX BOT CACHE EXPIRED"
-      + " [" + botCache.getStats().keys + " KEYS]"
-      + " | TTL: " + botCacheTtl + " SECS"
-      + " | NID: " + nodeId
-      + " | @" + botUserScreenName
-    ));
-  }
-
-});
+//   if (botCacheExpiredCount % 100 === 0){
+//     console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX BOT CACHE EXPIRED"
+//       + " [" + botCache.getStats().keys + " KEYS]"
+//       + " | TTL: " + botCacheTtl + " SECS"
+//       + " | NID: " + nodeId
+//       + " | @" + botUserScreenName
+//     ));
+//   }
+// });
 
 // ==================================================================
 // NODE CACHE
@@ -2106,7 +2105,7 @@ cacheObj.ipCache = ipCache;
 cacheObj.mismatchUserCache = mismatchUserCache;
 cacheObj.uncatUserCache = uncatUserCache;
 cacheObj.nodeCache = nodeCache;
-cacheObj.botCache = botCache;
+// cacheObj.botCache = botCache;
 cacheObj.serverCache = serverCache;
 cacheObj.viewerCache = viewerCache;
 cacheObj.nodesPerMinuteTopTermCache = nodesPerMinuteTopTermCache;
@@ -2296,10 +2295,10 @@ function initStats(callback){
   statsObj.caches.nodeCache.stats.keys = 0;
   statsObj.caches.nodeCache.stats.keysMax = 0;
 
-  statsObj.caches.botCache = {};
-  statsObj.caches.botCache.stats = {};
-  statsObj.caches.botCache.stats.keys = 0;
-  statsObj.caches.botCache.stats.keysMax = 0;
+  // statsObj.caches.botCache = {};
+  // statsObj.caches.botCache.stats = {};
+  // statsObj.caches.botCache.stats.keys = 0;
+  // statsObj.caches.botCache.stats.keysMax = 0;
 
   statsObj.caches.nodesPerMinuteTopTermCache = {};
   statsObj.caches.nodesPerMinuteTopTermCache.stats = {};
@@ -5414,7 +5413,7 @@ function processCheckCategory(nodeObj){
       //   }
       //   resolve(nodeObj);
       // });   
-      
+
     }
     else {
       resolve(nodeObj);
@@ -6738,7 +6737,7 @@ function initTransmitNodeQueueInterval(interval){
               if (updatedUser.isTweeter && botNodeIdSet.has(updatedUser.nodeId)){ 
 
                 updatedUser.isBot = true;
-                botCache.set(updatedUser.nodeId, updatedUser.screenName);
+                // botCache.set(updatedUser.nodeId, updatedUser.screenName);
 
                 statsObj.traffic.users.bots++;
                 statsObj.traffic.users.percentBots = 100*(statsObj.traffic.users.bots/statsObj.traffic.users.total);
@@ -6766,7 +6765,7 @@ function initTransmitNodeQueueInterval(interval){
 
                 printBotStats({user: node, modulo: 100});
 
-                botCache.set(node.nodeId, node.screenName);
+                // botCache.set(node.nodeId, node.screenName);
               }
 
               viewNameSpace.volatile.emit("node", node);
@@ -6791,7 +6790,7 @@ function initTransmitNodeQueueInterval(interval){
 
               printBotStats({user: node, modulo: 100});
 
-              botCache.set(node.nodeId, node.screenName);
+              // botCache.set(node.nodeId, node.screenName);
             }
           }
 

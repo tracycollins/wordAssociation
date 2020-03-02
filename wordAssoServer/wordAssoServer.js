@@ -6228,8 +6228,8 @@ async function updateUserSets(){
 
       if (categorizeable
         && (uncatUserObj == undefined)
-        && (!category || (category == undefined))
-        && (!user.ignored || (user.ignored == undefined))
+        && (!category || (category === "none") || (category === undefined))
+        && (!user.ignored || (user.ignored === undefined))
         && (user.following || (user.followersCount >= configuration.minFollowersAutoCategorize)) 
         && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && categoryAuto && (categoryAuto != "right")))
         && !ignoredUserSet.has(nodeId) 
@@ -6249,7 +6249,7 @@ async function updateUserSets(){
       }
 
       if (!uncategorizedAutoUserSet.has(nodeId) 
-        && (!categoryAuto || (categoryAuto == undefined))
+        && (!category || (category === "none") || (category === undefined))
         && !ignoredUserSet.has(nodeId) 
         && !ignoredUserSet.has(screenName) 
         && !ignoreLocationsSet.has(nodeId) 

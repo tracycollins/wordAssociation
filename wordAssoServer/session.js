@@ -65,14 +65,14 @@ var DEFAULT_NODE_RADIUS = 20.0;
 const DEFAULT_SOURCE = REPLACE_SOURCE;
 
 var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
-
+  
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60*ONE_SECOND;
 
 const DEFAULT_KEEPALIVE_INTERVAL = ONE_MINUTE;
 
-var serverHeartbeatTimeoutFlag = false;
-var serverHeartbeatTimeoutPeriod = 5*ONE_MINUTE;
+// var serverHeartbeatTimeoutFlag = false;
+// var serverHeartbeatTimeoutPeriod = 5*ONE_MINUTE;
 var serverCheckInterval = 5*ONE_MINUTE;
 
 var MAX_RX_QUEUE = 250;
@@ -1386,49 +1386,49 @@ function initKeepalive(viewerObj, interval){
   }, interval);
 }
 
-var lastHeartbeatReceived = 0;
+// var lastHeartbeatReceived = 0;
 
 // CHECK FOR SERVER HEARTBEAT
-setInterval(function() {
-  if (!statsObj.serverConnected) {
+// setInterval(function() {
+//   if (!statsObj.serverConnected) {
 
-    serverHeartbeatTimeoutFlag = true;
+//     serverHeartbeatTimeoutFlag = true;
 
-    console.error("\n????? SERVER DOWN ????? | | LAST HEARTBEAT: " 
-      + getTimeStamp(lastHeartbeatReceived) 
-      + " | " + moment().format(defaultDateTimeFormat) 
-      + " | AGO: " + msToTime(Date.now() - lastHeartbeatReceived
-    ));
+//     console.error("\n????? SERVER DOWN ????? | | LAST HEARTBEAT: " 
+//       + getTimeStamp(lastHeartbeatReceived) 
+//       + " | " + moment().format(defaultDateTimeFormat) 
+//       + " | AGO: " + msToTime(Date.now() - lastHeartbeatReceived)
+//     );
 
-    socket.connect();
+//     socket.connect();
 
-    if (currentSessionView !== undefined) {
-      // currentSessionView.setEnableAgeNodes(false);
-    }
-  }
-  else if ((lastHeartbeatReceived > 0) && (lastHeartbeatReceived + serverHeartbeatTimeoutPeriod) < moment().valueOf()) {
+//     if (currentSessionView !== undefined) {
+//       // currentSessionView.setEnableAgeNodes(false);
+//     }
+//   }
+//   else if ((lastHeartbeatReceived > 0) && (lastHeartbeatReceived + serverHeartbeatTimeoutPeriod) < moment().valueOf()) {
 
-    serverHeartbeatTimeoutFlag = true;
+//     serverHeartbeatTimeoutFlag = true;
 
-    console.error("\n????? SERVER DOWN ????? | LAST HEARTBEAT: " 
-      + getTimeStamp(lastHeartbeatReceived) 
-      + " | " + moment().format(defaultDateTimeFormat) 
-      + " | AGO: " + msToTime(Date.now() - lastHeartbeatReceived
-    ));
+//     console.error("\n????? SERVER DOWN ????? | LAST HEARTBEAT: " 
+//       + getTimeStamp(lastHeartbeatReceived) 
+//       + " | " + moment().format(defaultDateTimeFormat) 
+//       + " | AGO: " + msToTime(Date.now() - lastHeartbeatReceived
+//     ));
 
-    socket.connect();
+//     socket.connect();
 
-    if (currentSessionView !== undefined) {
-      // currentSessionView.setEnableAgeNodes(false);
-    }
-  }
-  else {
-    serverHeartbeatTimeoutFlag = false;
-    currentSessionView.setEnableAgeNodes(true);
-  }
-}, serverCheckInterval);
+//     if (currentSessionView !== undefined) {
+//       // currentSessionView.setEnableAgeNodes(false);
+//     }
+//   }
+//   else {
+//     serverHeartbeatTimeoutFlag = false;
+//     currentSessionView.setEnableAgeNodes(true);
+//   }
+// }, serverCheckInterval);
 
-var heartBeatsReceived = 0;
+// var heartBeatsReceived = 0;
 
 socket.on("connect", function() {
 
@@ -1597,7 +1597,7 @@ socket.on("HEARTBEAT", function(hb) {
   heartBeatsReceived += 1;
   statsObj.serverConnected = true;
   statsObj.socket.connected = true;
-  lastHeartbeatReceived = Date.now();
+  // lastHeartbeatReceived = Date.now();
 
   sSmall.bestNetwork = hb.bestNetwork;
 
@@ -1969,7 +1969,10 @@ function initSocketSessionUpdateRx(){
     // viewNumNodes = currentSessionView.getNumNodes();
 
     // if (rxNodeQueueReady && (rxNodeQueue.length > 0) && (viewNumNodes <= 1.5*DEFAULT_MAX_NODES) && (viewNodeAddQlength <= 1.5*RX_NODE_QUEUE_MAX)) {
-    if (!serverHeartbeatTimeoutFlag && rxNodeQueueReady && (rxNodeQueue.length > 0) && (viewNodeAddQlength <= 1.5*RX_NODE_QUEUE_MAX)) {
+    if (rxNodeQueueReady 
+      && (rxNodeQueue.length > 0) 
+      && (viewNodeAddQlength <= 1.5*RX_NODE_QUEUE_MAX)
+    ) {
 
       rxNodeQueueReady = false;
 

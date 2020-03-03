@@ -471,7 +471,7 @@ function ControlPanel() {
 
     if (node.nodeType === "user"){
 
-      if (!twitterFeedPreviousUserArray.inclues(twitterFeedUser.nodeId)){
+      if (!twitterFeedPreviousUserArray.includes(twitterFeedUser.nodeId)){
         twitterFeedPreviousUserArray.push(twitterFeedUser.nodeId);
         twitterFeedPreviousUserMap[twitterFeedUser.nodeId] = twitterFeedUser;
       }

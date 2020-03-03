@@ -313,14 +313,14 @@ function dnsReverse(params){
 
       if (err) {
 
-        console.log(chalkError(MODULE_ID_PREFIX 
+        console.log(chalk.yellow(MODULE_ID_PREFIX 
           + " | *** DNS REVERSE ERROR | IP: " + params.ipAddress
           + " | " + err
         ));
 
         try{
 
-          console.log(chalkAlert(MODULE_ID_PREFIX 
+          console.log(chalk.yellow(MODULE_ID_PREFIX 
             + " | ... TRY WHOIS | IP: " + params.ipAddress
           ));
 

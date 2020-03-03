@@ -469,7 +469,7 @@ function ControlPanel() {
 
     if (node.nodeType === "user"){
 
-      twitterFeedPreviousUserStack.push() = twitterFeedUser;
+      twitterFeedPreviousUserStack.push(twitterFeedUser);
       twitterFeedUser = Object.assign(defaultTwitterFeedUser, node);
 
       twitterEntity.setValue("NODE ID", twitterFeedUser.nodeId);

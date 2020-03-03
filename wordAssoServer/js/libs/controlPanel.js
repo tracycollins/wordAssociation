@@ -479,6 +479,8 @@ function ControlPanel() {
       if (prevNode.nodeId && (node.nodeId !== prevNode.nodeId) && !twitterFeedPreviousUserArray.includes(prevNode.nodeId)){
         twitterFeedPreviousUserArray.push(prevNode.nodeId);
         twitterFeedPreviousUserMap[prevNode.nodeId] = node;
+      }
+      if (prevNode.nodeId !== node.nodeId){
         prevNode = node;
       }
 

@@ -72,6 +72,7 @@ function ControlPanel() {
   var twitterFeedUser = Object.assign({}, defaultTwitterFeedUser);
 
   var twitterFeedPreviousUser = false;
+  const twitterFeedPreviousUserStack = [];
   var twitterFeedHashtag = {};
   var twitterFeedPreviousHashtag = {};
   var loadingTwitterFeedFlag = false;
@@ -289,9 +290,10 @@ function ControlPanel() {
     eventDetected = true;
 
     document.getElementById(op).style.background='#0000ff';
-    if (parentWindow && !loadingTwitterFeedFlag && twitterFeedPreviousUser) {
-      const userScreenName = "@" + twitterFeedPreviousUser.screenName;
-      parentWindow.postMessage({op: "NODE_SEARCH", input: userScreenName}, DEFAULT_SOURCE);
+    if (parentWindow && !loadingTwitterFeedFlag && twitterFeedPreviousUserStack.length > 0) {
+      // const prevUserObj = "@" + twitterFeedPreviousUser.screenName;
+      const prevUserObj = twitterFeedPreviousUserStack.pop();
+      parentWindow.postMessage({op: "NODE_SEARCH", input: prevUserObj.screenName}, DEFAULT_SOURCE);
     }
 
     setTimeout(function(){
@@ -467,7 +469,7 @@ function ControlPanel() {
 
     if (node.nodeType === "user"){
 
-      twitterFeedPreviousUser = twitterFeedUser;
+      twitterFeedPreviousUserStack.push() = twitterFeedUser;
       twitterFeedUser = Object.assign(defaultTwitterFeedUser, node);
 
       twitterEntity.setValue("NODE ID", twitterFeedUser.nodeId);

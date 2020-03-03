@@ -295,7 +295,8 @@ function ControlPanel() {
       // const prevUserObj = "@" + twitterFeedPreviousUser.screenName;
       const prevUserNodeId = twitterFeedPreviousUserArray.pop();
       const prevUserObj = twitterFeedPreviousUserMap[prevUserNodeId];
-      parentWindow.postMessage({op: "NODE_SEARCH", input: prevUserObj.screenName}, DEFAULT_SOURCE);
+      const prevUserScreenname = "@" + prevUserObj.screenName;
+      parentWindow.postMessage({op: "NODE_SEARCH", input: prevUserScreenname}, DEFAULT_SOURCE);
       twitterFeedPreviousUserMap[prevUserNodeId] = null;
     }
 

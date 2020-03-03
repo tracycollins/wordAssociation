@@ -293,9 +293,10 @@ function ControlPanel() {
     document.getElementById(op).style.background='#0000ff';
     if (parentWindow && !loadingTwitterFeedFlag && twitterFeedPreviousUserArray.length > 0) {
       // const prevUserObj = "@" + twitterFeedPreviousUser.screenName;
-      const prevUserObj = twitterFeedPreviousUserArray.pop();
-      twitterFeedPreviousUserMap[prevUserObj.nodeId] = null;
+      const prevUserNodeId = twitterFeedPreviousUserArray.pop();
+      const prevUserObj = twitterFeedPreviousUserMap[prevUserNodeId];
       parentWindow.postMessage({op: "NODE_SEARCH", input: prevUserObj.screenName}, DEFAULT_SOURCE);
+      twitterFeedPreviousUserMap[prevUserNodeId] = null;
     }
 
     setTimeout(function(){

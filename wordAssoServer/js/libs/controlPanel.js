@@ -459,6 +459,9 @@ function ControlPanel() {
     callback();
   }
 
+  const prevNode = {};
+  prevNode.nodeId = false;
+  
   function loadTwitterFeed(node, callback) {
 
     if (!twitterTimeLineDiv || (twttr === undefined)) { 
@@ -472,12 +475,14 @@ function ControlPanel() {
 
     if (node.nodeType === "user"){
 
-      twitterFeedUser = Object.assign({}, defaultTwitterFeedUser, node);
-
-      if (!twitterFeedPreviousUserArray.includes(twitterFeedUser.nodeId)){
-        twitterFeedPreviousUserArray.push(twitterFeedUser.nodeId);
-        twitterFeedPreviousUserMap[twitterFeedUser.nodeId] = twitterFeedUser;
+      if (prevNode.nodeId && !twitterFeedPreviousUserArray.includes(prevNode.nodeId)){
+        twitterFeedPreviousUserArray.push(prevNode.nodeId);
+        twitterFeedPreviousUserMap[prevNode.nodeId] = node;
       }
+
+      prevNode = node;
+
+      twitterFeedUser = Object.assign({}, defaultTwitterFeedUser, node);
 
       twitterEntity.setValue("NODE ID", twitterFeedUser.nodeId);
     	twitterEntity.setValue("NAME", twitterFeedUser.name);
@@ -551,6 +556,7 @@ function ControlPanel() {
             console.error("LOAD TWITTER FEED ERROR: " + err);
             return callback(err);
           }
+
           callback();
         });
 

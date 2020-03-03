@@ -472,7 +472,7 @@ function ControlPanel() {
 
     if (node.nodeType === "user"){
 
-      twitterFeedUser = Object.assign(defaultTwitterFeedUser, node);
+      twitterFeedUser = Object.assign({}, defaultTwitterFeedUser, node);
 
       if (!twitterFeedPreviousUserArray.includes(twitterFeedUser.nodeId)){
         twitterFeedPreviousUserArray.push(twitterFeedUser.nodeId);

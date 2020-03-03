@@ -472,12 +472,12 @@ function ControlPanel() {
 
     if (node.nodeType === "user"){
 
+      twitterFeedUser = Object.assign(defaultTwitterFeedUser, node);
+
       if (!twitterFeedPreviousUserArray.includes(twitterFeedUser.nodeId)){
         twitterFeedPreviousUserArray.push(twitterFeedUser.nodeId);
         twitterFeedPreviousUserMap[twitterFeedUser.nodeId] = twitterFeedUser;
       }
-
-      twitterFeedUser = Object.assign(defaultTwitterFeedUser, node);
 
       twitterEntity.setValue("NODE ID", twitterFeedUser.nodeId);
     	twitterEntity.setValue("NAME", twitterFeedUser.name);

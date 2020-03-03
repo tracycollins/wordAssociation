@@ -476,12 +476,11 @@ function ControlPanel() {
 
     if (node.nodeType === "user"){
 
-      if (node.nodeId !== prevNode.nodeId && !twitterFeedPreviousUserArray.includes(prevNode.nodeId)){
+      if (prevNode.nodeId && (node.nodeId !== prevNode.nodeId) && !twitterFeedPreviousUserArray.includes(prevNode.nodeId)){
         twitterFeedPreviousUserArray.push(prevNode.nodeId);
         twitterFeedPreviousUserMap[prevNode.nodeId] = node;
+        prevNode = node;
       }
-
-      prevNode = node;
 
       twitterFeedUser = Object.assign({}, defaultTwitterFeedUser, node);
 

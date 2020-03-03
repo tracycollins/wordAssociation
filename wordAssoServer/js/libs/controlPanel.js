@@ -459,9 +459,9 @@ function ControlPanel() {
     callback();
   }
 
-  const prevNode = {};
+  var prevNode = {};
   prevNode.nodeId = false;
-  
+
   function loadTwitterFeed(node, callback) {
 
     if (!twitterTimeLineDiv || (twttr === undefined)) { 

@@ -2005,8 +2005,8 @@ function initSocketSessionUpdateRx(){
         newNode.screenName = newNode.screenName.toLowerCase();
       }
 
-      newNode.categoryMismatch = newNode.category && newNode.categoryAuto && (newNode.category !== newNode.categoryAuto);
-      newNode.categoryMatch = newNode.category && newNode.categoryAuto && (newNode.category === newNode.categoryAuto);
+      newNode.categoryMismatch = (newNode.category !== "none") && newNode.category && newNode.categoryAuto && (newNode.category !== newNode.categoryAuto);
+      newNode.categoryMatch = (newNode.category !== "none") && newNode.category && newNode.categoryAuto && (newNode.category === newNode.categoryAuto);
 
       currentSessionView.addNode(newNode);
       rxNodeQueueReady = true;

@@ -1113,7 +1113,8 @@ function ViewTreepack() {
           previousTwitterUserId = d.nodeId;
         }
 
-        if ((d.lastTweetId !== undefined) && (d.lastTweetId !== "false")) {
+        // if ((d.lastTweetId !== undefined) && (d.lastTweetId !== "false")) {
+        if (d.lastTweetId && (d.lastTweetId !== undefined)) {
           console.debug("LOADING TWITTER USER: " + "https://twitter.com/" + d.screenName + "/status/" + d.lastTweetId);
           window.open("https://twitter.com/" + d.screenName + "/status/" + d.lastTweetId, "_blank");
         }

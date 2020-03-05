@@ -810,7 +810,6 @@ configuration.autoOfflineMode = DEFAULT_AUTO_OFFLINE_MODE;
 
 configuration.batchSize = DEFAULT_CURSOR_BATCH_SIZE;
 
-
 configuration.enableTransmitUser = true;
 configuration.enableTransmitWord = false;
 configuration.enableTransmitPlace = false;
@@ -6059,6 +6058,10 @@ async function updateUserSets(){
 
     const nodeId = user.nodeId.toLowerCase();
     const screenName = (user.screenName && (user.screenName !== undefined)) ? user.screenName.toLowerCase() : "undefined_screen_name";
+
+    if (user.category === "false" || !user.category) { user.category = "none"; }
+    if (user.categoryAuto === "false" || !user.categoryAuto) { user.categoryAuto = "none"; }
+
     const category = user.category;
     const categoryAuto = user.categoryAuto;
 

@@ -348,9 +348,9 @@ function ViewTreepack() {
   var maxAgeRate = 1e-6;
 
   // var defaultStrokeWidth = "1.1px";
-  var defaultStrokeWidth = "0.1em";
+  var defaultStrokeWidth = "0.2em";
   // var topTermStrokeWidth = "2.0px";
-  var topTermStrokeWidth = "0.2em";
+  var topTermStrokeWidth = "0.3em";
 
   // var botStrokeWidth = "4.0px";
   var botStrokeWidth = "0.4em";

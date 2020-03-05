@@ -348,21 +348,21 @@ function ViewTreepack() {
   var maxAgeRate = 1e-6;
 
   // var defaultStrokeWidth = "1.1px";
-  var defaultStrokeWidth = "1em";
+  var defaultStrokeWidth = "0.1em";
   // var topTermStrokeWidth = "2.0px";
-  var topTermStrokeWidth = "2em";
+  var topTermStrokeWidth = "0.2em";
 
   // var botStrokeWidth = "4.0px";
-  var botStrokeWidth = "4em";
+  var botStrokeWidth = "0.4em";
   var botFillColor = palette.orange;
 
   var categoryMatchColor = palette.green;
   // var categoryMatchStrokeWidth = "4.0px";
-  var categoryMatchStrokeWidth = "4em";
+  var categoryMatchStrokeWidth = "0.4em";
   // var categoryMismatchStrokeWidth = "7.0px";
-  var categoryMismatchStrokeWidth = "7em";
+  var categoryMismatchStrokeWidth = "0.7em";
   // var categoryAutoStrokeWidth = "2.0px";
-  var categoryAutoStrokeWidth = "2em";
+  var categoryAutoStrokeWidth = "0.2em";
 
   var divTooltip = d3.select("body").append("div").
     attr("id", "divTooltip").

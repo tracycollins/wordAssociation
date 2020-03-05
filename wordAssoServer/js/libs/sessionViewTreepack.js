@@ -347,7 +347,8 @@ function ViewTreepack() {
   var ageRate = DEFAULT_TREEMAP_CONFIG.ageRate;
   var maxAgeRate = 1e-6;
 
-  var defaultStrokeWidth = "1.1px";
+  // var defaultStrokeWidth = "1.1px";
+  var defaultStrokeWidth = "1em";
   var topTermStrokeWidth = "2.0px";
 
   var botStrokeWidth = "4.0px";

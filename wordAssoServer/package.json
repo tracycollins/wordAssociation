@@ -11,7 +11,7 @@
     "@threeceelabs/neural-network-tools": "^1.0.184",
     "@threeceelabs/threecee-utilities": "^1.0.237",
     "@threeceelabs/tweet-server-controller": "^1.0.508",
-    "@threeceelabs/user-server-controller": "^1.0.517",
+    "@threeceelabs/user-server-controller": "^1.0.518",
     "change-case-bundled": "^1.0.1",
     "command-line-args": "^5.1.1",
     "connect-mongo": "^3.2.0",

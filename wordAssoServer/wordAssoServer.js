@@ -6005,16 +6005,16 @@ async function updateUserSets(){
   statsObj.user.categoryVerified = await countDocuments({documentType: "users", query: {"categoryVerified": true}});
   console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT VERIFIED USERS: " + statsObj.user.categoryVerified));
 
-  statsObj.user.categorizedManual = await countDocuments({documentType: "users", query: {category: { "$nin": [false, "false", null] }}});
+  statsObj.user.categorizedManual = await countDocuments({documentType: "users", query: {category: { "$nin": ["none", false, "false", null] }}});
   console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT MANUAL USERS: " + statsObj.user.categorizedManual));
 
-  statsObj.user.uncategorizedManual = await countDocuments({documentType: "users", query: {category: { "$in": [false, "false", null] }}});
+  statsObj.user.uncategorizedManual = await countDocuments({documentType: "users", query: {category: { "$in": ["none", false, "false", null] }}});
   console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT MANUAL USERS: " + statsObj.user.uncategorizedManual));
 
-  statsObj.user.categorizedAuto = await countDocuments({documentType: "users", query: {categoryAuto: { "$nin": [false, "false", null] }}});
+  statsObj.user.categorizedAuto = await countDocuments({documentType: "users", query: {categoryAuto: { "$nin": ["none", false, "false", null] }}});
   console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT AUTO USERS: " + statsObj.user.categorizedAuto));
 
-  statsObj.user.uncategorizedAuto = await countDocuments({documentType: "users", query: {categoryAuto: { "$in": [false, "false", null] }}});
+  statsObj.user.uncategorizedAuto = await countDocuments({documentType: "users", query: {categoryAuto: { "$in": ["none", false, "false", null] }}});
   console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT AUTO USERS: " + statsObj.user.uncategorizedAuto));
 
   userRightSet.clear();
@@ -6059,8 +6059,8 @@ async function updateUserSets(){
     const nodeId = user.nodeId.toLowerCase();
     const screenName = (user.screenName && (user.screenName !== undefined)) ? user.screenName.toLowerCase() : "undefined_screen_name";
 
-    if (user.category === "false" || !user.category) { user.category = "none"; }
-    if (user.categoryAuto === "false" || !user.categoryAuto) { user.categoryAuto = "none"; }
+    if (user.category === undefined || user.category === "false" || !user.category) { user.category = "none"; }
+    if (user.categoryAuto === undefined || user.categoryAuto === "false" || !user.categoryAuto) { user.categoryAuto = "none"; }
 
     const category = user.category;
     const categoryAuto = user.categoryAuto;
@@ -6408,16 +6408,16 @@ async function updateHashtagSets(){
   statsObj.hashtag.ignored = await countDocuments({documentType: "hashtags", query: {"ignored": true}});
   console.log(chalkBlue(MODULE_ID_PREFIX + " | IGNORED HASHTAGS: " + statsObj.hashtag.ignored));
 
-  statsObj.hashtag.categorizedManual = await countDocuments({documentType: "hashtags", query: {category: { "$nin": [false, "false", null] }}});
+  statsObj.hashtag.categorizedManual = await countDocuments({documentType: "hashtags", query: {category: { "$nin": ["none", false, "false", null] }}});
   console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT MANUAL HASHTAGS: " + statsObj.hashtag.categorizedManual));
 
-  statsObj.hashtag.uncategorizedManual = await countDocuments({documentType: "hashtags", query: {category: { "$in": [false, "false", null] }}});
+  statsObj.hashtag.uncategorizedManual = await countDocuments({documentType: "hashtags", query: {category: { "$in": ["none", false, "false", null] }}});
   console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT MANUAL HASHTAGS: " + statsObj.hashtag.uncategorizedManual));
 
-  statsObj.hashtag.categorizedAuto = await countDocuments({documentType: "hashtags", query: {categoryAuto: { "$nin": [false, "false", null] }}});
+  statsObj.hashtag.categorizedAuto = await countDocuments({documentType: "hashtags", query: {categoryAuto: { "$nin": ["none", false, "false", null] }}});
   console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT AUTO HASHTAGS: " + statsObj.hashtag.categorizedAuto));
 
-  statsObj.hashtag.uncategorizedAuto = await countDocuments({documentType: "hashtags", query: {categoryAuto: { "$in": [false, "false", null] }}});
+  statsObj.hashtag.uncategorizedAuto = await countDocuments({documentType: "hashtags", query: {categoryAuto: { "$in": ["none", false, "false", null] }}});
   console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT AUTO HASHTAGS: " + statsObj.hashtag.uncategorizedAuto));
 
   hashtagRightSet.clear();

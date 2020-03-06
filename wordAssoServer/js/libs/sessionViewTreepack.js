@@ -1437,7 +1437,7 @@ function ViewTreepack() {
     return false;
   }
 
-  function categoryFocus(d){
+  var categoryFocus = function(d){
     if ((autoCategoryFlag && isCategorized(d.categoryAuto)) 
       || (!isCategorized(d.category) && isCategorized(d.categoryAuto))
     ){ 
@@ -1445,7 +1445,7 @@ function ViewTreepack() {
       }
     if (isCategorized(d.category)) { return foci[d.category]; }
     return foci.default;
-  }
+  };
 
   function focus(focalPoint){
     switch (focalPoint) {

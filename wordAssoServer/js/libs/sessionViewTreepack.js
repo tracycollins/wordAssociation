@@ -680,14 +680,31 @@ function ViewTreepack() {
     gravity = value;
 
     simulation.
-      force("forceX", d3.forceX().x(function (d){ return categoryFocus(d, "x"); }).
-      strength(function(){ return forceXmultiplier * gravity; })).
-      force("forceY", d3.forceY().y(function (d){ return categoryFocus(d, "y"); }).
-      strength(function(){ return forceYmultiplier * gravity; }));
+      force("forceX", d3.forceX().x(function(d) { 
+        if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)){
+          return foci[d.categoryAuto].x;
+        }
+        if (d.category){ return foci[d.category].x; }
+        return foci.default.x;
+      }).
+      strength(function(){
+        return forceXmultiplier * gravity; 
+      })).
+      force("forceY", d3.forceY().y(function(d) { 
+        if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)){
+          return foci[d.categoryAuto].y;
+        }
+        if (d.category){ return foci[d.category].y; }
+        return foci.default.y;
+      }).
+      strength(function(){
+        return forceYmultiplier * gravity; 
+      }));
   };
 
   self.setTransitionDuration = function(value) {
     console.debug("UPDATE TRANSITION DURATION: " + value);
+    // transitionDuration = value;
     config.defaultTransitionDuration = value;
   };
 
@@ -1891,6 +1908,11 @@ function ViewTreepack() {
       if (panzoomElement) {
         panzoomInstance.zoomAbs(width*0.5, height*0.5, config.panzoomTransform.scale);
       }
+
+
+      // self.initD3timer();
+
+      // self.setGravity(config.defaultGravity);
 
     }, 200);
   };

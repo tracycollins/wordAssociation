@@ -1176,10 +1176,10 @@ function ViewTreepack() {
       attr("cx", function (d) { return d.x; }).
       attr("cy", function (d) { return d.y; }).
       style("fill", function (d) { 
-        if (d.isTopTerm && !d.category && !d.categoryAuto) { return palette.white; }
         if (d.isBot) { return botFillColor; }
-        if (!d.category && !d.categoryAuto) { return palette.black; }
-        if (d.category) { return d.categoryColor; }
+        if (d.isTopTerm && !isCategorized(d.category) && !isCategorized(d.categoryAuto)) { return palette.white; }
+        if (!isCategorized(d.category) && !isCategorized(d.categoryAuto)) { return palette.gray; }
+        if (isCategorized(d.category)) { return d.categoryColor; }
         if (d.categoryAuto === "right") { return palette.yellow; }
         if (d.categoryAuto === "left") { return palette.blue; }
         if (d.categoryAuto === "positive") { return palette.green; }
@@ -1206,8 +1206,8 @@ function ViewTreepack() {
         if (d.categoryMatch && !d.following) { return 0.5*categoryMatchStrokeWidth; }
         if (d.isTopTerm && d.following) { return topTermStrokeWidth; }
         if (d.isTopTerm && !d.following) { return 0.5*topTermStrokeWidth; }
-        if (d.categoryAuto && d.following) { return categoryAutoStrokeWidth; }
-        if (d.categoryAuto && !d.following) { return 0.5*categoryAutoStrokeWidth; }
+        if (isCategorized(d.categoryAuto) && d.following) { return categoryAutoStrokeWidth; }
+        if (isCategorized(d.categoryAuto) && !d.following) { return 0.5*categoryAutoStrokeWidth; }
         if (d.following) { return defaultStrokeWidth; }
         return 0.5*defaultStrokeWidth; 
       }).
@@ -1237,9 +1237,9 @@ function ViewTreepack() {
       attr("cy", function nodeCircleCy(d) { return d.y; }).
       style("fill", function nodeCirclesFill(d) { 
         if (d.isBot) { return botFillColor; }
-        if (d.isTopTerm && !d.category && !d.categoryAuto) { return palette.white; }
-        if (!d.category && !d.categoryAuto) { return palette.black; }
-        if (d.category) { return d.categoryColor; }
+        if (d.isTopTerm && !isCategorized(d.category) && !isCategorized(d.categoryAuto)) { return palette.white; }
+        if (!isCategorized(d.category) && !isCategorized(d.categoryAuto)) { return palette.gray; }
+        if (isCategorized(d.category)) { return d.categoryColor; }
         if (d.categoryAuto === "right") { return palette.yellow; }
         if (d.categoryAuto === "left") { return palette.blue; }
         if (d.categoryAuto === "positive") { return palette.green; }
@@ -1301,8 +1301,8 @@ function ViewTreepack() {
       style("display", function (d) {
         if (!d.isValid) { return "none"; }
         if (d.mouseHoverFlag) { return "unset"; }
-        if (d.category) { return "unset"; }
-        if (d.categoryAuto) { return "unset"; }
+        if (isCategorized(d.category)) { return "unset"; }
+        if (isCategorized(d.categoryAuto)) { return "unset"; }
         if (d.rate > minRate) { return "unset"; }
         if ((d.nodeType === "user") 
           && (
@@ -1365,8 +1365,8 @@ function ViewTreepack() {
       }).
       style("display", function (d) {
         if (!d.isValid) { return "none"; }
-        if (d.category) { return "unset"; }
-        if (d.categoryAuto) { return "unset"; }
+        if (isCategorized(d.category)) { return "unset"; }
+        if (isCategorized(d.categoryAuto)) { return "unset"; }
         if (mouseMovingFlag) { return "unset"; }
         if (d.rate > minRate) { return "unset"; }
         if ((d.nodeType === "user") 

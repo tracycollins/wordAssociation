@@ -283,6 +283,8 @@ function ViewTreepack() {
     this.vy = 1e-6;
     this.x = initialXposition*width;
     this.y = initialYposition*height;
+    this.cx = initialXposition*width;
+    this.cy = initialYposition*height;
   } 
 
   var nodePoolIndex = 0;

@@ -1432,6 +1432,11 @@ function ViewTreepack() {
     }
   };
 
+  function isCategorized(category){
+    if (category && (category !== "none")) { return true; }
+    return false;
+  }
+
   function focus(focalPoint){
     switch (focalPoint) {
       case "left":
@@ -1577,17 +1582,17 @@ function ViewTreepack() {
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
         }
 
-        if (newNode.category || newNode.categoryAuto) {
+        if (isCategorized(newNode.category) || isCategorized(newNode.categoryAuto)) {
 
-          if (autoCategoryFlag && newNode.categoryAuto) { 
+          if (autoCategoryFlag && isCategorized(newNode.categoryAuto)) { 
             currentNode.x = focus(newNode.categoryAuto).x; 
             currentNode.y = focus(newNode.categoryAuto).y;
           }
-          else if (newNode.categoryAuto && !newNode.category) { 
+          else if (isCategorized(newNode.categoryAuto) && !isCategorized(newNode.category)) { 
             currentNode.x = focus(newNode.categoryAuto).x; 
             currentNode.y = focus(newNode.categoryAuto).y;
           }
-          else if (newNode.category) { 
+          else if (isCategorized(newNode.category)) { 
             currentNode.x = focus(newNode.category).x; 
             currentNode.y = focus(newNode.category).y;
           }

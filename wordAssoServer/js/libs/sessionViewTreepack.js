@@ -1777,9 +1777,23 @@ function ViewTreepack() {
 
     simulation = d3.forceSimulation(nodeArray).
       force("charge", d3.forceManyBody().strength(charge)).
-      force("forceX", d3.forceX().x(function (d){ return categoryFocus(d, "x"); }).
+      // force("forceX", d3.forceX().x(function forceXfunc(d) { 
+      force("forceX", d3.forceX().x(function (d){
+        return categoryFocus(d, "x");
+      }).
       strength(function strengthFunc() { return forceXmultiplier * gravity; })).
-      force("forceY", d3.forceY().y(function (d){ return categoryFocus(d, "y"); }).
+      force("forceY", d3.forceY().y(function (d){
+        return categoryFocus(d, "y");
+      }).
+      // force("forceY", d3.forceY().y(function forceYfunc(d) { 
+        // if ((autoCategoryFlag && isCategorized(d.categoryAuto)) 
+        //   || (!isCategorized(d.category) && isCategorized(d.categoryAuto))
+        // ){ 
+        //   return foci[d.categoryAuto].y; 
+        //   }
+        // if (isCategorized(d.category)) { return foci[d.category].y; }
+        // return foci.default.y;
+      // }).
       strength(function strengthFunc(){ return forceYmultiplier * gravity; })).
       force("collide", d3.forceCollide().radius(function forceCollideFunc(d) { 
         if (metricMode === "rate") { return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate)); }

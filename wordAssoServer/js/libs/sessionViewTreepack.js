@@ -283,8 +283,6 @@ function ViewTreepack() {
     this.vy = 1e-6;
     this.x = initialXposition*width;
     this.y = initialYposition*height;
-    this.cx = initialXposition*width;
-    this.cy = initialYposition*height;
   } 
 
   var nodePoolIndex = 0;
@@ -1209,7 +1207,12 @@ function ViewTreepack() {
         return "unset"; 
       }).
       attr("r", 1e-6). 
-      attr("cx", function(d) { return d.x; }).
+      attr("cx", function(d) {
+        if (typeof d.x !== "number"){
+          console.error("d.x is not number: " + typeof d.x);
+        }
+        return d.x;
+      }).
       attr("cy", function(d) { return d.y; }).
       style("fill", function(d) { 
         if (d.isBot) { return botFillColor; }

@@ -1778,13 +1778,17 @@ function ViewTreepack() {
     simulation = d3.forceSimulation(nodeArray).
       force("charge", d3.forceManyBody().strength(charge)).
       // force("forceX", d3.forceX().x(function forceXfunc(d) { 
-      force("forceX", d3.forceX().x(categoryFocus(d).x).
+      force("forceX", d3.forceX().x(function (d){
+        return categoryFocus(d).x;
+      }).
         // if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)) { return foci[d.categoryAuto].x; }
         // if (d.category) { return foci[d.category].x; }
         // return foci.default.x;
       // }).
       strength(function strengthFunc() { return forceXmultiplier * gravity; })).
-      force("forceY", d3.forceY().y(categoryFocus(d).y).
+      force("forceY", d3.forceY().x(function (d){
+        return categoryFocus(d).y;
+      }).
       // force("forceY", d3.forceY().y(function forceYfunc(d) { 
         // if ((autoCategoryFlag && isCategorized(d.categoryAuto)) 
         //   || (!isCategorized(d.category) && isCategorized(d.categoryAuto))

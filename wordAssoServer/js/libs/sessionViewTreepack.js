@@ -1437,14 +1437,14 @@ function ViewTreepack() {
     return false;
   }
 
-  var categoryFocus = function(d){
+  var categoryFocus = function(d, axis){
     if ((autoCategoryFlag && isCategorized(d.categoryAuto)) 
       || (!isCategorized(d.category) && isCategorized(d.categoryAuto))
     ){ 
-      return foci[d.categoryAuto]; 
+      return foci[d.categoryAuto][axis]; 
       }
     if (isCategorized(d.category)) { return foci[d.category]; }
-    return foci.default;
+    return foci.default[axis];
   };
 
   function focus(focalPoint){
@@ -1779,7 +1779,7 @@ function ViewTreepack() {
       force("charge", d3.forceManyBody().strength(charge)).
       // force("forceX", d3.forceX().x(function forceXfunc(d) { 
       force("forceX", d3.forceX().x(function (d){
-        return categoryFocus(d).x;
+        return categoryFocus(d, "x");
       }).
         // if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)) { return foci[d.categoryAuto].x; }
         // if (d.category) { return foci[d.category].x; }
@@ -1787,7 +1787,7 @@ function ViewTreepack() {
       // }).
       strength(function strengthFunc() { return forceXmultiplier * gravity; })).
       force("forceY", d3.forceY().x(function (d){
-        return categoryFocus(d).y;
+        return categoryFocus(d, "y");
       }).
       // force("forceY", d3.forceY().y(function forceYfunc(d) { 
         // if ((autoCategoryFlag && isCategorized(d.categoryAuto)) 

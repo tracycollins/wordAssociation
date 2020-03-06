@@ -1437,6 +1437,16 @@ function ViewTreepack() {
     return false;
   }
 
+  function categoryFocus(d){
+    if ((autoCategoryFlag && isCategorized(d.categoryAuto)) 
+      || (!isCategorized(d.category) && isCategorized(d.categoryAuto))
+    ){ 
+      return foci[d.categoryAuto]; 
+      }
+    if (isCategorized(d.category)) { return foci[d.category]; }
+    return foci.default;
+  }
+
   function focus(focalPoint){
     switch (focalPoint) {
       case "left":
@@ -1767,17 +1777,23 @@ function ViewTreepack() {
 
     simulation = d3.forceSimulation(nodeArray).
       force("charge", d3.forceManyBody().strength(charge)).
-      force("forceX", d3.forceX().x(function forceXfunc(d) { 
-        if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)) { return foci[d.categoryAuto].x; }
-        if (d.category) { return foci[d.category].x; }
-        return foci.default.x;
-      }).
+      // force("forceX", d3.forceX().x(function forceXfunc(d) { 
+      force("forceX", d3.forceX().x(categoryFocus(d).x).
+        // if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)) { return foci[d.categoryAuto].x; }
+        // if (d.category) { return foci[d.category].x; }
+        // return foci.default.x;
+      // }).
       strength(function strengthFunc() { return forceXmultiplier * gravity; })).
-      force("forceY", d3.forceY().y(function forceYfunc(d) { 
-        if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categorya)){ return foci[d.categoryAuto].y; }
-        if (d.category){ return foci[d.category].y; }
-        return foci.default.y;
-      }).
+      force("forceY", d3.forceY().y(categoryFocus(d).y).
+      // force("forceY", d3.forceY().y(function forceYfunc(d) { 
+        // if ((autoCategoryFlag && isCategorized(d.categoryAuto)) 
+        //   || (!isCategorized(d.category) && isCategorized(d.categoryAuto))
+        // ){ 
+        //   return foci[d.categoryAuto].y; 
+        //   }
+        // if (isCategorized(d.category)) { return foci[d.category].y; }
+        // return foci.default.y;
+      // }).
       strength(function strengthFunc(){ return forceYmultiplier * gravity; })).
       force("collide", d3.forceCollide().radius(function forceCollideFunc(d) { 
         if (metricMode === "rate") { return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate)); }
@@ -1896,21 +1912,39 @@ function ViewTreepack() {
         simulation.
           force("charge", d3.forceManyBody().strength(charge)).
           force("forceX", d3.forceX().x(function forceXfunc(d) { 
-            if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)) {
-              return foci[d.categoryAuto].x;
-            }
-            if (d.category){ return foci[d.category].x; }
+
+            // if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)) {
+            //   return foci[d.categoryAuto].x;
+            // }
+            // if (d.category){ return foci[d.category].x; }
+            // return foci.default.x;
+            if ((autoCategoryFlag && isCategorized(d.categoryAuto)) 
+              || (!isCategorized(d.category) && isCategorized(d.categoryAuto))
+            ){ 
+              return foci[d.categoryAuto].x; 
+              }
+            if (isCategorized(d.category)) { return foci[d.category].x; }
             return foci.default.x;
+
           }).
           strength(function strengthFunc(){
             return forceXmultiplier * gravity; 
           })).
           force("forceY", d3.forceY().y(function forceYfunc(d) { 
-            if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)){
-              return foci[d.categoryAuto].y;
-            }
-            if (d.category){ return foci[d.category].y; }
+
+            // if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)){
+            //   return foci[d.categoryAuto].y;
+            // }
+            // if (d.category){ return foci[d.category].y; }
+            // return foci.default.y;
+            if ((autoCategoryFlag && isCategorized(d.categoryAuto)) 
+              || (!isCategorized(d.category) && isCategorized(d.categoryAuto))
+            ){ 
+              return foci[d.categoryAuto].y; 
+              }
+            if (isCategorized(d.category)) { return foci[d.category].y; }
             return foci.default.y;
+
           }).
           strength(function strengthFunc(){
             return forceYmultiplier * gravity; 

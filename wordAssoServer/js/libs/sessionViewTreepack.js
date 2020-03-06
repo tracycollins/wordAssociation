@@ -147,16 +147,6 @@ function ViewTreepack() {
   var yMinRatioDefault = 0.75;
   var yMaxRatioDefault = 0.85;
 
-  var foci = {
-    left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 
-    right: {x: xFocusRightRatio*width, y: yFocusRightRatio*height}, 
-    positive: {x: xFocusPositiveRatio*width, y: yFocusPositiveRatio*height}, 
-    negative: {x: xFocusNegativeRatio*width, y: yFocusNegativeRatio*height},
-    neutral: {x: xFocusNeutralRatio*width, y: yFocusNeutralRatio*height},
-    none: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height},
-    default: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height}
-  };
-
   var totalHashmap = {};
   totalHashmap.total = 0;
   totalHashmap.left = 0;
@@ -189,6 +179,16 @@ function ViewTreepack() {
   currentMax.mentions.rate = 0.1;
   currentMax.mentions.mentions = 0.1;
   currentMax.mentions.timeStamp = Date.now();
+
+  var foci = {
+    left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 
+    right: {x: xFocusRightRatio*width, y: yFocusRightRatio*height}, 
+    positive: {x: xFocusPositiveRatio*width, y: yFocusPositiveRatio*height}, 
+    negative: {x: xFocusNegativeRatio*width, y: yFocusNegativeRatio*height},
+    neutral: {x: xFocusNeutralRatio*width, y: yFocusNeutralRatio*height},
+    none: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height},
+    default: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height}
+  };
 
   function isCategorized(category){
     if (category && (category !== "none")) { return true; }

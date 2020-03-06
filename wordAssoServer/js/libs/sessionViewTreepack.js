@@ -190,6 +190,57 @@ function ViewTreepack() {
   currentMax.mentions.mentions = 0.1;
   currentMax.mentions.timeStamp = Date.now();
 
+  function isCategorized(category){
+    if (category && (category !== "none")) { return true; }
+    return false;
+  }
+
+  var categoryFocus = function(d, axis){
+    if ((autoCategoryFlag && isCategorized(d.categoryAuto)) 
+      || (!isCategorized(d.category) && isCategorized(d.categoryAuto))
+    ){ 
+      return foci[d.categoryAuto][axis]; 
+      }
+    if (isCategorized(d.category)) { return foci[d.category]; }
+    return foci.default[axis];
+  };
+
+  function focus(focalPoint){
+    switch (focalPoint) {
+      case "left":
+        return({
+          x: randomIntFromInterval(xMinRatioLeft*width, xMaxRatioLeft*width), 
+          y: randomIntFromInterval(yMinRatioLeft*height, yMaxRatioLeft*height)
+        });
+      case "right":
+        return({
+          x: randomIntFromInterval(xMinRatioRight*width, xMaxRatioRight*width), 
+          y: randomIntFromInterval(yMinRatioRight*height, yMaxRatioRight*height)
+        });
+      case "positive":
+        return({
+          x: randomIntFromInterval(xMinRatioPositive*width, xMaxRatioPositive*width), 
+          y: randomIntFromInterval(yMinRatioPositive*height, yMaxRatioPositive*height)
+        });
+      case "negative":
+        return({
+          x: randomIntFromInterval(xMinRatioNegative*width, xMaxRatioNegative*width), 
+          y: randomIntFromInterval(yMinRatioNegative*height, yMaxRatioNegative*height)
+        });
+      case "neutral":
+        return({
+          x: randomIntFromInterval(xMinRatioNeutral*width, xMaxRatioNeutral*width), 
+          y: randomIntFromInterval(yMinRatioNeutral*height, yMaxRatioNeutral*height)
+        });
+      default:
+        return({
+          x: randomIntFromInterval(xMinRatioDefault*width, xMaxRatioDefault*width), 
+          y: randomIntFromInterval(yMinRatioDefault*height, yMaxRatioDefault*height)
+        });
+    }
+  }
+
+
   function Node(nodePoolId){
     this.age = 1e-6;
     this.ageMaxRatio = 1e-6;
@@ -1156,9 +1207,9 @@ function ViewTreepack() {
         return "unset"; 
       }).
       attr("r", 1e-6). 
-      attr("cx", function (d) { return d.x; }).
-      attr("cy", function (d) { return d.y; }).
-      style("fill", function (d) { 
+      attr("cx", function(d) { return d.x; }).
+      attr("cy", function(d) { return d.y; }).
+      style("fill", function(d) { 
         if (d.isBot) { return botFillColor; }
         if (d.isTopTerm && !isCategorized(d.category) && !isCategorized(d.categoryAuto)) { return palette.white; }
         if (!isCategorized(d.category) && !isCategorized(d.categoryAuto)) { return palette.gray; }
@@ -1208,7 +1259,7 @@ function ViewTreepack() {
 
     // UPDATE
     nodeCircles.
-      style("display", function nodeCirclesDisplay(d) { 
+      style("display", function(d) { 
         if (!d.isValid) { return "none"; }
         return "unset"; 
       }).
@@ -1216,9 +1267,9 @@ function ViewTreepack() {
         if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate)); }
         if (metricMode === "mentions") { return defaultRadiusScale(Math.sqrt(d.mentions)); }
       }).
-      attr("cx", function nodeCircleCx(d) { return d.x; }).
-      attr("cy", function nodeCircleCy(d) { return d.y; }).
-      style("fill", function nodeCirclesFill(d) { 
+      attr("cx", function(d) { return d.x; }).
+      attr("cy", function(d) { return d.y; }).
+      style("fill", function(d) { 
         if (d.isBot) { return botFillColor; }
         if (d.isTopTerm && !isCategorized(d.category) && !isCategorized(d.categoryAuto)) { return palette.white; }
         if (!isCategorized(d.category) && !isCategorized(d.categoryAuto)) { return palette.gray; }
@@ -1229,7 +1280,7 @@ function ViewTreepack() {
         if (d.categoryAuto ==="negative") { return palette.red; }
         return d.categoryColor; 
       }).
-      style("stroke", function nodeCirclesStroke (d) {
+      style("stroke", function (d) {
         if (d.nodeType === "hashtag") { return palette.white; }
         if (d.categoryMismatch) { return palette.red; }
         if (d.categoryMatch) { return categoryMatchColor; }
@@ -1239,7 +1290,7 @@ function ViewTreepack() {
         if (d.categoryAuto ==="negative") { return palette.black; }
         return palette.white; 
       }).
-      style("stroke-width", function nodeCirclesStrokeWidth(d) { 
+      style("stroke-width", function(d) { 
         if (d.nodeType === "hashtag" && d.isTopTerm) { return topTermStrokeWidth; }
         if (d.nodeType === "hashtag") { return 0.5*defaultStrokeWidth; }
         if (d.isBot) { return botStrokeWidth; }
@@ -1254,11 +1305,11 @@ function ViewTreepack() {
         if (d.following) { return defaultStrokeWidth; }
         return 0.5*defaultStrokeWidth; 
       }).
-      style("fill-opacity", function nodeCirclesFillOpacity(d) { 
+      style("fill-opacity", function(d) { 
         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       }).
-      style("stroke-opacity", function nodeCirclesStrokeOpacity(d) { 
+      style("stroke-opacity", function(d) { 
         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       });
@@ -1414,56 +1465,6 @@ function ViewTreepack() {
       mouseMovingFlag = isMoving;
     }
   };
-
-  function isCategorized(category){
-    if (category && (category !== "none")) { return true; }
-    return false;
-  }
-
-  var categoryFocus = function(d, axis){
-    if ((autoCategoryFlag && isCategorized(d.categoryAuto)) 
-      || (!isCategorized(d.category) && isCategorized(d.categoryAuto))
-    ){ 
-      return foci[d.categoryAuto][axis]; 
-      }
-    if (isCategorized(d.category)) { return foci[d.category]; }
-    return foci.default[axis];
-  };
-
-  function focus(focalPoint){
-    switch (focalPoint) {
-      case "left":
-        return({
-          x: randomIntFromInterval(xMinRatioLeft*width, xMaxRatioLeft*width), 
-          y: randomIntFromInterval(yMinRatioLeft*height, yMaxRatioLeft*height)
-        });
-      case "right":
-        return({
-          x: randomIntFromInterval(xMinRatioRight*width, xMaxRatioRight*width), 
-          y: randomIntFromInterval(yMinRatioRight*height, yMaxRatioRight*height)
-        });
-      case "positive":
-        return({
-          x: randomIntFromInterval(xMinRatioPositive*width, xMaxRatioPositive*width), 
-          y: randomIntFromInterval(yMinRatioPositive*height, yMaxRatioPositive*height)
-        });
-      case "negative":
-        return({
-          x: randomIntFromInterval(xMinRatioNegative*width, xMaxRatioNegative*width), 
-          y: randomIntFromInterval(yMinRatioNegative*height, yMaxRatioNegative*height)
-        });
-      case "neutral":
-        return({
-          x: randomIntFromInterval(xMinRatioNeutral*width, xMaxRatioNeutral*width), 
-          y: randomIntFromInterval(yMinRatioNeutral*height, yMaxRatioNeutral*height)
-        });
-      default:
-        return({
-          x: randomIntFromInterval(xMinRatioDefault*width, xMaxRatioDefault*width), 
-          y: randomIntFromInterval(yMinRatioDefault*height, yMaxRatioDefault*height)
-        });
-    }
-  }
 
   var newNode = {};
   var nodeAddQReady = true;

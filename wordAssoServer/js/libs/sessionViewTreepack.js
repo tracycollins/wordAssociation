@@ -1786,7 +1786,7 @@ function ViewTreepack() {
         // return foci.default.x;
       // }).
       strength(function strengthFunc() { return forceXmultiplier * gravity; })).
-      force("forceY", d3.forceY().x(function (d){
+      force("forceY", d3.forceY().y(function (d){
         return categoryFocus(d, "y");
       }).
       // force("forceY", d3.forceY().y(function forceYfunc(d) { 

@@ -147,6 +147,16 @@ function ViewTreepack() {
   var yMinRatioDefault = 0.75;
   var yMaxRatioDefault = 0.85;
 
+  var foci = {
+    left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 
+    right: {x: xFocusRightRatio*width, y: yFocusRightRatio*height}, 
+    positive: {x: xFocusPositiveRatio*width, y: yFocusPositiveRatio*height}, 
+    negative: {x: xFocusNegativeRatio*width, y: yFocusNegativeRatio*height},
+    neutral: {x: xFocusNeutralRatio*width, y: yFocusNeutralRatio*height},
+    none: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height},
+    default: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height}
+  };
+
   var totalHashmap = {};
   totalHashmap.total = 0;
   totalHashmap.left = 0;
@@ -180,73 +190,12 @@ function ViewTreepack() {
   currentMax.mentions.mentions = 0.1;
   currentMax.mentions.timeStamp = Date.now();
 
-  var foci = {
-    left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 
-    right: {x: xFocusRightRatio*width, y: yFocusRightRatio*height}, 
-    positive: {x: xFocusPositiveRatio*width, y: yFocusPositiveRatio*height}, 
-    negative: {x: xFocusNegativeRatio*width, y: yFocusNegativeRatio*height},
-    neutral: {x: xFocusNeutralRatio*width, y: yFocusNeutralRatio*height},
-    none: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height},
-    default: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height}
-  };
-
-  function isCategorized(category){
-    if (category && (category !== "none")) { return true; }
-    return false;
-  }
-
-  var categoryFocus = function(d, axis){
-    if ((autoCategoryFlag && isCategorized(d.categoryAuto)) 
-      || (!isCategorized(d.category) && isCategorized(d.categoryAuto))
-    ){ 
-      return foci[d.categoryAuto][axis]; 
-      }
-    if (isCategorized(d.category)) { return foci[d.category]; }
-    return foci.default[axis];
-  };
-
-  function focus(focalPoint){
-    switch (focalPoint) {
-      case "left":
-        return({
-          x: randomIntFromInterval(xMinRatioLeft*width, xMaxRatioLeft*width), 
-          y: randomIntFromInterval(yMinRatioLeft*height, yMaxRatioLeft*height)
-        });
-      case "right":
-        return({
-          x: randomIntFromInterval(xMinRatioRight*width, xMaxRatioRight*width), 
-          y: randomIntFromInterval(yMinRatioRight*height, yMaxRatioRight*height)
-        });
-      case "positive":
-        return({
-          x: randomIntFromInterval(xMinRatioPositive*width, xMaxRatioPositive*width), 
-          y: randomIntFromInterval(yMinRatioPositive*height, yMaxRatioPositive*height)
-        });
-      case "negative":
-        return({
-          x: randomIntFromInterval(xMinRatioNegative*width, xMaxRatioNegative*width), 
-          y: randomIntFromInterval(yMinRatioNegative*height, yMaxRatioNegative*height)
-        });
-      case "neutral":
-        return({
-          x: randomIntFromInterval(xMinRatioNeutral*width, xMaxRatioNeutral*width), 
-          y: randomIntFromInterval(yMinRatioNeutral*height, yMaxRatioNeutral*height)
-        });
-      default:
-        return({
-          x: randomIntFromInterval(xMinRatioDefault*width, xMaxRatioDefault*width), 
-          y: randomIntFromInterval(yMinRatioDefault*height, yMaxRatioDefault*height)
-        });
-    }
-  }
-
-
   function Node(nodePoolId){
     this.age = 1e-6;
     this.ageMaxRatio = 1e-6;
     this.ageUpdated = Date.now();
-    this.category = false;
-    this.categoryAuto = false;
+    this.category = "none";
+    this.categoryAuto = "none";
     this.categoryColor = "#FFFFFF";
     this.categoryMatch = false;
     this.categoryMismatch = false;
@@ -731,14 +680,31 @@ function ViewTreepack() {
     gravity = value;
 
     simulation.
-      force("forceX", d3.forceX().x(function (d){ return categoryFocus(d, "x"); }).
-      strength(function(){ return forceXmultiplier * gravity; })).
-      force("forceX", d3.forceY().y(function (d){ return categoryFocus(d, "y"); }).
-      strength(function(){ return forceYmultiplier * gravity; }));
+      force("forceX", d3.forceX().x(function(d) { 
+        if ((autoCategoryFlag && isCategorized(d.categoryAuto)) || (!isCategorized(d.category) && isCategorized(d.categoryAuto))){
+          return foci[d.categoryAuto].x;
+        }
+        if (isCategorized(d.category)){ return foci[d.category].x; }
+        return foci.default.x;
+      }).
+      strength(function(){
+        return forceXmultiplier * gravity; 
+      })).
+      force("forceY", d3.forceY().y(function(d) { 
+        if ((autoCategoryFlag && isCategorized(d.categoryAuto)) || (!isCategorized(d.category) && isCategorized(d.categoryAuto))){
+          return foci[d.categoryAuto].y;
+        }
+        if (isCategorized(d.category)){ return foci[d.category].x; }
+        return foci.default.y;
+      }).
+      strength(function(){
+        return forceYmultiplier * gravity; 
+      }));
   };
 
   self.setTransitionDuration = function(value) {
     console.debug("UPDATE TRANSITION DURATION: " + value);
+    // transitionDuration = value;
     config.defaultTransitionDuration = value;
   };
 
@@ -956,7 +922,7 @@ function ViewTreepack() {
 
         tempNodeArray.push(nNode);
 
-        if (nNode.category) {
+        if (isCategorized(nNode.category)) {
           if (metricMode === "rate") { 
             tempTotalHashmap[nNode.category] += nNode.rate; 
             tempTotalHashmap.total += nNode.rate; 
@@ -1092,7 +1058,7 @@ function ViewTreepack() {
             
     d3.select("#" + d.nodePoolId + "_label").style("display", function(){
       if (!d.isValid) { return "none"; }
-      if (d.category) { return "unset"; }
+      if (isCategorized(d.category)) { return "unset"; }
       if (d.rate > minRate) { return "unset"; }
       if ((d.nodeType === "hashtag") && ((d.mentions > minMentionsHashtags) || (d.nodeId.includes("trump")))){ 
         return "unset"; 
@@ -1113,19 +1079,19 @@ function ViewTreepack() {
 
   function labelText(d) {
     if (d.nodeType === "hashtag") { 
-      if (d.category || d.categoryAuto) { return "#" + d.nodeId.toUpperCase(); }
+      if (isCategorized(d.category) || isCategorized(d.categoryAuto)) { return "#" + d.nodeId.toUpperCase(); }
       if (d.mentions >= minMentionsHashtags) { return "#" + d.nodeId.toUpperCase(); }
       return "#" + d.nodeId.toLowerCase(); 
     }
     if (d.nodeType === "user") { 
       if (d.screenName) { 
-        if (d.category || d.categoryAuto) { return "@" + d.screenName.toUpperCase(); }
+        if (isCategorized(d.category) || isCategorized(d.categoryAuto)) { return "@" + d.screenName.toUpperCase(); }
         if (d.followersCount >= minFollowers) { return "@" + d.screenName.toUpperCase(); }
         if (d.mentions >= minMentionsUsers) { return "@" + d.screenName.toUpperCase(); }
         return "@" + d.screenName.toLowerCase(); 
       }
       else if (d.name){ 
-        if (d.category || d.categoryAuto) { return "@" + d.name.toUpperCase(); }
+      if (isCategorized(d.category) || isCategorized(d.categoryAuto)) { return "@" + d.name.toUpperCase(); }
         if (d.followersCount >= minFollowers) { return "@" + d.name.toUpperCase(); }
         if (d.mentions >= minMentionsUsers) { return "@" + d.name.toUpperCase(); }
         return "@" + d.name.toLowerCase(); 
@@ -1207,14 +1173,9 @@ function ViewTreepack() {
         return "unset"; 
       }).
       attr("r", 1e-6). 
-      attr("cx", function(d) {
-        if (typeof d.x !== "number"){
-          console.error("d.x is not number: " + typeof d.x);
-        }
-        return d.x;
-      }).
-      attr("cy", function(d) { return d.y; }).
-      style("fill", function(d) { 
+      attr("cx", function (d) { return d.x; }).
+      attr("cy", function (d) { return d.y; }).
+      style("fill", function (d) { 
         if (d.isBot) { return botFillColor; }
         if (d.isTopTerm && !isCategorized(d.category) && !isCategorized(d.categoryAuto)) { return palette.white; }
         if (!isCategorized(d.category) && !isCategorized(d.categoryAuto)) { return palette.gray; }
@@ -1264,7 +1225,7 @@ function ViewTreepack() {
 
     // UPDATE
     nodeCircles.
-      style("display", function(d) { 
+      style("display", function nodeCirclesDisplay(d) { 
         if (!d.isValid) { return "none"; }
         return "unset"; 
       }).
@@ -1272,9 +1233,9 @@ function ViewTreepack() {
         if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate)); }
         if (metricMode === "mentions") { return defaultRadiusScale(Math.sqrt(d.mentions)); }
       }).
-      attr("cx", function(d) { return d.x; }).
-      attr("cy", function(d) { return d.y; }).
-      style("fill", function(d) { 
+      attr("cx", function nodeCircleCx(d) { return d.x; }).
+      attr("cy", function nodeCircleCy(d) { return d.y; }).
+      style("fill", function nodeCirclesFill(d) { 
         if (d.isBot) { return botFillColor; }
         if (d.isTopTerm && !isCategorized(d.category) && !isCategorized(d.categoryAuto)) { return palette.white; }
         if (!isCategorized(d.category) && !isCategorized(d.categoryAuto)) { return palette.gray; }
@@ -1285,7 +1246,7 @@ function ViewTreepack() {
         if (d.categoryAuto ==="negative") { return palette.red; }
         return d.categoryColor; 
       }).
-      style("stroke", function (d) {
+      style("stroke", function nodeCirclesStroke (d) {
         if (d.nodeType === "hashtag") { return palette.white; }
         if (d.categoryMismatch) { return palette.red; }
         if (d.categoryMatch) { return categoryMatchColor; }
@@ -1295,7 +1256,7 @@ function ViewTreepack() {
         if (d.categoryAuto ==="negative") { return palette.black; }
         return palette.white; 
       }).
-      style("stroke-width", function(d) { 
+      style("stroke-width", function nodeCirclesStrokeWidth(d) { 
         if (d.nodeType === "hashtag" && d.isTopTerm) { return topTermStrokeWidth; }
         if (d.nodeType === "hashtag") { return 0.5*defaultStrokeWidth; }
         if (d.isBot) { return botStrokeWidth; }
@@ -1310,11 +1271,11 @@ function ViewTreepack() {
         if (d.following) { return defaultStrokeWidth; }
         return 0.5*defaultStrokeWidth; 
       }).
-      style("fill-opacity", function(d) { 
+      style("fill-opacity", function nodeCirclesFillOpacity(d) { 
         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       }).
-      style("stroke-opacity", function(d) { 
+      style("stroke-opacity", function nodeCirclesStrokeOpacity(d) { 
         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       });
@@ -1471,6 +1432,61 @@ function ViewTreepack() {
     }
   };
 
+  function isCategorized(category){
+    if (category && (category !== "none")) { return true; }
+    return false;
+  }
+
+  var categoryFocus = function(d, axis){
+    if ((autoCategoryFlag && isCategorized(d.categoryAuto)) 
+      || (!isCategorized(d.category) && isCategorized(d.categoryAuto))
+    ){ 
+      return foci[d.categoryAuto][axis]; 
+      }
+    if (isCategorized(d.category)) { return foci[d.category]; }
+    return foci.default[axis];
+  };
+
+  function focus(focalPoint){
+    switch (focalPoint) {
+      case "left":
+        return({
+          x: randomIntFromInterval(xMinRatioLeft*width, xMaxRatioLeft*width), 
+          y: randomIntFromInterval(yMinRatioLeft*height, yMaxRatioLeft*height)
+        });
+      case "right":
+        return({
+          x: randomIntFromInterval(xMinRatioRight*width, xMaxRatioRight*width), 
+          y: randomIntFromInterval(yMinRatioRight*height, yMaxRatioRight*height)
+        });
+      case "positive":
+        return({
+          x: randomIntFromInterval(xMinRatioPositive*width, xMaxRatioPositive*width), 
+          y: randomIntFromInterval(yMinRatioPositive*height, yMaxRatioPositive*height)
+        });
+      case "negative":
+        return({
+          x: randomIntFromInterval(xMinRatioNegative*width, xMaxRatioNegative*width), 
+          y: randomIntFromInterval(yMinRatioNegative*height, yMaxRatioNegative*height)
+        });
+      case "neutral":
+        return({
+          x: randomIntFromInterval(xMinRatioNeutral*width, xMaxRatioNeutral*width), 
+          y: randomIntFromInterval(yMinRatioNeutral*height, yMaxRatioNeutral*height)
+        });
+      case "none":
+        return({
+          x: randomIntFromInterval(xMinRatioDefault*width, xMaxRatioDefault*width), 
+          y: randomIntFromInterval(yMinRatioDefault*height, yMaxRatioDefault*height)
+        });
+      default:
+        return({
+          x: randomIntFromInterval(xMinRatioDefault*width, xMaxRatioDefault*width), 
+          y: randomIntFromInterval(yMinRatioDefault*height, yMaxRatioDefault*height)
+        });
+    }
+  }
+
   var newNode = {};
   var nodeAddQReady = true;
   var currentNode;
@@ -1597,8 +1613,8 @@ function ViewTreepack() {
           }
         }
         else {
-          currentNode.x = focus("default").x; 
-          currentNode.y = focus("default").y;
+          currentNode.x = focus("none").x; 
+          currentNode.y = focus("none").y;
         }
 
         nodePoolIdcircle = document.getElementById(currentNode.nodePoolId);
@@ -1766,10 +1782,33 @@ function ViewTreepack() {
 
     simulation = d3.forceSimulation(nodeArray).
       force("charge", d3.forceManyBody().strength(charge)).
-      force("forceX", d3.forceX().x(function (d){ return categoryFocus(d, "x"); }).
-      strength(function strengthFunc() { return forceXmultiplier * gravity; })).
-      force("forceY", d3.forceY().y(function (d){ return categoryFocus(d, "y"); }).
-      strength(function strengthFunc(){ return forceYmultiplier * gravity; })).
+      // force("forceX", d3.forceX().x(function (d){ return categoryFocus(d, "x"); }).strength(function strengthFunc() { return forceXmultiplier * gravity; })).
+      // force("forceY", d3.forceY().y(function (d){ return categoryFocus(d, "y"); }).strength(function strengthFunc(){ return forceYmultiplier * gravity; })).
+          force("forceX", d3.forceX().x(function forceXfunc(d) { 
+            if ((autoCategoryFlag && isCategorized(d.categoryAuto)) 
+              || (!isCategorized(d.category) && isCategorized(d.categoryAuto))
+            ){ 
+              return foci[d.categoryAuto].x; 
+              }
+            if (isCategorized(d.category)) { return foci[d.category].x; }
+            return foci.default.x;
+          }).
+          strength(function strengthFunc(){
+            return forceXmultiplier * gravity; 
+          })).
+          force("forceY", d3.forceY().y(function forceYfunc(d) { 
+
+            if ((autoCategoryFlag && isCategorized(d.categoryAuto)) 
+              || (!isCategorized(d.category) && isCategorized(d.categoryAuto))
+            ){ 
+              return foci[d.categoryAuto].y; 
+              }
+            if (isCategorized(d.category)) { return foci[d.category].y; }
+            return foci.default.y;
+          }).
+          strength(function strengthFunc(){
+            return forceYmultiplier * gravity; 
+          })).
       force("collide", d3.forceCollide().radius(function forceCollideFunc(d) { 
         if (metricMode === "rate") { return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate)); }
         if (metricMode === "mentions") { return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions)); }
@@ -1880,13 +1919,36 @@ function ViewTreepack() {
 
         simulation.
           force("charge", d3.forceManyBody().strength(charge)).
-          force("forceX", d3.forceX().x(function (d){ return categoryFocus(d, "x"); }).
-          strength(function strengthFunc(){ return forceXmultiplier * gravity; })).
-          force("forceY", d3.forceY().y(function (d){ return categoryFocus(d, "y"); }).
-          strength(function strengthFunc(){ return forceYmultiplier * gravity; })).
+          force("forceX", d3.forceX().x(function forceXfunc(d) { 
+            if ((autoCategoryFlag && isCategorized(d.categoryAuto)) 
+              || (!isCategorized(d.category) && isCategorized(d.categoryAuto))
+            ){ 
+              return foci[d.categoryAuto].x; 
+              }
+            if (isCategorized(d.category)) { return foci[d.category].x; }
+            return foci.default.x;
+          }).
+          strength(function strengthFunc(){
+            return forceXmultiplier * gravity; 
+          })).
+          force("forceY", d3.forceY().y(function forceYfunc(d) { 
+
+            if ((autoCategoryFlag && isCategorized(d.categoryAuto)) 
+              || (!isCategorized(d.category) && isCategorized(d.categoryAuto))
+            ){ 
+              return foci[d.categoryAuto].y; 
+              }
+            if (isCategorized(d.category)) { return foci[d.category].y; }
+            return foci.default.y;
+          }).
+          strength(function strengthFunc(){
+            return forceYmultiplier * gravity; 
+          })).
           force("collide", d3.forceCollide().radius(function forceCollideFunc(d) { 
             if (metricMode === "rate") { return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate)); }
-            if (metricMode === "mentions") { return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions)); }
+            if (metricMode === "mentions") {
+              return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions));
+            }
           }).
           iterations(collisionIterations)).
           velocityDecay(velocityDecay);
@@ -1897,6 +1959,11 @@ function ViewTreepack() {
       if (panzoomElement) {
         panzoomInstance.zoomAbs(width*0.5, height*0.5, config.panzoomTransform.scale);
       }
+
+
+      // self.initD3timer();
+
+      // self.setGravity(config.defaultGravity);
 
     }, 200);
   };

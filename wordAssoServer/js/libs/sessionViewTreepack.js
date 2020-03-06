@@ -1778,9 +1778,10 @@ function ViewTreepack() {
     simulation = d3.forceSimulation(nodeArray).
       force("charge", d3.forceManyBody().strength(charge)).
       // force("forceX", d3.forceX().x(function forceXfunc(d) { 
-      force("forceX", d3.forceX().x(function (d){
-        return categoryFocus(d, "x");
-      }).
+      // force("forceX", d3.forceX().x(function (d){
+      //   return categoryFocus(d, "x");
+      // }).
+      force("forceX", d3.forceX().x(categoryFocus(d, "x")).
         // if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)) { return foci[d.categoryAuto].x; }
         // if (d.category) { return foci[d.category].x; }
         // return foci.default.x;

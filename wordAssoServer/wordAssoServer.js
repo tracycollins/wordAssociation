@@ -1,15 +1,15 @@
 const MODULE_NAME = "wordAssoServer";
 const MODULE_ID_PREFIX = "WAS";
 
-// const googleDebugAgent = require("@google-cloud/debug-agent");
+const googleDebugAgent = require("@google-cloud/debug-agent");
 
-// googleDebugAgent.start({
-//   allowExpressions: true,
-//   serviceContext: {
-//     service: MODULE_NAME,
-//     version: "1.0.30"
-//   }
-// });
+googleDebugAgent.start({
+  allowExpressions: true,
+  serviceContext: {
+    service: MODULE_NAME,
+    version: "1.0.30"
+  }
+});
 
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
@@ -34,7 +34,6 @@ const empty = require("is-empty");
 const watch = require("watch");
 const whois = require("whois-json");
 const dns = require("dns");
-// const csvParse = require("csv-parse")
 
 // const {google} = require("googleapis");
 // const googleSupportedAPIs = google.getSupportedAPIs();

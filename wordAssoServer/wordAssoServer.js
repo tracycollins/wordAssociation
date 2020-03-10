@@ -164,10 +164,10 @@ const DEFAULT_TWITTER_RX_QUEUE_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_TRANSMIT_NODE_QUEUE_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = DEFAULT_INTERVAL;
 
-const TWP_PING_INTERVAL = 10*ONE_MINUTE;
-const DBU_PING_INTERVAL = 10*ONE_MINUTE;
-const TFE_PING_INTERVAL = 10*ONE_MINUTE;
-const TSS_PING_INTERVAL = 10*ONE_MINUTE;
+const TWP_PING_INTERVAL = 15*ONE_MINUTE;
+const DBU_PING_INTERVAL = 15*ONE_MINUTE;
+const TFE_PING_INTERVAL = 15*ONE_MINUTE;
+const TSS_PING_INTERVAL = 15*ONE_MINUTE;
 
 const DEFAULT_RATE_QUEUE_INTERVAL = 10*ONE_SECOND; // 1 second
 const DEFAULT_RATE_QUEUE_INTERVAL_MODULO = 6; // modulo RATE_QUEUE_INTERVAL
@@ -6242,7 +6242,13 @@ async function updateUserSets(){
         uncategorizedManualUserSet.add(nodeId);
 
         if (tfeChild !== undefined) { 
-          tfeChild.send({op: "USER_CATEGORIZE", user: user});
+          tfeChild.send({
+            op: "USER_CATEGORIZE", 
+            user: {
+              nodeId: user.nodeId,
+              screenName: user.screenName
+            }
+          });
         }
 
         if (uncategorizedManualUserSet.size % 100 == 0) {
@@ -6639,7 +6645,16 @@ async function categorize(params){
   }
 
   if (tfeChild !== undefined) { 
-    tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: autoFollowFlag, user: n});
+
+    tfeChild.send({
+      op: "USER_CATEGORIZE", 
+      priorityFlag: autoFollowFlag, 
+      user: {
+        nodeId: params.user.nodeId,
+        screenName: params.user.screenName
+      }
+    });
+
     if (n.category == "left" || n.category == "right" || n.category == "neutral") {
       uncatUserCache.del(n.nodeId);
     }
@@ -10393,14 +10408,33 @@ async function processTwitterSearchNode(params) {
 
     if (params.specificUserFlag) {
       if (tfeChild && params.user.toObject && (typeof params.user.toObject == "function")) {
-        tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, searchMode: params.searchMode, user: params.user.toObject()});
+
+        tfeChild.send({
+          op: "USER_CATEGORIZE", 
+          priorityFlag: true, 
+          searchMode: params.searchMode, 
+          user: {
+            nodeId: params.user.nodeId,
+            screenName: params.user.screenName
+          }
+        });
 
         if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
           uncatUserCache.del(params.user.nodeId);
         }
       }
       else if (tfeChild) {
-        tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, searchMode: params.searchMode, user: params.user});
+
+        tfeChild.send({
+          op: "USER_CATEGORIZE", 
+          priorityFlag: true, 
+          searchMode: params.searchMode, 
+          user: {
+            nodeId: params.user.nodeId,
+            screenName: params.user.screenName
+          }
+        });
+
         if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
           uncatUserCache.del(params.user.nodeId);
         }
@@ -10466,13 +10500,33 @@ async function processTwitterSearchNode(params) {
       }
 
       if (tfeChild && params.user.toObject && (typeof params.user.toObject == "function")) {
-        tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, searchMode: params.searchMode, user: params.user.toObject()});
+
+        tfeChild.send({
+          op: "USER_CATEGORIZE", 
+          priorityFlag: true, 
+          searchMode: params.searchMode, 
+          user: {
+            nodeId: params.user.nodeId,
+            screenName: params.user.screenName
+          }
+        });
+
         if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
           uncatUserCache.del(params.user.nodeId);
         }
       }
       else if (tfeChild) {
-        tfeChild.send({op: "USER_CATEGORIZE", priorityFlag: true, searchMode: params.searchMode, user: params.user});
+
+        tfeChild.send({
+          op: "USER_CATEGORIZE", 
+          priorityFlag: true, 
+          searchMode: params.searchMode, 
+          user: {
+            nodeId: params.user.nodeId,
+            screenName: params.user.screenName
+          }
+        });
+
         if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
           uncatUserCache.del(params.user.nodeId);
         }

@@ -179,7 +179,7 @@ const DEFAULT_QUIT_ON_ERROR = false;
 const DEFAULT_MAX_TOP_TERMS = 100;
 const DEFAULT_METRICS_NODE_METER_ENABLED = true;
 
-const DEFAULT_MAX_QUEUE = 500;
+const DEFAULT_MAX_QUEUE = 100;
 const DEFAULT_OFFLINE_MODE = process.env.OFFLINE_MODE || false; 
 const DEFAULT_AUTO_OFFLINE_MODE = true; // if network connection is down, will auto switch to OFFLINE_MODE
 const DEFAULT_IO_PING_INTERVAL = ONE_MINUTE;
@@ -2293,11 +2293,6 @@ function initStats(callback){
   statsObj.caches.nodeCache.stats.keys = 0;
   statsObj.caches.nodeCache.stats.keysMax = 0;
 
-  // statsObj.caches.botCache = {};
-  // statsObj.caches.botCache.stats = {};
-  // statsObj.caches.botCache.stats.keys = 0;
-  // statsObj.caches.botCache.stats.keysMax = 0;
-
   statsObj.caches.nodesPerMinuteTopTermCache = {};
   statsObj.caches.nodesPerMinuteTopTermCache.stats = {};
   statsObj.caches.nodesPerMinuteTopTermCache.stats.keys = 0;
@@ -2356,7 +2351,6 @@ function initStats(callback){
   statsObj.queues.sorterMessageRxQueue = 0;
   statsObj.queues.transmitNodeQueue = 0;
   statsObj.queues.tweetParserMessageRxQueue = 0;
-  // statsObj.queues.tweetParserQueue = 0;
   statsObj.queues.tweetRxQueue = 0;
 
   statsObj.socket = {};
@@ -9736,9 +9730,7 @@ async function loadAllConfigFiles(){
   filterDuplicateTweets = configuration.filterDuplicateTweets;
   filterRetweets = configuration.filterRetweets;
 
-  // if (filterRetweets) { 
   console.log(chalkWarn(MODULE_ID_PREFIX + " | -X- FILTER RETWEETS: " + filterRetweets));
-  // }
 
   maxQueue = configuration.maxQueue;
 

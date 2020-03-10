@@ -10714,17 +10714,12 @@ function getNextSearchNode(params){
 }
 
 async function findUsersNodeIds(params){
-  global.wordAssoDb.User.find(params.query).select({nodeId: 1}).lean()
-  .then(function(nodeIdArray){
-    if (nodeIdArray.length === 0){
-      return [];
-    }
+  const nodeIdArray = await global.wordAssoDb.User.find(params.query).select({nodeId: 1}).lean();
+  if (nodeIdArray && nodeIdArray.length > 0){
     const results = nodeIdArray.map((a) => a.nodeId);
     return results;
-  })
-  .catch(function(err){
-    throw err;
-  })
+  }
+  return [];
 }
 
 async function twitterSearchUser(params) {

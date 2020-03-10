@@ -10713,8 +10713,8 @@ function getNextSearchNode(params){
   });
 }
 
-async function findUsersNodeIds(params){
-  const nodeIdArray = await global.wordAssoDb.User.find(params.query).select({nodeId: 1}).lean();
+async function findUsersNodeIds(query){
+  const nodeIdArray = await global.wordAssoDb.User.find(query).select({nodeId: 1}).lean();
   if (nodeIdArray && nodeIdArray.length > 0){
     const results = nodeIdArray.map((a) => a.nodeId);
     return results;

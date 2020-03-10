@@ -10730,21 +10730,6 @@ async function twitterSearchUser(params) {
   let searchMode;
   let searchUserNodeIdArray = [];
 
-  // const userAutoLeftArray = [...userAutoLeftSet];
-  // const userAutoRightArray = [...userAutoRightSet];
-  // const userAutoNeutralArray = [...userAutoNeutralSet];
-
-  // const uncategorizedManualUserArray = [...uncategorizedManualUserSet];
-
-  // statsObj.user.uncategorized.all = uncategorizedManualUserArray.length;
-  // statsObj.user.uncategorized.left = _.intersection(userAutoLeftArray, uncategorizedManualUserArray).length;
-  // statsObj.user.uncategorized.right = _.intersection(userAutoRightArray, uncategorizedManualUserArray).length;
-  // statsObj.user.uncategorized.neutral = _.intersection(userAutoNeutralArray, uncategorizedManualUserArray).length;
-
-  // statsObj.user.auto.right = userAutoRightSet.size;
-  // statsObj.user.auto.left = userAutoLeftSet.size;
-  // statsObj.user.auto.neutral = userAutoNeutralSet.size;
-
   if (searchNodeUser.screenName.startsWith("?")) {
 
     switch (searchNodeUser.screenName) {
@@ -10752,26 +10737,31 @@ async function twitterSearchUser(params) {
       case "?mm":
         searchMode = "MISMATCH";
         searchUserNodeIdArray = await findUsersNodeIds({categoryMismatch: true});
+        statsObj.user.mismatched = searchUserNodeIdArray.length;
       break;
 
       case "?all":
         searchMode = "UNCAT";
         searchUserNodeIdArray = await findUsersNodeIds({category: "none"});
+        statsObj.user.uncategorized.all = searchUserNodeIdArray.length;
       break;
 
       case "?left":
         searchMode = "UNCAT_LEFT";
         searchUserNodeIdArray = await findUsersNodeIds({category: "none", categoryAuto: "left"});
+        statsObj.user.uncategorized.left = searchUserNodeIdArray.length;
       break;
 
       case "?right":
         searchMode = "UNCAT_RIGHT";
         searchUserNodeIdArray = await findUsersNodeIds({category: "none", categoryAuto: "right"});
+        statsObj.user.uncategorized.right = searchUserNodeIdArray.length;
       break;
 
       case "?neutral":
         searchMode = "UNCAT_NEUTRAL";
         searchUserNodeIdArray = await findUsersNodeIds({category: "none", categoryAuto: "neutral"});
+        statsObj.user.uncategorized.neutral = searchUserNodeIdArray.length;
       break;
 
       default:

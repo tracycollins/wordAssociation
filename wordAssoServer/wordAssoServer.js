@@ -930,26 +930,26 @@ let utilNameSpace;
 let userNameSpace;
 let viewNameSpace;
 
-const userRightSet = new Set();
-const userLeftSet = new Set();
-const userNeutralSet = new Set();
-const userPositiveSet = new Set();
-const userNegativeSet = new Set();
-const userNoneSet = new Set();
+// const userRightSet = new Set();
+// const userLeftSet = new Set();
+// const userNeutralSet = new Set();
+// const userPositiveSet = new Set();
+// const userNegativeSet = new Set();
+// const userNoneSet = new Set();
 
 const userAutoRightSet = new Set();
 const userAutoLeftSet = new Set();
 const userAutoNeutralSet = new Set();
-const userAutoPositiveSet = new Set();
-const userAutoNegativeSet = new Set();
-const userAutoNoneSet = new Set();
+// const userAutoPositiveSet = new Set();
+// const userAutoNegativeSet = new Set();
+// const userAutoNoneSet = new Set();
 
-const hashtagRightSet = new Set();
-const hashtagLeftSet = new Set();
-const hashtagNeutralSet = new Set();
-const hashtagPositiveSet = new Set();
-const hashtagNegativeSet = new Set();
-const hashtagNoneSet = new Set();
+// const hashtagRightSet = new Set();
+// const hashtagLeftSet = new Set();
+// const hashtagNeutralSet = new Set();
+// const hashtagPositiveSet = new Set();
+// const hashtagNegativeSet = new Set();
+// const hashtagNoneSet = new Set();
 
 
 const ignoredHashtagFile = "ignoredHashtag.txt";
@@ -6016,19 +6016,19 @@ async function updateUserSets(){
   statsObj.user.uncategorizedAuto = await countDocuments({documentType: "users", query: {categoryAuto: { "$in": ["none", false, "false", null] }}});
   console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT AUTO USERS: " + statsObj.user.uncategorizedAuto));
 
-  userRightSet.clear();
-  userLeftSet.clear();
-  userNeutralSet.clear();
-  userPositiveSet.clear();
-  userNegativeSet.clear();
-  userNoneSet.clear();
+  // userRightSet.clear();
+  // userLeftSet.clear();
+  // userNeutralSet.clear();
+  // userPositiveSet.clear();
+  // userNegativeSet.clear();
+  // userNoneSet.clear();
 
   userAutoRightSet.clear();
   userAutoLeftSet.clear();
   userAutoNeutralSet.clear();
-  userAutoPositiveSet.clear();
-  userAutoNegativeSet.clear();
-  userAutoNoneSet.clear();
+  // userAutoPositiveSet.clear();
+  // userAutoNegativeSet.clear();
+  // userAutoNoneSet.clear();
 
   const userSearchQuery = { ignored: false };
   
@@ -6121,57 +6121,57 @@ async function updateUserSets(){
 
       switch (category) {
         case "right":
-          userRightSet.add(nodeId);
-          userLeftSet.delete(nodeId);
-          userNeutralSet.delete(nodeId);
-          userPositiveSet.delete(nodeId);
-          userNegativeSet.delete(nodeId);
-          userNoneSet.delete(nodeId);
+          // userRightSet.add(nodeId);
+          // userLeftSet.delete(nodeId);
+          // userNeutralSet.delete(nodeId);
+          // userPositiveSet.delete(nodeId);
+          // userNegativeSet.delete(nodeId);
+          // userNoneSet.delete(nodeId);
           categorizeable = true;
         break;
         case "left":
-          userRightSet.delete(nodeId);
-          userLeftSet.add(nodeId);
-          userNeutralSet.delete(nodeId);
-          userPositiveSet.delete(nodeId);
-          userNegativeSet.delete(nodeId);
-          userNoneSet.delete(nodeId);
+          // userRightSet.delete(nodeId);
+          // userLeftSet.add(nodeId);
+          // userNeutralSet.delete(nodeId);
+          // userPositiveSet.delete(nodeId);
+          // userNegativeSet.delete(nodeId);
+          // userNoneSet.delete(nodeId);
           categorizeable = true;
         break;
         case "neutral":
-          userRightSet.delete(nodeId);
-          userLeftSet.delete(nodeId);
-          userNeutralSet.add(nodeId);
-          userPositiveSet.delete(nodeId);
-          userNegativeSet.delete(nodeId);
-          userNoneSet.delete(nodeId);
+          // userRightSet.delete(nodeId);
+          // userLeftSet.delete(nodeId);
+          // userNeutralSet.add(nodeId);
+          // userPositiveSet.delete(nodeId);
+          // userNegativeSet.delete(nodeId);
+          // userNoneSet.delete(nodeId);
           categorizeable = true;
         break;
         case "positive":
-          userRightSet.delete(nodeId);
-          userLeftSet.delete(nodeId);
-          userNeutralSet.delete(nodeId);
-          userPositiveSet.add(nodeId);
-          userNegativeSet.delete(nodeId);
-          userNoneSet.delete(nodeId);
+          // userRightSet.delete(nodeId);
+          // userLeftSet.delete(nodeId);
+          // userNeutralSet.delete(nodeId);
+          // userPositiveSet.add(nodeId);
+          // userNegativeSet.delete(nodeId);
+          // userNoneSet.delete(nodeId);
           categorizeable = true;
         break;
         case "negative":
-          userRightSet.delete(nodeId);
-          userLeftSet.delete(nodeId);
-          userNeutralSet.delete(nodeId);
-          userPositiveSet.delete(nodeId);
-          userNegativeSet.add(nodeId);
-          userNoneSet.delete(nodeId);
+          // userRightSet.delete(nodeId);
+          // userLeftSet.delete(nodeId);
+          // userNeutralSet.delete(nodeId);
+          // userPositiveSet.delete(nodeId);
+          // userNegativeSet.add(nodeId);
+          // userNoneSet.delete(nodeId);
           categorizeable = true;
         break;
         default:
-          userRightSet.delete(nodeId);
-          userLeftSet.delete(nodeId);
-          userNeutralSet.delete(nodeId);
-          userPositiveSet.delete(nodeId);
-          userNegativeSet.delete(nodeId);
-          userNoneSet.add(nodeId);
+          // userRightSet.delete(nodeId);
+          // userLeftSet.delete(nodeId);
+          // userNeutralSet.delete(nodeId);
+          // userPositiveSet.delete(nodeId);
+          // userNegativeSet.delete(nodeId);
+          // userNoneSet.add(nodeId);
       }
 
       switch (categoryAuto) {
@@ -6179,49 +6179,49 @@ async function updateUserSets(){
           userAutoRightSet.add(nodeId);
           userAutoLeftSet.delete(nodeId);
           userAutoNeutralSet.delete(nodeId);
-          userAutoPositiveSet.delete(nodeId);
-          userAutoNegativeSet.delete(nodeId);
-          userAutoNoneSet.delete(nodeId);
+          // userAutoPositiveSet.delete(nodeId);
+          // userAutoNegativeSet.delete(nodeId);
+          // userAutoNoneSet.delete(nodeId);
         break;
         case "left":
           userAutoRightSet.delete(nodeId);
           userAutoLeftSet.add(nodeId);
           userAutoNeutralSet.delete(nodeId);
-          userAutoPositiveSet.delete(nodeId);
-          userAutoNegativeSet.delete(nodeId);
-          userAutoNoneSet.delete(nodeId);
+          // userAutoPositiveSet.delete(nodeId);
+          // userAutoNegativeSet.delete(nodeId);
+          // userAutoNoneSet.delete(nodeId);
         break;
         case "neutral":
           userAutoRightSet.delete(nodeId);
           userAutoLeftSet.delete(nodeId);
           userAutoNeutralSet.add(nodeId);
-          userAutoPositiveSet.delete(nodeId);
-          userAutoNegativeSet.delete(nodeId);
-          userAutoNoneSet.delete(nodeId);
+          // userAutoPositiveSet.delete(nodeId);
+          // userAutoNegativeSet.delete(nodeId);
+          // userAutoNoneSet.delete(nodeId);
         break;
         case "positive":
           userAutoRightSet.delete(nodeId);
           userAutoLeftSet.delete(nodeId);
           userAutoNeutralSet.delete(nodeId);
-          userAutoPositiveSet.add(nodeId);
-          userAutoNegativeSet.delete(nodeId);
-          userAutoNoneSet.delete(nodeId);
+          // userAutoPositiveSet.add(nodeId);
+          // userAutoNegativeSet.delete(nodeId);
+          // userAutoNoneSet.delete(nodeId);
         break;
         case "negative":
           userAutoRightSet.delete(nodeId);
           userAutoLeftSet.delete(nodeId);
           userAutoNeutralSet.delete(nodeId);
-          userAutoPositiveSet.delete(nodeId);
-          userAutoNegativeSet.add(nodeId);
-          userAutoNoneSet.delete(nodeId);
+          // userAutoPositiveSet.delete(nodeId);
+          // userAutoNegativeSet.add(nodeId);
+          // userAutoNoneSet.delete(nodeId);
         break;
         default:
           userAutoRightSet.delete(nodeId);
           userAutoLeftSet.delete(nodeId);
           userAutoNeutralSet.delete(nodeId);
-          userAutoPositiveSet.delete(nodeId);
-          userAutoNegativeSet.delete(nodeId);
-          userAutoNoneSet.add(nodeId);
+          // userAutoPositiveSet.delete(nodeId);
+          // userAutoNegativeSet.delete(nodeId);
+          // userAutoNoneSet.add(nodeId);
       }
 
       if (!categorizeable) {
@@ -6311,19 +6311,19 @@ async function updateUserSets(){
     statsObj.user.matched = matchUserSet.size;
     statsObj.user.mismatched = mismatchUserSet.size;
 
-    statsObj.user.manual.right = userRightSet.size;
-    statsObj.user.manual.left = userLeftSet.size;
-    statsObj.user.manual.neutral = userNeutralSet.size;
-    statsObj.user.manual.positive = userPositiveSet.size;
-    statsObj.user.manual.negative = userNegativeSet.size;
-    statsObj.user.manual.none = userNoneSet.size;
+    // statsObj.user.manual.right = userRightSet.size;
+    // statsObj.user.manual.left = userLeftSet.size;
+    // statsObj.user.manual.neutral = userNeutralSet.size;
+    // statsObj.user.manual.positive = userPositiveSet.size;
+    // statsObj.user.manual.negative = userNegativeSet.size;
+    // statsObj.user.manual.none = userNoneSet.size;
 
     statsObj.user.auto.right = userAutoRightSet.size;
     statsObj.user.auto.left = userAutoLeftSet.size;
     statsObj.user.auto.neutral = userAutoNeutralSet.size;
-    statsObj.user.auto.positive = userAutoPositiveSet.size;
-    statsObj.user.auto.negative = userAutoNegativeSet.size;
-    statsObj.user.auto.none = userAutoNoneSet.size;
+    // statsObj.user.auto.positive = userAutoPositiveSet.size;
+    // statsObj.user.auto.negative = userAutoNegativeSet.size;
+    // statsObj.user.auto.none = userAutoNoneSet.size;
 
     console.log(chalkBlue(MODULE_ID_PREFIX + " | END FOLLOWING CURSOR"
       + " | " + getTimeStamp()
@@ -6342,19 +6342,19 @@ async function updateUserSets(){
     statsObj.user.matched = matchUserSet.size;
     statsObj.user.mismatched = mismatchUserSet.size;
 
-    statsObj.user.manual.right = userRightSet.size;
-    statsObj.user.manual.left = userLeftSet.size;
-    statsObj.user.manual.neutral = userNeutralSet.size;
-    statsObj.user.manual.positive = userPositiveSet.size;
-    statsObj.user.manual.negative = userNegativeSet.size;
-    statsObj.user.manual.none = userNoneSet.size;
+    // statsObj.user.manual.right = userRightSet.size;
+    // statsObj.user.manual.left = userLeftSet.size;
+    // statsObj.user.manual.neutral = userNeutralSet.size;
+    // statsObj.user.manual.positive = userPositiveSet.size;
+    // statsObj.user.manual.negative = userNegativeSet.size;
+    // statsObj.user.manual.none = userNoneSet.size;
 
     statsObj.user.auto.right = userAutoRightSet.size;
     statsObj.user.auto.left = userAutoLeftSet.size;
     statsObj.user.auto.neutral = userAutoNeutralSet.size;
-    statsObj.user.auto.positive = userAutoPositiveSet.size;
-    statsObj.user.auto.negative = userAutoNegativeSet.size;
-    statsObj.user.auto.none = userAutoNoneSet.size;
+    // statsObj.user.auto.positive = userAutoPositiveSet.size;
+    // statsObj.user.auto.negative = userAutoNegativeSet.size;
+    // statsObj.user.auto.none = userAutoNoneSet.size;
 
     console.log(chalkError("*** ERROR userSearchCursor: " + err));
     console.log(chalkAlert(MODULE_ID_PREFIX + " | USER DB STATS\n" + jsonPrint(statsObj.user)));
@@ -6370,19 +6370,19 @@ async function updateUserSets(){
     statsObj.user.matched = matchUserSet.size;
     statsObj.user.mismatched = mismatchUserSet.size;
 
-    statsObj.user.manual.right = userRightSet.size;
-    statsObj.user.manual.left = userLeftSet.size;
-    statsObj.user.manual.neutral = userNeutralSet.size;
-    statsObj.user.manual.positive = userPositiveSet.size;
-    statsObj.user.manual.negative = userNegativeSet.size;
-    statsObj.user.manual.none = userNoneSet.size;
+    // statsObj.user.manual.right = userRightSet.size;
+    // statsObj.user.manual.left = userLeftSet.size;
+    // statsObj.user.manual.neutral = userNeutralSet.size;
+    // statsObj.user.manual.positive = userPositiveSet.size;
+    // statsObj.user.manual.negative = userNegativeSet.size;
+    // statsObj.user.manual.none = userNoneSet.size;
 
     statsObj.user.auto.right = userAutoRightSet.size;
     statsObj.user.auto.left = userAutoLeftSet.size;
     statsObj.user.auto.neutral = userAutoNeutralSet.size;
-    statsObj.user.auto.positive = userAutoPositiveSet.size;
-    statsObj.user.auto.negative = userAutoNegativeSet.size;
-    statsObj.user.auto.none = userAutoNoneSet.size;
+    // statsObj.user.auto.positive = userAutoPositiveSet.size;
+    // statsObj.user.auto.negative = userAutoNegativeSet.size;
+    // statsObj.user.auto.none = userAutoNoneSet.size;
 
 
     console.log(chalkBlue(MODULE_ID_PREFIX + " | CLOSE FOLLOWING CURSOR"));
@@ -6425,12 +6425,12 @@ async function updateHashtagSets(){
   statsObj.hashtag.uncategorizedAuto = await countDocuments({documentType: "hashtags", query: {categoryAuto: { "$in": ["none", false, "false", null] }}});
   console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT AUTO HASHTAGS: " + statsObj.hashtag.uncategorizedAuto));
 
-  hashtagRightSet.clear();
-  hashtagLeftSet.clear();
-  hashtagNeutralSet.clear();
-  hashtagPositiveSet.clear();
-  hashtagNegativeSet.clear();
-  hashtagNoneSet.clear();
+  // hashtagRightSet.clear();
+  // hashtagLeftSet.clear();
+  // hashtagNeutralSet.clear();
+  // hashtagPositiveSet.clear();
+  // hashtagNegativeSet.clear();
+  // hashtagNoneSet.clear();
 
   const hashtagSearchQuery = { };
   
@@ -6451,7 +6451,7 @@ async function updateHashtagSets(){
 
   hashtagSearchCursor.on("data", async function(hashtag) {
 
-    const nodeId = hashtag.nodeId.toLowerCase();
+    // const nodeId = hashtag.nodeId.toLowerCase();
     const text = (hashtag.text && (hashtag.text !== undefined)) ? hashtag.text.toLowerCase() : "undefined_text";
     const category = hashtag.category;
 
@@ -6466,55 +6466,55 @@ async function updateHashtagSets(){
       );
     }
 
-    switch (category) {
-      case "right":
-        hashtagRightSet.add(nodeId);
-        hashtagLeftSet.delete(nodeId);
-        hashtagNeutralSet.delete(nodeId);
-        hashtagPositiveSet.delete(nodeId);
-        hashtagNegativeSet.delete(nodeId);
-        hashtagNoneSet.delete(nodeId);
-      break;
-      case "left":
-        hashtagRightSet.delete(nodeId);
-        hashtagLeftSet.add(nodeId);
-        hashtagNeutralSet.delete(nodeId);
-        hashtagPositiveSet.delete(nodeId);
-        hashtagNegativeSet.delete(nodeId);
-        hashtagNoneSet.delete(nodeId);
-      break;
-      case "neutral":
-        hashtagRightSet.delete(nodeId);
-        hashtagLeftSet.delete(nodeId);
-        hashtagNeutralSet.add(nodeId);
-        hashtagPositiveSet.delete(nodeId);
-        hashtagNegativeSet.delete(nodeId);
-        hashtagNoneSet.delete(nodeId);
-      break;
-      case "positive":
-        hashtagRightSet.delete(nodeId);
-        hashtagLeftSet.delete(nodeId);
-        hashtagNeutralSet.delete(nodeId);
-        hashtagPositiveSet.add(nodeId);
-        hashtagNegativeSet.delete(nodeId);
-        hashtagNoneSet.delete(nodeId);
-      break;
-      case "negative":
-        hashtagRightSet.delete(nodeId);
-        hashtagLeftSet.delete(nodeId);
-        hashtagNeutralSet.delete(nodeId);
-        hashtagPositiveSet.delete(nodeId);
-        hashtagNegativeSet.add(nodeId);
-        hashtagNoneSet.delete(nodeId);
-      break;
-      default:
-        hashtagRightSet.delete(nodeId);
-        hashtagLeftSet.delete(nodeId);
-        hashtagNeutralSet.delete(nodeId);
-        hashtagPositiveSet.delete(nodeId);
-        hashtagNegativeSet.delete(nodeId);
-        hashtagNoneSet.add(nodeId);
-    }
+    // switch (category) {
+    //   case "right":
+    //     hashtagRightSet.add(nodeId);
+    //     hashtagLeftSet.delete(nodeId);
+    //     hashtagNeutralSet.delete(nodeId);
+    //     hashtagPositiveSet.delete(nodeId);
+    //     hashtagNegativeSet.delete(nodeId);
+    //     hashtagNoneSet.delete(nodeId);
+    //   break;
+    //   case "left":
+    //     hashtagRightSet.delete(nodeId);
+    //     hashtagLeftSet.add(nodeId);
+    //     hashtagNeutralSet.delete(nodeId);
+    //     hashtagPositiveSet.delete(nodeId);
+    //     hashtagNegativeSet.delete(nodeId);
+    //     hashtagNoneSet.delete(nodeId);
+    //   break;
+    //   case "neutral":
+    //     hashtagRightSet.delete(nodeId);
+    //     hashtagLeftSet.delete(nodeId);
+    //     hashtagNeutralSet.add(nodeId);
+    //     hashtagPositiveSet.delete(nodeId);
+    //     hashtagNegativeSet.delete(nodeId);
+    //     hashtagNoneSet.delete(nodeId);
+    //   break;
+    //   case "positive":
+    //     hashtagRightSet.delete(nodeId);
+    //     hashtagLeftSet.delete(nodeId);
+    //     hashtagNeutralSet.delete(nodeId);
+    //     hashtagPositiveSet.add(nodeId);
+    //     hashtagNegativeSet.delete(nodeId);
+    //     hashtagNoneSet.delete(nodeId);
+    //   break;
+    //   case "negative":
+    //     hashtagRightSet.delete(nodeId);
+    //     hashtagLeftSet.delete(nodeId);
+    //     hashtagNeutralSet.delete(nodeId);
+    //     hashtagPositiveSet.delete(nodeId);
+    //     hashtagNegativeSet.add(nodeId);
+    //     hashtagNoneSet.delete(nodeId);
+    //   break;
+    //   default:
+    //     hashtagRightSet.delete(nodeId);
+    //     hashtagLeftSet.delete(nodeId);
+    //     hashtagNeutralSet.delete(nodeId);
+    //     hashtagPositiveSet.delete(nodeId);
+    //     hashtagNegativeSet.delete(nodeId);
+    //     hashtagNoneSet.add(nodeId);
+    // }
 
     hashtagsProcessed++;
     if (hashtagsProcessed % 1000 === 0) {
@@ -6525,12 +6525,12 @@ async function updateHashtagSets(){
 
   hashtagSearchCursor.on("end", function() {
 
-    statsObj.hashtag.manual.right = hashtagRightSet.size;
-    statsObj.hashtag.manual.left = hashtagLeftSet.size;
-    statsObj.hashtag.manual.neutral = hashtagNeutralSet.size;
-    statsObj.hashtag.manual.positive = hashtagPositiveSet.size;
-    statsObj.hashtag.manual.negative = hashtagNegativeSet.size;
-    statsObj.hashtag.manual.none = hashtagNoneSet.size;
+    // statsObj.hashtag.manual.right = hashtagRightSet.size;
+    // statsObj.hashtag.manual.left = hashtagLeftSet.size;
+    // statsObj.hashtag.manual.neutral = hashtagNeutralSet.size;
+    // statsObj.hashtag.manual.positive = hashtagPositiveSet.size;
+    // statsObj.hashtag.manual.negative = hashtagNegativeSet.size;
+    // statsObj.hashtag.manual.none = hashtagNoneSet.size;
 
     console.log(chalkBlue(MODULE_ID_PREFIX + " | END FOLLOWING CURSOR"
       + " | " + getTimeStamp()
@@ -6546,12 +6546,12 @@ async function updateHashtagSets(){
 
   hashtagSearchCursor.on("error", function(err) {
 
-    statsObj.hashtag.manual.right = hashtagRightSet.size;
-    statsObj.hashtag.manual.left = hashtagLeftSet.size;
-    statsObj.hashtag.manual.neutral = hashtagNeutralSet.size;
-    statsObj.hashtag.manual.positive = hashtagPositiveSet.size;
-    statsObj.hashtag.manual.negative = hashtagNegativeSet.size;
-    statsObj.hashtag.manual.none = hashtagNoneSet.size;
+    // statsObj.hashtag.manual.right = hashtagRightSet.size;
+    // statsObj.hashtag.manual.left = hashtagLeftSet.size;
+    // statsObj.hashtag.manual.neutral = hashtagNeutralSet.size;
+    // statsObj.hashtag.manual.positive = hashtagPositiveSet.size;
+    // statsObj.hashtag.manual.negative = hashtagNegativeSet.size;
+    // statsObj.hashtag.manual.none = hashtagNoneSet.size;
 
     console.log(chalkError("*** ERROR hashtagSearchCursor: " + err));
     console.log(chalkAlert(MODULE_ID_PREFIX + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag)));
@@ -6564,12 +6564,12 @@ async function updateHashtagSets(){
 
   hashtagSearchCursor.on("close", function() {
 
-    statsObj.hashtag.manual.right = hashtagRightSet.size;
-    statsObj.hashtag.manual.left = hashtagLeftSet.size;
-    statsObj.hashtag.manual.neutral = hashtagNeutralSet.size;
-    statsObj.hashtag.manual.positive = hashtagPositiveSet.size;
-    statsObj.hashtag.manual.negative = hashtagNegativeSet.size;
-    statsObj.hashtag.manual.none = hashtagNoneSet.size;
+    // statsObj.hashtag.manual.right = hashtagRightSet.size;
+    // statsObj.hashtag.manual.left = hashtagLeftSet.size;
+    // statsObj.hashtag.manual.neutral = hashtagNeutralSet.size;
+    // statsObj.hashtag.manual.positive = hashtagPositiveSet.size;
+    // statsObj.hashtag.manual.negative = hashtagNegativeSet.size;
+    // statsObj.hashtag.manual.none = hashtagNoneSet.size;
 
     console.log(chalkBlue(MODULE_ID_PREFIX + " | CLOSE FOLLOWING CURSOR"));
     console.log(chalkBlue(MODULE_ID_PREFIX + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag)));
@@ -10833,19 +10833,19 @@ async function twitterSearchUser(params) {
 
   statsObj.user.mismatched = mismatchUserSet.size;
 
-  statsObj.user.manual.right = userRightSet.size;
-  statsObj.user.manual.left = userLeftSet.size;
-  statsObj.user.manual.neutral = userNeutralSet.size;
-  statsObj.user.manual.positive = userPositiveSet.size;
-  statsObj.user.manual.negative = userNegativeSet.size;
-  statsObj.user.manual.none = userNoneSet.size;
+  // statsObj.user.manual.right = userRightSet.size;
+  // statsObj.user.manual.left = userLeftSet.size;
+  // statsObj.user.manual.neutral = userNeutralSet.size;
+  // statsObj.user.manual.positive = userPositiveSet.size;
+  // statsObj.user.manual.negative = userNegativeSet.size;
+  // statsObj.user.manual.none = userNoneSet.size;
 
   statsObj.user.auto.right = userAutoRightSet.size;
   statsObj.user.auto.left = userAutoLeftSet.size;
   statsObj.user.auto.neutral = userAutoNeutralSet.size;
-  statsObj.user.auto.positive = userAutoPositiveSet.size;
-  statsObj.user.auto.negative = userAutoNegativeSet.size;
-  statsObj.user.auto.none = userAutoNoneSet.size;
+  // statsObj.user.auto.positive = userAutoPositiveSet.size;
+  // statsObj.user.auto.negative = userAutoNegativeSet.size;
+  // statsObj.user.auto.none = userAutoNoneSet.size;
 
   if (searchNodeUser.screenName.startsWith("?")) {
 

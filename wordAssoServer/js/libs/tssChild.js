@@ -7,7 +7,7 @@ const allowLocationsFile = "allowLocations.txt";
 const currentTwitterFilterTrackFile = "tss_currentTwitterFilterTrack.json"
 
 const DEFAULT_FILTER_RETWEETS = false;
-const DEFAULT_MAX_TWEET_QUEUE = 500;
+const DEFAULT_MAX_TWEET_QUEUE = 100;
 const DEFAULT_TWITTER_QUEUE_INTERVAL = 5;
 
 const TWEET_ID_CACHE_DEFAULT_TTL = 30;

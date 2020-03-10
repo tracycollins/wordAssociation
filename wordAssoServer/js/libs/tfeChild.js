@@ -23,7 +23,7 @@ twitterDeleteUserErrorCodesArray.push(401);
 const DEFAULT_QUOTA_TIMEOUT_DURATION = ONE_HOUR;
 const SAVE_FILE_QUEUE_INTERVAL = 5*ONE_SECOND;
 
-const DEFAULT_MAX_USER_TWEETIDS = 500;
+const DEFAULT_MAX_USER_TWEETIDS = 100;
 const SAVE_CACHE_DEFAULT_TTL = 60;
 
 let currentBestNetwork = {};
@@ -67,7 +67,7 @@ DEFAULT_INPUT_TYPES.forEach(function(type){
 
 let networkObj = {};
 
-const USER_PROCESS_QUEUE_MAX_LENGTH = 500;
+const USER_PROCESS_QUEUE_MAX_LENGTH = 100;
 
 const USER_CHANGE_CACHE_DEFAULT_TTL = 15;
 const USER_CHANGE_CACHE_CHECK_PERIOD = 1;

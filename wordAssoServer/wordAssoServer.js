@@ -215,7 +215,6 @@ const TOPTERMS_CACHE_DEFAULT_TTL = 60;
 const TOPTERMS_CACHE_CHECK_PERIOD = 5;
 
 const TRENDING_CACHE_DEFAULT_TTL = 300;
-// const TRENDING_CACHE_CHECK_PERIOD = 60;
 
 const NODE_CACHE_DEFAULT_TTL = 60;
 const NODE_CACHE_CHECK_PERIOD = 1;
@@ -225,9 +224,6 @@ const TWEET_ID_CACHE_CHECK_PERIOD = 5;
 
 const DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL = 604800; // 3600*24*7 sec/week
 const DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD = 3600;
-
-const DEFAULT_MISMATCH_USER_ID_CACHE_DEFAULT_TTL = 604800; // 3600*24*7 sec/week
-const DEFAULT_MISMATCH_USER_ID_CACHE_CHECK_PERIOD = 3600;
 
 const chalk = require("chalk");
 const chalkUser = chalk.blue;
@@ -730,7 +726,7 @@ configuration.slackChannel = {};
 configuration.heartbeatInterval = process.env.WAS_HEARTBEAT_INTERVAL || ONE_MINUTE;
 // configuration.statsUpdateIntervalTime = process.env.WAS_STATS_UPDATE_INTERVAL || 10*ONE_MINUTE;
 configuration.uncatUserCacheIntervalTime = process.env.WAS_UNCAT_USER_CACHE_INTERVAL || 15*ONE_MINUTE;
-configuration.mismatchUserCacheIntervalTime = process.env.WAS_MISMATCH_USER_CACHE_INTERVAL || 15*ONE_MINUTE;
+// configuration.mismatchUserCacheIntervalTime = process.env.WAS_MISMATCH_USER_CACHE_INTERVAL || 15*ONE_MINUTE;
 
 configuration.maxUserSearchSkipCount = DEFAULT_MAX_USER_SEARCH_SKIP_COUNT;
 configuration.filterVerifiedUsers = true;
@@ -759,8 +755,8 @@ configuration.forceFollow = DEFAULT_FORCE_FOLLOW;
 configuration.enableTwitterFollow = DEFAULT_ENABLE_TWITTER_FOLLOW;
 configuration.autoFollow = DEFAULT_AUTO_FOLLOW;
 
-configuration.mismatchUserCacheTtl = DEFAULT_MISMATCH_USER_ID_CACHE_DEFAULT_TTL;
-configuration.mismatchUserCacheCheckPeriod = DEFAULT_MISMATCH_USER_ID_CACHE_CHECK_PERIOD;
+// configuration.mismatchUserCacheTtl = DEFAULT_MISMATCH_USER_ID_CACHE_DEFAULT_TTL;
+// configuration.mismatchUserCacheCheckPeriod = DEFAULT_MISMATCH_USER_ID_CACHE_CHECK_PERIOD;
 
 configuration.uncatUserCacheTtl = DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL;
 configuration.uncatUserCacheCheckPeriod = DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD;
@@ -6316,23 +6312,6 @@ async function updateUserSets(){
 
   userSearchCursor.on("end", function() {
 
-    // statsObj.user.matched = matchUserSet.size;
-    // statsObj.user.mismatched = mismatchUserSet.size;
-
-    // statsObj.user.manual.right = userRightSet.size;
-    // statsObj.user.manual.left = userLeftSet.size;
-    // statsObj.user.manual.neutral = userNeutralSet.size;
-    // statsObj.user.manual.positive = userPositiveSet.size;
-    // statsObj.user.manual.negative = userNegativeSet.size;
-    // statsObj.user.manual.none = userNoneSet.size;
-
-    // statsObj.user.auto.right = userAutoRightSet.size;
-    // statsObj.user.auto.left = userAutoLeftSet.size;
-    // statsObj.user.auto.neutral = userAutoNeutralSet.size;
-    // statsObj.user.auto.positive = userAutoPositiveSet.size;
-    // statsObj.user.auto.negative = userAutoNegativeSet.size;
-    // statsObj.user.auto.none = userAutoNoneSet.size;
-
     console.log(chalkBlue(MODULE_ID_PREFIX + " | END FOLLOWING CURSOR"
       + " | " + getTimeStamp()
       + " | FOLLOWING USER SET | RUN TIME: " + tcUtils.msToTime(moment().valueOf() - cursorStartTime)
@@ -6347,23 +6326,6 @@ async function updateUserSets(){
 
   userSearchCursor.on("error", function(err) {
 
-    // statsObj.user.matched = matchUserSet.size;
-    // statsObj.user.mismatched = mismatchUserSet.size;
-
-    // statsObj.user.manual.right = userRightSet.size;
-    // statsObj.user.manual.left = userLeftSet.size;
-    // statsObj.user.manual.neutral = userNeutralSet.size;
-    // statsObj.user.manual.positive = userPositiveSet.size;
-    // statsObj.user.manual.negative = userNegativeSet.size;
-    // statsObj.user.manual.none = userNoneSet.size;
-
-    // statsObj.user.auto.right = userAutoRightSet.size;
-    // statsObj.user.auto.left = userAutoLeftSet.size;
-    // statsObj.user.auto.neutral = userAutoNeutralSet.size;
-    // statsObj.user.auto.positive = userAutoPositiveSet.size;
-    // statsObj.user.auto.negative = userAutoNegativeSet.size;
-    // statsObj.user.auto.none = userAutoNoneSet.size;
-
     console.log(chalkError("*** ERROR userSearchCursor: " + err));
     console.log(chalkAlert(MODULE_ID_PREFIX + " | USER DB STATS\n" + jsonPrint(statsObj.user)));
 
@@ -6374,24 +6336,6 @@ async function updateUserSets(){
   });
 
   userSearchCursor.on("close", function() {
-
-    // statsObj.user.matched = matchUserSet.size;
-    // statsObj.user.mismatched = mismatchUserSet.size;
-
-    // statsObj.user.manual.right = userRightSet.size;
-    // statsObj.user.manual.left = userLeftSet.size;
-    // statsObj.user.manual.neutral = userNeutralSet.size;
-    // statsObj.user.manual.positive = userPositiveSet.size;
-    // statsObj.user.manual.negative = userNegativeSet.size;
-    // statsObj.user.manual.none = userNoneSet.size;
-
-    // statsObj.user.auto.right = userAutoRightSet.size;
-    // statsObj.user.auto.left = userAutoLeftSet.size;
-    // statsObj.user.auto.neutral = userAutoNeutralSet.size;
-    // statsObj.user.auto.positive = userAutoPositiveSet.size;
-    // statsObj.user.auto.negative = userAutoNegativeSet.size;
-    // statsObj.user.auto.none = userAutoNoneSet.size;
-
 
     console.log(chalkBlue(MODULE_ID_PREFIX + " | CLOSE FOLLOWING CURSOR"));
     console.log(chalkBlue(MODULE_ID_PREFIX + " | USER DB STATS\n" + jsonPrint(statsObj.user)));
@@ -8544,21 +8488,12 @@ async function initTfeChild(params){
           }
         );
 
-        // if (m.user.category === "left" || m.user.category === "right" || m.user.category === "neutral") {
-        //   uncatUserCache.del(m.user.nodeId);
-        //   // if (m.user.category == m.user.categoryAuto) {
-        //   //   mismatchUserCache.del(m.user.nodeId);
-        //   // }
-
-        // }
-
         if (m.priorityFlag){
           if (m.searchMode === "SPECIFIC"){
             printUserObj(MODULE_ID_PREFIX + " | TFE PRI | MODE: " + m.searchMode, m.user);
             viewNameSpace.emit("SET_TWITTER_USER", { user: m.user, searchMode: m.searchMode, stats: statsObj.user });
           }
           else if ((m.searchMode === "MISMATCH") && m.user.category && m.user.category !== "none" && (m.user.category === m.user.categoryAuto)){
-            // await addMismatchUserSet({user: m.user});
             printUserObj(MODULE_ID_PREFIX + " | TFE PRI | MISMATCH NOT FOUND | " + m.searchMode, m.user);
             await twitterSearchUser({searchNode: "@?mm"});
           }
@@ -8584,7 +8519,6 @@ async function initTfeChild(params){
           }
           else if (autoFollowUserSet.has(m.user.nodeId)){
             printUserObj(MODULE_ID_PREFIX + " | TFE PRI | AUTO FLW", m.user);
-            // autoFollowUserSet.delete(m.user.nodeId);
           }
         }
         else if (configuration.verbose) {
@@ -8594,8 +8528,6 @@ async function initTfeChild(params){
 
       case "USER_CATEGORIZED_ERROR":
         if (m.priorityFlag){
-
-          // uncatUserCache.del(m.user.nodeId);
 
           if (m.searchMode === "MISMATCH"){
             printUserObj(MODULE_ID_PREFIX + " | TFE PRI | *** MISMATCH ERROR | " + m.searchMode, m.user);
@@ -9464,11 +9396,6 @@ async function loadConfigFile(params) {
       console.log(MODULE_ID_PREFIX + " | LOADED UNCAT_USER_ID_CACHE_DEFAULT_TTL: " + loadedConfigObj.UNCAT_USER_ID_CACHE_DEFAULT_TTL);
       newConfiguration.uncatUserCacheTtl = loadedConfigObj.UNCAT_USER_ID_CACHE_DEFAULT_TTL;
     }
-
-    // if (loadedConfigObj.MISMATCH_USER_ID_CACHE_DEFAULT_TTL !== undefined){
-    //   console.log(MODULE_ID_PREFIX + " | LOADED MISMATCH_USER_ID_CACHE_DEFAULT_TTL: " + loadedConfigObj.MISMATCH_USER_ID_CACHE_DEFAULT_TTL);
-    //   newConfiguration.mismatchUserCacheTtl = loadedConfigObj.MISMATCH_USER_ID_CACHE_DEFAULT_TTL;
-    // }
 
     if (loadedConfigObj.ENABLE_IMAGE_ANALYSIS !== undefined){
       console.log(MODULE_ID_PREFIX + " | LOADED ENABLE_IMAGE_ANALYSIS: " + loadedConfigObj.ENABLE_IMAGE_ANALYSIS);
@@ -10464,19 +10391,7 @@ async function processTwitterSearchNode(params) {
         + " | CAT VERIFIED: " + formatBoolean(params.user.categoryVerified)
         + " | CAT M: " + formatCategory(params.user.category)
         + " | CAT A: " + formatCategory(params.user.categoryAuto)
-        // + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
-        // + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
       ));
-
-      // mismatchUserSet.delete(params.user.nodeId);
-
-      // if (empty(params.user.category) || (params.user.category === "none") || !params.user.category || (params.user.category === "false")) {
-      //   uncatUserCache.set(
-      //     params.user.nodeId, 
-      //     uncatUserObj,
-      //     configuration.uncatUserCacheTtl
-      //   );
-      // }
 
       if (!empty(params.user.category) && (params.user.category != params.user.categoryAuto)) {
 
@@ -10486,12 +10401,6 @@ async function processTwitterSearchNode(params) {
         mismatchUserObj.screenName = params.user.screenName;
         mismatchUserObj.timeStamp = getTimeStamp();
 
-        // mismatchUserCache.set(
-        //   params.user.nodeId, 
-        //   mismatchUserObj,
-        //   configuration.mismatchUserCacheTtl
-        // );
-
         console.log(chalk.blue(MODULE_ID_PREFIX
           + " | --- MISS | MISMATCH USER $"
           + " | TTL: " + tcUtils.msToTime(configuration.mismatchUserCacheTtl*1000)
@@ -10500,8 +10409,6 @@ async function processTwitterSearchNode(params) {
           + " | CAT VERIFIED: " + formatBoolean(params.user.categoryVerified)
           + " | CAT M: " + formatCategory(params.user.category)
           + " | CAT A: " + formatCategory(params.user.categoryAuto)
-          // + " | $ EXPIRED: " + statsObj.caches.mismatchUserCache.expired
-          // + "\nMISMATCH USER $ STATS\n" + jsonPrint(mismatchUserCache.getStats())
         ));
       }
 
@@ -10653,18 +10560,6 @@ function getNextSearchNode(params){
           const searchUserId = searchUserNodeIdArray.shift();
 
           uncategorizedManualUserSet.delete(searchUserId);
-
-          // mismatchUserSet.delete(searchUserId);
-          // statsObj.user.mismatched = mismatchUserSet.size;
-
-          // userAutoLeftSet.delete(searchUserId);
-          // userAutoNeutralSet.delete(searchUserId);
-          // userAutoRightSet.delete(searchUserId);
-
-          // statsObj.user.uncategorized.all = uncategorizedManualUserSet.size;
-          // statsObj.user.uncategorized.left = _.intersection([...userAutoLeftSet], [...uncategorizedManualUserSet]).length;
-          // statsObj.user.uncategorized.neutral = _.intersection([...userAutoNeutralSet], [...uncategorizedManualUserSet]).length;
-          // statsObj.user.uncategorized.right = _.intersection([...userAutoRightSet], [...uncategorizedManualUserSet]).length;
 
           const user = await twitterSearchUserNode({user: {nodeId: searchUserId}, searchMode: searchMode});
 
@@ -10818,6 +10713,20 @@ function getNextSearchNode(params){
   });
 }
 
+function findUsersNodeIds(params){
+  global.wordAssoDb.User.find(params.query).select({nodeId: 1}).lean()
+  .then(function(nodeIdArray){
+    if (nodeIdArray.length === 0){
+      return [];
+    }
+    const results = nodeIdArray.map((a) => a.nodeId);
+    return results;
+  })
+  .catch(function(err){
+    throw err;
+  })
+}
+
 async function twitterSearchUser(params) {
 
   const searchNode = params.searchNode.replace(/\s/g, "");
@@ -10847,27 +10756,27 @@ async function twitterSearchUser(params) {
 
       case "?mm":
         searchMode = "MISMATCH";
-        searchUserNodeIdArray = await global.wordAssoDb.User.find({categoryMismatch: true}).select({nodeId: 1}).lean();
+        searchUserNodeIdArray = await findUsersNodeIds({categoryMismatch: true});
       break;
 
       case "?all":
         searchMode = "UNCAT";
-        searchUserNodeIdArray = await global.wordAssoDb.User.find({category: "none"}).select({nodeId: 1}).lean();
+        searchUserNodeIdArray = await findUsersNodeIds({category: "none"});
       break;
 
       case "?left":
         searchMode = "UNCAT_LEFT";
-        searchUserNodeIdArray = await global.wordAssoDb.User.find({category: "none", categoryAuto: "left"}).select({nodeId: 1}).lean();
+        searchUserNodeIdArray = await findUsersNodeIds({category: "none", categoryAuto: "left"});
       break;
 
       case "?right":
         searchMode = "UNCAT_RIGHT";
-        searchUserNodeIdArray = await global.wordAssoDb.User.find({category: "none", categoryAuto: "right"}).select({nodeId: 1}).lean();
+        searchUserNodeIdArray = await findUsersNodeIds({category: "none", categoryAuto: "right"});
       break;
 
       case "?neutral":
         searchMode = "UNCAT_NEUTRAL";
-        searchUserNodeIdArray = await global.wordAssoDb.User.find({category: "none", categoryAuto: "neutral"}).select({nodeId: 1}).lean();
+        searchUserNodeIdArray = await findUsersNodeIds({category: "none", categoryAuto: "neutral"});
       break;
 
       default:

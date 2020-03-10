@@ -933,9 +933,9 @@ let viewNameSpace;
 // const userNegativeSet = new Set();
 // const userNoneSet = new Set();
 
-const userAutoRightSet = new Set();
-const userAutoLeftSet = new Set();
-const userAutoNeutralSet = new Set();
+// const userAutoRightSet = new Set();
+// const userAutoLeftSet = new Set();
+// const userAutoNeutralSet = new Set();
 // const userAutoPositiveSet = new Set();
 // const userAutoNegativeSet = new Set();
 // const userAutoNoneSet = new Set();
@@ -10820,9 +10820,6 @@ async function twitterSearchUser(params) {
       throw err;
     }
   }
-  else{
-    searchUserNodeIdArray
-  }  
 
   console.log(chalkInfo(MODULE_ID_PREFIX + " | SPECIFIC USR SEARCH | @" + searchNodeUser.screenName));
 

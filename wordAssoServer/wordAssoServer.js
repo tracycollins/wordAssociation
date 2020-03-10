@@ -10713,7 +10713,7 @@ function getNextSearchNode(params){
   });
 }
 
-function findUsersNodeIds(params){
+async function findUsersNodeIds(params){
   global.wordAssoDb.User.find(params.query).select({nodeId: 1}).lean()
   .then(function(nodeIdArray){
     if (nodeIdArray.length === 0){

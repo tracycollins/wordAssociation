@@ -10730,20 +10730,20 @@ async function twitterSearchUser(params) {
   let searchMode;
   let searchUserNodeIdArray = [];
 
-  const userAutoLeftArray = [...userAutoLeftSet];
-  const userAutoRightArray = [...userAutoRightSet];
-  const userAutoNeutralArray = [...userAutoNeutralSet];
+  // const userAutoLeftArray = [...userAutoLeftSet];
+  // const userAutoRightArray = [...userAutoRightSet];
+  // const userAutoNeutralArray = [...userAutoNeutralSet];
 
-  const uncategorizedManualUserArray = [...uncategorizedManualUserSet];
+  // const uncategorizedManualUserArray = [...uncategorizedManualUserSet];
 
-  statsObj.user.uncategorized.all = uncategorizedManualUserArray.length;
-  statsObj.user.uncategorized.left = _.intersection(userAutoLeftArray, uncategorizedManualUserArray).length;
-  statsObj.user.uncategorized.right = _.intersection(userAutoRightArray, uncategorizedManualUserArray).length;
-  statsObj.user.uncategorized.neutral = _.intersection(userAutoNeutralArray, uncategorizedManualUserArray).length;
+  // statsObj.user.uncategorized.all = uncategorizedManualUserArray.length;
+  // statsObj.user.uncategorized.left = _.intersection(userAutoLeftArray, uncategorizedManualUserArray).length;
+  // statsObj.user.uncategorized.right = _.intersection(userAutoRightArray, uncategorizedManualUserArray).length;
+  // statsObj.user.uncategorized.neutral = _.intersection(userAutoNeutralArray, uncategorizedManualUserArray).length;
 
-  statsObj.user.auto.right = userAutoRightSet.size;
-  statsObj.user.auto.left = userAutoLeftSet.size;
-  statsObj.user.auto.neutral = userAutoNeutralSet.size;
+  // statsObj.user.auto.right = userAutoRightSet.size;
+  // statsObj.user.auto.left = userAutoLeftSet.size;
+  // statsObj.user.auto.neutral = userAutoNeutralSet.size;
 
   if (searchNodeUser.screenName.startsWith("?")) {
 
@@ -10799,6 +10799,12 @@ async function twitterSearchUser(params) {
       return;
     }
 
+    console.log(chalkLog(MODULE_ID_PREFIX + " | TWITTER_SEARCH_NODE"
+      + " | " + getTimeStamp()
+      + " | MODE: " + searchMode
+      + " [ SEARCH USER ARRAY: " + searchUserNodeIdArray.length + "]"
+    ));
+
     try {
       await getNextSearchNode({searchMode: searchMode, searchNode: searchNode, searchUserNodeIdArray: searchUserNodeIdArray});
       return;
@@ -10813,7 +10819,10 @@ async function twitterSearchUser(params) {
       viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", { searchNode: searchNode, stats: statsObj.user });
       throw err;
     }
-  }      
+  }
+  else{
+    searchUserNodeIdArray
+  }  
 
   console.log(chalkInfo(MODULE_ID_PREFIX + " | SPECIFIC USR SEARCH | @" + searchNodeUser.screenName));
 

@@ -1,5 +1,3 @@
-/*jslint node: true */
-/*jshint sub:true*/
 // "use strict";
 
 process.title = "wa_node_child_tfe";
@@ -431,7 +429,6 @@ async function connectDb(){
     throw err;
   }
 }
-
 
 configuration.configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/default");
 configuration.configDefaultFile = "default_" + MODULE_NAME + "Config.json";

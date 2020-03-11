@@ -393,7 +393,7 @@ function userUpdateDb(tweetObj){
 
         switch (entityType) {
           case "hashtags":
-            entity = "#" + entityObj.nodeId.toLowerCase();
+            entity = "#" + entityObj.toLowerCase();
           break;
           case "mentions":
           case "userMentions":
@@ -406,10 +406,10 @@ function userUpdateDb(tweetObj){
           case "places":
           case "emoji":
           case "urls":
-            entity = entityObj.nodeId; // should already be b64 encoded by tweetServerController
+            entity = entityObj; // should already be b64 encoded by tweetServerController
           break;
           case "words":
-            entity = entityObj.nodeId.toLowerCase();
+            entity = entityObj.toLowerCase();
           break;
           default:
             console.log(chalkError("DBU | *** userUpdateDb ERROR: UNKNOWN ENTITY TYPE: " + entityType));

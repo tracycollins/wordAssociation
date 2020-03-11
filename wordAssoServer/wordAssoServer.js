@@ -6838,9 +6838,9 @@ async function transmitNodes(tw){
     }
   }
 
-  for(const hashtag of tw.hashtags){
-    if (hashtag && configuration.enableTransmitHashtag && !ignoredHashtagSet.has(hashtag.nodeId) && !ignoredHashtagRegex.test(hashtag.nodeId)) { 
-      transmitNodeQueue.push(hashtag);
+  for(const hashtagId of tw.hashtags){
+    if (hashtagId && configuration.enableTransmitHashtag && !ignoredHashtagSet.has(hashtagId) && !ignoredHashtagRegex.test(hashtagId)) { 
+      transmitNodeQueue.push({nodeType: "hashtag", nodeId: hashtagId});
     }
   }
 

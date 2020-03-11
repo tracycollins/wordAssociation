@@ -2039,6 +2039,7 @@ nodeCache.on("expired", function(nodeCacheId, nodeObj){
 });
 
 let nodeCacheDeleteReady = true;
+let nodeObj;
 
 const nodeCacheDeleteQueueInterval = setInterval(function(){
 
@@ -2046,7 +2047,7 @@ const nodeCacheDeleteQueueInterval = setInterval(function(){
 
     nodeCacheDeleteReady = false;
 
-    const nodeObj = nodeCacheDeleteQueue.shift();
+    nodeObj = nodeCacheDeleteQueue.shift();
     
     nodeCacheExpired(nodeObj, function(){
       nodeCacheDeleteReady = true;
@@ -2476,13 +2477,15 @@ function initSaveFileQueue(cnf){
 
     clearInterval(saveFileQueueInterval);
 
+    let saveFileObj;
+
     saveFileQueueInterval = setInterval(async function () {
 
       if (!saveFileBusy && saveFileQueue.length > 0) {
 
         saveFileBusy = true;
 
-        const saveFileObj = saveFileQueue.shift();
+        saveFileObj = saveFileQueue.shift();
 
         try{
           await tcUtils.saveFile(saveFileObj);
@@ -6627,6 +6630,7 @@ function initTransmitNodeQueueInterval(interval){
     let nCacheObj;
     let autoFollowFlag = false;
     let node;
+    let updatedUser;
 
     const userDbUpdateOptions = {
       lean: true,
@@ -6705,7 +6709,7 @@ function initTransmitNodeQueueInterval(interval){
 
               node.tweetsPerDay = (node.ageDays > 0) ? node.statusesCount/node.ageDays : 0;
 
-              const updatedUser = await userServerController.findOneUserV2({user: node, options: userDbUpdateOptions});
+              updatedUser = await userServerController.findOneUserV2({user: node, options: userDbUpdateOptions});
 
               delete updatedUser._id;
               delete updatedUser.userId;
@@ -6713,7 +6717,6 @@ function initTransmitNodeQueueInterval(interval){
               if (updatedUser.isTweeter && botNodeIdSet.has(updatedUser.nodeId)){ 
 
                 updatedUser.isBot = true;
-                // botCache.set(updatedUser.nodeId, updatedUser.screenName);
 
                 statsObj.traffic.users.bots++;
                 statsObj.traffic.users.percentBots = 100*(statsObj.traffic.users.bots/statsObj.traffic.users.total);
@@ -6740,8 +6743,6 @@ function initTransmitNodeQueueInterval(interval){
                 node.isBot = true;
 
                 printBotStats({user: node, modulo: 100});
-
-                // botCache.set(node.nodeId, node.screenName);
               }
 
               viewNameSpace.volatile.emit("node", node);
@@ -7541,8 +7542,6 @@ async function initTweetParserMessageRxQueueInterval(interval){
   dbUserMessage.op = "TWEET";
   dbUserMessage.tweetObj = {};
 
-  // {op: "TWEET", tweetObj: tweetObj}
-
   tweetParserMessageRxQueueInterval = setInterval(async function() {
 
     if ((tweetParserMessageRxQueue.length > 0) && tweetParserMessageRxQueueReady) {
@@ -7550,10 +7549,6 @@ async function initTweetParserMessageRxQueueInterval(interval){
       tweetParserMessageRxQueueReady = false;
 
       tweetParserMessage = tweetParserMessageRxQueue.shift();
-
-      // debug(chalkLog("TWEET PARSER RX MESSAGE"
-      //   + " | OP: " + tweetParserMessage.op
-      // ));
 
       if (tweetParserMessage.op == "ERROR") {
 
@@ -9688,10 +9683,13 @@ function initStatsUpdate() {
 
       clearInterval(statsInterval);
 
+      let childArray = [];
+
       statsInterval = setInterval(async function updateStats() {
 
         try{
-          const childArray = await getChildProcesses({searchTerm: "ALL"});
+
+          childArray = await getChildProcesses({searchTerm: "ALL"});
 
           if (configuration.verbose) { 
             console.log(chalkLog(MODULE_ID_PREFIX + " | FOUND " + childArray.length + " CHILDREN"));
@@ -10932,6 +10930,8 @@ function initTwitterSearchNodeQueueInterval(interval){
 
     clearInterval(twitterSearchNodeQueueInterval);
 
+    let node;
+
     twitterSearchNodeQueueInterval = setInterval(async function txSearchNodeQueue () {
 
       if (twitterSearchNodeQueueReady && (twitterSearchNodeQueue.length > 0)) {
@@ -10940,20 +10940,8 @@ function initTwitterSearchNodeQueueInterval(interval){
 
         searchNodeParams = twitterSearchNodeQueue.shift();
 
-        const searchTimeout = setTimeout(function(){
-
-          console.log(chalkAlert(
-            MODULE_ID_PREFIX + " | *** SEARCH NODE TIMEOUT\nsearchNodeParams\n" + jsonPrint(searchNodeParams)
-          ));
-
-        }, 5000);
-
-
         try {
-          const node = await twitterSearchNode(searchNodeParams);
-
-          clearTimeout(searchTimeout);
-
+          node = await twitterSearchNode(searchNodeParams);
           if (node) {
             console.log(chalk.green(MODULE_ID_PREFIX + " | TWITTER SEARCH NODE FOUND | NID: " + node.nodeId));
           }
@@ -10961,7 +10949,6 @@ function initTwitterSearchNodeQueueInterval(interval){
           twitterSearchNodeQueueReady = true;
         }
         catch(err){
-          clearTimeout(searchTimeout);
           console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER SEARCH NODE ERROR: " + err));
           twitterSearchNodeQueueReady = true;
         }
@@ -10989,6 +10976,8 @@ function initDbUserMissQueueInterval(interval){
 
     clearInterval(dbUserMissQueueInterval);
 
+    let user;
+
     dbUserMissQueueInterval = setInterval(async function() {
 
       if (dbUserMissQueueReady && (dbUserMissQueue.length > 0)) {
@@ -10999,7 +10988,7 @@ function initDbUserMissQueueInterval(interval){
 
         try {
 
-          const user = await twitterSearchUserNode({user: {nodeId: dbMissObj.nodeId}, searchMode: "SPECIFIC", following: true});
+          user = await twitterSearchUserNode({user: {nodeId: dbMissObj.nodeId}, searchMode: "SPECIFIC", following: true});
 
           if (user) {
             console.log(chalk.green(MODULE_ID_PREFIX + " | DB MISS USER FOUND | NID: " + user.nodeId + " | @" + user.screenName));

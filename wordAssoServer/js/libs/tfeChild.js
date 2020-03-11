@@ -540,13 +540,15 @@ function initSaveFileQueue(cnf) {
 
   clearInterval(saveFileQueueInterval);
 
+  let saveFileObj;
+
   saveFileQueueInterval = setInterval(async function () {
 
     if (!statsObj.queues.saveFileQueue.busy && saveFileQueue.length > 0) {
 
       statsObj.queues.saveFileQueue.busy = true;
 
-      const saveFileObj = saveFileQueue.shift();
+      saveFileObj = saveFileQueue.shift();
       saveFileObj.verbose = true;
 
       statsObj.queues.saveFileQueue.size = saveFileQueue.length;
@@ -1223,6 +1225,10 @@ function initProcessUserQueueInterval(interval) {
 
     console.log(chalkBlue(MODULE_ID_PREFIX + " | INIT PROCESS USER QUEUE INTERVAL | " + interval + " MS"));
 
+    let userDoc;
+    let queueObj;
+    let user;
+
     clearInterval(processUserQueueInterval);
 
     processUserQueueBusy = false;
@@ -1233,18 +1239,18 @@ function initProcessUserQueueInterval(interval) {
 
         processUserQueueBusy = true;
 
-        const queueObj = processUserQueue.shift();
+        queueObj = processUserQueue.shift();
         
         try {
 
-          const u = await global.wordAssoDb.User.findOne({nodeId: queueObj.user.nodeId});
+          userDoc = await global.wordAssoDb.User.findOne({nodeId: queueObj.user.nodeId});
 
-          if (!u) {
+          if (!userDoc) {
             processUserQueueBusy = false;
           }
           else {
 
-            const user = await tcUtils.encodeHistogramUrls({user: u});
+            user = await tcUtils.encodeHistogramUrls({user: userDoc});
 
             user.priorityFlag = queueObj.priorityFlag;
 
@@ -1284,9 +1290,9 @@ function initProcessUserQueueInterval(interval) {
 
             if (!user.latestTweets || (user.latestTweets === undefined)) { user.latestTweets = []; }
 
-            user.latestTweets = _.union(u.latestTweets, user.latestTweets);
+            user.latestTweets = _.union(userDoc.latestTweets, user.latestTweets);
 
-            const processedUser = await processUser({user: user});
+            user = await processUser({user: user});
 
             statsObj.user.processed += 1;
 
@@ -1294,11 +1300,11 @@ function initProcessUserQueueInterval(interval) {
               console.log(chalkInfo(MODULE_ID_PREFIX + " | PRI PRCSSD"
                 + " [ PRCSSD: " + statsObj.user.processed + " / PUQ: " + processUserQueue.length + "]"
                 + " | PRI: " + queueObj.priorityFlag
-                + " | NID: " + processedUser.nodeId
-                + " | @" + processedUser.screenName
-                + " | N: " + processedUser.name
-                + " | CAT M: " + formatCategory(processedUser.category)
-                + " A: " + formatCategory(processedUser.categoryAuto)
+                + " | NID: " + user.nodeId
+                + " | @" + user.screenName
+                + " | N: " + user.name
+                + " | CAT M: " + formatCategory(user.category)
+                + " A: " + formatCategory(user.categoryAuto)
                 // + " | " + printUser({user: processedUser})
               ));
             }
@@ -1307,7 +1313,7 @@ function initProcessUserQueueInterval(interval) {
               op: "USER_CATEGORIZED", 
               priorityFlag: queueObj.priorityFlag, 
               searchMode: queueObj.searchMode, 
-              user: processedUser, 
+              user: user, 
               stats: statsObj.user 
             });
 

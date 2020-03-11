@@ -1,7 +1,6 @@
-/*jslint node: true */
-/*jshint sub:true*/
-
 process.title = "wa_node_child_dbu";
+
+const MODULE_ID_PREFIX = "DBU";
 
 const inputTypes = [
   "emoji", 
@@ -33,7 +32,6 @@ const compactDateTimeFormat = "YYYYMMDD_HHmmss";
 
 const os = require("os");
 const moment = require("moment");
-const treeify = require("treeify");
 const debug = require("debug")("dbu");
 const debugCache = require("debug")("cache");
 const debugQ = require("debug")("queue");
@@ -80,6 +78,56 @@ statsObj.users = {};
 statsObj.errors = {};
 statsObj.errors.users = {};
 
+let userServerController;
+
+const msToTime = function(d){
+
+  let sign = 1;
+
+  let duration = d;
+
+  if (duration < 0) {
+    sign = -1;
+    duration = -duration;
+  }
+
+  let seconds = parseInt((duration / 1000) % 60);
+  let minutes = parseInt((duration / (1000 * 60)) % 60);
+  let hours = parseInt((duration / (1000 * 60 * 60)) % 24);
+  let days = parseInt(duration / (1000 * 60 * 60 * 24));
+
+  days = (days < 10) ? "0" + days : days;
+  hours = (hours < 10) ? "0" + hours : hours;
+  minutes = (minutes < 10) ? "0" + minutes : minutes;
+  seconds = (seconds < 10) ? "0" + seconds : seconds;
+
+  if (sign > 0) { return days + ":" + hours + ":" + minutes + ":" + seconds; }
+
+  return "- " + days + ":" + hours + ":" + minutes + ":" + seconds;
+};
+
+const getTimeStamp = function(inputTime){
+
+  let currentTimeStamp;
+
+  if (inputTime == undefined) {
+    currentTimeStamp = moment().format(compactDateTimeFormat);
+    return currentTimeStamp;
+  }
+  else if (moment.isMoment(inputTime)) {
+    currentTimeStamp = moment(inputTime).format(compactDateTimeFormat);
+    return currentTimeStamp;
+  }
+  else if (moment.isDate(new Date(inputTime))) {
+    currentTimeStamp = moment(new Date(inputTime)).format(compactDateTimeFormat);
+    return currentTimeStamp;
+  }
+  else {
+    currentTimeStamp = moment(parseInt(inputTime)).format(compactDateTimeFormat);
+    return currentTimeStamp;
+  }
+};
+
 process.on("unhandledRejection", function(err, promise) {
   console.trace("Unhandled rejection (promise: ", promise, ", reason: ", err, ").");
   process.exit();
@@ -97,45 +145,7 @@ process.on("disconnect", function() {
   quit("DISCONNECT");
 });
 
-function jsonPrint(obj) {
-  if (obj) {
-    return treeify.asTree(obj, true, true);
-  } 
-  else {
-    return obj;
-  }
-}
-
-function getTimeStamp(inputTime) {
-  let currentTimeStamp;
-
-  if (inputTime === undefined) {
-    currentTimeStamp = moment().format(compactDateTimeFormat);
-    return currentTimeStamp;
-  }
-  else if (moment.isMoment(inputTime)) {
-    currentTimeStamp = moment(inputTime).format(compactDateTimeFormat);
-    return currentTimeStamp;
-  }
-  else if (moment.isDate(new Date(inputTime)) && moment(new Date(inputTime)).isValid()) {
-    currentTimeStamp = moment(new Date(inputTime)).format(compactDateTimeFormat);
-    return currentTimeStamp;
-  }
-  else if (Number.isInteger(inputTime)) {
-    currentTimeStamp = moment(parseInt(inputTime)).format(compactDateTimeFormat);
-    return currentTimeStamp;
-  }
-  else {
-    return "NOT VALID TIMESTAMP: " + inputTime;
-  }
-}
-
-global.globalDbConnection = false;
-
 global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
-
-// const UserServerController = require("@threeceelabs/user-server-controller");
-// let userServerController;
 
 const configuration = {}; // merge of defaultConfiguration & hostConfiguration
 configuration.processName = process.env.DBU_PROCESS_NAME || "node_databaseUpdate";
@@ -143,30 +153,6 @@ configuration.verbose = DEFAULT_VERBOSE;
 configuration.testMode = DEFAULT_TEST_MODE; // per tweet test mode
 configuration.maxUserUpdateQueue = DEFAULT_MAX_UPDATE_QUEUE;
 configuration.inputTypes = inputTypes;
-
-function msToTime(d) {
-
-  let duration = d;
-
-  let sign = 1;
-
-  if (duration < 0) {
-    sign = -1;
-    duration = -duration;
-  }
-
-  let seconds = parseInt((duration / 1000) % 60);
-  let minutes = parseInt((duration / (1000 * 60)) % 60);
-  let hours = parseInt((duration / (1000 * 60 * 60)) % 24);
-  let days = parseInt(duration / (1000 * 60 * 60 * 24));
-  days = (days < 10) ? "0" + days : days;
-  hours = (hours < 10) ? "0" + hours : hours;
-  minutes = (minutes < 10) ? "0" + minutes : minutes;
-  seconds = (seconds < 10) ? "0" + seconds : seconds;
-
-  if (sign > 0) return days + ":" + hours + ":" + minutes + ":" + seconds;
-  return "- " + days + ":" + hours + ":" + minutes + ":" + seconds;
-}
 
 console.log(
   "\n\nDBU | ====================================================================================================\n" 
@@ -176,25 +162,20 @@ console.log(
   + "\nDBU | " + "====================================================================================================\n" 
 );
 
-function showStats(options){
+function showStats(){
 
   statsObj.elapsed = moment().valueOf() - statsObj.startTime;
 
-  if (options) {
-    console.log("DBU | STATS\nDBU | " + jsonPrint(statsObj));
-  }
-  else {
-    console.log(chalkLog("DBU | ============================================================"
-      + "\nDBU | S"
-      + " | STATUS: " + statsObj.status
-      + " | CPUs: " + statsObj.cpus
-      + " | CH: " + statsObj.numChildren
-      + " | S " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
-      + " | N " + moment().format(compactDateTimeFormat)
-      + " | E " + msToTime(statsObj.elapsed)
-      + "\nDBU | ============================================================"
-    ));
-  }
+  console.log(chalkLog("DBU | ============================================================"
+    + "\nDBU | S"
+    + " | STATUS: " + statsObj.status
+    + " | CPUs: " + statsObj.cpus
+    + " | CH: " + statsObj.numChildren
+    + " | S " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
+    + " | N " + moment().format(compactDateTimeFormat)
+    + " | E " + msToTime(statsObj.elapsed)
+    + "\nDBU | ============================================================"
+  ));
 }
 
 function quit(options){
@@ -227,61 +208,118 @@ process.on("exit", function() {
   quit("EXIT");
 });
 
-function connectDb(){
+// function connectDb(){
 
-  console.log(chalkLog("DBU | CONNECT DB"));
+//   console.log(chalkLog("DBU | CONNECT DB"));
 
-  return new Promise(function(resolve, reject){
+//   return new Promise(function(resolve, reject){
 
-    statsObj.status = "CONNECT DB";
+//     statsObj.status = "CONNECT DB";
 
-    global.wordAssoDb.connect("DBU_" + process.pid, function(err, db){
-      if (err) {
-        console.log(chalkError("*** DBU | *** MONGO DB CONNECTION ERROR: " + err));
-        statsObj.dbConnectionReady = false;
-        return reject(err);
-      }
-      else {
+//     global.wordAssoDb.connect("DBU_" + process.pid, function(err, db){
+//       if (err) {
+//         console.log(chalkError("*** DBU | *** MONGO DB CONNECTION ERROR: " + err));
+//         statsObj.dbConnectionReady = false;
+//         return reject(err);
+//       }
+//       else {
 
-        db.on("close", function(){
-          statsObj.status = "MONGO CONNECTION CLOSED";
-          console.log.bind(console, "DBU | *** MONGO DB CONNECTION CLOSED ***");
-          console.log(chalkAlert("DBU | *** MONGO DB CONNECTION CLOSED ***"));
-          statsObj.dbConnectionReady = false;
-        });
+//         db.on("close", function(){
+//           statsObj.status = "MONGO CONNECTION CLOSED";
+//           console.log.bind(console, "DBU | *** MONGO DB CONNECTION CLOSED ***");
+//           console.log(chalkAlert("DBU | *** MONGO DB CONNECTION CLOSED ***"));
+//           statsObj.dbConnectionReady = false;
+//         });
 
-        db.on("error", function(err){
-          statsObj.status = "MONGO CONNECTION ERROR";
-          console.log.bind(console, "DBU | *** MONGO DB CONNECTION ERROR: " + err);
-          console.log(chalkError("DBU | *** MONGO DB CONNECTION ERROR: " + err));
-          statsObj.dbConnectionReady = false;
-        });
+//         db.on("error", function(err){
+//           statsObj.status = "MONGO CONNECTION ERROR";
+//           console.log.bind(console, "DBU | *** MONGO DB CONNECTION ERROR: " + err);
+//           console.log(chalkError("DBU | *** MONGO DB CONNECTION ERROR: " + err));
+//           statsObj.dbConnectionReady = false;
+//         });
 
-        db.on("disconnected", function(){
-          statsObj.status = "MONGO DISCONNECTED";
-          console.log.bind(console, "DBU | *** MONGO DB DISCONNECTED ****");
-          console.log(chalkAlert("DBU | *** MONGO DB DISCONNECTED ***"));
-          statsObj.dbConnectionReady = false;
-        });
+//         db.on("disconnected", function(){
+//           statsObj.status = "MONGO DISCONNECTED";
+//           console.log.bind(console, "DBU | *** MONGO DB DISCONNECTED ****");
+//           console.log(chalkAlert("DBU | *** MONGO DB DISCONNECTED ***"));
+//           statsObj.dbConnectionReady = false;
+//         });
 
-        console.log(chalkLog("DBU | MONGOOSE DEFAULT CONNECTION OPEN"));
+//         console.log(chalkLog("DBU | MONGOOSE DEFAULT CONNECTION OPEN"));
 
-        statsObj.dbConnectionReady = true;
+//         statsObj.dbConnectionReady = true;
 
-        global.globalDbConnection = db;
+//         global.globalDbConnection = db;
 
-        // userServerController = new UserServerController("DBU_USC");
+//         // userServerController = new UserServerController("DBU_USC");
 
-        // userServerController.on("ready", function(appname){
-        //   console.log(chalkLog("DBU | USC READY | " + appname));
-        // });
+//         // userServerController.on("ready", function(appname){
+//         //   console.log(chalkLog("DBU | USC READY | " + appname));
+//         // });
 
-        resolve(db);
+//         resolve(db);
 
-      }
+//       }
+//     });
+
+//   });
+// }
+
+
+async function connectDb(){
+
+  try {
+
+    statsObj.status = "CONNECTING MONGO DB";
+
+    console.log(chalkLog(MODULE_ID_PREFIX + " | CONNECT MONGO DB ..."));
+
+    const db = await global.wordAssoDb.connect(MODULE_ID_PREFIX + "_" + process.pid);
+
+    db.on("error", async function(err){
+      statsObj.status = "MONGO ERROR";
+      statsObj.dbConnectionReady = false;
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION ERROR"));
+      db.close();
+      quit({cause: "MONGO DB ERROR: " + err});
     });
 
-  });
+    db.on("close", async function(err){
+      statsObj.status = "MONGO CLOSED";
+      statsObj.dbConnectionReady = false;
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION CLOSED"));
+      quit({cause: "MONGO DB CLOSED: " + err});
+    });
+
+    db.on("disconnected", async function(){
+      statsObj.status = "MONGO DISCONNECTED";
+      statsObj.dbConnectionReady = false;
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | *** MONGO DB DISCONNECTED"));
+      quit({cause: "MONGO DB DISCONNECTED"});
+    });
+
+    console.log(chalk.green(MODULE_ID_PREFIX + " | MONGOOSE DEFAULT CONNECTION OPEN"));    
+
+    const UserServerController = require("@threeceelabs/user-server-controller");
+    
+    userServerController = new UserServerController(MODULE_ID_PREFIX + "_USC");
+
+    userServerController.on("error", function(err){
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** USC ERROR | " + err));
+    });
+
+    userServerController.on("ready", function(appname){
+      console.log(chalk.green(MODULE_ID_PREFIX + " | USC READY | " + appname));
+    });
+
+    statsObj.dbConnectionReady = true;
+
+    return db;
+  }
+  catch(err){
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECT ERROR: " + err));
+    throw err;
+  }
 }
 
 function initialize(){
@@ -331,10 +369,6 @@ function userUpdateDb(tweetObj){
   return new Promise(function(resolve, reject){
 
     statsObj.status = "USER UPDATE DB";
-
-    debug(chalkLog("DBU | USER UPDATE DB"
-      + "\n" + jsonPrint(tweetObj)
-    ));
 
     async.each(Object.keys(tweetObj), function(entityType, cb0){
 
@@ -501,15 +535,6 @@ function userUpdateDb(tweetObj){
             + " | WDs: " + getNumKeys(user.tweetHistograms.words)
           ));
 
-          debug(chalkInfo("DBU | USER MERGED HISTOGRAMS"
-            + " | " + user.nodeId
-            + " | @" + user.screenName
-            + "\nprofileHistograms\n" + jsonPrint(user.nprofileHistograms)
-            + "\ntweetHistograms\n" + jsonPrint(user.tweetHistograms)
-          ));
-
-          debug(chalkLog("DBU | USER MERGED TWEET HISTOGRAMS\n" + jsonPrint(tweetHistogramMerged)));
-
           user.ageDays = (moment().diff(user.createdAt))/ONE_DAY;
           user.tweetsPerDay = user.statusesCount/user.ageDays;
           user.markModified("tweets");
@@ -577,10 +602,6 @@ function initUserUpdateQueueInterval(interval){
   });
 }
 
-console.log(chalkInfo("DBU | " + getTimeStamp() 
-  + " | WAIT 5 SEC FOR MONGO BEFORE INITIALIZE CONFIGURATION"
-));
-
 process.on("message", async function(m) {
 
   debug(chalkAlert("DBU | RX MESSAGE"
@@ -646,10 +667,9 @@ setTimeout(async function(){
 
     await initialize();
 
-    console.log(chalkLog("DBU | " + configuration.processName + " STARTED " + getTimeStamp() + "\n"));
+    console.log(chalkLog("DBU | " + configuration.processName + " STARTED"));
 
     await connectDb();
-
 
     process.send({ op: "READY"});
 

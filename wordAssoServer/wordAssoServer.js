@@ -5999,16 +5999,49 @@ async function updateUserSets(){
   statsObj.user.categoryVerified = await countDocuments({documentType: "users", query: {"categoryVerified": true}});
   console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT VERIFIED USERS: " + statsObj.user.categoryVerified));
 
-  statsObj.user.categorizedManual = await countDocuments({documentType: "users", query: {category: { "$nin": ["none", false, "false", null] }}});
+  // -----
+
+  statsObj.user.categorizedManual = await countDocuments({documentType: "users", query: {category: { "$in": ["left", "right", "neutral"] }}});
   console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT MANUAL USERS: " + statsObj.user.categorizedManual));
 
-  statsObj.user.uncategorizedManual = await countDocuments({documentType: "users", query: {category: { "$in": ["none", false, "false", null] }}});
+  statsObj.user.manual.left = await countDocuments({documentType: "users", query: {category: "left"}});
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT MANUAL USERS LEFT: " + statsObj.user.manual.left));
+
+  statsObj.user.manual.right = await countDocuments({documentType: "users", query: {category: "right"}});
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT MANUAL USERS RIGHT: " + statsObj.user.manual.right));
+
+  statsObj.user.manual.neutral = await countDocuments({documentType: "users", query: {category: "neutral"}});
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT MANUAL USERS NEUTRAL: " + statsObj.user.manual.neutral));
+
+  // -----
+  
+  statsObj.user.uncategorizedManual = await countDocuments({documentType: "users", query: {category: "none"}});
   console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT MANUAL USERS: " + statsObj.user.uncategorizedManual));
 
-  statsObj.user.categorizedAuto = await countDocuments({documentType: "users", query: {categoryAuto: { "$nin": ["none", false, "false", null] }}});
+  statsObj.user.uncategorized.left = await countDocuments({documentType: "users", query: {category: "none", categoryAuto: "left"}});
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT MANUAL LEFT USERS: " + statsObj.user.uncategorized.left));
+
+  statsObj.user.uncategorized.right = await countDocuments({documentType: "users", query: {category: "none", categoryAuto: "right"}});
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT MANUAL RIGHT USERS: " + statsObj.user.uncategorized.right));
+
+  statsObj.user.uncategorized.neutral = await countDocuments({documentType: "users", query: {category: "none", categoryAuto: "neutral"}});
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT MANUAL NEUTRAL USERS: " + statsObj.user.uncategorized.neutral));
+
+  // -----
+  
+  statsObj.user.categorizedAuto = await countDocuments({documentType: "users", query: {categoryAuto: { "$in": ["left", "right", "neutral"] }}});
   console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT AUTO USERS: " + statsObj.user.categorizedAuto));
 
-  statsObj.user.uncategorizedAuto = await countDocuments({documentType: "users", query: {categoryAuto: { "$in": ["none", false, "false", null] }}});
+  statsObj.user.auto.left = await countDocuments({documentType: "users", query: {categoryAuto: "left"}});
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT AUTO USERS LEFT: " + statsObj.user.auto.left));
+
+  statsObj.user.auto.right = await countDocuments({documentType: "users", query: {categoryAuto: "right"}});
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT AUTO USERS RIGHT: " + statsObj.user.auto.right));
+
+  statsObj.user.auto.neutral = await countDocuments({documentType: "users", query: {categoryAuto: "neutral"}});
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT AUTO USERS NEUTRAL: " + statsObj.user.auto.neutral));
+
+  statsObj.user.uncategorizedAuto = await countDocuments({documentType: "users", query: {categoryAuto: "none"}});
   console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT AUTO USERS: " + statsObj.user.uncategorizedAuto));
 
   // userRightSet.clear();
@@ -10518,7 +10551,14 @@ async function processTwitterSearchNode(params) {
       + " | NODE: " + params.searchNode
     ));
 
-    viewNameSpace.emit("TWITTER_SEARCH_NODE_NOT_FOUND", { searchMode: params.searchMode, searchNode: params.searchNode, stats: statsObj.user });
+    viewNameSpace.emit(
+      "TWITTER_SEARCH_NODE_NOT_FOUND", 
+      { 
+        searchMode: params.searchMode, 
+        searchNode: params.searchNode, 
+        stats: statsObj.user 
+      }
+    );
 
     return {user: false, cacheHit: uncatUserCacheHit, uncategorizable: uncategorizable};
 

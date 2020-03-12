@@ -6486,9 +6486,9 @@ async function categorize(params){
     throw new Error("categorize NOT USER");
   }
 
-  // if (n.category == "left" || n.category == "right" || n.category == "neutral") {
-  //   uncatUserCache.del(n.nodeId);
-  // }
+  if (n.category == "left" || n.category == "right" || n.category == "neutral") {
+    uncatUserCache.del(n.nodeId);
+  }
 
   if (configuration.autoFollow
     && (!n.category || (n.category === "none") || (n.category === undefined))
@@ -6540,9 +6540,9 @@ async function categorize(params){
       }
     });
 
-    // if (n.category == "left" || n.category == "right" || n.category == "neutral") {
-    //   uncatUserCache.del(n.nodeId);
-    // }
+    if (n.category == "left" || n.category == "right" || n.category == "neutral") {
+      uncatUserCache.del(n.nodeId);
+    }
   }
   return;
 }
@@ -10309,6 +10309,12 @@ async function processTwitterSearchNode(params) {
       uncatUserObj.nodeId = params.user.nodeId;
       uncatUserObj.screenName = params.user.screenName;
       uncatUserObj.timeStamp = getTimeStamp();
+
+      uncatUserCache.set(
+        params.user.nodeId, 
+        uncatUserObj,
+        configuration.uncatUserCacheTtl
+      );
 
       console.log(chalk.yellow(MODULE_ID_PREFIX
         + " | --- MISS | UNCAT USER $"

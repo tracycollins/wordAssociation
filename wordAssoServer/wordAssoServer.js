@@ -10263,7 +10263,7 @@ async function processTwitterSearchNode(params) {
       + " | @" + params.user.screenName
     ));
 
-    const categorizeable = await userCategorizeable({user: params.user});
+    const categorizeable = await userCategorizeable({user: params.user, verbose: true});
     const uuObj = await uncatUserCacheCheck(params.user.nodeId);
 
     if (params.specificUserFlag) {

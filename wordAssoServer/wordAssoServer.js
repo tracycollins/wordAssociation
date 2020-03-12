@@ -10465,7 +10465,6 @@ async function processTwitterSearchNode(params) {
         + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
         + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
       ));
-      
       await deleteUser({nodeId: params.user.nodeId});
     }
 

@@ -10465,14 +10465,14 @@ async function processTwitterSearchNode(params) {
         + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
         + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
       ));
-      await deleteUser({nodeId: params.user.nodeId});
+      await deleteUser({user: params.user});
     }
 
     if (params.user.toObject && (typeof params.user.toObject == "function")) {
       const u = params.user.toObject();
       if (ignoredUserSet.has(u.nodeId) || ignoredUserSet.has(u.screenName.toLowerCase())){
-        u.ignored = true;
-        await deleteUser({nodeId: u.nodeId});
+        // u.ignored = true;
+        await deleteUser({user: u});
       }
       else if (followedUserSet.has(u.nodeId)){
         u.following = true;
@@ -10483,7 +10483,7 @@ async function processTwitterSearchNode(params) {
     else{
       if (ignoredUserSet.has(params.user.nodeId) || ignoredUserSet.has(params.user.screenName.toLowerCase())){
         params.user.ignored = true;
-        await deleteUser({nodeId: params.user.nodeId});
+        await deleteUser({user: params.user});
       }
       else if (followedUserSet.has(params.user.nodeId)){
         params.user.following = true;

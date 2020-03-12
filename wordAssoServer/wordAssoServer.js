@@ -6160,111 +6160,6 @@ async function updateUserSets(){
           categorizeable = false;
       }
 
-      // switch (category) {
-      //   case "right":
-      //     // userRightSet.add(nodeId);
-      //     // userLeftSet.delete(nodeId);
-      //     // userNeutralSet.delete(nodeId);
-      //     // userPositiveSet.delete(nodeId);
-      //     // userNegativeSet.delete(nodeId);
-      //     // userNoneSet.delete(nodeId);
-      //     categorizeable = true;
-      //   break;
-      //   case "left":
-      //     // userRightSet.delete(nodeId);
-      //     // userLeftSet.add(nodeId);
-      //     // userNeutralSet.delete(nodeId);
-      //     // userPositiveSet.delete(nodeId);
-      //     // userNegativeSet.delete(nodeId);
-      //     // userNoneSet.delete(nodeId);
-      //     categorizeable = true;
-      //   break;
-      //   case "neutral":
-      //     // userRightSet.delete(nodeId);
-      //     // userLeftSet.delete(nodeId);
-      //     // userNeutralSet.add(nodeId);
-      //     // userPositiveSet.delete(nodeId);
-      //     // userNegativeSet.delete(nodeId);
-      //     // userNoneSet.delete(nodeId);
-      //     categorizeable = true;
-      //   break;
-      //   case "positive":
-      //     // userRightSet.delete(nodeId);
-      //     // userLeftSet.delete(nodeId);
-      //     // userNeutralSet.delete(nodeId);
-      //     // userPositiveSet.add(nodeId);
-      //     // userNegativeSet.delete(nodeId);
-      //     // userNoneSet.delete(nodeId);
-      //     categorizeable = true;
-      //   break;
-      //   case "negative":
-      //     // userRightSet.delete(nodeId);
-      //     // userLeftSet.delete(nodeId);
-      //     // userNeutralSet.delete(nodeId);
-      //     // userPositiveSet.delete(nodeId);
-      //     // userNegativeSet.add(nodeId);
-      //     // userNoneSet.delete(nodeId);
-      //     categorizeable = true;
-      //   break;
-      //   default:
-      //     // userRightSet.delete(nodeId);
-      //     // userLeftSet.delete(nodeId);
-      //     // userNeutralSet.delete(nodeId);
-      //     // userPositiveSet.delete(nodeId);
-      //     // userNegativeSet.delete(nodeId);
-      //     // userNoneSet.add(nodeId);
-      // }
-
-      // switch (categoryAuto) {
-      //   case "right":
-      //     userAutoRightSet.add(nodeId);
-      //     userAutoLeftSet.delete(nodeId);
-      //     userAutoNeutralSet.delete(nodeId);
-      //     // userAutoPositiveSet.delete(nodeId);
-      //     // userAutoNegativeSet.delete(nodeId);
-      //     // userAutoNoneSet.delete(nodeId);
-      //   break;
-      //   case "left":
-      //     userAutoRightSet.delete(nodeId);
-      //     userAutoLeftSet.add(nodeId);
-      //     userAutoNeutralSet.delete(nodeId);
-      //     // userAutoPositiveSet.delete(nodeId);
-      //     // userAutoNegativeSet.delete(nodeId);
-      //     // userAutoNoneSet.delete(nodeId);
-      //   break;
-      //   case "neutral":
-      //     userAutoRightSet.delete(nodeId);
-      //     userAutoLeftSet.delete(nodeId);
-      //     userAutoNeutralSet.add(nodeId);
-      //     // userAutoPositiveSet.delete(nodeId);
-      //     // userAutoNegativeSet.delete(nodeId);
-      //     // userAutoNoneSet.delete(nodeId);
-      //   break;
-      //   case "positive":
-      //     userAutoRightSet.delete(nodeId);
-      //     userAutoLeftSet.delete(nodeId);
-      //     userAutoNeutralSet.delete(nodeId);
-      //     // userAutoPositiveSet.add(nodeId);
-      //     // userAutoNegativeSet.delete(nodeId);
-      //     // userAutoNoneSet.delete(nodeId);
-      //   break;
-      //   case "negative":
-      //     userAutoRightSet.delete(nodeId);
-      //     userAutoLeftSet.delete(nodeId);
-      //     userAutoNeutralSet.delete(nodeId);
-      //     // userAutoPositiveSet.delete(nodeId);
-      //     // userAutoNegativeSet.add(nodeId);
-      //     // userAutoNoneSet.delete(nodeId);
-      //   break;
-      //   default:
-      //     userAutoRightSet.delete(nodeId);
-      //     userAutoLeftSet.delete(nodeId);
-      //     userAutoNeutralSet.delete(nodeId);
-      //     // userAutoPositiveSet.delete(nodeId);
-      //     // userAutoNegativeSet.delete(nodeId);
-      //     // userAutoNoneSet.add(nodeId);
-      // }
-
       if (!categorizeable) {
         categorizeable = await userCategorizeable({user: user});
       }
@@ -6342,7 +6237,7 @@ async function updateUserSets(){
     }
 
     usersProcessed++;
-    
+
     if (usersProcessed % 1000 === 0) {
       console.log(chalkLog(MODULE_ID_PREFIX + " | USER SETS | " + usersProcessed + " USERS PROCESSED"));
     }
@@ -10406,7 +10301,6 @@ async function processTwitterSearchNode(params) {
       }
     }
     else if (categorizeable && !uuObj) { 
-    // else if (categorizeable) { 
 
       uncatUserCacheHit = false;
 
@@ -10500,9 +10394,16 @@ async function processTwitterSearchNode(params) {
       console.log(chalk.yellow(MODULE_ID_PREFIX
         + " | +++ HIT (NOT CATEGORIZABLE)  | UNCAT USER $"
         + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
+        + " | TS: " + uuObj.timeStamp
         + " | NID: " + uuObj.nodeId
         + " | @" + uuObj.screenName
-        + " | TS: " + uuObj.timeStamp
+        + " | F " + params.user.following
+        + " | I " + params.user.ignored
+        + " | L " + params.user.lang
+        + " | FLWs " + params.user.followersCount
+        + " | CAT V: " + formatBoolean(params.user.categoryVerified)
+        + " M: " + formatCategory(params.user.category)
+        + " A: " + formatCategory(params.user.categoryAuto)
         + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
         + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
       ));
@@ -10515,9 +10416,13 @@ async function processTwitterSearchNode(params) {
         + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
         + " | NID: " + params.user.nodeId
         + " | @" + params.user.screenName
-        + " | CAT VERIFIED: " + formatBoolean(params.user.categoryVerified)
-        + " | CAT M: " + formatCategory(params.user.category)
-        + " | CAT A: " + formatCategory(params.user.categoryAuto)
+        + " | F " + params.user.following
+        + " | I " + params.user.ignored
+        + " | L " + params.user.lang
+        + " | FLWs " + params.user.followersCount
+        + " | CAT V: " + formatBoolean(params.user.categoryVerified)
+        + " M: " + formatCategory(params.user.category)
+        + " A: " + formatCategory(params.user.categoryAuto)
         + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
         + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
       ));

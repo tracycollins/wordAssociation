@@ -956,6 +956,7 @@ const uncatUserCacheFile = "uncatUserCache.json";
 const pendingFollowSet = new Set();
 // const followableUserSet = new Set();
 const categorizeableUserSet = new Set();
+const uncategorizeableUserSet = new Set();
 let followableSearchTermSet = new Set();
 
 followableSearchTermSet.add("potus");
@@ -5577,6 +5578,16 @@ async function userCategorizeable(params){
   //   return false; 
   // }
 
+  if(uncategorizeableUserSet.has(user.nodeId)){
+    if (verbose) { 
+      console.log(chalkInfo(MODULE_ID_PREFIX 
+        + " | userCategorizeable | FALSE  | UNCATEGORIZABLE SET"
+        + " | @" + user.screenName
+      ));
+    }
+    return false; 
+  }
+
   if (user.following && (user.following !== undefined)) { 
     unfollowableUserSet.delete(user.nodeId);
     if (verbose) { 
@@ -5622,7 +5633,8 @@ async function userCategorizeable(params){
     return false;
   }
 
-  if (user.lang && (user.lang !== undefined) && (user.lang != "en")) { 
+  if (user.lang && (user.lang !== undefined) && (user.lang != "en")) {
+    uncategorizeableUserSet.add(user.nodeId); 
     categorizeableUserSet.delete(user.nodeId);
     if (verbose) { 
       console.log(chalkLog(MODULE_ID_PREFIX 
@@ -5678,6 +5690,7 @@ async function userCategorizeable(params){
     hitSearchTerm = await followable(user.name);
 
     if (hitSearchTerm) { 
+      uncategorizeableUserSet.delete(user.nodeId); 
       categorizeableUserSet.add(user.nodeId);
       ignoredUserSet.delete(user.nodeId);
       unfollowableUserSet.delete(user.nodeId);
@@ -5699,6 +5712,7 @@ async function userCategorizeable(params){
 
     if (hitSearchTerm) { 
       categorizeableUserSet.add(user.nodeId);
+      uncategorizeableUserSet.delete(user.nodeId); 
 
       ignoredUserSet.delete(user.nodeId);
       unfollowableUserSet.delete(user.nodeId);
@@ -5720,6 +5734,7 @@ async function userCategorizeable(params){
 
     if (hitSearchTerm) { 
       categorizeableUserSet.add(user.nodeId);
+      uncategorizeableUserSet.delete(user.nodeId); 
       ignoredUserSet.delete(user.nodeId);
       unfollowableUserSet.delete(user.nodeId);
 
@@ -5735,6 +5750,7 @@ async function userCategorizeable(params){
   }
 
   categorizeableUserSet.delete(user.nodeId);
+  uncategorizeableUserSet.add(user.nodeId); 
 
   if (verbose) { 
     console.log(chalkLog(MODULE_ID_PREFIX 
@@ -10418,7 +10434,7 @@ async function processTwitterSearchNode(params) {
     }
     else {
       uncategorizable = true;
-      uncatUserCacheHit = false;
+      uncatUserCacheHit = false;  
       console.log(chalkBlue(MODULE_ID_PREFIX
         + " | --- MISS (NOT CATEGORIZABLE)  | UNCAT USER $"
         + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)

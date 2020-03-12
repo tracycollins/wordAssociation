@@ -5565,7 +5565,7 @@ async function userCategorizeable(params){
   const verbose = (params.verbose && params.verbose !== undefined) ? params.verbose : false;
 
   // assume it's a user node
-  
+
   // if (user.nodeType != "user") { 
   //   if (verbose) { 
   //     console.log(chalkLog(MODULE_ID_PREFIX 
@@ -5601,7 +5601,7 @@ async function userCategorizeable(params){
     return false; 
   }
 
-  if (ignoredUserSet.has(user.nodeId) || ignoredUserSet.has(user.screenName.toLowerCase())) { 
+  if (ignoredUserSet.has(user.nodeId) || (user.screenName && ignoredUserSet.has(user.screenName.toLowerCase()))) { 
     if (verbose) { 
       console.log(chalkLog(MODULE_ID_PREFIX 
         + " | userCategorizeable | FALSE | IGNORED"
@@ -6845,7 +6845,7 @@ function initTransmitNodeQueueInterval(interval){
       }
       catch(err){
         transmitNodeQueueReady = true;
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** TRANSMIT NODE QUEUE ERROR: " + err));
+        console.trace(chalkError(MODULE_ID_PREFIX + " | *** TRANSMIT NODE QUEUE ERROR: " + err));
       }
     }, interval);
 

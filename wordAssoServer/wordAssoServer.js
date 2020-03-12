@@ -6112,9 +6112,7 @@ async function updateUserSets(){
 
     const uncatUserObj = await uncatUserCache.get(nodeId);
 
-    if (!category 
-      && !user.following 
-      && uncategorizeableUserSet.has(nodeId)){
+    if (!category && uncategorizeableUserSet.has(nodeId)){
 
       global.wordAssoDb.User.deleteOne({"nodeId": nodeId}, function(err){
         if (err) {

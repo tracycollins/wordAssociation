@@ -951,7 +951,7 @@ let viewNameSpace;
 const ignoredHashtagFile = "ignoredHashtag.txt";
 const ignoredUserFile = "ignoredUser.json";
 const followableSearchTermFile = "followableSearchTerm.txt";
-// const uncatUserCacheFile = "uncatUserCache.json";
+const uncatUserCacheFile = "uncatUserCache.json";
 
 const pendingFollowSet = new Set();
 // const followableUserSet = new Set();
@@ -1680,28 +1680,28 @@ ipCache.on("expired", ipCacheExpired);
 // ==================================================================
 // UNCAT USER ID CACHE
 // ==================================================================
-// console.log(MODULE_ID_PREFIX + " | UNCAT USER ID CACHE TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000));
-// console.log(MODULE_ID_PREFIX + " | UNCAT USER ID CACHE CHECK PERIOD: " + tcUtils.msToTime(configuration.uncatUserCacheCheckPeriod*1000));
+console.log(MODULE_ID_PREFIX + " | UNCAT USER ID CACHE TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000));
+console.log(MODULE_ID_PREFIX + " | UNCAT USER ID CACHE CHECK PERIOD: " + tcUtils.msToTime(configuration.uncatUserCacheCheckPeriod*1000));
 
-// const uncatUserCache = new NodeCache({
-//   stdTTL: configuration.uncatUserCacheTtl,
-//   checkperiod: configuration.uncatUserCacheCheckPeriod
-// });
+const uncatUserCache = new NodeCache({
+  stdTTL: configuration.uncatUserCacheTtl,
+  checkperiod: configuration.uncatUserCacheCheckPeriod
+});
 
-// function uncatUserCacheExpired(uncatUserId, uncatUserObj) {
-//   statsObj.caches.uncatUserCache.expired += 1;
-//   console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX UNCAT USER CACHE EXPIRED"
-//     + " [" + uncatUserCache.getStats().keys + " KEYS]"
-//     + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
-//     + " | NOW: " + getTimeStamp()
-//     + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
-//     + " | IN $: " + uncatUserObj.timeStamp
-//     + " | NID: " + uncatUserId
-//     + " | @" + uncatUserObj.screenName
-//   ));
-// }
+function uncatUserCacheExpired(uncatUserId, uncatUserObj) {
+  statsObj.caches.uncatUserCache.expired += 1;
+  console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX UNCAT USER CACHE EXPIRED"
+    + " [" + uncatUserCache.getStats().keys + " KEYS]"
+    + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
+    + " | NOW: " + getTimeStamp()
+    + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
+    + " | IN $: " + uncatUserObj.timeStamp
+    + " | NID: " + uncatUserId
+    + " | @" + uncatUserObj.screenName
+  ));
+}
 
-// uncatUserCache.on("expired", uncatUserCacheExpired);
+uncatUserCache.on("expired", uncatUserCacheExpired);
 
 // // ==================================================================
 // // MISMATCH USER ID CACHE
@@ -2098,7 +2098,7 @@ DEFAULT_NODE_TYPES.forEach(function(nodeType){
 const cacheObj = {};
 cacheObj.ipCache = ipCache;
 // cacheObj.mismatchUserCache = mismatchUserCache;
-// cacheObj.uncatUserCache = uncatUserCache;
+cacheObj.uncatUserCache = uncatUserCache;
 cacheObj.nodeCache = nodeCache;
 // cacheObj.botCache = botCache;
 cacheObj.serverCache = serverCache;
@@ -2304,11 +2304,11 @@ function initStats(callback){
     statsObj.caches.nodesPerMinuteTopTermNodeTypeCache[nodeType].stats.keysMax = 0;
   });
 
-  // statsObj.caches.uncatUserCache = {};
-  // statsObj.caches.uncatUserCache.stats = {};
-  // statsObj.caches.uncatUserCache.stats.keys = 0;
-  // statsObj.caches.uncatUserCache.stats.keysMax = 0;
-  // statsObj.caches.uncatUserCache.expired = 0;
+  statsObj.caches.uncatUserCache = {};
+  statsObj.caches.uncatUserCache.stats = {};
+  statsObj.caches.uncatUserCache.stats.keys = 0;
+  statsObj.caches.uncatUserCache.stats.keysMax = 0;
+  statsObj.caches.uncatUserCache.expired = 0;
 
   // statsObj.caches.mismatchUserCache = {};
   // statsObj.caches.mismatchUserCache.stats = {};
@@ -3025,16 +3025,16 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
       });
     },
 
-    // uncatUserCacheInit: function(cb){
+    uncatUserCacheInit: function(cb){
 
-    //   initUncatUserCache().
-    //   then(function(){
-    //     cb();
-    //   }).
-    //   catch(function(err){
-    //     return cb(err);
-    //   });
-    // },
+      initUncatUserCache().
+      then(function(){
+        cb();
+      }).
+      catch(function(err){
+        return cb(err);
+      });
+    },
 
   },
   function(err, results){
@@ -4055,98 +4055,98 @@ async function initIgnoredHashtagSet(){
 //   }
 // }
 
-// function saveUncatUserCache(){
+function saveUncatUserCache(){
 
-//   statsObj.status = "SAVE UNCAT USER ID CACHE";
+  statsObj.status = "SAVE UNCAT USER ID CACHE";
 
-//   const folder = (hostname === "google") ? configDefaultFolder : configHostFolder;
+  const folder = (hostname === "google") ? configDefaultFolder : configHostFolder;
 
-//   console.log(chalkBlue(MODULE_ID_PREFIX + " | SAVE UNCAT USER CACHE: " + folder 
-//     + "/" + uncatUserCacheFile
-//   ));
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | SAVE UNCAT USER CACHE: " + folder 
+    + "/" + uncatUserCacheFile
+  ));
 
-//   const uncatUserCacheObj = {};
+  const uncatUserCacheObj = {};
 
-//   // const uncatUserIdArray = uncatUserCache.keys();
+  const uncatUserIdArray = uncatUserCache.keys();
 
-//   for(const userId of uncatUserIdArray){
-//     const uncatUserObj = uncatUserCache.get(userId);
-//     uncatUserCacheObj[userId] = uncatUserObj;
-//   }
+  for(const userId of uncatUserIdArray){
+    const uncatUserObj = uncatUserCache.get(userId);
+    uncatUserCacheObj[userId] = uncatUserObj;
+  }
 
-//   console.log(chalkLog(MODULE_ID_PREFIX + " | ... SAVING UNCAT USER CACHE FILE"
-//     + " | " + Object.keys(uncatUserCacheObj).length + " USERS"
-//     + " | " + folder + "/" + uncatUserCacheFile
-//   ));
+  console.log(chalkLog(MODULE_ID_PREFIX + " | ... SAVING UNCAT USER CACHE FILE"
+    + " | " + Object.keys(uncatUserCacheObj).length + " USERS"
+    + " | " + folder + "/" + uncatUserCacheFile
+  ));
 
-//   saveFileQueue.push({folder: folder, file: uncatUserCacheFile, obj: uncatUserCacheObj});
+  saveFileQueue.push({folder: folder, file: uncatUserCacheFile, obj: uncatUserCacheObj});
 
-//   return;
-// }
+  return;
+}
 
-// let uncatUserCacheInterval;
+let uncatUserCacheInterval;
 
-// async function initUncatUserCache(){
+async function initUncatUserCache(){
 
-//   statsObj.status = "INIT UNCAT USER ID CACHE";
+  statsObj.status = "INIT UNCAT USER ID CACHE";
 
-//   const folder = (hostname === "google") ? configDefaultFolder : configHostFolder;
+  const folder = (hostname === "google") ? configDefaultFolder : configHostFolder;
 
-//   console.log(chalkBlue(MODULE_ID_PREFIX + " | INIT UNCAT USER CACHE: " + folder 
-//     + "/" + uncatUserCacheFile
-//   ));
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | INIT UNCAT USER CACHE: " + folder 
+    + "/" + uncatUserCacheFile
+  ));
 
-//   try{
+  try{
 
-//     const uncatUserCacheObj = await tcUtils.loadFileRetry({
-//       folder: folder, 
-//       file: uncatUserCacheFile,
-//       noErrorNotFound: true
-//     });
+    const uncatUserCacheObj = await tcUtils.loadFileRetry({
+      folder: folder, 
+      file: uncatUserCacheFile,
+      noErrorNotFound: true
+    });
 
-//     if (!uncatUserCacheObj || uncatUserCacheObj == undefined) {
-//       console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! UNCAT USER CACHE FILE NOT FOUND"
-//         + " | " + folder + "/" + uncatUserCacheFile
-//       ));
-//       return;
-//     }
+    if (!uncatUserCacheObj || uncatUserCacheObj == undefined) {
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! UNCAT USER CACHE FILE NOT FOUND"
+        + " | " + folder + "/" + uncatUserCacheFile
+      ));
+      return;
+    }
 
-//     const uncatUserIdArray = Object.keys(uncatUserCacheObj);
+    const uncatUserIdArray = Object.keys(uncatUserCacheObj);
 
-//     console.log(chalkLog(MODULE_ID_PREFIX + " | ... LOADING UNCAT USER CACHE FILE"
-//       + " | " + uncatUserIdArray.length + " USERS"
-//       + " | " + folder + "/" + uncatUserCacheFile
-//     ));
+    console.log(chalkLog(MODULE_ID_PREFIX + " | ... LOADING UNCAT USER CACHE FILE"
+      + " | " + uncatUserIdArray.length + " USERS"
+      + " | " + folder + "/" + uncatUserCacheFile
+    ));
 
-//     for(const userId of uncatUserIdArray){
-//       uncatUserCacheObj[userId].timeStamp = getTimeStamp();
-//       uncatUserCache.set(
-//         userId, 
-//         uncatUserCacheObj[userId],
-//         configuration.uncatUserCacheTtl
-//       );
-//     }
+    for(const userId of uncatUserIdArray){
+      uncatUserCacheObj[userId].timeStamp = getTimeStamp();
+      uncatUserCache.set(
+        userId, 
+        uncatUserCacheObj[userId],
+        configuration.uncatUserCacheTtl
+      );
+    }
 
-//     console.log(chalkLog(MODULE_ID_PREFIX + " | +++ LOADED UNCAT USER CACHE FILE"
-//       + " | " + uncatUserIdArray.length + " USERS"
-//       + " | " + folder + "/" + uncatUserCacheFile
-//       + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
-//       + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
-//     ));
+    console.log(chalkLog(MODULE_ID_PREFIX + " | +++ LOADED UNCAT USER CACHE FILE"
+      + " | " + uncatUserIdArray.length + " USERS"
+      + " | " + folder + "/" + uncatUserCacheFile
+      + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
+      + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
+    ));
 
-//     clearInterval(uncatUserCacheInterval);
+    clearInterval(uncatUserCacheInterval);
 
-//     uncatUserCacheInterval = setInterval(function(){
-//      saveUncatUserCache();
-//     }, configuration.uncatUserCacheIntervalTime);
+    uncatUserCacheInterval = setInterval(function(){
+     saveUncatUserCache();
+    }, configuration.uncatUserCacheIntervalTime);
 
-//     return;
-//   }
-//   catch(err){
-//     console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT UNCAT USER CACHE ERROR: " + err));
-//     throw err;
-//   }
-// }
+    return;
+  }
+  catch(err){
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT UNCAT USER CACHE ERROR: " + err));
+    throw err;
+  }
+}
 
 async function initFollowableSearchTermSet(){
 
@@ -6094,7 +6094,7 @@ async function updateUserSets(){
     const category = user.category;
     const categoryAuto = user.categoryAuto;
 
-    // const uncatUserObj = await uncatUserCache.get(nodeId);
+    const uncatUserObj = await uncatUserCache.get(nodeId);
 
     if (user.lang && (user.lang !== undefined) && (user.lang != "en")){
 
@@ -6110,7 +6110,6 @@ async function updateUserSets(){
           );
         }
       });
-
     }
     else if (!category 
       && !user.following 
@@ -6271,7 +6270,7 @@ async function updateUserSets(){
       }
 
       if (categorizeable
-        // && (uncatUserObj == undefined)
+        && (uncatUserObj == undefined)
         && (!category || (category === "none") || (category === undefined))
         && (!user.ignored || (user.ignored === undefined))
         && (user.following || (user.followersCount >= configuration.minFollowersAutoCategorize)) 
@@ -6343,6 +6342,7 @@ async function updateUserSets(){
     }
 
     usersProcessed++;
+    
     if (usersProcessed % 1000 === 0) {
       console.log(chalkLog(MODULE_ID_PREFIX + " | USER SETS | " + usersProcessed + " USERS PROCESSED"));
     }
@@ -6612,10 +6612,10 @@ async function categorize(params){
     printUserObj(MODULE_ID_PREFIX + " | AUTO FLW [" + statsObj.user.autoFollow + "]", n);
   }
 
-  // const uncatUserObj = uncatUserCache.get(n.nodeId);
+  const uncatUserObj = uncatUserCache.get(n.nodeId);
 
   if (!uncategorizedManualUserSet.has(n.nodeId) 
-    // && (uncatUserObj == undefined)
+    && (uncatUserObj == undefined)
     && (!n.category || (n.category === "none") || (n.category === undefined))
     && (!n.ignored || (n.ignored === undefined))
     && (!configuration.ignoreCategoryRight || (configuration.ignoreCategoryRight && n.categoryAuto && (n.categoryAuto != "right")))
@@ -10339,19 +10339,19 @@ async function twitterSearchUserNode(params){
   }
 }
 
-// function uncatUserCacheCheck(nodeId){
-//   return new Promise(function(resolve){
+function uncatUserCacheCheck(nodeId){
+  return new Promise(function(resolve){
 
-//     const uncatUserObj = uncatUserCache.get(nodeId);
-//     if (!uncatUserObj || (uncatUserObj == undefined)){
-//       resolve(false);
-//     }
-//     else {
-//       resolve(uncatUserObj);
-//     }
+    const uncatUserObj = uncatUserCache.get(nodeId);
+    if (!uncatUserObj || (uncatUserObj == undefined)){
+      resolve(false);
+    }
+    else {
+      resolve(uncatUserObj);
+    }
 
-//   });
-// }
+  });
+}
 
 async function processTwitterSearchNode(params) {
 
@@ -10369,7 +10369,7 @@ async function processTwitterSearchNode(params) {
     ));
 
     const categorizeable = await userCategorizeable({user: params.user});
-    // const uuObj = await uncatUserCacheCheck(params.user.nodeId);
+    const uuObj = await uncatUserCacheCheck(params.user.nodeId);
 
     if (params.specificUserFlag) {
       if (tfeChild && params.user.toObject && (typeof params.user.toObject == "function")) {
@@ -10384,9 +10384,9 @@ async function processTwitterSearchNode(params) {
           }
         });
 
-        // if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
-        //   uncatUserCache.del(params.user.nodeId);
-        // }
+        if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
+          uncatUserCache.del(params.user.nodeId);
+        }
       }
       else if (tfeChild) {
 
@@ -10400,13 +10400,13 @@ async function processTwitterSearchNode(params) {
           }
         });
 
-        // if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
-        //   uncatUserCache.del(params.user.nodeId);
-        // }
+        if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
+          uncatUserCache.del(params.user.nodeId);
+        }
       }
     }
-    // else if (categorizeable && !uuObj) { 
-    else if (categorizeable) { 
+    else if (categorizeable && !uuObj) { 
+    // else if (categorizeable) { 
 
       uncatUserCacheHit = false;
 
@@ -10457,9 +10457,9 @@ async function processTwitterSearchNode(params) {
           }
         });
 
-        // if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
-        //   uncatUserCache.del(params.user.nodeId);
-        // }
+        if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
+          uncatUserCache.del(params.user.nodeId);
+        }
       }
       else if (tfeChild) {
 
@@ -10473,40 +10473,40 @@ async function processTwitterSearchNode(params) {
           }
         });
 
-        // if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
-        //   uncatUserCache.del(params.user.nodeId);
-        // }
+        if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
+          uncatUserCache.del(params.user.nodeId);
+        }
       }
     }
-    // else if (categorizeable && uuObj) { 
+    else if (categorizeable && uuObj) { 
 
-    //   uncatUserCacheHit = true;
+      uncatUserCacheHit = true;
 
-    //   uuObj.timeStamp = getTimeStamp();
+      uuObj.timeStamp = getTimeStamp();
 
-    //   console.log(chalkBlue(MODULE_ID_PREFIX
-    //     + " | +++ HIT  | UNCAT USER $"
-    //     + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
-    //     + " | NID: " + uuObj.nodeId
-    //     + " | @" + uuObj.screenName
-    //     + " | TS: " + uuObj.timeStamp
-    //     + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
-    //     + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
-    //   ));
-    // }
-    // else if (uuObj) {
-    //   uncategorizable = true;
-    //   uncatUserCacheHit = true;
-    //   console.log(chalk.yellow(MODULE_ID_PREFIX
-    //     + " | +++ HIT (NOT CATEGORIZABLE)  | UNCAT USER $"
-    //     + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
-    //     + " | NID: " + uuObj.nodeId
-    //     + " | @" + uuObj.screenName
-    //     + " | TS: " + uuObj.timeStamp
-    //     + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
-    //     + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
-    //   ));
-    // }
+      console.log(chalkBlue(MODULE_ID_PREFIX
+        + " | +++ HIT  | UNCAT USER $"
+        + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
+        + " | NID: " + uuObj.nodeId
+        + " | @" + uuObj.screenName
+        + " | TS: " + uuObj.timeStamp
+        + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
+        + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
+      ));
+    }
+    else if (uuObj) {
+      uncategorizable = true;
+      uncatUserCacheHit = true;
+      console.log(chalk.yellow(MODULE_ID_PREFIX
+        + " | +++ HIT (NOT CATEGORIZABLE)  | UNCAT USER $"
+        + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
+        + " | NID: " + uuObj.nodeId
+        + " | @" + uuObj.screenName
+        + " | TS: " + uuObj.timeStamp
+        + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
+        + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
+      ));
+    }
     else {
       uncategorizable = true;
       uncatUserCacheHit = false;
@@ -10518,8 +10518,8 @@ async function processTwitterSearchNode(params) {
         + " | CAT VERIFIED: " + formatBoolean(params.user.categoryVerified)
         + " | CAT M: " + formatCategory(params.user.category)
         + " | CAT A: " + formatCategory(params.user.categoryAuto)
-        // + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
-        // + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
+        + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
+        + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
       ));
     }
 

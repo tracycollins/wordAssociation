@@ -222,8 +222,8 @@ const NODE_CACHE_CHECK_PERIOD = 1;
 const TWEET_ID_CACHE_DEFAULT_TTL = 20;
 const TWEET_ID_CACHE_CHECK_PERIOD = 5;
 
-const DEFAULT_MISMATCH_USER_ID_CACHE_DEFAULT_TTL = 604800;
-const DEFAULT_MISMATCH_USER_ID_CACHE_CHECK_PERIOD = 3600;
+// const DEFAULT_MISMATCH_USER_ID_CACHE_DEFAULT_TTL = 604800;
+// const DEFAULT_MISMATCH_USER_ID_CACHE_CHECK_PERIOD = 3600;
 const DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL = 604800; // 3600*24*7 sec/week
 const DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD = 3600;
 
@@ -728,7 +728,7 @@ configuration.slackChannel = {};
 configuration.heartbeatInterval = process.env.WAS_HEARTBEAT_INTERVAL || ONE_MINUTE;
 // configuration.statsUpdateIntervalTime = process.env.WAS_STATS_UPDATE_INTERVAL || 10*ONE_MINUTE;
 configuration.uncatUserCacheIntervalTime = process.env.WAS_UNCAT_USER_CACHE_INTERVAL || 15*ONE_MINUTE;
-configuration.mismatchUserCacheIntervalTime = process.env.WAS_MISMATCH_USER_CACHE_INTERVAL || 15*ONE_MINUTE;
+// configuration.mismatchUserCacheIntervalTime = process.env.WAS_MISMATCH_USER_CACHE_INTERVAL || 15*ONE_MINUTE;
 
 configuration.maxUserSearchSkipCount = DEFAULT_MAX_USER_SEARCH_SKIP_COUNT;
 configuration.filterVerifiedUsers = true;
@@ -757,8 +757,8 @@ configuration.forceFollow = DEFAULT_FORCE_FOLLOW;
 configuration.enableTwitterFollow = DEFAULT_ENABLE_TWITTER_FOLLOW;
 configuration.autoFollow = DEFAULT_AUTO_FOLLOW;
 
-configuration.mismatchUserCacheTtl = DEFAULT_MISMATCH_USER_ID_CACHE_DEFAULT_TTL;
-configuration.mismatchUserCacheCheckPeriod = DEFAULT_MISMATCH_USER_ID_CACHE_CHECK_PERIOD;
+// configuration.mismatchUserCacheTtl = DEFAULT_MISMATCH_USER_ID_CACHE_DEFAULT_TTL;
+// configuration.mismatchUserCacheCheckPeriod = DEFAULT_MISMATCH_USER_ID_CACHE_CHECK_PERIOD;
 
 configuration.uncatUserCacheTtl = DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL;
 configuration.uncatUserCacheCheckPeriod = DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD;
@@ -1304,8 +1304,8 @@ const categorizedAutoUserSet = new Set();
 const uncategorizedManualUserSet = new Set();
 const uncategorizedAutoUserSet = new Set();
 
-const matchUserSet = new Set();
-const mismatchUserSet = new Set();
+// const matchUserSet = new Set();
+// const mismatchUserSet = new Set();
 
 // ==================================================================
 // DROPBOX
@@ -1709,28 +1709,28 @@ uncatUserCache.on("expired", uncatUserCacheExpired);
 // ==================================================================
 // MISMATCH USER ID CACHE
 // ==================================================================
-console.log(MODULE_ID_PREFIX + " | MISMATCH USER ID CACHE TTL: " + tcUtils.msToTime(configuration.mismatchUserCacheTtl*1000));
-console.log(MODULE_ID_PREFIX + " | MISMATCH USER ID CACHE CHECK PERIOD: " + tcUtils.msToTime(configuration.mismatchUserCacheCheckPeriod*1000));
+// console.log(MODULE_ID_PREFIX + " | MISMATCH USER ID CACHE TTL: " + tcUtils.msToTime(configuration.mismatchUserCacheTtl*1000));
+// console.log(MODULE_ID_PREFIX + " | MISMATCH USER ID CACHE CHECK PERIOD: " + tcUtils.msToTime(configuration.mismatchUserCacheCheckPeriod*1000));
 
-const mismatchUserCache = new NodeCache({
-  stdTTL: configuration.mismatchUserCacheTtl,
-  checkperiod: configuration.mismatchUserCacheCheckPeriod
-});
+// const mismatchUserCache = new NodeCache({
+//   stdTTL: configuration.mismatchUserCacheTtl,
+//   checkperiod: configuration.mismatchUserCacheCheckPeriod
+// });
 
-function mismatchUserCacheExpired(mismatchUserId, mismatchUserObj) {
-  statsObj.caches.mismatchUserCache.expired += 1;
-  console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX MISMATCH USER CACHE EXPIRED"
-    + " [" + mismatchUserCache.getStats().keys + " KEYS]"
-    + " | TTL: " + tcUtils.msToTime(configuration.mismatchUserCacheTtl*1000)
-    + " | NOW: " + getTimeStamp()
-    + " | $ EXPIRED: " + statsObj.caches.mismatchUserCache.expired
-    + " | IN $: " + mismatchUserObj.timeStamp
-    + " | NID: " + mismatchUserId
-    + " | @" + mismatchUserObj.screenName
-  ));
-}
+// function mismatchUserCacheExpired(mismatchUserId, mismatchUserObj) {
+//   statsObj.caches.mismatchUserCache.expired += 1;
+//   console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX MISMATCH USER CACHE EXPIRED"
+//     + " [" + mismatchUserCache.getStats().keys + " KEYS]"
+//     + " | TTL: " + tcUtils.msToTime(configuration.mismatchUserCacheTtl*1000)
+//     + " | NOW: " + getTimeStamp()
+//     + " | $ EXPIRED: " + statsObj.caches.mismatchUserCache.expired
+//     + " | IN $: " + mismatchUserObj.timeStamp
+//     + " | NID: " + mismatchUserId
+//     + " | @" + mismatchUserObj.screenName
+//   ));
+// }
 
-mismatchUserCache.on("expired", mismatchUserCacheExpired);
+// mismatchUserCache.on("expired", mismatchUserCacheExpired);
 
 // ==================================================================
 // TWEET ID CACHE
@@ -2100,7 +2100,7 @@ DEFAULT_NODE_TYPES.forEach(function(nodeType){
 
 const cacheObj = {};
 cacheObj.ipCache = ipCache;
-cacheObj.mismatchUserCache = mismatchUserCache;
+// cacheObj.mismatchUserCache = mismatchUserCache;
 cacheObj.uncatUserCache = uncatUserCache;
 cacheObj.nodeCache = nodeCache;
 // cacheObj.botCache = botCache;
@@ -2313,11 +2313,11 @@ function initStats(callback){
   statsObj.caches.uncatUserCache.stats.keysMax = 0;
   statsObj.caches.uncatUserCache.expired = 0;
 
-  statsObj.caches.mismatchUserCache = {};
-  statsObj.caches.mismatchUserCache.stats = {};
-  statsObj.caches.mismatchUserCache.stats.keys = 0;
-  statsObj.caches.mismatchUserCache.stats.keysMax = 0;
-  statsObj.caches.mismatchUserCache.expired = 0;
+  // statsObj.caches.mismatchUserCache = {};
+  // statsObj.caches.mismatchUserCache.stats = {};
+  // statsObj.caches.mismatchUserCache.stats.keys = 0;
+  // statsObj.caches.mismatchUserCache.stats.keysMax = 0;
+  // statsObj.caches.mismatchUserCache.expired = 0;
 
   statsObj.db = {};
   statsObj.db.errors = 0;
@@ -5963,33 +5963,33 @@ async function countDocuments(params){
   }
 }
 
-async function addMismatchUserSet(params){
+// async function addMismatchUserSet(params){
 
-  if (!mismatchUserSet.has(params.user.nodeId) && (params.user.category !== params.user.categoryAuto)) {
+//   if (!mismatchUserSet.has(params.user.nodeId) && (params.user.category !== params.user.categoryAuto)) {
 
-    // const mismatchUserObj = await mismatchUserCache.get(params.user.nodeId);
+//     // const mismatchUserObj = await mismatchUserCache.get(params.user.nodeId);
 
-    mismatchUserSet.add(params.user.nodeId);
+//     mismatchUserSet.add(params.user.nodeId);
 
-    if (configuration.filterVerifiedUsers && verifiedCategorizedUsersSet.has(params.user.screenName)){
-      mismatchUserSet.delete(params.user.nodeId);
-    }
-    // else if (mismatchUserObj === undefined) {
-    //   mismatchUserSet.add(params.user.nodeId);
-    // }
+//     if (configuration.filterVerifiedUsers && verifiedCategorizedUsersSet.has(params.user.screenName)){
+//       mismatchUserSet.delete(params.user.nodeId);
+//     }
+//     // else if (mismatchUserObj === undefined) {
+//     //   mismatchUserSet.add(params.user.nodeId);
+//     // }
 
-    matchUserSet.delete(params.user.nodeId); 
+//     matchUserSet.delete(params.user.nodeId); 
 
-    if ((mismatchUserSet.size > 0) && (mismatchUserSet.size % 100 == 0)) {
-      printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "] | VCU: " + verifiedCategorizedUsersSet.has(params.user.screenName), params.user);
-    }
+//     if ((mismatchUserSet.size > 0) && (mismatchUserSet.size % 100 == 0)) {
+//       printUserObj("MISMATCHED USER [" + mismatchUserSet.size + "] | VCU: " + verifiedCategorizedUsersSet.has(params.user.screenName), params.user);
+//     }
 
-    return;
-  }
-  else {
-    return;
-  }
-}
+//     return;
+//   }
+//   else {
+//     return;
+//   }
+// }
 
 async function updateUserSets(){
 
@@ -6255,17 +6255,17 @@ async function updateUserSets(){
           categorizedManualUserSet.add(nodeId); 
           categorizedAutoUserSet.add(nodeId); 
 
-          await addMismatchUserSet({user: user});
+          // await addMismatchUserSet({user: user});
 
-          if (!matchUserSet.has(nodeId) && (category === categoryAuto)) {
+          // if (!matchUserSet.has(nodeId) && (category === categoryAuto)) {
 
-            matchUserSet.add(nodeId); 
-            mismatchUserSet.delete(nodeId); 
+          //   matchUserSet.add(nodeId); 
+          //   mismatchUserSet.delete(nodeId); 
 
-            if (matchUserSet.size % 100 == 0) {
-              printUserObj("MATCHED USER [" + matchUserSet.size + "]", user);
-            }
-          }
+          //   if (matchUserSet.size % 100 == 0) {
+          //     printUserObj("MATCHED USER [" + matchUserSet.size + "]", user);
+          //   }
+          // }
         }
       }
     }
@@ -10362,24 +10362,24 @@ async function processTwitterSearchNode(params) {
         + " | CAT A: " + formatCategory(params.user.categoryAuto)
       ));
 
-      if (!empty(params.user.category) && (params.user.category != params.user.categoryAuto)) {
+      // if (!empty(params.user.category) && (params.user.category != params.user.categoryAuto)) {
 
-        const mismatchUserObj = {};
+      //   const mismatchUserObj = {};
 
-        mismatchUserObj.nodeId = params.user.nodeId;
-        mismatchUserObj.screenName = params.user.screenName;
-        mismatchUserObj.timeStamp = getTimeStamp();
+      //   mismatchUserObj.nodeId = params.user.nodeId;
+      //   mismatchUserObj.screenName = params.user.screenName;
+      //   mismatchUserObj.timeStamp = getTimeStamp();
 
-        console.log(chalk.blue(MODULE_ID_PREFIX
-          + " | --- MISS | MISMATCH USER $"
-          + " | TTL: " + tcUtils.msToTime(configuration.mismatchUserCacheTtl*1000)
-          + " | NID: " + params.user.nodeId
-          + " | @" + params.user.screenName
-          + " | CAT VERIFIED: " + formatBoolean(params.user.categoryVerified)
-          + " | CAT M: " + formatCategory(params.user.category)
-          + " | CAT A: " + formatCategory(params.user.categoryAuto)
-        ));
-      }
+      //   console.log(chalk.blue(MODULE_ID_PREFIX
+      //     + " | --- MISS | MISMATCH USER $"
+      //     + " | TTL: " + tcUtils.msToTime(configuration.mismatchUserCacheTtl*1000)
+      //     + " | NID: " + params.user.nodeId
+      //     + " | @" + params.user.screenName
+      //     + " | CAT VERIFIED: " + formatBoolean(params.user.categoryVerified)
+      //     + " | CAT M: " + formatCategory(params.user.category)
+      //     + " | CAT A: " + formatCategory(params.user.categoryAuto)
+      //   ));
+      // }
 
       if (tfeChild && params.user.toObject && (typeof params.user.toObject == "function")) {
 

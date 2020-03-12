@@ -34,6 +34,13 @@ const empty = require("is-empty");
 const watch = require("watch");
 const whois = require("whois-json");
 const dns = require("dns");
+const crypto = require("crypto");
+const NodeCache = require("node-cache");
+const commandLineArgs = require("command-line-args");
+const metricsRate = "5MinuteRate";
+const shell = require("shelljs");
+const methodOverride = require("method-override");
+const deepcopy = require("deep-copy");
 
 // const {google} = require("googleapis");
 // const googleSupportedAPIs = google.getSupportedAPIs();
@@ -601,14 +608,6 @@ let ignoreLocationsArray = Array.from(ignoreLocationsSet);
 let ignoreLocationsString = ignoreLocationsArray.join('\\b|\\b');
 ignoreLocationsString = '\\b' + ignoreLocationsString + '\\b';
 let ignoreLocationsRegEx = new RegExp(ignoreLocationsString, "i");
-
-const crypto = require("crypto");
-const NodeCache = require("node-cache");
-const commandLineArgs = require("command-line-args");
-const metricsRate = "5MinuteRate";
-const shell = require("shelljs");
-const methodOverride = require("method-override");
-const deepcopy = require("deep-copy");
 
 const configEvents = new EventEmitter2({
   wildcard: true,
@@ -6113,7 +6112,7 @@ async function updateUserSets(){
     const category = user.category;
     const categoryAuto = user.categoryAuto;
 
-    const uncatUserObj = await uncatUserCache.get(nodeId);
+    const uncatUserObj = uncatUserCache.get(nodeId);
 
     if (!category && uncategorizeableUserSet.has(nodeId)){
 
@@ -10550,6 +10549,14 @@ function getNextSearchNode(params){
           const searchUserId = searchUserNodeIdArray.shift();
 
           uncategorizedManualUserSet.delete(searchUserId);
+
+          if (uncatUserCache.get(searchUserId) !== undefined){
+            console.log(chalkLog(MODULE_ID_PREFIX + " | SKIP USER $ HIT | MODE: " + searchMode))
+            if (params.searchUserNodeIdArray.length > 0) {
+              notFoundAndMore = true;
+            }
+            return;
+          }
 
           const user = await twitterSearchUserNode({user: {nodeId: searchUserId}, searchMode: searchMode});
 

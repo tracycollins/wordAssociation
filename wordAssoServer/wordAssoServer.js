@@ -10451,6 +10451,7 @@ async function processTwitterSearchNode(params) {
     else{
       if (ignoredUserSet.has(params.user.nodeId) || ignoredUserSet.has(params.user.screenName.toLowerCase())){
         params.user.ignored = true;
+        await deleteUser({nodeId: params.user.nodeId});
       }
       else if (followedUserSet.has(params.user.nodeId)){
         params.user.following = true;

@@ -10551,7 +10551,10 @@ function getNextSearchNode(params){
           uncategorizedManualUserSet.delete(searchUserId);
 
           if (uncatUserCache.get(searchUserId) !== undefined){
-            console.log(chalkLog(MODULE_ID_PREFIX + " | SKIP USER $ HIT | MODE: " + searchMode))
+            console.log(chalkLog(MODULE_ID_PREFIX + " | SKIP USER $ HIT | MODE: " + searchMode
+              + " | " + searchUserId
+              + " | @" + uncatUserCache.get(searchUserId).screenName
+            ));
             if (params.searchUserNodeIdArray.length > 0) {
               notFoundAndMore = true;
             }

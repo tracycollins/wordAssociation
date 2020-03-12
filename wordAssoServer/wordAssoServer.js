@@ -5564,16 +5564,18 @@ async function userCategorizeable(params){
   const user = params.user;
   const verbose = (params.verbose && params.verbose !== undefined) ? params.verbose : false;
 
-  if (user.nodeType != "user") { 
-    if (verbose) { 
-      console.log(chalkLog(MODULE_ID_PREFIX 
-        + " | userCategorizeable | FALSE | NODE TYPE !== USER"
-        + " | NODE TYPE: " + user.nodeType
-        + " | @" + user.screenName
-      ));
-    }
-    return false; 
-  }
+  // assume it's a user node
+  
+  // if (user.nodeType != "user") { 
+  //   if (verbose) { 
+  //     console.log(chalkLog(MODULE_ID_PREFIX 
+  //       + " | userCategorizeable | FALSE | NODE TYPE !== USER"
+  //       + " | NODE TYPE: " + user.nodeType
+  //       + " | @" + user.screenName
+  //     ));
+  //   }
+  //   return false; 
+  // }
 
   if (user.following && (user.following !== undefined)) { 
     unfollowableUserSet.delete(user.nodeId);
@@ -10685,7 +10687,7 @@ function getNextSearchNode(params){
 
               case "UNCAT_NEUTRAL":
 
-                if ((user.category && (user.category != "none")) || (user.categoryAuto != "neutral")){
+                if ((user.category && (user.category !== "none")) || (user.categoryAuto !== "neutral")){
                   userSkipCount += 1;
                   printUserObj(MODULE_ID_PREFIX + " | SKIP | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
                   notFoundAndMore = true;

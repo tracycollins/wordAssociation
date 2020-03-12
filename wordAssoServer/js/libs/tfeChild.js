@@ -1792,6 +1792,7 @@ process.on("message", async function(m) {
       await tcUtils.setEnableGeoCode(configuration.enableGeoCode);
       
       await tcUtils.initTwitter({twitterConfig: m.twitterConfig});
+      await initProcessUserQueueInterval(configuration.processUserQueueInterval);
 
       console.log(chalkBlueBold("===============================\n"
         + MODULE_ID_PREFIX + " | INIT"
@@ -2014,7 +2015,7 @@ setTimeout(async function(){
     await tcUtils.initTwitter({twitterConfig: twitterParams});
     await tcUtils.getTwitterAccountSettings();
     await initWatchConfig();
-    await initProcessUserQueueInterval(configuration.processUserQueueInterval);
+    // await initProcessUserQueueInterval(configuration.processUserQueueInterval);
     process.send({ op: "READY"});
   }
   catch(err){

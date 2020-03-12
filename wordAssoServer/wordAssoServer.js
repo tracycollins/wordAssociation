@@ -6112,7 +6112,24 @@ async function updateUserSets(){
 
     const uncatUserObj = await uncatUserCache.get(nodeId);
 
-    if (user.lang && (user.lang !== undefined) && (user.lang != "en")){
+    if (!category 
+      && !user.following 
+      && uncategorizeableUserSet.has(nodeId)){
+
+      global.wordAssoDb.User.deleteOne({"nodeId": nodeId}, function(err){
+        if (err) {
+          console.log(chalkError(MODULE_ID_PREFIX + " | *** DB DELETE UNCATEGORIZEABLE | ERROR: " + err));
+        }
+        else {
+          printUserObj(
+            "XXX USER | UNCATEGORIZEABLE",
+            user, 
+            chalkAlert
+          );
+        }
+      });
+    }
+    else if (user.lang && (user.lang !== undefined) && (user.lang != "en")){
 
       global.wordAssoDb.User.deleteOne({"nodeId": nodeId}, function(err){
         if (err) {

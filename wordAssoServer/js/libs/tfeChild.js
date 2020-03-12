@@ -1793,11 +1793,11 @@ process.on("message", async function(m) {
       
       await tcUtils.initTwitter({twitterConfig: m.twitterConfig});
 
-      console.log(chalkInfo(MODULE_ID_PREFIX + " | INIT"
+      console.log(chalkBlueBold("===============================\n"
+        + MODULE_ID_PREFIX + " | INIT"
         + " | TITLE: " + process.title
         + " | NETWORK: " + networkObj.networkId
         + " | USER PROFILE ONLY FLAG: " + configuration.userProfileOnlyFlag
-        // + " | BINARY MODE: " + configuration.binaryMode
         + " | ENABLE GEOCODE: " + configuration.enableGeoCode
         + " | FORCE GEOCODE: " + configuration.forceGeoCode
         + " | ENABLE IMAGE ANALYSIS: " + configuration.enableImageAnalysis
@@ -1806,6 +1806,7 @@ process.on("message", async function(m) {
         + " | FORCE LANG ANALYSIS: " + configuration.forceLanguageAnalysis
         + "\nWAS | TFC | INIT | MAX INPUT HM KEYS: " + Object.keys(nnTools.getMaxInputHashMap())
         + "\nWAS | TFC | INIT | NORMALIZATION: " + Object.keys(nnTools.getNormalization())
+        + "\n==============================="
       ));
     break;
 

@@ -10715,10 +10715,17 @@ function getNextSearchNode(params){
   });
 }
 
-async function findUsersNodeIds(query){
-  const nodeIdArray = await global.wordAssoDb.User.find(query).select({nodeId: 1}).lean();
-  if (nodeIdArray && nodeIdArray.length > 0){
-    const results = nodeIdArray.map((a) => a.nodeId);
+async function findUsersNodeIds(query, filterUncatUsersFlag){
+  const userArray = await global.wordAssoDb.User.find(query).select({nodeId: 1}).lean();
+  if (userArray && userArray.length > 0){
+    // const results = userArray.map((a) => a.nodeId);
+    const results = userArray.map(function(user){
+      if (filterUncatUsersFlag && (uncatUserCache.get(user.nodeId) !== undefined)){
+        return null;
+      }
+      return user.nodeId;
+    });
+    results.sort();
     return results;
   }
   return [];

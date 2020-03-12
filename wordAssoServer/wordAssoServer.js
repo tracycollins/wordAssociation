@@ -10745,31 +10745,31 @@ async function twitterSearchUser(params) {
 
       case "?mm":
         searchMode = "MISMATCH";
-        searchUserNodeIdArray = await findUsersNodeIds({categoryMismatch: true});
+        searchUserNodeIdArray = await findUsersNodeIds({categoryMismatch: true}, true);
         statsObj.user.mismatched = searchUserNodeIdArray.length;
       break;
 
       case "?all":
         searchMode = "UNCAT";
-        searchUserNodeIdArray = await findUsersNodeIds({category: "none"});
+        searchUserNodeIdArray = await findUsersNodeIds({category: "none"}, true);
         statsObj.user.uncategorized.all = searchUserNodeIdArray.length;
       break;
 
       case "?left":
         searchMode = "UNCAT_LEFT";
-        searchUserNodeIdArray = await findUsersNodeIds({category: "none", categoryAuto: "left"});
+        searchUserNodeIdArray = await findUsersNodeIds({category: "none", categoryAuto: "left"}, true);
         statsObj.user.uncategorized.left = searchUserNodeIdArray.length;
       break;
 
       case "?right":
         searchMode = "UNCAT_RIGHT";
-        searchUserNodeIdArray = await findUsersNodeIds({category: "none", categoryAuto: "right"});
+        searchUserNodeIdArray = await findUsersNodeIds({category: "none", categoryAuto: "right"}, true);
         statsObj.user.uncategorized.right = searchUserNodeIdArray.length;
       break;
 
       case "?neutral":
         searchMode = "UNCAT_NEUTRAL";
-        searchUserNodeIdArray = await findUsersNodeIds({category: "none", categoryAuto: "neutral"});
+        searchUserNodeIdArray = await findUsersNodeIds({category: "none", categoryAuto: "neutral"}, true);
         statsObj.user.uncategorized.neutral = searchUserNodeIdArray.length;
       break;
 

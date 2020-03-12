@@ -10155,6 +10155,8 @@ async function deleteUser(params){
       + " | @" + params.user.screenName
     ));
   }
+
+  return;
 }
 
 async function twitterSearchUserNode(params){
@@ -10438,8 +10440,9 @@ async function processTwitterSearchNode(params) {
       const u = params.user.toObject();
       if (ignoredUserSet.has(u.nodeId) || ignoredUserSet.has(u.screenName.toLowerCase())){
         u.ignored = true;
+        await deleteUser({nodeId: u.nodeId});
       }
-      if (followedUserSet.has(u.nodeId)){
+      else if (followedUserSet.has(u.nodeId)){
         u.following = true;
         u.threeceeFollowing = "altthreecee00";
       }
@@ -10449,7 +10452,7 @@ async function processTwitterSearchNode(params) {
       if (ignoredUserSet.has(params.user.nodeId) || ignoredUserSet.has(params.user.screenName.toLowerCase())){
         params.user.ignored = true;
       }
-      if (followedUserSet.has(params.user.nodeId)){
+      else if (followedUserSet.has(params.user.nodeId)){
         params.user.following = true;
         params.user.threeceeFollowing = "altthreecee00";
       }

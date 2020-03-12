@@ -11289,11 +11289,11 @@ setTimeout(async function(){
     await initSorterMessageRxQueueInterval(configuration.sorterMessageRxQueueInterval);
     await initDbuChild({childId: DEFAULT_DBU_CHILD_ID});
     await initDbUserChangeStream();
-    await initTfeChild({childId: DEFAULT_TFE_CHILD_ID});
     await initTweetParser({childId: DEFAULT_TWP_CHILD_ID});
     await initUpdateUserSetsInterval(configuration.updateUserSetsInterval);
     await initWatchConfig();
     // await initCategoryHashmaps();
+    await initTfeChild({childId: DEFAULT_TFE_CHILD_ID});
     await initTssChild({childId: DEFAULT_TSS_CHILD_ID, tweetVersion2: configuration.tweetVersion2, threeceeUser: threeceeUser});
   }
   catch(err){

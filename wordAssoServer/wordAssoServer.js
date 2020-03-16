@@ -10301,6 +10301,10 @@ async function processTwitterSearchNode(params) {
     const categorizeable = await userCategorizeable({user: params.user, verbose: true});
     const uuObj = await uncatUserCacheCheck(params.user.nodeId);
 
+    const uncatUserCacheStats = uncatUserCache.getStats();
+    const uncatUserCacheStatsTotal = uncatUserCacheStats.hits + uncatUserCacheStats.misses;
+    const uncatUserCacheStatsHitRate = (uncatUserCacheStatsTotal) ? uncatUserCacheStats.hits/uncatUserCacheStatsTotal : 0;
+
     if (params.specificUserFlag) {
       if (tfeChild && params.user.toObject && (typeof params.user.toObject == "function")) {
 
@@ -10426,7 +10430,13 @@ async function processTwitterSearchNode(params) {
         + " | @" + uuObj.screenName
         + " | TS: " + uuObj.timeStamp
         + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
-        + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
+        + " | $ H/M/T/R: " 
+        + uncatUserCacheStats.hits 
+        + "/" + uncatUserCacheStats.misses 
+        + "/" + uncatUserCacheStatsTotal
+        + "/" + uncatUserCacheStatsHitRate.toFixed(2)
+
+        // + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
       ));
     }
     else if (uuObj) {
@@ -10446,7 +10456,12 @@ async function processTwitterSearchNode(params) {
         + " M: " + formatCategory(params.user.category)
         + " A: " + formatCategory(params.user.categoryAuto)
         + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
-        + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
+        + " | $ H/M/T/R: " 
+        + uncatUserCacheStats.hits 
+        + "/" + uncatUserCacheStats.misses 
+        + "/" + uncatUserCacheStatsTotal
+        + "/" + uncatUserCacheStatsHitRate.toFixed(2)
+        // + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
       ));
     }
     else {
@@ -10465,7 +10480,12 @@ async function processTwitterSearchNode(params) {
         + " M: " + formatCategory(params.user.category)
         + " A: " + formatCategory(params.user.categoryAuto)
         + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
-        + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
+        + " | $ H/M/T/R: " 
+        + uncatUserCacheStats.hits 
+        + "/" + uncatUserCacheStats.misses 
+        + "/" + uncatUserCacheStatsTotal
+        + "/" + uncatUserCacheStatsHitRate.toFixed(2)
+        // + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
       ));
       await deleteUser({user: params.user});
     }

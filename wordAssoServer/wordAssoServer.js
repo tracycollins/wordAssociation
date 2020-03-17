@@ -6635,7 +6635,7 @@ function initTransmitNodeQueueInterval(interval){
  
         if (categorizeable) { await categorize({user: node, autoFollowFlag: autoFollowFlag}); }
 
-        if ((node.nodeType == "user") 
+        if (categorizeable && (node.nodeType === "user") 
           && (
             (node.category && node.category !== "none") 
             || (node.categoryAuto && node.categoryAuto !== "none") 
@@ -10434,7 +10434,7 @@ async function processTwitterSearchNode(params) {
         + uncatUserCacheStats.hits 
         + "/" + uncatUserCacheStats.misses 
         + "/" + uncatUserCacheStatsTotal
-        + "/" + uncatUserCacheStatsHitRate.toFixed(2)
+        + "/" + uncatUserCacheStatsHitRate.toFixed(3)
 
         // + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
       ));
@@ -10460,7 +10460,7 @@ async function processTwitterSearchNode(params) {
         + uncatUserCacheStats.hits 
         + "/" + uncatUserCacheStats.misses 
         + "/" + uncatUserCacheStatsTotal
-        + "/" + uncatUserCacheStatsHitRate.toFixed(2)
+        + "/" + uncatUserCacheStatsHitRate.toFixed(3)
         // + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
       ));
     }
@@ -10484,7 +10484,7 @@ async function processTwitterSearchNode(params) {
         + uncatUserCacheStats.hits 
         + "/" + uncatUserCacheStats.misses 
         + "/" + uncatUserCacheStatsTotal
-        + "/" + uncatUserCacheStatsHitRate.toFixed(2)
+        + "/" + uncatUserCacheStatsHitRate.toFixed(3)
         // + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
       ));
       await deleteUser({user: params.user});

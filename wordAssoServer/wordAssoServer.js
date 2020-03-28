@@ -11193,9 +11193,9 @@ async function initWatchConfig(){
 
     monitor.on("changed", loadConfig);
 
-    monitor.on("removed", function (f) {
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX FILE DELETED | " + getTimeStamp() + " | " + f));
-    });
+    // monitor.on("removed", function (f) {
+    //   console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX FILE DELETED | " + getTimeStamp() + " | " + f));
+    // });
   });
 
   watch.createMonitor(configDefaultFolder, watchOptions, function (monitor) {
@@ -11204,9 +11204,9 @@ async function initWatchConfig(){
 
     monitor.on("changed", loadConfig);
 
-    monitor.on("removed", function (f) {
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX FILE DELETED | " + getTimeStamp() + " | " + f));
-    });
+    // monitor.on("removed", function (f) {
+    //   console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX FILE DELETED | " + getTimeStamp() + " | " + f));
+    // });
   });
 
   watch.createMonitor(bestNetworkFolder, watchOptions, function (monitor) {
@@ -11226,9 +11226,9 @@ async function initWatchConfig(){
 
     monitor.on("changed", loadConfig);
 
-    monitor.on("removed", function (f) {
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX FILE DELETED | " + getTimeStamp() + " | " + f));
-    });
+    // monitor.on("removed", function (f) {
+    //   console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX FILE DELETED | " + getTimeStamp() + " | " + f));
+    // });
   });
 
   return;

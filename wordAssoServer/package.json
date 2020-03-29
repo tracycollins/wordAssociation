@@ -9,7 +9,7 @@
     "@threeceelabs/hashtag-server-controller": "^1.0.70",
     "@threeceelabs/mongoose-twitter": "^1.0.307",
     "@threeceelabs/neural-network-tools": "^1.0.191",
-    "@threeceelabs/threecee-utilities": "^1.0.245",
+    "@threeceelabs/threecee-utilities": "^1.0.246",
     "@threeceelabs/tweet-server-controller": "^1.0.513",
     "@threeceelabs/user-server-controller": "^1.0.518",
     "change-case-bundled": "^1.1.2",
@@ -42,7 +42,7 @@
     "touch": "^3.1.0",
     "tree-kill": "^1.2.2",
     "watch": "^1.0.2",
-    "whois": "^2.12.0",
+    "whois": "^2.12.1",
     "whois-json": "^2.0.4",
     "whois-promise": "^1.2.4",
     "yieldable-json": "^2.0.0"

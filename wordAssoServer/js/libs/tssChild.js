@@ -1590,7 +1590,7 @@ async function initialize(cnf){
 
   }
   catch(err){
-    console.log("TSS | TSS | *** ERROR LOAD DROPBOX CONFIG: " + dropboxConfigFile + "\n" + jsonPrint(err));
+    console.log("TSS | TSS | *** ERROR LOAD CONFIG: " + dropboxConfigFile + "\n" + jsonPrint(err));
     throw err;
   }
 }

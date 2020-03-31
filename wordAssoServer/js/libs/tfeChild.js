@@ -1890,20 +1890,10 @@ process.on("message", async function(m) {
       if (m.priorityFlag) {
         console.log(chalkInfo(MODULE_ID_PREFIX + " | PRI CAT"
           + " [PUQ: " + processUserQueue.length + "]"
-          // + " | SEARCH mode: " + m.searchMode
-          + " | UID: " + m.user.nodeId
+          + " | NID: " + m.user.nodeId
           + " | @" + m.user.screenName
         ));
       }
-
-      // if (!m.user.nodeId || (m.user.nodeId === undefined)) { 
-      //   console.log(chalkError(MODULE_ID_PREFIX + " | ??? USER NODE ID UNDEFINED"
-      //     // + " | SEARCH MODE: " + m.searchMode
-      //     + " | UID: " + m.user.userId
-      //     + " | @" + m.user.screenName
-      //   ));
-      //   m.user.nodeId = m.user.userId;
-      // }
 
       cacheObj = userChangeCache.get(m.user.nodeId);
 

@@ -4009,54 +4009,6 @@ async function initIgnoredHashtagSet(){
   }
 }
 
-// async function initSetFromFile(params){
-
-//   statsObj.status = "INIT SET FROM FILE";
-
-//   console.log(chalkBlue(MODULE_ID_PREFIX + " | ... INIT SET FROM FILE: " + params.folder + "/" + params.file));
-
-//   try{
-
-//     const setObj = await tcUtils.loadFileRetry({folder: params.folder, file: params.file, resolveOnNotFound: params.resolveOnNotFound});
-
-//     if (empty(setObj)) {
-//      console.log(chalkAlert(MODULE_ID_PREFIX + " | ??? NO ITEMS IN FILE ERROR ???"
-//         + " | " + params.folder + "/" + params.file
-//       ));
-
-//       if (params.errorOnNoItems) {
-//         throw new Error("NO ITEMS IN FILE: " + params.folder + "/" + params.file); 
-//       }
-//       return;
-//     }
-
-//     let fileSet;
-
-//     if (params.objArrayKey) {
-//       fileSet = new Set(setObj[params.objArrayKey]);
-//     }
-//     else{
-//       const itemArray = setObj.toString().toLowerCase().split("\n");
-//       fileSet = new Set(itemArray);
-//     }
-
-//     console.log(chalkLog(MODULE_ID_PREFIX + " | LOADED SET FROM FILE"
-//       + " | OBJ ARRAY KEY: " + params.objArrayKey
-//       + " | " + fileSet.size + " ITEMS"
-//       + " | " + params.folder + "/" + params.file
-//     ));
-
-//     return fileSet;
-//   }
-//   catch(err){
-//     console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT SET FROM FILE ERROR: " + err));
-//     if (params.noErrorNotFound) {
-//       return;
-//     }
-//     throw err;
-//   }
-// }
-
 function saveUncatUserCache(){
 
   statsObj.status = "SAVE UNCAT USER ID CACHE";
@@ -9236,7 +9188,11 @@ async function loadConfigFile(params) {
   }
 
   try{
-    const loadedConfigObj = await tcUtils.loadFileRetry({folder: params.folder, file: params.file});
+    const loadedConfigObj = await tcUtils.loadFile({
+      folder: params.folder, 
+      file: params.file,
+      noErrorNotFound: true
+    });
 
     if (empty(loadedConfigObj)) {
       console.log(chalkError(MODULE_ID_PREFIX + " | DROPBOX CONFIG LOAD FILE ERROR | JSON UNDEFINED ??? "));

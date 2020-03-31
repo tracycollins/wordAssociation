@@ -745,7 +745,6 @@ let retweetsReceived = 0;
 let quotedTweetsReceived = 0;
 let duplicateTweetsReceived = 0;
 
-
 configuration.filterDuplicateTweets = DEFAULT_FILTER_DUPLICATE_TWEETS;
 configuration.filterRetweets = DEFAULT_FILTER_RETWEETS;
 

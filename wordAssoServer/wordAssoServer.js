@@ -9195,8 +9195,9 @@ async function loadConfigFile(params) {
     });
 
     if (empty(loadedConfigObj)) {
-      console.log(chalkError(MODULE_ID_PREFIX + " | DROPBOX CONFIG LOAD FILE ERROR | JSON UNDEFINED ??? "));
-      throw new Error("JSON UNDEFINED");
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | DROPBOX CONFIG LOAD FILE ERROR | JSON UNDEFINED ??? "));
+      return;
+      // throw new Error("JSON UNDEFINED");
     }
 
     console.log(chalkInfo(MODULE_ID_PREFIX + " | LOADED CONFIG FILE: " + params.file + "\n" + jsonPrint(loadedConfigObj)));

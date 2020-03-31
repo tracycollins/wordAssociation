@@ -1219,7 +1219,11 @@ async function initSetFromFile(params){
 
   try{
 
-    const setObj = await tcUtils.loadFileRetry({folder: params.folder, file: params.file, resolveOnNotFound: params.resolveOnNotFound});
+    const setObj = await tcUtils.loadFile({
+      folder: params.folder, 
+      file: params.file, 
+      noErrorNotFound: params.noErrorNotFound
+    });
 
     if (empty(setObj)) {
      console.log(chalkAlert("TSS | ??? NO ITEMS IN FILE ERROR ???"
@@ -1252,7 +1256,7 @@ async function initSetFromFile(params){
   }
   catch(err){
     console.log(chalkError("TSS | *** INIT SET FROM FILE ERROR: " + err));
-    if (params.noErrorNotFoundFlag) {
+    if (params.noErrorNotFound) {
       return;
     }
     throw err;
@@ -1265,7 +1269,11 @@ async function initSearchTerms(params){
 
   try{
 
-    const result = await initSetFromFile({folder: configDefaultFolder, file: params.searchTermsFile, resolveOnNotFound: false});
+    const result = await initSetFromFile({
+      folder: configDefaultFolder, 
+      file: params.searchTermsFile, 
+      noErrorNotFound: true
+    });
 
     if (result) {
       threeceeUserObj.searchTermSet = new Set([...result]);
@@ -1303,7 +1311,11 @@ async function initAllowLocations(){
   console.log(chalkTwitter("TSS | INIT ALLOW LOCATIONS | @" + threeceeUserObj.screenName));
 
   try{
-    const result = await initSetFromFile({folder: configDefaultFolder, file: allowLocationsFile, resolveOnNotFound: false});
+    const result = await initSetFromFile({
+      folder: configDefaultFolder, 
+      file: allowLocationsFile, 
+      noErrorNotFound: true
+    });
 
     if (result) {
       allowLocationsSet = new Set([...result]);
@@ -1324,7 +1336,11 @@ async function initIgnoreLocations(){
   console.log(chalkTwitter("TSS | INIT IGNORE LOCATIONS | @" + threeceeUserObj.screenName));
 
   try{
-    const result = await initSetFromFile({folder: configDefaultFolder, file: ignoreLocationsFile, resolveOnNotFound: false});
+    const result = await initSetFromFile({
+      folder: configDefaultFolder, 
+      file: ignoreLocationsFile, 
+      noErrorNotFound: true
+    });
 
     if (result) {
       ignoreLocationsSet = new Set([...result]);
@@ -1349,7 +1365,11 @@ async function initIgnoreHashtags(){
   console.log(chalkTwitter("TSS | INIT IGNORE HASHTAGS | @" + threeceeUserObj.screenName));
 
   try{
-    const result = await initSetFromFile({folder: configDefaultFolder, file: ignoredHashtagFile, resolveOnNotFound: false});
+    const result = await initSetFromFile({
+      folder: configDefaultFolder, 
+      file: ignoredHashtagFile, 
+      noErrorNotFound: true
+    });
 
     if (result) {
       ignoredHashtagSet = new Set([...result]);
@@ -1375,7 +1395,11 @@ async function initFollowableSearchTermSet(){
 
   try{
 
-    const result = await initSetFromFile({folder: configDefaultFolder, file: followableSearchTermFile, resolveOnNotFound: true});
+    const result = await initSetFromFile({
+      folder: configDefaultFolder, 
+      file: followableSearchTermFile, 
+      noErrorNotFound: true
+    });
 
     if (result) {
       followableSearchTermSet = new Set([...result]);
@@ -1501,7 +1525,11 @@ async function initialize(cnf){
 
 
   try {
-    const loadedConfigObj = await tcUtils.loadFileRetry({folder: configHostFolder, file: dropboxConfigFile}); 
+    const loadedConfigObj = await tcUtils.loadFile({
+      folder: configHostFolder, 
+      file: dropboxConfigFile,
+      noErrorNotFound: true
+    }); 
 
     debug(dropboxConfigFile + "\n" + jsonPrint(loadedConfigObj));
 

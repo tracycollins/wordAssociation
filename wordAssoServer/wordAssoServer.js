@@ -4696,8 +4696,6 @@ async function initSocketHandler(socketObj) {
 
       const timeStamp = moment().valueOf();
 
-      // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
-
       console.log(chalkSocket(MODULE_ID_PREFIX
         + " | R< TWITTER_CATEGORY_VERIFIED"
         + " | " + getTimeStamp(timeStamp)
@@ -4718,11 +4716,14 @@ async function initSocketHandler(socketObj) {
         adminNameSpace.emit("CAT_VERFIED", updatedUser);
         utilNameSpace.emit("CAT_VERFIED", updatedUser);
 
-        console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ TWITTER_CATEGORY_VERIFIED"
+        console.log(chalk.blue(MODULE_ID_PREFIX 
+          + " | +++ TWITTER_CATEGORY_VERIFIED"
           + " | SID: " + socket.id
           + " | UID" + updatedUser.nodeId
           + " | @" + updatedUser.screenName
-          + " | C M: " + formatCategory(updatedUser.category) + " A: " + formatCategory(updatedUser.categoryAuto)
+          + " | VERIFIED: " + updatedUser.categoryVerified
+          + " | C M: " + formatCategory(updatedUser.category)
+          + " A: " + formatCategory(updatedUser.categoryAuto)
         ));
       }
       catch(err){
@@ -4756,10 +4757,14 @@ async function initSocketHandler(socketObj) {
         adminNameSpace.emit("CAT_UNVERFIED", updatedUser);
         utilNameSpace.emit("CAT_UNVERFIED", updatedUser);
 
-        console.log(chalk.blue(MODULE_ID_PREFIX + " | --- TWITTER_CATEGORY_UNVERIFIED"
+        console.log(chalk.blue(MODULE_ID_PREFIX 
+          + " | --- TWITTER_CATEGORY_UNVERIFIED"
           + " | SID: " + socket.id
           + " | UID" + updatedUser.nodeId
           + " | @" + updatedUser.screenName
+          + " | VERIFIED: " + updatedUser.categoryVerified
+          + " | C M: " + formatCategory(updatedUser.category)
+          + " A: " + formatCategory(updatedUser.categoryAuto)
         ));
       }
       catch(err){

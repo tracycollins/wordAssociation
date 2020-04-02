@@ -696,6 +696,10 @@ function ControlPanel() {
       + " | DEFAULT_SOURCE: " + DEFAULT_SOURCE
     );
 
+    if (event.data.op === undefined){
+      return;
+    }
+
     var op = event.data.op;
     var cnf;
 

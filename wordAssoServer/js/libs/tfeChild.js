@@ -1303,6 +1303,7 @@ function initProcessUserQueueInterval(interval) {
                 + " | NID: " + user.nodeId
                 + " | @" + user.screenName
                 + " | N: " + user.name
+                + " | CAT V: " + user.categoryVerified
                 + " | CAT M: " + formatCategory(user.category)
                 + " A: " + formatCategory(user.categoryAuto)
                 // + " | " + printUser({user: processedUser})
@@ -1892,6 +1893,9 @@ process.on("message", async function(m) {
           + " [PUQ: " + processUserQueue.length + "]"
           + " | NID: " + m.user.nodeId
           + " | @" + m.user.screenName
+          + " | CV: " + m.user.categoryVerified
+          + " | CM: " + m.user.category
+          + " | CA: " + m.user.categoryAuto
         ));
       }
 
@@ -1905,6 +1909,9 @@ process.on("message", async function(m) {
             + " | SEARCH: " + m.searchMode
             + " | NID: " + m.user.nodeId
             + " | @" + m.user.screenName
+            + " | CV: " + m.user.categoryVerified
+            + " | CM: " + m.user.category
+            + " | CA: " + m.user.categoryAuto
           ));
         }
         else{
@@ -1914,6 +1921,9 @@ process.on("message", async function(m) {
             + " | SEARCH: " + m.searchMode
             + " | NID: " + m.user.nodeId
             + " | @" + m.user.screenName
+            + " | CV: " + m.user.categoryVerified
+            + " | CM: " + m.user.category
+            + " | CA: " + m.user.categoryAuto
           ));
         }
       }

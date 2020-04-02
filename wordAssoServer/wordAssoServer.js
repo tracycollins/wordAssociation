@@ -5961,15 +5961,24 @@ async function countDocuments(params){
 //   }
 // }
 
+let updateUserSetsRunning = false;
+
 async function updateUserSets(){
 
   statsObj.status = "UPDATE USER SETS";
+
+  if (updateUserSetsRunning) {
+    return;
+  }
+
+  updateUserSetsRunning = true;
 
   let calledBack = false;
 
   if (!statsObj.dbConnectionReady) {
     console.log(chalkAlert(MODULE_ID_PREFIX + " | ABORT updateUserSets: DB CONNECTION NOT READY"));
     calledBack = true;
+    updateUserSetsRunning = false;
     throw new Error("DB CONNECTION NOT READY");
   }
 
@@ -6257,6 +6266,7 @@ async function updateUserSets(){
 
     if (!calledBack) { 
       calledBack = true;
+      updateUserSetsRunning = false;
       return;
     }
   });
@@ -6268,6 +6278,7 @@ async function updateUserSets(){
 
     if (!calledBack) { 
       calledBack = true;
+      updateUserSetsRunning = false;
       throw err;
     }
   });
@@ -6279,6 +6290,7 @@ async function updateUserSets(){
 
     if (!calledBack) { 
       calledBack = true;
+      updateUserSetsRunning = false;
       return;
     }
   });

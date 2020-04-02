@@ -1228,6 +1228,7 @@ function initProcessUserQueueInterval(interval) {
     let userDoc;
     let queueObj;
     let user;
+    let processedUser;
 
     clearInterval(processUserQueueInterval);
 
@@ -1292,7 +1293,7 @@ function initProcessUserQueueInterval(interval) {
 
             user.latestTweets = _.union(userDoc.latestTweets, user.latestTweets);
 
-            user = await processUser({user: user});
+            processedUser = await processUser({user: user});
 
             statsObj.user.processed += 1;
 
@@ -1300,12 +1301,12 @@ function initProcessUserQueueInterval(interval) {
               console.log(chalkInfo(MODULE_ID_PREFIX + " | PRI PRCSSD"
                 + " [ PRCSSD: " + statsObj.user.processed + " / PUQ: " + processUserQueue.length + "]"
                 + " | PRI: " + queueObj.priorityFlag
-                + " | NID: " + user.nodeId
-                + " | @" + user.screenName
-                + " | N: " + user.name
-                + " | CAT V: " + user.categoryVerified
-                + " | CAT M: " + formatCategory(user.category)
-                + " A: " + formatCategory(user.categoryAuto)
+                + " | NID: " + processedUser.nodeId
+                + " | @" + processedUser.screenName
+                + " | N: " + processedUser.name
+                + " | CAT V: " + processedUser.categoryVerified
+                + " | CAT M: " + formatCategory(processedUser.category)
+                + " A: " + formatCategory(processedUser.categoryAuto)
                 // + " | " + printUser({user: processedUser})
               ));
             }
@@ -1314,7 +1315,7 @@ function initProcessUserQueueInterval(interval) {
               op: "USER_CATEGORIZED", 
               priorityFlag: queueObj.priorityFlag, 
               searchMode: queueObj.searchMode, 
-              user: user, 
+              user: processedUser, 
               stats: statsObj.user 
             });
 
@@ -1563,6 +1564,7 @@ async function generateAutoCategory(p) {
       console.log(chalkLog(text
         + " | AUTO CHG M/MM/TOT: " + statsObj.autoChangeMatch + "/" + statsObj.autoChangeMismatch + "/" + statsObj.autoChangeTotal
         + " | " + statsObj.autoChangeMatchRate.toFixed(2) + "%"
+        + " | V: " + user.categoryVerified
         + " | M: " + formatCategory(user.category)
         + " | A: " + formatCategory(user.categoryAuto) + " --> " + formatCategory(currentBestNetwork.meta.categoryAuto)
         + " | @" + user.screenName
@@ -1623,6 +1625,7 @@ const processUserPickArray = [
   "ageDays",
   "category",
   "categoryAuto",
+  "categoryVerified",
   "createdAt",
   "description",
   "followersCount",

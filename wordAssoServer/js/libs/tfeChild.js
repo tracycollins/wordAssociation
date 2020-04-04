@@ -1623,6 +1623,7 @@ async function updatePreviousUserProps(params){
 
 const processUserPickArray = [
   "ageDays",
+  "bannerImageUrl",
   "category",
   "categoryAuto",
   "categoryVerified",

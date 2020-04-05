@@ -24,7 +24,8 @@ const SAVE_FILE_QUEUE_INTERVAL = 5*ONE_SECOND;
 const DEFAULT_MAX_USER_TWEETIDS = 100;
 const SAVE_CACHE_DEFAULT_TTL = 60;
 
-let currentBestNetwork = {};
+// let currentBestNetwork = {};
+let currentBestRuntimeNetwork = {};
 
 const USER_PROFILE_PROPERTY_ARRAY = [
   "bannerImageUrl",
@@ -63,7 +64,7 @@ DEFAULT_INPUT_TYPES.forEach(function(type){
   defaultUserProfileHistograms[type] = {};
 });
 
-let networkObj = {};
+let primaryNetworkObj = {};
 
 const USER_PROCESS_QUEUE_MAX_LENGTH = 100;
 
@@ -306,6 +307,22 @@ statsObj.analyzer.total = 0;
 statsObj.analyzer.analyzed = 0;
 statsObj.analyzer.skipped = 0;
 statsObj.analyzer.errors = 0;
+
+statsObj.currentBestRuntimeNetwork = {};
+statsObj.currentBestRuntimeNetwork.networkId = false;
+statsObj.currentBestRuntimeNetwork.rank = Infinity;
+statsObj.currentBestRuntimeNetwork.successRate = 0;
+statsObj.currentBestRuntimeNetwork.matchRate = 0;
+statsObj.currentBestRuntimeNetwork.overallMatchRate = 0;
+statsObj.currentBestRuntimeNetwork.testCycles = 0;
+statsObj.currentBestRuntimeNetwork.total = 0;
+statsObj.currentBestRuntimeNetwork.match = 0;
+statsObj.currentBestRuntimeNetwork.mismatch = 0;
+statsObj.currentBestRuntimeNetwork.left = 0;
+statsObj.currentBestRuntimeNetwork.neutral = 0;
+statsObj.currentBestRuntimeNetwork.right = 0;
+statsObj.currentBestRuntimeNetwork.positive = 0;
+statsObj.currentBestRuntimeNetwork.negative = 0;
 
 statsObj.currentBestNetwork = {};
 statsObj.currentBestNetwork.networkId = false;
@@ -1504,48 +1521,50 @@ async function generateAutoCategory(p) {
       verbose: configuration.verbose
     });
 
-    currentBestNetwork = await nnTools.updateNetworkStats({
+    currentBestRuntimeNetwork = await nnTools.updateNetworkStats({
       sortBy: "matchRate",
       user: user,
       networkOutput: activateNetworkResults.networkOutput, 
       expectedCategory: user.category
     });
 
-    if (statsObj.currentBestNetwork.rank < currentBestNetwork.rank){
+    primaryNetworkObj.networkOutput = activateNetworkResults.networkOutput[primaryNetworkObj.networkId];
+
+    if (statsObj.currentBestRuntimeNetwork.rank < currentBestRuntimeNetwork.rank){
       printNetworkObj("RNT | +++ UPDATE BEST NETWORK"
         + " | @" + user.screenName 
-        + " | CM: " + formatCategory(user.category), currentBestNetwork, chalk.black
+        + " | CM: " + formatCategory(user.category), currentBestRuntimeNetwork, chalk.black
       );
       await nnTools.printNetworkResults();
     }
-    else if (configuration.testMode || (currentBestNetwork.meta.total > 0 && currentBestNetwork.meta.total % 1000 === 0)) {
+    else if (configuration.testMode || (currentBestRuntimeNetwork.meta.total > 0 && currentBestRuntimeNetwork.meta.total % 1000 === 0)) {
       printNetworkObj(MODULE_ID_PREFIX + " | NN"
         + " | @" + user.screenName 
-        + " | CM: " + formatCategory(user.category), currentBestNetwork, chalk.black
+        + " | CM: " + formatCategory(user.category), currentBestRuntimeNetwork, chalk.black
       );
       await nnTools.printNetworkResults();
     }
 
     if (configuration.verbose
-      || (statsObj.currentBestNetwork.rank < currentBestNetwork.rank)
+      || (statsObj.currentBestRuntimeNetwork.rank < currentBestRuntimeNetwork.rank)
     ) {
-      console.log(MODULE_ID_PREFIX + " | BEST NN"
-        + " | RANK: " + currentBestNetwork.rank
-        + " | MR: " + currentBestNetwork.matchRate.toFixed(2) + "%"
-        + " | " + currentBestNetwork.meta.match + "/" + currentBestNetwork.meta.total
-        + " | MATCH: " + currentBestNetwork.meta.matchFlag
-        + " | " + currentBestNetwork.networkId
-        + " | IN: " + currentBestNetwork.inputsId
-        + " | OUT: " + currentBestNetwork.meta.output
+      console.log(MODULE_ID_PREFIX + " | BEST RUNTIME NN"
+        + " | RANK: " + currentBestRuntimeNetwork.rank
+        + " | MR: " + currentBestRuntimeNetwork.matchRate.toFixed(2) + "%"
+        + " | " + currentBestRuntimeNetwork.meta.match + "/" + currentBestRuntimeNetwork.meta.total
+        + " | MATCH: " + currentBestRuntimeNetwork.meta.matchFlag
+        + " | " + currentBestRuntimeNetwork.networkId
+        + " | IN: " + currentBestRuntimeNetwork.inputsId
+        + " | OUT: " + currentBestRuntimeNetwork.meta.output
       );
     }
 
-    statsObj.currentBestNetwork = currentBestNetwork;
+    statsObj.currentBestRuntimeNetwork = currentBestRuntimeNetwork;
 
     let text = MODULE_ID_PREFIX + " | ->- CAT AUTO SET     ";
     // let chalkVar = chalkLog;
 
-    if (user.category && user.category !== "none" && (currentBestNetwork.meta.categoryAuto == user.category)) {
+    if (user.category && user.category !== "none" && (primaryNetworkObj.networkOutput.categoryAuto == user.category)) {
       statsObj.autoChangeTotal += 1;
       statsObj.autoChangeMatch += 1;
       statsObj.autoChangeMatchRate = 100*(statsObj.autoChangeMatch/statsObj.autoChangeTotal);
@@ -1560,18 +1579,18 @@ async function generateAutoCategory(p) {
       // chalkVar = chalk.yellow;
     }
 
-    if (configuration.verbose || (user.categoryAuto != currentBestNetwork.meta.categoryAuto)) {
+    if (configuration.verbose || (user.categoryAuto != primaryNetworkObj.networkOutput.categoryAuto)) {
       console.log(chalkLog(text
         + " | AUTO CHG M/MM/TOT: " + statsObj.autoChangeMatch + "/" + statsObj.autoChangeMismatch + "/" + statsObj.autoChangeTotal
         + " | " + statsObj.autoChangeMatchRate.toFixed(2) + "%"
         + " | V: " + user.categoryVerified
         + " | M: " + formatCategory(user.category)
-        + " | A: " + formatCategory(user.categoryAuto) + " --> " + formatCategory(currentBestNetwork.meta.categoryAuto)
+        + " | A: " + formatCategory(user.categoryAuto) + " --> " + formatCategory(primaryNetworkObj.networkOutput.categoryAuto)
         + " | @" + user.screenName
       ));
     }
 
-    user.categoryAuto = currentBestNetwork.meta.categoryAuto;
+    user.categoryAuto = primaryNetworkObj.networkOutput.categoryAuto;
     user.ageDays = (moment().diff(user.createdAt))/ONE_DAY;
     user.tweetsPerDay = user.statusesCount/user.ageDays;
     return user;
@@ -1769,22 +1788,22 @@ process.on("message", async function(m) {
       statsObj.autoChangeMatch = 0;
       statsObj.autoChangeMismatch = 0;
 
-      const nnObj = m.networkObj;
+      const primaryNnObj = m.networkObj;
 
-      if (nnObj.testCycleHistory && nnObj.testCycleHistory !== undefined && nnObj.testCycleHistory.length > 0) {
+      if (primaryNnObj.testCycleHistory && primaryNnObj.testCycleHistory !== undefined && primaryNnObj.testCycleHistory.length > 0) {
 
-        nnObj.previousRank = nnObj.testCycleHistory[nnObj.testCycleHistory.length-1].rank;
+        primaryNnObj.previousRank = primaryNnObj.testCycleHistory[primaryNnObj.testCycleHistory.length-1].rank;
 
         console.log(chalkLog(MODULE_ID_PREFIX
-          + " | PREV RANK " + nnObj.previousRank
-          + " | " + nnObj.networkId 
+          + " | PRIMARY NN PREV RANK " + primaryNnObj.previousRank
+          + " | " + primaryNnObj.networkId 
         ));
       } 
 
-      networkObj = await nnTools.convertNetwork({networkObj: nnObj});
+      primaryNetworkObj = await nnTools.convertNetwork({networkObj: primaryNnObj});
 
-      await nnTools.loadNetwork({networkObj: networkObj});
-      nnTools.setPrimaryNeuralNetwork(networkObj.networkId);
+      await nnTools.loadNetwork({networkObj: primaryNetworkObj});
+      nnTools.setPrimaryNeuralNetwork(primaryNetworkObj.networkId);
 
       await nnTools.setMaxInputHashMap(m.maxInputHashMap);
       await nnTools.setNormalization(m.normalization);
@@ -1802,7 +1821,7 @@ process.on("message", async function(m) {
       console.log(chalkBlueBold("===============================\n"
         + MODULE_ID_PREFIX + " | INIT"
         + " | TITLE: " + process.title
-        + " | NETWORK: " + networkObj.networkId
+        + " | PRIMARY NETWORK: " + primaryNetworkObj.networkId
         + " | USER PROFILE ONLY FLAG: " + configuration.userProfileOnlyFlag
         + " | ENABLE GEOCODE: " + configuration.enableGeoCode
         + " | FORCE GEOCODE: " + configuration.forceGeoCode
@@ -1818,7 +1837,7 @@ process.on("message", async function(m) {
 
     case "NETWORK":
 
-      networkObj = m.networkObj;
+      primaryNetworkObj = m.networkObj;
       await nnTools.loadNetwork({networkObj: m.networkObj});
       nnTools.setPrimaryNeuralNetwork(m.networkObj.networkId);
 
@@ -1827,9 +1846,9 @@ process.on("message", async function(m) {
       statsObj.autoChangeMatch = 0;
       statsObj.autoChangeMismatch = 0;
 
-      console.log(chalkBlueBold(MODULE_ID_PREFIX + " | >>> SET NETWORK"
-        + " | NETWORK: " + networkObj.networkId
-        + " | INPUTS ID: " + networkObj.inputsId
+      console.log(chalkBlueBold(MODULE_ID_PREFIX + " | >>> SET PRIMARY NETWORK"
+        + " | NETWORK: " + primaryNetworkObj.networkId
+        + " | INPUTS ID: " + primaryNetworkObj.inputsId
       ));
     break;
 

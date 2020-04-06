@@ -1319,7 +1319,6 @@ const configHostFile = hostname + "_wordAssoServerConfig.json";
 
 const botsFolder = path.join(configDefaultFolder, "bots");
 
-// const statsDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "stats/default");
 const statsHostFolder = path.join(DROPBOX_ROOT_FOLDER, "stats", hostname);
 const statsFile = "wordAssoServerStats_" + moment().format(tinyDateTimeFormat) + ".json";
 
@@ -2147,6 +2146,7 @@ const statsBestNetworkPickArray = [
   "successRate",
   "matchRate",
   "overallMatchRate",
+  "runtimeMatchRate",
   "inputsId",
   "testCycles",
   "numInputs",
@@ -2226,6 +2226,7 @@ function initStats(callback){
   statsObj.bestNetwork.successRate = false;
   statsObj.bestNetwork.matchRate = false;
   statsObj.bestNetwork.overallMatchRate = false;
+  statsObj.bestNetwork.runtimeMatchRate = false;
   statsObj.bestNetwork.inputsId = false;
   statsObj.bestNetwork.numInputs = 0;
   statsObj.bestNetwork.seedNetworkId = false;
@@ -9096,11 +9097,15 @@ async function loadBestRuntimeNetwork(p){
     if (bRtNnObj) {
 
       bRtNnObj.matchRate = (bRtNnObj.matchRate !== undefined) ? bRtNnObj.matchRate : 0;
+      bRtNnObj.overallMatchRate = (bRtNnObj.overallMatchRate !== undefined) ? bRtNnObj.overallMatchRate : 0;
+      bRtNnObj.runtimeMatchRate = (bRtNnObj.runtimeMatchRate !== undefined) ? bRtNnObj.runtimeMatchRate : 0;
 
       console.log(chalkInfo(MODULE_ID_PREFIX + " | LOAD BEST NETWORK RUNTIME ID"
         + " | " + bRtNnObj.networkId
-        + " | SUCCESS: " + bRtNnObj.successRate.toFixed(2) + "%"
-        + " | MATCH: " + bRtNnObj.matchRate.toFixed(2) + "%"
+        + " | SR: " + bRtNnObj.successRate.toFixed(2) + "%"
+        + " | MR: " + bRtNnObj.matchRate.toFixed(2) + "%"
+        + " | OAMR: " + bRtNnObj.overallMatchRate.toFixed(2) + "%"
+        + " | RMR: " + bRtNnObj.runtimeMatchRate.toFixed(2) + "%"
       ));
 
       file = bRtNnObj.networkId + ".json";
@@ -9111,6 +9116,9 @@ async function loadBestRuntimeNetwork(p){
         if (nnObj) { 
 
           nnObj.matchRate = (nnObj.matchRate !== undefined) ? nnObj.matchRate : 0;
+          nnObj.overallMatchRate = (nnObj.overallMatchRate !== undefined) ? nnObj.overallMatchRate : 0;
+          nnObj.runtimeMatchRate = (nnObj.runtimeMatchRate !== undefined) ? nnObj.runtimeMatchRate : 0;
+
           bestNetworkObj = {};
           bestNetworkObj = deepcopy(nnObj);
 
@@ -9138,7 +9146,7 @@ async function loadBestRuntimeNetwork(p){
       }
     }
 
-    const nnArray = await global.wordAssoDb.NeuralNetwork.find({"overallMatchRate": { $lt: 100 }}).sort({"overallMatchRate": -1}).limit(1);
+    const nnArray = await global.wordAssoDb.NeuralNetwork.find({"runtimeMatchRate": { $lt: 100 }}).sort({"runtimeMatchRate": -1}).limit(1);
 
     if (nnArray.length == 0){
       console.log(chalkError(MODULE_ID_PREFIX + " | *** NEURAL NETWORK NOT FOUND"));
@@ -9150,6 +9158,7 @@ async function loadBestRuntimeNetwork(p){
     
     if (empty(bestNetworkObj.matchRate)) { bestNetworkObj.matchRate = 0; }
     if (empty(bestNetworkObj.overallMatchRate)) { bestNetworkObj.overallMatchRate = 0; }
+    if (empty(bestNetworkObj.runtimeMatchRate)) { bestNetworkObj.runtimeMatchRate = 0; }
     
     statsObj.bestNetwork = pick(bestNetworkObj, statsBestNetworkPickArray);
 
@@ -9167,6 +9176,7 @@ async function loadBestRuntimeNetwork(p){
       + " | SR: " + bestNetworkObj.successRate.toFixed(2) + "%"
       + " | MR: " + bestNetworkObj.matchRate.toFixed(2) + "%"
       + " | OAMR: " + bestNetworkObj.overallMatchRate.toFixed(2) + "%"
+      + " | RMR: " + bestNetworkObj.runtimeMatchRate.toFixed(2) + "%"
     ));
 
     return bestNetworkObj.networkId;
@@ -9880,10 +9890,10 @@ async function initDbUserChangeStream(){
         if (catChangeFlag) {
           console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | CAT USR"
             + " [ M: " + statsObj.user.categoryChanged + " A: " + statsObj.user.categoryAutoChanged + "]"
-            + " | " + change.fullDocument.nodeId
-            + " | @" + change.fullDocument.screenName
             + " | M: " + formatCategory(catObj.manual) + " -> " + formatCategory(categoryChanges.manual)
             + " A: " + formatCategory(catObj.auto) + " -> " + formatCategory(categoryChanges.auto)
+            + " | " + change.fullDocument.nodeId
+            + " | @" + change.fullDocument.screenName
           ));
         }
 
@@ -11172,36 +11182,21 @@ async function initWatchConfig(){
   });
 
   watch.createMonitor(configDefaultFolder, watchOptions, function (monitor) {
-
     monitor.on("created", loadConfig);
-
     monitor.on("changed", loadConfig);
-
-    // monitor.on("removed", function (f) {
-    //   console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX FILE DELETED | " + getTimeStamp() + " | " + f));
-    // });
   });
 
   watch.createMonitor(bestNetworkFolder, watchOptions, function (monitor) {
-
     monitor.on("created", loadConfig);
-
     monitor.on("changed", loadConfig);
-
     monitor.on("removed", function (f) {
       console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX FILE DELETED | " + getTimeStamp() + " | " + f));
     });
   });
 
   watch.createMonitor(botsFolder, watchOptions, function (monitor) {
-
     monitor.on("created", loadConfig);
-
     monitor.on("changed", loadConfig);
-
-    // monitor.on("removed", function (f) {
-    //   console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX FILE DELETED | " + getTimeStamp() + " | " + f));
-    // });
   });
 
   return;

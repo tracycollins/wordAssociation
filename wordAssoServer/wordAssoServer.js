@@ -10449,6 +10449,7 @@ function getNextSearchNode(params){
 
     let searchResults;
     let userSkipCount = 0;
+    let lastSkippedNodeId = 0;
 
     async.whilst(
 
@@ -10479,6 +10480,7 @@ function getNextSearchNode(params){
               + " | @" + uncatUserCache.get(searchUserId).screenName
             ));
             if (params.searchUserNodeIdArray.length > 0) {
+              lastSkippedNodeId = searchUserId;
               notFoundAndMore = true;
             }
             return;
@@ -10489,6 +10491,7 @@ function getNextSearchNode(params){
           if (empty(user)){
 
             if (params.searchUserNodeIdArray.length > 0) {
+              lastSkippedNodeId = searchUserId;
               notFoundAndMore = true;
             }
 
@@ -10506,6 +10509,7 @@ function getNextSearchNode(params){
               case "UNCAT":
                 if (user.category && (user.category != "none")){
                   userSkipCount += 1;
+                  lastSkippedNodeId = user.nodeId;
                   printUserObj(MODULE_ID_PREFIX + " | SKIP | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
                   notFoundAndMore = true;
                   break;
@@ -10525,11 +10529,14 @@ function getNextSearchNode(params){
               case "MISMATCH":
                 if ((user.category !== undefined) && (user.category != "none") && user.categoryVerified){
                   userSkipCount += 1;
+                  lastSkippedNodeId = user.nodeId;
                   printUserObj(MODULE_ID_PREFIX + " | SKIP | VRFD | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
                   notFoundAndMore = true;
                   break;
                 }
                 else if ((user.category !== undefined) && (user.category != "none") && (user.category == user.categoryAuto)){
+                  userSkipCount += 1;
+                  lastSkippedNodeId = user.nodeId;
                   printUserObj(MODULE_ID_PREFIX + " | SKIP | MTCHD  | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
                   notFoundAndMore = true;
                   break;
@@ -10551,6 +10558,7 @@ function getNextSearchNode(params){
 
                 if ((user.category && (user.category != "none")) || (user.categoryAuto != "left")){
                   userSkipCount += 1;
+                  lastSkippedNodeId = user.nodeId;
                   printUserObj(MODULE_ID_PREFIX + " | SKIP | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
                   notFoundAndMore = true;
                   break;
@@ -10572,6 +10580,7 @@ function getNextSearchNode(params){
 
                 if ((user.category && (user.category !== "none")) || (user.categoryAuto !== "neutral")){
                   userSkipCount += 1;
+                  lastSkippedNodeId = user.nodeId;
                   printUserObj(MODULE_ID_PREFIX + " | SKIP | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
                   notFoundAndMore = true;
                   break;
@@ -10592,6 +10601,7 @@ function getNextSearchNode(params){
               case "UNCAT_RIGHT":
                 if ((user.category && (user.category != "none")) || (user.categoryAuto != "right")){
                   userSkipCount += 1;
+                  lastSkippedNodeId = user.nodeId;
                   printUserObj(MODULE_ID_PREFIX + " | SKIP | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
                   notFoundAndMore = true;
                   break;
@@ -10637,7 +10647,9 @@ function getNextSearchNode(params){
 }
 
 async function findUsersNodeIds(query, filterUncatUsersFlag){
+
   const userArray = await global.wordAssoDb.User.find(query).select({nodeId: 1}).lean();
+  
   if (userArray && userArray.length > 0){
     const results = userArray.map(function(user){
       if (filterUncatUsersFlag && (uncatUserCache.get(user.nodeId) !== undefined)){

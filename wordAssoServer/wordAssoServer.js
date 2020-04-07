@@ -5786,8 +5786,6 @@ async function initBotSet(p){
         throw new Error("FILE DATA UNDEFINED");
       }
 
-      // debug(chalkInfo(MODULE_ID_PREFIX + " | DROPBOX ALLOW LOCATIONS FILE\n" + jsonPrint(data)));
-
       const dataArray = csvData.toString().toLowerCase().split("\n");
 
       console.log(chalk.blue(MODULE_ID_PREFIX + " | FILE CONTAINS " + dataArray.length + " TWITTER BOT IDs"));
@@ -6234,18 +6232,6 @@ async function updateUserSets(){
 
           categorizedManualUserSet.add(nodeId); 
           categorizedAutoUserSet.add(nodeId); 
-
-          // await addMismatchUserSet({user: user});
-
-          // if (!matchUserSet.has(nodeId) && (category === categoryAuto)) {
-
-          //   matchUserSet.add(nodeId); 
-          //   mismatchUserSet.delete(nodeId); 
-
-          //   if (matchUserSet.size % 100 == 0) {
-          //     printUserObj("MATCHED USER [" + matchUserSet.size + "]", user);
-          //   }
-          // }
         }
       }
     }
@@ -6368,56 +6354,6 @@ async function updateHashtagSets(){
       );
     }
 
-    // switch (category) {
-    //   case "right":
-    //     hashtagRightSet.add(nodeId);
-    //     hashtagLeftSet.delete(nodeId);
-    //     hashtagNeutralSet.delete(nodeId);
-    //     hashtagPositiveSet.delete(nodeId);
-    //     hashtagNegativeSet.delete(nodeId);
-    //     hashtagNoneSet.delete(nodeId);
-    //   break;
-    //   case "left":
-    //     hashtagRightSet.delete(nodeId);
-    //     hashtagLeftSet.add(nodeId);
-    //     hashtagNeutralSet.delete(nodeId);
-    //     hashtagPositiveSet.delete(nodeId);
-    //     hashtagNegativeSet.delete(nodeId);
-    //     hashtagNoneSet.delete(nodeId);
-    //   break;
-    //   case "neutral":
-    //     hashtagRightSet.delete(nodeId);
-    //     hashtagLeftSet.delete(nodeId);
-    //     hashtagNeutralSet.add(nodeId);
-    //     hashtagPositiveSet.delete(nodeId);
-    //     hashtagNegativeSet.delete(nodeId);
-    //     hashtagNoneSet.delete(nodeId);
-    //   break;
-    //   case "positive":
-    //     hashtagRightSet.delete(nodeId);
-    //     hashtagLeftSet.delete(nodeId);
-    //     hashtagNeutralSet.delete(nodeId);
-    //     hashtagPositiveSet.add(nodeId);
-    //     hashtagNegativeSet.delete(nodeId);
-    //     hashtagNoneSet.delete(nodeId);
-    //   break;
-    //   case "negative":
-    //     hashtagRightSet.delete(nodeId);
-    //     hashtagLeftSet.delete(nodeId);
-    //     hashtagNeutralSet.delete(nodeId);
-    //     hashtagPositiveSet.delete(nodeId);
-    //     hashtagNegativeSet.add(nodeId);
-    //     hashtagNoneSet.delete(nodeId);
-    //   break;
-    //   default:
-    //     hashtagRightSet.delete(nodeId);
-    //     hashtagLeftSet.delete(nodeId);
-    //     hashtagNeutralSet.delete(nodeId);
-    //     hashtagPositiveSet.delete(nodeId);
-    //     hashtagNegativeSet.delete(nodeId);
-    //     hashtagNoneSet.add(nodeId);
-    // }
-
     hashtagsProcessed++;
     if (hashtagsProcessed % 1000 === 0) {
       console.log(chalkLog(MODULE_ID_PREFIX + " | HASHTAG SETS | " + hashtagsProcessed + " HASHTAGS PROCESSED"));
@@ -6426,13 +6362,6 @@ async function updateHashtagSets(){
   });
 
   hashtagSearchCursor.on("end", function() {
-
-    // statsObj.hashtag.manual.right = hashtagRightSet.size;
-    // statsObj.hashtag.manual.left = hashtagLeftSet.size;
-    // statsObj.hashtag.manual.neutral = hashtagNeutralSet.size;
-    // statsObj.hashtag.manual.positive = hashtagPositiveSet.size;
-    // statsObj.hashtag.manual.negative = hashtagNegativeSet.size;
-    // statsObj.hashtag.manual.none = hashtagNoneSet.size;
 
     console.log(chalkBlue(MODULE_ID_PREFIX + " | END FOLLOWING CURSOR"
       + " | " + getTimeStamp()
@@ -6448,13 +6377,6 @@ async function updateHashtagSets(){
 
   hashtagSearchCursor.on("error", function(err) {
 
-    // statsObj.hashtag.manual.right = hashtagRightSet.size;
-    // statsObj.hashtag.manual.left = hashtagLeftSet.size;
-    // statsObj.hashtag.manual.neutral = hashtagNeutralSet.size;
-    // statsObj.hashtag.manual.positive = hashtagPositiveSet.size;
-    // statsObj.hashtag.manual.negative = hashtagNegativeSet.size;
-    // statsObj.hashtag.manual.none = hashtagNoneSet.size;
-
     console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR hashtagSearchCursor: " + err));
     console.log(chalkAlert(MODULE_ID_PREFIX + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag)));
 
@@ -6465,13 +6387,6 @@ async function updateHashtagSets(){
   });
 
   hashtagSearchCursor.on("close", function() {
-
-    // statsObj.hashtag.manual.right = hashtagRightSet.size;
-    // statsObj.hashtag.manual.left = hashtagLeftSet.size;
-    // statsObj.hashtag.manual.neutral = hashtagNeutralSet.size;
-    // statsObj.hashtag.manual.positive = hashtagPositiveSet.size;
-    // statsObj.hashtag.manual.negative = hashtagNegativeSet.size;
-    // statsObj.hashtag.manual.none = hashtagNoneSet.size;
 
     console.log(chalkBlue(MODULE_ID_PREFIX + " | CLOSE FOLLOWING CURSOR"));
     console.log(chalkBlue(MODULE_ID_PREFIX + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag)));
@@ -10363,25 +10278,6 @@ async function processTwitterSearchNode(params) {
         + " | CAT M: " + formatCategory(params.user.category)
         + " | CAT A: " + formatCategory(params.user.categoryAuto)
       ));
-
-      // if (!empty(params.user.category) && (params.user.category != params.user.categoryAuto)) {
-
-      //   const mismatchUserObj = {};
-
-      //   mismatchUserObj.nodeId = params.user.nodeId;
-      //   mismatchUserObj.screenName = params.user.screenName;
-      //   mismatchUserObj.timeStamp = getTimeStamp();
-
-      //   console.log(chalk.blue(MODULE_ID_PREFIX
-      //     + " | --- MISS | MISMATCH USER $"
-      //     + " | TTL: " + tcUtils.msToTime(configuration.mismatchUserCacheTtl*1000)
-      //     + " | NID: " + params.user.nodeId
-      //     + " | @" + params.user.screenName
-      //     + " | CAT VERIFIED: " + formatBoolean(params.user.categoryVerified)
-      //     + " | CAT M: " + formatCategory(params.user.category)
-      //     + " | CAT A: " + formatCategory(params.user.categoryAuto)
-      //   ));
-      // }
 
       if (tfeChild && params.user.toObject && (typeof params.user.toObject == "function")) {
 

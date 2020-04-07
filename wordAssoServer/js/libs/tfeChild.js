@@ -1574,7 +1574,9 @@ async function generateAutoCategory(p) {
       await nnTools.printNetworkResults();
       await updateNetworkRuntimeStats();
     }
-    else if (configuration.testMode || (currentBestRuntimeNetwork.meta.total > 0 && currentBestRuntimeNetwork.meta.total % 100 === 0)) {
+    else if (configuration.testMode 
+      || (currentBestRuntimeNetwork.meta.total > 0 && currentBestRuntimeNetwork.meta.total % 1000 === 0)
+    ) {
       printNetworkObj(MODULE_ID_PREFIX + " | NN"
         + " | @" + user.screenName 
         + " | CM: " + formatCategory(user.category), currentBestRuntimeNetwork, chalk.black

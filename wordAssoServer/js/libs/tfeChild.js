@@ -1562,12 +1562,9 @@ async function generateAutoCategory(p) {
       sortBy: "matchRate",
       user: user,
       networkOutput: activateNetworkResults.networkOutput, 
-      expectedCategory: user.category
+      expectedCategory: user.category,
+      updateRuntimeMatchRate: true
     });
-
-    // await updateNetworkRuntimeStats();
-
-    // primaryNetworkObj.networkOutput = activateNetworkResults.networkOutput[primaryNetworkObj.networkId];
 
     if (statsObj.currentBestRuntimeNetwork.rank < currentBestRuntimeNetwork.rank){
       printNetworkObj("RNT | +++ UPDATE BEST NN"

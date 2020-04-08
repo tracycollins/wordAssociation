@@ -9771,7 +9771,7 @@ async function initDbUserChangeStream(){
           statsObj.user.categoryAutoChanged++;
         }
 
-        if (categoryChanges.network && formatCategory(catObj.network) !== formatCategory(categoryChanges.network)) {
+        if (categoryChanges.network && catObj.network && (catObj.network !== categoryChanges.network)) {
           catChangeFlag = true;
           statsObj.user.categorizeNetworkChanged++;
         }

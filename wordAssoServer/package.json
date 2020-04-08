@@ -7,7 +7,7 @@
     "@google-cloud/debug-agent": "^4.2.2",
     "@slack/client": "^5.0.2",
     "@threeceelabs/hashtag-server-controller": "^1.0.70",
-    "@threeceelabs/mongoose-twitter": "^1.0.308",
+    "@threeceelabs/mongoose-twitter": "^1.0.309",
     "@threeceelabs/neural-network-tools": "^1.0.194",
     "@threeceelabs/threecee-utilities": "^1.0.255",
     "@threeceelabs/tweet-server-controller": "^1.0.513",

@@ -663,7 +663,9 @@ function printUser(params) {
     + " | LS " + tcUtils.getTimeStamp(user.lastSeen)
     + " | FWG " + user.following 
     + " | LC " + user.location
-    + " | C M " + formatCategory(user.category) + " A " + formatCategory(user.categoryAuto);
+    + " | CN " + user.categorizeNetwork
+    + " | C M " + formatCategory(user.category) 
+    + " A " + formatCategory(user.categoryAuto);
 
     return text;
   }
@@ -1324,10 +1326,10 @@ function initProcessUserQueueInterval(interval) {
                 + " | NID: " + processedUser.nodeId
                 + " | @" + processedUser.screenName
                 + " | N: " + processedUser.name
-                + " | CAT V: " + processedUser.categoryVerified
-                + " | CAT M: " + formatCategory(processedUser.category)
+                + " | CN: " + processedUser.categorizeNetwork
+                + " | CV: " + processedUser.categoryVerified
+                + " | CM: " + formatCategory(processedUser.category)
                 + " A: " + formatCategory(processedUser.categoryAuto)
-                // + " | " + printUser({user: processedUser})
               ));
             }
 
@@ -1602,25 +1604,20 @@ async function generateAutoCategory(p) {
     statsObj.currentBestRuntimeNetwork = currentBestRuntimeNetwork;
 
     let text = MODULE_ID_PREFIX + " | ->- CAT AUTO SET     ";
-    // let chalkVar = chalkLog;
 
-    // if (user.category && user.category !== "none" && (primaryNetworkObj.networkOutput.categoryAuto == user.category)) {
     if (user.category && user.category !== "none" && (currentBestRuntimeNetwork.meta.categoryAuto == user.category)) {
       statsObj.autoChangeTotal += 1;
       statsObj.autoChangeMatch += 1;
       statsObj.autoChangeMatchRate = 100*(statsObj.autoChangeMatch/statsObj.autoChangeTotal);
       text = MODULE_ID_PREFIX + " | +++ CAT AUTO MATCH   ";
-      // chalkVar = chalk.green;
     }
     else if (user.category && user.category !== "none" ) {
       statsObj.autoChangeTotal += 1;
       statsObj.autoChangeMismatch += 1;
       statsObj.autoChangeMatchRate = 100*(statsObj.autoChangeMatch/statsObj.autoChangeTotal);
       text = MODULE_ID_PREFIX + " | -X- CAT AUTO MISMATCH";
-      // chalkVar = chalk.yellow;
     }
 
-    // if (configuration.verbose || (user.categoryAuto != primaryNetworkObj.networkOutput.categoryAuto)) {
     if (configuration.verbose || (user.categoryAuto != currentBestRuntimeNetwork.meta.categoryAuto)) {
       console.log(chalkLog(text
         + " | " + currentBestRuntimeNetwork.networkId
@@ -1634,6 +1631,7 @@ async function generateAutoCategory(p) {
     }
 
     user.categoryAuto = currentBestRuntimeNetwork.meta.categoryAuto;
+    user.categorizeNetwork = currentBestRuntimeNetwork.networkId;
     user.ageDays = (moment().diff(user.createdAt))/ONE_DAY;
     user.tweetsPerDay = user.statusesCount/user.ageDays;
     return user;
@@ -1688,6 +1686,7 @@ const processUserPickArray = [
   "bannerImageUrl",
   "category",
   "categoryAuto",
+  "categorizeNetwork",
   "categoryVerified",
   "createdAt",
   "description",
@@ -1741,6 +1740,7 @@ async function processUser(params) {
     prevPropsUser.markModified("ageDays");
     prevPropsUser.markModified("tweetsPerDay");
     prevPropsUser.markModified("categoryAuto");
+    prevPropsUser.markModified("categorizeNetwork");
     prevPropsUser.markModified("tweetHistograms");
     prevPropsUser.markModified("profileHistograms");
     prevPropsUser.markModified("tweets");
@@ -1964,6 +1964,7 @@ process.on("message", async function(m) {
           + " [PUQ: " + processUserQueue.length + "]"
           + " | NID: " + m.user.nodeId
           + " | @" + m.user.screenName
+          + " | CN: " + m.user.categorizeNetwork
           + " | CV: " + m.user.categoryVerified
           + " | CM: " + m.user.category
           + " | CA: " + m.user.categoryAuto
@@ -1980,6 +1981,7 @@ process.on("message", async function(m) {
             + " | SEARCH: " + m.searchMode
             + " | NID: " + m.user.nodeId
             + " | @" + m.user.screenName
+            + " | CN: " + m.user.categorizeNetwork
             + " | CV: " + m.user.categoryVerified
             + " | CM: " + m.user.category
             + " | CA: " + m.user.categoryAuto
@@ -1992,6 +1994,7 @@ process.on("message", async function(m) {
             + " | SEARCH: " + m.searchMode
             + " | NID: " + m.user.nodeId
             + " | @" + m.user.screenName
+            + " | CN: " + m.user.categorizeNetwork
             + " | CV: " + m.user.categoryVerified
             + " | CM: " + m.user.category
             + " | CA: " + m.user.categoryAuto

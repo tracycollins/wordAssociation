@@ -9748,11 +9748,13 @@ async function initDbUserChangeStream(){
         catObj = categorizedUserHashMap.get(change.fullDocument.nodeId);
 
         if (empty(catObj)) {
+          catChangeFlag = true;
           catObj = {};
           catObj.screenName = change.fullDocument.screenName;
           catObj.nodeId = change.fullDocument.nodeId;
-          catObj.manual = false;
-          catObj.auto = false;
+          catObj.manual = change.fullDocument.category;
+          catObj.auto = change.fullDocument.categoryAuto;
+          catObj.network = change.fullDocument.categorizeNetwork;
         }
 
         if (categoryChanges.manual && formatCategory(catObj.manual) !== formatCategory(categoryChanges.manual)) {
@@ -9781,13 +9783,13 @@ async function initDbUserChangeStream(){
             + " | " + change.fullDocument.nodeId
             + " | @" + change.fullDocument.screenName
           ));
+
+          catObj.manual = categoryChanges.manual || catObj.manual;
+          catObj.auto = categoryChanges.auto || catObj.auto;
+          catObj.network = categoryChanges.network || catObj.network;
+
+          categorizedUserHashMap.set(catObj.nodeId, catObj);
         }
-
-        catObj.manual = categoryChanges.manual || catObj.manual;
-        catObj.auto = categoryChanges.auto || catObj.auto;
-        catObj.network = categoryChanges.network || catObj.network;
-
-        categorizedUserHashMap.set(catObj.nodeId, catObj);
       }
     }
 

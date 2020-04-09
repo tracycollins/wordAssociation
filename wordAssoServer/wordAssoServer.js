@@ -9682,6 +9682,7 @@ async function initDbUserChangeStream(){
 
   const userCollection = global.dbConnection.collection("users");
   let catChangeFlag = false;
+  let catNetworkChangeFlag = false;
 
   const userChangeFilter = {
     "$match": {
@@ -9704,6 +9705,7 @@ async function initDbUserChangeStream(){
   userChangeStream.on("change", function(change){
 
     catChangeFlag = false;
+    catNetworkChangeFlag = false;
 
     if (change && change.operationType === "insert"){
 
@@ -9771,21 +9773,24 @@ async function initDbUserChangeStream(){
         }
 
         if (categoryChanges.network && catObj.network && (catObj.network !== categoryChanges.network)) {
-          catChangeFlag = true;
+          catNetworkChangeFlag = true;
           statsObj.user.categorizeNetworkChanged++;
         }
 
-        if (catChangeFlag) {
-          console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | CAT USR"
-            + " [ M: " + statsObj.user.categoryChanged 
-            + " A: " + statsObj.user.categoryAutoChanged
-            + " N: " + statsObj.user.categorizeNetworkChanged + "]"
-            + " | M: " + formatCategory(catObj.manual) + " -> " + formatCategory(categoryChanges.manual)
-            + " A: " + formatCategory(catObj.auto) + " -> " + formatCategory(categoryChanges.auto)
-            + " | CN: " + catObj.network + " -> " + categoryChanges.network
-            + " | " + change.fullDocument.nodeId
-            + " | @" + change.fullDocument.screenName
-          ));
+        if (catChangeFlag || catNetworkChangeFlag) {
+
+          if (catChangeFlag){
+            console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | CAT USR"
+              + " [ M: " + statsObj.user.categoryChanged 
+              + " A: " + statsObj.user.categoryAutoChanged
+              + " N: " + statsObj.user.categorizeNetworkChanged + "]"
+              + " | M: " + formatCategory(catObj.manual) + " -> " + formatCategory(categoryChanges.manual)
+              + " A: " + formatCategory(catObj.auto) + " -> " + formatCategory(categoryChanges.auto)
+              + " | CN: " + catObj.network + " -> " + categoryChanges.network
+              + " | " + change.fullDocument.nodeId
+              + " | @" + change.fullDocument.screenName
+            ));
+          }
 
           catObj.manual = categoryChanges.manual || catObj.manual;
           catObj.auto = categoryChanges.auto || catObj.auto;

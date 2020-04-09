@@ -1807,6 +1807,58 @@ async function loadNetworks(){
   }
 }
 
+async function fixIncorrectNetworkMetaData(params){
+
+  try{
+    let incorrectUpdateFlag = false;
+
+   if (params.networkObj.runtimeMatchRate === undefined) {
+      params.networkObj.runtimeMatchRate = 0;
+    }
+
+    if (params.networkObj.evolve 
+      && params.networkObj.evolve.options.networkTechnology 
+      && params.networkObj.evolve.options.networkTechnology !== params.networkObj.networkTechnology) {
+      console.log(chalkAlert(MODULE_ID_PREFIX
+        + " | !!! INCORRECT NETWORK TECH | CHANGE " + params.networkObj.networkTechnology 
+        + " -> " + params.networkObj.evolve.options.networkTechnology
+        + " | " + params.networkObj.networkId 
+      ));
+      params.networkObj.networkTechnology = params.networkObj.evolve.options.networkTechnology;
+      incorrectUpdateFlag = "networkTechnology";
+    } 
+
+    if (params.networkObj.evolve
+      && params.networkObj.evolve.options.binaryMode !== undefined 
+      && params.networkObj.evolve.options.binaryMode !== params.networkObj.binaryMode) {
+      console.log(chalkAlert(MODULE_ID_PREFIX
+        + " | !!! INCORRECT BINARY MODE | CHANGE " + params.networkObj.binaryMode 
+        + " -> " + params.networkObj.evolve.options.binaryMode
+        + " | " + params.networkObj.networkId 
+      ));
+      params.networkObj.binaryMode = params.networkObj.evolve.options.binaryMode;
+      incorrectUpdateFlag = "binaryMode";
+    } 
+
+    if (incorrectUpdateFlag) {
+      console.log(chalkLog(MODULE_ID_PREFIX
+        + " | ... SAVING UPDATED INCORRECT NN META DATA"
+        + " | INCORRECT FLAG: " + incorrectUpdateFlag
+        + " | " + params.networkObj.networkId 
+      ));
+      if (!params.updateDatabaseOnly) {
+        await tcUtils.saveFile({folder: params.folder, file: params.file, obj: params.networkObj});
+      }
+    }
+
+    return params.networkObj;
+  }
+  catch(err){
+    console.log(chalkAlert(MODULE_ID_PREFIX + " | *** fixIncorrectNetworkMetaData ERROR | " + err));
+    throw err;
+  }
+}
+
 process.on("message", async function(m) {
 
   let twitterUserObj;
@@ -1838,6 +1890,14 @@ process.on("message", async function(m) {
 
       const primaryNnObj = m.networkObj;
 
+      if (empty(primaryNnObj)){
+        console.log(chalkError(MODULE_ID_PREFIX
+          + " | *** UNDEFINED NETWORK " + jsonPrint(m)
+        ));
+        quit();
+        break;
+      }
+
       if (primaryNnObj.testCycleHistory && primaryNnObj.testCycleHistory !== undefined && primaryNnObj.testCycleHistory.length > 0) {
 
         primaryNnObj.previousRank = primaryNnObj.testCycleHistory[primaryNnObj.testCycleHistory.length-1].rank;
@@ -1848,7 +1908,10 @@ process.on("message", async function(m) {
         ));
       } 
 
-      primaryNetworkObj = await nnTools.convertNetwork({networkObj: primaryNnObj});
+      const pNnObj = await fixIncorrectNetworkMetaData({networkObj: primaryNnObj, updateDatabaseOnly: true});
+      primaryNetworkObj = await nnTools.convertNetwork({networkObj: pNnObj});
+
+      await nnTools.deleteAllNetworks();
 
       await nnTools.loadNetwork({networkObj: primaryNetworkObj});
       nnTools.setPrimaryNeuralNetwork(primaryNetworkObj.networkId);
@@ -1856,7 +1919,6 @@ process.on("message", async function(m) {
       await nnTools.setMaxInputHashMap(m.maxInputHashMap);
       await nnTools.setNormalization(m.normalization);
 
-      await nnTools.deleteAllNetworks();
       await loadNetworks();
 
       await tcUtils.setEnableLanguageAnalysis(configuration.enableLanguageAnalysis);

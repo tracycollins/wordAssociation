@@ -9021,7 +9021,10 @@ async function loadBestRuntimeNetwork(p){
       }
     }
 
-    const nnArray = await global.wordAssoDb.NeuralNetwork.find({"runtimeMatchRate": { $lt: 100 }}).sort({"runtimeMatchRate": -1}).limit(1);
+    const nnArray = await global.wordAssoDb.NeuralNetwork
+      .find({"runtimeMatchRate": { $lt: 100 }})
+      .sort({"runtimeMatchRate": -1})
+      .limit(1);
 
     if (nnArray.length == 0){
       console.log(chalkError(MODULE_ID_PREFIX + " | *** NEURAL NETWORK NOT FOUND"));

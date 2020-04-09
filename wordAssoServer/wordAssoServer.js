@@ -1424,8 +1424,6 @@ async function connectDb(){
 
     console.log(chalkBlueBold(MODULE_ID_PREFIX + " | CONNECT MONGO DB ..."));
 
-    // global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
-
     const db = await global.wordAssoDb.connect(MODULE_ID_PREFIX + "_" + process.pid);
 
     db.on("error", async function(err){
@@ -4752,8 +4750,6 @@ async function initSocketHandler(socketObj) {
 
       const timeStamp = moment().valueOf();
 
-      // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
-
       console.log(chalkSocket(MODULE_ID_PREFIX
         + " | R< TWITTER_CATEGORY_UNVERIFIED"
         + " | " + getTimeStamp(timeStamp)
@@ -4795,8 +4791,6 @@ async function initSocketHandler(socketObj) {
       try{
 
         const timeStamp = moment().valueOf();
-
-        // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
         console.log(chalkSocket(MODULE_ID_PREFIX
           + " | R< TWITTER_IGNORE"
@@ -9783,7 +9777,7 @@ async function initDbUserChangeStream(){
             + " N: " + statsObj.user.categorizeNetworkChanged + "]"
             + " | M: " + formatCategory(catObj.manual) + " -> " + formatCategory(categoryChanges.manual)
             + " A: " + formatCategory(catObj.auto) + " -> " + formatCategory(categoryChanges.auto)
-            + " | CN: " + formatCategory(catObj.network) + " -> " + formatCategory(categoryChanges.network)
+            + " | CN: " + catObj.network + " -> " + categoryChanges.network
             + " | " + change.fullDocument.nodeId
             + " | @" + change.fullDocument.screenName
           ));
@@ -10253,6 +10247,7 @@ async function processTwitterSearchNode(params) {
         + " | NID: " + params.user.nodeId
         + " | @" + params.user.screenName
         + " | CV: " + formatBoolean(params.user.categoryVerified)
+        + " | CN: " + params.user.categorizeNetwork
         + " | M: " + formatCategory(params.user.category)
         + " | A: " + formatCategory(params.user.categoryAuto)
       ));
@@ -10327,8 +10322,8 @@ async function processTwitterSearchNode(params) {
         + " | I " + params.user.ignored
         + " | L " + params.user.lang
         + " | FLWs " + params.user.followersCount
-        + " | CAT N: " + params.user.categorizeNetwork
-        + " | CAT V: " + formatBoolean(params.user.categoryVerified)
+        + " | CN: " + params.user.categorizeNetwork
+        + " | CV: " + formatBoolean(params.user.categoryVerified)
         + " M: " + formatCategory(params.user.category)
         + " A: " + formatCategory(params.user.categoryAuto)
         + "\n" + MODULE_ID_PREFIX 
@@ -10353,8 +10348,8 @@ async function processTwitterSearchNode(params) {
         + " | I " + params.user.ignored
         + " | L " + params.user.lang
         + " | FLWs " + params.user.followersCount
-        + " | CAT N: " + params.user.categorizeNetwork
-        + " | CAT V: " + formatBoolean(params.user.categoryVerified)
+        + " | CN: " + params.user.categorizeNetwork
+        + " | CV: " + formatBoolean(params.user.categoryVerified)
         + " M: " + formatCategory(params.user.category)
         + " A: " + formatCategory(params.user.categoryAuto)
         + "\n" + MODULE_ID_PREFIX 

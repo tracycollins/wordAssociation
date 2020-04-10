@@ -1347,9 +1347,11 @@ async function updateNetworkRuntimeStats() {
 
     const networkDoc = await global.wordAssoDb.NeuralNetwork.findOneAndUpdate(
       {"networkId": nnId}, 
-      {"runtimeMatchRate": networkObj.matchRate}, 
-      {"rank": networkObj.rank}, 
-      {"previousRank": networkObj.previousRank}, 
+      {
+        "runtimeMatchRate": networkObj.matchRate,
+        "rank": networkObj.rank, 
+        "previousRank": networkObj.previousRank
+      }, 
       defaultUpdateOptions
     );
 

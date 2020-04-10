@@ -65,7 +65,7 @@ DEFAULT_INPUT_TYPES.forEach(function(type){
 
 let primaryNetworkObj = {};
 
-const USER_PROCESS_QUEUE_MAX_LENGTH = 100;
+const USER_PROCESS_QUEUE_MAX_LENGTH = 20;
 
 const USER_CHANGE_CACHE_DEFAULT_TTL = 15;
 const USER_CHANGE_CACHE_CHECK_PERIOD = 1;
@@ -130,7 +130,6 @@ const tcuChildName = MODULE_ID_PREFIX + "_TCU";
 const userTweetFetchSet = new Set();
 
 const processUserQueue = [];
-const userChangeDbQueue = [];
 
 process.on("SIGHUP", function() {
   quit("SIGHUP");
@@ -472,7 +471,6 @@ function showStats(options){
       + " | ELPSD " + tcUtils.msToTime(statsObj.elapsed)
       + " | START " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
       + " | UC$: " + userChangeCache.getStats().keys
-      + " | UCDBQ: " + userChangeDbQueue.length
       + " | UCATQ: " + processUserQueue.length
       + " | AUTO CHG M " + statsObj.autoChangeMatch
       + " MM: " + statsObj.autoChangeMismatch
@@ -727,12 +725,18 @@ async function processTweetObj(params){
     for(const entityObj of tweetObj[entityType]){
 
       if (empty(entityObj)) {
-        debug(chalkAlert(MODULE_ID_PREFIX + " | *** processTweetObj EMPTY ENTITY | ENTITY TYPE: " + entityType + " | entityObj: " + tcUtils.jsonPrint(entityObj)));
+        debug(chalkAlert(MODULE_ID_PREFIX 
+          + " | *** processTweetObj EMPTY ENTITY | ENTITY TYPE: " + entityType 
+          + " | entityObj: " + tcUtils.jsonPrint(entityObj)
+        ));
         continue;
       }
 
       if (empty(entityObj.nodeId)) {
-        debug(chalkAlert(MODULE_ID_PREFIX + " | *** processTweetObj UNDEFINED NODE ID | ENTITY TYPE: " + entityType + " | entityObj: " + tcUtils.jsonPrint(entityObj)));
+        debug(chalkAlert(MODULE_ID_PREFIX 
+          + " | *** processTweetObj UNDEFINED NODE ID | ENTITY TYPE: " + entityType 
+          + " | entityObj: " + tcUtils.jsonPrint(entityObj)
+        ));
         continue;
       }
 
@@ -747,7 +751,10 @@ async function processTweetObj(params){
         case "mentions":
         case "userMentions":
           if (empty(entityObj.screenName)) {
-            console.log(chalkAlert(MODULE_ID_PREFIX + " | *** processTweetObj UNDEFINED SCREEN NAME | ENTITY TYPE: " + entityType + " | entityObj: " + tcUtils.jsonPrint(entityObj)));
+            console.log(chalkAlert(MODULE_ID_PREFIX 
+              + " | *** processTweetObj UNDEFINED SCREEN NAME | ENTITY TYPE: " + entityType 
+              + " | entityObj: " + tcUtils.jsonPrint(entityObj)
+            ));
             continue;
           }
           entity = "@" + entityObj.screenName.toLowerCase();
@@ -797,99 +804,6 @@ async function processTweetObj(params){
   return histograms;
 }
 
-// function processTweetObj(params){
-
-//   return new Promise(function(resolve){
-
-//     const tweetObj = params.tweetObj;
-//     const histograms = params.histograms;
-
-//     for(const entityType of DEFAULT_INPUT_TYPES){
-
-//       if (!entityType || entityType === undefined) {
-//         console.log(chalkAlert(MODULE_ID_PREFIX + " | ??? UNDEFINED TWEET entityType: ", entityType));
-//         continue;
-//       }
-
-//       if (entityType == "user") { continue; }
-//       if (empty(tweetObj[entityType])) { continue; }
-//       if (tweetObj[entityType].length == 0) { continue; }
-
-//       for(const entityObj of tweetObj[entityType]){
-
-//         if (empty(entityObj)) {
-//           debug(chalkAlert(MODULE_ID_PREFIX + " | *** processTweetObj EMPTY ENTITY | ENTITY TYPE: " + entityType + " | entityObj: " + tcUtils.jsonPrint(entityObj)));
-//           continue;
-//         }
-
-//         if (empty(entityObj.nodeId)) {
-//           debug(chalkAlert(MODULE_ID_PREFIX + " | *** processTweetObj UNDEFINED NODE ID | ENTITY TYPE: " + entityType + " | entityObj: " + tcUtils.jsonPrint(entityObj)));
-//           continue;
-//         }
-
-//         let entity;
-
-//         switch (entityType) {
-
-//           case "hashtags":
-//             entity = "#" + entityObj.nodeId.toLowerCase();
-//           break;
-
-//           case "mentions":
-//           case "userMentions":
-//             if (empty(entityObj.screenName)) {
-//               console.log(chalkAlert(MODULE_ID_PREFIX + " | *** processTweetObj UNDEFINED SCREEN NAME | ENTITY TYPE: " + entityType + " | entityObj: " + tcUtils.jsonPrint(entityObj)));
-//               continue;
-//             }
-//             entity = "@" + entityObj.screenName.toLowerCase();
-//           break;
-
-//           case "locations":
-//           case "images":
-//           case "media":
-//           case "ngrams":
-//           case "places":
-//           case "emoji":
-//             entity = entityObj.nodeId;
-//           break;
-
-//           case "urls":
-//             if (entityObj.nodeId.includes(".")) { 
-//               entity = btoa(entityObj.nodeId);
-//             }
-//             else{
-//               entity = entityObj.nodeId;
-//             }
-//           break;
-
-//           case "words":
-//             entity = entityObj.nodeId.toLowerCase();
-//             entity = entity.replace(/\./gi, "_")
-//           break;
-          
-//           default:
-//             console.log(chalkError(MODULE_ID_PREFIX + " | *** processTweetObj UNKNOWN ENTITY TYPE: " + entityType));
-//             continue;
-//         }
-
-//         if (empty(histograms[entityType])){
-//           histograms[entityType] = {};
-//           histograms[entityType][entity] = 1;
-//         }
-//         else if (empty(histograms[entityType][entity])){
-//           histograms[entityType][entity] = 1;
-//         }
-//         else {
-//           histograms[entityType][entity] += 1;
-//         }
-//       }
-//     }
-
-//     resolve(histograms);
-
-//   });
-// }
-
 function histogramIncomplete(histogram){
 
   return new Promise(function(resolve){
@@ -912,102 +826,6 @@ function histogramIncomplete(histogram){
 
   });
 }
-
-// function processUserTweetArray(params){
-
-//   return new Promise(function(resolve, reject){
-
-//     const tscParams = params.tscParams;
-//     const user = params.user;
-//     const tweets = params.tweets;
-//     const forceFetch = params.forceFetch;
-
-//     async.eachSeries(tweets, async function(tweet){
-
-//       tscParams.tweetStatus = tweet;
-//       tscParams.tweetStatus.user = {};
-//       tscParams.tweetStatus.user = user;
-//       tscParams.tweetStatus.user.isNotRaw = true;
-
-//       if (tweet.id_str.toString() > user.tweets.maxId.toString()) {
-//         user.tweets.maxId = tweet.id_str.toString();
-//       }
-
-//       if (tweet.id_str.toString() > user.tweets.sinceId.toString()) {
-//         user.tweets.sinceId = tweet.id_str.toString();
-//       }
-
-//       if (forceFetch || !user.tweets.tweetIds.includes(tweet.id_str.toString())) { 
-
-//         try {
-
-//           if (!user.tweets.tweetIds.includes(tweet.id_str.toString())) {
-//             statsObj.twitter.tweetsHits += 1;
-//           }
-
-//           const tweetObj = await tweetServerController.createStreamTweetAsync(tscParams);
-
-//           if (!user.tweetHistograms || (user.tweetHistograms === undefined)) { user.tweetHistograms = {}; }
-
-//           user.tweetHistograms = await processTweetObj({tweetObj: tweetObj, histograms: user.tweetHistograms});
-//           user.tweets.tweetIds = _.union(user.tweets.tweetIds, [tweet.id_str]); 
-
-//           statsObj.twitter.tweetsProcessed += 1;
-//           statsObj.twitter.tweetsTotal += 1;
-
-//           if (configuration.testMode || configuration.verbose) {
-//             console.log(chalkTwitter(MODULE_ID_PREFIX + " | +++ PROCESSED TWEET"
-//               + " | FORCE: " + forceFetch
-//               + " [ P/H/T " + statsObj.twitter.tweetsProcessed + "/" + statsObj.twitter.tweetsHits + "/" + statsObj.twitter.tweetsTotal + "]"
-//               + " | TW: " + tweet.id_str
-//               + " | SINCE: " + user.tweets.sinceId
-//               + " | TWs: " + user.tweets.tweetIds.length
-//               + " | @" + user.screenName
-//             ));
-//           }
-
-//           return;
-//         }
-//         catch(err){
-//           console.log(chalkError(MODULE_ID_PREFIX + " | updateUserTweets ERROR: " + err));
-//           return err;
-//         }
-//       }
-//       else {
-
-//         statsObj.twitter.tweetsHits += 1;
-//         statsObj.twitter.tweetsTotal += 1;
-
-//         if (configuration.testMode || configuration.verbose) {
-//           console.log(chalkInfo(MODULE_ID_PREFIX + " | ... TWEET ALREADY PROCESSED"
-//             + " [ P/H/T " + statsObj.twitter.tweetsProcessed + "/" + statsObj.twitter.tweetsHits + "/" + statsObj.twitter.tweetsTotal + "]"
-//             + " | TW: " + tweet.id_str
-//             + " | TWs: " + user.tweets.tweetIds.length
-//             + " | @" + user.screenName
-//           ));
-//         }
-
-//         return;
-//       }
-//     }, function(err){
-//       if (err) {
-//         console.log(chalkError(MODULE_ID_PREFIX + " | updateUserTweets ERROR: " + err));
-//         return reject(err);
-//       }
-
-//       if (forceFetch || configuration.testMode || configuration.verbose) {
-//         console.log(chalkLog(MODULE_ID_PREFIX + " | +++ Ts"
-//           + " | FORCE: " + forceFetch
-//           + " [ P/H/T " + statsObj.twitter.tweetsProcessed + "/" + statsObj.twitter.tweetsHits + "/" + statsObj.twitter.tweetsTotal + "]"
-//           + " | Ts: " + user.tweets.tweetIds.length
-//           + " | @" + user.screenName
-//         ));
-//       }
-//       resolve(user);
-//     });
-
-//   });
-// }
 
 async function processUserTweetArray(params){
 
@@ -1116,7 +934,12 @@ async function processUserTweets(params){
   try{
     tweetHistogramsEmpty = await tcUtils.emptyHistogram(user.tweetHistograms);
 
-    const processedUser = await processUserTweetArray({user: user, forceFetch: tweetHistogramsEmpty, tweets: tweets, tscParams: tscParams});
+    const processedUser = await processUserTweetArray({
+      user: user, 
+      forceFetch: tweetHistogramsEmpty, 
+      tweets: tweets, 
+      tscParams: tscParams
+    });
 
     if (tweetHistogramsEmpty) {
       console.log(chalkLog(MODULE_ID_PREFIX + " | USER Ts"
@@ -1432,17 +1255,19 @@ async function initialize(cnf){
   cnf.testMode = process.env.TFE_TEST_MODE || false;
   cnf.quitOnError = process.env.TFE_QUIT_ON_ERROR || false;
 
-  // cnf.twitterConfigFolder = process.env.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER || "/config/twitter"; 
-  // cnf.twitterConfigFile = process.env.DROPBOX_TFE_DEFAULT_TWITTER_CONFIG_FILE 
-  //   || "altthreecee00.json";
-
   cnf.statsUpdateIntervalTime = process.env.TFE_STATS_UPDATE_INTERVAL || 60000;
 
   try{
 
-    const loadedConfigObj = await tcUtils.loadFileRetry({folder: configuration.configDefaultFolder, file: configuration.configDefaultFile}); 
+    const loadedConfigObj = await tcUtils.loadFileRetry({
+      folder: configuration.configDefaultFolder, 
+      file: configuration.configDefaultFile
+    }); 
 
-    console.log(MODULE_ID_PREFIX + " | " + configuration.configDefaultFolder + "/" + configuration.configDefaultFile + "\n" + tcUtils.jsonPrint(loadedConfigObj));
+    console.log(MODULE_ID_PREFIX 
+      + " | " + configuration.configDefaultFolder + "/" + configuration.configDefaultFile 
+      + "\n" + tcUtils.jsonPrint(loadedConfigObj)
+    );
 
     if (loadedConfigObj.TFE_VERBOSE_MODE !== undefined){
       console.log(MODULE_ID_PREFIX + " | LOADED TFE_VERBOSE_MODE: " + loadedConfigObj.TFE_VERBOSE_MODE);
@@ -1474,11 +1299,6 @@ async function initialize(cnf){
       cnf.statsUpdateIntervalTime = loadedConfigObj.TFE_STATS_UPDATE_INTERVAL;
     }
 
-    if (loadedConfigObj.TFE_MAX_TWEET_QUEUE !== undefined) {
-      console.log(MODULE_ID_PREFIX + " | LOADED TFE_MAX_TWEET_QUEUE: " + loadedConfigObj.TFE_MAX_TWEET_QUEUE);
-      cnf.maxTweetQueue = loadedConfigObj.TFE_MAX_TWEET_QUEUE;
-    }
-
     // OVERIDE CONFIG WITH COMMAND LINE ARGS
 
     const configArgs = Object.keys(cnf);
@@ -1504,7 +1324,10 @@ async function initialize(cnf){
 
   }
   catch(err){
-    console.error(MODULE_ID_PREFIX + " | *** ERROR LOAD DROPBOX CONFIG: " + configuration.configDefaultFolder + "/" + configuration.configDefaultFile + "\n" + tcUtils.jsonPrint(err));
+    console.error(MODULE_ID_PREFIX 
+      + " | *** ERROR LOAD DROPBOX CONFIG: " + configuration.configDefaultFolder + "/" + configuration.configDefaultFile 
+      + "\n" + tcUtils.jsonPrint(err)
+    );
     throw err;
   }
 }
@@ -1516,31 +1339,28 @@ const defaultUpdateOptions = {
 };
 
 async function updateNetworkRuntimeStats() {
-  // try{
-    const networkStatsObj = await nnTools.getNetworkStats();
+  const networkStatsObj = await nnTools.getNetworkStats();
 
-    for(const nnId of Object.keys(networkStatsObj.networks)){
+  for(const nnId of Object.keys(networkStatsObj.networks)){
 
-      const networkObj = networkStatsObj.networks[nnId];
+    const networkObj = networkStatsObj.networks[nnId];
 
-      const networkDoc = await global.wordAssoDb.NeuralNetwork.findOneAndUpdate(
-        {"networkId": nnId}, 
-        {"runtimeMatchRate": networkObj.matchRate}, 
-        defaultUpdateOptions
-      );
+    const networkDoc = await global.wordAssoDb.NeuralNetwork.findOneAndUpdate(
+      {"networkId": nnId}, 
+      {"runtimeMatchRate": networkObj.matchRate}, 
+      {"rank": networkObj.rank}, 
+      {"previousRank": networkObj.previousRank}, 
+      defaultUpdateOptions
+    );
 
-      printNetworkObj(
-        MODULE_ID_PREFIX + " | +++ UPDATE NN RT",
-        networkDoc.toObject(), 
-        chalk.black
-      );
+    printNetworkObj(
+      MODULE_ID_PREFIX + " | +++ UPDATE NN RT",
+      networkDoc.toObject(), 
+      chalk.black
+    );
 
-    }
-    return;
-  // }
-  // catch(err){
-  //   throw err;
-  // }
+  }
+  return;
 }
 
 async function generateAutoCategory(p) {
@@ -1892,7 +1712,7 @@ process.on("message", async function(m) {
 
       if (empty(primaryNnObj)){
         console.log(chalkError(MODULE_ID_PREFIX
-          + " | *** UNDEFINED NETWORK " + jsonPrint(m)
+          + " | *** UNDEFINED NETWORK " + tcUtils.jsonPrint(m)
         ));
         quit();
         break;
@@ -2151,7 +1971,6 @@ setTimeout(async function(){
     await tcUtils.initTwitter({twitterConfig: twitterParams});
     await tcUtils.getTwitterAccountSettings();
     await initWatchConfig();
-    // await initProcessUserQueueInterval(configuration.processUserQueueInterval);
     process.send({ op: "READY"});
   }
   catch(err){

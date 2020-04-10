@@ -183,10 +183,12 @@ const DEFAULT_CATEGORY_HASHMAPS_UPDATE_INTERVAL = 5*ONE_MINUTE;
 
 const DEFAULT_SOCKET_AUTH_TIMEOUT = 30*ONE_SECOND;
 const DEFAULT_QUIT_ON_ERROR = false;
-const DEFAULT_MAX_TOP_TERMS = 100;
+const DEFAULT_MAX_TOP_TERMS = 20;
 const DEFAULT_METRICS_NODE_METER_ENABLED = true;
 
-const DEFAULT_MAX_QUEUE = 100;
+const DEFAULT_MAX_TWEET_RX_QUEUE = 50;
+const DEFAULT_MAX_TRANSMIT_NODE_QUEUE = 50;
+
 const DEFAULT_OFFLINE_MODE = process.env.OFFLINE_MODE || false; 
 const DEFAULT_AUTO_OFFLINE_MODE = true; // if network connection is down, will auto switch to OFFLINE_MODE
 const DEFAULT_IO_PING_INTERVAL = ONE_MINUTE;
@@ -738,8 +740,12 @@ configuration.userProfileOnlyFlag = DEFAULT_USER_PROFILE_ONLY_FLAG;
 configuration.binaryMode = DEFAULT_BINARY_MODE;
 configuration.ignoreCategoryRight = DEFAULT_IGNORE_CATEGORY_RIGHT;
 
-configuration.maxQueue = DEFAULT_MAX_QUEUE;
-let maxQueue = configuration.maxQueue;
+configuration.maxTransmitNodeQueue = DEFAULT_MAX_TRANSMIT_NODE_QUEUE;
+configuration.maxTweetRxQueue = DEFAULT_MAX_TWEET_RX_QUEUE;
+
+let maxTransmitNodeQueue = configuration.maxTransmitNodeQueue;
+
+let maxTweetRxQueue = configuration.maxTweetRxQueue;
 let maxRxQueue = 0;
 let tweetsReceived = 0;
 let retweetsReceived = 0;
@@ -2317,12 +2323,6 @@ function initStats(callback){
   statsObj.caches.uncatUserCache.stats.keysMax = 0;
   statsObj.caches.uncatUserCache.expired = 0;
 
-  // statsObj.caches.mismatchUserCache = {};
-  // statsObj.caches.mismatchUserCache.stats = {};
-  // statsObj.caches.mismatchUserCache.stats.keys = 0;
-  // statsObj.caches.mismatchUserCache.stats.keysMax = 0;
-  // statsObj.caches.mismatchUserCache.expired = 0;
-
   statsObj.db = {};
   statsObj.db.errors = 0;
   statsObj.db.totalAdmins = 0;
@@ -3540,7 +3540,7 @@ function socketRxTweet(tw) {
     if (filterRetweets) { return; }
   }
 
-  if (tweetRxQueue.length > maxQueue){
+  if (tweetRxQueue.length > maxTweetRxQueue){
     maxRxQueue += 1;
   }
   else if (tw.user) {
@@ -7400,7 +7400,7 @@ async function initTweetParserMessageRxQueueInterval(interval){
             dbuChild.send(dbUserMessage);
           }
 
-          if (transmitNodeQueue.length <= maxQueue) {
+          if (transmitNodeQueue.length <= maxTransmitNodeQueue) {
 
             try{
               await transmitNodes(tweetObj);
@@ -9331,6 +9331,16 @@ async function loadConfigFile(params) {
       newConfiguration.processName = loadedConfigObj.PROCESS_NAME;
     }
 
+    if (loadedConfigObj.MAX_TWEET_RX_QUEUE !== undefined){
+      console.log(MODULE_ID_PREFIX + " | LOADED MAX_TWEET_RX_QUEUE: " + loadedConfigObj.MAX_TWEET_RX_QUEUE);
+      newConfiguration.maxTweetRxQueue = loadedConfigObj.MAX_TWEET_RX_QUEUE;
+    }
+
+    if (loadedConfigObj.MAX_TRANSMIT_NODE_QUEUE !== undefined){
+      console.log(MODULE_ID_PREFIX + " | LOADED MAX_TRANSMIT_NODE_QUEUE: " + loadedConfigObj.MAX_TRANSMIT_NODE_QUEUE);
+      newConfiguration.maxTransmitNodeQueue = loadedConfigObj.MAX_TRANSMIT_NODE_QUEUE;
+    }
+
     if (loadedConfigObj.THREECEE_USERS !== undefined){
       console.log(MODULE_ID_PREFIX + " | LOADED THREECEE_USERS: " + loadedConfigObj.THREECEE_USERS);
       newConfiguration.threeceeUsers = loadedConfigObj.THREECEE_USERS;
@@ -9406,16 +9416,6 @@ async function loadConfigFile(params) {
       newConfiguration.topTermsCacheTtl = loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL;
     }
 
-    // if (loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD !== undefined){
-    //   console.log(MODULE_ID_PREFIX + " | LOADED TRENDING_CACHE_CHECK_PERIOD: " + loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD);
-    //   newConfiguration.trendingCacheCheckPeriod = loadedConfigObj.TRENDING_CACHE_CHECK_PERIOD;
-    // }
-
-    // if (loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL !== undefined){
-    //   console.log(MODULE_ID_PREFIX + " | LOADED TRENDING_CACHE_DEFAULT_TTL: " + loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL);
-    //   newConfiguration.trendingCacheTtl = loadedConfigObj.TRENDING_CACHE_DEFAULT_TTL;
-    // }
-
     if (loadedConfigObj.MIN_FOLLOWERS_AUTO_FOLLOW !== undefined){
       console.log(MODULE_ID_PREFIX + " | LOADED MIN_FOLLOWERS_AUTO_FOLLOW: " + loadedConfigObj.MIN_FOLLOWERS_AUTO_FOLLOW);
       newConfiguration.minFollowersAutoFollow = loadedConfigObj.MIN_FOLLOWERS_AUTO_FOLLOW;
@@ -9460,11 +9460,6 @@ async function loadConfigFile(params) {
       console.log(MODULE_ID_PREFIX + " | LOADED TWEET_PARSER_INTERVAL: " + loadedConfigObj.TWEET_PARSER_INTERVAL);
       newConfiguration.tweetParserInterval = loadedConfigObj.TWEET_PARSER_INTERVAL;
     }
-
-    // if (loadedConfigObj.UPDATE_TRENDS_INTERVAL !== undefined){
-    //   console.log(MODULE_ID_PREFIX + " | LOADED UPDATE_TRENDS_INTERVAL: " + loadedConfigObj.UPDATE_TRENDS_INTERVAL);
-    //   newConfiguration.updateTrendsInterval = loadedConfigObj.UPDATE_TRENDS_INTERVAL;
-    // }
 
     if (loadedConfigObj.UPDATE_USER_SETS_INTERVAL !== undefined){
       console.log(MODULE_ID_PREFIX + " | LOADED UPDATE_USER_SETS_INTERVAL: " + loadedConfigObj.UPDATE_USER_SETS_INTERVAL);
@@ -9516,7 +9511,8 @@ async function loadAllConfigFiles(){
 
   console.log(chalkWarn(MODULE_ID_PREFIX + " | -X- FILTER RETWEETS: " + filterRetweets));
 
-  maxQueue = configuration.maxQueue;
+  maxTweetRxQueue = configuration.maxTweetRxQueue;
+  maxTransmitNodeQueue = configuration.maxTransmitNodeQueue;
 
   return;
 }

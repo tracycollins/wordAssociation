@@ -1339,6 +1339,8 @@ const defaultUpdateOptions = {
 };
 
 async function updateNetworkRuntimeStats() {
+  
+  await nnTools.updateNetworkRank();
   const networkStatsObj = await nnTools.getNetworkStats();
 
   for(const nnId of Object.keys(networkStatsObj.networks)){

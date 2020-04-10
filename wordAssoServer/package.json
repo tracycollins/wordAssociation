@@ -12,6 +12,7 @@
     "@threeceelabs/threecee-utilities": "^1.0.255",
     "@threeceelabs/tweet-server-controller": "^1.0.513",
     "@threeceelabs/user-server-controller": "^1.0.520",
+    "admin-lte": "^3.0.4",
     "change-case-bundled": "^1.1.2",
     "command-line-args": "^5.1.1",
     "connect-mongo": "^3.2.0",

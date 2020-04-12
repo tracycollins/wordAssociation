@@ -9,7 +9,7 @@
     "@threeceelabs/hashtag-server-controller": "^1.0.70",
     "@threeceelabs/mongoose-twitter": "^1.0.310",
     "@threeceelabs/neural-network-tools": "^1.0.201",
-    "@threeceelabs/threecee-utilities": "^1.0.255",
+    "@threeceelabs/threecee-utilities": "^1.0.256",
     "@threeceelabs/tweet-server-controller": "^1.0.513",
     "@threeceelabs/user-server-controller": "^1.0.520",
     "admin-lte": "^3.0.4",

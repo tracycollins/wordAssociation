@@ -491,7 +491,7 @@ async function pubSubPublishMessage(params){
     + " | MID: " + messageId
     + " | TOPIC: " + params.topicName
     + " | NID: " + params.message.user.nodeId
-    + " | @" + params.message.user.screenName
+    // + " | @" + params.message.user.screenName
   ));
   return;
 }
@@ -6511,8 +6511,8 @@ async function categorize(params){
       topicName: "categorize",
       message: {
         user: {
-          nodeId: params.user.nodeId,
-          screenName: params.user.screenName
+          nodeId: params.user.nodeId
+          // screenName: params.user.screenName
         }
       }
     });

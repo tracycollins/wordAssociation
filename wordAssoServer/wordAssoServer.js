@@ -26,6 +26,8 @@ const DEFAULT_MAX_USER_SEARCH_SKIP_COUNT = 25;
 const DEFAULT_USER_PROFILE_ONLY_FLAG = false;
 const DEFAULT_BINARY_MODE = true;
 
+let pubSubClient;
+
 let saveSampleTweetFlag = true;
 
 const os = require("os");
@@ -49,6 +51,8 @@ const deepcopy = require("deep-copy");
 // let cloudDebugger = google.clouddebugger("v2");
 
 // require("@google-cloud/debug-agent").start({allowExpressions: true});
+
+const {PubSub} = require("@google-cloud/pubsub");
 
 let hostname = os.hostname();
 hostname = hostname.replace(/.local/g, "");
@@ -468,6 +472,27 @@ function dnsReverse(params){
   });
 }
 
+async function initPubSub(p){
+  const params = p || {};
+  const projectId = params.projectId || configuration.pubSub.projectId;
+  const psClient = new PubSub({projectId});
+  return psClient;
+}
+
+async function pubSubPublishMessage(params){
+  const data = JSON.stringify(params.message);
+  const dataBuffer = Buffer.from(data);
+  const messageId = await pubSubClient.topic(params.topicName).publish(dataBuffer);
+  console.log(chalkBlue(MODULE_ID_PREFIX
+    + " | PUBSUB"
+    + " | MID: " + messageId
+    + " | TOPIC: " + params.topicName
+    + " | NID: " + params.message.user.nodeId
+    + " | @" + params.message.user.screenName
+  ));
+  return;
+}
+
 //=========================================================================
 // SLACK
 //=========================================================================
@@ -724,6 +749,10 @@ statsObj.user.uncategorizedTotal = 0;
 let configuration = {};
 let defaultConfiguration = {}; // general configuration
 let hostConfiguration = {}; // host-specific configuration
+
+configuration.pubSub = {};
+configuration.pubSub.projectId = "graphic-tangent-627";
+configuration.pubSub.topicName = "categorize";
 
 configuration.slackChannel = {};
 
@@ -1687,6 +1716,34 @@ function ipCacheExpired(ip, ipCacheObj) {
 ipCache.on("expired", ipCacheExpired);
 
 // ==================================================================
+// CATEGORIZE USER ID CACHE
+// ==================================================================
+console.log(MODULE_ID_PREFIX + " | CATEGORIZE USER ID CACHE TTL: " + tcUtils.msToTime(ONE_MINUTE));
+console.log(MODULE_ID_PREFIX + " | CATEGORIZE USER ID CACHE CHECK PERIOD: " + tcUtils.msToTime(15*ONE_SECOND));
+
+const categorizeCache = new NodeCache({
+  stdTTL: 60,
+  checkperiod: 10
+});
+
+function categorizeCacheExpired(nodeId, user) {
+
+  statsObj.caches.categorizeCache.stats = categorizeCache.getStats();
+  statsObj.caches.categorizeCache.expired += 1;
+
+  debug(chalkInfo(MODULE_ID_PREFIX + " | XXX CAT USER $ EXP"
+    + " [" + statsObj.caches.categorizeCache.stats.keys + " KEYS]"
+    + " | TTL: " + tcUtils.msToTime(ONE_MINUTE)
+    + " | NOW: " + getTimeStamp()
+    + " | $ EXP: " + statsObj.caches.categorizeCache.expired
+    + " | NID: " + nodeId
+    + " | @" + user.screenName
+  ));
+}
+
+categorizeCache.on("expired", categorizeCacheExpired);
+
+// ==================================================================
 // UNCAT USER ID CACHE
 // ==================================================================
 console.log(MODULE_ID_PREFIX + " | UNCAT USER ID CACHE TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000));
@@ -2106,11 +2163,10 @@ DEFAULT_NODE_TYPES.forEach(function(nodeType){
 });
 
 const cacheObj = {};
+cacheObj.categorizeCache = categorizeCache;
 cacheObj.ipCache = ipCache;
-// cacheObj.mismatchUserCache = mismatchUserCache;
 cacheObj.uncatUserCache = uncatUserCache;
 cacheObj.nodeCache = nodeCache;
-// cacheObj.botCache = botCache;
 cacheObj.serverCache = serverCache;
 cacheObj.viewerCache = viewerCache;
 cacheObj.nodesPerMinuteTopTermCache = nodesPerMinuteTopTermCache;
@@ -2290,6 +2346,12 @@ function initStats(callback){
   statsObj.maxNodesPerMinTime = moment().valueOf();
 
   statsObj.caches = {};
+
+  statsObj.caches.categorizeCache = {};
+  statsObj.caches.categorizeCache.stats = {};
+  statsObj.caches.categorizeCache.stats.keys = 0;
+  statsObj.caches.categorizeCache.stats.keysMax = 0;
+  statsObj.caches.categorizeCache.expired = 0;
 
   statsObj.caches.ipCache = {};
   statsObj.caches.ipCache.stats = {};
@@ -6438,6 +6500,20 @@ async function categorize(params){
 
   if (tfeChild !== undefined) { 
 
+    const categorizeCacheObj = categorizeCache.get(params.user.nodeId);
+
+    if (categorizeCacheObj) { return; }
+
+    await pubSubPublishMessage({
+      topicName: "categorize",
+      message: {
+        user: {
+          nodeId: params.user.nodeId,
+          screenName: params.user.screenName
+        }
+      }
+    });
+
     tfeChild.send({
       op: "USER_CATEGORIZE", 
       priorityFlag: autoFollowFlag, 
@@ -6447,9 +6523,8 @@ async function categorize(params){
       }
     });
 
-    if (n.category == "left" || n.category == "right" || n.category == "neutral") {
-      uncatUserCache.del(n.nodeId);
-    }
+    categorizeCache.set(params.user.nodeId, params.user);
+
   }
   return;
 }
@@ -11101,6 +11176,11 @@ setTimeout(async function(){
   console.log(chalkBlue(MODULE_ID_PREFIX + " | ... WAIT START TIMEOUT: " + tcUtils.msToTime(DEFAULT_START_TIMEOUT)));
 
   try {
+
+    pubSubClient = await initPubSub();
+
+    const [topics] = await pubSubClient.getTopics();
+    topics.forEach(topic => console.log(chalkLog(MODULE_ID_PREFIX + " | PUBSUB TOPIC: " + topic.name)));
 
     global.dbConnection = await connectDb();
 

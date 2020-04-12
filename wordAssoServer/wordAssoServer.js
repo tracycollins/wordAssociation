@@ -905,7 +905,6 @@ function quit(message) {
   clearInterval(updateMetricsInterval);
   clearInterval(statsInterval);
   clearInterval(memStatsInterval);
-  clearInterval(categoryHashmapsInterval);
   clearInterval(twitterSearchNodeQueueInterval);
 
   let msg = "";
@@ -1302,7 +1301,6 @@ let tweetParserPingSent = false;
 let tweetParserPongReceived = false;
 let tweetParserPingId = false;
 
-let categoryHashmapsInterval;
 let statsInterval;
 
 const categorizedManualUserSet = new Set();
@@ -1590,6 +1588,7 @@ function initPassport(){
 
           });
         });
+        
       }
     ));
 
@@ -6218,11 +6217,14 @@ async function updateUserSets(){
     ));
     console.log(chalkLog(MODULE_ID_PREFIX + " | USER DB STATS\n" + jsonPrint(statsObj.user)));
 
+    tcUtils.emitter.emit("updateUserSetsEnd");
+
     if (!calledBack) { 
       calledBack = true;
       updateUserSetsRunning = false;
       return;
     }
+    
   });
 
   userSearchCursor.on("error", function(err) {
@@ -6230,24 +6232,37 @@ async function updateUserSets(){
     console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR userSearchCursor: " + err));
     console.log(chalkAlert(MODULE_ID_PREFIX + " | USER DB STATS\n" + jsonPrint(statsObj.user)));
 
-    if (!calledBack) { 
-      calledBack = true;
-      updateUserSetsRunning = false;
-      throw err;
-    }
-  });
-
-  userSearchCursor.on("close", function() {
-
-    console.log(chalkBlue(MODULE_ID_PREFIX + " | CLOSE FOLLOWING CURSOR"));
-    console.log(chalkBlue(MODULE_ID_PREFIX + " | USER DB STATS\n" + jsonPrint(statsObj.user)));
+    tcUtils.emitter.emit("updateUserSetsEnd");
 
     if (!calledBack) { 
       calledBack = true;
       updateUserSetsRunning = false;
       return;
     }
+    
   });
+
+  userSearchCursor.on("close", async function() {
+
+    console.log(chalkBlue(MODULE_ID_PREFIX + " | CLOSE FOLLOWING CURSOR"));
+    console.log(chalkBlue(MODULE_ID_PREFIX + " | USER DB STATS\n" + jsonPrint(statsObj.user)));
+
+    tcUtils.emitter.emit("updateUserSetsEnd");
+
+    if (!calledBack) { 
+      calledBack = true;
+      updateUserSetsRunning = false;
+      return;
+    }
+
+  });
+
+  // if (!calledBack) { 
+  //   calledBack = true;
+  //   updateUserSetsRunning = false;
+  //   return;
+  // }
+
 }
 
 async function updateHashtagSets(){
@@ -9897,6 +9912,7 @@ function initUpdateUserSetsInterval(interval){
         if (statsObj.dbConnectionReady && updateUserSetsIntervalReady) {
           updateUserSetsIntervalReady = false;
           await updateUserSets();
+          await tcUtils.waitEvent({ event: "updateUserSetsEnd", verbose: true});
           await updateHashtagSets();
           updateUserSetsIntervalReady = true;
         }
@@ -11026,6 +11042,7 @@ async function initWatchConfig(){
       if (f.endsWith("bestRuntimeNetwork.json")){
         await loadBestRuntimeNetwork();
         await updateUserSets();
+        await tcUtils.waitEvent({ event: "updateUserSetsEnd", verbose: true});
         await updateHashtagSets();
       }
 
@@ -11132,12 +11149,13 @@ setTimeout(async function(){
 
     configEvents.emit("DB_CONNECT");
 
+    await updateUserSets();
+    await tcUtils.waitEvent({ event: "updateUserSetsEnd", verbose: true});
     await initAllowLocations();
     await initIgnoreLocations();
     await loadBestRuntimeNetwork();
     await loadMaxInputHashMap();
     await initIgnoreWordsHashMap();
-    await updateUserSets();
     await updateHashtagSets();
     await initDbUserMissQueueInterval(configuration.dbUserMissQueueInterval)
     await initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval);

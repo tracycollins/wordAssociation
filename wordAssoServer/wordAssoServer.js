@@ -240,6 +240,9 @@ const TWEET_ID_CACHE_CHECK_PERIOD = 5;
 const DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL = 604800; // 3600*24*7 sec/week
 const DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD = 3600;
 
+const DEFAULT_CATEGORIZE_CACHE_DEFAULT_TTL = 300; // 
+const DEFAULT_CATEGORIZE_CACHE_CHECK_PERIOD = 10;
+
 const chalk = require("chalk");
 const chalkUser = chalk.blue;
 const chalkTwitter = chalk.blue;
@@ -791,8 +794,8 @@ configuration.forceFollow = DEFAULT_FORCE_FOLLOW;
 configuration.enableTwitterFollow = DEFAULT_ENABLE_TWITTER_FOLLOW;
 configuration.autoFollow = DEFAULT_AUTO_FOLLOW;
 
-// configuration.mismatchUserCacheTtl = DEFAULT_MISMATCH_USER_ID_CACHE_DEFAULT_TTL;
-// configuration.mismatchUserCacheCheckPeriod = DEFAULT_MISMATCH_USER_ID_CACHE_CHECK_PERIOD;
+configuration.categorizeCacheTtl = DEFAULT_CATEGORIZE_CACHE_DEFAULT_TTL;
+configuration.categorizeCacheCheckPeriod = DEFAULT_CATEGORIZE_CACHE_CHECK_PERIOD;
 
 configuration.uncatUserCacheTtl = DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL;
 configuration.uncatUserCacheCheckPeriod = DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD;
@@ -1718,8 +1721,8 @@ ipCache.on("expired", ipCacheExpired);
 // ==================================================================
 // CATEGORIZE USER ID CACHE
 // ==================================================================
-console.log(MODULE_ID_PREFIX + " | CATEGORIZE USER ID CACHE TTL: " + tcUtils.msToTime(ONE_MINUTE));
-console.log(MODULE_ID_PREFIX + " | CATEGORIZE USER ID CACHE CHECK PERIOD: " + tcUtils.msToTime(15*ONE_SECOND));
+console.log(MODULE_ID_PREFIX + " | CATEGORIZE USER ID CACHE TTL: " + tcUtils.msToTime(configuration.categorizeCacheTtl*1000));
+console.log(MODULE_ID_PREFIX + " | CATEGORIZE USER ID CACHE CHECK PERIOD: " + tcUtils.msToTime(configuration.categorizeCacheCheckPeriod*1000));
 
 const categorizeCache = new NodeCache({
   stdTTL: 60,
@@ -6523,7 +6526,7 @@ async function categorize(params){
       }
     });
 
-    categorizeCache.set(params.user.nodeId, params.user);
+    categorizeCache.set(params.user.nodeId, params.user, configuration.categorizeCacheTtl);
 
   }
   return;
@@ -9324,6 +9327,11 @@ async function loadConfigFile(params) {
       else {
         newConfiguration.filterDuplicateTweets = true;
       }
+    }
+
+    if (loadedConfigObj.UNCAT_USER_ID_CACHE_DEFAULT_TTL !== undefined){
+      console.log(MODULE_ID_PREFIX + " | LOADED CATEGORIZE_CACHE_DEFAULT_TTL: " + loadedConfigObj.CATEGORIZE_CACHE_DEFAULT_TTL);
+      newConfiguration.categorizeCacheTtl = loadedConfigObj.CATEGORIZE_CACHE_DEFAULT_TTL;
     }
 
     if (loadedConfigObj.UNCAT_USER_ID_CACHE_DEFAULT_TTL !== undefined){

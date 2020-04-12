@@ -483,16 +483,23 @@ async function initPubSub(p){
 }
 
 async function pubSubPublishMessage(params){
+
   const data = JSON.stringify(params.message);
   const dataBuffer = Buffer.from(data);
+
   const messageId = await pubSubClient.topic(params.topicName).publish(dataBuffer);
-  console.log(chalkBlue(MODULE_ID_PREFIX
-    + " | PUBSUB"
-    + " | MID: " + messageId
-    + " | TOPIC: " + params.topicName
-    + " | NID: " + params.message.user.nodeId
-    // + " | @" + params.message.user.screenName
-  ));
+
+  statsObj.pubSub.messagesSent += 1;
+
+  if (configuration.verbose || (statsObj.pubSub.messagesSent % 100 === 0)){
+    console.log(chalkBlue(MODULE_ID_PREFIX
+      + " | PUBSUB [" + statsObj.pubSub.messagesSent + "]"
+      + " | MID: " + messageId
+      + " | TOPIC: " + params.topicName
+      + " | NID: " + params.message.user.nodeId
+    ));
+  }
+
   return;
 }
 
@@ -650,6 +657,9 @@ configEvents.on("newListener", function(data) {
 });
 
 const statsObj = {};
+
+statsObj.pubSub = {};
+statsObj.pubSub.messagesSent = 0;
 
 statsObj.commandLineArgsLoaded = false;
 statsObj.currentThreeceeUserIndex = 0;

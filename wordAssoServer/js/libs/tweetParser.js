@@ -244,7 +244,6 @@ process.on("message", function(m) {
         + " | TITLE: " + m.title
         + " | INTERVAL: " + m.interval
         + " | TWEET VERSION 2: " + m.tweetVersion2
-        // + "\nMESSAGE " + tcUtils.jsonPrint(m)
       ));
 
       initTweetParserQueueInterval(configuration);

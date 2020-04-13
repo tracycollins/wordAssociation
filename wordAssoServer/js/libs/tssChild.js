@@ -359,11 +359,9 @@ else {
 const DROPBOX_TSS_CONFIG_FILE = process.env.DROPBOX_TSS_CONFIG_FILE || "twitterSearchStreamConfig.json";
 const DROPBOX_TSS_STATS_FILE = process.env.DROPBOX_TSS_STATS_FILE || "twitterSearchStreamStats.json";
 
-// const statsFolder = "/stats/" + hostname + "/tssChild";
 const statsFile = DROPBOX_TSS_STATS_FILE;
 
 const dropboxConfigFolder = "/config/utility";
-// const dropboxConfigHostFolder = "/config/utility/" + hostname;
 
 const dropboxConfigFile = hostname + "_" + DROPBOX_TSS_CONFIG_FILE;
 

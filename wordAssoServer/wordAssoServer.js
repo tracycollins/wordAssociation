@@ -18,6 +18,10 @@ const ONE_DAY = 24 * ONE_HOUR;
 
 const twitterDateFormat = "ddd MMM DD HH:mm:ss Z YYYY"; // Wed Aug 27 13:08:45 +0000 2008
 
+const DEFAULT_PUBSUB_ENABLED = true;
+const DEFAULT_PUBSUB_PROJECT_ID = "graphic-tangent-627";
+const DEFAULT_PUBSUB_TOPIC_NAME = "categorize";
+
 const DEFAULT_GOOGLE_COMPUTE_DOMAIN = "bc.googleusercontent.com";
 
 const DEFAULT_START_TIMEOUT = 5*ONE_SECOND;
@@ -764,15 +768,14 @@ let defaultConfiguration = {}; // general configuration
 let hostConfiguration = {}; // host-specific configuration
 
 configuration.pubSub = {};
-configuration.pubSub.projectId = "graphic-tangent-627";
-configuration.pubSub.topicName = "categorize";
+configuration.pubSub.enabled = DEFAULT_PUBSUB_ENABLED;
+configuration.pubSub.projectId = DEFAULT_PUBSUB_PROJECT_ID;
+configuration.pubSub.topicName = DEFAULT_PUBSUB_TOPIC_NAME;
 
 configuration.slackChannel = {};
 
 configuration.heartbeatInterval = process.env.WAS_HEARTBEAT_INTERVAL || ONE_MINUTE;
-// configuration.statsUpdateIntervalTime = process.env.WAS_STATS_UPDATE_INTERVAL || 10*ONE_MINUTE;
 configuration.uncatUserCacheIntervalTime = process.env.WAS_UNCAT_USER_CACHE_INTERVAL || 15*ONE_MINUTE;
-// configuration.mismatchUserCacheIntervalTime = process.env.WAS_MISMATCH_USER_CACHE_INTERVAL || 15*ONE_MINUTE;
 
 configuration.maxUserSearchSkipCount = DEFAULT_MAX_USER_SEARCH_SKIP_COUNT;
 configuration.filterVerifiedUsers = true;
@@ -6517,15 +6520,14 @@ async function categorize(params){
 
     if (categorizeCacheObj) { return; }
 
-    await pubSubPublishMessage({
-      topicName: "categorize",
-      message: {
-        user: {
-          nodeId: params.user.nodeId
-          // screenName: params.user.screenName
+    if (configuration.pubSubEnabled){
+      await pubSubPublishMessage({
+        topicName: "categorize",
+        message: {
+          user: { nodeId: params.user.nodeId }
         }
-      }
-    });
+      });
+    }
 
     tfeChild.send({
       op: "USER_CATEGORIZE", 
@@ -9210,8 +9212,10 @@ async function loadConfigFile(params) {
     console.log(chalkInfo(MODULE_ID_PREFIX + " | LOADED CONFIG FILE: " + params.file + "\n" + jsonPrint(loadedConfigObj)));
 
     const newConfiguration = {};
+
     newConfiguration.metrics = {};
     newConfiguration.threeceeUsers = [];
+    newConfiguration.pubSub = {};
 
     if (loadedConfigObj.WAS_USER_PROFILE_ONLY_FLAG !== undefined){
       console.log(MODULE_ID_PREFIX + " | LOADED WAS_USER_PROFILE_ONLY_FLAG: " + loadedConfigObj.WAS_USER_PROFILE_ONLY_FLAG);
@@ -9225,6 +9229,30 @@ async function loadConfigFile(params) {
       else {
         newConfiguration.userProfileOnlyFlag = false;
       }
+    }
+
+    if (loadedConfigObj.WAS_PUBSUB_ENABLED !== undefined){
+      console.log(MODULE_ID_PREFIX + " | LOADED WAS_PUBSUB_ENABLED: " + loadedConfigObj.WAS_PUBSUB_ENABLED);
+
+      if ((loadedConfigObj.WAS_PUBSUB_ENABLED == false) || (loadedConfigObj.WAS_PUBSUB_ENABLED == "false")) {
+        newConfiguration.pubSub.enabled = false;
+      }
+      else if ((loadedConfigObj.WAS_PUBSUB_ENABLED == true) || (loadedConfigObj.WAS_PUBSUB_ENABLED == "true")) {
+        newConfiguration.pubSub.enabled = true;
+      }
+      else {
+        newConfiguration.pubSub.enabled = false;
+      }
+    }
+
+    if (loadedConfigObj.WAS_PUBSUB_PROJECT_ID !== undefined){
+      console.log(MODULE_ID_PREFIX + " | LOADED WAS_PUBSUB_PROJECT_ID: " + loadedConfigObj.WAS_PUBSUB_PROJECT_ID);
+      newConfiguration.pubSub.projectId = loadedConfigObj.WAS_PUBSUB_PROJECT_ID;
+    }
+
+    if (loadedConfigObj.WAS_PUBSUB_TOPIC_NAME !== undefined){
+      console.log(MODULE_ID_PREFIX + " | LOADED WAS_PUBSUB_TOPIC_NAME: " + loadedConfigObj.WAS_PUBSUB_TOPIC_NAME);
+      newConfiguration.pubSub.topicName = loadedConfigObj.WAS_PUBSUB_TOPIC_NAME;
     }
 
     if (loadedConfigObj.TWEET_VERSION_2 !== undefined){
@@ -11198,7 +11226,7 @@ setTimeout(async function(){
     pubSubClient = await initPubSub();
 
     const [topics] = await pubSubClient.getTopics();
-    topics.forEach(topic => console.log(chalkLog(MODULE_ID_PREFIX + " | PUBSUB TOPIC: " + topic.name)));
+    topics.forEach((topic) => console.log(chalkLog(MODULE_ID_PREFIX + " | PUBSUB TOPIC: " + topic.name)));
 
     global.dbConnection = await connectDb();
 

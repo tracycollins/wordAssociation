@@ -587,7 +587,6 @@ const addedUsersSet = new Set();
 const deletedUsersSet = new Set();
 const botNodeIdSet = new Set();
 const autoFollowUserSet = new Set();
-const verifiedCategorizedUsersSet = new Set();
 const ignoreIpSet = new Set();
 const pubSubCategorizeSentSet = new Set();
 
@@ -3535,13 +3534,6 @@ async function categoryVerified(params) {
       + " | CA: " + formatCategory(params.user.categoryAuto)
     ));
 
-    if (params.user.categoryVerified) {
-      verifiedCategorizedUsersSet.add(params.user.screenName.toLowerCase());
-    }
-    else {
-      verifiedCategorizedUsersSet.delete(params.user.screenName.toLowerCase());
-    }
-
     const dbUser = await global.wordAssoDb.User.findOne({screenName: params.user.screenName.toLowerCase()});
 
     if (empty(dbUser)) {
@@ -3557,7 +3549,7 @@ async function categoryVerified(params) {
     const dbUpdatedUser = await dbUser.save();
 
     printUserObj(
-      MODULE_ID_PREFIX + " | UPDATE DB USER | CAT VERIFIED [" + verifiedCategorizedUsersSet.size + "]",
+      MODULE_ID_PREFIX + " | UPDATE DB USER",
       dbUpdatedUser, 
       chalkLog
     );
@@ -5664,6 +5656,184 @@ async function countDocuments(params){
   }
 }
 
+let updateUserSetsRunning = false;
+
+async function updateUserSets(){
+
+  statsObj.status = "UPDATE USER SETS";
+
+  if (updateUserSetsRunning) {
+    return;
+  }
+
+  updateUserSetsRunning = true;
+
+  let calledBack = false;
+
+  if (!statsObj.dbConnectionReady) {
+    console.log(chalkAlert(MODULE_ID_PREFIX + " | ABORT updateUserSets: DB CONNECTION NOT READY"));
+    calledBack = true;
+    updateUserSetsRunning = false;
+    throw new Error("DB CONNECTION NOT READY");
+  }
+
+  await global.wordAssoDb.User.deleteMany({ "$and": [ {lang: { "$nin": [ false, null ] } }, { lang: { "$ne": "en" } } ]} );
+
+  // -----
+  
+  const userSearchQuery = { ignored: false };
+  
+  userSearchCursor = global.wordAssoDb.User
+  .find(userSearchQuery)
+  .select({
+    nodeId: 1, 
+    lang: 1, 
+    category: 1, 
+    categoryAuto: 1, 
+    categorizeNetwork: 1, 
+    categoryVerified: 1, 
+    following: 1, 
+    followersCount: 1, 
+    ignored: 1,
+    screenName: 1,
+    name: 1
+  })
+  .lean()
+  .cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
+
+  const cursorStartTime = moment().valueOf();
+
+  let usersProcessed = 0;
+
+  userSearchCursor.on("data", async function(user) {
+
+    const nodeId = user.nodeId.toLowerCase();
+
+    if (user.category === undefined || user.category === "false" || !user.category) { user.category = "none"; }
+    if (user.categoryAuto === undefined || user.categoryAuto === "false" || !user.categoryAuto) { user.categoryAuto = "none"; }
+
+    const category = user.category;
+
+    if (!category && uncategorizeableUserSet.has(nodeId)){
+
+      global.wordAssoDb.User.deleteOne({"nodeId": nodeId}, function(err){
+        if (err) {
+          console.log(chalkError(MODULE_ID_PREFIX + " | *** DB DELETE UNCATEGORIZEABLE | ERROR: " + err));
+        }
+        else {
+          printUserObj(
+            "XXX USER | UNCATEGORIZEABLE",
+            user, 
+            chalkAlert
+          );
+        }
+      });
+    }
+    else if (user.lang && (user.lang !== undefined) && (user.lang != "en")){
+
+      global.wordAssoDb.User.deleteOne({"nodeId": nodeId}, function(err){
+        if (err) {
+          console.log(chalkError(MODULE_ID_PREFIX + " | *** DB DELETE USER LANG NOT ENG | ERROR: " + err));
+        }
+        else {
+          printUserObj(
+            "XXX USER | LANG NOT ENGLISH: " + user.lang,
+            user, 
+            chalkAlert
+          );
+        }
+      });
+    }
+    else if (!category 
+      && !user.following 
+      && (user.followersCount > 0)
+      && (user.followersCount < configuration.minFollowersAutoCategorize)){
+
+      global.wordAssoDb.User.deleteOne({"nodeId": nodeId}, function(err){
+        if (err) {
+          console.log(chalkError(MODULE_ID_PREFIX + " | *** DB DELETE USER LESS THAN MIN FOLLOWERS | ERROR: " + err));
+        }
+        else {
+          printUserObj(
+            "XXX USER | < MIN FOLLOWERS: " + user.followersCount,
+            user, 
+            chalkAlert
+          );
+        }
+      });
+    }
+    else {
+
+      if (user.category && user.category !== undefined){
+        categorizedUserHashMap.set(user.nodeId, 
+          { 
+            nodeId: user.nodeId, 
+            screenName: user.screenName, 
+            manual: user.category, 
+            auto: user.categoryAuto,
+            network: user.categorizeNetwork
+          }
+        );
+      }      
+    }
+
+    usersProcessed++;
+
+    if (usersProcessed % 1000 === 0) {
+      console.log(chalkLog(MODULE_ID_PREFIX + " | USER SETS | " + usersProcessed + " USERS PROCESSED"));
+    }
+  });
+
+  userSearchCursor.on("end", function() {
+
+    console.log(chalkBlue(MODULE_ID_PREFIX + " | END FOLLOWING CURSOR"
+      + " | " + getTimeStamp()
+      + " | FOLLOWING USER SET | RUN TIME: " + tcUtils.msToTime(moment().valueOf() - cursorStartTime)
+    ));
+    console.log(chalkLog(MODULE_ID_PREFIX + " | USER DB STATS\n" + jsonPrint(statsObj.user)));
+
+    tcUtils.emitter.emit("updateUserSetsEnd");
+
+    if (!calledBack) { 
+      calledBack = true;
+      updateUserSetsRunning = false;
+      return;
+    }
+    
+  });
+
+  userSearchCursor.on("error", function(err) {
+
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR userSearchCursor: " + err));
+    console.log(chalkAlert(MODULE_ID_PREFIX + " | USER DB STATS\n" + jsonPrint(statsObj.user)));
+
+    tcUtils.emitter.emit("updateUserSetsEnd");
+
+    if (!calledBack) { 
+      calledBack = true;
+      updateUserSetsRunning = false;
+      return;
+    }
+    
+  });
+
+  userSearchCursor.on("close", async function() {
+
+    console.log(chalkBlue(MODULE_ID_PREFIX + " | CLOSE FOLLOWING CURSOR"));
+    console.log(chalkBlue(MODULE_ID_PREFIX + " | USER DB STATS\n" + jsonPrint(statsObj.user)));
+
+    tcUtils.emitter.emit("updateUserSetsEnd");
+
+    if (!calledBack) { 
+      calledBack = true;
+      updateUserSetsRunning = false;
+      return;
+    }
+
+  });
+
+}
+
 async function updateHashtagSets(){
 
   statsObj.status = "UPDATE HASHTAG SETS";
@@ -5782,6 +5952,24 @@ function printBotStats(params){
   }
 }
 
+async function pubSubCategorizeUser(params){
+
+  if (configuration.pubSubEnabled && !pubSubCategorizeSentSet.has(params.nodeId)) { 
+
+    await pubSubPublishMessage({
+      topicName: "categorize",
+      message: {
+        user: { nodeId: params.nodeId }
+      }
+    });
+
+    pubSubCategorizeSentSet.set(params.nodeId);
+
+    return true;
+  }
+  return false;
+}
+
 async function categorize(params){
 
   const n = params.user;
@@ -5807,18 +5995,8 @@ async function categorize(params){
     printUserObj(MODULE_ID_PREFIX + " | AUTO FLW [" + statsObj.user.autoFollow + "]", n);
   }
 
-  if (configuration.pubSubEnabled && !pubSubCategorizeSentSet.has(params.user.nodeId)) { 
+  await pubSubCategorizeUser({nodeId: params.user.nodeId});
 
-    await pubSubPublishMessage({
-      topicName: "categorize",
-      message: {
-        user: { nodeId: params.user.nodeId }
-      }
-    });
-
-    pubSubCategorizeSentSet.set(params.user.nodeId);
-  
-  }
   return;
 }
 
@@ -9161,6 +9339,7 @@ setTimeout(async function(){
     await loadBestRuntimeNetwork();
     await initIgnoreWordsHashMap();
     await updateHashtagSets();
+    await updateUserSets();
     await initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval);
     await initRateQinterval(configuration.rateQueueInterval);
     await initTwitterRxQueueInterval(configuration.twitterRxQueueInterval);

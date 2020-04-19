@@ -6340,7 +6340,6 @@ async function updateUserSets(){
   //   updateUserSetsRunning = false;
   //   return;
   // }
-
 }
 
 async function updateHashtagSets(){

@@ -224,7 +224,7 @@ const chalkLog = chalk.gray;
 const chalkGreen = chalk.green;
 const chalkBlue = chalk.blue;
 const chalkBlueBold = chalk.blue.bold;
-const chalkBot = chalkWarn;
+const chalkBot = chalk.gray;
 
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const HashMap = require("hashmap").HashMap;
@@ -1909,38 +1909,6 @@ authInProgressTwitterUserCache.on("expired", function(nodeId, userObj){
     + " | userObj\n" + jsonPrint(userObj)
   ));
 });
-
-// ==================================================================
-// BOT CACHE
-// ==================================================================
-// let botCacheTtl = process.env.BOT_CACHE_DEFAULT_TTL;
-// if (empty(botCacheTtl)) { botCacheTtl = BOT_CACHE_DEFAULT_TTL; }
-// console.log(MODULE_ID_PREFIX + " | BOT CACHE TTL: " + botCacheTtl + " SECONDS");
-
-// let botCacheCheckPeriod = process.env.BOT_CACHE_CHECK_PERIOD;
-// if (empty(botCacheCheckPeriod)) { botCacheCheckPeriod = BOT_CACHE_CHECK_PERIOD; }
-// console.log(MODULE_ID_PREFIX + " | BOT CACHE CHECK PERIOD: " + botCacheCheckPeriod + " SECONDS");
-
-// const botCache = new NodeCache({
-//   stdTTL: botCacheTtl,
-//   checkperiod: botCacheCheckPeriod
-// });
-
-// let botCacheExpiredCount = 0;
-
-// botCache.on("expired", function(nodeId, botUserScreenName){
-
-//   botCacheExpiredCount++;
-
-//   if (botCacheExpiredCount % 100 === 0){
-//     console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX BOT CACHE EXPIRED"
-//       + " [" + botCache.getStats().keys + " KEYS]"
-//       + " | TTL: " + botCacheTtl + " SECS"
-//       + " | NID: " + nodeId
-//       + " | @" + botUserScreenName
-//     ));
-//   }
-// });
 
 // ==================================================================
 // NODE CACHE

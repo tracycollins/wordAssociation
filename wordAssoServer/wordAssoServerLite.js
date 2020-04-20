@@ -5950,7 +5950,7 @@ async function pubSubCategorizeUser(params){
       }
     });
 
-    pubSubCategorizeSentSet.set(params.nodeId);
+    pubSubCategorizeSentSet.add(params.nodeId);
 
     return true;
   }

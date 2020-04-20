@@ -5262,19 +5262,6 @@ async function userCategorizeable(params){
   const user = params.user;
   const verbose = (params.verbose && params.verbose !== undefined) ? params.verbose : false;
 
-  // assume it's a user node
-
-  // if (user.nodeType != "user") { 
-  //   if (verbose) { 
-  //     console.log(chalkLog(MODULE_ID_PREFIX 
-  //       + " | userCategorizeable | FALSE | NODE TYPE !== USER"
-  //       + " | NODE TYPE: " + user.nodeType
-  //       + " | @" + user.screenName
-  //     ));
-  //   }
-  //   return false; 
-  // }
-
   if(uncategorizeableUserSet.has(user.nodeId)){
     if (verbose) { 
       console.log(chalkInfo(MODULE_ID_PREFIX 
@@ -5954,7 +5941,7 @@ function printBotStats(params){
 
 async function pubSubCategorizeUser(params){
 
-  if (configuration.pubSubEnabled && !pubSubCategorizeSentSet.has(params.nodeId)) { 
+  if (configuration.pubSub.enabled && !pubSubCategorizeSentSet.has(params.nodeId)) { 
 
     await pubSubPublishMessage({
       topicName: "categorize",

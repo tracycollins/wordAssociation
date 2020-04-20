@@ -460,7 +460,7 @@ async function pubSubPublishMessage(params){
   statsObj.pubSub.messagesSent += 1;
 
   if (configuration.verbose || (statsObj.pubSub.messagesSent % 100 === 0)){
-    console.log(chalkBlue(MODULE_ID_PREFIX
+    console.log(chalkLog(MODULE_ID_PREFIX
       + " | PUBSUB [" + statsObj.pubSub.messagesSent + "]"
       + " | MID: " + messageId
       + " | TOPIC: " + params.topicName

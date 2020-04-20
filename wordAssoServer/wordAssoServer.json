@@ -3,7 +3,7 @@
     "name"        : "wa",
     "script"      : "wordAssoServerLite.js",
     "cwd"         : "/home/tc/wordAssociation/wordAssoServer",
-    "autorestart" : true,
+    "autorestart" : false,
     "restart_delay": 600000,
     "node_args"   : "--max-old-space-size=10240",
     "env": {

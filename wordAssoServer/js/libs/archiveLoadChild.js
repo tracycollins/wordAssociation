@@ -38,7 +38,6 @@ else {
 }
 
 const configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/default");
-// const configHostFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility",hostname);
 
 let configuration = {};
 
@@ -55,7 +54,6 @@ const CONSTANTS = tcUtils.constants;
 const msToTime = tcUtils.msToTime;
 const jsonPrint = tcUtils.jsonPrint;
 const getTimeStamp = tcUtils.getTimeStamp;
-const formatBoolean = tcUtils.formatBoolean;
 const formatCategory = tcUtils.formatCategory;
 
 const QUIT_WAIT_INTERVAL = CONSTANTS.ONE_SECOND;
@@ -448,7 +446,10 @@ function unzipUsers(params){
                           await dbUser.save();
                         }
                         catch(e){
-                          console.log(chalkError(MODULE_ID_PREFIX + " | *** DB SAVE ERROR ", err));
+                          console.log(chalkError(MODULE_ID_PREFIX
+                            + " | *** DB SAVE ERROR " + e
+                            + "\nuserObj\n" + jsonPrint(userObj)
+                          ));
                         }
                       }
 

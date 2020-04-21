@@ -845,10 +845,6 @@ function initSearchStream(){
 
       threeceeUserObj.searchStream = threeceeUserObj.twitStream.stream("statuses/filter", filter);
 
-      // const file = currentTwitterFilterTrackFile.replace(".json", "_" + getTimeStamp() + ".json");
-
-      // tcUtils.saveFile({folder: statsHostFolder, file: file, obj: filter.track});
-
       threeceeUserObj.searchStream.on("message", function(msg){
         if (msg.event) {
           console.log(chalkAlert("TSS | " + getTimeStamp() 

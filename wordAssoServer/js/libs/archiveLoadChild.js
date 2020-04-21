@@ -443,11 +443,12 @@ function unzipUsers(params){
                         ));
 
                         dbUser = new global.wordAssoDb.User(userObj);
+
                         try{
                           await dbUser.save();
                         }
                         catch(e){
-                          console.log(chalkError(MODULE_ID_PREFIX + " | *** DB SAVE ERROR: " + err));
+                          console.log(chalkError(MODULE_ID_PREFIX + " | *** DB SAVE ERROR ", err));
                         }
                       }
 

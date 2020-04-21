@@ -448,7 +448,8 @@ function unzipUsers(params){
                         catch(e){
                           console.log(chalkError(MODULE_ID_PREFIX
                             + " | *** DB SAVE ERROR " + e
-                            + "\nuserObj\n" + jsonPrint(userObj)
+                            + "\nerror\n" + jsonPrint(e)
+                            + "\nuserObj.profileHistograms\n" + jsonPrint(userObj.profileHistograms)
                           ));
                         }
                       }

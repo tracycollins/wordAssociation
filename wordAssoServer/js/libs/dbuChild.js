@@ -35,8 +35,18 @@ const moment = require("moment");
 const debug = require("debug")("dbu");
 const debugCache = require("debug")("cache");
 const debugQ = require("debug")("queue");
-const async = require("async");
 const _ = require("lodash");
+
+const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
+const tcUtils = new ThreeceeUtilities(MODULE_ID_PREFIX + "_TCU");
+
+tcUtils.on("error", function(err){
+  console.log(chalkError(MODULE_ID_PREFIX + " | *** TCU ERROR | " + err));
+});
+
+tcUtils.on("ready", function(appname){
+  console.log(chalk.green(MODULE_ID_PREFIX + " | TCU READY | " + appname));
+});
 
 const MergeHistograms = require("@threeceelabs/mergehistograms");
 const mergeHistograms = new MergeHistograms();
@@ -364,202 +374,296 @@ function getNumKeys(obj){
   return Object.keys(obj).length;
 }
 
-function userUpdateDb(tweetObj){
+// function userUpdateDb(tweetObj){
 
-  return new Promise(function(resolve, reject){
+//   return new Promise(function(resolve, reject){
+
+//     statsObj.status = "USER UPDATE DB";
+
+//     async.each(Object.keys(tweetObj), function(entityType, cb0){
+
+//       if (entityType === "user") { return cb0(); }
+//       if (!configuration.inputTypes.includes(entityType)) { return cb0(); }
+
+//       if (tweetObj[entityType].length === 0) { return cb0(); }
+
+//       debug(chalkLog("DBU | USER HIST"
+//         + " | @" + tweetObj.user.screenName
+//         + " | ENTITY TYPE: " + entityType.toUpperCase()
+//       ));
+
+//       async.each(tweetObj[entityType], function(entityObj, cb1){
+
+//         if (!entityObj) {
+//           debug(chalkInfo("DBU | !!! NULL entity? | ENTITY TYPE: " + entityType + " | entityObj: " + entityObj));
+//           return cb1();
+//         }
+
+//         let entity;
+
+//         switch (entityType) {
+//           case "hashtags":
+//             entity = "#" + entityObj.toLowerCase();
+//           break;
+//           case "mentions":
+//           case "userMentions":
+//             entity = "@" + entityObj.screenName.toLowerCase();
+//           break;
+//           case "locations":
+//           case "images":
+//           case "media":
+//           case "ngrams":
+//           case "places":
+//           case "emoji":
+//           case "urls":
+//             entity = entityObj; // should already be b64 encoded by tweetServerController
+//           break;
+//           case "words":
+//             entity = entityObj.toLowerCase();
+//           break;
+//           default:
+//             console.log(chalkError("DBU | *** userUpdateDb ERROR: UNKNOWN ENTITY TYPE: " + entityType));
+//             return reject(new Error("UNKNOWN ENTITY TYPE: " + entityType));
+//         }
+
+//         if (!tweetObj.user.histograms || (tweetObj.user.histograms === undefined)){
+//           tweetObj.user.histograms = {};
+//           tweetObj.user.histograms[entityType] = {};
+//           tweetObj.user.histograms[entityType][entity] = 0;
+//         }
+
+//         if (!tweetObj.user.histograms[entityType] || (tweetObj.user.histograms[entityType] === undefined)){
+//           tweetObj.user.histograms[entityType] = {};
+//           tweetObj.user.histograms[entityType][entity] = 0;
+//         }
+
+//         if (!tweetObj.user.histograms[entityType][entity] || (tweetObj.user.histograms[entityType][entity] === undefined)){
+//           tweetObj.user.histograms[entityType][entity] = 0;
+//         }
+
+//         tweetObj.user.histograms[entityType][entity] += 1;
+
+//         if (configuration.verbose) {
+//           console.log(chalkLog("DBU | +++ USER HIST"
+//             + " | " + entityType.toUpperCase()
+//             + " | " + entity
+//             + " | " + tweetObj.user.histograms[entityType][entity]
+//           ));
+//         }
+
+//         cb1();
+
+//       }, function(){
+
+//         cb0();
+
+//       });
+
+//     }, function(err0){
+
+//       if (err0) { return reject(err0); }
+
+//       global.wordAssoDb.User.findOne({ nodeId: tweetObj.user.nodeId }).exec(async function(err, user) {
+
+//         if (err) {
+//           console.log(chalkError("DBU | *** FIND USER DB: " + err));
+//           return reject(err);
+//         }
+
+//         if (!user) {
+//           debug(chalkLog("DBU | --- USER DB MISS: @" + tweetObj.user.screenName));
+//           return resolve(null);
+//         }
+
+//         // ???? performance enhancement: check for tweet before generate tweetHistograms
+
+//         if (user.tweets && user.tweets.tweetIds && user.tweets.tweetIds.includes(tweetObj.tweetId)){
+//           console.log(chalkAlert("DBU | ??? TWEET ALREADY RCVD"
+//             + " | TW: " + tweetObj.tweetId
+//             + " | TW MAX ID: " + user.tweets.maxId
+//             + " | TW SINCE ID: " + user.tweets.maxId
+//             + " | @" + user.screenName
+//           ));
+//           return resolve();
+//         }
+
+
+//         let tweetHistogramMerged = {};
+
+//         if (!tweetObj.user.histograms || tweetObj.user.histograms === undefined || tweetObj.user.histograms === null) { 
+//           console.log(chalkLog("DBU | TWEETOBJ USER HISTOGRAMS UNDEFINED"
+//             + " | " + tweetObj.user.nodeId
+//             + " | @" + tweetObj.user.screenName
+//           ));
+//           tweetObj.user.histograms = {};
+//         }
+
+//         if (!user.tweetHistograms || user.tweetHistograms === undefined || user.tweetHistograms === null) { 
+//           console.log(chalkLog("DBU | TWEET HISTOGRAMS UNDEFINED"
+//             + " | " + user.nodeId
+//             + " | @" + user.screenName
+//           ));
+//           user.tweetHistograms = {};
+//         }
+
+//         if (!user.profileHistograms || user.profileHistograms === undefined || user.profileHistograms === null) { 
+//           console.log(chalkLog("DBU | PROFILE HISTOGRAMS UNDEFINED"
+//             + " | " + user.nodeId
+//             + " | @" + user.screenName
+//           ));
+//           user.profileHistograms = {};
+//         }
+
+//         try {
+
+//           tweetHistogramMerged = await mergeHistograms.merge({histogramA: tweetObj.user.histograms, histogramB: user.tweetHistograms});
+
+//           user.tweetHistograms = tweetHistogramMerged;
+//           user.lastHistogramTweetId = user.statusId;
+//           user.lastHistogramQuoteId = user.quotedStatusId;
+
+//           user.tweets.tweetIds = _.union(user.tweets.tweetIds, [tweetObj.tweetId]); 
+
+//           if (configuration.verbose) { printUserObj("DBU | +++ USR DB HIT", user); }
+
+//           debug(chalkInfo("DBU | USER MERGED HISTOGRAMS"
+//             + " | " + user.nodeId
+//             + " | @" + user.screenName
+//             + " | LHTID" + user.lastHistogramTweetId
+//             + " | LHQID" + user.lastHistogramQuoteId
+//             + " | EJs: " + getNumKeys(user.tweetHistograms.emoji)
+//             + " | Hs: " + getNumKeys(user.tweetHistograms.hashtags)
+//             + " | IMs: " + getNumKeys(user.tweetHistograms.images)
+//             + " | LCs: " + getNumKeys(user.tweetHistograms.locations)
+//             + " | MEs: " + getNumKeys(user.tweetHistograms.media)
+//             + " | Ms: " + getNumKeys(user.tweetHistograms.mentions)
+//             + " | NGs: " + getNumKeys(user.tweetHistograms.ngrams)
+//             + " | PLs: " + getNumKeys(user.tweetHistograms.places)
+//             + " | STs: " + getNumKeys(user.tweetHistograms.sentiment)
+//             + " | UMs: " + getNumKeys(user.tweetHistograms.userMentions)
+//             + " | ULs: " + getNumKeys(user.tweetHistograms.urls)
+//             + " | WDs: " + getNumKeys(user.tweetHistograms.words)
+//           ));
+
+//           user.ageDays = (moment().diff(user.createdAt))/ONE_DAY;
+//           user.tweetsPerDay = user.statusesCount/user.ageDays;
+//           user.markModified("tweets");
+//           user.markModified("tweetHistograms");
+
+//           user.save().
+//           then(function() {
+//             resolve();
+//           }).
+//           catch(function(e) {
+//             console.log(chalkError("DBU | *** ERROR USER SAVE: @" + user.screenName + " | " + e));
+//             reject(e);
+//           });
+
+//         }
+//         catch(err2){
+//           console.log(chalkError("DBU | *** ERROR mergeHistograms: @" + user.screenName + " | " + err2));
+//           return reject(err2);
+//         }
+
+//       });
+
+//     });
+
+//   });
+// }
+
+async function userUpdateDb(params){
+
+  try{
 
     statsObj.status = "USER UPDATE DB";
 
-    async.each(Object.keys(tweetObj), function(entityType, cb0){
+    const user = await global.wordAssoDb.User.findOne({ nodeId: params.tweetObj.user.nodeId });
 
-      if (entityType === "user") { return cb0(); }
-      if (!configuration.inputTypes.includes(entityType)) { return cb0(); }
+    if (!user) {
+      debug(chalkLog("DBU | --- USER DB MISS: @" + tweetObj.user.screenName));
+      return;
+    }
 
-      if (tweetObj[entityType].length === 0) { return cb0(); }
-
-      debug(chalkLog("DBU | USER HIST"
-        + " | @" + tweetObj.user.screenName
-        + " | ENTITY TYPE: " + entityType.toUpperCase()
+    if (user.tweets && user.tweets.tweetIds && user.tweets.tweetIds.includes(tweetObj.tweetId)){
+      console.log(chalkAlert("DBU | ??? TWEET ALREADY RCVD"
+        + " | TW: " + tweetObj.tweetId
+        + " | TW MAX ID: " + user.tweets.maxId
+        + " | TW SINCE ID: " + user.tweets.maxId
+        + " | @" + user.screenName
       ));
+      return;
+    }
 
-      async.each(tweetObj[entityType], function(entityObj, cb1){
+    const tweetObj = params.tweetObj;
+    const newTweetHistograms = tcUtils.processTweetObj({tweetObj: tweetObj});
 
-        if (!entityObj) {
-          debug(chalkInfo("DBU | !!! NULL entity? | ENTITY TYPE: " + entityType + " | entityObj: " + entityObj));
-          return cb1();
-        }
+    let tweetHistogramMerged = {};
 
-        let entity;
+    if (!user.tweetHistograms || user.tweetHistograms === undefined || user.tweetHistograms === null) { 
+      console.log(chalkLog("DBU | USER TWEET HISTOGRAMS UNDEFINED"
+        + " | " + user.nodeId
+        + " | @" + user.screenName
+      ));
+      user.tweetHistograms = {};
+    }
 
-        switch (entityType) {
-          case "hashtags":
-            entity = "#" + entityObj.toLowerCase();
-          break;
-          case "mentions":
-          case "userMentions":
-            entity = "@" + entityObj.screenName.toLowerCase();
-          break;
-          case "locations":
-          case "images":
-          case "media":
-          case "ngrams":
-          case "places":
-          case "emoji":
-          case "urls":
-            entity = entityObj; // should already be b64 encoded by tweetServerController
-          break;
-          case "words":
-            entity = entityObj.toLowerCase();
-          break;
-          default:
-            console.log(chalkError("DBU | *** userUpdateDb ERROR: UNKNOWN ENTITY TYPE: " + entityType));
-            return reject(new Error("UNKNOWN ENTITY TYPE: " + entityType));
-        }
+    if (!user.profileHistograms || user.profileHistograms === undefined || user.profileHistograms === null) { 
+      console.log(chalkLog("DBU | USER PROFILE HISTOGRAMS UNDEFINED"
+        + " | " + user.nodeId
+        + " | @" + user.screenName
+      ));
+      user.profileHistograms = {};
+    }
 
-        if (!tweetObj.user.histograms || (tweetObj.user.histograms === undefined)){
-          tweetObj.user.histograms = {};
-          tweetObj.user.histograms[entityType] = {};
-          tweetObj.user.histograms[entityType][entity] = 0;
-        }
-
-        if (!tweetObj.user.histograms[entityType] || (tweetObj.user.histograms[entityType] === undefined)){
-          tweetObj.user.histograms[entityType] = {};
-          tweetObj.user.histograms[entityType][entity] = 0;
-        }
-
-        if (!tweetObj.user.histograms[entityType][entity] || (tweetObj.user.histograms[entityType][entity] === undefined)){
-          tweetObj.user.histograms[entityType][entity] = 0;
-        }
-
-        tweetObj.user.histograms[entityType][entity] += 1;
-
-        if (configuration.verbose) {
-          console.log(chalkLog("DBU | +++ USER HIST"
-            + " | " + entityType.toUpperCase()
-            + " | " + entity
-            + " | " + tweetObj.user.histograms[entityType][entity]
-          ));
-        }
-
-        cb1();
-
-      }, function(){
-
-        cb0();
-
-      });
-
-    }, function(err0){
-
-      if (err0) { return reject(err0); }
-
-      global.wordAssoDb.User.findOne({ nodeId: tweetObj.user.nodeId }).exec(async function(err, user) {
-
-        if (err) {
-          console.log(chalkError("DBU | *** FIND USER DB: " + err));
-          return reject(err);
-        }
-
-        if (!user) {
-          debug(chalkLog("DBU | --- USER DB MISS: @" + tweetObj.user.screenName));
-          return resolve(null);
-        }
-
-        // ???? performance enhancement: check for tweet before generate tweetHistograms
-
-        if (user.tweets && user.tweets.tweetIds && user.tweets.tweetIds.includes(tweetObj.tweetId)){
-          console.log(chalkAlert("DBU | ??? TWEET ALREADY RCVD"
-            + " | TW: " + tweetObj.tweetId
-            + " | TW MAX ID: " + user.tweets.maxId
-            + " | TW SINCE ID: " + user.tweets.maxId
-            + " | @" + user.screenName
-          ));
-          return resolve();
-        }
-
-
-        let tweetHistogramMerged = {};
-
-        if (!tweetObj.user.histograms || tweetObj.user.histograms === undefined || tweetObj.user.histograms === null) { 
-          console.log(chalkLog("DBU | TWEETOBJ USER HISTOGRAMS UNDEFINED"
-            + " | " + tweetObj.user.nodeId
-            + " | @" + tweetObj.user.screenName
-          ));
-          tweetObj.user.histograms = {};
-        }
-
-        if (!user.tweetHistograms || user.tweetHistograms === undefined || user.tweetHistograms === null) { 
-          console.log(chalkLog("DBU | TWEET HISTOGRAMS UNDEFINED"
-            + " | " + user.nodeId
-            + " | @" + user.screenName
-          ));
-          user.tweetHistograms = {};
-        }
-
-        if (!user.profileHistograms || user.profileHistograms === undefined || user.profileHistograms === null) { 
-          console.log(chalkLog("DBU | PROFILE HISTOGRAMS UNDEFINED"
-            + " | " + user.nodeId
-            + " | @" + user.screenName
-          ));
-          user.profileHistograms = {};
-        }
-
-        try {
-
-          tweetHistogramMerged = await mergeHistograms.merge({histogramA: tweetObj.user.histograms, histogramB: user.tweetHistograms});
-
-          user.tweetHistograms = tweetHistogramMerged;
-          user.lastHistogramTweetId = user.statusId;
-          user.lastHistogramQuoteId = user.quotedStatusId;
-
-          user.tweets.tweetIds = _.union(user.tweets.tweetIds, [tweetObj.tweetId]); 
-
-          if (configuration.verbose) { printUserObj("DBU | +++ USR DB HIT", user); }
-
-          debug(chalkInfo("DBU | USER MERGED HISTOGRAMS"
-            + " | " + user.nodeId
-            + " | @" + user.screenName
-            + " | LHTID" + user.lastHistogramTweetId
-            + " | LHQID" + user.lastHistogramQuoteId
-            + " | EJs: " + getNumKeys(user.tweetHistograms.emoji)
-            + " | Hs: " + getNumKeys(user.tweetHistograms.hashtags)
-            + " | IMs: " + getNumKeys(user.tweetHistograms.images)
-            + " | LCs: " + getNumKeys(user.tweetHistograms.locations)
-            + " | MEs: " + getNumKeys(user.tweetHistograms.media)
-            + " | Ms: " + getNumKeys(user.tweetHistograms.mentions)
-            + " | NGs: " + getNumKeys(user.tweetHistograms.ngrams)
-            + " | PLs: " + getNumKeys(user.tweetHistograms.places)
-            + " | STs: " + getNumKeys(user.tweetHistograms.sentiment)
-            + " | UMs: " + getNumKeys(user.tweetHistograms.userMentions)
-            + " | ULs: " + getNumKeys(user.tweetHistograms.urls)
-            + " | WDs: " + getNumKeys(user.tweetHistograms.words)
-          ));
-
-          user.ageDays = (moment().diff(user.createdAt))/ONE_DAY;
-          user.tweetsPerDay = user.statusesCount/user.ageDays;
-          user.markModified("tweets");
-          user.markModified("tweetHistograms");
-
-          user.save().
-          then(function() {
-            resolve();
-          }).
-          catch(function(e) {
-            console.log(chalkError("DBU | *** ERROR USER SAVE: @" + user.screenName + " | " + e));
-            reject(e);
-          });
-
-        }
-        catch(err2){
-          console.log(chalkError("DBU | *** ERROR mergeHistograms: @" + user.screenName + " | " + err2));
-          return reject(err2);
-        }
-
-      });
-
+    tweetHistogramMerged = await mergeHistograms.merge({
+      histogramA: newTweetHistograms, histogramB: user.tweetHistograms
     });
 
-  });
+    user.tweetHistograms = tweetHistogramMerged;
+    user.lastHistogramTweetId = user.statusId;
+    user.lastHistogramQuoteId = user.quotedStatusId;
+
+    user.tweets.tweetIds = _.union(user.tweets.tweetIds, [tweetObj.tweetId]); 
+
+    if (configuration.verbose) { printUserObj("DBU | +++ USR DB HIT", user); }
+
+    debug(chalkInfo("DBU | USER MERGED HISTOGRAMS"
+      + " | " + user.nodeId
+      + " | @" + user.screenName
+      + " | LHTID" + user.lastHistogramTweetId
+      + " | LHQID" + user.lastHistogramQuoteId
+      + " | EJs: " + getNumKeys(user.tweetHistograms.emoji)
+      + " | Hs: " + getNumKeys(user.tweetHistograms.hashtags)
+      + " | IMs: " + getNumKeys(user.tweetHistograms.images)
+      + " | LCs: " + getNumKeys(user.tweetHistograms.locations)
+      + " | MEs: " + getNumKeys(user.tweetHistograms.media)
+      + " | Ms: " + getNumKeys(user.tweetHistograms.mentions)
+      + " | NGs: " + getNumKeys(user.tweetHistograms.ngrams)
+      + " | PLs: " + getNumKeys(user.tweetHistograms.places)
+      + " | STs: " + getNumKeys(user.tweetHistograms.sentiment)
+      + " | UMs: " + getNumKeys(user.tweetHistograms.userMentions)
+      + " | ULs: " + getNumKeys(user.tweetHistograms.urls)
+      + " | WDs: " + getNumKeys(user.tweetHistograms.words)
+    ));
+
+    user.ageDays = (moment().diff(user.createdAt))/ONE_DAY;
+    user.tweetsPerDay = user.statusesCount/user.ageDays;
+
+    user.markModified("tweets");
+    user.markModified("tweetHistograms");
+    user.markModified("profileHistograms");
+    user.markModified("lastHistogramTweetId");
+    user.markModified("lastHistogramQuoteId");
+
+    await user.save();
+    return;
+
+  }
+  catch(err){
+    console.log(chalkError("DBU | *** ERROR userUpdateDb | " + err));
+    throw err;
+  }
 }
 
 function initUserUpdateQueueInterval(interval){
@@ -580,7 +684,7 @@ function initUserUpdateQueueInterval(interval){
 
           try {
             const twObj = userUpdateQueue.shift();
-            await userUpdateDb(twObj);
+            await userUpdateDb({tweetObj: twObj});
             userUpdateQueueReady = true;
           }
           catch(e){

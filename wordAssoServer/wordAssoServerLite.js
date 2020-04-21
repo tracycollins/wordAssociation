@@ -7824,9 +7824,8 @@ function initTweetParser(params){
               }, 1000);
             }
           });
-
-
         break;
+
         case "PONG":
           tweetParserPongReceived = m.pongId;
 
@@ -7840,9 +7839,11 @@ function initTweetParser(params){
             ));
           }
         break;
+
         case "PARSED_TWEET":
           tweetParserMessageRxQueue.push(m);
         break;
+        
         default:
           console.log(chalkError(MODULE_ID_PREFIX + " | *** TWP UNKNOWN OP: " + m.op));
       }

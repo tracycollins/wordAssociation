@@ -496,6 +496,8 @@ async function initPubSubSubscriptionHandler(p){
       + " | --> PS [RX: " + statsObj.pubSub.messagesReceived + "]"
       + " | " + message.id
       + " | NID: " + messageObj.user.nodeId
+      + " | CN: " + messageObj.user.categorizeNetwork
+      + " | CA: " + messageObj.user.categoryAuto
     ));
 
     await updateUserAutoCategory({user: messageObj.user});

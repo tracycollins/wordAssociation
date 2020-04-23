@@ -11,6 +11,7 @@ const twitterDateFormat = "ddd MMM DD HH:mm:ss Z YYYY"; // Wed Aug 27 13:08:45 +
 const DEFAULT_PUBSUB_ENABLED = true;
 const DEFAULT_PUBSUB_PROJECT_ID = "graphic-tangent-627";
 const DEFAULT_PUBSUB_TOPIC_NAME = "categorize";
+const DEFAULT_PUBSUB_SUBSCRIPTION_NAME = "categorize_result"
 
 const DEFAULT_GOOGLE_COMPUTE_DOMAIN = "bc.googleusercontent.com";
 
@@ -443,11 +444,66 @@ function dnsReverse(params){
   });
 }
 
+async function updateUserAutoCategory(params){
+
+  let user = {};
+
+  if (categorizedUserHashMap.has(params.user.nodeId)){
+    user = categorizedUserHashMap.get(params.user.nodeId);
+  }
+
+  user.auto = params.user.categoryAuto;
+  user.network = params.user.pubSubPublishMessage;
+
+  categorizedUserHashMap.set(params.user.nodeId, user);
+
+  return;
+}
+
 async function initPubSub(p){
   const params = p || {};
   const projectId = params.projectId || configuration.pubSub.projectId;
   const psClient = new PubSub({projectId});
   return psClient;
+}
+
+async function initPubSubSubscriptionHandler(p){
+
+  const params = p || {};
+  const subscriptionName = params.subscriptionName || configuration.pubSub.subscriptionName;
+
+  const subscription = await pubSubClient.subscription(subscriptionName);
+
+  const [metadata] = await subscription.getMetadata();
+
+  statsObj.pubSub.messagesReceived = 0;
+
+  console.log(chalkBlueBold(MODULE_ID_PREFIX
+    + " | INIT PUBSUB SUBSCRIPTION HANDLER"
+    + " | SUBSCRIPTION NAME: " + subscriptionName
+    + " | SUBSCRIPTION TOPIC: " + metadata.topic
+  ));
+
+  const messageHandler = async function(message){
+
+    statsObj.pubSub.messagesReceived += 1;
+
+    const messageObj = JSON.parse(message.data.toString());
+
+    console.log(chalkLog(MODULE_ID_PREFIX
+      + " | --> PS [RX: " + statsObj.pubSub.messagesReceived + "]"
+      + " | " + message.id
+      + " | NID: " + messageObj.user.nodeId
+    ));
+
+    await updateUserAutoCategory({user: messageObj.user});
+
+    message.ack();
+  };
+
+  subscription.on("message", messageHandler);
+
+  return;
 }
 
 async function pubSubPublishMessage(params){
@@ -628,6 +684,7 @@ const statsObj = {};
 
 statsObj.pubSub = {};
 statsObj.pubSub.messagesSent = 0;
+statsObj.pubSub.messagesReceived = 0;
 
 statsObj.commandLineArgsLoaded = false;
 statsObj.currentThreeceeUserIndex = 0;
@@ -734,6 +791,7 @@ configuration.pubSub = {};
 configuration.pubSub.enabled = DEFAULT_PUBSUB_ENABLED;
 configuration.pubSub.projectId = DEFAULT_PUBSUB_PROJECT_ID;
 configuration.pubSub.topicName = DEFAULT_PUBSUB_TOPIC_NAME;
+configuration.pubSub.subscriptionName = DEFAULT_PUBSUB_SUBSCRIPTION_NAME;
 
 configuration.slackChannel = {};
 
@@ -9243,6 +9301,12 @@ setTimeout(async function(){
     const [topics] = await pubSubClient.getTopics();
     topics.forEach((topic) => console.log(chalkLog(MODULE_ID_PREFIX + " | PUBSUB TOPIC: " + topic.name)));
 
+    await pubSubClient.topic(DEFAULT_PUBSUB_TOPIC_NAME).createSubscription(DEFAULT_PUBSUB_SUBSCRIPTION_NAME);
+
+    const [subscriptions] = await pubSubClient.getSubscriptions();
+    subscriptions.forEach((subscription) => console.log(chalkLog(MODULE_ID_PREFIX + " | PUBSUB SUB: " + subscription.name)));
+
+
     global.dbConnection = await connectDb();
 
     await initSlackRtmClient();
@@ -9306,6 +9370,7 @@ setTimeout(async function(){
     await initTweetParser({childId: DEFAULT_TWP_CHILD_ID});
     await initWatchConfig();
     await initTssChild({childId: DEFAULT_TSS_CHILD_ID, tweetVersion2: configuration.tweetVersion2, threeceeUser: threeceeUser});
+    await initPubSubSubscriptionHandler();
   }
   catch(err){
     console.trace(chalkError(MODULE_ID_PREFIX + " | **** INIT CONFIG ERROR: " + err + "\n" + jsonPrint(err)));

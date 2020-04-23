@@ -10,8 +10,9 @@ const twitterDateFormat = "ddd MMM DD HH:mm:ss Z YYYY"; // Wed Aug 27 13:08:45 +
 
 const DEFAULT_PUBSUB_ENABLED = true;
 const DEFAULT_PUBSUB_PROJECT_ID = "graphic-tangent-627";
-const DEFAULT_PUBSUB_TOPIC_NAME = "categorize";
-const DEFAULT_PUBSUB_SUBSCRIPTION_NAME = "categorize_result"
+
+const DEFAULT_PUBSUB_PUBLISH_NAME = "categorize";
+const DEFAULT_PUBSUB_SUBSCRIBE_NAME =  "subscription-categorize-result";
 
 const DEFAULT_GOOGLE_COMPUTE_DOMAIN = "bc.googleusercontent.com";
 
@@ -473,9 +474,9 @@ async function initPubSubSubscriptionHandler(p){
 
   const params = p || {};
 
-  const subscriptionName = params.subscriptionName || configuration.pubSub.subscriptionName;
+  const subscribeName = params.subscribeName || configuration.pubSub.subscribeName;
 
-  const subscription = await pubSubClient.subscription(subscriptionName);
+  const subscription = await pubSubClient.subscription(subscribeName);
 
   const [metadata] = await subscription.getMetadata();
 
@@ -483,7 +484,7 @@ async function initPubSubSubscriptionHandler(p){
 
   console.log(chalkBlueBold(MODULE_ID_PREFIX
     + " | INIT PUBSUB SUBSCRIPTION HANDLER"
-    + " | SUBSCRIPTION NAME: " + subscriptionName
+    + " | SUBSCRIPTION NAME: " + subscribeName
     + " | SUBSCRIPTION TOPIC: " + metadata.topic
   ));
 
@@ -518,7 +519,7 @@ async function pubSubPublishMessage(params){
   const data = JSON.stringify(params.message);
   const dataBuffer = Buffer.from(data);
 
-  const messageId = await pubSubClient.topic(params.topicName).publish(dataBuffer);
+  const messageId = await pubSubClient.topic(params.publishName).publish(dataBuffer);
 
   statsObj.pubSub.messagesSent += 1;
 
@@ -526,7 +527,7 @@ async function pubSubPublishMessage(params){
     console.log(chalkLog(MODULE_ID_PREFIX
       + " | PUBSUB [" + statsObj.pubSub.messagesSent + "]"
       + " | MID: " + messageId
-      + " | TOPIC: " + params.topicName
+      + " | TOPIC: " + params.publishName
       + " | NID: " + params.message.user.nodeId
     ));
   }
@@ -797,8 +798,8 @@ let hostConfiguration = {}; // host-specific configuration
 configuration.pubSub = {};
 configuration.pubSub.enabled = DEFAULT_PUBSUB_ENABLED;
 configuration.pubSub.projectId = DEFAULT_PUBSUB_PROJECT_ID;
-configuration.pubSub.topicName = DEFAULT_PUBSUB_TOPIC_NAME;
-configuration.pubSub.subscriptionName = DEFAULT_PUBSUB_SUBSCRIPTION_NAME;
+configuration.pubSub.publishName = DEFAULT_PUBSUB_PUBLISH_NAME;
+configuration.pubSub.subscribeName = DEFAULT_PUBSUB_SUBSCRIBE_NAME;
 
 configuration.slackChannel = {};
 
@@ -5977,7 +5978,7 @@ async function pubSubCategorizeUser(params){
   if (configuration.pubSub.enabled && !pubSubCategorizeSentSet.has(params.nodeId)) { 
 
     await pubSubPublishMessage({
-      topicName: "categorize",
+      publishName: "categorize",
       message: {
         user: { nodeId: params.nodeId }
       }
@@ -8320,7 +8321,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.WAS_PUBSUB_TOPIC_NAME !== undefined){
       console.log(MODULE_ID_PREFIX + " | LOADED WAS_PUBSUB_TOPIC_NAME: " + loadedConfigObj.WAS_PUBSUB_TOPIC_NAME);
-      newConfiguration.pubSub.topicName = loadedConfigObj.WAS_PUBSUB_TOPIC_NAME;
+      newConfiguration.pubSub.publishName = loadedConfigObj.WAS_PUBSUB_TOPIC_NAME;
     }
 
     if (loadedConfigObj.TWEET_VERSION_2 !== undefined){

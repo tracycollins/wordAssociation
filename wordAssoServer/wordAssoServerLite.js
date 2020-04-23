@@ -495,6 +495,7 @@ async function initPubSubSubscriptionHandler(p){
     console.log(chalkLog(MODULE_ID_PREFIX
       + " | --> PS [RX: " + statsObj.pubSub.messagesReceived + "]"
       + " | " + message.id
+      + " | " + moment(message.publishTime).format(compactDateTimeFormat)
       + " | NID: " + messageObj.user.nodeId
       + " | CN: " + messageObj.user.categorizeNetwork
       + " | CA: " + messageObj.user.categoryAuto
@@ -9304,8 +9305,6 @@ setTimeout(async function(){
 
     const [topics] = await pubSubClient.getTopics();
     topics.forEach((topic) => console.log(chalkLog(MODULE_ID_PREFIX + " | PUBSUB TOPIC: " + topic.name)));
-
-    // await pubSubClient.topic(DEFAULT_PUBSUB_TOPIC_NAME).createSubscription(DEFAULT_PUBSUB_SUBSCRIPTION_NAME);
 
     const [subscriptions] = await pubSubClient.getSubscriptions();
     subscriptions.forEach((subscription) => console.log(chalkLog(MODULE_ID_PREFIX + " | PUBSUB SUB: " + subscription.name)));

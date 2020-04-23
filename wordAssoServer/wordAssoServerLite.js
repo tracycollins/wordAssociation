@@ -519,23 +519,7 @@ pubSubSubscriptionHandlerMap.twitterSearchUserNodeResultHandler = async function
   return;
 };
 
-// pubSubSubscriptionHandlerMap.categorizeResultHandler = categorizeResultHandler;
-// pubSubSubscriptionHandlerMap.twitterSearchUserNodeResultHandler = twitterSearchUserNodeResultHandler;
-
-// configuration.pubSub.subscriptions = {};
-// configuration.pubSub.subscriptions.categorizeResult = {};
-// configuration.pubSub.subscriptions.categorizeResult.subscribeName = "categorizeResult";
-
-// configuration.pubSub.subscriptions.twitterSearchUserNodeResult = {}; 
-// configuration.pubSub.subscriptions.twitterSearchUserNodeResult.subscribeName = "twitterSearchUserNodeResult";
-
 async function initPubSubCategorizeResultHandler(params){
-
-  console.log(chalkBlueBold(MODULE_ID_PREFIX
-    + " | INIT PUBSUB SUBSCRIPTION HANDLER"
-    + " | SUBSCRIPTION NAME: " + params.subscribeName
-    // + " | SUBSCRIPTION TOPIC: " + metadata.topic
-  ));
 
   const subscription = await pubSubClient.subscription(params.subscribeName);
 
@@ -578,12 +562,6 @@ async function initPubSubCategorizeResultHandler(params){
 
 async function initPubSubTwitterSearchUserNodeResultHandler(params){
 
-  console.log(chalkBlueBold(MODULE_ID_PREFIX
-    + " | INIT PUBSUB SUBSCRIPTION HANDLER"
-    + " | SUBSCRIPTION NAME: " + params.subscribeName
-    // + " | SUBSCRIPTION TOPIC: " + metadata.topic
-  ));
-
   const subscription = await pubSubClient.subscription(params.subscribeName);
 
   const [metadata] = await subscription.getMetadata();
@@ -608,10 +586,13 @@ async function initPubSubTwitterSearchUserNodeResultHandler(params){
       + " | ==> PS SUB SEARCH USER [RX: " + statsObj.pubSub.messagesReceived + "]"
       + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
       + " | PS MID: " + message.id
+      + " | SEARCH MODE: " + params.message.searchMode
       + " | NID: " + messageObj.user.nodeId
+      + " | @" + params.message.user.screenName
       + " | CN: " + messageObj.user.categorizeNetwork
       + " | CM: " + messageObj.user.category
       + " | CA: " + messageObj.user.categoryAuto
+      + "\nUSER\n" + jsonPrint(params.message.user)
     ));
 
     message.ack();
@@ -631,18 +612,7 @@ async function pubSubPublishMessage(params){
 
   statsObj.pubSub.messagesSent += 1;
 
-  if (params.message.searchMode !== undefined){
-    console.log(chalkLog(MODULE_ID_PREFIX
-      + " | PUBSUB [" + statsObj.pubSub.messagesSent + "]"
-      + " | MID: " + messageId
-      + " | TOPIC: " + params.publishName
-      + " | SEARCH MODE: " + params.message.searchMode
-      + " | NID: " + params.message.user.nodeId
-      + " | @" + params.message.user.screenName
-      + "\nUSER\n" + jsonPrint(params.message.user)
-    ));
-  }
-  else if (configuration.verbose || (statsObj.pubSub.messagesSent % 100 === 0)){
+  if (configuration.verbose || (statsObj.pubSub.messagesSent % 100 === 0)){
     console.log(chalkLog(MODULE_ID_PREFIX
       + " | PUBSUB [" + statsObj.pubSub.messagesSent + "]"
       + " | MID: " + messageId

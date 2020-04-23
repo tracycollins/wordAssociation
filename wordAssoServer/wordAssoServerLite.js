@@ -12,7 +12,7 @@ const DEFAULT_PUBSUB_ENABLED = true;
 const DEFAULT_PUBSUB_PROJECT_ID = "graphic-tangent-627";
 
 const DEFAULT_PUBSUB_PUBLISH_NAME = "categorize";
-const DEFAULT_PUBSUB_SUBSCRIBE_NAME =  "subscription-categorize-result";
+const DEFAULT_PUBSUB_SUBSCRIBE_NAME = "subscription-categorize-result";
 
 const DEFAULT_GOOGLE_COMPUTE_DOMAIN = "bc.googleusercontent.com";
 

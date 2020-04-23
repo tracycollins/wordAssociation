@@ -586,13 +586,13 @@ async function initPubSubTwitterSearchUserNodeResultHandler(params){
       + " | ==> PS SUB SEARCH USER [RX: " + statsObj.pubSub.messagesReceived + "]"
       + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
       + " | PS MID: " + message.id
-      + " | SEARCH MODE: " + params.message.searchMode
+      + " | SEARCH MODE: " + messageObj.searchMode
       + " | NID: " + messageObj.user.nodeId
-      + " | @" + params.message.user.screenName
+      + " | @" + messageObj.user.screenName
       + " | CN: " + messageObj.user.categorizeNetwork
       + " | CM: " + messageObj.user.category
       + " | CA: " + messageObj.user.categoryAuto
-      + "\nUSER\n" + jsonPrint(params.message.user)
+      + "\nUSER\n" + jsonPrint(messageObj.user)
     ));
 
     message.ack();

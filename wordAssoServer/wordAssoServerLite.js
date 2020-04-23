@@ -494,8 +494,8 @@ async function initPubSubSubscriptionHandler(p){
 
     console.log(chalkLog(MODULE_ID_PREFIX
       + " | --> PS [RX: " + statsObj.pubSub.messagesReceived + "]"
-      + " | " + message.id
-      + " | " + moment(message.publishTime).format(compactDateTimeFormat)
+      + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
+      + " | PS MID: " + message.id
       + " | NID: " + messageObj.user.nodeId
       + " | CN: " + messageObj.user.categorizeNetwork
       + " | CA: " + messageObj.user.categoryAuto

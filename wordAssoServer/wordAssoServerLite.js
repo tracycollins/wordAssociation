@@ -638,6 +638,7 @@ async function pubSubPublishMessage(params){
       + " | TOPIC: " + params.publishName
       + " | SEARCH MODE: " + params.message.searchMode
       + " | NID: " + params.message.user.nodeId
+      + " | @" + params.message.user.screenName
       + "\nUSER\n" + jsonPrint(params.message.user)
     ));
   }
@@ -4146,6 +4147,14 @@ async function twitterSearchUserNode(params){
       publishName: "twitterSearchUserNode",
       message: params
     });
+
+    /*
+
+      - wait for pubSubResult
+        set up event.once(result)
+      - if found, return user otherwise return null
+
+    */
 
     // const dbUser = await global.wordAssoDb.User.findOne(user);
 

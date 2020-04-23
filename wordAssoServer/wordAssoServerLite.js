@@ -631,7 +631,17 @@ async function pubSubPublishMessage(params){
 
   statsObj.pubSub.messagesSent += 1;
 
-  if (configuration.verbose || (statsObj.pubSub.messagesSent % 100 === 0)){
+  if (params.message.searchMode !== undefined){
+    console.log(chalkLog(MODULE_ID_PREFIX
+      + " | PUBSUB [" + statsObj.pubSub.messagesSent + "]"
+      + " | MID: " + messageId
+      + " | TOPIC: " + params.publishName
+      + " | SEARCH MODE: " + params.message.searchMode
+      + " | NID: " + params.message.user.nodeId
+      + "\nUSER\n" + jsonPrint(params.message.user)
+    ));
+  }
+  else if (configuration.verbose || (statsObj.pubSub.messagesSent % 100 === 0)){
     console.log(chalkLog(MODULE_ID_PREFIX
       + " | PUBSUB [" + statsObj.pubSub.messagesSent + "]"
       + " | MID: " + messageId

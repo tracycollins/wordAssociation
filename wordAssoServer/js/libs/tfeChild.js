@@ -911,7 +911,6 @@ async function processUserTweetArray(params){
   }
 
   return user;
-
 }
 
 async function processUserTweets(params){

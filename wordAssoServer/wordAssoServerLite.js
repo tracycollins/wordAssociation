@@ -472,6 +472,7 @@ async function initPubSub(p){
 async function initPubSubSubscriptionHandler(p){
 
   const params = p || {};
+
   const subscriptionName = params.subscriptionName || configuration.pubSub.subscriptionName;
 
   const subscription = await pubSubClient.subscription(subscriptionName);
@@ -499,6 +500,7 @@ async function initPubSubSubscriptionHandler(p){
       + " | NID: " + messageObj.user.nodeId
       + " | CN: " + messageObj.user.categorizeNetwork
       + " | CA: " + messageObj.user.categoryAuto
+      + "\n" + jsonPrint(messageObj)
     ));
 
     await updateUserAutoCategory({user: messageObj.user});

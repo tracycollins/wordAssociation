@@ -30,6 +30,21 @@ const DEFAULT_MAX_USER_SEARCH_SKIP_COUNT = 25;
 const DEFAULT_USER_PROFILE_ONLY_FLAG = false;
 const DEFAULT_BINARY_MODE = true;
 
+const statsBestNetworkPickArray = [
+  "networkTechnology",
+  "networkId",
+  "successRate",
+  "matchRate",
+  "overallMatchRate",
+  "runtimeMatchRate",
+  "inputsId",
+  "testCycles",
+  "numInputs",
+  "seedNetworkId",
+  "seedNetworkRes",
+  "betterChild"
+];
+
 let pubSubClient;
 
 let saveSampleTweetFlag = true;

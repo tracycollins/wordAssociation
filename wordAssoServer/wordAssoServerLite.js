@@ -450,10 +450,12 @@ async function updateUserAutoCategory(params){
 
   if (categorizedUserHashMap.has(params.user.nodeId)){
     user = categorizedUserHashMap.get(params.user.nodeId);
+    user.auto = params.user.categoryAuto;
+    user.network = params.user.categorizeNetwork;
   }
-
-  user.auto = params.user.categoryAuto;
-  user.network = params.user.pubSubPublishMessage;
+  else{
+    user = params.user;
+  }
 
   categorizedUserHashMap.set(params.user.nodeId, user);
 

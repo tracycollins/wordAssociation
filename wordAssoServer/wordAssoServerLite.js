@@ -495,13 +495,12 @@ async function initPubSubSubscriptionHandler(p){
     const messageObj = JSON.parse(message.data.toString());
 
     console.log(chalkLog(MODULE_ID_PREFIX
-      + " | --> PS [RX: " + statsObj.pubSub.messagesReceived + "]"
+      + " | --> PS SUB [RX: " + statsObj.pubSub.messagesReceived + "]"
       + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
       + " | PS MID: " + message.id
       + " | NID: " + messageObj.user.nodeId
       + " | CN: " + messageObj.user.categorizeNetwork
       + " | CA: " + messageObj.user.categoryAuto
-      + "\n" + jsonPrint(messageObj)
     ));
 
     await updateUserAutoCategory({user: messageObj.user});

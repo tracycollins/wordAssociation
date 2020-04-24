@@ -11,8 +11,7 @@ const twitterDateFormat = "ddd MMM DD HH:mm:ss Z YYYY"; // Wed Aug 27 13:08:45 +
 const DEFAULT_PUBSUB_ENABLED = true;
 const DEFAULT_PUBSUB_PROJECT_ID = "graphic-tangent-627";
 
-const DEFAULT_PUBSUB_PUBLISH_NAME = "categorize";
-const DEFAULT_PUBSUB_SUBSCRIBE_NAME = "subscription-categorize-result";
+let pubSubClient;
 
 const DEFAULT_GOOGLE_COMPUTE_DOMAIN = "bc.googleusercontent.com";
 
@@ -23,8 +22,6 @@ const DEFAULT_USER_PROFILE_ONLY_FLAG = false;
 const DEFAULT_BINARY_MODE = true;
 
 const uncategorizedManualUserSet = new Set();
-
-let pubSubClient;
 
 let saveSampleTweetFlag = true;
 
@@ -895,14 +892,11 @@ let hostConfiguration = {}; // host-specific configuration
 configuration.pubSub = {};
 configuration.pubSub.enabled = DEFAULT_PUBSUB_ENABLED;
 configuration.pubSub.projectId = DEFAULT_PUBSUB_PROJECT_ID;
-configuration.pubSub.publishName = DEFAULT_PUBSUB_PUBLISH_NAME;
-configuration.pubSub.subscribeName = DEFAULT_PUBSUB_SUBSCRIBE_NAME;
 
 configuration.pubSub.subscriptions = {};
 configuration.pubSub.subscriptions.categorizeResult = {};
 configuration.pubSub.subscriptions.categorizeResult.subscribeName = "categorizeResult";
 configuration.pubSub.subscriptions.categorizeResult.handler = "categorizeResultHandler";
-
 
 configuration.pubSub.subscriptions.twitterSearchUserNodeResult = {}; 
 configuration.pubSub.subscriptions.twitterSearchUserNodeResult.subscribeName = "twitterSearchUserNodeResult";

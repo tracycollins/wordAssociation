@@ -4424,37 +4424,11 @@ async function processTwitterSearchNode(params) {
     const uncatUserCacheStatsHitRate = (uncatUserCacheStatsTotal) ? statsObj.caches.uncatUserCache.stats.hits/uncatUserCacheStatsTotal : 0;
 
     if (params.specificUserFlag) {
-      if (params.user.toObject && (typeof params.user.toObject == "function")) {
 
-        // tfeChild.send({
-        //   op: "USER_CATEGORIZE", 
-        //   priorityFlag: true, 
-        //   searchMode: params.searchMode, 
-        //   user: {
-        //     nodeId: params.user.nodeId,
-        //     screenName: params.user.screenName
-        //   }
-        // });
+      await pubSubCategorizeUser({nodeId: params.user.nodeId});
 
-        if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
-          uncatUserCache.del(params.user.nodeId);
-        }
-      }
-      else{
-
-        // tfeChild.send({
-        //   op: "USER_CATEGORIZE", 
-        //   priorityFlag: true, 
-        //   searchMode: params.searchMode, 
-        //   user: {
-        //     nodeId: params.user.nodeId,
-        //     screenName: params.user.screenName
-        //   }
-        // });
-
-        if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
-          uncatUserCache.del(params.user.nodeId);
-        }
+      if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
+        uncatUserCache.del(params.user.nodeId);
       }
     }
     else if (categorizeable && !uuObj) { 
@@ -4484,38 +4458,8 @@ async function processTwitterSearchNode(params) {
         + " | A: " + formatCategory(params.user.categoryAuto)
       ));
 
-      if (params.user.toObject && (typeof params.user.toObject == "function")) {
+      await pubSubCategorizeUser({nodeId: params.user.nodeId});
 
-        // tfeChild.send({
-        //   op: "USER_CATEGORIZE", 
-        //   priorityFlag: true, 
-        //   searchMode: params.searchMode, 
-        //   user: {
-        //     nodeId: params.user.nodeId,
-        //     screenName: params.user.screenName
-        //   }
-        // });
-
-        if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
-          uncatUserCache.del(params.user.nodeId);
-        }
-      }
-      else {
-
-        // tfeChild.send({
-        //   op: "USER_CATEGORIZE", 
-        //   priorityFlag: true, 
-        //   searchMode: params.searchMode, 
-        //   user: {
-        //     nodeId: params.user.nodeId,
-        //     screenName: params.user.screenName
-        //   }
-        // });
-
-        if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
-          uncatUserCache.del(params.user.nodeId);
-        }
-      }
     }
     else if (categorizeable && uuObj) { 
 

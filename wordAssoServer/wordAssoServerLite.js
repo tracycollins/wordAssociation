@@ -470,52 +470,6 @@ async function initPubSub(p){
   return psClient;
 }
 
-const pubSubSubscriptionHandlerMap = {};
-
-pubSubSubscriptionHandlerMap.categorizeResultHandler = async function(message){
-
-  statsObj.pubSub.subscriptions.userAutoCategory.messagesReceived += 1;
-
-  const messageObj = JSON.parse(message.data.toString());
-
-  console.log(chalkLog(MODULE_ID_PREFIX
-    + " | --> PS SUB [RX: " + statsObj.pubSub.subscriptions.userAutoCategory.messagesReceived + "]"
-    + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
-    + " | PS MID: " + message.id
-    + " | NID: " + messageObj.user.nodeId
-    + " | CN: " + messageObj.user.categorizeNetwork
-    + " | CA: " + messageObj.user.categoryAuto
-  ));
-
-  await updateUserAutoCategory({user: messageObj.user});
-
-  message.ack();
-
-  return;
-};
-
-pubSubSubscriptionHandlerMap.twitterSearchUserResultHandler = async function(message){
-
-  statsObj.pubSub.subscriptions.twitterSearchUser.messagesReceived += 1;
-
-  const messageObj = JSON.parse(message.data.toString());
-
-  console.log(chalkLog(MODULE_ID_PREFIX
-    + " | --> PS SUB [RX: " + statsObj.pubSub.subscriptions.twitterSearchUser.messagesReceived + "]"
-    + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
-    + " | PS MID: " + message.id
-    + " | NID: " + messageObj.user.nodeId
-    + " | CN: " + messageObj.user.categorizeNetwork
-    + " | CA: " + messageObj.user.categoryAuto
-  ));
-
-  await updateUserAutoCategory({user: messageObj.user});
-
-  message.ack();
-
-  return;
-};
-
 async function initPubSubCategorizeResultHandler(params){
 
   const subscription = await pubSubClient.subscription(params.subscribeName);
@@ -581,7 +535,7 @@ async function initPubSubTwitterSearchUserResultHandler(params){
 
     const messageObj = JSON.parse(message.data.toString());
 
-    console.log(chalkLog(MODULE_ID_PREFIX
+    console.log(chalkBlueBold(MODULE_ID_PREFIX
       + " | ==> PS SUB SEARCH USER [RX: " + statsObj.pubSub.messagesReceived + "]"
       + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
       + " | RESULT MID: " + message.id
@@ -592,14 +546,13 @@ async function initPubSubTwitterSearchUserResultHandler(params){
       + " | CN: " + messageObj.user.categorizeNetwork
       + " | CM: " + formatCategory(messageObj.user.category)
       + " | CA: " + formatCategory(messageObj.user.categoryAuto)
-      // + "\nUSER\n" + jsonPrint(messageObj.user)
     ));
 
     searchUserResultHashMap[messageObj.requestId] = messageObj.user;
 
     tcUtils.emitter.emit("searchUserResult_" + messageObj.requestId);
 
-    // message.ack();
+    message.ack();
   };
 
   subscription.on("message", messageHandler);

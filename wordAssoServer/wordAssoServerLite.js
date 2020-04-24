@@ -4633,6 +4633,8 @@ async function twitterSearchUser(params) {
       searchMode: searchMode
     });
 
+    user.following = true;
+
     await processTwitterSearchNode({specificUserFlag: true, searchMode: "SPECIFIC", searchNode: searchNode, user: user});
     return;
   }
@@ -5324,6 +5326,7 @@ async function initSocketHandler(socketObj) {
 
         adminNameSpace.emit("CAT_VERFIED", updatedUser);
         utilNameSpace.emit("CAT_VERFIED", updatedUser);
+        viewNameSpace.emit("CAT_VERFIED", updatedUser);
 
         console.log(chalk.blue(MODULE_ID_PREFIX 
           + " | +++ TWITTER_CATEGORY_VERIFIED"
@@ -5364,6 +5367,7 @@ async function initSocketHandler(socketObj) {
 
         adminNameSpace.emit("CAT_UNVERFIED", updatedUser);
         utilNameSpace.emit("CAT_UNVERFIED", updatedUser);
+        viewNameSpace.emit("CAT_UNVERFIED", updatedUser);
 
         console.log(chalk.blue(MODULE_ID_PREFIX 
           + " | --- TWITTER_CATEGORY_UNVERIFIED"

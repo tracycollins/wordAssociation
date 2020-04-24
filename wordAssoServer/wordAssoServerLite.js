@@ -1193,6 +1193,26 @@ followableSearchTermSet.add("supreme court");
 followableSearchTermSet.add("specialcounsel");
 followableSearchTermSet.add("special counsel");
 
+followableSearchTermSet.add("cnn");
+followableSearchTermSet.add("@cnn");
+followableSearchTermSet.add("msnbc");
+followableSearchTermSet.add("@msnbc");
+followableSearchTermSet.add("forbes");
+followableSearchTermSet.add("@forbes");
+followableSearchTermSet.add("nytimes");
+followableSearchTermSet.add("@nytimes");
+followableSearchTermSet.add("foxnews");
+followableSearchTermSet.add("@foxnews");
+followableSearchTermSet.add("nytimes");
+followableSearchTermSet.add("@nytimes");
+followableSearchTermSet.add("dnc");
+followableSearchTermSet.add("@dnc");
+followableSearchTermSet.add("rnc");
+followableSearchTermSet.add("@rnc");
+followableSearchTermSet.add("gop");
+followableSearchTermSet.add("@gop");
+
+
 let followableSearchTermsArray = [...followableSearchTermSet];
 
 const DEFAULT_BEST_NETWORK_FILE = "bestRuntimeNetwork.json";

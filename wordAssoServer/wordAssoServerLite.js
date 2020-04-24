@@ -1806,13 +1806,10 @@ const uncatUserCache = new NodeCache({
 });
 
 function uncatUserCacheExpired(uncatUserId, uncatUserObj) {
-  statsObj.caches.uncatUserCache.stats = uncatUserCache.getStats();
-  statsObj.caches.uncatUserCache.expired += 1;
+
   console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX UNCAT USER CACHE EXPIRED"
-    + " [" + statsObj.caches.uncatUserCache.stats.keys + " KEYS]"
     + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
     + " | NOW: " + getTimeStamp()
-    + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
     + " | IN $: " + uncatUserObj.timeStamp
     + " | NID: " + uncatUserId
     + " | @" + uncatUserObj.screenName
@@ -4421,10 +4418,6 @@ async function processTwitterSearchNode(params) {
     const categorizeable = await userCategorizeable({user: params.user, verbose: true});
     const uuObj = await uncatUserCacheCheck(params.user.nodeId);
 
-    statsObj.caches.uncatUserCache.stats = uncatUserCache.getStats();
-    const uncatUserCacheStatsTotal = statsObj.caches.uncatUserCache.stats.hits + statsObj.caches.uncatUserCache.stats.misses;
-    const uncatUserCacheStatsHitRate = (uncatUserCacheStatsTotal) ? statsObj.caches.uncatUserCache.stats.hits/uncatUserCacheStatsTotal : 0;
-
     if (params.specificUserFlag) {
 
       await pubSubCategorizeUser({nodeId: params.user.nodeId});
@@ -4475,16 +4468,6 @@ async function processTwitterSearchNode(params) {
         + " | NID: " + uuObj.nodeId
         + " | @" + uuObj.screenName
         + " | TS: " + uuObj.timeStamp
-        + "\n" + MODULE_ID_PREFIX 
-        + " | $ KEYS: " + statsObj.caches.uncatUserCache.stats.keys
-        + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
-        + " | $ H/M/T/R: " 
-        + statsObj.caches.uncatUserCache.stats.hits 
-        + "/" + statsObj.caches.uncatUserCache.stats.misses 
-        + "/" + uncatUserCacheStatsTotal
-        + "/" + uncatUserCacheStatsHitRate.toFixed(3)
-
-        // + "\nUNCAT USER $ STATS\n" + jsonPrint(uncatUserCache.getStats())
       ));
     }
     else if (uuObj) {
@@ -4504,14 +4487,6 @@ async function processTwitterSearchNode(params) {
         + " | CV: " + formatBoolean(params.user.categoryVerified)
         + " M: " + formatCategory(params.user.category)
         + " A: " + formatCategory(params.user.categoryAuto)
-        + "\n" + MODULE_ID_PREFIX 
-        + " | $ KEYS: " + statsObj.caches.uncatUserCache.stats.keys
-        + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
-        + " | $ H/M/T/R: " 
-        + statsObj.caches.uncatUserCache.stats.hits 
-        + "/" + statsObj.caches.uncatUserCache.stats.misses 
-        + "/" + uncatUserCacheStatsTotal
-        + "/" + uncatUserCacheStatsHitRate.toFixed(3)
       ));
     }
     else {
@@ -4530,14 +4505,6 @@ async function processTwitterSearchNode(params) {
         + " | CV: " + formatBoolean(params.user.categoryVerified)
         + " M: " + formatCategory(params.user.category)
         + " A: " + formatCategory(params.user.categoryAuto)
-        + "\n" + MODULE_ID_PREFIX 
-        + " | $ KEYS: " + statsObj.caches.uncatUserCache.stats.keys
-        + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
-        + " | $ H/M/T/R: " 
-        + statsObj.caches.uncatUserCache.stats.hits 
-        + "/" + statsObj.caches.uncatUserCache.stats.misses 
-        + "/" + uncatUserCacheStatsTotal
-        + "/" + uncatUserCacheStatsHitRate.toFixed(3)
       ));
       await deleteUser({user: params.user});
     }

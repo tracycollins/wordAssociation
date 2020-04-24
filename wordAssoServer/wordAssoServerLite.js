@@ -1967,7 +1967,7 @@ const authenticatedSocketCache = new NodeCache({
 
 function authenticatedSocketCacheExpired(socketId, authSocketObj) {
 
-  console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX AUTH SOCKET CACHE EXPIRED"
+  console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX AUTH g CACHE EXPIRED"
     + " [" + authenticatedSocketCache.getStats().keys + " KEYS]"
     + " | TTL: " + tcUtils.msToTime(authenticatedSocketCacheTtl*1000)
     + " | NSP: " + authSocketObj.namespace.toUpperCase()
@@ -4396,7 +4396,7 @@ async function processTwitterSearchNode(params) {
 
       await pubSubCategorizeUser({nodeId: params.user.nodeId});
 
-      socket.emit("SET_TWITTER_USER", {user: params.user, stats: statsObj.user });
+      viewNameSpace.emit("SET_TWITTER_USER", {user: params.user, stats: statsObj.user });
 
       if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
         uncatUserCache.del(params.user.nodeId);

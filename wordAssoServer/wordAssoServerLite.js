@@ -4069,22 +4069,22 @@ async function initIgnoredUserSet(){
 
 const serverRegex = /^(.+)_/i;
 
-async function findUsersNodeIds(query, filterUncatUsersFlag){
+// async function findUsersNodeIds(query, filterUncatUsersFlag){
 
-  const userArray = await global.wordAssoDb.User.find(query).select({nodeId: 1}).lean();
+//   const userArray = await global.wordAssoDb.User.find(query).select({nodeId: 1}).lean();
   
-  if (userArray && userArray.length > 0){
-    const results = userArray.map(function(user){
-      if (filterUncatUsersFlag && (uncatUserCache.get(user.nodeId) !== undefined)){
-        return null;
-      }
-      return user.nodeId;
-    });
-    results.sort();
-    return results;
-  }
-  return [];
-}
+//   if (userArray && userArray.length > 0){
+//     const results = userArray.map(function(user){
+//       if (filterUncatUsersFlag && (uncatUserCache.get(user.nodeId) !== undefined)){
+//         return null;
+//       }
+//       return user.nodeId;
+//     });
+//     results.sort();
+//     return results;
+//   }
+//   return [];
+// }
 
 async function pubSubSearchUser(params){
 
@@ -4158,381 +4158,381 @@ async function pubSubSearchUser(params){
   }
 }
 
-function getNextSearchNode(params){
+// function getNextSearchNode(params){
 
-  return new Promise(function(resolve, reject){
+//   return new Promise(function(resolve, reject){
 
-    let notFoundAndMore = true;
+//     let notFoundAndMore = true;
 
-    const searchNode = params.searchNode;
-    const searchMode = params.searchMode;
-    const searchUserNodeIdArray = params.searchUserNodeIdArray;
+//     const searchNode = params.searchNode;
+//     const searchMode = params.searchMode;
+//     const searchUserNodeIdArray = params.searchUserNodeIdArray;
 
-    let searchResults;
-    let userSkipCount = 0;
+//     let searchResults;
+//     let userSkipCount = 0;
 
-    async.whilst(
+//     async.whilst(
 
-      function test(cbTest) {
-        cbTest(null, notFoundAndMore);
-      },
+//       function test(cbTest) {
+//         cbTest(null, notFoundAndMore);
+//       },
 
-      async function(){
+//       async function(){
 
-        try {
+//         try {
 
 
-          if ((searchUserNodeIdArray.length == 0) || (userSkipCount >= configuration.maxUserSearchSkipCount)){
-            notFoundAndMore = false;
-            searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode});
-            return;
-          }
+//           if ((searchUserNodeIdArray.length == 0) || (userSkipCount >= configuration.maxUserSearchSkipCount)){
+//             notFoundAndMore = false;
+//             searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode});
+//             return;
+//           }
 
-          const searchUserId = searchUserNodeIdArray.shift();
+//           const searchUserId = searchUserNodeIdArray.shift();
 
-          // uncategorizedManualUserSet.delete(searchUserId);
+//           // uncategorizedManualUserSet.delete(searchUserId);
 
-          if (uncatUserCache.get(searchUserId) !== undefined){
-            console.log(chalkLog(MODULE_ID_PREFIX + " | SKIP UNCAT USER $ HIT"
-              + " [" + uncatUserCache.getStats().keys + "]"
-              + " | MODE: " + searchMode
-              + " | " + searchUserId
-              + " | @" + uncatUserCache.get(searchUserId).screenName
-            ));
-            if (params.searchUserNodeIdArray.length > 0) {
-              notFoundAndMore = true;
-            }
-            return;
-          }
+//           if (uncatUserCache.get(searchUserId) !== undefined){
+//             console.log(chalkLog(MODULE_ID_PREFIX + " | SKIP UNCAT USER $ HIT"
+//               + " [" + uncatUserCache.getStats().keys + "]"
+//               + " | MODE: " + searchMode
+//               + " | " + searchUserId
+//               + " | @" + uncatUserCache.get(searchUserId).screenName
+//             ));
+//             if (params.searchUserNodeIdArray.length > 0) {
+//               notFoundAndMore = true;
+//             }
+//             return;
+//           }
 
-          const requestId = "reqId_" + moment().valueOf();
+//           const requestId = "reqId_" + moment().valueOf();
 
-          const user = await pubSubSearchUser({
-            requestId: requestId,
-            user: {nodeId: searchUserId}, 
-            searchMode: searchMode
-          });
+//           const user = await pubSubSearchUser({
+//             requestId: requestId,
+//             user: {nodeId: searchUserId}, 
+//             searchMode: searchMode
+//           });
 
-          if (empty(user)){
+//           if (empty(user)){
 
-            if (params.searchUserNodeIdArray.length > 0) {
-              notFoundAndMore = true;
-            }
+//             if (params.searchUserNodeIdArray.length > 0) {
+//               notFoundAndMore = true;
+//             }
 
-            console.log(chalkAlert(MODULE_ID_PREFIX + " | ??? USER NOT FOUND"
-              + " | MODE: " + searchMode
-              + " | " + searchUserId
-            ));
+//             console.log(chalkAlert(MODULE_ID_PREFIX + " | ??? USER NOT FOUND"
+//               + " | MODE: " + searchMode
+//               + " | " + searchUserId
+//             ));
 
-            return;
-          }
-          else{
+//             return;
+//           }
+//           else{
 
-            switch (searchMode){
+//             switch (searchMode){
 
-              case "UNCAT":
-                if (user.category && (user.category != "none")){
-                  userSkipCount += 1;
-                  printUserObj(MODULE_ID_PREFIX + " | SKIP | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
-                  notFoundAndMore = true;
-                  break;
-                }
+//               case "UNCAT":
+//                 if (user.category && (user.category != "none")){
+//                   userSkipCount += 1;
+//                   printUserObj(MODULE_ID_PREFIX + " | SKIP | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
+//                   notFoundAndMore = true;
+//                   break;
+//                 }
 
-                printUserObj(MODULE_ID_PREFIX + " | UNCAT", user);
-                searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
+//                 printUserObj(MODULE_ID_PREFIX + " | UNCAT", user);
+//                 searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
 
-                if (searchResults.cacheHit || searchResults.uncategorizable) {
-                  notFoundAndMore = true;
-                }
-                else{
-                  notFoundAndMore = false;
-                }
-              break;
+//                 if (searchResults.cacheHit || searchResults.uncategorizable) {
+//                   notFoundAndMore = true;
+//                 }
+//                 else{
+//                   notFoundAndMore = false;
+//                 }
+//               break;
 
-              case "MISMATCH":
-                if ((user.category !== undefined) && (user.category != "none") && user.categoryVerified){
-                  userSkipCount += 1;
-                  printUserObj(MODULE_ID_PREFIX + " | SKIP | VRFD | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
-                  notFoundAndMore = true;
-                  break;
-                }
-                else if ((user.category !== undefined) && (user.category != "none") && (user.category == user.categoryAuto)){
-                  userSkipCount += 1;
-                  printUserObj(MODULE_ID_PREFIX + " | SKIP | MTCHD  | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
-                  notFoundAndMore = true;
-                  break;
-                }
+//               case "MISMATCH":
+//                 if ((user.category !== undefined) && (user.category != "none") && user.categoryVerified){
+//                   userSkipCount += 1;
+//                   printUserObj(MODULE_ID_PREFIX + " | SKIP | VRFD | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
+//                   notFoundAndMore = true;
+//                   break;
+//                 }
+//                 else if ((user.category !== undefined) && (user.category != "none") && (user.category == user.categoryAuto)){
+//                   userSkipCount += 1;
+//                   printUserObj(MODULE_ID_PREFIX + " | SKIP | MTCHD  | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
+//                   notFoundAndMore = true;
+//                   break;
+//                 }
 
-                printUserObj(MODULE_ID_PREFIX + " | MM", user);
+//                 printUserObj(MODULE_ID_PREFIX + " | MM", user);
 
-                searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
+//                 searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
 
-                if (searchResults.cacheHit || (user.category == user.categoryAuto) || searchResults.uncategorizable) {
-                  notFoundAndMore = true;
-                }
-                else{
-                  notFoundAndMore = false;
-                }
-              break;
+//                 if (searchResults.cacheHit || (user.category == user.categoryAuto) || searchResults.uncategorizable) {
+//                   notFoundAndMore = true;
+//                 }
+//                 else{
+//                   notFoundAndMore = false;
+//                 }
+//               break;
 
-              case "UNCAT_LEFT":
+//               case "UNCAT_LEFT":
 
-                if ((user.category && (user.category != "none")) || (user.categoryAuto != "left")){
-                  userSkipCount += 1;
-                  printUserObj(MODULE_ID_PREFIX + " | SKIP | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
-                  notFoundAndMore = true;
-                  break;
-                }
+//                 if ((user.category && (user.category != "none")) || (user.categoryAuto != "left")){
+//                   userSkipCount += 1;
+//                   printUserObj(MODULE_ID_PREFIX + " | SKIP | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
+//                   notFoundAndMore = true;
+//                   break;
+//                 }
 
-                printUserObj(MODULE_ID_PREFIX + " | FOUND | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
+//                 printUserObj(MODULE_ID_PREFIX + " | FOUND | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
 
-                searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
+//                 searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
 
-                if (searchResults.cacheHit || (user.categoryAuto !== "left") || searchResults.uncategorizable) {
-                  notFoundAndMore = true;
-                }
-                else{
-                  notFoundAndMore = false;
-                }
-              break;
+//                 if (searchResults.cacheHit || (user.categoryAuto !== "left") || searchResults.uncategorizable) {
+//                   notFoundAndMore = true;
+//                 }
+//                 else{
+//                   notFoundAndMore = false;
+//                 }
+//               break;
 
-              case "UNCAT_NEUTRAL":
+//               case "UNCAT_NEUTRAL":
 
-                if ((user.category && (user.category !== "none")) || (user.categoryAuto !== "neutral")){
-                  userSkipCount += 1;
-                  printUserObj(MODULE_ID_PREFIX + " | SKIP | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
-                  notFoundAndMore = true;
-                  break;
-                }
+//                 if ((user.category && (user.category !== "none")) || (user.categoryAuto !== "neutral")){
+//                   userSkipCount += 1;
+//                   printUserObj(MODULE_ID_PREFIX + " | SKIP | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
+//                   notFoundAndMore = true;
+//                   break;
+//                 }
 
-                printUserObj(MODULE_ID_PREFIX + " | FOUND | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
+//                 printUserObj(MODULE_ID_PREFIX + " | FOUND | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
 
-                searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
+//                 searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
 
-                if (searchResults.cacheHit || (user.categoryAuto !== "neutral") || searchResults.uncategorizable) {
-                  notFoundAndMore = true;
-                }
-                else{
-                  notFoundAndMore = false;
-                }
-              break;
+//                 if (searchResults.cacheHit || (user.categoryAuto !== "neutral") || searchResults.uncategorizable) {
+//                   notFoundAndMore = true;
+//                 }
+//                 else{
+//                   notFoundAndMore = false;
+//                 }
+//               break;
 
-              case "UNCAT_RIGHT":
-                if ((user.category && (user.category != "none")) || (user.categoryAuto != "right")){
-                  userSkipCount += 1;
-                  printUserObj(MODULE_ID_PREFIX + " | SKIP | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
-                  notFoundAndMore = true;
-                  break;
-                }
+//               case "UNCAT_RIGHT":
+//                 if ((user.category && (user.category != "none")) || (user.categoryAuto != "right")){
+//                   userSkipCount += 1;
+//                   printUserObj(MODULE_ID_PREFIX + " | SKIP | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
+//                   notFoundAndMore = true;
+//                   break;
+//                 }
 
-                printUserObj(MODULE_ID_PREFIX + " | FOUND | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
+//                 printUserObj(MODULE_ID_PREFIX + " | FOUND | MODE: " + searchMode + " | SKIPPED: " + userSkipCount, user);
 
-                searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
+//                 searchResults = await processTwitterSearchNode({searchMode: searchMode, searchNode: searchNode, user: user});
 
-                if (searchResults.cacheHit || (user.categoryAuto !== "right") || searchResults.uncategorizable) {
-                  notFoundAndMore = true;
-                }
-                else{
-                  notFoundAndMore = false;
-                }
-              break;
+//                 if (searchResults.cacheHit || (user.categoryAuto !== "right") || searchResults.uncategorizable) {
+//                   notFoundAndMore = true;
+//                 }
+//                 else{
+//                   notFoundAndMore = false;
+//                 }
+//               break;
 
-              default:
-                console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR: UNKNOWN SEARCH MODE: " + searchMode));
-                quit({cause: "UNKNOWN SEARCH MODE: " + searchMode});
-            }
+//               default:
+//                 console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR: UNKNOWN SEARCH MODE: " + searchMode));
+//                 quit({cause: "UNKNOWN SEARCH MODE: " + searchMode});
+//             }
 
-            return;
-          }
+//             return;
+//           }
 
-        }
-        catch(err){
-          return err;
-        }
+//         }
+//         catch(err){
+//           return err;
+//         }
 
-      },
+//       },
 
-      function(err){
-        if (err) {
-          console.log(chalkError(MODULE_ID_PREFIX + " | *** getNextSearchNode ERROR: " + err + "\n" + jsonPrint(err)));
-          return reject(err);
-        }
+//       function(err){
+//         if (err) {
+//           console.log(chalkError(MODULE_ID_PREFIX + " | *** getNextSearchNode ERROR: " + err + "\n" + jsonPrint(err)));
+//           return reject(err);
+//         }
         
-        resolve(searchResults);
-      }
-    );
-  });
-}
+//         resolve(searchResults);
+//       }
+//     );
+//   });
+// }
 
-function uncatUserCacheCheck(nodeId){
-  return new Promise(function(resolve){
+// function uncatUserCacheCheck(nodeId){
+//   return new Promise(function(resolve){
 
-    const uncatUserObj = uncatUserCache.get(nodeId);
-    if (!uncatUserObj || (uncatUserObj == undefined)){
-      resolve(false);
-    }
-    else {
-      resolve(uncatUserObj);
-    }
+//     const uncatUserObj = uncatUserCache.get(nodeId);
+//     if (!uncatUserObj || (uncatUserObj == undefined)){
+//       resolve(false);
+//     }
+//     else {
+//       resolve(uncatUserObj);
+//     }
 
-  });
-}
+//   });
+// }
 
-async function processTwitterSearchNode(params) {
+// async function processTwitterSearchNode(params) {
 
-  let uncatUserCacheHit = false;
-  let uncategorizable = false;
+//   let uncatUserCacheHit = false;
+//   let uncategorizable = false;
 
-  if (params.user) {
+//   if (params.user) {
 
-    console.log(chalkBlue(MODULE_ID_PREFIX 
-      + " | T> TWITTER_SEARCH_NODE"
-      + " | " + getTimeStamp()
-      + " | MODE: " + params.searchMode
-      + " | SPECIFIC USER: " + params.specificUserFlag
-      + " | NID: " + params.user.nodeId
-      + " | @" + params.user.screenName
-    ));
+//     console.log(chalkBlue(MODULE_ID_PREFIX 
+//       + " | T> TWITTER_SEARCH_NODE"
+//       + " | " + getTimeStamp()
+//       + " | MODE: " + params.searchMode
+//       + " | SPECIFIC USER: " + params.specificUserFlag
+//       + " | NID: " + params.user.nodeId
+//       + " | @" + params.user.screenName
+//     ));
 
-    const categorizeable = await userCategorizeable({user: params.user, verbose: true});
-    const uuObj = await uncatUserCacheCheck(params.user.nodeId);
+//     const categorizeable = await userCategorizeable({user: params.user, verbose: true});
+//     const uuObj = await uncatUserCacheCheck(params.user.nodeId);
 
-    if (params.specificUserFlag) {
+//     if (params.specificUserFlag) {
 
-      await pubSubCategorizeUser({nodeId: params.user.nodeId});
+//       await pubSubCategorizeUser({nodeId: params.user.nodeId});
 
-      viewNameSpace.emit("SET_TWITTER_USER", {user: params.user, stats: statsObj.user });
+//       viewNameSpace.emit("SET_TWITTER_USER", {user: params.user, stats: statsObj.user });
 
-      if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
-        uncatUserCache.del(params.user.nodeId);
-      }
-    }
-    else if (categorizeable && !uuObj) { 
+//       if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
+//         uncatUserCache.del(params.user.nodeId);
+//       }
+//     }
+//     else if (categorizeable && !uuObj) { 
 
-      uncatUserCacheHit = false;
+//       uncatUserCacheHit = false;
 
-      const uncatUserObj = {};
+//       const uncatUserObj = {};
 
-      uncatUserObj.nodeId = params.user.nodeId;
-      uncatUserObj.screenName = params.user.screenName;
-      uncatUserObj.timeStamp = getTimeStamp();
+//       uncatUserObj.nodeId = params.user.nodeId;
+//       uncatUserObj.screenName = params.user.screenName;
+//       uncatUserObj.timeStamp = getTimeStamp();
 
-      uncatUserCache.set(
-        params.user.nodeId, 
-        uncatUserObj,
-        configuration.uncatUserCacheTtl
-      );
+//       uncatUserCache.set(
+//         params.user.nodeId, 
+//         uncatUserObj,
+//         configuration.uncatUserCacheTtl
+//       );
 
-      console.log(chalk.yellow(MODULE_ID_PREFIX
-        + " | --- MISS | UNCAT USER $"
-        + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
-        + " | NID: " + params.user.nodeId
-        + " | @" + params.user.screenName
-        + " | CV: " + formatBoolean(params.user.categoryVerified)
-        + " | CN: " + params.user.categorizeNetwork
-        + " | M: " + formatCategory(params.user.category)
-        + " | A: " + formatCategory(params.user.categoryAuto)
-      ));
+//       console.log(chalk.yellow(MODULE_ID_PREFIX
+//         + " | --- MISS | UNCAT USER $"
+//         + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
+//         + " | NID: " + params.user.nodeId
+//         + " | @" + params.user.screenName
+//         + " | CV: " + formatBoolean(params.user.categoryVerified)
+//         + " | CN: " + params.user.categorizeNetwork
+//         + " | M: " + formatCategory(params.user.category)
+//         + " | A: " + formatCategory(params.user.categoryAuto)
+//       ));
 
-      await pubSubCategorizeUser({nodeId: params.user.nodeId});
-    }
-    else if (categorizeable && uuObj) { 
+//       await pubSubCategorizeUser({nodeId: params.user.nodeId});
+//     }
+//     else if (categorizeable && uuObj) { 
 
-      uncatUserCacheHit = true;
+//       uncatUserCacheHit = true;
 
-      uuObj.timeStamp = getTimeStamp();
+//       uuObj.timeStamp = getTimeStamp();
 
-      console.log(chalkBlue(MODULE_ID_PREFIX
-        + " | +++ HIT  | UNCAT USER $"
-        + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
-        + " | NID: " + uuObj.nodeId
-        + " | @" + uuObj.screenName
-        + " | TS: " + uuObj.timeStamp
-      ));
-    }
-    else if (uuObj) {
-      uncategorizable = true;
-      uncatUserCacheHit = true;
-      console.log(chalk.yellow(MODULE_ID_PREFIX
-        + " | +++ HIT (NOT CATEGORIZABLE)  | UNCAT USER $"
-        + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
-        + " | TS: " + uuObj.timeStamp
-        + " | NID: " + uuObj.nodeId
-        + " | @" + uuObj.screenName
-        + " | F " + params.user.following
-        + " | I " + params.user.ignored
-        + " | L " + params.user.lang
-        + " | FLWs " + params.user.followersCount
-        + " | CN: " + params.user.categorizeNetwork
-        + " | CV: " + formatBoolean(params.user.categoryVerified)
-        + " M: " + formatCategory(params.user.category)
-        + " A: " + formatCategory(params.user.categoryAuto)
-      ));
-    }
-    else {
-      uncategorizable = true;
-      uncatUserCacheHit = false;  
-      console.log(chalkBlue(MODULE_ID_PREFIX
-        + " | --- MISS (NOT CATEGORIZABLE)  | UNCAT USER $"
-        + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
-        + " | NID: " + params.user.nodeId
-        + " | @" + params.user.screenName
-        + " | F " + params.user.following
-        + " | I " + params.user.ignored
-        + " | L " + params.user.lang
-        + " | FLWs " + params.user.followersCount
-        + " | CN: " + params.user.categorizeNetwork
-        + " | CV: " + formatBoolean(params.user.categoryVerified)
-        + " M: " + formatCategory(params.user.category)
-        + " A: " + formatCategory(params.user.categoryAuto)
-      ));
-      await deleteUser({user: params.user});
-    }
+//       console.log(chalkBlue(MODULE_ID_PREFIX
+//         + " | +++ HIT  | UNCAT USER $"
+//         + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
+//         + " | NID: " + uuObj.nodeId
+//         + " | @" + uuObj.screenName
+//         + " | TS: " + uuObj.timeStamp
+//       ));
+//     }
+//     else if (uuObj) {
+//       uncategorizable = true;
+//       uncatUserCacheHit = true;
+//       console.log(chalk.yellow(MODULE_ID_PREFIX
+//         + " | +++ HIT (NOT CATEGORIZABLE)  | UNCAT USER $"
+//         + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
+//         + " | TS: " + uuObj.timeStamp
+//         + " | NID: " + uuObj.nodeId
+//         + " | @" + uuObj.screenName
+//         + " | F " + params.user.following
+//         + " | I " + params.user.ignored
+//         + " | L " + params.user.lang
+//         + " | FLWs " + params.user.followersCount
+//         + " | CN: " + params.user.categorizeNetwork
+//         + " | CV: " + formatBoolean(params.user.categoryVerified)
+//         + " M: " + formatCategory(params.user.category)
+//         + " A: " + formatCategory(params.user.categoryAuto)
+//       ));
+//     }
+//     else {
+//       uncategorizable = true;
+//       uncatUserCacheHit = false;  
+//       console.log(chalkBlue(MODULE_ID_PREFIX
+//         + " | --- MISS (NOT CATEGORIZABLE)  | UNCAT USER $"
+//         + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
+//         + " | NID: " + params.user.nodeId
+//         + " | @" + params.user.screenName
+//         + " | F " + params.user.following
+//         + " | I " + params.user.ignored
+//         + " | L " + params.user.lang
+//         + " | FLWs " + params.user.followersCount
+//         + " | CN: " + params.user.categorizeNetwork
+//         + " | CV: " + formatBoolean(params.user.categoryVerified)
+//         + " M: " + formatCategory(params.user.category)
+//         + " A: " + formatCategory(params.user.categoryAuto)
+//       ));
+//       await deleteUser({user: params.user});
+//     }
 
-    if (params.user.toObject && (typeof params.user.toObject == "function")) {
-      const u = params.user.toObject();
-      if (ignoredUserSet.has(u.nodeId) || ignoredUserSet.has(u.screenName.toLowerCase())){
-        await deleteUser({user: u});
-      }
-      else if (followedUserSet.has(u.nodeId)){
-        u.following = true;
-        u.threeceeFollowing = "altthreecee00";
-      }
-      return {user: u, searchMode: params.searchMode, cacheHit: uncatUserCacheHit, uncategorizable: uncategorizable};
-    }
-    else{
-      if (ignoredUserSet.has(params.user.nodeId) || ignoredUserSet.has(params.user.screenName.toLowerCase())){
-        params.user.ignored = true;
-        await deleteUser({user: params.user});
-      }
-      else if (followedUserSet.has(params.user.nodeId)){
-        params.user.following = true;
-        params.user.threeceeFollowing = "altthreecee00";
-      }
-      return {user: params.user, searchMode: params.searchMode, cacheHit: uncatUserCacheHit, uncategorizable: uncategorizable};
-    }
-  }
-  else {
+//     if (params.user.toObject && (typeof params.user.toObject == "function")) {
+//       const u = params.user.toObject();
+//       if (ignoredUserSet.has(u.nodeId) || ignoredUserSet.has(u.screenName.toLowerCase())){
+//         await deleteUser({user: u});
+//       }
+//       else if (followedUserSet.has(u.nodeId)){
+//         u.following = true;
+//         u.threeceeFollowing = "altthreecee00";
+//       }
+//       return {user: u, searchMode: params.searchMode, cacheHit: uncatUserCacheHit, uncategorizable: uncategorizable};
+//     }
+//     else{
+//       if (ignoredUserSet.has(params.user.nodeId) || ignoredUserSet.has(params.user.screenName.toLowerCase())){
+//         params.user.ignored = true;
+//         await deleteUser({user: params.user});
+//       }
+//       else if (followedUserSet.has(params.user.nodeId)){
+//         params.user.following = true;
+//         params.user.threeceeFollowing = "altthreecee00";
+//       }
+//       return {user: params.user, searchMode: params.searchMode, cacheHit: uncatUserCacheHit, uncategorizable: uncategorizable};
+//     }
+//   }
+//   else {
 
-    console.log(chalkAlert(MODULE_ID_PREFIX + " | *** TWITTER_SEARCH_NODE | NOT FOUND"
-      + " | " + getTimeStamp()
-      + " | MODE: " + params.searchMode
-      + " | NODE: " + params.searchNode
-    ));
+//     console.log(chalkAlert(MODULE_ID_PREFIX + " | *** TWITTER_SEARCH_NODE | NOT FOUND"
+//       + " | " + getTimeStamp()
+//       + " | MODE: " + params.searchMode
+//       + " | NODE: " + params.searchNode
+//     ));
 
-    viewNameSpace.emit(
-      "TWITTER_SEARCH_NODE_NOT_FOUND", 
-      { 
-        searchMode: params.searchMode, 
-        searchNode: params.searchNode, 
-        stats: statsObj.user 
-      }
-    );
+//     viewNameSpace.emit(
+//       "TWITTER_SEARCH_NODE_NOT_FOUND", 
+//       { 
+//         searchMode: params.searchMode, 
+//         searchNode: params.searchNode, 
+//         stats: statsObj.user 
+//       }
+//     );
 
-    return {user: false, cacheHit: uncatUserCacheHit, uncategorizable: uncategorizable};
+//     return {user: false, cacheHit: uncatUserCacheHit, uncategorizable: uncategorizable};
 
-  }
-}
+//   }
+// }
 
 // async function twitterSearchUser(params) {
 

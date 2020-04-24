@@ -4095,7 +4095,7 @@ async function pubSubSearchUser(params){
       + " | REQ: " + params.requestId
       + " | TOPIC: twitterSearchUser"
       + " | MODE: " + params.searchMode
-      + " | " + params.user
+      + " | USER: " + params.user
     ));
 
     await pubSubPublishMessage({

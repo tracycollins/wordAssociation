@@ -11,6 +11,9 @@ const twitterDateFormat = "ddd MMM DD HH:mm:ss Z YYYY"; // Wed Aug 27 13:08:45 +
 const DEFAULT_PUBSUB_ENABLED = true;
 const DEFAULT_PUBSUB_PROJECT_ID = "graphic-tangent-627";
 
+const DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL = 604800; // 3600*24*7 sec/week
+const DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD = 3600;
+
 let pubSubClient;
 
 const DEFAULT_GOOGLE_COMPUTE_DOMAIN = "bc.googleusercontent.com";
@@ -20,8 +23,6 @@ const DEFAULT_MAX_USER_SEARCH_SKIP_COUNT = 25;
 
 const DEFAULT_USER_PROFILE_ONLY_FLAG = false;
 const DEFAULT_BINARY_MODE = true;
-
-// const uncategorizedManualUserSet = new Set();
 
 let saveSampleTweetFlag = true;
 
@@ -839,9 +840,13 @@ statsObj.user.uncategorizedAuto = 0;
 statsObj.user.uncategorizedManual = 0;
 statsObj.user.uncategorizedTotal = 0;
 
-let configuration = {};
 let defaultConfiguration = {}; // general configuration
 let hostConfiguration = {}; // host-specific configuration
+
+let configuration = {};
+
+configuration.uncatUserCacheTtl = DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL;
+configuration.uncatUserCacheCheckPeriod = DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD;
 
 configuration.pubSub = {};
 configuration.pubSub.enabled = DEFAULT_PUBSUB_ENABLED;
@@ -4085,7 +4090,7 @@ async function pubSubSearchUser(params){
 
   try {
 
-    console.log(chalkLog(MODULE_ID_PREFIX
+    console.log(chalkBlue(MODULE_ID_PREFIX
       + " | PS SEARCH USER [" + statsObj.pubSub.messagesSent + "]"
       + " | REQ: " + params.requestId
       + " | TOPIC: twitterSearchUser"

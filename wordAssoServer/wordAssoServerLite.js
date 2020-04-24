@@ -592,14 +592,14 @@ async function initPubSubTwitterSearchUserResultHandler(params){
       + " | CN: " + messageObj.user.categorizeNetwork
       + " | CM: " + formatCategory(messageObj.user.category)
       + " | CA: " + formatCategory(messageObj.user.categoryAuto)
-      + "\nUSER\n" + jsonPrint(messageObj.user)
+      // + "\nUSER\n" + jsonPrint(messageObj.user)
     ));
 
     searchUserResultHashMap[messageObj.requestId] = messageObj.user;
 
     tcUtils.emitter.emit("searchUserResult_" + messageObj.requestId);
 
-    message.ack();
+    // message.ack();
   };
 
   subscription.on("message", messageHandler);

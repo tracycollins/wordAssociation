@@ -8306,7 +8306,6 @@ function initTssChild(params){
               statsObj.tssChildReady = true;
             }
           });
-
         break;
 
         case "ERROR":

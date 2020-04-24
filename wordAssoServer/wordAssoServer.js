@@ -5602,7 +5602,6 @@ function followable(text){
   });
 }
 
-
 async function userCategorizeable(params){
 
   let hitSearchTerm = false;

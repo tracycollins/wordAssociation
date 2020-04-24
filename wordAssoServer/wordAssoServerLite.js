@@ -460,7 +460,7 @@ async function updateUserAutoCategory(params){
 
   categorizedUserHashMap.set(params.user.nodeId, user);
 
-  return;
+  return user;
 }
 
 async function initPubSub(p){
@@ -497,6 +497,7 @@ async function initPubSubCategorizeResultHandler(params){
       + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
       + " | PS MID: " + message.id
       + " | NID: " + messageObj.user.nodeId
+      + " | @" + messageObj.user.screenName
       + " | CN: " + messageObj.user.categorizeNetwork
       + " | CA: " + messageObj.user.categoryAuto
     ));
@@ -4395,6 +4396,8 @@ async function processTwitterSearchNode(params) {
 
       await pubSubCategorizeUser({nodeId: params.user.nodeId});
 
+      socket.emit("SET_TWITTER_USER", {user: params.user, stats: statsObj.user });
+
       if (params.user.category == "left" || params.user.category == "right" || params.user.category == "neutral") {
         uncatUserCache.del(params.user.nodeId);
       }
@@ -4427,7 +4430,6 @@ async function processTwitterSearchNode(params) {
       ));
 
       await pubSubCategorizeUser({nodeId: params.user.nodeId});
-
     }
     else if (categorizeable && uuObj) { 
 
@@ -5199,7 +5201,6 @@ async function initSocketHandler(socketObj) {
             viewerCache.set(socket.id, sessionObj);
             adminNameSpace.emit("VIEWER_ADD", sessionObj);
             socket.emit("KEEPALIVE", sessionObj);
-            // adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
           }
           else {
 
@@ -5211,7 +5212,6 @@ async function initSocketHandler(socketObj) {
 
             viewerCache.set(socket.id, sessionObj);
             socket.emit("KEEPALIVE", sessionObj);
-            // adminNameSpace.volatile.emit("KEEPALIVE", sessionObj);
           }
         break;
 
@@ -5584,7 +5584,9 @@ async function initSocketHandler(socketObj) {
             ));
           }
           if (updatedNodeObj.nodeType == "hashtag") {
+
             socket.emit("SET_TWITTER_HASHTAG", {hashtag: updatedNodeObj, stats: statsObj.hashtag });
+
             console.log(chalkSocket(MODULE_ID_PREFIX
               + " | TX> SET_TWITTER_HASHTAG"
               + " | " + getTimeStamp(timeStamp)

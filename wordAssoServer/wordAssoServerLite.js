@@ -4534,99 +4534,134 @@ async function processTwitterSearchNode(params) {
   }
 }
 
+// async function twitterSearchUser(params) {
+
+//   const searchNode = params.searchNode.replace(/\s/g, "");
+//   const searchNodeUser = { screenName: searchNode.substring(1) };
+
+//   let searchMode;
+//   let searchUserNodeIdArray = [];
+
+//   if (searchNodeUser.screenName.startsWith("?")) {
+
+//     switch (searchNodeUser.screenName) {
+
+//       case "?mm":
+//         searchMode = "MISMATCH";
+//         searchUserNodeIdArray = await findUsersNodeIds({categoryMismatch: true}, true);
+//         statsObj.user.mismatched = searchUserNodeIdArray.length;
+//       break;
+
+//       case "?all":
+//         searchMode = "UNCAT";
+//         searchUserNodeIdArray = await findUsersNodeIds({category: "none"}, true);
+//         statsObj.user.uncategorized.all = searchUserNodeIdArray.length;
+//       break;
+
+//       case "?left":
+//         searchMode = "UNCAT_LEFT";
+//         searchUserNodeIdArray = await findUsersNodeIds({category: "none", categoryAuto: "left"}, true);
+//         statsObj.user.uncategorized.left = searchUserNodeIdArray.length;
+//       break;
+
+//       case "?right":
+//         searchMode = "UNCAT_RIGHT";
+//         searchUserNodeIdArray = await findUsersNodeIds({category: "none", categoryAuto: "right"}, true);
+//         statsObj.user.uncategorized.right = searchUserNodeIdArray.length;
+//       break;
+
+//       case "?neutral":
+//         searchMode = "UNCAT_NEUTRAL";
+//         searchUserNodeIdArray = await findUsersNodeIds({category: "none", categoryAuto: "neutral"}, true);
+//         statsObj.user.uncategorized.neutral = searchUserNodeIdArray.length;
+//       break;
+
+//       default:
+//         console.log(chalkError(MODULE_ID_PREFIX + " | *** UNKNOWN searchNodeUser.screenName: " + searchNodeUser.screenName));
+//         throw new Error("UNKNOWN searchNodeUser.screenName");
+//     }
+
+//     if (searchUserNodeIdArray.length == 0) {
+
+//       console.log(chalkLog(MODULE_ID_PREFIX
+//         + " | --- TWITTER_SEARCH_NODE | NO USERS FOUND"
+//         + " | " + getTimeStamp()
+//         + " | MODE: " + searchMode
+//         + " [ SEARCH USER ARRAY: " + searchUserNodeIdArray.length + "]"
+//       ));
+
+//       const message = {};
+      
+//       message.user = {};
+//       message.user.notFound = true;
+//       message.searchNode = searchNode;
+//       message.stats = statsObj.user;
+
+//       viewNameSpace.emit("TWITTER_SEARCH_NODE_EMPTY_QUEUE", message);
+
+//       return;
+//     }
+
+//     console.log(chalkLog(MODULE_ID_PREFIX
+//       + " | TWITTER_SEARCH_NODE"
+//       + " | " + getTimeStamp()
+//       + " | MODE: " + searchMode
+//       + " [ SEARCH USER ARRAY: " + searchUserNodeIdArray.length + "]"
+//     ));
+
+//     try {
+//       await getNextSearchNode({searchMode: searchMode, searchNode: searchNode, searchUserNodeIdArray: searchUserNodeIdArray});
+//       return;
+//     }
+//     catch(err){
+//       console.log(chalkError(MODULE_ID_PREFIX
+//         + " | *** TWITTER_SEARCH_NODE ERROR"
+//         + " [ UC USER ARRAY: " + searchUserNodeIdArray.length + "]"
+//         + " | " + getTimeStamp()
+//         + " | MODE: " + searchMode + " | ERROR: " + err
+//       ));
+
+//       viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", { searchNode: searchNode, stats: statsObj.user });
+//       throw err;
+//     }
+//   }
+
+//   console.log(chalkInfo(MODULE_ID_PREFIX + " | SPECIFIC USR SEARCH | @" + searchNodeUser.screenName));
+
+//   try {
+
+//     const requestId = "reqId_" + moment().valueOf();
+
+//     const user = await pubSubSearchUser({
+//       requestId: requestId,
+//       user: {screenName: searchNodeUser.screenName}, 
+//       searchMode: searchMode
+//     });
+
+//     user.following = true;
+
+//     await processTwitterSearchNode({specificUserFlag: true, searchMode: "SPECIFIC", searchNode: searchNode, user: user});
+//     return;
+//   }
+//   catch(err){
+//     console.log(chalkError(MODULE_ID_PREFIX
+//       + " | *** TWITTER_SEARCH_NODE ERROR"
+//       + " | " + getTimeStamp()
+//       + " | SEARCH UNCATEGORIZED USER"
+//       + " | searchNodeUser: " + searchNodeUser
+//       + " | ERROR: " + err
+//     ));
+
+//     viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", { searchNode: searchNode, stats: statsObj.user });
+//     throw err;
+//   }
+// }
+
 async function twitterSearchUser(params) {
 
   const searchNode = params.searchNode.replace(/\s/g, "");
-  const searchNodeUser = { screenName: searchNode.substring(1) };
 
-  let searchMode;
-  let searchUserNodeIdArray = [];
-
-  if (searchNodeUser.screenName.startsWith("?")) {
-
-    switch (searchNodeUser.screenName) {
-
-      case "?mm":
-        searchMode = "MISMATCH";
-        searchUserNodeIdArray = await findUsersNodeIds({categoryMismatch: true}, true);
-        statsObj.user.mismatched = searchUserNodeIdArray.length;
-      break;
-
-      case "?all":
-        searchMode = "UNCAT";
-        searchUserNodeIdArray = await findUsersNodeIds({category: "none"}, true);
-        statsObj.user.uncategorized.all = searchUserNodeIdArray.length;
-      break;
-
-      case "?left":
-        searchMode = "UNCAT_LEFT";
-        searchUserNodeIdArray = await findUsersNodeIds({category: "none", categoryAuto: "left"}, true);
-        statsObj.user.uncategorized.left = searchUserNodeIdArray.length;
-      break;
-
-      case "?right":
-        searchMode = "UNCAT_RIGHT";
-        searchUserNodeIdArray = await findUsersNodeIds({category: "none", categoryAuto: "right"}, true);
-        statsObj.user.uncategorized.right = searchUserNodeIdArray.length;
-      break;
-
-      case "?neutral":
-        searchMode = "UNCAT_NEUTRAL";
-        searchUserNodeIdArray = await findUsersNodeIds({category: "none", categoryAuto: "neutral"}, true);
-        statsObj.user.uncategorized.neutral = searchUserNodeIdArray.length;
-      break;
-
-      default:
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** UNKNOWN searchNodeUser.screenName: " + searchNodeUser.screenName));
-        throw new Error("UNKNOWN searchNodeUser.screenName");
-    }
-
-    if (searchUserNodeIdArray.length == 0) {
-
-      console.log(chalkLog(MODULE_ID_PREFIX
-        + " | --- TWITTER_SEARCH_NODE | NO USERS FOUND"
-        + " | " + getTimeStamp()
-        + " | MODE: " + searchMode
-        + " [ SEARCH USER ARRAY: " + searchUserNodeIdArray.length + "]"
-      ));
-
-      const message = {};
-      
-      message.user = {};
-      message.user.notFound = true;
-      message.searchNode = searchNode;
-      message.stats = statsObj.user;
-
-      viewNameSpace.emit("TWITTER_SEARCH_NODE_EMPTY_QUEUE", message);
-
-      return;
-    }
-
-    console.log(chalkLog(MODULE_ID_PREFIX
-      + " | TWITTER_SEARCH_NODE"
-      + " | " + getTimeStamp()
-      + " | MODE: " + searchMode
-      + " [ SEARCH USER ARRAY: " + searchUserNodeIdArray.length + "]"
-    ));
-
-    try {
-      await getNextSearchNode({searchMode: searchMode, searchNode: searchNode, searchUserNodeIdArray: searchUserNodeIdArray});
-      return;
-    }
-    catch(err){
-      console.log(chalkError(MODULE_ID_PREFIX
-        + " | *** TWITTER_SEARCH_NODE ERROR"
-        + " [ UC USER ARRAY: " + searchUserNodeIdArray.length + "]"
-        + " | " + getTimeStamp()
-        + " | MODE: " + searchMode + " | ERROR: " + err
-      ));
-
-      viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", { searchNode: searchNode, stats: statsObj.user });
-      throw err;
-    }
-  }
-
-  console.log(chalkInfo(MODULE_ID_PREFIX + " | SPECIFIC USR SEARCH | @" + searchNodeUser.screenName));
+  console.log(chalkInfo(MODULE_ID_PREFIX + " | -?- USER SEARCH | NODE: " + searchNode));
 
   try {
 
@@ -4634,21 +4669,17 @@ async function twitterSearchUser(params) {
 
     const user = await pubSubSearchUser({
       requestId: requestId,
-      user: {screenName: searchNodeUser.screenName}, 
-      searchMode: searchMode
+      searchNode: searchNode
     });
 
-    user.following = true;
-
-    await processTwitterSearchNode({specificUserFlag: true, searchMode: "SPECIFIC", searchNode: searchNode, user: user});
-    return;
+    return user;
   }
   catch(err){
     console.log(chalkError(MODULE_ID_PREFIX
       + " | *** TWITTER_SEARCH_NODE ERROR"
       + " | " + getTimeStamp()
-      + " | SEARCH UNCATEGORIZED USER"
-      + " | searchNodeUser: " + searchNodeUser
+      + " | SEARCH USER"
+      + " | searchNode: " + searchNode
       + " | ERROR: " + err
     ));
 
@@ -4656,6 +4687,7 @@ async function twitterSearchUser(params) {
     throw err;
   }
 }
+
 
 async function twitterSearchHashtag(params) {
 
@@ -4740,7 +4772,7 @@ async function twitterSearchNode(params) {
   }
 
   if (searchNode.startsWith("@")) {
-    await twitterSearchUser({searchNode: searchNode, searchMode: "SPECIFIC"});
+    await twitterSearchUser({searchNode: searchNode});
     return;
   }
 

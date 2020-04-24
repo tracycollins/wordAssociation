@@ -4659,18 +4659,41 @@ async function pubSubSearchUser(params){
 
 async function twitterSearchUser(params) {
 
-  const searchNode = params.searchNode.replace(/\s/g, "");
-
-  console.log(chalkInfo(MODULE_ID_PREFIX + " | -?- USER SEARCH | NODE: " + searchNode));
+  console.log(chalkInfo(MODULE_ID_PREFIX + " | -?- USER SEARCH | USER: " + params.user));
 
   try {
 
-    const requestId = "reqId_" + moment().valueOf();
+    const message = {};
+    message.requestId = "reqId_" + moment().valueOf();
 
-    const user = await pubSubSearchUser({
-      requestId: requestId,
-      searchNode: searchNode
-    });
+    switch (params.user) {
+
+      case "@?mm":
+        message.searchMode = "MISMATCH";
+      break;
+
+      case "@?all":
+        message.searchMode = "UNCAT";
+      break;
+
+      case "@?left":
+        message.searchMode = "UNCAT_LEFT";
+      break;
+
+      case "@?right":
+        message.searchMode = "UNCAT_RIGHT";
+      break;
+
+      case "@?neutral":
+        message.searchMode = "UNCAT_NEUTRAL";
+      break;
+
+      default:
+        message.searchMode = "SPECIFIC";
+        message.user = params.user;
+    }
+
+    const user = await pubSubSearchUser(message);
 
     return user;
   }
@@ -4679,11 +4702,11 @@ async function twitterSearchUser(params) {
       + " | *** TWITTER_SEARCH_NODE ERROR"
       + " | " + getTimeStamp()
       + " | SEARCH USER"
-      + " | searchNode: " + searchNode
+      + " | searchNode: " + params.user
       + " | ERROR: " + err
     ));
 
-    viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", { searchNode: searchNode, stats: statsObj.user });
+    viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", { user: params.user, stats: statsObj.user });
     throw err;
   }
 }
@@ -4772,7 +4795,7 @@ async function twitterSearchNode(params) {
   }
 
   if (searchNode.startsWith("@")) {
-    await twitterSearchUser({searchNode: searchNode});
+    await twitterSearchUser({user: searchNode});
     return;
   }
 

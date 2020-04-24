@@ -4,7 +4,7 @@ const ignoredHashtagFile = "ignoredHashtag.txt";
 const followableSearchTermFile = "followableSearchTerm.txt";
 const ignoreLocationsFile = "ignoreLocations.txt";
 const allowLocationsFile = "allowLocations.txt";
-const currentTwitterFilterTrackFile = "tss_currentTwitterFilterTrack.json"
+// const currentTwitterFilterTrackFile = "tss_currentTwitterFilterTrack.json"
 
 const DEFAULT_FILTER_RETWEETS = false;
 const DEFAULT_MAX_TWEET_QUEUE = 100;
@@ -33,7 +33,7 @@ const watch = require("watch");
 
 const chalk = require("chalk");
 const chalkBlue = chalk.blue;
-const chalkBlueBold = chalk.blue.bold;
+// const chalkBlueBold = chalk.blue.bold;
 const chalkAlert = chalk.red;
 const chalkTwitter = chalk.blue;
 const chalkError = chalk.bold.red;
@@ -58,10 +58,10 @@ const moment = require("moment");
 const Measured = require("measured-core");
 const NodeCache = require("node-cache");
 
-global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
-let dbConnection;
+// global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
+// let dbConnection;
 
-let userServerController;
+// let userServerController;
 
 let DROPBOX_ROOT_FOLDER;
 
@@ -237,7 +237,7 @@ if (debug.enabled) {
 
 const statsObj = {};
 
-statsObj.dbConnectionReady = false;
+// statsObj.dbConnectionReady = false;
 
 statsObj.hostname = hostname;
 statsObj.pid = process.pid;
@@ -282,61 +282,61 @@ statsObj.twitter.userWithheld = 0;
 statsObj.twitter.limitMax = 0;
 statsObj.twitter.limitMaxTime = moment().valueOf();
 
-async function connectDb(){
+// async function connectDb(){
 
-  try {
+//   try {
 
-    statsObj.status = "CONNECTING MONGO DB";
+//     statsObj.status = "CONNECTING MONGO DB";
 
-    console.log(chalkBlueBold(MODULE_ID_PREFIX + " | CONNECT MONGO DB ..."));
+//     console.log(chalkBlueBold(MODULE_ID_PREFIX + " | CONNECT MONGO DB ..."));
 
-    const db = await global.wordAssoDb.connect(MODULE_ID_PREFIX + "_" + process.pid);
+//     const db = await global.wordAssoDb.connect(MODULE_ID_PREFIX + "_" + process.pid);
 
-    db.on("error", async function(err){
-      statsObj.status = "MONGO ERROR";
-      statsObj.dbConnectionReady = false;
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION ERROR"));
-      db.close();
-      quit({cause: "MONGO DB ERROR: " + err});
-    });
+//     db.on("error", async function(err){
+//       statsObj.status = "MONGO ERROR";
+//       statsObj.dbConnectionReady = false;
+//       console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION ERROR"));
+//       db.close();
+//       quit({cause: "MONGO DB ERROR: " + err});
+//     });
 
-    db.on("close", async function(err){
-      statsObj.status = "MONGO CLOSED";
-      statsObj.dbConnectionReady = false;
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION CLOSED"));
-      quit({cause: "MONGO DB CLOSED: " + err});
-    });
+//     db.on("close", async function(err){
+//       statsObj.status = "MONGO CLOSED";
+//       statsObj.dbConnectionReady = false;
+//       console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION CLOSED"));
+//       quit({cause: "MONGO DB CLOSED: " + err});
+//     });
 
-    db.on("disconnected", async function(){
-      statsObj.status = "MONGO DISCONNECTED";
-      statsObj.dbConnectionReady = false;
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | *** MONGO DB DISCONNECTED"));
-      quit({cause: "MONGO DB DISCONNECTED"});
-    });
+//     db.on("disconnected", async function(){
+//       statsObj.status = "MONGO DISCONNECTED";
+//       statsObj.dbConnectionReady = false;
+//       console.log(chalkAlert(MODULE_ID_PREFIX + " | *** MONGO DB DISCONNECTED"));
+//       quit({cause: "MONGO DB DISCONNECTED"});
+//     });
 
-    console.log(chalk.green(MODULE_ID_PREFIX + " | MONGOOSE DEFAULT CONNECTION OPEN"));
+//     console.log(chalk.green(MODULE_ID_PREFIX + " | MONGOOSE DEFAULT CONNECTION OPEN"));
 
-    statsObj.dbConnectionReady = true;
+//     statsObj.dbConnectionReady = true;
 
-    const UserServerController = require("@threeceelabs/user-server-controller");
+//     const UserServerController = require("@threeceelabs/user-server-controller");
     
-    userServerController = new UserServerController(MODULE_ID_PREFIX + "_USC");
+//     userServerController = new UserServerController(MODULE_ID_PREFIX + "_USC");
 
-    userServerController.on("error", function(err){
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** USC ERROR | " + err));
-    });
+//     userServerController.on("error", function(err){
+//       console.log(chalkError(MODULE_ID_PREFIX + " | *** USC ERROR | " + err));
+//     });
 
-    userServerController.on("ready", function(appname){
-      console.log(chalk.green(MODULE_ID_PREFIX + " | USC READY | " + appname));
-    });
+//     userServerController.on("ready", function(appname){
+//       console.log(chalk.green(MODULE_ID_PREFIX + " | USC READY | " + appname));
+//     });
 
-    return db;
-  }
-  catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECT ERROR: " + err));
-    throw err;
-  }
-}
+//     return db;
+//   }
+//   catch(err){
+//     console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECT ERROR: " + err));
+//     throw err;
+//   }
+// }
 
 // ==================================================================
 // DROPBOX
@@ -454,21 +454,21 @@ function quit(message) {
     
   );
 
-  if (dbConnection !== undefined) {
+  // if (dbConnection !== undefined) {
 
-    dbConnection.close(function () {
-      console.log(chalkAlert(
-            "TSS | =========================="
-        + "\nTSS | MONGO DB CONNECTION CLOSED"
-        + "\nTSS | =========================="
-      ));
+  //   dbConnection.close(function () {
+  //     console.log(chalkAlert(
+  //           "TSS | =========================="
+  //       + "\nTSS | MONGO DB CONNECTION CLOSED"
+  //       + "\nTSS | =========================="
+  //     ));
 
-      process.exit(exitCode);
-    });
-  }
-  else {
+  //     process.exit(exitCode);
+  //   });
+  // }
+  // else {
     process.exit(exitCode);
-  }
+  // }
 }
 
 function initStatsUpdate(cnf){
@@ -522,28 +522,28 @@ function initStatsUpdate(cnf){
   });
 }
 
-function printUserObj(title, u) {
+// function printUserObj(title, u) {
 
-  const user = userDefaults(u);
+//   const user = userDefaults(u);
 
-  console.log(chalkLog(title
-    + " | U " + user.userId
-    + " | @" + user.screenName
-    + " | N " + user.name 
-    + " | L " + user.location 
-    + " | FWs " + user.followersCount
-    + " | FDs " + user.friendsCount
-    + " | T " + user.statusesCount
-    + " | M  " + user.mentions
-    + " | LS " + getTimeStamp(user.lastSeen)
-    + " | FW " + user.following 
-    + " | C M " + user.category + " A " + user.categoryAuto
-  ));
-}
+//   console.log(chalkLog(title
+//     + " | U " + user.userId
+//     + " | @" + user.screenName
+//     + " | N " + user.name 
+//     + " | L " + user.location 
+//     + " | FWs " + user.followersCount
+//     + " | FDs " + user.friendsCount
+//     + " | T " + user.statusesCount
+//     + " | M  " + user.mentions
+//     + " | LS " + getTimeStamp(user.lastSeen)
+//     + " | FW " + user.following 
+//     + " | C M " + user.category + " A " + user.categoryAuto
+//   ));
+// }
 
-const userDefaults = function (user){
-  return user;
-};
+// const userDefaults = function (user){
+//   return user;
+// };
 
 const rateLimitHashMap = {};
 
@@ -624,46 +624,46 @@ function twitStreamPromise(params){
 
 async function initFollowUserIdSet(){
 
-  let userIndex = 0;
+  // let userIndex = 0;
 
-  const followUserIdArray = [...threeceeUserObj.followUserIdSet];
+  // const followUserIdArray = [...threeceeUserObj.followUserIdSet];
 
-  for(const userId of followUserIdArray) {
+  // for(const userId of followUserIdArray) {
 
-    userIndex += 1;
+  //   userIndex += 1;
 
-    if (configuration.testMode && (userIndex > 100)){
-      continue;
-    }
+  //   if (configuration.testMode && (userIndex > 100)){
+  //     continue;
+  //   }
 
-    try{
+  //   try{
 
-      const user = await global.wordAssoDb.User.findOne({ nodeId: userId });
+  //     const user = await global.wordAssoDb.User.findOne({ nodeId: userId });
 
-      if (user) {
+  //     if (user) {
 
-        if (configuration.verbose || (userIndex % 100 == 0)) {
-          const printString = "TSS [ " + userIndex + "/" + threeceeUserObj.followUserIdSet.size + " ] DB HIT";
-          printUserObj(printString, user);
-        }
+  //       if (configuration.verbose || (userIndex % 100 == 0)) {
+  //         const printString = "TSS [ " + userIndex + "/" + threeceeUserObj.followUserIdSet.size + " ] DB HIT";
+  //         printUserObj(printString, user);
+  //       }
 
-        if (!user.following) { 
-          user.following = true;
-          user.threeceeFollowing = threeceeUserObj.screenName;
-          user.markModified("following");
-          user.markModified("threeceeFollowing");
-          user.save(function(err){
-            if (err) { console.log(chalkError("TSS | *** USER DB SAVE ERROR: " + err)); }
-          });
-        }
-      }
+  //       if (!user.following) { 
+  //         user.following = true;
+  //         user.threeceeFollowing = threeceeUserObj.screenName;
+  //         user.markModified("following");
+  //         user.markModified("threeceeFollowing");
+  //         user.save(function(err){
+  //           if (err) { console.log(chalkError("TSS | *** USER DB SAVE ERROR: " + err)); }
+  //         });
+  //       }
+  //     }
 
-    }
-    catch(err){
-      console.log(chalkAlert("TSS | *** initFollowUserIdSet ERROR: " + err));
-      throw err;
-    }
-  }
+  //   }
+  //   catch(err){
+  //     console.log(chalkAlert("TSS | *** initFollowUserIdSet ERROR: " + err));
+  //     throw err;
+  //   }
+  // }
 
   process.send({
     op: "TWITTER_STATS", 
@@ -1890,53 +1890,53 @@ process.on("message", async function(m) {
           + " | " + threeceeUserObj.followUserIdSet.size + " FRIENDS"
         ));
 
-        let userIndex = 0;
-        let printString = "";
+        // let userIndex = 0;
+        // let printString = "";
 
-        const followUserIdArray = [...threeceeUserObj.followUserIdSet];
+        // const followUserIdArray = [...threeceeUserObj.followUserIdSet];
 
-        for(const userId of followUserIdArray){
+        // for(const userId of followUserIdArray){
 
-          userIndex += 1;
+        //   userIndex += 1;
 
-          try{
+        //   try{
 
-            const user = await global.wordAssoDb.User.findOne({nodeId: userId});
+        //     const user = await global.wordAssoDb.User.findOne({nodeId: userId});
 
-            if (user) {
+        //     if (user) {
 
-              if (configuration.verbose || (userIndex % 100 == 0)){
-                printString = "TSS | [ " + userIndex + "/" + threeceeUserObj.followUserIdSet.size + " ] @" + threeceeUserObj.screenName + " | DB HIT";
-                printUserObj(printString, user);
-              }
+        //       if (configuration.verbose || (userIndex % 100 == 0)){
+        //         printString = "TSS | [ " + userIndex + "/" + threeceeUserObj.followUserIdSet.size + " ] @" + threeceeUserObj.screenName + " | DB HIT";
+        //         printUserObj(printString, user);
+        //       }
 
-              if (!user.following) {
-                user.following = true;
-                user.threeceeFollowing = threeceeUserObj.screenName;
-                user.markModified("following");
-                user.markModified("threeceeFollowing");
-                user.save(function(err){
-                  if (err) { console.log(chalkError("TSS | *** USER DB SAVE ERROR: " + err)); }
-                });
-              }
-            }
-            else {
+        //       if (!user.following) {
+        //         user.following = true;
+        //         user.threeceeFollowing = threeceeUserObj.screenName;
+        //         user.markModified("following");
+        //         user.markModified("threeceeFollowing");
+        //         user.save(function(err){
+        //           if (err) { console.log(chalkError("TSS | *** USER DB SAVE ERROR: " + err)); }
+        //         });
+        //       }
+        //     }
+        //     else {
 
-              console.log(chalkLog("TSS | [ " + userIndex + "/" + threeceeUserObj.followUserIdSet.size + " ]"
-                + " | DB USER MISS  | UID: " + userId
-              ));
+        //       console.log(chalkLog("TSS | [ " + userIndex + "/" + threeceeUserObj.followUserIdSet.size + " ]"
+        //         + " | DB USER MISS  | UID: " + userId
+        //       ));
 
-              process.send({
-                op: "DB_USER_MISS", 
-                nodeId: userId
-              });
-            }
-          }
-          catch(err){
-            console.log(chalkAlert("TSS | *** USER DB ERROR *** | " + err));
-            throw err;
-          }
-        }
+        //       process.send({
+        //         op: "DB_USER_MISS", 
+        //         nodeId: userId
+        //       });
+        //     }
+        //   }
+        //   catch(err){
+        //     console.log(chalkAlert("TSS | *** USER DB ERROR *** | " + err));
+        //     throw err;
+        //   }
+        // }
 
         await initSearchTerms(configuration);
         await initSearchStream();
@@ -2094,15 +2094,15 @@ setTimeout(async function(){
       console.log(chalkError("TSS | TSS | *** INIT ERROR | CONFIG FILE NOT FOUND? | ERROR: " + err));
     }
 
-    dbConnection = await connectDb();
-    statsObj.dbConnectionReady = true;
+    // dbConnection = await connectDb();
+    // statsObj.dbConnectionReady = true;
     await initWatchConfig();
     await initSearchTermsUpdateInterval();
     process.send({ op: "READY"});
   }
   catch(err){
-    statsObj.dbConnectionReady = false;
-    console.log(chalkError("TSS | TSS | *** MONGO DB CONNECT ERROR: " + err + " | QUITTING ***"));
-    quit("MONGO DB CONNECT ERROR");
+    // statsObj.dbConnectionReady = false;
+    console.log(chalkError("TSS | TSS | *** ERROR: " + err + " | QUITTING ***"));
+    quit("INITIALIZE ERROR");
   }
 }, ONE_SECOND);

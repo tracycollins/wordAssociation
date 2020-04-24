@@ -4094,8 +4094,8 @@ async function pubSubSearchUser(params){
       + " | PS SEARCH USER [" + statsObj.pubSub.messagesSent + "]"
       + " | REQ: " + params.requestId
       + " | TOPIC: twitterSearchUser"
-      + " | NID: " + params.user.nodeId
-      + " | @" + params.user.screenName
+      + " | MODE: " + params.searchMode
+      + " | " + params.user
     ));
 
     await pubSubPublishMessage({

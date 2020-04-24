@@ -560,6 +560,8 @@ async function initPubSubCategorizeResultHandler(params){
   return;
 }
 
+const searchUserResultHashMap = {};
+
 async function initPubSubTwitterSearchUserNodeResultHandler(params){
 
   const subscription = await pubSubClient.subscription(params.subscribeName);
@@ -585,15 +587,20 @@ async function initPubSubTwitterSearchUserNodeResultHandler(params){
     console.log(chalkLog(MODULE_ID_PREFIX
       + " | ==> PS SUB SEARCH USER [RX: " + statsObj.pubSub.messagesReceived + "]"
       + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
-      + " | PS MID: " + message.id
+      + " | RESULT MID: " + message.id
+      + " | REQUEST MID: " + messageObj.requestId
       + " | SEARCH MODE: " + messageObj.searchMode
       + " | NID: " + messageObj.user.nodeId
       + " | @" + messageObj.user.screenName
       + " | CN: " + messageObj.user.categorizeNetwork
-      + " | CM: " + messageObj.user.category
-      + " | CA: " + messageObj.user.categoryAuto
+      + " | CM: " + formatCategory(messageObj.user.category)
+      + " | CA: " + formatCategory(messageObj.user.categoryAuto)
       + "\nUSER\n" + jsonPrint(messageObj.user)
     ));
+
+    searchUserResultHashMap[messageObj.requestId] = messageObj.user;
+
+    tcUtils.emitter.emit("searchUserResult_" + messageObj.requestId);
 
     message.ack();
   };
@@ -621,7 +628,7 @@ async function pubSubPublishMessage(params){
     ));
   }
 
-  return;
+  return messageId;
 }
 
 //=========================================================================
@@ -4118,39 +4125,13 @@ async function twitterSearchUserNode(params){
       message: params
     });
 
-    /*
+    const eventName = "searchUserResult_" + params.requestId;
 
-      - wait for pubSubResult
-        set up event.once(result)
-      - if found, return user otherwise return null
+    await tcUtils.waitEvent({event: eventName, verbose: true});
 
-    */
+    const user = searchUserResultHashMap[params.requestId] || false;
 
-    // const dbUser = await global.wordAssoDb.User.findOne(user);
-
-    // if (dbUser) {
-
-    //   printUserObj(MODULE_ID_PREFIX + " | SEARCH DB | MODE: " + searchMode + " | FOUND USER", dbUser);
-
-    //   const updatedUser = await twitterGetUserUpdateDb({user: dbUser, following: following});
-
-    //   if (updatedUser) { 
-    //     return updatedUser;
-    //   }
-    //   return;
-    // }
-
-    // console.log(chalkLog(MODULE_ID_PREFIX 
-    //   + " | SEARCH DB | MODE: " + searchMode 
-    //   + " | USER NOT FOUND | @" + user.screenName 
-    //   + " | NID: " + user.nodeId
-    //   + "\nUSER\n" + jsonPrint(user)
-    // ));
-
-    // const newUser = await twitterGetUserUpdateDb({user: user, following: following});
-
-    // if (newUser) { return newUser; }
-    return;
+    return user;
   }
   catch(err){
 
@@ -4246,7 +4227,13 @@ function getNextSearchNode(params){
             return;
           }
 
-          const user = await twitterSearchUserNode({user: {nodeId: searchUserId}, searchMode: searchMode});
+          const requestId = "reqId_" + moment().valueOf();
+
+          const user = await twitterSearchUserNode({
+            requestId: requestId,
+            user: {nodeId: searchUserId}, 
+            searchMode: searchMode
+          });
 
           if (empty(user)){
 
@@ -4749,7 +4736,15 @@ async function twitterSearchUser(params) {
   console.log(chalkInfo(MODULE_ID_PREFIX + " | SPECIFIC USR SEARCH | @" + searchNodeUser.screenName));
 
   try {
-    const user = await twitterSearchUserNode({user: {screenName: searchNodeUser.screenName}, searchMode: searchMode});
+
+    const requestId = "reqId_" + moment().valueOf();
+
+    const user = await twitterSearchUserNode({
+      requestId: requestId,
+      user: {screenName: searchNodeUser.screenName}, 
+      searchMode: searchMode
+    });
+
     await processTwitterSearchNode({specificUserFlag: true, searchMode: "SPECIFIC", searchNode: searchNode, user: user});
     return;
   }

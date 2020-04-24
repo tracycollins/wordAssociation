@@ -4114,6 +4114,14 @@ async function pubSubSearchUser(params){
 
   try {
 
+    console.log(chalkLog(MODULE_ID_PREFIX
+      + " | PS SEARCH USER [" + statsObj.pubSub.messagesSent + "]"
+      + " | REQ: " + params.requestId
+      + " | TOPIC: twitterSearchUser"
+      + " | NID: " + params.user.nodeId
+      + " | @" + params.user.screenName
+    ));
+
     await pubSubPublishMessage({
       publishName: "twitterSearchUser",
       message: params

@@ -21,7 +21,7 @@ const DEFAULT_MAX_USER_SEARCH_SKIP_COUNT = 25;
 const DEFAULT_USER_PROFILE_ONLY_FLAG = false;
 const DEFAULT_BINARY_MODE = true;
 
-const uncategorizedManualUserSet = new Set();
+// const uncategorizedManualUserSet = new Set();
 
 let saveSampleTweetFlag = true;
 
@@ -494,14 +494,14 @@ pubSubSubscriptionHandlerMap.categorizeResultHandler = async function(message){
   return;
 };
 
-pubSubSubscriptionHandlerMap.twitterSearchUserNodeResultHandler = async function(message){
+pubSubSubscriptionHandlerMap.twitterSearchUserResultHandler = async function(message){
 
-  statsObj.pubSub.subscriptions.twitterSearchUserNode.messagesReceived += 1;
+  statsObj.pubSub.subscriptions.twitterSearchUser.messagesReceived += 1;
 
   const messageObj = JSON.parse(message.data.toString());
 
   console.log(chalkLog(MODULE_ID_PREFIX
-    + " | --> PS SUB [RX: " + statsObj.pubSub.subscriptions.twitterSearchUserNode.messagesReceived + "]"
+    + " | --> PS SUB [RX: " + statsObj.pubSub.subscriptions.twitterSearchUser.messagesReceived + "]"
     + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
     + " | PS MID: " + message.id
     + " | NID: " + messageObj.user.nodeId
@@ -559,7 +559,7 @@ async function initPubSubCategorizeResultHandler(params){
 
 const searchUserResultHashMap = {};
 
-async function initPubSubTwitterSearchUserNodeResultHandler(params){
+async function initPubSubTwitterSearchUserResultHandler(params){
 
   const subscription = await pubSubClient.subscription(params.subscribeName);
 
@@ -898,9 +898,9 @@ configuration.pubSub.subscriptions.categorizeResult = {};
 configuration.pubSub.subscriptions.categorizeResult.subscribeName = "categorizeResult";
 configuration.pubSub.subscriptions.categorizeResult.handler = "categorizeResultHandler";
 
-configuration.pubSub.subscriptions.twitterSearchUserNodeResult = {}; 
-configuration.pubSub.subscriptions.twitterSearchUserNodeResult.subscribeName = "twitterSearchUserNodeResult";
-configuration.pubSub.subscriptions.twitterSearchUserNodeResult.handler = "twitterSearchUserNodeResultHandler";
+configuration.pubSub.subscriptions.twitterSearchUserResult = {}; 
+configuration.pubSub.subscriptions.twitterSearchUserResult.subscribeName = "twitterSearchUserResult";
+configuration.pubSub.subscriptions.twitterSearchUserResult.handler = "twitterSearchUserResultHandler";
 
 configuration.slackChannel = {};
 
@@ -4110,12 +4110,12 @@ async function findUsersNodeIds(query, filterUncatUsersFlag){
   return [];
 }
 
-async function twitterSearchUserNode(params){
+async function pubSubSearchUser(params){
 
   try {
 
     await pubSubPublishMessage({
-      publishName: "twitterSearchUserNode",
+      publishName: "twitterSearchUser",
       message: params
     });
 
@@ -4206,7 +4206,7 @@ function getNextSearchNode(params){
 
           const searchUserId = searchUserNodeIdArray.shift();
 
-          uncategorizedManualUserSet.delete(searchUserId);
+          // uncategorizedManualUserSet.delete(searchUserId);
 
           if (uncatUserCache.get(searchUserId) !== undefined){
             console.log(chalkLog(MODULE_ID_PREFIX + " | SKIP UNCAT USER $ HIT"
@@ -4223,7 +4223,7 @@ function getNextSearchNode(params){
 
           const requestId = "reqId_" + moment().valueOf();
 
-          const user = await twitterSearchUserNode({
+          const user = await pubSubSearchUser({
             requestId: requestId,
             user: {nodeId: searchUserId}, 
             searchMode: searchMode
@@ -4677,7 +4677,7 @@ async function twitterSearchUser(params) {
 
     const requestId = "reqId_" + moment().valueOf();
 
-    const user = await twitterSearchUserNode({
+    const user = await pubSubSearchUser({
       requestId: requestId,
       user: {screenName: searchNodeUser.screenName}, 
       searchMode: searchMode
@@ -10243,8 +10243,8 @@ setTimeout(async function(){
     await initPubSubCategorizeResultHandler({
       subscribeName: configuration.pubSub.subscriptions.categorizeResult.subscribeName
     });
-    await initPubSubTwitterSearchUserNodeResultHandler({
-      subscribeName: configuration.pubSub.subscriptions.twitterSearchUserNodeResult.subscribeName
+    await initPubSubTwitterSearchUserResultHandler({
+      subscribeName: configuration.pubSub.subscriptions.twitterSearchUserResult.subscribeName
     });
   }
   catch(err){

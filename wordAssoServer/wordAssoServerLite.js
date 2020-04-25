@@ -496,14 +496,18 @@ async function initPubSubCategorizeResultHandler(params){
     console.log(chalkLog(MODULE_ID_PREFIX
       + " | ==> PS SUB CAT [RX: " + statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived + "]"
       + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
-      + " | PS MID: " + message.id
+      + " | MID: " + message.id
+      + " | REQ ID: " + message.requestId
       + " | NID: " + messageObj.user.nodeId
+      + " | DB MISS: " + messageObj.notFound
       + " | @" + messageObj.user.screenName
       + " | CN: " + messageObj.user.categorizeNetwork
       + " | CA: " + messageObj.user.categoryAuto
     ));
 
-    await updateUserAutoCategory({user: messageObj.user});
+    if (!messageObj.notFound){
+      await updateUserAutoCategory({user: messageObj.user});
+    }
 
     if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)){
       message.ack();

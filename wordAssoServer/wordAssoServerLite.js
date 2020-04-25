@@ -4136,7 +4136,7 @@ async function twitterSearchUser(params) {
   try {
 
     const message = {};
-    message.requestId = "reqId_" + moment().valueOf();
+    message.requestId = "rId_" + hostname + "_" + moment().valueOf();
 
     switch (params.user) {
 
@@ -6398,7 +6398,7 @@ async function pubSubCategorizeUser(params){
 
   if (configuration.pubSub.enabled && !pubSubCategorizeSentSet.has(params.nodeId)) { 
 
-    const requestId = "reqId_" + moment().valueOf();
+    const requestId = "rId_" + hostname + "_" + moment().valueOf();
 
     await pubSubPublishMessage({
       publishName: "categorize",

@@ -863,7 +863,7 @@ let hostConfiguration = {}; // host-specific configuration
 
 let configuration = {};
 
-configuration.primaryHost = (hostname === process.env.PRIMARY_HOST)
+configuration.primaryHost = (hostname === process.env.PRIMARY_HOST);
 
 configuration.uncatUserCacheTtl = DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL;
 configuration.uncatUserCacheCheckPeriod = DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD;
@@ -874,11 +874,11 @@ configuration.pubSub.projectId = DEFAULT_PUBSUB_PROJECT_ID;
 
 configuration.pubSub.subscriptions = {};
 configuration.pubSub.subscriptions.categorizeResult = {};
-configuration.pubSub.subscriptions.categorizeResult.subscribeName = "categorizeResult";
+configuration.pubSub.subscriptions.categorizeResult.subscribeName = (configuration.primaryHost) ? "categorizeResultPrimary" : "categorizeResult";
 configuration.pubSub.subscriptions.categorizeResult.handler = "categorizeResultHandler";
 
 configuration.pubSub.subscriptions.twitterSearchUserResult = {}; 
-configuration.pubSub.subscriptions.twitterSearchUserResult.subscribeName = "twitterSearchUserResult";
+configuration.pubSub.subscriptions.twitterSearchUserResult.subscribeName = (configuration.primaryHost) ? "twitterSearchUserResultPrimary" : "twitterSearchUserResult";
 configuration.pubSub.subscriptions.twitterSearchUserResult.handler = "twitterSearchUserResultHandler";
 
 configuration.slackChannel = {};

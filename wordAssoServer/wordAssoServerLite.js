@@ -498,11 +498,11 @@ async function initPubSubCategorizeResultHandler(params){
       statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived += 1;
 
       console.log(chalkLog(MODULE_ID_PREFIX
-        + " | ==> PS SUB CAT [RX: " + statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived + "]"
+        + " | ==> PS CAT [" + statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived + "]"
         + " | SUB: " + params.subscribeName
         // + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
-        + " | MID: " + message.id
-        + " | REQ ID: " + messageObj.requestId
+        // + " | MID: " + message.id
+        + " | RID: " + messageObj.requestId
         + " | NID: " + messageObj.user.nodeId
         + " | DB MISS: " + messageObj.notFound
         + " | @" + messageObj.user.screenName

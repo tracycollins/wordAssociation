@@ -489,27 +489,28 @@ async function initPubSubCategorizeResultHandler(params){
 
   const messageHandler = async function(message){
 
-    statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived += 1;
-
     const messageObj = JSON.parse(message.data.toString());
 
-    console.log(chalkLog(MODULE_ID_PREFIX
-      + " | ==> PS SUB CAT [RX: " + statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived + "]"
-      + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
-      + " | MID: " + message.id
-      + " | REQ ID: " + messageObj.requestId
-      + " | NID: " + messageObj.user.nodeId
-      + " | DB MISS: " + messageObj.notFound
-      + " | @" + messageObj.user.screenName
-      + " | CN: " + messageObj.user.categorizeNetwork
-      + " | CA: " + messageObj.user.categoryAuto
-    ));
-
-    if (!messageObj.notFound){
-      await updateUserAutoCategory({user: messageObj.user});
-    }
-
     if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)){
+
+      statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived += 1;
+
+      console.log(chalkLog(MODULE_ID_PREFIX
+        + " | ==> PS SUB CAT [RX: " + statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived + "]"
+        + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
+        + " | MID: " + message.id
+        + " | REQ ID: " + messageObj.requestId
+        + " | NID: " + messageObj.user.nodeId
+        + " | DB MISS: " + messageObj.notFound
+        + " | @" + messageObj.user.screenName
+        + " | CN: " + messageObj.user.categorizeNetwork
+        + " | CA: " + messageObj.user.categoryAuto
+      ));
+
+      if (!messageObj.notFound){
+        await updateUserAutoCategory({user: messageObj.user});
+      }
+
       message.ack();
       pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
     }
@@ -540,30 +541,30 @@ async function initPubSubTwitterSearchUserResultHandler(params){
 
   const messageHandler = async function(message){
 
-    statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived += 1;
-
     const messageObj = JSON.parse(message.data.toString());
 
-    console.log(chalkBlueBold(MODULE_ID_PREFIX
-      + " | ==> PS SUB SEARCH USER [RX: " + statsObj.pubSub.messagesReceived + "]"
-      + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
-      + " | RESULT MID: " + message.id
-      + " | REQUEST MID: " + messageObj.requestId
-      + " | SEARCH MODE: " + messageObj.searchMode
-      + " | NID: " + messageObj.user.nodeId
-      + " | @" + messageObj.user.screenName
-      + " | CN: " + messageObj.user.categorizeNetwork
-      + " | CM: " + formatCategory(messageObj.user.category)
-      + " | CA: " + formatCategory(messageObj.user.categoryAuto)
-    ));
-
-    searchUserResultHashMap[messageObj.requestId] = messageObj.user;
-
-    tcUtils.emitter.emit("searchUserResult_" + messageObj.requestId);
-
     if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)){
-      message.ack();
+
+      statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived += 1;
+
+      console.log(chalkBlueBold(MODULE_ID_PREFIX
+        + " | ==> PS SUB SEARCH USER [RX: " + statsObj.pubSub.messagesReceived + "]"
+        + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
+        + " | RESULT MID: " + message.id
+        + " | REQUEST MID: " + messageObj.requestId
+        + " | SEARCH MODE: " + messageObj.searchMode
+        + " | NID: " + messageObj.user.nodeId
+        + " | @" + messageObj.user.screenName
+        + " | CN: " + messageObj.user.categorizeNetwork
+        + " | CM: " + formatCategory(messageObj.user.category)
+        + " | CA: " + formatCategory(messageObj.user.categoryAuto)
+      ));
+
+      searchUserResultHashMap[messageObj.requestId] = messageObj.user;
+
+      tcUtils.emitter.emit("searchUserResult_" + messageObj.requestId);
       pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
+      message.ack();
     }
   };
 

@@ -462,6 +462,7 @@ async function updateUserAutoCategory(params){
   }
 
   categorizedUserHashMap.set(params.user.nodeId, user);
+  uncategorizeableUserSet.delete(params.user.nodeId);
 
   return user;
 }
@@ -553,12 +554,13 @@ async function initPubSubTwitterSearchUserResultHandler(params){
       if (messageObj.user) {
         console.log(chalkBlueBold(MODULE_ID_PREFIX
           + " | ==> PS SEARCH USER [" + statsObj.pubSub.messagesReceived + "]"
+          // + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
           + " | MID: " + message.id
           + " | RID: " + messageObj.requestId
-          + " | MODE: " + messageObj.searchMode
+          + " | SEARCH MODE: " + messageObj.searchMode
           + " | NID: " + messageObj.user.nodeId
           + " | @" + messageObj.user.screenName
-          + " | FLW: " + formatBoolean(messageObj.user.following)
+          + " | @" + formatBoolean(messageObj.user.following)
           + " | CN: " + messageObj.user.categorizeNetwork
           + " | CV: " + formatBoolean(messageObj.user.categoryVerified)
           + " | CM: " + formatCategory(messageObj.user.category)
@@ -569,13 +571,19 @@ async function initPubSubTwitterSearchUserResultHandler(params){
       }
       else{
         console.log(chalk.yellow(MODULE_ID_PREFIX
-          + " | ==> PS SEARCH USER - NOT FOUND - [" + statsObj.pubSub.messagesReceived + "]"
+          + " | ==> PS SEARCH USER -MISS- [" + statsObj.pubSub.messagesReceived + "]"
+          // + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
           + " | MID: " + message.id
           + " | RID: " + messageObj.requestId
-          + " | MODE: " + messageObj.searchMode
+          + " | SEARCH MODE: " + messageObj.searchMode
+          + " | NID: " + messageObj.user.nodeId
+          + " | @" + messageObj.user.screenName
+          + " | @" + formatBoolean(messageObj.user.following)
+          + " | CN: " + messageObj.user.categorizeNetwork
+          + " | CV: " + formatBoolean(messageObj.user.categoryVerified)
+          + " | CM: " + formatCategory(messageObj.user.category)
+          + " | CA: " + formatCategory(messageObj.user.categoryAuto)
         ));
-
-        searchUserResultHashMap[messageObj.requestId] = false;
       }
 
       tcUtils.emitter.emit("searchUserResult_" + messageObj.requestId);
@@ -1097,87 +1105,89 @@ const categorizeableUserSet = new Set();
 const uncategorizeableUserSet = new Set();
 let followableSearchTermSet = new Set();
 
-followableSearchTermSet.add("potus");
-followableSearchTermSet.add("trump");
-followableSearchTermSet.add("trumps");
-followableSearchTermSet.add("obama");
-followableSearchTermSet.add("obamas");
-followableSearchTermSet.add("clinton");
-followableSearchTermSet.add("clintons");
-followableSearchTermSet.add("pence");
-followableSearchTermSet.add("pences");
-followableSearchTermSet.add("ivanka");
-followableSearchTermSet.add("mueller");
-followableSearchTermSet.add("reagan");
-followableSearchTermSet.add("hanity");
-followableSearchTermSet.add("aoc");
-followableSearchTermSet.add("putin");
 
-followableSearchTermSet.add("#nra");
-followableSearchTermSet.add("#gop");
-followableSearchTermSet.add("#resist");
+followableSearchTermSet.add("#blm");
 followableSearchTermSet.add("#dem");
+followableSearchTermSet.add("#gop");
 followableSearchTermSet.add("#imwithher");
 followableSearchTermSet.add("#metoo");
-followableSearchTermSet.add("#blm");
+followableSearchTermSet.add("#nra");
+followableSearchTermSet.add("#resist");
 followableSearchTermSet.add("#russia");
-
-followableSearchTermSet.add("@nra");
+followableSearchTermSet.add("@cnn");
+followableSearchTermSet.add("@dnc");
+followableSearchTermSet.add("@forbes");
+followableSearchTermSet.add("@foxnews");
 followableSearchTermSet.add("@gop");
-
-followableSearchTermSet.add("🌊");
-followableSearchTermSet.add("fbr");
-followableSearchTermSet.add("gop");
-followableSearchTermSet.add("dem");
-followableSearchTermSet.add("bluewave");
+followableSearchTermSet.add("@msnbc");
+followableSearchTermSet.add("@nra");
+followableSearchTermSet.add("@nytimes");
+followableSearchTermSet.add("@rnc");
+followableSearchTermSet.add("abortion");
+followableSearchTermSet.add("aoc");
+followableSearchTermSet.add("barack");
+followableSearchTermSet.add("barackobama");
+followableSearchTermSet.add("biden");
+followableSearchTermSet.add("joebiden");
 followableSearchTermSet.add("bluetsunami");
+followableSearchTermSet.add("bluewave");
+followableSearchTermSet.add("clinton");
+followableSearchTermSet.add("clintons");
+followableSearchTermSet.add("cnn");
+followableSearchTermSet.add("congress");
+followableSearchTermSet.add("conservative");
+followableSearchTermSet.add("conservatives");
+followableSearchTermSet.add("dem");
+followableSearchTermSet.add("democrat");
+followableSearchTermSet.add("democrats");
+followableSearchTermSet.add("mcconnell");
+followableSearchTermSet.add("mitchmcconnell");
+followableSearchTermSet.add("dnc");
+followableSearchTermSet.add("drumpf");
+followableSearchTermSet.add("election");
+followableSearchTermSet.add("elections");
+followableSearchTermSet.add("fbr");
+followableSearchTermSet.add("forbes");
+followableSearchTermSet.add("foxnews");
+followableSearchTermSet.add("gop");
+followableSearchTermSet.add("hanity");
+followableSearchTermSet.add("kamala");
+followableSearchTermSet.add("hillary");
+followableSearchTermSet.add("ivanka");
 followableSearchTermSet.add("liberal");
 followableSearchTermSet.add("liberals");
+followableSearchTermSet.add("livesmatter");
+followableSearchTermSet.add("msnbc");
+followableSearchTermSet.add("mueller");
+followableSearchTermSet.add("nytimes");
+followableSearchTermSet.add("obama");
+followableSearchTermSet.add("obamas");
+followableSearchTermSet.add("pence");
+followableSearchTermSet.add("pences");
+followableSearchTermSet.add("potus");
+followableSearchTermSet.add("pro choice");
+followableSearchTermSet.add("pro life");
+followableSearchTermSet.add("pro-choice");
+followableSearchTermSet.add("pro-life");
+followableSearchTermSet.add("prochoice");
+followableSearchTermSet.add("prolife");
+followableSearchTermSet.add("putin");
+followableSearchTermSet.add("reagan");
+followableSearchTermSet.add("republican");
+followableSearchTermSet.add("republicans");
+followableSearchTermSet.add("rnc");
+followableSearchTermSet.add("scotus");
 followableSearchTermSet.add("senate");
 followableSearchTermSet.add("senator");
 followableSearchTermSet.add("senators");
-followableSearchTermSet.add("democrat");
-followableSearchTermSet.add("democrats");
-followableSearchTermSet.add("congress");
-followableSearchTermSet.add("republican");
-followableSearchTermSet.add("republicans");
-followableSearchTermSet.add("conservative");
-followableSearchTermSet.add("conservatives");
-followableSearchTermSet.add("livesmatter");
-followableSearchTermSet.add("abortion");
-followableSearchTermSet.add("prochoice");
-followableSearchTermSet.add("pro choice");
-followableSearchTermSet.add("pro-choice");
-followableSearchTermSet.add("prolife");
-followableSearchTermSet.add("pro life");
-followableSearchTermSet.add("pro-life");
-
-followableSearchTermSet.add("election");
-followableSearchTermSet.add("elections");
-followableSearchTermSet.add("scotus");
-followableSearchTermSet.add("supreme court");
-
-followableSearchTermSet.add("specialcounsel");
 followableSearchTermSet.add("special counsel");
-
-followableSearchTermSet.add("cnn");
-followableSearchTermSet.add("@cnn");
-followableSearchTermSet.add("msnbc");
-followableSearchTermSet.add("@msnbc");
-followableSearchTermSet.add("forbes");
-followableSearchTermSet.add("@forbes");
-followableSearchTermSet.add("nytimes");
-followableSearchTermSet.add("@nytimes");
-followableSearchTermSet.add("foxnews");
-followableSearchTermSet.add("@foxnews");
-followableSearchTermSet.add("nytimes");
-followableSearchTermSet.add("@nytimes");
-followableSearchTermSet.add("dnc");
-followableSearchTermSet.add("@dnc");
-followableSearchTermSet.add("rnc");
-followableSearchTermSet.add("@rnc");
-followableSearchTermSet.add("gop");
-followableSearchTermSet.add("@gop");
+followableSearchTermSet.add("specialcounsel");
+followableSearchTermSet.add("supreme court");
+followableSearchTermSet.add("trump");
+followableSearchTermSet.add("trumps");
+followableSearchTermSet.add("andrewyang");
+followableSearchTermSet.add("yanggang");
+followableSearchTermSet.add("🌊");
 
 let followableSearchTermsArray = [...followableSearchTermSet];
 
@@ -3374,6 +3384,7 @@ async function categorizeNode(categorizeObj) {
       if (cObj.auto) { update.categoryAuto = cObj.auto; }
 
       categorizedUserHashMap.set(nodeId, cObj);
+      uncategorizeableUserSet.delete(nodeId);
 
       nCacheObj = nodeCache.get(nodeId);
 
@@ -3416,6 +3427,8 @@ async function categorizeNode(categorizeObj) {
             }
           );
 
+          uncategorizeableUserSet.delete(updatedFollowUser.nodeId);
+
           console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ TWITTER_FOLLOW"
             + " | UID: " + updatedFollowUser.nodeId
             + " | @" + updatedFollowUser.screenName
@@ -3435,6 +3448,8 @@ async function categorizeNode(categorizeObj) {
               network: updatedUser.categorizeNetwork
             }
           );
+          
+          uncategorizeableUserSet.delete(updatedUser.nodeId);
 
           return updatedUser;
         }
@@ -3657,14 +3672,36 @@ async function categoryVerified(params) {
       + " | CA: " + formatCategory(params.user.categoryAuto)
     ));
 
-    const dbUser = await global.wordAssoDb.User.findOne({screenName: params.user.screenName.toLowerCase()});
+    const dbUser = await global.wordAssoDb.User.findOne({
+      screenName: params.user.screenName.toLowerCase()
+    });
 
     if (empty(dbUser)) {
-      console.log(chalkWarn(MODULE_ID_PREFIX + " | ??? UPDATE VERIFIED | USER NOT FOUND: " + params.user.screenName.toLowerCase()));
+      console.log(chalkWarn(MODULE_ID_PREFIX 
+        + " | ??? UPDATE VERIFIED | USER NOT FOUND: " + params.user.screenName.toLowerCase()
+      ));
       throw new Error("USER NOT FOUND");
     }
 
     dbUser.categoryVerified = params.user.categoryVerified;
+
+    // categorizedUserHashMap.set(user.nodeId, 
+    //   { 
+    //     nodeId: user.nodeId, 
+    //     screenName: user.screenName, 
+    //     manual: user.category, 
+    //     auto: user.categoryAuto,
+    //     network: user.categorizeNetwork
+    //   }
+    // );
+
+    if (categorizedUserHashMap.has(params.user.nodeId)){
+      uncategorizeableUserSet.delete(params.user.nodeId);
+      dbUser.following = true;
+      dbUser.category = categorizedUserHashMap.get(params.user.nodeId).manual;
+      dbUser.categoryAuto = categorizedUserHashMap.get(params.user.nodeId).auto;
+    }
+
     if (params.user.categorizeNetwork){
       dbUser.categorizeNetwork = params.user.categorizeNetwork;
     }
@@ -3988,13 +4025,18 @@ async function initFollowableSearchTermSet(){
 
   statsObj.status = "INIT FOLLOWABLE SEARCH TERM SET";
 
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | INIT FOLLOWABLE SEARCH TERM SET: " + configDefaultFolder 
+  console.log(chalkBlue(MODULE_ID_PREFIX 
+    + " | INIT FOLLOWABLE SEARCH TERM SET: " + configDefaultFolder 
     + "/" + followableSearchTermFile
   ));
 
   try{
 
-    const result = await tcUtils.initSetFromFile({folder: configDefaultFolder, file: followableSearchTermFile, resolveOnNotFound: true});
+    const result = await tcUtils.initSetFromFile({
+      folder: configDefaultFolder, 
+      file: followableSearchTermFile, 
+      resolveOnNotFound: true
+    });
 
     if (result) {
       followableSearchTermSet = result;
@@ -6224,6 +6266,7 @@ async function updateUserSets(){
     else {
 
       if (user.category && user.category !== undefined){
+        uncategorizeableUserSet.delete(user.nodeId);
         categorizedUserHashMap.set(user.nodeId, 
           { 
             nodeId: user.nodeId, 
@@ -9462,6 +9505,8 @@ async function initDbUserChangeStream(){
           catObj.network = categoryChanges.network || catObj.network;
 
           categorizedUserHashMap.set(catObj.nodeId, catObj);
+          uncategorizeableUserSet.delete(catObj.nodeId);
+
         }
       }
     }

@@ -588,7 +588,8 @@ async function pubSubPublishMessage(params){
 
   if (configuration.verbose || (statsObj.pubSub.messagesSent % 100 === 0)){
     console.log(chalkLog(MODULE_ID_PREFIX
-      + " | PUBSUB [" + statsObj.pubSub.messagesSent + "]"
+      + " | PUBSUB [ SENT: " + statsObj.pubSub.messagesSent
+      + " | UNACK: " + pubSubPublishMessageRequestIdSet.size + "]"
       + " | MID: " + messageId
       + " | RID: " + params.message.requestId
       + " | TOPIC: " + params.publishName

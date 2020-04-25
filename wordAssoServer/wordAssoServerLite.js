@@ -550,20 +550,33 @@ async function initPubSubTwitterSearchUserResultHandler(params){
 
       statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived += 1;
 
-      console.log(chalkBlueBold(MODULE_ID_PREFIX
-        + " | ==> PS SUB SEARCH USER [RX: " + statsObj.pubSub.messagesReceived + "]"
-        + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
-        + " | RESULT MID: " + message.id
-        + " | REQUEST MID: " + messageObj.requestId
-        + " | SEARCH MODE: " + messageObj.searchMode
-        + " | NID: " + messageObj.user.nodeId
-        + " | @" + messageObj.user.screenName
-        + " | CN: " + messageObj.user.categorizeNetwork
-        + " | CM: " + formatCategory(messageObj.user.category)
-        + " | CA: " + formatCategory(messageObj.user.categoryAuto)
-      ));
+      if (messageObj.user) {
+        console.log(chalkBlueBold(MODULE_ID_PREFIX
+          + " | ==> PS SEARCH USER [" + statsObj.pubSub.messagesReceived + "]"
+          + " | MID: " + message.id
+          + " | RID: " + messageObj.requestId
+          + " | MODE: " + messageObj.searchMode
+          + " | NID: " + messageObj.user.nodeId
+          + " | @" + messageObj.user.screenName
+          + " | FLW: " + formatBoolean(messageObj.user.following)
+          + " | CN: " + messageObj.user.categorizeNetwork
+          + " | CV: " + formatBoolean(messageObj.user.categoryVerified)
+          + " | CM: " + formatCategory(messageObj.user.category)
+          + " | CA: " + formatCategory(messageObj.user.categoryAuto)
+        ));
 
-      searchUserResultHashMap[messageObj.requestId] = messageObj.user;
+        searchUserResultHashMap[messageObj.requestId] = messageObj.user;
+      }
+      else{
+        console.log(chalk.yellow(MODULE_ID_PREFIX
+          + " | ==> PS SEARCH USER - NOT FOUND - [" + statsObj.pubSub.messagesReceived + "]"
+          + " | MID: " + message.id
+          + " | RID: " + messageObj.requestId
+          + " | MODE: " + messageObj.searchMode
+        ));
+
+        searchUserResultHashMap[messageObj.requestId] = false;
+      }
 
       tcUtils.emitter.emit("searchUserResult_" + messageObj.requestId);
       pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);

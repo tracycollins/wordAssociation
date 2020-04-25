@@ -505,8 +505,9 @@ async function initPubSubCategorizeResultHandler(params){
 
     await updateUserAutoCategory({user: messageObj.user});
 
-    if (configuration.primaryHost){
+    if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)){
       message.ack();
+      pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
     }
   };
 
@@ -556,8 +557,9 @@ async function initPubSubTwitterSearchUserResultHandler(params){
 
     tcUtils.emitter.emit("searchUserResult_" + messageObj.requestId);
 
-    if (configuration.primaryHost){
+    if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)){
       message.ack();
+      pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
     }
   };
 
@@ -566,12 +568,16 @@ async function initPubSubTwitterSearchUserResultHandler(params){
   return;
 }
 
+const pubSubPublishMessageRequestIdSet = new Set();
+
 async function pubSubPublishMessage(params){
 
   const data = JSON.stringify(params.message);
   const dataBuffer = Buffer.from(data);
 
   const messageId = await pubSubClient.topic(params.publishName).publish(dataBuffer);
+
+  pubSubPublishMessageRequestIdSet.add(params.requestId);
 
   statsObj.pubSub.messagesSent += 1;
 
@@ -4179,7 +4185,6 @@ async function twitterSearchUser(params) {
   }
 }
 
-
 async function twitterSearchHashtag(params) {
 
   const searchNode = params.searchNode.toLowerCase().trim();
@@ -6389,9 +6394,12 @@ async function pubSubCategorizeUser(params){
 
   if (configuration.pubSub.enabled && !pubSubCategorizeSentSet.has(params.nodeId)) { 
 
+    const requestId = "reqId_" + moment().valueOf();
+
     await pubSubPublishMessage({
       publishName: "categorize",
       message: {
+        requestId: requestId,
         user: { nodeId: params.nodeId }
       }
     });

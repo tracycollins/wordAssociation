@@ -582,7 +582,7 @@ async function pubSubPublishMessage(params){
 
   const messageId = await pubSubClient.topic(params.publishName).publish(dataBuffer);
 
-  pubSubPublishMessageRequestIdSet.add(params.requestId);
+  pubSubPublishMessageRequestIdSet.add(params.message.requestId);
 
   statsObj.pubSub.messagesSent += 1;
 

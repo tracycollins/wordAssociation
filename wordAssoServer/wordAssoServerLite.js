@@ -6226,7 +6226,7 @@ async function updateUserSets(){
 
     usersProcessed++;
 
-    if (usersProcessed % 1000 === 0) {
+    if (usersProcessed % 5000 === 0) {
       console.log(chalkLog(MODULE_ID_PREFIX + " | USER SETS | " + usersProcessed + " USERS PROCESSED"));
     }
   });

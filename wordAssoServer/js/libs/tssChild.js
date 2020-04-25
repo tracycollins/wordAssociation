@@ -4,7 +4,6 @@ const ignoredHashtagFile = "ignoredHashtag.txt";
 const followableSearchTermFile = "followableSearchTerm.txt";
 const ignoreLocationsFile = "ignoreLocations.txt";
 const allowLocationsFile = "allowLocations.txt";
-// const currentTwitterFilterTrackFile = "tss_currentTwitterFilterTrack.json"
 
 const DEFAULT_FILTER_RETWEETS = false;
 const DEFAULT_MAX_TWEET_QUEUE = 100;
@@ -33,7 +32,6 @@ const watch = require("watch");
 
 const chalk = require("chalk");
 const chalkBlue = chalk.blue;
-// const chalkBlueBold = chalk.blue.bold;
 const chalkAlert = chalk.red;
 const chalkTwitter = chalk.blue;
 const chalkError = chalk.bold.red;
@@ -57,11 +55,6 @@ const Twit = require("twit");
 const moment = require("moment");
 const Measured = require("measured-core");
 const NodeCache = require("node-cache");
-
-// global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
-// let dbConnection;
-
-// let userServerController;
 
 let DROPBOX_ROOT_FOLDER;
 
@@ -282,62 +275,6 @@ statsObj.twitter.userWithheld = 0;
 statsObj.twitter.limitMax = 0;
 statsObj.twitter.limitMaxTime = moment().valueOf();
 
-// async function connectDb(){
-
-//   try {
-
-//     statsObj.status = "CONNECTING MONGO DB";
-
-//     console.log(chalkBlueBold(MODULE_ID_PREFIX + " | CONNECT MONGO DB ..."));
-
-//     const db = await global.wordAssoDb.connect(MODULE_ID_PREFIX + "_" + process.pid);
-
-//     db.on("error", async function(err){
-//       statsObj.status = "MONGO ERROR";
-//       statsObj.dbConnectionReady = false;
-//       console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION ERROR"));
-//       db.close();
-//       quit({cause: "MONGO DB ERROR: " + err});
-//     });
-
-//     db.on("close", async function(err){
-//       statsObj.status = "MONGO CLOSED";
-//       statsObj.dbConnectionReady = false;
-//       console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION CLOSED"));
-//       quit({cause: "MONGO DB CLOSED: " + err});
-//     });
-
-//     db.on("disconnected", async function(){
-//       statsObj.status = "MONGO DISCONNECTED";
-//       statsObj.dbConnectionReady = false;
-//       console.log(chalkAlert(MODULE_ID_PREFIX + " | *** MONGO DB DISCONNECTED"));
-//       quit({cause: "MONGO DB DISCONNECTED"});
-//     });
-
-//     console.log(chalk.green(MODULE_ID_PREFIX + " | MONGOOSE DEFAULT CONNECTION OPEN"));
-
-//     statsObj.dbConnectionReady = true;
-
-//     const UserServerController = require("@threeceelabs/user-server-controller");
-    
-//     userServerController = new UserServerController(MODULE_ID_PREFIX + "_USC");
-
-//     userServerController.on("error", function(err){
-//       console.log(chalkError(MODULE_ID_PREFIX + " | *** USC ERROR | " + err));
-//     });
-
-//     userServerController.on("ready", function(appname){
-//       console.log(chalk.green(MODULE_ID_PREFIX + " | USC READY | " + appname));
-//     });
-
-//     return db;
-//   }
-//   catch(err){
-//     console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECT ERROR: " + err));
-//     throw err;
-//   }
-// }
-
 // ==================================================================
 // DROPBOX
 // ==================================================================
@@ -521,29 +458,6 @@ function initStatsUpdate(cnf){
     }
   });
 }
-
-// function printUserObj(title, u) {
-
-//   const user = userDefaults(u);
-
-//   console.log(chalkLog(title
-//     + " | U " + user.userId
-//     + " | @" + user.screenName
-//     + " | N " + user.name 
-//     + " | L " + user.location 
-//     + " | FWs " + user.followersCount
-//     + " | FDs " + user.friendsCount
-//     + " | T " + user.statusesCount
-//     + " | M  " + user.mentions
-//     + " | LS " + getTimeStamp(user.lastSeen)
-//     + " | FW " + user.following 
-//     + " | C M " + user.category + " A " + user.categoryAuto
-//   ));
-// }
-
-// const userDefaults = function (user){
-//   return user;
-// };
 
 const rateLimitHashMap = {};
 

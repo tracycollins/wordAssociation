@@ -4690,7 +4690,11 @@ async function twitterSearchUser(params) {
 
       default:
         message.searchMode = "SPECIFIC";
-        message.user = params.user;
+
+        if (params.user.startsWith("@")){
+          message.user = {};
+          message.user.screenName = params.user;
+        }
     }
 
     const user = await pubSubSearchUser(message);
@@ -4779,6 +4783,8 @@ async function twitterSearchHashtag(params) {
   }
 }
 
+let twitterSearchNodeTimeout;
+
 async function twitterSearchNode(params) {
 
   const searchNode = params.searchNode.toLowerCase().trim();
@@ -4789,16 +4795,31 @@ async function twitterSearchNode(params) {
     + " | " + searchNode
   ));
 
+  clearTimeout(twitterSearchNodeTimeout);
+
+  twitterSearchNodeTimeout = setTimeout(function(){
+
+    console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! TWITTER SEARCH NODE TIMEOUT"
+      + "\nPARAMS\n" + jsonPrint(params) 
+    ));
+
+    return;
+
+  }, 5*ONE_SECOND);
+
   if (searchNode.startsWith("#")) {
     await twitterSearchHashtag({searchNode: searchNode});
+    clearTimeout(twitterSearchNodeTimeout);
     return;
   }
 
   if (searchNode.startsWith("@")) {
     await twitterSearchUser({user: searchNode});
+    clearTimeout(twitterSearchNodeTimeout);
     return;
   }
 
+  clearTimeout(twitterSearchNodeTimeout);
   viewNameSpace.emit("TWITTER_SEARCH_NODE_UNKNOWN_MODE", { searchNode: searchNode, stats: statsObj.user });
   throw new Error("UNKNOWN SEARCH MODE: " + searchNode);
 }

@@ -586,7 +586,7 @@ async function pubSubPublishMessage(params){
 
   statsObj.pubSub.messagesSent += 1;
 
-  if (configuration.verbose || (statsObj.pubSub.messagesSent % 100 === 0)){
+  // if (configuration.verbose || (statsObj.pubSub.messagesSent % 100 === 0)){
     console.log(chalkLog(MODULE_ID_PREFIX
       + " | PUBSUB [ SENT: " + statsObj.pubSub.messagesSent
       + " | UNACK: " + pubSubPublishMessageRequestIdSet.size + "]"
@@ -595,7 +595,7 @@ async function pubSubPublishMessage(params){
       + " | TOPIC: " + params.publishName
       + " | NID: " + params.message.user.nodeId
     ));
-  }
+  // }
 
   return messageId;
 }
@@ -854,7 +854,6 @@ statsObj.user.uncategorized.left = 0;
 statsObj.user.uncategorized.neutral = 0;
 statsObj.user.uncategorized.right = 0;
 statsObj.user.uncategorizedAuto = 0;
-statsObj.user.uncategorizedManual = 0;
 statsObj.user.uncategorizedTotal = 0;
 
 let defaultConfiguration = {}; // general configuration
@@ -2273,7 +2272,6 @@ function initStats(callback){
   statsObj.user.uncategorized.neutral = 0;
 
   statsObj.user.uncategorizedTotal = 0;
-  statsObj.user.uncategorizedManual = 0;
   statsObj.user.uncategorizedAuto = 0;
   statsObj.user.matched = 0;
   statsObj.user.mismatched = 0;
@@ -6096,8 +6094,8 @@ async function updateUserSets(){
 
   // -----
   
-  statsObj.user.uncategorizedManual = await countDocuments({documentType: "users", query: {category: "none"}});
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT MANUAL USERS: " + statsObj.user.uncategorizedManual));
+  statsObj.user.uncategorized.all = await countDocuments({documentType: "users", query: {category: "none"}});
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT MANUAL USERS: " + statsObj.user.uncategorized.all));
 
   statsObj.user.uncategorized.left = await countDocuments({documentType: "users", query: {category: "none", categoryAuto: "left"}});
   console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT MANUAL LEFT USERS: " + statsObj.user.uncategorized.left));

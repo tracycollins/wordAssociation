@@ -591,11 +591,11 @@ async function pubSubPublishMessage(params){
 
   // if (configuration.verbose || (statsObj.pubSub.messagesSent % 100 === 0)){
     console.log(chalkLog(MODULE_ID_PREFIX
-      + " | PUBSUB [ SENT: " + statsObj.pubSub.messagesSent
-      + " | UNACK: " + pubSubPublishMessageRequestIdSet.size + "]"
-      + " | MID: " + messageId
-      + " | RID: " + params.message.requestId
+      + " | <== PUB [" + statsObj.pubSub.messagesSent
+      + " / OUT: " + pubSubPublishMessageRequestIdSet.size + "]"
       + " | TOPIC: " + params.publishName
+      + " | RID: " + params.message.requestId
+      // + " | MID: " + messageId
       + " | NID: " + params.message.user.nodeId
     ));
   // }

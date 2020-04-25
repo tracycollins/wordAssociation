@@ -10770,15 +10770,20 @@ async function findUsersNodeIds(query, filterUncatUsersFlag){
   const userArray = await global.wordAssoDb.User.find(query).select({nodeId: 1}).lean();
   
   if (userArray && userArray.length > 0){
-    const results = userArray.map(function(user){
-      if (filterUncatUsersFlag && (uncatUserCache.get(user.nodeId) !== undefined)){
-        return null;
+
+    const nodeIdArray = [];
+
+    for(const user of userArray){
+      if (filterUncatUsersFlag && (uncatUserCache.get(user.nodeId) === undefined)){
+        nodeIdArray.push(user.nodeId);
       }
-      return user.nodeId;
-    });
-    results.sort();
-    return results;
+    }
+
+    nodeIdArray.sort();
+    return nodeIdArray;
+
   }
+  
   return [];
 }
 

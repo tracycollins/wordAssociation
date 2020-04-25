@@ -4111,11 +4111,11 @@ async function pubSubSearchUser(params){
 
     twitterSearchNodeTimeout = setTimeout(function(){
 
+      tcUtils.emitter.removeListener(eventName);
+
       console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! TWITTER SEARCH NODE TIMEOUT"
         + "\nPARAMS\n" + jsonPrint(params) 
       ));
-
-      tcUtils.emitter.removeListener(eventName);
 
       return;
 

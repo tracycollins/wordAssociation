@@ -14,6 +14,8 @@ const DEFAULT_PUBSUB_PROJECT_ID = "graphic-tangent-627";
 const DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL = 604800; // 3600*24*7 sec/week
 const DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD = 3600;
 
+const DEFAULT_UPDATE_USER_SETS_INTERVAL = 5*ONE_MINUTE;
+
 let pubSubClient;
 
 const DEFAULT_GOOGLE_COMPUTE_DOMAIN = "bc.googleusercontent.com";
@@ -941,6 +943,7 @@ configuration.transmitNodeQueueInterval = DEFAULT_TRANSMIT_NODE_QUEUE_INTERVAL;
 configuration.rateQueueInterval = DEFAULT_RATE_QUEUE_INTERVAL;
 configuration.rateQueueIntervalModulo = DEFAULT_RATE_QUEUE_INTERVAL_MODULO;
 configuration.statsUpdateIntervalTime = DEFAULT_STATS_UPDATE_INTERVAL;
+configuration.updateUserSetsInterval = DEFAULT_UPDATE_USER_SETS_INTERVAL;
 
 configuration.DROPBOX = {};
 configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN;

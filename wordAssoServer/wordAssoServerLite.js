@@ -4138,6 +4138,7 @@ async function twitterSearchUser(params) {
 
     const message = {};
     message.requestId = "rId_" + hostname + "_" + moment().valueOf();
+    message.user = {};
 
     switch (params.user) {
 
@@ -4165,7 +4166,6 @@ async function twitterSearchUser(params) {
         message.searchMode = "SPECIFIC";
 
         if (params.user.startsWith("@")){
-          message.user = {};
           message.user.screenName = params.user;
         }
     }

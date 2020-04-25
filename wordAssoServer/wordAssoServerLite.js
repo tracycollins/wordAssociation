@@ -499,7 +499,8 @@ async function initPubSubCategorizeResultHandler(params){
 
       console.log(chalkLog(MODULE_ID_PREFIX
         + " | ==> PS SUB CAT [RX: " + statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived + "]"
-        + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
+        + " | SUB: " + params.subscribeName
+        // + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
         + " | MID: " + message.id
         + " | REQ ID: " + messageObj.requestId
         + " | NID: " + messageObj.user.nodeId

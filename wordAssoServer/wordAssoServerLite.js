@@ -6385,6 +6385,40 @@ async function updateHashtagSets(){
   });
 }
 
+let updateUserSetsInterval;
+let updateUserSetsIntervalReady = true;
+
+function initUpdateUserSetsInterval(interval){
+
+  return new Promise(function(resolve){
+
+    clearInterval(updateUserSetsInterval);
+
+    console.log(chalk.bold.black(MODULE_ID_PREFIX + " | INIT USER + HASHTAG SETS INTERVAL | " + tcUtils.msToTime(interval) ));
+
+    updateUserSetsInterval = setInterval(async function() {
+
+      try {
+        if (statsObj.dbConnectionReady && updateUserSetsIntervalReady) {
+          updateUserSetsIntervalReady = false;
+          await updateUserSets();
+          await tcUtils.waitEvent({ event: "updateUserSetsEnd", verbose: true});
+          await updateHashtagSets();
+          updateUserSetsIntervalReady = true;
+        }
+      }
+      catch(err){
+        console.log(chalkError(MODULE_ID_PREFIX + " | UPDATE USER + HASHTAG SETS ERROR: " + err));
+        updateUserSetsIntervalReady = true;
+      }
+
+    }, interval);
+
+    resolve();
+
+  });
+}
+
 function printBotStats(params){
   if (statsObj.traffic.users.bots % params.modulo === 0){
     console.log(chalkBot(MODULE_ID_PREFIX + " | BOT"
@@ -9799,6 +9833,7 @@ setTimeout(async function(){
     await initDbuChild({childId: DEFAULT_DBU_CHILD_ID});
     await initDbUserChangeStream();
     await initTweetParser({childId: DEFAULT_TWP_CHILD_ID});
+    await initUpdateUserSetsInterval(configuration.updateUserSetsInterval);
     await initWatchConfig();
     await initTssChild({childId: DEFAULT_TSS_CHILD_ID, tweetVersion2: configuration.tweetVersion2, threeceeUser: threeceeUser});
     await initPubSubCategorizeResultHandler({

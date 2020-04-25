@@ -589,16 +589,14 @@ async function pubSubPublishMessage(params){
 
   statsObj.pubSub.messagesSent += 1;
 
-  // if (configuration.verbose || (statsObj.pubSub.messagesSent % 100 === 0)){
-    console.log(chalkLog(MODULE_ID_PREFIX
-      + " | <== PUB [" + statsObj.pubSub.messagesSent
-      + " / OUT: " + pubSubPublishMessageRequestIdSet.size + "]"
-      + " | TOPIC: " + params.publishName
-      + " | RID: " + params.message.requestId
-      // + " | MID: " + messageId
-      + " | NID: " + params.message.user.nodeId
-    ));
-  // }
+  console.log(chalkLog(MODULE_ID_PREFIX
+    + " | <== PUB [" + statsObj.pubSub.messagesSent
+    + " / OUT: " + pubSubPublishMessageRequestIdSet.size + "]"
+    + " | TOPIC: " + params.publishName
+    + " | RID: " + params.message.requestId
+    // + " | MID: " + messageId
+    + " | NID: " + params.message.user.nodeId
+  ));
 
   return messageId;
 }

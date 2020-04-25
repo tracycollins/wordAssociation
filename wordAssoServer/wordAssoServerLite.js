@@ -589,6 +589,7 @@ async function pubSubPublishMessage(params){
     console.log(chalkLog(MODULE_ID_PREFIX
       + " | PUBSUB [" + statsObj.pubSub.messagesSent + "]"
       + " | MID: " + messageId
+      + " | RID: " + params.message.requestId
       + " | TOPIC: " + params.publishName
       + " | NID: " + params.message.user.nodeId
     ));
@@ -6394,19 +6395,20 @@ function printBotStats(params){
   }
 }
 
+const publishMessageCategorize = {};
+publishMessageCategorize.publishName = "categorize";
+publishMessageCategorize.message = {};
+publishMessageCategorize.message.requestId = "";
+publishMessageCategorize.message.user = {};
+
 async function pubSubCategorizeUser(params){
 
   if (configuration.pubSub.enabled && !pubSubCategorizeSentSet.has(params.nodeId)) { 
 
-    const requestId = "rId_" + hostname + "_" + moment().valueOf();
+    publishMessageCategorize.message.requestId = "rId_" + hostname + "_" + moment().valueOf();
+    publishMessageCategorize.message.user.nodeId = params.nodeId;
 
-    await pubSubPublishMessage({
-      publishName: "categorize",
-      message: {
-        requestId: requestId,
-        user: { nodeId: params.nodeId }
-      }
-    });
+    await pubSubPublishMessage(publishMessageCategorize);
 
     pubSubCategorizeSentSet.add(params.nodeId);
 

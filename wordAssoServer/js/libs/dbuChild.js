@@ -389,7 +389,7 @@ async function userUpdateDb(params){
 
     if (user.tweets && user.tweets.tweetIds && user.tweets.tweetIds.includes(params.tweetObj.tweetId)){
       console.log(chalkAlert("DBU | ??? TWEET ALREADY RCVD"
-        + " | TW: " + tweetObj.tweetId
+        + " | TW: " + params.tweetObj.tweetId
         + " | TW MAX ID: " + user.tweets.maxId
         + " | TW SINCE ID: " + user.tweets.maxId
         + " | @" + user.screenName
@@ -397,8 +397,7 @@ async function userUpdateDb(params){
       return;
     }
 
-    const tweetObj = params.tweetObj;
-    const newTweetHistograms = tcUtils.processTweetObj({tweetObj: tweetObj});
+    const newTweetHistograms = tcUtils.processTweetObj({tweetObj: params.tweetObj});
 
     let tweetHistogramMerged = {};
 
@@ -426,7 +425,7 @@ async function userUpdateDb(params){
     user.lastHistogramTweetId = user.statusId;
     user.lastHistogramQuoteId = user.quotedStatusId;
 
-    user.tweets.tweetIds = _.union(user.tweets.tweetIds, [tweetObj.tweetId]); 
+    user.tweets.tweetIds = _.union(user.tweets.tweetIds, [params.tweetObj.tweetId]); 
 
     if (configuration.verbose) { printUserObj("DBU | +++ USR DB HIT", user); }
 

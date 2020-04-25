@@ -497,7 +497,7 @@ async function initPubSubCategorizeResultHandler(params){
       + " | ==> PS SUB CAT [RX: " + statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived + "]"
       + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
       + " | MID: " + message.id
-      + " | REQ ID: " + message.requestId
+      + " | REQ ID: " + messageObj.requestId
       + " | NID: " + messageObj.user.nodeId
       + " | DB MISS: " + messageObj.notFound
       + " | @" + messageObj.user.screenName

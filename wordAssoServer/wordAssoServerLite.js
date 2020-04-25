@@ -3448,7 +3448,7 @@ async function categorizeNode(categorizeObj) {
               network: updatedUser.categorizeNetwork
             }
           );
-          
+
           uncategorizeableUserSet.delete(updatedUser.nodeId);
 
           return updatedUser;
@@ -3685,15 +3685,9 @@ async function categoryVerified(params) {
 
     dbUser.categoryVerified = params.user.categoryVerified;
 
-    // categorizedUserHashMap.set(user.nodeId, 
-    //   { 
-    //     nodeId: user.nodeId, 
-    //     screenName: user.screenName, 
-    //     manual: user.category, 
-    //     auto: user.categoryAuto,
-    //     network: user.categorizeNetwork
-    //   }
-    // );
+    if (params.user.categorizeNetwork){
+      dbUser.categorizeNetwork = params.user.categorizeNetwork;
+    }
 
     if (categorizedUserHashMap.has(params.user.nodeId)){
       uncategorizeableUserSet.delete(params.user.nodeId);
@@ -3701,10 +3695,22 @@ async function categoryVerified(params) {
       dbUser.category = categorizedUserHashMap.get(params.user.nodeId).manual;
       dbUser.categoryAuto = categorizedUserHashMap.get(params.user.nodeId).auto;
     }
+    else{
 
-    if (params.user.categorizeNetwork){
-      dbUser.categorizeNetwork = params.user.categorizeNetwork;
+      dbUser.category = params.user.category || dbUser.cateory;
+      dbUser.categoryAuto = params.user.categoryAuto || dbUser.categoryAuto;
+
+      categorizedUserHashMap.set(dbUser.nodeId, 
+        { 
+          nodeId: dbUser.nodeId, 
+          screenName: dbUser.screenName, 
+          manual: dbUser.category, 
+          auto: dbUser.categoryAuto,
+          network: dbUser.categorizeNetwork
+        }
+      );
     }
+
 
     const dbUpdatedUser = await dbUser.save();
 

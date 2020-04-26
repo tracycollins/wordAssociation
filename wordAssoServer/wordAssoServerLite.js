@@ -617,6 +617,7 @@ async function pubSubPublishMessage(params){
     + " | RID: " + params.message.requestId
     // + " | MID: " + messageId
     + " | NID: " + params.message.user.nodeId
+    + " | @" + params.message.user.screenName
   ));
 
   return messageId;
@@ -3711,7 +3712,6 @@ async function categoryVerified(params) {
       );
     }
 
-
     const dbUpdatedUser = await dbUser.save();
 
     printUserObj(
@@ -4113,7 +4113,8 @@ async function pubSubSearchUser(params){
       + " | REQ: " + params.requestId
       + " | TOPIC: twitterSearchUser"
       + " | MODE: " + params.searchMode
-      + " | USER: " + params.user
+      + " | NID: " + params.user.nodeId
+      + " | @" + params.user.screenName
     ));
 
     await pubSubPublishMessage({

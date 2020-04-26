@@ -511,7 +511,7 @@ async function initPubSubCategorizeResultHandler(params){
         + " | CA: " + messageObj.user.categoryAuto
       ));
 
-      if (!messageObj.notFound){
+      if (messageObj.notFound !== undefined && !messageObj.notFound){
         await updateUserAutoCategory({user: messageObj.user});
       }
 
@@ -6536,7 +6536,7 @@ async function pubSubCategorizeUser(params){
     + " | !!! pubSubCategorizeUser MISS"
     + " | configuration.pubSub.enabled: " + formatBoolean(configuration.pubSub.enabled) 
     + " | NID: " + params.user.nodeId
-    + " | @" + params.usaer.screenName
+    + " | @" + params.user.screenName
   ));
 
   return false;
@@ -6544,32 +6544,38 @@ async function pubSubCategorizeUser(params){
 
 async function categorize(params){
 
-  const n = params.user;
+  try{
+    const n = params.user;
 
-  if (n.nodeType != "user"){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** CATEGORIZE NOT USER | TYPE: " + n.nodeType));
-    throw new Error("categorize NOT USER");
+    if (n.nodeType != "user"){
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** categorize NOT USER | TYPE: " + n.nodeType));
+      throw new Error("categorize NOT USER");
+    }
+
+    if (configuration.autoFollow
+      && (!n.category || (n.category === "none") || (n.category === undefined))
+      && (!n.ignored || (n.ignored === undefined))
+      && (!n.following || (n.following === undefined))
+      && (n.followersCount >= configuration.minFollowersAutoFollow)
+      && !autoFollowUserSet.has(n.nodeId)
+      && !ignoredUserSet.has(n.nodeId) 
+      && !ignoredUserSet.has(n.screenName) 
+      )
+    {
+      n.following = true;
+      autoFollowUserSet.add(n.nodeId);
+      statsObj.user.autoFollow += 1;
+      printUserObj(MODULE_ID_PREFIX + " | AUTO FLW [" + statsObj.user.autoFollow + "]", n);
+    }
+
+    await pubSubCategorizeUser({user: n, category: params.newCategory});
+
+    return;
   }
-
-  if (configuration.autoFollow
-    && (!n.category || (n.category === "none") || (n.category === undefined))
-    && (!n.ignored || (n.ignored === undefined))
-    && (!n.following || (n.following === undefined))
-    && (n.followersCount >= configuration.minFollowersAutoFollow)
-    && !autoFollowUserSet.has(n.nodeId)
-    && !ignoredUserSet.has(n.nodeId) 
-    && !ignoredUserSet.has(n.screenName) 
-    )
-  {
-    n.following = true;
-    autoFollowUserSet.add(n.nodeId);
-    statsObj.user.autoFollow += 1;
-    printUserObj(MODULE_ID_PREFIX + " | AUTO FLW [" + statsObj.user.autoFollow + "]", n);
+  catch(err){
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** categorize ERR: ", err));
+    throw err;
   }
-
-  await pubSubCategorizeUser({user: n, category: params.newCategory});
-
-  return;
 }
 
 function initTransmitNodeQueueInterval(interval){

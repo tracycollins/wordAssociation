@@ -6507,6 +6507,13 @@ publishMessageCategorize.message.user = {};
 
 async function pubSubCategorizeUser(params){
 
+  if (empty(params.nodeId) && empty(params.screenName)){
+    console.log(chalkError(MODULE_ID_PREFIX
+      + " | XXX pubSubCategorizeUser ERROR: nodeId && screenName UNDEFINED"
+    ));
+    throw new Error("nodeId && screenName UNDEFINED");
+  }
+
   if (configuration.pubSub.enabled && !pubSubCategorizeSentSet.has(params.nodeId)) { 
 
     publishMessageCategorize.message.requestId = "rId_" + hostname + "_" + moment().valueOf();
@@ -6519,7 +6526,7 @@ async function pubSubCategorizeUser(params){
     return true;
   }
 
-  console.log(chalkAlert(MODULE_ID_PREFIX
+  debug(chalkAlert(MODULE_ID_PREFIX
     + " | !!! pubSubCategorizeUser MISS"
     + " | configuration.pubSub.enabled: " + formatBoolean(configuration.pubSub.enabled) 
     + " | NID: " + params.nodeId

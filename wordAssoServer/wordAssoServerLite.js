@@ -6558,7 +6558,7 @@ async function categorize(params){
     && (n.followersCount >= configuration.minFollowersAutoFollow)
     && !autoFollowUserSet.has(n.nodeId)
     && !ignoredUserSet.has(n.nodeId) 
-    && !ignoredUserSet.has(n.screenName.toLowerCase()) 
+    && !ignoredUserSet.has(n.screenName) 
     )
   {
     n.following = true;

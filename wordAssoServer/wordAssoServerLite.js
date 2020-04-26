@@ -5305,10 +5305,11 @@ async function initSocketHandler(socketObj) {
       }
       else{
         try{
-          const user = await global.wordAssoDb.User.findOne({screenName: defaultTwitterUserScreenName});
 
-          if (user) {
-            socket.emit("SET_TWITTER_USER", {user: user, stats: statsObj.user });
+          const results = await twitterSearchUser({user: {screenName: defaultTwitterUserScreenName}});
+
+          if (results.user) {
+            socket.emit("SET_TWITTER_USER", {user: results.user, stats: statsObj.user });
           }
 
           socket.emit("VIEWER_READY_ACK", 

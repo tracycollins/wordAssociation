@@ -826,7 +826,9 @@ function ControlPanel() {
           if (err) {
             setTimeout(function(){
               loadTwitterFeed(currentTwitterNode, function(err2){
-                if (err2) { console.error("loadTwitterFeed SET_TWITTER_USER FAIL"); }
+                if (err2) { 
+                  console.error("loadTwitterFeed SET_TWITTER_USER FAIL", err2);
+                }
               });
             }, 1000);
           }

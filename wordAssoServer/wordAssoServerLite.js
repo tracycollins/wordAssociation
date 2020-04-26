@@ -6515,7 +6515,10 @@ async function pubSubCategorizeUser(params){
     throw new Error("USER nodeId && screenName UNDEFINED");
   }
 
-  if (configuration.pubSub.enabled && !pubSubCategorizeSentSet.has(params.nodeId)) { 
+  if (configuration.pubSub.enabled 
+    && !pubSubCategorizeSentSet.has(params.user.nodeId) 
+    && !pubSubCategorizeSentSet.has(params.user.screenName)
+  ) { 
 
     publishMessageCategorize.message.requestId = "rId_" + hostname + "_" + moment().valueOf();
     publishMessageCategorize.message.user = params.user;

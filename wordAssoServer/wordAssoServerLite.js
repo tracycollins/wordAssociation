@@ -4230,7 +4230,7 @@ async function twitterSearchUser(params) {
         message.searchMode = "SPECIFIC";
 
         if (params.user.startsWith("@")){
-          message.user.screenName = params.user;
+          message.user.screenName = params.user.slice(1);
         }
     }
 

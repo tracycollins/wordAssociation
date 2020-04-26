@@ -3340,165 +3340,165 @@ async function addTwitterAccountActivitySubscription(p){
   }
 }
 
-async function categorizeNode(categorizeObj) {
+// async function categorizeNode(categorizeObj) {
 
-  if (categorizeObj.twitterUser && categorizeObj.twitterUser.nodeId) {
+//   if (categorizeObj.twitterUser && categorizeObj.twitterUser.nodeId) {
 
-    const user = authenticatedTwitterUserCache.get(categorizeObj.twitterUser.nodeId);
+//     const user = authenticatedTwitterUserCache.get(categorizeObj.twitterUser.nodeId);
 
-    if ((user == undefined)
-      && (categorizeObj.twitterUser.nodeId != "14607119") 
-      && (categorizeObj.twitterUser.nodeId != "848591649575927810")) {
+//     if ((user == undefined)
+//       && (categorizeObj.twitterUser.nodeId != "14607119") 
+//       && (categorizeObj.twitterUser.nodeId != "848591649575927810")) {
 
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | *** AUTH USER NOT IN CACHE\n" + jsonPrint(categorizeObj.twitterUser)));
+//       console.log(chalkAlert(MODULE_ID_PREFIX + " | *** AUTH USER NOT IN CACHE\n" + jsonPrint(categorizeObj.twitterUser)));
 
-      return categorizeObj.twitterUser;
-    }
-  }
+//       return categorizeObj.twitterUser;
+//     }
+//   }
 
-  const cObj = {};
-  cObj.manual = false;
-  cObj.auto = false;
+//   const cObj = {};
+//   cObj.manual = false;
+//   cObj.auto = false;
 
-  let nCacheObj;
+//   let nCacheObj;
 
-  const node = categorizeObj.node;
-  const nodeId = categorizeObj.node.nodeId.toLowerCase();
+//   const node = categorizeObj.node;
+//   const nodeId = categorizeObj.node.nodeId.toLowerCase();
 
-  const query = { nodeId: nodeId };
-  const update = {};
-  const options = { useFindAndModify: false, returnOriginal: false, new: true, upsert: true };
+//   const query = { nodeId: nodeId };
+//   const update = {};
+//   const options = { useFindAndModify: false, returnOriginal: false, new: true, upsert: true };
 
-  switch (node.nodeType){
+//   switch (node.nodeType){
 
-    case "user":
+//     case "user":
 
-      cObj.network = categorizeObj.categorizeNetwork;
+//       cObj.network = categorizeObj.categorizeNetwork;
 
-      cObj.manual = categorizeObj.category;
+//       cObj.manual = categorizeObj.category;
 
-      if (categorizedUserHashMap.has(nodeId)){
-        cObj.auto = categorizedUserHashMap.get(nodeId).auto || false;
-      }
+//       if (categorizedUserHashMap.has(nodeId)){
+//         cObj.auto = categorizedUserHashMap.get(nodeId).auto || false;
+//       }
 
-      update.category = categorizeObj.category;
-      if (cObj.auto) { update.categoryAuto = cObj.auto; }
+//       update.category = categorizeObj.category;
+//       if (cObj.auto) { update.categoryAuto = cObj.auto; }
 
-      categorizedUserHashMap.set(nodeId, cObj);
-      uncategorizeableUserSet.delete(nodeId);
+//       categorizedUserHashMap.set(nodeId, cObj);
+//       uncategorizeableUserSet.delete(nodeId);
 
-      nCacheObj = nodeCache.get(nodeId);
+//       nCacheObj = nodeCache.get(nodeId);
 
-      if (nCacheObj !== undefined) {
-        node.mentions = Math.max(node.mentions, nCacheObj.mentions);
-        nCacheObj.mentions = node.mentions;
-        nodeCache.set(nCacheObj.nodeId, nCacheObj);
-        update.mentions = node.mentions;
-      }
+//       if (nCacheObj !== undefined) {
+//         node.mentions = Math.max(node.mentions, nCacheObj.mentions);
+//         nCacheObj.mentions = node.mentions;
+//         nodeCache.set(nCacheObj.nodeId, nCacheObj);
+//         update.mentions = node.mentions;
+//       }
 
-      if (!userServerControllerReady || !statsObj.dbConnectionReady) {
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | *** NOT READY"
-          + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
-          + " | userServerControllerReady: " + userServerControllerReady
-        ));
-        throw new Error("userServerController not ready");
-      }
+//       if (!userServerControllerReady || !statsObj.dbConnectionReady) {
+//         console.log(chalkAlert(MODULE_ID_PREFIX + " | *** NOT READY"
+//           + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
+//           + " | userServerControllerReady: " + userServerControllerReady
+//         ));
+//         throw new Error("userServerController not ready");
+//       }
 
-      try{
+//       try{
 
-        const updatedUser = await global.wordAssoDb.User.findOneAndUpdate(query, update, options);
+//         const updatedUser = await global.wordAssoDb.User.findOneAndUpdate(query, update, options);
 
-        if (categorizeObj.follow) {
+//         if (categorizeObj.follow) {
 
-          const updatedFollowUser = await follow({user: updatedUser, forceFollow: true});
+//           const updatedFollowUser = await follow({user: updatedUser, forceFollow: true});
 
-          if (!updatedFollowUser) {
-            console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER FOLLOW ERROR: NULL UPDATED USER"));
-            return;
-          }
+//           if (!updatedFollowUser) {
+//             console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER FOLLOW ERROR: NULL UPDATED USER"));
+//             return;
+//           }
 
-          categorizedUserHashMap.set(
-            updatedFollowUser.nodeId, 
-            { 
-              nodeId: updatedFollowUser.nodeId, 
-              screenName: updatedFollowUser.screenName, 
-              manual: updatedFollowUser.category, 
-              auto: updatedFollowUser.categoryAuto,
-              network: updatedFollowUser.categorizeNetwork
-            }
-          );
+//           categorizedUserHashMap.set(
+//             updatedFollowUser.nodeId, 
+//             { 
+//               nodeId: updatedFollowUser.nodeId, 
+//               screenName: updatedFollowUser.screenName, 
+//               manual: updatedFollowUser.category, 
+//               auto: updatedFollowUser.categoryAuto,
+//               network: updatedFollowUser.categorizeNetwork
+//             }
+//           );
 
-          uncategorizeableUserSet.delete(updatedFollowUser.nodeId);
+//           uncategorizeableUserSet.delete(updatedFollowUser.nodeId);
 
-          console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ TWITTER_FOLLOW"
-            + " | UID: " + updatedFollowUser.nodeId
-            + " | @" + updatedFollowUser.screenName
-          ));
+//           console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ TWITTER_FOLLOW"
+//             + " | UID: " + updatedFollowUser.nodeId
+//             + " | @" + updatedFollowUser.screenName
+//           ));
 
-          return updatedFollowUser;
-        }
-        else {
+//           return updatedFollowUser;
+//         }
+//         else {
 
-          categorizedUserHashMap.set(
-            updatedUser.nodeId, 
-            { 
-              nodeId: updatedUser.nodeId, 
-              screenName: updatedUser.screenName, 
-              manual: updatedUser.category, 
-              auto: updatedUser.categoryAuto,
-              network: updatedUser.categorizeNetwork
-            }
-          );
+//           categorizedUserHashMap.set(
+//             updatedUser.nodeId, 
+//             { 
+//               nodeId: updatedUser.nodeId, 
+//               screenName: updatedUser.screenName, 
+//               manual: updatedUser.category, 
+//               auto: updatedUser.categoryAuto,
+//               network: updatedUser.categorizeNetwork
+//             }
+//           );
 
-          uncategorizeableUserSet.delete(updatedUser.nodeId);
+//           uncategorizeableUserSet.delete(updatedUser.nodeId);
 
-          return updatedUser;
-        }
-      }
-      catch(err) {
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** USER UPDATE CATEGORY ERROR: " + err));
-        throw err;
-      }
+//           return updatedUser;
+//         }
+//       }
+//       catch(err) {
+//         console.log(chalkError(MODULE_ID_PREFIX + " | *** USER UPDATE CATEGORY ERROR: " + err));
+//         throw err;
+//       }
 
-    case "hashtag":
+//     case "hashtag":
 
-      cObj.manual = categorizeObj.category;
+//       cObj.manual = categorizeObj.category;
 
-      update.category = categorizeObj.category;
+//       update.category = categorizeObj.category;
 
-      if (categorizedHashtagHashMap.has(nodeId)){
-        cObj.auto = categorizedHashtagHashMap.get(nodeId).auto || false;
-      }
+//       if (categorizedHashtagHashMap.has(nodeId)){
+//         cObj.auto = categorizedHashtagHashMap.get(nodeId).auto || false;
+//       }
 
-      categorizedHashtagHashMap.set(nodeId, cObj);
+//       categorizedHashtagHashMap.set(nodeId, cObj);
 
-      nCacheObj = nodeCache.get(nodeId);
+//       nCacheObj = nodeCache.get(nodeId);
 
-      if (nCacheObj !== undefined) {
-        node.mentions = Math.max(node.mentions, nCacheObj.mentions);
-        nCacheObj.mentions = node.mentions;
-        nodeCache.set(nCacheObj.nodeId, nCacheObj);
-        update.mentions = node.mentions;
-      }
+//       if (nCacheObj !== undefined) {
+//         node.mentions = Math.max(node.mentions, nCacheObj.mentions);
+//         nCacheObj.mentions = node.mentions;
+//         nodeCache.set(nCacheObj.nodeId, nCacheObj);
+//         update.mentions = node.mentions;
+//       }
 
-      try{
-        const updatedHashtag = await global.wordAssoDb.Hashtag.findOneAndUpdate(query, update, options);
+//       try{
+//         const updatedHashtag = await global.wordAssoDb.Hashtag.findOneAndUpdate(query, update, options);
 
-        categorizedHashtagHashMap.set(
-          updatedHashtag.nodeId, 
-          { manual: updatedHashtag.category, auto: updatedHashtag.categoryAuto });
+//         categorizedHashtagHashMap.set(
+//           updatedHashtag.nodeId, 
+//           { manual: updatedHashtag.category, auto: updatedHashtag.categoryAuto });
 
-        return updatedHashtag;
-      }
-      catch(err){
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** HASHTAG UPDATE CATEGORY ERROR: " + err));
-        throw err;
-      }
+//         return updatedHashtag;
+//       }
+//       catch(err){
+//         console.log(chalkError(MODULE_ID_PREFIX + " | *** HASHTAG UPDATE CATEGORY ERROR: " + err));
+//         throw err;
+//       }
 
-    default:
-      throw new Error("categorizeNode TYPE: " + node.isTopTermNodeType);
-  }
-}
+//     default:
+//       throw new Error("categorizeNode TYPE: " + node.isTopTermNodeType);
+//   }
+// }
 
 let prevTweetUser;
 
@@ -5150,11 +5150,9 @@ async function initSocketHandler(socketObj) {
 
     });
 
-    socket.on("TWITTER_CATEGORIZE_NODE", function twitterCategorizeNode(dataObj) {
+    socket.on("TWITTER_CATEGORIZE_NODE", async function twitterCategorizeNode(dataObj) {
 
       const timeStamp = moment().valueOf();
-
-      // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
       if (dataObj.node.nodeType == "user") {
 
@@ -5184,33 +5182,39 @@ async function initSocketHandler(socketObj) {
         ));
       }
 
-      categorizeNode(dataObj, function(err, updatedNodeObj){
-        if (err) {
-          console.log(chalkError(MODULE_ID_PREFIX + " | CAT NODE ERROR: " + err));
-        }
-        else if (updatedNodeObj) {
-          if (updatedNodeObj.nodeType == "user") {
-
-            console.log(chalkSocket("TX> SET_USER"
-              + " | " + printUser({user: updatedNodeObj})
-            ));
-          }
-          if (updatedNodeObj.nodeType == "hashtag") {
-
-            socket.emit("SET_TWITTER_HASHTAG", {hashtag: updatedNodeObj, stats: statsObj.hashtag });
-
-            console.log(chalkSocket(MODULE_ID_PREFIX
-              + " | TX> SET_TWITTER_HASHTAG"
-              + " | " + getTimeStamp(timeStamp)
-              + " | SID: " + socket.id
-              + " | #" + updatedNodeObj.nodeId
-              + " | Ms: " + updatedNodeObj.mentions
-              + " | CAT: M: " + formatCategory(updatedNodeObj.category)
-              + " | A: " + formatCategory(updatedNodeObj.categoryAuto)
-            ));
-          }
-        }
+      await categorize({
+        user: dataObj.node, 
+        autoFollowFlag: true
       });
+
+      // categorizeNode(dataObj, function(err, updatedNodeObj){
+      //   if (err) {
+      //     console.log(chalkError(MODULE_ID_PREFIX + " | CAT NODE ERROR: " + err));
+      //   }
+      //   else if (updatedNodeObj) {
+      //     if (updatedNodeObj.nodeType == "user") {
+
+      //       console.log(chalkSocket("TX> SET_USER"
+      //         + " | " + printUser({user: updatedNodeObj})
+      //       ));
+      //     }
+      //     if (updatedNodeObj.nodeType == "hashtag") {
+
+      //       socket.emit("SET_TWITTER_HASHTAG", {hashtag: updatedNodeObj, stats: statsObj.hashtag });
+
+      //       console.log(chalkSocket(MODULE_ID_PREFIX
+      //         + " | TX> SET_TWITTER_HASHTAG"
+      //         + " | " + getTimeStamp(timeStamp)
+      //         + " | SID: " + socket.id
+      //         + " | #" + updatedNodeObj.nodeId
+      //         + " | Ms: " + updatedNodeObj.mentions
+      //         + " | CAT: M: " + formatCategory(updatedNodeObj.category)
+      //         + " | A: " + formatCategory(updatedNodeObj.categoryAuto)
+      //       ));
+      //     }
+      //   }
+      // });
+
     });
 
     socket.on("USER_READY", function userReady(userObj) {
@@ -5291,7 +5295,7 @@ async function initSocketHandler(socketObj) {
       }
     });
 
-    socket.on("categorize", categorizeNode);
+    socket.on("categorize", categorize);
 
     socket.on("login", async function socketLogin(viewerObj){
 
@@ -6599,7 +6603,12 @@ function initTransmitNodeQueueInterval(interval){
 
         categorizeable = await userCategorizeable({user: node});
  
-        if (categorizeable) { await categorize({user: node, autoFollowFlag: autoFollowFlag}); }
+        if (categorizeable) {
+          await categorize({
+            user: node, 
+            autoFollowFlag: autoFollowFlag
+          });
+        }
 
         if (categorizeable && (node.nodeType === "user") 
           && (

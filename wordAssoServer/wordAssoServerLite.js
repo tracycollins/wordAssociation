@@ -576,13 +576,13 @@ async function initPubSubTwitterSearchUserResultHandler(params){
           + " | MID: " + message.id
           + " | RID: " + messageObj.requestId
           + " | SEARCH MODE: " + messageObj.searchMode
-          + " | NID: " + messageObj.user.nodeId
-          + " | @" + messageObj.user.screenName
-          + " | @" + formatBoolean(messageObj.user.following)
-          + " | CN: " + messageObj.user.categorizeNetwork
-          + " | CV: " + formatBoolean(messageObj.user.categoryVerified)
-          + " | CM: " + formatCategory(messageObj.user.category)
-          + " | CA: " + formatCategory(messageObj.user.categoryAuto)
+          // + " | NID: " + messageObj.user.nodeId
+          // + " | @" + messageObj.user.screenName
+          // + " | @" + formatBoolean(messageObj.user.following)
+          // + " | CN: " + messageObj.user.categorizeNetwork
+          // + " | CV: " + formatBoolean(messageObj.user.categoryVerified)
+          // + " | CM: " + formatCategory(messageObj.user.category)
+          // + " | CA: " + formatCategory(messageObj.user.categoryAuto)
         ));
       }
 
@@ -5185,6 +5185,7 @@ async function initSocketHandler(socketObj) {
 
       await categorize({
         user: dataObj.node, 
+        newCategory: dataObj.category, 
         autoFollowFlag: true
       });
 
@@ -6507,21 +6508,23 @@ publishMessageCategorize.message.user = {};
 
 async function pubSubCategorizeUser(params){
 
-  if (empty(params.nodeId) && empty(params.screenName)){
+  if (empty(params.user.nodeId) && empty(params.user.screenName)){
     console.log(chalkError(MODULE_ID_PREFIX
-      + " | XXX pubSubCategorizeUser ERROR: nodeId && screenName UNDEFINED"
+      + " | XXX pubSubCategorizeUser ERROR: USER nodeId && screenName UNDEFINED"
     ));
-    throw new Error("nodeId && screenName UNDEFINED");
+    throw new Error("USER nodeId && screenName UNDEFINED");
   }
 
   if (configuration.pubSub.enabled && !pubSubCategorizeSentSet.has(params.nodeId)) { 
 
     publishMessageCategorize.message.requestId = "rId_" + hostname + "_" + moment().valueOf();
-    publishMessageCategorize.message.user.nodeId = params.nodeId;
+    publishMessageCategorize.message.user = params.user;
+    publishMessageCategorize.message.newCategory = params.newCategory;
 
     await pubSubPublishMessage(publishMessageCategorize);
 
-    pubSubCategorizeSentSet.add(params.nodeId);
+    if (!empty(params.user.nodeId)) { pubSubCategorizeSentSet.add(params.user.nodeId); }
+    if (!empty(params.user.screenName)) { pubSubCategorizeSentSet.add(params.user.screenName); }
 
     return true;
   }
@@ -6529,8 +6532,8 @@ async function pubSubCategorizeUser(params){
   debug(chalkAlert(MODULE_ID_PREFIX
     + " | !!! pubSubCategorizeUser MISS"
     + " | configuration.pubSub.enabled: " + formatBoolean(configuration.pubSub.enabled) 
-    + " | NID: " + params.nodeId
-    + " | @" + params.screenName
+    + " | NID: " + params.user.nodeId
+    + " | @" + params.usaer.screenName
   ));
 
   return false;
@@ -6561,7 +6564,7 @@ async function categorize(params){
     printUserObj(MODULE_ID_PREFIX + " | AUTO FLW [" + statsObj.user.autoFollow + "]", n);
   }
 
-  await pubSubCategorizeUser({nodeId: params.user.nodeId});
+  await pubSubCategorizeUser({user: n, category: params.newCategory});
 
   return;
 }
@@ -6621,7 +6624,7 @@ function initTransmitNodeQueueInterval(interval){
  
         if (categorizeable) {
           await categorize({
-            user: node, 
+            user: node,
             autoFollowFlag: autoFollowFlag
           });
         }

@@ -506,7 +506,7 @@ async function initPubSubCategorizeResultHandler(params){
         + " | RID: " + messageObj.requestId
         + " | NID: " + messageObj.user.nodeId
         + " | DB MISS: " + messageObj.notFound
-        + " | @" + messageObj.user.screenName
+        // + " | @" + messageObj.user.screenName
         + " | CN: " + messageObj.user.categorizeNetwork
         + " | CA: " + messageObj.user.categoryAuto
       ));

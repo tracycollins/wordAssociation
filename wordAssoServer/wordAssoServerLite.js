@@ -4229,8 +4229,16 @@ async function twitterSearchUser(params) {
       default:
         message.searchMode = "SPECIFIC";
 
-        if (params.user.startsWith("@")){
-          message.user.screenName = params.user.slice(1);
+        if (typeof params.user === "string"){
+          if (params.user.startsWith("@")) {
+            message.user.screenName = params.user.slice(1);
+          }
+          else{
+            message.user.screenName = params.user;
+          }
+        }
+        else{
+          message.user = params.user;
         }
     }
 
@@ -4391,6 +4399,23 @@ function initTwitterSearchNodeQueueInterval(interval){
     resolve();
 
   });
+}
+
+async function setNodeManual(params){
+
+  // params: node, newCategory, newCategoryVerified
+
+  const results = await twitterSearchUser({user: params.node});
+
+  if (results.user){
+    const user = results.user;
+    user.category = (params.newCategory !== undefined) ? params.newCategory : user.category;
+    user.categoryVerified = (params.newCategoryVerified !== undefined) ? params.newCategoryVerified : user.categoryVerified;
+
+    return user;
+  }
+
+  return;
 }
 
 async function initSocketHandler(socketObj) {
@@ -4924,32 +4949,42 @@ async function initSocketHandler(socketObj) {
         + " | @" + user.screenName
       ));
 
-      try{
+      // try{
 
-        user.categoryVerified = true;
+      //   user.categoryVerified = true;
 
-        const updatedUser = await categoryVerified({user: user});
+      //   const updatedUser = await categoryVerified({user: user});
 
-        if (!updatedUser) { return; }
+      //   if (!updatedUser) { return; }
 
-        adminNameSpace.emit("CAT_VERFIED", updatedUser);
-        utilNameSpace.emit("CAT_VERFIED", updatedUser);
-        viewNameSpace.emit("CAT_VERFIED", updatedUser);
+      //   adminNameSpace.emit("CAT_VERFIED", updatedUser);
+      //   utilNameSpace.emit("CAT_VERFIED", updatedUser);
+      //   viewNameSpace.emit("CAT_VERFIED", updatedUser);
 
-        console.log(chalk.blue(MODULE_ID_PREFIX 
-          + " | +++ TWITTER_CATEGORY_VERIFIED"
-          + " | SID: " + socket.id
-          + " | UID" + updatedUser.nodeId
-          + " | @" + updatedUser.screenName
-          + " | CN: " + updatedUser.categorizeNetwork
-          + " | CV: " + updatedUser.categoryVerified
-          + " | C M: " + formatCategory(updatedUser.category)
-          + " A: " + formatCategory(updatedUser.categoryAuto)
-        ));
+      //   console.log(chalk.blue(MODULE_ID_PREFIX 
+      //     + " | +++ TWITTER_CATEGORY_VERIFIED"
+      //     + " | SID: " + socket.id
+      //     + " | UID" + updatedUser.nodeId
+      //     + " | @" + updatedUser.screenName
+      //     + " | CN: " + updatedUser.categorizeNetwork
+      //     + " | CV: " + updatedUser.categoryVerified
+      //     + " | C M: " + formatCategory(updatedUser.category)
+      //     + " A: " + formatCategory(updatedUser.categoryAuto)
+      //   ));
+      // }
+      // catch(err){
+      //   console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
+      // }
+
+      const updatedNode = await setNodeManual({
+        node: user,
+        newCategoryVerified: true
+      });
+
+      if (updatedNode){
+        await categorize({ user: updatedNode, autoFollowFlag: true });
       }
-      catch(err){
-        console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
-      }
+
     });
 
     socket.on("TWITTER_CATEGORY_UNVERIFIED", async function(user) {
@@ -5147,7 +5182,6 @@ async function initSocketHandler(socketObj) {
         + " | " + socket.id
         + " | " + sn
       ));
-
     });
 
     socket.on("TWITTER_CATEGORIZE_NODE", async function twitterCategorizeNode(dataObj) {
@@ -5179,15 +5213,18 @@ async function initSocketHandler(socketObj) {
           + " | " + getTimeStamp(timeStamp)
           + " | SID: " + socket.id
           + " | #" + dataObj.node.nodeId
-          + " | CAT: " + formatCategory(dataObj.category)
+          + " | NEW CAT: " + formatCategory(dataObj.category)
         ));
       }
 
-      await categorize({
-        user: dataObj.node, 
-        newCategory: dataObj.category, 
-        autoFollowFlag: true
+      const updatedNode = await setNodeManual({
+        node: dataObj.node,
+        newCategory: dataObj.category
       });
+
+      if (updatedNode){
+        await categorize({ user: updatedNode, autoFollowFlag: true });
+      }
 
       // categorizeNode(dataObj, function(err, updatedNodeObj){
       //   if (err) {

@@ -5164,6 +5164,7 @@ async function initSocketHandler(socketObj) {
           + " | " + getTimeStamp(timeStamp)
           + " | " + ipAddress
           + " | " + socket.id
+          + " | NID: " + dataObj.node.nodeId
           + " | @" + dataObj.node.screenName
           + " | CAT: " + formatCategory(dataObj.category)
           + " | FOLLOW: " + formatBoolean(dataObj.follow)
@@ -6517,6 +6518,14 @@ async function pubSubCategorizeUser(params){
 
     return true;
   }
+
+  console.log(chalkAlert(MODULE_ID_PREFIX
+    + " | !!! pubSubCategorizeUser MISS"
+    + " | configuration.pubSub.enabled: " + formatBoolean(configuration.pubSub.enabled) 
+    + " | NID: " + params.nodeId
+    + " | @" + params.screenName
+  ));
+
   return false;
 }
 

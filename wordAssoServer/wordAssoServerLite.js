@@ -3953,6 +3953,7 @@ async function pubSubSearchUser(params){
       + " | REQ: " + params.requestId
       + " | TOPIC: twitterSearchUser"
       + " | MODE: " + params.searchMode
+      + " | NODE TYPE: " + params.node.nodeType
       + " | NID: " + params.node.nodeId
       + " | @" + params.node.screenName
     ));

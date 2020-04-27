@@ -4241,7 +4241,7 @@ async function twitterSearchUser(params) {
           message.user = params.user;
         }
     }
-    
+
     const user = await pubSubSearchUser(message);
 
     return { user: user, searchMode: message.searchMode, stats: statsObj.user };
@@ -4409,7 +4409,6 @@ async function setNodeManual(params){
     const user = results.user;
     user.category = (params.newCategory !== undefined) ? params.newCategory : user.category;
     user.categoryVerified = (params.newCategoryVerified !== undefined) ? params.newCategoryVerified : user.categoryVerified;
-
     return user;
   }
 
@@ -5176,7 +5175,20 @@ async function initSocketHandler(socketObj) {
           + " | FLW: " + formatBoolean(dataObj.follow)
           + " | CAT: " + formatCategory(dataObj.category)
         ));
+
+        const updatedNode = await setNodeManual({
+          node: dataObj.node,
+          newCategory: dataObj.category
+        });
+
+        socket.emit("SET_TWITTER_USER", {user: updatedNode, stats: statsObj.user });
+
+        if (updatedNode){
+          await categorize({ user: updatedNode, autoFollowFlag: true });
+        }
+
       }
+
       if (dataObj.node.nodeType == "hashtag") {
 
         statsObj.hashtag.categorizedManual += 1;
@@ -5188,15 +5200,6 @@ async function initSocketHandler(socketObj) {
           + " | #" + dataObj.node.nodeId
           + " | NEW CAT: " + formatCategory(dataObj.category)
         ));
-      }
-
-      const updatedNode = await setNodeManual({
-        node: dataObj.node,
-        newCategory: dataObj.category
-      });
-
-      if (updatedNode){
-        await categorize({ user: updatedNode, autoFollowFlag: true });
       }
 
     });

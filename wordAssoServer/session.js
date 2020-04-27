@@ -1697,33 +1697,33 @@ socket.on("SET_TWITTER_USER", function(message) {
   statsObj.serverConnected = true;
   statsObj.socket.connected = true;
 
-  message.user.ageDays = (message.user.ageDays) ? message.user.ageDays : 0;
-  message.user.tweetsPerDay = (message.user.tweetsPerDay) ? message.user.tweetsPerDay : 0;
+  message.node.ageDays = (message.node.ageDays) ? message.node.ageDays : 0;
+  message.node.tweetsPerDay = (message.node.tweetsPerDay) ? message.node.tweetsPerDay : 0;
 
   console.log("<R SET_TWITTER_USER" 
-    + " | BOT: " + message.user.isBot 
-    + " | IG: " + message.user.ignored 
-    + " | FLWG: " + message.user.following 
-    + " | 3CFLWG: " + message.user.threeceeFollowing 
-    + " | " + message.user.nodeId 
-    + " | @" + message.user.screenName 
-    + " | TPD: " + message.user.tweetsPerDay.toFixed(3) 
-    + " | AGE: " + message.user.ageDays.toFixed(3) 
-    + " | CR: " + message.user.createdAt 
-    + " | FLWRs: " + message.user.followersCount 
-    + " | FRNDs: " + message.user.friendsCount 
-    + " | Ts: " + message.user.statusesCount 
-    + " | Ms: " + message.user.mentions 
-    + " | C: " + message.user.category
-    + " | CA: " + message.user.categoryAuto
-    + "\n profileUrl: " + message.user.profileUrl
+    + " | BOT: " + message.node.isBot 
+    + " | IG: " + message.node.ignored 
+    + " | FLWG: " + message.node.following 
+    + " | 3CFLWG: " + message.node.threeceeFollowing 
+    + " | " + message.node.nodeId 
+    + " | @" + message.node.screenName 
+    + " | TPD: " + message.node.tweetsPerDay.toFixed(3) 
+    + " | AGE: " + message.node.ageDays.toFixed(3) 
+    + " | CR: " + message.node.createdAt 
+    + " | FLWRs: " + message.node.followersCount 
+    + " | FRNDs: " + message.node.friendsCount 
+    + " | Ts: " + message.node.statusesCount 
+    + " | Ms: " + message.node.mentions 
+    + " | C: " + message.node.category
+    + " | CA: " + message.node.categoryAuto
+    + "\n profileUrl: " + message.node.profileUrl
   );
 
   console.log("SET_TWITTER_USER STATS\n" + jsonPrint(message.stats)); 
 
-  if (message.user.nodeId === twitterUserThreecee.nodeId) {
-    twitterUserThreecee = message.user;
-    config.twitterUser = message.user;
+  if (message.node.nodeId === twitterUserThreecee.nodeId) {
+    twitterUserThreecee = message.node;
+    config.twitterUser = message.node;
   }
 
   currentSessionView.setTwitterUser(message);

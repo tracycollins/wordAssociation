@@ -4808,7 +4808,7 @@ async function initSocketHandler(socketObj) {
 
       socket.emit("SET_TWITTER_USER", {user: updatedNode, stats: statsObj.user });
 
-      if (updatedNode){
+      if (updatedNode && updatedNode !== undefined){
         await categorize({ user: updatedNode, autoFollowFlag: true });
       }
     });

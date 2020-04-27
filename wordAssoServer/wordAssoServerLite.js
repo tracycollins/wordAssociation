@@ -4048,7 +4048,7 @@ async function twitterSearchUser(params) {
     message.newCategory = params.newCategory || false;
     message.newCategoryVerified = params.newCategoryVerified || false;
 
-    switch (params.node) {
+    switch (params.node.screenName) {
 
       case "@?mm":
         message.searchMode = "MISMATCH";
@@ -4072,18 +4072,19 @@ async function twitterSearchUser(params) {
 
       default:
         message.searchMode = "SPECIFIC";
+        message.node = params.node
 
-        if (typeof params.node === "string"){
-          if (params.node.startsWith("@")) {
-            message.node.screenName = params.node.slice(1);
-          }
-          else{
-            message.node.screenName = params.node;
-          }
-        }
-        else{
-          message.node = params.node;
-        }
+        // if (typeof params.node === "string"){
+        //   if (params.node.startsWith("@")) {
+        //     message.node.screenName = params.node.slice(1);
+        //   }
+        //   else{
+        //     message.node.screenName = params.node;
+        //   }
+        // }
+        // else{
+        //   message.node = params.node;
+        // }
     }
 
     const node = await pubSubSearchUser(message);

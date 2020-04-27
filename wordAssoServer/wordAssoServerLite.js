@@ -4811,7 +4811,6 @@ async function initSocketHandler(socketObj) {
       if (updatedNode){
         await categorize({ user: updatedNode, autoFollowFlag: true });
       }
-
     });
 
     socket.on("TWITTER_CATEGORY_UNVERIFIED", async function(user) {
@@ -5013,50 +5012,54 @@ async function initSocketHandler(socketObj) {
 
     socket.on("TWITTER_CATEGORIZE_NODE", async function twitterCategorizeNode(dataObj) {
 
-      const timeStamp = moment().valueOf();
+      if (!configuration.primaryHost) {
+        await pubSubCategorizeNode(dataObj);
+      }
+      else {
+        const timeStamp = moment().valueOf();
 
-      if (dataObj.node.nodeType == "user") {
+        if (dataObj.node.nodeType == "user") {
 
-        statsObj.user.categorizedManual += 1;
+          statsObj.user.categorizedManual += 1;
 
-        console.log(chalkSocket(MODULE_ID_PREFIX
-          + " | TWITTER_CATEGORIZE_NODE"
-          + " [" + statsObj.user.categorizedManual + "]"
-          + " | " + getTimeStamp(timeStamp)
-          + " | " + ipAddress
-          + " | " + socket.id
-          + " | NID: " + dataObj.node.nodeId
-          + " | @" + dataObj.node.screenName
-          + " | FLW: " + formatBoolean(dataObj.follow)
-          + " | CAT: " + formatCategory(dataObj.category)
-        ));
+          console.log(chalkSocket(MODULE_ID_PREFIX
+            + " | TWITTER_CATEGORIZE_NODE"
+            + " [" + statsObj.user.categorizedManual + "]"
+            + " | " + getTimeStamp(timeStamp)
+            + " | " + ipAddress
+            + " | " + socket.id
+            + " | NID: " + dataObj.node.nodeId
+            + " | @" + dataObj.node.screenName
+            + " | FLW: " + formatBoolean(dataObj.follow)
+            + " | CAT: " + formatCategory(dataObj.category)
+          ));
 
-        await updateUserCounts();
+          await updateUserCounts();
 
-        const updatedNode = await setNodeManual({
-          node: dataObj.node,
-          newCategory: dataObj.category
-        });
+          const updatedNode = await setNodeManual({
+            node: dataObj.node,
+            newCategory: dataObj.category
+          });
 
-        socket.emit("SET_TWITTER_USER", {user: updatedNode, stats: statsObj.user });
+          socket.emit("SET_TWITTER_USER", {user: updatedNode, stats: statsObj.user });
 
-        if (updatedNode){
-          await categorize({ user: updatedNode, autoFollowFlag: true });
+          if (updatedNode){
+            await categorize({ user: updatedNode, autoFollowFlag: true });
+          }
         }
 
-      }
+        if (dataObj.node.nodeType == "hashtag") {
 
-      if (dataObj.node.nodeType == "hashtag") {
+          statsObj.hashtag.categorizedManual += 1;
 
-        statsObj.hashtag.categorizedManual += 1;
-
-        console.log(chalkSocket(MODULE_ID_PREFIX
-          + " | TWITTER_CATEGORIZE_NODE"
-          + " | " + getTimeStamp(timeStamp)
-          + " | SID: " + socket.id
-          + " | #" + dataObj.node.nodeId
-          + " | NEW CAT: " + formatCategory(dataObj.category)
-        ));
+          console.log(chalkSocket(MODULE_ID_PREFIX
+            + " | TWITTER_CATEGORIZE_NODE"
+            + " | " + getTimeStamp(timeStamp)
+            + " | SID: " + socket.id
+            + " | #" + dataObj.node.nodeId
+            + " | NEW CAT: " + formatCategory(dataObj.category)
+          ));
+        }
       }
 
     });
@@ -6347,44 +6350,74 @@ const publishMessageCategorize = {};
 publishMessageCategorize.publishName = "categorize";
 publishMessageCategorize.message = {};
 publishMessageCategorize.message.requestId = "";
-publishMessageCategorize.message.user = {};
+// publishMessageCategorize.message.user = {};
+publishMessageCategorize.message.node = {};
 
-async function pubSubCategorizeUser(params){
+async function pubSubCategorizeNode(params){
 
-  if (empty(params.user.nodeId) && empty(params.user.screenName)){
-    console.log(chalkError(MODULE_ID_PREFIX
-      + " | XXX pubSubCategorizeUser ERROR: USER nodeId && screenName UNDEFINED"
-    ));
-    throw new Error("USER nodeId && screenName UNDEFINED");
-  }
-
-  if (configuration.pubSub.enabled 
-    && !pubSubCategorizeSentSet.has(params.user.nodeId) 
-    && !pubSubCategorizeSentSet.has(params.user.screenName)
-  ) { 
+  if (configuration.pubSub.enabled && !pubSubCategorizeSentSet.has(params.node.nodeId)) { 
 
     publishMessageCategorize.message.requestId = "rId_" + hostname + "_" + moment().valueOf();
-    publishMessageCategorize.message.user = params.user;
-    publishMessageCategorize.message.newCategory = params.newCategory;
-    publishMessageCategorize.message.newCategoryVerified = params.newCategoryVerified;
+    publishMessageCategorize.message.node = params.node;
+    publishMessageCategorize.message.newCategory = params.category;
+    publishMessageCategorize.message.newCategoryVerified = params.categoryVerified;
+    publishMessageCategorize.message.newFollow = params.follow;
 
     await pubSubPublishMessage(publishMessageCategorize);
 
-    if (!empty(params.user.nodeId)) { pubSubCategorizeSentSet.add(params.user.nodeId); }
-    if (!empty(params.user.screenName)) { pubSubCategorizeSentSet.add(params.user.screenName); }
+    if (!empty(params.node.nodeId)) { pubSubCategorizeSentSet.add(params.node.nodeId); }
+    if (!empty(params.node.screenName)) { pubSubCategorizeSentSet.add(params.node.screenName); }
 
     return true;
   }
 
   debug(chalkAlert(MODULE_ID_PREFIX
-    + " | !!! pubSubCategorizeUser MISS"
+    + " | !!! pubSubCategorizeNode MISS"
     + " | configuration.pubSub.enabled: " + formatBoolean(configuration.pubSub.enabled) 
-    + " | NID: " + params.user.nodeId
-    + " | @" + params.user.screenName
+    + " | NODE TYPE: " + params.node.nodeType
+    + " | NID: " + params.node.nodeId
+    + " | @" + params.node.screenName
   ));
 
   return false;
 }
+
+// async function pubSubCategorizeUser(params){
+
+//   if (empty(params.user.nodeId) && empty(params.user.screenName)){
+//     console.log(chalkError(MODULE_ID_PREFIX
+//       + " | XXX pubSubCategorizeUser ERROR: USER nodeId && screenName UNDEFINED"
+//     ));
+//     throw new Error("USER nodeId && screenName UNDEFINED");
+//   }
+
+//   if (configuration.pubSub.enabled 
+//     && !pubSubCategorizeSentSet.has(params.user.nodeId) 
+//     && !pubSubCategorizeSentSet.has(params.user.screenName)
+//   ) { 
+
+//     publishMessageCategorize.message.requestId = "rId_" + hostname + "_" + moment().valueOf();
+//     publishMessageCategorize.message.user = params.user;
+//     publishMessageCategorize.message.newCategory = params.newCategory;
+//     publishMessageCategorize.message.newCategoryVerified = params.newCategoryVerified;
+
+//     await pubSubPublishMessage(publishMessageCategorize);
+
+//     if (!empty(params.user.nodeId)) { pubSubCategorizeSentSet.add(params.user.nodeId); }
+//     if (!empty(params.user.screenName)) { pubSubCategorizeSentSet.add(params.user.screenName); }
+
+//     return true;
+//   }
+
+//   debug(chalkAlert(MODULE_ID_PREFIX
+//     + " | !!! pubSubCategorizeUser MISS"
+//     + " | configuration.pubSub.enabled: " + formatBoolean(configuration.pubSub.enabled) 
+//     + " | NID: " + params.user.nodeId
+//     + " | @" + params.user.screenName
+//   ));
+
+//   return false;
+// }
 
 async function categorize(params){
 
@@ -6412,7 +6445,7 @@ async function categorize(params){
       printUserObj(MODULE_ID_PREFIX + " | AUTO FLW [" + statsObj.user.autoFollow + "]", n);
     }
 
-    await pubSubCategorizeUser({user: n, category: params.newCategory});
+    await pubSubCategorizeNode({node: n, category: params.newCategory});
 
     return;
   }

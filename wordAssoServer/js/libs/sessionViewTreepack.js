@@ -529,7 +529,7 @@ function ViewTreepack() {
 
   this.setTwitterUser = function(message) {
 
-    if (message.user.notFound !== undefined) { 
+    if (message.node.notFound !== undefined) { 
       console.log("setTwitterUser"
         + " | NOT FOUND: SEARCH NODE: " + message.searchNode
         + "\nSTATS\n" + jsonPrint(message.stats)
@@ -537,8 +537,8 @@ function ViewTreepack() {
     }
     else { 
       console.log("setTwitterUser"
-        + " | NID: " + message.user.nodeId
-        + " | @" + message.user.screenName
+        + " | NID: " + message.node.nodeId
+        + " | @" + message.node.screenName
         + "\nSTATS\n" + jsonPrint(message.stats)
       ); 
     }
@@ -547,7 +547,7 @@ function ViewTreepack() {
       controlPanelWindow.postMessage(
         {
           op: "SET_TWITTER_USER", 
-          user: message.user, 
+          node: message.node, 
           searchNode: message.searchNode, 
           stats: message.stats
         }, 

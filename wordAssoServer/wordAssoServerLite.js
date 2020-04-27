@@ -4036,8 +4036,6 @@ async function pubSubSearchUser(params){
 
 async function twitterSearchUser(params) {
 
-  console.log(chalkInfo(MODULE_ID_PREFIX + " | -?- USER SEARCH | USER: " + params.user));
-
   if (typeof params.user === "string"){
     console.log(chalkInfo(MODULE_ID_PREFIX 
       + " | -?- USER SEARCH | USER: " + params.user
@@ -4254,7 +4252,7 @@ function initTwitterSearchNodeQueueInterval(interval){
 
 async function setNodeManual(params){
 
-  await updateUserSets
+  await updateUserSets();
 
   const results = await twitterSearchUser({
     user: params.node,

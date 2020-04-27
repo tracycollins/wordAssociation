@@ -522,7 +522,6 @@ function ViewTreepack() {
     console.debug("SET NODE MAX AGE: " + nodeMaxAge);
   };
 
-  
   this.setAntonym = function(flag) {
     antonymFlag = flag;
     console.debug("SET ANTONYM: " + antonymFlag);
@@ -1102,8 +1101,6 @@ function ViewTreepack() {
     switch (d.nodeType) {
 
       case "user" :
-
-        // currentTwitterUser = d;
         
         if (controlPanelReadyFlag) {
           controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: d, nodeSearch: true}, DEFAULT_SOURCE);
@@ -1115,7 +1112,6 @@ function ViewTreepack() {
           previousTwitterUserId = d.nodeId;
         }
 
-        // if ((d.lastTweetId !== undefined) && (d.lastTweetId !== "false")) {
         if (d.lastTweetId && (d.lastTweetId !== undefined)) {
           console.debug("LOADING TWITTER USER: " + "https://twitter.com/" + d.screenName + "/status/" + d.lastTweetId);
           window.open("https://twitter.com/" + d.screenName + "/status/" + d.lastTweetId, "_blank");
@@ -1127,8 +1123,6 @@ function ViewTreepack() {
       break;
 
       case "hashtag" :
-
-        // currentTwitterHashtag = d;
 
         if (controlPanelReadyFlag) {
           controlPanelWindow.postMessage({op: "SET_TWITTER_HASHTAG", hashtag: d}, DEFAULT_SOURCE);

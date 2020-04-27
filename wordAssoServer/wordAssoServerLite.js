@@ -560,7 +560,7 @@ async function initPubSubTwitterSearchUserResultHandler(params){
           + " | SEARCH MODE: " + messageObj.searchMode
           + " | NID: " + messageObj.user.nodeId
           + " | @" + messageObj.user.screenName
-          + " | @" + formatBoolean(messageObj.user.following)
+          + " | FLW" + formatBoolean(messageObj.user.following)
           + " | CN: " + messageObj.user.categorizeNetwork
           + " | CV: " + formatBoolean(messageObj.user.categoryVerified)
           + " | CM: " + formatCategory(messageObj.user.category)

@@ -690,15 +690,16 @@ function ControlPanel() {
       }
     }
 
+    if (event.data.op === undefined){
+      return;
+    }
+
     console.debug("RX MESSAGE | SOURCE"
       + " | ORIGIN: " + event.origin 
       + " | PARENT WINDOW: " + parentWindow.PARENT_ID
       + " | DEFAULT_SOURCE: " + DEFAULT_SOURCE
     );
 
-    if (event.data.op === undefined){
-      return;
-    }
 
     var op = event.data.op;
     var cnf;

@@ -553,7 +553,7 @@ async function initPubSubTwitterSearchUserResultHandler(params){
 
       if (messageObj.user) {
         console.log(chalkBlueBold(MODULE_ID_PREFIX
-          + " | ==> PS SEARCH USER [" + statsObj.pubSub.messagesReceived + "]"
+          + " | ==> PS SEARCH USER [" + statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived + "]"
           // + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
           + " | MID: " + message.id
           + " | RID: " + messageObj.requestId
@@ -571,18 +571,10 @@ async function initPubSubTwitterSearchUserResultHandler(params){
       }
       else{
         console.log(chalk.yellow(MODULE_ID_PREFIX
-          + " | ==> PS SEARCH USER -MISS- [" + statsObj.pubSub.messagesReceived + "]"
-          // + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
+          + " | ==> PS SEARCH USER -MISS- [" + statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived + "]"
           + " | MID: " + message.id
           + " | RID: " + messageObj.requestId
           + " | SEARCH MODE: " + messageObj.searchMode
-          // + " | NID: " + messageObj.user.nodeId
-          // + " | @" + messageObj.user.screenName
-          // + " | @" + formatBoolean(messageObj.user.following)
-          // + " | CN: " + messageObj.user.categorizeNetwork
-          // + " | CV: " + formatBoolean(messageObj.user.categoryVerified)
-          // + " | CM: " + formatCategory(messageObj.user.category)
-          // + " | CA: " + formatCategory(messageObj.user.categoryAuto)
         ));
       }
 
@@ -4196,7 +4188,7 @@ async function twitterSearchNode(params) {
 
   if (searchNode.startsWith("@")) {
 
-    const results = await twitterSearchUser({node: searchNode});
+    const results = await twitterSearchUser({node: { screenName: searchNode.slice(1)} });
 
     if (results.node){
       viewNameSpace.emit("SET_TWITTER_USER", results);

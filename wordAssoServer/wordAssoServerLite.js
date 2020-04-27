@@ -4198,11 +4198,24 @@ async function twitterSearchUser(params) {
 
   console.log(chalkInfo(MODULE_ID_PREFIX + " | -?- USER SEARCH | USER: " + params.user));
 
+  if (typeof params.user === "string"){
+    console.log(chalkInfo(MODULE_ID_PREFIX 
+      + " | -?- USER SEARCH | USER: " + params.user
+    ));
+  }
+  else{
+    console.log(chalkInfo(MODULE_ID_PREFIX 
+      + " | -?- USER SEARCH | USER: " + params.user.nodeId + " | @" + params.user.screenName
+    ));
+  }
+
   try {
 
     const message = {};
     message.requestId = "rId_" + hostname + "_" + moment().valueOf();
     message.user = {};
+    message.newCategory = params.newCategory || false;
+    message.newCategoryVerified = params.newCategoryVerified || false;
 
     switch (params.user) {
 
@@ -4403,7 +4416,11 @@ async function setNodeManual(params){
 
   // params: node, newCategory, newCategoryVerified
 
-  const results = await twitterSearchUser({user: params.node});
+  const results = await twitterSearchUser({
+    user: params.node,
+    newCategory: params.newCategory,
+    newCategoryVerified: params.newCategoryVerified,
+  });
 
   if (results.user){
     const user = results.user;
@@ -6507,6 +6524,7 @@ async function pubSubCategorizeUser(params){
     publishMessageCategorize.message.requestId = "rId_" + hostname + "_" + moment().valueOf();
     publishMessageCategorize.message.user = params.user;
     publishMessageCategorize.message.newCategory = params.newCategory;
+    publishMessageCategorize.message.newCategoryVerified = params.newCategoryVerified;
 
     await pubSubPublishMessage(publishMessageCategorize);
 

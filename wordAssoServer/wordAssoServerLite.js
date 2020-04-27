@@ -3953,8 +3953,8 @@ async function pubSubSearchUser(params){
       + " | REQ: " + params.requestId
       + " | TOPIC: twitterSearchUser"
       + " | MODE: " + params.searchMode
-      + " | NID: " + params.user.nodeId
-      + " | @" + params.user.screenName
+      + " | NID: " + params.node.nodeId
+      + " | @" + params.node.screenName
     ));
 
     await pubSubPublishMessage({
@@ -4001,10 +4001,10 @@ async function pubSubSearchUser(params){
           + " | " + getTimeStamp() 
           + " | ERR CODE: " + errCode 
           + " | ERR TYPE: " + errorType
-          + " | UID: " + params.user.nodeId
+          + " | UID: " + params.node.nodeId
         ));
 
-        await deleteUser({user: params.user});
+        await deleteUser({user: params.node});
 
       break;
 
@@ -4014,10 +4014,10 @@ async function pubSubSearchUser(params){
           + " | " + getTimeStamp() 
           + " | ERR CODE: " + errCode 
           + " | ERR TYPE: " + errorType
-          + " | UID: " + params.user.nodeId
+          + " | UID: " + params.node.nodeId
         ));
 
-        await deleteUser({user: params.user});
+        await deleteUser({user: params.node});
 
       break;
 
@@ -4025,7 +4025,7 @@ async function pubSubSearchUser(params){
         console.log(chalkError(MODULE_ID_PREFIX 
           + " | *** TWITTER SEARCH NODE USER ERROR | MODE: " + params.searchMode
           + " | ERR CODE: " + errCode
-          + "\nsearchQuery\n" + jsonPrint(params.user)
+          + "\nsearchQuery\n" + jsonPrint(params.node)
           + "ERROR: ", err
         ));
 
@@ -4038,12 +4038,12 @@ async function twitterSearchUser(params) {
 
   if (typeof params.user === "string"){
     console.log(chalkInfo(MODULE_ID_PREFIX 
-      + " | -?- USER SEARCH | USER: " + params.user
+      + " | -?- USER SEARCH | USER: " + params.node
     ));
   }
   else{
     console.log(chalkInfo(MODULE_ID_PREFIX 
-      + " | -?- USER SEARCH | USER: " + params.user.nodeId + " | @" + params.user.screenName
+      + " | -?- USER SEARCH | NID: " + params.node.nodeId + " | @" + params.node.screenName
     ));
   }
 
@@ -4051,11 +4051,11 @@ async function twitterSearchUser(params) {
 
     const message = {};
     message.requestId = "rId_" + hostname + "_" + moment().valueOf();
-    message.user = {};
+    message.node = {};
     message.newCategory = params.newCategory || false;
     message.newCategoryVerified = params.newCategoryVerified || false;
 
-    switch (params.user) {
+    switch (params.node) {
 
       case "@?mm":
         message.searchMode = "MISMATCH";
@@ -4080,33 +4080,33 @@ async function twitterSearchUser(params) {
       default:
         message.searchMode = "SPECIFIC";
 
-        if (typeof params.user === "string"){
-          if (params.user.startsWith("@")) {
-            message.user.screenName = params.user.slice(1);
+        if (typeof params.node === "string"){
+          if (params.node.startsWith("@")) {
+            message.node.screenName = params.node.slice(1);
           }
           else{
-            message.user.screenName = params.user;
+            message.node.screenName = params.node;
           }
         }
         else{
-          message.user = params.user;
+          message.node = params.node;
         }
     }
 
-    const user = await pubSubSearchUser(message);
+    const node = await pubSubSearchUser(message);
 
-    return { user: user, searchMode: message.searchMode, stats: statsObj.user };
+    return { node: node, searchMode: message.searchMode, stats: statsObj.user };
   }
   catch(err){
     console.log(chalkError(MODULE_ID_PREFIX
       + " | *** TWITTER_SEARCH_NODE ERROR"
       + " | " + getTimeStamp()
       + " | SEARCH USER"
-      + " | searchNode: " + params.user
+      + " | searchNode: " + params.node
       + " | ERROR: " + err
     ));
 
-    viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", { user: params.user, stats: statsObj.user });
+    viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", { node: params.node, stats: statsObj.user });
     throw err;
   }
 }
@@ -4194,13 +4194,16 @@ async function twitterSearchNode(params) {
   }
 
   if (searchNode.startsWith("@")) {
-    const results = await twitterSearchUser({user: searchNode});
-    if (results.user){
+
+    const results = await twitterSearchUser({node: searchNode});
+
+    if (results.node){
       viewNameSpace.emit("SET_TWITTER_USER", results);
     }
     else{
       viewNameSpace.emit("TWITTER_USER_NOT_FOUND", results);
     }
+
     return;
   }
 
@@ -4255,16 +4258,16 @@ async function setNodeManual(params){
   await updateUserSets();
 
   const results = await twitterSearchUser({
-    user: params.node,
+    node: params.node,
     newCategory: params.newCategory,
     newCategoryVerified: params.newCategoryVerified,
   });
 
-  if (results.user){
-    const user = results.user;
-    user.category = (params.newCategory !== undefined) ? params.newCategory : user.category;
-    user.categoryVerified = (params.newCategoryVerified !== undefined) ? params.newCategoryVerified : user.categoryVerified;
-    return user;
+  if (results.node){
+    const node = results.node;
+    node.category = (params.newCategory !== undefined) ? params.newCategory : node.category;
+    node.categoryVerified = (params.newCategoryVerified !== undefined) ? params.newCategoryVerified : node.categoryVerified;
+    return node;
   }
 
   return;
@@ -5112,10 +5115,15 @@ async function initSocketHandler(socketObj) {
       else{
         try{
 
-          const results = await twitterSearchUser({user: {screenName: defaultTwitterUserScreenName}});
+          const results = await twitterSearchUser({
+            node: {
+              nodeType: "user",
+              screenName: defaultTwitterUserScreenName
+            }
+          });
 
-          if (results.user) {
-            socket.emit("SET_TWITTER_USER", {user: results.user, stats: statsObj.user });
+          if (results.node) {
+            socket.emit("SET_TWITTER_USER", {user: results.node, stats: statsObj.user });
           }
 
           socket.emit("VIEWER_READY_ACK", 
@@ -6381,43 +6389,6 @@ async function pubSubCategorizeNode(params){
 
   return false;
 }
-
-// async function pubSubCategorizeUser(params){
-
-//   if (empty(params.user.nodeId) && empty(params.user.screenName)){
-//     console.log(chalkError(MODULE_ID_PREFIX
-//       + " | XXX pubSubCategorizeUser ERROR: USER nodeId && screenName UNDEFINED"
-//     ));
-//     throw new Error("USER nodeId && screenName UNDEFINED");
-//   }
-
-//   if (configuration.pubSub.enabled 
-//     && !pubSubCategorizeSentSet.has(params.user.nodeId) 
-//     && !pubSubCategorizeSentSet.has(params.user.screenName)
-//   ) { 
-
-//     publishMessageCategorize.message.requestId = "rId_" + hostname + "_" + moment().valueOf();
-//     publishMessageCategorize.message.user = params.user;
-//     publishMessageCategorize.message.newCategory = params.newCategory;
-//     publishMessageCategorize.message.newCategoryVerified = params.newCategoryVerified;
-
-//     await pubSubPublishMessage(publishMessageCategorize);
-
-//     if (!empty(params.user.nodeId)) { pubSubCategorizeSentSet.add(params.user.nodeId); }
-//     if (!empty(params.user.screenName)) { pubSubCategorizeSentSet.add(params.user.screenName); }
-
-//     return true;
-//   }
-
-//   debug(chalkAlert(MODULE_ID_PREFIX
-//     + " | !!! pubSubCategorizeUser MISS"
-//     + " | configuration.pubSub.enabled: " + formatBoolean(configuration.pubSub.enabled) 
-//     + " | NID: " + params.user.nodeId
-//     + " | @" + params.user.screenName
-//   ));
-
-//   return false;
-// }
 
 async function categorize(params){
 

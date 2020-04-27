@@ -615,9 +615,9 @@ async function pubSubPublishMessage(params){
     + " / OUT: " + pubSubPublishMessageRequestIdSet.size + "]"
     + " | TOPIC: " + params.publishName
     + " | RID: " + params.message.requestId
-    // + " | MID: " + messageId
-    + " | NID: " + params.message.user.nodeId
-    + " | @" + params.message.user.screenName
+    + " | NODE TYPE: " + params.message.node.nodeType
+    + " | NID: " + params.message.node.nodeId
+    + " | @" + params.message.node.screenName
   ));
 
   return messageId;

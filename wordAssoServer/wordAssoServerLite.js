@@ -6508,7 +6508,7 @@ function initTransmitNodeQueueInterval(interval){
 
         categorizeable = await userCategorizeable({user: node});
  
-        if (categorizeable) {
+        if (node && (node !== undefined) && categorizeable) {
           await categorize({
             user: node,
             autoFollowFlag: autoFollowFlag

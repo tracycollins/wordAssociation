@@ -782,7 +782,7 @@ function ControlPanel() {
       
       case "SET_TWITTER_USER":
 
-        if (event.data.user.notFound) {
+        if (event.data.node.notFound) {
 
           console.debug("SET TWITTER USER | USER NOT FOUND" 
             + " | " + event.data.searchNode
@@ -794,7 +794,7 @@ function ControlPanel() {
           break;
         }
 
-        currentTwitterNode = event.data.user;
+        currentTwitterNode = event.data.node;
 
         if (!currentTwitterNode.profileImageUrl || (currentTwitterNode.profileImageUrl === undefined)){
           currentTwitterNode.profileImageUrl = DEFAULT_TWITTER_IMAGE;
@@ -838,7 +838,7 @@ function ControlPanel() {
 
       case "SET_TWITTER_HASHTAG":
 
-        currentTwitterNode = event.data.hashtag;
+        currentTwitterNode = event.data.node;
 
         console.debug("SET TWITTER HASHTAG" 
           + " | #" + currentTwitterNode.nodeId

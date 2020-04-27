@@ -3978,6 +3978,10 @@ async function pubSubSearchUser(params){
 
     const user = searchUserResultHashMap[params.requestId] || false;
 
+    if (!user){
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! USER NOT FOUND\n" + jsonPrint(params)));
+    }
+
     return user;
   }
   catch(err){
@@ -4050,23 +4054,23 @@ async function twitterSearchUser(params) {
 
     switch (params.node.screenName) {
 
-      case "@?mm":
+      case "?mm":
         message.searchMode = "MISMATCH";
       break;
 
-      case "@?all":
+      case "?all":
         message.searchMode = "UNCAT";
       break;
 
-      case "@?left":
+      case "?left":
         message.searchMode = "UNCAT_LEFT";
       break;
 
-      case "@?right":
+      case "?right":
         message.searchMode = "UNCAT_RIGHT";
       break;
 
-      case "@?neutral":
+      case "?neutral":
         message.searchMode = "UNCAT_NEUTRAL";
       break;
 
@@ -4803,7 +4807,7 @@ async function initSocketHandler(socketObj) {
         newCategoryVerified: true
       });
 
-      socket.emit("SET_TWITTER_USER", {user: updatedNode, stats: statsObj.user });
+      socket.emit("SET_TWITTER_USER", {node: updatedNode, stats: statsObj.user });
 
       if (updatedNode && updatedNode !== undefined){
         await categorize({ user: updatedNode, autoFollowFlag: true });
@@ -5038,7 +5042,7 @@ async function initSocketHandler(socketObj) {
             newCategory: dataObj.category
           });
 
-          socket.emit("SET_TWITTER_USER", {user: updatedNode, stats: statsObj.user });
+          socket.emit("SET_TWITTER_USER", {node: updatedNode, stats: statsObj.user });
 
           if (updatedNode){
             await categorize({ user: updatedNode, autoFollowFlag: true });
@@ -5117,7 +5121,7 @@ async function initSocketHandler(socketObj) {
           });
 
           if (results.node) {
-            socket.emit("SET_TWITTER_USER", {user: results.node, stats: statsObj.user });
+            socket.emit("SET_TWITTER_USER", {node: results.node, stats: statsObj.user });
           }
 
           socket.emit("VIEWER_READY_ACK", 

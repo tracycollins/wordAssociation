@@ -4241,9 +4241,7 @@ async function twitterSearchUser(params) {
           message.user = params.user;
         }
     }
-
-    // viewNameSpace.emit("SET_TWITTER_USER", { user: user, searchMode: searchMode, stats: statsObj.user });
-
+    
     const user = await pubSubSearchUser(message);
 
     return { user: user, searchMode: message.searchMode, stats: statsObj.user };
@@ -4949,37 +4947,12 @@ async function initSocketHandler(socketObj) {
         + " | @" + user.screenName
       ));
 
-      // try{
-
-      //   user.categoryVerified = true;
-
-      //   const updatedUser = await categoryVerified({user: user});
-
-      //   if (!updatedUser) { return; }
-
-      //   adminNameSpace.emit("CAT_VERFIED", updatedUser);
-      //   utilNameSpace.emit("CAT_VERFIED", updatedUser);
-      //   viewNameSpace.emit("CAT_VERFIED", updatedUser);
-
-      //   console.log(chalk.blue(MODULE_ID_PREFIX 
-      //     + " | +++ TWITTER_CATEGORY_VERIFIED"
-      //     + " | SID: " + socket.id
-      //     + " | UID" + updatedUser.nodeId
-      //     + " | @" + updatedUser.screenName
-      //     + " | CN: " + updatedUser.categorizeNetwork
-      //     + " | CV: " + updatedUser.categoryVerified
-      //     + " | C M: " + formatCategory(updatedUser.category)
-      //     + " A: " + formatCategory(updatedUser.categoryAuto)
-      //   ));
-      // }
-      // catch(err){
-      //   console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
-      // }
-
       const updatedNode = await setNodeManual({
         node: user,
         newCategoryVerified: true
       });
+
+      socket.emit("SET_TWITTER_USER", {user: updatedNode, stats: statsObj.user });
 
       if (updatedNode){
         await categorize({ user: updatedNode, autoFollowFlag: true });
@@ -5200,8 +5173,8 @@ async function initSocketHandler(socketObj) {
           + " | " + socket.id
           + " | NID: " + dataObj.node.nodeId
           + " | @" + dataObj.node.screenName
+          + " | FLW: " + formatBoolean(dataObj.follow)
           + " | CAT: " + formatCategory(dataObj.category)
-          + " | FOLLOW: " + formatBoolean(dataObj.follow)
         ));
       }
       if (dataObj.node.nodeType == "hashtag") {
@@ -5226,41 +5199,11 @@ async function initSocketHandler(socketObj) {
         await categorize({ user: updatedNode, autoFollowFlag: true });
       }
 
-      // categorizeNode(dataObj, function(err, updatedNodeObj){
-      //   if (err) {
-      //     console.log(chalkError(MODULE_ID_PREFIX + " | CAT NODE ERROR: " + err));
-      //   }
-      //   else if (updatedNodeObj) {
-      //     if (updatedNodeObj.nodeType == "user") {
-
-      //       console.log(chalkSocket("TX> SET_USER"
-      //         + " | " + printUser({user: updatedNodeObj})
-      //       ));
-      //     }
-      //     if (updatedNodeObj.nodeType == "hashtag") {
-
-      //       socket.emit("SET_TWITTER_HASHTAG", {hashtag: updatedNodeObj, stats: statsObj.hashtag });
-
-      //       console.log(chalkSocket(MODULE_ID_PREFIX
-      //         + " | TX> SET_TWITTER_HASHTAG"
-      //         + " | " + getTimeStamp(timeStamp)
-      //         + " | SID: " + socket.id
-      //         + " | #" + updatedNodeObj.nodeId
-      //         + " | Ms: " + updatedNodeObj.mentions
-      //         + " | CAT: M: " + formatCategory(updatedNodeObj.category)
-      //         + " | A: " + formatCategory(updatedNodeObj.categoryAuto)
-      //       ));
-      //     }
-      //   }
-      // });
-
     });
 
     socket.on("USER_READY", function userReady(userObj) {
 
       const timeStamp = moment().valueOf();
-
-      // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
       console.log(chalkSocket(MODULE_ID_PREFIX
         + " | R< USER READY"

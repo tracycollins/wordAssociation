@@ -3340,166 +3340,6 @@ async function addTwitterAccountActivitySubscription(p){
   }
 }
 
-// async function categorizeNode(categorizeObj) {
-
-//   if (categorizeObj.twitterUser && categorizeObj.twitterUser.nodeId) {
-
-//     const user = authenticatedTwitterUserCache.get(categorizeObj.twitterUser.nodeId);
-
-//     if ((user == undefined)
-//       && (categorizeObj.twitterUser.nodeId != "14607119") 
-//       && (categorizeObj.twitterUser.nodeId != "848591649575927810")) {
-
-//       console.log(chalkAlert(MODULE_ID_PREFIX + " | *** AUTH USER NOT IN CACHE\n" + jsonPrint(categorizeObj.twitterUser)));
-
-//       return categorizeObj.twitterUser;
-//     }
-//   }
-
-//   const cObj = {};
-//   cObj.manual = false;
-//   cObj.auto = false;
-
-//   let nCacheObj;
-
-//   const node = categorizeObj.node;
-//   const nodeId = categorizeObj.node.nodeId.toLowerCase();
-
-//   const query = { nodeId: nodeId };
-//   const update = {};
-//   const options = { useFindAndModify: false, returnOriginal: false, new: true, upsert: true };
-
-//   switch (node.nodeType){
-
-//     case "user":
-
-//       cObj.network = categorizeObj.categorizeNetwork;
-
-//       cObj.manual = categorizeObj.category;
-
-//       if (categorizedUserHashMap.has(nodeId)){
-//         cObj.auto = categorizedUserHashMap.get(nodeId).auto || false;
-//       }
-
-//       update.category = categorizeObj.category;
-//       if (cObj.auto) { update.categoryAuto = cObj.auto; }
-
-//       categorizedUserHashMap.set(nodeId, cObj);
-//       uncategorizeableUserSet.delete(nodeId);
-
-//       nCacheObj = nodeCache.get(nodeId);
-
-//       if (nCacheObj !== undefined) {
-//         node.mentions = Math.max(node.mentions, nCacheObj.mentions);
-//         nCacheObj.mentions = node.mentions;
-//         nodeCache.set(nCacheObj.nodeId, nCacheObj);
-//         update.mentions = node.mentions;
-//       }
-
-//       if (!userServerControllerReady || !statsObj.dbConnectionReady) {
-//         console.log(chalkAlert(MODULE_ID_PREFIX + " | *** NOT READY"
-//           + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
-//           + " | userServerControllerReady: " + userServerControllerReady
-//         ));
-//         throw new Error("userServerController not ready");
-//       }
-
-//       try{
-
-//         const updatedUser = await global.wordAssoDb.User.findOneAndUpdate(query, update, options);
-
-//         if (categorizeObj.follow) {
-
-//           const updatedFollowUser = await follow({user: updatedUser, forceFollow: true});
-
-//           if (!updatedFollowUser) {
-//             console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER FOLLOW ERROR: NULL UPDATED USER"));
-//             return;
-//           }
-
-//           categorizedUserHashMap.set(
-//             updatedFollowUser.nodeId, 
-//             { 
-//               nodeId: updatedFollowUser.nodeId, 
-//               screenName: updatedFollowUser.screenName, 
-//               manual: updatedFollowUser.category, 
-//               auto: updatedFollowUser.categoryAuto,
-//               network: updatedFollowUser.categorizeNetwork
-//             }
-//           );
-
-//           uncategorizeableUserSet.delete(updatedFollowUser.nodeId);
-
-//           console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ TWITTER_FOLLOW"
-//             + " | UID: " + updatedFollowUser.nodeId
-//             + " | @" + updatedFollowUser.screenName
-//           ));
-
-//           return updatedFollowUser;
-//         }
-//         else {
-
-//           categorizedUserHashMap.set(
-//             updatedUser.nodeId, 
-//             { 
-//               nodeId: updatedUser.nodeId, 
-//               screenName: updatedUser.screenName, 
-//               manual: updatedUser.category, 
-//               auto: updatedUser.categoryAuto,
-//               network: updatedUser.categorizeNetwork
-//             }
-//           );
-
-//           uncategorizeableUserSet.delete(updatedUser.nodeId);
-
-//           return updatedUser;
-//         }
-//       }
-//       catch(err) {
-//         console.log(chalkError(MODULE_ID_PREFIX + " | *** USER UPDATE CATEGORY ERROR: " + err));
-//         throw err;
-//       }
-
-//     case "hashtag":
-
-//       cObj.manual = categorizeObj.category;
-
-//       update.category = categorizeObj.category;
-
-//       if (categorizedHashtagHashMap.has(nodeId)){
-//         cObj.auto = categorizedHashtagHashMap.get(nodeId).auto || false;
-//       }
-
-//       categorizedHashtagHashMap.set(nodeId, cObj);
-
-//       nCacheObj = nodeCache.get(nodeId);
-
-//       if (nCacheObj !== undefined) {
-//         node.mentions = Math.max(node.mentions, nCacheObj.mentions);
-//         nCacheObj.mentions = node.mentions;
-//         nodeCache.set(nCacheObj.nodeId, nCacheObj);
-//         update.mentions = node.mentions;
-//       }
-
-//       try{
-//         const updatedHashtag = await global.wordAssoDb.Hashtag.findOneAndUpdate(query, update, options);
-
-//         categorizedHashtagHashMap.set(
-//           updatedHashtag.nodeId, 
-//           { manual: updatedHashtag.category, auto: updatedHashtag.categoryAuto });
-
-//         return updatedHashtag;
-//       }
-//       catch(err){
-//         console.log(chalkError(MODULE_ID_PREFIX + " | *** HASHTAG UPDATE CATEGORY ERROR: " + err));
-//         throw err;
-//       }
-
-//     default:
-//       throw new Error("categorizeNode TYPE: " + node.isTopTermNodeType);
-//   }
-// }
-
 let prevTweetUser;
 
 function socketRxTweet(tw) {
@@ -4414,7 +4254,7 @@ function initTwitterSearchNodeQueueInterval(interval){
 
 async function setNodeManual(params){
 
-  // params: node, newCategory, newCategoryVerified
+  await updateUserSets
 
   const results = await twitterSearchUser({
     user: params.node,
@@ -5192,6 +5032,8 @@ async function initSocketHandler(socketObj) {
           + " | FLW: " + formatBoolean(dataObj.follow)
           + " | CAT: " + formatCategory(dataObj.category)
         ));
+
+        await updateUserCounts();
 
         const updatedNode = await setNodeManual({
           node: dataObj.node,
@@ -6111,28 +5953,7 @@ async function countDocuments(params){
   }
 }
 
-let updateUserSetsRunning = false;
-
-async function updateUserSets(){
-
-  statsObj.status = "UPDATE USER SETS";
-
-  if (updateUserSetsRunning) {
-    return;
-  }
-
-  updateUserSetsRunning = true;
-
-  let calledBack = false;
-
-  if (!statsObj.dbConnectionReady) {
-    console.log(chalkAlert(MODULE_ID_PREFIX + " | ABORT updateUserSets: DB CONNECTION NOT READY"));
-    calledBack = true;
-    updateUserSetsRunning = false;
-    throw new Error("DB CONNECTION NOT READY");
-  }
-
-  await global.wordAssoDb.User.deleteMany({ "$and": [ {lang: { "$nin": [ false, null ] } }, { lang: { "$ne": "en" } } ]} );
+async function updateUserCounts() {
 
   statsObj.user.total = await countDocuments({documentType: "users"});
   console.log(chalkBlue(MODULE_ID_PREFIX + " | GRAND TOTAL USERS: " + statsObj.user.total));
@@ -6194,8 +6015,34 @@ async function updateUserSets(){
   statsObj.user.uncategorizedAuto = await countDocuments({documentType: "users", query: {categoryAuto: "none"}});
   console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT AUTO USERS: " + statsObj.user.uncategorizedAuto));
 
-  // -----
-  
+  return;
+}
+
+let updateUserSetsRunning = false;
+
+async function updateUserSets(){
+
+  statsObj.status = "UPDATE USER SETS";
+
+  if (updateUserSetsRunning) {
+    return;
+  }
+
+  updateUserSetsRunning = true;
+
+  let calledBack = false;
+
+  if (!statsObj.dbConnectionReady) {
+    console.log(chalkAlert(MODULE_ID_PREFIX + " | ABORT updateUserSets: DB CONNECTION NOT READY"));
+    calledBack = true;
+    updateUserSetsRunning = false;
+    throw new Error("DB CONNECTION NOT READY");
+  }
+
+  await global.wordAssoDb.User.deleteMany({ "$and": [ {lang: { "$nin": [ false, null ] } }, { lang: { "$ne": "en" } } ]} );
+
+  await updateUserCounts();
+
   const userSearchQuery = { ignored: false };
   
   userSearchCursor = global.wordAssoDb.User
@@ -6315,7 +6162,6 @@ async function updateUserSets(){
       updateUserSetsRunning = false;
       return;
     }
-    
   });
 
   userSearchCursor.on("error", function(err) {
@@ -6330,7 +6176,6 @@ async function updateUserSets(){
       updateUserSetsRunning = false;
       return;
     }
-    
   });
 
   userSearchCursor.on("close", async function() {
@@ -6345,7 +6190,6 @@ async function updateUserSets(){
       updateUserSetsRunning = false;
       return;
     }
-
   });
 }
 

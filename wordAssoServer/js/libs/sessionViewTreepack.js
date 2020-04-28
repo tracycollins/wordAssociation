@@ -1103,7 +1103,7 @@ function ViewTreepack() {
       case "user" :
         
         if (controlPanelReadyFlag) {
-          controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: d, nodeSearch: true}, DEFAULT_SOURCE);
+          controlPanelWindow.postMessage({op: "SET_TWITTER_USER", node: d, nodeSearch: true}, DEFAULT_SOURCE);
         }
 
         if (mouseMovingFlag 

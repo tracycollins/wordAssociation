@@ -474,120 +474,324 @@ async function initPubSub(p){
   return psClient;
 }
 
-async function initPubSubCategorizeResultHandler(params){
+const subscriptionHashMap = {};
 
-  const subscription = await pubSubClient.subscription(params.subscribeName);
+const nodeSearchResultHandler = async function(message){
 
-  const [metadata] = await subscription.getMetadata();
+  statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived += 1;
 
-  statsObj.pubSub.subscriptions[params.subscribeName] = {};
-  statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived = 0;
-  statsObj.pubSub.subscriptions[params.subscribeName].topic = metadata.topic;
+  const messageObj = JSON.parse(message.data.toString());
 
-  console.log(chalkBlueBold(MODULE_ID_PREFIX
-    + " | INIT PUBSUB SUBSCRIPTION HANDLER"
-    + " | SUBSCRIPTION NAME: " + params.subscribeName
-    + " | SUBSCRIPTION TOPIC: " + metadata.topic
+  console.log(chalkLog(MODULE_ID_PREFIX
+    + " | RX NODE SEARCH RESULT " + message.id
   ));
 
-  const messageHandler = async function(message){
+  if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)){
 
-    const messageObj = JSON.parse(message.data.toString());
+    statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived += 1;
 
-    if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)){
-
-      statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived += 1;
-
-      console.log(chalkLog(MODULE_ID_PREFIX
-        + " | ==> PS CAT [" + statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived + "]"
-        + " | SUB: " + params.subscribeName
-        // + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
-        // + " | MID: " + message.id
+    if (messageObj.node && messageObj.node.nodeType === "user") {
+      console.log(chalkBlueBold(MODULE_ID_PREFIX
+        + " | ==> PS SEARCH USER [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
         + " | RID: " + messageObj.requestId
-        + " | NID: " + messageObj.user.nodeId
-        + " | DB MISS: " + messageObj.notFound
-        // + " | @" + messageObj.user.screenName
-        + " | CN: " + messageObj.user.categorizeNetwork
-        + " | CA: " + messageObj.user.categoryAuto
+        + " | MODE: " + messageObj.searchMode
+        + " | NID: " + messageObj.node.nodeId
+        + " | @" + messageObj.node.screenName
+        + " | FLW" + formatBoolean(messageObj.node.following)
+        + " | CN: " + messageObj.node.categorizeNetwork
+        + " | CV: " + formatBoolean(messageObj.node.categoryVerified)
+        + " | CM: " + formatCategory(messageObj.node.category)
+        + " | CA: " + formatCategory(messageObj.node.categoryAuto)
+      ));
+
+      searchUserResultHashMap[messageObj.requestId] = messageObj.node;
+    }
+    else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
+      console.log(chalkBlueBold(MODULE_ID_PREFIX
+        + " | ==> PS SEARCH HASHTAG [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
+        + " | RID: " + messageObj.requestId
+        + " | MODE: " + messageObj.searchMode
+        + " | NID: " + messageObj.node.nodeId
+        + " | CM: " + formatCategory(messageObj.node.category)
+        + " | CA: " + formatCategory(messageObj.node.categoryAuto)
+      ));
+
+      searchUserResultHashMap[messageObj.requestId] = messageObj.node;
+    }
+    else{
+      console.log(chalk.yellow(MODULE_ID_PREFIX
+        + " | ==> PS SEARCH NODE -MISS- [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
+        + " | MID: " + message.id
+        + " | RID: " + messageObj.requestId
+        + " | SEARCH MODE: " + messageObj.searchMode
+      ));
+    }
+
+    tcUtils.emitter.emit("nodeSearchResult_" + messageObj.requestId);
+    pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
+    message.ack();
+  }
+
+  return;
+};
+
+const nodeAutoCategorizeResultHandler = async function(message){
+
+  const messageObj = JSON.parse(message.data.toString());
+
+  if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)){
+
+    statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived += 1;
+
+    if (messageObj.node && messageObj.node.nodeType === "user") {
+      console.log(chalkBlueBold(MODULE_ID_PREFIX
+        + " | ==> PS AUTO CAT USER [" + statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived + "]"
+        + " | MID: " + message.id
+        + " | RID: " + messageObj.requestId
+        + " | SEARCH MODE: " + messageObj.searchMode
+        + " | NID: " + messageObj.node.nodeId
+        + " | @" + messageObj.node.screenName
+        + " | FLW" + formatBoolean(messageObj.node.following)
+        + " | CN: " + messageObj.node.categorizeNetwork
+        + " | CV: " + formatBoolean(messageObj.node.categoryVerified)
+        + " | CM: " + formatCategory(messageObj.node.category)
+        + " | CA: " + formatCategory(messageObj.node.categoryAuto)
       ));
 
       if (messageObj.notFound !== undefined && !messageObj.notFound){
         await updateUserAutoCategory({user: messageObj.user});
       }
 
-      message.ack();
-      pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
+      searchUserResultHashMap[messageObj.requestId] = messageObj.node;
     }
-  };
+    else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
+      console.log(chalkBlueBold(MODULE_ID_PREFIX
+        + " | ==> PS AUTO CAT HASHTAG [" + statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived + "]"
+        + " | MID: " + message.id
+        + " | RID: " + messageObj.requestId
+        + " | SEARCH MODE: " + messageObj.searchMode
+        + " | NID: " + messageObj.node.nodeId
+        + " | CM: " + formatCategory(messageObj.node.category)
+        + " | CA: " + formatCategory(messageObj.node.categoryAuto)
+      ));
 
-  subscription.on("message", messageHandler);
+      searchUserResultHashMap[messageObj.requestId] = messageObj.node;
+    }
+    else{
+      console.log(chalk.yellow(MODULE_ID_PREFIX
+        + " | ==> PS AUTO CAT NODE -MISS- [" + statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived + "]"
+        + " | MID: " + message.id
+        + " | RID: " + messageObj.requestId
+        + " | SEARCH MODE: " + messageObj.searchMode
+      ));
+    }
+
+    tcUtils.emitter.emit("autoCategorizeResult_" + messageObj.requestId);
+    pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
+    message.ack();
+  }
 
   return;
-}
+};
 
-const searchUserResultHashMap = {};
+const nodeIgnoreHandler = async function(message){
 
-async function initPubSubTwitterSearchUserResultHandler(params){
+  statsObj.pubSub.searchNode.messagesReceived += 1;
+
+  const messageObj = JSON.parse(message.data.toString());
+
+  // messageObj
+  // ├─ requestId: reqId_1587767958144
+  // ├─ node
+  // │  └─ nodeType: "user"
+  // │  └─ nodeId: 1000193009403613186
+
+  console.log(chalkBlue(MODULE_ID_PREFIX
+    + " | --> PS IGNORE NODE [RX: " + statsObj.pubSub.ignoreNode.messagesReceived + "]"
+    + " | MID: " + message.id
+    + " | REQ ID: " + messageObj.requestId
+    + " | NODE TYPE: " + messageObj.node.nodeType
+    + " | NID: " + messageObj.node.nodeId
+  ));
+
+  let result = {};
+
+  if (messageObj.node.nodeType === "user"){
+    ignoredUserSet.add(messageObj.node.nodeId);
+    result = await deleteUser({user: messageObj.node});
+  }
+
+  await pubSubPublishMessage({
+    publishName: "node-ignore-result",
+    message: {
+      requestId: messageObj.requestId,
+      node: messageObj.node,
+      result: result
+    }
+  });
+
+  message.ack();
+};
+
+
+async function initNodeOpHandler(params){
 
   const subscription = await pubSubClient.subscription(params.subscribeName);
 
   const [metadata] = await subscription.getMetadata();
 
-  statsObj.pubSub.subscriptions[params.subscribeName] = {};
-  statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived = 0;
-  statsObj.pubSub.subscriptions[params.subscribeName].topic = metadata.topic;
 
   console.log(chalkBlueBold(MODULE_ID_PREFIX
-    + " | INIT PUBSUB SUBSCRIPTION HANDLER"
-    + " | SUBSCRIPTION NAME: " + params.subscribeName
-    + " | SUBSCRIPTION TOPIC: " + metadata.topic
+    + " | INIT PUBSUB NODE OP SUBSCRIPTION HANDLER"
+    + " | SUBSCRIBE NAME: " + params.subscribeName
+    + " | SUBSCRIBE TOPIC: " + metadata.topic
   ));
 
-  const messageHandler = async function(message){
+  switch (params.subscribeName) {
+    case "node-search-result":
+      statsObj.pubSub.subscriptions.nodeSearchResult = {};
+      statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived = 0;
+      statsObj.pubSub.subscriptions.nodeSearchResult.topic = metadata.topic;
+      subscriptionHashMap.nodeSearchResult = {};
+      subscriptionHashMap.nodeSearchResult = subscription;  
+      subscription.on("message", nodeSearchResultHandler);
+    break;
+    case "node-autocategorize-result":
+      statsObj.pubSub.subscriptions.nodeAutoCategorizeResult = {};
+      statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived = 0;
+      statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.topic = metadata.topic;
+      subscriptionHashMap.nodeAutoCategorizeResult = {};
+      subscriptionHashMap.nodeAutoCategorizeResult = subscription;  
+      subscription.on("message", nodeAutoCategorizeResultHandler);
+    break;
+    case "node-ignore":
+      statsObj.pubSub.subscriptions.nodeIgnoreResult = {};
+      statsObj.pubSub.subscriptions.nodeIgnoreResult.messagesReceived = 0;
+      statsObj.pubSub.subscriptions.nodeIgnoreResult.topic = metadata.topic;
+      subscriptionHashMap.nodeIgnoreResult = {};
+      subscriptionHashMap.nodeIgnoreResult = subscription;  
+      subscription.on("message", nodeIgnoreHandler);
+    break;
+    default:
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** initNodeOpHandler ERROR: UNKNOWN subscribeName: " + params.subscribeName));
+      throw new Error("initNodeOpHandler UNKNOWN subscribeName: " + params.subscribeName);
+  }
 
-    const messageObj = JSON.parse(message.data.toString());
-
-    if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)){
-
-      statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived += 1;
-
-      if (messageObj.user) {
-        console.log(chalkBlueBold(MODULE_ID_PREFIX
-          + " | ==> PS SEARCH USER [" + statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived + "]"
-          // + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
-          + " | MID: " + message.id
-          + " | RID: " + messageObj.requestId
-          + " | SEARCH MODE: " + messageObj.searchMode
-          + " | NID: " + messageObj.user.nodeId
-          + " | @" + messageObj.user.screenName
-          + " | FLW" + formatBoolean(messageObj.user.following)
-          + " | CN: " + messageObj.user.categorizeNetwork
-          + " | CV: " + formatBoolean(messageObj.user.categoryVerified)
-          + " | CM: " + formatCategory(messageObj.user.category)
-          + " | CA: " + formatCategory(messageObj.user.categoryAuto)
-        ));
-
-        searchUserResultHashMap[messageObj.requestId] = messageObj.user;
-      }
-      else{
-        console.log(chalk.yellow(MODULE_ID_PREFIX
-          + " | ==> PS SEARCH USER -MISS- [" + statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived + "]"
-          + " | MID: " + message.id
-          + " | RID: " + messageObj.requestId
-          + " | SEARCH MODE: " + messageObj.searchMode
-        ));
-      }
-
-      tcUtils.emitter.emit("searchUserResult_" + messageObj.requestId);
-      pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
-      message.ack();
-    }
-  };
-
-  subscription.on("message", messageHandler);
 
   return;
 }
+
+// async function initPubSubCategorizeResultHandler(params){
+
+//   const subscription = await pubSubClient.subscription(params.subscribeName);
+
+//   const [metadata] = await subscription.getMetadata();
+
+//   statsObj.pubSub.subscriptions[params.subscribeName] = {};
+//   statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived = 0;
+//   statsObj.pubSub.subscriptions[params.subscribeName].topic = metadata.topic;
+
+//   console.log(chalkBlueBold(MODULE_ID_PREFIX
+//     + " | INIT PUBSUB SUBSCRIPTION HANDLER"
+//     + " | SUBSCRIPTION NAME: " + params.subscribeName
+//     + " | SUBSCRIPTION TOPIC: " + metadata.topic
+//   ));
+
+//   const messageHandler = async function(message){
+
+//     const messageObj = JSON.parse(message.data.toString());
+
+//     if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)){
+
+//       statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived += 1;
+
+//       console.log(chalkLog(MODULE_ID_PREFIX
+//         + " | ==> PS CAT [" + statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived + "]"
+//         + " | SUB: " + params.subscribeName
+//         + " | RID: " + messageObj.requestId
+//         + " | NID: " + messageObj.user.nodeId
+//         + " | DB MISS: " + messageObj.notFound
+//         + " | CN: " + messageObj.user.categorizeNetwork
+//         + " | CA: " + messageObj.user.categoryAuto
+//       ));
+
+//       if (messageObj.notFound !== undefined && !messageObj.notFound){
+//         await updateUserAutoCategory({user: messageObj.user});
+//       }
+
+//       message.ack();
+//       pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
+//     }
+//   };
+
+//   subscription.on("message", messageHandler);
+
+//   return;
+// }
+
+const searchUserResultHashMap = {};
+
+// async function initPubSubTwitterSearchUserResultHandler(params){
+
+//   const subscription = await pubSubClient.subscription(params.subscribeName);
+
+//   const [metadata] = await subscription.getMetadata();
+
+//   statsObj.pubSub.subscriptions[params.subscribeName] = {};
+//   statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived = 0;
+//   statsObj.pubSub.subscriptions[params.subscribeName].topic = metadata.topic;
+
+//   console.log(chalkBlueBold(MODULE_ID_PREFIX
+//     + " | INIT PUBSUB SUBSCRIPTION HANDLER"
+//     + " | SUBSCRIPTION NAME: " + params.subscribeName
+//     + " | SUBSCRIPTION TOPIC: " + metadata.topic
+//   ));
+
+//   const messageHandler = async function(message){
+
+//     const messageObj = JSON.parse(message.data.toString());
+
+//     if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)){
+
+//       statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived += 1;
+
+//       if (messageObj.user) {
+//         console.log(chalkBlueBold(MODULE_ID_PREFIX
+//           + " | ==> PS SEARCH USER [" + statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived + "]"
+//           // + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
+//           + " | MID: " + message.id
+//           + " | RID: " + messageObj.requestId
+//           + " | SEARCH MODE: " + messageObj.searchMode
+//           + " | NID: " + messageObj.user.nodeId
+//           + " | @" + messageObj.user.screenName
+//           + " | FLW" + formatBoolean(messageObj.user.following)
+//           + " | CN: " + messageObj.user.categorizeNetwork
+//           + " | CV: " + formatBoolean(messageObj.user.categoryVerified)
+//           + " | CM: " + formatCategory(messageObj.user.category)
+//           + " | CA: " + formatCategory(messageObj.user.categoryAuto)
+//         ));
+
+//         searchUserResultHashMap[messageObj.requestId] = messageObj.user;
+//       }
+//       else{
+//         console.log(chalk.yellow(MODULE_ID_PREFIX
+//           + " | ==> PS SEARCH USER -MISS- [" + statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived + "]"
+//           + " | MID: " + message.id
+//           + " | RID: " + messageObj.requestId
+//           + " | SEARCH MODE: " + messageObj.searchMode
+//         ));
+//       }
+
+//       tcUtils.emitter.emit("searchNodeResult_" + messageObj.requestId);
+//       pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
+//       message.ack();
+//     }
+//   };
+
+//   subscription.on("message", messageHandler);
+
+//   return;
+// }
 
 const pubSubPublishMessageRequestIdSet = new Set();
 
@@ -771,6 +975,7 @@ configEvents.on("newListener", function(data) {
 const statsObj = {};
 
 statsObj.pubSub = {};
+statsObj.pubSub.subscriptions = {};
 statsObj.pubSub.messagesSent = 0;
 statsObj.pubSub.messagesReceived = 0;
 statsObj.pubSub.subscriptions = {};
@@ -3943,7 +4148,7 @@ async function pubSubSearchUser(params){
     console.log(chalkBlue(MODULE_ID_PREFIX
       + " | PS SEARCH USER [" + statsObj.pubSub.messagesSent + "]"
       + " | REQ: " + params.requestId
-      + " | TOPIC: twitterSearchUser"
+      + " | TOPIC: node-search"
       + " | MODE: " + params.searchMode
       + " | NODE TYPE: " + params.node.nodeType
       + " | NID: " + params.node.nodeId
@@ -3951,21 +4156,21 @@ async function pubSubSearchUser(params){
     ));
 
     await pubSubPublishMessage({
-      publishName: "twitterSearchUser",
+      publishName: "node-search",
       message: params
     });
 
-    const eventName = "searchUserResult_" + params.requestId;
+    const eventName = "nodeSearchResult_" + params.requestId;
 
     clearTimeout(twitterSearchNodeTimeout);
 
     twitterSearchNodeTimeout = setTimeout(function(){
 
-      tcUtils.emitter.emit(eventName);
-
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! TWITTER SEARCH NODE TIMEOUT"
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! NODE SEARCH TIMEOUT"
         + "\nPARAMS\n" + jsonPrint(params) 
       ));
+
+      tcUtils.emitter.emit(eventName);
 
       return;
 
@@ -4354,7 +4559,7 @@ async function initSocketHandler(socketObj) {
     socket.on("error", function socketError(error) {
 
       const timeStamp = moment().valueOf();
-      
+
       statsObj.socket.errors.errors += 1;
 
       console.log(chalkError(getTimeStamp(timeStamp) 
@@ -9766,12 +9971,16 @@ setTimeout(async function(){
     await initUpdateUserSetsInterval(configuration.updateUserSetsInterval);
     await initWatchConfig();
     await initTssChild({childId: DEFAULT_TSS_CHILD_ID, tweetVersion2: configuration.tweetVersion2, threeceeUser: threeceeUser});
-    await initPubSubCategorizeResultHandler({
-      subscribeName: configuration.pubSub.subscriptions.categorizeResult.subscribeName
-    });
-    await initPubSubTwitterSearchUserResultHandler({
-      subscribeName: configuration.pubSub.subscriptions.twitterSearchUserResult.subscribeName
-    });
+
+    await initNodeOpHandler({subscribeName: "node-search-result"});
+    await initNodeOpHandler({subscribeName: "node-autocategorize-result"});
+
+    // await initPubSubCategorizeResultHandler({
+    //   subscribeName: configuration.pubSub.subscriptions.categorizeResult.subscribeName
+    // });
+    // await initPubSubTwitterSearchUserResultHandler({
+    //   subscribeName: configuration.pubSub.subscriptions.twitterSearchUserResult.subscribeName
+    // });
   }
   catch(err){
     console.trace(chalkError(MODULE_ID_PREFIX + " | **** INIT CONFIG ERROR: " + err + "\n" + jsonPrint(err)));

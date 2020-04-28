@@ -4354,9 +4354,7 @@ async function initSocketHandler(socketObj) {
     socket.on("error", function socketError(error) {
 
       const timeStamp = moment().valueOf();
-
-      // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
-
+      
       statsObj.socket.errors.errors += 1;
 
       console.log(chalkError(getTimeStamp(timeStamp) 
@@ -4485,8 +4483,6 @@ async function initSocketHandler(socketObj) {
 
       const timeStamp = moment().valueOf();
 
-      // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
-
       if (empty(keepAliveObj.user)) {
         console.log(chalkAlert(MODULE_ID_PREFIX + " | SESSION_KEEPALIVE USER UNDEFINED ??"
           + " | NSP: " + socket.nsp.name.toUpperCase()
@@ -4513,7 +4509,6 @@ async function initSocketHandler(socketObj) {
         authSocketObj.timeStamp = moment().valueOf();
 
         authenticatedSocketCache.set(socket.id, authSocketObj);
-
       }
       else {
         console.log(chalkAlert(MODULE_ID_PREFIX + " | *** KEEPALIVE UNAUTHENTICATED SOCKET | DISCONNECTING..."
@@ -4525,7 +4520,6 @@ async function initSocketHandler(socketObj) {
         serverCache.del(socket.id);
       }
 
-
       if (empty(statsObj.utilities[keepAliveObj.user.userId])) {
         statsObj.utilities[keepAliveObj.user.userId] = {};
       }
@@ -4533,7 +4527,6 @@ async function initSocketHandler(socketObj) {
       statsObj.socket.keepalives += 1;
 
       if (keepAliveObj.user.stats) { statsObj.utilities[keepAliveObj.user.userId] = keepAliveObj.user.stats; }
-
 
       const currentSessionType = serverRegex.exec(keepAliveObj.user.userId) ? serverRegex.exec(keepAliveObj.user.userId)[1].toUpperCase() : "NULL";
 
@@ -4720,8 +4713,6 @@ async function initSocketHandler(socketObj) {
 
       const timeStamp = moment().valueOf();
 
-      // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
-
       console.log(chalkSocket(MODULE_ID_PREFIX
         + " | R< TWITTER_FOLLOW"
         + " | " + getTimeStamp(timeStamp)
@@ -4758,8 +4749,6 @@ async function initSocketHandler(socketObj) {
     socket.on("TWITTER_UNFOLLOW", function(user) {
 
       const timeStamp = moment().valueOf();
-
-      // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
       console.log(chalkSocket(MODULE_ID_PREFIX
         + " | R< TWITTER_UNFOLLOW"
@@ -4894,8 +4883,6 @@ async function initSocketHandler(socketObj) {
 
         const timeStamp = moment().valueOf();
 
-        // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
-
         console.log(chalkSocket(MODULE_ID_PREFIX
           + " | R< TWITTER_UNIGNORE"
           + " | " + getTimeStamp(timeStamp)
@@ -4930,8 +4917,6 @@ async function initSocketHandler(socketObj) {
       try{
 
         const timeStamp = moment().valueOf();
-
-        // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
         console.log(chalkSocket(MODULE_ID_PREFIX
           + " | R< TWITTER_BOT"
@@ -5062,7 +5047,6 @@ async function initSocketHandler(socketObj) {
           ));
         }
       }
-
     });
 
     socket.on("USER_READY", function userReady(userObj) {
@@ -5091,8 +5075,6 @@ async function initSocketHandler(socketObj) {
     socket.on("VIEWER_READY", async function viewerReady(viewerObj) {
 
       const timeStamp = moment().valueOf();
-
-      // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
       console.log(chalkSocket(MODULE_ID_PREFIX
         + " | VIEWER READY"
@@ -5171,8 +5153,6 @@ async function initSocketHandler(socketObj) {
     });
 
     socket.on("STATS", function socketStats(statsObj){
-
-      // ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
       const serverObj = serverCache.get(socket.id);
       const viewerObj = viewerCache.get(socket.id);

@@ -1041,8 +1041,8 @@ let hostConfiguration = {}; // host-specific configuration
 
 let configuration = {};
 
-configuration.primaryHost = process.env.PRIMARY_HOST || "DEFAULT_PRIMARY_HOST";
-configuration.databaseHost = process.env.DATABASE_HOST || "DEFAULT_DATABASE_HOST";
+configuration.primaryHost = process.env.PRIMARY_HOST || DEFAULT_PRIMARY_HOST;
+configuration.databaseHost = process.env.DATABASE_HOST || DEFAULT_DATABASE_HOST;
 
 configuration.uncatUserCacheTtl = DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL;
 configuration.uncatUserCacheCheckPeriod = DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD;
@@ -3634,6 +3634,13 @@ async function pubSubNodeSetProps(params){
 
     const node = nodeSetPropsResultHashMap[params.requestId] || false;
 
+    if (node.nodeType === "user" && categorizedUserHashMap.has(node.nodeId)){
+      const cObj = categorizedUserHashMap.get(node.nodeId);
+      cObj.auto = node.categoryAuto || cObj.auto;
+      cObj.network = node.categorizeNetwork || cObj.network;
+      categorizedUserHashMap.set(node.nodeId, cObj);
+    }
+
     if (!node){
       console.log(chalkAlert(MODULE_ID_PREFIX
         + " | !!! NODE SET PROP NODE NOT FOUND"
@@ -6150,6 +6157,50 @@ async function autoCategorizeNode(params){
     autoCategorizeFlag: true, 
     autoFollowFlag: params.autoFollowFlag
   });
+
+  return;
+}
+
+const nodeSetPropsQueue = [];
+let nodeSetPropsQueueInterval;
+let nodeSetPropsQueueReady;
+
+function initNodeSetPropsQueueInterval(interval){
+
+  return new Promise(function(resolve){
+
+    console.log(chalk.bold.black(MODULE_ID_PREFIX + " | INIT NODE SET PROPS QUEUE INTERVAL: " + tcUtils.msToTime(interval)));
+
+    clearInterval(nodeSetPropsQueueInterval);
+
+    let nspObj = {};
+
+    nodeSetPropsQueueInterval = setInterval(async function() {
+
+      try {
+
+        if (!nodeSetPropsQueueReady || (nodeSetPropsQueue.length == 0)) {
+          return;
+        }
+
+        nodeSetPropsQueueReady = false;
+
+        nspObj = nodeSetPropsQueue.shift();
+        await nodeSetProps(nspObj);
+
+        nodeSetPropsQueueReady = true;
+
+      }
+      catch(err){
+        nodeSetPropsQueueReady = true;
+        console.trace(chalkError(MODULE_ID_PREFIX + " | *** NODE SET PROPS QUEUE ERROR: " + err));
+      }
+
+    }, interval);
+
+    resolve();
+
+  });
 }
 
 function initTransmitNodeQueueInterval(interval){
@@ -6204,7 +6255,8 @@ function initTransmitNodeQueueInterval(interval){
         categorizeable = await userCategorizeable({user: node});
  
         if (node && (node !== undefined) && categorizeable) {
-          await nodeSetProps({ node: node, props: {}, autoCategorize: true, autoFollowFlag: true });
+          // await nodeSetProps({ node: node, props: {}, autoCategorize: true, autoFollowFlag: true });
+          nodeSetPropsQueue.push({ node: node, props: {}, autoCategorize: true, autoFollowFlag: true });
         }
 
         if (categorizeable && (node.nodeType === "user") 
@@ -9490,6 +9542,7 @@ configuration.primaryHost = (hostname === process.env.PRIMARY_HOST);
     await initIgnoreWordsHashMap();
     await updateHashtagSets();
     await updateUserSets();
+    await initNodeSetPropsQueueInterval(configuration.transmitNodeQueueInterval);
     await initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval);
     await initRateQinterval(configuration.rateQueueInterval);
     await initTwitterRxQueueInterval(configuration.twitterRxQueueInterval);

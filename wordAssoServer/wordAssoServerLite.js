@@ -559,7 +559,66 @@ const nodeAutoCategorizeResultHandler = async function(message){
       ));
 
       if (messageObj.notFound !== undefined && !messageObj.notFound){
-        await updateUserAutoCategory({user: messageObj.user});
+        await updateUserAutoCategory({user: messageObj.node});
+      }
+
+      searchUserResultHashMap[messageObj.requestId] = messageObj.node;
+    }
+    else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
+      console.log(chalkBlueBold(MODULE_ID_PREFIX
+        + " | ==> PS AUTO CAT HASHTAG [" + statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived + "]"
+        + " | MID: " + message.id
+        + " | RID: " + messageObj.requestId
+        + " | SEARCH MODE: " + messageObj.searchMode
+        + " | NID: " + messageObj.node.nodeId
+        + " | CM: " + formatCategory(messageObj.node.category)
+        + " | CA: " + formatCategory(messageObj.node.categoryAuto)
+      ));
+
+      searchUserResultHashMap[messageObj.requestId] = messageObj.node;
+    }
+    else{
+      console.log(chalk.yellow(MODULE_ID_PREFIX
+        + " | ==> PS AUTO CAT NODE -MISS- [" + statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived + "]"
+        + " | MID: " + message.id
+        + " | RID: " + messageObj.requestId
+        + " | SEARCH MODE: " + messageObj.searchMode
+      ));
+    }
+
+    tcUtils.emitter.emit("autoCategorizeResult_" + messageObj.requestId);
+    pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
+    message.ack();
+  }
+
+  return;
+};
+
+const nodeSetPropsResultHandler = async function(message){
+
+  const messageObj = JSON.parse(message.data.toString());
+
+  if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)){
+
+    statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived += 1;
+
+    if (messageObj.node && messageObj.node.nodeType === "user") {
+      console.log(chalkBlueBold(MODULE_ID_PREFIX
+        + " | ==> PS USER SET PROPS [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
+        + " | MID: " + message.id
+        + " | RID: " + messageObj.requestId
+        + " | SEARCH MODE: " + messageObj.searchMode
+        + " | NID: " + messageObj.node.nodeId
+        + " | @" + messageObj.node.screenName
+        + " | FLW" + formatBoolean(messageObj.node.following)
+        + " | CN: " + messageObj.node.categorizeNetwork
+        + " | CV: " + formatBoolean(messageObj.node.categoryVerified)
+        + " | CM: " + formatCategory(messageObj.node.category)
+        + " | CA: " + formatCategory(messageObj.node.categoryAuto)
+      ));
+
+      if (messageObj.notFound !== undefined && !messageObj.notFound){
+        await updateUserAutoCategory({user: messageObj.node});
       }
 
       searchUserResultHashMap[messageObj.requestId] = messageObj.node;
@@ -656,6 +715,14 @@ async function initNodeOpHandler(params){
       subscriptionHashMap.nodeSearchResult = subscription;  
       subscription.on("message", nodeSearchResultHandler);
     break;
+    case "node-setprops-result":
+      statsObj.pubSub.subscriptions.nodeSetPropsResult = {};
+      statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived = 0;
+      statsObj.pubSub.subscriptions.nodeSetPropsResult.topic = metadata.topic;
+      subscriptionHashMap.nodeSetPropsResult = {};
+      subscriptionHashMap.nodeSetPropsResult = subscription;  
+      subscription.on("message", nodeSetPropsResultHandler);
+    break;
     case "node-autocategorize-result":
       statsObj.pubSub.subscriptions.nodeAutoCategorizeResult = {};
       statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived = 0;
@@ -676,7 +743,6 @@ async function initNodeOpHandler(params){
       console.log(chalkError(MODULE_ID_PREFIX + " | *** initNodeOpHandler ERROR: UNKNOWN subscribeName: " + params.subscribeName));
       throw new Error("initNodeOpHandler UNKNOWN subscribeName: " + params.subscribeName);
   }
-
 
   return;
 }
@@ -1298,7 +1364,7 @@ const ignoredHashtagFile = "ignoredHashtag.txt";
 const ignoredUserFile = "ignoredUser.json";
 const followableSearchTermFile = "followableSearchTerm.txt";
 
-const pendingFollowSet = new Set();
+// const pendingFollowSet = new Set();
 const categorizeableUserSet = new Set();
 const uncategorizeableUserSet = new Set();
 let followableSearchTermSet = new Set();
@@ -3617,372 +3683,567 @@ function socketRxTweet(tw) {
 
 function enableFollow(params){
   if (params.forceFollow) { return true; }
-  if (followedUserSet.has(params.user.nodeId)) { return false; }
-  if (ignoredUserSet.has(params.user.nodeId)) { return false; }
-  if ((params.user.screenName !== undefined) && ignoredUserSet.has(params.user.screenName)) { return false; }
-  if (unfollowableUserSet.has(params.user.nodeId)) { return false; }
+  if (followedUserSet.has(params.node.nodeId)) { return false; }
+  if (ignoredUserSet.has(params.node.nodeId)) { return false; }
+  if ((params.user.screenName !== undefined) && ignoredUserSet.has(params.node.screenName)) { return false; }
+  if (unfollowableUserSet.has(params.node.nodeId)) { return false; }
   return true;
 }
 
-async function follow(params) {
+// async function follow(params) {
 
-  if (!enableFollow(params)) { 
+//   if (!enableFollow(params)) { 
 
-    console.log(chalkWarn("-X- FOLLOW | @" + params.user.screenName 
-      + " | IN UNFOLLOWABLE, FOLLOWED or IGNORED USER SET"
+//     console.log(chalkWarn("-X- FOLLOW | @" + params.user.screenName 
+//       + " | IN UNFOLLOWABLE, FOLLOWED or IGNORED USER SET"
+//     ));
+
+//     return;
+//   }
+
+//   followedUserSet.add(params.user.nodeId);
+//   ignoredUserSet.delete(params.user.nodeId);
+//   ignoredUserSet.delete(params.user.screenName);
+//   unfollowableUserSet.delete(params.user.nodeId);
+//   unfollowableUserSet.delete(params.user.screenName);
+
+//   const query = { nodeId: params.user.nodeId };
+
+//   console.log(chalk.black.bold(MODULE_ID_PREFIX + " | FOLLOWING | @" + params.user.screenName 
+//     + " | 3C @" + threeceeUser
+//   ));
+
+//   const update = {};
+
+//   update.$set = { following: true, threeceeFollowing: threeceeUser };
+
+//   const options = { useFindAndModify: false, returnOriginal: false, new: true, upsert: true };
+
+//   try{
+//     const userUpdated = await global.wordAssoDb.User.findOneAndUpdate(query, update, options);
+
+//     if (userUpdated){
+
+//       console.log(chalkLog(MODULE_ID_PREFIX + " | +++ FOLLOW"
+//         + " | " + printUser({user: userUpdated})
+//       ));
+
+//       if (configuration.enableTwitterFollow){
+
+//         if (tssChild !== undefined){
+//           tssChild.send({
+//             op: "FOLLOW", 
+//             user: userUpdated,
+//             forceFollow: configuration.forceFollow
+//           });
+//         }
+//         else {
+//           pendingFollowSet.add(userUpdated.userId);
+//           console.log(chalkAlert(MODULE_ID_PREFIX + " | 000 CAN'T FOLLOW | NO AUTO FOLLOW USER"
+//             + " | PENDING FOLLOWS: " + pendingFollowSet.size
+//             + " | " + printUser({user: userUpdated})
+//           ));
+//         }
+//       }
+
+//       return userUpdated;
+
+//     }
+//     else {
+//       console.log(chalkLog(MODULE_ID_PREFIX + " | --- FOLLOW | USER NOT IN DB"
+//         + " | NID: " + params.user.nodeId
+//         + " | @" + params.user.screenName
+//       ));
+
+//       return;
+//     }
+
+//   }
+//   catch(err) {
+//     console.log(chalkError(MODULE_ID_PREFIX + " | *** FOLLOW | USER FIND ONE ERROR: " + err));
+//   }
+// }
+
+// async function categoryVerified(params) {
+
+//   if (params.user.screenName !== undefined){
+
+//     console.log(chalk.blue(MODULE_ID_PREFIX + " | UPDATE CAT_VERFIED"
+//       + " | @" + params.user.screenName
+//       + " | CN: " + params.user.categorizeNetwork
+//       + " | CV: " + formatBoolean(params.user.categoryVerified)
+//       + " | C: " + formatCategory(params.user.category)
+//       + " | CA: " + formatCategory(params.user.categoryAuto)
+//     ));
+
+//     const dbUser = await global.wordAssoDb.User.findOne({
+//       screenName: params.user.screenName.toLowerCase()
+//     });
+
+//     if (empty(dbUser)) {
+//       console.log(chalkWarn(MODULE_ID_PREFIX 
+//         + " | ??? UPDATE VERIFIED | USER NOT FOUND: " + params.user.screenName.toLowerCase()
+//       ));
+//       throw new Error("USER NOT FOUND");
+//     }
+
+//     dbUser.categoryVerified = params.user.categoryVerified;
+
+//     if (params.user.categorizeNetwork){
+//       dbUser.categorizeNetwork = params.user.categorizeNetwork;
+//     }
+
+//     if (categorizedUserHashMap.has(params.user.nodeId)){
+//       uncategorizeableUserSet.delete(params.user.nodeId);
+//       dbUser.following = true;
+//       dbUser.category = categorizedUserHashMap.get(params.user.nodeId).manual;
+//       dbUser.categoryAuto = categorizedUserHashMap.get(params.user.nodeId).auto;
+//     }
+//     else{
+
+//       dbUser.category = params.user.category || dbUser.cateory;
+//       dbUser.categoryAuto = params.user.categoryAuto || dbUser.categoryAuto;
+
+//       categorizedUserHashMap.set(dbUser.nodeId, 
+//         { 
+//           nodeId: dbUser.nodeId, 
+//           screenName: dbUser.screenName, 
+//           manual: dbUser.category, 
+//           auto: dbUser.categoryAuto,
+//           network: dbUser.categorizeNetwork
+//         }
+//       );
+//     }
+
+//     const dbUpdatedUser = await dbUser.save();
+
+//     printUserObj(
+//       MODULE_ID_PREFIX + " | UPDATE DB USER",
+//       dbUpdatedUser, 
+//       chalkLog
+//     );
+
+//     return dbUpdatedUser;
+//   }
+//   else {
+//     throw new Error("USER SCREENNAME UNDEFINED");
+//   }
+// }
+
+// async function ignore(params) {
+
+//   console.log(chalk.blue(MODULE_ID_PREFIX + " | XXX IGNORE | @" + params.user.screenName));
+
+//   if (params.user.nodeId && (params.user.nodeId !== undefined)){
+//     ignoredUserSet.add(params.user.nodeId);
+//   }
+
+//   if (params.user.userId && (params.user.userId !== undefined)){
+//     ignoredUserSet.add(params.user.userId);
+//   }
+
+//   if (params.user.screenName && (params.user.screenName !== undefined)){
+//     ignoredUserSet.add(params.user.screenName);
+//   }
+
+//   tssChild.send({op: "IGNORE", user: params.user});
+
+//   try{
+
+//     await deleteUser(params);
+
+//     // const results = await global.wordAssoDb.User.deleteOne({nodeId: params.user.nodeId});
+
+//     // if (results.deletedCount > 0){
+//     //   console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX IGNORED USER | -*- DB HIT"
+//     //     + " | " + params.user.nodeId
+//     //     + " | @" + params.user.screenName
+//     //   ));
+//     // }
+//     // else{
+//     //   console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX IGNORED USER | --- DB MISS" 
+//     //     + " | " + params.user.nodeId
+//     //     + " | @" + params.user.screenName
+//     //   ));
+//     // }
+
+//     const obj = {};
+//     obj.userIds = [...ignoredUserSet];
+
+//     saveFileQueue.push({folder: configDefaultFolder, file: ignoredUserFile, obj: obj});
+
+//     return;
+//   }
+//   catch(err){
+//     console.log(chalkError(MODULE_ID_PREFIX + " | *** DB DELETE IGNORED USER ERROR: " + err));
+//     throw err;
+//   }
+// }
+
+// async function unignore(params) {
+
+//   console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ UNIGNORE | @" + params.user.screenName));
+
+//   if (params.user.nodeId !== undefined){
+//     ignoredUserSet.delete(params.user.nodeId);
+//   } 
+
+//   if (params.user.userId && (params.user.userId !== undefined)){
+//     ignoredUserSet.delete(params.user.userId);
+//   }
+
+//   const query = { nodeId: params.user.nodeId };
+
+//   const update = {};
+//   update.$set = { ignored: false };
+
+//   const options = { useFindAndModify: false, returnOriginal: false, new: true, upsert: true };
+
+//   global.wordAssoDb.User.findOneAndUpdate(query, update, options, function(err, userUpdated){
+
+//     if (err) {
+//       console.log(chalkError(MODULE_ID_PREFIX + " | *** UNIGNORE | USER FIND ONE ERROR: " + err));
+//       throw err;
+//     }
+    
+//     if (userUpdated){
+//       console.log(chalkLog(MODULE_ID_PREFIX + " | +++ UNIGNORE"
+//         + " | " + printUser({user: userUpdated})
+//       ));
+//       return userUpdated;
+//     }
+
+//     console.log(chalkLog(MODULE_ID_PREFIX + " | --- UNIGNORE USER NOT IN DB"
+//       + " | ID: " + params.user.nodeId
+//     ));
+
+//     return;
+
+//   });
+// }
+
+// async function bot(params) {
+
+//   console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ BOT | @" + params.user.screenName));
+
+//   if (params.user.nodeId !== undefined){
+//     botNodeIdSet.add(params.user.nodeId);
+//   } 
+
+//   if (params.user.userId && (params.user.userId !== undefined)){
+//     botNodeIdSet.add(params.user.userId);
+//   }
+
+//   const query = { nodeId: params.user.nodeId };
+
+//   const update = {};
+//   update.$set = { isBot: true };
+
+//   const options = { useFindAndModify: false, returnOriginal: false, new: true, upsert: true };
+
+//   global.wordAssoDb.User.findOneAndUpdate(query, update, options, function(err, userUpdated){
+
+//     if (err) {
+//       console.log(chalkError(MODULE_ID_PREFIX + " | *** BOT | USER FIND ONE ERROR: " + err));
+//       throw err;
+//     }
+    
+//     if (userUpdated){
+//       console.log(chalkLog(MODULE_ID_PREFIX + " | XXX BOT"
+//         + " | " + printUser({user: userUpdated})
+//       ));
+//       return userUpdated;
+//     }
+
+//     console.log(chalkLog(MODULE_ID_PREFIX + " | --- BOT USER NOT IN DB"
+//       + " | ID: " + params.user.nodeId
+//     ));
+
+//     return;
+//   });
+// }
+
+let nodeSetPropsResultTimeout;
+const nodeSetPropsResultHashMap = {};
+
+async function pubSubNodeSetProps(params){
+
+  try {
+
+    console.log(chalkBlue(MODULE_ID_PREFIX
+      + " | PS NODE SET PROPS [" + statsObj.pubSub.messagesSent + "]"
+      + " | REQ: " + params.requestId
+      + " | TOPIC: node-setprops"
+      + " | NODE TYPE: " + params.node.nodeType
+      + " | NID: " + params.node.nodeId
+      + "nPROPS\n" + jsonPrint(params.props)
     ));
 
-    return;
-  }
-
-  followedUserSet.add(params.user.nodeId);
-  ignoredUserSet.delete(params.user.nodeId);
-  ignoredUserSet.delete(params.user.screenName);
-  unfollowableUserSet.delete(params.user.nodeId);
-  unfollowableUserSet.delete(params.user.screenName);
-
-  const query = { nodeId: params.user.nodeId };
-
-  console.log(chalk.black.bold(MODULE_ID_PREFIX + " | FOLLOWING | @" + params.user.screenName 
-    + " | 3C @" + threeceeUser
-  ));
-
-  const update = {};
-
-  update.$set = { following: true, threeceeFollowing: threeceeUser };
-
-  const options = { useFindAndModify: false, returnOriginal: false, new: true, upsert: true };
-
-  try{
-    const userUpdated = await global.wordAssoDb.User.findOneAndUpdate(query, update, options);
-
-    if (userUpdated){
-
-      console.log(chalkLog(MODULE_ID_PREFIX + " | +++ FOLLOW"
-        + " | " + printUser({user: userUpdated})
-      ));
-
-      if (configuration.enableTwitterFollow){
-
-        if (tssChild !== undefined){
-          tssChild.send({
-            op: "FOLLOW", 
-            user: userUpdated,
-            forceFollow: configuration.forceFollow
-          });
-        }
-        else {
-          pendingFollowSet.add(userUpdated.userId);
-          console.log(chalkAlert(MODULE_ID_PREFIX + " | 000 CAN'T FOLLOW | NO AUTO FOLLOW USER"
-            + " | PENDING FOLLOWS: " + pendingFollowSet.size
-            + " | " + printUser({user: userUpdated})
-          ));
-        }
-      }
-
-      return userUpdated;
-
-    }
-    else {
-      console.log(chalkLog(MODULE_ID_PREFIX + " | --- FOLLOW | USER NOT IN DB"
-        + " | NID: " + params.user.nodeId
-        + " | @" + params.user.screenName
-      ));
-
-      return;
-    }
-
-  }
-  catch(err) {
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** FOLLOW | USER FIND ONE ERROR: " + err));
-  }
-}
-
-async function categoryVerified(params) {
-
-  if (params.user.screenName !== undefined){
-
-    console.log(chalk.blue(MODULE_ID_PREFIX + " | UPDATE CAT_VERFIED"
-      + " | @" + params.user.screenName
-      + " | CN: " + params.user.categorizeNetwork
-      + " | CV: " + formatBoolean(params.user.categoryVerified)
-      + " | C: " + formatCategory(params.user.category)
-      + " | CA: " + formatCategory(params.user.categoryAuto)
-    ));
-
-    const dbUser = await global.wordAssoDb.User.findOne({
-      screenName: params.user.screenName.toLowerCase()
+    await pubSubPublishMessage({
+      publishName: "node-setprops",
+      message: params
     });
 
-    if (empty(dbUser)) {
-      console.log(chalkWarn(MODULE_ID_PREFIX 
-        + " | ??? UPDATE VERIFIED | USER NOT FOUND: " + params.user.screenName.toLowerCase()
+    const eventName = "nodeSetPropsResult_" + params.requestId;
+
+    clearTimeout(nodeSetPropsResultTimeout);
+
+    nodeSetPropsResultTimeout = setTimeout(function(){
+
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! NODE SET PROPS TIMEOUT"
+        + "\nPARAMS\n" + jsonPrint(params) 
       ));
-      throw new Error("USER NOT FOUND");
+
+      tcUtils.emitter.emit(eventName);
+
+      return;
+
+    }, 10*ONE_SECOND);
+
+    await tcUtils.waitEvent({event: eventName, verbose: true});
+
+    clearTimeout(nodeSetPropsResultTimeout);
+
+    const node = nodeSetPropsResultHashMap[params.requestId] || false;
+
+    if (!node){
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! NODE SET PROP NODE NOT FOUND\n" + jsonPrint(params)));
     }
 
-    dbUser.categoryVerified = params.user.categoryVerified;
-
-    if (params.user.categorizeNetwork){
-      dbUser.categorizeNetwork = params.user.categorizeNetwork;
-    }
-
-    if (categorizedUserHashMap.has(params.user.nodeId)){
-      uncategorizeableUserSet.delete(params.user.nodeId);
-      dbUser.following = true;
-      dbUser.category = categorizedUserHashMap.get(params.user.nodeId).manual;
-      dbUser.categoryAuto = categorizedUserHashMap.get(params.user.nodeId).auto;
-    }
-    else{
-
-      dbUser.category = params.user.category || dbUser.cateory;
-      dbUser.categoryAuto = params.user.categoryAuto || dbUser.categoryAuto;
-
-      categorizedUserHashMap.set(dbUser.nodeId, 
-        { 
-          nodeId: dbUser.nodeId, 
-          screenName: dbUser.screenName, 
-          manual: dbUser.category, 
-          auto: dbUser.categoryAuto,
-          network: dbUser.categorizeNetwork
-        }
-      );
-    }
-
-    const dbUpdatedUser = await dbUser.save();
-
-    printUserObj(
-      MODULE_ID_PREFIX + " | UPDATE DB USER",
-      dbUpdatedUser, 
-      chalkLog
-    );
-
-    return dbUpdatedUser;
-  }
-  else {
-    throw new Error("USER SCREENNAME UNDEFINED");
-  }
-}
-
-async function ignore(params) {
-
-  console.log(chalk.blue(MODULE_ID_PREFIX + " | XXX IGNORE | @" + params.user.screenName));
-
-  if (params.user.nodeId && (params.user.nodeId !== undefined)){
-    ignoredUserSet.add(params.user.nodeId);
-  }
-
-  if (params.user.userId && (params.user.userId !== undefined)){
-    ignoredUserSet.add(params.user.userId);
-  }
-
-  if (params.user.screenName && (params.user.screenName !== undefined)){
-    ignoredUserSet.add(params.user.screenName);
-  }
-
-  tssChild.send({op: "IGNORE", user: params.user});
-
-  try{
-
-    await deleteUser(params);
-
-    // const results = await global.wordAssoDb.User.deleteOne({nodeId: params.user.nodeId});
-
-    // if (results.deletedCount > 0){
-    //   console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX IGNORED USER | -*- DB HIT"
-    //     + " | " + params.user.nodeId
-    //     + " | @" + params.user.screenName
-    //   ));
-    // }
-    // else{
-    //   console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX IGNORED USER | --- DB MISS" 
-    //     + " | " + params.user.nodeId
-    //     + " | @" + params.user.screenName
-    //   ));
-    // }
-
-    const obj = {};
-    obj.userIds = [...ignoredUserSet];
-
-    saveFileQueue.push({folder: configDefaultFolder, file: ignoredUserFile, obj: obj});
-
-    return;
+    return node;
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** DB DELETE IGNORED USER ERROR: " + err));
+
+    const errCode = (err.code && (err.code != undefined)) ? err.code : err.statusCode;
+
+    let errorType;
+
+    switch (errCode) {
+      case 34:
+      case 50:
+        errorType = "USER_NOT_FOUND";
+        console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER USER NOT FOUND"
+          + " | " + getTimeStamp() 
+          + " | ERR CODE: " + errCode 
+          + " | ERR TYPE: " + errorType
+          + " | UID: " + params.node.nodeId
+        ));
+
+        await deleteUser({user: params.node});
+
+      break;
+
+      case 63:
+        errorType = "USER_SUSPENDED";
+        console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER USER SUSPENDED"
+          + " | " + getTimeStamp() 
+          + " | ERR CODE: " + errCode 
+          + " | ERR TYPE: " + errorType
+          + " | UID: " + params.node.nodeId
+        ));
+
+        await deleteUser({user: params.node});
+
+      break;
+
+      default:
+        console.log(chalkError(MODULE_ID_PREFIX 
+          + " | *** TWITTER SEARCH NODE USER ERROR | MODE: " + params.searchMode
+          + " | ERR CODE: " + errCode
+          + "\nsearchQuery\n" + jsonPrint(params.node)
+          + "ERROR: ", err
+        ));
+
+    }
     throw err;
   }
 }
 
-async function unignore(params) {
+async function nodeSetProps(params) {
 
-  console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ UNIGNORE | @" + params.user.screenName));
+  console.log(chalk.blue(MODULE_ID_PREFIX 
+    + " | NODE SET PROPS"
+    + " | TYPE: " + params.node.nodeType
+    + " | NID: " + params.node.nodeId
+    + "\nPROPS\n" + jsonPrint(params.props)
+  ));
 
-  if (params.user.nodeId !== undefined){
-    ignoredUserSet.delete(params.user.nodeId);
+  if (params.forceFollow || params.props.follow !== undefined){
+    if (enableFollow({node: params.node, forceFollow: params.forceFollow}) && params.props.follow) { 
+
+      followedUserSet.add(params.node.nodeId);
+      ignoredUserSet.delete(params.node.nodeId);
+      unfollowableUserSet.delete(params.node.nodeId);
+
+      if (tssChild !== undefined){ tssChild.send({op: "FOLLOW", user: params.node}); }
+    }
+    if (!params.props.follow) { 
+
+      followedUserSet.delete(params.node.nodeId);
+      ignoredUserSet.delete(params.node.nodeId);
+      unfollowableUserSet.add(params.node.nodeId);
+
+      if (tssChild !== undefined){ tssChild.send({op: "UNFOLLOW", user: params.node}); }
+    }
   } 
 
-  if (params.user.userId && (params.user.userId !== undefined)){
-    ignoredUserSet.delete(params.user.userId);
-  }
-
-  const query = { nodeId: params.user.nodeId };
-
-  const update = {};
-  update.$set = { ignored: false };
-
-  const options = { useFindAndModify: false, returnOriginal: false, new: true, upsert: true };
-
-  global.wordAssoDb.User.findOneAndUpdate(query, update, options, function(err, userUpdated){
-
-    if (err) {
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** UNIGNORE | USER FIND ONE ERROR: " + err));
-      throw err;
+  if (params.props.ignore !== undefined){
+    if (params.props.ignore) { 
+      ignoredUserSet.add(params.node.nodeId);
+      if (tssChild !== undefined){ tssChild.send({op: "IGNORE", user: params.node}); }
     }
+    if (!params.props.ignore) { 
+      ignoredUserSet.delete(params.node.nodeId);
+      if (tssChild !== undefined){ tssChild.send({op: "UNIGNORE", user: params.node}); }
+    }
+  } 
+
+  if ( params.props.category !== undefined 
+    || params.props.categoryAuto !== undefined
+    || params.props.categorizeNetwork !== undefined
+    || params.props.screenName !== undefined
+  ){
+    if (params.node.nodeType === "user"){
+
+      let catObj = {};
+
+      if (!categorizedUserHashMap.has(params.node.nodeId)){
+        catObj.nodeId = params.node.nodeId;
+        catObj.screenName = params.props.screenName || params.node.screenName;
+        catObj.category = params.props.category || params.node.category;
+        catObj.categoryAuto = params.props.categoryAuto || params.node.categoryAuto;
+        catObj.categorizeNetwork = params.props.categorizeNetwork || params.node.categorizeNetwork;
+      }
+      else{
+        catObj = categorizedUserHashMap.get(params.node.nodeId);
+        catObj.screenName = params.props.screenName || params.node.screenName || catObj.screenName;
+        catObj.category = params.props.category || params.node.screenName || catObj.screenName;
+        catObj.categoryAuto = params.props.categoryAuto || params.node.categoryAuto || catObj.categoryAuto;
+        catObj.categorizeNetwork = params.props.categorizeNetwork || params.node.categorizeNetwork || catObj.categorizeNetwork;
+      }
+
+      categorizedUserHashMap.set(params.node.nodeId, catObj);
+    }
+
+    if (params.node.nodeType === "hashtag"){
+      let catObj = {};
+      if (!categorizedHashtagHashMap.has(params.node.nodeId)){
+        catObj.nodeId = params.node.nodeId;
+        catObj.text = params.node.text;
+        catObj.category = params.node.category;
+        catObj.categoryAuto = params.node.categoryAuto;
+        catObj.categorizeNetwork = params.node.categorizeNetwork;
+      }
+      else{
+        catObj = categorizedHashtagHashMap.get(params.node.nodeId);
+        catObj.text = params.node.text || catObj.text;
+        catObj.category = params.node.category || catObj.category;
+        catObj.categoryAuto = params.node.categoryAuto || catObj.categoryAuto;
+        catObj.categorizeNetwork = params.node.categorizeNetwork || catObj.categorizeNetwork;
+      }
+      categorizedHashtagHashMap.set(params.node.nodeId, catObj);
+    }
+  } 
+
+  if (params.props.isBot !== undefined){
+    if (params.props.isBot) { botNodeIdSet.add(params.node.nodeId); }
+    if (!params.props.isBot) { botNodeIdSet.delete(params.node.nodeId); }
+  } 
+
+  await pubSubNodeSetProps({
+    node: params.node,
+    props: params.props
+  });
+
+  return;
+
+}
+
+// async function unbot(params) {
+
+//   console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ UNBOT | @" + params.user.screenName));
+
+//   if (params.user.nodeId !== undefined){
+//     botNodeIdSet.delete(params.user.userId);
+//   } 
+
+//   if (params.user.userId && (params.user.userId !== undefined)){
+//     botNodeIdSet.delete(params.user.userId);
+//   }
+
+//   const query = { nodeId: params.user.nodeId };
+
+//   const update = {};
+//   update.$set = { isBot: false };
+
+//   const options = { useFindAndModify: false, returnOriginal: false, new: true, upsert: true };
+
+//   global.wordAssoDb.User.findOneAndUpdate(query, update, options, function(err, userUpdated){
+
+//     if (err) {
+//       console.log(chalkError(MODULE_ID_PREFIX + " | *** UNBOT | USER FIND ONE ERROR: " + err));
+//       throw err;
+//     }
     
-    if (userUpdated){
-      console.log(chalkLog(MODULE_ID_PREFIX + " | +++ UNIGNORE"
-        + " | " + printUser({user: userUpdated})
-      ));
-      return userUpdated;
-    }
+//     if (userUpdated){
+//       console.log(chalkLog(MODULE_ID_PREFIX + " | XXX UNBOT"
+//         + " | " + printUser({user: userUpdated})
+//       ));
+//       return userUpdated;
+//     }
 
-    console.log(chalkLog(MODULE_ID_PREFIX + " | --- UNIGNORE USER NOT IN DB"
-      + " | ID: " + params.user.nodeId
-    ));
+//     console.log(chalkLog(MODULE_ID_PREFIX + " | --- UNBOT USER NOT IN DB"
+//       + " | ID: " + params.user.nodeId
+//     ));
 
-    return;
+//     return;
 
-  });
-}
+//   });
+// }
 
-async function bot(params) {
+// function unfollow(params, callback) {
 
-  console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ BOT | @" + params.user.screenName));
+//   if (params.user.nodeId !== undefined){
 
-  if (params.user.nodeId !== undefined){
-    botNodeIdSet.add(params.user.nodeId);
-  } 
+//     unfollowableUserSet.add(params.user.nodeId);
+//     followedUserSet.delete(params.user.nodeId);
 
-  if (params.user.userId && (params.user.userId !== undefined)){
-    botNodeIdSet.add(params.user.userId);
-  }
+//     if (params.ignored) {
+//       ignoredUserSet.add(params.user.nodeId);
+//     }
+//   } 
 
-  const query = { nodeId: params.user.nodeId };
+//   tssChild.send({op: "UNFOLLOW", user: params.user});
 
-  const update = {};
-  update.$set = { isBot: true };
+//   const query = { nodeId: params.user.nodeId, following: true };
 
-  const options = { useFindAndModify: false, returnOriginal: false, new: true, upsert: true };
+//   const update = {};
+//   update.$set = { following: false, threeceeFollowing: false };
 
-  global.wordAssoDb.User.findOneAndUpdate(query, update, options, function(err, userUpdated){
+//   const options = { useFindAndModify: false, returnOriginal: false, new: true, upsert: true };
 
-    if (err) {
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** BOT | USER FIND ONE ERROR: " + err));
-      throw err;
-    }
-    
-    if (userUpdated){
-      console.log(chalkLog(MODULE_ID_PREFIX + " | XXX BOT"
-        + " | " + printUser({user: userUpdated})
-      ));
-      return userUpdated;
-    }
+//   global.wordAssoDb.User.findOneAndUpdate(query, update, options, function(err, userUpdated){
 
-    console.log(chalkLog(MODULE_ID_PREFIX + " | --- BOT USER NOT IN DB"
-      + " | ID: " + params.user.nodeId
-    ));
+//     if (err) {
+//       console.log(chalkError(MODULE_ID_PREFIX + " | *** UNFOLLOW | USER FIND ONE ERROR: " + err));
+//     }
+//     else if (userUpdated){
+//       console.log(chalkLog(MODULE_ID_PREFIX + " | XXX UNFOLLOW"
+//         + " | " + userUpdated.nodeId
+//         + " | @" + userUpdated.screenName
+//         + " | " + userUpdated.name
+//       ));
+//     }
+//     else {
+//       console.log(chalkLog(MODULE_ID_PREFIX + " | --- UNFOLLOWED USER NOT IN DB"
+//         + " | ID: " + params.user.nodeId
+//       ));
+//     }
 
-    return;
+//     if (callback !== undefined) { callback(err, userUpdated); }
 
-  });
-}
-
-async function unbot(params) {
-
-  console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ UNBOT | @" + params.user.screenName));
-
-  if (params.user.nodeId !== undefined){
-    botNodeIdSet.delete(params.user.userId);
-  } 
-
-  if (params.user.userId && (params.user.userId !== undefined)){
-    botNodeIdSet.delete(params.user.userId);
-  }
-
-  const query = { nodeId: params.user.nodeId };
-
-  const update = {};
-  update.$set = { isBot: false };
-
-  const options = { useFindAndModify: false, returnOriginal: false, new: true, upsert: true };
-
-  global.wordAssoDb.User.findOneAndUpdate(query, update, options, function(err, userUpdated){
-
-    if (err) {
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** UNBOT | USER FIND ONE ERROR: " + err));
-      throw err;
-    }
-    
-    if (userUpdated){
-      console.log(chalkLog(MODULE_ID_PREFIX + " | XXX UNBOT"
-        + " | " + printUser({user: userUpdated})
-      ));
-      return userUpdated;
-    }
-
-    console.log(chalkLog(MODULE_ID_PREFIX + " | --- UNBOT USER NOT IN DB"
-      + " | ID: " + params.user.nodeId
-    ));
-
-    return;
-
-  });
-}
-
-function unfollow(params, callback) {
-
-  if (params.user.nodeId !== undefined){
-
-    unfollowableUserSet.add(params.user.nodeId);
-    followedUserSet.delete(params.user.nodeId);
-
-    if (params.ignored) {
-      ignoredUserSet.add(params.user.nodeId);
-    }
-  } 
-
-  tssChild.send({op: "UNFOLLOW", user: params.user});
-
-  const query = { nodeId: params.user.nodeId, following: true };
-
-  const update = {};
-  update.$set = { following: false, threeceeFollowing: false };
-
-  const options = { useFindAndModify: false, returnOriginal: false, new: true, upsert: true };
-
-  global.wordAssoDb.User.findOneAndUpdate(query, update, options, function(err, userUpdated){
-
-    if (err) {
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** UNFOLLOW | USER FIND ONE ERROR: " + err));
-    }
-    else if (userUpdated){
-      console.log(chalkLog(MODULE_ID_PREFIX + " | XXX UNFOLLOW"
-        + " | " + userUpdated.nodeId
-        + " | @" + userUpdated.screenName
-        + " | " + userUpdated.name
-      ));
-    }
-    else {
-      console.log(chalkLog(MODULE_ID_PREFIX + " | --- UNFOLLOWED USER NOT IN DB"
-        + " | ID: " + params.user.nodeId
-      ));
-    }
-
-    if (callback !== undefined) { callback(err, userUpdated); }
-
-  });
-}
+//   });
+// }
 
 async function updateDbIgnoredHashtags(){
 
@@ -4142,7 +4403,6 @@ const serverRegex = /^(.+)_/i;
 let twitterSearchNodeTimeout;
 
 async function pubSubSearchUser(params){
-
   try {
 
     console.log(chalkBlue(MODULE_ID_PREFIX
@@ -4392,7 +4652,16 @@ async function twitterSearchNode(params) {
   ));
 
   if (searchNode.startsWith("#")) {
-    await twitterSearchHashtag({searchNode: searchNode});
+
+    const results = await twitterSearchHashtag({node: { nodeId: searchNode.slice(1).toLowerCase()} });
+
+    if (results.node){
+      viewNameSpace.emit("SET_TWITTER_HASHTAG", results);
+    }
+    else{
+      viewNameSpace.emit("TWITTER_HASHTAG_NOT_FOUND", results);
+    }
+
     return;
   }
 
@@ -4929,20 +5198,29 @@ async function initSocketHandler(socketObj) {
       ));
 
       try{
+        // const updatedUser = await follow({user: user, forceFollow: true});
+        // if (!updatedUser) {
+        //   console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_FOLLOW ERROR: NULL UPDATED USER"));
+        // }
+        // else{
+        //   console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ TWITTER_FOLLOW"
+        //     + " | " + ipAddress
+        //     + " | " + socket.id
+        //     + " | UID" + updatedUser.nodeId
+        //     + " | @" + updatedUser.screenName
+        //   ));
+        // }
 
-        const updatedUser = await follow({user: user, forceFollow: true});
+        await nodeSetProps({
+          node: user,
+          forceFollow: true,
+          props: { 
+            follow: true
+          } 
+        });
 
-        if (!updatedUser) {
-          console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_FOLLOW ERROR: NULL UPDATED USER"));
-        }
-        else{
-          console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ TWITTER_FOLLOW"
-            + " | " + ipAddress
-            + " | " + socket.id
-            + " | UID" + updatedUser.nodeId
-            + " | @" + updatedUser.screenName
-          ));
-        }
+        adminNameSpace.emit("FOLLOW", user);
+        utilNameSpace.emit("FOLLOW", user);
 
       }
       catch(err) {
@@ -4951,7 +5229,7 @@ async function initSocketHandler(socketObj) {
       }
     });
 
-    socket.on("TWITTER_UNFOLLOW", function(user) {
+    socket.on("TWITTER_UNFOLLOW", async function(user) {
 
       const timeStamp = moment().valueOf();
 
@@ -4964,23 +5242,38 @@ async function initSocketHandler(socketObj) {
         + " | @" + user.screenName
       ));
 
-      unfollow({user: user}, function(err, updatedUser){
-        if (err) {
-          console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_UNFOLLOW ERROR: " + err));
-          return;
-        }
+      try{
+        await nodeSetProps({
+          node: user,
+          props: { 
+            follow: false
+          } 
+        });
+        adminNameSpace.emit("UNFOLLOW", user);
+        utilNameSpace.emit("UNFOLLOW", user);
+      }
+      catch(err) {
+        console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_FOLLOW ERROR: " + err));
+        throw err;
+      }
+
+      // unfollow({user: user}, function(err, updatedUser){
+      //   if (err) {
+      //     console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_UNFOLLOW ERROR: " + err));
+      //     return;
+      //   }
         
-        if (!updatedUser) { return; }
+      //   if (!updatedUser) { return; }
 
-        adminNameSpace.emit("UNFOLLOW", updatedUser);
-        utilNameSpace.emit("UNFOLLOW", updatedUser);
+      //   adminNameSpace.emit("UNFOLLOW", updatedUser);
+      //   utilNameSpace.emit("UNFOLLOW", updatedUser);
 
-        console.log(chalk.blue(MODULE_ID_PREFIX + " | XXX TWITTER_UNFOLLOW"
-          + " | UID" + updatedUser.nodeId
-          + " | @" + updatedUser.screenName
-        ));
+      //   console.log(chalk.blue(MODULE_ID_PREFIX + " | XXX TWITTER_UNFOLLOW"
+      //     + " | UID" + updatedUser.nodeId
+      //     + " | @" + updatedUser.screenName
+      //   ));
 
-      });
+      // });
     });
 
     socket.on("TWITTER_CATEGORY_VERIFIED", async function(user) {
@@ -5025,24 +5318,31 @@ async function initSocketHandler(socketObj) {
 
         user.categoryVerified = false;
 
-        const updatedUser = await categoryVerified({user: user});
+        // const updatedUser = await categoryVerified({user: user});
 
-        if (!updatedUser) { return; }
+        await nodeSetProps({
+          node: user,
+          props: { 
+            categoryVerified: false
+          } 
+        });
 
-        adminNameSpace.emit("CAT_UNVERFIED", updatedUser);
-        utilNameSpace.emit("CAT_UNVERFIED", updatedUser);
-        viewNameSpace.emit("CAT_UNVERFIED", updatedUser);
+        // if (!updatedUser) { return; }
 
-        console.log(chalk.blue(MODULE_ID_PREFIX 
-          + " | --- TWITTER_CATEGORY_UNVERIFIED"
-          + " | SID: " + socket.id
-          + " | UID" + updatedUser.nodeId
-          + " | @" + updatedUser.screenName
-          + " | CN: " + updatedUser.categorizeNetwork
-          + " | CV: " + updatedUser.categoryVerified
-          + " | C M: " + formatCategory(updatedUser.category)
-          + " A: " + formatCategory(updatedUser.categoryAuto)
-        ));
+        // adminNameSpace.emit("CAT_UNVERFIED", updatedUser);
+        // utilNameSpace.emit("CAT_UNVERFIED", updatedUser);
+        // viewNameSpace.emit("CAT_UNVERFIED", updatedUser);
+
+        // console.log(chalk.blue(MODULE_ID_PREFIX 
+        //   + " | --- TWITTER_CATEGORY_UNVERIFIED"
+        //   + " | SID: " + socket.id
+        //   + " | UID" + updatedUser.nodeId
+        //   + " | @" + updatedUser.screenName
+        //   + " | CN: " + updatedUser.categorizeNetwork
+        //   + " | CV: " + updatedUser.categoryVerified
+        //   + " | C M: " + formatCategory(updatedUser.category)
+        //   + " A: " + formatCategory(updatedUser.categoryAuto)
+        // ));
       }
       catch(err){
         console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
@@ -5064,18 +5364,25 @@ async function initSocketHandler(socketObj) {
           + " | @" + user.screenName
         ));
 
-        const updatedUser = await ignore({user: user, socketId: socket.id});
+        await nodeSetProps({
+          node: user,
+          props: { 
+            ignore: true
+          } 
+        });
 
-        if (!updatedUser) { return; }
+        // const updatedUser = await ignore({user: user, socketId: socket.id});
 
-        adminNameSpace.emit("IGNORE", updatedUser);
-        utilNameSpace.emit("IGNORE", updatedUser);
+        // if (!updatedUser) { return; }
 
-        console.log(chalk.blue(MODULE_ID_PREFIX + " |  TWITTER_IGNORE"
-          + " | SID: " + socket.id
-          + " | UID" + updatedUser.nodeId
-          + " | @" + updatedUser.screenName
-        ));
+        // adminNameSpace.emit("IGNORE", updatedUser);
+        // utilNameSpace.emit("IGNORE", updatedUser);
+
+        // console.log(chalk.blue(MODULE_ID_PREFIX + " |  TWITTER_IGNORE"
+        //   + " | SID: " + socket.id
+        //   + " | UID" + updatedUser.nodeId
+        //   + " | @" + updatedUser.screenName
+        // ));
       }
       catch(err){
         console.log(chalkError(MODULE_ID_PREFIX + " | *** IGNORE USER ERROR: " + err));
@@ -5097,18 +5404,25 @@ async function initSocketHandler(socketObj) {
           + " | @" + user.screenName
         ));
 
-        const updatedUser = await unignore({user: user, socketId: socket.id});
+        await nodeSetProps({
+          node: user,
+          props: { 
+            ignore: false
+          } 
+        });
+
+        // const updatedUser = await unignore({user: user, socketId: socket.id});
         
-        if (!updatedUser) { return; }
+        // if (!updatedUser) { return; }
 
-        adminNameSpace.emit("UNIGNORE", updatedUser);
-        utilNameSpace.emit("UNIGNORE", updatedUser);
+        // adminNameSpace.emit("UNIGNORE", updatedUser);
+        // utilNameSpace.emit("UNIGNORE", updatedUser);
 
-        console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ TWITTER_UNIGNORE"
-          + " | SID: " + socket.id
-          + " | UID" + updatedUser.nodeId
-          + " | @" + updatedUser.screenName
-        ));
+        // console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ TWITTER_UNIGNORE"
+        //   + " | SID: " + socket.id
+        //   + " | UID" + updatedUser.nodeId
+        //   + " | @" + updatedUser.screenName
+        // ));
 
       }
       catch(err){
@@ -5132,18 +5446,25 @@ async function initSocketHandler(socketObj) {
           + " | @" + user.screenName
         ));
 
-        const updatedUser = await bot({user: user, socketId: socket.id});
+        await nodeSetProps({
+          node: user,
+          props: { 
+            isBot: true
+          } 
+        });
 
-        if (!updatedUser) { return; }
+        // const updatedUser = await bot({user: user, socketId: socket.id});
 
-        adminNameSpace.emit("BOT", updatedUser);
-        utilNameSpace.emit("BOT", updatedUser);
+        // if (!updatedUser) { return; }
 
-        console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ TWITTER_BOT"
-          + " | SID: " + socket.id
-          + " | UID" + updatedUser.nodeId
-          + " | @" + updatedUser.screenName
-        ));
+        // adminNameSpace.emit("BOT", updatedUser);
+        // utilNameSpace.emit("BOT", updatedUser);
+
+        // console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ TWITTER_BOT"
+        //   + " | SID: " + socket.id
+        //   + " | UID" + updatedUser.nodeId
+        //   + " | @" + updatedUser.screenName
+        // ));
       }
       catch(err){
         console.log(chalkError(MODULE_ID_PREFIX + " | *** BOT USER ERROR: " + err));
@@ -5165,18 +5486,25 @@ async function initSocketHandler(socketObj) {
           + " | @" + user.screenName
         ));
 
-        const updatedUser = await unbot({user: user, socketId: socket.id});
+        await nodeSetProps({
+          node: user,
+          props: { 
+            isBot: false
+          } 
+        });
+
+        // const updatedUser = await unbot({user: user, socketId: socket.id});
         
-        if (!updatedUser) { return; }
+        // if (!updatedUser) { return; }
 
-        adminNameSpace.emit("UNBOT", updatedUser);
-        utilNameSpace.emit("UNBOT", updatedUser);
+        // adminNameSpace.emit("UNBOT", updatedUser);
+        // utilNameSpace.emit("UNBOT", updatedUser);
 
-        console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ TWITTER_UNBOT"
-          + " | SID: " + socket.id
-          + " | UID" + updatedUser.nodeId
-          + " | @" + updatedUser.screenName
-        ));
+        // console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ TWITTER_UNBOT"
+        //   + " | SID: " + socket.id
+        //   + " | UID" + updatedUser.nodeId
+        //   + " | @" + updatedUser.screenName
+        // ));
 
       }
       catch(err){
@@ -6926,7 +7254,6 @@ function initAppRouting(callback) {
           res.send({
             response_token: "sha256=" + hmac
           });
-
         } 
         else {
           res.status(400);
@@ -6951,17 +7278,24 @@ function initAppRouting(callback) {
             screenName: followEvents[0].target.screen_name
           }
 
-          follow({user: user, forceFollow: true})
-          .then(function(updatedUser){
-            if (!updatedUser) { return; }
-            adminNameSpace.emit("FOLLOW", updatedUser);
-            utilNameSpace.emit("FOLLOW", updatedUser);
-
-          })
-          .catch(function(err){
-            console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_FOLLOW ERROR: " + err));
-            return;
+          await nodeSetProps({
+            node: user,
+            props: { 
+              follow: true
+            } 
           });
+
+          // follow({user: user, forceFollow: true})
+          // .then(function(updatedUser){
+          //   if (!updatedUser) { return; }
+          //   adminNameSpace.emit("FOLLOW", updatedUser);
+          //   utilNameSpace.emit("FOLLOW", updatedUser);
+
+          // })
+          // .catch(function(err){
+          //   console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_FOLLOW ERROR: " + err));
+          //   return;
+          // });
         
         }
         
@@ -6979,17 +7313,22 @@ function initAppRouting(callback) {
             screenName: followEvents[0].target.screen_name
           }
 
-          unfollow({user: user}, function(err, updatedUser){
-            if (err) {
-              console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_UNFOLLOW ERROR: " + err));
-              return;
-            }
-            
-            if (!updatedUser) { return; }
-
-            adminNameSpace.emit("UNFOLLOW", updatedUser);
-            utilNameSpace.emit("UNFOLLOW", updatedUser);
+          await nodeSetProps({
+            node: user,
+            props: { follow: false } 
           });
+
+          // unfollow({user: user}, function(err, updatedUser){
+          //   if (err) {
+          //     console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_UNFOLLOW ERROR: " + err));
+          //     return;
+          //   }
+            
+          //   if (!updatedUser) { return; }
+
+          //   adminNameSpace.emit("UNFOLLOW", updatedUser);
+          //   utilNameSpace.emit("UNFOLLOW", updatedUser);
+          // });
         }
         
         res.sendStatus(200);
@@ -9973,6 +10312,7 @@ setTimeout(async function(){
     await initTssChild({childId: DEFAULT_TSS_CHILD_ID, tweetVersion2: configuration.tweetVersion2, threeceeUser: threeceeUser});
 
     await initNodeOpHandler({subscribeName: "node-search-result"});
+    await initNodeOpHandler({subscribeName: "node-setprops-result"});
     await initNodeOpHandler({subscribeName: "node-autocategorize-result"});
 
     // await initPubSubCategorizeResultHandler({

@@ -13,6 +13,7 @@ const twitterDateFormat = "ddd MMM DD HH:mm:ss Z YYYY"; // Wed Aug 27 13:08:45 +
 
 const DEFAULT_PUBSUB_ENABLED = true;
 const DEFAULT_PUBSUB_PROJECT_ID = "graphic-tangent-627";
+const DEFAULT_PUBSUB_RESULT_TIMEOUT = 5*ONE_SECOND;
 
 const DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL = 604800; // 3600*24*7 sec/week
 const DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD = 3600;
@@ -1050,6 +1051,7 @@ configuration.uncatUserCacheCheckPeriod = DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERI
 configuration.pubSub = {};
 configuration.pubSub.enabled = DEFAULT_PUBSUB_ENABLED;
 configuration.pubSub.projectId = DEFAULT_PUBSUB_PROJECT_ID;
+configuration.pubSub.pubSubResultTimeout = DEFAULT_PUBSUB_RESULT_TIMEOUT;
 
 configuration.pubSub.subscriptions = {};
 configuration.pubSub.subscriptions.categorizeResult = {};
@@ -3626,7 +3628,7 @@ async function pubSubNodeSetProps(params){
 
       return;
 
-    }, 10*ONE_SECOND);
+    }, configuration.pubSub.pubSubResultTimeout);
 
     await tcUtils.waitEvent({event: eventName, verbose: configuration.verbose});
 
@@ -3988,7 +3990,7 @@ async function pubSubSearchUser(params){
 
       return;
 
-    }, 100);
+    }, configuration.pubSub.pubSubResultTimeout);
 
 
     await tcUtils.waitEvent({event: eventName, verbose: configuration.verbose});
@@ -8445,7 +8447,6 @@ async function loadConfigFile(params) {
 
     newConfiguration.metrics = {};
     newConfiguration.threeceeUsers = [];
-    // newConfiguration.pubSub = {};
 
     if (loadedConfigObj.WAS_USER_PROFILE_ONLY_FLAG !== undefined){
       console.log(MODULE_ID_PREFIX + " | LOADED WAS_USER_PROFILE_ONLY_FLAG: " + loadedConfigObj.WAS_USER_PROFILE_ONLY_FLAG);
@@ -8461,29 +8462,10 @@ async function loadConfigFile(params) {
       }
     }
 
-    // if (loadedConfigObj.WAS_PUBSUB_ENABLED !== undefined){
-    //   console.log(MODULE_ID_PREFIX + " | LOADED WAS_PUBSUB_ENABLED: " + loadedConfigObj.WAS_PUBSUB_ENABLED);
-
-    //   if ((loadedConfigObj.WAS_PUBSUB_ENABLED == false) || (loadedConfigObj.WAS_PUBSUB_ENABLED == "false")) {
-    //     newConfiguration.pubSub.enabled = false;
-    //   }
-    //   else if ((loadedConfigObj.WAS_PUBSUB_ENABLED == true) || (loadedConfigObj.WAS_PUBSUB_ENABLED == "true")) {
-    //     newConfiguration.pubSub.enabled = true;
-    //   }
-    //   else {
-    //     newConfiguration.pubSub.enabled = false;
-    //   }
-    // }
-
     if (loadedConfigObj.WAS_PUBSUB_PROJECT_ID !== undefined){
       console.log(MODULE_ID_PREFIX + " | LOADED WAS_PUBSUB_PROJECT_ID: " + loadedConfigObj.WAS_PUBSUB_PROJECT_ID);
       newConfiguration.pubSub.projectId = loadedConfigObj.WAS_PUBSUB_PROJECT_ID;
     }
-
-    // if (loadedConfigObj.WAS_PUBSUB_TOPIC_NAME !== undefined){
-    //   console.log(MODULE_ID_PREFIX + " | LOADED WAS_PUBSUB_TOPIC_NAME: " + loadedConfigObj.WAS_PUBSUB_TOPIC_NAME);
-    //   newConfiguration.pubSub.publishName = loadedConfigObj.WAS_PUBSUB_TOPIC_NAME;
-    // }
 
     if (loadedConfigObj.TWEET_VERSION_2 !== undefined){
       console.log(MODULE_ID_PREFIX + " | LOADED TWEET_VERSION_2: " + loadedConfigObj.TWEET_VERSION_2);
@@ -9547,7 +9529,6 @@ configuration.primaryHost = (hostname === process.env.PRIMARY_HOST);
     await initRateQinterval(configuration.rateQueueInterval);
     await initTwitterRxQueueInterval(configuration.twitterRxQueueInterval);
     await initTweetParserMessageRxQueueInterval(configuration.tweetParserMessageRxQueueInterval);
-    // await initTwitterSearchNodeQueueInterval(configuration.twitterSearchNodeQueueInterval);
     await initSorterMessageRxQueueInterval(configuration.sorterMessageRxQueueInterval);
     await initDbuChild({childId: DEFAULT_DBU_CHILD_ID});
     await initDbUserChangeStream();
@@ -9556,12 +9537,6 @@ configuration.primaryHost = (hostname === process.env.PRIMARY_HOST);
     await initWatchConfig();
     await initTssChild({childId: DEFAULT_TSS_CHILD_ID, tweetVersion2: configuration.tweetVersion2, threeceeUser: threeceeUser});
 
-    // await initPubSubCategorizeResultHandler({
-    //   subscribeName: configuration.pubSub.subscriptions.categorizeResult.subscribeName
-    // });
-    // await initPubSubTwitterSearchUserResultHandler({
-    //   subscribeName: configuration.pubSub.subscriptions.twitterSearchUserResult.subscribeName
-    // });
   }
   catch(err){
     console.trace(chalkError(MODULE_ID_PREFIX + " | **** INIT CONFIG ERROR: " + err + "\n" + jsonPrint(err)));

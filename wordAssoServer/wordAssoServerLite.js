@@ -157,7 +157,7 @@ const DEFAULT_SORTER_INTERVAL = 100;
 const DEFAULT_TWITTER_RX_QUEUE_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_TRANSMIT_NODE_QUEUE_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = DEFAULT_INTERVAL;
-const DEFAULT_TWITTER_SEARCH_NODE_QUEUE_INTERVAL = 100;
+// const DEFAULT_TWITTER_SEARCH_NODE_QUEUE_INTERVAL = 100;
 
 const TWP_PING_INTERVAL = 15*ONE_MINUTE;
 const DBU_PING_INTERVAL = 15*ONE_MINUTE;
@@ -562,7 +562,7 @@ const nodeAutoCategorizeResultHandler = async function(message){
         await updateUserAutoCategory({user: messageObj.node});
       }
 
-      searchUserResultHashMap[messageObj.requestId] = messageObj.node;
+      nodeAutoCategorizeResultHashMap[messageObj.requestId] = messageObj.node;
     }
     else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
       console.log(chalkBlueBold(MODULE_ID_PREFIX
@@ -575,7 +575,7 @@ const nodeAutoCategorizeResultHandler = async function(message){
         + " | CA: " + formatCategory(messageObj.node.categoryAuto)
       ));
 
-      searchUserResultHashMap[messageObj.requestId] = messageObj.node;
+      nodeAutoCategorizeResultHashMap[messageObj.requestId] = messageObj.node;
     }
     else{
       console.log(chalk.yellow(MODULE_ID_PREFIX
@@ -605,12 +605,11 @@ const nodeSetPropsResultHandler = async function(message){
     if (messageObj.node && messageObj.node.nodeType === "user") {
       console.log(chalkBlueBold(MODULE_ID_PREFIX
         + " | ==> PS USER SET PROPS [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
-        + " | MID: " + message.id
         + " | RID: " + messageObj.requestId
-        + " | SEARCH MODE: " + messageObj.searchMode
         + " | NID: " + messageObj.node.nodeId
         + " | @" + messageObj.node.screenName
-        + " | FLW" + formatBoolean(messageObj.node.following)
+        + " | AUTO FLW: " + formatBoolean(messageObj.node.categoryVerified)
+        + " | FLW" + formatBoolean(messageObj.autoFollowFlag)
         + " | CN: " + messageObj.node.categorizeNetwork
         + " | CV: " + formatBoolean(messageObj.node.categoryVerified)
         + " | CM: " + formatCategory(messageObj.node.category)
@@ -621,31 +620,27 @@ const nodeSetPropsResultHandler = async function(message){
         await updateUserAutoCategory({user: messageObj.node});
       }
 
-      searchUserResultHashMap[messageObj.requestId] = messageObj.node;
+      nodeSetPropsResultHashMap[messageObj.requestId] = messageObj.node;
     }
     else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
       console.log(chalkBlueBold(MODULE_ID_PREFIX
-        + " | ==> PS AUTO CAT HASHTAG [" + statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived + "]"
-        + " | MID: " + message.id
+        + " | ==> PS HSTG SET PROPS [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
         + " | RID: " + messageObj.requestId
-        + " | SEARCH MODE: " + messageObj.searchMode
         + " | NID: " + messageObj.node.nodeId
         + " | CM: " + formatCategory(messageObj.node.category)
         + " | CA: " + formatCategory(messageObj.node.categoryAuto)
       ));
 
-      searchUserResultHashMap[messageObj.requestId] = messageObj.node;
+      nodeSetPropsResultHashMap[messageObj.requestId] = messageObj.node;
     }
     else{
       console.log(chalk.yellow(MODULE_ID_PREFIX
-        + " | ==> PS AUTO CAT NODE -MISS- [" + statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived + "]"
-        + " | MID: " + message.id
+        + " | ==> NODE SET PROPS -MISS- [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
         + " | RID: " + messageObj.requestId
-        + " | SEARCH MODE: " + messageObj.searchMode
       ));
     }
 
-    tcUtils.emitter.emit("autoCategorizeResult_" + messageObj.requestId);
+    tcUtils.emitter.emit("nodeSetPropsResult_" + messageObj.requestId);
     pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
     message.ack();
   }
@@ -747,117 +742,8 @@ async function initNodeOpHandler(params){
   return;
 }
 
-// async function initPubSubCategorizeResultHandler(params){
-
-//   const subscription = await pubSubClient.subscription(params.subscribeName);
-
-//   const [metadata] = await subscription.getMetadata();
-
-//   statsObj.pubSub.subscriptions[params.subscribeName] = {};
-//   statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived = 0;
-//   statsObj.pubSub.subscriptions[params.subscribeName].topic = metadata.topic;
-
-//   console.log(chalkBlueBold(MODULE_ID_PREFIX
-//     + " | INIT PUBSUB SUBSCRIPTION HANDLER"
-//     + " | SUBSCRIPTION NAME: " + params.subscribeName
-//     + " | SUBSCRIPTION TOPIC: " + metadata.topic
-//   ));
-
-//   const messageHandler = async function(message){
-
-//     const messageObj = JSON.parse(message.data.toString());
-
-//     if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)){
-
-//       statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived += 1;
-
-//       console.log(chalkLog(MODULE_ID_PREFIX
-//         + " | ==> PS CAT [" + statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived + "]"
-//         + " | SUB: " + params.subscribeName
-//         + " | RID: " + messageObj.requestId
-//         + " | NID: " + messageObj.user.nodeId
-//         + " | DB MISS: " + messageObj.notFound
-//         + " | CN: " + messageObj.user.categorizeNetwork
-//         + " | CA: " + messageObj.user.categoryAuto
-//       ));
-
-//       if (messageObj.notFound !== undefined && !messageObj.notFound){
-//         await updateUserAutoCategory({user: messageObj.user});
-//       }
-
-//       message.ack();
-//       pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
-//     }
-//   };
-
-//   subscription.on("message", messageHandler);
-
-//   return;
-// }
-
 const searchUserResultHashMap = {};
-
-// async function initPubSubTwitterSearchUserResultHandler(params){
-
-//   const subscription = await pubSubClient.subscription(params.subscribeName);
-
-//   const [metadata] = await subscription.getMetadata();
-
-//   statsObj.pubSub.subscriptions[params.subscribeName] = {};
-//   statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived = 0;
-//   statsObj.pubSub.subscriptions[params.subscribeName].topic = metadata.topic;
-
-//   console.log(chalkBlueBold(MODULE_ID_PREFIX
-//     + " | INIT PUBSUB SUBSCRIPTION HANDLER"
-//     + " | SUBSCRIPTION NAME: " + params.subscribeName
-//     + " | SUBSCRIPTION TOPIC: " + metadata.topic
-//   ));
-
-//   const messageHandler = async function(message){
-
-//     const messageObj = JSON.parse(message.data.toString());
-
-//     if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)){
-
-//       statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived += 1;
-
-//       if (messageObj.user) {
-//         console.log(chalkBlueBold(MODULE_ID_PREFIX
-//           + " | ==> PS SEARCH USER [" + statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived + "]"
-//           // + " | PUB AT: " + moment(message.publishTime).format(compactDateTimeFormat)
-//           + " | MID: " + message.id
-//           + " | RID: " + messageObj.requestId
-//           + " | SEARCH MODE: " + messageObj.searchMode
-//           + " | NID: " + messageObj.user.nodeId
-//           + " | @" + messageObj.user.screenName
-//           + " | FLW" + formatBoolean(messageObj.user.following)
-//           + " | CN: " + messageObj.user.categorizeNetwork
-//           + " | CV: " + formatBoolean(messageObj.user.categoryVerified)
-//           + " | CM: " + formatCategory(messageObj.user.category)
-//           + " | CA: " + formatCategory(messageObj.user.categoryAuto)
-//         ));
-
-//         searchUserResultHashMap[messageObj.requestId] = messageObj.user;
-//       }
-//       else{
-//         console.log(chalk.yellow(MODULE_ID_PREFIX
-//           + " | ==> PS SEARCH USER -MISS- [" + statsObj.pubSub.subscriptions[params.subscribeName].messagesReceived + "]"
-//           + " | MID: " + message.id
-//           + " | RID: " + messageObj.requestId
-//           + " | SEARCH MODE: " + messageObj.searchMode
-//         ));
-//       }
-
-//       tcUtils.emitter.emit("searchNodeResult_" + messageObj.requestId);
-//       pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
-//       message.ack();
-//     }
-//   };
-
-//   subscription.on("message", messageHandler);
-
-//   return;
-// }
+const nodeAutoCategorizeResultHashMap = {};
 
 const pubSubPublishMessageRequestIdSet = new Set();
 
@@ -1000,9 +886,9 @@ async function initSlackRtmClient(){
 const addedUsersSet = new Set();
 const deletedUsersSet = new Set();
 const botNodeIdSet = new Set();
-const autoFollowUserSet = new Set();
+// const autoFollowUserSet = new Set();
 const ignoreIpSet = new Set();
-const pubSubCategorizeSentSet = new Set();
+// const pubSubCategorizeSentSet = new Set();
 
 const ignoredHashtagRegex = new RegExp(/[^\u0000-\u007F]+/, "i");
 
@@ -1237,7 +1123,7 @@ configuration.DROPBOX.DROPBOX_WAS_CONFIG_FILE = process.env.DROPBOX_CONFIG_FILE 
 configuration.DROPBOX.DROPBOX_WAS_STATS_FILE = process.env.DROPBOX_STATS_FILE || "wordAssoServerStats.json";
 
 configuration.twitterRxQueueInterval = DEFAULT_TWITTER_RX_QUEUE_INTERVAL;
-configuration.twitterSearchNodeQueueInterval = DEFAULT_TWITTER_SEARCH_NODE_QUEUE_INTERVAL;
+// configuration.twitterSearchNodeQueueInterval = DEFAULT_TWITTER_SEARCH_NODE_QUEUE_INTERVAL;
 configuration.categoryHashmapsUpdateInterval = DEFAULT_CATEGORY_HASHMAPS_UPDATE_INTERVAL;
 configuration.testInternetConnectionUrl = DEFAULT_TEST_INTERNET_CONNECTION_URL;
 configuration.offlineMode = DEFAULT_OFFLINE_MODE;
@@ -1692,9 +1578,9 @@ const tweetRxQueue = [];
 
 const keySortQueue = [];
 
-const twitterSearchNodeQueue = [];
-let twitterSearchNodeQueueInterval;
-let twitterSearchNodeQueueReady = false;
+// const twitterSearchNodeQueue = [];
+// let twitterSearchNodeQueueInterval;
+// let twitterSearchNodeQueueReady = false;
 
 let dbuPingInterval;
 let dbuPingSent = false;
@@ -3690,279 +3576,6 @@ function enableFollow(params){
   return true;
 }
 
-// async function follow(params) {
-
-//   if (!enableFollow(params)) { 
-
-//     console.log(chalkWarn("-X- FOLLOW | @" + params.user.screenName 
-//       + " | IN UNFOLLOWABLE, FOLLOWED or IGNORED USER SET"
-//     ));
-
-//     return;
-//   }
-
-//   followedUserSet.add(params.user.nodeId);
-//   ignoredUserSet.delete(params.user.nodeId);
-//   ignoredUserSet.delete(params.user.screenName);
-//   unfollowableUserSet.delete(params.user.nodeId);
-//   unfollowableUserSet.delete(params.user.screenName);
-
-//   const query = { nodeId: params.user.nodeId };
-
-//   console.log(chalk.black.bold(MODULE_ID_PREFIX + " | FOLLOWING | @" + params.user.screenName 
-//     + " | 3C @" + threeceeUser
-//   ));
-
-//   const update = {};
-
-//   update.$set = { following: true, threeceeFollowing: threeceeUser };
-
-//   const options = { useFindAndModify: false, returnOriginal: false, new: true, upsert: true };
-
-//   try{
-//     const userUpdated = await global.wordAssoDb.User.findOneAndUpdate(query, update, options);
-
-//     if (userUpdated){
-
-//       console.log(chalkLog(MODULE_ID_PREFIX + " | +++ FOLLOW"
-//         + " | " + printUser({user: userUpdated})
-//       ));
-
-//       if (configuration.enableTwitterFollow){
-
-//         if (tssChild !== undefined){
-//           tssChild.send({
-//             op: "FOLLOW", 
-//             user: userUpdated,
-//             forceFollow: configuration.forceFollow
-//           });
-//         }
-//         else {
-//           pendingFollowSet.add(userUpdated.userId);
-//           console.log(chalkAlert(MODULE_ID_PREFIX + " | 000 CAN'T FOLLOW | NO AUTO FOLLOW USER"
-//             + " | PENDING FOLLOWS: " + pendingFollowSet.size
-//             + " | " + printUser({user: userUpdated})
-//           ));
-//         }
-//       }
-
-//       return userUpdated;
-
-//     }
-//     else {
-//       console.log(chalkLog(MODULE_ID_PREFIX + " | --- FOLLOW | USER NOT IN DB"
-//         + " | NID: " + params.user.nodeId
-//         + " | @" + params.user.screenName
-//       ));
-
-//       return;
-//     }
-
-//   }
-//   catch(err) {
-//     console.log(chalkError(MODULE_ID_PREFIX + " | *** FOLLOW | USER FIND ONE ERROR: " + err));
-//   }
-// }
-
-// async function categoryVerified(params) {
-
-//   if (params.user.screenName !== undefined){
-
-//     console.log(chalk.blue(MODULE_ID_PREFIX + " | UPDATE CAT_VERFIED"
-//       + " | @" + params.user.screenName
-//       + " | CN: " + params.user.categorizeNetwork
-//       + " | CV: " + formatBoolean(params.user.categoryVerified)
-//       + " | C: " + formatCategory(params.user.category)
-//       + " | CA: " + formatCategory(params.user.categoryAuto)
-//     ));
-
-//     const dbUser = await global.wordAssoDb.User.findOne({
-//       screenName: params.user.screenName.toLowerCase()
-//     });
-
-//     if (empty(dbUser)) {
-//       console.log(chalkWarn(MODULE_ID_PREFIX 
-//         + " | ??? UPDATE VERIFIED | USER NOT FOUND: " + params.user.screenName.toLowerCase()
-//       ));
-//       throw new Error("USER NOT FOUND");
-//     }
-
-//     dbUser.categoryVerified = params.user.categoryVerified;
-
-//     if (params.user.categorizeNetwork){
-//       dbUser.categorizeNetwork = params.user.categorizeNetwork;
-//     }
-
-//     if (categorizedUserHashMap.has(params.user.nodeId)){
-//       uncategorizeableUserSet.delete(params.user.nodeId);
-//       dbUser.following = true;
-//       dbUser.category = categorizedUserHashMap.get(params.user.nodeId).manual;
-//       dbUser.categoryAuto = categorizedUserHashMap.get(params.user.nodeId).auto;
-//     }
-//     else{
-
-//       dbUser.category = params.user.category || dbUser.cateory;
-//       dbUser.categoryAuto = params.user.categoryAuto || dbUser.categoryAuto;
-
-//       categorizedUserHashMap.set(dbUser.nodeId, 
-//         { 
-//           nodeId: dbUser.nodeId, 
-//           screenName: dbUser.screenName, 
-//           manual: dbUser.category, 
-//           auto: dbUser.categoryAuto,
-//           network: dbUser.categorizeNetwork
-//         }
-//       );
-//     }
-
-//     const dbUpdatedUser = await dbUser.save();
-
-//     printUserObj(
-//       MODULE_ID_PREFIX + " | UPDATE DB USER",
-//       dbUpdatedUser, 
-//       chalkLog
-//     );
-
-//     return dbUpdatedUser;
-//   }
-//   else {
-//     throw new Error("USER SCREENNAME UNDEFINED");
-//   }
-// }
-
-// async function ignore(params) {
-
-//   console.log(chalk.blue(MODULE_ID_PREFIX + " | XXX IGNORE | @" + params.user.screenName));
-
-//   if (params.user.nodeId && (params.user.nodeId !== undefined)){
-//     ignoredUserSet.add(params.user.nodeId);
-//   }
-
-//   if (params.user.userId && (params.user.userId !== undefined)){
-//     ignoredUserSet.add(params.user.userId);
-//   }
-
-//   if (params.user.screenName && (params.user.screenName !== undefined)){
-//     ignoredUserSet.add(params.user.screenName);
-//   }
-
-//   tssChild.send({op: "IGNORE", user: params.user});
-
-//   try{
-
-//     await deleteUser(params);
-
-//     // const results = await global.wordAssoDb.User.deleteOne({nodeId: params.user.nodeId});
-
-//     // if (results.deletedCount > 0){
-//     //   console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX IGNORED USER | -*- DB HIT"
-//     //     + " | " + params.user.nodeId
-//     //     + " | @" + params.user.screenName
-//     //   ));
-//     // }
-//     // else{
-//     //   console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX IGNORED USER | --- DB MISS" 
-//     //     + " | " + params.user.nodeId
-//     //     + " | @" + params.user.screenName
-//     //   ));
-//     // }
-
-//     const obj = {};
-//     obj.userIds = [...ignoredUserSet];
-
-//     saveFileQueue.push({folder: configDefaultFolder, file: ignoredUserFile, obj: obj});
-
-//     return;
-//   }
-//   catch(err){
-//     console.log(chalkError(MODULE_ID_PREFIX + " | *** DB DELETE IGNORED USER ERROR: " + err));
-//     throw err;
-//   }
-// }
-
-// async function unignore(params) {
-
-//   console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ UNIGNORE | @" + params.user.screenName));
-
-//   if (params.user.nodeId !== undefined){
-//     ignoredUserSet.delete(params.user.nodeId);
-//   } 
-
-//   if (params.user.userId && (params.user.userId !== undefined)){
-//     ignoredUserSet.delete(params.user.userId);
-//   }
-
-//   const query = { nodeId: params.user.nodeId };
-
-//   const update = {};
-//   update.$set = { ignored: false };
-
-//   const options = { useFindAndModify: false, returnOriginal: false, new: true, upsert: true };
-
-//   global.wordAssoDb.User.findOneAndUpdate(query, update, options, function(err, userUpdated){
-
-//     if (err) {
-//       console.log(chalkError(MODULE_ID_PREFIX + " | *** UNIGNORE | USER FIND ONE ERROR: " + err));
-//       throw err;
-//     }
-    
-//     if (userUpdated){
-//       console.log(chalkLog(MODULE_ID_PREFIX + " | +++ UNIGNORE"
-//         + " | " + printUser({user: userUpdated})
-//       ));
-//       return userUpdated;
-//     }
-
-//     console.log(chalkLog(MODULE_ID_PREFIX + " | --- UNIGNORE USER NOT IN DB"
-//       + " | ID: " + params.user.nodeId
-//     ));
-
-//     return;
-
-//   });
-// }
-
-// async function bot(params) {
-
-//   console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ BOT | @" + params.user.screenName));
-
-//   if (params.user.nodeId !== undefined){
-//     botNodeIdSet.add(params.user.nodeId);
-//   } 
-
-//   if (params.user.userId && (params.user.userId !== undefined)){
-//     botNodeIdSet.add(params.user.userId);
-//   }
-
-//   const query = { nodeId: params.user.nodeId };
-
-//   const update = {};
-//   update.$set = { isBot: true };
-
-//   const options = { useFindAndModify: false, returnOriginal: false, new: true, upsert: true };
-
-//   global.wordAssoDb.User.findOneAndUpdate(query, update, options, function(err, userUpdated){
-
-//     if (err) {
-//       console.log(chalkError(MODULE_ID_PREFIX + " | *** BOT | USER FIND ONE ERROR: " + err));
-//       throw err;
-//     }
-    
-//     if (userUpdated){
-//       console.log(chalkLog(MODULE_ID_PREFIX + " | XXX BOT"
-//         + " | " + printUser({user: userUpdated})
-//       ));
-//       return userUpdated;
-//     }
-
-//     console.log(chalkLog(MODULE_ID_PREFIX + " | --- BOT USER NOT IN DB"
-//       + " | ID: " + params.user.nodeId
-//     ));
-
-//     return;
-//   });
-// }
-
 let nodeSetPropsResultTimeout;
 const nodeSetPropsResultHashMap = {};
 
@@ -3971,12 +3584,12 @@ async function pubSubNodeSetProps(params){
   try {
 
     console.log(chalkBlue(MODULE_ID_PREFIX
-      + " | PS NODE SET PROPS [" + statsObj.pubSub.messagesSent + "]"
+      + " | NODE SET PROPS [" + statsObj.pubSub.messagesSent + "]"
       + " | REQ: " + params.requestId
       + " | TOPIC: node-setprops"
       + " | NODE TYPE: " + params.node.nodeType
       + " | NID: " + params.node.nodeId
-      + "nPROPS\n" + jsonPrint(params.props)
+      + " | PROPS: " + Object.keys(params.props)
     ));
 
     await pubSubPublishMessage({
@@ -4061,11 +3674,15 @@ async function pubSubNodeSetProps(params){
 
 async function nodeSetProps(params) {
 
+  const requestId = "rId_" + hostname + "_" + moment().valueOf();
+
   console.log(chalk.blue(MODULE_ID_PREFIX 
     + " | NODE SET PROPS"
+    + " | RID: " + requestId
+    + " | AUTO FLW: " + params.autoFollowFlag
     + " | TYPE: " + params.node.nodeType
     + " | NID: " + params.node.nodeId
-    + "\nPROPS\n" + jsonPrint(params.props)
+    + " | PROPS: " + Object.keys(params.props)
   ));
 
   if (params.forceFollow || params.props.follow !== undefined){
@@ -4150,100 +3767,10 @@ async function nodeSetProps(params) {
     if (!params.props.isBot) { botNodeIdSet.delete(params.node.nodeId); }
   } 
 
-  await pubSubNodeSetProps({
-    node: params.node,
-    props: params.props
-  });
+  await pubSubNodeSetProps({ requestId: requestId, node: params.node, props: params.props });
 
   return;
-
 }
-
-// async function unbot(params) {
-
-//   console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ UNBOT | @" + params.user.screenName));
-
-//   if (params.user.nodeId !== undefined){
-//     botNodeIdSet.delete(params.user.userId);
-//   } 
-
-//   if (params.user.userId && (params.user.userId !== undefined)){
-//     botNodeIdSet.delete(params.user.userId);
-//   }
-
-//   const query = { nodeId: params.user.nodeId };
-
-//   const update = {};
-//   update.$set = { isBot: false };
-
-//   const options = { useFindAndModify: false, returnOriginal: false, new: true, upsert: true };
-
-//   global.wordAssoDb.User.findOneAndUpdate(query, update, options, function(err, userUpdated){
-
-//     if (err) {
-//       console.log(chalkError(MODULE_ID_PREFIX + " | *** UNBOT | USER FIND ONE ERROR: " + err));
-//       throw err;
-//     }
-    
-//     if (userUpdated){
-//       console.log(chalkLog(MODULE_ID_PREFIX + " | XXX UNBOT"
-//         + " | " + printUser({user: userUpdated})
-//       ));
-//       return userUpdated;
-//     }
-
-//     console.log(chalkLog(MODULE_ID_PREFIX + " | --- UNBOT USER NOT IN DB"
-//       + " | ID: " + params.user.nodeId
-//     ));
-
-//     return;
-
-//   });
-// }
-
-// function unfollow(params, callback) {
-
-//   if (params.user.nodeId !== undefined){
-
-//     unfollowableUserSet.add(params.user.nodeId);
-//     followedUserSet.delete(params.user.nodeId);
-
-//     if (params.ignored) {
-//       ignoredUserSet.add(params.user.nodeId);
-//     }
-//   } 
-
-//   tssChild.send({op: "UNFOLLOW", user: params.user});
-
-//   const query = { nodeId: params.user.nodeId, following: true };
-
-//   const update = {};
-//   update.$set = { following: false, threeceeFollowing: false };
-
-//   const options = { useFindAndModify: false, returnOriginal: false, new: true, upsert: true };
-
-//   global.wordAssoDb.User.findOneAndUpdate(query, update, options, function(err, userUpdated){
-
-//     if (err) {
-//       console.log(chalkError(MODULE_ID_PREFIX + " | *** UNFOLLOW | USER FIND ONE ERROR: " + err));
-//     }
-//     else if (userUpdated){
-//       console.log(chalkLog(MODULE_ID_PREFIX + " | XXX UNFOLLOW"
-//         + " | " + userUpdated.nodeId
-//         + " | @" + userUpdated.screenName
-//         + " | " + userUpdated.name
-//       ));
-//     }
-//     else {
-//       console.log(chalkLog(MODULE_ID_PREFIX + " | --- UNFOLLOWED USER NOT IN DB"
-//         + " | ID: " + params.user.nodeId
-//       ));
-//     }
-
-//     if (callback !== undefined) { callback(err, userUpdated); }
-
-//   });
-// }
 
 async function updateDbIgnoredHashtags(){
 
@@ -4257,7 +3784,6 @@ async function updateDbIgnoredHashtags(){
     try {
 
       const dbHashtag = await global.wordAssoDb.Hashtag.findOne({nodeId: hashtag.toLowerCase()});
-      // const dbHashtag = await global.dbConnection.collection("hashtags").findOne({nodeId: hashtag.toLowerCase()});
 
       if (empty(dbHashtag)) {
         console.log(chalkWarn(MODULE_ID_PREFIX + " | ??? UPDATE IGNORED | HASHTAG NOT FOUND: " + hashtag.toLowerCase()));
@@ -4681,68 +4207,6 @@ async function twitterSearchNode(params) {
 
   viewNameSpace.emit("TWITTER_SEARCH_NODE_UNKNOWN_MODE", { searchNode: searchNode, stats: statsObj.user });
   throw new Error("UNKNOWN SEARCH MODE: " + searchNode);
-}
-
-function initTwitterSearchNodeQueueInterval(interval){
-
-  return new Promise(function(resolve){
-
-    let searchNodeParams;
-    twitterSearchNodeQueueReady = true;
-
-    console.log(chalk.bold.black(MODULE_ID_PREFIX + " | INIT TWITTER SEARCH NODE QUEUE INTERVAL: " + tcUtils.msToTime(interval)));
-
-    clearInterval(twitterSearchNodeQueueInterval);
-
-    let node;
-
-    twitterSearchNodeQueueInterval = setInterval(async function txSearchNodeQueue () {
-
-      if (twitterSearchNodeQueueReady && (twitterSearchNodeQueue.length > 0)) {
-
-        twitterSearchNodeQueueReady = false;
-
-        searchNodeParams = twitterSearchNodeQueue.shift();
-
-        try {
-          node = await twitterSearchNode(searchNodeParams);
-          if (node) {
-            console.log(chalk.green(MODULE_ID_PREFIX + " | TWITTER SEARCH NODE FOUND | NID: " + node.nodeId));
-          }
-
-          twitterSearchNodeQueueReady = true;
-        }
-        catch(err){
-          console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER SEARCH NODE ERROR: " + err));
-          twitterSearchNodeQueueReady = true;
-        }
-
-      }
-    }, interval);
-
-    resolve();
-
-  });
-}
-
-async function setNodeManual(params){
-
-  await updateUserSets();
-
-  const results = await twitterSearchUser({
-    node: params.node,
-    newCategory: params.newCategory,
-    newCategoryVerified: params.newCategoryVerified,
-  });
-
-  if (results.node){
-    const node = results.node;
-    node.category = (params.newCategory !== undefined) ? params.newCategory : node.category;
-    node.categoryVerified = (params.newCategoryVerified !== undefined) ? params.newCategoryVerified : node.categoryVerified;
-    return node;
-  }
-
-  return;
 }
 
 async function initSocketHandler(socketObj) {
@@ -5185,32 +4649,16 @@ async function initSocketHandler(socketObj) {
         return;
       }
 
-      const timeStamp = moment().valueOf();
-
       console.log(chalkSocket(MODULE_ID_PREFIX
         + " | R< TWITTER_FOLLOW"
-        + " | " + getTimeStamp(timeStamp)
+        + " | " + getTimeStamp()
         + " | " + ipAddress
         + " | " + socket.id
         + " | NID: " + user.nodeId
-        + " | UID: " + user.userId
         + " | @" + user.screenName
       ));
 
       try{
-        // const updatedUser = await follow({user: user, forceFollow: true});
-        // if (!updatedUser) {
-        //   console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_FOLLOW ERROR: NULL UPDATED USER"));
-        // }
-        // else{
-        //   console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ TWITTER_FOLLOW"
-        //     + " | " + ipAddress
-        //     + " | " + socket.id
-        //     + " | UID" + updatedUser.nodeId
-        //     + " | @" + updatedUser.screenName
-        //   ));
-        // }
-
         await nodeSetProps({
           node: user,
           forceFollow: true,
@@ -5231,24 +4679,17 @@ async function initSocketHandler(socketObj) {
 
     socket.on("TWITTER_UNFOLLOW", async function(user) {
 
-      const timeStamp = moment().valueOf();
-
       console.log(chalkSocket(MODULE_ID_PREFIX
         + " | R< TWITTER_UNFOLLOW"
-        + " | " + getTimeStamp(timeStamp)
+        + " | " + getTimeStamp()
         + " | " + ipAddress
         + " | " + socket.id
-        + " | UID: " + user.userId
+        + " | NID: " + user.nodeId
         + " | @" + user.screenName
       ));
 
       try{
-        await nodeSetProps({
-          node: user,
-          props: { 
-            follow: false
-          } 
-        });
+        await nodeSetProps({ node: user, props: { follow: false } });
         adminNameSpace.emit("UNFOLLOW", user);
         utilNameSpace.emit("UNFOLLOW", user);
       }
@@ -5256,24 +4697,6 @@ async function initSocketHandler(socketObj) {
         console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_FOLLOW ERROR: " + err));
         throw err;
       }
-
-      // unfollow({user: user}, function(err, updatedUser){
-      //   if (err) {
-      //     console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_UNFOLLOW ERROR: " + err));
-      //     return;
-      //   }
-        
-      //   if (!updatedUser) { return; }
-
-      //   adminNameSpace.emit("UNFOLLOW", updatedUser);
-      //   utilNameSpace.emit("UNFOLLOW", updatedUser);
-
-      //   console.log(chalk.blue(MODULE_ID_PREFIX + " | XXX TWITTER_UNFOLLOW"
-      //     + " | UID" + updatedUser.nodeId
-      //     + " | @" + updatedUser.screenName
-      //   ));
-
-      // });
     });
 
     socket.on("TWITTER_CATEGORY_VERIFIED", async function(user) {
@@ -5285,64 +4708,30 @@ async function initSocketHandler(socketObj) {
         + " | " + getTimeStamp(timeStamp)
         + " | " + ipAddress
         + " | " + socket.id
-        + " | UID: " + user.userId
-        + " | @" + user.screenName
-      ));
-
-      const updatedNode = await setNodeManual({
-        node: user,
-        newCategoryVerified: true
-      });
-
-      socket.emit("SET_TWITTER_USER", {node: updatedNode, stats: statsObj.user });
-
-      if (updatedNode && updatedNode !== undefined){
-        await categorize({ node: updatedNode, autoFollowFlag: true });
-      }
-    });
-
-    socket.on("TWITTER_CATEGORY_UNVERIFIED", async function(user) {
-
-      const timeStamp = moment().valueOf();
-
-      console.log(chalkSocket(MODULE_ID_PREFIX
-        + " | R< TWITTER_CATEGORY_UNVERIFIED"
-        + " | " + getTimeStamp(timeStamp)
-        + " | " + ipAddress
-        + " | " + socket.id
-        + " | UID: " + user.userId
+        + " | NID: " + user.nodeId
         + " | @" + user.screenName
       ));
 
       try{
+        await nodeSetProps({ node: user, props: { categoryVerified: true } });
+      }
+      catch(err){
+        console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
+      }
+    });
 
-        user.categoryVerified = false;
+    socket.on("TWITTER_CATEGORY_UNVERIFIED", async function(user) {
+      console.log(chalkSocket(MODULE_ID_PREFIX
+        + " | R< TWITTER_CATEGORY_UNVERIFIED"
+        + " | " + getTimeStamp()
+        + " | " + ipAddress
+        + " | " + socket.id
+        + " | NID: " + user.nodeId
+        + " | @" + user.screenName
+      ));
 
-        // const updatedUser = await categoryVerified({user: user});
-
-        await nodeSetProps({
-          node: user,
-          props: { 
-            categoryVerified: false
-          } 
-        });
-
-        // if (!updatedUser) { return; }
-
-        // adminNameSpace.emit("CAT_UNVERFIED", updatedUser);
-        // utilNameSpace.emit("CAT_UNVERFIED", updatedUser);
-        // viewNameSpace.emit("CAT_UNVERFIED", updatedUser);
-
-        // console.log(chalk.blue(MODULE_ID_PREFIX 
-        //   + " | --- TWITTER_CATEGORY_UNVERIFIED"
-        //   + " | SID: " + socket.id
-        //   + " | UID" + updatedUser.nodeId
-        //   + " | @" + updatedUser.screenName
-        //   + " | CN: " + updatedUser.categorizeNetwork
-        //   + " | CV: " + updatedUser.categoryVerified
-        //   + " | C M: " + formatCategory(updatedUser.category)
-        //   + " A: " + formatCategory(updatedUser.categoryAuto)
-        // ));
+      try{
+        await nodeSetProps({ node: user, props: { categoryVerified: false } });
       }
       catch(err){
         console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
@@ -5352,37 +4741,16 @@ async function initSocketHandler(socketObj) {
     socket.on("TWITTER_IGNORE", async function(user) {
 
       try{
-
-        const timeStamp = moment().valueOf();
-
         console.log(chalkSocket(MODULE_ID_PREFIX
           + " | R< TWITTER_IGNORE"
-          + " | " + getTimeStamp(timeStamp)
+          + " | " + getTimeStamp()
           + " | " + ipAddress
           + " | " + socket.id
-          + " | UID: " + user.userId
+          + " | NID: " + user.nodeId
           + " | @" + user.screenName
         ));
 
-        await nodeSetProps({
-          node: user,
-          props: { 
-            ignore: true
-          } 
-        });
-
-        // const updatedUser = await ignore({user: user, socketId: socket.id});
-
-        // if (!updatedUser) { return; }
-
-        // adminNameSpace.emit("IGNORE", updatedUser);
-        // utilNameSpace.emit("IGNORE", updatedUser);
-
-        // console.log(chalk.blue(MODULE_ID_PREFIX + " |  TWITTER_IGNORE"
-        //   + " | SID: " + socket.id
-        //   + " | UID" + updatedUser.nodeId
-        //   + " | @" + updatedUser.screenName
-        // ));
+        await nodeSetProps({ node: user, props: { ignore: true } });
       }
       catch(err){
         console.log(chalkError(MODULE_ID_PREFIX + " | *** IGNORE USER ERROR: " + err));
@@ -5392,38 +4760,16 @@ async function initSocketHandler(socketObj) {
     socket.on("TWITTER_UNIGNORE", async function(user) {
 
       try{
-
-        const timeStamp = moment().valueOf();
-
         console.log(chalkSocket(MODULE_ID_PREFIX
           + " | R< TWITTER_UNIGNORE"
-          + " | " + getTimeStamp(timeStamp)
+          + " | " + getTimeStamp()
           + " | " + ipAddress
           + " | " + socket.id
-          + " | UID: " + user.userId
+          + " | NID: " + user.nodeId
           + " | @" + user.screenName
         ));
 
-        await nodeSetProps({
-          node: user,
-          props: { 
-            ignore: false
-          } 
-        });
-
-        // const updatedUser = await unignore({user: user, socketId: socket.id});
-        
-        // if (!updatedUser) { return; }
-
-        // adminNameSpace.emit("UNIGNORE", updatedUser);
-        // utilNameSpace.emit("UNIGNORE", updatedUser);
-
-        // console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ TWITTER_UNIGNORE"
-        //   + " | SID: " + socket.id
-        //   + " | UID" + updatedUser.nodeId
-        //   + " | @" + updatedUser.screenName
-        // ));
-
+        await nodeSetProps({ node: user, props: { ignore: false } });
       }
       catch(err){
         console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_UNIGNORE ERROR: " + err));
@@ -5434,37 +4780,17 @@ async function initSocketHandler(socketObj) {
     socket.on("TWITTER_BOT", async function(user) {
 
       try{
-
-        const timeStamp = moment().valueOf();
-
         console.log(chalkSocket(MODULE_ID_PREFIX
           + " | R< TWITTER_BOT"
-          + " | " + getTimeStamp(timeStamp)
+          + " | " + getTimeStamp()
           + " | " + ipAddress
           + " | " + socket.id
-          + " | UID: " + user.userId
+          + " | NID: " + user.nodeId
           + " | @" + user.screenName
         ));
 
-        await nodeSetProps({
-          node: user,
-          props: { 
-            isBot: true
-          } 
-        });
+        await nodeSetProps({ node: user, props: { isBot: true } });
 
-        // const updatedUser = await bot({user: user, socketId: socket.id});
-
-        // if (!updatedUser) { return; }
-
-        // adminNameSpace.emit("BOT", updatedUser);
-        // utilNameSpace.emit("BOT", updatedUser);
-
-        // console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ TWITTER_BOT"
-        //   + " | SID: " + socket.id
-        //   + " | UID" + updatedUser.nodeId
-        //   + " | @" + updatedUser.screenName
-        // ));
       }
       catch(err){
         console.log(chalkError(MODULE_ID_PREFIX + " | *** BOT USER ERROR: " + err));
@@ -5474,38 +4800,16 @@ async function initSocketHandler(socketObj) {
     socket.on("TWITTER_UNBOT", async function(user) {
 
       try{
-
-        const timeStamp = moment().valueOf();
-
         console.log(chalkSocket(MODULE_ID_PREFIX
           + " | R< TWITTER_UNBOT"
-          + " | " + getTimeStamp(timeStamp)
+          + " | " + getTimeStamp()
           + " | " + ipAddress
           + " | " + socket.id
-          + " | UID: " + user.userId
+          + " | NID: " + user.nodeId
           + " | @" + user.screenName
         ));
 
-        await nodeSetProps({
-          node: user,
-          props: { 
-            isBot: false
-          } 
-        });
-
-        // const updatedUser = await unbot({user: user, socketId: socket.id});
-        
-        // if (!updatedUser) { return; }
-
-        // adminNameSpace.emit("UNBOT", updatedUser);
-        // utilNameSpace.emit("UNBOT", updatedUser);
-
-        // console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ TWITTER_UNBOT"
-        //   + " | SID: " + socket.id
-        //   + " | UID" + updatedUser.nodeId
-        //   + " | @" + updatedUser.screenName
-        // ));
-
+        await nodeSetProps({ node: user, props: { isBot: false } });
       }
       catch(err){
         console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_UNBOT ERROR: " + err));
@@ -5513,85 +4817,33 @@ async function initSocketHandler(socketObj) {
       }
     });
 
-    socket.on("TWITTER_SEARCH_NODE", function (sn) {
-
-      const timeStamp = moment().valueOf();
-
-      twitterSearchNodeQueue.push({searchNode: sn, socketId: socket.id});
+    socket.on("TWITTER_SEARCH_NODE", async function (sn) {
 
       console.log(chalkSocket(MODULE_ID_PREFIX
         + " | R< TWITTER_SEARCH_NODE"
-        + " [ TSNQ: " + twitterSearchNodeQueue.length + "]"
-        + " | " + getTimeStamp(timeStamp)
+        + " | " + getTimeStamp()
         + " | " + ipAddress
         + " | " + socket.id
         + " | " + sn
       ));
+
+      await twitterSearchNode({searchNode: sn});
     });
 
     socket.on("TWITTER_CATEGORIZE_NODE", async function twitterCategorizeNode(dataObj) {
 
-      if (!configuration.primaryHost) {
-        await pubSubCategorizeNode(dataObj);
-      }
-      else {
-        const timeStamp = moment().valueOf();
+      await autoCategorizeNode(dataObj);
 
-        if (dataObj.node.nodeType == "user") {
-
-          statsObj.user.categorizedManual += 1;
-
-          console.log(chalkSocket(MODULE_ID_PREFIX
-            + " | TWITTER_CATEGORIZE_NODE"
-            + " [" + statsObj.user.categorizedManual + "]"
-            + " | " + getTimeStamp(timeStamp)
-            + " | " + ipAddress
-            + " | " + socket.id
-            + " | NID: " + dataObj.node.nodeId
-            + " | @" + dataObj.node.screenName
-            + " | FLW: " + formatBoolean(dataObj.follow)
-            + " | CAT: " + formatCategory(dataObj.category)
-          ));
-
-          await updateUserCounts();
-
-          const updatedNode = await setNodeManual({
-            node: dataObj.node,
-            newCategory: dataObj.category
-          });
-
-          socket.emit("SET_TWITTER_USER", {node: updatedNode, stats: statsObj.user });
-
-          if (updatedNode){
-            await categorize({ node: updatedNode, autoFollowFlag: true });
-          }
-        }
-
-        if (dataObj.node.nodeType == "hashtag") {
-
-          statsObj.hashtag.categorizedManual += 1;
-
-          console.log(chalkSocket(MODULE_ID_PREFIX
-            + " | TWITTER_CATEGORIZE_NODE"
-            + " | " + getTimeStamp(timeStamp)
-            + " | SID: " + socket.id
-            + " | #" + dataObj.node.nodeId
-            + " | NEW CAT: " + formatCategory(dataObj.category)
-          ));
-        }
-      }
     });
 
     socket.on("USER_READY", function userReady(userObj) {
 
-      const timeStamp = moment().valueOf();
-
       console.log(chalkSocket(MODULE_ID_PREFIX
         + " | R< USER READY"
-        + " | " + getTimeStamp(timeStamp)
+        + " | " + getTimeStamp()
         + " | " + ipAddress
         + " | " + socket.id
-        + " | " + userObj.userId
+        + " | NID: " + userObj.nodeId
         + " | SENT " + getTimeStamp(parseInt(userObj.timeStamp))
       ));
 
@@ -5662,7 +4914,7 @@ async function initSocketHandler(socketObj) {
       }
     });
 
-    socket.on("categorize", categorize);
+    // socket.on("categorize", categorize);
 
     socket.on("login", async function socketLogin(viewerObj){
 
@@ -5965,7 +5217,6 @@ async function checkCategory(nodeObj) {
       console.log(chalk.blue(MODULE_ID_PREFIX + " | DEFAULT | checkCategory\n" + jsonPrint(nodeObj)));
       return nodeObj;
   }
-
 }
 
 async function updateNodeMeter(node){
@@ -6084,7 +5335,6 @@ function followable(text){
 
   });
 }
-
 
 async function userCategorizeable(params){
 
@@ -6866,75 +6116,19 @@ function printBotStats(params){
 }
 
 const publishMessageCategorize = {};
-publishMessageCategorize.publishName = "categorize";
+publishMessageCategorize.publishName = "node-autocategorize";
 publishMessageCategorize.message = {};
 publishMessageCategorize.message.requestId = "";
-// publishMessageCategorize.message.user = {};
 publishMessageCategorize.message.node = {};
 
-async function pubSubCategorizeNode(params){
+async function autoCategorizeNode(params){
 
-  if (configuration.pubSub.enabled && !pubSubCategorizeSentSet.has(params.node.nodeId)) { 
-
-    publishMessageCategorize.message.requestId = "rId_" + hostname + "_" + moment().valueOf();
-    publishMessageCategorize.message.node = params.node;
-    publishMessageCategorize.message.newCategory = params.category;
-    publishMessageCategorize.message.newCategoryVerified = params.categoryVerified;
-    publishMessageCategorize.message.newFollow = params.follow;
-
-    await pubSubPublishMessage(publishMessageCategorize);
-
-    if (!empty(params.node.nodeId)) { pubSubCategorizeSentSet.add(params.node.nodeId); }
-    if (!empty(params.node.screenName)) { pubSubCategorizeSentSet.add(params.node.screenName); }
-
-    return true;
-  }
-
-  debug(chalkAlert(MODULE_ID_PREFIX
-    + " | !!! pubSubCategorizeNode MISS"
-    + " | configuration.pubSub.enabled: " + formatBoolean(configuration.pubSub.enabled) 
-    + " | NODE TYPE: " + params.node.nodeType
-    + " | NID: " + params.node.nodeId
-    + " | @" + params.node.screenName
-  ));
-
-  return false;
-}
-
-async function categorize(params){
-
-  try{
-    const n = params.node;
-
-    if (n.nodeType != "user"){
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** categorize NOT USER | TYPE: " + n.nodeType));
-      throw new Error("categorize NOT USER");
-    }
-
-    if (configuration.autoFollow
-      && (!n.category || (n.category === "none") || (n.category === undefined))
-      && (!n.ignored || (n.ignored === undefined))
-      && (!n.following || (n.following === undefined))
-      && (n.followersCount >= configuration.minFollowersAutoFollow)
-      && !autoFollowUserSet.has(n.nodeId)
-      && !ignoredUserSet.has(n.nodeId) 
-      && !ignoredUserSet.has(n.screenName) 
-      )
-    {
-      n.following = true;
-      autoFollowUserSet.add(n.nodeId);
-      statsObj.user.autoFollow += 1;
-      printUserObj(MODULE_ID_PREFIX + " | AUTO FLW [" + statsObj.user.autoFollow + "]", n);
-    }
-
-    await pubSubCategorizeNode({node: n, category: params.newCategory});
-
-    return;
-  }
-  catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** categorize ERR: ", err));
-    throw err;
-  }
+  await nodeSetProps({
+    node: params.node, 
+    props: { category: params.category, follow: params.follow }, 
+    autoCategorizeFlag: true, 
+    autoFollowFlag: params.autoFollowFlag
+  });
 }
 
 function initTransmitNodeQueueInterval(interval){
@@ -6948,7 +6142,6 @@ function initTransmitNodeQueueInterval(interval){
     let nodeObj;
     let categorizeable;
     let nCacheObj;
-    let autoFollowFlag = false;
     let node;
     let updatedUser;
 
@@ -6968,7 +6161,6 @@ function initTransmitNodeQueueInterval(interval){
         }
 
         transmitNodeQueueReady = false;
-        autoFollowFlag = false;
 
         nodeObj = transmitNodeQueue.shift();
 
@@ -6991,10 +6183,7 @@ function initTransmitNodeQueueInterval(interval){
         categorizeable = await userCategorizeable({user: node});
  
         if (node && (node !== undefined) && categorizeable) {
-          await categorize({
-            user: node,
-            autoFollowFlag: autoFollowFlag
-          });
+          await nodeSetProps({ node: node, props: {}, autoCategorize: true, autoFollowFlag: true });
         }
 
         if (categorizeable && (node.nodeType === "user") 
@@ -7278,25 +6467,8 @@ function initAppRouting(callback) {
             screenName: followEvents[0].target.screen_name
           }
 
-          await nodeSetProps({
-            node: user,
-            props: { 
-              follow: true
-            } 
-          });
+          await nodeSetProps({ node: user, props: { follow: true } });
 
-          // follow({user: user, forceFollow: true})
-          // .then(function(updatedUser){
-          //   if (!updatedUser) { return; }
-          //   adminNameSpace.emit("FOLLOW", updatedUser);
-          //   utilNameSpace.emit("FOLLOW", updatedUser);
-
-          // })
-          // .catch(function(err){
-          //   console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_FOLLOW ERROR: " + err));
-          //   return;
-          // });
-        
         }
         
         if (followEvents && (followEvents[0].type == "unfollow")) {
@@ -7304,7 +6476,6 @@ function initAppRouting(callback) {
           console.log(chalkAlert(MODULE_ID_PREFIX + " | >>> TWITTER USER UNFOLLOW EVENT"
             + " | SOURCE: @" + followEvents[0].source.screen_name
             + " | TARGET: @" + followEvents[0].target.screen_name
-            // + "\n" + jsonPrint(followEvents)
           ));
 
           const user = {
@@ -7313,22 +6484,8 @@ function initAppRouting(callback) {
             screenName: followEvents[0].target.screen_name
           }
 
-          await nodeSetProps({
-            node: user,
-            props: { follow: false } 
-          });
+          await nodeSetProps({ node: user, props: { follow: false } });
 
-          // unfollow({user: user}, function(err, updatedUser){
-          //   if (err) {
-          //     console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_UNFOLLOW ERROR: " + err));
-          //     return;
-          //   }
-            
-          //   if (!updatedUser) { return; }
-
-          //   adminNameSpace.emit("UNFOLLOW", updatedUser);
-          //   utilNameSpace.emit("UNFOLLOW", updatedUser);
-          // });
         }
         
         res.sendStatus(200);
@@ -10302,7 +9459,7 @@ setTimeout(async function(){
     await initRateQinterval(configuration.rateQueueInterval);
     await initTwitterRxQueueInterval(configuration.twitterRxQueueInterval);
     await initTweetParserMessageRxQueueInterval(configuration.tweetParserMessageRxQueueInterval);
-    await initTwitterSearchNodeQueueInterval(configuration.twitterSearchNodeQueueInterval);
+    // await initTwitterSearchNodeQueueInterval(configuration.twitterSearchNodeQueueInterval);
     await initSorterMessageRxQueueInterval(configuration.sorterMessageRxQueueInterval);
     await initDbuChild({childId: DEFAULT_DBU_CHILD_ID});
     await initDbUserChangeStream();

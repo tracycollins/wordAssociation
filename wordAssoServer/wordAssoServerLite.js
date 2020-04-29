@@ -508,6 +508,10 @@ const nodeSearchResultHandler = async function(message){
         + " | CA: " + formatCategory(messageObj.node.categoryAuto)
       ));
 
+      if (messageObj.stats){
+        console.log(chalkLog(MODULE_ID_PREFIX + "\nUSER STATS\n" + jsonPrint(messageObj.stats)));
+      }
+
       searchUserResultHashMap[messageObj.requestId] = messageObj.node;
     }
     else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
@@ -5941,7 +5945,7 @@ async function updateUserSets(){
       + " | " + getTimeStamp()
       + " | FOLLOWING USER SET | RUN TIME: " + tcUtils.msToTime(moment().valueOf() - cursorStartTime)
     ));
-    
+
     console.log(chalkLog(MODULE_ID_PREFIX + " | USER DB STATS\n" + jsonPrint(statsObj.user)));
 
     tcUtils.emitter.emit("updateUserSetsEnd");

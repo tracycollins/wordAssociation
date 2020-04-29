@@ -5297,7 +5297,7 @@ async function initSocketHandler(socketObj) {
       socket.emit("SET_TWITTER_USER", {node: updatedNode, stats: statsObj.user });
 
       if (updatedNode && updatedNode !== undefined){
-        await categorize({ user: updatedNode, autoFollowFlag: true });
+        await categorize({ node: updatedNode, autoFollowFlag: true });
       }
     });
 
@@ -5563,7 +5563,7 @@ async function initSocketHandler(socketObj) {
           socket.emit("SET_TWITTER_USER", {node: updatedNode, stats: statsObj.user });
 
           if (updatedNode){
-            await categorize({ user: updatedNode, autoFollowFlag: true });
+            await categorize({ node: updatedNode, autoFollowFlag: true });
           }
         }
 
@@ -6904,7 +6904,7 @@ async function pubSubCategorizeNode(params){
 async function categorize(params){
 
   try{
-    const n = params.user;
+    const n = params.node;
 
     if (n.nodeType != "user"){
       console.log(chalkError(MODULE_ID_PREFIX + " | *** categorize NOT USER | TYPE: " + n.nodeType));

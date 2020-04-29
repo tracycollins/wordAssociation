@@ -4678,7 +4678,7 @@ async function initSocketHandler(socketObj) {
         console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_FOLLOW ERROR: NULL USER"));
         return;
       }
-
+      user.nodeType = user.nodeType || "user";
       console.log(chalkSocket(MODULE_ID_PREFIX
         + " | R< TWITTER_FOLLOW"
         + " | " + getTimeStamp()
@@ -4708,7 +4708,7 @@ async function initSocketHandler(socketObj) {
     });
 
     socket.on("TWITTER_UNFOLLOW", async function(user) {
-
+      user.nodeType = user.nodeType || "user";
       console.log(chalkSocket(MODULE_ID_PREFIX
         + " | R< TWITTER_UNFOLLOW"
         + " | " + getTimeStamp()
@@ -4730,12 +4730,10 @@ async function initSocketHandler(socketObj) {
     });
 
     socket.on("TWITTER_CATEGORY_VERIFIED", async function(user) {
-
-      const timeStamp = moment().valueOf();
-
+      user.nodeType = user.nodeType || "user";
       console.log(chalkSocket(MODULE_ID_PREFIX
         + " | R< TWITTER_CATEGORY_VERIFIED"
-        + " | " + getTimeStamp(timeStamp)
+        + " | " + getTimeStamp()
         + " | " + ipAddress
         + " | " + socket.id
         + " | NID: " + user.nodeId
@@ -4751,6 +4749,7 @@ async function initSocketHandler(socketObj) {
     });
 
     socket.on("TWITTER_CATEGORY_UNVERIFIED", async function(user) {
+      user.nodeType = user.nodeType || "user";
       console.log(chalkSocket(MODULE_ID_PREFIX
         + " | R< TWITTER_CATEGORY_UNVERIFIED"
         + " | " + getTimeStamp()
@@ -4769,7 +4768,7 @@ async function initSocketHandler(socketObj) {
     });
 
     socket.on("TWITTER_IGNORE", async function(user) {
-
+      user.nodeType = user.nodeType || "user";
       try{
         console.log(chalkSocket(MODULE_ID_PREFIX
           + " | R< TWITTER_IGNORE"
@@ -4788,7 +4787,7 @@ async function initSocketHandler(socketObj) {
     });
 
     socket.on("TWITTER_UNIGNORE", async function(user) {
-
+      user.nodeType = user.nodeType || "user";
       try{
         console.log(chalkSocket(MODULE_ID_PREFIX
           + " | R< TWITTER_UNIGNORE"
@@ -4808,7 +4807,7 @@ async function initSocketHandler(socketObj) {
     });
 
     socket.on("TWITTER_BOT", async function(user) {
-
+      user.nodeType = user.nodeType || "user";
       try{
         console.log(chalkSocket(MODULE_ID_PREFIX
           + " | R< TWITTER_BOT"
@@ -4828,7 +4827,7 @@ async function initSocketHandler(socketObj) {
     });
 
     socket.on("TWITTER_UNBOT", async function(user) {
-
+      user.nodeType = user.nodeType || "user";
       try{
         console.log(chalkSocket(MODULE_ID_PREFIX
           + " | R< TWITTER_UNBOT"

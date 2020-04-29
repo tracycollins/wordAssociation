@@ -9470,9 +9470,9 @@ setTimeout(async function(){
     configuration = deepcopy(cnf);
     if (empty(configuration.twitter)) { configuration.twitter = {}; }
 
-    const primaryHost = (configuration.primaryHost) ? "-primary" : "";
+    configuration.primaryHost = (hostname === process.env.PRIMARY_HOST);
 
-configuration.primaryHost = (hostname === process.env.PRIMARY_HOST);
+    const primaryHostSuffix = (configuration.primaryHost) ? "-primary" : "";
 
     console.log(chalkBlueBold(MODULE_ID_PREFIX
       + " | PROCESS: " + configuration.processName 
@@ -9514,9 +9514,9 @@ configuration.primaryHost = (hostname === process.env.PRIMARY_HOST);
 
     configEvents.emit("DB_CONNECT");
 
-    await initNodeOpHandler({subscribeName: "node-search-result" + primaryHost});
-    await initNodeOpHandler({subscribeName: "node-setprops-result" + primaryHost});
-    await initNodeOpHandler({subscribeName: "node-autocategorize-result" + primaryHost});
+    await initNodeOpHandler({subscribeName: "node-search-result" + primaryHostSuffix});
+    await initNodeOpHandler({subscribeName: "node-setprops-result" + primaryHostSuffix});
+    await initNodeOpHandler({subscribeName: "node-autocategorize-result" + primaryHostSuffix});
 
     await initAllowLocations();
     await initIgnoreLocations();

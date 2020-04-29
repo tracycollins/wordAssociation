@@ -1,6 +1,9 @@
 const MODULE_NAME = "wordAssoServer";
 const MODULE_ID_PREFIX = "WAS";
 
+const DEFAULT_PRIMARY_HOST = "google";
+const DEFAULT_DATABASE_HOST = "mms3";
+
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
 const ONE_HOUR = 60 * ONE_MINUTE;
@@ -704,6 +707,7 @@ async function initNodeOpHandler(params){
 
   switch (params.subscribeName) {
     case "node-search-result":
+    case "node-search-result-primary":
       statsObj.pubSub.subscriptions.nodeSearchResult = {};
       statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived = 0;
       statsObj.pubSub.subscriptions.nodeSearchResult.topic = metadata.topic;
@@ -712,6 +716,7 @@ async function initNodeOpHandler(params){
       subscription.on("message", nodeSearchResultHandler);
     break;
     case "node-setprops-result":
+    case "node-setprops-result-primary":
       statsObj.pubSub.subscriptions.nodeSetPropsResult = {};
       statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived = 0;
       statsObj.pubSub.subscriptions.nodeSetPropsResult.topic = metadata.topic;
@@ -720,6 +725,7 @@ async function initNodeOpHandler(params){
       subscription.on("message", nodeSetPropsResultHandler);
     break;
     case "node-autocategorize-result":
+    case "node-autocategorize-result-primary":
       statsObj.pubSub.subscriptions.nodeAutoCategorizeResult = {};
       statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived = 0;
       statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.topic = metadata.topic;
@@ -728,6 +734,7 @@ async function initNodeOpHandler(params){
       subscription.on("message", nodeAutoCategorizeResultHandler);
     break;
     case "node-ignore":
+    case "node-ignore-primary":
       statsObj.pubSub.subscriptions.nodeIgnoreResult = {};
       statsObj.pubSub.subscriptions.nodeIgnoreResult.messagesReceived = 0;
       statsObj.pubSub.subscriptions.nodeIgnoreResult.topic = metadata.topic;
@@ -1034,7 +1041,8 @@ let hostConfiguration = {}; // host-specific configuration
 
 let configuration = {};
 
-configuration.primaryHost = (hostname === process.env.PRIMARY_HOST);
+configuration.primaryHost = process.env.PRIMARY_HOST || "DEFAULT_PRIMARY_HOST";
+configuration.databaseHost = process.env.DATABASE_HOST || "DEFAULT_DATABASE_HOST";
 
 configuration.uncatUserCacheTtl = DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL;
 configuration.uncatUserCacheCheckPeriod = DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD;
@@ -3586,7 +3594,7 @@ async function pubSubNodeSetProps(params){
 
     debug(chalkBlue(MODULE_ID_PREFIX
       + " | NODE SET PROPS [" + statsObj.pubSub.messagesSent + "]"
-      + " | REQ: " + params.requestId
+      + " | RID: " + params.requestId
       + " | TOPIC: node-setprops"
       + " | NODE TYPE: " + params.node.nodeType
       + " | NID: " + params.node.nodeId
@@ -3604,8 +3612,14 @@ async function pubSubNodeSetProps(params){
 
     nodeSetPropsResultTimeout = setTimeout(function(){
 
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! NODE SET PROPS TIMEOUT"
-        + "\nPARAMS\n" + jsonPrint(params) 
+      console.log(chalkAlert(MODULE_ID_PREFIX
+        + " | !!! NODE SET PROPS TIMEOUT"
+        + " [" + statsObj.pubSub.messagesSent + "]"
+        + " | RID: " + params.requestId
+        + " | TOPIC: node-setprops"
+        + " | NODE TYPE: " + params.node.nodeType
+        + " | NID: " + params.node.nodeId
+        + " | PROPS: " + Object.keys(params.props)
       ));
 
       tcUtils.emitter.emit(eventName);
@@ -5586,7 +5600,7 @@ async function initBotSet(p){
 
       const dataArray = csvData.toString().toLowerCase().split("\n");
 
-      console.log(chalk.blue(MODULE_ID_PREFIX + " | FILE CONTAINS " + dataArray.length + " TWITTER BOT IDs"));
+      debug(chalk.blue(MODULE_ID_PREFIX + " | FILE CONTAINS " + dataArray.length + " TWITTER BOT IDs"));
 
       for(const nId of dataArray){
 
@@ -9422,7 +9436,17 @@ setTimeout(async function(){
     configuration = deepcopy(cnf);
     if (empty(configuration.twitter)) { configuration.twitter = {}; }
 
-    console.log(MODULE_ID_PREFIX + " | " + chalkTwitter(configuration.processName + " STARTED " + getTimeStamp() ));
+    const primaryHost = (configuration.primaryHost) ? "-primary" : "";
+
+configuration.primaryHost = (hostname === process.env.PRIMARY_HOST);
+
+    console.log(chalkBlueBold(MODULE_ID_PREFIX
+      + " | PROCESS: " + configuration.processName 
+      + " | HOST: " + hostname
+      + " | PRIMARY HOST: " + process.env.PRIMARY_HOST
+      + " | STARTED " + getTimeStamp()
+    ));
+
 
     statsObj.status = "START";
 
@@ -9456,6 +9480,10 @@ setTimeout(async function(){
 
     configEvents.emit("DB_CONNECT");
 
+    await initNodeOpHandler({subscribeName: "node-search-result" + primaryHost});
+    await initNodeOpHandler({subscribeName: "node-setprops-result" + primaryHost});
+    await initNodeOpHandler({subscribeName: "node-autocategorize-result" + primaryHost});
+
     await initAllowLocations();
     await initIgnoreLocations();
     await loadBestRuntimeNetwork();
@@ -9474,12 +9502,6 @@ setTimeout(async function(){
     await initUpdateUserSetsInterval(configuration.updateUserSetsInterval);
     await initWatchConfig();
     await initTssChild({childId: DEFAULT_TSS_CHILD_ID, tweetVersion2: configuration.tweetVersion2, threeceeUser: threeceeUser});
-
-
-    const primaryHost = (configuration.primaryHost) ? "-primary" : "";
-    await initNodeOpHandler({subscribeName: "node-search-result" + primaryHost});
-    await initNodeOpHandler({subscribeName: "node-setprops-result" + primaryHost});
-    await initNodeOpHandler({subscribeName: "node-autocategorize-result" + primaryHost});
 
     // await initPubSubCategorizeResultHandler({
     //   subscribeName: configuration.pubSub.subscriptions.categorizeResult.subscribeName

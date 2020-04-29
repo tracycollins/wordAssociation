@@ -3614,7 +3614,7 @@ async function pubSubNodeSetProps(params){
 
     }, 10*ONE_SECOND);
 
-    await tcUtils.waitEvent({event: eventName, verbose: true});
+    await tcUtils.waitEvent({event: eventName, verbose: configuration.verbose});
 
     clearTimeout(nodeSetPropsResultTimeout);
 
@@ -3970,7 +3970,7 @@ async function pubSubSearchUser(params){
     }, 100);
 
 
-    await tcUtils.waitEvent({event: eventName, verbose: true});
+    await tcUtils.waitEvent({event: eventName, verbose: configuration.verbose});
 
     clearTimeout(twitterSearchNodeTimeout);
 
@@ -6095,7 +6095,7 @@ function initUpdateUserSetsInterval(interval){
         if (statsObj.dbConnectionReady && updateUserSetsIntervalReady) {
           updateUserSetsIntervalReady = false;
           await updateUserSets();
-          await tcUtils.waitEvent({ event: "updateUserSetsEnd", verbose: true});
+          await tcUtils.waitEvent({ event: "updateUserSetsEnd", verbose: configuration.verbose});
           await updateHashtagSets();
           updateUserSetsIntervalReady = true;
         }

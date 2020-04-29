@@ -3967,7 +3967,7 @@ async function pubSubSearchUser(params){
 
       return;
 
-    }, 10*ONE_SECOND);
+    }, 100);
 
 
     await tcUtils.waitEvent({event: eventName, verbose: true});
@@ -9475,9 +9475,11 @@ setTimeout(async function(){
     await initWatchConfig();
     await initTssChild({childId: DEFAULT_TSS_CHILD_ID, tweetVersion2: configuration.tweetVersion2, threeceeUser: threeceeUser});
 
-    await initNodeOpHandler({subscribeName: "node-search-result"});
-    await initNodeOpHandler({subscribeName: "node-setprops-result"});
-    await initNodeOpHandler({subscribeName: "node-autocategorize-result"});
+
+    const primaryHost = (configuration.primaryHost) ? "-primary" : "";
+    await initNodeOpHandler({subscribeName: "node-search-result" + primaryHost});
+    await initNodeOpHandler({subscribeName: "node-setprops-result" + primaryHost});
+    await initNodeOpHandler({subscribeName: "node-autocategorize-result" + primaryHost});
 
     // await initPubSubCategorizeResultHandler({
     //   subscribeName: configuration.pubSub.subscriptions.categorizeResult.subscribeName

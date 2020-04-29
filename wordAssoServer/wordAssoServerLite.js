@@ -3620,7 +3620,13 @@ async function pubSubNodeSetProps(params){
     const node = nodeSetPropsResultHashMap[params.requestId] || false;
 
     if (!node){
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! NODE SET PROP NODE NOT FOUND\n" + jsonPrint(params)));
+      console.log(chalkAlert(MODULE_ID_PREFIX
+        + " | !!! NODE SET PROP NODE NOT FOUND"
+        + " | " + params.requestId
+        + " | TYPE: " + params.node.nodeType
+        + " | NID: " + params.node.nodeId
+        // + "\n" + jsonPrint(params)
+      ));
     }
 
     return node;
@@ -9409,7 +9415,7 @@ setTimeout(async function(){
 
     await waitDbConnectionReady();
 
-    await initBotSet({verbose: true});
+    await initBotSet();
     const cnf = await initConfig();
 
     configuration = deepcopy(cnf);

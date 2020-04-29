@@ -604,7 +604,8 @@ const nodeSetPropsResultHandler = async function(message){
 
     if (messageObj.node && messageObj.node.nodeType === "user") {
       console.log(chalkBlueBold(MODULE_ID_PREFIX
-        + " | ==> PS USER SET PROPS [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
+        + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
+        + " | TOPIC: node-setprops-result"
         + " | RID: " + messageObj.requestId
         + " | NID: " + messageObj.node.nodeId
         + " | @" + messageObj.node.screenName
@@ -3583,7 +3584,7 @@ async function pubSubNodeSetProps(params){
 
   try {
 
-    console.log(chalkBlue(MODULE_ID_PREFIX
+    debug(chalkBlue(MODULE_ID_PREFIX
       + " | NODE SET PROPS [" + statsObj.pubSub.messagesSent + "]"
       + " | REQ: " + params.requestId
       + " | TOPIC: node-setprops"

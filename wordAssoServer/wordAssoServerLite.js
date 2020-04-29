@@ -495,13 +495,13 @@ const nodeSearchResultHandler = async function(message){
     statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived += 1;
 
     if (messageObj.node && messageObj.node.nodeType === "user") {
-      console.log(chalkBlueBold(MODULE_ID_PREFIX
+      console.log(chalkBlue(MODULE_ID_PREFIX
         + " | ==> PS SEARCH USER [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
         + " | RID: " + messageObj.requestId
         + " | MODE: " + messageObj.searchMode
         + " | NID: " + messageObj.node.nodeId
         + " | @" + messageObj.node.screenName
-        + " | FLW" + formatBoolean(messageObj.node.following)
+        + " | FLW: " + formatBoolean(messageObj.node.following)
         + " | CN: " + messageObj.node.categorizeNetwork
         + " | CV: " + formatBoolean(messageObj.node.categoryVerified)
         + " | CM: " + formatCategory(messageObj.node.category)
@@ -3582,7 +3582,7 @@ function enableFollow(params){
   if (params.forceFollow) { return true; }
   if (followedUserSet.has(params.node.nodeId)) { return false; }
   if (ignoredUserSet.has(params.node.nodeId)) { return false; }
-  if ((params.user.screenName !== undefined) && ignoredUserSet.has(params.node.screenName)) { return false; }
+  if ((params.node.screenName !== undefined) && ignoredUserSet.has(params.node.screenName)) { return false; }
   if (unfollowableUserSet.has(params.node.nodeId)) { return false; }
   return true;
 }

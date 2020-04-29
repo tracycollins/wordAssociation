@@ -4099,17 +4099,6 @@ async function twitterSearchUser(params) {
         message.searchMode = "SPECIFIC";
         message.node = params.node
 
-        // if (typeof params.node === "string"){
-        //   if (params.node.startsWith("@")) {
-        //     message.node.screenName = params.node.slice(1);
-        //   }
-        //   else{
-        //     message.node.screenName = params.node;
-        //   }
-        // }
-        // else{
-        //   message.node = params.node;
-        // }
     }
 
     const node = await pubSubSearchUser(message);
@@ -4226,10 +4215,10 @@ async function twitterSearchNode(params) {
     const results = await twitterSearchUser({node: { screenName: searchNode.slice(1)} });
 
     if (results.node){
-      viewNameSpace.emit("SET_TWITTER_USER", results);
+      viewNameSpace.emit("SET_TWITTER_USER", {node: results.node, stats: statsObj.user });
     }
     else{
-      viewNameSpace.emit("TWITTER_USER_NOT_FOUND", results);
+      viewNameSpace.emit("TWITTER_USER_NOT_FOUND", {stats: statsObj.user });
     }
 
     return;

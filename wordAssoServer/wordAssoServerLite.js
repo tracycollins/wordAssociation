@@ -5941,6 +5941,7 @@ async function updateUserSets(){
       + " | " + getTimeStamp()
       + " | FOLLOWING USER SET | RUN TIME: " + tcUtils.msToTime(moment().valueOf() - cursorStartTime)
     ));
+    
     console.log(chalkLog(MODULE_ID_PREFIX + " | USER DB STATS\n" + jsonPrint(statsObj.user)));
 
     tcUtils.emitter.emit("updateUserSetsEnd");
@@ -6106,8 +6107,8 @@ function initUpdateUserSetsInterval(interval){
         if (statsObj.dbConnectionReady && updateUserSetsIntervalReady) {
           updateUserSetsIntervalReady = false;
           await updateUserSets();
-          await tcUtils.waitEvent({ event: "updateUserSetsEnd", verbose: configuration.verbose});
           await updateHashtagSets();
+          await tcUtils.waitEvent({ event: "updateUserSetsEnd", verbose: configuration.verbose});
           updateUserSetsIntervalReady = true;
         }
       }

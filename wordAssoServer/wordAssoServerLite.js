@@ -3734,12 +3734,12 @@ async function nodeSetProps(params) {
     }
   } 
 
-  if (params.props.ignore !== undefined){
-    if (params.props.ignore) { 
+  if (params.props.ignored !== undefined){
+    if (params.props.ignored) { 
       ignoredUserSet.add(params.node.nodeId);
       if (tssChild !== undefined){ tssChild.send({op: "IGNORE", user: params.node}); }
     }
-    if (!params.props.ignore) { 
+    if (!params.props.ignored) { 
       ignoredUserSet.delete(params.node.nodeId);
       if (tssChild !== undefined){ tssChild.send({op: "UNIGNORE", user: params.node}); }
     }
@@ -4779,7 +4779,7 @@ async function initSocketHandler(socketObj) {
           + " | @" + user.screenName
         ));
 
-        await nodeSetProps({ node: user, props: { ignore: true } });
+        await nodeSetProps({ node: user, props: { ignored: true } });
       }
       catch(err){
         console.log(chalkError(MODULE_ID_PREFIX + " | *** IGNORE USER ERROR: " + err));
@@ -4798,7 +4798,7 @@ async function initSocketHandler(socketObj) {
           + " | @" + user.screenName
         ));
 
-        await nodeSetProps({ node: user, props: { ignore: false } });
+        await nodeSetProps({ node: user, props: { ignored: false } });
       }
       catch(err){
         console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_UNIGNORE ERROR: " + err));

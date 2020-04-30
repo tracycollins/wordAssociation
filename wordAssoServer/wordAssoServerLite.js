@@ -6217,14 +6217,14 @@ publishMessageCategorize.message.node = {};
 
 async function autoCategorizeNode(params){
 
-  await nodeSetProps({
+  const node = await nodeSetProps({
     node: params.node, 
     props: { category: params.category, follow: params.follow }, 
     autoCategorizeFlag: true, 
     autoFollowFlag: params.autoFollowFlag
   });
 
-  return;
+  return node;
 }
 
 const nodeSetPropsQueue = [];

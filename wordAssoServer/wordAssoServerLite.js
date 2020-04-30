@@ -498,9 +498,7 @@ const nodeSearchResultHandler = async function(message){
 
   const messageObj = JSON.parse(message.data.toString());
 
-  console.log(chalkLog(MODULE_ID_PREFIX
-    + " | RX NODE SEARCH RESULT " + message.id
-  ));
+  debug(chalkLog(MODULE_ID_PREFIX + " | RX NODE SEARCH RESULT " + message.id));
 
   if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)){
 

@@ -4115,7 +4115,7 @@ async function pubSubSearchUser(params){
 
 async function twitterSearchUser(params) {
 
-  if (typeof params.user === "string"){
+  if (typeof params.node === "string"){
     console.log(chalkInfo(MODULE_ID_PREFIX 
       + " | -?- USER SEARCH | USER: " + params.node
     ));
@@ -4158,7 +4158,7 @@ async function twitterSearchUser(params) {
 
       default:
         message.searchMode = "SPECIFIC";
-        message.node = params.node
+        message.node = params.node;
 
     }
 
@@ -4273,7 +4273,7 @@ async function twitterSearchNode(params) {
 
   if (searchNode.startsWith("@")) {
 
-    const results = await twitterSearchUser({node: { screenName: searchNode.slice(1)} });
+    const results = await twitterSearchUser({node: { nodeType: "user", screenName: searchNode.slice(1)} });
 
     if (results.node){
       viewNameSpace.emit("SET_TWITTER_USER", {node: results.node, stats: statsObj.user });
@@ -6181,8 +6181,8 @@ function initUpdateUserSetsInterval(interval){
         if (statsObj.dbConnectionReady && updateUserSetsIntervalReady) {
           updateUserSetsIntervalReady = false;
           await updateUserSets();
-          await updateHashtagSets();
           await tcUtils.waitEvent({ event: "updateUserSetsEnd", verbose: configuration.verbose});
+          await updateHashtagSets();
           updateUserSetsIntervalReady = true;
         }
       }

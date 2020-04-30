@@ -11180,9 +11180,9 @@ async function initWatchConfig(){
 
       if (f.endsWith("bestRuntimeNetwork.json")){
         await loadBestRuntimeNetwork();
-        await updateUserSets();
-        await tcUtils.waitEvent({ event: "updateUserSetsEnd", verbose: true});
-        await updateHashtagSets();
+        // await updateUserSets();
+        // await tcUtils.waitEvent({ event: "updateUserSetsEnd", verbose: true});
+        // await updateHashtagSets();
       }
 
       if (f.endsWith(followableSearchTermFile)){

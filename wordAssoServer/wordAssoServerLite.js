@@ -3859,9 +3859,9 @@ async function nodeSetProps(params) {
     if (!params.props.isBot) { botNodeIdSet.delete(params.node.nodeId); }
   } 
 
-  await pubSubNodeSetProps({ requestId: requestId, node: params.node, props: params.props });
+  const node = await pubSubNodeSetProps({ requestId: requestId, node: params.node, props: params.props });
 
-  return;
+  return node;
 }
 
 async function updateDbIgnoredHashtags(){

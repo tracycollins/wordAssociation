@@ -3602,6 +3602,53 @@ function enableFollow(params){
   return true;
 }
 
+async function deleteNode(node){
+
+  let results;
+
+  if (node.nodeType === "user"){
+
+    results = await global.wordAssoDb.User.deleteOne({nodeId: node.nodeId});
+
+    if (results.deletedCount > 0){
+
+      statsObj.user.deleted += 1;
+
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX USER | -*- DB HIT"
+        + " [" + statsObj.user.deleted + " DELETED USERS]"
+        + " | " + node.nodeId
+      ));
+    }
+    else{
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX USER | --- DB MISS" 
+        + " | " + node.nodeId
+      ));
+    }
+  }
+
+  if (node.nodeType === "hashtag"){
+
+    results = await global.wordAssoDb.Hashtag.deleteOne({nodeId: node.nodeId});
+
+    if (results.deletedCount > 0){
+
+      statsObj.hashtag.deleted += 1;
+
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX HASHTAG | -*- DB HIT"
+        + " [" + statsObj.hashtag.deleted + " DELETED HASHTAGS]"
+        + " | " + node.nodeId
+      ));
+    }
+    else{
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX HASHTAG | --- DB MISS" 
+        + " | " + node.nodeId
+      ));
+    }
+  }
+
+  return results;
+}
+
 let nodeSetPropsResultTimeout;
 const nodeSetPropsResultHashMap = {};
 
@@ -4243,6 +4290,14 @@ async function twitterSearchNode(params) {
   throw new Error("UNKNOWN SEARCH MODE: " + searchNode);
 }
 
+const userDbUpdateOptions = {
+  lean: true,
+  new: true,
+  setDefaultsOnInsert: true,
+  upsert: true
+};
+
+
 async function initSocketHandler(socketObj) {
 
   const socket = socketObj.socket;
@@ -4693,7 +4748,8 @@ async function initSocketHandler(socketObj) {
       ));
 
       try{
-        await nodeSetProps({
+
+        const node = await nodeSetProps({
           node: user,
           forceFollow: true,
           props: { 
@@ -4701,8 +4757,10 @@ async function initSocketHandler(socketObj) {
           } 
         });
 
-        adminNameSpace.emit("FOLLOW", user);
-        utilNameSpace.emit("FOLLOW", user);
+        const updatedUser = await userServerController.findOneUserV2({user: node, options: userDbUpdateOptions});
+
+        adminNameSpace.emit("FOLLOW", updatedUser);
+        utilNameSpace.emit("FOLLOW", updatedUser);
 
       }
       catch(err) {
@@ -4745,7 +4803,8 @@ async function initSocketHandler(socketObj) {
       ));
 
       try{
-        await nodeSetProps({ node: user, props: { categoryVerified: true } });
+        const node = await nodeSetProps({ node: user, props: { categoryVerified: true } });
+        await userServerController.findOneUserV2({user: node, options: userDbUpdateOptions});
       }
       catch(err){
         console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
@@ -4772,7 +4831,9 @@ async function initSocketHandler(socketObj) {
     });
 
     socket.on("TWITTER_IGNORE", async function(user) {
+
       user.nodeType = user.nodeType || "user";
+
       try{
         console.log(chalkSocket(MODULE_ID_PREFIX
           + " | R< TWITTER_IGNORE"
@@ -4784,6 +4845,7 @@ async function initSocketHandler(socketObj) {
         ));
 
         await nodeSetProps({ node: user, props: { ignored: true } });
+        await deleteNode(user);
       }
       catch(err){
         console.log(chalkError(MODULE_ID_PREFIX + " | *** IGNORE USER ERROR: " + err));
@@ -4865,8 +4927,8 @@ async function initSocketHandler(socketObj) {
 
     socket.on("TWITTER_CATEGORIZE_NODE", async function twitterCategorizeNode(dataObj) {
 
-      await autoCategorizeNode(dataObj);
-
+      const node = await autoCategorizeNode(dataObj);
+      await userServerController.findOneUserV2({user: node, options: userDbUpdateOptions});
     });
 
     socket.on("USER_READY", function userReady(userObj) {
@@ -4946,8 +5008,6 @@ async function initSocketHandler(socketObj) {
 
       }
     });
-
-    // socket.on("categorize", categorize);
 
     socket.on("login", async function socketLogin(viewerObj){
 
@@ -6222,13 +6282,6 @@ function initTransmitNodeQueueInterval(interval){
     let nCacheObj;
     let node;
     let updatedUser;
-
-    const userDbUpdateOptions = {
-      lean: true,
-      new: true,
-      setDefaultsOnInsert: true,
-      upsert: true
-    };
 
     transmitNodeQueueInterval = setInterval(async function() {
 

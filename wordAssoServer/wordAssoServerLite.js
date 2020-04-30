@@ -628,8 +628,8 @@ const nodeSetPropsResultHandler = async function(message){
         + " | RID: " + messageObj.requestId
         + " | NID: " + messageObj.node.nodeId
         + " | @" + messageObj.node.screenName
-        + " | AUTO FLW: " + formatBoolean(messageObj.node.categoryVerified)
-        + " | FLW" + formatBoolean(messageObj.autoFollowFlag)
+        + " | AUTO FLW: " + formatBoolean(messageObj.node.autoFollowFlag)
+        + " | FLW: " + formatBoolean(messageObj.following)
         + " | CN: " + messageObj.node.categorizeNetwork
         + " | CV: " + formatBoolean(messageObj.node.categoryVerified)
         + " | CM: " + formatCategory(messageObj.node.category)

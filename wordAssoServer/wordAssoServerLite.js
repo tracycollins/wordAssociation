@@ -636,7 +636,7 @@ const nodeSetPropsResultHandler = async function(message){
         + " | CM: " + formatCategory(messageObj.node.category)
         + " | CA: " + formatCategory(messageObj.node.categoryAuto)
       ));
-      
+
       if (messageObj.notFound !== undefined && !messageObj.notFound){
         await updateUserAutoCategory({user: messageObj.node});
       }
@@ -707,7 +707,6 @@ const nodeIgnoreHandler = async function(message){
 
   message.ack();
 };
-
 
 async function initNodeOpHandler(params){
 

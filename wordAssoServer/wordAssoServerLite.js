@@ -465,6 +465,18 @@ async function updateUserAutoCategory(params){
     user = params.user;
   }
 
+  let dbUser = await global.wordAssoDb.User.findOne({nodeId: params.user.nodeId});
+
+  if (dbUser) {
+    dbUser.categoryAuto = params.user.categoryAuto;
+    dbUser.categorizeNetwork = params.user.categorizeNetwork;
+  }
+  else{
+    dbUser = new global.wordAssoDb.User(params.user);
+  }
+
+  await dbUser.save();
+
   categorizedUserHashMap.set(params.user.nodeId, user);
   uncategorizeableUserSet.delete(params.user.nodeId);
 
@@ -624,7 +636,7 @@ const nodeSetPropsResultHandler = async function(message){
         + " | CM: " + formatCategory(messageObj.node.category)
         + " | CA: " + formatCategory(messageObj.node.categoryAuto)
       ));
-
+      
       if (messageObj.notFound !== undefined && !messageObj.notFound){
         await updateUserAutoCategory({user: messageObj.node});
       }

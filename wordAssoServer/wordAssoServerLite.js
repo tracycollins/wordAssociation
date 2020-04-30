@@ -522,6 +522,7 @@ const nodeSearchResultHandler = async function(message){
 
       if (messageObj.stats){
         console.log(chalkLog(MODULE_ID_PREFIX + "\nUSER STATS\n" + jsonPrint(messageObj.stats)));
+        statsObj.user = messageObj.stats;
       }
 
       searchUserResultHashMap[messageObj.requestId] = messageObj.node;

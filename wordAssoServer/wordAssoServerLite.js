@@ -523,7 +523,7 @@ const nodeSearchResultHandler = async function(message){
         statsObj.user = messageObj.stats;
       }
 
-      searchUserResultHashMap[messageObj.requestId] = messageObj.node;
+      searchNodeResultHashMap[messageObj.requestId] = messageObj.node;
     }
     else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
       console.log(chalkBlueBold(MODULE_ID_PREFIX
@@ -535,7 +535,7 @@ const nodeSearchResultHandler = async function(message){
         + " | CA: " + formatCategory(messageObj.node.categoryAuto)
       ));
 
-      searchUserResultHashMap[messageObj.requestId] = messageObj.node;
+      searchNodeResultHashMap[messageObj.requestId] = messageObj.node;
     }
     else{
       console.log(chalk.yellow(MODULE_ID_PREFIX
@@ -765,7 +765,7 @@ async function initNodeOpHandler(params){
   return;
 }
 
-const searchUserResultHashMap = {};
+const searchNodeResultHashMap = {};
 const nodeAutoCategorizeResultHashMap = {};
 
 const pubSubPublishMessageRequestIdSet = new Set();
@@ -4019,17 +4019,32 @@ const serverRegex = /^(.+)_/i;
 
 let twitterSearchNodeTimeout;
 
-async function pubSubSearchUser(params){
+async function pubSubSearchNode(params){
+
   try {
 
+    let nodeName;
+
+    switch (params.node.nodeType){
+      case "user":
+        nodeName = "@" + params.node.screenName;
+      break;
+      case "hashtag":
+        nodeName = "#" + params.node.nodeId;
+      break;
+      default:
+        console.log(chalkError(MODULE_ID_PREFIX + " | *** pubSubSearchNode UNKNOWN NODE TYPE: " + params.node.nodeType));
+        throw new Error("pubSubSearchNode UNKNOWN NODE TYPE: " + params.node.nodeType);
+    }
+
     console.log(chalkBlue(MODULE_ID_PREFIX
-      + " | PS SEARCH USER [" + statsObj.pubSub.messagesSent + "]"
-      + " | REQ: " + params.requestId
+      + " | PS SEARCH NODE [" + statsObj.pubSub.messagesSent + "]"
+      + " | TYPE: " + params.node.nodeType
+      + " | RID: " + params.requestId
       + " | TOPIC: node-search"
       + " | MODE: " + params.searchMode
-      + " | NODE TYPE: " + params.node.nodeType
       + " | NID: " + params.node.nodeId
-      + " | @" + params.node.screenName
+      + " | " + nodeName
     ));
 
     await pubSubPublishMessage({
@@ -4058,13 +4073,13 @@ async function pubSubSearchUser(params){
 
     clearTimeout(twitterSearchNodeTimeout);
 
-    const user = searchUserResultHashMap[params.requestId] || false;
+    const node = searchNodeResultHashMap[params.requestId] || false;
 
-    if (!user){
+    if (!node){
       console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! USER NOT FOUND\n" + jsonPrint(params)));
     }
 
-    return user;
+    return node;
   }
   catch(err){
 
@@ -4072,46 +4087,197 @@ async function pubSubSearchUser(params){
 
     let errorType;
 
-    switch (errCode) {
-      case 34:
-      case 50:
-        errorType = "USER_NOT_FOUND";
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER USER NOT FOUND"
-          + " | " + getTimeStamp() 
-          + " | ERR CODE: " + errCode 
-          + " | ERR TYPE: " + errorType
-          + " | UID: " + params.node.nodeId
-        ));
+    if (params.node.nodeType === "user"){
+      switch (errCode) {
+        case 34:
+        case 50:
+          errorType = "USER_NOT_FOUND";
+          console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER USER NOT FOUND"
+            + " | " + getTimeStamp() 
+            + " | ERR CODE: " + errCode 
+            + " | ERR TYPE: " + errorType
+            + " | UID: " + params.node.nodeId
+          ));
 
-        await deleteUser({user: params.node});
+          await deleteUser({user: params.node});
+        break;
 
-      break;
+        case 63:
+          errorType = "USER_SUSPENDED";
+          console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER USER SUSPENDED"
+            + " | " + getTimeStamp() 
+            + " | ERR CODE: " + errCode 
+            + " | ERR TYPE: " + errorType
+            + " | UID: " + params.node.nodeId
+          ));
 
-      case 63:
-        errorType = "USER_SUSPENDED";
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER USER SUSPENDED"
-          + " | " + getTimeStamp() 
-          + " | ERR CODE: " + errCode 
-          + " | ERR TYPE: " + errorType
-          + " | UID: " + params.node.nodeId
-        ));
+          await deleteUser({user: params.node});
+        break;
 
-        await deleteUser({user: params.node});
+        default:
+          console.log(chalkError(MODULE_ID_PREFIX 
+            + " | *** TWITTER SEARCH NODE USER ERROR | MODE: " + params.searchMode
+            + " | ERR CODE: " + errCode
+            + "\nsearchQuery\n" + jsonPrint(params.node)
+            + "ERROR: ", err
+          ));
+      }
 
-      break;
-
-      default:
-        console.log(chalkError(MODULE_ID_PREFIX 
-          + " | *** TWITTER SEARCH NODE USER ERROR | MODE: " + params.searchMode
-          + " | ERR CODE: " + errCode
-          + "\nsearchQuery\n" + jsonPrint(params.node)
-          + "ERROR: ", err
-        ));
-
+      throw err;
     }
-    throw err;
+    else{
+      throw err;
+    }
+
   }
 }
+
+
+// async function pubSubSearchUser(params){
+//   try {
+
+//     console.log(chalkBlue(MODULE_ID_PREFIX
+//       + " | PS SEARCH USER [" + statsObj.pubSub.messagesSent + "]"
+//       + " | REQ: " + params.requestId
+//       + " | TOPIC: node-search"
+//       + " | MODE: " + params.searchMode
+//       + " | NODE TYPE: " + params.node.nodeType
+//       + " | NID: " + params.node.nodeId
+//       + " | @" + params.node.screenName
+//     ));
+
+//     await pubSubPublishMessage({
+//       publishName: "node-search",
+//       message: params
+//     });
+
+//     const eventName = "nodeSearchResult_" + params.requestId;
+
+//     clearTimeout(twitterSearchNodeTimeout);
+
+//     twitterSearchNodeTimeout = setTimeout(function(){
+
+//       console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! NODE SEARCH TIMEOUT"
+//         + "\nPARAMS\n" + jsonPrint(params) 
+//       ));
+
+//       tcUtils.emitter.emit(eventName);
+
+//       return;
+
+//     }, configuration.pubSub.pubSubResultTimeout);
+
+
+//     await tcUtils.waitEvent({event: eventName, verbose: configuration.verbose});
+
+//     clearTimeout(twitterSearchNodeTimeout);
+
+//     const node = searchNodeResultHashMap[params.requestId] || false;
+
+//     if (!node){
+//       console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! USER NOT FOUND\n" + jsonPrint(params)));
+//     }
+
+//     return node;
+//   }
+//   catch(err){
+
+//     const errCode = (err.code && (err.code != undefined)) ? err.code : err.statusCode;
+
+//     let errorType;
+
+//     switch (errCode) {
+//       case 34:
+//       case 50:
+//         errorType = "USER_NOT_FOUND";
+//         console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER USER NOT FOUND"
+//           + " | " + getTimeStamp() 
+//           + " | ERR CODE: " + errCode 
+//           + " | ERR TYPE: " + errorType
+//           + " | UID: " + params.node.nodeId
+//         ));
+
+//         await deleteUser({user: params.node});
+
+//       break;
+
+//       case 63:
+//         errorType = "USER_SUSPENDED";
+//         console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER USER SUSPENDED"
+//           + " | " + getTimeStamp() 
+//           + " | ERR CODE: " + errCode 
+//           + " | ERR TYPE: " + errorType
+//           + " | UID: " + params.node.nodeId
+//         ));
+
+//         await deleteUser({user: params.node});
+
+//       break;
+
+//       default:
+//         console.log(chalkError(MODULE_ID_PREFIX 
+//           + " | *** TWITTER SEARCH NODE USER ERROR | MODE: " + params.searchMode
+//           + " | ERR CODE: " + errCode
+//           + "\nsearchQuery\n" + jsonPrint(params.node)
+//           + "ERROR: ", err
+//         ));
+
+//     }
+//     throw err;
+//   }
+// }
+
+// async function pubSubSearchHashtag(params){
+
+//   try {
+
+//     console.log(chalkBlue(MODULE_ID_PREFIX
+//       + " | PS SEARCH HASHTAG [" + statsObj.pubSub.messagesSent + "]"
+//       + " | REQ: " + params.requestId
+//       + " | TOPIC: node-search"
+//       + " | MODE: " + params.searchMode
+//       + " | NODE TYPE: " + params.node.nodeType
+//       + " | NID: #" + params.node.nodeId
+//     ));
+
+//     await pubSubPublishMessage({
+//       publishName: "node-search",
+//       message: params
+//     });
+
+//     const eventName = "nodeSearchResult_" + params.requestId;
+
+//     clearTimeout(twitterSearchNodeTimeout);
+
+//     twitterSearchNodeTimeout = setTimeout(function(){
+
+//       console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! NODE SEARCH TIMEOUT"
+//         + "\nPARAMS\n" + jsonPrint(params) 
+//       ));
+
+//       tcUtils.emitter.emit(eventName);
+
+//       return;
+
+//     }, configuration.pubSub.pubSubResultTimeout);
+
+
+//     await tcUtils.waitEvent({event: eventName, verbose: configuration.verbose});
+
+//     clearTimeout(twitterSearchNodeTimeout);
+
+//     const node = searchNodeResultHashMap[params.requestId] || false;
+
+//     if (!node){
+//       console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! HASHTAG NOT FOUND\n" + jsonPrint(params)));
+//     }
+
+//     return node;
+//   }
+//   catch(err){
+//     throw err;
+//   }
+// }
 
 async function twitterSearchUser(params) {
 
@@ -4159,10 +4325,9 @@ async function twitterSearchUser(params) {
       default:
         message.searchMode = "SPECIFIC";
         message.node = params.node;
-
     }
 
-    const node = await pubSubSearchUser(message);
+    const node = await pubSubSearchNode(message);
 
     return { node: node, searchMode: message.searchMode, stats: statsObj.user };
   }
@@ -4182,69 +4347,104 @@ async function twitterSearchUser(params) {
 
 async function twitterSearchHashtag(params) {
 
-  const searchNode = params.searchNode.toLowerCase().trim();
-  const searchNodeHashtag = { nodeId: searchNode.substring(1) };
+  if (typeof params.node === "string"){
+    console.log(chalkInfo(MODULE_ID_PREFIX 
+      + " | -?- HASHTAG SEARCH | HASHTAG: " + params.node
+    ));
+  }
+  else{
+    console.log(chalkInfo(MODULE_ID_PREFIX 
+      + " | -?- HASHTAG SEARCH | NID: #" + params.node.nodeId
+    ));
+  }
+
+  // const searchNode = params.searchNode.toLowerCase().trim();
+  // const searchNodeHashtag = { nodeId: searchNode.substring(1) };
 
   try {
 
-    let hashtag = await global.wordAssoDb.Hashtag.findOne(searchNodeHashtag);
+    const message = {};
+    message.requestId = "rId_" + hostname + "_" + moment().valueOf();
+    message.node = {};
+    message.newCategory = params.newCategory || false;
+    message.searchMode = "SPECIFIC";
+    message.node = params.node;
 
-    if (hashtag) { 
+    const node = await pubSubSearchNode(message);
 
-      if (hashtag.toObject && (typeof hashtag.toObject == "function")) {
-        console.log(chalkTwitter(MODULE_ID_PREFIX + " | TWITTER_SEARCH_NODE HASHTAG FOUND\n" + jsonPrint(hashtag.toObject())));
-        viewNameSpace.emit("SET_TWITTER_HASHTAG", { hashtag: hashtag.toObject(), stats: statsObj.hashtag });
-      }
-      else{
-        console.log(chalkTwitter(MODULE_ID_PREFIX + " | TWITTER_SEARCH_NODE HASHTAG FOUND\n" + jsonPrint(hashtag)));
-        viewNameSpace.emit("SET_TWITTER_HASHTAG", { hashtag: hashtag, stats: statsObj.hashtag });
-      }
-
-      if (hashtag.category) { 
-
-        const htCatObj = {};
-        htCatObj.manual = hashtag.category;
-        htCatObj.auto = false;
-
-        if (categorizedHashtagHashMap.has(hashtag.nodeId.toLowerCase())) {
-          htCatObj.auto = categorizedHashtagHashMap.get(hashtag.nodeId.toLowerCase()).auto || false;
-          categorizedHashtagHashMap.set(hashtag.nodeId.toLowerCase(), htCatObj);
-        }
-        else{
-          categorizedHashtagHashMap.set(hashtag.nodeId.toLowerCase(), htCatObj);
-        }
-
-
-      }
-      return hashtag;
-    }
-
-    console.log(chalkTwitter(MODULE_ID_PREFIX + " | TWITTER_SEARCH_NODE HASHTAG NOT FOUND: #" + searchNodeHashtag.nodeId));
-    console.log(chalkTwitter(MODULE_ID_PREFIX + " | +++ CREATE NEW HASHTAG: #" + searchNodeHashtag.nodeId));
-
-    hashtag = new global.wordAssoDb.Hashtag({ nodeId: searchNodeHashtag.nodeId.toLowerCase(), text: searchNodeHashtag.nodeId.toLowerCase()});
-
-    const newHashtag = await hashtag.save();
-
-    console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ SAVED NEW HASHTAG"
-      + " | #" + newHashtag.nodeId
-    ));
-
-
-    if (hashtag.toObject && (typeof hashtag.toObject == "function")) {
-      viewNameSpace.emit("SET_TWITTER_HASHTAG", { hashtag: hashtag.toObject(), stats: statsObj.hashtag });
-    }
-    else{
-      viewNameSpace.emit("SET_TWITTER_HASHTAG", { hashtag: hashtag, stats: statsObj.hashtag });
-    }
-
-    return newHashtag;
-
+    return { node: node, searchMode: message.searchMode, stats: statsObj.hashtag };
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER_SEARCH_NODE HASHTAG ERROR\n" + jsonPrint(err)));
+    console.log(chalkError(MODULE_ID_PREFIX
+      + " | *** TWITTER_SEARCH_NODE ERROR"
+      + " | " + getTimeStamp()
+      + " | SEARCH USER"
+      + " | searchNode: " + params.node
+      + " | ERROR: " + err
+    ));
+
+    viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", { node: params.node, stats: statsObj.user });
     throw err;
   }
+
+    // let hashtag = await global.wordAssoDb.Hashtag.findOne(searchNodeHashtag);
+
+    // if (hashtag) { 
+
+    //   if (hashtag.toObject && (typeof hashtag.toObject == "function")) {
+    //     console.log(chalkTwitter(MODULE_ID_PREFIX + " | TWITTER_SEARCH_NODE HASHTAG FOUND\n" + jsonPrint(hashtag.toObject())));
+    //     viewNameSpace.emit("SET_TWITTER_HASHTAG", { hashtag: hashtag.toObject(), stats: statsObj.hashtag });
+    //   }
+    //   else{
+    //     console.log(chalkTwitter(MODULE_ID_PREFIX + " | TWITTER_SEARCH_NODE HASHTAG FOUND\n" + jsonPrint(hashtag)));
+    //     viewNameSpace.emit("SET_TWITTER_HASHTAG", { hashtag: hashtag, stats: statsObj.hashtag });
+    //   }
+
+    //   if (hashtag.category) { 
+
+    //     const htCatObj = {};
+    //     htCatObj.manual = hashtag.category;
+    //     htCatObj.auto = false;
+
+    //     if (categorizedHashtagHashMap.has(hashtag.nodeId.toLowerCase())) {
+    //       htCatObj.auto = categorizedHashtagHashMap.get(hashtag.nodeId.toLowerCase()).auto || false;
+    //       categorizedHashtagHashMap.set(hashtag.nodeId.toLowerCase(), htCatObj);
+    //     }
+    //     else{
+    //       categorizedHashtagHashMap.set(hashtag.nodeId.toLowerCase(), htCatObj);
+    //     }
+
+
+    //   }
+    //   return hashtag;
+    // }
+
+    // console.log(chalkTwitter(MODULE_ID_PREFIX + " | TWITTER_SEARCH_NODE HASHTAG NOT FOUND: #" + searchNodeHashtag.nodeId));
+    // console.log(chalkTwitter(MODULE_ID_PREFIX + " | +++ CREATE NEW HASHTAG: #" + searchNodeHashtag.nodeId));
+
+    // hashtag = new global.wordAssoDb.Hashtag({ nodeId: searchNodeHashtag.nodeId.toLowerCase(), text: searchNodeHashtag.nodeId.toLowerCase()});
+
+    // const newHashtag = await hashtag.save();
+
+    // console.log(chalk.blue(MODULE_ID_PREFIX + " | +++ SAVED NEW HASHTAG"
+    //   + " | #" + newHashtag.nodeId
+    // ));
+
+
+    // if (hashtag.toObject && (typeof hashtag.toObject == "function")) {
+    //   viewNameSpace.emit("SET_TWITTER_HASHTAG", { hashtag: hashtag.toObject(), stats: statsObj.hashtag });
+    // }
+    // else{
+    //   viewNameSpace.emit("SET_TWITTER_HASHTAG", { hashtag: hashtag, stats: statsObj.hashtag });
+    // }
+
+    // return newHashtag;
+
+  // }
+  // catch(err){
+  //   console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER_SEARCH_NODE HASHTAG ERROR\n" + jsonPrint(err)));
+  //   throw err;
+  // }
 }
 
 async function twitterSearchNode(params) {
@@ -4259,7 +4459,12 @@ async function twitterSearchNode(params) {
 
   if (searchNode.startsWith("#")) {
 
-    const results = await twitterSearchHashtag({node: { nodeId: searchNode.slice(1).toLowerCase()} });
+    const results = await twitterSearchHashtag({
+      node: { 
+        nodeType: "hashtag",
+        nodeId: searchNode.slice(1).toLowerCase()
+      } 
+    });
 
     if (results.node){
       viewNameSpace.emit("SET_TWITTER_HASHTAG", results);

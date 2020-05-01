@@ -5019,12 +5019,19 @@ async function initSocketHandler(socketObj) {
       await twitterSearchNode({searchNode: sn});
     });
 
-    socket.on("TWITTER_CATEGORIZE_NODE", async function twitterCategorizeNode(n) {
+    socket.on("TWITTER_CATEGORIZE_NODE", async function twitterCategorizeNode(catNodeObj) {
+
+      // catNodeObj = { 
+      //   twitterUser: config.twitterUser,
+      //   category: event.data.category,
+      //   following: true,
+      //   node: event.data.node
+      // }
 
       const node = await nodeSetProps({
-        node: n, 
+        node: catNodeObj.node, 
         props: { 
-          category: n.category, 
+          category: catNodeObj.category, 
           following: true
         }, 
         autoCategorizeFlag: true

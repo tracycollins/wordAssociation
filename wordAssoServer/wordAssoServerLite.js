@@ -4773,7 +4773,7 @@ async function initSocketHandler(socketObj) {
           } 
         });
 
-        if (node){
+        if (node && (node.nodeType === "user")){
           const updatedUser = await userServerController.findOneUserV2({user: node, options: userDbUpdateOptions});
           viewNameSpace.emit("FOLLOW", updatedUser);
           adminNameSpace.emit("FOLLOW", updatedUser);
@@ -4831,7 +4831,7 @@ async function initSocketHandler(socketObj) {
           } 
         });
 
-        if (node){
+        if (node && (node.nodeType === "user")){
           const updatedUser = await userServerController.findOneUserV2({user: node, options: userDbUpdateOptions});
           viewNameSpace.emit("FOLLOW", updatedUser);
           adminNameSpace.emit("FOLLOW", updatedUser);
@@ -4963,8 +4963,13 @@ async function initSocketHandler(socketObj) {
 
       const node = await autoCategorizeNode(dataObj);
 
-      if (node){
-        const updatedUser = await userServerController.findOneUserV2({user: node, options: userDbUpdateOptions});
+      if (node && (node.nodeType === "user")){
+
+        const updatedUser = await userServerController.findOneUserV2({
+          user: node, 
+          options: userDbUpdateOptions
+        });
+
         viewNameSpace.emit("FOLLOW", updatedUser);
         adminNameSpace.emit("FOLLOW", updatedUser);
         utilNameSpace.emit("FOLLOW", updatedUser);

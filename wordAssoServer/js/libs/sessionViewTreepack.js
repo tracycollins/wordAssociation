@@ -1861,6 +1861,7 @@ function ViewTreepack() {
       case "RESTART":
         simulation.alphaTarget(0.7).restart();
         runningFlag = true;
+
       break;
       default:
         console.error("???? SIMULATION CONTROL | UNKNOWN OP: " + op);
@@ -1982,6 +1983,7 @@ function ViewTreepack() {
     self.toolTipVisibility(false);
     self.resetDefaultForce();
     self.resize();
+    resetCurrentMax();
   };
 
 }

@@ -1497,9 +1497,10 @@ socket.on("reconnect", function() {
   viewerObj.timeStamp = Date.now();
 
   socket.emit("VIEWER_READY", viewerObj, function(){
-    statsObj.viewerReadyTransmitted = true;
 
+    statsObj.viewerReadyTransmitted = true;
     socket.emit("authentication", { namespace: "view", userId: viewerObj.userId, password: "0123456789" });
+    if (currentSessionView)
 
   }); 
 });
@@ -1509,7 +1510,6 @@ socket.on("disconnect", function() {
   statsObj.serverConnected = false;
   statsObj.socket.connected = false;
 
-  // if (currentSessionView !== undefined) { currentSessionView.setEnableAgeNodes(false); }
   console.log("*** DISCONNECTED FROM HOST ... DELETING ALL SESSIONS ...");
   if (currentSessionView !== undefined) { currentSessionView.resize(); }
 });

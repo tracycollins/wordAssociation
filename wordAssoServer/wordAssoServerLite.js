@@ -480,7 +480,7 @@ async function updateUserAutoCategory(params){
   categorizedUserHashMap.set(params.user.nodeId, user);
   uncategorizeableUserSet.delete(params.user.nodeId);
 
-  return user;
+  return dbUser;
 }
 
 async function initPubSub(p){
@@ -563,6 +563,9 @@ const nodeAutoCategorizeResultHandler = async function(message){
     statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived += 1;
 
     if (messageObj.node && messageObj.node.nodeType === "user") {
+
+      await updateUserAutoCategory({user: messageObj.node});
+
       console.log(chalkBlueBold(MODULE_ID_PREFIX
         + " | ==> PS AUTO CAT USER [" + statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived + "]"
         + " | MID: " + message.id
@@ -577,11 +580,11 @@ const nodeAutoCategorizeResultHandler = async function(message){
         + " | CA: " + formatCategory(messageObj.node.categoryAuto)
       ));
 
-      if (messageObj.notFound !== undefined && !messageObj.notFound){
-        await updateUserAutoCategory({user: messageObj.node});
-      }
+      // if (messageObj.notFound !== undefined && !messageObj.notFound){
+      //   await updateUserAutoCategory({user: messageObj.node});
+      // }
 
-      nodeAutoCategorizeResultHashMap[messageObj.requestId] = messageObj.node;
+      // nodeAutoCategorizeResultHashMap[messageObj.requestId] = messageObj.node;
     }
     else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
       console.log(chalkBlueBold(MODULE_ID_PREFIX
@@ -594,7 +597,7 @@ const nodeAutoCategorizeResultHandler = async function(message){
         + " | CA: " + formatCategory(messageObj.node.categoryAuto)
       ));
 
-      nodeAutoCategorizeResultHashMap[messageObj.requestId] = messageObj.node;
+      // nodeAutoCategorizeResultHashMap[messageObj.requestId] = messageObj.node;
     }
     else{
       console.log(chalk.yellow(MODULE_ID_PREFIX
@@ -622,6 +625,9 @@ const nodeSetPropsResultHandler = async function(message){
     statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived += 1;
 
     if (messageObj.node && messageObj.node.nodeType === "user") {
+
+      // await updateUserAutoCategory({user: messageObj.node});
+
       console.log(chalkBlueBold(MODULE_ID_PREFIX
         + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
         + " | TOPIC: node-setprops-result"
@@ -636,9 +642,9 @@ const nodeSetPropsResultHandler = async function(message){
         + " | CA: " + formatCategory(messageObj.node.categoryAuto)
       ));
 
-      if (messageObj.notFound !== undefined && !messageObj.notFound){
-        await updateUserAutoCategory({user: messageObj.node});
-      }
+      // if (messageObj.notFound !== undefined && !messageObj.notFound){
+      //   await updateUserAutoCategory({user: messageObj.node});
+      // }
 
       nodeSetPropsResultHashMap[messageObj.requestId] = messageObj.node;
     }
@@ -713,7 +719,6 @@ async function initNodeOpHandler(params){
 
   const [metadata] = await subscription.getMetadata();
 
-
   console.log(chalkBlueBold(MODULE_ID_PREFIX
     + " | INIT PUBSUB NODE OP SUBSCRIPTION HANDLER"
     + " | SUBSCRIBE NAME: " + params.subscribeName
@@ -766,7 +771,7 @@ async function initNodeOpHandler(params){
 }
 
 const searchNodeResultHashMap = {};
-const nodeAutoCategorizeResultHashMap = {};
+// const nodeAutoCategorizeResultHashMap = {};
 
 const pubSubPublishMessageRequestIdSet = new Set();
 
@@ -3707,6 +3712,18 @@ async function pubSubNodeSetProps(params){
       cObj.auto = node.categoryAuto || cObj.auto;
       cObj.network = node.categorizeNetwork || cObj.network;
       categorizedUserHashMap.set(node.nodeId, cObj);
+
+      let dbUser = await global.wordAssoDb.User.findOne({nodeId: cObj.nodeId});
+
+      if (!dbUser){
+        dbUser = new global.wordAssoDb.User(node);
+      }
+
+      dbUser.category = cObj.manual;
+      dbUser.categoryAuto = cObj.auto;
+      dbUser.categorizeNetwork = cObj.network;
+
+      await dbUser.save();
     }
 
     if (node.nodeType === "hashtag"){

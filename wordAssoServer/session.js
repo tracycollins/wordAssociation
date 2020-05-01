@@ -1933,7 +1933,7 @@ function initSocketSessionUpdateRx(){
       newNode = rxNodeQueue.shift();
 
       if (config.autoCategoryFlag && newNode.categoryAuto){
-        categoryAuto = newNode.categoryAuto;
+        category = newNode.categoryAuto;
       }
       else {
         category = newNode.category;

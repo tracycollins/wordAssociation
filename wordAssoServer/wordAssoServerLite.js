@@ -1385,24 +1385,24 @@ const fieldsExclude = {
 const fieldsTransmit = {
   ageDays: 1,
   bannerImageUrl: 1,
-  profileImageUrl: 1,
+  categorizeNetwork: 1,
   category: 1,
   categoryAuto: 1,
-  categorizeNetwork: 1,
   createdAt: 1,
   followersCount: 1,
   following: 1,
   friendsCount: 1,
-  isTopTerm: 1,
   isBot: 1,
+  isTopTerm: 1,
   isTweeter: 1,
   isTweetSource: 1,
+  lang: 1,
   lastTweetId: 1,
   mentions: 1,
   name: 1,
-  lang: 1,
   nodeId: 1,
   nodeType: 1,
+  profileImageUrl: 1,
   rate: 1,
   screenName: 1,
   screenNameLower: 1,
@@ -1607,10 +1607,6 @@ const tweetParserMessageRxQueue = [];
 const tweetRxQueue = [];
 
 const keySortQueue = [];
-
-// const twitterSearchNodeQueue = [];
-// let twitterSearchNodeQueueInterval;
-// let twitterSearchNodeQueueReady = false;
 
 let dbuPingInterval;
 let dbuPingSent = false;

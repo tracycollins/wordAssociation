@@ -226,7 +226,6 @@ function ViewTreepack() {
     this.index = 0;
     this.isBot = false;
     this.isTweeter = false;
-    this.isCategory = false;
     this.isDead = true;
     this.isIgnored = false;
     this.isMaxNode = false;

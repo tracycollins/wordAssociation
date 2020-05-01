@@ -1734,11 +1734,11 @@ socket.on("SET_TWITTER_HASHTAG", function(message) {
   statsObj.socket.connected = true;
 
   console.log("<R SET_TWITTER_HASHTAG" 
-    + " | #" + message.hashtag.nodeId 
-    + " | CR: " + message.hashtag.createdAt 
-    + " | Ms: " + message.hashtag.mentions 
-    + " | C: " + message.hashtag.category
-    + " | CA: " + message.hashtag.categoryAuto
+    + " | #" + message.node.nodeId 
+    + " | CR: " + message.node.createdAt 
+    + " | Ms: " + message.node.mentions 
+    + " | C: " + message.node.category
+    + " | CA: " + message.node.categoryAuto
   );
 
   console.log("SET_TWITTER_HASHTAG STATS\n" + jsonPrint(message.stats)); 

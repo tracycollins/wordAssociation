@@ -9187,6 +9187,8 @@ async function initConfig() {
 
 async function initDbUserChangeStream(){
 
+  console.log(chalkLog(MODULE_ID_PREFIX + " | ... INIT DB USER CHANGE STREAM"));
+
   const userCollection = global.dbConnection.collection("users");
   let catChangeFlag = false;
   let catNetworkChangeFlag = false;

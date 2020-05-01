@@ -1572,7 +1572,7 @@ async function initFollowQueue(params){
 
     let followObj;
     const createParams = {};
-    createParams.follow = true;
+    createParams.following = true;
 
     followQueueReady = true;
 

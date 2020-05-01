@@ -1714,7 +1714,7 @@ var rxNode = function(node){
 
   if (rxNodeQueue.length >= RX_NODE_QUEUE_MAX){ return; }
 
-  if (node.nodeType != "user" && node.nodeType != "hashtag") { return; }
+  if (node.nodeType !== "user" && node.nodeType !== "hashtag") { return; }
 
   rxNodeQueue.push(node);
   
@@ -1933,7 +1933,7 @@ function initSocketSessionUpdateRx(){
       newNode = rxNodeQueue.shift();
 
       if (config.autoCategoryFlag && newNode.categoryAuto){
-        category = newNode.categoryAuto;
+        categoryAuto = newNode.categoryAuto;
       }
       else {
         category = newNode.category;

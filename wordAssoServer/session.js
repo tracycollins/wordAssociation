@@ -1500,7 +1500,6 @@ socket.on("reconnect", function() {
 
     statsObj.viewerReadyTransmitted = true;
     socket.emit("authentication", { namespace: "view", userId: viewerObj.userId, password: "0123456789" });
-    if (currentSessionView)
 
   }); 
 });

@@ -542,7 +542,7 @@ const nodeSearchResultHandler = async function(message){
         + " | ==> PS SEARCH NODE -MISS- [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
         + " | MID: " + message.id
         + " | RID: " + messageObj.requestId
-        + " | SEARCH MODE: " + messageObj.searchMode
+        + " | MODE: " + messageObj.searchMode
       ));
     }
 
@@ -786,7 +786,7 @@ async function pubSubPublishMessage(params){
     + " / OUT: " + pubSubPublishMessageRequestIdSet.size + "]"
     + " | TOPIC: " + params.publishName
     + " | RID: " + params.message.requestId
-    + " | NODE TYPE: " + params.message.node.nodeType
+    + " | TYPE: " + params.message.node.nodeType
     + " | NID: " + params.message.node.nodeId
     + " | @" + params.message.node.screenName
   ));

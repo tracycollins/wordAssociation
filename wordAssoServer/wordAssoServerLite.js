@@ -4076,7 +4076,10 @@ async function pubSubSearchNode(params){
     const node = searchNodeResultHashMap[params.requestId] || false;
 
     if (!node){
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! USER NOT FOUND\n" + jsonPrint(params)));
+      console.log(chalkAlert(MODULE_ID_PREFIX
+        + " | !!! " + params.node.nodeType + " NOT FOUND\n"
+        + jsonPrint(params)
+      ));
     }
 
     return node;

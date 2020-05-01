@@ -4807,6 +4807,7 @@ async function initSocketHandler(socketObj) {
       }
       catch(err){
         console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
+        return;
       }
     });
 
@@ -4826,6 +4827,7 @@ async function initSocketHandler(socketObj) {
       }
       catch(err){
         console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
+        return;
       }
     });
 

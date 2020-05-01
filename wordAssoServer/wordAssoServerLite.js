@@ -643,7 +643,7 @@ const nodeSetPropsResultHandler = async function(message){
       nodeSetPropsResultHashMap[messageObj.requestId] = messageObj.node;
     }
     else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
-      console.log(chalkBlueBold(MODULE_ID_PREFIX
+      console.log(chalkBlue(MODULE_ID_PREFIX
         + " | ==> PS HSTG SET PROPS [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
         + " | RID: " + messageObj.requestId
         + " | NID: " + messageObj.node.nodeId
@@ -3697,11 +3697,26 @@ async function pubSubNodeSetProps(params){
 
     const node = nodeSetPropsResultHashMap[params.requestId] || false;
 
-    if (node.nodeType === "user" && categorizedUserHashMap.has(node.nodeId)){
-      const cObj = categorizedUserHashMap.get(node.nodeId);
+    let cObj = {};
+
+    if (node.nodeType === "user"){
+      if (categorizedUserHashMap.has(node.nodeId)){
+        cObj = categorizedUserHashMap.get(node.nodeId);
+      }
+      cObj.manual = node.category || cObj.manual;
       cObj.auto = node.categoryAuto || cObj.auto;
       cObj.network = node.categorizeNetwork || cObj.network;
       categorizedUserHashMap.set(node.nodeId, cObj);
+    }
+
+    if (node.nodeType === "hashtag"){
+      if (categorizedHashtagHashMap.has(node.nodeId)){
+        cObj = categorizedHashtagHashMap.get(node.nodeId);
+      }
+      cObj.manual = node.category || cObj.manual;
+      cObj.auto = node.categoryAuto || cObj.auto;
+      cObj.network = node.categorizeNetwork || cObj.network;
+      categorizedHashtagHashMap.set(node.nodeId, cObj);
     }
 
     if (!node){

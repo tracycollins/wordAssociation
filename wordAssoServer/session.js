@@ -1386,50 +1386,6 @@ function initKeepalive(viewerObj, interval){
   }, interval);
 }
 
-// var lastHeartbeatReceived = 0;
-
-// CHECK FOR SERVER HEARTBEAT
-// setInterval(function() {
-//   if (!statsObj.serverConnected) {
-
-//     serverHeartbeatTimeoutFlag = true;
-
-//     console.error("\n????? SERVER DOWN ????? | | LAST HEARTBEAT: " 
-//       + getTimeStamp(lastHeartbeatReceived) 
-//       + " | " + moment().format(defaultDateTimeFormat) 
-//       + " | AGO: " + msToTime(Date.now() - lastHeartbeatReceived)
-//     );
-
-//     socket.connect();
-
-//     if (currentSessionView !== undefined) {
-//       // currentSessionView.setEnableAgeNodes(false);
-//     }
-//   }
-//   else if ((lastHeartbeatReceived > 0) && (lastHeartbeatReceived + serverHeartbeatTimeoutPeriod) < moment().valueOf()) {
-
-//     serverHeartbeatTimeoutFlag = true;
-
-//     console.error("\n????? SERVER DOWN ????? | LAST HEARTBEAT: " 
-//       + getTimeStamp(lastHeartbeatReceived) 
-//       + " | " + moment().format(defaultDateTimeFormat) 
-//       + " | AGO: " + msToTime(Date.now() - lastHeartbeatReceived
-//     ));
-
-//     socket.connect();
-
-//     if (currentSessionView !== undefined) {
-//       // currentSessionView.setEnableAgeNodes(false);
-//     }
-//   }
-//   else {
-//     serverHeartbeatTimeoutFlag = false;
-//     currentSessionView.setEnableAgeNodes(true);
-//   }
-// }, serverCheckInterval);
-
-// var heartBeatsReceived = 0;
-
 socket.on("connect", function() {
 
   viewerObj.socketId = socket.id;

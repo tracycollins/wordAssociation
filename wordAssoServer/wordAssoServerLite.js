@@ -629,7 +629,7 @@ const nodeSetPropsResultHandler = async function(message){
         + " | NID: " + messageObj.node.nodeId
         + " | @" + messageObj.node.screenName
         + " | AUTO FLW: " + formatBoolean(messageObj.node.autoFollowFlag)
-        + " | FLW: " + formatBoolean(messageObj.following)
+        + " | FLW: " + formatBoolean(messageObj.node.following)
         + " | CN: " + messageObj.node.categorizeNetwork
         + " | CV: " + formatBoolean(messageObj.node.categoryVerified)
         + " | CM: " + formatCategory(messageObj.node.category)
@@ -4775,6 +4775,7 @@ async function initSocketHandler(socketObj) {
 
         if (node){
           const updatedUser = await userServerController.findOneUserV2({user: node, options: userDbUpdateOptions});
+          viewNameSpace.emit("FOLLOW", updatedUser);
           adminNameSpace.emit("FOLLOW", updatedUser);
           utilNameSpace.emit("FOLLOW", updatedUser);
         }
@@ -4817,13 +4818,25 @@ async function initSocketHandler(socketObj) {
         + " | " + socket.id
         + " | NID: " + user.nodeId
         + " | @" + user.screenName
+        + " | CM: " + user.category
       ));
 
       try{
-        const node = await nodeSetProps({ node: user, props: { following: true, categoryVerified: true } });
-       if (node){
-         await userServerController.findOneUserV2({user: node, options: userDbUpdateOptions});
-       }
+        const node = await nodeSetProps({ 
+          node: user, 
+          props: { 
+            category: user.category, 
+            following: true, 
+            categoryVerified: true 
+          } 
+        });
+
+        if (node){
+          const updatedUser = await userServerController.findOneUserV2({user: node, options: userDbUpdateOptions});
+          viewNameSpace.emit("FOLLOW", updatedUser);
+          adminNameSpace.emit("FOLLOW", updatedUser);
+          utilNameSpace.emit("FOLLOW", updatedUser);
+        }
       }
       catch(err){
         console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
@@ -4949,8 +4962,12 @@ async function initSocketHandler(socketObj) {
     socket.on("TWITTER_CATEGORIZE_NODE", async function twitterCategorizeNode(dataObj) {
 
       const node = await autoCategorizeNode(dataObj);
+
       if (node){
-        await userServerController.findOneUserV2({user: node, options: userDbUpdateOptions});
+        const updatedUser = await userServerController.findOneUserV2({user: node, options: userDbUpdateOptions});
+        viewNameSpace.emit("FOLLOW", updatedUser);
+        adminNameSpace.emit("FOLLOW", updatedUser);
+        utilNameSpace.emit("FOLLOW", updatedUser);
       }
     });
 

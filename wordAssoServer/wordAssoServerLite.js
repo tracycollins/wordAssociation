@@ -4756,10 +4756,11 @@ async function initSocketHandler(socketObj) {
           } 
         });
 
-        const updatedUser = await userServerController.findOneUserV2({user: node, options: userDbUpdateOptions});
-
-        adminNameSpace.emit("FOLLOW", updatedUser);
-        utilNameSpace.emit("FOLLOW", updatedUser);
+        if (node){
+          const updatedUser = await userServerController.findOneUserV2({user: node, options: userDbUpdateOptions});
+          adminNameSpace.emit("FOLLOW", updatedUser);
+          utilNameSpace.emit("FOLLOW", updatedUser);
+        }
 
       }
       catch(err) {
@@ -4803,7 +4804,9 @@ async function initSocketHandler(socketObj) {
 
       try{
         const node = await nodeSetProps({ node: user, props: { categoryVerified: true } });
-        await userServerController.findOneUserV2({user: node, options: userDbUpdateOptions});
+       if (node){
+         await userServerController.findOneUserV2({user: node, options: userDbUpdateOptions});
+       }
       }
       catch(err){
         console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
@@ -4929,7 +4932,9 @@ async function initSocketHandler(socketObj) {
     socket.on("TWITTER_CATEGORIZE_NODE", async function twitterCategorizeNode(dataObj) {
 
       const node = await autoCategorizeNode(dataObj);
-      await userServerController.findOneUserV2({user: node, options: userDbUpdateOptions});
+      if (node){
+        await userServerController.findOneUserV2({user: node, options: userDbUpdateOptions});
+      }
     });
 
     socket.on("USER_READY", function userReady(userObj) {

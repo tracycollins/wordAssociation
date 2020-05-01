@@ -1079,7 +1079,7 @@ function controlPanelComm(event) {
             { 
               twitterUser: config.twitterUser,
               category: event.data.category,
-              follow: true,
+              following: true,
               node: event.data.node
             }
           );

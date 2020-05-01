@@ -596,7 +596,7 @@ function ViewTreepack() {
 
   this.setTwitterHashtag = function(message) {
 
-    if (message.hashtag.notFound !== undefined) { 
+    if (message.node.notFound !== undefined) { 
       console.log("setTwitterHashtag"
         + " | NOT FOUND: SEARCH NODE: " + message.searchNode
         + "\nSTATS\n" + jsonPrint(message.stats)
@@ -604,7 +604,7 @@ function ViewTreepack() {
     }
     else { 
       console.log("setTwitterHashtag"
-        + " | #" + message.hashtag.nodeId
+        + " | #" + message.node.nodeId
         + "\nSTATS\n" + jsonPrint(message.stats)
       ); 
     }
@@ -613,7 +613,7 @@ function ViewTreepack() {
       controlPanelWindow.postMessage(
         {
           op: "SET_TWITTER_HASHTAG", 
-          hashtag: message.hashtag, 
+          node: message.node, 
           searchNode: message.searchNode, 
           stats: message.stats
         }, 

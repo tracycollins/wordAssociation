@@ -2675,6 +2675,7 @@ function showStats(options){
     + " | NPM " + statsObj.nodesPerMin
     + " | TPM " + statsObj.twitter.tweetsPerMin
     + " | MTPM " + statsObj.twitter.maxTweetsPerMin + " @ " + getTimeStamp(statsObj.twitter.maxTweetsPerMinTime)
+    + " | NSPQ " + nodeSetPropsQueue.length
     + " | TwRXQ " + tweetRxQueue.length
     + " | T/RT/QT " + statsObj.twitter.tweetsReceived + "/" + statsObj.twitter.retweetsReceived + "/" + statsObj.twitter.quotedTweetsReceived
     + " | TNQ " + transmitNodeQueue.length
@@ -6382,7 +6383,7 @@ function initNodeSetPropsQueueInterval(interval){
 
   return new Promise(function(resolve){
 
-    console.log(chalk.bold.black(MODULE_ID_PREFIX + " | INIT NODE SET PROPS QUEUE INTERVAL: " + tcUtils.msToTime(interval)));
+    console.log(chalk.bold.black(MODULE_ID_PREFIX + " | INIT NODE SET PROPS QUEUE INTERVAL: " + interval + " MS"));
 
     clearInterval(nodeSetPropsQueueInterval);
 
@@ -6397,6 +6398,10 @@ function initNodeSetPropsQueueInterval(interval){
         nodeSetPropsQueueReady = false;
 
         const nspObj = nodeSetPropsQueue.shift();
+
+        if ((nodeSetPropsQueue.length > 0) && (nodeSetPropsQueue.length % 100 === 0)){
+          console.log(chalkLog(MODULE_ID_PREFIX + " | NODE SET PROPS Q: " + nodeSetPropsQueue.length));
+        }
         await nodeSetProps(nspObj);
 
         nodeSetPropsQueueReady = true;

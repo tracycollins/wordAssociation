@@ -3768,8 +3768,7 @@ async function pubSubNodeSetProps(params){
         ));
 
         await deleteUser({user: params.node});
-
-      break;
+        return;
 
       case 63:
         errorType = "USER_SUSPENDED";
@@ -3781,8 +3780,19 @@ async function pubSubNodeSetProps(params){
         ));
 
         await deleteUser({user: params.node});
+        return;
 
-      break;
+      case 11000:
+        errorType = "USER_DUPLICATE_KEY";
+        console.log(chalkError(MODULE_ID_PREFIX + " | *** DB USER_DUPLICATE_KEY ERROR"
+          + " | " + getTimeStamp() 
+          + " | ERR CODE: " + errCode 
+          + " | ERR TYPE: " + errorType
+          + " | UID: " + params.node.nodeId
+        ));
+
+        await deleteUser({user: params.node});
+        return;
 
       default:
         console.log(chalkError(MODULE_ID_PREFIX 

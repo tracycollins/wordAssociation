@@ -190,6 +190,24 @@ function ViewTreepack() {
   currentMax.mentions.mentions = 0.1;
   currentMax.mentions.timeStamp = Date.now();
 
+  function resetCurrentMax(){
+    currentMax.rate.isMaxNode = true;
+    currentMax.rate.nodeId = "14607119";
+    currentMax.rate.nodeType = "user";
+    currentMax.rate.screenName = "threecee";
+    currentMax.rate.rate = 0.1;
+    currentMax.rate.mentions = 0.1;
+    currentMax.rate.timeStamp = Date.now();
+
+    currentMax.mentions.isMaxNode = true;
+    currentMax.mentions.nodeId = "what";
+    currentMax.mentions.nodeType = "hashtag";
+    currentMax.mentions.screenName = "whatever";
+    currentMax.mentions.rate = 0.1;
+    currentMax.mentions.mentions = 0.1;
+    currentMax.mentions.timeStamp = Date.now();
+  }
+
   function Node(nodePoolId){
     this.age = 1e-6;
     this.ageMaxRatio = 1e-6;
@@ -1857,6 +1875,8 @@ function ViewTreepack() {
 
     resizeTimeOut = setTimeout(function(){
 
+      resetCurrentMax();
+
       d3image = d3.select("#d3group");
 
       width = getWindowDimensions().width;
@@ -1939,11 +1959,6 @@ function ViewTreepack() {
       if (panzoomElement) {
         panzoomInstance.zoomAbs(width*0.5, height*0.5, config.panzoomTransform.scale);
       }
-
-
-      // self.initD3timer();
-
-      // self.setGravity(config.defaultGravity);
 
     }, 200);
   };

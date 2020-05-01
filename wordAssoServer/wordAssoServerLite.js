@@ -1670,6 +1670,7 @@ console.log(chalkLog(MODULE_ID_PREFIX + " | DROPBOX_WORD_ASSO_APP_KEY :" + DROPB
 console.log(chalkLog(MODULE_ID_PREFIX + " | DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET));
 
 const userDefaults = function (user){
+  user.rate = user.rate || 0;
   return user;
 };
 
@@ -1682,17 +1683,18 @@ function printUserObj(title, u, chalkFormat) {
   console.log(chlk(title
     + " | " + user.nodeId
     + " @" + user.screenName
-    + " N " + user.name 
-    + " FC " + user.followersCount
-    + " FD " + user.friendsCount
-    + " T " + user.statusesCount
-    + " M  " + user.mentions
-    + " FW " + formatBoolean(user.following) 
-    + " LS " + getTimeStamp(user.lastSeen)
-    + " CN  " + user.categorizeNetwork
-    + " V " + formatBoolean(user.categoryVerified)
-    + " M " + formatCategory(user.category)
-    + " A " + formatCategory(user.categoryAuto)
+    + " N: " + user.name 
+    + " FC: " + user.followersCount
+    + " FD: " + user.friendsCount
+    + " T: " + user.statusesCount
+    + " M: " + user.mentions
+    + " R: " + user.rate.toFixed(2)
+    + " FW: " + formatBoolean(user.following) 
+    + " LS: " + getTimeStamp(user.lastSeen)
+    + " CN: " + user.categorizeNetwork
+    + " V: " + formatBoolean(user.categoryVerified)
+    + " M: " + formatCategory(user.category)
+    + " A: " + formatCategory(user.categoryAuto)
   ));
 }
 
@@ -5387,9 +5389,17 @@ function processCheckCategory(nodeObj){
 
     if (categorizedNodeHashMap.has(nodeObj.nodeId)) {
 
+      // if (nodeObj.screenName === "realdonaldtrump"){
+      //   printUserObj("*#$ DRUMPF | BEFORE", nodeObj, chalk.gray);
+      // }
+
       nodeObj.category = categorizedNodeHashMap.get(nodeObj.nodeId).manual;
       nodeObj.categoryAuto = categorizedNodeHashMap.get(nodeObj.nodeId).auto;
       nodeObj.categorizeNetwork = categorizedNodeHashMap.get(nodeObj.nodeId).network;
+
+      // if (nodeObj.screenName === "realdonaldtrump"){
+      //   printUserObj("*#$ DRUMPF | AFTER ", nodeObj, chalk.black);
+      // }
 
       if (nodesPerMinuteTopTermCache.get(nodeObj.nodeId) !== undefined) {
         nodeObj.isTopTerm = true;
@@ -5808,7 +5818,7 @@ async function initBotSet(p){
         if (nodeId !== "") {
           botNodeIdSet.add(nodeId);
 
-          if (configuration.verbose || botNodeIdSet.size % 1000 === 0) {
+          if (configuration.verbose && (botNodeIdSet.size % 1000 === 0)) {
             console.log(chalkLog(MODULE_ID_PREFIX + " | +++ BOT NODE ID [" + botNodeIdSet.size + "] " + nId.trim()));
           }
         }
@@ -6128,6 +6138,10 @@ async function updateUserSets(){
             network: user.categorizeNetwork
           }
         );
+
+        // if (user.screenName === "realdonaldtrump"){
+        //   printUserObj("*#$ DRUMPF | updateUserSets", user, chalkAlert);
+        // }
       }      
     }
 
@@ -6473,6 +6487,10 @@ function initTransmitNodeQueueInterval(interval){
 
               updatedUser = await userServerController.findOneUserV2({user: node, options: userDbUpdateOptions});
 
+              // if (updatedUser.screenName === "realdonaldtrump"){
+              //   printUserObj("*#$ DRUMPF | UPDATE", updatedUser, chalk.blue);
+              // }
+
               delete updatedUser._id;
               delete updatedUser.userId;
 
@@ -6593,7 +6611,11 @@ async function transmitNodes(tw){
   transmitNodeQueue.push(tw.user);
 
   for(const user of tw.userMentions){
-    if (user && configuration.enableTransmitUser && !ignoredUserSet.has(user.nodeId) && !ignoredUserSet.has(user.screenName.toLowerCase())) { 
+    if (user 
+      && configuration.enableTransmitUser 
+      && !ignoredUserSet.has(user.nodeId) 
+      && !ignoredUserSet.has(user.screenName.toLowerCase())
+    ) { 
       user.isTweeter = false;
       transmitNodeQueue.push(user); 
     }

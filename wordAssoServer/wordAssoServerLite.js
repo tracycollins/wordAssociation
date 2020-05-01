@@ -6038,17 +6038,18 @@ async function updateUserSets(){
   userSearchCursor = global.wordAssoDb.User
   .find(userSearchQuery)
   .select({
-    nodeId: 1, 
-    lang: 1, 
+    categorizeNetwork: 1, 
     category: 1, 
     categoryAuto: 1, 
-    categorizeNetwork: 1, 
     categoryVerified: 1, 
-    following: 1, 
+    friendsCount: 1, 
     followersCount: 1, 
+    following: 1, 
     ignored: 1,
-    screenName: 1,
-    name: 1
+    lang: 1, 
+    name: 1,
+    nodeId: 1, 
+    screenName: 1
   })
   .lean()
   .cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });

@@ -3791,8 +3791,8 @@ async function nodeSetProps(params) {
     + " | PROPS: " + Object.keys(params.props)
   ));
 
-  if (params.forceFollow || params.props.follow !== undefined){
-    if (enableFollow({node: params.node, forceFollow: params.forceFollow}) && params.props.follow) { 
+  if (params.forceFollow || params.props.following !== undefined){
+    if (enableFollow({node: params.node, forceFollow: params.forceFollow}) && params.props.following) { 
 
       followedUserSet.add(params.node.nodeId);
       ignoredUserSet.delete(params.node.nodeId);
@@ -3800,7 +3800,7 @@ async function nodeSetProps(params) {
 
       if (tssChild !== undefined){ tssChild.send({op: "FOLLOW", user: params.node}); }
     }
-    if (!params.props.follow) { 
+    if (!params.props.following) { 
 
       followedUserSet.delete(params.node.nodeId);
       ignoredUserSet.delete(params.node.nodeId);
@@ -4766,9 +4766,10 @@ async function initSocketHandler(socketObj) {
 
         const node = await nodeSetProps({
           node: user,
+          autoFollow: false,
           forceFollow: true,
           props: { 
-            follow: true
+            following: true
           } 
         });
 
@@ -4797,7 +4798,7 @@ async function initSocketHandler(socketObj) {
       ));
 
       try{
-        await nodeSetProps({ node: user, props: { follow: false } });
+        await nodeSetProps({ node: user, props: { following: false, autoFollow: false } });
         adminNameSpace.emit("UNFOLLOW", user);
         utilNameSpace.emit("UNFOLLOW", user);
       }
@@ -4819,7 +4820,7 @@ async function initSocketHandler(socketObj) {
       ));
 
       try{
-        const node = await nodeSetProps({ node: user, props: { categoryVerified: true } });
+        const node = await nodeSetProps({ node: user, props: { following: true, categoryVerified: true } });
        if (node){
          await userServerController.findOneUserV2({user: node, options: userDbUpdateOptions});
        }
@@ -6241,7 +6242,7 @@ async function autoCategorizeNode(params){
 
   const node = await nodeSetProps({
     node: params.node, 
-    props: { category: params.category, follow: params.follow }, 
+    props: { category: params.category, following: params.following }, 
     autoCategorizeFlag: true, 
     autoFollowFlag: params.autoFollowFlag
   });
@@ -6621,7 +6622,7 @@ function initAppRouting(callback) {
             screenName: followEvents[0].target.screen_name
           }
 
-          await nodeSetProps({ node: user, props: { follow: true } });
+          await nodeSetProps({ node: user, props: { following: true } });
 
         }
         
@@ -6638,7 +6639,7 @@ function initAppRouting(callback) {
             screenName: followEvents[0].target.screen_name
           }
 
-          await nodeSetProps({ node: user, props: { follow: false } });
+          await nodeSetProps({ node: user, props: { following: false } });
 
         }
         

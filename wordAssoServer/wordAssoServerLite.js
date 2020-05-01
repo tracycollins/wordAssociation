@@ -6369,8 +6369,6 @@ function initNodeSetPropsQueueInterval(interval){
 
     clearInterval(nodeSetPropsQueueInterval);
 
-    let nspObj = {};
-
     nodeSetPropsQueueInterval = setInterval(async function() {
 
       try {
@@ -6381,7 +6379,7 @@ function initNodeSetPropsQueueInterval(interval){
 
         nodeSetPropsQueueReady = false;
 
-        nspObj = nodeSetPropsQueue.shift();
+        const nspObj = nodeSetPropsQueue.shift();
         await nodeSetProps(nspObj);
 
         nodeSetPropsQueueReady = true;
@@ -6407,11 +6405,11 @@ function initTransmitNodeQueueInterval(interval){
 
     clearInterval(transmitNodeQueueInterval);
 
-    let nodeObj;
-    let categorizeable;
-    let nCacheObj;
-    let node;
-    let updatedUser;
+    // let nodeObj;
+    // let categorizeable;
+    // let nCacheObj;
+    // let node;
+    // let updatedUser;
 
     transmitNodeQueueInterval = setInterval(async function() {
 
@@ -6423,7 +6421,7 @@ function initTransmitNodeQueueInterval(interval){
 
         transmitNodeQueueReady = false;
 
-        nodeObj = transmitNodeQueue.shift();
+        const nodeObj = transmitNodeQueue.shift();
 
         if (!nodeObj) {
           console.log(chalkError(new Error("transmitNodeQueue: NULL NODE OBJ DE-Q")));
@@ -6438,10 +6436,10 @@ function initTransmitNodeQueueInterval(interval){
 
         // ??? PERFORMANCE: may parallelize checkCategory + updateNodeMeter + userCategorizeable
 
-        node = await checkCategory(nodeObj);
+        let node = await checkCategory(nodeObj);
         node = await updateNodeMeter(node);
 
-        categorizeable = await userCategorizeable({user: node});
+        const categorizeable = await userCategorizeable({user: node});
  
         if (node && (node !== undefined) && categorizeable) {
           // await nodeSetProps({ node: node, props: {}, autoCategorize: true, autoFollowFlag: true });
@@ -6457,7 +6455,7 @@ function initTransmitNodeQueueInterval(interval){
           )
         ){
 
-          nCacheObj = nodeCache.get(node.nodeId);
+          const nCacheObj = nodeCache.get(node.nodeId);
 
           if (nCacheObj !== undefined) {
             node.mentions = Math.max(node.mentions, nCacheObj.mentions);
@@ -6485,7 +6483,7 @@ function initTransmitNodeQueueInterval(interval){
 
               node.tweetsPerDay = (node.ageDays > 0) ? node.statusesCount/node.ageDays : 0;
 
-              updatedUser = await userServerController.findOneUserV2({user: node, options: userDbUpdateOptions});
+              const updatedUser = await userServerController.findOneUserV2({user: node, options: userDbUpdateOptions});
 
               // if (updatedUser.screenName === "realdonaldtrump"){
               //   printUserObj("*#$ DRUMPF | UPDATE", updatedUser, chalk.blue);

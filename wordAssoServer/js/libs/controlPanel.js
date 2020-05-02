@@ -328,7 +328,9 @@ function ControlPanel() {
       return;
     }
     eventDetected = true;
-    if (parentWindow && !loadingTwitterFeedFlag) { parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE); }
+    if (parentWindow && !loadingTwitterFeedFlag) { 
+      parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
+    }
 
     setTimeout(function(){
       eventDetected = false;
@@ -1145,7 +1147,12 @@ function ControlPanel() {
         }
 
         twitterControl.addBoolean("CAT VERIFIED", categoryVerified, function(data){
-          console.debug("USER VERIFIED | " + twitterEntity.getValue("SCREENNAME") + " | categoryVerified: " + data);
+
+          console.debug("USER VERIFIED | " + twitterEntity.getValue("SCREENNAME")
+            + " | categoryVerified: " + data
+            + " | category: " + twitterFeedUser.category
+          );
+
           const op = (data) ? "CAT VERIFIED" : "CAT UNVERIFIED";
           catVerifiedHandler(op);
           // if (!loadingTwitterFeedFlag){

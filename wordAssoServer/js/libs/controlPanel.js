@@ -1169,6 +1169,12 @@ function ControlPanel() {
 
         twitterControl.addButton("CAT VERIFY", function(){
           document.getElementById("CAT VERIFY").style.background='#0000ff';
+
+          console.debug("USER VERIFIED | " + twitterEntity.getValue("SCREENNAME")
+            + " | categoryVerified: true" +
+            + " | category: " + twitterFeedUser.category
+          );
+
           catVerifiedHandler("CAT VERIFIED");
           setTimeout(function(){
             document.getElementById("CAT VERIFY").style.background='#ffffff';

@@ -3824,7 +3824,7 @@ async function nodeSetProps(params) {
       ignoredUserSet.delete(params.node.nodeId);
       unfollowableUserSet.delete(params.node.nodeId);
 
-      if (tssChild !== undefined){ tssChild.send({op: "FOLLOW", user: params.node}); }
+      // if (tssChild !== undefined){ tssChild.send({op: "FOLLOW", user: params.node}); }
     }
     if (!params.props.following) { 
 
@@ -3832,7 +3832,7 @@ async function nodeSetProps(params) {
       ignoredUserSet.delete(params.node.nodeId);
       unfollowableUserSet.add(params.node.nodeId);
 
-      if (tssChild !== undefined){ tssChild.send({op: "UNFOLLOW", user: params.node}); }
+      // if (tssChild !== undefined){ tssChild.send({op: "UNFOLLOW", user: params.node}); }
     }
   } 
 

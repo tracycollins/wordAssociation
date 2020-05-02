@@ -1175,7 +1175,7 @@ function ControlPanel() {
           document.getElementById("CAT VERIFY").style.background='#0000ff';
 
           console.debug("USER VERIFIED | " + twitterEntity.getValue("SCREENNAME")
-            + " | categoryVerified: true" +
+            + " | categoryVerified: true"
             + " | category: " + twitterFeedUser.category
           );
 

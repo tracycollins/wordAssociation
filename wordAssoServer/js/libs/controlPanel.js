@@ -960,6 +960,7 @@ function ControlPanel() {
 		cb.checked = true;
     cb.style.backgroundColor = "blue";
     if (!loadingTwitterFeedFlag){
+      console.debug("CATEGORIZE | @" + currentTwitterNode.screenName + " | CAT: " + cb.name);
       parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: cb.name}, DEFAULT_SOURCE);
     }
   }

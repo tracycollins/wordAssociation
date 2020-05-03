@@ -3736,6 +3736,18 @@ async function pubSubNodeSetProps(params){
       cObj.auto = node.categoryAuto || cObj.auto;
       cObj.network = node.categorizeNetwork || cObj.network;
       categorizedHashtagHashMap.set(node.nodeId, cObj);
+
+      let dbHashtag = await global.wordAssoDb.Hashtag.findOne({nodeId: cObj.nodeId});
+
+      if (!dbHashtag){
+        dbHashtag = new global.wordAssoDb.Hashtag(node);
+      }
+
+      dbHashtag.category = cObj.manual;
+      dbHashtag.categoryAuto = cObj.auto;
+      dbHashtag.categorizeNetwork = cObj.network;
+
+      await dbHashtag.save();
     }
 
     if (!node){

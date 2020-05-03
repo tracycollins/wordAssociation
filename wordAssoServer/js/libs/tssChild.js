@@ -538,47 +538,6 @@ function twitStreamPromise(params){
 
 async function initFollowUserIdSet(){
 
-  // let userIndex = 0;
-
-  // const followUserIdArray = [...threeceeUserObj.followUserIdSet];
-
-  // for(const userId of followUserIdArray) {
-
-  //   userIndex += 1;
-
-  //   if (configuration.testMode && (userIndex > 100)){
-  //     continue;
-  //   }
-
-  //   try{
-
-  //     const user = await global.wordAssoDb.User.findOne({ nodeId: userId });
-
-  //     if (user) {
-
-  //       if (configuration.verbose || (userIndex % 100 == 0)) {
-  //         const printString = "TSS [ " + userIndex + "/" + threeceeUserObj.followUserIdSet.size + " ] DB HIT";
-  //         printUserObj(printString, user);
-  //       }
-
-  //       if (!user.following) { 
-  //         user.following = true;
-  //         user.threeceeFollowing = threeceeUserObj.screenName;
-  //         user.markModified("following");
-  //         user.markModified("threeceeFollowing");
-  //         user.save(function(err){
-  //           if (err) { console.log(chalkError("TSS | *** USER DB SAVE ERROR: " + err)); }
-  //         });
-  //       }
-  //     }
-
-  //   }
-  //   catch(err){
-  //     console.log(chalkAlert("TSS | *** initFollowUserIdSet ERROR: " + err));
-  //     throw err;
-  //   }
-  // }
-
   process.send({
     op: "TWITTER_STATS", 
     threeceeUser: threeceeUserObj.screenName, 
@@ -1804,54 +1763,6 @@ process.on("message", async function(m) {
           + " | " + threeceeUserObj.followUserIdSet.size + " FRIENDS"
         ));
 
-        // let userIndex = 0;
-        // let printString = "";
-
-        // const followUserIdArray = [...threeceeUserObj.followUserIdSet];
-
-        // for(const userId of followUserIdArray){
-
-        //   userIndex += 1;
-
-        //   try{
-
-        //     const user = await global.wordAssoDb.User.findOne({nodeId: userId});
-
-        //     if (user) {
-
-        //       if (configuration.verbose || (userIndex % 100 == 0)){
-        //         printString = "TSS | [ " + userIndex + "/" + threeceeUserObj.followUserIdSet.size + " ] @" + threeceeUserObj.screenName + " | DB HIT";
-        //         printUserObj(printString, user);
-        //       }
-
-        //       if (!user.following) {
-        //         user.following = true;
-        //         user.threeceeFollowing = threeceeUserObj.screenName;
-        //         user.markModified("following");
-        //         user.markModified("threeceeFollowing");
-        //         user.save(function(err){
-        //           if (err) { console.log(chalkError("TSS | *** USER DB SAVE ERROR: " + err)); }
-        //         });
-        //       }
-        //     }
-        //     else {
-
-        //       console.log(chalkLog("TSS | [ " + userIndex + "/" + threeceeUserObj.followUserIdSet.size + " ]"
-        //         + " | DB USER MISS  | UID: " + userId
-        //       ));
-
-        //       process.send({
-        //         op: "DB_USER_MISS", 
-        //         nodeId: userId
-        //       });
-        //     }
-        //   }
-        //   catch(err){
-        //     console.log(chalkAlert("TSS | *** USER DB ERROR *** | " + err));
-        //     throw err;
-        //   }
-        // }
-
         await initSearchTerms(configuration);
         await initSearchStream();
 
@@ -2008,14 +1919,11 @@ setTimeout(async function(){
       console.log(chalkError("TSS | TSS | *** INIT ERROR | CONFIG FILE NOT FOUND? | ERROR: " + err));
     }
 
-    // dbConnection = await connectDb();
-    // statsObj.dbConnectionReady = true;
     await initWatchConfig();
     await initSearchTermsUpdateInterval();
     process.send({ op: "READY"});
   }
   catch(err){
-    // statsObj.dbConnectionReady = false;
     console.log(chalkError("TSS | TSS | *** ERROR: " + err + " | QUITTING ***"));
     quit("INITIALIZE ERROR");
   }

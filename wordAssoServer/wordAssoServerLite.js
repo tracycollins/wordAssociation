@@ -1286,24 +1286,6 @@ const categorizeableUserSet = new Set();
 const uncategorizeableUserSet = new Set();
 let followableSearchTermSet = new Set();
 
-
-followableSearchTermSet.add("#blm");
-followableSearchTermSet.add("#dem");
-followableSearchTermSet.add("#gop");
-followableSearchTermSet.add("#imwithher");
-followableSearchTermSet.add("#metoo");
-followableSearchTermSet.add("#nra");
-followableSearchTermSet.add("#resist");
-followableSearchTermSet.add("#russia");
-followableSearchTermSet.add("@cnn");
-followableSearchTermSet.add("@dnc");
-followableSearchTermSet.add("@forbes");
-followableSearchTermSet.add("@foxnews");
-followableSearchTermSet.add("@gop");
-followableSearchTermSet.add("@msnbc");
-followableSearchTermSet.add("@nra");
-followableSearchTermSet.add("@nytimes");
-followableSearchTermSet.add("@rnc");
 followableSearchTermSet.add("abortion");
 followableSearchTermSet.add("aoc");
 followableSearchTermSet.add("barack");

@@ -1020,6 +1020,7 @@ statsObj.user.deleted = 0;
 statsObj.user.categoryChanged = 0;
 statsObj.user.categoryAutoChanged = 0;
 statsObj.user.categorizeNetworkChanged = 0;
+statsObj.user.categoryVerifiedChanged = 0;
 
 statsObj.user.matched = 0;
 statsObj.user.mismatched = 0;
@@ -3568,8 +3569,6 @@ function socketRxTweet(tw) {
       saveFileQueue.push({folder: testDataFolder, file: sampleTweetFileName, obj: tw});
     }
 
-    // screenName = tw.user.screen_name.toLowerCase();
-
     tw.inc = true;
 
     tw.user.statusId = tw.id_str;
@@ -3589,6 +3588,7 @@ function socketRxTweet(tw) {
       tw.user.category = categorizedUserHashMap.get(tw.user.id_str).manual;
       tw.user.categoryAuto = categorizedUserHashMap.get(tw.user.id_str).auto;
       tw.user.categorizeNetwork = categorizedUserHashMap.get(tw.user.id_str).network;
+      tw.user.categoryVerified = categorizedUserHashMap.get(tw.user.id_str).verified;
     }
 
     tweetRxQueue.push(tw);
@@ -3710,6 +3710,8 @@ async function pubSubNodeSetProps(params){
       cObj.manual = node.category || cObj.manual;
       cObj.auto = node.categoryAuto || cObj.auto;
       cObj.network = node.categorizeNetwork || cObj.network;
+      cObj.verified = node.categoryVerified || cObj.verified;
+
       categorizedUserHashMap.set(node.nodeId, cObj);
 
       let dbUser = await global.wordAssoDb.User.findOne({nodeId: cObj.nodeId});
@@ -3721,6 +3723,7 @@ async function pubSubNodeSetProps(params){
       dbUser.category = cObj.manual;
       dbUser.categoryAuto = cObj.auto;
       dbUser.categorizeNetwork = cObj.network;
+      dbUser.categoryVerified = cObj.verified;
 
       await dbUser.save();
     }
@@ -3857,18 +3860,22 @@ async function nodeSetProps(params) {
       let catObj = {};
 
       if (!categorizedUserHashMap.has(params.node.nodeId)){
+
         catObj.nodeId = params.node.nodeId;
         catObj.screenName = params.props.screenName || params.node.screenName;
         catObj.category = params.props.category || params.node.category;
         catObj.categoryAuto = params.props.categoryAuto || params.node.categoryAuto;
         catObj.categorizeNetwork = params.props.categorizeNetwork || params.node.categorizeNetwork;
+        catObj.categoryVerified = params.props.categoryVerified || params.node.categoryVerified;
       }
       else{
+
         catObj = categorizedUserHashMap.get(params.node.nodeId);
         catObj.screenName = params.props.screenName || params.node.screenName || catObj.screenName;
         catObj.category = params.props.category || params.node.screenName || catObj.screenName;
         catObj.categoryAuto = params.props.categoryAuto || params.node.categoryAuto || catObj.categoryAuto;
         catObj.categorizeNetwork = params.props.categorizeNetwork || params.node.categorizeNetwork || catObj.categorizeNetwork;
+        catObj.categoryVerified = params.props.categoryVerified || params.node.categoryVerified || catObj.categoryVerified;
       }
 
       categorizedUserHashMap.set(params.node.nodeId, catObj);
@@ -3882,6 +3889,7 @@ async function nodeSetProps(params) {
         catObj.category = params.node.category;
         catObj.categoryAuto = params.node.categoryAuto;
         catObj.categorizeNetwork = params.node.categorizeNetwork;
+        catObj.categoryVerified = params.node.categoryVerified;
       }
       else{
         catObj = categorizedHashtagHashMap.get(params.node.nodeId);
@@ -3889,6 +3897,7 @@ async function nodeSetProps(params) {
         catObj.category = params.node.category || catObj.category;
         catObj.categoryAuto = params.node.categoryAuto || catObj.categoryAuto;
         catObj.categorizeNetwork = params.node.categorizeNetwork || catObj.categorizeNetwork;
+        catObj.categoryVerified = params.node.categoryVerified;
       }
       categorizedHashtagHashMap.set(params.node.nodeId, catObj);
     }
@@ -5403,17 +5412,10 @@ function processCheckCategory(nodeObj){
 
     if (categorizedNodeHashMap.has(nodeObj.nodeId)) {
 
-      // if (nodeObj.screenName === "realdonaldtrump"){
-      //   printUserObj("*#$ DRUMPF | BEFORE", nodeObj, chalk.gray);
-      // }
-
       nodeObj.category = categorizedNodeHashMap.get(nodeObj.nodeId).manual;
       nodeObj.categoryAuto = categorizedNodeHashMap.get(nodeObj.nodeId).auto;
       nodeObj.categorizeNetwork = categorizedNodeHashMap.get(nodeObj.nodeId).network;
-
-      // if (nodeObj.screenName === "realdonaldtrump"){
-      //   printUserObj("*#$ DRUMPF | AFTER ", nodeObj, chalk.black);
-      // }
+      nodeObj.categoryVerified = categorizedNodeHashMap.get(nodeObj.nodeId).verified;
 
       if (nodesPerMinuteTopTermCache.get(nodeObj.nodeId) !== undefined) {
         nodeObj.isTopTerm = true;
@@ -6142,20 +6144,20 @@ async function updateUserSets(){
     else {
 
       if (user.category && user.category !== undefined){
+
         uncategorizeableUserSet.delete(user.nodeId);
+
         categorizedUserHashMap.set(user.nodeId, 
           { 
             nodeId: user.nodeId, 
             screenName: user.screenName, 
             manual: user.category, 
             auto: user.categoryAuto,
-            network: user.categorizeNetwork
+            network: user.categorizeNetwork,
+            verified: user.categoryVerified
           }
         );
 
-        // if (user.screenName === "realdonaldtrump"){
-        //   printUserObj("*#$ DRUMPF | updateUserSets", user, chalkAlert);
-        // }
       }      
     }
 
@@ -9228,8 +9230,10 @@ async function initDbUserChangeStream(){
   console.log(chalkLog(MODULE_ID_PREFIX + " | ... INIT DB USER CHANGE STREAM"));
 
   const userCollection = global.dbConnection.collection("users");
+
   let catChangeFlag = false;
   let catNetworkChangeFlag = false;
+  let catVerifiedChangeFlag = false;
 
   const userChangeFilter = {
     "$match": {
@@ -9253,6 +9257,7 @@ async function initDbUserChangeStream(){
 
     catChangeFlag = false;
     catNetworkChangeFlag = false;
+    catVerifiedChangeFlag = false;
 
     if (change && change.operationType === "insert"){
 
@@ -9264,6 +9269,7 @@ async function initDbUserChangeStream(){
         + " | " + change.fullDocument.nodeId
         + " | @" + change.fullDocument.screenName
         + " | CN: " + change.fullDocument.categorizeNetwork
+        + " | C V: " + formatBoolean(change.fullDocument.categoryVerified)
         + " | C M: " + formatCategory(change.fullDocument.category)
         + " A: " + formatCategory(change.fullDocument.categoryAuto)
       ));
@@ -9285,6 +9291,7 @@ async function initDbUserChangeStream(){
       && change.updateDescription 
       && change.updateDescription.updatedFields 
       && (Object.keys(change.updateDescription.updatedFields).includes("category")
+        || Object.keys(change.updateDescription.updatedFields).includes("categoryVerified")
         || Object.keys(change.updateDescription.updatedFields).includes("categorizeNetwork")
         || Object.keys(change.updateDescription.updatedFields).includes("categoryAuto"))
     ) { 
@@ -9294,8 +9301,9 @@ async function initDbUserChangeStream(){
       categoryChanges.manual = change.fullDocument.category;
       categoryChanges.auto = change.fullDocument.categoryAuto;
       categoryChanges.network = change.fullDocument.categorizeNetwork;
+      categoryChanges.verified = change.fullDocument.categoryVerified;
       
-      if (categoryChanges.auto || categoryChanges.manual || categoryChanges.network) {
+      if (categoryChanges.auto || categoryChanges.manual || categoryChanges.network || categoryChanges.verified) {
 
         catObj = categorizedUserHashMap.get(change.fullDocument.nodeId);
 
@@ -9307,6 +9315,7 @@ async function initDbUserChangeStream(){
           catObj.manual = change.fullDocument.category;
           catObj.auto = change.fullDocument.categoryAuto;
           catObj.network = change.fullDocument.categorizeNetwork;
+          catObj.verified = change.fullDocument.categoryVerified;
         }
 
         if (categoryChanges.manual && formatCategory(catObj.manual) !== formatCategory(categoryChanges.manual)) {
@@ -9324,24 +9333,31 @@ async function initDbUserChangeStream(){
           statsObj.user.categorizeNetworkChanged++;
         }
 
-        if (catChangeFlag || catNetworkChangeFlag) {
+        if (categoryChanges.verified && catObj.verified && (catObj.verified !== categoryChanges.verified)) {
+          catVerifiedChangeFlag = true;
+          statsObj.user.categoryVerifiedChanged++;
+        }
 
-          if (catChangeFlag){
+        if (catChangeFlag || catNetworkChangeFlag || catVerifiedChangeFlag) {
+
+          // if (catChangeFlag){
             console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | CAT USR"
               + " [ M: " + statsObj.user.categoryChanged 
               + " A: " + statsObj.user.categoryAutoChanged
               + " N: " + statsObj.user.categorizeNetworkChanged + "]"
+              + " | V: " + formatBoolean(catObj.verified) + " -> " + formatCategory(categoryChanges.verified)
               + " | M: " + formatCategory(catObj.manual) + " -> " + formatCategory(categoryChanges.manual)
               + " A: " + formatCategory(catObj.auto) + " -> " + formatCategory(categoryChanges.auto)
               + " | CN: " + catObj.network + " -> " + categoryChanges.network
               + " | " + change.fullDocument.nodeId
               + " | @" + change.fullDocument.screenName
             ));
-          }
+          // }
 
           catObj.manual = categoryChanges.manual || catObj.manual;
           catObj.auto = categoryChanges.auto || catObj.auto;
           catObj.network = categoryChanges.network || catObj.network;
+          catObj.verified = categoryChanges.verified || catObj.verified;
 
           categorizedUserHashMap.set(catObj.nodeId, catObj);
           uncategorizeableUserSet.delete(catObj.nodeId);

@@ -99,6 +99,7 @@ let userServerControllerReady = false;
 
 let neuralNetworkChangeStream;
 let userChangeStream;
+let hashtagChangeStream;
 
 let userSearchCursor;
 let hashtagSearchCursor;
@@ -632,6 +633,7 @@ const nodeSetPropsResultHandler = async function(message){
         + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
         + " | TOPIC: node-setprops-result"
         + " | RID: " + messageObj.requestId
+        + " | TYPE: " + messageObj.node.nodeType
         + " | NID: " + messageObj.node.nodeId
         + " | @" + messageObj.node.screenName
         + " | AUTO FLW: " + formatBoolean(messageObj.node.autoFollowFlag)
@@ -650,9 +652,11 @@ const nodeSetPropsResultHandler = async function(message){
     }
     else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
       console.log(chalkBlue(MODULE_ID_PREFIX
-        + " | ==> PS HSTG SET PROPS [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
+        + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
+        + " | TOPIC: node-setprops-result"
         + " | RID: " + messageObj.requestId
-        + " | NID: " + messageObj.node.nodeId
+        + " | TYPE: " + messageObj.node.nodeType
+        + " | #" + messageObj.node.nodeId
         + " | CM: " + formatCategory(messageObj.node.category)
         + " | CA: " + formatCategory(messageObj.node.categoryAuto)
       ));
@@ -910,6 +914,9 @@ async function initSlackRtmClient(){
     }
   });
 }
+
+const addedHashtagsSet = new Set();
+const deletedHashtagsSet = new Set();
 
 const addedUsersSet = new Set();
 const deletedUsersSet = new Set();
@@ -1281,7 +1288,8 @@ const ignoredHashtagFile = "ignoredHashtag.txt";
 const ignoredUserFile = "ignoredUser.json";
 const followableSearchTermFile = "followableSearchTerm.txt";
 
-// const pendingFollowSet = new Set();
+const uncategorizeableHashtagSet = new Set();
+
 const categorizeableUserSet = new Set();
 const uncategorizeableUserSet = new Set();
 let followableSearchTermSet = new Set();
@@ -9365,6 +9373,152 @@ async function initDbUserChangeStream(){
   return;
 }
 
+async function initDbHashtagChangeStream(){
+
+  console.log(chalkLog(MODULE_ID_PREFIX + " | ... INIT DB HASHTAG CHANGE STREAM"));
+
+  const hashtagCollection = global.dbConnection.collection("hashtags");
+
+  let catChangeFlag = false;
+  let catNetworkChangeFlag = false;
+  let catVerifiedChangeFlag = false;
+
+  const hashtagChangeFilter = {
+    "$match": {
+      "$or": [
+        { operationType: "insert" },
+        { operationType: "delete" },
+        { operationType: "update" },
+        { operationType: "replace" }
+      ]
+    }
+  };
+
+  const hashtagChangeOptions = { fullDocument: "updateLookup" };
+
+  hashtagChangeStream = hashtagCollection.watch([hashtagChangeFilter], hashtagChangeOptions);
+
+  let categoryChanges = {};
+  let catObj = {};
+
+  hashtagChangeStream.on("change", function(change){
+
+    catChangeFlag = false;
+    catNetworkChangeFlag = false;
+    catVerifiedChangeFlag = false;
+
+    if (change && change.operationType === "insert"){
+
+      addedHashtagsSet.add(change.fullDocument.nodeId);
+
+      statsObj.hashtag.added = addedHashtagsSet.size;
+
+      console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | + USR [" + statsObj.hashtag.added + "]"
+        + " | " + change.fullDocument.nodeId
+        + " | @" + change.fullDocument.screenName
+        + " | CN: " + change.fullDocument.categorizeNetwork
+        + " | C V: " + formatBoolean(change.fullDocument.categoryVerified)
+        + " | C M: " + formatCategory(change.fullDocument.category)
+        + " A: " + formatCategory(change.fullDocument.categoryAuto)
+      ));
+    }
+    
+    if (change && change.operationType === "delete"){
+
+      // change obj doesn't contain hashtagDoc, so use DB BSON ID
+
+      deletedHashtagsSet.add(change._id._data);
+      statsObj.hashtag.deleted = deletedHashtagsSet.size;
+      console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | X USR [" + statsObj.hashtag.deleted + "]"
+        + " | DB _id: " + change._id._data
+      ));
+    }
+    
+    if (change 
+      && change.fullDocument 
+      && change.updateDescription 
+      && change.updateDescription.updatedFields 
+      && (Object.keys(change.updateDescription.updatedFields).includes("category")
+        || Object.keys(change.updateDescription.updatedFields).includes("categoryVerified")
+        || Object.keys(change.updateDescription.updatedFields).includes("categorizeNetwork")
+        || Object.keys(change.updateDescription.updatedFields).includes("categoryAuto"))
+    ) { 
+
+      categoryChanges = {};
+
+      categoryChanges.manual = change.fullDocument.category;
+      categoryChanges.auto = change.fullDocument.categoryAuto;
+      categoryChanges.network = change.fullDocument.categorizeNetwork;
+      categoryChanges.verified = change.fullDocument.categoryVerified;
+      
+      if (categoryChanges.auto || categoryChanges.manual || categoryChanges.network || categoryChanges.verified) {
+
+        catObj = categorizedHashtagHashMap.get(change.fullDocument.nodeId);
+
+        if (empty(catObj)) {
+          catChangeFlag = true;
+          catObj = {};
+          catObj.screenName = change.fullDocument.screenName;
+          catObj.nodeId = change.fullDocument.nodeId;
+          catObj.manual = change.fullDocument.category;
+          catObj.auto = change.fullDocument.categoryAuto;
+          catObj.network = change.fullDocument.categorizeNetwork;
+          catObj.verified = change.fullDocument.categoryVerified;
+        }
+
+        if (categoryChanges.manual && formatCategory(catObj.manual) !== formatCategory(categoryChanges.manual)) {
+          catChangeFlag = true;
+          statsObj.hashtag.categoryChanged++;
+        }
+
+        if (categoryChanges.auto && formatCategory(catObj.auto) !== formatCategory(categoryChanges.auto)) {
+          catChangeFlag = true;
+          statsObj.hashtag.categoryAutoChanged++;
+        }
+
+        if (categoryChanges.network && catObj.network && (catObj.network !== categoryChanges.network)) {
+          catNetworkChangeFlag = true;
+          statsObj.hashtag.categorizeNetworkChanged++;
+        }
+
+        if (categoryChanges.verified && catObj.verified && (catObj.verified !== categoryChanges.verified)) {
+          catVerifiedChangeFlag = true;
+          statsObj.hashtag.categoryVerifiedChanged++;
+        }
+
+        if (catChangeFlag || catNetworkChangeFlag || catVerifiedChangeFlag) {
+
+          // if (catChangeFlag){
+            console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | CAT USR"
+              + " [ M: " + statsObj.hashtag.categoryChanged 
+              + " A: " + statsObj.hashtag.categoryAutoChanged
+              + " N: " + statsObj.hashtag.categorizeNetworkChanged + "]"
+              + " | V: " + formatBoolean(catObj.verified) + " -> " + formatCategory(categoryChanges.verified)
+              + " | M: " + formatCategory(catObj.manual) + " -> " + formatCategory(categoryChanges.manual)
+              + " A: " + formatCategory(catObj.auto) + " -> " + formatCategory(categoryChanges.auto)
+              + " | CN: " + catObj.network + " -> " + categoryChanges.network
+              + " | " + change.fullDocument.nodeId
+              + " | @" + change.fullDocument.screenName
+            ));
+          // }
+
+          catObj.manual = categoryChanges.manual || catObj.manual;
+          catObj.auto = categoryChanges.auto || catObj.auto;
+          catObj.network = categoryChanges.network || catObj.network;
+          catObj.verified = categoryChanges.verified || catObj.verified;
+
+          categorizedHashtagHashMap.set(catObj.nodeId, catObj);
+          uncategorizeableHashtagSet.delete(catObj.nodeId);
+
+        }
+      }
+    }
+
+  });
+
+  return;
+}
+
 let stdin;
 
 function initStdIn(){
@@ -9755,6 +9909,7 @@ setTimeout(async function(){
     await initSorterMessageRxQueueInterval(configuration.sorterMessageRxQueueInterval);
     await initDbuChild({childId: DEFAULT_DBU_CHILD_ID});
     await initDbUserChangeStream();
+    await initDbHashtagChangeStream();
     await initTweetParser({childId: DEFAULT_TWP_CHILD_ID});
     await initUpdateUserSetsInterval(configuration.updateUserSetsInterval);
     await initWatchConfig();

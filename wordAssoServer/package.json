@@ -8,7 +8,7 @@
     "@google-cloud/pubsub": "^1.7.2",
     "@slack/client": "^5.0.2",
     "@threeceelabs/hashtag-server-controller": "^1.0.70",
-    "@threeceelabs/mongoose-twitter": "^1.0.314",
+    "@threeceelabs/mongoose-twitter": "^1.0.315",
     "@threeceelabs/neural-network-tools": "^1.0.203",
     "@threeceelabs/threecee-utilities": "^1.0.276",
     "@threeceelabs/tweet-server-controller": "^1.0.517",

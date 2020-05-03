@@ -1142,7 +1142,7 @@ function ViewTreepack() {
       case "hashtag" :
 
         if (controlPanelReadyFlag) {
-          controlPanelWindow.postMessage({op: "SET_TWITTER_HASHTAG", hashtag: d}, DEFAULT_SOURCE);
+          controlPanelWindow.postMessage({op: "SET_TWITTER_HASHTAG", node: d, nodeSearch: true}, DEFAULT_SOURCE);
         }
 
         if (mouseMovingFlag 

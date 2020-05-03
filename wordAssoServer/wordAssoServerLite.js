@@ -980,6 +980,15 @@ let dbuChildReady = false;
 statsObj.tssChildReady = false;
 
 statsObj.hashtag = {};
+
+statsObj.hashtag.added = 0;
+statsObj.hashtag.deleted = 0;
+statsObj.hashtag.categoryChanged = 0;
+statsObj.hashtag.categoryAutoChanged = 0;
+statsObj.hashtag.categorizeNetworkChanged = 0;
+statsObj.hashtag.categoryVerifiedChanged = 0;
+
+
 statsObj.hashtag.auto = {};
 statsObj.hashtag.auto.left = 0;
 statsObj.hashtag.auto.negative = 0;

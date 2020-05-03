@@ -5609,6 +5609,8 @@ async function userCategorizeable(params){
     return false; 
   }
 
+  if (user.following === undefined) { user.following = false; }
+
   if (user.following && (user.following !== undefined)) { 
     unfollowableUserSet.delete(user.nodeId);
     if (verbose) { 
@@ -5620,6 +5622,8 @@ async function userCategorizeable(params){
     }
     return true; 
   }
+
+  if (user.ignored === undefined) { user.ignored = false; }
 
   if (user.ignored && (user.ignored !== undefined)) { 
     ignoredUserSet.add(user.nodeId);
@@ -5653,6 +5657,8 @@ async function userCategorizeable(params){
     }
     return false;
   }
+
+  if (user.lang === undefined) { user.lang = ""; }
 
   if (user.lang && (user.lang !== undefined) && (user.lang != "en")) {
     uncategorizeableUserSet.add(user.nodeId); 
@@ -6098,6 +6104,9 @@ async function updateUserSets(){
   userSearchCursor.on("data", async function(user) {
 
     const nodeId = user.nodeId.toLowerCase();
+
+    if (user.ignored === undefined) { user.ignored = false; }
+    if (user.following === undefined) { user.following = false; }
 
     if (user.category === undefined || user.category === "false" || !user.category) { user.category = "none"; }
     if (user.categoryAuto === undefined || user.categoryAuto === "false" || !user.categoryAuto) { user.categoryAuto = "none"; }

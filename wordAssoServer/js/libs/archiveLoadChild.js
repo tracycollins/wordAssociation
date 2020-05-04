@@ -279,27 +279,6 @@ function clearAllIntervals(){
   });
 }
 
-// function processSend(message){
-//   return new Promise(function(resolve, reject){
-
-//     if (configuration.verbose){
-//       console.log(chalkGreen(MODULE_ID_PREFIX 
-//         + " | >T MESSAGE | " + getTimeStamp() 
-//         + " | OP: " + message.op
-//       )); 
-//     }
-
-//     try{
-//       process.send(message);
-//     }
-//     catch(err){
-//       return reject(err);
-//     }
-
-//     resolve();
-//   });
-// }
-
 //=========================================================================
 // QUIT + EXIT
 //=========================================================================
@@ -324,8 +303,6 @@ async function quit(opts) {
   }
 
   showStats(true);
-
-  // await processSend({op: "QUIT", childId: configuration.childId});
 
   setInterval(async function() {
 
@@ -449,8 +426,8 @@ function unzipUsers(params){
                         catch(e){
                           console.log(chalkError(MODULE_ID_PREFIX
                             + " | *** DB SAVE ERROR " + e
-                            + "\nerror\n" + jsonPrint(e)
-                            + "\nuserObj.profileHistograms\n" + jsonPrint(userObj.profileHistograms)
+                            // + "\nerror\n" + jsonPrint(e)
+                            // + "\nuserObj.profileHistograms\n" + jsonPrint(userObj.profileHistograms)
                           ));
                         }
                       }

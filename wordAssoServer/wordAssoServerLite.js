@@ -2027,34 +2027,6 @@ function ipCacheExpired(ip, ipCacheObj) {
 ipCache.on("expired", ipCacheExpired);
 
 // ==================================================================
-// CATEGORIZE USER ID CACHE
-// ==================================================================
-console.log(MODULE_ID_PREFIX + " | CATEGORIZE USER ID CACHE TTL: " + tcUtils.msToTime(configuration.categorizeCacheTtl*1000));
-console.log(MODULE_ID_PREFIX + " | CATEGORIZE USER ID CACHE CHECK PERIOD: " + tcUtils.msToTime(configuration.categorizeCacheCheckPeriod*1000));
-
-const categorizeCache = new NodeCache({
-  stdTTL: 60,
-  checkperiod: 10
-});
-
-function categorizeCacheExpired(nodeId, user) {
-
-  statsObj.caches.categorizeCache.stats = categorizeCache.getStats();
-  statsObj.caches.categorizeCache.expired += 1;
-
-  debug(chalkInfo(MODULE_ID_PREFIX + " | XXX CAT USER $ EXP"
-    + " [" + statsObj.caches.categorizeCache.stats.keys + " KEYS]"
-    + " | TTL: " + tcUtils.msToTime(ONE_MINUTE)
-    + " | NOW: " + getTimeStamp()
-    + " | $ EXP: " + statsObj.caches.categorizeCache.expired
-    + " | NID: " + nodeId
-    + " | @" + user.screenName
-  ));
-}
-
-categorizeCache.on("expired", categorizeCacheExpired);
-
-// ==================================================================
 // TWEET ID CACHE
 // ==================================================================
 let tweetIdCacheTtl = process.env.TWEET_ID_CACHE_DEFAULT_TTL;
@@ -2371,7 +2343,6 @@ DEFAULT_NODE_TYPES.forEach(function(nodeType){
 });
 
 const cacheObj = {};
-cacheObj.categorizeCache = categorizeCache;
 cacheObj.ipCache = ipCache;
 cacheObj.nodeCache = nodeCache;
 cacheObj.serverCache = serverCache;
@@ -2552,12 +2523,6 @@ function initStats(callback){
   statsObj.maxNodesPerMinTime = moment().valueOf();
 
   statsObj.caches = {};
-
-  statsObj.caches.categorizeCache = {};
-  statsObj.caches.categorizeCache.stats = {};
-  statsObj.caches.categorizeCache.stats.keys = 0;
-  statsObj.caches.categorizeCache.stats.keysMax = 0;
-  statsObj.caches.categorizeCache.expired = 0;
 
   statsObj.caches.ipCache = {};
   statsObj.caches.ipCache.stats = {};

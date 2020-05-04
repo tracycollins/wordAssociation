@@ -3663,6 +3663,7 @@ async function pubSubNodeSetProps(params){
       + " | RID: " + params.requestId
       + " | TOPIC: node-setprops"
       + " | NODE TYPE: " + params.node.nodeType
+      + " | CREATE NODE ON MISS: " + formatBoolean(params.createNodeOnMiss)
       + " | NID: " + params.node.nodeId
       + " | PROPS: " + Object.keys(params.props)
     ));
@@ -3915,7 +3916,12 @@ async function nodeSetProps(params) {
     if (!params.props.isBot) { botNodeIdSet.delete(params.node.nodeId); }
   } 
 
-  const node = await pubSubNodeSetProps({ requestId: requestId, node: params.node, props: params.props });
+  const node = await pubSubNodeSetProps({ 
+    requestId: requestId, 
+    createNodeOnMiss: params.createNodeOnMiss,
+    node: params.node, 
+    props: params.props 
+  });
 
   return node;
 }
@@ -5052,6 +5058,7 @@ async function initSocketHandler(socketObj) {
       // }
 
       const node = await nodeSetProps({
+        createNodeOnMiss: true,
         node: catNodeObj.node, 
         props: { 
           category: catNodeObj.category, 
@@ -6479,7 +6486,13 @@ function initTransmitNodeQueueInterval(interval){
  
         if (node && (node !== undefined) && categorizeable) {
           // await nodeSetProps({ node: node, props: {}, autoCategorize: true, autoFollowFlag: true });
-          nodeSetPropsQueue.push({ node: node, props: {}, autoCategorize: true, autoFollowFlag: true });
+          nodeSetPropsQueue.push({ 
+            createNodeOnMiss: true,
+            node: node, 
+            props: {}, 
+            autoCategorize: true, 
+            autoFollowFlag: true
+          });
         }
 
         if (categorizeable && (node.nodeType === "user") 
@@ -6771,7 +6784,11 @@ function initAppRouting(callback) {
             screenName: followEvents[0].target.screen_name
           }
 
-          await nodeSetProps({ node: user, props: { following: true } });
+          await nodeSetProps({ 
+            createNodeOnMiss: true,
+            node: user, 
+            props: { following: true } 
+          });
 
         }
         

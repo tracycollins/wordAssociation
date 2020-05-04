@@ -3833,20 +3833,15 @@ async function nodeSetProps(params) {
 
   if (params.forceFollow || params.props.following !== undefined){
     if (enableFollow({node: params.node, forceFollow: params.forceFollow}) && params.props.following) { 
-
       followedUserSet.add(params.node.nodeId);
       ignoredUserSet.delete(params.node.nodeId);
       unfollowableUserSet.delete(params.node.nodeId);
-
-      // if (tssChild !== undefined){ tssChild.send({op: "FOLLOW", user: params.node}); }
     }
     if (!params.props.following) { 
 
       followedUserSet.delete(params.node.nodeId);
       ignoredUserSet.delete(params.node.nodeId);
       unfollowableUserSet.add(params.node.nodeId);
-
-      // if (tssChild !== undefined){ tssChild.send({op: "UNFOLLOW", user: params.node}); }
     }
   } 
 
@@ -3857,6 +3852,7 @@ async function nodeSetProps(params) {
     }
     if (!params.props.ignored) { 
       ignoredUserSet.delete(params.node.nodeId);
+      unfollowableUserSet.delete(params.node.nodeId);
       if (tssChild !== undefined){ tssChild.send({op: "UNIGNORE", user: params.node}); }
     }
   } 
@@ -6072,7 +6068,7 @@ async function updateUserSets(){
     throw new Error("DB CONNECTION NOT READY");
   }
 
-  await global.wordAssoDb.User.deleteMany({ "$and": [ {lang: { "$nin": [ false, null ] } }, { lang: { "$ne": "en" } } ]} );
+  await global.wordAssoDb.User.deleteMany({ "$and": [ {lang: { "$nin": [ false, null, "" ] } }, { lang: { "$ne": "en" } } ]} );
 
   await updateUserCounts();
 

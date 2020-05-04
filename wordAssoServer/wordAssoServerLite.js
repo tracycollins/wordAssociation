@@ -6497,7 +6497,22 @@ function initTransmitNodeQueueInterval(interval){
 
               node.tweetsPerDay = (node.ageDays > 0) ? node.statusesCount/node.ageDays : 0;
 
-              const updatedUser = await userServerController.findOneUserV2({user: node, options: userDbUpdateOptions});
+              if (node.isTweeter && botNodeIdSet.has(node.nodeId)){ 
+
+                node.isBot = true;
+
+                statsObj.traffic.users.bots++;
+                statsObj.traffic.users.percentBots = 100*(statsObj.traffic.users.bots/statsObj.traffic.users.total);
+
+                printBotStats({user: node, modulo: 100});
+
+              }
+
+              const updatedUser = await userServerController.findOneUserV2({
+                user: node,
+                updatePickArray: ["ageDays", "isTweeter", "isBot", "tweetsPerDay", "mentions", "rate"],
+                options: userDbUpdateOptions
+              });
 
               // if (updatedUser.screenName === "realdonaldtrump"){
               //   printUserObj("*#$ DRUMPF | UPDATE", updatedUser, chalk.blue);
@@ -6505,17 +6520,6 @@ function initTransmitNodeQueueInterval(interval){
 
               delete updatedUser._id;
               delete updatedUser.userId;
-
-              if (updatedUser.isTweeter && botNodeIdSet.has(updatedUser.nodeId)){ 
-
-                updatedUser.isBot = true;
-
-                statsObj.traffic.users.bots++;
-                statsObj.traffic.users.percentBots = 100*(statsObj.traffic.users.bots/statsObj.traffic.users.total);
-
-                printBotStats({user: updatedUser, modulo: 100});
-
-              }
 
               viewNameSpace.volatile.emit("node", updatedUser);
               transmitNodeQueueReady = true;

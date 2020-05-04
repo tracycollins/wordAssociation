@@ -42,6 +42,7 @@ const configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/defau
 let configuration = {};
 
 configuration.default = {};
+configuration.loadAllArchivesFlag = true;
 configuration.default.trainingSetsFolder = configDefaultFolder + "/trainingSets";
 configuration.default.userArchiveFolder = configDefaultFolder + "/trainingSets/users";
 configuration.userArchiveFolder = configuration.default.userArchiveFolder;
@@ -711,14 +712,18 @@ async function loadUsersArchive(params){
       + "\n FILE:   " + file
     ));
 
-    console.log(chalkLog(MODULE_ID_PREFIX 
-      + " | USER ARCHIVE FILE | FILE: " + params.archiveFlagObj.file 
-      + " | SIZE: " + params.archiveFlagObj.size
-      + " | TOTAL USERS: " + params.archiveFlagObj.histogram.total
-      + " | CAT: L/N/R: " + params.archiveFlagObj.histogram.left 
-      + "/" + params.archiveFlagObj.histogram.neutral 
-      + "/" + params.archiveFlagObj.histogram.right
-    ));
+    if (!params.skipSizeCheck){
+      console.log(chalkLog(MODULE_ID_PREFIX 
+        + " | USER ARCHIVE FILE | FILE: " + params.archiveFlagObj.file 
+        + " | SIZE: " + params.archiveFlagObj.size
+        + " | TOTAL USERS: " + params.archiveFlagObj.histogram.total
+        + " | CAT: L/N/R: " + params.archiveFlagObj.histogram.left 
+        + "/" + params.archiveFlagObj.histogram.neutral 
+        + "/" + params.archiveFlagObj.histogram.right
+      ));
+      await waitFileExists(params.archiveFlagObj);
+      await fileSize(params.archiveFlagObj);
+    }
 
     // defaultUserArchiveFlagFile
     // {
@@ -735,8 +740,6 @@ async function loadUsersArchive(params){
     //   }
     // }
 
-    await waitFileExists(params.archiveFlagObj);
-    await fileSize(params.archiveFlagObj);
     await unzipUsers(params.archiveFlagObj);
     return;
   }
@@ -746,17 +749,93 @@ async function loadUsersArchive(params){
   }
 }
 
-async function loadArchive(){
+async function loadArchive(p){
 
   try{
+
+    const params = p || {};
+
+    let archiveFlagObj;
+
     statsObj.status = "LOAD ARCHIVE";
 
-    console.log(chalkLog(MODULE_ID_PREFIX
-      + " | LOAD USERS ARCHIVE FLAG FILE: " + configuration.userArchiveFolder + "/" + configuration.defaultUserArchiveFlagFile
-    ));
+    if (params.loadAllArchivesFlag){
+      console.log(chalkLog(MODULE_ID_PREFIX
+        + " | LOAD ALL USERS ARCHIVES: " + configuration.userArchiveFolder
+      ));
 
-    const archiveFlagObj = await tcUtils.loadFileRetry({folder: configuration.userArchiveFolder, file: configuration.defaultUserArchiveFlagFile});
-    console.log(chalkNetwork(MODULE_ID_PREFIX + " | USERS ARCHIVE FLAG FILE\n" + jsonPrint(archiveFlagObj)));
+      const entries = await tcUtils.listFolders({folders: [configuration.userArchiveFolder]});
+
+      for(const entry of entries){
+        console.log(chalkLog(MODULE_ID_PREFIX
+          // + " | FOLDER: " + entry.folder
+          // + " | FILE: " + entry.file
+          + " | PATH: " + entry.path
+        ));
+        if (entry.path.endsWith(".zip")){
+          console.log(chalkBlue(MODULE_ID_PREFIX
+            + " | ... LOADING ARCHIVE"
+            + " | PATH: " + entry.path
+          ));
+
+          try{
+            await loadUsersArchive({
+              skipSizeCheck: true,
+              archiveFlagObj: {
+                file: entry.file,
+                histogram: {
+                  total: 1000
+                }
+              }
+            });
+          }
+          catch(e){
+            console.log(chalkError(MODULE_ID_PREFIX + " | *** loadUsersArchive ERROR | ... SKIPPING | " + e));
+          }
+
+        }
+      }
+    }
+    else{
+      console.log(chalkLog(MODULE_ID_PREFIX
+        + " | LOAD USERS ARCHIVE FLAG FILE: " 
+        + configuration.userArchiveFolder + "/" + configuration.defaultUserArchiveFlagFile
+      ));
+
+      archiveFlagObj = await tcUtils.loadFileRetry({folder: configuration.userArchiveFolder, file: configuration.defaultUserArchiveFlagFile});
+      console.log(chalkNetwork(MODULE_ID_PREFIX + " | USERS ARCHIVE FLAG FILE\n" + jsonPrint(archiveFlagObj)));
+  
+        console.log(chalkLog(MODULE_ID_PREFIX 
+        + " | USER ARCHIVE FILE | FILE: " + archiveFlagObj.file 
+        + " | SIZE: " + archiveFlagObj.size
+        + " | TOTAL USERS: " + archiveFlagObj.histogram.total
+        + " | CAT: L/N/R: " + archiveFlagObj.histogram.left 
+        + "/" + archiveFlagObj.histogram.neutral 
+        + "/" + archiveFlagObj.histogram.right
+      ));
+
+      if (archiveFlagObj.file !== statsObj.archiveFile) {
+
+        statsObj.trainingSetReady = false;
+        statsObj.loadUsersArchiveBusy = true;
+
+        await loadUsersArchive({archiveFlagObj: archiveFlagObj});
+
+        statsObj.archiveModified = getTimeStamp();
+        statsObj.loadUsersArchiveBusy = false;
+        statsObj.archiveFile = archiveFlagObj.file;
+        statsObj.trainingSetReady = true;
+        console.log(chalkGreenBold(MODULE_ID_PREFIX + " | TRAINING SET LOADED: " + archiveFlagObj.file));
+        return;
+      }
+      else {
+        console.log(chalkLog(MODULE_ID_PREFIX + " | USERS ARCHIVE SAME ... SKIPPING | " + archiveFlagObj.file + " | SIZE: " + archiveFlagObj.size));
+        statsObj.loadUsersArchiveBusy = false;
+        statsObj.trainingSetReady = true;
+        return;
+      }
+  }
+
 
     // defaultUserArchiveFlagFile
     // {
@@ -773,35 +852,6 @@ async function loadArchive(){
     //   }
     // }
 
-    console.log(chalkLog(MODULE_ID_PREFIX 
-      + " | USER ARCHIVE FILE | FILE: " + archiveFlagObj.file 
-      + " | SIZE: " + archiveFlagObj.size
-      + " | TOTAL USERS: " + archiveFlagObj.histogram.total
-      + " | CAT: L/N/R: " + archiveFlagObj.histogram.left 
-      + "/" + archiveFlagObj.histogram.neutral 
-      + "/" + archiveFlagObj.histogram.right
-    ));
-
-    if (archiveFlagObj.file !== statsObj.archiveFile) {
-
-      statsObj.trainingSetReady = false;
-      statsObj.loadUsersArchiveBusy = true;
-
-      await loadUsersArchive({archiveFlagObj: archiveFlagObj});
-
-      statsObj.archiveModified = getTimeStamp();
-      statsObj.loadUsersArchiveBusy = false;
-      statsObj.archiveFile = archiveFlagObj.file;
-      statsObj.trainingSetReady = true;
-      console.log(chalkGreenBold(MODULE_ID_PREFIX + " | TRAINING SET LOADED: " + archiveFlagObj.file));
-      return;
-    }
-    else {
-      console.log(chalkLog(MODULE_ID_PREFIX + " | USERS ARCHIVE SAME ... SKIPPING | " + archiveFlagObj.file + " | SIZE: " + archiveFlagObj.size));
-      statsObj.loadUsersArchiveBusy = false;
-      statsObj.trainingSetReady = true;
-      return;
-    }
 
   }
   catch(err){
@@ -973,7 +1023,7 @@ setTimeout(async function(){
 
     try {
       await connectDb();
-      await loadArchive();
+      await loadArchive({loadAllArchivesFlag: configuration.loadAllArchivesFlag});
       quit({cause: "END"});
     }
     catch(err){

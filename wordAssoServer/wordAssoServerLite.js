@@ -4157,9 +4157,11 @@ async function pubSubSearchNode(params){
           verified: node.categoryVerified
         }
       );
-    }
 
-    if (node.nodeType === "hashtag" && isCategorized(node)){
+      const nodeUpdated = await global.wordAssoDb.User.findOneAndUpdate({nodeId: node.nodeId}, node);
+      return nodeUpdated;
+    }
+    else if (node.nodeType === "hashtag" && isCategorized(node)){
       categorizedHashtagHashMap.set(node.nodeId, 
         { 
           nodeId: node.nodeId, 
@@ -4168,9 +4170,14 @@ async function pubSubSearchNode(params){
           auto: "none"
         }
       );
+
+      const nodeUpdated = await global.wordAssoDb.Hashtag.findOneAndUpdate({nodeId: node.nodeId}, node);
+      return nodeUpdated;
+    }
+    else{
+      return node;
     }
 
-    return node;
   }
   catch(err){
 

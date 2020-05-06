@@ -524,6 +524,21 @@ const nodeSearchResultHandler = async function(message){
         statsObj.user = messageObj.stats;
       }
 
+      const catUserObj = categorizedUserHashMap.get(messageObj.node.nodeId);
+      
+      if (catUserObj !== undefined){
+
+        if (["left", "neutral", "right"].includes(messageObj.node.category)){
+          catUserObj.manual = messageObj.node.category;
+        }
+        
+        if (["left", "neutral", "right"].includes(messageObj.node.categoryAuto)){
+          catUserObj.auto = messageObj.node.categoryAuto;
+        }
+
+        categorizedUserHashMap.set(catUserObj.nodeId, catUserObj);
+      }
+
       searchNodeResultHashMap[messageObj.requestId] = messageObj.node;
     }
     else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
@@ -535,6 +550,21 @@ const nodeSearchResultHandler = async function(message){
         + " | CM: " + formatCategory(messageObj.node.category)
         + " | CA: " + formatCategory(messageObj.node.categoryAuto)
       ));
+
+      const catHashtagObj = categorizedHashtagHashMap.get(messageObj.node.nodeId);
+      
+      if (catHashtagObj !== undefined){
+
+        if (["left", "neutral", "right"].includes(messageObj.node.category)){
+          catHashtagObj.manual = messageObj.node.category;
+        }
+        
+        if (["left", "neutral", "right"].includes(messageObj.node.categoryAuto)){
+          catHashtagObj.auto = messageObj.node.categoryAuto;
+        }
+
+        categorizedHashtagHashMap.set(catHashtagObj.nodeId, catHashtagObj);
+      }
 
       searchNodeResultHashMap[messageObj.requestId] = messageObj.node;
     }

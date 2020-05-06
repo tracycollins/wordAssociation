@@ -3742,7 +3742,8 @@ async function pubSubNodeSetProps(params){
       dbHashtag.categoryAuto = cObj.auto;
       dbHashtag.categorizeNetwork = cObj.network;
 
-      await dbHashtag.save();
+      const dbHashtagUpdated = await dbHashtag.save();
+      return dbHashtagUpdated;
     }
 
     if (!node){

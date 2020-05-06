@@ -524,6 +524,21 @@ const nodeSearchResultHandler = async function(message){
         statsObj.user = messageObj.stats;
       }
 
+      const catUserObj = categorizedUserHashMap.get(messageObj.node.nodeId);
+      
+      if (catUserObj !== undefined){
+
+        if (["left", "neutral", "right"].includes(messageObj.node.category)){
+          catUserObj.manual = messageObj.node.category;
+        }
+        
+        if (["left", "neutral", "right"].includes(messageObj.node.categoryAuto)){
+          catUserObj.auto = messageObj.node.categoryAuto;
+        }
+
+        categorizedUserHashMap.set(catUserObj.nodeId, catUserObj);
+      }
+
       searchNodeResultHashMap[messageObj.requestId] = messageObj.node;
     }
     else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
@@ -535,6 +550,21 @@ const nodeSearchResultHandler = async function(message){
         + " | CM: " + formatCategory(messageObj.node.category)
         + " | CA: " + formatCategory(messageObj.node.categoryAuto)
       ));
+
+      const catHashtagObj = categorizedHashtagHashMap.get(messageObj.node.nodeId);
+      
+      if (catHashtagObj !== undefined){
+
+        if (["left", "neutral", "right"].includes(messageObj.node.category)){
+          catHashtagObj.manual = messageObj.node.category;
+        }
+        
+        if (["left", "neutral", "right"].includes(messageObj.node.categoryAuto)){
+          catHashtagObj.auto = messageObj.node.categoryAuto;
+        }
+
+        categorizedHashtagHashMap.set(catHashtagObj.nodeId, catHashtagObj);
+      }
 
       searchNodeResultHashMap[messageObj.requestId] = messageObj.node;
     }
@@ -1966,29 +1996,29 @@ function touchChildPidFile(params){
   console.log(chalkBlue(MODULE_ID_PREFIX + " | TOUCH CHILD PID FILE: " + path));
 }
 
-// ==================================================================
-// UNCAT USER ID CACHE
-// ==================================================================
-console.log(MODULE_ID_PREFIX + " | UNCAT USER ID CACHE TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000));
-console.log(MODULE_ID_PREFIX + " | UNCAT USER ID CACHE CHECK PERIOD: " + tcUtils.msToTime(configuration.uncatUserCacheCheckPeriod*1000));
+// // ==================================================================
+// // UNCAT USER ID CACHE
+// // ==================================================================
+// console.log(MODULE_ID_PREFIX + " | UNCAT USER ID CACHE TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000));
+// console.log(MODULE_ID_PREFIX + " | UNCAT USER ID CACHE CHECK PERIOD: " + tcUtils.msToTime(configuration.uncatUserCacheCheckPeriod*1000));
 
-const uncatUserCache = new NodeCache({
-  stdTTL: configuration.uncatUserCacheTtl,
-  checkperiod: configuration.uncatUserCacheCheckPeriod
-});
+// const uncatUserCache = new NodeCache({
+//   stdTTL: configuration.uncatUserCacheTtl,
+//   checkperiod: configuration.uncatUserCacheCheckPeriod
+// });
 
-function uncatUserCacheExpired(uncatUserId, uncatUserObj) {
+// function uncatUserCacheExpired(uncatUserId, uncatUserObj) {
 
-  console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX UNCAT USER CACHE EXPIRED"
-    + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
-    + " | NOW: " + getTimeStamp()
-    + " | IN $: " + uncatUserObj.timeStamp
-    + " | NID: " + uncatUserId
-    + " | @" + uncatUserObj.screenName
-  ));
-}
+//   console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX UNCAT USER CACHE EXPIRED"
+//     + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
+//     + " | NOW: " + getTimeStamp()
+//     + " | IN $: " + uncatUserObj.timeStamp
+//     + " | NID: " + uncatUserId
+//     + " | @" + uncatUserObj.screenName
+//   ));
+// }
 
-uncatUserCache.on("expired", uncatUserCacheExpired);
+// uncatUserCache.on("expired", uncatUserCacheExpired);
 
 // ==================================================================
 // IP CACHE

@@ -507,7 +507,7 @@ const nodeSearchResultHandler = async function(message){
 
     if (messageObj.node && messageObj.node.nodeType === "user") {
       console.log(chalkBlue(MODULE_ID_PREFIX
-        + " | ==> SUB SEARCH USER [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
+        + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
         + " | RID: " + messageObj.requestId
         + " | MODE: " + messageObj.searchMode
         + " | NID: " + messageObj.node.nodeId
@@ -543,7 +543,7 @@ const nodeSearchResultHandler = async function(message){
     }
     else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
       console.log(chalkBlueBold(MODULE_ID_PREFIX
-        + " | ==> PS SEARCH HASHTAG [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
+        + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
         + " | RID: " + messageObj.requestId
         + " | MODE: " + messageObj.searchMode
         + " | NID: " + messageObj.node.nodeId
@@ -4077,7 +4077,7 @@ const serverRegex = /^(.+)_/i;
 
 let twitterSearchNodeTimeout;
 
-const categorizedArray = ["left", "neutral", "right"];
+const categorizedArray = ["left", "neutral", "right", "positive", "negative"];
 
 const isCategorized = function(node){
   return (node.category !== undefined && categorizedArray.includes(node.category));

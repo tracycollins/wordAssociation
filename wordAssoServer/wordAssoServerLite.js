@@ -6152,7 +6152,7 @@ async function updateUserSets(){
 
     const category = user.category;
 
-    if (!category && uncategorizeableUserSet.has(nodeId)){
+    if ((category === "none") && uncategorizeableUserSet.has(nodeId)){
 
       global.wordAssoDb.User.deleteOne({"nodeId": nodeId}, function(err){
         if (err) {
@@ -6182,7 +6182,7 @@ async function updateUserSets(){
         }
       });
     }
-    else if (!category 
+    else if ((category === "none") 
       && !user.following 
       && (user.followersCount > 0)
       && (user.followersCount < configuration.minFollowersAutoCategorize)){
@@ -6202,7 +6202,7 @@ async function updateUserSets(){
     }
     else {
 
-      if (user.category && user.category !== undefined){
+      if (user.category && categorizedArray.includes(user.category)){
 
         uncategorizeableUserSet.delete(user.nodeId);
 

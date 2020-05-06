@@ -4158,6 +4158,8 @@ async function pubSubSearchNode(params){
         }
       );
 
+      delete node._id;
+
       const nodeUpdated = await global.wordAssoDb.User.findOneAndUpdate({nodeId: node.nodeId}, node);
       return nodeUpdated;
     }
@@ -4170,6 +4172,8 @@ async function pubSubSearchNode(params){
           auto: "none"
         }
       );
+
+      delete node._id;
 
       const nodeUpdated = await global.wordAssoDb.Hashtag.findOneAndUpdate({nodeId: node.nodeId}, node);
       return nodeUpdated;

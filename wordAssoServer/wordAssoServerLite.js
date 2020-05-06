@@ -7078,13 +7078,15 @@ function initAppRouting(callback) {
       + " | FILE: " + sessionHtml
     ));
 
-    slackText = "*LOADING PAGE*";
-    slackText = slackText + "\nIP: " + req.ip;
-    slackText = slackText + "\nDOMAIN: " + domainName;
-    slackText = slackText + "\nURL: " + req.url;
-    slackText = slackText + "\nFILE: " + sessionHtml;
+    if (configuration.verbose){
+      slackText = "*LOADING PAGE*";
+      slackText = slackText + "\nIP: " + req.ip;
+      slackText = slackText + "\nDOMAIN: " + domainName;
+      slackText = slackText + "\nURL: " + req.url;
+      slackText = slackText + "\nFILE: " + sessionHtml;
 
-    await slackSendWebMessage({ channel: slackChannel, text: slackText});
+      await slackSendWebMessage({ channel: slackChannel, text: slackText});
+    }
 
     res.sendFile(sessionHtml, function responseSession(err) {
       if (err) {
@@ -7124,13 +7126,15 @@ function initAppRouting(callback) {
       + " | FILE: " + profilesHtml
     ));
 
-    slackText = "*LOADING PAGE*";
-    slackText = slackText + "\nIP: " + req.ip;
-    slackText = slackText + "\nDOMAIN: " + domainName;
-    slackText = slackText + "\nURL: " + req.url;
-    slackText = slackText + "\nFILE: " + profilesHtml;
+    if (configuration.verbose){
+      slackText = "*LOADING PAGE*";
+      slackText = slackText + "\nIP: " + req.ip;
+      slackText = slackText + "\nDOMAIN: " + domainName;
+      slackText = slackText + "\nURL: " + req.url;
+      slackText = slackText + "\nFILE: " + profilesHtml;
 
-    await slackSendWebMessage({ channel: slackChannel, text: slackText});
+      await slackSendWebMessage({ channel: slackChannel, text: slackText});
+    }
 
     res.sendFile(profilesHtml, function responseSession(err) {
       if (err) {

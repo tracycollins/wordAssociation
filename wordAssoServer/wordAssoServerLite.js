@@ -91,8 +91,8 @@ const formatBoolean = tcUtils.formatBoolean;
 const formatCategory = tcUtils.formatCategory;
 const getTimeStamp = tcUtils.getTimeStamp;
 
-let hashtagServerController;
-let hashtagServerControllerReady = false;
+// let hashtagServerController;
+// let hashtagServerControllerReady = false;
 
 let userServerController;
 let userServerControllerReady = false;
@@ -1802,19 +1802,19 @@ async function connectDb(){
 
     statsObj.dbConnectionReady = true;
 
-    const HashtagServerController = require("@threeceelabs/hashtag-server-controller");
+    // const HashtagServerController = require("@threeceelabs/hashtag-server-controller");
     
-    hashtagServerController = new HashtagServerController(MODULE_ID_PREFIX + "_HSC");
+    // hashtagServerController = new HashtagServerController(MODULE_ID_PREFIX + "_HSC");
 
-    hashtagServerController.on("error", function(err){
-      hashtagServerControllerReady = false;
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** HSC ERROR | " + err));
-    });
+    // hashtagServerController.on("error", function(err){
+    //   hashtagServerControllerReady = false;
+    //   console.log(chalkError(MODULE_ID_PREFIX + " | *** HSC ERROR | " + err));
+    // });
 
-    hashtagServerController.on("ready", function(appname){
-      hashtagServerControllerReady = true;
-      console.log(chalk.green(MODULE_ID_PREFIX + " | HSC READY | " + appname));
-    });
+    // hashtagServerController.on("ready", function(appname){
+    //   hashtagServerControllerReady = true;
+    //   console.log(chalk.green(MODULE_ID_PREFIX + " | HSC READY | " + appname));
+    // });
 
     const UserServerController = require("@threeceelabs/user-server-controller");
     
@@ -6519,7 +6519,11 @@ function initTransmitNodeQueueInterval(interval){
         let node = await checkCategory(nodeObj);
         node = await updateNodeMeter(node);
 
-        const categorizeable = await userCategorizeable({user: node});
+        let categorizeable;
+
+        if (node.nodeType === "user"){
+          categorizeable = await userCategorizeable({user: node});
+        }
  
         if (node && (node !== undefined) && categorizeable) {
           // await nodeSetProps({ node: node, props: {}, autoCategorize: true, autoFollowFlag: true });
@@ -6642,37 +6646,48 @@ function initTransmitNodeQueueInterval(interval){
 
           transmitNodeQueueReady = true;
         }
-        else if ((node.nodeType == "hashtag") && node.category && node.category !== "none" && hashtagServerControllerReady){
+        
+        else if ((node.nodeType == "hashtag") && node.category && node.category !== "none"){
 
           node.updateLastSeen = true;
 
-          if (!hashtagServerControllerReady || !statsObj.dbConnectionReady) {
-            transmitNodeQueueReady = true;
-          }
-          else {
-            hashtagServerController.findOneHashtag(node, {noInc: false, lean: true}, function(err, updatedHashtag){
-              if (err) {
-                console.log(chalkError(MODULE_ID_PREFIX + " | updatedHashtag ERROR\n" + jsonPrint(err)));
-                delete node._id;
-                viewNameSpace.volatile.emit("node", node);
-              }
-              else {
-                delete updatedHashtag._id;
-                viewNameSpace.volatile.emit("node", updatedHashtag);
-              }
-
-              transmitNodeQueueReady = true;
-            });
-          }
-        }
-        else if (node.nodeType == "hashtag") {
           delete node._id;
           viewNameSpace.volatile.emit("node", node);
           transmitNodeQueueReady = true;
         }
-        else {
+        else{
+          viewNameSpace.volatile.emit("node", node);
           transmitNodeQueueReady = true;
         }
+
+          // if (!hashtagServerControllerReady || !statsObj.dbConnectionReady) {
+          //   transmitNodeQueueReady = true;
+          // }
+          // else {
+          //   hashtagServerController.findOneHashtag(node, {noInc: false, lean: true}, function(err, updatedHashtag){
+          //     if (err) {
+          //       console.log(chalkError(MODULE_ID_PREFIX + " | updatedHashtag ERROR\n" + jsonPrint(err)));
+          //       delete node._id;
+          //       viewNameSpace.volatile.emit("node", node);
+          //     }
+          //     else {
+          //       delete updatedHashtag._id;
+          //       viewNameSpace.volatile.emit("node", updatedHashtag);
+          //     }
+
+          //     transmitNodeQueueReady = true;
+          //   });
+          // }
+
+        // }
+        // else if (node.nodeType == "hashtag") {
+        //   delete node._id;
+        //   viewNameSpace.volatile.emit("node", node);
+        //   transmitNodeQueueReady = true;
+        // }
+        // else {
+        //   transmitNodeQueueReady = true;
+        // }
 
       }
       catch(err){

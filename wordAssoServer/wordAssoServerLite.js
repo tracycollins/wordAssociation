@@ -507,7 +507,7 @@ const nodeSearchResultHandler = async function(message){
 
     if (messageObj.node && messageObj.node.nodeType === "user") {
       console.log(chalkBlue(MODULE_ID_PREFIX
-        + " | ==> PS SEARCH USER [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
+        + " | ==> SUB SEARCH USER [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
         + " | RID: " + messageObj.requestId
         + " | MODE: " + messageObj.searchMode
         + " | NID: " + messageObj.node.nodeId
@@ -4047,6 +4047,12 @@ const serverRegex = /^(.+)_/i;
 
 let twitterSearchNodeTimeout;
 
+const categorizedArray = ["left", "neutral", "right"];
+
+const isCategorized = function(node){
+  return (node.category !== undefined && categorizedArray.includes(node.category));
+}
+
 async function pubSubSearchNode(params){
 
   try {
@@ -4108,6 +4114,30 @@ async function pubSubSearchNode(params){
         + " | !!! " + params.node.nodeType + " NOT FOUND\n"
         + jsonPrint(params)
       ));
+    }
+
+    if (node.nodeType === "user" && isCategorized(node)){
+      categorizedUserHashMap.set(node.nodeId, 
+        { 
+          nodeId: node.nodeId, 
+          screenName: node.screenName, 
+          manual: node.category, 
+          auto: node.categoryAuto,
+          network: node.categorizeNetwork,
+          verified: node.categoryVerified
+        }
+      );
+    }
+
+    if (node.nodeType === "hashtag" && isCategorized(node)){
+      categorizedHashtagHashMap.set(node.nodeId, 
+        { 
+          nodeId: node.nodeId, 
+          text: node.nodeId,
+          manual: node.category,
+          auto: "none"
+        }
+      );
     }
 
     return node;

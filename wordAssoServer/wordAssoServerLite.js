@@ -1996,29 +1996,29 @@ function touchChildPidFile(params){
   console.log(chalkBlue(MODULE_ID_PREFIX + " | TOUCH CHILD PID FILE: " + path));
 }
 
-// ==================================================================
-// UNCAT USER ID CACHE
-// ==================================================================
-console.log(MODULE_ID_PREFIX + " | UNCAT USER ID CACHE TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000));
-console.log(MODULE_ID_PREFIX + " | UNCAT USER ID CACHE CHECK PERIOD: " + tcUtils.msToTime(configuration.uncatUserCacheCheckPeriod*1000));
+// // ==================================================================
+// // UNCAT USER ID CACHE
+// // ==================================================================
+// console.log(MODULE_ID_PREFIX + " | UNCAT USER ID CACHE TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000));
+// console.log(MODULE_ID_PREFIX + " | UNCAT USER ID CACHE CHECK PERIOD: " + tcUtils.msToTime(configuration.uncatUserCacheCheckPeriod*1000));
 
-const uncatUserCache = new NodeCache({
-  stdTTL: configuration.uncatUserCacheTtl,
-  checkperiod: configuration.uncatUserCacheCheckPeriod
-});
+// const uncatUserCache = new NodeCache({
+//   stdTTL: configuration.uncatUserCacheTtl,
+//   checkperiod: configuration.uncatUserCacheCheckPeriod
+// });
 
-function uncatUserCacheExpired(uncatUserId, uncatUserObj) {
+// function uncatUserCacheExpired(uncatUserId, uncatUserObj) {
 
-  console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX UNCAT USER CACHE EXPIRED"
-    + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
-    + " | NOW: " + getTimeStamp()
-    + " | IN $: " + uncatUserObj.timeStamp
-    + " | NID: " + uncatUserId
-    + " | @" + uncatUserObj.screenName
-  ));
-}
+//   console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX UNCAT USER CACHE EXPIRED"
+//     + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
+//     + " | NOW: " + getTimeStamp()
+//     + " | IN $: " + uncatUserObj.timeStamp
+//     + " | NID: " + uncatUserId
+//     + " | @" + uncatUserObj.screenName
+//   ));
+// }
 
-uncatUserCache.on("expired", uncatUserCacheExpired);
+// uncatUserCache.on("expired", uncatUserCacheExpired);
 
 // ==================================================================
 // IP CACHE

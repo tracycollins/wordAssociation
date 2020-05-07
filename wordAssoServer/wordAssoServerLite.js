@@ -161,6 +161,7 @@ const DEFAULT_TWEET_PARSER_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_SORTER_INTERVAL = 100;
 const DEFAULT_TWITTER_RX_QUEUE_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_TRANSMIT_NODE_QUEUE_INTERVAL = DEFAULT_INTERVAL;
+const DEFAULT_NODE_SETPROPS_QUEUE_INTERVAL = 10*ONE_SECOND;
 const DEFAULT_TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = DEFAULT_INTERVAL;
 // const DEFAULT_TWITTER_SEARCH_NODE_QUEUE_INTERVAL = 100;
 
@@ -1186,6 +1187,7 @@ configuration.tweetVersion2 = DEFAULT_TWEET_VERSION_2;
 configuration.tweetParserInterval = DEFAULT_TWEET_PARSER_INTERVAL;
 configuration.sorterMessageRxQueueInterval = DEFAULT_SORTER_INTERVAL;
 configuration.keySortInterval = DEFAULT_SORTER_INTERVAL;
+configuration.nodeSetPropsQueueInterval = DEFAULT_NODE_SETPROPS_QUEUE_INTERVAL;
 configuration.transmitNodeQueueInterval = DEFAULT_TRANSMIT_NODE_QUEUE_INTERVAL;
 configuration.rateQueueInterval = DEFAULT_RATE_QUEUE_INTERVAL;
 configuration.rateQueueIntervalModulo = DEFAULT_RATE_QUEUE_INTERVAL_MODULO;
@@ -3852,7 +3854,6 @@ async function nodeSetProps(params) {
       unfollowableUserSet.delete(params.node.nodeId);
     }
     if (!params.props.following) { 
-
       followedUserSet.delete(params.node.nodeId);
       ignoredUserSet.delete(params.node.nodeId);
       unfollowableUserSet.add(params.node.nodeId);
@@ -6502,12 +6503,6 @@ function initTransmitNodeQueueInterval(interval){
 
     clearInterval(transmitNodeQueueInterval);
 
-    // let nodeObj;
-    // let categorizeable;
-    // let nCacheObj;
-    // let node;
-    // let updatedUser;
-
     transmitNodeQueueInterval = setInterval(async function() {
 
       try {
@@ -6547,9 +6542,8 @@ function initTransmitNodeQueueInterval(interval){
           nodeSetPropsQueue.push({ 
             createNodeOnMiss: true,
             node: node, 
-            props: {}, 
-            autoCategorize: true, 
-            autoFollowFlag: true
+            props: { following: true },
+            autoCategorize: true
           });
         }
 
@@ -10009,7 +10003,7 @@ setTimeout(async function(){
     await initIgnoreWordsHashMap();
     await updateHashtagSets();
     await updateUserSets();
-    await initNodeSetPropsQueueInterval(configuration.transmitNodeQueueInterval);
+    await initNodeSetPropsQueueInterval(configuration.nodeSetPropsQueueInterval);
     await initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval);
     await initRateQinterval(configuration.rateQueueInterval);
     await initTwitterRxQueueInterval(configuration.twitterRxQueueInterval);

@@ -6527,17 +6527,18 @@ function initTransmitNodeQueueInterval(interval){
         let categorizeable;
 
         if (node.nodeType === "user"){
+
           categorizeable = await userCategorizeable({user: node});
-        }
- 
-        if (node && (node !== undefined) && categorizeable) {
-          // await nodeSetProps({ node: node, props: {}, autoCategorize: true, autoFollowFlag: true });
-          nodeSetPropsQueue.push({ 
-            createNodeOnMiss: true,
-            node: node, 
-            props: { following: true },
-            autoCategorize: true
-          });
+
+          if (categorizeable){
+            nodeSetPropsQueue.push({ 
+              createNodeOnMiss: true,
+              node: node, 
+              props: { following: true },
+              autoCategorize: true
+            });
+          }
+          
         }
 
         if (categorizeable && (node.nodeType === "user") 

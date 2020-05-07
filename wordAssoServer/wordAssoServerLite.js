@@ -6453,7 +6453,7 @@ publishMessageCategorize.message.node = {};
 
 const nodeSetPropsQueue = [];
 let nodeSetPropsQueueInterval;
-let nodeSetPropsQueueReady;
+let nodeSetPropsQueueReady = true;
 
 function initNodeSetPropsQueueInterval(interval){
 
@@ -6462,6 +6462,8 @@ function initNodeSetPropsQueueInterval(interval){
     console.log(chalk.bold.black(MODULE_ID_PREFIX + " | INIT NODE SET PROPS QUEUE INTERVAL: " + interval + " MS"));
 
     clearInterval(nodeSetPropsQueueInterval);
+
+    nodeSetPropsQueueReady = true;
 
     nodeSetPropsQueueInterval = setInterval(async function() {
 
@@ -6538,7 +6540,7 @@ function initTransmitNodeQueueInterval(interval){
               autoCategorize: true
             });
           }
-          
+
         }
 
         if (categorizeable && (node.nodeType === "user") 

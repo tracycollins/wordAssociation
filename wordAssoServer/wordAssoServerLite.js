@@ -6467,20 +6467,13 @@ function initNodeSetPropsQueueInterval(interval){
 
       try {
 
-        if (!nodeSetPropsQueueReady || (nodeSetPropsQueue.length == 0)) {
-          return;
-        }
-
-        nodeSetPropsQueueReady = false;
-
-        const nspObj = nodeSetPropsQueue.shift();
-
-        if ((nodeSetPropsQueue.length > 0) && (nodeSetPropsQueue.length % 100 === 0)){
+        if (nodeSetPropsQueueReady && (nodeSetPropsQueue.length > 0)) {
+          nodeSetPropsQueueReady = false;
+          const nspObj = nodeSetPropsQueue.shift();
           console.log(chalkLog(MODULE_ID_PREFIX + " | NODE SET PROPS Q: " + nodeSetPropsQueue.length));
+          await nodeSetProps(nspObj);
+          nodeSetPropsQueueReady = true;
         }
-        await nodeSetProps(nspObj);
-
-        nodeSetPropsQueueReady = true;
 
       }
       catch(err){

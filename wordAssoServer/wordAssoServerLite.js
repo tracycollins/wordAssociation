@@ -15,8 +15,8 @@ const DEFAULT_PUBSUB_ENABLED = true;
 const DEFAULT_PUBSUB_PROJECT_ID = "graphic-tangent-627";
 const DEFAULT_PUBSUB_RESULT_TIMEOUT = 5*ONE_SECOND;
 
-const DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL = 604800; // 3600*24*7 sec/week
-const DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD = 3600;
+const DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL = 3600; // 3600*24*7 sec/week
+const DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD = 60;
 
 const DEFAULT_UPDATE_USER_SETS_INTERVAL = 5*ONE_MINUTE;
 
@@ -2015,29 +2015,29 @@ function touchChildPidFile(params){
   console.log(chalkBlue(MODULE_ID_PREFIX + " | TOUCH CHILD PID FILE: " + path));
 }
 
-// // ==================================================================
-// // UNCAT USER ID CACHE
-// // ==================================================================
-// console.log(MODULE_ID_PREFIX + " | UNCAT USER ID CACHE TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000));
-// console.log(MODULE_ID_PREFIX + " | UNCAT USER ID CACHE CHECK PERIOD: " + tcUtils.msToTime(configuration.uncatUserCacheCheckPeriod*1000));
+// ==================================================================
+// UNCAT USER ID CACHE
+// ==================================================================
+console.log(MODULE_ID_PREFIX + " | UNCAT USER ID CACHE TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000));
+console.log(MODULE_ID_PREFIX + " | UNCAT USER ID CACHE CHECK PERIOD: " + tcUtils.msToTime(configuration.uncatUserCacheCheckPeriod*1000));
 
-// const uncatUserCache = new NodeCache({
-//   stdTTL: configuration.uncatUserCacheTtl,
-//   checkperiod: configuration.uncatUserCacheCheckPeriod
-// });
+const uncatUserCache = new NodeCache({
+  stdTTL: configuration.uncatUserCacheTtl,
+  checkperiod: configuration.uncatUserCacheCheckPeriod
+});
 
-// function uncatUserCacheExpired(uncatUserId, uncatUserObj) {
+function uncatUserCacheExpired(uncatUserId, uncatUserObj) {
 
-//   console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX UNCAT USER CACHE EXPIRED"
-//     + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
-//     + " | NOW: " + getTimeStamp()
-//     + " | IN $: " + uncatUserObj.timeStamp
-//     + " | NID: " + uncatUserId
-//     + " | @" + uncatUserObj.screenName
-//   ));
-// }
+  console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX UNCAT USER CACHE EXPIRED"
+    + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
+    + " | NOW: " + getTimeStamp()
+    + " | IN $: " + uncatUserObj.timeStamp
+    + " | NID: " + uncatUserId
+    + " | @" + uncatUserObj.screenName
+  ));
+}
 
-// uncatUserCache.on("expired", uncatUserCacheExpired);
+uncatUserCache.on("expired", uncatUserCacheExpired);
 
 // ==================================================================
 // IP CACHE
@@ -6470,6 +6470,7 @@ function initNodeSetPropsQueueInterval(interval){
       try {
 
         if (nodeSetPropsQueueReady && (nodeSetPropsQueue.length > 0)) {
+
           nodeSetPropsQueueReady = false;
           const nspObj = nodeSetPropsQueue.shift();
           console.log(chalkLog(MODULE_ID_PREFIX + " | NODE SET PROPS Q: " + nodeSetPropsQueue.length));
@@ -6533,12 +6534,21 @@ function initTransmitNodeQueueInterval(interval){
           categorizeable = await userCategorizeable({user: node});
 
           if (categorizeable){
-            nodeSetPropsQueue.push({ 
-              createNodeOnMiss: true,
-              node: node, 
-              props: { following: true },
-              autoCategorize: true
-            });
+
+            const uncatUserId = uncatUserCache.get(node.nodeId);
+
+            if (uncatUserId === undefined) {
+
+              uncatUserCache.set(node.nodeId, node.nodeId);
+
+              nodeSetPropsQueue.push({ 
+                createNodeOnMiss: true,
+                node: node, 
+                props: { following: true },
+                autoCategorize: true
+              });
+
+            }
           }
 
         }

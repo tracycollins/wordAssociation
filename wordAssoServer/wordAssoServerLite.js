@@ -1956,7 +1956,7 @@ function initPassport(){
       })
     );
 
-    passport.serializeUser(function(user, done) { 
+    passport.serializeUser(async function(user, done) { 
 
       const sessionUser = { 
         "_id": user._id, 
@@ -1966,11 +1966,28 @@ function initPassport(){
       };
 
       console.log(chalk.green(MODULE_ID_PREFIX + " | PASSPORT SERIALIZE USER | @" + user.screenName));
+      
+      slackText = "*PASSPORT TWITTER SERIALIZE USER*";
+      slackText = slackText + "\nUSER NID:  " + user.nodeId;
+      slackText = slackText + "\nUSER      @" + user.screenName;
+      slackText = slackText + "\nUSER NAME: " + user.name;
+
+      await slackSendWebMessage({ channel: slackChannel, text: slackText});
 
       done(null, sessionUser); 
     });
 
-    passport.deserializeUser(function(sessionUser, done) {
+    passport.deserializeUser(async function(sessionUser, done) {
+
+      console.log(chalk.green(MODULE_ID_PREFIX + " | PASSPORT DESERIALIZE USER | @" + sessionUser.screenName));
+
+      slackText = "*PASSPORT TWITTER DESERIALIZE USER*";
+      slackText = slackText + "\nUSER NID:  " + sessionUser.nodeId;
+      slackText = slackText + "\nUSER      @" + sessionUser.screenName;
+      slackText = slackText + "\nUSER NAME: " + sessionUser.name;
+
+      await slackSendWebMessage({ channel: slackChannel, text: slackText});
+
       done(null, sessionUser);
     });
 

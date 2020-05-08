@@ -5454,9 +5454,11 @@ async function initSocketNamespaces(){
   }
 }
 
-function processCheckCategory(nodeObj){
+async function processCheckCategory(nodeObj){
 
-  return new Promise(function(resolve, reject){
+  // return new Promise(function(resolve, reject){
+
+  // try{
 
     let categorizedNodeHashMap;
 
@@ -5471,7 +5473,7 @@ function processCheckCategory(nodeObj){
       break;
 
       default:
-        return reject(new Error("NO CATEGORY HASHMAP: " + nodeObj.nodeType));
+        throw new Error("NO CATEGORY HASHMAP: " + nodeObj.nodeType);
     }
 
     if (categorizedNodeHashMap.has(nodeObj.nodeId)) {
@@ -5495,13 +5497,17 @@ function processCheckCategory(nodeObj){
         nodeObj.isTopTermNodeType = false;
       }
 
-      resolve(nodeObj);
+      return nodeObj;
     }
     else {
-      resolve(nodeObj);
+      return nodeObj;
     }
+  // }
+  // catch(err){
+  //   throw err;
+  // }
 
-  });
+  // });
 }
 
 async function checkCategory(nodeObj) {

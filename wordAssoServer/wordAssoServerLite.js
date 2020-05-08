@@ -3745,18 +3745,19 @@ async function pubSubNodeSetProps(params){
       // node.categorizeNetwork = cObj.network;
       // node.categoryVerified = cObj.verified;
 
-
-      printUserObj(MODULE_ID_PREFIX + " | pubSubNodeSetProps 1", node);
-
       // const dbUser = await global.wordAssoDb.User.findOneAndUpdate({nodeId: node.nodeId}, node);
+
+      const updatePickArray = Object.keys(params.props);
+
+      printUserObj(MODULE_ID_PREFIX + " | pubSubNodeSetProps 1 | PROPS: " + updatePickArray, node);
 
       const dbUser = await userServerController.findOneUserV2({
         user: node,
-        updatePickArray: Object.keys(params.props),
+        updatePickArray: updatePickArray,
         options: userDbUpdateOptions
       });
 
-      printUserObj(MODULE_ID_PREFIX + " | pubSubNodeSetProps 2", dbUser);
+      printUserObj(MODULE_ID_PREFIX + " | pubSubNodeSetProps 2 | PROPS: " + updatePickArray, dbUser);
 
       return dbUser;
 

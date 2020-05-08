@@ -6738,6 +6738,7 @@ function initTransmitNodeQueueInterval(interval){
 async function transmitNodes(tw){
 
   if (!tw.user 
+    || tw.user.screenName === undefined 
     || ignoredUserSet.has(tw.user.nodeId) 
     || ignoredUserSet.has(tw.user.userId) 
     || ignoredUserSet.has(tw.user.screenName.toLowerCase()))
@@ -6750,6 +6751,7 @@ async function transmitNodes(tw){
   for(const user of tw.userMentions){
     if (user 
       && configuration.enableTransmitUser 
+      && user.screenName !== undefined
       && !ignoredUserSet.has(user.nodeId) 
       && !ignoredUserSet.has(user.screenName.toLowerCase())
     ) { 

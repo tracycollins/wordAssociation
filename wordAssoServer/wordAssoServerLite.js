@@ -5119,44 +5119,52 @@ async function initSocketHandler(socketObj) {
       //   node: event.data.node
       // }
 
-      const node = await nodeSetProps({
-        createNodeOnMiss: true,
-        node: catNodeObj.node, 
-        props: { 
-          category: catNodeObj.category, 
-          following: true
-        }, 
-        autoCategorizeFlag: true
-      });
+      try{
+        const node = await nodeSetProps({
+          createNodeOnMiss: true,
+          node: catNodeObj.node, 
+          props: { 
+            category: catNodeObj.category, 
+            following: true
+          }, 
+          autoCategorizeFlag: true
+        });
 
-      if (node){
+        if (node){
 
-        if (node.nodeType === "user") {
+          if (node.nodeType === "user") {
 
-          const updatedUser = await userServerController.findOneUserV2({
-            user: node, 
-            updatePickArray: ["category", "categoryAuto", "following"],
-            options: userDbUpdateOptions
-          });
+            const updatedUser = await userServerController.findOneUserV2({
+              user: node, 
+              updatePickArray: ["category", "categoryAuto", "following"],
+              options: userDbUpdateOptions
+            });
 
-          socket.emit("SET_TWITTER_USER", {node: updatedUser, stats: statsObj.user });
+            socket.emit("SET_TWITTER_USER", {node: updatedUser, stats: statsObj.user });
 
-        }
-
-        if (node.nodeType === "hashtag") {
-
-          let dbHashtag = await global.wordAssoDb.Hashtag.findOne({nodeId: node.nodeId});
-
-          if (!dbHashtag) {
-            dbHashtag = new global.wordAssoDb.Hashtag(node);
           }
 
-          dbHashtag.category = node.category;
-          await dbHashtag.save();
+          if (node.nodeType === "hashtag") {
 
-          socket.emit("SET_TWITTER_HASHTAG", {node: dbHashtag, stats: statsObj.user });
+            let dbHashtag = await global.wordAssoDb.Hashtag.findOne({nodeId: node.nodeId});
 
+            if (!dbHashtag) {
+              dbHashtag = new global.wordAssoDb.Hashtag(node);
+            }
+
+            dbHashtag.category = node.category;
+            await dbHashtag.save();
+
+            socket.emit("SET_TWITTER_HASHTAG", {node: dbHashtag, stats: statsObj.user });
+
+          }
         }
+      }
+      catch(err){
+        console.log(chalkError(MODULE_ID_PREFIX
+          + " | *** TWITTER_CATEGORIZE_NODE ERROR\nNODE\n" + jsonPrint(catNodeObj)
+          + " | ERROR: " + err
+        ));
       }
 
     });

@@ -4514,7 +4514,6 @@ async function initSocketHandler(socketObj) {
         adminNameSpace.emit("SERVER_ERROR", currentServer);
       }
 
-
       const currentViewer = viewerCache.get(socketId);
 
       if (currentViewer !== undefined) { 
@@ -4883,7 +4882,6 @@ async function initSocketHandler(socketObj) {
       }
       catch(err) {
         console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_FOLLOW ERROR: " + err));
-        throw err;
       }
     });
 
@@ -4924,7 +4922,6 @@ async function initSocketHandler(socketObj) {
       }
       catch(err) {
         console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_FOLLOW ERROR: " + err));
-        throw err;
       }
     });
 
@@ -4969,7 +4966,6 @@ async function initSocketHandler(socketObj) {
       }
       catch(err){
         console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
-        return;
       }
     });
 
@@ -4989,7 +4985,6 @@ async function initSocketHandler(socketObj) {
       }
       catch(err){
         console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
-        return;
       }
     });
 
@@ -5031,7 +5026,6 @@ async function initSocketHandler(socketObj) {
       }
       catch(err){
         console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_UNIGNORE ERROR: " + err));
-        throw err;
       }
     });
 
@@ -5071,7 +5065,6 @@ async function initSocketHandler(socketObj) {
       }
       catch(err){
         console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_UNBOT ERROR: " + err));
-        throw err;
       }
     });
 
@@ -5144,7 +5137,6 @@ async function initSocketHandler(socketObj) {
           + " | ERROR: " + err
         ));
       }
-
     });
 
     socket.on("USER_READY", function userReady(userObj) {
@@ -5186,7 +5178,6 @@ async function initSocketHandler(socketObj) {
           + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
           + " | userServerControllerReady: " + userServerControllerReady
         ));
-        // console.log(chalkError(MODULE_ID_PREFIX + " | *** userServerController OR dbConnection NOT READY ERROR"));
       }
       else{
         try{

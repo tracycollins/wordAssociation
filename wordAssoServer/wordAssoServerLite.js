@@ -6573,7 +6573,10 @@ function initTransmitNodeQueueInterval(interval){
               nodeSetPropsQueue.push({ 
                 createNodeOnMiss: true,
                 node: node, 
-                props: { following: true },
+                props: { 
+                  screenName: node.screenName,
+                  following: true
+                },
                 autoCategorize: true
               });
             }

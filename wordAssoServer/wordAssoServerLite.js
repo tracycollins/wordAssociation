@@ -9975,14 +9975,6 @@ setTimeout(async function(){
 
   try {
 
-    pubSubClient = await initPubSub();
-
-    const [topics] = await pubSubClient.getTopics();
-    topics.forEach((topic) => console.log(chalkLog(MODULE_ID_PREFIX + " | PUBSUB TOPIC: " + topic.name)));
-
-    const [subscriptions] = await pubSubClient.getSubscriptions();
-    subscriptions.forEach((subscription) => console.log(chalkLog(MODULE_ID_PREFIX + " | PUBSUB SUB: " + subscription.name)));
-
     global.dbConnection = await connectDb();
 
     await initSlackRtmClient();
@@ -10040,16 +10032,13 @@ setTimeout(async function(){
 
     configEvents.emit("DB_CONNECT");
 
-    await initNodeOpHandler({subscribeName: "node-search-result" + primaryHostSuffix});
-    await initNodeOpHandler({subscribeName: "node-setprops-result" + primaryHostSuffix});
-    await initNodeOpHandler({subscribeName: "node-autocategorize-result" + primaryHostSuffix});
-
+    await initIgnoreWordsHashMap();
     await initAllowLocations();
     await initIgnoreLocations();
-    await loadBestRuntimeNetwork();
-    await initIgnoreWordsHashMap();
     await updateHashtagSets();
     await updateUserSets();
+
+    await loadBestRuntimeNetwork();
     await initNodeSetPropsQueueInterval(configuration.nodeSetPropsQueueInterval);
     await initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval);
     await initRateQinterval(configuration.rateQueueInterval);
@@ -10063,6 +10052,19 @@ setTimeout(async function(){
     await initUpdateUserSetsInterval(configuration.updateUserSetsInterval);
     await initWatchConfig();
     await initTssChild({childId: DEFAULT_TSS_CHILD_ID, tweetVersion2: configuration.tweetVersion2, threeceeUser: threeceeUser});
+
+    pubSubClient = await initPubSub();
+
+    const [topics] = await pubSubClient.getTopics();
+    topics.forEach((topic) => console.log(chalkLog(MODULE_ID_PREFIX + " | PUBSUB TOPIC: " + topic.name)));
+
+    const [subscriptions] = await pubSubClient.getSubscriptions();
+    subscriptions.forEach((subscription) => console.log(chalkLog(MODULE_ID_PREFIX + " | PUBSUB SUB: " + subscription.name)));
+
+    await initNodeOpHandler({subscribeName: "node-search-result" + primaryHostSuffix});
+    await initNodeOpHandler({subscribeName: "node-setprops-result" + primaryHostSuffix});
+    await initNodeOpHandler({subscribeName: "node-autocategorize-result" + primaryHostSuffix});
+
 
   }
   catch(err){

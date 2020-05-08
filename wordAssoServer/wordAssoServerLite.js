@@ -3713,6 +3713,8 @@ async function pubSubNodeSetProps(params){
 
     const node = nodeSetPropsResultHashMap[params.requestId] || false;
 
+    printUserObj(MODULE_ID_PREFIX + " | pubSubNodeSetProps 0", node);
+
     let cObj = {};
 
     if (node.nodeType === "user"){
@@ -3745,7 +3747,12 @@ async function pubSubNodeSetProps(params){
       node.categorizeNetwork = cObj.network;
       node.categoryVerified = cObj.verified;
 
+
+      printUserObj(MODULE_ID_PREFIX + " | pubSubNodeSetProps 1", node);
+
       const dbUser = await global.wordAssoDb.User.findOneAndUpdate({nodeId: node.nodeId}, node);
+
+      printUserObj(MODULE_ID_PREFIX + " | pubSubNodeSetProps 2", node);
 
       return dbUser;
 

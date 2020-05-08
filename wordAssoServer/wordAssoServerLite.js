@@ -3713,21 +3713,19 @@ async function pubSubNodeSetProps(params){
 
     const node = nodeSetPropsResultHashMap[params.requestId] || false;
 
-    printUserObj(MODULE_ID_PREFIX + " | pubSubNodeSetProps 0", node);
-
     let cObj = {};
 
     if (node.nodeType === "user"){
-      if (categorizedUserHashMap.has(node.nodeId)){
-        cObj = categorizedUserHashMap.get(node.nodeId);
-      }
+      // if (categorizedUserHashMap.has(node.nodeId)){
+      //   cObj = categorizedUserHashMap.get(node.nodeId);
+      // }
 
-      cObj.manual = node.category || cObj.manual;
-      cObj.auto = node.categoryAuto || cObj.auto;
-      cObj.network = node.categorizeNetwork || cObj.network;
-      cObj.verified = node.categoryVerified || cObj.verified;
+      // cObj.manual = node.category || cObj.manual;
+      // cObj.auto = node.categoryAuto || cObj.auto;
+      // cObj.network = node.categorizeNetwork || cObj.network;
+      // cObj.verified = node.categoryVerified || cObj.verified;
 
-      categorizedUserHashMap.set(node.nodeId, cObj);
+      // categorizedUserHashMap.set(node.nodeId, cObj);
 
       // let dbUser = await global.wordAssoDb.User.findOneAndUpdate({nodeId: cObj.nodeId});
 
@@ -3742,17 +3740,17 @@ async function pubSubNodeSetProps(params){
 
       // await dbUser.save();
 
-      node.category = cObj.manual;
-      node.categoryAuto = cObj.auto;
-      node.categorizeNetwork = cObj.network;
-      node.categoryVerified = cObj.verified;
+      // node.category = cObj.manual;
+      // node.categoryAuto = cObj.auto;
+      // node.categorizeNetwork = cObj.network;
+      // node.categoryVerified = cObj.verified;
 
 
       printUserObj(MODULE_ID_PREFIX + " | pubSubNodeSetProps 1", node);
 
       const dbUser = await global.wordAssoDb.User.findOneAndUpdate({nodeId: node.nodeId}, node);
 
-      printUserObj(MODULE_ID_PREFIX + " | pubSubNodeSetProps 2", node);
+      printUserObj(MODULE_ID_PREFIX + " | pubSubNodeSetProps 2", dbUser);
 
       return dbUser;
 

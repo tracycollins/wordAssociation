@@ -6631,8 +6631,16 @@ function initTransmitNodeQueueInterval(interval){
               delete updatedUser._id;
               delete updatedUser.userId;
 
-              viewNameSpace.volatile.emit("node", updatedUser);
-              transmitNodeQueueReady = true;
+              if (updatedUser.screenName === undefined) {
+                console.log(chalkError(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED"));
+                printUserObj(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED", updatedUser);
+                transmitNodeQueueReady = true;
+              }
+              else{
+                viewNameSpace.volatile.emit("node", pick(updatedUser, fieldsTransmitKeys));
+                transmitNodeQueueReady = true;
+              }
+
             }
             catch(e){
 
@@ -6651,8 +6659,16 @@ function initTransmitNodeQueueInterval(interval){
                 printBotStats({user: node, modulo: 100});
               }
 
-              viewNameSpace.volatile.emit("node", node);
-              transmitNodeQueueReady = true;
+              if (node.screenName === undefined) {
+                console.log(chalkError(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED"));
+                printUserObj(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED", node);
+                transmitNodeQueueReady = true;
+              }
+              else{
+                viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
+                transmitNodeQueueReady = true;
+              }
+
             }
           }
         }
@@ -6676,9 +6692,16 @@ function initTransmitNodeQueueInterval(interval){
             }
           }
 
-          viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
+          if (node.screenName === undefined) {
+            console.log(chalkError(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED"));
+            printUserObj(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED", node);
+            transmitNodeQueueReady = true;
+          }
+          else{
+            viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
+            transmitNodeQueueReady = true;
+          }
 
-          transmitNodeQueueReady = true;
         }
         
         else if ((node.nodeType == "hashtag") && node.category && node.category !== "none"){

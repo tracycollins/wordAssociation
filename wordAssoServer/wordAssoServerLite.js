@@ -3719,6 +3719,7 @@ async function pubSubNodeSetProps(params){
       if (categorizedUserHashMap.has(node.nodeId)){
         cObj = categorizedUserHashMap.get(node.nodeId);
       }
+
       cObj.manual = node.category || cObj.manual;
       cObj.auto = node.categoryAuto || cObj.auto;
       cObj.network = node.categorizeNetwork || cObj.network;
@@ -3726,18 +3727,28 @@ async function pubSubNodeSetProps(params){
 
       categorizedUserHashMap.set(node.nodeId, cObj);
 
-      let dbUser = await global.wordAssoDb.User.findOne({nodeId: cObj.nodeId});
+      // let dbUser = await global.wordAssoDb.User.findOneAndUpdate({nodeId: cObj.nodeId});
 
-      if (!dbUser){
-        dbUser = new global.wordAssoDb.User(node);
-      }
+      // if (!dbUser){
+      //   dbUser = new global.wordAssoDb.User(node);
+      // }
 
-      dbUser.category = cObj.manual;
-      dbUser.categoryAuto = cObj.auto;
-      dbUser.categorizeNetwork = cObj.network;
-      dbUser.categoryVerified = cObj.verified;
+      // dbUser.category = cObj.manual;
+      // dbUser.categoryAuto = cObj.auto;
+      // dbUser.categorizeNetwork = cObj.network;
+      // dbUser.categoryVerified = cObj.verified;
 
-      await dbUser.save();
+      // await dbUser.save();
+
+      node.category = cObj.manual;
+      node.categoryAuto = cObj.auto;
+      node.categorizeNetwork = cObj.network;
+      node.categoryVerified = cObj.verified;
+
+      const dbUser = await global.wordAssoDb.User.findOneAndUpdate({nodeId: node.nodeId}, node);
+
+      return dbUser;
+
     }
 
     if (node.nodeType === "hashtag"){

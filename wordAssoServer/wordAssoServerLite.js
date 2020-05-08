@@ -3749,7 +3749,12 @@ async function pubSubNodeSetProps(params){
       printUserObj(MODULE_ID_PREFIX + " | pubSubNodeSetProps 1", node);
 
       // const dbUser = await global.wordAssoDb.User.findOneAndUpdate({nodeId: node.nodeId}, node);
-      const dbUser = await global.wordAssoDb.User.findOneUserV2({nodeId: node.nodeId}, node);
+
+      const dbUser = await userServerController.findOneUserV2({
+        user: node,
+        updatePickArray: Object.keys(params.props),
+        options: userDbUpdateOptions
+      });
 
       printUserObj(MODULE_ID_PREFIX + " | pubSubNodeSetProps 2", dbUser);
 
@@ -6634,7 +6639,7 @@ function initTransmitNodeQueueInterval(interval){
                   "isTweeter", 
                   "isBot", 
                   "tweetsPerDay", 
-                  "mentions", 
+                  "mentions",
                   "name", 
                   "screenName", 
                   "rate"

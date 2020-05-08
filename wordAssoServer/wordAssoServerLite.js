@@ -2027,7 +2027,7 @@ const uncatUserCache = new NodeCache({
 });
 
 function uncatUserCacheExpired(uncatUserId, uncatUserObj) {
-  console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX UNCAT USER CACHE EXPIRED"
+  console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX UNCAT USR $"
     + " [" + uncatUserCache.getStats().keys + " KEYS]"
     + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
     + " | NOW: " + getTimeStamp()

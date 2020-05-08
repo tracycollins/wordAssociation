@@ -2026,7 +2026,7 @@ const uncatUserCache = new NodeCache({
   checkperiod: configuration.uncatUserCacheCheckPeriod
 });
 
-function uncatUserCacheExpired(uncatUserId, uncatUserObj) {
+function uncatUserCacheExpired(uncatUserId) {
   console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX UNCAT USR $"
     + " [" + uncatUserCache.getStats().keys + " KEYS]"
     + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
@@ -4974,9 +4974,7 @@ async function initSocketHandler(socketObj) {
             options: userDbUpdateOptions
           });
 
-          viewNameSpace.emit("FOLLOW", updatedUser);
-          adminNameSpace.emit("FOLLOW", updatedUser);
-          utilNameSpace.emit("FOLLOW", updatedUser);
+          socket.emit("SET_TWITTER_USER", {node: updatedUser, stats: statsObj.user });
 
         }
       }
@@ -5123,15 +5121,15 @@ async function initSocketHandler(socketObj) {
       if (node){
 
         if (node.nodeType === "user") {
+
           const updatedUser = await userServerController.findOneUserV2({
             user: node, 
             updatePickArray: ["category", "categoryAuto", "following"],
             options: userDbUpdateOptions
           });
 
-          viewNameSpace.emit("FOLLOW", updatedUser);
-          adminNameSpace.emit("FOLLOW", updatedUser);
-          utilNameSpace.emit("FOLLOW", updatedUser);
+          socket.emit("SET_TWITTER_USER", {node: updatedUser, stats: statsObj.user });
+
         }
 
         if (node.nodeType === "hashtag") {
@@ -5144,6 +5142,8 @@ async function initSocketHandler(socketObj) {
 
           dbHashtag.category = node.category;
           await dbHashtag.save();
+
+          socket.emit("SET_TWITTER_HASHTAG", {node: dbHashtag, stats: statsObj.user });
 
         }
       }
@@ -6471,7 +6471,7 @@ function initNodeSetPropsQueueInterval(interval){
 
           nodeSetPropsQueueReady = false;
           const nspObj = nodeSetPropsQueue.shift();
-          console.log(chalkLog(MODULE_ID_PREFIX + " | NODE SET PROPS Q: " + nodeSetPropsQueue.length));
+          debug(chalkLog(MODULE_ID_PREFIX + " | NODE SET PROPS Q: " + nodeSetPropsQueue.length));
           await nodeSetProps(nspObj);
           nodeSetPropsQueueReady = true;
         }
@@ -6542,11 +6542,11 @@ function initTransmitNodeQueueInterval(interval){
               nodeSetPropsQueue.push({ 
                 createNodeOnMiss: true,
                 node: node, 
-                props: { following: true },
+                // props: { following: true },
                 autoCategorize: true
               });
-
             }
+
           }
 
         }

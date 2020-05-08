@@ -2031,7 +2031,6 @@ function uncatUserCacheExpired(uncatUserId, uncatUserObj) {
   console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX UNCAT USER CACHE EXPIRED"
     + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
     + " | NOW: " + getTimeStamp()
-    + " | IN $: " + uncatUserObj.timeStamp
     + " | NID: " + uncatUserId
     + " | @" + uncatUserObj.screenName
   ));

@@ -6620,7 +6620,7 @@ function initTransmitNodeQueueInterval(interval){
 
               const updatedUser = await userServerController.findOneUserV2({
                 user: node,
-                updatePickArray: ["ageDays", "isTweeter", "isBot", "tweetsPerDay", "mentions", "rate"],
+                updatePickArray: ["ageDays", "isTweeter", "isBot", "tweetsPerDay", "mentions", "name", "screenName", "rate"],
                 options: userDbUpdateOptions
               });
 

@@ -6631,7 +6631,7 @@ function initTransmitNodeQueueInterval(interval){
               delete updatedUser._id;
               delete updatedUser.userId;
 
-              if (updatedUser.screenName === undefined) {
+              if (updatedUser.screenName === undefined || updatedUser.screenName === "") {
                 console.log(chalkError(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED"));
                 printUserObj(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED", updatedUser);
                 transmitNodeQueueReady = true;
@@ -6659,7 +6659,7 @@ function initTransmitNodeQueueInterval(interval){
                 printBotStats({user: node, modulo: 100});
               }
 
-              if (node.screenName === undefined) {
+              if (node.screenName === undefined || node.screenName === "") {
                 console.log(chalkError(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED"));
                 printUserObj(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED", node);
                 transmitNodeQueueReady = true;
@@ -6692,7 +6692,7 @@ function initTransmitNodeQueueInterval(interval){
             }
           }
 
-          if (node.screenName === undefined) {
+          if (node.screenName === undefined || node.screenName === "") {
             console.log(chalkError(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED"));
             printUserObj(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED", node);
             transmitNodeQueueReady = true;

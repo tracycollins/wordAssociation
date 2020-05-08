@@ -3716,48 +3716,14 @@ async function pubSubNodeSetProps(params){
     let cObj = {};
 
     if (node.nodeType === "user"){
-      // if (categorizedUserHashMap.has(node.nodeId)){
-      //   cObj = categorizedUserHashMap.get(node.nodeId);
-      // }
-
-      // cObj.manual = node.category || cObj.manual;
-      // cObj.auto = node.categoryAuto || cObj.auto;
-      // cObj.network = node.categorizeNetwork || cObj.network;
-      // cObj.verified = node.categoryVerified || cObj.verified;
-
-      // categorizedUserHashMap.set(node.nodeId, cObj);
-
-      // let dbUser = await global.wordAssoDb.User.findOneAndUpdate({nodeId: cObj.nodeId});
-
-      // if (!dbUser){
-      //   dbUser = new global.wordAssoDb.User(node);
-      // }
-
-      // dbUser.category = cObj.manual;
-      // dbUser.categoryAuto = cObj.auto;
-      // dbUser.categorizeNetwork = cObj.network;
-      // dbUser.categoryVerified = cObj.verified;
-
-      // await dbUser.save();
-
-      // node.category = cObj.manual;
-      // node.categoryAuto = cObj.auto;
-      // node.categorizeNetwork = cObj.network;
-      // node.categoryVerified = cObj.verified;
-
-      // const dbUser = await global.wordAssoDb.User.findOneAndUpdate({nodeId: node.nodeId}, node);
 
       const updatePickArray = Object.keys(params.props);
-
-      printUserObj(MODULE_ID_PREFIX + " | pubSubNodeSetProps 1 | PROPS: " + updatePickArray, node);
 
       const dbUser = await userServerController.findOneUserV2({
         user: node,
         updatePickArray: updatePickArray,
         options: userDbUpdateOptions
       });
-
-      printUserObj(MODULE_ID_PREFIX + " | pubSubNodeSetProps 2 | PROPS: " + updatePickArray, dbUser);
 
       return dbUser;
 

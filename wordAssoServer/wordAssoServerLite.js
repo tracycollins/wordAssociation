@@ -6542,7 +6542,7 @@ function initTransmitNodeQueueInterval(interval){
               nodeSetPropsQueue.push({ 
                 createNodeOnMiss: true,
                 node: node, 
-                // props: { following: true },
+                props: { following: true },
                 autoCategorize: true
               });
             }

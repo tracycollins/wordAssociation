@@ -6671,7 +6671,7 @@ function initTransmitNodeQueueInterval(interval){
 
         if (node.nodeType === "user"){
 
-          categorizeable = await userCategorizeable({user: node});
+          categorizeable = await userCategorizeable({node: node});
 
           if (categorizeable){
 

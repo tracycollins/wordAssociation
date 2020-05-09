@@ -1460,7 +1460,7 @@ let bestNetworkObj = false;
 
 const defaultTwitterUserScreenName = "threecee";
 
-const followedUserSet = new Set();
+// const followedUserSet = new Set();
 const unfollowableUserSet = new Set();
 let ignoredUserSet = new Set();
 let ignoredHashtagSet = new Set();
@@ -2035,10 +2035,14 @@ const uncatUserCache = new NodeCache({
 });
 
 function uncatUserCacheExpired(uncatUserId) {
+
+  statsObj.caches.uncatUserCache.expired += 1;
+
   console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX UNCAT USR $"
     + " [" + uncatUserCache.getStats().keys + " KEYS]"
     + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
     + " | NOW: " + getTimeStamp()
+    + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
     + " | NID: " + uncatUserId
   ));
 }
@@ -2578,6 +2582,12 @@ function initStats(callback){
   statsObj.maxNodesPerMinTime = moment().valueOf();
 
   statsObj.caches = {};
+
+  statsObj.caches.uncatUserCache = {};
+  statsObj.caches.uncatUserCache.stats = {};
+  statsObj.caches.uncatUserCache.stats.keys = 0;
+  statsObj.caches.uncatUserCache.stats.keysMax = 0;
+  statsObj.caches.uncatUserCache.expired = 0;
 
   statsObj.caches.ipCache = {};
   statsObj.caches.ipCache.stats = {};

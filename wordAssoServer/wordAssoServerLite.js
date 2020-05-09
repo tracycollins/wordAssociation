@@ -15,8 +15,8 @@ const DEFAULT_PUBSUB_ENABLED = true;
 const DEFAULT_PUBSUB_PROJECT_ID = "graphic-tangent-627";
 const DEFAULT_PUBSUB_RESULT_TIMEOUT = 5*ONE_SECOND;
 
-const DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL = 3600*24; // 3600*24*7 sec/week
-const DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD = 60;
+// const DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL = 3600*24; // 3600*24*7 sec/week
+// const DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD = 60;
 
 const DEFAULT_UPDATE_USER_SETS_INTERVAL = 5*ONE_MINUTE;
 
@@ -1070,6 +1070,8 @@ statsObj.user = {};
 
 statsObj.user.total = 0;
 
+statsObj.user.dbUncat = 0;
+
 statsObj.user.added = 0;
 statsObj.user.deleted = 0;
 statsObj.user.categoryChanged = 0;
@@ -1120,8 +1122,8 @@ let configuration = {};
 configuration.primaryHost = process.env.PRIMARY_HOST || DEFAULT_PRIMARY_HOST;
 configuration.databaseHost = process.env.DATABASE_HOST || DEFAULT_DATABASE_HOST;
 
-configuration.uncatUserCacheTtl = DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL;
-configuration.uncatUserCacheCheckPeriod = DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD;
+// configuration.uncatUserCacheTtl = DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL;
+// configuration.uncatUserCacheCheckPeriod = DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD;
 
 configuration.pubSub = {};
 configuration.pubSub.enabled = DEFAULT_PUBSUB_ENABLED;
@@ -2026,28 +2028,28 @@ function touchChildPidFile(params){
 // ==================================================================
 // UNCAT USER ID CACHE
 // ==================================================================
-console.log(MODULE_ID_PREFIX + " | UNCAT USER ID CACHE TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000));
-console.log(MODULE_ID_PREFIX + " | UNCAT USER ID CACHE CHECK PERIOD: " + tcUtils.msToTime(configuration.uncatUserCacheCheckPeriod*1000));
+// console.log(MODULE_ID_PREFIX + " | UNCAT USER ID CACHE TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000));
+// console.log(MODULE_ID_PREFIX + " | UNCAT USER ID CACHE CHECK PERIOD: " + tcUtils.msToTime(configuration.uncatUserCacheCheckPeriod*1000));
 
-const uncatUserCache = new NodeCache({
-  stdTTL: configuration.uncatUserCacheTtl,
-  checkperiod: configuration.uncatUserCacheCheckPeriod
-});
+// const uncatUserCache = new NodeCache({
+//   stdTTL: configuration.uncatUserCacheTtl,
+//   checkperiod: configuration.uncatUserCacheCheckPeriod
+// });
 
-function uncatUserCacheExpired(uncatUserId) {
+// function uncatUserCacheExpired(uncatUserId) {
 
-  statsObj.caches.uncatUserCache.expired += 1;
+//   statsObj.caches.uncatUserCache.expired += 1;
 
-  console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX UNCAT USR $"
-    + " [" + uncatUserCache.getStats().keys + " KEYS]"
-    + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
-    + " | NOW: " + getTimeStamp()
-    + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
-    + " | NID: " + uncatUserId
-  ));
-}
+//   console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX UNCAT USR $"
+//     + " [" + uncatUserCache.getStats().keys + " KEYS]"
+//     + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
+//     + " | NOW: " + getTimeStamp()
+//     + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
+//     + " | NID: " + uncatUserId
+//   ));
+// }
 
-uncatUserCache.on("expired", uncatUserCacheExpired);
+// uncatUserCache.on("expired", uncatUserCacheExpired);
 
 // ==================================================================
 // IP CACHE
@@ -2583,11 +2585,11 @@ function initStats(callback){
 
   statsObj.caches = {};
 
-  statsObj.caches.uncatUserCache = {};
-  statsObj.caches.uncatUserCache.stats = {};
-  statsObj.caches.uncatUserCache.stats.keys = 0;
-  statsObj.caches.uncatUserCache.stats.keysMax = 0;
-  statsObj.caches.uncatUserCache.expired = 0;
+  // statsObj.caches.uncatUserCache = {};
+  // statsObj.caches.uncatUserCache.stats = {};
+  // statsObj.caches.uncatUserCache.stats.keys = 0;
+  // statsObj.caches.uncatUserCache.stats.keysMax = 0;
+  // statsObj.caches.uncatUserCache.expired = 0;
 
   statsObj.caches.ipCache = {};
   statsObj.caches.ipCache.stats = {};
@@ -6664,6 +6666,41 @@ function initNodeSetPropsQueueInterval(interval){
   });
 }
 
+async function uncatDbCheck(params){
+
+  statsObj.user.dbUncat = await global.wordAssoDb.Uncat.estimatedDocumentCount();
+
+  let dbUncat = await global.wordAssoDb.Uncat.findOne({nodeId: params.node.nodeId}).lean();
+
+  if (!dbUncat || (dbUncat === undefined)){
+
+    console.log(chalk.yellow(MODULE_ID_PREFIX
+      + " | --- MISS | UNCAT"
+      + " [" + statsObj.user.dbUncat + "]"
+      + " | NID: " + params.node.nodeId
+      + " | @" + params.node.screenName
+      + " | CV: " + formatBoolean(params.node.categoryVerified)
+      + " | CN: " + params.node.categorizeNetwork
+      + " | M: " + formatCategory(params.node.category)
+      + " | A: " + formatCategory(params.node.categoryAuto)
+    ));
+
+    dbUncat = new global.wordAssoDb.Uncat(params.node);
+    await dbUncat.save();
+    return;
+  }
+
+  console.log(chalkBlue(MODULE_ID_PREFIX
+    + " | +++ HIT  | UNCAT"
+    + " [" + statsObj.user.dbUncat + "]"
+    + " | NID: " + dbUncat.nodeId
+    + " | TS: " + getTimeStamp(dbUncat.lastSeen)
+  ));
+
+  return dbUncat;
+
+}
+
 function initTransmitNodeQueueInterval(interval){
 
   return new Promise(function(resolve){
@@ -6708,11 +6745,13 @@ function initTransmitNodeQueueInterval(interval){
 
           if (categorizeable){
 
-            const uncatUserId = uncatUserCache.get(node.nodeId);
+            // const uncatUserId = uncatUserCache.get(node.nodeId);
 
-            if (uncatUserId === undefined) {
+            const uncatObj = await uncatDbCheck({node: node});
 
-              uncatUserCache.set(node.nodeId, node.nodeId);
+            if (uncatObj === undefined) {
+
+              // uncatUserCache.set(node.nodeId, node.nodeId);
 
               nodeSetPropsQueue.push({ 
                 createNodeOnMiss: true,

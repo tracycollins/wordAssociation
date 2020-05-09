@@ -3615,14 +3615,14 @@ function socketRxTweet(tw) {
   }
 }
 
-function enableFollow(params){
-  if (params.forceFollow) { return true; }
-  if (followedUserSet.has(params.node.nodeId)) { return false; }
-  if (ignoredUserSet.has(params.node.nodeId)) { return false; }
-  if ((params.node.screenName !== undefined) && ignoredUserSet.has(params.node.screenName)) { return false; }
-  if (unfollowableUserSet.has(params.node.nodeId)) { return false; }
-  return true;
-}
+// function enableFollow(params){
+//   if (params.forceFollow) { return true; }
+//   if (followedUserSet.has(params.node.nodeId)) { return false; }
+//   if (ignoredUserSet.has(params.node.nodeId)) { return false; }
+//   if ((params.node.screenName !== undefined) && ignoredUserSet.has(params.node.screenName)) { return false; }
+//   if (unfollowableUserSet.has(params.node.nodeId)) { return false; }
+//   return true;
+// }
 
 async function deleteNode(node){
 
@@ -3727,6 +3727,22 @@ async function pubSubNodeSetProps(params){
 
       const updatePickArray = Object.keys(params.props);
 
+      if ( isCategorized(node)){
+
+        categorizedUserHashMap.set(node.nodeId, 
+          { 
+            nodeId: node.nodeId, 
+            screenName: node.screenName, 
+            manual: node.category, 
+            auto: node.categoryAuto,
+            network: node.categorizeNetwork,
+            verified: node.categoryVerified
+          }
+        );
+
+        if (!updatePickArray.includes("category")) { updatePickArray.push("category"); }
+      }
+
       const dbUser = await userServerController.findOneUserV2({
         user: node,
         updatePickArray: updatePickArray,
@@ -3738,12 +3754,15 @@ async function pubSubNodeSetProps(params){
     }
 
     if (node.nodeType === "hashtag"){
+
       if (categorizedHashtagHashMap.has(node.nodeId)){
         cObj = categorizedHashtagHashMap.get(node.nodeId);
       }
+
       cObj.manual = node.category || cObj.manual;
       cObj.auto = node.categoryAuto || cObj.auto;
       cObj.network = node.categorizeNetwork || cObj.network;
+
       categorizedHashtagHashMap.set(node.nodeId, cObj);
 
       let dbHashtag = await global.wordAssoDb.Hashtag.findOne({nodeId: cObj.nodeId});
@@ -3842,88 +3861,88 @@ async function nodeSetProps(params) {
     + " | PROPS: " + Object.keys(params.props)
   ));
 
-  if (params.forceFollow || params.props.following !== undefined){
-    if (enableFollow({node: params.node, forceFollow: params.forceFollow}) && params.props.following) { 
-      followedUserSet.add(params.node.nodeId);
-      ignoredUserSet.delete(params.node.nodeId);
-      unfollowableUserSet.delete(params.node.nodeId);
-    }
-    if (!params.props.following) { 
-      followedUserSet.delete(params.node.nodeId);
-      ignoredUserSet.delete(params.node.nodeId);
-      unfollowableUserSet.add(params.node.nodeId);
-    }
-  } 
+  // if (params.forceFollow || params.props.following !== undefined){
+  //   if (enableFollow({node: params.node, forceFollow: params.forceFollow}) && params.props.following) { 
+  //     followedUserSet.add(params.node.nodeId);
+  //     ignoredUserSet.delete(params.node.nodeId);
+  //     unfollowableUserSet.delete(params.node.nodeId);
+  //   }
+  //   if (!params.props.following) { 
+  //     followedUserSet.delete(params.node.nodeId);
+  //     ignoredUserSet.delete(params.node.nodeId);
+  //     unfollowableUserSet.add(params.node.nodeId);
+  //   }
+  // } 
 
-  if (params.props.ignored !== undefined){
-    if (params.props.ignored) { 
-      ignoredUserSet.add(params.node.nodeId);
-      if (tssChild !== undefined){ tssChild.send({op: "IGNORE", user: params.node}); }
-    }
-    if (!params.props.ignored) { 
-      ignoredUserSet.delete(params.node.nodeId);
-      unfollowableUserSet.delete(params.node.nodeId);
-      if (tssChild !== undefined){ tssChild.send({op: "UNIGNORE", user: params.node}); }
-    }
-  } 
+  // if (params.props.ignored !== undefined){
+  //   if (params.props.ignored) { 
+  //     ignoredUserSet.add(params.node.nodeId);
+  //     if (tssChild !== undefined){ tssChild.send({op: "IGNORE", user: params.node}); }
+  //   }
+  //   if (!params.props.ignored) { 
+  //     ignoredUserSet.delete(params.node.nodeId);
+  //     unfollowableUserSet.delete(params.node.nodeId);
+  //     if (tssChild !== undefined){ tssChild.send({op: "UNIGNORE", user: params.node}); }
+  //   }
+  // } 
 
-  if ( params.props.category !== undefined 
-    || params.props.categoryAuto !== undefined
-    || params.props.categorizeNetwork !== undefined
-    || params.props.screenName !== undefined
-  ){
-    if (params.node.nodeType === "user"){
+  // if ( params.props.category !== undefined 
+  //   || params.props.categoryAuto !== undefined
+  //   || params.props.categorizeNetwork !== undefined
+  //   || params.props.screenName !== undefined
+  // ){
+  //   if (params.node.nodeType === "user"){
 
-      let catObj = {};
+  //     let catObj = {};
 
-      if (!categorizedUserHashMap.has(params.node.nodeId)){
+  //     if (!categorizedUserHashMap.has(params.node.nodeId)){
 
-        catObj.nodeId = params.node.nodeId;
-        catObj.screenName = params.props.screenName || params.node.screenName;
-        catObj.category = params.props.category || params.node.category;
-        catObj.categoryAuto = params.props.categoryAuto || params.node.categoryAuto;
-        catObj.categorizeNetwork = params.props.categorizeNetwork || params.node.categorizeNetwork;
-        catObj.categoryVerified = params.props.categoryVerified || params.node.categoryVerified;
-      }
-      else{
+  //       catObj.nodeId = params.node.nodeId;
+  //       catObj.screenName = params.props.screenName || params.node.screenName;
+  //       catObj.category = params.props.category || params.node.category;
+  //       catObj.categoryAuto = params.props.categoryAuto || params.node.categoryAuto;
+  //       catObj.categorizeNetwork = params.props.categorizeNetwork || params.node.categorizeNetwork;
+  //       catObj.categoryVerified = params.props.categoryVerified || params.node.categoryVerified;
+  //     }
+  //     else{
 
-        catObj = categorizedUserHashMap.get(params.node.nodeId);
-        catObj.screenName = params.props.screenName || params.node.screenName || catObj.screenName;
-        catObj.category = params.props.category || params.node.screenName || catObj.screenName;
-        catObj.categoryAuto = params.props.categoryAuto || params.node.categoryAuto || catObj.categoryAuto;
-        catObj.categorizeNetwork = params.props.categorizeNetwork || params.node.categorizeNetwork || catObj.categorizeNetwork;
-        catObj.categoryVerified = params.props.categoryVerified || params.node.categoryVerified || catObj.categoryVerified;
-      }
+  //       catObj = categorizedUserHashMap.get(params.node.nodeId);
+  //       catObj.screenName = params.props.screenName || params.node.screenName || catObj.screenName;
+  //       catObj.category = params.props.category || params.node.screenName || catObj.screenName;
+  //       catObj.categoryAuto = params.props.categoryAuto || params.node.categoryAuto || catObj.categoryAuto;
+  //       catObj.categorizeNetwork = params.props.categorizeNetwork || params.node.categorizeNetwork || catObj.categorizeNetwork;
+  //       catObj.categoryVerified = params.props.categoryVerified || params.node.categoryVerified || catObj.categoryVerified;
+  //     }
 
-      categorizedUserHashMap.set(params.node.nodeId, catObj);
-    }
+  //     categorizedUserHashMap.set(params.node.nodeId, catObj);
+  //   }
 
-    if (params.node.nodeType === "hashtag"){
-      let catObj = {};
-      if (!categorizedHashtagHashMap.has(params.node.nodeId)){
-        catObj.nodeId = params.node.nodeId;
-        catObj.text = params.node.text;
-        catObj.category = params.node.category;
-        catObj.categoryAuto = params.node.categoryAuto;
-        catObj.categorizeNetwork = params.node.categorizeNetwork;
-        catObj.categoryVerified = params.node.categoryVerified;
-      }
-      else{
-        catObj = categorizedHashtagHashMap.get(params.node.nodeId);
-        catObj.text = params.node.text || catObj.text;
-        catObj.category = params.node.category || catObj.category;
-        catObj.categoryAuto = params.node.categoryAuto || catObj.categoryAuto;
-        catObj.categorizeNetwork = params.node.categorizeNetwork || catObj.categorizeNetwork;
-        catObj.categoryVerified = params.node.categoryVerified;
-      }
-      categorizedHashtagHashMap.set(params.node.nodeId, catObj);
-    }
-  } 
+  //   if (params.node.nodeType === "hashtag"){
+  //     let catObj = {};
+  //     if (!categorizedHashtagHashMap.has(params.node.nodeId)){
+  //       catObj.nodeId = params.node.nodeId;
+  //       catObj.text = params.node.text;
+  //       catObj.category = params.node.category;
+  //       catObj.categoryAuto = params.node.categoryAuto;
+  //       catObj.categorizeNetwork = params.node.categorizeNetwork;
+  //       catObj.categoryVerified = params.node.categoryVerified;
+  //     }
+  //     else{
+  //       catObj = categorizedHashtagHashMap.get(params.node.nodeId);
+  //       catObj.text = params.node.text || catObj.text;
+  //       catObj.category = params.node.category || catObj.category;
+  //       catObj.categoryAuto = params.node.categoryAuto || catObj.categoryAuto;
+  //       catObj.categorizeNetwork = params.node.categorizeNetwork || catObj.categorizeNetwork;
+  //       catObj.categoryVerified = params.node.categoryVerified;
+  //     }
+  //     categorizedHashtagHashMap.set(params.node.nodeId, catObj);
+  //   }
+  // } 
 
-  if (params.props.isBot !== undefined){
-    if (params.props.isBot) { botNodeIdSet.add(params.node.nodeId); }
-    if (!params.props.isBot) { botNodeIdSet.delete(params.node.nodeId); }
-  } 
+  // if (params.props.isBot !== undefined){
+  //   if (params.props.isBot) { botNodeIdSet.add(params.node.nodeId); }
+  //   if (!params.props.isBot) { botNodeIdSet.delete(params.node.nodeId); }
+  // } 
 
   const node = await pubSubNodeSetProps({ 
     requestId: requestId, 
@@ -10171,6 +10190,8 @@ setTimeout(async function(){
 
     configEvents.emit("DB_CONNECT");
 
+    pubSubClient = await initPubSub();
+
     await initIgnoreWordsHashMap();
     await initAllowLocations();
     await initIgnoreLocations();
@@ -10192,7 +10213,7 @@ setTimeout(async function(){
     await initWatchConfig();
     await initTssChild({childId: DEFAULT_TSS_CHILD_ID, tweetVersion2: configuration.tweetVersion2, threeceeUser: threeceeUser});
 
-    pubSubClient = await initPubSub();
+    // pubSubClient = await initPubSub();
 
     const [topics] = await pubSubClient.getTopics();
     topics.forEach((topic) => console.log(chalkLog(MODULE_ID_PREFIX + " | PUBSUB TOPIC: " + topic.name)));

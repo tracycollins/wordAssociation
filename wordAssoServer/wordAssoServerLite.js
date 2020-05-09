@@ -6685,8 +6685,8 @@ function initTransmitNodeQueueInterval(interval){
                 createNodeOnMiss: true,
                 node: node, 
                 props: { 
-                  screenName: node.screenName.toLowerCase(),
-                  following: true
+                  screenName: node.screenName.toLowerCase()
+                  // following: true
                 },
                 autoCategorize: true
               });

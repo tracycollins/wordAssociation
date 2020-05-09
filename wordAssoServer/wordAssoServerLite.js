@@ -5172,7 +5172,10 @@ async function initSocketHandler(socketObj) {
       }
       catch(err){
         console.log(chalkError(MODULE_ID_PREFIX
-          + " | *** TWITTER_CATEGORIZE_NODE ERROR\nNODE\n" + jsonPrint(catNodeObj)
+          + " | *** TWITTER_CATEGORIZE_NODE ERROR"
+          + " | TYPE: " + catNodeObj.node.nodeType
+          + " | NID: " + catNodeObj.node.nodeId
+          + " | @" + catNodeObj.node.screenName
           + " | ERROR: " + err
         ));
       }

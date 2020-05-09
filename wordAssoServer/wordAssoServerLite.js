@@ -748,9 +748,17 @@ const nodeIgnoreHandler = async function(message){
   message.ack();
 };
 
+const pubSubErrorHandler = function(error){
+  console.log(chalkError(MODULE_ID_PREFIX
+    + " | *** PUBSUB ERROR: " + error
+  ));
+}
+
 async function initNodeOpHandler(params){
 
   const subscription = await pubSubClient.subscription(params.subscribeName);
+
+  subscription.on("error", pubSubErrorHandler);
 
   const [metadata] = await subscription.getMetadata();
 

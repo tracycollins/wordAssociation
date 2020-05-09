@@ -6676,7 +6676,7 @@ async function uncatDbCheck(params){
 
   if (!dbUncat || (dbUncat === undefined)){
 
-    console.log(chalk.yellow(MODULE_ID_PREFIX
+    debug(chalk.yellow(MODULE_ID_PREFIX
       + " | --- MISS | UNCAT"
       + " [" + statsObj.user.dbUncat + "]"
       + " | NID: " + params.node.nodeId
@@ -6692,7 +6692,7 @@ async function uncatDbCheck(params){
     return;
   }
 
-  console.log(chalkBlue(MODULE_ID_PREFIX
+  debug(chalkBlue(MODULE_ID_PREFIX
     + " | +++ HIT  | UNCAT"
     + " [" + statsObj.user.dbUncat + "]"
     + " | NID: " + dbUncat.nodeId

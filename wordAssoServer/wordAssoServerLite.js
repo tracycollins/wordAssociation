@@ -6394,6 +6394,8 @@ async function updateUserSets(){
 
       if (user.category && categorizedArray.includes(user.category)){
 
+        await global.wordAssoDb.Uncat.deleteOne({nodeId: user.nodeId});
+
         uncategorizeableUserSet.delete(user.nodeId);
 
         categorizedUserHashMap.set(user.nodeId, 

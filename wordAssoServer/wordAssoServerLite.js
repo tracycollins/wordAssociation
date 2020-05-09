@@ -5651,81 +5651,229 @@ function followable(text){
   });
 }
 
+// async function userCategorizeable(params){
+
+//   let hitSearchTerm = false;
+//   const user = params.user;
+//   const verbose = (params.verbose && params.verbose !== undefined) ? params.verbose : false;
+
+//   if(uncategorizeableUserSet.has(user.nodeId)){
+//     if (verbose) { 
+//       console.log(chalkInfo(MODULE_ID_PREFIX 
+//         + " | userCategorizeable | FALSE  | UNCATEGORIZABLE SET"
+//         + " | @" + user.screenName
+//       ));
+//     }
+//     return false; 
+//   }
+
+//   if (user.following === undefined) { user.following = false; }
+
+//   if (user.following && (user.following !== undefined)) { 
+//     unfollowableUserSet.delete(user.nodeId);
+//     if (verbose) { 
+//       console.log(chalkInfo(MODULE_ID_PREFIX 
+//         + " | userCategorizeable | TRUE  | FOLLOWING"
+//         + " | FOLLOWING: " + user.following
+//         + " | @" + user.screenName
+//       ));
+//     }
+//     return true; 
+//   }
+
+//   if (user.ignored === undefined) { user.ignored = false; }
+
+//   if (user.ignored && (user.ignored !== undefined)) { 
+//     ignoredUserSet.add(user.nodeId);
+//     if (verbose) { 
+//       console.log(chalkLog(MODULE_ID_PREFIX 
+//         + " | userCategorizeable | FALSE | IGNORED"
+//         + " | FOLLOWING: " + user.ignored
+//         + " | @" + user.screenName
+//       ));
+//     }
+//     return false; 
+//   }
+
+//   if (ignoredUserSet.has(user.nodeId) || (user.screenName && ignoredUserSet.has(user.screenName.toLowerCase()))) { 
+//     if (verbose) { 
+//       console.log(chalkLog(MODULE_ID_PREFIX 
+//         + " | userCategorizeable | FALSE | IGNORED"
+//         + " | FOLLOWING: " + user.ignored
+//         + " | @" + user.screenName
+//       ));
+//     }
+//     return false; 
+//   }
+
+//   if (unfollowableUserSet.has(user.nodeId)) { 
+//     if (verbose) { 
+//       console.log(chalkLog(MODULE_ID_PREFIX 
+//         + " | userCategorizeable | FALSE | UNFOLLOWABLE SET"
+//         + " | @" + user.screenName
+//       ));
+//     }
+//     return false;
+//   }
+
+//   if (user.lang === undefined) { user.lang = ""; }
+
+//   if (user.lang && (user.lang !== undefined) && (user.lang != "en")) {
+//     uncategorizeableUserSet.add(user.nodeId); 
+//     categorizeableUserSet.delete(user.nodeId);
+//     if (verbose) { 
+//       console.log(chalkLog(MODULE_ID_PREFIX 
+//         + " | userCategorizeable | FALSE | LANG NOT ENG"
+//         + " | LANG: " + user.lang
+//         + " | @" + user.screenName
+//       ));
+//     }
+//     return false;
+//   }
+
+//   if (ignoreLocationsRegEx
+//     && (ignoreLocationsRegEx !== undefined) 
+//     && user.location 
+//     && (user.location !== undefined) 
+//     && !allowLocationsRegEx.test(user.location)
+//     && ignoreLocationsRegEx.test(user.location)){
+    
+//     ignoredUserSet.add(user.nodeId);
+
+//     if (verbose) { 
+//       console.log(chalkLog(MODULE_ID_PREFIX 
+//         + " | userCategorizeable | FALSE | IGNORED LOCATION"
+//         + " | LANG: " + user.location
+//         + " | @" + user.screenName
+//       ));
+//     }
+
+//     return false;
+//   }
+  
+//   if (user.followersCount && (user.followersCount !== undefined) 
+//     && (user.followersCount < configuration.minFollowersAutoCategorize)) { 
+
+//     unfollowableUserSet.add(user.nodeId);
+
+//     if (verbose) { 
+//       console.log(chalkLog(MODULE_ID_PREFIX 
+//         + " | userCategorizeable | FALSE | LOW FOLLOWERS"
+//         + " | FOLLOWERS: " + user.followersCount
+//         + " | @" + user.screenName
+//       ));
+//     }
+
+//     return false;
+//   }
+
+//   if (!user.description || (user.description === undefined)) { user.description = ""; }
+//   if (!user.screenName || (user.screenName === undefined)) { user.screenName = ""; }
+//   if (!user.name || (user.name === undefined)) { user.name = ""; }
+
+//   if (user.name !== ""){
+//     hitSearchTerm = await followable(user.name);
+
+//     if (hitSearchTerm) { 
+//       uncategorizeableUserSet.delete(user.nodeId); 
+//       categorizeableUserSet.add(user.nodeId);
+//       ignoredUserSet.delete(user.nodeId);
+//       unfollowableUserSet.delete(user.nodeId);
+
+//       if (verbose) { 
+//         console.log(chalkInfo(MODULE_ID_PREFIX 
+//           + " | userCategorizeable | TRUE  | NAME SEARCH TERM HIT"
+//           + " | @" + user.screenName
+//           + " | NAME: " + user.name
+//         ));
+//       }
+
+//       return true; 
+//     }
+//   }
+
+//   if (user.description !== ""){
+//     hitSearchTerm = await followable(user.description);
+
+//     if (hitSearchTerm) { 
+//       categorizeableUserSet.add(user.nodeId);
+//       uncategorizeableUserSet.delete(user.nodeId); 
+
+//       ignoredUserSet.delete(user.nodeId);
+//       unfollowableUserSet.delete(user.nodeId);
+
+//       if (verbose) { 
+//         console.log(chalkInfo(MODULE_ID_PREFIX 
+//           + " | userCategorizeable | TRUE  | DESCRIPTION SEARCH TERM HIT"
+//           + " | @" + user.screenName
+//           + " | DESCRIPTION: " + user.description
+//         ));
+//       }
+
+//       return true; 
+//     }
+//   }
+
+//   if (user.screenName !== ""){
+//     hitSearchTerm = await followable(user.screenName);
+
+//     if (hitSearchTerm) { 
+//       categorizeableUserSet.add(user.nodeId);
+//       uncategorizeableUserSet.delete(user.nodeId); 
+//       ignoredUserSet.delete(user.nodeId);
+//       unfollowableUserSet.delete(user.nodeId);
+
+//       if (verbose) { 
+//         console.log(chalkInfo(MODULE_ID_PREFIX 
+//           + " | userCategorizeable | TRUE  | SCREENNAME SEARCH TERM HIT"
+//           + " | @" + user.screenName
+//         ));
+//       }
+
+//       return true; 
+//     }
+//   }
+
+//   categorizeableUserSet.delete(user.nodeId);
+//   uncategorizeableUserSet.add(user.nodeId); 
+
+//   if (verbose) { 
+//     console.log(chalkLog(MODULE_ID_PREFIX 
+//       + " | userCategorizeable | FALSE"
+//       + " | NID: " + user.nodeId
+//       + " | @" + user.screenName
+//       + " | NAME: " + user.name
+//     ));
+//   }
+
+//   return false;
+// }
+
 async function userCategorizeable(params){
 
   let hitSearchTerm = false;
-  const user = params.user;
+  const node = params.node;
   const verbose = (params.verbose && params.verbose !== undefined) ? params.verbose : false;
 
-  if(uncategorizeableUserSet.has(user.nodeId)){
-    if (verbose) { 
-      console.log(chalkInfo(MODULE_ID_PREFIX 
-        + " | userCategorizeable | FALSE  | UNCATEGORIZABLE SET"
-        + " | @" + user.screenName
-      ));
-    }
-    return false; 
-  }
+  // assume it's a user node
 
-  if (user.following === undefined) { user.following = false; }
-
-  if (user.following && (user.following !== undefined)) { 
-    unfollowableUserSet.delete(user.nodeId);
-    if (verbose) { 
-      console.log(chalkInfo(MODULE_ID_PREFIX 
-        + " | userCategorizeable | TRUE  | FOLLOWING"
-        + " | FOLLOWING: " + user.following
-        + " | @" + user.screenName
-      ));
-    }
-    return true; 
-  }
-
-  if (user.ignored === undefined) { user.ignored = false; }
-
-  if (user.ignored && (user.ignored !== undefined)) { 
-    ignoredUserSet.add(user.nodeId);
+  if (node.ignored && (node.ignored !== undefined)) { 
     if (verbose) { 
       console.log(chalkLog(MODULE_ID_PREFIX 
         + " | userCategorizeable | FALSE | IGNORED"
-        + " | FOLLOWING: " + user.ignored
-        + " | @" + user.screenName
+        + " | FOLLOWING: " + node.ignored
+        + " | @" + node.screenName
       ));
     }
     return false; 
   }
 
-  if (ignoredUserSet.has(user.nodeId) || (user.screenName && ignoredUserSet.has(user.screenName.toLowerCase()))) { 
-    if (verbose) { 
-      console.log(chalkLog(MODULE_ID_PREFIX 
-        + " | userCategorizeable | FALSE | IGNORED"
-        + " | FOLLOWING: " + user.ignored
-        + " | @" + user.screenName
-      ));
-    }
-    return false; 
-  }
-
-  if (unfollowableUserSet.has(user.nodeId)) { 
-    if (verbose) { 
-      console.log(chalkLog(MODULE_ID_PREFIX 
-        + " | userCategorizeable | FALSE | UNFOLLOWABLE SET"
-        + " | @" + user.screenName
-      ));
-    }
-    return false;
-  }
-
-  if (user.lang === undefined) { user.lang = ""; }
-
-  if (user.lang && (user.lang !== undefined) && (user.lang != "en")) {
-    uncategorizeableUserSet.add(user.nodeId); 
-    categorizeableUserSet.delete(user.nodeId);
+  if (node.lang && (node.lang !== undefined) && (node.lang != "en")) {
     if (verbose) { 
       console.log(chalkLog(MODULE_ID_PREFIX 
         + " | userCategorizeable | FALSE | LANG NOT ENG"
-        + " | LANG: " + user.lang
-        + " | @" + user.screenName
+        + " | LANG: " + node.lang
+        + " | @" + node.screenName
       ));
     }
     return false;
@@ -5733,58 +5881,61 @@ async function userCategorizeable(params){
 
   if (ignoreLocationsRegEx
     && (ignoreLocationsRegEx !== undefined) 
-    && user.location 
-    && (user.location !== undefined) 
-    && !allowLocationsRegEx.test(user.location)
-    && ignoreLocationsRegEx.test(user.location)){
+    && node.location 
+    && (node.location !== undefined) 
+    && !allowLocationsRegEx.test(node.location)
+    && ignoreLocationsRegEx.test(node.location)){
     
-    ignoredUserSet.add(user.nodeId);
-
     if (verbose) { 
       console.log(chalkLog(MODULE_ID_PREFIX 
         + " | userCategorizeable | FALSE | IGNORED LOCATION"
-        + " | LANG: " + user.location
-        + " | @" + user.screenName
+        + " | LANG: " + node.location
+        + " | @" + node.screenName
       ));
     }
 
     return false;
   }
   
-  if (user.followersCount && (user.followersCount !== undefined) 
-    && (user.followersCount < configuration.minFollowersAutoCategorize)) { 
-
-    unfollowableUserSet.add(user.nodeId);
+  if (node.followersCount && (node.followersCount !== undefined) 
+    && (node.followersCount < configuration.minFollowersAutoCategorize)) { 
 
     if (verbose) { 
       console.log(chalkLog(MODULE_ID_PREFIX 
         + " | userCategorizeable | FALSE | LOW FOLLOWERS"
-        + " | FOLLOWERS: " + user.followersCount
-        + " | @" + user.screenName
+        + " | FOLLOWERS: " + node.followersCount
+        + " | @" + node.screenName
       ));
     }
 
     return false;
   }
 
-  if (!user.description || (user.description === undefined)) { user.description = ""; }
-  if (!user.screenName || (user.screenName === undefined)) { user.screenName = ""; }
-  if (!user.name || (user.name === undefined)) { user.name = ""; }
+  if (node.following && (node.following !== undefined)) { 
+    if (verbose) { 
+      console.log(chalkInfo(MODULE_ID_PREFIX 
+        + " | userCategorizeable | TRUE  | FOLLOWING"
+        + " | FOLLOWING: " + node.following
+        + " | @" + node.screenName
+      ));
+    }
+    return true; 
+  }
 
-  if (user.name !== ""){
-    hitSearchTerm = await followable(user.name);
+  if (!node.description || (node.description === undefined)) { node.description = ""; }
+  if (!node.screenName || (node.screenName === undefined)) { node.screenName = ""; }
+  if (!node.name || (node.name === undefined)) { node.name = ""; }
+
+  if (node.name !== ""){
+    hitSearchTerm = await followable(node.name);
 
     if (hitSearchTerm) { 
-      uncategorizeableUserSet.delete(user.nodeId); 
-      categorizeableUserSet.add(user.nodeId);
-      ignoredUserSet.delete(user.nodeId);
-      unfollowableUserSet.delete(user.nodeId);
 
       if (verbose) { 
         console.log(chalkInfo(MODULE_ID_PREFIX 
           + " | userCategorizeable | TRUE  | NAME SEARCH TERM HIT"
-          + " | @" + user.screenName
-          + " | NAME: " + user.name
+          + " | @" + node.screenName
+          + " | NAME: " + node.name
         ));
       }
 
@@ -5792,21 +5943,16 @@ async function userCategorizeable(params){
     }
   }
 
-  if (user.description !== ""){
-    hitSearchTerm = await followable(user.description);
+  if (node.description !== ""){
+    hitSearchTerm = await followable(node.description);
 
     if (hitSearchTerm) { 
-      categorizeableUserSet.add(user.nodeId);
-      uncategorizeableUserSet.delete(user.nodeId); 
-
-      ignoredUserSet.delete(user.nodeId);
-      unfollowableUserSet.delete(user.nodeId);
 
       if (verbose) { 
         console.log(chalkInfo(MODULE_ID_PREFIX 
           + " | userCategorizeable | TRUE  | DESCRIPTION SEARCH TERM HIT"
-          + " | @" + user.screenName
-          + " | DESCRIPTION: " + user.description
+          + " | @" + node.screenName
+          + " | DESCRIPTION: " + node.description
         ));
       }
 
@@ -5814,19 +5960,15 @@ async function userCategorizeable(params){
     }
   }
 
-  if (user.screenName !== ""){
-    hitSearchTerm = await followable(user.screenName);
+  if (node.screenName !== ""){
+    hitSearchTerm = await followable(node.screenName);
 
     if (hitSearchTerm) { 
-      categorizeableUserSet.add(user.nodeId);
-      uncategorizeableUserSet.delete(user.nodeId); 
-      ignoredUserSet.delete(user.nodeId);
-      unfollowableUserSet.delete(user.nodeId);
 
       if (verbose) { 
         console.log(chalkInfo(MODULE_ID_PREFIX 
           + " | userCategorizeable | TRUE  | SCREENNAME SEARCH TERM HIT"
-          + " | @" + user.screenName
+          + " | @" + node.screenName
         ));
       }
 
@@ -5834,20 +5976,18 @@ async function userCategorizeable(params){
     }
   }
 
-  categorizeableUserSet.delete(user.nodeId);
-  uncategorizeableUserSet.add(user.nodeId); 
-
   if (verbose) { 
     console.log(chalkLog(MODULE_ID_PREFIX 
-      + " | userCategorizeable | FALSE"
-      + " | NID: " + user.nodeId
-      + " | @" + user.screenName
-      + " | NAME: " + user.name
+      + " | userCategorizeable | TRUE (DEFAULT NOT FALSE)"
+      + " | NID: " + node.nodeId
+      + " | @" + node.screenName
+      + " | NAME: " + node.name
     ));
   }
 
-  return false;
+  return true;
 }
+
 
 async function initBotSet(p){
 

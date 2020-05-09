@@ -4905,17 +4905,17 @@ async function initSocketHandler(socketObj) {
 
         if (node && (node.nodeType === "user")){
 
-          node.following = true;
+          // node.following = true;
 
-          const updatedUser = await userServerController.findOneUserV2({
-            user: node,
-            updatePickArray: ["following"],
-            options: userDbUpdateOptions
-          });
+          // const updatedUser = await userServerController.findOneUserV2({
+          //   user: node,
+          //   updatePickArray: ["following"],
+          //   options: userDbUpdateOptions
+          // });
 
-          viewNameSpace.emit("FOLLOW", updatedUser);
-          adminNameSpace.emit("FOLLOW", updatedUser);
-          utilNameSpace.emit("FOLLOW", updatedUser);
+          viewNameSpace.emit("FOLLOW", node);
+          adminNameSpace.emit("FOLLOW", node);
+          utilNameSpace.emit("FOLLOW", node);
         }
 
       }
@@ -4946,17 +4946,17 @@ async function initSocketHandler(socketObj) {
 
         if (node && (node.nodeType === "user")){
 
-          node.following = false;
+          // node.following = false;
 
-          const updatedUser = await userServerController.findOneUserV2({
-            user: node,
-            updatePickArray: ["following"],
-            options: userDbUpdateOptions
-          });
+          // const updatedUser = await userServerController.findOneUserV2({
+          //   user: node,
+          //   updatePickArray: ["following"],
+          //   options: userDbUpdateOptions
+          // });
 
-          viewNameSpace.emit("FOLLOW", updatedUser);
-          adminNameSpace.emit("FOLLOW", updatedUser);
-          utilNameSpace.emit("FOLLOW", updatedUser);
+          viewNameSpace.emit("FOLLOW", node);
+          adminNameSpace.emit("FOLLOW", node);
+          utilNameSpace.emit("FOLLOW", node);
         }
       }
       catch(err) {
@@ -4990,16 +4990,16 @@ async function initSocketHandler(socketObj) {
 
         if (node && (node.nodeType === "user")){
 
-          node.categoryVerified = true;
-          node.following = true;
+          // node.categoryVerified = true;
+          // node.following = true;
 
-          const updatedUser = await userServerController.findOneUserV2({
-            user: node,
-            updatePickArray: ["categoryVerified", "following"],
-            options: userDbUpdateOptions
-          });
+          // const updatedUser = await userServerController.findOneUserV2({
+          //   user: node,
+          //   updatePickArray: ["categoryVerified", "following"],
+          //   options: userDbUpdateOptions
+          // });
 
-          socket.emit("SET_TWITTER_USER", {node: updatedUser, stats: statsObj.user });
+          socket.emit("SET_TWITTER_USER", {node: node, stats: statsObj.user });
 
         }
       }
@@ -5020,7 +5020,8 @@ async function initSocketHandler(socketObj) {
       ));
 
       try{
-        await nodeSetProps({ node: user, props: { categoryVerified: false } });
+        const node = await nodeSetProps({ node: user, props: { categoryVerified: false } });
+        socket.emit("SET_TWITTER_USER", {node: node, stats: statsObj.user });
       }
       catch(err){
         console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
@@ -5134,6 +5135,7 @@ async function initSocketHandler(socketObj) {
           createNodeOnMiss: true,
           node: catNodeObj.node, 
           props: { 
+            screenName: catNodeObj.node.screenName, 
             category: catNodeObj.category, 
             following: true
           }, 
@@ -5144,28 +5146,28 @@ async function initSocketHandler(socketObj) {
 
           if (node.nodeType === "user") {
 
-            const updatedUser = await userServerController.findOneUserV2({
-              user: node, 
-              updatePickArray: ["category", "categoryAuto", "following"],
-              options: userDbUpdateOptions
-            });
+            // const updatedUser = await userServerController.findOneUserV2({
+            //   user: node, 
+            //   updatePickArray: ["screenName", "category", "categoryAuto", "following"],
+            //   options: userDbUpdateOptions
+            // });
 
-            socket.emit("SET_TWITTER_USER", {node: updatedUser, stats: statsObj.user });
+            socket.emit("SET_TWITTER_USER", {node: node, stats: statsObj.user });
 
           }
 
           if (node.nodeType === "hashtag") {
 
-            let dbHashtag = await global.wordAssoDb.Hashtag.findOne({nodeId: node.nodeId});
+            // let dbHashtag = await global.wordAssoDb.Hashtag.findOne({nodeId: node.nodeId});
 
-            if (!dbHashtag) {
-              dbHashtag = new global.wordAssoDb.Hashtag(node);
-            }
+            // if (!dbHashtag) {
+            //   dbHashtag = new global.wordAssoDb.Hashtag(node);
+            // }
 
-            dbHashtag.category = node.category;
-            await dbHashtag.save();
+            // dbHashtag.category = node.category;
+            // await dbHashtag.save();
 
-            socket.emit("SET_TWITTER_HASHTAG", {node: dbHashtag, stats: statsObj.user });
+            socket.emit("SET_TWITTER_HASHTAG", {node: node, stats: statsObj.user });
 
           }
         }

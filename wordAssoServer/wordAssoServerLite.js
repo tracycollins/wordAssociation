@@ -18,7 +18,7 @@ const DEFAULT_PUBSUB_RESULT_TIMEOUT = 5*ONE_SECOND;
 // const DEFAULT_UNCAT_USER_ID_CACHE_DEFAULT_TTL = 3600*24; // 3600*24*7 sec/week
 // const DEFAULT_UNCAT_USER_ID_CACHE_CHECK_PERIOD = 60;
 
-const DEFAULT_UPDATE_USER_SETS_INTERVAL = 5*ONE_MINUTE;
+const DEFAULT_UPDATE_USER_SETS_INTERVAL = 10*ONE_MINUTE;
 
 let pubSubClient;
 
@@ -9103,6 +9103,11 @@ async function loadConfigFile(params) {
       else {
         newConfiguration.binaryMode = false;
       }
+    }
+
+    if (loadedConfigObj.UPDATE_USER_SETS_INTERVAL !== undefined){
+      console.log(MODULE_ID_PREFIX + " | LOADED UPDATE_USER_SETS_INTERVAL: " + loadedConfigObj.UPDATE_USER_SETS_INTERVAL);
+      newConfiguration.updateUserSetsInterval = loadedConfigObj.UPDATE_USER_SETS_INTERVAL;
     }
 
     if (loadedConfigObj.IGNORE_CATEGORY_RIGHT !== undefined){

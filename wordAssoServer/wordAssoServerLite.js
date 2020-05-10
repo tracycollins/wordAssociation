@@ -507,7 +507,7 @@ const nodeSearchResultHandler = async function(message){
     statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived += 1;
 
     if (messageObj.node && messageObj.node.nodeType === "user") {
-      console.log(chalkBlue(MODULE_ID_PREFIX
+      debug(chalkBlue(MODULE_ID_PREFIX
         + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
         + " | RID: " + messageObj.requestId
         + " | MODE: " + messageObj.searchMode
@@ -823,7 +823,7 @@ async function pubSubPublishMessage(params){
 
   statsObj.pubSub.messagesSent += 1;
 
-  console.log(chalkLog(MODULE_ID_PREFIX
+  debug(chalkLog(MODULE_ID_PREFIX
     + " | <== PUB [" + statsObj.pubSub.messagesSent
     + " / OUT: " + pubSubPublishMessageRequestIdSet.size + "]"
     + " | TOPIC: " + params.publishName
@@ -5397,58 +5397,48 @@ async function initSocketNamespaces(){
 
 async function processCheckCategory(nodeObj){
 
-  // return new Promise(function(resolve, reject){
+  let categorizedNodeHashMap;
 
-  // try{
+  switch (nodeObj.nodeType) {
 
-    let categorizedNodeHashMap;
+    case "hashtag":
+      categorizedNodeHashMap = categorizedHashtagHashMap;
+    break;
 
-    switch (nodeObj.nodeType) {
+    case "user":
+      categorizedNodeHashMap = categorizedUserHashMap;
+    break;
 
-      case "hashtag":
-        categorizedNodeHashMap = categorizedHashtagHashMap;
-      break;
+    default:
+      throw new Error("NO CATEGORY HASHMAP: " + nodeObj.nodeType);
+  }
 
-      case "user":
-        categorizedNodeHashMap = categorizedUserHashMap;
-      break;
+  if (categorizedNodeHashMap.has(nodeObj.nodeId)) {
 
-      default:
-        throw new Error("NO CATEGORY HASHMAP: " + nodeObj.nodeType);
-    }
+    nodeObj.category = categorizedNodeHashMap.get(nodeObj.nodeId).manual;
+    nodeObj.categoryAuto = categorizedNodeHashMap.get(nodeObj.nodeId).auto;
+    nodeObj.categorizeNetwork = categorizedNodeHashMap.get(nodeObj.nodeId).network;
+    nodeObj.categoryVerified = categorizedNodeHashMap.get(nodeObj.nodeId).verified;
 
-    if (categorizedNodeHashMap.has(nodeObj.nodeId)) {
-
-      nodeObj.category = categorizedNodeHashMap.get(nodeObj.nodeId).manual;
-      nodeObj.categoryAuto = categorizedNodeHashMap.get(nodeObj.nodeId).auto;
-      nodeObj.categorizeNetwork = categorizedNodeHashMap.get(nodeObj.nodeId).network;
-      nodeObj.categoryVerified = categorizedNodeHashMap.get(nodeObj.nodeId).verified;
-
-      if (nodesPerMinuteTopTermCache.get(nodeObj.nodeId) !== undefined) {
-        nodeObj.isTopTerm = true;
-      }
-      else {
-        nodeObj.isTopTerm = false;
-      }
-
-      if (nodesPerMinuteTopTermNodeTypeCache[nodeObj.nodeType].get(nodeObj.nodeId) !== undefined) {
-        nodeObj.isTopTermNodeType = true;
-      }
-      else {
-        nodeObj.isTopTermNodeType = false;
-      }
-
-      return nodeObj;
+    if (nodesPerMinuteTopTermCache.get(nodeObj.nodeId) !== undefined) {
+      nodeObj.isTopTerm = true;
     }
     else {
-      return nodeObj;
+      nodeObj.isTopTerm = false;
     }
-  // }
-  // catch(err){
-  //   throw err;
-  // }
 
-  // });
+    if (nodesPerMinuteTopTermNodeTypeCache[nodeObj.nodeType].get(nodeObj.nodeId) !== undefined) {
+      nodeObj.isTopTermNodeType = true;
+    }
+    else {
+      nodeObj.isTopTermNodeType = false;
+    }
+
+    return nodeObj;
+  }
+  else {
+    return nodeObj;
+  }
 }
 
 async function checkCategory(nodeObj) {
@@ -5592,204 +5582,6 @@ function followable(text){
 
   });
 }
-
-// async function userCategorizeable(params){
-
-//   let hitSearchTerm = false;
-//   const user = params.user;
-//   const verbose = (params.verbose && params.verbose !== undefined) ? params.verbose : false;
-
-//   if(uncategorizeableUserSet.has(user.nodeId)){
-//     if (verbose) { 
-//       console.log(chalkInfo(MODULE_ID_PREFIX 
-//         + " | userCategorizeable | FALSE  | UNCATEGORIZABLE SET"
-//         + " | @" + user.screenName
-//       ));
-//     }
-//     return false; 
-//   }
-
-//   if (user.following === undefined) { user.following = false; }
-
-//   if (user.following && (user.following !== undefined)) { 
-//     unfollowableUserSet.delete(user.nodeId);
-//     if (verbose) { 
-//       console.log(chalkInfo(MODULE_ID_PREFIX 
-//         + " | userCategorizeable | TRUE  | FOLLOWING"
-//         + " | FOLLOWING: " + user.following
-//         + " | @" + user.screenName
-//       ));
-//     }
-//     return true; 
-//   }
-
-//   if (user.ignored === undefined) { user.ignored = false; }
-
-//   if (user.ignored && (user.ignored !== undefined)) { 
-//     ignoredUserSet.add(user.nodeId);
-//     if (verbose) { 
-//       console.log(chalkLog(MODULE_ID_PREFIX 
-//         + " | userCategorizeable | FALSE | IGNORED"
-//         + " | FOLLOWING: " + user.ignored
-//         + " | @" + user.screenName
-//       ));
-//     }
-//     return false; 
-//   }
-
-//   if (ignoredUserSet.has(user.nodeId) || (user.screenName && ignoredUserSet.has(user.screenName.toLowerCase()))) { 
-//     if (verbose) { 
-//       console.log(chalkLog(MODULE_ID_PREFIX 
-//         + " | userCategorizeable | FALSE | IGNORED"
-//         + " | FOLLOWING: " + user.ignored
-//         + " | @" + user.screenName
-//       ));
-//     }
-//     return false; 
-//   }
-
-//   if (unfollowableUserSet.has(user.nodeId)) { 
-//     if (verbose) { 
-//       console.log(chalkLog(MODULE_ID_PREFIX 
-//         + " | userCategorizeable | FALSE | UNFOLLOWABLE SET"
-//         + " | @" + user.screenName
-//       ));
-//     }
-//     return false;
-//   }
-
-//   if (user.lang === undefined) { user.lang = ""; }
-
-//   if (user.lang && (user.lang !== undefined) && (user.lang != "en")) {
-//     uncategorizeableUserSet.add(user.nodeId); 
-//     categorizeableUserSet.delete(user.nodeId);
-//     if (verbose) { 
-//       console.log(chalkLog(MODULE_ID_PREFIX 
-//         + " | userCategorizeable | FALSE | LANG NOT ENG"
-//         + " | LANG: " + user.lang
-//         + " | @" + user.screenName
-//       ));
-//     }
-//     return false;
-//   }
-
-//   if (ignoreLocationsRegEx
-//     && (ignoreLocationsRegEx !== undefined) 
-//     && user.location 
-//     && (user.location !== undefined) 
-//     && !allowLocationsRegEx.test(user.location)
-//     && ignoreLocationsRegEx.test(user.location)){
-    
-//     ignoredUserSet.add(user.nodeId);
-
-//     if (verbose) { 
-//       console.log(chalkLog(MODULE_ID_PREFIX 
-//         + " | userCategorizeable | FALSE | IGNORED LOCATION"
-//         + " | LANG: " + user.location
-//         + " | @" + user.screenName
-//       ));
-//     }
-
-//     return false;
-//   }
-  
-//   if (user.followersCount && (user.followersCount !== undefined) 
-//     && (user.followersCount < configuration.minFollowersAutoCategorize)) { 
-
-//     unfollowableUserSet.add(user.nodeId);
-
-//     if (verbose) { 
-//       console.log(chalkLog(MODULE_ID_PREFIX 
-//         + " | userCategorizeable | FALSE | LOW FOLLOWERS"
-//         + " | FOLLOWERS: " + user.followersCount
-//         + " | @" + user.screenName
-//       ));
-//     }
-
-//     return false;
-//   }
-
-//   if (!user.description || (user.description === undefined)) { user.description = ""; }
-//   if (!user.screenName || (user.screenName === undefined)) { user.screenName = ""; }
-//   if (!user.name || (user.name === undefined)) { user.name = ""; }
-
-//   if (user.name !== ""){
-//     hitSearchTerm = await followable(user.name);
-
-//     if (hitSearchTerm) { 
-//       uncategorizeableUserSet.delete(user.nodeId); 
-//       categorizeableUserSet.add(user.nodeId);
-//       ignoredUserSet.delete(user.nodeId);
-//       unfollowableUserSet.delete(user.nodeId);
-
-//       if (verbose) { 
-//         console.log(chalkInfo(MODULE_ID_PREFIX 
-//           + " | userCategorizeable | TRUE  | NAME SEARCH TERM HIT"
-//           + " | @" + user.screenName
-//           + " | NAME: " + user.name
-//         ));
-//       }
-
-//       return true; 
-//     }
-//   }
-
-//   if (user.description !== ""){
-//     hitSearchTerm = await followable(user.description);
-
-//     if (hitSearchTerm) { 
-//       categorizeableUserSet.add(user.nodeId);
-//       uncategorizeableUserSet.delete(user.nodeId); 
-
-//       ignoredUserSet.delete(user.nodeId);
-//       unfollowableUserSet.delete(user.nodeId);
-
-//       if (verbose) { 
-//         console.log(chalkInfo(MODULE_ID_PREFIX 
-//           + " | userCategorizeable | TRUE  | DESCRIPTION SEARCH TERM HIT"
-//           + " | @" + user.screenName
-//           + " | DESCRIPTION: " + user.description
-//         ));
-//       }
-
-//       return true; 
-//     }
-//   }
-
-//   if (user.screenName !== ""){
-//     hitSearchTerm = await followable(user.screenName);
-
-//     if (hitSearchTerm) { 
-//       categorizeableUserSet.add(user.nodeId);
-//       uncategorizeableUserSet.delete(user.nodeId); 
-//       ignoredUserSet.delete(user.nodeId);
-//       unfollowableUserSet.delete(user.nodeId);
-
-//       if (verbose) { 
-//         console.log(chalkInfo(MODULE_ID_PREFIX 
-//           + " | userCategorizeable | TRUE  | SCREENNAME SEARCH TERM HIT"
-//           + " | @" + user.screenName
-//         ));
-//       }
-
-//       return true; 
-//     }
-//   }
-
-//   categorizeableUserSet.delete(user.nodeId);
-//   uncategorizeableUserSet.add(user.nodeId); 
-
-//   if (verbose) { 
-//     console.log(chalkLog(MODULE_ID_PREFIX 
-//       + " | userCategorizeable | FALSE"
-//       + " | NID: " + user.nodeId
-//       + " | @" + user.screenName
-//       + " | NAME: " + user.name
-//     ));
-//   }
-
-//   return false;
-// }
 
 async function userCategorizeable(params){
 
@@ -6648,7 +6440,7 @@ function initTransmitNodeQueueInterval(interval){
         // ??? PERFORMANCE: may parallelize checkCategory + updateNodeMeter + userCategorizeable
 
         let node = await checkCategory(nodeObj);
-        node = await updateNodeMeter(node);
+        // node = await updateNodeMeter(node);
 
         let categorizeable;
 
@@ -6658,25 +6450,18 @@ function initTransmitNodeQueueInterval(interval){
 
           if (categorizeable){
 
-            // const uncatUserId = uncatUserCache.get(node.nodeId);
+            node = await updateNodeMeter(node);
 
             const uncatObj = await uncatDbCheck({node: node});
 
             if (uncatObj === undefined) {
-
-              // uncatUserCache.set(node.nodeId, node.nodeId);
-
               nodeSetPropsQueue.push({ 
                 createNodeOnMiss: true,
                 node: node, 
-                props: { 
-                  screenName: node.screenName.toLowerCase()
-                  // following: true
-                },
+                props: { screenName: node.screenName.toLowerCase() },
                 autoCategorize: true
               });
             }
-
           }
 
         }
@@ -6824,9 +6609,7 @@ function initTransmitNodeQueueInterval(interval){
             viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
             transmitNodeQueueReady = true;
           }
-
         }
-        
         else if ((node.nodeType == "hashtag") && node.category && node.category !== "none"){
 
           node.updateLastSeen = true;
@@ -6839,35 +6622,6 @@ function initTransmitNodeQueueInterval(interval){
           viewNameSpace.volatile.emit("node", node);
           transmitNodeQueueReady = true;
         }
-
-          // if (!hashtagServerControllerReady || !statsObj.dbConnectionReady) {
-          //   transmitNodeQueueReady = true;
-          // }
-          // else {
-          //   hashtagServerController.findOneHashtag(node, {noInc: false, lean: true}, function(err, updatedHashtag){
-          //     if (err) {
-          //       console.log(chalkError(MODULE_ID_PREFIX + " | updatedHashtag ERROR\n" + jsonPrint(err)));
-          //       delete node._id;
-          //       viewNameSpace.volatile.emit("node", node);
-          //     }
-          //     else {
-          //       delete updatedHashtag._id;
-          //       viewNameSpace.volatile.emit("node", updatedHashtag);
-          //     }
-
-          //     transmitNodeQueueReady = true;
-          //   });
-          // }
-
-        // }
-        // else if (node.nodeType == "hashtag") {
-        //   delete node._id;
-        //   viewNameSpace.volatile.emit("node", node);
-        //   transmitNodeQueueReady = true;
-        // }
-        // else {
-        //   transmitNodeQueueReady = true;
-        // }
 
       }
       catch(err){

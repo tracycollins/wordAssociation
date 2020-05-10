@@ -658,8 +658,6 @@ const nodeSetPropsResultHandler = async function(message){
 
     if (messageObj.node && messageObj.node.nodeType === "user") {
 
-      // await updateUserAutoCategory({user: messageObj.node});
-
       console.log(chalkBlueBold(MODULE_ID_PREFIX
         + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
         + " | TOPIC: node-setprops-result"
@@ -675,9 +673,7 @@ const nodeSetPropsResultHandler = async function(message){
         + " | CA: " + formatCategory(messageObj.node.categoryAuto)
       ));
 
-      // if (messageObj.notFound !== undefined && !messageObj.notFound){
-      //   await updateUserAutoCategory({user: messageObj.node});
-      // }
+      printUserObj(MODULE_ID_PREFIX + " | nodeSetPropsResultHandler", messageObj.node);
 
       nodeSetPropsResultHashMap[messageObj.requestId] = messageObj.node;
     }

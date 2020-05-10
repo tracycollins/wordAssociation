@@ -6110,6 +6110,7 @@ async function updateUserSets(){
       return;
     }
   });
+
 }
 
 async function updateHashtagSets(){
@@ -9825,6 +9826,7 @@ setTimeout(async function(){
     await initIgnoreLocations();
     await updateHashtagSets();
     await updateUserSets();
+    await tcUtils.waitEvent({ event: "updateUserSetsEnd", verbose: configuration.verbose});
 
     await loadBestRuntimeNetwork();
     await initNodeSetPropsQueueInterval(configuration.nodeSetPropsQueueInterval);

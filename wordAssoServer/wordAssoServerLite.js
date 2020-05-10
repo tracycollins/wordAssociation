@@ -673,8 +673,6 @@ const nodeSetPropsResultHandler = async function(message){
         + " | CA: " + formatCategory(messageObj.node.categoryAuto)
       ));
 
-      printUserObj(MODULE_ID_PREFIX + " | nodeSetPropsResultHandler", messageObj.node);
-
       nodeSetPropsResultHashMap[messageObj.requestId] = messageObj.node;
     }
     else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
@@ -3751,17 +3749,7 @@ async function pubSubNodeSetProps(params){
         if (!updatePickArray.includes("category")) { updatePickArray.push("category"); }
       }
 
-      printUserObj(MODULE_ID_PREFIX + " | pubSubNodeSetProps", node);
-
-      // const dbUser = await userServerController.findOneUserV2({
-      //   user: node,
-      //   updatePickArray: updatePickArray,
-      //   options: userDbUpdateOptions
-      // });
-
       const dbUser = await global.wordAssoDb.User.findOneAndUpdate({ nodeId: node.nodeId }, node, {upsert: true, new: true});
-
-      printUserObj(MODULE_ID_PREFIX + " | pubSubNodeSetProps | dbUser", dbUser);
 
       return dbUser;
 
@@ -3869,7 +3857,6 @@ async function nodeSetProps(params) {
   console.log(chalk.blue(MODULE_ID_PREFIX 
     + " | NODE SET PROPS"
     + " | RID: " + requestId
-    + " | AUTO FLW: " + params.autoFollowFlag
     + " | TYPE: " + params.node.nodeType
     + " | NID: " + params.node.nodeId
     + " | PROPS: " + Object.keys(params.props)

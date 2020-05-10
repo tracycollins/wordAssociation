@@ -408,6 +408,9 @@ function unzipUsers(params){
                           ));
 
                           dbUser.category = userObj.category;
+                          dbUser.ignored = false;
+                          dbUser.following = true;
+
                           await dbUser.save();
                         }
                       }
@@ -419,6 +422,8 @@ function unzipUsers(params){
                         ));
 
                         dbUser = new global.wordAssoDb.User(userObj);
+                        dbUser.ignored = false;
+                        dbUser.following = true;
 
                         try{
                           await dbUser.save();

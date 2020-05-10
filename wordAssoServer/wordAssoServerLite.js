@@ -3751,6 +3751,8 @@ async function pubSubNodeSetProps(params){
         if (!updatePickArray.includes("category")) { updatePickArray.push("category"); }
       }
 
+      printUserObj(MODULE_ID_PREFIX + " | pubSubNodeSetProps", node);
+
       const dbUser = await userServerController.findOneUserV2({
         user: node,
         updatePickArray: updatePickArray,

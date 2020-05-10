@@ -2470,7 +2470,7 @@ function initStats(callback){
 
   statsObj.tweetParserSendReady = false;
   statsObj.previousBestNetworkId = "";
-  
+
   statsObj.user.added = 0;
   statsObj.user.deleted = 0;
   statsObj.user.categoryChanged = 0;
@@ -6116,7 +6116,7 @@ async function updateUserSets(){
       }      
     }
 
-    usersProcessed++;
+    usersProcessed += 1;
 
     if (usersProcessed % 5000 === 0) {
       console.log(chalkLog(MODULE_ID_PREFIX + " | USER SETS | " + usersProcessed + " USERS PROCESSED"));
@@ -6234,7 +6234,7 @@ async function updateHashtagSets(){
       );
     }
 
-    hashtagsProcessed++;
+    hashtagsProcessed += 1;
     if (hashtagsProcessed % 1000 === 0) {
       console.log(chalkLog(MODULE_ID_PREFIX + " | HASHTAG SETS | " + hashtagsProcessed + " HASHTAGS PROCESSED"));
     }
@@ -6477,7 +6477,7 @@ function initTransmitNodeQueueInterval(interval){
               return;
             }
 
-            if (node.isTweeter) { statsObj.traffic.users.total++; }
+            if (node.isTweeter) { statsObj.traffic.users.total += 1; }
 
             try{
 
@@ -6494,7 +6494,7 @@ function initTransmitNodeQueueInterval(interval){
 
                 node.isBot = true;
 
-                statsObj.traffic.users.bots++;
+                statsObj.traffic.users.bots += 1;
                 statsObj.traffic.users.percentBots = 100*(statsObj.traffic.users.bots/statsObj.traffic.users.total);
 
                 printBotStats({user: node, modulo: 100});
@@ -6525,7 +6525,7 @@ function initTransmitNodeQueueInterval(interval){
 
               if (node.isTweeter && botNodeIdSet.has(node.nodeId)){
 
-                statsObj.traffic.users.bots++;
+                statsObj.traffic.users.bots += 1;
                 statsObj.traffic.users.percentBots = 100*(statsObj.traffic.users.bots/statsObj.traffic.users.total);
 
                 node.isBot = true;
@@ -6549,10 +6549,10 @@ function initTransmitNodeQueueInterval(interval){
 
           if (node.isTweeter) { 
 
-            statsObj.traffic.users.total++;
+            statsObj.traffic.users.total += 1;
 
             if (botNodeIdSet.has(node.nodeId)){
-              statsObj.traffic.users.bots++;
+              statsObj.traffic.users.bots += 1;
               statsObj.traffic.users.percentBots = 100*(statsObj.traffic.users.bots/statsObj.traffic.users.total);
               node.isBot = true;
               printBotStats({user: node, modulo: 100});
@@ -9317,22 +9317,22 @@ async function initDbUserChangeStream(){
 
         if (categoryChanges.manual && formatCategory(catObj.manual) !== formatCategory(categoryChanges.manual)) {
           catChangeFlag = true;
-          statsObj.user.categoryChanged++;
+          statsObj.user.categoryChanged += 1;
         }
 
         if (categoryChanges.auto && formatCategory(catObj.auto) !== formatCategory(categoryChanges.auto)) {
           catChangeFlag = true;
-          statsObj.user.categoryAutoChanged++;
+          statsObj.user.categoryAutoChanged += 1;
         }
 
         if (categoryChanges.network && catObj.network && (catObj.network !== categoryChanges.network)) {
           catNetworkChangeFlag = true;
-          statsObj.user.categorizeNetworkChanged++;
+          statsObj.user.categorizeNetworkChanged += 1;
         }
 
         if (categoryChanges.verified && catObj.verified && (catObj.verified !== categoryChanges.verified)) {
           catVerifiedChangeFlag = true;
-          statsObj.user.categoryVerifiedChanged++;
+          statsObj.user.categoryVerifiedChanged += 1;
         }
 
         if (catChangeFlag || catNetworkChangeFlag || catVerifiedChangeFlag) {
@@ -9465,22 +9465,22 @@ async function initDbHashtagChangeStream(){
 
         if (categoryChanges.manual && formatCategory(catObj.manual) !== formatCategory(categoryChanges.manual)) {
           catChangeFlag = true;
-          statsObj.hashtag.categoryChanged++;
+          statsObj.hashtag.categoryChanged += 1;
         }
 
         if (categoryChanges.auto && formatCategory(catObj.auto) !== formatCategory(categoryChanges.auto)) {
           catChangeFlag = true;
-          statsObj.hashtag.categoryAutoChanged++;
+          statsObj.hashtag.categoryAutoChanged += 1;
         }
 
         if (categoryChanges.network && catObj.network && (catObj.network !== categoryChanges.network)) {
           catNetworkChangeFlag = true;
-          statsObj.hashtag.categorizeNetworkChanged++;
+          statsObj.hashtag.categorizeNetworkChanged += 1;
         }
 
         if (categoryChanges.verified && catObj.verified && (catObj.verified !== categoryChanges.verified)) {
           catVerifiedChangeFlag = true;
-          statsObj.hashtag.categoryVerifiedChanged++;
+          statsObj.hashtag.categoryVerifiedChanged += 1;
         }
 
         if (catChangeFlag || catNetworkChangeFlag || catVerifiedChangeFlag) {

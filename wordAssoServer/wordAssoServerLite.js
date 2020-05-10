@@ -5588,16 +5588,16 @@ async function userCategorizeable(params){
     return false;
   }
 
-  if (node.following && (node.following !== undefined)) { 
-    if (verbose) { 
-      console.log(chalkInfo(MODULE_ID_PREFIX 
-        + " | userCategorizeable | TRUE  | FOLLOWING"
-        + " | FOLLOWING: " + node.following
-        + " | @" + node.screenName
-      ));
-    }
-    return true; 
-  }
+  // if (node.following && (node.following !== undefined)) { 
+  //   if (verbose) { 
+  //     console.log(chalkInfo(MODULE_ID_PREFIX 
+  //       + " | userCategorizeable | TRUE  | FOLLOWING"
+  //       + " | FOLLOWING: " + node.following
+  //       + " | @" + node.screenName
+  //     ));
+  //   }
+  //   return true; 
+  // }
 
   if (!node.description || (node.description === undefined)) { node.description = ""; }
   if (!node.screenName || (node.screenName === undefined)) { node.screenName = ""; }
@@ -5662,7 +5662,7 @@ async function userCategorizeable(params){
     ));
   }
 
-  return true;
+  return false;
 }
 
 

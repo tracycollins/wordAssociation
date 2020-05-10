@@ -6390,6 +6390,10 @@ function initTransmitNodeQueueInterval(interval){
 
           if (categorizeable){
 
+            node.following = true;
+            unfollowableUserSet.delete(node.nodeId);
+            uncategorizeableUserSet.delete(node.nodeId);
+
             node = await updateNodeMeter(node);
 
             const uncatObj = await uncatDbCheck({node: node});

@@ -33,6 +33,7 @@ const DEFAULT_BINARY_MODE = true;
 let saveSampleTweetFlag = true;
 
 const os = require("os");
+const defaults = require("object.defaults");
 const kill = require("tree-kill");
 const empty = require("is-empty");
 const watch = require("watch");
@@ -522,7 +523,7 @@ const nodeSearchResultHandler = async function(message){
 
       if (messageObj.stats){
         console.log(chalkLog(MODULE_ID_PREFIX + "\nUSER STATS\n" + jsonPrint(messageObj.stats)));
-        statsObj.user = messageObj.stats;
+        defaults(statsObj.user, messageObj.stats);
       }
 
       const catUserObj = categorizedUserHashMap.get(messageObj.node.nodeId);
@@ -1807,20 +1808,6 @@ async function connectDb(){
     console.log(chalk.green(MODULE_ID_PREFIX + " | MONGOOSE DEFAULT CONNECTION OPEN"));
 
     statsObj.dbConnectionReady = true;
-
-    // const HashtagServerController = require("@threeceelabs/hashtag-server-controller");
-    
-    // hashtagServerController = new HashtagServerController(MODULE_ID_PREFIX + "_HSC");
-
-    // hashtagServerController.on("error", function(err){
-    //   hashtagServerControllerReady = false;
-    //   console.log(chalkError(MODULE_ID_PREFIX + " | *** HSC ERROR | " + err));
-    // });
-
-    // hashtagServerController.on("ready", function(appname){
-    //   hashtagServerControllerReady = true;
-    //   console.log(chalk.green(MODULE_ID_PREFIX + " | HSC READY | " + appname));
-    // });
 
     const UserServerController = require("@threeceelabs/user-server-controller");
     
@@ -3628,15 +3615,6 @@ function socketRxTweet(tw) {
   }
 }
 
-// function enableFollow(params){
-//   if (params.forceFollow) { return true; }
-//   if (followedUserSet.has(params.node.nodeId)) { return false; }
-//   if (ignoredUserSet.has(params.node.nodeId)) { return false; }
-//   if ((params.node.screenName !== undefined) && ignoredUserSet.has(params.node.screenName)) { return false; }
-//   if (unfollowableUserSet.has(params.node.nodeId)) { return false; }
-//   return true;
-// }
-
 async function deleteNode(node){
 
   let results;
@@ -4896,18 +4874,7 @@ async function initSocketHandler(socketObj) {
         });
 
         if (node && (node.nodeType === "user")){
-
-          // node.categoryVerified = true;
-          // node.following = true;
-
-          // const updatedUser = await userServerController.findOneUserV2({
-          //   user: node,
-          //   updatePickArray: ["categoryVerified", "following"],
-          //   options: userDbUpdateOptions
-          // });
-
           socket.emit("SET_TWITTER_USER", {node: node, stats: statsObj.user });
-
         }
       }
       catch(err){
@@ -5052,30 +5019,11 @@ async function initSocketHandler(socketObj) {
         if (node){
 
           if (node.nodeType === "user") {
-
-            // const updatedUser = await userServerController.findOneUserV2({
-            //   user: node, 
-            //   updatePickArray: ["screenName", "category", "categoryAuto", "following"],
-            //   options: userDbUpdateOptions
-            // });
-
             socket.emit("SET_TWITTER_USER", {node: node, stats: statsObj.user });
-
           }
 
           if (node.nodeType === "hashtag") {
-
-            // let dbHashtag = await global.wordAssoDb.Hashtag.findOne({nodeId: node.nodeId});
-
-            // if (!dbHashtag) {
-            //   dbHashtag = new global.wordAssoDb.Hashtag(node);
-            // }
-
-            // dbHashtag.category = node.category;
-            // await dbHashtag.save();
-
             socket.emit("SET_TWITTER_HASHTAG", {node: node, stats: statsObj.user });
-
           }
         }
       }
@@ -9254,6 +9202,12 @@ async function initDbUserChangeStream(){
     catNetworkChangeFlag = false;
     catVerifiedChangeFlag = false;
 
+    statsObj.user.categoryChanged = (statsObj.user.categoryChanged === undefined) ? 0 : statsObj.user.categoryChanged; 
+    statsObj.user.categoryAutoChanged = (statsObj.user.categoryAutoChanged === undefined) ? 0 : statsObj.user.categoryAutoChanged; 
+    statsObj.user.categorizeNetworkChanged = (statsObj.user.categorizeNetworkChanged === undefined) ? 0 : statsObj.user.categorizeNetworkChanged; 
+    statsObj.user.categoryVerifiedChanged = (statsObj.user.categoryVerifiedChanged === undefined) ? 0 : statsObj.user.categoryVerifiedChanged; 
+
+
     if (change && change.operationType === "insert"){
 
       addedUsersSet.add(change.fullDocument.nodeId);
@@ -9261,15 +9215,6 @@ async function initDbUserChangeStream(){
       statsObj.user.added = addedUsersSet.size;
 
       printUserObj(MODULE_ID_PREFIX + " | DB CHG | + USR [" + statsObj.user.added + "]", change.fullDocument);
-
-      // console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | + USR [" + statsObj.user.added + "]"
-      //   + " | " + change.fullDocument.nodeId
-      //   + " | @" + change.fullDocument.screenName
-      //   + " | CN: " + change.fullDocument.categorizeNetwork
-      //   + " | C V: " + formatBoolean(change.fullDocument.categoryVerified)
-      //   + " | C M: " + formatCategory(change.fullDocument.category)
-      //   + " A: " + formatCategory(change.fullDocument.categoryAuto)
-      // ));
     }
     
     if (change && change.operationType === "delete"){
@@ -9337,21 +9282,19 @@ async function initDbUserChangeStream(){
 
         if (catChangeFlag || catNetworkChangeFlag || catVerifiedChangeFlag) {
 
-            printUserObj(MODULE_ID_PREFIX + " | DB CHG | CAT USR", change.fullDocument);
+          printUserObj(MODULE_ID_PREFIX + " | DB CHG | CAT USR", change.fullDocument);
 
-          // if (catChangeFlag){
-            console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | CAT USR"
-              + " [ M: " + statsObj.user.categoryChanged 
-              + " A: " + statsObj.user.categoryAutoChanged
-              + " N: " + statsObj.user.categorizeNetworkChanged + "]"
-              + " | V: " + formatBoolean(catObj.verified) + " -> " + formatCategory(categoryChanges.verified)
-              + " | M: " + formatCategory(catObj.manual) + " -> " + formatCategory(categoryChanges.manual)
-              + " A: " + formatCategory(catObj.auto) + " -> " + formatCategory(categoryChanges.auto)
-              + " | CN: " + catObj.network + " -> " + categoryChanges.network
-              + " | " + change.fullDocument.nodeId
-              + " | @" + change.fullDocument.screenName
-            ));
-          // }
+          console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | CAT USR"
+            + " [ M: " + statsObj.user.categoryChanged 
+            + " A: " + statsObj.user.categoryAutoChanged
+            + " N: " + statsObj.user.categorizeNetworkChanged + "]"
+            + " | V: " + formatBoolean(catObj.verified) + " -> " + formatCategory(categoryChanges.verified)
+            + " | M: " + formatCategory(catObj.manual) + " -> " + formatCategory(categoryChanges.manual)
+            + " A: " + formatCategory(catObj.auto) + " -> " + formatCategory(categoryChanges.auto)
+            + " | CN: " + catObj.network + " -> " + categoryChanges.network
+            + " | " + change.fullDocument.nodeId
+            + " | @" + change.fullDocument.screenName
+          ));
 
           catObj.manual = categoryChanges.manual || catObj.manual;
           catObj.auto = categoryChanges.auto || catObj.auto;

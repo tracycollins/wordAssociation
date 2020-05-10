@@ -9637,14 +9637,16 @@ async function initDbUserChangeStream(){
 
       statsObj.user.added = addedUsersSet.size;
 
-      console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | + USR [" + statsObj.user.added + "]"
-        + " | " + change.fullDocument.nodeId
-        + " | @" + change.fullDocument.screenName
-        + " | CN: " + change.fullDocument.categorizeNetwork
-        + " | C V: " + formatBoolean(change.fullDocument.categoryVerified)
-        + " | C M: " + formatCategory(change.fullDocument.category)
-        + " A: " + formatCategory(change.fullDocument.categoryAuto)
-      ));
+      printUserObj(MODULE_ID_PREFIX + " | DB CHG | + USR [" + statsObj.user.added + "]", change.fullDocument);
+
+      // console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | + USR [" + statsObj.user.added + "]"
+      //   + " | " + change.fullDocument.nodeId
+      //   + " | @" + change.fullDocument.screenName
+      //   + " | CN: " + change.fullDocument.categorizeNetwork
+      //   + " | C V: " + formatBoolean(change.fullDocument.categoryVerified)
+      //   + " | C M: " + formatCategory(change.fullDocument.category)
+      //   + " A: " + formatCategory(change.fullDocument.categoryAuto)
+      // ));
     }
     
     if (change && change.operationType === "delete"){
@@ -9711,6 +9713,8 @@ async function initDbUserChangeStream(){
         }
 
         if (catChangeFlag || catNetworkChangeFlag || catVerifiedChangeFlag) {
+
+            printUserObj(MODULE_ID_PREFIX + " | DB CHG | CAT USR", change.fullDocument);
 
           // if (catChangeFlag){
             console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | CAT USR"

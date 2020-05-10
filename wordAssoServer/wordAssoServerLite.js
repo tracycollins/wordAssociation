@@ -9896,7 +9896,6 @@ setTimeout(async function(){
     await initTweetParserMessageRxQueueInterval(configuration.tweetParserMessageRxQueueInterval);
     await initSorterMessageRxQueueInterval(configuration.sorterMessageRxQueueInterval);
     await initDbuChild({childId: DEFAULT_DBU_CHILD_ID});
-    await initDbUserChangeStream();
     await initDbHashtagChangeStream();
     await initTweetParser({childId: DEFAULT_TWP_CHILD_ID});
     await initUpdateUserSetsInterval(configuration.updateUserSetsInterval);
@@ -9915,6 +9914,7 @@ setTimeout(async function(){
     await initNodeOpHandler({subscribeName: "node-setprops-result" + primaryHostSuffix});
     await initNodeOpHandler({subscribeName: "node-autocategorize-result" + primaryHostSuffix});
 
+    await initDbUserChangeStream();
 
   }
   catch(err){

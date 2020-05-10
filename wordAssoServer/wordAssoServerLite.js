@@ -3749,6 +3749,8 @@ async function pubSubNodeSetProps(params){
         if (!updatePickArray.includes("category")) { updatePickArray.push("category"); }
       }
 
+      delete node._id;
+
       const dbUser = await global.wordAssoDb.User.findOneAndUpdate({ nodeId: node.nodeId }, node, {upsert: true, new: true});
 
       return dbUser;
@@ -4339,14 +4341,6 @@ async function twitterSearchNode(params) {
   viewNameSpace.emit("TWITTER_SEARCH_NODE_UNKNOWN_MODE", { searchNode: searchNode, stats: statsObj.user });
   throw new Error("UNKNOWN SEARCH MODE: " + searchNode);
 }
-
-const userDbUpdateOptions = {
-  lean: true,
-  new: true,
-  setDefaultsOnInsert: true,
-  upsert: true
-};
-
 
 async function initSocketHandler(socketObj) {
 
@@ -6440,13 +6434,10 @@ function initTransmitNodeQueueInterval(interval){
         // ??? PERFORMANCE: may parallelize checkCategory + updateNodeMeter + userCategorizeable
 
         let node = await checkCategory(nodeObj);
-        // node = await updateNodeMeter(node);
-
-        let categorizeable;
 
         if (node.nodeType === "user"){
 
-          categorizeable = await userCategorizeable({node: node});
+          const categorizeable = await userCategorizeable({node: node});
 
           if (categorizeable){
 
@@ -6462,33 +6453,22 @@ function initTransmitNodeQueueInterval(interval){
                 autoCategorize: true
               });
             }
-          }
 
-        }
+            const nCacheObj = nodeCache.get(node.nodeId);
 
-        if (categorizeable && (node.nodeType === "user") 
-          && (
-            (node.category && node.category !== "none") 
-            || (node.categoryAuto && node.categoryAuto !== "none") 
-            || node.following 
-            || node.threeceeFollowing
-          )
-        ){
+            if (nCacheObj !== undefined) {
+              node.mentions = Math.max(node.mentions, nCacheObj.mentions);
+              // node.setMentions = true;
+              nodeCache.set(node.nodeId, node);
+            }
 
-          const nCacheObj = nodeCache.get(node.nodeId);
+            if (node.isTweeter) { node.updateLastSeen = true; }
 
-          if (nCacheObj !== undefined) {
-            node.mentions = Math.max(node.mentions, nCacheObj.mentions);
-            node.setMentions = true;
-            nodeCache.set(node.nodeId, node);
-          }
-
-          if (node.isTweeter) { node.updateLastSeen = true; }
-
-          if (!userServerControllerReady || !statsObj.dbConnectionReady) {
-            transmitNodeQueueReady = true;
-          }
-          else{
+            // if (!userServerControllerReady || !statsObj.dbConnectionReady) {
+            if (!statsObj.dbConnectionReady) {
+              transmitNodeQueueReady = true;
+              return;
+            }
 
             if (node.isTweeter) { statsObj.traffic.users.total++; }
 
@@ -6511,51 +6491,30 @@ function initTransmitNodeQueueInterval(interval){
                 statsObj.traffic.users.percentBots = 100*(statsObj.traffic.users.bots/statsObj.traffic.users.total);
 
                 printBotStats({user: node, modulo: 100});
-
               }
 
-              const updatedUser = await userServerController.findOneUserV2({
-                user: node,
-                updatePickArray: [
-                  "category", 
-                  "categoryAuto", 
-                  "ageDays", 
-                  "ageDays", 
-                  "isTweeter", 
-                  "isBot", 
-                  "tweetsPerDay", 
-                  "mentions",
-                  "name", 
-                  "screenName", 
-                  "rate"
-                ],
-                options: userDbUpdateOptions
-              });
+              delete node._id;
 
-              // if (updatedUser.screenName === "realdonaldtrump"){
-              //   printUserObj("*#$ DRUMPF | UPDATE", updatedUser, chalk.blue);
-              // }
-
-              delete updatedUser._id;
-              delete updatedUser.userId;
+              const updatedUser = await global.wordAssoDb.User.findOneAndUpdate(
+                { nodeId: node.nodeId }, 
+                node, 
+                { upsert: true, new: true, lean: true }
+              );
 
               if (updatedUser.screenName === undefined || updatedUser.screenName === "") {
                 console.log(chalkError(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED"));
                 printUserObj(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED", updatedUser);
                 transmitNodeQueueReady = true;
-              }
-              else{
-                viewNameSpace.volatile.emit("node", pick(updatedUser, fieldsTransmitKeys));
-                transmitNodeQueueReady = true;
+                return;
               }
 
+              viewNameSpace.volatile.emit("node", pick(updatedUser, fieldsTransmitKeys));
+              transmitNodeQueueReady = true;
+              return;
             }
             catch(e){
 
               console.log(chalkError(MODULE_ID_PREFIX + " | findOneUser ERROR" + jsonPrint(e)));
-
-              delete node._id;
-              delete node.userId;
 
               if (node.isTweeter && botNodeIdSet.has(node.nodeId)){
 
@@ -6571,32 +6530,25 @@ function initTransmitNodeQueueInterval(interval){
                 console.log(chalkError(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED"));
                 printUserObj(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED", node);
                 transmitNodeQueueReady = true;
-              }
-              else{
-                viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
-                transmitNodeQueueReady = true;
+                return;
               }
 
+              viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
+              transmitNodeQueueReady = true;
+              return;
             }
+
           }
-        }
-        else if (node.nodeType == "user") {
-          delete node._id;
-          delete node.userId;
 
           if (node.isTweeter) { 
 
             statsObj.traffic.users.total++;
 
             if (botNodeIdSet.has(node.nodeId)){
-
               statsObj.traffic.users.bots++;
               statsObj.traffic.users.percentBots = 100*(statsObj.traffic.users.bots/statsObj.traffic.users.total);
-
               node.isBot = true;
-
               printBotStats({user: node, modulo: 100});
-
             }
           }
 
@@ -6604,20 +6556,22 @@ function initTransmitNodeQueueInterval(interval){
             console.log(chalkError(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED"));
             printUserObj(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED", node);
             transmitNodeQueueReady = true;
+            return;
           }
-          else{
-            viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
-            transmitNodeQueueReady = true;
-          }
+
+          viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
+          transmitNodeQueueReady = true;
+          return;
         }
-        else if ((node.nodeType == "hashtag") && node.category && node.category !== "none"){
 
-          node.updateLastSeen = true;
-
+        if ((node.nodeType == "hashtag") && node.category && node.category !== "none"){
           delete node._id;
+          node.updateLastSeen = true;
           viewNameSpace.volatile.emit("node", node);
           transmitNodeQueueReady = true;
+          return;
         }
+
         else{
           viewNameSpace.volatile.emit("node", node);
           transmitNodeQueueReady = true;

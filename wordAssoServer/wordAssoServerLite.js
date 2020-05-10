@@ -613,11 +613,6 @@ const nodeAutoCategorizeResultHandler = async function(message){
         + " | CA: " + formatCategory(messageObj.node.categoryAuto)
       ));
 
-      // if (messageObj.notFound !== undefined && !messageObj.notFound){
-      //   await updateUserAutoCategory({user: messageObj.node});
-      // }
-
-      // nodeAutoCategorizeResultHashMap[messageObj.requestId] = messageObj.node;
     }
     else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
       console.log(chalkBlueBold(MODULE_ID_PREFIX
@@ -630,7 +625,6 @@ const nodeAutoCategorizeResultHandler = async function(message){
         + " | CA: " + formatCategory(messageObj.node.categoryAuto)
       ));
 
-      // nodeAutoCategorizeResultHashMap[messageObj.requestId] = messageObj.node;
     }
     else{
       console.log(chalk.yellow(MODULE_ID_PREFIX
@@ -3718,7 +3712,7 @@ async function pubSubNodeSetProps(params){
 
       const updatePickArray = Object.keys(params.props);
 
-      if ( isCategorized(node)){
+      if (isCategorized(node)){
 
         categorizedUserHashMap.set(node.nodeId, 
           { 
@@ -6413,13 +6407,11 @@ function initTransmitNodeQueueInterval(interval){
 
             if (nCacheObj !== undefined) {
               node.mentions = Math.max(node.mentions, nCacheObj.mentions);
-              // node.setMentions = true;
               nodeCache.set(node.nodeId, node);
             }
 
             if (node.isTweeter) { node.updateLastSeen = true; }
 
-            // if (!userServerControllerReady || !statsObj.dbConnectionReady) {
             if (!statsObj.dbConnectionReady) {
               transmitNodeQueueReady = true;
               return;
@@ -6492,7 +6484,6 @@ function initTransmitNodeQueueInterval(interval){
               transmitNodeQueueReady = true;
               return;
             }
-
           }
 
           if (node.isTweeter) { 

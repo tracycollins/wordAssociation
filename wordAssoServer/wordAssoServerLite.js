@@ -5932,6 +5932,8 @@ async function updateUserSets(){
 
   statsObj.status = "UPDATE USER SETS";
 
+  console.log(chalkInfo(MODULE_ID_PREFIX + " | UPDATING USER SETS..."));
+
   if (updateUserSetsRunning) {
     return;
   }

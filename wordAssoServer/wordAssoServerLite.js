@@ -2471,6 +2471,13 @@ function initStats(callback){
   statsObj.tweetParserSendReady = false;
   statsObj.previousBestNetworkId = "";
 
+  statsObj.user.added = 0;
+  statsObj.user.deleted = 0;
+  statsObj.user.categoryChanged = 0;
+  statsObj.user.categoryAutoChanged = 0;
+  statsObj.user.categorizeNetworkChanged = 0;
+  statsObj.user.categoryVerifiedChanged = 0;
+
   statsObj.user.manual = {};
   statsObj.user.manual.right = 0;
   statsObj.user.manual.left = 0;

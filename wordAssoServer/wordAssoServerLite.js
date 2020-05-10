@@ -223,7 +223,7 @@ const DEFAULT_CATEGORIZE_CACHE_DEFAULT_TTL = 300; //
 const DEFAULT_CATEGORIZE_CACHE_CHECK_PERIOD = 10;
 
 const chalk = require("chalk");
-const chalkUser = chalk.blue;
+// const chalkUser = chalk.blue;
 const chalkTwitter = chalk.blue;
 const chalkConnect = chalk.black;
 const chalkSocket = chalk.black;
@@ -1710,7 +1710,7 @@ const userDefaults = function (user){
 
 function printUserObj(title, u, chalkFormat) {
 
-  const chlk = chalkFormat || chalkUser;
+  const chlk = chalkFormat || chalkInfo;
 
   const user = userDefaults(u);
 
@@ -3753,11 +3753,15 @@ async function pubSubNodeSetProps(params){
 
       printUserObj(MODULE_ID_PREFIX + " | pubSubNodeSetProps", node);
 
-      const dbUser = await userServerController.findOneUserV2({
-        user: node,
-        updatePickArray: updatePickArray,
-        options: userDbUpdateOptions
-      });
+      // const dbUser = await userServerController.findOneUserV2({
+      //   user: node,
+      //   updatePickArray: updatePickArray,
+      //   options: userDbUpdateOptions
+      // });
+
+      const dbUser = await global.wordAssoDb.User.findOneAndUpdate({ nodeId: node.nodeId }, node);
+
+      printUserObj(MODULE_ID_PREFIX + " | pubSubNodeSetProps | dbUser", dbUser);
 
       return dbUser;
 

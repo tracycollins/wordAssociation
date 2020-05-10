@@ -3759,7 +3759,7 @@ async function pubSubNodeSetProps(params){
       //   options: userDbUpdateOptions
       // });
 
-      const dbUser = await global.wordAssoDb.User.findOneAndUpdate({ nodeId: node.nodeId }, node);
+      const dbUser = await global.wordAssoDb.User.findOneAndUpdate({ nodeId: node.nodeId }, node, {upsert: true, new: true});
 
       printUserObj(MODULE_ID_PREFIX + " | pubSubNodeSetProps | dbUser", dbUser);
 
@@ -4207,7 +4207,7 @@ async function pubSubSearchNode(params){
 
       delete node._id;
 
-      const nodeUpdated = await global.wordAssoDb.User.findOneAndUpdate({nodeId: node.nodeId}, node);
+      const nodeUpdated = await global.wordAssoDb.User.findOneAndUpdate({nodeId: node.nodeId}, node, {upsert: true, new: true});
       return nodeUpdated;
     }
     else if (node.nodeType === "hashtag" && isCategorized(node)){
@@ -4222,7 +4222,7 @@ async function pubSubSearchNode(params){
 
       delete node._id;
 
-      const nodeUpdated = await global.wordAssoDb.Hashtag.findOneAndUpdate({nodeId: node.nodeId}, node);
+      const nodeUpdated = await global.wordAssoDb.Hashtag.findOneAndUpdate({nodeId: node.nodeId}, node, {upsert: true, new: true});
       return nodeUpdated;
     }
     else{

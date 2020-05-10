@@ -2470,7 +2470,6 @@ function initStats(callback){
 
   statsObj.tweetParserSendReady = false;
   statsObj.previousBestNetworkId = "";
-
   statsObj.user.added = 0;
   statsObj.user.deleted = 0;
   statsObj.user.categoryChanged = 0;

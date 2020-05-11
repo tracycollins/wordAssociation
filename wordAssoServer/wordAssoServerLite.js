@@ -92,9 +92,6 @@ const formatBoolean = tcUtils.formatBoolean;
 const formatCategory = tcUtils.formatCategory;
 const getTimeStamp = tcUtils.getTimeStamp;
 
-// let hashtagServerController;
-// let hashtagServerControllerReady = false;
-
 let userServerController;
 let userServerControllerReady = false;
 

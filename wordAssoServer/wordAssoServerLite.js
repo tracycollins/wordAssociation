@@ -3702,11 +3702,9 @@ async function pubSubNodeSetProps(params){
 
     const node = nodeSetPropsResultHashMap[params.requestId] || false;
 
-    let cObj = {};
-
     if (node.nodeType === "user"){
 
-      const updatePickArray = Object.keys(params.props);
+      // const updatePickArray = Object.keys(params.props);
 
       if (isCategorized(node)){
 
@@ -3721,7 +3719,7 @@ async function pubSubNodeSetProps(params){
           }
         );
 
-        if (!updatePickArray.includes("category")) { updatePickArray.push("category"); }
+        // if (!updatePickArray.includes("category")) { updatePickArray.push("category"); }
       }
 
       delete node._id;
@@ -3734,28 +3732,35 @@ async function pubSubNodeSetProps(params){
 
     if (node.nodeType === "hashtag"){
 
-      if (categorizedHashtagHashMap.has(node.nodeId)){
-        cObj = categorizedHashtagHashMap.get(node.nodeId);
+      // cObj.nodeId = node.nodeId;
+
+      // if (categorizedHashtagHashMap.has(node.nodeId)){
+      //   cObj = categorizedHashtagHashMap.get(node.nodeId);
+      // }
+
+      // cObj.manual = node.category || cObj.manual;
+
+      // categorizedHashtagHashMap.set(node.nodeId, cObj);
+
+      // let dbHashtag = await global.wordAssoDb.Hashtag.findOne({nodeId: cObj.nodeId});
+
+      if (isCategorized(node)){
+
+        categorizedHashtagHashMap.set(node.nodeId, 
+          { 
+            nodeId: node.nodeId, 
+            text: node.text, 
+            manual: node.category
+          }
+        );
+
+        // if (!updatePickArray.includes("category")) { updatePickArray.push("category"); }
       }
 
-      cObj.manual = node.category || cObj.manual;
-      cObj.auto = node.categoryAuto || cObj.auto;
-      cObj.network = node.categorizeNetwork || cObj.network;
+      delete node._id;
+      const dbHashtag = await global.wordAssoDb.Hashtag.findOneAndUpdate({ nodeId: node.nodeId }, node, {upsert: true, new: true});
 
-      categorizedHashtagHashMap.set(node.nodeId, cObj);
-
-      let dbHashtag = await global.wordAssoDb.Hashtag.findOne({nodeId: cObj.nodeId});
-
-      if (!dbHashtag){
-        dbHashtag = new global.wordAssoDb.Hashtag(node);
-      }
-
-      dbHashtag.category = cObj.manual;
-      dbHashtag.categoryAuto = cObj.auto;
-      dbHashtag.categorizeNetwork = cObj.network;
-
-      const dbHashtagUpdated = await dbHashtag.save();
-      return dbHashtagUpdated;
+      return dbHashtag;
     }
 
     if (!node){
@@ -4779,14 +4784,6 @@ async function initSocketHandler(socketObj) {
         });
 
         if (node && (node.nodeType === "user")){
-
-          // node.following = true;
-
-          // const updatedUser = await userServerController.findOneUserV2({
-          //   user: node,
-          //   updatePickArray: ["following"],
-          //   options: userDbUpdateOptions
-          // });
 
           viewNameSpace.emit("FOLLOW", node);
           adminNameSpace.emit("FOLLOW", node);

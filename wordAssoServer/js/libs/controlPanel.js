@@ -463,6 +463,8 @@ function ControlPanel() {
   var prevNode = {};
   prevNode.nodeId = false;
 
+  var twitterFeedNodeType = "user";
+
   function loadTwitterFeed(node, callback) {
 
     if (!twitterTimeLineDiv || (twttr === undefined)) { 
@@ -471,6 +473,8 @@ function ControlPanel() {
     }
 
     loadingTwitterFeedFlag = true;
+
+    twitterFeedNodeType = node.nodeType;
 
     node.categoryAuto = node.categoryAuto || "none";
 
@@ -589,7 +593,7 @@ function ControlPanel() {
 
       console.debug("loadTwitterFeed"
         + " | TYPE: " + node.nodeType
-        + " | #: " + node.nodeId
+        + " | #" + node.nodeId
         + " | CAT M: " + node.category
         + " | Ms: " + node.mentions
       );
@@ -923,7 +927,8 @@ function ControlPanel() {
 		  if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id === categorySetButtonId) {
 				cbxs[i].checked = true;
         cbxs[i].style.backgroundColor = "blue";
-        if (twitterFeedUser) { twitterFeedUser.category = cbxs[i].name; }
+        if (twitterFeedNodeType === "user") { twitterFeedUser.category = cbxs[i].name; }
+        if (twitterFeedNodeType === "hashtag") { twitterFeedHashtag.category = cbxs[i].name; }
 		  }
 		  if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id !== categorySetButtonId) {
 				cbxs[i].checked = false;
@@ -1084,8 +1089,6 @@ function ControlPanel() {
 
 				twitterTimeLine.setWidth(subPanelWidth);
 
-        // const tweetsPerDay = (twitterFeedUser && ageMs) ? ONE_DAY * (twitterFeedUser.statusesCount/ageMs) : 0;
-
         twitterTimeLine.addNumber("AGE", twitterFeedUser.ageDays.toFixed(3));
         twitterTimeLine.addNumber("TWEETS", twitterFeedUser.statusesCount);
         twitterTimeLine.addNumber("TWEETS PER DAY", twitterFeedUser.tweetsPerDay.toFixed(3));
@@ -1158,9 +1161,6 @@ function ControlPanel() {
 
           const op = (data) ? "CAT VERIFIED" : "CAT UNVERIFIED";
           catVerifiedHandler(op);
-          // if (!loadingTwitterFeedFlag){
-          //   parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
-          // }
         });
 
         twitterFeedUser.categoryAuto = twitterFeedUser.categoryAuto || "none";

@@ -1323,18 +1323,16 @@ const ignoredHashtagFile = "ignoredHashtag.txt";
 const ignoredUserFile = "ignoredUser.json";
 const followableSearchTermFile = "followableSearchTerm.txt";
 
-const uncategorizeableHashtagSet = new Set();
-
 const categorizeableUserSet = new Set();
 const uncategorizeableUserSet = new Set();
 let followableSearchTermSet = new Set();
 
 followableSearchTermSet.add("abortion");
+followableSearchTermSet.add("andrewyang");
 followableSearchTermSet.add("aoc");
 followableSearchTermSet.add("barack");
 followableSearchTermSet.add("barackobama");
 followableSearchTermSet.add("biden");
-followableSearchTermSet.add("joebiden");
 followableSearchTermSet.add("bluetsunami");
 followableSearchTermSet.add("bluewave");
 followableSearchTermSet.add("clinton");
@@ -1346,8 +1344,6 @@ followableSearchTermSet.add("conservatives");
 followableSearchTermSet.add("dem");
 followableSearchTermSet.add("democrat");
 followableSearchTermSet.add("democrats");
-followableSearchTermSet.add("mcconnell");
-followableSearchTermSet.add("mitchmcconnell");
 followableSearchTermSet.add("dnc");
 followableSearchTermSet.add("drumpf");
 followableSearchTermSet.add("election");
@@ -1357,16 +1353,21 @@ followableSearchTermSet.add("forbes");
 followableSearchTermSet.add("foxnews");
 followableSearchTermSet.add("gop");
 followableSearchTermSet.add("hanity");
-followableSearchTermSet.add("kamala");
 followableSearchTermSet.add("hillary");
 followableSearchTermSet.add("ivanka");
+followableSearchTermSet.add("joebiden");
+followableSearchTermSet.add("kamala");
 followableSearchTermSet.add("liberal");
 followableSearchTermSet.add("liberals");
 followableSearchTermSet.add("livesmatter");
+followableSearchTermSet.add("maga");
+followableSearchTermSet.add("mcconnell");
+followableSearchTermSet.add("mitchmcconnell");
 followableSearchTermSet.add("msnbc");
 followableSearchTermSet.add("mueller");
 followableSearchTermSet.add("nytimes");
 followableSearchTermSet.add("obama");
+followableSearchTermSet.add("obamagate");
 followableSearchTermSet.add("obamas");
 followableSearchTermSet.add("pence");
 followableSearchTermSet.add("pences");
@@ -1391,7 +1392,6 @@ followableSearchTermSet.add("specialcounsel");
 followableSearchTermSet.add("supreme court");
 followableSearchTermSet.add("trump");
 followableSearchTermSet.add("trumps");
-followableSearchTermSet.add("andrewyang");
 followableSearchTermSet.add("yanggang");
 followableSearchTermSet.add("🌊");
 
@@ -1434,6 +1434,7 @@ const fieldsTransmit = {
   screenNameLower: 1,
   statusesCount: 1,
   statusId: 1,
+  text: 1,
   threeceeFollowing: 1,
   tweetsPerDay: 1
 };
@@ -4819,15 +4820,6 @@ async function initSocketHandler(socketObj) {
         });
 
         if (node && (node.nodeType === "user")){
-
-          // node.following = false;
-
-          // const updatedUser = await userServerController.findOneUserV2({
-          //   user: node,
-          //   updatePickArray: ["following"],
-          //   options: userDbUpdateOptions
-          // });
-
           viewNameSpace.emit("FOLLOW", node);
           adminNameSpace.emit("FOLLOW", node);
           utilNameSpace.emit("FOLLOW", node);
@@ -4985,13 +4977,6 @@ async function initSocketHandler(socketObj) {
     });
 
     socket.on("TWITTER_CATEGORIZE_NODE", async function twitterCategorizeNode(catNodeObj) {
-
-      // catNodeObj = { 
-      //   twitterUser: config.twitterUser,
-      //   category: event.data.category,
-      //   following: true,
-      //   node: event.data.node
-      // }
 
       try{
         const node = await nodeSetProps({
@@ -5270,8 +5255,6 @@ async function initSocketNamespaces(){
 
       console.log(chalk.blue(MODULE_ID_PREFIX + " | USER CONNECT " + socket.id));
 
-      // const ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
-
       const authenticatedSocketObj = authenticatedSocketCache.get(socket.id);
       if (authenticatedSocketObj !== undefined){
         console.log(chalkAlert(MODULE_ID_PREFIX + " | USER ALREADY AUTHENTICATED"
@@ -5427,7 +5410,6 @@ async function updateNodeMeter(node){
   if (empty(nodeMeterType[nodeType][meterNodeId])) {
     nodeMeterType[nodeType][meterNodeId] = {};
   }
-
 
   if (ignoreWordHashMap.has(meterNodeId)) {
 
@@ -6469,7 +6451,7 @@ function initTransmitNodeQueueInterval(interval){
             }
             catch(e){
 
-              console.log(chalkError(MODULE_ID_PREFIX + " | findOneUser ERROR" + jsonPrint(e)));
+              console.log(chalkError(MODULE_ID_PREFIX + " | findOneAndUpdate USER ERROR" + jsonPrint(e)));
 
               if (node.isTweeter && botNodeIdSet.has(node.nodeId)){
 
@@ -6518,18 +6500,57 @@ function initTransmitNodeQueueInterval(interval){
           return;
         }
 
-        if ((node.nodeType == "hashtag") && node.category && node.category !== "none"){
-          delete node._id;
+        // if ((node.nodeType == "hashtag") && node.category && node.category !== "none"){
+        if (node.nodeType == "hashtag"){
+
+          node = await updateNodeMeter(node);
+
+          const nCacheObj = nodeCache.get(node.nodeId);
+
+          if (nCacheObj !== undefined) {
+            node.mentions = Math.max(node.mentions, nCacheObj.mentions);
+            nodeCache.set(node.nodeId, node);
+          }
+
           node.updateLastSeen = true;
-          viewNameSpace.volatile.emit("node", node);
-          transmitNodeQueueReady = true;
-          return;
+
+          if (!statsObj.dbConnectionReady) {
+            transmitNodeQueueReady = true;
+            return;
+          }
+
+          try{
+
+            delete node._id;
+
+            const updatedHashtag = await global.wordAssoDb.Hashtag.findOneAndUpdate(
+              { nodeId: node.nodeId }, 
+              node, 
+              { upsert: true, new: true, lean: true }
+            );
+
+            viewNameSpace.volatile.emit("node", pick(updatedHashtag, fieldsTransmitKeys));
+            transmitNodeQueueReady = true;
+            return;
+          }
+          catch(e){
+
+            console.log(chalkError(MODULE_ID_PREFIX + " | findOneAndUpdate HT ERROR" + jsonPrint(e)));
+
+            viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
+            transmitNodeQueueReady = true;
+            return;
+          }
+
+          // delete node._id;
+          // node.updateLastSeen = true;
+          // viewNameSpace.volatile.emit("node", node);
+          // transmitNodeQueueReady = true;
+          // return;
         }
 
-        else{
-          viewNameSpace.volatile.emit("node", node);
-          transmitNodeQueueReady = true;
-        }
+        viewNameSpace.volatile.emit("node", node);
+        transmitNodeQueueReady = true;
 
       }
       catch(err){
@@ -6569,7 +6590,10 @@ async function transmitNodes(tw){
   }
 
   for(const hashtagId of tw.hashtags){
-    if (hashtagId && configuration.enableTransmitHashtag && !ignoredHashtagSet.has(hashtagId) && !ignoredHashtagRegex.test(hashtagId)) { 
+    if (hashtagId && configuration.enableTransmitHashtag 
+      && !ignoredHashtagSet.has(hashtagId) 
+      && !ignoredHashtagRegex.test(hashtagId)
+    ){ 
       transmitNodeQueue.push({nodeType: "hashtag", nodeId: hashtagId});
     }
   }
@@ -9352,13 +9376,9 @@ async function initDbHashtagChangeStream(){
 
       statsObj.hashtag.added = addedHashtagsSet.size;
 
-      console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | + USR [" + statsObj.hashtag.added + "]"
-        + " | " + change.fullDocument.nodeId
-        + " | @" + change.fullDocument.screenName
-        + " | CN: " + change.fullDocument.categorizeNetwork
-        + " | C V: " + formatBoolean(change.fullDocument.categoryVerified)
+      console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | + HT [" + statsObj.hashtag.added + "]"
+        + " | #" + change.fullDocument.nodeId
         + " | C M: " + formatCategory(change.fullDocument.category)
-        + " A: " + formatCategory(change.fullDocument.categoryAuto)
       ));
     }
     
@@ -9368,7 +9388,7 @@ async function initDbHashtagChangeStream(){
 
       deletedHashtagsSet.add(change._id._data);
       statsObj.hashtag.deleted = deletedHashtagsSet.size;
-      console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | X USR [" + statsObj.hashtag.deleted + "]"
+      console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | X HT [" + statsObj.hashtag.deleted + "]"
         + " | DB _id: " + change._id._data
       ));
     }
@@ -9377,32 +9397,22 @@ async function initDbHashtagChangeStream(){
       && change.fullDocument 
       && change.updateDescription 
       && change.updateDescription.updatedFields 
-      && (Object.keys(change.updateDescription.updatedFields).includes("category")
-        || Object.keys(change.updateDescription.updatedFields).includes("categoryVerified")
-        || Object.keys(change.updateDescription.updatedFields).includes("categorizeNetwork")
-        || Object.keys(change.updateDescription.updatedFields).includes("categoryAuto"))
+      && Object.keys(change.updateDescription.updatedFields).includes("category")
     ) { 
 
       categoryChanges = {};
 
       categoryChanges.manual = change.fullDocument.category;
-      categoryChanges.auto = change.fullDocument.categoryAuto;
-      categoryChanges.network = change.fullDocument.categorizeNetwork;
-      categoryChanges.verified = change.fullDocument.categoryVerified;
       
-      if (categoryChanges.auto || categoryChanges.manual || categoryChanges.network || categoryChanges.verified) {
+      if (categoryChanges.manual) {
 
         catObj = categorizedHashtagHashMap.get(change.fullDocument.nodeId);
 
         if (empty(catObj)) {
           catChangeFlag = true;
           catObj = {};
-          catObj.screenName = change.fullDocument.screenName;
           catObj.nodeId = change.fullDocument.nodeId;
           catObj.manual = change.fullDocument.category;
-          catObj.auto = change.fullDocument.categoryAuto;
-          catObj.network = change.fullDocument.categorizeNetwork;
-          catObj.verified = change.fullDocument.categoryVerified;
         }
 
         if (categoryChanges.manual && formatCategory(catObj.manual) !== formatCategory(categoryChanges.manual)) {
@@ -9410,44 +9420,16 @@ async function initDbHashtagChangeStream(){
           statsObj.hashtag.categoryChanged += 1;
         }
 
-        if (categoryChanges.auto && formatCategory(catObj.auto) !== formatCategory(categoryChanges.auto)) {
-          catChangeFlag = true;
-          statsObj.hashtag.categoryAutoChanged += 1;
-        }
-
-        if (categoryChanges.network && catObj.network && (catObj.network !== categoryChanges.network)) {
-          catNetworkChangeFlag = true;
-          statsObj.hashtag.categorizeNetworkChanged += 1;
-        }
-
-        if (categoryChanges.verified && catObj.verified && (catObj.verified !== categoryChanges.verified)) {
-          catVerifiedChangeFlag = true;
-          statsObj.hashtag.categoryVerifiedChanged += 1;
-        }
-
         if (catChangeFlag || catNetworkChangeFlag || catVerifiedChangeFlag) {
 
-          // if (catChangeFlag){
-            console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | CAT USR"
-              + " [ M: " + statsObj.hashtag.categoryChanged 
-              + " A: " + statsObj.hashtag.categoryAutoChanged
-              + " N: " + statsObj.hashtag.categorizeNetworkChanged + "]"
-              + " | V: " + formatBoolean(catObj.verified) + " -> " + formatCategory(categoryChanges.verified)
-              + " | M: " + formatCategory(catObj.manual) + " -> " + formatCategory(categoryChanges.manual)
-              + " A: " + formatCategory(catObj.auto) + " -> " + formatCategory(categoryChanges.auto)
-              + " | CN: " + catObj.network + " -> " + categoryChanges.network
-              + " | " + change.fullDocument.nodeId
-              + " | @" + change.fullDocument.screenName
-            ));
-          // }
+          console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | CAT HT"
+            + " [ M: " + statsObj.hashtag.categoryChanged + " ]"
+            + " | M: " + formatCategory(catObj.manual) + " -> " + formatCategory(categoryChanges.manual)
+            + " | #" + change.fullDocument.nodeId
+          ));
 
           catObj.manual = categoryChanges.manual || catObj.manual;
-          catObj.auto = categoryChanges.auto || catObj.auto;
-          catObj.network = categoryChanges.network || catObj.network;
-          catObj.verified = categoryChanges.verified || catObj.verified;
-
           categorizedHashtagHashMap.set(catObj.nodeId, catObj);
-          uncategorizeableHashtagSet.delete(catObj.nodeId);
 
         }
       }

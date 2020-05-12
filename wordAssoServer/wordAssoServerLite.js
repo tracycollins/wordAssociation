@@ -846,7 +846,9 @@ let slackRtmClient;
 let slackWebClient;
 
 async function slackSendWebMessage(msgObj){
+
   try{
+
     const token = msgObj.token || slackOAuthAccessToken;
     const channel = msgObj.channel || configuration.slackChannel.id;
     const text = msgObj.text || msgObj;
@@ -3573,7 +3575,7 @@ function socketRxTweet(tw) {
         + " | " + tw.user.id_str
         + " | @" + tw.user.screen_name
         + " | " + tw.user.name
-        + " | " + sampleTweetFileName
+        + " | " + testDataFolder + "/" + sampleTweetFileName
       ));
 
       saveFileQueue.push({folder: testDataFolder, file: sampleTweetFileName, obj: tw});

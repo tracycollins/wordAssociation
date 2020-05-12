@@ -243,7 +243,6 @@ function ControlPanel() {
       eventDetected = false;
       document.getElementById(op).style.background='#ffffff';
     }, 100);
-
   };
 
   var nextUncatHandler = function(op){
@@ -292,7 +291,6 @@ function ControlPanel() {
 
     document.getElementById(op).style.background='#0000ff';
     if (parentWindow && !loadingTwitterFeedFlag && twitterFeedPreviousUserArray.length > 0) {
-      // const prevUserObj = "@" + twitterFeedPreviousUser.screenName;
       const prevUserNodeId = twitterFeedPreviousUserArray.pop();
       const prevUserObj = twitterFeedPreviousUserMap[prevUserNodeId];
       const prevUserScreenname = "@" + prevUserObj.screenName;

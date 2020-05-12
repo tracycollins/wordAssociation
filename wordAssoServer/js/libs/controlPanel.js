@@ -961,13 +961,24 @@ function ControlPanel() {
         cbxs[i].style.backgroundColor = "lightgray";
 			}
 		}
+    
 		cb.checked = true;
     cb.style.backgroundColor = "blue";
 
     if (!loadingTwitterFeedFlag){
-      if (twitterFeedUser) { twitterFeedUser.category = cb.name; }
+
       currentTwitterNode.category = cb.name;
-      console.debug("CATEGORIZE | @" + currentTwitterNode.screenName + " | CAT: " + cb.name);
+
+      if (twitterFeedNodeType === "user"){
+        twitterFeedUser.category = cb.name;
+        console.debug("CATEGORIZE | @" + currentTwitterNode.screenName + " | CAT: " + cb.name);
+      }
+      
+      if (twitterFeedNodeType === "hashtag"){
+        twitterFeedHashtag.category = cb.name;
+        console.debug("CATEGORIZE | #" + currentTwitterNode.nodeId + " | CAT: " + cb.name);
+      }
+      
       parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: cb.name}, DEFAULT_SOURCE);
     }
   }

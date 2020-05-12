@@ -1200,7 +1200,6 @@ configuration.DROPBOX.DROPBOX_WAS_CONFIG_FILE = process.env.DROPBOX_CONFIG_FILE 
 configuration.DROPBOX.DROPBOX_WAS_STATS_FILE = process.env.DROPBOX_STATS_FILE || "wordAssoServerStats.json";
 
 configuration.twitterRxQueueInterval = DEFAULT_TWITTER_RX_QUEUE_INTERVAL;
-// configuration.twitterSearchNodeQueueInterval = DEFAULT_TWITTER_SEARCH_NODE_QUEUE_INTERVAL;
 configuration.categoryHashmapsUpdateInterval = DEFAULT_CATEGORY_HASHMAPS_UPDATE_INTERVAL;
 configuration.testInternetConnectionUrl = DEFAULT_TEST_INTERNET_CONNECTION_URL;
 configuration.offlineMode = DEFAULT_OFFLINE_MODE;
@@ -5922,6 +5921,11 @@ async function updateUserCounts() {
   statsObj.user.uncategorizedAuto = await countDocuments({documentType: "users", query: {categoryAuto: "none"}});
   console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT AUTO USERS: " + statsObj.user.uncategorizedAuto));
 
+  // -----
+
+  statsObj.user.mismatched = await countDocuments({documentType: "users", query: {categoryMismatch: true}});
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | MISMATCHED USERS: " + statsObj.user.mismatched));
+
   return;
 }
 
@@ -5960,6 +5964,7 @@ async function updateUserSets(){
     categorizeNetwork: 1, 
     category: 1, 
     categoryAuto: 1, 
+    categoryMismatch: 1, 
     categoryVerified: 1, 
     friendsCount: 1, 
     followersCount: 1, 

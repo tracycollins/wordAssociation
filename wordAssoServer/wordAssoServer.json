@@ -3,8 +3,8 @@
     "name"        : "wa",
     "script"      : "wordAssoServerLite.js",
     "cwd"         : "/home/tc/wordAssociation/wordAssoServer",
-    "autorestart" : false,
-    "restart_delay": 600000,
+    "autorestart" : true,
+    "restart_delay": 300000,
     "node_args"   : "--max-old-space-size=10240",
     "env": {
       "PRIMARY_HOST": "google",

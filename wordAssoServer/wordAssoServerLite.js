@@ -1298,7 +1298,7 @@ function quit(message) {
   clearInterval(saveFileQueueInterval);
   clearInterval(heartbeatInterval);
   clearInterval(transmitNodeQueueInterval);
-  clearInterval(internetCheckInterval);
+  // clearInterval(internetCheckInterval);
   clearInterval(tweetRxQueueInterval);
   clearInterval(tweetParserMessageRxQueueInterval);
   clearInterval(sorterMessageRxQueueInterval);
@@ -2423,7 +2423,7 @@ let cacheObjKeys = Object.keys(cacheObj);
 let updateMetricsInterval;
 const saveFileQueue = [];
 
-let internetCheckInterval;
+// let internetCheckInterval;
 
 const http = require("http");
 
@@ -2436,7 +2436,7 @@ const ioConfig = {
 };
 
 const io = require("socket.io")(httpServer, ioConfig);
-const net = require("net");
+// const net = require("net");
 
 const cp = require("child_process");
 const sorterMessageRxQueue = [];
@@ -2970,7 +2970,7 @@ process.on("message", async function processMessageRx(msg) {
       + " | *** SHUTDOWN OR SIGINT ***\nWAS | =============================\n"
     ));
 
-    clearInterval(internetCheckInterval);
+    // clearInterval(internetCheckInterval);
 
     try{
       await tcUtils.saveFile({folder: statsHostFolder, statsFile: statsFile, obj: statsObj});
@@ -3054,7 +3054,6 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
       console.log(chalkError(MODULE_ID_PREFIX + " | *** CHILD ERROR -- UNKNOWN CHILD ID: " + childObj.childId));
 
   }
-
 });
 
 configEvents.on("INTERNET_READY", function internetReady() {
@@ -7559,82 +7558,82 @@ function initAppRouting(callback) {
   callback(null);
 }
 
-function testInternetConnection(params, callback) {
+// function testInternetConnection(params, callback) {
 
-  if (statsObj.internetReady) {
-    return callback(null, true);
-  }
+//   if (statsObj.internetReady) {
+//     return callback(null, true);
+//   }
 
-  const testClient = net.createConnection(80, params.url);
+//   const testClient = net.createConnection(80, params.url);
 
-  testClient.on("connect", function testConnect() {
+//   testClient.on("connect", function testConnect() {
 
-    statsObj.internetReady = true;
-    statsObj.socket.connects += 1;
+//     statsObj.internetReady = true;
+//     statsObj.socket.connects += 1;
 
-    console.log(chalkInfo(MODULE_ID_PREFIX + " | " + getTimeStamp() + " | CONNECTED TO " + params.url + ": OK"));
-    console.log(chalkInfo(MODULE_ID_PREFIX + " | " + getTimeStamp() + " | SEND INTERNET_READY"));
+//     console.log(chalkInfo(MODULE_ID_PREFIX + " | " + getTimeStamp() + " | CONNECTED TO " + params.url + ": OK"));
+//     console.log(chalkInfo(MODULE_ID_PREFIX + " | " + getTimeStamp() + " | SEND INTERNET_READY"));
 
-    configEvents.emit("INTERNET_READY");
-    testClient.destroy();
+//     configEvents.emit("INTERNET_READY");
+//     testClient.destroy();
 
-    callback(null, true);
+//     callback(null, true);
 
-  });
+//   });
 
-  testClient.on("error", function testError(err) {
+//   testClient.on("error", function testError(err) {
 
-    if (err) {
-      if (err.code != "ENOTFOUND") {
-        console.log(chalkError(MODULE_ID_PREFIX + " | testClient ERROR " + jsonPrint(err)));
-      }
-    }
+//     if (err) {
+//       if (err.code != "ENOTFOUND") {
+//         console.log(chalkError(MODULE_ID_PREFIX + " | testClient ERROR " + jsonPrint(err)));
+//       }
+//     }
 
-    statsObj.internetReady = false;
-    statsObj.internetTestError = err;
-    statsObj.socket.testClient.errors += 1;
+//     statsObj.internetReady = false;
+//     statsObj.internetTestError = err;
+//     statsObj.socket.testClient.errors += 1;
 
-    console.log(chalkError(MODULE_ID_PREFIX + " | " + getTimeStamp()
-      + " | TEST INTERNET ERROR | CONNECT ERROR: " + params.url + " : " + err.code));
+//     console.log(chalkError(MODULE_ID_PREFIX + " | " + getTimeStamp()
+//       + " | TEST INTERNET ERROR | CONNECT ERROR: " + params.url + " : " + err.code));
 
-    testClient.destroy();
-    configEvents.emit("INTERNET_NOT_READY");
+//     testClient.destroy();
+//     configEvents.emit("INTERNET_NOT_READY");
 
-    callback(err, false);
-  });
-}
+//     callback(err, false);
+//   });
+// }
 
-function initInternetCheckInterval(interval){
+// function initInternetCheckInterval(interval){
 
-  return new Promise(function(resolve){
+//   return new Promise(function(resolve){
 
-    // debug(chalkInfo(getTimeStamp() 
-    //   + " | INIT INTERNET CHECK INTERVAL | " + interval + " MS"));
+//     // debug(chalkInfo(getTimeStamp() 
+//     //   + " | INIT INTERNET CHECK INTERVAL | " + interval + " MS"));
 
-    clearInterval(internetCheckInterval);
+//     clearInterval(internetCheckInterval);
 
-    const params = {url: configuration.testInternetConnectionUrl};
+//     const params = {url: configuration.testInternetConnectionUrl};
 
-    testInternetConnection(params, function(err){
-      if (err) {
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** TEST INTERNET CONNECTION ERROR: " + err));
-      }
-    });
+//     testInternetConnection(params, function(err){
+//       if (err) {
+//         console.log(chalkError(MODULE_ID_PREFIX + " | *** TEST INTERNET CONNECTION ERROR: " + err));
+//       }
+//     });
 
-    internetCheckInterval = setInterval(function internetCheck(){
+//     internetCheckInterval = setInterval(function internetCheck(){
 
-      testInternetConnection(params, function(err){
-        if (err) {
-          console.log(chalkError(MODULE_ID_PREFIX + " | *** TEST INTERNET CONNECTION ERROR: " + err));
-        }
-      });
+//       testInternetConnection(params, function(err){
+//         if (err) {
+//           console.log(chalkError(MODULE_ID_PREFIX + " | *** TEST INTERNET CONNECTION ERROR: " + err));
+//         }
+//       });
 
-    }, interval);
+//     }, interval);
 
-    resolve();
+//     resolve();
 
-  });
-}
+//   });
+// }
 
 function initTwitterRxQueueInterval(interval){
 
@@ -10235,7 +10234,7 @@ setTimeout(async function(){
 
     await killAll();
     await allTrue();
-    await initInternetCheckInterval(ONE_MINUTE);
+    // await initInternetCheckInterval(ONE_MINUTE);
     await initKeySortInterval(configuration.keySortInterval);
     await initSaveFileQueue(configuration);
     await initPassport();

@@ -6041,7 +6041,7 @@ async function updateUserSets(){
 
     usersProcessed += 1;
 
-    if (usersProcessed % 5000 === 0) {
+    if (usersProcessed % 10000 === 0) {
       console.log(chalkLog(MODULE_ID_PREFIX + " | USER SETS | " + usersProcessed + " USERS PROCESSED"));
     }
   });
@@ -6159,7 +6159,7 @@ async function updateHashtagSets(){
     }
 
     hashtagsProcessed += 1;
-    if (hashtagsProcessed % 1000 === 0) {
+    if (hashtagsProcessed % 10000 === 0) {
       console.log(chalkLog(MODULE_ID_PREFIX + " | HASHTAG SETS | " + hashtagsProcessed + " HASHTAGS PROCESSED"));
     }
 
@@ -9836,6 +9836,9 @@ setTimeout(async function(){
     await initNodeOpHandler({subscribeName: "node-autocategorize-result" + primaryHostSuffix});
 
     await initDbUserChangeStream();
+    
+    statsObj.internetReady = true;
+    configEvents.emit("INTERNET_READY");
 
   }
   catch(err){

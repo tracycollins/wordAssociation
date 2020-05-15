@@ -1902,6 +1902,12 @@ process.on("message", async function(m) {
   }
 });
 
+process.on("unhandledRejection", function(err, promise) {
+  console.trace(MODULE_ID_PREFIX + " | *** Unhandled rejection (promise: ", promise, ", reason: ", err, ").");
+  quit("unhandledRejection");
+  // process.exit(1);
+});
+
 setTimeout(async function(){
 
   console.log("TSS | TSS | " + configuration.processName + " STARTED " + getTimeStamp() + "\n");

@@ -1771,7 +1771,9 @@ async function connectDb(){
 
     console.log(chalkBlueBold(MODULE_ID_PREFIX + " | CONNECT MONGO DB ..."));
 
-    const db = await global.wordAssoDb.connect(MODULE_ID_PREFIX + "_" + process.pid);
+    const db = await global.wordAssoDb.connect({
+      appName: MODULE_ID_PREFIX + "_" + process.pid
+    });
 
     db.on("error", async function(err){
       statsObj.status = "MONGO ERROR";

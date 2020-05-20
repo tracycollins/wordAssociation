@@ -2,7 +2,7 @@ const MODULE_NAME = "wordAssoServer";
 const MODULE_ID_PREFIX = "WAS";
 
 const DEFAULT_PRIMARY_HOST = "google";
-const DEFAULT_DATABASE_HOST = "mms3";
+const DEFAULT_DATABASE_HOST = "mms1";
 
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;

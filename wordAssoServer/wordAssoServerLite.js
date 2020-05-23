@@ -541,14 +541,17 @@ const nodeSearchResultHandler = async function(message){
       searchNodeResultHashMap[messageObj.requestId] = messageObj.node;
     }
     else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
-      console.log(chalkBlueBold(MODULE_ID_PREFIX
-        + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
-        + " | RID: " + messageObj.requestId
-        + " | MODE: " + messageObj.searchMode
-        + " | NID: " + messageObj.node.nodeId
-        + " | CM: " + formatCategory(messageObj.node.category)
-        + " | CA: " + formatCategory(messageObj.node.categoryAuto)
-      ));
+
+      if (configuration.verbose){ 
+        console.log(chalkBlueBold(MODULE_ID_PREFIX
+          + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
+          + " | RID: " + messageObj.requestId
+          + " | MODE: " + messageObj.searchMode
+          + " | NID: " + messageObj.node.nodeId
+          + " | CM: " + formatCategory(messageObj.node.category)
+          + " | CA: " + formatCategory(messageObj.node.categoryAuto)
+        ));
+      }
 
       const catHashtagObj = categorizedHashtagHashMap.get(messageObj.node.nodeId);
       
@@ -650,33 +653,37 @@ const nodeSetPropsResultHandler = async function(message){
 
     if (messageObj.node && messageObj.node.nodeType === "user") {
 
-      console.log(chalkBlueBold(MODULE_ID_PREFIX
-        + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
-        + " | TOPIC: node-setprops-result"
-        + " | RID: " + messageObj.requestId
-        + " | TYPE: " + messageObj.node.nodeType
-        + " | NID: " + messageObj.node.nodeId
-        + " | @" + messageObj.node.screenName
-        + " | AUTO FLW: " + formatBoolean(messageObj.node.autoFollowFlag)
-        + " | FLW: " + formatBoolean(messageObj.node.following)
-        + " | CN: " + messageObj.node.categorizeNetwork
-        + " | CV: " + formatBoolean(messageObj.node.categoryVerified)
-        + " | CM: " + formatCategory(messageObj.node.category)
-        + " | CA: " + formatCategory(messageObj.node.categoryAuto)
-      ));
+      if (configuration.verbose){ 
+        console.log(chalkBlueBold(MODULE_ID_PREFIX
+          + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
+          + " | TOPIC: node-setprops-result"
+          + " | RID: " + messageObj.requestId
+          + " | TYPE: " + messageObj.node.nodeType
+          + " | NID: " + messageObj.node.nodeId
+          + " | @" + messageObj.node.screenName
+          + " | AUTO FLW: " + formatBoolean(messageObj.node.autoFollowFlag)
+          + " | FLW: " + formatBoolean(messageObj.node.following)
+          + " | CN: " + messageObj.node.categorizeNetwork
+          + " | CV: " + formatBoolean(messageObj.node.categoryVerified)
+          + " | CM: " + formatCategory(messageObj.node.category)
+          + " | CA: " + formatCategory(messageObj.node.categoryAuto)
+        ));
+      }
 
       nodeSetPropsResultHashMap[messageObj.requestId] = messageObj.node;
     }
     else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
-      console.log(chalkBlue(MODULE_ID_PREFIX
-        + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
-        + " | TOPIC: node-setprops-result"
-        + " | RID: " + messageObj.requestId
-        + " | TYPE: " + messageObj.node.nodeType
-        + " | #" + messageObj.node.nodeId
-        + " | CM: " + formatCategory(messageObj.node.category)
-        + " | CA: " + formatCategory(messageObj.node.categoryAuto)
-      ));
+      if (configuration.verbose){ 
+        console.log(chalkBlue(MODULE_ID_PREFIX
+          + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
+          + " | TOPIC: node-setprops-result"
+          + " | RID: " + messageObj.requestId
+          + " | TYPE: " + messageObj.node.nodeType
+          + " | #" + messageObj.node.nodeId
+          + " | CM: " + formatCategory(messageObj.node.category)
+          + " | CA: " + formatCategory(messageObj.node.categoryAuto)
+        ));
+      }
 
       nodeSetPropsResultHashMap[messageObj.requestId] = messageObj.node;
     }
@@ -3837,7 +3844,7 @@ async function nodeSetProps(params) {
 
   const requestId = "rId_" + hostname + "_" + moment().valueOf();
 
-  console.log(chalk.blue(MODULE_ID_PREFIX 
+  debug(chalk.blue(MODULE_ID_PREFIX 
     + " | NODE SET PROPS"
     + " | RID: " + requestId
     + " | TYPE: " + params.node.nodeType

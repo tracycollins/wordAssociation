@@ -9718,7 +9718,7 @@ setTimeout(async function(){
     await killAll();
     await allTrue();
     await initKeySortInterval(configuration.keySortInterval);
-    await tcUtils.initSaveFileQueue({interval: 10});
+    await tcUtils.initSaveFileQueue({interval: 100});
     await initPassport();
     await initThreeceeTwitterUser("altthreecee00");
 

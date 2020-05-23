@@ -1822,6 +1822,13 @@ async function connectDb(){
       console.log(chalk.green(MODULE_ID_PREFIX + " | USC READY | " + appname));
     });
 
+    await global.wordAssoDb.User.deleteMany({ 
+      "$and": [ 
+          {lang: { "$nin": [ false, null, "" ] } }, 
+          { lang: { "$ne": "en" } } 
+        ]
+    });
+
     return db;
   }
   catch(err){
@@ -5936,7 +5943,7 @@ async function updateUserSets(){
     throw new Error("DB CONNECTION NOT READY");
   }
 
-  await global.wordAssoDb.User.deleteMany({ "$and": [ {lang: { "$nin": [ false, null, "" ] } }, { lang: { "$ne": "en" } } ]} );
+  // await global.wordAssoDb.User.deleteMany({ "$and": [ {lang: { "$nin": [ false, null, "" ] } }, { lang: { "$ne": "en" } } ]} );
 
   await updateUserCounts();
 
@@ -5951,14 +5958,14 @@ async function updateUserSets(){
     categorizeNetwork: 1, 
     category: 1, 
     categoryAuto: 1, 
-    categoryMismatch: 1, 
+    // categoryMismatch: 1, 
     categoryVerified: 1, 
-    friendsCount: 1, 
+    // friendsCount: 1, 
     followersCount: 1, 
     following: 1, 
-    ignored: 1,
-    lang: 1, 
-    name: 1,
+    // ignored: 1,
+    // lang: 1, 
+    // name: 1,
     nodeId: 1, 
     screenName: 1
   })
@@ -5972,67 +5979,67 @@ async function updateUserSets(){
 
   userSearchCursor.on("data", async function(user) {
 
-    const nodeId = user.nodeId.toLowerCase();
+    // const nodeId = user.nodeId.toLowerCase();
 
-    if (user.ignored === undefined) { user.ignored = false; }
+    // if (user.ignored === undefined) { user.ignored = false; }
     if (user.following === undefined) { user.following = false; }
 
-    if (user.category === undefined || user.category === "false" || !user.category) { user.category = "none"; }
+    // if (user.category === undefined || user.category === "false" || !user.category) { user.category = "none"; }
     if (user.categoryAuto === undefined || user.categoryAuto === "false" || !user.categoryAuto) { user.categoryAuto = "none"; }
 
-    const category = user.category;
+    // const category = user.category;
 
-    if ((category === "none") && uncategorizeableUserSet.has(nodeId)){
+    // if ((user.category === "none") && uncategorizeableUserSet.has(user.nodeId)){
 
-      global.wordAssoDb.User.deleteOne({"nodeId": nodeId}, function(err){
-        if (err) {
-          console.log(chalkError(MODULE_ID_PREFIX + " | *** DB DELETE UNCATEGORIZEABLE | ERROR: " + err));
-        }
-        else {
-          printUserObj(
-            "XXX USER | UNCATEGORIZEABLE",
-            user, 
-            chalkAlert
-          );
-        }
-      });
-    }
-    else if (user.lang && (user.lang !== undefined) && (user.lang != "en")){
+    //   global.wordAssoDb.User.deleteOne({nodeId: user.nodeId}, function(err){
+    //     if (err) {
+    //       console.log(chalkError(MODULE_ID_PREFIX + " | *** DB DELETE UNCATEGORIZEABLE | ERROR: " + err));
+    //     }
+    //     else {
+    //       printUserObj(
+    //         "XXX USER | UNCATEGORIZEABLE",
+    //         user, 
+    //         chalkAlert
+    //       );
+    //     }
+    //   });
+    // }
+    // else if (user.lang && (user.lang !== undefined) && (user.lang != "en")){
 
-      global.wordAssoDb.User.deleteOne({"nodeId": nodeId}, function(err){
-        if (err) {
-          console.log(chalkError(MODULE_ID_PREFIX + " | *** DB DELETE USER LANG NOT ENG | ERROR: " + err));
-        }
-        else {
-          printUserObj(
-            "XXX USER | LANG NOT ENGLISH: " + user.lang,
-            user, 
-            chalkAlert
-          );
-        }
-      });
-    }
-    else if ((category === "none") 
-      && !user.following 
-      && (user.followersCount > 0)
-      && (user.followersCount < configuration.minFollowersAutoCategorize)){
+    //   global.wordAssoDb.User.deleteOne({nodeId: user.nodeId}, function(err){
+    //     if (err) {
+    //       console.log(chalkError(MODULE_ID_PREFIX + " | *** DB DELETE USER LANG NOT ENG | ERROR: " + err));
+    //     }
+    //     else {
+    //       printUserObj(
+    //         "XXX USER | LANG NOT ENGLISH: " + user.lang,
+    //         user, 
+    //         chalkAlert
+    //       );
+    //     }
+    //   });
+    // }
+    // else if ((user.category === "none") 
+    //   && !user.following 
+    //   && (user.followersCount > 0)
+    //   && (user.followersCount < configuration.minFollowersAutoCategorize)){
 
-      global.wordAssoDb.User.deleteOne({"nodeId": nodeId}, function(err){
-        if (err) {
-          console.log(chalkError(MODULE_ID_PREFIX + " | *** DB DELETE USER LESS THAN MIN FOLLOWERS | ERROR: " + err));
-        }
-        else {
-          printUserObj(
-            "XXX USER | < MIN FOLLOWERS: " + user.followersCount,
-            user, 
-            chalkAlert
-          );
-        }
-      });
-    }
-    else {
+    //   global.wordAssoDb.User.deleteOne({nodeId: user.nodeId}, function(err){
+    //     if (err) {
+    //       console.log(chalkError(MODULE_ID_PREFIX + " | *** DB DELETE USER LESS THAN MIN FOLLOWERS | ERROR: " + err));
+    //     }
+    //     else {
+    //       printUserObj(
+    //         "XXX USER | < MIN FOLLOWERS: " + user.followersCount,
+    //         user, 
+    //         chalkAlert
+    //       );
+    //     }
+    //   });
+    // }
+    // else {
 
-      if (user.category && categorizedArray.includes(user.category)){
+      if (categorizedArray.includes(user.category)){
 
         await global.wordAssoDb.Uncat.deleteOne({nodeId: user.nodeId});
 
@@ -6050,7 +6057,7 @@ async function updateUserSets(){
         );
 
       }      
-    }
+    // }
 
     usersProcessed += 1;
 

@@ -5963,7 +5963,8 @@ async function updateUserSets(){
     screenName: 1
   })
   .lean()
-  .cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
+  // .cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
+  .cursor();
 
   const cursorStartTime = moment().valueOf();
 

@@ -30,6 +30,29 @@ const DEFAULT_MAX_USER_SEARCH_SKIP_COUNT = 25;
 const DEFAULT_USER_PROFILE_ONLY_FLAG = false;
 const DEFAULT_BINARY_MODE = true;
 
+const userTrainingSetPickArray = [
+  "categorized",
+  "categorizedAuto",
+  "categorizeNetwork",
+  "category",
+  "categoryAuto",
+  "categoryVerified",
+  "description",
+  "followersCount",
+  "friends",
+  "friendsCount",
+  "isBot",
+  "lang",
+  "languageAnalyzed",
+  "location",
+  "name",
+  "nodeId",
+  "profileHistograms",
+  "screenName",
+  "statusesCount",
+  "tweetHistograms"
+];
+
 let saveSampleTweetFlag = true;
 
 const os = require("os");
@@ -121,7 +144,7 @@ const DEFAULT_ENABLE_LANG_ANALYSIS = true;
 const DEFAULT_FORCE_GEOCODE = false;
 const DEFAULT_ENABLE_GEOCODE = true;
 
-const DEFAULT_SAVE_FILE_QUEUE_INTERVAL = 5*ONE_SECOND;
+// const DEFAULT_SAVE_FILE_QUEUE_INTERVAL = 5*ONE_SECOND;
 const DEFAULT_ENABLE_TWITTER_FOLLOW = false;
 const DEFAULT_TEST_INTERNET_CONNECTION_URL = "www.google.com";
 const DEFAULT_CURSOR_BATCH_SIZE = 100;
@@ -1220,7 +1243,6 @@ configuration.enableTransmitNgram = false;
 configuration.enableTransmitUrl = false;
 configuration.enableTransmitMedia = false;
 
-configuration.saveFileQueueInterval = DEFAULT_SAVE_FILE_QUEUE_INTERVAL;
 configuration.socketAuthTimeout = DEFAULT_SOCKET_AUTH_TIMEOUT;
 configuration.quitOnError = DEFAULT_QUIT_ON_ERROR;
 configuration.maxTopTerms = DEFAULT_MAX_TOP_TERMS;
@@ -1286,10 +1308,8 @@ function quit(message) {
   if (userChangeStream !== undefined) { userChangeStream.close(); }
 
   clearInterval(nodeCacheDeleteQueueInterval);
-  clearInterval(saveFileQueueInterval);
   clearInterval(heartbeatInterval);
   clearInterval(transmitNodeQueueInterval);
-  // clearInterval(internetCheckInterval);
   clearInterval(tweetRxQueueInterval);
   clearInterval(tweetParserMessageRxQueueInterval);
   clearInterval(sorterMessageRxQueueInterval);
@@ -1308,7 +1328,10 @@ function quit(message) {
   console.log(chalkAlert(MODULE_ID_PREFIX + " | QUIT MESSAGE: " + msg));
   console.log(chalkAlert(MODULE_ID_PREFIX + " | QUIT MESSAGE: " + msg));
 
-  setTimeout(function() {
+  setTimeout(async function() {
+    if (tcUtils !== undefined) { 
+      await tcUtils.stopSaveFileQueue();
+    }
     process.exit();
   }, 5000);
 }
@@ -1670,6 +1693,8 @@ const configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/defau
 const configHostFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility", hostname);
 const configDefaultFile = "default_wordAssoServerConfig.json";
 const configHostFile = hostname + "_wordAssoServerConfig.json";
+
+configuration.userDataFolder = path.join(configDefaultFolder, "trainingSets/users/data");
 
 const botsFolder = path.join(configDefaultFolder, "bots");
 
@@ -2408,9 +2433,6 @@ DEFAULT_NODE_TYPES.forEach(function(nodeType){
 let cacheObjKeys = Object.keys(cacheObj);
 
 let updateMetricsInterval;
-const saveFileQueue = [];
-
-// let internetCheckInterval;
 
 const http = require("http");
 
@@ -2643,6 +2665,7 @@ function initStats(callback){
   statsObj.queues.transmitNodeQueue = 0;
   statsObj.queues.tweetParserMessageRxQueue = 0;
   statsObj.queues.tweetRxQueue = 0;
+  statsObj.queues.saveFileQueue = 0;
 
   statsObj.socket = {};
   statsObj.socket.testClient = {};
@@ -2726,47 +2749,6 @@ function loadCommandLineArgs(){
       statsObj.commandLineArgsLoaded = true;
       resolve();
     });
-
-  });
-}
-
-let saveFileQueueInterval;
-let saveFileBusy = false;
-
-function initSaveFileQueue(cnf){
-
-  return new Promise(function(resolve){
-
-    console.log(chalk.bold.black(MODULE_ID_PREFIX + " | INIT DROPBOX SAVE FILE INTERVAL | " + tcUtils.msToTime(cnf.saveFileQueueInterval)));
-
-    clearInterval(saveFileQueueInterval);
-
-    let saveFileObj;
-
-    saveFileQueueInterval = setInterval(async function () {
-
-      if (!saveFileBusy && saveFileQueue.length > 0) {
-
-        saveFileBusy = true;
-
-        saveFileObj = saveFileQueue.shift();
-
-        try{
-          await tcUtils.saveFile(saveFileObj);
-          console.log(chalkInfo(MODULE_ID_PREFIX + " | SAVED FILE | " + saveFileObj.folder + "/" + saveFileObj.file));
-          saveFileBusy = false;
-        }
-        catch(err){
-          console.log(chalkError(MODULE_ID_PREFIX + " | *** SAVE FILE ERROR ... RETRY | " + saveFileObj.folder + "/" + saveFileObj.file));
-          saveFileQueue.push(saveFileObj);
-          saveFileBusy = false;
-        }
-
-      }
-
-    }, cnf.saveFileQueueInterval);
-
-    resolve();
 
   });
 }
@@ -3590,7 +3572,7 @@ function socketRxTweet(tw) {
         + " | " + testDataFolder + "/" + sampleTweetFileName
       ));
 
-      saveFileQueue.push({folder: testDataFolder, file: sampleTweetFileName, obj: tw});
+      statsObj.queues.saveFileQueue = tcUtils.saveFileQueue({folder: testDataFolder, file: sampleTweetFileName, obj: tw});
     }
 
     tw.inc = true;
@@ -4991,6 +4973,17 @@ async function initSocketHandler(socketObj) {
     socket.on("TWITTER_CATEGORIZE_NODE", async function twitterCategorizeNode(catNodeObj) {
 
       try{
+
+        const file = catNodeObj.nodeId + ".json";
+
+        const user = pick(catNodeObj, userTrainingSetPickArray);
+
+        statsObj.queues.saveFileQueue = tcUtils.saveFileQueue({
+          folder: configuration.userDataFolder,
+          file: file,
+          obj: user
+        });
+
         const node = await nodeSetProps({
           createNodeOnMiss: true,
           node: catNodeObj.node, 
@@ -7167,83 +7160,6 @@ function initAppRouting(callback) {
   callback(null);
 }
 
-// function testInternetConnection(params, callback) {
-
-//   if (statsObj.internetReady) {
-//     return callback(null, true);
-//   }
-
-//   const testClient = net.createConnection(80, params.url);
-
-//   testClient.on("connect", function testConnect() {
-
-//     statsObj.internetReady = true;
-//     statsObj.socket.connects += 1;
-
-//     console.log(chalkInfo(MODULE_ID_PREFIX + " | " + getTimeStamp() + " | CONNECTED TO " + params.url + ": OK"));
-//     console.log(chalkInfo(MODULE_ID_PREFIX + " | " + getTimeStamp() + " | SEND INTERNET_READY"));
-
-//     configEvents.emit("INTERNET_READY");
-//     testClient.destroy();
-
-//     callback(null, true);
-
-//   });
-
-//   testClient.on("error", function testError(err) {
-
-//     if (err) {
-//       if (err.code != "ENOTFOUND") {
-//         console.log(chalkError(MODULE_ID_PREFIX + " | testClient ERROR " + jsonPrint(err)));
-//       }
-//     }
-
-//     statsObj.internetReady = false;
-//     statsObj.internetTestError = err;
-//     statsObj.socket.testClient.errors += 1;
-
-//     console.log(chalkError(MODULE_ID_PREFIX + " | " + getTimeStamp()
-//       + " | TEST INTERNET ERROR | CONNECT ERROR: " + params.url + " : " + err.code));
-
-//     testClient.destroy();
-//     configEvents.emit("INTERNET_NOT_READY");
-
-//     callback(err, false);
-//   });
-// }
-
-// function initInternetCheckInterval(interval){
-
-//   return new Promise(function(resolve){
-
-//     // debug(chalkInfo(getTimeStamp() 
-//     //   + " | INIT INTERNET CHECK INTERVAL | " + interval + " MS"));
-
-//     clearInterval(internetCheckInterval);
-
-//     const params = {url: configuration.testInternetConnectionUrl};
-
-//     testInternetConnection(params, function(err){
-//       if (err) {
-//         console.log(chalkError(MODULE_ID_PREFIX + " | *** TEST INTERNET CONNECTION ERROR: " + err));
-//       }
-//     });
-
-//     internetCheckInterval = setInterval(function internetCheck(){
-
-//       testInternetConnection(params, function(err){
-//         if (err) {
-//           console.log(chalkError(MODULE_ID_PREFIX + " | *** TEST INTERNET CONNECTION ERROR: " + err));
-//         }
-//       });
-
-//     }, interval);
-
-//     resolve();
-
-//   });
-// }
-
 function initTwitterRxQueueInterval(interval){
 
   return new Promise(function(resolve, reject){
@@ -9104,7 +9020,7 @@ function initStatsUpdate() {
           if (utilNameSpace) { statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; } // userNameSpace.sockets.length ;
           if (viewNameSpace) { statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; } // userNameSpace.sockets.length ;
 
-          saveFileQueue.push({folder: statsHostFolder, file: statsFile, obj: statsObj});
+          statsObj.queues.saveFileQueue = tcUtils.saveFileQueue({folder: statsHostFolder, file: statsFile, obj: statsObj});
 
           showStats();
 
@@ -9794,15 +9710,15 @@ setTimeout(async function(){
       + " | " + configuration.processName 
     ));
 
+
     slackText = "*WAS START*";
 
     await slackSendWebMessage({ channel: slackChannel, text: slackText});
 
     await killAll();
     await allTrue();
-    // await initInternetCheckInterval(ONE_MINUTE);
     await initKeySortInterval(configuration.keySortInterval);
-    await initSaveFileQueue(configuration);
+    await tcUtils.initSaveFileQueue({interval: 10});
     await initPassport();
     await initThreeceeTwitterUser("altthreecee00");
 

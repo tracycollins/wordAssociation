@@ -4989,15 +4989,15 @@ async function initSocketHandler(socketObj) {
 
           if (node.nodeType === "user") {
 
-            const file = node.nodeId + ".json";
+            // const file = node.nodeId + ".json";
 
-            const user = pick(node, userTrainingSetPickArray);
+            // const user = pick(node, userTrainingSetPickArray);
 
-            statsObj.queues.saveFileQueue = tcUtils.saveFileQueue({
-              folder: configuration.userDataFolder,
-              file: file,
-              obj: user
-            });
+            // statsObj.queues.saveFileQueue = tcUtils.saveFileQueue({
+            //   folder: configuration.userDataFolder,
+            //   file: file,
+            //   obj: user
+            // });
 
             console.log(chalkSocket(MODULE_ID_PREFIX
               + " | R< TWITTER_CATEGORIZE_NODE"

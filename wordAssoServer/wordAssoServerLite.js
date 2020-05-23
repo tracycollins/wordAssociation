@@ -5940,7 +5940,10 @@ async function updateUserSets(){
 
   await updateUserCounts();
 
-  const userSearchQuery = { ignored: false };
+  const userSearchQuery = {
+    category: { "$in": ["left", "right", "neutral"]},
+    ignored: false
+  };
   
   userSearchCursor = global.wordAssoDb.User
   .find(userSearchQuery)

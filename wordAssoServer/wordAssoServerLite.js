@@ -4974,16 +4974,6 @@ async function initSocketHandler(socketObj) {
 
       try{
 
-        const file = catNodeObj.nodeId + ".json";
-
-        const user = pick(catNodeObj, userTrainingSetPickArray);
-
-        statsObj.queues.saveFileQueue = tcUtils.saveFileQueue({
-          folder: configuration.userDataFolder,
-          file: file,
-          obj: user
-        });
-
         const node = await nodeSetProps({
           createNodeOnMiss: true,
           node: catNodeObj.node, 
@@ -4998,6 +4988,27 @@ async function initSocketHandler(socketObj) {
         if (node){
 
           if (node.nodeType === "user") {
+
+            const file = node.nodeId + ".json";
+
+            const user = pick(node, userTrainingSetPickArray);
+
+            statsObj.queues.saveFileQueue = tcUtils.saveFileQueue({
+              folder: configuration.userDataFolder,
+              file: file,
+              obj: user
+            });
+
+            console.log(chalkSocket(MODULE_ID_PREFIX
+              + " | R< TWITTER_CATEGORIZE_NODE"
+              + " | " + getTimeStamp()
+              + " | " + ipAddress
+              + " | " + socket.id
+              + " | NID: " + node.nodeId
+              + " | @" + node.screenName
+              + " | CM: " + formatCategory(node.category)
+            ));
+
             socket.emit("SET_TWITTER_USER", {node: node, stats: statsObj.user });
           }
 

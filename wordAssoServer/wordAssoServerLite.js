@@ -5943,18 +5943,18 @@ async function updateUserSets(){
     throw new Error("DB CONNECTION NOT READY");
   }
 
-  // await global.wordAssoDb.User.deleteMany({ "$and": [ {lang: { "$nin": [ false, null, "" ] } }, { lang: { "$ne": "en" } } ]} );
-
   await updateUserCounts();
 
   const userSearchQuery = {
-    category: { "$in": ["left", "right", "neutral"]},
-    ignored: false
+    categorized: true
+    // category: { "$in": ["left", "right", "neutral"]},
+    // ignored: false
   };
   
   userSearchCursor = global.wordAssoDb.User
   .find(userSearchQuery)
   .select({
+    categorized: 1, 
     categorizeNetwork: 1, 
     category: 1, 
     categoryAuto: 1, 
@@ -5982,10 +5982,10 @@ async function updateUserSets(){
     // const nodeId = user.nodeId.toLowerCase();
 
     // if (user.ignored === undefined) { user.ignored = false; }
-    if (user.following === undefined) { user.following = false; }
+    // if (user.following === undefined) { user.following = false; }
 
     // if (user.category === undefined || user.category === "false" || !user.category) { user.category = "none"; }
-    if (user.categoryAuto === undefined || user.categoryAuto === "false" || !user.categoryAuto) { user.categoryAuto = "none"; }
+    // if (user.categoryAuto === undefined || user.categoryAuto === "false" || !user.categoryAuto) { user.categoryAuto = "none"; }
 
     // const category = user.category;
 

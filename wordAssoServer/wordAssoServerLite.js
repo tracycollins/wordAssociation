@@ -5869,7 +5869,7 @@ async function updateUserCounts() {
 
   // -----
 
-  statsObj.user.categorizedManual = await countDocuments({documentType: "users", query: {category: { "$in": ["left", "right", "neutral"] }}});
+  statsObj.user.categorizedManual = await countDocuments({documentType: "users", query: {categorized: true}});
   console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT MANUAL USERS: " + statsObj.user.categorizedManual));
 
   statsObj.user.manual.left = await countDocuments({documentType: "users", query: {category: "left"}});
@@ -5897,7 +5897,7 @@ async function updateUserCounts() {
 
   // -----
   
-  statsObj.user.categorizedAuto = await countDocuments({documentType: "users", query: {categoryAuto: { "$in": ["left", "right", "neutral"] }}});
+  statsObj.user.categorizedAuto = await countDocuments({documentType: "users", query: {categorizedAuto: true}});
   console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT AUTO USERS: " + statsObj.user.categorizedAuto));
 
   statsObj.user.auto.left = await countDocuments({documentType: "users", query: {categoryAuto: "left"}});

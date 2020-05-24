@@ -53,6 +53,7 @@ function ViewTreepack() {
     "paleyellow": "#EAE3CB",
     "yellow": "#A57706",
     "lightyellow": "#B58716",
+    "darkyellow": "#846608",
     "orange": "#BD3613",
     "red": "#D11C24",
     "pink": "#C61C6F",
@@ -1186,7 +1187,7 @@ function ViewTreepack() {
         if (d.isTopTerm && !isCategorized(d.category) && !isCategorized(d.categoryAuto)) { return palette.white; }
         if (!isCategorized(d.category) && !isCategorized(d.categoryAuto)) { return palette.gray; }
         if (isCategorized(d.category)) { return d.categoryColor; }
-        if (d.categoryAuto === "right") { return palette.lightyellow; }
+        if (d.categoryAuto === "right") { return palette.darkyellow; }
         if (d.categoryAuto === "left") { return palette.blue; }
         if (d.categoryAuto === "positive") { return palette.green; }
         if (d.categoryAuto ==="negative") { return palette.red; }
@@ -1196,7 +1197,7 @@ function ViewTreepack() {
         if (d.nodeType === "hashtag") { return palette.white; }
         if (d.categoryMismatch) { return palette.red; }
         if (d.categoryMatch) { return categoryMatchColor; }
-        if (d.categoryAuto === "right") { return palette.lightyellow; }
+        if (d.categoryAuto === "right") { return palette.darkyellow; }
         if (d.categoryAuto === "left") { return palette.blue; }
         if (d.categoryAuto === "positive") { return palette.green; }
         if (d.categoryAuto ==="negative") { return palette.black; }
@@ -1246,7 +1247,7 @@ function ViewTreepack() {
         if (d.isTopTerm && !isCategorized(d.category) && !isCategorized(d.categoryAuto)) { return palette.white; }
         if (!isCategorized(d.category) && !isCategorized(d.categoryAuto)) { return palette.gray; }
         if (isCategorized(d.category)) { return d.categoryColor; }
-        if (d.categoryAuto === "right") { return palette.lightyellow; }
+        if (d.categoryAuto === "right") { return palette.darkyellow; }
         if (d.categoryAuto === "left") { return palette.blue; }
         if (d.categoryAuto === "positive") { return palette.green; }
         if (d.categoryAuto ==="negative") { return palette.red; }
@@ -1256,7 +1257,7 @@ function ViewTreepack() {
         if (d.nodeType === "hashtag") { return palette.white; }
         if (d.categoryMismatch) { return palette.red; }
         if (d.categoryMatch) { return categoryMatchColor; }
-        if (d.categoryAuto === "right") { return palette.lightyellow; }
+        if (d.categoryAuto === "right") { return palette.darkyellow; }
         if (d.categoryAuto === "left") { return palette.blue; }
         if (d.categoryAuto === "positive") { return palette.green; }
         if (d.categoryAuto ==="negative") { return palette.black; }

@@ -610,61 +610,61 @@ const nodeSearchResultHandler = async function(message){
   return;
 };
 
-const nodeAutoCategorizeResultHandler = async function(message){
+// const nodeAutoCategorizeResultHandler = async function(message){
 
-  const messageObj = JSON.parse(message.data.toString());
+//   const messageObj = JSON.parse(message.data.toString());
 
-  if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)){
+//   if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)){
 
-    statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived += 1;
+//     statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived += 1;
 
-    if (messageObj.node && messageObj.node.nodeType === "user") {
+//     if (messageObj.node && messageObj.node.nodeType === "user") {
 
-      await updateUserAutoCategory({user: messageObj.node});
+//       await updateUserAutoCategory({user: messageObj.node});
 
-      console.log(chalkBlueBold(MODULE_ID_PREFIX
-        + " | ==> PS AUTO CAT USER [" + statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived + "]"
-        + " | MID: " + message.id
-        + " | RID: " + messageObj.requestId
-        + " | SEARCH MODE: " + messageObj.searchMode
-        + " | NID: " + messageObj.node.nodeId
-        + " | @" + messageObj.node.screenName
-        + " | FLW" + formatBoolean(messageObj.node.following)
-        + " | CN: " + messageObj.node.categorizeNetwork
-        + " | CV: " + formatBoolean(messageObj.node.categoryVerified)
-        + " | CM: " + formatCategory(messageObj.node.category)
-        + " | CA: " + formatCategory(messageObj.node.categoryAuto)
-      ));
+//       console.log(chalkBlueBold(MODULE_ID_PREFIX
+//         + " | ==> PS AUTO CAT USER [" + statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived + "]"
+//         + " | MID: " + message.id
+//         + " | RID: " + messageObj.requestId
+//         + " | SEARCH MODE: " + messageObj.searchMode
+//         + " | NID: " + messageObj.node.nodeId
+//         + " | @" + messageObj.node.screenName
+//         + " | FLW" + formatBoolean(messageObj.node.following)
+//         + " | CN: " + messageObj.node.categorizeNetwork
+//         + " | CV: " + formatBoolean(messageObj.node.categoryVerified)
+//         + " | CM: " + formatCategory(messageObj.node.category)
+//         + " | CA: " + formatCategory(messageObj.node.categoryAuto)
+//       ));
 
-    }
-    else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
-      console.log(chalkBlueBold(MODULE_ID_PREFIX
-        + " | ==> PS AUTO CAT HASHTAG [" + statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived + "]"
-        + " | MID: " + message.id
-        + " | RID: " + messageObj.requestId
-        + " | SEARCH MODE: " + messageObj.searchMode
-        + " | NID: " + messageObj.node.nodeId
-        + " | CM: " + formatCategory(messageObj.node.category)
-        + " | CA: " + formatCategory(messageObj.node.categoryAuto)
-      ));
+//     }
+//     else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
+//       console.log(chalkBlueBold(MODULE_ID_PREFIX
+//         + " | ==> PS AUTO CAT HASHTAG [" + statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived + "]"
+//         + " | MID: " + message.id
+//         + " | RID: " + messageObj.requestId
+//         + " | SEARCH MODE: " + messageObj.searchMode
+//         + " | NID: " + messageObj.node.nodeId
+//         + " | CM: " + formatCategory(messageObj.node.category)
+//         + " | CA: " + formatCategory(messageObj.node.categoryAuto)
+//       ));
 
-    }
-    else{
-      console.log(chalk.yellow(MODULE_ID_PREFIX
-        + " | ==> PS AUTO CAT NODE -MISS- [" + statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived + "]"
-        + " | MID: " + message.id
-        + " | RID: " + messageObj.requestId
-        + " | SEARCH MODE: " + messageObj.searchMode
-      ));
-    }
+//     }
+//     else{
+//       console.log(chalk.yellow(MODULE_ID_PREFIX
+//         + " | ==> PS AUTO CAT NODE -MISS- [" + statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived + "]"
+//         + " | MID: " + message.id
+//         + " | RID: " + messageObj.requestId
+//         + " | SEARCH MODE: " + messageObj.searchMode
+//       ));
+//     }
 
-    tcUtils.emitter.emit("autoCategorizeResult_" + messageObj.requestId);
-    pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
-    message.ack();
-  }
+//     tcUtils.emitter.emit("autoCategorizeResult_" + messageObj.requestId);
+//     pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
+//     message.ack();
+//   }
 
-  return;
-};
+//   return;
+// };
 
 const nodeSetPropsResultHandler = async function(message){
 
@@ -803,15 +803,15 @@ async function initNodeOpHandler(params){
       subscriptionHashMap.nodeSetPropsResult = subscription;  
       subscription.on("message", nodeSetPropsResultHandler);
     break;
-    case "node-autocategorize-result":
-    case "node-autocategorize-result-primary":
-      statsObj.pubSub.subscriptions.nodeAutoCategorizeResult = {};
-      statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived = 0;
-      statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.topic = metadata.topic;
-      subscriptionHashMap.nodeAutoCategorizeResult = {};
-      subscriptionHashMap.nodeAutoCategorizeResult = subscription;  
-      subscription.on("message", nodeAutoCategorizeResultHandler);
-    break;
+    // case "node-autocategorize-result":
+    // case "node-autocategorize-result-primary":
+    //   statsObj.pubSub.subscriptions.nodeAutoCategorizeResult = {};
+    //   statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived = 0;
+    //   statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.topic = metadata.topic;
+    //   subscriptionHashMap.nodeAutoCategorizeResult = {};
+    //   subscriptionHashMap.nodeAutoCategorizeResult = subscription;  
+    //   subscription.on("message", nodeAutoCategorizeResultHandler);
+    // break;
     case "node-ignore":
     case "node-ignore-primary":
       statsObj.pubSub.subscriptions.nodeIgnoreResult = {};

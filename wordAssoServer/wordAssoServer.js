@@ -9780,7 +9780,7 @@ setTimeout(async function(){
 
     await initNodeOpHandler({subscribeName: "node-search-result" + primaryHostSuffix});
     await initNodeOpHandler({subscribeName: "node-setprops-result" + primaryHostSuffix});
-    await initNodeOpHandler({subscribeName: "node-autocategorize-result" + primaryHostSuffix});
+    // await initNodeOpHandler({subscribeName: "node-autocategorize-result" + primaryHostSuffix});
 
     await initDbUserChangeStream();
     

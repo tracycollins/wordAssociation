@@ -1,7 +1,7 @@
 {
   "apps" : [{
     "name"        : "wa",
-    "script"      : "wordAssoServerLite.js",
+    "script"      : "wordAssoServer.js",
     "cwd"         : "/home/tc/wordAssociation/wordAssoServer",
     "autorestart" : true,
     "restart_delay": 300000,

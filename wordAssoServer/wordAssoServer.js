@@ -9697,8 +9697,8 @@ setTimeout(async function(){
 
     await waitDbConnectionReady();
 
-    await initBotSet();
     const cnf = await initConfig();
+    await initBotSet();
 
     configuration = deepcopy(cnf);
     if (empty(configuration.twitter)) { configuration.twitter = {}; }

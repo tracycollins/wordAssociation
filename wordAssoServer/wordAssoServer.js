@@ -9090,7 +9090,8 @@ async function initDbUserChangeStream(){
     
     if ( change 
       && (change.operationType === "update") 
-      && change.fullDocument 
+      && change.fullDocument
+      && categorizedUserHashMap.has(change.fullDocument.nodeId)
       && change.updateDescription 
       && change.updateDescription.updatedFields
     ){
@@ -9110,44 +9111,32 @@ async function initDbUserChangeStream(){
 
         catObj = categorizedUserHashMap.get(change.fullDocument.nodeId);
 
-        if (empty(catObj)) {
-          catChangeFlag = true;
-          catObj = {};
-          catObj.screenName = change.fullDocument.screenName;
-          catObj.nodeId = change.fullDocument.nodeId;
-          catObj.manual = change.fullDocument.category;
-          catObj.auto = change.fullDocument.categoryAuto;
-          catObj.network = change.fullDocument.categorizeNetwork;
-          catObj.verified = change.fullDocument.categoryVerified;
-        }
-
         if (categoryChanges.manual && formatCategory(catObj.manual) !== formatCategory(categoryChanges.manual)) {
+          textAppend += " | M: " + formatCategory(catObj.manual) + " -> " + formatCategory(categoryChanges.manual);
           catObj.manual = categoryChanges.manual;
           catChangeFlag = true;
           statsObj.user.categoryChanged += 1;
-
-          textAppend += " | M: " + formatCategory(catObj.manual) + " -> " + formatCategory(categoryChanges.manual);
         }
 
         if (categoryChanges.auto && formatCategory(catObj.auto) !== formatCategory(categoryChanges.auto)) {
+          textAppend += " A: " + formatCategory(catObj.auto) + " -> " + formatCategory(categoryChanges.auto);
           catObj.auto = categoryChanges.auto;
           catAutoChangeFlag = true;
           statsObj.user.categoryAutoChanged += 1;
-          textAppend += " A: " + formatCategory(catObj.auto) + " -> " + formatCategory(categoryChanges.auto);
         }
 
         if (categoryChanges.network && catObj.network && (catObj.network !== categoryChanges.network)) {
+          textAppend += " | CN: " + catObj.network + " -> " + categoryChanges.network;
           catObj.network = categoryChanges.network;
           catNetworkChangeFlag = true;
           statsObj.user.categorizeNetworkChanged += 1;
-          textAppend += " | CN: " + catObj.network + " -> " + categoryChanges.network;
         }
 
         if (categoryChanges.verified && catObj.verified && (catObj.verified !== categoryChanges.verified)) {
+          textAppend += " | V: " + formatBoolean(catObj.verified) + " -> " + formatCategory(categoryChanges.verified);
           catObj.verified = categoryChanges.verified;
           catVerifiedChangeFlag = true;
           statsObj.user.categoryVerifiedChanged += 1;
-          textAppend += " | V: " + formatBoolean(catObj.verified) + " -> " + formatCategory(categoryChanges.verified);
         }
 
         if (catChangeFlag || catAutoChangeFlag || catNetworkChangeFlag || catVerifiedChangeFlag) {
@@ -9169,10 +9158,6 @@ async function initDbUserChangeStream(){
             + textAppend;
 
           console.log(chalkType(text));
-
-          catObj.auto = categoryChanges.auto || catObj.auto;
-          catObj.network = categoryChanges.network || catObj.network;
-          catObj.verified = categoryChanges.verified || catObj.verified;
 
           categorizedUserHashMap.set(catObj.nodeId, catObj);
           uncategorizeableUserSet.delete(catObj.nodeId);

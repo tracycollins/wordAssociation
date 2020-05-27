@@ -48,6 +48,9 @@ tcUtils.on("ready", function(appname){
   console.log(chalk.green(MODULE_ID_PREFIX + " | TCU READY | " + appname));
 });
 
+const msToTime = tcUtils.msToTime;
+const getTimeStamp = tcUtils.getTimeStamp;
+
 const MergeHistograms = require("@threeceelabs/mergehistograms");
 const mergeHistograms = new MergeHistograms();
 
@@ -87,56 +90,6 @@ statsObj.users = {};
 
 statsObj.errors = {};
 statsObj.errors.users = {};
-
-let userServerController;
-
-const msToTime = function(d){
-
-  let sign = 1;
-
-  let duration = d;
-
-  if (duration < 0) {
-    sign = -1;
-    duration = -duration;
-  }
-
-  let seconds = parseInt((duration / 1000) % 60);
-  let minutes = parseInt((duration / (1000 * 60)) % 60);
-  let hours = parseInt((duration / (1000 * 60 * 60)) % 24);
-  let days = parseInt(duration / (1000 * 60 * 60 * 24));
-
-  days = (days < 10) ? "0" + days : days;
-  hours = (hours < 10) ? "0" + hours : hours;
-  minutes = (minutes < 10) ? "0" + minutes : minutes;
-  seconds = (seconds < 10) ? "0" + seconds : seconds;
-
-  if (sign > 0) { return days + ":" + hours + ":" + minutes + ":" + seconds; }
-
-  return "- " + days + ":" + hours + ":" + minutes + ":" + seconds;
-};
-
-const getTimeStamp = function(inputTime){
-
-  let currentTimeStamp;
-
-  if (inputTime == undefined) {
-    currentTimeStamp = moment().format(compactDateTimeFormat);
-    return currentTimeStamp;
-  }
-  else if (moment.isMoment(inputTime)) {
-    currentTimeStamp = moment(inputTime).format(compactDateTimeFormat);
-    return currentTimeStamp;
-  }
-  else if (moment.isDate(new Date(inputTime))) {
-    currentTimeStamp = moment(new Date(inputTime)).format(compactDateTimeFormat);
-    return currentTimeStamp;
-  }
-  else {
-    currentTimeStamp = moment(parseInt(inputTime)).format(compactDateTimeFormat);
-    return currentTimeStamp;
-  }
-};
 
 process.on("unhandledRejection", function(err, promise) {
   console.trace("Unhandled rejection (promise: ", promise, ", reason: ", err, ").");
@@ -218,64 +171,6 @@ process.on("exit", function() {
   quit("EXIT");
 });
 
-// function connectDb(){
-
-//   console.log(chalkLog("DBU | CONNECT DB"));
-
-//   return new Promise(function(resolve, reject){
-
-//     statsObj.status = "CONNECT DB";
-
-//     global.wordAssoDb.connect("DBU_" + process.pid, function(err, db){
-//       if (err) {
-//         console.log(chalkError("*** DBU | *** MONGO DB CONNECTION ERROR: " + err));
-//         statsObj.dbConnectionReady = false;
-//         return reject(err);
-//       }
-//       else {
-
-//         db.on("close", function(){
-//           statsObj.status = "MONGO CONNECTION CLOSED";
-//           console.log.bind(console, "DBU | *** MONGO DB CONNECTION CLOSED ***");
-//           console.log(chalkAlert("DBU | *** MONGO DB CONNECTION CLOSED ***"));
-//           statsObj.dbConnectionReady = false;
-//         });
-
-//         db.on("error", function(err){
-//           statsObj.status = "MONGO CONNECTION ERROR";
-//           console.log.bind(console, "DBU | *** MONGO DB CONNECTION ERROR: " + err);
-//           console.log(chalkError("DBU | *** MONGO DB CONNECTION ERROR: " + err));
-//           statsObj.dbConnectionReady = false;
-//         });
-
-//         db.on("disconnected", function(){
-//           statsObj.status = "MONGO DISCONNECTED";
-//           console.log.bind(console, "DBU | *** MONGO DB DISCONNECTED ****");
-//           console.log(chalkAlert("DBU | *** MONGO DB DISCONNECTED ***"));
-//           statsObj.dbConnectionReady = false;
-//         });
-
-//         console.log(chalkLog("DBU | MONGOOSE DEFAULT CONNECTION OPEN"));
-
-//         statsObj.dbConnectionReady = true;
-
-//         global.globalDbConnection = db;
-
-//         // userServerController = new UserServerController("DBU_USC");
-
-//         // userServerController.on("ready", function(appname){
-//         //   console.log(chalkLog("DBU | USC READY | " + appname));
-//         // });
-
-//         resolve(db);
-
-//       }
-//     });
-
-//   });
-// }
-
-
 async function connectDb(){
 
   try {
@@ -309,18 +204,6 @@ async function connectDb(){
     });
 
     console.log(chalk.green(MODULE_ID_PREFIX + " | MONGOOSE DEFAULT CONNECTION OPEN"));    
-
-    const UserServerController = require("@threeceelabs/user-server-controller");
-    
-    userServerController = new UserServerController(MODULE_ID_PREFIX + "_USC");
-
-    userServerController.on("error", function(err){
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** USC ERROR | " + err));
-    });
-
-    userServerController.on("ready", function(appname){
-      console.log(chalk.green(MODULE_ID_PREFIX + " | USC READY | " + appname));
-    });
 
     statsObj.dbConnectionReady = true;
 
@@ -383,7 +266,7 @@ async function userUpdateDb(params){
     const user = await global.wordAssoDb.User.findOne({ nodeId: params.tweetObj.user.nodeId });
 
     if (!user) {
-      debug(chalkLog("DBU | --- USER DB MISS: @" + params.tweetObj.user.screenName));
+      console.log(chalkLog("DBU | --- USER DB MISS: @" + params.tweetObj.user.screenName));
       return;
     }
 

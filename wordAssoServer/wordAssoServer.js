@@ -30,28 +30,28 @@ const DEFAULT_MAX_USER_SEARCH_SKIP_COUNT = 25;
 const DEFAULT_USER_PROFILE_ONLY_FLAG = false;
 const DEFAULT_BINARY_MODE = true;
 
-const userTrainingSetPickArray = [
-  "categorized",
-  "categorizedAuto",
-  "categorizeNetwork",
-  "category",
-  "categoryAuto",
-  "categoryVerified",
-  "description",
-  "followersCount",
-  "friends",
-  "friendsCount",
-  "isBot",
-  "lang",
-  "languageAnalyzed",
-  "location",
-  "name",
-  "nodeId",
-  "profileHistograms",
-  "screenName",
-  "statusesCount",
-  "tweetHistograms"
-];
+// const userTrainingSetPickArray = [
+//   "categorized",
+//   "categorizedAuto",
+//   "categorizeNetwork",
+//   "category",
+//   "categoryAuto",
+//   "categoryVerified",
+//   "description",
+//   "followersCount",
+//   "friends",
+//   "friendsCount",
+//   "isBot",
+//   "lang",
+//   "languageAnalyzed",
+//   "location",
+//   "name",
+//   "nodeId",
+//   "profileHistograms",
+//   "screenName",
+//   "statusesCount",
+//   "tweetHistograms"
+// ];
 
 let saveSampleTweetFlag = true;
 
@@ -244,7 +244,6 @@ const DEFAULT_CATEGORIZE_CACHE_DEFAULT_TTL = 300; //
 const DEFAULT_CATEGORIZE_CACHE_CHECK_PERIOD = 10;
 
 const chalk = require("chalk");
-// const chalkUser = chalk.blue;
 const chalkTwitter = chalk.blue;
 const chalkConnect = chalk.black;
 const chalkSocket = chalk.black;
@@ -295,7 +294,6 @@ const threeceeConfig = {
   token: "14607119-S5EIEw89NSC462IkX4GWT67K1zWzoLzuZF7wiurku",
   token_secret: "3NI3s4sTILiqBilgEDBSlC6oSJYXcdLQP7lXp58TQMk0A"
 };
-
 
 function dnsReverse(params){
 
@@ -475,37 +473,6 @@ function dnsReverse(params){
   });
 }
 
-async function updateUserAutoCategory(params){
-
-  let user = {};
-
-  if (categorizedUserHashMap.has(params.user.nodeId)){
-    user = categorizedUserHashMap.get(params.user.nodeId);
-    user.auto = params.user.categoryAuto;
-    user.network = params.user.categorizeNetwork;
-  }
-  else{
-    user = params.user;
-  }
-
-  let dbUser = await global.wordAssoDb.User.findOne({nodeId: params.user.nodeId});
-
-  if (dbUser) {
-    dbUser.categoryAuto = params.user.categoryAuto;
-    dbUser.categorizeNetwork = params.user.categorizeNetwork;
-  }
-  else{
-    dbUser = new global.wordAssoDb.User(params.user);
-  }
-
-  await dbUser.save();
-
-  categorizedUserHashMap.set(params.user.nodeId, user);
-  uncategorizeableUserSet.delete(params.user.nodeId);
-
-  return dbUser;
-}
-
 async function initPubSub(p){
   const params = p || {};
   const projectId = params.projectId || configuration.pubSub.projectId;
@@ -609,62 +576,6 @@ const nodeSearchResultHandler = async function(message){
 
   return;
 };
-
-// const nodeAutoCategorizeResultHandler = async function(message){
-
-//   const messageObj = JSON.parse(message.data.toString());
-
-//   if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)){
-
-//     statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived += 1;
-
-//     if (messageObj.node && messageObj.node.nodeType === "user") {
-
-//       await updateUserAutoCategory({user: messageObj.node});
-
-//       console.log(chalkBlueBold(MODULE_ID_PREFIX
-//         + " | ==> PS AUTO CAT USER [" + statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived + "]"
-//         + " | MID: " + message.id
-//         + " | RID: " + messageObj.requestId
-//         + " | SEARCH MODE: " + messageObj.searchMode
-//         + " | NID: " + messageObj.node.nodeId
-//         + " | @" + messageObj.node.screenName
-//         + " | FLW" + formatBoolean(messageObj.node.following)
-//         + " | CN: " + messageObj.node.categorizeNetwork
-//         + " | CV: " + formatBoolean(messageObj.node.categoryVerified)
-//         + " | CM: " + formatCategory(messageObj.node.category)
-//         + " | CA: " + formatCategory(messageObj.node.categoryAuto)
-//       ));
-
-//     }
-//     else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
-//       console.log(chalkBlueBold(MODULE_ID_PREFIX
-//         + " | ==> PS AUTO CAT HASHTAG [" + statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived + "]"
-//         + " | MID: " + message.id
-//         + " | RID: " + messageObj.requestId
-//         + " | SEARCH MODE: " + messageObj.searchMode
-//         + " | NID: " + messageObj.node.nodeId
-//         + " | CM: " + formatCategory(messageObj.node.category)
-//         + " | CA: " + formatCategory(messageObj.node.categoryAuto)
-//       ));
-
-//     }
-//     else{
-//       console.log(chalk.yellow(MODULE_ID_PREFIX
-//         + " | ==> PS AUTO CAT NODE -MISS- [" + statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived + "]"
-//         + " | MID: " + message.id
-//         + " | RID: " + messageObj.requestId
-//         + " | SEARCH MODE: " + messageObj.searchMode
-//       ));
-//     }
-
-//     tcUtils.emitter.emit("autoCategorizeResult_" + messageObj.requestId);
-//     pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
-//     message.ack();
-//   }
-
-//   return;
-// };
 
 const nodeSetPropsResultHandler = async function(message){
 
@@ -2946,8 +2857,6 @@ process.on("message", async function processMessageRx(msg) {
       + " | *** SHUTDOWN OR SIGINT ***\nWAS | =============================\n"
     ));
 
-    // clearInterval(internetCheckInterval);
-
     try{
       await tcUtils.saveFile({folder: statsHostFolder, statsFile: statsFile, obj: statsObj});
     }
@@ -4989,16 +4898,6 @@ async function initSocketHandler(socketObj) {
 
           if (node.nodeType === "user") {
 
-            // const file = node.nodeId + ".json";
-
-            // const user = pick(node, userTrainingSetPickArray);
-
-            // statsObj.queues.saveFileQueue = tcUtils.saveFileQueue({
-            //   folder: configuration.userDataFolder,
-            //   file: file,
-            //   obj: user
-            // });
-
             console.log(chalkSocket(MODULE_ID_PREFIX
               + " | R< TWITTER_CATEGORIZE_NODE"
               + " | " + getTimeStamp()
@@ -5334,28 +5233,20 @@ async function initSocketNamespaces(){
 
 async function processCheckCategory(nodeObj){
 
-  let categorizedNodeHashMap;
-
-  switch (nodeObj.nodeType) {
-
-    case "hashtag":
-      categorizedNodeHashMap = categorizedHashtagHashMap;
-    break;
-
-    case "user":
-      categorizedNodeHashMap = categorizedUserHashMap;
-    break;
-
-    default:
-      throw new Error("NO CATEGORY HASHMAP: " + nodeObj.nodeType);
+  if (nodeObj.nodeType !== "user" && nodeObj.nodeType !== "hashtag"){
+    throw new Error("NO CATEGORY HASHMAP: " + nodeObj.nodeType);
   }
+
+  const categorizedNodeHashMap = (nodeObj.nodeType === "user") ? categorizedUserHashMap : categorizedHashtagHashMap;
 
   if (categorizedNodeHashMap.has(nodeObj.nodeId)) {
 
-    nodeObj.category = categorizedNodeHashMap.get(nodeObj.nodeId).manual;
-    nodeObj.categoryAuto = categorizedNodeHashMap.get(nodeObj.nodeId).auto;
-    nodeObj.categorizeNetwork = categorizedNodeHashMap.get(nodeObj.nodeId).network;
-    nodeObj.categoryVerified = categorizedNodeHashMap.get(nodeObj.nodeId).verified;
+    const catObj = categorizedNodeHashMap.get(nodeObj.nodeId);
+
+    nodeObj.category = catObj.manual;
+    nodeObj.categoryAuto = catObj.auto;
+    nodeObj.categorizeNetwork = catObj.network;
+    nodeObj.categoryVerified = catObj.verified;
 
     if (nodesPerMinuteTopTermCache.get(nodeObj.nodeId) !== undefined) {
       nodeObj.isTopTerm = true;
@@ -9141,8 +9032,11 @@ async function initDbUserChangeStream(){
   const userCollection = global.dbConnection.collection("users");
 
   let catChangeFlag = false;
+  let catAutoChangeFlag = false;
   let catNetworkChangeFlag = false;
   let catVerifiedChangeFlag = false;
+
+  let chalkType = chalkLog;
 
   const userChangeFilter = {
     "$match": {
@@ -9165,6 +9059,7 @@ async function initDbUserChangeStream(){
   userChangeStream.on("change", function(change){
 
     catChangeFlag = false;
+    catAutoChangeFlag = false;
     catNetworkChangeFlag = false;
     catVerifiedChangeFlag = false;
 
@@ -9172,7 +9067,6 @@ async function initDbUserChangeStream(){
     statsObj.user.categoryAutoChanged = (statsObj.user.categoryAutoChanged === undefined) ? 0 : statsObj.user.categoryAutoChanged; 
     statsObj.user.categorizeNetworkChanged = (statsObj.user.categorizeNetworkChanged === undefined) ? 0 : statsObj.user.categorizeNetworkChanged; 
     statsObj.user.categoryVerifiedChanged = (statsObj.user.categoryVerifiedChanged === undefined) ? 0 : statsObj.user.categoryVerifiedChanged; 
-
 
     if (change && change.operationType === "insert"){
 
@@ -9194,23 +9088,22 @@ async function initDbUserChangeStream(){
       ));
     }
     
-    if (change 
+    if ( change 
+      && (change.operationType === "update" || change.operationType === "insert") 
       && change.fullDocument 
       && change.updateDescription 
-      && change.updateDescription.updatedFields 
-      && (Object.keys(change.updateDescription.updatedFields).includes("category")
-        || Object.keys(change.updateDescription.updatedFields).includes("categoryVerified")
-        || Object.keys(change.updateDescription.updatedFields).includes("categorizeNetwork")
-        || Object.keys(change.updateDescription.updatedFields).includes("categoryAuto"))
-    ) { 
+      && change.updateDescription.updatedFields
+    ){
+
+      const changedArray = Object.keys(change.updateDescription.updatedFields);
 
       categoryChanges = {};
 
-      categoryChanges.manual = change.fullDocument.category;
-      categoryChanges.auto = change.fullDocument.categoryAuto;
-      categoryChanges.network = change.fullDocument.categorizeNetwork;
-      categoryChanges.verified = change.fullDocument.categoryVerified;
-      
+      if (changedArray.includes("category")) { categoryChanges.manual = change.fullDocument.category; }
+      if (changedArray.includes("categoryAuto")) { categoryChanges.auto = change.fullDocument.categoryAuto; }
+      if (changedArray.includes("categorizeNetwork")) { categoryChanges.network = change.fullDocument.categorizeNetwork; }
+      if (changedArray.includes("categoryVerified")) { categoryChanges.verified = change.fullDocument.categoryVerified; }
+
       if (categoryChanges.auto || categoryChanges.manual || categoryChanges.network || categoryChanges.verified) {
 
         catObj = categorizedUserHashMap.get(change.fullDocument.nodeId);
@@ -9227,30 +9120,40 @@ async function initDbUserChangeStream(){
         }
 
         if (categoryChanges.manual && formatCategory(catObj.manual) !== formatCategory(categoryChanges.manual)) {
+          catObj.manual = categoryChanges.manual;
           catChangeFlag = true;
           statsObj.user.categoryChanged += 1;
         }
 
         if (categoryChanges.auto && formatCategory(catObj.auto) !== formatCategory(categoryChanges.auto)) {
-          catChangeFlag = true;
+          catObj.auto = categoryChanges.auto;
+          catAutoChangeFlag = true;
           statsObj.user.categoryAutoChanged += 1;
         }
 
         if (categoryChanges.network && catObj.network && (catObj.network !== categoryChanges.network)) {
+          catObj.network = categoryChanges.network;
           catNetworkChangeFlag = true;
           statsObj.user.categorizeNetworkChanged += 1;
         }
 
         if (categoryChanges.verified && catObj.verified && (catObj.verified !== categoryChanges.verified)) {
+          catObj.verified = categoryChanges.verified;
           catVerifiedChangeFlag = true;
           statsObj.user.categoryVerifiedChanged += 1;
         }
 
-        if (catChangeFlag || catNetworkChangeFlag || catVerifiedChangeFlag) {
+        if (catChangeFlag || catAutoChangeFlag || catNetworkChangeFlag || catVerifiedChangeFlag) {
 
-          printUserObj(MODULE_ID_PREFIX + " | DB CHG | CAT USR", change.fullDocument);
+          // printUserObj(MODULE_ID_PREFIX + " | DB CHG | CAT USR", change.fullDocument);
 
-          console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | CAT USR"
+          chalkType = chalkLog;
+
+          if (catChangeFlag && catObj.manual !== "none" && categoryChanges.manual === "none"){
+            chalkType = chalkAlert;
+          }
+
+          console.log(chalkType(MODULE_ID_PREFIX + " | DB CHG | CAT USR"
             + " [ M: " + statsObj.user.categoryChanged 
             + " A: " + statsObj.user.categoryAutoChanged
             + " N: " + statsObj.user.categorizeNetworkChanged + "]"
@@ -9262,7 +9165,6 @@ async function initDbUserChangeStream(){
             + " | @" + change.fullDocument.screenName
           ));
 
-          catObj.manual = categoryChanges.manual || catObj.manual;
           catObj.auto = categoryChanges.auto || catObj.auto;
           catObj.network = categoryChanges.network || catObj.network;
           catObj.verified = categoryChanges.verified || catObj.verified;
@@ -9272,6 +9174,7 @@ async function initDbUserChangeStream(){
 
         }
       }
+
     }
 
   });

@@ -9089,7 +9089,7 @@ async function initDbUserChangeStream(){
     }
     
     if ( change 
-      && (change.operationType === "update" || change.operationType === "insert") 
+      && (change.operationType === "update") 
       && change.fullDocument 
       && change.updateDescription 
       && change.updateDescription.updatedFields
@@ -9105,6 +9105,8 @@ async function initDbUserChangeStream(){
       if (changedArray.includes("categoryVerified")) { categoryChanges.verified = change.fullDocument.categoryVerified; }
 
       if (categoryChanges.auto || categoryChanges.manual || categoryChanges.network || categoryChanges.verified) {
+
+        let textAppend = "";
 
         catObj = categorizedUserHashMap.get(change.fullDocument.nodeId);
 
@@ -9123,24 +9125,29 @@ async function initDbUserChangeStream(){
           catObj.manual = categoryChanges.manual;
           catChangeFlag = true;
           statsObj.user.categoryChanged += 1;
+
+          textAppend += " | M: " + formatCategory(catObj.manual) + " -> " + formatCategory(categoryChanges.manual);
         }
 
         if (categoryChanges.auto && formatCategory(catObj.auto) !== formatCategory(categoryChanges.auto)) {
           catObj.auto = categoryChanges.auto;
           catAutoChangeFlag = true;
           statsObj.user.categoryAutoChanged += 1;
+          textAppend += " A: " + formatCategory(catObj.auto) + " -> " + formatCategory(categoryChanges.auto);
         }
 
         if (categoryChanges.network && catObj.network && (catObj.network !== categoryChanges.network)) {
           catObj.network = categoryChanges.network;
           catNetworkChangeFlag = true;
           statsObj.user.categorizeNetworkChanged += 1;
+          textAppend += " | CN: " + catObj.network + " -> " + categoryChanges.network;
         }
 
         if (categoryChanges.verified && catObj.verified && (catObj.verified !== categoryChanges.verified)) {
           catObj.verified = categoryChanges.verified;
           catVerifiedChangeFlag = true;
           statsObj.user.categoryVerifiedChanged += 1;
+          textAppend += " | V: " + formatBoolean(catObj.verified) + " -> " + formatCategory(categoryChanges.verified);
         }
 
         if (catChangeFlag || catAutoChangeFlag || catNetworkChangeFlag || catVerifiedChangeFlag) {
@@ -9153,17 +9160,15 @@ async function initDbUserChangeStream(){
             chalkType = chalkAlert;
           }
 
-          console.log(chalkType(MODULE_ID_PREFIX + " | DB CHG | CAT USR"
+          const text = MODULE_ID_PREFIX + " | DB CHG | CAT USR"
             + " [ M: " + statsObj.user.categoryChanged 
             + " A: " + statsObj.user.categoryAutoChanged
             + " N: " + statsObj.user.categorizeNetworkChanged + "]"
-            + " | V: " + formatBoolean(catObj.verified) + " -> " + formatCategory(categoryChanges.verified)
-            + " | M: " + formatCategory(catObj.manual) + " -> " + formatCategory(categoryChanges.manual)
-            + " A: " + formatCategory(catObj.auto) + " -> " + formatCategory(categoryChanges.auto)
-            + " | CN: " + catObj.network + " -> " + categoryChanges.network
             + " | " + change.fullDocument.nodeId
             + " | @" + change.fullDocument.screenName
-          ));
+            + textAppend;
+
+          console.log(chalkType(text));
 
           catObj.auto = categoryChanges.auto || catObj.auto;
           catObj.network = categoryChanges.network || catObj.network;

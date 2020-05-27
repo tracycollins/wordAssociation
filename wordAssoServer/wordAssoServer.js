@@ -5842,8 +5842,6 @@ async function updateUserSets(){
 
   const userSearchQuery = {
     categorized: true
-    // category: { "$in": ["left", "right", "neutral"]},
-    // ignored: false
   };
   
   userSearchCursor = global.wordAssoDb.User
@@ -5853,14 +5851,9 @@ async function updateUserSets(){
     categorizeNetwork: 1, 
     category: 1, 
     categoryAuto: 1, 
-    // categoryMismatch: 1, 
     categoryVerified: 1, 
-    // friendsCount: 1, 
     followersCount: 1, 
     following: 1, 
-    // ignored: 1,
-    // lang: 1, 
-    // name: 1,
     nodeId: 1, 
     screenName: 1
   })
@@ -5874,85 +5867,24 @@ async function updateUserSets(){
 
   userSearchCursor.on("data", async function(user) {
 
-    // const nodeId = user.nodeId.toLowerCase();
+    if (categorizedArray.includes(user.category)){
 
-    // if (user.ignored === undefined) { user.ignored = false; }
-    // if (user.following === undefined) { user.following = false; }
+      await global.wordAssoDb.Uncat.deleteOne({nodeId: user.nodeId});
 
-    // if (user.category === undefined || user.category === "false" || !user.category) { user.category = "none"; }
-    // if (user.categoryAuto === undefined || user.categoryAuto === "false" || !user.categoryAuto) { user.categoryAuto = "none"; }
+      uncategorizeableUserSet.delete(user.nodeId);
 
-    // const category = user.category;
+      categorizedUserHashMap.set(user.nodeId, 
+        { 
+          nodeId: user.nodeId, 
+          screenName: user.screenName, 
+          manual: user.category, 
+          auto: user.categoryAuto,
+          network: user.categorizeNetwork,
+          verified: user.categoryVerified
+        }
+      );
 
-    // if ((user.category === "none") && uncategorizeableUserSet.has(user.nodeId)){
-
-    //   global.wordAssoDb.User.deleteOne({nodeId: user.nodeId}, function(err){
-    //     if (err) {
-    //       console.log(chalkError(MODULE_ID_PREFIX + " | *** DB DELETE UNCATEGORIZEABLE | ERROR: " + err));
-    //     }
-    //     else {
-    //       printUserObj(
-    //         "XXX USER | UNCATEGORIZEABLE",
-    //         user, 
-    //         chalkAlert
-    //       );
-    //     }
-    //   });
-    // }
-    // else if (user.lang && (user.lang !== undefined) && (user.lang != "en")){
-
-    //   global.wordAssoDb.User.deleteOne({nodeId: user.nodeId}, function(err){
-    //     if (err) {
-    //       console.log(chalkError(MODULE_ID_PREFIX + " | *** DB DELETE USER LANG NOT ENG | ERROR: " + err));
-    //     }
-    //     else {
-    //       printUserObj(
-    //         "XXX USER | LANG NOT ENGLISH: " + user.lang,
-    //         user, 
-    //         chalkAlert
-    //       );
-    //     }
-    //   });
-    // }
-    // else if ((user.category === "none") 
-    //   && !user.following 
-    //   && (user.followersCount > 0)
-    //   && (user.followersCount < configuration.minFollowersAutoCategorize)){
-
-    //   global.wordAssoDb.User.deleteOne({nodeId: user.nodeId}, function(err){
-    //     if (err) {
-    //       console.log(chalkError(MODULE_ID_PREFIX + " | *** DB DELETE USER LESS THAN MIN FOLLOWERS | ERROR: " + err));
-    //     }
-    //     else {
-    //       printUserObj(
-    //         "XXX USER | < MIN FOLLOWERS: " + user.followersCount,
-    //         user, 
-    //         chalkAlert
-    //       );
-    //     }
-    //   });
-    // }
-    // else {
-
-      if (categorizedArray.includes(user.category)){
-
-        await global.wordAssoDb.Uncat.deleteOne({nodeId: user.nodeId});
-
-        uncategorizeableUserSet.delete(user.nodeId);
-
-        categorizedUserHashMap.set(user.nodeId, 
-          { 
-            nodeId: user.nodeId, 
-            screenName: user.screenName, 
-            manual: user.category, 
-            auto: user.categoryAuto,
-            network: user.categorizeNetwork,
-            verified: user.categoryVerified
-          }
-        );
-
-      }      
-    // }
+    }      
 
     usersProcessed += 1;
 

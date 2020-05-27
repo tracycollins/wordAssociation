@@ -708,7 +708,7 @@ async function loadUsersArchive(params){
       }
 
       if (hostname === "google"){
-        fileObj.path = fileObj.path.replace("/Users/tc/", "/home/tc");
+        fileObj.path = fileObj.path.replace("/Users/tc", "/home/tc");
       }
 
       console.log(chalkInfo(MODULE_ID_PREFIX + " | ... LOAD ARCHIVE | " + fileObj.path));

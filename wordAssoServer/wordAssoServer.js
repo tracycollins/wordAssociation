@@ -5231,7 +5231,7 @@ async function initSocketNamespaces(){
   }
 }
 
-async function processCheckCategory(nodeObj){
+async function checkCategory(nodeObj){
 
   if (nodeObj.nodeType !== "user" && nodeObj.nodeType !== "hashtag"){
     throw new Error("NO CATEGORY HASHMAP: " + nodeObj.nodeType);
@@ -5269,30 +5269,30 @@ async function processCheckCategory(nodeObj){
   }
 }
 
-async function checkCategory(nodeObj) {
+// async function checkCategory(nodeObj) {
 
-  switch (nodeObj.nodeType) {
+//   switch (nodeObj.nodeType) {
 
-    case "hashtag":
-    case "user":
+//     case "hashtag":
+//     case "user":
 
-      const updatedNodeObj = await processCheckCategory(nodeObj);
-      return updatedNodeObj;
+//       const updatedNodeObj = await processCheckCategory(nodeObj);
+//       return updatedNodeObj;
 
-    case "tweet":
-    case "emoji":
-    case "media":
-    case "ngram":
-    case "url":
-    case "place":
-    case "word":
-      return nodeObj;
+//     case "tweet":
+//     case "emoji":
+//     case "media":
+//     case "ngram":
+//     case "url":
+//     case "place":
+//     case "word":
+//       return nodeObj;
 
-    default:
-      console.log(chalk.blue(MODULE_ID_PREFIX + " | DEFAULT | checkCategory\n" + jsonPrint(nodeObj)));
-      return nodeObj;
-  }
-}
+//     default:
+//       console.log(chalk.blue(MODULE_ID_PREFIX + " | DEFAULT | checkCategory\n" + jsonPrint(nodeObj)));
+//       return nodeObj;
+//   }
+// }
 
 async function updateNodeMeter(node){
 
@@ -6196,22 +6196,24 @@ function initTransmitNodeQueueInterval(interval){
 
         transmitNodeQueueReady = false;
 
-        const nodeObj = transmitNodeQueue.shift();
+        let node = transmitNodeQueue.shift();
 
-        if (!nodeObj) {
+        if (!node) {
           console.log(chalkError(new Error("transmitNodeQueue: NULL NODE OBJ DE-Q")));
           transmitNodeQueueReady = true;
           return;
         }
 
-        nodeObj.updateLastSeen = true;
+        node.updateLastSeen = true;
 
-        if (empty(nodeObj.category)) { nodeObj.category = "none"; }
-        if (empty(nodeObj.categoryAuto)) { nodeObj.categoryAuto = "none"; }
+        if (empty(node.category)) { node.category = "none"; }
+        if (empty(node.categoryAuto)) { node.categoryAuto = "none"; }
 
         // ??? PERFORMANCE: may parallelize checkCategory + updateNodeMeter + userCategorizeable
 
-        let node = await checkCategory(nodeObj);
+        if (node.nodeType === "user" || node.nodeType === "hashtag"){
+          node = await checkCategory(node);
+        }
 
         if (node.nodeType === "user"){
 
@@ -6365,6 +6367,7 @@ function initTransmitNodeQueueInterval(interval){
           try{
 
             delete node._id;
+            node.text = node.nodeId;
 
             const updatedHashtag = await global.wordAssoDb.Hashtag.findOneAndUpdate(
               { nodeId: node.nodeId }, 
@@ -6378,7 +6381,7 @@ function initTransmitNodeQueueInterval(interval){
           }
           catch(e){
 
-            console.log(chalkError(MODULE_ID_PREFIX + " | findOneAndUpdate HT ERROR" + jsonPrint(e)));
+            console.log(chalkError(MODULE_ID_PREFIX + " | findOneAndUpdate HT ERROR\n" + jsonPrint(e)));
 
             viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
             transmitNodeQueueReady = true;

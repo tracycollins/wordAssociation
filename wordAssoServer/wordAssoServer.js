@@ -1,6 +1,8 @@
 const MODULE_NAME = "wordAssoServer";
 const MODULE_ID_PREFIX = "WAS";
 
+const DEFAULT_CURSOR_BATCH_SIZE = 5000;
+
 const DEFAULT_PRIMARY_HOST = "google";
 const DEFAULT_DATABASE_HOST = "mms1";
 
@@ -147,7 +149,6 @@ const DEFAULT_ENABLE_GEOCODE = true;
 // const DEFAULT_SAVE_FILE_QUEUE_INTERVAL = 5*ONE_SECOND;
 const DEFAULT_ENABLE_TWITTER_FOLLOW = false;
 const DEFAULT_TEST_INTERNET_CONNECTION_URL = "www.google.com";
-const DEFAULT_CURSOR_BATCH_SIZE = 100;
 
 const DEFAULT_THREECEE_USERS = [
   "altthreecee00"
@@ -258,7 +259,8 @@ const chalkBlueBold = chalk.blue.bold;
 const chalkBot = chalk.gray;
 
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
-const HashMap = require("hashmap").HashMap;
+// const HashMap = require("hashmap").HashMap;
+const HashMap = require("hashmap");
 
 const btoa = require("btoa");
 const request = require("request-promise-native");
@@ -5898,11 +5900,8 @@ async function updateUserSets(){
 
   updateUserSetsRunning = true;
 
-  // let calledBack = false;
-
   if (!statsObj.dbConnectionReady) {
     console.log(chalkAlert(MODULE_ID_PREFIX + " | ABORT updateUserSets: DB CONNECTION NOT READY"));
-    // calledBack = true;
     updateUserSetsRunning = false;
     throw new Error("DB CONNECTION NOT READY");
   }
@@ -5914,15 +5913,16 @@ async function updateUserSets(){
   };
   
   userSearchCursor = global.wordAssoDb.User
-  .find(userSearchQuery)
+  // .find(userSearchQuery)
+  .find()
   .select({
-    categorized: 1, 
+    // categorized: 1, 
     categorizeNetwork: 1, 
     category: 1, 
     categoryAuto: 1, 
     categoryVerified: 1, 
-    followersCount: 1, 
-    following: 1, 
+    // followersCount: 1, 
+    // following: 1, 
     nodeId: 1, 
     screenName: 1
   })
@@ -5934,84 +5934,29 @@ async function updateUserSets(){
 
   statsObj.usersProcessed = 0;
 
-  // userSearchCursor.on("data", async function(user) {
-
-  //   if (categorizedArray.includes(user.category)){
-
-  //     await global.wordAssoDb.Uncat.deleteOne({nodeId: user.nodeId});
-
-  //     uncategorizeableUserSet.delete(user.nodeId);
-
-  //     categorizedUserHashMap.set(user.nodeId, 
-  //       { 
-  //         nodeId: user.nodeId, 
-  //         screenName: user.screenName, 
-  //         manual: user.category, 
-  //         auto: user.categoryAuto,
-  //         network: user.categorizeNetwork,
-  //         verified: user.categoryVerified
-  //       }
-  //     );
-
-  //   }      
-
-  //   usersProcessed += 1;
-
-  //   if (usersProcessed % 10000 === 0) {
-  //     console.log(chalkLog(MODULE_ID_PREFIX + " | USER SETS | " + usersProcessed + " USERS PROCESSED"));
-  //   }
-  // });
-
   userSearchCursor.on("end", function() {
-
     console.log(chalkBlue(MODULE_ID_PREFIX + " | END FOLLOWING CURSOR"
       + " | " + getTimeStamp()
       + " | FOLLOWING USER SET | RUN TIME: " + tcUtils.msToTime(moment().valueOf() - cursorStartTime)
     ));
-
     console.log(chalkLog(MODULE_ID_PREFIX + " | USER DB STATS\n" + jsonPrint(statsObj.user)));
-
-    // tcUtils.emitter.emit("updateUserSetsEnd");
-
-    // if (!calledBack) { 
-    //   calledBack = true;
-    //   updateUserSetsRunning = false;
-    //   return;
-    // }
-  });
+ });
 
   userSearchCursor.on("error", function(err) {
-
     console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR userSearchCursor: " + err));
     console.log(chalkAlert(MODULE_ID_PREFIX + " | USER DB STATS\n" + jsonPrint(statsObj.user)));
-
-    // tcUtils.emitter.emit("updateUserSetsEnd");
-
-    // if (!calledBack) { 
-    //   calledBack = true;
-    //   updateUserSetsRunning = false;
-    //   return;
-    // }
   });
 
   userSearchCursor.on("close", async function() {
-
     console.log(chalkBlue(MODULE_ID_PREFIX + " | CLOSE FOLLOWING CURSOR"));
     console.log(chalkBlue(MODULE_ID_PREFIX + " | USER DB STATS\n" + jsonPrint(statsObj.user)));
-
-    // tcUtils.emitter.emit("updateUserSetsEnd");
-
-    // if (!calledBack) { 
-    //   calledBack = true;
-    //   updateUserSetsRunning = false;
-    //   return;
-    // }
   });
 
-  await userSearchCursor.eachAsync((user) => {
-    cursorDataHandler(user);
-  }, {parallel: 8});
+  await userSearchCursor.eachAsync(async function(user){
+    await cursorDataHandler(user);
+  }, {parallel: 32});
 
+  updateUserSetsRunning = false; 
   return;
 
 }
@@ -6020,11 +5965,8 @@ async function updateHashtagSets(){
 
   statsObj.status = "UPDATE HASHTAG SETS";
 
-  // let calledBack = false;
-
   if (!statsObj.dbConnectionReady) {
     console.log(chalkAlert(MODULE_ID_PREFIX + " | ABORT updateHashtagSets: DB CONNECTION NOT READY"));
-    // calledBack = true;
     throw new Error("DB CONNECTION NOT READY");
   }
 
@@ -6063,69 +6005,27 @@ async function updateHashtagSets(){
 
   statsObj.hashtagsProcessed = 0;
 
-  // hashtagSearchCursor.on("data", async function(hashtag) {
-
-  //   // const nodeId = hashtag.nodeId.toLowerCase();
-  //   const text = (hashtag.text && (hashtag.text !== undefined)) ? hashtag.text.toLowerCase() : "undefined_text";
-  //   const category = hashtag.category;
-
-  //   if (hashtag.category && hashtag.category !== undefined && hashtag.category !== "none"){
-  //     categorizedHashtagHashMap.set(hashtag.nodeId, 
-  //       { 
-  //         nodeId: hashtag.nodeId, 
-  //         text: text, 
-  //         manual: category, 
-  //         auto: "none"
-  //       }
-  //     );
-  //   }
-
-  //   hashtagsProcessed += 1;
-  //   if (hashtagsProcessed % 10000 === 0) {
-  //     console.log(chalkLog(MODULE_ID_PREFIX + " | HASHTAG SETS | " + hashtagsProcessed + " HASHTAGS PROCESSED"));
-  //   }
-
-  // });
-
   hashtagSearchCursor.on("end", function() {
-
     console.log(chalkBlue(MODULE_ID_PREFIX + " | END FOLLOWING CURSOR"
       + " | " + getTimeStamp()
       + " | FOLLOWING HASHTAG SET | RUN TIME: " + tcUtils.msToTime(moment().valueOf() - cursorStartTime)
     ));
     console.log(chalkLog(MODULE_ID_PREFIX + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag)));
-
-    // if (!calledBack) { 
-    //   calledBack = true;
-    //   return;
-    // }
   });
 
   hashtagSearchCursor.on("error", function(err) {
-
     console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR hashtagSearchCursor: " + err));
     console.log(chalkAlert(MODULE_ID_PREFIX + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag)));
-
-    // if (!calledBack) { 
-    //   calledBack = true;
-    //   throw err;
-    // }
   });
 
   hashtagSearchCursor.on("close", function() {
-
     console.log(chalkBlue(MODULE_ID_PREFIX + " | CLOSE FOLLOWING CURSOR"));
     console.log(chalkBlue(MODULE_ID_PREFIX + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag)));
-
-    // if (!calledBack) { 
-    //   calledBack = true;
-    //   return;
-    // }
   });
 
-  await hashtagSearchCursor.eachAsync((hashtag) => {
-    hashtagCursorDataHandler(hashtag);
-  }, {parallel: 8});
+  await hashtagSearchCursor.eachAsync(async function(hashtag){
+    await hashtagCursorDataHandler(hashtag);
+  }, {parallel: 32});
 
   return;
 }

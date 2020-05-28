@@ -5819,39 +5819,67 @@ function cursorDataHandler(user){
 
   return new Promise(function(resolve, reject){
 
-    if (categorizedArray.includes(user.category)){
-
-      global.wordAssoDb.Uncat.deleteOne({nodeId: user.nodeId})
-      .then(function(){
-
-        uncategorizeableUserSet.delete(user.nodeId);
-
-        categorizedUserHashMap.set(user.nodeId, 
-          { 
-            nodeId: user.nodeId, 
-            screenName: user.screenName, 
-            manual: user.category, 
-            auto: user.categoryAuto,
-            network: user.categorizeNetwork,
-            verified: user.categoryVerified
-          }
-        );
-
-        statsObj.usersProcessed += 1;
-
-        if (statsObj.usersProcessed % 5000 === 0) {
-          console.log(chalkLog(MODULE_ID_PREFIX + " | USER SETS | " + statsObj.usersProcessed + " USERS PROCESSED"));
-        }
-
-        resolve();
-
-      })
-      .catch(function(err){
-        return reject(err);
-      });
-
+    if (!categorizedArray.includes(user.category)){
+      return resolve();
     }      
 
+    global.wordAssoDb.Uncat.deleteOne({nodeId: user.nodeId})
+    .then(function(){
+
+      uncategorizeableUserSet.delete(user.nodeId);
+
+      categorizedUserHashMap.set(user.nodeId, 
+        { 
+          nodeId: user.nodeId, 
+          screenName: user.screenName, 
+          manual: user.category, 
+          auto: user.categoryAuto,
+          network: user.categorizeNetwork,
+          verified: user.categoryVerified
+        }
+      );
+
+      statsObj.usersProcessed += 1;
+
+      if (statsObj.usersProcessed % 5000 === 0) {
+        console.log(chalkLog(MODULE_ID_PREFIX + " | USER SETS | " + statsObj.usersProcessed + " USERS PROCESSED"));
+      }
+
+      resolve();
+
+    })
+    .catch(function(err){
+      return reject(err);
+    });
+
+  });
+}
+
+function hashtagCursorDataHandler(hashtag){
+
+  return new Promise(function(resolve){
+
+    const text = (hashtag.text && (hashtag.text !== undefined)) ? hashtag.text.toLowerCase() : hashtag.nodeId;
+    // const category = hashtag.category;
+
+    if (hashtag.category && hashtag.category !== undefined && hashtag.category !== "none"){
+      categorizedHashtagHashMap.set(hashtag.nodeId, 
+        { 
+          nodeId: hashtag.nodeId, 
+          text: text, 
+          manual: hashtag.category, 
+          auto: "none"
+        }
+      );
+    }
+
+    statsObj.hashtagsProcessed += 1;
+
+    if (statsObj.hashtagsProcessed % 10000 === 0) {
+      console.log(chalkLog(MODULE_ID_PREFIX + " | HASHTAG SETS | " + statsObj.hashtagsProcessed + " HASHTAGS PROCESSED"));
+    }
+
+    resolve();
 
   });
 }
@@ -5870,11 +5898,11 @@ async function updateUserSets(){
 
   updateUserSetsRunning = true;
 
-  let calledBack = false;
+  // let calledBack = false;
 
   if (!statsObj.dbConnectionReady) {
     console.log(chalkAlert(MODULE_ID_PREFIX + " | ABORT updateUserSets: DB CONNECTION NOT READY"));
-    calledBack = true;
+    // calledBack = true;
     updateUserSetsRunning = false;
     throw new Error("DB CONNECTION NOT READY");
   }
@@ -5899,12 +5927,12 @@ async function updateUserSets(){
     screenName: 1
   })
   .lean()
-  // .cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
-  .cursor();
+  .cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
+  // .cursor();
 
   const cursorStartTime = moment().valueOf();
 
-  // statsObj.usersProcessed = 0;
+  statsObj.usersProcessed = 0;
 
   // userSearchCursor.on("data", async function(user) {
 
@@ -5943,13 +5971,13 @@ async function updateUserSets(){
 
     console.log(chalkLog(MODULE_ID_PREFIX + " | USER DB STATS\n" + jsonPrint(statsObj.user)));
 
-    tcUtils.emitter.emit("updateUserSetsEnd");
+    // tcUtils.emitter.emit("updateUserSetsEnd");
 
-    if (!calledBack) { 
-      calledBack = true;
-      updateUserSetsRunning = false;
-      return;
-    }
+    // if (!calledBack) { 
+    //   calledBack = true;
+    //   updateUserSetsRunning = false;
+    //   return;
+    // }
   });
 
   userSearchCursor.on("error", function(err) {
@@ -5957,13 +5985,13 @@ async function updateUserSets(){
     console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR userSearchCursor: " + err));
     console.log(chalkAlert(MODULE_ID_PREFIX + " | USER DB STATS\n" + jsonPrint(statsObj.user)));
 
-    tcUtils.emitter.emit("updateUserSetsEnd");
+    // tcUtils.emitter.emit("updateUserSetsEnd");
 
-    if (!calledBack) { 
-      calledBack = true;
-      updateUserSetsRunning = false;
-      return;
-    }
+    // if (!calledBack) { 
+    //   calledBack = true;
+    //   updateUserSetsRunning = false;
+    //   return;
+    // }
   });
 
   userSearchCursor.on("close", async function() {
@@ -5971,18 +5999,20 @@ async function updateUserSets(){
     console.log(chalkBlue(MODULE_ID_PREFIX + " | CLOSE FOLLOWING CURSOR"));
     console.log(chalkBlue(MODULE_ID_PREFIX + " | USER DB STATS\n" + jsonPrint(statsObj.user)));
 
-    tcUtils.emitter.emit("updateUserSetsEnd");
+    // tcUtils.emitter.emit("updateUserSetsEnd");
 
-    if (!calledBack) { 
-      calledBack = true;
-      updateUserSetsRunning = false;
-      return;
-    }
+    // if (!calledBack) { 
+    //   calledBack = true;
+    //   updateUserSetsRunning = false;
+    //   return;
+    // }
   });
 
   await userSearchCursor.eachAsync((user) => {
     cursorDataHandler(user);
-  });
+  }, {parallel: 8});
+
+  return;
 
 }
 
@@ -5990,11 +6020,11 @@ async function updateHashtagSets(){
 
   statsObj.status = "UPDATE HASHTAG SETS";
 
-  let calledBack = false;
+  // let calledBack = false;
 
   if (!statsObj.dbConnectionReady) {
     console.log(chalkAlert(MODULE_ID_PREFIX + " | ABORT updateHashtagSets: DB CONNECTION NOT READY"));
-    calledBack = true;
+    // calledBack = true;
     throw new Error("DB CONNECTION NOT READY");
   }
 
@@ -6031,31 +6061,31 @@ async function updateHashtagSets(){
 
   const cursorStartTime = moment().valueOf();
 
-  let hashtagsProcessed = 0;
+  statsObj.hashtagsProcessed = 0;
 
-  hashtagSearchCursor.on("data", async function(hashtag) {
+  // hashtagSearchCursor.on("data", async function(hashtag) {
 
-    // const nodeId = hashtag.nodeId.toLowerCase();
-    const text = (hashtag.text && (hashtag.text !== undefined)) ? hashtag.text.toLowerCase() : "undefined_text";
-    const category = hashtag.category;
+  //   // const nodeId = hashtag.nodeId.toLowerCase();
+  //   const text = (hashtag.text && (hashtag.text !== undefined)) ? hashtag.text.toLowerCase() : "undefined_text";
+  //   const category = hashtag.category;
 
-    if (hashtag.category && hashtag.category !== undefined && hashtag.category !== "none"){
-      categorizedHashtagHashMap.set(hashtag.nodeId, 
-        { 
-          nodeId: hashtag.nodeId, 
-          text: text, 
-          manual: category, 
-          auto: "none"
-        }
-      );
-    }
+  //   if (hashtag.category && hashtag.category !== undefined && hashtag.category !== "none"){
+  //     categorizedHashtagHashMap.set(hashtag.nodeId, 
+  //       { 
+  //         nodeId: hashtag.nodeId, 
+  //         text: text, 
+  //         manual: category, 
+  //         auto: "none"
+  //       }
+  //     );
+  //   }
 
-    hashtagsProcessed += 1;
-    if (hashtagsProcessed % 10000 === 0) {
-      console.log(chalkLog(MODULE_ID_PREFIX + " | HASHTAG SETS | " + hashtagsProcessed + " HASHTAGS PROCESSED"));
-    }
+  //   hashtagsProcessed += 1;
+  //   if (hashtagsProcessed % 10000 === 0) {
+  //     console.log(chalkLog(MODULE_ID_PREFIX + " | HASHTAG SETS | " + hashtagsProcessed + " HASHTAGS PROCESSED"));
+  //   }
 
-  });
+  // });
 
   hashtagSearchCursor.on("end", function() {
 
@@ -6065,10 +6095,10 @@ async function updateHashtagSets(){
     ));
     console.log(chalkLog(MODULE_ID_PREFIX + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag)));
 
-    if (!calledBack) { 
-      calledBack = true;
-      return;
-    }
+    // if (!calledBack) { 
+    //   calledBack = true;
+    //   return;
+    // }
   });
 
   hashtagSearchCursor.on("error", function(err) {
@@ -6076,10 +6106,10 @@ async function updateHashtagSets(){
     console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR hashtagSearchCursor: " + err));
     console.log(chalkAlert(MODULE_ID_PREFIX + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag)));
 
-    if (!calledBack) { 
-      calledBack = true;
-      throw err;
-    }
+    // if (!calledBack) { 
+    //   calledBack = true;
+    //   throw err;
+    // }
   });
 
   hashtagSearchCursor.on("close", function() {
@@ -6087,11 +6117,17 @@ async function updateHashtagSets(){
     console.log(chalkBlue(MODULE_ID_PREFIX + " | CLOSE FOLLOWING CURSOR"));
     console.log(chalkBlue(MODULE_ID_PREFIX + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag)));
 
-    if (!calledBack) { 
-      calledBack = true;
-      return;
-    }
+    // if (!calledBack) { 
+    //   calledBack = true;
+    //   return;
+    // }
   });
+
+  await hashtagSearchCursor.eachAsync((hashtag) => {
+    hashtagCursorDataHandler(hashtag);
+  }, {parallel: 8});
+
+  return;
 }
 
 let updateUserSetsInterval;
@@ -6111,7 +6147,7 @@ function initUpdateUserSetsInterval(interval){
         if (statsObj.dbConnectionReady && updateUserSetsIntervalReady) {
           updateUserSetsIntervalReady = false;
           await updateUserSets();
-          await tcUtils.waitEvent({ event: "updateUserSetsEnd", verbose: configuration.verbose});
+          // await tcUtils.waitEvent({ event: "updateUserSetsEnd", verbose: configuration.verbose});
           await updateHashtagSets();
           updateUserSetsIntervalReady = true;
         }
@@ -9625,10 +9661,9 @@ setTimeout(async function(){
     await initIgnoreWordsHashMap();
     await initAllowLocations();
     await initIgnoreLocations();
-    await updateHashtagSets();
     await updateUserSets();
-    await tcUtils.waitEvent({ event: "updateUserSetsEnd", verbose: configuration.verbose});
-
+    await updateHashtagSets();
+    // await tcUtils.waitEvent({ event: "updateUserSetsEnd", verbose: configuration.verbose});
     await loadBestRuntimeNetwork();
     await initNodeSetPropsQueueInterval(configuration.nodeSetPropsQueueInterval);
     await initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval);

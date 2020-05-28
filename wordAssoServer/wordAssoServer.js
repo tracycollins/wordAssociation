@@ -5420,6 +5420,16 @@ async function userCategorizeable(params){
 
   // assume it's a user node
 
+  if (isCategorized(node)) { 
+    if (verbose) { 
+      console.log(chalkLog(MODULE_ID_PREFIX 
+        + " | userCategorizeable | TRUE | CATEGORIZED"
+        + " | @" + node.screenName
+      ));
+    }
+    return true; 
+  }
+
   if (node.ignored && (node.ignored !== undefined)) { 
     if (verbose) { 
       console.log(chalkLog(MODULE_ID_PREFIX 
@@ -5908,9 +5918,9 @@ async function updateUserSets(){
 
   await updateUserCounts();
 
-  const userSearchQuery = {
-    categorized: true
-  };
+  // const userSearchQuery = {
+  //   categorized: true
+  // };
   
   userSearchCursor = global.wordAssoDb.User
   // .find(userSearchQuery)
@@ -6256,22 +6266,23 @@ function initTransmitNodeQueueInterval(interval){
                 printBotStats({user: node, modulo: 100});
               }
 
-              delete node._id;
+              // delete node._id;
 
-              const updatedUser = await global.wordAssoDb.User.findOneAndUpdate(
-                { nodeId: node.nodeId }, 
-                node, 
-                { upsert: true, new: true, lean: true }
-              );
+              // const updatedUser = await global.wordAssoDb.User.findOneAndUpdate(
+              //   { nodeId: node.nodeId }, 
+              //   node, 
+              //   { upsert: true, new: true, lean: true }
+              // );
 
-              if (updatedUser.screenName === undefined || updatedUser.screenName === "") {
-                console.log(chalkError(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED"));
-                printUserObj(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED", updatedUser);
-                transmitNodeQueueReady = true;
-                return;
-              }
+              // if (updatedUser.screenName === undefined || updatedUser.screenName === "") {
+              //   console.log(chalkError(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED"));
+              //   printUserObj(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED", updatedUser);
+              //   transmitNodeQueueReady = true;
+              //   return;
+              // }
 
-              viewNameSpace.volatile.emit("node", pick(updatedUser, fieldsTransmitKeys));
+              // viewNameSpace.volatile.emit("node", pick(updatedUser, fieldsTransmitKeys));
+              viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
               transmitNodeQueueReady = true;
               return;
             }

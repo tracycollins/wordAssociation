@@ -5815,6 +5815,47 @@ async function updateUserCounts() {
   return;
 }
 
+function cursorDataHandler(user){
+
+  return new Promise(function(resolve, reject){
+
+    if (categorizedArray.includes(user.category)){
+
+      global.wordAssoDb.Uncat.deleteOne({nodeId: user.nodeId})
+      .then(function(){
+
+        uncategorizeableUserSet.delete(user.nodeId);
+
+        categorizedUserHashMap.set(user.nodeId, 
+          { 
+            nodeId: user.nodeId, 
+            screenName: user.screenName, 
+            manual: user.category, 
+            auto: user.categoryAuto,
+            network: user.categorizeNetwork,
+            verified: user.categoryVerified
+          }
+        );
+
+        statsObj.usersProcessed += 1;
+
+        if (statsObj.usersProcessed % 5000 === 0) {
+          console.log(chalkLog(MODULE_ID_PREFIX + " | USER SETS | " + statsObj.usersProcessed + " USERS PROCESSED"));
+        }
+
+        resolve();
+
+      })
+      .catch(function(err){
+        return reject(err);
+      });
+
+    }      
+
+
+  });
+}
+
 let updateUserSetsRunning = false;
 
 async function updateUserSets(){
@@ -5863,35 +5904,35 @@ async function updateUserSets(){
 
   const cursorStartTime = moment().valueOf();
 
-  let usersProcessed = 0;
+  // statsObj.usersProcessed = 0;
 
-  userSearchCursor.on("data", async function(user) {
+  // userSearchCursor.on("data", async function(user) {
 
-    if (categorizedArray.includes(user.category)){
+  //   if (categorizedArray.includes(user.category)){
 
-      await global.wordAssoDb.Uncat.deleteOne({nodeId: user.nodeId});
+  //     await global.wordAssoDb.Uncat.deleteOne({nodeId: user.nodeId});
 
-      uncategorizeableUserSet.delete(user.nodeId);
+  //     uncategorizeableUserSet.delete(user.nodeId);
 
-      categorizedUserHashMap.set(user.nodeId, 
-        { 
-          nodeId: user.nodeId, 
-          screenName: user.screenName, 
-          manual: user.category, 
-          auto: user.categoryAuto,
-          network: user.categorizeNetwork,
-          verified: user.categoryVerified
-        }
-      );
+  //     categorizedUserHashMap.set(user.nodeId, 
+  //       { 
+  //         nodeId: user.nodeId, 
+  //         screenName: user.screenName, 
+  //         manual: user.category, 
+  //         auto: user.categoryAuto,
+  //         network: user.categorizeNetwork,
+  //         verified: user.categoryVerified
+  //       }
+  //     );
 
-    }      
+  //   }      
 
-    usersProcessed += 1;
+  //   usersProcessed += 1;
 
-    if (usersProcessed % 10000 === 0) {
-      console.log(chalkLog(MODULE_ID_PREFIX + " | USER SETS | " + usersProcessed + " USERS PROCESSED"));
-    }
-  });
+  //   if (usersProcessed % 10000 === 0) {
+  //     console.log(chalkLog(MODULE_ID_PREFIX + " | USER SETS | " + usersProcessed + " USERS PROCESSED"));
+  //   }
+  // });
 
   userSearchCursor.on("end", function() {
 
@@ -5937,6 +5978,10 @@ async function updateUserSets(){
       updateUserSetsRunning = false;
       return;
     }
+  });
+
+  await userSearchCursor.eachAsync((user) => {
+    cursorDataHandler(user);
   });
 
 }
@@ -9596,7 +9641,6 @@ setTimeout(async function(){
     await initTweetParser({childId: DEFAULT_TWP_CHILD_ID});
     await initUpdateUserSetsInterval(configuration.updateUserSetsInterval);
     await initWatchConfig();
-    await initTssChild({childId: DEFAULT_TSS_CHILD_ID, tweetVersion2: configuration.tweetVersion2, threeceeUser: threeceeUser});
 
     // pubSubClient = await initPubSub();
 
@@ -9614,6 +9658,8 @@ setTimeout(async function(){
     
     statsObj.internetReady = true;
     configEvents.emit("INTERNET_READY");
+
+    await initTssChild({childId: DEFAULT_TSS_CHILD_ID, tweetVersion2: configuration.tweetVersion2, threeceeUser: threeceeUser});
 
   }
   catch(err){

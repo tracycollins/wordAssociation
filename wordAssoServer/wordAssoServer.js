@@ -5271,31 +5271,6 @@ async function checkCategory(nodeObj){
   }
 }
 
-// async function checkCategory(nodeObj) {
-
-//   switch (nodeObj.nodeType) {
-
-//     case "hashtag":
-//     case "user":
-
-//       const updatedNodeObj = await processCheckCategory(nodeObj);
-//       return updatedNodeObj;
-
-//     case "tweet":
-//     case "emoji":
-//     case "media":
-//     case "ngram":
-//     case "url":
-//     case "place":
-//     case "word":
-//       return nodeObj;
-
-//     default:
-//       console.log(chalk.blue(MODULE_ID_PREFIX + " | DEFAULT | checkCategory\n" + jsonPrint(nodeObj)));
-//       return nodeObj;
-//   }
-// }
-
 async function updateNodeMeter(node){
 
   const nodeType = node.nodeType;

@@ -5892,28 +5892,19 @@ async function updateUserSets(){
   }
 
   await updateUserCounts();
-
-  // const userSearchQuery = {
-  //   categorized: true
-  // };
   
   userSearchCursor = global.wordAssoDb.User
-  // .find(userSearchQuery)
   .find()
   .select({
-    // categorized: 1, 
     categorizeNetwork: 1, 
     category: 1, 
     categoryAuto: 1, 
     categoryVerified: 1, 
-    // followersCount: 1, 
-    // following: 1, 
     nodeId: 1, 
     screenName: 1
   })
   .lean()
-  .cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
-  // .cursor();
+  .cursor({ batchSize: configuration.batchSize });
 
   const cursorStartTime = moment().valueOf();
 
@@ -5984,7 +5975,7 @@ async function updateHashtagSets(){
     categoryAuto: 1
   })
   .lean()
-  .cursor({ batchSize: DEFAULT_CURSOR_BATCH_SIZE });
+  .cursor({ batchSize: configuration.batchSize });
 
   const cursorStartTime = moment().valueOf();
 

@@ -111,3 +111,6 @@ hr {
     color: gray;
 }
 
+select:focus {
+  outline: none;
+}

@@ -589,3 +589,7 @@ output[type="text"]{
 .slider {
   width:400px;
 }
+
+select:focus {
+  outline: none;
+}

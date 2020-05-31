@@ -1,7 +1,7 @@
 const MODULE_NAME = "wordAssoServer";
 const MODULE_ID_PREFIX = "WAS";
 
-const DEFAULT_CURSOR_BATCH_SIZE = 5000;
+const DEFAULT_CURSOR_BATCH_SIZE = 1000;
 
 const DEFAULT_PRIMARY_HOST = "google";
 const DEFAULT_DATABASE_HOST = "mms1";

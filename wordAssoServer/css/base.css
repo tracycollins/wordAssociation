@@ -111,6 +111,6 @@ hr {
     color: gray;
 }
 
-select:focus {
+svg:focus {
   outline: none;
 }

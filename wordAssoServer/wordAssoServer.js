@@ -1,7 +1,7 @@
 const MODULE_NAME = "wordAssoServer";
 const MODULE_ID_PREFIX = "WAS";
 
-const DEFAULT_CURSOR_BATCH_SIZE = 1000;
+const DEFAULT_CURSOR_BATCH_SIZE = 100;
 
 const DEFAULT_PRIMARY_HOST = "google";
 const DEFAULT_DATABASE_HOST = "mms1";
@@ -5894,7 +5894,7 @@ async function updateUserSets(){
   await updateUserCounts();
   
   userSearchCursor = global.wordAssoDb.User
-  .find()
+  .find({categorized: true})
   .select({
     categorizeNetwork: 1, 
     category: 1, 
@@ -6006,39 +6006,38 @@ async function updateHashtagSets(){
   return;
 }
 
-let updateUserSetsInterval;
-let updateUserSetsIntervalReady = true;
+// let updateUserSetsInterval;
+// let updateUserSetsIntervalReady = true;
 
-function initUpdateUserSetsInterval(interval){
+// function initUpdateUserSetsInterval(interval){
 
-  return new Promise(function(resolve){
+//   return new Promise(function(resolve){
 
-    clearInterval(updateUserSetsInterval);
+//     clearInterval(updateUserSetsInterval);
 
-    console.log(chalk.bold.black(MODULE_ID_PREFIX + " | INIT USER + HASHTAG SETS INTERVAL | " + tcUtils.msToTime(interval) ));
+//     console.log(chalk.bold.black(MODULE_ID_PREFIX + " | INIT USER + HASHTAG SETS INTERVAL | " + tcUtils.msToTime(interval) ));
 
-    updateUserSetsInterval = setInterval(async function() {
+//     updateUserSetsInterval = setInterval(async function() {
 
-      try {
-        if (statsObj.dbConnectionReady && updateUserSetsIntervalReady) {
-          updateUserSetsIntervalReady = false;
-          await updateUserSets();
-          // await tcUtils.waitEvent({ event: "updateUserSetsEnd", verbose: configuration.verbose});
-          await updateHashtagSets();
-          updateUserSetsIntervalReady = true;
-        }
-      }
-      catch(err){
-        console.log(chalkError(MODULE_ID_PREFIX + " | UPDATE USER + HASHTAG SETS ERROR: " + err));
-        updateUserSetsIntervalReady = true;
-      }
+//       try {
+//         if (statsObj.dbConnectionReady && updateUserSetsIntervalReady) {
+//           updateUserSetsIntervalReady = false;
+//           await updateUserSets();
+//           await updateHashtagSets();
+//           updateUserSetsIntervalReady = true;
+//         }
+//       }
+//       catch(err){
+//         console.log(chalkError(MODULE_ID_PREFIX + " | UPDATE USER + HASHTAG SETS ERROR: " + err));
+//         updateUserSetsIntervalReady = true;
+//       }
 
-    }, interval);
+//     }, interval);
 
-    resolve();
+//     resolve();
 
-  });
-}
+//   });
+// }
 
 function printBotStats(params){
   if (statsObj.traffic.users.bots % params.modulo === 0){
@@ -9551,7 +9550,7 @@ setTimeout(async function(){
     await initDbuChild({childId: DEFAULT_DBU_CHILD_ID});
     await initDbHashtagChangeStream();
     await initTweetParser({childId: DEFAULT_TWP_CHILD_ID});
-    await initUpdateUserSetsInterval(configuration.updateUserSetsInterval);
+    // await initUpdateUserSetsInterval(configuration.updateUserSetsInterval);
     await initWatchConfig();
 
     // pubSubClient = await initPubSub();

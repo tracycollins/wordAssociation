@@ -36,6 +36,7 @@ const debug = require("debug")("dbu");
 const debugCache = require("debug")("cache");
 const debugQ = require("debug")("queue");
 const _ = require("lodash");
+const merge = require("deepmerge");
 
 const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
 const tcUtils = new ThreeceeUtilities(MODULE_ID_PREFIX + "_TCU");
@@ -50,9 +51,6 @@ tcUtils.on("ready", function(appname){
 
 const msToTime = tcUtils.msToTime;
 const getTimeStamp = tcUtils.getTimeStamp;
-
-const MergeHistograms = require("@threeceelabs/mergehistograms");
-const mergeHistograms = new MergeHistograms();
 
 const chalk = require("chalk");
 const chalkAlert = chalk.red;
@@ -300,9 +298,7 @@ async function userUpdateDb(params){
       user.profileHistograms = {};
     }
 
-    tweetHistogramMerged = await mergeHistograms.merge({
-      histogramA: newTweetHistograms, histogramB: user.tweetHistograms
-    });
+    tweetHistogramMerged = merge(newTweetHistograms, user.tweetHistograms);
 
     user.tweetHistograms = tweetHistogramMerged;
     user.lastHistogramTweetId = user.statusId;

@@ -6078,7 +6078,7 @@ function initNodeSetPropsQueueInterval(interval){
           nodeSetPropsQueueReady = false;
           const nspObj = nodeSetPropsQueue.shift();
 
-          if (configuration.verbose || (nodeSetPropsQueue.length % 100 === 0)){
+          if (configuration.verbose || (nodeSetPropsQueue.length > 0 && nodeSetPropsQueue.length % 100 === 0)){
             console.log(chalkLog(MODULE_ID_PREFIX + " | NODE SET PROPS Q: " + nodeSetPropsQueue.length));
           }
 

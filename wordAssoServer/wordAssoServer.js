@@ -3775,11 +3775,7 @@ async function updateDbIgnoredHashtags(){
 
       const dbHashtag = await global.wordAssoDb.Hashtag.findOne({nodeId: hashtag.toLowerCase()});
 
-      if (empty(dbHashtag)) {
-        console.log(chalkWarn(MODULE_ID_PREFIX + " | ??? UPDATE IGNORED | HASHTAG NOT FOUND: " + hashtag.toLowerCase()));
-      }
-      else {
-
+      if (!empty(dbHashtag)) {
         console.log(chalkLog(MODULE_ID_PREFIX + " | FOUND IGNORED HASHTAG"
           + " [" + ignoredHashtagSet.size + "]"
           + " | " + printHashtag({hashtag: dbHashtag})
@@ -5677,8 +5673,6 @@ async function initIgnoreLocations(){
       throw new Error("DROPBOX FILE DOWNLOAD DATA UNDEFINED");
     }
 
-    // debug(chalkInfo(MODULE_ID_PREFIX + " | DROPBOX IGNORE LOCATIONS FILE\n" + jsonPrint(data)));
-
     const dataArray = data.toString().toLowerCase().split("\n");
 
     console.log(chalk.blue(MODULE_ID_PREFIX + " | FILE CONTAINS " + dataArray.length + " IGNORE LOCATIONS "));
@@ -5688,7 +5682,7 @@ async function initIgnoreLocations(){
       location = location.replace(/\s|\n/gim, "");
       if (location.length > 1) { 
         ignoreLocationsSet.add(location);
-        console.log(chalkLog(MODULE_ID_PREFIX + " | +++ IGNORE LOCATION [" + ignoreLocationsSet.size + "] " + location));
+        debug(chalkLog(MODULE_ID_PREFIX + " | +++ IGNORE LOCATION [" + ignoreLocationsSet.size + "] " + location));
       }
     });
 

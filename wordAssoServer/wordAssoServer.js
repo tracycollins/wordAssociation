@@ -499,7 +499,7 @@ const nodeSearchResultHandler = async function(message){
     if (messageObj.node && messageObj.node.nodeType === "user") {
       debug(chalkBlue(MODULE_ID_PREFIX
         + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
-        + " | RID: " + messageObj.requestId
+        + " | " + messageObj.requestId
         + " | MODE: " + messageObj.searchMode
         + " | NID: " + messageObj.node.nodeId
         + " | @" + messageObj.node.screenName
@@ -537,7 +537,7 @@ const nodeSearchResultHandler = async function(message){
       if (configuration.verbose){ 
         console.log(chalkBlueBold(MODULE_ID_PREFIX
           + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
-          + " | RID: " + messageObj.requestId
+          + " | " + messageObj.requestId
           + " | MODE: " + messageObj.searchMode
           + " | NID: " + messageObj.node.nodeId
           + " | CM: " + formatCategory(messageObj.node.category)
@@ -566,7 +566,7 @@ const nodeSearchResultHandler = async function(message){
       console.log(chalk.yellow(MODULE_ID_PREFIX
         + " | ==> PS SEARCH NODE -MISS- [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
         + " | MID: " + message.id
-        + " | RID: " + messageObj.requestId
+        + " | " + messageObj.requestId
         + " | MODE: " + messageObj.searchMode
       ));
     }
@@ -593,7 +593,7 @@ const nodeSetPropsResultHandler = async function(message){
         console.log(chalkBlueBold(MODULE_ID_PREFIX
           + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
           + " | TOPIC: node-setprops-result"
-          + " | RID: " + messageObj.requestId
+          + " | " + messageObj.requestId
           + " | TYPE: " + messageObj.node.nodeType
           + " | NID: " + messageObj.node.nodeId
           + " | @" + messageObj.node.screenName
@@ -613,7 +613,7 @@ const nodeSetPropsResultHandler = async function(message){
         console.log(chalkBlue(MODULE_ID_PREFIX
           + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
           + " | TOPIC: node-setprops-result"
-          + " | RID: " + messageObj.requestId
+          + " | " + messageObj.requestId
           + " | TYPE: " + messageObj.node.nodeType
           + " | #" + messageObj.node.nodeId
           + " | CM: " + formatCategory(messageObj.node.category)
@@ -626,7 +626,7 @@ const nodeSetPropsResultHandler = async function(message){
     else{
       console.log(chalk.yellow(MODULE_ID_PREFIX
         + " | ==> NODE SET PROPS -MISS- [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
-        + " | RID: " + messageObj.requestId
+        + " | " + messageObj.requestId
       ));
     }
 
@@ -762,7 +762,7 @@ async function pubSubPublishMessage(params){
     + " | <== PUB [" + statsObj.pubSub.messagesSent
     + " / OUT: " + pubSubPublishMessageRequestIdSet.size + "]"
     + " | TOPIC: " + params.publishName
-    + " | RID: " + params.message.requestId
+    + " | " + params.message.requestId
     + " | TYPE: " + params.message.node.nodeType
     + " | NID: " + params.message.node.nodeId
     + " | @" + params.message.node.screenName
@@ -3569,7 +3569,7 @@ async function pubSubNodeSetProps(params){
 
     debug(chalkBlue(MODULE_ID_PREFIX
       + " | NODE SET PROPS [" + statsObj.pubSub.messagesSent + "]"
-      + " | RID: " + params.requestId
+      + " | " + params.requestId
       + " | TOPIC: node-setprops"
       + " | NODE TYPE: " + params.node.nodeType
       + " | CREATE NODE ON MISS: " + formatBoolean(params.createNodeOnMiss)
@@ -3591,7 +3591,7 @@ async function pubSubNodeSetProps(params){
       console.log(chalkAlert(MODULE_ID_PREFIX
         + " | !!! NODE SET PROPS TIMEOUT"
         + " [" + statsObj.pubSub.messagesSent + "]"
-        + " | RID: " + params.requestId
+        + " | " + params.requestId
         + " | TOPIC: node-setprops"
         + " | NODE TYPE: " + params.node.nodeType
         + " | NID: " + params.node.nodeId
@@ -3746,7 +3746,7 @@ async function nodeSetProps(params) {
 
   debug(chalk.blue(MODULE_ID_PREFIX 
     + " | NODE SET PROPS"
-    + " | RID: " + requestId
+    + " | " + requestId
     + " | TYPE: " + params.node.nodeType
     + " | NID: " + params.node.nodeId
     + " | PROPS: " + Object.keys(params.props)
@@ -3945,7 +3945,7 @@ async function pubSubSearchNode(params){
     console.log(chalkBlue(MODULE_ID_PREFIX
       + " | PS SEARCH NODE [" + statsObj.pubSub.messagesSent + "]"
       + " | TYPE: " + params.node.nodeType
-      + " | RID: " + params.requestId
+      + " | " + params.requestId
       + " | TOPIC: node-search"
       + " | MODE: " + params.searchMode
       + " | NID: " + params.node.nodeId

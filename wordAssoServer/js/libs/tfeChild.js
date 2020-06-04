@@ -1739,7 +1739,7 @@ process.on("message", async function(m) {
       await nnTools.loadNetwork({networkObj: primaryNetworkObj});
       nnTools.setPrimaryNeuralNetwork(primaryNetworkObj.networkId);
 
-      await nnTools.setMaxInputHashMap(m.maxInputHashMap);
+      // await nnTools.setMaxInputHashMap(m.maxInputHashMap);
       await nnTools.setNormalization(m.normalization);
 
       await loadNetworks();
@@ -1762,7 +1762,7 @@ process.on("message", async function(m) {
         + " | FORCE IMAGE ANALYSIS: " + configuration.forceImageAnalysis
         + " | ENABLE LANG ANALYSIS: " + configuration.enableLanguageAnalysis
         + " | FORCE LANG ANALYSIS: " + configuration.forceLanguageAnalysis
-        + "\nWAS | TFC | INIT | MAX INPUT HM KEYS: " + Object.keys(nnTools.getMaxInputHashMap())
+        // + "\nWAS | TFC | INIT | MAX INPUT HM KEYS: " + Object.keys(nnTools.getMaxInputHashMap())
         + "\nWAS | TFC | INIT | NORMALIZATION: " + Object.keys(nnTools.getNormalization())
         + "\n==============================="
       ));
@@ -1792,12 +1792,12 @@ process.on("message", async function(m) {
       ));
     break;
 
-    case "MAX_INPUT_HASHMAP":
-      await nnTools.setMaxInputHashMap(m.maxInputHashMap);
-      console.log(chalkInfo(MODULE_ID_PREFIX + " | +++ MAX_INPUT_HASHMAP"
-        + " | MAX INPUT HM KEYS: " + Object.keys(nnTools.getMaxInputHashMap())
-      ));
-    break;
+    // case "MAX_INPUT_HASHMAP":
+    //   await nnTools.setMaxInputHashMap(m.maxInputHashMap);
+    //   console.log(chalkInfo(MODULE_ID_PREFIX + " | +++ MAX_INPUT_HASHMAP"
+    //     + " | MAX INPUT HM KEYS: " + Object.keys(nnTools.getMaxInputHashMap())
+    //   ));
+    // break;
 
     case "NORMALIZATION":
       await nnTools.setNormalization(m.normalization);

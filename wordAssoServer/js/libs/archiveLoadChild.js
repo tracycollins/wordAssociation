@@ -48,6 +48,7 @@ configuration.default.userArchiveFolder = configDefaultFolder + "/trainingSets/u
 configuration.trainingSetsFolder = configuration.default.trainingSetsFolder;
 configuration.userArchiveFolder = configuration.default.userArchiveFolder;
 configuration.defaultUserArchiveFlagFile = "usersZipUploadComplete.json";
+configuration.normalizationFile = "normalization.json";
 
 const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
 const tcUtils = new ThreeceeUtilities("ALC_TCU");
@@ -671,21 +672,36 @@ function fileSize(params){
   });
 }
 
+async function loadNormalization(p){
+
+  const params = p || {};
+  const folder = params.folder || configuration.trainingSetsFolder;
+  const file = params.file || configuration.normalizationFile;
+
+  try{
+    const dataObj = await tcUtils.loadFileRetry({folder: folder, file: file, resolveOnNotFound: true});
+
+    if (empty(dataObj.normalization)) {
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR: loadNormalization: loadFile: normalization UNDEFINED"));
+      return;
+    }
+
+    await nnTools.setNormalization(dataObj.normalization);
+    return;
+  }
+  catch(err){
+    if (err.code == "ENOTFOUND") {
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD NORMALIZATION: FILE NOT FOUND"
+        + " | " + folder + "/" + file
+      ));
+    }
+    throw err;
+  }
+}
+
 async function loadUsersArchive(params){
 
   try {
-
-    let maxInputHashMapFile = "maxInputHashMap.json";
-
-    if (configuration.testMode) { maxInputHashMapFile = "maxInputHashMapFile_test.json"; }
-
-    const maxInputObj = await tcUtils.loadFileRetry({
-      folder: configuration.trainingSetsFolder,
-      file: maxInputHashMapFile
-    });
-
-    await nnTools.setMaxInputHashMap(maxInputObj.maxInputHashMap);
-    await nnTools.setNormalization(maxInputObj.normalization);
 
     const files = params.archiveFlagObj.files;
 

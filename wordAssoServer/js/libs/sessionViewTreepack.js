@@ -796,6 +796,7 @@ function ViewTreepack() {
     n.categoryColor = "#FFFFFF";
     n.categoryMatch = false;
     n.categoryMismatch = false;
+    n.categoryVerified = false;
     n.following = false;
     n.followersCount = 0;
     n.followersMentions = 0;

@@ -1103,10 +1103,10 @@ function ViewTreepack() {
         return "@" + d.screenName.toLowerCase(); 
       }
       else if (d.name){ 
-      if (isCategorized(d.category) || isCategorized(d.categoryAuto)) { return "@" + d.name.toUpperCase(); }
-        if (d.followersCount >= minFollowers) { return "@" + d.name.toUpperCase(); }
-        if (d.mentions >= minMentionsUsers) { return "@" + d.name.toUpperCase(); }
-        return "@" + d.name.toLowerCase(); 
+      if (isCategorized(d.category) || isCategorized(d.categoryAuto)) { return d.name.toUpperCase(); }
+        if (d.followersCount >= minFollowers) { return d.name.toUpperCase(); }
+        if (d.mentions >= minMentionsUsers) { return d.name.toUpperCase(); }
+        return d.name; 
       }
       else { return "@UNKNOWN?"; }
     }
@@ -1398,6 +1398,10 @@ function ViewTreepack() {
         if (d.isTopTerm) { return "overline"; }
         return "none"; 
       }).
+      style("text-decoration-style", function (d) { 
+        if (d.categoryVerified) { return "double"; }
+        return "none"; 
+      }).
       style("fill-opacity", function (d) { 
         if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
         return nodeLabelOpacityScale(d.ageMaxRatio);
@@ -1540,6 +1544,7 @@ function ViewTreepack() {
         currentNode.categoryColor = newNode.categoryColor;
         currentNode.categoryMismatch = newNode.categoryMismatch;
         currentNode.categoryMatch = newNode.categoryMatch;
+        currentNode.categoryVerified = newNode.categoryVerified;
         currentNode.lastTweetId = newNode.lastTweetId;
 
         if (newNode.nodeType === "user"){
@@ -1569,6 +1574,7 @@ function ViewTreepack() {
         currentNode.categoryColor = newNode.categoryColor;
         currentNode.categoryMatch = newNode.categoryMatch;
         currentNode.categoryMismatch = newNode.categoryMismatch;
+        currentNode.categoryVerified = newNode.categoryVerified;
         currentNode.friendsCount = newNode.friendsCount;
         currentNode.fullName = newNode.fullName;
         currentNode.hashtagId = newNode.hashtagId;

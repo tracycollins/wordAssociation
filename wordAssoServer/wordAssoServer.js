@@ -1357,6 +1357,7 @@ const fieldsTransmit = {
   categorizeNetwork: 1,
   category: 1,
   categoryAuto: 1,
+  categoryVerified: 1,
   createdAt: 1,
   followersCount: 1,
   following: 1,
@@ -6158,6 +6159,7 @@ function initTransmitNodeQueueInterval(interval){
 
         if (empty(node.category)) { node.category = "none"; }
         if (empty(node.categoryAuto)) { node.categoryAuto = "none"; }
+        if (empty(node.categoryVerified)) { node.categoryVerified = false; }
 
         // ??? PERFORMANCE: may parallelize checkCategory + updateNodeMeter + userCategorizeable
 

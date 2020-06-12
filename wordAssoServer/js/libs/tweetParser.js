@@ -100,19 +100,18 @@ async function connectDb(){
     const db = await global.wordAssoDb.connect(MODULE_ID_PREFIX + "_" + process.pid);
 
     db.on("error", async function(err){
+      statsObj.dbConnectionReady = false;
       console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION ERROR"));
-      db.close();
-      quit({cause: "MONGO DB ERROR: " + err});
     });
 
     db.on("close", async function(err){
+      statsObj.dbConnectionReady = false;
       console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION CLOSED"));
-      quit({cause: "MONGO DB CLOSED: " + err});
     });
 
     db.on("disconnected", async function(){
+      statsObj.dbConnectionReady = false;
       console.log(chalkAlert(MODULE_ID_PREFIX + " | *** MONGO DB DISCONNECTED"));
-      quit({cause: "MONGO DB DISCONNECTED"});
     });
 
     console.log(chalk.green(MODULE_ID_PREFIX + " | MONGOOSE DEFAULT CONNECTION OPEN"));
@@ -130,6 +129,8 @@ async function connectDb(){
     tweetServerController.on("ready", function(appname){
       console.log(chalk.green(MODULE_ID_PREFIX + " | TSC READY | " + appname));
     });
+
+    statsObj.dbConnectionReady = true;
 
     return db;
   }

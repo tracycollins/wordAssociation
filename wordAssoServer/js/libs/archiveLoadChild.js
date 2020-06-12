@@ -919,20 +919,27 @@ async function connectDb(){
 
     const db = await global.wordAssoDb.connect(MODULE_ID_PREFIX + "_" + process.pid);
 
+    db.on("close", async function(err){
+      statsObj.status = "MONGO CLOSED";
+      statsObj.dbConnectionReady = false;
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION CLOSED"));
+    });
+
     db.on("error", async function(err){
       statsObj.status = "MONGO ERROR";
       console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION ERROR"));
-      // db.close();
-      // quit({cause: "MONGO DB ERROR: " + err});
+      statsObj.dbConnectionReady = false;
     });
 
     db.on("disconnected", async function(){
       statsObj.status = "MONGO DISCONNECTED";
       console.log(chalkAlert(MODULE_ID_PREFIX + " | *** MONGO DB DISCONNECTED"));
-      // quit({cause: "MONGO DB DISCONNECTED"});
+      statsObj.dbConnectionReady = false;
     });
 
     console.log(chalk.green(MODULE_ID_PREFIX + " | MONGOOSE DEFAULT CONNECTION OPEN"));
+
+    statsObj.dbConnectionReady = true;
 
     return db;
 

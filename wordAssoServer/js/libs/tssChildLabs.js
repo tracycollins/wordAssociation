@@ -3,8 +3,6 @@
 
 const MODULE_ID_PREFIX = "TSS";
 
-let twitterSearchStream;
-
 const ignoredHashtagFile = "ignoredHashtag.txt";
 const followableSearchTermFile = "followableSearchTerm.txt";
 const ignoreLocationsFile = "ignoreLocations.txt";
@@ -56,7 +54,6 @@ const post = util.promisify(request.post);
 const path = require("path");
 const empty = require("is-empty");
 const watch = require("watch");
-const parseJson = require("parse-json");
 const yj = require("yieldable-json");
 
 let hostname = os.hostname();
@@ -349,23 +346,19 @@ async function connectDb(){
     db.on("error", async function(err){
       statsObj.status = "MONGO ERROR";
       statsObj.dbConnectionReady = false;
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION ERROR"));
-      db.close();
-      quit({cause: "MONGO DB ERROR: " + err});
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION ERROR: " + err));
     });
 
-    db.on("close", async function(err){
+    db.on("close", async function(){
       statsObj.status = "MONGO CLOSED";
       statsObj.dbConnectionReady = false;
       console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION CLOSED"));
-      quit({cause: "MONGO DB CLOSED: " + err});
     });
 
     db.on("disconnected", async function(){
       statsObj.status = "MONGO DISCONNECTED";
       statsObj.dbConnectionReady = false;
       console.log(chalkAlert(MODULE_ID_PREFIX + " | *** MONGO DB DISCONNECTED"));
-      quit({cause: "MONGO DB DISCONNECTED"});
     });
 
     console.log(chalk.green(MODULE_ID_PREFIX + " | MONGOOSE DEFAULT CONNECTION OPEN"));
@@ -1180,53 +1173,49 @@ async function setRules(rules, token) {
 
 async function checkValidTweet(params){
 
-  try{
-    if (params.tweetObj.includes 
-      && params.tweetObj.includes.users 
-      && ignoreUserSet.has(params.tweetObj.includes.users[0].id.toString())
-    ) {
-      if (configuration.verbose) {
-        console.log(chalkLog("TSS | XXX IGNORE USER | SKIPPING"
-          + " | TWID: " + params.tweetObj.data.id.toString()
-          + " | UID: " + params.tweetObj.includes.users[0].id.toString()
-          + " | @" + params.tweetObj.includes.users[0].username
-          + " | NAME: " + params.tweetObj.includes.users[0].name
-        ));
-      }
-      return false;
+  if (params.tweetObj.includes 
+    && params.tweetObj.includes.users 
+    && ignoreUserSet.has(params.tweetObj.includes.users[0].id.toString())
+  ) {
+    if (configuration.verbose) {
+      console.log(chalkLog("TSS | XXX IGNORE USER | SKIPPING"
+        + " | TWID: " + params.tweetObj.data.id.toString()
+        + " | UID: " + params.tweetObj.includes.users[0].id.toString()
+        + " | @" + params.tweetObj.includes.users[0].username
+        + " | NAME: " + params.tweetObj.includes.users[0].name
+      ));
     }
-
-    if (ignoreLocationsSet.has(params.tweetObj.includes.users[0].location)) {
-      if (configuration.verbose) {
-        console.log(chalkLog("TSS | XXX IGNORE LOCATION | SKIPPING"
-          + " | TWID: " + params.tweetObj.data.id.toString()
-          + " | UID: " + params.tweetObj.includes.users[0].id.toString()
-          + " | @" + params.tweetObj.includes.users[0].username
-          + " | NAME: " + params.tweetObj.includes.users[0].name
-          + " | LOC: " + params.tweetObj.includes.users[0].location
-        ));
-      }
-      return false;
-    }
-
-    if (params.tweetObj.data.lang && (params.tweetObj.data.lang != "en")) {
-      if (configuration.verbose) {
-        console.log(chalkLog("TSS | XXX IGNORE LANG | SKIPPING"
-          + " | TWID: " + params.tweetObj.data.id.toString()
-          + " | LANG: " + params.tweetObj.data.lang
-          + " | UID: " + params.tweetObj.includes.users[0].id.toString()
-          + " | @" + params.tweetObj.includes.users[0].username
-          + " | NAME: " + params.tweetObj.includes.users[0].name
-        ));
-      }
-      return false;
-    }
-
-    return true;
+    return false;
   }
-  catch(err){
-    throw err;
+
+  if (ignoreLocationsSet.has(params.tweetObj.includes.users[0].location)) {
+    if (configuration.verbose) {
+      console.log(chalkLog("TSS | XXX IGNORE LOCATION | SKIPPING"
+        + " | TWID: " + params.tweetObj.data.id.toString()
+        + " | UID: " + params.tweetObj.includes.users[0].id.toString()
+        + " | @" + params.tweetObj.includes.users[0].username
+        + " | NAME: " + params.tweetObj.includes.users[0].name
+        + " | LOC: " + params.tweetObj.includes.users[0].location
+      ));
+    }
+    return false;
   }
+
+  if (params.tweetObj.data.lang && (params.tweetObj.data.lang != "en")) {
+    if (configuration.verbose) {
+      console.log(chalkLog("TSS | XXX IGNORE LANG | SKIPPING"
+        + " | TWID: " + params.tweetObj.data.id.toString()
+        + " | LANG: " + params.tweetObj.data.lang
+        + " | UID: " + params.tweetObj.includes.users[0].id.toString()
+        + " | @" + params.tweetObj.includes.users[0].username
+        + " | NAME: " + params.tweetObj.includes.users[0].name
+      ));
+    }
+    return false;
+  }
+
+  return true;
+
 }
 
 async function processStreamData(data){
@@ -1327,6 +1316,8 @@ async function initSearchStreamLabs(){
 
   // { 'value': 'impeach', 'tag': 'impeach'}
   // { 'value': 'theresistance OR fbr OR followbackresistance', 'tag': 'theresistance' },
+
+  console.log(chalkInfo("TSS | INIT SEARCH STREAM"));
 
   const rules = [];
 
@@ -1446,7 +1437,7 @@ async function initSearchStreamLabs(){
     rules.push({value: value, tag: tag});
   }
 
-  console.log(chalkInfo("TSS | INIT SEARCH STREAM"
+  console.log(chalkInfo("TSS | INIT SEARCH STREAM FILTER + RULES"
     + " | @" + threeceeUserObj.screenName
     + "\n" + jsonPrint(threeceeUserObj.filter)
     + "\n" + jsonPrint(rules)
@@ -1574,7 +1565,11 @@ async function initSearchTerms(params){
 
   try{
 
-    const result = await initSetFromFile({folder: configDefaultFolder, file: params.searchTermsFile, resolveOnNotFound: false});
+    const result = await initSetFromFile({
+      folder: configDefaultFolder, 
+      file: params.searchTermsFile, 
+      resolveOnNotFound: false
+    });
 
     if (result) {
       threeceeUserObj.searchTermSet = new Set([...result]);
@@ -1716,7 +1711,7 @@ async function initSearchTermsUpdateInterval(){
   searchTermsUpdateInterval = setInterval(async function(){
     console.log(chalkInfo("TSS | ... SEARCH TERM UPDATE | INTERVAL: " + msToTime(interval)));
     await initSearchTerms(configuration);
-    twitterSearchStream = await initSearchStreamLabs();
+    await initSearchStreamLabs();
 
   }, interval);
 }
@@ -1742,7 +1737,7 @@ async function initWatchConfig(){
       if (f.endsWith(followableSearchTermFile)){
         await initFollowableSearchTermSet();
         await initSearchTerms(configuration);
-        twitterSearchStream = await initSearchStreamLabs();
+        await initSearchStreamLabs();
       }
 
       if (f.endsWith(allowLocationsFile)){
@@ -2115,7 +2110,7 @@ process.on("message", async function(m) {
         await initIgnoreHashtags();
         await initTwitterUser();
         await initSearchTerms(configuration);
-        twitterSearchStream = await initSearchStreamLabs();
+        await initSearchStreamLabs();
         await initTwitterSearch(configuration);
         await initFollowQueue({interval: configuration.followQueueIntervalTime});
       }
@@ -2305,7 +2300,7 @@ process.on("message", async function(m) {
         try{
 
           await initSearchTerms(configuration);
-          twitterSearchStream = await initSearchStreamLabs();
+          await initSearchStreamLabs();
 
           console.log(chalkInfo("TSS | INIT SEARCH TERMS COMPLETE | 3C @" + threeceeUserObj.screenName));
 
@@ -2402,7 +2397,7 @@ process.on("message", async function(m) {
       try{
 
         await initSearchTerms(configuration);
-        twitterSearchStream = await initSearchStreamLabs();
+        await initSearchStreamLabs();
 
         console.log(chalkInfo("TSS | INIT SEARCH TERMS COMPLETE | 3C @" + threeceeUserObj.screenName));
 
@@ -2452,6 +2447,7 @@ setTimeout(async function(){
 
   try{
     configuration = await initialize(configuration);
+    process.send({ op: "READY"});
   }
   catch(err){
     if (err.status != 404) {

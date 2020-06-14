@@ -1225,8 +1225,8 @@ async function processStreamData(data){
     yj.parseAsync(data, async function(err, dataObj){
 
       if (err){
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR processStreamData parse json"));
-        console.error(err);
+        debug(chalkError(MODULE_ID_PREFIX + " | *** ERROR processStreamData parse json"));
+        // console.error(err);
         return;
       }
 

@@ -3499,6 +3499,8 @@ function socketRxTweet(tw) {
 
     if (categorizedUserHashMap.has(tw.user.id_str)){
 
+      tw.user.following = true;
+      tw.user.categorized = true;
       tw.user.category = categorizedUserHashMap.get(tw.user.id_str).manual;
       tw.user.categoryAuto = categorizedUserHashMap.get(tw.user.id_str).auto;
       tw.user.categorizeNetwork = categorizedUserHashMap.get(tw.user.id_str).network;
@@ -9562,7 +9564,11 @@ setTimeout(async function(){
     statsObj.internetReady = true;
     configEvents.emit("INTERNET_READY");
 
-    await initTssChild({childId: DEFAULT_TSS_CHILD_ID, tweetVersion2: configuration.tweetVersion2, threeceeUser: threeceeUser});
+    await initTssChild({
+      childId: DEFAULT_TSS_CHILD_ID, 
+      tweetVersion2: configuration.tweetVersion2, 
+      threeceeUser: threeceeUser
+    });
 
   }
   catch(err){

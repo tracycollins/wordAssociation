@@ -1000,6 +1000,10 @@ async function processTweet(params){
   processedTweetObj.lang = tweetObj.data.lang;
   processedTweetObj.entities = {};
   processedTweetObj.entities = tweetObj.data.entities;
+
+  // !!!! KLUDGE: need to process inclues, that may contain userMentions with followers stats
+  processedTweetObj.includes = {};
+  processedTweetObj.includes = tweetObj.includes;
   processedTweetObj.user = {};
   processedTweetObj.user.id_str = tweetObj.includes.users[0].id.toString();
   processedTweetObj.user.created_at = tweetObj.includes.users[0].created_at;

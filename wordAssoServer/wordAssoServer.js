@@ -1145,7 +1145,7 @@ configuration.testInternetConnectionUrl = DEFAULT_TEST_INTERNET_CONNECTION_URL;
 configuration.offlineMode = DEFAULT_OFFLINE_MODE;
 configuration.autoOfflineMode = DEFAULT_AUTO_OFFLINE_MODE;
 
-configuration.batchSize = DEFAULT_CURSOR_BATCH_SIZE;
+configuration.cursorBatchSize = DEFAULT_CURSOR_BATCH_SIZE;
 
 configuration.enableTransmitUser = true;
 configuration.enableTransmitWord = false;
@@ -5897,7 +5897,7 @@ async function updateUserSets(){
     screenName: 1
   })
   .lean()
-  .cursor({ batchSize: configuration.batchSize });
+  .cursor({ batchSize: configuration.cursorBatchSize });
 
   const cursorStartTime = moment().valueOf();
 
@@ -5968,7 +5968,7 @@ async function updateHashtagSets(){
     categoryAuto: 1
   })
   .lean()
-  .cursor({ batchSize: configuration.batchSize });
+  .cursor({ batchSize: configuration.cursorBatchSize });
 
   const cursorStartTime = moment().valueOf();
 

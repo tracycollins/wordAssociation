@@ -3626,7 +3626,6 @@ async function pubSubNodeSetProps(params){
           }
         );
 
-        // if (!updatePickArray.includes("category")) { updatePickArray.push("category"); }
       }
 
       delete node._id;
@@ -3639,18 +3638,6 @@ async function pubSubNodeSetProps(params){
 
     if (node.nodeType === "hashtag"){
 
-      // cObj.nodeId = node.nodeId;
-
-      // if (categorizedHashtagHashMap.has(node.nodeId)){
-      //   cObj = categorizedHashtagHashMap.get(node.nodeId);
-      // }
-
-      // cObj.manual = node.category || cObj.manual;
-
-      // categorizedHashtagHashMap.set(node.nodeId, cObj);
-
-      // let dbHashtag = await global.wordAssoDb.Hashtag.findOne({nodeId: cObj.nodeId});
-
       if (isCategorized(node)){
 
         categorizedHashtagHashMap.set(node.nodeId, 
@@ -3661,7 +3648,6 @@ async function pubSubNodeSetProps(params){
           }
         );
 
-        // if (!updatePickArray.includes("category")) { updatePickArray.push("category"); }
       }
 
       delete node._id;
@@ -6225,22 +6211,6 @@ function initTransmitNodeQueueInterval(interval){
                 printBotStats({user: node, modulo: 100});
               }
 
-              // delete node._id;
-
-              // const updatedUser = await global.wordAssoDb.User.findOneAndUpdate(
-              //   { nodeId: node.nodeId }, 
-              //   node, 
-              //   { upsert: true, new: true, lean: true }
-              // );
-
-              // if (updatedUser.screenName === undefined || updatedUser.screenName === "") {
-              //   console.log(chalkError(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED"));
-              //   printUserObj(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED", updatedUser);
-              //   transmitNodeQueueReady = true;
-              //   return;
-              // }
-
-              // viewNameSpace.volatile.emit("node", pick(updatedUser, fieldsTransmitKeys));
               viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
               transmitNodeQueueReady = true;
               return;
@@ -6338,12 +6308,6 @@ function initTransmitNodeQueueInterval(interval){
             transmitNodeQueueReady = true;
             return;
           }
-
-          // delete node._id;
-          // node.updateLastSeen = true;
-          // viewNameSpace.volatile.emit("node", node);
-          // transmitNodeQueueReady = true;
-          // return;
         }
 
         viewNameSpace.volatile.emit("node", node);

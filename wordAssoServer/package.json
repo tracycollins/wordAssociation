@@ -4,6 +4,7 @@
   "description": "word",
   "main": "wordAssoServer.js",
   "dependencies": {
+    "@google-cloud/datastore": "^6.0.0",
     "@google-cloud/debug-agent": "^5.0.0",
     "@google-cloud/pubsub": "^2.1.0",
     "@slack/client": "^5.0.2",

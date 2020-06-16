@@ -5909,7 +5909,7 @@ async function updateUserSets(){
 
   await userSearchCursor.eachAsync(async function(user){
     await cursorDataHandler(user);
-  }, {parallel: 32});
+  }, {parallel: 64});
 
   updateUserSetsRunning = false; 
   return;

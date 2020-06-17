@@ -8,7 +8,7 @@
     "node_args"   : "--max-old-space-size=10240",
     "env": {
       "PRIMARY_HOST": "google",
-      "DATABASE_HOST": "mms1",
+      "DATABASE_HOST": "macpro2",
       "WA_VERBOSE_MODE": false,
       "TWITTER_BEARER_TOKEN": "AAAAAAAAAAAAAAAAAAAAABrg8gAAAAAA%2B3D4G5ixne%2FhlBxyXKhFOjL1M4I%3DM4vjtsuRygTbcNyie9aQ3HgpdfsK7xsNWNt2eYFPA9NKliTPYc",
       "FORCE_COLOR": 1,

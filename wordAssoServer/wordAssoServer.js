@@ -4,7 +4,7 @@ const MODULE_ID_PREFIX = "WAS";
 const DEFAULT_CURSOR_BATCH_SIZE = 100;
 
 const DEFAULT_PRIMARY_HOST = "google";
-const DEFAULT_DATABASE_HOST = "mms1";
+const DEFAULT_DATABASE_HOST = "macpro2";
 
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;

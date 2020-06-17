@@ -1,6 +1,7 @@
 const MODULE_NAME = "archiveLoadChild";
 let MODULE_ID_PREFIX = "ALC";
 
+
 const compactDateTimeFormat = "YYYYMMDD_HHmmss";
 
 const os = require("os");
@@ -23,7 +24,11 @@ hostname = hostname.replace(/word-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
 
 const MODULE_ID = MODULE_ID_PREFIX + "_" + hostname;
-const PRIMARY_HOST = process.env.PRIMARY_HOST || "mms1";
+// const PRIMARY_HOST = process.env.PRIMARY_HOST || "macpro2";
+const DEFAULT_PRIMARY_HOST = "google";
+const DEFAULT_DATABASE_HOST = "macpro2";
+const DATABASE_HOST = process.env.DATABASE_HOST || DEFAULT_DATABASE_HOST;
+const PRIMARY_HOST = process.env.PRIMARY_HOST || DEFAULT_PRIMARY_HOST;
 const HOST = (hostname === PRIMARY_HOST) ? "default" : "local";
 
 global.wordAssoDb = require("@threeceelabs/mongoose-twitter");

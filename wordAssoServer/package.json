@@ -53,7 +53,7 @@
     "yieldable-json": "^2.0.0"
   },
   "devDependencies": {
-    "eslint": "^7.3.0",
+    "eslint": "^7.3.1",
     "jshint": "^2.11.1"
   },
   "scripts": {

@@ -5440,17 +5440,6 @@ async function userCategorizeable(params){
     return false;
   }
 
-  // if (node.following && (node.following !== undefined)) { 
-  //   if (verbose) { 
-  //     console.log(chalkInfo(MODULE_ID_PREFIX 
-  //       + " | userCategorizeable | TRUE  | FOLLOWING"
-  //       + " | FOLLOWING: " + node.following
-  //       + " | @" + node.screenName
-  //     ));
-  //   }
-  //   return true; 
-  // }
-
   if (!node.description || (node.description === undefined)) { node.description = ""; }
   if (!node.screenName || (node.screenName === undefined)) { node.screenName = ""; }
   if (!node.name || (node.name === undefined)) { node.name = ""; }
@@ -6157,8 +6146,8 @@ function initTransmitNodeQueueInterval(interval){
 
           if (categorizeable){
 
-            node.following = true;
-            unfollowableUserSet.delete(node.nodeId);
+            // node.following = true;
+            // unfollowableUserSet.delete(node.nodeId);
             uncategorizeableUserSet.delete(node.nodeId);
 
             node = await updateNodeMeter(node);

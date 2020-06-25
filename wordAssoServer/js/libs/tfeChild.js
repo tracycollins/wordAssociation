@@ -1544,7 +1544,7 @@ async function processUser(params) {
   try {
 
     const user = params.user;
-    user.following = true;
+    // user.following = true;
 
     let updatedFriendsUser = user;
 

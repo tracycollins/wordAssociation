@@ -8289,6 +8289,7 @@ async function loadConfigFile(params) {
 
     const newConfiguration = {};
 
+    newConfiguration.pubSub = {};
     newConfiguration.metrics = {};
     newConfiguration.threeceeUsers = [];
 

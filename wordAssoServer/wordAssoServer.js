@@ -510,6 +510,7 @@ const nodeSearchResultHandler = async function(message){
       if (messageObj.stats){
         console.log(chalkLog(MODULE_ID_PREFIX + "\nUSER STATS\n" + jsonPrint(messageObj.stats)));
         defaults(statsObj.user, messageObj.stats);
+        STATS
       }
 
       const catUserObj = categorizedUserHashMap.get(messageObj.node.nodeId);
@@ -3064,6 +3065,8 @@ configEvents.on("INTERNET_READY", function internetReady() {
         heartbeatObj.elapsed = statsObj.elapsed;
         heartbeatObj.nodesPerMin = statsObj.nodesPerMin;
         heartbeatObj.maxNodesPerMin = statsObj.maxNodesPerMin;
+
+        heartbeatObj.user = statsObj.user;
 
         heartbeatObj.twitter.tweetsPerMin = statsObj.twitter.tweetsPerMin;
         heartbeatObj.twitter.maxTweetsPerMin = statsObj.twitter.maxTweetsPerMin;
@@ -5791,10 +5794,10 @@ function cursorDataHandler(user){
         }
       );
 
-      statsObj.usersProcessed += 1;
+      statsObj.user.processed += 1;
 
-      if (statsObj.usersProcessed % 5000 === 0) {
-        console.log(chalkLog(MODULE_ID_PREFIX + " | USER SETS | " + statsObj.usersProcessed + " USERS PROCESSED"));
+      if (statsObj.user.processed % 5000 === 0) {
+        console.log(chalkLog(MODULE_ID_PREFIX + " | USER SETS | " + statsObj.user.processed + " USERS PROCESSED"));
       }
 
       resolve();
@@ -5873,7 +5876,7 @@ async function updateUserSets(){
 
   const cursorStartTime = moment().valueOf();
 
-  statsObj.usersProcessed = 0;
+  statsObj.user.processed = 0;
 
   userSearchCursor.on("end", function() {
     console.log(chalkBlue(MODULE_ID_PREFIX + " | END FOLLOWING CURSOR"

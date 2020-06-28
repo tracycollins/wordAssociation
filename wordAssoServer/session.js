@@ -1555,6 +1555,7 @@ socket.on("HEARTBEAT", function(hb) {
   // lastHeartbeatReceived = Date.now();
 
   sSmall.bestNetwork = hb.bestNetwork;
+  sSmall.user = hb.user;
 
   if (currentSessionView) { currentSessionView.setStats(sSmall); }
 

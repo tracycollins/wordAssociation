@@ -510,7 +510,6 @@ const nodeSearchResultHandler = async function(message){
       if (messageObj.stats){
         console.log(chalkLog(MODULE_ID_PREFIX + "\nUSER STATS\n" + jsonPrint(messageObj.stats)));
         defaults(statsObj.user, messageObj.stats);
-        STATS
       }
 
       const catUserObj = categorizedUserHashMap.get(messageObj.node.nodeId);
@@ -602,6 +601,11 @@ const nodeSetPropsResultHandler = async function(message){
           + " | CM: " + formatCategory(messageObj.node.category)
           + " | CA: " + formatCategory(messageObj.node.categoryAuto)
         ));
+      }
+
+      if (messageObj.stats){
+        console.log(chalkLog(MODULE_ID_PREFIX + "\nUSER STATS\n" + jsonPrint(messageObj.stats)));
+        defaults(statsObj.user, messageObj.stats);
       }
 
       nodeSetPropsResultHashMap[messageObj.requestId] = messageObj.node;
@@ -3065,8 +3069,6 @@ configEvents.on("INTERNET_READY", function internetReady() {
         heartbeatObj.elapsed = statsObj.elapsed;
         heartbeatObj.nodesPerMin = statsObj.nodesPerMin;
         heartbeatObj.maxNodesPerMin = statsObj.maxNodesPerMin;
-
-        heartbeatObj.user = statsObj.user;
 
         heartbeatObj.twitter.tweetsPerMin = statsObj.twitter.tweetsPerMin;
         heartbeatObj.twitter.maxTweetsPerMin = statsObj.twitter.maxTweetsPerMin;

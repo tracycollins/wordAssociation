@@ -8292,6 +8292,7 @@ async function loadConfigFile(params) {
 
     const newConfiguration = {};
 
+    newConfiguration.pubSub = {};
     newConfiguration.metrics = {};
     newConfiguration.threeceeUsers = [];
 
@@ -8313,6 +8314,25 @@ async function loadConfigFile(params) {
       console.log(MODULE_ID_PREFIX + " | LOADED WAS_PUBSUB_PROJECT_ID: " + loadedConfigObj.WAS_PUBSUB_PROJECT_ID);
       newConfiguration.pubSub.projectId = loadedConfigObj.WAS_PUBSUB_PROJECT_ID;
     }
+
+    if (loadedConfigObj.WAS_PUBSUB_RESULT_TIMEOUT !== undefined){
+      console.log(MODULE_ID_PREFIX + " | LOADED WAS_PUBSUB_PROJECT_ID: " + loadedConfigObj.WAS_PUBSUB_RESULT_TIMEOUT);
+      newConfiguration.pubSub.pubSubResultTimeout = loadedConfigObj.WAS_PUBSUB_RESULT_TIMEOUT;
+    }
+
+    // configuration.pubSub = {};
+    // configuration.pubSub.enabled = DEFAULT_PUBSUB_ENABLED;
+    // configuration.pubSub.projectId = DEFAULT_PUBSUB_PROJECT_ID;
+    // configuration.pubSub.pubSubResultTimeout = DEFAULT_PUBSUB_RESULT_TIMEOUT;
+
+    // configuration.pubSub.subscriptions = {};
+    // configuration.pubSub.subscriptions.categorizeResult = {};
+    // configuration.pubSub.subscriptions.categorizeResult.subscribeName = (configuration.primaryHost) ? "categorizeResultPrimary" : "categorizeResult";
+    // configuration.pubSub.subscriptions.categorizeResult.handler = "categorizeResultHandler";
+
+    // configuration.pubSub.subscriptions.twitterSearchUserResult = {}; 
+    // configuration.pubSub.subscriptions.twitterSearchUserResult.subscribeName = (configuration.primaryHost) ? "twitterSearchUserResultPrimary" : "twitterSearchUserResult";
+    // configuration.pubSub.subscriptions.twitterSearchUserResult.handler = "twitterSearchUserResultHandler";
 
     if (loadedConfigObj.TWEET_VERSION_2 !== undefined){
       console.log(MODULE_ID_PREFIX + " | LOADED TWEET_VERSION_2: " + loadedConfigObj.TWEET_VERSION_2);

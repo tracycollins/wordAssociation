@@ -71,6 +71,34 @@ function ControlPanel() {
 
   var twitterFeedUser = Object.assign({}, defaultTwitterFeedUser);
 
+  let statsObj = {};
+
+  statsObj.bestNetwork = {};
+  statsObj.bestNetwork.networkId = false;
+  statsObj.bestNetwork.succesRate = false;
+  statsObj.bestNetwork.overallMatchRate = false;
+  statsObj.bestNetwork.inputsId = false;
+
+  statsObj.socketId = "NOT SET";
+
+  statsObj.uncategorized = {};
+  statsObj.uncategorized.all = 0;
+  statsObj.uncategorized.left = 0;
+  statsObj.uncategorized.right = 0;
+  statsObj.uncategorized.neutral = 0;
+
+  statsObj.categorized = {};
+  statsObj.categorized.all = 0;
+  statsObj.categorized.left = 0;
+  statsObj.categorized.right = 0;
+  statsObj.categorized.neutral = 0;
+
+  statsObj.mismatched = 0;
+
+  statsObj.user = {};
+  statsObj.user = Object.assign({}, defaultTwitterFeedUser);
+
+
   var twitterFeedPreviousUser = false;
   const twitterFeedPreviousUserArray = [];
   const twitterFeedPreviousUserMap = {};
@@ -160,32 +188,6 @@ function ControlPanel() {
   delete config.twitterUser.histograms;
   delete config.twitterUser.countHistory;
   delete config.twitterUser.status;
-
-  let statsObj = {};
-
-  statsObj.bestNetwork = {};
-  statsObj.bestNetwork.networkId = false;
-  statsObj.bestNetwork.succesRate = false;
-  statsObj.bestNetwork.overallMatchRate = false;
-  statsObj.bestNetwork.inputsId = false;
-
-  statsObj.socketId = "NOT SET";
-
-  statsObj.uncategorized = {};
-  statsObj.uncategorized.all = 0;
-  statsObj.uncategorized.left = 0;
-  statsObj.uncategorized.right = 0;
-  statsObj.uncategorized.neutral = 0;
-
-  statsObj.categorized = {};
-  statsObj.categorized.all = 0;
-  statsObj.categorized.left = 0;
-  statsObj.categorized.right = 0;
-  statsObj.categorized.neutral = 0;
-
-  statsObj.mismatched = 0;
-
-  statsObj.user = Object.assign({}, defaultTwitterFeedUser);
 
   var eventDetected = false;
 

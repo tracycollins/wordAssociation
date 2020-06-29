@@ -96,7 +96,7 @@ function ControlPanel() {
   statsObj.mismatched = 0;
 
   statsObj.user = {};
-  statsObj.user = Object.assign({}, defaultTwitterFeedUser);
+  statsObj.user = defaultTwitterFeedUser;
 
 
   var twitterFeedPreviousUser = false;

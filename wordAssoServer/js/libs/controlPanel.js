@@ -762,7 +762,7 @@ function ControlPanel() {
           //   + "\nSTATS\n" + jsonPrint(event.data.stats)
           // );
           for(const key of Object.keys(event.data.stats)){
-            statsObj[key] = event.data.stats[key];
+            if (event.data.stats[key]) { statsObj[key] = event.data.stats[key]; }
           }
 
           if (statsObj.bestNetwork && statsObj.bestNetwork.networkId) {

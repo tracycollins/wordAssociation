@@ -381,6 +381,10 @@ function ControlPanel() {
 
   function setElementBackgroundColorCategory(params){
 
+    if (!document.getElementById(params.elementId)){
+      return;
+    }
+
     switch (params.category.toUpperCase()) {  
       case "LEFT":
         document.getElementById(params.elementId).style.background = palette.lightblue;

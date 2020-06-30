@@ -498,7 +498,12 @@ function ControlPanel() {
       twitterEntity.setValue("CREATED", getTimeStamp(twitterFeedUser.createdAt));
       twitterEntity.setValue("LAST SEEN", getTimeStamp(twitterFeedUser.lastSeen));
       twitterEntity.setValue("HASHTAG", "");
+      
       twitterEntity.setValue("FOLLOWERS", twitterFeedUser.followersCount);
+      if (twitterFeedUser.followersCount > 5000) {
+        document.getElementById("FOLLOWERS").style.background='#004400';
+      }
+
       twitterEntity.setValue("FRIENDS", twitterFeedUser.friendsCount);
       twitterEntity.setValue("LOCATION", twitterFeedUser.location);
       twitterEntity.setValue("DESCRIPTION", twitterFeedUser.description);

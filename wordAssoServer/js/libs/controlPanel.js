@@ -565,20 +565,20 @@ function ControlPanel() {
       twitterControl.setValue("IGNORED", ignored);
 			twitterControl.setValue("CATEGORY AUTO", categoryAuto);
 
-      switch (categoryAuto) {
-        case "left":
+      switch (categoryAuto.toUpperCase()) {
+        case "LEFT":
           document.getElementById("CATEGORY AUTO").style.background = palette.blue;
         break;
-        case "neutral":
+        case "NEUTRAL":
           document.getElementById("CATEGORY AUTO").style.background = palette.lightgray;
         break;
-        case "right":
+        case "RIGHT":
           document.getElementById("CATEGORY AUTO").style.background = palette.yellow;
         break;
-        case "positive":
+        case "POSITIVE":
           document.getElementById("CATEGORY AUTO").style.background = palette.green;
         break;
-        case "negative":
+        case "NEGATIVE":
           document.getElementById("CATEGORY AUTO").style.background = palette.red;
         break;
         default:
@@ -643,20 +643,20 @@ function ControlPanel() {
 
       twitterControl.setValue("CATEGORY AUTO", node.categoryAuto.toUpperCase() || "NONE");
 
-      switch (node.categoryAuto) {
-        case "left":
+      switch (node.categoryAuto.toUpperCase()) {
+        case "LEFT":
           document.getElementById("CATEGORY AUTO").style.background = palette.blue;
         break;
-        case "neutral":
+        case "NEUTRAL":
           document.getElementById("CATEGORY AUTO").style.background = palette.lightgray;
         break;
-        case "right":
+        case "RIGHT":
           document.getElementById("CATEGORY AUTO").style.background = palette.yellow;
         break;
-        case "positive":
+        case "POSITIVE":
           document.getElementById("CATEGORY AUTO").style.background = palette.green;
         break;
-        case "negative":
+        case "NEGATIVE":
           document.getElementById("CATEGORY AUTO").style.background = palette.red;
         break;
         default:
@@ -1256,20 +1256,20 @@ function ControlPanel() {
         const categoryAuto = (twitterFeedUser) ? twitterFeedUser.categoryAuto.toUpperCase() : "";
         twitterControl.addText("CATEGORY AUTO", categoryAuto.toUpperCase());
 
-        switch (categoryAuto) {
-          case "left":
+        switch (categoryAuto.toUpperCase()) {
+          case "LEFT":
             document.getElementById("CATEGORY AUTO").style.background = palette.blue;
           break;
-          case "neutral":
+          case "NEUTRAL":
             document.getElementById("CATEGORY AUTO").style.background = palette.lightgray;
           break;
-          case "right":
+          case "RIGHT":
             document.getElementById("CATEGORY AUTO").style.background = palette.yellow;
           break;
-          case "positive":
+          case "POSITIVE":
             document.getElementById("CATEGORY AUTO").style.background = palette.green;
           break;
-          case "negative":
+          case "NEGATIVE":
             document.getElementById("CATEGORY AUTO").style.background = palette.red;
           break;
           default:

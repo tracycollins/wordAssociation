@@ -498,10 +498,10 @@ function ControlPanel() {
       twitterEntity.setValue("CREATED", getTimeStamp(twitterFeedUser.createdAt));
       twitterEntity.setValue("LAST SEEN", getTimeStamp(twitterFeedUser.lastSeen));
       twitterEntity.setValue("HASHTAG", "");
-      
+
       twitterEntity.setValue("FOLLOWERS", twitterFeedUser.followersCount);
       if (twitterFeedUser.followersCount > 5000) {
-        document.getElementById("FOLLOWERS").style.background='#004400';
+        document.getElementById("FOLLOWERS").style.background='#AAFFAA';
       }
 
       twitterEntity.setValue("FRIENDS", twitterFeedUser.friendsCount);
@@ -1075,7 +1075,7 @@ function ControlPanel() {
         twitterEntity.addNumber("FOLLOWERS", twitterFeedUser.followersCount);
 
         if (twitterFeedUser.followersCount > 5000) {
-          document.getElementById("FOLLOWERS").style.background='#004400';
+          document.getElementById("FOLLOWERS").style.background='#AAFFAA';
         }
 
         twitterEntity.addNumber("FRIENDS", twitterFeedUser.friendsCount);

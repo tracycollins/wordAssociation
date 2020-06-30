@@ -341,7 +341,9 @@ function ControlPanel() {
     eventDetected = true;
 
     document.getElementById(op).style.background='#0000ff';
-    if (parentWindow && !loadingTwitterFeedFlag) { parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE); }
+    if (parentWindow && !loadingTwitterFeedFlag) { 
+      parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE); 
+    }
 
     setTimeout(function(){
       eventDetected = false;
@@ -538,7 +540,10 @@ function ControlPanel() {
 
     if (node.nodeType === "user"){
 
-      if (prevNode.nodeId && (node.nodeId !== prevNode.nodeId) && !twitterFeedPreviousUserArray.includes(prevNode.nodeId)){
+      if (prevNode.nodeId 
+        && (node.nodeId !== prevNode.nodeId) 
+        && !twitterFeedPreviousUserArray.includes(prevNode.nodeId)
+      ){
         twitterFeedPreviousUserArray.push(prevNode.nodeId);
         twitterFeedPreviousUserMap[prevNode.nodeId] = node;
       }
@@ -578,9 +583,6 @@ function ControlPanel() {
       }
       twitterEntity.setValue("BANNER IMAGE", twitterFeedUser.bannerImageUrl.replace("_normal", ""));
 
-      // const ageMs = moment().diff(node.createdAt);
-      // const tweetsPerDay = ONE_DAY * (node.statusesCount/ageMs);
-
       twitterTimeLine.setValue("AGE", node.ageDays.toFixed(3));
       twitterTimeLine.setValue("TWEETS", node.statusesCount);
       twitterTimeLine.setValue("TWEETS PER DAY", node.tweetsPerDay.toFixed(3));
@@ -600,7 +602,9 @@ function ControlPanel() {
       twitterControl.setValue("IGNORED", ignored);
 
 			twitterControl.setValue("CATEGORY AUTO", categoryAuto);
+      
       setElementBackgroundColorCategory({elementId: "CATEGORY AUTO", category: categoryAuto});
+      setElementBackgroundColorCategory({elementId: "radioUserCategoryDiv", category: node.category});
 
       console.debug("loadTwitterFeed"
         + " | TYPE: " + node.nodeType

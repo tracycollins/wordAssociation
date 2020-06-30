@@ -3080,7 +3080,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
         sObj.user = statsObj.user;
         sObj.bestNetwork = statsObj.bestNetwork;
 
-        viewNameSpace.volatile.emit("STATS", sObj);
+        viewNameSpace.emit("STATS", sObj);
 
         heartbeatsSent += 1;
         if (heartbeatsSent % 60 == 0) { logHeartbeat(); }
@@ -4120,7 +4120,11 @@ async function twitterSearchUser(params) {
       + " | ERROR: " + err
     ));
 
-    viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", { node: params.node, stats: statsObj.user });
+    const sObj = {};
+    sObj.user = statsObj.user;
+    sObj.bestNetwork = statsObj.bestNetwork;
+
+    viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", { node: params.node, stats: sObj });
     throw err;
   }
 }
@@ -4160,7 +4164,11 @@ async function twitterSearchHashtag(params) {
       + " | ERROR: " + err
     ));
 
-    viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", { node: params.node, stats: statsObj.user });
+    const sObj = {};
+    sObj.user = statsObj.user;
+    sObj.bestNetwork = statsObj.bestNetwork;
+
+    viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", { node: params.node, stats: sObj });
     throw err;
   }
 
@@ -4195,21 +4203,25 @@ async function twitterSearchNode(params) {
     return;
   }
 
+  const sObj = {};
+  sObj.user = statsObj.user;
+  sObj.bestNetwork = statsObj.bestNetwork;
+
   if (searchNode.startsWith("@")) {
 
     const results = await twitterSearchUser({node: { nodeType: "user", screenName: searchNode.slice(1)} });
 
     if (results.node){
-      viewNameSpace.emit("SET_TWITTER_USER", {node: results.node, stats: statsObj.user });
+      viewNameSpace.emit("SET_TWITTER_USER", {node: results.node, stats: sObj });
     }
     else{
-      viewNameSpace.emit("TWITTER_USER_NOT_FOUND", {stats: statsObj.user });
+      viewNameSpace.emit("TWITTER_USER_NOT_FOUND", {stats: sObj });
     }
 
     return;
   }
 
-  viewNameSpace.emit("TWITTER_SEARCH_NODE_UNKNOWN_MODE", { searchNode: searchNode, stats: statsObj.user });
+  viewNameSpace.emit("TWITTER_SEARCH_NODE_UNKNOWN_MODE", { searchNode: searchNode, stats: sObj });
   throw new Error("UNKNOWN SEARCH MODE: " + searchNode);
 }
 

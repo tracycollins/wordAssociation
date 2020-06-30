@@ -643,6 +643,26 @@ function ControlPanel() {
 
       twitterControl.setValue("CATEGORY AUTO", node.categoryAuto.toUpperCase() || "NONE");
 
+      switch (node.categoryAuto) {
+        case "left":
+          document.getElementById("CATEGORY AUTO").style.background = palette.blue;
+        break;
+        case "neutral":
+          document.getElementById("CATEGORY AUTO").style.background = palette.lightgray;
+        break;
+        case "right":
+          document.getElementById("CATEGORY AUTO").style.background = palette.yellow;
+        break;
+        case "positive":
+          document.getElementById("CATEGORY AUTO").style.background = palette.green;
+        break;
+        case "negative":
+          document.getElementById("CATEGORY AUTO").style.background = palette.red;
+        break;
+        default:
+          document.getElementById("CATEGORY AUTO").style.background = palette.white;
+      }
+
       console.debug("loadTwitterFeed"
         + " | TYPE: " + node.nodeType
         + " | #" + node.nodeId
@@ -1235,6 +1255,27 @@ function ControlPanel() {
         twitterFeedUser.categoryAuto = twitterFeedUser.categoryAuto || "none";
         const categoryAuto = (twitterFeedUser) ? twitterFeedUser.categoryAuto.toUpperCase() : "";
         twitterControl.addText("CATEGORY AUTO", categoryAuto.toUpperCase());
+
+        switch (categoryAuto) {
+          case "left":
+            document.getElementById("CATEGORY AUTO").style.background = palette.blue;
+          break;
+          case "neutral":
+            document.getElementById("CATEGORY AUTO").style.background = palette.lightgray;
+          break;
+          case "right":
+            document.getElementById("CATEGORY AUTO").style.background = palette.yellow;
+          break;
+          case "positive":
+            document.getElementById("CATEGORY AUTO").style.background = palette.green;
+          break;
+          case "negative":
+            document.getElementById("CATEGORY AUTO").style.background = palette.red;
+          break;
+          default:
+            document.getElementById("CATEGORY AUTO").style.background = palette.white;
+        }
+
 
         twitterControl.addElement("CATEGORY MAN", radioUserCategoryDiv);
 

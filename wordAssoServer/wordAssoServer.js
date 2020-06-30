@@ -3591,6 +3591,7 @@ async function pubSubNodeSetProps(params){
 
       console.log(chalkAlert(MODULE_ID_PREFIX
         + " | !!! NODE SET PROPS TIMEOUT"
+        + " | " + tcUtils.msToTime(configuration.pubSub.pubSubResultTimeout)
         + " [" + statsObj.pubSub.messagesSent + "]"
         + " | " + params.requestId
         + " | TOPIC: node-setprops"

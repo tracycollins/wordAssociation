@@ -1046,13 +1046,13 @@ function ControlPanel() {
 
       if (twitterFeedNodeType === "user"){
         twitterFeedUser.category = cb.name;
+        setElementBackgroundColorCategory({elementId: radioUserCategoryDiv, category: cb.name});
         console.debug("CATEGORIZE | @" + currentTwitterNode.screenName + " | CAT: " + cb.name);
-
-        setElementBackgroundColorCategory({elementId: "CATEGORY MAN", category: cb.name});
       }
       
       if (twitterFeedNodeType === "hashtag"){
         twitterFeedHashtag.category = cb.name;
+        setElementBackgroundColorCategory({elementId: radioUserCategoryDiv, category: cb.name});
         console.debug("CATEGORIZE | #" + currentTwitterNode.nodeId + " | CAT: " + cb.name);
       }
       
@@ -1267,7 +1267,7 @@ function ControlPanel() {
         setElementBackgroundColorCategory({elementId: "CATEGORY AUTO", category: categoryAuto});
 
         twitterControl.addElement("CATEGORY MAN", radioUserCategoryDiv);
-        setElementBackgroundColorCategory({elementId: "CATEGORY MAN", category: twitterFeedUser.category});
+        setElementBackgroundColorCategory({elementId: "radioUserCategoryDiv", category: twitterFeedUser.category});
 
         twitterControl.addButton("CAT VERIFY", function(){
           document.getElementById("CAT VERIFY").style.background='#0000ff';

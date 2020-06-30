@@ -222,7 +222,7 @@ function ControlPanel() {
     "green": "#00E540",
     "darkergreen": "#008200",
     // "lightgreen": "#35A296",
-    "lightgreen": "#70E684"
+    "lightgreen": "#70E684",
     "yellowgreen": "#738A05"
   };
 

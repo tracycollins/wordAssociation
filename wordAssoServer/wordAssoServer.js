@@ -4184,6 +4184,8 @@ async function twitterSearchNode(params) {
     + " | " + searchNode
   ));
 
+  await updateUserCounts();
+
   if (searchNode.startsWith("#")) {
 
     const results = await twitterSearchHashtag({

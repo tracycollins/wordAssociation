@@ -1046,13 +1046,13 @@ function ControlPanel() {
 
       if (twitterFeedNodeType === "user"){
         twitterFeedUser.category = cb.name;
-        setElementBackgroundColorCategory({elementId: radioUserCategoryDiv, category: cb.name});
+        setElementBackgroundColorCategory({elementId: "radioUserCategoryDiv", category: cb.name});
         console.debug("CATEGORIZE | @" + currentTwitterNode.screenName + " | CAT: " + cb.name);
       }
       
       if (twitterFeedNodeType === "hashtag"){
         twitterFeedHashtag.category = cb.name;
-        setElementBackgroundColorCategory({elementId: radioUserCategoryDiv, category: cb.name});
+        setElementBackgroundColorCategory({elementId: "radioUserCategoryDiv", category: cb.name});
         console.debug("CATEGORIZE | #" + currentTwitterNode.nodeId + " | CAT: " + cb.name);
       }
       

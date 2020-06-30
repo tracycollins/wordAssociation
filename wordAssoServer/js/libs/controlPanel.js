@@ -379,6 +379,31 @@ function ControlPanel() {
     return this;
   };
 
+  function setElementBackgroundColorCategory(params){
+
+    switch (params.category.toUpperCase()) {  
+      case "LEFT":
+        document.getElementById(params.elementId).style.background = palette.lightblue;
+      break;
+      case "NEUTRAL":
+        document.getElementById(params.elementId).style.background = palette.lightgray;
+      break;
+      case "RIGHT":
+        document.getElementById(params.elementId).style.background = palette.lightyellow;
+      break;
+      case "POSITIVE":
+        document.getElementById(params.elementId).style.background = palette.green;
+      break;
+      case "NEGATIVE":
+        document.getElementById(params.elementId).style.background = palette.red;
+      break;
+      default:
+        document.getElementById(params.elementId).style.background = palette.white;
+    }
+
+    return;
+  }
+
   function updateCategoryRadioButtons(category, callback){
 
     console.log("updateCategoryRadioButtons | " + category);
@@ -569,27 +594,9 @@ function ControlPanel() {
       twitterControl.setValue("BOT", isBot);
       twitterControl.setValue("FOLLOWING", following);
       twitterControl.setValue("IGNORED", ignored);
-			twitterControl.setValue("CATEGORY AUTO", categoryAuto);
 
-      switch (categoryAuto.toUpperCase()) {
-        case "LEFT":
-          document.getElementById("CATEGORY AUTO").style.background = palette.lightblue;
-        break;
-        case "NEUTRAL":
-          document.getElementById("CATEGORY AUTO").style.background = palette.lightgray;
-        break;
-        case "RIGHT":
-          document.getElementById("CATEGORY AUTO").style.background = palette.lightyellow;
-        break;
-        case "POSITIVE":
-          document.getElementById("CATEGORY AUTO").style.background = palette.green;
-        break;
-        case "NEGATIVE":
-          document.getElementById("CATEGORY AUTO").style.background = palette.red;
-        break;
-        default:
-          document.getElementById("CATEGORY AUTO").style.background = palette.white;
-      }
+			twitterControl.setValue("CATEGORY AUTO", categoryAuto);
+      setElementBackgroundColorCategory({elementId: "CATEGORY AUTO", category: categoryAuto});
 
       console.debug("loadTwitterFeed"
         + " | TYPE: " + node.nodeType
@@ -652,25 +659,7 @@ function ControlPanel() {
 
       twitterControl.setValue("CATEGORY AUTO", node.categoryAuto.toUpperCase() || "NONE");
 
-      switch (node.categoryAuto.toUpperCase()) {
-        case "LEFT":
-          document.getElementById("CATEGORY AUTO").style.background = palette.lightblue;
-        break;
-        case "NEUTRAL":
-          document.getElementById("CATEGORY AUTO").style.background = palette.lightgray;
-        break;
-        case "RIGHT":
-          document.getElementById("CATEGORY AUTO").style.background = palette.lightyellow;
-        break;
-        case "POSITIVE":
-          document.getElementById("CATEGORY AUTO").style.background = palette.green;
-        break;
-        case "NEGATIVE":
-          document.getElementById("CATEGORY AUTO").style.background = palette.red;
-        break;
-        default:
-          document.getElementById("CATEGORY AUTO").style.background = palette.white;
-      }
+      setElementBackgroundColorCategory({elementId: "CATEGORY AUTO", category: node.categoryAuto});
 
       console.debug("loadTwitterFeed"
         + " | TYPE: " + node.nodeType
@@ -1054,6 +1043,8 @@ function ControlPanel() {
       if (twitterFeedNodeType === "user"){
         twitterFeedUser.category = cb.name;
         console.debug("CATEGORIZE | @" + currentTwitterNode.screenName + " | CAT: " + cb.name);
+
+        setElementBackgroundColorCategory({elementId: "CATEGORY MAN", category: cb.name});
       }
       
       if (twitterFeedNodeType === "hashtag"){
@@ -1265,31 +1256,14 @@ function ControlPanel() {
         });
 
         twitterFeedUser.categoryAuto = twitterFeedUser.categoryAuto || "none";
+
         const categoryAuto = (twitterFeedUser) ? twitterFeedUser.categoryAuto.toUpperCase() : "";
+
         twitterControl.addText("CATEGORY AUTO", categoryAuto.toUpperCase());
-
-        switch (categoryAuto.toUpperCase()) {
-          case "LEFT":
-            document.getElementById("CATEGORY AUTO").style.background = palette.lightblue;
-          break;
-          case "NEUTRAL":
-            document.getElementById("CATEGORY AUTO").style.background = palette.lightgray;
-          break;
-          case "RIGHT":
-            document.getElementById("CATEGORY AUTO").style.background = palette.lightyellow;
-          break;
-          case "POSITIVE":
-            document.getElementById("CATEGORY AUTO").style.background = palette.green;
-          break;
-          case "NEGATIVE":
-            document.getElementById("CATEGORY AUTO").style.background = palette.red;
-          break;
-          default:
-            document.getElementById("CATEGORY AUTO").style.background = palette.white;
-        }
-
+        setElementBackgroundColorCategory({elementId: "CATEGORY AUTO", category: categoryAuto});
 
         twitterControl.addElement("CATEGORY MAN", radioUserCategoryDiv);
+        setElementBackgroundColorCategory({elementId: "CATEGORY MAN", category: twitterFeedUser.category});
 
         twitterControl.addButton("CAT VERIFY", function(){
           document.getElementById("CAT VERIFY").style.background='#0000ff';

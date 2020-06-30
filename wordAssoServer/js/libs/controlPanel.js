@@ -209,6 +209,7 @@ function ControlPanel() {
     "darkgray": "#475B62",
     "darkblue": "#0A2933",
     "darkerblue": "#042029",
+    "lightblue": "#A6E0FF"
     "paleryellow": "#FCF4DC",
     "paleyellow": "#EAE3CB",
     "yellow": "#A57706",
@@ -572,7 +573,7 @@ function ControlPanel() {
 
       switch (categoryAuto.toUpperCase()) {
         case "LEFT":
-          document.getElementById("CATEGORY AUTO").style.background = palette.blue;
+          document.getElementById("CATEGORY AUTO").style.background = palette.lightblue;
         break;
         case "NEUTRAL":
           document.getElementById("CATEGORY AUTO").style.background = palette.lightgray;
@@ -653,7 +654,7 @@ function ControlPanel() {
 
       switch (node.categoryAuto.toUpperCase()) {
         case "LEFT":
-          document.getElementById("CATEGORY AUTO").style.background = palette.blue;
+          document.getElementById("CATEGORY AUTO").style.background = palette.lightblue;
         break;
         case "NEUTRAL":
           document.getElementById("CATEGORY AUTO").style.background = palette.lightgray;
@@ -1269,7 +1270,7 @@ function ControlPanel() {
 
         switch (categoryAuto.toUpperCase()) {
           case "LEFT":
-            document.getElementById("CATEGORY AUTO").style.background = palette.blue;
+            document.getElementById("CATEGORY AUTO").style.background = palette.lightblue;
           break;
           case "NEUTRAL":
             document.getElementById("CATEGORY AUTO").style.background = palette.lightgray;

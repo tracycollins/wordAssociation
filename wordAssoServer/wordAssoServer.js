@@ -508,7 +508,7 @@ const nodeSearchResultHandler = async function(message){
       ));
 
       if (messageObj.stats){
-        console.log(chalkLog(MODULE_ID_PREFIX + "\nUSER STATS\n" + jsonPrint(messageObj.stats)));
+        debug(chalkLog(MODULE_ID_PREFIX + "\nUSER STATS\n" + jsonPrint(messageObj.stats)));
         defaults(statsObj.user, messageObj.stats);
       }
 
@@ -604,7 +604,7 @@ const nodeSetPropsResultHandler = async function(message){
       }
 
       if (messageObj.stats){
-        console.log(chalkLog(MODULE_ID_PREFIX + "\nUSER STATS\n" + jsonPrint(messageObj.stats)));
+        debug(chalkLog(MODULE_ID_PREFIX + "\nUSER STATS\n" + jsonPrint(messageObj.stats)));
         defaults(statsObj.user, messageObj.stats);
       }
 

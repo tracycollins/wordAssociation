@@ -578,7 +578,7 @@ function ControlPanel() {
           document.getElementById("CATEGORY AUTO").style.background = palette.lightgray;
         break;
         case "RIGHT":
-          document.getElementById("CATEGORY AUTO").style.background = palette.yellow;
+          document.getElementById("CATEGORY AUTO").style.background = palette.lightyellow;
         break;
         case "POSITIVE":
           document.getElementById("CATEGORY AUTO").style.background = palette.green;
@@ -659,7 +659,7 @@ function ControlPanel() {
           document.getElementById("CATEGORY AUTO").style.background = palette.lightgray;
         break;
         case "RIGHT":
-          document.getElementById("CATEGORY AUTO").style.background = palette.yellow;
+          document.getElementById("CATEGORY AUTO").style.background = palette.lightyellow;
         break;
         case "POSITIVE":
           document.getElementById("CATEGORY AUTO").style.background = palette.green;
@@ -1275,7 +1275,7 @@ function ControlPanel() {
             document.getElementById("CATEGORY AUTO").style.background = palette.lightgray;
           break;
           case "RIGHT":
-            document.getElementById("CATEGORY AUTO").style.background = palette.yellow;
+            document.getElementById("CATEGORY AUTO").style.background = palette.lightyellow;
           break;
           case "POSITIVE":
             document.getElementById("CATEGORY AUTO").style.background = palette.green;

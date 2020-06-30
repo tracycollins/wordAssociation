@@ -1561,16 +1561,16 @@ socket.on("HEARTBEAT", function(hb) {
 
 });
 
-socket.on("STATS", function(message) {
+socket.on("STATS", function(stats) {
 
   statsObj.serverConnected = true;
   statsObj.socket.connected = true;
 
   console.log("<R STATS" 
-    + "\n" + jsonPrint(message.stats)
+    + "\n" + jsonPrint(stats)
   );
 
-  if (currentSessionView) { currentSessionView.setStats(message); }
+  if (currentSessionView) { currentSessionView.setStats(stats); }
 
 });
 

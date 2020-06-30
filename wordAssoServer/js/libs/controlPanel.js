@@ -221,7 +221,8 @@ function ControlPanel() {
     "blue": "#4808FF",
     "green": "#00E540",
     "darkergreen": "#008200",
-    "lightgreen": "#35A296",
+    // "lightgreen": "#35A296",
+    "lightgreen": "#70E684"
     "yellowgreen": "#738A05"
   };
 
@@ -525,8 +526,12 @@ function ControlPanel() {
       twitterEntity.setValue("HASHTAG", "");
 
       twitterEntity.setValue("FOLLOWERS", twitterFeedUser.followersCount);
+
       if (twitterFeedUser.followersCount > 5000) {
-        document.getElementById("FOLLOWERS").style.background='#AAFFAA';
+        document.getElementById("FOLLOWERS").style.background = palette.lightgreen;
+      }
+      else{
+        document.getElementById("FOLLOWERS").style.background = palette.white;
       }
 
       twitterEntity.setValue("FRIENDS", twitterFeedUser.friendsCount);
@@ -629,7 +634,10 @@ function ControlPanel() {
       twitterEntity.setValue("NAME", "");
       twitterEntity.setValue("SCREENNAME", "");
       twitterEntity.setValue("HASHTAG", "#" + node.nodeId);
+
       twitterEntity.setValue("FOLLOWERS", "");
+      document.getElementById("FOLLOWERS").style.background = palette.white;
+
       twitterEntity.setValue("FRIENDS", "");
       twitterEntity.setValue("LOCATION", "");
       twitterEntity.setValue("PROFILE IMAGE", DEFAULT_TWITTER_IMAGE);
@@ -1140,7 +1148,10 @@ function ControlPanel() {
         twitterEntity.addNumber("FOLLOWERS", twitterFeedUser.followersCount);
 
         if (twitterFeedUser.followersCount > 5000) {
-          document.getElementById("FOLLOWERS").style.background='#AAFFAA';
+          document.getElementById("FOLLOWERS").style.background = palette.lightgreen;
+        }
+        else{
+          document.getElementById("FOLLOWERS").style.background = palette.white;
         }
 
         twitterEntity.addNumber("FRIENDS", twitterFeedUser.friendsCount);

@@ -1068,6 +1068,9 @@ function ControlPanel() {
 				});
 
         twitterEntity.addNumber("FOLLOWERS", twitterFeedUser.followersCount);
+
+        document.getElementById("FOLLOWERS").style.background='#0000ff';
+        
         twitterEntity.addNumber("FRIENDS", twitterFeedUser.friendsCount);
 
         const location = (twitterFeedUser) ? twitterFeedUser.location : "";

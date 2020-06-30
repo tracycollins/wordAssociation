@@ -200,6 +200,31 @@ function ControlPanel() {
   	"none",
   ];
 
+  var palette = {
+    "black": "#000000",
+    "white": "#FFFFFF",
+    "lightgray": "#AAAAAA",
+    "gray": "#888888",
+    "mediumgray": "#536870",
+    "darkgray": "#475B62",
+    "darkblue": "#0A2933",
+    "darkerblue": "#042029",
+    "paleryellow": "#FCF4DC",
+    "paleyellow": "#EAE3CB",
+    "yellow": "#A57706",
+    "lightyellow": "#B58716",
+    "darkyellow": "#846608",
+    "orange": "#BD3613",
+    "red": "#D11C24",
+    "pink": "#C61C6F",
+    "purple": "#595AB7",
+    "blue": "#4808FF",
+    "green": "#00E540",
+    "darkergreen": "#008200",
+    "lightgreen": "#35A296",
+    "yellowgreen": "#738A05"
+  };
+
   function getTimeStamp(inputTime) {
 
     let currentTimeStamp;
@@ -539,6 +564,26 @@ function ControlPanel() {
       twitterControl.setValue("FOLLOWING", following);
       twitterControl.setValue("IGNORED", ignored);
 			twitterControl.setValue("CATEGORY AUTO", categoryAuto);
+
+      switch (categoryAuto) {
+        case "left":
+          document.getElementById("CATEGORY AUTO").style.background = palette.blue;
+        break;
+        case "neutral":
+          document.getElementById("CATEGORY AUTO").style.background = palette.lightgray;
+        break;
+        case "right":
+          document.getElementById("CATEGORY AUTO").style.background = palette.yellow;
+        break;
+        case "positive":
+          document.getElementById("CATEGORY AUTO").style.background = palette.green;
+        break;
+        case "negative":
+          document.getElementById("CATEGORY AUTO").style.background = palette.red;
+        break;
+        default:
+          document.getElementById("CATEGORY AUTO").style.background = palette.white;
+      }
 
       console.debug("loadTwitterFeed"
         + " | TYPE: " + node.nodeType

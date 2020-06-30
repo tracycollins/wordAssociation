@@ -209,7 +209,7 @@ function ControlPanel() {
     "darkgray": "#475B62",
     "darkblue": "#0A2933",
     "darkerblue": "#042029",
-    "lightblue": "#A6E0FF"
+    "lightblue": "#A6E0FF",
     "paleryellow": "#FCF4DC",
     "paleyellow": "#EAE3CB",
     "yellow": "#A57706",

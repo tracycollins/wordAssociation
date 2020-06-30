@@ -1554,10 +1554,10 @@ socket.on("HEARTBEAT", function(hb) {
   statsObj.socket.connected = true;
   // lastHeartbeatReceived = Date.now();
 
-  sSmall.bestNetwork = hb.bestNetwork;
-  sSmall.user = hb.user;
+  // sSmall.bestNetwork = hb.bestNetwork;
+  // sSmall.user = hb.user;
 
-  if (currentSessionView) { currentSessionView.setStats(sSmall); }
+  // if (currentSessionView) { currentSessionView.setStats(sSmall); }
 
 });
 

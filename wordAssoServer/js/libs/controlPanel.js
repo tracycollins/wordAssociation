@@ -640,11 +640,12 @@ function ControlPanel() {
   this.setFontSizeRatio = function (value) {};
 
   function updateCategoryStats(stats){
-    if (stats && stats.uncategorized) {
+
+    if (stats && stats.user && stats.user.uncategorized) {
     
       statsObj.manual = {};
-      statsObj.manual = stats.manual;
-      statsObj.auto = stats.auto;
+      statsObj.manual = stats.user.manual;
+      statsObj.auto = stats.user.auto;
 
       if (statsObj.manual) {
         statsPanel.setValue("MANUAL LEFT", statsObj.manual.left);
@@ -653,22 +654,22 @@ function ControlPanel() {
       }
 
       statsObj.uncategorized = {};
-      statsObj.uncategorized = stats.uncategorized;
-      statsObj.mismatched = stats.mismatched;
+      statsObj.uncategorized = stats.user.uncategorized;
+      statsObj.mismatched = stats.user.mismatched;
 
       console.debug("updateCategoryStats | SET TWITTER USER\nstats" + jsonPrint(stats));
 
       ["left", "right", "neutral", "all"].forEach(function(cat){
-        if (stats.uncategorized[cat] !== undefined) {
+        if (stats.user.uncategorized[cat] !== undefined) {
           const currentButton = document.getElementById("NEXT UNCAT " + cat.toUpperCase());
-          currentButton.value = stats.uncategorized[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
+          currentButton.value = stats.user.uncategorized[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
           console.debug("NEXT UNCAT " + cat.toUpperCase() + " | value: " + currentButton.value); 
         }
       });
 
-      if (stats.mismatched !== undefined) {
+      if (stats.user.mismatched !== undefined) {
         const currentButton = document.getElementById("NEXT MISMATCH");
-        currentButton.value = stats.mismatched.toString() + " | NEXT MISMATCH";
+        currentButton.value = stats.user.mismatched.toString() + " | NEXT MISMATCH";
         console.debug("NEXT UNCAT MISMATCH | value: " + currentButton.value); 
       }
       return;

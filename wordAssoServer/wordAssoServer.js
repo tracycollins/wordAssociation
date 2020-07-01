@@ -718,15 +718,6 @@ async function initNodeOpHandler(params){
       subscriptionHashMap.nodeSetPropsResult = subscription;  
       subscription.on("message", nodeSetPropsResultHandler);
     break;
-    // case "node-autocategorize-result":
-    // case "node-autocategorize-result-primary":
-    //   statsObj.pubSub.subscriptions.nodeAutoCategorizeResult = {};
-    //   statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.messagesReceived = 0;
-    //   statsObj.pubSub.subscriptions.nodeAutoCategorizeResult.topic = metadata.topic;
-    //   subscriptionHashMap.nodeAutoCategorizeResult = {};
-    //   subscriptionHashMap.nodeAutoCategorizeResult = subscription;  
-    //   subscription.on("message", nodeAutoCategorizeResultHandler);
-    // break;
     case "node-ignore":
     case "node-ignore-primary":
       statsObj.pubSub.subscriptions.nodeIgnoreResult = {};
@@ -745,7 +736,6 @@ async function initNodeOpHandler(params){
 }
 
 const searchNodeResultHashMap = {};
-// const nodeAutoCategorizeResultHashMap = {};
 
 const pubSubPublishMessageRequestIdSet = new Set();
 
@@ -8336,20 +8326,6 @@ async function loadConfigFile(params) {
       console.log(MODULE_ID_PREFIX + " | LOADED WAS_PUBSUB_PROJECT_ID: " + loadedConfigObj.WAS_PUBSUB_RESULT_TIMEOUT);
       newConfiguration.pubSub.pubSubResultTimeout = loadedConfigObj.WAS_PUBSUB_RESULT_TIMEOUT;
     }
-
-    // configuration.pubSub = {};
-    // configuration.pubSub.enabled = DEFAULT_PUBSUB_ENABLED;
-    // configuration.pubSub.projectId = DEFAULT_PUBSUB_PROJECT_ID;
-    // configuration.pubSub.pubSubResultTimeout = DEFAULT_PUBSUB_RESULT_TIMEOUT;
-
-    // configuration.pubSub.subscriptions = {};
-    // configuration.pubSub.subscriptions.categorizeResult = {};
-    // configuration.pubSub.subscriptions.categorizeResult.subscribeName = (configuration.primaryHost) ? "categorizeResultPrimary" : "categorizeResult";
-    // configuration.pubSub.subscriptions.categorizeResult.handler = "categorizeResultHandler";
-
-    // configuration.pubSub.subscriptions.twitterSearchUserResult = {}; 
-    // configuration.pubSub.subscriptions.twitterSearchUserResult.subscribeName = (configuration.primaryHost) ? "twitterSearchUserResultPrimary" : "twitterSearchUserResult";
-    // configuration.pubSub.subscriptions.twitterSearchUserResult.handler = "twitterSearchUserResultHandler";
 
     if (loadedConfigObj.TWEET_VERSION_2 !== undefined){
       console.log(MODULE_ID_PREFIX + " | LOADED TWEET_VERSION_2: " + loadedConfigObj.TWEET_VERSION_2);

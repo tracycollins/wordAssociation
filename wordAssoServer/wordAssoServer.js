@@ -883,9 +883,7 @@ const deletedHashtagsSet = new Set();
 const addedUsersSet = new Set();
 const deletedUsersSet = new Set();
 const botNodeIdSet = new Set();
-// const autoFollowUserSet = new Set();
 const ignoreIpSet = new Set();
-// const pubSubCategorizeSentSet = new Set();
 
 const ignoredHashtagRegex = new RegExp(/[^\u0000-\u007F]+/, "i");
 
@@ -1051,13 +1049,6 @@ configuration.pubSub.projectId = DEFAULT_PUBSUB_PROJECT_ID;
 configuration.pubSub.pubSubResultTimeout = DEFAULT_PUBSUB_RESULT_TIMEOUT;
 
 configuration.pubSub.subscriptions = {};
-configuration.pubSub.subscriptions.categorizeResult = {};
-configuration.pubSub.subscriptions.categorizeResult.subscribeName = (configuration.primaryHost) ? "categorizeResultPrimary" : "categorizeResult";
-configuration.pubSub.subscriptions.categorizeResult.handler = "categorizeResultHandler";
-
-configuration.pubSub.subscriptions.twitterSearchUserResult = {}; 
-configuration.pubSub.subscriptions.twitterSearchUserResult.subscribeName = (configuration.primaryHost) ? "twitterSearchUserResultPrimary" : "twitterSearchUserResult";
-configuration.pubSub.subscriptions.twitterSearchUserResult.handler = "twitterSearchUserResultHandler";
 
 configuration.slackChannel = {};
 
@@ -1716,10 +1707,10 @@ async function connectDb(){
     db.on("error", async function(err){
       statsObj.status = "MONGO ERROR";
       statsObj.dbConnectionReady = false;
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION ERROR"));
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION ERROR: " + err));
     });
 
-    db.on("close", async function(err){
+    db.on("close", async function(){
       statsObj.status = "MONGO CLOSED";
       statsObj.dbConnectionReady = false;
       console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION CLOSED"));
@@ -9448,17 +9439,18 @@ setTimeout(async function(){
     configuration = deepcopy(cnf);
     if (empty(configuration.twitter)) { configuration.twitter = {}; }
 
-    configuration.primaryHost = (hostname === process.env.PRIMARY_HOST);
+    configuration.isPrimaryHost = (hostname === configuration.primaryHost);
+    configuration.isDatabaseHost = (hostname === configuration.databaseHost);
 
-    const primaryHostSuffix = (configuration.primaryHost) ? "-primary" : "";
+    configuration.primaryHostSuffix = (configuration.primaryHost) ? "-primary" : "";
 
     console.log(chalkBlueBold(MODULE_ID_PREFIX
       + " | PROCESS: " + configuration.processName 
       + " | HOST: " + hostname
-      + " | PRIMARY HOST: " + process.env.PRIMARY_HOST
+      + " | PRIMARY HOST: " + configuration.primaryHost
+      + " | DATABASE HOST: " + configuration.databaseHost
       + " | STARTED " + getTimeStamp()
     ));
-
 
     statsObj.status = "START";
 
@@ -9510,10 +9502,7 @@ setTimeout(async function(){
     await initDbuChild({childId: DEFAULT_DBU_CHILD_ID});
     await initDbHashtagChangeStream();
     await initTweetParser({childId: DEFAULT_TWP_CHILD_ID});
-    // await initUpdateUserSetsInterval(configuration.updateUserSetsInterval);
     await initWatchConfig();
-
-    // pubSubClient = await initPubSub();
 
     const [topics] = await pubSubClient.getTopics();
     topics.forEach((topic) => console.log(chalkLog(MODULE_ID_PREFIX + " | PUBSUB TOPIC: " + topic.name)));
@@ -9521,9 +9510,8 @@ setTimeout(async function(){
     const [subscriptions] = await pubSubClient.getSubscriptions();
     subscriptions.forEach((subscription) => console.log(chalkLog(MODULE_ID_PREFIX + " | PUBSUB SUB: " + subscription.name)));
 
-    await initNodeOpHandler({subscribeName: "node-search-result" + primaryHostSuffix});
-    await initNodeOpHandler({subscribeName: "node-setprops-result" + primaryHostSuffix});
-    // await initNodeOpHandler({subscribeName: "node-autocategorize-result" + primaryHostSuffix});
+    await initNodeOpHandler({subscribeName: "node-search-result" + configuration.primaryHostSuffix});
+    await initNodeOpHandler({subscribeName: "node-setprops-result" + configuration.primaryHostSuffix});
 
     await initDbUserChangeStream();
     

@@ -748,26 +748,37 @@ const pubSubPublishMessageRequestIdSet = new Set();
 
 async function pubSubPublishMessage(params){
 
-  const data = JSON.stringify(params.message);
-  const dataBuffer = Buffer.from(data);
+  try {
 
-  const messageId = await pubSubClient.topic(params.publishName).publish(dataBuffer);
+    const data = JSON.stringify(params.message);
+    const dataBuffer = Buffer.from(data);
 
-  pubSubPublishMessageRequestIdSet.add(params.message.requestId);
+    const messageId = await pubSubClient.topic(params.publishName).publish(dataBuffer);
 
-  statsObj.pubSub.messagesSent += 1;
+    pubSubPublishMessageRequestIdSet.add(params.message.requestId);
 
-  debug(chalkLog(MODULE_ID_PREFIX
-    + " | <== PUB [" + statsObj.pubSub.messagesSent
-    + " / OUT: " + pubSubPublishMessageRequestIdSet.size + "]"
-    + " | TOPIC: " + params.publishName
-    + " | " + params.message.requestId
-    + " | TYPE: " + params.message.node.nodeType
-    + " | NID: " + params.message.node.nodeId
-    + " | @" + params.message.node.screenName
-  ));
+    statsObj.pubSub.messagesSent += 1;
 
-  return messageId;
+    debug(chalkLog(MODULE_ID_PREFIX
+      + " | <== PUB [" + statsObj.pubSub.messagesSent
+      + " / OUT: " + pubSubPublishMessageRequestIdSet.size + "]"
+      + " | TOPIC: " + params.publishName
+      + " | " + params.message.requestId
+      + " | TYPE: " + params.message.node.nodeType
+      + " | NID: " + params.message.node.nodeId
+      + " | @" + params.message.node.screenName
+    ));
+
+    return messageId;
+
+  }
+  catch(err){
+    console.log(chalkError(MODULE_ID_PREFIX
+      + " | *** pubSubPublishMessage ERROR: " + err 
+    ));
+    throw err;
+  }
+
 }
 
 //=========================================================================

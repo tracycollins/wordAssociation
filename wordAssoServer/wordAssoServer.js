@@ -6183,12 +6183,16 @@ function initTransmitNodeQueueInterval(interval){
             const uncatObj = await uncatDbCheck({node: node});
 
             if (uncatObj === undefined) {
+
+              const nodeSmall = pick(node, fieldsTransmitKeys);
+
               nodeSetPropsQueue.push({ 
                 createNodeOnMiss: true,
-                node: node, 
+                node: nodeSmall, 
                 props: { screenName: node.screenName.toLowerCase() },
                 autoCategorize: true
               });
+
             }
 
             const nCacheObj = nodeCache.get(node.nodeId);

@@ -684,7 +684,7 @@ const pubSubErrorHandler = function(params){
     + " | *** PUBSUB ERROR | SUBSCRIPTION: " + params.subscribeName
     + " | " + params.err
   ));
-  statsObj.pubSub.subscriptions.errors.push(err);
+  statsObj.pubSub.subscriptions.errors.push(params.err);
 }
 
 async function initNodeOpHandler(params){
@@ -4043,6 +4043,17 @@ async function twitterSearchUser(params) {
     console.log(chalkInfo(MODULE_ID_PREFIX 
       + " | -?- USER SEARCH | USER: " + params.node
     ));
+  }
+  else if (params.node.screenName === "threecee"){
+
+    const node = await global.wordAssoDb.User.findOne({screenName: "threecee"}).lean();
+
+    console.log(chalkBlueBold(MODULE_ID_PREFIX 
+      + " | ### USER SEARCH - @threecee | NID: " + params.node.nodeId + " | @" + params.node.screenName
+    ));
+
+    return { node: node, searchMode: "SPECIFIC", stats: statsObj.user };
+
   }
   else{
     console.log(chalkInfo(MODULE_ID_PREFIX 

@@ -679,17 +679,21 @@ const nodeIgnoreHandler = async function(message){
   message.ack();
 };
 
-const pubSubErrorHandler = function(error){
+const pubSubErrorHandler = function(params){
   console.log(chalkError(MODULE_ID_PREFIX
-    + " | *** PUBSUB ERROR: " + error
+    + " | *** PUBSUB ERROR | SUBSCRIPTION: " + params.subscribeName
+    + " | " + params.err
   ));
+  statsObj.pubSub.subscriptions.errors.push(err);
 }
 
 async function initNodeOpHandler(params){
 
   const subscription = await pubSubClient.subscription(params.subscribeName);
 
-  subscription.on("error", pubSubErrorHandler);
+  subscription.on("error", function(err){
+    pubSubErrorHandler({subscribeName: params.subscribeName, err: err});
+  });
 
   const [metadata] = await subscription.getMetadata();
 
@@ -703,6 +707,7 @@ async function initNodeOpHandler(params){
     case "node-search-result":
     case "node-search-result-primary":
       statsObj.pubSub.subscriptions.nodeSearchResult = {};
+      statsObj.pubSub.subscriptions.nodeSearchResult.errors = [];
       statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived = 0;
       statsObj.pubSub.subscriptions.nodeSearchResult.topic = metadata.topic;
       subscriptionHashMap.nodeSearchResult = {};
@@ -712,6 +717,7 @@ async function initNodeOpHandler(params){
     case "node-setprops-result":
     case "node-setprops-result-primary":
       statsObj.pubSub.subscriptions.nodeSetPropsResult = {};
+      statsObj.pubSub.subscriptions.nodeSetPropsResult.errors = [];
       statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived = 0;
       statsObj.pubSub.subscriptions.nodeSetPropsResult.topic = metadata.topic;
       subscriptionHashMap.nodeSetPropsResult = {};
@@ -721,6 +727,7 @@ async function initNodeOpHandler(params){
     case "node-ignore":
     case "node-ignore-primary":
       statsObj.pubSub.subscriptions.nodeIgnoreResult = {};
+      statsObj.pubSub.subscriptions.nodeIgnoreResult.errors = [];
       statsObj.pubSub.subscriptions.nodeIgnoreResult.messagesReceived = 0;
       statsObj.pubSub.subscriptions.nodeIgnoreResult.topic = metadata.topic;
       subscriptionHashMap.nodeIgnoreResult = {};
@@ -940,15 +947,12 @@ let dbuChildReady = false;
 statsObj.tssChildReady = false;
 
 statsObj.hashtag = {};
-
 statsObj.hashtag.added = 0;
 statsObj.hashtag.deleted = 0;
 statsObj.hashtag.categoryChanged = 0;
 statsObj.hashtag.categoryAutoChanged = 0;
 statsObj.hashtag.categorizeNetworkChanged = 0;
 statsObj.hashtag.categoryVerifiedChanged = 0;
-
-
 statsObj.hashtag.auto = {};
 statsObj.hashtag.auto.left = 0;
 statsObj.hashtag.auto.negative = 0;
@@ -988,29 +992,23 @@ statsObj.traffic.users.percentBots = 0;
 statsObj.traffic.users.total = 0;
 
 statsObj.user = {};
-
 statsObj.user.total = 0;
-
 statsObj.user.dbUncat = 0;
-
 statsObj.user.added = 0;
 statsObj.user.deleted = 0;
 statsObj.user.categoryChanged = 0;
 statsObj.user.categoryAutoChanged = 0;
 statsObj.user.categorizeNetworkChanged = 0;
 statsObj.user.categoryVerifiedChanged = 0;
-
 statsObj.user.matched = 0;
 statsObj.user.mismatched = 0;
 statsObj.user.following = 0;
 statsObj.user.notFollowing = 0;
 statsObj.user.autoFollow = 0;
-
 statsObj.user.categorizedAuto = 0;
 statsObj.user.categorizedManual = 0;
 statsObj.user.categorizedTotal = 0;
 statsObj.user.categoryVerified = 0;
-
 statsObj.user.auto = {};
 statsObj.user.auto.left = 0;
 statsObj.user.auto.negative = 0;
@@ -1018,7 +1016,6 @@ statsObj.user.auto.neutral = 0;
 statsObj.user.auto.none = 0;
 statsObj.user.auto.positive = 0;
 statsObj.user.auto.right = 0;
-
 statsObj.user.manual = {};
 statsObj.user.manual.left = 0;
 statsObj.user.manual.negative = 0;

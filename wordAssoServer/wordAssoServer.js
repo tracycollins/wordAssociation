@@ -570,10 +570,11 @@ const nodeSearchResultHandler = async function(message){
         ));
       }
 
-      tcUtils.emitter.emit("nodeSearchResult_" + messageObj.requestId);
-      pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
-      message.ack();
     }
+
+    tcUtils.emitter.emit("nodeSearchResult_" + messageObj.requestId);
+    pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
+    message.ack();
 
     return;
   }
@@ -640,10 +641,11 @@ const nodeSetPropsResultHandler = async function(message){
       ));
     }
 
-    tcUtils.emitter.emit("nodeSetPropsResult_" + messageObj.requestId);
-    pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
-    message.ack();
   }
+
+  tcUtils.emitter.emit("nodeSetPropsResult_" + messageObj.requestId);
+  pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
+  message.ack();
 
   return;
 };

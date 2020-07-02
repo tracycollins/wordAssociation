@@ -483,97 +483,105 @@ const subscriptionHashMap = {};
 
 const nodeSearchResultHandler = async function(message){
 
-  statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived += 1;
-
-  const messageObj = JSON.parse(message.data.toString());
-
-  debug(chalkLog(MODULE_ID_PREFIX + " | RX NODE SEARCH RESULT " + message.id));
-
-  if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)){
+  try {
 
     statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived += 1;
 
-    if (messageObj.node && messageObj.node.nodeType === "user") {
-      debug(chalkBlue(MODULE_ID_PREFIX
-        + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
-        + " | " + messageObj.requestId
-        + " | MODE: " + messageObj.searchMode
-        + " | NID: " + messageObj.node.nodeId
-        + " | @" + messageObj.node.screenName
-        + " | FLW: " + formatBoolean(messageObj.node.following)
-        + " | CN: " + messageObj.node.categorizeNetwork
-        + " | CV: " + formatBoolean(messageObj.node.categoryVerified)
-        + " | CM: " + formatCategory(messageObj.node.category)
-        + " | CA: " + formatCategory(messageObj.node.categoryAuto)
-      ));
+    const messageObj = JSON.parse(message.data.toString());
 
-      if (messageObj.stats){
-        debug(chalkLog(MODULE_ID_PREFIX + "\nUSER STATS\n" + jsonPrint(messageObj.stats)));
-        defaults(statsObj.user, messageObj.stats);
-      }
+    debug(chalkLog(MODULE_ID_PREFIX + " | RX NODE SEARCH RESULT " + message.id));
 
-      const catUserObj = categorizedUserHashMap.get(messageObj.node.nodeId);
-      
-      if (catUserObj !== undefined){
+    if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)){
 
-        if (["left", "neutral", "right"].includes(messageObj.node.category)){
-          catUserObj.manual = messageObj.node.category;
-        }
-        
-        if (["left", "neutral", "right"].includes(messageObj.node.categoryAuto)){
-          catUserObj.auto = messageObj.node.categoryAuto;
-        }
+      statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived += 1;
 
-        categorizedUserHashMap.set(catUserObj.nodeId, catUserObj);
-      }
-
-      searchNodeResultHashMap[messageObj.requestId] = messageObj.node;
-    }
-    else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
-
-      if (configuration.verbose){ 
-        console.log(chalkBlueBold(MODULE_ID_PREFIX
+      if (messageObj.node && messageObj.node.nodeType === "user") {
+        debug(chalkBlue(MODULE_ID_PREFIX
           + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
           + " | " + messageObj.requestId
           + " | MODE: " + messageObj.searchMode
           + " | NID: " + messageObj.node.nodeId
+          + " | @" + messageObj.node.screenName
+          + " | FLW: " + formatBoolean(messageObj.node.following)
+          + " | CN: " + messageObj.node.categorizeNetwork
+          + " | CV: " + formatBoolean(messageObj.node.categoryVerified)
           + " | CM: " + formatCategory(messageObj.node.category)
           + " | CA: " + formatCategory(messageObj.node.categoryAuto)
         ));
-      }
 
-      const catHashtagObj = categorizedHashtagHashMap.get(messageObj.node.nodeId);
-      
-      if (catHashtagObj !== undefined){
-
-        if (["left", "neutral", "right"].includes(messageObj.node.category)){
-          catHashtagObj.manual = messageObj.node.category;
+        if (messageObj.stats){
+          debug(chalkLog(MODULE_ID_PREFIX + "\nUSER STATS\n" + jsonPrint(messageObj.stats)));
+          defaults(statsObj.user, messageObj.stats);
         }
+
+        const catUserObj = categorizedUserHashMap.get(messageObj.node.nodeId);
         
-        if (["left", "neutral", "right"].includes(messageObj.node.categoryAuto)){
-          catHashtagObj.auto = messageObj.node.categoryAuto;
+        if (catUserObj !== undefined){
+
+          if (["left", "neutral", "right"].includes(messageObj.node.category)){
+            catUserObj.manual = messageObj.node.category;
+          }
+          
+          if (["left", "neutral", "right"].includes(messageObj.node.categoryAuto)){
+            catUserObj.auto = messageObj.node.categoryAuto;
+          }
+
+          categorizedUserHashMap.set(catUserObj.nodeId, catUserObj);
         }
 
-        categorizedHashtagHashMap.set(catHashtagObj.nodeId, catHashtagObj);
+        searchNodeResultHashMap[messageObj.requestId] = messageObj.node;
+      }
+      else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
+
+        if (configuration.verbose){ 
+          console.log(chalkBlueBold(MODULE_ID_PREFIX
+            + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
+            + " | " + messageObj.requestId
+            + " | MODE: " + messageObj.searchMode
+            + " | NID: " + messageObj.node.nodeId
+            + " | CM: " + formatCategory(messageObj.node.category)
+            + " | CA: " + formatCategory(messageObj.node.categoryAuto)
+          ));
+        }
+
+        const catHashtagObj = categorizedHashtagHashMap.get(messageObj.node.nodeId);
+        
+        if (catHashtagObj !== undefined){
+
+          if (["left", "neutral", "right"].includes(messageObj.node.category)){
+            catHashtagObj.manual = messageObj.node.category;
+          }
+          
+          if (["left", "neutral", "right"].includes(messageObj.node.categoryAuto)){
+            catHashtagObj.auto = messageObj.node.categoryAuto;
+          }
+
+          categorizedHashtagHashMap.set(catHashtagObj.nodeId, catHashtagObj);
+        }
+
+        searchNodeResultHashMap[messageObj.requestId] = messageObj.node;
+      }
+      else{
+        console.log(chalk.yellow(MODULE_ID_PREFIX
+          + " | ==> PS SEARCH NODE -MISS- [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
+          + " | MID: " + message.id
+          + " | " + messageObj.requestId
+          + " | MODE: " + messageObj.searchMode
+        ));
       }
 
-      searchNodeResultHashMap[messageObj.requestId] = messageObj.node;
-    }
-    else{
-      console.log(chalk.yellow(MODULE_ID_PREFIX
-        + " | ==> PS SEARCH NODE -MISS- [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
-        + " | MID: " + message.id
-        + " | " + messageObj.requestId
-        + " | MODE: " + messageObj.searchMode
-      ));
+      tcUtils.emitter.emit("nodeSearchResult_" + messageObj.requestId);
+      pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
+      message.ack();
     }
 
-    tcUtils.emitter.emit("nodeSearchResult_" + messageObj.requestId);
-    pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
-    message.ack();
+    return;
   }
-
-  return;
+  catch(err){
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** RX nodeSearchResultHandler ERROR: " + err));
+    console.log("message\n", message);
+    throw err;
+  }
 };
 
 const nodeSetPropsResultHandler = async function(message){

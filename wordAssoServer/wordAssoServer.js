@@ -930,6 +930,7 @@ const statsObj = {};
 
 statsObj.pubSub = {};
 statsObj.pubSub.subscriptions = {};
+statsObj.pubSub.subscriptions.errors = [];
 statsObj.pubSub.messagesSent = 0;
 statsObj.pubSub.messagesReceived = 0;
 statsObj.pubSub.subscriptions = {};

@@ -485,6 +485,8 @@ const nodeSearchResultHandler = async function(message){
 
   try {
 
+    message.ack();
+
     statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived += 1;
 
     const messageObj = JSON.parse(message.data.toString());
@@ -574,18 +576,21 @@ const nodeSearchResultHandler = async function(message){
 
     tcUtils.emitter.emit("nodeSearchResult_" + messageObj.requestId);
     pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
-    message.ack();
+    // message.ack();
 
     return;
   }
   catch(err){
     console.log(chalkError(MODULE_ID_PREFIX + " | *** RX nodeSearchResultHandler ERROR: " + err));
     console.log("message\n", message);
+    // message.ack();
     throw err;
   }
 };
 
 const nodeSetPropsResultHandler = async function(message){
+
+  message.ack();
 
   const messageObj = JSON.parse(message.data.toString());
 
@@ -645,12 +650,14 @@ const nodeSetPropsResultHandler = async function(message){
 
   tcUtils.emitter.emit("nodeSetPropsResult_" + messageObj.requestId);
   pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
-  message.ack();
+  // message.ack();
 
   return;
 };
 
 const nodeIgnoreHandler = async function(message){
+
+  message.ack();
 
   statsObj.pubSub.searchNode.messagesReceived += 1;
 
@@ -686,7 +693,7 @@ const nodeIgnoreHandler = async function(message){
     }
   });
 
-  message.ack();
+  // message.ack();
 };
 
 const pubSubErrorHandler = function(params){

@@ -9485,7 +9485,7 @@ setTimeout(async function(){
     configuration.isPrimaryHost = (hostname === configuration.primaryHost);
     configuration.isDatabaseHost = (hostname === configuration.databaseHost);
 
-    configuration.primaryHostSuffix = (configuration.primaryHost) ? "-primary" : "";
+    configuration.primaryHostSuffix = (configuration.isPrimaryHost) ? "-primary" : "";
 
     console.log(chalkBlueBold(MODULE_ID_PREFIX
       + " | PROCESS: " + configuration.processName 

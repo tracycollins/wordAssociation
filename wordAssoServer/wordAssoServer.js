@@ -571,7 +571,6 @@ const nodeSearchResultHandler = async function(message){
           + " | MODE: " + messageObj.searchMode
         ));
       }
-
     }
 
     tcUtils.emitter.emit("nodeSearchResult_" + messageObj.requestId);
@@ -581,9 +580,9 @@ const nodeSearchResultHandler = async function(message){
     return;
   }
   catch(err){
+    message.ack();
     console.log(chalkError(MODULE_ID_PREFIX + " | *** RX nodeSearchResultHandler ERROR: " + err));
     console.log("message\n", message);
-    // message.ack();
     throw err;
   }
 };
@@ -645,12 +644,10 @@ const nodeSetPropsResultHandler = async function(message){
         + " | " + messageObj.requestId
       ));
     }
-
   }
 
   tcUtils.emitter.emit("nodeSetPropsResult_" + messageObj.requestId);
   pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
-  // message.ack();
 
   return;
 };

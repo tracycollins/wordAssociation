@@ -15,9 +15,9 @@ function ControlPanel() {
 
   const DEFAULT_TWITTER_IMAGE = "https://word.threeceelabs.com/public/assets/images/twitterEgg.png";
 
-	var parentWindow = window.opener;
-	console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);
-	var self = this;
+  var parentWindow = window.opener;
+  console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);
+  var self = this;
 
   var dashboardMainDiv = document.getElementById('dashboardMainDiv');
 
@@ -39,13 +39,13 @@ function ControlPanel() {
   var twitterEntityDiv = document.createElement("div");
   twitterEntityDiv.id = "twitterEntityDiv";
 
-	var twitterTimeLine;
-	var twitterTimeLineDiv = document.createElement("div");
-	twitterTimeLineDiv.id = "twitterTimeLineDiv";
+  var twitterTimeLine;
+  var twitterTimeLineDiv = document.createElement("div");
+  twitterTimeLineDiv.id = "twitterTimeLineDiv";
   twitterTimeLineDiv.style.overflow = "auto";
 
 
-	var entityCategorizeDiv = document.getElementById("entityCategorizeDiv");
+  var entityCategorizeDiv = document.getElementById("entityCategorizeDiv");
 
   var currentUser = "threecee";
 
@@ -141,7 +141,7 @@ function ControlPanel() {
   const DEFAULT_FONT_SIZE_RATIO_MIN_MIN = 0.0;
   const DEFAULT_FONT_SIZE_RATIO_MIN_MAX = 0.100;
 
-  const DEFAULT_FONT_SIZE_RATIO_MAX = 0.100	;
+  const DEFAULT_FONT_SIZE_RATIO_MAX = 0.100 ;
   const DEFAULT_FONT_SIZE_RATIO_MAX_MIN = 0.0;
   const DEFAULT_FONT_SIZE_RATIO_MAX_MAX = 0.250;
 
@@ -192,12 +192,12 @@ function ControlPanel() {
   var eventDetected = false;
 
   var categories = [
-  	"left",
-  	"neutral",
-  	"right",
-  	"positive",
-  	"negative",
-  	"none",
+    "left",
+    "neutral",
+    "right",
+    "positive",
+    "negative",
+    "none",
   ];
 
   var palette = {
@@ -418,7 +418,7 @@ function ControlPanel() {
       category = "none";
     }
 
-	  setChecked(category);
+    setChecked(category);
 
     callback();
   }
@@ -554,7 +554,7 @@ function ControlPanel() {
       twitterFeedUser = Object.assign({}, defaultTwitterFeedUser, node);
 
       twitterEntity.setValue("NODE ID", twitterFeedUser.nodeId);
-    	twitterEntity.setValue("NAME", twitterFeedUser.name);
+      twitterEntity.setValue("NAME", twitterFeedUser.name);
       twitterEntity.setValue("SCREENNAME", "@"+twitterFeedUser.screenName);
       twitterEntity.setValue("CREATED", getTimeStamp(twitterFeedUser.createdAt));
       twitterEntity.setValue("LAST SEEN", getTimeStamp(twitterFeedUser.lastSeen));
@@ -601,7 +601,7 @@ function ControlPanel() {
       twitterControl.setValue("FOLLOWING", following);
       twitterControl.setValue("IGNORED", ignored);
 
-			twitterControl.setValue("CATEGORY AUTO", categoryAuto);
+      twitterControl.setValue("CATEGORY AUTO", categoryAuto);
       
       setElementBackgroundColorCategory({elementId: "CATEGORY AUTO", category: categoryAuto});
       setElementBackgroundColorCategory({elementId: "radioUserCategoryDiv", category: node.category});
@@ -797,7 +797,7 @@ function ControlPanel() {
         delete cnf.twitterUser.status;
 
         console.debug("CONTROL PANEL INIT"
-        	// + "\n" + jsonPrint(cnf)
+          // + "\n" + jsonPrint(cnf)
         );
 
         Object.keys(cnf).forEach(function(prop){
@@ -894,7 +894,7 @@ function ControlPanel() {
           + " | CV: " + currentTwitterNode.categoryVerified
           + " | C: " + currentTwitterNode.category
           + " | CA: " + currentTwitterNode.categoryAuto
-			    + "\n profileImageUrl: " + currentTwitterNode.profileImageUrl
+          + "\n profileImageUrl: " + currentTwitterNode.profileImageUrl
         );
 
         updateCategoryStats(event.data.stats);
@@ -962,60 +962,60 @@ function ControlPanel() {
     if (callback) { callback(); }
   };
 
-	var radioUserCategoryDiv = document.createElement("div");
-	radioUserCategoryDiv.id = "radioUserCategoryDiv";
+  var radioUserCategoryDiv = document.createElement("div");
+  radioUserCategoryDiv.id = "radioUserCategoryDiv";
   radioUserCategoryDiv.setAttribute("class", "radioCheckbox");
   radioUserCategoryDiv.style.fontSize = "16px";
 
-	["left", "neutral", "right", "positive", "negative", "none"].forEach(function(category){
+  ["left", "neutral", "right", "positive", "negative", "none"].forEach(function(category){
 
-		var categoryLabel = document.createElement("label");
-		categoryLabel.setAttribute("class", "categoryButtonLabel");
-		categoryLabel.setAttribute("id", "categoryLabel_" + shortCategory(category));
+    var categoryLabel = document.createElement("label");
+    categoryLabel.setAttribute("class", "categoryButtonLabel");
+    categoryLabel.setAttribute("id", "categoryLabel_" + shortCategory(category));
     categoryLabel.style.fontSize = "16px";
     categoryLabel.style.padding = "5px";
-		categoryLabel.innerHTML = shortCategory(category);
+    categoryLabel.innerHTML = shortCategory(category);
 
-		var categoryButton = document.createElement("input");
-		categoryButton.id = "category_" + category; 
-		categoryButton.setAttribute("type", "checkbox");
-		categoryButton.name = category; 
+    var categoryButton = document.createElement("input");
+    categoryButton.id = "category_" + category; 
+    categoryButton.setAttribute("type", "checkbox");
+    categoryButton.name = category; 
     categoryButton.style.webkitAppearance = "none";
     categoryButton.style.backgroundColor = "lightgray";
     categoryButton.style.boxSizing = "border-box";
     categoryButton.style.width = "16px";
     categoryButton.style.height = "16px";
 
-		categoryLabel.appendChild(categoryButton);
-		radioUserCategoryDiv.appendChild(categoryLabel);
-	});
+    categoryLabel.appendChild(categoryButton);
+    radioUserCategoryDiv.appendChild(categoryLabel);
+  });
 
-	radioUserCategoryDiv.onclick = function(e){
-		console.log("radioUserCategoryDiv BUTTON: ", e.srcElement.id);
-		catRadioButtonHandler(e);
-	}
+  radioUserCategoryDiv.onclick = function(e){
+    console.log("radioUserCategoryDiv BUTTON: ", e.srcElement.id);
+    catRadioButtonHandler(e);
+  }
 
-	function setChecked( categorySet ){
+  function setChecked( categorySet ){
 
-		var categorySetButtonId = "category_" + categorySet;
+    var categorySetButtonId = "category_" + categorySet;
 
-		var cbxs = radioUserCategoryDiv.getElementsByTagName('input'), i=cbxs.length;
+    var cbxs = radioUserCategoryDiv.getElementsByTagName('input'), i=cbxs.length;
 
-		while(i--) {
+    while(i--) {
 
-		  if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id === categorySetButtonId) {
-				cbxs[i].checked = true;
+      if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id === categorySetButtonId) {
+        cbxs[i].checked = true;
         cbxs[i].style.backgroundColor = "blue";
         if (twitterFeedNodeType === "user") { twitterFeedUser.category = cbxs[i].name; }
         if (twitterFeedNodeType === "hashtag") { twitterFeedHashtag.category = cbxs[i].name; }
-		  }
-		  if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id !== categorySetButtonId) {
-				cbxs[i].checked = false;
+      }
+      if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id !== categorySetButtonId) {
+        cbxs[i].checked = false;
         cbxs[i].style.backgroundColor = "lightgray";
-		  }
+      }
 
-		}
-	}
+    }
+  }
 
   function computeRangeStep(params){
     return Math.abs((params.max-params.min)/config.defaultRangeSteps);
@@ -1023,25 +1023,25 @@ function ControlPanel() {
 
   function catRadioButtonHandler(e){
 
-		e = e || event;
+    e = e || event;
 
-		var cb = e.srcElement || e.target;
+    var cb = e.srcElement || e.target;
 
-		if (cb.type !== 'checkbox') {return true;}
+    if (cb.type !== 'checkbox') {return true;}
 
-		console.log("CAT BUTTON: ", cb.id);
+    console.log("CAT BUTTON: ", cb.id);
 
-		var cbxs = radioUserCategoryDiv.getElementsByTagName('input');
-		var i = cbxs.length;
+    var cbxs = radioUserCategoryDiv.getElementsByTagName('input');
+    var i = cbxs.length;
 
-		while(i--) {
-			if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id !== cb.id) {
-				cbxs[i].checked = false;
+    while(i--) {
+      if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id !== cb.id) {
+        cbxs[i].checked = false;
         cbxs[i].style.backgroundColor = "lightgray";
-			}
-		}
+      }
+    }
     
-		cb.checked = true;
+    cb.checked = true;
     cb.style.backgroundColor = "blue";
 
     if (!loadingTwitterFeedFlag){
@@ -1138,12 +1138,12 @@ function ControlPanel() {
         const hashtag = (twitterFeedHashtag) ? "#"+twitterFeedHashtag.nodeId : "#";
         twitterEntity.addText("HASHTAG", hashtag);
 
-				twitterEntity.addButton("HASHTAG SEARCH", function(data){
-					console.debug("NODE SEARCH: ", twitterEntity.getValue("HASHTAG"));
+        twitterEntity.addButton("HASHTAG SEARCH", function(data){
+          console.debug("NODE SEARCH: ", twitterEntity.getValue("HASHTAG"));
           let input = twitterEntity.getValue("HASHTAG");
           if (!input.startsWith("#")) { input = "#" + input; }
-		      parentWindow.postMessage({op: "NODE_SEARCH", input: input}, DEFAULT_SOURCE);
-				});
+          parentWindow.postMessage({op: "NODE_SEARCH", input: input}, DEFAULT_SOURCE);
+        });
 
         twitterEntity.addNumber("FOLLOWERS", twitterFeedUser.followersCount);
 
@@ -1159,8 +1159,8 @@ function ControlPanel() {
         const location = (twitterFeedUser) ? twitterFeedUser.location : "";
         twitterEntity.addText("LOCATION", location);
 
-				const description = (twitterFeedUser) ? twitterFeedUser.description : "";
-				twitterEntity.addTextArea("DESCRIPTION", description);
+        const description = (twitterFeedUser) ? twitterFeedUser.description : "";
+        twitterEntity.addTextArea("DESCRIPTION", description);
 
         if (twitterFeedUser) {
           var profileImageUrl = twitterFeedUser.profileImageUrl.replace("http:", "https:");
@@ -1183,11 +1183,11 @@ function ControlPanel() {
 
         // TWITTER USER TIMELINE ==================================
 
-				twitterTimeLine = QuickSettings.create(positionX, 	0, "TIMELINE", entityCategorizeDiv);
+        twitterTimeLine = QuickSettings.create(positionX,   0, "TIMELINE", entityCategorizeDiv);
 
         positionX += subPanelWidth;
 
-				twitterTimeLine.setWidth(subPanelWidth);
+        twitterTimeLine.setWidth(subPanelWidth);
 
         twitterTimeLine.addNumber("AGE", twitterFeedUser.ageDays.toFixed(3));
         twitterTimeLine.addNumber("TWEETS", twitterFeedUser.statusesCount);
@@ -1195,7 +1195,7 @@ function ControlPanel() {
         twitterTimeLine.addNumber("MENTIONS", twitterFeedUser.mentions);
         twitterTimeLine.addNumber("RATE", twitterFeedUser.rate);
         twitterTimeLine.addNumber("RATE MAX", twitterFeedUser.rateMax);
-        twitterTimeLine.addElement("TIMELINE", twitterTimeLineDiv);	
+        twitterTimeLine.addElement("TIMELINE", twitterTimeLineDiv); 
 
         twitterEntity.setGlobalChangeHandler(function(data){
         });

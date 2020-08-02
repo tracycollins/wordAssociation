@@ -1,34 +1,371 @@
-/*jslint node: true */
-/* jshint undef: true, unused: true */
-/* globals store, $, window, twttr, Element, document, async, moment */
-
 function ControlPanel() {
   "use strict";
 
-  // var DEFAULT_SOURCE = "http://localhost:9997";
-  var DEFAULT_SOURCE = "https://word.threeceelabs.com";
+  const ONE_SECOND = 1000;
+  const ONE_MINUTE = 60*ONE_SECOND;
+  const ONE_HOUR = 60*ONE_MINUTE;
+  const ONE_DAY = 24*ONE_HOUR;
 
-  var parentWindow = window.opener;
-  console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);
-  var self = this;
+  const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
-  var compactDateTimeFormat = "YYYYMMDD HHmmss";
+  const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
+  const LOCAL_SOURCE = "http://localhost:9997";
 
-  var timelineDiv = document.getElementById("timelineDiv");
-  var hashtagDiv =document.getElementById("hashtagDiv");
+  const DEFAULT_SOURCE = REPLACE_SOURCE;
+
+  const DEFAULT_TWITTER_IMAGE = "https://word.threeceelabs.com/public/assets/images/twitterEgg.png";
+
+	var parentWindow = window.opener;
+	console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);
+	var self = this;
+
+  var dashboardMainDiv = document.getElementById('dashboardMainDiv');
+
+  var statsPanel;
+  var statsPanelDiv = document.createElement("div");
+  statsPanelDiv.id = "statsPanelDiv";
+
+  var displayControlHashMap = {};
+
+  var displayControl;
+  var displayControlDiv = document.createElement("div");
+  displayControlDiv.id = "displayControlDiv";
+
+  var twitterControl;
+  var twitterControlDiv = document.createElement("div");
+  twitterControlDiv.id = "twitterControlDiv";
+
+  var twitterEntity;
+  var twitterEntityDiv = document.createElement("div");
+  twitterEntityDiv.id = "twitterEntityDiv";
+
+	var twitterTimeLine;
+	var twitterTimeLineDiv = document.createElement("div");
+	twitterTimeLineDiv.id = "twitterTimeLineDiv";
+  twitterTimeLineDiv.style.overflow = "auto";
+
+
+	var entityCategorizeDiv = document.getElementById("entityCategorizeDiv");
+
+  var currentUser = "threecee";
+
+  const defaultTwitterFeedUser = {};
+  defaultTwitterFeedUser.ageDays = 0;
+  defaultTwitterFeedUser.category = "---";
+  defaultTwitterFeedUser.categoryAuto = "---";
+  defaultTwitterFeedUser.description = "---";
+  defaultTwitterFeedUser.followersCount = 0;
+  defaultTwitterFeedUser.following = false;
+  defaultTwitterFeedUser.friendsCount = 0;
+  defaultTwitterFeedUser.ignored = false;
+  defaultTwitterFeedUser.isBot = false;
+  defaultTwitterFeedUser.location = "---";
+  defaultTwitterFeedUser.mentions = 0;
+  defaultTwitterFeedUser.name = "---";
+  defaultTwitterFeedUser.nodeId = "---";
+  defaultTwitterFeedUser.profileImageUrl = "";
+  defaultTwitterFeedUser.screenName = "@";
+  defaultTwitterFeedUser.statusesCount = 0;
+  defaultTwitterFeedUser.tweetsPerDay = 0;
+  defaultTwitterFeedUser.userId = "---";
+
+  var twitterFeedUser = Object.assign({}, defaultTwitterFeedUser);
+
+  let statsObj = {};
+
+  statsObj.bestNetwork = {};
+  statsObj.bestNetwork.networkId = false;
+  statsObj.bestNetwork.succesRate = false;
+  statsObj.bestNetwork.overallMatchRate = false;
+  statsObj.bestNetwork.inputsId = false;
+
+  statsObj.socketId = "NOT SET";
+
+  statsObj.uncategorized = {};
+  statsObj.uncategorized.all = 0;
+  statsObj.uncategorized.left = 0;
+  statsObj.uncategorized.right = 0;
+  statsObj.uncategorized.neutral = 0;
+
+  statsObj.categorized = {};
+  statsObj.categorized.all = 0;
+  statsObj.categorized.left = 0;
+  statsObj.categorized.right = 0;
+  statsObj.categorized.neutral = 0;
+
+  statsObj.mismatched = 0;
+
+  statsObj.user = {};
+  statsObj.user = defaultTwitterFeedUser;
+
+
+  var twitterFeedPreviousUser = false;
+  const twitterFeedPreviousUserArray = [];
+  const twitterFeedPreviousUserMap = {};
+  var twitterFeedHashtag = {};
+  var twitterFeedPreviousHashtag = {};
+  var loadingTwitterFeedFlag = false;
 
   var nodeTypesSet = new Set();
   nodeTypesSet.add("emoji");
   nodeTypesSet.add("hashtag");
-  nodeTypesSet.add("place");
+  nodeTypesSet.add("location");
   nodeTypesSet.add("media");
+  nodeTypesSet.add("place");
   nodeTypesSet.add("url");
   nodeTypesSet.add("user");
   nodeTypesSet.add("word");
 
-  var twitterFeedUser;
-  var twitterFeedPreviousUser;
-  var twitterFeedHashtag;
+  var config = {};
+  var currentTwitterNode;
+
+  config = window.opener.config;
+
+  const DEFAULT_RANGE_STEPS = 1000;
+
+  config.defaultRangeSteps = DEFAULT_RANGE_STEPS;
+
+  const DEFAULT_MAX_NODES = 50;
+  const DEFAULT_MAX_NODES_MIN = 10;
+  const DEFAULT_MAX_NODES_MAX = 500;
+
+  const DEFAULT_NODE_RADIUS_RATIO_MIN = 0.0020;
+  const DEFAULT_NODE_RADIUS_RATIO_MIN_MIN = 0.0;
+  const DEFAULT_NODE_RADIUS_RATIO_MIN_MAX = 0.1;
+
+  const DEFAULT_NODE_RADIUS_RATIO_MAX = 0.2;
+  const DEFAULT_NODE_RADIUS_RATIO_MAX_MIN = 0.1;
+  const DEFAULT_NODE_RADIUS_RATIO_MAX_MAX = 0.5;
+
+  const DEFAULT_FONT_SIZE_RATIO_MIN = 0.050;
+  const DEFAULT_FONT_SIZE_RATIO_MIN_MIN = 0.0;
+  const DEFAULT_FONT_SIZE_RATIO_MIN_MAX = 0.100;
+
+  const DEFAULT_FONT_SIZE_RATIO_MAX = 0.100	;
+  const DEFAULT_FONT_SIZE_RATIO_MAX_MIN = 0.0;
+  const DEFAULT_FONT_SIZE_RATIO_MAX_MAX = 0.250;
+
+  const DEFAULT_MAX_AGE = 15*ONE_SECOND;
+  const DEFAULT_MAX_AGE_MIN = ONE_SECOND;
+  const DEFAULT_MAX_AGE_MAX = ONE_MINUTE;
+
+  const DEFAULT_GRAVITY = 0.001;
+  const DEFAULT_GRAVITY_MIN = -0.005;
+  const DEFAULT_GRAVITY_MAX = 0.005;
+
+  const DEFAULT_CHARGE = -50.0;
+  const DEFAULT_CHARGE_MIN = -1000.0;
+  const DEFAULT_CHARGE_MAX = 1000.0;
+
+  const DEFAULT_VELOCITY_DECAY = 0.50;
+  const DEFAULT_VELOCITY_DECAY_MIN = 0.0;
+  const DEFAULT_VELOCITY_DECAY_MAX = 1.0;
+
+  config.range = {};
+
+  const rangeInputs =[
+    "charge",
+    "fontSizeRatioMax",
+    "fontSizeRatioMin",
+    "gravity", 
+    "maxAge",
+    "maxNodes", 
+    "nodeRadiusRatioMax",
+    "nodeRadiusRatioMin", 
+    "velocityDecay"
+  ];
+
+  rangeInputs.forEach(function(rangeInput){
+    config.range[rangeInput] = {};
+    config.range[rangeInput].name = rangeInput;
+    config.range[rangeInput].default = eval("DEFAULT_" + changeCase.constantCase(rangeInput));
+    config.range[rangeInput].min = eval("DEFAULT_" + changeCase.constantCase(rangeInput) + "_MIN");
+    config.range[rangeInput].max = eval("DEFAULT_" + changeCase.constantCase(rangeInput) + "_MAX");
+  });
+
+  console.log("CONFIG RANGE INPUTS\n", config.range);
+
+  delete config.twitterUser.histograms;
+  delete config.twitterUser.countHistory;
+  delete config.twitterUser.status;
+
+  var eventDetected = false;
+
+  var categories = [
+  	"left",
+  	"neutral",
+  	"right",
+  	"positive",
+  	"negative",
+  	"none",
+  ];
+
+  var palette = {
+    "black": "#000000",
+    "white": "#FFFFFF",
+    "lightgray": "#AAAAAA",
+    "gray": "#888888",
+    "mediumgray": "#536870",
+    "darkgray": "#475B62",
+    "darkblue": "#0A2933",
+    "darkerblue": "#042029",
+    "lightblue": "#A6E0FF",
+    "paleryellow": "#FCF4DC",
+    "paleyellow": "#EAE3CB",
+    "yellow": "#A57706",
+    "lightyellow": "#F2EC8F",
+    "darkyellow": "#846608",
+    "orange": "#BD3613",
+    "red": "#D11C24",
+    "pink": "#C61C6F",
+    "purple": "#595AB7",
+    "blue": "#4808FF",
+    "green": "#00E540",
+    "darkergreen": "#008200",
+    // "lightgreen": "#35A296",
+    "lightgreen": "#70E684",
+    "yellowgreen": "#738A05"
+  };
+
+  function getTimeStamp(inputTime) {
+
+    let currentTimeStamp;
+
+    if (inputTime === undefined) {
+      currentTimeStamp = moment().format(compactDateTimeFormat);
+      return currentTimeStamp;
+    }
+    else if (moment.isMoment(inputTime)) {
+      currentTimeStamp = moment(inputTime).format(compactDateTimeFormat);
+      return currentTimeStamp;
+    }
+    else if (moment(new Date(inputTime)).isValid()) {
+      currentTimeStamp = moment(new Date(inputTime)).format(compactDateTimeFormat);
+      return currentTimeStamp;
+    }
+    else if (moment(parseInt(inputTime)).isValid()) {
+      currentTimeStamp = moment(parseInt(inputTime)).format(compactDateTimeFormat);
+      return currentTimeStamp;
+    }
+    else {
+      console.log(chalkAlert("WAS | *** getTimeStamp INVALID DATE: " + inputTime));
+      return null;
+    }
+  }
+
+  var nextMismatchHandler = function(op){
+    // need to debounce button click
+    if (eventDetected) {
+      return;
+    }
+    eventDetected = true;
+
+    var searchFilter = "@?mm";
+
+    document.getElementById(op).style.background='#0000ff';
+
+    console.debug("BUTTON: NEXT MISMATCH | searchFilter: " + searchFilter);
+
+    if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: searchFilter}, DEFAULT_SOURCE); }
+
+    setTimeout(function(){
+      eventDetected = false;
+      document.getElementById(op).style.background='#ffffff';
+    }, 100);
+  };
+
+  var nextUncatHandler = function(op){
+    // need to debounce button click
+    if (eventDetected) {
+      return;
+    }
+    eventDetected = true;
+
+    var searchFilter = "@?";
+
+    document.getElementById(op).style.background='#0000ff';
+
+    switch (op){
+      case "NEXT UNCAT ALL":
+        searchFilter += "all"; 
+        break;
+      case "NEXT UNCAT LEFT":
+        searchFilter += "left"; 
+        break;
+      case "NEXT UNCAT RIGHT":
+        searchFilter += "right"; 
+        break;
+      case "NEXT UNCAT NEUTRAL":
+        searchFilter += "neutral"; 
+        break;
+      default:
+    }
+
+    console.debug("BUTTON: " + op + " | searchFilter: " + searchFilter);
+
+    if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: searchFilter}, DEFAULT_SOURCE); }
+
+    setTimeout(function(){
+      eventDetected = false;
+      document.getElementById(op).style.background='#ffffff';
+    }, 100);
+  };
+
+  var previousUserHandler = function(op){
+
+    if (eventDetected) {
+      return;
+    }
+    eventDetected = true;
+
+    document.getElementById(op).style.background='#0000ff';
+    if (parentWindow && !loadingTwitterFeedFlag && twitterFeedPreviousUserArray.length > 0) {
+      const prevUserNodeId = twitterFeedPreviousUserArray.pop();
+      const prevUserObj = twitterFeedPreviousUserMap[prevUserNodeId];
+      const prevUserScreenname = "@" + prevUserObj.screenName;
+      parentWindow.postMessage({op: "NODE_SEARCH", input: prevUserScreenname}, DEFAULT_SOURCE);
+      twitterFeedPreviousUserMap[prevUserNodeId] = null;
+    }
+
+    setTimeout(function(){
+      eventDetected = false;
+      document.getElementById(op).style.background='#ffffff';
+    }, 100);
+  };
+
+  var ignoreHandler = function(op){
+
+    if (eventDetected) {
+      return;
+    }
+    eventDetected = true;
+
+    document.getElementById(op).style.background='#0000ff';
+    if (parentWindow && !loadingTwitterFeedFlag) { 
+      parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE); 
+    }
+
+    setTimeout(function(){
+      eventDetected = false;
+      document.getElementById(op).style.background='#ffffff';
+    }, 100);
+  };
+
+  var catVerifiedHandler = function(op){
+
+    if (eventDetected) {
+      return;
+    }
+    eventDetected = true;
+    if (parentWindow && !loadingTwitterFeedFlag) { 
+      parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
+    }
+
+    setTimeout(function(){
+      eventDetected = false;
+    }, 100);
+
+  };
 
   function jsonPrint(obj) {
     if ((obj) || (obj === 0)) {
@@ -39,226 +376,39 @@ function ControlPanel() {
     }
   }
 
-  var twitterCategorySearchDiv = document.getElementById("twitterCategorySearchDiv");
-  var twitterUserButtonsDiv = document.getElementById("twitterUserButtonsDiv");
+  Element.prototype.removeAll = function () {
+    while (this.firstChild) { this.removeChild(this.firstChild); }
+    return this;
+  };
 
-  var nodeSearchInput = document.createElement("input");
-  var nodeSearchLabel = document.createElement("label");
-  var nodeSearchValue = "";
+  function setElementBackgroundColorCategory(params){
 
-  nodeSearchLabel.setAttribute("id", "nodeSearchLabel");
-  nodeSearchLabel.innerHTML = "NODE SEARCH";
-
-  function nodeSearchHandler(e) {
-    if (e.keyCode === 13) { // 'ENTER' key
-      parentWindow.postMessage({op: "NODE_SEARCH", input: nodeSearchInput.value}, DEFAULT_SOURCE);
-    }
-  }
-
-  nodeSearchInput.setAttribute("class", "nodeSearch");
-  nodeSearchInput.setAttribute("type", "text");
-  nodeSearchInput.setAttribute("id", "nodeSearchInput");
-  nodeSearchInput.setAttribute("name", "nodeSearch");
-  nodeSearchInput.setAttribute("autofocus", true);
-  nodeSearchInput.setAttribute("autocapitalize", "none");
-  nodeSearchInput.setAttribute("value", nodeSearchValue);
-  nodeSearchInput.addEventListener("keydown", function(e){ nodeSearchHandler(e); }, false);
-
-  twitterCategorySearchDiv.appendChild(nodeSearchLabel);
-  twitterCategorySearchDiv.appendChild(nodeSearchInput);
-
-
-  var config = {};
-  var currentTwitterNode;
-
-  config = window.opener.config;
-  delete config.twitterUser.histograms;
-  delete config.twitterUser.countHistory;
-  delete config.twitterUser.status;
-
-  console.log("config\n" + jsonPrint(config));
-
-  var statsObj = {};
-  statsObj.socketId = "NOT SET";
-  statsObj.user = {};
-  statsObj.user.name = "---";
-  statsObj.user.screenName = "@";
-  statsObj.user.category = "---";
-  statsObj.user.categoryAuto = "---";
-  statsObj.user.followersCount = 0;
-  statsObj.user.friendsCount = 0;
-  statsObj.user.statusesCount = 0;
-  statsObj.user.mentions = 0;
-  statsObj.user.threeceeFollowing = "---";
-  statsObj.user.ignored = "---";
-
-  var controlIdHash = {};
-
-  var dashboardMain;
-  var infoTable;
-  var userStatsTable;
-
-  var categoryTable;
-
-  var controlTable;
-  var controlTableHead;
-  var controlTableBody;
-
-  var displayControlTable;
-
-  var controlSliderTable;
-
-  //--------------
-
-  function nextMismatchedButtonHandler(e){
-
-    console.warn("NEXT MISMATCHED BUTTON"
-     + " | ID: " + e.target.id
-     + "\n" + jsonPrint(e.target)
-    );
-
-    parentWindow.postMessage({op: "NODE_SEARCH", input: "@?MM"}, DEFAULT_SOURCE);
-  }
-
-  var nextMismatchedButton = document.createElement("button");
-  nextMismatchedButton.setAttribute("class", "button");
-  nextMismatchedButton.setAttribute("id", "nextMismatchedButton");
-  nextMismatchedButton.innerHTML = "NEXT MISMATCH";
-  nextMismatchedButton.addEventListener(
-    "click", 
-    function(e){ nextMismatchedButtonHandler(e); }, 
-    false
-  );
-
-  twitterUserButtonsDiv.appendChild(nextMismatchedButton);
-
-  //--------------
-
-  function nextUncategorizedButtonHandler(e){
-
-    console.warn("NEXT UNCATEGORIZED BUTTON"
-      + " | ID: " + e.target.id
-    );
-
-    parentWindow.postMessage({op: "NODE_SEARCH", input: "@?"}, DEFAULT_SOURCE);
-  }
-
-  var nextUncategorizedButton = document.createElement("button");
-  nextUncategorizedButton.setAttribute("class", "button");
-  nextUncategorizedButton.setAttribute("id", "nextUncategorizedButton");
-  nextUncategorizedButton.innerHTML = "NEXT UNCAT";
-  nextUncategorizedButton.addEventListener(
-    "click", 
-    function(e){ nextUncategorizedButtonHandler(e); }, 
-    false
-  );
-
-  twitterUserButtonsDiv.appendChild(nextUncategorizedButton);
-
-  //--------------
-
-  function ignoreButtonHandler(e){
-    console.warn("IGNORE BUTTON | ID: " + e.target.id + " | USER: @" + twitterFeedUser.screenName);
-    parentWindow.postMessage({op: "IGNORE", user: twitterFeedUser}, DEFAULT_SOURCE);
-  }
-
-  var ignoreButton = document.createElement("button");
-  ignoreButton.setAttribute("class", "button");
-  ignoreButton.setAttribute("id", "ignoreButton");
-  ignoreButton.innerHTML = "IGNORE";
-  ignoreButton.addEventListener(
-    "click", 
-    function(e){ ignoreButtonHandler(e); }, 
-    false
-  );
-
-  twitterUserButtonsDiv.appendChild(ignoreButton);
-
-  //--------------
-
-  function followButtonHandler(e){
-    if (!twitterFeedUser) { 
-      console.error("followButtonHandler: twitterFeedUser UNDEFINED");
+    if (!document.getElementById(params.elementId)){
       return;
     }
-    console.warn("FOLLOW BUTTON | ID: " + e.target.id + " | USER: @" + twitterFeedUser.screenName);
-    parentWindow.postMessage({op: "FOLLOW", user: twitterFeedUser}, DEFAULT_SOURCE);
-  }
 
-  var followButton = document.createElement("button");
-  followButton.setAttribute("class", "button");
-  followButton.setAttribute("id", "followButton");
-  followButton.innerHTML = "FOLLOW";
-  followButton.addEventListener(
-    "click", 
-    function(e){ followButtonHandler(e); }, 
-    false
-  );
-
-  twitterUserButtonsDiv.appendChild(followButton);
-
-  //--------------
-
-  function previousUserButtonHandler(e){
-    if (!twitterFeedPreviousUser) {
-      console.warn("PREVIOUS USER BUTTON | ID: " + e.target.id + " | PREV USER UNDEFINED ... SKIPPING");
-      return;
+    switch (params.category.toUpperCase()) {  
+      case "LEFT":
+        document.getElementById(params.elementId).style.background = palette.lightblue;
+      break;
+      case "NEUTRAL":
+        document.getElementById(params.elementId).style.background = palette.lightgray;
+      break;
+      case "RIGHT":
+        document.getElementById(params.elementId).style.background = palette.lightyellow;
+      break;
+      case "POSITIVE":
+        document.getElementById(params.elementId).style.background = palette.green;
+      break;
+      case "NEGATIVE":
+        document.getElementById(params.elementId).style.background = palette.red;
+      break;
+      default:
+        document.getElementById(params.elementId).style.background = palette.white;
     }
-    console.warn("PREVIOUS USER BUTTON | ID: " + e.target.id + " | USER: @" + twitterFeedPreviousUser.screenName);
-    parentWindow.postMessage({op: "NODE_SEARCH", input: "@" + twitterFeedPreviousUser.screenName}, DEFAULT_SOURCE);
+
+    return;
   }
-
-  var previousUserButton = document.createElement("button");
-  previousUserButton.setAttribute("class", "button");
-  previousUserButton.setAttribute("id", "previousUserButton");
-  previousUserButton.innerHTML = "PREVIOUS USER";
-  previousUserButton.addEventListener(
-    "click", 
-    function(e){ previousUserButtonButtonHandler(e); }, 
-    false
-  );
-
-  twitterUserButtonsDiv.appendChild(previousUserButton);
-
-  //--------------
-
-  function unignoreButtonHandler(e){
-    console.warn("UNIGNORE BUTTON | ID: " + e.target.id + " | USER: @" + twitterFeedUser.screenName);
-    parentWindow.postMessage({op: "UNIGNORE", user: twitterFeedUser}, DEFAULT_SOURCE);
-  }
-
-  var unignoreButton = document.createElement("button");
-  unignoreButton.setAttribute("class", "button");
-  unignoreButton.setAttribute("id", "ignoreButton");
-  unignoreButton.innerHTML = "UNIGNORE";
-  unignoreButton.addEventListener(
-    "click", 
-    function(e){ unignoreButtonHandler(e); }, 
-    false
-  );
-
-  twitterUserButtonsDiv.appendChild(unignoreButton);
-
-  //--------------
-
-  function unfollowButtonHandler(e){
-    console.warn("UNFOLLOW BUTTON | ID: " + e.target.id + " | USER: @" + twitterFeedUser.screenName);
-    parentWindow.postMessage({op: "UNFOLLOW", user: twitterFeedUser}, DEFAULT_SOURCE);
-  }
-
-  var unfollowButton = document.createElement("button");
-  unfollowButton.setAttribute("class", "button");
-  unfollowButton.setAttribute("id", "unfollowButton");
-  unfollowButton.innerHTML = "UNFOLLOW";
-  unfollowButton.addEventListener(
-    "click", 
-    function(e){ unfollowButtonHandler(e); }, 
-    false
-  );
-
-  twitterUserButtonsDiv.appendChild(unfollowButton);
-
-  //--------------
 
   function updateCategoryRadioButtons(category, callback){
 
@@ -268,49 +418,9 @@ function ControlPanel() {
       category = "none";
     }
 
-    var element;
+	  setChecked(category);
 
-    document.getElementById("categoryLeft").setAttribute("class", "radioUnchecked");
-    document.getElementById("categoryRight").setAttribute("class", "radioUnchecked");
-    document.getElementById("categoryNeutral").setAttribute("class", "radioUnchecked");
-    document.getElementById("categoryPositive").setAttribute("class", "radioUnchecked");
-    document.getElementById("categoryNegative").setAttribute("class", "radioUnchecked");
-    document.getElementById("categoryNone").setAttribute("class", "radioUnchecked");
-
-    switch(category) {
-      case "left":
-        element = document.getElementById("categoryLeft");
-        element.className = "radioChecked";
-        callback();
-      break;
-      case "right":
-        element = document.getElementById("categoryRight");
-        element.className = "radioChecked";
-        callback();
-      break;
-      case "neutral":
-        element = document.getElementById("categoryNeutral");
-        element.className = "radioChecked";
-        callback();
-      break;
-      case "positive":
-        element = document.getElementById("categoryPositive");
-        element.className = "radioChecked";
-        callback();
-      break;
-      case "negative":
-        element = document.getElementById("categoryNegative");
-        element.className = "radioChecked";
-        callback();
-      break;
-      case "none":
-        element = document.getElementById("categoryNone");
-        element.className = "radioChecked";
-        callback();
-      break;
-      default:
-        callback();
-    }
+    callback();
   }
 
   function shortCategory(c) {
@@ -325,6 +435,7 @@ function ControlPanel() {
   }
 
   var nodeName;
+  var categoryVerified;
   var category;
   var categoryAuto;
 
@@ -335,51 +446,38 @@ function ControlPanel() {
     }
     else {
 
-      twitterFeedPreviousUser = node;
-
       nodeName = (node.name !== undefined) ? node.name : "---";
 
+      categoryVerified = node.categoryVerified || false;
       category = node.category || "none";
       categoryAuto = node.categoryAuto || "none";
 
-      document.getElementById("userScreenNameText").innerHTML = "<h4>@" + node.screenName + "</h4>";
-      document.getElementById("userNameText").innerHTML = "<h4>" + nodeName + "</h4>";
-      document.getElementById("userIdText").innerHTML = node.nodeId;
-      document.getElementById("userCreatedAtText").innerHTML = moment(node.createdAt).format(compactDateTimeFormat);
-      document.getElementById("userLastSeenText").innerHTML = moment(node.lastSeen).format(compactDateTimeFormat);
-      document.getElementById("userCategoryText").innerHTML = "M: " + shortCategory(category) + " | A: " + shortCategory(categoryAuto);
-      document.getElementById("userFollowersCountText").innerHTML = node.followersCount;
-      document.getElementById("userFriendsCountText").innerHTML = node.friendsCount;
-      document.getElementById("userStatusesCountText").innerHTML = node.statusesCount;
-      document.getElementById("userMentionsText").innerHTML = node.mentions;
-      document.getElementById("user3cFollowingText").innerHTML = node.threeceeFollowing;
-      document.getElementById("userIgnoredText").innerHTML = node.ignored;
-      document.getElementById("userDescriptionText").innerHTML = node.description;
-      document.getElementById("userLocationText").innerHTML = node.location;
-
+      statsObj.user.userId = node.userId;
       statsObj.user.nodeId = node.nodeId;
       statsObj.user.name = nodeName;
       statsObj.user.screenName = node.screenName;
+      statsObj.user.location = node.location;
+      statsObj.user.description = node.description;
+      statsObj.user.categoryVerified = categoryVerified;
       statsObj.user.category = category;
       statsObj.user.categoryAuto = categoryAuto;
       statsObj.user.followersCount = node.followersCount;
       statsObj.user.friendsCount = node.friendsCount;
       statsObj.user.statusesCount = node.statusesCount;
       statsObj.user.ignored = node.ignored;
-      statsObj.user.threeceeFollowing = node.threeceeFollowing;
+      statsObj.user.following = node.following;
+      statsObj.user.isBot = node.isBot;
       statsObj.user.mentions = node.mentions;
-      statsObj.user.description = node.description;
 
       if (twttr && twttr.widgets) {
-        // twttr.widgets.createFollowButton(
-        //   node.screenName,
-        //   timelineDiv
-        // );
+
+        twitterTimeLineDiv.removeAll();
 
         twttr.widgets.createTimeline(
           { sourceType: "profile", screenName: node.screenName},
-          timelineDiv,
-          { width: "400", height: "600"}
+          twitterTimeLineDiv,
+          { height: 800 }
+          // { width: "400", height: "600"}
         )
         .then(function (el) {
           callback(null, el);
@@ -408,42 +506,119 @@ function ControlPanel() {
       + "C: M: " + node.category
       + "<br><br>";
 
-    hashtagDiv.removeAll();
-    timelineDiv.removeAll();
-    hashtagDiv.appendChild(hashtagText);
+    twitterTimeLineDiv.removeAll();
 
     callback();
   }
 
-  Element.prototype.removeAll = function () {
-    while (this.firstChild) { this.removeChild(this.firstChild); }
-    return this;
-  };
+  function updateStatsPanel(stats, callback){
+    if (!statsPanelDiv) { 
+      console.error("updateStatsPanel: statsPanelDiv UNDEFINED");
+      return callback("updateStatsPanel: statsPanelDiv UNDEFINED");
+    }
+
+    callback();
+  }
+
+  var prevNode = {};
+  prevNode.nodeId = false;
+
+  var twitterFeedNodeType = "user";
 
   function loadTwitterFeed(node, callback) {
 
-    if (!timelineDiv || !hashtagDiv || (twttr === undefined)) { 
-      console.error("loadTwitterFeed: timelineDiv OR hashtagDiv OR twttr UNDEFINED");
-      return callback("loadTwitterFeed: timelineDiv OR hashtagDiv OR twttr UNDEFINED");
+    if (!twitterTimeLineDiv || (twttr === undefined)) { 
+      console.error("loadTwitterFeed: twitterTimeLineDiv OR twttr UNDEFINED");
+      return callback("loadTwitterFeed: twitterTimeLineDiv OR twttr UNDEFINED");
     }
 
-    hashtagDiv.removeAll();
-    timelineDiv.removeAll();
+    loadingTwitterFeedFlag = true;
+
+    twitterFeedNodeType = node.nodeType;
+
+    node.categoryAuto = node.categoryAuto || "none";
 
     if (node.nodeType === "user"){
 
-      twitterFeedPreviousUser = twitterFeedUser;
-      twitterFeedUser = node;
+      if (prevNode.nodeId 
+        && (node.nodeId !== prevNode.nodeId) 
+        && !twitterFeedPreviousUserArray.includes(prevNode.nodeId)
+      ){
+        twitterFeedPreviousUserArray.push(prevNode.nodeId);
+        twitterFeedPreviousUserMap[prevNode.nodeId] = node;
+      }
+      if (prevNode.nodeId !== node.nodeId){
+        prevNode = node;
+      }
+
+      twitterFeedUser = Object.assign({}, defaultTwitterFeedUser, node);
+
+      twitterEntity.setValue("NODE ID", twitterFeedUser.nodeId);
+    	twitterEntity.setValue("NAME", twitterFeedUser.name);
+      twitterEntity.setValue("SCREENNAME", "@"+twitterFeedUser.screenName);
+      twitterEntity.setValue("CREATED", getTimeStamp(twitterFeedUser.createdAt));
+      twitterEntity.setValue("LAST SEEN", getTimeStamp(twitterFeedUser.lastSeen));
+      twitterEntity.setValue("HASHTAG", "");
+
+      twitterEntity.setValue("FOLLOWERS", twitterFeedUser.followersCount);
+
+      if (twitterFeedUser.followersCount > 5000) {
+        document.getElementById("FOLLOWERS").style.background = palette.lightgreen;
+      }
+      else{
+        document.getElementById("FOLLOWERS").style.background = palette.white;
+      }
+
+      twitterEntity.setValue("FRIENDS", twitterFeedUser.friendsCount);
+      twitterEntity.setValue("LOCATION", twitterFeedUser.location);
+      twitterEntity.setValue("DESCRIPTION", twitterFeedUser.description);
+
+      if (!twitterFeedUser.profileImageUrl || (twitterFeedUser.profileImageUrl === undefined)){
+        twitterFeedUser.profileImageUrl = DEFAULT_TWITTER_IMAGE;
+      }
+      twitterEntity.setValue("PROFILE IMAGE", twitterFeedUser.profileImageUrl.replace("_normal", ""));
+
+      if (!twitterFeedUser.bannerImageUrl || (twitterFeedUser.bannerImageUrl === undefined)) {
+        twitterFeedUser.bannerImageUrl = DEFAULT_TWITTER_IMAGE;
+      }
+      twitterEntity.setValue("BANNER IMAGE", twitterFeedUser.bannerImageUrl.replace("_normal", ""));
+
+      twitterTimeLine.setValue("AGE", node.ageDays.toFixed(3));
+      twitterTimeLine.setValue("TWEETS", node.statusesCount);
+      twitterTimeLine.setValue("TWEETS PER DAY", node.tweetsPerDay.toFixed(3));
+      twitterTimeLine.setValue("MENTIONS", node.mentions);
+      twitterTimeLine.setValue("RATE", node.rate);
+      twitterTimeLine.setValue("RATE MAX", node.rateMax);
+
+      const categoryVerified = node.categoryVerified || false;
+      const isBot = node.isBot || false;
+      const following = node.following || false;
+      const ignored = node.ignored || false;
+      const categoryAuto = node.categoryAuto.toUpperCase() || "NONE";
+
+      twitterControl.setValue("CAT VERIFIED", categoryVerified);
+      twitterControl.setValue("BOT", isBot);
+      twitterControl.setValue("FOLLOWING", following);
+      twitterControl.setValue("IGNORED", ignored);
+
+			twitterControl.setValue("CATEGORY AUTO", categoryAuto);
+      
+      setElementBackgroundColorCategory({elementId: "CATEGORY AUTO", category: categoryAuto});
+      setElementBackgroundColorCategory({elementId: "radioUserCategoryDiv", category: node.category});
 
       console.debug("loadTwitterFeed"
         + " | TYPE: " + node.nodeType
         + " | NID: " + node.nodeId
+        + " | IG: " + node.ignored
+        + " | BOT: " + node.isBot
+        + " | FLWG: " + node.following
         + " | @" + node.screenName
         + " | " + node.name
         + " | CR: " + node.createdAt
         + " | LS: " + node.lastSeen
-        + " | CAT M: " + node.category
-        + " | CAT A: " + node.categoryAuto
+        + " | CV: " + node.categoryVerified
+        + " | C: " + node.category
+        + " | CA: " + node.categoryAuto
         + " | Ms: " + node.mentions
         + " | Ts: " + node.statusesCount
         + " | FRNDs: " + node.friendsCount
@@ -453,13 +628,15 @@ function ControlPanel() {
       updateCategoryRadioButtons(node.category, function(){
 
         twitterWidgetsCreateTimeline(node, function(err, el){
+
+          loadingTwitterFeedFlag = false;
+
           if (err){
             console.error("LOAD TWITTER FEED ERROR: " + err);
             return callback(err);
           }
-          var nsi =document.getElementById("nodeSearchInput");
-          nsi.value = "@" + node.screenName;
-          callback(null);
+
+          callback();
         });
 
       });
@@ -467,215 +644,116 @@ function ControlPanel() {
     else if (node.nodeType === "hashtag"){
 
       twitterFeedHashtag = node;
+      twitterFeedPreviousHashtag = twitterFeedHashtag;
+
+      twitterEntity.setValue("NODE ID", node.nodeId);
+      twitterEntity.setValue("NAME", "");
+      twitterEntity.setValue("SCREENNAME", "");
+      twitterEntity.setValue("HASHTAG", "#" + node.nodeId);
+
+      twitterEntity.setValue("FOLLOWERS", "");
+      document.getElementById("FOLLOWERS").style.background = palette.white;
+
+      twitterEntity.setValue("FRIENDS", "");
+      twitterEntity.setValue("LOCATION", "");
+      twitterEntity.setValue("PROFILE IMAGE", DEFAULT_TWITTER_IMAGE);
+      twitterEntity.setValue("BANNER IMAGE", DEFAULT_TWITTER_IMAGE);
+      twitterEntity.setValue("DESCRIPTION", "");
+
+      twitterTimeLine.setValue("TWEETS", "");
+      twitterTimeLine.setValue("MENTIONS", node.mentions);
+      twitterTimeLine.setValue("RATE", node.rate);
+      twitterTimeLine.setValue("RATE MAX", node.rateMax);
+
+      twitterControl.setValue("CATEGORY AUTO", node.categoryAuto.toUpperCase() || "NONE");
+
+      setElementBackgroundColorCategory({elementId: "CATEGORY AUTO", category: node.categoryAuto});
 
       console.debug("loadTwitterFeed"
         + " | TYPE: " + node.nodeType
-        + " | #: " + node.nodeId
+        + " | #" + node.nodeId
         + " | CAT M: " + node.category
         + " | Ms: " + node.mentions
       );
 
       updateCategoryRadioButtons(node.category, function(){
         twitterHashtagSearch(node, function(){
-          var nsi =document.getElementById("nodeSearchInput");
-          nsi.value = "#" + node.nodeId;
-          callback(null);
+          loadingTwitterFeedFlag = false;
+          callback();
         });
       });
     }
     else {
+      loadingTwitterFeedFlag = false;
       callback("ILLEGAL NODE TYPE: " + node.nodeType);
     }
   }
 
-  var toggleDisplayNodeTypeButtonHandler = function (e){
+  this.setDisplayNodeType = function(params, callback){};
 
-    var currentButton = document.getElementById(e.target.id);
+  this.setMaxNodes = function (value) {};
 
-    const newValue = (currentButton.getAttribute("value") === "hide") ? "show" : "hide";
+  this.setNodeRadiusRatioMax = function (value) {};
+  this.setNodeRadiusRatioMin = function (value) {};
+  this.setNodeRadiusRatio = function (value) {};
 
-    currentButton.setAttribute("value", newValue);
+  this.setVelocityDecay = function (value) {};
 
-    if (newValue === "show") { 
-      currentButton.style.color = "green";
-      currentButton.style.border = "2px solid green";
+  this.setLinkStrength = function (value) {};
+
+  this.setLinkDistance = function (value) {};
+
+  this.setTransitionDuration = function (value) {};
+
+  this.setGravity = function (value) {};
+
+  this.setCharge = function (value) {};
+
+  this.setMaxAge = function (value) {};
+
+  this.setFontSizeRatioMin = function (value) {};
+  this.setFontSizeRatioMax = function (value) {};
+  this.setFontSizeRatio = function (value) {};
+
+  function updateCategoryStats(stats){
+
+    if (stats && stats.user && stats.user.uncategorized) {
+    
+      statsObj.manual = {};
+      statsObj.manual = stats.user.manual;
+      statsObj.auto = stats.user.auto;
+
+      if (statsObj.manual) {
+        statsPanel.setValue("MANUAL LEFT", statsObj.manual.left);
+        statsPanel.setValue("MANUAL RGHT", statsObj.manual.right);
+        statsPanel.setValue("MANUAL NEUT", statsObj.manual.neutral);
+      }
+
+      statsObj.uncategorized = {};
+      statsObj.uncategorized = stats.user.uncategorized;
+      statsObj.mismatched = stats.user.mismatched;
+
+      console.debug("updateCategoryStats | SET TWITTER USER\nstats" + jsonPrint(stats));
+
+      ["left", "right", "neutral", "all"].forEach(function(cat){
+        if (stats.user.uncategorized[cat] !== undefined) {
+          const currentButton = document.getElementById("NEXT UNCAT " + cat.toUpperCase());
+          currentButton.value = stats.user.uncategorized[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
+          console.debug("NEXT UNCAT " + cat.toUpperCase() + " | value: " + currentButton.value); 
+        }
+      });
+
+      if (stats.user.mismatched !== undefined) {
+        const currentButton = document.getElementById("NEXT MISMATCH");
+        currentButton.value = stats.user.mismatched.toString() + " | NEXT MISMATCH";
+        console.debug("NEXT UNCAT MISMATCH | value: " + currentButton.value); 
+      }
+      return;
     }
-    else {
-      currentButton.style.color = "#888888";
-      currentButton.style.border = "1px solid white";
+    else{
+      return;
     }
-
-    console.warn("DISPLAY NODE TYPE BUTTON"
-     + " | ID: " + e.target.id
-     + " | NODE TYPE: " + currentButton.getAttribute("displayNodeType")
-     + " | VALUE: " + currentButton.value
-    );
-
-    config.displayNodeHashMap[currentButton.getAttribute("displayNodeType")] = newValue;
-
-    parentWindow.postMessage(
-      {
-        op: "DISPLAY_NODE_TYPE", 
-        displayNodeType: currentButton.getAttribute("displayNodeType"), 
-        value: currentButton.getAttribute("value")
-      }, 
-      DEFAULT_SOURCE
-    );
-  };
-
-  this.setDisplayNodeType = function(params, callback){
-
-    if (!nodeTypesSet.has(params.displayNodeType)) {
-      console.error("UNKNOWN NODE TYPE: " + params.displayNodeType);
-      return callback("UNKNOWN NODE TYPE: " + params.displayNodeType);
-    }
-
-    const id = params.id || "displayNodeType_" + params.displayNodeType.toLowerCase();
-    const value = params.value || "hide";
-
-    console.log("SET DISPLAY NODE TYPE | " + params.displayNodeType + " | " + value);
-
-    var displayNodeType = document.getElementById(id);
-    displayNodeType.setAttribute("value", value);
-
-    if (callback !== undefined) { callback(); }
-  };
-
-  function categoryButtonHandler(e){
-
-    var currentButton = document.getElementById(e.target.id);
-    currentButton.setAttribute("checked", true);
-    var category = false;
-
-    console.warn("CATEGORY BUTTON"
-     + " | ID: " + e.target.id
-     // + "\n" + jsonPrint(e.target)
-    );
-
-    switch (e.target.id){
-      case "categoryLeft":
-        console.log("LEFT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
-        category = "left";
-      break;
-      case "categoryRight":
-        console.log("RIGHT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
-        category = "right";
-      break;
-      case "categoryNeutral":
-        console.log("NEUTRAL | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
-        category = "neutral";
-      break;
-      case "categoryPositive":
-        console.log("POSITIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
-        category = "positive";
-      break;
-      case "categoryNegative":
-        console.log("NEGATIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
-        category = "negative";
-      break;
-      case "categoryNone":
-        console.log("NONE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
-        category = false;
-      break;
-    }
-
-    const catNode = {
-      nodeId: currentTwitterNode.nodeId,
-      nodeType: currentTwitterNode.nodeType,
-      screenName: currentTwitterNode.screenName,
-      category: currentTwitterNode.category,
-      categoryAuto: currentTwitterNode.categoryAuto,
-    };
-
-    parentWindow.postMessage({op: "CATEGORIZE", node: catNode, category: category}, DEFAULT_SOURCE);
   }
-
-  this.setMaxNodesSliderValue = function (value) {
-    value = parseInt(value);
-    if (!document.getElementById("maxNodesSlider")) { return; }
-    console.log("setMaxNodesSliderValue: " + value);
-    document.getElementById("maxNodesSlider").value = parseInt(value * document.getElementById("maxNodesSlider").getAttribute("multiplier"));
-    document.getElementById("maxNodesSliderText").innerHTML = value;
-  };
-
-  this.setNodeRadiusMaxRatioSliderValue = function (value) {
-    if (!document.getElementById("nodeRadiusMaxRatioSlider")) { return; }
-    console.log("setNodeRadiusMaxRatioSliderValue: " + value);
-    document.getElementById("nodeRadiusMaxRatioSlider").value = (value * document.getElementById("nodeRadiusMaxRatioSlider").getAttribute("multiplier"));
-    document.getElementById("nodeRadiusMaxRatioSliderText").innerHTML = value.toFixed(3);
-  };
-
-  this.setNodeRadiusMinRatioSliderValue = function (value) {
-    if (!document.getElementById("nodeRadiusMinRatioSlider")) { return; }
-    console.log("setNodeRadiusMinRatioSliderValue: " + value);
-    document.getElementById("nodeRadiusMinRatioSlider").value = (value * document.getElementById("nodeRadiusMinRatioSlider").getAttribute("multiplier"));
-    document.getElementById("nodeRadiusMinRatioSliderText").innerHTML = value.toFixed(3);
-  };
-
-  this.setVelocityDecaySliderValue = function (value) {
-    if (!document.getElementById("velocityDecaySlider")) { return; }
-    console.log("setVelocityDecaySliderValue: " + value);
-    document.getElementById("velocityDecaySlider").value = (value * document.getElementById("velocityDecaySlider").getAttribute("multiplier"));
-    document.getElementById("velocityDecaySliderText").innerHTML = value.toFixed(3);
-  };
-
-  this.setLinkStrengthSliderValue = function (value) {
-    if (!document.getElementById("linkStrengthSlider")) { return; }
-    console.log("setLinkStrengthSliderValue: " + value);
-    document.getElementById("linkStrengthSlider").value = (value * document.getElementById("linkStrengthSlider").getAttribute("multiplier"));
-    document.getElementById("linkStrengthSliderText").innerHTML = value.toFixed(3);
-  };
-
-  this.setLinkDistanceSliderValue = function (value) {
-    if (!document.getElementById("linkDistanceSlider")) { return; }
-    console.log("setLinkDistanceSliderValue: " + value);
-    document.getElementById("linkDistanceSlider").value = (value * document.getElementById("linkDistanceSlider").getAttribute("multiplier"));
-    document.getElementById("linkDistanceSliderText").innerHTML = value.toFixed(3);
-  };
-
-  this.setTransitionDurationSliderValue = function (value) {
-    if (!document.getElementById("transitionDurationSlider")) { return; }
-    console.log("setTransitionDurationSliderValue: " + value);
-    document.getElementById("transitionDurationSlider").value = (value* document.getElementById("transitionDurationSlider").getAttribute("multiplier"));
-    document.getElementById("transitionDurationSliderText").innerHTML = value.toFixed(3);
-  };
-
-  this.setGravitySliderValue = function (value) {
-    if (!document.getElementById("gravitySlider")) { return; }
-    console.log("setGravitySliderValue: " + value);
-    document.getElementById("gravitySlider").value = (value* document.getElementById("gravitySlider").getAttribute("multiplier"));
-    document.getElementById("gravitySliderText").innerHTML = value.toFixed(5);
-  };
-
-  this.setChargeSliderValue = function (value) {
-    if (!document.getElementById("chargeSlider")) { return; }
-    console.log("setChargeSliderValue: " + value);
-    document.getElementById("chargeSlider").value = value;
-    document.getElementById("chargeSliderText").innerHTML = value.toFixed(0);
-  };
-
-  this.setMaxAgeSliderValue = function (value) {
-    if (!document.getElementById("maxAgeSlider")) { return; }
-    console.log("setMaxAgeSliderValue: " + value);
-    document.getElementById("maxAgeSlider").value = value;
-    document.getElementById("maxAgeSliderText").innerHTML = value.toFixed(0);
-  };
-
-  this.setFontSizeMinRatioSliderValue = function (value) {
-    if (!document.getElementById("fontSizeMinRatioSlider")) { return; }
-    console.log("setFontSizeMinRatioSliderValue: " + value);
-    document.getElementById("fontSizeMinRatioSlider").value = (value * document.getElementById("fontSizeMinRatioSlider").getAttribute("multiplier"));
-    var valuePercent = 100*value;
-    document.getElementById("fontSizeMinRatioSliderText").innerHTML = valuePercent.toFixed(1) + "% H";
-  };
-
-  this.setFontSizeMaxRatioSliderValue = function (value) {
-    if (!document.getElementById("fontSizeMaxRatioSlider")) { return; }
-    console.log("setFontSizeMaxRatioSliderValue: " + value);
-    document.getElementById("fontSizeMaxRatioSlider").value = (value * document.getElementById("fontSizeMaxRatioSlider").getAttribute("multiplier"));
-    var valuePercent = 100*value;
-    document.getElementById("fontSizeMaxRatioSliderText").innerHTML = valuePercent.toFixed(1) + "% H";
-  };
 
   function receiveMessage(event){
     // Do we trust the sender of this message?
@@ -685,7 +763,6 @@ function ControlPanel() {
           && (event.data["twttr.button"]["method"] === "twttr.private.resizeButton")){
           return;
         }
-        // console.log("TWITTER SOURCE: " + event.origin);
       }
       else {
         console.error("RX MESSAGE | NOT TRUSTED SOURCE"
@@ -696,11 +773,16 @@ function ControlPanel() {
       }
     }
 
+    if (event.data.op === undefined){
+      return;
+    }
+
     console.debug("RX MESSAGE | SOURCE"
       + " | ORIGIN: " + event.origin 
       + " | PARENT WINDOW: " + parentWindow.PARENT_ID
       + " | DEFAULT_SOURCE: " + DEFAULT_SOURCE
     );
+
 
     var op = event.data.op;
     var cnf;
@@ -714,7 +796,9 @@ function ControlPanel() {
         delete cnf.twitterUser.countHistory;
         delete cnf.twitterUser.status;
 
-        console.debug("CONTROL PANEL INIT\n" + jsonPrint(cnf));
+        console.debug("CONTROL PANEL INIT"
+        	// + "\n" + jsonPrint(cnf)
+        );
 
         Object.keys(cnf).forEach(function(prop){
           config[prop] = cnf[prop];
@@ -723,18 +807,18 @@ function ControlPanel() {
           );
         });
 
-        self.setMaxNodesSliderValue(cnf.defaultMaxNodesLimit);
-        self.setTransitionDurationSliderValue(cnf.defaultTransitionDuration);
-        self.setLinkStrengthSliderValue(cnf.defaultLinkStrength);
-        self.setLinkDistanceSliderValue(cnf.defaultLinkDistance);
-        self.setGravitySliderValue(cnf.defaultGravity);
-        self.setChargeSliderValue(cnf.defaultCharge);
-        self.setNodeRadiusMinRatioSliderValue(cnf.defaultNodeRadiusMinRatio);
-        self.setNodeRadiusMaxRatioSliderValue(cnf.defaultNodeRadiusMaxRatio);
-        self.setVelocityDecaySliderValue(cnf.defaultVelocityDecay);
-        self.setMaxAgeSliderValue(cnf.defaultMaxAge);
-        self.setFontSizeMinRatioSliderValue(cnf.defaultFontSizeMinRatio);
-        self.setFontSizeMaxRatioSliderValue(cnf.defaultFontSizeMaxRatio);
+        self.setMaxNodes(cnf.defaultMaxNodes);
+        self.setTransitionDuration(cnf.defaultTransitionDuration);
+        self.setLinkStrength(cnf.defaultLinkStrength);
+        self.setLinkDistance(cnf.defaultLinkDistance);
+        self.setGravity(cnf.defaultGravity);
+        self.setCharge(cnf.defaultCharge);
+        self.setNodeRadiusRatioMin(cnf.defaultNodeRadiusRatioMin);
+        self.setNodeRadiusRatioMax(cnf.defaultNodeRadiusRatioMax);
+        self.setVelocityDecay(cnf.defaultVelocityDecay);
+        self.setMaxAge(cnf.defaultMaxAge);
+        self.setFontSizeRatioMin(cnf.defaultFontSizeRatioMin);
+        self.setFontSizeRatioMax(cnf.defaultFontSizeRatioMax);
 
         if (cnf.displayNodeHashMap !== undefined) {
           Object.keys(cnf.displayNodeHashMap).forEach(function(displayNodeType){
@@ -747,31 +831,88 @@ function ControlPanel() {
         }
 
         parentWindow.postMessage({op: "NODE_SEARCH", input: "@threecee"}, DEFAULT_SOURCE);
-
       break;
 
+      case "STATS":
+        if (event.data.stats) {
+          // console.debug("SET STATS" 
+          //   + "\nSTATS\n" + jsonPrint(event.data.stats)
+          // );
+          for(const key of Object.keys(event.data.stats)){
+            if (event.data.stats[key]) { statsObj[key] = event.data.stats[key]; }
+          }
+
+          if (statsObj.bestNetwork && statsObj.bestNetwork.networkId) {
+            statsPanel.setValue("NETWORK", statsObj.bestNetwork.networkId);
+          }
+
+          if (statsObj.bestNetwork && statsObj.bestNetwork.inputsId) {
+            statsPanel.setValue("INPUTS ID", statsObj.bestNetwork.inputsId);
+          }
+
+          updateCategoryStats(event.data.stats);
+        }
+      break;
+
+      case "TWITTER_USER_NOT_FOUND":
+        console.debug("SET TWITTER USER | USER NOT FOUND" 
+          + " | " + event.data.searchNode
+          + "\nSTATS\n" + jsonPrint(event.data.stats)
+        );
+
+        updateCategoryStats(event.data.stats);
+      break;
+      
       case "SET_TWITTER_USER":
-        currentTwitterNode = event.data.user;
+
+        if (event.data.node.notFound) {
+
+          console.debug("SET TWITTER USER | USER NOT FOUND" 
+            + " | " + event.data.searchNode
+            + "\nSTATS\n" + jsonPrint(event.data.stats)
+          );
+
+          updateCategoryStats(event.data.stats);
+
+          break;
+        }
+
+        currentTwitterNode = event.data.node;
+
+        if (!currentTwitterNode.profileImageUrl || (currentTwitterNode.profileImageUrl === undefined)){
+          currentTwitterNode.profileImageUrl = DEFAULT_TWITTER_IMAGE;
+        }
+
         console.debug("SET TWITTER USER" 
           + " | " + currentTwitterNode.nodeId
+          + " | IG: " + currentTwitterNode.ignored
+          + " | BOT: " + currentTwitterNode.isBot
+          + " | FLWG: " + currentTwitterNode.following
           + " | @" + currentTwitterNode.screenName
           + " | CR: " + currentTwitterNode.createdAt
           + " | LS: " + currentTwitterNode.lastSeen
+          + " | CV: " + currentTwitterNode.categoryVerified
           + " | C: " + currentTwitterNode.category
           + " | CA: " + currentTwitterNode.categoryAuto
-          // + jsonPrint(currentTwitterNode)
+			    + "\n profileImageUrl: " + currentTwitterNode.profileImageUrl
         );
+
+        updateCategoryStats(event.data.stats);
+
         if (event.data.nodeSearch) {
           console.debug("NODE_SEARCH on SET_TWITTER_USER USER" 
             + " | @" + currentTwitterNode.screenName
           );
           parentWindow.postMessage({op: "NODE_SEARCH", input: "@" + currentTwitterNode.screenName}, DEFAULT_SOURCE);
         }
+
         loadTwitterFeed(currentTwitterNode, function(err){
           if (err) {
             setTimeout(function(){
               loadTwitterFeed(currentTwitterNode, function(err2){
-                if (err2) { console.error("loadTwitterFeed SET_TWITTER_USER FAIL"); }
+                if (err2) { 
+                  console.error("loadTwitterFeed SET_TWITTER_USER FAIL", err2);
+                }
               });
             }, 1000);
           }
@@ -779,1099 +920,428 @@ function ControlPanel() {
       break;
 
       case "SET_TWITTER_HASHTAG":
-        currentTwitterNode = event.data.hashtag;
-        console.debug("SET TWITTER HASHTAG\n" + jsonPrint(currentTwitterNode));
+
+        currentTwitterNode = event.data.node;
+
+        console.debug("SET TWITTER HASHTAG" 
+          + " | #" + currentTwitterNode.nodeId
+          + " | CR: " + currentTwitterNode.createdAt
+          + " | LS: " + currentTwitterNode.lastSeen
+          + " | C: " + currentTwitterNode.category
+          + " | CA: " + currentTwitterNode.categoryAuto
+        );
+
+        console.debug("SET TWITTER HASHTAG\nstats\n" + jsonPrint(event.data.stats));
+
         loadTwitterFeed(currentTwitterNode, function(err){
           if (err) {
+            console.error("loadTwitterFeed SET_TWITTER_HASHTAG FAIL: " + err);
             setTimeout(function(){
               loadTwitterFeed(currentTwitterNode, function(err2){
-                if (err2) { console.error("loadTwitterFeed SET_TWITTER_HASHTAG FAIL"); }
+                if (err2) { console.error("loadTwitterFeed SET_TWITTER_HASHTAG FAIL: " + err2); }
               });
             }, 1000);
           }
         });
       break;
-    }
-  }
 
-  window.addEventListener("load", function() {
-    console.warn("WINDOW LOAD");
-  }, false);
-
-  // window.addEventListener("message", receiveMessage, false);
-
-  window.onbeforeunload = function() {
-    parentWindow.postMessage({op:"CLOSE"}, DEFAULT_SOURCE);
-  };
-
-  function buttonHandler(e) {
-
-    var currentButton = document.getElementById(e.target.id);
-
-    console.warn("BUTTON"
-     + " | ID: " + e.target.id
-     + "\n HASH\n" + jsonPrint(controlIdHash[e.target.id])
-     + "\n" + jsonPrint(e.target)
-    );
-
-    if (!currentButton){
-      console.error("UNKNOWN BUTTON\n" + jsonPrint(e));
-    }
-    else if (controlIdHash[currentButton.id] === undefined) {
-      console.error("UNKNOWN BUTTON NOT IN HASH\n" + jsonPrint(e));
-    }
-    else {
-      var buttonConfig = controlIdHash[currentButton.id];
-      console.log("BUTTON " + currentButton.id 
-        + " : " + buttonConfig.mode
-      );
-
-      parentWindow.postMessage({op: buttonConfig.mode, id: currentButton.id}, DEFAULT_SOURCE);
-
-      if (currentButton.id === "resetButton"){
-        console.warn("RESET");
-        self.setLinkStrengthSliderValue(parentWindow.DEFAULT_LINK_STRENGTH);
-        self.setLinkDistanceSliderValue(parentWindow.DEFAULT_LINK_DISTANCE);
-        self.setTransitionDurationSliderValue(parentWindow.DEFAULT_TRANSITION_DURATION);
-        self.setGravitySliderValue(parentWindow.DEFAULT_GRAVITY);
-        self.setChargeSliderValue(parentWindow.DEFAULT_CHARGE);
-        self.setNodeRadiusMinRatioSliderValue(parentWindow.DEFAULT_NODE_RADIUS_MIN_RATIO);
-        self.setNodeRadiusMaxRatioSliderValue(parentWindow.DEFAULT_NODE_RADIUS_MAX_RATIO);
-        self.setVelocityDecaySliderValue(parentWindow.DEFAULT_VELOCITY_DECAY);
-        self.setMaxAgeSliderValue(parentWindow.DEFAULT_MAX_AGE);
-        self.setFontSizeMinRatioSliderValue(parentWindow.DEFAULT_FONT_SIZE_MIN_RATIO);
-        self.setFontSizeMaxRatioSliderValue(parentWindow.DEFAULT_FONT_SIZE_MAX_RATIO);
-      }
-    }
-  }
-
-  function sliderHandler(e) {
-
-    console.log("sliderHandler: " + e.target.id);
-    var currentSlider = document.getElementById(e.target.id);
-    currentSlider.multiplier = currentSlider.getAttribute("multiplier");
-
-    var valMultRatio = currentSlider.value/currentSlider.multiplier;
-
-    console.log("SLIDER " + currentSlider.id 
-      + " | V: " + currentSlider.value 
-      + " | M: " + currentSlider.multiplier 
-      + " | VMR: " + valMultRatio.toFixed(3)
-    );
-
-    var currentSliderTextId = currentSlider.id + "Text";
-
-    var v;
-    switch (currentSlider.id) {
-      case "nodeRadiusMinRatioSlider":
-      case "nodeRadiusMaxRatioSlider":
-        v = currentSlider.value/currentSlider.multiplier;
-        document.getElementById(currentSliderTextId).innerHTML = v.toFixed(3);
-      break;
-      case "fontSizeMinRatioSlider":
-      case "fontSizeMaxRatioSlider":
-        v = 100*currentSlider.value/currentSlider.multiplier;
-        document.getElementById(currentSliderTextId).innerHTML = v.toFixed(1) + " % H";
-      break;
-      case "gravitySlider":
-        v = currentSlider.value/currentSlider.multiplier;
-        document.getElementById(currentSliderTextId).innerHTML = v.toFixed(5);
-        console.log("gravitySlider: " + v);
-      break;
       default:
-        v = currentSlider.value/currentSlider.multiplier;
-        document.getElementById(currentSliderTextId).innerHTML = v.toFixed(5);
-        console.log("default slider: " + v);
-    }
-
-    parentWindow.postMessage({op:"UPDATE", id: currentSlider.id, value: (currentSlider.value/currentSlider.multiplier)}, DEFAULT_SOURCE);
-  }
-
-  window.addEventListener("input", function (e) {
-    // console.log("keyup event detected! coming from this element:", e.target);
-    switch (e.target.className) {
-      case "slider":
-        sliderHandler(e);
-      break;
-      default:
-    }
-  }, false);
-
-  this.tableCreateRow = function (parentTable, options, cells) {
-
-    var tr = parentTable.insertRow();
-    var tdTextColor = options.textColor;
-    var tdBgColor = options.backgroundColor || "white";
-
-    var bHandler = buttonHandler;
-
-    if (options.trClass) {
-      tr.className = options.trClass;
-    }
-
-    if (options.headerFlag) {
-      cells.forEach(function(content) {
-        var th = tr.insertCell();
-        th.appendChild(parentTable.parentNode.createTextNode(content));
-        th.style.color = tdTextColor;
-        th.style.backgroundColor = tdBgColor;
-      });
-    }
-    else {
-      cells.forEach(function(content) {
-
-        var td = tr.insertCell();
-
-        if (content.type === undefined) {
-
-          td.appendChild(document.createTextNode(content));
-          td.style.color = tdTextColor;
-          td.style.backgroundColor = tdBgColor;
-        } 
-        else if (content.type === "TEXT") {
-
-          td.className = content.class;
-          td.setAttribute("id", content.id);
-          td.style.color = tdTextColor;
-          td.style.margin = "5px";
-          td.style.padding = "5px";
-          td.style.backgroundColor = tdBgColor;
-          td.innerHTML = content.text;
-          td.style.border = options.border || "none";
-        } 
-        else if (content.type === "BUTTON") {
-
-          if (content.buttonHandler !== undefined) { bHandler = content.buttonHandler; }
-
-          var buttonElement = document.createElement("BUTTON");
-          buttonElement.className = content.class;
-          buttonElement.setAttribute("id", content.id);
-          if (content.displayNodeType !== undefined) { buttonElement.setAttribute("displayNodeType", content.displayNodeType); }
-          buttonElement.setAttribute("mode", content.mode);
-          buttonElement.addEventListener("click", function(e){ bHandler(e); }, false);
-          buttonElement.innerHTML = content.text;
-          td.appendChild(buttonElement);
-          controlIdHash[content.id] = content;
-        } 
-        else if (content.type === "RADIO") {
-
-          if (content.buttonHandler !== undefined) { bHandler = content.buttonHandler; }
-
-          var radioButtonElement = document.createElement("BUTTON");
-          radioButtonElement.className = content.class;
-          radioButtonElement.type = "radio";
-          radioButtonElement.setAttribute("name", content.name);
-          radioButtonElement.setAttribute("id", content.id);
-          radioButtonElement.setAttribute("value", content.value);
-          radioButtonElement.setAttribute("checked", content.checked);
-          radioButtonElement.addEventListener("click", function(e){ bHandler(e); }, false);
-          radioButtonElement.innerHTML = content.text;
-
-          td.appendChild(radioButtonElement);
-
-          controlIdHash[content.id] = content;
-        } 
-        else if (content.type === "SLIDER") {
-
-          var step = 1/content.multiplier;
-          var sliderElement = document.createElement("INPUT");
-          sliderElement.type = "range";
-          sliderElement.className = content.class;
-          sliderElement.setAttribute("id", content.id);
-          sliderElement.setAttribute("min", content.min);
-          sliderElement.setAttribute("max", content.max);
-          sliderElement.setAttribute("multiplier", content.multiplier);
-          sliderElement.setAttribute("step", step);
-          sliderElement.value = content.value;
-          td.appendChild(sliderElement);
-          controlIdHash[content.id] = content;
-        }
-      });
-    }
-  };
-
-  this.loadStoredConfig = function(callback) {
-
-    var storedConfigName = "config_" + parentWindow.config.sessionViewType;
-
-    console.debug("STORED CONFIG: " + storedConfigName);
-
-    var storedConfig = store.get(storedConfigName);
-
-    if (storedConfig !== undefined) {
-      var storedConfigArgs = Object.keys(storedConfig);
-
-      async.each(storedConfigArgs, function(arg, cb){
-
-        config[arg] = storedConfig[arg];
-
-        console.log("--> STORED CONFIG | " + arg + ": " + config[arg]);
-
-        cb();
-
-      }, function(){
-
-        if (!config.twitterUser || !config.twitterUser.screenName) {
-          console.warn("UNDEFINED config.twitterUser: " + jsonPrint(config.twitterUser));
-          config.twitterUser = {};
-          config.twitterUser.screenName = "threecee";
-        }
-
-        delete storedConfig.twitterUser.histograms;
-        delete storedConfig.twitterUser.countHistory;
-        delete storedConfig.twitterUser.status;
-
-        console.log("CREATE CONTROL PANEL" 
-          + " | " + config.twitterUser.screenName
-          + " | " + config.twitterUser.ignored
-          + " | " + config.twitterUser.threeceeFollowing
+        console.error("*** ERROR | UNKNOWN MESSAGE OP" 
+          + " | OP: " + op
+          + "\nDATA\n" + jsonPrint(event.data)
         );
-
-        callback();
-
-      });
     }
-    else {
-
-      console.warn("NO STORED CONFIGURATION");
-
-      callback();
-    }
-  };
+  }
 
   this.createControlPanel = function(callback) {
-
-    dashboardMain = document.getElementById("dashboardMain");
-    infoTable = document.getElementById("infoTable");
-    userStatsTable = document.getElementById("userStatsTable");
-    controlTable = document.getElementById("controlTable");
-    categoryTable = document.getElementById("categoryTable");
-    displayControlTable = document.getElementById("displayControlTable");
-    controlTableHead = document.getElementById("controlTableHead");
-    controlTableBody = document.getElementById("controlTableBody");
-    controlSliderTable = document.getElementById("controlSliderTable");
-
-    var optionsBody = {
-      headerFlag: false,
-      textColor: "black",
-      backgroundColor: "white"
-    };
-
-    var optionsUserStatsBody = {
-      headerFlag: false,
-      textColor: "black",
-      backgroundColor: "white",
-      border: "1x solid #aaaaaa"
-    };
-
-    var categoryLeftButton = {
-      type: "RADIO",
-      mode: "RADIO",
-      name: "categoryRadio",
-      id: "categoryLeft",
-      class: "button",
-      buttonHandler: categoryButtonHandler,
-      value: "left",
-      checked: false,
-      text: "LEFT"
-    };
-
-    var categoryRightButton = {
-      type: "RADIO",
-      mode: "RADIO",
-      name: "categoryRadio",
-      id: "categoryRight",
-      class: "button",
-      buttonHandler: categoryButtonHandler,
-      value: "right",
-      checked: false,
-      text: "RIGHT"
-    };
-
-    var categoryNeutralButton = {
-      type: "RADIO",
-      mode: "RADIO",
-      name: "categoryRadio",
-      id: "categoryNeutral",
-      class: "button",
-      buttonHandler: categoryButtonHandler,
-      value: "neutral",
-      checked: false,
-      text: "NEUTRAL"
-    };
-
-    var categoryPositiveButton = {
-      type: "RADIO",
-      mode: "RADIO",
-      name: "categoryRadio",
-      id: "categoryPositive",
-      class: "button",
-      buttonHandler: categoryButtonHandler,
-      value: "positive",
-      checked: false,
-      text: "POSITIVE"
-    };
-
-    var categoryNegativeButton = {
-      type: "RADIO",
-      mode: "RADIO",
-      name: "categoryRadio",
-      id: "categoryNegative",
-      class: "button",
-      buttonHandler: categoryButtonHandler,
-      value: "negative",
-      checked: false,
-      text: "NEGATIVE"
-    };
-
-    var categoryNoneButton = {
-      type: "RADIO",
-      mode: "RADIO",
-      name: "categoryRadio",
-      id: "categoryNone",
-      class: "button",
-      buttonHandler: categoryButtonHandler,
-      value: "none",
-      checked: false,
-      text: "NONE"
-    };
-
-    var resetButton = {
-      type: "BUTTON",
-      mode: "MOMENT",
-      id: "resetButton",
-      class: "button",
-      text: "RESET"
-    };
-
-    var blahButton = {
-      type: "BUTTON",
-      mode: "TOGGLE",
-      id: "blahToggleButton",
-      class: "button",
-      text: "BLAH"
-    };
-
-    var fullscreenButton = {
-      type: "BUTTON",
-      mode: "TOGGLE",
-      id: "fullscreenToggleButton",
-      class: "button",
-      text: "FULLSCREEN"
-    };
-
-    var pauseButton = {
-      type: "BUTTON",
-      mode: "TOGGLE",
-      id: "pauseToggleButton",
-      class: "button",
-      text: "PAUSE"
-    };
-
-    var statsButton = {
-      type: "BUTTON",
-      mode: "TOGGLE",
-      id: "statsToggleButton",
-      class: "button",
-      text: "STATS"
-    };
-
-    var testModeButton = {
-      type: "BUTTON",
-      mode: "TOGGLE",
-      id: "testModeToggleButton",
-      class: "button",
-      text: "TEST"
-    };
-
-    var antonymButton = {
-      type: "BUTTON",
-      mode: "TOGGLE",
-      id: "antonymToggleButton",
-      class: "button",
-      text: "ANT"
-    };
-
-    var disableLinksButton = {
-      type: "BUTTON",
-      mode: "TOGGLE",
-      id: "disableLinksToggleButton",
-      class: "button",
-      text: "LINKS"
-    };
-
-    var removeDeadNodeButton = {
-      type: "BUTTON",
-      mode: "TOGGLE",
-      id: "removeDeadNodeToogleButton",
-      class: "button",
-      text: "DEAD"
-    };
-
-    var nodeCreateButton = {
-      type: "BUTTON",
-      mode: "MOMENT",
-      id: "nodeCreateButton",
-      class: "button",
-      text: "NODE"
-    };
-
-    var showEmojiButton = {
-      type: "BUTTON",
-      mode: "TOGGLE",
-      id: "displayNodeType_emoji",
-      displayNodeType: "emoji",
-      class: "button",
-      text: "EMOJI",
-      buttonHandler: toggleDisplayNodeTypeButtonHandler
-    };
-
-    var showHashtagsButton = {
-      type: "BUTTON",
-      mode: "TOGGLE",
-      id: "displayNodeType_hashtag",
-      displayNodeType: "hashtag",
-      class: "button",
-      text: "HASHTAGS",
-      buttonHandler: toggleDisplayNodeTypeButtonHandler
-    };
-
-    var showMediaButton = {
-      type: "BUTTON",
-      mode: "TOGGLE",
-      id: "displayNodeType_media",
-      displayNodeType: "media",
-      class: "button",
-      text: "MEDIA",
-      buttonHandler: toggleDisplayNodeTypeButtonHandler
-    };
-
-    var showPlacesButton = {
-      type: "BUTTON",
-      mode: "TOGGLE",
-      id: "displayNodeType_place",
-      displayNodeType: "place",
-      class: "button",
-      text: "PLACES",
-      buttonHandler: toggleDisplayNodeTypeButtonHandler
-    };
-
-    var showUsersButton = {
-      type: "BUTTON",
-      mode: "TOGGLE",
-      id: "displayNodeType_user",
-      displayNodeType: "user",
-      class: "button",
-      text: "USERS",
-      buttonHandler: toggleDisplayNodeTypeButtonHandler
-    };
-
-    var showUrlsButton = {
-      type: "BUTTON",
-      mode: "TOGGLE",
-      id: "displayNodeType_url",
-      displayNodeType: "url",
-      class: "button",
-      text: "URLS",
-      buttonHandler: toggleDisplayNodeTypeButtonHandler
-    };
-
-    var showWordsButton = {
-      type: "BUTTON",
-      mode: "TOGGLE",
-      id: "displayNodeType_word",
-      displayNodeType: "word",
-      class: "button",
-      text: "WORDS",
-      buttonHandler: toggleDisplayNodeTypeButtonHandler
-    };
-
-    var maxNodesSlider = {
-      type: "SLIDER",
-      id: "maxNodesSlider",
-      class: "slider",
-      min: 1,
-      max: 500,
-      value: config.defaultMaxNodesLimit,
-      multiplier: 1.0
-    };
-
-    var maxNodesSliderText = {
-      type: "TEXT",
-      id: "maxNodesSliderText",
-      class: "sliderText",
-      text: maxNodesSlider.value + " NODES"
-    };
-
-    var maxAgeSlider = {
-      type: "SLIDER",
-      id: "maxAgeSlider",
-      class: "slider",
-      min: 500,
-      max: 120000,
-      value: config.defaultMaxAge,
-      multiplier: 1.0
-    };
-
-    var maxAgeSliderText = {
-      type: "TEXT",
-      id: "maxAgeSliderText",
-      class: "sliderText",
-      text: maxAgeSlider.value + " ms"
-    };
-
-    var fontSizeMinRatioSlider = {
-      type: "SLIDER",
-      id: "fontSizeMinRatioSlider",
-      class: "slider",
-      min: 0,
-      max: 100,
-      value: config.defaultFontSizeMinRatio * config.defaultMultiplier,
-      multiplier: config.defaultMultiplier
-    };
-
-    var fontSizeMinRatioSliderText = {
-      type: "TEXT",
-      id: "fontSizeMinRatioSliderText",
-      class: "sliderText",
-      text: fontSizeMinRatioSlider.value + fontSizeMinRatioSlider.multiplier
-    };
-
-    var fontSizeMaxRatioSlider = {
-      type: "SLIDER",
-      id: "fontSizeMaxRatioSlider",
-      class: "slider",
-      min: 0,
-      max: 100,
-      value: config.defaultFontSizeMaxRatio * config.defaultMultiplier,
-      multiplier: config.defaultMultiplier
-    };
-
-    var fontSizeMaxRatioSliderText = {
-      type: "TEXT",
-      id: "fontSizeMaxRatioSliderText",
-      class: "sliderText",
-      text: fontSizeMaxRatioSlider.value + fontSizeMaxRatioSlider.multiplier
-    };
-
-    var transitionDurationSlider = {
-      type: "SLIDER",
-      id: "transitionDurationSlider",
-      class: "slider",
-      min: 0,
-      max: 100,
-      value: config.defaultTransitionDuration,
-      multiplier: 1.0
-    };
-
-    var transitionDurationSliderText = {
-      type: "TEXT",
-      id: "transitionDurationSliderText",
-      class: "sliderText",
-      text: (transitionDurationSlider.value * transitionDurationSlider.multiplier)
-    };
-
-    var chargeSlider = {
-      type: "SLIDER",
-      id: "chargeSlider",
-      class: "slider",
-      min: -1000,
-      max: 1000,
-      value: config.defaultCharge,
-      multiplier: 1.0
-    };
-
-    var chargeSliderText = {
-      type: "TEXT",
-      id: "chargeSliderText",
-      class: "sliderText",
-      text: (chargeSlider.value * chargeSlider.multiplier)
-    };
-
-    var gravitySlider = {
-      type: "SLIDER",
-      id: "gravitySlider",
-      class: "slider",
-      min: 0.0,
-      max: 20.0,
-      value: config.defaultGravity * config.defaultMultiplier,
-      // value: config.defaultGravity,
-      // multiplier: 100.0
-      multiplier: config.defaultMultiplier
-    };
-
-    var gravitySliderText = {
-      type: "TEXT",
-      id: "gravitySliderText",
-      class: "sliderText",
-      text: (gravitySlider.value * gravitySlider.multiplier)
-    };
-
-    var nodeRadiusMaxRatioSlider = {
-      type: "SLIDER",
-      id: "nodeRadiusMaxRatioSlider",
-      class: "slider",
-      min: 5.0,
-      max: 500.0,
-      value: config.defaultNodeRadiusMaxRatio * config.defaultMultiplier,
-      multiplier: config.defaultMultiplier
-    };
-
-    var nodeRadiusMaxRatioSliderText = {
-      type: "TEXT",
-      id: "nodeRadiusMaxRatioSliderText",
-      class: "sliderText",
-      text: (nodeRadiusMaxRatioSlider.value * nodeRadiusMaxRatioSlider.multiplier)
-    };
-
-    var nodeRadiusMinRatioSlider = {
-      type: "SLIDER",
-      id: "nodeRadiusMinRatioSlider",
-      class: "slider",
-      min: 0.1,
-      max: 20.0,
-      value: config.defaultNodeRadiusMinRatio * config.defaultMultiplier,
-      multiplier: config.defaultMultiplier
-    };
-
-    var nodeRadiusMinRatioSliderText = {
-      type: "TEXT",
-      id: "nodeRadiusMinRatioSliderText",
-      class: "sliderText",
-      text: (nodeRadiusMinRatioSlider.value * nodeRadiusMinRatioSlider.multiplier)
-    };
-
-    var velocityDecaySlider = {
-      type: "SLIDER",
-      id: "velocityDecaySlider",
-      class: "slider",
-      min: 0.0,
-      max: 1000.0,
-      value: config.defaultVelocityDecay * config.defaultMultiplier,
-      multiplier: config.defaultMultiplier
-    };
-
-    var velocityDecaySliderText = {
-      type: "TEXT",
-      id: "velocityDecaySliderText",
-      class: "sliderText",
-      text: (velocityDecaySlider.value * velocityDecaySlider.multiplier)
-    };
-
-    var linkStrengthSlider = {
-      type: "SLIDER",
-      id: "linkStrengthSlider",
-      class: "slider",
-      min: 0.0,
-      max: 1000,
-      value: config.defaultLinkStrength * config.defaultMultiplier,
-      multiplier: config.defaultMultiplier
-    };
-
-    var linkStrengthSliderText = {
-      type: "TEXT",
-      id: "linkStrengthSliderText",
-      class: "sliderText",
-      text: (linkStrengthSlider.value * linkStrengthSlider.multiplier)
-    };
-
-    var linkDistanceSlider = {
-      type: "SLIDER",
-      id: "linkDistanceSlider",
-      class: "slider",
-      min: 0.0,
-      max: 100,
-      value: config.defaultLinkDistance,
-      multiplier: 1.0
-    };
-
-    var linkDistanceSliderText = {
-      type: "TEXT",
-      id: "linkDistanceSliderText",
-      class: "sliderText",
-      text: (linkDistanceSlider.value * linkDistanceSlider.multiplier)
-    };
-
-    var status = {
-      type: "TEXT",
-      id: "statusSessionId",
-      class: "statusText",
-      text: "SESSION ID: " + statsObj.socketId
-    };
-
-    var userScreenNameText = {
-      type: "TEXT",
-      id: "userScreenNameText",
-      class: "userStatusText",
-      text: "@" + statsObj.user.screenName
-    };
-
-    var userNameText = {
-      type: "TEXT",
-      id: "userNameText",
-      class: "userStatusText",
-      text: statsObj.user.name
-    };
-
-    var userCreatedAtText = {};
-    userCreatedAtText.type = "TEXT";
-    userCreatedAtText.id = "userCreatedAtText";
-    userCreatedAtText.class = "userStatusText";
-    userCreatedAtText.text = statsObj.user.createdAt;
-
-    var userCreatedAtLabel = {};
-    userCreatedAtLabel.type = "TEXT";
-    userCreatedAtLabel.id = "userCreatedAtLabel";
-    userCreatedAtLabel.class = "userStatusText";
-    userCreatedAtLabel.text = "CREATED";
-
-    var userLastSeenText = {};
-    userLastSeenText.type = "TEXT";
-    userLastSeenText.id = "userLastSeenText";
-    userLastSeenText.class = "userStatusText";
-    userLastSeenText.text = statsObj.user.lastSeen;
-
-    var userLastSeenLabel = {};
-    userLastSeenLabel.type = "TEXT";
-    userLastSeenLabel.id = "userLastSeenLabel";
-    userLastSeenLabel.class = "userStatusText";
-    userLastSeenLabel.text = "LAST SEEN";
-
-    var userIdText = {};
-    userIdText.type = "TEXT";
-    userIdText.id = "userIdText";
-    userIdText.class = "userStatusText";
-    userIdText.text = statsObj.user.nodeId;
-
-    var userIdLabel = {};
-    userIdLabel.type = "TEXT";
-    userIdLabel.id = "userIdLabel";
-    userIdLabel.class = "userStatusText";
-    userIdLabel.text = "ID";
-
-    var userDescriptionText = {};
-    userDescriptionText.type = "TEXT";
-    userDescriptionText.id = "userDescriptionText";
-    userDescriptionText.class = "userStatusText";
-    userDescriptionText.text = statsObj.user.description;
-
-    var userDescriptionLabel = {};
-    userDescriptionLabel.type = "TEXT";
-    userDescriptionLabel.id = "userDescriptionLabel";
-    userDescriptionLabel.class = "userStatusText";
-    userDescriptionLabel.text = "DESCRIPTION";
-
-    var userFollowersCountText = {};
-    userFollowersCountText.type = "TEXT";
-    userFollowersCountText.id = "userFollowersCountText";
-    userFollowersCountText.class = "userStatusText";
-    userFollowersCountText.text = statsObj.user.followersCount;
-
-    var userFollowersCountLabel = {};
-    userFollowersCountLabel.type = "TEXT";
-    userFollowersCountLabel.id = "userFollowersCountLabel";
-    userFollowersCountLabel.class = "userStatusText";
-    userFollowersCountLabel.text = "FOLLOWERS";
-
-    var userLocationText = {};
-    userLocationText.type = "TEXT";
-    userLocationText.id = "userLocationText";
-    userLocationText.class = "userStatusText";
-    userLocationText.text = statsObj.user.location;
-
-    var userLocationLabel = {};
-    userLocationLabel.type = "TEXT";
-    userLocationLabel.id = "userLocationLabel";
-    userLocationLabel.class = "userStatusText";
-    userLocationLabel.text = "LOCATION";
-
-//-----------------------------------------------------------
-    var userLocationText = {
-      type: "TEXT",
-      id: "userLocationText",
-      class: "userStatusText",
-      text: statsObj.user.location
-    };
-
-    var userLocationLabel = {};
-    userLocationLabel.type = "TEXT";
-    userLocationLabel.id = "userLocationLabel";
-    userLocationLabel.class = "userStatusText";
-    userLocationLabel.text = "LOCATION";
-//-----------------------------------------------------------
-    var userFriendsCountText = {
-      type: "TEXT",
-      id: "userFriendsCountText",
-      class: "userStatusText",
-      text: statsObj.user.friendsCount
-    };
-
-    var userFriendsCountLabel = {};
-    userFriendsCountLabel.type = "TEXT";
-    userFriendsCountLabel.id = "userFriendsCountLabel";
-    userFriendsCountLabel.class = "userStatusText";
-    userFriendsCountLabel.text = "FRIENDS";
-//-----------------------------------------------------------
-    var userMentionsText = {
-      type: "TEXT",
-      id: "userMentionsText",
-      class: "userStatusText",
-      text: statsObj.user.mentions
-    };
-
-    var userMentionsLabel = {};
-    userMentionsLabel.type = "TEXT";
-    userMentionsLabel.id = "userMentionsLabel";
-    userMentionsLabel.class = "userStatusText";
-    userMentionsLabel.text = "MENTIONS";
-//-----------------------------------------------------------
-    var userStatusesCountText = {
-      type: "TEXT",
-      id: "userStatusesCountText",
-      class: "userStatusText",
-      text: statsObj.user.statusesCount
-    };
-
-    var userStatusesCountLabel = {};
-    userStatusesCountLabel.type = "TEXT";
-    userStatusesCountLabel.id = "userStatusesCountLabel";
-    userStatusesCountLabel.class = "userStatusText";
-    userStatusesCountLabel.text = "TWEETS";
-//-----------------------------------------------------------
-    var userIgnoredText = {
-      type: "TEXT",
-      id: "userIgnoredText",
-      class: "userStatusText",
-      text: statsObj.user.ignored
-    };
-
-    var userIgnoredLabel = {};
-    userIgnoredLabel.type = "TEXT";
-    userIgnoredLabel.id = "userIgnoredLabel";
-    userIgnoredLabel.class = "userStatusText";
-    userIgnoredLabel.text = "3C IGNORED";
-//-----------------------------------------------------------
-    var user3cFollowingText = {
-      type: "TEXT",
-      id: "user3cFollowingText",
-      class: "userStatusText",
-      text: statsObj.user.threeceeFollowing
-    };
-
-    var user3cFollowingLabel = {};
-    user3cFollowingLabel.type = "TEXT";
-    user3cFollowingLabel.id = "user3cFollowingLabel";
-    user3cFollowingLabel.class = "userStatusText";
-    user3cFollowingLabel.text = "3C FOLLOW";
-//-----------------------------------------------------------
-    var userCategoryText = {
-      type: "TEXT",
-      id: "userCategoryText",
-      class: "userStatusText",
-      text: "M: " + statsObj.user.category + " | A: " + statsObj.user.categoryAuto
-    };
-
-    var userCategoryLabel = {};
-    userCategoryLabel.type = "TEXT";
-    userCategoryLabel.id = "userCategoryLabel";
-    userCategoryLabel.class = "userStatusText";
-    userCategoryLabel.text = "CATEGORY";
-//-----------------------------------------------------------
-    switch (config.sessionViewType) {
-
-      case "force":
-      case "flow":
-        self.tableCreateRow(controlTable, 
-          optionsBody, 
-          [
-            pauseButton, 
-            statsButton, 
-            testModeButton, 
-            nodeCreateButton, 
-            removeDeadNodeButton, 
-            disableLinksButton,
-            blahButton,
-            antonymButton,
-            fullscreenButton
-          ]);
-        self.tableCreateRow(controlTable, optionsBody, [resetButton]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ["MAX NODES", maxNodesSlider, maxNodesSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MIN", fontSizeMinRatioSlider, fontSizeMinRatioSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MAX", fontSizeMaxRatioSlider, fontSizeMaxRatioSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ["MAX AGE", maxAgeSlider, maxAgeSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ["CHARGE", chargeSlider, chargeSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ["GRAVITY", gravitySlider, gravitySliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ["RADIUS MIN", nodeRadiusMinRatioSlider, nodeRadiusMinRatioSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ["RADIUS MAX", nodeRadiusMaxRatioSlider, nodeRadiusMaxRatioSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ["VEL DECAY", velocityDecaySlider, velocityDecaySliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ["LINK STRENGTH", linkStrengthSlider, linkStrengthSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ["LINK DISTANCE", linkDistanceSlider, linkDistanceSliderText]);
-        if (callback) { callback(dashboardMain); }
-        break;
-      case "treepack":
-        self.tableCreateRow(controlTable, optionsBody, [resetButton, pauseButton, statsButton, fullscreenButton]);
-        self.tableCreateRow(
-          categoryTable, 
-          optionsBody, 
-          [
-            categoryLeftButton, 
-            categoryNeutralButton, 
-            categoryRightButton, 
-            categoryPositiveButton, 
-            categoryNegativeButton,
-            categoryNoneButton
-          ]
-        );
-        self.tableCreateRow(displayControlTable, optionsBody, 
-          [
-            showEmojiButton,
-            showHashtagsButton,
-            showMediaButton,
-            showPlacesButton,
-            showUrlsButton,
-            showUsersButton,
-            showWordsButton
-          ]
-        );
-        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userScreenNameText, userNameText]);
-        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userIdLabel, userIdText]);
-        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userCreatedAtLabel, userCreatedAtText]);
-        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userLastSeenLabel, userLastSeenText]);
-        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userDescriptionLabel, userDescriptionText]);
-        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userLocationLabel, userLocationText]);
-        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userCategoryLabel, userCategoryText]);
-        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userFollowersCountLabel, userFollowersCountText]);
-        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userFriendsCountLabel, userFriendsCountText]);
-        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userMentionsLabel, userMentionsText]);
-        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userStatusesCountLabel, userStatusesCountText]);
-        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [user3cFollowingLabel, user3cFollowingText]);
-        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userIgnoredLabel, userIgnoredText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ["MAX NODES", maxNodesSlider, maxNodesSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MIN", fontSizeMinRatioSlider, fontSizeMinRatioSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MAX", fontSizeMaxRatioSlider, fontSizeMaxRatioSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ["TRANSITION", transitionDurationSlider, transitionDurationSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ["MAX AGE", maxAgeSlider, maxAgeSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ["CHARGE", chargeSlider, chargeSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ["GRAVITY", gravitySlider, gravitySliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ["RADIUS MIN", nodeRadiusMinRatioSlider, nodeRadiusMinRatioSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ["RADIUS MAX", nodeRadiusMaxRatioSlider, nodeRadiusMaxRatioSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ["VEL DECAY", velocityDecaySlider, velocityDecaySliderText]);
-        if (callback) { callback(dashboardMain); }
-        break;
-
-      case "ticker":
-        self.tableCreateRow(controlTable, 
-          optionsBody, 
-          [
-            fullscreenButton, 
-            pauseButton, 
-            statsButton, 
-            testModeButton, 
-            nodeCreateButton, 
-            removeDeadNodeButton, 
-            disableLinksButton, 
-            antonymButton
-          ]
-        );
-        self.tableCreateRow(controlTable, optionsBody, [resetButton]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ["MAX AGE", maxAgeSlider, maxAgeSliderText]);
-        if (callback) { callback(dashboardMain); }
-        break;
-
-      case "histogram":
-        self.tableCreateRow(controlTable, optionsBody, 
-          [
-            blahButton,
-            resetButton,
-            fullscreenButton, 
-            pauseButton, 
-            statsButton, 
-            removeDeadNodeButton,
-            testModeButton, 
-            antonymButton
-          ]
-        );
-        // self.tableCreateRow(controlSliderTable, optionsBody, [blahButton, resetButton]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ["MAX AGE", maxAgeSlider, maxAgeSliderText]);
-        if (callback) { callback(dashboardMain); }
-
-        break;
-
-      default:
-        self.tableCreateRow(controlTable, optionsBody, [status]);
-        self.tableCreateRow(controlTable, 
-          optionsBody, 
-          [
-            fullscreenButton, 
-            pauseButton, 
-            statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
-        if (callback) { callback(dashboardMain); }
-    }
-  };
-
-  this.updateControlPanel = function (config, callback) {
-
-    console.log("UPDATE CONTROL PANEL");
-
-    if (controlIdHash.blahToggleButton) {
-      if (config.blahMode) {
-        document.getElementById("blahToggleButton").style.color = "red";
-        document.getElementById("blahToggleButton").style.border = "2px solid red";
-      } else {
-        document.getElementById("blahToggleButton").style.color = "#888888";
-        document.getElementById("blahToggleButton").style.border = "1px solid white";
-      }
-    }
-
-    if (controlIdHash.antonymToggleButton) {
-      if (config.antonymFlag) {
-        document.getElementById("antonymToggleButton").style.color = "red";
-        document.getElementById("antonymToggleButton").style.border = "2px solid red";
-      } else {
-        document.getElementById("antonymToggleButton").style.color = "#888888";
-        document.getElementById("antonymToggleButton").style.border = "1px solid white";
-      }
-    }
-
-    if (config.pauseFlag) {
-      document.getElementById("pauseToggleButton").style.color = "red";
-      document.getElementById("pauseToggleButton").style.border = "2px solid red";
-    } else {
-      document.getElementById("pauseToggleButton").style.color = "#888888";
-      document.getElementById("pauseToggleButton").style.border = "1px solid white";
-    }
-
-    if (config.showStatsFlag) {
-      document.getElementById("statsToggleButton").style.color = "red";
-      document.getElementById("statsToggleButton").style.border = "2px solid red";
-    } else {
-      document.getElementById("statsToggleButton").style.color = "#888888";
-      document.getElementById("statsToggleButton").style.border = "1px solid white";
-    }
-
-    if ((config.sessionViewType === "force") || (config.sessionViewType === "flow")){  
-      if (config.disableLinks) {
-        document.getElementById("disableLinksToggleButton").style.color = "red";
-        document.getElementById("disableLinksToggleButton").style.border = "2px solid red";
-      } else {
-        document.getElementById("disableLinksToggleButton").style.color = "#888888";
-        document.getElementById("disableLinksToggleButton").style.border = "1px solid white";
-      }
-    }
-
     if (callback) { callback(); }
   };
+
+  this.updateControlPanel = function (cfg, callback) {
+    console.log("UPDATE CONTROL PANEL");
+    if (callback) { callback(); }
+  };
+
+	var radioUserCategoryDiv = document.createElement("div");
+	radioUserCategoryDiv.id = "radioUserCategoryDiv";
+  radioUserCategoryDiv.setAttribute("class", "radioCheckbox");
+  radioUserCategoryDiv.style.fontSize = "16px";
+
+	["left", "neutral", "right", "positive", "negative", "none"].forEach(function(category){
+
+		var categoryLabel = document.createElement("label");
+		categoryLabel.setAttribute("class", "categoryButtonLabel");
+		categoryLabel.setAttribute("id", "categoryLabel_" + shortCategory(category));
+    categoryLabel.style.fontSize = "16px";
+    categoryLabel.style.padding = "5px";
+		categoryLabel.innerHTML = shortCategory(category);
+
+		var categoryButton = document.createElement("input");
+		categoryButton.id = "category_" + category; 
+		categoryButton.setAttribute("type", "checkbox");
+		categoryButton.name = category; 
+    categoryButton.style.webkitAppearance = "none";
+    categoryButton.style.backgroundColor = "lightgray";
+    categoryButton.style.boxSizing = "border-box";
+    categoryButton.style.width = "16px";
+    categoryButton.style.height = "16px";
+
+		categoryLabel.appendChild(categoryButton);
+		radioUserCategoryDiv.appendChild(categoryLabel);
+	});
+
+	radioUserCategoryDiv.onclick = function(e){
+		console.log("radioUserCategoryDiv BUTTON: ", e.srcElement.id);
+		catRadioButtonHandler(e);
+	}
+
+	function setChecked( categorySet ){
+
+		var categorySetButtonId = "category_" + categorySet;
+
+		var cbxs = radioUserCategoryDiv.getElementsByTagName('input'), i=cbxs.length;
+
+		while(i--) {
+
+		  if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id === categorySetButtonId) {
+				cbxs[i].checked = true;
+        cbxs[i].style.backgroundColor = "blue";
+        if (twitterFeedNodeType === "user") { twitterFeedUser.category = cbxs[i].name; }
+        if (twitterFeedNodeType === "hashtag") { twitterFeedHashtag.category = cbxs[i].name; }
+		  }
+		  if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id !== categorySetButtonId) {
+				cbxs[i].checked = false;
+        cbxs[i].style.backgroundColor = "lightgray";
+		  }
+
+		}
+	}
+
+  function computeRangeStep(params){
+    return Math.abs((params.max-params.min)/config.defaultRangeSteps);
+  }
+
+  function catRadioButtonHandler(e){
+
+		e = e || event;
+
+		var cb = e.srcElement || e.target;
+
+		if (cb.type !== 'checkbox') {return true;}
+
+		console.log("CAT BUTTON: ", cb.id);
+
+		var cbxs = radioUserCategoryDiv.getElementsByTagName('input');
+		var i = cbxs.length;
+
+		while(i--) {
+			if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id !== cb.id) {
+				cbxs[i].checked = false;
+        cbxs[i].style.backgroundColor = "lightgray";
+			}
+		}
+    
+		cb.checked = true;
+    cb.style.backgroundColor = "blue";
+
+    if (!loadingTwitterFeedFlag){
+
+      currentTwitterNode.category = cb.name;
+
+      if (twitterFeedNodeType === "user"){
+        twitterFeedUser.category = cb.name;
+        setElementBackgroundColorCategory({elementId: "radioUserCategoryDiv", category: cb.name});
+        console.debug("CATEGORIZE | @" + currentTwitterNode.screenName + " | CAT: " + cb.name);
+      }
+      
+      if (twitterFeedNodeType === "hashtag"){
+        twitterFeedHashtag.category = cb.name;
+        setElementBackgroundColorCategory({elementId: "radioUserCategoryDiv", category: cb.name});
+        console.debug("CATEGORIZE | #" + currentTwitterNode.nodeId + " | CAT: " + cb.name);
+      }
+      
+      parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: cb.name}, DEFAULT_SOURCE);
+    }
+  }
+
+  function createRangeInput(params){
+
+    console.log("createRangeInput\n", params);
+
+    let configObj = config.range[params.name];
+
+    configObj.title = changeCase.sentenceCase(configObj.name).toUpperCase();
+    configObj.step = configObj.step || computeRangeStep({ max: configObj.max, min: configObj.min });
+
+    console.log("configObj\n", configObj);
+
+    displayControl.addRange(
+      configObj.title, 
+      configObj.min, 
+      configObj.max, 
+      configObj.default, 
+      configObj.step, 
+      function(value){
+        console.debug(configObj.name + ": " + value);
+        parentWindow.postMessage({op: "UPDATE", id: configObj.name, value: value}, DEFAULT_SOURCE);
+      }
+    );
+
+    return;
+  }
 
   $( document ).ready(function() {
 
     console.log( "CONTROL PANEL DOCUMENT READY" );
-    console.log( "CONTROL PANEL CONFIG\n" + jsonPrint(config) );
+    console.log( "CONTROL PANEL CONFIG");
+
+    var positionX = 0;
+    var subPanelWidth = 320;
 
     self.createControlPanel(function(){
 
       setTimeout(function() {  // KLUDGE to insure table is created before update
+
+        QuickSettings.useExtStyleSheet();
+
+        // TWITTER ENTITY ==================================
+
+        twitterEntity = QuickSettings.create(positionX, 0, "ENTITY", entityCategorizeDiv);
+
+        positionX += subPanelWidth;
+
+        twitterEntity.setWidth(subPanelWidth);
+
+        const nodeId = (twitterFeedUser) ? twitterFeedUser.nodeId : "";
+        twitterEntity.addText("NODE ID", nodeId);
+
+        const name = (twitterFeedUser) ? twitterFeedUser.name : "";
+        twitterEntity.addText("NAME", name);
+
+        const screenName = (twitterFeedUser) ? "@"+twitterFeedUser.screenName : "@";
+        twitterEntity.addText("SCREENNAME", screenName);
+
+        const createdAt = (twitterFeedUser) ? twitterFeedUser.createdAt : "";
+        const ageMs = (twitterFeedUser) ? moment().diff(createdAt) : 0;
+        twitterEntity.addText("CREATED", getTimeStamp(createdAt));
+
+        const lastSeen = (twitterFeedUser) ? twitterFeedUser.lastSeen : "";
+        twitterEntity.addText("LAST SEEN", getTimeStamp(lastSeen));
+
+        twitterEntity.addButton("USER SEARCH", function(data){
+          console.debug("NODE SEARCH: ", twitterEntity.getValue("SCREENNAME"));
+          let input = twitterEntity.getValue("SCREENNAME").replace(/\s/g, "");
+          if (!input.startsWith("@")) { input = "@" + input; }
+          parentWindow.postMessage({op: "NODE_SEARCH", input: input}, DEFAULT_SOURCE);  
+        });
+
+        const hashtag = (twitterFeedHashtag) ? "#"+twitterFeedHashtag.nodeId : "#";
+        twitterEntity.addText("HASHTAG", hashtag);
+
+				twitterEntity.addButton("HASHTAG SEARCH", function(data){
+					console.debug("NODE SEARCH: ", twitterEntity.getValue("HASHTAG"));
+          let input = twitterEntity.getValue("HASHTAG");
+          if (!input.startsWith("#")) { input = "#" + input; }
+		      parentWindow.postMessage({op: "NODE_SEARCH", input: input}, DEFAULT_SOURCE);
+				});
+
+        twitterEntity.addNumber("FOLLOWERS", twitterFeedUser.followersCount);
+
+        if (twitterFeedUser.followersCount > 5000) {
+          document.getElementById("FOLLOWERS").style.background = palette.lightgreen;
+        }
+        else{
+          document.getElementById("FOLLOWERS").style.background = palette.white;
+        }
+
+        twitterEntity.addNumber("FRIENDS", twitterFeedUser.friendsCount);
+
+        const location = (twitterFeedUser) ? twitterFeedUser.location : "";
+        twitterEntity.addText("LOCATION", location);
+
+				const description = (twitterFeedUser) ? twitterFeedUser.description : "";
+				twitterEntity.addTextArea("DESCRIPTION", description);
+
+        if (twitterFeedUser) {
+          var profileImageUrl = twitterFeedUser.profileImageUrl.replace("http:", "https:");
+          profileImageUrl = twitterFeedUser.profileImageUrl.replace("_normal", "");
+          twitterEntity.addImage("PROFILE IMAGE", profileImageUrl);
+        }
+        else {
+          twitterEntity.addImage("PROFILE IMAGE", DEFAULT_TWITTER_IMAGE);
+        }
+
+        if (twitterFeedUser && twitterFeedUser.bannerImageUrl) {
+          var bannerImageUrl = twitterFeedUser.bannerImageUrl.replace("http:", "https:");
+          bannerImageUrl = twitterFeedUser.bannerImageUrl.replace("_normal", "");
+          twitterEntity.addImage("BANNER IMAGE", bannerImageUrl);
+        }
+        else {
+          twitterEntity.addImage("BANNER IMAGE", DEFAULT_TWITTER_IMAGE);
+        }
+
+
+        // TWITTER USER TIMELINE ==================================
+
+				twitterTimeLine = QuickSettings.create(positionX, 	0, "TIMELINE", entityCategorizeDiv);
+
+        positionX += subPanelWidth;
+
+				twitterTimeLine.setWidth(subPanelWidth);
+
+        twitterTimeLine.addNumber("AGE", twitterFeedUser.ageDays.toFixed(3));
+        twitterTimeLine.addNumber("TWEETS", twitterFeedUser.statusesCount);
+        twitterTimeLine.addNumber("TWEETS PER DAY", twitterFeedUser.tweetsPerDay.toFixed(3));
+        twitterTimeLine.addNumber("MENTIONS", twitterFeedUser.mentions);
+        twitterTimeLine.addNumber("RATE", twitterFeedUser.rate);
+        twitterTimeLine.addNumber("RATE MAX", twitterFeedUser.rateMax);
+        twitterTimeLine.addElement("TIMELINE", twitterTimeLineDiv);	
+
+        twitterEntity.setGlobalChangeHandler(function(data){
+        });
+
+        // TWITTER USER CONTROL ==================================
+
+        twitterControl = QuickSettings.create(positionX, 0, "CONTROL", entityCategorizeDiv);
+        positionX += subPanelWidth;
+
+        twitterControl.setWidth(subPanelWidth);
+
+        let isBot = false;
+        if (twitterFeedUser && twitterFeedUser.isBot !== undefined) {
+          isBot = twitterFeedUser.isBot;
+        }
+
+        twitterControl.addBoolean("BOT", isBot, function(data){
+          console.debug("USER BOT | " + twitterEntity.getValue("SCREENNAME") + " | BOT: " + data);
+          const op = (data) ? "BOT" : "UNBOT";
+          if (!loadingTwitterFeedFlag){
+            parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
+          }
+        });
+
+        let following = false;
+        if (twitterFeedUser && twitterFeedUser.following !== undefined) {
+          following = twitterFeedUser.following;
+        }
+
+        twitterControl.addBoolean("FOLLOWING", following, function(data){
+          console.debug("USER FOLLOWING | " + twitterEntity.getValue("SCREENNAME") + " | FOLLOWING: " + data);
+          const op = (data) ? "FOLLOW" : "UNFOLLOW";
+          if (!loadingTwitterFeedFlag){
+            parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
+          }
+        });
+
+        let ignored = false;
+        if (twitterFeedUser && twitterFeedUser.ignored !== undefined) {
+          ignored = twitterFeedUser.ignored;
+        }
+
+        twitterControl.addBoolean("IGNORED", ignored, function(data){
+          // console.debug("USER IGNORED | " + twitterEntity.getValue("SCREENNAME") + " | IGNORED: " + data);
+          console.debug("NODE IGNORED | " + twitterEntity.getValue("SCREENNAME") + " | IGNORED: " + data);
+          const op = (data) ? "IGNORE" : "UNIGNORE";
+          if (!loadingTwitterFeedFlag){
+            parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
+          }
+        });
+
+        let categoryVerified = false;
+        if (twitterFeedUser && twitterFeedUser.categoryVerified !== undefined) {
+          categoryVerified = twitterFeedUser.categoryVerified;
+        }
+
+        twitterControl.addBoolean("CAT VERIFIED", categoryVerified, function(data){
+
+          console.debug("USER VERIFIED | " + twitterEntity.getValue("SCREENNAME")
+            + " | categoryVerified: " + data
+            + " | category: " + twitterFeedUser.category
+          );
+
+          const op = (data) ? "CAT VERIFIED" : "CAT UNVERIFIED";
+          catVerifiedHandler(op);
+        });
+
+        twitterFeedUser.categoryAuto = twitterFeedUser.categoryAuto || "none";
+
+        const categoryAuto = (twitterFeedUser) ? twitterFeedUser.categoryAuto.toUpperCase() : "";
+
+        twitterControl.addText("CATEGORY AUTO", categoryAuto.toUpperCase());
+        setElementBackgroundColorCategory({elementId: "CATEGORY AUTO", category: categoryAuto});
+
+        twitterControl.addElement("CATEGORY MAN", radioUserCategoryDiv);
+        setElementBackgroundColorCategory({elementId: "radioUserCategoryDiv", category: twitterFeedUser.category});
+
+        twitterControl.addButton("CAT VERIFY", function(){
+          document.getElementById("CAT VERIFY").style.background='#0000ff';
+
+          console.debug("USER VERIFIED | " + twitterEntity.getValue("SCREENNAME")
+            + " | categoryVerified: true"
+            + " | category: " + twitterFeedUser.category
+          );
+
+          catVerifiedHandler("CAT VERIFIED");
+          setTimeout(function(){
+            document.getElementById("CAT VERIFY").style.background='#ffffff';
+          }, 100);
+        });
+
+        twitterControl.addButton("PREV USER", function(){
+          previousUserHandler("PREV USER");
+        });
+        twitterControl.addButton("IGNORE", function(){
+          ignoreHandler("IGNORE");
+        });
+        twitterControl.addButton("NEXT UNCAT ALL", function(){
+          nextUncatHandler("NEXT UNCAT ALL");
+        });
+        twitterControl.addButton("NEXT UNCAT LEFT", function(){
+          nextUncatHandler("NEXT UNCAT LEFT");
+        });
+        twitterControl.addButton("NEXT UNCAT NEUTRAL", function(){
+          nextUncatHandler("NEXT UNCAT NEUTRAL");
+        });
+        twitterControl.addButton("NEXT UNCAT RIGHT", function(){
+          nextUncatHandler("NEXT UNCAT RIGHT");
+        });
+        twitterControl.addButton("NEXT MISMATCH", function(){
+          nextMismatchHandler("NEXT MISMATCH");
+        });
+        twitterControl.addButton("UNIGNORE", function(){
+          ignoreHandler("UNIGNORE");
+        });
+
+        // STATS ==================================
+
+        statsPanel = QuickSettings.create(positionX, 0, "STATS", entityCategorizeDiv);
+        positionX += subPanelWidth;
+
+        statsPanel.setWidth(subPanelWidth);
+        statsPanel.addText("NETWORK", statsObj.bestNetwork.networkId);
+
+        statsPanel.addText("INPUTS ID", statsObj.bestNetwork.inputsId);
+
+        statsPanel.addText("MANUAL LEFT", "");
+        statsPanel.addText("MANUAL RGHT", "");
+        statsPanel.addText("MANUAL NEUT", "");
+
+        // DISPLAY ==================================
+
+        displayControl = QuickSettings.create(positionX, 0, "DISPLAY", entityCategorizeDiv);
+        positionX += subPanelWidth;
+
+        displayControl.setWidth(subPanelWidth);
+
+        rangeInputs.forEach(function(rangeInput){
+          createRangeInput({name: rangeInput});
+        });
+
+
         self.updateControlPanel(config, function(){
+
           if (parentWindow !== undefined) {
+
             window.addEventListener("message", receiveMessage, false);
 
             setTimeout(function(){
@@ -1888,21 +1358,25 @@ function ControlPanel() {
 
                   if (twttr && twttr.widgets){
                     clearInterval(waitTwitterWidgetsInterval);
-                    twttr.widgets.load();              
+                    twttr.widgets.load(twitterTimeLineDiv);              
+
+                    parentWindow.postMessage({op: "NODE_SEARCH", input: "@threecee"}, DEFAULT_SOURCE);
                   }
 
-                }, 100);
+                }, 1000);
 
               }
               else {
-                twttr.widgets.load();              
+                twttr.widgets.load(twitterTimeLineDiv);              
+                parentWindow.postMessage({op: "NODE_SEARCH", input: "@threecee"}, DEFAULT_SOURCE);
               }
-            }, 1000);
+            }, 2000);
 
           }
           else {
             console.error("PARENT WINDOW UNDEFINED??");
           }
+
         });
       }, 2000);
 

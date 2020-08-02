@@ -19,33 +19,17 @@ function ControlPanel() {
 	console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);
 	var self = this;
 
-  var dashboardMainDiv = document.getElementById('dashboardMainDiv');
-
   var statsPanel;
-  var statsPanelDiv = document.createElement("div");
-  statsPanelDiv.id = "statsPanelDiv";
 
   var displayControlHashMap = {};
 
   var displayControl;
-  var displayControlDiv = document.createElement("div");
-  displayControlDiv.id = "displayControlDiv";
 
   var twitterControl;
-  var twitterControlDiv = document.createElement("div");
-  twitterControlDiv.id = "twitterControlDiv";
 
   var twitterEntity;
-  var twitterEntityDiv = document.createElement("div");
-  twitterEntityDiv.id = "twitterEntityDiv";
 
 	var twitterTimeLine;
-	var twitterTimeLineDiv = document.createElement("div");
-	twitterTimeLineDiv.id = "twitterTimeLineDiv";
-  twitterTimeLineDiv.style.overflow = "auto";
-
-
-	var entityCategorizeDiv = document.getElementById("entityCategorizeDiv");
 
   var currentUser = "threecee";
 
@@ -262,16 +246,14 @@ function ControlPanel() {
 
     var searchFilter = "@?mm";
 
-    document.getElementById(op).style.background='#0000ff';
-
     console.debug("BUTTON: NEXT MISMATCH | searchFilter: " + searchFilter);
 
     if (parentWindow) { parentWindow.postMessage({op: "NODE_SEARCH", input: searchFilter}, DEFAULT_SOURCE); }
 
     setTimeout(function(){
       eventDetected = false;
-      document.getElementById(op).style.background='#ffffff';
     }, 100);
+
   };
 
   var nextUncatHandler = function(op){
@@ -282,8 +264,6 @@ function ControlPanel() {
     eventDetected = true;
 
     var searchFilter = "@?";
-
-    document.getElementById(op).style.background='#0000ff';
 
     switch (op){
       case "NEXT UNCAT ALL":
@@ -307,7 +287,6 @@ function ControlPanel() {
 
     setTimeout(function(){
       eventDetected = false;
-      document.getElementById(op).style.background='#ffffff';
     }, 100);
   };
 
@@ -318,7 +297,6 @@ function ControlPanel() {
     }
     eventDetected = true;
 
-    document.getElementById(op).style.background='#0000ff';
     if (parentWindow && !loadingTwitterFeedFlag && twitterFeedPreviousUserArray.length > 0) {
       const prevUserNodeId = twitterFeedPreviousUserArray.pop();
       const prevUserObj = twitterFeedPreviousUserMap[prevUserNodeId];
@@ -329,7 +307,6 @@ function ControlPanel() {
 
     setTimeout(function(){
       eventDetected = false;
-      document.getElementById(op).style.background='#ffffff';
     }, 100);
   };
 
@@ -340,14 +317,12 @@ function ControlPanel() {
     }
     eventDetected = true;
 
-    document.getElementById(op).style.background='#0000ff';
     if (parentWindow && !loadingTwitterFeedFlag) { 
       parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE); 
     }
 
     setTimeout(function(){
       eventDetected = false;
-      document.getElementById(op).style.background='#ffffff';
     }, 100);
   };
 
@@ -374,53 +349,6 @@ function ControlPanel() {
     } else {
       return "UNDEFINED";
     }
-  }
-
-  Element.prototype.removeAll = function () {
-    while (this.firstChild) { this.removeChild(this.firstChild); }
-    return this;
-  };
-
-  function setElementBackgroundColorCategory(params){
-
-    if (!document.getElementById(params.elementId)){
-      return;
-    }
-
-    switch (params.category.toUpperCase()) {  
-      case "LEFT":
-        document.getElementById(params.elementId).style.background = palette.lightblue;
-      break;
-      case "NEUTRAL":
-        document.getElementById(params.elementId).style.background = palette.lightgray;
-      break;
-      case "RIGHT":
-        document.getElementById(params.elementId).style.background = palette.lightyellow;
-      break;
-      case "POSITIVE":
-        document.getElementById(params.elementId).style.background = palette.green;
-      break;
-      case "NEGATIVE":
-        document.getElementById(params.elementId).style.background = palette.red;
-      break;
-      default:
-        document.getElementById(params.elementId).style.background = palette.white;
-    }
-
-    return;
-  }
-
-  function updateCategoryRadioButtons(category, callback){
-
-    console.log("updateCategoryRadioButtons | " + category);
-
-    if (category === undefined || !category) {
-      category = "none";
-    }
-
-	  setChecked(category);
-
-    callback();
   }
 
   function shortCategory(c) {
@@ -471,21 +399,21 @@ function ControlPanel() {
 
       if (twttr && twttr.widgets) {
 
-        twitterTimeLineDiv.removeAll();
+        // twitterTimeLineDiv.removeAll();
 
-        twttr.widgets.createTimeline(
-          { sourceType: "profile", screenName: node.screenName},
-          twitterTimeLineDiv,
-          { height: 800 }
-          // { width: "400", height: "600"}
-        )
-        .then(function (el) {
+        // twttr.widgets.createTimeline(
+        //   { sourceType: "profile", screenName: node.screenName},
+        //   twitterTimeLineDiv,
+        //   { height: 800 }
+        //   // { width: "400", height: "600"}
+        // )
+        // .then(function (el) {
           callback(null, el);
-        })
-        .catch(function(err){
-          console.error("TWITTER CREATE TIMELINE ERROR: " + err);
-          callback(err, null);
-        });
+        // })
+        // .catch(function(err){
+        //   console.error("TWITTER CREATE TIMELINE ERROR: " + err);
+        //   callback(err, null);
+        // });
       }
       else {
         callback(null, null);
@@ -506,17 +434,6 @@ function ControlPanel() {
       + "C: M: " + node.category
       + "<br><br>";
 
-    twitterTimeLineDiv.removeAll();
-
-    callback();
-  }
-
-  function updateStatsPanel(stats, callback){
-    if (!statsPanelDiv) { 
-      console.error("updateStatsPanel: statsPanelDiv UNDEFINED");
-      return callback("updateStatsPanel: statsPanelDiv UNDEFINED");
-    }
-
     callback();
   }
 
@@ -527,7 +444,8 @@ function ControlPanel() {
 
   function loadTwitterFeed(node, callback) {
 
-    if (!twitterTimeLineDiv || (twttr === undefined)) { 
+    // if (!twitterTimeLineDiv || (twttr === undefined)) { 
+    if (twttr === undefined) { 
       console.error("loadTwitterFeed: twitterTimeLineDiv OR twttr UNDEFINED");
       return callback("loadTwitterFeed: twitterTimeLineDiv OR twttr UNDEFINED");
     }
@@ -540,148 +458,9 @@ function ControlPanel() {
 
     if (node.nodeType === "user"){
 
-      if (prevNode.nodeId 
-        && (node.nodeId !== prevNode.nodeId) 
-        && !twitterFeedPreviousUserArray.includes(prevNode.nodeId)
-      ){
-        twitterFeedPreviousUserArray.push(prevNode.nodeId);
-        twitterFeedPreviousUserMap[prevNode.nodeId] = node;
-      }
-      if (prevNode.nodeId !== node.nodeId){
-        prevNode = node;
-      }
-
-      twitterFeedUser = Object.assign({}, defaultTwitterFeedUser, node);
-
-      twitterEntity.setValue("NODE ID", twitterFeedUser.nodeId);
-    	twitterEntity.setValue("NAME", twitterFeedUser.name);
-      twitterEntity.setValue("SCREENNAME", "@"+twitterFeedUser.screenName);
-      twitterEntity.setValue("CREATED", getTimeStamp(twitterFeedUser.createdAt));
-      twitterEntity.setValue("LAST SEEN", getTimeStamp(twitterFeedUser.lastSeen));
-      twitterEntity.setValue("HASHTAG", "");
-
-      twitterEntity.setValue("FOLLOWERS", twitterFeedUser.followersCount);
-
-      if (twitterFeedUser.followersCount > 5000) {
-        document.getElementById("FOLLOWERS").style.background = palette.lightgreen;
-      }
-      else{
-        document.getElementById("FOLLOWERS").style.background = palette.white;
-      }
-
-      twitterEntity.setValue("FRIENDS", twitterFeedUser.friendsCount);
-      twitterEntity.setValue("LOCATION", twitterFeedUser.location);
-      twitterEntity.setValue("DESCRIPTION", twitterFeedUser.description);
-
-      if (!twitterFeedUser.profileImageUrl || (twitterFeedUser.profileImageUrl === undefined)){
-        twitterFeedUser.profileImageUrl = DEFAULT_TWITTER_IMAGE;
-      }
-      twitterEntity.setValue("PROFILE IMAGE", twitterFeedUser.profileImageUrl.replace("_normal", ""));
-
-      if (!twitterFeedUser.bannerImageUrl || (twitterFeedUser.bannerImageUrl === undefined)) {
-        twitterFeedUser.bannerImageUrl = DEFAULT_TWITTER_IMAGE;
-      }
-      twitterEntity.setValue("BANNER IMAGE", twitterFeedUser.bannerImageUrl.replace("_normal", ""));
-
-      twitterTimeLine.setValue("AGE", node.ageDays.toFixed(3));
-      twitterTimeLine.setValue("TWEETS", node.statusesCount);
-      twitterTimeLine.setValue("TWEETS PER DAY", node.tweetsPerDay.toFixed(3));
-      twitterTimeLine.setValue("MENTIONS", node.mentions);
-      twitterTimeLine.setValue("RATE", node.rate);
-      twitterTimeLine.setValue("RATE MAX", node.rateMax);
-
-      const categoryVerified = node.categoryVerified || false;
-      const isBot = node.isBot || false;
-      const following = node.following || false;
-      const ignored = node.ignored || false;
-      const categoryAuto = node.categoryAuto.toUpperCase() || "NONE";
-
-      twitterControl.setValue("CAT VERIFIED", categoryVerified);
-      twitterControl.setValue("BOT", isBot);
-      twitterControl.setValue("FOLLOWING", following);
-      twitterControl.setValue("IGNORED", ignored);
-
-			twitterControl.setValue("CATEGORY AUTO", categoryAuto);
-      
-      setElementBackgroundColorCategory({elementId: "CATEGORY AUTO", category: categoryAuto});
-      setElementBackgroundColorCategory({elementId: "radioUserCategoryDiv", category: node.category});
-
-      console.debug("loadTwitterFeed"
-        + " | TYPE: " + node.nodeType
-        + " | NID: " + node.nodeId
-        + " | IG: " + node.ignored
-        + " | BOT: " + node.isBot
-        + " | FLWG: " + node.following
-        + " | @" + node.screenName
-        + " | " + node.name
-        + " | CR: " + node.createdAt
-        + " | LS: " + node.lastSeen
-        + " | CV: " + node.categoryVerified
-        + " | C: " + node.category
-        + " | CA: " + node.categoryAuto
-        + " | Ms: " + node.mentions
-        + " | Ts: " + node.statusesCount
-        + " | FRNDs: " + node.friendsCount
-        + " | FLWRs: " + node.followersCount
-      );
-
-      updateCategoryRadioButtons(node.category, function(){
-
-        twitterWidgetsCreateTimeline(node, function(err, el){
-
-          loadingTwitterFeedFlag = false;
-
-          if (err){
-            console.error("LOAD TWITTER FEED ERROR: " + err);
-            return callback(err);
-          }
-
-          callback();
-        });
-
-      });
     }
     else if (node.nodeType === "hashtag"){
 
-      twitterFeedHashtag = node;
-      twitterFeedPreviousHashtag = twitterFeedHashtag;
-
-      twitterEntity.setValue("NODE ID", node.nodeId);
-      twitterEntity.setValue("NAME", "");
-      twitterEntity.setValue("SCREENNAME", "");
-      twitterEntity.setValue("HASHTAG", "#" + node.nodeId);
-
-      twitterEntity.setValue("FOLLOWERS", "");
-      document.getElementById("FOLLOWERS").style.background = palette.white;
-
-      twitterEntity.setValue("FRIENDS", "");
-      twitterEntity.setValue("LOCATION", "");
-      twitterEntity.setValue("PROFILE IMAGE", DEFAULT_TWITTER_IMAGE);
-      twitterEntity.setValue("BANNER IMAGE", DEFAULT_TWITTER_IMAGE);
-      twitterEntity.setValue("DESCRIPTION", "");
-
-      twitterTimeLine.setValue("TWEETS", "");
-      twitterTimeLine.setValue("MENTIONS", node.mentions);
-      twitterTimeLine.setValue("RATE", node.rate);
-      twitterTimeLine.setValue("RATE MAX", node.rateMax);
-
-      twitterControl.setValue("CATEGORY AUTO", node.categoryAuto.toUpperCase() || "NONE");
-
-      setElementBackgroundColorCategory({elementId: "CATEGORY AUTO", category: node.categoryAuto});
-
-      console.debug("loadTwitterFeed"
-        + " | TYPE: " + node.nodeType
-        + " | #" + node.nodeId
-        + " | CAT M: " + node.category
-        + " | Ms: " + node.mentions
-      );
-
-      updateCategoryRadioButtons(node.category, function(){
-        twitterHashtagSearch(node, function(){
-          loadingTwitterFeedFlag = false;
-          callback();
-        });
-      });
     }
     else {
       loadingTwitterFeedFlag = false;
@@ -696,21 +475,13 @@ function ControlPanel() {
   this.setNodeRadiusRatioMax = function (value) {};
   this.setNodeRadiusRatioMin = function (value) {};
   this.setNodeRadiusRatio = function (value) {};
-
   this.setVelocityDecay = function (value) {};
-
   this.setLinkStrength = function (value) {};
-
   this.setLinkDistance = function (value) {};
-
   this.setTransitionDuration = function (value) {};
-
   this.setGravity = function (value) {};
-
   this.setCharge = function (value) {};
-
   this.setMaxAge = function (value) {};
-
   this.setFontSizeRatioMin = function (value) {};
   this.setFontSizeRatioMax = function (value) {};
   this.setFontSizeRatio = function (value) {};
@@ -718,36 +489,6 @@ function ControlPanel() {
   function updateCategoryStats(stats){
 
     if (stats && stats.user && stats.user.uncategorized) {
-    
-      statsObj.manual = {};
-      statsObj.manual = stats.user.manual;
-      statsObj.auto = stats.user.auto;
-
-      if (statsObj.manual) {
-        statsPanel.setValue("MANUAL LEFT", statsObj.manual.left);
-        statsPanel.setValue("MANUAL RGHT", statsObj.manual.right);
-        statsPanel.setValue("MANUAL NEUT", statsObj.manual.neutral);
-      }
-
-      statsObj.uncategorized = {};
-      statsObj.uncategorized = stats.user.uncategorized;
-      statsObj.mismatched = stats.user.mismatched;
-
-      console.debug("updateCategoryStats | SET TWITTER USER\nstats" + jsonPrint(stats));
-
-      ["left", "right", "neutral", "all"].forEach(function(cat){
-        if (stats.user.uncategorized[cat] !== undefined) {
-          const currentButton = document.getElementById("NEXT UNCAT " + cat.toUpperCase());
-          currentButton.value = stats.user.uncategorized[cat].toString() + " | NEXT UNCAT " + cat.toUpperCase();
-          console.debug("NEXT UNCAT " + cat.toUpperCase() + " | value: " + currentButton.value); 
-        }
-      });
-
-      if (stats.user.mismatched !== undefined) {
-        const currentButton = document.getElementById("NEXT MISMATCH");
-        currentButton.value = stats.user.mismatched.toString() + " | NEXT MISMATCH";
-        console.debug("NEXT UNCAT MISMATCH | value: " + currentButton.value); 
-      }
       return;
     }
     else{
@@ -962,423 +703,14 @@ function ControlPanel() {
     if (callback) { callback(); }
   };
 
-	var radioUserCategoryDiv = document.createElement("div");
-	radioUserCategoryDiv.id = "radioUserCategoryDiv";
-  radioUserCategoryDiv.setAttribute("class", "radioCheckbox");
-  radioUserCategoryDiv.style.fontSize = "16px";
-
-	["left", "neutral", "right", "positive", "negative", "none"].forEach(function(category){
-
-		var categoryLabel = document.createElement("label");
-		categoryLabel.setAttribute("class", "categoryButtonLabel");
-		categoryLabel.setAttribute("id", "categoryLabel_" + shortCategory(category));
-    categoryLabel.style.fontSize = "16px";
-    categoryLabel.style.padding = "5px";
-		categoryLabel.innerHTML = shortCategory(category);
-
-		var categoryButton = document.createElement("input");
-		categoryButton.id = "category_" + category; 
-		categoryButton.setAttribute("type", "checkbox");
-		categoryButton.name = category; 
-    categoryButton.style.webkitAppearance = "none";
-    categoryButton.style.backgroundColor = "lightgray";
-    categoryButton.style.boxSizing = "border-box";
-    categoryButton.style.width = "16px";
-    categoryButton.style.height = "16px";
-
-		categoryLabel.appendChild(categoryButton);
-		radioUserCategoryDiv.appendChild(categoryLabel);
-	});
-
-	radioUserCategoryDiv.onclick = function(e){
-		console.log("radioUserCategoryDiv BUTTON: ", e.srcElement.id);
-		catRadioButtonHandler(e);
-	}
-
-	function setChecked( categorySet ){
-
-		var categorySetButtonId = "category_" + categorySet;
-
-		var cbxs = radioUserCategoryDiv.getElementsByTagName('input'), i=cbxs.length;
-
-		while(i--) {
-
-		  if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id === categorySetButtonId) {
-				cbxs[i].checked = true;
-        cbxs[i].style.backgroundColor = "blue";
-        if (twitterFeedNodeType === "user") { twitterFeedUser.category = cbxs[i].name; }
-        if (twitterFeedNodeType === "hashtag") { twitterFeedHashtag.category = cbxs[i].name; }
-		  }
-		  if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id !== categorySetButtonId) {
-				cbxs[i].checked = false;
-        cbxs[i].style.backgroundColor = "lightgray";
-		  }
-
-		}
-	}
-
-  function computeRangeStep(params){
-    return Math.abs((params.max-params.min)/config.defaultRangeSteps);
-  }
-
-  function catRadioButtonHandler(e){
-
-		e = e || event;
-
-		var cb = e.srcElement || e.target;
-
-		if (cb.type !== 'checkbox') {return true;}
-
-		console.log("CAT BUTTON: ", cb.id);
-
-		var cbxs = radioUserCategoryDiv.getElementsByTagName('input');
-		var i = cbxs.length;
-
-		while(i--) {
-			if (cbxs[i].type && cbxs[i].type == 'checkbox' && cbxs[i].id !== cb.id) {
-				cbxs[i].checked = false;
-        cbxs[i].style.backgroundColor = "lightgray";
-			}
-		}
-    
-		cb.checked = true;
-    cb.style.backgroundColor = "blue";
-
-    if (!loadingTwitterFeedFlag){
-
-      currentTwitterNode.category = cb.name;
-
-      if (twitterFeedNodeType === "user"){
-        twitterFeedUser.category = cb.name;
-        setElementBackgroundColorCategory({elementId: "radioUserCategoryDiv", category: cb.name});
-        console.debug("CATEGORIZE | @" + currentTwitterNode.screenName + " | CAT: " + cb.name);
-      }
-      
-      if (twitterFeedNodeType === "hashtag"){
-        twitterFeedHashtag.category = cb.name;
-        setElementBackgroundColorCategory({elementId: "radioUserCategoryDiv", category: cb.name});
-        console.debug("CATEGORIZE | #" + currentTwitterNode.nodeId + " | CAT: " + cb.name);
-      }
-      
-      parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: cb.name}, DEFAULT_SOURCE);
-    }
-  }
-
-  function createRangeInput(params){
-
-    console.log("createRangeInput\n", params);
-
-    let configObj = config.range[params.name];
-
-    configObj.title = changeCase.sentenceCase(configObj.name).toUpperCase();
-    configObj.step = configObj.step || computeRangeStep({ max: configObj.max, min: configObj.min });
-
-    console.log("configObj\n", configObj);
-
-    displayControl.addRange(
-      configObj.title, 
-      configObj.min, 
-      configObj.max, 
-      configObj.default, 
-      configObj.step, 
-      function(value){
-        console.debug(configObj.name + ": " + value);
-        parentWindow.postMessage({op: "UPDATE", id: configObj.name, value: value}, DEFAULT_SOURCE);
-      }
-    );
-
-    return;
-  }
 
   $( document ).ready(function() {
 
     console.log( "CONTROL PANEL DOCUMENT READY" );
     console.log( "CONTROL PANEL CONFIG");
 
-    var positionX = 0;
-    var subPanelWidth = 320;
-
     self.createControlPanel(function(){
 
-      setTimeout(function() {  // KLUDGE to insure table is created before update
-
-        QuickSettings.useExtStyleSheet();
-
-        // TWITTER ENTITY ==================================
-
-        twitterEntity = QuickSettings.create(positionX, 0, "ENTITY", entityCategorizeDiv);
-
-        positionX += subPanelWidth;
-
-        twitterEntity.setWidth(subPanelWidth);
-
-        const nodeId = (twitterFeedUser) ? twitterFeedUser.nodeId : "";
-        twitterEntity.addText("NODE ID", nodeId);
-
-        const name = (twitterFeedUser) ? twitterFeedUser.name : "";
-        twitterEntity.addText("NAME", name);
-
-        const screenName = (twitterFeedUser) ? "@"+twitterFeedUser.screenName : "@";
-        twitterEntity.addText("SCREENNAME", screenName);
-
-        const createdAt = (twitterFeedUser) ? twitterFeedUser.createdAt : "";
-        const ageMs = (twitterFeedUser) ? moment().diff(createdAt) : 0;
-        twitterEntity.addText("CREATED", getTimeStamp(createdAt));
-
-        const lastSeen = (twitterFeedUser) ? twitterFeedUser.lastSeen : "";
-        twitterEntity.addText("LAST SEEN", getTimeStamp(lastSeen));
-
-        twitterEntity.addButton("USER SEARCH", function(data){
-          console.debug("NODE SEARCH: ", twitterEntity.getValue("SCREENNAME"));
-          let input = twitterEntity.getValue("SCREENNAME").replace(/\s/g, "");
-          if (!input.startsWith("@")) { input = "@" + input; }
-          parentWindow.postMessage({op: "NODE_SEARCH", input: input}, DEFAULT_SOURCE);  
-        });
-
-        const hashtag = (twitterFeedHashtag) ? "#"+twitterFeedHashtag.nodeId : "#";
-        twitterEntity.addText("HASHTAG", hashtag);
-
-				twitterEntity.addButton("HASHTAG SEARCH", function(data){
-					console.debug("NODE SEARCH: ", twitterEntity.getValue("HASHTAG"));
-          let input = twitterEntity.getValue("HASHTAG");
-          if (!input.startsWith("#")) { input = "#" + input; }
-		      parentWindow.postMessage({op: "NODE_SEARCH", input: input}, DEFAULT_SOURCE);
-				});
-
-        twitterEntity.addNumber("FOLLOWERS", twitterFeedUser.followersCount);
-
-        if (twitterFeedUser.followersCount > 5000) {
-          document.getElementById("FOLLOWERS").style.background = palette.lightgreen;
-        }
-        else{
-          document.getElementById("FOLLOWERS").style.background = palette.white;
-        }
-
-        twitterEntity.addNumber("FRIENDS", twitterFeedUser.friendsCount);
-
-        const location = (twitterFeedUser) ? twitterFeedUser.location : "";
-        twitterEntity.addText("LOCATION", location);
-
-				const description = (twitterFeedUser) ? twitterFeedUser.description : "";
-				twitterEntity.addTextArea("DESCRIPTION", description);
-
-        if (twitterFeedUser) {
-          var profileImageUrl = twitterFeedUser.profileImageUrl.replace("http:", "https:");
-          profileImageUrl = twitterFeedUser.profileImageUrl.replace("_normal", "");
-          twitterEntity.addImage("PROFILE IMAGE", profileImageUrl);
-        }
-        else {
-          twitterEntity.addImage("PROFILE IMAGE", DEFAULT_TWITTER_IMAGE);
-        }
-
-        if (twitterFeedUser && twitterFeedUser.bannerImageUrl) {
-          var bannerImageUrl = twitterFeedUser.bannerImageUrl.replace("http:", "https:");
-          bannerImageUrl = twitterFeedUser.bannerImageUrl.replace("_normal", "");
-          twitterEntity.addImage("BANNER IMAGE", bannerImageUrl);
-        }
-        else {
-          twitterEntity.addImage("BANNER IMAGE", DEFAULT_TWITTER_IMAGE);
-        }
-
-
-        // TWITTER USER TIMELINE ==================================
-
-				twitterTimeLine = QuickSettings.create(positionX, 	0, "TIMELINE", entityCategorizeDiv);
-
-        positionX += subPanelWidth;
-
-				twitterTimeLine.setWidth(subPanelWidth);
-
-        twitterTimeLine.addNumber("AGE", twitterFeedUser.ageDays.toFixed(3));
-        twitterTimeLine.addNumber("TWEETS", twitterFeedUser.statusesCount);
-        twitterTimeLine.addNumber("TWEETS PER DAY", twitterFeedUser.tweetsPerDay.toFixed(3));
-        twitterTimeLine.addNumber("MENTIONS", twitterFeedUser.mentions);
-        twitterTimeLine.addNumber("RATE", twitterFeedUser.rate);
-        twitterTimeLine.addNumber("RATE MAX", twitterFeedUser.rateMax);
-        twitterTimeLine.addElement("TIMELINE", twitterTimeLineDiv);	
-
-        twitterEntity.setGlobalChangeHandler(function(data){
-        });
-
-        // TWITTER USER CONTROL ==================================
-
-        twitterControl = QuickSettings.create(positionX, 0, "CONTROL", entityCategorizeDiv);
-        positionX += subPanelWidth;
-
-        twitterControl.setWidth(subPanelWidth);
-
-        let isBot = false;
-        if (twitterFeedUser && twitterFeedUser.isBot !== undefined) {
-          isBot = twitterFeedUser.isBot;
-        }
-
-        twitterControl.addBoolean("BOT", isBot, function(data){
-          console.debug("USER BOT | " + twitterEntity.getValue("SCREENNAME") + " | BOT: " + data);
-          const op = (data) ? "BOT" : "UNBOT";
-          if (!loadingTwitterFeedFlag){
-            parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
-          }
-        });
-
-        let following = false;
-        if (twitterFeedUser && twitterFeedUser.following !== undefined) {
-          following = twitterFeedUser.following;
-        }
-
-        twitterControl.addBoolean("FOLLOWING", following, function(data){
-          console.debug("USER FOLLOWING | " + twitterEntity.getValue("SCREENNAME") + " | FOLLOWING: " + data);
-          const op = (data) ? "FOLLOW" : "UNFOLLOW";
-          if (!loadingTwitterFeedFlag){
-            parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
-          }
-        });
-
-        let ignored = false;
-        if (twitterFeedUser && twitterFeedUser.ignored !== undefined) {
-          ignored = twitterFeedUser.ignored;
-        }
-
-        twitterControl.addBoolean("IGNORED", ignored, function(data){
-          // console.debug("USER IGNORED | " + twitterEntity.getValue("SCREENNAME") + " | IGNORED: " + data);
-          console.debug("NODE IGNORED | " + twitterEntity.getValue("SCREENNAME") + " | IGNORED: " + data);
-          const op = (data) ? "IGNORE" : "UNIGNORE";
-          if (!loadingTwitterFeedFlag){
-            parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);
-          }
-        });
-
-        let categoryVerified = false;
-        if (twitterFeedUser && twitterFeedUser.categoryVerified !== undefined) {
-          categoryVerified = twitterFeedUser.categoryVerified;
-        }
-
-        twitterControl.addBoolean("CAT VERIFIED", categoryVerified, function(data){
-
-          console.debug("USER VERIFIED | " + twitterEntity.getValue("SCREENNAME")
-            + " | categoryVerified: " + data
-            + " | category: " + twitterFeedUser.category
-          );
-
-          const op = (data) ? "CAT VERIFIED" : "CAT UNVERIFIED";
-          catVerifiedHandler(op);
-        });
-
-        twitterFeedUser.categoryAuto = twitterFeedUser.categoryAuto || "none";
-
-        const categoryAuto = (twitterFeedUser) ? twitterFeedUser.categoryAuto.toUpperCase() : "";
-
-        twitterControl.addText("CATEGORY AUTO", categoryAuto.toUpperCase());
-        setElementBackgroundColorCategory({elementId: "CATEGORY AUTO", category: categoryAuto});
-
-        twitterControl.addElement("CATEGORY MAN", radioUserCategoryDiv);
-        setElementBackgroundColorCategory({elementId: "radioUserCategoryDiv", category: twitterFeedUser.category});
-
-        twitterControl.addButton("CAT VERIFY", function(){
-          document.getElementById("CAT VERIFY").style.background='#0000ff';
-
-          console.debug("USER VERIFIED | " + twitterEntity.getValue("SCREENNAME")
-            + " | categoryVerified: true"
-            + " | category: " + twitterFeedUser.category
-          );
-
-          catVerifiedHandler("CAT VERIFIED");
-          setTimeout(function(){
-            document.getElementById("CAT VERIFY").style.background='#ffffff';
-          }, 100);
-        });
-
-        twitterControl.addButton("PREV USER", function(){
-          previousUserHandler("PREV USER");
-        });
-        twitterControl.addButton("IGNORE", function(){
-          ignoreHandler("IGNORE");
-        });
-        twitterControl.addButton("NEXT UNCAT ALL", function(){
-          nextUncatHandler("NEXT UNCAT ALL");
-        });
-        twitterControl.addButton("NEXT UNCAT LEFT", function(){
-          nextUncatHandler("NEXT UNCAT LEFT");
-        });
-        twitterControl.addButton("NEXT UNCAT NEUTRAL", function(){
-          nextUncatHandler("NEXT UNCAT NEUTRAL");
-        });
-        twitterControl.addButton("NEXT UNCAT RIGHT", function(){
-          nextUncatHandler("NEXT UNCAT RIGHT");
-        });
-        twitterControl.addButton("NEXT MISMATCH", function(){
-          nextMismatchHandler("NEXT MISMATCH");
-        });
-        twitterControl.addButton("UNIGNORE", function(){
-          ignoreHandler("UNIGNORE");
-        });
-
-        // STATS ==================================
-
-        statsPanel = QuickSettings.create(positionX, 0, "STATS", entityCategorizeDiv);
-        positionX += subPanelWidth;
-
-        statsPanel.setWidth(subPanelWidth);
-        statsPanel.addText("NETWORK", statsObj.bestNetwork.networkId);
-
-        statsPanel.addText("INPUTS ID", statsObj.bestNetwork.inputsId);
-
-        statsPanel.addText("MANUAL LEFT", "");
-        statsPanel.addText("MANUAL RGHT", "");
-        statsPanel.addText("MANUAL NEUT", "");
-
-        // DISPLAY ==================================
-
-        displayControl = QuickSettings.create(positionX, 0, "DISPLAY", entityCategorizeDiv);
-        positionX += subPanelWidth;
-
-        displayControl.setWidth(subPanelWidth);
-
-        rangeInputs.forEach(function(rangeInput){
-          createRangeInput({name: rangeInput});
-        });
-
-
-        self.updateControlPanel(config, function(){
-
-          if (parentWindow !== undefined) {
-
-            window.addEventListener("message", receiveMessage, false);
-
-            setTimeout(function(){
-
-              console.log("TX PARENT READY " + DEFAULT_SOURCE);
-
-              parentWindow.postMessage({op:"READY"}, DEFAULT_SOURCE);
-
-              if (!twttr || !twttr.widgets) {
-
-                var waitTwitterWidgetsInterval;
-
-                waitTwitterWidgetsInterval = setInterval(function(){
-
-                  if (twttr && twttr.widgets){
-                    clearInterval(waitTwitterWidgetsInterval);
-                    twttr.widgets.load(twitterTimeLineDiv);              
-
-                    parentWindow.postMessage({op: "NODE_SEARCH", input: "@threecee"}, DEFAULT_SOURCE);
-                  }
-
-                }, 1000);
-
-              }
-              else {
-                twttr.widgets.load(twitterTimeLineDiv);              
-                parentWindow.postMessage({op: "NODE_SEARCH", input: "@threecee"}, DEFAULT_SOURCE);
-              }
-            }, 2000);
-
-          }
-          else {
-            console.error("PARENT WINDOW UNDEFINED??");
-          }
-
-        });
-      }, 2000);
 
     });
   });

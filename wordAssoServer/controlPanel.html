@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-28931057-6"></script>
     <script>
@@ -26,7 +28,7 @@
     
     frame-src https://*.twitter.com/ http://*.twitter.com/ https://twitter.com/; 
     
-    style-src 'self' 'unsafe-inline' https://*.cloudflare.com/ http://*.twimg.com/ https://*.twimg.com/ http://*.googleapis.com/ https://*.twitter.com/ http://*.twitter.com/; 
+    style-src 'self' 'unsafe-inline' https://*.bootstrapcdn.com https://*.cloudflare.com/ http://*.twimg.com/ https://*.twimg.com/ http://*.googleapis.com/ https://*.twitter.com/ http://*.twitter.com/; 
 
     connect-src 'self' https://twitter.com/ http://twitter.com/ https://*.twitter.com/ http://*.twitter.com/; ">
 
@@ -55,7 +57,13 @@
       };
 
       return t;
-    }(document, "script", "twitter-wjs"));</script>
+      }(document, "script", "twitter-wjs"));
+    </script>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" 
+      integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" 
+      crossorigin="anonymous"
+    >
 
   </head>
   <body>      

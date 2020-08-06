@@ -3621,7 +3621,7 @@ async function pubSubNodeSetProps(params){
 
       // const updatePickArray = Object.keys(params.props);
 
-      if (isCategorized(node)){
+      if (isCategorized(node) || isAutoCategorized(node)){
 
         categorizedUserHashMap.set(node.nodeId, 
           { 
@@ -3913,6 +3913,10 @@ const isCategorized = function(node){
   return (node.category !== undefined && categorizedArray.includes(node.category));
 }
 
+const isAutoCategorized = function(node){
+  return (node.categoryAuto !== undefined && categorizedArray.includes(node.categoryAuto));
+}
+
 async function pubSubSearchNode(params){
 
   try {
@@ -3976,7 +3980,7 @@ async function pubSubSearchNode(params){
       ));
     }
 
-    if (node.nodeType === "user" && isCategorized(node)){
+    if (node.nodeType === "user" && (isCategorized(node) || isAutoCategorized(node))){
       categorizedUserHashMap.set(node.nodeId, 
         { 
           nodeId: node.nodeId, 
@@ -5874,7 +5878,11 @@ function hashtagCursorDataHandler(hashtag){
 
 let updateUserSetsRunning = false;
 
-async function updateUserSets(){
+async function updateUserSets(p){
+
+  const params = p || {};
+
+  params.query = params.query || { "$or": [ { "categorized": true } , { 'categorizedAuto': true } ]}
 
   statsObj.status = "UPDATE USER SETS";
 
@@ -5895,7 +5903,7 @@ async function updateUserSets(){
   await updateUserCounts();
   
   userSearchCursor = global.wordAssoDb.User
-  .find({categorized: true})
+  .find(params.query)
   .select({
     categorizeNetwork: 1, 
     category: 1, 
@@ -6006,39 +6014,6 @@ async function updateHashtagSets(){
 
   return;
 }
-
-// let updateUserSetsInterval;
-// let updateUserSetsIntervalReady = true;
-
-// function initUpdateUserSetsInterval(interval){
-
-//   return new Promise(function(resolve){
-
-//     clearInterval(updateUserSetsInterval);
-
-//     console.log(chalk.bold.black(MODULE_ID_PREFIX + " | INIT USER + HASHTAG SETS INTERVAL | " + tcUtils.msToTime(interval) ));
-
-//     updateUserSetsInterval = setInterval(async function() {
-
-//       try {
-//         if (statsObj.dbConnectionReady && updateUserSetsIntervalReady) {
-//           updateUserSetsIntervalReady = false;
-//           await updateUserSets();
-//           await updateHashtagSets();
-//           updateUserSetsIntervalReady = true;
-//         }
-//       }
-//       catch(err){
-//         console.log(chalkError(MODULE_ID_PREFIX + " | UPDATE USER + HASHTAG SETS ERROR: " + err));
-//         updateUserSetsIntervalReady = true;
-//       }
-
-//     }, interval);
-
-//     resolve();
-
-//   });
-// }
 
 function printBotStats(params){
   if (statsObj.traffic.users.bots % params.modulo === 0){

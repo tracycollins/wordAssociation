@@ -6,14 +6,14 @@ function ViewTreepack() {
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
-  var initialXposition = 0.5;
-  var initialYposition = 0.9;
-  var defaultInitialZoom = 1.0;
+  let initialXposition = 0.5;
+  let initialYposition = 0.9;
+  let defaultInitialZoom = 1.0;
 
-  var DEFAULT_ZOOM_FACTOR = 0.5;
-  var minRateMetricChange = 0.5;
+  let DEFAULT_ZOOM_FACTOR = 0.5;
+  let minRateMetricChange = 0.5;
 
-  var getWindowDimensions = function (){
+  const getWindowDimensions = function (){
 
     if (window.innerWidth !== "undefined") {
       return { width: window.innerWidth, height: window.innerHeight };
@@ -29,8 +29,8 @@ function ViewTreepack() {
     return { width: document.getElementsByTagName("body")[0].clientWidth, height: document.getElementsByTagName("body")[0].clientHeight };
   };
 
-  var width = getWindowDimensions().width;
-  var height = getWindowDimensions().height;
+  let width = getWindowDimensions().width;
+  let height = getWindowDimensions().height;
 
   function jsonPrint(obj) {
     if ((obj) || (obj === 0)) {
@@ -40,7 +40,7 @@ function ViewTreepack() {
     }
   }
 
-  var palette = {
+  const palette = {
     "black": "#000000",
     "white": "#FFFFFF",
     "lightgray": "#AAAAAA",
@@ -65,89 +65,89 @@ function ViewTreepack() {
     "yellowgreen": "#738A05"
   };
 
-  var DEFAULT_MIN_RATE = 0.1;
-  var minRate = DEFAULT_MIN_RATE;
+  const DEFAULT_MIN_RATE = 0.1;
+  let minRate = DEFAULT_MIN_RATE;
 
-  var DEFAULT_MIN_FOLLOWERS = 5000;
-  var minFollowers = DEFAULT_MIN_FOLLOWERS;
+  const DEFAULT_MIN_FOLLOWERS = 5000;
+  let minFollowers = DEFAULT_MIN_FOLLOWERS;
 
-  var DEFAULT_MIN_MENTIONS = 1000;
+  const DEFAULT_MIN_MENTIONS = 1000;
 
-  var minMentionsUsers = DEFAULT_MIN_MENTIONS;
-  var minMentionsHashtags = 100;
+  let minMentionsUsers = DEFAULT_MIN_MENTIONS;
+  let minMentionsHashtags = 100;
 
-  var DEFAULT_MIN_FOLLOWERS_AGE_RATE_RATIO = 0.9; // age users with many followers at a slower rate
+  const DEFAULT_MIN_FOLLOWERS_AGE_RATE_RATIO = 0.9; // age users with many followers at a slower rate
 
-  var mouseMovingFlag = false;
+  let mouseMovingFlag = false;
 
-  var self = this;
-  var simulation;
+  let self = this;
+  let simulation;
 
-  var enableAgeNodes = true;
-  var newCurrentMaxMentionsMetricFlag = true;
-  var newCurrentMaxRateMetricFlag = true;
+  let enableAgeNodes = true;
+  let newCurrentMaxMentionsMetricFlag = true;
+  let newCurrentMaxRateMetricFlag = true;
 
-  var resumeTimeStamp = 0;
+  let resumeTimeStamp = 0;
 
-  var sliderPercision = 5;
+  let sliderPercision = 5;
 
   // FORCE X & Y
-  var xFocusLeftRatio = 0.2;
-  var yFocusLeftRatio = 0.5;
+  let xFocusLeftRatio = 0.2;
+  let yFocusLeftRatio = 0.5;
 
-  var xFocusRightRatio = 0.8;
-  var yFocusRightRatio = 0.5;
+  let xFocusRightRatio = 0.8;
+  let yFocusRightRatio = 0.5;
 
-  var xFocusPositiveRatio = 0.5;
-  var yFocusPositiveRatio = 0.2;
+  let xFocusPositiveRatio = 0.5;
+  let yFocusPositiveRatio = 0.2;
 
-  var xFocusNegativeRatio = 0.5;
-  var yFocusNegativeRatio = 0.7;
+  let xFocusNegativeRatio = 0.5;
+  let yFocusNegativeRatio = 0.7;
 
-  var xFocusNeutralRatio = 0.5;
-  var yFocusNeutralRatio = 0.5;
+  let xFocusNeutralRatio = 0.5;
+  let yFocusNeutralRatio = 0.5;
 
-  var xFocusDefaultRatio = 0.5;
-  var yFocusDefaultRatio = 0.6;
+  let xFocusDefaultRatio = 0.5;
+  let yFocusDefaultRatio = 0.6;
 
   // INITIAL POSITION
-  var xMinRatioLeft = 0.25;
-  var xMaxRatioLeft = 0.30;
+  let xMinRatioLeft = 0.25;
+  let xMaxRatioLeft = 0.30;
 
-  var yMinRatioLeft = 0.75;
-  var yMaxRatioLeft = 0.85;
+  let yMinRatioLeft = 0.75;
+  let yMaxRatioLeft = 0.85;
 
-  var xMinRatioRight = 0.7;
-  var xMaxRatioRight = 0.75;
+  let xMinRatioRight = 0.7;
+  let xMaxRatioRight = 0.75;
 
-  var yMinRatioRight = 0.75;
-  var yMaxRatioRight = 0.85;
+  let yMinRatioRight = 0.75;
+  let yMaxRatioRight = 0.85;
 
-  var xMinRatioPositive = 0.45;
-  var xMaxRatioPositive = 0.55;
+  let xMinRatioPositive = 0.45;
+  let xMaxRatioPositive = 0.55;
 
-  var yMinRatioPositive = 0.3;
-  var yMaxRatioPositive = 0.4;
+  let yMinRatioPositive = 0.3;
+  let yMaxRatioPositive = 0.4;
 
-  var xMinRatioNegative = 0.45;
-  var xMaxRatioNegative = 0.55;
+  let xMinRatioNegative = 0.45;
+  let xMaxRatioNegative = 0.55;
 
-  var yMinRatioNegative = 0.85;
-  var yMaxRatioNegative = 0.95;
+  let yMinRatioNegative = 0.85;
+  let yMaxRatioNegative = 0.95;
 
-  var xMinRatioNeutral = 0.45;
-  var xMaxRatioNeutral = 0.55;
+  let xMinRatioNeutral = 0.45;
+  let xMaxRatioNeutral = 0.55;
 
-  var yMinRatioNeutral = 0.75;
-  var yMaxRatioNeutral = 0.85;
+  let yMinRatioNeutral = 0.75;
+  let yMaxRatioNeutral = 0.85;
 
-  var xMinRatioDefault = 0.45;
-  var xMaxRatioDefault = 0.55;
+  let xMinRatioDefault = 0.45;
+  let xMaxRatioDefault = 0.55;
 
-  var yMinRatioDefault = 0.75;
-  var yMaxRatioDefault = 0.85;
+  let yMinRatioDefault = 0.75;
+  let yMaxRatioDefault = 0.85;
 
-  var foci = {
+  let foci = {
     left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 
     right: {x: xFocusRightRatio*width, y: yFocusRightRatio*height}, 
     positive: {x: xFocusPositiveRatio*width, y: yFocusPositiveRatio*height}, 
@@ -157,7 +157,7 @@ function ViewTreepack() {
     default: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height}
   };
 
-  var totalHashmap = {};
+  let totalHashmap = {};
   totalHashmap.total = 0;
   totalHashmap.left = 0;
   totalHashmap.right = 0;
@@ -166,11 +166,11 @@ function ViewTreepack() {
   totalHashmap.negative = 0;
   totalHashmap.none = 0;
 
-  var nodeArray = [];
+  let nodeArray = [];
 
-  var currentMaxRateMetric = 2;
+  let currentMaxRateMetric = 2;
 
-  var currentMax = {};
+  const currentMax = {};
 
   currentMax.rate = {};
   currentMax.rate.isMaxNode = true;
@@ -251,32 +251,32 @@ function ViewTreepack() {
     this.y = initialYposition*height;
   } 
 
-  var nodePoolIndex = 0;
+  let nodePoolIndex = 0;
 
-  var nodePool = deePool.create(function makeNode(){
+  const nodePool = deePool.create(function makeNode(){
     nodePoolIndex += 1;
     return (new Node("nodePoolId_" + nodePoolIndex));
   });
 
-  var autoCategoryFlag = config.autoCategoryFlag;
-  var metricMode = config.defaultMetricMode;
-  var blahMode = config.defaultBlahMode;
-  var charge = config.defaultCharge;
-  var gravity = config.defaultGravity;
-  var forceXmultiplier = config.defaultForceXmultiplier;
-  var forceYmultiplier = config.defaultForceYmultiplier;
-  var collisionRadiusMultiplier = 1.1;
-  var collisionIterations = config.defaultCollisionIterations;
-  var velocityDecay = config.defaultVelocityDecay;
-  var fontSizeMinRatio = config.defaultFontSizeMinRatio;
-  var fontSizeMaxRatio = config.defaultFontSizeMaxRatio;
-  var fontSizeMin = config.defaultFontSizeMinRatio * height;
-  var fontSizeMax = config.defaultFontSizeMaxRatio * height;
+  let autoCategoryFlag = config.autoCategoryFlag;
+  let metricMode = config.defaultMetricMode;
+  let blahMode = config.defaultBlahMode;
+  let charge = config.defaultCharge;
+  let gravity = config.defaultGravity;
+  let forceXmultiplier = config.defaultForceXmultiplier;
+  let forceYmultiplier = config.defaultForceYmultiplier;
+  let collisionRadiusMultiplier = 1.1;
+  let collisionIterations = config.defaultCollisionIterations;
+  let velocityDecay = config.defaultVelocityDecay;
+  let fontSizeMinRatio = config.defaultFontSizeMinRatio;
+  let fontSizeMaxRatio = config.defaultFontSizeMaxRatio;
+  let fontSizeMin = config.defaultFontSizeMinRatio * height;
+  let fontSizeMax = config.defaultFontSizeMaxRatio * height;
 
-  var nodeRadiusMinRatio = config.defaultNodeRadiusMinRatio;
-  var nodeRadiusMaxRatio = config.defaultNodeRadiusMaxRatio;
-  var nodeRadiusMin = config.defaultNodeRadiusMinRatio * width;
-  var nodeRadiusMax = config.defaultNodeRadiusMaxRatio * width;
+  let nodeRadiusMinRatio = config.defaultNodeRadiusMinRatio;
+  let nodeRadiusMaxRatio = config.defaultNodeRadiusMaxRatio;
+  let nodeRadiusMin = config.defaultNodeRadiusMinRatio * width;
+  let nodeRadiusMax = config.defaultNodeRadiusMaxRatio * width;
 
   if (config.panzoomTransform === undefined) { 
     config.panzoomTransform = {}; 
@@ -285,7 +285,7 @@ function ViewTreepack() {
   config.panzoomTransform.x = config.panzoomTransform.x || 0.5*width;
   config.panzoomTransform.y = config.panzoomTransform.y || 0.5*height;
 
-  var maxRateMentions = {};
+  const maxRateMentions = {};
   maxRateMentions.rateNodeType = "hashtag";
   maxRateMentions.mentionsNodeType = "hashtag";
   maxRateMentions.isMaxNode = true;
@@ -313,28 +313,28 @@ function ViewTreepack() {
     // + "\n" + jsonPrint(config)
   );
 
-  var testMode = false;
-  var freezeFlag = false;
+  let testMode = false;
+  let freezeFlag = false;
 
-  var MAX_NODES_LIMIT = 100;
+  const MAX_NODES_LIMIT = 100;
 
-  var minOpacity = 0.2;
-  var antonymFlag = false;
-  var removeDeadNodesFlag = true;
+  let minOpacity = 0.2;
+  let antonymFlag = false;
+  let removeDeadNodesFlag = true;
 
-  var DEFAULT_AGE_RATE = 1.0;
-  var MAX_RX_QUEUE = 100;
+  const DEFAULT_AGE_RATE = 1.0;
+  const MAX_RX_QUEUE = 100;
 
-  var localNodeHashMap = new HashMap();
-  var nodeIdHashMap = new HashMap();
+  const localNodeHashMap = new HashMap();
+  const nodeIdHashMap = new HashMap();
 
-  var maxNodeAddQ = 0;
-  var maxNodes = 0;
-  var maxNodesLimit = MAX_NODES_LIMIT;
+  let maxNodeAddQ = 0;
+  let maxNodes = 0;
+  let maxNodesLimit = MAX_NODES_LIMIT;
 
-  var runningFlag = false;
+  let runningFlag = false;
   
-  var nodeAddQ = [];
+  const nodeAddQ = [];
 
   self.sessionKeepalive = function() {
     return null;
@@ -344,7 +344,7 @@ function ViewTreepack() {
 
   self.getHeight = function() { return height; };
 
-  var keysForSort = [];
+  const keysForSort = [];
 
   self.getSortedKeys = function(hmap, sortProperty) {
     hmap.forEach(function(value, key) {
@@ -355,33 +355,33 @@ function ViewTreepack() {
     });
   };
 
-  var mouseHoverFlag = false;
+  let mouseHoverFlag = false;
 
-  var nodeMaxAge = 60000;
+  let nodeMaxAge = 60000;
 
-  var DEFAULT_TREEMAP_CONFIG = { "ageRate": DEFAULT_AGE_RATE };
+  const DEFAULT_TREEMAP_CONFIG = { "ageRate": DEFAULT_AGE_RATE };
 
-  var ageRate = DEFAULT_TREEMAP_CONFIG.ageRate;
-  var maxAgeRate = 1e-6;
+  let ageRate = DEFAULT_TREEMAP_CONFIG.ageRate;
+  let maxAgeRate = 1e-6;
 
-  // var defaultStrokeWidth = "1.1px";
-  var defaultStrokeWidth = "0.2em";
-  // var topTermStrokeWidth = "2.0px";
-  var topTermStrokeWidth = "0.3em";
+  // let defaultStrokeWidth = "1.1px";
+  let defaultStrokeWidth = "0.2em";
+  // let topTermStrokeWidth = "2.0px";
+  let topTermStrokeWidth = "0.3em";
 
-  // var botStrokeWidth = "4.0px";
-  var botStrokeWidth = "0.4em";
-  var botFillColor = palette.orange;
+  // let botStrokeWidth = "4.0px";
+  let botStrokeWidth = "0.4em";
+  let botFillColor = palette.orange;
 
-  var categoryMatchColor = palette.green;
-  // var categoryMatchStrokeWidth = "4.0px";
-  var categoryMatchStrokeWidth = "0.4em";
-  // var categoryMismatchStrokeWidth = "7.0px";
-  var categoryMismatchStrokeWidth = "0.7em";
-  // var categoryAutoStrokeWidth = "2.0px";
-  var categoryAutoStrokeWidth = "0.2em";
+  let categoryMatchColor = palette.green;
+  // let categoryMatchStrokeWidth = "4.0px";
+  let categoryMatchStrokeWidth = "0.4em";
+  // let categoryMismatchStrokeWidth = "7.0px";
+  let categoryMismatchStrokeWidth = "0.7em";
+  // let categoryAutoStrokeWidth = "2.0px";
+  let categoryAutoStrokeWidth = "0.2em";
 
-  var divTooltip = d3.select("body").append("div").
+  let divTooltip = d3.select("body").append("div").
     attr("id", "divTooltip").
     attr("class", "tooltip").
     style("display", "none");
@@ -393,52 +393,52 @@ function ViewTreepack() {
 
   }, true);
 
-  var currentMetricModeDomainMaxSqrt = Math.sqrt(currentMax[metricMode][metricMode]);
-  var currentMetricModeDomainMax = currentMax[metricMode][metricMode];
+  let currentMetricModeDomainMaxSqrt = Math.sqrt(currentMax[metricMode][metricMode]);
+  let currentMetricModeDomainMax = currentMax[metricMode][metricMode];
 
-  var defaultRadiusScale = d3.scaleLinear().
+  let defaultRadiusScale = d3.scaleLinear().
     domain([0, currentMetricModeDomainMaxSqrt]).
     range([nodeRadiusMin, nodeRadiusMax]).
     clamp(true);
 
-  var nodeLabelSizeScale = d3.scaleLinear().
+  let nodeLabelSizeScale = d3.scaleLinear().
     domain([1, currentMetricModeDomainMax]).
     range([fontSizeMin, fontSizeMax]).
     clamp(true);
         
-  var nodeLabelOpacityScale = d3.scaleLinear().
+  let nodeLabelOpacityScale = d3.scaleLinear().
     domain([1e-6, 0.2, 1.0]).
     range([1.0, 0.5, 1.5*minOpacity]).
     clamp(true);
     
-  var nodeLabelOpacityScaleTopTerm = d3.scaleLinear().
+  let nodeLabelOpacityScaleTopTerm = d3.scaleLinear().
     domain([1e-6, 0.2, 1.0]).
     range([1.0, 0.95, 0.75]).
     clamp(true);
     
-  var adjustedAgeRateScale = d3.scaleLinear().
+  let adjustedAgeRateScale = d3.scaleLinear().
     domain([1, maxNodesLimit]).
     range([1.0, 100.0]);
 
-  var d3image = d3.select("#d3group");
+  let d3image = d3.select("#d3group");
 
-  var svgMain = d3image.append("svg:svg").
+  const svgMain = d3image.append("svg:svg").
     attr("id", "svgMain").
     attr("width", width).
     attr("height", height).
     attr("x", 1e-6).
     attr("y", 1e-6);
 
-  var svgTreemapLayoutArea = svgMain.append("svg:g").
+  const svgTreemapLayoutArea = svgMain.append("svg:g").
     attr("id", "svgTreemapLayoutArea").
     attr("width", width).
     attr("height", height).
     attr("x", 1e-6).
     attr("y", 1e-6);
 
-  var panzoomElement = document.getElementById("svgTreemapLayoutArea");
+  let panzoomElement = document.getElementById("svgTreemapLayoutArea");
 
-  var panzoomInstance = panzoom(
+  const panzoomInstance = panzoom(
     panzoomElement, 
     {
       maxZoom: 2, 
@@ -447,20 +447,20 @@ function ViewTreepack() {
     }
   );
 
-  var panzoomEvent = new CustomEvent("panzoomEvent", { 
+  const panzoomEvent = new CustomEvent("panzoomEvent", { 
     bubbles: true, 
     detail: { transform: () => config.panzoomTransform } 
   });
 
-  var panzoomCurrentEvent;
+  let panzoomCurrentEvent;
 
   panzoomInstance.on("transform", function(e){
     panzoomCurrentEvent = e;
     resetZoomEndTimeout();
   });
 
-  var zoomEndTimeout;
-  var resetZoomEndTimeout = function(){
+  let zoomEndTimeout;
+  const resetZoomEndTimeout = function(){
 
     clearTimeout(zoomEndTimeout);
 
@@ -477,12 +477,12 @@ function ViewTreepack() {
   // panzoomInstance.zoomAbs(config.panzoomTransform.x, config.panzoomTransform.y, config.panzoomTransform.scale);
   panzoomInstance.zoomAbs(width*0.5, height*0.5, config.panzoomTransform.scale);
 
-  var nodeSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
-  var nodeLabelSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
+  const nodeSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
+  const nodeLabelSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
 
-  var randomIntFromInterval = function(min, max) {
-    var random = Math.random();
-    var randomInt = Math.floor((random * (max - min + 1)) + min);
+  const randomIntFromInterval = function(min, max) {
+    const random = Math.random();
+    const randomInt = Math.floor((random * (max - min + 1)) + min);
     if (Number.isNaN(randomInt)) {
       console.error("randomIntFromInterval NaN"
         + " | MIN: " + min
@@ -784,8 +784,8 @@ function ViewTreepack() {
     self.setGravity(config.defaultGravity);
   };
 
-  var tempNodeCirle;
-  var tempNodeLabel;
+  let tempNodeCirle;
+  let tempNodeLabel;
 
   function resetNode(n, callback){
     n.age = 1e-6;
@@ -836,14 +836,14 @@ function ViewTreepack() {
     callback(n);
   }
 
-  var tempTotalHashmap = {};
-  var ageNodesLength = 0;
-  var ageMaxRatio = 1e-6;
-  var age = 1e-6;
-  var nodeIdArray = [];
-  var tempNodeArray = [];
-  var nPoolId;
-  var nNode;;
+  let tempTotalHashmap = {};
+  let ageNodesLength = 0;
+  let ageMaxRatio = 1e-6;
+  let age = 1e-6;
+  let nodeIdArray = [];
+  let tempNodeArray = [];
+  let nPoolId;
+  let nNode;;
 
   function ageNodes(callback) {
 
@@ -968,12 +968,12 @@ function ViewTreepack() {
     });
   }
 
-  var previousTwitterUserId;
-  // var previousTwitterEmoji;
-  var previousTwitterHashtag;
-  var tooltipString;
+  let previousTwitterUserId;
+  // let previousTwitterEmoji;
+  let previousTwitterHashtag;
+  let tooltipString;
 
-  var nodeMouseOver = function (d) {
+  const nodeMouseOver = function (d) {
 
     d.mouseHoverFlag = true;
 
@@ -1158,7 +1158,7 @@ function ViewTreepack() {
     }
   }
 
-  var nodeCircles;
+  let nodeCircles;
 
   function updateNodeCircles(callback) {
 
@@ -1296,7 +1296,7 @@ function ViewTreepack() {
     callback();
   }
 
-  var nodeLabels;
+  let nodeLabels;
   
   function updateNodeLabels (callback) {
 
@@ -1449,7 +1449,7 @@ function ViewTreepack() {
     return false;
   }
 
-  var categoryFocus = function(d, axis){
+  const categoryFocus = function(d, axis){
     if ((autoCategoryFlag && isCategorized(d.categoryAuto)) 
       || (!isCategorized(d.category) && isCategorized(d.categoryAuto))
     ){ 
@@ -1499,11 +1499,11 @@ function ViewTreepack() {
     }
   }
 
-  var newNode = {};
-  var nodeAddQReady = true;
-  var currentNode;
-  var nodePoolId;
-  var nodePoolIdcircle;
+  let newNode = {};
+  let nodeAddQReady = true;
+  let currentNode;
+  let nodePoolId;
+  let nodePoolIdcircle;
 
   function processNodeAddQ(callback) {
 
@@ -1653,7 +1653,7 @@ function ViewTreepack() {
     }
   }
 
-  var previousMaxRateMetric = 0;
+  let previousMaxRateMetric = 0;
 
   function drawSimulation(callback){
 
@@ -1696,7 +1696,7 @@ function ViewTreepack() {
     });
   }
 
-  var updateSimulationReady = true;
+  let updateSimulationReady = true;
   
   function updateSimulation() {
 
@@ -1874,7 +1874,7 @@ function ViewTreepack() {
     }
   };
 
-  var resizeTimeOut;
+  let resizeTimeOut;
 
   this.resize = function() {
 

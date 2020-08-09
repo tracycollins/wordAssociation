@@ -1280,6 +1280,7 @@ const followableSearchTermFile = "followableSearchTerm.txt";
 let ignoredProfileWordsSet = new Set();
 ignoredProfileWordsSet.add("nsfw");
 ignoredProfileWordsSet.add("18+");
+let ignoredProfileWordsArray = [...ignoredProfileWordsSet];
 
 const categorizeableUserSet = new Set();
 const uncategorizeableUserSet = new Set();
@@ -5733,6 +5734,7 @@ async function initIgnoredProfileWords(){
       ignoredProfileWordsSet = result;
       ignoredProfileWordsSet.delete("");
       ignoredProfileWordsSet.delete(" ");
+      ignoredProfileWordsArray = [...ignoredProfileWordsSet];
     }
 
     console.log(chalkInfo(MODULE_ID_PREFIX + " | +++ LOADED IGNORED PROFILE WORDS: " + ignoredProfileWordsSet.size));
@@ -9426,6 +9428,10 @@ async function initWatchConfig(){
 
       if (f.endsWith(followableSearchTermFile)){
         await initFollowableSearchTermSet();
+      }
+
+      if (f.endsWith(ignoredProfileWordsFile)){
+        await initIgnoredProfileWords();
       }
 
       if (botBlockListFileRegex.test(f)){

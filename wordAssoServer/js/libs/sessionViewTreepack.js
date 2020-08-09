@@ -1187,11 +1187,12 @@ function ViewTreepack() {
         if (d.isBot) { return botFillColor; }
         if (d.isTopTerm && !isCategorized(d.category) && !isCategorized(d.categoryAuto)) { return palette.white; }
         if (!isCategorized(d.category) && !isCategorized(d.categoryAuto)) { return palette.gray; }
-        if (isCategorized(d.category)) { return d.categoryColor; }
-        if (d.categoryAuto === "right") { return palette.darkyellow; }
-        if (d.categoryAuto === "left") { return palette.blue; }
-        if (d.categoryAuto === "positive") { return palette.green; }
-        if (d.categoryAuto ==="negative") { return palette.red; }
+        // if (isCategorized(d.category)) { return d.categoryColor; }
+        // if (isCategorized(d.categoryAuto)) { return d.categoryColor; }
+        // if (d.categoryAuto === "right") { return palette.darkyellow; }
+        // if (d.categoryAuto === "left") { return palette.blue; }
+        // if (d.categoryAuto === "positive") { return palette.green; }
+        // if (d.categoryAuto ==="negative") { return palette.red; }
         return d.categoryColor; 
       }).
       style("stroke", function (d) {
@@ -1247,11 +1248,11 @@ function ViewTreepack() {
         if (d.isBot) { return botFillColor; }
         if (d.isTopTerm && !isCategorized(d.category) && !isCategorized(d.categoryAuto)) { return palette.white; }
         if (!isCategorized(d.category) && !isCategorized(d.categoryAuto)) { return palette.gray; }
-        if (isCategorized(d.category)) { return d.categoryColor; }
-        if (d.categoryAuto === "right") { return palette.darkyellow; }
-        if (d.categoryAuto === "left") { return palette.blue; }
-        if (d.categoryAuto === "positive") { return palette.green; }
-        if (d.categoryAuto ==="negative") { return palette.red; }
+        // if (isCategorized(d.category)) { return d.categoryColor; }
+        // if (d.categoryAuto === "right") { return palette.darkyellow; }
+        // if (d.categoryAuto === "left") { return palette.blue; }
+        // if (d.categoryAuto === "positive") { return palette.green; }
+        // if (d.categoryAuto ==="negative") { return palette.red; }
         return d.categoryColor; 
       }).
       style("stroke", function nodeCirclesStroke (d) {

@@ -1274,7 +1274,12 @@ let viewNameSpace;
 
 const ignoredHashtagFile = "ignoredHashtag.txt";
 const ignoredUserFile = "ignoredUser.json";
+const ignoredProfileWordsFile = "ignoredProfileWords.txt";
 const followableSearchTermFile = "followableSearchTerm.txt";
+
+let ignoredProfileWordsSet = new Set();
+ignoredProfileWordsSet.add("nsfw");
+ignoredProfileWordsSet.add("18+");
 
 const categorizeableUserSet = new Set();
 const uncategorizeableUserSet = new Set();
@@ -5546,7 +5551,6 @@ async function userCategorizeable(params){
   return false;
 }
 
-
 async function initBotSet(p){
 
   statsObj.status = "INIT TROLL BOT SET";
@@ -5710,6 +5714,34 @@ async function initIgnoreLocations(){
   catch(e){
     console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD FILE ERROR\n" + e));
     throw e;
+  }
+}
+
+async function initIgnoredProfileWords(){
+
+  console.log(chalkInfo(MODULE_ID_PREFIX + " | INIT IGNORED PROFILE WORDS | @" + threeceeUser.screenName));
+
+  try{
+
+    const result = await tcUtils.initSetFromFile({
+      folder: configDefaultFolder, 
+      file: ignoredProfileWordsFile, 
+      resolveOnNotFound: true
+    });
+
+    if (result) {
+      ignoredProfileWordsSet = result;
+      ignoredProfileWordsSet.delete("");
+      ignoredProfileWordsSet.delete(" ");
+    }
+
+    console.log(chalkInfo(MODULE_ID_PREFIX + " | +++ LOADED IGNORED PROFILE WORDS: " + ignoredProfileWordsSet.size));
+
+    return;
+  }
+  catch(err){
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT IGNORED PROFILE WORDS ERROR: " + err));
+    throw err;
   }
 }
 
@@ -9511,9 +9543,9 @@ setTimeout(async function(){
     await initIgnoreWordsHashMap();
     await initAllowLocations();
     await initIgnoreLocations();
+    await initIgnoredProfileWords();
     await updateUserSets();
     await updateHashtagSets();
-    // await tcUtils.waitEvent({ event: "updateUserSetsEnd", verbose: configuration.verbose});
     await loadBestRuntimeNetwork();
     await initNodeSetPropsQueueInterval(configuration.nodeSetPropsQueueInterval);
     await initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval);

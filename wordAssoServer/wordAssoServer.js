@@ -128,7 +128,7 @@ let heartbeatInterval;
 
 process.env.NODE_ENV = process.env.NODE_ENV || "development";
 
-const DEFAULT_IGNORE_CATEGORY_RIGHT = false;
+// const DEFAULT_IGNORE_CATEGORY_RIGHT = false;
 const DEFAULT_FILTER_DUPLICATE_TWEETS = true;
 const DEFAULT_FILTER_RETWEETS = false;
 const DEFAULT_AUTO_FOLLOW = true;
@@ -522,7 +522,7 @@ const nodeSearchResultHandler = async function(message){
 
           if (isCategorized(messageObj.node)){
             catUserObj.manual = messageObj.node.category;
-          }          }
+          }
           
           if (isAutoCategorized(messageObj.node)){
             catUserObj.auto = messageObj.node.categoryAuto;
@@ -532,6 +532,7 @@ const nodeSearchResultHandler = async function(message){
         }
 
         searchNodeResultHashMap[messageObj.requestId] = messageObj.node;
+
       }
       else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
 

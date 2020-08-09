@@ -282,8 +282,10 @@ statsObj.twitter.userWithheld = 0;
 statsObj.twitter.limitMax = 0;
 statsObj.twitter.limitMaxTime = moment().valueOf();
 
+statsObj.tweets = {};
 statsObj.tweets.total = 0;
 
+statsObj.filtered = {};
 statsObj.filtered.users = 0;
 statsObj.filtered.words = 0;
 statsObj.filtered.languages = 0;

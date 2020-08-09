@@ -520,11 +520,11 @@ const nodeSearchResultHandler = async function(message){
         
         if (catUserObj !== undefined){
 
-          if (["left", "neutral", "right"].includes(messageObj.node.category)){
+          if (isCategorized(messageObj.node)){
             catUserObj.manual = messageObj.node.category;
-          }
+          }          }
           
-          if (["left", "neutral", "right"].includes(messageObj.node.categoryAuto)){
+          if (isAutoCategorized(messageObj.node)){
             catUserObj.auto = messageObj.node.categoryAuto;
           }
 
@@ -550,11 +550,13 @@ const nodeSearchResultHandler = async function(message){
         
         if (catHashtagObj !== undefined){
 
-          if (["left", "neutral", "right"].includes(messageObj.node.category)){
+          // if (["left", "neutral", "right"].includes(messageObj.node.category)){
+          if (isCategorized(messageObj.node)){
             catHashtagObj.manual = messageObj.node.category;
           }
           
-          if (["left", "neutral", "right"].includes(messageObj.node.categoryAuto)){
+          // if (["left", "neutral", "right"].includes(messageObj.node.categoryAuto)){
+          if (isAutoCategorized(messageObj.node)){
             catHashtagObj.auto = messageObj.node.categoryAuto;
           }
 
@@ -1084,7 +1086,7 @@ configuration.twitterBearerToken = process.env.TWITTER_BEARER_TOKEN;
 configuration.verbose = false;
 configuration.userProfileOnlyFlag = DEFAULT_USER_PROFILE_ONLY_FLAG;
 configuration.binaryMode = DEFAULT_BINARY_MODE;
-configuration.ignoreCategoryRight = DEFAULT_IGNORE_CATEGORY_RIGHT;
+// configuration.ignoreCategoryRight = DEFAULT_IGNORE_CATEGORY_RIGHT;
 
 configuration.maxTransmitNodeQueue = DEFAULT_MAX_TRANSMIT_NODE_QUEUE;
 configuration.maxTweetRxQueue = DEFAULT_MAX_TWEET_RX_QUEUE;
@@ -8398,19 +8400,19 @@ async function loadConfigFile(params) {
       newConfiguration.updateUserSetsInterval = loadedConfigObj.UPDATE_USER_SETS_INTERVAL;
     }
 
-    if (loadedConfigObj.IGNORE_CATEGORY_RIGHT !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED IGNORE_CATEGORY_RIGHT: " + loadedConfigObj.IGNORE_CATEGORY_RIGHT);
+    // if (loadedConfigObj.IGNORE_CATEGORY_RIGHT !== undefined){
+    //   console.log(MODULE_ID_PREFIX + " | LOADED IGNORE_CATEGORY_RIGHT: " + loadedConfigObj.IGNORE_CATEGORY_RIGHT);
 
-      if ((loadedConfigObj.IGNORE_CATEGORY_RIGHT == false) || (loadedConfigObj.IGNORE_CATEGORY_RIGHT == "false")) {
-        newConfiguration.ignoreCategoryRight = false;
-      }
-      else if ((loadedConfigObj.IGNORE_CATEGORY_RIGHT == true) || (loadedConfigObj.IGNORE_CATEGORY_RIGHT == "true")) {
-        newConfiguration.ignoreCategoryRight = true;
-      }
-      else {
-        newConfiguration.ignoreCategoryRight = false;
-      }
-    }
+    //   if ((loadedConfigObj.IGNORE_CATEGORY_RIGHT == false) || (loadedConfigObj.IGNORE_CATEGORY_RIGHT == "false")) {
+    //     newConfiguration.ignoreCategoryRight = false;
+    //   }
+    //   else if ((loadedConfigObj.IGNORE_CATEGORY_RIGHT == true) || (loadedConfigObj.IGNORE_CATEGORY_RIGHT == "true")) {
+    //     newConfiguration.ignoreCategoryRight = true;
+    //   }
+    //   else {
+    //     newConfiguration.ignoreCategoryRight = false;
+    //   }
+    // }
 
     if (loadedConfigObj.ENABLE_GEOCODE !== undefined){
       console.log(MODULE_ID_PREFIX + " | LOADED ENABLE_GEOCODE: " + loadedConfigObj.ENABLE_GEOCODE);

@@ -1005,17 +1005,18 @@ function initSearchStream(){
         if (tweetStatus.user.description && (tweetStatus.user.description !== undefined)) {
           
           if(ignoredProfileWordsArray.some((word) => tweetStatus.user.description.includes(word))){
-            // if (configuration.verbose) {
-              statsObj.filtered.words += 1;
 
-              console.log(chalkLog(MODULE_ID_PREFIX + " | XXX IGNORE PROFILE WORD | SKIPPING"
-                + " [" + statsObj.filtered.words + "]"
-                + " | TWID: " + tweetStatus.id_str
-                + " | UID: " + tweetStatus.user.id_str
-                + " | @" + tweetStatus.user.screen_name
-                + " | NAME: " + tweetStatus.user.name
-              ));
-            // }
+            ignoreUserSet.add(tweetStatus.user.userId);
+
+            statsObj.filtered.words += 1;
+
+            console.log(chalkLog(MODULE_ID_PREFIX + " | XXX IGNORE PROFILE WORD | SKIPPING"
+              + " [" + statsObj.filtered.words + "]"
+              + " | TWID: " + tweetStatus.id_str
+              + " | UID: " + tweetStatus.user.id_str
+              + " | @" + tweetStatus.user.screen_name
+              + " | NAME: " + tweetStatus.user.name
+            ));
             return;
           }
         }

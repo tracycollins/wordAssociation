@@ -1011,7 +1011,8 @@ function initSearchStream(){
             statsObj.filtered.words += 1;
 
             console.log(chalkLog(MODULE_ID_PREFIX + " | XXX IGNORE PROFILE WORD | SKIPPING"
-              + " [" + statsObj.filtered.words + "]"
+              + " [" + statsObj.filtered.words + " FILTERED]"
+              + " | IGNORE USER SET: " + ignoreUserSet.size
               + " | TWID: " + tweetStatus.id_str
               + " | UID: " + tweetStatus.user.id_str
               + " | @" + tweetStatus.user.screen_name

@@ -1220,11 +1220,15 @@ const optionDefinitions = [
   help
 ];
 
-function quit(message) {
+async function quit(message) {
 
   statsObj.status = "QUITTING";
 
   console.log(chalkAlert("\nWAS | ... QUITTING ... " + getTimeStamp()));
+
+  const slackText = MODULE_ID_PREFIX + " | *** QUIT | MESSAGE: " + message;
+
+  await slackSendWebMessage({ channel: slackChannel, text: slackText});
 
   if (userSearchCursor !== undefined) { userSearchCursor.close(); }
   if (neuralNetworkChangeStream !== undefined) { neuralNetworkChangeStream.close(); }
@@ -1264,7 +1268,9 @@ console.log(chalkInfo(MODULE_ID_PREFIX + " | COMMAND LINE CONFIG\nWAS | " + json
 
 if (Object.keys(commandLineConfig).includes("help")) {
   console.log(chalkInfo(MODULE_ID_PREFIX + " | optionDefinitions\n" + jsonPrint(optionDefinitions)));
-  quit("help");
+  quit("help").then(function(){
+    console.log("QUIT");
+  });
 }
 
 let adminNameSpace;
@@ -2847,11 +2853,11 @@ async function killAll(){
 }
 
 process.on("unhandledRejection", async function(err, promise) {
-  console.trace(MODULE_ID_PREFIX + " | *** Unhandled rejection (promise: ", promise, ", reason: ", err, ").");
-  const slackText = MODULE_ID_PREFIX + " | *** Unhandled rejection (promise: ", promise, ", reason: ", err, ")."
+  console.trace(MODULE_ID_PREFIX + " | *** Unhandled rejection | PROMISE: " + promise + " | ERROR: " + err );
+  const slackText = MODULE_ID_PREFIX + " | *** Unhandled rejection | PROMISE: " + promise + " | ERROR: " + err;
   await slackSendWebMessage({ channel: slackChannel, text: slackText});
-  quit("unhandledRejection");
-  process.exit(1);
+  await quit("unhandledRejection");
+  // process.exit(1);
 });
 
 process.on("exit", async function processExit() {
@@ -2881,9 +2887,9 @@ process.on("message", async function processMessageRx(msg) {
       console.log(chalkError(MODULE_ID_PREFIX + " | *** SAVE STATS ERROR: " + err));
     }
 
-    setTimeout(function quitTimeout() {
+    setTimeout(async function quitTimeout() {
       showStats(true);
-      quit(msg);
+      await quit(msg);
     }, 1000);
 
   }
@@ -9192,7 +9198,7 @@ function initStdIn(){
     }
     stdin.resume();
     stdin.setEncoding( "utf8" );
-    stdin.on("data", function( key ){
+    stdin.on("data", async function( key ){
 
       switch (key) {
         case "\u0003":
@@ -9211,10 +9217,10 @@ function initStdIn(){
           console.log(chalkAlert(MODULE_ID_PREFIX + " | VERBOSE: " + configuration.verbose));
         break;
         case "q":
-          quit();
+          await quit();
         break;
         case "Q":
-          quit();
+          await quit();
         break;
         case "s":
           showStats();
@@ -9591,7 +9597,7 @@ setTimeout(async function(){
     console.trace(chalkError(MODULE_ID_PREFIX + " | **** INIT CONFIG ERROR: " + err + "\n" + jsonPrint(err)));
     if (err.code != 404) {
       console.log(MODULE_ID_PREFIX + " | *** INIT CONFIG ERROR | err.code: " + err.code);
-      quit();
+      await quit();
     }
   }
 }, DEFAULT_START_TIMEOUT);

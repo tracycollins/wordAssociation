@@ -2846,8 +2846,10 @@ async function killAll(){
   }
 }
 
-process.on("unhandledRejection", function(err, promise) {
+process.on("unhandledRejection", async function(err, promise) {
   console.trace(MODULE_ID_PREFIX + " | *** Unhandled rejection (promise: ", promise, ", reason: ", err, ").");
+  const slackText = MODULE_ID_PREFIX + " | *** Unhandled rejection (promise: ", promise, ", reason: ", err, ")."
+  await slackSendWebMessage({ channel: slackChannel, text: slackText});
   quit("unhandledRejection");
   process.exit(1);
 });

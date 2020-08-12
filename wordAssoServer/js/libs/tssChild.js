@@ -1798,7 +1798,7 @@ process.on("message", async function(m) {
       try {
         await tcUtils.setThreeceeUser(configuration.threeceeUser);
         await initFollowableSearchTermSet();
-        await ignoredUserSet();
+        await initIgnoredUserSet();
         await initAllowLocations();
         await initIgnoredProfileWords();
         await initIgnoreLocations();

@@ -4837,7 +4837,7 @@ async function initSocketHandler(socketObj) {
           + " | @" + user.screenName
         ));
 
-        tssChild.send({op: "IGNORE", user: { nodeId: user.nodeId }});
+        tssChild.send({op: "IGNORE", user: { nodeId: user.nodeId, screenName: user.screenName }});
 
         await nodeSetProps({ node: user, props: { ignored: true } });
         await deleteNode(user);
@@ -4859,7 +4859,7 @@ async function initSocketHandler(socketObj) {
           + " | @" + user.screenName
         ));
 
-        tssChild.send({op: "UNIGNORE", user: { nodeId: user.nodeId }});
+        tssChild.send({op: "UNIGNORE", user: { nodeId: user.nodeId, screenName: user.screenName }});
 
         await nodeSetProps({ node: user, props: { ignored: false } });
       }
@@ -4880,7 +4880,7 @@ async function initSocketHandler(socketObj) {
           + " | @" + user.screenName
         ));
 
-        tssChild.send({op: "BOT", user: { nodeId: user.nodeId }});
+        tssChild.send({op: "BOT", user: { nodeId: user.nodeId, screenName: user.screenName }});
         await nodeSetProps({ node: user, props: { isBot: true } });
 
       }
@@ -4901,7 +4901,7 @@ async function initSocketHandler(socketObj) {
           + " | @" + user.screenName
         ));
 
-        tssChild.send({op: "UNBOT", user: { nodeId: user.nodeId }});
+        tssChild.send({op: "UNBOT", user: { nodeId: user.nodeId, screenName: user.screenName }});
         await nodeSetProps({ node: user, props: { isBot: false } });
       }
       catch(err){

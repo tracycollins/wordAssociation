@@ -1,5 +1,6 @@
 const MODULE_ID_PREFIX = "TSS";
 
+const ignoredUserFile = "ignoredUser.json";
 const ignoredProfileWordsFile = "ignoredProfileWords.txt";
 const ignoredHashtagFile = "ignoredHashtag.txt";
 const followableSearchTermFile = "followableSearchTerm.txt";
@@ -28,7 +29,7 @@ const debug = require("debug")("tss");
 const debugCache = require("debug")("cache");
 const debugQ = require("debug")("queue");
 const path = require("path");
-const empty = require("is-empty");
+// const empty = require("is-empty");
 const watch = require("watch");
 
 const chalk = require("chalk");
@@ -98,7 +99,7 @@ const msToTime = tcUtils.msToTime;
 
 let filterRetweets = false;
 
-const ignoreUserSet = new Set();
+let ignoredUserSet = new Set();
 let allowLocationsSet = new Set();
 let ignoredHashtagSet = new Set();
 
@@ -982,7 +983,7 @@ function initSearchStream(){
 
         if (tweetStatus.user.userId 
           && (tweetStatus.user.userId !== undefined) 
-          && ignoreUserSet.has(tweetStatus.user.userId)){
+          && ignoredUserSet.has(tweetStatus.user.userId)){
 
           statsObj.filtered.users += 1;
 
@@ -1006,13 +1007,13 @@ function initSearchStream(){
           
           if(ignoredProfileWordsArray.some((word) => tweetStatus.user.description.includes(word))){
 
-            ignoreUserSet.add(tweetStatus.user.userId);
+            ignoredUserSet.add(tweetStatus.user.userId);
 
             statsObj.filtered.words += 1;
 
             console.log(chalkLog(MODULE_ID_PREFIX + " | XXX IGNORE PROFILE WORD | SKIPPING"
               + " [" + statsObj.filtered.words + " FILTERED]"
-              + " | IGNORE USER SET: " + ignoreUserSet.size
+              + " | IGNORE USER SET: " + ignoredUserSet.size
               + " | TWID: " + tweetStatus.id_str
               + " | UID: " + tweetStatus.user.id_str
               + " | @" + tweetStatus.user.screen_name
@@ -1136,57 +1137,57 @@ function initSearchStream(){
   });
 }
 
-async function initSetFromFile(params){
+// async function initSetFromFile(params){
 
-  statsObj.status = "INIT SET FROM FILE";
+//   statsObj.status = "INIT SET FROM FILE";
 
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | ... INIT SET FROM FILE: " + params.folder + "/" + params.file));
+//   console.log(chalkBlue(MODULE_ID_PREFIX + " | ... INIT SET FROM FILE: " + params.folder + "/" + params.file));
 
-  try{
+//   try{
 
-    const setObj = await tcUtils.loadFile({
-      folder: params.folder, 
-      file: params.file, 
-      noErrorNotFound: params.noErrorNotFound
-    });
+//     const setObj = await tcUtils.loadFile({
+//       folder: params.folder, 
+//       file: params.file, 
+//       noErrorNotFound: params.noErrorNotFound
+//     });
 
-    if (empty(setObj)) {
-     console.log(chalkAlert(MODULE_ID_PREFIX + " | ??? NO ITEMS IN FILE ERROR ???"
-        + " | " + params.folder + "/" + params.file
-      ));
+//     if (empty(setObj)) {
+//      console.log(chalkAlert(MODULE_ID_PREFIX + " | ??? NO ITEMS IN FILE ERROR ???"
+//         + " | " + params.folder + "/" + params.file
+//       ));
 
-      if (params.errorOnNoItems) {
-        throw new Error("NO ITEMS IN FILE: " + params.folder + "/" + params.file); 
-      }
-      return;
-    }
+//       if (params.errorOnNoItems) {
+//         throw new Error("NO ITEMS IN FILE: " + params.folder + "/" + params.file); 
+//       }
+//       return;
+//     }
 
-    let fileSet;
+//     let fileSet;
 
-    if (params.objArrayKey) {
-      fileSet = new Set(setObj[params.objArrayKey]);
-    }
-    else{
-      const itemArray = setObj.toString().toLowerCase().split("\n");
-      fileSet = new Set(itemArray);
-    }
+//     if (params.objArrayKey) {
+//       fileSet = new Set(setObj[params.objArrayKey]);
+//     }
+//     else{
+//       const itemArray = setObj.toString().toLowerCase().split("\n");
+//       fileSet = new Set(itemArray);
+//     }
 
-    console.log(chalkLog(MODULE_ID_PREFIX + " | LOADED SET FROM FILE"
-      + " | OBJ ARRAY KEY: " + params.objArrayKey
-      + " | " + fileSet.size + " ITEMS"
-      + " | " + params.folder + "/" + params.file
-    ));
+//     console.log(chalkLog(MODULE_ID_PREFIX + " | LOADED SET FROM FILE"
+//       + " | OBJ ARRAY KEY: " + params.objArrayKey
+//       + " | " + fileSet.size + " ITEMS"
+//       + " | " + params.folder + "/" + params.file
+//     ));
 
-    return fileSet;
-  }
-  catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT SET FROM FILE ERROR: " + err));
-    if (params.noErrorNotFound) {
-      return;
-    }
-    throw err;
-  }
-}
+//     return fileSet;
+//   }
+//   catch(err){
+//     console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT SET FROM FILE ERROR: " + err));
+//     if (params.noErrorNotFound) {
+//       return;
+//     }
+//     throw err;
+//   }
+// }
 
 async function initSearchTerms(params){
 
@@ -1194,7 +1195,7 @@ async function initSearchTerms(params){
 
   try{
 
-    const result = await initSetFromFile({
+    const result = await tcUtils.initSetFromFile({
       folder: configDefaultFolder, 
       file: params.searchTermsFile, 
       noErrorNotFound: true
@@ -1231,12 +1232,48 @@ async function initSearchTerms(params){
   }
 }
 
+async function initIgnoredUserSet(){
+
+  statsObj.status = "INIT IGNORED USER SET";
+
+  console.log(chalkBlue(MODULE_ID_PREFIX + " | INIT IGNORED USER SET: " + configDefaultFolder 
+    + "/" + ignoredUserFile
+  ));
+
+  try{
+
+    const result = await tcUtils.initSetFromFile({
+      folder: configDefaultFolder, 
+      file: ignoredUserFile, 
+      objArrayKey: "userIds", 
+      resolveOnNotFound: true
+    });
+
+    if (result) {
+      ignoredUserSet = result;
+      ignoredUserSet.delete("");
+      ignoredUserSet.delete(" ");
+    }
+
+    console.log(chalkLog(MODULE_ID_PREFIX + " | LOADED IGNORED USERS FILE"
+      + " | " + ignoredUserSet.size + " USERS"
+      + " | " + configDefaultFolder + "/" + ignoredUserFile
+    ));
+
+    return;
+  }
+  catch(err){
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT IGNORED USERS SET ERROR: " + err));
+    throw err;
+  }
+}
+
 async function initAllowLocations(){
 
   console.log(chalkTwitter(MODULE_ID_PREFIX + " | INIT ALLOW LOCATIONS | @" + threeceeUser.screenName));
 
   try{
-    const result = await initSetFromFile({
+    const result = await tcUtils.initSetFromFile({
       folder: configDefaultFolder, 
       file: allowLocationsFile, 
       noErrorNotFound: true
@@ -1261,7 +1298,7 @@ async function initIgnoreLocations(){
   console.log(chalkTwitter(MODULE_ID_PREFIX + " | INIT IGNORE LOCATIONS | @" + threeceeUser.screenName));
 
   try{
-    const result = await initSetFromFile({
+    const result = await tcUtils.initSetFromFile({
       folder: configDefaultFolder, 
       file: ignoreLocationsFile, 
       noErrorNotFound: true
@@ -1290,7 +1327,7 @@ async function initIgnoreHashtags(){
   console.log(chalkTwitter(MODULE_ID_PREFIX + " | INIT IGNORE HASHTAGS | @" + threeceeUser.screenName));
 
   try{
-    const result = await initSetFromFile({
+    const result = await tcUtils.initSetFromFile({
       folder: configDefaultFolder, 
       file: ignoredHashtagFile, 
       noErrorNotFound: true
@@ -1350,7 +1387,7 @@ async function initFollowableSearchTermSet(){
 
   try{
 
-    const result = await initSetFromFile({
+    const result = await tcUtils.initSetFromFile({
       folder: configDefaultFolder, 
       file: followableSearchTermFile, 
       noErrorNotFound: true
@@ -1413,6 +1450,10 @@ async function initWatchConfig(){
         await initFollowableSearchTermSet();
         await initSearchTerms(configuration);
         await initSearchStream();
+      }
+
+      if (f.endsWith(ignoredUserFile)){
+        await initIgnoredUserSet();
       }
 
       if (f.endsWith(allowLocationsFile)){
@@ -1757,6 +1798,7 @@ process.on("message", async function(m) {
       try {
         await tcUtils.setThreeceeUser(configuration.threeceeUser);
         await initFollowableSearchTermSet();
+        await ignoredUserSet();
         await initAllowLocations();
         await initIgnoredProfileWords();
         await initIgnoreLocations();
@@ -1906,21 +1948,23 @@ process.on("message", async function(m) {
     break;
 
     case "IGNORE":
+      ignoredUserSet.add(m.user.nodeId);
       console.log(chalkInfo(MODULE_ID_PREFIX + " | TSS > IGNORE"
+        + " | IGNORE SET SIZE: " + ignoredUserSet.size
         + " | 3C @" + threeceeUser.screenName
         + " | USER " + m.user.nodeId
         + " | @" + m.user.screenName
       ));
-      ignoreUserSet.add(m.user.nodeId);
     break;
 
     case "UNIGNORE":
+      ignoredUserSet.delete(m.user.nodeId);
       console.log(chalkInfo(MODULE_ID_PREFIX + " | TSS > UNIGNORE"
+        + " | IGNORE SET SIZE: " + ignoredUserSet.size
         + " | 3C @" + threeceeUser.screenName
         + " | USER " + m.user.nodeId
         + " | @" + m.user.screenName
       ));
-      ignoreUserSet.delete(m.user.nodeId);
     break;
 
     case "BOT":

@@ -4121,23 +4121,23 @@ async function twitterSearchUser(params) {
     switch (params.node.screenName) {
 
       case "?mm":
-        message.categoryAuto = "MISMATCH";
+        message.categoryAuto = "mismatch";
       break;
 
       case "?all":
-        message.categoryAuto = "UNCAT";
+        message.categoryAuto = "all";
       break;
 
       case "?left":
-        message.categoryAuto = "UNCAT_LEFT";
+        message.categoryAuto = "left";
       break;
 
       case "?right":
-        message.categoryAuto = "UNCAT_RIGHT";
+        message.categoryAuto = "right";
       break;
 
       case "?neutral":
-        message.categoryAuto = "UNCAT_NEUTRAL";
+        message.categoryAuto = "neutral";
       break;
 
       default:

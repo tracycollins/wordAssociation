@@ -1914,6 +1914,31 @@ process.on("message", async function(m) {
       ignoreUserSet.add(m.user.nodeId);
     break;
 
+    case "UNIGNORE":
+      console.log(chalkInfo(MODULE_ID_PREFIX + " | TSS > UNIGNORE"
+        + " | 3C @" + threeceeUser.screenName
+        + " | USER " + m.user.nodeId
+        + " | @" + m.user.screenName
+      ));
+      ignoreUserSet.delete(m.user.nodeId);
+    break;
+
+    case "BOT":
+      console.log(chalkInfo(MODULE_ID_PREFIX + " | TSS > BOT"
+        + " | 3C @" + threeceeUser.screenName
+        + " | USER " + m.user.nodeId
+        + " | @" + m.user.screenName
+      ));
+    break;
+
+    case "UNBOT":
+      console.log(chalkInfo(MODULE_ID_PREFIX + " | TSS > UNBOT"
+        + " | 3C @" + threeceeUser.screenName
+        + " | USER " + m.user.nodeId
+        + " | @" + m.user.screenName
+      ));
+    break;
+
     case "UPDATE_ALLOW_LOCATIONS":
       console.log(chalkLog(MODULE_ID_PREFIX + " | UPDATE ALLOW LOCATIONS"));
 

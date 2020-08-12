@@ -1878,7 +1878,6 @@ process.on("message", async function(m) {
       catch(err){
         console.log(chalkError(MODULE_ID_PREFIX + " | *** USER AUTHENTICATE ERROR: " + err));
       }
-
     break;
 
     case "FOLLOW":
@@ -1909,10 +1908,10 @@ process.on("message", async function(m) {
     case "IGNORE":
       console.log(chalkInfo(MODULE_ID_PREFIX + " | TSS > IGNORE"
         + " | 3C @" + threeceeUser.screenName
-        + " | USER " + m.user.userId
+        + " | USER " + m.user.nodeId
         + " | @" + m.user.screenName
       ));
-      ignoreUserSet.add(m.user.userId);
+      ignoreUserSet.add(m.user.nodeId);
     break;
 
     case "UPDATE_ALLOW_LOCATIONS":

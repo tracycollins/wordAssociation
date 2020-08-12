@@ -501,7 +501,7 @@ const nodeSearchResultHandler = async function(message){
         debug(chalkBlue(MODULE_ID_PREFIX
           + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
           + " | " + messageObj.requestId
-          + " | MODE: " + messageObj.searchMode
+          + " | SEARCH CAT AUTO: " + messageObj.categoryAuto
           + " | NID: " + messageObj.node.nodeId
           + " | @" + messageObj.node.screenName
           + " | FLW: " + formatBoolean(messageObj.node.following)
@@ -540,7 +540,7 @@ const nodeSearchResultHandler = async function(message){
           console.log(chalkBlueBold(MODULE_ID_PREFIX
             + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
             + " | " + messageObj.requestId
-            + " | MODE: " + messageObj.searchMode
+            + " | SEARCH CAT AUTO: " + messageObj.categoryAuto
             + " | NID: " + messageObj.node.nodeId
             + " | CM: " + formatCategory(messageObj.node.category)
             + " | CA: " + formatCategory(messageObj.node.categoryAuto)
@@ -571,7 +571,7 @@ const nodeSearchResultHandler = async function(message){
           + " | ==> PS SEARCH NODE -MISS- [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
           + " | MID: " + message.id
           + " | " + messageObj.requestId
-          + " | MODE: " + messageObj.searchMode
+          + " | SEARCH CAT AUTO: " + messageObj.categoryAuto
         ));
       }
     }
@@ -3739,7 +3739,7 @@ async function pubSubNodeSetProps(params){
 
       default:
         console.log(chalkError(MODULE_ID_PREFIX 
-          + " | *** TWITTER SEARCH NODE USER ERROR | MODE: " + params.searchMode
+          + " | *** TWITTER SEARCH NODE USER ERROR | SEARCH CAT AUTO: " + params.categoryAuto
           + " | ERR CODE: " + errCode
           + "\nsearchQuery\n" + jsonPrint(params.node)
           + "ERROR: ", err
@@ -3957,7 +3957,7 @@ async function pubSubSearchNode(params){
       + " | TYPE: " + params.node.nodeType
       + " | " + params.requestId
       + " | TOPIC: node-search"
-      + " | MODE: " + params.searchMode
+      + " | SEARCH CAT AUTO: " + params.categoryAuto
       + " | NID: " + params.node.nodeId
       + " | " + nodeName
     ));
@@ -4069,7 +4069,7 @@ async function pubSubSearchNode(params){
 
         default:
           console.log(chalkError(MODULE_ID_PREFIX 
-            + " | *** TWITTER SEARCH NODE USER ERROR | MODE: " + params.searchMode
+            + " | *** TWITTER SEARCH NODE USER ERROR | SEARCH CAT AUTO: " + params.categoryAuto
             + " | ERR CODE: " + errCode
             + "\nsearchQuery\n" + jsonPrint(params.node)
             + "ERROR: ", err
@@ -4100,7 +4100,7 @@ async function twitterSearchUser(params) {
       + " | ### USER SEARCH - @threecee | NID: " + params.node.nodeId + " | @" + params.node.screenName
     ));
 
-    return { node: node, searchMode: "SPECIFIC", stats: statsObj.user };
+    return { node: node, categoryAuto: "SPECIFIC", stats: statsObj.user };
 
   }
   else{
@@ -4121,33 +4121,33 @@ async function twitterSearchUser(params) {
     switch (params.node.screenName) {
 
       case "?mm":
-        message.searchMode = "MISMATCH";
+        message.categoryAuto = "MISMATCH";
       break;
 
       case "?all":
-        message.searchMode = "UNCAT";
+        message.categoryAuto = "UNCAT";
       break;
 
       case "?left":
-        message.searchMode = "UNCAT_LEFT";
+        message.categoryAuto = "UNCAT_LEFT";
       break;
 
       case "?right":
-        message.searchMode = "UNCAT_RIGHT";
+        message.categoryAuto = "UNCAT_RIGHT";
       break;
 
       case "?neutral":
-        message.searchMode = "UNCAT_NEUTRAL";
+        message.categoryAuto = "UNCAT_NEUTRAL";
       break;
 
       default:
-        message.searchMode = "SPECIFIC";
+        message.categoryAuto = "SPECIFIC";
         message.node = params.node;
     }
 
     const node = await pubSubSearchNode(message);
 
-    return { node: node, searchMode: message.searchMode, stats: statsObj.user };
+    return { node: node, categoryAuto: message.categoryAuto, stats: statsObj.user };
   }
   catch(err){
     console.log(chalkError(MODULE_ID_PREFIX
@@ -4186,12 +4186,12 @@ async function twitterSearchHashtag(params) {
     message.requestId = "rId_" + hostname + "_" + moment().valueOf();
     message.node = {};
     message.newCategory = params.newCategory || false;
-    message.searchMode = "SPECIFIC";
+    message.categoryAuto = "SPECIFIC";
     message.node = params.node;
 
     const node = await pubSubSearchNode(message);
 
-    return { node: node, searchMode: message.searchMode, stats: statsObj.hashtag };
+    return { node: node, categoryAuto: message.categoryAuto, stats: statsObj.hashtag };
   }
   catch(err){
     console.log(chalkError(MODULE_ID_PREFIX

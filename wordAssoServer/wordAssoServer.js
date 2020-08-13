@@ -724,6 +724,7 @@ async function initNodeOpHandler(params){
     case "node-search-result":
     case "node-search-result-primary":
       statsObj.pubSub.subscriptions.nodeSearchResult = {};
+      statsObj.pubSub.subscriptions.nodeSearchResult.name = params.subscribeName;
       statsObj.pubSub.subscriptions.nodeSearchResult.errors = [];
       statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived = 0;
       statsObj.pubSub.subscriptions.nodeSearchResult.topic = metadata.topic;
@@ -734,6 +735,7 @@ async function initNodeOpHandler(params){
     case "node-setprops-result":
     case "node-setprops-result-primary":
       statsObj.pubSub.subscriptions.nodeSetPropsResult = {};
+      statsObj.pubSub.subscriptions.nodeSetPropsResult.name = params.subscribeName;
       statsObj.pubSub.subscriptions.nodeSetPropsResult.errors = [];
       statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived = 0;
       statsObj.pubSub.subscriptions.nodeSetPropsResult.topic = metadata.topic;
@@ -744,6 +746,7 @@ async function initNodeOpHandler(params){
     case "node-ignore":
     case "node-ignore-primary":
       statsObj.pubSub.subscriptions.nodeIgnoreResult = {};
+      statsObj.pubSub.subscriptions.nodeIgnoreResult.name = params.subscribeName;
       statsObj.pubSub.subscriptions.nodeIgnoreResult.errors = [];
       statsObj.pubSub.subscriptions.nodeIgnoreResult.messagesReceived = 0;
       statsObj.pubSub.subscriptions.nodeIgnoreResult.topic = metadata.topic;

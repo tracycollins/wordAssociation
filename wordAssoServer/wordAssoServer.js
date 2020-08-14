@@ -1973,32 +1973,6 @@ function touchChildPidFile(params){
 }
 
 // ==================================================================
-// UNCAT USER ID CACHE
-// ==================================================================
-// console.log(MODULE_ID_PREFIX + " | UNCAT USER ID CACHE TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000));
-// console.log(MODULE_ID_PREFIX + " | UNCAT USER ID CACHE CHECK PERIOD: " + tcUtils.msToTime(configuration.uncatUserCacheCheckPeriod*1000));
-
-// const uncatUserCache = new NodeCache({
-//   stdTTL: configuration.uncatUserCacheTtl,
-//   checkperiod: configuration.uncatUserCacheCheckPeriod
-// });
-
-// function uncatUserCacheExpired(uncatUserId) {
-
-//   statsObj.caches.uncatUserCache.expired += 1;
-
-//   console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX UNCAT USR $"
-//     + " [" + uncatUserCache.getStats().keys + " KEYS]"
-//     + " | TTL: " + tcUtils.msToTime(configuration.uncatUserCacheTtl*1000)
-//     + " | NOW: " + getTimeStamp()
-//     + " | $ EXPIRED: " + statsObj.caches.uncatUserCache.expired
-//     + " | NID: " + uncatUserId
-//   ));
-// }
-
-// uncatUserCache.on("expired", uncatUserCacheExpired);
-
-// ==================================================================
 // IP CACHE
 // ==================================================================
 
@@ -6226,7 +6200,6 @@ function initTransmitNodeQueueInterval(interval){
                 props: { screenName: node.screenName.toLowerCase() },
                 autoCategorize: true
               });
-
             }
 
             const nCacheObj = nodeCache.get(node.nodeId);
@@ -6297,26 +6270,26 @@ function initTransmitNodeQueueInterval(interval){
             }
           }
 
-          if (node.isTweeter) { 
+          // if (node.isTweeter) { 
 
-            statsObj.traffic.users.total += 1;
+          //   statsObj.traffic.users.total += 1;
 
-            if (botNodeIdSet.has(node.nodeId)){
-              statsObj.traffic.users.bots += 1;
-              statsObj.traffic.users.percentBots = 100*(statsObj.traffic.users.bots/statsObj.traffic.users.total);
-              node.isBot = true;
-              printBotStats({user: node, modulo: 100});
-            }
-          }
+          //   if (botNodeIdSet.has(node.nodeId)){
+          //     statsObj.traffic.users.bots += 1;
+          //     statsObj.traffic.users.percentBots = 100*(statsObj.traffic.users.bots/statsObj.traffic.users.total);
+          //     node.isBot = true;
+          //     printBotStats({user: node, modulo: 100});
+          //   }
+          // }
 
-          if (node.screenName === undefined || node.screenName === "") {
-            console.log(chalkError(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED"));
-            printUserObj(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED", node);
-            transmitNodeQueueReady = true;
-            return;
-          }
+          // if (node.screenName === undefined || node.screenName === "") {
+          //   console.log(chalkError(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED"));
+          //   printUserObj(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED", node);
+          //   transmitNodeQueueReady = true;
+          //   return;
+          // }
 
-          viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
+          // viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
           transmitNodeQueueReady = true;
           return;
         }
@@ -9056,8 +9029,6 @@ async function initDbUserChangeStream(){
         }
 
         if (catChangeFlag || catAutoChangeFlag || catNetworkChangeFlag || catVerifiedChangeFlag) {
-
-          // printUserObj(MODULE_ID_PREFIX + " | DB CHG | CAT USR", change.fullDocument);
 
           chalkType = chalkLog;
 

@@ -596,58 +596,58 @@ const nodeSetPropsResultHandler = async function(message){
 
   const messageObj = JSON.parse(message.data.toString());
 
-  if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)){
+// if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)){
 
-    statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived += 1;
+  statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived += 1;
 
-    if (messageObj.node && messageObj.node.nodeType === "user") {
+  if (messageObj.node && messageObj.node.nodeType === "user") {
 
-      if (configuration.verbose){ 
-        console.log(chalkBlueBold(MODULE_ID_PREFIX
-          + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
-          + " | TOPIC: node-setprops-result"
-          + " | " + messageObj.requestId
-          + " | TYPE: " + messageObj.node.nodeType
-          + " | NID: " + messageObj.node.nodeId
-          + " | @" + messageObj.node.screenName
-          + " | AUTO FLW: " + formatBoolean(messageObj.node.autoFollowFlag)
-          + " | FLW: " + formatBoolean(messageObj.node.following)
-          + " | CN: " + messageObj.node.categorizeNetwork
-          + " | CV: " + formatBoolean(messageObj.node.categoryVerified)
-          + " | CM: " + formatCategory(messageObj.node.category)
-          + " | CA: " + formatCategory(messageObj.node.categoryAuto)
-        ));
-      }
-
-      if (messageObj.stats){
-        debug(chalkLog(MODULE_ID_PREFIX + "\nUSER STATS\n" + jsonPrint(messageObj.stats)));
-        defaults(statsObj.user, messageObj.stats);
-      }
-
-      nodeSetPropsResultHashMap[messageObj.requestId] = messageObj.node;
-    }
-    else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
-      if (configuration.verbose){ 
-        console.log(chalkBlue(MODULE_ID_PREFIX
-          + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
-          + " | TOPIC: node-setprops-result"
-          + " | " + messageObj.requestId
-          + " | TYPE: " + messageObj.node.nodeType
-          + " | #" + messageObj.node.nodeId
-          + " | CM: " + formatCategory(messageObj.node.category)
-          + " | CA: " + formatCategory(messageObj.node.categoryAuto)
-        ));
-      }
-
-      nodeSetPropsResultHashMap[messageObj.requestId] = messageObj.node;
-    }
-    else{
-      console.log(chalk.yellow(MODULE_ID_PREFIX
-        + " | ==> NODE SET PROPS -MISS- [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
+    if (configuration.verbose){ 
+      console.log(chalkBlueBold(MODULE_ID_PREFIX
+        + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
+        + " | TOPIC: node-setprops-result"
         + " | " + messageObj.requestId
+        + " | TYPE: " + messageObj.node.nodeType
+        + " | NID: " + messageObj.node.nodeId
+        + " | @" + messageObj.node.screenName
+        + " | AUTO FLW: " + formatBoolean(messageObj.node.autoFollowFlag)
+        + " | FLW: " + formatBoolean(messageObj.node.following)
+        + " | CN: " + messageObj.node.categorizeNetwork
+        + " | CV: " + formatBoolean(messageObj.node.categoryVerified)
+        + " | CM: " + formatCategory(messageObj.node.category)
+        + " | CA: " + formatCategory(messageObj.node.categoryAuto)
       ));
     }
+
+    if (messageObj.stats){
+      debug(chalkLog(MODULE_ID_PREFIX + "\nUSER STATS\n" + jsonPrint(messageObj.stats)));
+      defaults(statsObj.user, messageObj.stats);
+    }
+
+    nodeSetPropsResultHashMap[messageObj.requestId] = messageObj.node;
   }
+  else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
+    if (configuration.verbose){ 
+      console.log(chalkBlue(MODULE_ID_PREFIX
+        + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
+        + " | TOPIC: node-setprops-result"
+        + " | " + messageObj.requestId
+        + " | TYPE: " + messageObj.node.nodeType
+        + " | #" + messageObj.node.nodeId
+        + " | CM: " + formatCategory(messageObj.node.category)
+        + " | CA: " + formatCategory(messageObj.node.categoryAuto)
+      ));
+    }
+
+    nodeSetPropsResultHashMap[messageObj.requestId] = messageObj.node;
+  }
+  else{
+    console.log(chalk.yellow(MODULE_ID_PREFIX
+      + " | ==> NODE SET PROPS -MISS- [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
+      + " | " + messageObj.requestId
+    ));
+  }
+// }
 
   tcUtils.emitter.emit("nodeSetPropsResult_" + messageObj.requestId);
   pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
@@ -5424,6 +5424,7 @@ async function userCategorizeable(params){
   }
 
   if (node.following && (node.following !== undefined)) {
+
     if (verbose) { 
       console.log(chalkLog(MODULE_ID_PREFIX 
         + " | userCategorizeable | TRUE | FOLLOWING"

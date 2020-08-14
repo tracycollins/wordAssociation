@@ -5423,6 +5423,16 @@ async function userCategorizeable(params){
     return true; 
   }
 
+  if (node.following && (node.following !== undefined)) {
+    if (verbose) { 
+      console.log(chalkLog(MODULE_ID_PREFIX 
+        + " | userCategorizeable | TRUE | FOLLOWING"
+        + " | @" + node.screenName
+      ));
+    }
+    return true;
+  }
+
   if (node.ignored && (node.ignored !== undefined)) { 
     if (verbose) { 
       console.log(chalkLog(MODULE_ID_PREFIX 

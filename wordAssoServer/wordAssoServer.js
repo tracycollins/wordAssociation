@@ -1,5 +1,5 @@
 const MODULE_NAME = "wordAssoServer";
-let MODULE_ID_PREFIX = "WAS";
+const MODULE_ID_PREFIX = "WAS";
 
 const DEFAULT_CURSOR_BATCH_SIZE = 100;
 
@@ -80,11 +80,11 @@ hostname = hostname.replace(/word0-instance-1/g, "google");
 hostname = hostname.replace(/word-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
 
-MODULE_ID_PREFIX = MODULE_ID_PREFIX + "_" + hostname.toUpperCase();
+const MODULE_ID = MODULE_ID_PREFIX + "_" + hostname.toUpperCase();
 
-console.log(MODULE_ID_PREFIX + " | ==============================");
-console.log(MODULE_ID_PREFIX + " | HOST: " + hostname);
-console.log(MODULE_ID_PREFIX + " | ==============================");
+console.log(MODULE_ID + " | ==============================");
+console.log(MODULE_ID + " | HOST: " + hostname);
+console.log(MODULE_ID + " | ==============================");
 
 let DROPBOX_ROOT_FOLDER;
 const TWITTER_WEBHOOK_URL = "/webhooks/twitter";
@@ -104,11 +104,11 @@ const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
 const tcUtils = new ThreeceeUtilities(MODULE_ID_PREFIX + "_TCU");
 
 tcUtils.on("error", function(err){
-  console.log(chalkError(MODULE_ID_PREFIX + " | *** TCU ERROR | " + err));
+  console.log(chalkError(MODULE_ID + " | *** TCU ERROR | " + err));
 });
 
 tcUtils.on("ready", function(appname){
-  console.log(chalk.green(MODULE_ID_PREFIX + " | TCU READY | " + appname));
+  console.log(chalk.green(MODULE_ID + " | TCU READY | " + appname));
 });
 
 const jsonPrint = tcUtils.jsonPrint;
@@ -304,7 +304,7 @@ function dnsReverse(params){
 
     if (ipCacheObj) {
 
-      console.log(chalkGreen(MODULE_ID_PREFIX + " | DNS REVERSE | $ HIT"
+      console.log(chalkGreen(MODULE_ID + " | DNS REVERSE | $ HIT"
         + " | IP: " + params.ipAddress 
         + " | LS: " + ipCacheObj.timeStamp
         + " | HOST: " + ipCacheObj.domainName
@@ -325,27 +325,27 @@ function dnsReverse(params){
 
       if (err) {
 
-        console.log(chalk.yellow(MODULE_ID_PREFIX 
+        console.log(chalk.yellow(MODULE_ID 
           + " | *** DNS REVERSE ERROR | IP: " + params.ipAddress
           + " | " + err
         ));
 
         try{
 
-          console.log(chalk.yellow(MODULE_ID_PREFIX 
+          console.log(chalk.yellow(MODULE_ID 
             + " | ... TRY WHOIS | IP: " + params.ipAddress
           ));
 
           const whoisResult = await whois(params.ipAddress);
 
-          console.log(chalkGreen(MODULE_ID_PREFIX + " | WHOIS"
+          console.log(chalkGreen(MODULE_ID + " | WHOIS"
             + " | REAL IP: " + params.ipAddress
             + " | NET NAME: " + whoisResult.netname
             // + "\n" + jsonPrint(whoisResult)
           ));
 
           if (params.verbose || configuration.verbose){
-            console.log(chalk.black(MODULE_ID_PREFIX + " | WHOIS"
+            console.log(chalk.black(MODULE_ID + " | WHOIS"
               + " | REAL IP: " + params.ipAddress
               + " | NET NAME: " + whoisResult.netname
               + "\n" + jsonPrint(whoisResult)
@@ -367,7 +367,7 @@ function dnsReverse(params){
         }
         catch(err1){
 
-          console.log(chalkError(MODULE_ID_PREFIX 
+          console.log(chalkError(MODULE_ID 
             + " | *** WHOIS ERROR | IP: " + params.ipAddress
             + " | " + err1
           ));
@@ -392,7 +392,7 @@ function dnsReverse(params){
 
         const googleComputeEngineExternalIpAddress = hostnames[0].replace("."+DEFAULT_GOOGLE_COMPUTE_DOMAIN, "");
 
-        console.log(chalk.black(MODULE_ID_PREFIX + " | DOMAIN | DNS REVERSE"
+        console.log(chalk.black(MODULE_ID + " | DOMAIN | DNS REVERSE"
           + " | GCP IP: " + params.ipAddress
           + " | REAL IP: " + googleComputeEngineExternalIpAddress
           + " | " + hostnames.length + " HOST NAMES"
@@ -405,20 +405,20 @@ function dnsReverse(params){
         })
         .catch(async function(err0){
 
-          console.log(chalkError(MODULE_ID_PREFIX 
+          console.log(chalkError(MODULE_ID 
             + " | *** DNS REVERSE ERROR | IP: " + googleComputeEngineExternalIpAddress
             + " | " + err0
           ));
 
           try{
 
-            console.log(chalkAlert(MODULE_ID_PREFIX 
+            console.log(chalkAlert(MODULE_ID 
               + " | ... TRY WHOIS | IP: " + googleComputeEngineExternalIpAddress
             ));
 
             const whoisResult = await whois(googleComputeEngineExternalIpAddress);
 
-            console.log(chalk.black(MODULE_ID_PREFIX + " | DOMAIN | WHOIS"
+            console.log(chalk.black(MODULE_ID + " | DOMAIN | WHOIS"
               + " | REAL IP: " + googleComputeEngineExternalIpAddress
               + " | DOMAIN: " + whoisResult.domainName
               + "\n" + jsonPrint(whoisResult)
@@ -438,7 +438,7 @@ function dnsReverse(params){
 
           }
           catch(err1){
-            console.log(chalkError(MODULE_ID_PREFIX 
+            console.log(chalkError(MODULE_ID 
               + " | *** WHOIS ERROR | IP: " + googleComputeEngineExternalIpAddress
               + " | " + err1
             ));
@@ -450,7 +450,7 @@ function dnsReverse(params){
       }
       else{
 
-        console.log(chalkGreen(MODULE_ID_PREFIX + " | DNS REVERSE | $ MISS"
+        console.log(chalkGreen(MODULE_ID + " | DNS REVERSE | $ MISS"
           + " | IP: " + params.ipAddress 
           + " | " + hostnames.length + " HOST NAMES"
           + " | HOST: " + hostnames[0]
@@ -493,14 +493,14 @@ const nodeSearchResultHandler = async function(message){
 
     const messageObj = JSON.parse(message.data.toString());
 
-    debug(chalkLog(MODULE_ID_PREFIX + " | RX NODE SEARCH RESULT " + message.id));
+    debug(chalkLog(MODULE_ID + " | RX NODE SEARCH RESULT " + message.id));
 
     if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)){
 
       statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived += 1;
 
       if (messageObj.node && messageObj.node.nodeType === "user") {
-        debug(chalkBlue(MODULE_ID_PREFIX
+        debug(chalkBlue(MODULE_ID
           + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
           + " | " + messageObj.requestId
           + " | SEARCH CAT AUTO: " + messageObj.categoryAuto
@@ -514,7 +514,7 @@ const nodeSearchResultHandler = async function(message){
         ));
 
         if (messageObj.stats){
-          debug(chalkLog(MODULE_ID_PREFIX + "\nUSER STATS\n" + jsonPrint(messageObj.stats)));
+          debug(chalkLog(MODULE_ID + "\nUSER STATS\n" + jsonPrint(messageObj.stats)));
           defaults(statsObj.user, messageObj.stats);
         }
 
@@ -539,7 +539,7 @@ const nodeSearchResultHandler = async function(message){
       else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
 
         if (configuration.verbose){ 
-          console.log(chalkBlueBold(MODULE_ID_PREFIX
+          console.log(chalkBlueBold(MODULE_ID
             + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
             + " | " + messageObj.requestId
             + " | SEARCH CAT AUTO: " + messageObj.categoryAuto
@@ -569,7 +569,7 @@ const nodeSearchResultHandler = async function(message){
         searchNodeResultHashMap[messageObj.requestId] = messageObj.node;
       }
       else{
-        console.log(chalk.yellow(MODULE_ID_PREFIX
+        console.log(chalk.yellow(MODULE_ID
           + " | ==> PS SEARCH NODE -MISS- [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
           + " | MID: " + message.id
           + " | " + messageObj.requestId
@@ -586,7 +586,7 @@ const nodeSearchResultHandler = async function(message){
   }
   catch(err){
     message.ack();
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** RX nodeSearchResultHandler ERROR: " + err));
+    console.log(chalkError(MODULE_ID + " | *** RX nodeSearchResultHandler ERROR: " + err));
     console.log("message\n", message);
     throw err;
   }
@@ -610,7 +610,7 @@ const nodeSetPropsResultHandler = async function(message){
     if (messageObj.node && messageObj.node.nodeType === "user") {
 
       if (!pubSubPublishMessageRequestIdSet.has(messageObj.requestId) || configuration.verbose){ 
-        console.log(chalkBlueBold(MODULE_ID_PREFIX
+        console.log(chalkBlueBold(MODULE_ID
           + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
           + " | TOPIC: node-setprops-result"
           + " | " + messageObj.requestId
@@ -627,7 +627,7 @@ const nodeSetPropsResultHandler = async function(message){
       }
 
       if (messageObj.stats){
-        debug(chalkLog(MODULE_ID_PREFIX + "\nUSER STATS\n" + jsonPrint(messageObj.stats)));
+        debug(chalkLog(MODULE_ID + "\nUSER STATS\n" + jsonPrint(messageObj.stats)));
         defaults(statsObj.user, messageObj.stats);
       }
 
@@ -635,7 +635,7 @@ const nodeSetPropsResultHandler = async function(message){
     }
     else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
       if (configuration.verbose){ 
-        console.log(chalkBlue(MODULE_ID_PREFIX
+        console.log(chalkBlue(MODULE_ID
           + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
           + " | TOPIC: node-setprops-result"
           + " | " + messageObj.requestId
@@ -649,7 +649,7 @@ const nodeSetPropsResultHandler = async function(message){
       nodeSetPropsResultHashMap[messageObj.requestId] = messageObj.node;
     }
     else{
-      console.log(chalk.yellow(MODULE_ID_PREFIX
+      console.log(chalk.yellow(MODULE_ID
         + " | ==> NODE SET PROPS -MISS- [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
         + " | " + messageObj.requestId
       ));
@@ -676,7 +676,7 @@ const nodeIgnoreHandler = async function(message){
   // │  └─ nodeType: "user"
   // │  └─ nodeId: 1000193009403613186
 
-  console.log(chalkBlue(MODULE_ID_PREFIX
+  console.log(chalkBlue(MODULE_ID
     + " | --> PS IGNORE NODE [RX: " + statsObj.pubSub.ignoreNode.messagesReceived + "]"
     + " | MID: " + message.id
     + " | REQ ID: " + messageObj.requestId
@@ -704,7 +704,7 @@ const nodeIgnoreHandler = async function(message){
 };
 
 const pubSubErrorHandler = function(params){
-  console.log(chalkError(MODULE_ID_PREFIX
+  console.log(chalkError(MODULE_ID
     + " | *** PUBSUB ERROR | SUBSCRIPTION: " + params.subscribeName
     + " | " + params.err
   ));
@@ -721,7 +721,7 @@ async function initNodeOpHandler(params){
 
   const [metadata] = await subscription.getMetadata();
 
-  console.log(chalkBlueBold(MODULE_ID_PREFIX
+  console.log(chalkBlueBold(MODULE_ID
     + " | INIT PUBSUB NODE OP SUBSCRIPTION HANDLER"
     + " | SUBSCRIBE NAME: " + params.subscribeName
     + " | SUBSCRIBE TOPIC: " + metadata.topic
@@ -762,7 +762,7 @@ async function initNodeOpHandler(params){
       subscription.on("message", nodeIgnoreHandler);
     break;
     default:
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** initNodeOpHandler ERROR: UNKNOWN subscribeName: " + params.subscribeName));
+      console.log(chalkError(MODULE_ID + " | *** initNodeOpHandler ERROR: UNKNOWN subscribeName: " + params.subscribeName));
       throw new Error("initNodeOpHandler UNKNOWN subscribeName: " + params.subscribeName);
   }
 
@@ -786,7 +786,7 @@ async function pubSubPublishMessage(params){
 
     statsObj.pubSub.messagesSent += 1;
 
-    debug(chalkLog(MODULE_ID_PREFIX
+    debug(chalkLog(MODULE_ID
       + " | <== PUB [" + statsObj.pubSub.messagesSent
       + " / OUT: " + pubSubPublishMessageRequestIdSet.size + "]"
       + " | TOPIC: " + params.publishName
@@ -800,7 +800,7 @@ async function pubSubPublishMessage(params){
 
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX
+    console.log(chalkError(MODULE_ID
       + " | *** pubSubPublishMessage ERROR: " + err 
     ));
     throw err;
@@ -848,13 +848,13 @@ async function slackSendWebMessage(msgObj){
       return sendResponse;
     }
     else {
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | SLACK WEB NOT CONFIGURED | SKIPPING SEND SLACK MESSAGE\n" + jsonPrint(message)));
+      console.log(chalkAlert(MODULE_ID + " | SLACK WEB NOT CONFIGURED | SKIPPING SEND SLACK MESSAGE\n" + jsonPrint(message)));
       return;
     }
   }
   catch(err){
-    console.log(chalkAlert(MODULE_ID_PREFIX + " | *** slackSendWebMessage ERROR: " + err));
-    console.log(chalkAlert(MODULE_ID_PREFIX + " | *** slackSendWebMessage msgObj\n" + jsonPrint(msgObj)));
+    console.log(chalkAlert(MODULE_ID + " | *** slackSendWebMessage ERROR: " + err));
+    console.log(chalkAlert(MODULE_ID + " | *** slackSendWebMessage msgObj\n" + jsonPrint(msgObj)));
     throw err;
   }
 }
@@ -869,7 +869,7 @@ async function initSlackWebClient(){
 
     conversationsListResponse.channels.forEach(async function(channel){
 
-      debug(chalkLog(MODULE_ID_PREFIX + " | SLACK CHANNEL | " + channel.id + " | " + channel.name));
+      debug(chalkLog(MODULE_ID + " | SLACK CHANNEL | " + channel.id + " | " + channel.name));
 
       if (channel.name === slackChannel) {
         configuration.slackChannel = channel;
@@ -900,7 +900,7 @@ async function initSlackWebClient(){
     return;
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT SLACK WEB CLIENT ERROR: " + err));
+    console.log(chalkError(MODULE_ID + " | *** INIT SLACK WEB CLIENT ERROR: " + err));
     throw err;
   }
 }
@@ -915,9 +915,9 @@ async function initSlackRtmClient(){
   slackRtmClient.on("slack_event", async function(eventType, event){
     switch (eventType) {
       case "pong":
-        debug(chalkLog(MODULE_ID_PREFIX + " | SLACK RTM PONG | " + getTimeStamp() + " | " + event.reply_to));
+        debug(chalkLog(MODULE_ID + " | SLACK RTM PONG | " + getTimeStamp() + " | " + event.reply_to));
       break;
-      default: debug(chalkInfo(MODULE_ID_PREFIX + " | SLACK RTM EVENT | " + getTimeStamp() + " | " + eventType + "\n" + jsonPrint(event)));
+      default: debug(chalkInfo(MODULE_ID + " | SLACK RTM EVENT | " + getTimeStamp() + " | " + eventType + "\n" + jsonPrint(event)));
     }
   });
 }
@@ -1264,9 +1264,9 @@ async function quit(message) {
   let msg = "";
   if (message) { msg = message; }
 
-  console.log(chalkAlert(MODULE_ID_PREFIX + " | ... QUITTING ..."));
-  console.log(chalkAlert(MODULE_ID_PREFIX + " | QUIT MESSAGE: " + msg));
-  console.log(chalkAlert(MODULE_ID_PREFIX + " | QUIT MESSAGE: " + msg));
+  console.log(chalkAlert(MODULE_ID + " | ... QUITTING ..."));
+  console.log(chalkAlert(MODULE_ID + " | QUIT MESSAGE: " + msg));
+  console.log(chalkAlert(MODULE_ID + " | QUIT MESSAGE: " + msg));
 
   setTimeout(async function() {
     if (tcUtils !== undefined) { 
@@ -1277,10 +1277,10 @@ async function quit(message) {
 }
 
 const commandLineConfig = commandLineArgs(optionDefinitions);
-console.log(chalkInfo(MODULE_ID_PREFIX + " | COMMAND LINE CONFIG\nWAS | " + jsonPrint(commandLineConfig)));
+console.log(chalkInfo(MODULE_ID + " | COMMAND LINE CONFIG\nWAS | " + jsonPrint(commandLineConfig)));
 
 if (Object.keys(commandLineConfig).includes("help")) {
-  console.log(chalkInfo(MODULE_ID_PREFIX + " | optionDefinitions\n" + jsonPrint(optionDefinitions)));
+  console.log(chalkInfo(MODULE_ID + " | optionDefinitions\n" + jsonPrint(optionDefinitions)));
   quit("help").then(function(){
     console.log("QUIT");
   });
@@ -1432,11 +1432,11 @@ let ignoredUserSet = new Set();
 let ignoredHashtagSet = new Set();
 
 process.title = "node_wordAssoServer";
-console.log(chalkBlue("\n\nWAS | ============= START ==============\n\n"));
+console.log(chalkBlue(MODULE_ID + " | ============= START ==============\n\n"));
 
-console.log(chalkBlue(MODULE_ID_PREFIX + " | PROCESS PID:   " + process.pid));
-console.log(chalkBlue(MODULE_ID_PREFIX + " | PROCESS TITLE: " + process.title));
-console.log(chalkBlue(MODULE_ID_PREFIX + " | ENVIRONMENT:   " + process.env.NODE_ENV));
+console.log(chalkBlue(MODULE_ID + " | PROCESS PID:   " + process.pid));
+console.log(chalkBlue(MODULE_ID + " | PROCESS TITLE: " + process.title));
+console.log(chalkBlue(MODULE_ID + " | ENVIRONMENT:   " + process.env.NODE_ENV));
 
 // ==================================================================
 // GLOBAL VARIABLES
@@ -1669,9 +1669,9 @@ configuration.dropboxChangeFolderArray = [
   trainingSetsUsersFolder
 ];
 
-console.log(chalkLog(MODULE_ID_PREFIX + " | DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN));
-console.log(chalkLog(MODULE_ID_PREFIX + " | DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY));
-console.log(chalkLog(MODULE_ID_PREFIX + " | DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET));
+console.log(chalkLog(MODULE_ID + " | DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN));
+console.log(chalkLog(MODULE_ID + " | DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY));
+console.log(chalkLog(MODULE_ID + " | DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET));
 
 const userDefaults = function (user){
   user.rate = user.rate || 0;
@@ -1750,7 +1750,7 @@ async function connectDb(){
 
     statsObj.status = "CONNECTING MONGO DB";
 
-    console.log(chalkBlueBold(MODULE_ID_PREFIX + " | CONNECT MONGO DB ..."));
+    console.log(chalkBlueBold(MODULE_ID + " | CONNECT MONGO DB ..."));
 
     const db = await global.wordAssoDb.connect({
       appName: MODULE_ID_PREFIX + "_" + process.pid
@@ -1759,22 +1759,22 @@ async function connectDb(){
     db.on("error", async function(err){
       statsObj.status = "MONGO ERROR";
       statsObj.dbConnectionReady = false;
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION ERROR: " + err));
+      console.log(chalkError(MODULE_ID + " | *** MONGO DB CONNECTION ERROR: " + err));
     });
 
     db.on("close", async function(){
       statsObj.status = "MONGO CLOSED";
       statsObj.dbConnectionReady = false;
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION CLOSED"));
+      console.log(chalkError(MODULE_ID + " | *** MONGO DB CONNECTION CLOSED"));
     });
 
     db.on("disconnected", async function(){
       statsObj.status = "MONGO DISCONNECTED";
       statsObj.dbConnectionReady = false;
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | *** MONGO DB DISCONNECTED"));
+      console.log(chalkAlert(MODULE_ID + " | *** MONGO DB DISCONNECTED"));
     });
 
-    console.log(chalk.green(MODULE_ID_PREFIX + " | MONGOOSE DEFAULT CONNECTION OPEN"));
+    console.log(chalk.green(MODULE_ID + " | MONGOOSE DEFAULT CONNECTION OPEN"));
 
     statsObj.dbConnectionReady = true;
 
@@ -1784,12 +1784,12 @@ async function connectDb(){
 
     userServerController.on("error", function(err){
       userServerControllerReady = false;
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** USC ERROR | " + err));
+      console.log(chalkError(MODULE_ID + " | *** USC ERROR | " + err));
     });
 
     userServerController.on("ready", function(appname){
       userServerControllerReady = true;
-      console.log(chalk.green(MODULE_ID_PREFIX + " | USC READY | " + appname));
+      console.log(chalk.green(MODULE_ID + " | USC READY | " + appname));
     });
 
     await global.wordAssoDb.User.deleteMany({ 
@@ -1802,7 +1802,7 @@ async function connectDb(){
     return db;
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECT ERROR: " + err));
+    console.log(chalkError(MODULE_ID + " | *** MONGO DB CONNECT ERROR: " + err));
     throw err;
   }
 }
@@ -1812,7 +1812,7 @@ function initPassport(){
   return new Promise(function(resolve){
 
     const sessionId = btoa("threecee");
-    console.log(chalk.green(MODULE_ID_PREFIX + " | PASSPORT SESSION ID: " + sessionId ));
+    console.log(chalk.green(MODULE_ID + " | PASSPORT SESSION ID: " + sessionId ));
 
     app.use(expressSession({
       sessionId: sessionId,
@@ -1831,16 +1831,16 @@ function initPassport(){
       },
       function(token, tokenSecret, profile, cb) {
 
-        console.log(chalk.green(MODULE_ID_PREFIX + " | PASSPORT TWITTER AUTH: token:       " + token));
-        console.log(chalk.green(MODULE_ID_PREFIX + " | PASSPORT TWITTER AUTH: tokenSecret: " + tokenSecret));
-        console.log(chalk.green(MODULE_ID_PREFIX + " | PASSPORT TWITTER AUTH USER | @" + profile.username + " | " + profile.id));
+        console.log(chalk.green(MODULE_ID + " | PASSPORT TWITTER AUTH: token:       " + token));
+        console.log(chalk.green(MODULE_ID + " | PASSPORT TWITTER AUTH: tokenSecret: " + tokenSecret));
+        console.log(chalk.green(MODULE_ID + " | PASSPORT TWITTER AUTH USER | @" + profile.username + " | " + profile.id));
 
-        if (configuration.verbose) { console.log(chalk.green(MODULE_ID_PREFIX + " | PASSPORT TWITTER AUTH\nprofile\n" + jsonPrint(profile))); }
+        if (configuration.verbose) { console.log(chalk.green(MODULE_ID + " | PASSPORT TWITTER AUTH\nprofile\n" + jsonPrint(profile))); }
 
         const rawUser = profile._json;
 
         if (!userServerControllerReady || !statsObj.dbConnectionReady) {
-          console.log(chalkAlert(MODULE_ID_PREFIX + " | *** NOT READY"
+          console.log(chalkAlert(MODULE_ID + " | *** NOT READY"
             + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
             + " | userServerControllerReady: " + userServerControllerReady
           ));
@@ -1850,7 +1850,7 @@ function initPassport(){
         userServerController.convertRawUser({user: rawUser}, function(err, user){
 
           if (err) {
-            console.log(chalkError(MODULE_ID_PREFIX + " | *** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
+            console.log(chalkError(MODULE_ID + " | *** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
             return cb("RAW USER", rawUser);
           }
 
@@ -1859,12 +1859,12 @@ function initPassport(){
           userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, async function(err, updatedUser){
 
             if (err) {
-              console.log(chalkError(MODULE_ID_PREFIX + " | ***findOneUser ERROR: " + err));
+              console.log(chalkError(MODULE_ID + " | ***findOneUser ERROR: " + err));
               return cb(err);
             }
 
             if (configuration.verbose) {
-              console.log(chalk.blue(MODULE_ID_PREFIX + " | UPDATED updatedUser"
+              console.log(chalk.blue(MODULE_ID + " | UPDATED updatedUser"
                 + " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat)
                 + " | USER CR: " + getTimeStamp(updatedUser.createdAt)
                 + "\nWAS | " + printUser({user: updatedUser})
@@ -1934,7 +1934,7 @@ function initPassport(){
         name: user.name
       };
 
-      console.log(chalk.green(MODULE_ID_PREFIX + " | PASSPORT SERIALIZE USER | @" + user.screenName));
+      console.log(chalk.green(MODULE_ID + " | PASSPORT SERIALIZE USER | @" + user.screenName));
       
       slackText = "*PASSPORT TWITTER SERIALIZE USER*";
       slackText = slackText + "\nUSER NID:  " + user.nodeId;
@@ -1948,7 +1948,7 @@ function initPassport(){
 
     passport.deserializeUser(async function(sessionUser, done) {
 
-      console.log(chalk.green(MODULE_ID_PREFIX + " | PASSPORT DESERIALIZE USER | @" + sessionUser.screenName));
+      console.log(chalk.green(MODULE_ID + " | PASSPORT DESERIALIZE USER | @" + sessionUser.screenName));
 
       slackText = "*PASSPORT TWITTER DESERIALIZE USER*";
       slackText = slackText + "\nUSER NID:  " + sessionUser.nodeId;
@@ -1979,7 +1979,7 @@ function touchChildPidFile(params){
 
   touch.sync(path, { force: true });
 
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | TOUCH CHILD PID FILE: " + path));
+  console.log(chalkBlue(MODULE_ID + " | TOUCH CHILD PID FILE: " + path));
 }
 
 // ==================================================================
@@ -1989,12 +1989,12 @@ function touchChildPidFile(params){
 let ipCacheTtl = process.env.IP_CACHE_DEFAULT_TTL;
 if (empty(ipCacheTtl)) { ipCacheTtl = IP_CACHE_DEFAULT_TTL; }
 
-console.log(MODULE_ID_PREFIX + " | IP CACHE TTL: " + ipCacheTtl + " SECONDS");
+console.log(MODULE_ID + " | IP CACHE TTL: " + ipCacheTtl + " SECONDS");
 
 let ipCacheCheckPeriod = process.env.IP_CACHE_CHECK_PERIOD;
 if (empty(ipCacheCheckPeriod)) { ipCacheCheckPeriod = IP_CACHE_CHECK_PERIOD; }
 
-console.log(MODULE_ID_PREFIX + " | IP CACHE CHECK PERIOD: " + ipCacheCheckPeriod + " SECONDS");
+console.log(MODULE_ID + " | IP CACHE CHECK PERIOD: " + ipCacheCheckPeriod + " SECONDS");
 
 const ipCache = new NodeCache({
   stdTTL: ipCacheTtl,
@@ -2005,7 +2005,7 @@ function ipCacheExpired(ip, ipCacheObj) {
 
   statsObj.caches.ipCache.expired += 1;
 
-  console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX IP CACHE EXPIRED"
+  console.log(chalkInfo(MODULE_ID + " | XXX IP CACHE EXPIRED"
     + " [" + ipCache.getStats().keys + " KEYS]"
     + " | TTL: " + tcUtils.msToTime(ipCacheTtl*1000)
     + " | NOW: " + getTimeStamp()
@@ -2024,12 +2024,12 @@ ipCache.on("expired", ipCacheExpired);
 let tweetIdCacheTtl = process.env.TWEET_ID_CACHE_DEFAULT_TTL;
 if (empty(tweetIdCacheTtl)) { tweetIdCacheTtl = TWEET_ID_CACHE_DEFAULT_TTL; }
 
-console.log(MODULE_ID_PREFIX + " | TWEET ID CACHE TTL: " + tweetIdCacheTtl + " SECONDS");
+console.log(MODULE_ID + " | TWEET ID CACHE TTL: " + tweetIdCacheTtl + " SECONDS");
 
 let tweetIdCacheCheckPeriod = process.env.TWEET_ID_CACHE_CHECK_PERIOD;
 if (empty(tweetIdCacheCheckPeriod)) { tweetIdCacheCheckPeriod = TWEET_ID_CACHE_CHECK_PERIOD; }
 
-console.log(MODULE_ID_PREFIX + " | TWEET ID CACHE CHECK PERIOD: " + tweetIdCacheCheckPeriod + " SECONDS");
+console.log(MODULE_ID + " | TWEET ID CACHE CHECK PERIOD: " + tweetIdCacheCheckPeriod + " SECONDS");
 
 const tweetIdCache = new NodeCache({
   stdTTL: tweetIdCacheTtl,
@@ -2042,12 +2042,12 @@ const tweetIdCache = new NodeCache({
 let viewerCacheTtl = process.env.VIEWER_CACHE_DEFAULT_TTL;
 if (empty(viewerCacheTtl)) { viewerCacheTtl = VIEWER_CACHE_DEFAULT_TTL; }
 
-console.log(MODULE_ID_PREFIX + " | VIEWER CACHE TTL: " + viewerCacheTtl + " SECONDS");
+console.log(MODULE_ID + " | VIEWER CACHE TTL: " + viewerCacheTtl + " SECONDS");
 
 let viewerCacheCheckPeriod = process.env.VIEWER_CACHE_CHECK_PERIOD;
 if (empty(viewerCacheCheckPeriod)) { viewerCacheCheckPeriod = VIEWER_CACHE_CHECK_PERIOD; }
 
-console.log(MODULE_ID_PREFIX + " | VIEWER CACHE CHECK PERIOD: " + viewerCacheCheckPeriod + " SECONDS");
+console.log(MODULE_ID + " | VIEWER CACHE CHECK PERIOD: " + viewerCacheCheckPeriod + " SECONDS");
 
 const viewerCache = new NodeCache({
   stdTTL: viewerCacheTtl,
@@ -2056,7 +2056,7 @@ const viewerCache = new NodeCache({
 
 function viewerCacheExpired(viewerCacheId, viewerObj) {
 
-  console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX VIEWER CACHE EXPIRED"
+  console.log(chalkInfo(MODULE_ID + " | XXX VIEWER CACHE EXPIRED"
     + " [" + viewerCache.getStats().keys + " KEYS]"
     + " | TTL: " + viewerCacheTtl + " SECS"
     + " | TYPE: " + viewerObj.user.type.toUpperCase()
@@ -2078,11 +2078,11 @@ viewerCache.on("expired", viewerCacheExpired);
 // ==================================================================
 let serverCacheTtl = process.env.SERVER_CACHE_DEFAULT_TTL;
 if (empty(serverCacheTtl)) { serverCacheTtl = SERVER_CACHE_DEFAULT_TTL; }
-console.log(MODULE_ID_PREFIX + " | SERVER CACHE TTL: " + serverCacheTtl + " SECONDS");
+console.log(MODULE_ID + " | SERVER CACHE TTL: " + serverCacheTtl + " SECONDS");
 
 let serverCacheCheckPeriod = process.env.SERVER_CACHE_CHECK_PERIOD;
 if (empty(serverCacheCheckPeriod)) { serverCacheCheckPeriod = SERVER_CACHE_CHECK_PERIOD; }
-console.log(MODULE_ID_PREFIX + " | SERVER CACHE CHECK PERIOD: " + serverCacheCheckPeriod + " SECONDS");
+console.log(MODULE_ID + " | SERVER CACHE CHECK PERIOD: " + serverCacheCheckPeriod + " SECONDS");
 
 const serverCache = new NodeCache({
   stdTTL: serverCacheTtl,
@@ -2091,7 +2091,7 @@ const serverCache = new NodeCache({
 
 function serverCacheExpired(serverCacheId, serverObj) {
 
-  console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX SERVER CACHE EXPIRED"
+  console.log(chalkInfo(MODULE_ID + " | XXX SERVER CACHE EXPIRED"
     + " [" + serverCache.getStats().keys + " KEYS]"
     + " | TTL: " + serverCacheTtl + " SECS"
     + " | TYPE: " + serverObj.user.type.toUpperCase()
@@ -2114,13 +2114,13 @@ let authenticatedSocketCacheTtl = process.env.AUTH_SOCKET_CACHE_DEFAULT_TTL;
 if (empty(authenticatedSocketCacheTtl)) { 
   authenticatedSocketCacheTtl = AUTH_SOCKET_CACHE_DEFAULT_TTL;
 }
-console.log(MODULE_ID_PREFIX + " | AUTHENTICATED SOCKET CACHE TTL: " + authenticatedSocketCacheTtl + " SECONDS");
+console.log(MODULE_ID + " | AUTHENTICATED SOCKET CACHE TTL: " + authenticatedSocketCacheTtl + " SECONDS");
 
 let authenticatedSocketCacheCheckPeriod = process.env.AUTH_SOCKET_CACHE_CHECK_PERIOD;
 if (empty(authenticatedSocketCacheCheckPeriod)) {
   authenticatedSocketCacheCheckPeriod = AUTH_SOCKET_CACHE_CHECK_PERIOD;
 }
-console.log(MODULE_ID_PREFIX + " | AUTHENTICATED SOCKET CACHE CHECK PERIOD: " + authenticatedSocketCacheCheckPeriod + " SECONDS");
+console.log(MODULE_ID + " | AUTHENTICATED SOCKET CACHE CHECK PERIOD: " + authenticatedSocketCacheCheckPeriod + " SECONDS");
 
 const authenticatedSocketCache = new NodeCache({
   stdTTL: authenticatedSocketCacheTtl,
@@ -2129,7 +2129,7 @@ const authenticatedSocketCache = new NodeCache({
 
 function authenticatedSocketCacheExpired(socketId, authSocketObj) {
 
-  console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX AUTH g CACHE EXPIRED"
+  console.log(chalkInfo(MODULE_ID + " | XXX AUTH g CACHE EXPIRED"
     + " [" + authenticatedSocketCache.getStats().keys + " KEYS]"
     + " | TTL: " + tcUtils.msToTime(authenticatedSocketCacheTtl*1000)
     + " | NSP: " + authSocketObj.namespace.toUpperCase()
@@ -2149,7 +2149,7 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
 
         if (authSocketObjCache !== undefined) {
 
-          console.log(chalkInfo(MODULE_ID_PREFIX + " | AUTH SOCKET CACHE ENTRIES"
+          console.log(chalkInfo(MODULE_ID + " | AUTH SOCKET CACHE ENTRIES"
             + " | NSP: " + authSocketObjCache.namespace.toUpperCase()
             + " | " + socketId
             + " | " + authSocketObjCache.ipAddress
@@ -2160,13 +2160,13 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
           ));
         }
         else {
-          console.log(chalkAlert(MODULE_ID_PREFIX + " | ??? AUTH SOCKET CACHE NO ENTRY? | SOCKET ID: " + socketId));
+          console.log(chalkAlert(MODULE_ID + " | ??? AUTH SOCKET CACHE NO ENTRY? | SOCKET ID: " + socketId));
         }
 
       });
     }
     else {
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** AUTH CACHE GET KEYS ERROR: " + err));
+      console.log(chalkError(MODULE_ID + " | *** AUTH CACHE GET KEYS ERROR: " + err));
     }
   });
 
@@ -2182,13 +2182,13 @@ let authenticatedTwitterUserCacheTtl = process.env.AUTH_USER_CACHE_DEFAULT_TTL;
 if (empty(authenticatedTwitterUserCacheTtl)) { 
   authenticatedTwitterUserCacheTtl = AUTH_USER_CACHE_DEFAULT_TTL;
 }
-console.log(MODULE_ID_PREFIX + " | AUTHENTICATED TWITTER USER CACHE TTL: " + authenticatedTwitterUserCacheTtl + " SECONDS");
+console.log(MODULE_ID + " | AUTHENTICATED TWITTER USER CACHE TTL: " + authenticatedTwitterUserCacheTtl + " SECONDS");
 
 let authenticatedTwitterUserCacheCheckPeriod = process.env.AUTH_USER_CACHE_CHECK_PERIOD;
 if (empty(authenticatedTwitterUserCacheCheckPeriod)) {
   authenticatedTwitterUserCacheCheckPeriod = AUTH_USER_CACHE_CHECK_PERIOD;
 }
-console.log(MODULE_ID_PREFIX + " | AUTHENTICATED TWITTERUSER CACHE CHECK PERIOD: " + authenticatedTwitterUserCacheCheckPeriod + " SECONDS");
+console.log(MODULE_ID + " | AUTHENTICATED TWITTERUSER CACHE CHECK PERIOD: " + authenticatedTwitterUserCacheCheckPeriod + " SECONDS");
 
 const authenticatedTwitterUserCache = new NodeCache({
   stdTTL: authenticatedTwitterUserCacheTtl,
@@ -2196,7 +2196,7 @@ const authenticatedTwitterUserCache = new NodeCache({
 });
 
 function authenticatedTwitterUserCacheExpired(nodeId, userObj) {
-  console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX AUTH TWITTER USER CACHE EXPIRED"
+  console.log(chalkInfo(MODULE_ID + " | XXX AUTH TWITTER USER CACHE EXPIRED"
     + " [" + authenticatedTwitterUserCache.getStats().keys + " KEYS]"
     + " | TTL: " + authenticatedTwitterUserCacheTtl + " SECS"
     + " | LS: " + userObj.lastSeen
@@ -2213,13 +2213,13 @@ let authInProgressTwitterUserCacheTtl = process.env.AUTH_IN_PROGRESS_CACHE_DEFAU
 if (empty(authInProgressTwitterUserCacheTtl)) { 
   authInProgressTwitterUserCacheTtl = AUTH_IN_PROGRESS_CACHE_DEFAULT_TTL;
 }
-console.log(MODULE_ID_PREFIX + " | AUTH IN PROGRESS CACHE TTL: " + authInProgressTwitterUserCacheTtl + " SECONDS");
+console.log(MODULE_ID + " | AUTH IN PROGRESS CACHE TTL: " + authInProgressTwitterUserCacheTtl + " SECONDS");
 
 let authInProgressTwitterUserCacheCheckPeriod = process.env.AUTH_IN_PROGRESS_CACHE_CHECK_PERIOD;
 if (empty(authInProgressTwitterUserCacheCheckPeriod)) { 
   authInProgressTwitterUserCacheCheckPeriod = AUTH_IN_PROGRESS_CACHE_CHECK_PERIOD;
 }
-console.log(MODULE_ID_PREFIX + " | AUTH IN PROGRESS CACHE CHECK PERIOD: " + authInProgressTwitterUserCacheCheckPeriod + " SECONDS");
+console.log(MODULE_ID + " | AUTH IN PROGRESS CACHE CHECK PERIOD: " + authInProgressTwitterUserCacheCheckPeriod + " SECONDS");
 
 const authInProgressTwitterUserCache = new NodeCache({
   stdTTL: authInProgressTwitterUserCacheTtl,
@@ -2228,7 +2228,7 @@ const authInProgressTwitterUserCache = new NodeCache({
 
 authInProgressTwitterUserCache.on("expired", function(nodeId, userObj){
 
-  console.log(chalkInfo(MODULE_ID_PREFIX + " | XXX AUTH IN PROGRESS TWITTER USER CACHE EXPIRED"
+  console.log(chalkInfo(MODULE_ID + " | XXX AUTH IN PROGRESS TWITTER USER CACHE EXPIRED"
     + " [" + authInProgressTwitterUserCache.getStats().keys + " KEYS]"
     + " | TTL: " + authInProgressTwitterUserCacheTtl + " SECS"
     + " | NODE ID: " + nodeId
@@ -2241,11 +2241,11 @@ authInProgressTwitterUserCache.on("expired", function(nodeId, userObj){
 // ==================================================================
 let nodeCacheTtl = process.env.NODE_CACHE_DEFAULT_TTL;
 if (empty(nodeCacheTtl)) { nodeCacheTtl = NODE_CACHE_DEFAULT_TTL; }
-console.log(MODULE_ID_PREFIX + " | NODE CACHE TTL: " + nodeCacheTtl + " SECONDS");
+console.log(MODULE_ID + " | NODE CACHE TTL: " + nodeCacheTtl + " SECONDS");
 
 let nodeCacheCheckPeriod = process.env.NODE_CACHE_CHECK_PERIOD;
 if (empty(nodeCacheCheckPeriod)) { nodeCacheCheckPeriod = NODE_CACHE_CHECK_PERIOD; }
-console.log(MODULE_ID_PREFIX + " | NODE CACHE CHECK PERIOD: " + nodeCacheCheckPeriod + " SECONDS");
+console.log(MODULE_ID + " | NODE CACHE CHECK PERIOD: " + nodeCacheCheckPeriod + " SECONDS");
 
 const nodeCache = new NodeCache({
   stdTTL: nodeCacheTtl,
@@ -2269,7 +2269,7 @@ function nodeCacheExpired(nodeObj, callback) {
     if (statsObj.nodeMeterEntries > statsObj.nodeMeterEntriesMax) {
       statsObj.nodeMeterEntriesMax = statsObj.nodeMeterEntries;
       statsObj.nodeMeterEntriesMaxTime = moment().valueOf();
-      console.log(chalkLog(MODULE_ID_PREFIX + " | NEW MAX NODE METER ENTRIES"
+      console.log(chalkLog(MODULE_ID + " | NEW MAX NODE METER ENTRIES"
         + " | " + getTimeStamp()
         + " | " + statsObj.nodeMeterEntries.toFixed(0)
       ));
@@ -2312,13 +2312,13 @@ const nodeCacheDeleteQueueInterval = setInterval(function(){
 
 let nodesPerMinuteTopTermTtl = process.env.TOPTERMS_CACHE_DEFAULT_TTL;
 if (empty(nodesPerMinuteTopTermTtl)) { nodesPerMinuteTopTermTtl = TOPTERMS_CACHE_DEFAULT_TTL; }
-console.log(MODULE_ID_PREFIX + " | TOP TERMS WPM CACHE TTL: " + nodesPerMinuteTopTermTtl + " SECONDS");
+console.log(MODULE_ID + " | TOP TERMS WPM CACHE TTL: " + nodesPerMinuteTopTermTtl + " SECONDS");
 
 let nodesPerMinuteTopTermCheckPeriod = process.env.TOPTERMS_CACHE_CHECK_PERIOD;
 if (empty(nodesPerMinuteTopTermCheckPeriod)) {
   nodesPerMinuteTopTermCheckPeriod = TOPTERMS_CACHE_CHECK_PERIOD;
 }
-console.log(MODULE_ID_PREFIX + " | TOP TERMS WPM CACHE CHECK PERIOD: " + nodesPerMinuteTopTermCheckPeriod + " SECONDS");
+console.log(MODULE_ID + " | TOP TERMS WPM CACHE CHECK PERIOD: " + nodesPerMinuteTopTermCheckPeriod + " SECONDS");
 
 const nodesPerMinuteTopTermCache = new NodeCache({
   stdTTL: nodesPerMinuteTopTermTtl,
@@ -2391,7 +2391,7 @@ let tweetParserReady = false;
 
 function initStats(callback){
 
-  console.log(chalk.bold.black(MODULE_ID_PREFIX + " | INIT STATS"));
+  console.log(chalk.bold.black(MODULE_ID + " | INIT STATS"));
 
   statsObj.ioReady = false;
   statsObj.internetReady = false;
@@ -2625,10 +2625,10 @@ function showStats(options){
   }
 
   if (options) {
-    console.log(chalkLog(MODULE_ID_PREFIX + " | STATS\n" + jsonPrint(statsObj)));
+    console.log(chalkLog(MODULE_ID + " | STATS\n" + jsonPrint(statsObj)));
   }
 
-  console.log(chalkLog(MODULE_ID_PREFIX + " | S"
+  console.log(chalkLog(MODULE_ID + " | S"
     + " | " + getTimeStamp()
     + " | E " + statsObj.elapsed
     + " | S " + getTimeStamp(parseInt(statsObj.startTime))
@@ -2658,7 +2658,7 @@ function loadCommandLineArgs(){
 
     async.each(commandLineConfigKeys, function(arg, cb){
       configuration[arg] = commandLineConfig[arg];
-      console.log(MODULE_ID_PREFIX + " | --> COMMAND LINE CONFIG | " + arg + ": " + configuration[arg]);
+      console.log(MODULE_ID + " | --> COMMAND LINE CONFIG | " + arg + ": " + configuration[arg]);
       cb();
     }, function(err){
 
@@ -2742,7 +2742,7 @@ function getChildProcesses(){
         // cool kid
         childPidArray.push({ pid: childPid, childId: childId});
 
-        debug(chalkInfo(MODULE_ID_PREFIX + " | FOUND CHILD"
+        debug(chalkInfo(MODULE_ID + " | FOUND CHILD"
           + " [ " + childPidArray.length + " CHILDREN ]"
           + " | ID: " + childId
           + " | PID: " + childPid
@@ -2761,7 +2761,7 @@ function getChildProcesses(){
           childrenHashMap[childId].status = "ZOMBIE";
         }
 
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | *** CHILD ZOMBIE"
+        console.log(chalkAlert(MODULE_ID + " | *** CHILD ZOMBIE"
           + " | STATUS: " + childrenHashMap[childId].status
           + " | TERMINATING ..."
         ));
@@ -2769,7 +2769,7 @@ function getChildProcesses(){
         kill(childPid, function(err){
 
           if (err) {
-            console.log(chalkError(MODULE_ID_PREFIX + " | *** KILL ZOMBIE ERROR: ", err));
+            console.log(chalkError(MODULE_ID + " | *** KILL ZOMBIE ERROR: ", err));
             return cb(err);
           }
 
@@ -2777,7 +2777,7 @@ function getChildProcesses(){
 
           shell.rm(childPidFileName);
 
-          console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX CHILD ZOMBIE"
+          console.log(chalkAlert(MODULE_ID + " | XXX CHILD ZOMBIE"
             + " [ " + childPidArray.length + " CHILDREN ]"
             + " | ID: " + childId
             + " | PID: " + childPid
@@ -2815,10 +2815,10 @@ async function killAll(){
 
         try{
           await killChild({pid: childObj.pid});
-          console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX KILL ALL | KILLED | PID: " + childObj.pid + " | CH ID: " + childObj.childId));
+          console.log(chalkAlert(MODULE_ID + " | XXX KILL ALL | KILLED | PID: " + childObj.pid + " | CH ID: " + childObj.childId));
         }
         catch(err){
-          console.log(chalkError(MODULE_ID_PREFIX + " | *** KILL CHILD ERROR"
+          console.log(chalkError(MODULE_ID + " | *** KILL CHILD ERROR"
             + " | PID: " + childObj.pid
             + " | ERROR: " + err
           ));
@@ -2829,12 +2829,12 @@ async function killAll(){
       return childPidArray;
     }
 
-    console.log(chalkBlue(MODULE_ID_PREFIX + " | XXX KILL ALL | NO CHILDREN"));
+    console.log(chalkBlue(MODULE_ID + " | XXX KILL ALL | NO CHILDREN"));
     return childPidArray;
 
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** killAll ERROR: " + err));
+    console.log(chalkError(MODULE_ID + " | *** killAll ERROR: " + err));
     throw err;
   }
 }
@@ -2855,7 +2855,7 @@ process.on("exit", async function processExit() {
     await killAll();
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** MAIN PROCESS EXIT ERROR: " + err));
+    console.log(chalkError(MODULE_ID + " | *** MAIN PROCESS EXIT ERROR: " + err));
   }
 });
 
@@ -2871,7 +2871,7 @@ process.on("message", async function processMessageRx(msg) {
       await tcUtils.saveFile({folder: statsHostFolder, statsFile: statsFile, obj: statsObj});
     }
     catch(err){
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** SAVE STATS ERROR: " + err));
+      console.log(chalkError(MODULE_ID + " | *** SAVE STATS ERROR: " + err));
     }
 
     setTimeout(async function quitTimeout() {
@@ -2884,7 +2884,7 @@ process.on("message", async function processMessageRx(msg) {
 
 configEvents.on("CHILD_ERROR", function childError(childObj){
 
-  console.log(chalkError(MODULE_ID_PREFIX + " | *** CHILD_ERROR"
+  console.log(chalkError(MODULE_ID + " | *** CHILD_ERROR"
     + " | " + childObj.childId
     + " | ERROR: " + jsonPrint(childObj.err)
   ));
@@ -2898,11 +2898,11 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
 
     case DEFAULT_DBU_CHILD_ID:
 
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** KILL DBU CHILD"));
+      console.log(chalkError(MODULE_ID + " | *** KILL DBU CHILD"));
 
       killChild({childId: DEFAULT_DBU_CHILD_ID}, function(err){
         if (err){
-          console.log(chalkError(MODULE_ID_PREFIX + " | *** KILL CHILD ERROR: " + err));
+          console.log(chalkError(MODULE_ID + " | *** KILL CHILD ERROR: " + err));
         }
         else {
           initDbuChild({childId: DEFAULT_DBU_CHILD_ID});
@@ -2913,11 +2913,11 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
 
     case DEFAULT_TSS_CHILD_ID:
 
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** KILL TSS CHILD"));
+      console.log(chalkError(MODULE_ID + " | *** KILL TSS CHILD"));
 
       killChild({childId: DEFAULT_TSS_CHILD_ID}, async function(err){
         if (err){
-          console.log(chalkError(MODULE_ID_PREFIX + " | *** KILL CHILD ERROR: " + err));
+          console.log(chalkError(MODULE_ID + " | *** KILL CHILD ERROR: " + err));
         }
         else {
           await initTssChild({
@@ -2932,11 +2932,11 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
 
     case DEFAULT_TWP_CHILD_ID:
 
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** KILL TWEET PARSER"));
+      console.log(chalkError(MODULE_ID + " | *** KILL TWEET PARSER"));
 
       killChild({childId: DEFAULT_TWP_CHILD_ID}, function(err){
         if (err){
-          console.log(chalkError(MODULE_ID_PREFIX + " | *** KILL CHILD ERROR: " + err));
+          console.log(chalkError(MODULE_ID + " | *** KILL CHILD ERROR: " + err));
         }
         else {
           initTweetParser({childId: DEFAULT_TWP_CHILD_ID});
@@ -2946,7 +2946,7 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
     break;
 
     default:
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** CHILD ERROR -- UNKNOWN CHILD ID: " + childObj.childId));
+      console.log(chalkError(MODULE_ID + " | *** CHILD ERROR -- UNKNOWN CHILD ID: " + childObj.childId));
 
   }
 });
@@ -2971,13 +2971,13 @@ configEvents.on("INTERNET_READY", function internetReady() {
 
       httpServer.on("disconnect", function serverDisconnect() {
         statsObj.internetReady = false;
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** PORT DISCONNECTED | " + getTimeStamp() 
+        console.log(chalkError(MODULE_ID + " | *** PORT DISCONNECTED | " + getTimeStamp() 
           + " | " + config.port));
       });
     });
 
     httpServer.listen(config.port, function serverListen() {
-      debug(chalkInfo(MODULE_ID_PREFIX + " | " + getTimeStamp() + " | LISTENING ON PORT " + config.port));
+      debug(chalkInfo(MODULE_ID + " | " + getTimeStamp() + " | LISTENING ON PORT " + config.port));
     });
 
     httpServer.on("error", function serverError(err) {
@@ -2985,11 +2985,11 @@ configEvents.on("INTERNET_READY", function internetReady() {
       statsObj.socket.errors.httpServer_errors += 1;
       statsObj.internetReady = false;
 
-      debug(chalkError(MODULE_ID_PREFIX + " | *** HTTP ERROR | " + getTimeStamp() + "\n" + err));
+      debug(chalkError(MODULE_ID + " | *** HTTP ERROR | " + getTimeStamp() + "\n" + err));
 
       if (err.code == "EADDRINUSE") {
 
-        debug(chalkError(MODULE_ID_PREFIX + " | *** HTTP ADDRESS IN USE: " + config.port + " ... RETRYING..."));
+        debug(chalkError(MODULE_ID + " | *** HTTP ADDRESS IN USE: " + config.port + " ... RETRYING..."));
 
         setTimeout(function serverErrorTimeout() {
           httpServer.listen(config.port, function serverErrorListen() {
@@ -3114,7 +3114,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
 configEvents.on("INTERNET_NOT_READY", function internetNotReady() {
   if (configuration.autoOfflineMode) {
     configuration.offlineMode = true;
-    console.log(chalkAlert(MODULE_ID_PREFIX + " | *** AUTO_OFFLINE_MODE ***"));
+    console.log(chalkAlert(MODULE_ID + " | *** AUTO_OFFLINE_MODE ***"));
   }
 });
 
@@ -3126,7 +3126,7 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
 
   statsObj.status = "DB_CONNECT";
 
-  console.log(chalk.green(MODULE_ID_PREFIX + " | >>> DB CONNECT EVENT"));
+  console.log(chalk.green(MODULE_ID + " | >>> DB CONNECT EVENT"));
 
   async.parallel({
 
@@ -3177,13 +3177,13 @@ configEvents.on("DB_CONNECT", function configEventDbConnect(){
   },
   function(err, results){
     if (err){
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR: LOAD CATEGORY HASHMAPS: " + err));
+      console.log(chalkError(MODULE_ID + " | *** ERROR: LOAD CATEGORY HASHMAPS: " + err));
       console.log(err);
     }
     else {
-      console.log(chalk.green(MODULE_ID_PREFIX + " | +++ MONGO DB CONNECTION READY"));
+      console.log(chalk.green(MODULE_ID + " | +++ MONGO DB CONNECTION READY"));
       if (configuration.verbose){
-        console.log(chalk.green(MODULE_ID_PREFIX + " | +++ MONGO DB CONNECTION RESULTS\n" + jsonPrint(results)));
+        console.log(chalk.green(MODULE_ID + " | +++ MONGO DB CONNECTION RESULTS\n" + jsonPrint(results)));
       }
       configEvents.emit("INIT_SETS_COMPLETE");
     }
@@ -3249,7 +3249,7 @@ async function updateTwitterWebhook(){
     } 
   };
 
-  console.log(chalkLog(MODULE_ID_PREFIX + " | UPDATE TWITTER WEBHOOK"
+  console.log(chalkLog(MODULE_ID + " | UPDATE TWITTER WEBHOOK"
     + " | fullWebhookUrl: " + fullWebhookUrl
   ));
   console.log(chalkLog("REQ OPTIONS\n" + jsonPrint(options)));
@@ -3257,13 +3257,13 @@ async function updateTwitterWebhook(){
   try{
     const body = await request(options);
 
-    console.log(chalkAlert(MODULE_ID_PREFIX + " | +++ TWITTER WEBHOOK UPDATED"
+    console.log(chalkAlert(MODULE_ID + " | +++ TWITTER WEBHOOK UPDATED"
       + "\nBODY: " + body
     ));
     return;
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER WEBHOOK ERROR"
+    console.log(chalkError(MODULE_ID + " | *** TWITTER WEBHOOK ERROR"
       + " | STATUS: " + err.statusCode
     ));
     console.log(err.error);
@@ -3285,7 +3285,7 @@ async function getTwitterWebhooks(){
     }    
   };
 
-  console.log(chalkLog(MODULE_ID_PREFIX + " | GET TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"
+  console.log(chalkLog(MODULE_ID + " | GET TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"
     + " | fullWebhookUrl: " + fullWebhookUrl
   ));
 
@@ -3297,7 +3297,7 @@ async function getTwitterWebhooks(){
 
     const bodyJson = JSON.parse(body);
 
-    console.log(chalkLog(MODULE_ID_PREFIX + " | GET TWITTER WEBHOOKS"));
+    console.log(chalkLog(MODULE_ID + " | GET TWITTER WEBHOOKS"));
 
     if (bodyJson.length > 0){
 
@@ -3306,7 +3306,7 @@ async function getTwitterWebhooks(){
         statsObj.twitterSubs[sub.id.toString()] = {};
         statsObj.twitterSubs[sub.id.toString()] = sub;
 
-        console.log(chalkLog(MODULE_ID_PREFIX + " | TWITTER WEBHOOK"
+        console.log(chalkLog(MODULE_ID + " | TWITTER WEBHOOK"
           + " | ID: " + sub.id
           + " | URL: " + sub.url
           + " | VALID: " + sub.valid
@@ -3315,7 +3315,7 @@ async function getTwitterWebhooks(){
 
         if (!sub.valid) {
 
-          console.log(chalkAlert(MODULE_ID_PREFIX + " | TWITTER WEBHOOK INVALID ... UPDATING ..."
+          console.log(chalkAlert(MODULE_ID + " | TWITTER WEBHOOK INVALID ... UPDATING ..."
             + " | ID: " + sub.id
             + " | URL: " + sub.url
             + " | VALID: " + sub.valid
@@ -3355,12 +3355,12 @@ async function getTwitterWebhooks(){
         if ((aaSubs.application_id == "15917082") && (aaSubs.subscriptions.length > 0)){
           statsObj.twitter.aaSubs = {};
           statsObj.twitter.aaSubs = aaSubs;
-          console.log(chalkTwitter(MODULE_ID_PREFIX + " | +++ TWITTER ACCOUNT ACTIVITY SUBSCRIPTIONS"
+          console.log(chalkTwitter(MODULE_ID + " | +++ TWITTER ACCOUNT ACTIVITY SUBSCRIPTIONS"
             + "\n" + jsonPrint(statsObj.twitter.aaSubs)
           ));
         }
         else {
-          console.log(chalkInfo(MODULE_ID_PREFIX + " | --- NO TWITTER ACCOUNT ACTIVITY SUBSCRIPTIONS"));
+          console.log(chalkInfo(MODULE_ID + " | --- NO TWITTER ACCOUNT ACTIVITY SUBSCRIPTIONS"));
         }
       }
 
@@ -3368,13 +3368,13 @@ async function getTwitterWebhooks(){
 
     }
     else {
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | ??? NO TWITTER WEBHOOKS"
+      console.log(chalkAlert(MODULE_ID + " | ??? NO TWITTER WEBHOOKS"
       ));
       return;
     }
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** GET TWITTER WEBHOOKS ERROR: " + err));
+    console.log(chalkError(MODULE_ID + " | *** GET TWITTER WEBHOOKS ERROR: " + err));
     throw err;
   }
 }
@@ -3385,18 +3385,18 @@ async function addTwitterAccountActivitySubscription(p){
 
   const params = p || {};
 
-  console.log(chalkTwitter(MODULE_ID_PREFIX + " | ... ADD ACCOUNT ACTIVITY SUBSCRIPTION | " + params.threeceeUser));
+  console.log(chalkTwitter(MODULE_ID + " | ... ADD ACCOUNT ACTIVITY SUBSCRIPTION | " + params.threeceeUser));
 
   params.threeceeUser = params.threeceeUser || "altthreecee00";
 
   if (!threeceeTwitter) {
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** ADD ACCOUNT ACTIVITY SUBSCRIPTION ERROR | UNDEFINED threeceeTwitter | " + params.threeceeUser));
+    console.log(chalkError(MODULE_ID + " | *** ADD ACCOUNT ACTIVITY SUBSCRIPTION ERROR | UNDEFINED threeceeTwitter | " + params.threeceeUser));
     console.log("threeceeTwitter\n" + jsonPrint(threeceeTwitter));
     throw new Error("threeceeUser twitter configuration undefined");
   }
 
   if (!threeceeTwitter.twitterConfig) {
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** ADD ACCOUNT ACTIVITY SUBSCRIPTION ERROR | UNDEFINED threeceeTwitter.twitterConfig | " + params.threeceeUser));
+    console.log(chalkError(MODULE_ID + " | *** ADD ACCOUNT ACTIVITY SUBSCRIPTION ERROR | UNDEFINED threeceeTwitter.twitterConfig | " + params.threeceeUser));
     throw new Error("threeceeUser twitter configuration undefined");
   }
 
@@ -3416,14 +3416,14 @@ async function addTwitterAccountActivitySubscription(p){
     } 
   };
 
-  console.log(chalkInfo(MODULE_ID_PREFIX + " | ADD TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"));
+  console.log(chalkInfo(MODULE_ID + " | ADD TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"));
   console.log(chalkLog("REQ OPTIONS\n" + jsonPrint(options)));
 
   try {
 
     const body = await request(options);
 
-    console.log(chalk.green(MODULE_ID_PREFIX + " | +++ ADDED TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"));
+    console.log(chalk.green(MODULE_ID + " | +++ ADDED TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"));
     console.log(body);
 
     return;
@@ -3435,10 +3435,10 @@ async function addTwitterAccountActivitySubscription(p){
     console.log()
 
     if (err.errors && ((err.errors.code == 355) || (err.StatusCodeError == 409))) {
-      console.log(chalkInfo(MODULE_ID_PREFIX + " | ... TWITTER ACCOUNT ACTIVITY SUBSCRIPTION ALREADY EXISTS"));
+      console.log(chalkInfo(MODULE_ID + " | ... TWITTER ACCOUNT ACTIVITY SUBSCRIPTION ALREADY EXISTS"));
       return;
     }
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** ADD TWITTER ACCOUNT ACTIVITY SUBSCRIPTION ERROR: ", err));
+    console.log(chalkError(MODULE_ID + " | *** ADD TWITTER ACCOUNT ACTIVITY SUBSCRIPTION ERROR: ", err));
 
     throw err;
   }
@@ -3481,7 +3481,7 @@ function socketRxTweet(tw) {
       saveSampleTweetFlag = false;
       const sampleTweetFileName = "sampleTweet_" + getTimeStamp() + ".json";
 
-      console.log(chalkLog(MODULE_ID_PREFIX + " | SAVING SAMPLE TWEET"
+      console.log(chalkLog(MODULE_ID + " | SAVING SAMPLE TWEET"
         + " [" + tweetsReceived + " RXd]"
         + " | " + getTimeStamp()
         + " | " + tw.id_str
@@ -3535,13 +3535,13 @@ async function deleteNode(node){
 
       statsObj.user.deleted += 1;
 
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX USER | -*- DB HIT"
+      console.log(chalkAlert(MODULE_ID + " | XXX USER | -*- DB HIT"
         + " [" + statsObj.user.deleted + " DELETED USERS]"
         + " | " + node.nodeId
       ));
     }
     else{
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX USER | --- DB MISS" 
+      console.log(chalkAlert(MODULE_ID + " | XXX USER | --- DB MISS" 
         + " | " + node.nodeId
       ));
     }
@@ -3555,13 +3555,13 @@ async function deleteNode(node){
 
       statsObj.hashtag.deleted += 1;
 
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX HASHTAG | -*- DB HIT"
+      console.log(chalkAlert(MODULE_ID + " | XXX HASHTAG | -*- DB HIT"
         + " [" + statsObj.hashtag.deleted + " DELETED HASHTAGS]"
         + " | " + node.nodeId
       ));
     }
     else{
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX HASHTAG | --- DB MISS" 
+      console.log(chalkAlert(MODULE_ID + " | XXX HASHTAG | --- DB MISS" 
         + " | " + node.nodeId
       ));
     }
@@ -3577,7 +3577,7 @@ async function pubSubNodeSetProps(params){
 
   try {
 
-    debug(chalkBlue(MODULE_ID_PREFIX
+    debug(chalkBlue(MODULE_ID
       + " | NODE SET PROPS [" + statsObj.pubSub.messagesSent + "]"
       + " | " + params.requestId
       + " | TOPIC: node-setprops"
@@ -3598,7 +3598,7 @@ async function pubSubNodeSetProps(params){
 
     nodeSetPropsResultTimeout = setTimeout(function(){
 
-      console.log(chalkAlert(MODULE_ID_PREFIX
+      console.log(chalkAlert(MODULE_ID
         + " | !!! NODE SET PROPS TIMEOUT"
         + " | " + tcUtils.msToTime(configuration.pubSub.pubSubResultTimeout)
         + " [" + statsObj.pubSub.messagesSent + "]"
@@ -3669,7 +3669,7 @@ async function pubSubNodeSetProps(params){
     }
 
     if (!node){
-      console.log(chalkAlert(MODULE_ID_PREFIX
+      console.log(chalkAlert(MODULE_ID
         + " | !!! NODE SET PROP NODE NOT FOUND"
         + " | " + params.requestId
         + " | TYPE: " + params.node.nodeType
@@ -3690,7 +3690,7 @@ async function pubSubNodeSetProps(params){
       case 34:
       case 50:
         errorType = "USER_NOT_FOUND";
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER USER NOT FOUND"
+        console.log(chalkError(MODULE_ID + " | *** TWITTER USER NOT FOUND"
           + " | " + getTimeStamp() 
           + " | ERR CODE: " + errCode 
           + " | ERR TYPE: " + errorType
@@ -3702,7 +3702,7 @@ async function pubSubNodeSetProps(params){
 
       case 63:
         errorType = "USER_SUSPENDED";
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER USER SUSPENDED"
+        console.log(chalkError(MODULE_ID + " | *** TWITTER USER SUSPENDED"
           + " | " + getTimeStamp() 
           + " | ERR CODE: " + errCode 
           + " | ERR TYPE: " + errorType
@@ -3714,7 +3714,7 @@ async function pubSubNodeSetProps(params){
 
       case 11000:
         errorType = "USER_DUPLICATE_KEY";
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** DB USER_DUPLICATE_KEY ERROR"
+        console.log(chalkError(MODULE_ID + " | *** DB USER_DUPLICATE_KEY ERROR"
           + " | " + getTimeStamp() 
           + " | ERR CODE: " + errCode 
           + " | ERR TYPE: " + errorType
@@ -3725,7 +3725,7 @@ async function pubSubNodeSetProps(params){
         return;
 
       default:
-        console.log(chalkError(MODULE_ID_PREFIX 
+        console.log(chalkError(MODULE_ID 
           + " | *** TWITTER SEARCH NODE USER ERROR | SEARCH CAT AUTO: " + params.categoryAuto
           + " | ERR CODE: " + errCode
           + "\nsearchQuery\n" + jsonPrint(params.node)
@@ -3741,7 +3741,7 @@ async function nodeSetProps(params) {
 
   const requestId = "rId_" + hostname + "_" + moment().valueOf();
 
-  debug(chalk.blue(MODULE_ID_PREFIX 
+  debug(chalk.blue(MODULE_ID 
     + " | NODE SET PROPS"
     + " | " + requestId
     + " | TYPE: " + params.node.nodeType
@@ -3763,7 +3763,7 @@ async function updateDbIgnoredHashtags(){
 
   statsObj.status = "UPDATE IGNORED HASHTAGS IN DB";
 
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | UPDATE IGNORED HASHTAGS DB" 
+  console.log(chalkBlue(MODULE_ID + " | UPDATE IGNORED HASHTAGS DB" 
   ));
 
   [...ignoredHashtagSet].forEach(async function(hashtag){
@@ -3773,7 +3773,7 @@ async function updateDbIgnoredHashtags(){
       const dbHashtag = await global.wordAssoDb.Hashtag.findOne({nodeId: hashtag.toLowerCase()});
 
       if (!empty(dbHashtag)) {
-        console.log(chalkLog(MODULE_ID_PREFIX + " | FOUND IGNORED HASHTAG"
+        console.log(chalkLog(MODULE_ID + " | FOUND IGNORED HASHTAG"
           + " [" + ignoredHashtagSet.size + "]"
           + " | " + printHashtag({hashtag: dbHashtag})
         ));
@@ -3782,7 +3782,7 @@ async function updateDbIgnoredHashtags(){
 
         const dbUpdatedHashtag = await dbHashtag.save();
 
-        console.log(chalkLog(MODULE_ID_PREFIX + " | XXX IGNORE"
+        console.log(chalkLog(MODULE_ID + " | XXX IGNORE"
           + " [" + ignoredHashtagSet.size + "]"
           + " | " + printHashtag({hashtag: dbUpdatedHashtag})
         ));
@@ -3790,7 +3790,7 @@ async function updateDbIgnoredHashtags(){
       }
     }
     catch(err){
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** UPDATE IGNORED HASHTAG DB ERROR: " + err));
+      console.log(chalkError(MODULE_ID + " | *** UPDATE IGNORED HASHTAG DB ERROR: " + err));
       return err;
     }
 
@@ -3803,7 +3803,7 @@ async function initIgnoredHashtagSet(){
 
   statsObj.status = "INIT IGNORE HASHTAG SET";
 
-  console.log(chalkLog(MODULE_ID_PREFIX + " | ... INIT IGNORE HASHTAG SET"));
+  console.log(chalkLog(MODULE_ID + " | ... INIT IGNORE HASHTAG SET"));
 
   try{
 
@@ -3820,7 +3820,7 @@ async function initIgnoredHashtagSet(){
       await updateDbIgnoredHashtags();
     }
 
-    console.log(chalkLog(MODULE_ID_PREFIX + " | LOADED IGNORED HASHTAGS FILE"
+    console.log(chalkLog(MODULE_ID + " | LOADED IGNORED HASHTAGS FILE"
       + " | " + ignoredHashtagSet.size + " HASHTAGS"
       + " | " + configDefaultFolder + "/" + ignoredHashtagFile
     ));
@@ -3829,7 +3829,7 @@ async function initIgnoredHashtagSet(){
 
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD IGNORED HASHTAGS ERROR: " + err));
+    console.log(chalkError(MODULE_ID + " | *** LOAD IGNORED HASHTAGS ERROR: " + err));
     throw err;
   }
 }
@@ -3838,7 +3838,7 @@ async function initFollowableSearchTermSet(){
 
   statsObj.status = "INIT FOLLOWABLE SEARCH TERM SET";
 
-  console.log(chalkBlue(MODULE_ID_PREFIX 
+  console.log(chalkBlue(MODULE_ID 
     + " | INIT FOLLOWABLE SEARCH TERM SET: " + configDefaultFolder 
     + "/" + followableSearchTermFile
   ));
@@ -3858,7 +3858,7 @@ async function initFollowableSearchTermSet(){
       followableSearchTermsArray = [...followableSearchTermSet];
     }
 
-    console.log(chalkLog(MODULE_ID_PREFIX + " | LOADED FOLLOWABLE SEARCH TERMS FILE"
+    console.log(chalkLog(MODULE_ID + " | LOADED FOLLOWABLE SEARCH TERMS FILE"
       + " | " + followableSearchTermSet.size + " SEARCH TERMS"
       + " | " + configDefaultFolder + "/" + followableSearchTermFile
     ));
@@ -3866,7 +3866,7 @@ async function initFollowableSearchTermSet(){
     return;
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT FOLLOWABLE SEARCH TERM SET ERROR: " + err));
+    console.log(chalkError(MODULE_ID + " | *** INIT FOLLOWABLE SEARCH TERM SET ERROR: " + err));
     throw err;
   }
 }
@@ -3875,7 +3875,7 @@ async function initIgnoredUserSet(){
 
   statsObj.status = "INIT IGNORED USER SET";
 
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | INIT IGNORED USER SET: " + configDefaultFolder 
+  console.log(chalkBlue(MODULE_ID + " | INIT IGNORED USER SET: " + configDefaultFolder 
     + "/" + ignoredUserFile
   ));
 
@@ -3894,7 +3894,7 @@ async function initIgnoredUserSet(){
       ignoredUserSet.delete(" ");
     }
 
-    console.log(chalkLog(MODULE_ID_PREFIX + " | LOADED IGNORED USERS FILE"
+    console.log(chalkLog(MODULE_ID + " | LOADED IGNORED USERS FILE"
       + " | " + ignoredUserSet.size + " USERS"
       + " | " + configDefaultFolder + "/" + ignoredUserFile
     ));
@@ -3902,7 +3902,7 @@ async function initIgnoredUserSet(){
     return;
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT IGNORED USERS SET ERROR: " + err));
+    console.log(chalkError(MODULE_ID + " | *** INIT IGNORED USERS SET ERROR: " + err));
     throw err;
   }
 }
@@ -3935,11 +3935,11 @@ async function pubSubSearchNode(params){
         nodeName = "#" + params.node.nodeId;
       break;
       default:
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** pubSubSearchNode UNKNOWN NODE TYPE: " + params.node.nodeType));
+        console.log(chalkError(MODULE_ID + " | *** pubSubSearchNode UNKNOWN NODE TYPE: " + params.node.nodeType));
         throw new Error("pubSubSearchNode UNKNOWN NODE TYPE: " + params.node.nodeType);
     }
 
-    console.log(chalkBlue(MODULE_ID_PREFIX
+    console.log(chalkBlue(MODULE_ID
       + " | PS SEARCH NODE [" + statsObj.pubSub.messagesSent + "]"
       + " | TYPE: " + params.node.nodeType
       + " | " + params.requestId
@@ -3960,7 +3960,7 @@ async function pubSubSearchNode(params){
 
     twitterSearchNodeTimeout = setTimeout(function(){
 
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! NODE SEARCH TIMEOUT"
+      console.log(chalkAlert(MODULE_ID + " | !!! NODE SEARCH TIMEOUT"
         + "\nPARAMS\n" + jsonPrint(params) 
       ));
 
@@ -3978,7 +3978,7 @@ async function pubSubSearchNode(params){
     const node = searchNodeResultHashMap[params.requestId] || false;
 
     if (!node){
-      console.log(chalkAlert(MODULE_ID_PREFIX
+      console.log(chalkAlert(MODULE_ID
         + " | !!! " + params.node.nodeType + " NOT FOUND\n"
         + jsonPrint(params)
       ));
@@ -4032,7 +4032,7 @@ async function pubSubSearchNode(params){
         case 34:
         case 50:
           errorType = "USER_NOT_FOUND";
-          console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER USER NOT FOUND"
+          console.log(chalkError(MODULE_ID + " | *** TWITTER USER NOT FOUND"
             + " | " + getTimeStamp() 
             + " | ERR CODE: " + errCode 
             + " | ERR TYPE: " + errorType
@@ -4044,7 +4044,7 @@ async function pubSubSearchNode(params){
 
         case 63:
           errorType = "USER_SUSPENDED";
-          console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER USER SUSPENDED"
+          console.log(chalkError(MODULE_ID + " | *** TWITTER USER SUSPENDED"
             + " | " + getTimeStamp() 
             + " | ERR CODE: " + errCode 
             + " | ERR TYPE: " + errorType
@@ -4055,7 +4055,7 @@ async function pubSubSearchNode(params){
         break;
 
         default:
-          console.log(chalkError(MODULE_ID_PREFIX 
+          console.log(chalkError(MODULE_ID 
             + " | *** TWITTER SEARCH NODE USER ERROR | SEARCH CAT AUTO: " + params.categoryAuto
             + " | ERR CODE: " + errCode
             + "\nsearchQuery\n" + jsonPrint(params.node)
@@ -4075,7 +4075,7 @@ async function pubSubSearchNode(params){
 async function twitterSearchUser(params) {
 
   if (typeof params.node === "string"){
-    console.log(chalkInfo(MODULE_ID_PREFIX 
+    console.log(chalkInfo(MODULE_ID 
       + " | -?- USER SEARCH | USER: " + params.node
     ));
   }
@@ -4083,7 +4083,7 @@ async function twitterSearchUser(params) {
 
     const node = await global.wordAssoDb.User.findOne({screenName: "threecee"}).lean();
 
-    console.log(chalkBlueBold(MODULE_ID_PREFIX 
+    console.log(chalkBlueBold(MODULE_ID 
       + " | ### USER SEARCH - @threecee | NID: " + params.node.nodeId + " | @" + params.node.screenName
     ));
 
@@ -4091,7 +4091,7 @@ async function twitterSearchUser(params) {
 
   }
   else{
-    console.log(chalkInfo(MODULE_ID_PREFIX 
+    console.log(chalkInfo(MODULE_ID 
       + " | -?- USER SEARCH | NID: " + params.node.nodeId + " | @" + params.node.screenName
     ));
   }
@@ -4137,7 +4137,7 @@ async function twitterSearchUser(params) {
     return { node: node, categoryAuto: message.categoryAuto, stats: statsObj.user };
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX
+    console.log(chalkError(MODULE_ID
       + " | *** TWITTER_SEARCH_NODE ERROR"
       + " | " + getTimeStamp()
       + " | SEARCH USER"
@@ -4157,12 +4157,12 @@ async function twitterSearchUser(params) {
 async function twitterSearchHashtag(params) {
 
   if (typeof params.node === "string"){
-    console.log(chalkInfo(MODULE_ID_PREFIX 
+    console.log(chalkInfo(MODULE_ID 
       + " | -?- HASHTAG SEARCH | HASHTAG: " + params.node
     ));
   }
   else{
-    console.log(chalkInfo(MODULE_ID_PREFIX 
+    console.log(chalkInfo(MODULE_ID 
       + " | -?- HASHTAG SEARCH | NID: #" + params.node.nodeId
     ));
   }
@@ -4181,7 +4181,7 @@ async function twitterSearchHashtag(params) {
     return { node: node, categoryAuto: message.categoryAuto, stats: statsObj.hashtag };
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX
+    console.log(chalkError(MODULE_ID
       + " | *** TWITTER_SEARCH_NODE ERROR"
       + " | " + getTimeStamp()
       + " | SEARCH USER"
@@ -4203,7 +4203,7 @@ async function twitterSearchNode(params) {
 
   const searchNode = params.searchNode.toLowerCase().trim();
 
-  console.log(chalkSocket(MODULE_ID_PREFIX
+  console.log(chalkSocket(MODULE_ID
     + " | twitterSearchNode"
     + " | " + getTimeStamp()
     + " | " + searchNode
@@ -4267,10 +4267,10 @@ async function initSocketHandler(socketObj) {
       domainName = await dnsReverse({ipAddress: ipAddress});
     }
     catch(err){
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** initAppRouting DNS ERROR: " + err));
+      console.log(chalkError(MODULE_ID + " | *** initAppRouting DNS ERROR: " + err));
     }
 
-    console.log(chalk.blue(MODULE_ID_PREFIX + " | SOCKET CONNECT"
+    console.log(chalk.blue(MODULE_ID + " | SOCKET CONNECT"
       + " | " + ipAddress
       + " | DOMAIN: " + domainName
       + " | " + socketObj.namespace
@@ -4349,7 +4349,7 @@ async function initSocketHandler(socketObj) {
         currentServer.ip = ipAddress;
         currentServer.status = "ERROR";
 
-        console.log(chalkError(MODULE_ID_PREFIX + " | SERVER ERROR" 
+        console.log(chalkError(MODULE_ID + " | SERVER ERROR" 
           + " | " + getTimeStamp(currentServer.timeStamp)
           + " | " + currentServer.user.type.toUpperCase()
           + " | " + currentServer.user.nodeId
@@ -4371,7 +4371,7 @@ async function initSocketHandler(socketObj) {
         currentViewer.ip = ipAddress;
         currentViewer.status = "ERROR";
 
-        console.log(chalkError(MODULE_ID_PREFIX + " | VIEWER ERROR" 
+        console.log(chalkError(MODULE_ID + " | VIEWER ERROR" 
           + " | " + getTimeStamp(currentViewer.timeStamp)
           + " | " + currentViewer.user.type.toUpperCase()
           + " | " + currentViewer.user.nodeId
@@ -4400,13 +4400,13 @@ async function initSocketHandler(socketObj) {
 
       statsObj.socket.disconnects += 1;
 
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX SOCKET DISCONNECT"
+      console.log(chalkAlert(MODULE_ID + " | XXX SOCKET DISCONNECT"
         + " | " + socketId
         + " | REASON: " + reason
       ));
 
       if (adminHashMap.has(socketId)) { 
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX DELETED ADMIN" 
+        console.log(chalkAlert(MODULE_ID + " | XXX DELETED ADMIN" 
           + " | " + getTimeStamp(timeStamp)
           + " | " + adminHashMap.get(socketId).user.type.toUpperCase()
           + " | " + adminHashMap.get(socketId).user.nodeId
@@ -4422,7 +4422,7 @@ async function initSocketHandler(socketObj) {
 
         currentServer.status = "DISCONNECTED";
 
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX SERVER DISCONNECTED" 
+        console.log(chalkAlert(MODULE_ID + " | XXX SERVER DISCONNECTED" 
           + " | " + getTimeStamp(timeStamp)
           + " | " + currentServer.user.type.toUpperCase()
           + " | " + currentServer.user.nodeId
@@ -4440,13 +4440,13 @@ async function initSocketHandler(socketObj) {
         viewerCache.del(socketId, function(err){
 
           if (err) { 
-            console.log(chalkError(MODULE_ID_PREFIX + " | VIEWER CA ENTRY DELETE ERROR"
+            console.log(chalkError(MODULE_ID + " | VIEWER CA ENTRY DELETE ERROR"
               + " | " + err
               + " | " + err
             ));
           }
 
-          console.log(chalkAlert(MODULE_ID_PREFIX + " | -X- VIEWER DISCONNECTED" 
+          console.log(chalkAlert(MODULE_ID + " | -X- VIEWER DISCONNECTED" 
             + " | " + getTimeStamp(currentViewer.timeStamp)
             + " | " + currentViewer.user.type.toUpperCase()
             + " | " + currentViewer.user.nodeId
@@ -4464,7 +4464,7 @@ async function initSocketHandler(socketObj) {
       const timeStamp = moment().valueOf();
 
       if (empty(keepAliveObj.user)) {
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | SESSION_KEEPALIVE USER UNDEFINED ??"
+        console.log(chalkAlert(MODULE_ID + " | SESSION_KEEPALIVE USER UNDEFINED ??"
           + " | NSP: " + socket.nsp.name.toUpperCase()
           + " | " + socket.id
           + " | " + ipAddress
@@ -4478,7 +4478,7 @@ async function initSocketHandler(socketObj) {
       if (authSocketObj !== undefined) {
 
         if (configuration.verbose) {
-          console.log(chalkLog(MODULE_ID_PREFIX + " | ... KEEPALIVE AUTHENTICATED SOCKET"
+          console.log(chalkLog(MODULE_ID + " | ... KEEPALIVE AUTHENTICATED SOCKET"
             + " | " + socket.id
             + " | NSP: " + authSocketObj.namespace.toUpperCase()
             + " | USER ID: " + authSocketObj.userId
@@ -4491,7 +4491,7 @@ async function initSocketHandler(socketObj) {
         authenticatedSocketCache.set(socket.id, authSocketObj);
       }
       else {
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | *** KEEPALIVE UNAUTHENTICATED SOCKET | DISCONNECTING..."
+        console.log(chalkAlert(MODULE_ID + " | *** KEEPALIVE UNAUTHENTICATED SOCKET | DISCONNECTING..."
           + " | " + socket.id
           + " | NSP: " + socket.nsp.name.toUpperCase()
           + " | " + keepAliveObj.user.userId
@@ -4518,7 +4518,7 @@ async function initSocketHandler(socketObj) {
 
         case "ADMIN" :
 
-          console.log(chalkInfo(MODULE_ID_PREFIX + " | R< KA"
+          console.log(chalkInfo(MODULE_ID + " | R< KA"
             + " | " + "ADMIN" 
             + " | " + getTimeStamp(timeStamp)
             + " | " + keepAliveObj.user.userId
@@ -4570,7 +4570,7 @@ async function initSocketHandler(socketObj) {
         case "LA" :
         case "TMP" :
 
-          console.log(chalkInfo(MODULE_ID_PREFIX + " | R< KA"
+          console.log(chalkInfo(MODULE_ID + " | R< KA"
             + " | " + currentSessionType + " SERVER" 
             + " | " + getTimeStamp(timeStamp)
             + " | " + keepAliveObj.user.userId
@@ -4624,7 +4624,7 @@ async function initSocketHandler(socketObj) {
 
         case "VIEWER" :
 
-          console.log(chalkInfo(MODULE_ID_PREFIX + " | R< KA"
+          console.log(chalkInfo(MODULE_ID + " | R< KA"
             + " | " + "VIEWER"
             + " | " + getTimeStamp(timeStamp)
             + " | " + keepAliveObj.user.userId
@@ -4677,7 +4677,7 @@ async function initSocketHandler(socketObj) {
         break;
 
         default:
-          console.log(chalkAlert(MODULE_ID_PREFIX + " | **** NOT SERVER ****"
+          console.log(chalkAlert(MODULE_ID + " | **** NOT SERVER ****"
             + " | SESSION TYPE: " + currentSessionType
             + "\n" + jsonPrint(keepAliveObj.user)
           ));
@@ -4687,13 +4687,13 @@ async function initSocketHandler(socketObj) {
     socket.on("TWITTER_FOLLOW", async function(user) {
 
       if (empty(user)) {
-        console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_FOLLOW ERROR: NULL USER"));
+        console.log(chalkError(MODULE_ID + " | TWITTER_FOLLOW ERROR: NULL USER"));
         return;
       }
 
       user.nodeType = "user";
 
-      console.log(chalkSocket(MODULE_ID_PREFIX
+      console.log(chalkSocket(MODULE_ID
         + " | R< TWITTER_FOLLOW"
         + " | " + getTimeStamp()
         + " | " + ipAddress
@@ -4722,13 +4722,13 @@ async function initSocketHandler(socketObj) {
 
       }
       catch(err) {
-        console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_FOLLOW ERROR: " + err));
+        console.log(chalkError(MODULE_ID + " | TWITTER_FOLLOW ERROR: " + err));
       }
     });
 
     socket.on("TWITTER_UNFOLLOW", async function(user) {
       user.nodeType = user.nodeType || "user";
-      console.log(chalkSocket(MODULE_ID_PREFIX
+      console.log(chalkSocket(MODULE_ID
         + " | R< TWITTER_UNFOLLOW"
         + " | " + getTimeStamp()
         + " | " + ipAddress
@@ -4753,7 +4753,7 @@ async function initSocketHandler(socketObj) {
         }
       }
       catch(err) {
-        console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_FOLLOW ERROR: " + err));
+        console.log(chalkError(MODULE_ID + " | TWITTER_FOLLOW ERROR: " + err));
       }
     });
 
@@ -4761,7 +4761,7 @@ async function initSocketHandler(socketObj) {
 
       user.nodeType = user.nodeType || "user";
 
-      console.log(chalkSocket(MODULE_ID_PREFIX
+      console.log(chalkSocket(MODULE_ID
         + " | R< TWITTER_CATEGORY_VERIFIED"
         + " | " + getTimeStamp()
         + " | " + ipAddress
@@ -4786,13 +4786,13 @@ async function initSocketHandler(socketObj) {
         }
       }
       catch(err){
-        console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
+        console.log(chalkError(MODULE_ID + " | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
       }
     });
 
     socket.on("TWITTER_CATEGORY_UNVERIFIED", async function(user) {
       user.nodeType = user.nodeType || "user";
-      console.log(chalkSocket(MODULE_ID_PREFIX
+      console.log(chalkSocket(MODULE_ID
         + " | R< TWITTER_CATEGORY_UNVERIFIED"
         + " | " + getTimeStamp()
         + " | " + ipAddress
@@ -4806,7 +4806,7 @@ async function initSocketHandler(socketObj) {
         socket.emit("SET_TWITTER_USER", {node: node, stats: statsObj.user });
       }
       catch(err){
-        console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
+        console.log(chalkError(MODULE_ID + " | TWITTER_CATEGORY_VERIFIED ERROR: " + err));
       }
     });
 
@@ -4815,7 +4815,7 @@ async function initSocketHandler(socketObj) {
       user.nodeType = user.nodeType || "user";
 
       try{
-        console.log(chalkSocket(MODULE_ID_PREFIX
+        console.log(chalkSocket(MODULE_ID
           + " | R< TWITTER_IGNORE"
           + " | " + getTimeStamp()
           + " | " + ipAddress
@@ -4830,14 +4830,14 @@ async function initSocketHandler(socketObj) {
         await deleteNode(user);
       }
       catch(err){
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** IGNORE USER ERROR: " + err));
+        console.log(chalkError(MODULE_ID + " | *** IGNORE USER ERROR: " + err));
       }
     });
 
     socket.on("TWITTER_UNIGNORE", async function(user) {
       user.nodeType = user.nodeType || "user";
       try{
-        console.log(chalkSocket(MODULE_ID_PREFIX
+        console.log(chalkSocket(MODULE_ID
           + " | R< TWITTER_UNIGNORE"
           + " | " + getTimeStamp()
           + " | " + ipAddress
@@ -4851,14 +4851,14 @@ async function initSocketHandler(socketObj) {
         await nodeSetProps({ node: user, props: { ignored: false } });
       }
       catch(err){
-        console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_UNIGNORE ERROR: " + err));
+        console.log(chalkError(MODULE_ID + " | TWITTER_UNIGNORE ERROR: " + err));
       }
     });
 
     socket.on("TWITTER_BOT", async function(user) {
       user.nodeType = user.nodeType || "user";
       try{
-        console.log(chalkSocket(MODULE_ID_PREFIX
+        console.log(chalkSocket(MODULE_ID
           + " | R< TWITTER_BOT"
           + " | " + getTimeStamp()
           + " | " + ipAddress
@@ -4872,14 +4872,14 @@ async function initSocketHandler(socketObj) {
 
       }
       catch(err){
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** BOT USER ERROR: " + err));
+        console.log(chalkError(MODULE_ID + " | *** BOT USER ERROR: " + err));
       }
     });
 
     socket.on("TWITTER_UNBOT", async function(user) {
       user.nodeType = user.nodeType || "user";
       try{
-        console.log(chalkSocket(MODULE_ID_PREFIX
+        console.log(chalkSocket(MODULE_ID
           + " | R< TWITTER_UNBOT"
           + " | " + getTimeStamp()
           + " | " + ipAddress
@@ -4892,13 +4892,13 @@ async function initSocketHandler(socketObj) {
         await nodeSetProps({ node: user, props: { isBot: false } });
       }
       catch(err){
-        console.log(chalkError(MODULE_ID_PREFIX + " | TWITTER_UNBOT ERROR: " + err));
+        console.log(chalkError(MODULE_ID + " | TWITTER_UNBOT ERROR: " + err));
       }
     });
 
     socket.on("TWITTER_SEARCH_NODE", async function (sn) {
 
-      console.log(chalkSocket(MODULE_ID_PREFIX
+      console.log(chalkSocket(MODULE_ID
         + " | R< TWITTER_SEARCH_NODE"
         + " | " + getTimeStamp()
         + " | " + ipAddress
@@ -4928,7 +4928,7 @@ async function initSocketHandler(socketObj) {
 
           if (node.nodeType === "user") {
 
-            console.log(chalkSocket(MODULE_ID_PREFIX
+            console.log(chalkSocket(MODULE_ID
               + " | R< TWITTER_CATEGORIZE_NODE"
               + " | " + getTimeStamp()
               + " | " + ipAddress
@@ -4947,7 +4947,7 @@ async function initSocketHandler(socketObj) {
         }
       }
       catch(err){
-        console.log(chalkError(MODULE_ID_PREFIX
+        console.log(chalkError(MODULE_ID
           + " | *** TWITTER_CATEGORIZE_NODE ERROR"
           + " | TYPE: " + catNodeObj.node.nodeType
           + " | NID: " + catNodeObj.node.nodeId
@@ -4959,7 +4959,7 @@ async function initSocketHandler(socketObj) {
 
     socket.on("USER_READY", function userReady(userObj) {
 
-      console.log(chalkSocket(MODULE_ID_PREFIX
+      console.log(chalkSocket(MODULE_ID
         + " | R< USER READY"
         + " | " + getTimeStamp()
         + " | " + ipAddress
@@ -4970,10 +4970,10 @@ async function initSocketHandler(socketObj) {
 
       socket.emit("USER_READY_ACK", { userId: userObj.userId, timeStamp: moment().valueOf() }, function(err){
         if (err) {
-          console.log(chalkError(MODULE_ID_PREFIX + " | *** USER_READY_ACK SEND ERROR | " + userObj.userId));
+          console.log(chalkError(MODULE_ID + " | *** USER_READY_ACK SEND ERROR | " + userObj.userId));
         }
         else {
-          console.log(chalkError(MODULE_ID_PREFIX + " | TXD> USER_READY_ACK | " + userObj.userId));
+          console.log(chalkError(MODULE_ID + " | TXD> USER_READY_ACK | " + userObj.userId));
         }
       });
     });
@@ -4982,7 +4982,7 @@ async function initSocketHandler(socketObj) {
 
       const timeStamp = moment().valueOf();
 
-      console.log(chalkSocket(MODULE_ID_PREFIX
+      console.log(chalkSocket(MODULE_ID
         + " | VIEWER READY"
         + " | " + getTimeStamp(timeStamp)
         + " | " + ipAddress
@@ -4992,7 +4992,7 @@ async function initSocketHandler(socketObj) {
       ));
 
       if (!userServerControllerReady || !statsObj.dbConnectionReady) {
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | *** NOT READY"
+        console.log(chalkAlert(MODULE_ID + " | *** NOT READY"
           + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
           + " | userServerControllerReady: " + userServerControllerReady
         ));
@@ -5021,7 +5021,7 @@ async function initSocketHandler(socketObj) {
 
         }
         catch(err){
-          console.log(chalkError(MODULE_ID_PREFIX
+          console.log(chalkError(MODULE_ID
             + " | *** ERROR | VIEWER READY FIND USER"
             + " | " + getTimeStamp(timeStamp)
             + " | " + ipAddress
@@ -5038,7 +5038,7 @@ async function initSocketHandler(socketObj) {
 
       viewerObj.timeStamp = moment().valueOf();
 
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | LOGIN"
+      console.log(chalkAlert(MODULE_ID + " | LOGIN"
         + " | " + socket.id
         + " | IP: " + ipAddress
         + " | DOMAIN: " + domainName
@@ -5069,7 +5069,7 @@ async function initSocketHandler(socketObj) {
         serverCache.set(socket.id, serverObj);
 
         if (configuration.verbose) {
-          console.log(chalkSocket(MODULE_ID_PREFIX + " | R< STATS | " + serverObj.user.userId));
+          console.log(chalkSocket(MODULE_ID + " | R< STATS | " + serverObj.user.userId));
         }
 
         adminNameSpace.emit("SERVER_STATS", serverObj);
@@ -5084,19 +5084,19 @@ async function initSocketHandler(socketObj) {
         viewerCache.set(socket.id, viewerObj);
 
         if (configuration.verbose) {
-          console.log(chalkSocket(MODULE_ID_PREFIX + " | R< STATS | " + viewerObj.user.userId));
+          console.log(chalkSocket(MODULE_ID + " | R< STATS | " + viewerObj.user.userId));
         }
 
         adminNameSpace.emit("SERVER_STATS", viewerObj);
       }
 
       if (configuration.verbose) {
-        console.log(chalkSocket(MODULE_ID_PREFIX + " | R< STATS | " + socket.id));
+        console.log(chalkSocket(MODULE_ID + " | R< STATS | " + socket.id));
       }
     });
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** initSocketHandler DNS REVERSE ERROR: " + err));
+    console.log(chalkError(MODULE_ID + " | *** initSocketHandler DNS REVERSE ERROR: " + err));
   }
 }
 
@@ -5106,7 +5106,7 @@ async function initSocketNamespaces(){
 
     const timeStamp = moment().valueOf();
 
-    console.log(chalkInfo(MODULE_ID_PREFIX + " | " + getTimeStamp(timeStamp) + " | INIT SOCKET NAMESPACES"));
+    console.log(chalkInfo(MODULE_ID + " | " + getTimeStamp(timeStamp) + " | INIT SOCKET NAMESPACES"));
 
     adminNameSpace = io.of("/admin");
     utilNameSpace = io.of("/util");
@@ -5115,14 +5115,14 @@ async function initSocketNamespaces(){
 
     adminNameSpace.on("connect", function adminConnect(socket) {
 
-      console.log(chalk.blue(MODULE_ID_PREFIX + " | ADMIN CONNECT " + socket.id));
+      console.log(chalk.blue(MODULE_ID + " | ADMIN CONNECT " + socket.id));
 
       const ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
       const authenticatedSocketObj = authenticatedSocketCache.get(socket.id);
 
       if (authenticatedSocketObj !== undefined){
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | ADMIN ALREADY AUTHENTICATED"
+        console.log(chalkAlert(MODULE_ID + " | ADMIN ALREADY AUTHENTICATED"
           + " | " + socket.id
           + " | " + authenticatedSocketObj.ipAddress
           + "\n" + jsonPrint(authenticatedSocketObj)
@@ -5132,7 +5132,7 @@ async function initSocketNamespaces(){
         socket.on("authentication", async function(data) {
 
           if (configuration.verbose) {
-            console.log(MODULE_ID_PREFIX + " | RX SOCKET AUTHENTICATION"
+            console.log(MODULE_ID + " | RX SOCKET AUTHENTICATION"
               + " | " + socket.nsp.name.toUpperCase()
               + " | " + ipAddress
               + " | " + socket.id
@@ -5157,13 +5157,13 @@ async function initSocketNamespaces(){
 
     utilNameSpace.on("connect", function utilConnect(socket) {
 
-      console.log(chalk.blue(MODULE_ID_PREFIX + " | UTIL CONNECT " + socket.id));
+      console.log(chalk.blue(MODULE_ID + " | UTIL CONNECT " + socket.id));
 
       const ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
       const authenticatedSocketObj = authenticatedSocketCache.get(socket.id);
       if (authenticatedSocketObj !== undefined){
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | UTIL ALREADY AUTHENTICATED"
+        console.log(chalkAlert(MODULE_ID + " | UTIL ALREADY AUTHENTICATED"
           + " | " + socket.id
           + " | " + authenticatedSocketObj.ipAddress
           + "\n" + jsonPrint(authenticatedSocketObj)
@@ -5173,7 +5173,7 @@ async function initSocketNamespaces(){
         socket.on("authentication", async function(data) {
 
           if (configuration.verbose) {
-            console.log(MODULE_ID_PREFIX + " | RX SOCKET AUTHENTICATION"
+            console.log(MODULE_ID + " | RX SOCKET AUTHENTICATION"
               + " | " + socket.nsp.name.toUpperCase()
               + " | " + ipAddress
               + " | " + socket.id
@@ -5198,11 +5198,11 @@ async function initSocketNamespaces(){
 
     userNameSpace.on("connect", async function userConnect(socket) {
 
-      console.log(chalk.blue(MODULE_ID_PREFIX + " | USER CONNECT " + socket.id));
+      console.log(chalk.blue(MODULE_ID + " | USER CONNECT " + socket.id));
 
       const authenticatedSocketObj = authenticatedSocketCache.get(socket.id);
       if (authenticatedSocketObj !== undefined){
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | USER ALREADY AUTHENTICATED"
+        console.log(chalkAlert(MODULE_ID + " | USER ALREADY AUTHENTICATED"
           + " | " + socket.id
           + " | " + authenticatedSocketObj.ipAddress
           + "\n" + jsonPrint(authenticatedSocketObj)
@@ -5216,11 +5216,11 @@ async function initSocketNamespaces(){
 
       const ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
-      console.log(chalk.blue(MODULE_ID_PREFIX + " | VIEWER CONNECT " + socket.id));
+      console.log(chalk.blue(MODULE_ID + " | VIEWER CONNECT " + socket.id));
 
       const authenticatedSocketObj = authenticatedSocketCache.get(socket.id);
       if (authenticatedSocketObj !== undefined){
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | VIEWER ALREADY AUTHENTICATED"
+        console.log(chalkAlert(MODULE_ID + " | VIEWER ALREADY AUTHENTICATED"
           + " | " + socket.id
           + " | " + authenticatedSocketObj.ipAddress
           + "\n" + jsonPrint(authenticatedSocketObj)
@@ -5229,7 +5229,7 @@ async function initSocketNamespaces(){
       else {
         socket.on("authentication", async function(data) {
 
-          console.log(MODULE_ID_PREFIX + " | RX SOCKET AUTHENTICATION"
+          console.log(MODULE_ID + " | RX SOCKET AUTHENTICATION"
             + " | " + socket.nsp.name.toUpperCase()
             + " | " + ipAddress
             + " | " + socket.id
@@ -5256,7 +5256,7 @@ async function initSocketNamespaces(){
     return;
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT SOCKET NAME SPACES ERROR: " + err));
+    console.log(chalkError(MODULE_ID + " | *** INIT SOCKET NAME SPACES ERROR: " + err));
     throw err;
   }
 }
@@ -5306,7 +5306,7 @@ async function updateNodeMeter(node){
   if (!configuration.metrics.nodeMeterEnabled) { return node; }
 
   if (empty(node.nodeId)) {
-    console.log(chalkError(MODULE_ID_PREFIX + " | NODE ID UNDEFINED\n" + jsonPrint(node)));
+    console.log(chalkError(MODULE_ID + " | NODE ID UNDEFINED\n" + jsonPrint(node)));
     throw new Error("NODE ID UNDEFINED", node);
   }
 
@@ -5425,7 +5425,7 @@ async function userCategorizeable(params){
 
   if (isCategorized(node)) { 
     if (verbose) { 
-      console.log(chalkLog(MODULE_ID_PREFIX 
+      console.log(chalkLog(MODULE_ID 
         + " | userCategorizeable | TRUE | CATEGORIZED"
         + " | @" + node.screenName
       ));
@@ -5436,7 +5436,7 @@ async function userCategorizeable(params){
   if (node.following && (node.following !== undefined)) {
 
     if (verbose) { 
-      console.log(chalkLog(MODULE_ID_PREFIX 
+      console.log(chalkLog(MODULE_ID 
         + " | userCategorizeable | TRUE | FOLLOWING"
         + " | @" + node.screenName
       ));
@@ -5446,7 +5446,7 @@ async function userCategorizeable(params){
 
   if (node.ignored && (node.ignored !== undefined)) { 
     if (verbose) { 
-      console.log(chalkLog(MODULE_ID_PREFIX 
+      console.log(chalkLog(MODULE_ID 
         + " | userCategorizeable | FALSE | IGNORED"
         + " | FOLLOWING: " + node.ignored
         + " | @" + node.screenName
@@ -5457,7 +5457,7 @@ async function userCategorizeable(params){
 
   if (node.lang && (node.lang !== undefined) && (node.lang != "en")) {
     if (verbose) { 
-      console.log(chalkLog(MODULE_ID_PREFIX 
+      console.log(chalkLog(MODULE_ID 
         + " | userCategorizeable | FALSE | LANG NOT ENG"
         + " | LANG: " + node.lang
         + " | @" + node.screenName
@@ -5474,7 +5474,7 @@ async function userCategorizeable(params){
     && ignoreLocationsRegEx.test(node.location)){
     
     if (verbose) { 
-      console.log(chalkLog(MODULE_ID_PREFIX 
+      console.log(chalkLog(MODULE_ID 
         + " | userCategorizeable | FALSE | IGNORED LOCATION"
         + " | LANG: " + node.location
         + " | @" + node.screenName
@@ -5488,7 +5488,7 @@ async function userCategorizeable(params){
     && (node.followersCount < configuration.minFollowersAutoCategorize)) { 
 
     if (verbose) { 
-      console.log(chalkLog(MODULE_ID_PREFIX 
+      console.log(chalkLog(MODULE_ID 
         + " | userCategorizeable | FALSE | LOW FOLLOWERS"
         + " | FOLLOWERS: " + node.followersCount
         + " | @" + node.screenName
@@ -5508,7 +5508,7 @@ async function userCategorizeable(params){
     if (hitSearchTerm) { 
 
       if (verbose) { 
-        console.log(chalkInfo(MODULE_ID_PREFIX 
+        console.log(chalkInfo(MODULE_ID 
           + " | userCategorizeable | TRUE  | NAME SEARCH TERM HIT"
           + " | @" + node.screenName
           + " | NAME: " + node.name
@@ -5525,7 +5525,7 @@ async function userCategorizeable(params){
     if (hitSearchTerm) { 
 
       if (verbose) { 
-        console.log(chalkInfo(MODULE_ID_PREFIX 
+        console.log(chalkInfo(MODULE_ID 
           + " | userCategorizeable | TRUE  | DESCRIPTION SEARCH TERM HIT"
           + " | @" + node.screenName
           + " | DESCRIPTION: " + node.description
@@ -5542,7 +5542,7 @@ async function userCategorizeable(params){
     if (hitSearchTerm) { 
 
       if (verbose) { 
-        console.log(chalkInfo(MODULE_ID_PREFIX 
+        console.log(chalkInfo(MODULE_ID 
           + " | userCategorizeable | TRUE  | SCREENNAME SEARCH TERM HIT"
           + " | @" + node.screenName
         ));
@@ -5553,7 +5553,7 @@ async function userCategorizeable(params){
   }
 
   if (verbose) { 
-    console.log(chalkLog(MODULE_ID_PREFIX 
+    console.log(chalkLog(MODULE_ID 
       + " | userCategorizeable | TRUE (DEFAULT NOT FALSE)"
       + " | NID: " + node.nodeId
       + " | @" + node.screenName
@@ -5568,7 +5568,7 @@ async function initBotSet(p){
 
   statsObj.status = "INIT TROLL BOT SET";
 
-  console.log(chalkTwitter(MODULE_ID_PREFIX + " | INIT TROLL BOT SET"));
+  console.log(chalkTwitter(MODULE_ID + " | INIT TROLL BOT SET"));
 
   try{
 
@@ -5581,25 +5581,25 @@ async function initBotSet(p){
     const csvFileArray = await tcUtils.listFolders({folders: params.folders}); 
 
     if (empty(csvFileArray)){
-      console.log(chalkError(MODULE_ID_PREFIX + " | ??? NO BOT CSV FILES ???"
+      console.log(chalkError(MODULE_ID + " | ??? NO BOT CSV FILES ???"
         + " | " + params.folders
       ));
       return;
     }
 
-    console.log(chalkLog(MODULE_ID_PREFIX + " | ... FOUND " + csvFileArray.length + " FILES IN BOT FOLDERS"));
+    console.log(chalkLog(MODULE_ID + " | ... FOUND " + csvFileArray.length + " FILES IN BOT FOLDERS"));
 
     botNodeIdSet.clear();
 
     for (const fileObj of csvFileArray) {
 
       if (!fileObj.file.endsWith(".csv")) {
-        console.log(chalkInfo(MODULE_ID_PREFIX + " | ... SKIPPING LOAD OF " + fileObj.file));
+        console.log(chalkInfo(MODULE_ID + " | ... SKIPPING LOAD OF " + fileObj.file));
         continue;
       }
       
       if (configuration.verbose || params.verbose) {
-        console.log(chalkInfo(MODULE_ID_PREFIX + " | CSV FOUND"
+        console.log(chalkInfo(MODULE_ID + " | CSV FOUND"
           + " | " + fileObj.path
         ));
       }
@@ -5607,7 +5607,7 @@ async function initBotSet(p){
       const csvData = await tcUtils.loadFileRetry({folder: fileObj.folder, file: fileObj.file}); 
 
       if (empty(csvData)){
-        console.log(chalkError(MODULE_ID_PREFIX + " | FILE DATA UNDEFINED"
+        console.log(chalkError(MODULE_ID + " | FILE DATA UNDEFINED"
           + " | " + fileObj.path
         ));
         throw new Error("FILE DATA UNDEFINED");
@@ -5615,7 +5615,7 @@ async function initBotSet(p){
 
       const dataArray = csvData.toString().toLowerCase().split("\n");
 
-      debug(chalk.blue(MODULE_ID_PREFIX + " | FILE CONTAINS " + dataArray.length + " TWITTER BOT IDs"));
+      debug(chalk.blue(MODULE_ID + " | FILE CONTAINS " + dataArray.length + " TWITTER BOT IDs"));
 
       for(const nId of dataArray){
 
@@ -5625,21 +5625,21 @@ async function initBotSet(p){
           botNodeIdSet.add(nodeId);
 
           if (configuration.verbose && (botNodeIdSet.size % 1000 === 0)) {
-            console.log(chalkLog(MODULE_ID_PREFIX + " | +++ BOT NODE ID [" + botNodeIdSet.size + "] " + nId.trim()));
+            console.log(chalkLog(MODULE_ID + " | +++ BOT NODE ID [" + botNodeIdSet.size + "] " + nId.trim()));
           }
         }
 
       }
     }
 
-    console.log(chalk.black(MODULE_ID_PREFIX + " | LOADED BOT NODE IDs [" + botNodeIdSet.size + "]"));
+    console.log(chalk.black(MODULE_ID + " | LOADED BOT NODE IDs [" + botNodeIdSet.size + "]"));
     statsObj.bots = statsObj.bots || {};
     statsObj.bots.numOfBots = botNodeIdSet.size;
 
     return;
   }
   catch(e){
-    console.log(chalkError(MODULE_ID_PREFIX + " | TSS | LOAD FILE ERROR\n" + e));
+    console.log(chalkError(MODULE_ID + " | TSS | LOAD FILE ERROR\n" + e));
     throw e;
   }
 }
@@ -5648,30 +5648,30 @@ async function initAllowLocations(){
 
   statsObj.status = "INIT ALLOW LOCATIONS SET";
 
-  console.log(chalkTwitter(MODULE_ID_PREFIX + " | INIT ALLOW LOCATIONS"));
+  console.log(chalkTwitter(MODULE_ID + " | INIT ALLOW LOCATIONS"));
 
   try{
     const data = await tcUtils.loadFileRetry({folder: configDefaultFolder, file: "allowLocations.txt"}); 
 
     if (empty(data)){
-      console.log(chalkError(MODULE_ID_PREFIX + " | DROPBOX FILE DOWNLOAD DATA UNDEFINED"
+      console.log(chalkError(MODULE_ID + " | DROPBOX FILE DOWNLOAD DATA UNDEFINED"
         + " | " + configDefaultFolder + "/" + "allowLocations.txt"
       ));
       throw new Error("DROPBOX FILE DOWNLOAD DATA UNDEFINED");
     }
 
-    // debug(chalkInfo(MODULE_ID_PREFIX + " | DROPBOX ALLOW LOCATIONS FILE\n" + jsonPrint(data)));
+    // debug(chalkInfo(MODULE_ID + " | DROPBOX ALLOW LOCATIONS FILE\n" + jsonPrint(data)));
 
     const dataArray = data.toString().toLowerCase().split("\n");
 
-    console.log(chalk.blue(MODULE_ID_PREFIX + " | FILE CONTAINS " + dataArray.length + " ALLOW LOCATIONS "));
+    console.log(chalk.blue(MODULE_ID + " | FILE CONTAINS " + dataArray.length + " ALLOW LOCATIONS "));
 
     dataArray.forEach(function(loc){
       let location = loc.trim();
       location = location.replace(/^\s+|\s+$|\n/gim, "");
       if (location.length > 1) { 
         allowLocationsSet.add(location);
-        console.log(chalkLog(MODULE_ID_PREFIX + " | +++ ALLOW LOCATION [" + allowLocationsSet.size + "] " + location));
+        console.log(chalkLog(MODULE_ID + " | +++ ALLOW LOCATION [" + allowLocationsSet.size + "] " + location));
       }
     });
 
@@ -5683,7 +5683,7 @@ async function initAllowLocations(){
     return;
   }
   catch(e){
-    console.log(chalkError(MODULE_ID_PREFIX + " | TSS | LOAD FILE ERROR\n" + e));
+    console.log(chalkError(MODULE_ID + " | TSS | LOAD FILE ERROR\n" + e));
     throw e;
   }
 }
@@ -5692,13 +5692,13 @@ async function initIgnoreLocations(){
 
   statsObj.status = "INIT IGNORE LOCATIONS SET";
 
-  console.log(chalkTwitter(MODULE_ID_PREFIX + " | INIT IGNORE LOCATIONS"));
+  console.log(chalkTwitter(MODULE_ID + " | INIT IGNORE LOCATIONS"));
 
   try{
     const data = await tcUtils.loadFileRetry({folder: configDefaultFolder, file: "ignoreLocations.txt"}); 
 
     if (empty(data)){
-      console.log(chalkError(MODULE_ID_PREFIX + " | DROPBOX FILE DOWNLOAD DATA UNDEFINED"
+      console.log(chalkError(MODULE_ID + " | DROPBOX FILE DOWNLOAD DATA UNDEFINED"
         + " | " + configDefaultFolder + "/" + "ignoreLocations.txt"
       ));
       throw new Error("DROPBOX FILE DOWNLOAD DATA UNDEFINED");
@@ -5706,14 +5706,14 @@ async function initIgnoreLocations(){
 
     const dataArray = data.toString().toLowerCase().split("\n");
 
-    console.log(chalk.blue(MODULE_ID_PREFIX + " | FILE CONTAINS " + dataArray.length + " IGNORE LOCATIONS "));
+    console.log(chalk.blue(MODULE_ID + " | FILE CONTAINS " + dataArray.length + " IGNORE LOCATIONS "));
 
     dataArray.forEach(function(loc){
       let location = loc.trim();
       location = location.replace(/\s|\n/gim, "");
       if (location.length > 1) { 
         ignoreLocationsSet.add(location);
-        debug(chalkLog(MODULE_ID_PREFIX + " | +++ IGNORE LOCATION [" + ignoreLocationsSet.size + "] " + location));
+        debug(chalkLog(MODULE_ID + " | +++ IGNORE LOCATION [" + ignoreLocationsSet.size + "] " + location));
       }
     });
 
@@ -5725,14 +5725,14 @@ async function initIgnoreLocations(){
     return;
   }
   catch(e){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD FILE ERROR\n" + e));
+    console.log(chalkError(MODULE_ID + " | *** LOAD FILE ERROR\n" + e));
     throw e;
   }
 }
 
 async function initIgnoredProfileWords(){
 
-  console.log(chalkInfo(MODULE_ID_PREFIX + " | INIT IGNORED PROFILE WORDS | @" + threeceeUser.screenName));
+  console.log(chalkInfo(MODULE_ID + " | INIT IGNORED PROFILE WORDS | @" + threeceeUser.screenName));
 
   try{
 
@@ -5749,12 +5749,12 @@ async function initIgnoredProfileWords(){
       // ignoredProfileWordsArray = [...ignoredProfileWordsSet];
     }
 
-    console.log(chalkInfo(MODULE_ID_PREFIX + " | +++ LOADED IGNORED PROFILE WORDS: " + ignoredProfileWordsSet.size));
+    console.log(chalkInfo(MODULE_ID + " | +++ LOADED IGNORED PROFILE WORDS: " + ignoredProfileWordsSet.size));
 
     return;
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT IGNORED PROFILE WORDS ERROR: " + err));
+    console.log(chalkError(MODULE_ID + " | *** INIT IGNORED PROFILE WORDS ERROR: " + err));
     throw err;
   }
 }
@@ -5768,7 +5768,7 @@ async function countDocuments(params){
 
     const documentCollection = global.dbConnection.collection(documentType);
 
-    console.log(chalkLog(MODULE_ID_PREFIX + " | ... COUNTING DOCUMENTS: TYPE: " + documentType));
+    console.log(chalkLog(MODULE_ID + " | ... COUNTING DOCUMENTS: TYPE: " + documentType));
 
     if (query){
       const count = await documentCollection.countDocuments(query);
@@ -5781,7 +5781,7 @@ async function countDocuments(params){
 
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** DB COUNT DOCUMENTS ERROR\n" + err));
+    console.log(chalkError(MODULE_ID + " | *** DB COUNT DOCUMENTS ERROR\n" + err));
     throw err;
   }
 }
@@ -5789,69 +5789,69 @@ async function countDocuments(params){
 async function updateUserCounts() {
 
   statsObj.user.total = await countDocuments({documentType: "users"});
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | GRAND TOTAL USERS: " + statsObj.user.total));
+  console.log(chalkBlue(MODULE_ID + " | GRAND TOTAL USERS: " + statsObj.user.total));
 
   statsObj.user.following = await countDocuments({documentType: "users", query: {"following": true}});
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | FOLLOWING USERS: " + statsObj.user.following));
+  console.log(chalkBlue(MODULE_ID + " | FOLLOWING USERS: " + statsObj.user.following));
 
   statsObj.user.notFollowing = await countDocuments({documentType: "users", query: {"following": false}});
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | NOT FOLLOWING USERS: " + statsObj.user.notFollowing));
+  console.log(chalkBlue(MODULE_ID + " | NOT FOLLOWING USERS: " + statsObj.user.notFollowing));
 
   statsObj.user.ignored = await countDocuments({documentType: "users", query: {"ignored": true}});
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | IGNORED USERS: " + statsObj.user.ignored));
+  console.log(chalkBlue(MODULE_ID + " | IGNORED USERS: " + statsObj.user.ignored));
 
   statsObj.user.categoryVerified = await countDocuments({documentType: "users", query: {"categoryVerified": true}});
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT VERIFIED USERS: " + statsObj.user.categoryVerified));
+  console.log(chalkBlue(MODULE_ID + " | CAT VERIFIED USERS: " + statsObj.user.categoryVerified));
 
   // -----
 
   statsObj.user.categorizedManual = await countDocuments({documentType: "users", query: {categorized: true}});
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT MANUAL USERS: " + statsObj.user.categorizedManual));
+  console.log(chalkBlue(MODULE_ID + " | CAT MANUAL USERS: " + statsObj.user.categorizedManual));
 
   statsObj.user.manual.left = await countDocuments({documentType: "users", query: {category: "left"}});
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT MANUAL USERS LEFT: " + statsObj.user.manual.left));
+  console.log(chalkBlue(MODULE_ID + " | CAT MANUAL USERS LEFT: " + statsObj.user.manual.left));
 
   statsObj.user.manual.right = await countDocuments({documentType: "users", query: {category: "right"}});
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT MANUAL USERS RIGHT: " + statsObj.user.manual.right));
+  console.log(chalkBlue(MODULE_ID + " | CAT MANUAL USERS RIGHT: " + statsObj.user.manual.right));
 
   statsObj.user.manual.neutral = await countDocuments({documentType: "users", query: {category: "neutral"}});
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT MANUAL USERS NEUTRAL: " + statsObj.user.manual.neutral));
+  console.log(chalkBlue(MODULE_ID + " | CAT MANUAL USERS NEUTRAL: " + statsObj.user.manual.neutral));
 
   // -----
   
   statsObj.user.uncategorized.all = await countDocuments({documentType: "users", query: {category: "none"}});
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT MANUAL USERS: " + statsObj.user.uncategorized.all));
+  console.log(chalkBlue(MODULE_ID + " | UNCAT MANUAL USERS: " + statsObj.user.uncategorized.all));
 
   statsObj.user.uncategorized.left = await countDocuments({documentType: "users", query: {category: "none", categoryAuto: "left"}});
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT MANUAL LEFT USERS: " + statsObj.user.uncategorized.left));
+  console.log(chalkBlue(MODULE_ID + " | UNCAT MANUAL LEFT USERS: " + statsObj.user.uncategorized.left));
 
   statsObj.user.uncategorized.right = await countDocuments({documentType: "users", query: {category: "none", categoryAuto: "right"}});
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT MANUAL RIGHT USERS: " + statsObj.user.uncategorized.right));
+  console.log(chalkBlue(MODULE_ID + " | UNCAT MANUAL RIGHT USERS: " + statsObj.user.uncategorized.right));
 
   statsObj.user.uncategorized.neutral = await countDocuments({documentType: "users", query: {category: "none", categoryAuto: "neutral"}});
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT MANUAL NEUTRAL USERS: " + statsObj.user.uncategorized.neutral));
+  console.log(chalkBlue(MODULE_ID + " | UNCAT MANUAL NEUTRAL USERS: " + statsObj.user.uncategorized.neutral));
 
   // -----
   
   statsObj.user.categorizedAuto = await countDocuments({documentType: "users", query: {categorizedAuto: true}});
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT AUTO USERS: " + statsObj.user.categorizedAuto));
+  console.log(chalkBlue(MODULE_ID + " | CAT AUTO USERS: " + statsObj.user.categorizedAuto));
 
   statsObj.user.auto.left = await countDocuments({documentType: "users", query: {categoryAuto: "left"}});
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT AUTO USERS LEFT: " + statsObj.user.auto.left));
+  console.log(chalkBlue(MODULE_ID + " | CAT AUTO USERS LEFT: " + statsObj.user.auto.left));
 
   statsObj.user.auto.right = await countDocuments({documentType: "users", query: {categoryAuto: "right"}});
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT AUTO USERS RIGHT: " + statsObj.user.auto.right));
+  console.log(chalkBlue(MODULE_ID + " | CAT AUTO USERS RIGHT: " + statsObj.user.auto.right));
 
   statsObj.user.auto.neutral = await countDocuments({documentType: "users", query: {categoryAuto: "neutral"}});
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT AUTO USERS NEUTRAL: " + statsObj.user.auto.neutral));
+  console.log(chalkBlue(MODULE_ID + " | CAT AUTO USERS NEUTRAL: " + statsObj.user.auto.neutral));
 
   statsObj.user.uncategorizedAuto = await countDocuments({documentType: "users", query: {categoryAuto: "none"}});
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT AUTO USERS: " + statsObj.user.uncategorizedAuto));
+  console.log(chalkBlue(MODULE_ID + " | UNCAT AUTO USERS: " + statsObj.user.uncategorizedAuto));
 
   // -----
 
   statsObj.user.mismatched = await countDocuments({documentType: "users", query: {categoryMismatch: true}});
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | MISMATCHED USERS: " + statsObj.user.mismatched));
+  console.log(chalkBlue(MODULE_ID + " | MISMATCHED USERS: " + statsObj.user.mismatched));
 
   return;
 }
@@ -5883,7 +5883,7 @@ function cursorDataHandler(user){
       statsObj.user.processed += 1;
 
       if (statsObj.user.processed % 5000 === 0) {
-        console.log(chalkLog(MODULE_ID_PREFIX + " | USER SETS | " + statsObj.user.processed + " USERS PROCESSED"));
+        console.log(chalkLog(MODULE_ID + " | USER SETS | " + statsObj.user.processed + " USERS PROCESSED"));
       }
 
       resolve();
@@ -5917,7 +5917,7 @@ function hashtagCursorDataHandler(hashtag){
     statsObj.hashtagsProcessed += 1;
 
     if (statsObj.hashtagsProcessed % 10000 === 0) {
-      console.log(chalkLog(MODULE_ID_PREFIX + " | HASHTAG SETS | " + statsObj.hashtagsProcessed + " HASHTAGS PROCESSED"));
+      console.log(chalkLog(MODULE_ID + " | HASHTAG SETS | " + statsObj.hashtagsProcessed + " HASHTAGS PROCESSED"));
     }
 
     resolve();
@@ -5935,7 +5935,7 @@ async function updateUserSets(p){
 
   statsObj.status = "UPDATE USER SETS";
 
-  console.log(chalkInfo(MODULE_ID_PREFIX + " | UPDATING USER SETS..."));
+  console.log(chalkInfo(MODULE_ID + " | UPDATING USER SETS..."));
 
   if (updateUserSetsRunning) {
     return;
@@ -5944,7 +5944,7 @@ async function updateUserSets(p){
   updateUserSetsRunning = true;
 
   if (!statsObj.dbConnectionReady) {
-    console.log(chalkAlert(MODULE_ID_PREFIX + " | ABORT updateUserSets: DB CONNECTION NOT READY"));
+    console.log(chalkAlert(MODULE_ID + " | ABORT updateUserSets: DB CONNECTION NOT READY"));
     updateUserSetsRunning = false;
     throw new Error("DB CONNECTION NOT READY");
   }
@@ -5969,21 +5969,21 @@ async function updateUserSets(p){
   statsObj.user.processed = 0;
 
   userSearchCursor.on("end", function() {
-    console.log(chalkBlue(MODULE_ID_PREFIX + " | END FOLLOWING CURSOR"
+    console.log(chalkBlue(MODULE_ID + " | END FOLLOWING CURSOR"
       + " | " + getTimeStamp()
       + " | FOLLOWING USER SET | RUN TIME: " + tcUtils.msToTime(moment().valueOf() - cursorStartTime)
     ));
-    console.log(chalkLog(MODULE_ID_PREFIX + " | USER DB STATS\n" + jsonPrint(statsObj.user)));
+    console.log(chalkLog(MODULE_ID + " | USER DB STATS\n" + jsonPrint(statsObj.user)));
  });
 
   userSearchCursor.on("error", function(err) {
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR userSearchCursor: " + err));
-    console.log(chalkAlert(MODULE_ID_PREFIX + " | USER DB STATS\n" + jsonPrint(statsObj.user)));
+    console.log(chalkError(MODULE_ID + " | *** ERROR userSearchCursor: " + err));
+    console.log(chalkAlert(MODULE_ID + " | USER DB STATS\n" + jsonPrint(statsObj.user)));
   });
 
   userSearchCursor.on("close", async function() {
-    console.log(chalkBlue(MODULE_ID_PREFIX + " | CLOSE FOLLOWING CURSOR"));
-    console.log(chalkBlue(MODULE_ID_PREFIX + " | USER DB STATS\n" + jsonPrint(statsObj.user)));
+    console.log(chalkBlue(MODULE_ID + " | CLOSE FOLLOWING CURSOR"));
+    console.log(chalkBlue(MODULE_ID + " | USER DB STATS\n" + jsonPrint(statsObj.user)));
   });
 
   await userSearchCursor.eachAsync(async function(user){
@@ -6000,27 +6000,27 @@ async function updateHashtagSets(){
   statsObj.status = "UPDATE HASHTAG SETS";
 
   if (!statsObj.dbConnectionReady) {
-    console.log(chalkAlert(MODULE_ID_PREFIX + " | ABORT updateHashtagSets: DB CONNECTION NOT READY"));
+    console.log(chalkAlert(MODULE_ID + " | ABORT updateHashtagSets: DB CONNECTION NOT READY"));
     throw new Error("DB CONNECTION NOT READY");
   }
 
   statsObj.hashtag.total = await countDocuments({documentType: "hashtags"});
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | GRAND TOTAL HASHTAGS: " + statsObj.hashtag.total));
+  console.log(chalkBlue(MODULE_ID + " | GRAND TOTAL HASHTAGS: " + statsObj.hashtag.total));
 
   statsObj.hashtag.ignored = await countDocuments({documentType: "hashtags", query: {"ignored": true}});
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | IGNORED HASHTAGS: " + statsObj.hashtag.ignored));
+  console.log(chalkBlue(MODULE_ID + " | IGNORED HASHTAGS: " + statsObj.hashtag.ignored));
 
   statsObj.hashtag.categorizedManual = await countDocuments({documentType: "hashtags", query: {category: { "$nin": ["none", false, "false", null] }}});
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT MANUAL HASHTAGS: " + statsObj.hashtag.categorizedManual));
+  console.log(chalkBlue(MODULE_ID + " | CAT MANUAL HASHTAGS: " + statsObj.hashtag.categorizedManual));
 
   statsObj.hashtag.uncategorizedManual = await countDocuments({documentType: "hashtags", query: {category: { "$in": ["none", false, "false", null] }}});
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT MANUAL HASHTAGS: " + statsObj.hashtag.uncategorizedManual));
+  console.log(chalkBlue(MODULE_ID + " | UNCAT MANUAL HASHTAGS: " + statsObj.hashtag.uncategorizedManual));
 
   statsObj.hashtag.categorizedAuto = await countDocuments({documentType: "hashtags", query: {categoryAuto: { "$nin": ["none", false, "false", null] }}});
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | CAT AUTO HASHTAGS: " + statsObj.hashtag.categorizedAuto));
+  console.log(chalkBlue(MODULE_ID + " | CAT AUTO HASHTAGS: " + statsObj.hashtag.categorizedAuto));
 
   statsObj.hashtag.uncategorizedAuto = await countDocuments({documentType: "hashtags", query: {categoryAuto: { "$in": ["none", false, "false", null] }}});
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | UNCAT AUTO HASHTAGS: " + statsObj.hashtag.uncategorizedAuto));
+  console.log(chalkBlue(MODULE_ID + " | UNCAT AUTO HASHTAGS: " + statsObj.hashtag.uncategorizedAuto));
 
   const hashtagSearchQuery = { };
   
@@ -6040,21 +6040,21 @@ async function updateHashtagSets(){
   statsObj.hashtagsProcessed = 0;
 
   hashtagSearchCursor.on("end", function() {
-    console.log(chalkBlue(MODULE_ID_PREFIX + " | END FOLLOWING CURSOR"
+    console.log(chalkBlue(MODULE_ID + " | END FOLLOWING CURSOR"
       + " | " + getTimeStamp()
       + " | FOLLOWING HASHTAG SET | RUN TIME: " + tcUtils.msToTime(moment().valueOf() - cursorStartTime)
     ));
-    console.log(chalkLog(MODULE_ID_PREFIX + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag)));
+    console.log(chalkLog(MODULE_ID + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag)));
   });
 
   hashtagSearchCursor.on("error", function(err) {
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR hashtagSearchCursor: " + err));
-    console.log(chalkAlert(MODULE_ID_PREFIX + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag)));
+    console.log(chalkError(MODULE_ID + " | *** ERROR hashtagSearchCursor: " + err));
+    console.log(chalkAlert(MODULE_ID + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag)));
   });
 
   hashtagSearchCursor.on("close", function() {
-    console.log(chalkBlue(MODULE_ID_PREFIX + " | CLOSE FOLLOWING CURSOR"));
-    console.log(chalkBlue(MODULE_ID_PREFIX + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag)));
+    console.log(chalkBlue(MODULE_ID + " | CLOSE FOLLOWING CURSOR"));
+    console.log(chalkBlue(MODULE_ID + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag)));
   });
 
   await hashtagSearchCursor.eachAsync(async function(hashtag){
@@ -6066,7 +6066,7 @@ async function updateHashtagSets(){
 
 function printBotStats(params){
   if (statsObj.traffic.users.bots % params.modulo === 0){
-    console.log(chalkBot(MODULE_ID_PREFIX + " | BOT"
+    console.log(chalkBot(MODULE_ID + " | BOT"
       + " [ " + statsObj.traffic.users.bots + "/" + statsObj.traffic.users.total 
       + " | " + statsObj.traffic.users.percentBots.toFixed(2) + "% ]"
       + "\n" + MODULE_ID_PREFIX + " | BOT | " + printUser({user: params.user})
@@ -6088,7 +6088,7 @@ function initNodeSetPropsQueueInterval(interval){
 
   return new Promise(function(resolve){
 
-    console.log(chalk.bold.black(MODULE_ID_PREFIX + " | INIT NODE SET PROPS QUEUE INTERVAL: " + interval + " MS"));
+    console.log(chalk.bold.black(MODULE_ID + " | INIT NODE SET PROPS QUEUE INTERVAL: " + interval + " MS"));
 
     clearInterval(nodeSetPropsQueueInterval);
 
@@ -6104,7 +6104,7 @@ function initNodeSetPropsQueueInterval(interval){
           const nspObj = nodeSetPropsQueue.shift();
 
           if (configuration.verbose || (nodeSetPropsQueue.length > 0 && nodeSetPropsQueue.length % 100 === 0)){
-            console.log(chalkLog(MODULE_ID_PREFIX + " | NODE SET PROPS Q: " + nodeSetPropsQueue.length));
+            console.log(chalkLog(MODULE_ID + " | NODE SET PROPS Q: " + nodeSetPropsQueue.length));
           }
 
           await nodeSetProps(nspObj);
@@ -6114,7 +6114,7 @@ function initNodeSetPropsQueueInterval(interval){
       }
       catch(err){
         nodeSetPropsQueueReady = true;
-        console.trace(chalkError(MODULE_ID_PREFIX + " | *** NODE SET PROPS QUEUE ERROR: " + err));
+        console.trace(chalkError(MODULE_ID + " | *** NODE SET PROPS QUEUE ERROR: " + err));
       }
 
     }, interval);
@@ -6132,7 +6132,7 @@ async function uncatDbCheck(params){
 
   if (!dbUncat || (dbUncat === undefined)){
 
-    debug(chalk.yellow(MODULE_ID_PREFIX
+    debug(chalk.yellow(MODULE_ID
       + " | --- MISS | UNCAT"
       + " [" + statsObj.user.dbUncat + "]"
       + " | NID: " + params.node.nodeId
@@ -6148,7 +6148,7 @@ async function uncatDbCheck(params){
     return;
   }
 
-  debug(chalkBlue(MODULE_ID_PREFIX
+  debug(chalkBlue(MODULE_ID
     + " | +++ HIT  | UNCAT"
     + " [" + statsObj.user.dbUncat + "]"
     + " | NID: " + dbUncat.nodeId
@@ -6163,7 +6163,7 @@ function initTransmitNodeQueueInterval(interval){
 
   return new Promise(function(resolve){
 
-    console.log(chalk.bold.black(MODULE_ID_PREFIX + " | INIT TRANSMIT NODE QUEUE INTERVAL: " + tcUtils.msToTime(interval)));
+    console.log(chalk.bold.black(MODULE_ID + " | INIT TRANSMIT NODE QUEUE INTERVAL: " + tcUtils.msToTime(interval)));
 
     clearInterval(transmitNodeQueueInterval);
 
@@ -6266,7 +6266,7 @@ function initTransmitNodeQueueInterval(interval){
             }
             catch(e){
 
-              console.log(chalkError(MODULE_ID_PREFIX + " | findOneAndUpdate USER ERROR" + jsonPrint(e)));
+              console.log(chalkError(MODULE_ID + " | findOneAndUpdate USER ERROR" + jsonPrint(e)));
 
               if (node.isTweeter && botNodeIdSet.has(node.nodeId)){
 
@@ -6279,7 +6279,7 @@ function initTransmitNodeQueueInterval(interval){
               }
 
               if (node.screenName === undefined || node.screenName === "") {
-                console.log(chalkError(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED"));
+                console.log(chalkError(MODULE_ID + " | *** TRANSMIT USER SCREENNAME UNDEFINED"));
                 printUserObj(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED", node);
                 transmitNodeQueueReady = true;
                 return;
@@ -6304,7 +6304,7 @@ function initTransmitNodeQueueInterval(interval){
           // }
 
           // if (node.screenName === undefined || node.screenName === "") {
-          //   console.log(chalkError(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED"));
+          //   console.log(chalkError(MODULE_ID + " | *** TRANSMIT USER SCREENNAME UNDEFINED"));
           //   printUserObj(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED", node);
           //   transmitNodeQueueReady = true;
           //   return;
@@ -6351,7 +6351,7 @@ function initTransmitNodeQueueInterval(interval){
           }
           catch(e){
 
-            console.log(chalkError(MODULE_ID_PREFIX + " | findOneAndUpdate HT ERROR\n" + jsonPrint(e)));
+            console.log(chalkError(MODULE_ID + " | findOneAndUpdate HT ERROR\n" + jsonPrint(e)));
 
             viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
             transmitNodeQueueReady = true;
@@ -6365,7 +6365,7 @@ function initTransmitNodeQueueInterval(interval){
       }
       catch(err){
         transmitNodeQueueReady = true;
-        console.trace(chalkError(MODULE_ID_PREFIX + " | *** TRANSMIT NODE QUEUE ERROR: " + err));
+        console.trace(chalkError(MODULE_ID + " | *** TRANSMIT NODE QUEUE ERROR: " + err));
       }
     }, interval);
 
@@ -6415,7 +6415,7 @@ let heartbeatsSent = 0;
 
 function logHeartbeat() {
 
-  console.log(chalkLog(MODULE_ID_PREFIX + " | HB " + heartbeatsSent 
+  console.log(chalkLog(MODULE_ID + " | HB " + heartbeatsSent 
     + " | " + getTimeStamp() 
     + " | ST: " + getTimeStamp(parseInt(statsObj.startTime)) 
     + " | UP: " + tcUtils.msToTime(statsObj.upTime) 
@@ -6425,7 +6425,7 @@ function logHeartbeat() {
 
 function initAppRouting(callback) {
 
-  console.log(chalkInfo(MODULE_ID_PREFIX + " | " + getTimeStamp() + " | INIT APP ROUTING"));
+  console.log(chalkInfo(MODULE_ID + " | " + getTimeStamp() + " | INIT APP ROUTING"));
 
   let domainName;
 
@@ -6435,7 +6435,7 @@ function initAppRouting(callback) {
 
     if (req.path == "/json") {
       if (!ignoreIpSet.has(req.ip)) {
-        console.log(chalkInfo(MODULE_ID_PREFIX + " | R< REJECT: /json"
+        console.log(chalkInfo(MODULE_ID + " | R< REJECT: /json"
           + " | " + getTimeStamp()
           + " | IP: " + req.ip
           + " | HOST: " + req.hostname
@@ -6447,20 +6447,20 @@ function initAppRouting(callback) {
       res.sendStatus(404);
     }
     else if (req.path == "callbacks/addsub") {
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | R< TWITTER WEB HOOK | callbacks/addsub"
+      console.log(chalkAlert(MODULE_ID + " | R< TWITTER WEB HOOK | callbacks/addsub"
       )); 
 
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | R< callbacks/addsub"
+      console.log(chalkAlert(MODULE_ID + " | R< callbacks/addsub"
         + "\nreq.query\n" + jsonPrint(req.query)
         + "\nreq.params\n" + jsonPrint(req.params)
         + "\nreq.body\n" + jsonPrint(req.body)
       )); 
     }
     else if (req.path == "callbacks/removesub") {
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | R< TWITTER WEB HOOK | callbacks/removesub"
+      console.log(chalkAlert(MODULE_ID + " | R< TWITTER WEB HOOK | callbacks/removesub"
       )); 
 
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | R< callbacks/removesub"
+      console.log(chalkAlert(MODULE_ID + " | R< callbacks/removesub"
         + "\nreq.query\n" + jsonPrint(req.query)
         + "\nreq.params\n" + jsonPrint(req.params)
         + "\nreq.body\n" + jsonPrint(req.body)
@@ -6468,7 +6468,7 @@ function initAppRouting(callback) {
     }
     else if (req.path == TWITTER_WEBHOOK_URL) {
 
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | R< TWITTER WEB HOOK | " + TWITTER_WEBHOOK_URL
+      console.log(chalkAlert(MODULE_ID + " | R< TWITTER WEB HOOK | " + TWITTER_WEBHOOK_URL
         + " | " + getTimeStamp()
         + " | IP: " + req.ip
         + " | HOST: " + req.hostname
@@ -6483,11 +6483,11 @@ function initAppRouting(callback) {
 
         if (crc_token) {
 
-          console.log(chalkAlert(MODULE_ID_PREFIX + " | R< TWITTER WEB HOOK | CRC TOKEN: " + crc_token));
+          console.log(chalkAlert(MODULE_ID + " | R< TWITTER WEB HOOK | CRC TOKEN: " + crc_token));
 
           const hmac = crypto.createHmac("sha256", threeceeConfig.consumer_secret).update(crc_token).digest("base64");
 
-          console.log(chalkAlert(MODULE_ID_PREFIX + " | T> TWITTER WEB HOOK | CRC TOKEN > HASH: " + hmac));
+          console.log(chalkAlert(MODULE_ID + " | T> TWITTER WEB HOOK | CRC TOKEN > HASH: " + hmac));
 
           res.status(200);
 
@@ -6507,7 +6507,7 @@ function initAppRouting(callback) {
 
         if (followEvents && (followEvents[0].type == "follow")) {
 
-          console.log(chalkAlert(MODULE_ID_PREFIX + " | >>> TWITTER USER FOLLOW EVENT"
+          console.log(chalkAlert(MODULE_ID + " | >>> TWITTER USER FOLLOW EVENT"
             + " | SOURCE: @" + followEvents[0].source.screen_name
             + " | TARGET: @" + followEvents[0].target.screen_name
           ));
@@ -6528,7 +6528,7 @@ function initAppRouting(callback) {
         
         if (followEvents && (followEvents[0].type == "unfollow")) {
 
-          console.log(chalkAlert(MODULE_ID_PREFIX + " | >>> TWITTER USER UNFOLLOW EVENT"
+          console.log(chalkAlert(MODULE_ID + " | >>> TWITTER USER UNFOLLOW EVENT"
             + " | SOURCE: @" + followEvents[0].source.screen_name
             + " | TARGET: @" + followEvents[0].target.screen_name
           ));
@@ -6549,7 +6549,7 @@ function initAppRouting(callback) {
     else if (req.path == "/dropbox_webhook") {
 
       if (configuration.verbose) {
-        console.log(chalkInfo(MODULE_ID_PREFIX + " | R< DROPBOX WEB HOOK | /dropbox_webhook"
+        console.log(chalkInfo(MODULE_ID + " | R< DROPBOX WEB HOOK | /dropbox_webhook"
         )); 
       }
 
@@ -6559,13 +6559,13 @@ function initAppRouting(callback) {
     }
     else if (req.path == "/googleccd19766bea2dfd2.html") {
 
-      console.log(chalk.green(MODULE_ID_PREFIX + " | R< googleccd19766bea2dfd2.html")); 
+      console.log(chalk.green(MODULE_ID + " | R< googleccd19766bea2dfd2.html")); 
 
       const googleVerification = path.join(__dirname, "/googleccd19766bea2dfd2.html");
 
       res.sendFile(googleVerification, function googleVerify(err) {
         if (err) {
-          console.log(chalkError(MODULE_ID_PREFIX + " | GET /googleccd19766bea2dfd2.html ERROR:"
+          console.log(chalkError(MODULE_ID + " | GET /googleccd19766bea2dfd2.html ERROR:"
             + " | " + getTimeStamp()
             + " | " + req.url
             + " | " + googleVerification
@@ -6573,12 +6573,12 @@ function initAppRouting(callback) {
           ));
         } 
         else {
-          console.log(chalkInfo(MODULE_ID_PREFIX + " | SENT:", googleVerification));
+          console.log(chalkInfo(MODULE_ID + " | SENT:", googleVerification));
         }
       });
     }
     else if (req.path == "/") {
-      console.log(chalkLog(MODULE_ID_PREFIX + " | R< REDIRECT /session")); 
+      console.log(chalkLog(MODULE_ID + " | R< REDIRECT /session")); 
       res.redirect("/session");
     }
     else if ((req.path == "/profiles.js") || (req.path == "/session.js") || (req.path == "/js/libs/controlPanel.js")) {
@@ -6586,7 +6586,7 @@ function initAppRouting(callback) {
       const fullPath = path.join(__dirname, req.path);
       const defaultSource = (hostname == "google") ? "PRODUCTION_SOURCE" : "LOCAL_SOURCE";
 
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! REPLACE DEFAULT SOURCE"
+      console.log(chalkAlert(MODULE_ID + " | !!! REPLACE DEFAULT SOURCE"
         + " | REQ: " + req.path
         + " | PATH: " + fullPath
         + " | SOURCE: " + defaultSource
@@ -6595,11 +6595,11 @@ function initAppRouting(callback) {
       fs.readFile(fullPath, "utf8", function(err, data) {
 
         if (err) {
-          console.log(chalkError(MODULE_ID_PREFIX + " | fs readFile " + fullPath + " ERROR: " + err));
+          console.log(chalkError(MODULE_ID + " | fs readFile " + fullPath + " ERROR: " + err));
           res.sendStatus(404);
         }
         else {
-          console.log(chalkInfo(MODULE_ID_PREFIX + " | " + getTimeStamp()
+          console.log(chalkInfo(MODULE_ID + " | " + getTimeStamp()
             + MODULE_ID_PREFIX + " | T> | FILE"
             + " | " + fullPath
           ));
@@ -6617,10 +6617,10 @@ function initAppRouting(callback) {
         domainName = await dnsReverse({ipAddress: req.ip});
       }
       catch(err){
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** initAppRouting DNS ERROR: " + err));
+        console.log(chalkError(MODULE_ID + " | *** initAppRouting DNS ERROR: " + err));
       }
 
-      console.log(chalkInfo(MODULE_ID_PREFIX + " | R<"
+      console.log(chalkInfo(MODULE_ID + " | R<"
         + " | " + getTimeStamp()
         + " | IP: " + req.ip
         + " | DOMAIN: " + domainName
@@ -6652,13 +6652,13 @@ function initAppRouting(callback) {
 
   app.get("/onload.js", function(req, res) {
 
-    console.log(chalkInfo(MODULE_ID_PREFIX + " | R< ONLOAD | /onload"));
+    console.log(chalkInfo(MODULE_ID + " | R< ONLOAD | /onload"));
 
     const onloadFile = path.join(__dirname, "/onload.js");
 
     res.sendFile(onloadFile, function(err) {
       if (err) {
-        console.log(chalkError(MODULE_ID_PREFIX + " | GET /onload ERROR:"
+        console.log(chalkError(MODULE_ID + " | GET /onload ERROR:"
           + " | " + getTimeStamp()
           + " | IP: " + req.ip
           + " | " + req.url
@@ -6677,10 +6677,10 @@ function initAppRouting(callback) {
       domainName = await dnsReverse({ipAddress: req.ip});
     }
     catch(err){
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** initAppRouting /admin ERROR: " + err));
+      console.log(chalkError(MODULE_ID + " | *** initAppRouting /admin ERROR: " + err));
     }
 
-    console.log(chalkLog(MODULE_ID_PREFIX + " | LOADING PAGE"
+    console.log(chalkLog(MODULE_ID + " | LOADING PAGE"
       + " | IP: " + req.ip
       + " | DOMAIN: " + domainName
       + " | REQ: " + req.url
@@ -6697,7 +6697,7 @@ function initAppRouting(callback) {
 
     res.sendFile(adminHtml, function responseAdmin(err) {
       if (err) {
-        console.log(chalkError(MODULE_ID_PREFIX + " | GET /admin ERROR:"
+        console.log(chalkError(MODULE_ID + " | GET /admin ERROR:"
           + " | " + getTimeStamp()
           + " | IP: " + req.ip
           + " | " + req.url
@@ -6719,10 +6719,10 @@ function initAppRouting(callback) {
       domainName = await dnsReverse({ipAddress: req.ip});
     }
     catch(err){
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** initAppRouting /login ERROR: " + err));
+      console.log(chalkError(MODULE_ID + " | *** initAppRouting /login ERROR: " + err));
     }
 
-    console.log(chalkAlert(MODULE_ID_PREFIX + " | LOADING PAGE | LOGIN"
+    console.log(chalkAlert(MODULE_ID + " | LOADING PAGE | LOGIN"
       + " | IP: " + req.ip
       + " | DOMAIN: " + domainName
       + " | REQ: " + req.url
@@ -6739,7 +6739,7 @@ function initAppRouting(callback) {
 
     res.sendFile(loginHtml, function responseSession(err) {
       if (err) {
-        console.log(chalkError(MODULE_ID_PREFIX + " | GET /login ERROR:"
+        console.log(chalkError(MODULE_ID + " | GET /login ERROR:"
           + " | " + getTimeStamp()
           + " | " + req.url
           + " | " + loginHtml
@@ -6747,7 +6747,7 @@ function initAppRouting(callback) {
         ));
       } 
       else {
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | SENT:", loginHtml));
+        console.log(chalkAlert(MODULE_ID + " | SENT:", loginHtml));
       }
     });
   });
@@ -6762,10 +6762,10 @@ function initAppRouting(callback) {
       domainName = await dnsReverse({ipAddress: req.ip});
     }
     catch(err){
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** initAppRouting /session ERROR: " + err));
+      console.log(chalkError(MODULE_ID + " | *** initAppRouting /session ERROR: " + err));
     }
 
-    console.log(chalkLog(MODULE_ID_PREFIX + " | LOADING PAGE"
+    console.log(chalkLog(MODULE_ID + " | LOADING PAGE"
       + " | IP: " + req.ip
       + " | DOMAIN: " + domainName
       + " | REQ: " + req.url
@@ -6784,7 +6784,7 @@ function initAppRouting(callback) {
 
     res.sendFile(sessionHtml, function responseSession(err) {
       if (err) {
-        console.log(chalkError(MODULE_ID_PREFIX + " | GET /session ERROR:"
+        console.log(chalkError(MODULE_ID + " | GET /session ERROR:"
           + " | " + getTimeStamp()
           + " | IP: " + req.ip
           + " | " + req.url
@@ -6794,7 +6794,7 @@ function initAppRouting(callback) {
       } 
       else {
         if (configuration.verbose) {
-          console.log(chalkInfo(MODULE_ID_PREFIX + " | SENT:", sessionHtml));
+          console.log(chalkInfo(MODULE_ID + " | SENT:", sessionHtml));
         }
       }
     });
@@ -6810,10 +6810,10 @@ function initAppRouting(callback) {
       domainName = await dnsReverse({ipAddress: req.ip});
     }
     catch(err){
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** initAppRouting /profiles ERROR: " + err));
+      console.log(chalkError(MODULE_ID + " | *** initAppRouting /profiles ERROR: " + err));
     }
 
-    console.log(chalkLog(MODULE_ID_PREFIX + " | LOADING PAGE"
+    console.log(chalkLog(MODULE_ID + " | LOADING PAGE"
       + " | IP: " + req.ip
       + " | DOMAIN: " + domainName
       + " | REQ: " + req.url
@@ -6832,7 +6832,7 @@ function initAppRouting(callback) {
 
     res.sendFile(profilesHtml, function responseSession(err) {
       if (err) {
-        console.log(chalkError(MODULE_ID_PREFIX + " | GET /profiles ERROR:"
+        console.log(chalkError(MODULE_ID + " | GET /profiles ERROR:"
           + " | " + getTimeStamp()
           + " | IP: " + req.ip
           + " | " + req.url
@@ -6842,7 +6842,7 @@ function initAppRouting(callback) {
       } 
       else {
         if (configuration.verbose) {
-          console.log(chalkInfo(MODULE_ID_PREFIX + " | SENT:", profilesHtml));
+          console.log(chalkInfo(MODULE_ID + " | SENT:", profilesHtml));
         }
       }
     });
@@ -6854,12 +6854,12 @@ function initAppRouting(callback) {
       domainName = await dnsReverse({ipAddress: req.ip});
     }
     catch(err){
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** ensureAuthenticated DNS REVERSE ERROR: " + err));
+      console.log(chalkError(MODULE_ID + " | *** ensureAuthenticated DNS REVERSE ERROR: " + err));
     }
 
     if (req.isAuthenticated()) { 
 
-      console.log(chalk.green(MODULE_ID_PREFIX + " | PASSPORT TWITTER AUTHENTICATED"));
+      console.log(chalk.green(MODULE_ID + " | PASSPORT TWITTER AUTHENTICATED"));
 
       slackText = "*PASSPORT TWITTER AUTHENTICATED*";
       slackText = slackText + "\nIP: " + req.ip;
@@ -6872,7 +6872,7 @@ function initAppRouting(callback) {
       return next();
     }
 
-    console.log(chalkAlert(MODULE_ID_PREFIX + " | *** PASSPORT TWITTER *NOT* AUTHENTICATED ***"));
+    console.log(chalkAlert(MODULE_ID + " | *** PASSPORT TWITTER *NOT* AUTHENTICATED ***"));
 
     slackText = "*PASSPORT TWITTER AUTHENTICATION FAILED*";
     slackText = slackText + "\nIP: " + req.ip;
@@ -6889,11 +6889,11 @@ function initAppRouting(callback) {
       domainName = await dnsReverse({ipAddress: req.ip});
     }
     catch(err){
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** /account DNS REVERSE ERROR: " + err));
+      console.log(chalkError(MODULE_ID + " | *** /account DNS REVERSE ERROR: " + err));
     }
 
-    console.log(chalkError(MODULE_ID_PREFIX + " | PASSPORT TWITTER AUTH USER\n" + jsonPrint(req.session.passport.user))); // handle errors
-    console.log(chalkError(MODULE_ID_PREFIX + " | PASSPORT TWITTER AUTH USER"
+    console.log(chalkError(MODULE_ID + " | PASSPORT TWITTER AUTH USER\n" + jsonPrint(req.session.passport.user))); // handle errors
+    console.log(chalkError(MODULE_ID + " | PASSPORT TWITTER AUTH USER"
       + " | IP: " + req.ip
       + " | DOMAIN: " + domainName
       + " | @" + req.session.passport.user.screenName
@@ -6909,7 +6909,7 @@ function initAppRouting(callback) {
     await slackSendWebMessage({ channel: slackChannelUserAuth, text: slackText});
 
     if (!userServerControllerReady || !statsObj.dbConnectionReady) {
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | *** NOT READY"
+      console.log(chalkAlert(MODULE_ID + " | *** NOT READY"
         + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
         + " | userServerControllerReady: " + userServerControllerReady
       ));
@@ -6918,16 +6918,16 @@ function initAppRouting(callback) {
 
     userServerController.findOne({ user: req.session.passport.user}, function(err, user) {
       if(err) {
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR TWITTER AUTHENTICATION: " + jsonPrint(err))); // handle errors
+        console.log(chalkError(MODULE_ID + " | *** ERROR TWITTER AUTHENTICATION: " + jsonPrint(err))); // handle errors
         res.redirect("/504.html");
       } 
       else if (user) {
-        console.log(chalk.green(MODULE_ID_PREFIX + " | TWITTER USER AUTHENTICATED: @" + user.screenName)); // handle errors
+        console.log(chalk.green(MODULE_ID + " | TWITTER USER AUTHENTICATED: @" + user.screenName)); // handle errors
         authenticatedTwitterUserCache.set(user.nodeId, user);
         res.redirect("/after-auth.html");
       }
       else {
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | *** TWITTER USER AUTHENTICATE FAILED"
+        console.log(chalkAlert(MODULE_ID + " | *** TWITTER USER AUTHENTICATE FAILED"
           + " | @" + req.session.passport.user.screenName + " NOT FOUND"));
         res.redirect("/504.html");
       }
@@ -6940,10 +6940,10 @@ function initAppRouting(callback) {
       domainName = await dnsReverse({ipAddress: req.ip});
     }
     catch(err){
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** /auth/twitter/error DNS REVERSE ERROR: " + err));
+      console.log(chalkError(MODULE_ID + " | *** /auth/twitter/error DNS REVERSE ERROR: " + err));
     }
 
-    console.log(chalkAlert(MODULE_ID_PREFIX + " | PASSPORT AUTH TWITTER ERROR"));
+    console.log(chalkAlert(MODULE_ID + " | PASSPORT AUTH TWITTER ERROR"));
 
     slackText = "*LOADING PAGE | PASSPORT AUTH TWITTER ERROR*";
     slackText = slackText + "\nIP: " + req.ip;
@@ -6973,7 +6973,7 @@ function initTwitterRxQueueInterval(interval){
       return reject(new Error("initTwitterRxQueueInterval interval NOT a NUMBER: " + interval));
     }
 
-    console.log(chalk.bold.black(MODULE_ID_PREFIX + " | INIT TWITTER RX QUEUE INTERVAL | " + interval + " MS"));
+    console.log(chalk.bold.black(MODULE_ID + " | INIT TWITTER RX QUEUE INTERVAL | " + interval + " MS"));
 
     clearInterval(tweetRxQueueInterval);
 
@@ -7005,7 +7005,7 @@ async function initTweetParserMessageRxQueueInterval(interval){
     throw new Error("initTweetParserMessageRxQueueInterval interval NOT a NUMBER: " + interval);
   }
 
-  console.log(chalk.bold.black(MODULE_ID_PREFIX + " | INIT TWEET PARSER MESSAGE RX QUEUE INTERVAL | " + tcUtils.msToTime(interval)));
+  console.log(chalk.bold.black(MODULE_ID + " | INIT TWEET PARSER MESSAGE RX QUEUE INTERVAL | " + tcUtils.msToTime(interval)));
 
   clearInterval(tweetParserMessageRxQueueInterval);
 
@@ -7028,7 +7028,7 @@ async function initTweetParserMessageRxQueueInterval(interval){
 
         statsObj.errors.twitter.parser += 1;
 
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR PARSE TW"
+        console.log(chalkError(MODULE_ID + " | *** ERROR PARSE TW"
           + " | " + getTimeStamp()
           + " | TWEET PARSER ERRORS: " + statsObj.errors.twitter.parser
           + " | ERROR: " + tweetParserMessage.err
@@ -7041,7 +7041,7 @@ async function initTweetParserMessageRxQueueInterval(interval){
         tweetObj = tweetParserMessage.tweetObj;
 
         if (!tweetObj.user) {
-          console.log(chalkAlert(MODULE_ID_PREFIX + " | parsedTweet -- TW USER UNDEFINED"
+          console.log(chalkAlert(MODULE_ID + " | parsedTweet -- TW USER UNDEFINED"
             + " | " + tweetObj.tweetId
           ));
           tweetParserMessageRxQueueReady = true;
@@ -7060,7 +7060,7 @@ async function initTweetParserMessageRxQueueInterval(interval){
               tweetParserMessageRxQueueReady = true;
             }
             catch(e){
-              console.log(chalkError(MODULE_ID_PREFIX + " | *** TX NODES ERROR"));
+              console.log(chalkError(MODULE_ID + " | *** TX NODES ERROR"));
               console.log(e);
               tweetParserMessageRxQueueReady = true;
             }
@@ -7071,7 +7071,7 @@ async function initTweetParserMessageRxQueueInterval(interval){
         }
       }
       else {
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** TWEET PARSER UNKNOWN OP"
+        console.log(chalkError(MODULE_ID + " | *** TWEET PARSER UNKNOWN OP"
           + " | INTERVAL: " + tweetParserMessage.op
         ));
         tweetParserMessageRxQueueReady = true;
@@ -7115,7 +7115,7 @@ function initSorterMessageRxQueueInterval(interval){
 
   return new Promise(function(resolve) {
 
-    console.log(chalk.bold.black(MODULE_ID_PREFIX + " | INIT SORTER RX MESSAGE QUEUE INTERVAL | " + tcUtils.msToTime(interval)));
+    console.log(chalk.bold.black(MODULE_ID + " | INIT SORTER RX MESSAGE QUEUE INTERVAL | " + tcUtils.msToTime(interval)));
 
     clearInterval(sorterMessageRxQueueInterval);
 
@@ -7174,7 +7174,7 @@ function initSorterMessageRxQueueInterval(interval){
           break;
 
           default:
-            console.log(chalkError(MODULE_ID_PREFIX + " | ??? SORTER UNKNOWN OP\n" + jsonPrint(sorterObj)));
+            console.log(chalkError(MODULE_ID + " | ??? SORTER UNKNOWN OP\n" + jsonPrint(sorterObj)));
             sorterMessageRxReady = true; 
         }
       }
@@ -7207,7 +7207,7 @@ function initKeySortInterval(interval){
 
   return new Promise(function(resolve){
 
-    console.log(chalkInfo(MODULE_ID_PREFIX + " | INIT KEY SORT INTERVAL: " + tcUtils.msToTime(interval)));
+    console.log(chalkInfo(MODULE_ID + " | INIT KEY SORT INTERVAL: " + tcUtils.msToTime(interval)));
 
     clearInterval(keySortInterval);
 
@@ -7226,7 +7226,7 @@ function initKeySortInterval(interval){
         keySort(keySortParams, function(err, results){
 
           if (err) {
-            console.log(chalkError(MODULE_ID_PREFIX + " | *** KEY SORT ERROR: " + err));
+            console.log(chalkError(MODULE_ID + " | *** KEY SORT ERROR: " + err));
             keySortReady = true;
           }
           else {
@@ -7274,11 +7274,11 @@ function initDbuPingInterval(interval){
 
           if (err) {
 
-            console.log(chalkError(MODULE_ID_PREFIX + " | *** DBU SEND PING ERROR: " + err));
+            console.log(chalkError(MODULE_ID + " | *** DBU SEND PING ERROR: " + err));
 
             killChild({childId: DEFAULT_DBU_CHILD_ID}, function(err){
               if (err) {
-                console.log(chalkError(MODULE_ID_PREFIX + " | *** KILL CHILD ERROR: " + err));
+                console.log(chalkError(MODULE_ID + " | *** KILL CHILD ERROR: " + err));
                 return;
               }
               dbuPongReceived = false;
@@ -7288,7 +7288,7 @@ function initDbuPingInterval(interval){
             return;
           }
 
-          console.log(chalkInfo(MODULE_ID_PREFIX + " | >PING | DBU | PING ID: " + getTimeStamp(dbuPingId)));
+          console.log(chalkInfo(MODULE_ID + " | >PING | DBU | PING ID: " + getTimeStamp(dbuPingId)));
 
         });
 
@@ -7304,11 +7304,11 @@ function initDbuPingInterval(interval){
 
           if (err) {
 
-            console.log(chalkError(MODULE_ID_PREFIX + " | *** DBU SEND PING ERROR: " + err));
+            console.log(chalkError(MODULE_ID + " | *** DBU SEND PING ERROR: " + err));
 
             killChild({childId: DEFAULT_DBU_CHILD_ID}, function(err){
               if (err) {
-                console.log(chalkError(MODULE_ID_PREFIX + " | *** KILL CHILD ERROR: " + err));
+                console.log(chalkError(MODULE_ID + " | *** KILL CHILD ERROR: " + err));
                 return;
               }
               dbuPongReceived = false;
@@ -7319,7 +7319,7 @@ function initDbuPingInterval(interval){
           }
 
           if (configuration.verbose) { 
-            console.log(chalkInfo(MODULE_ID_PREFIX + " | >PING | DBU | PING ID: " + getTimeStamp(dbuPingId)));
+            console.log(chalkInfo(MODULE_ID + " | >PING | DBU | PING ID: " + getTimeStamp(dbuPingId)));
           }
 
           dbuPingSent = true; 
@@ -7329,7 +7329,7 @@ function initDbuPingInterval(interval){
       }
       else {
 
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | *** PONG TIMEOUT | DBU"
+        console.log(chalkAlert(MODULE_ID + " | *** PONG TIMEOUT | DBU"
           + " | TIMEOUT: " + interval
           + " | NOW: " + getTimeStamp()
           + " | PING ID: " + getTimeStamp(dbuPingId)
@@ -7365,11 +7365,11 @@ function initTssPingInterval(interval){
 
           if (err) {
 
-            console.log(chalkError(MODULE_ID_PREFIX + " | *** TSS SEND PING ERROR: " + err));
+            console.log(chalkError(MODULE_ID + " | *** TSS SEND PING ERROR: " + err));
 
             killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err){
               if (err) {
-                console.log(chalkError(MODULE_ID_PREFIX + " | *** KILL CHILD ERROR: " + err));
+                console.log(chalkError(MODULE_ID + " | *** KILL CHILD ERROR: " + err));
                 return;
               }
               tssPongReceived = false;
@@ -7383,7 +7383,7 @@ function initTssPingInterval(interval){
             return;
           }
 
-          console.log(chalkInfo(MODULE_ID_PREFIX + " | >PING | TSS | PING ID: " + getTimeStamp(tssPingId)));
+          console.log(chalkInfo(MODULE_ID + " | >PING | TSS | PING ID: " + getTimeStamp(tssPingId)));
 
         });
 
@@ -7399,11 +7399,11 @@ function initTssPingInterval(interval){
 
           if (err) {
 
-            console.log(chalkError(MODULE_ID_PREFIX + " | *** TSS SEND PING ERROR: " + err));
+            console.log(chalkError(MODULE_ID + " | *** TSS SEND PING ERROR: " + err));
 
             killChild({childId: DEFAULT_TSS_CHILD_ID}, function(err){
               if (err) {
-                console.log(chalkError(MODULE_ID_PREFIX + " | *** KILL CHILD ERROR: " + err));
+                console.log(chalkError(MODULE_ID + " | *** KILL CHILD ERROR: " + err));
                 return;
               }
               tssPongReceived = false;
@@ -7418,7 +7418,7 @@ function initTssPingInterval(interval){
           }
 
           if (configuration.verbose) { 
-            console.log(chalkInfo(MODULE_ID_PREFIX + " | >PING | TSS | PING ID: " + getTimeStamp(tssPingId))); 
+            console.log(chalkInfo(MODULE_ID + " | >PING | TSS | PING ID: " + getTimeStamp(tssPingId))); 
           }
 
           tssPingSent = true; 
@@ -7428,7 +7428,7 @@ function initTssPingInterval(interval){
       }
       else {
 
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | *** PONG TIMEOUT | TSS"
+        console.log(chalkAlert(MODULE_ID + " | *** PONG TIMEOUT | TSS"
           + " | TIMEOUT: " + interval
           + " | NOW: " + getTimeStamp()
           + " | PING ID: " + getTimeStamp(tssPingId)
@@ -7447,7 +7447,7 @@ function initTssChild(params){
 
   statsObj.tssChildReady = false;
 
-  console.log(chalk.bold.black(MODULE_ID_PREFIX + " | INIT TSS CHILD\n" + jsonPrint(params)));
+  console.log(chalk.bold.black(MODULE_ID + " | INIT TSS CHILD\n" + jsonPrint(params)));
 
   return new Promise(function(resolve){
 
@@ -7492,7 +7492,7 @@ function initTssChild(params){
           }, function tssMessageRxError(err){
             if (err) {
               statsObj.tssChildReady = false;
-              console.log(chalkError(MODULE_ID_PREFIX + " | *** TSS SEND ERROR: " + err));
+              console.log(chalkError(MODULE_ID + " | *** TSS SEND ERROR: " + err));
               console.log(err);
               clearInterval(tssPingInterval);
               childrenHashMap[params.childId].status = "ERROR";
@@ -7509,7 +7509,7 @@ function initTssChild(params){
         break;
 
         case "ERROR":
-          console.log(chalkError(MODULE_ID_PREFIX + " | <TSS | ERROR"
+          console.log(chalkError(MODULE_ID + " | <TSS | ERROR"
             + " | 3C @" + m.threeceeUser
             + " | ERROR TYPE: " + m.errorType
             + " | ERROR MESSAGE: " + m.error.message
@@ -7521,7 +7521,7 @@ function initTssChild(params){
             threeceeTwitter.twitterErrors += 1;
             threeceeTwitter.twitterErrorFlag = m.error;
 
-            console.log(chalkError(MODULE_ID_PREFIX + " | <TSS | ERROR | TWITTER_UNFOLLOW"
+            console.log(chalkError(MODULE_ID + " | <TSS | ERROR | TWITTER_UNFOLLOW"
               + " | AUTUO FOLLOW USER: @" + threeceeUser
               + " | ERROR TYPE: " + m.errorType
               + " | ERROR MESSAGE: " + m.error.message
@@ -7533,7 +7533,7 @@ function initTssChild(params){
             threeceeTwitter.twitterErrorFlag = m.error;
             threeceeTwitter.twitterAuthorizationErrorFlag = m.error;
 
-            console.log(chalkError(MODULE_ID_PREFIX + " | <TSS | ERROR | TWITTER_FOLLOW_LIMIT"
+            console.log(chalkError(MODULE_ID + " | <TSS | ERROR | TWITTER_FOLLOW_LIMIT"
               + " | AUTUO FOLLOW USER: @" + threeceeUser
               + " | ERROR TYPE: " + m.errorType
               + " | ERROR MESSAGE: " + m.error.message
@@ -7555,7 +7555,7 @@ function initTssChild(params){
 
             unfollowableUserSet.add(m.userId);
 
-            console.log(chalkLog(MODULE_ID_PREFIX + " | XXX TWITTER USER SUSPENDED"
+            console.log(chalkLog(MODULE_ID + " | XXX TWITTER USER SUSPENDED"
               + " | UID: " + m.userId
               + " | @" + m.screenName
               + " | UNFOLLOWABLE SET SIZE: " + unfollowableUserSet.size
@@ -7565,7 +7565,7 @@ function initTssChild(params){
 
             unfollowableUserSet.add(m.userId);
 
-            console.log(chalkLog(MODULE_ID_PREFIX + " | XXX TWITTER USER NOT FOUND"
+            console.log(chalkLog(MODULE_ID + " | XXX TWITTER USER NOT FOUND"
               + " | UID: " + m.userId
               + " | @" + m.screenName
               + " | UNFOLLOWABLE SET SIZE: " + unfollowableUserSet.size
@@ -7575,7 +7575,7 @@ function initTssChild(params){
 
             unfollowableUserSet.add(m.userId);
 
-            console.log(chalkLog(MODULE_ID_PREFIX + " | XXX TWITTER FOLLOW BLOCK"
+            console.log(chalkLog(MODULE_ID + " | XXX TWITTER FOLLOW BLOCK"
               + " | UID: " + m.userId
               + " | @" + m.screenName
               + " | UNFOLLOWABLE SET SIZE: " + unfollowableUserSet.size
@@ -7591,7 +7591,7 @@ function initTssChild(params){
 
         case "TWITTER_STATS":
 
-          console.log(chalkInfo(MODULE_ID_PREFIX + " | <TSS | TWITTER STATS"
+          console.log(chalkInfo(MODULE_ID + " | <TSS | TWITTER STATS"
             + " | 3C @" + m.threeceeUser
             + " | FOLLOWING: " + m.twitterFollowing
           ));
@@ -7605,7 +7605,7 @@ function initTssChild(params){
 
         case "FOLLOW_LIMIT":
 
-          console.log(chalkInfo(MODULE_ID_PREFIX + " | <TSS | FOLLOW LIMIT"
+          console.log(chalkInfo(MODULE_ID + " | <TSS | FOLLOW LIMIT"
             + " | 3C @" + m.threeceeUser
             + " | LIMIT: " + getTimeStamp(m.twitterFollowLimit)
             + " | NOW: " + getTimeStamp()
@@ -7624,7 +7624,7 @@ function initTssChild(params){
           tssPongReceived = m.pongId;
           childrenHashMap[params.childId].status = "RUNNING";
           if (configuration.verbose) {
-            console.log(chalkInfo(MODULE_ID_PREFIX + " | <TSS | PONG"
+            console.log(chalkInfo(MODULE_ID + " | <TSS | PONG"
               + " | NOW: " + getTimeStamp()
               + " | PONG ID: " + getTimeStamp(m.pongId)
               + " | RESPONSE TIME: " + tcUtils.msToTime(moment().valueOf() - m.pongId)
@@ -7633,13 +7633,13 @@ function initTssChild(params){
         break;
 
         default:
-          console.log(chalkError(MODULE_ID_PREFIX + " | TSS | *** ERROR *** UNKNOWN OP: " + m.op));
+          console.log(chalkError(MODULE_ID + " | TSS | *** ERROR *** UNKNOWN OP: " + m.op));
       }
     });
 
     tss.on("error", function tssError(err){
       statsObj.tssChildReady = false;
-      console.log(chalkError(MODULE_ID_PREFIX + " | " + getTimeStamp()
+      console.log(chalkError(MODULE_ID + " | " + getTimeStamp()
         + " | *** TSS ERROR ***"
         + " \n" + jsonPrint(err)
       ));
@@ -7651,7 +7651,7 @@ function initTssChild(params){
 
     tss.on("exit", function tssExit(code){
       statsObj.tssChildReady = false;
-      console.log(chalkError(MODULE_ID_PREFIX + " | " + getTimeStamp()
+      console.log(chalkError(MODULE_ID + " | " + getTimeStamp()
         + " | *** TSS EXIT ***"
         + " | EXIT CODE: " + code
       ));
@@ -7661,7 +7661,7 @@ function initTssChild(params){
 
     tss.on("close", function tssClose(code){
       statsObj.tssChildReady = false;
-      console.log(chalkError(MODULE_ID_PREFIX + " | " + getTimeStamp()
+      console.log(chalkError(MODULE_ID + " | " + getTimeStamp()
         + " | *** TSS CLOSE ***"
         + " | EXIT CODE: " + code
       ));
@@ -7685,7 +7685,7 @@ function initDbuChild(params){
 
     const childId = params.childId;
 
-    console.log(chalk.bold.black(MODULE_ID_PREFIX + " | INIT DBU CHILD\n" + jsonPrint(params)));
+    console.log(chalk.bold.black(MODULE_ID + " | INIT DBU CHILD\n" + jsonPrint(params)));
 
     const dbu = cp.fork(`${__dirname}/js/libs/dbuChild.js`);
 
@@ -7717,7 +7717,7 @@ function initDbuChild(params){
             verbose: configuration.verbose
           }, function dbuMessageRxError(err){
             if (err) {
-              console.log(chalkError(MODULE_ID_PREFIX + " | *** DBU SEND ERROR"
+              console.log(chalkError(MODULE_ID + " | *** DBU SEND ERROR"
                 + " | " + err
               ));
               console.log(err);
@@ -7738,7 +7738,7 @@ function initDbuChild(params){
         break;
 
         case "ERROR":
-          console.log(chalkError(MODULE_ID_PREFIX + " | <DBU | ERROR"
+          console.log(chalkError(MODULE_ID + " | <DBU | ERROR"
             + " | ERROR TYPE: " + m.errorType
             + "\n" + jsonPrint(m.error)
           ));
@@ -7748,7 +7748,7 @@ function initDbuChild(params){
           dbuPongReceived = m.pongId;
           childrenHashMap[childId].status = "RUNNING";
           if (configuration.verbose) {
-            console.log(chalkInfo(MODULE_ID_PREFIX + " | <DBU | PONG"
+            console.log(chalkInfo(MODULE_ID + " | <DBU | PONG"
               + " | NOW: " + getTimeStamp()
               + " | PONG ID: " + getTimeStamp(m.pongId)
               + " | RESPONSE TIME: " + tcUtils.msToTime(moment().valueOf() - m.pongId)
@@ -7757,12 +7757,12 @@ function initDbuChild(params){
         break;
 
         default:
-          console.log(chalkError(MODULE_ID_PREFIX + " | DBU | *** ERROR *** UNKNOWN OP: " + m.op));
+          console.log(chalkError(MODULE_ID + " | DBU | *** ERROR *** UNKNOWN OP: " + m.op));
       }
     });
 
     dbu.on("error", function dbuError(err){
-      console.log(chalkError(MODULE_ID_PREFIX + " | " + getTimeStamp()
+      console.log(chalkError(MODULE_ID + " | " + getTimeStamp()
         + " | *** DBU ERROR ***"
         + " \n" + jsonPrint(err)
       ));
@@ -7772,7 +7772,7 @@ function initDbuChild(params){
     });
 
     dbu.on("exit", function dbuExit(code){
-      console.log(chalkError(MODULE_ID_PREFIX + " | " + getTimeStamp()
+      console.log(chalkError(MODULE_ID + " | " + getTimeStamp()
         + " | *** DBU EXIT ***"
         + " | EXIT CODE: " + code
       ));
@@ -7782,7 +7782,7 @@ function initDbuChild(params){
     });
 
     dbu.on("close", function dbuClose(code){
-      console.log(chalkError(MODULE_ID_PREFIX + " | " + getTimeStamp()
+      console.log(chalkError(MODULE_ID + " | " + getTimeStamp()
         + " | *** DBU CLOSE ***"
         + " | EXIT CODE: " + code
       ));
@@ -7821,11 +7821,11 @@ function initTweetParserPingInterval(interval){
 
           if (err) {
 
-            console.log(chalkError(MODULE_ID_PREFIX + " | *** TWEET_PARSER SEND PING ERROR: " + err));
+            console.log(chalkError(MODULE_ID + " | *** TWEET_PARSER SEND PING ERROR: " + err));
 
             killChild({childId: DEFAULT_TWP_CHILD_ID}, function(err){
               if (err) {
-                console.log(chalkError(MODULE_ID_PREFIX + " | *** KILL CHILD ERROR: " + err));
+                console.log(chalkError(MODULE_ID + " | *** KILL CHILD ERROR: " + err));
                 return;
               }
               tweetParserPongReceived = false;
@@ -7836,7 +7836,7 @@ function initTweetParserPingInterval(interval){
           }
 
           if (configuration.verbose) { 
-            console.log(chalkInfo(MODULE_ID_PREFIX + " | >PING | TWEET_PARSER | PING ID: " + getTimeStamp(tweetParserPingId))); 
+            console.log(chalkInfo(MODULE_ID + " | >PING | TWEET_PARSER | PING ID: " + getTimeStamp(tweetParserPingId))); 
           }
 
         });
@@ -7853,11 +7853,11 @@ function initTweetParserPingInterval(interval){
 
           if (err) {
 
-            console.log(chalkError(MODULE_ID_PREFIX + " | *** TWEET_PARSER SEND PING ERROR: " + err));
+            console.log(chalkError(MODULE_ID + " | *** TWEET_PARSER SEND PING ERROR: " + err));
 
             killChild({childId: DEFAULT_TWP_CHILD_ID}, function(err){
               if (err) {
-                console.log(chalkError(MODULE_ID_PREFIX + " | *** KILL CHILD ERROR: " + err));
+                console.log(chalkError(MODULE_ID + " | *** KILL CHILD ERROR: " + err));
                 return;
               }
               tweetParserPongReceived = false;
@@ -7868,7 +7868,7 @@ function initTweetParserPingInterval(interval){
           }
 
           if (configuration.verbose) { 
-            console.log(chalkInfo(MODULE_ID_PREFIX + " | >PING | TWEET_PARSER | PING ID: " + getTimeStamp(tweetParserPingId))); 
+            console.log(chalkInfo(MODULE_ID + " | >PING | TWEET_PARSER | PING ID: " + getTimeStamp(tweetParserPingId))); 
           }
 
           tweetParserPingSent = true; 
@@ -7878,7 +7878,7 @@ function initTweetParserPingInterval(interval){
       }
       else {
 
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | *** PONG TIMEOUT | TWEET_PARSER"
+        console.log(chalkAlert(MODULE_ID + " | *** PONG TIMEOUT | TWEET_PARSER"
           + " | TIMEOUT: " + interval
           + " | NOW: " + getTimeStamp()
           + " | PING ID: " + getTimeStamp(tweetParserPingId)
@@ -7897,7 +7897,7 @@ function initTweetParser(params){
 
   return new Promise(function(resolve, reject){
 
-    console.log(chalk.bold.black(MODULE_ID_PREFIX + " | INIT TWEET PARSER\n" + jsonPrint(params)));
+    console.log(chalk.bold.black(MODULE_ID + " | INIT TWEET PARSER\n" + jsonPrint(params)));
 
     clearInterval(tweetParserPingInterval);
     tweetParserPongReceived = false;
@@ -7910,7 +7910,7 @@ function initTweetParser(params){
       twp = cp.fork(`${__dirname}/js/libs/tweetParser.js`);
     }
     catch(err){
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** TWEET PARSER CHILD FORK ERROR: " + err));
+      console.log(chalkError(MODULE_ID + " | *** TWEET PARSER CHILD FORK ERROR: " + err));
       return reject(err);
     }
 
@@ -7942,7 +7942,7 @@ function initTweetParser(params){
             verbose: configuration.verbose
           }, function tweetParserMessageRxError(err){
             if (err) {
-              console.log(chalkError(MODULE_ID_PREFIX + " | *** TWEET PARSER SEND ERROR"
+              console.log(chalkError(MODULE_ID + " | *** TWEET PARSER SEND ERROR"
                 + " | " + err
               ));
               statsObj.tweetParserSendReady = false;
@@ -7968,7 +7968,7 @@ function initTweetParser(params){
           childrenHashMap[params.childId].status = "RUNNING";
 
           if (configuration.verbose) {
-            console.log(chalkInfo(MODULE_ID_PREFIX + " | <PONG | TWEET PARSER"
+            console.log(chalkInfo(MODULE_ID + " | <PONG | TWEET PARSER"
               + " | NOW: " + getTimeStamp()
               + " | PONG ID: " + getTimeStamp(m.pongId)
               + " | RESPONSE TIME: " + tcUtils.msToTime(moment().valueOf() - m.pongId)
@@ -7981,12 +7981,12 @@ function initTweetParser(params){
         break;
         
         default:
-          console.log(chalkError(MODULE_ID_PREFIX + " | *** TWP UNKNOWN OP: " + m.op));
+          console.log(chalkError(MODULE_ID + " | *** TWP UNKNOWN OP: " + m.op));
       }
     });
 
     twp.on("error", function tweetParserError(err){
-      console.log(chalkError(MODULE_ID_PREFIX + " | " + getTimeStamp()
+      console.log(chalkError(MODULE_ID + " | " + getTimeStamp()
         + " | *** TWEET PARSER ERROR ***"
         + " \n" + jsonPrint(err)
       ));
@@ -7998,7 +7998,7 @@ function initTweetParser(params){
     });
 
     twp.on("exit", function tweetParserExit(code){
-      console.log(chalkError(MODULE_ID_PREFIX + " | " + getTimeStamp()
+      console.log(chalkError(MODULE_ID + " | " + getTimeStamp()
         + " | *** TWEET PARSER EXIT ***"
         + " | EXIT CODE: " + code
       ));
@@ -8009,7 +8009,7 @@ function initTweetParser(params){
     });
 
     twp.on("close", function tweetParserClose(code){
-      console.log(chalkError(MODULE_ID_PREFIX + " | " + getTimeStamp()
+      console.log(chalkError(MODULE_ID + " | " + getTimeStamp()
         + " | *** TWEET PARSER CLOSE ***"
         + " | EXIT CODE: " + code
       ));
@@ -8032,7 +8032,7 @@ function initRateQinterval(interval){
 
   return new Promise(function(resolve){
 
-    console.log(chalk.bold.black(MODULE_ID_PREFIX + " | INIT RATE QUEUE INTERVAL | " + tcUtils.msToTime(interval)));
+    console.log(chalk.bold.black(MODULE_ID + " | INIT RATE QUEUE INTERVAL | " + tcUtils.msToTime(interval)));
   
     clearInterval(updateMetricsInterval);
 
@@ -8075,7 +8075,7 @@ function initRateQinterval(interval){
               if (statsObj.caches[cacheName][nodeType].stats.keys > statsObj.caches[cacheName][nodeType].stats.keysMax) {
                 statsObj.caches[cacheName][nodeType].stats.keysMax = statsObj.caches[cacheName][nodeType].stats.keys;
                 statsObj.caches[cacheName][nodeType].stats.keysMaxTime = moment().valueOf();
-                console.log(chalkInfo(MODULE_ID_PREFIX + " | MAX CACHE"
+                console.log(chalkInfo(MODULE_ID + " | MAX CACHE"
                   + " | " + cacheName + " - " + nodeType
                   + " | Ks: " + statsObj.caches[cacheName][nodeType].stats.keys
                 ));
@@ -8089,7 +8089,7 @@ function initRateQinterval(interval){
             if (statsObj.caches[cacheName].stats.keys > statsObj.caches[cacheName].stats.keysMax) {
               statsObj.caches[cacheName].stats.keysMax = statsObj.caches[cacheName].stats.keys;
               statsObj.caches[cacheName].stats.keysMaxTime = moment().valueOf();
-              console.log(chalkInfo(MODULE_ID_PREFIX + " | MAX CACHE"
+              console.log(chalkInfo(MODULE_ID + " | MAX CACHE"
                 + " | " + cacheName
                 + " | Ks: " + statsObj.caches[cacheName].stats.keys
               ));
@@ -8102,7 +8102,7 @@ function initRateQinterval(interval){
           if (statsObj.admin.connected > statsObj.admin.connectedMax) {
             statsObj.admin.connectedMaxTime = moment().valueOf();
             statsObj.admin.connectedMax = statsObj.admin.connected;
-            console.log(chalkInfo(MODULE_ID_PREFIX + " | MAX ADMINS"
+            console.log(chalkInfo(MODULE_ID + " | MAX ADMINS"
              + " | " + statsObj.admin.connected
              + " | " + getTimeStamp()
             ));
@@ -8114,7 +8114,7 @@ function initRateQinterval(interval){
           if (statsObj.entity.util.connected > statsObj.entity.util.connectedMax) {
             statsObj.entity.util.connectedMaxTime = moment().valueOf();
             statsObj.entity.util.connectedMax = statsObj.entity.util.connected;
-            console.log(chalkInfo(MODULE_ID_PREFIX + " | MAX UTILS"
+            console.log(chalkInfo(MODULE_ID + " | MAX UTILS"
              + " | " + statsObj.entity.util.connected
              + " | " + getTimeStamp()
             ));
@@ -8130,7 +8130,7 @@ function initRateQinterval(interval){
             statsObj.entity.viewer.connectedMaxTime = moment().valueOf();
             statsObj.entity.viewer.connectedMax = statsObj.entity.viewer.connected;
 
-            console.log(chalkInfo(MODULE_ID_PREFIX + " | MAX VIEWERS"
+            console.log(chalkInfo(MODULE_ID + " | MAX VIEWERS"
              + " | " + statsObj.entity.viewer.connected
              + " | " + getTimeStamp()
             ));
@@ -8151,7 +8151,7 @@ function initRateQinterval(interval){
           async.each(Object.keys(nodeMeterType[nodeType]), function sorterParams(meterId, cb){
 
             if (!nodeMeterType[nodeType][meterId]) {
-              console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR NULL nodeMeterType[" + nodeType + "]: " + meterId));
+              console.log(chalkError(MODULE_ID + " | *** ERROR NULL nodeMeterType[" + nodeType + "]: " + meterId));
             }
 
             paramsSorter.obj[meterId] = pick(nodeMeterType[nodeType][meterId].toJSON(), paramsSorter.sortKey);
@@ -8161,7 +8161,7 @@ function initRateQinterval(interval){
           }, function(err){
 
             if (err) {
-              console.log(chalkError(MODULE_ID_PREFIX + " | ERROR RATE QUEUE INTERVAL\n" + err ));
+              console.log(chalkError(MODULE_ID + " | ERROR RATE QUEUE INTERVAL\n" + err ));
             }
 
             keySortQueue.push(paramsSorter);
@@ -8179,7 +8179,7 @@ function initRateQinterval(interval){
         async.each(Object.keys(nodeMeter), function sorterParams(meterId, cb){
 
           if (!nodeMeter[meterId]) {
-            console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR NULL nodeMeter[meterId]: " + meterId));
+            console.log(chalkError(MODULE_ID + " | *** ERROR NULL nodeMeter[meterId]: " + meterId));
           }
 
           paramsSorterOverall.obj[meterId] = pick(nodeMeter[meterId].toJSON(), paramsSorterOverall.sortKey);
@@ -8187,7 +8187,7 @@ function initRateQinterval(interval){
           cb();
         }, function(err){
           if (err) {
-            console.log(chalkError(MODULE_ID_PREFIX + " | ERROR RATE QUEUE INTERVAL\n" + err ));
+            console.log(chalkError(MODULE_ID + " | ERROR RATE QUEUE INTERVAL\n" + err ));
           }
 
           keySortQueue.push(paramsSorterOverall);
@@ -8209,7 +8209,7 @@ async function loadBestRuntimeNetwork(p){
 
   try {
 
-    console.log(chalkLog(MODULE_ID_PREFIX + " | LOAD BEST NETWORKS | " + folder + "/" + file));
+    console.log(chalkLog(MODULE_ID + " | LOAD BEST NETWORKS | " + folder + "/" + file));
 
     const bRtNnObj = await tcUtils.loadFileRetry({folder: folder, file: file, noErrorNotFound: true});
 
@@ -8219,7 +8219,7 @@ async function loadBestRuntimeNetwork(p){
       bRtNnObj.overallMatchRate = (bRtNnObj.overallMatchRate !== undefined) ? bRtNnObj.overallMatchRate : 0;
       bRtNnObj.runtimeMatchRate = (bRtNnObj.runtimeMatchRate !== undefined) ? bRtNnObj.runtimeMatchRate : 0;
 
-      console.log(chalkInfo(MODULE_ID_PREFIX + " | LOAD BEST NETWORK RUNTIME ID"
+      console.log(chalkInfo(MODULE_ID + " | LOAD BEST NETWORK RUNTIME ID"
         + " | " + bRtNnObj.networkId
         + " | SR: " + bRtNnObj.successRate.toFixed(2) + "%"
         + " | MR: " + bRtNnObj.matchRate.toFixed(2) + "%"
@@ -8241,12 +8241,12 @@ async function loadBestRuntimeNetwork(p){
           bestNetworkObj = {};
           bestNetworkObj = deepcopy(nnObj);
 
-          console.log(chalk.green.bold(MODULE_ID_PREFIX + " | +++ LOADED BEST NETWORK: " + bestNetworkObj.networkId));
+          console.log(chalk.green.bold(MODULE_ID + " | +++ LOADED BEST NETWORK: " + bestNetworkObj.networkId));
 
           statsObj.bestNetwork = pick(bestNetworkObj, statsBestNetworkPickArray);
 
           if (statsObj.previousBestNetworkId != bestNetworkObj.networkId) {
-            console.log(chalk.green.bold(MODULE_ID_PREFIX + " | >>> BEST NETWORK CHANGE"
+            console.log(chalk.green.bold(MODULE_ID + " | >>> BEST NETWORK CHANGE"
               + " | PREV: " + statsObj.previousBestNetworkId
               + " > NEW: " + bestNetworkObj.networkId
             ));
@@ -8259,8 +8259,8 @@ async function loadBestRuntimeNetwork(p){
       }
       catch(e){
 
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR LOAD BEST NETWORK RUNTIME ID: " +e));
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | ... SEARCH DB FOR BEST RUNTIME NETWORK: " + bRtNnObj.networkId));
+        console.log(chalkError(MODULE_ID + " | *** ERROR LOAD BEST NETWORK RUNTIME ID: " +e));
+        console.log(chalkAlert(MODULE_ID + " | ... SEARCH DB FOR BEST RUNTIME NETWORK: " + bRtNnObj.networkId));
 
       }
     }
@@ -8271,7 +8271,7 @@ async function loadBestRuntimeNetwork(p){
       .limit(1);
 
     if (nnArray.length == 0){
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** NEURAL NETWORK NOT FOUND"));
+      console.log(chalkError(MODULE_ID + " | *** NEURAL NETWORK NOT FOUND"));
       return;
     }
 
@@ -8285,7 +8285,7 @@ async function loadBestRuntimeNetwork(p){
     statsObj.bestNetwork = pick(bestNetworkObj, statsBestNetworkPickArray);
 
     if (statsObj.previousBestNetworkId != bestNetworkObj.networkId) {
-      console.log(chalk.green.bold(MODULE_ID_PREFIX + " | >>> BEST NETWORK CHANGE"
+      console.log(chalk.green.bold(MODULE_ID + " | >>> BEST NETWORK CHANGE"
         + " | PREV: " + statsObj.previousBestNetworkId
         + " > NEW: " + bestNetworkObj.networkId
       ));
@@ -8293,7 +8293,7 @@ async function loadBestRuntimeNetwork(p){
       configEvents.emit("NEW_BEST_NETWORK", bestNetworkObj.networkId);
     }
 
-    console.log(chalk.blue.bold(MODULE_ID_PREFIX + " | +++ BEST NEURAL NETWORK LOADED FROM DB"
+    console.log(chalk.blue.bold(MODULE_ID + " | +++ BEST NEURAL NETWORK LOADED FROM DB"
       + " | " + bestNetworkObj.networkId
       + " | SR: " + bestNetworkObj.successRate.toFixed(2) + "%"
       + " | MR: " + bestNetworkObj.matchRate.toFixed(2) + "%"
@@ -8305,17 +8305,17 @@ async function loadBestRuntimeNetwork(p){
   }
   catch(err){
     if (err.code == "ETIMEDOUT") {
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD BEST NETWORK ERROR: NETWORK TIMEOUT:  " 
+      console.log(chalkError(MODULE_ID + " | *** LOAD BEST NETWORK ERROR: NETWORK TIMEOUT:  " 
         + folder + "/" + file
       ));
     }
     else if (err.code == "ENOTFOUND") {
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD BEST NETWORK ERROR: FILE NOT FOUND:  " 
+      console.log(chalkError(MODULE_ID + " | *** LOAD BEST NETWORK ERROR: FILE NOT FOUND:  " 
         + folder + "/" + file
       ));
     }
     else {
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD BEST NETWORK ERROR"
+      console.log(chalkError(MODULE_ID + " | *** LOAD BEST NETWORK ERROR"
         + " | " + folder + "/" + file
         + "\n" + jsonPrint(err)
       ));
@@ -8343,12 +8343,12 @@ async function loadConfigFile(params) {
     });
 
     if (empty(loadedConfigObj)) {
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | DROPBOX CONFIG LOAD FILE ERROR | JSON UNDEFINED ??? "));
+      console.log(chalkAlert(MODULE_ID + " | DROPBOX CONFIG LOAD FILE ERROR | JSON UNDEFINED ??? "));
       return;
       // throw new Error("JSON UNDEFINED");
     }
 
-    console.log(chalkInfo(MODULE_ID_PREFIX + " | LOADED CONFIG FILE: " + params.file + "\n" + jsonPrint(loadedConfigObj)));
+    console.log(chalkInfo(MODULE_ID + " | LOADED CONFIG FILE: " + params.file + "\n" + jsonPrint(loadedConfigObj)));
 
     const newConfiguration = {};
 
@@ -8357,7 +8357,7 @@ async function loadConfigFile(params) {
     newConfiguration.threeceeUsers = [];
 
     if (loadedConfigObj.WAS_USER_PROFILE_ONLY_FLAG !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED WAS_USER_PROFILE_ONLY_FLAG: " + loadedConfigObj.WAS_USER_PROFILE_ONLY_FLAG);
+      console.log(MODULE_ID + " | LOADED WAS_USER_PROFILE_ONLY_FLAG: " + loadedConfigObj.WAS_USER_PROFILE_ONLY_FLAG);
 
       if ((loadedConfigObj.WAS_USER_PROFILE_ONLY_FLAG == false) || (loadedConfigObj.WAS_USER_PROFILE_ONLY_FLAG == "false")) {
         newConfiguration.userProfileOnlyFlag = false;
@@ -8371,17 +8371,17 @@ async function loadConfigFile(params) {
     }
 
     if (loadedConfigObj.WAS_PUBSUB_PROJECT_ID !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED WAS_PUBSUB_PROJECT_ID: " + loadedConfigObj.WAS_PUBSUB_PROJECT_ID);
+      console.log(MODULE_ID + " | LOADED WAS_PUBSUB_PROJECT_ID: " + loadedConfigObj.WAS_PUBSUB_PROJECT_ID);
       newConfiguration.pubSub.projectId = loadedConfigObj.WAS_PUBSUB_PROJECT_ID;
     }
 
     if (loadedConfigObj.WAS_PUBSUB_RESULT_TIMEOUT !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED WAS_PUBSUB_PROJECT_ID: " + loadedConfigObj.WAS_PUBSUB_RESULT_TIMEOUT);
+      console.log(MODULE_ID + " | LOADED WAS_PUBSUB_PROJECT_ID: " + loadedConfigObj.WAS_PUBSUB_RESULT_TIMEOUT);
       newConfiguration.pubSub.pubSubResultTimeout = loadedConfigObj.WAS_PUBSUB_RESULT_TIMEOUT;
     }
 
     if (loadedConfigObj.TWEET_VERSION_2 !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED TWEET_VERSION_2: " + loadedConfigObj.TWEET_VERSION_2);
+      console.log(MODULE_ID + " | LOADED TWEET_VERSION_2: " + loadedConfigObj.TWEET_VERSION_2);
 
       if ((loadedConfigObj.TWEET_VERSION_2 == false) || (loadedConfigObj.TWEET_VERSION_2 == "false")) {
         newConfiguration.tweetVersion2 = false;
@@ -8395,7 +8395,7 @@ async function loadConfigFile(params) {
     }
 
     if (loadedConfigObj.WAS_TEST_MODE !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED WAS_TEST_MODE: " + loadedConfigObj.WAS_TEST_MODE);
+      console.log(MODULE_ID + " | LOADED WAS_TEST_MODE: " + loadedConfigObj.WAS_TEST_MODE);
 
       if ((loadedConfigObj.WAS_TEST_MODE == false) || (loadedConfigObj.WAS_TEST_MODE == "false")) {
         newConfiguration.testMode = false;
@@ -8409,7 +8409,7 @@ async function loadConfigFile(params) {
     }
 
     if (loadedConfigObj.VERBOSE !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED VERBOSE: " + loadedConfigObj.VERBOSE);
+      console.log(MODULE_ID + " | LOADED VERBOSE: " + loadedConfigObj.VERBOSE);
 
       if ((loadedConfigObj.VERBOSE == false) || (loadedConfigObj.VERBOSE == "false")) {
         newConfiguration.verbose = false;
@@ -8423,7 +8423,7 @@ async function loadConfigFile(params) {
     }
 
     if (loadedConfigObj.BINARY_MODE !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED BINARY_MODE: " + loadedConfigObj.BINARY_MODE);
+      console.log(MODULE_ID + " | LOADED BINARY_MODE: " + loadedConfigObj.BINARY_MODE);
 
       if ((loadedConfigObj.BINARY_MODE == false) || (loadedConfigObj.BINARY_MODE == "false")) {
         newConfiguration.binaryMode = false;
@@ -8437,17 +8437,17 @@ async function loadConfigFile(params) {
     }
 
     if (loadedConfigObj.NODE_SETPROPS_QUEUE_INTERVAL !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED NODE_SETPROPS_QUEUE_INTERVAL: " + loadedConfigObj.NODE_SETPROPS_QUEUE_INTERVAL);
+      console.log(MODULE_ID + " | LOADED NODE_SETPROPS_QUEUE_INTERVAL: " + loadedConfigObj.NODE_SETPROPS_QUEUE_INTERVAL);
       newConfiguration.nodeSetPropsQueueInterval = loadedConfigObj.NODE_SETPROPS_QUEUE_INTERVAL;
     }
 
     if (loadedConfigObj.UPDATE_USER_SETS_INTERVAL !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED UPDATE_USER_SETS_INTERVAL: " + loadedConfigObj.UPDATE_USER_SETS_INTERVAL);
+      console.log(MODULE_ID + " | LOADED UPDATE_USER_SETS_INTERVAL: " + loadedConfigObj.UPDATE_USER_SETS_INTERVAL);
       newConfiguration.updateUserSetsInterval = loadedConfigObj.UPDATE_USER_SETS_INTERVAL;
     }
 
     // if (loadedConfigObj.IGNORE_CATEGORY_RIGHT !== undefined){
-    //   console.log(MODULE_ID_PREFIX + " | LOADED IGNORE_CATEGORY_RIGHT: " + loadedConfigObj.IGNORE_CATEGORY_RIGHT);
+    //   console.log(MODULE_ID + " | LOADED IGNORE_CATEGORY_RIGHT: " + loadedConfigObj.IGNORE_CATEGORY_RIGHT);
 
     //   if ((loadedConfigObj.IGNORE_CATEGORY_RIGHT == false) || (loadedConfigObj.IGNORE_CATEGORY_RIGHT == "false")) {
     //     newConfiguration.ignoreCategoryRight = false;
@@ -8461,7 +8461,7 @@ async function loadConfigFile(params) {
     // }
 
     if (loadedConfigObj.ENABLE_GEOCODE !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED ENABLE_GEOCODE: " + loadedConfigObj.ENABLE_GEOCODE);
+      console.log(MODULE_ID + " | LOADED ENABLE_GEOCODE: " + loadedConfigObj.ENABLE_GEOCODE);
 
       if ((loadedConfigObj.ENABLE_GEOCODE == false) || (loadedConfigObj.ENABLE_GEOCODE == "false")) {
         newConfiguration.enableGeoCode = false;
@@ -8475,7 +8475,7 @@ async function loadConfigFile(params) {
     }
 
     if (loadedConfigObj.FILTER_RETWEETS !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED FILTER_RETWEETS: " + loadedConfigObj.FILTER_RETWEETS);
+      console.log(MODULE_ID + " | LOADED FILTER_RETWEETS: " + loadedConfigObj.FILTER_RETWEETS);
 
       if ((loadedConfigObj.FILTER_RETWEETS == false) || (loadedConfigObj.FILTER_RETWEETS == "false")) {
         newConfiguration.filterRetweets = false;
@@ -8489,7 +8489,7 @@ async function loadConfigFile(params) {
     }
 
     if (loadedConfigObj.FILTER_DUPLICATE_TWEETS !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED FILTER_DUPLICATE_TWEETS: " + loadedConfigObj.FILTER_DUPLICATE_TWEETS);
+      console.log(MODULE_ID + " | LOADED FILTER_DUPLICATE_TWEETS: " + loadedConfigObj.FILTER_DUPLICATE_TWEETS);
 
       if ((loadedConfigObj.FILTER_DUPLICATE_TWEETS == false) || (loadedConfigObj.FILTER_DUPLICATE_TWEETS == "false")) {
         newConfiguration.filterDuplicateTweets = false;
@@ -8503,12 +8503,12 @@ async function loadConfigFile(params) {
     }
 
     if (loadedConfigObj.UNCAT_USER_ID_CACHE_DEFAULT_TTL !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED CATEGORIZE_CACHE_DEFAULT_TTL: " + loadedConfigObj.CATEGORIZE_CACHE_DEFAULT_TTL);
+      console.log(MODULE_ID + " | LOADED CATEGORIZE_CACHE_DEFAULT_TTL: " + loadedConfigObj.CATEGORIZE_CACHE_DEFAULT_TTL);
       newConfiguration.categorizeCacheTtl = loadedConfigObj.CATEGORIZE_CACHE_DEFAULT_TTL;
     }
 
     if (loadedConfigObj.ENABLE_IMAGE_ANALYSIS !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED ENABLE_IMAGE_ANALYSIS: " + loadedConfigObj.ENABLE_IMAGE_ANALYSIS);
+      console.log(MODULE_ID + " | LOADED ENABLE_IMAGE_ANALYSIS: " + loadedConfigObj.ENABLE_IMAGE_ANALYSIS);
 
       if ((loadedConfigObj.ENABLE_IMAGE_ANALYSIS == false) || (loadedConfigObj.ENABLE_IMAGE_ANALYSIS == "false")) {
         newConfiguration.enableImageAnalysis = false;
@@ -8522,7 +8522,7 @@ async function loadConfigFile(params) {
     }
 
     if (loadedConfigObj.FORCE_IMAGE_ANALYSIS !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED FORCE_IMAGE_ANALYSIS: " + loadedConfigObj.FORCE_IMAGE_ANALYSIS);
+      console.log(MODULE_ID + " | LOADED FORCE_IMAGE_ANALYSIS: " + loadedConfigObj.FORCE_IMAGE_ANALYSIS);
 
       if ((loadedConfigObj.FORCE_IMAGE_ANALYSIS == false) || (loadedConfigObj.FORCE_IMAGE_ANALYSIS == "false")) {
         newConfiguration.forceImageAnalysis = false;
@@ -8536,7 +8536,7 @@ async function loadConfigFile(params) {
     }
 
     if (loadedConfigObj.AUTO_FOLLOW !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED AUTO_FOLLOW: " + loadedConfigObj.AUTO_FOLLOW);
+      console.log(MODULE_ID + " | LOADED AUTO_FOLLOW: " + loadedConfigObj.AUTO_FOLLOW);
 
       if ((loadedConfigObj.AUTO_FOLLOW == false) || (loadedConfigObj.AUTO_FOLLOW == "false")) {
         newConfiguration.autoFollow = false;
@@ -8550,7 +8550,7 @@ async function loadConfigFile(params) {
     }
 
     if (loadedConfigObj.FORCE_FOLLOW !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED FORCE_FOLLOW: " + loadedConfigObj.FORCE_FOLLOW);
+      console.log(MODULE_ID + " | LOADED FORCE_FOLLOW: " + loadedConfigObj.FORCE_FOLLOW);
 
       if ((loadedConfigObj.FORCE_FOLLOW == false) || (loadedConfigObj.FORCE_FOLLOW == "false")) {
         newConfiguration.forceFollow = false;
@@ -8564,7 +8564,7 @@ async function loadConfigFile(params) {
     }
 
     if (loadedConfigObj.WAS_ENABLE_STDIN !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED WAS_ENABLE_STDIN: " + loadedConfigObj.WAS_ENABLE_STDIN);
+      console.log(MODULE_ID + " | LOADED WAS_ENABLE_STDIN: " + loadedConfigObj.WAS_ENABLE_STDIN);
 
       if ((loadedConfigObj.WAS_ENABLE_STDIN == false) || (loadedConfigObj.WAS_ENABLE_STDIN == "false")) {
         newConfiguration.enableStdin = false;
@@ -8579,7 +8579,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.NODE_METER_ENABLED !== undefined){
 
-      console.log(MODULE_ID_PREFIX + " | LOADED NODE_METER_ENABLED: " + loadedConfigObj.NODE_METER_ENABLED);
+      console.log(MODULE_ID + " | LOADED NODE_METER_ENABLED: " + loadedConfigObj.NODE_METER_ENABLED);
 
       if (loadedConfigObj.NODE_METER_ENABLED == "true") {
         newConfiguration.metrics.nodeMeterEnabled = true;
@@ -8593,142 +8593,142 @@ async function loadConfigFile(params) {
     }
 
     if (loadedConfigObj.PROCESS_NAME !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED PROCESS_NAME: " + loadedConfigObj.PROCESS_NAME);
+      console.log(MODULE_ID + " | LOADED PROCESS_NAME: " + loadedConfigObj.PROCESS_NAME);
       newConfiguration.processName = loadedConfigObj.PROCESS_NAME;
     }
 
     if (loadedConfigObj.MAX_TWEET_RX_QUEUE !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED MAX_TWEET_RX_QUEUE: " + loadedConfigObj.MAX_TWEET_RX_QUEUE);
+      console.log(MODULE_ID + " | LOADED MAX_TWEET_RX_QUEUE: " + loadedConfigObj.MAX_TWEET_RX_QUEUE);
       newConfiguration.maxTweetRxQueue = loadedConfigObj.MAX_TWEET_RX_QUEUE;
     }
 
     if (loadedConfigObj.MAX_TRANSMIT_NODE_QUEUE !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED MAX_TRANSMIT_NODE_QUEUE: " + loadedConfigObj.MAX_TRANSMIT_NODE_QUEUE);
+      console.log(MODULE_ID + " | LOADED MAX_TRANSMIT_NODE_QUEUE: " + loadedConfigObj.MAX_TRANSMIT_NODE_QUEUE);
       newConfiguration.maxTransmitNodeQueue = loadedConfigObj.MAX_TRANSMIT_NODE_QUEUE;
     }
 
     if (loadedConfigObj.THREECEE_USERS !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED THREECEE_USERS: " + loadedConfigObj.THREECEE_USERS);
+      console.log(MODULE_ID + " | LOADED THREECEE_USERS: " + loadedConfigObj.THREECEE_USERS);
       newConfiguration.threeceeUsers = loadedConfigObj.THREECEE_USERS;
     }
 
     if (loadedConfigObj.TWITTER_THREECEE_INFO_USERS !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED TWITTER_THREECEE_INFO_USERS: " + loadedConfigObj.TWITTER_THREECEE_INFO_USERS);
+      console.log(MODULE_ID + " | LOADED TWITTER_THREECEE_INFO_USERS: " + loadedConfigObj.TWITTER_THREECEE_INFO_USERS);
       newConfiguration.threeceeInfoUsersArray = loadedConfigObj.TWITTER_THREECEE_INFO_USERS;
     }
 
     if (loadedConfigObj.TWITTER_THREECEE_USER !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED TWITTER_THREECEE_USER: " + loadedConfigObj.TWITTER_THREECEE_USER);
+      console.log(MODULE_ID + " | LOADED TWITTER_THREECEE_USER: " + loadedConfigObj.TWITTER_THREECEE_USER);
       newConfiguration.threeceeUser = loadedConfigObj.TWITTER_THREECEE_USER;
     }
 
     if (loadedConfigObj.CURSOR_BATCH_SIZE !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED CURSOR_BATCH_SIZE: " + loadedConfigObj.CURSOR_BATCH_SIZE);
+      console.log(MODULE_ID + " | LOADED CURSOR_BATCH_SIZE: " + loadedConfigObj.CURSOR_BATCH_SIZE);
       newConfiguration.cursorBatchSize = loadedConfigObj.CURSOR_BATCH_SIZE;
     }
 
     if (loadedConfigObj.DROPBOX_WEBHOOK_CHANGE_TIMEOUT !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED DROPBOX_WEBHOOK_CHANGE_TIMEOUT: " + loadedConfigObj.DROPBOX_WEBHOOK_CHANGE_TIMEOUT);
+      console.log(MODULE_ID + " | LOADED DROPBOX_WEBHOOK_CHANGE_TIMEOUT: " + loadedConfigObj.DROPBOX_WEBHOOK_CHANGE_TIMEOUT);
       newConfiguration.dropboxWebhookChangeTimeout = loadedConfigObj.DROPBOX_WEBHOOK_CHANGE_TIMEOUT;
     }
 
     if (loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED FIND_CAT_USER_CURSOR_LIMIT: " + loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT);
+      console.log(MODULE_ID + " | LOADED FIND_CAT_USER_CURSOR_LIMIT: " + loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT);
       newConfiguration.findCatUserLimit = loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT;
     }
 
     if (loadedConfigObj.FIND_CAT_HASHTAG_CURSOR_LIMIT !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED FIND_CAT_HASHTAG_CURSOR_LIMIT: " + loadedConfigObj.FIND_CAT_HASHTAG_CURSOR_LIMIT);
+      console.log(MODULE_ID + " | LOADED FIND_CAT_HASHTAG_CURSOR_LIMIT: " + loadedConfigObj.FIND_CAT_HASHTAG_CURSOR_LIMIT);
       newConfiguration.findCatHashtagLimit = loadedConfigObj.FIND_CAT_HASHTAG_CURSOR_LIMIT;
     }
 
     if (loadedConfigObj.HEAPDUMP_ENABLED !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED HEAPDUMP_ENABLED: " + loadedConfigObj.HEAPDUMP_ENABLED);
+      console.log(MODULE_ID + " | LOADED HEAPDUMP_ENABLED: " + loadedConfigObj.HEAPDUMP_ENABLED);
       newConfiguration.heapDumpEnabled = loadedConfigObj.HEAPDUMP_ENABLED;
     }
 
     if (loadedConfigObj.HEAPDUMP_MODULO !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED HEAPDUMP_MODULO: " + loadedConfigObj.HEAPDUMP_MODULO);
+      console.log(MODULE_ID + " | LOADED HEAPDUMP_MODULO: " + loadedConfigObj.HEAPDUMP_MODULO);
       newConfiguration.heapDumpModulo = loadedConfigObj.HEAPDUMP_MODULO;
     }
 
     if (loadedConfigObj.HEAPDUMP_THRESHOLD !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED HEAPDUMP_THRESHOLD: " + loadedConfigObj.HEAPDUMP_THRESHOLD);
+      console.log(MODULE_ID + " | LOADED HEAPDUMP_THRESHOLD: " + loadedConfigObj.HEAPDUMP_THRESHOLD);
       newConfiguration.heapDumpThreshold = loadedConfigObj.HEAPDUMP_THRESHOLD;
     }
 
     if (loadedConfigObj.NODE_CACHE_CHECK_PERIOD !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED NODE_CACHE_CHECK_PERIOD: " + loadedConfigObj.NODE_CACHE_CHECK_PERIOD);
+      console.log(MODULE_ID + " | LOADED NODE_CACHE_CHECK_PERIOD: " + loadedConfigObj.NODE_CACHE_CHECK_PERIOD);
       newConfiguration.nodeCacheCheckPeriod = loadedConfigObj.NODE_CACHE_CHECK_PERIOD;
     }
 
     if (loadedConfigObj.NODE_CACHE_DEFAULT_TTL !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED NODE_CACHE_DEFAULT_TTL: " + loadedConfigObj.NODE_CACHE_DEFAULT_TTL);
+      console.log(MODULE_ID + " | LOADED NODE_CACHE_DEFAULT_TTL: " + loadedConfigObj.NODE_CACHE_DEFAULT_TTL);
       newConfiguration.nodeCacheTtl = loadedConfigObj.NODE_CACHE_DEFAULT_TTL;
     }
 
     if (loadedConfigObj.SOCKET_IDLE_TIMEOUT !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED SOCKET_IDLE_TIMEOUT: " + loadedConfigObj.SOCKET_IDLE_TIMEOUT);
+      console.log(MODULE_ID + " | LOADED SOCKET_IDLE_TIMEOUT: " + loadedConfigObj.SOCKET_IDLE_TIMEOUT);
       newConfiguration.socketIdleTimeout = loadedConfigObj.SOCKET_IDLE_TIMEOUT;
     }
 
     if (loadedConfigObj.TOPTERMS_CACHE_CHECK_PERIOD !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED TOPTERMS_CACHE_CHECK_PERIOD: " + loadedConfigObj.TOPTERMS_CACHE_CHECK_PERIOD);
+      console.log(MODULE_ID + " | LOADED TOPTERMS_CACHE_CHECK_PERIOD: " + loadedConfigObj.TOPTERMS_CACHE_CHECK_PERIOD);
       newConfiguration.topTermsCacheCheckPeriod = loadedConfigObj.TOPTERMS_CACHE_CHECK_PERIOD;
     }
 
     if (loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED TOPTERMS_CACHE_DEFAULT_TTL: " + loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL);
+      console.log(MODULE_ID + " | LOADED TOPTERMS_CACHE_DEFAULT_TTL: " + loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL);
       newConfiguration.topTermsCacheTtl = loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL;
     }
 
     if (loadedConfigObj.MIN_FOLLOWERS_AUTO_FOLLOW !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED MIN_FOLLOWERS_AUTO_FOLLOW: " + loadedConfigObj.MIN_FOLLOWERS_AUTO_FOLLOW);
+      console.log(MODULE_ID + " | LOADED MIN_FOLLOWERS_AUTO_FOLLOW: " + loadedConfigObj.MIN_FOLLOWERS_AUTO_FOLLOW);
       newConfiguration.minFollowersAutoFollow = loadedConfigObj.MIN_FOLLOWERS_AUTO_FOLLOW;
     }
 
     if (loadedConfigObj.MIN_FOLLOWERS_AUTO_CATEGORIZE !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED MIN_FOLLOWERS_AUTO_CATEGORIZE: " + loadedConfigObj.MIN_FOLLOWERS_AUTO_CATEGORIZE);
+      console.log(MODULE_ID + " | LOADED MIN_FOLLOWERS_AUTO_CATEGORIZE: " + loadedConfigObj.MIN_FOLLOWERS_AUTO_CATEGORIZE);
       newConfiguration.minFollowersAutoCategorize = loadedConfigObj.MIN_FOLLOWERS_AUTO_CATEGORIZE;
     }
 
     if (loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED CATEGORY_HASHMAPS_UPDATE_INTERVAL: " + loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL);
+      console.log(MODULE_ID + " | LOADED CATEGORY_HASHMAPS_UPDATE_INTERVAL: " + loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL);
       newConfiguration.categoryHashmapsUpdateInterval = loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL;
     }
 
     if (loadedConfigObj.STATS_UPDATE_INTERVAL !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED STATS_UPDATE_INTERVAL: " + loadedConfigObj.STATS_UPDATE_INTERVAL);
+      console.log(MODULE_ID + " | LOADED STATS_UPDATE_INTERVAL: " + loadedConfigObj.STATS_UPDATE_INTERVAL);
       newConfiguration.statsUpdateIntervalTime = loadedConfigObj.STATS_UPDATE_INTERVAL;
     }
 
     if (loadedConfigObj.TRANSMIT_NODE_QUEUE_INTERVAL !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED TRANSMIT_NODE_QUEUE_INTERVAL: " + loadedConfigObj.TRANSMIT_NODE_QUEUE_INTERVAL);
+      console.log(MODULE_ID + " | LOADED TRANSMIT_NODE_QUEUE_INTERVAL: " + loadedConfigObj.TRANSMIT_NODE_QUEUE_INTERVAL);
       newConfiguration.transmitNodeQueueInterval = loadedConfigObj.TRANSMIT_NODE_QUEUE_INTERVAL;
     }
 
     if (loadedConfigObj.RATE_QUEUE_INTERVAL !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED RATE_QUEUE_INTERVAL: " + loadedConfigObj.RATE_QUEUE_INTERVAL);
+      console.log(MODULE_ID + " | LOADED RATE_QUEUE_INTERVAL: " + loadedConfigObj.RATE_QUEUE_INTERVAL);
       newConfiguration.rateQueueInterval = loadedConfigObj.RATE_QUEUE_INTERVAL;
     }
 
     if (loadedConfigObj.RATE_QUEUE_INTERVAL_MODULO !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED RATE_QUEUE_INTERVAL_MODULO: " + loadedConfigObj.RATE_QUEUE_INTERVAL_MODULO);
+      console.log(MODULE_ID + " | LOADED RATE_QUEUE_INTERVAL_MODULO: " + loadedConfigObj.RATE_QUEUE_INTERVAL_MODULO);
       newConfiguration.rateQueueIntervalModulo = loadedConfigObj.RATE_QUEUE_INTERVAL_MODULO;
     }
 
     if (loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED TWITTER_THREECEE_AUTO_FOLLOW: " + loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW);
+      console.log(MODULE_ID + " | LOADED TWITTER_THREECEE_AUTO_FOLLOW: " + loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW);
       newConfiguration.twitterThreeceeAutoFollowConfigFile = loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW + ".json";
     }
 
     if (loadedConfigObj.TWEET_PARSER_INTERVAL !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED TWEET_PARSER_INTERVAL: " + loadedConfigObj.TWEET_PARSER_INTERVAL);
+      console.log(MODULE_ID + " | LOADED TWEET_PARSER_INTERVAL: " + loadedConfigObj.TWEET_PARSER_INTERVAL);
       newConfiguration.tweetParserInterval = loadedConfigObj.TWEET_PARSER_INTERVAL;
     }
 
     if (loadedConfigObj.KEEPALIVE_INTERVAL !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED KEEPALIVE_INTERVAL: " + loadedConfigObj.KEEPALIVE_INTERVAL);
+      console.log(MODULE_ID + " | LOADED KEEPALIVE_INTERVAL: " + loadedConfigObj.KEEPALIVE_INTERVAL);
       newConfiguration.keepaliveInterval = loadedConfigObj.KEEPALIVE_INTERVAL;
     }
 
@@ -8736,7 +8736,7 @@ async function loadConfigFile(params) {
 
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | ERROR LOAD DROPBOX CONFIG: " + fullPath
+    console.log(chalkError(MODULE_ID + " | ERROR LOAD DROPBOX CONFIG: " + fullPath
       + "\n" + jsonPrint(err)
     ));
     throw err;
@@ -8751,14 +8751,14 @@ async function loadAllConfigFiles(){
 
   if (defaultConfig) {
     defaultConfiguration = defaultConfig;
-    console.log(chalk.green(MODULE_ID_PREFIX + " | +++ RELOADED DEFAULT CONFIG " + configDefaultFolder + "/" + configDefaultFile));
+    console.log(chalk.green(MODULE_ID + " | +++ RELOADED DEFAULT CONFIG " + configDefaultFolder + "/" + configDefaultFile));
   }
 
   const hostConfig = await loadConfigFile({folder: configHostFolder, file: configHostFile});
 
   if (hostConfig) {
     hostConfiguration = hostConfig;
-    console.log(chalk.green(MODULE_ID_PREFIX + " | +++ RELOADED HOST CONFIG " + configHostFolder + "/" + configHostFile));
+    console.log(chalk.green(MODULE_ID + " | +++ RELOADED HOST CONFIG " + configHostFolder + "/" + configHostFile));
   }
 
   const defaultAndHostConfig = merge(defaultConfiguration, hostConfiguration); // host settings override defaults
@@ -8770,7 +8770,7 @@ async function loadAllConfigFiles(){
   filterDuplicateTweets = configuration.filterDuplicateTweets;
   filterRetweets = configuration.filterRetweets;
 
-  console.log(chalkWarn(MODULE_ID_PREFIX + " | -X- FILTER RETWEETS: " + filterRetweets));
+  console.log(chalkWarn(MODULE_ID + " | -X- FILTER RETWEETS: " + filterRetweets));
 
   maxTweetRxQueue = configuration.maxTweetRxQueue;
   maxTransmitNodeQueue = configuration.maxTransmitNodeQueue;
@@ -8783,7 +8783,7 @@ function initStatsUpdate() {
   return new Promise(function(resolve, reject){
 
     try {
-      console.log(chalkTwitter(MODULE_ID_PREFIX 
+      console.log(chalkTwitter(MODULE_ID 
         + " | INIT STATS UPDATE INTERVAL | " + tcUtils.msToTime(configuration.statsUpdateIntervalTime)
       ));
 
@@ -8800,11 +8800,11 @@ function initStatsUpdate() {
           childArray = await getChildProcesses({searchTerm: "ALL"});
 
           if (configuration.verbose) { 
-            console.log(chalkLog(MODULE_ID_PREFIX + " | FOUND " + childArray.length + " CHILDREN"));
+            console.log(chalkLog(MODULE_ID + " | FOUND " + childArray.length + " CHILDREN"));
           }
           
           childArray.forEach(function(childObj){
-            console.log(chalkLog(MODULE_ID_PREFIX + " | CHILD"
+            console.log(chalkLog(MODULE_ID + " | CHILD"
               + " | PID: " + childObj.pid 
               + " | " + childObj.childId 
               + " | " + childrenHashMap[childObj.childId].status
@@ -8839,7 +8839,7 @@ function initStatsUpdate() {
           if (statsObj.twitNotReadyWarning) { statsObj.twitNotReadyWarning = false; }
         }
         catch(err){
-          console.log(chalkError(MODULE_ID_PREFIX + " | *** STATS UPDATE ERROR: " + err));
+          console.log(chalkError(MODULE_ID + " | *** STATS UPDATE ERROR: " + err));
         }
          
       }, configuration.statsUpdateIntervalTime);
@@ -8863,7 +8863,7 @@ async function initConfig() {
   configuration.enableStdin = process.env.ENABLE_STDIN || true;
   // configuration.statsUpdateIntervalTime = process.env.WAS_STATS_UPDATE_INTERVAL || 10*ONE_MINUTE;
 
-  console.log(chalkTwitter(MODULE_ID_PREFIX + " | THREECEE USERS\n" + jsonPrint(configuration.threeceeUsers)));
+  console.log(chalkTwitter(MODULE_ID + " | THREECEE USERS\n" + jsonPrint(configuration.threeceeUsers)));
 
   threeceeTwitter.twit = {};
   threeceeTwitter.twitterConfig = {};
@@ -8899,7 +8899,7 @@ async function initConfig() {
     threeceeInfoTwitter.twitterRateLimitExceptionFlag = false;
     threeceeInfoTwitter.twitterRateLimitResetAt = false;
 
-    // debug(chalkTwitter(MODULE_ID_PREFIX + " | THREECEE INFO USER @" + user + "\n" + jsonPrint(threeceeInfoTwitter)));
+    // debug(chalkTwitter(MODULE_ID + " | THREECEE INFO USER @" + user + "\n" + jsonPrint(threeceeInfoTwitter)));
   }
 
   try {
@@ -8911,10 +8911,10 @@ async function initConfig() {
 
     configArgs.forEach(function(arg){
       if (_.isObject(configuration[arg])) {
-        console.log(MODULE_ID_PREFIX + " | _FINAL CONFIG | " + arg + "\n" + jsonPrint(configuration[arg]));
+        console.log(MODULE_ID + " | _FINAL CONFIG | " + arg + "\n" + jsonPrint(configuration[arg]));
       }
       else {
-        console.log(MODULE_ID_PREFIX + " | _FINAL CONFIG | " + arg + ": " + configuration[arg]);
+        console.log(MODULE_ID + " | _FINAL CONFIG | " + arg + ": " + configuration[arg]);
       }
     });
     
@@ -8930,14 +8930,14 @@ async function initConfig() {
 
   }
   catch(err){
-    console.log(chalkLog(MODULE_ID_PREFIX + " | *** INIT CONFIG ERROR: " + err));
+    console.log(chalkLog(MODULE_ID + " | *** INIT CONFIG ERROR: " + err));
     throw err;
   }
 }
 
 async function initDbUserChangeStream(){
 
-  console.log(chalkLog(MODULE_ID_PREFIX + " | ... INIT DB USER CHANGE STREAM"));
+  console.log(chalkLog(MODULE_ID + " | ... INIT DB USER CHANGE STREAM"));
 
   const userCollection = global.dbConnection.collection("users");
 
@@ -8993,7 +8993,7 @@ async function initDbUserChangeStream(){
 
       deletedUsersSet.add(change._id._data);
       statsObj.user.deleted = deletedUsersSet.size;
-      console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | X USR [" + statsObj.user.deleted + "]"
+      console.log(chalkLog(MODULE_ID + " | DB CHG | X USR [" + statsObj.user.deleted + "]"
         + " | DB _id: " + change._id._data
       ));
     }
@@ -9082,7 +9082,7 @@ async function initDbUserChangeStream(){
 
 async function initDbHashtagChangeStream(){
 
-  console.log(chalkLog(MODULE_ID_PREFIX + " | ... INIT DB HASHTAG CHANGE STREAM"));
+  console.log(chalkLog(MODULE_ID + " | ... INIT DB HASHTAG CHANGE STREAM"));
 
   const hashtagCollection = global.dbConnection.collection("hashtags");
 
@@ -9120,7 +9120,7 @@ async function initDbHashtagChangeStream(){
 
       statsObj.hashtag.added = addedHashtagsSet.size;
 
-      console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | + HT [" + statsObj.hashtag.added + "]"
+      console.log(chalkLog(MODULE_ID + " | DB CHG | + HT [" + statsObj.hashtag.added + "]"
         + " | #" + change.fullDocument.nodeId
         + " | C M: " + formatCategory(change.fullDocument.category)
       ));
@@ -9132,7 +9132,7 @@ async function initDbHashtagChangeStream(){
 
       deletedHashtagsSet.add(change._id._data);
       statsObj.hashtag.deleted = deletedHashtagsSet.size;
-      console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | X HT [" + statsObj.hashtag.deleted + "]"
+      console.log(chalkLog(MODULE_ID + " | DB CHG | X HT [" + statsObj.hashtag.deleted + "]"
         + " | DB _id: " + change._id._data
       ));
     }
@@ -9166,7 +9166,7 @@ async function initDbHashtagChangeStream(){
 
         if (catChangeFlag || catNetworkChangeFlag || catVerifiedChangeFlag) {
 
-          console.log(chalkLog(MODULE_ID_PREFIX + " | DB CHG | CAT HT"
+          console.log(chalkLog(MODULE_ID + " | DB CHG | CAT HT"
             + " [ M: " + statsObj.hashtag.categoryChanged + " ]"
             + " | M: " + formatCategory(catObj.manual) + " -> " + formatCategory(categoryChanges.manual)
             + " | #" + change.fullDocument.nodeId
@@ -9190,7 +9190,7 @@ function initStdIn(){
 
   return new Promise(function(resolve){
 
-    console.log(MODULE_ID_PREFIX + " | STDIN ENABLED");
+    console.log(MODULE_ID + " | STDIN ENABLED");
 
     stdin = process.stdin;
 
@@ -9207,15 +9207,15 @@ function initStdIn(){
         break;
         case "t":
           configuration.testMode = !configuration.testMode;
-          console.log(chalkAlert(MODULE_ID_PREFIX + " | TEST MODE: " + configuration.testMode));
+          console.log(chalkAlert(MODULE_ID + " | TEST MODE: " + configuration.testMode));
         break;
         case "x":
           saveSampleTweetFlag = true;
-          console.log(chalkAlert(MODULE_ID_PREFIX + " | SAVE SAMPLE TWEET"));
+          console.log(chalkAlert(MODULE_ID + " | SAVE SAMPLE TWEET"));
         break;
         case "v":
           configuration.verbose = !configuration.verbose;
-          console.log(chalkAlert(MODULE_ID_PREFIX + " | VERBOSE: " + configuration.verbose));
+          console.log(chalkAlert(MODULE_ID + " | VERBOSE: " + configuration.verbose));
         break;
         case "q":
           await quit();
@@ -9230,7 +9230,7 @@ function initStdIn(){
           showStats(true);
         break;
         default:
-          console.log(chalkAlert(MODULE_ID_PREFIX
+          console.log(chalkAlert(MODULE_ID
             + "\n" + "q/Q: quit"
             + "\n" + "s: showStats"
             + "\n" + "S: showStats verbose"
@@ -9253,7 +9253,7 @@ function initIgnoreWordsHashMap() {
       cb();
     }, function ignoreWordHashMapError(err) {
       if (err){
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** initIgnoreWordsHashMap ERROR: " + err));
+        console.log(chalkError(MODULE_ID + " | *** initIgnoreWordsHashMap ERROR: " + err));
         return reject(err);
       }
       resolve();
@@ -9266,9 +9266,9 @@ let memStatsInterval;
 
 async function initThreeceeTwitterUser(threeceeUser){
 
-  console.log(chalkTwitter(MODULE_ID_PREFIX + " | ... INIT THREECEE TWITTER USER: " + threeceeUser));
+  console.log(chalkTwitter(MODULE_ID + " | ... INIT THREECEE TWITTER USER: " + threeceeUser));
 
-  console.log(chalkTwitter(MODULE_ID_PREFIX + " | ... LOADING TWITTER CONFIG | @" + threeceeUser));
+  console.log(chalkTwitter(MODULE_ID + " | ... LOADING TWITTER CONFIG | @" + threeceeUser));
 
   const configFile = threeceeUser + ".json";
 
@@ -9278,7 +9278,7 @@ async function initThreeceeTwitterUser(threeceeUser){
     await tcUtils.initTwitter({twitterConfig: threeceeTwitter.twitterConfig});
     await tcUtils.getTwitterAccountSettings();
 
-    console.log(chalkTwitter(MODULE_ID_PREFIX + " | +++ TWITTER INITIALIZED"
+    console.log(chalkTwitter(MODULE_ID + " | +++ TWITTER INITIALIZED"
       + " | 3C @" + threeceeUser
       + "\nCONFIG\n" + jsonPrint(threeceeTwitter.twitterConfig)
     ));
@@ -9292,12 +9292,12 @@ async function initThreeceeTwitterUser(threeceeUser){
   catch(err) {
 
     if (err.code == "ENOTFOUND") {
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD TWITTER CONFIG ERROR: FILE NOT FOUND"
+      console.log(chalkError(MODULE_ID + " | *** LOAD TWITTER CONFIG ERROR: FILE NOT FOUND"
         + " | " + twitterConfigFolder + "/" + configFile
       ));
     }
     else {
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD TWITTER CONFIG ERROR: " + err));
+      console.log(chalkError(MODULE_ID + " | *** LOAD TWITTER CONFIG ERROR: " + err));
     }
 
     threeceeTwitter.error = "CONFIG LOAD ERROR: " + err;
@@ -9318,14 +9318,14 @@ async function deleteUser(params){
     deletedUsersSet.add(params.user.nodeId);
     statsObj.user.deleted = deletedUsersSet.size;
 
-    console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX USER | -*- DB HIT"
+    console.log(chalkAlert(MODULE_ID + " | XXX USER | -*- DB HIT"
       + " [" + statsObj.user.deleted + " DELETED USERS SET]"
       + " | " + params.user.nodeId
       + " | @" + params.user.screenName
     ));
   }
   else{
-    console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX USER | --- DB MISS" 
+    console.log(chalkAlert(MODULE_ID + " | XXX USER | --- DB MISS" 
       + " | " + params.user.nodeId
       + " | @" + params.user.screenName
     ));
@@ -9349,7 +9349,7 @@ function allTrue(p){
     params.interval = params.interval || 10*ONE_SECOND;
     params.maxIntervalWait = params.maxIntervalWait || 5*ONE_SECOND;
 
-    console.log(chalkLog(MODULE_ID_PREFIX + " | ... WAIT ALL TRUE TIMEOUT | " + tcUtils.msToTime(params.maxIntervalWait)));
+    console.log(chalkLog(MODULE_ID + " | ... WAIT ALL TRUE TIMEOUT | " + tcUtils.msToTime(params.maxIntervalWait)));
 
     const waitInterval = setInterval(function() {
 
@@ -9363,7 +9363,7 @@ function allTrue(p){
 
       if (waitTime >= params.maxIntervalWait) {
         clearInterval(waitInterval);
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | ALL TRUE TIMEOUT | " + tcUtils.msToTime(waitTime)));
+        console.log(chalkAlert(MODULE_ID + " | ALL TRUE TIMEOUT | " + tcUtils.msToTime(waitTime)));
         return resolve(false);
       }
 
@@ -9380,10 +9380,10 @@ function waitDbConnectionReady(){
 
     dbConnectionReadyInterval = setInterval(function(){
 
-      console.log(chalkBlue(MODULE_ID_PREFIX + " | ... WAIT DB CONNECTION | " + getTimeStamp() ));
+      console.log(chalkBlue(MODULE_ID + " | ... WAIT DB CONNECTION | " + getTimeStamp() ));
 
       if (statsObj.dbConnectionReady) {
-        console.log(chalk.green(MODULE_ID_PREFIX + " | +++ DB CONNECTION | " + getTimeStamp() ));
+        console.log(chalk.green(MODULE_ID + " | +++ DB CONNECTION | " + getTimeStamp() ));
         clearInterval(dbConnectionReadyInterval);
         return resolve();
       }
@@ -9407,13 +9407,13 @@ async function initWatchConfig(){
 
   statsObj.status = "INIT WATCH CONFIG";
 
-  console.log(chalkLog(MODULE_ID_PREFIX + " | ... INIT WATCH"));
+  console.log(chalkLog(MODULE_ID + " | ... INIT WATCH"));
 
   const loadConfig = async function(f){
 
     try{
 
-      debug(chalkInfo(MODULE_ID_PREFIX + " | +++ FILE CREATED or CHANGED | " + getTimeStamp() + " | " + f));
+      debug(chalkInfo(MODULE_ID + " | +++ FILE CREATED or CHANGED | " + getTimeStamp() + " | " + f));
 
       if (f.endsWith("wordAssoServerConfig.json")){
 
@@ -9423,10 +9423,10 @@ async function initWatchConfig(){
 
         for (const arg of configArgs){
           if (_.isObject(configuration[arg])) {
-            console.log(MODULE_ID_PREFIX + " | _FINAL CONFIG | " + arg + "\n" + jsonPrint(configuration[arg]));
+            console.log(MODULE_ID + " | _FINAL CONFIG | " + arg + "\n" + jsonPrint(configuration[arg]));
           }
           else {
-            console.log(MODULE_ID_PREFIX + " | _FINAL CONFIG | " + arg + ": " + configuration[arg]);
+            console.log(MODULE_ID + " | _FINAL CONFIG | " + arg + ": " + configuration[arg]);
           }
         }
       }
@@ -9444,7 +9444,7 @@ async function initWatchConfig(){
       }
 
       if (botBlockListFileRegex.test(f)){
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | BOT BLOCK FILE CHANGED | " + getTimeStamp() + " | " + f));
+        console.log(chalkAlert(MODULE_ID + " | BOT BLOCK FILE CHANGED | " + getTimeStamp() + " | " + f));
         clearTimeout(initBotSetTimeout);
         initBotSetTimeout = setTimeout(async function(){
           await initBotSet();
@@ -9453,7 +9453,7 @@ async function initWatchConfig(){
 
     }
     catch(err){
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD ALL CONFIGS ON CREATE ERROR: " + err));
+      console.log(chalkError(MODULE_ID + " | *** LOAD ALL CONFIGS ON CREATE ERROR: " + err));
     }
   }
 
@@ -9464,7 +9464,7 @@ async function initWatchConfig(){
     monitor.on("changed", loadConfig);
 
     // monitor.on("removed", function (f) {
-    //   console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX FILE DELETED | " + getTimeStamp() + " | " + f));
+    //   console.log(chalkAlert(MODULE_ID + " | XXX FILE DELETED | " + getTimeStamp() + " | " + f));
     // });
   });
 
@@ -9477,7 +9477,7 @@ async function initWatchConfig(){
     monitor.on("created", loadConfig);
     monitor.on("changed", loadConfig);
     monitor.on("removed", function (f) {
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX FILE DELETED | " + getTimeStamp() + " | " + f));
+      console.log(chalkAlert(MODULE_ID + " | XXX FILE DELETED | " + getTimeStamp() + " | " + f));
     });
   });
 
@@ -9491,7 +9491,7 @@ async function initWatchConfig(){
 
 setTimeout(async function(){
 
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | ... WAIT START TIMEOUT: " + tcUtils.msToTime(DEFAULT_START_TIMEOUT)));
+  console.log(chalkBlue(MODULE_ID + " | ... WAIT START TIMEOUT: " + tcUtils.msToTime(DEFAULT_START_TIMEOUT)));
 
   try {
 
@@ -9513,7 +9513,7 @@ setTimeout(async function(){
 
     configuration.primaryHostSuffix = (configuration.isPrimaryHost) ? "-primary" : "";
 
-    console.log(chalkBlueBold(MODULE_ID_PREFIX
+    console.log(chalkBlueBold(MODULE_ID
       + " | PROCESS: " + configuration.processName 
       + " | HOST: " + hostname
       + " | PRIMARY HOST: " + configuration.primaryHost
@@ -9523,7 +9523,7 @@ setTimeout(async function(){
 
     statsObj.status = "START";
 
-    console.log(chalkTwitter(MODULE_ID_PREFIX 
+    console.log(chalkTwitter(MODULE_ID 
       + " | " + configuration.processName 
     ));
 
@@ -9543,11 +9543,11 @@ setTimeout(async function(){
       try{
 
         await getTwitterWebhooks();
-        if (statsObj.twitter.aaSubs) { console.log(chalkLog(MODULE_ID_PREFIX + " | TWITTER AA SUBSCRIPTIONS ... SKIP ADD SUBS")); }
+        if (statsObj.twitter.aaSubs) { console.log(chalkLog(MODULE_ID + " | TWITTER AA SUBSCRIPTIONS ... SKIP ADD SUBS")); }
         if (!statsObj.twitter.aaSubs) { await addTwitterAccountActivitySubscription({threeceeUser: "altthreecee00"}); }
       }
       catch(err){
-        console.log(chalkError(MODULE_ID_PREFIX + " | **** TWITTER WEBHOOK ERROR: " + err));
+        console.log(chalkError(MODULE_ID + " | **** TWITTER WEBHOOK ERROR: " + err));
       }
     }
 
@@ -9574,10 +9574,10 @@ setTimeout(async function(){
     await initWatchConfig();
 
     const [topics] = await pubSubClient.getTopics();
-    topics.forEach((topic) => console.log(chalkLog(MODULE_ID_PREFIX + " | PUBSUB TOPIC: " + topic.name)));
+    topics.forEach((topic) => console.log(chalkLog(MODULE_ID + " | PUBSUB TOPIC: " + topic.name)));
 
     const [subscriptions] = await pubSubClient.getSubscriptions();
-    subscriptions.forEach((subscription) => console.log(chalkLog(MODULE_ID_PREFIX + " | PUBSUB SUB: " + subscription.name)));
+    subscriptions.forEach((subscription) => console.log(chalkLog(MODULE_ID + " | PUBSUB SUB: " + subscription.name)));
 
     await initNodeOpHandler({subscribeName: "node-search-result" + configuration.primaryHostSuffix});
     await initNodeOpHandler({subscribeName: "node-setprops-result" + configuration.primaryHostSuffix});
@@ -9595,9 +9595,9 @@ setTimeout(async function(){
 
   }
   catch(err){
-    console.trace(chalkError(MODULE_ID_PREFIX + " | **** INIT CONFIG ERROR: " + err + "\n" + jsonPrint(err)));
+    console.trace(chalkError(MODULE_ID + " | **** INIT CONFIG ERROR: " + err + "\n" + jsonPrint(err)));
     if (err.code != 404) {
-      console.log(MODULE_ID_PREFIX + " | *** INIT CONFIG ERROR | err.code: " + err.code);
+      console.log(MODULE_ID + " | *** INIT CONFIG ERROR | err.code: " + err.code);
       await quit();
     }
   }

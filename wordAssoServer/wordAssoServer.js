@@ -602,7 +602,7 @@ const nodeSetPropsResultHandler = async function(message){
 
   if (messageObj.node && messageObj.node.nodeType === "user") {
 
-    if (configuration.verbose){ 
+    if (!pubSubPublishMessageRequestIdSet.has(messageObj.requestId) || configuration.verbose){ 
       console.log(chalkBlueBold(MODULE_ID_PREFIX
         + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
         + " | TOPIC: node-setprops-result"

@@ -631,7 +631,40 @@ const nodeSetPropsResultHandler = async function(message){
         defaults(statsObj.user, messageObj.stats);
       }
 
-      nodeSetPropsResultHashMap[messageObj.requestId] = messageObj.node;
+      if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)){
+        nodeSetPropsResultHashMap[messageObj.requestId] = messageObj.node;
+      }
+      else{
+        // nodeSetProps not sent by this host
+        if (messageObj.node.nodeType === "user"){
+
+          if (isCategorized(messageObj.node) || isAutoCategorized(messageObj.node)){
+
+            categorizedUserHashMap.set(messageObj.node.nodeId, 
+              { 
+                nodeId: messageObj.node.nodeId, 
+                screenName: messageObj.node.screenName, 
+                manual: messageObj.node.category, 
+                auto: messageObj.node.categoryAuto,
+                network: messageObj.node.categorizeNetwork,
+                verified: messageObj.node.categoryVerified
+              }
+            );
+
+          }
+
+          delete messageObj.node._id;
+
+          await global.wordAssoDb.User.findOneAndUpdate(
+            { nodeId: messageObj.node.nodeId },
+            messageObj.node,
+            {upsert: true, new: true}
+          );
+
+          // return dbUser;
+        }
+      }
+
     }
     else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
       if (configuration.verbose){ 
@@ -3645,7 +3678,6 @@ async function pubSubNodeSetProps(params){
       const dbUser = await global.wordAssoDb.User.findOneAndUpdate({ nodeId: node.nodeId }, node, {upsert: true, new: true});
 
       return dbUser;
-
     }
 
     if (node.nodeType === "hashtag"){

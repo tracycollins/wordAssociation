@@ -101,7 +101,7 @@ else {
 global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
 const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
-const tcUtils = new ThreeceeUtilities(MODULE_ID_PREFIX + "_TCU");
+const tcUtils = new ThreeceeUtilities(MODULE_ID + "_TCU");
 
 tcUtils.on("error", function(err){
   console.log(chalkError(MODULE_ID + " | *** TCU ERROR | " + err));
@@ -1239,7 +1239,7 @@ async function quit(message) {
 
   console.log(chalkAlert("\nWAS | ... QUITTING ... " + getTimeStamp()));
 
-  const slackText = MODULE_ID_PREFIX + " | *** QUIT | MESSAGE: " + message;
+  const slackText = MODULE_ID + " | *** QUIT | MESSAGE: " + message;
 
   await slackSendWebMessage({ channel: slackChannel, text: slackText});
 
@@ -1753,7 +1753,7 @@ async function connectDb(){
     console.log(chalkBlueBold(MODULE_ID + " | CONNECT MONGO DB ..."));
 
     const db = await global.wordAssoDb.connect({
-      appName: MODULE_ID_PREFIX + "_" + process.pid
+      appName: MODULE_ID + "_" + process.pid
     });
 
     db.on("error", async function(err){
@@ -1780,7 +1780,7 @@ async function connectDb(){
 
     const UserServerController = require("@threeceelabs/user-server-controller");
     
-    userServerController = new UserServerController(MODULE_ID_PREFIX + "_USC");
+    userServerController = new UserServerController(MODULE_ID + "_USC");
 
     userServerController.on("error", function(err){
       userServerControllerReady = false;
@@ -1854,7 +1854,7 @@ function initPassport(){
             return cb("RAW USER", rawUser);
           }
 
-          printUserObj(MODULE_ID_PREFIX + " | MONGO DB | TWITTER AUTH USER", user);
+          printUserObj(MODULE_ID + " | MONGO DB | TWITTER AUTH USER", user);
 
           userServerController.findOneUser(user, {noInc: true, fields: fieldsExclude}, async function(err, updatedUser){
 
@@ -2840,8 +2840,8 @@ async function killAll(){
 }
 
 process.on("unhandledRejection", async function(err, promise) {
-  console.trace(MODULE_ID_PREFIX + " | *** Unhandled rejection | PROMISE: " + promise + " | ERROR: " + err );
-  const slackText = MODULE_ID_PREFIX + " | *** Unhandled rejection | PROMISE: " + promise + " | ERROR: " + err;
+  console.trace(MODULE_ID + " | *** Unhandled rejection | PROMISE: " + promise + " | ERROR: " + err );
+  const slackText = MODULE_ID + " | *** Unhandled rejection | PROMISE: " + promise + " | ERROR: " + err;
   await slackSendWebMessage({ channel: slackChannel, text: slackText});
   await quit("unhandledRejection");
   // process.exit(1);
@@ -2993,7 +2993,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
 
         setTimeout(function serverErrorTimeout() {
           httpServer.listen(config.port, function serverErrorListen() {
-            debug(MODULE_ID_PREFIX + " | LISTENING ON PORT " + config.port);
+            debug(MODULE_ID + " | LISTENING ON PORT " + config.port);
           });
         }, 5000);
       }
@@ -6069,7 +6069,7 @@ function printBotStats(params){
     console.log(chalkBot(MODULE_ID + " | BOT"
       + " [ " + statsObj.traffic.users.bots + "/" + statsObj.traffic.users.total 
       + " | " + statsObj.traffic.users.percentBots.toFixed(2) + "% ]"
-      + "\n" + MODULE_ID_PREFIX + " | BOT | " + printUser({user: params.user})
+      + "\n" + MODULE_ID + " | BOT | " + printUser({user: params.user})
     ));
   }
 }
@@ -6280,7 +6280,7 @@ function initTransmitNodeQueueInterval(interval){
 
               if (node.screenName === undefined || node.screenName === "") {
                 console.log(chalkError(MODULE_ID + " | *** TRANSMIT USER SCREENNAME UNDEFINED"));
-                printUserObj(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED", node);
+                printUserObj(MODULE_ID + " | *** TRANSMIT USER SCREENNAME UNDEFINED", node);
                 transmitNodeQueueReady = true;
                 return;
               }
@@ -6305,7 +6305,7 @@ function initTransmitNodeQueueInterval(interval){
 
           // if (node.screenName === undefined || node.screenName === "") {
           //   console.log(chalkError(MODULE_ID + " | *** TRANSMIT USER SCREENNAME UNDEFINED"));
-          //   printUserObj(MODULE_ID_PREFIX + " | *** TRANSMIT USER SCREENNAME UNDEFINED", node);
+          //   printUserObj(MODULE_ID + " | *** TRANSMIT USER SCREENNAME UNDEFINED", node);
           //   transmitNodeQueueReady = true;
           //   return;
           // }
@@ -6600,7 +6600,7 @@ function initAppRouting(callback) {
         }
         else {
           console.log(chalkInfo(MODULE_ID + " | " + getTimeStamp()
-            + MODULE_ID_PREFIX + " | T> | FILE"
+            + MODULE_ID + " | T> | FILE"
             + " | " + fullPath
           ));
 
@@ -8984,7 +8984,7 @@ async function initDbUserChangeStream(){
 
       statsObj.user.added = addedUsersSet.size;
 
-      printUserObj(MODULE_ID_PREFIX + " | DB CHG | + USR [" + statsObj.user.added + "]", change.fullDocument);
+      printUserObj(MODULE_ID + " | DB CHG | + USR [" + statsObj.user.added + "]", change.fullDocument);
     }
     
     if (change && change.operationType === "delete"){
@@ -9057,7 +9057,7 @@ async function initDbUserChangeStream(){
             chalkType = chalkAlert;
           }
 
-          const text = MODULE_ID_PREFIX + " | DB CHG | CAT USR"
+          const text = MODULE_ID + " | DB CHG | CAT USR"
             + " [ M: " + statsObj.user.categoryChanged 
             + " A: " + statsObj.user.categoryAutoChanged
             + " N: " + statsObj.user.categorizeNetworkChanged + "]"

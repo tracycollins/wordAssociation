@@ -1,5 +1,5 @@
 const MODULE_NAME = "wordAssoServer";
-const MODULE_ID_PREFIX = "WAS";
+let MODULE_ID_PREFIX = "WAS";
 
 const DEFAULT_CURSOR_BATCH_SIZE = 100;
 
@@ -79,6 +79,8 @@ hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 hostname = hostname.replace(/word-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
+
+MODULE_ID_PREFIX = MODULE_ID_PREFIX + "_" + hostname.toUpperCase();
 
 console.log(MODULE_ID_PREFIX + " | ==============================");
 console.log(MODULE_ID_PREFIX + " | HOST: " + hostname);
@@ -596,58 +598,63 @@ const nodeSetPropsResultHandler = async function(message){
 
   const messageObj = JSON.parse(message.data.toString());
 
-// if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)){
+  // data host (mp2) only processes its own nodeSetProps
+  // primary host (google) processes all nodeSetProps
 
-  statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived += 1;
+  if ((configuration.isDatabaseHost && pubSubPublishMessageRequestIdSet.has(messageObj.requestId))
+    || !configuration.isDatabaseHost
+  ){
 
-  if (messageObj.node && messageObj.node.nodeType === "user") {
+    statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived += 1;
 
-    if (!pubSubPublishMessageRequestIdSet.has(messageObj.requestId) || configuration.verbose){ 
-      console.log(chalkBlueBold(MODULE_ID_PREFIX
-        + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
-        + " | TOPIC: node-setprops-result"
+    if (messageObj.node && messageObj.node.nodeType === "user") {
+
+      if (!pubSubPublishMessageRequestIdSet.has(messageObj.requestId) || configuration.verbose){ 
+        console.log(chalkBlueBold(MODULE_ID_PREFIX
+          + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
+          + " | TOPIC: node-setprops-result"
+          + " | " + messageObj.requestId
+          + " | TYPE: " + messageObj.node.nodeType
+          + " | NID: " + messageObj.node.nodeId
+          + " | @" + messageObj.node.screenName
+          + " | AUTO FLW: " + formatBoolean(messageObj.node.autoFollowFlag)
+          + " | FLW: " + formatBoolean(messageObj.node.following)
+          + " | CN: " + messageObj.node.categorizeNetwork
+          + " | CV: " + formatBoolean(messageObj.node.categoryVerified)
+          + " | CM: " + formatCategory(messageObj.node.category)
+          + " | CA: " + formatCategory(messageObj.node.categoryAuto)
+        ));
+      }
+
+      if (messageObj.stats){
+        debug(chalkLog(MODULE_ID_PREFIX + "\nUSER STATS\n" + jsonPrint(messageObj.stats)));
+        defaults(statsObj.user, messageObj.stats);
+      }
+
+      nodeSetPropsResultHashMap[messageObj.requestId] = messageObj.node;
+    }
+    else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
+      if (configuration.verbose){ 
+        console.log(chalkBlue(MODULE_ID_PREFIX
+          + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
+          + " | TOPIC: node-setprops-result"
+          + " | " + messageObj.requestId
+          + " | TYPE: " + messageObj.node.nodeType
+          + " | #" + messageObj.node.nodeId
+          + " | CM: " + formatCategory(messageObj.node.category)
+          + " | CA: " + formatCategory(messageObj.node.categoryAuto)
+        ));
+      }
+
+      nodeSetPropsResultHashMap[messageObj.requestId] = messageObj.node;
+    }
+    else{
+      console.log(chalk.yellow(MODULE_ID_PREFIX
+        + " | ==> NODE SET PROPS -MISS- [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
         + " | " + messageObj.requestId
-        + " | TYPE: " + messageObj.node.nodeType
-        + " | NID: " + messageObj.node.nodeId
-        + " | @" + messageObj.node.screenName
-        + " | AUTO FLW: " + formatBoolean(messageObj.node.autoFollowFlag)
-        + " | FLW: " + formatBoolean(messageObj.node.following)
-        + " | CN: " + messageObj.node.categorizeNetwork
-        + " | CV: " + formatBoolean(messageObj.node.categoryVerified)
-        + " | CM: " + formatCategory(messageObj.node.category)
-        + " | CA: " + formatCategory(messageObj.node.categoryAuto)
       ));
     }
-
-    if (messageObj.stats){
-      debug(chalkLog(MODULE_ID_PREFIX + "\nUSER STATS\n" + jsonPrint(messageObj.stats)));
-      defaults(statsObj.user, messageObj.stats);
-    }
-
-    nodeSetPropsResultHashMap[messageObj.requestId] = messageObj.node;
   }
-  else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
-    if (configuration.verbose){ 
-      console.log(chalkBlue(MODULE_ID_PREFIX
-        + " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
-        + " | TOPIC: node-setprops-result"
-        + " | " + messageObj.requestId
-        + " | TYPE: " + messageObj.node.nodeType
-        + " | #" + messageObj.node.nodeId
-        + " | CM: " + formatCategory(messageObj.node.category)
-        + " | CA: " + formatCategory(messageObj.node.categoryAuto)
-      ));
-    }
-
-    nodeSetPropsResultHashMap[messageObj.requestId] = messageObj.node;
-  }
-  else{
-    console.log(chalk.yellow(MODULE_ID_PREFIX
-      + " | ==> NODE SET PROPS -MISS- [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]"
-      + " | " + messageObj.requestId
-    ));
-  }
-// }
 
   tcUtils.emitter.emit("nodeSetPropsResult_" + messageObj.requestId);
   pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
@@ -1072,6 +1079,9 @@ let configuration = {};
 
 configuration.primaryHost = process.env.PRIMARY_HOST || DEFAULT_PRIMARY_HOST;
 configuration.databaseHost = process.env.DATABASE_HOST || DEFAULT_DATABASE_HOST;
+
+configuration.isPrimaryHost = (hostname === configuration.primaryHost);
+configuration.isDatabaseHost = (hostname === configuration.databaseHost);
 
 configuration.pubSub = {};
 configuration.pubSub.enabled = DEFAULT_PUBSUB_ENABLED;

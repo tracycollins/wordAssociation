@@ -583,7 +583,8 @@ function ControlPanel() {
       }
       twitterEntity.setValue("BANNER IMAGE", twitterFeedUser.bannerImageUrl.replace("_normal", ""));
 
-      twitterTimeLine.setValue("AGE", node.ageDays.toFixed(3));
+      // twitterTimeLine.setValue("AGE", node.ageDays.toFixed(3));
+      twitterTimeLine.setValue("AGE", moment.duration({"days": node.ageDays}).toISOString());
       twitterTimeLine.setValue("TWEETS", node.statusesCount);
       twitterTimeLine.setValue("TWEETS PER DAY", node.tweetsPerDay.toFixed(3));
       twitterTimeLine.setValue("MENTIONS", node.mentions);

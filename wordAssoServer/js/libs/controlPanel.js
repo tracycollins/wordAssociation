@@ -583,11 +583,9 @@ function ControlPanel() {
       }
       twitterEntity.setValue("BANNER IMAGE", twitterFeedUser.bannerImageUrl.replace("_normal", ""));
 
-      // twitterTimeLine.setValue("AGE", node.ageDays.toFixed(3));
-      const ageString = moment.duration(node.ageDays,  "days").toISOString();
-      twitterTimeLine.setValue("AGE", ageString);
+      twitterTimeLine.setValue("AGE", parseInt(node.ageDays));
       twitterTimeLine.setValue("TWEETS", node.statusesCount);
-      twitterTimeLine.setValue("TWEETS PER DAY", node.tweetsPerDay.toFixed(3));
+      twitterTimeLine.setValue("TWEETS PER DAY", Math.ceil(node.tweetsPerDay));
       twitterTimeLine.setValue("MENTIONS", node.mentions);
       twitterTimeLine.setValue("RATE", node.rate);
       twitterTimeLine.setValue("RATE MAX", node.rateMax);

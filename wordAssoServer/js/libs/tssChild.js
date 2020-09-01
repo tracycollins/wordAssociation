@@ -1067,6 +1067,47 @@ function initSearchStream(){
           if (filterDuplicateTweets) { return; }
         }
 
+        if (tweetStatus.truncated 
+          && tweetStatus.extended_tweet 
+          && tweetStatus.extended_tweet.entities
+          && tweetStatus.extended_tweet.entities.hastags
+          && tweetStatus.extended_tweet.entities.hastags.length > 0
+        ) {
+
+          console.log("tweetStatus.extended_tweet.entities.hastags.length: " + tweetStatus.extended_tweet.entities.hastags.length)
+
+          for(const ht of tweetStatus.extended_tweet.entities.hastags){
+            if (ignoredHashtagSet.has(ht.toLowerCase())) {
+              console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX FILTER TWEET"
+                + " | IGNORED HASHTAG: " + ht
+                + " | TWEET " + tweetStatus.id_str
+                + " | USER @" + tweetStatus.user.screen_name
+              ));
+              return;
+            }
+          }
+        }
+
+        if ((!tweetStatus.truncated || tweetStatus.truncated === undefined)
+          && tweetStatus.entities
+          && tweetStatus.entities.hastags
+          && tweetStatus.entities.hastags.length > 0
+        ) {
+
+          console.log("tweetStatus.entities.hastags.length: " + tweetStatus.entities.hastags.length)
+
+          for(const ht of tweetStatus.entities.hastags){
+            if (ignoredHashtagSet.has(ht.toLowerCase())) {
+              console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX FILTER TWEET"
+                + " | IGNORED HASHTAG: " + ht
+                + " | TWEET " + tweetStatus.id_str
+                + " | USER @" + tweetStatus.user.screen_name
+              ));
+              return;
+            }
+          }
+        }
+
         tweetIdCache.set(tweetStatus.id_str, tweetStatus.user.screen_name);
 
         tweetStatus.entities.media = [];

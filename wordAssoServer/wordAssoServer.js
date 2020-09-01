@@ -9016,7 +9016,7 @@ async function initDbUserChangeStream(){
 
       statsObj.user.added = addedUsersSet.size;
 
-      printUserObj(MODULE_ID + " | DB CHG | + USR [" + statsObj.user.added + "]", change.fullDocument);
+      printUserObj(MODULE_ID + " | DB CHG | + USR [" + statsObj.user.added + "]", change.fullDocument, chalkLog);
     }
     
     if (change && change.operationType === "delete"){

@@ -29,7 +29,7 @@ const debug = require("debug")("tss");
 const debugCache = require("debug")("cache");
 const debugQ = require("debug")("queue");
 const path = require("path");
-// const empty = require("is-empty");
+const dotProp = require("dot-prop");
 const watch = require("watch");
 
 const chalk = require("chalk");
@@ -1067,12 +1067,16 @@ function initSearchStream(){
           if (filterDuplicateTweets) { return; }
         }
 
-        if (tweetStatus.truncated 
-          && tweetStatus.extended_tweet 
-          && tweetStatus.extended_tweet.entities
-          && tweetStatus.extended_tweet.entities.hastags
+        if (dotProp.has(tweetStatus, "extended_tweet.entities.hastags") 
           && tweetStatus.extended_tweet.entities.hastags.length > 0
-        ) {
+        ){
+
+        // if (tweetStatus.truncated 
+        //   && tweetStatus.extended_tweet 
+        //   && tweetStatus.extended_tweet.entities
+        //   && tweetStatus.extended_tweet.entities.hastags
+        //   && tweetStatus.extended_tweet.entities.hastags.length > 0
+        // ) {
 
           console.log("tweetStatus.extended_tweet.entities.hastags.length: " + tweetStatus.extended_tweet.entities.hastags.length)
 
@@ -1088,11 +1092,15 @@ function initSearchStream(){
           }
         }
 
-        if ((!tweetStatus.truncated || tweetStatus.truncated === undefined)
-          && tweetStatus.entities
-          && tweetStatus.entities.hastags
+        if (dotProp.has(tweetStatus, "entities.hastags") 
           && tweetStatus.entities.hastags.length > 0
-        ) {
+        ){
+
+        // if ((!tweetStatus.truncated || tweetStatus.truncated === undefined)
+        //   && tweetStatus.entities
+        //   && tweetStatus.entities.hastags
+        //   && tweetStatus.entities.hastags.length > 0
+        // ) {
 
           console.log("tweetStatus.entities.hastags.length: " + tweetStatus.entities.hastags.length)
 

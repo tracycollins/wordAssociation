@@ -51,6 +51,8 @@ hostname = hostname.replace(/word0-instance-1/g, "google");
 hostname = hostname.replace(/word-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
 
+const MODULE_ID = MODULE_ID_PREFIX + "_" + hostname.toUpperCase();
+
 const _ = require("lodash");
 const Twit = require("twit");
 
@@ -80,11 +82,11 @@ let followableSearchTermSet = new Set();
 
 let tweetIdCacheTtl = process.env.TWEET_ID_CACHE_DEFAULT_TTL;
 if (tweetIdCacheTtl === undefined) { tweetIdCacheTtl = TWEET_ID_CACHE_DEFAULT_TTL; }
-console.log(MODULE_ID_PREFIX + " | USER CACHE TTL: " + tweetIdCacheTtl + " SECONDS");
+console.log(MODULE_ID + " | USER CACHE TTL: " + tweetIdCacheTtl + " SECONDS");
 
 let tweetIdCacheCheckPeriod = process.env.TWEET_ID_CACHE_CHECK_PERIOD;
 if (tweetIdCacheCheckPeriod === undefined) { tweetIdCacheCheckPeriod = TWEET_ID_CACHE_CHECK_PERIOD; }
-console.log(MODULE_ID_PREFIX + " | USER CACHE CHECK PERIOD: " + tweetIdCacheCheckPeriod + " SECONDS");
+console.log(MODULE_ID + " | USER CACHE CHECK PERIOD: " + tweetIdCacheCheckPeriod + " SECONDS");
 
 const tweetIdCache = new NodeCache({
   stdTTL: tweetIdCacheTtl,
@@ -288,6 +290,7 @@ statsObj.tweets.total = 0;
 
 statsObj.filtered = {};
 statsObj.filtered.users = 0;
+statsObj.filtered.hashtags = 0;
 statsObj.filtered.words = 0;
 statsObj.filtered.languages = 0;
 statsObj.filtered.locations = 0;
@@ -320,10 +323,10 @@ const dropboxConfigFolder = "/config/utility";
 
 const dropboxConfigFile = hostname + "_" + DROPBOX_TSS_CONFIG_FILE;
 
-console.log(MODULE_ID_PREFIX + " | DROPBOX_TSS_CONFIG_FILE: " + DROPBOX_TSS_CONFIG_FILE);
+console.log(MODULE_ID + " | DROPBOX_TSS_CONFIG_FILE: " + DROPBOX_TSS_CONFIG_FILE);
 
-debug(MODULE_ID_PREFIX + " | dropboxConfigFolder : " + dropboxConfigFolder);
-debug(MODULE_ID_PREFIX + " | dropboxConfigFile : " + dropboxConfigFile);
+debug(MODULE_ID + " | dropboxConfigFolder : " + dropboxConfigFolder);
+debug(MODULE_ID + " | dropboxConfigFile : " + dropboxConfigFile);
 
 function showStats(options){
 
@@ -347,26 +350,26 @@ function showStats(options){
   if (statsObj.tweetsPerMinute > statsObj.maxTweetsPerMinute) {
     statsObj.maxTweetsPerMinute = statsObj.tweetsPerMinute;
     statsObj.maxTweetsPerMinuteTime = moment().valueOf();
-    console.log(chalk.blue(MODULE_ID_PREFIX + " | NEW MAX TPM"
+    console.log(chalk.blue(MODULE_ID + " | NEW MAX TPM"
       + " | " + moment().format(compactDateTimeFormat)
       + " | " + statsObj.tweetsPerMinute.toFixed(0)
     ));
   }
 
   if (options) {
-    console.log(MODULE_ID_PREFIX + " | STATS\n" + jsonPrint(statsObj));
+    console.log(MODULE_ID + " | STATS\n" + jsonPrint(statsObj));
 
-    console.log(MODULE_ID_PREFIX + " | @" + threeceeUser.screenName
+    console.log(MODULE_ID + " | @" + threeceeUser.screenName
       + " | TRACKING SEARCH TERMS: " + threeceeUser.searchTermSet.size
     );
 
-    console.log(chalkLog(MODULE_ID_PREFIX + " | @" + threeceeUser.screenName
+    console.log(chalkLog(MODULE_ID + " | @" + threeceeUser.screenName
       + " | FOLLOW USER ID SET: " + threeceeUser.followUserIdSet.size
     ));
 
   }
   else {
-    console.log(chalkLog(MODULE_ID_PREFIX + " | S"
+    console.log(chalkLog(MODULE_ID + " | S"
       + " | ELPSD " + msToTime(statsObj.elapsed)
       + " | START " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
       + " | TWEET Q: " + tweetQueue.length
@@ -380,11 +383,11 @@ function showStats(options){
       + " " + moment(parseInt(statsObj.twitter.limitMaxTime)).format(compactDateTimeFormat)
     ));
 
-    console.log(chalkLog(MODULE_ID_PREFIX + " | @" + threeceeUser.screenName
+    console.log(chalkLog(MODULE_ID + " | @" + threeceeUser.screenName
       + " | TRACKING SEARCH TERMS: " + threeceeUser.searchTermSet.size
     ));
 
-    console.log(chalkLog(MODULE_ID_PREFIX + " | @" + threeceeUser.screenName
+    console.log(chalkLog(MODULE_ID + " | @" + threeceeUser.screenName
       + " | FOLLOW USER ID SET: " + threeceeUser.followUserIdSet.size
     ));
 
@@ -401,7 +404,7 @@ function quit(message) {
     exitCode = 1;
   }
 
-  console.log(MODULE_ID_PREFIX + " | " + process.argv[1]
+  console.log(MODULE_ID + " | " + process.argv[1]
     + " | " + moment().format(compactDateTimeFormat)
     + " | TSS CHILD: **** QUITTING"
     + " | CAUSE: " + msg
@@ -413,7 +416,7 @@ function quit(message) {
 
   //   dbConnection.close(function () {
   //     console.log(chalkAlert(
-  //           MODULE_ID_PREFIX + " | =========================="
+  //           MODULE_ID + " | =========================="
   //       + "\nTSS | MONGO DB CONNECTION CLOSED"
   //       + "\nTSS | =========================="
   //     ));
@@ -430,7 +433,7 @@ function initStatsUpdate(cnf){
 
   return new Promise(function(resolve, reject){
 
-    console.log(chalkInfo(MODULE_ID_PREFIX + " | TSS | initStatsUpdate | INTERVAL: " + cnf.statsUpdateIntervalTime));
+    console.log(chalkInfo(MODULE_ID + " | TSS | initStatsUpdate | INTERVAL: " + cnf.statsUpdateIntervalTime));
 
     try{
 
@@ -459,7 +462,7 @@ function initStatsUpdate(cnf){
         if (statsObj.tweetsPerMinute > statsObj.maxTweetsPerMinute) {
           statsObj.maxTweetsPerMinute = statsObj.tweetsPerMinute;
           statsObj.maxTweetsPerMinuteTime = moment().valueOf();
-          console.log(chalk.blue(MODULE_ID_PREFIX + " | NEW MAX TPM"
+          console.log(chalk.blue(MODULE_ID + " | NEW MAX TPM"
             + " | " + moment().format(compactDateTimeFormat)
             + " | " + statsObj.tweetsPerMinute.toFixed(0)
           ));
@@ -499,7 +502,7 @@ function twitStreamPromise(params){
     threeceeUser.twitStream.get(resourceEndpoint, params.twitParams, async function(err, data, response) {
 
       if (err){
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER STREAM ERROR"
+        console.log(chalkError(MODULE_ID + " | *** TWITTER STREAM ERROR"
           + " | @" + threeceeUser.screenName
           + " | " + getTimeStamp()
           + " | CODE: " + err.code
@@ -516,7 +519,7 @@ function twitStreamPromise(params){
 
             tcUtils.emitter.once(rateLimitEndEvent, function(){
 
-              console.log(chalkError(MODULE_ID_PREFIX + " | -X- TWITTER STREAM RATE LIMIT END"
+              console.log(chalkError(MODULE_ID + " | -X- TWITTER STREAM RATE LIMIT END"
                 + " | @" + threeceeUser.screenName
                 + " | " + getTimeStamp()
                 + " | EVENT: " + rateLimitEndEvent
@@ -535,7 +538,7 @@ function twitStreamPromise(params){
         }
 
         if (configuration.verbose) {
-          console.log(MODULE_ID_PREFIX + " | response\n" + jsonPrint(response));
+          console.log(MODULE_ID + " | response\n" + jsonPrint(response));
         }
 
         threeceeUser.stats.error = err;
@@ -570,9 +573,9 @@ async function initFollowUserIdSet(){
 
 async function initTwit(){
 
-  console.log(chalkLog(MODULE_ID_PREFIX + " | INIT TWIT USER @" + threeceeUser.screenName));
+  console.log(chalkLog(MODULE_ID + " | INIT TWIT USER @" + threeceeUser.screenName));
 
-  console.log(chalkInfo(MODULE_ID_PREFIX + " | INIT TWIT | TWITTER CONFIG " 
+  console.log(chalkInfo(MODULE_ID + " | INIT TWIT | TWITTER CONFIG " 
     + "\n" + jsonPrint(threeceeUser.twitterConfig)
   ));
 
@@ -619,7 +622,7 @@ async function initTwit(){
   threeceeUser.searchStream = false;
   threeceeUser.searchTermSet = new Set();
 
-  console.log(chalkTwitter(MODULE_ID_PREFIX + " | INIT TWITTER USER"
+  console.log(chalkTwitter(MODULE_ID + " | INIT TWITTER USER"
     + " | NAME: " + threeceeUser.screenName
   ));
 
@@ -640,7 +643,7 @@ async function initTwit(){
 
     if (!data || data == undefined) {
 
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! EMPTY TWITTER GET FRIENDS IDS"
+      console.log(chalkAlert(MODULE_ID + " | !!! EMPTY TWITTER GET FRIENDS IDS"
         + " | @" + threeceeUser.screenName
         + " | followUserIdSet: " + threeceeUser.followUserIdSet.size + " FRIENDS"
       ));
@@ -653,7 +656,7 @@ async function initTwit(){
       threeceeUser.followUserIdSet = new Set(data.ids);
     }
 
-    console.log(chalkTwitter(MODULE_ID_PREFIX + " | TWITTER GET FRIENDS IDS"
+    console.log(chalkTwitter(MODULE_ID + " | TWITTER GET FRIENDS IDS"
       + " | @" + threeceeUser.screenName
       + " | " + threeceeUser.followUserIdSet.size + " FRIENDS"
     ));
@@ -664,7 +667,7 @@ async function initTwit(){
 
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER GET FRIENDS IDS ERROR | NOT AUTHENTICATED"
+    console.log(chalkError(MODULE_ID + " | *** TWITTER GET FRIENDS IDS ERROR | NOT AUTHENTICATED"
       + " | @" + threeceeUser.screenName
       + " | " + getTimeStamp()
       + " | CODE: " + err.code
@@ -682,14 +685,14 @@ async function initTwit(){
 
 async function initTwitterUser(){
 
-  console.log(chalkTwitter(MODULE_ID_PREFIX + " | TWITTER USER: @" + threeceeUser.screenName));
+  console.log(chalkTwitter(MODULE_ID + " | TWITTER USER: @" + threeceeUser.screenName));
 
   try {
     await initTwit();
     return;
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** TWIT INIT ERROR"
+    console.log(chalkError(MODULE_ID + " | *** TWIT INIT ERROR"
       + " | @" + threeceeUser.screenName
       + " | " + getTimeStamp()
       + " | " + err
@@ -718,7 +721,7 @@ function initSearchStream(){
       }
     }
 
-    console.log(chalkInfo(MODULE_ID_PREFIX + " | INIT SEARCH STREAM"
+    console.log(chalkInfo(MODULE_ID + " | INIT SEARCH STREAM"
       + " | @" + threeceeUser.screenName
       + " | SEARCH TERMS: " + threeceeUser.searchTermSet.size
       + " | FILTER TRACK SIZE: " + filter.track.length
@@ -728,7 +731,7 @@ function initSearchStream(){
     try {
 
       if (threeceeUser.searchStream) {
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! RESTARTING TWITTER SEARCH STREAM"));
+        console.log(chalkAlert(MODULE_ID + " | !!! RESTARTING TWITTER SEARCH STREAM"));
         threeceeUser.searchStream.stop();
       }
 
@@ -738,7 +741,7 @@ function initSearchStream(){
 
       threeceeUser.searchStream.on("message", function(msg){
         if (msg.event) {
-          console.log(chalkAlert(MODULE_ID_PREFIX + " | " + getTimeStamp() 
+          console.log(chalkAlert(MODULE_ID + " | " + getTimeStamp() 
             + " | TWITTER MESSAGE EVENT: " + msg.event
             + " | @" + threeceeUser.screenName
             + "\n" + jsonPrint(msg)
@@ -747,7 +750,7 @@ function initSearchStream(){
       });
 
       threeceeUser.searchStream.on("follow", function(msg){
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | " + getTimeStamp() 
+        console.log(chalkAlert(MODULE_ID + " | " + getTimeStamp() 
           + " | TWITTER FOLLOW EVENT"
           + " | @" + threeceeUser.screenName
           + "\n" + jsonPrint(msg)
@@ -755,7 +758,7 @@ function initSearchStream(){
       });
 
       threeceeUser.searchStream.on("unfollow", function(msg){
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | " + getTimeStamp() 
+        console.log(chalkAlert(MODULE_ID + " | " + getTimeStamp() 
           + " | TWITTER UNFOLLOW EVENT"
           + " | @" + threeceeUser.screenName
           + "\n" + jsonPrint(msg)
@@ -763,7 +766,7 @@ function initSearchStream(){
       });
 
       threeceeUser.searchStream.on("user_update", function(msg){
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | " + getTimeStamp() 
+        console.log(chalkAlert(MODULE_ID + " | " + getTimeStamp() 
           + " | TWITTER USER UPDATE EVENT"
           + " | @" + threeceeUser.screenName
           + "\n" + jsonPrint(msg)
@@ -771,7 +774,7 @@ function initSearchStream(){
       });
 
       threeceeUser.searchStream.on("connect", function(){
-        console.log(chalkTwitter(MODULE_ID_PREFIX + " | " + getTimeStamp()
+        console.log(chalkTwitter(MODULE_ID + " | " + getTimeStamp()
           + " | TWITTER CONNECT"
           + " | @" + threeceeUser.screenName
         ));
@@ -795,7 +798,7 @@ function initSearchStream(){
           rateLimited = false;
         }
 
-        console.log(chalkTwitter(MODULE_ID_PREFIX + " | " + getTimeStamp()
+        console.log(chalkTwitter(MODULE_ID + " | " + getTimeStamp()
           + " | TWITTER RECONNECT"
           + " | RATE LIMIT: " + threeceeUser.stats.rateLimited
           + " | @" + threeceeUser.screenName
@@ -810,7 +813,7 @@ function initSearchStream(){
       });
 
       threeceeUser.searchStream.on("disconnect", function(data){
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | " + getTimeStamp()
+        console.log(chalkAlert(MODULE_ID + " | " + getTimeStamp()
           + " | @" + threeceeUser.screenName
           + " | !!! TWITTER DISCONNECT\n" + jsonPrint(data)
         ));
@@ -824,13 +827,13 @@ function initSearchStream(){
       });
 
       threeceeUser.searchStream.on("warning", function(data){
-        console.log(chalkAlert(MODULE_ID_PREFIX + " | " + getTimeStamp() + " | !!! TWITTER WARNING\n" + jsonPrint(data)));
+        console.log(chalkAlert(MODULE_ID + " | " + getTimeStamp() + " | !!! TWITTER WARNING\n" + jsonPrint(data)));
         statsObj.twitter.warnings+= 1;
         showStats();
       });
 
       threeceeUser.searchStream.on("direct_message", function (message) {
-        console.log(chalkTwitter(MODULE_ID_PREFIX + " | R< TWITTER DIRECT MESSAGE"
+        console.log(chalkTwitter(MODULE_ID + " | R< TWITTER DIRECT MESSAGE"
           + " | @" + threeceeUser.screenName
           + " | " + message.direct_message.sender_screen_name
           + "\n" + message.direct_message.text
@@ -839,19 +842,19 @@ function initSearchStream(){
       });
 
       threeceeUser.searchStream.on("scrub_geo", function(data){
-        console.log(chalkTwitter(MODULE_ID_PREFIX + " | " + getTimeStamp() + " | !!! TWITTER SCRUB GEO\n" + jsonPrint(data)));
+        console.log(chalkTwitter(MODULE_ID + " | " + getTimeStamp() + " | !!! TWITTER SCRUB GEO\n" + jsonPrint(data)));
         statsObj.twitter.scrubGeo+= 1;
         showStats();
       });
 
       threeceeUser.searchStream.on("status_withheld", function(data){
-        console.log(chalkTwitter(MODULE_ID_PREFIX + " | " + getTimeStamp() + " | !!! TWITTER STATUS WITHHELD\n" + jsonPrint(data)));
+        console.log(chalkTwitter(MODULE_ID + " | " + getTimeStamp() + " | !!! TWITTER STATUS WITHHELD\n" + jsonPrint(data)));
         statsObj.twitter.statusWithheld+= 1;
         showStats();
       });
 
       threeceeUser.searchStream.on("user_withheld", function(data){
-        console.log(chalkTwitter(MODULE_ID_PREFIX + " | " + getTimeStamp() + " | !!! TWITTER USER WITHHELD\n" + jsonPrint(data)));
+        console.log(chalkTwitter(MODULE_ID + " | " + getTimeStamp() + " | !!! TWITTER USER WITHHELD\n" + jsonPrint(data)));
         statsObj.twitter.userWithheld+= 1;
         showStats();
       });
@@ -867,7 +870,7 @@ function initSearchStream(){
         }
 
         if (configuration.verbose) {
-          console.log(chalkTwitter(MODULE_ID_PREFIX + " | " + getTimeStamp()
+          console.log(chalkTwitter(MODULE_ID + " | " + getTimeStamp()
             + " | TWITTER LIMIT" 
             + " | @" + threeceeUser.screenName
             + " | USER LIMIT: " + statsObj.twitter.limit
@@ -878,7 +881,7 @@ function initSearchStream(){
 
       threeceeUser.searchStream.on("error", function(err){
 
-        console.log(chalkError(MODULE_ID_PREFIX + " | " + getTimeStamp()
+        console.log(chalkError(MODULE_ID + " | " + getTimeStamp()
           + " | @" + threeceeUser.screenName
           + " | *** TWITTER ERROR: " + err
           + " | *** TWITTER ERROR\n" + jsonPrint(err)
@@ -909,7 +912,7 @@ function initSearchStream(){
 
         threeceeUser.searchStream.stop();
 
-        console.log(chalkError(MODULE_ID_PREFIX + " | " + getTimeStamp()
+        console.log(chalkError(MODULE_ID + " | " + getTimeStamp()
           + " | @" + threeceeUser.screenName
           + " | *** TWITTER END: " + err
         ));
@@ -940,7 +943,7 @@ function initSearchStream(){
       
       threeceeUser.searchStream.on("parser-error", function(err){
 
-        console.log(chalkError(MODULE_ID_PREFIX + " | " + getTimeStamp()
+        console.log(chalkError(MODULE_ID + " | " + getTimeStamp()
           + " | @" + threeceeUser.screenName
           + " | *** TWITTER PARSER ERROR: " + err
         ));
@@ -970,7 +973,7 @@ function initSearchStream(){
           statsObj.filtered.retweets += 1;
 
           if (configuration.verbose) {
-            console.log(chalkLog(MODULE_ID_PREFIX + " | XXX FILTER RETWEETS | SKIPPING"
+            console.log(chalkLog(MODULE_ID + " | XXX FILTER RETWEETS | SKIPPING"
               + " [" + statsObj.filtered.retweets + "]"
               + " | TWID: " + tweetStatus.id_str
               + " | UID: " + tweetStatus.user.id_str
@@ -988,7 +991,7 @@ function initSearchStream(){
           statsObj.filtered.users += 1;
 
           if (configuration.verbose) {
-            console.log(chalkLog(MODULE_ID_PREFIX + " | XXX IGNORE USER | SKIPPING"
+            console.log(chalkLog(MODULE_ID + " | XXX IGNORE USER | SKIPPING"
               + " [" + statsObj.filtered.users + "]"
               + " | TWID: " + tweetStatus.id_str
               + " | UID: " + tweetStatus.user.id_str
@@ -1008,7 +1011,7 @@ function initSearchStream(){
             statsObj.filtered.words += 1;
 
             if (configuration.verbose || (statsObj.filtered.words % 100 === 0)){
-              console.log(chalkLog(MODULE_ID_PREFIX + " | XXX IGNORE PROFILE WORD | SKIPPING"
+              console.log(chalkLog(MODULE_ID + " | XXX IGNORE PROFILE WORD | SKIPPING"
                 + " [" + statsObj.filtered.words + " FILTERED]"
                 + " | IGNORE USER SET: " + ignoredUserSet.size
                 + " | TWID: " + tweetStatus.id_str
@@ -1029,7 +1032,7 @@ function initSearchStream(){
           statsObj.filtered.locations += 1;
 
           if (configuration.verbose) {
-            console.log(chalkLog(MODULE_ID_PREFIX + " | XXX IGNORE LOCATION | SKIPPING"
+            console.log(chalkLog(MODULE_ID + " | XXX IGNORE LOCATION | SKIPPING"
               + " [" + statsObj.filtered.locations + "]"
               + " | TWID: " + tweetStatus.id_str
               + " | LOC: " + tweetStatus.user.location
@@ -1048,7 +1051,7 @@ function initSearchStream(){
           statsObj.filtered.languages += 1;
 
           if (configuration.verbose) {
-            console.log(chalkLog(MODULE_ID_PREFIX + " | XXX IGNORE LANG | SKIPPING"
+            console.log(chalkLog(MODULE_ID + " | XXX IGNORE LANG | SKIPPING"
               + " [" + statsObj.filtered.languages + "]"
               + " | TWID: " + tweetStatus.id_str
               + " | LANG: " + tweetStatus.user.lang
@@ -1067,50 +1070,47 @@ function initSearchStream(){
           if (filterDuplicateTweets) { return; }
         }
 
-        if (dotProp.has(tweetStatus, "extended_tweet.entities.hastags") 
-          && tweetStatus.extended_tweet.entities.hastags.length > 0
+        if (dotProp.has(tweetStatus, "extended_tweet.entities.hashtags") 
+          && tweetStatus.extended_tweet.entities.hashtags.length > 0
         ){
 
-        // if (tweetStatus.truncated 
-        //   && tweetStatus.extended_tweet 
-        //   && tweetStatus.extended_tweet.entities
-        //   && tweetStatus.extended_tweet.entities.hastags
-        //   && tweetStatus.extended_tweet.entities.hastags.length > 0
-        // ) {
+          debug("tweetStatus.extended_tweet.entities.hashtags.length: " + tweetStatus.extended_tweet.entities.hashtags.length)
 
-          console.log("tweetStatus.extended_tweet.entities.hastags.length: " + tweetStatus.extended_tweet.entities.hastags.length)
+          for(const ht of tweetStatus.extended_tweet.entities.hashtags){
+            if (ignoredHashtagSet.has(ht.text.toLowerCase())) {
 
-          for(const ht of tweetStatus.extended_tweet.entities.hastags){
-            if (ignoredHashtagSet.has(ht.toLowerCase())) {
-              console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX FILTER TWEET"
-                + " | IGNORED HASHTAG: " + ht
+              statsObj.filtered.hashtags += 1;
+
+              console.log(chalkLog(MODULE_ID + " | XXX FILTER TWEET"
+                + " [" + statsObj.filtered.hashtags + "]"
+                + " IGNORED HASHTAG: " + ht.text.toLowerCase()
                 + " | TWEET " + tweetStatus.id_str
                 + " | USER @" + tweetStatus.user.screen_name
               ));
+
               return;
             }
           }
         }
 
-        if (dotProp.has(tweetStatus, "entities.hastags") 
-          && tweetStatus.entities.hastags.length > 0
+        if (dotProp.has(tweetStatus, "entities.hashtags") 
+          && tweetStatus.entities.hashtags.length > 0
         ){
 
-        // if ((!tweetStatus.truncated || tweetStatus.truncated === undefined)
-        //   && tweetStatus.entities
-        //   && tweetStatus.entities.hastags
-        //   && tweetStatus.entities.hastags.length > 0
-        // ) {
+          debug("tweetStatus.entities.hashtags.length: " + tweetStatus.entities.hashtags.length)
 
-          console.log("tweetStatus.entities.hastags.length: " + tweetStatus.entities.hastags.length)
+          for(const ht of tweetStatus.entities.hashtags){
+            if (ignoredHashtagSet.has(ht.text.toLowerCase())) {
 
-          for(const ht of tweetStatus.entities.hastags){
-            if (ignoredHashtagSet.has(ht.toLowerCase())) {
-              console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX FILTER TWEET"
-                + " | IGNORED HASHTAG: " + ht
+              statsObj.filtered.hashtags += 1;
+
+              console.log(chalkLog(MODULE_ID + " | XXX FILTER TWEET"
+                + " [" + statsObj.filtered.hashtags + "]"
+                + " IGNORED HASHTAG: " + ht.text.toLowerCase()
                 + " | TWEET " + tweetStatus.id_str
                 + " | USER @" + tweetStatus.user.screen_name
               ));
+
               return;
             }
           }
@@ -1152,7 +1152,7 @@ function initSearchStream(){
 
     }
     catch(err){
-      console.log(chalkError(MODULE_ID_PREFIX + " | CAUGHT ERROR | " + getTimeStamp()
+      console.log(chalkError(MODULE_ID + " | CAUGHT ERROR | " + getTimeStamp()
         + " | @" + threeceeUser.screenName
         + " | *** TWITTER ERROR: " + err
         + " | *** TWITTER ERROR\n" + jsonPrint(err)
@@ -1189,7 +1189,7 @@ function initSearchStream(){
 
 //   statsObj.status = "INIT SET FROM FILE";
 
-//   console.log(chalkBlue(MODULE_ID_PREFIX + " | ... INIT SET FROM FILE: " + params.folder + "/" + params.file));
+//   console.log(chalkBlue(MODULE_ID + " | ... INIT SET FROM FILE: " + params.folder + "/" + params.file));
 
 //   try{
 
@@ -1200,7 +1200,7 @@ function initSearchStream(){
 //     });
 
 //     if (empty(setObj)) {
-//      console.log(chalkAlert(MODULE_ID_PREFIX + " | ??? NO ITEMS IN FILE ERROR ???"
+//      console.log(chalkAlert(MODULE_ID + " | ??? NO ITEMS IN FILE ERROR ???"
 //         + " | " + params.folder + "/" + params.file
 //       ));
 
@@ -1220,7 +1220,7 @@ function initSearchStream(){
 //       fileSet = new Set(itemArray);
 //     }
 
-//     console.log(chalkLog(MODULE_ID_PREFIX + " | LOADED SET FROM FILE"
+//     console.log(chalkLog(MODULE_ID + " | LOADED SET FROM FILE"
 //       + " | OBJ ARRAY KEY: " + params.objArrayKey
 //       + " | " + fileSet.size + " ITEMS"
 //       + " | " + params.folder + "/" + params.file
@@ -1229,7 +1229,7 @@ function initSearchStream(){
 //     return fileSet;
 //   }
 //   catch(err){
-//     console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT SET FROM FILE ERROR: " + err));
+//     console.log(chalkError(MODULE_ID + " | *** INIT SET FROM FILE ERROR: " + err));
 //     if (params.noErrorNotFound) {
 //       return;
 //     }
@@ -1239,7 +1239,7 @@ function initSearchStream(){
 
 async function initSearchTerms(params){
 
-  console.log(chalkTwitter(MODULE_ID_PREFIX + " | INIT TERMS | @" + threeceeUser.screenName));
+  console.log(chalkTwitter(MODULE_ID + " | INIT TERMS | @" + threeceeUser.screenName));
 
   try{
 
@@ -1255,18 +1255,18 @@ async function initSearchTerms(params){
       threeceeUser.searchTermSet.delete(" ");
     }
 
-    console.log(chalk.blue(MODULE_ID_PREFIX + " | FILE CONTAINS " + threeceeUser.searchTermSet.size + " TOTAL SEARCH TERMS "));
+    console.log(chalk.blue(MODULE_ID + " | FILE CONTAINS " + threeceeUser.searchTermSet.size + " TOTAL SEARCH TERMS "));
 
-    console.log(chalkLog(MODULE_ID_PREFIX + " | ADDING " + threeceeUser.followUserScreenNameSet.size + " SCREEN NAMES TO TRACK SET"));
+    console.log(chalkLog(MODULE_ID + " | ADDING " + threeceeUser.followUserScreenNameSet.size + " SCREEN NAMES TO TRACK SET"));
 
     threeceeUser.searchTermSet = new Set([...threeceeUser.searchTermSet, ...threeceeUser.followUserScreenNameSet]);
 
     if (threeceeUser.searchTermSet.size == 0){
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | ??? NO SEACH TERMS |@" + threeceeUser.screenName));
+      console.log(chalkAlert(MODULE_ID + " | ??? NO SEACH TERMS |@" + threeceeUser.screenName));
       throw new Error("NO SEARCH TERMS");
     }
 
-    console.log(chalk.blue(MODULE_ID_PREFIX + " | SEACH TERMS"
+    console.log(chalk.blue(MODULE_ID + " | SEACH TERMS"
       + " | @" + threeceeUser.screenName 
       + " | " + threeceeUser.searchTermSet.size + " SEACH TERMS"
     ));
@@ -1275,7 +1275,7 @@ async function initSearchTerms(params){
 
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | LOAD FILE ERROR\n" + err));
+    console.log(chalkError(MODULE_ID + " | LOAD FILE ERROR\n" + err));
     throw err;
   }
 }
@@ -1284,7 +1284,7 @@ async function initIgnoredUserSet(){
 
   statsObj.status = "INIT IGNORED USER SET";
 
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | INIT IGNORED USER SET: " + configDefaultFolder 
+  console.log(chalkBlue(MODULE_ID + " | INIT IGNORED USER SET: " + configDefaultFolder 
     + "/" + ignoredUserFile
   ));
 
@@ -1303,7 +1303,7 @@ async function initIgnoredUserSet(){
       ignoredUserSet.delete(" ");
     }
 
-    console.log(chalkLog(MODULE_ID_PREFIX + " | LOADED IGNORED USERS FILE"
+    console.log(chalkLog(MODULE_ID + " | LOADED IGNORED USERS FILE"
       + " | " + ignoredUserSet.size + " USERS"
       + " | " + configDefaultFolder + "/" + ignoredUserFile
     ));
@@ -1311,14 +1311,14 @@ async function initIgnoredUserSet(){
     return;
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT IGNORED USERS SET ERROR: " + err));
+    console.log(chalkError(MODULE_ID + " | *** INIT IGNORED USERS SET ERROR: " + err));
     throw err;
   }
 }
 
 async function initAllowLocations(){
 
-  console.log(chalkTwitter(MODULE_ID_PREFIX + " | INIT ALLOW LOCATIONS | @" + threeceeUser.screenName));
+  console.log(chalkTwitter(MODULE_ID + " | INIT ALLOW LOCATIONS | @" + threeceeUser.screenName));
 
   try{
     const result = await tcUtils.initSetFromFile({
@@ -1331,19 +1331,19 @@ async function initAllowLocations(){
       allowLocationsSet = new Set([...result]);
     }
 
-    console.log(chalk.blue(MODULE_ID_PREFIX + " | FILE CONTAINS " + allowLocationsSet.size + " ALLOW LOCATIONS "));
+    console.log(chalk.blue(MODULE_ID + " | FILE CONTAINS " + allowLocationsSet.size + " ALLOW LOCATIONS "));
 
     return;
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT ALLOW LOCATIONS ERROR: " + err));
+    console.log(chalkError(MODULE_ID + " | *** INIT ALLOW LOCATIONS ERROR: " + err));
     throw err;
   }
 }
 
 async function initIgnoreLocations(){
 
-  console.log(chalkTwitter(MODULE_ID_PREFIX + " | INIT IGNORE LOCATIONS | @" + threeceeUser.screenName));
+  console.log(chalkTwitter(MODULE_ID + " | INIT IGNORE LOCATIONS | @" + threeceeUser.screenName));
 
   try{
     const result = await tcUtils.initSetFromFile({
@@ -1360,19 +1360,19 @@ async function initIgnoreLocations(){
       ignoreLocationsRegEx = new RegExp(ignoreLocationsString, "gi");
     }
 
-    console.log(chalk.blue(MODULE_ID_PREFIX + " | FILE CONTAINS " + ignoreLocationsSet.size + " IGNORE LOCATIONS "));
+    console.log(chalk.blue(MODULE_ID + " | FILE CONTAINS " + ignoreLocationsSet.size + " IGNORE LOCATIONS "));
 
     return;
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT IGNORE LOCATIONS ERROR: " + err));
+    console.log(chalkError(MODULE_ID + " | *** INIT IGNORE LOCATIONS ERROR: " + err));
     throw err;
   }
 }
 
 async function initIgnoreHashtags(){
 
-  console.log(chalkTwitter(MODULE_ID_PREFIX + " | INIT IGNORE HASHTAGS | @" + threeceeUser.screenName));
+  console.log(chalkTwitter(MODULE_ID + " | INIT IGNORE HASHTAGS | @" + threeceeUser.screenName));
 
   try{
     const result = await tcUtils.initSetFromFile({
@@ -1385,19 +1385,19 @@ async function initIgnoreHashtags(){
       ignoredHashtagSet = new Set([...result]);
     }
 
-    console.log(chalk.blue(MODULE_ID_PREFIX + " | FILE CONTAINS " + ignoredHashtagSet.size + " IGNORE HASHTAGS "));
+    console.log(chalk.blue(MODULE_ID + " | FILE CONTAINS " + ignoredHashtagSet.size + " IGNORE HASHTAGS "));
 
     return;
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT IGNORE HASHTAGS ERROR: " + err));
+    console.log(chalkError(MODULE_ID + " | *** INIT IGNORE HASHTAGS ERROR: " + err));
     throw err;
   }
 }
 
 async function initIgnoredProfileWords(){
 
-  console.log(chalkInfo(MODULE_ID_PREFIX + " | INIT IGNORED PROFILE WORDS | @" + threeceeUser.screenName));
+  console.log(chalkInfo(MODULE_ID + " | INIT IGNORED PROFILE WORDS | @" + threeceeUser.screenName));
 
   try{
 
@@ -1414,12 +1414,12 @@ async function initIgnoredProfileWords(){
       ignoredProfileWordsArray = [...ignoredProfileWordsSet];
     }
 
-    console.log(chalkInfo(MODULE_ID_PREFIX + " | +++ LOADED IGNORED PROFILE WORDS: " + ignoredProfileWordsSet.size));
+    console.log(chalkInfo(MODULE_ID + " | +++ LOADED IGNORED PROFILE WORDS: " + ignoredProfileWordsSet.size));
 
     return;
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT IGNORED PROFILE WORDS ERROR: " + err));
+    console.log(chalkError(MODULE_ID + " | *** INIT IGNORED PROFILE WORDS ERROR: " + err));
     throw err;
   }
 }
@@ -1429,7 +1429,7 @@ async function initFollowableSearchTermSet(){
 
   statsObj.status = "INIT FOLLOWABLE SEARCH TERM SET";
 
-  console.log(chalkBlue(MODULE_ID_PREFIX + " | INIT FOLLOWABLE SEARCH TERM SET: " + configDefaultFolder 
+  console.log(chalkBlue(MODULE_ID + " | INIT FOLLOWABLE SEARCH TERM SET: " + configDefaultFolder 
     + "/" + followableSearchTermFile
   ));
 
@@ -1447,7 +1447,7 @@ async function initFollowableSearchTermSet(){
       followableSearchTermSet.delete(" ");
     }
 
-    console.log(chalkLog(MODULE_ID_PREFIX + " | LOADED FOLLOWABLE SEARCH TERMS FILE"
+    console.log(chalkLog(MODULE_ID + " | LOADED FOLLOWABLE SEARCH TERMS FILE"
       + " | " + followableSearchTermSet.size + " SEARCH TERMS"
       + " | " + configDefaultFolder + "/" + followableSearchTermFile
     ));
@@ -1455,7 +1455,7 @@ async function initFollowableSearchTermSet(){
     return;
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT FOLLOWABLE SEARCH TERM SET ERROR: " + err));
+    console.log(chalkError(MODULE_ID + " | *** INIT FOLLOWABLE SEARCH TERM SET ERROR: " + err));
     throw err;
   }
 }
@@ -1469,7 +1469,7 @@ async function initSearchTermsUpdateInterval(){
   const interval = configuration.searchTermsUpdateInterval || DEFAULT_SEARCH_TERM_UPDATE_INTERVAL;
 
   searchTermsUpdateInterval = setInterval(async function(){
-    console.log(chalkInfo(MODULE_ID_PREFIX + " | ... SEARCH TERM UPDATE | INTERVAL: " + msToTime(interval)));
+    console.log(chalkInfo(MODULE_ID + " | ... SEARCH TERM UPDATE | INTERVAL: " + msToTime(interval)));
     await initSearchTerms(configuration);
     await initSearchStream();
 
@@ -1486,13 +1486,13 @@ async function initWatchConfig(){
 
   statsObj.status = "INIT WATCH CONFIG";
 
-  console.log(chalkLog(MODULE_ID_PREFIX + " | ... INIT WATCH"));
+  console.log(chalkLog(MODULE_ID + " | ... INIT WATCH"));
 
   const loadConfig = async function(f){
 
     try{
 
-      debug(chalkInfo(MODULE_ID_PREFIX + " | +++ FILE CREATED or CHANGED | " + getTimeStamp() + " | " + f));
+      debug(chalkInfo(MODULE_ID + " | +++ FILE CREATED or CHANGED | " + getTimeStamp() + " | " + f));
 
       if (f.endsWith(followableSearchTermFile)){
         await initFollowableSearchTermSet();
@@ -1522,7 +1522,7 @@ async function initWatchConfig(){
 
     }
     catch(err){
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD ALL CONFIGS ON CREATE ERROR: " + err));
+      console.log(chalkError(MODULE_ID + " | *** LOAD ALL CONFIGS ON CREATE ERROR: " + err));
     }
   }
 
@@ -1533,7 +1533,7 @@ async function initWatchConfig(){
     monitor.on("changed", loadConfig);
 
     monitor.on("removed", function (f) {
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | XXX FILE DELETED | " + getTimeStamp() + " | " + f));
+      console.log(chalkAlert(MODULE_ID + " | XXX FILE DELETED | " + getTimeStamp() + " | " + f));
     });
   });
 
@@ -1542,7 +1542,7 @@ async function initWatchConfig(){
 
 async function initialize(cnf){
 
-  console.log(chalkLog(MODULE_ID_PREFIX + " | TSS | INITIALIZE"
+  console.log(chalkLog(MODULE_ID + " | TSS | INITIALIZE"
     + " | @" + cnf.threeceeUser
     // + "\n" + jsonPrint(cnf)
   ));
@@ -1568,8 +1568,8 @@ async function initialize(cnf){
 
   cnf.statsUpdateIntervalTime = process.env.TSS_STATS_UPDATE_INTERVAL || 60000;
 
-  debug(chalkWarn(MODULE_ID_PREFIX + " | dropboxConfigFolder: " + dropboxConfigFolder));
-  debug(chalkWarn(MODULE_ID_PREFIX + " | dropboxConfigFile  : " + dropboxConfigFile));
+  debug(chalkWarn(MODULE_ID + " | dropboxConfigFolder: " + dropboxConfigFolder));
+  debug(chalkWarn(MODULE_ID + " | dropboxConfigFile  : " + dropboxConfigFile));
 
 
   try {
@@ -1582,42 +1582,42 @@ async function initialize(cnf){
     debug(dropboxConfigFile + "\n" + jsonPrint(loadedConfigObj));
 
     if (loadedConfigObj.TSS_VERBOSE_MODE !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED TSS_VERBOSE_MODE: " + loadedConfigObj.TSS_VERBOSE_MODE);
+      console.log(MODULE_ID + " | LOADED TSS_VERBOSE_MODE: " + loadedConfigObj.TSS_VERBOSE_MODE);
       cnf.verbose = loadedConfigObj.TSS_VERBOSE_MODE;
     }
 
     if (loadedConfigObj.TSS_GLOBAL_TEST_MODE !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED TSS_GLOBAL_TEST_MODE: " + loadedConfigObj.TSS_GLOBAL_TEST_MODE);
+      console.log(MODULE_ID + " | LOADED TSS_GLOBAL_TEST_MODE: " + loadedConfigObj.TSS_GLOBAL_TEST_MODE);
       cnf.globalTestMode = loadedConfigObj.TSS_GLOBAL_TEST_MODE;
     }
 
     if (loadedConfigObj.TSS_TEST_MODE !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED TSS_TEST_MODE: " + loadedConfigObj.TSS_TEST_MODE);
+      console.log(MODULE_ID + " | LOADED TSS_TEST_MODE: " + loadedConfigObj.TSS_TEST_MODE);
       cnf.testMode = loadedConfigObj.TSS_TEST_MODE;
     }
 
     if (loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER: " + loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER);
+      console.log(MODULE_ID + " | LOADED DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER: " + loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER);
       cnf.twitterConfigFolder = loadedConfigObj.DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG_FOLDER;
     }
 
     if (loadedConfigObj.DROPBOX_DEFAULT_SEARCH_TERMS_DIR !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED DROPBOX_DEFAULT_SEARCH_TERMS_DIR: " + loadedConfigObj.DROPBOX_DEFAULT_SEARCH_TERMS_DIR);
+      console.log(MODULE_ID + " | LOADED DROPBOX_DEFAULT_SEARCH_TERMS_DIR: " + loadedConfigObj.DROPBOX_DEFAULT_SEARCH_TERMS_DIR);
       cnf.searchTermsDir = loadedConfigObj.DROPBOX_DEFAULT_SEARCH_TERMS_DIR;
     }
 
     if (loadedConfigObj.DROPBOX_DEFAULT_SEARCH_TERMS_FILE !== undefined){
-      console.log(MODULE_ID_PREFIX + " | LOADED DROPBOX_DEFAULT_SEARCH_TERMS_FILE: " + loadedConfigObj.DROPBOX_DEFAULT_SEARCH_TERMS_FILE);
+      console.log(MODULE_ID + " | LOADED DROPBOX_DEFAULT_SEARCH_TERMS_FILE: " + loadedConfigObj.DROPBOX_DEFAULT_SEARCH_TERMS_FILE);
       cnf.searchTermsFile = loadedConfigObj.DROPBOX_DEFAULT_SEARCH_TERMS_FILE;
     }
 
     if (loadedConfigObj.TSS_STATS_UPDATE_INTERVAL !== undefined) {
-      console.log(MODULE_ID_PREFIX + " | LOADED TSS_STATS_UPDATE_INTERVAL: " + loadedConfigObj.TSS_STATS_UPDATE_INTERVAL);
+      console.log(MODULE_ID + " | LOADED TSS_STATS_UPDATE_INTERVAL: " + loadedConfigObj.TSS_STATS_UPDATE_INTERVAL);
       cnf.statsUpdateIntervalTime = loadedConfigObj.TSS_STATS_UPDATE_INTERVAL;
     }
 
     if (loadedConfigObj.TSS_MAX_TWEET_QUEUE !== undefined) {
-      console.log(MODULE_ID_PREFIX + " | LOADED TSS_MAX_TWEET_QUEUE: " + loadedConfigObj.TSS_MAX_TWEET_QUEUE);
+      console.log(MODULE_ID + " | LOADED TSS_MAX_TWEET_QUEUE: " + loadedConfigObj.TSS_MAX_TWEET_QUEUE);
       cnf.maxTweetQueue = loadedConfigObj.TSS_MAX_TWEET_QUEUE;
       maxTweetQueue = cnf.maxTweetQueue;
     }
@@ -1628,7 +1628,7 @@ async function initialize(cnf){
 
     if (cnf.verbose) {
       configArgs.forEach(function(arg){
-        console.log(MODULE_ID_PREFIX + " | FINAL CONFIG | " + arg + ": " + cnf[arg]);
+        console.log(MODULE_ID + " | FINAL CONFIG | " + arg + ": " + cnf[arg]);
       });
     }
 
@@ -1638,14 +1638,14 @@ async function initialize(cnf){
 
   }
   catch(err){
-    console.log(MODULE_ID_PREFIX + " | TSS | *** ERROR LOAD CONFIG: " + dropboxConfigFile + "\n" + jsonPrint(err));
+    console.log(MODULE_ID + " | TSS | *** ERROR LOAD CONFIG: " + dropboxConfigFile + "\n" + jsonPrint(err));
     throw err;
   }
 }
 
 function initTwitterQueue(cnf, callback){
 
-  console.log(chalkTwitter(MODULE_ID_PREFIX + " | INIT TWITTER QUEUE INTERVAL: " + cnf.twitterQueueIntervalTime));
+  console.log(chalkTwitter(MODULE_ID + " | INIT TWITTER QUEUE INTERVAL: " + cnf.twitterQueueIntervalTime));
 
   const interval = cnf.twitterQueueIntervalTime;
 
@@ -1681,11 +1681,11 @@ function initTwitterSearch(cnf){
 
     twitterSearchInit = true;
 
-    console.log(chalkTwitter(MODULE_ID_PREFIX + " | INIT TWITTER SEARCH"));
+    console.log(chalkTwitter(MODULE_ID + " | INIT TWITTER SEARCH"));
 
     initTwitterQueue(cnf);
 
-    console.log(chalkTwitter(MODULE_ID_PREFIX + " | " + getTimeStamp() 
+    console.log(chalkTwitter(MODULE_ID + " | " + getTimeStamp() 
       + " | ENABLE TWEET STREAM"
     ));
 
@@ -1729,7 +1729,7 @@ async function initFollowQueue(params){
 
         statsObj.queues.followQueue.size = followQueue.length;
 
-        console.log(chalkTwitter(MODULE_ID_PREFIX + " | --> TWITTER FOLLOW"
+        console.log(chalkTwitter(MODULE_ID + " | --> TWITTER FOLLOW"
           + " | @" + followObj.user.screenName
           + " | UID: " + followObj.user.userId
         ));
@@ -1738,14 +1738,14 @@ async function initFollowQueue(params){
 
           if (err){
 
-            console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER FOLLOW ERROR"
+            console.log(chalkError(MODULE_ID + " | *** TWITTER FOLLOW ERROR"
               + " | @" + threeceeUser.screenName
               + " | ERROR CODE: " + err.code
               + " | ERROR: " + err
             ));
 
             if (configuration.verbose) {
-              console.log(chalkError(MODULE_ID_PREFIX + " | *** TWITTER FOLLOW ERROR"
+              console.log(chalkError(MODULE_ID + " | *** TWITTER FOLLOW ERROR"
                 + " | @" + threeceeUser.screenName
                 + "\nresponse\n" + jsonPrint(response)
               ));
@@ -1767,7 +1767,7 @@ async function initFollowQueue(params){
 
           }
           else {
-            console.log(chalk.green(MODULE_ID_PREFIX + " | +++ TWITTER FOLLOWING"
+            console.log(chalk.green(MODULE_ID + " | +++ TWITTER FOLLOWING"
               + " | @" + data.screen_name
               + " | ID: " + data.id_str
               + " | " + data.name
@@ -1786,7 +1786,7 @@ async function initFollowQueue(params){
 
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** TWIT INIT FOLLOW ERROR"
+    console.log(chalkError(MODULE_ID + " | *** TWIT INIT FOLLOW ERROR"
       + " | @" + threeceeUser.screenName
       + " | " + getTimeStamp()
       + " | " + err
@@ -1797,7 +1797,7 @@ async function initFollowQueue(params){
 
 process.on("message", async function(m) {
 
-  console.log(chalkLog(MODULE_ID_PREFIX + " | RX MESSAGE"
+  console.log(chalkLog(MODULE_ID + " | RX MESSAGE"
     + " | OP: " + m.op
   ));
 
@@ -1808,12 +1808,12 @@ process.on("message", async function(m) {
   switch (m.op) {
 
     case "QUIT":
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | QUIT"));
+      console.log(chalkAlert(MODULE_ID + " | QUIT"));
       quit("PARENT QUIT");
     break;
 
     case "VERBOSE":
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | VERBOSE"));
+      console.log(chalkAlert(MODULE_ID + " | VERBOSE"));
       configuration.verbose = m.verbose;
     break;
 
@@ -1836,7 +1836,7 @@ process.on("message", async function(m) {
 
       threeceeUser.twitterConfig = m.twitterConfig;
 
-      console.log(chalkInfo(MODULE_ID_PREFIX + " | INIT"
+      console.log(chalkInfo(MODULE_ID + " | INIT"
         + " | TITLE: " + m.title
         + " | 3C USER @" + configuration.threeceeUser
         + "\nCONFIGURATION\n" + jsonPrint(configuration)
@@ -1858,7 +1858,7 @@ process.on("message", async function(m) {
         await initFollowQueue({interval: configuration.followQueueIntervalTime});
       }
       catch(err){
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT ERROR" 
+        console.log(chalkError(MODULE_ID + " | *** INIT ERROR" 
           + " | @" + m.threeceeUser
           + " | ERROR: " + err
         ));
@@ -1868,7 +1868,7 @@ process.on("message", async function(m) {
     case "USER_AUTHENTICATED":
 
       if (m.user.screenName != threeceeUser.screenName) {
-        console.log(chalkInfo(MODULE_ID_PREFIX + " | USER_AUTHENTICATED | USER MISS"
+        console.log(chalkInfo(MODULE_ID + " | USER_AUTHENTICATED | USER MISS"
           + " | CHILD 3C @" + threeceeUser.screenName
           + " | AUTH USER @" + m.user.screenName
           + " | UID: " + m.user.userId
@@ -1878,7 +1878,7 @@ process.on("message", async function(m) {
         break;
       }
 
-      console.log(chalkInfo(MODULE_ID_PREFIX + " | USER_AUTHENTICATED"
+      console.log(chalkInfo(MODULE_ID + " | USER_AUTHENTICATED"
         + " | @" + m.user.screenName
         + " | UID: " + m.user.userId
         + " | TOKEN: " + m.token
@@ -1887,7 +1887,7 @@ process.on("message", async function(m) {
 
       authObj = threeceeUser.twitStream.getAuth();
 
-      console.log(chalkLog(MODULE_ID_PREFIX + " | CURRENT AUTH\n" + jsonPrint(authObj)));
+      console.log(chalkLog(MODULE_ID + " | CURRENT AUTH\n" + jsonPrint(authObj)));
 
       threeceeUser.twitStream.setAuth({access_token: m.token, access_token_secret: m.tokenSecret});
 
@@ -1902,13 +1902,13 @@ process.on("message", async function(m) {
       threeceeUser.twitterConfig.TOKEN = authObjNew.access_token;
       threeceeUser.twitterConfig.TOKEN_SECRET = authObjNew.access_token_secret;
 
-      console.log(chalkError(MODULE_ID_PREFIX + " | UPDATED AUTH\n" + jsonPrint(authObjNew)));
+      console.log(chalkError(MODULE_ID + " | UPDATED AUTH\n" + jsonPrint(authObjNew)));
 
       twitterConfigFile = threeceeUser.screenName + ".json";
 
       await tcUtils.saveFile({localFlag: true, folder: twitterConfigFolder, file: twitterConfigFile, obj: threeceeUser.twitterConfig});
 
-      console.log(chalkLog(MODULE_ID_PREFIX + " | SAVED UPDATED AUTH " + twitterConfigFolder + "/" + twitterConfigFile));
+      console.log(chalkLog(MODULE_ID + " | SAVED UPDATED AUTH " + twitterConfigFolder + "/" + twitterConfigFile));
 
       threeceeUser.stats.connected = true;
       threeceeUser.stats.twitterFollowLimit = false;
@@ -1926,7 +1926,7 @@ process.on("message", async function(m) {
           threeceeUser.stats.error = false;
           threeceeUser.stats.authenticated = true;
 
-          console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! EMPTY TWITTER GET FRIENDS IDS"
+          console.log(chalkAlert(MODULE_ID + " | !!! EMPTY TWITTER GET FRIENDS IDS"
             + " | @" + threeceeUser.screenName
             + " | followUserIdSet: " + threeceeUser.followUserIdSet.size + " FRIENDS"
           ));
@@ -1941,7 +1941,7 @@ process.on("message", async function(m) {
           threeceeUser.followUserIdSet = new Set(data.ids);
         }
 
-        console.log(chalkTwitter(MODULE_ID_PREFIX + " | TWITTER GET FRIENDS IDS"
+        console.log(chalkTwitter(MODULE_ID + " | TWITTER GET FRIENDS IDS"
           + " | @" + threeceeUser.screenName
           + " | " + threeceeUser.followUserIdSet.size + " FRIENDS"
         ));
@@ -1949,7 +1949,7 @@ process.on("message", async function(m) {
         await initSearchTerms(configuration);
         await initSearchStream();
 
-        console.log(chalkInfo(MODULE_ID_PREFIX + " | INIT SEARCH TERMS COMPLETE | 3C @" + threeceeUser.screenName));
+        console.log(chalkInfo(MODULE_ID + " | INIT SEARCH TERMS COMPLETE | 3C @" + threeceeUser.screenName));
 
         if (!twitterSearchInit) { 
           await initTwitterSearch(configuration);
@@ -1966,12 +1966,12 @@ process.on("message", async function(m) {
 
       }
       catch(err){
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** USER AUTHENTICATE ERROR: " + err));
+        console.log(chalkError(MODULE_ID + " | *** USER AUTHENTICATE ERROR: " + err));
       }
     break;
 
     case "FOLLOW":
-      console.log(chalkInfo(MODULE_ID_PREFIX + " | FOLLOW"
+      console.log(chalkInfo(MODULE_ID + " | FOLLOW"
         + " | 3C @" + threeceeUser.screenName
         + " | UID " + m.user.userId
         + " | @" + m.user.screenName
@@ -1984,7 +1984,7 @@ process.on("message", async function(m) {
     break;
 
     case "UNFOLLOW":
-      console.log(chalkInfo(MODULE_ID_PREFIX + " | UNFOLLOW"
+      console.log(chalkInfo(MODULE_ID + " | UNFOLLOW"
         // + " [Q: " + unfollowQueue.length + "]"
         + " 3C @" + threeceeUser.screenName
         + " | USER " + m.user.userId
@@ -1997,7 +1997,7 @@ process.on("message", async function(m) {
 
     case "IGNORE":
       ignoredUserSet.add(m.user.nodeId);
-      console.log(chalkInfo(MODULE_ID_PREFIX + " | TSS > IGNORE"
+      console.log(chalkInfo(MODULE_ID + " | TSS > IGNORE"
         + " | IGNORE SET SIZE: " + ignoredUserSet.size
         + " | 3C @" + threeceeUser.screenName
         + " | USER " + m.user.nodeId
@@ -2007,7 +2007,7 @@ process.on("message", async function(m) {
 
     case "UNIGNORE":
       ignoredUserSet.delete(m.user.nodeId);
-      console.log(chalkInfo(MODULE_ID_PREFIX + " | TSS > UNIGNORE"
+      console.log(chalkInfo(MODULE_ID + " | TSS > UNIGNORE"
         + " | IGNORE SET SIZE: " + ignoredUserSet.size
         + " | 3C @" + threeceeUser.screenName
         + " | USER " + m.user.nodeId
@@ -2016,7 +2016,7 @@ process.on("message", async function(m) {
     break;
 
     case "BOT":
-      console.log(chalkInfo(MODULE_ID_PREFIX + " | TSS > BOT"
+      console.log(chalkInfo(MODULE_ID + " | TSS > BOT"
         + " | 3C @" + threeceeUser.screenName
         + " | USER " + m.user.nodeId
         + " | @" + m.user.screenName
@@ -2024,7 +2024,7 @@ process.on("message", async function(m) {
     break;
 
     case "UNBOT":
-      console.log(chalkInfo(MODULE_ID_PREFIX + " | TSS > UNBOT"
+      console.log(chalkInfo(MODULE_ID + " | TSS > UNBOT"
         + " | 3C @" + threeceeUser.screenName
         + " | USER " + m.user.nodeId
         + " | @" + m.user.screenName
@@ -2032,13 +2032,13 @@ process.on("message", async function(m) {
     break;
 
     case "UPDATE_ALLOW_LOCATIONS":
-      console.log(chalkLog(MODULE_ID_PREFIX + " | UPDATE ALLOW LOCATIONS"));
+      console.log(chalkLog(MODULE_ID + " | UPDATE ALLOW LOCATIONS"));
 
       try {
         await initAllowLocations(configuration);
       }
       catch(err){
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** UPDATE_ALLOW_LOCATIONS ERROR" 
+        console.log(chalkError(MODULE_ID + " | *** UPDATE_ALLOW_LOCATIONS ERROR" 
           + " | @" + m.threeceeUser
           + " | ERROR: " + err
         ));
@@ -2046,13 +2046,13 @@ process.on("message", async function(m) {
     break;
 
     case "UPDATE_IGNORE_LOCATIONS":
-      console.log(chalkLog(MODULE_ID_PREFIX + " | UPDATE IGNORE LOCATIONS"));
+      console.log(chalkLog(MODULE_ID + " | UPDATE IGNORE LOCATIONS"));
 
       try {
         await initIgnoreLocations();
       }
       catch(err){
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** UPDATE_IGNORE_LOCATIONS ERROR" 
+        console.log(chalkError(MODULE_ID + " | *** UPDATE_IGNORE_LOCATIONS ERROR" 
           + " | @" + m.threeceeUser
           + " | ERROR: " + err
         ));
@@ -2060,14 +2060,14 @@ process.on("message", async function(m) {
     break;
 
     case "UPDATE_SEARCH_TERMS":
-      console.log(chalkLog(MODULE_ID_PREFIX + " | UPDATE SEARCH TERMS"));
+      console.log(chalkLog(MODULE_ID + " | UPDATE SEARCH TERMS"));
 
       try{
 
         await initSearchTerms(configuration);
         await initSearchStream();
 
-        console.log(chalkInfo(MODULE_ID_PREFIX + " | INIT SEARCH TERMS COMPLETE | 3C @" + threeceeUser.screenName));
+        console.log(chalkInfo(MODULE_ID + " | INIT SEARCH TERMS COMPLETE | 3C @" + threeceeUser.screenName));
 
         if (!twitterSearchInit) { await initTwitterSearch(configuration); }
 
@@ -2089,7 +2089,7 @@ process.on("message", async function(m) {
     break;
 
     case "PING":
-      debug(chalkLog(MODULE_ID_PREFIX + " | TWP | PING"
+      debug(chalkLog(MODULE_ID + " | TWP | PING"
         + " | PING ID: " + moment(m.pingId).format(compactDateTimeFormat)
       ));
 
@@ -2104,7 +2104,7 @@ process.on("message", async function(m) {
     break;
 
     default:
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** TSS UNKNOWN OP"
+      console.log(chalkError(MODULE_ID + " | *** TSS UNKNOWN OP"
         + " | 3C @" + threeceeUser.screenName
         + " | INTERVAL: " + m.op
       ));
@@ -2112,14 +2112,14 @@ process.on("message", async function(m) {
 });
 
 process.on("unhandledRejection", function(err, promise) {
-  console.trace(MODULE_ID_PREFIX + " | *** Unhandled rejection (promise: ", promise, ", reason: ", err, ").");
+  console.trace(MODULE_ID + " | *** Unhandled rejection (promise: ", promise, ", reason: ", err, ").");
   quit("unhandledRejection");
   // process.exit(1);
 });
 
 setTimeout(async function(){
 
-  console.log(MODULE_ID_PREFIX + " | " + configuration.processName + " STARTED " + getTimeStamp() + "\n");
+  console.log(MODULE_ID + " | " + configuration.processName + " STARTED " + getTimeStamp() + "\n");
 
   try {
 
@@ -2128,10 +2128,10 @@ setTimeout(async function(){
     }
     catch(err){
       if (err.status != 404) {
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT ERROR\n" + jsonPrint(err)));
+        console.log(chalkError(MODULE_ID + " | *** INIT ERROR\n" + jsonPrint(err)));
         quit();
       }
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT ERROR | CONFIG FILE NOT FOUND? | ERROR: " + err));
+      console.log(chalkError(MODULE_ID + " | *** INIT ERROR | CONFIG FILE NOT FOUND? | ERROR: " + err));
     }
 
     await initWatchConfig();
@@ -2139,7 +2139,7 @@ setTimeout(async function(){
     process.send({ op: "READY"});
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** ERROR: " + err + " | QUITTING ***"));
+    console.log(chalkError(MODULE_ID + " | *** ERROR: " + err + " | QUITTING ***"));
     quit("INITIALIZE ERROR");
   }
 }, ONE_SECOND);

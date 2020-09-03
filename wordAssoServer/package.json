@@ -28,6 +28,7 @@
     "googleapis": "^59.0.0",
     "hashmap": "^2.4.0",
     "is-empty": "^1.2.0",
+    "languagedetect": "^2.0.0",
     "measured": "^1.1.0",
     "measured-core": "^2.0.0",
     "method-override": "^3.0.0",

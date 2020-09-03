@@ -7,6 +7,8 @@ const followableSearchTermFile = "followableSearchTerm.txt";
 const ignoreLocationsFile = "ignoreLocations.txt";
 const allowLocationsFile = "allowLocations.txt";
 
+const DEFAULT_LANG_DES_THRESHOLD = 0.75;
+const DEFAULT_LANG_LOC_THRESHOLD = 0.90;
 const DEFAULT_FILTER_RETWEETS = false;
 const DEFAULT_MAX_TWEET_QUEUE = 100;
 const DEFAULT_TWITTER_QUEUE_INTERVAL = 5;
@@ -31,6 +33,9 @@ const debugQ = require("debug")("queue");
 const path = require("path");
 const dotProp = require("dot-prop");
 const watch = require("watch");
+const LanguageDetect = require("languagedetect");
+const lngDetector = new LanguageDetect();
+lngDetector.setLanguageType("iso3")
 
 const chalk = require("chalk");
 const chalkBlue = chalk.blue;
@@ -148,6 +153,8 @@ let configuration = {};
 configuration.filterDuplicateTweets = true;
 let filterDuplicateTweets = true;
 
+configuration.langLocationThreshold = DEFAULT_LANG_LOC_THRESHOLD;
+configuration.langDescriptionThreshold = DEFAULT_LANG_DES_THRESHOLD;
 configuration.filterRetweets = DEFAULT_FILTER_RETWEETS;
 configuration.verbose = false;
 configuration.forceFollow = false;
@@ -1002,8 +1009,49 @@ function initSearchStream(){
           return;
         }
 
+        if (tweetStatus.user.lang 
+          && (tweetStatus.user.lang !== undefined) 
+          && (tweetStatus.user.lang != "en")){ 
+
+          statsObj.filtered.languages += 1;
+
+          if (configuration.verbose) {
+            console.log(chalkLog(MODULE_ID + " | XXX IGNORE LANG | SKIPPING"
+              + " [" + statsObj.filtered.languages + "]"
+              + " | TWID: " + tweetStatus.id_str
+              + " | LANG: " + tweetStatus.user.lang
+              + " | UID: " + tweetStatus.user.id_str
+              + " | @" + tweetStatus.user.screen_name
+              + " | NAME: " + tweetStatus.user.name
+            ));
+          }
+          return;
+        }
+
         if (tweetStatus.user.description && (tweetStatus.user.description !== undefined)) {
-          
+
+          const [ userLangDescription ] = lngDetector.detect(tweetStatus.user.description, 1);
+
+          if (userLangDescription 
+            && userLangDescription[0] !== "eng"
+            && parseFloat(userLangDescription[1]) > parseFloat(configuration.langDescriptionThreshold)
+          ){
+
+            statsObj.filtered.languages += 1;
+
+            console.log(chalkLog(MODULE_ID + " | XXX PROFILE LANG | SKIPPING"
+              + " [" + statsObj.filtered.languages + "]"
+              + " | LANG DES: " + userLangDescription[0]
+              + " | LANG SCORE: " + userLangDescription[1].toFixed(4)
+              + " | TWID: " + tweetStatus.id_str
+              + " | UID: " + tweetStatus.user.id_str
+              + " | @" + tweetStatus.user.screen_name
+              + " | N: " + tweetStatus.user.name
+            ))
+
+            return;
+          }
+
           if(ignoredProfileWordsArray.some((word) => tweetStatus.user.description.includes(word))){
 
             ignoredUserSet.add(tweetStatus.user.userId);
@@ -1026,22 +1074,46 @@ function initSearchStream(){
         }
 
         if (tweetStatus.user.location 
-          && (tweetStatus.user.location !== undefined) 
-          && ignoreLocationsRegEx.test(tweetStatus.user.location)){
+          && (tweetStatus.user.location !== undefined)){
 
-          statsObj.filtered.locations += 1;
+          const [ userLangLocation ] = lngDetector.detect(tweetStatus.user.location, 1);
 
-          if (configuration.verbose) {
-            console.log(chalkLog(MODULE_ID + " | XXX IGNORE LOCATION | SKIPPING"
-              + " [" + statsObj.filtered.locations + "]"
+          if (userLangLocation 
+            && userLangLocation[0] !== "eng"
+            && parseFloat(userLangLocation[1]) > parseFloat(configuration.langLocationThreshold)
+          ){
+
+            statsObj.filtered.languages += 1;
+
+            console.log(chalkLog(MODULE_ID + " | XXX PROFILE LANG | SKIPPING"
+              + " [" + statsObj.filtered.languages + "]"
+              + " | LANG LOC: " + userLangLocation[0]
+              + " | LANG SCORE: " + userLangLocation[1].toFixed(4)
               + " | TWID: " + tweetStatus.id_str
-              + " | LOC: " + tweetStatus.user.location
               + " | UID: " + tweetStatus.user.id_str
               + " | @" + tweetStatus.user.screen_name
-              + " | NAME: " + tweetStatus.user.name
-            ));
+              + " | N: " + tweetStatus.user.name
+            ))
+
+            return;
           }
-          return;
+
+          if (ignoreLocationsRegEx.test(tweetStatus.user.location)) {
+
+            statsObj.filtered.locations += 1;
+
+            if (configuration.verbose) {
+              console.log(chalkLog(MODULE_ID + " | XXX IGNORE LOCATION | SKIPPING"
+                + " [" + statsObj.filtered.locations + "]"
+                + " | TWID: " + tweetStatus.id_str
+                + " | LOC: " + tweetStatus.user.location
+                + " | UID: " + tweetStatus.user.id_str
+                + " | @" + tweetStatus.user.screen_name
+                + " | NAME: " + tweetStatus.user.name
+              ));
+            }
+            return;
+          }
         }
 
         if (tweetStatus.user.lang 
@@ -1604,6 +1676,16 @@ async function initialize(cnf){
     if (loadedConfigObj.DROPBOX_DEFAULT_SEARCH_TERMS_DIR !== undefined){
       console.log(MODULE_ID + " | LOADED DROPBOX_DEFAULT_SEARCH_TERMS_DIR: " + loadedConfigObj.DROPBOX_DEFAULT_SEARCH_TERMS_DIR);
       cnf.searchTermsDir = loadedConfigObj.DROPBOX_DEFAULT_SEARCH_TERMS_DIR;
+    }
+
+    if (loadedConfigObj.TSS_LANG_DES_THRESHOLD !== undefined){
+      console.log(MODULE_ID + " | LOADED TSS_LANG_DES_THRESHOLD: " + loadedConfigObj.TSS_LANG_DES_THRESHOLD);
+      cnf.langDescriptionThreshold = loadedConfigObj.TSS_LANG_DES_THRESHOLD;
+    }
+
+    if (loadedConfigObj.TSS_LANG_LOC_THRESHOLD !== undefined){
+      console.log(MODULE_ID + " | LOADED TSS_LANG_LOC_THRESHOLD: " + loadedConfigObj.TSS_LANG_LOC_THRESHOLD);
+      cnf.langLocationThreshold = loadedConfigObj.TSS_LANG_LOC_THRESHOLD;
     }
 
     if (loadedConfigObj.DROPBOX_DEFAULT_SEARCH_TERMS_FILE !== undefined){

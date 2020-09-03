@@ -7,8 +7,8 @@ const followableSearchTermFile = "followableSearchTerm.txt";
 const ignoreLocationsFile = "ignoreLocations.txt";
 const allowLocationsFile = "allowLocations.txt";
 
-const DEFAULT_LANG_DES_THRESHOLD = 0.75;
-const DEFAULT_LANG_LOC_THRESHOLD = 0.90;
+const DEFAULT_LANG_DES_THRESHOLD = 0.7;
+const DEFAULT_LANG_LOC_THRESHOLD = 0.8;
 const DEFAULT_FILTER_RETWEETS = false;
 const DEFAULT_MAX_TWEET_QUEUE = 100;
 const DEFAULT_TWITTER_QUEUE_INTERVAL = 5;

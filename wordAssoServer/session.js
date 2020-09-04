@@ -199,7 +199,7 @@ var controlPanelWindow;
 var controlPanelFlag = false;
 
 
-requirejs(["https://d3js.org/d3.v6.min.js"], function(d3Loaded) {
+requirejs(["https://d3js.org/d3.v5.min.js"], function(d3Loaded) {
     console.log("d3 LOADED");
     d3 = d3Loaded;
     initialize(function(){

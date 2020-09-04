@@ -5189,7 +5189,7 @@ async function initSocketNamespaces(){
 
     utilNameSpace.on("connect", function utilConnect(socket) {
 
-      console.log(chalk.blue(MODULE_ID + " | UTIL CONNECT " + socket.id));
+      console.log(chalk.blue(MODULE_ID + " | #### UTIL CONNECT " + socket.id));
 
       const ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 

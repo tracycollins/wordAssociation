@@ -1135,16 +1135,6 @@ function ControlPanel() {
           parentWindow.postMessage({op: "NODE_SEARCH", input: input}, DEFAULT_SOURCE);  
         });
 
-        const hashtag = (twitterFeedHashtag) ? "#"+twitterFeedHashtag.nodeId : "#";
-        twitterEntity.addText("HASHTAG", hashtag);
-
-        twitterEntity.addButton("HASHTAG SEARCH", function(data){
-          console.debug("NODE SEARCH: ", twitterEntity.getValue("HASHTAG"));
-          let input = twitterEntity.getValue("HASHTAG");
-          if (!input.startsWith("#")) { input = "#" + input; }
-          parentWindow.postMessage({op: "NODE_SEARCH", input: input}, DEFAULT_SOURCE);
-        });
-
         twitterEntity.addNumber("FOLLOWERS", twitterFeedUser.followersCount);
 
         if (twitterFeedUser.followersCount > 5000) {
@@ -1180,6 +1170,15 @@ function ControlPanel() {
           twitterEntity.addImage("BANNER IMAGE", DEFAULT_TWITTER_IMAGE);
         }
 
+        const hashtag = (twitterFeedHashtag) ? "#"+twitterFeedHashtag.nodeId : "#";
+        twitterEntity.addText("HASHTAG", hashtag);
+
+        twitterEntity.addButton("HASHTAG SEARCH", function(data){
+          console.debug("NODE SEARCH: ", twitterEntity.getValue("HASHTAG"));
+          let input = twitterEntity.getValue("HASHTAG");
+          if (!input.startsWith("#")) { input = "#" + input; }
+          parentWindow.postMessage({op: "NODE_SEARCH", input: input}, DEFAULT_SOURCE);
+        });
 
         // TWITTER USER TIMELINE ==================================
 

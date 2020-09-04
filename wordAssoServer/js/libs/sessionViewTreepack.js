@@ -973,7 +973,7 @@ function ViewTreepack() {
   let previousTwitterHashtag;
   let tooltipString;
 
-  const nodeMouseOver = function (d) {
+  const nodeMouseOver = function (event, d) {
 
     d.mouseHoverFlag = true;
 
@@ -1039,8 +1039,8 @@ function ViewTreepack() {
 
     divTooltip.html(tooltipString);
     divTooltip.
-      style("left", (d3.event.pageX - 40) + "px").
-      style("top", (d3.event.pageY - 50) + "px");
+      style("left", (event.pageX - 40) + "px").
+      style("top", (event.pageY - 50) + "px");
   };
 
   function nodeMouseOut(d) {
@@ -1114,7 +1114,7 @@ function ViewTreepack() {
     return d.nodeId; 
   }
 
-  function nodeClick(d) {
+  function nodeClick(event, d) {
 
     switch (d.nodeType) {
 

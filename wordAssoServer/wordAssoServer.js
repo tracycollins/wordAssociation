@@ -3771,6 +3771,8 @@ configEvents.on("INTERNET_READY", function internetReady() {
           statsObj.twitter.maxTweetsPerMinTime;
 
         viewNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
+        viewNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
+        viewNameSpace.emit("action", { type: "heartbeat", data: heartbeatObj });
 
         const sObj = {};
         sObj.user = statsObj.user;
@@ -6712,7 +6714,7 @@ async function updateNodeMeter(node) {
 
     return node;
   } else {
-    if ((/TSS_/).test(meterNodeId) || nodeObj.isServer) {
+    if (/TSS_/.test(meterNodeId) || nodeObj.isServer) {
       return node;
     } else if (empty(nodeMeter[meterNodeId])) {
       nodeMeter[meterNodeId] = new Measured.Meter({ rateUnit: 60000 });

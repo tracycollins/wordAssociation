@@ -439,7 +439,7 @@ function ViewTreepack() {
   let nodeLabelOpacityScale = d3
     .scaleLinear()
     .domain([1e-6, 0.2, 1.0])
-    .range([1.0, 0.5, 1.5 * minOpacity])
+    .range([1.0, 0.75, 1.5 * minOpacity])
     .clamp(true);
 
   let nodeLabelOpacityScaleTopTerm = d3
@@ -1659,7 +1659,7 @@ function ViewTreepack() {
         if (d.isTopTerm) {
           return palette.lightgray;
         }
-        return palette.gray;
+        return palette.lightgray;
       })
       .style("fill-opacity", function updateNodeLabelOpacity(d) {
         if (d.mouseHoverFlag) {

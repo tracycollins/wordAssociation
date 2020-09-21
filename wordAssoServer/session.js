@@ -537,6 +537,7 @@ categoryColorHashMap.set("negative", palette.red);
 categoryColorHashMap.set("neutral", palette.white);
 categoryColorHashMap.set("left", palette.blue);
 categoryColorHashMap.set("right", palette.yellow);
+categoryColorHashMap.set("none", palette.gray);
 
 var monitorMode = false;
 
@@ -2128,8 +2129,8 @@ function initSocketSessionUpdateRx() {
         category = newNode.category;
       }
 
-      if (category === undefined) {
-        newNode.categoryColor = palette.lightgray;
+      if (category === undefined || category === "none") {
+        newNode.categoryColor = categoryColorHashMap.get("none");
       } else {
         newNode.categoryColor = categoryColorHashMap.get(category);
       }

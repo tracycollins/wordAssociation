@@ -438,13 +438,13 @@ function ViewTreepack() {
 
   let nodeLabelOpacityScale = d3
     .scaleLinear()
-    .domain([1e-6, 0.2, 1.0])
+    .domain([1e-6, 0.5, 1.0])
     .range([1.0, 0.75, 1.5 * minOpacity])
     .clamp(true);
 
   let nodeLabelOpacityScaleTopTerm = d3
     .scaleLinear()
-    .domain([1e-6, 0.2, 1.0])
+    .domain([1e-6, 0.5, 1.0])
     .range([1.0, 0.95, 0.75])
     .clamp(true);
 

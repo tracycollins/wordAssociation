@@ -384,12 +384,12 @@ function ViewTreepack() {
   let maxAgeRate = 1e-6;
 
   // let defaultStrokeWidth = "1.1px";
-  let defaultStrokeWidth = "0.3em";
+  let defaultStrokeWidth = "0.5em";
   // let topTermStrokeWidth = "2.0px";
-  let topTermStrokeWidth = "0.4em";
+  let topTermStrokeWidth = "0.6em";
 
   // let botStrokeWidth = "4.0px";
-  let botStrokeWidth = "0.5em";
+  let botStrokeWidth = "0.6em";
   let botFillColor = palette.orange;
 
   let categoryMatchColor = palette.green;
@@ -398,7 +398,7 @@ function ViewTreepack() {
   // let categoryMismatchStrokeWidth = "7.0px";
   let categoryMismatchStrokeWidth = "0.7em";
   // let categoryAutoStrokeWidth = "2.0px";
-  let categoryAutoStrokeWidth = "0.4em";
+  let categoryAutoStrokeWidth = "0.5em";
 
   let divTooltip = d3
     .select("body")

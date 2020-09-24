@@ -367,7 +367,8 @@ var palette = {
   lightgray: "#819090",
   gray: "#708284",
   mediumgray: "#536870",
-  darkgray: "#475B62",
+  // darkgray: "#475B62",
+  darkgray: "#364A51",
   darkblue: "#0A2933",
   darkerblue: "#042029",
   paleryellow: "#FCF4DC",
@@ -534,10 +535,10 @@ var categoryColorHashMap = new HashMap();
 
 categoryColorHashMap.set("positive", palette.green);
 categoryColorHashMap.set("negative", palette.red);
-categoryColorHashMap.set("neutral", palette.black);
+categoryColorHashMap.set("neutral", palette.darkgray);
 categoryColorHashMap.set("left", palette.blue);
 categoryColorHashMap.set("right", palette.yellow);
-categoryColorHashMap.set("none", palette.darkgray);
+categoryColorHashMap.set("none", palette.black);
 
 var monitorMode = false;
 

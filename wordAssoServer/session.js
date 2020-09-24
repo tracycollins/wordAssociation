@@ -534,10 +534,10 @@ var categoryColorHashMap = new HashMap();
 
 categoryColorHashMap.set("positive", palette.green);
 categoryColorHashMap.set("negative", palette.red);
-categoryColorHashMap.set("neutral", palette.darkgray);
+categoryColorHashMap.set("neutral", palette.black);
 categoryColorHashMap.set("left", palette.blue);
 categoryColorHashMap.set("right", palette.yellow);
-categoryColorHashMap.set("none", palette.black);
+categoryColorHashMap.set("none", palette.darkgray);
 
 var monitorMode = false;
 

@@ -1175,7 +1175,7 @@ function ViewTreepack() {
       .style("top", event.pageY - 50 + "px");
   };
 
-  function nodeMouseOut(d) {
+  function nodeMouseOut(event, d) {
     d.mouseHoverFlag = false;
 
     self.toolTipVisibility(false);

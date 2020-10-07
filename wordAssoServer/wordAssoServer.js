@@ -5038,23 +5038,25 @@ async function twitterSearchUser(params) {
     console.log(
       chalkInfo(MODULE_ID + " | -?- USER SEARCH | USER: " + params.node)
     );
-  } else if (params.node.screenName === "threecee") {
-    const node = await global.wordAssoDb.User.findOne({
-      screenName: "threecee",
-    }).lean();
+  }
+  // else if (params.node.screenName === "threecee") {
+  //   const node = await global.wordAssoDb.User.findOne({
+  //     screenName: "threecee",
+  //   }).lean();
 
-    console.log(
-      chalkBlueBold(
-        MODULE_ID +
-          " | ### USER SEARCH - @threecee | NID: " +
-          params.node.nodeId +
-          " | @" +
-          params.node.screenName
-      )
-    );
+  //   console.log(
+  //     chalkBlueBold(
+  //       MODULE_ID +
+  //         " | ### USER SEARCH - @threecee | NID: " +
+  //         params.node.nodeId +
+  //         " | @" +
+  //         params.node.screenName
+  //     )
+  //   );
 
-    return { node: node, categoryAuto: "SPECIFIC", stats: statsObj.user };
-  } else {
+  //   return { node: node, categoryAuto: "SPECIFIC", stats: statsObj.user };
+  // }
+  else {
     console.log(
       chalkInfo(
         MODULE_ID +

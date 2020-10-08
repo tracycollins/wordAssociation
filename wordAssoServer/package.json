@@ -4,7 +4,7 @@
   "description": "word",
   "main": "wordAssoServer.js",
   "dependencies": {
-    "@google-cloud/datastore": "^6.1.1",
+    "@google-cloud/datastore": "^6.2.0",
     "@google-cloud/debug-agent": "^5.1.2",
     "@google-cloud/pubsub": "^2.5.0",
     "@reduxjs/toolkit": "^1.4.0",

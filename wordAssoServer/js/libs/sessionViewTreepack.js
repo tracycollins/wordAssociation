@@ -1697,9 +1697,6 @@ function ViewTreepack() {
       })
       .style("text-anchor", "middle")
       .style("alignment-baseline", "middle")
-      .on("mouseover", nodeMouseOver)
-      .on("mouseout", nodeMouseOut)
-      .on("click", nodeClick)
       .attr("x", function (d) {
         return d.x;
       })
@@ -1801,8 +1798,11 @@ function ViewTreepack() {
           }
           return nodeLabelSizeScale(d.mentions);
         }
-      });
-
+      })
+      .on("mouseover", nodeMouseOver)
+      .on("mouseout", nodeMouseOut)
+      .on("click", nodeClick);
+      
     // EXIT
     nodeLabels.exit().style("display", "none");
 

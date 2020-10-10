@@ -539,6 +539,7 @@ categoryColorHashMap.set("neutral", palette.darkgray);
 categoryColorHashMap.set("left", palette.blue);
 categoryColorHashMap.set("right", palette.yellow);
 categoryColorHashMap.set("none", palette.black);
+categoryColorHashMap.set("auto", palette.white);
 
 var monitorMode = false;
 
@@ -2131,7 +2132,8 @@ function initSocketSessionUpdateRx() {
       }
 
       if (newNode.categoryAuto !== "none" && (category === undefined || category === "none")) {
-        newNode.categoryColor = categoryColorHashMap.get(newNode.categoryAuto);
+        // newNode.categoryColor = categoryColorHashMap.get(newNode.categoryAuto);
+        newNode.categoryColor = categoryColorHashMap.get("auto");
       } else if (category === undefined || category === "none") {
         newNode.categoryColor = categoryColorHashMap.get("none");
       } else {

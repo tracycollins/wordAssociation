@@ -1435,10 +1435,10 @@ function ViewTreepack() {
           return 0.5 * topTermStrokeWidth;
         }
         if (isCategorized(d.categoryAuto) && d.following) {
-          return categoryAutoStrokeWidth;
+          return 2.0 * categoryAutoStrokeWidth;
         }
         if (isCategorized(d.categoryAuto) && !d.following) {
-          return 0.5 * categoryAutoStrokeWidth;
+          return 2.0 * categoryAutoStrokeWidth;
         }
         if (d.following) {
           return defaultStrokeWidth;
@@ -1555,10 +1555,10 @@ function ViewTreepack() {
           return 0.5 * topTermStrokeWidth;
         }
         if (d.categoryAuto && d.following) {
-          return 3.0*categoryAutoStrokeWidth;
+          return 2.0 * categoryAutoStrokeWidth;
         }
         if (d.categoryAuto && !d.following) {
-          return 2.5 * categoryAutoStrokeWidth;
+          return 2.0 * categoryAutoStrokeWidth;
         }
         if (d.following) {
           return defaultStrokeWidth;

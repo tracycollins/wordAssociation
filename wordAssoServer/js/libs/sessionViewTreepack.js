@@ -1500,7 +1500,7 @@ function ViewTreepack() {
         if (!isCategorized(d.category) && !isCategorized(d.categoryAuto)) {
           return palette.gray;
         }
-        return d.categoryColor;
+          return d.categoryColor;
       })
       .style("stroke", function nodeCirclesStroke(d) {
         if (d.nodeType === "hashtag") {
@@ -1555,10 +1555,10 @@ function ViewTreepack() {
           return 0.5 * topTermStrokeWidth;
         }
         if (d.categoryAuto && d.following) {
-          return categoryAutoStrokeWidth;
+          return 3.0*categoryAutoStrokeWidth;
         }
         if (d.categoryAuto && !d.following) {
-          return 0.5 * categoryAutoStrokeWidth;
+          return 2.5 * categoryAutoStrokeWidth;
         }
         if (d.following) {
           return defaultStrokeWidth;

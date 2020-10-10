@@ -1,0 +1,138 @@
+├─ data
+│  ├─ referenced_tweets
+│  │  └─ 0
+│  │     ├─ type: retweeted
+│  │     └─ id: 1314658139715915777
+│  ├─ possibly_sensitive: false
+│  ├─ created_at: 2020-10-10T01:58:35.000Z
+│  ├─ public_metrics
+│  │  ├─ retweet_count: 13527
+│  │  ├─ reply_count: 0
+│  │  ├─ like_count: 0
+│  │  └─ quote_count: 0
+│  ├─ context_annotations
+│  │  ├─ 0
+│  │  │  ├─ domain
+│  │  │  │  ├─ id: 10
+│  │  │  │  ├─ name: Person
+│  │  │  │  └─ description: Named people in the world like Nelson Mandela
+│  │  │  └─ entity
+│  │  │     ├─ id: 10040395078
+│  │  │     ├─ name: Joe Biden
+│  │  │     └─ description: Former US Vice President Joe Biden
+│  │  └─ 1
+│  │     ├─ domain
+│  │     │  ├─ id: 35
+│  │     │  ├─ name: Politician
+│  │     │  └─ description: Politicians in the world, like Joe Biden
+│  │     └─ entity
+│  │        ├─ id: 10040395078
+│  │        ├─ name: Joe Biden
+│  │        └─ description: Former US Vice President Joe Biden
+│  ├─ text: RT @JoeBiden: It’s estimated that nearly another 200,000 Americans could lose their lives by the end of the year because of this virus.
+
+En…
+│  ├─ author_id: 1075766004058390528
+│  ├─ lang: en
+│  ├─ entities
+│  │  └─ mentions
+│  │     └─ 0
+│  │        ├─ start: 3
+│  │        ├─ end: 12
+│  │        └─ username: JoeBiden
+│  ├─ id: 1314747122902679553
+│  └─ source: Twitter for iPhone
+├─ includes
+│  ├─ users
+│  │  ├─ 0
+│  │  │  ├─ public_metrics
+│  │  │  │  ├─ followers_count: 14
+│  │  │  │  ├─ following_count: 37
+│  │  │  │  ├─ tweet_count: 5209
+│  │  │  │  └─ listed_count: 0
+│  │  │  ├─ url:
+│  │  │  ├─ verified: false
+│  │  │  ├─ name: Karen Ruggles
+│  │  │  ├─ created_at: 2018-12-20T14:52:56.000Z
+│  │  │  ├─ location: California, USA
+│  │  │  ├─ id: 1075766004058390528
+│  │  │  ├─ profile_image_url: https://pbs.twimg.com/profile_images/1238890277378469888/VprvyPeC_normal.jpg
+│  │  │  ├─ username: KarenRuggles10
+│  │  │  ├─ protected: false
+│  │  │  └─ description:
+│  │  └─ 1
+│  │     ├─ public_metrics
+│  │     │  ├─ followers_count: 10871958
+│  │     │  ├─ following_count: 29
+│  │     │  ├─ tweet_count: 6148
+│  │     │  └─ listed_count: 22085
+│  │     ├─ url: https://t.co/UClrPuJpyZ
+│  │     ├─ verified: true
+│  │     ├─ name: Joe Biden
+│  │     ├─ created_at: 2007-03-11T17:51:24.000Z
+│  │     ├─ location: Wilmington, DE
+│  │     ├─ entities
+│  │     │  ├─ url
+│  │     │  │  └─ urls
+│  │     │  │     └─ 0
+│  │     │  │        ├─ start: 0
+│  │     │  │        ├─ end: 23
+│  │     │  │        ├─ url: https://t.co/UClrPuJpyZ
+│  │     │  │        ├─ expanded_url: http://joebiden.com
+│  │     │  │        └─ display_url: joebiden.com
+│  │     │  └─ description
+│  │     │     └─ mentions
+│  │     │        ├─ 0
+│  │     │        │  ├─ start: 87
+│  │     │        │  ├─ end: 95
+│  │     │        │  └─ username: DrBiden
+│  │     │        └─ 1
+│  │     │           ├─ start: 153
+│  │     │           ├─ end: 160
+│  │     │           └─ username: Amtrak
+│  │     ├─ id: 939091
+│  │     ├─ profile_image_url: https://pbs.twimg.com/profile_images/1308769664240160770/AfgzWVE7_normal.jpg
+│  │     ├─ username: JoeBiden
+│  │     ├─ protected: false
+│  │     └─ description: Senator, Vice President, 2020 candidate for President of the United States, husband to @DrBiden, proud father & grandfather. Loves ice cream, aviators & @Amtrak
+│  └─ tweets
+│     └─ 0
+│        ├─ possibly_sensitive: false
+│        ├─ created_at: 2020-10-09T20:05:00.000Z
+│        ├─ public_metrics
+│        │  ├─ retweet_count: 13527
+│        │  ├─ reply_count: 4113
+│        │  ├─ like_count: 72087
+│        │  └─ quote_count: 532
+│        ├─ context_annotations
+│        │  ├─ 0
+│        │  │  ├─ domain
+│        │  │  │  ├─ id: 10
+│        │  │  │  ├─ name: Person
+│        │  │  │  └─ description: Named people in the world like Nelson Mandela
+│        │  │  └─ entity
+│        │  │     ├─ id: 10040395078
+│        │  │     ├─ name: Joe Biden
+│        │  │     └─ description: Former US Vice President Joe Biden
+│        │  └─ 1
+│        │     ├─ domain
+│        │     │  ├─ id: 35
+│        │     │  ├─ name: Politician
+│        │     │  └─ description: Politicians in the world, like Joe Biden
+│        │     └─ entity
+│        │        ├─ id: 10040395078
+│        │        ├─ name: Joe Biden
+│        │        └─ description: Former US Vice President Joe Biden
+│        ├─ text: It’s estimated that nearly another 200,000 Americans could lose their lives by the end of the year because of this virus.
+
+Enough. No more.
+
+Let’s set the partisanship aside. Let’s end the politics. Let’s follow the science.
+│        ├─ author_id: 939091
+│        ├─ lang: en
+│        ├─ id: 1314658139715915777
+│        └─ source: TweetDeck
+└─ matching_rules
+   └─ 0
+      ├─ id: 1314747038773506000
+      └─ tag: politicians

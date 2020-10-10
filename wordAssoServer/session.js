@@ -2130,7 +2130,9 @@ function initSocketSessionUpdateRx() {
         category = newNode.category;
       }
 
-      if (category === undefined || category === "none") {
+      if (newNode.categoryAuto !== "none" && (category === undefined || category === "none")) {
+        newNode.categoryColor = categoryColorHashMap.get(newNode.categoryAuto);
+      } else if (category === undefined || category === "none") {
         newNode.categoryColor = categoryColorHashMap.get("none");
       } else {
         newNode.categoryColor = categoryColorHashMap.get(category);

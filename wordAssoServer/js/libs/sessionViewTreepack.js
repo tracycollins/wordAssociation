@@ -1019,7 +1019,7 @@ function ViewTreepack() {
           nNode.isDead = true;
           nNode.ageUpdated = Date.now();
           nNode.age = 1e-6;
-          nNode.ageMaxRatio = 1e-6;
+          nNode.ageMaxRatio = 1.0;
 
           nodeIdHashMap.remove(nNode.nodeId);
           localNodeHashMap.set(nPoolId, nNode);
@@ -1380,12 +1380,6 @@ function ViewTreepack() {
         if (!isCategorized(d.category) && !isCategorized(d.categoryAuto)) {
           return palette.gray;
         }
-        // if (isCategorized(d.category)) { return d.categoryColor; }
-        // if (isCategorized(d.categoryAuto)) { return d.categoryColor; }
-        // if (d.categoryAuto === "right") { return palette.darkyellow; }
-        // if (d.categoryAuto === "left") { return palette.blue; }
-        // if (d.categoryAuto === "positive") { return palette.green; }
-        // if (d.categoryAuto ==="negative") { return palette.red; }
         return d.categoryColor;
       })
       .style("stroke", function (d) {
@@ -1455,6 +1449,9 @@ function ViewTreepack() {
         if (d.isTopTerm) {
           return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio);
         }
+        if (!isCategorized(d.category) && isCategorized(d.categoryAuto)) {
+          return nodeLabelOpacityScaleTopTerm(0.5*d.ageMaxRatio);
+        }
         return nodeLabelOpacityScale(d.ageMaxRatio);
       })
       .style("stroke-opacity", function (d) {
@@ -1503,11 +1500,6 @@ function ViewTreepack() {
         if (!isCategorized(d.category) && !isCategorized(d.categoryAuto)) {
           return palette.gray;
         }
-        // if (isCategorized(d.category)) { return d.categoryColor; }
-        // if (d.categoryAuto === "right") { return palette.darkyellow; }
-        // if (d.categoryAuto === "left") { return palette.blue; }
-        // if (d.categoryAuto === "positive") { return palette.green; }
-        // if (d.categoryAuto ==="negative") { return palette.red; }
         return d.categoryColor;
       })
       .style("stroke", function nodeCirclesStroke(d) {
@@ -1576,6 +1568,9 @@ function ViewTreepack() {
       .style("fill-opacity", function nodeCirclesFillOpacity(d) {
         if (d.isTopTerm) {
           return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio);
+        }
+        if (!isCategorized(d.category) && isCategorized(d.categoryAuto)) {
+          return nodeLabelOpacityScaleTopTerm(0.5*d.ageMaxRatio);
         }
         return nodeLabelOpacityScale(d.ageMaxRatio);
       })

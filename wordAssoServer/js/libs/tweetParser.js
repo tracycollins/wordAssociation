@@ -184,8 +184,15 @@ function initTweetParserQueueInterval(cnf){
 
       params.tweetStatus = tweetParserQueue.shift();
 
+      // console.log("params.tweetStatus\n", params.tweetStatus)
+
+      console.log(chalkLog("TWP | <TW"
+        + " | " + params.tweetStatus.data.id
+        + " | @" + params.tweetStatus.includes.users[0].username
+      ));
+
       try{
-        tweetObjMessage.tweetObj = await tweetServerController.createStreamTweetAsync(params);
+        tweetObjMessage.tweetObj = await tweetServerController.createStreamTweetAsyncV2(params);
         process.send(tweetObjMessage);
         tweetParserQueueReady = true;
       }

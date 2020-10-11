@@ -321,7 +321,7 @@ function ControlPanel() {
     document.getElementById(op).style.background='#0000ff';
     if (parentWindow && !loadingTwitterFeedFlag && twitterFeedPreviousUserArray.length > 0) {
       const currentNodeId = twitterEntity.getValue("NODE ID");
-      
+
       let prevUserNodeId = twitterFeedPreviousUserArray.pop();
 
       while (prevUserNodeId === currentNodeId) {
@@ -551,7 +551,7 @@ function ControlPanel() {
         && !twitterFeedPreviousUserArray.includes(prevNode.nodeId)
       ){
         twitterFeedPreviousUserArray.push(prevNode.nodeId);
-        twitterFeedPreviousUserMap[prevNode.nodeId] = node;
+        twitterFeedPreviousUserMap[prevNode.nodeId] = prevNode;
       }
       if (prevNode.nodeId !== node.nodeId){
         prevNode = node;

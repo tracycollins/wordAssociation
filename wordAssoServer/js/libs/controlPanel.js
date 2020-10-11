@@ -320,7 +320,13 @@ function ControlPanel() {
 
     document.getElementById(op).style.background='#0000ff';
     if (parentWindow && !loadingTwitterFeedFlag && twitterFeedPreviousUserArray.length > 0) {
-      const prevUserNodeId = twitterFeedPreviousUserArray.pop();
+      const currentNodeId = twitterEntity.getValue("NODE ID");
+      
+      let prevUserNodeId = twitterFeedPreviousUserArray.pop();
+
+      while (prevUserNodeId === currentNodeId) {
+        prevUserNodeId = twitterFeedPreviousUserArray.pop();
+      }
       const prevUserObj = twitterFeedPreviousUserMap[prevUserNodeId];
       const prevUserScreenname = "@" + prevUserObj.screenName;
       parentWindow.postMessage({op: "NODE_SEARCH", input: prevUserScreenname}, DEFAULT_SOURCE);

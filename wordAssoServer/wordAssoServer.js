@@ -264,7 +264,8 @@ const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const HashMap = require("hashmap");
 
 const btoa = require("btoa");
-const request = require("request-promise-native");
+// const request = require("request-promise-native");
+const axios = require("axios");
 const _ = require("lodash");
 const touch = require("touch");
 const merge = require("deepmerge");
@@ -3958,7 +3959,8 @@ async function updateTwitterWebhook() {
   console.log(chalkLog("REQ OPTIONS\n" + jsonPrint(options)));
 
   try {
-    const body = await request(options);
+    // const body = await request(options);
+    const body = await axios.get(options);
 
     console.log(
       chalkAlert(
@@ -4007,7 +4009,8 @@ async function getTwitterWebhooks() {
   try {
     statsObj.twitterSubs = {};
 
-    const body = await request(options);
+    // const body = await request(options);
+    const body = await axios.get(options);
 
     const bodyJson = JSON.parse(body);
 
@@ -4063,7 +4066,8 @@ async function getTwitterWebhooks() {
           },
         };
 
-        const bodySub = await request(optionsSub);
+        // const bodySub = await request(optionsSub);
+        const bodySub = await axios.get(optionsSub);
 
         const aaSubs = JSON.parse(bodySub);
 
@@ -4174,7 +4178,8 @@ async function addTwitterAccountActivitySubscription(p) {
   console.log(chalkLog("REQ OPTIONS\n" + jsonPrint(options)));
 
   try {
-    const body = await request(options);
+    // const body = await request(options);
+    const body = await axios.get(options);
 
     console.log(
       chalk.green(

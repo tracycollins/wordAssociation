@@ -184,7 +184,7 @@ function initTweetParserQueueInterval(cnf){
 
       params.tweetStatus = tweetParserQueue.shift();
 
-      // console.log("params.tweetStatus\n", params.tweetStatus)
+      console.log("params.tweetStatus\n", params.tweetStatus)
 
       // console.log(chalkLog("TWP | <TW"
       //   + " | " + params.tweetStatus.data.id
@@ -200,6 +200,8 @@ function initTweetParserQueueInterval(cnf){
 
         console.log(chalkError("TWP | *** CREATE STREAM TWEET ERROR: " + tcUtils.getTimeStamp()));
         console.log(chalkError("TWP | *** CREATE STREAM TWEET ERROR: ", err));
+
+        process.exit()
 
         process.send({op: "ERROR", err: err}, function(err){
 

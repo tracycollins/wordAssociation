@@ -10170,6 +10170,7 @@ function initTweetParser(params) {
 
         case "PARSED_TWEET":
           tweetParserMessageRxQueue.push(m);
+          tweetParserReady = true;
           break;
 
         default:

@@ -202,7 +202,7 @@ function initTweetParserQueueInterval(cnf){
         console.log(chalkError("TWP | *** CREATE STREAM TWEET ERROR: " + tcUtils.getTimeStamp()));
         console.log(chalkError("TWP | *** CREATE STREAM TWEET ERROR: ", err));
 
-        process.exit()
+        // process.exit()
 
         process.send({op: "ERROR", err: err}, function(err){
 

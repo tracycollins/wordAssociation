@@ -591,6 +591,7 @@ const nodeSearchResultHandler = async function (message) {
         }
 
         searchNodeResultHashMap[messageObj.requestId] = messageObj.node;
+
       } else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
         if (configuration.verbose) {
           console.log(
@@ -633,6 +634,7 @@ const nodeSearchResultHandler = async function (message) {
         }
 
         searchNodeResultHashMap[messageObj.requestId] = messageObj.node;
+
       } else {
         console.log(
           chalk.yellow(
@@ -653,9 +655,9 @@ const nodeSearchResultHandler = async function (message) {
 
     tcUtils.emitter.emit("nodeSearchResult_" + messageObj.requestId);
     pubSubPublishMessageRequestIdSet.delete(messageObj.requestId);
-    // message.ack();
 
     return;
+
   } catch (err) {
     message.ack();
     console.log(
@@ -884,8 +886,7 @@ async function initNodeOpHandler(params) {
     case "node-search-result":
     case "node-search-result-primary":
       statsObj.pubSub.subscriptions.nodeSearchResult = {};
-      statsObj.pubSub.subscriptions.nodeSearchResult.name =
-        params.subscribeName;
+      statsObj.pubSub.subscriptions.nodeSearchResult.name = params.subscribeName;
       statsObj.pubSub.subscriptions.nodeSearchResult.errors = [];
       statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived = 0;
       statsObj.pubSub.subscriptions.nodeSearchResult.topic = metadata.topic;

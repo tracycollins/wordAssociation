@@ -1153,12 +1153,14 @@ function initSearchStream(){
 
               statsObj.filtered.hashtags += 1;
 
-              console.log(chalkLog(MODULE_ID + " | XXX FILTER TWEET"
-                + " [" + statsObj.filtered.hashtags + "]"
-                + " IGNORED HASHTAG: " + ht.text.toLowerCase()
-                + " | TWEET " + tweetStatus.id_str
-                + " | USER @" + tweetStatus.user.screen_name
-              ));
+              if (statsObj.filtered.hashtags % 100 === 0){
+                console.log(chalkLog(MODULE_ID + " | XXX FILTER TWEET"
+                  + " [" + statsObj.filtered.hashtags + "]"
+                  + " IGNORED HASHTAG: " + ht.text.toLowerCase()
+                  + " | TWEET " + tweetStatus.id_str
+                  + " | USER @" + tweetStatus.user.screen_name
+                ));
+              }
 
               return;
             }
@@ -1176,12 +1178,14 @@ function initSearchStream(){
 
               statsObj.filtered.hashtags += 1;
 
-              console.log(chalkLog(MODULE_ID + " | XXX FILTER TWEET"
-                + " [" + statsObj.filtered.hashtags + "]"
-                + " IGNORED HASHTAG: " + ht.text.toLowerCase()
-                + " | TWEET " + tweetStatus.id_str
-                + " | USER @" + tweetStatus.user.screen_name
-              ));
+              if (statsObj.filtered.hashtags % 100 === 0){
+                console.log(chalkLog(MODULE_ID + " | XXX FILTER TWEET"
+                  + " [" + statsObj.filtered.hashtags + "]"
+                  + " IGNORED HASHTAG: " + ht.text.toLowerCase()
+                  + " | TWEET " + tweetStatus.id_str
+                  + " | USER @" + tweetStatus.user.screen_name
+                ));
+              }
 
               return;
             }

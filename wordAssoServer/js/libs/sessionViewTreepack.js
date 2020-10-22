@@ -398,7 +398,7 @@ function ViewTreepack() {
   // let categoryMismatchStrokeWidth = "7.0px";
   let categoryMismatchStrokeWidth = "0.7em";
   // let categoryAutoStrokeWidth = "2.0px";
-  let categoryAutoStrokeWidth = "0.5em";
+  let categoryAutoStrokeWidth = "0.3em";
 
   let divTooltip = d3
     .select("body")
@@ -1531,8 +1531,14 @@ function ViewTreepack() {
           return topTermStrokeWidth;
         }
         if (d.nodeType === "hashtag") {
-          return 0.5 * defaultStrokeWidth;
+          return 0.75 * defaultStrokeWidth;
         }
+        if (d.isTopTerm && d.following) {
+          return topTermStrokeWidth;
+        }
+        if (d.isTopTerm && !d.following) {
+          return 0.75 * topTermStrokeWidth;
+        }        
         if (d.isBot) {
           return botStrokeWidth;
         }
@@ -1540,19 +1546,13 @@ function ViewTreepack() {
           return categoryMismatchStrokeWidth;
         }
         if (d.categoryMismatch && !d.following) {
-          return 0.5 * categoryMismatchStrokeWidth;
+          return 0.75 * categoryMismatchStrokeWidth;
         }
         if (d.categoryMatch && d.following) {
           return categoryMatchStrokeWidth;
         }
         if (d.categoryMatch && !d.following) {
-          return 0.5 * categoryMatchStrokeWidth;
-        }
-        if (d.isTopTerm && d.following) {
-          return topTermStrokeWidth;
-        }
-        if (d.isTopTerm && !d.following) {
-          return 0.5 * topTermStrokeWidth;
+          return 0.75 * categoryMatchStrokeWidth;
         }
         if (d.categoryAuto && d.following) {
           return 2.0 * categoryAutoStrokeWidth;

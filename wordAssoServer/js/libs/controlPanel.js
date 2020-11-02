@@ -602,18 +602,15 @@ function ControlPanel() {
       const ignored = node.ignored || false;
       const categoryAuto = node.categoryAuto.toUpperCase() || "NONE";
 
-      twitterControl.setValue("BOT", isBot);
-      document.getElementById("BOT").style.background = (isBot) ? palette.red : palette.lightgray;
-
       twitterControl.setValue("CAT VERIFIED", categoryVerified);
+      twitterControl.setValue("BOT", isBot);
       twitterControl.setValue("FOLLOWING", following);
       twitterControl.setValue("IGNORED", ignored);
-      
+
       twitterControl.setValue("CATEGORY AUTO", categoryAuto);
       
       setElementBackgroundColorCategory({elementId: "CATEGORY AUTO", category: categoryAuto});
       setElementBackgroundColorCategory({elementId: "radioUserCategoryDiv", category: node.category});
-
 
       console.debug("loadTwitterFeed"
         + " | TYPE: " + node.nodeType

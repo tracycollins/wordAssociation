@@ -8085,8 +8085,11 @@ function initTransmitNodeQueueInterval(interval) {
                 "node",
                 pick(node, fieldsTransmitKeys)
               );
+
               transmitNodeQueueReady = true;
+
               return;
+
             } catch (e) {
               console.log(
                 chalkError(
@@ -8123,36 +8126,17 @@ function initTransmitNodeQueueInterval(interval) {
                 "node",
                 pick(node, fieldsTransmitKeys)
               );
+
               transmitNodeQueueReady = true;
+
               return;
             }
           }
 
-          // if (node.isTweeter) {
-
-          //   statsObj.traffic.users.total += 1;
-
-          //   if (botNodeIdSet.has(node.nodeId)){
-          //     statsObj.traffic.users.bots += 1;
-          //     statsObj.traffic.users.percentBots = 100*(statsObj.traffic.users.bots/statsObj.traffic.users.total);
-          //     node.isBot = true;
-          //     printBotStats({user: node, modulo: 100});
-          //   }
-          // }
-
-          // if (node.screenName === undefined || node.screenName === "") {
-          //   console.log(chalkError(MODULE_ID + " | *** TRANSMIT USER SCREENNAME UNDEFINED"));
-          //   printUserObj(MODULE_ID + " | *** TRANSMIT USER SCREENNAME UNDEFINED", node);
-          //   transmitNodeQueueReady = true;
-          //   return;
-          // }
-
-          // viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
           transmitNodeQueueReady = true;
           return;
         }
 
-        // if ((node.nodeType == "hashtag") && node.category && node.category !== "none"){
         if (node.nodeType == "hashtag") {
           node = await updateNodeMeter(node);
 

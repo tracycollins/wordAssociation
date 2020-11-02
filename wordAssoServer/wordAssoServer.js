@@ -55,6 +55,7 @@ const DEFAULT_BINARY_MODE = true;
 let saveSampleTweetFlag = true;
 
 const os = require("os");
+const https = require("https");
 const defaults = require("object.defaults");
 const kill = require("tree-kill");
 const empty = require("is-empty");
@@ -7005,19 +7006,26 @@ async function userCategorizeable(params) {
 }
 
 let botSetInterval
+let fetchBotIdsInterval;
 
 async function fetchBotIds(p){
 
   statsObj.status = "INIT BOT SET";
   console.log(chalkTwitter(MODULE_ID + " | INIT BOT SET INTERVAL"));
+  clearInterval(fetchBotIdsInterval)
 
   try {
+
     const params = p || {};
     const maxBotsToFetch = params.maxBotsToFetch || configuration.maxBotsToFetch;
+    const fetchBotIdsIntervalTime = params.fetchBotIdsIntervalTime || 5*ONE_SECOND;
 
     const url = "https://botsentinel.com/api/analyzed-accounts/load-more-data";
 
+    const httpsAgent = new https.Agent({ rejectUnauthorized: false });
+
     const options = {
+      httpsAgent: httpsAgent,
       params: {
         offset: 0,
         category: "problematic"
@@ -7026,9 +7034,7 @@ async function fetchBotIds(p){
 
     botNodeIdSet.clear();
 
-    let fetchEnabled = true;
-
-    while (fetchEnabled && options.params.offset < maxBotsToFetch) {
+    fetchBotIdsInterval = setInterval(async() => {
 
       try{
         const response = await axios.get(url, options);
@@ -7042,11 +7048,12 @@ async function fetchBotIds(p){
             + " | --- BOT UPDATE END"
             + " | BOTS FETCHED: " + botNodeIdSet.size
           ))
-          fetchEnabled = false
+          
+          clearInterval(fetchBotIdsInterval)
+          return
         }
         else{
-          options.params.offset += botArray.length
-  
+          
           botArray.forEach((botObj) => {
             botNodeIdSet.add(botObj.id)
             console.log(chalkLog(
@@ -7057,23 +7064,36 @@ async function fetchBotIds(p){
               + " | FRDs: " + botObj.following
               + " | @" + botObj.handle
               + " | " + botObj.name
-            ))
-          })
-        }
+              ))
+            })
+          }
+          options.params.offset += botArray.length
 
-        return
+          if (options.params.offset >= maxBotsToFetch){
+            console.log(chalkLog(
+              MODULE_ID 
+              + " [OFFSET: " + options.params.offset + "] "
+              + " | --- BOT UPDATE END"
+              + " | BOTS FETCHED: " + botNodeIdSet.size
+            ))
+            clearInterval(fetchBotIdsInterval)
+            return
+          }
+
       }
       catch(e){
-        fetchEnabled = false
+        clearInterval(fetchBotIdsInterval)
         console.log(chalkError(MODULE_ID_PREFIX + " | *** BOT FETCH ERROR: " + e))
         return
       }
 
-    }
+    // }
+    }, fetchBotIdsIntervalTime)
 
   }
   catch(err){
     console.log(chalkError(MODULE_ID_PREFIX + " | *** BOT FETCH ERROR: " + err))
+    clearInterval(fetchBotIdsInterval)
     return
   }
 }
@@ -7104,100 +7124,7 @@ async function initBotSet() {
 
     }, configuration.botUpdateIntervalTime)
     
-
     return;
-
-    // read csv files from https://botsentinel.com/blocklist
-    // const csvFileArray = await tcUtils.listFolders({ folders: params.folders });
-
-    // if (empty(csvFileArray)) {
-    //   console.log(
-    //     chalkError(
-    //       MODULE_ID + " | ??? NO BOT CSV FILES ???" + " | " + params.folders
-    //     )
-    //   );
-    //   return;
-    // }
-
-    // console.log(
-    //   chalkLog(
-    //     MODULE_ID +
-    //       " | ... FOUND " +
-    //       csvFileArray.length +
-    //       " FILES IN BOT FOLDERS"
-    //   )
-    // );
-
-
-    // for (const fileObj of csvFileArray) {
-    //   if (!fileObj.file.endsWith(".csv")) {
-    //     console.log(
-    //       chalkInfo(MODULE_ID + " | ... SKIPPING LOAD OF " + fileObj.file)
-    //     );
-    //     continue;
-    //   }
-
-    //   if (configuration.verbose || params.verbose) {
-    //     console.log(
-    //       chalkInfo(MODULE_ID + " | CSV FOUND" + " | " + fileObj.path)
-    //     );
-    //   }
-
-    //   const csvData = await tcUtils.loadFileRetry({
-    //     folder: fileObj.folder,
-    //     file: fileObj.file,
-    //   });
-
-    //   if (empty(csvData)) {
-    //     console.log(
-    //       chalkError(
-    //         MODULE_ID + " | FILE DATA UNDEFINED" + " | " + fileObj.path
-    //       )
-    //     );
-    //     throw new Error("FILE DATA UNDEFINED");
-    //   }
-
-    //   const dataArray = csvData.toString().toLowerCase().split("\n");
-
-    //   debug(
-    //     chalk.blue(
-    //       MODULE_ID +
-    //         " | FILE CONTAINS " +
-    //         dataArray.length +
-    //         " TWITTER BOT IDs"
-    //     )
-    //   );
-
-    //   for (const nId of dataArray) {
-    //     const nodeId = nId.trim();
-
-    //     if (nodeId !== "") {
-    //       botNodeIdSet.add(nodeId);
-
-    //       if (configuration.verbose && botNodeIdSet.size % 1000 === 0) {
-    //         console.log(
-    //           chalkLog(
-    //             MODULE_ID +
-    //               " | +++ BOT NODE ID [" +
-    //               botNodeIdSet.size +
-    //               "] " +
-    //               nId.trim()
-    //           )
-    //         );
-    //       }
-    //     }
-    //   }
-    // }
-
-    // console.log(
-    //   chalk.black(
-    //     MODULE_ID + " | LOADED BOT NODE IDs [" + botNodeIdSet.size + "]"
-    //   )
-    // );
-    // statsObj.bots = statsObj.bots || {};
-    // statsObj.bots.numOfBots = botNodeIdSet.size;
-
-    // return;
 
   } catch (e) {
     console.log(chalkError(MODULE_ID + " | BOT SENTINEL FETCH\n" + e));

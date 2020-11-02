@@ -179,7 +179,7 @@ const DEFAULT_INTERVAL = 5;
 const DEFAULT_MIN_FOLLOWERS_AUTO_CATEGORIZE = 5000;
 const DEFAULT_MIN_FOLLOWERS_AUTO_FOLLOW = 20000;
 
-const DEFAULT_MAX_BOTS_TO_FETCH = 1000;
+const DEFAULT_MAX_BOTS_TO_FETCH = 5000;
 const DEFAULT_BOT_UPDATE_INTERVAL = ONE_DAY;
 
 const DEFAULT_NODE_CACHE_DELETE_QUEUE_INTERVAL = DEFAULT_INTERVAL;
@@ -7054,19 +7054,36 @@ async function fetchBotIds(p){
         }
         else{
           
-          botArray.forEach((botObj) => {
-            botNodeIdSet.add(botObj.id)
-            console.log(chalkLog(
-              MODULE_ID 
-              + " [OFFSET: " + options.params.offset + "] "
-              + " | +++ BOT NODE ID [" + botNodeIdSet.size + "] " + botObj.id
-              + " | FLWs: " + botObj.followers
-              + " | FRDs: " + botObj.following
-              + " | @" + botObj.handle
-              + " | " + botObj.name
-              ))
-            })
-          }
+          botArray.forEach(async (botObj) => {
+
+            const nodeUpdated = await global.wordAssoDb.User.findOneAndUpdate(
+              { nodeId: botObj.id },
+              {
+                nodeId: botObj.id,
+                userId: botObj.id,
+                isBot: true,
+                name: botObj.name,
+                screenName: botObj.handle,
+                followersCount: botObj.followers,
+                friendsCount: botObj.following,
+                createdAt: botObj.created,
+                statusesCount: botObj.tweets,
+                location: botObj.location,
+                profileImageUrl: botObj.profile_photo,
+                bannerImageUrl: botObj.cover_photo,
+              },
+              { upsert: true, new: true }
+            );
+
+            botNodeIdSet.add(nodeUpdated.nodeId)
+            
+            printUserObj(
+              MODULE_ID + " [OFFSET: " + options.params.offset + "] | +++ BOT [" + botNodeIdSet.size + "]",
+              nodeUpdated
+            );
+
+          })
+
           options.params.offset += botArray.length
 
           if (options.params.offset >= maxBotsToFetch){
@@ -7079,6 +7096,7 @@ async function fetchBotIds(p){
             clearInterval(fetchBotIdsInterval)
             return
           }
+        }
 
       }
       catch(e){
@@ -7087,7 +7105,6 @@ async function fetchBotIds(p){
         return
       }
 
-    // }
     }, fetchBotIdsIntervalTime)
 
   }

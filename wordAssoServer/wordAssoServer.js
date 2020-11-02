@@ -1,8 +1,6 @@
 const MODULE_NAME = "wordAssoServer";
 const MODULE_ID_PREFIX = "WAS";
 
-const MAX_BOTS_TO_FETCH = 200;
-
 const DEFAULT_CURSOR_BATCH_SIZE = 100;
 
 const DEFAULT_PRIMARY_HOST = "google";
@@ -179,6 +177,9 @@ const DEFAULT_TWEET_VERSION_2 = false;
 const DEFAULT_INTERVAL = 5;
 const DEFAULT_MIN_FOLLOWERS_AUTO_CATEGORIZE = 5000;
 const DEFAULT_MIN_FOLLOWERS_AUTO_FOLLOW = 20000;
+
+const DEFAULT_MAX_BOTS_TO_FETCH = 1000;
+const DEFAULT_BOT_UPDATE_INTERVAL = ONE_DAY;
 
 const DEFAULT_NODE_CACHE_DELETE_QUEUE_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_TSS_TWITTER_QUEUE_INTERVAL = DEFAULT_INTERVAL;
@@ -1288,6 +1289,9 @@ configuration.databaseHost = process.env.DATABASE_HOST || DEFAULT_DATABASE_HOST;
 
 configuration.isPrimaryHost = hostname === configuration.primaryHost;
 configuration.isDatabaseHost = hostname === configuration.databaseHost;
+
+configuration.maxBotsToFetch = DEFAULT_MAX_BOTS_TO_FETCH;
+configuration.botUpdateIntervalTime = DEFAULT_BOT_UPDATE_INTERVAL;
 
 configuration.pubSub = {};
 configuration.pubSub.enabled = DEFAULT_PUBSUB_ENABLED;
@@ -7000,14 +7004,16 @@ async function userCategorizeable(params) {
   return false;
 }
 
-async function initBotSet(p) {
-  statsObj.status = "INIT TROLL BOT SET";
+let botSetInterval
 
-  console.log(chalkTwitter(MODULE_ID + " | INIT TROLL BOT SET"));
+async function fetchBotIds(p){
+
+  statsObj.status = "INIT BOT SET";
+  console.log(chalkTwitter(MODULE_ID + " | INIT BOT SET INTERVAL"));
 
   try {
     const params = p || {};
-    params.maxBotsToFetch = params.maxBotsToFetch || MAX_BOTS_TO_FETCH;
+    const maxBotsToFetch = params.maxBotsToFetch || configuration.maxBotsToFetch;
 
     const url = "https://botsentinel.com/api/analyzed-accounts/load-more-data";
 
@@ -7020,36 +7026,84 @@ async function initBotSet(p) {
 
     botNodeIdSet.clear();
 
-    while (options.params.offset < 200) {
+    let fetchEnabled = true;
 
-      const response = await axios.get(url, options);
+    while (fetchEnabled && options.params.offset < maxBotsToFetch) {
 
-      const botArray = response.data;
+      try{
+        const response = await axios.get(url, options);
 
-      options.params.offset += botArray.length
+        const botArray = response.data;
 
-      botArray.forEach((botObj) => {
-        botNodeIdSet.add(botObj.id)
-        console.log(chalkLog(
-          MODULE_ID 
-          + " [OFFSET: " + options.params.offset + "] "
-          + " | +++ BOT NODE ID [" + botNodeIdSet.size + "] " + botObj.id
-          + " | FLWs: " + botObj.followers
-          + " | FRDs: " + botObj.following
-          + " | @" + botObj.handle
-          + " | " + botObj.name
-        ))
-      })
+        if (!botArray || botArray.length === 0){
+          console.log(chalkLog(
+            MODULE_ID 
+            + " [OFFSET: " + options.params.offset + "] "
+            + " | --- BOT UPDATE END"
+            + " | BOTS FETCHED: " + botNodeIdSet.size
+          ))
+          fetchEnabled = false
+        }
+        else{
+          options.params.offset += botArray.length
+  
+          botArray.forEach((botObj) => {
+            botNodeIdSet.add(botObj.id)
+            console.log(chalkLog(
+              MODULE_ID 
+              + " [OFFSET: " + options.params.offset + "] "
+              + " | +++ BOT NODE ID [" + botNodeIdSet.size + "] " + botObj.id
+              + " | FLWs: " + botObj.followers
+              + " | FRDs: " + botObj.following
+              + " | @" + botObj.handle
+              + " | " + botObj.name
+            ))
+          })
+        }
+
+        return
+      }
+      catch(e){
+        fetchEnabled = false
+        console.log(chalkError(MODULE_ID_PREFIX + " | *** BOT FETCH ERROR: " + e))
+        return
+      }
 
     }
 
-    console.log(
-      chalk.black(
-        MODULE_ID + " | LOADED BOT NODE IDs [" + botNodeIdSet.size + "]"
-      )
-    );
-    statsObj.bots = statsObj.bots || {};
-    statsObj.bots.numOfBots = botNodeIdSet.size;
+  }
+  catch(err){
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** BOT FETCH ERROR: " + err))
+    return
+  }
+}
+
+async function initBotSet() {
+
+  statsObj.status = "INIT BOT SET";
+
+  console.log(chalkTwitter(MODULE_ID + " | INIT BOT SET INTERVAL"));
+
+  try {
+
+    clearInterval(botSetInterval)
+
+    await fetchBotIds();
+
+    setInterval(async () => {
+
+      await fetchBotIds();
+      
+      console.log(
+        chalk.black(
+          MODULE_ID + " | LOADED BOT NODE IDs [" + botNodeIdSet.size + "]"
+        )
+      );
+      statsObj.bots = statsObj.bots || {};
+      statsObj.bots.numOfBots = botNodeIdSet.size;
+
+    }, configuration.botUpdateIntervalTime)
+    
 
     return;
 
@@ -11234,6 +11288,16 @@ async function loadConfigFile(params) {
       );
       newConfiguration.findCatHashtagLimit =
         loadedConfigObj.FIND_CAT_HASHTAG_CURSOR_LIMIT;
+    }
+
+    if (loadedConfigObj.MAX_BOTS_TO_FETCH !== undefined) {
+      console.log(
+        MODULE_ID +
+          " | LOADED MAX_BOTS_TO_FETCH: " +
+          loadedConfigObj.MAX_BOTS_TO_FETCH
+      );
+      newConfiguration.maxBotsToFetch =
+        loadedConfigObj.MAX_BOTS_TO_FETCH;
     }
 
     if (loadedConfigObj.HEAPDUMP_ENABLED !== undefined) {

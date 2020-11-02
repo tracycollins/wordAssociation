@@ -1222,7 +1222,6 @@ function ControlPanel() {
 
         twitterControl.addBoolean("BOT", isBot, function(data){
           console.debug("USER BOT | " + twitterEntity.getValue("SCREENNAME") + " | BOT: " + data);
-          document.getElementById("BOT").style.background = (data) ? palette.red : palette.lightgray;
           const op = (data) ? "BOT" : "UNBOT";
           if (!loadingTwitterFeedFlag){
             parentWindow.postMessage({op: op, user: twitterFeedUser}, DEFAULT_SOURCE);

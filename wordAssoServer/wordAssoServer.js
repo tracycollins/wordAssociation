@@ -692,7 +692,7 @@ const nodeSetPropsResultHandler = async function (message) {
         !pubSubPublishMessageRequestIdSet.has(messageObj.requestId) ||
         configuration.verbose
       ) {
-        console.log(
+        debug(
           chalkBlueBold(
             MODULE_ID +
               " | ==> SUB [" +
@@ -7087,7 +7087,7 @@ async function fetchBotIds(p){
           options.params.offset += botArray.length
 
           if (options.params.offset >= maxBotsToFetch){
-            console.log(chalkLog(
+            console.log(chalkBlueBold(
               MODULE_ID 
               + " [OFFSET: " + options.params.offset + "] "
               + " | --- BOT UPDATE END"

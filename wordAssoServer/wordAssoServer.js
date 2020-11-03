@@ -181,6 +181,7 @@ const DEFAULT_MIN_FOLLOWERS_AUTO_FOLLOW = 20000;
 
 const DEFAULT_MAX_BOTS_TO_FETCH = 5000;
 const DEFAULT_BOT_UPDATE_INTERVAL = ONE_DAY;
+const DEFAULT_BOT_CATEGORIES = ["disruptive", "problematic"];
 
 const DEFAULT_NODE_CACHE_DELETE_QUEUE_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_TSS_TWITTER_QUEUE_INTERVAL = DEFAULT_INTERVAL;
@@ -1296,6 +1297,7 @@ configuration.isDatabaseHost = hostname === configuration.databaseHost;
 
 configuration.maxBotsToFetch = DEFAULT_MAX_BOTS_TO_FETCH;
 configuration.botUpdateIntervalTime = DEFAULT_BOT_UPDATE_INTERVAL;
+configuration.botCategories = DEFAULT_BOT_CATEGORIES;
 
 configuration.pubSub = {};
 configuration.pubSub.enabled = DEFAULT_PUBSUB_ENABLED;
@@ -7009,19 +7011,22 @@ async function userCategorizeable(params) {
 }
 
 let botSetInterval
-let fetchBotIdsInterval;
 
 async function fetchBotIds(p){
-
+  
+  let fetchBotIdsInterval;
+  
   statsObj.status = "INIT BOT SET";
-  console.log(chalkTwitter(MODULE_ID + " | INIT BOT SET INTERVAL"));
   clearInterval(fetchBotIdsInterval)
-
+  
   try {
-
+    
     const params = p || {};
+    const botCategory = params.botCategory || "problematic";
     const maxBotsToFetch = params.maxBotsToFetch || configuration.maxBotsToFetch;
     const fetchBotIdsIntervalTime = params.fetchBotIdsIntervalTime || 5*ONE_SECOND;
+
+    console.log(chalkTwitter(MODULE_ID + " | INIT BOT SET INTERVAL | BOT CATEGORY: " + botCategory));
 
     const url = "https://botsentinel.com/api/analyzed-accounts/load-more-data";
 
@@ -7031,7 +7036,7 @@ async function fetchBotIds(p){
       httpsAgent: httpsAgent,
       params: {
         offset: 0,
-        category: "problematic"
+        category: botCategory
       }
     };
 
@@ -7045,15 +7050,16 @@ async function fetchBotIds(p){
         const botArray = response.data;
 
         if (!botArray || botArray.length === 0){
-          console.log(chalkLog(
+          console.log(chalkBlueBold(
             MODULE_ID 
             + " [OFFSET: " + options.params.offset + "] "
             + " | --- BOT UPDATE END"
+            + " | BOT CAT: " + options.params.category
             + " | BOTS FETCHED: " + botNodeIdSet.size
           ))
           
           clearInterval(fetchBotIdsInterval)
-          return
+          // return
         }
         else{
           
@@ -7081,7 +7087,7 @@ async function fetchBotIds(p){
             botNodeIdSet.add(nodeUpdated.nodeId)
             
             printUserObj(
-              MODULE_ID + " [OFFSET: " + options.params.offset + "] | +++ BOT [" + botNodeIdSet.size + "]",
+              MODULE_ID + " [OFFSET: " + options.params.offset + "] | BOT CAT: " + options.params.category + " | +++ BOT [" + botNodeIdSet.size + "]",
               nodeUpdated
             );
 
@@ -7094,10 +7100,11 @@ async function fetchBotIds(p){
               MODULE_ID 
               + " [OFFSET: " + options.params.offset + "] "
               + " | --- BOT UPDATE END"
+              + " | BOT CAT: " + options.params.category
               + " | BOTS FETCHED: " + botNodeIdSet.size
             ))
             clearInterval(fetchBotIdsInterval)
-            return
+            // return
           }
         }
 
@@ -7128,11 +7135,15 @@ async function initBotSet() {
 
     clearInterval(botSetInterval)
 
-    await fetchBotIds();
+    for(const botCategory of configuration.botCategories){
+      await fetchBotIds({botCategory: botCategory});
+    }
 
     setInterval(async () => {
 
-      await fetchBotIds();
+      for(const botCategory of configuration.botCategories){
+        await fetchBotIds({botCategory: botCategory});
+      }
       
       console.log(
         chalk.black(
@@ -11453,7 +11464,9 @@ async function loadAllConfigFiles() {
   configuration = tempConfig;
 
   if (configuration.botUpdateIntervalTime !== tempConfig.botUpdateIntervalTime 
-    || configuration.maxBotsToFetch !== tempConfig.maxBotsToFetch){
+    || configuration.maxBotsToFetch !== tempConfig.maxBotsToFetch
+    || configuration.botCategories !== tempConfig.botCategories
+  ){
     await initBotSet();
   }
   configuration.threeceeUsers = _.uniq(configuration.threeceeUsers); // merge concats arrays!

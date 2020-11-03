@@ -4316,12 +4316,12 @@ function socketRxTweet(tw) {
       tw.user.categorized = true;
       tw.user.category = categorizedUserHashMap.get(tw.user.id_str).manual;
       tw.user.categoryAuto = categorizedUserHashMap.get(tw.user.id_str).auto;
-      tw.user.categorizeNetwork = categorizedUserHashMap.get(
-        tw.user.id_str
-      ).network;
-      tw.user.categoryVerified = categorizedUserHashMap.get(
-        tw.user.id_str
-      ).verified;
+      tw.user.categorizeNetwork = categorizedUserHashMap.get(tw.user.id_str).network;
+      tw.user.categoryVerified = categorizedUserHashMap.get(tw.user.id_str).verified;
+    }
+
+    if (botNodeIdSet.has(tw.user.id_str)){
+      tw.user.isBot = true;
     }
 
     tweetRxQueue.push(tw);
@@ -8073,7 +8073,8 @@ function initTransmitNodeQueueInterval(interval) {
               node.tweetsPerDay =
                 node.ageDays > 0 ? node.statusesCount / node.ageDays : 0;
 
-              if (node.isTweeter && botNodeIdSet.has(node.nodeId)) {
+              // if (node.isTweeter && botNodeIdSet.has(node.nodeId)) {
+              if (botNodeIdSet.has(node.nodeId)) {
                 node.isBot = true;
 
                 statsObj.traffic.users.bots += 1;
@@ -8100,7 +8101,8 @@ function initTransmitNodeQueueInterval(interval) {
                 )
               );
 
-              if (node.isTweeter && botNodeIdSet.has(node.nodeId)) {
+              // if (node.isTweeter && botNodeIdSet.has(node.nodeId)) {
+              if (botNodeIdSet.has(node.nodeId)) {
                 statsObj.traffic.users.bots += 1;
                 statsObj.traffic.users.percentBots =
                   100 *
@@ -10002,6 +10004,7 @@ function initTweetParserPingInterval(interval) {
 
   if (twpChild) {
     tweetParserPingInterval = setInterval(function () {
+      
       if (!tweetParserPingSent) {
         tweetParserPingId = moment().valueOf();
 

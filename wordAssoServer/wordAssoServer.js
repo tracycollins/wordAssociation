@@ -1174,6 +1174,9 @@ configEvents.on("newListener", function (data) {
 
 const statsObj = {};
 
+statsObj.bots = {};
+statsObj.bots.numOfBots = 0;
+
 statsObj.pubSub = {};
 
 statsObj.pubSub.subscriptions = {};
@@ -7032,7 +7035,7 @@ async function fetchBotIds(p){
       }
     };
 
-    botNodeIdSet.clear();
+    // botNodeIdSet.clear();
 
     fetchBotIdsInterval = setInterval(async() => {
 
@@ -11492,6 +11495,7 @@ function initStatsUpdate() {
       let childArray = [];
 
       statsInterval = setInterval(async function updateStats() {
+
         try {
           childArray = await getChildProcesses({ searchTerm: "ALL" });
 
@@ -11522,6 +11526,8 @@ function initStatsUpdate() {
           statsObj.timeStamp = getTimeStamp();
           statsObj.runTime = moment().valueOf() - statsObj.startTime;
           statsObj.upTime = os.uptime() * 1000;
+
+          statsObj.bots.numOfBots = botNodeIdSet.size;
 
           if (
             statsObj.twitter.tweetsPerMin > statsObj.twitter.maxTweetsPerMin

@@ -1974,6 +1974,10 @@ function ViewTreepack() {
         }
 
         localNodeHashMap.set(currentNode.nodePoolId, currentNode);
+
+        if (currentNode.isBot) {
+          console.debug("BOT: " + currentNode.nodeId + " | @" + currentNode.screenName)
+        }
         nodeAddQReady = true;
 
         callback();

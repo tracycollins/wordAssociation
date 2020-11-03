@@ -1968,9 +1968,7 @@ function ViewTreepack() {
         if (newNode.nodeType === "user") {
           currentNode.following = newNode.following;
           currentNode.followersCount = newNode.followersCount || 0;
-          currentNode.followersCount = newNode.followersCount || 0;
-          currentNode.followersMentions =
-            newNode.followersCount + newNode.mentions;
+          currentNode.followersMentions = newNode.followersCount + newNode.mentions;
         }
 
         localNodeHashMap.set(currentNode.nodePoolId, currentNode);
@@ -2028,8 +2026,7 @@ function ViewTreepack() {
         if (newNode.nodeType === "user") {
           currentNode.following = newNode.following;
           currentNode.followersCount = newNode.followersCount || 0;
-          currentNode.followersMentions =
-            newNode.followersCount + newNode.mentions;
+          currentNode.followersMentions = newNode.followersCount + newNode.mentions;
         }
 
         if (

@@ -884,6 +884,8 @@ function ControlPanel() {
         }
 
         currentTwitterNode = event.data.node;
+        currentTwitterNode.category = currentTwitterNode.category || "none";
+        currentTwitterNode.categoryAuto = currentTwitterNode.categoryAuto || "none";
 
         if (!currentTwitterNode.profileImageUrl || (currentTwitterNode.profileImageUrl === undefined)){
           currentTwitterNode.profileImageUrl = DEFAULT_TWITTER_IMAGE;
@@ -928,6 +930,9 @@ function ControlPanel() {
       case "SET_TWITTER_HASHTAG":
 
         currentTwitterNode = event.data.node;
+
+        currentTwitterNode.category = currentTwitterNode.category || "none";
+        currentTwitterNode.categoryAuto = currentTwitterNode.categoryAuto || "none";
 
         console.debug("SET TWITTER HASHTAG" 
           + " | #" + currentTwitterNode.nodeId

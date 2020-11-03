@@ -10004,7 +10004,7 @@ function initTweetParserPingInterval(interval) {
 
   if (twpChild) {
     tweetParserPingInterval = setInterval(function () {
-      
+
       if (!tweetParserPingSent) {
         tweetParserPingId = moment().valueOf();
 
@@ -10919,20 +10919,6 @@ async function loadConfigFile(params) {
         loadedConfigObj.UPDATE_USER_SETS_INTERVAL;
     }
 
-    // if (loadedConfigObj.IGNORE_CATEGORY_RIGHT !== undefined){
-    //   console.log(MODULE_ID + " | LOADED IGNORE_CATEGORY_RIGHT: " + loadedConfigObj.IGNORE_CATEGORY_RIGHT);
-
-    //   if ((loadedConfigObj.IGNORE_CATEGORY_RIGHT == false) || (loadedConfigObj.IGNORE_CATEGORY_RIGHT == "false")) {
-    //     newConfiguration.ignoreCategoryRight = false;
-    //   }
-    //   else if ((loadedConfigObj.IGNORE_CATEGORY_RIGHT == true) || (loadedConfigObj.IGNORE_CATEGORY_RIGHT == "true")) {
-    //     newConfiguration.ignoreCategoryRight = true;
-    //   }
-    //   else {
-    //     newConfiguration.ignoreCategoryRight = false;
-    //   }
-    // }
-
     if (loadedConfigObj.ENABLE_GEOCODE !== undefined) {
       console.log(
         MODULE_ID +
@@ -11225,13 +11211,13 @@ async function loadConfigFile(params) {
     }
 
     if (loadedConfigObj.MAX_BOTS_TO_FETCH !== undefined) {
-      console.log(
-        MODULE_ID +
-          " | LOADED MAX_BOTS_TO_FETCH: " +
-          loadedConfigObj.MAX_BOTS_TO_FETCH
-      );
-      newConfiguration.maxBotsToFetch =
-        loadedConfigObj.MAX_BOTS_TO_FETCH;
+      console.log(MODULE_ID + " | LOADED MAX_BOTS_TO_FETCH: " + loadedConfigObj.MAX_BOTS_TO_FETCH);
+      newConfiguration.maxBotsToFetch = loadedConfigObj.MAX_BOTS_TO_FETCH;
+    }
+
+    if (loadedConfigObj.BOT_UPDATE_INTERVAL !== undefined) {
+      console.log(MODULE_ID + " | LOADED BOT_UPDATE_INTERVAL: " + loadedConfigObj.BOT_UPDATE_INTERVAL);
+      newConfiguration.botUpdateIntervalTime = loadedConfigObj.BOT_UPDATE_INTERVAL;
     }
 
     if (loadedConfigObj.HEAPDUMP_ENABLED !== undefined) {
@@ -11465,6 +11451,11 @@ async function loadAllConfigFiles() {
   const tempConfig = merge(configuration, defaultAndHostConfig); // any new settings override existing config
 
   configuration = tempConfig;
+
+  if (configuration.botUpdateIntervalTime !== tempConfig.botUpdateIntervalTime 
+    || configuration.maxBotsToFetch !== tempConfig.maxBotsToFetch){
+    await initBotSet();
+  }
   configuration.threeceeUsers = _.uniq(configuration.threeceeUsers); // merge concats arrays!
 
   filterDuplicateTweets = configuration.filterDuplicateTweets;

@@ -1095,12 +1095,12 @@ function ViewTreepack() {
       self.toolTipVisibility(false);
     }
 
-    d3.select(this).style("fill", palette.white);
     d3.select(this).style("fill-opacity", 1);
     d3.select(this).style("stroke-opacity", 1);
     d3.select(this).style("display", "unset");
     d3.select("#" + d.nodePoolId).style("fill-opacity", 1);
     d3.select("#" + d.nodePoolId).style("stroke-opacity", 1);
+    d3.select("#" + d.nodePoolId + "_label").style("fill", palette.white);
     d3.select("#" + d.nodePoolId + "_label").style("fill-opacity", 1);
     d3.select("#" + d.nodePoolId + "_label").style("display", "unset");
 

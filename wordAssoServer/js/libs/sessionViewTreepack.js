@@ -1101,6 +1101,7 @@ function ViewTreepack() {
     d3.select(this).style("display", "unset");
     d3.select("#" + d.nodePoolId).style("fill-opacity", 1);
     d3.select("#" + d.nodePoolId).style("stroke-opacity", 1);
+    d3.select("#" + d.nodePoolId + "_label").style("stroke", "unset");
     d3.select("#" + d.nodePoolId + "_label").style("fill", palette.white);
     d3.select("#" + d.nodePoolId + "_label").style("fill-opacity", 1);
     d3.select("#" + d.nodePoolId + "_label").style("display", "unset");

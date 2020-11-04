@@ -1095,6 +1095,7 @@ function ViewTreepack() {
       self.toolTipVisibility(false);
     }
 
+    d3.select(this).style("fill", palette.white);
     d3.select(this).style("fill-opacity", 1);
     d3.select(this).style("stroke-opacity", 1);
     d3.select(this).style("display", "unset");

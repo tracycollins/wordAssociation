@@ -1197,6 +1197,8 @@ function ViewTreepack() {
       return nodeLabelOpacityScale(d.ageMaxRatio);
     });
 
+    d3.select("#" + d.nodePoolId + "_label").style("fill", labelFill(d));
+
     d3.select("#" + d.nodePoolId + "_label").style("fill-opacity", function () {
       return nodeLabelOpacityScale(d.ageMaxRatio);
     });
@@ -1596,6 +1598,28 @@ function ViewTreepack() {
 
   let nodeLabels;
 
+  function labelFill(d) {
+    if (d.mouseHoverFlag) {
+      return palette.white;
+    }
+    if (d.isBot) {
+      return palette.red;
+    }
+    if (d.isTopTerm && d.nodeType === "hashtag") {
+      return palette.white;
+    }
+    if (d.isTopTerm && d.followersCount > minFollowers) {
+      return palette.white;
+    }
+    if (!d.isTopTerm && d.followersCount > minFollowers) {
+      return palette.lightgray;
+    }
+    if (d.isTopTerm) {
+      return palette.lightgray;
+    }
+    return palette.lightgray;
+  }
+
   function updateNodeLabels(callback) {
     nodeLabels = nodeLabelSvgGroup
       .selectAll("text")
@@ -1645,27 +1669,7 @@ function ViewTreepack() {
       .attr("y", function (d) {
         return d.y;
       })
-      .style("fill", function (d) {
-        if (d.mouseHoverFlag) {
-          return palette.white;
-        }
-        if (d.isBot) {
-          return palette.red;
-        }
-        if (d.isTopTerm && d.nodeType === "hashtag") {
-          return palette.white;
-        }
-        if (d.isTopTerm && d.followersCount > minFollowers) {
-          return palette.white;
-        }
-        if (!d.isTopTerm && d.followersCount > minFollowers) {
-          return palette.lightgray;
-        }
-        if (d.isTopTerm) {
-          return palette.lightgray;
-        }
-        return palette.lightgray;
-      })
+      .style("fill", labelFill)
       .style("fill-opacity", function updateNodeLabelOpacity(d) {
         if (d.mouseHoverFlag) {
           return 1.0;

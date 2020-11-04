@@ -1096,6 +1096,7 @@ function ViewTreepack() {
     }
 
     d3.select(this).style("fill-opacity", 1);
+    d3.select(this).style("stroke", palette.white);
     d3.select(this).style("stroke-opacity", 1);
     d3.select(this).style("display", "unset");
     d3.select("#" + d.nodePoolId).style("fill-opacity", 1);
@@ -1184,6 +1185,8 @@ function ViewTreepack() {
     d3.select(this).style("fill-opacity", function () {
       return nodeLabelOpacityScale(d.ageMaxRatio);
     });
+
+    d3.select(this).style("stroke", circleStroke(d));
 
     d3.select(this).style("stroke-opacity", function () {
       return nodeLabelOpacityScale(d.ageMaxRatio);
@@ -1336,6 +1339,31 @@ function ViewTreepack() {
 
   let nodeCircles;
 
+  function circleStroke(d) {
+    if (d.nodeType === "hashtag") {
+      return palette.white;
+    }
+    if (d.categoryMismatch) {
+      return palette.red;
+    }
+    if (d.categoryMatch) {
+      return categoryMatchColor;
+    }
+    if (d.categoryAuto === "right") {
+      return palette.darkyellow;
+    }
+    if (d.categoryAuto === "left") {
+      return palette.blue;
+    }
+    if (d.categoryAuto === "positive") {
+      return palette.green;
+    }
+    if (d.categoryAuto === "negative") {
+      return palette.black;
+    }
+    return palette.white;
+  }
+
   function updateNodeCircles(callback) {
     nodeCircles = nodeSvgGroup.selectAll("circle").data(
       nodeArray.filter(function (d) {
@@ -1385,30 +1413,7 @@ function ViewTreepack() {
         }
         return d.categoryColor;
       })
-      .style("stroke", function (d) {
-        if (d.nodeType === "hashtag") {
-          return palette.white;
-        }
-        if (d.categoryMismatch) {
-          return palette.red;
-        }
-        if (d.categoryMatch) {
-          return categoryMatchColor;
-        }
-        if (d.categoryAuto === "right") {
-          return palette.darkyellow;
-        }
-        if (d.categoryAuto === "left") {
-          return palette.blue;
-        }
-        if (d.categoryAuto === "positive") {
-          return palette.green;
-        }
-        if (d.categoryAuto === "negative") {
-          return palette.black;
-        }
-        return palette.white;
-      })
+      .style("stroke", circleStroke)
       .style("stroke-width", function (d) {
         if (d.nodeType === "hashtag" && d.isTopTerm) {
           return topTermStrokeWidth;

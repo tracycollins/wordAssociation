@@ -1566,6 +1566,9 @@ function ViewTreepack() {
         return 0.5 * defaultStrokeWidth;
       })
       .style("fill-opacity", function nodeCirclesFillOpacity(d) {
+        if (d.mouseHoverFlag) {
+          return 1.0;
+        }
         if (d.isTopTerm) {
           return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio);
         }
@@ -1575,6 +1578,9 @@ function ViewTreepack() {
         return nodeLabelOpacityScale(d.ageMaxRatio);
       })
       .style("stroke-opacity", function nodeCirclesStrokeOpacity(d) {
+        if (d.mouseHoverFlag) {
+          return 1.0;
+        }
         if (d.isTopTerm) {
           return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio);
         }
@@ -1639,6 +1645,9 @@ function ViewTreepack() {
         return d.y;
       })
       .style("fill", function (d) {
+        if (d.mouseHoverFlag) {
+          return palette.white;
+        }
         if (d.isBot) {
           return palette.red;
         }

@@ -1178,6 +1178,144 @@ function ViewTreepack() {
       .style("top", event.pageY - 50 + "px");
   };
 
+  const labelMouseOver = function (event, d) {
+    d.mouseHoverFlag = true;
+
+    if (mouseMovingFlag) {
+      self.toolTipVisibility(true);
+    } else {
+      self.toolTipVisibility(false);
+    }
+
+    d3.select(this).style("fill", palette.white);
+    d3.select(this).style("fill-opacity", 1);
+    d3.select(this).style("stroke-opacity", 1);
+    d3.select(this).style("display", "unset");
+    d3.select("#" + d.nodePoolId).style("fill-opacity", 1);
+    d3.select("#" + d.nodePoolId).style("stroke", palette.white);
+    d3.select("#" + d.nodePoolId).style("stroke-opacity", 1);
+
+    switch (d.nodeType) {
+      case "user":
+        // currentTwitterUser = d;
+
+        if (
+          mouseMovingFlag &&
+          controlPanelReadyFlag &&
+          (!previousTwitterUserId || previousTwitterUserId !== d.nodeId)
+        ) {
+          previousTwitterUserId = d.nodeId;
+        }
+
+        tooltipString =
+          "@" +
+          d.screenName +
+          "<br>" +
+          d.name +
+          "<br>AGE (DAYS): " +
+          d.ageDays.toFixed(3) +
+          "<br>TPD: " +
+          d.tweetsPerDay.toFixed(3) +
+          "<br>FLWRs: " +
+          d.followersCount +
+          "<br>FRNDs: " +
+          d.friendsCount +
+          "<br>FMs: " +
+          d.followersMentions +
+          "<br>Ms: " +
+          d.mentions +
+          "<br>Ts: " +
+          d.statusesCount +
+          "<br>" +
+          d.rate.toFixed(3) +
+          " WPM" +
+          "<br>C: " +
+          d.category +
+          "<br>CA: " +
+          d.categoryAuto;
+        break;
+
+      case "hashtag":
+        // currentTwitterHashtag = d;
+
+        if (
+          mouseMovingFlag &&
+          controlPanelReadyFlag &&
+          (!previousTwitterHashtag || previousTwitterHashtag !== d.nodeId)
+        ) {
+          previousTwitterHashtag = d.nodeId;
+        }
+
+        tooltipString =
+          "#" +
+          d.nodeId +
+          "<br>Ms: " +
+          d.mentions +
+          "<br>" +
+          d.rate.toFixed(3) +
+          " MPM" +
+          "<br>C: " +
+          d.category +
+          "<br>CA: " +
+          d.categoryAuto;
+        break;
+    }
+
+    divTooltip.html(tooltipString);
+    divTooltip
+      .style("left", event.pageX - 40 + "px")
+      .style("top", event.pageY - 50 + "px");
+  };
+
+  function labelMouseOut(event, d) {
+    d.mouseHoverFlag = false;
+
+    self.toolTipVisibility(false);
+
+    d3.select("#" + d.nodePoolId).style("fill-opacity", function () {
+      return nodeLabelOpacityScale(d.ageMaxRatio);
+    });
+
+    d3.select("#" + d.nodePoolId).style("stroke-opacity", function () {
+      return nodeLabelOpacityScale(d.ageMaxRatio);
+    });
+
+    d3.select(this).style("fill", labelFill(d));
+
+    d3.select(this).style("fill-opacity", function () {
+      return nodeLabelOpacityScale(d.ageMaxRatio);
+    });
+
+    d3.select(this).style("display", function () {
+      if (!d.isValid) {
+        return "none";
+      }
+      if (isCategorized(d.category)) {
+        return "unset";
+      }
+      if (d.rate > minRate) {
+        return "unset";
+      }
+      if (
+        d.nodeType === "hashtag" &&
+        (d.mentions > minMentionsHashtags || d.nodeId.includes("trump"))
+      ) {
+        return "unset";
+      }
+      if (
+        d.nodeType === "user" &&
+        (d.followersCount > minFollowers ||
+          d.mentions > minMentionsUsers ||
+          d.screenName.toLowerCase().includes("trump") ||
+          (d.name && d.name.toLowerCase().includes("trump")))
+      ) {
+        return "unset";
+      }
+      return "none";
+    });
+  }
+
+
   function nodeMouseOut(event, d) {
     d.mouseHoverFlag = false;
 
@@ -1814,8 +1952,8 @@ function ViewTreepack() {
           return nodeLabelSizeScale(d.mentions);
         }
       })
-      .on("mouseover", nodeMouseOver)
-      .on("mouseout", nodeMouseOut)
+      .on("mouseover", labelMouseOver)
+      .on("mouseout", labelMouseOut)
       .on("click", nodeClick);
       
     // EXIT

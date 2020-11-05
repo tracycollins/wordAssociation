@@ -8084,18 +8084,6 @@ function initTransmitNodeQueueInterval(interval) {
               node.tweetsPerDay =
                 node.ageDays > 0 ? node.statusesCount / node.ageDays : 0;
 
-              // if (node.isTweeter && botNodeIdSet.has(node.nodeId)) {
-              if (botNodeIdSet.has(node.nodeId)) {
-                node.isBot = true;
-
-                statsObj.traffic.users.bots += 1;
-                statsObj.traffic.users.percentBots =
-                  100 *
-                  (statsObj.traffic.users.bots / statsObj.traffic.users.total);
-
-                printBotStats({ user: node, modulo: 100 });
-              }
-
               viewNameSpace.volatile.emit(
                 "node",
                 pick(node, fieldsTransmitKeys)
@@ -8111,18 +8099,6 @@ function initTransmitNodeQueueInterval(interval) {
                   MODULE_ID + " | findOneAndUpdate USER ERROR" + jsonPrint(e)
                 )
               );
-
-              // if (node.isTweeter && botNodeIdSet.has(node.nodeId)) {
-              if (botNodeIdSet.has(node.nodeId)) {
-                statsObj.traffic.users.bots += 1;
-                statsObj.traffic.users.percentBots =
-                  100 *
-                  (statsObj.traffic.users.bots / statsObj.traffic.users.total);
-
-                node.isBot = true;
-
-                printBotStats({ user: node, modulo: 100 });
-              }
 
               if (node.screenName === undefined || node.screenName === "") {
                 console.log(
@@ -8224,7 +8200,15 @@ async function transmitNodes(tw) {
     return;
   }
 
-  if (botNodeIdSet.has(tw.user.nodeId)) { tw.user.isBot = true; }
+  if (botNodeIdSet.has(tw.user.nodeId)) { 
+    tw.user.isBot = true;
+    statsObj.traffic.users.bots += 1;
+    statsObj.traffic.users.percentBots =
+      100 *
+      (statsObj.traffic.users.bots / statsObj.traffic.users.total);
+
+    printBotStats({ user: tw.user, modulo: 100 });
+  }
 
   tw.user.isTweeter = false;
   transmitNodeQueue.push(tw.user);
@@ -8238,7 +8222,15 @@ async function transmitNodes(tw) {
       !ignoredUserSet.has(user.screenName.toLowerCase())
     ) {
       user.isTweeter = false;
-      if (botNodeIdSet.has(user.nodeId)) { user.isBot = true; }
+      if (botNodeIdSet.has(user.nodeId)) { 
+        user.isBot = true; 
+        statsObj.traffic.users.bots += 1;
+        statsObj.traffic.users.percentBots =
+          100 *
+          (statsObj.traffic.users.bots / statsObj.traffic.users.total);
+
+        printBotStats({ user: tw.user, modulo: 100 });
+      }
       transmitNodeQueue.push(user);
     }
   }

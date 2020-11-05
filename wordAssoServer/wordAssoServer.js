@@ -8224,6 +8224,9 @@ async function transmitNodes(tw) {
     return;
   }
 
+  if (botNodeIdSet.has(tw.user.nodeId)) { tw.user.isBot = true; }
+
+  tw.user.isTweeter = false;
   transmitNodeQueue.push(tw.user);
 
   for (const user of tw.userMentions) {
@@ -8235,6 +8238,7 @@ async function transmitNodes(tw) {
       !ignoredUserSet.has(user.screenName.toLowerCase())
     ) {
       user.isTweeter = false;
+      if (botNodeIdSet.has(user.nodeId)) { user.isBot = true; }
       transmitNodeQueue.push(user);
     }
   }

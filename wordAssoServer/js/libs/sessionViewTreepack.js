@@ -2075,6 +2075,7 @@ function ViewTreepack() {
 
         if (newNode.nodeType === "user") {
           currentNode.following = newNode.following;
+          currentNode.friendsCount = newNode.friendsCount || 0;
           currentNode.followersCount = newNode.followersCount || 0;
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
         }
@@ -2102,7 +2103,6 @@ function ViewTreepack() {
         currentNode.categoryMatch = newNode.categoryMatch;
         currentNode.categoryMismatch = newNode.categoryMismatch;
         currentNode.categoryVerified = newNode.categoryVerified;
-        currentNode.friendsCount = newNode.friendsCount;
         currentNode.fullName = newNode.fullName;
         currentNode.hashtagId = newNode.hashtagId;
         currentNode.isCategory = newNode.isCategory || false;
@@ -2133,6 +2133,7 @@ function ViewTreepack() {
 
         if (newNode.nodeType === "user") {
           currentNode.following = newNode.following;
+          currentNode.friendsCount = newNode.friendsCount || 0;
           currentNode.followersCount = newNode.followersCount || 0;
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
         }
@@ -2263,6 +2264,7 @@ function ViewTreepack() {
     n.newFlag = true;
     n.following = n.following !== undefined ? n.following : false;
     n.followersCount = n.followersCount ? parseInt(n.followersCount) : 0;
+    n.friendsCount = n.friendsCount ? parseInt(n.friendsCount) : 0;
     n.mentions = n.mentions ? parseInt(n.mentions) : 0;
 
     n.ageDays = n.ageDays ? n.ageDays : 0;

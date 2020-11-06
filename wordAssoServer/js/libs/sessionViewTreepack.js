@@ -1391,6 +1391,9 @@ function ViewTreepack() {
     }
     if (d.nodeType === "user") {
       if (d.screenName) {
+        if (d.isBot){
+          return "@" + d.screenName.toLowerCase() + " (BOT)";
+        }
         if (isCategorized(d.category) || isCategorized(d.categoryAuto)) {
           return "@" + d.screenName.toUpperCase();
         }

@@ -29,29 +29,6 @@ const DEFAULT_MAX_USER_SEARCH_SKIP_COUNT = 25;
 const DEFAULT_USER_PROFILE_ONLY_FLAG = false;
 const DEFAULT_BINARY_MODE = true;
 
-// const userTrainingSetPickArray = [
-//   "categorized",
-//   "categorizedAuto",
-//   "categorizeNetwork",
-//   "category",
-//   "categoryAuto",
-//   "categoryVerified",
-//   "description",
-//   "followersCount",
-//   "friends",
-//   "friendsCount",
-//   "isBot",
-//   "lang",
-//   "languageAnalyzed",
-//   "location",
-//   "name",
-//   "nodeId",
-//   "profileHistograms",
-//   "screenName",
-//   "statusesCount",
-//   "tweetHistograms"
-// ];
-
 let saveSampleTweetFlag = true;
 
 const os = require("os");
@@ -180,7 +157,7 @@ const DEFAULT_MIN_FOLLOWERS_AUTO_CATEGORIZE = 5000;
 const DEFAULT_MIN_FOLLOWERS_AUTO_FOLLOW = 20000;
 
 const DEFAULT_MAX_BOTS_TO_FETCH = 5000;
-const DEFAULT_BOT_UPDATE_INTERVAL = ONE_DAY;
+const DEFAULT_BOT_UPDATE_INTERVAL = 4*ONE_HOUR;
 const DEFAULT_BOT_CATEGORIES = ["disruptive", "problematic"];
 
 const DEFAULT_NODE_CACHE_DELETE_QUEUE_INTERVAL = DEFAULT_INTERVAL;
@@ -5057,23 +5034,6 @@ async function twitterSearchUser(params) {
       chalkInfo(MODULE_ID + " | -?- USER SEARCH | USER: " + params.node)
     );
   }
-  // else if (params.node.screenName === "threecee") {
-  //   const node = await global.wordAssoDb.User.findOne({
-  //     screenName: "threecee",
-  //   }).lean();
-
-  //   console.log(
-  //     chalkBlueBold(
-  //       MODULE_ID +
-  //         " | ### USER SEARCH - @threecee | NID: " +
-  //         params.node.nodeId +
-  //         " | @" +
-  //         params.node.screenName
-  //     )
-  //   );
-
-  //   return { node: node, categoryAuto: "SPECIFIC", stats: statsObj.user };
-  // }
   else {
     console.log(
       chalkInfo(
@@ -7133,6 +7093,14 @@ async function initBotSet() {
 
   try {
 
+    const dbBotNodes = await global.wordAssoDb.User.find({isBot: true}).select({nodeId: 1, screenName: 1}).lean()
+    console.log(chalkTwitter(MODULE_ID + " | BOTS IN DB: " + dbBotNodes.length));
+
+    for(const botNode of dbBotNodes){
+      botNodeIdSet.add(botNode.nodeId)
+      console.log(chalk.black(MODULE_ID + " | LOADED DB BOT NODE IDs [" + botNodeIdSet.size + "] | NID" + botNode.nodeId + " | @" + botNode.screenName));
+    }
+
     clearInterval(botSetInterval)
 
     for(const botCategory of configuration.botCategories){
@@ -7145,11 +7113,8 @@ async function initBotSet() {
         await fetchBotIds({botCategory: botCategory});
       }
       
-      console.log(
-        chalk.black(
-          MODULE_ID + " | LOADED BOT NODE IDs [" + botNodeIdSet.size + "]"
-        )
-      );
+      console.log(chalk.black(MODULE_ID + " | LOADED BOT NODE IDs [" + botNodeIdSet.size + "]"));
+
       statsObj.bots = statsObj.bots || {};
       statsObj.bots.numOfBots = botNodeIdSet.size;
 
@@ -12349,6 +12314,7 @@ async function initWatchConfig() {
       }
 
       if (botBlockListFileRegex.test(f)) {
+
         console.log(
           chalkAlert(
             MODULE_ID +
@@ -12358,10 +12324,13 @@ async function initWatchConfig() {
               f
           )
         );
+
         clearTimeout(initBotSetTimeout);
+
         initBotSetTimeout = setTimeout(async function () {
           await initBotSet();
         }, ONE_MINUTE);
+
       }
     } catch (err) {
       console.log(
@@ -12425,7 +12394,6 @@ setTimeout(async function () {
     await waitDbConnectionReady();
 
     const cnf = await initConfig();
-    await initBotSet();
 
     configuration = deepcopy(cnf);
     if (empty(configuration.twitter)) {
@@ -12543,6 +12511,8 @@ setTimeout(async function () {
 
     statsObj.internetReady = true;
     configEvents.emit("INTERNET_READY");
+
+    await initBotSet();
 
     await initTssChild({
       childId: DEFAULT_TSS_CHILD_ID,

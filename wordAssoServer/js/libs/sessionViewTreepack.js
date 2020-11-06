@@ -393,7 +393,9 @@ function ViewTreepack() {
 
   // let botStrokeWidth = "4.0px";
   let botStrokeWidth = "0.6em";
-  let botFillColor = palette.black;
+  let botCircleFillColor = palette.black;
+  let botCircleStrokeColor = palette.lightgray;
+  let botLabelFillColor = palette.white;
 
   let categoryMatchColor = palette.green;
   // let categoryMatchStrokeWidth = "4.0px";
@@ -1483,7 +1485,7 @@ function ViewTreepack() {
 
   function circleFill(d) {
     if (d.isBot) {
-      return botFillColor;
+      return botCircleFillColor;
     }
     if (
       d.isTopTerm &&
@@ -1714,7 +1716,7 @@ function ViewTreepack() {
       return palette.white;
     }
     if (d.isBot) {
-      return botFillColor;
+      return botLabelFillColor;
     }
     if (d.isTopTerm && d.nodeType === "hashtag") {
       return palette.white;

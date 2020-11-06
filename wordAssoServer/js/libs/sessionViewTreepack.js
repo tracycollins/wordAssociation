@@ -393,7 +393,7 @@ function ViewTreepack() {
 
   // let botStrokeWidth = "4.0px";
   let botStrokeWidth = "0.6em";
-  let botFillColor = palette.redPure;
+  let botFillColor = palette.purple;
 
   let categoryMatchColor = palette.green;
   // let categoryMatchStrokeWidth = "4.0px";

@@ -2912,6 +2912,7 @@ const io = require("socket.io")(httpServer, ioConfig);
 // const net = require("net");
 
 const cp = require("child_process");
+const { error } = require("console");
 const sorterMessageRxQueue = [];
 
 const ignoreWordHashMap = new HashMap();
@@ -6458,9 +6459,9 @@ async function initSocketNamespaces() {
 
           authenticatedSocketCache.set(socket.id, data);
 
-          statsObj.entity.util.connected = Object.keys(
-            utilNameSpace.connected
-          ).length; // userNameSpace.sockets.length ;
+          // statsObj.entity.util.connected = Object.keys(
+          //   utilNameSpace.connected
+          // ).length; // userNameSpace.sockets.length ;
 
           await initSocketHandler({ namespace: "admin", socket: socket });
 
@@ -6512,9 +6513,9 @@ async function initSocketNamespaces() {
 
           authenticatedSocketCache.set(socket.id, data);
 
-          statsObj.entity.util.connected = Object.keys(
-            utilNameSpace.connected
-          ).length; // userNameSpace.sockets.length ;
+          // statsObj.entity.util.connected = Object.keys(
+          //   utilNameSpace.connected
+          // ).length; // userNameSpace.sockets.length ;
 
           await initSocketHandler({ namespace: "util", socket: socket });
 
@@ -6546,55 +6547,64 @@ async function initSocketNamespaces() {
     });
 
     viewNameSpace.on("connect", function viewConnect(socket) {
-      const ipAddress =
-        socket.handshake.headers["x-real-ip"] ||
-        socket.client.conn.remoteAddress;
 
-      console.log(chalk.blue(MODULE_ID + " | VIEWER CONNECT " + socket.id));
+      try{
+        const ipAddress =
+          socket.handshake.headers["x-real-ip"] ||
+          socket.client.conn.remoteAddress;
 
-      const authenticatedSocketObj = authenticatedSocketCache.get(socket.id);
-      if (authenticatedSocketObj !== undefined) {
-        console.log(
-          chalkAlert(
-            MODULE_ID +
-              " | VIEWER ALREADY AUTHENTICATED" +
-              " | " +
-              socket.id +
-              " | " +
-              authenticatedSocketObj.ipAddress +
-              "\n" +
-              jsonPrint(authenticatedSocketObj)
-          )
-        );
-      } else {
-        socket.on("authentication", async function (data) {
+        console.log(chalk.blue(MODULE_ID + " | VIEWER CONNECT " + socket.id));
+
+        const authenticatedSocketObj = authenticatedSocketCache.get(socket.id);
+
+        if (authenticatedSocketObj !== undefined) {
           console.log(
-            MODULE_ID +
-              " | RX SOCKET AUTHENTICATION" +
-              " | " +
-              socket.nsp.name.toUpperCase() +
-              " | " +
-              ipAddress +
-              " | " +
-              socket.id +
-              " | USER ID: " +
-              data.userId
+            chalkAlert(
+              MODULE_ID +
+                " | VIEWER ALREADY AUTHENTICATED" +
+                " | " +
+                socket.id +
+                " | " +
+                authenticatedSocketObj.ipAddress +
+                "\n" +
+                jsonPrint(authenticatedSocketObj)
+            )
           );
+        } else {
+          socket.on("authentication", async function (data) {
+            console.log(
+              MODULE_ID +
+                " | RX SOCKET AUTHENTICATION" +
+                " | " +
+                socket.nsp.name.toUpperCase() +
+                " | " +
+                ipAddress +
+                " | " +
+                socket.id +
+                " | USER ID: " +
+                data.userId
+            );
 
-          data.ipAddress = ipAddress;
-          data.timeStamp = moment().valueOf();
+            data.ipAddress = ipAddress;
+            data.timeStamp = moment().valueOf();
 
-          authenticatedSocketCache.set(socket.id, data);
+            authenticatedSocketCache.set(socket.id, data);
 
-          statsObj.entity.viewer.connected = Object.keys(
-            viewNameSpace.connected
-          ).length; // viewNameSpace.sockets.length ;
+            // statsObj.entity.viewer.connected = Object.keys(
+            //   viewNameSpace.connected
+            // ).length; // viewNameSpace.sockets.length ;
 
-          await initSocketHandler({ namespace: "view", socket: socket });
+            await initSocketHandler({ namespace: "view", socket: socket });
 
-          socket.emit("authenticated", true);
-        });
+            socket.emit("authenticated", true);
+          });
+        }
       }
+      catch(err){
+        console.log(chalkError(MODULE_ID + " | VIEWER CONNECT ERROR:" + error));
+        throw err;
+      }
+
     });
 
     statsObj.ioReady = true;
@@ -10343,9 +10353,9 @@ function initRateQinterval(interval) {
         });
 
         if (adminNameSpace) {
-          statsObj.admin.connected = Object.keys(
-            adminNameSpace.connected
-          ).length; // userNameSpace.sockets.length ;
+          // statsObj.admin.connected = Object.keys(
+          //   adminNameSpace.connected
+          // ).length; // userNameSpace.sockets.length ;
           if (statsObj.admin.connected > statsObj.admin.connectedMax) {
             statsObj.admin.connectedMaxTime = moment().valueOf();
             statsObj.admin.connectedMax = statsObj.admin.connected;
@@ -10363,9 +10373,9 @@ function initRateQinterval(interval) {
         }
 
         if (utilNameSpace) {
-          statsObj.entity.util.connected = Object.keys(
-            utilNameSpace.connected
-          ).length; // userNameSpace.sockets.length ;
+          // statsObj.entity.util.connected = Object.keys(
+          //   utilNameSpace.connected
+          // ).length; // userNameSpace.sockets.length ;
           if (
             statsObj.entity.util.connected > statsObj.entity.util.connectedMax
           ) {
@@ -10385,9 +10395,9 @@ function initRateQinterval(interval) {
         }
 
         if (adminNameSpace) {
-          statsObj.entity.viewer.connected = Object.keys(
-            viewNameSpace.connected
-          ).length; // userNameSpace.sockets.length ;
+          // statsObj.entity.viewer.connected = Object.keys(
+          //   viewNameSpace.connected
+          // ).length; // userNameSpace.sockets.length ;
 
           if (
             statsObj.entity.viewer.connected >
@@ -11511,21 +11521,21 @@ function initStatsUpdate() {
             statsObj.nodeMeterEntriesMaxTime = moment().valueOf();
           }
 
-          if (adminNameSpace) {
-            statsObj.admin.connected = Object.keys(
-              adminNameSpace.connected
-            ).length;
-          } // userNameSpace.sockets.length ;
-          if (utilNameSpace) {
-            statsObj.entity.util.connected = Object.keys(
-              utilNameSpace.connected
-            ).length;
-          } // userNameSpace.sockets.length ;
-          if (viewNameSpace) {
-            statsObj.entity.viewer.connected = Object.keys(
-              viewNameSpace.connected
-            ).length;
-          } // userNameSpace.sockets.length ;
+          // if (adminNameSpace) {
+          //   statsObj.admin.connected = Object.keys(
+          //     adminNameSpace.connected
+          //   ).length;
+          // } // userNameSpace.sockets.length ;
+          // if (utilNameSpace) {
+          //   statsObj.entity.util.connected = Object.keys(
+          //     utilNameSpace.connected
+          //   ).length;
+          // } // userNameSpace.sockets.length ;
+          // if (viewNameSpace) {
+          //   statsObj.entity.viewer.connected = Object.keys(
+          //     viewNameSpace.connected
+          //   ).length;
+          // } // userNameSpace.sockets.length ;
 
           statsObj.queues.saveFileQueue = tcUtils.saveFileQueue({
             folder: statsHostFolder,

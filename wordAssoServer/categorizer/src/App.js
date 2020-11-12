@@ -5,7 +5,8 @@ import socketClient from "socket.io-client";
 import './App.css';
 // import { client } from "./client";
 // import Button from '@material-ui/core/Button';
-const ENDPOINT = "http://mbp3:9997/view";
+// const ENDPOINT = "http://mbp3:9997/view";
+const ENDPOINT = "https://word.threeceelabs.com/view";
 
 const statsObj = {};
 statsObj.viewerReadyTransmitted = false;

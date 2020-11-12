@@ -105,7 +105,23 @@ const App = () => {
         });
         break
       case "isBot":
+        console.log("handleChange: " + event.target.name + " | " + event.target.checked)
+        if (event.target.checked){
+          socket.emit("TWITTER_BOT", currentUser);
+        }
+        else{
+          socket.emit("TWITTER_UNBOT", currentUser);
+        }
+        break
       case "following":
+        console.log("handleChange: " + event.target.name + " | " + event.target.checked)
+        if (event.target.checked){
+          socket.emit("TWITTER_FOLLOW", currentUser);
+        }
+        else{
+          socket.emit("TWITTER_UNFOLLOW", currentUser);
+        }
+        break
       case "catVerified":
         console.log("handleChange: " + event.target.name + " | " + event.target.checked)
         if (event.target.checked){
@@ -117,6 +133,13 @@ const App = () => {
         break
       case "ignored":
         console.log("handleChange: " + event.target.name + " | " + event.target.checked)
+        if (event.target.checked){
+          socket.emit("TWITTER_IGNORE", currentUser);
+        }
+        else{
+          socket.emit("TWITTER_UNIGNORE", currentUser);
+        }
+        break
         break
     }
   }

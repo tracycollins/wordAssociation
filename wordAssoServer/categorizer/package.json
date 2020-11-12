@@ -1,7 +1,6 @@
 {
   "name": "categorizer",
   "version": "0.1.0",
-  "proxy": "http://mbp3:9997/",
   "private": true,
   "dependencies": {
     "@material-ui/core": "^4.11.0",

@@ -1,14 +1,19 @@
 {
   "name": "categorizer",
   "version": "0.1.0",
+  "proxy": "http://mbp3:9997/",
   "private": true,
   "dependencies": {
+    "@material-ui/core": "^4.11.0",
+    "@material-ui/icons": "^4.9.1",
     "@testing-library/jest-dom": "^5.11.5",
     "@testing-library/react": "^11.1.1",
     "@testing-library/user-event": "^12.2.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-scripts": "4.0.0",
+    "socket.io": "^3.0.1",
+    "socket.io-client": "^3.0.1",
     "web-vitals": "^0.2.4"
   },
   "scripts": {

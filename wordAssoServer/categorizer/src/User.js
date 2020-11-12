@@ -295,7 +295,7 @@ const User = (props) => {
               />
               <FormControlLabel
                 control={<Checkbox checked={props.user.isBot || false} onChange={props.handleChange} name="isBot" />}
-                label="bot"
+                label="isBot"
               />
             </FormGroup>
           </Grid>

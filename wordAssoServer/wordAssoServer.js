@@ -2908,14 +2908,14 @@ const httpServer = http.createServer(app);
 const ioConfig = {
   pingInterval: DEFAULT_IO_PING_INTERVAL,
   pingTimeout: DEFAULT_IO_PING_TIMEOUT,
-  reconnection: true,
-  cors: {
-    // origin: "http://mbp3:3000",
-    origin: "http://mbp3:3000",
-    methods: ["GET", "POST"],
-    allowedHeaders: ["my-custom-header"],
-    credentials: true
-  }
+  reconnection: true
+  // cors: {
+  //   // origin: "http://mbp3:3000",
+  //   origin: "http://mbp3:3000",
+  //   methods: ["GET", "POST"],
+  //   allowedHeaders: ["my-custom-header"],
+  //   credentials: true
+  // }
 };
 
 const io = require("socket.io")(httpServer, ioConfig);

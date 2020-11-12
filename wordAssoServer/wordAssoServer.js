@@ -1286,7 +1286,7 @@ configuration.pubSub.subscriptions = {};
 configuration.slackChannel = {};
 
 configuration.heartbeatInterval =
-  process.env.WAS_HEARTBEAT_INTERVAL || ONE_MINUTE;
+  process.env.WAS_HEARTBEAT_INTERVAL || 10*ONE_SECOND;
 
 configuration.maxUserSearchSkipCount = DEFAULT_MAX_USER_SEARCH_SKIP_COUNT;
 configuration.filterVerifiedUsers = true;
@@ -2906,6 +2906,12 @@ const ioConfig = {
   pingInterval: DEFAULT_IO_PING_INTERVAL,
   pingTimeout: DEFAULT_IO_PING_TIMEOUT,
   reconnection: true,
+  cors: {
+    origin: "http://mbp3:3000",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["my-custom-header"],
+    credentials: true
+  }
 };
 
 const io = require("socket.io")(httpServer, ioConfig);
@@ -3685,6 +3691,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
     let tempViewerArray = [];
 
     heartbeatInterval = setInterval(function () {
+      
       statsObj.serverTime = moment().valueOf();
       statsObj.runTime = moment().valueOf() - statsObj.startTime;
       statsObj.elapsed = tcUtils.msToTime(
@@ -3749,28 +3756,27 @@ configEvents.on("INTERNET_READY", function internetReady() {
       if (statsObj.internetReady && statsObj.ioReady) {
         statsObj.configuration = configuration;
 
-        heartbeatObj.serverTime = statsObj.serverTime;
-        heartbeatObj.startTime = statsObj.startTime;
-        heartbeatObj.runTime = statsObj.runTime;
-        heartbeatObj.upTime = statsObj.upTime;
-        heartbeatObj.elapsed = statsObj.elapsed;
-        heartbeatObj.nodesPerMin = statsObj.nodesPerMin;
-        heartbeatObj.maxNodesPerMin = statsObj.maxNodesPerMin;
+        // heartbeatObj.serverTime = statsObj.serverTime;
+        // heartbeatObj.startTime = statsObj.startTime;
+        // heartbeatObj.runTime = statsObj.runTime;
+        // heartbeatObj.upTime = statsObj.upTime;
+        // heartbeatObj.elapsed = statsObj.elapsed;
+        // heartbeatObj.nodesPerMin = statsObj.nodesPerMin;
+        // heartbeatObj.maxNodesPerMin = statsObj.maxNodesPerMin;
 
-        heartbeatObj.twitter.tweetsPerMin = statsObj.twitter.tweetsPerMin;
-        heartbeatObj.twitter.maxTweetsPerMin = statsObj.twitter.maxTweetsPerMin;
-        heartbeatObj.twitter.maxTweetsPerMinTime =
-          statsObj.twitter.maxTweetsPerMinTime;
+        // heartbeatObj.twitter.tweetsPerMin = statsObj.twitter.tweetsPerMin;
+        // heartbeatObj.twitter.maxTweetsPerMin = statsObj.twitter.maxTweetsPerMin;
+        // heartbeatObj.twitter.maxTweetsPerMinTime =
+        //   statsObj.twitter.maxTweetsPerMinTime;
 
-        viewNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
-        viewNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
-        viewNameSpace.emit("action", { type: "heartbeat", data: heartbeatObj });
+        // viewNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
+        // viewNameSpace.emit("action", { type: "heartbeat", data: heartbeatObj });
 
-        const sObj = {};
-        sObj.user = statsObj.user;
-        sObj.bestNetwork = statsObj.bestNetwork;
+        // const sObj = {};
+        // sObj.user = statsObj.user;
+        // sObj.bestNetwork = statsObj.bestNetwork;
 
-        viewNameSpace.emit("STATS", sObj);
+        viewNameSpace.emit("action", { type: "stats", data: statsObj });
 
         heartbeatsSent += 1;
         if (heartbeatsSent % 60 == 0) {
@@ -8251,6 +8257,13 @@ function initAppRouting(callback) {
 
   let domainName;
 
+  // app.use(function(req, res, next) {
+  //   console.log({req})
+  //   res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
+  //   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  //   next();
+  // });
+
   app.use(methodOverride());
 
   app.use(async function requestLog(req, res, next) {
@@ -8578,6 +8591,28 @@ function initAppRouting(callback) {
         );
       }
     });
+  });
+  
+  app.get("/stats", async function requestStats(req, res) {
+
+    console.log(chalkLog(MODULE_ID + " | R< STATS"));
+
+    statsObj.elapsed = tcUtils.msToTime(moment().valueOf() - statsObj.startTime);
+    statsObj.timeStamp = getTimeStamp();
+    statsObj.twitter.tweetsPerMin = parseInt(tweetMeter.toJSON()[metricsRate]);
+    statsObj.nodesPerMin = parseInt(globalNodeMeter.toJSON()[metricsRate]);
+
+    if (statsObj.nodesPerMin > statsObj.maxNodesPerMin) {
+      statsObj.maxNodesPerMin = statsObj.nodesPerMin;
+      statsObj.maxNodesPerMinTime = moment().valueOf();
+    }
+
+    if (statsObj.twitter.tweetsPerMin > statsObj.twitter.maxTweetsPerMin) {
+      statsObj.twitter.maxTweetsPerMin = statsObj.twitter.tweetsPerMin;
+      statsObj.twitter.maxTweetsPerMinTime = moment().valueOf();
+    }
+
+    res.send(statsObj)
   });
 
   const adminHtml = path.join(__dirname, "/admin/admin.html");

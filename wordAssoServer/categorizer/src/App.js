@@ -1,17 +1,20 @@
-import React, { useState, useEffect } from 'react';
-// import ReactDOM from 'react-dom';
-// import logo from './logo.png';
+import React, { useState, useLayoutEffect, useEffect } from 'react';
 import socketClient from "socket.io-client";
 import './App.css';
-// import { client } from "./client";
-// import Button from '@material-ui/core/Button';
+import User from './User.js';
+
+import Button from '@material-ui/core/Button';
+
+
 // const ENDPOINT = "http://mbp3:9997/view";
 const ENDPOINT = "https://word.threeceelabs.com/view";
 
 const statsObj = {};
 statsObj.viewerReadyTransmitted = false;
 
-function App() {
+const socket = socketClient(ENDPOINT);
+
+const App = () => {
 
   const defaultStatus = {
     nodesPerMin: 0, 
@@ -26,7 +29,7 @@ function App() {
     name: "",
     location: "",
     description: "",
-    profileImage: "",
+    profileImageUrl: "https://pbs.twimg.com/profile_images/1205585278565527559/GrTkBpzl.jpg",
     bannerImage: "",
     createdAt: null,
     followersCount: 0,
@@ -67,32 +70,65 @@ function App() {
   const handleAction = (action) => {
     switch (action.type){
       case "user":
-          setUser({})
+          setUser({
+            ...currentUser,
+            ...action.data,
+          })
+          console.log("USER: @" + currentUser.screenName + " | " + currentUser.profileImageUrl)
         break
       case "hashtag":
           setHashtag({})
         break
       case "stats":
-          setStatus({nodesPerMin: action.data.nodesPerMin, maxNodesPerMin: action.data.maxNodesPerMin})
+          setStatus({nodesPerMin: currentUser.nodesPerMin, maxNodesPerMin: currentUser.maxNodesPerMin})
         break
         default:
     }
   }
 
+  const handleSearchUser = () => {
+    socket.emit("TWITTER_SEARCH_NODE", "@threecee")
+  }
+
+  const handleUserChange = (event) => {
+    event.persist()
+    console.log("handleChange: " + event.target.name)
+
+    switch (event.target.name){
+      case "category":
+        console.log("handleChange: " + event.target.name + " | " + event.target.value + " | " + event.target.checked)
+        socket.emit("TWITTER_CATEGORIZE_NODE", {
+          category: event.target.value,
+          following: true,
+          node: currentUser,
+        });
+        break
+      case "isBot":
+      case "following":
+      case "catVerified":
+      case "ignored":
+        console.log("handleChange: " + event.target.name + " | " + event.target.checked)
+        break
+    }
+  }
+  
+  useLayoutEffect(() => {
+      socket.on("SET_TWITTER_USER", (results) => {
+      console.debug("RX SET_TWITTER_USER");
+      console.debug(results);
+      handleAction({type: "user", data: results.node})
+    });
+}, [])
+
   useEffect(() => {
-    const socket = socketClient(ENDPOINT);
-
     socket.on("connect", ()=>{
-
       console.log("CONNECTED: " + socket.id)
-
       socket.emit("authentication", {
         namespace: "view",
         userId: "test",
         password: "0123456789",
       });
-
-    })
+    }, [])
 
     socket.on("authenticated", function () {
       console.debug("AUTHENTICATED | " + socket.id);
@@ -103,35 +139,20 @@ function App() {
       statsObj.userReadyAck = false;
 
       console.log("CONNECTED TO HOST" + " | ID: " + socket.id);
-
       socket.emit("TWITTER_SEARCH_NODE", "@threecee")
-
-    });
-
-    
-    socket.on("SET_TWITTER_USER", (results) => {
-      console.debug("RX SET_TWITTER_USER");
-      console.debug(results);
     });
 
     socket.on("action", (action) => {
       console.debug("RX ACTION | " + socket.id + " | TYPE: " + action.type);
       console.debug("RX ACTION | ", action.data);
       handleAction(action)
-    });
-
-    const statsInterval = setInterval(() => {
-      // socket.emit("")
-    }, 1000);
-    
+    });    
+  
+    return () => socket.disconnect();
   }, []);
 
   return (
-    <div className="App">
-      <h3>NODES PER MIN: {status.nodesPerMin} | MAX: {status.maxNodesPerMin}</h3>
-      <h3>USER:    @{currentUser.screenName}</h3>
-      <h3>HASHTAG: #{currentHashtag.text}</h3>
-    </div>
+    <User user={currentUser} handleChange={handleUserChange}/>
   );
 }
 

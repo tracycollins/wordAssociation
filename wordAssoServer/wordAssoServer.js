@@ -6094,6 +6094,7 @@ async function initSocketHandler(socketObj) {
           user: { nodeId: user.nodeId, screenName: user.screenName },
         });
         await nodeSetProps({ node: user, props: { isBot: true } });
+        socket.emit("SET_TWITTER_USER", { node: user, stats: statsObj.user });
       } catch (err) {
         console.log(chalkError(MODULE_ID + " | *** BOT USER ERROR: " + err));
       }
@@ -6124,6 +6125,7 @@ async function initSocketHandler(socketObj) {
           user: { nodeId: user.nodeId, screenName: user.screenName },
         });
         await nodeSetProps({ node: user, props: { isBot: false } });
+        socket.emit("SET_TWITTER_USER", { node: user, stats: statsObj.user });
       } catch (err) {
         console.log(chalkError(MODULE_ID + " | TWITTER_UNBOT ERROR: " + err));
       }

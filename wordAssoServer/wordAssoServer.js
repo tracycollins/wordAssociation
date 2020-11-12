@@ -31,7 +31,6 @@ const DEFAULT_BINARY_MODE = true;
 
 let saveSampleTweetFlag = true;
 
-const cors = require("cors")
 const os = require("os");
 const https = require("https");
 const defaults = require("object.defaults");
@@ -263,6 +262,7 @@ const debug = require("debug")("wa");
 const moment = require("moment");
 
 const express = require("express");
+const cors = require("cors")
 const app = express();
 
 app.use(cors())

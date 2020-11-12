@@ -31,6 +31,7 @@ const DEFAULT_BINARY_MODE = true;
 
 let saveSampleTweetFlag = true;
 
+const cors = require("cors")
 const os = require("os");
 const https = require("https");
 const defaults = require("object.defaults");
@@ -263,6 +264,8 @@ const moment = require("moment");
 
 const express = require("express");
 const app = express();
+
+app.use(cors())
 app.set("trust proxy", 1); // trust first proxy
 
 const expressSession = require("express-session");
@@ -2908,7 +2911,7 @@ const ioConfig = {
   reconnection: true,
   cors: {
     // origin: "http://mbp3:3000",
-    origin: "*.*",
+    origin: "http://mbp3:3000",
     methods: ["GET", "POST"],
     allowedHeaders: ["my-custom-header"],
     credentials: true

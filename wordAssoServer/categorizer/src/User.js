@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { Timeline } from 'react-twitter-widgets'
 
 import Duration from 'duration';
 
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
+import ButtonGroup from '@material-ui/core/ButtonGroup';
 import Card from '@material-ui/core/Card';
 // import CardActionArea from '@material-ui/core/CardActionArea';
 // import CardActions from '@material-ui/core/CardActions';
@@ -54,7 +56,7 @@ const useStyles = makeStyles((theme) => ({
   },  
   gridItem: {
     // backgroundColor: 'lightgray',
-    margin: 2,
+    margin: 5,
     // padding: 2,
     // backgroundColor: 'red',
   },  
@@ -130,6 +132,27 @@ const useStyles = makeStyles((theme) => ({
     },
   },
 
+  buttonAll: {
+    color: 'gray',
+    // color: 'white'
+  },
+  buttonLeft: {
+    color: 'blue',
+    // border: 'solid',
+    // color: 'white'
+  },
+  buttonNeutral: {
+    color: 'gray',
+    // color: 'white'
+  },
+  buttonRight: {
+    color: 'red',
+    // color: 'white'
+  },
+  buttonMismatch: {
+    color: 'darkyellow'
+  },
+
 }));
 
 const formatDate = (dateInput) => {
@@ -174,11 +197,10 @@ const User = (props) => {
   }
 
   const openUserTwitterPage = () => {
-
     console.log("open twitter")
     window.open(`http://twitter.com/${props.user.screenName || null}`, "_blank") //to open new page
   }
-  
+
   return (
     <div className={classes.root}>
       <Container component="main">
@@ -234,6 +256,17 @@ const User = (props) => {
             </Card>
           </Grid>
           <Grid item className={classes.gridItem} xs={3}>
+            <Timeline
+              dataSource={{
+                sourceType: 'profile',
+                screenName: props.user.screenName
+              }}
+              options={{
+                height: '600'
+              }}
+            />
+          </Grid>
+          <Grid item className={classes.gridItem} xs={3}>
             <TableContainer>
               <Table className={classes.table} size="small" aria-label="a dense table">
                 <TableHead>
@@ -283,7 +316,7 @@ const User = (props) => {
             <FormGroup>
               <FormControlLabel
                 control={<Checkbox checked={props.user.categoryVerified || false} onChange={props.handleChange} name="catVerified" />}
-                label="category verified"
+                label="cat verified"
               />
               <FormControlLabel
                 control={<Checkbox checked={props.user.following || false} onChange={props.handleChange} name="following" />}
@@ -299,7 +332,7 @@ const User = (props) => {
               />
             </FormGroup>
           </Grid>
-          <Grid item className={classes.gridItem} xs={2}>
+          <Grid item className={classes.gridItem} xs={1}>
             <FormGroup>
               <Typography>
                 CATEGORY
@@ -318,6 +351,21 @@ const User = (props) => {
                 </RadioGroup>
               </FormControl>
             </FormGroup>
+          </Grid>
+          <Grid item className={classes.gridItem} xs={1}>
+            <Typography>NEXT UNCAT</Typography>
+            <ButtonGroup
+              orientation="vertical"
+              // color="primary"
+              aria-label="vertical contained primary button group"
+              variant="contained"
+            >
+              <Button variant="outlined" onClick={props.handleChange} name="all" className={classes.buttonAll}>ALL {props.stats.user.uncategorized.all}</Button>
+              <Button variant="outlined" onClick={props.handleChange} name="mismatch" className={classes.buttonMismatch}>MISMATCH {props.stats.user.mismatched}</Button>
+              <Button variant="outlined" onClick={props.handleChange} name="left" className={classes.buttonLeft}>LEFT {props.stats.user.uncategorized.left}</Button>
+              <Button variant="outlined" onClick={props.handleChange} name="neutral" className={classes.buttonNeutral}>NEUTRAL {props.stats.user.uncategorized.neutral}</Button>
+              <Button variant="outlined" onClick={props.handleChange} name="right" className={classes.buttonRight}>RIGHT {props.stats.user.uncategorized.right}</Button>
+            </ButtonGroup>
           </Grid>
         </Grid>
       </Container>

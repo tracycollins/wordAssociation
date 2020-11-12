@@ -3,13 +3,26 @@
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <meta
       name="description"
       content="Web site created using create-react-app"
     />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <meta http-equiv="Content-Security-Policy" content="
+    
+        default-src 'unsafe-inline' 'self' ws: https://*.jsdelivr.net/ https://*.twitter.com/ http://*.googleapis.com/ https://*.cloudflare.com/; 
+        script-src 'unsafe-eval' 'unsafe-inline' 'self' about: https://*.jsdelivr.net/ http://*.googleapis.com/ https://d3js.org http://*.google-analytics.com/ https://*.googletagmanager.com/ https://*.cloudflare.com/ https://*.twimg.com/ https://*.twitter.com/; 
+        script-src-elem 'unsafe-eval' 'unsafe-inline' 'self' about: https://*.jsdelivr.net/ http://*.googleapis.com/ https://d3js.org http://*.google-analytics.com/ https://*.googletagmanager.com/ https://*.cloudflare.com/ https://*.twimg.com/ https://*.twitter.com/; 
+        font-src 'unsafe-inline' 'self' data: http://fonts.gstatic.com/; 
+        img-src 'self' data: https://localhost/ http://localhost/ http://*.threeceelabs.com/ https://*.jsdelivr.net/ http://*.google-analytics.com/ http://*.twitter.com/ https://*.twitter.com/ https://api.twitter.com/favicon.ico http://*.twimg.com/ https://*.twimg.com/; object-src https://twitter.com/; 
+        frame-src https://*.twitter.com/ http://*.twitter.com/ https://twitter.com/; 
+        style-src 'self' 'unsafe-inline' https://*.cloudflare.com/ http://*.twimg.com/ https://*.twimg.com/ http://*.googleapis.com/ https://*.twitter.com/ http://*.twitter.com/; 
+        connect-src 'self' ws://mbp3:1997/ http://mbp3:9997/  http://localhost:9997/ https://twitter.com/ http://twitter.com/ https://*.twitter.com/ http://*.twitter.com/; " />
+
+        <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <!--
       manifest.json provides metadata used when your web app is installed on a
       user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
@@ -24,7 +37,8 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <title>React App</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.1/socket.io.js"></script>
+    <title>categorizer</title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

@@ -6071,6 +6071,8 @@ async function initSocketHandler(socketObj) {
 
     socket.on("TWITTER_BOT", async function (user) {
       user.nodeType = user.nodeType || "user";
+      user.isBot = true;
+
       try {
         console.log(
           chalkSocket(
@@ -6102,6 +6104,8 @@ async function initSocketHandler(socketObj) {
 
     socket.on("TWITTER_UNBOT", async function (user) {
       user.nodeType = user.nodeType || "user";
+      user.isBot = false;
+
       try {
         console.log(
           chalkSocket(

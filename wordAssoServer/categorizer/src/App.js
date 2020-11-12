@@ -86,8 +86,9 @@ const App = () => {
     }
   }
 
-  const handleSearchUser = () => {
-    socket.emit("TWITTER_SEARCH_NODE", "@threecee")
+  const handleSearchUser = (searchString) => {
+    const searchTerm = "@" + searchString
+    socket.emit("TWITTER_SEARCH_NODE", searchTerm)
   }
 
   const handleUserChange = (event) => {
@@ -106,6 +107,14 @@ const App = () => {
       case "isBot":
       case "following":
       case "catVerified":
+        console.log("handleChange: " + event.target.name + " | " + event.target.checked)
+        if (event.target.checked){
+          socket.emit("TWITTER_CATEGORY_VERIFIED", currentUser);
+        }
+        else{
+          socket.emit("TWITTER_CATEGORY_UNVERIFIED", currentUser);
+        }
+        break
       case "ignored":
         console.log("handleChange: " + event.target.name + " | " + event.target.checked)
         break
@@ -152,7 +161,7 @@ const App = () => {
   }, []);
 
   return (
-    <User user={currentUser} handleChange={handleUserChange}/>
+    <User user={currentUser} handleChange={handleUserChange} handleSearchUser={handleSearchUser}/>
   );
 }
 

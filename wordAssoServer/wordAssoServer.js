@@ -2907,7 +2907,8 @@ const ioConfig = {
   pingTimeout: DEFAULT_IO_PING_TIMEOUT,
   reconnection: true,
   cors: {
-    origin: "http://mbp3:3000",
+    // origin: "http://mbp3:3000",
+    origin: "*.*",
     methods: ["GET", "POST"],
     allowedHeaders: ["my-custom-header"],
     credentials: true

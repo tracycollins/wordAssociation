@@ -23,6 +23,7 @@
     "command-line-args": "^5.1.1",
     "concurrently": "^5.3.0",
     "connect-mongo": "^3.2.0",
+    "cors": "^2.8.5",
     "csv-parse": "^4.14.0",
     "deepmerge": "^4.2.2",
     "deepool": "^2.2.0",

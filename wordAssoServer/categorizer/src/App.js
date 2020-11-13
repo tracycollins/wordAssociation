@@ -25,7 +25,7 @@ const App = () => {
   const defaultUser = {
 
     nodeId: null, 
-    screenName: "",
+    screenName: "threecee",
     name: "",
     location: "",
     description: "",
@@ -78,6 +78,7 @@ const App = () => {
         break
       case "hashtag":
           setHashtag({})
+          console.log("HT: #" + currentHashtag.text)
         break
       case "stats":
           setStatus({
@@ -154,7 +155,7 @@ const App = () => {
           socket.emit("TWITTER_UNIGNORE", currentUser);
         }
         break
-        break
+      default:
     }
   }
   

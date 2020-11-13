@@ -67,7 +67,7 @@ const useStyles = makeStyles((theme) => ({
     raised: false,
     // border: 10,
     // backgroundColor: 'lightgray',
-    maxWidth: 300,
+    maxWidth: 400,
   },
   profileImage: {
     // width: 200,
@@ -84,8 +84,12 @@ const useStyles = makeStyles((theme) => ({
   table: {
     // width: 300,
   },
+  tableRowGreen: {
+    backgroundColor: 'lightgreen',
+    // width: 300,
+  },
   appBar: {
-    backgroundColor: 'black',
+    backgroundColor: 'lightblue',
     margin: 2,
   },
   menuButton: {
@@ -133,24 +137,44 @@ const useStyles = makeStyles((theme) => ({
   },
 
   buttonAll: {
-    color: 'gray',
-    // color: 'white'
+    color: 'black',
   },
   buttonLeft: {
     color: 'blue',
-    // border: 'solid',
-    // color: 'white'
   },
   buttonNeutral: {
     color: 'gray',
-    // color: 'white'
   },
   buttonRight: {
     color: 'red',
-    // color: 'white'
   },
   buttonMismatch: {
-    color: 'darkyellow'
+    // color: 'black',
+    margin: 5
+  },
+
+  left: {
+    // padding: 5,
+    color: 'white',
+    backgroundColor: 'blue',
+  },
+  neutral: {
+    // margin: 5,
+    // padding: 5,
+    color: 'white',
+    backgroundColor: 'gray',
+  },
+  right: {
+    // margin: 5,
+    // padding: 5,
+    color: 'white',
+    backgroundColor: 'red',
+  },
+  none: {
+    // margin: 5,
+    // padding: 5,
+    color: 'black',
+    backgroundColor: 'white',
   },
 
 }));
@@ -183,6 +207,7 @@ const User = (props) => {
   const tweetRate = twitterAge.days > 0 ? Math.ceil(props.user.statusesCount/twitterAge.days) : 0;
 
   const [userSearch, setUserSearch] = useState("");
+  const [timelineLoaded, setTimelineLoaded] = useState(false);
 
   const handleChangeSearch = (event) => {
     console.log("handleChangeSearch: " + event.target.value)
@@ -201,18 +226,25 @@ const User = (props) => {
     window.open(`http://twitter.com/${props.user.screenName || null}`, "_blank") //to open new page
   }
 
+  const getCategoryClass = (category) => {
+    switch (category){
+      case "left":
+      case "neutral":
+      case "right":
+        return classes[category]
+      default:
+        return classes.none
+    }
+  }
+
   return (
     <div className={classes.root}>
       <Container component="main">
         <AppBar  className={classes.appBar} position="static">
           <Toolbar>
-            {/* <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
-              <MenuIcon />
-            </IconButton> */}
             <Typography className={classes.title}>
                User
             </Typography>
-
             <div className={classes.search}>
               <div className={classes.searchIcon}>
                 <SearchIcon />
@@ -234,7 +266,7 @@ const User = (props) => {
           </Toolbar>
         </AppBar>
         <Grid className={classes.grid}>
-          <Grid item className={classes.gridItem} xs={3}>
+          <Grid item className={classes.gridItem} xs={4}>
             <Card className={classes.card} variant="outlined">
               <CardHeader
                 onClick={openUserTwitterPage}
@@ -255,8 +287,9 @@ const User = (props) => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item className={classes.gridItem} xs={3}>
+          <Grid item className={classes.gridItem} xs={4}>
             <Timeline
+              onLoad={{setTimelineLoaded}}
               dataSource={{
                 sourceType: 'profile',
                 screenName: props.user.screenName
@@ -268,12 +301,7 @@ const User = (props) => {
           </Grid>
           <Grid item className={classes.gridItem} xs={3}>
             <TableContainer>
-              <Table className={classes.table} size="small" aria-label="a dense table">
-                <TableHead>
-                  <TableRow>
-                    {/* <TableCell>{`${props.user.name}`}</TableCell><TableCell align="right">{`@${props.user.screenName}`}</TableCell> */}
-                  </TableRow>
-                </TableHead>
+              <Table className={classes.table} size="small">
                 <TableBody>
                   <TableRow>
                     <TableCell>location</TableCell><TableCell align="right">{props.user.location}</TableCell>
@@ -284,7 +312,7 @@ const User = (props) => {
                   <TableRow>
                     <TableCell>twitter age</TableCell><TableCell align="right">{twitterAgeString}</TableCell>
                   </TableRow>
-                  <TableRow>
+                  <TableRow className={props.user.followersCount > 5000 ? classes.tableRowGreen : null}>
                     <TableCell>followers</TableCell><TableCell align="right">{props.user.followersCount}</TableCell>
                   </TableRow>
                   <TableRow>
@@ -312,62 +340,109 @@ const User = (props) => {
               </Table>
             </TableContainer>
           </Grid>
-          <Grid item className={classes.gridItem} xs={2}>
+          <Grid item className={classes.gridItem} xs={1}>
             <FormGroup>
+              <Button className={getCategoryClass(props.user.categoryAuto)}>
+                AUTO: {props.user.categoryAuto.toUpperCase() || "NONE"}
+              </Button>
+
+              <FormControl component="fieldset">
+                <RadioGroup aria-label="category" name="category" value={props.user.category || "none"} onChange={props.handleChange}>
+                  <FormControlLabel labelPlacement="start" value="left" control={<Radio />} label="left"/>
+                  <FormControlLabel labelPlacement="start" value="neutral" control={<Radio />} label="neutral" />
+                  <FormControlLabel labelPlacement="start" value="right" control={<Radio />} label="right" />
+                  <FormControlLabel labelPlacement="start" value="positive" control={<Radio />} label="positive" />
+                  <FormControlLabel labelPlacement="start" value="negative" control={<Radio />} label="negative" />
+                  <FormControlLabel labelPlacement="start" value="none" control={<Radio />} label="none" />
+                </RadioGroup>
+              </FormControl>
+
               <FormControlLabel
                 control={<Checkbox checked={props.user.categoryVerified || false} onChange={props.handleChange} name="catVerified" />}
-                label="cat verified"
+                label="verified"
+                labelPlacement="start"
               />
               <FormControlLabel
                 control={<Checkbox checked={props.user.following || false} onChange={props.handleChange} name="following" />}
                 label="following"
+                labelPlacement="start"
               />
               <FormControlLabel
                 control={<Checkbox checked={props.user.ignored || false} onChange={props.handleChange} name="ignored" />}
                 label="ignored"
+                labelPlacement="start"
               />
               <FormControlLabel
                 control={<Checkbox checked={props.user.isBot || false} onChange={props.handleChange} name="isBot" />}
-                label="isBot"
+                label="bot"
+                labelPlacement="start"
               />
+
+                  {/* <TableRow>
+                    <TableCell>cat verified</TableCell>
+                    <TableCell>
+                      <FormGroup>
+                        <FormControlLabel
+                          control={<Checkbox checked={props.user.categoryVerified || false} onChange={props.handleChange} name="catVerified" />}
+                          label=""
+                          labelPlacement="start"
+                        />
+                      </FormGroup>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>following</TableCell>
+                    <TableCell>
+                      <FormGroup>
+                        <FormControlLabel
+                          control={<Checkbox checked={props.user.following || false} onChange={props.handleChange} name="following" />}
+                          label=""
+                          labelPlacement="start"
+                        />
+                      </FormGroup>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>ignored</TableCell>
+                    <TableCell>
+                      <FormGroup>
+                        <FormControlLabel
+                          control={<Checkbox checked={props.user.ignored || false} onChange={props.handleChange} name="ignored" />}
+                          label=""
+                          labelPlacement="start"
+                        />
+                      </FormGroup>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>bot</TableCell>
+                    <TableCell>
+                      <FormGroup>
+                        <FormControlLabel
+                          control={<Checkbox checked={props.user.isBot || false} onChange={props.handleChange} name="isBot" />}
+                          label=""
+                          labelPlacement="start"
+                        />
+                      </FormGroup>
+                    </TableCell>
+                  </TableRow> */}
+
+
             </FormGroup>
-          </Grid>
-          <Grid item className={classes.gridItem} xs={1}>
-            <FormGroup>
-              <Typography>
-                CATEGORY
-              </Typography>
-              <Typography>
-                AUTO: {props.user.categoryAuto.toUpperCase() || "none"}
-              </Typography>
-              <FormControl component="fieldset">
-                <RadioGroup aria-label="category" name="category" value={props.user.category || "none"} onChange={props.handleChange}>
-                  <FormControlLabel value="left" control={<Radio />} label="left" />
-                  <FormControlLabel value="neutral" control={<Radio />} label="neutral" />
-                  <FormControlLabel value="right" control={<Radio />} label="right" />
-                  <FormControlLabel value="positive" control={<Radio />} label="positive" />
-                  <FormControlLabel value="negative" control={<Radio />} label="negative" />
-                  <FormControlLabel value="none" control={<Radio />} label="none" />
-                </RadioGroup>
-              </FormControl>
-            </FormGroup>
-          </Grid>
-          <Grid item className={classes.gridItem} xs={1}>
-            <Typography>NEXT UNCAT</Typography>
-            <ButtonGroup
-              orientation="vertical"
-              // color="primary"
-              aria-label="vertical contained primary button group"
-              variant="contained"
-            >
-              <Button variant="outlined" onClick={props.handleChange} name="all" className={classes.buttonAll}>ALL {props.stats.user.uncategorized.all}</Button>
-              <Button variant="outlined" onClick={props.handleChange} name="mismatch" className={classes.buttonMismatch}>MISMATCH {props.stats.user.mismatched}</Button>
-              <Button variant="outlined" onClick={props.handleChange} name="left" className={classes.buttonLeft}>LEFT {props.stats.user.uncategorized.left}</Button>
-              <Button variant="outlined" onClick={props.handleChange} name="neutral" className={classes.buttonNeutral}>NEUTRAL {props.stats.user.uncategorized.neutral}</Button>
-              <Button variant="outlined" onClick={props.handleChange} name="right" className={classes.buttonRight}>RIGHT {props.stats.user.uncategorized.right}</Button>
-            </ButtonGroup>
           </Grid>
         </Grid>
+        <AppBar  className={classes.appBar} position="static">
+          <Toolbar>
+            <Button variant="contained" color="primary" onClick={props.handleChange} name="mismatch" className={classes.buttonMismatch}>MISMATCH {props.stats.user.mismatched}</Button>
+
+            <ButtonGroup variant="contained" color="primary" size="small" aria-label="small button group">
+              <Button onClick={props.handleChange} name="all" >TOTAL: {props.stats.user.uncategorized.all}</Button>
+              <Button onClick={props.handleChange} name="left" >LEFT: {props.stats.user.uncategorized.left}</Button>
+              <Button onClick={props.handleChange} name="neutral" >NEUTRAL: {props.stats.user.uncategorized.neutral}</Button>
+              <Button onClick={props.handleChange} name="right" >RIGHT: {props.stats.user.uncategorized.right}</Button>
+          </ButtonGroup>
+          </Toolbar>
+        </AppBar>
       </Container>
     </div>
   );

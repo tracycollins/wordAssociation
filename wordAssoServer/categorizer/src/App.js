@@ -94,7 +94,7 @@ const App = () => {
         break
         default:
     }
-  }, [currentHashtag.text, currentUser])
+  }, [currentHashtag.text, currentUser, status])
   
   const handleSearchUser = (searchString) => {
     const searchTerm = "@" + searchString
@@ -210,9 +210,8 @@ const App = () => {
         console.log({event})
     }
     
-  }, [currentHashtag.text, currentUser])
+  }, [currentUser])
   
-  // useLayoutEffect(() => {
   useEffect(() => {
     socket.on("SET_TWITTER_USER", (results) => {
       console.debug("RX SET_TWITTER_USER");
@@ -220,6 +219,14 @@ const App = () => {
       handleAction({type: "user", data: results.node})
       handleAction({type: "stats", data: results.stats})
     });
+  }, [])
+
+  useEffect(() => {
+    socket.on("action", (action) => {
+      console.debug("RX ACTION | " + socket.id + " | TYPE: " + action.type);
+      console.debug("RX ACTION | ", action.data);
+      handleAction(action)
+    });    
   }, [])
 
   useEffect(() => {
@@ -231,7 +238,10 @@ const App = () => {
         password: "0123456789",
       });
     })
+    return () => socket.disconnect();
+  }, []);
 
+  useEffect(() => {
     socket.on("authenticated", function () {
       console.debug("AUTHENTICATED | " + socket.id);
 
@@ -239,20 +249,10 @@ const App = () => {
       statsObj.serverConnected = true;
       statsObj.userReadyTransmitted = false;
       statsObj.userReadyAck = false;
-
-      console.log("CONNECTED TO HOST | ID: " + socket.id);
       socket.emit("TWITTER_SEARCH_NODE", "@threecee")
     });
-
-    socket.on("action", (action) => {
-      console.debug("RX ACTION | " + socket.id + " | TYPE: " + action.type);
-      console.debug("RX ACTION | ", action.data);
-      handleAction(action)
-    });    
-  
-    return () => socket.disconnect();
-
   }, []);
+
 
   return (
     <User user={currentUser} stats={status} handleUserChange={handleUserChange} handleSearchUser={handleSearchUser}/>

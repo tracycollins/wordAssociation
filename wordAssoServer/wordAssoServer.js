@@ -8607,7 +8607,7 @@ function initAppRouting(callback) {
     });
   });
   
-  const categorizerHtml = path.join(__dirname, "/categorizer/build/index.html");
+  const categorizerHtml = path.join(__dirname, "/categorizer/public/index.html");
 
   app.get("/categorizer", async function requestCategorizer(req, res) {
 

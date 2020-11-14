@@ -36,7 +36,8 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableRow from '@material-ui/core/TableRow';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
-import { fade, makeStyles } from '@material-ui/core/styles';
+// import { fade, makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles((theme) => ({
   // root: {
@@ -247,7 +248,7 @@ const User = (props) => {
   useEffect(() => {
     setTimelineLoaded(false)
     console.log({timelineLoaded})
-  }, [props.user])
+  }, [timelineLoaded])
 
   return (
     <div className={classes.root}>

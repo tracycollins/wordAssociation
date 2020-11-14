@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Timeline } from 'react-twitter-widgets'
 
 import Duration from 'duration';
@@ -32,7 +32,7 @@ import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
-import TableHead from '@material-ui/core/TableHead';
+// import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
@@ -67,11 +67,11 @@ const useStyles = makeStyles((theme) => ({
     raised: false,
     // border: 10,
     // backgroundColor: 'lightgray',
-    maxWidth: 400,
+    maxWidth: 300,
   },
   profileImage: {
     // width: 200,
-    height: 280,
+    height: 300,
     // margin: 8,
     // padding: -10,
   },
@@ -89,7 +89,7 @@ const useStyles = makeStyles((theme) => ({
     // width: 300,
   },
   appBar: {
-    backgroundColor: 'lightblue',
+    backgroundColor: 'white',
     margin: 2,
   },
   menuButton: {
@@ -101,9 +101,11 @@ const useStyles = makeStyles((theme) => ({
   search: {
     position: 'relative',
     borderRadius: theme.shape.borderRadius,
-    backgroundColor: fade(theme.palette.common.white, 0.15),
+    // backgroundColor: fade(theme.palette.common.black, 0.15),
+    backgroundColor: "white",
     '&:hover': {
-      backgroundColor: fade(theme.palette.common.white, 0.25),
+      // backgroundColor: fade(theme.palette.common.black, 0.15),
+      backgroundColor: "lightgray",
     },
     marginRight: theme.spacing(2),
     marginLeft: 0,
@@ -123,7 +125,7 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: 'center',
   },
   inputRoot: {
-    color: 'inherit',
+    color: 'primary',
   },
   inputInput: {
     padding: theme.spacing(1, 1, 1, 0),
@@ -221,6 +223,11 @@ const User = (props) => {
     }
   }
 
+  const handleTimelineLoaded = () => {
+    setTimelineLoaded(true)
+    console.log("TIMELINE LOADED")
+  }
+
   const openUserTwitterPage = () => {
     console.log("open twitter")
     window.open(`http://twitter.com/${props.user.screenName || null}`, "_blank") //to open new page
@@ -237,20 +244,25 @@ const User = (props) => {
     }
   }
 
+  useEffect(() => {
+    setTimelineLoaded(false)
+    console.log({timelineLoaded})
+  }, [props.user])
+
   return (
     <div className={classes.root}>
       <Container component="main">
-        <AppBar  className={classes.appBar} position="static">
+        {/* <AppBar  className={classes.appBar} position="static">
           <Toolbar>
-            <Typography className={classes.title}>
-               User
+            <Typography className={classes.title} color="primary">
+               user
             </Typography>
             <div className={classes.search}>
               <div className={classes.searchIcon}>
-                <SearchIcon />
+                <SearchIcon color="primary"/>
               </div>
               <InputBase
-                placeholder="Search…"
+                placeholder="search…"
                 classes={{
                   root: classes.inputRoot,
                   input: classes.inputInput,
@@ -261,12 +273,39 @@ const User = (props) => {
                 onChange={handleChangeSearch}
               />
             </div>
-
             <Button color="inherit">Login</Button>
+          </Toolbar>
+        </AppBar> */}
+        <AppBar  className={classes.appBar} position="static">
+          <Toolbar>
+            <Button variant="contained" color="primary" onClick={props.handleChange} name="mismatch" className={classes.buttonMismatch}>MISMATCH {props.stats.user.mismatched}</Button>
+
+            <ButtonGroup variant="contained" color="primary" size="small" aria-label="small button group">
+              <Button onClick={props.handleChange} name="all" >TOTAL: {props.stats.user.uncategorized.all}</Button>
+              <Button onClick={props.handleChange} name="left" >LEFT: {props.stats.user.uncategorized.left}</Button>
+              <Button onClick={props.handleChange} name="neutral" >NEUTRAL: {props.stats.user.uncategorized.neutral}</Button>
+              <Button onClick={props.handleChange} name="right" >RIGHT: {props.stats.user.uncategorized.right}</Button>
+          </ButtonGroup>
+          <div className={classes.search}>
+            <div className={classes.searchIcon}>
+              <SearchIcon color="primary"/>
+            </div>
+            <InputBase
+              placeholder="search…"
+              classes={{
+                root: classes.inputRoot,
+                input: classes.inputInput,
+              }}
+              inputProps={{ 'aria-label': 'search' }}
+              value={userSearch}
+              onKeyPress={handleKeyPress}
+              onChange={handleChangeSearch}
+            />
+          </div>
           </Toolbar>
         </AppBar>
         <Grid className={classes.grid}>
-          <Grid item className={classes.gridItem} xs={4}>
+          <Grid item className={classes.gridItem} xs={3}>
             <Card className={classes.card} variant="outlined">
               <CardHeader
                 onClick={openUserTwitterPage}
@@ -288,14 +327,17 @@ const User = (props) => {
             </Card>
           </Grid>
           <Grid item className={classes.gridItem} xs={4}>
+            <Typography>
+              {timelineLoaded ? "TIMELINE LOADED" : "LOADING TIMELINE ..."}
+            </Typography>
             <Timeline
-              onLoad={{setTimelineLoaded}}
+              onLoad={handleTimelineLoaded}
               dataSource={{
                 sourceType: 'profile',
                 screenName: props.user.screenName
               }}
               options={{
-                height: '600'
+                height: '540'
               }}
             />
           </Grid>
@@ -322,7 +364,7 @@ const User = (props) => {
                     <TableCell>tweets</TableCell><TableCell align="right">{props.user.statusesCount}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>tweet rate (day)</TableCell><TableCell align="right">{tweetRate}</TableCell>
+                    <TableCell>tweets/day</TableCell><TableCell align="right">{tweetRate}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>last seen</TableCell><TableCell align="right">{lastSeen}</TableCell>
@@ -334,7 +376,7 @@ const User = (props) => {
                     <TableCell>mentions</TableCell><TableCell align="right">{props.user.mentions}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>mention rate (min)</TableCell><TableCell align="right">{props.user.rate ? props.user.rate.toFixed(1) : 0}</TableCell>
+                    <TableCell>mentions/min</TableCell><TableCell align="right">{props.user.rate ? props.user.rate.toFixed(1) : 0}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -431,18 +473,6 @@ const User = (props) => {
             </FormGroup>
           </Grid>
         </Grid>
-        <AppBar  className={classes.appBar} position="static">
-          <Toolbar>
-            <Button variant="contained" color="primary" onClick={props.handleChange} name="mismatch" className={classes.buttonMismatch}>MISMATCH {props.stats.user.mismatched}</Button>
-
-            <ButtonGroup variant="contained" color="primary" size="small" aria-label="small button group">
-              <Button onClick={props.handleChange} name="all" >TOTAL: {props.stats.user.uncategorized.all}</Button>
-              <Button onClick={props.handleChange} name="left" >LEFT: {props.stats.user.uncategorized.left}</Button>
-              <Button onClick={props.handleChange} name="neutral" >NEUTRAL: {props.stats.user.uncategorized.neutral}</Button>
-              <Button onClick={props.handleChange} name="right" >RIGHT: {props.stats.user.uncategorized.right}</Button>
-          </ButtonGroup>
-          </Toolbar>
-        </AppBar>
       </Container>
     </div>
   );

@@ -213,9 +213,14 @@ const User = (props) => {
   const [userSearch, setUserSearch] = useState("");
   const [hotKey, setHotKey] = useState("---");
 
-  useHotkeys('L', () => setHotKey("L"))
-  useHotkeys('R', () => setHotKey("R"))
-  useHotkeys('N', () => setHotKey("N"))
+  const handleHotKey = (event) => {
+    setHotKey(event.key.toUpperCase())
+    props.handleUserChange(event)
+  }
+
+  useHotkeys('L', (event) => handleHotKey(event))
+  useHotkeys('R', (event) => handleHotKey(event))
+  useHotkeys('N', (event) => handleHotKey(event))
 
   const handleChangeSearch = (event) => {
     console.log("handleChangeSearch: " + event.target.value)
@@ -251,13 +256,13 @@ const User = (props) => {
         <AppBar  className={classes.appBar} position="static">
           <Toolbar>
             <Button 
-              variant="contained" color="primary" onClick={props.handleChange} name="mismatch" className={classes.buttonMismatch}>MISMATCH {props.stats.user.mismatched}
+              variant="contained" color="primary" onClick={props.handleUserChange} name="mismatch" className={classes.buttonMismatch}>MISMATCH {props.stats.user.mismatched}
             </Button>
             <ButtonGroup variant="contained" color="primary" size="small" aria-label="small button group">
-              <Button onClick={props.handleChange} name="all" >TOTAL: {props.stats.user.uncategorized.all}</Button>
-              <Button onClick={props.handleChange} name="left" >LEFT: {props.stats.user.uncategorized.left}</Button>
-              <Button onClick={props.handleChange} name="neutral" >NEUTRAL: {props.stats.user.uncategorized.neutral}</Button>
-              <Button onClick={props.handleChange} name="right" >RIGHT: {props.stats.user.uncategorized.right}</Button>
+              <Button onClick={props.handleUserChange} name="all" >TOTAL: {props.stats.user.uncategorized.all}</Button>
+              <Button onClick={props.handleUserChange} name="left" >LEFT: {props.stats.user.uncategorized.left}</Button>
+              <Button onClick={props.handleUserChange} name="neutral" >NEUTRAL: {props.stats.user.uncategorized.neutral}</Button>
+              <Button onClick={props.handleUserChange} name="right" >RIGHT: {props.stats.user.uncategorized.right}</Button>
           </ButtonGroup>
             <div className={classes.search}>
               <div className={classes.searchIcon}>
@@ -361,7 +366,7 @@ const User = (props) => {
               </Button>
 
               <FormControl component="fieldset">
-                <RadioGroup aria-label="category" name="category" value={props.user.category || "none"} onChange={props.handleChange}>
+                <RadioGroup aria-label="category" name="category" value={props.user.category || "none"} onChange={props.handleUserChange}>
                   <FormControlLabel labelPlacement="start" value="left" control={<Radio />} label="left"/>
                   <FormControlLabel labelPlacement="start" value="neutral" control={<Radio />} label="neutral" />
                   <FormControlLabel labelPlacement="start" value="right" control={<Radio />} label="right" />
@@ -372,22 +377,22 @@ const User = (props) => {
               </FormControl>
 
               <FormControlLabel
-                control={<Checkbox checked={props.user.categoryVerified || false} onChange={props.handleChange} name="catVerified" />}
+                control={<Checkbox checked={props.user.categoryVerified || false} onChange={props.handleUserChange} name="catVerified" />}
                 label="verified"
                 labelPlacement="start"
               />
               <FormControlLabel
-                control={<Checkbox checked={props.user.following || false} onChange={props.handleChange} name="following" />}
+                control={<Checkbox checked={props.user.following || false} onChange={props.handleUserChange} name="following" />}
                 label="following"
                 labelPlacement="start"
               />
               <FormControlLabel
-                control={<Checkbox checked={props.user.ignored || false} onChange={props.handleChange} name="ignored" />}
+                control={<Checkbox checked={props.user.ignored || false} onChange={props.handleUserChange} name="ignored" />}
                 label="ignored"
                 labelPlacement="start"
               />
               <FormControlLabel
-                control={<Checkbox checked={props.user.isBot || false} onChange={props.handleChange} name="isBot" />}
+                control={<Checkbox checked={props.user.isBot || false} onChange={props.handleUserChange} name="isBot" />}
                 label="bot"
                 labelPlacement="start"
               />

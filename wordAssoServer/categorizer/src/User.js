@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { Timeline } from 'react-twitter-widgets'
 
@@ -219,14 +219,14 @@ const User = (props) => {
     props.handleUserChange(event)
   }
 
-  useHotkeys('L', (event) => handleHotKey(event))
-  useHotkeys('ctrl+L', (event) => handleHotKey(event))
+  useHotkeys('L', props.handleUserChange)
+  useHotkeys('ctrl+L', props.handleUserChange)
 
-  useHotkeys('R', (event) => handleHotKey(event))
-  useHotkeys('ctrl+R', (event) => handleHotKey(event))
+  useHotkeys('R', props.handleUserChange)
+  useHotkeys('ctrl+R', props.handleUserChange)
 
-  useHotkeys('N', (event) => handleHotKey(event))
-  useHotkeys('ctrl+N', (event) => handleHotKey(event))
+  useHotkeys('N', props.handleUserChange)
+  useHotkeys('ctrl+N', props.handleUserChange)
 
   const handleChangeSearch = (event) => {
     console.log("handleChangeSearch: " + event.target.value)

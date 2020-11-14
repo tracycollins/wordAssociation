@@ -211,10 +211,9 @@ const User = (props) => {
   const tweetRate = twitterAge.days > 0 ? Math.ceil(props.user.statusesCount/twitterAge.days) : 0;
 
   const [userSearch, setUserSearch] = useState("");
+  const [hotKey, setHotKey] = useState("");
 
-  useHotkeys('L', () => {
-    props.handleChange()
-  })
+  useHotkeys('L', () => setHotKey("L"))
 
   const handleChangeSearch = (event) => {
     console.log("handleChangeSearch: " + event.target.value)

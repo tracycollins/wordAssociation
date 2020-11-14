@@ -18,7 +18,13 @@ const App = () => {
     maxNodesPerMin: 0,
     bestNetworkId: "",
     user: {
-      uncategorized: 0
+      uncategorized: {
+        left: 0,
+        neutral: 0,
+        right: 0,
+        all: 0,
+        mismatched: 0
+      }
     }
   }
 

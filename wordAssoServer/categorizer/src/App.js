@@ -197,7 +197,7 @@ const App = () => {
       handleAction(action)
     });    
   
-    return () => socket.disconnect();
+    // return () => socket.disconnect();
 
   }, [handleAction]);
 

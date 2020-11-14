@@ -8578,7 +8578,7 @@ function initAppRouting(callback) {
   app.use(express.static(path.join(__dirname, "/categorizer/static/js")));
   app.use(express.static(path.join(__dirname, "/categorizer/static/css")));
   app.use(express.static(path.join(__dirname, "/categorizer/static")));
-  app.use(express.static(path.join(__dirname, "/categorizer/public")));
+  app.use(express.static(path.join(__dirname, "/categorizer/build")));
 
   app.get("/onload.js", function (req, res) {
     console.log(chalkInfo(MODULE_ID + " | R< ONLOAD | /onload"));
@@ -8607,7 +8607,7 @@ function initAppRouting(callback) {
     });
   });
   
-  const categorizerHtml = path.join(__dirname, "/categorizer/index.html");
+  const categorizerHtml = path.join(__dirname, "/categorizer/build/index.html");
 
   app.get("/categorizer", async function requestCategorizer(req, res) {
 

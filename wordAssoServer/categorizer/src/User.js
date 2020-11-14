@@ -210,7 +210,7 @@ const User = (props) => {
   const tweetRate = twitterAge.days > 0 ? Math.ceil(props.user.statusesCount/twitterAge.days) : 0;
 
   const [userSearch, setUserSearch] = useState("");
-  const [timelineLoaded, setTimelineLoaded] = useState(false);
+  // const [timelineLoaded, setTimelineLoaded] = useState(false);
 
   const handleChangeSearch = (event) => {
     console.log("handleChangeSearch: " + event.target.value)
@@ -224,10 +224,10 @@ const User = (props) => {
     }
   }
 
-  const handleTimelineLoaded = () => {
-    setTimelineLoaded(true)
-    console.log("TIMELINE LOADED")
-  }
+  // const handleTimelineLoaded = () => {
+  //   setTimelineLoaded(true)
+  //   console.log("TIMELINE LOADED")
+  // }
 
   const openUserTwitterPage = () => {
     console.log("open twitter")
@@ -245,10 +245,10 @@ const User = (props) => {
     }
   }
 
-  useEffect(() => {
-    setTimelineLoaded(false)
-    console.log({timelineLoaded})
-  }, [timelineLoaded])
+  // useEffect(() => {
+  //   setTimelineLoaded(false)
+  //   console.log({timelineLoaded})
+  // }, [timelineLoaded])
 
   return (
     <div className={classes.root}>
@@ -305,11 +305,11 @@ const User = (props) => {
             </Card>
           </Grid>
           <Grid item className={classes.gridItem} xs={4}>
-            <Typography>
+            {/* <Typography>
               {timelineLoaded ? "TIMELINE LOADED" : "LOADING TIMELINE ..."}
-            </Typography>
+            </Typography> */}
             <Timeline
-              onLoad={handleTimelineLoaded}
+              // onLoad={handleTimelineLoaded}
               dataSource={{
                 sourceType: 'profile',
                 screenName: props.user.screenName

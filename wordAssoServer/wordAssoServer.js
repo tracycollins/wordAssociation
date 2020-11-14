@@ -276,7 +276,7 @@ const TwitterStrategy = require("passport-twitter").Strategy;
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(require("serve-static")(path.join(__dirname, "public")));
-app.use(require("serve-static")(path.join(__dirname, "build")));
+app.use(require("serve-static")(path.join(__dirname, "categorizer/build")));
 // app.use(express.static(path.join(__dirname, 'build')));
 
 const threeceeConfig = {

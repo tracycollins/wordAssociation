@@ -248,7 +248,7 @@ const User = (props) => {
       <Container component="main">
         <AppBar  className={classes.appBar} position="static">
           <Toolbar>
-            <Typography>
+            <Typography color="primary">
               HOTKEY: {hotKey}
             </Typography>
             <Button 

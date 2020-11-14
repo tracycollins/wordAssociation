@@ -8575,6 +8575,10 @@ function initAppRouting(callback) {
   app.use(express.static(path.join(__dirname, "/node_modules")));
   app.use(express.static(path.join(__dirname, "/public/assets/images")));
   app.use(express.static(path.join(__dirname, "/categorizer")));
+  app.use(express.static(path.join(__dirname, "/categorizer/static/js")));
+  app.use(express.static(path.join(__dirname, "/categorizer/static/css")));
+  app.use(express.static(path.join(__dirname, "/categorizer/static")));
+  app.use(express.static(path.join(__dirname, "/categorizer/public")));
 
   app.get("/onload.js", function (req, res) {
     console.log(chalkInfo(MODULE_ID + " | R< ONLOAD | /onload"));

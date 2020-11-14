@@ -248,9 +248,12 @@ const User = (props) => {
       <Container component="main">
         <AppBar  className={classes.appBar} position="static">
           <Toolbar>
+            <Typography>
+              HOTKEY: {hotKey}
+            </Typography>
             <Button 
-              variant="contained" color="primary" onClick={props.handleChange} name="mismatch" className={classes.buttonMismatch}>MISMATCH {props.stats.user.mismatched}</Button>
-
+              variant="contained" color="primary" onClick={props.handleChange} name="mismatch" className={classes.buttonMismatch}>MISMATCH {props.stats.user.mismatched}
+            </Button>
             <ButtonGroup variant="contained" color="primary" size="small" aria-label="small button group">
               <Button onClick={props.handleChange} name="all" >TOTAL: {props.stats.user.uncategorized.all}</Button>
               <Button onClick={props.handleChange} name="left" >LEFT: {props.stats.user.uncategorized.left}</Button>

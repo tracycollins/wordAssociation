@@ -211,9 +211,11 @@ const User = (props) => {
   const tweetRate = twitterAge.days > 0 ? Math.ceil(props.user.statusesCount/twitterAge.days) : 0;
 
   const [userSearch, setUserSearch] = useState("");
-  const [hotKey, setHotKey] = useState("");
+  const [hotKey, setHotKey] = useState("---");
 
   useHotkeys('L', () => setHotKey("L"))
+  useHotkeys('R', () => setHotKey("R"))
+  useHotkeys('N', () => setHotKey("N"))
 
   const handleChangeSearch = (event) => {
     console.log("handleChangeSearch: " + event.target.value)
@@ -248,9 +250,6 @@ const User = (props) => {
       <Container component="main">
         <AppBar  className={classes.appBar} position="static">
           <Toolbar>
-            <Typography color="primary">
-              HOTKEY: {hotKey}
-            </Typography>
             <Button 
               variant="contained" color="primary" onClick={props.handleChange} name="mismatch" className={classes.buttonMismatch}>MISMATCH {props.stats.user.mismatched}
             </Button>
@@ -260,22 +259,25 @@ const User = (props) => {
               <Button onClick={props.handleChange} name="neutral" >NEUTRAL: {props.stats.user.uncategorized.neutral}</Button>
               <Button onClick={props.handleChange} name="right" >RIGHT: {props.stats.user.uncategorized.right}</Button>
           </ButtonGroup>
-          <div className={classes.search}>
-            <div className={classes.searchIcon}>
-              <SearchIcon color="primary"/>
+            <div className={classes.search}>
+              <div className={classes.searchIcon}>
+                <SearchIcon color="primary"/>
+              </div>
+              <InputBase
+                placeholder="search…"
+                classes={{
+                  root: classes.inputRoot,
+                  input: classes.inputInput,
+                }}
+                inputProps={{ 'aria-label': 'search' }}
+                value={userSearch}
+                onKeyPress={handleKeyPress}
+                onChange={handleChangeSearch}
+              />
             </div>
-            <InputBase
-              placeholder="search…"
-              classes={{
-                root: classes.inputRoot,
-                input: classes.inputInput,
-              }}
-              inputProps={{ 'aria-label': 'search' }}
-              value={userSearch}
-              onKeyPress={handleKeyPress}
-              onChange={handleChangeSearch}
-            />
-          </div>
+            <Typography color="primary">
+              HOTKEY: {hotKey}
+            </Typography>
           </Toolbar>
         </AppBar>
         <Grid className={classes.grid}>

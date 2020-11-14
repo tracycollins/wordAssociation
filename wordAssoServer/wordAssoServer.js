@@ -276,8 +276,6 @@ const TwitterStrategy = require("passport-twitter").Strategy;
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(require("serve-static")(path.join(__dirname, "public")));
-app.use(require("serve-static")(path.join(__dirname, "categorizer/build")));
-// app.use(express.static(path.join(__dirname, 'build')));
 
 const threeceeConfig = {
   consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",
@@ -8576,6 +8574,7 @@ function initAppRouting(callback) {
   app.use(express.static(path.join(__dirname, "/css")));
   app.use(express.static(path.join(__dirname, "/node_modules")));
   app.use(express.static(path.join(__dirname, "/public/assets/images")));
+  app.use(express.static(path.join(__dirname, "/categorizer")));
 
   app.get("/onload.js", function (req, res) {
     console.log(chalkInfo(MODULE_ID + " | R< ONLOAD | /onload"));
@@ -8610,7 +8609,7 @@ function initAppRouting(callback) {
 
     console.log(chalkLog(MODULE_ID + " | R< CATEGORIZER"));
 
-    res.sendFile(categorizeHtml, function responseCategorizer(err) {
+    res.sendFile(categorizerHtml, function responseCategorizer(err) {
       if (err) {
         console.log(
           chalkError(

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 import { Timeline } from 'react-twitter-widgets'
 
 import Duration from 'duration';
@@ -210,7 +211,10 @@ const User = (props) => {
   const tweetRate = twitterAge.days > 0 ? Math.ceil(props.user.statusesCount/twitterAge.days) : 0;
 
   const [userSearch, setUserSearch] = useState("");
-  // const [timelineLoaded, setTimelineLoaded] = useState(false);
+
+  useHotkeys('L', () => {
+    props.handleChange()
+  })
 
   const handleChangeSearch = (event) => {
     console.log("handleChangeSearch: " + event.target.value)
@@ -223,11 +227,6 @@ const User = (props) => {
       props.handleSearchUser(userSearch)
     }
   }
-
-  // const handleTimelineLoaded = () => {
-  //   setTimelineLoaded(true)
-  //   console.log("TIMELINE LOADED")
-  // }
 
   const openUserTwitterPage = () => {
     console.log("open twitter")
@@ -244,11 +243,6 @@ const User = (props) => {
         return classes.none
     }
   }
-
-  // useEffect(() => {
-  //   setTimelineLoaded(false)
-  //   console.log({timelineLoaded})
-  // }, [timelineLoaded])
 
   return (
     <div className={classes.root}>
@@ -305,11 +299,7 @@ const User = (props) => {
             </Card>
           </Grid>
           <Grid item className={classes.gridItem} xs={4}>
-            {/* <Typography>
-              {timelineLoaded ? "TIMELINE LOADED" : "LOADING TIMELINE ..."}
-            </Typography> */}
             <Timeline
-              // onLoad={handleTimelineLoaded}
               dataSource={{
                 sourceType: 'profile',
                 screenName: props.user.screenName
@@ -397,57 +387,6 @@ const User = (props) => {
                 label="bot"
                 labelPlacement="start"
               />
-
-                  {/* <TableRow>
-                    <TableCell>cat verified</TableCell>
-                    <TableCell>
-                      <FormGroup>
-                        <FormControlLabel
-                          control={<Checkbox checked={props.user.categoryVerified || false} onChange={props.handleChange} name="catVerified" />}
-                          label=""
-                          labelPlacement="start"
-                        />
-                      </FormGroup>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>following</TableCell>
-                    <TableCell>
-                      <FormGroup>
-                        <FormControlLabel
-                          control={<Checkbox checked={props.user.following || false} onChange={props.handleChange} name="following" />}
-                          label=""
-                          labelPlacement="start"
-                        />
-                      </FormGroup>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>ignored</TableCell>
-                    <TableCell>
-                      <FormGroup>
-                        <FormControlLabel
-                          control={<Checkbox checked={props.user.ignored || false} onChange={props.handleChange} name="ignored" />}
-                          label=""
-                          labelPlacement="start"
-                        />
-                      </FormGroup>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>bot</TableCell>
-                    <TableCell>
-                      <FormGroup>
-                        <FormControlLabel
-                          control={<Checkbox checked={props.user.isBot || false} onChange={props.handleChange} name="isBot" />}
-                          label=""
-                          labelPlacement="start"
-                        />
-                      </FormGroup>
-                    </TableCell>
-                  </TableRow> */}
-
-
             </FormGroup>
           </Grid>
         </Grid>

@@ -174,7 +174,7 @@ const App = () => {
       handleAction({type: "user", data: results.node})
       handleAction({type: "stats", data: results.stats})
     });
-  }, [handleAction])
+  }, [])
 
   useEffect(() => {
     socket.on("connect", ()=>{

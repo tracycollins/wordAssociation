@@ -8602,7 +8602,7 @@ function initAppRouting(callback) {
     });
   });
   
-  const categorizeHtml = path.join(__dirname, "/categorizer/build/index.html");
+  const categorizeHtml = path.join(__dirname, "/categorizer/index.html");
 
   app.get("/categorize", async function requestCategorize(req, res) {
 

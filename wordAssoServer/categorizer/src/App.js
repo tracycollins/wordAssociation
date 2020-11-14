@@ -102,24 +102,45 @@ const App = () => {
   }
 
   const handleUserChange = (event) => {
-    event.persist()
-    console.log("handleChange: name: " + event.currentTarget.name + " | value: " + event.currentTarget.value)
+
+    console.log(typeof event)
+
+    if (event.persist !== undefined) { event.persist() }
+
+    let eventName = event.currentTarget.name;
+
+    if (event.currentTarget.name === undefined && event.code){
+      switch (event.code){
+        case "KeyL":
+          eventName = "left"
+          break;
+        case "KeyN":
+          eventName = "neutral"
+          break;
+        case "KeyR":
+          eventName = "right"
+          break;
+        default:
+      }
+    }
+
+    console.log("handleUserChange: name: " + eventName + " | value: " + event.currentTarget.value)
 
     let searchFilter = "@?";
 
-    switch (event.currentTarget.name){
+    switch (eventName){
       case "all":
       case "left":
       case "neutral":
       case "right":
-        searchFilter += event.currentTarget.name
+        searchFilter += eventName
         socket.emit("TWITTER_SEARCH_NODE", searchFilter);
         break
       case "mismatch":
         socket.emit("TWITTER_SEARCH_NODE", "@?mm");
         break
       case "category":
-        console.log("handleChange: " + event.currentTarget.name + " | " + event.currentTarget.value + " | " + event.currentTarget.checked)
+        console.log("handleUserChange: " + eventName + " | " + event.currentTarget.value + " | " + event.currentTarget.checked)
         socket.emit("TWITTER_CATEGORIZE_NODE", {
           category: event.currentTarget.value,
           following: true,
@@ -127,7 +148,7 @@ const App = () => {
         });
         break
       case "isBot":
-        console.log("handleChange: " + event.currentTarget.name + " | " + event.currentTarget.checked)
+        console.log("handleUserChange: " + eventName + " | " + event.currentTarget.checked)
         if (event.currentTarget.checked){
           socket.emit("TWITTER_BOT", currentUser);
         }
@@ -136,7 +157,7 @@ const App = () => {
         }
         break
       case "following":
-        console.log("handleChange: " + event.currentTarget.name + " | " + event.currentTarget.checked)
+        console.log("handleUserChange: " + eventName + " | " + event.currentTarget.checked)
         if (event.currentTarget.checked){
           socket.emit("TWITTER_FOLLOW", currentUser);
         }
@@ -145,7 +166,7 @@ const App = () => {
         }
         break
       case "catVerified":
-        console.log("handleChange: " + event.currentTarget.name + " | " + event.currentTarget.checked)
+        console.log("handleUserChange: " + eventName + " | " + event.currentTarget.checked)
         if (event.currentTarget.checked){
           socket.emit("TWITTER_CATEGORY_VERIFIED", currentUser);
         }
@@ -154,7 +175,7 @@ const App = () => {
         }
         break
       case "ignored":
-        console.log("handleChange: " + event.currentTarget.name + " | " + event.currentTarget.checked)
+        console.log("handleUserChange: " + eventName + " | " + event.currentTarget.checked)
         if (event.currentTarget.checked){
           socket.emit("TWITTER_IGNORE", currentUser);
         }
@@ -163,6 +184,8 @@ const App = () => {
         }
         break
       default:
+        console.log("handleUserChange: UNKNOWN NAME: " + eventName + " | VALUE: " + event.currentTarget.value)
+        console.log({event})
     }
   }
   
@@ -209,7 +232,7 @@ const App = () => {
   }, []);
 
   return (
-    <User user={currentUser} stats={status} handleChange={handleUserChange} handleSearchUser={handleSearchUser}/>
+    <User user={currentUser} stats={status} handleUserChange={handleUserChange} handleSearchUser={handleSearchUser}/>
   );
 }
 

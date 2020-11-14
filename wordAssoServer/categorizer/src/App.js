@@ -159,13 +159,15 @@ const App = () => {
     }
   }
   
-  useLayoutEffect(() => {
-      socket.on("SET_TWITTER_USER", (results) => {
+  // useLayoutEffect(() => {
+  useEffect(() => {
+    socket.on("SET_TWITTER_USER", (results) => {
       console.debug("RX SET_TWITTER_USER");
       console.debug(results);
       handleAction({type: "user", data: results.node})
+      handleAction({type: "stats", data: results.stats})
     });
-}, [])
+  }, [])
 
   useEffect(() => {
     socket.on("connect", ()=>{
@@ -175,7 +177,7 @@ const App = () => {
         userId: "test",
         password: "0123456789",
       });
-    }, [])
+    })
 
     socket.on("authenticated", function () {
       console.debug("AUTHENTICATED | " + socket.id);
@@ -185,7 +187,7 @@ const App = () => {
       statsObj.userReadyTransmitted = false;
       statsObj.userReadyAck = false;
 
-      console.log("CONNECTED TO HOST" + " | ID: " + socket.id);
+      console.log("CONNECTED TO HOST | ID: " + socket.id);
       socket.emit("TWITTER_SEARCH_NODE", "@threecee")
     });
 
@@ -196,6 +198,7 @@ const App = () => {
     });    
   
     return () => socket.disconnect();
+
   }, []);
 
   return (

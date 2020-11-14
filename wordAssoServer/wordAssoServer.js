@@ -5112,13 +5112,13 @@ async function twitterSearchUser(params) {
       )
     );
 
-    const sObj = {};
-    sObj.user = statsObj.user;
-    sObj.bestNetwork = statsObj.bestNetwork;
+    // const sObj = {};
+    // sObj.user = statsObj.user;
+    // sObj.bestNetwork = statsObj.bestNetwork;
 
     viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", {
       node: params.node,
-      stats: sObj,
+      stats: statsObj,
     });
     throw err;
   }
@@ -5167,13 +5167,13 @@ async function twitterSearchHashtag(params) {
       )
     );
 
-    const sObj = {};
-    sObj.user = statsObj.user;
-    sObj.bestNetwork = statsObj.bestNetwork;
+    // const sObj = {};
+    // sObj.user = statsObj.user;
+    // sObj.bestNetwork = statsObj.bestNetwork;
 
     viewNameSpace.emit("TWITTER_SEARCH_NODE_ERROR", {
       node: params.node,
-      stats: sObj,
+      stats: statsObj,
     });
     throw err;
   }
@@ -5212,9 +5212,9 @@ async function twitterSearchNode(params) {
     return;
   }
 
-  const sObj = {};
-  sObj.user = statsObj.user;
-  sObj.bestNetwork = statsObj.bestNetwork;
+  // const sObj = {};
+  // sObj.user = statsObj.user;
+  // sObj.bestNetwork = statsObj.bestNetwork;
 
   if (searchNode.startsWith("@")) {
     const results = await twitterSearchUser({
@@ -5224,10 +5224,10 @@ async function twitterSearchNode(params) {
     if (results.node) {
       viewNameSpace.emit("SET_TWITTER_USER", {
         node: results.node,
-        stats: sObj,
+        stats: statsObj,
       });
     } else {
-      viewNameSpace.emit("TWITTER_USER_NOT_FOUND", { stats: sObj });
+      viewNameSpace.emit("TWITTER_USER_NOT_FOUND", { stats: statsObj });
     }
 
     return;
@@ -5235,7 +5235,7 @@ async function twitterSearchNode(params) {
 
   viewNameSpace.emit("TWITTER_SEARCH_NODE_UNKNOWN_MODE", {
     searchNode: searchNode,
-    stats: sObj,
+    stats: statsObj,
   });
   throw new Error("UNKNOWN SEARCH MODE: " + searchNode);
 }

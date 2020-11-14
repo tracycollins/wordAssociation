@@ -88,6 +88,7 @@ const App = () => {
         break
       case "stats":
           setStatus({
+            ...status,
             ...action.data,
           })
         break

@@ -204,9 +204,9 @@ const App = () => {
       handleAction(action)
     });    
   
-    // return () => socket.disconnect();
+    return () => socket.disconnect();
 
-  }, [handleAction]);
+  }, []);
 
   return (
     <User user={currentUser} stats={status} handleChange={handleUserChange} handleSearchUser={handleSearchUser}/>

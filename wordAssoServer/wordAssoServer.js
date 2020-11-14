@@ -5957,7 +5957,7 @@ async function initSocketHandler(socketObj) {
         });
 
         if (node && node.nodeType === "user") {
-          socket.emit("SET_TWITTER_USER", { node: node, stats: statsObj.user });
+          socket.emit("SET_TWITTER_USER", { node: node, stats: statsObj });
         }
       } catch (err) {
         console.log(
@@ -5990,7 +5990,7 @@ async function initSocketHandler(socketObj) {
           node: user,
           props: { categoryVerified: false },
         });
-        socket.emit("SET_TWITTER_USER", { node: node, stats: statsObj.user });
+        socket.emit("SET_TWITTER_USER", { node: node, stats: statsObj });
       } catch (err) {
         console.log(
           chalkError(MODULE_ID + " | TWITTER_CATEGORY_VERIFIED ERROR: " + err)
@@ -6027,7 +6027,7 @@ async function initSocketHandler(socketObj) {
 
         await nodeSetProps({ node: user, props: { ignored: true } });
         await deleteNode(user);
-        socket.emit("SET_TWITTER_USER", { node: user, stats: statsObj.user });
+        socket.emit("SET_TWITTER_USER", { node: user, stats: statsObj });
       } catch (err) {
         console.log(chalkError(MODULE_ID + " | *** IGNORE USER ERROR: " + err));
       }
@@ -6061,7 +6061,7 @@ async function initSocketHandler(socketObj) {
         });
 
         await nodeSetProps({ node: user, props: { ignored: false } });
-        socket.emit("SET_TWITTER_USER", { node: user, stats: statsObj.user });
+        socket.emit("SET_TWITTER_USER", { node: user, stats: statsObj });
       } catch (err) {
         console.log(
           chalkError(MODULE_ID + " | TWITTER_UNIGNORE ERROR: " + err)
@@ -6096,7 +6096,7 @@ async function initSocketHandler(socketObj) {
           user: { nodeId: user.nodeId, screenName: user.screenName },
         });
         await nodeSetProps({ node: user, props: { isBot: true } });
-        socket.emit("SET_TWITTER_USER", { node: user, stats: statsObj.user });
+        socket.emit("SET_TWITTER_USER", { node: user, stats: statsObj });
       } catch (err) {
         console.log(chalkError(MODULE_ID + " | *** BOT USER ERROR: " + err));
       }
@@ -6129,7 +6129,7 @@ async function initSocketHandler(socketObj) {
           user: { nodeId: user.nodeId, screenName: user.screenName },
         });
         await nodeSetProps({ node: user, props: { isBot: false } });
-        socket.emit("SET_TWITTER_USER", { node: user, stats: statsObj.user });
+        socket.emit("SET_TWITTER_USER", { node: user, stats: statsObj });
       } catch (err) {
         console.log(chalkError(MODULE_ID + " | TWITTER_UNBOT ERROR: " + err));
       }
@@ -6192,7 +6192,7 @@ async function initSocketHandler(socketObj) {
 
             socket.emit("SET_TWITTER_USER", {
               node: node,
-              stats: statsObj.user,
+              stats: statsObj,
             });
           }
 
@@ -6305,7 +6305,7 @@ async function initSocketHandler(socketObj) {
           if (results.node) {
             socket.emit("SET_TWITTER_USER", {
               node: results.node,
-              stats: statsObj.user,
+              stats: statsObj,
             });
           }
 

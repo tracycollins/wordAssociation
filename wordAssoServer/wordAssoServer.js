@@ -276,6 +276,8 @@ const TwitterStrategy = require("passport-twitter").Strategy;
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(require("serve-static")(path.join(__dirname, "public")));
+app.use(require("serve-static")(path.join(__dirname, "build")));
+// app.use(express.static(path.join(__dirname, 'build')));
 
 const threeceeConfig = {
   consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",
@@ -8602,34 +8604,38 @@ function initAppRouting(callback) {
     });
   });
   
-  const categorizeHtml = path.join(__dirname, "/categorizer/index.html");
+  const categorizeHtml = path.join(__dirname, "/categorizer/build/index.html");
 
-  app.get("/categorize", async function requestCategorize(req, res) {
-
-    console.log(chalkLog(MODULE_ID + " | R< CATEGORIZE"));
-
-    res.sendFile(categorizeHtml, function responseSession(err) {
-      if (err) {
-        console.log(
-          chalkError(
-            MODULE_ID +
-              " | GET /categorize ERROR:" +
-              " | " +
-              getTimeStamp() +
-              " | " +
-              req.url +
-              " | " +
-              categorizeHtml +
-              " | " +
-              err
-          )
-        );
-      } else {
-        console.log(chalkAlert(MODULE_ID + " | SENT:", categorizeHtml));
-      }
-    });
-
+  app.get('/categorize', function (req, res) {
+    res.sendFile(path.join(__dirname, 'build', 'index.html'));
   });
+
+  // app.get("/categorize", async function requestCategorize(req, res) {
+
+  //   console.log(chalkLog(MODULE_ID + " | R< CATEGORIZE"));
+
+  //   res.sendFile(categorizeHtml, function responseSession(err) {
+  //     if (err) {
+  //       console.log(
+  //         chalkError(
+  //           MODULE_ID +
+  //             " | GET /categorize ERROR:" +
+  //             " | " +
+  //             getTimeStamp() +
+  //             " | " +
+  //             req.url +
+  //             " | " +
+  //             categorizeHtml +
+  //             " | " +
+  //             err
+  //         )
+  //       );
+  //     } else {
+  //       console.log(chalkAlert(MODULE_ID + " | SENT:", categorizeHtml));
+  //     }
+  //   });
+
+  // });
 
   app.get("/stats", async function requestStats(req, res) {
 

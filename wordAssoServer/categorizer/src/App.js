@@ -101,30 +101,52 @@ const App = () => {
     socket.emit("TWITTER_SEARCH_NODE", searchTerm)
   }
 
-  const handleUserChange = (event) => {
+  const handleUserChange = useCallback((event) => {
 
     console.log(typeof event)
 
-    if (event.persist !== undefined) { event.persist() }
+    if (event.persist !== undefined) { 
+      event.persist() 
+    }
 
     let eventName = event.currentTarget.name;
+    let eventValue = event.currentTarget.value;
+    let eventChecked = event.currentTarget.checked;
 
     if (event.currentTarget.name === undefined && event.code){
       switch (event.code){
         case "KeyL":
-          eventName = "left"
+          if (event.ctrlKey){
+            eventName = "category"
+            eventValue = "left"
+          }
+          else{
+            eventName = "left"
+          }
           break;
         case "KeyN":
-          eventName = "neutral"
+          if (event.ctrlKey){
+            eventName = "category"
+            eventValue = "neutral"
+          }
+          else{
+            eventName = "neutral"
+          }
           break;
         case "KeyR":
-          eventName = "right"
+          if (event.ctrlKey){
+            eventName = "category"
+            eventValue = "right"
+          }
+          else{
+            eventName = "right"
+          }
           break;
         default:
       }
     }
 
-    console.log("handleUserChange: name: " + eventName + " | value: " + event.currentTarget.value)
+    console.log("handleUserChange: name: " + eventName + " | value: " + eventValue)
 
     let searchFilter = "@?";
 
@@ -140,16 +162,16 @@ const App = () => {
         socket.emit("TWITTER_SEARCH_NODE", "@?mm");
         break
       case "category":
-        console.log("handleUserChange: " + eventName + " | " + event.currentTarget.value + " | " + event.currentTarget.checked)
+        console.log("handleUserChange: " + eventName + " | " + eventValue + " | " + eventChecked)
         socket.emit("TWITTER_CATEGORIZE_NODE", {
-          category: event.currentTarget.value,
+          category: eventValue,
           following: true,
           node: currentUser,
         });
         break
       case "isBot":
-        console.log("handleUserChange: " + eventName + " | " + event.currentTarget.checked)
-        if (event.currentTarget.checked){
+        console.log("handleUserChange: " + eventName + " | " + eventChecked)
+        if (eventChecked){
           socket.emit("TWITTER_BOT", currentUser);
         }
         else{
@@ -157,8 +179,8 @@ const App = () => {
         }
         break
       case "following":
-        console.log("handleUserChange: " + eventName + " | " + event.currentTarget.checked)
-        if (event.currentTarget.checked){
+        console.log("handleUserChange: " + eventName + " | " + eventChecked)
+        if (eventChecked){
           socket.emit("TWITTER_FOLLOW", currentUser);
         }
         else{
@@ -166,8 +188,8 @@ const App = () => {
         }
         break
       case "catVerified":
-        console.log("handleUserChange: " + eventName + " | " + event.currentTarget.checked)
-        if (event.currentTarget.checked){
+        console.log("handleUserChange: " + eventName + " | " + eventChecked)
+        if (eventChecked){
           socket.emit("TWITTER_CATEGORY_VERIFIED", currentUser);
         }
         else{
@@ -175,8 +197,8 @@ const App = () => {
         }
         break
       case "ignored":
-        console.log("handleUserChange: " + eventName + " | " + event.currentTarget.checked)
-        if (event.currentTarget.checked){
+        console.log("handleUserChange: " + eventName + " | " + eventChecked)
+        if (eventChecked){
           socket.emit("TWITTER_IGNORE", currentUser);
         }
         else{
@@ -184,10 +206,11 @@ const App = () => {
         }
         break
       default:
-        console.log("handleUserChange: UNKNOWN NAME: " + eventName + " | VALUE: " + event.currentTarget.value)
+        console.log("handleUserChange: UNKNOWN NAME: " + eventName + " | VALUE: " + eventValue)
         console.log({event})
     }
-  }
+    
+  }, [currentHashtag.text, currentUser])
   
   // useLayoutEffect(() => {
   useEffect(() => {

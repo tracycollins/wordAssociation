@@ -8606,36 +8606,32 @@ function initAppRouting(callback) {
   
   const categorizeHtml = path.join(__dirname, "/categorizer/build/index.html");
 
-  app.get('/categorize', function (req, res) {
-    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+  app.get("/categorize", async function requestCategorize(req, res) {
+
+    console.log(chalkLog(MODULE_ID + " | R< CATEGORIZE"));
+
+    res.sendFile(categorizeHtml, function responseSession(err) {
+      if (err) {
+        console.log(
+          chalkError(
+            MODULE_ID +
+              " | GET /categorize ERROR:" +
+              " | " +
+              getTimeStamp() +
+              " | " +
+              req.url +
+              " | " +
+              categorizeHtml +
+              " | " +
+              err
+          )
+        );
+      } else {
+        console.log(chalkAlert(MODULE_ID + " | SENT:", categorizeHtml));
+      }
+    });
+
   });
-
-  // app.get("/categorize", async function requestCategorize(req, res) {
-
-  //   console.log(chalkLog(MODULE_ID + " | R< CATEGORIZE"));
-
-  //   res.sendFile(categorizeHtml, function responseSession(err) {
-  //     if (err) {
-  //       console.log(
-  //         chalkError(
-  //           MODULE_ID +
-  //             " | GET /categorize ERROR:" +
-  //             " | " +
-  //             getTimeStamp() +
-  //             " | " +
-  //             req.url +
-  //             " | " +
-  //             categorizeHtml +
-  //             " | " +
-  //             err
-  //         )
-  //       );
-  //     } else {
-  //       console.log(chalkAlert(MODULE_ID + " | SENT:", categorizeHtml));
-  //     }
-  //   });
-
-  // });
 
   app.get("/stats", async function requestStats(req, res) {
 

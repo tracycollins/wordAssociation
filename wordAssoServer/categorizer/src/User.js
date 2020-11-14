@@ -214,13 +214,19 @@ const User = (props) => {
   const [hotKey, setHotKey] = useState("---");
 
   const handleHotKey = (event) => {
+    event.preventDefault();
     setHotKey(event.key.toUpperCase())
     props.handleUserChange(event)
   }
 
   useHotkeys('L', (event) => handleHotKey(event))
+  useHotkeys('ctrl+L', (event) => handleHotKey(event))
+
   useHotkeys('R', (event) => handleHotKey(event))
+  useHotkeys('ctrl+R', (event) => handleHotKey(event))
+
   useHotkeys('N', (event) => handleHotKey(event))
+  useHotkeys('ctrl+N', (event) => handleHotKey(event))
 
   const handleChangeSearch = (event) => {
     console.log("handleChangeSearch: " + event.target.value)

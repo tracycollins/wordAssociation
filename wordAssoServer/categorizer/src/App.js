@@ -1,4 +1,4 @@
-import React, { useState, useLayoutEffect, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import socketClient from "socket.io-client";
 import './App.css';
 import User from './User.js';
@@ -67,7 +67,7 @@ const App = () => {
   const [currentUser, setUser] = useState(defaultUser);
   const [currentHashtag, setHashtag] = useState(defaultHashtag);
 
-  const handleAction = (action) => {
+  const handleAction = useCallback((action) => {
     switch (action.type){
       case "user":
           setUser({
@@ -87,7 +87,7 @@ const App = () => {
         break
         default:
     }
-  }
+  }, [currentHashtag.text, currentUser])
   
   const handleSearchUser = (searchString) => {
     const searchTerm = "@" + searchString
@@ -167,7 +167,7 @@ const App = () => {
       handleAction({type: "user", data: results.node})
       handleAction({type: "stats", data: results.stats})
     });
-  }, [])
+  }, [handleAction])
 
   useEffect(() => {
     socket.on("connect", ()=>{
@@ -199,7 +199,7 @@ const App = () => {
   
     return () => socket.disconnect();
 
-  }, []);
+  }, [handleAction]);
 
   return (
     <User user={currentUser} stats={status} handleChange={handleUserChange} handleSearchUser={handleSearchUser}/>

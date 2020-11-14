@@ -253,33 +253,10 @@ const User = (props) => {
   return (
     <div className={classes.root}>
       <Container component="main">
-        {/* <AppBar  className={classes.appBar} position="static">
-          <Toolbar>
-            <Typography className={classes.title} color="primary">
-               user
-            </Typography>
-            <div className={classes.search}>
-              <div className={classes.searchIcon}>
-                <SearchIcon color="primary"/>
-              </div>
-              <InputBase
-                placeholder="search…"
-                classes={{
-                  root: classes.inputRoot,
-                  input: classes.inputInput,
-                }}
-                inputProps={{ 'aria-label': 'search' }}
-                value={userSearch}
-                onKeyPress={handleKeyPress}
-                onChange={handleChangeSearch}
-              />
-            </div>
-            <Button color="inherit">Login</Button>
-          </Toolbar>
-        </AppBar> */}
         <AppBar  className={classes.appBar} position="static">
           <Toolbar>
-            <Button variant="contained" color="primary" onClick={props.handleChange} name="mismatch" className={classes.buttonMismatch}>MISMATCH {props.stats.user.mismatched}</Button>
+            <Button 
+              variant="contained" color="primary" onClick={props.handleChange} name="mismatch" className={classes.buttonMismatch}>MISMATCH {props.stats.user.mismatched}</Button>
 
             <ButtonGroup variant="contained" color="primary" size="small" aria-label="small button group">
               <Button onClick={props.handleChange} name="all" >TOTAL: {props.stats.user.uncategorized.all}</Button>

@@ -8604,30 +8604,30 @@ function initAppRouting(callback) {
     });
   });
   
-  const categorizeHtml = path.join(__dirname, "/categorizer/build/index.html");
+  const categorizerHtml = path.join(__dirname, "/categorizer/build/index.html");
 
-  app.get("/categorize", async function requestCategorize(req, res) {
+  app.get("/categorizer", async function requestCategorizer(req, res) {
 
-    console.log(chalkLog(MODULE_ID + " | R< CATEGORIZE"));
+    console.log(chalkLog(MODULE_ID + " | R< CATEGORIZER"));
 
-    res.sendFile(categorizeHtml, function responseSession(err) {
+    res.sendFile(categorizeHtml, function responseCategorizer(err) {
       if (err) {
         console.log(
           chalkError(
             MODULE_ID +
-              " | GET /categorize ERROR:" +
+              " | GET /categorizer ERROR:" +
               " | " +
               getTimeStamp() +
               " | " +
               req.url +
               " | " +
-              categorizeHtml +
+              categorizerHtml +
               " | " +
               err
           )
         );
       } else {
-        console.log(chalkAlert(MODULE_ID + " | SENT:", categorizeHtml));
+        console.log(chalkAlert(MODULE_ID + " | SENT:", categorizerHtml));
       }
     });
 

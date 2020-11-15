@@ -36,60 +36,39 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableRow from '@material-ui/core/TableRow';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
-// import { fade, makeStyles } from '@material-ui/core/styles';
 import { makeStyles } from '@material-ui/core/styles';
+import { TableHead } from '@material-ui/core';
 
 const useStyles = makeStyles((theme) => ({
-  // root: {
-  //   maxWidth: 400,
-  // },
   root: {
     flexGrow: 2,
   },
   grid: {
     display: 'flex',
-    // flexDirection: 'row',
-    // flexGrow: 2,
-    // flexFlow: 'wrap',
-    // alignItems: 'center',
-    // alignItems: 'stretch',
-    // margin: 'auto',
-  },  
+  },
   gridItem: {
-    // backgroundColor: 'lightgray',
     margin: 5,
-    // padding: 2,
-    // backgroundColor: 'red',
   },  
-  // paper: {
-  //   alignItems: 'left',
-  // },
   card: {
     raised: false,
-    // border: 10,
-    // backgroundColor: 'lightgray',
     maxWidth: 300,
   },
   profileImage: {
-    // width: 200,
     height: 300,
-    // margin: 8,
-    // padding: -10,
   },
   bannerImage: {
-    // width: 200,
     height: 80,
-    // margin: 8,
-    // padding: 10,
   },
   table: {
-    // width: 300,
   },
   tableRowGreen: {
     backgroundColor: 'lightgreen',
-    // width: 300,
   },
   appBar: {
+    backgroundColor: 'white',
+    margin: 2,
+  },
+  statusBar: {
     backgroundColor: 'white',
     margin: 2,
   },
@@ -102,10 +81,8 @@ const useStyles = makeStyles((theme) => ({
   search: {
     position: 'relative',
     borderRadius: theme.shape.borderRadius,
-    // backgroundColor: fade(theme.palette.common.black, 0.15),
     backgroundColor: "white",
     '&:hover': {
-      // backgroundColor: fade(theme.palette.common.black, 0.15),
       backgroundColor: "lightgray",
     },
     marginRight: theme.spacing(2),
@@ -130,7 +107,6 @@ const useStyles = makeStyles((theme) => ({
   },
   inputInput: {
     padding: theme.spacing(1, 1, 1, 0),
-    // vertical padding + font size from searchIcon
     paddingLeft: `calc(1em + ${theme.spacing(4)}px)`,
     transition: theme.transitions.create('width'),
     width: '100%',
@@ -152,30 +128,22 @@ const useStyles = makeStyles((theme) => ({
     color: 'red',
   },
   buttonMismatch: {
-    // color: 'black',
     margin: 5
   },
 
   left: {
-    // padding: 5,
     color: 'white',
     backgroundColor: 'blue',
   },
   neutral: {
-    // margin: 5,
-    // padding: 5,
     color: 'white',
     backgroundColor: 'gray',
   },
   right: {
-    // margin: 5,
-    // padding: 5,
     color: 'white',
     backgroundColor: 'red',
   },
   none: {
-    // margin: 5,
-    // padding: 5,
     color: 'black',
     backgroundColor: 'white',
   },
@@ -241,18 +209,18 @@ const User = (props) => {
 
   return (
     <div className={classes.root}>
-      <Container component="main">
+      <Container component="main" maxWidth={false}>
         <AppBar  className={classes.appBar} position="static">
           <Toolbar>
-            <Button 
-              variant="contained" color="primary" onClick={props.handleUserChange} name="mismatch" className={classes.buttonMismatch}>MISMATCH {props.stats.user.mismatched}
-            </Button>
             <ButtonGroup variant="contained" color="primary" size="small" aria-label="small button group">
               <Button onClick={props.handleUserChange} name="all" >TOTAL: {props.stats.user.uncategorized.all}</Button>
               <Button onClick={props.handleUserChange} name="left" >LEFT: {props.stats.user.uncategorized.left}</Button>
               <Button onClick={props.handleUserChange} name="neutral" >NEUTRAL: {props.stats.user.uncategorized.neutral}</Button>
               <Button onClick={props.handleUserChange} name="right" >RIGHT: {props.stats.user.uncategorized.right}</Button>
           </ButtonGroup>
+            <Button 
+              variant="contained" color="primary" size="small" onClick={props.handleUserChange} name="mismatch" className={classes.buttonMismatch}>MISMATCH {props.stats.user.mismatched}
+            </Button>
             <div className={classes.search}>
               <div className={classes.searchIcon}>
                 <SearchIcon color="primary"/>
@@ -304,7 +272,7 @@ const User = (props) => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item className={classes.gridItem} xs={4}>
+          <Grid item className={classes.gridItem} xs={3}>
             <Timeline
               dataSource={{
                 sourceType: 'profile',
@@ -351,6 +319,36 @@ const User = (props) => {
                   </TableRow>
                   <TableRow>
                     <TableCell>mentions/min</TableCell><TableCell align="right">{props.user.rate ? props.user.rate.toFixed(1) : 0}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Grid>
+          <Grid item className={classes.gridItem} xs={2}>
+            <TableContainer>
+              <Table className={classes.table} size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>CAT</TableCell>
+                    <TableCell align="left">MAN</TableCell>
+                    <TableCell align="left">AUTO</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>left</TableCell>
+                    <TableCell align="right">{props.stats.user.manual.left}</TableCell>
+                    <TableCell align="right">{props.stats.user.auto.left}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>neutral</TableCell>
+                    <TableCell align="right">{props.stats.user.manual.neutral}</TableCell>
+                    <TableCell align="right">{props.stats.user.auto.neutral}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>right</TableCell>
+                    <TableCell align="right">{props.stats.user.manual.right}</TableCell>
+                    <TableCell align="right">{props.stats.user.auto.right}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>

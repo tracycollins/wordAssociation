@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Timeline } from 'react-twitter-widgets'
 
 import Duration from 'duration';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
@@ -242,12 +243,24 @@ const User = (props) => {
         <Grid className={classes.grid}>
           <Grid item className={classes.gridItem} xs={3}>
             <Card className={classes.card} variant="outlined">
-              <CardHeader
+              <CardContent
+                onClick={openUserTwitterPage}
+              >
+                <Typography
+                  variant="h6"
+                >
+                  {props.user.name}
+                </Typography>
+                <Typography>
+                  @{props.user.screenName}
+                </Typography>
+              </CardContent>
+              {/* <CardHeader
                 onClick={openUserTwitterPage}
                 title={`${props.user.name}`}
                 subheader={`@${props.user.screenName}`}
               >
-              </CardHeader>
+              </CardHeader> */}
               <CardMedia
                 className={classes.profileImage}
                 // image={props.user.profileImageUrl}
@@ -279,7 +292,7 @@ const User = (props) => {
                 screenName: props.user.screenName
               }}
               options={{
-                height: '540'
+                height: '640'
               }}
             />
           </Grid>

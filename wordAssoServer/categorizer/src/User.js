@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useHotkeys } from 'react-hotkeys-hook';
+// import { useHotkeys } from 'react-hotkeys-hook';
 import { Timeline } from 'react-twitter-widgets'
 
 import Duration from 'duration';
@@ -219,14 +219,18 @@ const User = (props) => {
     props.handleUserChange(event)
   }
 
-  useHotkeys('L', props.handleUserChange)
-  useHotkeys('ctrl+L', props.handleUserChange)
+  // useHotkeys('right', props.handleUserChange) // next uncat any
+  // useHotkeys('left', props.handleUserChange) // prev uncat any
 
-  useHotkeys('R', props.handleUserChange)
-  useHotkeys('ctrl+R', props.handleUserChange)
+  // useHotkeys('L', props.handleUserChange)
+  // // useHotkeys('ctrl+L', props.handleUserChange)
+  // useHotkeys('ctrl+L', () => props.handleUserChange)
 
-  useHotkeys('N', props.handleUserChange)
-  useHotkeys('ctrl+N', props.handleUserChange)
+  // useHotkeys('R', props.handleUserChange)
+  // useHotkeys('ctrl+R', props.handleUserChange)
+
+  // useHotkeys('N', props.handleUserChange)
+  // useHotkeys('ctrl+N', props.handleUserChange)
 
   const handleChangeSearch = (event) => {
     console.log("handleChangeSearch: " + event.target.value)
@@ -302,10 +306,21 @@ const User = (props) => {
               </CardHeader>
               <CardMedia
                 className={classes.profileImage}
-                image={props.user.profileImageUrl || defaultProfileImage}
+                // image={props.user.profileImageUrl}
+                src={props.user.profileImageUrl || defaultProfileImage}
+                component="img"
+                onError={e => {
+                }}              
               />
               <br></br>
-              <CardMedia className={classes.bannerImage} image={props.user.bannerImageUrl || defaultBannerImage} />
+              <CardMedia 
+                className={classes.bannerImage} 
+                // image={props.user.bannerImageUrl || defaultBannerImage}
+                src={props.user.bannerImageUrl || defaultBannerImage} 
+                component="img"
+                onError={e => {
+                }}              
+              />
               <CardContent>
                 <Typography>
                   {props.user.description}

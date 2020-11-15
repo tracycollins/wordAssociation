@@ -301,6 +301,9 @@ const User = (props) => {
               <Table className={classes.table} size="small">
                 <TableBody>
                   <TableRow>
+                    <TableCell>id</TableCell><TableCell align="right">{props.user.nodeId}</TableCell>
+                  </TableRow>
+                  <TableRow>
                     <TableCell>location</TableCell><TableCell align="right">{props.user.location}</TableCell>
                   </TableRow>
                   <TableRow>

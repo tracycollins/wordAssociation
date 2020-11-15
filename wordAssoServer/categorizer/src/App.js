@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 import socketClient from "socket.io-client";
 import './App.css';
 import User from './User.js';
@@ -10,6 +11,8 @@ const statsObj = {};
 statsObj.viewerReadyTransmitted = false;
 
 const socket = socketClient(ENDPOINT);
+const twitterFeedPreviousUserArray = [];
+
 
 const App = () => {
 
@@ -70,31 +73,37 @@ const App = () => {
   }
 
   const [status, setStatus] = useState(defaultStatus);
-  const [currentUser, setUser] = useState(defaultUser);
+  const [currentUser, setCurrentUser] = useState(defaultUser);
+  const [previousUser, setPreviousUser] = useState({nodeId: false});
   const [currentHashtag, setHashtag] = useState(defaultHashtag);
 
   const handleAction = useCallback((action) => {
     switch (action.type){
       case "user":
-          setUser({
-            ...currentUser,
-            ...action.data,
-          })
-          console.log("USER: @" + currentUser.screenName + " | " + currentUser.profileImageUrl)
+          setCurrentUser(action.data)
+
+          if (previousUser.nodeId 
+            && (currentUser.nodeId !== previousUser.nodeId) 
+            && !twitterFeedPreviousUserArray.includes(previousUser.nodeId)
+          ){
+            twitterFeedPreviousUserArray.push(previousUser.nodeId);
+          }
+          if (previousUser.nodeId !== currentUser.nodeId){
+            setPreviousUser(currentUser);
+          }
+
+          console.log("USER: @" + action.data.screenName + " | " + action.data.profileImageUrl)
         break
       case "hashtag":
           setHashtag({})
           console.log("HT: #" + currentHashtag.text)
         break
       case "stats":
-          setStatus({
-            ...status,
-            ...action.data,
-          })
+          setStatus(action.data)
         break
         default:
     }
-  }, [currentHashtag.text, currentUser, status])
+  }, [currentHashtag.text, currentUser, previousUser])
   
   const handleSearchUser = (searchString) => {
     const searchTerm = "@" + searchString
@@ -103,10 +112,14 @@ const App = () => {
 
   const handleUserChange = useCallback((event) => {
 
-    console.log(typeof event)
+    console.log("handleUserChange | currentUser: @" + currentUser.screenName)
 
     if (event.persist !== undefined) { 
       event.persist() 
+    }
+
+    if (event.preventDefault !== undefined) { 
+      event.preventDefault() 
     }
 
     let eventName = event.currentTarget.name;
@@ -115,6 +128,12 @@ const App = () => {
 
     if (event.currentTarget.name === undefined && event.code){
       switch (event.code){
+        case "ArrowRight":
+          eventName = "all"
+          break;
+        case "ArrowLeft":
+          eventName = "all"
+          break;
         case "KeyL":
           if (event.ctrlKey){
             eventName = "category"
@@ -216,8 +235,8 @@ const App = () => {
     socket.on("SET_TWITTER_USER", (results) => {
       console.debug("RX SET_TWITTER_USER");
       console.debug(results);
-      handleAction({type: "user", data: results.node})
-      handleAction({type: "stats", data: results.stats})
+      setCurrentUser(results.node)
+      setStatus(results.stats)
     });
   }, [])
 
@@ -225,8 +244,35 @@ const App = () => {
     socket.on("action", (action) => {
       console.debug("RX ACTION | " + socket.id + " | TYPE: " + action.type);
       console.debug("RX ACTION | ", action.data);
-      handleAction(action)
-    });    
+
+      switch (action.type){
+        case "user":
+            setCurrentUser(action.data)
+
+            if (previousUser.nodeId 
+              && (currentUser.nodeId !== previousUser.nodeId) 
+              && !twitterFeedPreviousUserArray.includes(previousUser.nodeId)
+            ){
+              twitterFeedPreviousUserArray.push(previousUser.nodeId);
+            }
+            if (previousUser.nodeId !== currentUser.nodeId){
+              setPreviousUser(currentUser);
+            }
+
+            console.log("USER: @" + action.data.screenName + " | " + action.data.profileImageUrl)
+          break
+        case "hashtag":
+            setHashtag({})
+            console.log("HT: #" + currentHashtag.text)
+          break
+        case "stats":
+            setStatus(action.data)
+          break
+          default:
+      }
+
+    });   
+     
   }, [])
 
   useEffect(() => {
@@ -253,6 +299,17 @@ const App = () => {
     });
   }, []);
 
+  useHotkeys('right', handleUserChange) // next uncat any
+  useHotkeys('left', handleUserChange) // prev uncat any
+
+  useHotkeys('L', handleUserChange)
+  useHotkeys('ctrl+L', (event) => handleUserChange(event), {}, [currentUser])
+
+  useHotkeys('R', handleUserChange)
+  useHotkeys('ctrl+R', (event) => handleUserChange(event), {}, [currentUser])
+
+  useHotkeys('N', handleUserChange)
+  useHotkeys('ctrl+N', (event) => handleUserChange(event), {}, [currentUser])
 
   return (
     <User user={currentUser} stats={status} handleUserChange={handleUserChange} handleSearchUser={handleSearchUser}/>

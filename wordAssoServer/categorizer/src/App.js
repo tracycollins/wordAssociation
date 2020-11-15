@@ -27,6 +27,16 @@ const App = () => {
         right: 0,
         all: 0,
         mismatched: 0
+      },
+      manual: {
+        left: 0,
+        neutral: 0,
+        right: 0,
+      },
+      auto: {
+        left: 0,
+        neutral: 0,
+        right: 0,
       }
     }
   }
@@ -76,34 +86,6 @@ const App = () => {
   const [currentUser, setCurrentUser] = useState(defaultUser);
   const [previousUser, setPreviousUser] = useState({nodeId: false});
   const [currentHashtag, setHashtag] = useState(defaultHashtag);
-
-  const handleAction = useCallback((action) => {
-    switch (action.type){
-      case "user":
-          setCurrentUser(action.data)
-
-          if (previousUser.nodeId 
-            && (currentUser.nodeId !== previousUser.nodeId) 
-            && !twitterFeedPreviousUserArray.includes(previousUser.nodeId)
-          ){
-            twitterFeedPreviousUserArray.push(previousUser.nodeId);
-          }
-          if (previousUser.nodeId !== currentUser.nodeId){
-            setPreviousUser(currentUser);
-          }
-
-          console.log("USER: @" + action.data.screenName + " | " + action.data.profileImageUrl)
-        break
-      case "hashtag":
-          setHashtag({})
-          console.log("HT: #" + currentHashtag.text)
-        break
-      case "stats":
-          setStatus(action.data)
-        break
-        default:
-    }
-  }, [currentHashtag.text, currentUser, previousUser])
   
   const handleSearchUser = (searchString) => {
     const searchTerm = "@" + searchString
@@ -112,7 +94,7 @@ const App = () => {
 
   const handleUserChange = useCallback((event) => {
 
-    console.log("handleUserChange | currentUser: @" + currentUser.screenName)
+    // console.log("handleUserChange | currentUser: @" + currentUser.screenName)
 
     if (event.persist !== undefined) { 
       event.persist() 
@@ -161,11 +143,29 @@ const App = () => {
             eventName = "right"
           }
           break;
+        case "KeyI":
+          if (event.ctrlKey){
+            eventName = "ignored"
+            eventChecked = !currentUser.ignored
+          }
+          break;
+        case "KeyV":
+          if (event.ctrlKey){
+            eventName = "catVerified"
+            eventChecked = !currentUser.categoryVerified
+          }
+          break;
+        case "KeyB":
+          if (event.ctrlKey){
+            eventName = "isBot"
+            eventChecked = !currentUser.isBot
+          }
+          break;
         default:
       }
     }
 
-    console.log("handleUserChange: name: " + eventName + " | value: " + eventValue)
+    console.log("handleUserChange | @" + currentUser.screenName + " | name: " + eventName + " | value: " + eventValue)
 
     let searchFilter = "@?";
 
@@ -181,7 +181,6 @@ const App = () => {
         socket.emit("TWITTER_SEARCH_NODE", "@?mm");
         break
       case "category":
-        console.log("handleUserChange: " + eventName + " | " + eventValue + " | " + eventChecked)
         socket.emit("TWITTER_CATEGORIZE_NODE", {
           category: eventValue,
           following: true,
@@ -189,7 +188,6 @@ const App = () => {
         });
         break
       case "isBot":
-        console.log("handleUserChange: " + eventName + " | " + eventChecked)
         if (eventChecked){
           socket.emit("TWITTER_BOT", currentUser);
         }
@@ -198,7 +196,6 @@ const App = () => {
         }
         break
       case "following":
-        console.log("handleUserChange: " + eventName + " | " + eventChecked)
         if (eventChecked){
           socket.emit("TWITTER_FOLLOW", currentUser);
         }
@@ -207,7 +204,6 @@ const App = () => {
         }
         break
       case "catVerified":
-        console.log("handleUserChange: " + eventName + " | " + eventChecked)
         if (eventChecked){
           socket.emit("TWITTER_CATEGORY_VERIFIED", currentUser);
         }
@@ -216,7 +212,6 @@ const App = () => {
         }
         break
       case "ignored":
-        console.log("handleUserChange: " + eventName + " | " + eventChecked)
         if (eventChecked){
           socket.emit("TWITTER_IGNORE", currentUser);
         }
@@ -310,6 +305,10 @@ const App = () => {
 
   useHotkeys('N', handleUserChange)
   useHotkeys('ctrl+N', (event) => handleUserChange(event), {}, [currentUser])
+
+  useHotkeys('ctrl+I', (event) => handleUserChange(event), {}, [currentUser])
+  useHotkeys('ctrl+B', (event) => handleUserChange(event), {}, [currentUser])
+  useHotkeys('ctrl+V', (event) => handleUserChange(event), {}, [currentUser])
 
   return (
     <User user={currentUser} stats={status} handleUserChange={handleUserChange} handleSearchUser={handleSearchUser}/>

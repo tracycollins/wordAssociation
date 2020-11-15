@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-// import { useHotkeys } from 'react-hotkeys-hook';
 import { Timeline } from 'react-twitter-widgets'
 
 import Duration from 'duration';
@@ -211,26 +210,6 @@ const User = (props) => {
   const tweetRate = twitterAge.days > 0 ? Math.ceil(props.user.statusesCount/twitterAge.days) : 0;
 
   const [userSearch, setUserSearch] = useState("");
-  const [hotKey, setHotKey] = useState("---");
-
-  const handleHotKey = (event) => {
-    event.preventDefault();
-    setHotKey(event.key.toUpperCase())
-    props.handleUserChange(event)
-  }
-
-  // useHotkeys('right', props.handleUserChange) // next uncat any
-  // useHotkeys('left', props.handleUserChange) // prev uncat any
-
-  // useHotkeys('L', props.handleUserChange)
-  // // useHotkeys('ctrl+L', props.handleUserChange)
-  // useHotkeys('ctrl+L', () => props.handleUserChange)
-
-  // useHotkeys('R', props.handleUserChange)
-  // useHotkeys('ctrl+R', props.handleUserChange)
-
-  // useHotkeys('N', props.handleUserChange)
-  // useHotkeys('ctrl+N', props.handleUserChange)
 
   const handleChangeSearch = (event) => {
     console.log("handleChangeSearch: " + event.target.value)
@@ -290,9 +269,6 @@ const User = (props) => {
                 onChange={handleChangeSearch}
               />
             </div>
-            <Typography color="primary">
-              HOTKEY: {hotKey}
-            </Typography>
           </Toolbar>
         </AppBar>
         <Grid className={classes.grid}>

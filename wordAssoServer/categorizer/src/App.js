@@ -230,13 +230,14 @@ const App = () => {
     if (node === undefined) return false
     if (node.nodeId === undefined) return false
     if (node.screenName === undefined) return false
+    return true
   }
   
   useEffect(() => {
     socket.on("SET_TWITTER_USER", (results) => {
       console.debug("RX SET_TWITTER_USER");
       console.debug(results);
-      if (nodeValid) { setCurrentUser(results.node) }
+      if (nodeValid(results.node)) { setCurrentUser(results.node) }
       setStatus(results.stats)
     });
   }, [])

@@ -117,7 +117,7 @@ const App = () => {
           eventName = "all"
           break;
         case "KeyL":
-          if (event.ctrlKey){
+          if (event.shiftKey){
             eventName = "category"
             eventValue = "left"
           }
@@ -126,7 +126,7 @@ const App = () => {
           }
           break;
         case "KeyN":
-          if (event.ctrlKey){
+          if (event.shiftKey){
             eventName = "category"
             eventValue = "neutral"
           }
@@ -135,7 +135,7 @@ const App = () => {
           }
           break;
         case "KeyR":
-          if (event.ctrlKey){
+          if (event.shiftKey){
             eventName = "category"
             eventValue = "right"
           }
@@ -144,19 +144,19 @@ const App = () => {
           }
           break;
         case "KeyI":
-          if (event.ctrlKey){
+          if (event.shiftKey){
             eventName = "ignored"
             eventChecked = !currentUser.ignored
           }
           break;
         case "KeyV":
-          if (event.ctrlKey){
+          if (event.shiftKey){
             eventName = "catVerified"
             eventChecked = !currentUser.categoryVerified
           }
           break;
         case "KeyB":
-          if (event.ctrlKey){
+          if (event.shiftKey){
             eventName = "isBot"
             eventChecked = !currentUser.isBot
           }
@@ -225,12 +225,18 @@ const App = () => {
     }
     
   }, [currentUser])
+
+  const nodeValid = (node) => {
+    if (node === undefined) return false
+    if (node.nodeId === undefined) return false
+    if (node.screenName === undefined) return false
+  }
   
   useEffect(() => {
     socket.on("SET_TWITTER_USER", (results) => {
       console.debug("RX SET_TWITTER_USER");
       console.debug(results);
-      setCurrentUser(results.node)
+      if (nodeValid) { setCurrentUser(results.node) }
       setStatus(results.stats)
     });
   }, [])
@@ -298,17 +304,17 @@ const App = () => {
   useHotkeys('left', handleUserChange) // prev uncat any
 
   useHotkeys('L', handleUserChange)
-  useHotkeys('ctrl+L', (event) => handleUserChange(event), {}, [currentUser])
+  useHotkeys('shift+L', (event) => handleUserChange(event), {}, [currentUser])
 
   useHotkeys('R', handleUserChange)
-  useHotkeys('ctrl+R', (event) => handleUserChange(event), {}, [currentUser])
+  useHotkeys('shift+R', (event) => handleUserChange(event), {}, [currentUser])
 
   useHotkeys('N', handleUserChange)
-  useHotkeys('ctrl+N', (event) => handleUserChange(event), {}, [currentUser])
+  useHotkeys('shift+N', (event) => handleUserChange(event), {}, [currentUser])
 
-  useHotkeys('ctrl+I', (event) => handleUserChange(event), {}, [currentUser])
-  useHotkeys('ctrl+B', (event) => handleUserChange(event), {}, [currentUser])
-  useHotkeys('ctrl+V', (event) => handleUserChange(event), {}, [currentUser])
+  useHotkeys('shift+I', (event) => handleUserChange(event), {}, [currentUser])
+  useHotkeys('shift+B', (event) => handleUserChange(event), {}, [currentUser])
+  useHotkeys('shift+V', (event) => handleUserChange(event), {}, [currentUser])
 
   return (
     <User user={currentUser} stats={status} handleUserChange={handleUserChange} handleSearchUser={handleSearchUser}/>
